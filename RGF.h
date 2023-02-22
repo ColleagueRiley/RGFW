@@ -1,3 +1,30 @@
+/*
+* Copyright (C) 2023 ColeagueRiley
+*
+* This software is provided 'as-is', without any express or implied
+* warranty.  In no event will the authors be held liable for any damages
+* arising from the use of this software.
+*
+* Permission is granted to anyone to use this software for any purpose,
+* including commercial applications, and to alter it and redistribute it
+* freely, subject to the following restrictions:
+*
+* 1. The origin of this software must not be misrepresented; you must not
+*    claim that you wrote the original software. If you use this software
+*    in a product, an acknowledgment in the product documentation would be
+*    appreciated but is not required.
+* 2. Altered source versions must be plainly marked as such, and must not be
+*    misrepresented as being the original software.
+* 3. This notice may not be removed or altered from any source distribution.
+*
+*
+*/
+
+/*
+	Credits : 
+		EimaMei/Sacode : Code for creating windows using winapi (labled in code)
+*/
+
 #define RGF_TRANSPARENT_WINDOW		(1L<<0)
 #define RGF_NO_BOARDER		(1L<<1)
 #define RGF_NO_RESIZE		(1L<<1)
@@ -282,8 +309,7 @@ int RGF_isPressedS(RGF_window* w, char* key){ return RGF_isPressedI(w, XStringTo
 
 
 RGF_window RGF_createWindow(char* name, int x, int y, int w, int h, unsigned long args){
-	RGF_window nWin;
-	
+	RGF_window nWin;	
 	nWin.srcName = nWin.name = name;
 
 	nWin.srcX = nWin.x = x;
@@ -293,6 +319,12 @@ RGF_window RGF_createWindow(char* name, int x, int y, int w, int h, unsigned lon
 
 	nWin.srcName = nWin.name = name;	
 	
+	/*
+		Window creating code source and edited from EimaMei/Sacode's gamma-bloke project
+
+		https://github.com/EimaMei/gamma-bloke
+	*/
+
 	HINSTANCE inh = GetModuleHandle(NULL);
 
 	WNDCLASSA Class = {0}; /* Setup the Window class. */
@@ -316,14 +348,13 @@ RGF_window RGF_createWindow(char* name, int x, int y, int w, int h, unsigned lon
 	pfd.cDepthBits = 24;
 	pfd.cStencilBits = 8;
 
-    int format = ChoosePixelFormat(nWin.window, &pfd); /* More OpenGL shenanigans. */
+    int format = ChoosePixelFormat(nWin.window, &pfd);
 	SetPixelFormat(nWin.window, format, &pfd);
 	nWin.glWin = wglCreateContext(nWin.window);
 	wglMakeCurrent((HWND)nWin.display, (HGLRC)nWin.glWin);
 
 	ShowWindow(nWin.display, SW_SHOWNORMAL);
 	UpdateWindow(nWin.display);
-
 	return nWin;
 }
 
@@ -394,10 +425,8 @@ RGF_Event RGF_checkEvents(RGF_window* win){
 				win->event.type = RGF_dnd;
 				break;
 			case WM_EXITSIZEMOVE:
-				printf("size\n");
 				break;
 			case WM_WINDOWPOSCHANGED:
-				printf("move\n");
 				break;
 			default: break;
 		}
@@ -410,10 +439,9 @@ RGF_Event RGF_checkEvents(RGF_window* win){
 }
 
 void RGF_closeWindow(RGF_window* win) {
-	wglMakeCurrent(NULL, NULL);
-	wglDeleteContext((HGLRC)win->glWin);
-	DestroyWindow(win->display);
-	DeleteDC(win->window);
+	wglDeleteContext((HGLRC)win->glWin); // delete opengl context
+	DeleteDC(win->window); // delete window
+	DestroyWindow(win->display); // delete display
 }
 #endif
 
