@@ -22,7 +22,7 @@
 
 /*
 	Credits : 
-		EimaMei/Sacode : Code for creating windows using winapi (labled in code)
+		EimaMei/Sacode : Much of the code for creating windows using winapi (labled in code)
 */
 
 #define RGF_TRANSPARENT_WINDOW		(1L<<0)
@@ -51,7 +51,7 @@ typedef struct RGF_Event {
     int ledState; /*!< 0 : numlock, 1 : caps lock, 3 : small lock*/
     
     int keyCode; /* keycode of event*/
-    char* keyName; /* key name of event*/
+    char keyName[16]; /* key name of event*/
 
     char** droppedFiles; /*!< dropped files*/
 } RGF_Event;
@@ -307,23 +307,17 @@ int RGF_isPressedS(RGF_window* w, char* key){ return RGF_isPressedI(w, XStringTo
 #define GL_LEFT					0x0406
 #define GL_RIGHT				0x0407
 
-
 RGF_window RGF_createWindow(char* name, int x, int y, int w, int h, unsigned long args){
-	RGF_window nWin;	
-	nWin.srcName = nWin.name = name;
+    RGF_window nWin;
+    int         pf;
+	WNDCLASS    wc;
 
-	nWin.srcX = nWin.x = x;
-	nWin.srcY = nWin.y = y;
-	nWin.srcW = nWin.w = w;
-	nWin.srcH = nWin.h = h;
+	nWin.srcX = nWin.x = x;	
+	nWin.srcY = nWin.y = y;	
+	nWin.srcW = nWin.w = w;	
+	nWin.srcH = nWin.h = h;	
 
 	nWin.srcName = nWin.name = name;	
-	
-	/*
-		Window creating code source and edited from EimaMei/Sacode's gamma-bloke project
-
-		https://github.com/EimaMei/gamma-bloke
-	*/
 
 	HINSTANCE inh = GetModuleHandle(NULL);
 
@@ -334,29 +328,55 @@ RGF_window RGF_createWindow(char* name, int x, int y, int w, int h, unsigned lon
 	Class.lpfnWndProc = DefWindowProc;
 	RegisterClassA(&Class);
 
-	DWORD window_style = WS_CAPTION | WS_SYSMENU | WS_BORDER | WS_SIZEBOX | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
+	RegisterClass(&wc);
 
-	nWin.display = CreateWindowA(name, name, window_style, x, y, w, h, NULL, NULL, inh, NULL);
-	nWin.window = GetDC(nWin.display);
+	DWORD window_style = WS_MAXIMIZEBOX | WS_MINIMIZEBOX | window_style;
+	
+	if (!(RGF_NO_BOARDER & args))
+		window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER;
+	else 
+		window_style |= WS_POPUP | WS_VISIBLE;
 
-	PIXELFORMATDESCRIPTOR pfd = {0}; /* Setup OpenGL. */
-	pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+	if (!(RGF_NO_RESIZE & args))
+		window_style |= WS_SIZEBOX;
+	if (RGF_TRANSPARENT_WINDOW & args)	
+		SetWindowLong(nWin.display, GWL_EXSTYLE, GetWindowLong(nWin.display, GWL_EXSTYLE) | WS_EX_LAYERED);
+
+    nWin.display = CreateWindowA(name, name, window_style, x, y, w, h, NULL, NULL, inh, NULL);
+
+
+    nWin.window = GetDC(nWin.display);
+
+    /* there is no guarantee that the contents of the stack that become
+       the pfd are zeroed, therefore _make sure_ to clear these bits. */
+    PIXELFORMATDESCRIPTOR pfd = {0}; /* Setup OpenGL. */
+    memset(&pfd, 0, sizeof(pfd));
+    pfd.nSize        = sizeof(pfd);
 	pfd.nVersion = 1;
 	pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
 	pfd.iPixelType = PFD_TYPE_RGBA;
 	pfd.cColorBits = 32;
 	pfd.cDepthBits = 24;
 	pfd.cStencilBits = 8;
+    
+    pf = ChoosePixelFormat(nWin.window, &pfd);
+ 
+    SetPixelFormat(nWin.window, pf, &pfd);
 
-    int format = ChoosePixelFormat(nWin.window, &pfd);
-	SetPixelFormat(nWin.window, format, &pfd);
-	nWin.glWin = wglCreateContext(nWin.window);
-	wglMakeCurrent((HWND)nWin.display, (HGLRC)nWin.glWin);
+    DescribePixelFormat(nWin.window, pf, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
 
-	ShowWindow(nWin.display, SW_SHOWNORMAL);
-	UpdateWindow(nWin.display);
-	return nWin;
-}
+	if (RGF_TRANSPARENT_WINDOW & args)	
+		SetWindowLong(nWin.display, GWL_EXSTYLE, GetWindowLong(nWin.display, GWL_EXSTYLE) | WS_EX_LAYERED);
+
+    ReleaseDC(nWin.window, nWin.display);
+
+    nWin.window = GetDC(nWin.display);
+    nWin.glWin = wglCreateContext(nWin.window);
+    wglMakeCurrent(nWin.window, nWin.glWin);
+    ShowWindow(nWin.display, SW_SHOWNORMAL);
+
+    return nWin;
+}    
 
 RGF_Event RGF_checkEvents(RGF_window* win){
 	MSG msg = {};
@@ -372,11 +392,13 @@ RGF_Event RGF_checkEvents(RGF_window* win){
 			
 			case WM_KEYUP:
 				win->event.keyCode = msg.wParam;
+				GetKeyNameTextA(msg.lParam, win->event.keyName, 16);
 				win->event.type = RGF_keyReleased;
 				break;
 			
 			case WM_KEYDOWN:
 				win->event.keyCode = msg.wParam;
+				GetKeyNameTextA(msg.lParam, win->event.keyName, 16);
 				win->event.type = RGF_keyPressed;
 				break;
 			
@@ -424,10 +446,6 @@ RGF_Event RGF_checkEvents(RGF_window* win){
 			case WM_DROPFILES:
 				win->event.type = RGF_dnd;
 				break;
-			case WM_EXITSIZEMOVE:
-				break;
-			case WM_WINDOWPOSCHANGED:
-				break;
 			default: break;
 		}
 		
@@ -435,7 +453,72 @@ RGF_Event RGF_checkEvents(RGF_window* win){
 		DispatchMessage(&msg);
 	}
 
+	if ((win->srcX != win->x) || (win->srcY != win->y) || (win->srcW != win->w) || (win->srcH != win->h)){
+		SetWindowPos(win->display, win->display, win->x, win->y, win->w, win->h, NULL);
+		win->srcX = win->x;
+		win->srcY = win->y;
+		win->srcW = win->w;
+		win->srcH = win->h;
+	} else {
+		/* make sure the window attrubutes are up-to-date*/
+		RECT a;
+
+		if (GetWindowRect(win->display, &a)){
+			win->srcX = win->x = a.left;
+			win->srcY = win->y = a.top;
+			win->srcW = win->w = a.right - a.left;
+			win->srcH = win->h = a.bottom - a.top;
+		}
+	}
+
+	if (win->srcName != win->name){
+		SetWindowTextA(win->display, win->name);
+		win->srcName = win->name;
+	}
+
+	win->event.keyCode = 0;
+
+	if ((GetKeyState(VK_CAPITAL) & 0x0001)!=0)
+		win->event.keyCode |= 1;
+	if ((GetKeyState(VK_NUMLOCK) & 0x0001)!=0)
+		win->event.keyCode |= 2;
+	if ((GetKeyState(VK_SCROLL) & 0x0001)!=0)
+		win->event.keyCode |= 3;
+
+
+	if (!IsWindow(win->display))
+		win->event.type = RGF_quit;
+
 	return win->event;
+}
+
+int RGF_isPressedI(RGF_window* window, int key){
+	return (GetAsyncKeyState(key) & 0x8000);
+}
+
+int RGF_isPressedS(RGF_window* window, char* key){
+	int vKey = VkKeyScan(key[0]);
+
+	if (sizeof(key)/sizeof(char) > 1){
+		if (strcmp(key, "Super_L") == 0) vKey = VK_LWIN;
+		else if (strcmp(key, "Super_R") == 0) vKey = VK_RWIN;
+		else if (strcmp(key, "Space") == 0) vKey = VK_SPACE;
+		else if (strcmp(key, "Return") == 0) vKey = VK_RETURN;
+		else if (strcmp(key, "Caps_Lock") == 0) vKey = VK_CAPITAL;
+		else if (strcmp(key, "Tab") == 0) vKey = VK_TAB;
+		else if (strcmp(key, "Right") == 0) vKey = VK_RIGHT;
+		else if (strcmp(key, "Left") == 0) vKey = VK_LEFT;
+		else if (strcmp(key, "Up") == 0) vKey = VK_UP;
+		else if (strcmp(key, "Down") == 0) vKey = VK_DOWN;
+		else if (strcmp(key, "Shift") == 0) 
+			return RGF_isPressedI(window, VK_RSHIFT) || RGF_isPressedI(window, VK_LSHIFT);
+		else if (strcmp(key, "Shift") == 0) 
+			return RGF_isPressedI(window, VK_RMENU) || RGF_isPressedI(window, VK_LMENU);
+		else if (strcmp(key, "Control") == 0) 
+			return RGF_isPressedI(window, VK_RCONTROL) || RGF_isPressedI(window, VK_LCONTROL);
+	}
+
+	return RGF_isPressedI(window, vKey);
 }
 
 void RGF_closeWindow(RGF_window* win) {
@@ -443,6 +526,15 @@ void RGF_closeWindow(RGF_window* win) {
 	DeleteDC(win->window); // delete window
 	DestroyWindow(win->display); // delete display
 }
+
+#endif
+
+#ifdef APPLE
+
+RGF_window RGF_createWindow(char* name, int x, int y, int w, int h, unsigned long args){
+
+}
+
 #endif
 
 void RGF_setDrawBuffer(int buffer){
