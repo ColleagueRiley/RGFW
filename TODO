@@ -3,15 +3,6 @@
 - window icons
 
 (windows)
-- noBoarder window option
-- transparent window option
-- no resize window option
-- drawing
-- move window
-- resize window
-- get window size
-- get window pos
-- key pressed
 - drag 'n drop events
 - window icons
 
@@ -19,5 +10,6 @@
 
 - global key system
 
+- delete warnings
 - in file documentation
 - READEME documentation
