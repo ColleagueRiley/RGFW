@@ -1,5 +1,12 @@
 #define RGF_IMPLEMENTATION
 
+#ifdef _WIN32
+    #ifdef __linux
+        #warning __linux__ undefined to compile for windows 
+        #undef __linux__
+    #endif
+#endif
+
 #include "RGF.h"
 
 int main(){
