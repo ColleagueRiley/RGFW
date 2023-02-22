@@ -537,6 +537,12 @@ void RGFW_closeWindow(RGFW_window* win) {
 #ifdef APPLE
 
 RGFW_window RGFW_createWindow(char* name, int x, int y, int w, int h, unsigned long args){
+    RGFW_window nWin;
+
+	nWin.srcX = nWin.x = x;	
+	nWin.srcY = nWin.y = y;	
+	nWin.srcW = nWin.w = w;	
+	nWin.srcH = nWin.h = h;	
 
 }
 
