@@ -1,4 +1,4 @@
-# Riley's Gui library Framework
+# Riley's Gui library FrameWork
 
 This library is meant to be used as a very small and flexable alternative library to GLFW. 
 
