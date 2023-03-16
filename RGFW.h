@@ -21,8 +21,8 @@
 */
 
 /*
-	Credits : 
-		EimaMei/Sacode : Much of the code for creating windows using winapi (labled in code)
+	Credits :
+		EimaMei/Sacode : Much of the code for creating windows using winapi
 */
 
 #define RGFW_TRANSPARENT_WINDOW		(1L<<0)
@@ -43,15 +43,20 @@
 #define RGFW_mouseScrollUp  4 /*!< mouse wheel is scrolling up*/
 #define RGFW_mouseScrollDown  5 /*!< mouse wheel is scrolling down*/
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct RGFW_Event {
     int type; /*!< which event has been sent?*/
     int button; /*!< which mouse button has been clicked (0) left (1) middle (2) right*/
     int x, y;
 
     int ledState; /*!< 0 : numlock, 1 : caps lock, 3 : small lock*/
-    
+
     int keyCode; /* keycode of event*/
-    
+
 	#ifdef _WIN32
 	char keyName[16]; /* key name of event*/
 	#else
@@ -63,12 +68,12 @@ typedef struct RGFW_Event {
 
 typedef struct RGFW_window {
     void* display;
-    unsigned int window;
-    long unsigned int glWin;
-	
+    void* window;
+    void* glWin;
+
 	char* name; /* window's name*/
 	int x, y, w, h; /* window size, x, y*/
-	
+
 	int srcX, srcY, srcW, srcH;
 	char* srcName;
 
@@ -76,13 +81,17 @@ typedef struct RGFW_window {
 } RGFW_window;
 
 RGFW_window RGFW_createWindow(char* name, int x, int y, int w, int h, unsigned long args);
+RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args);
 RGFW_Event RGFW_checkEvents(RGFW_window* window);
-void RGFW_clear(RGFW_window* w, int r, int g, int b, int a);
 
 int RGFW_isPressedI(RGFW_window* window, int key);
 int RGFW_isPressedS(RGFW_window* window, char* key);
 
-void RGFW_closeWindow(RGFW_window* window); 
+void RGFW_closeWindow(RGFW_window* window);
+
+void RGFW_makeCurrent(RGFW_window* window);
+
+void RGFW_clear(RGFW_window* w, int r, int g, int b, int a);
 
 void RGFW_setDrawBuffer(int buffer);
 
@@ -92,42 +101,43 @@ void RGFW_setDrawBuffer(int buffer);
 
 #include <GL/glx.h>
 #include <X11/XKBlib.h>
+#include <stdlib.h>
 
-RGFW_window RGFW_createWindow(char* name, int x, int y, int w, int h, unsigned long args){
+RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
 	int singleBufferAttributes[] = {4, 8, 8, 9, 8, 10, 8, None};
 
 	int doubleBufferAttributes[] = {4, 5, 8, 8, 9, 8, 10, 8, None};
 
-    RGFW_window nWin;
+    RGFW_window* nWin = (RGFW_window*)malloc(sizeof(RGFW_window));
 
-	nWin.srcX = nWin.x = x;
-	nWin.srcY = nWin.y = y;
-	nWin.srcW = nWin.w = w;
-	nWin.srcH = nWin.h = h;
+	nWin->srcX = nWin->x = x;
+	nWin->srcY = nWin->y = y;
+	nWin->srcW = nWin->w = w;
+	nWin->srcH = nWin->h = h;
 
-	nWin.srcName = nWin.name = name;
+	nWin->srcName = nWin->name = name;
 
     XInitThreads(); /* init X11 threading*/
-	
+
     /* init the display*/
-	nWin.display = XOpenDisplay(0);
-	if ((Display *)nWin.display == NULL)
+	nWin->display = XOpenDisplay(0);
+	if ((Display *)nWin->display == NULL)
 		return nWin;
-    
+
     long event_mask =  KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask; /* X11 events accepted*/
 
-    XVisualInfo *vi = glXChooseVisual((Display *)nWin.display, DefaultScreen((Display *)nWin.display), doubleBufferAttributes);
+    XVisualInfo *vi = glXChooseVisual((Display *)nWin->display, DefaultScreen((Display *)nWin->display), doubleBufferAttributes);
 
     if (vi == NULL) /* switch to single buffer if double buffer fails*/
-        vi = glXChooseVisual((Display *)nWin.display, DefaultScreen((Display *)nWin.display), singleBufferAttributes);
+        vi = glXChooseVisual((Display *)nWin->display, DefaultScreen((Display *)nWin->display), singleBufferAttributes);
 
     if (RGFW_TRANSPARENT_WINDOW & args)
-        XMatchVisualInfo((Display *)nWin.display, DefaultScreen((Display *)nWin.display), 32, TrueColor, vi); /* for RGBA backgrounds*/
+        XMatchVisualInfo((Display *)nWin->display, DefaultScreen((Display *)nWin->display), 32, TrueColor, vi); /* for RGBA backgrounds*/
 
-    Colormap cmap = XCreateColormap((Display *)nWin.display, RootWindow((Display *)nWin.display, vi->screen),
+    Colormap cmap = XCreateColormap((Display *)nWin->display, RootWindow((Display *)nWin->display, vi->screen),
                                     vi->visual, AllocNone); /* make the cmap from the visual*/
 
-    nWin.glWin = (long unsigned int)glXCreateContext((Display *)nWin.display, vi, 0, 1); /* create the GLX context with the visual*/
+    nWin->glWin = (void*)glXCreateContext((Display *)nWin->display, vi, 0, 1); /* create the GLX context with the visual*/
 
     /* make X window attrubutes*/
     XSetWindowAttributes swa;
@@ -137,7 +147,7 @@ RGFW_window RGFW_createWindow(char* name, int x, int y, int w, int h, unsigned l
     swa.event_mask = event_mask;
 
     /* create the window*/
-    nWin.window = XCreateWindow((Display *)nWin.display, RootWindow((Display *)nWin.display, vi->screen), x, y, w, h,
+    nWin->window = (void*)XCreateWindow((Display *)nWin->display, RootWindow((Display *)nWin->display, vi->screen), x, y, w, h,
                         0, vi->depth, InputOutput, vi->visual,
                         (1L << 1) | (1L << 13) | CWBorderPixel | CWEventMask, &swa);
 
@@ -147,36 +157,36 @@ RGFW_window RGFW_createWindow(char* name, int x, int y, int w, int h, unsigned l
         sh->min_width = sh->max_width = w;
         sh->min_height = sh->max_height = h;
 
-        XSetWMSizeHints((Display *)nWin.display, nWin.window, sh, ((Atom)40));
+        XSetWMSizeHints((Display *)nWin->display, (GLXDrawable)nWin->window, sh, ((Atom)40));
     }
 
 
     if (RGFW_NO_BOARDER & args){
         /* Atom vars for no-border*/
-        Atom window_type = XInternAtom((Display *)nWin.display, "_NET_WM_WINDOW_TYPE", False);
-        Atom value = XInternAtom((Display *)nWin.display, "_NET_WM_WINDOW_TYPE_DOCK", False);
+        Atom window_type = XInternAtom((Display *)nWin->display, "_NET_WM_WINDOW_TYPE", False);
+        Atom value = XInternAtom((Display *)nWin->display, "_NET_WM_WINDOW_TYPE_DOCK", False);
 
-        XChangeProperty((Display *)nWin.display, nWin.window, window_type, ((Atom)4), 32, PropModeReplace, (unsigned char *)&value, 1); /* toggle border*/
+        XChangeProperty((Display *)nWin->display, (GLXDrawable)nWin->window, window_type, ((Atom)4), 32, PropModeReplace, (unsigned char *)&value, 1); /* toggle border*/
     }
 
-    XSelectInput((Display *)nWin.display, nWin.window, swa.event_mask); /* tell X11 what events we want*/
+    XSelectInput((Display *)nWin->display, (GLXDrawable)nWin->window, swa.event_mask); /* tell X11 what events we want*/
 
     /* make it so the user can't close the window until the program does*/
-    Atom wm_delete = XInternAtom((Display *)nWin.display, "WM_DELETE_WINDOW", 1);
-    XSetWMProtocols((Display *)nWin.display, nWin.window, &wm_delete, 1);
+    Atom wm_delete = XInternAtom((Display *)nWin->display, "WM_DELETE_WINDOW", 1);
+    XSetWMProtocols((Display *)nWin->display, (GLXDrawable)nWin->window, &wm_delete, 1);
 
     /* connect the context to the window*/
-    glXMakeCurrent((Display *)nWin.display, nWin.window, (GLXContext)nWin.glWin);
+    glXMakeCurrent((Display *)nWin->display, (GLXDrawable)nWin->window, (GLXContext)nWin->glWin);
 
     /* set the background*/
-    XStoreName((Display *)nWin.display, nWin.window, name); /* set the name*/
+    XStoreName((Display *)nWin->display, (GLXDrawable) nWin->window, name); /* set the name*/
 
     glEnable(0x0BE2);			 /* Enable blending.*/
     glBlendFunc(0x0302, 0x0303); /* Set blending function*/
 
-    XMapWindow((Display *)nWin.display, nWin.window);						  /* draw the window*/
-    XMoveWindow((Display *)nWin.display, nWin.window, x, y); /* move the window to it's proper cords*/
-    
+    XMapWindow((Display *)nWin->display, (GLXDrawable)nWin->window);						  /* draw the window*/
+    XMoveWindow((Display *)nWin->display, (GLXDrawable)nWin->window, x, y); /* move the window to it's proper cords*/
+
     return nWin;
 }
 
@@ -232,8 +242,8 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 
 		case MotionNotify:
 			/* if the x/y changes, fetch the x/y with query*/
-			if (XQueryPointer((Display *)win->display, win->window, &root, &child, &x, &y, &x, &y, &m)){
-				event.x = x; 
+			if (XQueryPointer((Display *)win->display, (GLXDrawable)win->window, &root, &child, &x, &y, &x, &y, &m)){
+				event.x = x;
 				event.y = y;
 			}
 			event.type = RGFW_mousePosChanged;
@@ -260,18 +270,18 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 	event.ledState = keystate.led_mask;
 
 	if ((win->srcX != win->x) || (win->srcY != win->y)){
-		XMoveWindow((Display *)win->display, win->window, win->x, win->y);
+		XMoveWindow((Display *)win->display, (GLXDrawable)win->window, win->x, win->y);
 		win->srcX = win->x;
 		win->srcY = win->y;
 	}
 
 	else if ((win->srcW != win->w) || (win->srcH != win->h)){
-		XResizeWindow((Display *)win->display, win->window, win->w, win->h);
+		XResizeWindow((Display *)win->display, (GLXDrawable)win->window, (GLXDrawable)win->w, win->h);
 		win->srcW = win->w;
 		win->srcH = win->h;
 	} else {
 		/* make sure the window attrubutes are up-to-date*/
-		XGetWindowAttributes((Display *)win->display, win->window, &a);
+		XGetWindowAttributes((Display *)win->display, (GLXDrawable)win->window, &a);
 
 		win->srcX = win->x = a.x;
 		win->srcY = win->y = a.y;
@@ -283,14 +293,14 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 		XStoreName((Display *)win->display, (Window)win->window, win->name);
 		win->srcName = win->name;
 	}
-	
+
 	win->event = event;
 
 	return event;
 }
 
 void RGFW_closeWindow(RGFW_window* win){
-	XDestroyWindow((Display *)win->display, win->window); /* close the window*/
+	XDestroyWindow((Display *)win->display, (GLXDrawable)win->window); /* close the window*/
 	XCloseDisplay((Display *)win->display);	   /* kill the display*/
 }
 
@@ -303,26 +313,27 @@ int RGFW_isPressedI(RGFW_window* w, int key){
 }
 
 int RGFW_isPressedS(RGFW_window* w, char* key){ return RGFW_isPressedI(w, XStringToKeysym(key)); }
-#endif 
+#endif
 
 #ifdef _WIN32
+#include <ole2.h>
 #include <GL/gl.h>
 #define GL_FRONT				0x0404
 #define GL_BACK					0x0405
 #define GL_LEFT					0x0406
 #define GL_RIGHT				0x0407
 
-RGFW_window RGFW_createWindow(char* name, int x, int y, int w, int h, unsigned long args){
-    RGFW_window nWin;
+RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
+    RGFW_window* nWin = (RGFW_window*)malloc(sizeof(RGFW_window));
     int         pf;
 	WNDCLASS    wc;
 
-	nWin.srcX = nWin.x = x;	
-	nWin.srcY = nWin.y = y;	
-	nWin.srcW = nWin.w = w;	
-	nWin.srcH = nWin.h = h;	
+	nWin->srcX = nWin->x = x;
+	nWin->srcY = nWin->y = y;
+	nWin->srcW = nWin->w = w;
+	nWin->srcH = nWin->h = h;
 
-	nWin.srcName = nWin.name = name;	
+	nWin->srcName = nWin->name = name;
 
 	HINSTANCE inh = GetModuleHandle(NULL);
 
@@ -335,22 +346,25 @@ RGFW_window RGFW_createWindow(char* name, int x, int y, int w, int h, unsigned l
 
 	RegisterClass(&wc);
 
+	LPDROPTARGET target;
+	RegisterDragDrop((HWND)nWin->display, target);
+
 	DWORD window_style = WS_MAXIMIZEBOX | WS_MINIMIZEBOX | window_style;
-	
+
 	if (!(RGFW_NO_BOARDER & args))
 		window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER;
-	else 
+	else
 		window_style |= WS_POPUP | WS_VISIBLE;
 
 	if (!(RGFW_NO_RESIZE & args))
 		window_style |= WS_SIZEBOX;
-	if (RGFW_TRANSPARENT_WINDOW & args)	
-		SetWindowLong(nWin.display, GWL_EXSTYLE, GetWindowLong(nWin.display, GWL_EXSTYLE) | WS_EX_LAYERED);
+	if (RGFW_TRANSPARENT_WINDOW & args)
+		SetWindowLong((HWND)nWin->display, GWL_EXSTYLE, GetWindowLong((HWND)nWin->display, GWL_EXSTYLE) | WS_EX_LAYERED);
 
-    nWin.display = CreateWindowA(name, name, window_style, x, y, w, h, NULL, NULL, inh, NULL);
+    nWin->display = CreateWindowA(name, name, window_style, x, y, w, h, NULL, NULL, inh, NULL);
 
 
-    nWin.window = (unsigned int)GetDC(nWin.display);
+    nWin->window = GetDC((HWND)nWin->display);
 
     /* there is no guarantee that the contents of the stack that become
        the pfd are zeroed, therefore _make sure_ to clear these bits. */
@@ -363,56 +377,56 @@ RGFW_window RGFW_createWindow(char* name, int x, int y, int w, int h, unsigned l
 	pfd.cColorBits = 32;
 	pfd.cDepthBits = 24;
 	pfd.cStencilBits = 8;
-    
-    pf = ChoosePixelFormat(nWin.window, &pfd);
- 
-    SetPixelFormat(nWin.window, pf, &pfd);
 
-    DescribePixelFormat(nWin.window, pf, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
+    pf = ChoosePixelFormat((HDC)nWin->window, &pfd);
 
-	if (RGFW_TRANSPARENT_WINDOW & args)	
-		SetWindowLong(nWin.display, GWL_EXSTYLE, GetWindowLong(nWin.display, GWL_EXSTYLE) | WS_EX_LAYERED);
+    SetPixelFormat((HDC)nWin->window, pf, &pfd);
 
-    ReleaseDC(nWin.window, nWin.display);
+    DescribePixelFormat((HDC)nWin->window, pf, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
 
-    nWin.window = GetDC(nWin.display);
-    nWin.glWin = wglCreateContext(nWin.window);
-    wglMakeCurrent(nWin.window, nWin.glWin);
-    ShowWindow(nWin.display, SW_SHOWNORMAL);
+	if (RGFW_TRANSPARENT_WINDOW & args)
+		SetWindowLong((HWND)nWin->display, GWL_EXSTYLE, GetWindowLong((HWND)nWin->display, GWL_EXSTYLE) | WS_EX_LAYERED);
+
+    ReleaseDC((HWND)nWin->display, (HDC)nWin->window);
+
+    nWin->window = GetDC((HWND)nWin->display);
+    nWin->glWin = wglCreateContext((HDC)nWin->window);
+    wglMakeCurrent((HDC)nWin->window, (HGLRC)nWin->glWin);
+    ShowWindow((HWND)nWin->display, SW_SHOWNORMAL);
 
     return nWin;
-}    
+}
 
 RGFW_Event RGFW_checkEvents(RGFW_window* win){
 	MSG msg = {};
-	
+
 	int setButton = 0;
 
-	while (PeekMessage(&msg, win->display, 0u, 0u, PM_REMOVE)) {
+	while (PeekMessage(&msg, (HWND)win->display, 0u, 0u, PM_REMOVE)) {
 		switch (msg.message) {
 			case WM_CLOSE:
 			case WM_QUIT:
 				win->event.type = RGFW_quit;
 				break;
-			
+
 			case WM_KEYUP:
 				win->event.keyCode = msg.wParam;
 				GetKeyNameTextA(msg.lParam, win->event.keyName, 16);
 				win->event.type = RGFW_keyReleased;
 				break;
-			
+
 			case WM_KEYDOWN:
 				win->event.keyCode = msg.wParam;
 				GetKeyNameTextA(msg.lParam, win->event.keyName, 16);
 				win->event.type = RGFW_keyPressed;
 				break;
-			
+
 			case WM_MOUSEMOVE:
 				win->event.x = msg.pt.x - win->x;
 				win->event.x = msg.pt.x - win->x;
 				win->event.type = RGFW_mousePosChanged;
 				break;
-			
+
 			case WM_LBUTTONDOWN:
 				win->event.button = RGFW_mouseLeft;
 				win->event.type = RGFW_mouseButtonPressed;
@@ -425,13 +439,13 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 				win->event.button = RGFW_mouseMiddle;
 				win->event.type = RGFW_mouseButtonPressed;
 				break;
-			
+
 			case WM_MOUSEWHEEL:
 				if (msg.wParam > 0)
 					win->event.button = RGFW_mouseScrollUp;
 				else
 					win->event.button = RGFW_mouseScrollDown;
-				
+
 				win->event.type = RGFW_mouseButtonPressed;
 				break;
 
@@ -453,13 +467,13 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 				break;
 			default: break;
 		}
-		
+
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
 
 	if ((win->srcX != win->x) || (win->srcY != win->y) || (win->srcW != win->w) || (win->srcH != win->h)){
-		SetWindowPos(win->display, win->display, win->x, win->y, win->w, win->h, NULL);
+		SetWindowPos((HWND)win->display, (HWND)win->display, win->x, win->y, win->w, win->h, 0);
 		win->srcX = win->x;
 		win->srcY = win->y;
 		win->srcW = win->w;
@@ -468,7 +482,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 		/* make sure the window attrubutes are up-to-date*/
 		RECT a;
 
-		if (GetWindowRect(win->display, &a)){
+		if (GetWindowRect((HWND)win->display, &a)){
 			win->srcX = win->x = a.left;
 			win->srcY = win->y = a.top;
 			win->srcW = win->w = a.right - a.left;
@@ -477,7 +491,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 	}
 
 	if (win->srcName != win->name){
-		SetWindowTextA(win->display, win->name);
+		SetWindowTextA((HWND)win->display, win->name);
 		win->srcName = win->name;
 	}
 
@@ -491,7 +505,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 		win->event.keyCode |= 3;
 
 
-	if (!IsWindow(win->display))
+	if (!IsWindow((HWND)win->display))
 		win->event.type = RGFW_quit;
 
 	return win->event;
@@ -515,11 +529,11 @@ int RGFW_isPressedS(RGFW_window* window, char* key){
 		else if (strcmp(key, "Left") == 0) vKey = VK_LEFT;
 		else if (strcmp(key, "Up") == 0) vKey = VK_UP;
 		else if (strcmp(key, "Down") == 0) vKey = VK_DOWN;
-		else if (strcmp(key, "Shift") == 0) 
+		else if (strcmp(key, "Shift") == 0)
 			return RGFW_isPressedI(window, VK_RSHIFT) || RGFW_isPressedI(window, VK_LSHIFT);
-		else if (strcmp(key, "Shift") == 0) 
+		else if (strcmp(key, "Shift") == 0)
 			return RGFW_isPressedI(window, VK_RMENU) || RGFW_isPressedI(window, VK_LMENU);
-		else if (strcmp(key, "Control") == 0) 
+		else if (strcmp(key, "Control") == 0)
 			return RGFW_isPressedI(window, VK_RCONTROL) || RGFW_isPressedI(window, VK_LCONTROL);
 	}
 
@@ -527,26 +541,43 @@ int RGFW_isPressedS(RGFW_window* window, char* key){
 }
 
 void RGFW_closeWindow(RGFW_window* win) {
-	wglDeleteContext((HGLRC)win->glWin); // delete opengl context
-	DeleteDC(win->window); // delete window
-	DestroyWindow(win->display); // delete display
+	wglDeleteContext((HGLRC)win->glWin); /* delete opengl context */
+	DeleteDC((HDC)win->window); /* delete window */
+	DestroyWindow((HWND)win->display); /* delete display */
 }
 
 #endif
 
-#ifdef APPLE
+#ifdef __APPLE__
+#define GL_FRONT				0x0404
+#define GL_BACK					0x0405
+#define GL_LEFT					0x0406
+#define GL_RIGHT				0x0407
+#include <OpenGL/gl.h>
+#include <Carbon/Carbon.h>
+RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
+	RGFW_window* nWin = malloc(sizeof(RGFW_window));
 
-RGFW_window RGFW_createWindow(char* name, int x, int y, int w, int h, unsigned long args){
-    RGFW_window nWin;
+	nWin->srcX = nWin->x = x;
+	nWin->srcY = nWin->y = y;
+	nWin->srcW = nWin->w = w;
+	nWin->srcH = nWin->h = h;
 
-	nWin.srcX = nWin.x = x;	
-	nWin.srcY = nWin.y = y;	
-	nWin.srcW = nWin.w = w;	
-	nWin.srcH = nWin.h = h;	
-
+	return nWin;
 }
 
 #endif
+
+RGFW_window RGFW_createWindow(char* name, int x, int y, int w, int h, unsigned long args){ return *RGFW_createWindowPointer(name, x, y, w, h, args); }
+
+void RGFW_makeCurrent(RGFW_window* w){
+    #ifdef __linux__
+		glXMakeCurrent((Display *)w->display, (GLXDrawable)w->window, (GLXContext)w->glWin);
+	#endif
+	#ifdef _WIN32
+		wglMakeCurrent((HDC)w->window, (HGLRC)w->glWin);
+	#endif	
+}
 
 void RGFW_setDrawBuffer(int buffer){
     if (buffer != GL_FRONT && buffer != GL_BACK && buffer != GL_LEFT && buffer != GL_RIGHT)
@@ -557,12 +588,8 @@ void RGFW_setDrawBuffer(int buffer){
 }
 
 void RGFW_clear(RGFW_window* w, int r, int g, int b, int a){
-    #ifdef __linux__
-	glXMakeCurrent((Display *)w->display, w->window, (GLXContext)w->glWin);
-	#endif
-	#ifdef _WIN32
-	wglMakeCurrent((HWND)w->display, (HGLRC)w->glWin);
-	#endif
+	RGFW_makeCurrent(w);
+
     glFlush(); /* flush the window*/
 
     int currentDrawBuffer;
@@ -575,3 +602,7 @@ void RGFW_clear(RGFW_window* w, int r, int g, int b, int a){
     glClear(0x00004000);
 }
 #endif /*RGFW_IMPLEMENTATION*/
+
+#ifdef __cplusplus
+}
+#endif
