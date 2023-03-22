@@ -27,7 +27,8 @@
 
 #define RGFW_TRANSPARENT_WINDOW		(1L<<0)
 #define RGFW_NO_BOARDER		(1L<<1)
-#define RGFW_NO_RESIZE		(1L<<1)
+#define RGFW_NO_RESIZE		(1L<<2)
+#define RGFW_ALLOW_DND     (1L<<3)
 
 #define RGFW_keyPressed 2 /*!< a key has been pressed*/
 #define RGFW_keyReleased 3 /*!< a key has been released*/
@@ -62,7 +63,9 @@ typedef struct RGFW_Event {
 	#else
 	char* keyName;
 	#endif
-
+	
+	int dropX, dropY;
+	int droppedFilesCount;
     char** droppedFiles; /*!< dropped files*/
 } RGFW_Event;
 
@@ -77,11 +80,14 @@ typedef struct RGFW_window {
 	int srcX, srcY, srcW, srcH;
 	char* srcName;
 
+	unsigned char dnd;
+
 	RGFW_Event event;
 } RGFW_window;
 
-RGFW_window RGFW_createWindow(char* name, int x, int y, int w, int h, unsigned long args);
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args);
+#define RGFW_createWindow(name, x, y, w, h, args)  *RGFW_createWindowPointer(name, x, y, w, h, args);
+
 RGFW_Event RGFW_checkEvents(RGFW_window* window);
 
 int RGFW_isPressedI(RGFW_window* window, int key);
@@ -93,7 +99,11 @@ void RGFW_makeCurrent(RGFW_window* window);
 
 void RGFW_clear(RGFW_window* w, int r, int g, int b, int a);
 
+void RGFW_setIcon(RGFW_window* w, unsigned char* icon, int width, int height, int channels);
+
 void RGFW_setDrawBuffer(int buffer);
+
+char** RGFW_parseUriList(char* text, int* count);
 
 #ifdef RGFW_IMPLEMENTATION
 
@@ -103,12 +113,19 @@ void RGFW_setDrawBuffer(int buffer);
 #include <X11/XKBlib.h>
 #include <stdlib.h>
 
+#include <limits.h>
+#include <string.h>
+
+Atom XdndAware, XdndTypeList,     XdndSelection,    XdndEnter,        XdndPosition,     XdndStatus,       XdndLeave,        XdndDrop,         XdndFinished,     XdndActionCopy,   XdndActionMove,   XdndActionLink,   XdndActionAsk, XdndActionPrivate;
+
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
 	int singleBufferAttributes[] = {4, 8, 8, 9, 8, 10, 8, None};
 
 	int doubleBufferAttributes[] = {4, 5, 8, 8, 9, 8, 10, 8, None};
 
     RGFW_window* nWin = (RGFW_window*)malloc(sizeof(RGFW_window));
+
+	nWin->event.droppedFilesCount = 0;
 
 	nWin->srcX = nWin->x = x;
 	nWin->srcY = nWin->y = y;
@@ -128,7 +145,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
     XVisualInfo *vi = glXChooseVisual((Display *)nWin->display, DefaultScreen((Display *)nWin->display), doubleBufferAttributes);
 
-    if (vi == NULL) /* switch to single buffer if double buffer fails*/
+    if (vi == NULL) /* switch to single buffer if double buffer fails*/                                                                                                                               
         vi = glXChooseVisual((Display *)nWin->display, DefaultScreen((Display *)nWin->display), singleBufferAttributes);
 
     if (RGFW_TRANSPARENT_WINDOW & args)
@@ -162,7 +179,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 
     if (RGFW_NO_BOARDER & args){
-        /* Atom vars for no-border*/
+		/* Atom vars for no-border*/
         Atom window_type = XInternAtom((Display *)nWin->display, "_NET_WM_WINDOW_TYPE", False);
         Atom value = XInternAtom((Display *)nWin->display, "_NET_WM_WINDOW_TYPE_DOCK", False);
 
@@ -187,12 +204,53 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     XMapWindow((Display *)nWin->display, (GLXDrawable)nWin->window);						  /* draw the window*/
     XMoveWindow((Display *)nWin->display, (GLXDrawable)nWin->window, x, y); /* move the window to it's proper cords*/
 
+
+	if (RGFW_ALLOW_DND & args){
+		nWin->dnd = 1;
+
+		XdndAware         = XInternAtom((Display*)nWin->display, "XdndAware",         False);
+		XdndTypeList      = XInternAtom((Display*)nWin->display, "XdndTypeList",      False);
+		XdndSelection     = XInternAtom((Display*)nWin->display, "XdndSelection",     False);
+
+		/* client messages */
+		XdndEnter         = XInternAtom((Display*)nWin->display, "XdndEnter",         False);
+		XdndPosition      = XInternAtom((Display*)nWin->display, "XdndPosition",      False);
+		XdndStatus        = XInternAtom((Display*)nWin->display, "XdndStatus",        False);
+		XdndLeave         = XInternAtom((Display*)nWin->display, "XdndLeave",         False);
+		XdndDrop          = XInternAtom((Display*)nWin->display, "XdndDrop",          False);
+		XdndFinished      = XInternAtom((Display*)nWin->display, "XdndFinished",      False);
+
+		/* actions */
+		XdndActionCopy    = XInternAtom((Display*)nWin->display, "XdndActionCopy",    False);
+		XdndActionMove    = XInternAtom((Display*)nWin->display, "XdndActionMove",    False);
+		XdndActionLink    = XInternAtom((Display*)nWin->display, "XdndActionLink",    False);
+		XdndActionAsk     = XInternAtom((Display*)nWin->display, "XdndActionAsk",     False);
+		XdndActionPrivate = XInternAtom((Display*)nWin->display, "XdndActionPrivate", False);
+		const Atom version = 5;
+
+		XChangeProperty((Display*)nWin->display, (Window)nWin->window,
+                        XdndAware, 4, 32,
+                        PropModeReplace, (unsigned char*) &version, 1);
+	}
+	else 
+		nWin->dnd = 0;
+
     return nWin;
 }
+
+typedef struct XDND{
+	long source, version;
+	int format;
+} XDND;
+
+
+XDND xdnd;
 
 RGFW_Event RGFW_checkEvents(RGFW_window* win){
     RGFW_Event event;
 	XEvent E; /* raw X11 event*/
+
+	unsigned char text_uri_list = 1;
 
 	/* if there is no unread qued events, get a new one*/
 	if (XEventsQueued((Display *)win->display, QueuedAlready) + XEventsQueued((Display *)win->display, QueuedAfterReading))
@@ -205,12 +263,16 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 
 	XWindowAttributes a;
 
-	if (E.type == KeyPress || E.type == KeyRelease){
+	if (E.type == KeyPress || E.type == KeyRelease) {
 		/* set event key data*/
 		event.keyCode = XkbKeycodeToKeysym((Display *)win->display, E.xkey.keycode, 0, E.xkey.state & ShiftMask ? 1 : 0); /* get keysym*/
 		event.keyName = XKeysymToString(event.keyCode); /* convert to string */
 		/*translateString(event.keyName, 0);*/
 	}
+	
+	event.droppedFilesCount = 0;
+	event.dropX = 0;
+	event.dropY = 0;
 
 	switch (E.type) {
 		case KeyPress:
@@ -251,13 +313,175 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 
 		case ClientMessage:
 			/* if the client closed the window*/
-			if (E.xclient.data.l[0] == (long int)XInternAtom((Display *)win->display, "WM_DELETE_WINDOW", 1)){
+			if (E.xclient.data.l[0] == (long int)XInternAtom((Display *)win->display, "WM_DELETE_WINDOW", 1))
 				event.type = RGFW_quit;
+
+			else if (win->dnd){
+				if (E.xclient.message_type == XdndEnter) {
+					unsigned long count;
+					Atom* formats = NULL;
+					Bool list = E.xclient.data.l[1] & 1;
+
+					xdnd.source  = E.xclient.data.l[0];
+					xdnd.version = E.xclient.data.l[1] >> 24;
+					xdnd.format  = None;
+
+					if (xdnd.version > 5)
+						break;
+
+					if (list) {
+						Atom actualType;
+						int actualFormat;
+						unsigned long bytesAfter;
+
+						XGetWindowProperty((Display*)win->display,
+										xdnd.source,
+										XdndTypeList,
+										0,
+										LONG_MAX,
+										False,
+										4,
+										&actualType,
+										&actualFormat,
+										&count,
+										&bytesAfter,
+										(unsigned char**) &formats);
+					}
+					else {
+						formats = (Atom*)malloc(3);
+						count = 0;
+						Atom atom[3];
+						if (E.xclient.data.l[2] != None)
+							formats[count++] = E.xclient.data.l[2];
+						if (E.xclient.data.l[3] != None)
+							formats[count++] = E.xclient.data.l[3];
+						if (E.xclient.data.l[4] != None)
+							formats[count++] = E.xclient.data.l[4];
+					}
+
+					unsigned int i;
+					for (i = 0;  i < count;  i++) {
+						char* name = XGetAtomName(win->display, formats[i]);
+						if ((strcmp("text/uri-list", name) == 0) || (strcmp("text/plain", name) == 0)) 
+							xdnd.format = formats[i];
+						
+						free(name);
+					}
+
+					if (list && formats)
+						XFree(formats);
+				}
+				else if (E.xclient.message_type == XdndDrop) {
+					event.type = RGFW_dnd;
+
+					Time time = CurrentTime;
+
+					if (xdnd.version > 5)
+						break;
+
+					if (xdnd.format) {
+						if (xdnd.version >= 1)
+							time = E.xclient.data.l[2];
+
+						XConvertSelection((Display*)win->display,
+										XdndSelection,
+										xdnd.format,
+										XdndSelection,
+										(Window)win->window,
+										time);
+						
+
+					}
+					else if (xdnd.version >= 2) {
+						XEvent reply = { ClientMessage };
+						reply.xclient.window = xdnd.source;
+						reply.xclient.message_type = XdndFinished;
+						reply.xclient.format = 32;
+						reply.xclient.data.l[0] = (long)win->window;
+						reply.xclient.data.l[1] = 0;
+						reply.xclient.data.l[2] = None;
+
+						XSendEvent((Display*)win->display, xdnd.source,
+								False, NoEventMask, &reply);
+						XFlush((Display*)win->display);
+					}
+				}
+
+				else if (E.xclient.message_type == XdndPosition) {
+					const int xabs = (E.xclient.data.l[2] >> 16) & 0xffff;
+					const int yabs = (E.xclient.data.l[2]) & 0xffff;
+					Window dummy;
+					int xpos, ypos;
+
+					if (xdnd.version > 5)
+						break;
+
+					XTranslateCoordinates((Display*)win->display,
+										XDefaultRootWindow((Display*)win->display),
+										(Window)win->window,
+										xabs, yabs,
+										&xpos, &ypos,
+										&dummy);
+
+					event.dropX = xpos; 
+					event.dropY = ypos;
+
+					XEvent reply = { ClientMessage };
+					reply.xclient.window = xdnd.source;
+					reply.xclient.message_type = XdndStatus;
+					reply.xclient.format = 32;
+					reply.xclient.data.l[0] = (long)win->window;
+					reply.xclient.data.l[2] = 0;
+					reply.xclient.data.l[3] = 0;
+
+					if (xdnd.format)
+					{
+						reply.xclient.data.l[1] = 1; 
+						if (xdnd.version >= 2)
+							reply.xclient.data.l[4] = XdndActionCopy;
+					}
+
+					XSendEvent((Display*)win->display, xdnd.source,
+							False, NoEventMask, &reply);
+					XFlush((Display*)win->display);
+				}
 			}
-			else
-				XFlush((Display *)win->display);
+			
 			break;
 
+        case SelectionNotify:
+			if (E.xselection.property == XdndSelection && win->dnd) {					
+				char* data;
+                unsigned long result;
+
+				Atom actualType;
+				int actualFormat;
+				unsigned long bytesAfter;
+
+				XGetWindowProperty((Display*)win->display, E.xselection.requestor, E.xselection.property, 0, LONG_MAX, False, E.xselection.target, &actualType, &actualFormat, &result, &bytesAfter, (unsigned char**) &data);
+
+                if (result) 
+					event.droppedFiles = RGFW_parseUriList(data, &event.droppedFilesCount);
+
+                if (data)
+                    XFree(data);
+
+                if (xdnd.version >= 2) {
+                    XEvent reply = { ClientMessage };
+                    reply.xclient.window = xdnd.source;
+                    reply.xclient.message_type = XdndFinished;
+                    reply.xclient.format = 32;
+                    reply.xclient.data.l[0] = (long)win->display;
+                    reply.xclient.data.l[1] = result;
+                    reply.xclient.data.l[2] = XdndActionCopy;
+
+                    XSendEvent((Display*)win->display, xdnd.source,
+                               False, NoEventMask, &reply);
+                    XFlush((Display*)win->display);
+                }
+            }
+
+			break;
 		default:
 			XFlush((Display *)win->display);
 			event.type = 0;
@@ -301,7 +525,46 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 
 void RGFW_closeWindow(RGFW_window* win){
 	XDestroyWindow((Display *)win->display, (GLXDrawable)win->window); /* close the window*/
-	XCloseDisplay((Display *)win->display);	   /* kill the display*/
+	XCloseDisplay((Display *)win->display); /* kill the display*/	   
+}
+
+void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int channels){
+	int longCount = 2 + width * height;
+
+    unsigned long* icon = (unsigned long*)malloc(longCount * sizeof(unsigned long));
+    unsigned long* target = icon;
+
+    *target++ = width;
+    *target++ = height;
+
+	int i;
+
+    for (i = 0;  i < width * height;  i++) {
+        if (channels == 3)
+            *target++ = ((src[i * 3 + 0]) << 16) |
+                        ((src[i * 3 + 1]) <<  8) |
+                        ((src[i * 3 + 2]) <<  0) |
+                        (0xFF << 24);
+
+        else if (channels == 4)
+            *target++ = ((src[i * 4 + 0]) << 16) |
+                        ((src[i * 4 + 1]) <<  8) |
+                        ((src[i * 4 + 2]) <<  0) |
+                        ((src[i * 4 + 3]) << 24);   
+    }
+    
+    Atom NET_WM_ICON = XInternAtom((Display*)w->display, "_NET_WM_ICON", False);
+
+    XChangeProperty((Display*)w->display, (Window)w->window,
+                    NET_WM_ICON,
+                    6, 32,
+                    PropModeReplace,
+                    (unsigned char*) icon,
+                    longCount);
+
+    free(icon);
+    
+    XFlush((Display*)w->display);
 }
 
 int RGFW_isPressedI(RGFW_window* w, int key){
@@ -316,8 +579,14 @@ int RGFW_isPressedS(RGFW_window* w, char* key){ return RGFW_isPressedI(w, XStrin
 #endif
 
 #ifdef _WIN32
+
 #include <ole2.h>
 #include <GL/gl.h>
+#include <winnls.h>
+#include <shellapi.h>
+
+char* createUTF8FromWideStringWin32(const WCHAR* source);
+
 #define GL_FRONT				0x0404
 #define GL_BACK					0x0405
 #define GL_LEFT					0x0406
@@ -346,8 +615,10 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	RegisterClass(&wc);
 
-	LPDROPTARGET target;
-	RegisterDragDrop((HWND)nWin->display, target);
+	if (RGFW_ALLOW_DND & args){
+		LPDROPTARGET target;
+		RegisterDragDrop((HWND)nWin->display, target);
+	}
 
 	DWORD window_style = WS_MAXIMIZEBOX | WS_MINIMIZEBOX | window_style;
 
@@ -363,6 +634,10 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
     nWin->display = CreateWindowA(name, name, window_style, x, y, w, h, NULL, NULL, inh, NULL);
 
+	if (RGFW_ALLOW_DND & args){
+		DragAcceptFiles((HWND)nWin->display, TRUE);
+		nWin->event.droppedFilesCount = 0;
+	}
 
     nWin->window = GetDC((HWND)nWin->display);
 
@@ -401,6 +676,8 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 	MSG msg = {};
 
 	int setButton = 0;
+
+	win->event.droppedFilesCount = 0;
 
 	while (PeekMessage(&msg, (HWND)win->display, 0u, 0u, PM_REMOVE)) {
 		switch (msg.message) {
@@ -464,6 +741,31 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 
 			case WM_DROPFILES:
 				win->event.type = RGFW_dnd;
+
+				HDROP drop = (HDROP) msg.wParam;
+				POINT pt;
+				int i;
+
+				win->event.droppedFilesCount = DragQueryFileW(drop, 0xffffffff, NULL, 0);
+				win->event.droppedFiles = calloc(win->event.droppedFilesCount, sizeof(char*));
+
+				// Move the mouse to the position of the drop
+				DragQueryPoint(drop, &pt);
+				
+				win->event.dropX = pt.x;
+				win->event.dropX = pt.y;
+
+				for (i = 0;  i < win->event.droppedFilesCount;  i++) {
+					const UINT length = DragQueryFileW(drop, i, NULL, 0);
+					WCHAR* buffer = calloc((size_t) length + 1, sizeof(WCHAR));
+
+					DragQueryFileW(drop, i, buffer, length + 1);
+					win->event.droppedFiles[i] = createUTF8FromWideStringWin32(buffer);
+
+					free(buffer);
+				}
+
+				DragFinish(drop);
 				break;
 			default: break;
 		}
@@ -546,6 +848,83 @@ void RGFW_closeWindow(RGFW_window* win) {
 	DestroyWindow((HWND)win->display); /* delete display */
 }
 
+void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int channels){    
+    HDC dc;
+    HICON handle;
+    HBITMAP color, mask;
+    BITMAPV5HEADER bi;
+    ICONINFO ii;
+    unsigned char* target = NULL;
+    unsigned char* source = src;
+
+    ZeroMemory(&bi, sizeof(bi));
+    bi.bV5Size        = sizeof(bi);
+    bi.bV5Width       = width;
+    bi.bV5Height      = -height;
+    bi.bV5Planes      = 1;
+    bi.bV5BitCount    = 32;
+    bi.bV5Compression = BI_BITFIELDS;
+    bi.bV5RedMask     = 0x00ff0000;
+    bi.bV5GreenMask   = 0x0000ff00;
+    bi.bV5BlueMask    = 0x000000ff;
+    bi.bV5AlphaMask   = 0xff000000;
+
+    dc = GetDC(NULL);
+    color = CreateDIBSection(dc,
+                             (BITMAPINFO*) &bi,
+                             DIB_RGB_COLORS,
+                             (void**) &target,
+                             NULL,
+                             (DWORD) 0);
+    ReleaseDC(NULL, dc);
+
+    mask = CreateBitmap(width, height, 1, 1, NULL);
+    
+    int i;
+
+    for (i = 0;  i < width * height;  i++) {
+        target[0] = source[2];
+        target[1] = source[1];
+        target[2] = source[0];
+        target[3] = source[3];
+        target += 4;
+        source += 4;
+    }
+
+    ZeroMemory(&ii, sizeof(ii));
+    ii.fIcon    = TRUE;
+    ii.xHotspot = 0;
+    ii.yHotspot = 0;
+    ii.hbmMask  = mask;
+    ii.hbmColor = color;
+
+    handle = CreateIconIndirect(&ii);
+
+    DeleteObject(color);
+    DeleteObject(mask);
+
+    SendMessageW(w->display, WM_SETICON, ICON_BIG, (LPARAM) handle);
+    SendMessageW(w->display, WM_SETICON, ICON_SMALL, (LPARAM) handle);
+}
+
+char* createUTF8FromWideStringWin32(const WCHAR* source) {
+    char* target;
+    int size;
+
+    size = WideCharToMultiByte(CP_UTF8, 0, source, -1, NULL, 0, NULL, NULL);
+    if (!size) {
+        return NULL;
+    }
+
+    target = calloc(size, 1);
+
+    if (!WideCharToMultiByte(CP_UTF8, 0, source, -1, target, size, NULL, NULL)) {
+        free(target);
+        return NULL;
+    }
+
+    return target;
+}
 #endif
 
 #ifdef __APPLE__
@@ -567,8 +946,6 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 }
 
 #endif
-
-RGFW_window RGFW_createWindow(char* name, int x, int y, int w, int h, unsigned long args){ return *RGFW_createWindowPointer(name, x, y, w, h, args); }
 
 void RGFW_makeCurrent(RGFW_window* w){
     #ifdef __linux__
@@ -601,6 +978,60 @@ void RGFW_clear(RGFW_window* w, int r, int g, int b, int a){
     glClearColor(r / 255.0, g / 255.0, b / 255.0, a / 255.0);
     glClear(0x00004000);
 }
+
+/*
+SOURCED FROM GLFW _glfwParseUriList
+Copyright (c) 2002-2006 Marcus Geelnard
+
+Copyright (c) 2006-2019 Camilla Löwy
+*/
+char** RGFW_parseUriList(char* text, int* count) {
+    const char* prefix = "file://";
+    char** paths = NULL;
+    char* line;
+
+    *count = 0;
+
+    while ((line = strtok(text, "\r\n")))
+    {
+        char* path;
+
+        text = NULL;
+
+        if (line[0] == '#')
+            continue;
+
+        if (strncmp(line, prefix, strlen(prefix)) == 0) {
+            line += strlen(prefix);
+            while (*line != '/')
+                line++;
+        }
+
+        (*count)++;
+
+        path = calloc(strlen(line) + 1, 1);
+        paths = realloc(paths, *count * sizeof(char*));
+        paths[*count - 1] = path;
+
+        while (*line)
+        {
+            if (line[0] == '%' && line[1] && line[2])
+            {
+                const char digits[3] = { line[1], line[2], '\0' };
+                *path = (char) strtol(digits, NULL, 16);
+                line += 2;
+            }
+            else
+                *path = *line;
+
+            path++;
+            line++;
+        }
+    }
+
+    return paths;
+}
+
 #endif /*RGFW_IMPLEMENTATION*/
 
 #ifdef __cplusplus
