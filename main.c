@@ -7,10 +7,15 @@
     #endif
 #endif
 
+#include <stdio.h>
 #include "RGFW.h"
 
+unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF,    0xFF, 0x00, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF,   0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
+
 int main(){
-    RGFW_window* w = RGFW_createWindowPointer("name", 500, 500, 500, 500, 0);
+    RGFW_window* w = RGFW_createWindowPointer("name", 500, 500, 500, 500, RGFW_ALLOW_DND);
+
+    RGFW_setIcon(w, icon, 3, 3, 4);
 
     while (1){
         RGFW_checkEvents(w); 
@@ -24,6 +29,10 @@ int main(){
 
         if (w->event.type == RGFW_quit)
             break;
+
+        int i;
+        for (i = 0; i < w->event.droppedFilesCount; i++)
+            printf("dropped : %s\n", w->event.droppedFiles[i]);
     }
 
     RGFW_closeWindow(w);
