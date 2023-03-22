@@ -1,10 +1,12 @@
 (linux)
-- drag 'n drop events
-- window icons
+- get clipboard data
+- write clipboard data
+- write drag data
 
 (windows)
-- drag 'n drop events
-- window icons
+- get clipboard data
+- write clipboard data
+- write drag data
 
 - start support for macos
 
