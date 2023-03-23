@@ -1,12 +1,10 @@
 (linux)
-- get clipboard data
 - write clipboard data
 - write drag data
 
 (windows)
-- get clipboard data
-- write clipboard data
 - write drag data
+- test writing clipboard data
 
 - start support for macos
 
