@@ -101,6 +101,9 @@ void RGFW_clear(RGFW_window* w, int r, int g, int b, int a);
 
 void RGFW_setIcon(RGFW_window* w, unsigned char* icon, int width, int height, int channels);
 
+char* RGFW_readClipboard(RGFW_window* w);
+void RGFW_writeClipboard(RGFW_window* w, char* text);
+
 void RGFW_setDrawBuffer(int buffer);
 
 char** RGFW_parseUriList(char* text, int* count);
@@ -567,8 +570,45 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
     XFlush((Display*)w->display);
 }
 
+char* RGFW_readClipboard(RGFW_window* w){
+  char* result;
+  unsigned long ressize, restail;
+  int resbits;
+  Atom bufid = XInternAtom(w->display, "CLIPBOARD", False),
+       fmtid = XInternAtom(w->display, "STRING", False),
+       propid = XInternAtom(w->display, "XSEL_DATA", False),
+       incrid = XInternAtom(w->display, "INCR", False);
+  XEvent event;
+
+  XSelectInput (w->display, w->window, PropertyChangeMask);
+  XConvertSelection(w->display, bufid, fmtid, propid, w->window, CurrentTime);
+  do {
+    XNextEvent(w->display, &event);
+  } while (event.type != SelectionNotify || event.xselection.selection != bufid);
+
+  if (event.xselection.property) {
+    XGetWindowProperty(w->display, w->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
+      &fmtid, &resbits, &ressize, &restail, (unsigned char**)&result);
+
+    if (fmtid == incrid)
+      do {
+        while (event.type != PropertyNotify || event.xproperty.atom != propid || event.xproperty.state != PropertyNewValue) XNextEvent(w->display, &event);
+
+        XGetWindowProperty(w->display, w->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
+          &fmtid, &resbits, &ressize, &restail, (unsigned char**)&result);
+      } while (ressize > 0);
+  }
+
+  return result;
+}
+
+void RGFW_writeClipboard(RGFW_window* w, char* text){
+	
+}
+
+char keyboard[32];
+
 int RGFW_isPressedI(RGFW_window* w, int key){
-	char keyboard[32];
 	XQueryKeymap((Display *)w->display, keyboard); /* query the keymap */
 
 	KeyCode kc2 = XKeysymToKeycode((Display *)w->display, key); /* convert the key to a keycode */
@@ -905,6 +945,65 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
 
     SendMessageW(w->display, WM_SETICON, ICON_BIG, (LPARAM) handle);
     SendMessageW(w->display, WM_SETICON, ICON_SMALL, (LPARAM) handle);
+}
+
+char* RGFW_readClipboard(RGFW_window* w){
+    // Open the clipboard
+    if (!OpenClipboard(NULL)) {
+        return 1;
+    }
+
+    // Get the clipboard data as a Unicode string
+    HANDLE hData = GetClipboardData(CF_TEXT);
+    if (hData == NULL) {
+        CloseClipboard();
+        return 1;
+    }
+    
+	char* text = malloc(7);
+	text = GlobalLock(hData);
+
+    // Release the clipboard data
+    GlobalUnlock(hData);
+    CloseClipboard();
+
+	return text;
+}
+
+void RGFW_writeClipboard(RGFW_window* w, char* text) {
+    int characterCount;
+    HANDLE object;
+    WCHAR* buffer;
+
+    characterCount = MultiByteToWideChar(CP_UTF8, 0, text, -1, NULL, 0);
+    if (!characterCount)
+        return;
+
+    object = GlobalAlloc(GMEM_MOVEABLE, characterCount * sizeof(WCHAR));
+    if (!object)
+    {
+        return;
+    }
+
+    buffer = GlobalLock(object);
+    if (!buffer)
+    {
+        GlobalFree(object);
+        return;
+    }
+
+    MultiByteToWideChar(CP_UTF8, 0, text, -1, buffer, characterCount);
+    GlobalUnlock(object);
+
+    if (!OpenClipboard(w->display))
+    {
+        GlobalFree(object);
+        return;
+    }
+
+    EmptyClipboard();
+    SetClipboardData(CF_UNICODETEXT, object);
+    CloseClipboard();
 }
 
 char* createUTF8FromWideStringWin32(const WCHAR* source) {
