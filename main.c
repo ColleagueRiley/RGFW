@@ -18,6 +18,7 @@ int main(){
     RGFW_setIcon(w, icon, 3, 3, 4);
 
     while (1){
+        if(w->display);
         RGFW_checkEvents(w); 
         RGFW_clear(w, 255, 255, 255, 255);
 
@@ -29,6 +30,11 @@ int main(){
 
         if (w->event.type == RGFW_quit)
             break;
+
+        if (RGFW_isPressedS(w, "Up"))
+            printf("Pasted : %s\n", RGFW_readClipboard(w));
+        else if (RGFW_isPressedS(w, "Down"))
+            RGFW_writeClipboard(w, "DOWN");
 
         int i;
         for (i = 0; i < w->event.droppedFilesCount; i++)
