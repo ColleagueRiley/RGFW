@@ -25,13 +25,13 @@
 		EimaMei/Sacode : Much of the code for creating windows using winapi
 */
 
-/* Optional arguments for making a windows */
-#define RGFW_TRANSPARENT_WINDOW		(1L<<0)
-#define RGFW_NO_BOARDER		(1L<<1)
-#define RGFW_NO_RESIZE		(1L<<2)
-#define RGFW_ALLOW_DND     (1L<<3)
+/*! Optional arguments for making a windows */
+#define RGFW_TRANSPARENT_WINDOW		(1L<<0) /*!< If the window is transparent*/
+#define RGFW_NO_BOARDER		(1L<<1) /*!< If the window doesn't have boarder*/
+#define RGFW_NO_RESIZE		(1L<<2) /*!< If the window cannot be resized  by the user*/
+#define RGFW_ALLOW_DND     (1L<<3) /*!< if the window supports drag and drop*/
 
-/* event codes */
+/*! event codes */
 #define RGFW_keyPressed 2 /*!< a key has been pressed*/
 #define RGFW_keyReleased 3 /*!< a key has been released*/
 #define RGFW_mouseButtonPressed 4 /*!< a mouse button has been pressed (left,middle,right)*/
@@ -40,7 +40,7 @@
 #define RGFW_quit 33 /*!< the user clicked the quit button*/
 #define RGFW_dnd 34 /*!< a file has been dropped into the window*/
 
-/* mouse button codes */
+/*! mouse button codes */
 #define RGFW_mouseLeft  1 /*!< left mouse button is pressed*/
 #define RGFW_mouseMiddle  2 /*!< mouse-wheel-button is pressed*/
 #define RGFW_mouseRight  3 /*!< right mouse button is pressed*/
@@ -55,77 +55,77 @@ extern "C" {
 typedef struct RGFW_Event {
     int type; /*!< which event has been sent?*/
     int button; /*!< which mouse button has been clicked (0) left (1) middle (2) right*/
-    int x, y; /* mouse x, y of event*/
+    int x, y; /*!< mouse x, y of event*/
 
     int ledState; /*!< 0 : numlock, 1 : caps lock, 3 : small lock*/
 
-    int keyCode; /* keycode of event*/
+    int keyCode; /*!< keycode of event*/
 
 	#ifdef _WIN32
 	char keyName[16]; /* key name of event*/
 	#else
-	char* keyName; /* key name of event */
+	char* keyName; /*!< key name of event */
 	#endif
 	
-	int dropX, dropY; /* where the drop file was dropped */
-	int droppedFilesCount; /* house many files were dropped */
+	int dropX, dropY; /*!< where the drop file was dropped */
+	int droppedFilesCount; /*!< house many files were dropped */
     char** droppedFiles; /*!< dropped files*/
-} RGFW_Event;
+} RGFW_Event; /*!< Event structure for checking/getting events */
 
 typedef struct RGFW_window {
-    void* display; /* source display */
-    void* window; /* source window */
-    void* glWin; /* source opengl context */
+    void* display; /*!< source display */
+    void* window; /*!< source window */
+    void* glWin; /*!< source opengl context */
 
-	char* name; /* window's name*/
-	int x, y, w, h; /* window size, x, y*/
+	char* name; /*!< window's name*/
+	int x, y, w, h; /*!< window size, x, y*/
 
 	int srcX, srcY, srcW, srcH; /* source size (for resizing, do not change these values directly) */
-	char* srcName; /* source name, for chaning the name (do not change these values directly) */
+	char* srcName; /*!< source name, for chaning the name (do not change these values directly) */
 
-	unsigned char dnd; /* if dnd is enabled or on (based on window creating args) */
+	unsigned char dnd; /*!< if dnd is enabled or on (based on window creating args) */
 
-	RGFW_Event event; /* current event */
-} RGFW_window;
+	RGFW_Event event; /*!< current event */
+} RGFW_window; /*!< Window structure for managing the window */
 
 RGFW_window* RGFW_createWindowPointer(
 	char* name, /* name of the window */
-	int x, /* x */
-	int y,  /* y */
-	int width, /* width */
-	int height, /* height */
+	int x, /*!< x */
+	int y,  /*!< y */
+	int width, /*!< width */
+	int height, /*!< height */
 	unsigned long args /* extra arguments (NULL / (unsigned long)0 means no args used)*/
-);
+); /*!< function to create a window struct (pointer)*/
 
-/* create window object (non-pointer) */
+/*! create window object (non-pointer) */
 #define RGFW_createWindow(name, x, y, w, h, args)  *RGFW_createWindowPointer(name, x, y, w, h, args);
 
-RGFW_Event RGFW_checkEvents(RGFW_window* window); /* check events */
+RGFW_Event RGFW_checkEvents(RGFW_window* window); /*!< check events */
 
-/* window managment functions*/
-void RGFW_closeWindow(RGFW_window* window); /* close the window and free leftover data */
+/*! window managment functions*/
+void RGFW_closeWindow(RGFW_window* window); /*!< close the window and free leftover data */
 
-void RGFW_clear(RGFW_window* window, unsigned char r, unsigned char g, unsigned char b, unsigned char a); /* clear window to the rgba color*/
+void RGFW_clear(RGFW_window* window, unsigned char r, unsigned char g, unsigned char b, unsigned char a); /*!< clear window to the rgba color*/
 
-void RGFW_setIcon(RGFW_window* window, 
-				 unsigned char* icon /* icon bitmap */, 
-				 int width /* width of the bitmap*/, 
-				 int height, 
-				 int channels /* how many channels the bitmap has (rgb : 3, rgba : 4) */
+void RGFW_setIcon(RGFW_window* window, /*!< source window */
+				 unsigned char* icon /*!< icon bitmap */, 
+				 int width /*!< width of the bitmap*/, 
+				 int height, /*!< height of the bitmap*/
+				 int channels /*!< how many channels the bitmap has (rgb : 3, rgba : 4) */
 			);
 
-void RGFW_makeCurrent(RGFW_window* window); /* make the window the current opengl drawing context */
+void RGFW_makeCurrent(RGFW_window* window); /*!< make the window the current opengl drawing context */
 
-int RGFW_isPressedI(RGFW_window* window, int key); /* if key is pressed (key code) */
-int RGFW_isPressedS(RGFW_window* window, char* key); /* if key is pressed (key string) */
+int RGFW_isPressedI(RGFW_window* window, int key); /*!< if key is pressed (key code) */
+int RGFW_isPressedS(RGFW_window* window, char* key); /*!< if key is pressed (key string) */
 
-/*clipboard functions*/
-char* RGFW_readClipboard(RGFW_window* w); /* read clipboard data */
-void RGFW_writeClipboard(RGFW_window* w, char* text); /* write text to the clipboard */
+/*! clipboard functions*/
+char* RGFW_readClipboard(RGFW_window* w); /*!< read clipboard data */
+void RGFW_writeClipboard(RGFW_window* w, char* text); /*!< write text to the clipboard */
 
-/* Supporting functions */
-void RGFW_setDrawBuffer(int buffer); /* switching draw buffer (front/back/third) */
-char** RGFW_parseUriList(char* text, int* count); /* parses uri drop data */
+/*! Supporting functions */
+void RGFW_setDrawBuffer(int buffer); /*!< switching draw buffer (front/back/third) */
+char** RGFW_parseUriList(char* text, int* count); /*!< parses uri drop data */
 
 
 /*
