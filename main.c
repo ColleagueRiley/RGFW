@@ -18,7 +18,6 @@ int main(){
     RGFW_setIcon(w, icon, 3, 3, 4);
 
     while (1){
-        if(w->display);
         RGFW_checkEvents(w); 
         RGFW_clear(w, 255, 255, 255, 255);
 
