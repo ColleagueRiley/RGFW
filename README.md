@@ -13,3 +13,9 @@ This library does not
 
 1) Handle any rendering for you (other than creating your opengl context)
 2) do anything above the bare minimum in terms of functionality 
+
+# Documentation
+
+There is a lot of in-header-documentation, but more doucmentation can be found [here](https://RSGL.github.io/RGFW)
+
+If you wish to build the documentation your self, there is also an Doxygen file attached.
