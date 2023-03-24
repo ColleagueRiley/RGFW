@@ -94,7 +94,7 @@ RGFW_window* RGFW_createWindowPointer(
 	int y,  /* y */
 	int width, /* width */
 	int height, /* height */
-	unsigned long args /* extra arguments */
+	unsigned long args /* extra arguments (NULL / (unsigned long)0 means no args used)*/
 );
 
 /* create window object (non-pointer) */
@@ -105,7 +105,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* window); /* check events */
 /* window managment functions*/
 void RGFW_closeWindow(RGFW_window* window); /* close the window and free leftover data */
 
-void RGFW_clear(RGFW_window* window, char r, char g, char b, char a); /* clear window to the rgba color*/
+void RGFW_clear(RGFW_window* window, unsigned char r, unsigned char g, unsigned char b, unsigned char a); /* clear window to the rgba color*/
 
 void RGFW_setIcon(RGFW_window* window, 
 				 unsigned char* icon /* icon bitmap */, 
@@ -131,14 +131,16 @@ char** RGFW_parseUriList(char* text, int* count); /* parses uri drop data */
 /*
 Example to get you started : 
 
+linux : gcc main.c -lX11 -lGL 
+windows : gcc main.c -lopengl32 -lole32 -lshell32 -lgdi32
+
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
-int main(){
 unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF,    0xFF, 0x00, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF,   0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
 
 int main(){
-    RGFW_window* w = RGFW_createWindowPointer("name", 500, 500, 500, 500, RGFW_ALLOW_DND);
+    RGFW_window* w = RGFW_createWindowPointer("name", 500, 500, 500, 500, (unsigned long)0); 
 
     RGFW_setIcon(w, icon, 3, 3, 4);
 
@@ -410,7 +412,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 
 					unsigned int i;
 					for (i = 0;  i < count;  i++) {
-						char* name = XGetAtomName(win->display, formats[i]);
+						char* name = XGetAtomName((Display*)win->display, formats[i]);
 						if ((strcmp("text/uri-list", name) == 0) || (strcmp("text/plain", name) == 0)) 
 							xdnd.format = formats[i];
 						
@@ -620,27 +622,27 @@ char* RGFW_readClipboard(RGFW_window* w){
   char* result;
   unsigned long ressize, restail;
   int resbits;
-  Atom bufid = XInternAtom(w->display, "CLIPBOARD", False),
-       fmtid = XInternAtom(w->display, "STRING", False),
-       propid = XInternAtom(w->display, "XSEL_DATA", False),
-       incrid = XInternAtom(w->display, "INCR", False);
+  Atom bufid = XInternAtom((Display*)w->display, "CLIPBOARD", False),
+       fmtid = XInternAtom((Display*)w->display, "STRING", False),
+       propid = XInternAtom((Display*)w->display, "XSEL_DATA", False),
+       incrid = XInternAtom((Display*)w->display, "INCR", False);
   XEvent event;
 
-  XSelectInput (w->display, w->window, PropertyChangeMask);
-  XConvertSelection(w->display, bufid, fmtid, propid, w->window, CurrentTime);
+  XSelectInput ((Display*)w->display, (Window)w->window, PropertyChangeMask);
+  XConvertSelection((Display*)w->display, bufid, fmtid, propid, (Window)w->window, CurrentTime);
   do {
-    XNextEvent(w->display, &event);
+    XNextEvent((Display*)w->display, &event);
   } while (event.type != SelectionNotify || event.xselection.selection != bufid);
 
   if (event.xselection.property) {
-    XGetWindowProperty(w->display, w->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
+    XGetWindowProperty((Display*)w->display, (Window)w->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
       &fmtid, &resbits, &ressize, &restail, (unsigned char**)&result);
 
     if (fmtid == incrid)
       do {
-        while (event.type != PropertyNotify || event.xproperty.atom != propid || event.xproperty.state != PropertyNewValue) XNextEvent(w->display, &event);
+        while (event.type != PropertyNotify || event.xproperty.atom != propid || event.xproperty.state != PropertyNewValue) XNextEvent((Display*)w->display, &event);
 
-        XGetWindowProperty(w->display, w->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
+        XGetWindowProperty((Display*)w->display, (Window)w->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
           &fmtid, &resbits, &ressize, &restail, (unsigned char**)&result);
       } while (ressize > 0);
   }
@@ -825,33 +827,34 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 				win->event.type = RGFW_mouseButtonReleased;
 				break;
 
-			case WM_DROPFILES:
-				win->event.type = RGFW_dnd;
+			case WM_DROPFILES: {
+					win->event.type = RGFW_dnd;
 
-				HDROP drop = (HDROP) msg.wParam;
-				POINT pt;
-				int i;
+					HDROP drop = (HDROP) msg.wParam;
+					POINT pt;
+					int i;
 
-				win->event.droppedFilesCount = DragQueryFileW(drop, 0xffffffff, NULL, 0);
-				win->event.droppedFiles = calloc(win->event.droppedFilesCount, sizeof(char*));
+					win->event.droppedFilesCount = DragQueryFileW(drop, 0xffffffff, NULL, 0);
+					win->event.droppedFiles = (char**)calloc(win->event.droppedFilesCount, sizeof(char*));
 
-				// Move the mouse to the position of the drop
-				DragQueryPoint(drop, &pt);
-				
-				win->event.dropX = pt.x;
-				win->event.dropX = pt.y;
+					// Move the mouse to the position of the drop
+					DragQueryPoint(drop, &pt);
+					
+					win->event.dropX = pt.x;
+					win->event.dropX = pt.y;
 
-				for (i = 0;  i < win->event.droppedFilesCount;  i++) {
-					const UINT length = DragQueryFileW(drop, i, NULL, 0);
-					WCHAR* buffer = calloc((size_t) length + 1, sizeof(WCHAR));
+					for (i = 0;  i < win->event.droppedFilesCount;  i++) {
+						const UINT length = DragQueryFileW(drop, i, NULL, 0);
+						WCHAR* buffer = (WCHAR*)calloc((size_t) length + 1, sizeof(WCHAR));
 
-					DragQueryFileW(drop, i, buffer, length + 1);
-					win->event.droppedFiles[i] = createUTF8FromWideStringWin32(buffer);
+						DragQueryFileW(drop, i, buffer, length + 1);
+						win->event.droppedFiles[i] = createUTF8FromWideStringWin32(buffer);
 
-					free(buffer);
+						free(buffer);
+					}
+
+					DragFinish(drop);
 				}
-
-				DragFinish(drop);
 				break;
 			default: break;
 		}
@@ -989,25 +992,24 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
     DeleteObject(color);
     DeleteObject(mask);
 
-    SendMessageW(w->display, WM_SETICON, ICON_BIG, (LPARAM) handle);
-    SendMessageW(w->display, WM_SETICON, ICON_SMALL, (LPARAM) handle);
+    SendMessageW((HWND)w->display, WM_SETICON, ICON_BIG, (LPARAM) handle);
+    SendMessageW((HWND)w->display, WM_SETICON, ICON_SMALL, (LPARAM) handle);
 }
 
 char* RGFW_readClipboard(RGFW_window* w){
     // Open the clipboard
-    if (!OpenClipboard(NULL)) {
-        return 1;
-    }
+    if (!OpenClipboard(NULL))
+        return (char*)"";
 
     // Get the clipboard data as a Unicode string
     HANDLE hData = GetClipboardData(CF_TEXT);
     if (hData == NULL) {
         CloseClipboard();
-        return 1;
+        return (char*)"";
     }
     
-	char* text = malloc(7);
-	text = GlobalLock(hData);
+	char* text = (char*)malloc(7);
+	text = (char*)GlobalLock(hData);
 
     // Release the clipboard data
     GlobalUnlock(hData);
@@ -1031,7 +1033,7 @@ void RGFW_writeClipboard(RGFW_window* w, char* text) {
         return;
     }
 
-    buffer = GlobalLock(object);
+    buffer = (WCHAR*)GlobalLock(object);
     if (!buffer)
     {
         GlobalFree(object);
@@ -1041,7 +1043,7 @@ void RGFW_writeClipboard(RGFW_window* w, char* text) {
     MultiByteToWideChar(CP_UTF8, 0, text, -1, buffer, characterCount);
     GlobalUnlock(object);
 
-    if (!OpenClipboard(w->display))
+    if (!OpenClipboard((HWND)w->display))
     {
         GlobalFree(object);
         return;
@@ -1061,7 +1063,7 @@ char* createUTF8FromWideStringWin32(const WCHAR* source) {
         return NULL;
     }
 
-    target = calloc(size, 1);
+    target = (char*)calloc(size, 1);
 
     if (!WideCharToMultiByte(CP_UTF8, 0, source, -1, target, size, NULL, NULL)) {
         free(target);
@@ -1109,7 +1111,7 @@ void RGFW_setDrawBuffer(int buffer){
     glDrawBuffer(buffer);
 }
 
-void RGFW_clear(RGFW_window* w, char r, char g, char b, char a){
+void RGFW_clear(RGFW_window* w, unsigned char r, unsigned char g, unsigned char b, unsigned char a){
 	RGFW_makeCurrent(w);
 
     glFlush(); /* flush the window*/
@@ -1154,8 +1156,8 @@ char** RGFW_parseUriList(char* text, int* count) {
 
         (*count)++;
 
-        path = calloc(strlen(line) + 1, 1);
-        paths = realloc(paths, *count * sizeof(char*));
+        path = (char*)calloc(strlen(line) + 1, 1);
+        paths = (char**)realloc(paths, *count * sizeof(char*));
         paths[*count - 1] = path;
 
         while (*line)
