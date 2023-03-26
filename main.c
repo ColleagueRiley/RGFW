@@ -16,6 +16,7 @@ int main(){
     RGFW_window* w = RGFW_createWindowPointer("name", 500, 500, 500, 500, RGFW_ALLOW_DND);
 
     RGFW_setIcon(w, icon, 3, 3, 4);
+    w->fpsCap = 60;
 
     while (1){
         RGFW_checkEvents(w); 
@@ -34,6 +35,9 @@ int main(){
             printf("Pasted : %s\n", RGFW_readClipboard(w));
         else if (RGFW_isPressedS(w, "Down"))
             RGFW_writeClipboard(w, "DOWN");
+        else if (RGFW_isPressedS(w, "Space"))
+            printf("fps : %i\n", w->fps);   
+
 
         int i;
         for (i = 0; i < w->event.droppedFilesCount; i++)
