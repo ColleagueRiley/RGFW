@@ -25,7 +25,7 @@
 		EimaMei/Sacode : Much of the code for creating windows using winapi
 
 		GLFW: 
-			Most of X11 and certain parts of winapi are very poorly documeted, 
+			certain parts of winapi and X11 are very poorly documeted, 
 			GLFW's source code was referenced and used throughout the project (used code is marked in some way),
 			this mainly includes, code for drag and drops, code for setting the icon to a bitmap and the code for managing the clipboard for X11 (as these parts are not documenated very well)
 
