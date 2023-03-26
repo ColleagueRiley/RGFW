@@ -50,8 +50,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
+#endif				
 typedef struct RGFW_Event {
     int type; /*!< which event has been sent?*/
     int button; /*!< which mouse button has been clicked (0) left (1) middle (2) right*/
@@ -80,8 +79,13 @@ typedef struct RGFW_window {
 	char* name; /*!< window's name*/
 	int x, y, w, h; /*!< window size, x, y*/
 
+	unsigned int fpsCap; /*!< the fps cap ofs the window should run at (change this var to change the fps cap, 0 = no limit)*/
+	/*[the fps is capped when events are checked]*/
+
 	int srcX, srcY, srcW, srcH; /* source size (for resizing, do not change these values directly) */
 	char* srcName; /*!< source name, for chaning the name (do not change these values directly) */
+
+	unsigned int fps; /*the current fps of the window [the fps is checked when events are checked]*/
 
 	unsigned char dnd; /*!< if dnd is enabled or on (based on window creating args) */
 
@@ -126,7 +130,7 @@ void RGFW_writeClipboard(RGFW_window* w, char* text); /*!< write text to the cli
 /*! Supporting functions */
 void RGFW_setDrawBuffer(int buffer); /*!< switching draw buffer (front/back/third) */
 char** RGFW_parseUriList(char* text, int* count); /*!< parses uri drop data */
-
+void RGFW_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_checkEvents)*/ 
 
 /*
 Example to get you started : 
@@ -158,6 +162,27 @@ int main(){
 
 #ifdef RGFW_IMPLEMENTATION
 
+typedef struct RGFW_Timespec {
+	#ifdef __USE_TIME_BITS64
+	__time64_t tv_sec;		/* Seconds.  */
+	#else
+	__time_t tv_sec;		/* Seconds.  */
+	#endif
+	#if __WORDSIZE == 64 \
+	|| (defined __SYSCALL_WORDSIZE && __SYSCALL_WORDSIZE == 64) \
+	|| (__TIMESIZE == 32 && !defined __USE_TIME_BITS64)
+	__syscall_slong_t tv_nsec;	/* Nanoseconds.  */
+	#else
+	# if __BYTE_ORDER == __BIG_ENDIAN
+	int: 32;           /* Padding.  */
+	long int tv_nsec;  /* Nanoseconds.  */
+	# else
+	long int tv_nsec;  /* Nanoseconds.  */
+	int: 32;           /* Padding.  */
+	# endif
+	#endif
+} RGFW_Timespec;
+
 #ifdef __linux__
 
 #include <GL/glx.h>
@@ -166,6 +191,7 @@ int main(){
 
 #include <limits.h>
 #include <string.h>
+#include <time.h>
 
 Atom XdndAware, XdndTypeList,     XdndSelection,    XdndEnter,        XdndPosition,     XdndStatus,       XdndLeave,        XdndDrop,         XdndFinished,     XdndActionCopy,   XdndActionMove,   XdndActionLink,   XdndActionAsk, XdndActionPrivate;
 
@@ -184,6 +210,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->srcH = nWin->h = h;
 
 	nWin->srcName = nWin->name = name;
+	nWin->fpsCap = 0;
 
     XInitThreads(); /* init X11 threading*/
 
@@ -298,6 +325,8 @@ typedef struct XDND{
 XDND xdnd;
 
 RGFW_Event RGFW_checkEvents(RGFW_window* win){
+	RGFW_checkFPS(win);
+
     RGFW_Event event;
 	XEvent E; /* raw X11 event*/
 
@@ -651,7 +680,118 @@ char* RGFW_readClipboard(RGFW_window* w){
 }
 
 void RGFW_writeClipboard(RGFW_window* w, char* text){
-	
+    Atom CLIPBOARD, UTF8_STRING, SAVE_TARGETS, TARGETS, MULTIPLE, ATOM_PAIR, PRIMARY, CLIPBOARD_MANAGER;
+    
+    CLIPBOARD = XInternAtom((Display*)w->display, "CLIPBOARD", False);
+    UTF8_STRING = XInternAtom((Display*)w->display, "UTF8_STRING", False);
+    SAVE_TARGETS = XInternAtom((Display*)w->display, "SAVE_TARGETS", False);
+    TARGETS = XInternAtom((Display*)w->display, "TARGETS", False);
+    MULTIPLE = XInternAtom((Display*)w->display, "MULTIPLE", False);
+    ATOM_PAIR = XInternAtom((Display*)w->display, "ATOM_PAIR", False);
+    PRIMARY = XInternAtom((Display*)w->display, "PRIMARY", False);
+    CLIPBOARD_MANAGER = XInternAtom((Display*)w->display, "CLIPBOARD_MANAGER", False);
+
+    XSetSelectionOwner((Display*)w->display, CLIPBOARD, (Window)w->window, CurrentTime);
+
+    XConvertSelection((Display*)w->display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, (Window)w->window, CurrentTime);
+
+	unsigned char XA_STRING = 31;
+
+    for (;;) {
+        XEvent event;
+
+        XNextEvent((Display*)w->display, &event);
+        switch (event.type) {
+            case SelectionRequest: {
+                const XSelectionRequestEvent* request = &event.xselectionrequest;
+
+                XEvent reply = { SelectionNotify };
+                
+                char* selectionString = NULL;
+                const Atom formats[] = { UTF8_STRING, XA_STRING };
+                const int formatCount = sizeof(formats) / sizeof(formats[0]);
+
+                selectionString = text;
+
+                if (request->target == TARGETS) {
+                    const Atom targets[] = { TARGETS,
+                                            MULTIPLE,
+                                            UTF8_STRING,
+                                            XA_STRING };
+
+                    XChangeProperty((Display*)w->display,
+                                    request->requestor,
+                                    request->property,
+                                    4,
+                                    32,
+                                    PropModeReplace,
+                                    (unsigned char*) targets,
+                                    sizeof(targets) / sizeof(targets[0]));
+
+                    reply.xselection.property = request->property;
+                }
+
+                if (request->target == MULTIPLE) {
+
+                    Atom* targets;
+
+                    Atom actualType;
+                    int actualFormat;
+                    unsigned long count, bytesAfter;
+
+                    XGetWindowProperty((Display*)w->display, request->requestor, request->property, 0, LONG_MAX, False, ATOM_PAIR,  &actualType, &actualFormat, &count, &bytesAfter, (unsigned char**) &targets);
+
+                    unsigned long i;
+                    for (i = 0;  i < count;  i += 2) {
+                        int j;
+
+                        for (j = 0;  j < formatCount;  j++) {
+                            if (targets[i] == formats[j])
+                                break;
+                        }
+
+                        if (j < formatCount)
+                        {
+                            XChangeProperty((Display*)w->display,
+                                            request->requestor,
+                                            targets[i + 1],
+                                            targets[i],
+                                            8,
+                                            PropModeReplace,
+                                            (unsigned char *) selectionString,
+                                            strlen(selectionString));
+                        }
+                        else 
+                            targets[i + 1] = None;
+                    }
+
+                    XChangeProperty((Display*)w->display,
+                                    request->requestor,
+                                    request->property,
+                                    ATOM_PAIR,
+                                    32,
+                                    PropModeReplace,
+                                    (unsigned char*) targets,
+                                    count);
+
+                    XFree(targets);
+
+                    reply.xselection.property = request->property;
+                }
+                
+                reply.xselection.display = request->display;
+                reply.xselection.requestor = request->requestor;
+                reply.xselection.selection = request->selection;
+                reply.xselection.target = request->target;
+                reply.xselection.time = request->time;
+
+                XSendEvent((Display*)w->display, request->requestor, False, 0, &reply);
+                break;
+			}
+
+            default: return;
+        }
+    }
 }
 
 char keyboard[32];
@@ -663,7 +803,11 @@ int RGFW_isPressedI(RGFW_window* w, int key){
 	return !!(keyboard[kc2 >> 3] & (1 << (kc2 & 7)));				/* check if the key is pressed */
 }
 
-int RGFW_isPressedS(RGFW_window* w, char* key){ return RGFW_isPressedI(w, XStringToKeysym(key)); }
+int RGFW_isPressedS(RGFW_window* w, char* key){
+	if (key == "Space") key = (char*)"space";
+
+	return RGFW_isPressedI(w, XStringToKeysym(key)); 
+}
 #endif
 
 #ifdef _WIN32
@@ -682,6 +826,9 @@ char* createUTF8FromWideStringWin32(const WCHAR* source);
 
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
     RGFW_window* nWin = (RGFW_window*)malloc(sizeof(RGFW_window));
+
+	nWin->fpsCap = 0;
+
     int         pf;
 	WNDCLASS    wc;
 
@@ -691,6 +838,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->srcH = nWin->h = h;
 
 	nWin->srcName = nWin->name = name;
+	nWin->fpsCap = 0;
 
 	HINSTANCE inh = GetModuleHandle(NULL);
 
@@ -699,6 +847,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	Class.hInstance = inh;
 	Class.hCursor = LoadCursor(NULL, IDC_ARROW);
 	Class.lpfnWndProc = DefWindowProc;
+
 	RegisterClassA(&Class);
 
 	RegisterClass(&wc);
@@ -761,6 +910,8 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 }
 
 RGFW_Event RGFW_checkEvents(RGFW_window* win){
+	RGFW_checkFPS(win);
+	
 	MSG msg = {};
 
 	int setButton = 0;
@@ -856,6 +1007,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 					DragFinish(drop);
 				}
 				break;
+            break;
 			default: break;
 		}
 
@@ -1079,8 +1231,9 @@ char* createUTF8FromWideStringWin32(const WCHAR* source) {
 #define GL_BACK					0x0405
 #define GL_LEFT					0x0406
 #define GL_RIGHT				0x0407
+
 #include <OpenGL/gl.h>
-#include <Carbon/Carbon.h>
+
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
 	RGFW_window* nWin = malloc(sizeof(RGFW_window));
 
@@ -1088,6 +1241,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->srcY = nWin->y = y;
 	nWin->srcW = nWin->w = w;
 	nWin->srcH = nWin->h = h;
+	nWin->fpsCap = 0;
 
 	return nWin;
 }
@@ -1124,6 +1278,38 @@ void RGFW_clear(RGFW_window* w, unsigned char r, unsigned char g, unsigned char 
     /* clear the window*/
     glClearColor(r / 255.0, g / 255.0, b / 255.0, a / 255.0);
     glClear(0x00004000);
+}
+
+time_t startTime[2];
+int frames = 0;
+
+void RGFW_checkFPS(RGFW_window* win){
+	/*get current fps*/
+	frames++;
+
+	unsigned int seconds = time(0) - startTime[0];
+
+	if (seconds) {
+		win->fps = frames / seconds;
+
+		frames = 0;
+		startTime[0] = time(0);
+	}
+
+
+	/*slow down to the set fps cap*/
+	if (win->fpsCap){
+		time_t currentTime = time(0);
+		time_t elapsedTime = currentTime - startTime[1];
+
+		int sleepTime = 1000/(win->fpsCap) - elapsedTime;
+		if (sleepTime > 0){
+			RGFW_Timespec sleep_time = { sleepTime / 1000, (sleepTime % 1000) * 1000000 };
+			nanosleep((struct timespec*)&sleep_time, NULL);
+		}
+
+		startTime[1] = time(0);
+	}
 }
 
 /*
