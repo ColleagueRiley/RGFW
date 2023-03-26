@@ -1,11 +1,3 @@
-(linux)
-- write clipboard data
-- write drag data
-
-(windows)
-- write drag data
-- test writing clipboard data
-
 - start support for macos
 
 - global key system
