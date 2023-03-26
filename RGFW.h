@@ -23,6 +23,16 @@
 /*
 	Credits :
 		EimaMei/Sacode : Much of the code for creating windows using winapi
+
+		GLFW: 
+			Most of X11 and certain parts of winapi are very poorly documeted, 
+			GLFW's source code was referenced and used throughout the project (used code is marked in some way),
+			this mainly includes, code for drag and drops, code for setting the icon to a bitmap and the code for managing the clipboard for X11 (as these parts are not documenated very well)
+
+			GLFW Copyright, https::/github.com/GLFW/GLFW
+
+			Copyright (c) 2002-2006 Marcus Geelnard
+			Copyright (c) 2006-2019 Camilla Löwy
 */
 
 /*! Optional arguments for making a windows */
@@ -396,6 +406,10 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 			if (E.xclient.data.l[0] == (long int)XInternAtom((Display *)win->display, "WM_DELETE_WINDOW", 1))
 				event.type = RGFW_quit;
 
+			/*
+				much of this event (drag and drop code) is source from glfw
+			*/
+
 			else if (win->dnd){
 				if (E.xclient.message_type == XdndEnter) {
 					unsigned long count;
@@ -608,6 +622,11 @@ void RGFW_closeWindow(RGFW_window* win){
 	XCloseDisplay((Display *)win->display); /* kill the display*/	   
 }
 
+
+
+/*
+	the majority function is sourced from GLFW
+*/
 void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int channels){
 	int longCount = 2 + width * height;
 
@@ -647,6 +666,9 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
     XFlush((Display*)w->display);
 }
 
+/*
+	the majority function is sourced from GLFW
+*/
 char* RGFW_readClipboard(RGFW_window* w){
   char* result;
   unsigned long ressize, restail;
@@ -679,6 +701,9 @@ char* RGFW_readClipboard(RGFW_window* w){
   return result;
 }
 
+/*
+	almost all of this function is sourced from GLFW
+*/
 void RGFW_writeClipboard(RGFW_window* w, char* text){
     Atom CLIPBOARD, UTF8_STRING, SAVE_TARGETS, TARGETS, MULTIPLE, ATOM_PAIR, PRIMARY, CLIPBOARD_MANAGER;
     
@@ -978,6 +1003,9 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 				win->event.type = RGFW_mouseButtonReleased;
 				break;
 
+			/*
+				much of this event is source from glfw
+			*/
 			case WM_DROPFILES: {
 					win->event.type = RGFW_dnd;
 
@@ -988,7 +1016,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 					win->event.droppedFilesCount = DragQueryFileW(drop, 0xffffffff, NULL, 0);
 					win->event.droppedFiles = (char**)calloc(win->event.droppedFilesCount, sizeof(char*));
 
-					// Move the mouse to the position of the drop
+					/* Move the mouse to the position of the drop */
 					DragQueryPoint(drop, &pt);
 					
 					win->event.dropX = pt.x;
@@ -1089,6 +1117,9 @@ void RGFW_closeWindow(RGFW_window* win) {
 	DestroyWindow((HWND)win->display); /* delete display */
 }
 
+/*
+	much of this function is sourced from GLFW
+*/
 void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int channels){    
     HDC dc;
     HICON handle;
@@ -1149,11 +1180,11 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
 }
 
 char* RGFW_readClipboard(RGFW_window* w){
-    // Open the clipboard
+    /* Open the clipboard */
     if (!OpenClipboard(NULL))
         return (char*)"";
 
-    // Get the clipboard data as a Unicode string
+    /* Get the clipboard data as a Unicode string */
     HANDLE hData = GetClipboardData(CF_TEXT);
     if (hData == NULL) {
         CloseClipboard();
@@ -1163,7 +1194,7 @@ char* RGFW_readClipboard(RGFW_window* w){
 	char* text = (char*)malloc(7);
 	text = (char*)GlobalLock(hData);
 
-    // Release the clipboard data
+    /* Release the clipboard data */
     GlobalUnlock(hData);
     CloseClipboard();
 
