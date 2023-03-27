@@ -172,11 +172,13 @@ int main(){
 
 #ifdef RGFW_IMPLEMENTATION
 
+#include <time.h>
+	
 typedef struct RGFW_Timespec {
 	#ifdef __USE_TIME_BITS64
-	__time64_t tv_sec;		/* Seconds.  */
+	time64_t tv_sec;		/* Seconds.  */
 	#else
-	__time_t tv_sec;		/* Seconds.  */
+	time_t tv_sec;		/* Seconds.  */
 	#endif
 	#if __WORDSIZE == 64 \
 	|| (defined __SYSCALL_WORDSIZE && __SYSCALL_WORDSIZE == 64) \
