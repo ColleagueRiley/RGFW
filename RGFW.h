@@ -837,20 +837,20 @@ void RGFW_toggleMouse(RGFW_window* w){
 		static char noData[] = { 0,0,0,0,0,0,0,0 };
 		black.red = black.green = black.blue = 0;
 
-		bitmapNoData = XCreateBitmapFromData(w->display, w->window, noData, 8, 8);
-		invisibleCursor = XCreatePixmapCursor(w->display, bitmapNoData, bitmapNoData, 
+		bitmapNoData = XCreateBitmapFromData((Display*)w->display, (Window)w->window, noData, 8, 8);
+		invisibleCursor = XCreatePixmapCursor((Display*)w->display, bitmapNoData, bitmapNoData, 
 											&black, &black, 0, 0);
-		XDefineCursor(w->display, w->window, invisibleCursor);
-		XFreeCursor(w->display, invisibleCursor);
-		XFreePixmap(w->display, bitmapNoData);
+		XDefineCursor((Display*)w->display, (Window)w->window, invisibleCursor);
+		XFreeCursor((Display*)w->display, invisibleCursor);
+		XFreePixmap((Display*)w->display, bitmapNoData);
 
 		w->hideMouse = 1;
 	}
 	else {
 		Cursor cursor;
-		cursor=XCreateFontCursor(w->display, XC_left_ptr);
-		XDefineCursor(w->display, w->window, cursor);
-		XFreeCursor(w->display, cursor);
+		cursor=XCreateFontCursor((Display*)w->display, XC_left_ptr);
+		XDefineCursor((Display*)w->display, (Window)w->window, cursor);
+		XFreeCursor((Display*)w->display, cursor);
 
 		w->hideMouse = 0;
 	}
@@ -1149,15 +1149,15 @@ int RGFW_isPressedS(RGFW_window* window, char* key){
 
 void RGFW_toggleMouse(RGFW_window* w){
 	if (!w->hideMouse){
-		HCURSOR blankCursor = CreateCursor(NULL, 0, 0, 1, 1, NULL, NULL);
-		SetCursor(blankCursor);
-		SetClassLongPtr(w->display, GCLP_HCURSOR, blankCursor);
+		long int blankCursor = (long int)CreateCursor(NULL, 0, 0, 1, 1, NULL, NULL);
+		SetCursor((HCURSOR)blankCursor);
+		SetClassLongPtr((HWND)w->display, GCLP_HCURSOR, blankCursor);
 		
 		w->hideMouse = 1;
 	} else {
-		HCURSOR defaultCursor = LoadCursor(NULL, IDC_ARROW);
-		SetCursor(defaultCursor);
-		SetClassLongPtr(w->display, GCLP_HCURSOR, defaultCursor);
+		long int defaultCursor = (long int)LoadCursor(NULL, IDC_ARROW);
+		SetCursor((HCURSOR)defaultCursor);
+		SetClassLongPtr((HWND)w->display, GCLP_HCURSOR, defaultCursor);
 
 		w->hideMouse = 0;
 	}
