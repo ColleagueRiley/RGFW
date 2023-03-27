@@ -40,6 +40,7 @@
 #define RGFW_NO_BOARDER		(1L<<1) /*!< If the window doesn't have boarder*/
 #define RGFW_NO_RESIZE		(1L<<2) /*!< If the window cannot be resized  by the user*/
 #define RGFW_ALLOW_DND     (1L<<3) /*!< if the window supports drag and drop*/
+#define RGFW_HIDE_MOUSE (1L<<4) /* if the window should hide the mouse or not (can be toggled later on)*/
 
 /*! event codes */
 #define RGFW_keyPressed 2 /*!< a key has been pressed*/
@@ -62,13 +63,13 @@
 extern "C" {
 #endif				
 typedef struct RGFW_Event {
-    int type; /*!< which event has been sent?*/
-    int button; /*!< which mouse button has been clicked (0) left (1) middle (2) right*/
+    unsigned char type; /*!< which event has been sent?*/
+    unsigned char button; /*!< which mouse button has been clicked (0) left (1) middle (2) right*/
     int x, y; /*!< mouse x, y of event*/
 
-    int ledState; /*!< 0 : numlock, 1 : caps lock, 3 : small lock*/
+    unsigned char ledState; /*!< 0 : numlock, 1 : caps lock, 3 : small lock*/
 
-    int keyCode; /*!< keycode of event*/
+    unsigned keyCode; /*!< keycode of event*/
 
 	#ifdef _WIN32
 	char keyName[16]; /* key name of event*/
@@ -95,7 +96,8 @@ typedef struct RGFW_window {
 	int srcX, srcY, srcW, srcH; /* source size (for resizing, do not change these values directly) */
 	char* srcName; /*!< source name, for chaning the name (do not change these values directly) */
 
-	unsigned int fps; /*the current fps of the window [the fps is checked when events are checked]*/
+	unsigned int fps, /*the current fps of the window [the fps is checked when events are checked]*/
+				hideMouse; /*if the mouse is hidden or not*/
 
 	unsigned char dnd; /*!< if dnd is enabled or on (based on window creating args) */
 
@@ -128,9 +130,11 @@ void RGFW_setIcon(RGFW_window* window, /*!< source window */
 				 int channels /*!< how many channels the bitmap has (rgb : 3, rgba : 4) */
 			);
 
+void RGFW_toggleMouse(RGFW_window* w);
+
 void RGFW_makeCurrent(RGFW_window* window); /*!< make the window the current opengl drawing context */
 
-int RGFW_isPressedI(RGFW_window* window, int key); /*!< if key is pressed (key code) */
+int RGFW_isPressedI(RGFW_window* window, unsigned int key); /*!< if key is pressed (key code) */
 int RGFW_isPressedS(RGFW_window* window, char* key); /*!< if key is pressed (key string) */
 
 /*! clipboard functions*/
@@ -199,6 +203,7 @@ typedef struct RGFW_Timespec {
 
 #include <GL/glx.h>
 #include <X11/XKBlib.h>
+#include <X11/cursorfont.h>
 #include <stdlib.h>
 
 #include <limits.h>
@@ -223,6 +228,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	nWin->srcName = nWin->name = name;
 	nWin->fpsCap = 0;
+	nWin->hideMouse = 0;
 
     XInitThreads(); /* init X11 threading*/
 
@@ -294,6 +300,8 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     XMapWindow((Display *)nWin->display, (GLXDrawable)nWin->window);						  /* draw the window*/
     XMoveWindow((Display *)nWin->display, (GLXDrawable)nWin->window, x, y); /* move the window to it's proper cords*/
 
+	if (RGFW_HIDE_MOUSE & args)
+		RGFW_toggleMouse(nWin);
 
 	if (RGFW_ALLOW_DND & args){
 		nWin->dnd = 1;
@@ -821,9 +829,36 @@ void RGFW_writeClipboard(RGFW_window* w, char* text){
     }
 }
 
+void RGFW_toggleMouse(RGFW_window* w){
+	if (!w->hideMouse){
+		Cursor invisibleCursor;
+		Pixmap bitmapNoData;
+		XColor black;
+		static char noData[] = { 0,0,0,0,0,0,0,0 };
+		black.red = black.green = black.blue = 0;
+
+		bitmapNoData = XCreateBitmapFromData(w->display, w->window, noData, 8, 8);
+		invisibleCursor = XCreatePixmapCursor(w->display, bitmapNoData, bitmapNoData, 
+											&black, &black, 0, 0);
+		XDefineCursor(w->display, w->window, invisibleCursor);
+		XFreeCursor(w->display, invisibleCursor);
+		XFreePixmap(w->display, bitmapNoData);
+
+		w->hideMouse = 1;
+	}
+	else {
+		Cursor cursor;
+		cursor=XCreateFontCursor(w->display, XC_left_ptr);
+		XDefineCursor(w->display, w->window, cursor);
+		XFreeCursor(w->display, cursor);
+
+		w->hideMouse = 0;
+	}
+}
+
 char keyboard[32];
 
-int RGFW_isPressedI(RGFW_window* w, int key){
+int RGFW_isPressedI(RGFW_window* w, unsigned int key){
 	XQueryKeymap((Display *)w->display, keyboard); /* query the keymap */
 
 	KeyCode kc2 = XKeysymToKeycode((Display *)w->display, key); /* convert the key to a keycode */
@@ -854,8 +889,6 @@ char* createUTF8FromWideStringWin32(const WCHAR* source);
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
     RGFW_window* nWin = (RGFW_window*)malloc(sizeof(RGFW_window));
 
-	nWin->fpsCap = 0;
-
     int         pf;
 	WNDCLASS    wc;
 
@@ -866,6 +899,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	nWin->srcName = nWin->name = name;
 	nWin->fpsCap = 0;
+	nWin->hideMouse = 0;
 
 	HINSTANCE inh = GetModuleHandle(NULL);
 
@@ -1084,7 +1118,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 	return win->event;
 }
 
-int RGFW_isPressedI(RGFW_window* window, int key){
+int RGFW_isPressedI(RGFW_window* window, unsigned int key){
 	return (GetAsyncKeyState(key) & 0x8000);
 }
 
@@ -1111,6 +1145,22 @@ int RGFW_isPressedS(RGFW_window* window, char* key){
 	}
 
 	return RGFW_isPressedI(window, vKey);
+}
+
+void RGFW_toggleMouse(RGFW_window* w){
+	if (!w->hideMouse){
+		HCURSOR blankCursor = CreateCursor(NULL, 0, 0, 1, 1, NULL, NULL);
+		SetCursor(blankCursor);
+		SetClassLongPtr(w->display, GCLP_HCURSOR, blankCursor);
+		
+		w->hideMouse = 1;
+	} else {
+		HCURSOR defaultCursor = LoadCursor(NULL, IDC_ARROW);
+		SetCursor(defaultCursor);
+		SetClassLongPtr(w->display, GCLP_HCURSOR, defaultCursor);
+
+		w->hideMouse = 0;
+	}
 }
 
 void RGFW_closeWindow(RGFW_window* win) {
@@ -1275,6 +1325,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->srcW = nWin->w = w;
 	nWin->srcH = nWin->h = h;
 	nWin->fpsCap = 0;
+	nWin->hideMouse = 0;
 
 	return nWin;
 }
