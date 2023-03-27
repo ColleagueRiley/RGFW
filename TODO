@@ -1,5 +1,21 @@
+- hide mouse function
+
+- chose if ifPressed function goes based on window or full display
+
+- made error messages for possible errors
+
+- if window is focused function
+
+- controller support
+
 - start support for macos
 
 - global key system
 
 - Document source code
+
+- opengl vbo wrangler for windows (maybe as a seperate [small/single header] library)
+
+- create drag events (maybe)
+
+- possible wayland backend
