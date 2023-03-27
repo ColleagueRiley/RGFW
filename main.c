@@ -15,7 +15,7 @@ unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF,    0xFF, 0x00, 0x00, 0x
 int main(){
     RGFW_window* wins[2] = {
                             RGFW_createWindowPointer("name", 500, 500, 500, 500, RGFW_ALLOW_DND),
-                            RGFW_createWindowPointer("subwindow", 200, 200, 200, 200, RGFW_ALLOW_DND)
+                            RGFW_createWindowPointer("subwindow", 200, 200, 200, 200, NULL)
                            };
 
     RGFW_setIcon(wins[0], icon, 3, 3, 4);
