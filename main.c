@@ -31,10 +31,10 @@ int main(){
                 glColor3f(0, 1, 0); glVertex2f(0.6, -0.75);
                 glColor3f(0, 0, 1); glVertex2f(0, 0.75);
             glEnd();
-        }
-
-        if (w->event.type == RGFW_quit)
-            break;
+	}
+        
+	if (wins[0]->event.type == RGFW_quit)
+        	break;
 
         if (RGFW_isPressedS(wins[0], "Up"))
             printf("Pasted : %s\n", RGFW_readClipboard(wins[0]));
@@ -45,7 +45,7 @@ int main(){
 
 
         int i;
-        for (i = 0; i < w->event.droppedFilesCount; i++)
+        for (i = 0; i < wins[0]->event.droppedFilesCount; i++)
             printf("dropped : %s\n", wins[0]->event.droppedFiles[i]);
     }
     
