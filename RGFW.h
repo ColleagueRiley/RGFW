@@ -97,7 +97,8 @@ typedef struct RGFW_window {
 	char* srcName; /*!< source name, for chaning the name (do not change these values directly) */
 
 	unsigned int fps, /*the current fps of the window [the fps is checked when events are checked]*/
-				hideMouse; /*if the mouse is hidden or not*/
+				hideMouse, /*if the mouse is hidden or not*/
+				inFocus; /*if the window is in focus or not*/ 
 
 	unsigned char dnd; /*!< if dnd is enabled or on (based on window creating args) */
 
@@ -134,8 +135,10 @@ void RGFW_toggleMouse(RGFW_window* w);
 
 void RGFW_makeCurrent(RGFW_window* window); /*!< make the window the current opengl drawing context */
 
-int RGFW_isPressedI(RGFW_window* window, unsigned int key); /*!< if key is pressed (key code) */
-int RGFW_isPressedS(RGFW_window* window, char* key); /*!< if key is pressed (key string) */
+
+unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key); /*!< if key is pressed (key code)*/
+/*!< if window == NULL, it checks if the key is pressed globally. Otherwise, it checks only if the key is pressed while the window in focus.*/
+unsigned char RGFW_isPressedS(RGFW_window* window, char* key); /*!< if key is pressed (key string) */
 
 /*! clipboard functions*/
 char* RGFW_readClipboard(RGFW_window* w); /*!< read clipboard data */
@@ -229,6 +232,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->srcName = nWin->name = name;
 	nWin->fpsCap = 0;
 	nWin->hideMouse = 0;
+	nWin->inFocus = 1;
 
     XInitThreads(); /* init X11 threading*/
 
@@ -624,6 +628,12 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 
 	win->event = event;
 
+    Window focus;
+    int revert;
+    XGetInputFocus(win->display, &focus, &revert);
+
+    win->inFocus = focus == win->window;
+	
 	return event;
 }
 
@@ -857,15 +867,27 @@ void RGFW_toggleMouse(RGFW_window* w){
 }
 
 char keyboard[32];
+Display* RGFWd = (Display*)0;
 
-int RGFW_isPressedI(RGFW_window* w, unsigned int key){
-	XQueryKeymap((Display *)w->display, keyboard); /* query the keymap */
+unsigned char RGFW_isPressedI(RGFW_window* w, unsigned int key){
+	if (RGFWd == (Display*)0) RGFWd = XOpenDisplay(0); 
+	
+	Display* d;
+	if (w == (RGFW_window*)0)
+		d = RGFWd;
+	else if (!w->inFocus)
+		return 0;
+	else 
+		d = (Display*)w->display;
 
-	KeyCode kc2 = XKeysymToKeycode((Display *)w->display, key); /* convert the key to a keycode */
+	XQueryKeymap(d, keyboard); /* query the keymap */
+
+
+	KeyCode kc2 = XKeysymToKeycode(d, key); /* convert the key to a keycode */
 	return !!(keyboard[kc2 >> 3] & (1 << (kc2 & 7)));				/* check if the key is pressed */
 }
 
-int RGFW_isPressedS(RGFW_window* w, char* key){
+unsigned char RGFW_isPressedS(RGFW_window* w, char* key){
 	if (key == "Space") key = (char*)"space";
 
 	return RGFW_isPressedI(w, XStringToKeysym(key)); 
@@ -900,6 +922,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->srcName = nWin->name = name;
 	nWin->fpsCap = 0;
 	nWin->hideMouse = 0;
+	nWin->inFocus = 1;
 
 	HINSTANCE inh = GetModuleHandle(NULL);
 
@@ -1115,14 +1138,21 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 	if (!IsWindow((HWND)win->display))
 		win->event.type = RGFW_quit;
 
+    win->inFocus = (GetForegroundWindow() == win->display);
+
 	return win->event;
 }
 
-int RGFW_isPressedI(RGFW_window* window, unsigned int key){
-	return (GetAsyncKeyState(key) & 0x8000);
+unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key){
+	if (window != NULL && !window->inFocus)
+		return 0;
+
+	if (GetAsyncKeyState(key) & 0x8000) 
+		return 1;
+	else return 0;
 }
 
-int RGFW_isPressedS(RGFW_window* window, char* key){
+unsigned char RGFW_isPressedS(RGFW_window* window, char* key){
 	int vKey = VkKeyScan(key[0]);
 
 	if (sizeof(key)/sizeof(char) > 1){
@@ -1325,6 +1355,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->srcW = nWin->w = w;
 	nWin->srcH = nWin->h = h;
 	nWin->fpsCap = 0;
+	nWin->inFocus = 1;
 	nWin->hideMouse = 0;
 
 	return nWin;
