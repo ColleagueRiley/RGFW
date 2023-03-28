@@ -1,10 +1,6 @@
-- test mouse function for windows
-
-- chose if ifPressed function goes based on window or full display
+- test new functions on windows (isPressed based on display, inFocus, mouse hide)
 
 - made error messages for possible errors
-
-- if window is focused function
 
 - controller support
 
