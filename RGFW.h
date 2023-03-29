@@ -179,7 +179,11 @@ int main(){
 
 #ifdef RGFW_IMPLEMENTATION
 
-#include <time.h>
+#ifdef RGFW_PRINT_ERRORS
+#include <stdio.h>
+#endif
+
+#include <time.h> /* time header (for drag and drop functions / other functions that need time info)*/
 	
 typedef struct RGFW_Timespec {
 	#ifdef __USE_TIME_BITS64
@@ -200,39 +204,42 @@ typedef struct RGFW_Timespec {
 	int: 32;           /* Padding.  */
 	# endif
 	#endif
-} RGFW_Timespec;
+} RGFW_Timespec; /*time struct for fps functions*/
 
 #ifdef __linux__
 
-#include <GL/glx.h>
-#include <X11/XKBlib.h>
-#include <X11/cursorfont.h>
-#include <stdlib.h>
+#include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
+#include <X11/XKBlib.h> /* for converting keycode to string */
+#include <X11/cursorfont.h> /* for hiding */
+#include <stdlib.h> /* realloc, malloc and other memory functions */
 
-#include <limits.h>
-#include <string.h>
-#include <time.h>
+#include <limits.h> /* for data limits (mainly used in drag and drop functions) */
+#include <string.h> /* strlen and other char* managing functions */
 
+/*atoms needed for drag and drop*/
 Atom XdndAware, XdndTypeList,     XdndSelection,    XdndEnter,        XdndPosition,     XdndStatus,       XdndLeave,        XdndDrop,         XdndFinished,     XdndActionCopy,   XdndActionMove,   XdndActionLink,   XdndActionAsk, XdndActionPrivate;
 
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
 	int singleBufferAttributes[] = {4, 8, 8, 9, 8, 10, 8, None};
 
-	int doubleBufferAttributes[] = {4, 5, 8, 8, 9, 8, 10, 8, None};
+	int doubleBufferAttributes[] = {4, 5, 8, 8, 9, 8, 10, 8, None}; /* buffer atts for creating a opengl context */
 
-    RGFW_window* nWin = (RGFW_window*)malloc(sizeof(RGFW_window));
+    RGFW_window* nWin = (RGFW_window*)malloc(sizeof(RGFW_window)); /* make a new RGFW struct */
 
-	nWin->event.droppedFilesCount = 0;
+
+	/* set and init the new window's data */
 
 	nWin->srcX = nWin->x = x;
 	nWin->srcY = nWin->y = y;
 	nWin->srcW = nWin->w = w;
-	nWin->srcH = nWin->h = h;
+	nWin->srcH = nWin->h = h; 
 
 	nWin->srcName = nWin->name = name;
 	nWin->fpsCap = 0;
 	nWin->hideMouse = 0;
 	nWin->inFocus = 1;
+	nWin->event.droppedFilesCount = 0;
+	nWin->dnd = 0;
 
     XInitThreads(); /* init X11 threading*/
 
@@ -278,7 +285,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     }
 
 
-    if (RGFW_NO_BOARDER & args){
+    if (RGFW_NO_BOARDER & args){ 
 		/* Atom vars for no-border*/
         Atom window_type = XInternAtom((Display *)nWin->display, "_NET_WM_WINDOW_TYPE", False);
         Atom value = XInternAtom((Display *)nWin->display, "_NET_WM_WINDOW_TYPE_DOCK", False);
@@ -307,7 +314,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	if (RGFW_HIDE_MOUSE & args)
 		RGFW_toggleMouse(nWin);
 
-	if (RGFW_ALLOW_DND & args){
+	if (RGFW_ALLOW_DND & args){ /* init drag and drop atoms and turn on drag and drop for this window */
 		nWin->dnd = 1;
 
 		XdndAware         = XInternAtom((Display*)nWin->display, "XdndAware",         False);
@@ -332,26 +339,38 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 		XChangeProperty((Display*)nWin->display, (Window)nWin->window,
                         XdndAware, 4, 32,
-                        PropModeReplace, (unsigned char*) &version, 1);
+                        PropModeReplace, (unsigned char*) &version, 1); /* turns on drag and drop */
 	}
-	else 
-		nWin->dnd = 0;
 
-    return nWin;
+    return nWin; /*return newly created window*/
 }
 
 typedef struct XDND{
 	long source, version;
 	int format;
-} XDND;
+} XDND; /* data structure for xdnd events */
 
 
 XDND xdnd;
 
+unsigned char RGFW_ValidWindowCheck(RGFW_window* win){
+	if (win == (RGFW_window*)0 || win->window == (Window)0 || XConnectionNumber((Display*)win->display) == -1){
+		#ifdef RGFW_PRINT_ERRORS
+		printf("Error RGFW_checkEvents : invalid window structure \n");
+		return 0;
+		#endif
+	}
+
+	return 1;
+}
+
 RGFW_Event RGFW_checkEvents(RGFW_window* win){
+	RGFW_Event event;
+	
+	if (!RGFW_ValidWindowCheck(win)) return event;
+
 	RGFW_checkFPS(win);
 
-    RGFW_Event event;
 	XEvent E; /* raw X11 event*/
 
 	unsigned char text_uri_list = 1;
@@ -374,6 +393,15 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 		/*translateString(event.keyName, 0);*/
 	}
 	
+	if (win->event.droppedFilesCount && win->event.droppedFiles != (char**)0) {
+		for (i = 0; i < win->event.droppedFilesCount; i++)
+			free(win->event.droppedFiles[i]);
+		
+		free(win->event.droppedFiles);
+
+		win->event.droppedFiles = (char**)0;
+	}
+
 	event.droppedFilesCount = 0;
 	event.dropX = 0;
 	event.dropY = 0;
@@ -425,9 +453,11 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 			*/
 
 			else if (win->dnd){
+				unsigned char formFree = 0;
+				
 				if (E.xclient.message_type == XdndEnter) {
 					unsigned long count;
-					Atom* formats = NULL;
+					Atom* formats = (Atom*)0;
 					Bool list = E.xclient.data.l[1] & 1;
 
 					xdnd.source  = E.xclient.data.l[0];
@@ -456,9 +486,11 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 										(unsigned char**) &formats);
 					}
 					else {
-						formats = (Atom*)malloc(3);
+						formats = (Atom*)malloc(E.xclient.data.l[2] + E.xclient.data.l[3] + E.xclient.data.l[4]);
+						formFree = 1;
+
 						count = 0;
-						Atom atom[3];
+
 						if (E.xclient.data.l[2] != None)
 							formats[count++] = E.xclient.data.l[2];
 						if (E.xclient.data.l[3] != None)
@@ -472,12 +504,18 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 						char* name = XGetAtomName((Display*)win->display, formats[i]);
 						if ((strcmp("text/uri-list", name) == 0) || (strcmp("text/plain", name) == 0)) 
 							xdnd.format = formats[i];
-						
-						free(name);
 					}
 
-					if (list && formats)
+					if (list && formats){
 						XFree(formats);
+						formats = (Atom*)0;
+					}
+					else if (formFree && formats != (Atom*)0){
+						free(formats);
+						
+						formats = (Atom*)0;
+						formFree = 1;
+					}
 				}
 				else if (E.xclient.message_type == XdndDrop) {
 					event.type = RGFW_dnd;
@@ -568,9 +606,50 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 
 				XGetWindowProperty((Display*)win->display, E.xselection.requestor, E.xselection.property, 0, LONG_MAX, False, E.xselection.target, &actualType, &actualFormat, &result, &bytesAfter, (unsigned char**) &data);
 
-                if (result) 
-					event.droppedFiles = RGFW_parseUriList(data, &event.droppedFilesCount);
+                if (result){
+					const char* prefix = "file://";
+					event.droppedFiles = NULL;
+					char* line;
 
+					event.droppedFilesCount = 0;
+
+					while ((line = strtok(data, "\r\n"))) {
+						char* path;
+
+						data = NULL;
+
+						if (line[0] == '#')
+							continue;
+
+						if (strncmp(line, prefix, strlen(prefix)) == 0) {
+							line += strlen(prefix);
+							while (*line != '/')
+								line++;
+						}
+
+						event.droppedFilesCount++;
+
+						path = (char*)calloc(strlen(line) + 1, 1);
+						event.droppedFiles  = (char**)realloc(event.droppedFiles , event.droppedFilesCount * sizeof(char*));
+						event.droppedFiles[event.droppedFilesCount - 1] = path;
+
+						while (*line)
+						{
+							if (line[0] == '%' && line[1] && line[2])
+							{
+								const char digits[3] = { line[1], line[2], '\0' };
+								*path = (char) strtol(digits, NULL, 16);
+								line += 2;
+							}
+							else
+								*path = *line;
+
+							path++;
+							line++;
+						}
+					}
+				}
+	
                 if (data)
                     XFree(data);
 
@@ -613,7 +692,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 		win->srcH = win->h;
 	} else {
 		/* make sure the window attrubutes are up-to-date*/
-		XGetWindowAttributes((Display *)win->display, (GLXDrawable)win->window, &a);
+		XGetWindowAttributes((Display *)win->display, (Window)win->window, &a);
 
 		win->srcX = win->x = a.x;
 		win->srcY = win->y = a.y;
@@ -632,14 +711,27 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
     int revert;
     XGetInputFocus(win->display, &focus, &revert);
 
-    win->inFocus = focus == win->window;
+    win->inFocus = (focus == (Window)win->window);
 	
 	return event;
 }
 
 void RGFW_closeWindow(RGFW_window* win){
-	XDestroyWindow((Display *)win->display, (GLXDrawable)win->window); /* close the window*/
-	XCloseDisplay((Display *)win->display); /* kill the display*/	   
+	if ((Display*)win->display){
+		if ((GLXDrawable)win->window)
+			XDestroyWindow((Display *)win->display, (GLXDrawable)win->window); /* close the window*/
+		XCloseDisplay((Display *)win->display); /* kill the display*/	
+	}
+
+	/* set cleared display / window to NULL for error checking */
+	win->display = (Display*)0;
+	win->window = (Window)0;    
+
+	if (win->dnd && win->event.droppedFilesCount){
+		free(win->event.droppedFiles);
+	}
+
+	free(win); /* free collected window data */
 }
 
 
@@ -672,6 +764,8 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
                         ((src[i * 4 + 3]) << 24);   
     }
     
+	if (!RGFW_ValidWindowCheck(w)) return;
+
     Atom NET_WM_ICON = XInternAtom((Display*)w->display, "_NET_WM_ICON", False);
 
     XChangeProperty((Display*)w->display, (Window)w->window,
@@ -923,6 +1017,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->fpsCap = 0;
 	nWin->hideMouse = 0;
 	nWin->inFocus = 1;
+	nWin->event.droppedFilesCount = 0;
 
 	HINSTANCE inh = GetModuleHandle(NULL);
 
@@ -999,8 +1094,20 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 	MSG msg = {};
 
 	int setButton = 0;
+	
+	if (win->event.droppedFilesCount && win->event.droppedFiles != (char**)0) {
+		unsigned int i;
+		
+		for (i = 0; i < win->event.droppedFilesCount; i++)
+			free(win->event.droppedFiles[i]);
+
+		free(win->event.droppedFiles); /* free dropped file data from the last event */
+
+		win->event.droppedFiles = (char**)0;
+	}
 
 	win->event.droppedFilesCount = 0;
+
 
 	while (PeekMessage(&msg, (HWND)win->display, 0u, 0u, PM_REMOVE)) {
 		switch (msg.message) {
@@ -1197,6 +1304,19 @@ void RGFW_closeWindow(RGFW_window* win) {
 	wglDeleteContext((HGLRC)win->glWin); /* delete opengl context */
 	DeleteDC((HDC)win->window); /* delete window */
 	DestroyWindow((HWND)win->display); /* delete display */
+
+	if (win->event.droppedFilesCount && win->event.droppedFiles != (char**)0) {
+		unsigned int i;
+		
+		for (i = 0; i < win->event.droppedFilesCount; i++)
+			free(win->event.droppedFiles[i]);
+
+		free(win->event.droppedFiles); /* free dropped file data from the last event */
+
+		win->event.droppedFiles = (char**)0;
+	}
+	
+	free(win);
 }
 
 /*
@@ -1425,59 +1545,6 @@ void RGFW_checkFPS(RGFW_window* win){
 
 		startTime[1] = time(0);
 	}
-}
-
-/*
-SOURCED FROM GLFW _glfwParseUriList
-Copyright (c) 2002-2006 Marcus Geelnard
-
-Copyright (c) 2006-2019 Camilla Löwy
-*/
-char** RGFW_parseUriList(char* text, int* count) {
-    const char* prefix = "file://";
-    char** paths = NULL;
-    char* line;
-
-    *count = 0;
-
-    while ((line = strtok(text, "\r\n")))
-    {
-        char* path;
-
-        text = NULL;
-
-        if (line[0] == '#')
-            continue;
-
-        if (strncmp(line, prefix, strlen(prefix)) == 0) {
-            line += strlen(prefix);
-            while (*line != '/')
-                line++;
-        }
-
-        (*count)++;
-
-        path = (char*)calloc(strlen(line) + 1, 1);
-        paths = (char**)realloc(paths, *count * sizeof(char*));
-        paths[*count - 1] = path;
-
-        while (*line)
-        {
-            if (line[0] == '%' && line[1] && line[2])
-            {
-                const char digits[3] = { line[1], line[2], '\0' };
-                *path = (char) strtol(digits, NULL, 16);
-                line += 2;
-            }
-            else
-                *path = *line;
-
-            path++;
-            line++;
-        }
-    }
-
-    return paths;
 }
 
 #endif /*RGFW_IMPLEMENTATION*/
