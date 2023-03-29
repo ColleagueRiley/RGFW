@@ -146,7 +146,6 @@ void RGFW_writeClipboard(RGFW_window* w, char* text); /*!< write text to the cli
 
 /*! Supporting functions */
 void RGFW_setDrawBuffer(int buffer); /*!< switching draw buffer (front/back/third) */
-char** RGFW_parseUriList(char* text, int* count); /*!< parses uri drop data */
 void RGFW_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_checkEvents)*/ 
 
 /*
@@ -607,6 +606,13 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 				XGetWindowProperty((Display*)win->display, E.xselection.requestor, E.xselection.property, 0, LONG_MAX, False, E.xselection.target, &actualType, &actualFormat, &result, &bytesAfter, (unsigned char**) &data);
 
                 if (result){
+					/*
+					SOURCED FROM GLFW _glfwParseUriList
+					Copyright (c) 2002-2006 Marcus Geelnard
+
+					Copyright (c) 2006-2019 Camilla Löwy
+					*/
+
 					const char* prefix = "file://";
 					event.droppedFiles = NULL;
 					char* line;
