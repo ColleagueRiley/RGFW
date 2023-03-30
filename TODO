@@ -1,19 +1,21 @@
-- test new functions on windows (isPressed based on display, inFocus, mouse hide)
+(fixes)
+    - hide mouse function (windows) 
 
-- made error messages for possible errors
+(addons)
+    - controller support
+    - global key system
+    - init drag function (drag n' drop)
 
-- controller support
+(backends)
+    - start support for macos
+    - possible wayland backend
 
-- start support for macos
-
-- global key system
-
-- Document source code
-
+(other)
 - opengl vbo wrangler for windows (maybe as a seperate [small/single header] library)
 
-- standard mutli-threading system
+(upkeepy)
+    - made error messages for possible errors
 
-- create drag events (maybe)
-
-- possible wayland backend
+    - check for memory leaks (after updates are done)
+    
+    - Document source code
