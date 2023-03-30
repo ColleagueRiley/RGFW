@@ -105,6 +105,8 @@ typedef struct RGFW_window {
 	RGFW_Event event; /*!< current event */
 } RGFW_window; /*!< Window structure for managing the window */
 
+typedef unsigned long RGFW_thread; /*thread type (to be defined per (unix/windows))*/
+
 RGFW_window* RGFW_createWindowPointer(
 	char* name, /* name of the window */
 	int x, /*!< x */
@@ -143,6 +145,12 @@ unsigned char RGFW_isPressedS(RGFW_window* window, char* key); /*!< if key is pr
 /*! clipboard functions*/
 char* RGFW_readClipboard(RGFW_window* w); /*!< read clipboard data */
 void RGFW_writeClipboard(RGFW_window* w, char* text); /*!< write text to the clipboard */
+
+/*! threading functions*/
+RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args); /*!< create a thread*/
+void RGFW_cancelThread(RGFW_thread thread); /*!< cancels a thread*/
+void RGFW_joinThread(RGFW_thread thread); /*!< join thread to current thread */
+void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority); /*!< sets the priority priority  */
 
 /*! Supporting functions */
 void RGFW_setDrawBuffer(int buffer); /*!< switching draw buffer (front/back/third) */
@@ -609,7 +617,6 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 					/*
 					SOURCED FROM GLFW _glfwParseUriList
 					Copyright (c) 2002-2006 Marcus Geelnard
-
 					Copyright (c) 2006-2019 Camilla Löwy
 					*/
 
@@ -1463,6 +1470,11 @@ char* createUTF8FromWideStringWin32(const WCHAR* source) {
 
     return target;
 }
+
+RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args){ return CreateThread(NULL, 0, *function_ptr, args, 0, NULL);  }
+void RGFW_cancelThread(RGFW_thread thread){ CloseHandle(thread);  } 
+void RGFW_joinThread(RGFW_thread thread){ WaitForSingleObject(thread, INFINITE); }
+void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority){ SetThreadPriority(thread, priority); }
 #endif
 
 #ifdef __APPLE__
@@ -1487,6 +1499,19 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	return nWin;
 }
 
+#endif
+
+#ifdef __unix__
+#include <pthread.h>
+
+RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args){ 
+	RGFW_thread t;
+	pthread_create(&t, NULL, *function_ptr, NULL); 
+	return t;
+}
+void RGFW_cancelThread(RGFW_thread thread){ pthread_cancel(thread); } 
+void RGFW_joinThread(RGFW_thread thread){ pthread_join(thread, NULL); }
+void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority){ pthread_setschedprio(thread, priority); }
 #endif
 
 void RGFW_makeCurrent(RGFW_window* w){
