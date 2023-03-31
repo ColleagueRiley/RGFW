@@ -48,6 +48,9 @@
 #define RGFW_mouseButtonPressed 4 /*!< a mouse button has been pressed (left,middle,right)*/
 #define RGFW_mouseButtonReleased 5 /*!< a mouse button has been released (left,middle,right)*/
 #define RGFW_mousePosChanged 6 /*!< the position of the mouse has been changed*/
+#define RGFW_jsButtonPressed 7 /*!< a joystick button was pressed */
+#define RGFW_jsButtonReleased 8 /*!< a joystick button was released */
+#define RGFW_jsAxisMove 9 /*!< an axis of a joystick was moved*/
 #define RGFW_quit 33 /*!< the user clicked the quit button*/
 #define RGFW_dnd 34 /*!< a file has been dropped into the window*/
 
@@ -58,14 +61,15 @@
 #define RGFW_mouseScrollUp  4 /*!< mouse wheel is scrolling up*/
 #define RGFW_mouseScrollDown  5 /*!< mouse wheel is scrolling down*/
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif				
+
+/* NOTE: some parts of the data can represent different things based on the event (read comments in RGFW_Event struct) */
 typedef struct RGFW_Event {
     unsigned char type; /*!< which event has been sent?*/
-    unsigned char button; /*!< which mouse button has been clicked (0) left (1) middle (2) right*/
-    int x, y; /*!< mouse x, y of event*/
+    unsigned char button; /*!< which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed*/  
+    int x, y; /*!< mouse x, y of event */
 
     unsigned char ledState; /*!< 0 : numlock, 1 : caps lock, 3 : small lock*/
 
@@ -76,10 +80,16 @@ typedef struct RGFW_Event {
 	#else
 	char* keyName; /*!< key name of event */
 	#endif
-	
-	int dropX, dropY; /*!< where the drop file was dropped */
+
+	/*! drag and drop data */	
 	int droppedFilesCount; /*!< house many files were dropped */
     char** droppedFiles; /*!< dropped files*/
+
+	/*! joystick*/
+	unsigned short joystick; /* which joystick this event applies to (if applicable to any) */
+	unsigned char axisesCount; /* number of axises */
+	short axis[2][4]; /* x/y of the axises */
+
 } RGFW_Event; /*!< Event structure for checking/getting events */
 
 typedef struct RGFW_window {
@@ -101,6 +111,9 @@ typedef struct RGFW_window {
 				inFocus; /*if the window is in focus or not*/ 
 
 	unsigned char dnd; /*!< if dnd is enabled or on (based on window creating args) */
+
+	unsigned short joystickCount;
+	int joysticks[4]; /* limit of 4 joysticks at a time */
 
 	RGFW_Event event; /*!< current event */
 } RGFW_window; /*!< Window structure for managing the window */
@@ -147,10 +160,19 @@ char* RGFW_readClipboard(RGFW_window* w); /*!< read clipboard data */
 void RGFW_writeClipboard(RGFW_window* w, char* text); /*!< write text to the clipboard */
 
 /*! threading functions*/
+
+/*! NOTE! (for X11/linux) : if you define a window in a thread, it must be run after the original thread's window is created or else there will be a memory error */
 RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args); /*!< create a thread*/
 void RGFW_cancelThread(RGFW_thread thread); /*!< cancels a thread*/
 void RGFW_joinThread(RGFW_thread thread); /*!< join thread to current thread */
 void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority); /*!< sets the priority priority  */
+
+/*! gamepad/joystick functions */
+
+/*! joystick count starts at 0*/
+unsigned short RGFW_registerJoystick(RGFW_window* window, int jsNumber); /*!< register joystick to window based on a number (the number is based on when it was connected eg. /dev/js0)*/
+
+unsigned short RGFW_registerJoystickF(RGFW_window* window, char* file);
 
 /*! Supporting functions */
 void RGFW_setDrawBuffer(int buffer); /*!< switching draw buffer (front/back/third) */
@@ -222,6 +244,8 @@ typedef struct RGFW_Timespec {
 
 #include <limits.h> /* for data limits (mainly used in drag and drop functions) */
 #include <string.h> /* strlen and other char* managing functions */
+#include <fcntl.h>
+#include <linux/joystick.h>
 
 /*atoms needed for drag and drop*/
 Atom XdndAware, XdndTypeList,     XdndSelection,    XdndEnter,        XdndPosition,     XdndStatus,       XdndLeave,        XdndDrop,         XdndFinished,     XdndActionCopy,   XdndActionMove,   XdndActionLink,   XdndActionAsk, XdndActionPrivate;
@@ -246,6 +270,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->hideMouse = 0;
 	nWin->inFocus = 1;
 	nWin->event.droppedFilesCount = 0;
+	nWin->joystickCount = 0;
 	nWin->dnd = 0;
 
     XInitThreads(); /* init X11 threading*/
@@ -410,8 +435,8 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 	}
 
 	event.droppedFilesCount = 0;
-	event.dropX = 0;
-	event.dropY = 0;
+	event.x = 0;
+	event.x = 0;
 
 	switch (E.type) {
 		case KeyPress:
@@ -576,8 +601,8 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 										&xpos, &ypos,
 										&dummy);
 
-					event.dropX = xpos; 
-					event.dropY = ypos;
+					event.x = xpos; 
+					event.y = ypos;
 
 					XEvent reply = { ClientMessage };
 					reply.xclient.window = xdnd.source;
@@ -683,8 +708,44 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 
 			break;
 		default:
+			unsigned char i;
+			for (i = 0; i < win->joystickCount; i++){
+				struct js_event e;
+
+				if (!win->joysticks[i])
+					continue;
+
+				int flags = fcntl(win->joysticks[i], F_GETFL, 0);
+				fcntl(win->joysticks[i], F_SETFL, flags | O_NONBLOCK);
+			    ssize_t bytes = read(win->joysticks[i], &e, sizeof(e));
+				
+				if (bytes == sizeof(e)){
+					switch (e.type){
+						case JS_EVENT_BUTTON:
+							event.type = e.value ? RGFW_jsButtonPressed : RGFW_jsButtonReleased;
+							event.button = e.number;
+							break;
+						case JS_EVENT_AXIS:
+							event.type = RGFW_jsAxisMove;
+							unsigned short axis = e.number / 2;
+
+							ioctl(win->joysticks[i], JSIOCGAXES, &event.axisesCount);
+
+							if (e.number % 2 == 0)
+								event.axis[axis][0] = e.value;
+							else
+								event.axis[axis][1] = e.value;
+
+							break;
+						default: break;
+					}
+				}
+			}
+
 			XFlush((Display *)win->display);
-			event.type = 0;
+			
+			if (event.type > 9 || event.type < 7)
+				event.type = 0;
 			break;
 	}
 
@@ -744,10 +805,12 @@ void RGFW_closeWindow(RGFW_window* win){
 		free(win->event.droppedFiles);
 	}
 
+	unsigned char i = 0;
+	for (i; i < win->joystickCount; i++)
+		close(win->joysticks[i]);
+
 	free(win); /* free collected window data */
 }
-
-
 
 /*
 	the majority function is sourced from GLFW
@@ -973,6 +1036,25 @@ void RGFW_toggleMouse(RGFW_window* w){
 	}
 }
 
+unsigned short RGFW_registerJoystick(RGFW_window* window, int jsNumber){
+	char file[14];
+	sprintf(file, "/dev/input/js%i", jsNumber);
+
+	return RGFW_registerJoystickF(window, file);
+}
+
+unsigned short RGFW_registerJoystickF(RGFW_window* w, char* file){
+	int js = open(file, O_RDONLY);
+
+	if (js && w->joystickCount < 4){
+		w->joystickCount++;
+		
+		w->joysticks[w->joystickCount - 1] = open(file, O_RDONLY);
+	}
+
+	return w->joystickCount - 1;
+}
+
 char keyboard[32];
 Display* RGFWd = (Display*)0;
 
@@ -1030,6 +1112,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->fpsCap = 0;
 	nWin->hideMouse = 0;
 	nWin->inFocus = 1;
+	nWin->joystickCount =0
 	nWin->event.droppedFilesCount = 0;
 
 	HINSTANCE inh = GetModuleHandle(NULL);
@@ -1198,8 +1281,8 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 					/* Move the mouse to the position of the drop */
 					DragQueryPoint(drop, &pt);
 					
-					win->event.dropX = pt.x;
-					win->event.dropX = pt.y;
+					win->event.x = pt.x;
+					win->event.y = pt.y;
 
 					for (i = 0;  i < win->event.droppedFilesCount;  i++) {
 						const UINT length = DragQueryFileW(drop, i, NULL, 0);
