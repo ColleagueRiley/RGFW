@@ -21,7 +21,9 @@ int main(){
     RGFW_window* win =  RGFW_createWindowPointer("name", 500, 500, 500, 500, RGFW_ALLOW_DND);
 
     RGFW_createThread(loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
-  
+
+    unsigned short js = RGFW_registerJoystick(win, 0);
+
     RGFW_setIcon(win, icon, 3, 3, 4);
 
     win->fpsCap = 60;
@@ -46,8 +48,17 @@ int main(){
         for (i = 0; i < win->event.droppedFilesCount; i++)
             printf("dropped : %s\n", win->event.droppedFiles[i]);
 
+        if (win->event.type == RGFW_jsButtonPressed)
+            printf("pressed %i\n", win->event.button);
+        else if (win->event.type == RGFW_jsAxisMove)
+            printf("axis move : {%i, %i}\n", win->event.axis[0][0], win->event.axis[0][1]);
+
         drawLoop(win);
     }
+
+    
+    time_t t; 
+    for (t = time(0); (float)(time(0) - t) <= 0.05;); /*wait for the sub window to close*/
 
     RGFW_closeWindow(win);
 }
