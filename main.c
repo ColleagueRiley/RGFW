@@ -1,4 +1,5 @@
 #define RGFW_IMPLEMENTATION
+#define RGFW_PRINT_ERRORS
 
 #ifdef _WIN32
 #ifdef __linux
@@ -7,7 +8,6 @@
 #undef __unix__
 #endif
 #endif
-
 
 #include "RGFW.h"
 
@@ -31,14 +31,13 @@ int main()
 
     unsigned char i;
 
-    while (running)
-    {
+    while (running) {
         RGFW_checkEvents(win);
 
         if (win->event.type == RGFW_quit)
             running = 0;
 
-        if (RGFW_isPressedS(win, "Up") && (RGFW_isPressedJS(win, 0, RGFW_JS_UP)))
+        if (RGFW_isPressedS(win, "Up") || RGFW_isPressedJS(win, 0, RGFW_JS_UP))
             printf("Pasted : %s\n", RGFW_readClipboard(win));
         else if (RGFW_isPressedS(win, "Down"))
             RGFW_writeClipboard(win, "DOWN");
