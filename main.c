@@ -38,7 +38,7 @@ int main()
         if (win->event.type == RGFW_quit)
             running = 0;
 
-        if (RGFW_isPressedS(win, "Up") && (RGFW_isPressedJS(win, 0, RGFW_JS_UP))
+        if (RGFW_isPressedS(win, "Up") && (RGFW_isPressedJS(win, 0, RGFW_JS_UP)))
             printf("Pasted : %s\n", RGFW_readClipboard(win));
         else if (RGFW_isPressedS(win, "Down"))
             RGFW_writeClipboard(win, "DOWN");
