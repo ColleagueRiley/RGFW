@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2023 ColeagueRiley
+* Copyright (C) 2023 ColleagueRiley
 *
 * This software is provided 'as-is', without any express or implied
 * warranty.  In no event will the authors be held liable for any damages
@@ -25,14 +25,19 @@
 		EimaMei/Sacode : Much of the code for creating windows using winapi
 
 		GLFW: 
-			certain parts of winapi and X11 are very poorly documeted, 
+			certain parts of winapi and X11 are very poorly documented, 
 			GLFW's source code was referenced and used throughout the project (used code is marked in some way),
-			this mainly includes, code for drag and drops, code for setting the icon to a bitmap and the code for managing the clipboard for X11 (as these parts are not documenated very well)
+			this mainly includes, code for drag and drops, code for setting the icon to a bitmap and the code for managing the clipboard for X11 (as these parts are not documented very well)
 
 			GLFW Copyright, https::/github.com/GLFW/GLFW
 
 			Copyright (c) 2002-2006 Marcus Geelnard
 			Copyright (c) 2006-2019 Camilla Löwy
+*/
+
+/*
+	#define RGFW_IMPLEMENTATION - (semi-option) makes it so source code is included 
+	#define RGFW_PRINT_ERRORS - (optional) makes it so RGFW prints errors when they're found
 */
 
 /*! Optional arguments for making a windows */
@@ -74,7 +79,7 @@ unsigned char RGFW_JS_DOWN = 14; /* dpad down*/
 unsigned char RGFW_JS_LEFT = 15; /* dpad left */
 unsigned char RGFW_JS_RIGHT = 16; /* dpad right */
 unsigned char RGFW_JS_L1 = 4; /* left bump */
-unsigned char RGFW_JS_L2 = 5; /* left tigger*/
+unsigned char RGFW_JS_L2 = 5; /* left trigger*/
 unsigned char RGFW_JS_R1 = 6; /* right bumper */
 unsigned char RGFW_JS_R2 = 7; /* right trigger */
 
@@ -116,7 +121,7 @@ typedef struct RGFW_window {
 	char* name; /*!< window's name*/
 	int x, y, w, h; /*!< window size, x, y*/
 
-	unsigned int fpsCap; /*!< the fps cap ofs the window should run at (change this var to change the fps cap, 0 = no limit)*/
+	unsigned int fpsCap; /*!< the fps cap of the window should run at (change this var to change the fps cap, 0 = no limit)*/
 	/*[the fps is capped when events are checked]*/
 
 	int srcX, srcY, srcW, srcH; /* source size (for resizing, do not change these values directly) */
@@ -227,6 +232,30 @@ int main(){
 
     RGFW_closeWindow(w);
 }
+*/
+
+/*
+	compiling :
+
+	if you wish to compile the library all you have to do is create a new file with this in it
+
+	rgfw.c
+	#define RGFW_IMPLEMENTATION
+	#include "RGFW.h"
+
+	then you can use gcc (or whatever compile you wish to use) to compile the library into object file
+
+	ex. gcc -c RGFW.c -fPIC
+
+	after you compile the library into an object file, you can also turn the object file into an static or shared library
+
+	(commands ar and gcc can be replaced with whatever equivalent your system uses)
+	static : ar rcs RGFW.a RGFW.o 
+	shared : 
+		windows:
+			gcc -shared RGFW.o -lopengl32 -lole32 -lshell32 -lgdi32 -o RGFW.dll
+		linux:
+			gcc -shared RGFW.o -lX11 -lGL -o RGFW.so
 */
 
 #ifdef RGFW_IMPLEMENTATION
@@ -1120,7 +1149,7 @@ unsigned short RGFW_registerJoystickF(RGFW_window* w, char* file){
 	else {
 		#ifdef RGFW_PRINT_ERRORS
 		RGFW_error = 1;
-		printf("Cannot open file %i\n", file);
+		printf("Error RGFW_registerJoystickF : Cannot open file %i\n", file);
 		#endif
 	}
 
