@@ -5,6 +5,7 @@
     - controller support (windows)
     - init drag function (drag n' drop)
     - global key system
+    - custom cursors
 
 (backends)
     - start support for macos
