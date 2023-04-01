@@ -22,4 +22,4 @@ If you wish to build the documentation your self, there is also an Doxygen file 
 
 # RGFW vs GLFW
 
-![alt text](https://github.com/ColleagueRiley/RGFW/blob/development/RGFWvsGLFW.png?raw=true)
+![alt text](https://github.com/ColleagueRiley/RGFW/blob/main/RGFWvsGLFW.png?raw=true)
