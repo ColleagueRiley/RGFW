@@ -61,6 +61,23 @@
 #define RGFW_mouseScrollUp  4 /*!< mouse wheel is scrolling up*/
 #define RGFW_mouseScrollDown  5 /*!< mouse wheel is scrolling down*/
 
+/*! joystick button codes (based on xbox/playstation), you may need to change these values per controller */
+unsigned char RGFW_JS_A = 0; /* or PS X button */
+unsigned char RGFW_JS_B = 1; /* or PS circle button */
+unsigned char RGFW_JS_Y = 2; /* or PS triangle button */
+unsigned char RGFW_JS_X = 3; /* or PS square button */
+unsigned char RGFW_JS_START = 9; /* start button */
+unsigned char RGFW_JS_SELECT = 8; /* select button */
+unsigned char RGFW_JS_HOME = 10; /* home button */
+unsigned char RGFW_JS_UP = 13; /* dpad up */
+unsigned char RGFW_JS_DOWN = 14; /* dpad down*/
+unsigned char RGFW_JS_LEFT = 15; /* dpad left */
+unsigned char RGFW_JS_RIGHT = 16; /* dpad right */
+unsigned char RGFW_JS_L1 = 4; /* left bump */
+unsigned char RGFW_JS_L2 = 5; /* left tigger*/
+unsigned char RGFW_JS_R1 = 6; /* right bumper */
+unsigned char RGFW_JS_R2 = 7; /* right trigger */
+
 #ifdef __cplusplus
 extern "C" {
 #endif				
@@ -68,7 +85,7 @@ extern "C" {
 /* NOTE: some parts of the data can represent different things based on the event (read comments in RGFW_Event struct) */
 typedef struct RGFW_Event {
     unsigned char type; /*!< which event has been sent?*/
-    unsigned char button; /*!< which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed*/  
+    unsigned char button; /*!< which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed OR which joystick axis was moved*/  
     int x, y; /*!< mouse x, y of event */
 
     unsigned char ledState; /*!< 0 : numlock, 1 : caps lock, 3 : small lock*/
@@ -88,7 +105,7 @@ typedef struct RGFW_Event {
 	/*! joystick*/
 	unsigned short joystick; /* which joystick this event applies to (if applicable to any) */
 	unsigned char axisesCount; /* number of axises */
-	short axis[2][4]; /* x/y of the axises */
+	char axis[4][2]; /* x, y of axises (-100 to 100) */
 
 } RGFW_Event; /*!< Event structure for checking/getting events */
 
@@ -114,6 +131,7 @@ typedef struct RGFW_window {
 
 	unsigned short joystickCount;
 	int joysticks[4]; /* limit of 4 joysticks at a time */
+	unsigned char jsPressed[4][16]; /* if a key is currently pressed or not (per joystick) */
 
 	RGFW_Event event; /*!< current event */
 } RGFW_window; /*!< Window structure for managing the window */
@@ -171,8 +189,9 @@ void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority); /*!< se
 
 /*! joystick count starts at 0*/
 unsigned short RGFW_registerJoystick(RGFW_window* window, int jsNumber); /*!< register joystick to window based on a number (the number is based on when it was connected eg. /dev/js0)*/
-
 unsigned short RGFW_registerJoystickF(RGFW_window* window, char* file);
+
+unsigned char RGFW_isPressedJS(RGFW_window* window, unsigned short controller, unsigned char button);
 
 /*! Supporting functions */
 void RGFW_setDrawBuffer(int buffer); /*!< switching draw buffer (front/back/third) */
@@ -213,7 +232,13 @@ int main(){
 #endif
 
 #include <time.h> /* time header (for drag and drop functions / other functions that need time info)*/
-	
+
+#include <math.h>
+
+#ifndef M_PI
+#define M_PI		3.14159265358979323846	/* pi */
+#endif
+
 typedef struct RGFW_Timespec {
 	#ifdef __USE_TIME_BITS64
 	time64_t tv_sec;		/* Seconds.  */
@@ -235,6 +260,8 @@ typedef struct RGFW_Timespec {
 	#endif
 } RGFW_Timespec; /*time struct for fps functions*/
 
+unsigned char RGFW_isPressedJS(RGFW_window* w, unsigned short c, unsigned char button){ return w->jsPressed[c][button]; }
+
 #ifdef __linux__
 
 #include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
@@ -246,6 +273,7 @@ typedef struct RGFW_Timespec {
 #include <string.h> /* strlen and other char* managing functions */
 #include <fcntl.h>
 #include <linux/joystick.h>
+
 
 /*atoms needed for drag and drop*/
 Atom XdndAware, XdndTypeList,     XdndSelection,    XdndEnter,        XdndPosition,     XdndStatus,       XdndLeave,        XdndDrop,         XdndFinished,     XdndActionCopy,   XdndActionMove,   XdndActionLink,   XdndActionAsk, XdndActionPrivate;
@@ -395,6 +423,8 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win){
 
 	return 1;
 }
+
+int xAxis = 0, yAxis = 0;
 
 RGFW_Event RGFW_checkEvents(RGFW_window* win){
 	RGFW_Event event;
@@ -717,28 +747,33 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 
 				int flags = fcntl(win->joysticks[i], F_GETFL, 0);
 				fcntl(win->joysticks[i], F_SETFL, flags | O_NONBLOCK);
-			    ssize_t bytes = read(win->joysticks[i], &e, sizeof(e));
-				
-				if (bytes == sizeof(e)){
-					switch (e.type){
-						case JS_EVENT_BUTTON:
-							event.type = e.value ? RGFW_jsButtonPressed : RGFW_jsButtonReleased;
-							event.button = e.number;
-							break;
-						case JS_EVENT_AXIS:
-							event.type = RGFW_jsAxisMove;
-							unsigned short axis = e.number / 2;
 
-							ioctl(win->joysticks[i], JSIOCGAXES, &event.axisesCount);
+				ssize_t bytes;
+				while (bytes = read(win->joysticks[i], &e, sizeof(e)) > 0) {
+						switch (e.type){
+							case JS_EVENT_BUTTON:
+								event.type = e.value ? RGFW_jsButtonPressed : RGFW_jsButtonReleased;
+								event.button = e.number;
 
-							if (e.number % 2 == 0)
-								event.axis[axis][0] = e.value;
-							else
-								event.axis[axis][1] = e.value;
+								win->jsPressed[i][e.number] = e.value;
+								break;
+							case JS_EVENT_AXIS:
+								ioctl(win->joysticks[i], JSIOCGAXES, &event.axisesCount);
 
-							break;
-						default: break;
-					}
+								if (e.number == 0 || e.number % 2 && e.number != 1)
+									xAxis = e.value;
+								else
+									yAxis = e.value;
+
+								event.axis[e.number / 2][0] = xAxis / 327.67;
+								event.axis[e.number / 2][1] = yAxis / 327.67;
+								event.type = RGFW_jsAxisMove;
+								event.button = e.number / 2;
+								break;
+
+							default: break;
+						}
+					
 				}
 			}
 
@@ -1050,6 +1085,11 @@ unsigned short RGFW_registerJoystickF(RGFW_window* w, char* file){
 		w->joystickCount++;
 		
 		w->joysticks[w->joystickCount - 1] = open(file, O_RDONLY);
+	
+		unsigned char i = 0;
+		for (i; i < 16; i++) 
+			w->jsPressed[w->joystickCount - 1][i] = 0;
+
 	}
 
 	return w->joystickCount - 1;
@@ -1089,6 +1129,7 @@ unsigned char RGFW_isPressedS(RGFW_window* w, char* key){
 #include <GL/gl.h>
 #include <winnls.h>
 #include <shellapi.h>
+#include <dinput.h>
 
 char* createUTF8FromWideStringWin32(const WCHAR* source);
 
@@ -1533,6 +1574,19 @@ void RGFW_writeClipboard(RGFW_window* w, char* text) {
     EmptyClipboard();
     SetClipboardData(CF_UNICODETEXT, object);
     CloseClipboard();
+}
+
+unsigned short RGFW_registerJoystick(RGFW_window* window, int jsNumber){
+	char file[14];
+	sprintf(file, "/dev/input/js%i", jsNumber);
+
+	return RGFW_registerJoystickF(window, file);
+}
+
+unsigned short RGFW_registerJoystickF(RGFW_window* w, char* file){
+	joySetCapture()
+
+	return w->joystickCount - 1;
 }
 
 char* createUTF8FromWideStringWin32(const WCHAR* source) {
