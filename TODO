@@ -2,20 +2,16 @@
     - hide mouse function (windows) 
 
 (addons)
-    (linux)
-        - axis system based on angles 
-        - isPressedJS
-        - key defs for joysticks
     - controller support (windows)
-    - global key system
     - init drag function (drag n' drop)
+    - global key system
 
 (backends)
     - start support for macos
     - possible wayland backend
 
 (other)
-- opengl vbo wrangler for windows (maybe as a seperate [small/single header] library)
+    - opengl vbo wrangler for windows (maybe as a seperate [small/single header] library)
 
 (upkeepy)
     - made error messages for possible errors
