@@ -19,3 +19,7 @@ This library does not
 There is a lot of in-header-documentation, but more doucmentation can be found [here](https://RSGL.github.io/RGFW)
 
 If you wish to build the documentation your self, there is also an Doxygen file attached.
+
+# RGFW vs GLFW
+
+![alt text](https://github.com/ColleagueRiley/RGFW/blob/development/RGFWvsGLFW.png?raw=true)
