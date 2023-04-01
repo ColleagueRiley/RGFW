@@ -106,7 +106,6 @@ typedef struct RGFW_Event {
 	unsigned short joystick; /* which joystick this event applies to (if applicable to any) */
 	unsigned char axisesCount; /* number of axises */
 	char axis[4][2]; /* x, y of axises (-100 to 100) */
-
 } RGFW_Event; /*!< Event structure for checking/getting events */
 
 typedef struct RGFW_window {
@@ -126,6 +125,8 @@ typedef struct RGFW_window {
 	unsigned int fps, /*the current fps of the window [the fps is checked when events are checked]*/
 				hideMouse, /*if the mouse is hidden or not*/
 				inFocus; /*if the window is in focus or not*/ 
+
+	char valid; /* the final net for checking if a window is*/
 
 	unsigned char dnd; /*!< if dnd is enabled or on (based on window creating args) */
 
@@ -168,6 +169,8 @@ void RGFW_toggleMouse(RGFW_window* w);
 
 void RGFW_makeCurrent(RGFW_window* window); /*!< make the window the current opengl drawing context */
 
+/*error handling*/
+unsigned char RGFW_Error(); /* returns true if an error has occurred (doesn't print errors itself) */
 
 unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key); /*!< if key is pressed (key code)*/
 /*!< if window == NULL, it checks if the key is pressed globally. Otherwise, it checks only if the key is pressed while the window in focus.*/
@@ -196,6 +199,7 @@ unsigned char RGFW_isPressedJS(RGFW_window* window, unsigned short controller, u
 /*! Supporting functions */
 void RGFW_setDrawBuffer(int buffer); /*!< switching draw buffer (front/back/third) */
 void RGFW_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_checkEvents)*/ 
+unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event); /*!< returns true if the window is valid (and prints an error and where it took place if it can)*/
 
 /*
 Example to get you started : 
@@ -262,6 +266,8 @@ typedef struct RGFW_Timespec {
 
 unsigned char RGFW_isPressedJS(RGFW_window* w, unsigned short c, unsigned char button){ return w->jsPressed[c][button]; }
 
+unsigned char RGFW_error = 0;
+
 #ifdef __linux__
 
 #include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
@@ -300,6 +306,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->event.droppedFilesCount = 0;
 	nWin->joystickCount = 0;
 	nWin->dnd = 0;
+	nWin->valid = 245;
 
     XInitThreads(); /* init X11 threading*/
 
@@ -413,10 +420,19 @@ typedef struct XDND{
 
 XDND xdnd;
 
-unsigned char RGFW_ValidWindowCheck(RGFW_window* win){
-	if (win == (RGFW_window*)0 || win->window == (Window)0 || XConnectionNumber((Display*)win->display) == -1){
+unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event){
+	/*
+		if this part gives you a seg fault, there is a good chance your window is not valid
+
+		Make sure you're creaing the window and using the window structure
+
+		accidently writing (RGFW_window type)->window is a common mistake too
+	*/
+	
+	if (win->valid != (char)245 || win == (RGFW_window*)0 || win->window == (Window)0 || XConnectionNumber((Display*)win->display) == -1){
 		#ifdef RGFW_PRINT_ERRORS
-		printf("Error RGFW_checkEvents : invalid window structure \n");
+		printf("Error %s : invalid window structure \n", event);
+		RGFW_error = 1;
 		return 0;
 		#endif
 	}
@@ -429,7 +445,7 @@ int xAxis = 0, yAxis = 0;
 RGFW_Event RGFW_checkEvents(RGFW_window* win){
 	RGFW_Event event;
 	
-	if (!RGFW_ValidWindowCheck(win)) return event;
+	if (!RGFW_ValidWindowCheck(win, "RGFW_checkEvents")) return event;
 
 	RGFW_checkFPS(win);
 
@@ -826,6 +842,8 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 }
 
 void RGFW_closeWindow(RGFW_window* win){
+	if (!RGFW_ValidWindowCheck(win, "RGFW_closeWindow")) return;
+
 	if ((Display*)win->display){
 		if ((GLXDrawable)win->window)
 			XDestroyWindow((Display *)win->display, (GLXDrawable)win->window); /* close the window*/
@@ -851,6 +869,8 @@ void RGFW_closeWindow(RGFW_window* win){
 	the majority function is sourced from GLFW
 */
 void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int channels){
+	if (!RGFW_ValidWindowCheck(w, "RGFW_setIcon")) return;
+
 	int longCount = 2 + width * height;
 
     unsigned long* icon = (unsigned long*)malloc(longCount * sizeof(unsigned long));
@@ -874,8 +894,6 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
                         ((src[i * 4 + 2]) <<  0) |
                         ((src[i * 4 + 3]) << 24);   
     }
-    
-	if (!RGFW_ValidWindowCheck(w)) return;
 
     Atom NET_WM_ICON = XInternAtom((Display*)w->display, "_NET_WM_ICON", False);
 
@@ -895,6 +913,8 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
 	the majority function is sourced from GLFW
 */
 char* RGFW_readClipboard(RGFW_window* w){
+  if (!RGFW_ValidWindowCheck(w, "RGFW_readClipboard")) return "";
+
   char* result;
   unsigned long ressize, restail;
   int resbits;
@@ -930,6 +950,7 @@ char* RGFW_readClipboard(RGFW_window* w){
 	almost all of this function is sourced from GLFW
 */
 void RGFW_writeClipboard(RGFW_window* w, char* text){
+	if (!RGFW_ValidWindowCheck(w, "RGFW_writeClipboard")) return "";
     Atom CLIPBOARD, UTF8_STRING, SAVE_TARGETS, TARGETS, MULTIPLE, ATOM_PAIR, PRIMARY, CLIPBOARD_MANAGER;
     
     CLIPBOARD = XInternAtom((Display*)w->display, "CLIPBOARD", False);
@@ -1045,6 +1066,8 @@ void RGFW_writeClipboard(RGFW_window* w, char* text){
 }
 
 void RGFW_toggleMouse(RGFW_window* w){
+	if (!RGFW_ValidWindowCheck(w, "RGFW_toggleMouse")) return;
+
 	if (!w->hideMouse){
 		Cursor invisibleCursor;
 		Pixmap bitmapNoData;
@@ -1079,6 +1102,8 @@ unsigned short RGFW_registerJoystick(RGFW_window* window, int jsNumber){
 }
 
 unsigned short RGFW_registerJoystickF(RGFW_window* w, char* file){
+	if (!RGFW_ValidWindowCheck(w, "RGFW_registerJoystickF")) return;
+
 	int js = open(file, O_RDONLY);
 
 	if (js && w->joystickCount < 4){
@@ -1090,6 +1115,13 @@ unsigned short RGFW_registerJoystickF(RGFW_window* w, char* file){
 		for (i; i < 16; i++) 
 			w->jsPressed[w->joystickCount - 1][i] = 0;
 
+	}
+
+	else {
+		#ifdef RGFW_PRINT_ERRORS
+		RGFW_error = 1;
+		printf("Cannot open file %i\n", file);
+		#endif
 	}
 
 	return w->joystickCount - 1;
@@ -1121,6 +1153,9 @@ unsigned char RGFW_isPressedS(RGFW_window* w, char* key){
 
 	return RGFW_isPressedI(w, XStringToKeysym(key)); 
 }
+
+unsigned char RGFW_Error(){ return RGFW_error; }
+
 #endif
 
 #ifdef _WIN32
