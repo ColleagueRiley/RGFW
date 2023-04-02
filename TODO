@@ -10,6 +10,9 @@
 (backends)
     - start support for macos
     - possible wayland backend
+    - OpenGL ES
+    - EGL (windows)
+    - Vulcan
 
 (other)
     - opengl vbo wrangler for windows (maybe as a seperate [small/single header] library)
