@@ -38,7 +38,18 @@
 /*
 	#define RGFW_IMPLEMENTATION - (semi-option) makes it so source code is included 
 	#define RGFW_PRINT_ERRORS - (optional) makes it so RGFW prints errors when they're found
+	#define RGFW_OSMESA - (optional) use OSmesa as backend (instead of system's opengl api + regular opengl)
+	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
+	#define RGFW_OPENGL_ES - (optional) use EGL to load and use Opengl ES for backend rendering (instead of the system's opengl api)
 */
+
+#if defined(RGFW_OPENGL_ES) && !defined(RGFW_EGL)
+#define RGFW_EGL
+#endif
+
+#if !defined(RGFW_OSMESA) && !defined(RGFW_EGL) && !defined(RGFW_GL)
+	#define RGFW_GL /* use default opengl system api */
+#endif
 
 /*! Optional arguments for making a windows */
 #define RGFW_TRANSPARENT_WINDOW		(1L<<0) /*!< If the window is transparent*/
@@ -46,6 +57,8 @@
 #define RGFW_NO_RESIZE		(1L<<2) /*!< If the window cannot be resized  by the user*/
 #define RGFW_ALLOW_DND     (1L<<3) /*!< if the window supports drag and drop*/
 #define RGFW_HIDE_MOUSE (1L<<4) /* if the window should hide the mouse or not (can be toggled later on)*/
+#define RGFW_OSMESA_DRAW (1L<<6) /* if oSmesa is running, if it should draw the bitmap on the screen */
+#define RGFW_OPENGL (1L<<7) /* use normal opengl (if another version is also selected) */
 
 /*! event codes */
 #define RGFW_keyPressed 2 /*!< a key has been pressed*/
@@ -138,6 +151,15 @@ typedef struct RGFW_window {
 	unsigned short joystickCount;
 	int joysticks[4]; /* limit of 4 joysticks at a time */
 	unsigned char jsPressed[4][16]; /* if a key is currently pressed or not (per joystick) */
+
+	#ifdef RGFW_OSMESA
+	unsigned char* buffer; /*OSMesa buffer*/
+	#endif
+
+	#ifdef RGFW_EGL
+	void* EGL_surface;
+	void* EGL_display;
+	#endif
 
 	RGFW_Event event; /*!< current event */
 } RGFW_window; /*!< Window structure for managing the window */
@@ -265,8 +287,15 @@ int main(){
 #endif
 
 #include <time.h> /* time header (for drag and drop functions / other functions that need time info)*/
-
 #include <math.h>
+
+#ifdef RGFW_OSMESA
+#include <GL/osmesa.h>
+#endif
+#ifdef RGFW_EGL
+#include <EGL/egl.h>
+#include <GL/gl.h>
+#endif
 
 #ifndef M_PI
 #define M_PI		3.14159265358979323846	/* pi */
@@ -297,9 +326,59 @@ unsigned char RGFW_isPressedJS(RGFW_window* w, unsigned short c, unsigned char b
 
 unsigned char RGFW_error = 0;
 
+#ifdef RGFW_EGL
+void RGFW_createOpenGLContext(RGFW_window* win){
+    win->EGL_display = eglGetDisplay(win->display);
+
+    EGLint major, minor;
+    eglInitialize(win->EGL_display, &major, &minor);
+
+    EGLint config_attribs[] = {
+        EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+        EGL_RENDERABLE_TYPE, 
+		#ifdef RGFW_OPENGL_ES
+		EGL_OPENGL_ES2_BIT,
+		#else
+		EGL_OPENGL_BIT,
+		#endif
+        EGL_NONE
+    };
+
+    EGLConfig config;
+    EGLint num_configs;
+    eglChooseConfig(win->EGL_display, config_attribs, &config, 1, &num_configs);
+
+	#ifdef RGFW_OPENGL_ES
+    eglBindAPI(EGL_OPENGL_ES_API);
+	#else
+	eglBindAPI(EGL_OPENGL_API);
+	#endif
+
+	win->glWin = eglCreateContext(win->EGL_display, config, EGL_NO_CONTEXT,  NULL);
+    win->EGL_surface = eglCreateWindowSurface(win->EGL_display, config, win->window, NULL);
+
+    eglMakeCurrent(win->EGL_display, win->EGL_surface, win->EGL_surface, win->glWin);
+	eglSwapBuffers(win->EGL_display, win->EGL_surface);
+
+	eglSwapInterval(win->EGL_display, 0);
+}
+
+void RGFW_closeEGL(RGFW_window* win){
+    eglDestroySurface(win->EGL_display, win->EGL_surface);
+    eglDestroyContext(win->EGL_display, win->glWin);
+	
+    eglTerminate(win->EGL_display);
+}
+
+#endif
 #ifdef __linux__
 
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+
+#ifdef RGFW_GL
 #include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
+#endif
 #include <X11/XKBlib.h> /* for converting keycode to string */
 #include <X11/cursorfont.h> /* for hiding */
 #include <stdlib.h> /* realloc, malloc and other memory functions */
@@ -313,13 +392,10 @@ unsigned char RGFW_error = 0;
 /*atoms needed for drag and drop*/
 Atom XdndAware, XdndTypeList,     XdndSelection,    XdndEnter,        XdndPosition,     XdndStatus,       XdndLeave,        XdndDrop,         XdndFinished,     XdndActionCopy,   XdndActionMove,   XdndActionLink,   XdndActionAsk, XdndActionPrivate;
 
+XImage* RGFW_omesa_ximage;
+
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
-	int singleBufferAttributes[] = {4, 8, 8, 9, 8, 10, 8, None};
-
-	int doubleBufferAttributes[] = {4, 5, 8, 8, 9, 8, 10, 8, None}; /* buffer atts for creating a opengl context */
-
     RGFW_window* nWin = (RGFW_window*)malloc(sizeof(RGFW_window)); /* make a new RGFW struct */
-
 
 	/* set and init the new window's data */
 
@@ -346,38 +422,73 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
     long event_mask =  KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask; /* X11 events accepted*/
 
-    XVisualInfo *vi = glXChooseVisual((Display *)nWin->display, DefaultScreen((Display *)nWin->display), doubleBufferAttributes);
+	#ifdef RGFW_GL
+	#if defined(RGFW_OSMESA) || defined(RGFW_EGL)
+	if (RGFW_OPENGL & args) 
+	#endif
+	{
+		int singleBufferAttributes[] = {4, 8, 8, 9, 8, 10, 8, None};
 
-    if (vi == NULL) /* switch to single buffer if double buffer fails*/                                                                                                                               
-        vi = glXChooseVisual((Display *)nWin->display, DefaultScreen((Display *)nWin->display), singleBufferAttributes);
+		int doubleBufferAttributes[] = {4, 5, 8, 8, 9, 8, 10, 8, None}; /* buffer atts for creating a opengl context */
 
-    if (RGFW_TRANSPARENT_WINDOW & args)
-        XMatchVisualInfo((Display *)nWin->display, DefaultScreen((Display *)nWin->display), 32, TrueColor, vi); /* for RGBA backgrounds*/
+		XVisualInfo* vi = glXChooseVisual((Display *)nWin->display, DefaultScreen((Display *)nWin->display), doubleBufferAttributes);
 
-    Colormap cmap = XCreateColormap((Display *)nWin->display, RootWindow((Display *)nWin->display, vi->screen),
-                                    vi->visual, AllocNone); /* make the cmap from the visual*/
+		if (vi == NULL) /* switch to single buffer if double buffer fails*/                                                                                                                               
+			vi = glXChooseVisual((Display *)nWin->display, DefaultScreen((Display *)nWin->display), singleBufferAttributes);
 
-    nWin->glWin = (void*)glXCreateContext((Display *)nWin->display, vi, 0, 1); /* create the GLX context with the visual*/
+		if (RGFW_TRANSPARENT_WINDOW & args)
+			XMatchVisualInfo((Display *)nWin->display, DefaultScreen((Display *)nWin->display), 32, TrueColor, vi); /* for RGBA backgrounds*/
+		
+		Colormap cmap = XCreateColormap((Display *)nWin->display, RootWindow((Display *)nWin->display, vi->screen),
+										vi->visual, AllocNone); /* make the cmap from the visual*/
+										
+		nWin->glWin = (void*)glXCreateContext((Display *)nWin->display, vi, 0, 1); /* create the GLX context with the visual*/
+		
+		/* make X window attrubutes*/
+		XSetWindowAttributes swa;
 
-    /* make X window attrubutes*/
-    XSetWindowAttributes swa;
+		swa.colormap = cmap;
+		swa.border_pixel = 0;
+		swa.event_mask = event_mask;
 
-    swa.colormap = cmap;
-    swa.border_pixel = 0;
-    swa.event_mask = event_mask;
+		/* create the window*/
+		nWin->window = (void*)XCreateWindow((Display *)nWin->display, RootWindow((Display *)nWin->display, vi->screen), x, y, w, h,
+							0, vi->depth, InputOutput, vi->visual,
+							(1L << 1) | (1L << 13) | CWBorderPixel | CWEventMask, &swa);
+	}
 
-    /* create the window*/
-    nWin->window = (void*)XCreateWindow((Display *)nWin->display, RootWindow((Display *)nWin->display, vi->screen), x, y, w, h,
-                        0, vi->depth, InputOutput, vi->visual,
-                        (1L << 1) | (1L << 13) | CWBorderPixel | CWEventMask, &swa);
+	#endif
+
+	#if defined(RGFW_OSMESA) || defined(RGFW_EGL)
+	#ifdef RGFW_GL
+	else
+	#endif
+	{
+		XSetWindowAttributes wa;
+		wa.event_mask = event_mask;
+
+		nWin->window = XCreateWindow(nWin->display, XDefaultRootWindow(nWin->display), x, y, w, h, 0, 0, InputOutput, 
+										DefaultVisual(nWin->display, XDefaultScreen(nWin->display)), CWEventMask, &wa);
+		
+		#ifdef RGFW_OSMESA
+		nWin->glWin = OSMesaCreateContext(OSMESA_RGBA, NULL);
+		nWin->buffer = malloc(w * h * 4);
+		OSMesaMakeCurrent(nWin->glWin, nWin->buffer, GL_UNSIGNED_BYTE, w, h);
+		#else 
+		#ifdef RGFW_EGL
+		RGFW_createOpenGLContext(nWin);
+		#endif
+		#endif
+	}
+	#endif
 
     if (RGFW_NO_RESIZE & args){ /* make it so the user can't resize the window*/
-        XSizeHints *sh = XAllocSizeHints();
+        XSizeHints* sh = XAllocSizeHints();
         sh->flags = (1L << 4) | (1L << 5);
         sh->min_width = sh->max_width = w;
         sh->min_height = sh->max_height = h;
 
-        XSetWMSizeHints((Display *)nWin->display, (GLXDrawable)nWin->window, sh, ((Atom)40));
+        XSetWMSizeHints((Display *)nWin->display, (Drawable)nWin->window, sh, ((Atom)40));
     }
 
 
@@ -386,26 +497,35 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
         Atom window_type = XInternAtom((Display *)nWin->display, "_NET_WM_WINDOW_TYPE", False);
         Atom value = XInternAtom((Display *)nWin->display, "_NET_WM_WINDOW_TYPE_DOCK", False);
 
-        XChangeProperty((Display *)nWin->display, (GLXDrawable)nWin->window, window_type, ((Atom)4), 32, PropModeReplace, (unsigned char *)&value, 1); /* toggle border*/
+        XChangeProperty((Display *)nWin->display, (Drawable)nWin->window, window_type, ((Atom)4), 32, PropModeReplace, (unsigned char *)&value, 1); /* toggle border*/
     }
 
-    XSelectInput((Display *)nWin->display, (GLXDrawable)nWin->window, swa.event_mask); /* tell X11 what events we want*/
+    XSelectInput((Display *)nWin->display, (Drawable)nWin->window, event_mask); /* tell X11 what events we want*/
 
     /* make it so the user can't close the window until the program does*/
-    Atom wm_delete = XInternAtom((Display *)nWin->display, "WM_DELETE_WINDOW", 1);
-    XSetWMProtocols((Display *)nWin->display, (GLXDrawable)nWin->window, &wm_delete, 1);
+    Atom wm_delete = XInternAtom((Display *)nWin->display, "WM_DELETE_WINDOW", 1); 
+    XSetWMProtocols((Display *)nWin->display, (Drawable)nWin->window, &wm_delete, 1);
 
     /* connect the context to the window*/
-    glXMakeCurrent((Display *)nWin->display, (GLXDrawable)nWin->window, (GLXContext)nWin->glWin);
+    #ifdef RGFW_GL
+	#ifdef RGFW_OSMESA
+	if (RGFW_OPENGL & args) {
+	#endif
+		glXMakeCurrent((Display *)nWin->display, (Drawable)nWin->window, (GLXContext)nWin->glWin);
+	#ifdef RGFW_OSMESA
+		nWin->buffer = NULL;
+	}
+	#endif
+	#endif
 
     /* set the background*/
-    XStoreName((Display *)nWin->display, (GLXDrawable) nWin->window, name); /* set the name*/
+    XStoreName((Display *)nWin->display, (Drawable) nWin->window, name); /* set the name*/
 
     glEnable(0x0BE2);			 /* Enable blending.*/
     glBlendFunc(0x0302, 0x0303); /* Set blending function*/
 
-    XMapWindow((Display *)nWin->display, (GLXDrawable)nWin->window);						  /* draw the window*/
-    XMoveWindow((Display *)nWin->display, (GLXDrawable)nWin->window, x, y); /* move the window to it's proper cords*/
+    XMapWindow((Display *)nWin->display, (Drawable)nWin->window);						  /* draw the window*/
+    XMoveWindow((Display *)nWin->display, (Drawable)nWin->window, x, y); /* move the window to it's proper cords*/
 
 	if (RGFW_HIDE_MOUSE & args)
 		RGFW_toggleMouse(nWin);
@@ -543,7 +663,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 
 		case MotionNotify:
 			/* if the x/y changes, fetch the x/y with query*/
-			if (XQueryPointer((Display *)win->display, (GLXDrawable)win->window, &root, &child, &x, &y, &x, &y, &m)){
+			if (XQueryPointer((Display *)win->display, (Drawable)win->window, &root, &child, &x, &y, &x, &y, &m)){
 				event.x = x;
 				event.y = y;
 			}
@@ -818,7 +938,6 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 
 							default: break;
 						}
-					
 				}
 			}
 
@@ -834,14 +953,14 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 	XGetKeyboardControl((Display *)win->display, &keystate);
 	event.ledState = keystate.led_mask;
 
-	if ((win->srcX != win->x) || (win->srcY != win->y)){
-		XMoveWindow((Display *)win->display, (GLXDrawable)win->window, win->x, win->y);
+	if ((win->srcX != win->x) || (win->srcY != win->y)) {
+		XMoveWindow((Display *)win->display, (Drawable)win->window, win->x, win->y);
 		win->srcX = win->x;
 		win->srcY = win->y;
 	}
 
-	else if ((win->srcW != win->w) || (win->srcH != win->h)){
-		XResizeWindow((Display *)win->display, (GLXDrawable)win->window, (GLXDrawable)win->w, win->h);
+	else if ((win->srcW != win->w) || (win->srcH != win->h)) {
+		XResizeWindow((Display *)win->display, (Drawable)win->window, (Drawable)win->w, win->h);
 		win->srcW = win->w;
 		win->srcH = win->h;
 	} else {
@@ -854,7 +973,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 		win->srcH =win->h = a.height;
 	}
 
-	if (win->srcName != win->name){
+	if (win->srcName != win->name){ 
 		XStoreName((Display *)win->display, (Window)win->window, win->name);
 		win->srcName = win->name;
 	}
@@ -873,9 +992,13 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 void RGFW_closeWindow(RGFW_window* win){
 	if (!RGFW_ValidWindowCheck(win, "RGFW_closeWindow")) return;
 
+	#ifdef RGFW_EGL
+	RGFW_closeEGL(win);
+	#endif
+
 	if ((Display*)win->display){
-		if ((GLXDrawable)win->window)
-			XDestroyWindow((Display *)win->display, (GLXDrawable)win->window); /* close the window*/
+		if ((Drawable)win->window)
+			XDestroyWindow((Display *)win->display, (Drawable)win->window); /* close the window*/
 		XCloseDisplay((Display *)win->display); /* kill the display*/	
 	}
 
@@ -890,6 +1013,13 @@ void RGFW_closeWindow(RGFW_window* win){
 	unsigned char i = 0;
 	for (i; i < win->joystickCount; i++)
 		close(win->joysticks[i]);
+
+	#ifdef RGFW_OSMESA
+	if (win->buffer != NULL){
+		free(win->buffer);
+		win->buffer = NULL;
+	}
+	#endif
 
 	free(win); /* free collected window data */
 }
@@ -1217,7 +1347,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->fpsCap = 0;
 	nWin->hideMouse = 0;
 	nWin->inFocus = 1;
-	nWin->joystickCount =0
+	nWin->joystickCount = 0;
 	nWin->event.droppedFilesCount = 0;
 
 	HINSTANCE inh = GetModuleHandle(NULL);
@@ -1257,7 +1387,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	}
 
     nWin->window = GetDC((HWND)nWin->display);
-
+ 	#ifdef RGFW_GL
     /* there is no guarantee that the contents of the stack that become
        the pfd are zeroed, therefore _make sure_ to clear these bits. */
     PIXELFORMATDESCRIPTOR pfd = {0}; /* Setup OpenGL. */
@@ -1279,15 +1409,36 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	if (RGFW_TRANSPARENT_WINDOW & args)
 		SetWindowLong((HWND)nWin->display, GWL_EXSTYLE, GetWindowLong((HWND)nWin->display, GWL_EXSTYLE) | WS_EX_LAYERED);
 
-    ReleaseDC((HWND)nWin->display, (HDC)nWin->window);
+   
+	#ifdef RGFW_OSMESA
+	if (RGFW_OPENGL & args) {
+	#endif
+		ReleaseDC((HWND)nWin->display, (HDC)nWin->window);
+		nWin->window = GetDC((HWND)nWin->display);
+		nWin->glWin = wglCreateContext((HDC)nWin->window);
+		wglMakeCurrent((HDC)nWin->window, (HGLRC)nWin->glWin);
+	#ifdef RGFW_OSMESA
+		nWin->buffer = NULL;
+	#endif
+	}
+	#ifdef RGFW_OSMESA
+	else {
+		nWin->glWin = (void*)OSMesaCreateContext(OSMESA_RGBA, NULL);
+		nWin->buffer = malloc(w * h * 4);
+		
+		OSMesaMakeCurrent(nWin->glWin, nWin->buffer, GL_UNSIGNED_BYTE, w, h);
+	}
+	#endif
+	#endif
 
-    nWin->window = GetDC((HWND)nWin->display);
-    nWin->glWin = wglCreateContext((HDC)nWin->window);
-    wglMakeCurrent((HDC)nWin->window, (HGLRC)nWin->glWin);
+	#ifdef RGFW_EGL
+	RGFW_createOpenGLContext(nWin);
+	#endif
+
     ShowWindow((HWND)nWin->display, SW_SHOWNORMAL);
 
     return nWin;
-}
+}	
 
 RGFW_Event RGFW_checkEvents(RGFW_window* win){
 	RGFW_checkFPS(win);
@@ -1402,7 +1553,6 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 					DragFinish(drop);
 				}
 				break;
-            break;
 			default: break;
 		}
 
@@ -1410,7 +1560,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 		DispatchMessage(&msg);
 	}
 
-	if ((win->srcX != win->x) || (win->srcY != win->y) || (win->srcW != win->w) || (win->srcH != win->h)){
+	if ((win->srcX != win->x) || (win->srcY != win->y) || (win->srcW != win->w) || (win->srcH != win->h)) {
 		SetWindowPos((HWND)win->display, (HWND)win->display, win->x, win->y, win->w, win->h, 0);
 		win->srcX = win->x;
 		win->srcY = win->y;
@@ -1420,7 +1570,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 		/* make sure the window attrubutes are up-to-date*/
 		RECT a;
 
-		if (GetWindowRect((HWND)win->display, &a)){
+		if (GetWindowRect((HWND)win->display, &a)) {
 			win->srcX = win->x = a.left;
 			win->srcY = win->y = a.top;
 			win->srcW = win->w = a.right - a.left;
@@ -1447,6 +1597,11 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 		win->event.type = RGFW_quit;
 
     win->inFocus = (GetForegroundWindow() == win->display);
+
+	if (win->inFocus && win->hideMouse)
+		SetCursor(NULL);	
+	else 
+		SetCursor(LoadCursor(NULL, IDC_ARROW));
 
 	return win->event;
 }
@@ -1485,24 +1640,16 @@ unsigned char RGFW_isPressedS(RGFW_window* window, char* key){
 	return RGFW_isPressedI(window, vKey);
 }
 
-void RGFW_toggleMouse(RGFW_window* w){
-	if (!w->hideMouse){
-		long int blankCursor = (long int)CreateCursor(NULL, 0, 0, 1, 1, NULL, NULL);
-		SetCursor((HCURSOR)blankCursor);
-		SetClassLongPtr((HWND)w->display, GCLP_HCURSOR, blankCursor);
-		
-		w->hideMouse = 1;
-	} else {
-		long int defaultCursor = (long int)LoadCursor(NULL, IDC_ARROW);
-		SetCursor((HCURSOR)defaultCursor);
-		SetClassLongPtr((HWND)w->display, GCLP_HCURSOR, defaultCursor);
-
-		w->hideMouse = 0;
-	}
-}
+void RGFW_toggleMouse(RGFW_window* w){ w->hideMouse = !w->hideMouse; }
 
 void RGFW_closeWindow(RGFW_window* win) {
+	#ifdef RGFW_EGL
+	RGFW_closeEGL(win);
+	#endif
+	
+	#ifdef RGFW_GL
 	wglDeleteContext((HGLRC)win->glWin); /* delete opengl context */
+	#endif
 	DeleteDC((HDC)win->window); /* delete window */
 	DestroyWindow((HWND)win->display); /* delete display */
 
@@ -1517,12 +1664,15 @@ void RGFW_closeWindow(RGFW_window* win) {
 		win->event.droppedFiles = (char**)0;
 	}
 	
+	#ifdef RGFW_OSMESA
+	if (win->buffer != NULL)
+		free(win->buffer);
+	#endif
+
 	free(win);
 }
 
-/*
-	much of this function is sourced from GLFW
-*/
+/* much of this function is sourced from GLFW */
 void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int channels){    
     HDC dc;
     HICON handle;
@@ -1556,7 +1706,6 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
     mask = CreateBitmap(width, height, 1, 1, NULL);
     
     int i;
-
     for (i = 0;  i < width * height;  i++) {
         target[0] = source[2];
         target[1] = source[1];
@@ -1615,13 +1764,10 @@ void RGFW_writeClipboard(RGFW_window* w, char* text) {
 
     object = GlobalAlloc(GMEM_MOVEABLE, characterCount * sizeof(WCHAR));
     if (!object)
-    {
         return;
-    }
 
     buffer = (WCHAR*)GlobalLock(object);
-    if (!buffer)
-    {
+    if (!buffer) {
         GlobalFree(object);
         return;
     }
@@ -1629,8 +1775,7 @@ void RGFW_writeClipboard(RGFW_window* w, char* text) {
     MultiByteToWideChar(CP_UTF8, 0, text, -1, buffer, characterCount);
     GlobalUnlock(object);
 
-    if (!OpenClipboard((HWND)w->display))
-    {
+    if (!OpenClipboard((HWND)w->display)) {
         GlobalFree(object);
         return;
     }
@@ -1641,14 +1786,10 @@ void RGFW_writeClipboard(RGFW_window* w, char* text) {
 }
 
 unsigned short RGFW_registerJoystick(RGFW_window* window, int jsNumber){
-	char file[14];
-	sprintf(file, "/dev/input/js%i", jsNumber);
-
-	return RGFW_registerJoystickF(window, file);
+	return RGFW_registerJoystickF(window, "");
 }
 
 unsigned short RGFW_registerJoystickF(RGFW_window* w, char* file){
-	joySetCapture()
 
 	return w->joystickCount - 1;
 }
@@ -1679,16 +1820,21 @@ void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority){ SetThre
 #endif
 
 #ifdef __APPLE__
-#define GL_FRONT				0x0404
-#define GL_BACK					0x0405
-#define GL_LEFT					0x0406
-#define GL_RIGHT				0x0407
 
+#define GL_SILENCE_DEPRECATION
+#include "Silicon/silicon.h"
+#include "Silicon/Silicon.m"
 #include <OpenGL/gl.h>
+
+CVReturn displayCallback(CVDisplayLinkRef displayLink, const CVTimeStamp *inNow, const CVTimeStamp *inOutputTime, CVOptionFlags flagsIn, CVOptionFlags *flagsOut, void *displayLinkContext) { return kCVReturnSuccess; }
+
+bool OnClose(void* self)  {	
+	self->
+}
 
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
 	RGFW_window* nWin = malloc(sizeof(RGFW_window));
-
+	
 	nWin->srcX = nWin->x = x;
 	nWin->srcY = nWin->y = y;
 	nWin->srcW = nWin->w = w;
@@ -1697,7 +1843,69 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->inFocus = 1;
 	nWin->hideMouse = 0;
 
+	NSBackingStoreType macArgs = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable, NSBackingStoreBuffered;
+
+	if (!(RGFW_NO_RESIZE & args))
+		macArgs |= NSWindowStyleMaskResizable;
+	if (!(RGFW_NO_BOARDER & args))
+		macArgs |= NSWindowStyleMaskTitled;
+	else 
+		macArgs |= NSWindowStyleMaskBorderless;
+
+	funcs[0] = OnClose;
+	
+	nWin->window = NSWindow_init(NSMakeRect(x, y, w, h), macArgs, false);
+	NSWindow_setTitle(nWin->window, name);
+
+	NSOpenGLPixelFormatAttribute attributes[] = {
+		NSOpenGLPFANoRecovery,
+		NSOpenGLPFAAccelerated,
+		NSOpenGLPFADoubleBuffer,
+		NSOpenGLPFAColorSize, 24,
+		NSOpenGLPFAAlphaSize, 8,
+		NSOpenGLPFADepthSize, 24,
+		NSOpenGLPFAStencilSize, 8,
+		0
+	};
+	
+	CVDisplayLinkRef displayLink;
+	NSOpenGLPixelFormat* format = NSOpenGLPixelFormat_initWithAttributes(attributes);
+	NSOpenGLView* view = NSOpenGLView_initWithFrame(NSMakeRect(0, 0, w, h), format);
+	NSOpenGLView_prepareOpenGL(view);
+
+	GLint swapInt = 1;
+	nWin->glWin = NSOpenGLView_openGLContext(view);
+	NSOpenGLContext_setValues(nWin->glWin, &swapInt, NSOpenGLContextParameterSwapInterval);
+
+	CGDirectDisplayID displayID = CGMainDisplayID();
+	CVDisplayLinkCreateWithCGDisplay(displayID, &displayLink);
+	CVDisplayLinkSetOutputCallback(displayLink, displayCallback, nWin->window);
+	CVDisplayLinkStart(displayLink);
+
+	NSOpenGLContext_makeCurrentContext(nWin->glWin);
+	NSWindow_setContentView(nWin->window, (NSView*)view);
+	NSWindow_setIsVisible(nWin->window, true);
+	NSWindow_makeMainWindow(nWin->window);
+
+	NSApplication_sharedApplication();
+	NSApp_setActivationPolicy(NSApplicationActivationPolicyRegular);
+	NSApp_finishLaunching();
+
 	return nWin;
+}
+
+RGFW_Event RGFW_checkEvents(RGFW_window* w){
+	NSEvent* e = NSApp_nextEventMatchingMask(NSEventMaskAny, NSDate_distantFuture(), 0, true);
+
+	NSApp_sendEvent(e);
+	NSApp_updateWindows();
+}
+
+void RGFW_closeWindow(RGFW_window* w){
+	CVDisplayLinkStop(displayLink);
+	CVDisplayLinkRelease(displayLink);
+	NSView_release((NSView*)view);
+	NSApp_terminate((id)win->window);
 }
 
 #endif
@@ -1715,13 +1923,32 @@ void RGFW_joinThread(RGFW_thread thread){ pthread_join(thread, NULL); }
 void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority){ pthread_setschedprio(thread, priority); }
 #endif
 
-void RGFW_makeCurrent(RGFW_window* w){
-    #ifdef __linux__
-		glXMakeCurrent((Display *)w->display, (GLXDrawable)w->window, (GLXContext)w->glWin);
+
+void RGFW_makeCurrent_OpenGL(RGFW_window* w){
+	#ifdef RGFW_GL
+		#ifdef __linux__
+			glXMakeCurrent((Display *)w->display, (Drawable)w->window, (GLXContext)w->glWin);
+		#endif
+		#ifdef _WIN32
+			wglMakeCurrent((HDC)w->window, (HGLRC)w->glWin);
+		#endif	
+		#ifdef __APPLE__
+		NSOpenGLContext_flushBuffer(w->glWin);
+		#endif
+	#else
+	#ifdef RGFW_EGL
+	eglMakeCurrent(w->EGL_display, w->EGL_surface, w->EGL_surface, w->glWin);
 	#endif
-	#ifdef _WIN32
-		wglMakeCurrent((HDC)w->window, (HGLRC)w->glWin);
-	#endif	
+	#endif
+}
+
+void RGFW_makeCurrent(RGFW_window* w){
+    #ifdef RGFW_OSMESA
+	#ifdef RGFW_GL
+	if (w->buffer == NULL)
+	#endif
+	#endif
+	RGFW_makeCurrent_OpenGL(w);
 }
 
 void RGFW_setDrawBuffer(int buffer){
@@ -1737,14 +1964,57 @@ void RGFW_clear(RGFW_window* w, unsigned char r, unsigned char g, unsigned char 
 
     glFlush(); /* flush the window*/
 
-    int currentDrawBuffer;
+	#ifndef RGFW_EGL
+    #ifndef __APPLE__
+	int currentDrawBuffer;
 
     glGetIntegerv(GL_DRAW_BUFFER, &currentDrawBuffer);
-    RGFW_setDrawBuffer((currentDrawBuffer == GL_BACK) ? GL_FRONT : GL_BACK); /* Set draw buffer to be the other buffer
+    RGFW_setDrawBuffer((currentDrawBuffer == GL_BACK) ? GL_FRONT : GL_BACK); /* Set draw buffer to be the other buffer*/
+	#else
+	NSOpenGLContext_flushBuffer(w->glWin);
+	#endif
+	#endif
 
-    /* clear the window*/
+	#ifdef RGFW_EGL
+	eglSwapBuffers(w->EGL_display, w->EGL_surface);
+	#endif
+    
+	/* clear the window*/
     glClearColor(r / 255.0, g / 255.0, b / 255.0, a / 255.0);
-    glClear(0x00004000);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+	#ifdef RGFW_OSMESA
+    if (w->buffer != NULL){
+		unsigned char* row = (unsigned char*) malloc(w->srcW * 4);
+		int half_height = w->srcH / 2;
+		int stride = w->srcW * 4;
+
+		int y;
+		for (y = 0; y < half_height; ++y) {
+			int top_offset = y * stride;
+			int bottom_offset = (w->srcH - y - 1) * stride;
+			memcpy(row, w->buffer + top_offset, stride);
+			memcpy(w->buffer + top_offset, w->buffer + bottom_offset, stride);
+			memcpy(w->buffer + bottom_offset, row, stride);
+		}
+
+		free(row);
+		#ifdef __linux__
+			RGFW_omesa_ximage = XCreateImage(w->display, DefaultVisual(w->display, XDefaultScreen(w->display)), DefaultDepth(w->display, XDefaultScreen(w->display)),
+								ZPixmap, 0, (char*)w->buffer, w->srcW, w->srcH, 32, 0);
+
+			XPutImage(w->display, w->window, XDefaultGC(w->display, XDefaultScreen(w->display)), RGFW_omesa_ximage, 0, 0, 0, 0, w->srcW, w->srcH);
+		#endif
+		#ifdef _WIN32
+			HBITMAP hbitmap = CreateBitmap(500, 500, 1, 32, (void*)w->buffer);
+			HDC hdcMem = CreateCompatibleDC(w->window);
+			HBITMAP hOld = (HBITMAP)SelectObject(hdcMem, hbitmap);
+			BitBlt(w->window, 0, 0, 500, 500, hdcMem, 0, 0, SRCCOPY);
+			SelectObject(hdcMem, hOld);
+			DeleteDC(hdcMem);
+		#endif
+	}
+	#endif
 }
 
 time_t startTime[2];
