@@ -41,13 +41,14 @@
 	#define RGFW_OSMESA - (optional) use OSmesa as backend (instead of system's opengl api + regular opengl)
 	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
 	#define RGFW_OPENGL_ES - (optional) use EGL to load and use Opengl ES for backend rendering (instead of the system's opengl api)
+	#defien RGFW_VULKAN - (optional) use vulkan for the rendering backend (rather than opengl)
 */
 
 #if defined(RGFW_OPENGL_ES) && !defined(RGFW_EGL)
 #define RGFW_EGL
 #endif
 
-#if !defined(RGFW_OSMESA) && !defined(RGFW_EGL) && !defined(RGFW_GL)
+#if !defined(RGFW_OSMESA) && !defined(RGFW_EGL) && !defined(RGFW_GL) && !defined (RGFW_VULKAN)
 	#define RGFW_GL /* use default opengl system api */
 #endif
 
@@ -152,8 +153,12 @@ typedef struct RGFW_window {
 	int joysticks[4]; /* limit of 4 joysticks at a time */
 	unsigned char jsPressed[4][16]; /* if a key is currently pressed or not (per joystick) */
 
-	#ifdef RGFW_OSMESA
+	#if RGFW_OSMESA 
 	unsigned char* buffer; /*OSMesa buffer*/
+	#endif
+
+	#ifdef __APPLE__
+	void* view; /*apple viewpoint thingy*/
 	#endif
 
 	#ifdef RGFW_EGL
@@ -177,6 +182,13 @@ RGFW_window* RGFW_createWindowPointer(
 
 /*! create window object (non-pointer) */
 #define RGFW_createWindow(name, x, y, w, h, args)  *RGFW_createWindowPointer(name, x, y, w, h, args);
+
+/*! initializes a vulkan rendering context for the RGFW window, you still need to load your own vulkan instance, ect, ect 
+	this outputs the vulkan surface into win->glWin
+	RGFW_VULKAN must be defined for this function to be defined
+
+*/
+void RGFW_initVulkan(RGFW_window* win, void* inst); 
 
 RGFW_Event RGFW_checkEvents(RGFW_window* window); /*!< check events */
 
@@ -295,6 +307,39 @@ int main(){
 #ifdef RGFW_EGL
 #include <EGL/egl.h>
 #include <GL/gl.h>
+#endif
+
+#ifdef RGFW_VULKAN
+#ifdef __linux__
+#define VK_USE_PLATFORM_XLIB_KHR
+#endif
+#ifdef _WIN32
+#define VK_USE_PLATFORM_WIN32_KHR
+#endif
+#ifdef __APPLE__
+#define VK_USE_PLATFORM_MACOS_MVK
+#endif
+
+#include <vulkan/vulkan.h>
+
+void RGFW_initVulkan(RGFW_window* win, void* inst){
+	#ifdef __linux__
+	VkXlibSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, 0, win->display, win->window };
+
+	vkCreateXlibSurfaceKHR(inst, &x11, NULL, win->glWin);
+	#endif
+	#ifdef _WIN32
+	VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, win->display, win->window };
+
+	vkCreateWin32SurfaceKHR(inst, &win32, NULL, win->glWin);
+	#endif
+	#ifdef __APPLE__
+	VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_KHR, 0, win->display, win->window };
+
+	vkCreateMacOSSurfaceMVK(inst, &macos, NULL, win->glWin);
+	#endif
+}
+
 #endif
 
 #ifndef M_PI
@@ -459,7 +504,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	#endif
 
-	#if defined(RGFW_OSMESA) || defined(RGFW_EGL)
+	#if defined(RGFW_OSMESA) || defined(RGFW_EGL)  || defined(RGFW_VULKAN)
 	#ifdef RGFW_GL
 	else
 	#endif
@@ -1333,7 +1378,9 @@ char* createUTF8FromWideStringWin32(const WCHAR* source);
 #define GL_RIGHT				0x0407
 
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
-    RGFW_window* nWin = (RGFW_window*)malloc(sizeof(RGFW_window));
+    if (name == "") name = " ";
+
+	RGFW_window* nWin = (RGFW_window*)malloc(sizeof(RGFW_window));
 
     int         pf;
 	WNDCLASS    wc;
@@ -1342,6 +1389,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->srcY = nWin->y = y;
 	nWin->srcW = nWin->w = w;
 	nWin->srcH = nWin->h = h;
+	nWin->valid = 245;
 
 	nWin->srcName = nWin->name = name;
 	nWin->fpsCap = 0;
@@ -1408,9 +1456,9 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	if (RGFW_TRANSPARENT_WINDOW & args)
 		SetWindowLong((HWND)nWin->display, GWL_EXSTYLE, GetWindowLong((HWND)nWin->display, GWL_EXSTYLE) | WS_EX_LAYERED);
-
-   
-	#ifdef RGFW_OSMESA
+	#endif
+	
+	#ifdef RGFW_OSMESA 
 	if (RGFW_OPENGL & args) {
 	#endif
 		ReleaseDC((HWND)nWin->display, (HDC)nWin->window);
@@ -1420,15 +1468,14 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	#ifdef RGFW_OSMESA
 		nWin->buffer = NULL;
 	#endif
-	}
 	#ifdef RGFW_OSMESA
+	}
 	else {
 		nWin->glWin = (void*)OSMesaCreateContext(OSMESA_RGBA, NULL);
 		nWin->buffer = malloc(w * h * 4);
 		
 		OSMesaMakeCurrent(nWin->glWin, nWin->buffer, GL_UNSIGNED_BYTE, w, h);
 	}
-	#endif
 	#endif
 
 	#ifdef RGFW_EGL
@@ -1440,7 +1487,29 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     return nWin;
 }	
 
+unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event){
+	/*
+		if this part gives you a seg fault, there is a good chance your window is not valid
+
+		Make sure you're creaing the window and using the window structure
+
+		accidently writing (RGFW_window type)->window is a common mistake too
+	*/
+	
+	if (win->valid != (char)245 || win == (RGFW_window*)0 || !IsWindow(win->display)){
+		#ifdef RGFW_PRINT_ERRORS
+		printf("Error %s : invalid window structure \n", event);
+		RGFW_error = 1;
+		return 0;
+		#endif
+	}
+
+	return 1;
+}
+
 RGFW_Event RGFW_checkEvents(RGFW_window* win){
+	if (!RGFW_ValidWindowCheck(win, "RGFW_checkEvents")) return win->event;
+ 
 	RGFW_checkFPS(win);
 	
 	MSG msg = {};
@@ -1640,9 +1709,14 @@ unsigned char RGFW_isPressedS(RGFW_window* window, char* key){
 	return RGFW_isPressedI(window, vKey);
 }
 
-void RGFW_toggleMouse(RGFW_window* w){ w->hideMouse = !w->hideMouse; }
+void RGFW_toggleMouse(RGFW_window* w){ 
+	if (!RGFW_ValidWindowCheck(w, "RGFW_toggleMouse"));
+	w->hideMouse = !w->hideMouse;
+}
 
 void RGFW_closeWindow(RGFW_window* win) {
+	if (!RGFW_ValidWindowCheck(win, "RGFW_closeWindow")) return;
+
 	#ifdef RGFW_EGL
 	RGFW_closeEGL(win);
 	#endif
@@ -1674,7 +1748,9 @@ void RGFW_closeWindow(RGFW_window* win) {
 
 /* much of this function is sourced from GLFW */
 void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int channels){    
-    HDC dc;
+    if (!RGFW_ValidWindowCheck(w, "RGFW_setIcon")); return;
+
+	HDC dc;
     HICON handle;
     HBITMAP color, mask;
     BITMAPV5HEADER bi;
@@ -1732,6 +1808,8 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
 }
 
 char* RGFW_readClipboard(RGFW_window* w){
+	if (!RGFW_ValidWindowCheck(w, "RGFW_readClipboard")) return "";
+
     /* Open the clipboard */
     if (!OpenClipboard(NULL))
         return (char*)"";
@@ -1754,6 +1832,8 @@ char* RGFW_readClipboard(RGFW_window* w){
 }
 
 void RGFW_writeClipboard(RGFW_window* w, char* text) {
+	if (!RGFW_ValidWindowCheck(w, "RGFW_writeClipboard")) return "";
+
     int characterCount;
     HANDLE object;
     WCHAR* buffer;
@@ -1823,14 +1903,13 @@ void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority){ SetThre
 
 #define GL_SILENCE_DEPRECATION
 #include "Silicon/silicon.h"
-#include "Silicon/Silicon.m"
 #include <OpenGL/gl.h>
 
 CVReturn displayCallback(CVDisplayLinkRef displayLink, const CVTimeStamp *inNow, const CVTimeStamp *inOutputTime, CVOptionFlags flagsIn, CVOptionFlags *flagsOut, void *displayLinkContext) { return kCVReturnSuccess; }
 
-bool OnClose(void* self)  {	
-	self->
-}
+RGFW_window* RGFW_Current_Window;
+
+bool OnClose(void* self)  {	RGFW_Current_Window->event.type = RGFW_quit; }
 
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
 	RGFW_window* nWin = malloc(sizeof(RGFW_window));
@@ -1843,7 +1922,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->inFocus = 1;
 	nWin->hideMouse = 0;
 
-	NSBackingStoreType macArgs = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable, NSBackingStoreBuffered;
+	NSBackingStoreType macArgs = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled;
 
 	if (!(RGFW_NO_RESIZE & args))
 		macArgs |= NSWindowStyleMaskResizable;
@@ -1854,7 +1933,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	funcs[0] = OnClose;
 	
-	nWin->window = NSWindow_init(NSMakeRect(x, y, w, h), macArgs, false);
+	nWin->window = NSWindow_init(NSMakeRect(x, y, w, h), macArgs, false, NULL);
 	NSWindow_setTitle(nWin->window, name);
 
 	NSOpenGLPixelFormatAttribute attributes[] = {
@@ -1868,22 +1947,21 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		0
 	};
 	
-	CVDisplayLinkRef displayLink;
 	NSOpenGLPixelFormat* format = NSOpenGLPixelFormat_initWithAttributes(attributes);
-	NSOpenGLView* view = NSOpenGLView_initWithFrame(NSMakeRect(0, 0, w, h), format);
-	NSOpenGLView_prepareOpenGL(view);
+	nWin->view = NSOpenGLView_initWithFrame(NSMakeRect(0, 0, w, h), format);
+	NSOpenGLView_prepareOpenGL(nWin->view);
 
 	GLint swapInt = 1;
-	nWin->glWin = NSOpenGLView_openGLContext(view);
+	nWin->glWin = NSOpenGLView_openGLContext(nWin->view);
 	NSOpenGLContext_setValues(nWin->glWin, &swapInt, NSOpenGLContextParameterSwapInterval);
 
 	CGDirectDisplayID displayID = CGMainDisplayID();
-	CVDisplayLinkCreateWithCGDisplay(displayID, &displayLink);
-	CVDisplayLinkSetOutputCallback(displayLink, displayCallback, nWin->window);
-	CVDisplayLinkStart(displayLink);
+	CVDisplayLinkCreateWithCGDisplay(displayID, &nWin->display);
+	CVDisplayLinkSetOutputCallback(nWin->display, displayCallback, nWin->window);
+	CVDisplayLinkStart(nWin->display);
 
 	NSOpenGLContext_makeCurrentContext(nWin->glWin);
-	NSWindow_setContentView(nWin->window, (NSView*)view);
+	NSWindow_setContentView(nWin->window, (NSView*)nWin->view);
 	NSWindow_setIsVisible(nWin->window, true);
 	NSWindow_makeMainWindow(nWin->window);
 
@@ -1894,23 +1972,148 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	return nWin;
 }
 
+unsigned int RGFW_keysPressed[10]; /*10 keys at a time*/
+
 RGFW_Event RGFW_checkEvents(RGFW_window* w){
-	NSEvent* e = NSApp_nextEventMatchingMask(NSEventMaskAny, NSDate_distantFuture(), 0, true);
+	NSWindow_makeMainWindow(w->window);
+
+	NSEvent* e = NSApp_nextEventMatchingMask(NSEventMaskAny, NULL, 0, true);
+
+	unsigned char button = 0, i;
+
+	switch(NSEvent_type(e)){
+		case NSEventTypeKeyDown:
+			w->event.type = RGFW_keyPressed;
+			w->event.keyCode = NSEvent_keyCode(e);
+			w->event.keyName = NSEvent_characters(e);
+
+			for (i = 0; i < 10; i++)
+				if (!RGFW_keysPressed[i]){
+					RGFW_keysPressed[i] = w->event.keyCode; 
+					break;
+				}
+			break;	
+		
+		case NSEventTypeKeyUp:
+			w->event.type = RGFW_keyReleased;
+			w->event.keyCode = NSEvent_keyCode(e);
+			w->event.keyName = NSEvent_characters(e);
+			
+			for (i = 0; i < 10; i++)
+				if (RGFW_keysPressed[i] == w->event.keyCode){
+					RGFW_keysPressed[i] = 0; 
+					break;
+				}
+
+			break;
+		
+		case NSEventTypeLeftMouseDown:
+			button = 1;
+			w->event.button = 2;
+		case NSEventTypeOtherMouseDown:
+			button = 1;
+		 	if (!button)
+			   w->event.button = 1;
+		case NSEventTypeRightMouseDown:
+		 	if (!button)
+			   w->event.button = 0;
+
+			w->event.type = RGFW_mouseButtonPressed; 
+			break;
+
+		case NSEventTypeLeftMouseUp:
+			button = 1;
+			if (NSEvent_type(e) == NSEventTypeLeftMouseUp)
+				w->event.button = RGFW_mouseLeft;
+		case NSEventTypeOtherMouseUp:
+		 	if (!button && NSEvent_type(e) == NSEventTypeOtherMouseUp)
+			   w->event.button = RGFW_mouseMiddle;
+			button = 1;
+		case NSEventTypeScrollWheel:
+			if (!button && NSEvent_type(e) == NSEventTypeScrollWheel){
+			    double deltaY = NSEvent_deltaY(e);
+
+				if (deltaY > 0)
+					w->event.button = RGFW_mouseScrollUp;
+
+				else if (deltaY < 0)
+					w->event.button = RGFW_mouseScrollDown;
+			}
+			button = 1;
+		case NSEventTypeRightMouseUp:
+		 	if (!button)
+			   w->event.button = RGFW_mouseRight;
+
+			w->event.type = RGFW_mouseButtonReleased; 
+			break;
+		
+		case NSEventTypeMouseMoved:
+			w->event.type = RGFW_mousePosChanged;
+
+			NSPoint p = NSEvent_locationInWindow(e);
+			w->event.x = p.x;
+			w->event.y = p.y;
+			break;
+		
+
+		default: break;
+	}
+	
+	NSRect r = NSWindow_frame(w->window);
+	int x = NSMinX(r);
+	int y = NSMinY(r);
+	int rw = NSWidth(r);
+	int h = NSHeight(r);
+
+	if (x != w->srcX || y != w->srcY || rw != w->srcW || h != w->srcH){
+		w->srcX = w->x = x;
+		w->srcY = w->y = y;
+		w->srcW = w->w = rw;
+		w->srcH = w->h = h;
+	}
+	
+	else if (w->x != w->srcX || w->y != w->srcY ||
+			w->w != w->srcW || w->h != w->srcH){
+	
+		NSWindow_setFrame(w->window, NSMakeRect(w->x, w->y, w->w, w->h));
+
+		w->srcX = w->x;
+		w->srcY = w->y;
+		w->srcW = w->w;
+		w->srcH = w->h;
+	}
 
 	NSApp_sendEvent(e);
+	RGFW_Current_Window = w;
+
 	NSApp_updateWindows();
+
+	RGFW_checkFPS(w);
+
+	return w->event;
+}
+
+unsigned char RGFW_isPressedS(RGFW_window* window, char* key) { return RGFW_isPressedI(window,  NSEvent_keyCodeForChar(key)); }
+
+unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key) { 
+	unsigned char i;
+	for (i = 0; i < 10; i++)
+		if (RGFW_keysPressed[i] == key)
+			return true;
+	return false;
 }
 
 void RGFW_closeWindow(RGFW_window* w){
-	CVDisplayLinkStop(displayLink);
-	CVDisplayLinkRelease(displayLink);
-	NSView_release((NSView*)view);
-	NSApp_terminate((id)win->window);
+	CVDisplayLinkStop(w->display);
+	CVDisplayLinkRelease(w->display);
+	NSView_release((NSView*)w->view);
+	NSApp_terminate((id)w->window);
 }
 
 #endif
 
-#ifdef __unix__
+#if defined(__unix__) || defined(__APPLE__)
+
 #include <pthread.h>
 
 RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args){ 
@@ -1920,7 +2123,9 @@ RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args){
 }
 void RGFW_cancelThread(RGFW_thread thread){ pthread_cancel(thread); } 
 void RGFW_joinThread(RGFW_thread thread){ pthread_join(thread, NULL); }
+#ifndef __APPLE__
 void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority){ pthread_setschedprio(thread, priority); }
+#endif
 #endif
 
 
@@ -1940,6 +2145,7 @@ void RGFW_makeCurrent_OpenGL(RGFW_window* w){
 	eglMakeCurrent(w->EGL_display, w->EGL_surface, w->EGL_surface, w->glWin);
 	#endif
 	#endif
+
 }
 
 void RGFW_makeCurrent(RGFW_window* w){
@@ -1952,16 +2158,19 @@ void RGFW_makeCurrent(RGFW_window* w){
 }
 
 void RGFW_setDrawBuffer(int buffer){
-    if (buffer != GL_FRONT && buffer != GL_BACK && buffer != GL_LEFT && buffer != GL_RIGHT)
+    #ifndef RGFW_VULKAN
+	if (buffer != GL_FRONT && buffer != GL_BACK && buffer != GL_LEFT && buffer != GL_RIGHT)
         return;
 
     /* Set the draw buffer using the specified value*/
     glDrawBuffer(buffer);
+	#endif
 }
 
 void RGFW_clear(RGFW_window* w, unsigned char r, unsigned char g, unsigned char b, unsigned char a){
 	RGFW_makeCurrent(w);
 
+	#ifndef RGFW_VULKAN
     glFlush(); /* flush the window*/
 
 	#ifndef RGFW_EGL
@@ -1970,18 +2179,17 @@ void RGFW_clear(RGFW_window* w, unsigned char r, unsigned char g, unsigned char 
 
     glGetIntegerv(GL_DRAW_BUFFER, &currentDrawBuffer);
     RGFW_setDrawBuffer((currentDrawBuffer == GL_BACK) ? GL_FRONT : GL_BACK); /* Set draw buffer to be the other buffer*/
-	#else
-	NSOpenGLContext_flushBuffer(w->glWin);
 	#endif
+    glClearColor(r / 255.0, g / 255.0, b / 255.0, a / 255.0);
+    glClear(GL_COLOR_BUFFER_BIT);
 	#endif
-
 	#ifdef RGFW_EGL
 	eglSwapBuffers(w->EGL_display, w->EGL_surface);
 	#endif
-    
+	#endif
+
 	/* clear the window*/
-    glClearColor(r / 255.0, g / 255.0, b / 255.0, a / 255.0);
-    glClear(GL_COLOR_BUFFER_BIT);
+
 
 	#ifdef RGFW_OSMESA
     if (w->buffer != NULL){
@@ -2014,6 +2222,13 @@ void RGFW_clear(RGFW_window* w, unsigned char r, unsigned char g, unsigned char 
 			DeleteDC(hdcMem);
 		#endif
 	}
+	#endif
+
+	#ifdef RGFW_VULKAN
+	#ifdef RGFW_PRINT_ERRORS
+	printf("RGFW_clear %s\n", "RGFW_clear is not supported for Vulkan");
+	RGFW_error = 1;
+	#endif
 	#endif
 }
 
