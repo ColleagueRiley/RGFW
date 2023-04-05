@@ -1,18 +1,22 @@
-(fixes)
-    - hide mouse function (windows) 
-
 (addons)
-    - controller support (windows)
+    - controller support (windows) (macos)
     - init drag function (drag n' drop)
     - global key system
     - custom cursors
 
-(backends)
-    - start support for macos
-    - possible wayland backend
-    - OpenGL ES
-    - EGL (windows)
-    - Vulcan
+(testing)
+    - test hide mouse function (windows) 
+    - test EGL and OSmesa for (windows)
+
+(macos)
+    - transparent window
+    - on focus
+    - drag and drop (input)
+    - set icon
+    - clipboard I/O
+    - EGL
+    - OS Mesa
+    - error handling
 
 (other)
     - opengl vbo wrangler for windows (maybe as a seperate [small/single header] library)
