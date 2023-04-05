@@ -9,6 +9,11 @@
 #endif
 #endif
 
+/*#define MEMWATCHON
+#define MEMWATCH
+#define RGFW_PRINT_ERRORS
+#include "memwatch/memwatch.h"*/
+
 #include "RGFW.h"
 
 void drawLoop(RGFW_window* w); /* I seperate the draw loop only because it's run twice */
@@ -68,6 +73,7 @@ int main() {
 void drawLoop(RGFW_window *w) {
     RGFW_clear(w, 255, 255, 255, 255);
 
+    #ifndef RGFW_VULKAN
     glBegin(GL_TRIANGLES);
     glColor3f(1, 0, 0);
     glVertex2f(-0.6, -0.75);
@@ -76,9 +82,13 @@ void drawLoop(RGFW_window *w) {
     glColor3f(0, 0, 1);
     glVertex2f(0, 0.75);
     glEnd();
+    #else
+
+    #endif
 }
 
 void *loop2(void *) {
+    #ifndef __APPLE__
     RGFW_window *win = RGFW_createWindowPointer("subwindow", 200, 200, 200, 200, NULL);
     win->fpsCap = 60;
 
@@ -93,6 +103,10 @@ void *loop2(void *) {
     }
 
     RGFW_closeWindow(win);
+    #else
+    printf("Managing windows using multi-threading is not support using this method :(\n");
+    #endif
 
     return NULL;
+    
 }

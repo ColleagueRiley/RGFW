@@ -1971,7 +1971,6 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	return nWin;
 }
-
 unsigned int RGFW_keysPressed[10]; /*10 keys at a time*/
 
 RGFW_Event RGFW_checkEvents(RGFW_window* w){
@@ -1980,6 +1979,8 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 	NSEvent* e = NSApp_nextEventMatchingMask(NSEventMaskAny, NULL, 0, true);
 
 	unsigned char button = 0, i;
+
+	w->event.droppedFilesCount = 0;
 
 	switch(NSEvent_type(e)){
 		case NSEventTypeKeyDown:
@@ -2093,6 +2094,14 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 	return w->event;
 }
 
+void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int channels){
+	
+}
+
+void RGFW_toggleMouse(RGFW_window* w){
+
+}
+
 unsigned char RGFW_isPressedS(RGFW_window* window, char* key) { return RGFW_isPressedI(window,  NSEvent_keyCodeForChar(key)); }
 
 unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key) { 
@@ -2101,6 +2110,23 @@ unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key) {
 		if (RGFW_keysPressed[i] == key)
 			return true;
 	return false;
+}
+
+char* RGFW_readClipboard(RGFW_window* w){
+
+}
+
+void RGFW_writeClipboard(RGFW_window* w, char* text){
+
+}
+
+unsigned short RGFW_registerJoystick(RGFW_window* window, int jsNumber){
+	return RGFW_registerJoystickF(window, "");
+}
+
+unsigned short RGFW_registerJoystickF(RGFW_window* w, char* file){
+
+	return w->joystickCount - 1;
 }
 
 void RGFW_closeWindow(RGFW_window* w){
