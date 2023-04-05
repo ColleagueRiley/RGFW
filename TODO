@@ -9,6 +9,8 @@
     - test EGL and OSmesa for (windows)
 
 (macos)
+    - RSGL_isPressed
+    - why moving the window doesn't change rect
     - transparent window
     - on focus
     - drag and drop (input)
@@ -17,6 +19,7 @@
     - EGL
     - OS Mesa
     - error handling
+    - add mac specific docs
 
 (other)
     - opengl vbo wrangler for windows (maybe as a seperate [small/single header] library)
