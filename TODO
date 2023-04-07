@@ -1,7 +1,6 @@
 (addons)
     - controller support (windows) (macos)
     - init drag function (drag n' drop)
-    - global key system
     - custom cursors
 
 (testing)
@@ -9,14 +8,10 @@
     - test EGL and OSmesa for (windows)
 
 (macos)
-    - RSGL_isPressed
-    - why moving the window doesn't change rect
     - transparent window
-    - on focus
     - drag and drop (input)
     - set icon
     - clipboard I/O
-    - EGL
     - OS Mesa
     - error handling
     - add mac specific docs
@@ -26,7 +21,5 @@
 
 (upkeepy)
     - made error messages for possible errors
-
     - check for memory leaks (after updates are done)
-    
     - Document source code
