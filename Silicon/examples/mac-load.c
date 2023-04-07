@@ -22,8 +22,7 @@ void OnRect(void *self, NSRect rect) {
 
 
 bool OnClose(void *self, NSNotification *notification)  {
-	NSApplication* sharedApplication = NSApplication_sharedApplication();
-	NSApplication_stop(sharedApplication, self);
+	NSApplication_stop(NSApp, self);
 
 	return true;
 }
@@ -32,6 +31,10 @@ bool OnClose(void *self, NSNotification *notification)  {
 int main() {
 	funcs[0] = OnClose;
 	funcs[1] = OnRect;
+
+	NSApplication_sharedApplication();
+	NSApplication_setActivationPolicy(NSApp, NSApplicationActivationPolicyRegular);
+
 	NSAutoreleasePool* myPool = malloc_class(NSAutoreleasePool);
 
 	NSRect rect = {{100.0, 350.0}, {400.0, 400.0}};
@@ -46,7 +49,7 @@ int main() {
 	NSWindow_orderFront(myWnd, nil);
 	NSWindow_makeKeyWindow(myWnd);
 
-	NSApplication_run(NSApplication_sharedApplication());
+	NSApplication_run(NSApp);
 	release(myPool);
 
 	return 0;

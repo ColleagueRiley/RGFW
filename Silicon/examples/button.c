@@ -17,7 +17,7 @@ static char buffer[30];
 
 
 bool windowShouldClose(id sender) {
-	NSApp_terminate(sender);
+	NSApplication_terminate(NSApp, sender);
 	return YES;
 }
 
@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
 	funcs[0] = windowShouldClose;
 
 	NSApplication_sharedApplication();
-	NSApp_setActivationPolicy(NSApplicationActivationPolicyRegular);
+	NSApplication_setActivationPolicy(NSApp, NSApplicationActivationPolicyRegular);
 
 	NSWindow* window = NSWindow_init(NSMakeRect(100, 100, 300, 300), NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskResizable, NSBackingStoreBuffered, false);
 
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
 	NSWindow_setIsVisible(window, true);
 	NSWindow_makeMainWindow(window);
 
-	NSApp_run();
+	NSApplication_run(NSApp);
 
 	return 0;
 }

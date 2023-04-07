@@ -6,13 +6,16 @@
 
 
 bool windowShouldClose(void* self, id sender)  {
-	NSApp_terminate(sender);
+	NSApplication_terminate(NSApp, sender);
 	return true;
 }
 
 
 int main() {
 	funcs[0] = windowShouldClose;
+
+	NSApplication_sharedApplication();
+	NSApplication_setActivationPolicy(NSApp, NSApplicationActivationPolicyRegular);
 
 	NSTextField* label = NSTextField_init(NSMakeRect(5, 100, 290, 100));
 	NSTextField_setStringValue(label, "Hello, World!");
@@ -31,15 +34,13 @@ int main() {
 
 
 	NSWindow* win = NSWindow_init(NSMakeRect(0, 0, 300, 300), NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable, NSBackingStoreBuffered, false);
-
 	NSWindow_setTitle(win, "Hello world (label)");
-	NSView_addSubview(NSWindow_contentView(win), label);
+	NSView_addSubview(NSWindow_contentView(win), (NSView*)label);
 	NSWindow_center(win);
 	NSWindow_setIsVisible(win, true);
 
-	NSApplication_sharedApplication();
 	NSWindow_makeMainWindow(win);
-  	NSApp_run();
+  	NSApplication_run(NSApp);
 
 	return 0;
 }

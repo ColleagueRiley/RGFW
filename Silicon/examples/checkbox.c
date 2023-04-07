@@ -33,7 +33,7 @@ const char* stateToString(NSControlStateValue state) {
 
 
 bool windowShouldClose(id sender) {
-	NSApp_terminate(sender);
+	NSApplication_terminate(NSApp, sender);
 	return true;
 }
 
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
 	NSWindow_makeMainWindow(window);
 
 	NSApplication_sharedApplication();
-	NSApp_setActivationPolicy(NSApplicationActivationPolicyRegular);
+	NSApplication_setActivationPolicy(NSApp, NSApplicationActivationPolicyRegular);
 
-	NSApp_run();
+	NSApplication_run(NSApp);
 }

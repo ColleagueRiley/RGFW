@@ -1,6 +1,7 @@
 # Silicon
 An alternative, pure C-focused wrapper to Apple's Cocoa API for OS X app development. Requires little to no Objective-C knowledge to use.
 
+
 # Why Silicon?
 Because there isn't anything else like it (to my knowledge, at least). If you want to create low-level MacOS apps, you have to use and learn Objective-C, and as we all know the language is notorious for its syntax and its unique (albeit terrible) way of handling object-oriented programming. It also ruins cross-platform code as if you compile an Objective-C file as C, you get a bunch of errors (however there are at least easy work around that).
 
@@ -10,22 +11,34 @@ Apart from Objective-C/Swift, you can only use libraries to make applications. H
 
 Silicon provides a full C functional-oriented programming wrapper over Cocoa for those low-level programmers in need, as well as anyone that doesn't really want to learn Objective-C or Swift. This library provides functions, types, macros, enums, etc from the Cocoa API and translates to make C-syntax friendly library, as well as other features to make Mac OS development a bit more easier.
 
+
+# Full discloser
+As with any new project, Silicon is subjected to major changes (be it the source code or header) and as such massive old code changes should be expected.
+
+Silicon is also very unfinished as an implementation of a giant library like Cocoa will take awhile. As of now Silicon will firstly focus on implementing the Cocoa essentials as well as common code examples and functions used in the API.
+
+
 # Examples
 - [hello-word.c](examples/hello-word.c) - a simple application with a "Hello world" text field.
 - [mac-load.c](examples/mac-load.c) - a Silicon port of [hidefromkgb's original Obj-C/C example](https://github.com/hidefromkgb/mac_load#objective-c-gui-app-example)
-- [application-loop.c](examples/application-loop.c) - utilizes the use of the NSEvent type to get the required events.
+- [events.c](examples/events.c) - utilizes the use of the NSEvent type to get the required events.
 - [opengl.c](examples/opengl.c) - a continuation from the previous example, as well as showing how to setup an OpenGL environment.
 - [menu.c](examples/menu.c) - demonstrates how to create menu bars in OS X.
 - [button.c](examples/button.c) - shows how to create and utilize buttons using the Cocoa API.
 - [checkbox.c](examples/checkbox.c) - similar to the previous example from above, however instead they're checkboxes instead of regular buttons.
+- [combobox.c](examples/combobox.c) - an example on how to utilize the NSComboBox class.
+
 
 # Documentation
 ## Prerequisites
 [todo]
 
 # Class shenanigans
+[todo]
 
 ## General tips
+[todo]
+
 
 # Credits
 ## General
@@ -34,5 +47,5 @@ Silicon provides a full C functional-oriented programming wrapper over Cocoa for
 
 ## The example sources
 All of the repositories that I took examples from and eithered completely ported to Silicon or modified heavilly:
-- [Gammasoft's 'Examples_Cocoa' repository](https://github.com/gammasoft71/Examples_Cocoa/blob/master/src/HelloWorlds/HelloWorld/README.md)
-- [hidefromkgb's 'mac_load' repository](https://github.com/hidefromkgb/mac_load#objective-c-gui-app-example)
+- [Gammasoft's 'Cocoa Examples' repository](https://github.com/gammasoft71/Examples_Cocoa/)
+- [hidefromkgb's 'mac_load' repository](https://github.com/hidefromkgb/mac_load)

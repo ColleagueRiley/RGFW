@@ -20,7 +20,7 @@ void editSelectAll() { printf("MainMenu/Edit/SelectAll\n"); }
 
 
 bool windowShouldClose(id sender) {
-	NSApp_terminate(sender);
+	NSApplication_terminate(NSApp, sender);
 	return YES;
 }
 
@@ -96,12 +96,12 @@ int main() {
 
 	// Ever since MacOS 10.6, Mac applications require a 'NSApplicationActivationPolicyRegular' type policy to show menubars.
 	NSApplication_sharedApplication();
-	NSApp_setActivationPolicy(NSApplicationActivationPolicyRegular);
+	NSApplication_setActivationPolicy(NSApp, NSApplicationActivationPolicyRegular);
 
 
 	// Create and set the main menubar
 	NSMenu* main_menu = autorelease(malloc_class(NSMenu));
-	NSApp_setMainMenu(main_menu);
+	NSApplication_setMainMenu(NSApp, main_menu);
 
 	// The items for each of our menus ('<Executable name>', 'File', 'Edit', 'View', 'Windows' and 'Help')
 	// '<Executable name>' items
@@ -146,7 +146,7 @@ int main() {
 	NSMenu* process_menu = create_submenu(main_menu, process_name, process_items, local_array_size(process_items));
 	NSMenu* process_services = autorelease(malloc_class(NSMenu)); // We initialize a new menu.
 	NSMenuItem_setSubmenu(NSMenu_itemArray(process_menu)[2], process_services); // 'NSMenu_itemArray(process_menu)[2]' is 'Services' (refer to 'process_items' variable).
-	NSApp_setServicesMenu(process_services); // Now 'Services' becomes a Services menu.
+	NSApplication_setServicesMenu(NSApp, process_services); // Now 'Services' becomes a Services menu.
 
 	// 'File' menu
 	create_submenu(main_menu, "File", file_items, local_array_size(file_items));
@@ -159,11 +159,11 @@ int main() {
 
 	// 'Windows' menu
 	NSMenu* windows_menu = create_submenu(main_menu, "Windows", nil, 0);
-	NSApp_setWindowsMenu(windows_menu); // Set our menu into a Windows menu.
+	NSApplication_setWindowsMenu(NSApp, windows_menu); // Set our menu into a Windows menu.
 
 	// 'Help' menu
 	NSMenu* help_menu = create_submenu(main_menu, "Help", nil, 0);
-	NSApp_setHelpMenu(help_menu); // Set our menu into a Help menu.
+	NSApplication_setHelpMenu(NSApp, help_menu); // Set our menu into a Help menu.
 
 
 	// Create our window.
@@ -173,7 +173,7 @@ int main() {
 	NSWindow_makeMainWindow(win);
 
 	// Run it.
-	NSApp_run();
+	NSApplication_run(NSApp);
 
 	return 0;
 }

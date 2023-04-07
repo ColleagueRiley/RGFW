@@ -50,7 +50,10 @@ mac_type_define(NSProcessInfo);
 mac_type_define(NSMenu);
 mac_type_define(NSMenuItem);
 mac_type_define(NSButton);
-
+mac_type_define(NSComboBox);
+mac_type_define(NSControl);
+mac_type_define(NSScreen);
+mac_type_define(NSImage);
 /* Deprecated*/
 mac_type_define(NSOpenGLPixelFormat);
 mac_type_define(NSOpenGLView);

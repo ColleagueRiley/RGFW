@@ -17,7 +17,7 @@ int main() {
 	funcs[0] = OnClose;
 
 	NSWindow* win = NSWindow_init(NSMakeRect(100, 100, 512, 512), NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable, NSBackingStoreBuffered, false);
-	NSWindow_setTitle(win, "trolleybus");
+	NSWindow_setTitle(win, "OpenGL example");
 
 	NSOpenGLPixelFormatAttribute attributes[] = {
 		NSOpenGLPFANoRecovery,
@@ -50,26 +50,34 @@ int main() {
 	NSWindow_makeMainWindow(win);
 
 	NSApplication_sharedApplication();
-	NSApp_setActivationPolicy(NSApplicationActivationPolicyRegular);
-	NSApp_finishLaunching();
+	NSApplication_setActivationPolicy(NSApp, NSApplicationActivationPolicyRegular);
+	NSApplication_finishLaunching(NSApp);
 
 	while (is_running) {
-		NSEvent* e = NSApp_nextEventMatchingMask(NSEventMaskAny, NSDate_distantFuture(), 0, true);
+		// Get the Windows events.
+		NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NSDate_distantFuture(), 0, true);
+		NSApplication_sendEvent(NSApp, e);
+		NSApplication_updateWindows(NSApp);
 
-		NSApp_sendEvent(e);
-		NSApp_updateWindows();
-
-		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+		// Clear the screen
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		NSOpenGLContext_makeCurrentContext(context);
+		// Draw a simple triangle.
+		glBegin(GL_TRIANGLES);
+			glColor3f(1, 0, 0); glVertex2f(-1.0f, -1.0f);
+			glColor3f(0, 1, 0); glVertex2f( 1.0f, -1.0f);
+			glColor3f(0, 0, 1); glVertex2f( 0.0f,  1.0f);
+		glEnd();
+
+		// Flush to buffer.
 		NSOpenGLContext_flushBuffer(context);
 	}
 
 	CVDisplayLinkStop(displayLink);
 	CVDisplayLinkRelease(displayLink);
 	NSView_release((NSView*)view);
-	NSApp_terminate((id)win);
+	NSApplication_terminate(NSApp, (id)win);
 
 
 	return 0;
