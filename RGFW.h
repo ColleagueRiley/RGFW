@@ -41,11 +41,15 @@
 	#define RGFW_OSMESA - (optional) use OSmesa as backend (instead of system's opengl api + regular opengl)
 	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
 	#define RGFW_OPENGL_ES - (optional) use EGL to load and use Opengl ES for backend rendering (instead of the system's opengl api)
-	#defien RGFW_VULKAN - (optional) use vulkan for the rendering backend (rather than opengl)
+	#define RGFW_VULKAN - (optional) use vulkan for the rendering backend (rather than opengl)
 */
 
 #if defined(RGFW_OPENGL_ES) && !defined(RGFW_EGL)
 #define RGFW_EGL
+#endif
+#if defined(RGFW_EGL) && defined(__APPLE__)
+#warning  EGL is not supported for Cocoa, switching back to the native opengl api
+#undef RGFW_EGL
 #endif
 
 #if !defined(RGFW_OSMESA) && !defined(RGFW_EGL) && !defined(RGFW_GL) && !defined (RGFW_VULKAN)
@@ -58,9 +62,8 @@
 #define RGFW_NO_RESIZE		(1L<<2) /*!< If the window cannot be resized  by the user*/
 #define RGFW_ALLOW_DND     (1L<<3) /*!< if the window supports drag and drop*/
 #define RGFW_HIDE_MOUSE (1L<<4) /* if the window should hide the mouse or not (can be toggled later on)*/
-#define RGFW_OSMESA_DRAW (1L<<6) /* if oSmesa is running, if it should draw the bitmap on the screen */
 #define RGFW_OPENGL (1L<<7) /* use normal opengl (if another version is also selected) */
-
+#define RGFW_FULLSCREEN (1L<<8) /* if the window should be fullscreen by default or not */
 /*! event codes */
 #define RGFW_keyPressed 2 /*!< a key has been pressed*/
 #define RGFW_keyReleased 3 /*!< a key has been released*/
@@ -153,8 +156,9 @@ typedef struct RGFW_window {
 	int joysticks[4]; /* limit of 4 joysticks at a time */
 	unsigned char jsPressed[4][16]; /* if a key is currently pressed or not (per joystick) */
 
-	#if RGFW_OSMESA 
+	#ifdef RGFW_OSMESA 
 	unsigned char* buffer; /*OSMesa buffer*/
+	unsigned char render; /* if OSMesa should render on the screen or not (set by window args by default but it can be changed in runtime if you want) */
 	#endif
 
 	#ifdef __APPLE__
@@ -189,7 +193,11 @@ RGFW_window* RGFW_createWindowPointer(
 
 */
 void RGFW_initVulkan(RGFW_window* win, void* inst); 
-
+/* returns how big the screen is (for fullscreen support, ect, ect) 
+   [0] = width
+   [1] = height
+*/
+int* RGFW_getScreenSize(RGFW_window* win);
 RGFW_Event RGFW_checkEvents(RGFW_window* window); /*!< check events */
 
 /*! window managment functions*/
@@ -211,9 +219,14 @@ void RGFW_makeCurrent(RGFW_window* window); /*!< make the window the current ope
 /*error handling*/
 unsigned char RGFW_Error(); /* returns true if an error has occurred (doesn't print errors itself) */
 
-unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key); /*!< if key is pressed (key code)*/
 /*!< if window == NULL, it checks if the key is pressed globally. Otherwise, it checks only if the key is pressed while the window in focus.*/
-unsigned char RGFW_isPressedS(RGFW_window* window, char* key); /*!< if key is pressed (key string) */
+unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key); /*!< if key is pressed (key code)*/
+
+/*
+	!!Keycodes defined at the bottom of the header file!!
+*/
+unsigned int RGFW_keyStrToKeyCode(char* key); /*!< converts a string of a key to it's key code */
+#define RGFW_isPressedS(window, key) RGFW_isPressedI(window, RGFW_keyStrToKeyCode(key)) /*!< if key is pressed (key string) */
 
 /*! clipboard functions*/
 char* RGFW_readClipboard(RGFW_window* w); /*!< read clipboard data */
@@ -302,8 +315,13 @@ int main(){
 #include <math.h>
 
 #ifdef RGFW_OSMESA
+#ifndef __APPLE__
 #include <GL/osmesa.h>
+#else
+#include <OpenGL/osmesa.h>
 #endif
+#endif
+
 #ifdef RGFW_EGL
 #include <EGL/egl.h>
 #include <GL/gl.h>
@@ -341,6 +359,56 @@ void RGFW_initVulkan(RGFW_window* win, void* inst){
 }
 
 #endif
+
+#ifdef __linux__
+#include <X11/Xlib.h>
+#endif
+#ifdef __WIN32
+#include <windows.h>
+#endif
+#ifdef __APPLE__
+const char* RGFW_keyStrings[128] = {"a", "s", "d", "f", "h", "g", "z", "x", "c", "v", "0", "b", "q", "w", "e", "r", "y", "t", "1", "2", "3", "4", "6", "5", "Equals", "9", "7", "Minus", "8", "0", "CloseBracket", "o", "u", "Bracket", "i", "p", "Return", "l", "j", "Apostrophe", "k", "Semicolon", "BackSlash", "Comma", "Slash", "n", "m", "Period", "Tab", "Space", "Backtick", "BackSpace", "0", "Escape", "0", "Super", "Shift", "CapsLock", "Alt", "Control", "0", "0", "0", "0", "0", "KP_Period", "0", "KP_Minus", "0", "0", "0", "0", "Numlock", "0", "0", "0", "KP_Multiply", "KP_Return", "0", "0", "0", "0", "KP_Slash", "KP_0", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "0", "KP_8", "KP_9", "0", "0", "0", "F5", "F6", "F7", "F3", "F8", "F9", "0", "F11", "0", "F13", "0", "F14", "0", "F10", "0", "F12", "0", "F15", "Insert", "Home", "PageUp", "Delete", "F4", "End", "F2", "PageDown", "Left", "Right", "Down", "Up", "F1"};
+unsigned char RGFW_keyMap[128] = { 0 };
+#endif
+
+unsigned int RGFW_keyStrToKeyCode(char* key) {
+#ifdef __APPLE__ 
+	unsigned char i;
+	for (i = 0; i < 128; i++)
+		if (!strcmp(RGFW_keyStrings[i], key))
+			return i;
+	printf("%i\n", i);
+#endif 
+#ifdef __linux__
+	if (key == "Space") key = (char*)"space";
+
+    return XStringToKeysym(key);
+#endif 
+#ifdef _WIN32 
+	if (sizeof(key)/sizeof(char) > 1) {
+		if (!strcmp(key, "Super_L")) return VK_LWIN;
+		else if (!strcmp(key, "Super_R")) return VK_RWIN;
+		else if (!strcmp(key, "Space")) return VK_SPACE;
+		else if (!strcmp(key, "Return")) return VK_RETURN;
+		else if (!strcmp(key, "Caps_Lock")) return VK_CAPITAL;
+		else if (!strcmp(key, "Tab")) return VK_TAB;
+		else if (!strcmp(key, "Right")) return VK_RIGHT;
+		else if (!strcmp(key, "Left")) return VK_LEFT;
+		else if (!strcmp(key, "Up")) return VK_UP;
+		else if (!strcmp(key, "Down")) return VK_DOWN;
+		else if (!strcmp(key, "ShiftL")) return VK_LSHIFT;
+		else if (!strcmp(key, "ShiftR")) return VK_RSHIFT;
+		else if (!strcmp(key, "SuperL")) return VK_LSHIFT;
+		else if (!strcmp(key, "SuperR")) return VK_RSHIFT;
+		else if (!strcmp(key, "ControlL")) return VK_LSHIFT;
+		else if (!strcmp(key, "ControlR")) return VK_RSHIFT;
+	}
+
+	int vKey = VkKeyScan(key[0]);
+
+    return vKey;
+#endif
+}
 
 #ifndef M_PI
 #define M_PI		3.14159265358979323846	/* pi */
@@ -442,6 +510,18 @@ XImage* RGFW_omesa_ximage;
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
     RGFW_window* nWin = (RGFW_window*)malloc(sizeof(RGFW_window)); /* make a new RGFW struct */
 
+    XInitThreads(); /* init X11 threading*/
+
+    /* init the display*/
+	nWin->display = XOpenDisplay(0);
+	if (RGFW_FULLSCREEN & args){
+		int* r = RGFW_getScreenSize(nWin);
+		x = 0;
+		y = 0;
+		w = r[0];
+		h = r[1];
+	}
+
 	/* set and init the new window's data */
 
 	nWin->srcX = nWin->x = x;
@@ -458,10 +538,6 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->dnd = 0;
 	nWin->valid = 245;
 
-    XInitThreads(); /* init X11 threading*/
-
-    /* init the display*/
-	nWin->display = XOpenDisplay(0);
 	if ((Display *)nWin->display == NULL)
 		return nWin;
 
@@ -519,6 +595,9 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		nWin->glWin = OSMesaCreateContext(OSMESA_RGBA, NULL);
 		nWin->buffer = malloc(w * h * 4);
 		OSMesaMakeCurrent(nWin->glWin, nWin->buffer, GL_UNSIGNED_BYTE, w, h);
+		#ifndef RGFW_GL
+		nWin->render = 1;
+		#endif
 		#else 
 		#ifdef RGFW_EGL
 		RGFW_createOpenGLContext(nWin);
@@ -558,7 +637,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	#endif
 		glXMakeCurrent((Display *)nWin->display, (Drawable)nWin->window, (GLXContext)nWin->glWin);
 	#ifdef RGFW_OSMESA
-		nWin->buffer = NULL;
+		render = 0;
 	}
 	#endif
 	#endif
@@ -633,6 +712,13 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event){
 
 	return 1;
 }
+
+int* RGFW_getScreenSize(RGFW_window* w){
+	Screen *scrn = DefaultScreenOfDisplay((Display *)w->display);
+
+	return (int[2]){scrn->width, scrn->height};
+}
+
 
 int xAxis = 0, yAxis = 0;
 
@@ -1062,7 +1148,7 @@ void RGFW_closeWindow(RGFW_window* win){
 	#ifdef RGFW_OSMESA
 	if (win->buffer != NULL){
 		free(win->buffer);
-		win->buffer = NULL;
+		win->render = 0;
 	}
 	#endif
 
@@ -1352,12 +1438,6 @@ unsigned char RGFW_isPressedI(RGFW_window* w, unsigned int key){
 	return !!(keyboard[kc2 >> 3] & (1 << (kc2 & 7)));				/* check if the key is pressed */
 }
 
-unsigned char RGFW_isPressedS(RGFW_window* w, char* key){
-	if (key == "Space") key = (char*)"space";
-
-	return RGFW_isPressedI(w, XStringToKeysym(key)); 
-}
-
 unsigned char RGFW_Error(){ return RGFW_error; }
 
 #endif
@@ -1384,6 +1464,15 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
     int         pf;
 	WNDCLASS    wc;
+
+		if (RGFW_FULLSCREEN & args){
+		int* r = RGFW_getScreenSize(nWin);
+		x = 0;
+		y = 0;
+		w = r[0];
+		h = r[1];
+	}
+	
 
 	nWin->srcX = nWin->x = x;
 	nWin->srcY = nWin->y = y;
@@ -1505,6 +1594,10 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event){
 	}
 
 	return 1;
+}
+
+int* RGFW_getScreenSize(RGFW_window* w){
+	return (int[2]){GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES)}; 
 }
 
 RGFW_Event RGFW_checkEvents(RGFW_window* win){
@@ -1682,31 +1775,6 @@ unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key){
 	if (GetAsyncKeyState(key) & 0x8000) 
 		return 1;
 	else return 0;
-}
-
-unsigned char RGFW_isPressedS(RGFW_window* window, char* key){
-	int vKey = VkKeyScan(key[0]);
-
-	if (sizeof(key)/sizeof(char) > 1){
-		if (strcmp(key, "Super_L") == 0) vKey = VK_LWIN;
-		else if (strcmp(key, "Super_R") == 0) vKey = VK_RWIN;
-		else if (strcmp(key, "Space") == 0) vKey = VK_SPACE;
-		else if (strcmp(key, "Return") == 0) vKey = VK_RETURN;
-		else if (strcmp(key, "Caps_Lock") == 0) vKey = VK_CAPITAL;
-		else if (strcmp(key, "Tab") == 0) vKey = VK_TAB;
-		else if (strcmp(key, "Right") == 0) vKey = VK_RIGHT;
-		else if (strcmp(key, "Left") == 0) vKey = VK_LEFT;
-		else if (strcmp(key, "Up") == 0) vKey = VK_UP;
-		else if (strcmp(key, "Down") == 0) vKey = VK_DOWN;
-		else if (strcmp(key, "Shift") == 0)
-			return RGFW_isPressedI(window, VK_RSHIFT) || RGFW_isPressedI(window, VK_LSHIFT);
-		else if (strcmp(key, "Shift") == 0)
-			return RGFW_isPressedI(window, VK_RMENU) || RGFW_isPressedI(window, VK_LMENU);
-		else if (strcmp(key, "Control") == 0)
-			return RGFW_isPressedI(window, VK_RCONTROL) || RGFW_isPressedI(window, VK_LCONTROL);
-	}
-
-	return RGFW_isPressedI(window, vKey);
 }
 
 void RGFW_toggleMouse(RGFW_window* w){ 
@@ -1900,7 +1968,6 @@ void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority){ SetThre
 #endif
 
 #ifdef __APPLE__
-
 #define GL_SILENCE_DEPRECATION
 #include "Silicon/silicon.h"
 #include <OpenGL/gl.h>
@@ -1910,14 +1977,24 @@ CVReturn displayCallback(CVDisplayLinkRef displayLink, const CVTimeStamp *inNow,
 RGFW_window* RGFW_Current_Window;
 
 bool OnClose(void* self)  {	RGFW_Current_Window->event.type = RGFW_quit; }
+void RGFW_toggleMouse(RGFW_window* w);
 
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
 	RGFW_window* nWin = malloc(sizeof(RGFW_window));
-	
+
+	if (RGFW_FULLSCREEN & args){
+		int* r = RGFW_getScreenSize(nWin);
+		x = 0;
+		y = 0;
+		w = r[0];
+		h = r[1];
+	}
+
 	nWin->srcX = nWin->x = x;
 	nWin->srcY = nWin->y = y;
 	nWin->srcW = nWin->w = w;
 	nWin->srcH = nWin->h = h;
+	nWin->srcName = nWin->name = name;
 	nWin->fpsCap = 0;
 	nWin->inFocus = 1;
 	nWin->hideMouse = 0;
@@ -1947,6 +2024,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		0
 	};
 	
+	#ifdef RGFW_GL
 	NSOpenGLPixelFormat* format = NSOpenGLPixelFormat_initWithAttributes(attributes);
 	nWin->view = NSOpenGLView_initWithFrame(NSMakeRect(0, 0, w, h), format);
 	NSOpenGLView_prepareOpenGL(nWin->view);
@@ -1954,29 +2032,54 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	GLint swapInt = 1;
 	nWin->glWin = NSOpenGLView_openGLContext(nWin->view);
 	NSOpenGLContext_setValues(nWin->glWin, &swapInt, NSOpenGLContextParameterSwapInterval);
+	#endif
 
 	CGDirectDisplayID displayID = CGMainDisplayID();
 	CVDisplayLinkCreateWithCGDisplay(displayID, &nWin->display);
 	CVDisplayLinkSetOutputCallback(nWin->display, displayCallback, nWin->window);
 	CVDisplayLinkStart(nWin->display);
 
+	#ifdef RGFW_GL
 	NSOpenGLContext_makeCurrentContext(nWin->glWin);
+	#endif
+	#ifdef RGFW_OSMESA
+	nWin->glWin = OSMesaCreateContext(OSMESA_RGBA, NULL);
+	nWin->buffer = malloc(w * h * 4);
+	OSMesaMakeCurrent(nWin->glWin, nWin->buffer, GL_UNSIGNED_BYTE, w, h);
+
+	#ifdef RGFW_GL
+    nWin->render = 0;
+	#endif
+	#endif
+
+	if (RGFW_TRANSPARENT_WINDOW % args) {
+		NSWindow_setBackgroundColor(nWin->window, NSColor_colorWithSRGB(0, 0, 0, 0));
+		NSWindow_setOpaque(nWin->window, false);
+	}
+
 	NSWindow_setContentView(nWin->window, (NSView*)nWin->view);
 	NSWindow_setIsVisible(nWin->window, true);
 	NSWindow_makeMainWindow(nWin->window);
 
-	NSApplication_sharedApplication();
-	NSApp_setActivationPolicy(NSApplicationActivationPolicyRegular);
-	NSApp_finishLaunching();
+	NSApplication_sharedApplication(NSApp);
+	NSApplication_setActivationPolicy(NSApp, NSApplicationActivationPolicyRegular);
+	NSApplication_finishLaunching(NSApp);
 
 	return nWin;
 }
+
+int* RGFW_getScreenSize(RGFW_window* w){
+	NSRect r = NSScreen_frame(NSScreen_mainScreen());
+
+	return (int[2]){r.size.width, r.size.height};
+}
+
 unsigned int RGFW_keysPressed[10]; /*10 keys at a time*/
 
 RGFW_Event RGFW_checkEvents(RGFW_window* w){
 	NSWindow_makeMainWindow(w->window);
 
-	NSEvent* e = NSApp_nextEventMatchingMask(NSEventMaskAny, NULL, 0, true);
+	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, 0, true);
 
 	unsigned char button = 0, i;
 
@@ -1988,11 +2091,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 			w->event.keyCode = NSEvent_keyCode(e);
 			w->event.keyName = NSEvent_characters(e);
 
-			for (i = 0; i < 10; i++)
-				if (!RGFW_keysPressed[i]){
-					RGFW_keysPressed[i] = w->event.keyCode; 
-					break;
-				}
+			RGFW_keyMap[w->event.keyCode] = 1;
 			break;	
 		
 		case NSEventTypeKeyUp:
@@ -2000,11 +2099,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 			w->event.keyCode = NSEvent_keyCode(e);
 			w->event.keyName = NSEvent_characters(e);
 			
-			for (i = 0; i < 10; i++)
-				if (RGFW_keysPressed[i] == w->event.keyCode){
-					RGFW_keysPressed[i] = 0; 
-					break;
-				}
+			RGFW_keyMap[w->event.keyCode] = 0;
 
 			break;
 		
@@ -2061,16 +2156,12 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 	}
 	
 	NSRect r = NSWindow_frame(w->window);
-	int x = NSMinX(r);
-	int y = NSMinY(r);
-	int rw = NSWidth(r);
-	int h = NSHeight(r);
 
-	if (x != w->srcX || y != w->srcY || rw != w->srcW || h != w->srcH){
-		w->srcX = w->x = x;
-		w->srcY = w->y = y;
-		w->srcW = w->w = rw;
-		w->srcH = w->h = h;
+	if (r.origin.x != w->srcX || r.origin.y != w->srcY || r.size.width != w->srcW || r.size.height != w->srcH){
+		w->srcX = w->x = r.origin.x;
+		w->srcY = w->y = r.origin.y;
+		w->srcW = w->w = r.size.width;
+		w->srcH = w->h = r.size.height;
 	}
 	
 	else if (w->x != w->srcX || w->y != w->srcY ||
@@ -2084,10 +2175,22 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 		w->srcH = w->h;
 	}
 
-	NSApp_sendEvent(e);
+	if (w->srcName != w->name){
+		w->srcName = w->name;
+		NSWindow_setTitle(w->window, w->name);
+	}
+
+	w->inFocus = NSWindow_isKeyWindow(w->window);
+
+	if (w->inFocus && w->hideMouse && NSPointInRect(NSEvent_mouseLocation(e), NSWindow_frame(w->window)))
+		CGDisplayHideCursor(kCGDirectMainDisplay);
+	else
+		CGAssociateMouseAndMouseCursorPosition(true);
+
+	NSApplication_sendEvent(NSApp, e);
 	RGFW_Current_Window = w;
 
-	NSApp_updateWindows();
+	NSApplication_updateWindows(NSApp);
 
 	RGFW_checkFPS(w);
 
@@ -2095,22 +2198,14 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 }
 
 void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int channels){
-	
+	NSApplication_setApplicationIconImage(NSApp, NSImage_initWithData(src, width * height * channels));
 }
 
-void RGFW_toggleMouse(RGFW_window* w){
-
+void RGFW_toggleMouse(RGFW_window* w) {
+	w->hideMouse = !w->hideMouse;
 }
 
-unsigned char RGFW_isPressedS(RGFW_window* window, char* key) { return RGFW_isPressedI(window,  NSEvent_keyCodeForChar(key)); }
-
-unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key) { 
-	unsigned char i;
-	for (i = 0; i < 10; i++)
-		if (RGFW_keysPressed[i] == key)
-			return true;
-	return false;
-}
+unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key) {  return RGFW_keyMap[key]; }
 
 char* RGFW_readClipboard(RGFW_window* w){
 
@@ -2133,7 +2228,7 @@ void RGFW_closeWindow(RGFW_window* w){
 	CVDisplayLinkStop(w->display);
 	CVDisplayLinkRelease(w->display);
 	NSView_release((NSView*)w->view);
-	NSApp_terminate((id)w->window);
+	NSApplication_terminate(NSApp, (id)w->window);
 }
 
 #endif
@@ -2177,7 +2272,7 @@ void RGFW_makeCurrent_OpenGL(RGFW_window* w){
 void RGFW_makeCurrent(RGFW_window* w){
     #ifdef RGFW_OSMESA
 	#ifdef RGFW_GL
-	if (w->buffer == NULL)
+	if (!w->render)
 	#endif
 	#endif
 	RGFW_makeCurrent_OpenGL(w);
@@ -2218,7 +2313,7 @@ void RGFW_clear(RGFW_window* w, unsigned char r, unsigned char g, unsigned char 
 
 
 	#ifdef RGFW_OSMESA
-    if (w->buffer != NULL){
+    if (w->render){
 		unsigned char* row = (unsigned char*) malloc(w->srcW * 4);
 		int half_height = w->srcH / 2;
 		int stride = w->srcW * 4;
@@ -2246,6 +2341,17 @@ void RGFW_clear(RGFW_window* w, unsigned char r, unsigned char g, unsigned char 
 			BitBlt(w->window, 0, 0, 500, 500, hdcMem, 0, 0, SRCCOPY);
 			SelectObject(hdcMem, hOld);
 			DeleteDC(hdcMem);
+		#endif
+		#ifdef __APPLE__
+		CGContextRef context = CGBitmapContextCreate(w->buffer, w->srcW, w->srcH, 8, w->srcW * 4, CGColorSpaceCreateDeviceRGB(), kCGImageAlphaNoneSkipFirst);
+		CGImageRef image = CGBitmapContextCreateImage(context);
+
+		NSImage* nsImage = NSImage_initWithCGImage(image, w->srcW, w->srcH);
+
+		NSImage_drawInRect(nsImage, NSMakeRect(0, 0, w->srcW, w->srcH), 1.0)
+
+		CGContextRelease(context);
+		CGImageRelease(image);
 		#endif
 	}
 	#endif
@@ -2295,3 +2401,107 @@ void RGFW_checkFPS(RGFW_window* win){
 #ifdef __cplusplus
 }
 #endif
+
+
+#define RGFW_Escape RGFW_keyStrToKeycode("Escape")
+#define RGFW_F1 RGFW_keyStrToKeycode("F1")
+#define RGFW_F2 RGFW_keyStrToKeycode("F2")
+#define RGFW_F3 RGFW_keyStrToKeycode("F3")
+#define RGFW_F4 RGFW_keyStrToKeycode("F4")
+#define RGFW_F5 RGFW_keyStrToKeycode("F5")
+#define RGFW_F6 RGFW_keyStrToKeycode("F6")
+#define RGFW_F7 RGFW_keyStrToKeycode("F7")
+#define RGFW_F8 RGFW_keyStrToKeycode("F8")
+#define RGFW_F9 RGFW_keyStrToKeycode("F9")
+#define RGFW_F10 RGFW_keyStrToKeycode("F10")
+#define RGFW_F11 RGFW_keyStrToKeycode("F11")
+#define RGFW_F12 RGFW_keyStrToKeycode("F12")
+#define RGFW_F13 RGFW_keyStrToKeycode("F13")
+#define RGFW_F14 RGFW_keyStrToKeycode("F14")
+#define RGFW_F15 RGFW_keyStrToKeycode("F15")
+#define RGFW_Backtick RGFW_keyStrToKeycode("Backtick")
+#define RGFW_0 RGFW_keyStrToKeycode("0")
+#define RGFW_1 RGFW_keyStrToKeycode("1")
+#define RGFW_2 RGFW_keyStrToKeycode("2")
+#define RGFW_3 RGFW_keyStrToKeycode("3")
+#define RGFW_4 RGFW_keyStrToKeycode("4")
+#define RGFW_5 RGFW_keyStrToKeycode("5")
+#define RGFW_6 RGFW_keyStrToKeycode("6")
+#define RGFW_7 RGFW_keyStrToKeycode("7")
+#define RGFW_8 RGFW_keyStrToKeycode("8")
+#define RGFW_9 RGFW_keyStrToKeycode("9")
+#define RGFW_Minus RGFW_keyStrToKeycode("Minus")
+#define RGFW_Equals RGFW_keyStrToKeycode("Equals")
+#define RGFW_BackSpace RGFW_keyStrToKeycode("BackSpace")
+#define RGFW_Tab RGFW_keyStrToKeycode("Tab")
+#define RGFW_CapsLock RGFW_keyStrToKeycode("CapsLock")
+#define RGFW_ShiftL RGFW_keyStrToKeycode("ShiftL")
+#define RGFW_ControlL RGFW_keyStrToKeycode("ControlL")
+#define RGFW_AltL RGFW_keyStrToKeycode("AltL")
+#define RGFW_SuperL RGFW_keyStrToKeycode("SuperL")
+#define RGFW_ShiftR RGFW_keyStrToKeycode("ShiftR")
+#define RGFW_ControlR RGFW_keyStrToKeycode("ControlR")
+#define RGFW_AltR RGFW_keyStrToKeycode("AltR")
+#define RGFW_SuperR RGFW_keyStrToKeycode("SuperR")
+#define RGFW_Space RGFW_keyStrToKeycode("Space")
+#define RGFW_A RGFW_keyStrToKeycode("A")
+#define RGFW_B RGFW_keyStrToKeycode("B")
+#define RGFW_C RGFW_keyStrToKeycode("C")
+#define RGFW_D RGFW_keyStrToKeycode("D")
+#define RGFW_E RGFW_keyStrToKeycode("E")
+#define RGFW_F RGFW_keyStrToKeycode("F")
+#define RGFW_G RGFW_keyStrToKeycode("G")
+#define RGFW_H RGFW_keyStrToKeycode("H")
+#define RGFW_I RGFW_keyStrToKeycode("I")
+#define RGFW_J RGFW_keyStrToKeycode("J")
+#define RGFW_K RGFW_keyStrToKeycode("K")
+#define RGFW_L RGFW_keyStrToKeycode("L")
+#define RGFW_M RGFW_keyStrToKeycode("M")
+#define RGFW_N RGFW_keyStrToKeycode("N")
+#define RGFW_O RGFW_keyStrToKeycode("O")
+#define RGFW_P RGFW_keyStrToKeycode("P")
+#define RGFW_Q RGFW_keyStrToKeycode("Q")
+#define RGFW_R RGFW_keyStrToKeycode("R")
+#define RGFW_S RGFW_keyStrToKeycode("S")
+#define RGFW_T RGFW_keyStrToKeycode("T")
+#define RGFW_U RGFW_keyStrToKeycode("U")
+#define RGFW_V RGFW_keyStrToKeycode("V")
+#define RGFW_W RGFW_keyStrToKeycode("W")
+#define RGFW_X RGFW_keyStrToKeycode("X")
+#define RGFW_Y RGFW_keyStrToKeycode("Y")
+#define RGFW_Z RGFW_keyStrToKeycode("Z")
+#define RGFW_Period RGFW_keyStrToKeycode("Period")
+#define RGFW_Comma RGFW_keyStrToKeycode("Comma")
+#define RGFW_Slash RGFW_keyStrToKeycode("Slash")
+#define RGFW_Bracket RGFW_keyStrToKeycode("Bracket")
+#define RGFW_CloseBracket RGFW_keyStrToKeycode("CloseBracket")
+#define RGFW_Semicolon RGFW_keyStrToKeycode("Semicolon")
+#define RGFW_Return RGFW_keyStrToKeycode("Return")
+#define RGFW_Quote RGFW_keyStrToKeycode("Quote")
+#define RGFW_BackSlash RGFW_keyStrToKeycode("BackSlash")
+#define RGFW_Up RGFW_keyStrToKeycode("Up")
+#define RGFW_Down RGFW_keyStrToKeycode("Down")
+#define RGFW_Left RGFW_keyStrToKeycode("Left")
+#define RGFW_Right RGFW_keyStrToKeycode("Right")
+#define RGFW_Delete RGFW_keyStrToKeycode("Delete")
+#define RGFW_Insert RGFW_keyStrToKeycode("Insert")
+#define RGFW_End RGFW_keyStrToKeycode("End")
+#define RGFW_Home RGFW_keyStrToKeycode("Home")
+#define RGFW_PageUp RGFW_keyStrToKeycode("PageUp"1)
+#define RGFW_PageDown RGFW_keyStrToKeycode("PageDown")
+#define RGFW_Numlock RGFW_keyStrToKeycode("Numlock")
+#define RGFW_KP_Slash RGFW_keyStrToKeycode("KP_Slash")
+#define RGFW_Multiply RGFW_keyStrToKeycode("KP_Multiply")
+#define RGFW_KP_Minus RGFW_keyStrToKeycode("KP_Minus")
+#define RGFW_KP_1 RGFW_keyStrToKeycode("KP_1")
+#define RGFW_KP_2 RGFW_keyStrToKeycode("KP_2")
+#define RGFW_KP_3 RGFW_keyStrToKeycode("KP_3")
+#define RGFW_KP_4 RGFW_keyStrToKeycode("KP_4")
+#define RGFW_KP_5 RGFW_keyStrToKeycode("KP_5")
+#define RGFW_KP_6 RGFW_keyStrToKeycode("KP_6")
+#define RGFW_KP_7 RGFW_keyStrToKeycode("KP_7")
+#define RGFW_KP_8 RGFW_keyStrToKeycode("KP_8")
+#define RGFW_KP_9 RGFW_keyStrToKeycode("KP_9")
+#define RGFW_KP_0 RGFW_keyStrToKeycode("KP_0")
+#define RGFW_KP_Period RGFW_keyStrToKeycode("KP_Period")
+#define RGFW_KP_Return RGFW_keyStrToKeycode("KP_Return")
