@@ -254,10 +254,16 @@ void RGFW_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by
 unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event); /*!< returns true if the window is valid (and prints an error and where it took place if it can)*/
 
 /*
+(Notes on how to manage Silicon (macos) included)
+
 Example to get you started : 
 
 linux : gcc main.c -lX11 -lGL 
 windows : gcc main.c -lopengl32 -lole32 -lshell32 -lgdi32
+macos:
+	<Silicon/include> can be replaced to where you have the Silicon headers stored 
+	<Silicon/build/*.o> can be replaced to wherever you have the Silicon .o files or whatever format you compile them to
+	gcc main.c -framework Foundation <Silicon/build/*.o> -framework AppKit -framework OpenGL -framework CoreVideo -I<Silicon/include>
 
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
@@ -303,7 +309,30 @@ int main(){
 			gcc -shared RGFW.o -lopengl32 -lole32 -lshell32 -lgdi32 -o RGFW.dll
 		linux:
 			gcc -shared RGFW.o -lX11 -lGL -o RGFW.so
+		macos:
+			<Silicon/include> can be replaced to where you have the Silicon headers stored 
+			<Silicon/build/*.o> can be replaced to wherever you have the Silicon .o files or whatever format you compile them to
+			gcc -shared RGFW.o -framework Foundation <Silicon/build/*.o> -framework AppKit -framework OpenGL -framework CoreVideo -I<Silicon/include>
 */
+
+/*
+	installing/building silicon (macos)
+	
+	Silicon does not need to be installde per se.
+	I personally recommended that you use the Silicon included using RGFW 
+
+	to build this version of Silicon simplly run
+
+	cd Silicon && make 
+
+	you can then use Silicon/include and Silicon/build/*.o for building RGFW projects 
+
+	ex.
+	gcc main.c -framework Foundation Silicon/build/*.o -framework AppKit -framework OpenGL -framework CoreVideo -ISilicon/include
+
+	I also suggest you compile Silicon (and RGFW if applicable) 
+	per each time you compile your application so you know that everything is compiled for the same architecture.
+*/ 
 
 #ifdef RGFW_IMPLEMENTATION
 
