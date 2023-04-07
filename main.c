@@ -9,11 +9,6 @@
 #endif
 #endif
 
-/*#define MEMWATCHON
-#define MEMWATCH
-#define RGFW_PRINT_ERRORS
-#include "memwatch/memwatch.h"*/
-
 #include "RGFW.h"
 
 void drawLoop(RGFW_window* w); /* I seperate the draw loop only because it's run twice */
@@ -23,8 +18,11 @@ void* loop2(void *);
 unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
 
 unsigned char running = 1;
+
 int main() {
     RGFW_window* win = RGFW_createWindowPointer("name", 500, 500, 500, 500, RGFW_ALLOW_DND);
+
+    win->fpsCap = 60;
 
     RGFW_createThread(loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
 
@@ -32,7 +30,7 @@ int main() {
 
     RGFW_setIcon(win, icon, 3, 3, 4);
 
-    unsigned char i, frames;
+    unsigned char i, frames = 60;
 
     while (running) {
         RGFW_checkEvents(win);
@@ -47,7 +45,7 @@ int main() {
             RGFW_writeClipboard(win, "DOWN");
         else if (RGFW_isPressedS(win, "Space"))
             printf("fps : %i\n", win->fps);
-        else if (RGFW_isPressedS(win, "w") && win->event.type == RGFW_keyPressed && frames >= 250){
+        else if (RGFW_isPressedS(win, "w") && win->event.type == RGFW_keyPressed && frames >= 60) {
             RGFW_toggleMouse(win);
             frames = 0;
         }
@@ -71,9 +69,8 @@ int main() {
 }
 
 void drawLoop(RGFW_window *w) {
-    RGFW_clear(w, 255, 255, 255, 255);
-
     #ifndef RGFW_VULKAN
+    RGFW_clear(w, 255, 255, 255, 0);
     glBegin(GL_TRIANGLES);
     glColor3f(1, 0, 0);
     glVertex2f(-0.6, -0.75);
@@ -87,7 +84,7 @@ void drawLoop(RGFW_window *w) {
     #endif
 }
 
-void *loop2(void *) {
+void *loop2(void * args) {
     #ifndef __APPLE__
     RGFW_window *win = RGFW_createWindowPointer("subwindow", 200, 200, 200, 200, NULL);
     win->fpsCap = 60;
