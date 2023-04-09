@@ -53,15 +53,15 @@
 #endif
 
 #if !defined(RGFW_OSMESA) && !defined(RGFW_EGL) && !defined(RGFW_GL) && !defined (RGFW_VULKAN)
-	#define RGFW_GL /* use default opengl system api */
+#define RGFW_GL
 #endif
 
 /*! Optional arguments for making a windows */
-#define RGFW_TRANSPARENT_WINDOW		(1L<<0) /*!< If the window is transparent*/
-#define RGFW_NO_BOARDER		(1L<<1) /*!< If the window doesn't have boarder*/
-#define RGFW_NO_RESIZE		(1L<<2) /*!< If the window cannot be resized  by the user*/
-#define RGFW_ALLOW_DND     (1L<<3) /*!< if the window supports drag and drop*/
-#define RGFW_HIDE_MOUSE (1L<<4) /* if the window should hide the mouse or not (can be toggled later on)*/
+#define RGFW_TRANSPARENT_WINDOW		(1L<<9) /*!< If the window is transparent*/
+#define RGFW_NO_BOARDER		(1L<<3) /*!< If the window doesn't have boarder*/
+#define RGFW_NO_RESIZE		(1L<<4) /*!< If the window cannot be resized  by the user*/
+#define RGFW_ALLOW_DND     (1L<<5) /*!< if the window supports drag and drop*/
+#define RGFW_HIDE_MOUSE (1L<<6) /* if the window should hide the mouse or not (can be toggled later on)*/
 #define RGFW_OPENGL (1L<<7) /* use normal opengl (if another version is also selected) */
 #define RGFW_FULLSCREEN (1L<<8) /* if the window should be fullscreen by default or not */
 /*! event codes */
@@ -106,7 +106,7 @@ extern "C" {
 
 /* NOTE: some parts of the data can represent different things based on the event (read comments in RGFW_Event struct) */
 typedef struct RGFW_Event {
-    unsigned char type; /*!< which event has been sent?*/
+    unsigned char type; /*!< which event has been sen t?*/
     unsigned char button; /*!< which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed OR which joystick axis was moved*/  
     int x, y; /*!< mouse x, y of event */
 
@@ -197,7 +197,7 @@ void RGFW_initVulkan(RGFW_window* win, void* inst);
    [0] = width
    [1] = height
 */
-int* RGFW_getScreenSize(RGFW_window* win);
+unsigned int* RGFW_getScreenSize(RGFW_window* win);
 RGFW_Event RGFW_checkEvents(RGFW_window* window); /*!< check events */
 
 /*! window managment functions*/
@@ -340,7 +340,7 @@ int main(){
 #include <stdio.h>
 #endif
 
-#include <time.h> /* time header (for drag and drop functions / other functions that need time info)*/
+#include <time.h> /* time header (for  and drop functions / other functions that need time info)*/
 #include <math.h>
 
 #ifdef RGFW_OSMESA
@@ -444,24 +444,8 @@ unsigned int RGFW_keyStrToKeyCode(char* key) {
 #endif
 
 typedef struct RGFW_Timespec {
-	#ifdef __USE_TIME_BITS64
-	time64_t tv_sec;		/* Seconds.  */
-	#else
 	time_t tv_sec;		/* Seconds.  */
-	#endif
-	#if __WORDSIZE == 64 \
-	|| (defined __SYSCALL_WORDSIZE && __SYSCALL_WORDSIZE == 64) \
-	|| (__TIMESIZE == 32 && !defined __USE_TIME_BITS64)
-	__syscall_slong_t tv_nsec;	/* Nanoseconds.  */
-	#else
-	# if __BYTE_ORDER == __BIG_ENDIAN
-	int: 32;           /* Padding.  */
-	long int tv_nsec;  /* Nanoseconds.  */
-	# else
-	long int tv_nsec;  /* Nanoseconds.  */
-	int: 32;           /* Padding.  */
-	# endif
-	#endif
+	unsigned int tv_nsec;	/* Nanoseconds.  */
 } RGFW_Timespec; /*time struct for fps functions*/
 
 unsigned char RGFW_isPressedJS(RGFW_window* w, unsigned short c, unsigned char button){ return w->jsPressed[c][button]; }
@@ -513,6 +497,34 @@ void RGFW_closeEGL(RGFW_window* win){
 }
 
 #endif
+
+unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event){
+	/*
+		if this part gives you a seg fault, there is a good chance your window is not valid
+
+		Make sure you're creaing the window and using the window structure
+
+		accidently writing (RGFW_window type)->window is a common mistake too
+	*/
+	
+	if (win->valid != (char)245 || win == (RGFW_window*)0
+		#ifdef _WIN32
+		|| !IsWindow(win->display)
+		#endif
+		#ifdef __linux__
+		|| XConnectionNumber((Display*)win->display) == -1 || win->window == (Window)0
+		#endif
+	){
+		#ifdef RGFW_PRINT_ERRORS
+		printf("Error %s : invalid window structure \n", event);
+		RGFW_error = 1;
+		return 0;
+		#endif
+	}
+
+	return 1;
+}
+
 #ifdef __linux__
 
 #include <X11/Xlib.h>
@@ -722,30 +734,11 @@ typedef struct XDND{
 
 XDND xdnd;
 
-unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event){
-	/*
-		if this part gives you a seg fault, there is a good chance your window is not valid
-
-		Make sure you're creaing the window and using the window structure
-
-		accidently writing (RGFW_window type)->window is a common mistake too
-	*/
-	
-	if (win->valid != (char)245 || win == (RGFW_window*)0 || win->window == (Window)0 || XConnectionNumber((Display*)win->display) == -1){
-		#ifdef RGFW_PRINT_ERRORS
-		printf("Error %s : invalid window structure \n", event);
-		RGFW_error = 1;
-		return 0;
-		#endif
-	}
-
-	return 1;
-}
-
-int* RGFW_getScreenSize(RGFW_window* w){
+unsigned int* RGFW_getScreenSize(RGFW_window* w){
+	if (RGFW_ValidWindowCheck) (unsigned int[2]){0, 0};
 	Screen *scrn = DefaultScreenOfDisplay((Display *)w->display);
 
-	return (int[2]){scrn->width, scrn->height};
+	return (unsigned int[2]){scrn->width, scrn->height};
 }
 
 
@@ -1605,28 +1598,8 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     return nWin;
 }	
 
-unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event){
-	/*
-		if this part gives you a seg fault, there is a good chance your window is not valid
-
-		Make sure you're creaing the window and using the window structure
-
-		accidently writing (RGFW_window type)->window is a common mistake too
-	*/
-	
-	if (win->valid != (char)245 || win == (RGFW_window*)0 || !IsWindow(win->display)){
-		#ifdef RGFW_PRINT_ERRORS
-		printf("Error %s : invalid window structure \n", event);
-		RGFW_error = 1;
-		return 0;
-		#endif
-	}
-
-	return 1;
-}
-
-int* RGFW_getScreenSize(RGFW_window* w){
-	return (int[2]){GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES)}; 
+unsigned int* RGFW_getScreenSize(RGFW_window* w){
+	return (unsigned int[2]){GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES)}; 
 }
 
 RGFW_Event RGFW_checkEvents(RGFW_window* win){
@@ -1998,7 +1971,7 @@ void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority){ SetThre
 
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
-#include "Silicon/silicon.h"
+#include <Silicon/silicon.h>
 #include <OpenGL/gl.h>
 
 CVReturn displayCallback(CVDisplayLinkRef displayLink, const CVTimeStamp *inNow, const CVTimeStamp *inOutputTime, CVOptionFlags flagsIn, CVOptionFlags *flagsOut, void *displayLinkContext) { return kCVReturnSuccess; }
@@ -2006,7 +1979,25 @@ CVReturn displayCallback(CVDisplayLinkRef displayLink, const CVTimeStamp *inNow,
 RGFW_window* RGFW_Current_Window;
 
 bool OnClose(void* self)  {	RGFW_Current_Window->event.type = RGFW_quit; }
+
+bool OnDrop(void* sender) {
+    /*
+    NSArray* filenames = [[sender draggingPasteboard] readObjectsForClasses:([NSArray arrayWithObject:[NSURL class]]) options:(nil)];
+
+    for (int i = 0; i < filenames.count; i++) {
+        ESGL::root.event.droppedFiles.push_back([[[filenames objectAtIndex:(i)] path] UTF8String]); 
+    }
+    */
+
+    RGFW_Current_Window->event.type = RGFW_dnd;
+    printf("file dropped\n");
+
+    return true;
+}
+
 void RGFW_toggleMouse(RGFW_window* w);
+
+unsigned char RGFW_loaded = 0;
 
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
 	RGFW_window* nWin = malloc(sizeof(RGFW_window));
@@ -2027,6 +2018,9 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->fpsCap = 0;
 	nWin->inFocus = 1;
 	nWin->hideMouse = 0;
+	nWin->event.type = 0;
+	nWin->event.droppedFilesCount = 0;
+	nWin->valid = 245;
 
 	NSBackingStoreType macArgs = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled;
 
@@ -2038,6 +2032,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		macArgs |= NSWindowStyleMaskBorderless;
 
 	funcs[0] = OnClose;
+    funcs[5] = OnDrop;
 	
 	nWin->window = NSWindow_init(NSMakeRect(x, y, w, h), macArgs, false, NULL);
 	NSWindow_setTitle(nWin->window, name);
@@ -2063,6 +2058,14 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	NSOpenGLContext_setValues(nWin->glWin, &swapInt, NSOpenGLContextParameterSwapInterval);
 	#endif
 
+	if (RGFW_ALLOW_DND & args)
+        NSView_registerForDraggedTypes(nWin->view, (NSPasteboard*[3]){NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString}, 3);
+	
+    if (RGFW_TRANSPARENT_WINDOW & args) {
+		NSWindow_setBackgroundColor(nWin->window, NSColor_colorWithSRGB(0, 0, 0, 0));
+		NSWindow_setOpaque(nWin->window, false);
+	}
+
 	CGDirectDisplayID displayID = CGMainDisplayID();
 	CVDisplayLinkCreateWithCGDisplay(displayID, &nWin->display);
 	CVDisplayLinkSetOutputCallback(nWin->display, displayCallback, nWin->window);
@@ -2080,16 +2083,16 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     nWin->render = 0;
 	#endif
 	#endif
-
-	if (RGFW_TRANSPARENT_WINDOW % args) {
-		NSWindow_setBackgroundColor(nWin->window, NSColor_colorWithSRGB(0, 0, 0, 0));
-		NSWindow_setOpaque(nWin->window, false);
-	}
-
+	
 	NSWindow_setContentView(nWin->window, (NSView*)nWin->view);
 	NSWindow_setIsVisible(nWin->window, true);
-	NSWindow_makeMainWindow(nWin->window);
 
+	if (!RGFW_loaded) {
+		NSWindow_makeMainWindow(nWin->window);
+
+		RGFW_loaded = 1;
+    }
+		
 	NSApplication_sharedApplication(NSApp);
 	NSApplication_setActivationPolicy(NSApp, NSApplicationActivationPolicyRegular);
 	NSApplication_finishLaunching(NSApp);
@@ -2097,93 +2100,108 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	return nWin;
 }
 
-int* RGFW_getScreenSize(RGFW_window* w){
+unsigned int* RGFW_getScreenSize(RGFW_window* w){
+	if (!RGFW_ValidWindowCheck(w, "RGFW_getScreenSize")) return (unsigned int[2]){0, 0};
+
 	NSRect r = NSScreen_frame(NSScreen_mainScreen());
 
-	return (int[2]){r.size.width, r.size.height};
+	return (unsigned int[2]){r.size.width, r.size.height};
 }
 
 unsigned int RGFW_keysPressed[10]; /*10 keys at a time*/
 
 RGFW_Event RGFW_checkEvents(RGFW_window* w){
-	NSWindow_makeMainWindow(w->window);
+	if (!RGFW_ValidWindowCheck(w, "RGFW_checkEvents")) return w->event;
 
-	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, 0, true);
+	w->inFocus = NSWindow_isKeyWindow(w->window);
 
-	unsigned char button = 0, i;
+	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, 0, true);	
 
-	w->event.droppedFilesCount = 0;
+	if (NSEvent_window(e) == w->window){
+		unsigned char button = 0, i;
 
-	switch(NSEvent_type(e)){
-		case NSEventTypeKeyDown:
-			w->event.type = RGFW_keyPressed;
-			w->event.keyCode = NSEvent_keyCode(e);
-			w->event.keyName = NSEvent_characters(e);
+		w->event.droppedFilesCount = 0;
 
-			RGFW_keyMap[w->event.keyCode] = 1;
-			break;	
-		
-		case NSEventTypeKeyUp:
-			w->event.type = RGFW_keyReleased;
-			w->event.keyCode = NSEvent_keyCode(e);
-			w->event.keyName = NSEvent_characters(e);
+		switch(NSEvent_type(e)){
+			case NSEventTypeKeyDown:
+				w->event.type = RGFW_keyPressed;
+				w->event.keyCode = NSEvent_keyCode(e);
+				w->event.keyName = NSEvent_characters(e);
+
+				RGFW_keyMap[w->event.keyCode] = 1;
+				break;	
 			
-			RGFW_keyMap[w->event.keyCode] = 0;
+			case NSEventTypeKeyUp:
+				w->event.type = RGFW_keyReleased;
+				w->event.keyCode = NSEvent_keyCode(e);
+				w->event.keyName = NSEvent_characters(e);
+				
+				RGFW_keyMap[w->event.keyCode] = 0;
 
-			break;
-		
-		case NSEventTypeLeftMouseDown:
-			button = 1;
-			w->event.button = 2;
-		case NSEventTypeOtherMouseDown:
-			button = 1;
-		 	if (!button)
-			   w->event.button = 1;
-		case NSEventTypeRightMouseDown:
-		 	if (!button)
-			   w->event.button = 0;
+				break;
+			
+			case NSEventTypeLeftMouseDown:
+				button = 1;
+				w->event.button = 2;
+			case NSEventTypeOtherMouseDown:
+				button = 1;
+				if (!button)
+				w->event.button = 1;
+			case NSEventTypeRightMouseDown:
+				if (!button)
+				w->event.button = 0;
 
-			w->event.type = RGFW_mouseButtonPressed; 
-			break;
+				w->event.type = RGFW_mouseButtonPressed; 
+				break;
 
-		case NSEventTypeLeftMouseUp:
-			button = 1;
-			if (NSEvent_type(e) == NSEventTypeLeftMouseUp)
-				w->event.button = RGFW_mouseLeft;
-		case NSEventTypeOtherMouseUp:
-		 	if (!button && NSEvent_type(e) == NSEventTypeOtherMouseUp)
-			   w->event.button = RGFW_mouseMiddle;
-			button = 1;
-		case NSEventTypeScrollWheel:
-			if (!button && NSEvent_type(e) == NSEventTypeScrollWheel){
-			    double deltaY = NSEvent_deltaY(e);
+			case NSEventTypeLeftMouseUp:
+				button = 1;
+				if (NSEvent_type(e) == NSEventTypeLeftMouseUp)
+					w->event.button = RGFW_mouseLeft;
+			case NSEventTypeOtherMouseUp:
+				if (!button && NSEvent_type(e) == NSEventTypeOtherMouseUp)
+				w->event.button = RGFW_mouseMiddle;
+				button = 1;
+			case NSEventTypeScrollWheel:
+				if (!button && NSEvent_type(e) == NSEventTypeScrollWheel){
+					double deltaY = NSEvent_deltaY(e);
 
-				if (deltaY > 0)
-					w->event.button = RGFW_mouseScrollUp;
+					if (deltaY > 0)
+						w->event.button = RGFW_mouseScrollUp;
 
-				else if (deltaY < 0)
-					w->event.button = RGFW_mouseScrollDown;
-			}
-			button = 1;
-		case NSEventTypeRightMouseUp:
-		 	if (!button)
-			   w->event.button = RGFW_mouseRight;
+					else if (deltaY < 0)
+						w->event.button = RGFW_mouseScrollDown;
+				}
+				button = 1;
+			case NSEventTypeRightMouseUp:
+				if (!button)
+				w->event.button = RGFW_mouseRight;
 
-			w->event.type = RGFW_mouseButtonReleased; 
-			break;
-		
-		case NSEventTypeMouseMoved:
-			w->event.type = RGFW_mousePosChanged;
+				w->event.type = RGFW_mouseButtonReleased; 
+				break;
+			
+			case NSEventTypeMouseMoved:
+				w->event.type = RGFW_mousePosChanged;
 
-			NSPoint p = NSEvent_locationInWindow(e);
-			w->event.x = p.x;
-			w->event.y = p.y;
-			break;
-		
+				NSPoint p = NSEvent_locationInWindow(e);
+				w->event.x = p.x;
+				w->event.y = p.y;
+				break;
+			
 
-		default: break;
-	}
+			default: break;
+		}
+
+		RGFW_Current_Window = w;
 	
+		if (w->hideMouse && NSPointInRect(NSEvent_mouseLocation(e), NSWindow_frame(w->window)))
+			CGDisplayHideCursor(kCGDirectMainDisplay);
+		else
+			CGAssociateMouseAndMouseCursorPosition(true);
+	}
+
+	NSApplication_sendEvent(NSApp, e);
+
 	NSRect r = NSWindow_frame(w->window);
 
 	if (r.origin.x != w->srcX || r.origin.y != w->srcY || r.size.width != w->srcW || r.size.height != w->srcH){
@@ -2209,16 +2227,6 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 		NSWindow_setTitle(w->window, w->name);
 	}
 
-	w->inFocus = NSWindow_isKeyWindow(w->window);
-
-	if (w->inFocus && w->hideMouse && NSPointInRect(NSEvent_mouseLocation(e), NSWindow_frame(w->window)))
-		CGDisplayHideCursor(kCGDirectMainDisplay);
-	else
-		CGAssociateMouseAndMouseCursorPosition(true);
-
-	NSApplication_sendEvent(NSApp, e);
-	RGFW_Current_Window = w;
-
 	NSApplication_updateWindows(NSApp);
 
 	RGFW_checkFPS(w);
@@ -2227,33 +2235,65 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 }
 
 void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int channels){
-	NSApplication_setApplicationIconImage(NSApp, NSImage_initWithData(src, width * height * channels));
+	if (!RGFW_ValidWindowCheck(w, "RGFW_setIcon")) return;
+
+	struct CGColorSpace* colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+
+	CGContextRef bitmapContext = CGBitmapContextCreate (src,
+									width,
+									height,
+									channels,      
+									(width * channels),
+									colorSpace,
+									kCGImageAlphaPremultipliedLast);
+
+	CGColorSpaceRelease( colorSpace );
+
+	struct CGImage* myImage = CGBitmapContextCreateImage(bitmapContext);
+
+	NSApplication_setApplicationIconImage(NSApp, myImage);
+
+	CGContextRelease(bitmapContext);
+	CGImageRelease(myImage);
 }
 
 void RGFW_toggleMouse(RGFW_window* w) {
 	w->hideMouse = !w->hideMouse;
 }
 
-unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key) {  return RGFW_keyMap[key]; }
+unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key) {  
+	if (key >= 128){
+		#ifdef RGFW_PRINT_ERRORS
+		printf("RGFW_isPressedI : invalid keycode\n");
+		#endif
+		RGFW_error = 1;
+	}
 
-char* RGFW_readClipboard(RGFW_window* w){
-
+	return RGFW_keyMap[key]; 
 }
 
-void RGFW_writeClipboard(RGFW_window* w, char* text){
+char* RGFW_readClipboard(RGFW_window* w){ return NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString); }
 
+void RGFW_writeClipboard(RGFW_window* w, char* text) { 
+	NSPasteBoard_declareTypes(NSPasteboard_generalPasteboard(), (NSPasteboard*[1]){NSPasteboardTypeString}, 1, NULL);
+	NSPasteBoard_setString(NSPasteboard_generalPasteboard(), text, NSPasteboardTypeString); 
 }
 
 unsigned short RGFW_registerJoystick(RGFW_window* window, int jsNumber){
+	
+
 	return RGFW_registerJoystickF(window, "");
 }
 
 unsigned short RGFW_registerJoystickF(RGFW_window* w, char* file){
+	if (!RGFW_ValidWindowCheck(w, "RGFW_registerJoystick")) return 0;
 
 	return w->joystickCount - 1;
 }
 
 void RGFW_closeWindow(RGFW_window* w){
+	if (!RGFW_ValidWindowCheck(w, "RGFW_closeWindow")) return;
+
 	CVDisplayLinkStop(w->display);
 	CVDisplayLinkRelease(w->display);
 	NSView_release((NSView*)w->view);
@@ -2288,6 +2328,7 @@ void RGFW_makeCurrent_OpenGL(RGFW_window* w){
 			wglMakeCurrent((HDC)w->window, (HGLRC)w->glWin);
 		#endif	
 		#ifdef __APPLE__
+		NSOpenGLContext_makeCurrentContext(w->glWin);
 		NSOpenGLContext_flushBuffer(w->glWin);
 		#endif
 	#else
@@ -2372,15 +2413,25 @@ void RGFW_clear(RGFW_window* w, unsigned char r, unsigned char g, unsigned char 
 			DeleteDC(hdcMem);
 		#endif
 		#ifdef __APPLE__
-		CGContextRef context = CGBitmapContextCreate(w->buffer, w->srcW, w->srcH, 8, w->srcW * 4, CGColorSpaceCreateDeviceRGB(), kCGImageAlphaNoneSkipFirst);
-		CGImageRef image = CGBitmapContextCreateImage(context);
+		CGRect rect = CGRectMake (0, 0, w->srcW, w->srcH);// 2
+		struct CGColorSpace* colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
 
-		NSImage* nsImage = NSImage_initWithCGImage(image, w->srcW, w->srcH);
+		CGContextRef bitmapContext = CGBitmapContextCreate (w->buffer,
+										w->srcW,
+										w->srcH,
+										4,      
+										(w->srcW * 4),
+										colorSpace,
+										kCGImageAlphaPremultipliedLast);
 
-		NSImage_drawInRect(nsImage, NSMakeRect(0, 0, w->srcW, w->srcH), 1.0)
+		CGColorSpaceRelease( colorSpace );
 
-		CGContextRelease(context);
-		CGImageRelease(image);
+		struct CGImage* myImage = CGBitmapContextCreateImage(bitmapContext);
+
+		CGContextDrawImage(NSGraphicsContext_currentContext(), rect, myImage);
+
+		CGContextRelease(bitmapContext);
+		CGImageRelease(myImage);
 		#endif
 	}
 	#endif
@@ -2430,7 +2481,6 @@ void RGFW_checkFPS(RGFW_window* win){
 #ifdef __cplusplus
 }
 #endif
-
 
 #define RGFW_Escape RGFW_keyStrToKeycode("Escape")
 #define RGFW_F1 RGFW_keyStrToKeycode("F1")
