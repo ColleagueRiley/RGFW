@@ -1,0 +1,19 @@
+# Folders
+.vscode/
+build/**
+source/test
+games/
+res
+build
+
+# Files 
+*.exe
+*.dll
+*.o
+*.ttf
+.DS_Store
+test.cpp
+*.7z
+*.zip
+main.c
+script.py
