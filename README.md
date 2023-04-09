@@ -6,7 +6,7 @@ This library
 
 1) is single header and portable (written in C89 in mind)
 2) is very small compared to other libraries
-3) only depends on system API libraries, winapi, X11
+3) only depends on system API libraries, winapi, X11, Cocoa (except for Silicon (for macOS) which is included)
 4) let's you create a window with an opengl context and manage the window and it's events only with a few function calls 
 
 This library does not
