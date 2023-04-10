@@ -1976,21 +1976,41 @@ void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority){ SetThre
 
 CVReturn displayCallback(CVDisplayLinkRef displayLink, const CVTimeStamp *inNow, const CVTimeStamp *inOutputTime, CVOptionFlags flagsIn, CVOptionFlags *flagsOut, void *displayLinkContext) { return kCVReturnSuccess; }
 
-RGFW_window* RGFW_Current_Window;
+RGFW_window** RGFW_windows;
+unsigned int RGFW_windows_size = 0;
 
-bool OnClose(void* self)  {	RGFW_Current_Window->event.type = RGFW_quit; }
+bool OnClose(void* self)  {	
+	unsigned int i;
+	for (i = 0; i < RGFW_windows_size; i++)
+		if (RGFW_windows[i] && RGFW_windows[i]->window == self)
+			break;
+	
+	RGFW_windows[i]->event.type = RGFW_quit; 
+	return true;
+}
 
 bool OnDrop(void* sender) {
-    /*
-    NSArray* filenames = [[sender draggingPasteboard] readObjectsForClasses:([NSArray arrayWithObject:[NSURL class]]) options:(nil)];
+	NSWindow* window = NSDraggingInfo_draggingDestinationWindow(sender);
 
-    for (int i = 0; i < filenames.count; i++) {
-        ESGL::root.event.droppedFiles.push_back([[[filenames objectAtIndex:(i)] path] UTF8String]); 
-    }
-    */
+	unsigned int i;
+	bool found = false;
 
-    RGFW_Current_Window->event.type = RGFW_dnd;
-    printf("file dropped\n");
+	for (i = 0; i < RGFW_windows_size; i++)
+		if (RGFW_windows[i]->window == window){
+			found = true;
+			break;
+		}
+	
+	if (!found)
+		i = 0;
+
+	RGFW_windows[i]->event.droppedFilesCount = NSDraggingInfo_numberOfValidItemsForDrop(sender);
+	RGFW_windows[i]->event.droppedFiles = NSDraggingInfo_readObjectsForClasses(sender, (NSPasteboardType[1]){NS_NSURL()}, 1, NULL);
+	RGFW_windows[i]->event.type = RGFW_dnd;
+
+	NSPoint p = NSDraggingInfo_draggingLocation(sender);
+	RGFW_windows[i]->event.x = p.x;
+	RGFW_windows[i]->event.x = p.y;
 
     return true;
 }
@@ -2019,6 +2039,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->inFocus = 1;
 	nWin->hideMouse = 0;
 	nWin->event.type = 0;
+	nWin->event.droppedFiles = NULL;
 	nWin->event.droppedFilesCount = 0;
 	nWin->valid = 245;
 
@@ -2059,8 +2080,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	#endif
 
 	if (RGFW_ALLOW_DND & args)
-        NSView_registerForDraggedTypes(nWin->view, (NSPasteboard*[3]){NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString}, 3);
-	
+        NSView_registerForDraggedTypes(nWin->window, (NSPasteboard*[3]){NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString}, 3);
     if (RGFW_TRANSPARENT_WINDOW & args) {
 		NSWindow_setBackgroundColor(nWin->window, NSColor_colorWithSRGB(0, 0, 0, 0));
 		NSWindow_setOpaque(nWin->window, false);
@@ -2092,7 +2112,18 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 		RGFW_loaded = 1;
     }
-		
+
+	RGFW_windows_size++;
+	RGFW_windows = realloc(RGFW_windows, RGFW_windows_size);
+	RGFW_windows[RGFW_windows_size - 1] = NULL;
+
+	unsigned int i;
+	for (i = 0; i < RGFW_windows_size; i++)
+		if (!RGFW_windows[i]){
+			RGFW_windows[i] = nWin;
+			break;
+		}
+
 	NSApplication_sharedApplication(NSApp);
 	NSApplication_setActivationPolicy(NSApp, NSApplicationActivationPolicyRegular);
 	NSApplication_finishLaunching(NSApp);
@@ -2118,9 +2149,16 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, 0, true);	
 
 	if (NSEvent_window(e) == w->window){
-		unsigned char button = 0, i;
+		if (w->event.droppedFiles != NULL){
+			printf("hi\n");
+			free(w->event.droppedFiles);
+			w->event.droppedFiles = NULL;
+			printf("hi\n");
+		}
 
 		w->event.droppedFilesCount = 0;
+
+		unsigned char button = 0, i;
 
 		switch(NSEvent_type(e)){
 			case NSEventTypeKeyDown:
@@ -2191,8 +2229,6 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 
 			default: break;
 		}
-
-		RGFW_Current_Window = w;
 	
 		if (w->hideMouse && NSPointInRect(NSEvent_mouseLocation(e), NSWindow_frame(w->window)))
 			CGDisplayHideCursor(kCGDirectMainDisplay);
@@ -2297,7 +2333,26 @@ void RGFW_closeWindow(RGFW_window* w){
 	CVDisplayLinkStop(w->display);
 	CVDisplayLinkRelease(w->display);
 	NSView_release((NSView*)w->view);
+
+	unsigned int i;
+	for (i = 0; i < RGFW_windows_size; i++)
+		if (RGFW_windows[i]->window == w->window){
+			RGFW_windows[i] = NULL;
+			break;
+		}
+
+	if (!i){
+		RGFW_windows_size = 0;
+		free(RGFW_windows);
+	}
+
+
 	NSApplication_terminate(NSApp, (id)w->window);
+
+	if (w->event.droppedFiles != NULL){
+		free(w->event.droppedFiles);
+		w->event.droppedFiles = NULL;
+	}
 }
 
 #endif
