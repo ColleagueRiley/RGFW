@@ -1,6 +1,6 @@
 (addons)
     - controller support (windows) (macos)
-    - init drag function (drag n' drop)
+    - init drag function (drag n' drop) (output)
     - custom cursors
 
 (testing)
@@ -8,13 +8,10 @@
     - test EGL and OSmesa for (windows)
 
 (macos)
-    - transparent window
-    - drag and drop (input)
-    - set icon
-    - clipboard I/O
-    - OS Mesa
-    - error handling
-    - add mac specific docs
+    - get transparent window to work
+    - fix drag and drop (input) seg fault
+    - set icon (runtime function)
+    - (test) OS Mesa / EGL
 
 (other)
     - opengl vbo wrangler for windows (maybe as a seperate [small/single header] library)
