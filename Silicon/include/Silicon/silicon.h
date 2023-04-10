@@ -35,7 +35,7 @@ extern "C" {
 
 
 /* Linking C functions to Window and View classes. */
-extern void* funcs[2];
+extern void* funcs[6];
 
 
 /* Objective-C class methods. */
@@ -147,7 +147,7 @@ void NSView_addSubview(NSView* view, NSView* subview);
 /* */
 void NSView_release(NSView* view);
 /* */
-void NSView_registerForDraggedTypes(NSView* view, NSPasteboard** newTypes, NSUInteger array_size);
+void NSView_registerForDraggedTypes(NSView* view, NSPasteboardType* newTypes, NSUInteger array_size);
 
 
 /* ============ NSTextField class ============ */
@@ -376,6 +376,7 @@ const char* NSProcessInfo_processName(NSProcessInfo* processInfo);
 /* */
 NSImage* NSImage_initWithData(unsigned char* bitmapData, NSUInteger length);
 
+
 /* ============ NSGraphicsContext class ============ */
 /* ====== NSGraphicsContext properties ====== */
 /* */
@@ -430,6 +431,19 @@ define_property(NSProgressIndicator, bool, isIndeterminate, Indeterminate, progr
 NSProgressIndicator* NSProgressIndicator_init(NSRect frameRect);
 
 
+/* ============ NSDraggingInfo class ============ */
+NSPoint NSDraggingInfo_draggingLocation(void* sender);
+/* */
+int NSDraggingInfo_numberOfValidItemsForDrop(void* sender);
+/* */
+NSWindow* NSDraggingInfo_draggingDestinationWindow(void* sender);
+/* */
+const char** NSDraggingInfo_readObjectsForClasses(void* sender, void* array, NSUInteger array_size, void* options);
+
+   
+/*drag and drop classes (you chinz will want this to be formated some better way)*/
+/* */
+void* NS_NSURL();
 
 
 /* TODO(EimaMei): Add documentation & deprecations macros for the OpenGL functions. */

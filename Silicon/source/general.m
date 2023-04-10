@@ -32,7 +32,7 @@ extern "C" {
 #include "implementation.h" /* All of the macros that aren't from 'Silicon/macros.h' reside here. */
 
 
-typedef void format(void* self, ...);
+typedef void* format(void* self, ...);
 format* funcs[6];
 
 /* Key stuff. */
@@ -50,19 +50,46 @@ const unsigned short NSKEYI[sizeof(NSKEYS)] = {
 	NSBackspaceCharacter, NSTabCharacter, NSNewlineCharacter, NSCarriageReturnCharacter,
 	0x1B, 0x20, 0x56, 0x57, 0x51
 };
-
 const unsigned char NSKEYCOUNT = sizeof(NSKEYS);
-bool validFileType = false;
+
 
 @interface WindowClass : NSWindow {}
 @end
 
 @implementation WindowClass
-	- (bool)windowShouldClose:(void*)sender {
+	- (bool)windowShouldClose:(NSWindow*)sender {
 		if (funcs[0] != NULL)
-		   funcs[0](self, sender);
+		   funcs[0](sender);
 
 		return true;
+	}
+	    // Drag 'n drop
+    - (NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender {
+        if (funcs[2] != NULL)
+            funcs[2](sender);
+
+        return NSDragOperationCopy;
+    }
+
+    - (NSDragOperation)draggingUpdated:(id<NSDraggingInfo>)sender {
+        if (funcs[3] != NULL)
+            funcs[3](sender);
+
+        return NSDragOperationCopy;
+    }
+
+    - (bool)prepareForDragOperation:(id<NSDraggingInfo>)sender {
+        if (funcs[4] != NULL)
+            funcs[4](sender);
+
+        return true;
+    }
+
+    - (bool)performDragOperation:(id<NSDraggingInfo>)sender {
+        if (funcs[5] != NULL)
+            funcs[5](sender);
+
+        return true;
 	}
 @end
 
@@ -77,37 +104,6 @@ bool validFileType = false;
 	- (void)drawRect:(NSRect)rect {
 		if (funcs[1] != NULL)
 		   funcs[1](self, rect);
-	}
-
-	// Drag 'n drop
-	- (NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender {
-		if ([sender.draggingPasteboard.types containsObject:NSPasteboardTypeFileURL]) {
-			return NSDragOperationCopy;
-		}
-		return NSDragOperationNone;
-				
-		return NSDragOperationCopy;	
-	}
-
-	- (NSDragOperation)draggingUpdated:(id<NSDraggingInfo>)sender {
-		if (funcs[3] != NULL)
-			funcs[3](sender);
-
-		return NSDragOperationCopy;
-	}
-
-	- (BOOL)prepareForDragOperation:(id<NSDraggingInfo>)sender {
-		if (funcs[4] != NULL)
-			funcs[4](sender);
-
-		return true;
-	}
-
-	- (BOOL)performDragOperation:(id<NSDraggingInfo>)sender {
-		if (funcs[5] != NULL)
-			funcs[5](sender);
-			
-		return true;
 	}
 @end
 
@@ -214,6 +210,10 @@ void NSWindow_makeMainWindow(NSWindow* window) {
 void NSWindow_setFrame(NSWindow* window, NSRect frame) {
 	[window setFrame:(frame) display:(true) animate:(true)];
 }
+/* */
+NSPoint NSWindow_convertPoint(NSWindow* window, NSPoint point, void* view) {
+    return [window convertPoint:point fromView:view];
+}
 
 
 /* ============ NSView class ============ */
@@ -231,11 +231,11 @@ void NSView_addSubview(NSView* view, NSView* subview) {
 	[view addSubview:(subview)];
 }
 /* */
-void NSView_registerForDraggedTypes(NSView* view, NSPasteboard** newTypes, NSUInteger array_size){
-    NSArray* new_array = convert_C_array_to_NSArray(newTypes, array_size);
+void NSView_registerForDraggedTypes(NSView* view, NSPasteboardType* newTypes, NSUInteger array_size) {
+	NSArray* new_array = convert_C_array_to_NSArray(newTypes, array_size);
 
-    [view registerForDraggedTypes:([NSArray arrayWithObject:(new_array)])];
-    [new_array release];
+	[view registerForDraggedTypes:(new_array)];
+	[new_array release];
 }
 
 
@@ -610,7 +610,6 @@ bool NSPasteBoard_setString(NSPasteboard* pasteboard, const char* stringToWrite,
 	return [pasteboard setString:char_to_NSString(stringToWrite) forType:(dataType)];
 }
 
-
 /* ============ NSSlider class ============ */
 /* ====== NSSlider properties ====== */
 /**/
@@ -648,6 +647,38 @@ NSProgressIndicator* NSProgressIndicator_init(NSRect frameRect) {
 }
 
 
+/* ============ NSDraggingInfo class ============ */
+NSPoint NSDraggingInfo_draggingLocation(id<NSDraggingInfo> sender) {
+    return [sender draggingLocation];
+}
+/* */
+int NSDraggingInfo_numberOfValidItemsForDrop(id<NSDraggingInfo> sender) {
+    return [sender numberOfValidItemsForDrop];
+}
+/* */
+NSWindow* NSDraggingInfo_draggingDestinationWindow(id<NSDraggingInfo> sender) {
+    return [sender draggingDestinationWindow];
+}
+/* */
+const char** NSDraggingInfo_readObjectsForClasses(id<NSDraggingInfo> sender, void* array, NSUInteger array_size, void* options) {
+    NSArray* new_array = convert_C_array_to_NSArray(array, array_size);
+    NSArray* filenames = [[sender draggingPasteboard] readObjectsForClasses:(new_array) options:options];
+	[new_array release];
+
+	char** output = malloc(filenames.count * sizeof(char*));
+
+    for (int i = 0; i < filenames.count; i++)
+        output[i] = (char*)[[[filenames objectAtIndex:(i)] path] UTF8String];
+
+	[filenames release];
+
+	return output;
+}
+
+/*drag and drop classes (you chinz will want this to be formated some better way)*/
+void* NS_NSURL() {
+ 	return [NSURL class];
+}
 
 #ifdef __cplusplus
 }
