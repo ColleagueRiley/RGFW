@@ -2151,10 +2151,8 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 
 	if (NSEvent_window(e) == w->window){
 		if (w->event.droppedFiles != NULL){
-			printf("hi\n");
 			free(w->event.droppedFiles);
 			w->event.droppedFiles = NULL;
-			printf("hi\n");
 		}
 
 		w->event.droppedFilesCount = 0;
