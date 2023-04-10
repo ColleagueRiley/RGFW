@@ -529,6 +529,7 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event){
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <unistd.h>
 
 #ifdef RGFW_GL
 #include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
@@ -1262,7 +1263,7 @@ char* RGFW_readClipboard(RGFW_window* w){
 	almost all of this function is sourced from GLFW
 */
 void RGFW_writeClipboard(RGFW_window* w, char* text){
-	if (!RGFW_ValidWindowCheck(w, "RGFW_writeClipboard")) return "";
+	if (!RGFW_ValidWindowCheck(w, "RGFW_writeClipboard")) return;
     Atom CLIPBOARD, UTF8_STRING, SAVE_TARGETS, TARGETS, MULTIPLE, ATOM_PAIR, PRIMARY, CLIPBOARD_MANAGER;
     
     CLIPBOARD = XInternAtom((Display*)w->display, "CLIPBOARD", False);
@@ -1407,14 +1408,14 @@ void RGFW_toggleMouse(RGFW_window* w){
 }
 
 unsigned short RGFW_registerJoystick(RGFW_window* window, int jsNumber){
-	char file[14];
+	char file[15];
 	sprintf(file, "/dev/input/js%i", jsNumber);
 
 	return RGFW_registerJoystickF(window, file);
 }
 
 unsigned short RGFW_registerJoystickF(RGFW_window* w, char* file){
-	if (!RGFW_ValidWindowCheck(w, "RGFW_registerJoystickF")) return;
+	if (!RGFW_ValidWindowCheck(w, "RGFW_registerJoystickF")) return 0;
 
 	int js = open(file, O_RDONLY);
 
@@ -1432,7 +1433,7 @@ unsigned short RGFW_registerJoystickF(RGFW_window* w, char* file){
 	else {
 		#ifdef RGFW_PRINT_ERRORS
 		RGFW_error = 1;
-		printf("Error RGFW_registerJoystickF : Cannot open file %i\n", file);
+		printf("Error RGFW_registerJoystickF : Cannot open file %s\n", file);
 		#endif
 	}
 
