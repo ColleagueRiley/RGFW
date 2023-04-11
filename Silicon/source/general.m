@@ -34,6 +34,7 @@ extern "C" {
 
 typedef void* format(void* self, ...);
 format* funcs[6];
+const NSSize _NSZeroSize = {0, 0};
 
 /* Key stuff. */
 const char* NSKEYS[] = {
@@ -63,7 +64,8 @@ const unsigned char NSKEYCOUNT = sizeof(NSKEYS);
 
 		return true;
 	}
-	    // Drag 'n drop
+
+	/* Drag 'n drop. */
     - (NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender {
         if (funcs[2] != NULL)
             funcs[2](sender);
@@ -116,8 +118,7 @@ SEL _SEL_exists(const char* name, const char* filename, int line) {
     unsigned int class_count = 0;
     Class* classL_list = objc_copyClassList(&class_count);
 
-	unsigned int i;
-    for (i = 0; i < class_count; i++) {
+    for (unsigned int i = 0; i < class_count; i++) {
         Class cls = classL_list[i];
 		if ([NSStringFromClass(cls) isEqual:(@"UINSServiceViewController")]) // For whatever reason, this class ruins everything.
 			continue;
@@ -207,12 +208,12 @@ void NSWindow_makeMainWindow(NSWindow* window) {
 	[window makeMainWindow];
 }
 /* Set the frame of the window. */
-void NSWindow_setFrame(NSWindow* window, NSRect frame) {
-	[window setFrame:(frame) display:(true) animate:(true)];
+void NSWindow_setFrameAndDisplay(NSWindow* window, NSRect frame, bool display, bool animate) {
+	[window setFrame:(frame) display:(display) animate:(animate)];
 }
 /* */
-NSPoint NSWindow_convertPoint(NSWindow* window, NSPoint point, void* view) {
-    return [window convertPoint:point fromView:view];
+NSPoint NSWindow_convertPointFromScreen(NSWindow* window, NSPoint point) {
+    return [window convertPointFromScreen:(point)];
 }
 
 
@@ -420,7 +421,7 @@ NSEvent* NSApplication_nextEventMatchingMask(NSApplication* application, NSEvent
 NSScreen* NSScreen_mainScreen() {
 	return [NSScreen mainScreen];
 }
-/* */ 
+/* */
 NSRect NSScreen_frame(NSScreen* screen) {
 	return [screen frame];
 }
@@ -575,7 +576,14 @@ const char* NSProcessInfo_processName(NSProcessInfo* processInfo) {
 /* */
 NSImage* NSImage_initWithData(unsigned char* bitmapData, NSUInteger length) {
 	NSData* data = [NSData dataWithBytes:(bitmapData) length:(length)];
-	return [[NSImage alloc] initWithData:(data)];
+	NSImage* result = [[NSImage alloc] initWithData:(data)];
+	[data release];
+
+	return result;
+}
+/* */
+NSImage* NSImage_initWithCGImage(CGImageRef cgImage, NSSize size) {
+	return [[NSImage alloc] initWithCGImage:(cgImage) size:(size)];
 }
 
 
@@ -587,8 +595,8 @@ implement_deprecated_property(NSGraphicsContext, NSGraphicsContext*, currentCont
 #endif
 
 
-/* =========== NSPasteBoard class ============ */
-/* ====== NSPasteBoard functions ====== */
+/* =========== NSPasteboard class ============ */
+/* ====== NSPasteboard functions ====== */
 /* */
 NSPasteboard* NSPasteboard_generalPasteboard() {
 	return [NSPasteboard generalPasteboard];
@@ -597,7 +605,7 @@ const char* NSPasteboard_stringForType(NSPasteboard* pasteboard, NSPasteboardTyp
 	return NSString_to_char([pasteboard stringForType:(dataType)]);
 }
 /* */
-NSInteger NSPasteBoard_declareTypes(NSPasteboard* pasteboard, NSPasteboard** newTypes, NSUInteger array_size, void* owner) {
+NSInteger NSPasteBoard_declareTypes(NSPasteboard* pasteboard, NSPasteboardType* newTypes, NSUInteger array_size, void* owner) {
 	NSArray* new_array = convert_C_array_to_NSArray(newTypes, array_size);
 
 	NSInteger res = [pasteboard declareTypes:(new_array) owner:(owner)];
@@ -607,8 +615,25 @@ NSInteger NSPasteBoard_declareTypes(NSPasteboard* pasteboard, NSPasteboard** new
 }
 /* */
 bool NSPasteBoard_setString(NSPasteboard* pasteboard, const char* stringToWrite, NSPasteboardType dataType) {
-	return [pasteboard setString:char_to_NSString(stringToWrite) forType:(dataType)];
+	return [pasteboard setString:(char_to_NSString(stringToWrite)) forType:(dataType)];
 }
+/* */
+const char** NSPasteboard_readObjectsForClasses(NSPasteboard* pasteboard, void* array, NSUInteger array_size, void* options) {
+    NSArray* new_array = convert_C_array_to_NSArray(array, array_size);
+    NSArray* filenames = [pasteboard readObjectsForClasses:(new_array) options:(options)];
+
+	const char** output = malloc(filenames.count * sizeof(*output));
+
+    for (NSUInteger i = 0; i < filenames.count; i++) {
+        output[i] = NSString_to_char([[filenames objectAtIndex:(i)] path]);
+	}
+
+	/* Free everything useless before we go. */
+	[new_array release];
+
+	return output;
+}
+
 
 /* ============ NSSlider class ============ */
 /* ====== NSSlider properties ====== */
@@ -648,37 +673,28 @@ NSProgressIndicator* NSProgressIndicator_init(NSRect frameRect) {
 
 
 /* ============ NSDraggingInfo class ============ */
-NSPoint NSDraggingInfo_draggingLocation(id<NSDraggingInfo> sender) {
-    return [sender draggingLocation];
+/* ====== NSDraggingInfo properties ====== */
+/* */
+NSPasteboard* NSDraggingInfo_draggingPasteboard(id<NSDraggingInfo> info) {
+	return [info draggingPasteboard];
 }
 /* */
-int NSDraggingInfo_numberOfValidItemsForDrop(id<NSDraggingInfo> sender) {
-    return [sender numberOfValidItemsForDrop];
+NSPoint NSDraggingInfo_draggingLocation(id<NSDraggingInfo> info) {
+    return [info draggingLocation];
 }
 /* */
-NSWindow* NSDraggingInfo_draggingDestinationWindow(id<NSDraggingInfo> sender) {
-    return [sender draggingDestinationWindow];
+NSInteger NSDraggingInfo_numberOfValidItemsForDrop(id<NSDraggingInfo> info) {
+	return [info numberOfValidItemsForDrop];
+}
+void NSDraggingInfo_setNumberOfValidItemsForDrop(id<NSDraggingInfo> info, NSInteger number) {
+	[info setNumberOfValidItemsForDrop:(number)];
 }
 /* */
-const char** NSDraggingInfo_readObjectsForClasses(id<NSDraggingInfo> sender, void* array, NSUInteger array_size, void* options) {
-    NSArray* new_array = convert_C_array_to_NSArray(array, array_size);
-    NSArray* filenames = [[sender draggingPasteboard] readObjectsForClasses:(new_array) options:options];
-	[new_array release];
-
-	char** output = malloc(filenames.count * sizeof(char*));
-
-    for (int i = 0; i < filenames.count; i++)
-        output[i] = (char*)[[[filenames objectAtIndex:(i)] path] UTF8String];
-
-	[filenames release];
-
-	return output;
+NSWindow* NSDraggingInfo_draggingDestinationWindow(id<NSDraggingInfo> info) {
+    return [info draggingDestinationWindow];
 }
 
-/*drag and drop classes (you chinz will want this to be formated some better way)*/
-void* NS_NSURL() {
- 	return [NSURL class];
-}
+
 
 #ifdef __cplusplus
 }

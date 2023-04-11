@@ -36,7 +36,9 @@ extern "C" {
 
 /* Linking C functions to Window and View classes. */
 extern void* funcs[6];
-
+extern const NSSize _NSZeroSize;
+/* An NSSize structure set to 0 in both dimensions. */
+#define NSZeroSize _NSZeroSize
 
 /* Objective-C class methods. */
 mac_function_define(Class, class);
@@ -86,6 +88,8 @@ CGPoint NSPointToCGPoint(NSPoint nspoint);
 NSSize NSSizeFromCGSize(CGSize cgsize);
 /* Returns a CGSize typecast from an NSSize. */
 CGSize NSSizeToCGSize(NSSize nssize);
+/* Returns a Boolean value that indicates whether a given point is in a given rectangle. */
+bool NSPointInRect(NSPoint aPoint, NSRect aRect);
 
 
 /* ============ NSControl class ============ */
@@ -114,12 +118,12 @@ define_property(NSWindow, NSView*, contentView, ContentView, window);
 define_property(NSWindow, id, delegate, Delegate, window);
 /* Get/Set the visbility of the window. */
 define_property(NSWindow, bool, isVisible, IsVisible, window);
-/* Get/Set the frame of the window. */
-define_property(NSWindow, NSRect, frame, Frame, window);
 /* Get/Set the background color of the window. */
 define_property(NSWindow, NSColor*, backgroundColor, BackgroundColor, window);
 /* Get/set the opaque of the window. */
 define_property(NSWindow, bool, isOpaque, Opaque, window);
+/* Get/Set the frame of the window. */
+NSRect NSWindow_frame(NSWindow* window);
 
 /* ====== NSWindow functions ====== */
 /* Initializes a NSWindow handle. */
@@ -134,6 +138,10 @@ bool NSWindow_isKeyWindow(NSWindow* window);
 void NSWindow_center(NSWindow* window);
 /* */
 void NSWindow_makeMainWindow(NSWindow* window);
+/* */
+void NSWindow_setFrameAndDisplay(NSWindow* window, NSRect frame, bool display, bool animate);
+/* */
+NSPoint NSWindow_convertPointFromScreen(NSWindow* window, NSPoint point);
 
 
 /* ============ NSView class ============ */
@@ -375,6 +383,8 @@ const char* NSProcessInfo_processName(NSProcessInfo* processInfo);
 /* ====== NSImage functions ====== */
 /* */
 NSImage* NSImage_initWithData(unsigned char* bitmapData, NSUInteger length);
+/* */
+NSImage* NSImage_initWithCGImage(CGImageRef cgImage, NSSize size);
 
 
 /* ============ NSGraphicsContext class ============ */
@@ -386,16 +396,19 @@ implement_deprecated_property(NSGraphicsContext, NSGraphicsContext*, currentCont
 #endif
 
 
-/* =========== NSPasteBoard class ============ */
-/* ====== NSPasteBoard functions ====== */
+/* =========== NSPasteboard class ============ */
+/* ====== NSPasteboard functions ====== */
 /* */
 NSPasteboard* NSPasteboard_generalPasteboard();
 /* */
 const char* NSPasteboard_stringForType(NSPasteboard* pasteboard, NSPasteboardType dataType);
 /* */
-NSInteger NSPasteBoard_declareTypes(NSPasteboard* pasteboard, NSPasteboard** newTypes, NSUInteger array_size, void* owner);
+NSInteger NSPasteBoard_declareTypes(NSPasteboard* pasteboard, NSPasteboardType* newTypes, NSUInteger array_size, void* owner);
 /* */
 bool NSPasteBoard_setString(NSPasteboard* pasteboard, const char* stringToWrite, NSPasteboardType dataType);
+/* */
+const char** NSPasteboard_readObjectsForClasses(NSPasteboard* pasteboard, void* array, NSUInteger array_size, void* options);
+
 
 
 /* ============ NSSlider class ============ */
@@ -432,18 +445,16 @@ NSProgressIndicator* NSProgressIndicator_init(NSRect frameRect);
 
 
 /* ============ NSDraggingInfo class ============ */
-NSPoint NSDraggingInfo_draggingLocation(void* sender);
+/* ====== NSDraggingInfo properties ====== */
 /* */
-int NSDraggingInfo_numberOfValidItemsForDrop(void* sender);
+NSPasteboard* NSDraggingInfo_draggingPasteboard(NSDraggingInfo* info);
+/* TODO(EimaMei): Figure out how to fix the void* sender nonsense. */
+NSPoint NSDraggingInfo_draggingLocation(NSDraggingInfo* info);
 /* */
-NSWindow* NSDraggingInfo_draggingDestinationWindow(void* sender);
+define_property(NSDraggingInfo, NSInteger, numberOfValidItemsForDrop, NumberOfValidItemsForDrop, info);
 /* */
-const char** NSDraggingInfo_readObjectsForClasses(void* sender, void* array, NSUInteger array_size, void* options);
+NSWindow* NSDraggingInfo_draggingDestinationWindow(NSDraggingInfo* info);
 
-   
-/*drag and drop classes (you chinz will want this to be formated some better way)*/
-/* */
-void* NS_NSURL();
 
 
 /* TODO(EimaMei): Add documentation & deprecations macros for the OpenGL functions. */

@@ -2000,12 +2000,12 @@ bool OnDrop(void* sender) {
 			found = true;
 			break;
 		}
-	
+
 	if (!found)
 		i = 0;
 
 	RGFW_windows[i]->event.droppedFilesCount = NSDraggingInfo_numberOfValidItemsForDrop(sender);
-	RGFW_windows[i]->event.droppedFiles = (char**)NSDraggingInfo_readObjectsForClasses(sender, (NSPasteboardType[1]){NS_NSURL()}, 1, NULL);
+	RGFW_windows[i]->event.droppedFiles = (char**)NSPasteboard_readObjectsForClasses(NSDraggingInfo_draggingPasteboard(sender),  array_with_len(void*, class(objctype(NSURL))), NULL);
 	RGFW_windows[i]->event.type = RGFW_dnd;
 
 	NSPoint p = NSDraggingInfo_draggingLocation(sender);
@@ -2143,19 +2143,21 @@ unsigned int* RGFW_getScreenSize(RGFW_window* w){
 unsigned int RGFW_keysPressed[10]; /*10 keys at a time*/
 
 RGFW_Event RGFW_checkEvents(RGFW_window* w){
+	printf("bamn\n");
+
 	if (!RGFW_ValidWindowCheck(w, "RGFW_checkEvents")) return w->event;
 
 	w->inFocus = NSWindow_isKeyWindow(w->window);
 
 	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, 0, true);	
 
-	if (NSEvent_window(e) == w->window){
+	if (NSEvent_window(e) == w->window) {
 		if (w->event.droppedFiles != NULL){
 			free(w->event.droppedFiles);
 			w->event.droppedFiles = NULL;
 		}
-
 		w->event.droppedFilesCount = 0;
+
 
 		unsigned char button = 0, i;
 
@@ -2229,12 +2231,10 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 			default: break;
 		}
 
-		/* TODO(EimaMei): NSPointInRect doesn't exist?
 		if (w->hideMouse && NSPointInRect(NSEvent_mouseLocation(e), NSWindow_frame(w->window)))
 			CGDisplayHideCursor(kCGDirectMainDisplay);
 		else
 			CGAssociateMouseAndMouseCursorPosition(true);
-		*/
 	}
 
 	NSApplication_sendEvent(NSApp, e);
@@ -2251,7 +2251,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 	else if (w->x != w->srcX || w->y != w->srcY ||
 			w->w != w->srcW || w->h != w->srcH){
 	
-		NSWindow_setFrame(w->window, NSMakeRect(w->x, w->y, w->w, w->h));
+		NSWindow_setFrameAndDisplay(w->window, NSMakeRect(w->x, w->y, w->w, w->h), true, true);
 
 		w->srcX = w->x;
 		w->srcY = w->y;
@@ -2276,24 +2276,25 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
 
 	struct CGColorSpace* colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
 
-	CGContextRef bitmapContext = CGBitmapContextCreate (src,
+	CGContextRef bitmapContext = CGBitmapContextCreate(src,
 									width,
 									height,
-									channels,      
+									channels,
 									(width * channels),
 									colorSpace,
 									kCGImageAlphaPremultipliedLast);
 
-	CGColorSpaceRelease( colorSpace );
+	CGColorSpaceRelease(colorSpace);
 
 	struct CGImage* myImage = CGBitmapContextCreateImage(bitmapContext);
+	NSImage* source = NSImage_initWithCGImage(myImage, NSMakeSize(width, height));
 
-	/* TODO(EimaMei): This code is fundamentally flawed as CImage != NSImage. Requires a Silicon implementation. Possibly [this](https://stackoverflow.com/questions/17386650/converting-ciimage-into-nsimage) might be the solution in Objective-c.
-	NSApplication_setApplicationIconImage(NSApp, myImage);
-	*/
+	/* TODO(EimaMei): Still doesn't work for some damn reason. Maybe with stbi_image it'll work? No clue. */
+	NSApplication_setApplicationIconImage(NSApp, source);
 
 	CGContextRelease(bitmapContext);
 	CGImageRelease(myImage);
+	release(source);
 }
 
 void RGFW_toggleMouse(RGFW_window* w) {
@@ -2314,9 +2315,8 @@ unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key) {
 char* RGFW_readClipboard(RGFW_window* w){ return (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString); }
 
 void RGFW_writeClipboard(RGFW_window* w, char* text) {
-	/* TODO(EimaMei): Fix Riley's Cocoa implementations in Silicon. */
-	/*NSPasteBoard_declareTypes(NSPasteboard_generalPasteboard(), (NSPasteboard*[1]){NSPasteboardTypeString}, 1, NULL);
-	NSPasteBoard_setString(NSPasteboard_generalPasteboard(), text, NSPasteboardTypeString);*/
+	NSPasteBoard_declareTypes(NSPasteboard_generalPasteboard(), array_with_len(NSPasteboardType, NSPasteboardTypeString), NULL);
+	NSPasteBoard_setString(NSPasteboard_generalPasteboard(), text, NSPasteboardTypeString);
 }
 
 unsigned short RGFW_registerJoystick(RGFW_window* window, int jsNumber){

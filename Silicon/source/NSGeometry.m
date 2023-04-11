@@ -95,6 +95,10 @@ CGSize NSSizeToCGSize(NSSize nssize) {
 	union _ {NSSize ns; CGSize cg;};
 	return ((union _ *)&nssize)->cg;
 }
+/* Returns a Boolean value that indicates whether a given point is in a given rectangle. */
+bool NSPointInRect(NSPoint aPoint, NSRect aRect) {
+	return (aPoint.x >= aRect.origin.x &&  aPoint.x <= aRect.origin.x + aRect.size.width && aPoint.y >= aRect.origin.y && aPoint.y <= aRect.origin.y + aRect.size.height);
+}
 
 #ifdef __cplusplus
 }

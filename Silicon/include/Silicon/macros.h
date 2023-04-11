@@ -92,6 +92,9 @@ extern "C" {
 /* @selector() implementation in C. */
 #define selector(function) SEL_exists(#function":")
 
+/* Used for creating quick and temporary local arrays when functions require both an array and its element count. */
+#define array_with_len(type, ...) (type[]){__VA_ARGS__}, (sizeof((type[]){__VA_ARGS__}) / sizeof(*((type[]){__VA_ARGS__})))
+
 
 /* Defining common properties/methods macros. */
 /* Defines the `get` and `set` versions of the provided property. */
