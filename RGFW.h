@@ -148,7 +148,7 @@ typedef struct RGFW_window {
 				hideMouse, /*if the mouse is hidden or not*/
 				inFocus; /*if the window is in focus or not*/ 
 
-	char valid; /* the final net for checking if a window is*/
+	unsigned char valid; /* the final net for checking if a window is*/
 
 	unsigned char dnd; /*!< if dnd is enabled or on (based on window creating args) */
 
@@ -268,8 +268,8 @@ linux : gcc main.c -lX11 -lXcursor -lGL
 windows : gcc main.c -lopengl32 -lole32 -lshell32 -lgdi32
 macos:
 	<Silicon/include> can be replaced to where you have the Silicon headers stored 
-	<Silicon/build/*.o> can be replaced to wherever you have the Silicon .o files or whatever format you compile them to
-	gcc main.c -framework Foundation <Silicon/build/*.o> -framework AppKit -framework OpenGL -framework CoreVideo -I<Silicon/include>
+	<libSilicon.a> can be replaced to wherever you have libSilicon.a
+	gcc main.c -framework Foundation <libSilicon.a> -framework AppKit -framework OpenGL -framework CoreVideo -I<Silicon/include>
 
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
@@ -291,9 +291,7 @@ int main(){
 
     RGFW_closeWindow(w);
 }
-*/
 
-/*
 	compiling :
 
 	if you wish to compile the library all you have to do is create a new file with this in it
@@ -317,11 +315,9 @@ int main(){
 			gcc -shared RGFW.o -lX11 -lXcursor -lGL -o RGFW.so
 		macos:
 			<Silicon/include> can be replaced to where you have the Silicon headers stored 
-			<Silicon/build/*.o> can be replaced to wherever you have the Silicon .o files or whatever format you compile them to
-			gcc -shared RGFW.o -framework Foundation <Silicon/build/*.o> -framework AppKit -framework OpenGL -framework CoreVideo -I<Silicon/include>
-*/
+			<libSilicon.a> can be replaced to wherever you have libSilicon.a
+			gcc -shared RGFW.o -framework Foundation <libSilicon.a> -framework AppKit -framework OpenGL -framework CoreVideo -I<Silicon/include>
 
-/*
 	installing/building silicon (macos)
 	
 	Silicon does not need to be installde per se.
@@ -331,10 +327,10 @@ int main(){
 
 	cd Silicon && make 
 
-	you can then use Silicon/include and Silicon/build/*.o for building RGFW projects 
+	you can then use Silicon/include and libSilicon.a for building RGFW projects
 
 	ex.
-	gcc main.c -framework Foundation Silicon/build/*.o -framework AppKit -framework OpenGL -framework CoreVideo -ISilicon/include
+	gcc main.c -framework Foundation -lSilicon -framework AppKit -framework OpenGL -framework CoreVideo -ISilicon/include
 
 	I also suggest you compile Silicon (and RGFW if applicable) 
 	per each time you compile your application so you know that everything is compiled for the same architecture.
@@ -348,6 +344,7 @@ int main(){
 
 #include <time.h> /* time header (for  and drop functions / other functions that need time info)*/
 #include <math.h>
+#include <string.h> /* for strcmp */
 
 #ifdef RGFW_OSMESA
 #ifndef __APPLE__
@@ -444,6 +441,8 @@ unsigned int RGFW_keyStrToKeyCode(char* key) {
 
     return vKey;
 #endif
+
+	return 0;
 }
 
 #ifndef M_PI
@@ -514,7 +513,7 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event){
 		accidently writing (RGFW_window type)->window is a common mistake too
 	*/
 	
-	if (win->valid != (char)245 || win == (RGFW_window*)0
+	if (win->valid != 245 || win == (RGFW_window*)0
 		#ifdef _WIN32
 		|| !IsWindow(win->display)
 		#endif
@@ -564,7 +563,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     /* init the display*/
 	nWin->display = XOpenDisplay(0);
 	if (RGFW_FULLSCREEN & args){
-		int* r = RGFW_getScreenSize(nWin);
+		unsigned int* r = RGFW_getScreenSize(nWin);
 		x = 0;
 		y = 0;
 		w = r[0];
@@ -1521,8 +1520,8 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     int         pf;
 	WNDCLASS    wc;
 
-		if (RGFW_FULLSCREEN & args){
-		int* r = RGFW_getScreenSize(nWin);
+	if (RGFW_FULLSCREEN & args){
+		unsigned int* r = RGFW_getScreenSize(nWin);
 		x = 0;
 		y = 0;
 		w = r[0];
@@ -2034,12 +2033,12 @@ bool OnDrop(void* sender) {
 			found = true;
 			break;
 		}
-	
+
 	if (!found)
 		i = 0;
 
 	RGFW_windows[i]->event.droppedFilesCount = NSDraggingInfo_numberOfValidItemsForDrop(sender);
-	RGFW_windows[i]->event.droppedFiles = NSDraggingInfo_readObjectsForClasses(sender, (NSPasteboardType[1]){NS_NSURL()}, 1, NULL);
+	RGFW_windows[i]->event.droppedFiles = (char**)NSPasteboard_readObjectsForClasses(NSDraggingInfo_draggingPasteboard(sender),  array_with_len(void*, class(objctype(NSURL))), NULL);
 	RGFW_windows[i]->event.type = RGFW_dnd;
 
 	NSPoint p = NSDraggingInfo_draggingLocation(sender);
@@ -2057,7 +2056,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	RGFW_window* nWin = malloc(sizeof(RGFW_window));
 
 	if (RGFW_FULLSCREEN & args){
-		int* r = RGFW_getScreenSize(nWin);
+		unsigned int* r = RGFW_getScreenSize(nWin);
 		x = 0;
 		y = 0;
 		w = r[0];
@@ -2114,14 +2113,15 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	#endif
 
 	if (RGFW_ALLOW_DND & args)
-        NSView_registerForDraggedTypes(nWin->window, (NSPasteboard*[3]){NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString}, 3);
+        NSView_registerForDraggedTypes(nWin->window, (NSPasteboardType[]){NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString}, 3);
+
     if (RGFW_TRANSPARENT_WINDOW & args) {
 		NSWindow_setBackgroundColor(nWin->window, NSColor_colorWithSRGB(0, 0, 0, 0));
 		NSWindow_setOpaque(nWin->window, false);
 	}
 
 	CGDirectDisplayID displayID = CGMainDisplayID();
-	CVDisplayLinkCreateWithCGDisplay(displayID, &nWin->display);
+	CVDisplayLinkCreateWithCGDisplay(displayID, &nWin->display); // ?
 	CVDisplayLinkSetOutputCallback(nWin->display, displayCallback, nWin->window);
 	CVDisplayLinkStart(nWin->display);
 
@@ -2176,35 +2176,37 @@ unsigned int* RGFW_getScreenSize(RGFW_window* w){
 unsigned int RGFW_keysPressed[10]; /*10 keys at a time*/
 
 RGFW_Event RGFW_checkEvents(RGFW_window* w){
+	printf("bamn\n");
+
 	if (!RGFW_ValidWindowCheck(w, "RGFW_checkEvents")) return w->event;
 
 	w->inFocus = NSWindow_isKeyWindow(w->window);
 
 	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, 0, true);	
 
-	if (NSEvent_window(e) == w->window){
+	if (NSEvent_window(e) == w->window) {
 		if (w->event.droppedFiles != NULL){
 			free(w->event.droppedFiles);
 			w->event.droppedFiles = NULL;
 		}
-
 		w->event.droppedFilesCount = 0;
+
 
 		unsigned char button = 0, i;
 
 		switch(NSEvent_type(e)){
 			case NSEventTypeKeyDown:
 				w->event.type = RGFW_keyPressed;
-				w->event.keyCode = NSEvent_keyCode(e);
-				w->event.keyName = NSEvent_characters(e);
+				w->event.keyCode = (unsigned short)NSEvent_keyCode(e);
+				w->event.keyName = (char*)NSEvent_characters(e);
 
 				RGFW_keyMap[w->event.keyCode] = 1;
 				break;	
 			
 			case NSEventTypeKeyUp:
 				w->event.type = RGFW_keyReleased;
-				w->event.keyCode = NSEvent_keyCode(e);
-				w->event.keyName = NSEvent_characters(e);
+				w->event.keyCode = (unsigned short)NSEvent_keyCode(e);
+				w->event.keyName = (char*)NSEvent_characters(e);
 				
 				RGFW_keyMap[w->event.keyCode] = 0;
 
@@ -2261,7 +2263,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 
 			default: break;
 		}
-	
+
 		if (w->hideMouse && NSPointInRect(NSEvent_mouseLocation(e), NSWindow_frame(w->window)))
 			CGDisplayHideCursor(kCGDirectMainDisplay);
 		else
@@ -2282,7 +2284,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 	else if (w->x != w->srcX || w->y != w->srcY ||
 			w->w != w->srcW || w->h != w->srcH){
 	
-		NSWindow_setFrame(w->window, NSMakeRect(w->x, w->y, w->w, w->h));
+		NSWindow_setFrameAndDisplay(w->window, NSMakeRect(w->x, w->y, w->w, w->h), true, true);
 
 		w->srcX = w->x;
 		w->srcY = w->y;
@@ -2307,22 +2309,25 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
 
 	struct CGColorSpace* colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
 
-	CGContextRef bitmapContext = CGBitmapContextCreate (src,
+	CGContextRef bitmapContext = CGBitmapContextCreate(src,
 									width,
 									height,
-									channels,      
+									channels,
 									(width * channels),
 									colorSpace,
 									kCGImageAlphaPremultipliedLast);
 
-	CGColorSpaceRelease( colorSpace );
+	CGColorSpaceRelease(colorSpace);
 
 	struct CGImage* myImage = CGBitmapContextCreateImage(bitmapContext);
+	NSImage* source = NSImage_initWithCGImage(myImage, NSMakeSize(width, height));
 
-	NSApplication_setApplicationIconImage(NSApp, myImage);
+	/* TODO(EimaMei): Still doesn't work for some damn reason. Maybe with stbi_image it'll work? No clue. */
+	NSApplication_setApplicationIconImage(NSApp, source);
 
 	CGContextRelease(bitmapContext);
 	CGImageRelease(myImage);
+	release(source);
 }
 
 void RGFW_toggleMouse(RGFW_window* w) {
@@ -2340,11 +2345,11 @@ unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key) {
 	return RGFW_keyMap[key]; 
 }
 
-char* RGFW_readClipboard(RGFW_window* w){ return NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString); }
+char* RGFW_readClipboard(RGFW_window* w){ return (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString); }
 
-void RGFW_writeClipboard(RGFW_window* w, char* text) { 
-	NSPasteBoard_declareTypes(NSPasteboard_generalPasteboard(), (NSPasteboard*[1]){NSPasteboardTypeString}, 1, NULL);
-	NSPasteBoard_setString(NSPasteboard_generalPasteboard(), text, NSPasteboardTypeString); 
+void RGFW_writeClipboard(RGFW_window* w, char* text) {
+	NSPasteBoard_declareTypes(NSPasteboard_generalPasteboard(), array_with_len(NSPasteboardType, NSPasteboardTypeString), NULL);
+	NSPasteBoard_setString(NSPasteboard_generalPasteboard(), text, NSPasteboardTypeString);
 }
 
 unsigned short RGFW_registerJoystick(RGFW_window* window, int jsNumber){
@@ -2395,11 +2400,11 @@ void RGFW_closeWindow(RGFW_window* w){
 
 RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args){ 
 	RGFW_thread t;
-	pthread_create(&t, NULL, *function_ptr, NULL); 
+	pthread_create((pthread_t*)&t, NULL, *function_ptr, NULL);
 	return t;
 }
-void RGFW_cancelThread(RGFW_thread thread){ pthread_cancel(thread); } 
-void RGFW_joinThread(RGFW_thread thread){ pthread_join(thread, NULL); }
+void RGFW_cancelThread(RGFW_thread thread){ pthread_cancel((pthread_t)thread); }
+void RGFW_joinThread(RGFW_thread thread){ pthread_join((pthread_t)thread, NULL); }
 #ifndef __APPLE__
 void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority){ pthread_setschedprio(thread, priority); }
 #endif

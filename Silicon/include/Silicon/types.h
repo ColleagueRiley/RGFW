@@ -87,6 +87,7 @@ typedef void* NSDraggingInfo;
 #ifndef __OBJC__ /* These are already defined in Objective-C. */
 mac_type_define(NSFont);
 mac_type_define(NSDate);
+mac_type_define(NSURL);
 #endif
 
 #ifdef __cplusplus
