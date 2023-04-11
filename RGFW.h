@@ -210,7 +210,13 @@ void RGFW_setIcon(RGFW_window* window, /*!< source window */
 				 int width /*!< width of the bitmap*/, 
 				 int height, /*!< height of the bitmap*/
 				 int channels /*!< how many channels the bitmap has (rgb : 3, rgba : 4) */
-			);
+			); /*!< image resized by default */
+
+void RGFW_defaultIcon(RGFW_window* window); /* sets the mouse to the default mouse image */
+
+void RGFW_setMouse(RGFW_window* window, char* image, int width, int height, int channels); /*!< sets mouse to bitmap (very simular to RGFW_setIcon)*/
+/*!< image NOT resized by default */
+void RGFW_setMouseDefault(RGFW_window* window); /* sets the mouse to the default mouse image */
 
 void RGFW_toggleMouse(RGFW_window* w);
 
@@ -258,7 +264,7 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event); /*!< returns
 
 Example to get you started : 
 
-linux : gcc main.c -lX11 -lGL 
+linux : gcc main.c -lX11 -lXcursor -lGL 
 windows : gcc main.c -lopengl32 -lole32 -lshell32 -lgdi32
 macos:
 	<Silicon/include> can be replaced to where you have the Silicon headers stored 
@@ -308,7 +314,7 @@ int main(){
 		windows:
 			gcc -shared RGFW.o -lopengl32 -lole32 -lshell32 -lgdi32 -o RGFW.dll
 		linux:
-			gcc -shared RGFW.o -lX11 -lGL -o RGFW.so
+			gcc -shared RGFW.o -lX11 -lXcursor -lGL -o RGFW.so
 		macos:
 			<Silicon/include> can be replaced to where you have the Silicon headers stored 
 			<Silicon/build/*.o> can be replaced to wherever you have the Silicon .o files or whatever format you compile them to
@@ -391,6 +397,7 @@ void RGFW_initVulkan(RGFW_window* win, void* inst){
 
 #ifdef __linux__
 #include <X11/Xlib.h>
+#include <X11/Xcursor/Xcursor.h>
 #endif
 #ifdef __WIN32
 #include <windows.h>
@@ -1222,6 +1229,36 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
     XFlush((Display*)w->display);
 }
 
+void RGFW_setMouse(RGFW_window* w, char* image, int width, int height, int channels) {
+    XcursorImage* native = XcursorImageCreate(width, height);
+    unsigned char* source = (unsigned char*) image;
+    XcursorPixel* target = native->pixels;
+
+	unsigned int i;
+    for (i = 0;  i < width * height;  i++, target++, source += 4) {
+        unsigned int alpha = 0xFF;
+        if (channels)
+            alpha = source[3];
+
+        *target = (alpha << 24) | (((source[0] * alpha) / 255) << 16) | (((source[1] * alpha) / 255) <<  8) | (((source[2] * alpha) / 255) <<  0);
+    }
+
+    Cursor cursor = XcursorImageLoadCursor(w->display, native);
+
+    XDefineCursor(w->display, XDefaultRootWindow(w->display), cursor);
+    XFlush(w->display);
+
+	XcursorImageDestroy(native);
+    XFreeCursor(w->display, cursor);
+}
+
+void RGFW_setMouseDefault(RGFW_window* w){
+	Cursor cursor;
+	cursor = XCreateFontCursor((Display*)w->display, XC_left_ptr);
+	XDefineCursor((Display*)w->display, (Window)w->window, cursor);
+	XFreeCursor((Display*)w->display, cursor);
+}
+
 /*
 	the majority function is sourced from GLFW
 */
@@ -1398,11 +1435,7 @@ void RGFW_toggleMouse(RGFW_window* w){
 		w->hideMouse = 1;
 	}
 	else {
-		Cursor cursor;
-		cursor=XCreateFontCursor((Display*)w->display, XC_left_ptr);
-		XDefineCursor((Display*)w->display, (Window)w->window, cursor);
-		XFreeCursor((Display*)w->display, cursor);
-
+		RGFW_setMouseDefault(w);
 		w->hideMouse = 0;
 	}
 }
