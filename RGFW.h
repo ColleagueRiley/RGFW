@@ -2176,8 +2176,6 @@ unsigned int* RGFW_getScreenSize(RGFW_window* w){
 unsigned int RGFW_keysPressed[10]; /*10 keys at a time*/
 
 RGFW_Event RGFW_checkEvents(RGFW_window* w){
-	printf("bamn\n");
-
 	if (!RGFW_ValidWindowCheck(w, "RGFW_checkEvents")) return w->event;
 
 	w->inFocus = NSWindow_isKeyWindow(w->window);
