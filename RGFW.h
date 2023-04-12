@@ -602,7 +602,9 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event){
 /*atoms needed for drag and drop*/
 Atom XdndAware, XdndTypeList,     XdndSelection,    XdndEnter,        XdndPosition,     XdndStatus,       XdndLeave,        XdndDrop,         XdndFinished,     XdndActionCopy,   XdndActionMove,   XdndActionLink,   XdndActionAsk, XdndActionPrivate;
 
+#ifdef RGFW_OSMESA
 XImage* RGFW_omesa_ximage;
+#endif
 
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
     RGFW_window* nWin = (RGFW_window*)malloc(sizeof(RGFW_window)); /* make a new RGFW struct */
@@ -1569,6 +1571,21 @@ char* createUTF8FromWideStringWin32(const WCHAR* source);
 #define GL_LEFT					0x0406
 #define GL_RIGHT				0x0407
 
+#ifdef RGFW_OSMESA
+
+typedef void (GLAPIENTRY * PFN_OSMesaDestroyContext)(OSMesaContext);
+typedef int (GLAPIENTRY * PFN_OSMesaMakeCurrent)(OSMesaContext,void*,int,int,int);
+typedef OSMesaContext (GLAPIENTRY * PFN_OSMesaCreateContext)(GLenum, OSMesaContext);
+
+PFN_OSMesaMakeCurrent OSMesaMakeCurrentSource;
+PFN_OSMesaCreateContext OSMesaCreateContextSource;
+PFN_OSMesaDestroyContext OSMesaDestroyContextSource;
+
+#define OSMesaCreateContext OSMesaCreateContextSource
+#define OSMesaMakeCurrent OSMesaMakeCurrentSource
+#define OSMesaDestroyContext OSMesaDestroyContextSource
+#endif
+
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
     if (name == "") name = " ";
 
@@ -1660,6 +1677,11 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	#endif
 	
 	#ifdef RGFW_OSMESA 
+
+	OSMesaMakeCurrentSource = (PFN_OSMesaMakeCurrent) GetProcAddress(nWin->display, "OSMesaMakeCurrent");
+	OSMesaCreateContextSource = (PFN_OSMesaCreateContext) GetProcAddress(nWin->display, "OSMesaCreateContext");
+	OSMesaDestroyContextSource = (PFN_OSMesaDestroyContext) GetProcAddress(nWin->display, "OSMesaDestroyContext");
+
 	if (RGFW_OPENGL & args) {
 	#endif
 		ReleaseDC((HWND)nWin->display, (HDC)nWin->window);
