@@ -396,7 +396,7 @@ void RGFW_initVulkan(RGFW_window* win, void* inst){
 #include <X11/Xlib.h>
 #include <X11/Xcursor/Xcursor.h>
 #endif
-#ifdef __WIN32
+#ifdef _WIN32
 #include <windows.h>
 #endif
 #ifdef __APPLE__
@@ -459,7 +459,56 @@ unsigned char RGFW_isPressedJS(RGFW_window* w, unsigned short c, unsigned char b
 unsigned char RGFW_error = 0;
 
 #ifdef RGFW_EGL
+
+#ifdef _WIN32
+typedef EGLBoolean (EGLAPIENTRY * PFN_eglInitialize)(EGLDisplay,EGLint*,EGLint*);
+
+PFNEGLINITIALIZEPROC eglInitializeSource;
+PFNEGLGETCONFIGSPROC eglGetConfigsSource;
+PFNEGLCHOOSECONFIGPROC eglChooseConfigSource;
+PFNEGLCREATEWINDOWSURFACEPROC eglCreateWindowSurfaceSource;
+PFNEGLCREATECONTEXTPROC eglCreateContextSource;
+PFNEGLMAKECURRENTPROC eglMakeCurrentSource;
+PFNEGLGETDISPLAYPROC eglGetDisplaySource;
+PFNEGLSWAPBUFFERSPROC eglSwapBuffersSource;
+PFNEGLSWAPINTERVALPROC eglSwapIntervalSource;
+PFNEGLBINDAPIPROC eglBindAPISource;
+PFNEGLDESTROYCONTEXTPROC eglDestroyContextSource;
+PFNEGLTERMINATEPROC eglTerminateSource;
+PFNEGLDESTROYSURFACEPROC eglDestroySurfaceSource;
+
+#define eglInitialize eglInitializeSource
+#define eglGetConfigs eglGetConfigsSource
+#define eglChooseConfig eglChooseConfigSource
+#define eglCreateWindowSurface eglCreateWindowSurfaceSource
+#define eglCreateContext eglCreateContextSource
+#define eglMakeCurrent eglMakeCurrentSource
+#define eglGetDisplay eglGetDisplaySource
+#define eglSwapBuffers eglSwapBuffersSource
+#define eglSwapInterval eglSwapIntervalSource
+#define eglBindAPI eglBindAPISource
+#define eglDestroyContext eglDestroyContextSource
+#define eglTerminate eglTerminateSource
+#define eglDestroySurface eglDestroySurfaceSource;
+#endif
+
 void RGFW_createOpenGLContext(RGFW_window* win){
+	#ifdef _WIN32
+    eglInitializeSource = (PFNEGLINITIALIZEPROC)GetProcAddress(win->display, "eglInitialize");
+    eglGetConfigsSource = (PFNEGLGETCONFIGSPROC) GetProcAddress(win->display, "eglGetConfigs");
+    eglChooseConfigSource = (PFNEGLCHOOSECONFIGPROC)GetProcAddress(win->display, "eglChooseConfig");
+    eglCreateWindowSurfaceSource = (PFNEGLCREATEWINDOWSURFACEPROC)GetProcAddress(win->display, "eglCreateWindowSurface");
+    eglCreateContextSource = (PFNEGLCREATECONTEXTPROC)GetProcAddress(win->display, "eglCreateContext");
+    eglMakeCurrentSource = (PFNEGLMAKECURRENTPROC)GetProcAddress(win->display, "eglMakeCurrent");
+    eglGetDisplaySource = (PFNEGLGETDISPLAYPROC)GetProcAddress(win->display, "eglGetDisplay");
+	eglSwapBuffersSource = (PFNEGLSWAPBUFFERSPROC) GetProcAddress(win->display, "eglSwapBuffers");
+	eglSwapIntervalSource = (PFNEGLSWAPINTERVALPROC) GetProcAddress(win->display, "eglSwapInterval");
+	eglBindAPISource = (PFNEGLBINDAPIPROC) GetProcAddress(win->display, "eglBindAPI");
+	eglDestroyContextSource = (PFNEGLDESTROYCONTEXTPROC) GetProcAddress(win->display, "eglDestroyContext");
+	eglTerminateSource = (PFNEGLTERMINATEPROC) GetProcAddress(win->display, "eglTerminate");
+	eglDestroySurfaceSource = (PFNEGLDESTROYSURFACEPROC) GetProcAddress(win->display, "eglDestroySurface");
+	#endif
+	
     win->EGL_display = eglGetDisplay(win->display);
 
     EGLint major, minor;
@@ -1228,27 +1277,35 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
     XFlush((Display*)w->display);
 }
 
+Display* display = NULL;
+XcursorImage* native = NULL;
+
 void RGFW_setMouse(RGFW_window* w, char* image, int width, int height, int channels) {
-    XcursorImage* native = XcursorImageCreate(width, height);
-    unsigned char* source = (unsigned char*) image;
+	if (display == NULL)
+		display = XOpenDisplay(0);
+
+	if (native == NULL)
+    	native = XcursorImageCreate(width, height);
+    
+	unsigned char* source = (unsigned char*) image;
     XcursorPixel* target = native->pixels;
 
 	unsigned int i;
     for (i = 0;  i < width * height;  i++, target++, source += 4) {
-        unsigned int alpha = 0xFF;
+        unsigned char alpha = 0xFF;
         if (channels)
             alpha = source[3];
 
         *target = (alpha << 24) | (((source[0] * alpha) / 255) << 16) | (((source[1] * alpha) / 255) <<  8) | (((source[2] * alpha) / 255) <<  0);
     }
 
-    Cursor cursor = XcursorImageLoadCursor(w->display, native);
+    Cursor cursor = XcursorImageLoadCursor(display, native);
 
-    XDefineCursor(w->display, XDefaultRootWindow(w->display), cursor);
-    XFlush(w->display);
+    XDefineCursor(display, w->window, cursor);
+/*    XFlush(w->display);
 
 	XcursorImageDestroy(native);
-    XFreeCursor(w->display, cursor);
+    XFreeCursor(w->display, cursor);*/
 }
 
 void RGFW_setMouseDefault(RGFW_window* w){
