@@ -13,9 +13,6 @@
     - set icon (runtime function)
     - (test) OS Mesa / EGL
 
-(other)
-    - opengl vbo wrangler for windows (maybe as a seperate [small/single header] library)
-
 (upkeepy)
     - made error messages for possible errors
     - check for memory leaks (after updates are done)
