@@ -148,12 +148,14 @@ typedef struct RGFW_window {
 	char* srcName; /*!< source name, for chaning the name (do not change these values directly) */
 
 	unsigned int fps, /*the current fps of the window [the fps is checked when events are checked]*/
-				hideMouse, /*if the mouse is hidden or not*/
 				inFocus; /*if the window is in focus or not*/ 
 
 	unsigned char valid; /* the final net for checking if a window is*/
 
 	unsigned char dnd; /*!< if dnd is enabled or on (based on window creating args) */
+
+	void* cursor;
+
 
 	unsigned short joystickCount;
 	int joysticks[4]; /* limit of 4 joysticks at a time */
@@ -166,6 +168,7 @@ typedef struct RGFW_window {
 
 	#ifdef __APPLE__
 	void* view; /*apple viewpoint thingy*/
+	unsigned int hideMouse, /*if the mouse is hidden or not*/
 	#endif
 
 	#ifdef RGFW_EGL
@@ -173,10 +176,6 @@ typedef struct RGFW_window {
 	void* EGL_display;
 	#endif
 	
-	#ifdef __linux__
-	unsigned long cursor;
-	#endif
-
 	RGFW_Event event; /*!< current event */
 } RGFW_window; /*!< Window structure for managing the window */
 
@@ -221,11 +220,11 @@ void RGFW_setIcon(RGFW_window* window, /*!< source window */
 
 void RGFW_defaultIcon(RGFW_window* window); /* sets the mouse to the default mouse image */
 
-void RGFW_setMouse(RGFW_window* window, char* image, int width, int height, int channels); /*!< sets mouse to bitmap (very simular to RGFW_setIcon)*/
+void RGFW_setMouse(RGFW_window* window, unsigned char* image, int width, int height, int channels); /*!< sets mouse to bitmap (very simular to RGFW_setIcon)*/
 /*!< image NOT resized by default */
 void RGFW_setMouseDefault(RGFW_window* window); /* sets the mouse to the default mouse image */
 
-void RGFW_toggleMouse(RGFW_window* w);
+void RGFW_hideMouse(RGFW_window* w);
 
 void RGFW_makeCurrent(RGFW_window* window); /*!< make the window the current opengl drawing context */
 
@@ -637,7 +636,6 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	nWin->srcName = nWin->name = name;
 	nWin->fpsCap = 0;
-	nWin->hideMouse = 0;
 	nWin->inFocus = 1;
 	nWin->event.droppedFilesCount = 0;
 	nWin->joystickCount = 0;
@@ -758,7 +756,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     XMoveWindow((Display *)nWin->display, (Drawable)nWin->window, x, y); /* move the window to it's proper cords*/
 
 	if (RGFW_HIDE_MOUSE & args)
-		RGFW_toggleMouse(nWin);
+		RGFW_hideMouse(nWin);
 
 	if (RGFW_ALLOW_DND & args){ /* init drag and drop atoms and turn on drag and drop for this window */
 		nWin->dnd = 1;
@@ -1299,9 +1297,7 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
     XFlush((Display*)w->display);
 }
 
-Display* display = NULL;
-
-void RGFW_setMouse(RGFW_window* w, char* image, int width, int height, int channels) {
+void RGFW_setMouse(RGFW_window* w, unsigned char* image, int width, int height, int channels) {
     XcursorImage* native = XcursorImageCreate(width, height);
 
     native->xhot = 0;
@@ -1327,17 +1323,10 @@ void RGFW_setMouseDefault(RGFW_window* w) {
 	w->cursor = XCreateFontCursor((Display*)w->display, XC_left_ptr);
 }
 
-void RGFW_toggleMouse(RGFW_window* w){
-	if (!RGFW_ValidWindowCheck(w, "RGFW_toggleMouse")) return;
+void RGFW_hideMouse(RGFW_window* w){
+	if (!RGFW_ValidWindowCheck(w, "RGFW_hideMouse")) return;
 
-	if (!w->hideMouse){
-		RGFW_setMouse(w, (char[4]){0, 0, 0, 0}, 1, 1, 4);
-		w->hideMouse = 1;
-	}
-	else {
-		RGFW_setMouseDefault(w);
-		w->hideMouse = 0;
-	}
+	RGFW_setMouse(w, (char[4]){0, 0, 0, 0}, 1, 1, 4);
 }
 
 /*
@@ -1609,7 +1598,6 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	nWin->srcName = nWin->name = name;
 	nWin->fpsCap = 0;
-	nWin->hideMouse = 0;
 	nWin->inFocus = 1;
 	nWin->joystickCount = 0;
 	nWin->event.droppedFilesCount = 0;
@@ -1874,13 +1862,13 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 
     win->inFocus = (GetForegroundWindow() == win->display);
 
-	if (win->inFocus && win->hideMouse)
-		SetCursor(NULL);	
+	if (win->inFocus)
+		SetCursor((HCURSOR)win->cursor);	
 	else 
-		SetCursor(LoadCursor(NULL, IDC_ARROW));
+		RGFW_setMouseDefault(win);
 
 	return win->event;
-}
+}	
 
 unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key){
 	if (window != NULL && !window->inFocus)
@@ -1891,14 +1879,80 @@ unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key){
 	else return 0;
 }
 
-void RGFW_toggleMouse(RGFW_window* w){ 
-	if (!RGFW_ValidWindowCheck(w, "RGFW_toggleMouse"));
-	w->hideMouse = !w->hideMouse;
+HICON RGFW_loadHandleImage(RGFW_window* w, unsigned char* src, int width, int height, _Bool icon) {
+    if (!RGFW_ValidWindowCheck(w, "RGFW_loadHandleImage")) return;
+    int i;
+    HDC dc;
+    HICON handle;
+    HBITMAP color, mask;
+    BITMAPV5HEADER bi;
+    ICONINFO ii;
+    unsigned char* target = NULL;
+    unsigned char* source = src;
+
+    ZeroMemory(&bi, sizeof(bi));
+    bi.bV5Size        = sizeof(bi);
+    bi.bV5Width       = width;
+    bi.bV5Height      = -height;
+    bi.bV5Planes      = 1;
+    bi.bV5BitCount    = 32;
+    bi.bV5Compression = BI_BITFIELDS;
+    bi.bV5RedMask     = 0x00ff0000;
+    bi.bV5GreenMask   = 0x0000ff00;
+    bi.bV5BlueMask    = 0x000000ff;
+    bi.bV5AlphaMask   = 0xff000000;
+
+    dc = GetDC(NULL);
+    color = CreateDIBSection(dc,
+                             (BITMAPINFO*) &bi,
+                             DIB_RGB_COLORS,
+                             (void**) &target,
+                             NULL,
+                             (DWORD) 0);
+    ReleaseDC(NULL, dc);
+
+    mask = CreateBitmap(width, height, 1, 1, NULL);
+
+    for (i = 0;  i < width * height;  i++)
+    {
+        target[0] = source[2];
+        target[1] = source[1];
+        target[2] = source[0];
+        target[3] = source[3];
+        target += 4;
+        source += 4;
+    }
+
+    ZeroMemory(&ii, sizeof(ii));
+    ii.fIcon    = icon;
+    ii.xHotspot = 0;
+    ii.yHotspot = 0;
+    ii.hbmMask  = mask;
+    ii.hbmColor = color;
+
+    handle = CreateIconIndirect(&ii);
+
+    DeleteObject(color);
+    DeleteObject(mask);
+
+    return handle;
+}
+
+void RGFW_setMouse(RGFW_window* window, unsigned char* image, int width, int height, int channels) {
+	window->cursor = (HCURSOR)RGFW_loadHandleImage(window, image, width, height, FALSE);
+}
+
+void RGFW_setMouseDefault(RGFW_window* window) {
+	window->cursor = LoadCursor(NULL, IDC_ARROW);
+}
+
+void RGFW_hideMouse(RGFW_window* w) { 
+	if (!RGFW_ValidWindowCheck(w, "RGFW_hideMouse"));
+
+	w->cursor = (HCURSOR)RGFW_loadHandleImage(w, (char[4]){0, 0, 0, 0}, 1, 1, FALSE);
 }
 
 void RGFW_closeWindow(RGFW_window* win) {
-	if (!RGFW_ValidWindowCheck(win, "RGFW_closeWindow")) return;
-
 	#ifdef RGFW_EGL
 	RGFW_closeEGL(win);
 	#endif
@@ -1929,61 +1983,10 @@ void RGFW_closeWindow(RGFW_window* win) {
 }
 
 /* much of this function is sourced from GLFW */
-void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int channels){    
-    if (!RGFW_ValidWindowCheck(w, "RGFW_setIcon")); return;
-
-	HDC dc;
-    HICON handle;
-    HBITMAP color, mask;
-    BITMAPV5HEADER bi;
-    ICONINFO ii;
-    unsigned char* target = NULL;
-    unsigned char* source = src;
-
-    ZeroMemory(&bi, sizeof(bi));
-    bi.bV5Size        = sizeof(bi);
-    bi.bV5Width       = width;
-    bi.bV5Height      = -height;
-    bi.bV5Planes      = 1;
-    bi.bV5BitCount    = 32;
-    bi.bV5Compression = BI_BITFIELDS;
-    bi.bV5RedMask     = 0x00ff0000;
-    bi.bV5GreenMask   = 0x0000ff00;
-    bi.bV5BlueMask    = 0x000000ff;
-    bi.bV5AlphaMask   = 0xff000000;
-
-    dc = GetDC(NULL);
-    color = CreateDIBSection(dc,
-                             (BITMAPINFO*) &bi,
-                             DIB_RGB_COLORS,
-                             (void**) &target,
-                             NULL,
-                             (DWORD) 0);
-    ReleaseDC(NULL, dc);
-
-    mask = CreateBitmap(width, height, 1, 1, NULL);
-    
-    int i;
-    for (i = 0;  i < width * height;  i++) {
-        target[0] = source[2];
-        target[1] = source[1];
-        target[2] = source[0];
-        target[3] = source[3];
-        target += 4;
-        source += 4;
-    }
-
-    ZeroMemory(&ii, sizeof(ii));
-    ii.fIcon    = TRUE;
-    ii.xHotspot = 0;
-    ii.yHotspot = 0;
-    ii.hbmMask  = mask;
-    ii.hbmColor = color;
-
-    handle = CreateIconIndirect(&ii);
-
-    DeleteObject(color);
-    DeleteObject(mask);
+void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int channels) {    
+    if (!RGFW_ValidWindowCheck(w, "RGFW_setIcon")) return;
+	
+    HICON handle = RGFW_loadHandleImage(w, src, width, height, TRUE);
 
     SendMessageW((HWND)w->display, WM_SETICON, ICON_BIG, (LPARAM) handle);
     SendMessageW((HWND)w->display, WM_SETICON, ICON_SMALL, (LPARAM) handle);
@@ -2142,8 +2145,6 @@ bool OnDrop(void* sender) {
 
     return true;
 }
-
-void RGFW_toggleMouse(RGFW_window* w);
 
 unsigned char RGFW_loaded = 0;
 
@@ -2396,7 +2397,7 @@ RGFW_Event RGFW_checkEvents(RGFW_window* w){
 	return w->event;
 }
 
-void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int channels){
+void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int channels) {
 	if (!RGFW_ValidWindowCheck(w, "RGFW_setIcon")) return;
 
 	struct CGColorSpace* colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
@@ -2422,8 +2423,12 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
 	release(source);
 }
 
-void RGFW_toggleMouse(RGFW_window* w) {
-	w->hideMouse = !w->hideMouse;
+void RGFW_hideMouse(RGFW_window* w) {
+	w->hideMouse = 1;
+}
+
+void RGFW_setMouseDefault(RGFW_window* w) {
+	w->hideMouse = 0;
 }
 
 unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key) {  
