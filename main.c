@@ -1,14 +1,6 @@
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
 
-#ifdef _WIN32
-#ifdef __linux
-#warning __linux__ undefined to compile for windows
-#undef __linux__
-#undef __unix__
-#endif
-#endif
-
 #include "RGFW.h"
 
 void drawLoop(RGFW_window* w); /* I seperate the draw loop only because it's run twice */
@@ -32,6 +24,8 @@ int main() {
 
     unsigned char i, frames = 60;
 
+    unsigned char mouseHidden = 0;
+
     while (running) {
         RGFW_checkEvents(win);
         frames++;
@@ -46,9 +40,19 @@ int main() {
         else if (RGFW_isPressedS(win, "Space"))
             printf("fps : %i\n", win->fps);
         else if (RGFW_isPressedS(win, "w") && win->event.type == RGFW_keyPressed && frames >= 60) {
-            RGFW_toggleMouse(win);
+            if (!mouseHidden) {
+                RGFW_hideMouse(win);
+                mouseHidden = 1;
+            }
+            else {
+                RGFW_setMouseDefault(win);
+                mouseHidden = 0;
+            }
+            
             frames = 0;
         }
+        else if (RGFW_isPressedS(win, "t")) 
+            RGFW_setMouse(win, icon, 3, 3, 4);
 
         for (i = 0; i < win->event.droppedFilesCount; i++)
             printf("dropped : %s\n", win->event.droppedFiles[i]);
@@ -101,7 +105,7 @@ void *loop2(void * args) {
 
     RGFW_closeWindow(win);
     #else
-    printf("Managing windows using multi-threading is not support using this method :(\n");
+    printf("Managing windows on a seperate thread is not supported on MacOS :(\n");
     #endif
 
     return NULL;
