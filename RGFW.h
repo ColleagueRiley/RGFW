@@ -41,7 +41,10 @@
 	#define RGFW_OSMESA - (optional) use OSmesa as backend (instead of system's opengl api + regular opengl)
 	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
 	#define RGFW_OPENGL_ES - (optional) use EGL to load and use Opengl ES for backend rendering (instead of the system's opengl api)
-	#define RGFW_VULKAN - (optional) use vulkan for the rendering backend (rather than opengl)
+	#define VULKAN - (optional) use vulkan for the rendering backend (rather than opengl)
+
+	#define RGFW_LINK_EGL (optional) (windows only) if EGL is being used, if EGL functions should be defined dymanically (using GetProcAddress)
+	#define RGFW_LINK_OSMESA (optional) (windows only) if EGL is being used, if OS Mesa functions should be defined dymanically  (using GetProcAddress)
 */
 
 #if defined(RGFW_OPENGL_ES) && !defined(RGFW_EGL)
@@ -168,6 +171,10 @@ typedef struct RGFW_window {
 	#ifdef RGFW_EGL
 	void* EGL_surface;
 	void* EGL_display;
+	#endif
+	
+	#ifdef __linux__
+	unsigned long cursor;
 	#endif
 
 	RGFW_Event event; /*!< current event */
@@ -460,7 +467,7 @@ unsigned char RGFW_error = 0;
 
 #ifdef RGFW_EGL
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(RGFW_LINK_EGL)
 typedef EGLBoolean (EGLAPIENTRY * PFN_eglInitialize)(EGLDisplay,EGLint*,EGLint*);
 
 PFNEGLINITIALIZEPROC eglInitializeSource;
@@ -493,7 +500,7 @@ PFNEGLDESTROYSURFACEPROC eglDestroySurfaceSource;
 #endif
 
 void RGFW_createOpenGLContext(RGFW_window* win){
-	#ifdef _WIN32
+	#if defined(_WIN32) && defined(RGFW_LINK_EGL)
     eglInitializeSource = (PFNEGLINITIALIZEPROC)GetProcAddress(win->display, "eglInitialize");
     eglGetConfigsSource = (PFNEGLGETCONFIGSPROC) GetProcAddress(win->display, "eglGetConfigs");
     eglChooseConfigSource = (PFNEGLCHOOSECONFIGPROC)GetProcAddress(win->display, "eglChooseConfig");
@@ -780,6 +787,8 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
                         XdndAware, 4, 32,
                         PropModeReplace, (unsigned char*) &version, 1); /* turns on drag and drop */
 	}
+
+	RGFW_setMouseDefault(nWin);
 
     return nWin; /*return newly created window*/
 }
@@ -1197,6 +1206,15 @@ RGFW_Event RGFW_checkEvents(RGFW_window* win){
 
     win->inFocus = (focus == (Window)win->window);
 	
+	if (win->inFocus)
+		XDefineCursor(win->display, win->window, win->cursor);
+	else {
+		Cursor cursor = XCreateFontCursor((Display*)win->display, XC_left_ptr);
+		XDefineCursor(win->display, win->window, cursor);
+	}
+
+	XFlush(win->display);
+
 	return event;
 }
 
@@ -1206,6 +1224,8 @@ void RGFW_closeWindow(RGFW_window* win){
 	#ifdef RGFW_EGL
 	RGFW_closeEGL(win);
 	#endif
+
+	XFreeCursor(win->display, win->cursor);
 
 	if ((Display*)win->display){
 		if ((Drawable)win->window)
@@ -1280,19 +1300,17 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
 }
 
 Display* display = NULL;
-XcursorImage* native = NULL;
 
 void RGFW_setMouse(RGFW_window* w, char* image, int width, int height, int channels) {
-	if (display == NULL)
-		display = XOpenDisplay(0);
+    XcursorImage* native = XcursorImageCreate(width, height);
 
-	if (native == NULL)
-    	native = XcursorImageCreate(width, height);
-    
-	unsigned char* source = (unsigned char*) image;
+    native->xhot = 0;
+    native->yhot = 0;
+
+    unsigned char* source = (unsigned char*) image;
     XcursorPixel* target = native->pixels;
 
-	unsigned int i;
+	int i;
     for (i = 0;  i < width * height;  i++, target++, source += 4) {
         unsigned char alpha = 0xFF;
         if (channels)
@@ -1301,20 +1319,25 @@ void RGFW_setMouse(RGFW_window* w, char* image, int width, int height, int chann
         *target = (alpha << 24) | (((source[0] * alpha) / 255) << 16) | (((source[1] * alpha) / 255) <<  8) | (((source[2] * alpha) / 255) <<  0);
     }
 
-    Cursor cursor = XcursorImageLoadCursor(display, native);
-
-    XDefineCursor(display, w->window, cursor);
-/*    XFlush(w->display);
-
-	XcursorImageDestroy(native);
-    XFreeCursor(w->display, cursor);*/
+    w->cursor = XcursorImageLoadCursor(w->display, native);
+    XcursorImageDestroy(native);
 }
 
-void RGFW_setMouseDefault(RGFW_window* w){
-	Cursor cursor;
-	cursor = XCreateFontCursor((Display*)w->display, XC_left_ptr);
-	XDefineCursor((Display*)w->display, (Window)w->window, cursor);
-	XFreeCursor((Display*)w->display, cursor);
+void RGFW_setMouseDefault(RGFW_window* w) {
+	w->cursor = XCreateFontCursor((Display*)w->display, XC_left_ptr);
+}
+
+void RGFW_toggleMouse(RGFW_window* w){
+	if (!RGFW_ValidWindowCheck(w, "RGFW_toggleMouse")) return;
+
+	if (!w->hideMouse){
+		RGFW_setMouse(w, (char[4]){0, 0, 0, 0}, 1, 1, 4);
+		w->hideMouse = 1;
+	}
+	else {
+		RGFW_setMouseDefault(w);
+		w->hideMouse = 0;
+	}
 }
 
 /*
@@ -1473,31 +1496,6 @@ void RGFW_writeClipboard(RGFW_window* w, char* text){
     }
 }
 
-void RGFW_toggleMouse(RGFW_window* w){
-	if (!RGFW_ValidWindowCheck(w, "RGFW_toggleMouse")) return;
-
-	if (!w->hideMouse){
-		Cursor invisibleCursor;
-		Pixmap bitmapNoData;
-		XColor black;
-		static char noData[] = { 0,0,0,0,0,0,0,0 };
-		black.red = black.green = black.blue = 0;
-
-		bitmapNoData = XCreateBitmapFromData((Display*)w->display, (Window)w->window, noData, 8, 8);
-		invisibleCursor = XCreatePixmapCursor((Display*)w->display, bitmapNoData, bitmapNoData, 
-											&black, &black, 0, 0);
-		XDefineCursor((Display*)w->display, (Window)w->window, invisibleCursor);
-		XFreeCursor((Display*)w->display, invisibleCursor);
-		XFreePixmap((Display*)w->display, bitmapNoData);
-
-		w->hideMouse = 1;
-	}
-	else {
-		RGFW_setMouseDefault(w);
-		w->hideMouse = 0;
-	}
-}
-
 unsigned short RGFW_registerJoystick(RGFW_window* window, int jsNumber){
 	char file[15];
 	sprintf(file, "/dev/input/js%i", jsNumber);
@@ -1571,7 +1569,7 @@ char* createUTF8FromWideStringWin32(const WCHAR* source);
 #define GL_LEFT					0x0406
 #define GL_RIGHT				0x0407
 
-#ifdef RGFW_OSMESA
+#if defined(RGFW_OSMESA) && defined(RGFW_LINK_OSMESA)
 
 typedef void (GLAPIENTRY * PFN_OSMesaDestroyContext)(OSMesaContext);
 typedef int (GLAPIENTRY * PFN_OSMesaMakeCurrent)(OSMesaContext,void*,int,int,int);
@@ -1678,9 +1676,11 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	
 	#ifdef RGFW_OSMESA 
 
+	#ifdef RGFW_LINK_OSMESA
 	OSMesaMakeCurrentSource = (PFN_OSMesaMakeCurrent) GetProcAddress(nWin->display, "OSMesaMakeCurrent");
 	OSMesaCreateContextSource = (PFN_OSMesaCreateContext) GetProcAddress(nWin->display, "OSMesaCreateContext");
 	OSMesaDestroyContextSource = (PFN_OSMesaDestroyContext) GetProcAddress(nWin->display, "OSMesaDestroyContext");
+	#endif
 
 	if (RGFW_OPENGL & args) {
 	#endif
@@ -2117,7 +2117,23 @@ bool OnDrop(void* sender) {
 		i = 0;
 
 	RGFW_windows[i]->event.droppedFilesCount = NSDraggingInfo_numberOfValidItemsForDrop(sender);
-	RGFW_windows[i]->event.droppedFiles = (char**)NSPasteboard_readObjectsForClasses(NSDraggingInfo_draggingPasteboard(sender),  array_with_len(void*, class(objctype(NSURL))), NULL);
+
+	const char** droppedFiles = (char**)NSPasteboard_readObjectsForClasses(NSDraggingInfo_draggingPasteboard(sender),  array_with_len(void*, class(objctype(NSURL))), NULL);
+	RGFW_windows[i]->event.droppedFiles = (char**)malloc(RGFW_windows[i]->event.droppedFilesCount * sizeof(char*));
+
+
+	/*
+	yes, I tried memset, it didn't work eiehter
+	*/
+	unsigned int x, y;
+	
+	for (y = 0; y < RGFW_windows[i]->event.droppedFilesCount; y++){
+		RGFW_windows[i]->event.droppedFiles[y] = (char**)malloc(strlen(droppedFiles[y]) * sizeof(char));
+		
+		for (x = 0; x < strlen(droppedFiles[y]); x++)
+			RGFW_windows[i]->event.droppedFiles[y][x] = droppedFiles[y][x];
+	}
+	
 	RGFW_windows[i]->event.type = RGFW_dnd;
 
 	NSPoint p = NSDraggingInfo_draggingLocation(sender);
@@ -2257,18 +2273,17 @@ unsigned int RGFW_keysPressed[10]; /*10 keys at a time*/
 RGFW_Event RGFW_checkEvents(RGFW_window* w){
 	if (!RGFW_ValidWindowCheck(w, "RGFW_checkEvents")) return w->event;
 
+	if (w->event.droppedFiles != NULL){
+		free(w->event.droppedFiles);
+		w->event.droppedFiles = NULL;
+	}
+	w->event.droppedFilesCount = 0;
+
 	w->inFocus = NSWindow_isKeyWindow(w->window);
 
 	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, 0, true);	
 
 	if (NSEvent_window(e) == w->window) {
-		if (w->event.droppedFiles != NULL){
-			free(w->event.droppedFiles);
-			w->event.droppedFiles = NULL;
-		}
-		w->event.droppedFilesCount = 0;
-
-
 		unsigned char button = 0, i;
 
 		switch(NSEvent_type(e)){
