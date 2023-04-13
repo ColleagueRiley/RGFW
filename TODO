@@ -1,16 +1,16 @@
 (addons)
-    - controller support (windows) (macos)
     - init drag function (drag n' drop) (output)
-    - custom cursors
+    
+(multiplatform support)
+    - controller support (windows) (macos)
+    - custom cursors (windows) (macos)
 
 (testing)
-    - test hide mouse function (windows) 
-    - test EGL and OSmesa for (windows)
+    - test EGL and OSmesa for (windows) (macos)
 
 (macos)
     - get transparent window to work
     - set icon (runtime function)
-    - (test) OS Mesa / EGL
 
 (upkeepy)
     - made error messages for possible errors
