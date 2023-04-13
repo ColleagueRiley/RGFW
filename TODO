@@ -3,7 +3,6 @@
     
 (multiplatform support)
     - controller support (windows) (macos)
-    - custom cursors (windows) (macos)
 
 (testing)
     - test EGL and OSmesa for (windows) (macos)
