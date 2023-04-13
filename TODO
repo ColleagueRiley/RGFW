@@ -9,7 +9,6 @@
 
 (macos)
     - get transparent window to work
-    - fix drag and drop (input) seg fault
     - set icon (runtime function)
     - (test) OS Mesa / EGL
 
