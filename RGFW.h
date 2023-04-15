@@ -45,7 +45,17 @@
 
 	#define RGFW_LINK_EGL (optional) (windows only) if EGL is being used, if EGL functions should be defined dymanically (using GetProcAddress)
 	#define RGFW_LINK_OSMESA (optional) (windows only) if EGL is being used, if OS Mesa functions should be defined dymanically  (using GetProcAddress)
+
+	#define RGFW_X11 (optional) (unix only) if X11 should be used. This option is turned on by default by unix systems except for MacOS
 */
+
+#if defined(__unix__) && !defined(__APPLE__) && !defined(RGFW_X11)
+#define RGFW_X11
+#endif 
+
+#ifdef defined(__APPLE__) && defined(RGFW_X11)
+#define RGFW_MACOS_X11
+#endif
 
 #if defined(RGFW_OPENGL_ES) && !defined(RGFW_EGL)
 #define RGFW_EGL
@@ -166,7 +176,7 @@ typedef struct RGFW_window {
 	unsigned char render; /* if OSMesa should render on the screen or not (set by window args by default but it can be changed in runtime if you want) */
 	#endif
 
-	#ifdef __APPLE__
+	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 	void* view; /*apple viewpoint thingy*/
 	unsigned int hideMouse; /*if the mouse is hidden or not*/
 	#endif
@@ -366,7 +376,7 @@ int main() {
 #endif
 
 #ifdef RGFW_VULKAN
-#ifdef __linux__
+#ifdef RGFW_X11
 #define VK_USE_PLATFORM_XLIB_KHR
 #endif
 #ifdef _WIN32
@@ -379,7 +389,7 @@ int main() {
 #include <vulkan/vulkan.h>
 
 void RGFW_initVulkan(RGFW_window* win, void* inst) {
-	#ifdef __linux__
+	#ifdef RGFW_X11
 	VkXlibSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, 0, win->display, win->window };
 
 	vkCreateXlibSurfaceKHR(inst, &x11, NULL, win->glWin);
@@ -389,7 +399,7 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 
 	vkCreateWin32SurfaceKHR(inst, &win32, NULL, win->glWin);
 	#endif
-	#ifdef __APPLE__
+	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 	VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_KHR, 0, win->display, win->window };
 
 	vkCreateMacOSSurfaceMVK(inst, &macos, NULL, win->glWin);
@@ -398,27 +408,27 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 
 #endif
 
-#ifdef __linux__
+#ifdef RGFW_X11
 #include <X11/Xlib.h>
 #include <X11/Xcursor/Xcursor.h>
 #endif
 #ifdef _WIN32
 #include <windows.h>
 #endif
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 const char* RGFW_keyStrings[128] = {"a", "s", "d", "f", "h", "g", "z", "x", "c", "v", "0", "b", "q", "w", "e", "r", "y", "t", "1", "2", "3", "4", "6", "5", "Equals", "9", "7", "Minus", "8", "0", "CloseBracket", "o", "u", "Bracket", "i", "p", "Return", "l", "j", "Apostrophe", "k", "Semicolon", "BackSlash", "Comma", "Slash", "n", "m", "Period", "Tab", "Space", "Backtick", "BackSpace", "0", "Escape", "0", "Super", "Shift", "CapsLock", "Alt", "Control", "0", "0", "0", "0", "0", "KP_Period", "0", "KP_Minus", "0", "0", "0", "0", "Numlock", "0", "0", "0", "KP_Multiply", "KP_Return", "0", "0", "0", "0", "KP_Slash", "KP_0", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "0", "KP_8", "KP_9", "0", "0", "0", "F5", "F6", "F7", "F3", "F8", "F9", "0", "F11", "0", "F13", "0", "F14", "0", "F10", "0", "F12", "0", "F15", "Insert", "Home", "PageUp", "Delete", "F4", "End", "F2", "PageDown", "Left", "Right", "Down", "Up", "F1"};
 unsigned char RGFW_keyMap[128] = { 0 };
 #endif
 
 unsigned int RGFW_keyStrToKeyCode(char* key) {
-#ifdef __APPLE__ 
+#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 	unsigned char i;
 	for (i = 0; i < 128; i++)
 		if (!strcmp(RGFW_keyStrings[i], key))
 			return i;
 	printf("%i\n", i);
 #endif 
-#ifdef __linux__
+#ifdef RGFW_X11
 	if (key == "Space") key = (char*)"space";
 
     return XStringToKeysym(key);
@@ -572,7 +582,7 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event) {
 		#ifdef _WIN32
 		|| !IsWindow((Display*)win->display)
 		#endif
-		#ifdef __linux__
+		#ifdef RGFW_X11
 		|| XConnectionNumber((Display*)win->display) == -1 || win->window == (Window)0
 		#endif
 	){
@@ -586,7 +596,7 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event) {
 	return 1;
 }
 
-#ifdef __linux__
+#ifdef RGFW_X11
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -2073,7 +2083,7 @@ void RGFW_joinThread(RGFW_thread thread){ WaitForSingleObject((HANDLE)thread, IN
 void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority){ SetThreadPriority((HANDLE)thread, priority); }
 #endif
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 #define GL_SILENCE_DEPRECATION
 #include <Silicon/silicon.h>
 #include <OpenGL/gl.h>
@@ -2493,13 +2503,13 @@ void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority){ pthread
 
 void RGFW_makeCurrent_OpenGL(RGFW_window* w){
 	#ifdef RGFW_GL
-		#ifdef __linux__
+		#ifdef RGFW_X11
 			glXMakeCurrent((Display *)w->display, (Drawable)w->window, (GLXContext)w->glWin);
 		#endif
 		#ifdef _WIN32
 			wglMakeCurrent((HDC)w->window, (HGLRC)w->glWin);
 		#endif	
-		#ifdef __APPLE__
+		#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 		NSOpenGLContext_makeCurrentContext(w->glWin);
 		NSOpenGLContext_flushBuffer(w->glWin);
 		#endif
@@ -2541,7 +2551,7 @@ void RGFW_clear(RGFW_window* w, unsigned char r, unsigned char g, unsigned char 
     glFlush(); /* flush the window*/
 
 	#ifndef RGFW_EGL
-    #ifndef __APPLE__
+    #if !defined(__APPLE__) || defined(RGFW_MACOS_X11)
 	int currentDrawBuffer;
 
     glGetIntegerv(GL_DRAW_BUFFER, &currentDrawBuffer);
@@ -2571,7 +2581,7 @@ void RGFW_clear(RGFW_window* w, unsigned char r, unsigned char g, unsigned char 
 		}
 
 		free(row);
-		#ifdef __linux__
+		#ifdef RGFW_X11
 			RGFW_omesa_ximage = XCreateImage(w->display, DefaultVisual(w->display, XDefaultScreen(w->display)), DefaultDepth(w->display, XDefaultScreen(w->display)),
 								ZPixmap, 0, (char*)w->buffer, w->srcW, w->srcH, 32, 0);
 
@@ -2585,7 +2595,7 @@ void RGFW_clear(RGFW_window* w, unsigned char r, unsigned char g, unsigned char 
 			SelectObject(hdcMem, hOld);
 			DeleteDC(hdcMem);
 		#endif
-		#ifdef __APPLE__
+		#ifdef defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 		CGRect rect = CGRectMake (0, 0, w->srcW, w->srcH);// 2
 		struct CGColorSpace* colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
 
