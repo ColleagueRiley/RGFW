@@ -71,7 +71,7 @@
 
 /*! Optional arguments for making a windows */
 #define RGFW_TRANSPARENT_WINDOW		(1L<<9) /*!< If the window is transparent*/
-#define RGFW_NO_BOARDER		(1L<<3) /*!< If the window doesn't have boarder*/
+#define RGFW_NO_BORDER		(1L<<3) /*!< If the window doesn't have border*/
 #define RGFW_NO_RESIZE		(1L<<4) /*!< If the window cannot be resized  by the user*/
 #define RGFW_ALLOW_DND     (1L<<5) /*!< if the window supports drag and drop*/
 #define RGFW_HIDE_MOUSE (1L<<6) /* if the window should hide the mouse or not (can be toggled later on)*/
@@ -271,7 +271,7 @@ unsigned short RGFW_registerJoystickF(RGFW_window* window, char* file);
 unsigned char RGFW_isPressedJS(RGFW_window* window, unsigned short controller, unsigned char button);
 
 /*! Supporting functions */
-void RGFW_setDrawBuffer(int buffer); /*!< switching draw buffer (front/back/third) */
+void RGFW_swapBuffers(RGFW_window* w); /* swap the opengl buffer */
 void RGFW_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_checkEvents)*/ 
 unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event); /*!< returns true if the window is valid (and prints an error and where it took place if it can)*/
 
@@ -580,7 +580,7 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event) {
 	
 	if (win->valid != 245 || win == (RGFW_window*)0
 		#ifdef _WIN32
-		|| !IsWindow((Display*)win->display)
+		|| !IsWindow((HWND)win->display)
 		#endif
 		#ifdef RGFW_X11
 		|| XConnectionNumber((Display*)win->display) == -1 || win->window == (Window)0
@@ -735,7 +735,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     }
 
 
-    if (RGFW_NO_BOARDER & args){ 
+    if (RGFW_NO_BORDER & args){ 
 		/* Atom vars for no-border*/
         Atom window_type = XInternAtom((Display *)nWin->display, "_NET_WM_WINDOW_TYPE", False);
         Atom value = XInternAtom((Display *)nWin->display, "_NET_WM_WINDOW_TYPE_DOCK", False);
@@ -755,7 +755,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	if (RGFW_OPENGL & args) {
 	#endif
 		glXMakeCurrent((Display *)nWin->display, (Drawable)nWin->window, (GLXContext)nWin->glWin);
-		((PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress("glXSwapIntervalEXT"))(nWin->display, (Window)nWin->window, 0);
+		/*((PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress("glXSwapIntervalEXT"))(nWin->display, (Window)nWin->window, 1);*/
 	#ifdef RGFW_OSMESA
 		render = 0;
 	}
@@ -1617,7 +1617,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	DWORD window_style = WS_MAXIMIZEBOX | WS_MINIMIZEBOX | window_style;
 
-	if (!(RGFW_NO_BOARDER & args))
+	if (!(RGFW_NO_BORDER & args))
 		window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER;
 	else
 		window_style |= WS_POPUP | WS_VISIBLE;
@@ -1687,6 +1687,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	#ifdef RGFW_EGL
 	RGFW_createOpenGLContext(nWin);
+	wglSwapIntervalEXT(1);
 	#endif
 
     ShowWindow((HWND)nWin->display, SW_SHOWNORMAL);
@@ -2175,7 +2176,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	if (!(RGFW_NO_RESIZE & args))
 		macArgs |= NSWindowStyleMaskResizable;
-	if (!(RGFW_NO_BOARDER & args))
+	if (!(RGFW_NO_BORDER & args))
 		macArgs |= NSWindowStyleMaskTitled;
 	else 
 		macArgs |= NSWindowStyleMaskBorderless;
@@ -2530,13 +2531,13 @@ void RGFW_makeCurrent(RGFW_window* w){
 	RGFW_makeCurrent_OpenGL(w);
 }
 
-void RGFW_setDrawBuffer(int buffer){
-    #ifndef RGFW_VULKAN
-	if (buffer != GL_FRONT && buffer != GL_BACK && buffer != GL_LEFT && buffer != GL_RIGHT)
-        return;
 
-    /* Set the draw buffer using the specified value*/
-    glDrawBuffer(buffer);
+void RGFW_swapBuffers(RGFW_window* w) {
+	#if defined(RGFW_X11) && defined(RGFW_GL)
+	glXSwapBuffers(w->display, (Window)w->window);
+	#endif
+	#ifdef _WIN32
+	SwapBuffers(w->window);
 	#endif
 }
 
@@ -2545,19 +2546,12 @@ void RGFW_clear(RGFW_window* w, unsigned char r, unsigned char g, unsigned char 
 
 	#ifdef RGFW_EGL
 	eglSwapBuffers(w->EGL_display, w->EGL_surface);
+	#else
+	RGFW_swapBuffers(w);
 	#endif
 
 	#ifndef RGFW_VULKAN
     glFlush(); /* flush the window*/
-
-	#ifndef RGFW_EGL
-    #if !defined(__APPLE__) || defined(RGFW_MACOS_X11)
-	int currentDrawBuffer;
-
-    glGetIntegerv(GL_DRAW_BUFFER, &currentDrawBuffer);
-    RGFW_setDrawBuffer((currentDrawBuffer == GL_BACK) ? GL_FRONT : GL_BACK); /* Set draw buffer to be the other buffer*/
-	#endif
-	#endif
     glClearColor(r / 255.0, g / 255.0, b / 255.0, a / 255.0);
     glClear(GL_COLOR_BUFFER_BIT);
 	#endif
@@ -2645,12 +2639,12 @@ void RGFW_checkFPS(RGFW_window* win){
 
 
 	/*slow down to the set fps cap*/
-	if (win->fpsCap){
+	if (win->fpsCap) {
 		time_t currentTime = time(0);
 		time_t elapsedTime = currentTime - startTime[1];
 
 		int sleepTime = 1000/(win->fpsCap) - elapsedTime;
-		if (sleepTime > 0){
+		if (sleepTime > 0) {
 			RGFW_Timespec sleep_time = { sleepTime / 1000, (unsigned int)((sleepTime % 1000) * 1000000) };
 			nanosleep((struct timespec*)&sleep_time, NULL);
 		}
