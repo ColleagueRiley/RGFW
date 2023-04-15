@@ -53,7 +53,7 @@
 #define RGFW_X11
 #endif 
 
-#ifdef defined(__APPLE__) && defined(RGFW_X11)
+#if defined(__APPLE__) && defined(RGFW_X11)
 #define RGFW_MACOS_X11
 #endif
 
