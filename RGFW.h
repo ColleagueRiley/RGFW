@@ -221,8 +221,6 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* window); /*!< check events (returns a 
 /*! window managment functions*/
 void RGFW_closeWindow(RGFW_window* window); /*!< close the window and free leftover data */
 
-void RGFW_clear(RGFW_window* window, unsigned char r, unsigned char g, unsigned char b, unsigned char a); /*!< clear window to the rgba color*/
-
 void RGFW_setIcon(RGFW_window* window, /*!< source window */
 				 unsigned char* icon /*!< icon bitmap */, 
 				 int width /*!< width of the bitmap*/, 
