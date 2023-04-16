@@ -11,8 +11,14 @@ unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF,
 
 unsigned char running = 1;
 
+
 int main() {
     RGFW_window* win = RGFW_createWindowPointer("name", 500, 500, 500, 500, RGFW_ALLOW_DND);
+
+    #ifndef RGFW_VULKAN
+    glEnable(0x0BE2);
+    glBlendFunc(0x0302, 0x0303);
+    #endif
 
     win->fpsCap = 60;
 
@@ -27,19 +33,18 @@ int main() {
     unsigned char mouseHidden = 0;
 
     while (running) {
-        RGFW_checkEvents(win);
         frames++;
-
+        RGFW_checkEvents(win);
         if (win->event.type == RGFW_quit)
-            running = 0;
-
+            running = 0;   
+        
         if (RGFW_isPressedS(win, "Up"))
             printf("Pasted : %s\n", RGFW_readClipboard(win));
         else if (RGFW_isPressedS(win, "Down"))
             RGFW_writeClipboard(win, "DOWN");
         else if (RGFW_isPressedS(win, "Space"))
             printf("fps : %i\n", win->fps);
-        else if (RGFW_isPressedS(win, "w") && win->event.type == RGFW_keyPressed && frames >= 60) {
+        else if (RGFW_isPressedS(win, "w") && frames >= 30) {
             if (!mouseHidden) {
                 RGFW_hideMouse(win);
                 mouseHidden = 1;
@@ -62,7 +67,7 @@ int main() {
 
         if (win->event.type == RGFW_jsAxisMove && !win->event.button)
             printf("{%i, %i}\n", win->event.axis[0][0], win->event.axis[0][1]);
-    
+
         drawLoop(win);
     }
 
@@ -73,8 +78,12 @@ int main() {
 }
 
 void drawLoop(RGFW_window *w) {
+    RGFW_swapBuffers(w);
+
     #ifndef RGFW_VULKAN
-    RGFW_clear(w, 255, 255, 255, 0);
+    glClearColor(0xFF, 0XFF, 0xFF, 0xFF);
+    glClear(GL_COLOR_BUFFER_BIT);
+
     glBegin(GL_TRIANGLES);
     glColor3f(1, 0, 0);
     glVertex2f(-0.6, -0.75);
@@ -90,7 +99,7 @@ void drawLoop(RGFW_window *w) {
 
 void *loop2(void * args) {
     #ifndef __APPLE__
-    RGFW_window *win = RGFW_createWindowPointer("subwindow", 200, 200, 200, 200, NULL);
+    RGFW_window* win = RGFW_createWindowPointer("subwindow", 200, 200, 200, 200, 0);
     win->fpsCap = 60;
 
     while (running)
@@ -109,5 +118,4 @@ void *loop2(void * args) {
     #endif
 
     return NULL;
-    
 }
