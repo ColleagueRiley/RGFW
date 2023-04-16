@@ -236,7 +236,12 @@ void RGFW_setMouse(RGFW_window* window, unsigned char* image, int width, int hei
 /*!< image NOT resized by default */
 void RGFW_setMouseDefault(RGFW_window* window); /* sets the mouse to the default mouse image */
 
+#ifdef __APPLE__
 void RGFW_hideMouse(RGFW_window* w);
+#else
+unsigned char blank[] = {0, 0, 0, 0};
+#define RGFW_hideMouse(w) RGFW_setMouse(w, blank, 1, 1, 4);
+#endif
 
 void RGFW_makeCurrent(RGFW_window* window); /*!< make the window the current opengl drawing context */
 
@@ -632,18 +637,35 @@ Atom XdndAware, XdndTypeList,     XdndSelection,    XdndEnter,        XdndPositi
 XImage* RGFW_omesa_ximage;
 #endif
 
+typedef XcursorImage* (* PFN_XcursorImageCreate)(int,int);
+typedef void (* PFN_XcursorImageDestroy)(XcursorImage*);
 typedef Cursor (* PFN_XcursorImageLoadCursor)(Display*,const XcursorImage*);
 
 PFN_XcursorImageLoadCursor XcursorImageLoadCursorSrc = NULL;
+PFN_XcursorImageCreate XcursorImageCreateSrc = NULL;
+PFN_XcursorImageDestroy XcursorImageDestroySrc = NULL;
 
 #define XcursorImageLoadCursor XcursorImageLoadCursorSrc
+#define XcursorImageCreate XcursorImageCreateSrc
+#define XcursorImageDestroy XcursorImageDestroySrc
 
 void* X11Cursorhandle = NULL;
 
+unsigned int RGFW_windowsOpen = 0;
+
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args) {
-	if (XcursorImageLoadCursorSrc == NULL) {
-		void* X11Cursorhandle = dlopen("libXcursor.so.1", RTLD_LAZY | RTLD_LOCAL);
-		XcursorImageLoadCursorSrc = (PFN_XcursorImageLoadCursor) dlsym(X11Cursorhandle, "XcursorImageLoadCursor");
+	if (X11Cursorhandle == NULL) {
+		#if defined(__CYGWIN__)
+			X11Cursorhandle = dlopen("libXcursor-1.so", RTLD_LAZY | RTLD_LOCAL);
+		#elif defined(__OpenBSD__) || defined(__NetBSD__)
+			X11Cursorhandle = dlopen("libXcursor.so", RTLD_LAZY | RTLD_LOCAL);
+		#else
+			X11Cursorhandle = dlopen("libXcursor.so.1", RTLD_LAZY | RTLD_LOCAL);
+		#endif
+
+		XcursorImageCreateSrc = (PFN_XcursorImageCreate)dlsym(X11Cursorhandle, "XcursorImageCreate");
+		XcursorImageDestroySrc = (PFN_XcursorImageDestroy)dlsym(X11Cursorhandle, "XcursorImageDestroy");
+        XcursorImageLoadCursorSrc = (PFN_XcursorImageLoadCursor)dlsym(X11Cursorhandle, "XcursorImageLoadCursor");
 	}
 
 	RGFW_window* nWin = (RGFW_window*)malloc(sizeof(RGFW_window)); /* make a new RGFW struct */
@@ -673,6 +695,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->event.droppedFilesCount = 0;
 	nWin->joystickCount = 0;
 	nWin->dnd = 0;
+	nWin->cursor = NULL;
 	nWin->cursorChanged = 0;
 	nWin->valid = 245;
 
@@ -819,6 +842,8 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	}
 
 	RGFW_setMouseDefault(nWin);
+
+	RGFW_windowsOpen++;
 
     return nWin; /*return newly created window*/
 }
@@ -1233,13 +1258,19 @@ void RGFW_closeWindow(RGFW_window* win) {
 	#endif
 
 	XFreeCursor((Display*)win->display, (Cursor)win->cursor);
-	
-	dlclose(X11Cursorhandle);
 
 	if ((Display*)win->display) {
 		if ((Drawable)win->window)
 			XDestroyWindow((Display *)win->display, (Drawable)win->window); /* close the window*/
-		XCloseDisplay((Display *)win->display); /* kill the display*/	
+
+		if (win->display)
+			XCloseDisplay((Display *)win->display); /* kill the display*/	
+	}
+
+	if (X11Cursorhandle != NULL && !RGFW_windowsOpen) {
+		dlclose(X11Cursorhandle);
+
+		X11Cursorhandle = NULL;
 	}
 
 	/* set cleared display / window to NULL for error checking */
@@ -1262,6 +1293,8 @@ void RGFW_closeWindow(RGFW_window* win) {
 	#endif
 
 	free(win); /* free collected window data */
+
+	RGFW_windowsOpen--;
 }
 
 /*
@@ -1309,9 +1342,11 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
 }
 
 void RGFW_setMouse(RGFW_window* w, unsigned char* image, int width, int height, int channels) {
-    XcursorImage* native;
-	native->width = width;
-	native->height = height;
+	/* free the previous cursor */
+	if (w->cursor != NULL)
+		XFreeCursor((Display*)w->display, (Cursor)w->cursor);
+
+	XcursorImage* native = XcursorImageCreate(width, height);
     native->xhot = 0;
     native->yhot = 0;
 
@@ -1329,18 +1364,16 @@ void RGFW_setMouse(RGFW_window* w, unsigned char* image, int width, int height, 
 
 	w->cursorChanged = 1;
     w->cursor = (void*)XcursorImageLoadCursor((Display*)w->display, native);
+	XcursorImageDestroy(native);
 }
 
 void RGFW_setMouseDefault(RGFW_window* w) {
+	/* free the previous cursor */
+	if (w->cursor != NULL)
+		XFreeCursor((Display*)w->display, (Cursor)w->cursor);
+	
 	w->cursorChanged = 1;
 	w->cursor = (void*)XCreateFontCursor((Display*)w->display, XC_left_ptr);
-}
-
-void RGFW_hideMouse(RGFW_window* w) {
-	if (!RGFW_ValidWindowCheck(w, (char*)"RGFW_hideMouse")) return;
-	
-	unsigned char blank[4] = {0, 0, 0, 0};
-	RGFW_setMouse(w, blank, 1, 1, 4);
 }
 
 /*
@@ -1967,12 +2000,6 @@ void RGFW_setMouse(RGFW_window* window, unsigned char* image, int width, int hei
 
 void RGFW_setMouseDefault(RGFW_window* window) {
 	window->cursor = LoadCursor(NULL, IDC_ARROW);
-}
-
-void RGFW_hideMouse(RGFW_window* w) { 
-	if (!RGFW_ValidWindowCheck(w, (char*)"RGFW_hideMouse"));
-
-	w->cursor = (HCURSOR)RGFW_loadHandleImage(w, (char[4]) {0, 0, 0, 0}, 1, 1, FALSE);
 }
 
 void RGFW_closeWindow(RGFW_window* win) {
