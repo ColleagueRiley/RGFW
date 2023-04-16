@@ -24,6 +24,8 @@
 	Credits :
 		EimaMei/Sacode : Much of the code for creating windows using winapi
 
+		stb - This project is heavily inspired by the stb single header files
+		
 		GLFW: 
 			certain parts of winapi and X11 are very poorly documented, 
 			GLFW's source code was referenced and used throughout the project (used code is marked in some way),
@@ -299,7 +301,10 @@ int main() {
 
     for (;;) {
         RGFW_checkEvents(w); 
-        RGFW_clear(w, 255, 255, 255, 255);
+        RGFW_swapBuffers(w, 255, 255, 255, 255);
+
+		glClearColor(0xFF, 0XFF, 0xFF, 0xFF);
+		glClear(GL_COLOR_BUFFER_BIT);
 
         if (w->event.type == RGFW_quit || RGFW_isPressedS(w, (char*)"Escape"))
             break;
@@ -411,6 +416,7 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 #ifdef RGFW_X11
 #include <X11/Xlib.h>
 #include <X11/Xcursor/Xcursor.h>
+#include <dlfcn.h>
 #endif
 #ifdef _WIN32
 #include <windows.h>
@@ -604,7 +610,9 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event) {
 
 #ifdef RGFW_GL
 
+#ifndef GLX_MESA_swap_control
 #define  GLX_MESA_swap_control
+#endif
 #include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
 #endif
 #include <X11/XKBlib.h> /* for converting keycode to string */
@@ -624,10 +632,21 @@ Atom XdndAware, XdndTypeList,     XdndSelection,    XdndEnter,        XdndPositi
 XImage* RGFW_omesa_ximage;
 #endif
 
-#define glXSwapInterval(x, y) glXSwapIntervalSource(x, y)
+typedef Cursor (* PFN_XcursorImageLoadCursor)(Display*,const XcursorImage*);
+
+PFN_XcursorImageLoadCursor XcursorImageLoadCursorSrc = NULL;
+
+#define XcursorImageLoadCursor XcursorImageLoadCursorSrc
+
+void* X11Cursorhandle = NULL;
 
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args) {
-    RGFW_window* nWin = (RGFW_window*)malloc(sizeof(RGFW_window)); /* make a new RGFW struct */
+	if (XcursorImageLoadCursorSrc == NULL) {
+		void* X11Cursorhandle = dlopen("libXcursor.so.1", RTLD_LAZY | RTLD_LOCAL);
+		XcursorImageLoadCursorSrc = (PFN_XcursorImageLoadCursor) dlsym(X11Cursorhandle, "XcursorImageLoadCursor");
+	}
+
+	RGFW_window* nWin = (RGFW_window*)malloc(sizeof(RGFW_window)); /* make a new RGFW struct */
 
     XInitThreads(); /* init X11 threading*/
 
@@ -765,9 +784,6 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     /* set the background*/
     XStoreName((Display *)nWin->display, (Drawable) nWin->window, name); /* set the name*/
 
-    glEnable(0x0BE2);			 /* Enable blending.*/
-    glBlendFunc(0x0302, 0x0303); /* Set blending function*/
-
     XMapWindow((Display *)nWin->display, (Drawable)nWin->window);						  /* draw the window*/
     XMoveWindow((Display *)nWin->display, (Drawable)nWin->window, x, y); /* move the window to it's proper cords*/
 
@@ -872,14 +888,14 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 			XKeyboardState keystate;
 			XGetKeyboardControl((Display *)win->display, &keystate);
 			win->event.ledState = keystate.led_mask;
-
+			win->event.keyCode = E.xkey.keycode;
 			win->event.type = (E.type == KeyPress) ? RGFW_keyPressed : RGFW_keyReleased;
 			break;
 
 		case ButtonPress:
 		case ButtonRelease:
 			win->event.type = (E.type == ButtonPress) ? RGFW_mouseButtonPressed : RGFW_mouseButtonReleased;
-			win->event.button = win->event.button;
+			win->event.button = E.xbutton.button;
 			break;
 
 		case MotionNotify:
@@ -1217,6 +1233,8 @@ void RGFW_closeWindow(RGFW_window* win) {
 	#endif
 
 	XFreeCursor((Display*)win->display, (Cursor)win->cursor);
+	
+	dlclose(X11Cursorhandle);
 
 	if ((Display*)win->display) {
 		if ((Drawable)win->window)
@@ -1291,8 +1309,9 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
 }
 
 void RGFW_setMouse(RGFW_window* w, unsigned char* image, int width, int height, int channels) {
-    XcursorImage* native = XcursorImageCreate(width, height);
-
+    XcursorImage* native;
+	native->width = width;
+	native->height = height;
     native->xhot = 0;
     native->yhot = 0;
 
@@ -1302,7 +1321,7 @@ void RGFW_setMouse(RGFW_window* w, unsigned char* image, int width, int height, 
 	int i;
     for (i = 0;  i < width * height;  i++, target++, source += 4) {
         unsigned char alpha = 0xFF;
-        if (channels)
+        if (channels == 4)
             alpha = source[3];
 
         *target = (alpha << 24) | (((source[0] * alpha) / 255) << 16) | (((source[1] * alpha) / 255) <<  8) | (((source[2] * alpha) / 255) <<  0);
@@ -1310,7 +1329,6 @@ void RGFW_setMouse(RGFW_window* w, unsigned char* image, int width, int height, 
 
 	w->cursorChanged = 1;
     w->cursor = (void*)XcursorImageLoadCursor((Display*)w->display, native);
-    XcursorImageDestroy(native);
 }
 
 void RGFW_setMouseDefault(RGFW_window* w) {
@@ -1569,6 +1587,8 @@ PFN_OSMesaDestroyContext OSMesaDestroyContextSource;
 #define OSMesaDestroyContext OSMesaDestroyContextSource
 #endif
 
+void* RGFWjoystickApi = NULL;
+
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args) {
     if (name == "") name = " ";
 
@@ -1689,6 +1709,9 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	RGFW_createOpenGLContext(nWin);
 	wglSwapIntervalEXT(1);
 	#endif
+
+	if (RGFWjoystickApi == NULL)
+		DirectInput8Create(nWin->display, DIRECTINPUT_VERSION, &(LPIID){0xBF798031,0x483A,0x4DA2,0xAA,0x99,0x5D,0x64,0xED,0x36,0x97,0x00}, (void**) &RGFWjoystickApi, NULL);
 
     ShowWindow((HWND)nWin->display, SW_SHOWNORMAL);
 
@@ -2051,6 +2074,8 @@ void RGFW_writeClipboard(RGFW_window* w, char* text) {
 }
 
 unsigned short RGFW_registerJoystick(RGFW_window* window, int jsNumber) {
+
+									  
 	return RGFW_registerJoystickF(window, (char*)"");
 }
 
@@ -2530,10 +2555,14 @@ void RGFW_makeCurrent(RGFW_window* w) {
 	RGFW_makeCurrent_OpenGL(w);
 }
 
-
 void RGFW_swapBuffers(RGFW_window* w) {
+	RGFW_makeCurrent(w);
+
+	#ifdef RGFW_EGL
+	eglSwapBuffers(w->EGL_display, w->EGL_surface);
+	#else
 	#if defined(RGFW_X11) && defined(RGFW_GL)
-	glXSwapBuffers(w->display, (Window)w->window);
+	glXSwapBuffers((Display*)w->display, (Window)w->window);
 	#endif
 	#ifdef _WIN32
 	SwapBuffers(w->window);
@@ -2541,22 +2570,9 @@ void RGFW_swapBuffers(RGFW_window* w) {
 	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 	NSOpenGLContext_flushBuffer(w->glWin);
 	#endif
-}
-
-void RGFW_clear(RGFW_window* w, unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
-	RGFW_makeCurrent(w);
-
-	#ifdef RGFW_EGL
-	eglSwapBuffers(w->EGL_display, w->EGL_surface);
-	#else
-	RGFW_swapBuffers(w);
 	#endif
 
-	#ifndef RGFW_VULKAN
-    glFlush(); /* flush the window*/
-    glClearColor(r / 255.0, g / 255.0, b / 255.0, a / 255.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-	#endif
+
 
 	/* clear the window*/
 
@@ -2617,7 +2633,7 @@ void RGFW_clear(RGFW_window* w, unsigned char r, unsigned char g, unsigned char 
 
 	#ifdef RGFW_VULKAN
 	#ifdef RGFW_PRINT_ERRORS
-	printf("RGFW_clear %s\n", "RGFW_clear is not supported for Vulkan");
+	printf("RGFW_swapBuffers %s\n", "RGFW_swapBuffers is not yet supported for Vulkan");
 	RGFW_error = 1;
 	#endif
 	#endif
@@ -2627,7 +2643,7 @@ time_t startTime[2];
 int frames = 0;
 
 void RGFW_checkFPS(RGFW_window* win) {
-	/*get current fps*/
+	/* get current fps*/
 	frames++;
 
 	unsigned int seconds = time(0) - startTime[0];
