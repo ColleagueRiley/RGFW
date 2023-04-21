@@ -625,8 +625,10 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event) {
 #include <limits.h> /* for data limits (mainly used in drag and drop functions) */
 #include <string.h> /* strlen and other char* managing functions */
 #include <fcntl.h>
-#include <linux/joystick.h>
 
+#ifdef __linux__
+#include <linux/joystick.h>
+#endif
 
 /*atoms needed for drag and drop*/
 Atom XdndAware, XdndTypeList,     XdndSelection,    XdndEnter,        XdndPosition,     XdndStatus,       XdndLeave,        XdndDrop,         XdndFinished,     XdndActionCopy,   XdndActionMove,   XdndActionLink,   XdndActionAsk, XdndActionPrivate;
@@ -1174,6 +1176,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 			win->srcH = win->h = a.height;		
 			break;
 		default:
+			#ifdef __linux__
 			unsigned char i;
 			for (i = 0; i < win->joystickCount; i++) {
 				struct js_event e;
@@ -1211,6 +1214,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 						}
 				}
 			}
+			#endif
 			
 			break;
 	}
@@ -1531,13 +1535,16 @@ void RGFW_writeClipboard(RGFW_window* w, char* text) {
 }
 
 unsigned short RGFW_registerJoystick(RGFW_window* window, int jsNumber) {
+	#ifdef __linux__
 	char file[15];
 	sprintf(file, "/dev/input/js%i", jsNumber);
 
 	return RGFW_registerJoystickF(window, file);
+	#endif
 }
 
 unsigned short RGFW_registerJoystickF(RGFW_window* w, char* file) {
+	#ifdef __linux__
 	if (!RGFW_ValidWindowCheck(w, (char*)"RGFW_registerJoystickF")) return 0;
 
 	int js = open(file, O_RDONLY);
@@ -1561,6 +1568,7 @@ unsigned short RGFW_registerJoystickF(RGFW_window* w, char* file) {
 	}
 
 	return w->joystickCount - 1;
+	#endif
 }
 
 char keyboard[32];
