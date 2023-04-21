@@ -2567,7 +2567,7 @@ RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args) {
 }
 void RGFW_cancelThread(RGFW_thread thread) { pthread_cancel((pthread_t)thread); }
 void RGFW_joinThread(RGFW_thread thread) { pthread_join((pthread_t)thread, NULL); }
-#ifndef __APPLE__
+#ifdef __linux__
 void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority) { pthread_setschedprio(thread, priority); }
 #endif
 #endif
