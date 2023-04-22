@@ -2239,7 +2239,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->srcH = nWin->h = h;
 	nWin->srcName = nWin->name = name;
 	nWin->fpsCap = 0;
-	nWin->inFocus = 1;
+	nWin->inFocus = 0;
 	nWin->hideMouse = 0;
 	nWin->event.type = 0;
 	nWin->event.droppedFiles = NULL;
@@ -2362,7 +2362,7 @@ unsigned int* RGFW_getScreenSize(RGFW_window* w){
 
 unsigned int RGFW_keysPressed[10]; /*10 keys at a time*/
 
-RGFW_Event* RGFW_checkEvents(RGFW_window* w){
+RGFW_Event* RGFW_checkEvents(RGFW_window* w) {
 	if (!RGFW_ValidWindowCheck(w, (char*)"RGFW_checkEvents")) return NULL;
 
 	if (w->event.droppedFiles != NULL){
@@ -2372,6 +2372,16 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* w){
 	w->event.droppedFilesCount = 0;
 
 	w->inFocus = NSWindow_isKeyWindow(w->window);
+
+	/* NOTE(EimaMei): This is super janky code, THANKS APPLE. For some reason it takes a few frames AFTER becoming focused to allow setting the cursor. */
+	if (w->inFocus && w->cursor != NULL && (w->cursorChanged != 2 || NSCursor_currentCursor() != w->cursor)) {
+		if (w->cursorChanged != 2)
+			w->cursorChanged++;
+
+		if (w->cursorChanged != 2 || NSCursor_currentCursor() != w->cursor) {
+			NSCursor_set(w->cursor);
+		}
+	}
 
 	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, 0, true);
 
@@ -2491,16 +2501,16 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* w){
 		return NULL;
 }
 
-void RGFW_setIcon(RGFW_window* w, unsigned char* data, int x, int y, int c) {
+void RGFW_setIcon(RGFW_window* w, unsigned char* data, int width, int height, int channels) {
 	if (!RGFW_ValidWindowCheck(w, (char*)"RGFW_setIcon")) return;
 
-	/* code by Eima Mei  */
+	/* code by EimaMei  */
     // Make a bitmap representation, then copy the loaded image into it.
-    NSBitmapImageRep* representation = NSBitmapImageRep_initWithBitmapData(NULL, x, y, 8, c, (c == 4), false, "NSCalibratedRGBColorSpace", NSBitmapFormatAlphaNonpremultiplied, x * c, 8 * c);
-    memcpy(NSBitmapImageRep_bitmapData(representation), data, x * y * c);
+    NSBitmapImageRep* representation = NSBitmapImageRep_initWithBitmapData(NULL, width, height, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", NSBitmapFormatAlphaNonpremultiplied, width * channels, 8 * channels);
+    memcpy(NSBitmapImageRep_bitmapData(representation), data, width * height * channels);
 
     // Add ze representation.
-    NSImage* dock_image = NSImage_initWithSize(NSMakeSize(x, y));
+    NSImage* dock_image = NSImage_initWithSize(NSMakeSize(width, height));
     NSImage_addRepresentation(dock_image, (NSImageRep*)representation);
 
     // Finally, set the dock image to it.
@@ -2512,7 +2522,49 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* data, int x, int y, int c) {
 }
 
 void RGFW_setMouse(RGFW_window* window, unsigned char* image, int width, int height, int channels) {
+	if (!RGFW_ValidWindowCheck(window, (char*)"RGFW_setMouse")) return;
 
+	if (image == NULL) {
+		NSCursor_set(NSCursor_arrowCursor());
+		window->cursor = NULL;
+
+		return ;
+	}
+
+	/* NOTE(EimaMei): Code by yours truly. */
+    // Make a bitmap representation, then copy the loaded image into it.
+    NSBitmapImageRep* representation = NSBitmapImageRep_initWithBitmapData(NULL, width, height, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", NSBitmapFormatAlphaNonpremultiplied, width * channels, 8 * channels);
+    memcpy(NSBitmapImageRep_bitmapData(representation), image, width * height * channels);
+
+    // Add ze representation.
+    NSImage* cursor_image = NSImage_initWithSize(NSMakeSize(width, height));
+    NSImage_addRepresentation(cursor_image, (NSImageRep*)representation);
+
+    // Finally, set the cursor image.
+    NSCursor* cursor = NSCursor_initWithImage(cursor_image, NSMakePoint(0, 0));
+    NSCursor_set(cursor);
+
+	/*
+		NOTE(EimaMei): ...you think we're done? If it were a normal OS, then yes. However, we live a society and as such, my job here isn't done here just yet.
+		For some reason on MacOS, '[<NSCursor object> set]' doesn't work if the window is not focused on. Why specifically in that context? Apparentally it's a bug
+		that dates back from AT LEAST 2013 (https://stackoverflow.com/a/14788718) and it hasn't been fixed, even now in 2023. Why has it not been fixed it? No one
+		knows apart from Steve Jobs.
+
+		common Apple L
+
+		The way to get around this issue to literally set it (again) when the window is actually in focus. How convenient that Riley has a `void* cursor` variable
+		in the `window` struct. I don't care enough to figure out why he has it like that, but I'll take it regardless.
+	*/
+	if (!window->inFocus) {
+		window->cursor = cursor;
+	}
+	else {
+		release(cursor);
+	}
+
+    // Free the garbage.
+    release(cursor_image);
+    release(representation);
 }
 
 void RGFW_hideMouse(RGFW_window* w) {

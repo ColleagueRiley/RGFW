@@ -129,12 +129,16 @@ implement_property(NSWindow, NSView*, contentView, ContentView, window);
 implement_property(NSWindow, id, delegate, Delegate, window);
 /* Get/Set the visbility of the window. */
 implement_property(NSWindow, bool, isVisible, IsVisible, window);
-/* Get the frame of the window. */
-NSRect NSWindow_frame(NSWindow* window) { return [window frame]; }
 /* */
 implement_property(NSWindow, NSColor*, backgroundColor, BackgroundColor, window);
 /* Toggle opaque for the window. */
 implement_property(NSWindow, bool, isOpaque, Opaque, window);
+/* The window’s alpha value. */
+implement_property(NSWindow, CGFloat, alphaValue, AlphaValue, window);
+/* A Boolean value that indicates whether the window accepts mouse-moved events. */
+implement_property(NSWindow, bool, acceptsMouseMovedEvents, AcceptsMouseMovedEvents, window);
+/* Get the frame of the window. */
+NSRect NSWindow_frame(NSWindow* window) { return [window frame]; }
 
 /* ====== NSWindow functions ====== */
 /* Get/Set the title of the window. */
@@ -168,6 +172,10 @@ void NSWindow_setFrameAndDisplay(NSWindow* window, NSRect frame, bool display, b
 /* */
 NSPoint NSWindow_convertPointFromScreen(NSWindow* window, NSPoint point) {
     return [window convertPointFromScreen:(point)];
+}
+/* Passes a display message down the window’s view hierarchy, thus redrawing all views within the window. */
+void NSWindow_display(NSWindow* window) {
+	return [window display];
 }
 
 
@@ -494,18 +502,32 @@ NSMenuItem* NSMenuItem_separatorItem() {
 
 
 /* ============ NSColor class ============ */
+/* ====== NSColor properties ====== */
+/* */
+NSColor* NSColor_clearColor() {
+	return [NSColor clearColor];
+}
+/* */
+NSColor* NSColor_keyboardFocusIndicatorColor() {
+	return [NSColor keyboardFocusIndicatorColor];
+}
+
 /* ====== NSColor functions ====== */
 /* */
 void NSColor_set(NSColor* color) {
 	[color set];
 }
 /* */
+NSColor* NSColor_colorWithRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha) {
+	return [NSColor colorWithRed:(red) green:(green) blue:(blue) alpha:(alpha)];
+}
+/* */
 NSColor* NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha) {
 	return [NSColor colorWithSRGBRed:(red) green:(green) blue:(blue) alpha:(alpha)];
 }
-/* */
-NSColor* NSColor_keyboardFocusIndicatorColor() {
-	return [NSColor keyboardFocusIndicatorColor];
+/* Creates a color object using the given opacity and grayscale values. */
+NSColor* NSColor_colorWithCalibrated(CGFloat white, CGFloat alpha) {
+	return [NSColor colorWithCalibratedWhite:(white) alpha:(alpha)];
 }
 
 
@@ -548,6 +570,14 @@ NSImage* NSImage_initWithData(unsigned char* bitmapData, NSUInteger length) {
 	NSData* data = [NSData dataWithBytes:(bitmapData) length:(length)];
 	NSImage* result = [[NSImage alloc] initWithData:(data)];
 	[data release];
+
+	return result;
+}
+/* Initializes a data object with the content of the file at a given path. */
+NSImage* NSImage_initWithFile(const char* path) {
+	NSString* filepath = char_to_NSString(path);
+	NSImage* result = [[NSImage alloc] initWithContentsOfFile:(filepath)];
+	[filepath release];
 
 	return result;
 }
@@ -803,6 +833,52 @@ NSOpenPanel* NSOpenPanel_openPanel() {
 /* Displays the panel and begins its event loop with the current working (or last-selected) directory as the default starting point. */
 NSModalResponse NSOpenPanel_runModal(NSOpenPanel* openPanel) {
 	return [openPanel runModal];
+}
+
+
+/* ============ NSCursor class ============ */
+/* ====== NSCursor properties ====== */
+/* The cursor’s image. */
+NSImage* NSCursor_image(NSCursor* cursor) {
+	return [cursor image];
+}
+/* The position of the cursor's hot spot. */
+NSPoint NSCursor_hotSpot(NSCursor* cursor) {
+	return [cursor hotSpot];
+}
+/* Returns the application’s current cursor. */
+NSCursor* NSCursor_currentCursor() {
+	return [NSCursor currentCursor];
+}
+/* Returns the default cursor, the arrow cursor. */
+NSCursor* NSCursor_arrowCursor() {
+	return [NSCursor arrowCursor];
+}
+
+/* ====== NSCursor functions ====== */
+/* Initializes a cursor with the given image and hot spot. */
+NSCursor* NSCursor_initWithImage(NSImage* newImage, NSPoint aPoint) {
+	return [[NSCursor alloc] initWithImage:(newImage) hotSpot:(aPoint)];
+}
+/* Makes the current cursor invisible. */
+void NSCursor_hide() {
+	[NSCursor hide];
+}
+/* Makes the current cursor invisible. */
+void NSCursor_unhide() {
+	[NSCursor unhide];
+}
+/* Pops the current cursor off the top of the stack. */
+void NSCursor_pop(NSCursor* cursor) {
+	[cursor pop];
+}
+/* Puts the receiver on top of the cursor stack and makes it the current cursor. */
+void NSCursor_push(NSCursor* cursor) {
+	[cursor push];
+}
+/* Makes the receiver the current cursor. */
+void NSCursor_set(NSCursor* cursor) {
+	[cursor set];
 }
 
 
