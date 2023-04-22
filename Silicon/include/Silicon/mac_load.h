@@ -30,7 +30,10 @@ extern "C" {
 
 #include <stdlib.h>
 #include <string.h>
-#include <objc/objc-runtime.h>
+
+#include <objc/message.h>
+#include <objc/runtime.h>
+//#include <objc/objc-runtime.h>
 
 // c - concatenator/sequencer; f - function
 #define _MAC_L(c, f, ...) c( \

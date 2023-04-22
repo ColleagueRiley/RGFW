@@ -13,24 +13,22 @@ unsigned char running = 1;
 
 
 int main() {
-    RGFW_window* win = RGFW_createWindowPointer("name", 500, 500, 500, 500, RGFW_ALLOW_DND);
-
-    #ifndef RGFW_VULKAN
-    glEnable(0x0BE2);
-    glBlendFunc(0x0302, 0x0303);
-    #endif
-
+    RGFW_window* win = RGFW_createWindowPointer("RGFW Example Window", 500, 500, 500, 500, RGFW_ALLOW_DND);
     win->fpsCap = 60;
 
     RGFW_createThread(loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
 
     unsigned short js = RGFW_registerJoystick(win, 0);
+    unsigned char i, frames = 60;
+    unsigned char mouseHidden = 0;
 
     RGFW_setIcon(win, icon, 3, 3, 4);
 
-    unsigned char i, frames = 60;
+    #ifndef RGFW_VULKAN
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    #endif
 
-    unsigned char mouseHidden = 0;
 
     while (running) {
         frames++;
@@ -71,39 +69,37 @@ int main() {
         drawLoop(win);
     }
 
+    #ifndef __APPLE__
     time_t t;
     for (t = time(0); (float)(time(0) - t) <= 0.05;); /*wait for the sub window to close*/
+    #endif
 
     RGFW_closeWindow(win);
 }
 
 void drawLoop(RGFW_window *w) {
-    RGFW_swapBuffers(w);
-
     #ifndef RGFW_VULKAN
-    glClearColor(0xFF, 0XFF, 0xFF, 0xFF);
+    glClearColor(255, 255, 255, 255);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glBegin(GL_TRIANGLES);
-    glColor3f(1, 0, 0);
-    glVertex2f(-0.6, -0.75);
-    glColor3f(0, 1, 0);
-    glVertex2f(0.6, -0.75);
-    glColor3f(0, 0, 1);
-    glVertex2f(0, 0.75);
+        glColor3f(1, 0, 0); glVertex2f(-0.6, -0.75);
+        glColor3f(0, 1, 0); glVertex2f(0.6, -0.75);
+        glColor3f(0, 0, 1); glVertex2f(0, 0.75);
     glEnd();
     #else
 
     #endif
+
+    RGFW_swapBuffers(w); /* NOTE(EimaMei): Rendering should always go: 1. Clear everything 2. Render 3. Swap buffers. Based on https://www.khronos.org/opengl/wiki/Common_Mistakes#Swap_Buffers */
 }
 
-void *loop2(void * args) {
+void* loop2(void* args) {
     #ifndef __APPLE__
     RGFW_window* win = RGFW_createWindowPointer("subwindow", 200, 200, 200, 200, 0);
     win->fpsCap = 60;
 
-    while (running)
-    {
+    while (running) {
         RGFW_checkEvents(win);
 
         if (win->event.type == RGFW_quit)

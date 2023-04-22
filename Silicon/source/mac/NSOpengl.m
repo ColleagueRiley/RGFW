@@ -55,8 +55,3 @@ void NSOpenGLContext_makeCurrentContext(NSOpenGLContext* context) {
 void NSOpenGLContext_flushBuffer(NSOpenGLContext* context) {
 	[context flushBuffer];
 }
-
-
-void NSView_release(NSView* view) {
-	[view release];
-}

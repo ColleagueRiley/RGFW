@@ -23,7 +23,7 @@ freely, subject to the following restrictions:
 extern "C" {
 #endif
 
-#include "macros.h"
+#include "../macros.h"
 #include "types.h"
 
 #include "headers/NSWindow.h"
@@ -34,6 +34,10 @@ extern "C" {
 #include "headers/NSCell.h"
 #include "headers/NSButtonCell.h"
 #include "headers/NSPasteboard.h"
+#include "headers/NSBitmapImageRep.h"
+#include "headers/NSDragging.h"
+
+#include "headers/NSPathUtilities.h"
 
 
 typedef NS_ENUM(NSUInteger, NSBackingStoreType) {
