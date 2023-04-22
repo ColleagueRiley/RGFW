@@ -11,9 +11,11 @@ build
 *.dll
 *.o
 *.ttf
-.DS_Store
-test.cpp
 *.7z
 *.zip
-main.c
+*.app
+*.png
+.DS_Store
+test.cpp
+main.*
 script.py

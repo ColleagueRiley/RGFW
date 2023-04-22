@@ -12,7 +12,7 @@ extern "C" {
 
 #include <Availability.h>
 
-#include "../macros.h"
+#include "../../macros.h"
 #include "../types.h"
 
 typedef NS_ENUM(NSUInteger, NSCellType) {
@@ -143,7 +143,6 @@ enum {
 	NSDoubleType API_DEPRECATED("Use formatters instead", macos(10.0,10.0)) = 6,
 	NSPositiveDoubleType API_DEPRECATED("Use formatters instead", macos(10.0,10.0)) = 7
 };
-
 
 
 #ifdef __cplusplus

@@ -25,9 +25,9 @@
 		EimaMei/Sacode : Much of the code for creating windows using winapi
 
 		stb - This project is heavily inspired by the stb single header files
-		
-		GLFW: 
-			certain parts of winapi and X11 are very poorly documented, 
+
+		GLFW:
+			certain parts of winapi and X11 are very poorly documented,
 			GLFW's source code was referenced and used throughout the project (used code is marked in some way),
 			this mainly includes, code for drag and drops, code for setting the icon to a bitmap and the code for managing the clipboard for X11 (as these parts are not documented very well)
 
@@ -38,7 +38,7 @@
 */
 
 /*
-	#define RGFW_IMPLEMENTATION - (semi-option) makes it so source code is included 
+	#define RGFW_IMPLEMENTATION - (semi-option) makes it so source code is included
 	#define RGFW_PRINT_ERRORS - (optional) makes it so RGFW prints errors when they're found
 	#define RGFW_OSMESA - (optional) use OSmesa as backend (instead of system's opengl api + regular opengl)
 	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
@@ -53,7 +53,7 @@
 
 #if defined(__unix__) && !defined(__APPLE__) && !defined(RGFW_X11)
 #define RGFW_X11
-#endif 
+#endif
 
 #if defined(__APPLE__) && defined(RGFW_X11)
 #define RGFW_MACOS_X11
@@ -117,12 +117,12 @@ unsigned char RGFW_JS_R2 = 7; /* right trigger */
 
 #ifdef __cplusplus
 extern "C" {
-#endif				
+#endif
 
 /* NOTE: some parts of the data can represent different things based on the event (read comments in RGFW_Event struct) */
 typedef struct RGFW_Event {
     unsigned char type; /*!< which event has been sen t?*/
-    unsigned char button; /*!< which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed OR which joystick axis was moved*/  
+    unsigned char button; /*!< which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed OR which joystick axis was moved*/
     int x, y; /*!< mouse x, y of event */
 
     unsigned char ledState; /*!< 0 : numlock, 1 : caps lock, 3 : small lock*/
@@ -135,7 +135,7 @@ typedef struct RGFW_Event {
 	char* keyName; /*!< key name of event */
 	#endif
 
-	/*! drag and drop data */	
+	/*! drag and drop data */
 	int droppedFilesCount; /*!< house many files were dropped */
     char** droppedFiles; /*!< dropped files*/
 
@@ -160,7 +160,7 @@ typedef struct RGFW_window {
 	char* srcName; /*!< source name, for chaning the name (do not change these values directly) */
 
 	unsigned int fps, /*the current fps of the window [the fps is checked when events are checked]*/
-				inFocus; /*if the window is in focus or not*/ 
+				inFocus; /*if the window is in focus or not*/
 
 	unsigned char valid; /* the final net for checking if a window is*/
 
@@ -173,7 +173,7 @@ typedef struct RGFW_window {
 	int joysticks[4]; /* limit of 4 joysticks at a time */
 	unsigned char jsPressed[4][16]; /* if a key is currently pressed or not (per joystick) */
 
-	#ifdef RGFW_OSMESA 
+	#ifdef RGFW_OSMESA
 	unsigned char* buffer; /*OSMesa buffer*/
 	unsigned char render; /* if OSMesa should render on the screen or not (set by window args by default but it can be changed in runtime if you want) */
 	#endif
@@ -187,7 +187,7 @@ typedef struct RGFW_window {
 	void* EGL_surface;
 	void* EGL_display;
 	#endif
-	
+
 	RGFW_Event event; /*!< current event */
 } RGFW_window; /*!< Window structure for managing the window */
 
@@ -205,13 +205,13 @@ RGFW_window* RGFW_createWindowPointer(
 /*! create window object (non-pointer) */
 #define RGFW_createWindow(name, x, y, w, h, args)  *RGFW_createWindowPointer(name, x, y, w, h, args);
 
-/*! initializes a vulkan rendering context for the RGFW window, you still need to load your own vulkan instance, ect, ect 
+/*! initializes a vulkan rendering context for the RGFW window, you still need to load your own vulkan instance, ect, ect
 	this outputs the vulkan surface into win->glWin
 	RGFW_VULKAN must be defined for this function to be defined
 
 */
-void RGFW_initVulkan(RGFW_window* win, void* inst); 
-/* returns how big the screen is (for fullscreen support, ect, ect) 
+void RGFW_initVulkan(RGFW_window* win, void* inst);
+/* returns how big the screen is (for fullscreen support, ect, ect)
    [0] = width
    [1] = height
 */
@@ -222,8 +222,8 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* window); /*!< check events (returns a 
 void RGFW_closeWindow(RGFW_window* window); /*!< close the window and free leftover data */
 
 void RGFW_setIcon(RGFW_window* window, /*!< source window */
-				 unsigned char* icon /*!< icon bitmap */, 
-				 int width /*!< width of the bitmap*/, 
+				 unsigned char* icon /*!< icon bitmap */,
+				 int width /*!< width of the bitmap*/,
 				 int height, /*!< height of the bitmap*/
 				 int channels /*!< how many channels the bitmap has (rgb : 3, rgba : 4) */
 			); /*!< image resized by default */
@@ -277,20 +277,24 @@ unsigned char RGFW_isPressedJS(RGFW_window* window, unsigned short controller, u
 
 /*! Supporting functions */
 void RGFW_swapBuffers(RGFW_window* w); /* swap the opengl buffer */
-void RGFW_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_checkEvents)*/ 
+void RGFW_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_checkEvents)*/
 unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event); /*!< returns true if the window is valid (and prints an error and where it took place if it can)*/
 
 /*
 (Notes on how to manage Silicon (macos) included)
 
-Example to get you started : 
+Example to get you started :
 
-linux : gcc main.c -lX11 -lXcursor -lGL 
+linux : gcc main.c -lX11 -lXcursor -lGL
 windows : gcc main.c -lopengl32 -lole32 -lshell32 -lgdi32
 macos:
-	<Silicon/include> can be replaced to where you have the Silicon headers stored 
+	<Silicon> can be replaced to where you have the Silicon headers stored
 	<libSilicon.a> can be replaced to wherever you have libSilicon.a
-	gcc main.c -framework Foundation <libSilicon.a> -framework AppKit -framework OpenGL -framework CoreVideo -I<Silicon/include>
+	clang main.c -I<Silicon> <libSilicon.a> -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo
+
+	NOTE(EimaMei): If you want the MacOS experience to be fully single header, then I'd be best to install Silicon (after compiling)
+	by going to the `Silicon` folder and running `make install`. After this you can easily include Silicon via `#include <Silicon/silicon.h>'
+	and link it by doing `-lSilicon`
 
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
@@ -298,12 +302,12 @@ macos:
 unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF,    0xFF, 0x00, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF,   0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
 
 int main() {
-    RGFW_window* w = RGFW_createWindowPointer("name", 500, 500, 500, 500, (unsigned long)0); 
+    RGFW_window* w = RGFW_createWindowPointer("name", 500, 500, 500, 500, (unsigned long)0);
 
     RGFW_setIcon(w, icon, 3, 3, 4);
 
     for (;;) {
-        RGFW_checkEvents(w); 
+        RGFW_checkEvents(w);
         RGFW_swapBuffers(w, 255, 255, 255, 255);
 
 		glClearColor(0xFF, 0XFF, 0xFF, 0xFF);
@@ -331,34 +335,34 @@ int main() {
 	after you compile the library into an object file, you can also turn the object file into an static or shared library
 
 	(commands ar and gcc can be replaced with whatever equivalent your system uses)
-	static : ar rcs RGFW.a RGFW.o 
-	shared : 
+	static : ar rcs RGFW.a RGFW.o
+	shared :
 		windows:
 			gcc -shared RGFW.o -lopengl32 -lole32 -lshell32 -lgdi32 -o RGFW.dll
 		linux:
 			gcc -shared RGFW.o -lX11 -lXcursor -lGL -o RGFW.so
 		macos:
-			<Silicon/include> can be replaced to where you have the Silicon headers stored 
+			<Silicon/include> can be replaced to where you have the Silicon headers stored
 			<libSilicon.a> can be replaced to wherever you have libSilicon.a
 			gcc -shared RGFW.o -framework Foundation <libSilicon.a> -framework AppKit -framework OpenGL -framework CoreVideo -I<Silicon/include>
 
 	installing/building silicon (macos)
-	
+
 	Silicon does not need to be installde per se.
-	I personally recommended that you use the Silicon included using RGFW 
+	I personally recommended that you use the Silicon included using RGFW
 
 	to build this version of Silicon simplly run
 
-	cd Silicon && make 
+	cd Silicon && make
 
 	you can then use Silicon/include and libSilicon.a for building RGFW projects
 
 	ex.
 	gcc main.c -framework Foundation -lSilicon -framework AppKit -framework OpenGL -framework CoreVideo -ISilicon/include
 
-	I also suggest you compile Silicon (and RGFW if applicable) 
+	I also suggest you compile Silicon (and RGFW if applicable)
 	per each time you compile your application so you know that everything is compiled for the same architecture.
-*/ 
+*/
 
 #ifdef RGFW_IMPLEMENTATION
 
@@ -436,13 +440,13 @@ unsigned int RGFW_keyStrToKeyCode(char* key) {
 		if (!strcmp(RGFW_keyStrings[i], key))
 			return i;
 	printf("%i\n", i);
-#endif 
+#endif
 #ifdef RGFW_X11
 	if (key == "Space") key = (char*)"space";
 
     return XStringToKeysym(key);
-#endif 
-#ifdef _WIN32 
+#endif
+#ifdef _WIN32
 	if (sizeof(key)/sizeof(char) > 1) {
 		if (!strcmp(key, "Super_L")) return VK_LWIN;
 		else if (!strcmp(key, "Super_R")) return VK_RWIN;
@@ -533,7 +537,7 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 	eglTerminateSource = (PFNEGLTERMINATEPROC) GetProcAddress((Display*)win->display, "eglTerminate");
 	eglDestroySurfaceSource = (PFNEGLDESTROYSURFACEPROC) GetProcAddress((Display*)win->display, "eglDestroySurface");
 	#endif
-	
+
     win->EGL_display = eglGetDisplay((Display*)win->display);
 
     EGLint major, minor;
@@ -541,7 +545,7 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 
     EGLint config_attribs[] = {
         EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-        EGL_RENDERABLE_TYPE, 
+        EGL_RENDERABLE_TYPE,
 		#ifdef RGFW_OPENGL_ES
 		EGL_OPENGL_ES2_BIT,
 		#else
@@ -572,7 +576,7 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 void RGFW_closeEGL(RGFW_window* win) {
     eglDestroySurface(win->EGL_display, win->EGL_surface);
     eglDestroyContext(win->EGL_display, win->glWin);
-	
+
     eglTerminate(win->EGL_display);
 }
 
@@ -586,7 +590,7 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event) {
 
 		accidently writing (RGFW_window type)->window is a common mistake too
 	*/
-	
+
 	if (win->valid != 245 || win == (RGFW_window*)0
 		#ifdef _WIN32
 		|| !IsWindow((HWND)win->display)
@@ -687,7 +691,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->srcX = nWin->x = x;
 	nWin->srcY = nWin->y = y;
 	nWin->srcW = nWin->w = w;
-	nWin->srcH = nWin->h = h; 
+	nWin->srcH = nWin->h = h;
 
 	nWin->srcName = nWin->name = name;
 	nWin->fpsCap = 0;
@@ -706,7 +710,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	#ifdef RGFW_GL
 	#if defined(RGFW_OSMESA) || defined(RGFW_EGL)
-	if (RGFW_OPENGL & args) 
+	if (RGFW_OPENGL & args)
 	#endif
 	{
 		int singleBufferAttributes[] = {4, 8, 8, 9, 8, 10, 8, None};
@@ -715,17 +719,17 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 		XVisualInfo* vi = glXChooseVisual((Display *)nWin->display, DefaultScreen((Display *)nWin->display), doubleBufferAttributes);
 
-		if (vi == NULL) /* switch to single buffer if double buffer fails*/                                                                                                                               
+		if (vi == NULL) /* switch to single buffer if double buffer fails*/
 			vi = glXChooseVisual((Display *)nWin->display, DefaultScreen((Display *)nWin->display), singleBufferAttributes);
 
 		if (RGFW_TRANSPARENT_WINDOW & args)
 			XMatchVisualInfo((Display *)nWin->display, DefaultScreen((Display *)nWin->display), 32, TrueColor, vi); /* for RGBA backgrounds*/
-		
+
 		Colormap cmap = XCreateColormap((Display *)nWin->display, RootWindow((Display *)nWin->display, vi->screen),
 										vi->visual, AllocNone); /* make the cmap from the visual*/
-										
+
 		nWin->glWin = (void*)glXCreateContext((Display *)nWin->display, vi, 0, 1); /* create the GLX context with the visual*/
-		
+
 		/* make X window attrubutes*/
 		XSetWindowAttributes swa;
 
@@ -749,9 +753,9 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		XSetWindowAttributes wa;
 		wa.event_mask = event_mask;
 
-		nWin->window = (void*)XCreateWindow((Display*)nWin->display, XDefaultRootWindow((Display*)nWin->display), x, y, w, h, 0, 0, InputOutput, 
+		nWin->window = (void*)XCreateWindow((Display*)nWin->display, XDefaultRootWindow((Display*)nWin->display), x, y, w, h, 0, 0, InputOutput,
 										DefaultVisual((Display*)nWin->display, XDefaultScreen((Display*)nWin->display)), CWEventMask, &wa);
-		
+
 		#ifdef RGFW_OSMESA
 		nWin->glWin = OSMesaCreateContext(OSMESA_RGBA, NULL);
 		nWin->buffer = malloc(w * h * 4);
@@ -759,7 +763,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		#ifndef RGFW_GL
 		nWin->render = 1;
 		#endif
-		#else 
+		#else
 		#ifdef RGFW_EGL
 		RGFW_createOpenGLContext(nWin);
 		#endif
@@ -777,7 +781,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     }
 
 
-    if (RGFW_NO_BORDER & args) { 
+    if (RGFW_NO_BORDER & args) {
 		/* Atom vars for no-border*/
         Atom window_type = XInternAtom((Display *)nWin->display, "_NET_WM_WINDOW_TYPE", False);
         Atom value = XInternAtom((Display *)nWin->display, "_NET_WM_WINDOW_TYPE_DOCK", False);
@@ -788,7 +792,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     XSelectInput((Display *)nWin->display, (Drawable)nWin->window, event_mask); /* tell X11 what events we want*/
 
     /* make it so the user can't close the window until the program does*/
-    Atom wm_delete = XInternAtom((Display *)nWin->display, "WM_DELETE_WINDOW", 1); 
+    Atom wm_delete = XInternAtom((Display *)nWin->display, "WM_DELETE_WINDOW", 1);
     XSetWMProtocols((Display *)nWin->display, (Drawable)nWin->window, &wm_delete, 1);
 
     /* connect the context to the window*/
@@ -882,7 +886,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 	if (win->event.droppedFilesCount && win->event.droppedFiles != (char**)0) {
 		for (i = 0; i < win->event.droppedFilesCount; i++)
 			free(win->event.droppedFiles[i]);
-		
+
 		free(win->event.droppedFiles);
 
 		win->event.droppedFiles = (char**)0;
@@ -940,7 +944,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 
 			else if (win->dnd) {
 				unsigned char formFree = 0;
-				
+
 				if (E.xclient.message_type == XdndEnter) {
 					unsigned long count;
 					Atom* formats = (Atom*)0;
@@ -988,7 +992,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 					unsigned int i;
 					for (i = 0;  i < count;  i++) {
 						char* name = XGetAtomName((Display*)win->display, formats[i]);
-						if ((strcmp("text/uri-list", name) == 0) || (strcmp("text/plain", name) == 0)) 
+						if ((strcmp("text/uri-list", name) == 0) || (strcmp("text/plain", name) == 0))
 							xdnd.format = formats[i];
 					}
 
@@ -998,7 +1002,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 					}
 					else if (formFree && formats != (Atom*)0) {
 						free(formats);
-						
+
 						formats = (Atom*)0;
 						formFree = 1;
 					}
@@ -1021,7 +1025,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 										XdndSelection,
 										(Window)win->window,
 										time);
-						
+
 
 					}
 					else if (xdnd.version >= 2) {
@@ -1055,7 +1059,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 										&xpos, &ypos,
 										&dummy);
 
-					win->event.x = xpos; 
+					win->event.x = xpos;
 					win->event.y = ypos;
 
 					XEvent reply = { ClientMessage };
@@ -1068,7 +1072,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 
 					if (xdnd.format)
 					{
-						reply.xclient.data.l[1] = 1; 
+						reply.xclient.data.l[1] = 1;
 						if (xdnd.version >= 2)
 							reply.xclient.data.l[4] = XdndActionCopy;
 					}
@@ -1078,11 +1082,11 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 					XFlush((Display*)win->display);
 				}
 			}
-			
+
 			break;
 
         case SelectionNotify:
-			if (E.xselection.property == XdndSelection && win->dnd) {					
+			if (E.xselection.property == XdndSelection && win->dnd) {
 				char* data;
                 unsigned long result;
 
@@ -1139,7 +1143,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 						}
 					}
 				}
-	
+
                 if (data)
                     XFree(data);
 
@@ -1158,7 +1162,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
             }
 
 			break;
-		
+
 		case FocusIn:
 			win->inFocus = 1;
 			break;
@@ -1173,7 +1177,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 			win->srcX = win->x = a.x;
 			win->srcY = win->y = a.y;
 			win->srcW = win->w = a.width;
-			win->srcH = win->h = a.height;		
+			win->srcH = win->h = a.height;
 			break;
 		default:
 			#ifdef __linux__
@@ -1215,7 +1219,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 				}
 			}
 			#endif
-			
+
 			break;
 	}
 
@@ -1231,7 +1235,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 		win->srcH = win->h;
 	}
 
-	if (win->srcName != win->name) {  
+	if (win->srcName != win->name) {
 		XStoreName((Display *)win->display, (Window)win->window, win->name);
 		win->srcName = win->name;
 	}
@@ -1266,7 +1270,7 @@ void RGFW_closeWindow(RGFW_window* win) {
 			XDestroyWindow((Display *)win->display, (Drawable)win->window); /* close the window*/
 
 		if (win->display)
-			XCloseDisplay((Display *)win->display); /* kill the display*/	
+			XCloseDisplay((Display *)win->display); /* kill the display*/
 	}
 
 	if (X11Cursorhandle != NULL && !RGFW_windowsOpen) {
@@ -1277,7 +1281,7 @@ void RGFW_closeWindow(RGFW_window* win) {
 
 	/* set cleared display / window to NULL for error checking */
 	win->display = (Display*)0;
-	win->window = (Window)0;    
+	win->window = (Window)0;
 
 	if (win->dnd && win->event.droppedFilesCount) {
 		free(win->event.droppedFiles);
@@ -1326,7 +1330,7 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
             *target++ = ((src[i * 4 + 0]) << 16) |
                         ((src[i * 4 + 1]) <<  8) |
                         ((src[i * 4 + 2]) <<  0) |
-                        ((src[i * 4 + 3]) << 24);   
+                        ((src[i * 4 + 3]) << 24);
     }
 
     Atom NET_WM_ICON = XInternAtom((Display*)w->display, "_NET_WM_ICON", False);
@@ -1339,7 +1343,7 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
                     longCount);
 
     free(icon);
-    
+
     XFlush((Display*)w->display);
 }
 
@@ -1373,7 +1377,7 @@ void RGFW_setMouseDefault(RGFW_window* w) {
 	/* free the previous cursor */
 	if (w->cursor != NULL)
 		XFreeCursor((Display*)w->display, (Cursor)w->cursor);
-	
+
 	w->cursorChanged = 1;
 	w->cursor = (void*)XCreateFontCursor((Display*)w->display, XC_left_ptr);
 }
@@ -1421,7 +1425,7 @@ char* RGFW_readClipboard(RGFW_window* w) {
 void RGFW_writeClipboard(RGFW_window* w, char* text) {
 	if (!RGFW_ValidWindowCheck(w, (char*)"RGFW_writeClipboard")) return;
     Atom CLIPBOARD, UTF8_STRING, SAVE_TARGETS, TARGETS, MULTIPLE, ATOM_PAIR, PRIMARY, CLIPBOARD_MANAGER;
-    
+
     CLIPBOARD = XInternAtom((Display*)w->display, "CLIPBOARD", False);
     UTF8_STRING = XInternAtom((Display*)w->display, "UTF8_STRING", False);
     SAVE_TARGETS = XInternAtom((Display*)w->display, "SAVE_TARGETS", False);
@@ -1446,7 +1450,7 @@ void RGFW_writeClipboard(RGFW_window* w, char* text) {
                 const XSelectionRequestEvent* request = &event.xselectionrequest;
 
                 XEvent reply = { SelectionNotify };
-                
+
                 char* selectionString = NULL;
                 const Atom formats[] = { UTF8_STRING, XA_STRING };
                 const int formatCount = sizeof(formats) / sizeof(formats[0]);
@@ -1501,7 +1505,7 @@ void RGFW_writeClipboard(RGFW_window* w, char* text) {
                                             (unsigned char *) selectionString,
                                             strlen(selectionString));
                         }
-                        else 
+                        else
                             targets[i + 1] = None;
                     }
 
@@ -1518,7 +1522,7 @@ void RGFW_writeClipboard(RGFW_window* w, char* text) {
 
                     reply.xselection.property = request->property;
                 }
-                
+
                 reply.xselection.display = request->display;
                 reply.xselection.requestor = request->requestor;
                 reply.xselection.selection = request->selection;
@@ -1551,11 +1555,11 @@ unsigned short RGFW_registerJoystickF(RGFW_window* w, char* file) {
 
 	if (js && w->joystickCount < 4) {
 		w->joystickCount++;
-		
+
 		w->joysticks[w->joystickCount - 1] = open(file, O_RDONLY);
-	
+
 		unsigned char i = 0;
-		for (i; i < 16; i++) 
+		for (i; i < 16; i++)
 			w->jsPressed[w->joystickCount - 1][i] = 0;
 
 	}
@@ -1575,14 +1579,14 @@ char keyboard[32];
 Display* RGFWd = (Display*)0;
 
 unsigned char RGFW_isPressedI(RGFW_window* w, unsigned int key) {
-	if (RGFWd == (Display*)0) RGFWd = XOpenDisplay(0); 
-	
+	if (RGFWd == (Display*)0) RGFWd = XOpenDisplay(0);
+
 	Display* d;
 	if (w == (RGFW_window*)0)
 		d = RGFWd;
 	else if (!w->inFocus)
 		return 0;
-	else 
+	else
 		d = (Display*)w->display;
 
 	XQueryKeymap(d, keyboard); /* query the keymap */
@@ -1643,7 +1647,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		w = r[0];
 		h = r[1];
 	}
-	
+
 
 	nWin->srcX = nWin->x = x;
 	nWin->srcY = nWin->y = y;
@@ -1716,8 +1720,8 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	if (RGFW_TRANSPARENT_WINDOW & args)
 		SetWindowLong((HWND)nWin->display, GWL_EXSTYLE, GetWindowLong((HWND)nWin->display, GWL_EXSTYLE) | WS_EX_LAYERED);
 	#endif
-	
-	#ifdef RGFW_OSMESA 
+
+	#ifdef RGFW_OSMESA
 
 	#ifdef RGFW_LINK_OSMESA
 	OSMesaMakeCurrentSource = (PFN_OSMesaMakeCurrent) GetProcAddress(nWin->display, "OSMesaMakeCurrent");
@@ -1739,7 +1743,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	else {
 		nWin->glWin = (void*)OSMesaCreateContext(OSMESA_RGBA, NULL);
 		nWin->buffer = malloc(w * h * 4);
-		
+
 		OSMesaMakeCurrent(nWin->glWin, nWin->buffer, GL_UNSIGNED_BYTE, w, h);
 	}
 	#endif
@@ -1755,22 +1759,22 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     ShowWindow((HWND)nWin->display, SW_SHOWNORMAL);
 
     return nWin;
-}	
+}
 
 unsigned int* RGFW_getScreenSize(RGFW_window* w) {
-	return (unsigned int[2]) {GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES)}; 
+	return (unsigned int[2]) {GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES)};
 }
 
 RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 	RGFW_checkFPS(win);
-	
+
 	MSG msg = {};
 
 	int setButton = 0;
-	
+
 	if (win->event.droppedFilesCount && win->event.droppedFiles != (char**)0) {
 		unsigned int i;
-		
+
 		for (i = 0; i < win->event.droppedFilesCount; i++)
 			free(win->event.droppedFiles[i]);
 
@@ -1857,7 +1861,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 
 					/* Move the mouse to the position of the drop */
 					DragQueryPoint(drop, &pt);
-					
+
 					win->event.x = pt.x;
 					win->event.y = pt.y;
 
@@ -1874,7 +1878,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 					DragFinish(drop);
 				}
 				break;
-			default: 
+			default:
 				win->event.type = 0;
 				break;
 		}
@@ -1922,21 +1926,21 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
     win->inFocus = (GetForegroundWindow() == win->display);
 
 	if (win->inFocus)
-		SetCursor((HCURSOR)win->cursor);	
-	else 
+		SetCursor((HCURSOR)win->cursor);
+	else
 		RGFW_setMouseDefault(win);
 
 	if (win->event.type)
 		return &win->event;
 	else
 		return NULL;
-}	
+}
 
 unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key) {
 	if (window != NULL && !window->inFocus)
 		return 0;
 
-	if (GetAsyncKeyState(key) & 0x8000) 
+	if (GetAsyncKeyState(key) & 0x8000)
 		return 1;
 	else return 0;
 }
@@ -2012,7 +2016,7 @@ void RGFW_closeWindow(RGFW_window* win) {
 	#ifdef RGFW_EGL
 	RGFW_closeEGL(win);
 	#endif
-	
+
 	#ifdef RGFW_GL
 	wglDeleteContext((HGLRC)win->glWin); /* delete opengl context */
 	#endif
@@ -2021,7 +2025,7 @@ void RGFW_closeWindow(RGFW_window* win) {
 
 	if (win->event.droppedFilesCount && win->event.droppedFiles != (char**)0) {
 		unsigned int i;
-		
+
 		for (i = 0; i < win->event.droppedFilesCount; i++)
 			free(win->event.droppedFiles[i]);
 
@@ -2029,7 +2033,7 @@ void RGFW_closeWindow(RGFW_window* win) {
 
 		win->event.droppedFiles = (char**)0;
 	}
-	
+
 	#ifdef RGFW_OSMESA
 	if (win->buffer != NULL)
 		free(win->buffer);
@@ -2039,9 +2043,9 @@ void RGFW_closeWindow(RGFW_window* win) {
 }
 
 /* much of this function is sourced from GLFW */
-void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int channels) {    
+void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int channels) {
     if (!RGFW_ValidWindowCheck(w, (char*)"RGFW_setIcon")) return;
-	
+
     HICON handle = RGFW_loadHandleImage(w, src, width, height, TRUE);
 
     SendMessageW((HWND)w->display, WM_SETICON, ICON_BIG, (LPARAM) handle);
@@ -2061,7 +2065,7 @@ char* RGFW_readClipboard(RGFW_window* w) {
         CloseClipboard();
         return (char*)"";
     }
-    
+
 	char* text = (char*)malloc(7);
 	text = (char*)GlobalLock(hData);
 
@@ -2108,7 +2112,7 @@ void RGFW_writeClipboard(RGFW_window* w, char* text) {
 
 unsigned short RGFW_registerJoystick(RGFW_window* window, int jsNumber) {
 
-									  
+
 	return RGFW_registerJoystickF(window, (char*)"");
 }
 
@@ -2137,7 +2141,7 @@ char* createUTF8FromWideStringWin32(const WCHAR* source) {
 }
 
 RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args) { return (long unsigned int)CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)*function_ptr, args, 0, NULL);  }
-void RGFW_cancelThread(RGFW_thread thread) { CloseHandle((HANDLE)thread);  } 
+void RGFW_cancelThread(RGFW_thread thread) { CloseHandle((HANDLE)thread);  }
 void RGFW_joinThread(RGFW_thread thread) { WaitForSingleObject((HANDLE)thread, INFINITE); }
 void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority) { SetThreadPriority((HANDLE)thread, priority); }
 #endif
@@ -2152,17 +2156,26 @@ CVReturn displayCallback(CVDisplayLinkRef displayLink, const CVTimeStamp *inNow,
 RGFW_window** RGFW_windows;
 unsigned int RGFW_windows_size = 0;
 
-bool OnClose(void* self)  {	
+bool OnClose(void* self) {
 	unsigned int i;
 	for (i = 0; i < RGFW_windows_size; i++)
 		if (RGFW_windows[i] && RGFW_windows[i]->window == self)
 			break;
-	
-	RGFW_windows[i]->event.type = RGFW_quit; 
+
+	RGFW_windows[i]->event.type = RGFW_quit;
 	return true;
 }
 
-bool OnDrop(void* sender) {
+/* NOTE(EimaMei): Fixes the constant clicking when the app is running under a terminal. */
+bool acceptsFirstResponder() { return true; }
+bool performKeyEquivalent(NSEvent* event) { return true; }
+
+NSDragOperation draggingEntered(NSDraggingInfo* sender) { return NSDragOperationCopy; }
+NSDragOperation draggingUpdated(NSDraggingInfo* sender) { return NSDragOperationCopy; }
+bool prepareForDragOperation(NSDraggingInfo* sender) { return true; }
+
+/* NOTE(EimaMei): Usually, you never need 'id self, SEL cmd' for C -> Obj-C methods. This isn't the case. */
+bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
 	NSWindow* window = NSDraggingInfo_draggingDestinationWindow(sender);
 
 	unsigned int i;
@@ -2177,27 +2190,27 @@ bool OnDrop(void* sender) {
 	if (!found)
 		i = 0;
 
-	RGFW_windows[i]->event.droppedFilesCount = NSDraggingInfo_numberOfValidItemsForDrop(sender);
 
-	siArray array = si_array_init_with_array((int[]){class(objctype(NSURL))}, 1, sizeof(int));
+	siArray(Class) array = si_array_init((Class[]){class(objctype(NSURL))}, sizeof(*array), 1);
+	siArray(char*) droppedFiles = (siArray(char*))NSPasteboard_readObjectsForClasses(NSDraggingInfo_draggingPasteboard(sender), array, NULL);
 
-	const char** droppedFiles = (char**)NSPasteboard_readObjectsForClasses(NSDraggingInfo_draggingPasteboard(sender), array, NULL);
+	RGFW_windows[i]->event.droppedFiles = malloc(si_array_len(droppedFiles) * sizeof(*droppedFiles));
+	RGFW_windows[i]->event.droppedFilesCount = si_array_len(droppedFiles);
 
-	RGFW_windows[i]->event.droppedFiles = (char**)malloc(RGFW_windows[i]->event.droppedFilesCount * sizeof(char*));
-
+	si_array_free(array);
 
 	/*
 	yes, I tried memset, it didn't work eiehter
 	*/
 	unsigned int x, y;
-	
+
 	for (y = 0; y < RGFW_windows[i]->event.droppedFilesCount; y++){
-		RGFW_windows[i]->event.droppedFiles[y] = (char**)malloc(strlen(droppedFiles[y]) * sizeof(char));
-		
+		RGFW_windows[i]->event.droppedFiles[y] = (char*)malloc(strlen(droppedFiles[y]) * sizeof(char));
+
 		for (x = 0; x < strlen(droppedFiles[y]); x++)
 			RGFW_windows[i]->event.droppedFiles[y][x] = droppedFiles[y][x];
 	}
-	
+
 	RGFW_windows[i]->event.type = RGFW_dnd;
 
 	NSPoint p = NSDraggingInfo_draggingLocation(sender);
@@ -2239,12 +2252,10 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		macArgs |= NSWindowStyleMaskResizable;
 	if (!(RGFW_NO_BORDER & args))
 		macArgs |= NSWindowStyleMaskTitled;
-	else 
+	else
 		macArgs |= NSWindowStyleMaskBorderless;
 
-	funcs[0] = OnClose;
-    funcs[5] = OnDrop;
-	
+
 	nWin->window = NSWindow_init(NSMakeRect(x, y, w, h), macArgs, false, NULL);
 	NSWindow_setTitle(nWin->window, name);
 
@@ -2258,7 +2269,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		NSOpenGLPFAStencilSize, 8,
 		0
 	};
-	
+
 	#ifdef RGFW_GL
 	NSOpenGLPixelFormat* format = NSOpenGLPixelFormat_initWithAttributes(attributes);
 	nWin->view = NSOpenGLView_initWithFrame(NSMakeRect(0, 0, w, h), format);
@@ -2270,8 +2281,9 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	#endif
 
 	if (RGFW_ALLOW_DND & args) {
-		siArray array = si_array_init_with_array((NSPasteboardType[]){NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString}, 3, sizeof(NSPasteboardType) * 3);
+		siArray(NSPasteboardType) array = si_array_init((NSPasteboardType[]){NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString}, sizeof(*array), 3);
 	    NSView_registerForDraggedTypes(nWin->window, array);
+		si_array_free(array);
 	}
 
     if (RGFW_TRANSPARENT_WINDOW & args) {
@@ -2280,7 +2292,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	}
 
 	CGDirectDisplayID displayID = CGMainDisplayID();
-	CVDisplayLinkCreateWithCGDisplay(displayID, &nWin->display); // ?
+	CVDisplayLinkCreateWithCGDisplay(displayID, nWin->display);
 	CVDisplayLinkSetOutputCallback(nWin->display, displayCallback, nWin->window);
 	CVDisplayLinkStart(nWin->display);
 
@@ -2296,7 +2308,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     nWin->render = 0;
 	#endif
 	#endif
-	
+
 	NSWindow_setContentView(nWin->window, (NSView*)nWin->view);
 	NSWindow_setIsVisible(nWin->window, true);
 
@@ -2305,6 +2317,22 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 		RGFW_loaded = 1;
     }
+
+	/* NOTE(EimaMei): Why does Apple hate good code? Like wtf, who thought of methods being a great idea???
+	Imagine a universe, where MacOS had a proper system API (we would probably have like 20% better performance).
+	*/
+	si_func_to_SEL_with_name(SI_DEFAULT, "windowShouldClose", OnClose);
+
+	/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
+	si_func_to_SEL("NSWindow", acceptsFirstResponder);
+	si_func_to_SEL("NSWindow", performKeyEquivalent);
+
+	/* NOTE(EimaMei): Drag 'n Drop requires too many damn functions for just a Drag 'n Drop event. */
+	si_func_to_SEL("NSWindow", draggingEntered);
+	si_func_to_SEL("NSWindow", draggingUpdated);
+	si_func_to_SEL("NSWindow", prepareForDragOperation);
+	si_func_to_SEL("NSWindow", performDragOperation);
+
 
 	RGFW_windows_size++;
 	RGFW_windows = realloc(RGFW_windows, RGFW_windows_size);
@@ -2345,7 +2373,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* w){
 
 	w->inFocus = NSWindow_isKeyWindow(w->window);
 
-	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, 0, true);	
+	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, 0, true);
 
 	if (NSEvent_window(e) == w->window) {
 		unsigned char button = 0, i;
@@ -2357,17 +2385,17 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* w){
 				w->event.keyName = (char*)NSEvent_characters(e);
 
 				RGFW_keyMap[w->event.keyCode] = 1;
-				break;	
-			
+				break;
+
 			case NSEventTypeKeyUp:
 				w->event.type = RGFW_keyReleased;
 				w->event.keyCode = (unsigned short)NSEvent_keyCode(e);
 				w->event.keyName = (char*)NSEvent_characters(e);
-				
+
 				RGFW_keyMap[w->event.keyCode] = 0;
 
 				break;
-			
+
 			case NSEventTypeLeftMouseDown:
 				button = 1;
 				w->event.button = 2;
@@ -2379,7 +2407,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* w){
 				if (!button)
 				w->event.button = 0;
 
-				w->event.type = RGFW_mouseButtonPressed; 
+				w->event.type = RGFW_mouseButtonPressed;
 				break;
 
 			case NSEventTypeLeftMouseUp:
@@ -2405,9 +2433,9 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* w){
 				if (!button)
 				w->event.button = RGFW_mouseRight;
 
-				w->event.type = RGFW_mouseButtonReleased; 
+				w->event.type = RGFW_mouseButtonReleased;
 				break;
-			
+
 			case NSEventTypeMouseMoved:
 				w->event.type = RGFW_mousePosChanged;
 
@@ -2415,7 +2443,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* w){
 				w->event.x = p.x;
 				w->event.y = p.y;
 				break;
-			
+
 
 			default: break;
 		}
@@ -2423,7 +2451,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* w){
 		if (w->hideMouse && NSPointInRect(NSEvent_mouseLocation(e), NSWindow_frame(w->window)))
 			CGDisplayHideCursor(kCGDirectMainDisplay);
 		else
-			CGAssociateMouseAndMouseCursorPosition(true);
+			CGDisplayShowCursor(kCGDirectMainDisplay);
 	}
 
 	NSApplication_sendEvent(NSApp, e);
@@ -2436,10 +2464,10 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* w){
 		w->srcW = w->w = r.size.width;
 		w->srcH = w->h = r.size.height;
 	}
-	
+
 	else if (w->x != w->srcX || w->y != w->srcY ||
 			w->w != w->srcW || w->h != w->srcH){
-	
+
 		NSWindow_setFrameAndDisplay(w->window, NSMakeRect(w->x, w->y, w->w, w->h), true, true);
 
 		w->srcX = w->x;
@@ -2473,7 +2501,7 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* data, int x, int y, int c) {
 
     // Add ze representation.
     NSImage* dock_image = NSImage_initWithSize(NSMakeSize(x, y));
-    NSImage_addRepresentation(dock_image, representation);
+    NSImage_addRepresentation(dock_image, (NSImageRep*)representation);
 
     // Finally, set the dock image to it.
     NSApplication_setApplicationIconImage(NSApp, dock_image);
@@ -2495,7 +2523,7 @@ void RGFW_setMouseDefault(RGFW_window* w) {
 	w->hideMouse = 0;
 }
 
-unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key) {  
+unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key) {
 	if (key >= 128){
 		#ifdef RGFW_PRINT_ERRORS
 		printf("RGFW_isPressedI : invalid keycode\n");
@@ -2503,20 +2531,21 @@ unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key) {
 		RGFW_error = 1;
 	}
 
-	return RGFW_keyMap[key]; 
+	return RGFW_keyMap[key];
 }
 
 char* RGFW_readClipboard(RGFW_window* w){ return (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString); }
 
 void RGFW_writeClipboard(RGFW_window* w, char* text) {
-	siArray array = si_array_init_with_array((NSPasteboardType[]){NSPasteboardTypeString}, 1, sizeof(NSPasteboardType) * 1);
+	siArray(NSPasteboardType) array = si_array_init((NSPasteboardType[]){NSPasteboardTypeString}, sizeof(*array), 1);
 	NSPasteBoard_declareTypes(NSPasteboard_generalPasteboard(), array, NULL);
 
 	NSPasteBoard_setString(NSPasteboard_generalPasteboard(), text, NSPasteboardTypeString);
+	si_array_free(array);
 }
 
 unsigned short RGFW_registerJoystick(RGFW_window* window, int jsNumber){
-	
+
 
 	return RGFW_registerJoystickF(window, (char*)"");
 }
@@ -2532,7 +2561,7 @@ void RGFW_closeWindow(RGFW_window* w){
 
 	CVDisplayLinkStop(w->display);
 	CVDisplayLinkRelease(w->display);
-	NSView_release((NSView*)w->view);
+	release(w->view);
 
 	unsigned int i;
 	for (i = 0; i < RGFW_windows_size; i++)
@@ -2560,7 +2589,7 @@ void RGFW_closeWindow(RGFW_window* w){
 
 #include <pthread.h>
 
-RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args) { 
+RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args) {
 	RGFW_thread t;
 	pthread_create((pthread_t*)&t, NULL, *function_ptr, NULL);
 	return t;
@@ -2580,7 +2609,7 @@ void RGFW_makeCurrent_OpenGL(RGFW_window* w) {
 		#endif
 		#ifdef _WIN32
 			wglMakeCurrent((HDC)w->window, (HGLRC)w->glWin);
-		#endif	
+		#endif
 		#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 		NSOpenGLContext_makeCurrentContext(w->glWin);
 		#endif
@@ -2660,7 +2689,7 @@ void RGFW_swapBuffers(RGFW_window* w) {
 		CGContextRef bitmapContext = CGBitmapContextCreate (w->buffer,
 										w->srcW,
 										w->srcH,
-										4,      
+										4,
 										(w->srcW * 4),
 										colorSpace,
 										kCGImageAlphaPremultipliedLast);

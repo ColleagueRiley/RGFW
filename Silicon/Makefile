@@ -7,33 +7,41 @@ TARGET_iOS=false
 
 # Building the source file configurations. Customize it to your likings
 SRC = main.c
-FLAGS = -O2 -std=c99 -I"include"
-LIBS =-lSilicon -framework AppKit -framework Foundation -framework OpenGL -framework CoreVideo
+FLAGS = -O2 -std=c99 -I"include" -Wno-deprecated-declarations
+ifeq ($(TARGET_iOS),false)
+LIBS = -lSilicon -framework AppKit -framework Foundation -framework OpenGL -framework CoreVideo
+else
+LIBS = -lSilicon -framework Foundation -framework UIKit -framework CoreGraphics
+endif
 
-# Change what compiler and output folder will be. Usually you don't need to change anything here.
+# Change what the compiler and output folder will be. Usually you don't need to change anything here, especially ROOT_FOLDER.
 CC = clang
 OUTPUT_DIR = build
+ROOT_FOLDER = mac
 
+# iOS specific configurations.
 ifeq ($(TARGET_iOS),true)
 CC += -isysroot $(shell xcrun --sdk iphonesimulator --show-sdk-path)
+ROOT_FOLDER = iphone
 endif
 
 # Building variables for `libSilicon.a`. If you're building `libSilicon.a`, do not change anything unless you understand what's going on.
-SILICON_LIB_SRC = $(basename $(wildcard source/*.m))
+SILICON_LIB_SRC = $(basename $(wildcard source/$(ROOT_FOLDER)/*.m source/*.m))
 SILICON_LIB_OBJ = $(addprefix $(OUTPUT_DIR)/,$(addsuffix .o,$(notdir $(SILICON_LIB_SRC))))
 SILICON_LIB = $(OUTPUT_DIR)/libSilicon.a
 OUTPUT_EXE = $(OUTPUT_DIR)/$(EXE)
 
 
+
 # Compiles libSilicon.a, compiles main.c and runs it.
-all: $(OUTPUT_DIR) $(SILICON_LIB) $(OUTPUT_EXE) run
+all: $(OUTPUT_DIR) $(SILICON_LIB) $(OUTPUT_EXE)
+ifeq ($(TARGET_iOS),true)
+	@make iosBuild
+else
+	@make run
+endif
 
-run:
-	./$(OUTPUT_EXE)
 
-# Cleans the built files.
-clean:
-	rm $(SILICON_LIB) $(OUTPUT_EXE) $(SILICON_LIB_OBJ)
 
 # Compiles main.c
 $(OUTPUT_EXE): $(SRC)
@@ -44,6 +52,8 @@ $(SILICON_LIB): $(SILICON_LIB_OBJ)
 	$(AR) -rcs $@ $^
 
 # Compiles all Objective-C files to object files.
+$(OUTPUT_DIR)/%.o: source/$(ROOT_FOLDER)/%.m
+	$(CC) $(FLAGS) $(INCLUDE) $^ -c -o $@
 $(OUTPUT_DIR)/%.o: source/%.m
 	$(CC) $(FLAGS) $(INCLUDE) $^ -c -o $@
 
@@ -51,6 +61,14 @@ $(OUTPUT_DIR)/%.o: source/%.m
 $(OUTPUT_DIR):
 	mkdir $(OUTPUT_DIR)
 
+
+# Runs the executable.
+run:
+	./$(OUTPUT_EXE)
+
+# Cleans the built files.
+clean:
+	rm $(SILICON_LIB) $(OUTPUT_EXE) $(SILICON_LIB_OBJ)
 
 # Runs and compiles every example.
 runExamples:
@@ -60,6 +78,11 @@ runExamples:
 install: $(SILICON_LIB)
 	sudo cp -r include/Silicon /usr/local/include/Silicon
 	sudo cp -r $(SILICON_LIB) /usr/local/lib/libSilicon.a
+
+# Updates Silicon.
+update: /usr/local/include/Silicon /usr/local/lib/libSilicon.a
+	@make uninstall
+	@make install
 
 # Uninstalls Silicon (if it's even installed in the first place).
 uninstall: /usr/local/include/Silicon /usr/local/lib/libSilicon.a
@@ -83,19 +106,21 @@ ifeq ($(TARGET_iOS),true)
 	$(eval APP_RES_PATH=)
 endif
 	@rm -rf $(NAME).app
-	mkdir -p $(NAME).app $(APP_ROOT_PATH)/$(APP_EXE_PATH) $(APP_ROOT_PATH)$(APP_RES_PATH)
-	cp $(OUTPUT_EXE) $(APP_ROOT_PATH)$(APP_EXE_PATH)/$(EXE)
+	@echo "Creating $(NAME).app"
+	@mkdir -p $(NAME).app $(APP_ROOT_PATH)/$(APP_EXE_PATH) $(APP_ROOT_PATH)$(APP_RES_PATH)
+	@cp $(OUTPUT_EXE) $(APP_ROOT_PATH)$(APP_EXE_PATH)/$(EXE)
 
 ifeq ($(ICON),) # Makefile is STILL dum with tabs.
 else
-	sips -z 512 512   $(ICON) --out $(APP_ROOT_PATH)$(APP_RES_PATH)/app.png
+	@sips -z 512 512   $(ICON) --out $(APP_ROOT_PATH)$(APP_RES_PATH)/app.png
 
 #	@mkdir -p "app.iconset"
 #	sips -z 512 512   $(ICON) --out app.iconset/icon_512x512.png
 #	iconutil -c icns -o $(APP_ROOT_PATH)$(APP_RES_PATH)/app.icns app.iconset
 #	@rm -rf app.iconset
 endif
-	printf '\
+	@echo "Writing Info.plist to $(APP_ROOT_PATH)"
+	@printf '\
 	<?xml version="1.0" encoding="UTF-8"?>									\n\
 	<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">	\n\
 	<plist version="1.0">											\n\
@@ -126,7 +151,7 @@ endif
 	</dict>													\n\
 	</plist>' > $(APP_ROOT_PATH)/Info.plist
 
-	touch $(NAME).app
+	@touch $(NAME).app
 
 
 # ==================== iOS build system (beta) ====================
@@ -145,16 +170,15 @@ endif
 #
 # ===============================================================
 iosBuild: $(BACKEND) $(SRC)
-	$(CC) -I"include" -framework Foundation -framework UIKit -framework CoreGraphics $(SRC) -o $(OUTPUT_EXE)
-	make generateApp
-	open -a simulator.app
+	@make generateApp
+	@open -a simulator.app
 
-	make iosInstall
-	make iosRun
+	@make iosInstall
+	@make iosRun
 
 iosInstall: $(NAME).app
-	xcrun simctl install booted $(NAME).app
+	xcrun simctl install booted $^
 
 iosRun: $(NAME).app
 	xcrun simctl launch booted "com.$(EXE).silicon"
-	xcrun simctl spawn booted log stream --predicate 'subsystem == "com.$(EXE).silicon"'
+	@xcrun simctl spawn booted log stream --predicate 'subsystem == "com.$(EXE).silicon"'

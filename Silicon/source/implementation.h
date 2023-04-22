@@ -24,7 +24,8 @@ extern "C" {
 
 /* NSString / char* conversion functions. */
 /* 'const char*' to 'NSString'. */
-#define char_to_NSString(text) [[NSString stringWithUTF8String:(text)] autorelease]
+/* TODO(EimaMei): remove this dumbass autorelease nonsense everywhere in the code. */
+#define char_to_NSString(text) [NSString stringWithUTF8String:(text)]
 /* 'NSString' to 'const char*'. */
 #define NSString_to_char(text) [text UTF8String]
 

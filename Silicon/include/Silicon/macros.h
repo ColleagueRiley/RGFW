@@ -53,6 +53,11 @@ extern "C" {
 #endif
 
 
+#ifndef si_sizeof
+/* `sizeof` but with the 'NSInteger' type. Generally better for performance than regular 'sizeof' on 64-bit machines. */
+#define si_sizeof(type) (NSInteger)sizeof(type)
+#endif
+
 /* Declarations of enums macros. */
 #ifndef NS_OPTIONS
 /* Used to declare structs with a specific type. */
@@ -83,17 +88,20 @@ extern "C" {
 #define sizeof_class(typename) class_getInstanceSize(class(typename))
 
 /* Allocates memory for the provided class type. */
-#define malloc_class(typename) init(alloc(_(typename)))
-/* Allocates memory for the provided class VARIABLE. Note that you cannot provide a type with this macro. */
+#define malloc_class(typename) init(alloc(objctype(typename)))
+/* Allocates memory for the provided class VARIABLE. Note that you cannot provide a class type with this macro. */
 #define malloc_class_var(variable) init(alloc(variable))
 
+/* The default option for 'func_to_SEL()'. */
+#define SI_DEFAULT "NSObject"
 /* Creates an Objective-C method (SEL) from a regular C function. */
-#define func_to_SEL(function) class_addMethod(objc_getClass("NSObject"), sel_registerName(#function":"), (IMP)function, "v@:")
+#define si_func_to_SEL(class_name, function) si_impl_func_to_SEL_with_name(class_name, #function":", function)
+/* Creates an Objective-C method (SEL) from a regular C function with the option to set the register name.*/
+#define si_func_to_SEL_with_name(class_name, register_name, function) si_impl_func_to_SEL_with_name(class_name, register_name":", function)
+/* Checks if the provided selector exist. */
+#define si_SEL_exists(name) si_impl_SEL_exists(name, __FILE__, __LINE__)
 /* @selector() implementation in C. */
-#define selector(function) SEL_exists(#function":")
-
-/* Used for creating quick and temporary local arrays when functions require both an array and its element count. */
-#define array_with_len(type, ...) (type[]){__VA_ARGS__}, (sizeof((type[]){__VA_ARGS__}) / sizeof(*((type[]){__VA_ARGS__})))
+#define selector(function) si_SEL_exists(#function":")
 
 
 /* Defining common properties/methods macros. */

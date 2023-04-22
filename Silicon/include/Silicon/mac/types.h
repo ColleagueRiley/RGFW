@@ -24,8 +24,9 @@ extern "C" {
 #endif
 
 #include <limits.h>
-#include "macros.h"
-#include "mac_load.h"
+
+#include "../macros.h"
+#include "../mac_load.h"
 
 
 #if SILICON_TARGET_64BIT
@@ -64,6 +65,7 @@ mac_type_define(NSNotification);
 mac_type_define(NSEvent);
 mac_type_define(NSTextField);
 mac_type_define(NSFontManager);
+mac_type_define(NSFileManager);
 mac_type_define(NSProcessInfo);
 mac_type_define(NSMenu);
 mac_type_define(NSMenuItem);
@@ -77,12 +79,18 @@ mac_type_define(NSGraphicsContext);
 mac_type_define(NSSlider);
 mac_type_define(UIView);
 mac_type_define(NSProgressIndicator);
+mac_type_define(NSSavePanel);
+mac_type_define(NSColorPanel);
+mac_type_define(NSOpenPanel);
+mac_type_define(NSBitmapImageRep);
+mac_type_define(NSImageRep);
 /* Deprecated*/
 mac_type_define(NSOpenGLPixelFormat);
 mac_type_define(NSOpenGLView);
 mac_type_define(NSOpenGLContext);
 
-typedef void* NSDraggingInfo;
+
+typedef void NSDraggingInfo;
 
 #ifndef __OBJC__ /* These are already defined in Objective-C. */
 mac_type_define(NSFont);
