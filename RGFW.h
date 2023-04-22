@@ -2255,7 +2255,6 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	else
 		macArgs |= NSWindowStyleMaskBorderless;
 
-
 	nWin->window = NSWindow_init(NSMakeRect(x, y, w, h), macArgs, false, NULL);
 	NSWindow_setTitle(nWin->window, name);
 
@@ -2291,10 +2290,12 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		NSWindow_setOpaque(nWin->window, false);
 	}
 
-	CGDirectDisplayID displayID = CGMainDisplayID();
+	/*CGDirectDisplayID displayID = CGMainDisplayID();
+
 	CVDisplayLinkCreateWithCGDisplay(displayID, nWin->display);
+
 	CVDisplayLinkSetOutputCallback(nWin->display, displayCallback, nWin->window);
-	CVDisplayLinkStart(nWin->display);
+	CVDisplayLinkStart(nWin->display);*/
 
 	#ifdef RGFW_GL
 	NSOpenGLContext_makeCurrentContext(nWin->glWin);
@@ -2321,17 +2322,19 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	/* NOTE(EimaMei): Why does Apple hate good code? Like wtf, who thought of methods being a great idea???
 	Imagine a universe, where MacOS had a proper system API (we would probably have like 20% better performance).
 	*/
-	si_func_to_SEL_with_name(SI_DEFAULT, "windowShouldClose", OnClose);
+	si_func_to_SEL_with_name(SI_DEFAULT, "windowShouldClose", OnClose);	
+	
+	if (RGFW_ALLOW_DND & args) {
+		/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
+		si_func_to_SEL("NSWindow", acceptsFirstResponder);
+		si_func_to_SEL("NSWindow", performKeyEquivalent);
 
-	/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
-	si_func_to_SEL("NSWindow", acceptsFirstResponder);
-	si_func_to_SEL("NSWindow", performKeyEquivalent);
-
-	/* NOTE(EimaMei): Drag 'n Drop requires too many damn functions for just a Drag 'n Drop event. */
-	si_func_to_SEL("NSWindow", draggingEntered);
-	si_func_to_SEL("NSWindow", draggingUpdated);
-	si_func_to_SEL("NSWindow", prepareForDragOperation);
-	si_func_to_SEL("NSWindow", performDragOperation);
+		/* NOTE(EimaMei): Drag 'n Drop requires too many damn functions for just a Drag 'n Drop event. */
+		si_func_to_SEL("NSWindow", draggingEntered);
+		si_func_to_SEL("NSWindow", draggingUpdated);
+		si_func_to_SEL("NSWindow", prepareForDragOperation);
+		si_func_to_SEL("NSWindow", performDragOperation);
+	}
 
 
 	RGFW_windows_size++;
