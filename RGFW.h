@@ -1349,7 +1349,7 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
 
 void RGFW_setMouse(RGFW_window* w, unsigned char* image, int width, int height, int channels) {
 	/* free the previous cursor */
-	if (w->cursor != NULL)
+	if (w->cursor != NULL && w->cursor != -1)
 		XFreeCursor((Display*)w->display, (Cursor)w->cursor);
 
 	XcursorImage* native = XcursorImageCreate(width, height);
@@ -1375,7 +1375,7 @@ void RGFW_setMouse(RGFW_window* w, unsigned char* image, int width, int height, 
 
 void RGFW_setMouseDefault(RGFW_window* w) {
 	/* free the previous cursor */
-	if (w->cursor != NULL)
+	if (w->cursor != NULL && w->cursor != -1)
 		XFreeCursor((Display*)w->display, (Cursor)w->cursor);
 
 	w->cursorChanged = 1;
@@ -2239,7 +2239,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->srcH = nWin->h = h;
 	nWin->srcName = nWin->name = name;
 	nWin->fpsCap = 0;
-	nWin->inFocus = 1;
+	nWin->inFocus = 0;
 	nWin->hideMouse = 0;
 	nWin->event.type = 0;
 	nWin->event.droppedFiles = NULL;
@@ -2254,6 +2254,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		macArgs |= NSWindowStyleMaskTitled;
 	else
 		macArgs |= NSWindowStyleMaskBorderless;
+
 
 	nWin->window = NSWindow_init(NSMakeRect(x, y, w, h), macArgs, false, NULL);
 	NSWindow_setTitle(nWin->window, name);
@@ -2286,16 +2287,10 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	}
 
     if (RGFW_TRANSPARENT_WINDOW & args) {
-		NSWindow_setBackgroundColor(nWin->window, NSColor_colorWithSRGB(0, 0, 0, 0));
 		NSWindow_setOpaque(nWin->window, false);
+		NSWindow_setBackgroundColor(nWin->window, NSColor_colorWithSRGB(0, 0, 0, 0));
+		NSWindow_setAlphaValue(0x00);
 	}
-
-	/*CGDirectDisplayID displayID = CGMainDisplayID();
-
-	CVDisplayLinkCreateWithCGDisplay(displayID, nWin->display);
-
-	CVDisplayLinkSetOutputCallback(nWin->display, displayCallback, nWin->window);
-	CVDisplayLinkStart(nWin->display);*/
 
 	#ifdef RGFW_GL
 	NSOpenGLContext_makeCurrentContext(nWin->glWin);
@@ -2322,19 +2317,17 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	/* NOTE(EimaMei): Why does Apple hate good code? Like wtf, who thought of methods being a great idea???
 	Imagine a universe, where MacOS had a proper system API (we would probably have like 20% better performance).
 	*/
-	si_func_to_SEL_with_name(SI_DEFAULT, "windowShouldClose", OnClose);	
-	
-	if (RGFW_ALLOW_DND & args) {
-		/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
-		si_func_to_SEL("NSWindow", acceptsFirstResponder);
-		si_func_to_SEL("NSWindow", performKeyEquivalent);
+	si_func_to_SEL_with_name(SI_DEFAULT, "windowShouldClose", OnClose);
 
-		/* NOTE(EimaMei): Drag 'n Drop requires too many damn functions for just a Drag 'n Drop event. */
-		si_func_to_SEL("NSWindow", draggingEntered);
-		si_func_to_SEL("NSWindow", draggingUpdated);
-		si_func_to_SEL("NSWindow", prepareForDragOperation);
-		si_func_to_SEL("NSWindow", performDragOperation);
-	}
+	/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
+	si_func_to_SEL("NSWindow", acceptsFirstResponder);
+	si_func_to_SEL("NSWindow", performKeyEquivalent);
+
+	/* NOTE(EimaMei): Drag 'n Drop requires too many damn functions for just a Drag 'n Drop event. */
+	si_func_to_SEL("NSWindow", draggingEntered);
+	si_func_to_SEL("NSWindow", draggingUpdated);
+	si_func_to_SEL("NSWindow", prepareForDragOperation);
+	si_func_to_SEL("NSWindow", performDragOperation);
 
 
 	RGFW_windows_size++;
@@ -2365,7 +2358,7 @@ unsigned int* RGFW_getScreenSize(RGFW_window* w){
 
 unsigned int RGFW_keysPressed[10]; /*10 keys at a time*/
 
-RGFW_Event* RGFW_checkEvents(RGFW_window* w){
+RGFW_Event* RGFW_checkEvents(RGFW_window* w) {
 	if (!RGFW_ValidWindowCheck(w, (char*)"RGFW_checkEvents")) return NULL;
 
 	if (w->event.droppedFiles != NULL){
@@ -2375,6 +2368,16 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* w){
 	w->event.droppedFilesCount = 0;
 
 	w->inFocus = NSWindow_isKeyWindow(w->window);
+
+	/* NOTE(EimaMei): This is super janky code, THANKS APPLE. For some reason it takes a few frames AFTER becoming focused to allow setting the cursor. */
+	if (w->inFocus && w->cursor != NULL && w->cursor != -1 && (w->cursorChanged != 2 || NSCursor_currentCursor() != w->cursor)) {
+		if (w->cursorChanged != 2)
+			w->cursorChanged++;
+
+		if (w->cursorChanged != 2 || NSCursor_currentCursor() != w->cursor) {
+			NSCursor_set(w->cursor);
+		}
+	}
 
 	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, 0, true);
 
@@ -2451,10 +2454,20 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* w){
 			default: break;
 		}
 
-		if (w->hideMouse && NSPointInRect(NSEvent_mouseLocation(e), NSWindow_frame(w->window)))
-			CGDisplayHideCursor(kCGDirectMainDisplay);
-		else
-			CGDisplayShowCursor(kCGDirectMainDisplay);
+		if (w->cursorChanged && NSPointInRect(NSEvent_mouseLocation(e), NSWindow_frame(w->window))) {
+			if (w->cursor == -1)
+				CGDisplayHideCursor(kCGDirectMainDisplay);
+			else {
+				CGDisplayShowCursor(kCGDirectMainDisplay);
+
+				if (w->cursor == NULL) 
+					NSCursor_set(NSCursor_arrowCursor());
+				else 
+					NSCursor_set(w->cursor);
+			}
+
+			w->cursorChanged = false;
+		}
 	}
 
 	NSApplication_sendEvent(NSApp, e);
@@ -2494,16 +2507,16 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* w){
 		return NULL;
 }
 
-void RGFW_setIcon(RGFW_window* w, unsigned char* data, int x, int y, int c) {
+void RGFW_setIcon(RGFW_window* w, unsigned char* data, int width, int height, int channels) {
 	if (!RGFW_ValidWindowCheck(w, (char*)"RGFW_setIcon")) return;
 
-	/* code by Eima Mei  */
+	/* code by EimaMei  */
     // Make a bitmap representation, then copy the loaded image into it.
-    NSBitmapImageRep* representation = NSBitmapImageRep_initWithBitmapData(NULL, x, y, 8, c, (c == 4), false, "NSCalibratedRGBColorSpace", NSBitmapFormatAlphaNonpremultiplied, x * c, 8 * c);
-    memcpy(NSBitmapImageRep_bitmapData(representation), data, x * y * c);
+    NSBitmapImageRep* representation = NSBitmapImageRep_initWithBitmapData(NULL, width, height, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", NSBitmapFormatAlphaNonpremultiplied, width * channels, 8 * channels);
+    memcpy(NSBitmapImageRep_bitmapData(representation), data, width * height * channels);
 
     // Add ze representation.
-    NSImage* dock_image = NSImage_initWithSize(NSMakeSize(x, y));
+    NSImage* dock_image = NSImage_initWithSize(NSMakeSize(width, height));
     NSImage_addRepresentation(dock_image, (NSImageRep*)representation);
 
     // Finally, set the dock image to it.
@@ -2515,15 +2528,52 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* data, int x, int y, int c) {
 }
 
 void RGFW_setMouse(RGFW_window* window, unsigned char* image, int width, int height, int channels) {
+	if (!RGFW_ValidWindowCheck(window, (char*)"RGFW_setMouse")) return;
 
+	if (image == NULL) {
+		NSCursor_set(NSCursor_arrowCursor());
+		window->cursor = NULL;
+
+		return ;
+	}
+
+	if (window->cursor != NULL && window->cursor != -1)
+		release(window->cursor);
+
+	/* NOTE(EimaMei): Code by yours truly. */
+    // Make a bitmap representation, then copy the loaded image into it.
+    NSBitmapImageRep* representation = NSBitmapImageRep_initWithBitmapData(NULL, width, height, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", NSBitmapFormatAlphaNonpremultiplied, width * channels, 8 * channels);
+    memcpy(NSBitmapImageRep_bitmapData(representation), image, width * height * channels);
+
+    // Add ze representation.
+    NSImage* cursor_image = NSImage_initWithSize(NSMakeSize(width, height));
+    NSImage_addRepresentation(cursor_image, (NSImageRep*)representation);
+
+    // Finally, set the cursor image.
+    NSCursor* cursor = NSCursor_initWithImage(cursor_image, NSMakePoint(0, 0));
+
+	window->cursor = cursor;
+	window->cursorChanged = true;
+
+    // Free the garbage.
+    release(cursor_image);
+    release(representation);
 }
 
 void RGFW_hideMouse(RGFW_window* w) {
-	w->hideMouse = 1;
+	if (w->cursor != NULL && w->cursor != -1)
+		release(w->cursor);
+	
+	w->cursor = -1;
+	w->cursorChanged = true;
 }
 
 void RGFW_setMouseDefault(RGFW_window* w) {
-	w->hideMouse = 0;
+	if (w->cursor != NULL && w->cursor != -1)
+		release(w->cursor);
+	
+	w->cursor = NULL;
+	w->cursorChanged = true;
 }
 
 unsigned char RGFW_isPressedI(RGFW_window* window, unsigned int key) {
@@ -2562,9 +2612,10 @@ unsigned short RGFW_registerJoystickF(RGFW_window* w, char* file){
 void RGFW_closeWindow(RGFW_window* w){
 	if (!RGFW_ValidWindowCheck(w, (char*)"RGFW_closeWindow")) return;
 
-	CVDisplayLinkStop(w->display);
-	CVDisplayLinkRelease(w->display);
 	release(w->view);
+
+	if (w->cursor != NULL && w->cursor != -1)
+		release(w->cursor);
 
 	unsigned int i;
 	for (i = 0; i < RGFW_windows_size; i++)
@@ -2577,7 +2628,7 @@ void RGFW_closeWindow(RGFW_window* w){
 		RGFW_windows_size = 0;
 		free(RGFW_windows);
 	}
-
+	
 
 	NSApplication_terminate(NSApp, (id)w->window);
 
