@@ -177,10 +177,6 @@ NSPoint NSWindow_convertPointFromScreen(NSWindow* window, NSPoint point) {
 void NSWindow_display(NSWindow* window) {
 	return [window display];
 }
-/* Passes a display message down the window’s view hierarchy, thus redrawing all views within the window. */
-void NSWindow_display(NSWindow* window) {
-	return [window display];
-}
 
 
 /* ============ NSView class ============ */
