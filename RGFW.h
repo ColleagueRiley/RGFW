@@ -308,7 +308,7 @@ int main() {
 
     for (;;) {
         RGFW_checkEvents(w);
-        RGFW_swapBuffers(w, 255, 255, 255, 255);
+        RGFW_swapBuffers(w);
 
 		glClearColor(0xFF, 0XFF, 0xFF, 0xFF);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -1752,9 +1752,6 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	RGFW_createOpenGLContext(nWin);
 	wglSwapIntervalEXT(1);
 	#endif
-
-	if (RGFWjoystickApi == NULL)
-		DirectInput8Create(nWin->display, DIRECTINPUT_VERSION, &(LPIID){0xBF798031,0x483A,0x4DA2,0xAA,0x99,0x5D,0x64,0xED,0x36,0x97,0x00}, (void**) &RGFWjoystickApi, NULL);
 
     ShowWindow((HWND)nWin->display, SW_SHOWNORMAL);
 
