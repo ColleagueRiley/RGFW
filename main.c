@@ -1,6 +1,11 @@
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
 
+#ifdef _WIN32
+#undef __linux__
+#undef __unix__
+#endif
+
 #include "RGFW.h"
 
 void drawLoop(RGFW_window* w); /* I seperate the draw loop only because it's run twice */
@@ -13,7 +18,7 @@ unsigned char running = 1;
 
 
 int main() {
-    RGFW_window* win = RGFW_createWindowPointer("RGFW Example Window", 500, 500, 500, 500, RGFW_ALLOW_DND);
+    RGFW_window* win = RGFW_createWindowPointer("RGFW Example Window", 500, 500, 500, 500, RGFW_ALLOW_DND );
     win->fpsCap = 60;
 
     RGFW_createThread(loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
