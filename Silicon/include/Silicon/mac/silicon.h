@@ -121,6 +121,10 @@ define_property(NSWindow, bool, isVisible, IsVisible, window);
 define_property(NSWindow, NSColor*, backgroundColor, BackgroundColor, window);
 /* Get/set the opaque of the window. */
 define_property(NSWindow, bool, isOpaque, Opaque, window);
+/* The window’s alpha value. */
+define_property(NSWindow, CGFloat, alphaValue, AlphaValue, window);
+/* A Boolean value that indicates whether the window accepts mouse-moved events. */
+define_property(NSWindow, bool, acceptsMouseMovedEvents, AcceptsMouseMovedEvents, window);
 /* Get/Set the frame of the window. */
 NSRect NSWindow_frame(NSWindow* window);
 
@@ -141,6 +145,8 @@ void NSWindow_makeMainWindow(NSWindow* window);
 void NSWindow_setFrameAndDisplay(NSWindow* window, NSRect frame, bool display, bool animate);
 /* */
 NSPoint NSWindow_convertPointFromScreen(NSWindow* window, NSPoint point);
+/* Passes a display message down the window’s view hierarchy, thus redrawing all views within the window. */
+void NSWindow_display(NSWindow* window);
 
 
 /* ============ NSView class ============ */
@@ -350,13 +356,21 @@ NSMenuItem* NSMenuItem_separatorItem();
 
 
 /* ============ NSColor class ============ */
+/* ====== NSColor properties ====== */
+/* */
+NSColor* NSColor_clearColor();
+/* */
+NSColor* NSColor_keyboardFocusIndicatorColor();
+
 /* ====== NSColor functions ====== */
 /* */
 void NSColor_set(NSColor* color);
 /* */
-NSColor* NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha);
+NSColor* NSColor_colorWithRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha);
 /* */
-NSColor* NSColor_keyboardFocusIndicatorColor();
+NSColor* NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha);
+/* Creates a color object using the given opacity and grayscale values. */
+NSColor* NSColor_colorWithCalibrated(CGFloat white, CGFloat alpha);
 
 
 /* ============ NSBezierPath class ============ */
@@ -385,11 +399,14 @@ const char* NSProcessInfo_processName(NSProcessInfo* processInfo);
 NSImage* NSImage_initWithSize(NSSize size);
 /* */
 NSImage* NSImage_initWithData(unsigned char* bitmapData, NSUInteger length);
+/* Initializes a data object with the content of the file at a given path. */
+NSImage* NSImage_initWithFile(const char* path);
 /* */
 NSImage* NSImage_initWithCGImage(CGImageRef cgImage, NSSize size);
 /* Adds the specified image representation object to the image. */
 void NSImage_addRepresentation(NSImage* image, NSImageRep* imageRep);
-
+/* Returns the application’s current cursor. */
+NSCursor* NSCursor_currentCursor();
 
 /* ============ NSGraphicsContext class ============ */
 /* ====== NSGraphicsContext properties ====== */
@@ -462,7 +479,7 @@ NSWindow* NSDraggingInfo_draggingDestinationWindow(NSDraggingInfo* info);
 
 /* ============ NSColorPanel class ============ */
 /* ====== NSColorPanel properties ====== */
-define_property(NSColorPanel, NSColor*, color, setColor, colorPanel);
+define_property(NSColorPanel, NSColor*, color, Color, colorPanel);
 
 
 /* ============ NSBitmapImageRep class ============ */
@@ -535,6 +552,30 @@ NSURL* NSOpenPanel_URL(NSOpenPanel* openPanel);
 NSOpenPanel* NSOpenPanel_openPanel();
 /* Displays the panel and begins its event loop with the current working (or last-selected) directory as the default starting point. */
 NSModalResponse NSOpenPanel_runModal(NSOpenPanel* openPanel);
+
+
+/* ============ NSCursor class ============ */
+/* ====== NSCursor properties ====== */
+/* The cursor’s image. */
+NSImage* NSCursor_image(NSCursor* cursor);
+/* The position of the cursor's hot spot. */
+NSPoint NSCursor_hotSpot(NSCursor* cursor);
+/* Returns the default cursor, the arrow cursor. */
+NSCursor* NSCursor_arrowCursor();
+
+/* ====== NSCursor functions ====== */
+/* Initializes a cursor with the given image and hot spot. */
+NSCursor* NSCursor_initWithImage(NSImage* newImage, NSPoint aPoint);
+/* Makes the current cursor invisible. */
+void NSCursor_hide();
+/* Makes the current cursor invisible. */
+void NSCursor_unhide();
+/* Pops the current cursor off the top of the stack. */
+void NSCursor_pop(NSCursor* cursor);
+/* Puts the receiver on top of the cursor stack and makes it the current cursor. */
+void NSCursor_push(NSCursor* cursor);
+/* Makes the receiver the current cursor. */
+void NSCursor_set(NSCursor* cursor);
 
 
 /* TODO(EimaMei): Add documentation & deprecations macros for the OpenGL functions. */
