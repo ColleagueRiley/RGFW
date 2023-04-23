@@ -7,11 +7,6 @@
 (testing)
     - test EGL and OSmesa for (windows) (macos)
 
-(macos)
-    - get transparent window to work
-    - set icon (runtime function)
-
 (upkeepy)
-    - made error messages for possible errors
-    - check for memory leaks (after updates are done)
+    - check for memory leaks (after updates are done) (mostly done)
     - Document source code
