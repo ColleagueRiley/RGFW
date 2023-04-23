@@ -84,6 +84,7 @@ mac_type_define(NSColorPanel);
 mac_type_define(NSOpenPanel);
 mac_type_define(NSBitmapImageRep);
 mac_type_define(NSImageRep);
+mac_type_define(NSCursor);
 /* Deprecated*/
 mac_type_define(NSOpenGLPixelFormat);
 mac_type_define(NSOpenGLView);
