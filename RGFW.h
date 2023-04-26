@@ -1606,7 +1606,6 @@ unsigned char RGFW_Error() { return RGFW_error; }
 #include <GL/gl.h>
 #include <winnls.h>
 #include <shellapi.h>
-#include <dinput.h>
 
 char* createUTF8FromWideStringWin32(const WCHAR* source);
 
@@ -1750,7 +1749,6 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	#ifdef RGFW_EGL
 	RGFW_createOpenGLContext(nWin);
-	wglSwapIntervalEXT(1);
 	#endif
 
     ShowWindow((HWND)nWin->display, SW_SHOWNORMAL);
