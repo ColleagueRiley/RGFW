@@ -275,6 +275,9 @@ unsigned short RGFW_registerJoystickF(RGFW_window* window, char* file);
 
 unsigned char RGFW_isPressedJS(RGFW_window* window, unsigned short controller, unsigned char button);
 
+/*! native opengl proc */
+static void* RGFW_getProcAddress(const char* procname);
+	
 /*! Supporting functions */
 void RGFW_swapBuffers(RGFW_window* w); /* swap the opengl buffer */
 void RGFW_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_checkEvents)*/
@@ -424,9 +427,13 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 #include <X11/Xlib.h>
 #include <X11/Xcursor/Xcursor.h>
 #include <dlfcn.h>
+
+static void* RGFW_getProcAddress(const char* procname) { return glXGetProcAddress(procname); }
 #endif
 #ifdef _WIN32
 #include <windows.h>
+
+static void* RGFW_getProcAddress(const char* procname) { return wglGetProcAddress(procname); }
 #endif
 #if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 const char* RGFW_keyStrings[128] = {"a", "s", "d", "f", "h", "g", "z", "x", "c", "v", "0", "b", "q", "w", "e", "r", "y", "t", "1", "2", "3", "4", "6", "5", "Equals", "9", "7", "Minus", "8", "0", "CloseBracket", "o", "u", "Bracket", "i", "p", "Return", "l", "j", "Apostrophe", "k", "Semicolon", "BackSlash", "Comma", "Slash", "n", "m", "Period", "Tab", "Space", "Backtick", "BackSpace", "0", "Escape", "0", "Super", "Shift", "CapsLock", "Alt", "Control", "0", "0", "0", "0", "0", "KP_Period", "0", "KP_Minus", "0", "0", "0", "0", "Numlock", "0", "0", "0", "KP_Multiply", "KP_Return", "0", "0", "0", "0", "KP_Slash", "KP_0", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "0", "KP_8", "KP_9", "0", "0", "0", "F5", "F6", "F7", "F3", "F8", "F9", "0", "F11", "0", "F13", "0", "F14", "0", "F10", "0", "F12", "0", "F15", "Insert", "Home", "PageUp", "Delete", "F4", "End", "F2", "PageDown", "Left", "Right", "Down", "Up", "F1"};
@@ -2145,7 +2152,19 @@ void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority) { SetThr
 #define GL_SILENCE_DEPRECATION
 #include <Silicon/silicon.h>
 #include <OpenGL/gl.h>
+	
+void* RGFWnsglFramework;
 
+static void* RGFW_getProcAddress(const char* procname) {
+    CFStringRef symbolName = CFStringCreateWithCString(kCFAllocatorDefault, procname, kCFStringEncodingASCII);
+
+    GLFWglproc symbol = CFBundleGetFunctionPointerForName(RGFWnsglFramework, symbolName);
+
+    CFRelease(symbolName);
+
+    return symbol;
+}
+	
 CVReturn displayCallback(CVDisplayLinkRef displayLink, const CVTimeStamp *inNow, const CVTimeStamp *inOutputTime, CVOptionFlags flagsIn, CVOptionFlags *flagsOut, void *displayLinkContext) { return kCVReturnSuccess; }
 
 RGFW_window** RGFW_windows;
