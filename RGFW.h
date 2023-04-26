@@ -2708,7 +2708,7 @@ void RGFW_swapInterval(RGFW_window* win, int swapInterval) {
 	((PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress("glXSwapIntervalEXT"))(win->display, (Window)win->window, swapInterval); 
 	#endif
 	#ifdef _WIN32
-	wglSwapIntervalExt(swapInterval);
+	wglGetProcAddress("wglSwapIntervalEXT")(swapInterval);
 	#endif
 	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 	nWin->glWin = NSOpenGLView_openGLContext(nWin->view);
