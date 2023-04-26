@@ -275,11 +275,12 @@ unsigned short RGFW_registerJoystickF(RGFW_window* window, char* file);
 
 unsigned char RGFW_isPressedJS(RGFW_window* window, unsigned short controller, unsigned char button);
 
-/*! native opengl proc */
-static void* RGFW_getProcAddress(const char* procname);
-	
-/*! Supporting functions */
+/*! native opengl functions */
+static void* RGFW_getProcAddress(const char* procname); /* get native proc address */
 void RGFW_swapBuffers(RGFW_window* w); /* swap the opengl buffer */
+void RGFW_swapInterval(RGFW_window* win, int swapInterval);
+
+/*! Supporting functions */
 void RGFW_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_checkEvents)*/
 unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event); /*!< returns true if the window is valid (and prints an error and where it took place if it can)*/
 
@@ -808,7 +809,8 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	if (RGFW_OPENGL & args) {
 	#endif
 		glXMakeCurrent((Display *)nWin->display, (Drawable)nWin->window, (GLXContext)nWin->glWin);
-		/*((PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress("glXSwapIntervalEXT"))(nWin->display, (Window)nWin->window, 1);*/
+
+		RGFW_swapInterval(nWin, 1);
 	#ifdef RGFW_OSMESA
 		render = 0;
 	}
@@ -1356,7 +1358,7 @@ void RGFW_setIcon(RGFW_window* w, unsigned char* src, int width, int height, int
 
 void RGFW_setMouse(RGFW_window* w, unsigned char* image, int width, int height, int channels) {
 	/* free the previous cursor */
-	if (w->cursor != NULL && w->cursor != -1)
+	if (w->cursor != NULL && w->cursor != (void*)-1)
 		XFreeCursor((Display*)w->display, (Cursor)w->cursor);
 
 	XcursorImage* native = XcursorImageCreate(width, height);
@@ -1382,7 +1384,7 @@ void RGFW_setMouse(RGFW_window* w, unsigned char* image, int width, int height, 
 
 void RGFW_setMouseDefault(RGFW_window* w) {
 	/* free the previous cursor */
-	if (w->cursor != NULL && w->cursor != -1)
+	if (w->cursor != NULL && w->cursor != (void*)-1)
 		XFreeCursor((Display*)w->display, (Cursor)w->cursor);
 
 	w->cursorChanged = 1;
@@ -1741,6 +1743,8 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		nWin->window = GetDC((HWND)nWin->display);
 		nWin->glWin = wglCreateContext((HDC)nWin->window);
 		wglMakeCurrent((HDC)nWin->window, (HGLRC)nWin->glWin);
+
+		RGFW_swapInterval(nWin, 1);
 	#ifdef RGFW_OSMESA
 		nWin->buffer = NULL;
 	#endif
@@ -2292,9 +2296,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	nWin->view = NSOpenGLView_initWithFrame(NSMakeRect(0, 0, w, h), format);
 	NSOpenGLView_prepareOpenGL(nWin->view);
 
-	GLint swapInt = 1;
-	nWin->glWin = NSOpenGLView_openGLContext(nWin->view);
-	NSOpenGLContext_setValues(nWin->glWin, &swapInt, NSOpenGLContextParameterSwapInterval);
+	RGFW_swapInterval(nWin, 1);
 	#endif
 
 	if (RGFW_ALLOW_DND & args) {
@@ -2699,6 +2701,19 @@ void RGFW_makeCurrent(RGFW_window* w) {
 	#endif
 	#endif
 	RGFW_makeCurrent_OpenGL(w);
+}
+
+void RGFW_swapInterval(RGFW_window* win, int swapInterval) { 
+	#ifdef RGFW_X11
+	((PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress("glXSwapIntervalEXT"))(win->display, (Window)win->window, swapInterval); 
+	#endif
+	#ifdef _WIN32
+	wglSwapIntervalExt(swapInterval);
+	#endif
+	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
+	nWin->glWin = NSOpenGLView_openGLContext(nWin->view);
+	NSOpenGLContext_setValues(win->glWin, &swapInterval, NSOpenGLContextParameterSwapInterval);
+	#endif
 }
 
 void RGFW_swapBuffers(RGFW_window* w) {
