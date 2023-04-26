@@ -427,8 +427,6 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 #include <X11/Xlib.h>
 #include <X11/Xcursor/Xcursor.h>
 #include <dlfcn.h>
-
-static void* RGFW_getProcAddress(const char* procname) { return glXGetProcAddress(procname); }
 #endif
 #ifdef _WIN32
 #include <windows.h>
@@ -663,6 +661,8 @@ PFN_XcursorImageDestroy XcursorImageDestroySrc = NULL;
 void* X11Cursorhandle = NULL;
 
 unsigned int RGFW_windowsOpen = 0;
+
+static void* RGFW_getProcAddress(const char* procname) { return glXGetProcAddress(procname); }
 
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args) {
 	if (X11Cursorhandle == NULL) {
@@ -2153,9 +2153,12 @@ void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority) { SetThr
 #include <Silicon/silicon.h>
 #include <OpenGL/gl.h>
 	
-void* RGFWnsglFramework;
+void* RGFWnsglFramework = NULL; 
 
 static void* RGFW_getProcAddress(const char* procname) {
+	if (RGFWnsglFramework == NULL)
+		RGFWnsglFramework = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
+
     CFStringRef symbolName = CFStringCreateWithCString(kCFAllocatorDefault, procname, kCFStringEncodingASCII);
 
     GLFWglproc symbol = CFBundleGetFunctionPointerForName(RGFWnsglFramework, symbolName);
