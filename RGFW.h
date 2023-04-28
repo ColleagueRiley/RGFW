@@ -49,6 +49,7 @@
 	#define RGFW_LINK_OSMESA (optional) (windows only) if EGL is being used, if OS Mesa functions should be defined dymanically  (using GetProcAddress)
 
 	#define RGFW_X11 (optional) (unix only) if X11 should be used. This option is turned on by default by unix systems except for MacOS
+	#define RGFW_NO_WGL_LOAD (optional) (windows only) if WGL should not be loaded dynamically during runtime
 */
 
 #if defined(__unix__) && !defined(__APPLE__) && !defined(RGFW_X11)
