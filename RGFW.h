@@ -1781,8 +1781,6 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	
 		if (wglSwapIntervalEXT == NULL)
 			wglSwapIntervalEXT = (PFN_wglSwapIntervalEXT)wglGetProcAddress("wglSwapIntervalEXT");
-
-		RGFW_swapInterval(nWin, 1);
 	#ifdef RGFW_OSMESA
 		nWin->buffer = NULL;
 	#endif
