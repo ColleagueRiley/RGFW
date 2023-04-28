@@ -430,6 +430,7 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 #include <dlfcn.h>
 #endif
 #ifdef _WIN32
+
 #include <windows.h>
 
 static void* RGFW_getProcAddress(const char* procname) { return wglGetProcAddress(procname); }
@@ -1638,9 +1639,42 @@ PFN_OSMesaDestroyContext OSMesaDestroyContextSource;
 #define OSMesaDestroyContext OSMesaDestroyContextSource
 #endif
 
+#ifndef RGFW_NO_WGL_LOAD
+typedef PROC (*PFN_wglGetProcAddress)(LPCSTR);
+typedef HGLRC (*PFN_wglCreateContext)(HDC);
+typedef BOOL (*PFN_wglMakeCurrent)(HDC,HGLRC);
+typedef BOOL (*PFN_wglDeleteContext)(HGLRC);
+
+PFN_wglGetProcAddress wglGetProcAddressSrc = NULL;
+PFN_wglCreateContext wglCreateContextSrc = NULL;
+PFN_wglMakeCurrent wglMakeCurrentSrc = NULL;
+PFN_wglDeleteContext wglDeleteContextSrc = NULL;
+
+#define wglGetProcAddress wglGetProcAddressSrc
+#define wglCreateContext wglCreateContextSrc
+#define wglMakeCurrent wglMakeCurrentSrc
+#define wglDeleteContext wglDeleteContextSrc
+HINSTANCE wglinstance = NULL;
+#endif
+
+typedef BOOL (*PFN_wglSwapIntervalEXT)(int);
+PFN_wglSwapIntervalEXT wglSwapIntervalEXTSrc = NULL;
+#define wglSwapIntervalEXT wglSwapIntervalEXTSrc
+
 void* RGFWjoystickApi = NULL;
 
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args) {
+    #ifndef RGFW_NO_WGL_LOAD
+	if (wglinstance == NULL) { 
+		wglinstance = LoadLibraryA("opengl32.dll");
+
+		wglCreateContext = (PFN_wglCreateContext) GetProcAddress(wglinstance, "wglCreateContext");
+		wglDeleteContext = (PFN_wglDeleteContext) GetProcAddress(wglinstance, "wglDeleteContext");
+		wglGetProcAddress = (PFN_wglGetProcAddress) GetProcAddress(wglinstance, "wglGetProcAddress");
+		wglMakeCurrent = (PFN_wglMakeCurrent) GetProcAddress(wglinstance, "wglMakeCurrent");
+	}
+	#endif
+
     if (name == "") name = " ";
 
 	RGFW_window* nWin = (RGFW_window*)malloc(sizeof(RGFW_window));
@@ -1743,6 +1777,9 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		nWin->window = GetDC((HWND)nWin->display);
 		nWin->glWin = wglCreateContext((HDC)nWin->window);
 		wglMakeCurrent((HDC)nWin->window, (HGLRC)nWin->glWin);
+	
+		if (wglSwapIntervalEXT == NULL)
+			wglSwapIntervalEXT = (PFN_wglSwapIntervalEXT)wglGetProcAddress("wglSwapIntervalEXT");
 
 		RGFW_swapInterval(nWin, 1);
 	#ifdef RGFW_OSMESA
@@ -2708,7 +2745,7 @@ void RGFW_swapInterval(RGFW_window* win, int swapInterval) {
 	((PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress("glXSwapIntervalEXT"))(win->display, (Window)win->window, swapInterval); 
 	#endif
 	#ifdef _WIN32
-	wglGetProcAddress("wglSwapIntervalEXT")(swapInterval);
+	wglSwapIntervalEXT(swapInterval);
 	#endif
 	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 	nWin->glWin = NSOpenGLView_openGLContext(nWin->view);
