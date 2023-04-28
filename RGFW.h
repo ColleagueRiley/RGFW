@@ -22,7 +22,7 @@
 
 /*
 	Credits :
-		EimaMei/Sacode : Much of the code for creating windows using winapi
+		EimaMei/Sacode : Much of the code for creating windows using winapi, Wrote the Silicon library, helped with MacOS Support
 
 		stb - This project is heavily inspired by the stb single header files
 
