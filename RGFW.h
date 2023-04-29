@@ -2313,7 +2313,7 @@ static void* RGFW_getProcAddress(const char* procname) {
 
     CFStringRef symbolName = CFStringCreateWithCString(kCFAllocatorDefault, procname, kCFStringEncodingASCII);
 
-    GLFWglproc symbol = CFBundleGetFunctionPointerForName(RGFWnsglFramework, symbolName);
+    void* symbol = CFBundleGetFunctionPointerForName(RGFWnsglFramework, symbolName);
 
     CFRelease(symbolName);
 
@@ -2346,7 +2346,7 @@ bool prepareForDragOperation(NSDraggingInfo* sender) { return true; }
 
 /* NOTE(EimaMei): Usually, you never need 'id self, SEL cmd' for C -> Obj-C methods. This isn't the case. */
 bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
-	NSWindow* window = NSDraggingInfo_draggingDestinatiowindow(sender);
+	NSWindow* window = NSDraggingInfo_draggingDestinationWindow(sender);
 
 	unsigned int i;
 	bool found = false;
@@ -2457,7 +2457,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     if (RGFW_TRANSPARENT_WINDOW & args) {
 		NSWindow_setOpaque(win->window, false);
 		NSWindow_setBackgroundColor(win->window, NSColor_colorWithSRGB(0, 0, 0, 0));
-		NSWindow_setAlphaValue(0x00);
+		NSWindow_setAlphaValue(win->window, 0x00);
 	}
 
 	#ifdef RGFW_GL
@@ -2477,7 +2477,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	NSWindow_setIsVisible(win->window, true);
 
 	if (!RGFW_loaded) {
-		NSWindow_makeMaiwindow(win->window);
+		NSWindow_makeMainWindow(win->window);
 
 		RGFW_loaded = 1;
     }
@@ -2612,7 +2612,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 			case NSEventTypeMouseMoved:
 				win->event.type = RGFW_mousePosChanged;
 
-				NSPoint p = NSEvent_locationIwindow(e);
+				NSPoint p = NSEvent_locationInWindow(e);
 				win->event.x = p.x;
 				win->event.y = p.y;
 				break;
