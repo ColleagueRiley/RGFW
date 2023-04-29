@@ -294,7 +294,7 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event); /*!< returns
 Example to get you started :
 
 linux : gcc main.c -lX11 -lXcursor -lGL
-windows : gcc main.c -lopengl32 -lole32 -lshell32 -lgdi32
+windows : gcc main.c -lopengl32 -lshell32 -lgdi32
 macos:
 	<Silicon> can be replaced to where you have the Silicon headers stored
 	<libSilicon.a> can be replaced to wherever you have libSilicon.a
@@ -346,7 +346,7 @@ int main() {
 	static : ar rcs RGFW.a RGFW.o
 	shared :
 		windows:
-			gcc -shared RGFW.o -lopengl32 -lole32 -lshell32 -lgdi32 -o RGFW.dll
+			gcc -shared RGFW.o -lopengl32 -lshell32 -lgdi32 -o RGFW.dll
 		linux:
 			gcc -shared RGFW.o -lX11 -lXcursor -lGL -o RGFW.so
 		macos:
@@ -1670,11 +1670,7 @@ unsigned char RGFW_Error() { return RGFW_error; }
 #endif
 
 #ifdef _WIN32
-
-#include <ole2.h>
 #include <GL/gl.h>
-#include <winnls.h>
-#include <shellapi.h>
 
 char* createUTF8FromWideStringWin32(const WCHAR* source);
 
@@ -1730,6 +1726,8 @@ typedef BOOL WINAPI wglChoosePixelFormatARB_type(HDC hdc, const int *piAttribILi
         const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
 wglChoosePixelFormatARB_type *wglChoosePixelFormatARB;
 
+#define WGL_CONTEXT_MAJOR_VERSION_ARB             0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB             0x2092
 #define WGL_DRAW_TO_WINDOW_ARB                    0x2001
 #define WGL_ACCELERATION_ARB                      0x2003
 #define WGL_SUPPORT_OPENGL_ARB                    0x2010
@@ -1738,54 +1736,46 @@ wglChoosePixelFormatARB_type *wglChoosePixelFormatARB;
 #define WGL_COLOR_BITS_ARB                        0x2014
 #define WGL_DEPTH_BITS_ARB                        0x2022
 #define WGL_STENCIL_BITS_ARB                      0x2023
-#define WGL_CONTEXT_MAJOR_VERSION_ARB             0x2091
-#define WGL_CONTEXT_MINOR_VERSION_ARB             0x2092
-#define WGL_CONTEXT_PROFILE_MASK_ARB              0x9126
-#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
 #define WGL_FULL_ACCELERATION_ARB                 0x2027
 #define WGL_TYPE_RGBA_ARB                         0x202B
 
-void RGFW_wglInitOpengl(RGFW_window* win) {
-	{
-        WNDCLASSA window_class = { CS_HREDRAW | CS_VREDRAW | CS_OWNDC, DefWindowProcA, GetModuleHandle(0), "Dummy_WGL_djuasiodwa" };
+void RGFW_loadWGLARB() {
+	WNDCLASSA window_class = {
+		.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
+		.lpfnWndProc = DefWindowProcA,
+		.hInstance = GetModuleHandle(0),
+		.lpszClassName = "Dummy_WGL_djuasiodwa",
+	};
 
-        RegisterClassA(&window_class);
+	if (!RegisterClassA(&window_class));
 
-        HWND dummy_window = CreateWindowExA(0, window_class.lpszClassName, "Dummy OpenGL Window", 0, 0, 0, 0, 0, 0, 0, window_class.hInstance, 0);
+	HWND dummy_window = CreateWindowA(window_class.lpszClassName, "Dummy OpenGL Window", 0, 0, 0, 0, 0, 0, 0, window_class.hInstance, 0);
+	
+	HDC dummy_dc = GetDC(dummy_window);
 
-        HDC dummy_dc = GetDC(dummy_window);
+	PIXELFORMATDESCRIPTOR pfd = {sizeof(pfd), 1, PFD_TYPE_RGBA, PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, 32, 8, PFD_MAIN_PLANE, 24, 8};
 
-        PIXELFORMATDESCRIPTOR pfd = { sizeof(pfd), 1, PFD_TYPE_RGBA, PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, 32, 8,  PFD_MAIN_PLANE, 24, 8, };
+	int pixel_format = ChoosePixelFormat(dummy_dc, &pfd);
 
-        int pixel_format = ChoosePixelFormat(dummy_dc, &pfd);
+	SetPixelFormat(dummy_dc, pixel_format, &pfd);
 
-        SetPixelFormat(dummy_dc, pixel_format, &pfd);
+	HGLRC dummy_context = wglCreateContext(dummy_dc);
 
-        HGLRC dummy_context = wglCreateContext(dummy_dc);
-        wglMakeCurrent(dummy_dc, dummy_context);
+	wglMakeCurrent(dummy_dc, dummy_context);
 
-        wglCreateContextAttribsARB = (wglCreateContextAttribsARB_type*)wglGetProcAddress(
-            "wglCreateContextAttribsARB");
-        wglChoosePixelFormatARB = (wglChoosePixelFormatARB_type*)wglGetProcAddress(
-            "wglChoosePixelFormatARB");
+	wglCreateContextAttribsARB = (wglCreateContextAttribsARB_type*)wglGetProcAddress("wglCreateContextAttribsARB");
+	wglChoosePixelFormatARB = (wglChoosePixelFormatARB_type*)wglGetProcAddress("wglChoosePixelFormatARB");
 
-        wglMakeCurrent(dummy_dc, 0);
-        wglDeleteContext(dummy_context);
-        ReleaseDC(dummy_window, dummy_dc);
-        DestroyWindow(dummy_window);
-    }
+	wglMakeCurrent(dummy_dc, 0);
+	wglDeleteContext(dummy_context);
+	ReleaseDC(dummy_window, dummy_dc);
+	DestroyWindow(dummy_window);
+}
 
-    int pixel_format_attribs[] = {
-        WGL_DRAW_TO_WINDOW_ARB,     GL_TRUE,
-        WGL_SUPPORT_OPENGL_ARB,     GL_TRUE,
-        WGL_DOUBLE_BUFFER_ARB,      GL_TRUE,
-        WGL_ACCELERATION_ARB,       WGL_FULL_ACCELERATION_ARB,
-        WGL_PIXEL_TYPE_ARB,         WGL_TYPE_RGBA_ARB,
-        WGL_COLOR_BITS_ARB,         32,
-        WGL_DEPTH_BITS_ARB,         24,
-        WGL_STENCIL_BITS_ARB,       8,
-        0
-    };
+void init_opengl(RGFW_window* win) {
+	RGFW_loadWGLARB();
+	
+    int pixel_format_attribs[] = {WGL_DRAW_TO_WINDOW_ARB,     GL_TRUE,           WGL_SUPPORT_OPENGL_ARB,     GL_TRUE,WGL_DOUBLE_BUFFER_ARB,      GL_TRUE,           WGL_ACCELERATION_ARB,       WGL_FULL_ACCELERATION_ARB,             WGL_PIXEL_TYPE_ARB,         WGL_TYPE_RGBA_ARB,             WGL_COLOR_BITS_ARB,         32,                     WGL_DEPTH_BITS_ARB,         24,                 WGL_STENCIL_BITS_ARB,       8,            0                       };
 
     int pixel_format;
     UINT num_formats;
@@ -1795,17 +1785,17 @@ void RGFW_wglInitOpengl(RGFW_window* win) {
     DescribePixelFormat(win->window, pixel_format, sizeof(pfd), &pfd);
     SetPixelFormat(win->window, pixel_format, &pfd);
 
-    int gl33_attribs[] = {
-        WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-        WGL_CONTEXT_MINOR_VERSION_ARB, 3,
-        WGL_CONTEXT_PROFILE_MASK_ARB,  WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-        0,
-    };
+	int* context_attribs = (int[]){0, 0, 0, 0, 0};
 
-    win->glWin = wglCreateContextAttribsARB(win->window, 0, gl33_attribs);
+	if (RGFW_majorVersion || RGFW_minorVersion)
+		context_attribs = (int[]){ WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion,     WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_minorVersion};
+
+    win->glWin = wglCreateContextAttribsARB(win->window, 0, context_attribs);
 
     wglMakeCurrent(win->window, win->glWin);
 }
+
+char RGFW_trashed = 0;
 
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args) {
     #ifdef RGFW_WGL_LOAD
@@ -1865,22 +1855,18 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	if (!(RGFW_NO_RESIZE & args))
 		window_style |= WS_SIZEBOX;
 
-    win->display = CreateWindowA( Class.lpszClassName, "OpenGL", window_style, x, y, w, h, 0, 0, inh, 0);
+    win->display = CreateWindowA( Class.lpszClassName, name, window_style, x, y, w, h, 0, 0, inh, 0);
 
 	if (RGFW_TRANSPARENT_WINDOW & args)
 		SetWindowLong((HWND)win->display, GWL_EXSTYLE, GetWindowLong((HWND)win->display, GWL_EXSTYLE) | WS_EX_LAYERED);
 
-	if (RGFW_ALLOW_DND & args) {
-		LPDROPTARGET target;
-		RegisterDragDrop((HWND)win->display, target);
-
+	if (RGFW_ALLOW_DND & args)
 		DragAcceptFiles((HWND)win->display, TRUE);
-	}
 
     win->window = GetDC(win->display);
 
  	#ifdef RGFW_GL
-	RGFW_wglInitOpengl(win);
+	init_opengl(win);
 	#endif
 
 	#ifdef RGFW_OSMESA
@@ -1917,6 +1903,13 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	#endif
 
     ShowWindow((HWND)win->display, SW_SHOWNORMAL);
+
+	if (!RGFW_trashed) { /* a throw away window needs to be created for some reason because of wgl's ARB loading */
+		RGFW_trashed = 1;
+
+		RGFW_window* trash = RGFW_createWindowPointer("", 0, 0, 0, 0, 0);
+		RGFW_closeWindow(trash);
+	}
 
     return win;
 }
