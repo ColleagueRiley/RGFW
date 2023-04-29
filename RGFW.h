@@ -499,6 +499,13 @@ unsigned char RGFW_isPressedJS(RGFW_window* win, unsigned short c, unsigned char
 
 unsigned char RGFW_error = 0;
 
+int RGFW_majorVersion, RGFW_minorVersion;
+
+void RGFW_setGLVersion(int major, int minor) {
+	RGFW_majorVersion = major; 
+	RGFW_minorVersion = minor;
+}
+
 #ifdef RGFW_EGL
 
 #if defined(RGFW_LINK_EGL)
@@ -553,8 +560,9 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
     win->EGL_display = eglGetDisplay((EGLDisplay*)win->display);
 
     EGLint major, minor;
+	
     eglInitialize(win->EGL_display, &major, &minor);
-
+	printf("%i %i\n", major, minor);
     EGLint config_attribs[] = {
         EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
         EGL_RENDERABLE_TYPE,
@@ -563,6 +571,7 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 		#else
 		EGL_OPENGL_BIT,
 		#endif
+
         EGL_NONE
     };
 
@@ -621,13 +630,6 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event) {
 	}
 
 	return 1;
-}
-
-int RGFW_majorVersion, RGFW_minorVersion;
-
-void RGFW_setGLVersion(int major, int minor) {
-	RGFW_majorVersion = major; 
-	RGFW_minorVersion = minor;
 }
 
 #ifdef RGFW_X11
@@ -2005,7 +2007,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 			case WM_DROPFILES: {
 					win->event.type = RGFW_dnd;
 
-					HDROP drop = (HDROP) msg.wParam;
+					void* drop = msg.wParam;
 					POINT pt;
 					int i;
 
@@ -2437,8 +2439,13 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		NSOpenGLPFAAlphaSize, 8,
 		NSOpenGLPFADepthSize, 24,
 		NSOpenGLPFAStencilSize, 8,
-		0
+		0, 0, 0
 	};
+
+	if (RGFW_majorVersion >= 4 || RGFW_majorVersion  >= 3) {
+		attributes[11] = NSOpenGLPFAOpenGLProfile;
+        attributes[12] = (RGFW_majorVersion  >= 4) ? NSOpenGLProfileVersion4_1Core : NSOpenGLProfileVersion3_2Core;
+	}
 
 	#ifdef RGFW_GL
 	NSOpenGLPixelFormat* format = NSOpenGLPixelFormat_initWithAttributes(attributes);
@@ -2455,6 +2462,10 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	}
 
     if (RGFW_TRANSPARENT_WINDOW & args) {
+		#ifdef RGFW_GL
+		int opacity = 0;
+		NSOpenGLContext_setValues(win->glWin, &opacity, NSOpenGLContextParameterSurfaceOpacity);
+		#endif
 		NSWindow_setOpaque(win->window, false);
 		NSWindow_setBackgroundColor(win->window, NSColor_colorWithSRGB(0, 0, 0, 0));
 		NSWindow_setAlphaValue(win->window, 0x00);
