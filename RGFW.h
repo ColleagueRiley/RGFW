@@ -1693,7 +1693,7 @@ PFN_OSMesaDestroyContext OSMesaDestroyContextSource;
 #define OSMesaDestroyContext OSMesaDestroyContextSource
 #endif
 
-#ifdef RGFW_NO_WGL_LOAD
+#ifdef RGFW_WGL_LOAD
 typedef PROC (*PFN_wglGetProcAddress)(LPCSTR);
 typedef HGLRC (*PFN_wglCreateContext)(HDC);
 typedef BOOL (*PFN_wglMakeCurrent)(HDC,HGLRC);
@@ -1718,7 +1718,7 @@ PFN_wglSwapIntervalEXT wglSwapIntervalEXTSrc = NULL;
 void* RGFWjoystickApi = NULL;
 
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args) {
-    #ifdef RGFW_NO_WGL_LOAD
+    #ifdef RGFW_WGL_LOAD
 	if (wglinstance == NULL) { 
 		wglinstance = LoadLibraryA("opengl32.dll");
 
