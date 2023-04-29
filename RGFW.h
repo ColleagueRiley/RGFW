@@ -276,6 +276,9 @@ unsigned short RGFW_registerJoystickF(RGFW_window* window, char* file);
 
 unsigned char RGFW_isPressedJS(RGFW_window* window, unsigned short controller, unsigned char button);
 
+/*! Set OpenGL version hint */
+void RGFW_setGLVersion(int major, int minor);
+
 /*! native opengl functions */
 static void* RGFW_getProcAddress(const char* procname); /* get native proc address */
 void RGFW_swapBuffers(RGFW_window* w); /* swap the opengl buffer */
@@ -617,6 +620,13 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event) {
 	return 1;
 }
 
+int RGFW_majorVersion, RGFW_minorVersion;
+
+void RGFW_setGLVersion(int major, int minor) {
+	RGFW_majorVersion = major; 
+	RGFW_minorVersion = minor;
+}
+
 #ifdef RGFW_X11
 
 #include <X11/Xlib.h>
@@ -637,6 +647,7 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event) {
 #include <limits.h> /* for data limits (mainly used in drag and drop functions) */
 #include <string.h> /* strlen and other char* managing functions */
 #include <fcntl.h>
+#include <assert.h>
 
 #ifdef __linux__
 #include <linux/joystick.h>
@@ -652,6 +663,8 @@ XImage* RGFW_omesa_ximage;
 typedef XcursorImage* (* PFN_XcursorImageCreate)(int,int);
 typedef void (* PFN_XcursorImageDestroy)(XcursorImage*);
 typedef Cursor (* PFN_XcursorImageLoadCursor)(Display*,const XcursorImage*);
+typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
+
 
 PFN_XcursorImageLoadCursor XcursorImageLoadCursorSrc = NULL;
 PFN_XcursorImageCreate XcursorImageCreateSrc = NULL;
@@ -660,6 +673,13 @@ PFN_XcursorImageDestroy XcursorImageDestroySrc = NULL;
 #define XcursorImageLoadCursor XcursorImageLoadCursorSrc
 #define XcursorImageCreate XcursorImageCreateSrc
 #define XcursorImageDestroy XcursorImageDestroySrc
+
+#define SET_ATTRIB(a, v) \
+{ \
+    assert(((size_t) index + 1) < sizeof(attribs) / sizeof(attribs[0])); \
+    attribs[index++] = a; \
+    attribs[index++] = v; \
+}
 
 void* X11Cursorhandle = NULL;
 
@@ -723,34 +743,67 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	if (RGFW_OPENGL & args)
 	#endif
 	{
-		int singleBufferAttributes[] = {4, 8, 8, 9, 8, 10, 8, None};
+		static int visual_attribs[] = {   GLX_X_RENDERABLE    , True,   GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,  GLX_RENDER_TYPE     , GLX_RGBA_BIT,   GLX_X_VISUAL_TYPE   , GLX_TRUE_COLOR,   GLX_RED_SIZE        , 8,   GLX_GREEN_SIZE      , 8,   GLX_BLUE_SIZE       , 8,   GLX_ALPHA_SIZE      , 8,   GLX_DEPTH_SIZE      , 24,   GLX_STENCIL_SIZE    , 8,   GLX_DOUBLEBUFFER    , True,    None   };
+		
+		int fbcount;
+		GLXFBConfig* fbc = glXChooseFBConfig(nWin->display, DefaultScreen(nWin->display), visual_attribs, &fbcount);
 
-		int doubleBufferAttributes[] = {4, 5, 8, 8, 9, 8, 10, 8, None}; /* buffer atts for creating a opengl context */
+		int best_fbc = -1, worst_fbc = -1, best_num_samp = -1, worst_num_samp = 999;
 
-		XVisualInfo* vi = glXChooseVisual((Display *)nWin->display, DefaultScreen((Display *)nWin->display), doubleBufferAttributes);
+		int i;
+		for (i = 0; i < fbcount; i++) {
+			XVisualInfo *vi = glXGetVisualFromFBConfig(nWin->display, fbc[i]);
+			if (vi) {
+				int samp_buf, samples;
+				glXGetFBConfigAttrib(nWin->display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
+				glXGetFBConfigAttrib(nWin->display, fbc[i], GLX_SAMPLES, &samples );
 
-		if (vi == NULL) /* switch to single buffer if double buffer fails*/
-			vi = glXChooseVisual((Display *)nWin->display, DefaultScreen((Display *)nWin->display), singleBufferAttributes);
+				if ( best_fbc < 0 || samp_buf && samples > best_num_samp )
+					best_fbc = i, best_num_samp = samples;
+				if ( worst_fbc < 0 || !samp_buf || samples < worst_num_samp )
+					worst_fbc = i, worst_num_samp = samples;
+			}
+			XFree(vi);
+		}
 
-		if (RGFW_TRANSPARENT_WINDOW & args)
-			XMatchVisualInfo((Display *)nWin->display, DefaultScreen((Display *)nWin->display), 32, TrueColor, vi); /* for RGBA backgrounds*/
+		GLXFBConfig bestFbc = fbc[best_fbc];
 
-		Colormap cmap = XCreateColormap((Display *)nWin->display, RootWindow((Display *)nWin->display, vi->screen),
-										vi->visual, AllocNone); /* make the cmap from the visual*/
+		XFree(fbc);
 
-		nWin->glWin = (void*)glXCreateContext((Display *)nWin->display, vi, 0, 1); /* create the GLX context with the visual*/
+		/* Get a visual */
+		XVisualInfo *vi = glXGetVisualFromFBConfig(nWin->display, bestFbc);
 
 		/* make X window attrubutes*/
 		XSetWindowAttributes swa;
+		Colormap cmap;
 
-		swa.colormap = cmap;
+		swa.colormap = cmap = XCreateColormap( nWin->display,
+												RootWindow( nWin->display, vi->screen ), 
+												vi->visual, AllocNone );	
+
+		swa.background_pixmap = None ;	
 		swa.border_pixel = 0;
 		swa.event_mask = event_mask;
 
 		/* create the window*/
 		nWin->window = (void*)XCreateWindow((Display *)nWin->display, RootWindow((Display *)nWin->display, vi->screen), x, y, w, h,
 							0, vi->depth, InputOutput, vi->visual,
-							(1L << 1) | (1L << 13) | CWBorderPixel | CWEventMask, &swa);
+							CWBorderPixel|CWColormap|CWEventMask, &swa);
+
+		if (RGFW_TRANSPARENT_WINDOW & args)
+			XMatchVisualInfo((Display *)nWin->display, DefaultScreen((Display *)nWin->display), 32, TrueColor, vi); /* for RGBA backgrounds*/
+
+	
+		int* context_attribs = (int[]){0, 0, 0, 0, 0};
+
+		if (RGFW_majorVersion || RGFW_minorVersion)
+			context_attribs = (int[]){ GLX_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion,     GLX_CONTEXT_MINOR_VERSION_ARB, RGFW_minorVersion,       None};
+
+		glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
+		glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
+		glXGetProcAddressARB("glXCreateContextAttribsARB" );
+
+		nWin->glWin = glXCreateContextAttribsARB(nWin->display, bestFbc, 0, True, context_attribs);
 	}
 
 	#endif
