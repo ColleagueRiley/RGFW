@@ -540,6 +540,10 @@ PFNEGLDESTROYSURFACEPROC eglDestroySurfaceSource;
 #define eglDestroySurface eglDestroySurfaceSource;
 #endif
 
+
+#define EGL_CONTEXT_MAJOR_VERSION_KHR 0x3098
+#define EGL_CONTEXT_MINOR_VERSION_KHR 0x30fb
+
 void RGFW_createOpenGLContext(RGFW_window* win) {
 	#if defined(RGFW_LINK_EGL)
     eglInitializeSource = (PFNEGLINITIALIZEPROC)eglGetProcAddress("eglInitialize");
@@ -562,7 +566,7 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
     EGLint major, minor;
 	
     eglInitialize(win->EGL_display, &major, &minor);
-	printf("%i %i\n", major, minor);
+
     EGLint config_attribs[] = {
         EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
         EGL_RENDERABLE_TYPE,
@@ -571,7 +575,6 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 		#else
 		EGL_OPENGL_BIT,
 		#endif
-
         EGL_NONE
     };
 
@@ -584,8 +587,8 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 	#else
 	eglBindAPI(EGL_OPENGL_API);
 	#endif
-
-	win->glWin = eglCreateContext(win->EGL_display, config, EGL_NO_CONTEXT,  NULL);
+  
+	win->glWin = eglCreateContext(win->EGL_display, config, EGL_NO_CONTEXT, NULL);
     win->EGL_surface = eglCreateWindowSurface(win->EGL_display, config, (EGLNativeWindowType)win->window, NULL);
 
     eglMakeCurrent(win->EGL_display, win->EGL_surface, win->EGL_surface, win->glWin);
@@ -2007,7 +2010,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 			case WM_DROPFILES: {
 					win->event.type = RGFW_dnd;
 
-					void* drop = msg.wParam;
+					HDROP drop = (HDROP)msg.wParam;
 					POINT pt;
 					int i;
 
