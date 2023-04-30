@@ -967,8 +967,6 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 	}
 
 	win->event.droppedFilesCount = 0;
-	win->event.x = 0;
-	win->event.x = 0;
 	win->event.type = 0;
 
 	switch (E.type) {
