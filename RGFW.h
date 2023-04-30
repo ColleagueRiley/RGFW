@@ -688,7 +688,7 @@ void* X11Cursorhandle = NULL;
 unsigned int RGFW_windowsOpen = 0;
 
 #ifdef RGFW_GL
-static void* RGFW_getProcAddress(const char* procname) { return glXGetProcAddress(procname); }
+static void* RGFW_getProcAddress(const char* procname) { return (void*)glXGetProcAddress((GLubyte*)procname); }
 
 #define SET_ATTRIB(a, v) { \
     assert(((size_t) index + 1) < sizeof(attribs) / sizeof(attribs[0])); \
@@ -756,17 +756,17 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		static int visual_attribs[] = {   GLX_X_RENDERABLE    , True,   GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,  GLX_RENDER_TYPE     , GLX_RGBA_BIT,   GLX_X_VISUAL_TYPE   , GLX_TRUE_COLOR,   GLX_RED_SIZE        , 8,   GLX_GREEN_SIZE      , 8,   GLX_BLUE_SIZE       , 8,   GLX_ALPHA_SIZE      , 8,   GLX_DEPTH_SIZE      , 24,   GLX_STENCIL_SIZE    , 8,   GLX_DOUBLEBUFFER    , True,    None   };
 		
 		int fbcount;
-		GLXFBConfig* fbc = glXChooseFBConfig(win->display, DefaultScreen(win->display), visual_attribs, &fbcount);
+		GLXFBConfig* fbc = glXChooseFBConfig((Display*)win->display, DefaultScreen(win->display), visual_attribs, &fbcount);
 
 		int best_fbc = -1, worst_fbc = -1, best_num_samp = -1, worst_num_samp = 999;
 
 		int i;
 		for (i = 0; i < fbcount; i++) {
-			XVisualInfo *vi = glXGetVisualFromFBConfig(win->display, fbc[i]);
+			XVisualInfo *vi = glXGetVisualFromFBConfig((Display*)win->display, fbc[i]);
 			if (vi) {
 				int samp_buf, samples;
-				glXGetFBConfigAttrib(win->display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
-				glXGetFBConfigAttrib(win->display, fbc[i], GLX_SAMPLES, &samples );
+				glXGetFBConfigAttrib((Display*)win->display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
+				glXGetFBConfigAttrib((Display*)win->display, fbc[i], GLX_SAMPLES, &samples );
 
 				if ( best_fbc < 0 || samp_buf && samples > best_num_samp )
 					best_fbc = i, best_num_samp = samples;
@@ -781,13 +781,13 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		XFree(fbc);
 
 		/* Get a visual */
-		XVisualInfo *vi = glXGetVisualFromFBConfig(win->display, bestFbc);
+		XVisualInfo *vi = glXGetVisualFromFBConfig((Display*)win->display, bestFbc);
 
 		/* make X window attrubutes*/
 		XSetWindowAttributes swa;
 		Colormap cmap;
 
-		swa.colormap = cmap = XCreateColormap( win->display,
+		swa.colormap = cmap = XCreateColormap( (Display*)win->display,
 												RootWindow( win->display, vi->screen ), 
 												vi->visual, AllocNone );	
 
@@ -804,16 +804,20 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 			XMatchVisualInfo((Display *)win->display, DefaultScreen((Display *)win->display), 32, TrueColor, vi); /* for RGBA backgrounds*/
 
 	
-		int* context_attribs = (int[]){0, 0, 0, 0, 0};
+		int context_attribs[5] {0};
 
-		if (RGFW_majorVersion || RGFW_minorVersion)
-			context_attribs = (int[]){ GLX_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion,     GLX_CONTEXT_MINOR_VERSION_ARB, RGFW_minorVersion,       None};
+		if (RGFW_majorVersion || RGFW_minorVersion) {
+			context_attribs[0] = GLX_CONTEXT_MAJOR_VERSION_ARB;
+			context_attribs[1] = RGFW_majorVersion;
+			context_attribs[2] = GLX_CONTEXT_MINOR_VERSION_ARB;
+			context_attribs[3] = RGFW_minorVersion;
+		}
 
 		glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
 		glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
-		glXGetProcAddressARB("glXCreateContextAttribsARB" );
+		glXGetProcAddressARB((GLubyte*)"glXCreateContextAttribsARB" );
 
-		win->glWin = glXCreateContextAttribsARB(win->display, bestFbc, 0, True, context_attribs);
+		win->glWin = glXCreateContextAttribsARB((Display*)win->display, bestFbc, 0, True, context_attribs);
 	}
 
 	#endif
@@ -967,6 +971,8 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 	}
 
 	win->event.droppedFilesCount = 0;
+	win->event.x = 0;
+	win->event.x = 0;
 	win->event.type = 0;
 
 	switch (E.type) {
@@ -2866,7 +2872,7 @@ void RGFW_makeCurrent(RGFW_window* win) {
 void RGFW_swapInterval(RGFW_window* win, int swapInterval) { 
 	#ifdef RGFW_GL
 	#ifdef RGFW_X11
-	((PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress("glXSwapIntervalEXT"))(win->display, (Window)win->window, swapInterval); 
+	((PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress((GLubyte*)"glXSwapIntervalEXT"))((Display*)win->display, (Window)win->window, swapInterval); 
 	#endif
 	#ifdef _WIN32
 	wglSwapIntervalEXT(swapInterval);
