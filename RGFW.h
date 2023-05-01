@@ -804,7 +804,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 			XMatchVisualInfo((Display *)win->display, DefaultScreen((Display *)win->display), 32, TrueColor, vi); /* for RGBA backgrounds*/
 
 	
-		int context_attribs[5] {0};
+		int context_attribs[5] = {0};
 
 		if (RGFW_majorVersion || RGFW_minorVersion) {
 			context_attribs[0] = GLX_CONTEXT_MAJOR_VERSION_ARB;
