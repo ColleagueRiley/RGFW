@@ -2581,12 +2581,7 @@ unsigned int* RGFW_getScreenSize(RGFW_window* win){
 int RGFW_mousePoint[2];
 
 int* RGFW_getGlobalMousePoint(RGFW_window* win) {
-	NSPoint point = NSEvent_mouseLocation(e);
-
-	RGFW_mousePoint[0] = point.x;
-	RGFW_mousePoint[1] = point.y;
-
-	return RGFW_mousePoint;
+	return RGFW_mousePoint; /* the point is loaded during event checks */
 }
 
 unsigned int RGFW_keysPressed[10]; /*10 keys at a time*/
@@ -2612,6 +2607,11 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 	}
 
 	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, 0, true);
+
+	NSPoint point = NSEvent_mouseLocation(win->e);
+
+	RGFW_mousePoint[0] = point.x;
+	RGFW_mousePoint[1] = point.y;
 
 	if (NSEvent_window(e) == win->window) {
 		unsigned char button = 0, i;
