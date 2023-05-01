@@ -1786,20 +1786,24 @@ void init_opengl(RGFW_window* win) {
 
     int pixel_format;
     UINT num_formats;
-    wglChoosePixelFormatARB(win->window, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
+    wglChoosePixelFormatARB((HDC)win->window, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
 
     PIXELFORMATDESCRIPTOR pfd;
-    DescribePixelFormat(win->window, pixel_format, sizeof(pfd), &pfd);
-    SetPixelFormat(win->window, pixel_format, &pfd);
+    DescribePixelFormat((HDC)win->window, pixel_format, sizeof(pfd), &pfd);
+    SetPixelFormat((HDC)win->window, pixel_format, &pfd);
 
-	int* context_attribs = (int[]){0, 0, 0, 0, 0};
+	int context_attribs[5] = {0, 0, 0, 0, 0};
 
-	if (RGFW_majorVersion || RGFW_minorVersion)
-		context_attribs = (int[]){ WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion,     WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_minorVersion};
+	if (RGFW_majorVersion || RGFW_minorVersion) {
+		context_attribs[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
+		context_attribs[1] = RGFW_majorVersion;
+		context_attribs[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
+		context_attribs[3] = RGFW_minorVersion;
+	}
 
-    win->glWin = wglCreateContextAttribsARB(win->window, 0, context_attribs);
+    win->glWin = wglCreateContextAttribsARB((HDC)win->window, 0, context_attribs);
 
-    wglMakeCurrent(win->window, win->glWin);
+    wglMakeCurrent((HDC)win->window, (HGLRC)win->glWin);
 }
 
 char RGFW_trashed = 0;
@@ -1816,7 +1820,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	}
 	#endif
 
-    if (name == "") name = " ";
+    if (name == "") name = (char*)" ";
 
 	RGFW_window* win = (RGFW_window*)malloc(sizeof(RGFW_window));
 
@@ -1870,7 +1874,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	if (RGFW_ALLOW_DND & args)
 		DragAcceptFiles((HWND)win->display, TRUE);
 
-    win->window = GetDC(win->display);
+    win->window = GetDC((HWND)win->display);
 
  	#ifdef RGFW_GL
 	init_opengl(win);
@@ -1914,15 +1918,21 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	if (!RGFW_trashed) { /* a throw away window needs to be created for some reason because of wgl's ARB loading */
 		RGFW_trashed = 1;
 
-		RGFW_window* trash = RGFW_createWindowPointer("", 0, 0, 0, 0, 0);
+		RGFW_window* trash = RGFW_createWindowPointer((char*)"", 0, 0, 0, 0, 0);
 		RGFW_closeWindow(trash);
 	}
 
     return win;
 }
 
+
+unsigned int RGFW_ScreenSize[2];
+
 unsigned int* RGFW_getScreenSize(RGFW_window* win) {
-	return (unsigned int[2]) {GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES)};
+	RGFW_ScreenSize[0] = GetDeviceCaps(GetDC(NULL), HORZRES);
+	RGFW_ScreenSize[1] = GetDeviceCaps(GetDC(NULL), VERTRES);
+
+	return RGFW_ScreenSize;
 }
 
 RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
@@ -2105,7 +2115,7 @@ unsigned char RGFW_isPressedI(RGFW_window* win, unsigned int key) {
 	else return 0;
 }
 
-HICON RGFW_loadHandleImage(RGFW_window* win, unsigned char* src, int width, int height, _Bool icon) {
+HICON RGFW_loadHandleImage(RGFW_window* win, unsigned char* src, int width, int height, BOOL icon) {
     if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_loadHandleImage")) return NULL;
     int i;
     HDC dc;
@@ -2213,7 +2223,7 @@ void RGFW_setIcon(RGFW_window* win, unsigned char* src, int width, int height, i
 }
 
 char* RGFW_readClipboard(RGFW_window* win) {
-	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_readClipboard")) return "";
+	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_readClipboard")) return (char*)"";
 
     /* Open the clipboard */
     if (!OpenClipboard(NULL))
@@ -2896,7 +2906,7 @@ void RGFW_swapBuffers(RGFW_window* win) {
 	glXSwapBuffers((Display*)win->display, (Window)win->window);
 	#endif
 	#ifdef _WIN32
-	SwapBuffers(win->window);
+	SwapBuffers((HDC)win->window);
 	#endif
 	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 	NSOpenGLContext_flushBuffer(win->glWin);
