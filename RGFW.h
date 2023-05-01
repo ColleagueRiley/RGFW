@@ -217,6 +217,7 @@ void RGFW_initVulkan(RGFW_window* win, void* inst);
    [1] = height
 */
 unsigned int* RGFW_getScreenSize(RGFW_window* win);
+
 RGFW_Event* RGFW_checkEvents(RGFW_window* win); /*!< check events (returns a pointer to win->event or NULL if there is no event)*/
 
 /*! window managment functions*/
@@ -234,6 +235,9 @@ void RGFW_defaultIcon(RGFW_window* win); /* sets the mouse to the default mouse 
 void RGFW_setMouse(RGFW_window* win, unsigned char* image, int width, int height, int channels); /*!< sets mouse to bitmap (very simular to RGFW_setIcon)*/
 /*!< image NOT resized by default */
 void RGFW_setMouseDefault(RGFW_window* win); /* sets the mouse to the default mouse image */
+
+/* where the mouse is on the screen, x = [0], y = [1] */
+int* RGFW_getGlobalMousePoint(RGFW_window* win);
 
 #ifdef __APPLE__
 void RGFW_hideMouse(RGFW_window* win);
@@ -941,6 +945,14 @@ unsigned int* RGFW_getScreenSize(RGFW_window* win) {
 	return RGFWScreen;
 }
 
+unsigned int RGFWMouse[2];
+int* RGFW_getGlobalMousePoint(RGFW_window* win) {
+	int x, y, z;
+	Window window1, window2;
+    XQueryPointer((Display*)win->display, XDefaultRootWindow((Display*)win->display), &window1, &window2, &x, &RGFWMouse[0], &RGFWMouse[1], &y, &z);
+
+	return RGFWMouse;
+}
 
 typedef struct XDND {
 	long source, version;
@@ -1253,7 +1265,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 			win->srcX = win->x = a.x;
 			win->srcY = win->y = a.y;
 			win->srcW = win->w = a.width;
-			win->srcH = win->h = a.height;
+			win->srcH = win->h = a.height; 
 			break;
 		default:
 			#ifdef __linux__
@@ -1935,6 +1947,17 @@ unsigned int* RGFW_getScreenSize(RGFW_window* win) {
 	return RGFW_ScreenSize;
 }
 
+int RGFWMouse[2];
+int* RGFW_getGlobalMousePoint(RGFW_window* win) {
+	POINT p; 
+	GetCursorPos(&p);
+
+	RGFWMouse[0] = p.x;
+	RGFWMouse[1] = p.y;
+	
+	return RGFWMouse;
+}
+
 RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 	RGFW_checkFPS(win);
 
@@ -2542,12 +2565,28 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	return win;
 }
 
+unsigned int RGFW_SreenSize[2];
+
 unsigned int* RGFW_getScreenSize(RGFW_window* win){
 	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_getScreenSize")) return (unsigned int[2]){0, 0};
 
 	NSRect r = NSScreen_frame(NSScreen_mainScreen());
 
+	RGFW_SreenSize[0] = r.size.width;
+	RGFW_SreenSize[1] =  r.size.height;
+
 	return (unsigned int[2]){r.size.width, r.size.height};
+}
+
+int RGFW_mousePoint[2];
+
+int* RGFW_getGlobalMousePoint(RGFW_window* win) {
+	NSPoint point = NSEvent_mouseLocation(e);
+
+	RGFW_mousePoint[0] = point.x;
+	RGFW_mousePoint[1] = point.y;
+
+	return RGFW_mousePoint;
 }
 
 unsigned int RGFW_keysPressed[10]; /*10 keys at a time*/
