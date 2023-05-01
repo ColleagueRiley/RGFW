@@ -945,9 +945,10 @@ unsigned int* RGFW_getScreenSize(RGFW_window* win) {
 	return RGFWScreen;
 }
 
-unsigned int RGFWMouse[2];
+int RGFWMouse[2];
 int* RGFW_getGlobalMousePoint(RGFW_window* win) {
-	int x, y, z;
+	int x, y;
+	unsigned int z;
 	Window window1, window2;
     XQueryPointer((Display*)win->display, XDefaultRootWindow((Display*)win->display), &window1, &window2, &x, &RGFWMouse[0], &RGFWMouse[1], &y, &z);
 
@@ -1949,7 +1950,7 @@ unsigned int* RGFW_getScreenSize(RGFW_window* win) {
 
 int RGFWMouse[2];
 int* RGFW_getGlobalMousePoint(RGFW_window* win) {
-	POINT p; 
+	POINT p; `
 	GetCursorPos(&p);
 
 	RGFWMouse[0] = p.x;
