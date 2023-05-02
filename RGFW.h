@@ -2411,7 +2411,9 @@ bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
 	si_array_free(array);
 
 	/*
-	yes, I tried memset, it didn't work eiehter
+	yes, I tried memset, it didn't work either
+	
+	this part probably causes the string bug
 	*/
 	unsigned int x, y;
 
