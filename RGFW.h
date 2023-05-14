@@ -1950,7 +1950,7 @@ unsigned int* RGFW_getScreenSize(RGFW_window* win) {
 
 int RGFWMouse[2];
 int* RGFW_getGlobalMousePoint(RGFW_window* win) {
-	POINT p; `
+	POINT p; 
 	GetCursorPos(&p);
 
 	RGFWMouse[0] = p.x;
