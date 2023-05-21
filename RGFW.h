@@ -1771,14 +1771,14 @@ wglChoosePixelFormatARB_type *wglChoosePixelFormatARB;
 #define WGL_TYPE_RGBA_ARB                         0x202B
 
 void RGFW_loadWGLARB() {
-	WNDCLASSA window_class = {
-		.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
-		.lpfnWndProc = DefWindowProcA,
-		.hInstance = GetModuleHandle(0),
-		.lpszClassName = "Dummy_WGL_djuasiodwa",
-	};
+	WNDCLASSA window_class;
+	
+    window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+    window_class.lpfnWndProc = DefWindowProcA;
+	window_class.hInstance = GetModuleHandle(0);
+	window_class.lpszClassName = "Dummy_WGL_djuasiodwa";
 
-	if (!RegisterClassA(&window_class));
+    if (!RegisterClassA(&window_class));
 
 	HWND dummy_window = CreateWindowA(window_class.lpszClassName, "Dummy OpenGL Window", 0, 0, 0, 0, 0, 0, 0, window_class.hInstance, 0);
 	
