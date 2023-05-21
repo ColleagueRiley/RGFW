@@ -1,4 +1,5 @@
 - version control (EGL)
+- fix macOS DND string bug (string has extra data at the end)
 
 (addons)
     - init drag function (drag n' drop) (output)

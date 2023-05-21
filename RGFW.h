@@ -2419,7 +2419,12 @@ bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
 
 	si_array_free(array);
 
-	unsigned int y;
+	/*
+	yes, I tried memset, it didn't work either
+	
+	this part probably causes the string bug
+	*/
+	unsigned int x, y;
 
 	for (y = 0; y < RGFW_windows[i]->event.droppedFilesCount; y++)
 		RGFW_windows[i]->event.droppedFiles[y] = strdup(droppedFiles[y]);
