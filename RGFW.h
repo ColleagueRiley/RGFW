@@ -434,7 +434,7 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 
 #ifdef RGFW_X11
 #include <X11/Xlib.h>
-#include <X11/Xcursor/Xcursor.h>
+//#include <X11/Xcursor/Xcursor.h>
 #include <dlfcn.h>
 #endif
 #ifdef _WIN32
@@ -565,7 +565,7 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 	eglDestroySurfaceSource = (PFNEGLDESTROYSURFACEPROC)  eglGetProcAddress("eglDestroySurface");
 	#endif
 
-    win->EGL_display = eglGetDisplay((EGLDisplay*)win->display);
+    win->EGL_display = eglGetDisplay((EGLNativeDisplayType)win->display);
 
     EGLint major, minor;
 	
@@ -601,7 +601,7 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 	eglSwapInterval(win->EGL_display, 1);
 }
 
-void* RGFW_getProcAddress(const char* procname) { return eglGetProcAddress(procname); }
+void* RGFW_getProcAddress(const char* procname) { return (void*)eglGetProcAddress(procname); }
 
 void RGFW_closeEGL(RGFW_window* win) {
     eglDestroySurface(win->EGL_display, win->EGL_surface);
@@ -671,14 +671,16 @@ Atom XdndAware, XdndTypeList,     XdndSelection,    XdndEnter,        XdndPositi
 #ifdef RGFW_OSMESA
 XImage* RGFW_omesa_ximage;
 #endif
-
+#ifndef RGFW_NO_X11_CURSOR
 typedef XcursorImage* (* PFN_XcursorImageCreate)(int,int);
 typedef void (* PFN_XcursorImageDestroy)(XcursorImage*);
 typedef Cursor (* PFN_XcursorImageLoadCursor)(Display*,const XcursorImage*);
+#endif
 #ifdef RGFW_GL
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 #endif
 
+#ifndef RGFW_NO_X11_CURSOR
 PFN_XcursorImageLoadCursor XcursorImageLoadCursorSrc = NULL;
 PFN_XcursorImageCreate XcursorImageCreateSrc = NULL;
 PFN_XcursorImageDestroy XcursorImageDestroySrc = NULL;
@@ -688,6 +690,7 @@ PFN_XcursorImageDestroy XcursorImageDestroySrc = NULL;
 #define XcursorImageDestroy XcursorImageDestroySrc
 
 void* X11Cursorhandle = NULL;
+#endif
 
 unsigned int RGFW_windowsOpen = 0;
 
@@ -702,6 +705,7 @@ static void* RGFW_getProcAddress(const char* procname) { return (void*)glXGetPro
 #endif
 
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args) {
+	#ifndef RGFW_NO_X11_CURSOR
 	if (X11Cursorhandle == NULL) {
 		#if defined(__CYGWIN__)
 			X11Cursorhandle = dlopen("libXcursor-1.so", RTLD_LAZY | RTLD_LOCAL);
@@ -715,6 +719,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		XcursorImageDestroySrc = (PFN_XcursorImageDestroy)dlsym(X11Cursorhandle, "XcursorImageDestroy");
         XcursorImageLoadCursorSrc = (PFN_XcursorImageLoadCursor)dlsym(X11Cursorhandle, "XcursorImageLoadCursor");
 	}
+	#endif
 
 	RGFW_window* win = (RGFW_window*)malloc(sizeof(RGFW_window)); /* make a new RGFW struct */
 
@@ -1260,6 +1265,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 			RGFW_setMouseDefault(win);
 			break;
 		case ConfigureNotify:
+			#ifndef RGFW_NO_X11_WINDOW_ATTRIB
 			XWindowAttributes a;
 			XGetWindowAttributes((Display *)win->display, (Window)win->window, &a);
 
@@ -1267,6 +1273,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 			win->srcY = win->y = a.y;
 			win->srcW = win->w = a.width;
 			win->srcH = win->h = a.height; 
+			#endif
 			break;
 		default:
 			#ifdef __linux__
@@ -1362,11 +1369,13 @@ void RGFW_closeWindow(RGFW_window* win) {
 			XCloseDisplay((Display *)win->display); /* kill the display*/
 	}
 
+	#ifndef RGFW_NO_X11_CURSOR
 	if (X11Cursorhandle != NULL && !RGFW_windowsOpen) {
 		dlclose(X11Cursorhandle);
 
 		X11Cursorhandle = NULL;
 	}
+	#endif
 
 	/* set cleared display / window to NULL for error checking */
 	win->display = (Display*)0;
@@ -1437,6 +1446,7 @@ void RGFW_setIcon(RGFW_window* win, unsigned char* src, int width, int height, i
 }
 
 void RGFW_setMouse(RGFW_window* win, unsigned char* image, int width, int height, int channels) {
+	#ifndef RGFW_NO_X11_CURSOR
 	/* free the previous cursor */
 	if (win->cursor != NULL && win->cursor != (void*)-1)
 		XFreeCursor((Display*)win->display, (Cursor)win->cursor);
@@ -1460,6 +1470,7 @@ void RGFW_setMouse(RGFW_window* win, unsigned char* image, int width, int height
 	win->cursorChanged = 1;
     win->cursor = (void*)XcursorImageLoadCursor((Display*)win->display, native);
 	XcursorImageDestroy(native);
+	#endif
 }
 
 void RGFW_setMouseDefault(RGFW_window* win) {
@@ -2305,8 +2316,6 @@ void RGFW_writeClipboard(RGFW_window* win, char* text) {
 }
 
 unsigned short RGFW_registerJoystick(RGFW_window* win, int jsNumber) {
-
-
 	return RGFW_registerJoystickF(win, (char*)"");
 }
 
@@ -2410,17 +2419,10 @@ bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
 
 	si_array_free(array);
 
-	/*
-	yes, I tried memset, it didn't work eiehter
-	*/
-	unsigned int x, y;
+	unsigned int y;
 
-	for (y = 0; y < RGFW_windows[i]->event.droppedFilesCount; y++){
-		RGFW_windows[i]->event.droppedFiles[y] = (char*)malloc(strlen(droppedFiles[y]) * sizeof(char));
-
-		for (x = 0; x < strlen(droppedFiles[y]); x++)
-			RGFW_windows[i]->event.droppedFiles[y][x] = droppedFiles[y][x];
-	}
+	for (y = 0; y < RGFW_windows[i]->event.droppedFilesCount; y++)
+		RGFW_windows[i]->event.droppedFiles[y] = strdup(droppedFiles[y]);
 
 	RGFW_windows[i]->event.type = RGFW_dnd;
 
