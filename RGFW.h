@@ -434,7 +434,7 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 
 #ifdef RGFW_X11
 #include <X11/Xlib.h>
-//#include <X11/Xcursor/Xcursor.h>
+#include <X11/Xcursor/Xcursor.h>
 #include <dlfcn.h>
 #endif
 #ifdef _WIN32
@@ -1275,7 +1275,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 			win->srcH = win->h = a.height; 
 			#endif
 			break;
-		default:
+		default: {
 			#ifdef __linux__
 			unsigned char i;
 			for (i = 0; i < win->joystickCount; i++) {
@@ -1317,6 +1317,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 			#endif
 
 			break;
+		}
 	}
 
 	if ((win->srcX != win->x) || (win->srcY != win->y)) {
@@ -1770,7 +1771,8 @@ wglChoosePixelFormatARB_type *wglChoosePixelFormatARB;
 #define WGL_FULL_ACCELERATION_ARB                 0x2027
 #define WGL_TYPE_RGBA_ARB                         0x202B
 
-void RGFW_loadWGLARB() {
+void init_opengl(RGFW_window* win) {
+	/* create/load dummy window for loading ARB version */
 	WNDCLASSA window_class = {
 		.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
 		.lpfnWndProc = DefWindowProcA,
@@ -1801,11 +1803,9 @@ void RGFW_loadWGLARB() {
 	wglDeleteContext(dummy_context);
 	ReleaseDC(dummy_window, dummy_dc);
 	DestroyWindow(dummy_window);
-}
-
-void init_opengl(RGFW_window* win) {
-	RGFW_loadWGLARB();
 	
+
+	/* use dummy window to load ARB version */
     int pixel_format_attribs[] = {WGL_DRAW_TO_WINDOW_ARB,     GL_TRUE,           WGL_SUPPORT_OPENGL_ARB,     GL_TRUE,WGL_DOUBLE_BUFFER_ARB,      GL_TRUE,           WGL_ACCELERATION_ARB,       WGL_FULL_ACCELERATION_ARB,             WGL_PIXEL_TYPE_ARB,         WGL_TYPE_RGBA_ARB,             WGL_COLOR_BITS_ARB,         32,                     WGL_DEPTH_BITS_ARB,         24,                 WGL_STENCIL_BITS_ARB,       8,            0                       };
 
     int pixel_format;
@@ -2419,11 +2419,6 @@ bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
 
 	si_array_free(array);
 
-	/*
-	yes, I tried memset, it didn't work either
-	
-	this part probably causes the string bug
-	*/
 	unsigned int x, y;
 
 	for (y = 0; y < RGFW_windows[i]->event.droppedFilesCount; y++)
