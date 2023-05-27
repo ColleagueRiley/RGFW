@@ -1780,7 +1780,7 @@ void init_opengl(RGFW_window* win) {
 		.lpszClassName = "Dummy_WGL_djuasiodwa",
 	};
 
-	if (!RegisterClassA(&window_class));
+    if (!RegisterClassA(&window_class));
 
 	HWND dummy_window = CreateWindowA(window_class.lpszClassName, "Dummy OpenGL Window", 0, 0, 0, 0, 0, 0, 0, window_class.hInstance, 0);
 	
