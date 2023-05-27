@@ -1808,13 +1808,12 @@ void init_opengl(RGFW_window* win) {
 	/* use dummy window to load ARB version */
     int pixel_format_attribs[] = {WGL_DRAW_TO_WINDOW_ARB,     GL_TRUE,           WGL_SUPPORT_OPENGL_ARB,     GL_TRUE,WGL_DOUBLE_BUFFER_ARB,      GL_TRUE,           WGL_ACCELERATION_ARB,       WGL_FULL_ACCELERATION_ARB,             WGL_PIXEL_TYPE_ARB,         WGL_TYPE_RGBA_ARB,             WGL_COLOR_BITS_ARB,         32,                     WGL_DEPTH_BITS_ARB,         24,                 WGL_STENCIL_BITS_ARB,       8,            0                       };
 
-    int pixel_format;
     UINT num_formats;
     wglChoosePixelFormatARB((HDC)win->window, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
 
-    PIXELFORMATDESCRIPTOR pfd;
-    DescribePixelFormat((HDC)win->window, pixel_format, sizeof(pfd), &pfd);
-    SetPixelFormat((HDC)win->window, pixel_format, &pfd);
+    PIXELFORMATDESCRIPTOR npfd;
+    DescribePixelFormat((HDC)win->window, pixel_format, sizeof(npfd), &npfd);
+    SetPixelFormat((HDC)win->window, pixel_format, &npfd);
 
 	int context_attribs[5] = {0, 0, 0, 0, 0};
 
