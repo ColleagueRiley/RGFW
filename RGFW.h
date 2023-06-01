@@ -2610,7 +2610,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 
 	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, 0, true);
 
-	NSPoint point = NSEvent_mouseLocation(win->e);
+	NSPoint point = NSEvent_mouseLocation(e);
 
 	RGFW_mousePoint[0] = point.x;
 	RGFW_mousePoint[1] = point.y;
