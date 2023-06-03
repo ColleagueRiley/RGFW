@@ -440,8 +440,8 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 #ifdef _WIN32
 
 #include <windows.h>
-#ifdef WGL
-static void* RGFW_getProcAddress(const char* procname) { return wglGetProcAddress(procname); }
+#ifdef RGFW_GL
+static void* RGFW_getProcAddress(const char* procname) { return (void*)wglGetProcAddress(procname); }
 #endif
 #endif
 #if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
@@ -2600,7 +2600,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 	win->inFocus = NSWindow_isKeyWindow(win->window);
 
 	/* NOTE(EimaMei): This is super janky code, THANKS APPLE. For some reason it takes a few frames AFTER becoming focused to allow setting the cursor. */
-	if (win->inFocus && win->cursor != NULL && win->cursor != -1 && (win->cursorChanged != 2 || NSCursor_currentCursor() != win->cursor)) {
+	if (win->inFocus && win->cursor != NULL && win->cursor != NULL && (win->cursorChanged != 2 || NSCursor_currentCursor() != win->cursor)) {
 		if (win->cursorChanged != 2)
 			win->cursorChanged++;
 
@@ -2689,7 +2689,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 		}
 
 		if (win->cursorChanged && NSPointInRect(NSEvent_mouseLocation(e), NSWindow_frame(win->window))) {
-			if (win->cursor == -1)
+			if (win->cursor == NULL)
 				CGDisplayHideCursor(kCGDirectMainDisplay);
 			else {
 				CGDisplayShowCursor(kCGDirectMainDisplay);
@@ -2771,7 +2771,7 @@ void RGFW_setMouse(RGFW_window* win, unsigned char* image, int width, int height
 		return ;
 	}
 
-	if (win->cursor != NULL && win->cursor != -1)
+	if (win->cursor != NULL && win->cursor != NULL)
 		release(win->cursor);
 
 	/* NOTE(EimaMei): Code by yours truly. */
@@ -2795,7 +2795,7 @@ void RGFW_setMouse(RGFW_window* win, unsigned char* image, int width, int height
 }
 
 void RGFW_hideMouse(RGFW_window* win) {
-	if (win->cursor != NULL && win->cursor != -1)
+	if (win->cursor != NULL && win->cursor != NULL)
 		release(win->cursor);
 	
 	win->cursor = -1;
@@ -2803,7 +2803,7 @@ void RGFW_hideMouse(RGFW_window* win) {
 }
 
 void RGFW_setMouseDefault(RGFW_window* win) {
-	if (win->cursor != NULL && win->cursor != -1)
+	if (win->cursor != NULL && win->cursor != NULL)
 		release(win->cursor);
 	
 	win->cursor = NULL;
@@ -2848,7 +2848,7 @@ void RGFW_closeWindow(RGFW_window* win){
 
 	release(win->view);
 
-	if (win->cursor != NULL && win->cursor != -1)
+	if (win->cursor != NULL && win->cursor != NULL)
 		release(win->cursor);
 
 	unsigned int i;
