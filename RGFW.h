@@ -1773,12 +1773,12 @@ wglChoosePixelFormatARB_type *wglChoosePixelFormatARB;
 
 void init_opengl(RGFW_window* win) {
 	/* create/load dummy window for loading ARB version */
-	WNDCLASSA window_class = {
-		.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
-		.lpfnWndProc = DefWindowProcA,
-		.hInstance = GetModuleHandle(0),
-		.lpszClassName = "Dummy_WGL_djuasiodwa",
-	};
+	WNDCLASSA window_class;
+	
+	window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+	window_class.lpfnWndProc = DefWindowProcA;
+	window_class.hInstance = GetModuleHandle(0);
+	window_class.lpszClassName = "Dummy_WGL_djuasiodwa";
 
     if (!RegisterClassA(&window_class));
 
