@@ -192,7 +192,11 @@ typedef struct RGFW_window {
 	RGFW_Event event; /*!< current event */
 } RGFW_window; /*!< Window structure for managing the window */
 
-typedef unsigned long RGFW_thread; /*thread type (to be defined per (unix/windows))*/
+#ifdef __unix__
+typedef unsigned long RGFW_thread; /* thread type unix */
+#else
+typedef void* RGFW_thread; /* thread type for window */
+#endif
 
 RGFW_window* RGFW_createWindowPointer(
 	char* name, /* name of the window */
@@ -2345,7 +2349,9 @@ char* createUTF8FromWideStringWin32(const WCHAR* source) {
     return target;
 }
 
-RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args) { return (long unsigned int)CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)*function_ptr, args, 0, NULL);  }
+
+
+RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args) { return CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)*function_ptr, args, 0, NULL);  }
 void RGFW_cancelThread(RGFW_thread thread) { CloseHandle((HANDLE)thread);  }
 void RGFW_joinThread(RGFW_thread thread) { WaitForSingleObject((HANDLE)thread, INFINITE); }
 void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority) { SetThreadPriority((HANDLE)thread, priority); }
