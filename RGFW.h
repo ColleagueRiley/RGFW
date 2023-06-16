@@ -434,6 +434,7 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 
 #ifdef RGFW_X11
 #include <X11/Xlib.h>
+#include <X11/Xcursor/Xcursor.h>
 #include <dlfcn.h>
 #endif
 #ifdef _WIN32
