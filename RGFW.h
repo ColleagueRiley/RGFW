@@ -434,7 +434,6 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 
 #ifdef RGFW_X11
 #include <X11/Xlib.h>
-#include <X11/Xcursor/Xcursor.h>
 #include <dlfcn.h>
 #endif
 #ifdef _WIN32
@@ -939,8 +938,9 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     return win; /*return newly created window*/
 }
 
-unsigned int RGFWScreen[2];
 unsigned int* RGFW_getScreenSize(RGFW_window* win) {
+	static unsigned int RGFWScreen[2];
+
 	if (RGFW_ValidWindowCheck) (unsigned int[2]) {0, 0};
 	Screen* scrn = DefaultScreenOfDisplay((Display*)win->display);
 
@@ -950,8 +950,9 @@ unsigned int* RGFW_getScreenSize(RGFW_window* win) {
 	return RGFWScreen;
 }
 
-int RGFWMouse[2];
 int* RGFW_getGlobalMousePoint(RGFW_window* win) {
+	static int RGFWMouse[2];
+
 	int x, y;
 	unsigned int z;
 	Window window1, window2;
@@ -1829,9 +1830,9 @@ void init_opengl(RGFW_window* win) {
     wglMakeCurrent((HDC)win->window, (HGLRC)win->glWin);
 }
 
-char RGFW_trashed = 0;
-
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args) {
+	static char RGFW_trashed = 0;
+
     #ifdef RGFW_WGL_LOAD
 	if (wglinstance == NULL) { 
 		wglinstance = LoadLibraryA("opengl32.dll");
@@ -1949,17 +1950,18 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 }
 
 
-unsigned int RGFW_ScreenSize[2];
-
 unsigned int* RGFW_getScreenSize(RGFW_window* win) {
+	static unsigned int RGFW_ScreenSize[2];
+
 	RGFW_ScreenSize[0] = GetDeviceCaps(GetDC(NULL), HORZRES);
 	RGFW_ScreenSize[1] = GetDeviceCaps(GetDC(NULL), VERTRES);
 
 	return RGFW_ScreenSize;
 }
 
-int RGFWMouse[2];
 int* RGFW_getGlobalMousePoint(RGFW_window* win) {
+	int RGFWMouse[2];
+
 	POINT p; 
 	GetCursorPos(&p);
 
@@ -2432,9 +2434,10 @@ bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
     return true;
 }
 
-unsigned char RGFW_loaded = 0;
 
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args){
+	static unsigned char RGFW_loaded = 0;
+	
 	RGFW_window* win = malloc(sizeof(RGFW_window));
 
 	if (RGFW_FULLSCREEN & args){
@@ -2567,9 +2570,9 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 	return win;
 }
 
-unsigned int RGFW_SreenSize[2];
-
 unsigned int* RGFW_getScreenSize(RGFW_window* win){
+	static unsigned int RGFW_SreenSize[2];
+
 	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_getScreenSize")) return (unsigned int[2]){0, 0};
 
 	NSRect r = NSScreen_frame(NSScreen_mainScreen());
@@ -2580,9 +2583,11 @@ unsigned int* RGFW_getScreenSize(RGFW_window* win){
 	return (unsigned int[2]){r.size.width, r.size.height};
 }
 
-int RGFW_mousePoint[2];
-
 int* RGFW_getGlobalMousePoint(RGFW_window* win) {
+	int RGFW_mousePoint[2];
+`	RGFW_mousePoint[0] = win->event.x;
+`	RGFW_mousePoint[1] = win->event.y;
+
 	return RGFW_mousePoint; /* the point is loaded during event checks */
 }
 
@@ -2611,9 +2616,6 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, 0, true);
 
 	NSPoint point = NSEvent_mouseLocation(e);
-
-	RGFW_mousePoint[0] = point.x;
-	RGFW_mousePoint[1] = point.y;
 
 	if (NSEvent_window(e) == win->window) {
 		unsigned char button = 0, i;
