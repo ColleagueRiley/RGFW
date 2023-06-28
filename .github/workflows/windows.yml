@@ -1,0 +1,17 @@
+name: windows
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: gcc
+      run: gcc main.c -lopengl32 -lshell32 -lgdi32
