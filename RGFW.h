@@ -41,6 +41,7 @@
 	#define RGFW_IMPLEMENTATION - (semi-option) makes it so source code is included
 	#define RGFW_PRINT_ERRORS - (optional) makes it so RGFW prints errors when they're found
 	#define RGFW_OSMESA - (optional) use OSmesa as backend (instead of system's opengl api + regular opengl)
+	#define RGFW_BUFFER - (optional) just draw directly to (RGFW) window pixel buffer that is drawn to screen
 	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
 	#define RGFW_OPENGL_ES - (optional) use EGL to load and use Opengl ES for backend rendering (instead of the system's opengl api)
 	#define VULKAN - (optional) use vulkan for the rendering backend (rather than opengl)
@@ -68,7 +69,7 @@
 #undef RGFW_EGL
 #endif
 
-#if !defined(RGFW_OSMESA) && !defined(RGFW_EGL) && !defined(RGFW_GL) && !defined (RGFW_VULKAN)
+#if !defined(RGFW_OSMESA) && !defined(RGFW_EGL) && !defined(RGFW_GL) && !defined (RGFW_VULKAN) && !defined(RGFW_BUFFER)
 #define RGFW_GL
 #endif
 
@@ -174,7 +175,7 @@ typedef struct RGFW_window {
 	int joysticks[4]; /* limit of 4 joysticks at a time */
 	unsigned char jsPressed[4][16]; /* if a key is currently pressed or not (per joystick) */
 
-	#ifdef RGFW_OSMESA
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER) 
 	unsigned char* buffer; /*OSMesa buffer*/
 	unsigned char render; /* if OSMesa should render on the screen or not (set by window args by default but it can be changed in runtime if you want) */
 	#endif
@@ -672,7 +673,7 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event) {
 /*atoms needed for drag and drop*/
 Atom XdndAware, XdndTypeList,     XdndSelection,    XdndEnter,        XdndPosition,     XdndStatus,       XdndLeave,        XdndDrop,         XdndFinished,     XdndActionCopy,   XdndActionMove,   XdndActionLink,   XdndActionAsk, XdndActionPrivate;
 
-#ifdef RGFW_OSMESA
+#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 XImage* RGFW_omesa_ximage;
 #endif
 #ifndef RGFW_NO_X11_CURSOR
@@ -762,7 +763,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     long event_mask =  KeyPressMask | KeyReleaseMask  | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask; /* X11 events accepted*/
 
 	#ifdef RGFW_GL
-	#if defined(RGFW_OSMESA) || defined(RGFW_EGL)
+	#if defined(RGFW_OSMESA) || defined(RGFW_EGL) || defined(RGFW_BUFFER)
 	if (RGFW_OPENGL & args)
 	#endif
 	{
@@ -835,7 +836,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	#endif
 
-	#if defined(RGFW_OSMESA) || defined(RGFW_EGL)  || defined(RGFW_VULKAN)
+	#if defined(RGFW_OSMESA) || defined(RGFW_EGL)  || defined(RGFW_VULKAN) || defined(RGFW_BUFFER)
 	#ifdef RGFW_GL
 	else
 	#endif
@@ -857,6 +858,11 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 		#ifdef RGFW_EGL
 		RGFW_createOpenGLContext(win);
 		#endif
+		#endif
+
+		#ifdef RGFW_BUFFER
+		win->buffer = malloc(w * h * 4);
+		win->render = 1;
 		#endif
 	}
 	#endif
@@ -884,17 +890,17 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
     /* make it so the user can't close the window until the program does*/
     Atom wm_delete = XInternAtom((Display *)win->display, "WM_DELETE_WINDOW", 1);
     XSetWMProtocols((Display *)win->display, (Drawable)win->window, &wm_delete, 1);
-
+	
     /* connect the context to the window*/
     #ifdef RGFW_GL
-	#ifdef RGFW_OSMESA
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	if (RGFW_OPENGL & args) {
 	#endif
 		glXMakeCurrent((Display *)win->display, (Drawable)win->window, (GLXContext)win->glWin);
 
 		RGFW_swapInterval(win, 1);
-	#ifdef RGFW_OSMESA
-		render = 0;
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+		win->render = 0;
 	}
 	#endif
 	#endif
@@ -1396,7 +1402,7 @@ void RGFW_closeWindow(RGFW_window* win) {
 	for (i; i < win->joystickCount; i++)
 		close(win->joysticks[i]);
 
-	#ifdef RGFW_OSMESA
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	if (win->buffer != NULL) {
 		free(win->buffer);
 		win->render = 0;
@@ -1732,7 +1738,7 @@ PFN_OSMesaDestroyContext OSMesaDestroyContextSource;
 #define OSMesaDestroyContext OSMesaDestroyContextSource
 #endif
 
-#ifdef RGFW_WGL_LOAD
+#if defined(RGFW_WGL_LOAD) && defined(RGFW_GL)
 typedef PROC (*PFN_wglGetProcAddress)(LPCSTR);
 typedef HGLRC (*PFN_wglCreateContext)(HDC);
 typedef BOOL (*PFN_wglMakeCurrent)(HDC,HGLRC);
@@ -1777,6 +1783,7 @@ wglChoosePixelFormatARB_type *wglChoosePixelFormatARB;
 #define WGL_FULL_ACCELERATION_ARB                 0x2027
 #define WGL_TYPE_RGBA_ARB                         0x202B
 
+#ifdef RGFW_GL
 void init_opengl(RGFW_window* win) {
 	/* create/load dummy window for loading ARB version */
 	WNDCLASSA window_class;
@@ -1834,6 +1841,7 @@ void init_opengl(RGFW_window* win) {
 
     wglMakeCurrent((HDC)win->window, (HGLRC)win->glWin);
 }
+#endif
 
 RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, unsigned long args) {
 	static char RGFW_trashed = 0;
@@ -1919,16 +1927,18 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	if (RGFW_OPENGL & args) {
 	#endif
+		#ifdef RGFW_GL
 		ReleaseDC((HWND)win->display, (HDC)win->window);
 		win->window = GetDC((HWND)win->display);
 		wglMakeCurrent((HDC)win->window, (HGLRC)win->glWin);
 	
 		if (wglSwapIntervalEXT == NULL)
 			wglSwapIntervalEXT = (PFN_wglSwapIntervalEXT)wglGetProcAddress("wglSwapIntervalEXT");
-	#ifdef RGFW_OSMESA
+		#endif
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 		win->buffer = NULL;
 	#endif
-	#ifdef RGFW_OSMESA
+	#ifdef RGFW_OSMESA 
 	}
 	else {
 		win->glWin = (void*)OSMesaCreateContext(OSMESA_RGBA, NULL);
@@ -1940,6 +1950,11 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	#ifdef RGFW_EGL
 	RGFW_createOpenGLContext(win);
+	#endif
+
+	#ifdef RGFW_BUFFER
+	win->buffer = malloc(w * h * 4);
+	win->render = 1;
 	#endif
 
     ShowWindow((HWND)win->display, SW_SHOWNORMAL);
@@ -1964,8 +1979,9 @@ unsigned int* RGFW_getScreenSize(RGFW_window* win) {
 	return RGFW_ScreenSize;
 }
 
+int RGFWMouse[2];
+
 int* RGFW_getGlobalMousePoint(RGFW_window* win) {
-	int RGFWMouse[2];
 
 	POINT p; 
 	GetCursorPos(&p);
@@ -2245,7 +2261,7 @@ void RGFW_closeWindow(RGFW_window* win) {
 		win->event.droppedFiles = (char**)0;
 	}
 
-	#ifdef RGFW_OSMESA
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	if (win->buffer != NULL)
 		free(win->buffer);
 	#endif
@@ -2919,7 +2935,7 @@ void RGFW_makeCurrent_OpenGL(RGFW_window* win) {
 }
 
 void RGFW_makeCurrent(RGFW_window* win) {
-    #ifdef RGFW_OSMESA
+    #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	#ifdef RGFW_GL
 	if (!win->render)
 	#endif
@@ -2946,7 +2962,7 @@ void RGFW_swapInterval(RGFW_window* win, int swapInterval) {
 	#endif
 }
 
-void RGFW_swapBuffers(RGFW_window* win) {
+void RGFW_swapBuffers(RGFW_window* win) { 
 	RGFW_makeCurrent(win);
 
 	#ifdef RGFW_EGL
@@ -2968,8 +2984,9 @@ void RGFW_swapBuffers(RGFW_window* win) {
 	/* clear the window*/
 
 
-	#ifdef RGFW_OSMESA
-    if (win->render) {
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+    if (win->render) { 
+		#ifdef RGFW_OSMESA
 		unsigned char* row = (unsigned char*) malloc(win->srcW * 4);
 		int half_height = win->srcH / 2;
 		int stride = win->srcW * 4;
@@ -2984,21 +3001,26 @@ void RGFW_swapBuffers(RGFW_window* win) {
 		}
 
 		free(row);
+		#endif
+		
 		#ifdef RGFW_X11
 			RGFW_omesa_ximage = XCreateImage(win->display, DefaultVisual(win->display, XDefaultScreen(win->display)), DefaultDepth(win->display, XDefaultScreen(win->display)),
 								ZPixmap, 0, (char*)win->buffer, win->srcW, win->srcH, 32, 0);
 
-			XPutImage(win->display, win->window, XDefaultGC(win->display, XDefaultScreen(win->display)), RGFW_omesa_ximage, 0, 0, 0, 0, win->srcW, win->srcH);
+			XPutImage(win->display, (Window)win->window, XDefaultGC(win->display, XDefaultScreen(win->display)), RGFW_omesa_ximage, 0, 0, 0, 0, win->srcW, win->srcH);
 		#endif
 		#ifdef _WIN32
 			HBITMAP hbitmap = CreateBitmap(500, 500, 1, 32, (void*)win->buffer);
 			HDC hdcMem = CreateCompatibleDC(win->window);
+			
 			HBITMAP hOld = (HBITMAP)SelectObject(hdcMem, hbitmap);
 			BitBlt(win->window, 0, 0, 500, 500, hdcMem, 0, 0, SRCCOPY);
 			SelectObject(hdcMem, hOld);
+
 			DeleteDC(hdcMem);
+			DeleteObject(hbitmap);
 		#endif
-		#ifdef defined(__APPLE__) && !defined(RGFW_MACOS_X11)
+		#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 		CGRect rect = CGRectMake (0, 0, win->srcW, win->srcH);// 2
 		struct CGColorSpace* colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
 
