@@ -1,3 +1,3 @@
 all:
-	gcc source/*m mac/*.m -c
+	gcc -c source/*m source/mac/*.m -I./include
 	ar *.o libSilicon.a
