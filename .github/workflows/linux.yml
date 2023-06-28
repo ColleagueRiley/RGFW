@@ -1,0 +1,19 @@
+name: linux
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: apt
+      run: sudo apt-get install mesa-common-dev libglx-dev libxcursor-dev
+    - name: gcc
+      run: gcc main.c -lX11 -lGLX
