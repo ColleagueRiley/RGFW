@@ -1,0 +1,19 @@
+name: macos
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: silicon
+      run: cd Silicon && make
+    - name: gcc
+      run: gcc main.c -I./Silicon/include silicon/build/libSilicon.a
