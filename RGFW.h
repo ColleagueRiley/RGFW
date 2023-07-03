@@ -21,6 +21,22 @@
 */
 
 /*
+	#define RGFW_IMPLEMENTATION - (semi-option) makes it so source code is included
+	#define RGFW_PRINT_ERRORS - (optional) makes it so RGFW prints errors when they're found
+	#define RGFW_OSMESA - (optional) use OSmesa as backend (instead of system's opengl api + regular opengl)
+	#define RGFW_BUFFER - (optional) just draw directly to (RGFW) window pixel buffer that is drawn to screen
+	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
+	#define RGFW_OPENGL_ES - (optional) use EGL to load and use Opengl ES for backend rendering (instead of the system's opengl api)
+	#define VULKAN - (optional) use vulkan for the rendering backend (rather than opengl)
+
+	#define RGFW_LINK_EGL (optional) (windows only) if EGL is being used, if EGL functions should be defined dymanically (using GetProcAddress)
+	#define RGFW_LINK_OSMESA (optional) (windows only) if EGL is being used, if OS Mesa functions should be defined dymanically  (using GetProcAddress)
+
+	#define RGFW_X11 (optional) (unix only) if X11 should be used. This option is turned on by default by unix systems except for MacOS
+	#define RGFW_WGL_LOAD (optional) (windows only) if WGL should be loaded dynamically during runtime
+*/
+
+/*
 	Credits :
 		EimaMei/Sacode : Much of the code for creating windows using winapi, Wrote the Silicon library, helped with MacOS Support
 
@@ -37,24 +53,22 @@
 			Copyright (c) 2006-2019 Camilla Löwy
 */
 
-/*
-	#define RGFW_IMPLEMENTATION - (semi-option) makes it so source code is included
-	#define RGFW_PRINT_ERRORS - (optional) makes it so RGFW prints errors when they're found
-	#define RGFW_OSMESA - (optional) use OSmesa as backend (instead of system's opengl api + regular opengl)
-	#define RGFW_BUFFER - (optional) just draw directly to (RGFW) window pixel buffer that is drawn to screen
-	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
-	#define RGFW_OPENGL_ES - (optional) use EGL to load and use Opengl ES for backend rendering (instead of the system's opengl api)
-	#define VULKAN - (optional) use vulkan for the rendering backend (rather than opengl)
+/* makes sure the header file part is only defined once by default */
+#ifndef RGFW_HEADER
 
-	#define RGFW_LINK_EGL (optional) (windows only) if EGL is being used, if EGL functions should be defined dymanically (using GetProcAddress)
-	#define RGFW_LINK_OSMESA (optional) (windows only) if EGL is being used, if OS Mesa functions should be defined dymanically  (using GetProcAddress)
+#define RGFW_HEADER
 
-	#define RGFW_X11 (optional) (unix only) if X11 should be used. This option is turned on by default by unix systems except for MacOS
-	#define RGFW_WGL_LOAD (optional) (windows only) if WGL should be loaded dynamically during runtime
-*/
 
+#if defined(_WIN32) && !defined(RGFW_X11) /* (if you're using X11 on windows some how) */
+
+/* this name looks better */
+/* plus it helps with cross-compiling because RGFW_X11 won't be accidently defined */
+#define RGFW_WINDOWS 
+
+#else 
 #if defined(__unix__) && !defined(__APPLE__) && !defined(RGFW_X11)
 #define RGFW_X11
+#endif
 #endif
 
 #if defined(__APPLE__) && defined(RGFW_X11)
@@ -100,6 +114,7 @@
 #define RGFW_mouseScrollUp  4 /*!< mouse wheel is scrolling up*/
 #define RGFW_mouseScrollDown  5 /*!< mouse wheel is scrolling down*/
 
+#ifndef RGFW_NO_JOYSTICK_CODES
 /*! joystick button codes (based on xbox/playstation), you may need to change these values per controller */
 unsigned char RGFW_JS_A = 0; /* or PS X button */
 unsigned char RGFW_JS_B = 1; /* or PS circle button */
@@ -116,6 +131,7 @@ unsigned char RGFW_JS_L1 = 4; /* left bump */
 unsigned char RGFW_JS_L2 = 5; /* left trigger*/
 unsigned char RGFW_JS_R1 = 6; /* right bumper */
 unsigned char RGFW_JS_R2 = 7; /* right trigger */
+#endif /* RGFW_NO_JOYSTICK_CODES */
 
 #ifdef __cplusplus
 extern "C" {
@@ -131,7 +147,7 @@ typedef struct RGFW_Event {
 
     unsigned keyCode; /*!< keycode of event*/
 
-	#ifdef _WIN32
+	#ifdef RGFW_WINDOWS
 	char keyName[16]; /* key name of event*/
 	#else
 	char* keyName; /*!< key name of event */
@@ -193,7 +209,7 @@ typedef struct RGFW_window {
 	RGFW_Event event; /*!< current event */
 } RGFW_window; /*!< Window structure for managing the window */
 
-#ifdef __unix__
+#if defined(RGFW_X11) || defined(__APPLE__)
 typedef unsigned long RGFW_thread; /* thread type unix */
 #else
 typedef void* RGFW_thread; /* thread type for window */
@@ -247,8 +263,7 @@ int* RGFW_getGlobalMousePoint(RGFW_window* win);
 #ifdef __APPLE__
 void RGFW_hideMouse(RGFW_window* win);
 #else
-unsigned char blank[] = {0, 0, 0, 0};
-#define RGFW_hideMouse(win) RGFW_setMouse(win, blank, 1, 1, 4);
+#define RGFW_hideMouse(win) RGFW_setMouse(win, (char[]){0, 0, 0, 0}, 1, 1, 4);
 #endif
 
 void RGFW_makeCurrent(RGFW_window* win); /*!< make the window the current opengl drawing context */
@@ -289,13 +304,17 @@ unsigned char RGFW_isPressedJS(RGFW_window* win, unsigned short controller, unsi
 void RGFW_setGLVersion(int major, int minor);
 
 /*! native opengl functions */
-static void* RGFW_getProcAddress(const char* procname); /* get native proc address */
+void* RGFW_getProcAddress(const char* procname); /* get native proc address */
 void RGFW_swapBuffers(RGFW_window* win); /* swap the opengl buffer */
 void RGFW_swapInterval(RGFW_window* win, int swapInterval);
 
 /*! Supporting functions */
 void RGFW_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_checkEvents)*/
 unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event); /*!< returns true if the window is valid (and prints an error and where it took place if it can)*/
+
+inline unsigned int RGFW_OS_BASED_VALUE(unsigned int Linux, unsigned int Windows, unsigned int Macos);
+
+#endif /* RGFW_HEADER */
 
 /*
 (Notes on how to manage Silicon (macos) included)
@@ -383,13 +402,19 @@ int main() {
 
 #ifdef RGFW_IMPLEMENTATION
 
-#ifdef RGFW_PRINT_ERRORS
 #include <stdio.h>
-#endif
-
 #include <time.h> /* time header (for  and drop functions / other functions that need time info)*/
 #include <math.h>
 #include <string.h> /* for strcmp */
+#include <assert.h>
+
+#define RGFW_ASSERT(check, str) {\
+	if (!check) { \
+		printf(str); \
+		assert(check); \
+	} \
+}
+
 
 #ifdef RGFW_OSMESA
 #ifndef __APPLE__
@@ -408,8 +433,8 @@ int main() {
 #ifdef RGFW_X11
 #define VK_USE_PLATFORM_XLIB_KHR
 #endif
-#ifdef _WIN32
-#define VK_USE_PLATFORM_WIN32_KHR
+#ifdef RGFW_WINDOWS
+#define VK_USE_PLATFORMRGFW_WINDOWS_KHR
 #endif
 #ifdef __APPLE__
 #define VK_USE_PLATFORM_MACOS_MVK
@@ -423,8 +448,8 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 
 	vkCreateXlibSurfaceKHR(inst, &x11, NULL, win->glWin);
 	#endif
-	#ifdef _WIN32
-	VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, win->display, win->window };
+	#ifdef RGFW_WINDOWS
+	VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPERGFW_WINDOWS_SURFACE_CREATE_INFO_KHR, 0, win->display, win->window };
 
 	vkCreateWin32SurfaceKHR(inst, &win32, NULL, win->glWin);
 	#endif
@@ -435,18 +460,21 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 	#endif
 }
 
-#endif
+#endif /* RGFW_VULKAN */
 
 #ifdef RGFW_X11
 #include <X11/Xlib.h>
 #include <X11/Xcursor/Xcursor.h>
 #include <dlfcn.h>
 #endif
-#ifdef _WIN32
+
+#ifdef RGFW_WINDOWS
 
 #include <windows.h>
+#include <shellapi.h>
+
 #ifdef RGFW_GL
-static void* RGFW_getProcAddress(const char* procname) { return (void*)wglGetProcAddress(procname); }
+void* RGFW_getProcAddress(const char* procname) { return (void*)wglGetProcAddress(procname); }
 #endif
 #endif
 #if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
@@ -467,7 +495,7 @@ unsigned int RGFW_keyStrToKeyCode(char* key) {
 
     return XStringToKeysym(key);
 #endif
-#ifdef _WIN32
+#ifdef RGFW_WINDOWS
 	if (sizeof(key)/sizeof(char) > 1) {
 		if (!strcmp(key, "Super_L")) return VK_LWIN;
 		else if (!strcmp(key, "Super_R")) return VK_RWIN;
@@ -490,7 +518,7 @@ unsigned int RGFW_keyStrToKeyCode(char* key) {
 	int vKey = VkKeyScan(key[0]);
 
     return vKey;
-#endif
+#endif /* RGFW_WINDOWS */
 
 	return 0;
 }
@@ -568,7 +596,7 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 	eglDestroyContextSource = (PFNEGLDESTROYCONTEXTPROC)  eglGetProcAddress("eglDestroyContext");
 	eglTerminateSource = (PFNEGLTERMINATEPROC)  eglGetProcAddress("eglTerminate");
 	eglDestroySurfaceSource = (PFNEGLDESTROYSURFACEPROC)  eglGetProcAddress("eglDestroySurface");
-	#endif
+	#endif /* RGFW_LINK_EGL */
 
     win->EGL_display = eglGetDisplay((EGLNativeDisplayType)win->display);
 
@@ -615,7 +643,7 @@ void RGFW_closeEGL(RGFW_window* win) {
     eglTerminate(win->EGL_display);
 }
 
-#endif
+#endif /* RGFW_EGL */
 
 unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event) {
 	/*
@@ -627,7 +655,7 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event) {
 	*/
 
 	if (win->valid != 245 || win == (RGFW_window*)0
-		#ifdef _WIN32
+		#ifdef RGFW_WINDOWS
 		|| !IsWindow((HWND)win->display)
 		#endif
 		#ifdef RGFW_X11
@@ -700,7 +728,7 @@ void* X11Cursorhandle = NULL;
 unsigned int RGFW_windowsOpen = 0;
 
 #ifdef RGFW_GL
-static void* RGFW_getProcAddress(const char* procname) { return (void*)glXGetProcAddress((GLubyte*)procname); }
+void* RGFW_getProcAddress(const char* procname) { return (void*)glXGetProcAddress((GLubyte*)procname); }
 
 #define SET_ATTRIB(a, v) { \
     assert(((size_t) index + 1) < sizeof(attribs) / sizeof(attribs[0])); \
@@ -981,6 +1009,8 @@ XDND xdnd;
 int xAxis = 0, yAxis = 0;
 
 RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
+	win->event.type = 0;
+	
 	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_checkEvents")) return NULL;
 
 	XEvent E; /* raw X11 event */
@@ -988,6 +1018,8 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 	/* if there is no unread qued events, get a new one */
 	if (XEventsQueued((Display*)win->display, QueuedAlready) + XEventsQueued((Display*)win->display, QueuedAfterReading))
 		XNextEvent((Display*)win->display, &E);
+	else
+		return NULL;
 
 	unsigned int i;
 
@@ -1361,7 +1393,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 
 	if (win->event.type)
 		return &win->event;
-	else
+	else 
 		return NULL;
 }
 
@@ -1713,7 +1745,7 @@ unsigned char RGFW_Error() { return RGFW_error; }
 
 #endif
 
-#ifdef _WIN32
+#ifdef RGFW_WINDOWS
 #include <GL/gl.h>
 
 char* createUTF8FromWideStringWin32(const WCHAR* source);
@@ -1738,38 +1770,22 @@ PFN_OSMesaDestroyContext OSMesaDestroyContextSource;
 #define OSMesaDestroyContext OSMesaDestroyContextSource
 #endif
 
-#if defined(RGFW_WGL_LOAD) && defined(RGFW_GL)
-typedef PROC (*PFN_wglGetProcAddress)(LPCSTR);
-typedef HGLRC (*PFN_wglCreateContext)(HDC);
-typedef BOOL (*PFN_wglMakeCurrent)(HDC,HGLRC);
-typedef BOOL (*PFN_wglDeleteContext)(HGLRC);
-
-PFN_wglGetProcAddress wglGetProcAddressSrc = NULL;
-PFN_wglCreateContext wglCreateContextSrc = NULL;
-PFN_wglMakeCurrent wglMakeCurrentSrc = NULL;
-PFN_wglDeleteContext wglDeleteContextSrc = NULL;
-
-#define wglGetProcAddress wglGetProcAddressSrc
-#define wglCreateContext wglCreateContextSrc
-#define wglMakeCurrent wglMakeCurrentSrc
-#define wglDeleteContext wglDeleteContextSrc
-HINSTANCE wglinstance = NULL;
-#endif
-
 typedef BOOL (*PFN_wglSwapIntervalEXT)(int);
 PFN_wglSwapIntervalEXT wglSwapIntervalEXTSrc = NULL;
 #define wglSwapIntervalEXT wglSwapIntervalEXTSrc
 
 void* RGFWjoystickApi = NULL;
 
+/* these two wgl functions need to be preloaded */
 typedef HGLRC WINAPI wglCreateContextAttribsARB_type(HDC hdc, HGLRC hShareContext,
         const int *attribList);
-wglCreateContextAttribsARB_type *wglCreateContextAttribsARB;
+wglCreateContextAttribsARB_type *wglCreateContextAttribsARB = NULL;
 
 typedef BOOL WINAPI wglChoosePixelFormatARB_type(HDC hdc, const int *piAttribIList,
         const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
 wglChoosePixelFormatARB_type *wglChoosePixelFormatARB;
 
+/* defines for creating ARB attributes */
 #define WGL_CONTEXT_MAJOR_VERSION_ARB             0x2091
 #define WGL_CONTEXT_MINOR_VERSION_ARB             0x2092
 #define WGL_DRAW_TO_WINDOW_ARB                    0x2001
@@ -1784,52 +1800,70 @@ wglChoosePixelFormatARB_type *wglChoosePixelFormatARB;
 #define WGL_TYPE_RGBA_ARB                         0x202B
 
 #ifdef RGFW_GL
-void init_opengl(RGFW_window* win) {
-	/* create/load dummy window for loading ARB version */
-	WNDCLASSA window_class;
-	
-	window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	window_class.lpfnWndProc = DefWindowProcA;
-	window_class.hInstance = GetModuleHandle(0);
-	window_class.lpszClassName = "Dummy_WGL_djuasiodwa";
 
-    if (!RegisterClassA(&window_class));
+int RGFW_init_opengl(RGFW_window* win) {
+	/* if the wgl functions are not loaded yet */
+	if (wglCreateContextAttribsARB == NULL) { 
+		HWND dummy_window = CreateWindowA("STATIC", "", WS_POPUP|WS_DISABLED, -32000, -32000, 0, 0, NULL, NULL, GetModuleHandle(NULL), 0);
 
-	HWND dummy_window = CreateWindowA(window_class.lpszClassName, "Dummy OpenGL Window", 0, 0, 0, 0, 0, 0, 0, window_class.hInstance, 0);
-	
-	HDC dummy_dc = GetDC(dummy_window);
+		HDC dummy_dc = GetDC(dummy_window);
+		PIXELFORMATDESCRIPTOR pfd = {sizeof(pfd), 1, PFD_TYPE_RGBA, PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, 32, 8, PFD_MAIN_PLANE, 24, 8};
 
-	PIXELFORMATDESCRIPTOR pfd = {sizeof(pfd), 1, PFD_TYPE_RGBA, PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, 32, 8, PFD_MAIN_PLANE, 24, 8};
+		int pixelFormat = ChoosePixelFormat(dummy_dc, &pfd);
 
-	int pixel_format = ChoosePixelFormat(dummy_dc, &pfd);
+		SetPixelFormat(dummy_dc, pixelFormat, &pfd);
 
-	SetPixelFormat(dummy_dc, pixel_format, &pfd);
+		/* load a opengl context into the dummy window */
+		HGLRC dummy_context = wglCreateContext(dummy_dc);
 
-	HGLRC dummy_context = wglCreateContext(dummy_dc);
+		wglMakeCurrent(dummy_dc, dummy_context);
 
-	wglMakeCurrent(dummy_dc, dummy_context);
+		/* load wgl functions */
+		wglCreateContextAttribsARB = (wglCreateContextAttribsARB_type*)wglGetProcAddress("wglCreateContextAttribsARB");
+		wglChoosePixelFormatARB = (wglChoosePixelFormatARB_type*)wglGetProcAddress("wglChoosePixelFormatARB");
 
-	wglCreateContextAttribsARB = (wglCreateContextAttribsARB_type*)wglGetProcAddress("wglCreateContextAttribsARB");
-	wglChoosePixelFormatARB = (wglChoosePixelFormatARB_type*)wglGetProcAddress("wglChoosePixelFormatARB");
+		/* free any leftover data */
+		wglMakeCurrent(dummy_dc, 0);
+		wglDeleteContext(dummy_context);
+		ReleaseDC(dummy_window, dummy_dc);
+		DestroyWindow(dummy_window);
 
-	wglMakeCurrent(dummy_dc, 0);
-	wglDeleteContext(dummy_context);
-	ReleaseDC(dummy_window, dummy_dc);
-	DestroyWindow(dummy_window);
-	
+		/* make sure the functions were loaded properly */
+		if (wglCreateContextAttribsARB == NULL || wglChoosePixelFormatARB == NULL) {
+			puts("Failed to load wgl ARB functions");
+			return 1;
+		}
+	}
 
-	/* use dummy window to load ARB version */
-    int pixel_format_attribs[] = {WGL_DRAW_TO_WINDOW_ARB,     GL_TRUE,           WGL_SUPPORT_OPENGL_ARB,     GL_TRUE,WGL_DOUBLE_BUFFER_ARB,      GL_TRUE,           WGL_ACCELERATION_ARB,       WGL_FULL_ACCELERATION_ARB,             WGL_PIXEL_TYPE_ARB,         WGL_TYPE_RGBA_ARB,             WGL_COLOR_BITS_ARB,         32,                     WGL_DEPTH_BITS_ARB,         24,                 WGL_STENCIL_BITS_ARB,       8,            0                       };
+	/* basic opengl attributes */
+	int pixel_format_attribs[] = {
+        WGL_DRAW_TO_WINDOW_ARB,     GL_TRUE,
+        WGL_SUPPORT_OPENGL_ARB,     GL_TRUE,
+        WGL_DOUBLE_BUFFER_ARB,      GL_TRUE,
+        WGL_ACCELERATION_ARB,       WGL_FULL_ACCELERATION_ARB,
+        WGL_PIXEL_TYPE_ARB,         WGL_TYPE_RGBA_ARB,
+        WGL_COLOR_BITS_ARB,         32,
+        WGL_DEPTH_BITS_ARB,         24,
+        WGL_STENCIL_BITS_ARB,       8,
+        0            
+	};
 
+    int pixel_format;
     UINT num_formats;
-    wglChoosePixelFormatARB((HDC)win->window, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
+
+	wglChoosePixelFormatARB((HDC)win->window, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
+
+	RGFW_ASSERT(num_formats, "Failed to choose OpenGL pixel format\n");
 
     PIXELFORMATDESCRIPTOR npfd;
     DescribePixelFormat((HDC)win->window, pixel_format, sizeof(npfd), &npfd);
     SetPixelFormat((HDC)win->window, pixel_format, &npfd);
 
+	RGFW_ASSERT(&npfd != NULL, "Failed to set pixel format for window\n");
+
 	int context_attribs[5] = {0, 0, 0, 0, 0};
 
+	/* set the opengl version */
 	if (RGFW_majorVersion || RGFW_minorVersion) {
 		context_attribs[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
 		context_attribs[1] = RGFW_majorVersion;
@@ -1839,7 +1873,11 @@ void init_opengl(RGFW_window* win) {
 
     win->glWin = wglCreateContextAttribsARB((HDC)win->window, 0, context_attribs);
 
+	RGFW_ASSERT(win->glWin != NULL, "Failed to create opengl context for window\n");
+
     wglMakeCurrent((HDC)win->window, (HGLRC)win->glWin);
+
+	return 0;
 }
 #endif
 
@@ -1861,7 +1899,7 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
 	RGFW_window* win = (RGFW_window*)malloc(sizeof(RGFW_window));
 
-    int         pf;
+    int pf;
 
 	if (RGFW_FULLSCREEN & args) {
 		unsigned int* r = RGFW_getScreenSize(win);
@@ -1913,8 +1951,11 @@ RGFW_window* RGFW_createWindowPointer(char* name, int x, int y, int w, int h, un
 
     win->window = GetDC((HWND)win->display);
 
+
+
  	#ifdef RGFW_GL
-	init_opengl(win);
+	if (RGFW_init_opengl(win))
+		return NULL;
 	#endif
 
 	#ifdef RGFW_OSMESA
@@ -2013,7 +2054,7 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 	win->event.droppedFilesCount = 0;
 
 
-	while (PeekMessage(&msg, (HWND)win->display, 0u, 0u, PM_REMOVE)) {
+	if (PeekMessage(&msg, (HWND)win->display, 0u, 0u, PM_REMOVE)) {
 		switch (msg.message) {
 			case WM_CLOSE:
 			case WM_QUIT:
@@ -2113,6 +2154,9 @@ RGFW_Event* RGFW_checkEvents(RGFW_window* win) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
+
+	else 
+		win->event.type = 0;
 
 	if ((win->srcX != win->x) || (win->srcY != win->y) || (win->srcW != win->w) || (win->srcH != win->h)) {
 		SetWindowPos((HWND)win->display, (HWND)win->display, win->x, win->y, win->w, win->h, 0);
@@ -2381,7 +2425,7 @@ void RGFW_setThreadPriority(RGFW_thread thread, unsigned char priority) { SetThr
 void* RGFWnsglFramework = NULL; 
 
 #ifdef RGFW_GL
-static void* RGFW_getProcAddress(const char* procname) {
+void* RGFW_getProcAddress(const char* procname) {
 	if (RGFWnsglFramework == NULL)
 		RGFWnsglFramework = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
 
@@ -2898,7 +2942,7 @@ void RGFW_closeWindow(RGFW_window* win){
 }
 #endif
 
-#if defined(__unix__) || defined(__APPLE__)
+#if defined(RGFW_X11) || defined(__APPLE__)
 
 #include <pthread.h>
 
@@ -2920,7 +2964,7 @@ void RGFW_makeCurrent_OpenGL(RGFW_window* win) {
 		#ifdef RGFW_X11
 			glXMakeCurrent((Display *)win->display, (Drawable)win->window, (GLXContext)win->glWin);
 		#endif
-		#ifdef _WIN32
+		#ifdef RGFW_WINDOWS
 			wglMakeCurrent((HDC)win->window, (HGLRC)win->glWin);
 		#endif
 		#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
@@ -2948,7 +2992,7 @@ void RGFW_swapInterval(RGFW_window* win, int swapInterval) {
 	#ifdef RGFW_X11
 	((PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress((GLubyte*)"glXSwapIntervalEXT"))((Display*)win->display, (Window)win->window, swapInterval); 
 	#endif
-	#ifdef _WIN32
+	#ifdef RGFW_WINDOWS
 	wglSwapIntervalEXT(swapInterval);
 	#endif
 	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
@@ -2971,7 +3015,7 @@ void RGFW_swapBuffers(RGFW_window* win) {
 	#if defined(RGFW_X11) && defined(RGFW_GL)
 	glXSwapBuffers((Display*)win->display, (Window)win->window);
 	#endif
-	#ifdef _WIN32
+	#ifdef RGFW_WINDOWS
 	SwapBuffers((HDC)win->window);
 	#endif
 	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
@@ -2988,6 +3032,8 @@ void RGFW_swapBuffers(RGFW_window* win) {
     if (win->render) { 
 		#ifdef RGFW_OSMESA
 		unsigned char* row = (unsigned char*) malloc(win->srcW * 4);
+		//unsigned char row[win->srcW * 4];
+
 		int half_height = win->srcH / 2;
 		int stride = win->srcW * 4;
 
@@ -3009,12 +3055,12 @@ void RGFW_swapBuffers(RGFW_window* win) {
 
 			XPutImage(win->display, (Window)win->window, XDefaultGC(win->display, XDefaultScreen(win->display)), RGFW_omesa_ximage, 0, 0, 0, 0, win->srcW, win->srcH);
 		#endif
-		#ifdef _WIN32
-			HBITMAP hbitmap = CreateBitmap(500, 500, 1, 32, (void*)win->buffer);
+		#ifdef RGFW_WINDOWS
+			HBITMAP hbitmap = CreateBitmap(win->w, win->h, 1, 32, (void*)win->buffer);
 			HDC hdcMem = CreateCompatibleDC(win->window);
 			
 			HBITMAP hOld = (HBITMAP)SelectObject(hdcMem, hbitmap);
-			BitBlt(win->window, 0, 0, 500, 500, hdcMem, 0, 0, SRCCOPY);
+			BitBlt(win->window, 0, 0, win->w, win->h, hdcMem, 0, 0, SRCCOPY);
 			SelectObject(hdcMem, hOld);
 
 			DeleteDC(hdcMem);
@@ -3084,111 +3130,161 @@ void RGFW_checkFPS(RGFW_window* win) {
 	}
 }
 
+unsigned int RGFW_OS_BASED_VALUE(unsigned int Linux, unsigned int Windows, unsigned int Macos) {
+	#ifdef RGFW_X11
+	return Linux;
+	#endif
+
+	#ifdef RGFW_WINDOWS
+	
+	return Windows;
+	#endif
+
+	#ifdef __APPLE__
+	return Macos;
+	#endif
+}
+
 #endif /*RGFW_IMPLEMENTATION*/
 
 #ifdef __cplusplus
 }
 #endif
 
-#define RGFW_Escape RGFW_keyStrToKeycode("Escape")
-#define RGFW_F1 RGFW_keyStrToKeycode("F1")
-#define RGFW_F2 RGFW_keyStrToKeycode("F2")
-#define RGFW_F3 RGFW_keyStrToKeycode("F3")
-#define RGFW_F4 RGFW_keyStrToKeycode("F4")
-#define RGFW_F5 RGFW_keyStrToKeycode("F5")
-#define RGFW_F6 RGFW_keyStrToKeycode("F6")
-#define RGFW_F7 RGFW_keyStrToKeycode("F7")
-#define RGFW_F8 RGFW_keyStrToKeycode("F8")
-#define RGFW_F9 RGFW_keyStrToKeycode("F9")
-#define RGFW_F10 RGFW_keyStrToKeycode("F10")
-#define RGFW_F11 RGFW_keyStrToKeycode("F11")
-#define RGFW_F12 RGFW_keyStrToKeycode("F12")
-#define RGFW_F13 RGFW_keyStrToKeycode("F13")
-#define RGFW_F14 RGFW_keyStrToKeycode("F14")
-#define RGFW_F15 RGFW_keyStrToKeycode("F15")
-#define RGFW_Backtick RGFW_keyStrToKeycode("Backtick")
-#define RGFW_0 RGFW_keyStrToKeycode("0")
-#define RGFW_1 RGFW_keyStrToKeycode("1")
-#define RGFW_2 RGFW_keyStrToKeycode("2")
-#define RGFW_3 RGFW_keyStrToKeycode("3")
-#define RGFW_4 RGFW_keyStrToKeycode("4")
-#define RGFW_5 RGFW_keyStrToKeycode("5")
-#define RGFW_6 RGFW_keyStrToKeycode("6")
-#define RGFW_7 RGFW_keyStrToKeycode("7")
-#define RGFW_8 RGFW_keyStrToKeycode("8")
-#define RGFW_9 RGFW_keyStrToKeycode("9")
-#define RGFW_Minus RGFW_keyStrToKeycode("Minus")
-#define RGFW_Equals RGFW_keyStrToKeycode("Equals")
-#define RGFW_BackSpace RGFW_keyStrToKeycode("BackSpace")
-#define RGFW_Tab RGFW_keyStrToKeycode("Tab")
-#define RGFW_CapsLock RGFW_keyStrToKeycode("CapsLock")
-#define RGFW_ShiftL RGFW_keyStrToKeycode("ShiftL")
-#define RGFW_ControlL RGFW_keyStrToKeycode("ControlL")
-#define RGFW_AltL RGFW_keyStrToKeycode("AltL")
-#define RGFW_SuperL RGFW_keyStrToKeycode("SuperL")
-#define RGFW_ShiftR RGFW_keyStrToKeycode("ShiftR")
-#define RGFW_ControlR RGFW_keyStrToKeycode("ControlR")
-#define RGFW_AltR RGFW_keyStrToKeycode("AltR")
-#define RGFW_SuperR RGFW_keyStrToKeycode("SuperR")
-#define RGFW_Space RGFW_keyStrToKeycode("Space")
-#define RGFW_A RGFW_keyStrToKeycode("A")
-#define RGFW_B RGFW_keyStrToKeycode("B")
-#define RGFW_C RGFW_keyStrToKeycode("C")
-#define RGFW_D RGFW_keyStrToKeycode("D")
-#define RGFW_E RGFW_keyStrToKeycode("E")
-#define RGFW_F RGFW_keyStrToKeycode("F")
-#define RGFW_G RGFW_keyStrToKeycode("G")
-#define RGFW_H RGFW_keyStrToKeycode("H")
-#define RGFW_I RGFW_keyStrToKeycode("I")
-#define RGFW_J RGFW_keyStrToKeycode("J")
-#define RGFW_K RGFW_keyStrToKeycode("K")
-#define RGFW_L RGFW_keyStrToKeycode("L")
-#define RGFW_M RGFW_keyStrToKeycode("M")
-#define RGFW_N RGFW_keyStrToKeycode("N")
-#define RGFW_O RGFW_keyStrToKeycode("O")
-#define RGFW_P RGFW_keyStrToKeycode("P")
-#define RGFW_Q RGFW_keyStrToKeycode("Q")
-#define RGFW_R RGFW_keyStrToKeycode("R")
-#define RGFW_S RGFW_keyStrToKeycode("S")
-#define RGFW_T RGFW_keyStrToKeycode("T")
-#define RGFW_U RGFW_keyStrToKeycode("U")
-#define RGFW_V RGFW_keyStrToKeycode("V")
-#define RGFW_W RGFW_keyStrToKeycode("W")
-#define RGFW_X RGFW_keyStrToKeycode("X")
-#define RGFW_Y RGFW_keyStrToKeycode("Y")
-#define RGFW_Z RGFW_keyStrToKeycode("Z")
-#define RGFW_Period RGFW_keyStrToKeycode("Period")
-#define RGFW_Comma RGFW_keyStrToKeycode("Comma")
-#define RGFW_Slash RGFW_keyStrToKeycode("Slash")
-#define RGFW_Bracket RGFW_keyStrToKeycode("Bracket")
-#define RGFW_CloseBracket RGFW_keyStrToKeycode("CloseBracket")
-#define RGFW_Semicolon RGFW_keyStrToKeycode("Semicolon")
-#define RGFW_Return RGFW_keyStrToKeycode("Return")
-#define RGFW_Quote RGFW_keyStrToKeycode("Quote")
-#define RGFW_BackSlash RGFW_keyStrToKeycode("BackSlash")
-#define RGFW_Up RGFW_keyStrToKeycode("Up")
-#define RGFW_Down RGFW_keyStrToKeycode("Down")
-#define RGFW_Left RGFW_keyStrToKeycode("Left")
-#define RGFW_Right RGFW_keyStrToKeycode("Right")
-#define RGFW_Delete RGFW_keyStrToKeycode("Delete")
-#define RGFW_Insert RGFW_keyStrToKeycode("Insert")
-#define RGFW_End RGFW_keyStrToKeycode("End")
-#define RGFW_Home RGFW_keyStrToKeycode("Home")
-#define RGFW_PageUp RGFW_keyStrToKeycode("PageUp"1)
-#define RGFW_PageDown RGFW_keyStrToKeycode("PageDown")
-#define RGFW_Numlock RGFW_keyStrToKeycode("Numlock")
-#define RGFW_KP_Slash RGFW_keyStrToKeycode("KP_Slash")
-#define RGFW_Multiply RGFW_keyStrToKeycode("KP_Multiply")
-#define RGFW_KP_Minus RGFW_keyStrToKeycode("KP_Minus")
-#define RGFW_KP_1 RGFW_keyStrToKeycode("KP_1")
-#define RGFW_KP_2 RGFW_keyStrToKeycode("KP_2")
-#define RGFW_KP_3 RGFW_keyStrToKeycode("KP_3")
-#define RGFW_KP_4 RGFW_keyStrToKeycode("KP_4")
-#define RGFW_KP_5 RGFW_keyStrToKeycode("KP_5")
-#define RGFW_KP_6 RGFW_keyStrToKeycode("KP_6")
-#define RGFW_KP_7 RGFW_keyStrToKeycode("KP_7")
-#define RGFW_KP_8 RGFW_keyStrToKeycode("KP_8")
-#define RGFW_KP_9 RGFW_keyStrToKeycode("KP_9")
-#define RGFW_KP_0 RGFW_keyStrToKeycode("KP_0")
-#define RGFW_KP_Period RGFW_keyStrToKeycode("KP_Period")
-#define RGFW_KP_Return RGFW_keyStrToKeycode("KP_Return")
+#define RGFW_Escape RGFW_OS_BASED_VALUE(0xff1b, 0x1B, 53)
+#define RGFW_F1 RGFW_OS_BASED_VALUE(0xffbe, 0x70, 127)
+#define RGFW_F2 RGFW_OS_BASED_VALUE(0xffbf, 0x71, 121)
+#define RGFW_F3 RGFW_OS_BASED_VALUE(0xffc0, 0x72, 100)
+#define RGFW_F4 RGFW_OS_BASED_VALUE(0xffc1, 0x73, 119)
+#define RGFW_F5 RGFW_OS_BASED_VALUE(0xffc2 0x74, 97)
+#define RGFW_F6 RGFW_OS_BASED_VALUE(0xffc3, 0x75, 98)
+#define RGFW_F7 RGFW_OS_BASED_VALUE(0xffc4, 0x76, 99)
+#define RGFW_F8 RGFW_OS_BASED_VALUE(0xffc5, 0x77, 101)
+#define RGFW_F9 RGFW_OS_BASED_VALUE(0xffc6, 0x78, 102)
+#define RGFW_F10 RGFW_OS_BASED_VALUE(0xffc7, 0x79, 110)
+#define RGFW_F11 RGFW_OS_BASED_VALUE(0xffc8, 0x7A, 104)
+#define RGFW_F12 RGFW_OS_BASED_VALUE(0xffc9, 0x7B, 112)
+#define RGFW_F13 RGFW_OS_BASED_VALUE(0xffca 0x7C, 106)
+#define RGFW_F14 RGFW_OS_BASED_VALUE(0xffcb, 0x7D, 108)
+#define RGFW_F15 RGFW_OS_BASED_VALUE(0xffcc, 0x7E, 114)
+
+#define RGFW_Backtick RGFW_OS_BASED_VALUE(96 , 192, 50)
+
+#define RGFW_0 RGFW_OS_BASED_VALUE(0x0030, 0x30, 29)
+#define RGFW_1 RGFW_OS_BASED_VALUE(0x0031, 0x31, 18)
+#define RGFW_2 RGFW_OS_BASED_VALUE(0x0032, 0x32, 19)
+#define RGFW_3 RGFW_OS_BASED_VALUE(0x0033, 0x33, 20)
+#define RGFW_4 RGFW_OS_BASED_VALUE(0x0034, 0x34, 21)
+#define RGFW_5 RGFW_OS_BASED_VALUE(0x0035, 0x35, 23)
+#define RGFW_6 RGFW_OS_BASED_VALUE(0x0036, 0x36, 22)
+#define RGFW_7 RGFW_OS_BASED_VALUE(0x0037, 0x37, 26)
+#define RGFW_8 RGFW_OS_BASED_VALUE(0x0038, 0x38, 28)
+#define RGFW_9 RGFW_OS_BASED_VALUE(0x0039, 0x39, 25)
+
+#define RGFW_Minus RGFW_OS_BASED_VALUE(0x002d, 189, 27)
+#define RGFW_Equals RGFW_OS_BASED_VALUE(0x003d, 187, 24)
+#define RGFW_BackSpace RGFW_OS_BASED_VALUE(0xff08, 322, 51)
+#define RGFW_Tab RGFW_OS_BASED_VALUE(0xff89, 0x09, 9, 48)
+#define RGFW_CapsLock RGFW_OS_BASED_VALUE(0xffe5, 20, 57)
+#define RGFW_ShiftL RGFW_OS_BASED_VALUE(0xffe1, 0xA0, 56)
+#define RGFW_ControlL RGFW_OS_BASED_VALUE(0xffe3, 0xA2, 59)
+#define RGFW_AltL RGFW_OS_BASED_VALUE(0xffe9, 164, 58)
+#define RGFW_SuperL RGFW_OS_BASED_VALUE(0xffeb, 0x5B, 55) 
+#define RGFW_ShiftR RGFW_OS_BASED_VALUE(0xffe2, 0x5C, 56)
+#define RGFW_ControlR RGFW_OS_BASED_VALUE(0xffe4, 0xA3, 59)
+#define RGFW_AltR RGFW_OS_BASED_VALUE(0xffea, 165, 58)
+#define RGFW_SuperR RGFW_OS_BASED_VALUE(0xffec, 0xA4, 55)
+#define RGFW_Space RGFW_OS_BASED_VALUE(0x0020,  0xA5, 49)
+
+#define RGFW_A RGFW_OS_BASED_VALUE(0x0041, 0x41, 0)
+#define RGFW_B RGFW_OS_BASED_VALUE(0x0042, 0x42, 11)
+#define RGFW_C RGFW_OS_BASED_VALUE(0x0043, 0x43, 8)
+#define RGFW_D RGFW_OS_BASED_VALUE(0x0044, 0x44, 2)
+#define RGFW_E RGFW_OS_BASED_VALUE(0x0045, 0x45, 14)
+#define RGFW_F RGFW_OS_BASED_VALUE(0x0046, 0x46, 3)
+#define RGFW_G RGFW_OS_BASED_VALUE(0x0047, 0x47, 5)
+#define RGFW_H RGFW_OS_BASED_VALUE(0x0048, 0x48, 4) 
+#define RGFW_I RGFW_OS_BASED_VALUE(0x0049, 0x49, 34)
+#define RGFW_J RGFW_OS_BASED_VALUE(0x004a, 0x4A, 38)
+#define RGFW_K RGFW_OS_BASED_VALUE(0x004b, 0x4B, 40)
+#define RGFW_L RGFW_OS_BASED_VALUE(0x004c, 0x4C, 37)
+#define RGFW_M RGFW_OS_BASED_VALUE(0x004d, 0x4D, 46)
+#define RGFW_N RGFW_OS_BASED_VALUE(0x004e, 0x4E, 45)
+#define RGFW_O RGFW_OS_BASED_VALUE(0x004f, 0x4F, 31)
+#define RGFW_P RGFW_OS_BASED_VALUE(0x0050, 0x50, 35)
+#define RGFW_Q RGFW_OS_BASED_VALUE(0x0051, 0x51, 12)
+#define RGFW_R RGFW_OS_BASED_VALUE(0x0052, 0x52, 15)
+#define RGFW_S RGFW_OS_BASED_VALUE(0x0053, 0x53, 1)
+#define RGFW_T RGFW_OS_BASED_VALUE(0x0054, 0x54, 17)
+#define RGFW_U RGFW_OS_BASED_VALUE(0x0055, 0x55, 32)
+#define RGFW_V RGFW_OS_BASED_VALUE(0x0056, 0x56, 9)
+#define RGFW_W RGFW_OS_BASED_VALUE(0x0057, 0x57, 13)
+#define RGFW_X RGFW_OS_BASED_VALUE(0x0058, 0x58, 7)
+#define RGFW_Y RGFW_OS_BASED_VALUE(0x0059, 0x59, 16)
+#define RGFW_Z RGFW_OS_BASED_VALUE(0x005a, 0x5A, 6)
+
+#define RGFW_a RGFW_OS_BASED_VALUE(0x0061, 0x41, 0)
+#define RGFW_b RGFW_OS_BASED_VALUE(0x0062, 0x42, 11)
+#define RGFW_c RGFW_OS_BASED_VALUE(0x0063, 0x43, 8)
+#define RGFW_d RGFW_OS_BASED_VALUE(0x0064, 0x44, 2)
+#define RGFW_e RGFW_OS_BASED_VALUE(0x0065, 0x45, 14)
+#define RGFW_f RGFW_OS_BASED_VALUE(0x0066, 0x46, 3)
+#define RGFW_g RGFW_OS_BASED_VALUE(0x0067, 0x47, 5)
+#define RGFW_h RGFW_OS_BASED_VALUE(0x0068, 0x48, 4)
+#define RGFW_i RGFW_OS_BASED_VALUE(0x0069, 0x49, 34)
+#define RGFW_j RGFW_OS_BASED_VALUE(0x006a, 0x4a, 38)
+#define RGFW_k RGFW_OS_BASED_VALUE(0x006b, 0x4b, 40)
+#define RGFW_l RGFW_OS_BASED_VALUE(0x006c, 0x4c, 37)
+#define RGFW_m RGFW_OS_BASED_VALUE(0x006d, 0x4d, 46)
+#define RGFW_n RGFW_OS_BASED_VALUE(0x006e, 0x4e, 45)
+#define RGFW_o RGFW_OS_BASED_VALUE(0x006f, 0x4f, 31)
+#define RGFW_p RGFW_OS_BASED_VALUE(0x0070, 0x50, 35)
+#define RGFW_q RGFW_OS_BASED_VALUE(0x0071, 0x51, 12)
+#define RGFW_r RGFW_OS_BASED_VALUE(0x0072, 0x52, 15)
+#define RGFW_s RGFW_OS_BASED_VALUE(0x0073, 0x53, 1)
+#define RGFW_t RGFW_OS_BASED_VALUE(0x0074, 0x54, 17)
+#define RGFW_u RGFW_OS_BASED_VALUE(0x0075, 0x55, 32)
+#define RGFW_v RGFW_OS_BASED_VALUE(0x0076, 0x56, 9)
+#define RGFW_w RGFW_OS_BASED_VALUE(0x0077, 0x57, 13)
+#define RGFW_x RGFW_OS_BASED_VALUE(0x0078, 0x58, 7) 
+#define RGFW_y RGFW_OS_BASED_VALUE(0x0079, 0x59, 16)
+#define RGFW_z RGFW_OS_BASED_VALUE(0x007a, 0x5A, 6)
+
+#define RGFW_Period RGFW_OS_BASED_VALUE(0x002e, 190, 47)
+#define RGFW_Comma RGFW_OS_BASED_VALUE(0x002c, 188, 43)
+#define RGFW_Slash RGFW_OS_BASED_VALUE(0x002f, 191, 44)
+#define RGFW_Bracket RGFW_OS_BASED_VALUE(0x005b, 219, 33)
+#define RGFW_CloseBracket RGFW_OS_BASED_VALUE(0x005d, 221, 30) 
+#define RGFW_Semicolon RGFW_OS_BASED_VALUE(0x003b, 186, 41)
+#define RGFW_Return RGFW_OS_BASED_VALUE(0xff0d, 0x0D, 36) 
+#define RGFW_Quote RGFW_OS_BASED_VALUE(0x0022, 222, 39)
+#define RGFW_BackSlash RGFW_OS_BASED_VALUE(0x005c, 322, 42)
+
+#define RGFW_Up RGFW_OS_BASED_VALUE(0xff52, 0x26, 126)
+#define RGFW_Down RGFW_OS_BASED_VALUE(0xff54, 0x28, 125)
+#define RGFW_Left RGFW_OS_BASED_VALUE(0xff51, 0x25, 123)
+#define RGFW_Right RGFW_OS_BASED_VALUE(0xff53, 0x27, 124)
+
+#define RGFW_Delete RGFW_OS_BASED_VALUE(0xffff, 0x2E, 118)
+#define RGFW_Insert RGFW_OS_BASED_VALUE(0xff63, 0x2D, 115)
+#define RGFW_End RGFW_OS_BASED_VALUE(0xff57, 0x23, 120)
+#define RGFW_Home RGFW_OS_BASED_VALUE(0xff50, 0x24, 116) 
+#define RGFW_PageUp RGFW_OS_BASED_VALUE(0xff55, 336, 117)
+#define RGFW_PageDown RGFW_OS_BASED_VALUE(0xff56, 325, 122)
+
+#define RGFW_Numlock RGFW_OS_BASED_VALUE(0xff7f, 0x90, 72)
+#define RGFW_KP_Slash RGFW_OS_BASED_VALUE(0xffaf, 0x6F, 82)
+#define RGFW_Multiply RGFW_OS_BASED_VALUE(0xffaa, 0x6A, 76)
+#define RGFW_KP_Minus RGFW_OS_BASED_VALUE(0xffad, 0x6D, 67)
+#define RGFW_KP_1 RGFW_OS_BASED_VALUE(0xffb1, 0x61, 83)
+#define RGFW_KP_2 RGFW_OS_BASED_VALUE(0xffb2, 0x62, 85)
+#define RGFW_KP_3 RGFW_OS_BASED_VALUE(0xffb3, 0x63, 86)
+#define RGFW_KP_4 RGFW_OS_BASED_VALUE(0xffb4, 0x64, 87)
+#define RGFW_KP_5 RGFW_OS_BASED_VALUE(0xffb5, 0x65, 88)
+#define RGFW_KP_6 RGFW_OS_BASED_VALUE(0xffb6, 0x66, 89)
+#define RGFW_KP_7 RGFW_OS_BASED_VALUE(0xffb7, 0x67, 90)
+#define RGFW_KP_8 RGFW_OS_BASED_VALUE(0xffb8, 0x68, 92)
+#define RGFW_KP_9 RGFW_OS_BASED_VALUE(0xffb9, 0x619, 93)
+#define RGFW_KP_0 RGFW_OS_BASED_VALUE(0xffb0, 0x60, 83)
+#define RGFW_KP_Period RGFW_OS_BASED_VALUE(0xffae, 0x6E, 65)
+#define RGFW_KP_Return RGFW_OS_BASED_VALUE(0xff8d, 0x92, 77)
