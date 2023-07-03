@@ -1,11 +1,6 @@
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
 
-#ifdef _WIN32
-#undef __linux__
-#undef __unix__
-#endif
-
 #include "RGFW.h"
 
 void drawLoop(RGFW_window* w); /* I seperate the draw loop only because it's run twice */
@@ -15,9 +10,12 @@ void* loop2(void *);
 unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
 unsigned char running = 1;
 
-
 int main() {
     RGFW_window* win = RGFW_createWindowPointer("RGFW Example Window", 500, 500, 500, 500, RGFW_ALLOW_DND );
+
+    if (win == NULL)
+        return 1;
+
     win->fpsCap = 60;
 
     RGFW_createThread(loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
@@ -34,41 +32,51 @@ int main() {
     #endif
 
 
-    while (running) {
+    while (running && !RGFW_isPressedI(win, RGFW_Escape)) {
         frames++;
-        RGFW_checkEvents(win);
-        if (win->event.type == RGFW_quit)
-            running = 0;   
-        
-        if (RGFW_isPressedS(win, "Up"))
-            printf("Pasted : %s\n", RGFW_readClipboard(win));
-        else if (RGFW_isPressedS(win, "Down"))
-            RGFW_writeClipboard(win, "DOWN");
-        else if (RGFW_isPressedS(win, "Space"))
-            printf("fps : %i\n", win->fps);
-        else if (RGFW_isPressedS(win, "w") && frames >= 30) {
-            if (!mouseHidden) {
-                RGFW_hideMouse(win);
-                mouseHidden = 1;
+
+        /* 
+            check all of the avaliable events all at once
+            this is to avoid any input lag
+
+            this isn't required, RGFW_checkEvents can be used without a loop
+
+            but not using this method could cause input lag
+        */
+
+        while (RGFW_checkEvents(win) != NULL) {
+            if (win->event.type == RGFW_quit)
+                running = 0;  
+            if (RGFW_isPressedS(win, "Up"))
+                printf("Pasted : %s\n", RGFW_readClipboard(win));
+            else if (RGFW_isPressedS(win, "Down"))
+                RGFW_writeClipboard(win, "DOWN");
+            else if (RGFW_isPressedS(win, "Space"))
+                printf("fps : %i\n", win->fps);
+            else if (RGFW_isPressedS(win, "w") && frames >= 30) {
+                if (!mouseHidden) {
+                    RGFW_hideMouse(win);
+                    mouseHidden = 1;
+                }
+                else {
+                    RGFW_setMouseDefault(win);
+                    mouseHidden = 0;
+                }
+                
+                frames = 0;
             }
-            else {
-                RGFW_setMouseDefault(win);
-                mouseHidden = 0;
-            }
-            
-            frames = 0;
+            else if (RGFW_isPressedS(win, (char*)"t")) 
+                RGFW_setMouse(win, icon, 3, 3, 4);
+
+            for (i = 0; i < win->event.droppedFilesCount; i++)
+                printf("dropped : %s\n", win->event.droppedFiles[i]);
+
+            if (win->event.type == RGFW_jsButtonPressed)
+                printf("pressed %i\n", win->event.button);
+
+            if (win->event.type == RGFW_jsAxisMove && !win->event.button)
+                printf("{%i, %i}\n", win->event.axis[0][0], win->event.axis[0][1]);
         }
-        else if (RGFW_isPressedS(win, "t")) 
-            RGFW_setMouse(win, icon, 3, 3, 4);
-
-        for (i = 0; i < win->event.droppedFilesCount; i++)
-            printf("dropped : %s\n", win->event.droppedFiles[i]);
-
-        if (win->event.type == RGFW_jsButtonPressed)
-            printf("pressed %i\n", win->event.button);
-
-        if (win->event.type == RGFW_jsAxisMove && !win->event.button)
-            printf("{%i, %i}\n", win->event.axis[0][0], win->event.axis[0][1]);
 
         drawLoop(win);
     }
@@ -104,7 +112,16 @@ void* loop2(void* args) {
     win->fpsCap = 60;
 
     while (running) {
+        /* 
+            not using a while loop here because there is only one event I care about 
+        */
         RGFW_checkEvents(win);
+
+        /* 
+            I could've also done
+
+            if (RGFW_checkEvents(win) == RGFW_quit)
+        */
 
         if (win->event.type == RGFW_quit)
             break;
