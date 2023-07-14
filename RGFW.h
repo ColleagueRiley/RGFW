@@ -2562,7 +2562,6 @@ bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
 	siArray(Class) array = si_array_init((Class[]){class(objctype(NSURL))}, sizeof(*array), 1);
 	siArray(char*) droppedFiles = (siArray(char*))NSPasteboard_readObjectsForClasses(NSDraggingInfo_draggingPasteboard(sender), array, NULL);
 
-	RGFW_windows[i]->event.droppedFiles = malloc(si_array_len(droppedFiles) * sizeof(*droppedFiles));
 	RGFW_windows[i]->event.droppedFilesCount = si_array_len(droppedFiles);
 
 	si_array_free(array);
@@ -2604,7 +2603,6 @@ RGFW_window* RGFW_createWindowPointer(const char* name, int x, int y, int w, int
 	win->inFocus = 0;
 	win->hideMouse = 0;
 	win->event.type = 0;
-	win->event.droppedFiles = NULL;
 	win->event.droppedFilesCount = 0;
 	win->valid = 245;
 
@@ -2732,8 +2730,8 @@ unsigned int* RGFW_window_screenSize(RGFW_window* win){
 
 int* RGFW_window_getGlobalMousePoint(RGFW_window* win) {
 	int RGFW_mousePoint[2];
-`	RGFW_mousePoint[0] = win->event.x;
-`	RGFW_mousePoint[1] = win->event.y;
+	RGFW_mousePoint[0] = win->event.x;	
+	RGFW_mousePoint[1] = win->event.y;
 
 	return RGFW_mousePoint; /* the point is loaded during event checks */
 }
