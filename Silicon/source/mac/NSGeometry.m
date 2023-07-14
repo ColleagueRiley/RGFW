@@ -6,8 +6,7 @@
 extern "C" {
 #endif
 
-//#include <Silicon/silicon.h>
-
+#include <NSGeometry.h>
 
 /* ============ Geometry functions ============ */
 /* Creates a new NSRect from the specified values. */
