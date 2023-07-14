@@ -2385,15 +2385,6 @@ void RGFW_window_close(RGFW_window* win) {
 	DeleteDC((HDC)win->window); /* delete window */
 	DestroyWindow((HWND)win->display); /* delete display */
 
-	if (win->event.droppedFilesCount && win->event.droppedFiles != (char**)0) {
-		unsigned int i;
-
-		for (i = 0; i < win->event.droppedFilesCount; i++)
-			free(win->event.droppedFiles[i]);
-
-		free(win->event.droppedFiles); /* free dropped file data from the last event */
-	}
-
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	if (win->buffer != NULL)
 		free(win->buffer);
@@ -3025,11 +3016,6 @@ void RGFW_window_close(RGFW_window* win){
 	
 
 	NSApplication_terminate(NSApp, (id)win->window);
-
-	if (win->event.droppedFiles != NULL){
-		free(win->event.droppedFiles);
-		win->event.droppedFiles = NULL;
-	}
 }
 #endif
 
