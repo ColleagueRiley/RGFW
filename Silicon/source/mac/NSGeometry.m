@@ -6,7 +6,9 @@
 extern "C" {
 #endif
 
-#include <NSGeometry.h>
+#include <ApplicationServices/ApplicationServices.h>
+#include <Silicon/mac/types.h>
+
 
 /* ============ Geometry functions ============ */
 /* Creates a new NSRect from the specified values. */
