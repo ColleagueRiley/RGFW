@@ -16,4 +16,4 @@ jobs:
     - name: silicon
       run: cd Silicon && gcc -c source/*m source/mac/*.m -I./include
     - name: gcc
-      run: gcc main.c -I./Silicon/include silicon/build/libSilicon.a -framework AppKit -ISilicon/include -framework OpenGL -framework CoreVideo -std=c99
+      run: gcc main.c -I./Silicon/include silicon/*.o -framework AppKit -ISilicon/include -framework OpenGL -framework CoreVideo -std=c99
