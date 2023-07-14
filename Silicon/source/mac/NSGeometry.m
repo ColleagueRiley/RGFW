@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#include <Silicon/silicon.h>
+//#include <Silicon/silicon.h>
 
 
 /* ============ Geometry functions ============ */
