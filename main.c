@@ -24,7 +24,7 @@ int main() {
     unsigned char i, frames = 60;
     unsigned char mouseHidden = 0;
 
-    RGFW_setIcon(win, icon, 3, 3, 4);
+    RGFW_window_setIcon(win, icon, 3, 3, 4);
 
     #ifndef RGFW_VULKAN
     glEnable(GL_BLEND);
@@ -44,37 +44,39 @@ int main() {
             but not using this method could cause input lag
         */
 
-        while (RGFW_checkEvents(win) != NULL) {
+        while (RGFW_window_checkEvent(win))  {
             if (win->event.type == RGFW_quit)
                 running = 0;  
-            if (RGFW_isPressedS(win, "Up"))
-                printf("Pasted : %s\n", RGFW_readClipboard(win));
-            else if (RGFW_isPressedS(win, "Down"))
-                RGFW_writeClipboard(win, "DOWN");
-            else if (RGFW_isPressedS(win, "Space"))
+            if (RGFW_isPressedI(win, RGFW_Up))
+                printf("Pasted : %s\n", RGFW_window_readClipboard(win));
+            else if (RGFW_isPressedI(win, RGFW_Down))
+                RGFW_window_writeClipboard(win, "DOWN", 4);
+            else if (RGFW_isPressedI(win, RGFW_Space))
                 printf("fps : %i\n", win->fps);
-            else if (RGFW_isPressedS(win, "w") && frames >= 30) {
+            else if (RGFW_isPressedI(win, RGFW_w) && frames >= 30) {
                 if (!mouseHidden) {
-                    RGFW_hideMouse(win);
+                    RGFW_window_hideMouse(win);
                     mouseHidden = 1;
                 }
                 else {
-                    RGFW_setMouseDefault(win);
+                    RGFW_window_setMouseDefault(win);
                     mouseHidden = 0;
                 }
                 
                 frames = 0;
             }
-            else if (RGFW_isPressedS(win, (char*)"t")) 
-                RGFW_setMouse(win, icon, 3, 3, 4);
+            else if (RGFW_isPressedI(win, RGFW_t)) 
+                RGFW_window_setMouse(win, icon, 3, 3, 4);
+            
+            if (win->event.type == RGFW_dnd) {
+                for (i = 0; i < win->event.droppedFilesCount; i++)
+                    printf("dropped : %s\n", win->event.droppedFiles[i]);
+            }
 
-            for (i = 0; i < win->event.droppedFilesCount; i++)
-                printf("dropped : %s\n", win->event.droppedFiles[i]);
-
-            if (win->event.type == RGFW_jsButtonPressed)
+            else if (win->event.type == RGFW_jsButtonPressed)
                 printf("pressed %i\n", win->event.button);
 
-            if (win->event.type == RGFW_jsAxisMove && !win->event.button)
+            else if (win->event.type == RGFW_jsAxisMove && !win->event.button)
                 printf("{%i, %i}\n", win->event.axis[0][0], win->event.axis[0][1]);
         }
 
@@ -86,7 +88,7 @@ int main() {
     for (t = time(0); (float)(time(0) - t) <= 0.05;); /*wait for the sub window to close*/
     #endif
 
-    RGFW_closeWindow(win);
+    RGFW_window_close(win);
 }
 
 void drawLoop(RGFW_window *w) {
@@ -103,7 +105,7 @@ void drawLoop(RGFW_window *w) {
 
     #endif
 
-    RGFW_swapBuffers(w); /* NOTE(EimaMei): Rendering should always go: 1. Clear everything 2. Render 3. Swap buffers. Based on https://www.khronos.org/opengl/wiki/Common_Mistakes#Swap_Buffers */
+    RGFW_window_swapBuffers(w); /* NOTE(EimaMei): Rendering should always go: 1. Clear everything 2. Render 3. Swap buffers. Based on https://www.khronos.org/opengl/wiki/Common_Mistakes#Swap_Buffers */
 }
 
 void* loop2(void* args) {
@@ -115,7 +117,7 @@ void* loop2(void* args) {
         /* 
             not using a while loop here because there is only one event I care about 
         */
-        RGFW_checkEvents(win);
+        RGFW_window_checkEvent(win);
 
         /* 
             I could've also done
@@ -129,7 +131,7 @@ void* loop2(void* args) {
         drawLoop(win);
     }
 
-    RGFW_closeWindow(win);
+    RGFW_window_close(win);
     #else
     printf("Managing windows on a seperate thread is not supported on MacOS :(\n");
     #endif
