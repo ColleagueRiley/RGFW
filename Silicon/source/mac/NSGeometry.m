@@ -7,8 +7,17 @@ extern "C" {
 #endif
 
 #include <ApplicationServices/ApplicationServices.h>
-#include <Silicon/mac/types.h>
+#if SILICON_TARGET_64BIT
+	typedef double CGFloat; /* The basic type for all floating-point values. */
+#else
+	typedef float CGFloat; /* The basic type for all floating-point values. */
+#endif
 
+
+/* CG -> NS typedefs. */
+typedef CGRect  NSRect;  /* A structure that contains the location and dimensions of a rectangle. */
+typedef CGSize  NSSize;  /* A structure that contains width and height values. */
+typedef CGPoint NSPoint; /* A structure that contains a point in a two-dimensiona
 
 /* ============ Geometry functions ============ */
 /* Creates a new NSRect from the specified values. */
