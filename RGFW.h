@@ -327,6 +327,9 @@ unsigned short RGFW_registerJoystickF(RGFW_window* win, char* file);
 
 unsigned char RGFW_isPressedJS(RGFW_window* win, unsigned short controller, unsigned char button);
 
+/*! Get max OpenGL version */
+unsigned char* RGFW_getMaxGLVersion();
+
 /*! Set OpenGL version hint */
 void RGFW_setGLVersion(int major, int minor);
 
@@ -607,6 +610,22 @@ int RGFW_majorVersion, RGFW_minorVersion;
 void RGFW_setGLVersion(int major, int minor) {
 	RGFW_majorVersion = major; 
 	RGFW_minorVersion = minor;
+}
+
+#include <GL/gl.h>
+
+unsigned char* RGFW_getMaxGLVersion() {
+    RGFW_window* dummy = RGFW_createWindowPointer("dummy", 0, 0, 1, 1, 0);
+
+    const char* versionStr = glGetString(GL_VERSION);
+
+    static unsigned char version[2]; 
+    version[0] = versionStr[0] - '0', 
+    version[1] = versionStr[2] - '0';
+
+    RGFW_window_close(dummy);
+
+    return version;
 }
 
 #ifdef RGFW_EGL
@@ -1112,14 +1131,13 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			}
 
 			/* set event key data */
-			win->event.keyCode = XkbKeycodeToKeysym((Display *)win->display, E.xkey.keycode, 0, E.xkey.state & ShiftMask ? 1 : 0); /* get keysym*/
+			win->event.keyCode = XkbKeycodeToKeysym((Display *)win->display, E.xkey.keycode, 0, E.xkey.state & ShiftMask ? 1 : 0);
 			win->event.keyName = XKeysymToString(win->event.keyCode); /* convert to string */
 
 			/* get keystate data */
 			XKeyboardState keystate;
 			XGetKeyboardControl((Display *)win->display, &keystate);
 			win->event.ledState = keystate.led_mask;
-			win->event.keyCode = E.xkey.keycode;
 			win->event.type = (E.type == KeyPress) ? RGFW_keyPressed : RGFW_keyReleased;
 			break;
 
