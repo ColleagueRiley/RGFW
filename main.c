@@ -11,7 +11,7 @@ unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF,
 unsigned char running = 1;
 
 int main() {
-    RGFW_window* win = RGFW_createWindowPointer("RGFW Example Window", 500, 500, 500, 500, RGFW_ALLOW_DND );
+    RGFW_window* win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_ALLOW_DND );
 
     if (win == NULL)
         return 1;
@@ -110,7 +110,7 @@ void drawLoop(RGFW_window *w) {
 
 void* loop2(void* args) {
     #ifndef __APPLE__
-    RGFW_window* win = RGFW_createWindowPointer("subwindow", 200, 200, 200, 200, 0);
+    RGFW_window* win = RGFW_createWindow("subwindow", 200, 200, 200, 200, 0);
     win->fpsCap = 60;
 
     while (running) {
