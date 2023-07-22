@@ -2130,14 +2130,14 @@ RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, uns
 	}
 
 	if (RGFW_CENTER & args) {
-		x = (screenR[0] - w) / 1.1;
-		y = (screenR[1] - h) / 4;
+		x = (r[0] - w) / 1.1;
+		y = (r[1] - h) / 4;
 	}
 
 	#ifndef RGFW_RECT
 	win->srcX = win->x = x;
 	win->srcY = win->y = y;
-	win->srcW = win->w = W;
+	win->srcW = win->w = w;
 	win->srcH = win->h = h; 
 	#else
 	win->srcR = win->r = (RGFW_RECT){x, y, w, h};
