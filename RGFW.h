@@ -2121,8 +2121,9 @@ RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, uns
 
     int pf;
 
+	unsigned int* r = RGFW_window_screenSize(win);
+
 	if (RGFW_FULLSCREEN & args) {
-		unsigned int* r = RGFW_window_screenSize(win);
 		x = 0;
 		y = 0;
 		w = r[0];
