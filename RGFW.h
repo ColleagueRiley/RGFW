@@ -352,8 +352,6 @@ void RGFW_window_swapInterval(RGFW_window* win, int swapInterval);
 void RGFW_window_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_window_checkEvent)*/
 unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event); /*!< returns true if the window is valid (and prints an error and where it took place if it can)*/
 
-unsigned int RGFW_OS_BASED_VALUE(unsigned int Linux, unsigned int Windows, unsigned int Macos);
-
 #endif /* RGFW_HEADER */
 
 /*
@@ -690,7 +688,11 @@ void RGFW_setGLVersion(int major, int minor) {
 	RGFW_minorVersion = minor;
 }
 
+#ifndef __APPLE__
 #include <GL/gl.h>
+#else
+#include <OpenGL/gl.h>
+#endif
 
 unsigned char* RGFW_getMaxGLVersion() {
     RGFW_window* dummy = RGFW_createWindow("dummy", 0, 0, 1, 1, 0);
@@ -2415,7 +2417,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		RECT a;
 
 		if (GetWindowRect((HWND)win->display, &a))
-			win->srcR = win->r = {a.left, a.top, a.right - a.left, a.bottom - a.top};
+			win->srcR = win->r = (RSGL_rect){a.left, a.top, a.right - a.left, a.bottom - a.top};
 	}
 	#endif
 
@@ -2758,7 +2760,7 @@ RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, uns
 	win->srcW = win->w = w;
 	win->srcH = win->h = h;
 	#else
-	win->srcR = win->r = {x, y, w, h};
+	win->srcR = win->r = (RSGL_rect){x, y, w, h};
 	#endif 
 
 	win->srcName = win->name = (char*)name;
@@ -3040,7 +3042,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	}
 	#else 
 	if (r.origin.x != win->srcR.x || r.origin.y != win->srcR.y || r.size.width != win->srcR.w || r.size.height != win->srcR.h)
-		win->srcR = win->r = {r.origin.x, r.origin.y, r.size.width, r.size.height};
+		win->srcR = win->r = (RSGL_rect){r.origin.x, r.origin.y, r.size.width, r.size.height};
 	
 
 	else if (win->r.x != win->srcR.x || win->r.y != win->srcR.y ||
@@ -3380,23 +3382,19 @@ void RGFW_window_checkFPS(RGFW_window* win) {
 		startTime[1] = time(0);
 	}
 }
-
-unsigned int RGFW_OS_BASED_VALUE(unsigned int Linux, unsigned int Windows, unsigned int Macos) {
-	#ifdef RGFW_X11
-	return Linux;
-	#endif
-
-	#ifdef RGFW_WINDOWS
-	
-	return Windows;
-	#endif
-
-	#ifdef __APPLE__
-	return Macos;
-	#endif
-}
-
 #endif /*RGFW_IMPLEMENTATION*/
+
+
+
+#ifdef RGFW_X11
+#define RGFW_OS_BASED_VALUE(l, w, m) l
+#endif
+#ifdef RGFW_WINDOWS
+#define RGFW_OS_BASED_VALUE(l, w, m) w
+#endif
+#ifdef __APPLE__
+#define RGFW_OS_BASED_VALUE(l, w, m) m
+#endif
 
 #define RGFW_Escape RGFW_OS_BASED_VALUE(0xff1b, 0x1B, 53)
 #define RGFW_F1 RGFW_OS_BASED_VALUE(0xffbe, 0x70, 127)
@@ -3535,7 +3533,6 @@ unsigned int RGFW_OS_BASED_VALUE(unsigned int Linux, unsigned int Windows, unsig
 #define RGFW_KP_0 RGFW_OS_BASED_VALUE(0xffb0, 0x60, 83)
 #define RGFW_KP_Period RGFW_OS_BASED_VALUE(0xffae, 0x6E, 65)
 #define RGFW_KP_Return RGFW_OS_BASED_VALUE(0xff8d, 0x92, 77)
-
 
 #ifdef __cplusplus
 }
