@@ -34,6 +34,8 @@
 
 	#define RGFW_X11 (optional) (unix only) if X11 should be used. This option is turned on by default by unix systems except for MacOS
 	#define RGFW_WGL_LOAD (optional) (windows only) if WGL should be loaded dynamically during runtime
+	#define RGFW_NO_X11_CURSOR (optional) (unix only) don't use XCursor
+	define RGFW_NO_X11_CURSOR_PRELOAD (optional) (unix only) Use XCursor, but don't link it in code, (you'll have to link it with -lXcursor)
 */
 
 /*
@@ -502,7 +504,9 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 
 #ifdef RGFW_X11
 #include <X11/Xlib.h>
+#ifndef RGFW_NO_X11_CURSOR
 #include <X11/Xcursor/Xcursor.h>
+#endif
 #include <dlfcn.h>
 #endif
 
@@ -869,7 +873,7 @@ Atom XdndAware, XdndTypeList,     XdndSelection,    XdndEnter,        XdndPositi
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 XImage* RGFW_omesa_ximage;
 #endif
-#ifndef RGFW_NO_X11_CURSOR
+#if !defined(RGFW_NO_X11_CURSOR) && !defined(RGFW_NO_X11_CURSOR_PRELOAD)
 typedef XcursorImage* (* PFN_XcursorImageCreate)(int,int);
 typedef void (* PFN_XcursorImageDestroy)(XcursorImage*);
 typedef Cursor (* PFN_XcursorImageLoadCursor)(Display*,const XcursorImage*);
@@ -878,7 +882,7 @@ typedef Cursor (* PFN_XcursorImageLoadCursor)(Display*,const XcursorImage*);
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 #endif
 
-#ifndef RGFW_NO_X11_CURSOR
+#if !defined(RGFW_NO_X11_CURSOR) && !defined(RGFW_NO_X11_CURSOR_PRELOAD)
 PFN_XcursorImageLoadCursor XcursorImageLoadCursorSrc = NULL;
 PFN_XcursorImageCreate XcursorImageCreateSrc = NULL;
 PFN_XcursorImageDestroy XcursorImageDestroySrc = NULL;
@@ -903,7 +907,7 @@ void* RGFW_getProcAddress(const char* procname) { return (void*)glXGetProcAddres
 #endif
 
 RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, unsigned long args) {
-	#ifndef RGFW_NO_X11_CURSOR
+	#if !defined(RGFW_NO_X11_CURSOR) && !defined(RGFW_NO_X11_CURSOR_PRELOAD)
 	if (X11Cursorhandle == NULL) {
 		#if defined(__CYGWIN__)
 			X11Cursorhandle = dlopen("libXcursor-1.so", RTLD_LAZY | RTLD_LOCAL);
@@ -1643,7 +1647,7 @@ void RGFW_window_close(RGFW_window* win) {
 			XCloseDisplay((Display *)win->display); /* kill the display*/
 	}
 
-	#ifndef RGFW_NO_X11_CURSOR
+	#if !defined(RGFW_NO_X11_CURSOR_PRELOAD) && !defined(RGFW_NO_X11_CURSOR)
 	if (X11Cursorhandle != NULL && !RGFW_windowsOpen) {
 		dlclose(X11Cursorhandle);
 
