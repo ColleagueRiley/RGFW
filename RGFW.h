@@ -247,6 +247,7 @@ RGFW_window* RGFW_createWindow(
 	unsigned long args /* extra arguments (NULL / (unsigned long)0 means no args used)*/
 ); /*!< function to create a window struct */
 
+#ifdef RGFW_VULKAN
 /*! initializes a vulkan rendering context for the RGFW window, you still need to load your own vulkan instance, ect, ect
 	this outputs the vulkan surface into win->glWin
 	RGFW_VULKAN must be defined for this function to be defined
@@ -257,6 +258,8 @@ inline void RGFW_initVulkan(RGFW_window* win, void* inst);
    [0] = width
    [1] = height
 */
+#endif
+
 inline unsigned int* RGFW_window_screenSize(RGFW_window* win);
 
 /* 
@@ -273,18 +276,16 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win); /*!< check events (returns
 /*! window managment functions*/
 inline void RGFW_window_close(RGFW_window* win); /*!< close the window and free leftover data */
 
-inline void RGFW_window_setIcon(RGFW_window* win, /*!< source window */
-				 unsigned char* icon /*!< icon bitmap */,
-				 int width /*!< width of the bitmap*/,
-				 int height, /*!< height of the bitmap*/
-				 int channels /*!< how many channels the bitmap has (rgb : 3, rgba : 4) */
-			); /*!< image resized by default */
-
-inline void RGFW_window_defaultIcon(RGFW_window* win); /* sets the mouse to the default mouse image */
-
+void RGFW_window_setIcon(RGFW_window* win, /*!< source window */
+				unsigned char* icon /*!< icon bitmap */,
+				int width /*!< width of the bitmap*/,
+				int height, /*!< height of the bitmap*/
+				int channels /*!< how many channels the bitmap has (rgb : 3, rgba : 4) */
+		); /*!< image resized by default */
+		
 inline void RGFW_window_setMouse(RGFW_window* win, unsigned char* image, int width, int height, int channels); /*!< sets mouse to bitmap (very simular to RGFW_window_setIcon)*/
 /*!< image NOT resized by default */
-inline void RGFW_window_setMouseDefault(RGFW_window* win); /* sets the mouse to the default mouse image */
+inline void RGFW_window_setMouseDefault(RGFW_window* win); /* sets the mouse to1` the default mouse image */
 
 /* where the mouse is on the screen, x = [0], y = [1] */
 inline int* RGFW_window_getGlobalMousePoint(RGFW_window* win);
@@ -1678,13 +1679,14 @@ void RGFW_window_close(RGFW_window* win) {
 /*
 	the majority function is sourced from GLFW
 */
-void RGFW_window_setIcon(RGFW_window* win, unsigned char* src, int width, int height, int channels) {
+
+void RGFW_window_setIcon(RGFW_window* win, unsigned char* icon, int width, int height, int channels) {
 	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_setIcon")) return;
 
 	int longCount = 2 + width * height;
 
-    unsigned long* icon = (unsigned long*)malloc(longCount * sizeof(unsigned long));
-    unsigned long* target = icon;
+    unsigned long* X11Icon = (unsigned long*)malloc(longCount * sizeof(unsigned long));
+    unsigned long* target = X11Icon;
 
     *target++ = width;
     *target++ = height;
@@ -1693,16 +1695,16 @@ void RGFW_window_setIcon(RGFW_window* win, unsigned char* src, int width, int he
 
     for (i = 0;  i < width * height;  i++) {
         if (channels == 3)
-            *target++ = ((src[i * 3 + 0]) << 16) |
-                        ((src[i * 3 + 1]) <<  8) |
-                        ((src[i * 3 + 2]) <<  0) |
+            *target++ = ((icon[i * 3 + 0]) << 16) |
+                        ((icon[i * 3 + 1]) <<  8) |
+                        ((icon[i * 3 + 2]) <<  0) |
                         (0xFF << 24);
 
         else if (channels == 4)
-            *target++ = ((src[i * 4 + 0]) << 16) |
-                        ((src[i * 4 + 1]) <<  8) |
-                        ((src[i * 4 + 2]) <<  0) |
-                        ((src[i * 4 + 3]) << 24);
+            *target++ = ((icon[i * 4 + 0]) << 16) |
+                        ((icon[i * 4 + 1]) <<  8) |
+                        ((icon[i * 4 + 2]) <<  0) |
+                        ((icon[i * 4 + 3]) << 24);
     }
 
     Atom NET_WM_ICON = XInternAtom((Display*)win->display, "_NET_WM_ICON", False);
@@ -1711,10 +1713,10 @@ void RGFW_window_setIcon(RGFW_window* win, unsigned char* src, int width, int he
                     NET_WM_ICON,
                     6, 32,
                     PropModeReplace,
-                    (unsigned char*) icon,
+                    (unsigned char*) X11Icon,
                     longCount);
 
-    free(icon);
+    free(X11Icon);
 
     XFlush((Display*)win->display);
 }
