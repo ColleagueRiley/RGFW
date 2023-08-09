@@ -846,6 +846,7 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event) {
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/Xatom.h>
 #include <unistd.h>
 
 #ifdef RGFW_GL
@@ -870,6 +871,8 @@ unsigned char RGFW_ValidWindowCheck(RGFW_window* win, char* event) {
 
 /*atoms needed for drag and drop*/
 Atom XdndAware, XdndTypeList,     XdndSelection,    XdndEnter,        XdndPosition,     XdndStatus,       XdndLeave,        XdndDrop,         XdndFinished,     XdndActionCopy,   XdndActionMove,   XdndActionLink,   XdndActionAsk, XdndActionPrivate;
+
+Atom wm_delete_window;
 
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 XImage* RGFW_omesa_ximage;
@@ -1082,22 +1085,29 @@ RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, uns
         sh->min_width = sh->max_width = w;
         sh->min_height = sh->max_height = h;
 
-        XSetWMSizeHints((Display *)win->display, (Drawable)win->window, sh, ((Atom)40));
+        XSetWMSizeHints((Display *)win->display, (Drawable)win->window, sh,  XA_WM_NORMAL_HINTS);
     }
 
     if (RGFW_NO_BORDER & args) {
 		/* Atom vars for no-border*/
-        Atom window_type = XInternAtom((Display *)win->display, "_NET_WM_WINDOW_TYPE", False);
-        Atom value = XInternAtom((Display *)win->display, "_NET_WM_WINDOW_TYPE_DOCK", False);
+        static Atom window_type = NULL;
+        static Atom value = NULL;
+		
+		if (window_type == NULL) {
+			window_type = XInternAtom((Display *)win->display, "_NET_WM_WINDOW_TYPE", False);
+			value = XInternAtom((Display *)win->display, "_NET_WM_WINDOW_TYPE_DOCK", False);
+		}
 
-        XChangeProperty((Display *)win->display, (Drawable)win->window, window_type, ((Atom)4), 32, PropModeReplace, (unsigned char *)&value, 1); /* toggle border*/
+        XChangeProperty((Display *)win->display, (Drawable)win->window, window_type,XA_ATOM, 32, PropModeReplace, (unsigned char *)&value, 1); /* toggle border*/
     }
 
     XSelectInput((Display *)win->display, (Drawable)win->window, event_mask); /* tell X11 what events we want*/
 
     /* make it so the user can't close the window until the program does*/
-    Atom wm_delete = XInternAtom((Display *)win->display, "WM_DELETE_WINDOW", 1);
-    XSetWMProtocols((Display *)win->display, (Drawable)win->window, &wm_delete, 1);
+	if (wm_delete_window == NULL)
+		wm_delete_window = XInternAtom((Display *)win->display, "WM_DELETE_WINDOW", 1);
+
+    XSetWMProtocols((Display *)win->display, (Drawable)win->window, &wm_delete_window, 1);
 	
     /* connect the context to the window*/
     #ifdef RGFW_GL
@@ -1250,7 +1260,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		case ClientMessage:
 			/* if the client closed the window*/
-			if (E.xclient.data.l[0] == (long int)XInternAtom((Display *)win->display, "WM_DELETE_WINDOW", 1))
+			if (E.xclient.data.l[0] == wm_delete_window)
 				win->event.type = RGFW_quit;
 
 			/*
@@ -1524,7 +1534,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			win->inFocus = 0;
 			RGFW_window_setMouseDefault(win);
 			break;
-		case ConfigureNotify:
+		case ConfigureNotify: {
 			#ifndef RGFW_NO_X11_WINDOW_ATTRIB
 			XWindowAttributes a;
 			XGetWindowAttributes((Display *)win->display, (Window)win->window, &a);
@@ -1539,6 +1549,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			#endif
 			#endif
 			break;
+		}
 		default: {
 			#ifdef __linux__
 			unsigned char i;
@@ -1706,8 +1717,10 @@ void RGFW_window_setIcon(RGFW_window* win, unsigned char* icon, int width, int h
                         ((icon[i * 4 + 2]) <<  0) |
                         ((icon[i * 4 + 3]) << 24);
     }
-
-    Atom NET_WM_ICON = XInternAtom((Display*)win->display, "_NET_WM_ICON", False);
+	
+	static Atom NET_WM_ICON = NULL;
+	if (NET_WM_ICON == NULL) 
+    	NET_WM_ICON = XInternAtom((Display*)win->display, "_NET_WM_ICON", False);
 
     XChangeProperty((Display*)win->display, (Window)win->window,
                     NET_WM_ICON,
@@ -1762,37 +1775,42 @@ void RGFW_window_setMouseDefault(RGFW_window* win) {
 	the majority function is sourced from GLFW
 */
 const char* RGFW_window_readClipboard(RGFW_window* win) {
-  if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_readClipboard")) return (char*)"";
+	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_readClipboard")) return (char*)"";
 
-  char* result;
-  unsigned long ressize, restail;
-  int resbits;
-  Atom bufid = XInternAtom((Display*)win->display, "CLIPBOARD", False),
-       fmtid = XInternAtom((Display*)win->display, "STRING", False),
-       propid = XInternAtom((Display*)win->display, "XSEL_DATA", False),
-       incrid = XInternAtom((Display*)win->display, "INCR", False);
-  XEvent event;
+	char* result;
+	unsigned long ressize, restail;
+	int resbits;
+	static Atom bufid = NULL, fmtid = NULL, propid = NULL, incrid = NULL;
 
-  XSelectInput ((Display*)win->display, (Window)win->window, PropertyChangeMask);
-  XConvertSelection((Display*)win->display, bufid, fmtid, propid, (Window)win->window, CurrentTime);
-  do {
-    XNextEvent((Display*)win->display, &event);
-  } while (event.type != SelectionNotify || event.xselection.selection != bufid);
+	if (bufid == NULL) {
+		bufid = XInternAtom((Display*)win->display, "CLIPBOARD", False),
+		fmtid = XInternAtom((Display*)win->display, "STRING", False),
+		propid = XInternAtom((Display*)win->display, "XSEL_DATA", False),
+		incrid = XInternAtom((Display*)win->display, "INCR", False);
+	}
 
-  if (event.xselection.property) {
-    XGetWindowProperty((Display*)win->display, (Window)win->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
-      &fmtid, &resbits, &ressize, &restail, (unsigned char**)&result);
+	XEvent event;
 
-    if (fmtid == incrid)
-      do {
-        while (event.type != PropertyNotify || event.xproperty.atom != propid || event.xproperty.state != PropertyNewValue) XNextEvent((Display*)win->display, &event);
+	XSelectInput ((Display*)win->display, (Window)win->window, PropertyChangeMask);
+	XConvertSelection((Display*)win->display, bufid, fmtid, propid, (Window)win->window, CurrentTime);
+	do {
+	XNextEvent((Display*)win->display, &event);
+	} while (event.type != SelectionNotify || event.xselection.selection != bufid);
 
-        XGetWindowProperty((Display*)win->display, (Window)win->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
-          &fmtid, &resbits, &ressize, &restail, (unsigned char**)&result);
-      } while (ressize > 0);
-  }
+	if (event.xselection.property) {
+	XGetWindowProperty((Display*)win->display, (Window)win->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
+		&fmtid, &resbits, &ressize, &restail, (unsigned char**)&result);
 
-  return result;
+	if (fmtid == incrid)
+		do {
+		while (event.type != PropertyNotify || event.xproperty.atom != propid || event.xproperty.state != PropertyNewValue) XNextEvent((Display*)win->display, &event);
+
+		XGetWindowProperty((Display*)win->display, (Window)win->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
+			&fmtid, &resbits, &ressize, &restail, (unsigned char**)&result);
+		} while (ressize > 0);
+	}
+
+	return result;
 }
 
 /*
@@ -1800,22 +1818,29 @@ const char* RGFW_window_readClipboard(RGFW_window* win) {
 */
 void RGFW_window_writeClipboard(RGFW_window* win, const char* text, unsigned int textLen) {
 	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_writeClipboard")) return;
-    Atom CLIPBOARD, UTF8_STRING, SAVE_TARGETS, TARGETS, MULTIPLE, ATOM_PAIR, PRIMARY, CLIPBOARD_MANAGER;
+    static Atom CLIPBOARD = NULL, 
+				UTF8_STRING = NULL, 
+				SAVE_TARGETS = NULL, 
+				TARGETS = NULL, 
+				MULTIPLE = NULL, 
+				ATOM_PAIR = NULL, 
+				PRIMARY = NULL, 
+				CLIPBOARD_MANAGER = NULL;
 
-    CLIPBOARD = XInternAtom((Display*)win->display, "CLIPBOARD", False);
-    UTF8_STRING = XInternAtom((Display*)win->display, "UTF8_STRING", False);
-    SAVE_TARGETS = XInternAtom((Display*)win->display, "SAVE_TARGETS", False);
-    TARGETS = XInternAtom((Display*)win->display, "TARGETS", False);
-    MULTIPLE = XInternAtom((Display*)win->display, "MULTIPLE", False);
-    ATOM_PAIR = XInternAtom((Display*)win->display, "ATOM_PAIR", False);
-    PRIMARY = XInternAtom((Display*)win->display, "PRIMARY", False);
-    CLIPBOARD_MANAGER = XInternAtom((Display*)win->display, "CLIPBOARD_MANAGER", False);
+	if (CLIPBOARD == NULL) {
+		CLIPBOARD = XInternAtom((Display*)win->display, "CLIPBOARD", False);
+		UTF8_STRING = XInternAtom((Display*)win->display, "UTF8_STRING", False);
+		SAVE_TARGETS = XInternAtom((Display*)win->display, "SAVE_TARGETS", False);
+		TARGETS = XInternAtom((Display*)win->display, "TARGETS", False);
+		MULTIPLE = XInternAtom((Display*)win->display, "MULTIPLE", False);
+		ATOM_PAIR = XInternAtom((Display*)win->display, "ATOM_PAIR", False);
+		PRIMARY = XInternAtom((Display*)win->display, "PRIMARY", False);
+		CLIPBOARD_MANAGER = XInternAtom((Display*)win->display, "CLIPBOARD_MANAGER", False);
+	}
 
     XSetSelectionOwner((Display*)win->display, CLIPBOARD, (Window)win->window, CurrentTime);
 
     XConvertSelection((Display*)win->display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, (Window)win->window, CurrentTime);
-
-	unsigned char XA_STRING = 31;
 
     for (;;) {
         XEvent event;
