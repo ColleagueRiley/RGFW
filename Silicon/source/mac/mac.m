@@ -177,6 +177,10 @@ NSPoint NSWindow_convertPointFromScreen(NSWindow* window, NSPoint point) {
 void NSWindow_display(NSWindow* window) {
 	return [window display];
 }
+/* toggle wantslayer */
+void NSWindow_contentView_wantsLayer(NSWindow* window, bool wantsLayer) {
+	window.contentView.wantsLayer = wantsLayer;
+}
 
 
 /* ============ NSView class ============ */

@@ -147,6 +147,8 @@ void NSWindow_setFrameAndDisplay(NSWindow* window, NSRect frame, bool display, b
 NSPoint NSWindow_convertPointFromScreen(NSWindow* window, NSPoint point);
 /* Passes a display message down the window’s view hierarchy, thus redrawing all views within the window. */
 void NSWindow_display(NSWindow* window);
+/* toggle wantslayer */
+void NSWindow_contentView_wantsLayer(NSWindow* window, bool wantsLayer) ;
 
 
 /* ============ NSView class ============ */

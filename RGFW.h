@@ -2870,6 +2870,7 @@ RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, uns
 
 	NSWindow_setContentView(win->window, (NSView*)win->view);
 	NSWindow_setIsVisible(win->window, true);
+	NSWindow_contentView_wantsLayer(win->window, true);
 
 	if (!RGFW_loaded) {
 		NSWindow_makeMainWindow(win->window);
