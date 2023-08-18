@@ -456,6 +456,8 @@ int main() {
 	} \
 }
 
+unsigned char RGFW_error = 0;
+unsigned char RGFW_Error() { return RGFW_error; }
 
 #ifdef RGFW_OSMESA
 #ifndef __APPLE__
@@ -683,8 +685,6 @@ typedef struct RGFW_Timespec {
 } RGFW_Timespec; /*time struct for fps functions*/
 
 unsigned char RGFW_isPressedJS(RGFW_window* win, unsigned short c, unsigned char button) { return win->jsPressed[c][button]; }
-
-unsigned char RGFW_error = 0;
 
 int RGFW_majorVersion, RGFW_minorVersion;
 
@@ -1997,8 +1997,6 @@ unsigned char RGFW_isPressedI(RGFW_window* win, unsigned int key) {
 	return !!(keyboard[kc2 >> 3] & (1 << (kc2 & 7)));				/* check if the key is pressed */
 }
 
-unsigned char RGFW_Error() { return RGFW_error; }
-
 #endif
 
 #ifdef RGFW_WINDOWS
@@ -2054,85 +2052,8 @@ wglChoosePixelFormatARB_type *wglChoosePixelFormatARB;
 #define WGL_STENCIL_BITS_ARB                      0x2023
 #define WGL_FULL_ACCELERATION_ARB                 0x2027
 #define WGL_TYPE_RGBA_ARB                         0x202B
-
-#ifdef RGFW_GL
-
-int RGFW_init_opengl(RGFW_window* win) {
-	/* if the wgl functions are not loaded yet */
-	if (wglCreateContextAttribsARB == NULL) { 
-		HWND dummy_window = CreateWindowA("STATIC", "", WS_POPUP|WS_DISABLED, -32000, -32000, 0, 0, NULL, NULL, GetModuleHandle(NULL), 0);
-
-		HDC dummy_dc = GetDC(dummy_window);
-		PIXELFORMATDESCRIPTOR pfd = {sizeof(pfd), 1, PFD_TYPE_RGBA, PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, 32, 8, PFD_MAIN_PLANE, 24, 8};
-
-		int pixelFormat = ChoosePixelFormat(dummy_dc, &pfd);
-
-		SetPixelFormat(dummy_dc, pixelFormat, &pfd);
-
-		/* load a opengl context into the dummy window */
-		HGLRC dummy_context = wglCreateContext(dummy_dc);
-
-		wglMakeCurrent(dummy_dc, dummy_context);
-
-		/* load wgl functions */
-		wglCreateContextAttribsARB = (wglCreateContextAttribsARB_type*)wglGetProcAddress("wglCreateContextAttribsARB");
-		wglChoosePixelFormatARB = (wglChoosePixelFormatARB_type*)wglGetProcAddress("wglChoosePixelFormatARB");
-
-		/* free any leftover data */
-		wglMakeCurrent(dummy_dc, 0);
-		wglDeleteContext(dummy_context);
-		ReleaseDC(dummy_window, dummy_dc);
-		DestroyWindow(dummy_window);
-
-		/* make sure the functions were loaded properly */
-		RGFW_ASSERT(wglCreateContextAttribsARB != NULL && wglChoosePixelFormatARB != NULL, "Failed to load wgl ARB functions");
-	}
-
-	/* basic opengl attributes */
-	int pixel_format_attribs[] = {
-        WGL_DRAW_TO_WINDOW_ARB,     GL_TRUE,
-        WGL_SUPPORT_OPENGL_ARB,     GL_TRUE,
-        WGL_DOUBLE_BUFFER_ARB,      GL_TRUE,
-        WGL_ACCELERATION_ARB,       WGL_FULL_ACCELERATION_ARB,
-        WGL_PIXEL_TYPE_ARB,         WGL_TYPE_RGBA_ARB,
-        WGL_COLOR_BITS_ARB,         32,
-        WGL_DEPTH_BITS_ARB,         24,
-        WGL_STENCIL_BITS_ARB,       8,
-        0            
-	};
-
-    int pixel_format;
-    UINT num_formats;
-
-	wglChoosePixelFormatARB((HDC)win->window, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
-
-	RGFW_ASSERT(num_formats, "Failed to choose OpenGL pixel format\n");
-
-    PIXELFORMATDESCRIPTOR npfd;
-    DescribePixelFormat((HDC)win->window, pixel_format, sizeof(npfd), &npfd);
-    SetPixelFormat((HDC)win->window, pixel_format, &npfd);
-
-	RGFW_ASSERT(&npfd != NULL, "Failed to set pixel format for window\n");
-
-	int context_attribs[5] = {0, 0, 0, 0, 0};
-
-	/* set the opengl version */
-	if (RGFW_majorVersion || RGFW_minorVersion) {
-		context_attribs[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
-		context_attribs[1] = RGFW_majorVersion;
-		context_attribs[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
-		context_attribs[3] = RGFW_minorVersion;
-	}
-
-    win->glWin = wglCreateContextAttribsARB((HDC)win->window, 0, context_attribs);
-
-	RGFW_ASSERT(win->glWin != NULL, "Failed to create opengl context for window\n");
-
-    wglMakeCurrent((HDC)win->window, (HGLRC)win->glWin);
-
-	return 0;
-}
-#endif
+#define WGL_CONTEXT_FLAGS_ARB                   0x2094
+#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 
 RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, unsigned long args) {
 	static char RGFW_trashed = 0;
@@ -2216,11 +2137,64 @@ RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, uns
     win->window = GetDC((HWND)win->display);
 
 
-
  	#ifdef RGFW_GL
-	if (RGFW_init_opengl(win))
-		return NULL;
+	/* if the wgl functions are not loaded yet */
+	PIXELFORMATDESCRIPTOR pfd = {sizeof(pfd), 1, PFD_TYPE_RGBA, PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, 32, 8, PFD_MAIN_PLANE, 24, 8};
+
+	int pixelFormat = ChoosePixelFormat(win->window, &pfd);
+
+	PIXELFORMATDESCRIPTOR SuggestedPixelFormat;
+
+	DescribePixelFormat(win->window, pixelFormat, sizeof(SuggestedPixelFormat), &SuggestedPixelFormat);
+	SetPixelFormat (win->window, pixelFormat, &SuggestedPixelFormat);
+	win->glWin = wglCreateContext(win->window);
+
+	if(wglMakeCurrent(win->window, win->glWin)) {
+		/* load wgl functions */
+		if (wglCreateContextAttribsARB == NULL) {
+			wglCreateContextAttribsARB = (wglCreateContextAttribsARB_type*)wglGetProcAddress("wglCreateContextAttribsARB");
+			wglChoosePixelFormatARB = (wglChoosePixelFormatARB_type*)wglGetProcAddress("wglChoosePixelFormatARB");
+		}
+
+		if (wglCreateContextAttribsARB) {
+			/* basic opengl attributes */
+			int pixel_format_attribs[] = {
+				WGL_DRAW_TO_WINDOW_ARB,     GL_TRUE,
+				WGL_SUPPORT_OPENGL_ARB,     GL_TRUE,
+				WGL_DOUBLE_BUFFER_ARB,      GL_TRUE,
+				WGL_ACCELERATION_ARB,       WGL_FULL_ACCELERATION_ARB,
+				WGL_PIXEL_TYPE_ARB,         WGL_TYPE_RGBA_ARB,
+				WGL_COLOR_BITS_ARB,         32,
+				WGL_DEPTH_BITS_ARB,         24,
+				WGL_STENCIL_BITS_ARB,       8,
+				0            
+			};
+
+			int pixel_format;
+			UINT num_formats;
+
+			wglChoosePixelFormatARB((HDC)win->window, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
+
+			int context_attribs[7] = {0, 0, 0, 0, 0, 0, 0};
+
+			/* set the opengl version */
+			if (RGFW_majorVersion || RGFW_minorVersion) {
+				context_attribs[0] = WGL_CONTEXT_FLAGS_ARB;
+				context_attribs[1] = WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+				context_attribs[2] = WGL_CONTEXT_MAJOR_VERSION_ARB;
+				context_attribs[3] = RGFW_majorVersion;
+				context_attribs[4] = WGL_CONTEXT_MINOR_VERSION_ARB;
+				context_attribs[5] = RGFW_minorVersion;
+			}
+
+			wglDeleteContext(win->glWin);
+			win->glWin = wglCreateContextAttribsARB((HDC)win->window, 0, context_attribs);
+		}
+	}
+	
+    wglMakeCurrent((HDC)win->window, (HGLRC)win->glWin);
 	#endif
+
 
 	#ifdef RGFW_OSMESA
 
