@@ -35,7 +35,7 @@
 	#define RGFW_X11 (optional) (unix only) if X11 should be used. This option is turned on by default by unix systems except for MacOS
 	#define RGFW_WGL_LOAD (optional) (windows only) if WGL should be loaded dynamically during runtime
 	#define RGFW_NO_X11_CURSOR (optional) (unix only) don't use XCursor
-	define RGFW_NO_X11_CURSOR_PRELOAD (optional) (unix only) Use XCursor, but don't link it in code, (you'll have to link it with -lXcursor)
+	#define RGFW_NO_X11_CURSOR_PRELOAD (optional) (unix only) Use XCursor, but don't link it in code, (you'll have to link it with -lXcursor)
 */
 
 /*
@@ -55,6 +55,9 @@
 			Copyright (c) 2006-2019 Camilla Löwy
 */
 
+#ifndef inline
+#define inline __inline
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -112,6 +115,7 @@ extern "C" {
 #define RGFW_jsButtonPressed 7 /*!< a joystick button was pressed */
 #define RGFW_jsButtonReleased 8 /*!< a joystick button was released */
 #define RGFW_jsAxisMove 9 /*!< an axis of a joystick was moved*/
+#define RGFW_windowAttribsChange 10 /*!< the window was moved or resized (by the user) */
 #define RGFW_quit 33 /*!< the user clicked the quit button*/ 
 #define RGFW_dnd 34 /*!< a file has been dropped into the window*/
 #define RGFW_dnd_init 35 /*!< the start of a dnd event, when the place where the file drop is known */
@@ -186,20 +190,16 @@ typedef struct RGFW_window {
     void* window; /*!< source window */
     void* glWin; /*!< source opengl context */
 
-	char* name; /*!< window's name*/
 	#ifndef RGFW_RECT
-	int x, y, w, h; /*!< window size, x, y*/
-	int srcX, srcY, srcW, srcH; /* source size (for resizing, do not change these values directly) */
+	int x, y; /*!< window pos, x, y */
+	unsigned int w, h; /*!< window size, w, h*/
 	#else
 	RGFW_RECT r;
-	RGFW_RECT srcR;
 	#endif
 
 	unsigned int fpsCap; /*!< the fps cap of the window should run at (change this var to change the fps cap, 0 = no limit)*/
 	/*[the fps is capped when events are checked]*/
-
-	char* srcName; /*!< source name, for chaning the name (do not change these values directly) */
-
+	
 	unsigned int fps, /*the current fps of the window [the fps is checked when events are checked]*/
 				inFocus; /*if the window is in focus or not*/
 
@@ -275,6 +275,20 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win); /*!< check events (returns
 
 /*! window managment functions*/
 inline void RGFW_window_close(RGFW_window* win); /*!< close the window and free leftover data */
+
+inline void RGFW_window_move(RGFW_window* win,
+							int x, 
+							int y
+						);
+
+inline void RGFW_window_resize(RGFW_window* win,
+							unsigned int w, 
+							unsigned int h
+						);
+
+inline void RGFW_window_setName(RGFW_window* win,
+								char* name
+							);
 
 void RGFW_window_setIcon(RGFW_window* win, /*!< source window */
 				unsigned char* icon /*!< icon bitmap */,
@@ -522,6 +536,7 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 #ifdef RGFW_WINDOWS
 
 #include <windows.h>
+#include <windowsx.h>
 #include <shellapi.h>
 
 #ifdef RGFW_GL
@@ -951,15 +966,14 @@ RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, uns
 	/* set and init the new window's data */
 
 	#ifndef RGFW_RECT
-	win->srcX = win->x = x;
-	win->srcY = win->y = y;
-	win->srcW = win->w = w;
-	win->srcH = win->h = h;
+	win->x = x;
+	win->y = y;
+	win->w = w;
+	win->h = h;
 	#else
-	win->srcR = win->r = (RGFW_RECT){x, y, w, h};
+	win->r = (RGFW_RECT){x, y, w, h};
 	#endif
 
-	win->srcName = win->name = (char*)name;
 	win->fpsCap = 0;
 	win->inFocus = 1;
 	win->event.droppedFilesCount = 0;
@@ -1170,7 +1184,6 @@ RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, uns
 unsigned int* RGFW_window_screenSize(RGFW_window* win) {
 	static unsigned int RGFWScreen[2];
 
-	if (RGFW_ValidWindowCheck) (unsigned int[2]) {0, 0};
 	Screen* scrn = DefaultScreenOfDisplay((Display*)win->display);
 
 	RGFWScreen[0] = scrn->height;
@@ -1540,14 +1553,16 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			XGetWindowAttributes((Display *)win->display, (Window)win->window, &a);
 
 			#ifndef RGFW_RECT
-			win->srcX = win->x = a.x;
-			win->srcY = win->y = a.y;
-			win->srcW = win->w = a.width;
-			win->srcH = win->h = a.height; 
+			win->x = a.x;
+			win->y = a.y;
+			win->w = a.width;
+			win->h = a.height; 
 			#else
-			win->srcR = win->r = (RGFW_RECT){a.x, a.y, a.width, a.height};
+			win->r = (RGFW_RECT){a.x, a.y, a.width, a.height};
 			#endif
 			#endif
+
+			win->event.type = RGFW_windowAttribsChange;
 			break;
 		}
 		default: {
@@ -1593,37 +1608,6 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 			break;
 		}
-	}
-
-	#ifndef RGFW_RECT
-	if ((win->srcX != win->x) || (win->srcY != win->y)) {
-		XMoveWindow((Display *)win->display, (Drawable)win->window, win->x, win->y);
-		win->srcX = win->x;
-		win->srcY = win->y;
-	}
-
-	else if ((win->srcW != win->w) || (win->srcH != win->h)) {
-		XResizeWindow((Display *)win->display, (Drawable)win->window, (Drawable)win->w, win->h);
-		win->srcW = win->w;
-		win->srcH = win->h;
-	}
-	#else
-	if ((win->srcR.x != win->r.x) || (win->srcR.y != win->r.y)) {
-		XMoveWindow((Display *)win->display, (Drawable)win->window, win->r.x, win->r.y);
-		win->srcR.x = win->r.x;
-		win->srcR.y = win->r.y;
-	}
-
-	else if ((win->srcR.w != win->r.w) || (win->srcR.h != win->r.h)) {
-		XResizeWindow((Display *)win->display, (Drawable)win->window, (Drawable)win->r.w, win->r.h);
-		win->srcR.w = win->r.w;
-		win->srcR.w = win->r.h;
-	}
-	#endif
-
-	if (win->srcName != win->name) {
-		XStoreName((Display *)win->display, (Window)win->window, win->name);
-		win->srcName = win->name;
 	}
 
 	if (win->inFocus && win->cursorChanged) {
@@ -1685,6 +1669,35 @@ void RGFW_window_close(RGFW_window* win) {
 	free(win); /* free collected window data */
 
 	RGFW_windowsOpen--;
+}
+
+void RGFW_window_move(RGFW_window* win, int x, int y) {
+	#ifdef RGFW_RECT
+	win->r.x = x;
+	win->r.y = y;
+	#else
+	win->x = x;
+	win->y = y;
+	#endif
+
+	XMoveWindow((Display *)win->display, (Window)win->window, x, y);
+}
+
+
+void RGFW_window_resize(RGFW_window* win, unsigned int w, unsigned int h) {
+	#ifdef RGFW_RECT
+	win->r.w = w;
+	win->r.h = h;
+	#else
+	win->w = w;
+	win->h = h;
+	#endif
+
+	XResizeWindow((Display *)win->display, (Window)win->window, w, h);
+}
+
+void RGFW_window_setName(RGFW_window* win, char* name) {
+	XStoreName((Display *)win->display, (Window)win->window, name);
 }
 
 /*
@@ -2053,6 +2066,7 @@ wglChoosePixelFormatARB_type *wglChoosePixelFormatARB;
 #define WGL_FULL_ACCELERATION_ARB                 0x2027
 #define WGL_TYPE_RGBA_ARB                         0x202B
 #define WGL_CONTEXT_FLAGS_ARB                   0x2094
+#define WGL_CONTEXT_PROFILE_MASK_ARB            0x9126
 #define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 
 RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, unsigned long args) {
@@ -2090,17 +2104,16 @@ RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, uns
 	}
 
 	#ifndef RGFW_RECT
-	win->srcX = win->x = x;
-	win->srcY = win->y = y;
-	win->srcW = win->w = w;
-	win->srcH = win->h = h; 
+	win->x = x;
+	win->y = y;
+	win->w = w;
+	win->h = h; 
 	#else
-	win->srcR = win->r = (RGFW_RECT){x, y, w, h};
+	win->r = (RGFW_RECT){x, y, w, h};
 	#endif
 
 	win->valid = 245;
 
-	win->srcName = win->name = (char*)name;
 	win->fpsCap = 0;
 	win->inFocus = 1;
 	win->joystickCount = 0;
@@ -2137,11 +2150,11 @@ RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, uns
     win->window = GetDC((HWND)win->display);
 
 
- 	#ifdef RGFW_GL
-    PIXELFORMATDESCRIPTOR pfd;
+ 	#ifdef RGFW_GL 
     HGLRC prc;
     HDC pdc;
 
+	PIXELFORMATDESCRIPTOR pfd;
     ZeroMemory(&pfd, sizeof(pfd));
     pfd.nSize = sizeof(pfd);
     pfd.nVersion = 1;
@@ -2185,11 +2198,10 @@ RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, uns
                             pixelFormat, sizeof(pfd), &pfd);
 
     	SetPixelFormat(win->window, pixelFormat, &pfd);
-
         if (wglCreateContextAttribsARB) {
-            int index = 0, mask = 0, flags = 0;
-
-            mask |= WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+			int index = 0;
+			
+			SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
 
             if (RGFW_majorVersion || RGFW_minorVersion) {
                 SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion);
@@ -2383,6 +2395,31 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 					DragFinish(drop);
 				}
 				break;
+
+			case WM_SIZE:
+				win->event.type = RGFW_windowAttribsChange;
+
+				#ifndef RGFW_RECT
+					win->w = LOWORD(msg.lParam);
+					win->h = HIWORD(msg.lParam);
+				#else 
+					win->r.w = LOWORD(msg.lParam);
+					win->r.h = HIWORD(msg.lParam)
+				#endif
+				break;
+			case WM_MOVE: {
+				win->event.type = RGFW_windowAttribsChange;
+
+				#ifndef RGFW_RECT
+					win->x = GET_X_LPARAM(msg.lParam);
+					win->y = GET_Y_LPARAM(msg.lParam);
+				#else 
+					win->r.x = GET_X_LPARAM(lParam);
+					win->r.y = GET_Y_LPARAM(lParam);
+				#endif
+				break;
+			}
+
 			default:
 				win->event.type = 0;
 				break;
@@ -2394,42 +2431,6 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	else 
 		win->event.type = 0;
-
-	#ifndef RGFW_RECT
-	if ((win->srcX != win->x) || (win->srcY != win->y) || (win->srcW != win->w) || (win->srcH != win->h)) {
-		SetWindowPos((HWND)win->display, (HWND)win->display, win->x, win->y, win->w, win->h, 0);
-		win->srcX = win->x;
-		win->srcY = win->y;
-		win->srcW = win->w;
-		win->srcH = win->h;
-	} else {
-		/* make sure the window attrubutes are up-to-date*/
-		RECT a;
-
-		if (GetWindowRect((HWND)win->display, &a)) {
-			win->srcX = win->x = a.left;
-			win->srcY = win->y = a.top;
-			win->srcW = win->w = a.right - a.left;
-			win->srcH = win->h = a.bottom - a.top;
-		}
-	}
-	#else 
-	if ((win->srcR.x != win->r.x) || (win->srcR.y != win->r.y) || (win->srcR.w != win->r.w) || (win->srcR.h != win->r.h)) {
-		SetWindowPos((HWND)win->display, (HWND)win->display, win->r.x, win->r.y, win->r.w, win->r.h, 0);
-		win->srcR = win->r;
-	} else {
-		/* make sure the window attrubutes are up-to-date*/
-		RECT a;
-
-		if (GetWindowRect((HWND)win->display, &a))
-			win->srcR = win->r = (RSGL_rect){a.left, a.top, a.right - a.left, a.bottom - a.top};
-	}
-	#endif
-
-	if (win->srcName != win->name) {
-		SetWindowTextA((HWND)win->display, win->name);
-		win->srcName = win->name;
-	}
 
 	win->event.keyCode = 0;
 
@@ -2500,8 +2501,7 @@ HICON RGFW_loadHandleImage(RGFW_window* win, unsigned char* src, int width, int 
 
     mask = CreateBitmap(width, height, 1, 1, NULL);
 
-    for (i = 0;  i < width * height;  i++)
-    {
+    for (i = 0;  i < width * height;  i++) {
         target[0] = source[2];
         target[1] = source[1];
         target[2] = source[0];
@@ -2550,6 +2550,34 @@ void RGFW_window_close(RGFW_window* win) {
 	#endif
 
 	free(win);
+}
+
+void RGFW_window_move(RGFW_window* win, int x, int y) {
+	#ifdef RGFW_RECT
+	win->r.x = x;
+	win->r.y = y;
+	SetWindowPos((HWND)win->display, (HWND)win->display, win->r.x, win->r.y, win->r.w, win->r.h, 0);
+	#else
+	win->x = x;
+	win->y = y;
+	SetWindowPos((HWND)win->display, (HWND)win->display, win->x, win->y, win->w, win->h, 0);
+	#endif
+}
+
+void RGFW_window_resize(RGFW_window* win, unsigned int w, unsigned int h) {
+	#ifdef RGFW_RECT
+	win->r.w = w;
+	win->r.h = h;
+	SetWindowPos((HWND)win->display, (HWND)win->display, win->r.x, win->r.y, win->r.w, win->r.h, 0);
+	#else
+	win->w = w;
+	win->h = h;
+	SetWindowPos((HWND)win->display, (HWND)win->display, win->x, win->y, win->w, win->h, 0);
+	#endif
+}
+
+void RGFW_window_setName(RGFW_window* win, char* name) {
+	SetWindowTextA(win->display, name);
 }
 
 /* much of this function is sourced from GLFW */
@@ -2760,15 +2788,14 @@ RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, uns
 	}
 
 	#ifndef RGFW_RECT
-	win->srcX = win->x = x;
-	win->srcY = win->y = y;
-	win->srcW = win->w = w;
-	win->srcH = win->h = h;
+	win->x = x;
+	win->y = y;
+	win->w = w;
+	win->h = h;
 	#else
-	win->srcR = win->r = (RSGL_rect){x, y, w, h};
+	win->r = (RSGL_rect){x, y, w, h};
 	#endif 
 
-	win->srcName = win->name = (char*)name;
 	win->fpsCap = 0;
 	win->inFocus = 0;
 	win->hideMouse = 0;
@@ -3028,43 +3055,6 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	NSRect r = NSWindow_frame(win->window);
 
-	#ifndef RGFW_RECT
-	if (r.origin.x != win->srcX || r.origin.y != win->srcY || r.size.width != win->srcW || r.size.height != win->srcH){
-		win->srcX = win->x = r.origin.x;
-		win->srcY = win->y = r.origin.y;
-		win->srcW = win->w = r.size.width;
-		win->srcH = win->h = r.size.height;
-	}
-
-	else if (win->x != win->srcX || win->y != win->srcY ||
-			win->w != win->srcW || win->h != win->srcH){
-
-		NSWindow_setFrameAndDisplay(win->window, NSMakeRect(win->x, win->y, win->w, win->h), true, true);
-
-		win->srcX = win->x;
-		win->srcY = win->y;
-		win->srcW = win->w;
-		win->srcH = win->h;
-	}
-	#else 
-	if (r.origin.x != win->srcR.x || r.origin.y != win->srcR.y || r.size.width != win->srcR.w || r.size.height != win->srcR.h)
-		win->srcR = win->r = (RSGL_rect){r.origin.x, r.origin.y, r.size.width, r.size.height};
-	
-
-	else if (win->r.x != win->srcR.x || win->r.y != win->srcR.y ||
-			win->r.w != win->srcR.w || win->r.h != win->srcR.h){
-
-		NSWindow_setFrameAndDisplay(win->window, NSMakeRect(win->r.x, win->r.y, win->r.w, win->r.h), true, true);
-		
-		win->srcR = win->r;
-	}
-	#endif
-
-	if (win->srcName != win->name){
-		win->srcName = win->name;
-		NSWindow_setTitle(win->window, win->name);
-	}
-
 	NSApplication_updateWindows(NSApp);
 
 	RGFW_window_checkFPS(win);
@@ -3073,6 +3063,35 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		return &win->event;
 	else
 		return NULL;
+}
+
+
+inline void RGFW_window_move(RGFW_window* win, int x, int y) {
+	#ifdef RGFW_RECT
+	win->r.x = x;
+	win->r.y = y;
+	NSWindow_setFrameAndDisplay(win->window, NSMakeRect(win->r.x, win->r.y, win->r.w, win->r.h), true, true);
+	#else
+	win->x = x;
+	win->y = y;
+	NSWindow_setFrameAndDisplay(win->window, NSMakeRect(win->x, win->y, win->w, win->h), true, true);
+	#endif
+}
+
+inline void RGFW_window_resize(RGFW_window* win, unsigned int w, unsigned int h) {
+	#ifdef RGFW_RECT
+	win->r.w = w;
+	win->r.h = h;
+	NSWindow_setFrameAndDisplay(win->window, NSMakeRect(win->r.x, win->r.y, win->r.w, win->r.h), true, true);
+	#else
+	win->w = w;
+	win->h = h;
+	NSWindow_setFrameAndDisplay(win->window, NSMakeRect(win->x, win->y, win->w, win->h), true, true);
+	#endif
+}
+
+inline void RGFW_window_setName(RGFW_window* win, char* name) {
+	NSWindow_setTitle(win->window, win->name);
 }
 
 void RGFW_window_setIcon(RGFW_window* win, unsigned char* data, int width, int height, int channels) {
@@ -3291,15 +3310,15 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
     if (win->render) { 
 		#ifdef RGFW_OSMESA
-		unsigned char* row = (unsigned char*) malloc(win->srcW * 4);
+		unsigned char* row = (unsigned char*) malloc(win->w * 4);
 
-		int half_height = win->srcH / 2;
-		int stride = win->srcW * 4;
+		int half_height = win->h / 2;
+		int stride = win->w * 4;
 
 		int y;
 		for (y = 0; y < half_height; ++y) {
 			int top_offset = y * stride;
-			int bottom_offset = (win->srcH - y - 1) * stride;
+			int bottom_offset = (win->h - y - 1) * stride;
 			memcpy(row, win->buffer + top_offset, stride);
 			memcpy(win->buffer + top_offset, win->buffer + bottom_offset, stride);
 			memcpy(win->buffer + bottom_offset, row, stride);
@@ -3310,9 +3329,9 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 		
 		#ifdef RGFW_X11
 			RGFW_omesa_ximage = XCreateImage(win->display, DefaultVisual(win->display, XDefaultScreen(win->display)), DefaultDepth(win->display, XDefaultScreen(win->display)),
-								ZPixmap, 0, (char*)win->buffer, win->srcW, win->srcH, 32, 0);
+								ZPixmap, 0, (char*)win->buffer, win->w, win->h, 32, 0);
 
-			XPutImage(win->display, (Window)win->window, XDefaultGC(win->display, XDefaultScreen(win->display)), RGFW_omesa_ximage, 0, 0, 0, 0, win->srcW, win->srcH);
+			XPutImage(win->display, (Window)win->window, XDefaultGC(win->display, XDefaultScreen(win->display)), RGFW_omesa_ximage, 0, 0, 0, 0, win->w, win->h);
 		#endif
 		#ifdef RGFW_WINDOWS
 			HBITMAP hbitmap = CreateBitmap(win->w, win->h, 1, 32, (void*)win->buffer);
@@ -3326,14 +3345,14 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 			DeleteObject(hbitmap);
 		#endif
 		#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
-		CGRect rect = CGRectMake (0, 0, win->srcW, win->srcH);// 2
+		CGRect rect = CGRectMake (0, 0, win->w, win->h);// 2
 		struct CGColorSpace* colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
 
 		CGContextRef bitmapContext = CGBitmapContextCreate (win->buffer,
-										win->srcW,
-										win->srcH,
+										win->w,
+										win->h,
 										4,
-										(win->srcW * 4),
+										(win->w * 4),
 										colorSpace,
 										kCGImageAlphaPremultipliedLast);
 
