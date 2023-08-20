@@ -2169,7 +2169,6 @@ RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, uns
     wglMakeCurrent(pdc, prc);
 
     if (wglCreateContextAttribsARB != NULL) {
-		printf("loaded modern opengl context\n");
         wglDeleteContext(win->glWin);
 
         int attribs[40];
