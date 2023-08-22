@@ -14,6 +14,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: silicon-binaries
-      run: git clone https://github.com/ColleagueRiley/Silicon -b binaries
+      run: git clone https://github.com/ColleagueRiley/Silicon -b binaries silicon-binaries
     - name: gcc
-      run: gcc main.c -I./Silicon/include Silicon/ARM/*.o -framework AppKit -ISilicon/include -framework OpenGL -framework CoreVideo -std=c99
+      run: gcc main.c -I./Silicon/include silicon-binaries/ARM/*.o -framework AppKit -ISilicon/include -framework OpenGL -framework CoreVideo -std=c99
