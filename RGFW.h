@@ -1044,13 +1044,15 @@ RGFW_window* RGFW_createWindow(const char* name, int x, int y, int w, int h, uns
 			XMatchVisualInfo((Display *)win->display, DefaultScreen((Display *)win->display), 32, TrueColor, vi); /* for RGBA backgrounds*/
 
 	
-		int context_attribs[5] = {0};
+		int context_attribs[7] = {0, 0, 0, 0, 0, 0, 0};
+		context_attribs[0] = GLX_CONTEXT_PROFILE_MASK_ARB;
+		context_attribs[1] = GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
 
 		if (RGFW_majorVersion || RGFW_minorVersion) {
-			context_attribs[0] = GLX_CONTEXT_MAJOR_VERSION_ARB;
-			context_attribs[1] = RGFW_majorVersion;
-			context_attribs[2] = GLX_CONTEXT_MINOR_VERSION_ARB;
-			context_attribs[3] = RGFW_minorVersion;
+			context_attribs[2] = GLX_CONTEXT_MAJOR_VERSION_ARB;
+			context_attribs[3] = RGFW_majorVersion;
+			context_attribs[4] = GLX_CONTEXT_MINOR_VERSION_ARB;
+			context_attribs[5] = RGFW_minorVersion;
 		}
 
 		glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
@@ -2396,7 +2398,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 				}
 				break;
 
-			case WM_SIZE:
+			case WM_SIZE: {
 				win->event.type = RGFW_windowAttribsChange;
 
 				#ifndef RGFW_RECT
@@ -2404,9 +2406,10 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 					win->h = HIWORD(msg.lParam);
 				#else 
 					win->r.w = LOWORD(msg.lParam);
-					win->r.h = HIWORD(msg.lParam)
+					win->r.h = HIWORD(msg.lParam);
 				#endif
 				break;
+			}
 			case WM_MOVE: {
 				win->event.type = RGFW_windowAttribsChange;
 
@@ -2414,8 +2417,8 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 					win->x = GET_X_LPARAM(msg.lParam);
 					win->y = GET_Y_LPARAM(msg.lParam);
 				#else 
-					win->r.x = GET_X_LPARAM(lParam);
-					win->r.y = GET_Y_LPARAM(lParam);
+					win->r.x = GET_X_LPARAM(msg.lParam);
+					win->r.y = GET_Y_LPARAM(msg.lParam);
 				#endif
 				break;
 			}
