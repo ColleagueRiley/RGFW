@@ -1,10 +1,11 @@
 # Riley's Gui library FrameWork
 
-# Build statuses
+## Build statuses
 ![cplus workflow](https://github.com/ColleagueRiley/RGFW/actions/workflows/linux.yml/badge.svg)
 ![cplus workflow windows](https://github.com/ColleagueRiley/RGFW/actions/workflows/windows.yml/badge.svg)
 ![cplus workflow windows](https://github.com/ColleagueRiley/RGFW/actions/workflows/macos.yml/badge.svg)
 
+# About
 This library is meant to be used as a very small and flexable alternative library to GLFW. 
 
 This library 
