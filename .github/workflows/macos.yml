@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: silicon
-      run: cd Silicon && gcc -c source/*m source/mac/*.m -I./include
+    - name: silicon-binaries
+      run: git clone https://github.com/ColleagueRiley/Silicon -b binaries
     - name: gcc
-      run: gcc main.c -I./Silicon/include silicon/*.o -framework AppKit -ISilicon/include -framework OpenGL -framework CoreVideo -std=c99
+      run: gcc main.c -I./Silicon/include Silicon/ARM/*.o -framework AppKit -ISilicon/include -framework OpenGL -framework CoreVideo -std=c99
