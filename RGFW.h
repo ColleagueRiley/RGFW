@@ -445,6 +445,9 @@ int main() {
 	to build this version of Silicon simplly run
 
 	cd Silicon && make
+	
+    Alternatively, you also can find pre-built binaries for Silicon at
+    https://github.com/ColleagueRiley/Silicon/tree/binaries
 
 	you can then use Silicon/include and libSilicon.a for building RGFW projects
 
