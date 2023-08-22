@@ -3094,7 +3094,7 @@ inline void RGFW_window_resize(RGFW_window* win, unsigned int w, unsigned int h)
 }
 
 inline void RGFW_window_setName(RGFW_window* win, char* name) {
-	NSWindow_setTitle(win->window, win->name);
+	NSWindow_setTitle(win->window, name);
 }
 
 void RGFW_window_setIcon(RGFW_window* win, unsigned char* data, int width, int height, int channels) {
@@ -3549,7 +3549,7 @@ void RGFW_window_checkFPS(RGFW_window* win) {
 #define RGFW_KP_Slash RGFW_OS_BASED_VALUE(0xffaf, 0x6F, 82)
 #define RGFW_Multiply RGFW_OS_BASED_VALUE(0xffaa, 0x6A, 76)
 #define RGFW_KP_Minus RGFW_OS_BASED_VALUE(0xffad, 0x6D, 67)
-#define RGFW_KP_1 RGFW_OS_BASED_VALUE(0xffb1, 0x61, 83)
+#define RGFW_KP_1 RGFW_OS_BASED_VALUE(0xffb1, 0x61, 84)
 #define RGFW_KP_2 RGFW_OS_BASED_VALUE(0xffb2, 0x62, 85)
 #define RGFW_KP_3 RGFW_OS_BASED_VALUE(0xffb3, 0x63, 86)
 #define RGFW_KP_4 RGFW_OS_BASED_VALUE(0xffb4, 0x64, 87)
