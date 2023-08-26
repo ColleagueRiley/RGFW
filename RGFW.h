@@ -2704,7 +2704,9 @@ void* RGFW_getProcAddress(const char* procname) {
 CVReturn displayCallback(CVDisplayLinkRef displayLink, const CVTimeStamp *inNow, const CVTimeStamp *inOutputTime, CVOptionFlags flagsIn, CVOptionFlags *flagsOut, void *displayLinkContext) { return kCVReturnSuccess; }
 
 RGFW_window** RGFW_windows;
-u32 RGFW_windows_su32ol RGFW_OnClose(void* self) {
+u32 RGFW_windows_size = 0;
+
+u32 RGFW_OnClose(void* self) {
 	u32 i;
 	for (i = 0; i < RGFW_windows_size; i++)
 		if (RGFW_windows[i] && RGFW_windows[i]->window == self)
