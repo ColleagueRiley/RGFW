@@ -596,7 +596,7 @@ u32 RGFW_keyStrToKeyCode(char* key) {
     return XStringToKeysym(key);
 #endif
 #ifdef RGFW_WINDOWS
-	if (sizeof(key)/sizeof(char) > 1) {
+	if (key[1]) {
 		struct{char* key; i32 code;} keyStrs[] = {
 					{"Super_L", VK_LWIN}, 
 					{"Super_R", VK_RWIN}, 
@@ -2072,8 +2072,6 @@ wglChoosePixelFormatARB_type *wglChoosePixelFormatARB;
 #define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 
 RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64 args) {
-	static char RGFW_trashed = 0;
-
     #ifdef RGFW_WGL_LOAD
 	if (wglinstance == NULL) { 
 		wglinstance = LoadLibraryA("opengl32.dll");
@@ -2085,11 +2083,9 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	}
 	#endif
 
-    if (name == "") name = (char*)" ";
+    if (name[0] == 0) name = (char*)" ";
 
 	RGFW_window* win = (RGFW_window*)malloc(sizeof(RGFW_window));
-
-  	i32 pf;
 
 	u32* r = RGFW_window_screenSize(win);
 
@@ -2131,7 +2127,8 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
     RegisterClassA(&Class);
 
-	DWORD window_style = WS_MAXIMIZEBOX | WS_MINIMIZEBOX | window_style;
+	DWORD window_style = 0; 
+	window_style = WS_MAXIMIZEBOX | WS_MINIMIZEBOX | window_style;
 
 	if (!(RGFW_NO_BORDER & args))
 		window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER;
@@ -2289,8 +2286,6 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	RGFW_window_checkFPS(win);
 
 	MSG msg = {};
-
-	i32 setButton = 0;
 
 	if (win->event.droppedFilesCount) {
 		i32 i;
@@ -2620,13 +2615,10 @@ const char* RGFW_window_readClipboard(RGFW_window* win) {
 void RGFW_window_writeClipboard(RGFW_window* win, const char* text, u32 textLen) {
 	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_writeClipboard")) return;
 
-  	i32 characterCount;
     HANDLE object;
     WCHAR* buffer;
 
     MultiByteToWideChar(CP_UTF8, 0, text, -1, NULL, textLen);
-    if (!characterCount)
-        return;
 
     object = GlobalAlloc(GMEM_MOVEABLE, textLen * sizeof(WCHAR));
     if (!object)
