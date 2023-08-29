@@ -186,7 +186,7 @@ typedef struct RGFW_Event {
 	#endif
 
 	/*! drag and drop data */
-	i32 droppedFilesCount; /*!< house many files were dropped */
+	u32 droppedFilesCount; /*!< house many files were dropped */
 	
 	/* 260 max paths with a max length of 260 */
     char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH]; /*!< dropped files*/
@@ -1287,7 +1287,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		case ClientMessage:
 			/* if the client closed the window*/
-			if (E.xclient.data.l[0] == wm_delete_window)
+			if (E.xclient.data.l[0] == (i64)wm_delete_window)
 				win->event.type = RGFW_quit;
 
 			/*
