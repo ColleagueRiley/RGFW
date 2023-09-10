@@ -1807,20 +1807,20 @@ const char* RGFW_window_readClipboard(RGFW_window* win) {
 	XSelectInput ((Display*)win->display, (Window)win->window, PropertyChangeMask);
 	XConvertSelection((Display*)win->display, bufid, fmtid, propid, (Window)win->window, CurrentTime);
 	do {
-	XNextEvent((Display*)win->display, &event);
+		XNextEvent((Display*)win->display, &event);
 	} while (event.type != SelectionNotify || event.xselection.selection != bufid);
 
 	if (event.xselection.property) {
-	XGetWindowProperty((Display*)win->display, (Window)win->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
-		&fmtid, &resbits, &ressize, &restail, (u8**)&result);
-
-	if (fmtid == incrid)
-		do {
-		while (event.type != PropertyNotify || event.xproperty.atom != propid || event.xproperty.state != PropertyNewValue) XNextEvent((Display*)win->display, &event);
-
 		XGetWindowProperty((Display*)win->display, (Window)win->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
 			&fmtid, &resbits, &ressize, &restail, (u8**)&result);
-		} while (ressize > 0);
+
+		if (fmtid == incrid)
+			do {
+			while (event.type != PropertyNotify || event.xproperty.atom != propid || event.xproperty.state != PropertyNewValue) XNextEvent((Display*)win->display, &event);
+
+			XGetWindowProperty((Display*)win->display, (Window)win->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
+				&fmtid, &resbits, &ressize, &restail, (u8**)&result);
+			} while (ressize > 0);
 	}
 
 	return result;
