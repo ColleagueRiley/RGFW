@@ -947,9 +947,8 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
     win->event.droppedFiles = (char**)RGFW_MALLOC(sizeof(char*) * RGFW_MAX_DROPS);
 	
 	i32 i;
-	for (i = 0; i < RGFW_MAX_DROPS; i++) {
-		win->event.droppedFiles[i] = (char*)RGFW_MALLOC(sizeof(char) * RGFW_MAX_PATH);
-	} 
+	for (i = 0; i < RGFW_MAX_DROPS; i++)
+		win->event.droppedFiles[i] = (char*)RGFW_CALLOC(RGFW_MAX_PATH, sizeof(char));
 	#endif
 
     XInitThreads(); /* init X11 threading*/
@@ -2085,9 +2084,8 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
     win->event.droppedFiles = (char**)RGFW_MALLOC(sizeof(char*) * RGFW_MAX_DROPS);
 	
 	i32 i;
-	for (i = 0; i < RGFW_MAX_DROPS; i++) {
-		win->event.droppedFiles[i] = (char*)RGFW_MALLOC(sizeof(char) * RGFW_MAX_PATH);
-	} 
+	for (i = 0; i < RGFW_MAX_DROPS; i++)
+		win->event.droppedFiles[i] = (char*)RGFW_CALLOC(RGFW_MAX_PATH, sizeof(char));
 	#endif
 
 	u32* r = RGFW_window_screenSize(win);
@@ -2781,9 +2779,8 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
     win->event.droppedFiles = (char**)RGFW_MALLOC(sizeof(char*) * RGFW_MAX_DROPS);
 	
 	i32 i;
-	for (i = 0; i < RGFW_MAX_DROPS; i++) {
-		win->event.droppedFiles[i] = (char*)RGFW_MALLOC(sizeof(char) * RGFW_MAX_PATH);
-	} 
+	for (i = 0; i < RGFW_MAX_DROPS; i++)
+		win->event.droppedFiles[i] = (char*)RGFW_CALLOC(RGFW_MAX_PATH, sizeof(char));
 	#endif
 
 	if (RGFW_FULLSCREEN & args){
