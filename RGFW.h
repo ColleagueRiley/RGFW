@@ -36,6 +36,11 @@
 	#define RGFW_WGL_LOAD (optional) (windows only) if WGL should be loaded dynamically during runtime
 	#define RGFW_NO_X11_CURSOR (optional) (unix only) don't use XCursor
 	#define RGFW_NO_X11_CURSOR_PRELOAD (optional) (unix only) Use XCursor, but don't link it in code, (you'll have to link it with -lXcursor)
+
+	#define RGFW_ALLOC_DROPFILES (optional) if room should be allocating for drop files (by default it's global data)
+	#define RGFW_MALLOC x - choose what function to use to allocate, by default the standard malloc is used
+	#define RGFW_CALLOC x - choose what function to use to allocate (calloc), by default the standard calloc is used
+	#define RGFW_FREE x - choose what function to use to allocated memory, by default the standard free is used
 */
 
 /*
@@ -54,6 +59,13 @@
 			Copyright (c) 2002-2006 Marcus Geelnard
 			Copyright (c) 2006-2019 Camilla Löwy
 */
+
+#ifndef RGFW_MALLOC
+#include <stdlib.h>
+#define RGFW_MALLOC malloc
+#define RGFW_CALLOC calloc
+#define RGFW_FREE free
+#endif
 
 #ifndef inline
 #define inline __inline
@@ -189,7 +201,11 @@ typedef struct RGFW_Event {
 	u32 droppedFilesCount; /*!< house many files were dropped */
 	
 	/* 260 max paths with a max length of 260 */
-    char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH]; /*!< dropped files*/
+	#ifdef RGFW_ALLOC_DROPFILES
+    char** droppedFiles;
+	#else
+	char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH]; /*!< dropped files*/
+	#endif
 
 	/*! joystick*/
 	u16 joystick; /* which joystick this event applies to (if applicable to any) */
@@ -564,7 +580,7 @@ u8 RGFW_keyMap[128] = { 0 };
 
 u32 RGFW_keyStrToKeyCode(char* key) {
 #if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
-	char* keyStrs[128] = {"a", "s", "d", "f", "h", "g", "z", "x", "c", "v", "0", "b", "q", "w", "e", "r", "y", "t", "1", "2", "3", "4", "6", "5", "Equals", "9", "7", "Minus", "8", "0", "CloseBracket", "o", "u", "Bracket", "i", "p", "Return", "l", "j", "Apostrophe", "k", "Semicolon", "BackSlash", "Comma", "Slash", "n", "m", "Period", "Tab", "Space", "Backtick", "BackSpace", "0", "Escape", "0", "Super", "Shift", "CapsLock", "Alt", "Control", "0", "0", "0", "0", "0", "KP_Period", "0", "KP_Minus", "0", "0", "0", "0", "Numlock", "0", "0", "0", "KP_Multiply", "KP_Return", "0", "0", "0", "0", "KP_Slash", "KP_0", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "0", "KP_8", "KP_9", "0", "0", "0", "F5", "F6", "F7", "F3", "F8", "F9", "0", "F11", "0", "F13", "0", "F14", "0", "F10", "0", "F12", "0", "F15", "Insert", "Home", "PageUp", "Delete", "F4", "End", "F2", "PageDown", "Left", "Right", "Down", "Up", "F1"};
+	static char* keyStrs[128] = {"a", "s", "d", "f", "h", "g", "z", "x", "c", "v", "0", "b", "q", "w", "e", "r", "y", "t", "1", "2", "3", "4", "6", "5", "Equals", "9", "7", "Minus", "8", "0", "CloseBracket", "o", "u", "Bracket", "i", "p", "Return", "l", "j", "Apostrophe", "k", "Semicolon", "BackSlash", "Comma", "Slash", "n", "m", "Period", "Tab", "Space", "Backtick", "BackSpace", "0", "Escape", "0", "Super", "Shift", "CapsLock", "Alt", "Control", "0", "0", "0", "0", "0", "KP_Period", "0", "KP_Minus", "0", "0", "0", "0", "Numlock", "0", "0", "0", "KP_Multiply", "KP_Return", "0", "0", "0", "0", "KP_Slash", "KP_0", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "0", "KP_8", "KP_9", "0", "0", "0", "F5", "F6", "F7", "F3", "F8", "F9", "0", "F11", "0", "F13", "0", "F14", "0", "F10", "0", "F12", "0", "F15", "Insert", "Home", "PageUp", "Delete", "F4", "End", "F2", "PageDown", "Left", "Right", "Down", "Up", "F1"};
 
     key--;
     while (key++) {
@@ -892,7 +908,6 @@ u8 RGFW_ValidWindowCheck(RGFW_window* win, char* event) {
 #endif
 #include <X11/XKBlib.h> /* for converting keycode to string */
 #include <X11/cursorfont.h> /* for hiding */
-#include <stdlib.h> /* realloc, malloc and other memory functions */
 
 #include <limits.h> /* for data limits (mainly used in drag and drop functions) */
 #include <string.h> /* strlen and other char* managing functions */
@@ -955,7 +970,16 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	}
 	#endif
 
-	RGFW_window* win = (RGFW_window*)malloc(sizeof(RGFW_window)); /* make a new RGFW struct */
+	RGFW_window* win = (RGFW_window*)RGFW_MALLOC(sizeof(RGFW_window)); /* make a new RGFW struct */
+
+	#ifdef RGFW_ALLOC_DROPFILES
+    win->event.droppedFiles = (char**)RGFW_MALLOC(sizeof(char*) * RGFW_MAX_DROPS);
+	
+	i32 i;
+	for (i = 0; i < RGFW_MAX_DROPS; i++) {
+		win->event.droppedFiles[i] = (char*)RGFW_MALLOC(sizeof(char) * RGFW_MAX_PATH);
+	} 
+	#endif
 
     XInitThreads(); /* init X11 threading*/
 
@@ -1090,7 +1114,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
 		#ifdef RGFW_OSMESA
 		win->glWin = OSMesaCreateContext(OSMESA_RGBA, NULL);
-		win->buffer = malloc(w * h * 4);
+		win->buffer = RGFW_MALLOC(w * h * 4);
 		OSMesaMakeCurrent(win->glWin, win->buffer, GL_UNSIGNED_BYTE, w, h);
 		#ifndef RGFW_GL
 		win->render = 1;
@@ -1102,7 +1126,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 		#endif
 
 		#ifdef RGFW_BUFFER
-		win->buffer = malloc(w * h * 4);
+		win->buffer = RGFW_MALLOC(w * h * 4);
 		win->render = 1;
 		#endif
 	}
@@ -1328,7 +1352,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 										(u8**) &formats);
 					}
 					else {
-						formats = (Atom*)malloc(E.xclient.data.l[2] + E.xclient.data.l[3] + E.xclient.data.l[4]);
+						formats = (Atom*)RGFW_MALLOC(E.xclient.data.l[2] + E.xclient.data.l[3] + E.xclient.data.l[4]);
 						formFree = 1;
 
 						count = 0;
@@ -1371,7 +1395,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 						formats = (Atom*)0;
 					}
 					else if (formFree && formats != (Atom*)0) {
-						free(formats);
+						RGFW_FREE(formats);
 
 						formats = (Atom*)0;
 						formFree = 1;
@@ -1505,8 +1529,6 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 						win->event.droppedFilesCount++;
       
-						/*win->event.droppedFiles  = (char**)realloc(win->event.droppedFiles, win->event.droppedFilesCount * sizeof(char*));
-						*/
 						size_t index = 0; 
 						while (*line) {
 							if (line[0] == '%' && line[1] && line[2]) {
@@ -1647,6 +1669,17 @@ void RGFW_window_close(RGFW_window* win) {
 			XCloseDisplay((Display *)win->display); /* kill the display*/
 	}
 
+	#ifdef RGFW_ALLOC_DROPFILES
+	{
+		i32 i;
+		for (i = 0; i < RGFW_MAX_DROPS; i++)
+			RGFW_FREE(win->event.droppedFiles[i]);
+    
+	
+		RGFW_FREE(win->event.droppedFiles);
+	}
+	#endif
+
 	#if !defined(RGFW_NO_X11_CURSOR_PRELOAD) && !defined(RGFW_NO_X11_CURSOR)
 	if (X11Cursorhandle != NULL && !RGFW_windowsOpen) {
 		dlclose(X11Cursorhandle);
@@ -1665,12 +1698,12 @@ void RGFW_window_close(RGFW_window* win) {
 
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	if (win->buffer != NULL) {
-		free(win->buffer);
+		RGFW_FREE(win->buffer);
 		win->render = 0;
 	}
 	#endif
 
-	free(win); /* free collected window data */
+	RGFW_FREE(win); /* free collected window data */
 
 	RGFW_windowsOpen--;
 }
@@ -1713,7 +1746,7 @@ void RGFW_window_setIcon(RGFW_window* win, u8* icon, i32 width, i32 height, i32 
 
 	i32 longCount = 2 + width * height;
 
-    u64* X11Icon = (u64*)malloc(longCount * sizeof(u64));
+    u64* X11Icon = (u64*)RGFW_MALLOC(longCount * sizeof(u64));
     u64* target = X11Icon;
 
     *target++ = width;
@@ -1746,7 +1779,7 @@ void RGFW_window_setIcon(RGFW_window* win, u8* icon, i32 width, i32 height, i32 
                     (u8*) X11Icon,
                     longCount);
 
-    free(X11Icon);
+    RGFW_FREE(X11Icon);
 
     XFlush((Display*)win->display);
 }
@@ -2085,7 +2118,16 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
     if (name[0] == 0) name = (char*)" ";
 
-	RGFW_window* win = (RGFW_window*)malloc(sizeof(RGFW_window));
+	RGFW_window* win = (RGFW_window*)RGFW_MALLOC(sizeof(RGFW_window));
+
+	#ifdef RGFW_ALLOC_DROPFILES
+    win->event.droppedFiles = (char**)RGFW_MALLOC(sizeof(char*) * RGFW_MAX_DROPS);
+	
+	i32 i;
+	for (i = 0; i < RGFW_MAX_DROPS; i++) {
+		win->event.droppedFiles[i] = (char*)RGFW_MALLOC(sizeof(char) * RGFW_MAX_PATH);
+	} 
+	#endif
 
 	u32* r = RGFW_window_screenSize(win);
 
@@ -2239,7 +2281,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	}
 	else {
 		win->glWin = (void*)OSMesaCreateContext(OSMESA_RGBA, NULL);
-		win->buffer = malloc(w * h * 4);
+		win->buffer = RGFW_MALLOC(w * h * 4);
 
 		OSMesaMakeCurrent(win->glWin, win->buffer, GL_UNSIGNED_BYTE, w, h);
 	}
@@ -2250,7 +2292,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	#endif
 
 	#ifdef RGFW_BUFFER
-	win->buffer = malloc(w * h * 4);
+	win->buffer = RGFW_MALLOC(w * h * 4);
 	win->render = 1;
 	#endif
 
@@ -2371,7 +2413,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 					i32 i;
 
 					win->event.droppedFilesCount = DragQueryFileW(drop, 0xffffffff, NULL, 0);
-					//win->event.droppedFiles = (char**)calloc(win->event.droppedFilesCount, sizeof(char*));
+					//win->event.droppedFiles = (char**)RGFW_CALLOC(win->event.droppedFilesCount, sizeof(char*));
 
 					/* Move the mouse to the position of the drop */
 					DragQueryPoint(drop, &pt);
@@ -2381,12 +2423,12 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 					for (i = 0;  i < win->event.droppedFilesCount;  i++) {
 						const UINT length = DragQueryFileW(drop, i, NULL, 0);
-						WCHAR* buffer = (WCHAR*)calloc((size_t) length + 1, sizeof(WCHAR));
+						WCHAR* buffer = (WCHAR*)RGFW_CALLOC((size_t) length + 1, sizeof(WCHAR));
 
 						DragQueryFileW(drop, i, buffer, length + 1);
 						strcpy(win->event.droppedFiles[i], createUTF8FromWideStringWin32(buffer));
 
-						free(buffer);
+						RGFW_FREE(buffer);
 					}
 
 					DragFinish(drop);
@@ -2544,10 +2586,21 @@ void RGFW_window_close(RGFW_window* win) {
 
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	if (win->buffer != NULL)
-		free(win->buffer);
+		RGFW_FREE(win->buffer);
 	#endif
 
-	free(win);
+	#ifdef RGFW_ALLOC_DROPFILES
+	{
+		i32 i;
+		for (i = 0; i < RGFW_MAX_DROPS; i++)
+			RGFW_FREE(win->event.droppedFiles[i]);
+    
+	
+		RGFW_FREE(win->event.droppedFiles);
+	}
+	#endif
+
+	RGFW_FREE(win);
 }
 
 void RGFW_window_move(RGFW_window* win, i32 x, i32 y) {
@@ -2661,10 +2714,10 @@ char* createUTF8FromWideStringWin32(const WCHAR* source) {
         return NULL;
     }
 
-    target = (char*)calloc(size, 1);
+    target = (char*)RGFW_CALLOC(size, 1);
 
     if (!WideCharToMultiByte(CP_UTF8, 0, source, -1, target, size, NULL, NULL)) {
-        free(target);
+        RGFW_FREE(target);
         return NULL;
     }
 
@@ -2766,9 +2819,18 @@ bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
 RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64 args){
 	static u8 RGFW_loaded = 0;
 	
-	RGFW_window* win = malloc(sizeof(RGFW_window));
+	RGFW_window* win = RGFW_MALLOC(sizeof(RGFW_window));
 
 	u32* r = RGFW_window_screenSize(win);
+
+	#ifdef RGFW_ALLOC_DROPFILES
+    win->event.droppedFiles = (char**)RGFW_MALLOC(sizeof(char*) * RGFW_MAX_DROPS);
+	
+	i32 i;
+	for (i = 0; i < RGFW_MAX_DROPS; i++) {
+		win->event.droppedFiles[i] = (char*)RGFW_MALLOC(sizeof(char) * RGFW_MAX_PATH);
+	} 
+	#endif
 
 	if (RGFW_FULLSCREEN & args){
 		x = 0;
@@ -2856,7 +2918,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	#endif
 	#ifdef RGFW_OSMESA
 	win->glWin = OSMesaCreateContext(OSMESA_RGBA, NULL);
-	win->buffer = malloc(w * h * 4);
+	win->buffer = RGFW_MALLOC(w * h * 4);
 	OSMesaMakeCurrent(win->glWin, win->buffer, GL_UNSIGNED_BYTE, w, h);
 
 	#ifdef RGFW_GL
@@ -2891,7 +2953,14 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
 
 	RGFW_windows_size++;
-	RGFW_windows = realloc(RGFW_windows, RGFW_windows_size);
+
+	RGFW_window** nWins = (RGFW_window**)malloc(sizeof(RGFW_window*) * RGFW_windows_size);
+	
+	memcpy(nWins, RGFW_windows, sizeof(RGFW_window) * (RGFW_windows_size - 1));
+	free(RGFW_windows);
+	
+	RGFW_windows = nWins;
+
 	RGFW_windows[RGFW_windows_size - 1] = NULL;
 
 	u32 i;
@@ -3199,6 +3268,17 @@ void RGFW_window_close(RGFW_window* win){
 	if (win->cursor != NULL && win->cursor != NULL)
 		release(win->cursor);
 
+	#ifdef RGFW_ALLOC_DROPFILES
+	{
+		i32 i;
+		for (i = 0; i < RGFW_MAX_DROPS; i++)
+			RGFW_FREE(win->event.droppedFiles[i]);
+    
+	
+		RGFW_FREE(win->event.droppedFiles);
+	}
+	#endif
+
 	u32 i;
 	for (i = 0; i < RGFW_windows_size; i++)
 		if (RGFW_windows[i]->window == win->window){
@@ -3208,7 +3288,7 @@ void RGFW_window_close(RGFW_window* win){
 
 	if (!i){
 		RGFW_windows_size = 0;
-		free(RGFW_windows);
+		RGFW_FREE(RGFW_windows);
 	}
 	
 
@@ -3305,7 +3385,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
     if (win->render) { 
 		#ifdef RGFW_OSMESA
-		u8* row = (u8*) malloc(win->w * 4);
+		u8* row = (u8*) RGFW_MALLOC(win->w * 4);
 
 		i32 half_height = win->h / 2;
 		i32 stride = win->w * 4;
@@ -3319,7 +3399,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 			memcpy(win->buffer + bottom_offset, row, stride);
 		}
 
-		free(row);
+		RGFW_FREE(row);
 		#endif
 		
 		#ifdef RGFW_X11
