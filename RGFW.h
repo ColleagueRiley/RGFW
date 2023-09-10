@@ -395,8 +395,6 @@ inline void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval);
 
 /*! Supporting functions */
 inline void RGFW_window_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_window_checkEvent)*/
-inline u8 RGFW_ValidWindowCheck(RGFW_window* win, char* event); /*!< returns true if the window is valid (and prints an error and where it took place if it can)*/
-
 #endif /* RGFW_HEADER */
 
 /*
@@ -865,33 +863,6 @@ void RGFW_closeEGL(RGFW_window* win) {
 
 #endif /* RGFW_EGL */
 
-u8 RGFW_ValidWindowCheck(RGFW_window* win, char* event) {
-	/*
-		if this part gives you a seg fault, there is a good chance your window is not valid
-
-		Make sure you're creaing the window and using the window structure
-
-		accidently writing (RGFW_window type)->window is a common mistake too
-	*/
-
-	if (win->valid != 245 || win == (RGFW_window*)0
-		#ifdef RGFW_WINDOWS
-		|| !IsWindow((HWND)win->display)
-		#endif
-		#ifdef RGFW_X11
-		|| XConnectionNumber((Display*)win->display) == -1 || win->window == (Window)0
-		#endif
-	) {
-		#ifdef RGFW_PRINT_ERRORS
-		printf("Error %s : invalid window structure \n", event);
-		RGFW_error = 1;
-		return 0;
-		#endif
-	}
-
-	return 1;
-}
-
 #ifdef RGFW_X11
 
 #include <X11/Xlib.h>
@@ -1254,8 +1225,6 @@ int xAxis = 0, yAxis = 0;
 RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	win->event.type = 0;
 	
-	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_checkEvent")) return NULL;
-
 	XEvent E; /* raw X11 event */
 
 	/* if there is no unread qued events, get a new one */
@@ -1653,8 +1622,6 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 }
 
 void RGFW_window_close(RGFW_window* win) {
-	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_close")) return;
-
 	#ifdef RGFW_EGL
 	RGFW_closeEGL(win);
 	#endif
@@ -1742,8 +1709,6 @@ void RGFW_window_setName(RGFW_window* win, char* name) {
 */
 
 void RGFW_window_setIcon(RGFW_window* win, u8* icon, i32 width, i32 height, i32 channels) {
-	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_setIcon")) return;
-
 	i32 longCount = 2 + width * height;
 
     u64* X11Icon = (u64*)RGFW_MALLOC(longCount * sizeof(u64));
@@ -1825,8 +1790,6 @@ void RGFW_window_setMouseDefault(RGFW_window* win) {
 	the majority function is sourced from GLFW
 */
 const char* RGFW_window_readClipboard(RGFW_window* win) {
-	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_readClipboard")) return (char*)"";
-
 	char* result;
 	u64 ressize, restail;
 	i32 resbits;
@@ -1867,7 +1830,6 @@ const char* RGFW_window_readClipboard(RGFW_window* win) {
 	almost all of this function is sourced from GLFW
 */
 void RGFW_window_writeClipboard(RGFW_window* win, const char* text, u32 textLen) {
-	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_writeClipboard")) return;
     static Atom CLIPBOARD = 0, 
 				UTF8_STRING = 0, 
 				SAVE_TARGETS = 0, 
@@ -1998,7 +1960,6 @@ u16 RGFW_registerJoystick(RGFW_window* win, i32 jsNumber) {
 
 u16 RGFW_registerJoystickF(RGFW_window* win, char* file) {
 	#ifdef __linux__
-	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_registerJoystickF")) return 0;
 
 	i32 js = open(file, O_RDONLY);
 
@@ -2508,7 +2469,6 @@ u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
 }
 
 HICON RGFW_loadHandleImage(RGFW_window* win, u8* src, i32 width, i32 height, BOOL icon) {
-    if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_loadHandleImage")) return NULL;
   	i32 i;
     HDC dc;
     HICON handle;
@@ -2633,8 +2593,6 @@ void RGFW_window_setName(RGFW_window* win, char* name) {
 
 /* much of this function is sourced from GLFW */
 void RGFW_window_setIcon(RGFW_window* win, u8* src, i32 width, i32 height, i32 channels) {
-    if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_setIcon")) return;
-
     HICON handle = RGFW_loadHandleImage(win, src, width, height, TRUE);
 
     SendMessageW((HWND)win->display, WM_SETICON, ICON_BIG, (LPARAM) handle);
@@ -2642,8 +2600,6 @@ void RGFW_window_setIcon(RGFW_window* win, u8* src, i32 width, i32 height, i32 c
 }
 
 const char* RGFW_window_readClipboard(RGFW_window* win) {
-	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_readClipboard")) return (char*)"";
-
     /* Open the clipboard */
     if (!OpenClipboard(NULL))
         return (char*)"";
@@ -2666,8 +2622,6 @@ const char* RGFW_window_readClipboard(RGFW_window* win) {
 }
 
 void RGFW_window_writeClipboard(RGFW_window* win, const char* text, u32 textLen) {
-	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_writeClipboard")) return;
-
     HANDLE object;
     WCHAR* buffer;
 
@@ -2980,8 +2934,6 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 u32* RGFW_window_screenSize(RGFW_window* win){
 	static u32 RGFW_SreenSize[2];
 
-	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_screenSize")) return (unsigned int[2]){0, 0};
-
 	NSRect r = NSScreen_frame(NSScreen_mainScreen());
 
 	RGFW_SreenSize[0] = r.size.width;
@@ -3001,7 +2953,6 @@ int* RGFW_window_getGlobalMousePoint(RGFW_window* win) {
 u32 RGFW_keysPressed[10]; /*10 keys at a time*/
 
 RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
-	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_checkEvent")) return NULL;
 
 	if (win->event.droppedFilesCount) {
 		i32 i;
@@ -3159,7 +3110,6 @@ inline void RGFW_window_setName(RGFW_window* win, char* name) {
 }
 
 void RGFW_window_setIcon(RGFW_window* win, u8* data, i32 width, i32 height, i32 channels) {
-	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_setIcon")) return;
 
 	/* code by EimaMei  */
     // Make a bitmap representation, then copy the loaded image into it.
@@ -3179,7 +3129,6 @@ void RGFW_window_setIcon(RGFW_window* win, u8* data, i32 width, i32 height, i32 
 }
 
 void RGFW_window_setMouse(RGFW_window* win, u8* image, i32 width, i32 height, i32 channels) {
-	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_setMouse")) return;
 
 	if (image == NULL) {
 		NSCursor_set(NSCursor_arrowCursor());
@@ -3255,14 +3204,10 @@ u16 RGFW_registerJoystick(RGFW_window* win, i32 jsNumber){
 }
 
 u16 RGFW_registerJoystickF(RGFW_window* win, char* file){
-	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_registerJoystick")) return 0;
-
 	return win->joystickCount - 1;
 }
 
 void RGFW_window_close(RGFW_window* win){
-	if (!RGFW_ValidWindowCheck(win, (char*)"RGFW_window_close")) return;
-
 	release(win->view);
 
 	if (win->cursor != NULL && win->cursor != NULL)
