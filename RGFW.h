@@ -158,6 +158,11 @@ extern "C" {
 #define RGFW_MAX_DROPS 260 /* max items you can drop at once */
 #endif
 
+
+/* for RGFW_Event.ledstate */
+#define RGFW_CAPSLOCK 1
+#define RGFW_NUMLOCK 2
+
 #ifndef RGFW_NO_JOYSTICK_CODES
 /*! joystick button codes (based on xbox/playstation), you may need to change these values per controller */
 u8 RGFW_JS_A = 0; /* or PS X button */
@@ -187,7 +192,7 @@ typedef struct RGFW_Event {
     u8 button; /*!< which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed OR which joystick axis was moved*/
   	i32 x, y; /*!< mouse x, y of event */
 
-    u8 ledState; /*!< 0 : numlock, 1 : caps lock, 3 : small lock*/
+    u64 ledState;
 
     u32 keyCode; /*!< keycode of event*/
 
@@ -868,6 +873,7 @@ void RGFW_closeEGL(RGFW_window* win) {
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
+#include <X11/keysymdef.h>
 #include <unistd.h>
 
 #ifdef RGFW_GL
@@ -1259,10 +1265,19 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			win->event.keyName = XKeysymToString(win->event.keyCode); /* convert to string */
 
 			/* get keystate data */
-			XKeyboardState keystate;
-			XGetKeyboardControl((Display *)win->display, &keystate);
-			win->event.ledState = keystate.led_mask;
 			win->event.type = (E.type == KeyPress) ? RGFW_keyPressed : RGFW_keyReleased;
+
+			if (win->event.type == RGFW_keyReleased) {
+				if (win->event.keyCode == XK_Caps_Lock && win->event.ledState & RGFW_CAPSLOCK)
+					win->event.ledState ^= RGFW_CAPSLOCK;
+				else if (win->event.keyCode == XK_Caps_Lock)
+					win->event.ledState |= RGFW_CAPSLOCK;
+
+				else if (win->event.keyCode == XK_Num_Lock && win->event.ledState & RGFW_NUMLOCK)
+					win->event.ledState ^= RGFW_NUMLOCK;
+				else if (win->event.keyCode == XK_Num_Lock)
+					win->event.ledState |= RGFW_NUMLOCK;
+			}
 			break;
 
 		case ButtonPress:
@@ -1536,6 +1551,11 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		case FocusIn:
 			win->inFocus = 1;
+			
+			XKeyboardState keystate;
+			XGetKeyboardControl((Display *)win->display, &keystate);
+			win->event.ledState = keystate.led_mask;
+
 			break;
 		case FocusOut:
 			win->inFocus = 0;
@@ -2431,14 +2451,14 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	else 
 		win->event.type = 0;
 
-	win->event.keyCode = 0;
+	win->event.ledState = 0;
 
 	if ((GetKeyState(VK_CAPITAL) & 0x0001)!=0)
-		win->event.keyCode |= 1;
+		win->event.ledState |= RGFW_CAPSLOCK;
 	if ((GetKeyState(VK_NUMLOCK) & 0x0001)!=0)
-		win->event.keyCode |= 2;
+		win->event.ledState |= RGFW_NUMLOCK;
 	if ((GetKeyState(VK_SCROLL) & 0x0001)!=0)
-		win->event.keyCode |= 3;
+		win->event.ledState |= 3;
 
 
 	if (!IsWindow((HWND)win->display))
@@ -2778,7 +2798,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	#ifdef RGFW_ALLOC_DROPFILES
     win->event.droppedFiles = (char**)RGFW_MALLOC(sizeof(char*) * RGFW_MAX_DROPS);
 	
-	i32 i;
+	u32 i;
 	for (i = 0; i < RGFW_MAX_DROPS; i++)
 		win->event.droppedFiles[i] = (char*)RGFW_CALLOC(RGFW_MAX_PATH, sizeof(char));
 	#endif
