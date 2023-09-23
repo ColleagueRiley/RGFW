@@ -2828,7 +2828,6 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	win->hideMouse = 0;
 	win->event.type = 0;
 	win->event.droppedFilesCount = 0;
-	win->event.frames = 0;
 
 	NSBackingStoreType macArgs = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled;
 
@@ -2933,7 +2932,6 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
 	RGFW_windows[RGFW_windows_size - 1] = NULL;
 
-	u32 i;
 	for (i = 0; i < RGFW_windows_size; i++)
 		if (!RGFW_windows[i]){
 			RGFW_windows[i] = win;
