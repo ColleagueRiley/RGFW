@@ -5,8 +5,6 @@
 
 #include "RGFW.h"
 
-#include <GL/gl.h>
-
 void drawLoop(RGFW_window* w); /* I seperate the draw loop only because it's run twice */
 void* loop2(void *);
 
