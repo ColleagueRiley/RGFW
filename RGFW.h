@@ -62,6 +62,7 @@
 
 #ifndef RGFW_MALLOC
 #include <stdlib.h>
+#include <time.h>
 #define RGFW_MALLOC malloc
 #define RGFW_CALLOC calloc
 #define RGFW_FREE free
@@ -70,6 +71,7 @@
 #ifndef inline
 #define inline __inline
 #endif
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -216,6 +218,11 @@ typedef struct RGFW_Event {
 	u16 joystick; /* which joystick this event applies to (if applicable to any) */
 	u8 axisesCount; /* number of axises */
 	i8 axis[4][2]; /* x, y of axises (-100 to 100) */
+
+		
+	clock_t current_ticks, delta_ticks;
+	u32 fps; /*the current fps of the window [the fps is checked when events are checked]*/
+	u32 inFocus;  /*if the window is in focus or not*/
 } RGFW_Event; /*!< Event structure for checking/getting events */
 
 typedef struct RGFW_window {
@@ -232,11 +239,6 @@ typedef struct RGFW_window {
 
 	u32 fpsCap; /*!< the fps cap of the window should run at (change this var to change the fps cap, 0 = no limit)*/
 	/*[the fps is capped when events are checked]*/
-	
-	u32 fps, /*the current fps of the window [the fps is checked when events are checked]*/
-				inFocus; /*if the window is in focus or not*/
-
-	u8 valid; /* the final net for checking if a window is*/
 
 	u8 dnd; /*!< if dnd is enabled or on (based on window creating args) */
 
@@ -493,7 +495,6 @@ int main() {
 
 #include <stdio.h>
 #include <string.h>
-#include <time.h> /* time header (for  and drop functions / other functions that need time info)*/
 #include <math.h>
 #include <assert.h>
 
@@ -988,14 +989,13 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	#endif
 
 	win->fpsCap = 0;
-	win->inFocus = 1;
+	win->event.inFocus = 1;
 	win->event.droppedFilesCount = 0;
 	win->joystickCount = 0;
 	win->dnd = 0;
 	win->cursor = NULL;
 	win->cursorChanged = 0;
-	win->valid = 245;
-
+	
 	if ((Display *)win->display == NULL)
 		return win;
 
@@ -1235,8 +1235,10 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	/* if there is no unread qued events, get a new one */
 	if (XEventsQueued((Display*)win->display, QueuedAlready) + XEventsQueued((Display*)win->display, QueuedAfterReading))
 		XNextEvent((Display*)win->display, &E);
-	else
+	else {
+		win->event.current_ticks = clock();
 		return NULL;
+	}
 
 	u32 i;
 
@@ -1550,7 +1552,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			break;
 
 		case FocusIn:
-			win->inFocus = 1;
+			win->event.inFocus = 1;
 			
 			XKeyboardState keystate;
 			XGetKeyboardControl((Display *)win->display, &keystate);
@@ -1558,7 +1560,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 			break;
 		case FocusOut:
-			win->inFocus = 0;
+			win->event.inFocus = 0;
 			RGFW_window_setMouseDefault(win);
 			break;
 		case ConfigureNotify: {
@@ -1624,7 +1626,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		}
 	}
 
-	if (win->inFocus && win->cursorChanged) {
+	if (win->event.inFocus && win->cursorChanged) {
 		XDefineCursor((Display*)win->display, (Window)win->window, (Cursor)win->cursor);
 
 		win->cursorChanged = 0;
@@ -1632,11 +1634,9 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	XFlush((Display*)win->display);
 
-	RGFW_window_checkFPS(win);
-
 	if (win->event.type)
 		return &win->event;
-	else 
+	else
 		return NULL;
 }
 
@@ -2013,7 +2013,7 @@ u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
 	Display* d;
 	if (win == (RGFW_window*)0)
 		d = RGFWd;
-	else if (!win->inFocus)
+	else if (!win->event.inFocus)
 		return 0;
 	else
 		d = (Display*)win->display;
@@ -2131,10 +2131,8 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	win->r = (RGFW_RECT){x, y, w, h};
 	#endif
 
-	win->valid = 245;
-
 	win->fpsCap = 0;
-	win->inFocus = 1;
+	win->event.inFocus = 1;
 	win->joystickCount = 0;
 	win->event.droppedFilesCount = 0;
 
@@ -2222,6 +2220,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 			i32 index = 0;
 			
 			SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
+			SET_ATTRIB(WGL_STENCIL_BITS_ARB, 8);
 
             if (RGFW_majorVersion || RGFW_minorVersion) {
                 SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion);
@@ -2304,7 +2303,7 @@ int* RGFW_window_getGlobalMousePoint(RGFW_window* win) {
 }
 
 RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
-	RGFW_window_checkFPS(win);
+	win->event.current_ticks = clock();
 
 	MSG msg = {};
 
@@ -2464,9 +2463,9 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	if (!IsWindow((HWND)win->display))
 		win->event.type = RGFW_quit;
 
-    win->inFocus = (GetForegroundWindow() == win->display);
+    win->event.inFocus = (GetForegroundWindow() == win->display);
 
-	if (win->inFocus)
+	if (win->event.inFocus)
 		SetCursor((HCURSOR)win->cursor);
 	else
 		RGFW_window_setMouseDefault(win);
@@ -2478,7 +2477,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 }
 
 u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
-	if (win != NULL && !win->inFocus)
+	if (win != NULL && !win->event.inFocus)
 		return 0;
 
 	if (GetAsyncKeyState(key) & 0x8000)
@@ -2825,11 +2824,11 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	#endif 
 
 	win->fpsCap = 0;
-	win->inFocus = 0;
+	win->event.inFocus = 0;
 	win->hideMouse = 0;
 	win->event.type = 0;
 	win->event.droppedFilesCount = 0;
-	win->valid = 245;
+	win->event.frames = 0;
 
 	NSBackingStoreType macArgs = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled;
 
@@ -2979,10 +2978,10 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	win->event.droppedFilesCount = 0;
 
-	win->inFocus = NSWindow_isKeyWindow(win->window);
+	win->event.inFocus = NSWindow_isKeyWindow(win->window);
 
 	/* NOTE(EimaMei): This is super janky code, THANKS APPLE. For some reason it takes a few frames AFTER becoming focused to allow setting the cursor. */
-	if (win->inFocus && win->cursor != NULL && win->cursor != NULL && (win->cursorChanged != 2 || NSCursor_currentCursor() != win->cursor)) {
+	if (win->event.inFocus && win->cursor != NULL && win->cursor != NULL && (win->cursorChanged != 2 || NSCursor_currentCursor() != win->cursor)) {
 		if (win->cursorChanged != 2)
 			win->cursorChanged++;
 
@@ -3089,7 +3088,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	NSApplication_updateWindows(NSApp);
 
-	RGFW_window_checkFPS(win);
+	win->event.current_ticks = clock();
 
 	if (win->event.type)
 		return &win->event;
@@ -3323,6 +3322,8 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 }
 
 void RGFW_window_swapBuffers(RGFW_window* win) { 
+	RGFW_window_checkFPS(win);
+	
 	RGFW_window_makeCurrent(win);
 
 	#ifdef RGFW_EGL
@@ -3413,35 +3414,22 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	#endif
 }
 
-time_t startTime[2];
-int frames = 0;
 
 void RGFW_window_checkFPS(RGFW_window* win) {
 	/* get current fps*/
-	frames++;
+	win->event.delta_ticks = clock() - win->event.current_ticks;
 
-	u32 seconds = time(0) - startTime[0];
-
-	if (seconds) {
-		win->fps = frames / seconds;
-
-		frames = 0;
-		startTime[0] = time(0);
-	}
-
+	 if(win->event.delta_ticks > 0)
+        win->event.fps = CLOCKS_PER_SEC / win->event.delta_ticks;
 
 	/*slow down to the set fps cap*/
 	if (win->fpsCap) {
-		time_t currentTime = time(0);
-		time_t elapsedTime = currentTime - startTime[1];
-
-		i32 sleepTime = 1000/(win->fpsCap) - elapsedTime;
+		i32 sleepTime = win->event.fps - win->fpsCap;
+		
 		if (sleepTime > 0) {
-			RGFW_Timespec sleep_time = { sleepTime / 1000, (unsigned int)((sleepTime % 1000) * 1000000) };
-			nanosleep((struct timespec*)&sleep_time, NULL);
+			RGFW_Timespec sleep_time = { sleepTime, (unsigned int)((sleepTime) * 1000000) };
+		//	nanosleep((struct timespec*)&sleep_time, NULL);
 		}
-
-		startTime[1] = time(0);
 	}
 }
 #endif /*RGFW_IMPLEMENTATION*/
@@ -3501,7 +3489,7 @@ void RGFW_window_checkFPS(RGFW_window* win) {
 #define RGFW_ControlR RGFW_OS_BASED_VALUE(0xffe4, 0xA3, 59)
 #define RGFW_AltR RGFW_OS_BASED_VALUE(0xffea, 165, 58)
 #define RGFW_SuperR RGFW_OS_BASED_VALUE(0xffec, 0xA4, 55)
-#define RGFW_Space RGFW_OS_BASED_VALUE(0x0020,  0xA5, 49)
+#define RGFW_Space RGFW_OS_BASED_VALUE(0x0020,  0x20, 49)
 
 #define RGFW_A RGFW_OS_BASED_VALUE(0x0041, 0x41, 0)
 #define RGFW_B RGFW_OS_BASED_VALUE(0x0042, 0x42, 11)
