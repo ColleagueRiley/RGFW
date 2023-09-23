@@ -1,7 +1,11 @@
+#define RGFW_ALLOC_DROPFILES
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
+#define RGFW_NO_X11_CURSOR
 
 #include "RGFW.h"
+
+#include <GL/gl.h>
 
 void drawLoop(RGFW_window* w); /* I seperate the draw loop only because it's run twice */
 void* loop2(void *);
@@ -11,8 +15,9 @@ unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF,
 unsigned char running = 1;
 
 int main() {
-    RGFW_window* win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_ALLOW_DND );
-
+    RGFW_window* win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_ALLOW_DND);
+    RGFW_window_makeCurrent(win);
+    
     if (win == NULL)
         return 1;
 
@@ -20,7 +25,7 @@ int main() {
 
     RGFW_createThread(loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
 
-    unsigned short js = RGFW_registerJoystick(win, 0);
+    /*unsigned short js = RGFW_registerJoystick(win, 0);*/
     unsigned char i, frames = 60;
     unsigned char mouseHidden = 0;
 
@@ -31,10 +36,12 @@ int main() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     #endif
 
+    RGFW_window_swapInterval(win, 60);
 
     while (running && !RGFW_isPressedI(win, RGFW_Escape)) {
         frames++;
 
+        printf("%i\n", win->event.fps);
         /* 
             check all of the avaliable events all at once
             this is to avoid any input lag
@@ -45,14 +52,19 @@ int main() {
         */
 
         while (RGFW_window_checkEvent(win))  {
-            if (win->event.type == RGFW_quit)
+            if (win->event.type == RGFW_windowAttribsChange) {
+                printf("h\n");
+            }
+            if (win->event.type == RGFW_quit) {
                 running = 0;  
+                break;
+            }
             if (RGFW_isPressedI(win, RGFW_Up))
                 printf("Pasted : %s\n", RGFW_window_readClipboard(win));
             else if (RGFW_isPressedI(win, RGFW_Down))
                 RGFW_window_writeClipboard(win, "DOWN", 4);
             else if (RGFW_isPressedI(win, RGFW_Space))
-                printf("fps : %i\n", win->fps);
+                printf("fps : %i\n", win->event.fps);
             else if (RGFW_isPressedI(win, RGFW_w) && frames >= 30) {
                 if (!mouseHidden) {
                     RGFW_window_hideMouse(win);
@@ -79,7 +91,7 @@ int main() {
             else if (win->event.type == RGFW_jsAxisMove && !win->event.button)
                 printf("{%i, %i}\n", win->event.axis[0][0], win->event.axis[0][1]);
         }
-
+ 
         drawLoop(win);
     }
 
