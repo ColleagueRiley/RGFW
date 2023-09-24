@@ -3317,6 +3317,8 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	#ifdef RGFW_EGL
 	eglSwapInterval(win->EGL_display, swapInterval);
 	#endif
+
+	win->fpsCap = swapInterval;
 }
 
 void RGFW_window_swapBuffers(RGFW_window* win) { 
@@ -3421,14 +3423,19 @@ void RGFW_window_checkFPS(RGFW_window* win) {
         win->event.fps = CLOCKS_PER_SEC / win->event.delta_ticks;
 
 	/*slow down to the set fps cap*/
+	#ifndef RGFW_OPENGL
 	if (win->fpsCap) {
 		i32 sleepTime = win->event.fps - win->fpsCap;
 		
 		if (sleepTime > 0) {
-			RGFW_Timespec sleep_time = { sleepTime, (unsigned int)((sleepTime) * 1000000) };
-		//	nanosleep((struct timespec*)&sleep_time, NULL);
+			RGFW_Timespec sleep_time;
+			sleep_time.tv_sec = sleepTime / 1000;
+			sleep_time.tv_nsec = (sleepTime % 1000) * 1000000;
+
+			nanosleep((struct timespec*)&sleep_time, NULL);
 		}
 	}
+	#endif
 }
 #endif /*RGFW_IMPLEMENTATION*/
 
