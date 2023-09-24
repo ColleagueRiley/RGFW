@@ -2794,10 +2794,10 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
 	u32* r = RGFW_window_screenSize(win);
 
+	u32 i;
 	#ifdef RGFW_ALLOC_DROPFILES
     win->event.droppedFiles = (char**)RGFW_MALLOC(sizeof(char*) * RGFW_MAX_DROPS);
 	
-	u32 i;
 	for (i = 0; i < RGFW_MAX_DROPS; i++)
 		win->event.droppedFiles[i] = (char*)RGFW_CALLOC(RGFW_MAX_PATH, sizeof(char));
 	#endif
@@ -2931,7 +2931,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	RGFW_windows = nWins;
 
 	RGFW_windows[RGFW_windows_size - 1] = NULL;
-
+	
 	for (i = 0; i < RGFW_windows_size; i++)
 		if (!RGFW_windows[i]){
 			RGFW_windows[i] = win;
