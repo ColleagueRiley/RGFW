@@ -69,9 +69,18 @@
 #endif
 
 #ifndef inline
+#ifndef __APPLE__
 #define inline __inline
 #endif
+#endif
 
+#ifndef RGFWDEF
+#ifdef __APPLE__
+#define RGFWDEF extern inline
+#else
+#define RGFWDEF inline
+#endif
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -288,14 +297,14 @@ RGFW_window* RGFW_createWindow(
 	RGFW_VULKAN must be defined for this function to be defined
 
 */
-inline void RGFW_initVulkan(RGFW_window* win, void* inst);
+RGFWDEF void RGFW_initVulkan(RGFW_window* win, void* inst);
 /* returns how big the screen is (for fullscreen support, ect, ect)
    [0] = width
    [1] = height
 */
 #endif
 
-inline unsigned int* RGFW_window_screenSize(RGFW_window* win);
+RGFWDEF unsigned int* RGFW_window_screenSize(RGFW_window* win);
 
 /* 
 	this function checks an *individual* event (and updates window structure attributes)
@@ -309,19 +318,19 @@ inline unsigned int* RGFW_window_screenSize(RGFW_window* win);
 RGFW_Event* RGFW_window_checkEvent(RGFW_window* win); /*!< check events (returns a pointer to win->event or NULL if there is no event)*/
 
 /*! window managment functions*/
-inline void RGFW_window_close(RGFW_window* win); /*!< close the window and free leftover data */
+RGFWDEF void RGFW_window_close(RGFW_window* win); /*!< close the window and free leftover data */
 
-inline void RGFW_window_move(RGFW_window* win,
+RGFWDEF void RGFW_window_move(RGFW_window* win,
 							i32 x, 
 							i32 y
 						);
 
-inline void RGFW_window_resize(RGFW_window* win,
+RGFWDEF void RGFW_window_resize(RGFW_window* win,
 							u32 w, 
 							u32 h
 						);
 
-inline void RGFW_window_setName(RGFW_window* win,
+RGFWDEF void RGFW_window_setName(RGFW_window* win,
 								char* name
 							);
 
@@ -332,15 +341,15 @@ void RGFW_window_setIcon(RGFW_window* win, /*!< source window */
 				i32 channels /*!< how many channels the bitmap has (rgb : 3, rgba : 4) */
 		); /*!< image resized by default */
 		
-inline void RGFW_window_setMouse(RGFW_window* win, u8* image, i32 width, i32 height, i32 channels); /*!< sets mouse to bitmap (very simular to RGFW_window_setIcon)*/
+RGFWDEF void RGFW_window_setMouse(RGFW_window* win, u8* image, i32 width, i32 height, i32 channels); /*!< sets mouse to bitmap (very simular to RGFW_window_setIcon)*/
 /*!< image NOT resized by default */
-inline void RGFW_window_setMouseDefault(RGFW_window* win); /* sets the mouse to1` the default mouse image */
+RGFWDEF void RGFW_window_setMouseDefault(RGFW_window* win); /* sets the mouse to1` the default mouse image */
 
 /* where the mouse is on the screen, x = [0], y = [1] */
-inline int* RGFW_window_getGlobalMousePoint(RGFW_window* win);
+RGFWDEF int* RGFW_window_getGlobalMousePoint(RGFW_window* win);
 
 #ifdef __APPLE__
-inline void RGFW_window_hideMouse(RGFW_window* win);
+RGFWDEF void RGFW_window_hideMouse(RGFW_window* win);
 #else
 #define RGFW_window_hideMouse(win) { \
 	u8 RGFW_blk[] = {0, 0, 0, 0}; /* for c++ support */\
@@ -348,25 +357,25 @@ inline void RGFW_window_hideMouse(RGFW_window* win);
 }
 #endif
 
-inline void RGFW_window_makeCurrent(RGFW_window* win); /*!< make the window the current opengl drawing context */
+RGFWDEF void RGFW_window_makeCurrent(RGFW_window* win); /*!< make the window the current opengl drawing context */
 
 /*error handling*/
-inline u8 RGFW_Error(); /* returns true if an error has occurred (doesn't print errors itself) */
+RGFWDEF u8 RGFW_Error(); /* returns true if an error has occurred (doesn't print errors itself) */
 
 /*!< if window == NULL, it checks if the key is pressed globally. Otherwise, it checks only if the key is pressed while the window in focus.*/
-inline u8 RGFW_isPressedI(RGFW_window* win, u32 key); /*!< if key is pressed (key code)*/
+RGFWDEF u8 RGFW_isPressedI(RGFW_window* win, u32 key); /*!< if key is pressed (key code)*/
 
 /*
 	!!Keycodes defined at the bottom of the header file!!
 */
-inline u32 RGFW_keyStrToKeyCode(char* key); /*!< converts a string of a key to it's key code */
+RGFWDEF u32 RGFW_keyStrToKeyCode(char* key); /*!< converts a string of a key to it's key code */
 #define RGFW_isPressedS(win, key) RGFW_isPressedI(win, RGFW_keyStrToKeyCode(key)) /*!< if key is pressed (key string) */
 
-inline char RGFW_keystrToChar(const char*);
+RGFWDEF char RGFW_keystrToChar(const char*);
 
 /*! clipboard functions*/
-inline const char* RGFW_window_readClipboard(RGFW_window* win); /*!< read clipboard data */
-inline void RGFW_window_writeClipboard(RGFW_window* win, const char* text, u32 textLen); /*!< write text to the clipboard */
+RGFWDEF const char* RGFW_window_readClipboard(RGFW_window* win); /*!< read clipboard data */
+RGFWDEF void RGFW_window_writeClipboard(RGFW_window* win, const char* text, u32 textLen); /*!< write text to the clipboard */
 
 /*! threading functions*/
 
@@ -376,32 +385,32 @@ inline void RGFW_window_writeClipboard(RGFW_window* win, const char* text, u32 t
 	if you're going to use sili
 	which is a good idea generally
 */
-inline RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args); /*!< create a thread*/
-inline void RGFW_cancelThread(RGFW_thread thread); /*!< cancels a thread*/
-inline void RGFW_joinThread(RGFW_thread thread); /*!< join thread to current thread */
-inline void RGFW_setThreadPriority(RGFW_thread thread, u8 priority); /*!< sets the priority priority  */
+RGFWDEF RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args); /*!< create a thread*/
+RGFWDEF void RGFW_cancelThread(RGFW_thread thread); /*!< cancels a thread*/
+RGFWDEF void RGFW_joinThread(RGFW_thread thread); /*!< join thread to current thread */
+RGFWDEF void RGFW_setThreadPriority(RGFW_thread thread, u8 priority); /*!< sets the priority priority  */
 
 /*! gamepad/joystick functions */
 
 /*! joystick count starts at 0*/
-inline u16 RGFW_registerJoystick(RGFW_window* win, i32 jsNumber); /*!< register joystick to window based on a number (the number is based on when it was connected eg. /dev/js0)*/
-inline u16 RGFW_registerJoystickF(RGFW_window* win, char* file);
+RGFWDEF u16 RGFW_registerJoystick(RGFW_window* win, i32 jsNumber); /*!< register joystick to window based on a number (the number is based on when it was connected eg. /dev/js0)*/
+RGFWDEF u16 RGFW_registerJoystickF(RGFW_window* win, char* file);
 
-inline u8 RGFW_isPressedJS(RGFW_window* win, u16 controller, u8 button);
+RGFWDEF u8 RGFW_isPressedJS(RGFW_window* win, u16 controller, u8 button);
 
 /*! Get max OpenGL version */
-inline u8* RGFW_getMaxGLVersion();
+RGFWDEF u8* RGFW_getMaxGLVersion();
 
 /*! Set OpenGL version hint */
-inline void RGFW_setGLVersion(i32 major, i32 minor);
+RGFWDEF void RGFW_setGLVersion(i32 major, i32 minor);
 
 /*! native opengl functions */
-inline void* RGFW_getProcAddress(const char* procname); /* get native proc address */
-inline void RGFW_window_swapBuffers(RGFW_window* win); /* swap the opengl buffer */
-inline void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval);
+RGFWDEF void* RGFW_getProcAddress(const char* procname); /* get native proc address */
+RGFWDEF void RGFW_window_swapBuffers(RGFW_window* win); /* swap the opengl buffer */
+RGFWDEF void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval);
 
 /*! Supporting functions */
-inline void RGFW_window_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_window_checkEvent)*/
+RGFWDEF void RGFW_window_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_window_checkEvent)*/
 #endif /* RGFW_HEADER */
 
 /*
@@ -2772,7 +2781,7 @@ bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
 
 	si_array_free(array);
 
-	u32 x, y;
+	u32 y;
 
 	for (y = 0; y < RGFW_windows[i]->event.droppedFilesCount; y++)
 		strcpy(RGFW_windows[i]->event.droppedFiles[y], droppedFiles[y]);
@@ -2957,7 +2966,7 @@ u32* RGFW_window_screenSize(RGFW_window* win){
 }
 
 int* RGFW_window_getGlobalMousePoint(RGFW_window* win) {
-	i32 RGFW_mousePoint[2];
+	static i32 RGFW_mousePoint[2];
 	RGFW_mousePoint[0] = win->event.x;	
 	RGFW_mousePoint[1] = win->event.y;
 
@@ -2989,10 +2998,8 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, 0, true);
 
-	NSPoint point = NSEvent_mouseLocation(e);
-
 	if (NSEvent_window(e) == win->window) {
-		u8 button = 0, i;
+		u8 button = 0;
 
 		switch(NSEvent_type(e)){
 			case NSEventTypeKeyDown:
@@ -3082,8 +3089,6 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	NSApplication_sendEvent(NSApp, e);
 
-	NSRect r = NSWindow_frame(win->window);
-
 	NSApplication_updateWindows(NSApp);
 
 	win->event.current_ticks = clock();
@@ -3095,7 +3100,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 }
 
 
-inline void RGFW_window_move(RGFW_window* win, i32 x, i32 y) {
+RGFWDEF void RGFW_window_move(RGFW_window* win, i32 x, i32 y) {
 	#ifdef RGFW_RECT
 	win->r.x = x;
 	win->r.y = y;
@@ -3107,7 +3112,7 @@ inline void RGFW_window_move(RGFW_window* win, i32 x, i32 y) {
 	#endif
 }
 
-inline void RGFW_window_resize(RGFW_window* win, u32 w, u32 h) {
+RGFWDEF void RGFW_window_resize(RGFW_window* win, u32 w, u32 h) {
 	#ifdef RGFW_RECT
 	win->r.w = w;
 	win->r.h = h;
@@ -3119,7 +3124,7 @@ inline void RGFW_window_resize(RGFW_window* win, u32 w, u32 h) {
 	#endif
 }
 
-inline void RGFW_window_setName(RGFW_window* win, char* name) {
+RGFWDEF void RGFW_window_setName(RGFW_window* win, char* name) {
 	NSWindow_setTitle(win->window, name);
 }
 
@@ -3178,7 +3183,7 @@ void RGFW_window_hideMouse(RGFW_window* win) {
 	if (win->cursor != NULL && win->cursor != NULL)
 		release(win->cursor);
 	
-	win->cursor = -1;
+	win->cursor = (void*)-1;
 	win->cursorChanged = true;
 }
 
