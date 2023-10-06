@@ -368,6 +368,7 @@ RGFWDEF u8 RGFW_isPressedI(RGFW_window* win, u32 key); /*!< if key is pressed (k
 /*
 	!!Keycodes defined at the bottom of the header file!!
 */
+RGFWDEF char* RGFW_keyCodeTokeyStr(u32 key); /*!< converts a key code to it's key string */
 RGFWDEF u32 RGFW_keyStrToKeyCode(char* key); /*!< converts a string of a key to it's key code */
 #define RGFW_isPressedS(win, key) RGFW_isPressedI(win, RGFW_keyStrToKeyCode(key)) /*!< if key is pressed (key string) */
 
@@ -591,6 +592,22 @@ void* RGFW_getProcAddress(const char* procname) { return (void*)wglGetProcAddres
 u8 RGFW_keyMap[128] = { 0 };
 #endif
 
+char* RGFW_keyCodeTokeyStr(u32 key) {				
+	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
+	static char* keyStrs[128] = {"a", "s", "d", "f", "h", "g", "z", "x", "c", "v", "0", "b", "q", "w", "e", "r", "y", "t", "1", "2", "3", "4", "6", "5", "Equals", "9", "7", "Minus", "8", "0", "CloseBracket", "o", "u", "Bracket", "i", "p", "Return", "l", "j", "Apostrophe", "k", "Semicolon", "BackSlash", "Comma", "Slash", "n", "m", "Period", "Tab", "Space", "Backtick", "BackSpace", "0", "Escape", "0", "Super", "Shift", "CapsLock", "Alt", "Control", "0", "0", "0", "0", "0", "KP_Period", "0", "KP_Minus", "0", "0", "0", "0", "Numlock", "0", "0", "0", "KP_Multiply", "KP_Return", "0", "0", "0", "0", "KP_Slash", "KP_0", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "0", "KP_8", "KP_9", "0", "0", "0", "F5", "F6", "F7", "F3", "F8", "F9", "0", "F11", "0", "F13", "0", "F14", "0", "F10", "0", "F12", "0", "F15", "Insert", "Home", "PageUp", "Delete", "F4", "End", "F2", "PageDown", "Left", "Right", "Down", "Up", "F1"};
+
+	return keyStrs[key];
+	#endif
+	#ifdef RGFW_X11
+	return XKeysymToString(key);
+	#endif
+	#ifdef RGFW_WINDOWS
+	static char keyName[16];
+	GetKeyNameTextA(key, keyName, 16);
+	return keyName;
+	#endif
+}
+
 u32 RGFW_keyStrToKeyCode(char* key) {
 #if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 	static char* keyStrs[128] = {"a", "s", "d", "f", "h", "g", "z", "x", "c", "v", "0", "b", "q", "w", "e", "r", "y", "t", "1", "2", "3", "4", "6", "5", "Equals", "9", "7", "Minus", "8", "0", "CloseBracket", "o", "u", "Bracket", "i", "p", "Return", "l", "j", "Apostrophe", "k", "Semicolon", "BackSlash", "Comma", "Slash", "n", "m", "Period", "Tab", "Space", "Backtick", "BackSpace", "0", "Escape", "0", "Super", "Shift", "CapsLock", "Alt", "Control", "0", "0", "0", "0", "0", "KP_Period", "0", "KP_Minus", "0", "0", "0", "0", "Numlock", "0", "0", "0", "KP_Multiply", "KP_Return", "0", "0", "0", "0", "KP_Slash", "KP_0", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "0", "KP_8", "KP_9", "0", "0", "0", "F5", "F6", "F7", "F3", "F8", "F9", "0", "F11", "0", "F13", "0", "F14", "0", "F10", "0", "F12", "0", "F15", "Insert", "Home", "PageUp", "Delete", "F4", "End", "F2", "PageDown", "Left", "Right", "Down", "Up", "F1"};
@@ -674,7 +691,7 @@ u32 RGFW_keyStrToKeyCode(char* key) {
 
 
 char RGFW_keystrToChar(const char* str) {
-	if (!str[1])
+	if (str[1] == 0)
 		return str[0];
 	
 	static const char* map[] = {
@@ -714,26 +731,10 @@ char RGFW_keystrToChar(const char* str) {
 		"Return", "\n"
 	};
 
-	char* key = (char*)str;
-
-	while (key++) {
-		u32 i;
-		for (i = 0; i < sizeof(map)/sizeof(char*); i += 2) {
-			if (*map[i] != '\0' && *map[i] != '\1')
-				map[i]++;
-
-			if (*map[i] != *key) {
-				map[i] = "\1";
-				continue;
-			}
-
-			if (*map[i] == '\0' && *key == '\0')
-				return map[i + 1][0];
-		}
-
-		if (*key == '\0')
-			break;
-	}
+	u8 i = 0;
+	for (i = 0; i < (sizeof(map) / sizeof(char*)); i += 2)
+		if (strcmp(map[i], str) == 0)
+			return *map[i + 1];
 
 	return '\0';
 }
@@ -2340,6 +2341,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 			case WM_KEYDOWN:
 				win->event.keyCode = msg.wParam;
+				
 				GetKeyNameTextA(msg.lParam, win->event.keyName, 16);
 				win->event.type = RGFW_keyPressed;
 				break;
