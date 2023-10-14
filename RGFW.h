@@ -421,14 +421,11 @@ Example to get you started :
 
 linux : gcc main.c -lX11 -lXcursor -lGL
 windows : gcc main.c -lopengl32 -lshell32 -lgdi32
-macos:
-	<Silicon> can be replaced to where you have the Silicon headers stored
-	<libSilicon.a> can be replaced to wherever you have libSilicon.a
-	clang main.c -I<Silicon> <libSilicon.a> -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo
+macos : gcc main.c -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo
 
-	NOTE(EimaMei): If you want the MacOS experience to be fully single header, then I'd be best to install Silicon (after compiling)
-	by going to the `Silicon` folder and running `make install`. After this you can easily include Silicon via `#include <Silicon/silicon.h>'
-	and link it by doing `-lSilicon`
+MACOS NOTE(Colleague Riley): MacOS requires silicon.h to either be included with RGFW or installed globally
+							This is because MacOS uses Objective-C for the API so Silicon.h is required to use it in pure C
+MACOS NOTE(EimaMei): If you want the MacOS experience to be fully single header, then I'd be best to install Silicon into /usr/local/include
 
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
@@ -476,29 +473,9 @@ int main() {
 		linux:
 			gcc -shared RGFW.o -lX11 -lXcursor -lGL -o RGFW.so
 		macos:
-			<Silicon/include> can be replaced to where you have the Silicon headers stored
-			<libSilicon.a> can be replaced to wherever you have libSilicon.a
-			gcc -shared RGFW.o -framework Foundation <libSilicon.a> -framework AppKit -framework OpenGL -framework CoreVideo -I<Silicon/include>
+			gcc -shared RGFW.o -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo
 
-	installing/building silicon (macos)
-
-	Silicon does not need to be installde per se.
-	I personally recommended that you use the Silicon included using RGFW
-
-	to build this version of Silicon simplly run
-
-	cd Silicon && make
-	
-    Alternatively, you also can find pre-built binaries for Silicon at
-    https://github.com/ColleagueRiley/Silicon/tree/binaries
-
-	you can then use Silicon/include and libSilicon.a for building RGFW projects
-
-	ex.
-	gcc main.c -framework Foundation -lSilicon -framework AppKit -framework OpenGL -framework CoreVideo -ISilicon/include
-
-	I also suggest you compile Silicon (and RGFW if applicable)
-	per each time you compile your application so you know that everything is compiled for the same architecture.
+	Silicon.h, silicon.h is a header file that either needs to be carried around with RGFW or installed into the include folder
 */
 
 #ifdef RGFW_IMPLEMENTATION
@@ -2716,7 +2693,8 @@ void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { SetThreadPriority
 
 #if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 #define GL_SILENCE_DEPRECATION
-#include <Silicon/silicon.h>
+#define SILICON_IMPLEMENTATION
+#include "silicon.h"
 #include <OpenGL/gl.h>
 	
 void* RGFWnsglFramework = NULL; 
@@ -2776,7 +2754,7 @@ bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
 		i = 0;
 
 
-	siArray(Class) array = si_array_init((Class[]){class(objctype(NSURL))}, sizeof(*array), 1);
+	siArray(Class) array = si_array_init((Class[]){SI_NS_CLASSES[NS_URL_CODE]}, sizeof(*array), 1);
 	siArray(char*) droppedFiles = (siArray(char*))NSPasteboard_readObjectsForClasses(NSDraggingInfo_draggingPasteboard(sender), array, NULL);
 
 	RGFW_windows[i]->event.droppedFilesCount = si_array_len(droppedFiles);
@@ -2797,11 +2775,15 @@ bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
     return true;
 }
 
+NSApplication* NSApp;
 
 RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64 args){
 	static u8 RGFW_loaded = 0;
 	
 	RGFW_window* win = RGFW_MALLOC(sizeof(RGFW_window));
+
+	NSApplication_sharedApplication();
+	NSApplication_setActivationPolicy(NSApp, NSApplicationActivationPolicyRegular);
 
 	u32* r = RGFW_window_screenSize(win);
 
@@ -2949,8 +2931,6 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 			break;
 		}
 
-	NSApplication_sharedApplication(NSApp);
-	NSApplication_setActivationPolicy(NSApp, NSApplicationActivationPolicyRegular);
 	NSApplication_finishLaunching(NSApp);
 
 	return win;
