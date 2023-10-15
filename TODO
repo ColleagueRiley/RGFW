@@ -1,10 +1,9 @@
 MACOS silicon.h:
 
 - make sure RGFW_CENTER is still working 
-- make sure cursor changing works
 - make sure DND works
 - RGFW_windowAttribsChange support
-- multi-window support
+- fix multi-window bugs
 
 - version control (EGL)
 - fix macOS DND string bug (string has extra data at the end)
