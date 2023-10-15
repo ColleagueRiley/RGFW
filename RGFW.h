@@ -2820,6 +2820,20 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	win->event.type = 0;
 	win->event.droppedFilesCount = 0;
 
+	u32* r = RGFW_window_screenSize(win);
+
+	if (RGFW_FULLSCREEN & args) {
+		x = 0;
+		y = 0;
+		w = r[0];
+		h = r[1];
+	}
+
+	if (RGFW_CENTER & args) {
+		x = (r[0] - w) / 1.1;
+		y = (r[1] - h) / 4;
+	}
+
 	win->cursor = NSCursor_currentCursor();
 
 	u32 i;
@@ -2919,18 +2933,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
 	NSApplication_setActivationPolicy(NSApp, NSApplicationActivationPolicyRegular);
 	NSApplication_finishLaunching(NSApp);
-
-/*
-	u32* r = RGFW_window_screenSize(win);
-
-	if (RGFW_FULLSCREEN & args){
-		RGFW_window_move(win, 0, 0);
-		RGFW_window_resize(win, r[0], r[1]);
-	}
-
-	if (RGFW_CENTER & args)
-		RGFW_window_move(win, ((r[0] - w) / 1.1), ((r[1] - h) / 4));
-*/
+		
 	if (!RGFW_loaded) {	
 		NSWindow_makeMainWindow(win->window);
 
@@ -2960,13 +2963,15 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
 u32* RGFW_window_screenSize(RGFW_window* win){
 	static u32 RGFW_SreenSize[2];
+	static CGDirectDisplayID display = 0;
+	
+	if (display == 0)
+		display = CGMainDisplayID();
+	
+	RGFW_SreenSize[0] = CGDisplayPixelsWide(display);
+	RGFW_SreenSize[1] = CGDisplayPixelsHigh(display);
 
-	NSRect r = NSScreen_frame(NSScreen_mainScreen());
-
-	RGFW_SreenSize[0] = r.size.width;
-	RGFW_SreenSize[1] =  r.size.height;
-
-	return (unsigned int[2]){r.size.width, r.size.height};
+	return RGFW_SreenSize;
 }
 
 int* RGFW_window_getGlobalMousePoint(RGFW_window* win) {

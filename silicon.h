@@ -153,8 +153,8 @@ typedef void NSSavePanel;
 typedef void NSOpenPanel;
 typedef void NSColorPanel;
 typedef void NSBundle;
-typedef void NSDictionary;
 #ifndef __OBJC__
+typedef void NSDictionary;
 typedef void NSURL;
 typedef void NSFont;
 typedef void NSDate;
