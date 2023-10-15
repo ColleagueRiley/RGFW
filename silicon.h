@@ -144,17 +144,17 @@ typedef void NSView;
 typedef void NSAutoreleasePool;
 typedef void NSFontManager;
 typedef void NSTextField;
-typedef void NSFont;
 typedef void NSProcessInfo;
 typedef void NSButton;
 typedef void NSComboBox;
 typedef void NSSlider;
 typedef void NSProgressIndicator;
-typedef void NSURL;
 typedef void NSSavePanel;
 typedef void NSOpenPanel;
 typedef void NSColorPanel;
 #ifndef __OBJC__
+typedef void NSURL;
+typedef void NSFont;
 typedef void NSDate;
 typedef void NSString;
 typedef void NSArray;
@@ -845,7 +845,7 @@ SICDEF CGFloat NSEvent_deltaY(NSEvent* event);
 /* */
 SICDEF unsigned short NSEvent_keyCodeForChar(char* keyStr);
 /* */
-SICDEF NSPoint NSEvent_mouseLocation(NSEvent* event);
+SICDEF NSPoint NSEvent_mouseLocation(void);
 /* */
 SICDEF NSWindow* NSEvent_window(NSEvent* event);
 
@@ -1254,7 +1254,6 @@ enum { /* classes */
     NS_APPLICATION_ACTIVATE_IGNORING_OTHER_APPS_CODE,
     NS_APPLICATION_NEXT_EVENT_MATCHING_MASK_CODE,
     NS_SCREEN_MAIN_SCREEN_CODE,
-    NS_SCREEN_FRAME_CODE,
     NS_SCREEN_VISIBLE_FRAME_CODE,
     NS_WINDOW_TITLE_CODE,
     NS_WINDOW_SET_TITLE_CODE,
@@ -1276,7 +1275,7 @@ enum { /* classes */
     NS_GRAPHICS_CONTEXT_CURRENT_CONTEXT_CODE,
     NS_MENU_ITEM_SET_SUBMENU_CODE,
     NS_MENU_ITEM_TITLE_CODE,
-    NS_WINDOW_FRAME_CODE,
+    NS_FRAME_CODE,
     NS_WINDOW_INIT_CODE,
     NS_WINDOW_ORDER_FRONT_CODE,
     NS_WINDOW_MAKE_KEY_AND_ORDER_FRONT_CODE,
@@ -1525,7 +1524,6 @@ void si_initNS(void) {
     SI_NS_FUNCTIONS[NS_GRAPHICS_CONTEXT_CURRENT_CONTEXT_CODE] = sel_getUid("currentContext");
     SI_NS_FUNCTIONS[NS_MENU_ITEM_SET_SUBMENU_CODE] = sel_getUid("setSubmenu:");
     SI_NS_FUNCTIONS[NS_MENU_ITEM_TITLE_CODE] = sel_getUid("title");
-    SI_NS_FUNCTIONS[NS_WINDOW_FRAME_CODE] = sel_getUid("frame");
     SI_NS_FUNCTIONS[NS_WINDOW_INIT_CODE] = sel_getUid("initWithContentRect:styleMask:backing:defer:");
     SI_NS_FUNCTIONS[NS_WINDOW_ORDER_FRONT_CODE] = sel_getUid("orderFront:");
     SI_NS_FUNCTIONS[NS_WINDOW_MAKE_KEY_AND_ORDER_FRONT_CODE] = sel_getUid("makeKeyAndOrderFront:");
@@ -1589,8 +1587,8 @@ void si_initNS(void) {
     SI_NS_FUNCTIONS[NS_OPENGL_VIEW_OPENGL_CONTEXT_CODE] = sel_getUid("openGLContext");
     SI_NS_FUNCTIONS[NS_OPENGL_CONTEXT_SET_VALUES_CODE] = sel_getUid("setValues:forParameter:");
     SI_NS_FUNCTIONS[NS_OPENGL_CONTEXT_MAKE_CURRENT_CONTEXT_CODE] = sel_getUid("makeCurrentContext");
-	SI_NS_FUNCTIONS[NS_BITMAPIMAGEREP_BITMAP_CODE] = sel_getUid("bitmapData:");
-	SI_NS_FUNCTIONS[NS_BITMAPIMAGEREP_INIT_BITMAP_CODE] = sel_getUid("initWithBitmapData:planes:width:height:bps:spp:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:");
+	SI_NS_FUNCTIONS[NS_BITMAPIMAGEREP_BITMAP_CODE] = sel_getUid("bitmapData");
+	SI_NS_FUNCTIONS[NS_BITMAPIMAGEREP_INIT_BITMAP_CODE] = sel_getUid("initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:");
     SI_NS_FUNCTIONS[NS_VIEW_WANTSLAYER_CODE] = sel_getUid("wantsLayer:");
     SI_NS_FUNCTIONS[NS_STRING_WIDTH_UTF8_STRING_CODE] = sel_getUid("stringWithUTF8String:");
     SI_NS_FUNCTIONS[NS_ARRAY_SI_ARRAY_CODE] = sel_getUid("initWithObjects:count:");
@@ -1603,7 +1601,7 @@ void si_initNS(void) {
     SI_NS_FUNCTIONS[NS_STROKE_LINE_CODE] = sel_getUid("strokeLine:");
     SI_NS_FUNCTIONS[NS_AUTO_RELEASE_POOL_INIT_CODE] = sel_getUid("init");
     SI_NS_FUNCTIONS[NS_DISTANT_FUTURE_CODE] = sel_getUid("distantFuture");
-    SI_NS_FUNCTIONS[NS_SCREEN_FRAME_CODE] = sel_getUid("frame");
+    SI_NS_FUNCTIONS[NS_FRAME_CODE] = sel_getUid("frame");
     SI_NS_FUNCTIONS[NS_SCREEN_MAIN_SCREEN_CODE] = sel_getUid("mainScreen");
     SI_NS_FUNCTIONS[NS_RETAIN_CODE] = sel_getUid("retain");
     SI_NS_FUNCTIONS[NS_ARRAY_COUNT_CODE] = sel_getUid("count");
@@ -1772,10 +1770,8 @@ NSRect NSRectFromCGRect(CGRect cgrect) {
 }
 
 CGRect NSRectToCGRect(NSRect nsrect) {
-    CGRect cgrect;
-    cgrect.origin = NSPointToCGPoint(nsrect.origin);
-    cgrect.size = NSSizeToCGSize(nsrect.size);
-    return cgrect;
+	union _ {NSRect ns; CGRect cg;};
+	return ((union _ *)&nsrect)->cg;
 }
 
 NSPoint NSPointFromCGPoint(CGPoint cgpoint) { return NSMakePoint(cgpoint.x, cgpoint.y); }
@@ -1788,7 +1784,6 @@ bool NSPointInRect(NSPoint aPoint, NSRect aRect) {
     return (aPoint.x >= aRect.origin.x && aPoint.x <= NSMaxX(aRect) &&
             aPoint.y >= aRect.origin.y && aPoint.y <= NSMaxY(aRect));
 }
-
 
 NSColor* NSColor_clearColor(void) {
     void* nsclass = SI_NS_CLASSES[NS_COLOR_CODE];
@@ -1970,13 +1965,21 @@ NSScreen* NSScreen_mainScreen(void) {
 }
 
 NSRect NSScreen_frame(NSScreen* screen) {
-    void* func = SI_NS_FUNCTIONS[NS_SCREEN_FRAME_CODE];
-    return *(NSRect*)objc_func(screen, func);
+    void* func = SI_NS_FUNCTIONS[NS_FRAME_CODE];
+
+    typedef NSRect (*objc_send_type)(id, SEL);
+    objc_send_type objc_func = (objc_send_type)objc_msgSend;
+
+    return objc_func(screen, func);
 }
 
 NSRect NSScreen_visibleFrame(NSScreen* screen) {
     void* func = SI_NS_FUNCTIONS[NS_SCREEN_VISIBLE_FRAME_CODE];
-    return *(NSRect*)objc_func(screen, func);
+
+    typedef NSRect (*objc_send_type)(id, SEL);
+    objc_send_type objc_func = (objc_send_type)objc_msgSend;
+
+    return objc_func(screen, func);
 }
 
 NSWindow* NSWindow_init(NSRect contentRect, NSWindowStyleMask style, NSBackingStoreType backingStoreType, bool flag) {
@@ -2191,8 +2194,12 @@ void NSMenuItem_setTitle(NSMenuItem* item, const char* title) {
 }
 
 NSRect NSWindow_frame(NSWindow* window) {
-    void* func = SI_NS_FUNCTIONS[NS_WINDOW_FRAME_CODE];
-    return *(NSRect*)objc_func(window, func);
+    void* func = SI_NS_FUNCTIONS[NS_FRAME_CODE];
+
+    typedef NSRect (*objc_send_type)(id, SEL);
+    objc_send_type objc_func = (objc_send_type)objc_msgSend;
+
+    return objc_func(window, func);
 }
 
 bool NSWindow_isKeyWindow(NSWindow* window) {
@@ -2227,7 +2234,10 @@ void NSWindow_display(NSWindow* window) {
 
 void NSWindow_contentView_wantsLayer(NSWindow* window, bool wantsLayer) {
     void* func = SI_NS_FUNCTIONS[NS_VIEW_WANTSLAYER_CODE];
-    objc_func(window, func, wantsLayer);
+    
+    NSView* contentView = NSWindow_contentView(window);
+
+    objc_func(contentView, func, wantsLayer);
 }
 
 NSView* NSView_init(void) {
@@ -2588,7 +2598,11 @@ NSEventType NSEvent_type(NSEvent* event) {
 
 NSPoint NSEvent_locationInWindow(NSEvent* event) {
     void* func = SI_NS_FUNCTIONS[NS_EVENT_LOCATION_IN_WINDOW_CODE];
-    return *(NSPoint*)objc_func(event, func);
+
+    typedef NSPoint (*objc_send_type)(id, SEL);
+    objc_send_type objc_func = (objc_send_type)objc_msgSend;
+
+    return objc_func(event, func);
 }
 
 NSEventModifierFlags NSEvent_modifierFlags(NSEvent* event) {
@@ -2620,9 +2634,9 @@ unsigned short NSEvent_keyCodeForChar(char* keyStr) {
 	return keyStr[0];
 }
 
-NSPoint NSEvent_mouseLocation(NSEvent* event) {
+NSPoint NSEvent_mouseLocation(void) {
     void* func = SI_NS_FUNCTIONS[NS_EVENT_MOUSE_LOCATION_CODE];
-    return *(NSPoint*)objc_func(event, func);
+    return *(NSPoint*)objc_func(SI_NS_CLASSES[NS_EVENT_CODE], func);
 }
 
 NSWindow* NSEvent_window(NSEvent* event) {
@@ -2672,7 +2686,7 @@ NSImage* NSImage_initWithCGImage(CGImageRef cgImage, NSSize size) {
 
 void NSImage_addRepresentation(NSImage* image, NSImageRep* imageRep) {
     void* func = SI_NS_FUNCTIONS[NS_IMAGE_ADD_REPRESENTATION_CODE];
-    objc_func(image, imageRep, func);
+    objc_func(image, func, imageRep);
 }
 
 NSCursor* NSCursor_currentCursor(void) {
@@ -2701,7 +2715,7 @@ NSCursor* NSCursor_initWithImage(NSImage* newImage, NSPoint aPoint) {
     void* func = SI_NS_FUNCTIONS[NS_CURSOR_INIT_WITH_IMAGE_CODE];
     void* nsclass = SI_NS_CLASSES[NS_CURSOR_CODE];
 
-    return (NSCursor*)objc_func(NSAlloc(nsclass), newImage, func, aPoint);
+    return (NSCursor*)objc_func(NSAlloc(nsclass), func, newImage, aPoint);
 }
 
 void NSCursor_hide(void) {
@@ -2828,7 +2842,7 @@ NSMenuItem* NSMenuItem_separatorItem(void) {
 
 unsigned char* NSBitmapImageRep_bitmapData(NSBitmapImageRep* imageRep) {
     void* func = SI_NS_FUNCTIONS[NS_BITMAPIMAGEREP_BITMAP_CODE];
-    return (unsigned char*)NSString_to_char(objc_func(imageRep, func));
+    return (unsigned char*)objc_func(imageRep, func);
 }
 
 NSBitmapImageRep* NSBitmapImageRep_initWithBitmapData(unsigned char** planes, NSInteger width, NSInteger height, NSInteger bps, NSInteger spp, bool alpha, bool isPlanar, const char* colorSpaceName, NSBitmapFormat bitmapFormat, NSInteger rowBytes, NSInteger pixelBits) {
