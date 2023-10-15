@@ -2806,6 +2806,20 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
     NSApp = NSApplication_sharedApplication();
 
+	u32* r = RGFW_window_screenSize(win);
+
+	if (RGFW_FULLSCREEN & args) {
+		x = 0;
+		y = 0;
+		w = r[0];
+		h = r[1];
+	}
+
+	if (RGFW_CENTER & args) {
+		x = (r[0] - w) / 4;
+		y = (r[1] - h) / 4;
+	}
+
 	#ifndef RGFW_RECT
 	win->x = x;
 	win->y = y;
@@ -2819,20 +2833,6 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	win->event.inFocus = 0;
 	win->event.type = 0;
 	win->event.droppedFilesCount = 0;
-
-	u32* r = RGFW_window_screenSize(win);
-
-	if (RGFW_FULLSCREEN & args) {
-		x = 0;
-		y = 0;
-		w = r[0];
-		h = r[1];
-	}
-
-	if (RGFW_CENTER & args) {
-		x = (r[0] - w) / 1.1;
-		y = (r[1] - h) / 4;
-	}
 
 	win->cursor = NSCursor_currentCursor();
 
