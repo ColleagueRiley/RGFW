@@ -2779,16 +2779,13 @@ NSApplication* NSApp;
 
 RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64 args) {
     static u8 RGFW_loaded = 0;
-	
 
 	/* NOTE(EimaMei): Why does Apple hate good code? Like wtf, who thought of methods being a great idea???
 	Imagine a universe, where MacOS had a proper system API (we would probably have like 20% better performance).
 	*/
 	si_func_to_SEL_with_name(SI_DEFAULT, "windowShouldClose", RGFW_OnClose);
 	si_func_to_SEL_with_name(SI_DEFAULT, "NSWindowDidResizeNotification", RGFW_windowDidResize);
-
-    si_func_to_SEL_with_name(SI_DEFAULT, "NSWindowDidResizeNotification:addObserver:selector:name:object:",
-                             	 RGFW_windowDidResize);
+	si_func_to_SEL_with_name("NSWindow", "windowDidResize", RGFW_windowDidResize);
 
 	/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
 	si_func_to_SEL("NSWindow", acceptsFirstResponder);

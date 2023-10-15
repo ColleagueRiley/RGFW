@@ -1,6 +1,5 @@
 MACOS silicon.h:
 
-- make sure RGFW_CENTER is still working 
 - make sure DND works
 - RGFW_windowAttribsChange support
 - fix multi-window bugs
