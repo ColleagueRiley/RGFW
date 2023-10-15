@@ -152,6 +152,8 @@ typedef void NSProgressIndicator;
 typedef void NSSavePanel;
 typedef void NSOpenPanel;
 typedef void NSColorPanel;
+typedef void NSBundle;
+typedef void NSDictionary;
 #ifndef __OBJC__
 typedef void NSURL;
 typedef void NSFont;
@@ -596,6 +598,13 @@ SICDEF NSColor* NSColor_keyboardFocusIndicatorColor(void);
 SICDEF NSString* NSString_stringWithUTF8String(const char* str);
 SICDEF const char* NSString_to_char(NSString* str);
 
+/* ============ NSDictionary ============ */
+SICDEF const char* NSDictionary_objectForKey(NSDictionary* d, const char* str);
+
+/* ============ NSBundle ============ */
+SICDEF NSDictionary* NSBundle_infoDictionary(NSBundle* bundle);
+SICDEF NSBundle* NSBundle_mainBundle(void);
+
 /* ============= NSArray ============ */
 SICDEF NSArray* si_array_to_NSArray(siArray(void) array);
 SICDEF NSUInteger NSArray_count(NSArray* array);
@@ -618,6 +627,7 @@ SICDEF void NSBezierPath_strokeLine(NSPoint from, NSPoint to);
 /* ====== NSAutoreleasePool functions ====== */
 /* */
 SICDEF NSAutoreleasePool* NSAutoreleasePool_init(void);
+SICDEF void NSAutoreleasePool_drain(NSAutoreleasePool* pool);
 
 /* ====== NSDate functions ====== */
 /* */
@@ -719,7 +729,7 @@ SICDEF NSPoint NSWindow_convertPointFromScreen(NSWindow* window, NSPoint point);
 /* Passes a display message down the window’s view hierarchy, thus redrawing all views within the window. */
 SICDEF void NSWindow_display(NSWindow* window);
 /* toggle wantslayer */
-SICDEF void NSWindow_contentView_wantsLayer(NSWindow* window, bool wantsLayer) ;
+SICDEF void NSWindow_contentView_setWantsLayer(NSWindow* window, bool wantsLayer) ;
 
 /* ============ NSView class ============ */
 /* ====== NSView functions ====== */
@@ -1219,6 +1229,7 @@ enum { /* classes */
     NS_PROGRESS_INDICATOR_CODE,
     NS_SLIDER_CODE,
     NS_URL_CODE,
+    NS_BUNDLE_CODE,
 	/* functions */
 	NS_APPLICATION_SET_ACTIVATION_POLICY_CODE = 0,
 	NS_APPLICATION_SAPP_CODE,
@@ -1340,7 +1351,7 @@ enum { /* classes */
     NS_OPENGL_CONTEXT_MAKE_CURRENT_CONTEXT_CODE,
 	NS_BITMAPIMAGEREP_BITMAP_CODE,
 	NS_BITMAPIMAGEREP_INIT_BITMAP_CODE,
-    NS_VIEW_WANTSLAYER_CODE,
+    NS_VIEW_SET_WANTSLAYER_CODE,
     NS_STRING_WIDTH_UTF8_STRING_CODE,
     NS_ARRAY_SI_ARRAY_CODE,
     NS_STROKE_LINE_CODE,
@@ -1443,10 +1454,14 @@ enum { /* classes */
     NS_AUTORELEASE_CODE,
     NS_INIT_CODE,
     NS_FONT_MANAGER_CONVERT_TO_HAVE_FONT_CODE,
+    NS_AUTO_RELEASE_POOL_DRAIN_CODE,
+    NS_OBJECT_FOR_KEY_CODE,
+    NS_INFO_DICTIONARY_CODE,
+    NS_INFO_MAIN_BUNDLE_CODE,
 };
 
-void* SI_NS_CLASSES[35] = {NULL};
-void* SI_NS_FUNCTIONS[224];
+void* SI_NS_CLASSES[36] = {NULL};
+void* SI_NS_FUNCTIONS[227];
 
 void si_initNS(void) {    
 	SI_NS_CLASSES[NS_APPLICATION_CODE] = objc_getClass("NSApplication");
@@ -1484,6 +1499,7 @@ void si_initNS(void) {
     SI_NS_CLASSES[NS_PROGRESS_INDICATOR_CODE] = objc_getClass("NSProgressIndicator");
     SI_NS_CLASSES[NS_SLIDER_CODE] = objc_getClass("NSSlider");
     SI_NS_CLASSES[NS_URL_CODE] = objc_getClass("NSURL");
+    SI_NS_CLASSES[NS_BUNDLE_CODE] = objc_getClass("NSBundle");
 
 	SI_NS_FUNCTIONS[NS_APPLICATION_SET_ACTIVATION_POLICY_CODE] = sel_getUid("setActivationPolicy:");
 	SI_NS_FUNCTIONS[NS_APPLICATION_SAPP_CODE] = sel_getUid("sharedApplication");
@@ -1589,7 +1605,7 @@ void si_initNS(void) {
     SI_NS_FUNCTIONS[NS_OPENGL_CONTEXT_MAKE_CURRENT_CONTEXT_CODE] = sel_getUid("makeCurrentContext");
 	SI_NS_FUNCTIONS[NS_BITMAPIMAGEREP_BITMAP_CODE] = sel_getUid("bitmapData");
 	SI_NS_FUNCTIONS[NS_BITMAPIMAGEREP_INIT_BITMAP_CODE] = sel_getUid("initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:");
-    SI_NS_FUNCTIONS[NS_VIEW_WANTSLAYER_CODE] = sel_getUid("wantsLayer:");
+    SI_NS_FUNCTIONS[NS_VIEW_SET_WANTSLAYER_CODE] = sel_getUid("setWantsLayer:");
     SI_NS_FUNCTIONS[NS_STRING_WIDTH_UTF8_STRING_CODE] = sel_getUid("stringWithUTF8String:");
     SI_NS_FUNCTIONS[NS_ARRAY_SI_ARRAY_CODE] = sel_getUid("initWithObjects:count:");
     SI_NS_FUNCTIONS[NS_WINDOW_SET_CONTENT_VIEW_CODE] = sel_getUid("setContentView:");
@@ -1710,6 +1726,10 @@ void si_initNS(void) {
     SI_NS_FUNCTIONS[NSURL_FILE_URL_WITH_PATH_CODE] = sel_getUid("fileURLWithPath:");
     SI_NS_FUNCTIONS[NS_AUTORELEASE_CODE] = sel_getUid("autorelease");
     SI_NS_FUNCTIONS[NS_INIT_CODE] = sel_getUid("init");
+    SI_NS_FUNCTIONS[NS_AUTO_RELEASE_POOL_DRAIN_CODE] = sel_getUid("drain");
+    SI_NS_FUNCTIONS[NS_OBJECT_FOR_KEY_CODE] = sel_getUid("objectForKey:");
+    SI_NS_FUNCTIONS[NS_INFO_DICTIONARY_CODE] = sel_getUid("infoDictionary");
+    SI_NS_FUNCTIONS[NS_INFO_MAIN_BUNDLE_CODE] = sel_getUid("mainBundle");
 }
 
 void si_impl_func_to_SEL_with_name(const char* class_name, const char* register_name, void* function) {
@@ -1833,6 +1853,12 @@ NSAutoreleasePool* NSAutoreleasePool_init(void) {
 	void* func = SI_NS_FUNCTIONS[NS_AUTO_RELEASE_POOL_INIT_CODE];
 
 	return objc_func(NSAlloc(nsclass), func);
+}
+
+void NSAutoreleasePool_drain(NSAutoreleasePool* pool) {
+	void* func = SI_NS_FUNCTIONS[NS_AUTO_RELEASE_POOL_DRAIN_CODE];
+
+	objc_func(pool, func);
 }
 
 SICDEF NSDate* NSDate_distantFuture(void) {
@@ -2174,7 +2200,7 @@ NSProgressIndicator* NSProgressIndicator_init(NSRect frameRect) {
 
 NSGraphicsContext* NSGraphicsContext_currentContext(NSGraphicsContext* context) {
     void* func = SI_NS_FUNCTIONS[NS_GRAPHICS_CONTEXT_CURRENT_CONTEXT_CODE];
-    return (NSGraphicsContext*)objc_func(context, func);
+    return (NSGraphicsContext*)objc_func(SI_NS_CLASSES[NS_GRAPHICS_CONTEXT_CODE], func);
 }
 
 void NSGraphicsContext_setCurrentContext(NSGraphicsContext* context, NSGraphicsContext* currentContext) {
@@ -2232,8 +2258,8 @@ void NSWindow_display(NSWindow* window) {
     objc_func(window, func);
 }
 
-void NSWindow_contentView_wantsLayer(NSWindow* window, bool wantsLayer) {
-    void* func = SI_NS_FUNCTIONS[NS_VIEW_WANTSLAYER_CODE];
+void NSWindow_contentView_setWantsLayer(NSWindow* window, bool wantsLayer) {
+    void* func = SI_NS_FUNCTIONS[NS_VIEW_SET_WANTSLAYER_CODE];
     
     NSView* contentView = NSWindow_contentView(window);
 
@@ -2940,6 +2966,32 @@ NSString* NSString_stringWithUTF8String(const char* str) {
 const char* NSString_to_char(NSString* str) {
     void* func = SI_NS_FUNCTIONS[NS_UTF8_STRING_CODE];
     return objc_func(str, func);   
+}
+
+const char* NSDictionary_objectForKey(NSDictionary* d, const char* str) {
+    void* func = SI_NS_FUNCTIONS[NS_OBJECT_FOR_KEY_CODE];
+
+    NSString* s = NSString_stringWithUTF8String(str);
+    NSString* obj = objc_func(d, func, s);
+    
+    NSRelease(s);
+
+    const char* out = NSString_to_char(obj);
+    NSRelease(obj);
+
+    return out;
+}
+
+NSDictionary* NSBundle_infoDictionary(NSBundle* bundle) {
+    void* func = SI_NS_FUNCTIONS[NS_INFO_DICTIONARY_CODE];
+    return objc_func(bundle, func);   
+}
+
+NSBundle* NSBundle_mainBundle(void) {
+    void* func = SI_NS_FUNCTIONS[NS_INFO_MAIN_BUNDLE_CODE];
+    void* nsclass = SI_NS_CLASSES[NS_BUNDLE_CODE];
+    
+    return objc_func(nsclass, func);   
 }
 
 NSArray* si_array_to_NSArray(siArray(void) array) {

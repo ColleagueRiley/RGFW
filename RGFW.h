@@ -60,6 +60,7 @@
 			Copyright (c) 2006-2019 Camilla Löwy
 */
 
+#define GL_SILENCE_DEPRECATION
 #ifndef RGFW_MALLOC
 #include <stdlib.h>
 #include <time.h>
@@ -2687,7 +2688,6 @@ void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { SetThreadPriority
 #endif
 
 #if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
-#define GL_SILENCE_DEPRECATION
 #define SILICON_IMPLEMENTATION
 #include "silicon.h"
 #include <OpenGL/gl.h>
@@ -2770,8 +2770,8 @@ bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
 }
 
 typedef void NSNotification;
-void RGFW_windowDidResize(id self, SEL _cmd, NSNotification *notification) {
-
+void RGFW_windowDidResize(void* sender, NSNotification *notification) {
+printf("resize\n");
     // Handle window resize logic here...
 }
 
@@ -2793,6 +2793,9 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
 	si_func_to_SEL("NSWindow", acceptsFirstResponder);
 	si_func_to_SEL("NSWindow", performKeyEquivalent);
+
+	void* WindowDelegateClass = objc_allocateClassPair((Class)objc_getClass("NSObject"), "WindowDelegate", 0);
+	class_addMethod(WindowDelegateClass, sel_registerName("windowDidResize:"), (IMP)RGFW_windowDidResize,  "v@:@");
 
 	RGFW_window* win = (RGFW_window*)malloc(sizeof(RGFW_window));
     if (!win) {
@@ -2838,7 +2841,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 		macArgs |= NSWindowStyleMaskBorderless;
 
     win->window = NSWindow_init(windowRect, macArgs, NSBackingStoreBuffered, false);
-    
+	NSWindow_contentView_setWantsLayer(win->window, true);
 	NSRetain(win->window);
 	NSWindow_setTitle(win->window, name);
 
@@ -2879,8 +2882,6 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	#else
     NSRect contentRect = NSMakeRect(0, 0, w, h);
     win->view = NSView_initWithFrame(contentRect);
-
-	NSWindow_contentView_wantsLayer(win->window, true);
 	#endif
 	
 	#ifdef RGFW_OSMESA
@@ -2893,11 +2894,16 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	#endif
 	#endif
 
+	#ifdef RGFW_BUFFER
+	win->buffer = RGFW_MALLOC(w * h * 4);
+	win->render = 1;
+	#endif
+
     NSWindow_setContentView(win->window, win->view);
 
 	if (RGFW_ALLOW_DND & args) {
 		siArray(NSPasteboardType) array = si_array_init((NSPasteboardType[]){NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString}, sizeof(*array), 3);
-	    NSView_registerForDraggedTypes(win->window, array);
+	    NSView_registerForDraggedTypes(win->view, array);
 		si_array_free(array);
 
 		/* NOTE(EimaMei): Drag 'n Drop requires too many damn functions for just a Drag 'n Drop event. */
@@ -2913,6 +2919,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
 	NSApplication_setActivationPolicy(NSApp, NSApplicationActivationPolicyRegular);
 	NSApplication_finishLaunching(NSApp);
+
 /*
 	u32* r = RGFW_window_screenSize(win);
 
@@ -2997,7 +3004,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	if (NSEvent_window(e) == win->window) {
 		u8 button = 0;
 
-		switch(NSEvent_type(e)) {
+		switch (NSEvent_type(e)) {
 			case NSEventTypeKeyDown:
 				win->event.type = RGFW_keyPressed;
 				win->event.keyCode = (u16)NSEvent_keyCode(e);
@@ -3390,7 +3397,9 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 
 		struct CGImage* myImage = CGBitmapContextCreateImage(bitmapContext);
 
-		CGContextDrawImage(NSGraphicsContext_currentContext(), rect, myImage);
+		NSGraphicsContext* context = NSGraphicsContext_currentContext(NULL);
+
+		CGContextDrawImage(context, rect, myImage);
 
 		CGContextRelease(bitmapContext);
 		CGImageRelease(myImage);
