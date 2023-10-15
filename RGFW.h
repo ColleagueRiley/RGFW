@@ -2771,8 +2771,7 @@ bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
 
 typedef void NSNotification;
 void RGFW_windowDidResize(id self, SEL _cmd, NSNotification *notification) {
-    NSWindow *resizedWindow = [notification object];
-    printf("Window did resize: %s\n", [[resizedWindow description] UTF8String]);
+
     // Handle window resize logic here...
 }
 
