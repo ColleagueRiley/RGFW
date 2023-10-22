@@ -2841,7 +2841,12 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 		win->event.droppedFiles[i] = (char*)RGFW_CALLOC(RGFW_MAX_PATH, sizeof(char));
 	#endif
 
+	#ifndef RGFW_RECT
     NSRect windowRect = NSMakeRect(win->x, win->y, win->w, win->h);
+	#else
+	NSRect windowRect = NSMakeRect(win->r.x, win->r.y, win->r.w, win->r.h);
+	#endif 
+
 	NSBackingStoreType macArgs = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled;
 
 	if (!(RGFW_NO_RESIZE & args))
