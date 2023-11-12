@@ -230,7 +230,8 @@ typedef struct RGFW_Event {
 	i8 axis[4][2]; /* x, y of axises (-100 to 100) */
 
 		
-	clock_t current_ticks, delta_ticks;
+	u32 current_ticks, frames;
+	
 	u32 fps; /*the current fps of the window [the fps is checked when events are checked]*/
 	u32 inFocus;  /*if the window is in focus or not*/
 } RGFW_Event; /*!< Event structure for checking/getting events */
@@ -408,6 +409,10 @@ RGFWDEF void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval);
 
 /*! Supporting functions */
 RGFWDEF void RGFW_window_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_window_checkEvent)*/
+RGFWDEF u32 RGFW_getTime(void); /* get time in seconds */
+RGFWDEF u32 RGFW_getTimeNS(void); /* get time in nanoseconds */
+RGFWDEF u32 RGFW_getFPS(void); /* get current FPS (win->event.fps) */
+RGFWDEF void RGFW_sleep(u32 microsecond); /* sleep for a set time */
 #endif /* RGFW_HEADER */
 
 /*
@@ -1127,8 +1132,6 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	if (RGFW_OPENGL & args) {
 	#endif
 		glXMakeCurrent((Display *)win->display, (Drawable)win->window, (GLXContext)win->glWin);
-
-		RGFW_window_swapInterval(win, 1);
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 		win->render = 0;
 	}
@@ -1219,7 +1222,6 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	if (XEventsQueued((Display*)win->display, QueuedAlready) + XEventsQueued((Display*)win->display, QueuedAfterReading))
 		XNextEvent((Display*)win->display, &E);
 	else {
-		win->event.current_ticks = clock();
 		return NULL;
 	}
 
@@ -2286,8 +2288,6 @@ int* RGFW_window_getGlobalMousePoint(RGFW_window* win) {
 }
 
 RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
-	win->event.current_ticks = clock();
-
 	MSG msg = {};
 
 	if (win->event.droppedFilesCount) {
@@ -2892,7 +2892,6 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	win->view = NSOpenGLView_initWithFrame(NSMakeRect(0, 0, w, h), format);
 	NSOpenGLView_prepareOpenGL(win->view);
 
-	RGFW_window_swapInterval(win, 1);
 	NSOpenGLContext_makeCurrentContext(win->glWin);
 
 	#else
@@ -3101,8 +3100,6 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	NSApplication_sendEvent(NSApp, e);
 
 	NSApplication_updateWindows(NSApp);
-
-	win->event.current_ticks = clock();
 
 	if (win->event.type)
 		return &win->event;
@@ -3324,10 +3321,11 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	eglSwapInterval(win->EGL_display, swapInterval);
 	#endif
 
-	win->fpsCap = swapInterval;
+	win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
 }
 
 void RGFW_window_swapBuffers(RGFW_window* win) { 
+	win->event.frames++;
 	RGFW_window_checkFPS(win);
 	
 	RGFW_window_makeCurrent(win);
@@ -3422,29 +3420,81 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	#endif
 }
 
+void RGFW_sleep(u32 microsecond) {
+   struct timespec time;
+   time.tv_sec = 0;
+   time.tv_nsec = microsecond * 1000;
+
+   nanosleep(&time , NULL);
+}
 
 void RGFW_window_checkFPS(RGFW_window* win) {
-	/* get current fps*/
-	win->event.delta_ticks = clock() - win->event.current_ticks;
+	static float currentFrame = 0;
+	static float deltaTime = 0.0f;
+	static float lastFrame = 0.0f;
 
-	 if(win->event.delta_ticks > 0)
-        win->event.fps = CLOCKS_PER_SEC / win->event.delta_ticks;
+	win->event.fps = RGFW_getFPS();
 
-	/*slow down to the set fps cap*/
-	#ifndef RGFW_OPENGL
-	if (win->fpsCap) {
-		i32 sleepTime = win->event.fps - win->fpsCap;
-		
-		if (sleepTime > 0) {
-			RGFW_Timespec sleep_time;
-			sleep_time.tv_sec = sleepTime / 1000;
-			sleep_time.tv_nsec = (sleepTime % 1000) * 1000000;
+	if (win->fpsCap == 0)
+		return;
 
-			nanosleep((struct timespec*)&sleep_time, NULL);
-		}
-	}
-	#endif
+    double targetFrameTime = 1.0 / win->fpsCap;
+    double elapsedTime = RGFW_getTime() - currentFrame;
+
+    if (elapsedTime < targetFrameTime) {
+		u32 sleepTime = (u32)((targetFrameTime - elapsedTime) * 1e6);	
+		RGFW_sleep(sleepTime);
+    }
+    
+    currentFrame = RGFW_getTime();
+
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
+} 
+
+u32 RGFW_getTimeNS(void) {
+    struct timespec ts = { 0 };
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+	
+	return ts.tv_nsec;
 }
+
+u32 RGFW_getTime(void) {
+    struct timespec ts = { 0 };
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+	
+	return ts.tv_sec;
+}
+
+u32 RGFW_getFPS(void) {
+    static float deltaTime = 0.0f;
+    static float lastFrame = 0.0f;
+
+    static double previousSeconds = 0.0;
+	if (previousSeconds == 0.0)
+		previousSeconds = (double)RGFW_getTime();//glfwGetTime();
+   
+    static int frameCount;
+    double currentSeconds = (double)RGFW_getTime();//glfwGetTime();
+    double elapsedSeconds = currentSeconds - previousSeconds;
+
+    static double fps = 0;
+
+    if (elapsedSeconds > 0.25) {
+        previousSeconds = currentSeconds;
+        fps = (double)frameCount / elapsedSeconds;
+        frameCount = 0;
+    }
+
+    frameCount++;
+
+    float currentFrame = RGFW_getTime();
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
+    
+    return (u32)fps;
+}
+
 #endif /*RGFW_IMPLEMENTATION*/
 
 
