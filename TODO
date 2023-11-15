@@ -3,6 +3,7 @@ MACOS silicon.h:
 - make sure DND works
 - RGFW_windowAttribsChange support
 - fix multi-window bugs
+- setMax/Min window size
 
 - version control (EGL)
 - fix macOS DND string bug (string has extra data at the end)
