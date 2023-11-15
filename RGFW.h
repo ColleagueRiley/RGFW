@@ -2598,7 +2598,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 				if (RGFW_WIN_MAX_SIZE[0] == 0)
 					break;
 
-				MINMAXINFO* mmi = (MINMAXINFO*)lParam;
+				MINMAXINFO* mmi = (MINMAXINFO*)msg.lParam;
 				mmi->ptMinTrackSize.x = RGFW_WIN_MIN_SIZE[0];
 				mmi->ptMinTrackSize.y = RGFW_WIN_MIN_SIZE[0];
 				mmi->ptMaxTrackSize.x = RGFW_WIN_MAX_SIZE[0];
@@ -3422,11 +3422,11 @@ u8 RGFW_window_isHidden(RGFW_window* win) {
 }
 
 u8 RGFW_isMinimized(RGFW_window* win) {
-    return [win->window isMiniaturized] == YES;
+    return NSWindow_isMiniaturize(win->window) == YES;
 }
 
 u8 RGFW_isMaximized(RGFW_window* win) {
-    return [win->window isZoomed] == YES;
+    return NSWindow_isZoomed(win->window) == YES;
 }
 
 u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
