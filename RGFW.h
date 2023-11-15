@@ -3417,7 +3417,7 @@ u8 RGFW_window_isHidden(RGFW_window* win) {
 }
 
 u8 RGFW_isMinimized(RGFW_window* win) {
-    return NSWindow_isMiniaturize(win->window) == YES;
+    return NSWindow_isMiniaturized(win->window) == YES;
 }
 
 u8 RGFW_isMaximized(RGFW_window* win) {
