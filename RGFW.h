@@ -3181,11 +3181,6 @@ u32* RGFW_window_screenSize(RGFW_window* win){
 	return RGFW_SreenSize;
 }
 
-RGFWDEF void RGFW_setMaxSize(RGFW_window* win, u32 width, u32 height) {
-	RGFW_WIN_MAX_SIZE[0] = width;
-	RGFW_WIN_MAX_SIZE[1] = height;
-}
-
 int* RGFW_window_getGlobalMousePoint(RGFW_window* win) {
 	static i32 RGFW_mousePoint[2];
 	RGFW_mousePoint[0] = win->event.x;	
@@ -3414,7 +3409,7 @@ void RGFW_window_setMouseDefault(RGFW_window* win) {
 
 
 u8 RGFW_window_isFullscreen(RGFW_window* win) {
-    return ([win->window styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask;
+    return (NSWindow_styleMask(win->window) & NSFullScreenWindowMask) == NSFullScreenWindowMask;
 }
 
 u8 RGFW_window_isHidden(RGFW_window* win) {

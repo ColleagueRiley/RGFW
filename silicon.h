@@ -725,6 +725,8 @@ SICDEF bool NSWindow_isMiniaturized(NSWindow* window);
 /* */
 SICDEF bool NSWindow_isZoomed(NSWindow* window);
 /* */
+SICDEF NSWindowStyleMask NSWindow_styleMask(NSWindow* window);
+/* */
 SICDEF void NSWindow_center(NSWindow* window);
 /* */
 SICDEF void NSWindow_makeMainWindow(NSWindow* window);
@@ -1471,11 +1473,12 @@ enum { /* classes */
     NS_WINDOW_IS_MINIATURIZED_CODE,
     NS_WINDOW_IS_ZOOMED_CODE,
     NS_WINDOW_PERFORM_MINIATURIZE_CODE,
-    NS_WINDOW_PERFORM_ZOOM_CODE
+    NS_WINDOW_PERFORM_ZOOM_CODE,
+    NS_WINDOW_STYLE_MASK_CODE
 };
 
 void* SI_NS_CLASSES[36] = {NULL};
-void* SI_NS_FUNCTIONS[231];
+void* SI_NS_FUNCTIONS[232];
 
 void si_initNS(void) {    
 	SI_NS_CLASSES[NS_APPLICATION_CODE] = objc_getClass("NSApplication");
@@ -1748,6 +1751,7 @@ void si_initNS(void) {
     SI_NS_FUNCTIONS[NS_WINDOW_IS_ZOOMED_CODE] = sel_getUid("isZoomed");
     SI_NS_FUNCTIONS[NS_WINDOW_PERFORM_MINIATURIZE_CODE] = sel_getUid("performMiniaturize:");
     SI_NS_FUNCTIONS[NS_WINDOW_PERFORM_ZOOM_CODE] = sel_getUid("performZoom:");
+    SI_NS_FUNCTIONS[NS_WINDOW_STYLE_MASK_CODE] = sel_getUid("styleMask");
 }
 
 void si_impl_func_to_SEL_with_name(const char* class_name, const char* register_name, void* function) {
@@ -2084,6 +2088,11 @@ bool NSWindow_isMiniaturized(NSWindow* window) {
 bool NSWindow_isZoomed(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_IS_ZOOMED_CODE];
     return (bool)objc_func(window, func);
+}
+
+SICDEF NSWindowStyleMask NSWindow_styleMask(NSWindow* window) {
+    void* func = SI_NS_FUNCTIONS[NS_WINDOW_STYLE_MASK_CODE];
+    return (NSWindowStyleMask)objc_func(window, func);
 }
 
 NSColor* NSWindow_backgroundColor(NSWindow* window) {
