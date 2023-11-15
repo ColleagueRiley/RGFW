@@ -731,9 +731,9 @@ SICDEF void NSWindow_makeMainWindow(NSWindow* window);
 /* */
 SICDEF void NSWindow_setFrameAndDisplay(NSWindow* window, NSRect frame, bool display, bool animate);
 /* */
-SICDEF void NSWindow_performMiniaturize(NSWIndow* window, SEL s);
+SICDEF void NSWindow_performMiniaturize(NSWindow* window, SEL s);
 /* */
-SICDEF void NSWindow_performZoom(NSWIndow* window, SEL s);
+SICDEF void NSWindow_performZoom(NSWindow* window, SEL s);
 /* */
 SICDEF NSPoint NSWindow_convertPointFromScreen(NSWindow* window, NSPoint point);
 /* Passes a display message down the window’s view hierarchy, thus redrawing all views within the window. */
@@ -2276,12 +2276,12 @@ void NSWindow_setFrameAndDisplay(NSWindow* window, NSRect frame, bool display, b
     objc_func(window, func, frame, display, animate);
 }
 
-void NSWindow_performMiniaturize(NSWIndow* window, SEL s) {
+void NSWindow_performMiniaturize(NSWindow* window, SEL s) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_PERFORM_MINIATURIZE_CODE];
     objc_func(window, func, s);
 }
 /* */
-void NSWindow_performZoom(NSWIndow* window, SEL s) {
+void NSWindow_performZoom(NSWindow* window, SEL s) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_PERFORM_ZOOM_CODE];
    objc_func(window, func, s);
 }

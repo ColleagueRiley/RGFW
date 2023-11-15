@@ -3348,7 +3348,7 @@ void RGFW_window_minimize(RGFW_window* win) {
 }
 
 void RGFW_window_restore(RGFW_window* win) {
-	NSWindow_performZoom(Nwin->window, NULL);
+	NSWindow_performZoom(win->window, NULL);
 }
 
 RGFWDEF void RGFW_window_setName(RGFW_window* win, char* name) {
