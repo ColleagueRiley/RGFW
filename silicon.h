@@ -1168,23 +1168,54 @@ siArray(const char*) NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory d
 
 #ifdef SILICON_IMPLEMENTATION
 
+#ifdef __arm64__
+/* ARM just uses objc_msgSend */
+#define abi_objc_msgSend_stret objc_msgSend
+#define abi_objc_msgSend_fpret objc_msgSend
+#else /* __i386__ */ 
+/* x86 just uses abi_objc_msgSend_fpret and (NSColor *)objc_msgSend_id respectively */
+#define abi_objc_msgSend_stret objc_msgSend_stret
+#define abi_objc_msgSend_fpret objc_msgSend_fpret
+#endif
+
+#define objc_msgSend_id				((id (*)(id, SEL))objc_msgSend)
+#define objc_msgSend_id_id			((id (*)(id, SEL, id))objc_msgSend)
+#define objc_msgSend_id_rect		((id (*)(id, SEL, NSRect))objc_msgSend)
+#define objc_msgSend_uint			((NSUInteger (*)(id, SEL))objc_msgSend)
+#define objc_msgSend_int			((NSInteger (*)(id, SEL))objc_msgSend)
+#define objc_msgSend_SEL			((SEL (*)(id, SEL))objc_msgSend)
+#define objc_msgSend_float			((CGFloat (*)(id, SEL))objc_msgSend_fpret)
+#define objc_msgSend_bool			((BOOL (*)(id, SEL))objc_msgSend)
+#define objc_msgSend_void			((void (*)(id, SEL))objc_msgSend)
+#define objc_msgSend_double			((double (*)(id, SEL))objc_msgSend)
+#define objc_msgSend_void_id		((void (*)(id, SEL, id))objc_msgSend)
+#define objc_msgSend_void_uint		((void (*)(id, SEL, NSUInteger))objc_msgSend)
+#define objc_msgSend_void_int		((void (*)(id, SEL, NSInteger))objc_msgSend)
+#define objc_msgSend_void_bool		((void (*)(id, SEL, BOOL))objc_msgSend)
+#define objc_msgSend_void_float		((void (*)(id, SEL, CGFloat))objc_msgSend)
+#define objc_msgSend_void_double	((void (*)(id, SEL, double))objc_msgSend)
+#define objc_msgSend_void_SEL		((void (*)(id, SEL, SEL))objc_msgSend)
+#define objc_msgSend_id_char_const	((id (*)(id, SEL, char const *))objc_msgSend)
+
+/*
+abi_objc_msgSend_stret - Sends a message with a floating-point return value to an instance of a class.
+abi_objc_msgSend_stret - Sends a message with a data-structure return value to an instance of a class.
+*/
+
 /* Defining common properties/methods macros. */
 /* Defines the `get` and `set` versions of the provided property. */
 
-#define si_declare_single(class, type, name, func)	\
-	type class##_##name(class* obj) { \
-		return (type)objc_func(obj, SI_NS_FUNCTIONS[func]); \
+#define si_declare_single(class, name, func)	\
+	void class##_##name(class* obj) { \
+		return objc_msgSend_void(obj, SI_NS_FUNCTIONS[func]); \
 	}
 
-#define si_declare_double(class, type, name, func, arg_type) \
-	type class##_##name(class* obj, arg_type d) { \
-		return (type)objc_func(obj, SI_NS_FUNCTIONS[func], d); \
+#define si_declare_double(class, name, func, arg_type, f) \
+	void class##_##name(class* obj, arg_type d) { \
+		return f(obj, SI_NS_FUNCTIONS[func], d); \
 	}
 
-#define NSAlloc(nsclass) objc_func(nsclass, SI_NS_CLASSES[NS_ALLOC_CODE])
-
-typedef void* (*objc_send_type)(id, SEL, ...);
-objc_send_type objc_func = (objc_send_type)objc_msgSend;
+#define NSAlloc(nsclass) objc_msgSend_id(nsclass, SI_NS_CLASSES[NS_ALLOC_CODE])
 
 const NSSize _NSZeroSize = {0, 0};
 
@@ -1248,7 +1279,6 @@ enum { /* classes */
 	NS_APPLICATION_RUN_CODE,
 	NS_APPLICATION_FL_CODE,
 	NS_WINDOW_INITR_CODE,
-	NS_WINDOW_MAKEKO_CODE,
 	NS_VALUE_RECT_CODE,
 	NS_RELEASE_CODE,
 	NS_WINDOW_MAKEOF_CODE,
@@ -1523,7 +1553,6 @@ void si_initNS(void) {
 	SI_NS_FUNCTIONS[NS_APPLICATION_RUN_CODE] = sel_registerName("run");	
 	SI_NS_FUNCTIONS[NS_APPLICATION_FL_CODE] = sel_getUid("finishLaunching");
 	SI_NS_FUNCTIONS[NS_WINDOW_INITR_CODE] = sel_registerName("initWithContentRect:styleMask:backing:defer:");
-	SI_NS_FUNCTIONS[NS_WINDOW_MAKEKO_CODE] = sel_getUid("makeKeyAndOrderFront:");
 	SI_NS_FUNCTIONS[NS_WINDOW_MAKEOF_CODE] = sel_getUid("orderFront:");
 	SI_NS_FUNCTIONS[NS_VALUE_RECT_CODE] = sel_registerName("valueWithRect:");
 	SI_NS_FUNCTIONS[NS_RELEASE_CODE] = sel_registerName("release");
@@ -1830,77 +1859,80 @@ bool NSPointInRect(NSPoint aPoint, NSRect aRect) {
 NSColor* NSColor_clearColor(void) {
     void* nsclass = SI_NS_CLASSES[NS_COLOR_CODE];
     void* func = SI_NS_FUNCTIONS[NS_COLOR_CLEAR_CODE];
-    return (NSColor*)objc_func(nsclass, func);
+    return objc_msgSend_id(nsclass, func);
 }
 
 NSColor* NSColor_keyboardFocusIndicatorColor(void) {
     void* nsclass = SI_NS_CLASSES[NS_COLOR_CODE];
     void* func = SI_NS_FUNCTIONS[NS_COLOR_KEYBOARD_FOCUS_INDICATOR_CODE];
-    return (NSColor*)objc_func(nsclass, func);
+    return (NSColor *)objc_msgSend_id(nsclass, func);
 }
 
 void NSColor_set(NSColor* color) {
     void* nsclass = SI_NS_CLASSES[NS_COLOR_CODE];
     void* func = SI_NS_FUNCTIONS[NS_COLOR_SET_CODE];
-    objc_func(nsclass, func, color);
+    objc_msgSend_void_id(nsclass, func, color);
 }
 
 NSColor* NSColor_colorWithRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha) {
-    void* nsclass = SI_NS_CLASSES[NS_COLOR_CODE];
+    id nsclass = SI_NS_CLASSES[NS_COLOR_CODE];
     void* func = SI_NS_FUNCTIONS[NS_COLOR_WITH_RGB_CODE];
-    return (NSColor*)objc_func(nsclass, func, red, green, blue, alpha);
+    return ((id (*)(id, SEL, CGFloat, CGFloat, CGFloat, CGFloat))objc_msgSend)
+                (nsclass, func, red, green, blue, alpha);
 }
 
 NSColor* NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha) {
     void* nsclass = SI_NS_CLASSES[NS_COLOR_CODE];
     void* func = SI_NS_FUNCTIONS[NS_COLOR_WITH_SRGB_CODE];
-    return (NSColor*)objc_func(nsclass, func, red, green, blue, alpha);
+    return ((id (*)(id, SEL, CGFloat, CGFloat, CGFloat, CGFloat))objc_msgSend)
+                (nsclass, func, red, green, blue, alpha);
 }
 
 NSColor* NSColor_colorWithCalibrated(CGFloat white, CGFloat alpha) {
     void* nsclass = SI_NS_CLASSES[NS_COLOR_CODE];
     void* func = SI_NS_FUNCTIONS[NS_COLOR_WITH_CALIBRATED_CODE];
-    return (NSColor*)objc_func(nsclass, func, white, alpha);
+    return ((id (*)(id, SEL, CGFloat, CGFloat))objc_msgSend)
+            (nsclass, func, white, alpha);
 }
 
 void NSBezierPath_strokeLine(NSPoint from, NSPoint to) {
     void* nsclass = SI_NS_CLASSES[NS_BEZIER_PATH_CODE];
     void* func = SI_NS_FUNCTIONS[NS_STROKE_LINE_CODE];
 
-    objc_func(nsclass, func, from, to);
+    ((void (*)(id, SEL, NSPoint, NSPoint))objc_msgSend)(nsclass, func, from, to);
 }
 
 NSAutoreleasePool* NSAutoreleasePool_init(void) {
 	void* nsclass = SI_NS_CLASSES[NS_AUTO_RELEASE_POOL_CODE];
 	void* func = SI_NS_FUNCTIONS[NS_AUTO_RELEASE_POOL_INIT_CODE];
 
-	return objc_func(NSAlloc(nsclass), func);
+	return objc_msgSend_id(NSAlloc(nsclass), func);
 }
 
 void NSAutoreleasePool_drain(NSAutoreleasePool* pool) {
 	void* func = SI_NS_FUNCTIONS[NS_AUTO_RELEASE_POOL_DRAIN_CODE];
 
-	objc_func(pool, func);
+	objc_msgSend_void(pool, func);
 }
 
 SICDEF NSDate* NSDate_distantFuture(void) {
 	void* nsclass = SI_NS_CLASSES[NS_DATE_CODE];
 	void* func = SI_NS_FUNCTIONS[NS_DISTANT_FUTURE_CODE];
 
-	return objc_func(nsclass, func);
+	return objc_msgSend_id(nsclass, func);
 }
 
 NSProcessInfo* NSProcessInfo_processInfo(void) {
 	void* nsclass = SI_NS_CLASSES[NS_PROCESS_INFO_CODE];
 	void* func = SI_NS_FUNCTIONS[NS_PROCESS_INFO_PROCESS_INFO_CODE];
 
-	return objc_func(nsclass, func);
+	return objc_msgSend_id(nsclass, func);
 }
 
 const char* NSProcessInfo_processName(NSProcessInfo* processInfo) {
 	void* func = SI_NS_FUNCTIONS[NS_PROCESS_INFO_PROCESS_NAME_CODE];
     
-	return NSString_to_char(objc_func(processInfo, func));
+	return NSString_to_char(objc_msgSend_id(processInfo, func));
 }
 
 NSApplication* NSApplication_sharedApplication(void) {
@@ -1910,399 +1942,402 @@ NSApplication* NSApplication_sharedApplication(void) {
 	void* nsclass = SI_NS_CLASSES[NS_APPLICATION_CODE];
 	void* func = SI_NS_FUNCTIONS[NS_APPLICATION_SAPP_CODE];
     
-	return objc_func(nsclass, func);
+	return objc_msgSend_id(nsclass, func);
 }
 
 NSMenu* NSApplication_mainMenu(NSApplication* application) {
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_MAIN_MENU_CODE];
-    return (NSMenu*)objc_func(application, func);
+    return (NSMenu *)objc_msgSend_id(application, func);
 }
 
 void NSApplication_setMainMenu(NSApplication* application, NSMenu* mainMenu) {
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_SET_MAIN_MENU_CODE];
-    objc_func(application, func, mainMenu);
+    objc_msgSend_void_id(application, func, mainMenu);
 }
 
 NSMenu* NSApplication_servicesMenu(NSApplication* application) {
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_SERVICES_MENU_CODE];
-    return (NSMenu*)objc_func(application, func);
+    return (NSMenu *)objc_msgSend_id(application, func);
 }
 
 void NSApplication_setServicesMenu(NSApplication* application, NSMenu* servicesMenu) {
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_SET_SERVICES_MENU_CODE];
-    objc_func(application, func, servicesMenu);
+    objc_msgSend_void_id(application, func, servicesMenu);
 }
 
 NSMenu* NSApplication_helpMenu(NSApplication* application) {
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_HELP_MENU_CODE];
-    return (NSMenu*)objc_func(application, func);
+    return (NSMenu *)objc_msgSend_id(application, func);
 }
 
 void NSApplication_setHelpMenu(NSApplication* application, NSMenu* helpMenu) {
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_SET_HELP_MENU_CODE];
-    objc_func(application, func, helpMenu);
+    objc_msgSend_void_id(application, func, helpMenu);
 }
 
 NSMenu* NSApplication_windowsMenu(NSApplication* application) {
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_WINDOWS_MENU_CODE];
-    return (NSMenu*)objc_func(application, func);
+    return (NSMenu *)objc_msgSend_id(application, func);
 }
 
 void NSApplication_setWindowsMenu(NSApplication* application, NSMenu* windowsMenu) {
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_SET_WINDOWS_MENU_CODE];
-    objc_func(application, func, windowsMenu);
+    objc_msgSend_void_id(application, func, windowsMenu);
 }
 
 NSApplicationActivationPolicy NSApplication_activationPolicy(NSApplication* application) {
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_ACTIVATION_POLICY_CODE];
-    return (NSApplicationActivationPolicy)(intptr_t)objc_func(application, func);
+    return (NSApplicationActivationPolicy)objc_msgSend_uint(application, func);
 }
 
 NSImage* NSApplication_applicationIconImage(NSApplication* application) {
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_APPLICATION_ICON_IMAGE_CODE];
-    return (NSImage*)objc_func(application, func);
+    return (NSImage *)objc_msgSend_id(application, func);
 }
 
 void NSApplication_setApplicationIconImage(NSApplication* application, NSImage* applicationIconImage) {
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_SET_APPLICATION_ICON_IMAGE_CODE];
-    objc_func(application, func, applicationIconImage);
+    objc_msgSend_void_id(application, func, applicationIconImage);
 }
 
 void NSApplication_stop(NSApplication* application, void* view) {
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_STOP_CODE];
-    objc_func(application, func, view);
+    objc_msgSend_void_id(application, func, view);
 }
 
 void NSApplication_terminate(NSApplication* application, id sender) {
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_TERMINATE_CODE];
-    objc_func(application, func, sender);
+    objc_msgSend_void_id(application, func, sender);
 }
 
 void NSApplication_sendEvent(NSApplication* application, NSEvent* event) {
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_SEND_EVENT_CODE];
-    objc_func(application, func, event);
+    objc_msgSend_void_id(application, func, event);
 }
 
 void NSApplication_updateWindows(NSApplication* application) {
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_UPDATE_WINDOWS_CODE];
-    objc_func(application, func);
+    objc_msgSend_void(application, func);
 }
 
 void NSApplication_activateIgnoringOtherApps(NSApplication* application, bool flag) {
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_ACTIVATE_IGNORING_OTHER_APPS_CODE];
-    objc_func(application, func, flag);
+    objc_msgSend_void_bool(application, func, flag);
 }
 
 NSEvent* NSApplication_nextEventMatchingMask(NSApplication* application, NSEventMask mask, NSDate* expiration, NSString* mode, bool deqFlag) {
     if (mode == 0)
         mode = (NSString*)NSBackingStoreBuffered;
-        
+
     void* func = SI_NS_FUNCTIONS[NS_APPLICATION_NEXT_EVENT_MATCHING_MASK_CODE];
-    return (NSEvent*)objc_func(application, func, mask, expiration, mode, deqFlag);
+    return (NSEvent *)((id (*)(id, SEL, NSEventMask, NSDate*, NSString*, bool))
+                objc_msgSend)(application, func, mask, expiration, mode, deqFlag);
 }
 
-si_declare_double(NSApplication, void, setActivationPolicy, NS_APPLICATION_SET_ACTIVATION_POLICY_CODE, NSApplicationActivationPolicy)
-si_declare_single(NSApplication, void, run, NS_APPLICATION_RUN_CODE)
-si_declare_single(NSApplication, void, finishLaunching, NS_APPLICATION_FL_CODE)
+void NSApplication_setActivationPolicy(NSApplication* obj, NSApplicationActivationPolicy d) { \
+    objc_msgSend_void_uint(obj, SI_NS_FUNCTIONS[NS_APPLICATION_SET_ACTIVATION_POLICY_CODE], d); \
+}
+
+si_declare_single(NSApplication, run, NS_APPLICATION_RUN_CODE)
+si_declare_single(NSApplication, finishLaunching, NS_APPLICATION_FL_CODE)
 
 NSScreen* NSScreen_mainScreen(void) {
     void* func = SI_NS_FUNCTIONS[NS_SCREEN_MAIN_SCREEN_CODE];
 	void* class = SI_NS_CLASSES[NS_SCREEN_CODE];
 
-    return (NSScreen*)objc_func(class, func);
+    return (NSScreen *)objc_msgSend_id(class, func);
 }
 
 NSRect NSScreen_frame(NSScreen* screen) {
     void* func = SI_NS_FUNCTIONS[NS_FRAME_CODE];
-
-    typedef NSRect (*objc_send_type)(id, SEL);
-    objc_send_type objc_func = (objc_send_type)objc_msgSend;
-
-    return objc_func(screen, func);
+    
+    return ((NSRect (*)(id, SEL))objc_msgSend) (screen, func);
 }
 
 NSRect NSScreen_visibleFrame(NSScreen* screen) {
     void* func = SI_NS_FUNCTIONS[NS_SCREEN_VISIBLE_FRAME_CODE];
 
-    typedef NSRect (*objc_send_type)(id, SEL);
-    objc_send_type objc_func = (objc_send_type)objc_msgSend;
-
-    return objc_func(screen, func);
+    return ((NSRect (*)(id, SEL))objc_msgSend) (screen, func);
 }
 
 NSWindow* NSWindow_init(NSRect contentRect, NSWindowStyleMask style, NSBackingStoreType backingStoreType, bool flag) {
     void* nsclass = SI_NS_CLASSES[NS_WINDOW_CODE];
 	void* func = SI_NS_FUNCTIONS[NS_WINDOW_INITR_CODE];
 
-    return objc_func(NSAlloc(nsclass), func, contentRect, style, backingStoreType, flag);
+    return ((id (*)(id, SEL, NSRect, NSWindowStyleMask, NSBackingStoreType, bool))objc_msgSend)
+            (NSAlloc(nsclass), func, contentRect, style, backingStoreType, flag);
 }
 
 const char* NSWindow_title(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_TITLE_CODE];
-    return (const char*)NSString_to_char(objc_func(window, func));
+    return (const char*)NSString_to_char(objc_msgSend_id(window, func));
 }
 
 void NSWindow_setTitle(NSWindow* window, const char* title) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_SET_TITLE_CODE];
 
     NSString* str = NSString_stringWithUTF8String(title);
-    objc_func(window, func, str);
+    objc_msgSend_void_id(window, func, str);
 }
 
 NSView* NSWindow_contentView(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_CONTENT_VIEW_CODE];
-    return (NSView*)objc_func(window, func);
+    return (NSView *)objc_msgSend_id(window, func);
 }
 
 void NSWindow_setContentView(NSWindow* window, NSView* contentView) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_SET_CONTENT_VIEW_CODE];
-    objc_func(window, func, contentView);
+    objc_msgSend_void_id(window, func, contentView);
 }
 
 id NSWindow_delegate(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_DELEGATE_CODE];
-    return (id)objc_func(window, func);
+    return (id)objc_msgSend_id(window, func);
 }
 
 void NSWindow_setDelegate(NSWindow* window, id delegate) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_SET_DELEGATE_CODE];
-    objc_func(window, func, delegate);
+    objc_msgSend_void_id(window, func, delegate);
 }
 
 bool NSWindow_isVisible(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_IS_VISIBLE_CODE];
-    return (bool)objc_func(window, func);
+    return (bool)objc_msgSend_bool(window, func);
 }
 
 void NSWindow_setIsVisible(NSWindow* window, bool isVisible) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_SET_IS_VISIBLE_CODE];
 
-    objc_func(window, func, isVisible);
+    objc_msgSend_void_bool(window, func, isVisible);
 }
 
 bool NSWindow_isMiniaturized(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_IS_MINIATURIZED_CODE];
-    return (bool)objc_func(window, func);
+    return (bool)objc_msgSend_bool(window, func);
 }
 
 bool NSWindow_isZoomed(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_IS_ZOOMED_CODE];
-    return (bool)objc_func(window, func);
+    return (bool)objc_msgSend_bool(window, func);
 }
 
 SICDEF NSWindowStyleMask NSWindow_styleMask(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_STYLE_MASK_CODE];
-    return (NSWindowStyleMask)objc_func(window, func);
+    return (NSWindowStyleMask)objc_msgSend_uint(window, func);
 }
 
 NSColor* NSWindow_backgroundColor(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_BACKGROUND_COLOR_CODE];
-    return (NSColor*)objc_func(window, func);
+    return (NSColor *)objc_msgSend_id(window, func);
 }
 
 void NSWindow_setBackgroundColor(NSWindow* window, NSColor* backgroundColor) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_SET_BACKGROUND_COLOR_CODE];
-    objc_func(window, func, backgroundColor);
+    objc_msgSend_void_id(window, func, backgroundColor);
 }
 
 bool NSWindow_isOpaque(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_IS_OPAQUE_CODE];
-    return (bool)objc_func(window, func);
+    return (bool)objc_msgSend_bool(window, func);
 }
 
 void NSWindow_setOpaque(NSWindow* window, bool isOpaque) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_SET_OPAQUE_CODE];
-    objc_func(window, func, isOpaque);
+    objc_msgSend_void_bool(window, func, isOpaque);
 }
 
 CGFloat NSWindow_alphaValue(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_ALPHA_VALUE_CODE];
-    return (CGFloat)(intptr_t)objc_func(window, func);
+    return (CGFloat)objc_msgSend_float(window, func);
 }
 
 void NSWindow_setAlphaValue(NSWindow* window, CGFloat alphaValue) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_SET_ALPHA_VALUE_CODE];
-    objc_func(window, func, (intptr_t)alphaValue);
+    objc_msgSend_void_float(window, func, alphaValue);
 }
 
 bool NSWindow_acceptsMouseMovedEvents(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_ACCEPTS_MOUSE_MOVED_EVENTS_CODE];
-    return (bool)objc_func(window, func);
+    return (bool)objc_msgSend_bool(window, func);
 }
 
 void NSWindow_setAcceptsMouseMovedEvents(NSWindow* window, bool acceptsMouseMovedEvents) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_SET_ACCEPTS_MOUSE_MOVED_EVENTS_CODE];
-    objc_func(window, func, acceptsMouseMovedEvents);
+    objc_msgSend_void_bool(window, func, acceptsMouseMovedEvents);
 }
 
-si_declare_single(NSWindow, void, makeKeyWindow, NS_WINDOW_MAKE_KEY_WINDOW_CODE)
+si_declare_single(NSWindow, makeKeyWindow, NS_WINDOW_MAKE_KEY_WINDOW_CODE)
 
-si_declare_double(NSWindow, void, orderFront, NS_WINDOW_MAKEOF_CODE, NSWindow*)
-si_declare_double(NSWindow, void, makeKeyAndOrderFront, NS_WINDOW_MAKEKO_CODE, SEL)
+si_declare_double(NSWindow, orderFront, NS_WINDOW_MAKEOF_CODE, NSWindow*, objc_msgSend_void_id)
+
+void NSWindow_makeKeyAndOrderFront(NSWindow* obj, SEL d) {
+    void* func = SI_NS_FUNCTIONS[NS_WINDOW_MAKE_KEY_AND_ORDER_FRONT_CODE];
+    ((id (*)(id, SEL, SEL))objc_msgSend)(obj, func, d);
+}
 
 NSInteger NSDraggingInfo_numberOfValidItemsForDrop(NSDraggingInfo* info) {
     void* func = SI_NS_FUNCTIONS[NS_DRAGGING_INFO_NUMBER_OF_VALID_ITEMS_FOR_DROP_CODE];
-    return (NSInteger)(intptr_t)objc_func(info, func);
+    return (NSInteger)objc_msgSend_int(info, func);
 }
 
 void NSSlider_setTarget(NSSlider* slider, id target) {
     void* func = SI_NS_FUNCTIONS[NS_SLIDER_SET_TARGET_CODE];
-    objc_func(slider, func, target);
+    objc_msgSend_void_id(slider, func, target);
 }
 
 id NSSlider_target(NSSlider* slider) {
     void* func = SI_NS_FUNCTIONS[NS_SLIDER_TARGET_CODE];
-    return objc_func(slider, func);
+    return objc_msgSend_id(slider, func);
 }
 
 void NSSlider_setAction(NSSlider* slider, SEL action) {
     void* func = SI_NS_FUNCTIONS[NS_SLIDER_SET_ACTION_CODE];
-    objc_func(slider, func, action);
+    objc_msgSend_void_SEL(slider, func, action);
 }
 
 SEL NSSlider_action(NSSlider* slider) {
     void* func = SI_NS_FUNCTIONS[NS_SLIDER_ACTION_CODE];
-    return objc_func(slider, func);
+    return objc_msgSend_SEL(slider, func);
 }
 
 void NSSlider_setFont(NSSlider* slider, NSFont* font) {
     void* func = SI_NS_FUNCTIONS[NS_SLIDER_SET_FONT_CODE];
-    objc_func(slider, func, font);
+    objc_msgSend_void_id(slider, func, font);
 }
 
 NSFont* NSSlider_font(NSSlider* slider) {
     void* func = SI_NS_FUNCTIONS[NS_SLIDER_FONT_CODE];
-    return (NSFont*)(intptr_t)objc_func(slider, func);
+    return (NSFont*)objc_msgSend_id(slider, func);
 }
 
 void NSSlider_setDoubleValue(NSSlider* slider, double doubleValue) {
     void* func = SI_NS_FUNCTIONS[NS_SLIDER_SET_DOUBLE_VALUE_CODE];
-    objc_func(slider, func, (void*)(intptr_t)doubleValue);
+    objc_msgSend_void_double(slider, func, doubleValue);
 }
 
 double NSSlider_doubleValue(NSSlider* slider) {
     void* func = SI_NS_FUNCTIONS[NS_SLIDER_DOUBLE_VALUE_CODE];
-    return (double)(intptr_t)objc_func(slider, func);
+    return (double)objc_msgSend_double(slider, func);
 }
 
 void NSSlider_setMaxValue(NSSlider* slider, double maxValue) {
     void* func = SI_NS_FUNCTIONS[NS_SLIDER_SET_MAX_VALUE_CODE];
-    objc_func(slider, func, (void*)(intptr_t)maxValue);
+    objc_msgSend_void_double(slider, func, maxValue);
 }
 
 double NSSlider_maxValue(NSSlider* slider) {
     void* func = SI_NS_FUNCTIONS[NS_SLIDER_MAX_VALUE_CODE];
-    return (double)(intptr_t)objc_func(slider, func);
+    return objc_msgSend_double(slider, func);
 }
 
 NSSlider* NSSlider_initWithFrame(NSRect frameRect) {
     void* func = SI_NS_FUNCTIONS[NS_SLIDER_INIT_WITH_FRAME_CODE];
-    return (NSSlider*)(intptr_t)objc_func(NSAlloc(SI_NS_CLASSES[NS_SLIDER_CODE]), func, frameRect);
+    return objc_msgSend_id_rect(NSAlloc(SI_NS_CLASSES[NS_SLIDER_CODE]), func, frameRect);
 }
 
 void NSProgressIndicator_setDoubleValue(NSProgressIndicator* progressIndicator, double doubleValue) {
     void* func = SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_SET_DOUBLE_VALUE_CODE];
-    objc_func(progressIndicator, func, (void*)(intptr_t)doubleValue);
+    objc_msgSend_void_double(progressIndicator, func, doubleValue);
 }
 
 double NSProgressIndicator_doubleValue(NSProgressIndicator* progressIndicator) {
     void* func = SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_DOUBLE_VALUE_CODE];
-    return (double)(intptr_t)objc_func(progressIndicator, func);
+    return objc_msgSend_double(progressIndicator, func);
 }
 
 void NSProgressIndicator_setMaxValue(NSProgressIndicator* progressIndicator, double maxValue) {
     void* func = SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_SET_MAX_VALUE_CODE];
-    objc_func(progressIndicator, func, (void*)(intptr_t)maxValue);
+    objc_msgSend_void_double(progressIndicator, func, maxValue);
 }
 
 double NSProgressIndicator_maxValue(NSProgressIndicator* progressIndicator) {
     void* func = SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_MAX_VALUE_CODE];
-    return (double)(intptr_t)objc_func(progressIndicator, func);
+    return objc_msgSend_double(progressIndicator, func);
 }
 
 void NSProgressIndicator_setIndeterminate(NSProgressIndicator* progressIndicator, bool isIndeterminate) {
     void* func = SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_SET_INDETERMINATE_CODE];
-    objc_func(progressIndicator, func, (void*)(intptr_t)isIndeterminate);
+    objc_msgSend_void_bool(progressIndicator, func, isIndeterminate);
 }
 
 bool NSProgressIndicator_indeterminate(NSProgressIndicator* progressIndicator) {
     void* func = SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_INDETERMINATE_CODE];
-    return (bool)(intptr_t)objc_func(progressIndicator, func);
+    return objc_msgSend_bool(progressIndicator, func);
 }
 
 NSProgressIndicator* NSProgressIndicator_init(NSRect frameRect) {
     void* func = SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_INIT_CODE];
-    return (NSProgressIndicator*)(intptr_t)objc_func(NSAlloc(SI_NS_CLASSES[NS_PROGRESS_INDICATOR_CODE]), func, frameRect);
+    return (NSProgressIndicator*)((id (*)(id, SEL, NSRect))
+                objc_msgSend)(NSAlloc(SI_NS_CLASSES[NS_PROGRESS_INDICATOR_CODE]), func, frameRect);
 }
 
 NSGraphicsContext* NSGraphicsContext_currentContext(NSGraphicsContext* context) {
     void* func = SI_NS_FUNCTIONS[NS_GRAPHICS_CONTEXT_CURRENT_CONTEXT_CODE];
-    return (NSGraphicsContext*)objc_func(SI_NS_CLASSES[NS_GRAPHICS_CONTEXT_CODE], func);
+    return objc_msgSend_id(SI_NS_CLASSES[NS_GRAPHICS_CONTEXT_CODE], func);
 }
 
 void NSGraphicsContext_setCurrentContext(NSGraphicsContext* context, NSGraphicsContext* currentContext) {
     void* func = SI_NS_FUNCTIONS[NS_GRAPHICS_CONTEXT_SET_CURRENT_CONTEXT_CODE];
-    objc_func(context, func, currentContext);
+    objc_msgSend_void_id(context, func, currentContext);
 }
 
 void NSMenuItem_setSubmenu(NSMenuItem* item, NSMenu* submenu) {
     void* func = SI_NS_FUNCTIONS[NS_MENU_ITEM_SET_SUBMENU_CODE];
-    objc_func(item, func, submenu);
+    objc_msgSend_void_id(item, func, submenu);
 }
 
 void NSMenuItem_setTitle(NSMenuItem* item, const char* title) {
     void* func = SI_NS_FUNCTIONS[NS_MENU_ITEM_SET_TITLE_CODE];
     
-    objc_func(item, func, NSString_stringWithUTF8String(title));
+    objc_msgSend_void_id(item, func, NSString_stringWithUTF8String(title));
 }
 
 NSRect NSWindow_frame(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_FRAME_CODE];
 
-    typedef NSRect (*objc_send_type)(id, SEL);
-    objc_send_type objc_func = (objc_send_type)objc_msgSend;
-
-    return objc_func(window, func);
+    return ((NSRect (*)(id, SEL))objc_msgSend) (window, func);
 }
 
 bool NSWindow_isKeyWindow(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_IS_KEY_WINDOW_CODE];
-    return (bool)objc_func(window, func);
+    return (bool)objc_msgSend_bool(window, func);
 }
 
 void NSWindow_center(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_CENTER_CODE];
-    objc_func(window, func);
+    objc_msgSend_void(window, func);
 }
 
 void NSWindow_makeMainWindow(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_MAKE_MAIN_WINDOW_CODE];
-    objc_func(window, func);
+    objc_msgSend_void(window, func);
 }
 
 void NSWindow_setFrameAndDisplay(NSWindow* window, NSRect frame, bool display, bool animate) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_SET_FRAME_AND_DISPLAY_CODE];
-    objc_func(window, func, frame, display, animate);
+    ((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
+        (window, func, frame, display, animate);
 }
 
 void NSWindow_performMiniaturize(NSWindow* window, SEL s) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_PERFORM_MINIATURIZE_CODE];
-    objc_func(window, func, s);
+    objc_msgSend_void_SEL(window, func, s);
 }
 /* */
 void NSWindow_performZoom(NSWindow* window, SEL s) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_PERFORM_ZOOM_CODE];
-   objc_func(window, func, s);
+   objc_msgSend_void_SEL(window, func, s);
 }
 
 NSPoint NSWindow_convertPointFromScreen(NSWindow* window, NSPoint point) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_CONVERT_POINT_FROM_SCREEN_CODE];
-    return *(NSPoint*)objc_func(window, func, point);
+    return *(NSPoint *)((id (*)(id, SEL, NSPoint))objc_msgSend)
+                    (window, func, point);
 }
 
 void NSWindow_display(NSWindow* window) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_DISPLAY_CODE];
-    objc_func(window, func);
+    objc_msgSend_void(window, func);
 }
 
 void NSWindow_contentView_setWantsLayer(NSWindow* window, bool wantsLayer) {
@@ -2310,24 +2345,24 @@ void NSWindow_contentView_setWantsLayer(NSWindow* window, bool wantsLayer) {
     
     NSView* contentView = NSWindow_contentView(window);
 
-    objc_func(contentView, func, wantsLayer);
+    objc_msgSend_void_bool(contentView, func, wantsLayer);
 }
 
 NSView* NSView_init(void) {
 	void* nclass = SI_NS_CLASSES[NS_VIEW_CODE];
     void* func = SI_NS_FUNCTIONS[NS_VIEW_INIT_CODE];
-    return (NSView*)objc_func(NSAlloc(nclass), func);
+    return (NSView *)objc_msgSend_id(NSAlloc(nclass), func);
 }
 
 NSView* NSView_initWithFrame(NSRect frameRect) {
 	void* nclass = SI_NS_CLASSES[NS_VIEW_CODE];
     void* func = SI_NS_FUNCTIONS[NS_VIEW_INIT_WITH_FRAME_CODE];
-    return (NSView*)objc_func(NSAlloc(nclass), func, frameRect);
+    return objc_msgSend_id_rect(NSAlloc(nclass), func, frameRect);
 }
 
 void NSView_addSubview(NSView* view, NSView* subview) {
     void* func = SI_NS_FUNCTIONS[NS_VIEW_ADD_SUBVIEW_CODE];
-    objc_func(view, func, subview);
+    objc_msgSend_void_id(view, func, subview);
 }
 
 void NSView_registerForDraggedTypes(NSView* view, siArray(NSPasteboardType) newTypes) {
@@ -2335,7 +2370,7 @@ void NSView_registerForDraggedTypes(NSView* view, siArray(NSPasteboardType) newT
 
     NSArray* array = si_array_to_NSArray(newTypes);
 
-    objc_func(view, func, array);
+    objc_msgSend_void_id(view, func, array);
 
     NSRelease(array);
 }
@@ -2343,7 +2378,7 @@ void NSView_registerForDraggedTypes(NSView* view, siArray(NSPasteboardType) newT
 const char* NSTextField_stringValue(NSTextField* obj) {
     void* func = SI_NS_FUNCTIONS[NS_TEXT_FIELD_STRING_VALUE_CODE];
 
-    return (const char*)NSString_to_char(objc_func(obj, func));
+    return (const char*)NSString_to_char(objc_msgSend_id(obj, func));
 }
 
 void NSTextField_setStringValue(NSTextField* obj, const char* field) {
@@ -2351,103 +2386,105 @@ void NSTextField_setStringValue(NSTextField* obj, const char* field) {
 
     NSString* str = NSString_stringWithUTF8String(field);
 
-    objc_func(obj, func, str);
+    objc_msgSend_void_id(obj, func, str);
 }
 
 bool NSTextField_isBezeled(NSTextField* obj) {
     void* func = SI_NS_FUNCTIONS[NS_TEXT_FIELD_IS_BEZELED_CODE];
 
-    return *(bool*)objc_func(obj, func);
+    return objc_msgSend_bool(obj, func);
 }
 
 void NSTextField_setBezeled(NSTextField* obj, bool field) {
     void* func = SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_BEZELED_CODE];
 
-    objc_func(obj, func, field);
+    objc_msgSend_void_bool(obj, func, field);
 }
 
 bool NSTextField_drawsBackground(NSTextField* obj) {
     void* func = SI_NS_FUNCTIONS[NS_TEXT_FIELD_DRAWS_BACKGROUND_CODE];
 
-    return *(bool*)objc_func(obj, func);
+    return objc_msgSend_bool(obj, func);
 }
 
 void NSTextField_setDrawsBackground(NSTextField* obj, bool field) {
     void* func = SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_DRAWS_BACKGROUND_CODE];
 
-    objc_func(obj, func, field);
+    objc_msgSend_void_bool(obj, func, field);
 }
 
 bool NSTextField_isEditable(NSTextField* obj) {
     void* func = SI_NS_FUNCTIONS[NS_TEXT_FIELD_IS_EDITABLE_CODE];
 
-    return *(bool*)objc_func(obj, func);
+    return objc_msgSend_bool(obj, func);
 }
 
 void NSTextField_setEditable(NSTextField* obj, bool field) {
     void* func = SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_EDITABLE_CODE];
 
-    objc_func(obj, func, field);
+    objc_msgSend_void_bool(obj, func, field);
 }
 
 bool NSTextField_isSelectable(NSTextField* obj) {
     void* func = SI_NS_FUNCTIONS[NS_TEXT_FIELD_IS_SELECTABLE_CODE];
 
-    return *(bool*)objc_func(obj, func);
+    return objc_msgSend_bool(obj, func);
 }
 
 void NSTextField_setSelectable(NSTextField* obj, bool field) {
     void* func = SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_SEDITABLE_CODE];
 
-    objc_func(obj, func, field);
+    objc_msgSend_void_bool(obj, func, field);
 }
 
 NSColor* NSTextField_textColor(NSTextField* obj) {
     void* func = SI_NS_FUNCTIONS[NS_TEXT_FIELD_TEXT_COLOR_CODE];
 
-    return (NSColor*)objc_func(obj, func);
+    return (NSColor *)objc_msgSend_id(obj, func);
 }
 
 void NSTextField_setTextColor(NSTextField* obj, NSColor* field) {
     void* func = SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_TEXT_COLOR_CODE];
 
-    objc_func(obj, func, field);
+    objc_msgSend_void_id(obj, func, field);
 }
 
 NSFont* NSTextField_font(NSTextField* obj) {
     void* func = SI_NS_FUNCTIONS[NS_TEXT_FIELD_FONT_CODE];
 
-    return (NSFont*)objc_func(obj, func);
+    return (NSFont *)objc_msgSend_id(obj, func);
 }
 
 void NSTextField_setFont(NSTextField* obj, NSFont* field) {
     void* func = SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_FONT_CODE];
 
-    objc_func(obj, func, field);
+    objc_msgSend_void_id(obj, func, field);
 }
 
 NSTextField* NSTextField_initWithFrame(NSRect frameRect) {
     void* func = SI_NS_FUNCTIONS[NS_TEXT_FIELD_INIT_FRAME_CODE];
 
-    return (NSTextField*)objc_func(NSAlloc(SI_NS_CLASSES[NS_TEXT_FIELD_CODE]), func, frameRect);
+    return objc_msgSend_id_rect(NSAlloc(SI_NS_CLASSES[NS_TEXT_FIELD_CODE]), func, frameRect);
 }
 
 NSFontManager* NSFontManager_sharedFontManager(void) {
     void* func = SI_NS_FUNCTIONS[NS_FONT_MANAGER_SHARED_FONT_MANAGER_CODE];
 
-    return (NSFontManager*)objc_func(SI_NS_CLASSES[NS_FONT_MANAGER_CODE], func);
+    return (NSFontManager *)objc_msgSend_id(SI_NS_CLASSES[NS_FONT_MANAGER_CODE], func);
 }
 
 NSFont* NSFontManager_convertFont(NSFontManager* manager, NSFont* fontObj) {
     void* func = SI_NS_FUNCTIONS[NS_FONT_MANAGER_CONVERT_FONT_CODE];
 
-    return (NSFont*)objc_func(SI_NS_CLASSES[NS_FONT_MANAGER_CODE], func, manager, fontObj);
+    return ((id (*)(id, SEL, id, id))objc_msgSend)
+                (SI_NS_CLASSES[NS_FONT_MANAGER_CODE], func, manager, fontObj);
 }
 
 NSFont* NSFontManager_convertFontToHaveTrait(NSFontManager* manager, NSFont* fontObj, NSFontTraitMask trait) {
     void* func = SI_NS_FUNCTIONS[NS_FONT_MANAGER_CONVERT_TO_HAVE_FONT_CODE];
 
-    return (NSFont*)objc_func(manager, func, fontObj, trait);
+    return ((id (*)(id, SEL, NSFont*, NSUInteger))objc_msgSend)
+                (manager, func, fontObj, trait);
 }
 
 NSFont* NSFont_init(const char* fontName, CGFloat fontSize) {
@@ -2455,7 +2492,8 @@ NSFont* NSFont_init(const char* fontName, CGFloat fontSize) {
 
     NSString* str = NSString_stringWithUTF8String(fontName);
 
-    NSFont* font = (NSFont*)objc_func(SI_NS_CLASSES[NS_FONT_CODE], func, str, fontSize);
+    NSFont* font = ((id (*)(id, SEL, id, CGFloat))objc_msgSend)
+                        (SI_NS_CLASSES[NS_FONT_CODE], func, str, fontSize);
 
     NSRelease(str);
 
@@ -2465,189 +2503,189 @@ NSFont* NSFont_init(const char* fontName, CGFloat fontSize) {
 const char* NSFont_fontName(NSFont* font) {
     void* func = SI_NS_FUNCTIONS[NS_FONT_FONT_NAME_CODE];
 
-    NSString* str = objc_func(font, func);
+    NSString* str = objc_msgSend_id(font, func);
 
     return (const char*)NSString_to_char(str);
 }
 
 SICDEF const char* NSButton_title(NSButton* button) {
     void* func = SI_NS_FUNCTIONS[NS_BUTTON_TITLE_CODE];
-    return (const char*)NSString_to_char(objc_func(button, func));
+    return (const char*)NSString_to_char(objc_msgSend_id(button, func));
 }
 
 void NSButton_setTitle(NSButton* button, const char* title) {
     void* func = SI_NS_FUNCTIONS[NS_BUTTON_SET_TITLE_CODE];
-    objc_func(button, func, NSString_stringWithUTF8String(title));
+    objc_msgSend_void_id(button, func, NSString_stringWithUTF8String(title));
 }
 
 NSBezelStyle NSButton_bezelStyle(NSButton* button) {
     void* func = SI_NS_FUNCTIONS[NS_BUTTON_BEZEL_STYLE_CODE];
-    return (NSBezelStyle)(intptr_t)objc_func(button, func);
+    return objc_msgSend_uint(button, func);
 }
 
 void NSButton_setBezelStyle(NSButton* button, NSBezelStyle bezelStyle) {
     void* func = SI_NS_FUNCTIONS[NS_BUTTON_SET_BEZEL_STYLE_CODE];
-    objc_func(button, func, (void*)(intptr_t)bezelStyle);
+    objc_msgSend_void_uint(button, func, bezelStyle);
 }
 
 id NSButton_target(NSButton* button) {
     void* func = SI_NS_FUNCTIONS[NS_BUTTON_TARGET_CODE];
-    return (id)objc_func(button, func);
+    return (id)objc_msgSend_id(button, func);
 }
 
 void NSButton_setTarget(NSButton* button, id target) {
     void* func = SI_NS_FUNCTIONS[NS_BUTTON_SET_TARGET_CODE];
-    objc_func(button, func, target);
+    objc_msgSend_void_id(button, func, target);
 }
 
 SEL NSButton_action(NSButton* button) {
     void* func = SI_NS_FUNCTIONS[NS_BUTTON_ACTION_CODE];
-    return (SEL)objc_func(button, func);
+    return (SEL)objc_msgSend_SEL(button, func);
 }
 
 void NSButton_setAction(NSButton* button, SEL action) {
     void* func = SI_NS_FUNCTIONS[NS_BUTTON_SET_ACTION_CODE];
-    objc_func(button, func, action);
+    objc_msgSend_void_SEL(button, func, action);
 }
 
 NSAutoresizingMaskOptions NSButton_autoresizingMask(NSButton* button) {
     void* func = SI_NS_FUNCTIONS[NS_BUTTON_AUTO_RESIZE_MASK_CODE];
-    return (NSAutoresizingMaskOptions)(intptr_t)objc_func(button, func);
+    return objc_msgSend_uint(button, func);
 }
 
 void NSButton_setAutoresizingMask(NSButton* button, NSAutoresizingMaskOptions autoresizingMask) {
     void* func = SI_NS_FUNCTIONS[NS_BUTTON_SET_AUTO_RESIZE_MASK_CODE];
-    objc_func(button, func, (void*)(intptr_t)autoresizingMask);
+    objc_msgSend_void_uint(button, func, autoresizingMask);
 }
 
 NSControlStateValue NSButton_state(NSButton* button) {
     void* func = SI_NS_FUNCTIONS[NS_BUTTON_STATE_CODE];
-    return (NSControlStateValue)(intptr_t)objc_func(button, func);
+    return objc_msgSend_uint(button, func);
 }
 
 void NSButton_setState(NSButton* button, NSControlStateValue state) {
     void* func = SI_NS_FUNCTIONS[NS_BUTTON_SET_STATE_CODE];
-    objc_func(button, func, (void*)(intptr_t)state);
+    objc_msgSend_void_uint(button, func, state);
 }
 
 bool NSButton_allowsMixedState(NSButton* button) {
     void* func = SI_NS_FUNCTIONS[NS_BUTTON_ALLOWS_MIXED_STATE_CODE];
-    return (bool)(intptr_t)objc_func(button, func);
+    return objc_msgSend_bool(button, func);
 }
 
 void NSButton_setAllowsMixedState(NSButton* button, bool allowsMixedState) {
     void* func = SI_NS_FUNCTIONS[NS_BUTTON_SET_ALLOWS_MIXED_STATE_CODE];
-    objc_func(button, func, (void*)(intptr_t)allowsMixedState);
+    objc_msgSend_void_bool(button, func, allowsMixedState);
 }
 
 NSButton* NSButton_initWithFrame(NSRect frameRect) {
     void* func = SI_NS_FUNCTIONS[NS_BUTTON_INIT_WITH_FRAME_CODE];
-    return (NSButton*)(intptr_t)objc_func(NSAlloc(SI_NS_CLASSES[NS_BUTTON_CODE]), func, frameRect);
+    return objc_msgSend_id_rect(NSAlloc(SI_NS_CLASSES[NS_BUTTON_CODE]), func, frameRect);
 }
 
 void NSButton_setButtonType(NSButton* button, NSButtonType buttonType) {
     void* func = SI_NS_FUNCTIONS[NS_BUTTON_SET_BUTTON_TYPE_CODE];
-    objc_func(button, func, (void*)(intptr_t)buttonType);
+    objc_msgSend_void_uint(button, func, buttonType);
 }
 
 NSInteger NSComboBox_indexOfSelectedItem(NSComboBox* comboBox) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_INDEX_OF_SELECTED_ITEM_CODE];
-    return (NSInteger)(intptr_t)objc_func(comboBox, func);
+    return objc_msgSend_int(comboBox, func);
 }
 
 id NSComboBox_target(NSComboBox* comboBox) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_TARGET_CODE];
-    return objc_func(comboBox, func);
+    return objc_msgSend_id(comboBox, func);
 }
 
 void NSComboBox_setTarget(NSComboBox* comboBox, id target) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_SET_TARGET_CODE];
-    objc_func(comboBox, func, target);
+    objc_msgSend_void_id(comboBox, func, target);
 }
 
 SEL NSComboBox_action(NSComboBox* comboBox) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_ACTION_CODE];
-    return objc_func(comboBox, func);
+    return objc_msgSend_SEL(comboBox, func);
 }
 
 void NSComboBox_setAction(NSComboBox* comboBox, SEL action) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_SET_ACTION_CODE];
-    objc_func(comboBox, func, action);
+    objc_msgSend_void_SEL(comboBox, func, action);
 }
 
 NSFont* NSComboBox_font(NSComboBox* comboBox) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_FONT_CODE];
-    return (NSFont*)(intptr_t)objc_func(comboBox, func);
+    return objc_msgSend_id(comboBox, func);
 }
 
 void NSComboBox_setFont(NSComboBox* comboBox, NSFont* font) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_SET_FONT_CODE];
-    objc_func(comboBox, func, font);
+    objc_msgSend_void_id(comboBox, func, font);
 }
 
 const char* NSComboBox_stringValue(NSComboBox* field) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_STRING_VALUE_CODE];
-    return (const char*)NSString_to_char(objc_func(field, func));
+    return (const char*)NSString_to_char(objc_msgSend_id(field, func));
 }
 
 void NSComboBox_setStringValue(NSComboBox* field, const char* stringValue) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_SET_STRING_VALUE_CODE];
-    objc_func(field, func, NSString_stringWithUTF8String(stringValue));
+    objc_msgSend_void_id(field, func, NSString_stringWithUTF8String(stringValue));
 }
 
 bool NSComboBox_isBezeled(NSComboBox* field) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_IS_BEZELED_CODE];
-    return (bool)(intptr_t)objc_func(field, func);
+    return objc_msgSend_bool(field, func);
 }
 
 void NSComboBox_setIsBezeled(NSComboBox* field, bool isBezeled) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_SET_IS_BEZELED_CODE];
-    objc_func(field, func, (void*)(intptr_t)isBezeled);
+    objc_msgSend_void_bool(field, func, isBezeled);
 }
 
 bool NSComboBox_drawsBackground(NSComboBox* field) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_DRAWS_BACKGROUND_CODE];
-    return (bool)(intptr_t)objc_func(field, func);
+    return objc_msgSend_bool(field, func);
 }
 
 void NSComboBox_setDrawsBackground(NSComboBox* field, bool drawsBackground) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_SET_DRAWS_BACKGROUND_CODE];
-    objc_func(field, func, (void*)(intptr_t)drawsBackground);
+    objc_msgSend_void_bool(field, func, drawsBackground);
 }
 
 bool NSComboBox_isEditable(NSComboBox* field) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_IS_EDITABLE_CODE];
-    return (bool)(intptr_t)objc_func(field, func);
+    return objc_msgSend_bool(field, func);
 }
 
 void NSComboBox_setEditable(NSComboBox* field, bool isEditable) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_SET_IS_EDITABLE_CODE];
-    objc_func(field, func, (void*)(intptr_t)isEditable);
+    objc_msgSend_void_bool(field, func, isEditable);
 }
 
 bool NSComboBox_isSelectable(NSComboBox* field) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_IS_SELECTABLE_CODE];
-    return (bool)(intptr_t)objc_func(field, func);
+    return objc_msgSend_bool(field, func);
 }
 
 void NSComboBox_setIsSelectable(NSComboBox* field, bool isSelectable) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_SET_IS_SELECTABLE_CODE];
-    objc_func(field, func, (void*)(intptr_t)isSelectable);
+    objc_msgSend_void_bool(field, func, isSelectable);
 }
 
 NSColor* NSComboBox_textColor(NSComboBox* field) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_TEXT_COLOR_CODE];
-    return (NSColor*)objc_func(field, func);
+    return (NSColor *)objc_msgSend_id(field, func);
 }
 
 void NSComboBox_setTextColor(NSComboBox* field, NSColor* textColor) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_SET_TEXT_COLOR_CODE];
-    objc_func(field, func, textColor);
+    objc_msgSend_void_id(field, func, textColor);
 }
 
 NSComboBox* NSComboBox_initWithFrame(NSRect frameRect) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_INIT_WITH_FRAME_CODE];
-    return (NSComboBox*)(intptr_t)objc_func(NSAlloc(SI_NS_CLASSES[NS_COMBOBOX_CODE]), func, frameRect);
+    return objc_msgSend_id_rect(NSAlloc(SI_NS_CLASSES[NS_COMBOBOX_CODE]), func, frameRect);
 }
 
 void NSComboBox_addItem(NSComboBox* comboBox, const char* item) {
@@ -2656,46 +2694,43 @@ void NSComboBox_addItem(NSComboBox* comboBox, const char* item) {
     NSString* str = NSString_stringWithUTF8String(item);
     NSRetain(str);
 
-    objc_func(comboBox, func, str);
+    objc_msgSend_void_id(comboBox, func, str);
 }
 
 void NSComboBox_selectItem(NSComboBox* comboBox, NSInteger index) {
     void* func = SI_NS_FUNCTIONS[NS_COMBOBOX_SELECT_ITEM_CODE];
-    objc_func(comboBox, func, index);
+    objc_msgSend_void_int(comboBox, func, index);
 }
 
 NSEventType NSEvent_type(NSEvent* event) {
     void* func = SI_NS_FUNCTIONS[NS_EVENT_TYPE_CODE];
-    return (NSEventType)(intptr_t)objc_func(event, func);
+    return objc_msgSend_uint(event, func);
 }
 
 NSPoint NSEvent_locationInWindow(NSEvent* event) {
     void* func = SI_NS_FUNCTIONS[NS_EVENT_LOCATION_IN_WINDOW_CODE];
 
-    typedef NSPoint (*objc_send_type)(id, SEL);
-    objc_send_type objc_func = (objc_send_type)objc_msgSend;
-
-    return objc_func(event, func);
+    return ((NSPoint (*)(id, SEL)) objc_msgSend)(event, func);
 }
 
 NSEventModifierFlags NSEvent_modifierFlags(NSEvent* event) {
     void* func = SI_NS_FUNCTIONS[NS_EVENT_MODIFIER_FLAGS_CODE];
-    return (NSEventModifierFlags)(intptr_t)objc_func(event, func);
+    return objc_msgSend_uint(event, func);
 }
 
 unsigned short NSEvent_keyCode(NSEvent* event) {
     void* func = SI_NS_FUNCTIONS[NS_EVENT_KEY_CODE_CODE];
-    return (unsigned short)(intptr_t)objc_func(event, func);
+    return objc_msgSend_uint(event, func);
 }
 
 const char* NSEvent_characters(NSEvent* event) {
     void* func = SI_NS_FUNCTIONS[NS_EVENT_CHARACTERS_CODE];
-    return (const char*)NSString_to_char(objc_func(event, func));
+    return (const char*)NSString_to_char(objc_msgSend_id(event, func));
 }
 
 CGFloat NSEvent_deltaY(NSEvent* event) {
     void* func = SI_NS_FUNCTIONS[NS_EVENT_DELTA_Y_CODE];
-    return *(CGFloat*)objc_func(event, func);
+    return ((CGFloat (*)(id, SEL))abi_objc_msgSend_fpret)(event, func);
 }
 
 unsigned short NSEvent_keyCodeForChar(char* keyStr) {
@@ -2709,124 +2744,128 @@ unsigned short NSEvent_keyCodeForChar(char* keyStr) {
 
 NSPoint NSEvent_mouseLocation(void) {
     void* func = SI_NS_FUNCTIONS[NS_EVENT_MOUSE_LOCATION_CODE];
-    return *(NSPoint*)objc_func(SI_NS_CLASSES[NS_EVENT_CODE], func);
+    return *(NSPoint *)objc_msgSend_id(SI_NS_CLASSES[NS_EVENT_CODE], func);
 }
 
 NSWindow* NSEvent_window(NSEvent* event) {
     void* func = SI_NS_FUNCTIONS[NS_EVENT_WINDOW_CODE];
-    return (NSWindow*)objc_func(event, func);
+    return (NSWindow *)objc_msgSend_id(event, func);
 }
 
 NSPasteboard* NSDraggingInfo_draggingPasteboard(NSDraggingInfo* info) {
     void* func = SI_NS_FUNCTIONS[NS_DRAGGING_INFO_DRAGGING_PASTEBOARD_CODE];
-    return (NSPasteboard*)objc_func(info, func);
+    return (NSPasteboard *)objc_msgSend_id(info, func);
 }
 
 NSPoint NSDraggingInfo_draggingLocation(NSDraggingInfo* info) {
     void* func = SI_NS_FUNCTIONS[NS_DRAGGING_INFO_DRAGGING_LOCATION_CODE];
-    return *(NSPoint*)objc_func(info, func);
+    return *(NSPoint *)objc_msgSend_id(info, func);
 }
 
 void NSDraggingInfo_setNumberOfValidItemsForDrop(NSDraggingInfo* info, NSInteger numberOfValidItemsForDrop) {
     void* func = SI_NS_FUNCTIONS[NS_DRAGGING_INFO_SET_NUMBER_OF_VALID_ITEMS_FOR_DROP_CODE];
-    objc_func(info, func, (intptr_t)numberOfValidItemsForDrop);
+    objc_msgSend_void_int(info, func, numberOfValidItemsForDrop);
 }
 
 NSWindow* NSDraggingInfo_draggingDestinationWindow(NSDraggingInfo* info) {
     void* func = SI_NS_FUNCTIONS[NS_DRAGGING_INFO_DRAGGING_DESTINATION_WINDOW_CODE];
-    return (NSWindow*)objc_func(info, func);
+    return objc_msgSend_id(info, func);
 }
 
 NSImage* NSImage_initWithSize(NSSize size) {
     void* func = SI_NS_FUNCTIONS[NS_IMAGE_INIT_WITH_SIZE_CODE];
-    return (NSImage*)objc_func(NSAlloc(SI_NS_CLASSES[NS_IMAGE_CODE]), func, size);
+    return ((id (*)(id, SEL, NSSize))objc_msgSend)
+                (NSAlloc(SI_NS_CLASSES[NS_IMAGE_CODE]), func, size);
 }
 
 NSImage* NSImage_initWithData(unsigned char* bitmapData, NSUInteger length) {
     void* func = SI_NS_FUNCTIONS[NS_IMAGE_INIT_WITH_DATA_CODE];
-    return (NSImage*)objc_func(NSAlloc(SI_NS_CLASSES[NS_IMAGE_CODE]), func, bitmapData, length);
+    return ((id (*)(id, SEL, unsigned char*, NSUInteger))objc_msgSend)
+            (NSAlloc(SI_NS_CLASSES[NS_IMAGE_CODE]), func, bitmapData, length);
 }
 
 NSImage* NSImage_initWithFile(const char* path) {
     void* func = SI_NS_FUNCTIONS[NS_IMAGE_INIT_WITH_FILE_CODE];
-    return (NSImage*)objc_func(NSAlloc(SI_NS_CLASSES[NS_IMAGE_CODE]), func, NSString_stringWithUTF8String(path));
+    return (NSImage *)objc_msgSend_id_id(NSAlloc(SI_NS_CLASSES[NS_IMAGE_CODE]), func, NSString_stringWithUTF8String(path));
 }
 
 NSImage* NSImage_initWithCGImage(CGImageRef cgImage, NSSize size) {
     void* func = SI_NS_FUNCTIONS[NS_IMAGE_INIT_WITH_CGIMAGE_CODE];
-    return (NSImage*)objc_func(NSAlloc(SI_NS_CLASSES[NS_IMAGE_CODE]), func, cgImage, size);
+    return (NSImage *)((id (*)(id, SEL, CGImageRef, NSSize))objc_msgSend)
+                (NSAlloc(SI_NS_CLASSES[NS_IMAGE_CODE]), func, cgImage, size);
 }
 
 void NSImage_addRepresentation(NSImage* image, NSImageRep* imageRep) {
     void* func = SI_NS_FUNCTIONS[NS_IMAGE_ADD_REPRESENTATION_CODE];
-    objc_func(image, func, imageRep);
+    objc_msgSend_void_id(image, func, imageRep);
 }
 
 NSCursor* NSCursor_currentCursor(void) {
 	void* nclass = SI_NS_CLASSES[NS_CURSOR_CODE];
     void* func = SI_NS_FUNCTIONS[NS_CURSOR_CURRENT_CURSOR_CODE];
-    return (NSCursor*)objc_func(nclass, func);
+    return(NSCursor *)objc_msgSend_id(nclass, func);
 }
 
 NSImage* NSCursor_image(NSCursor* cursor) {
     void* func = SI_NS_FUNCTIONS[NS_CURSOR_IMAGE_CODE];
-    return (NSImage*)objc_func(cursor, func);
+    return (NSImage *)objc_msgSend_id(cursor, func);
 }
 
 NSPoint NSCursor_hotSpot(NSCursor* cursor) {
     void* func = SI_NS_FUNCTIONS[NS_CURSOR_HOT_SPOT_CODE];
-    return *(NSPoint*)objc_func(cursor, func);
+    return *(NSPoint *)objc_msgSend_id(cursor, func);
 }
 
 NSCursor* NSCursor_arrowCursor(void) {
 	void* nclass = SI_NS_CLASSES[NS_CURSOR_CODE];
     void* func = SI_NS_FUNCTIONS[NS_CURSOR_ARROW_CURSOR_CODE];
-    return (NSCursor*)objc_func(nclass, func);
+    return (NSCursor *)objc_msgSend_id(nclass, func);
 }
 
 NSCursor* NSCursor_initWithImage(NSImage* newImage, NSPoint aPoint) {
     void* func = SI_NS_FUNCTIONS[NS_CURSOR_INIT_WITH_IMAGE_CODE];
     void* nsclass = SI_NS_CLASSES[NS_CURSOR_CODE];
 
-    return (NSCursor*)objc_func(NSAlloc(nsclass), func, newImage, aPoint);
+    return (NSCursor *)((id (*)(id, SEL, id, NSPoint))objc_msgSend)
+                    (NSAlloc(nsclass), func, newImage, aPoint);
 }
 
 void NSCursor_hide(void) {
 	void* nclass = SI_NS_CLASSES[NS_CURSOR_CODE];
     void* func = SI_NS_FUNCTIONS[NS_CURSOR_HIDE_CODE];
-    objc_func(nclass, func);
+    objc_msgSend_void(nclass, func);
 }
 
 void NSCursor_unhide(void) {
 	void* nclass = SI_NS_CLASSES[NS_CURSOR_CODE];
     void* func = SI_NS_FUNCTIONS[NS_CURSOR_UNHIDE_CODE];
-    objc_func(nclass, func);
+    objc_msgSend_void(nclass, func);
 }
 
 void NSCursor_pop(NSCursor* cursor) {
     void* func = SI_NS_FUNCTIONS[NS_CURSOR_POP_CODE];
-    objc_func(cursor, func);
+    objc_msgSend_void(cursor, func);
 }
 
 void NSCursor_push(NSCursor* cursor) {
     void* func = SI_NS_FUNCTIONS[NS_CURSOR_PUSH_CODE];
-    objc_func(cursor, func);
+    objc_msgSend_void(cursor, func);
 }
 
 void NSCursor_set(NSCursor* cursor) {
     void* func = SI_NS_FUNCTIONS[NS_CURSOR_SET_CODE];
-    objc_func(cursor, func);
+    objc_msgSend_void(cursor, func);
 }
 
 NSPasteboard* NSPasteboard_generalPasteboard(void) {
 	void* nclass = SI_NS_CLASSES[NS_PASTEBOARD_CODE];
     void* func = SI_NS_FUNCTIONS[NS_PASTEBOARD_GENERAL_PASTEBOARD_CODE];
-    return (NSPasteboard*)objc_func(nclass, func);
+    return (NSPasteboard *)objc_msgSend_id(nclass, func);
 }
 
 const char* NSPasteboard_stringForType(NSPasteboard* pasteboard, NSPasteboardType dataType) {
     void* func = SI_NS_FUNCTIONS[NS_PASTEBOARD_STRING_FOR_TYPE_CODE];
-    return (const char*)NSString_to_char(objc_func(pasteboard, func, dataType));
+    return (const char*)NSString_to_char(((id (*)(id, SEL, const char*))objc_msgSend)(pasteboard, func, dataType));
 }
 
 NSInteger NSPasteBoard_declareTypes(NSPasteboard* pasteboard, siArray(NSPasteboardType) newTypes, void* owner) {
@@ -2834,7 +2873,8 @@ NSInteger NSPasteBoard_declareTypes(NSPasteboard* pasteboard, siArray(NSPasteboa
 
     NSArray* array = si_array_to_NSArray(newTypes);
 
-    NSInteger output = (NSInteger)(intptr_t)objc_func(pasteboard, func, array, owner);
+    NSInteger output = ((NSInteger (*)(id, SEL, id, void*))objc_msgSend)
+                            (pasteboard, func, array, owner);
     NSRelease(array);
 
     return output;
@@ -2842,7 +2882,8 @@ NSInteger NSPasteBoard_declareTypes(NSPasteboard* pasteboard, siArray(NSPasteboa
 
 bool NSPasteBoard_setString(NSPasteboard* pasteboard, const char* stringToWrite, NSPasteboardType dataType) {
     void* func = SI_NS_FUNCTIONS[NS_PASTEBOARD_SET_STRING_CODE];
-    return (bool)objc_func(pasteboard, func, NSString_stringWithUTF8String(stringToWrite), dataType);
+    return ((bool (*)(id, SEL, id, NSPasteboardType))objc_msgSend)
+                (pasteboard, func, NSString_stringWithUTF8String(stringToWrite), dataType);
 }
 
 siArray(const char*) NSPasteboard_readObjectsForClasses(NSPasteboard* pasteboard, siArray(Class) classArray, void* options) {
@@ -2850,7 +2891,8 @@ siArray(const char*) NSPasteboard_readObjectsForClasses(NSPasteboard* pasteboard
     
     NSArray* array = si_array_to_NSArray(classArray);
 
-    NSArray* output = (NSArray*)objc_func(pasteboard, func, array, options);
+    NSArray* output = (NSArray *)((id (*)(id, SEL, id, void*))objc_msgSend)
+                            (pasteboard, func, array, options);
 
     NSRelease(array);
 
@@ -2866,33 +2908,34 @@ siArray(const char*) NSPasteboard_readObjectsForClasses(NSPasteboard* pasteboard
 
 NSMenu* NSMenu_init(const char* title) {
     void* func = SI_NS_FUNCTIONS[NS_MENU_INIT_CODE];
-    return (NSMenu*)objc_func(NSAlloc(SI_NS_CLASSES[NS_MENU_CODE]), func, NSString_stringWithUTF8String(title));
+    return (NSMenu *)objc_msgSend_id_id(NSAlloc(SI_NS_CLASSES[NS_MENU_CODE]), func, NSString_stringWithUTF8String(title));
 }
 
 void NSMenu_addItem(NSMenu* menu, NSMenuItem* newItem) {
     void* func = SI_NS_FUNCTIONS[NS_MENU_ADD_ITEM_CODE];
-    objc_func(menu, func, newItem);
+    objc_msgSend_void_id(menu, func, newItem);
 }
 
 const char* NSMenuItem_title(NSMenuItem* item) {
     void* func = SI_NS_FUNCTIONS[NS_MENU_ITEM_TITLE_CODE];
-    return (const char*)NSString_to_char(objc_func(item, func));
+    return (const char*)NSString_to_char(objc_msgSend_id(item, func));
 }
 
 NSMenu* NSMenuItem_submenu(NSMenuItem* item) {
     void* func = SI_NS_FUNCTIONS[NS_MENU_ITEM_SUBMENU_CODE];
-    return (NSMenu*)objc_func(item, func);
+    return (NSMenu *)objc_msgSend_id(item, func);
 }
 
 NSMenuItem* NSMenuItem_init(const char* title, SEL selector, const char* keyEquivalent) {
     void* func = SI_NS_FUNCTIONS[NS_MENU_ITEM_INIT_CODE];
-    return (NSMenuItem*)objc_func(NSAlloc(SI_NS_CLASSES[NS_MENUITEM_CODE]), func, NSString_stringWithUTF8String(title), selector, NSString_stringWithUTF8String(keyEquivalent));
+    return (NSMenuItem *)((id (*)(id, SEL, id, SEL, id))objc_msgSend)
+                (NSAlloc(SI_NS_CLASSES[NS_MENUITEM_CODE]), func, NSString_stringWithUTF8String(title), selector, NSString_stringWithUTF8String(keyEquivalent));
 }
 
 siArray(NSMenuItem*) NSMenu_itemArray(NSMenu* menu) {
     void* func = SI_NS_FUNCTIONS[NS_MENU_ITEM_ARRAY_CODE];
 
-    NSArray* array = (NSArray*)objc_func(menu, func);
+    NSArray* array = (NSArray *)objc_msgSend_id(menu, func);
 
     NSUInteger count = NSArray_count(array);
 
@@ -2910,27 +2953,30 @@ siArray(NSMenuItem*) NSMenu_itemArray(NSMenu* menu) {
 NSMenuItem* NSMenuItem_separatorItem(void) {
 	void* nclass = SI_NS_CLASSES[NS_MENUITEM_CODE];
     void* func = SI_NS_FUNCTIONS[NS_MENU_ITEM_SEPARATOR_ITEM_CODE];
-    return (NSMenuItem*)objc_func(nclass, func);
+    return (NSMenuItem *)objc_msgSend_id(nclass, func);
 }
 
 unsigned char* NSBitmapImageRep_bitmapData(NSBitmapImageRep* imageRep) {
     void* func = SI_NS_FUNCTIONS[NS_BITMAPIMAGEREP_BITMAP_CODE];
-    return (unsigned char*)objc_func(imageRep, func);
+    return ((unsigned char* (*)(id, SEL))objc_msgSend)
+                (imageRep, func);
 }
 
 NSBitmapImageRep* NSBitmapImageRep_initWithBitmapData(unsigned char** planes, NSInteger width, NSInteger height, NSInteger bps, NSInteger spp, bool alpha, bool isPlanar, const char* colorSpaceName, NSBitmapFormat bitmapFormat, NSInteger rowBytes, NSInteger pixelBits) {
     void* func = SI_NS_FUNCTIONS[NS_BITMAPIMAGEREP_INIT_BITMAP_CODE];
-    return (NSBitmapImageRep*)objc_func(NSAlloc(SI_NS_CLASSES[NS_BITMAPIMAGEREP_CODE]), func, planes, width, height, bps, spp, alpha, isPlanar, NSString_stringWithUTF8String(colorSpaceName), bitmapFormat, rowBytes, pixelBits);
+
+    return (NSBitmapImageRep *)((id (*)(id, SEL, unsigned char**, NSInteger, NSInteger, NSInteger, NSInteger, bool, bool, const char*, NSBitmapFormat, NSInteger, NSInteger))objc_msgSend)
+                    (NSAlloc(SI_NS_CLASSES[NS_BITMAPIMAGEREP_CODE]), func, planes, width, height, bps, spp, alpha, isPlanar, NSString_stringWithUTF8String(colorSpaceName), bitmapFormat, rowBytes, pixelBits);
 }
 
 void NSSavePanel_setCanCreateDirectories(NSSavePanel* savePanel, bool canCreateDirectories) {
     void* func = SI_NS_FUNCTIONS[NS_SAVE_PANEL_SET_CAN_CREATE_DIRECTORIES_CODE];
-    objc_func(savePanel, func, (void*)(intptr_t)canCreateDirectories);
+    objc_msgSend_void_bool(savePanel, func, canCreateDirectories);
 }
 
 bool NSSavePanel_canCreateDirectories(NSSavePanel* savePanel) {
     void* func = SI_NS_FUNCTIONS[NS_SAVE_PANEL_CAN_CREATE_DIRECTORIES_CODE];
-    return (bool)(intptr_t)objc_func(savePanel, func);
+    return objc_msgSend_bool(savePanel, func);
 }
 
 void NSSavePanel_setAllowedFileTypes(NSSavePanel* savePanel, siArray(const char*) allowedFileTypes) {
@@ -2943,7 +2989,7 @@ void NSSavePanel_setAllowedFileTypes(NSSavePanel* savePanel, siArray(const char*
 	}
 
 	NSArray* array = si_array_to_NSArray(copy);
-	objc_func(savePanel, func, array);
+	objc_msgSend_void_id(savePanel, func, array);
 
 	si_array_free(copy);
 	NSRelease(array);
@@ -2951,7 +2997,7 @@ void NSSavePanel_setAllowedFileTypes(NSSavePanel* savePanel, siArray(const char*
 
 siArray(const char*) NSSavePanel_allowedFileTypes(NSSavePanel* savePanel) {
     void* func = SI_NS_FUNCTIONS[NS_SAVE_PANEL_ALLOWED_FILE_TYPES_CODE];
-    NSArray* output = (NSArray*)objc_func(savePanel, func);
+    NSArray* output = (NSArray *)objc_msgSend_id(savePanel, func);
 
     NSUInteger count = NSArray_count(output);
 
@@ -2967,59 +3013,60 @@ siArray(const char*) NSSavePanel_allowedFileTypes(NSSavePanel* savePanel) {
 
 void NSSavePanel_setDirectoryURL(NSSavePanel* savePanel, NSURL* directoryURL) {
     void* func = SI_NS_FUNCTIONS[NS_SAVE_PANEL_SET_DIRECTORY_URL_CODE];
-    objc_func(savePanel, func, directoryURL);
+    objc_msgSend_void_id(savePanel, func, directoryURL);
 }
 
 NSURL* NSSavePanel_directoryURL(NSSavePanel* savePanel) {
     void* func = SI_NS_FUNCTIONS[NS_SAVE_PANEL_DIRECTORY_URL_CODE];
-    return (NSURL*)objc_func(savePanel, func);
+    return (NSURL *)objc_msgSend_id(savePanel, func);
 }
 
 void NSSavePanel_setNameFieldStringValue(NSSavePanel* savePanel, const char* nameFieldStringValue) {
     void* func = SI_NS_FUNCTIONS[NS_SAVE_PANEL_SET_NAME_FIELD_STRING_VALUE_CODE];
-    objc_func(savePanel, func, NSString_stringWithUTF8String(nameFieldStringValue));
+    objc_msgSend_void_id(savePanel, func, NSString_stringWithUTF8String(nameFieldStringValue));
 }
 
 const char* NSSavePanel_nameFieldStringValue(NSSavePanel* savePanel) {
     void* func = SI_NS_FUNCTIONS[NS_SAVE_PANEL_NAME_FIELD_STRING_VALUE_CODE];
-    return (const char*)objc_func(savePanel, func);
+    return (const char*)NSString_to_char((NSString *)objc_msgSend_id(savePanel, func));
 }
 
 NSURL* NSSavePanel_URL(NSSavePanel* savePanel) {
     void* func = SI_NS_FUNCTIONS[NS_SAVE_PANEL_URL_CODE];
-    return (NSURL*)objc_func(savePanel, func);
+    return (NSURL *)objc_msgSend_id(savePanel, func);
 }
 
 NSModalResponse NSSavePanel_runModal(NSSavePanel* savePanel) {
     void* func = SI_NS_FUNCTIONS[NS_SAVE_PANEL_RUN_MODAL_CODE];
-    return (NSModalResponse)(intptr_t)objc_func(savePanel, func);
+    return objc_msgSend_uint(savePanel, func);
 }
 
 const char* NSURL_path(NSURL* url) {
     void* func = SI_NS_FUNCTIONS[NSURL_PATH_CODE];
-    return (const char*)objc_func(url, func);
+    return (const char*)NSString_to_char((NSString *)objc_msgSend_id(url, func));
 }
 
 NSURL* NSURL_fileURLWithPath(const char* path) {
     void* func = SI_NS_FUNCTIONS[NSURL_FILE_URL_WITH_PATH_CODE];
-    return (NSURL*)objc_func(SI_NS_CLASSES[NS_URL_CODE], func, NSString_stringWithUTF8String(path));
+    return (NSURL *)objc_msgSend_id_id(SI_NS_CLASSES[NS_URL_CODE], func, NSString_stringWithUTF8String(path));
 }
 
 NSString* NSString_stringWithUTF8String(const char* str) {
     void* func = SI_NS_FUNCTIONS[NS_STRING_WIDTH_UTF8_STRING_CODE];
-    return objc_func(SI_NS_CLASSES[NS_STRING_CODE], func, str);
+    return ((id (*)(id, SEL, const char*))objc_msgSend)
+                (SI_NS_CLASSES[NS_STRING_CODE], func, str);
 }
 
 const char* NSString_to_char(NSString* str) {
     void* func = SI_NS_FUNCTIONS[NS_UTF8_STRING_CODE];
-    return objc_func(str, func);   
+    return ((const char* (*)(id, SEL)) objc_msgSend) (str, func);   
 }
 
 const char* NSDictionary_objectForKey(NSDictionary* d, const char* str) {
     void* func = SI_NS_FUNCTIONS[NS_OBJECT_FOR_KEY_CODE];
 
     NSString* s = NSString_stringWithUTF8String(str);
-    NSString* obj = objc_func(d, func, s);
+    NSString* obj = objc_msgSend_id_id(d, func, s);
     
     NSRelease(s);
 
@@ -3031,73 +3078,77 @@ const char* NSDictionary_objectForKey(NSDictionary* d, const char* str) {
 
 NSDictionary* NSBundle_infoDictionary(NSBundle* bundle) {
     void* func = SI_NS_FUNCTIONS[NS_INFO_DICTIONARY_CODE];
-    return objc_func(bundle, func);   
+    return objc_msgSend_id(bundle, func);   
 }
 
 NSBundle* NSBundle_mainBundle(void) {
     void* func = SI_NS_FUNCTIONS[NS_INFO_MAIN_BUNDLE_CODE];
     void* nsclass = SI_NS_CLASSES[NS_BUNDLE_CODE];
     
-    return objc_func(nsclass, func);   
+    return objc_msgSend_id(nsclass, func);   
 }
 
 NSArray* si_array_to_NSArray(siArray(void) array) {
     void* func = SI_NS_FUNCTIONS[NS_ARRAY_SI_ARRAY_CODE];
     void* nsclass = SI_NS_CLASSES[NS_ARRAY_CODE];
 
-    return objc_func(NSAlloc(nsclass), func, array, si_array_len(array));
+    return ((id (*)(id, SEL, void*, NSUInteger))objc_msgSend)
+                (NSAlloc(nsclass), func, array, si_array_len(array));
 }
 
 NSUInteger NSArray_count(NSArray* array) {
     void* func = SI_NS_FUNCTIONS[NS_ARRAY_COUNT_CODE];
-    return *(NSUInteger*)objc_func(array, func);
+    return ((NSUInteger (*)(id, SEL))objc_msgSend)(array, func);
 }
 
 void* NSArray_objectAtIndex(NSArray* array, NSUInteger index) {
     void* func = SI_NS_FUNCTIONS[NS_OBJECT_AT_INDEX_CODE];
-    return objc_func(SI_NS_CLASSES[NS_STRING_CODE], func, index);
+    return ((id (*)(id, SEL, NSUInteger))objc_msgSend)(SI_NS_CLASSES[NS_STRING_CODE], func, index);
 }
 
-id NSAutoRelease(id obj) { return (id)objc_func(obj, SI_NS_FUNCTIONS[NS_AUTORELEASE_CODE]); }
+id NSAutoRelease(id obj) { return (id)objc_msgSend_id(obj, SI_NS_FUNCTIONS[NS_AUTORELEASE_CODE]); }
 
-id NSInit(void* class) { return (id)objc_func(class, SI_NS_FUNCTIONS[NS_INIT_CODE]); }
+id NSInit(void* class) { return (id)objc_msgSend_id(class, SI_NS_FUNCTIONS[NS_INIT_CODE]); }
 
-void NSRelease(id obj) { objc_func(obj, SI_NS_FUNCTIONS[NS_RELEASE_CODE]); }
+void NSRelease(id obj) { objc_msgSend_void(obj, SI_NS_FUNCTIONS[NS_RELEASE_CODE]); }
 
-void NSRetain(id obj) { objc_func(obj, SI_NS_FUNCTIONS[NS_RETAIN_CODE]); }
+void NSRetain(id obj) { objc_msgSend_void(obj, SI_NS_FUNCTIONS[NS_RETAIN_CODE]); }
 
 /* ======== OpenGL ======== */
 NSOpenGLPixelFormat* NSOpenGLPixelFormat_initWithAttributes(const NSOpenGLPixelFormatAttribute* attribs) {
     void* func = SI_NS_FUNCTIONS[NS_OPENGL_PIXEL_FORMAT_INIT_WITH_ATTRIBUTES_CODE];
-    return (NSOpenGLPixelFormat*)objc_func(NSAlloc(SI_NS_CLASSES[NS_OPENGL_PF_CODE]), func, attribs);
+    return (NSOpenGLPixelFormat *)((id (*)(id, SEL, const NSOpenGLPixelFormatAttribute*))objc_msgSend)
+            (NSAlloc(SI_NS_CLASSES[NS_OPENGL_PF_CODE]), func, attribs);
 }
 
 NSOpenGLView* NSOpenGLView_initWithFrame(NSRect frameRect, NSOpenGLPixelFormat* format) {
     void* func = SI_NS_FUNCTIONS[NS_OPENGL_VIEW_INIT_WITH_FRAME_CODE];
-    return (NSOpenGLView*)objc_func(NSAlloc(SI_NS_CLASSES[NS_OPENGL_VIEW_CODE]), func, frameRect, format);
+    return (NSOpenGLView *)((id (*)(id, SEL, NSRect, NSOpenGLPixelFormat*))objc_msgSend)
+                (NSAlloc(SI_NS_CLASSES[NS_OPENGL_VIEW_CODE]), func, frameRect, format);
 }
 
 void NSOpenGLView_prepareOpenGL(NSOpenGLView* view) {
     void* func = SI_NS_FUNCTIONS[NS_OPENGL_VIEW_PREPARE_OPENGL_CODE];
-    objc_func(view, func);
+    objc_msgSend_void(view, func);
 }
 
 NSOpenGLContext* NSOpenGLView_openGLContext(NSOpenGLView* view) {
     void* func = SI_NS_FUNCTIONS[NS_OPENGL_VIEW_OPENGL_CONTEXT_CODE];
-    return (NSOpenGLContext*)objc_func(view, func);
+    return (NSOpenGLContext *)objc_msgSend_id(view, func);
 }
 
 void NSOpenGLContext_setValues(NSOpenGLContext* context, const int* vals, NSOpenGLContextParameter param) {
     void* func = SI_NS_FUNCTIONS[NS_OPENGL_CONTEXT_SET_VALUES_CODE];
-    objc_func(context, func, vals, param);
+    ((void (*)(id, SEL, const int*, NSOpenGLContextParameter))objc_msgSend)
+            (context, func, vals, param);
 }
 
 void NSOpenGLContext_makeCurrentContext(NSOpenGLContext* context) {
     void* func = SI_NS_FUNCTIONS[NS_OPENGL_CONTEXT_MAKE_CURRENT_CONTEXT_CODE];
-    objc_func(context, func);
+    objc_msgSend_void(context, func);
 }
 
-si_declare_single(NSOpenGLContext, void, flushBuffer, NS_OPENGL_CONTEXT_FLUSH_BUFFER_CODE)
+si_declare_single(NSOpenGLContext, flushBuffer, NS_OPENGL_CONTEXT_FLUSH_BUFFER_CODE)
 
 #if defined(SILICON_ARRAY_IMPLEMENTATION) || !defined(siArray)
 #include <stdlib.h>
