@@ -1689,7 +1689,7 @@ void RGFW_window_close(RGFW_window* win) {
 
 	/* set cleared display / window to NULL for error checking */
 	win->display = (Display*)0;
-	win->window = (Window)0;
+	win->window = (void*)(Window)0;
 
 	u8 i;
 	for (i = 0; i < win->joystickCount; i++)
@@ -1861,7 +1861,7 @@ void RGFW_window_setMouseDefault(RGFW_window* win) {
 	the majority function is sourced from GLFW
 */
 const char* RGFW_window_readClipboard(RGFW_window* win) {
-	char* result;
+	char* result = NULL;
 	u64 ressize, restail;
 	i32 resbits;
 	static Atom bufid = 0, fmtid, propid, incrid;
@@ -2083,11 +2083,11 @@ u8 RGFW_isMinimized(RGFW_window* win) {
 		prop = XInternAtom(win->display, "WM_STATE", False);
 
     Atom actual_type;
-    int actual_format;
-    unsigned long nitems, bytes_after;
+    i32 actual_format;
+    u64 nitems, bytes_after;
     unsigned char *prop_data;
 
-    int status = XGetWindowProperty(win->display, (Window)win->window, prop, 0, 2, False,
+    i16 status = XGetWindowProperty(win->display, (Window)win->window, prop, 0, 2, False,
                                      AnyPropertyType, &actual_type, &actual_format,
                                      &nitems, &bytes_after, &prop_data);
 
@@ -2114,28 +2114,30 @@ u8 RGFW_isMaximized(RGFW_window* win) {
 	}
 
     Atom actual_type;
-    int actual_format;
-    unsigned long nitems, bytes_after;
+    i32 actual_format;
+    u64 nitems, bytes_after;
     unsigned char *prop_data;
 
-    int status = XGetWindowProperty(win->display, (Window)win->window, net_wm_state, 0, 1024, False,
+    i16 status = XGetWindowProperty(win->display, (Window)win->window, net_wm_state, 0, 1024, False,
                                      XA_ATOM, &actual_type, &actual_format,
                                      &nitems, &bytes_after, &prop_data);
 
-    if (status == Success) {
-        Atom *atoms = (Atom *)prop_data;
-        for (unsigned long i = 0; i < nitems; ++i) {
-            if (atoms[i] == net_wm_state_maximized_horz ||
-                atoms[i] == net_wm_state_maximized_vert) {
-                XFree(prop_data);
-                return 1;
-            }
-        }
-    }
+    if (status != Success) {
+		if (prop_data != NULL)
+			XFree(prop_data);
+		
+		return 0;
+	}
 
-    if (prop_data != NULL) {
-        XFree(prop_data);
-    }
+	Atom *atoms = (Atom *)prop_data;
+	u64 i;
+	for (i = 0; i < nitems; ++i) {
+		if (atoms[i] == net_wm_state_maximized_horz ||
+			atoms[i] == net_wm_state_maximized_vert) {
+			XFree(prop_data);
+			return 1;
+		}
+	}
 
     return 0;
 }
@@ -3673,8 +3675,6 @@ void RGFW_sleep(u32 microsecond) {
 
 void RGFW_window_checkFPS(RGFW_window* win) {
 	static float currentFrame = 0;
-	static float deltaTime = 0.0f;
-	static float lastFrame = 0.0f;
 
 	win->event.fps = RGFW_getFPS();
 
@@ -3690,9 +3690,6 @@ void RGFW_window_checkFPS(RGFW_window* win) {
     }
     
     currentFrame = RGFW_getTime();
-
-    deltaTime = currentFrame - lastFrame;
-    lastFrame = currentFrame;
 } 
 
 u32 RGFW_getTimeNS(void) {
@@ -3710,14 +3707,11 @@ u32 RGFW_getTime(void) {
 }
 
 u32 RGFW_getFPS(void) {
-    static float deltaTime = 0.0f;
-    static float lastFrame = 0.0f;
-
     static double previousSeconds = 0.0;
 	if (previousSeconds == 0.0)
 		previousSeconds = (double)RGFW_getTime();//glfwGetTime();
    
-    static int frameCount;
+    static i16 frameCount;
     double currentSeconds = (double)RGFW_getTime();//glfwGetTime();
     double elapsedSeconds = currentSeconds - previousSeconds;
 
@@ -3730,10 +3724,6 @@ u32 RGFW_getFPS(void) {
     }
 
     frameCount++;
-
-    float currentFrame = RGFW_getTime();
-    deltaTime = currentFrame - lastFrame;
-    lastFrame = currentFrame;
     
     return (u32)fps;
 }
