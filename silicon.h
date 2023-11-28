@@ -76,6 +76,11 @@
 
 #define NSUIntegerMax ULONG_MAX
 
+#define si_SEL_exists(name) si_impl_SEL_exists(name, __FILE__, __LINE__)
+#define selector(function) si_SEL_exists(#function":")
+
+SICDEF SEL si_impl_SEL_exists(const char* name, const char* filename, int line);
+
 #ifndef siArray
 #define SILICON_ARRAY_IMPLEMENTATION
 
@@ -595,8 +600,16 @@ SICDEF NSColor* NSColor_clearColor(void);
 SICDEF NSColor* NSColor_keyboardFocusIndicatorColor(void);
 
 /* ============ NSString ============ */
+/* converts a C String to an NSString object */
 SICDEF NSString* NSString_stringWithUTF8String(const char* str);
+/* converts an NString object to a C String */
 SICDEF const char* NSString_to_char(NSString* str);
+/* the name of a class in string form */
+SICDEF NSString* NSStringFromClass(id class);
+/* compares an NSString object data with an C String  */
+SICDEF bool NSString_isEqualChar(NSString* str, const char* str2);
+/* compares two NSString objects */
+SICDEF bool NSString_isEqual(NSString* str, NSString* str2);
 
 /* ============ NSDictionary ============ */
 SICDEF const char* NSDictionary_objectForKey(NSDictionary* d, const char* str);
@@ -1162,7 +1175,8 @@ typedef NS_ENUM(NSUInteger, NSSearchPathDomainMask) {
     NSAllDomainsMask = 0x0ffff  // all domains: all of the above and future items
 };
 
-siArray(const char*) NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directory, NSSearchPathDomainMask domainMask, bool expandTilde);
+#define NSSearchPathForDirectoriesInDomains _NSSearchPathForDirectoriesInDomains
+siArray(const char*) _NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directory, NSSearchPathDomainMask domainMask, bool expandTilde);
 
 #endif /* ndef SILICON_H */
 
@@ -1184,7 +1198,7 @@ siArray(const char*) NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory d
 #define objc_msgSend_uint			((NSUInteger (*)(id, SEL))objc_msgSend)
 #define objc_msgSend_int			((NSInteger (*)(id, SEL))objc_msgSend)
 #define objc_msgSend_SEL			((SEL (*)(id, SEL))objc_msgSend)
-#define objc_msgSend_float			((CGFloat (*)(id, SEL))objc_msgSend_fpret)
+#define objc_msgSend_float			((CGFloat (*)(id, SEL))abi_objc_msgSend_fpret)
 #define objc_msgSend_bool			((BOOL (*)(id, SEL))objc_msgSend)
 #define objc_msgSend_void			((void (*)(id, SEL))objc_msgSend)
 #define objc_msgSend_double			((double (*)(id, SEL))objc_msgSend)
@@ -1218,6 +1232,37 @@ abi_objc_msgSend_stret - Sends a message with a data-structure return value to a
 #define NSAlloc(nsclass) objc_msgSend_id(nsclass, SI_NS_CLASSES[NS_ALLOC_CODE])
 
 const NSSize _NSZeroSize = {0, 0};
+
+#define si_SEL_exists(name) si_impl_SEL_exists(name, __FILE__, __LINE__)
+#define selector(function) si_SEL_exists(#function":")
+
+SEL si_impl_SEL_exists(const char* name, const char* filename, int line) {
+	SEL selector = sel_getUid(name);
+
+    Class original_class = nil;
+    unsigned int class_count = 0;
+    Class* class_list = objc_copyClassList(&class_count);
+
+    for (unsigned int i = 0; i < class_count; i++) {
+        Class cls = class_list[i];
+		
+		if (strcmp(class_getName((Class)cls), "UINSServiceViewController") == 0) // For whatever reason, this class ruins everything.
+			continue;
+
+        if (class_getInstanceMethod(cls, selector)) {
+            original_class = cls;
+            break;
+        }
+    }
+    free(class_list);
+
+    if (original_class == nil) {
+		printf("%s:%i: Method '%s' doesn't exist. If this is a C function, then make sure to convert it into a SEL method via 'func_to_SEL(<function>)' before this line.\n", filename, line, name);
+		return nil;
+	}
+
+	return selector;
+}
 
 /* Key stuff. */
 const char* NSKEYS[] = {
@@ -1504,11 +1549,13 @@ enum { /* classes */
     NS_WINDOW_IS_ZOOMED_CODE,
     NS_WINDOW_PERFORM_MINIATURIZE_CODE,
     NS_WINDOW_PERFORM_ZOOM_CODE,
-    NS_WINDOW_STYLE_MASK_CODE
+    NS_WINDOW_STYLE_MASK_CODE,
+    NS_STRING_FROM_CLASS_CODE,
+    NS_STRING_IS_EQUAL_CODE,
 };
 
 void* SI_NS_CLASSES[36] = {NULL};
-void* SI_NS_FUNCTIONS[232];
+void* SI_NS_FUNCTIONS[233];
 
 void si_initNS(void) {    
 	SI_NS_CLASSES[NS_APPLICATION_CODE] = objc_getClass("NSApplication");
@@ -1653,6 +1700,7 @@ void si_initNS(void) {
 	SI_NS_FUNCTIONS[NS_BITMAPIMAGEREP_INIT_BITMAP_CODE] = sel_getUid("initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:");
     SI_NS_FUNCTIONS[NS_VIEW_SET_WANTSLAYER_CODE] = sel_getUid("setWantsLayer:");
     SI_NS_FUNCTIONS[NS_STRING_WIDTH_UTF8_STRING_CODE] = sel_getUid("stringWithUTF8String:");
+    SI_NS_FUNCTIONS[NS_STRING_IS_EQUAL_CODE] = sel_getUid("isEqual:");
     SI_NS_FUNCTIONS[NS_ARRAY_SI_ARRAY_CODE] = sel_getUid("initWithObjects:count:");
     SI_NS_FUNCTIONS[NS_WINDOW_SET_CONTENT_VIEW_CODE] = sel_getUid("setContentView:");
     SI_NS_FUNCTIONS[NS_APPLICATION_NEXT_EVENT_MATCHING_MASK_CODE] = sel_getUid("nextEventMatchingMask:untilDate:inMode:dequeue:");
@@ -3062,6 +3110,19 @@ const char* NSString_to_char(NSString* str) {
     return ((const char* (*)(id, SEL)) objc_msgSend) (str, func);   
 }
 
+NSString* NSStringFromClass(id class) {
+    return NSString_stringWithUTF8String(class_getName((Class)class)); 
+} 
+
+bool NSString_isEqualChar(NSString* str, const char* str2) {
+    return NSString_isEqual(str, NSString_stringWithUTF8String(str2));
+}
+
+bool NSString_isEqual(NSString* str, NSString* str2) {
+    void* func = SI_NS_FUNCTIONS[NS_STRING_IS_EQUAL_CODE];
+    return ((bool (*)(id, SEL, id)) objc_msgSend) (str, func, str2); 
+}
+
 const char* NSDictionary_objectForKey(NSDictionary* d, const char* str) {
     void* func = SI_NS_FUNCTIONS[NS_OBJECT_FOR_KEY_CODE];
 
@@ -3103,7 +3164,7 @@ NSUInteger NSArray_count(NSArray* array) {
 
 void* NSArray_objectAtIndex(NSArray* array, NSUInteger index) {
     void* func = SI_NS_FUNCTIONS[NS_OBJECT_AT_INDEX_CODE];
-    return ((id (*)(id, SEL, NSUInteger))objc_msgSend)(SI_NS_CLASSES[NS_STRING_CODE], func, index);
+    return ((id (*)(id, SEL, NSUInteger))objc_msgSend)(array, func, index);
 }
 
 id NSAutoRelease(id obj) { return (id)objc_msgSend_id(obj, SI_NS_FUNCTIONS[NS_AUTORELEASE_CODE]); }
@@ -3178,6 +3239,25 @@ void si_array_free(siArray(void) array) {
 
 	free(SI_ARRAY_HEADER(array));
 }
+
+#undef NSSearchPathForDirectoriesInDomains
+
+NSArray* NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directory, NSSearchPathDomainMask domainMask, BOOL expandTilde);
+
+siArray(const char*) _NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directory, NSSearchPathDomainMask domainMask, bool expandTilde) {
+    NSArray* output = NSSearchPathForDirectoriesInDomains(directory, domainMask, expandTilde);
+
+    NSUInteger count = NSArray_count(output);
+    siArray(const char*) res = si_array_init_reserve(si_sizeof(const char*), count);
+    
+    for (NSUInteger i = 0; i < count; i++)
+        res[i] = NSString_to_char(NSArray_objectAtIndex(output, i));
+
+	return res;
+}
+
+#define NSSearchPathForDirectoriesInDomains _NSSearchPathForDirectoriesInDomains
+
 #endif
 
 #endif /* SILICON_IMPLEMENTATION */
