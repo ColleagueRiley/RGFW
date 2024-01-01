@@ -531,6 +531,12 @@ u8 RGFW_Error() { return RGFW_error; }
     attribs[index++] = v; \
 }
 
+#ifdef __APPLE__
+#define GL_SILENCE_DEPRECATION
+#define SILICON_IMPLEMENTATION
+#include "silicon.h"
+#endif
+
 #ifdef RGFW_OSMESA
 #ifndef __APPLE__
 #include <GL/osmesa.h>
@@ -2939,10 +2945,6 @@ void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { SetThreadPriority
 #endif
 
 #if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
-#define SILICON_IMPLEMENTATION
-#define GL_SILENCE_DEPRECATION
-
-#include "silicon.h"
 #include <OpenGL/gl.h>
 	
 void* RGFWnsglFramework = NULL; 
