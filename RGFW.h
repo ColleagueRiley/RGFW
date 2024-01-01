@@ -60,7 +60,6 @@
 			Copyright (c) 2006-2019 Camilla Löwy
 */
 
-#define GL_SILENCE_DEPRECATION
 #ifndef RGFW_MALLOC
 #include <stdlib.h>
 #include <time.h>
@@ -393,6 +392,7 @@ RGFWDEF char RGFW_keystrToChar(const char*);
 RGFWDEF const char* RGFW_window_readClipboard(RGFW_window* win); /*!< read clipboard data */
 RGFWDEF void RGFW_window_writeClipboard(RGFW_window* win, const char* text, u32 textLen); /*!< write text to the clipboard */
 
+#ifndef RGFW_NO_THREADS
 /*! threading functions*/
 
 /*! NOTE! (for X11/linux) : if you define a window in a thread, it must be run after the original thread's window is created or else there will be a memory error */
@@ -405,6 +405,7 @@ RGFWDEF RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args);
 RGFWDEF void RGFW_cancelThread(RGFW_thread thread); /*!< cancels a thread*/
 RGFWDEF void RGFW_joinThread(RGFW_thread thread); /*!< join thread to current thread */
 RGFWDEF void RGFW_setThreadPriority(RGFW_thread thread, u8 priority); /*!< sets the priority priority  */
+#endif
 
 /*! gamepad/joystick functions */
 
@@ -2187,9 +2188,10 @@ PFN_OSMesaDestroyContext OSMesaDestroyContextSource;
 #define OSMesaDestroyContext OSMesaDestroyContextSource
 #endif
 
-typedef BOOL (*PFN_wglSwapIntervalEXT)(int);
-PFN_wglSwapIntervalEXT wglSwapIntervalEXTSrc = NULL;
-#define wglSwapIntervalEXT wglSwapIntervalEXTSrc
+typedef int (*PFN_wglGetSwapIntervalEXT)(void);
+PFN_wglGetSwapIntervalEXT wglGetSwapIntervalEXTSrc = NULL;
+#define wglGetSwapIntervalEXT wglGetSwapIntervalEXTSrc
+
 
 void* RGFWjoystickApi = NULL;
 
@@ -2248,7 +2250,7 @@ void* RGFW_getProcAddress(const char* procname) { return (void*)wglGetProcAddres
 #endif
 
 RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64 args) {
-    #ifdef RGFW_WGL_LOAD
+	#ifdef RGFW_WGL_LOAD
 	if (wglinstance == NULL) { 
 		wglinstance = LoadLibraryA("opengl32.dll");
 
@@ -2306,23 +2308,32 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
     WNDCLASSA Class = {0}; /* Setup the Window class. */
 	Class.lpszClassName = name;
 	Class.hInstance = inh;
-	Class.hCursor = LoadCursor(NULL, IDC_ARROW);
+	win->cursor = Class.hCursor = LoadCursor(NULL, IDC_ARROW);
 	Class.lpfnWndProc = DefWindowProc;
 
     RegisterClassA(&Class);
 
-	DWORD window_style = 0; 
+	DWORD window_style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+
+    RECT windowRect, clientRect;
 
 	if (!(RGFW_NO_BORDER & args)) {
-		window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
+		window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER | WS_VISIBLE | WS_MINIMIZEBOX;
 		
 		if (!(RGFW_NO_RESIZE & args))
-			window_style |= WS_SIZEBOX;
+			window_style |= WS_SIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME;
 	}
 	else
-		window_style |= WS_POPUP | WS_VISIBLE;
+		window_style |= WS_POPUP | WS_VISIBLE |  WS_SYSMENU | WS_MINIMIZEBOX;
 
     win->display = CreateWindowA( Class.lpszClassName, name, window_style, x, y, w, h, 0, 0, inh, 0);
+
+
+	GetWindowRect(win->display, &windowRect);
+	GetClientRect(win->display, &clientRect);
+
+	win->h +=  (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
+	RGFW_window_resize(win, win->w, win->h);
 
 	if (RGFW_TRANSPARENT_WINDOW & args)
 		SetWindowLong((HWND)win->display, GWL_EXSTYLE, GetWindowLong((HWND)win->display, GWL_EXSTYLE) | WS_EX_LAYERED);
@@ -2331,7 +2342,6 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 		DragAcceptFiles((HWND)win->display, TRUE);
 
     win->window = GetDC((HWND)win->display);
-
 
  	#ifdef RGFW_GL 
     HGLRC prc;
@@ -2358,8 +2368,8 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
         wglCreateContextAttribsARB = (wglCreateContextAttribsARB_type)
             wglGetProcAddress("wglCreateContextAttribsARB");
 
-        wglSwapIntervalEXT = (PFN_wglSwapIntervalEXT)
-            wglGetProcAddress("wglSwapIntervalEXT");
+        wglGetSwapIntervalEXTSrc = (PFN_wglGetSwapIntervalEXT)
+            wglGetProcAddress("wglGetSwapIntervalEXT");
     }
 
     wglMakeCurrent(pdc, prc);
@@ -2920,15 +2930,18 @@ char* createUTF8FromWideStringWin32(const WCHAR* source) {
 }
 
 
-
+#ifndef RGFW_NO_THREADS
 RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args) { return CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)*function_ptr, args, 0, NULL);  }
 void RGFW_cancelThread(RGFW_thread thread) { CloseHandle((HANDLE)thread);  }
 void RGFW_joinThread(RGFW_thread thread) { WaitForSingleObject((HANDLE)thread, INFINITE); }
 void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { SetThreadPriority((HANDLE)thread, priority); }
 #endif
+#endif
 
 #if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 #define SILICON_IMPLEMENTATION
+#define GL_SILENCE_DEPRECATION
+
 #include "silicon.h"
 #include <OpenGL/gl.h>
 	
@@ -3067,7 +3080,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	#endif 
 
 	win->fpsCap = 0;
-	win->event.inFocus = 0;
+	win->event.inFocus = 1;
 	win->event.type = 0;
 	win->event.droppedFilesCount = 0;
 
@@ -3525,6 +3538,7 @@ void RGFW_window_close(RGFW_window* win){
 
 #if defined(RGFW_X11) || defined(__APPLE__)
 
+#ifndef RGFW_NO_THREADS
 #include <pthread.h>
 
 RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args) {
@@ -3536,6 +3550,7 @@ void RGFW_cancelThread(RGFW_thread thread) { pthread_cancel((pthread_t)thread); 
 void RGFW_joinThread(RGFW_thread thread) { pthread_join((pthread_t)thread, NULL); }
 #ifdef __linux__
 void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { pthread_setschedprio(thread, priority); }
+#endif
 #endif
 #endif
 
@@ -3573,7 +3588,25 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	((PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress((GLubyte*)"glXSwapIntervalEXT"))((Display*)win->display, (Window)win->window, swapInterval); 
 	#endif
 	#ifdef RGFW_WINDOWS
-	wglSwapIntervalEXT(swapInterval);
+
+	typedef BOOL (APIENTRY *PFNWGLSWAPINTERVALEXTPROC)(int interval);
+	static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
+	static void* loadSwapFunc = (void*)1;
+
+	if (loadSwapFunc == NULL) {
+		printf("wglSwapIntervalEXT not supported\n");
+		win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
+		return;
+	}
+
+	if (wglSwapIntervalEXT == NULL) {
+		loadSwapFunc = wglGetProcAddress("wglSwapIntervalEXT");
+		wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)loadSwapFunc;
+	}
+
+	if (wglSwapIntervalEXT(swapInterval) == FALSE)
+		printf("Failed to set swap interval\n");
+
 	#endif
 	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 	win->glWin = NSOpenGLView_openGLContext(win->view);
@@ -3607,8 +3640,6 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	NSOpenGLContext_flushBuffer(win->glWin);
 	#endif
 	#endif
-
-
 
 	/* clear the window*/
 

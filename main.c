@@ -5,6 +5,8 @@
 
 #include "RGFW.h"
 
+#include <GL/gl.h>
+
 void drawLoop(RGFW_window* w); /* I seperate the draw loop only because it's run twice */
 void* loop2(void *);
 
@@ -35,11 +37,9 @@ int main() {
     #endif
 
     RGFW_window_swapInterval(win, 60);
-
     while (running && !RGFW_isPressedI(win, RGFW_Escape)) {
         frames++;
 
-        printf("%i\n", win->event.fps);
         /* 
             check all of the avaliable events all at once
             this is to avoid any input lag
@@ -51,7 +51,7 @@ int main() {
 
         while (RGFW_window_checkEvent(win))  {
             if (win->event.type == RGFW_windowAttribsChange) {
-                printf("h\n");
+                printf("attribs changed\n");
             }
             if (win->event.type == RGFW_quit) {
                 running = 0;  
@@ -89,14 +89,10 @@ int main() {
             else if (win->event.type == RGFW_jsAxisMove && !win->event.button)
                 printf("{%i, %i}\n", win->event.axis[0][0], win->event.axis[0][1]);
         }
- 
+
+        RGFW_window_makeCurrent(win);
         drawLoop(win);
     }
-
-    #ifndef __APPLE__
-    time_t t;
-    for (t = time(0); (float)(time(0) - t) <= 0.05;); /*wait for the sub window to close*/
-    #endif
 
     RGFW_window_close(win);
 }
@@ -114,7 +110,7 @@ void drawLoop(RGFW_window *w) {
     #else
 
     #endif
-
+    
     RGFW_window_swapBuffers(w); /* NOTE(EimaMei): Rendering should always go: 1. Clear everything 2. Render 3. Swap buffers. Based on https://www.khronos.org/opengl/wiki/Common_Mistakes#Swap_Buffers */
 }
 
@@ -141,6 +137,7 @@ void* loop2(void* args) {
         drawLoop(win);
     }
 
+    running = 0;
     RGFW_window_close(win);
     #else
     printf("Managing windows on a seperate thread is not supported on MacOS :(\n");
