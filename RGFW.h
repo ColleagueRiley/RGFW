@@ -2206,24 +2206,26 @@ typedef HGLRC WINAPI (*wglCreateContextAttribsARB_type)(HDC hdc, HGLRC hShareCon
         const i32 *attribList);
 wglCreateContextAttribsARB_type wglCreateContextAttribsARB = NULL;
 
-typedef BOOL WINAPI wglChoosePixelFormatARB_type(HDC hdc, const i32 *piAttribIList,
-        const FLOAT *pfAttribFList, UINT nMaxFormats, i32 *piFormats, UINT *nNumFormats);
-wglChoosePixelFormatARB_type *wglChoosePixelFormatARB;
-
 /* defines for creating ARB attributes */
 #define WGL_CONTEXT_MAJOR_VERSION_ARB             0x2091
 #define WGL_CONTEXT_MINOR_VERSION_ARB             0x2092
+#define WGL_TRANSPARENT_ARB   					  0x200A
 #define WGL_DRAW_TO_WINDOW_ARB                    0x2001
 #define WGL_ACCELERATION_ARB                      0x2003
 #define WGL_SUPPORT_OPENGL_ARB                    0x2010
 #define WGL_DOUBLE_BUFFER_ARB                     0x2011
 #define WGL_PIXEL_TYPE_ARB                        0x2013
 #define WGL_COLOR_BITS_ARB                        0x2014
+#define WGL_RED_BITS_ARB   						  0x2015
+#define WGL_GREEN_BITS_ARB  					  0x2017 
+#define WGL_BLUE_BITS_ARB   					  0x2019
+#define WGL_ALPHA_BITS_ARB   					  0x201B
 #define WGL_DEPTH_BITS_ARB                        0x2022
+#define WGL_STENCIL_BITS_ARB 					  0x2023
 #define WGL_FULL_ACCELERATION_ARB                 0x2027
 #define WGL_TYPE_RGBA_ARB                         0x202B
-#define WGL_CONTEXT_FLAGS_ARB                   0x2094
-#define WGL_CONTEXT_PROFILE_MASK_ARB            0x9126
+#define WGL_CONTEXT_FLAGS_ARB                     0x2094
+#define WGL_CONTEXT_PROFILE_MASK_ARB              0x9126
 #define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 
 #ifdef RGFW_WGL_LOAD
@@ -2268,6 +2270,9 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 		wglGetCurrentContextSRC = (PFN_wglGetCurrentContext) GetProcAddress(wglinstance, "wglGetCurrentContext");
 	}
 	#endif
+
+	typedef BOOL (APIENTRY *PFNWGLCHOOSEPIXELFORMATARBPROC)(HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
+	static PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = NULL;
 
     if (name[0] == 0) name = (char*)" ";
 
@@ -2338,19 +2343,25 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	GetWindowRect(win->display, &windowRect);
 	GetClientRect(win->display, &clientRect);
 
+	#ifndef RGFW_RECT
 	win->h +=  (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
 	RGFW_window_resize(win, win->w, win->h);
+	#else
+	win->r.h += (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
+	RGFW_window_resize(win, win->r.w, win->r.h);
+	#endif
 
-	if (RGFW_TRANSPARENT_WINDOW & args)
+	if (RGFW_TRANSPARENT_WINDOW & args) {
 		SetWindowLong((HWND)win->display, GWL_EXSTYLE, GetWindowLong((HWND)win->display, GWL_EXSTYLE) | WS_EX_LAYERED);
-
+	}
 	if (RGFW_ALLOW_DND & args)
 		DragAcceptFiles((HWND)win->display, TRUE);
 
     win->window = GetDC((HWND)win->display);
 
  	#ifdef RGFW_GL 
-    HGLRC prc;
+    
+	HGLRC prc;
     HDC pdc;
 
 	PIXELFORMATDESCRIPTOR pfd;
@@ -2376,9 +2387,18 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
         wglGetSwapIntervalEXTSrc = (PFN_wglGetSwapIntervalEXT)
             wglGetProcAddress("wglGetSwapIntervalEXT");
+
+		wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
     }
 
-    wglMakeCurrent(pdc, prc);
+	if ((wglCreateContextAttribsARB != NULL && wglChoosePixelFormatARB == NULL) || wglChoosePixelFormatARB == NULL) {
+		#ifdef RGFW_DEBUG
+		printf("Failed to load wglCreateContextAttribsARB func\n");
+		exit(0);
+		#endif
+	}
+	
+	wglMakeCurrent(pdc, prc);
 
     if (wglCreateContextAttribsARB != NULL) {
         wglDeleteContext(win->glWin);
@@ -2405,6 +2425,19 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
             if (RGFW_majorVersion || RGFW_minorVersion) {
                 SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion);
                 SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_minorVersion);
+				SET_ATTRIB(WGL_SUPPORT_OPENGL_ARB, GL_TRUE);
+
+				SET_ATTRIB(WGL_DRAW_TO_WINDOW_ARB, TRUE);
+				SET_ATTRIB(WGL_DOUBLE_BUFFER_ARB, TRUE);
+				SET_ATTRIB(WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB);
+				SET_ATTRIB(WGL_TRANSPARENT_ARB, TRUE);
+				SET_ATTRIB(WGL_COLOR_BITS_ARB, 32);
+				SET_ATTRIB(WGL_RED_BITS_ARB, 8);
+				SET_ATTRIB(WGL_GREEN_BITS_ARB, 8);
+				SET_ATTRIB(WGL_BLUE_BITS_ARB, 8);
+				SET_ATTRIB(WGL_ALPHA_BITS_ARB, 8);
+				SET_ATTRIB(WGL_DEPTH_BITS_ARB, 24);
+				SET_ATTRIB(WGL_STENCIL_BITS_ARB, 8);
             }
 
             SET_ATTRIB(0, 0);
@@ -2655,6 +2688,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 				mmi->ptMaxTrackSize.y = RGFW_WIN_MAX_SIZE[1];
 				return 0;
 			}
+
 			default:
 				win->event.type = 0;
 				break;
