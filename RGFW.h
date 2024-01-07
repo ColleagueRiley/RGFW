@@ -141,6 +141,7 @@ extern "C" {
 #define RGFW_OPENGL (1L<<7) /* use normal opengl (if another version is also selected) */
 #define RGFW_FULLSCREEN (1L<<8) /* if the window should be fullscreen by default or not */
 #define RGFW_CENTER (1L<<10)
+#define RGFW_OPENGL_SOFTWARE (1L<<11) /* use OpenGL software rendering */
 /*! event codes */
 #define RGFW_keyPressed 2 /*!< a key has been pressed*/
 #define RGFW_keyReleased 3 /*!< a key has been released*/
@@ -996,6 +997,9 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 		x = (screenR[0] - w) / 2;
 		y = (screenR[1] - h) / 2;
 	}
+
+	if (RGFW_OPENGL_SOFTWARE & args)
+		setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
 
 	/* set and init the new window's data */
 
@@ -2368,7 +2372,11 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
     ZeroMemory(&pfd, sizeof(pfd));
     pfd.nSize = sizeof(pfd);
     pfd.nVersion = 1;
-    pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+    pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER ;
+
+	if (RGFW_OPENGL_SOFTWARE & args)
+		pfd.dwFlags |= PFD_GENERIC_FORMAT | PFD_GENERIC_ACCELERATED;
+
     pfd.iPixelType = PFD_TYPE_RGBA;
     pfd.cColorBits = 24;
 
@@ -2406,17 +2414,21 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
       	i32 attribs[40];
 		PIXELFORMATDESCRIPTOR pfd = {sizeof(pfd), 1, PFD_TYPE_RGBA, PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, 32, 8, PFD_MAIN_PLANE, 24, 8};
 
+		if (RGFW_OPENGL_SOFTWARE & args)
+			pfd.dwFlags |= PFD_GENERIC_FORMAT | PFD_GENERIC_ACCELERATED;
+    	
 		i32 pixelFormat = ChoosePixelFormat(win->window, &pfd);
 
 		PIXELFORMATDESCRIPTOR SuggestedPixelFormat;
 
 		DescribePixelFormat(win->window, pixelFormat, sizeof(SuggestedPixelFormat), &SuggestedPixelFormat);
+
 		SetPixelFormat (win->window, pixelFormat, &SuggestedPixelFormat);
 
-        DescribePixelFormat(win->window,
-                            pixelFormat, sizeof(pfd), &pfd);
+        DescribePixelFormat(win->window, pixelFormat, sizeof(pfd), &pfd);
 
-    	SetPixelFormat(win->window, pixelFormat, &pfd);
+		SetPixelFormat(win->window, pixelFormat, &pfd);
+
         if (wglCreateContextAttribsARB) {
 			i32 index = 0;
 			
@@ -2426,18 +2438,6 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
                 SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion);
                 SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_minorVersion);
 				SET_ATTRIB(WGL_SUPPORT_OPENGL_ARB, GL_TRUE);
-
-				SET_ATTRIB(WGL_DRAW_TO_WINDOW_ARB, TRUE);
-				SET_ATTRIB(WGL_DOUBLE_BUFFER_ARB, TRUE);
-				SET_ATTRIB(WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB);
-				SET_ATTRIB(WGL_TRANSPARENT_ARB, TRUE);
-				SET_ATTRIB(WGL_COLOR_BITS_ARB, 32);
-				SET_ATTRIB(WGL_RED_BITS_ARB, 8);
-				SET_ATTRIB(WGL_GREEN_BITS_ARB, 8);
-				SET_ATTRIB(WGL_BLUE_BITS_ARB, 8);
-				SET_ATTRIB(WGL_ALPHA_BITS_ARB, 8);
-				SET_ATTRIB(WGL_DEPTH_BITS_ARB, 24);
-				SET_ATTRIB(WGL_STENCIL_BITS_ARB, 8);
             }
 
             SET_ATTRIB(0, 0);
@@ -3162,15 +3162,18 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
 	#ifdef RGFW_GL
 	NSOpenGLPixelFormatAttribute attributes[] = {
-		NSOpenGLPFANoRecovery,
 		NSOpenGLPFAAccelerated,
 		NSOpenGLPFADoubleBuffer,
 		NSOpenGLPFAColorSize, 24,
 		NSOpenGLPFAAlphaSize, 8,
 		NSOpenGLPFADepthSize, 24,
 		NSOpenGLPFAStencilSize, 8,
+		NSOpenGLPFANoRecovery,
 		0, 0, 0
 	};
+	
+	if (RGFW_OPENGL_SOFTWARE & args)
+		attributes[2] = 0;
 
 	if (RGFW_majorVersion >= 4 || RGFW_majorVersion  >= 3) {
 		attributes[11] = NSOpenGLPFAOpenGLProfile;
