@@ -1,7 +1,0 @@
-#ifndef RGFW_H
-#include "RGFW.h"
-#endif
-
-namespace RGFW {}
-
-struct RGFW_window;
