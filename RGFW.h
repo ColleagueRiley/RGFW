@@ -68,10 +68,14 @@
 #define RGFW_FREE free
 #endif
 
+#if !_MSC_VER
+
 #ifndef inline
 #ifndef __APPLE__
 #define inline __inline
 #endif
+#endif
+
 #endif
 
 #ifndef RGFWDEF
@@ -2205,7 +2209,7 @@ PFN_wglSwapIntervalEXT wglSwapIntervalEXTSrc = NULL;
 void* RGFWjoystickApi = NULL;
 
 /* these two wgl functions need to be preloaded */
-typedef HGLRC WINAPI (*wglCreateContextAttribsARB_type)(HDC hdc, HGLRC hShareContext,
+typedef HGLRC (*wglCreateContextAttribsARB_type)(HDC hdc, HGLRC hShareContext,
         const i32 *attribList);
 wglCreateContextAttribsARB_type wglCreateContextAttribsARB = NULL;
 
@@ -2383,8 +2387,8 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
     win->display = CreateWindowA( Class.lpszClassName, name, window_style, x, y, w, h, 0, 0, inh, 0);
 
     RECT windowRect, clientRect;
-	GetWindowRect(win->display, &windowRect);
-	GetClientRect(win->display, &clientRect);
+	GetWindowRect((HWND)win->display, &windowRect);
+	GetClientRect((HWND)win->display, &clientRect);
 
 	#ifndef RGFW_RECT
 	h +=  (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
@@ -2419,14 +2423,14 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
     pfd.iPixelType = PFD_TYPE_RGBA;
     pfd.cColorBits = 24;
 
-    SetPixelFormat(win->window, ChoosePixelFormat(win->window, &pfd), &pfd);
+    SetPixelFormat((HDC)win->window, ChoosePixelFormat((HDC)win->window, &pfd), &pfd);
 
-    win->glWin = wglCreateContext(win->window);
+    win->glWin = wglCreateContext((HDC)win->window);
 
     pdc = wglGetCurrentDC();
     prc = wglGetCurrentContext();
 
-    wglMakeCurrent(win->window, win->glWin);
+    wglMakeCurrent((HDC)win->window, (HGLRC)win->glWin);
     
     if (wglCreateContextAttribsARB == NULL) {
         wglCreateContextAttribsARB = (wglCreateContextAttribsARB_type)
@@ -2446,7 +2450,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	wglMakeCurrent(pdc, prc);
 
     if (wglCreateContextAttribsARB != NULL) {
-        wglDeleteContext(win->glWin);
+        wglDeleteContext((HGLRC)win->glWin);
 
       	i32 attribs[40];
 		PIXELFORMATDESCRIPTOR pfd = {sizeof(pfd), 1, PFD_TYPE_RGBA, PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, 32, 8, PFD_MAIN_PLANE, 24, 8};
@@ -2454,17 +2458,17 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 		if (RGFW_OPENGL_SOFTWARE & args)
 			pfd.dwFlags |= PFD_GENERIC_FORMAT | PFD_GENERIC_ACCELERATED;
     	
-		i32 pixelFormat = ChoosePixelFormat(win->window, &pfd);
+		i32 pixelFormat = ChoosePixelFormat((HDC)win->window, &pfd);
 
 		PIXELFORMATDESCRIPTOR SuggestedPixelFormat;
 
-		DescribePixelFormat(win->window, pixelFormat, sizeof(SuggestedPixelFormat), &SuggestedPixelFormat);
+		DescribePixelFormat((HDC)win->window, pixelFormat, sizeof(SuggestedPixelFormat), &SuggestedPixelFormat);
 
-		SetPixelFormat (win->window, pixelFormat, &SuggestedPixelFormat);
+		SetPixelFormat ((HDC)win->window, pixelFormat, &SuggestedPixelFormat);
 
-        DescribePixelFormat(win->window, pixelFormat, sizeof(pfd), &pfd);
+        DescribePixelFormat((HDC)win->window, pixelFormat, sizeof(pfd), &pfd);
 
-		SetPixelFormat(win->window, pixelFormat, &pfd);
+		SetPixelFormat((HDC)win->window, pixelFormat, &pfd);
 
         if (wglCreateContextAttribsARB) {
 			i32 index = 0;
@@ -2479,11 +2483,11 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
             SET_ATTRIB(0, 0);
 
-            win->glWin = wglCreateContextAttribsARB(win->window, NULL, attribs);
+            win->glWin = wglCreateContextAttribsARB((HDC)win->window, NULL, attribs);
         }
         else {
 			printf("Failed to create an accelerated OpenGL Context\n");
-		    win->glWin = wglCreateContext(win->window);
+		    win->glWin = wglCreateContext((HDC)win->window);
 		}
 	}
 	else 
@@ -2540,15 +2544,15 @@ RGFWDEF void RGFW_window_setMaxSize(RGFW_window* win, u32 width, u32 height) {
 }
 
 void RGFW_window_minimize(RGFW_window* win) {
-    ShowWindow(win->display, SW_MINIMIZE);
+    ShowWindow((HWND)win->display, SW_MINIMIZE);
 }
 
 void RGFW_window_restore(RGFW_window* win) {
-	ShowWindow(win->display, SW_RESTORE);
+	ShowWindow((HWND)win->display, SW_RESTORE);
 }
 
 RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
-	MSG msg = {};
+	MSG msg;
 
 	if (win->event.droppedFilesCount) {
 		i32 i;
@@ -2735,23 +2739,23 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 RGFWDEF u8 RGFW_window_isFullscreen(RGFW_window* win) {
     WINDOWPLACEMENT placement;
-    GetWindowPlacement(win->display, &placement);
+    GetWindowPlacement((HWND)win->display, &placement);
     return placement.showCmd == SW_SHOWMAXIMIZED;
 }
 
 RGFWDEF u8 RGFW_window_isHidden(RGFW_window* win) {
-    return IsWindowVisible(win->display) == 0 && !RGFW_isMinimized(win);
+    return IsWindowVisible((HWND)win->display) == 0 && !RGFW_isMinimized(win);
 }
 
 RGFWDEF u8 RGFW_isMinimized(RGFW_window* win) {
     WINDOWPLACEMENT placement;
-    GetWindowPlacement(win->display, &placement);
+    GetWindowPlacement((HWND)win->display, &placement);
     return placement.showCmd == SW_SHOWMINIMIZED;
 }
 
 RGFWDEF u8 RGFW_isMaximized(RGFW_window* win) {
     WINDOWPLACEMENT placement;
-    GetWindowPlacement(win->display, &placement);
+    GetWindowPlacement((HWND)win->display, &placement);
     return placement.showCmd == SW_SHOWMAXIMIZED;
 }
 
@@ -2885,7 +2889,7 @@ void RGFW_window_resize(RGFW_window* win, u32 w, u32 h) {
 
 
 void RGFW_window_setName(RGFW_window* win, char* name) {
-	SetWindowTextA(win->display, name);
+	SetWindowTextA((HWND)win->display, name);
 }
 
 /* much of this function is sourced from GLFW */
@@ -2909,7 +2913,7 @@ const char* RGFW_window_readClipboard(RGFW_window* win) {
     }
 
 	static char text[7];
-	strcpy(text, GlobalLock(hData));
+	strcpy(text, (char*)GlobalLock(hData));
 	
     /* Release the clipboard data */
     GlobalUnlock(hData);
@@ -3773,6 +3777,32 @@ u8 RGFW_window_shouldClose(RGFW_window* win) {
 	return (win->event.type == RGFW_quit || RGFW_isPressedI(win, RGFW_OS_BASED_VALUE(0xff1b, 0x1B, 53)));
 }
 
+#if _MSC_VER
+/* Windows sleep in 100ns units */
+BOOLEAN nanosleep(const struct timespec* time, void* /*null*/){
+	LONGLONG ns = time->tv_nsec;
+
+	/* Declarations */
+	HANDLE timer;	/* Timer handle */
+	LARGE_INTEGER li;	/* Time defintion */
+	/* Create timer */
+	if(!(timer = CreateWaitableTimer(NULL, TRUE, NULL)))
+		return FALSE;
+	/* Set timer properties */
+	li.QuadPart = -ns;
+	if(!SetWaitableTimer(timer, &li, 0, NULL, NULL, FALSE)){
+		CloseHandle(timer);
+		return FALSE;
+	}
+	/* Start & wait for timer */
+	WaitForSingleObject(timer, INFINITE);
+	/* Clean resources */
+	CloseHandle(timer);
+	/* Slept without problems */
+	return TRUE;
+}
+#endif
+
 void RGFW_sleep(u32 microsecond) {
    struct timespec time;
    time.tv_sec = 0;
@@ -3799,6 +3829,30 @@ void RGFW_window_checkFPS(RGFW_window* win) {
     
     currentFrame = RGFW_getTime();
 } 
+
+#if _MSC_VER
+#define exp7           10000000i64     //1E+7     //C-file part
+#define exp9         1000000000i64     //1E+9
+#define w2ux 116444736000000000i64     //1.jan1601 to 1.jan1970
+	void unix_time(struct timespec *spec)
+{  __int64 wintime; GetSystemTimeAsFileTime((FILETIME*)&wintime);
+	wintime -=w2ux;  spec->tv_sec  =wintime / exp7;
+	spec->tv_nsec =wintime % exp7 *100;
+}
+	int clock_gettime(int, timespec *spec)
+{  static  struct timespec startspec; static double ticks2nano;
+	static __int64 startticks, tps =0;    __int64 tmp, curticks;
+	QueryPerformanceFrequency((LARGE_INTEGER*)&tmp); //some strange system can
+	if (tps !=tmp) { tps =tmp; //init ~~ONCE         //possibly change freq ?
+		QueryPerformanceCounter((LARGE_INTEGER*)&startticks);
+		unix_time(&startspec); ticks2nano =(double)exp9 / tps; }
+	QueryPerformanceCounter((LARGE_INTEGER*)&curticks); curticks -=startticks;
+	spec->tv_sec  =startspec.tv_sec   +         (curticks / tps);
+	spec->tv_nsec =startspec.tv_nsec  + (double)(curticks % tps) * ticks2nano;
+	if (!(spec->tv_nsec < exp9)) { spec->tv_sec++; spec->tv_nsec -=exp9; }
+	return 0;
+}
+#endif
 
 u32 RGFW_getTimeNS(void) {
     struct timespec ts = { 0 };
