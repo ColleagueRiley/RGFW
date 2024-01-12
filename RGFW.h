@@ -571,9 +571,14 @@ u8 RGFW_Error() { return RGFW_error; }
 
 #include <vulkan/vulkan.h>
 
+#ifdef RGFW_X11
+#include <X11/Xlib.h>
+#include <vulkan/vulkan_xlib.h>
+#endif
+
 void RGFW_initVulkan(RGFW_window* win, VkInstance inst) {
 	#ifdef RGFW_X11
-	VkXlibSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, 0, 0, win->display, win->window };
+	VkXlibSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, 0, 0, (Display*)win->display, (Window)win->window };
 
 	vkCreateXlibSurfaceKHR(inst, &x11, NULL, (VkSurfaceKHR*)win->glWin);
 	#endif
@@ -1752,39 +1757,39 @@ void RGFW_window_setMinSize(RGFW_window* win, u32 width, u32 height) {
     XSizeHints hints;
     long flags;
 
-    XGetWMNormalHints(win->display, (Window)win->window, &hints, &flags);
+    XGetWMNormalHints((Display*)win->display, (Window)win->window, &hints, &flags);
 
     hints.flags |= PMinSize;
 
     hints.min_width = width;
     hints.min_height = height;
 
-    XSetWMNormalHints(win->display, (Window)win->window, &hints);
+    XSetWMNormalHints((Display*)win->display, (Window)win->window, &hints);
 }
 
 void RGFW_window_setMaxSize(RGFW_window* win, u32 width, u32 height) {
     XSizeHints hints;
     long flags;
 
-    XGetWMNormalHints(win->display, (Window)win->window, &hints, &flags);
+    XGetWMNormalHints((Display*)win->display, (Window)win->window, &hints, &flags);
 
     hints.flags |= PMaxSize;
 
     hints.max_width = width;
     hints.max_height = height;
 
-    XSetWMNormalHints(win->display, (Window)win->window, &hints);
+    XSetWMNormalHints((Display*)win->display, (Window)win->window, &hints);
 }
 
 
 void RGFW_window_minimize(RGFW_window* win) {
-    XIconifyWindow(win->display, (Window)win->window, DefaultScreen(win->display));
-    XFlush(win->display);
+    XIconifyWindow((Display*)win->display, (Window)win->window, DefaultScreen(win->display));
+    XFlush((Display*)win->display);
 }
 
 void RGFW_window_restore(RGFW_window* win) {
-    XMapWindow(win->display, (Window)win->window);
-    XFlush(win->display);
+    XMapWindow((Display*)win->display, (Window)win->window);
+    XFlush((Display*)win->display);
 }
 
 void RGFW_window_setName(RGFW_window* win, char* name) {
@@ -2074,7 +2079,7 @@ u16 RGFW_registerJoystickF(RGFW_window* win, char* file) {
 
 u8 RGFW_window_isFullscreen(RGFW_window* win) {
 	XWindowAttributes windowAttributes;
-    XGetWindowAttributes(win->display, (Window)win->window, &windowAttributes);
+    XGetWindowAttributes((Display*)win->display, (Window)win->window, &windowAttributes);
 	
 	/* check if the window is visable */
     if (windowAttributes.map_state != IsViewable) 
@@ -2082,13 +2087,13 @@ u8 RGFW_window_isFullscreen(RGFW_window* win) {
 
     /* check if the window covers the full screen */
     return (windowAttributes.x == 0 && windowAttributes.y == 0 &&
-            windowAttributes.width == XDisplayWidth(win->display, DefaultScreen(win->display)) &&
-            windowAttributes.height == XDisplayHeight(win->display, DefaultScreen(win->display)));
+            windowAttributes.width == XDisplayWidth((Display*)win->display, DefaultScreen(win->display)) &&
+            windowAttributes.height == XDisplayHeight((Display*)win->display, DefaultScreen(win->display)));
 }
 
 u8 RGFW_window_isHidden(RGFW_window* win) {
     XWindowAttributes windowAttributes;
-    XGetWindowAttributes(win->display, (Window)win->window, &windowAttributes);
+    XGetWindowAttributes((Display*)win->display, (Window)win->window, &windowAttributes);
 
     return (windowAttributes.map_state == IsUnmapped && !RGFW_isMinimized(win));
 }
@@ -2096,14 +2101,14 @@ u8 RGFW_window_isHidden(RGFW_window* win) {
 u8 RGFW_isMinimized(RGFW_window* win) {
     static Atom prop = 0;
 	if (prop == 0)
-		prop = XInternAtom(win->display, "WM_STATE", False);
+		prop = XInternAtom((Display*)win->display, "WM_STATE", False);
 
     Atom actual_type;
     i32 actual_format;
     u64 nitems, bytes_after;
     unsigned char *prop_data;
 
-    i16 status = XGetWindowProperty(win->display, (Window)win->window, prop, 0, 2, False,
+    i16 status = XGetWindowProperty((Display*)win->display, (Window)win->window, prop, 0, 2, False,
                                      AnyPropertyType, &actual_type, &actual_format,
                                      &nitems, &bytes_after, &prop_data);
 
@@ -2124,9 +2129,9 @@ u8 RGFW_isMaximized(RGFW_window* win) {
     static Atom net_wm_state_maximized_vert = 0;
 
 	if (net_wm_state == 0) {
-		net_wm_state = XInternAtom(win->display, "_NET_WM_STATE", False);
-		net_wm_state_maximized_vert =  XInternAtom(win->display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
-		net_wm_state_maximized_horz = XInternAtom(win->display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+		net_wm_state = XInternAtom((Display*)win->display, "_NET_WM_STATE", False);
+		net_wm_state_maximized_vert =  XInternAtom((Display*)win->display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
+		net_wm_state_maximized_horz = XInternAtom((Display*)win->display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
 	}
 
     Atom actual_type;
@@ -2134,7 +2139,7 @@ u8 RGFW_isMaximized(RGFW_window* win) {
     u64 nitems, bytes_after;
     unsigned char *prop_data;
 
-    i16 status = XGetWindowProperty(win->display, (Window)win->window, net_wm_state, 0, 1024, False,
+    i16 status = XGetWindowProperty((Display*)win->display, (Window)win->window, net_wm_state, 0, 1024, False,
                                      XA_ATOM, &actual_type, &actual_format,
                                      &nitems, &bytes_after, &prop_data);
 
