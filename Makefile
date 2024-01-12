@@ -1,3 +1,4 @@
+CXX=g++
 CC = gcc
 
 LIBS := -lshell32 -lgdi32 -lm -lopengl32
@@ -22,7 +23,7 @@ else
 endif
 
 ifeq ($(detected_OS),Windows)
-	LIBS := -lshell32 -lgdi32 -lm -lopengl32 $(STATIC)
+	LIBS := -lshell32 -lgdi32 -lm -ldwmapi -lopengl32 $(STATIC)
 endif
 ifeq ($(detected_OS),Darwin)        # Mac OS X
 	LIBS := -I./ext/Silicon/ -lm -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo -w $(STATIC)
@@ -34,14 +35,20 @@ ifeq ($(detected_OS),Linux)
 endif
 
 all:
-	$(CC) main.c $(LIBS) -I./ext -I../ -Wall -o main
+	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -o basic
+	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -o gl33
+	$(CXX) examples/vk10/main.cpp $(LIBS) -lvulkan -lvk-bootstrap -I./ -Wall -o vk10
 
 clean:
-	rm main main.exe main.exe.so -f
+	rm ./examples/basic/basic ./examples/basic/basic.exe ./examples/gl33/gl33 ./examples/gl33/gl33.exe ./examples/vk10/vk10 ./examples/vk10/vk10.exe -f
 
 debug:
 	make clean
 
-	$(CC) main.c $(LIBS) -I../ -Wall -D RGFW_DEBUG -o main
+	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/basic/basic
+	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/gl33/gl33
+	$(CXX) examples/vk10/main.cpp $(LIBS) -lvulkan -lvk-bootstrap -I./ -Wall -D RGFW_DEBUG -o examples/vk10/vk10
 
-	./main$(EXT)
+	./examples/basic/basic$(EXT)
+	./examples/gl33/gl33$(EXT)
+	./examples/vk10/vk10$(EXT)
