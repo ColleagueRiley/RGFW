@@ -305,6 +305,19 @@ RGFW_window* RGFW_createWindow(
 	RGFW_VULKAN must be defined for this function to be defined
 
 */
+
+#ifdef RGFW_X11
+#define VK_USE_PLATFORM_XLIB_KHR
+#endif
+#ifdef RGFW_WINDOWS
+#define VK_USE_PLATFORMRGFW_WINDOWS_KHR
+#endif
+#ifdef __APPLE__
+#define VK_USE_PLATFORM_MACOS_MVK
+#endif
+
+#include <vulkan/vulkan.h>
+
 RGFWDEF void RGFW_initVulkan(RGFW_window* win, VkInstance inst);
 /* returns how big the screen is (for fullscreen support, ect, ect)
    [0] = width
@@ -558,6 +571,11 @@ u8 RGFW_Error() { return RGFW_error; }
 #include <GL/gl.h>
 #endif
 
+
+#ifdef RGFW_X11
+#include <X11/Xlib.h>
+#endif
+
 #ifdef RGFW_VULKAN
 #ifdef RGFW_X11
 #define VK_USE_PLATFORM_XLIB_KHR
@@ -570,11 +588,6 @@ u8 RGFW_Error() { return RGFW_error; }
 #endif
 
 #include <vulkan/vulkan.h>
-
-#ifdef RGFW_X11
-#include <X11/Xlib.h>
-#include <vulkan/vulkan_xlib.h>
-#endif
 
 void RGFW_initVulkan(RGFW_window* win, VkInstance inst) {
 	#ifdef RGFW_X11

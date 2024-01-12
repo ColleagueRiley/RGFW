@@ -1,18 +1,10 @@
-#include <stdio.h>
-
-#include <memory>
-#include <iostream>
-#include <fstream>
-#include <string>
-
-#include <vulkan/vulkan.h>
-
 #define RGFW_ALLOC_DROPFILES
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
 #define RGFW_VULKAN
 #include <RGFW.h>
 
+#include <stdio.h>
 #include <VkBootstrap.h>
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
@@ -72,7 +64,7 @@ int device_initialization(Init& init) {
     vkb::InstanceBuilder instance_builder;
     auto instance_ret = instance_builder.use_default_debug_messenger().request_validation_layers().build();
     if (!instance_ret) {
-        std::cout << instance_ret.error().message() << "\n";
+        printf("%s\n", instance_ret.error().message().c_str());
         return -1;
     }
     init.instance = instance_ret.value();
@@ -84,7 +76,7 @@ int device_initialization(Init& init) {
     vkb::PhysicalDeviceSelector phys_device_selector(init.instance);
     auto phys_device_ret = phys_device_selector.set_surface(init.surface).select();
     if (!phys_device_ret) {
-        std::cout << phys_device_ret.error().message() << "\n";
+        printf("%s\n", phys_device_ret.error().message().c_str());
         return -1;
     }
     vkb::PhysicalDevice physical_device = phys_device_ret.value();
@@ -92,7 +84,7 @@ int device_initialization(Init& init) {
     vkb::DeviceBuilder device_builder{ physical_device };
     auto device_ret = device_builder.build();
     if (!device_ret) {
-        std::cout << device_ret.error().message() << "\n";
+        printf("%s\n", device_ret.error().message().c_str());
         return -1;
     }
     init.device = device_ret.value();
@@ -107,7 +99,7 @@ int create_swapchain(Init& init) {
     vkb::SwapchainBuilder swapchain_builder{ init.device };
     auto swap_ret = swapchain_builder.set_old_swapchain(init.swapchain).build();
     if (!swap_ret) {
-        std::cout << swap_ret.error().message() << " " << swap_ret.vk_result() << "\n";
+        printf("%s %i\n", swap_ret.error().message().c_str(), swap_ret.vk_result());
         return -1;
     }
     vkb::destroy_swapchain(init.swapchain);
@@ -118,14 +110,14 @@ int create_swapchain(Init& init) {
 int get_queues(Init& init, RenderData& data) {
     auto gq = init.device.get_queue(vkb::QueueType::graphics);
     if (!gq.has_value()) {
-        std::cout << "failed to get graphics queue: " << gq.error().message() << "\n";
+        printf("failed to get graphics queue: %s\n", gq.error().message().c_str());
         return -1;
     }
     data.graphics_queue = gq.value();
 
     auto pq = init.device.get_queue(vkb::QueueType::present);
     if (!pq.has_value()) {
-        std::cout << "failed to get present queue: " << pq.error().message() << "\n";
+        printf("failed to get present queue: %s\n", pq.error().message().c_str());
         return -1;
     }
     data.present_queue = pq.value();
@@ -170,35 +162,36 @@ int create_render_pass(Init& init, RenderData& data) {
     render_pass_info.pDependencies = &dependency;
 
     if (init.disp.createRenderPass(&render_pass_info, nullptr, &data.render_pass) != VK_SUCCESS) {
-        std::cout << "failed to create render pass\n";
+        printf("failed to create render pass\n");
         return -1; // failed to create render pass!
     }
     return 0;
 }
 
-std::vector<char> readFile(const std::string& filename) {
-    std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-    if (!file.is_open()) {
-        throw std::runtime_error("failed to open file!");
+char* readFile(const char* filename, size_t* file_size) {
+    FILE* file = fopen(filename, "r"); 
+    
+    if (!file) {
+        perror("failed to open file!");
     }
 
-    size_t file_size = (size_t)file.tellg();
-    std::vector<char> buffer(file_size);
+    fseek(file, 0U, SEEK_END);
+    *file_size = ftell(file);
+    fseek(file, 0U, SEEK_SET);
+    
+    char* buffer = (char*)malloc(sizeof(char) * *file_size);
 
-    file.seekg(0);
-    file.read(buffer.data(), static_cast<std::streamsize>(file_size));
-
-    file.close();
+    fread(buffer, *file_size, 1, file);
+    fclose(file);
 
     return buffer;
 }
 
-VkShaderModule createShaderModule(Init& init, const std::vector<char>& code) {
+VkShaderModule createShaderModule(Init& init, char* code, size_t code_size) {
     VkShaderModuleCreateInfo create_info = {};
     create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    create_info.codeSize = code.size();
-    create_info.pCode = reinterpret_cast<const uint32_t*>(code.data());
+    create_info.codeSize = code_size;
+    create_info.pCode = reinterpret_cast<const uint32_t*>(code);
 
     VkShaderModule shaderModule;
     if (init.disp.createShaderModule(&create_info, nullptr, &shaderModule) != VK_SUCCESS) {
@@ -209,13 +202,19 @@ VkShaderModule createShaderModule(Init& init, const std::vector<char>& code) {
 }
 
 int create_graphics_pipeline(Init& init, RenderData& data) {
-    auto vert_code = readFile("shaders/vert.spv");
-    auto frag_code = readFile("shaders/frag.spv");
+    size_t vert_fileSize, frag_fileSize;
 
-    VkShaderModule vert_module = createShaderModule(init, vert_code);
-    VkShaderModule frag_module = createShaderModule(init, frag_code);
+    char* vert_code = readFile("shaders/vert.spv", &vert_fileSize);
+    char* frag_code = readFile("shaders/frag.spv", &frag_fileSize);
+
+    VkShaderModule vert_module = createShaderModule(init, vert_code, vert_fileSize);
+    VkShaderModule frag_module = createShaderModule(init, frag_code, frag_fileSize);
+
+    free(vert_code);
+    free(frag_code);
+
     if (vert_module == VK_NULL_HANDLE || frag_module == VK_NULL_HANDLE) {
-        std::cout << "failed to create shader module\n";
+        printf("failed to create shader module\n");
         return -1; // failed to create shader modules
     }
 
@@ -299,7 +298,7 @@ int create_graphics_pipeline(Init& init, RenderData& data) {
     pipeline_layout_info.pushConstantRangeCount = 0;
 
     if (init.disp.createPipelineLayout(&pipeline_layout_info, nullptr, &data.pipeline_layout) != VK_SUCCESS) {
-        std::cout << "failed to create pipeline layout\n";
+        printf("failed to create pipeline layout\n");
         return -1; // failed to create pipeline layout
     }
 
@@ -327,7 +326,7 @@ int create_graphics_pipeline(Init& init, RenderData& data) {
     pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
 
     if (init.disp.createGraphicsPipelines(VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &data.graphics_pipeline) != VK_SUCCESS) {
-        std::cout << "failed to create pipline\n";
+        printf("failed to create pipline\n");
         return -1; // failed to create graphics pipeline
     }
 
@@ -367,7 +366,7 @@ int create_command_pool(Init& init, RenderData& data) {
     pool_info.queueFamilyIndex = init.device.get_queue_index(vkb::QueueType::graphics).value();
 
     if (init.disp.createCommandPool(&pool_info, nullptr, &data.command_pool) != VK_SUCCESS) {
-        std::cout << "failed to create command pool\n";
+        printf("failed to create command pool\n");
         return -1; // failed to create command pool
     }
     return 0;
@@ -428,7 +427,7 @@ int create_command_buffers(Init& init, RenderData& data) {
         init.disp.cmdEndRenderPass(data.command_buffers[i]);
 
         if (init.disp.endCommandBuffer(data.command_buffers[i]) != VK_SUCCESS) {
-            std::cout << "failed to record command buffer\n";
+            printf("failed to record command buffer\n");
             return -1; // failed to record command buffer!
         }
     }
@@ -452,7 +451,7 @@ int create_sync_objects(Init& init, RenderData& data) {
         if (init.disp.createSemaphore(&semaphore_info, nullptr, &data.available_semaphores[i]) != VK_SUCCESS ||
             init.disp.createSemaphore(&semaphore_info, nullptr, &data.finished_semaphore[i]) != VK_SUCCESS ||
             init.disp.createFence(&fence_info, nullptr, &data.in_flight_fences[i]) != VK_SUCCESS) {
-            std::cout << "failed to create sync objects\n";
+            printf("failed to create sync objects\n");
             return -1; // failed to create synchronization objects for a frame
         }
     }
@@ -487,7 +486,7 @@ int draw_frame(Init& init, RenderData& data) {
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         return recreate_swapchain(init, data);
     } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-        std::cout << "failed to acquire swapchain image. Error " << result << "\n";
+        printf("failed to acquire swapchain image. Error %i\n", result);
         return -1;
     }
 
@@ -515,7 +514,7 @@ int draw_frame(Init& init, RenderData& data) {
     init.disp.resetFences(1, &data.in_flight_fences[data.current_frame]);
 
     if (init.disp.queueSubmit(data.graphics_queue, 1, &submitInfo, data.in_flight_fences[data.current_frame]) != VK_SUCCESS) {
-        std::cout << "failed to submit draw command buffer\n";
+        printf("failed to submit draw command buffer\n");
         return -1; //"failed to submit draw command buffer
     }
 
@@ -535,7 +534,7 @@ int draw_frame(Init& init, RenderData& data) {
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
         return recreate_swapchain(init, data);
     } else if (result != VK_SUCCESS) {
-        std::cout << "failed to present swapchain image\n";
+        printf("failed to present swapchain image\n");
         return -1;
     }
 
@@ -594,7 +593,7 @@ int main() {
 
         int res = draw_frame(init, render_data);
         if (res != 0) {
-            std::cout << "failed to draw frame \n";
+            printf("failed to draw frame \n");
             return -1;
         }
     }
