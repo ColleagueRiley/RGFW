@@ -1,7 +1,5 @@
-#define SOGL_MAJOR_VERSION 3
-#define SOGL_MINOR_VERSION 3
-#define SOGL_IMPLEMENTATION_WIN32 /* or SOGL_IMPLEMENTATION_X11 */
-#include "simple-opengl-loader.h"
+#define RGL_LOAD_IMPLEMENTATION
+#include "rglLoad.h"
 
 #define RGFW_ALLOC_DROPFILES
 #define RGFW_IMPLEMENTATION
@@ -14,45 +12,47 @@
 #pragma comment(lib, "opengl32")
 #endif
 
-#include <iostream>
+#define MULTILINE_STR(...) #__VA_ARGS__
+
+#include <stdbool.h>
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-const char *vertexShaderSource = R"(
-#version 330 core
+const char *vertexShaderSource = MULTILINE_STR(
+\x23version 330 core
 layout (location = 0) in vec3 aPos;
 void main()
 {
     gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
 }
-)";
+);
     ;
-const char *fragmentShaderSource =R"(
-#version 330 core
+const char *fragmentShaderSource = MULTILINE_STR(
+\x23version 330 core
 out vec4 FragColor;
 void main()
 {
     FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
 }
-)";
+);
 
 
 int main()
 {
-    RGFW_window* window = RGFW_createWindow( "LearnOpenGL", SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT, RGFW_ALLOW_DND);
+    RGFW_window* window = RGFW_createWindow("LearnOpenGL", SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT, RGFW_ALLOW_DND | RGFW_CENTER);
     if (window == NULL)
     {
-        std::cout << "Failed to create GLFW window" << std::endl;
+        printf("Failed to create RGFW window\n");
         return -1;
     }
     RGFW_window_makeCurrent(window);
     // RGFW_window_swapInterval(window, 60);
 
-    if (!sogl_loadOpenGL())
+    if (RGL_loadGL3(RGFW_getProcAddress))
     {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+        printf("Failed to initialize GLAD\n");
         return -1;
     }
 
@@ -66,7 +66,7 @@ int main()
     if (!success)
     {
         glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+        printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n%s\n", infoLog);
     }
     // fragment shader
     unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -77,7 +77,7 @@ int main()
     if (!success)
     {
         glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+        printf("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n%s\n", infoLog);
     }
     // link shaders
     unsigned int shaderProgram = glCreateProgram();
@@ -88,7 +88,7 @@ int main()
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+        printf("ERROR::SHADER::PROGRAM::LINKING_FAILED\n%s\n", infoLog);
     }
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
