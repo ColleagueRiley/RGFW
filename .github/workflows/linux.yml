@@ -18,6 +18,6 @@ jobs:
       run: sudo apt-get update
       
     - name: apt
-      run: sudo apt-get install mesa-common-dev libglx-dev libxcursor-dev
+      run: sudo apt-get install mesa-common-dev libglx-dev libxcursor-dev mesa-vulkan-drivers
     - name: make
-      run: make debug
+      run: make

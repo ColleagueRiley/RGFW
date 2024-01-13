@@ -13,5 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: make
-      run: make debug
+    - name: gcc
+      run: gcc -I./ ./examples/basic/main.c -lopengl32 -lshell32 -lgdi32
+
+    - name: gcc-gl33
+      run: gcc -I./ ./examples/gl33/gl33.c -Wall -Wall -lopengl32 -lshell32 -lgdi32 -std=c99
