@@ -69,13 +69,11 @@
 #endif
 
 #if !_MSC_VER
-
 #ifndef inline
 #ifndef __APPLE__
 #define inline __inline
 #endif
 #endif
-
 #endif
 
 #ifndef RGFWDEF
@@ -244,9 +242,9 @@ typedef struct RGFW_window {
     void* display; /*!< source display */
     void* window; /*!< source window */
     void* glWin; /*!< source opengl context */
-#ifdef RGFW_WINDOWS
-	void* hinstance; /*!< windows hinstance*/
-#endif
+	#ifdef RGFW_WINDOWS
+		void* hinstance; /*!< windows hinstance*/
+	#endif
 
 	#ifndef RGFW_RECT
 	i32 x, y; /*!< window pos, x, y */
@@ -299,13 +297,8 @@ RGFW_window* RGFW_createWindow(
 	u64 args /* extra arguments (NULL / (u64)0 means no args used)*/
 ); /*!< function to create a window struct */
 
-#ifdef RGFW_VULKAN
-/*! initializes a vulkan rendering context for the RGFW window, you still need to load your own vulkan instance, ect, ect
-	this outputs the vulkan surface into win->glWin
-	RGFW_VULKAN must be defined for this function to be defined
 
-*/
-
+#ifdef VULKAN
 #ifdef RGFW_X11
 #define VK_USE_PLATFORM_XLIB_KHR
 #endif
@@ -318,6 +311,11 @@ RGFW_window* RGFW_createWindow(
 
 #include <vulkan/vulkan.h>
 
+/*! initializes a vulkan rendering context for the RGFW window, you still need to load your own vulkan instance, ect, ect
+	this outputs the vulkan surface into win->glWin
+	RGFW_VULKAN must be defined for this function to be defined
+
+*/
 RGFWDEF void RGFW_initVulkan(RGFW_window* win, VkInstance inst);
 /* returns how big the screen is (for fullscreen support, ect, ect)
    [0] = width
@@ -571,11 +569,6 @@ u8 RGFW_Error() { return RGFW_error; }
 #include <GL/gl.h>
 #endif
 
-
-#ifdef RGFW_X11
-#include <X11/Xlib.h>
-#endif
-
 #ifdef RGFW_VULKAN
 #ifdef RGFW_X11
 #define VK_USE_PLATFORM_XLIB_KHR
@@ -589,7 +582,7 @@ u8 RGFW_Error() { return RGFW_error; }
 
 #include <vulkan/vulkan.h>
 
-void RGFW_initVulkan(RGFW_window* win, VkInstance inst) {
+void RGFW_initVulkan(RGFW_window* win, void* inst) {
 	#ifdef RGFW_X11
 	VkXlibSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, 0, 0, (Display*)win->display, (Window)win->window };
 
@@ -1770,39 +1763,39 @@ void RGFW_window_setMinSize(RGFW_window* win, u32 width, u32 height) {
     XSizeHints hints;
     long flags;
 
-    XGetWMNormalHints((Display*)win->display, (Window)win->window, &hints, &flags);
+    XGetWMNormalHints(win->display, (Window)win->window, &hints, &flags);
 
     hints.flags |= PMinSize;
 
     hints.min_width = width;
     hints.min_height = height;
 
-    XSetWMNormalHints((Display*)win->display, (Window)win->window, &hints);
+    XSetWMNormalHints(win->display, (Window)win->window, &hints);
 }
 
 void RGFW_window_setMaxSize(RGFW_window* win, u32 width, u32 height) {
     XSizeHints hints;
     long flags;
 
-    XGetWMNormalHints((Display*)win->display, (Window)win->window, &hints, &flags);
+    XGetWMNormalHints(win->display, (Window)win->window, &hints, &flags);
 
     hints.flags |= PMaxSize;
 
     hints.max_width = width;
     hints.max_height = height;
 
-    XSetWMNormalHints((Display*)win->display, (Window)win->window, &hints);
+    XSetWMNormalHints(win->display, (Window)win->window, &hints);
 }
 
 
 void RGFW_window_minimize(RGFW_window* win) {
-    XIconifyWindow((Display*)win->display, (Window)win->window, DefaultScreen(win->display));
-    XFlush((Display*)win->display);
+    XIconifyWindow(win->display, (Window)win->window, DefaultScreen(win->display));
+    XFlush(win->display);
 }
 
 void RGFW_window_restore(RGFW_window* win) {
-    XMapWindow((Display*)win->display, (Window)win->window);
-    XFlush((Display*)win->display);
+    XMapWindow(win->display, (Window)win->window);
+    XFlush(win->display);
 }
 
 void RGFW_window_setName(RGFW_window* win, char* name) {
@@ -2092,7 +2085,7 @@ u16 RGFW_registerJoystickF(RGFW_window* win, char* file) {
 
 u8 RGFW_window_isFullscreen(RGFW_window* win) {
 	XWindowAttributes windowAttributes;
-    XGetWindowAttributes((Display*)win->display, (Window)win->window, &windowAttributes);
+    XGetWindowAttributes(win->display, (Window)win->window, &windowAttributes);
 	
 	/* check if the window is visable */
     if (windowAttributes.map_state != IsViewable) 
@@ -2100,13 +2093,13 @@ u8 RGFW_window_isFullscreen(RGFW_window* win) {
 
     /* check if the window covers the full screen */
     return (windowAttributes.x == 0 && windowAttributes.y == 0 &&
-            windowAttributes.width == XDisplayWidth((Display*)win->display, DefaultScreen(win->display)) &&
-            windowAttributes.height == XDisplayHeight((Display*)win->display, DefaultScreen(win->display)));
+            windowAttributes.width == XDisplayWidth(win->display, DefaultScreen(win->display)) &&
+            windowAttributes.height == XDisplayHeight(win->display, DefaultScreen(win->display)));
 }
 
 u8 RGFW_window_isHidden(RGFW_window* win) {
     XWindowAttributes windowAttributes;
-    XGetWindowAttributes((Display*)win->display, (Window)win->window, &windowAttributes);
+    XGetWindowAttributes(win->display, (Window)win->window, &windowAttributes);
 
     return (windowAttributes.map_state == IsUnmapped && !RGFW_isMinimized(win));
 }
@@ -2114,14 +2107,14 @@ u8 RGFW_window_isHidden(RGFW_window* win) {
 u8 RGFW_isMinimized(RGFW_window* win) {
     static Atom prop = 0;
 	if (prop == 0)
-		prop = XInternAtom((Display*)win->display, "WM_STATE", False);
+		prop = XInternAtom(win->display, "WM_STATE", False);
 
     Atom actual_type;
     i32 actual_format;
     u64 nitems, bytes_after;
     unsigned char *prop_data;
 
-    i16 status = XGetWindowProperty((Display*)win->display, (Window)win->window, prop, 0, 2, False,
+    i16 status = XGetWindowProperty(win->display, (Window)win->window, prop, 0, 2, False,
                                      AnyPropertyType, &actual_type, &actual_format,
                                      &nitems, &bytes_after, &prop_data);
 
@@ -2142,9 +2135,9 @@ u8 RGFW_isMaximized(RGFW_window* win) {
     static Atom net_wm_state_maximized_vert = 0;
 
 	if (net_wm_state == 0) {
-		net_wm_state = XInternAtom((Display*)win->display, "_NET_WM_STATE", False);
-		net_wm_state_maximized_vert =  XInternAtom((Display*)win->display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
-		net_wm_state_maximized_horz = XInternAtom((Display*)win->display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+		net_wm_state = XInternAtom(win->display, "_NET_WM_STATE", False);
+		net_wm_state_maximized_vert =  XInternAtom(win->display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
+		net_wm_state_maximized_horz = XInternAtom(win->display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
 	}
 
     Atom actual_type;
@@ -2152,7 +2145,7 @@ u8 RGFW_isMaximized(RGFW_window* win) {
     u64 nitems, bytes_after;
     unsigned char *prop_data;
 
-    i16 status = XGetWindowProperty((Display*)win->display, (Window)win->window, net_wm_state, 0, 1024, False,
+    i16 status = XGetWindowProperty(win->display, (Window)win->window, net_wm_state, 0, 1024, False,
                                      XA_ATOM, &actual_type, &actual_format,
                                      &nitems, &bytes_after, &prop_data);
 
@@ -2224,14 +2217,15 @@ PFN_OSMesaDestroyContext OSMesaDestroyContextSource;
 #define OSMesaDestroyContext OSMesaDestroyContextSource
 #endif
 
-typedef BOOL (*PFN_wglSwapIntervalEXT)(int);
-PFN_wglSwapIntervalEXT wglSwapIntervalEXTSrc = NULL;
-#define wglSwapIntervalEXT wglSwapIntervalEXTSrc
+typedef int (*PFN_wglGetSwapIntervalEXT)(void);
+PFN_wglGetSwapIntervalEXT wglGetSwapIntervalEXTSrc = NULL;
+#define wglGetSwapIntervalEXT wglGetSwapIntervalEXTSrc
+
 
 void* RGFWjoystickApi = NULL;
 
 /* these two wgl functions need to be preloaded */
-typedef HGLRC (*wglCreateContextAttribsARB_type)(HDC hdc, HGLRC hShareContext,
+typedef HGLRC WINAPI (*wglCreateContextAttribsARB_type)(HDC hdc, HGLRC hShareContext,
         const i32 *attribList);
 wglCreateContextAttribsARB_type wglCreateContextAttribsARB = NULL;
 
@@ -2282,54 +2276,12 @@ PFN_wglGetCurrentContext wglGetCurrentContextSRC;
 #define wglGetCurrentContext wglGetCurrentContextSRC
 #endif
 
-/* defines for creating ARB attributes */
-#define WGL_CONTEXT_MAJOR_VERSION_ARB             0x2091
-#define WGL_CONTEXT_MINOR_VERSION_ARB             0x2092
-#define WGL_DRAW_TO_WINDOW_ARB                    0x2001
-#define WGL_ACCELERATION_ARB                      0x2003
-#define WGL_SUPPORT_OPENGL_ARB                    0x2010
-#define WGL_DOUBLE_BUFFER_ARB                     0x2011
-#define WGL_PIXEL_TYPE_ARB                        0x2013
-#define WGL_COLOR_BITS_ARB                        0x2014
-#define WGL_DEPTH_BITS_ARB                        0x2022
-#define WGL_FULL_ACCELERATION_ARB                 0x2027
-#define WGL_TYPE_RGBA_ARB                         0x202B
-#define WGL_CONTEXT_FLAGS_ARB                   0x2094
-#define WGL_CONTEXT_PROFILE_MASK_ARB            0x9126
-#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
-
-#ifdef RGFW_WGL_LOAD
-static HMODULE wglinstance = NULL;
-typedef HGLRC(WINAPI *PFN_wglCreateContext)(HDC);
-typedef BOOL(WINAPI *PFN_wglDeleteContext)(HGLRC);
-typedef PROC(WINAPI *PFN_wglGetProcAddress)(LPCSTR);
-typedef BOOL(WINAPI *PFN_wglMakeCurrent)(HDC, HGLRC);
-typedef HDC (WINAPI *PFN_wglGetCurrentDC)();
-typedef HGLRC (WINAPI *PFN_wglGetCurrentContext)();
-
-PFN_wglCreateContext wglCreateContextSRC;
-PFN_wglDeleteContext wglDeleteContextSRC;
-PFN_wglGetProcAddress wglGetProcAddressSRC;
-PFN_wglMakeCurrent wglMakeCurrentSRC;
-PFN_wglGetCurrentDC wglGetCurrentDCSRC;
-PFN_wglGetCurrentContext wglGetCurrentContextSRC;
-
-#define wglCreateContext wglCreateContextSRC
-#define wglDeleteContext wglDeleteContextSRC
-#define wglGetProcAddress wglGetProcAddressSRC
-#define wglMakeCurrent wglMakeCurrentSRC
-
-#define wglGetCurrentDC wglGetCurrentDCSRC
-#define wglGetCurrentContext wglGetCurrentContextSRC
-#endif
-
 #ifdef RGFW_GL
 void* RGFW_getProcAddress(const char* procname) { return (void*)wglGetProcAddress(procname); }
 #endif
 
-
 RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64 args) {
-    #ifdef RGFW_WGL_LOAD
+	#ifdef RGFW_WGL_LOAD
 	if (wglinstance == NULL) { 
 		wglinstance = LoadLibraryA("opengl32.dll");
 
@@ -2395,10 +2347,12 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
     RegisterClassA(&Class);
 
-	DWORD window_style = 0; 
+	DWORD window_style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+
+    RECT windowRect, clientRect;
 
 	if (!(RGFW_NO_BORDER & args)) {
-		window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
+		window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER | WS_VISIBLE | WS_MINIMIZEBOX;
 		
 		if (!(RGFW_NO_RESIZE & args))
 			window_style |= WS_SIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME;
@@ -2408,29 +2362,27 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
     win->display = CreateWindowA( Class.lpszClassName, name, window_style, x, y, w, h, 0, 0, inh, 0);
 
-    RECT windowRect, clientRect;
-	GetWindowRect((HWND)win->display, &windowRect);
-	GetClientRect((HWND)win->display, &clientRect);
+
+	GetWindowRect(win->display, &windowRect);
+	GetClientRect(win->display, &clientRect);
 
 	#ifndef RGFW_RECT
-	h +=  (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
+	win->h +=  (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
+	RGFW_window_resize(win, win->w, win->h);
 	#else
-	h += (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
+	win->r.h += (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
+	RGFW_window_resize(win, win->r.w, win->r.h);
 	#endif
 
-
-	if (RGFW_TRANSPARENT_WINDOW & args)
+	if (RGFW_TRANSPARENT_WINDOW & args) {
 		SetWindowLong((HWND)win->display, GWL_EXSTYLE, GetWindowLong((HWND)win->display, GWL_EXSTYLE) | WS_EX_LAYERED);
-
+	}
 	if (RGFW_ALLOW_DND & args)
 		DragAcceptFiles((HWND)win->display, TRUE);
 
     win->window = GetDC((HWND)win->display);
 
-	win->hinstance = (HINSTANCE)Class.hInstance;
-
-
-  	#ifdef RGFW_GL 
+ 	#ifdef RGFW_GL 
     
 	HGLRC prc;
     HDC pdc;
@@ -2447,19 +2399,21 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
     pfd.iPixelType = PFD_TYPE_RGBA;
     pfd.cColorBits = 24;
 
-    SetPixelFormat((HDC)win->window, ChoosePixelFormat((HDC)win->window, &pfd), &pfd);
+    SetPixelFormat(win->window, ChoosePixelFormat(win->window, &pfd), &pfd);
 
-    win->glWin = wglCreateContext((HDC)win->window);
+    win->glWin = wglCreateContext(win->window);
 
     pdc = wglGetCurrentDC();
     prc = wglGetCurrentContext();
 
-    wglMakeCurrent((HDC)win->window, (HGLRC)win->glWin);
+    wglMakeCurrent(win->window, win->glWin);
     
     if (wglCreateContextAttribsARB == NULL) {
         wglCreateContextAttribsARB = (wglCreateContextAttribsARB_type)
             wglGetProcAddress("wglCreateContextAttribsARB");
 
+        wglGetSwapIntervalEXTSrc = (PFN_wglGetSwapIntervalEXT)
+            wglGetProcAddress("wglGetSwapIntervalEXT");
 
 		wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
     }
@@ -2518,6 +2472,35 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 		printf("Failed to create an accelerated OpenGL Context\n");
 	#endif
 
+
+	#ifdef RGFW_OSMESA
+
+	#ifdef RGFW_LINK_OSMESA
+	OSMesaMakeCurrentSource = (PFN_OSMesaMakeCurrent) GetProcAddress(win->display, "OSMesaMakeCurrent");
+	OSMesaCreateContextSource = (PFN_OSMesaCreateContext) GetProcAddress(win->display, "OSMesaCreateContext");
+	OSMesaDestroyContextSource = (PFN_OSMesaDestroyContext) GetProcAddress(win->display, "OSMesaDestroyContext");
+	#endif
+
+	if (RGFW_OPENGL & args) {
+	#endif
+		#ifdef RGFW_GL
+		ReleaseDC((HWND)win->display, (HDC)win->window);
+		win->window = GetDC((HWND)win->display);
+		wglMakeCurrent((HDC)win->window, (HGLRC)win->glWin);
+		#endif
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+		win->buffer = NULL;
+	#endif
+	#ifdef RGFW_OSMESA 
+	}
+	else {
+		win->glWin = (void*)OSMesaCreateContext(OSMESA_RGBA, NULL);
+		win->buffer = RGFW_MALLOC(w * h * 4);
+
+		OSMesaMakeCurrent(win->glWin, win->buffer, GL_UNSIGNED_BYTE, w, h);
+	}
+	#endif
+
 	#ifdef RGFW_EGL
 	RGFW_createOpenGLContext(win);
 	#endif
@@ -2531,6 +2514,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
     return win;
 }
+
 
 u32* RGFW_window_screenSize(RGFW_window* win) {
 	static u32 RGFW_ScreenSize[2];
@@ -2566,6 +2550,7 @@ RGFWDEF void RGFW_window_setMaxSize(RGFW_window* win, u32 width, u32 height) {
 	RGFW_WIN_MAX_SIZE[0] = width;
 	RGFW_WIN_MAX_SIZE[1] = height;
 }
+
 
 void RGFW_window_minimize(RGFW_window* win) {
     ShowWindow((HWND)win->display, SW_MINIMIZE);
@@ -3002,7 +2987,6 @@ char* createUTF8FromWideStringWin32(const WCHAR* source) {
 
     return target;
 }
-
 
 #ifndef RGFW_NO_THREADS
 RGFW_thread RGFW_createThread(void* (*function_ptr)(void*), void* args) { return CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)*function_ptr, args, 0, NULL);  }
@@ -3801,32 +3785,6 @@ u8 RGFW_window_shouldClose(RGFW_window* win) {
 	return (win->event.type == RGFW_quit || RGFW_isPressedI(win, RGFW_OS_BASED_VALUE(0xff1b, 0x1B, 53)));
 }
 
-#if _MSC_VER
-/* Windows sleep in 100ns units */
-BOOLEAN nanosleep(const struct timespec* time, void* /*null*/){
-	LONGLONG ns = time->tv_nsec;
-
-	/* Declarations */
-	HANDLE timer;	/* Timer handle */
-	LARGE_INTEGER li;	/* Time defintion */
-	/* Create timer */
-	if(!(timer = CreateWaitableTimer(NULL, TRUE, NULL)))
-		return FALSE;
-	/* Set timer properties */
-	li.QuadPart = -ns;
-	if(!SetWaitableTimer(timer, &li, 0, NULL, NULL, FALSE)){
-		CloseHandle(timer);
-		return FALSE;
-	}
-	/* Start & wait for timer */
-	WaitForSingleObject(timer, INFINITE);
-	/* Clean resources */
-	CloseHandle(timer);
-	/* Slept without problems */
-	return TRUE;
-}
-#endif
-
 void RGFW_sleep(u32 microsecond) {
    struct timespec time;
    time.tv_sec = 0;
@@ -3853,30 +3811,6 @@ void RGFW_window_checkFPS(RGFW_window* win) {
     
     currentFrame = RGFW_getTime();
 } 
-
-#if _MSC_VER
-#define exp7           10000000i64     //1E+7     //C-file part
-#define exp9         1000000000i64     //1E+9
-#define w2ux 116444736000000000i64     //1.jan1601 to 1.jan1970
-	void unix_time(struct timespec *spec)
-{  __int64 wintime; GetSystemTimeAsFileTime((FILETIME*)&wintime);
-	wintime -=w2ux;  spec->tv_sec  =wintime / exp7;
-	spec->tv_nsec =wintime % exp7 *100;
-}
-	int clock_gettime(int, timespec *spec)
-{  static  struct timespec startspec; static double ticks2nano;
-	static __int64 startticks, tps =0;    __int64 tmp, curticks;
-	QueryPerformanceFrequency((LARGE_INTEGER*)&tmp); //some strange system can
-	if (tps !=tmp) { tps =tmp; //init ~~ONCE         //possibly change freq ?
-		QueryPerformanceCounter((LARGE_INTEGER*)&startticks);
-		unix_time(&startspec); ticks2nano =(double)exp9 / tps; }
-	QueryPerformanceCounter((LARGE_INTEGER*)&curticks); curticks -=startticks;
-	spec->tv_sec  =startspec.tv_sec   +         (curticks / tps);
-	spec->tv_nsec =startspec.tv_nsec  + (double)(curticks % tps) * ticks2nano;
-	if (!(spec->tv_nsec < exp9)) { spec->tv_sec++; spec->tv_nsec -=exp9; }
-	return 0;
-}
-#endif
 
 u32 RGFW_getTimeNS(void) {
     struct timespec ts = { 0 };
