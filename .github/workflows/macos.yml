@@ -13,5 +13,5 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: gcc
-      run: gcc -I./ ./examples/basic/main.c -Wall -framework AppKit -framework OpenGL -framework CoreVideo -std=c99
+    - name: make
+      run: make debug

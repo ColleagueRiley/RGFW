@@ -19,5 +19,5 @@ jobs:
       
     - name: apt
       run: sudo apt-get install mesa-common-dev libglx-dev libxcursor-dev
-    - name: gcc
-      run: gcc -I./ ./examples/basic/main.c -lX11 -lGLX -lGL
+    - name: make
+      run: make debug
