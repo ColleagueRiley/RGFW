@@ -1,4 +1,3 @@
-CXX=g++
 CC = gcc
 
 LIBS := -lshell32 -lgdi32 -lm -lopengl32
@@ -37,7 +36,7 @@ endif
 all:
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -o basic
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -o gl33
-	$(CXX) examples/vk10/main.cpp $(LIBS) -lvulkan -lvk-bootstrap -I./ -Wall -o vk10
+	$(CC) examples/vk10/main.c $(LIBS) -lvulkan -I./ -Wall -o vk10
 
 clean:
 	rm ./examples/basic/basic ./examples/basic/basic.exe ./examples/gl33/gl33 ./examples/gl33/gl33.exe ./examples/vk10/vk10 ./examples/vk10/vk10.exe -f
@@ -47,7 +46,7 @@ debug:
 
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/basic/basic
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/gl33/gl33
-	$(CXX) examples/vk10/main.cpp $(LIBS) -lvulkan -lvk-bootstrap -I./ -Wall -D RGFW_DEBUG -o examples/vk10/vk10
+	$(CC) examples/vk10/main.c $(LIBS) -lvulkan -I./ -Wall -D RGFW_DEBUG -o examples/vk10/vk10
 
 	./examples/basic/basic$(EXT)
 	./examples/gl33/gl33$(EXT)
