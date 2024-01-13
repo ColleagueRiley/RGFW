@@ -17,4 +17,4 @@ jobs:
       run: gcc -I./ ./examples/basic/main.c -Wall -framework AppKit -framework OpenGL -framework CoreVideo -std=c99
     
     - name: gcc-gl33
-      run: gcc -I./ ./examples/gl33/gl33.c -framework AppKit -framework OpenGL -framework CoreVideo -std=c99
+      run: gcc -I./ ./examples/gl33/main.c -framework AppKit -framework OpenGL -framework CoreVideo -std=c99
