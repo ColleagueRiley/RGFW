@@ -243,7 +243,7 @@ typedef struct RGFW_window {
     void* window; /*!< source window */
     void* glWin; /*!< source opengl context */
 	#ifdef RGFW_WINDOWS
-		void* hinstance; /*!< windows hinstance*/
+    void* hinstance; /*!< windows hinstance*/
 	#endif
 
 	#ifndef RGFW_RECT
@@ -316,7 +316,7 @@ RGFW_window* RGFW_createWindow(
 	RGFW_VULKAN must be defined for this function to be defined
 
 */
-RGFWDEF void RGFW_initVulkan(RGFW_window* win, VkInstance inst);
+RGFWDEF void RGFW_initVulkan(RGFW_window* win, void* inst);
 /* returns how big the screen is (for fullscreen support, ect, ect)
    [0] = width
    [1] = height
@@ -574,7 +574,7 @@ u8 RGFW_Error() { return RGFW_error; }
 #define VK_USE_PLATFORM_XLIB_KHR
 #endif
 #ifdef RGFW_WINDOWS
-#define VK_USE_PLATFORMRGFW_WINDOWS_KHR
+#define VK_USE_PLATFORM_WIN32_KHR
 #endif
 #ifdef __APPLE__
 #define VK_USE_PLATFORM_MACOS_MVK
@@ -586,18 +586,17 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 	#ifdef RGFW_X11
 	VkXlibSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, 0, 0, (Display*)win->display, (Window)win->window };
 
-	vkCreateXlibSurfaceKHR(inst, &x11, NULL, (VkSurfaceKHR*)win->glWin);
+	vkCreateXlibSurfaceKHR((VkInstance)inst, &x11, NULL, (VkSurfaceKHR*)win->glWin);
 	#endif
 	#ifdef RGFW_WINDOWS
-	// VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, (HINSTANCE)win->window, (HWND)win->display };
 	VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, (HINSTANCE)win->hinstance, (HWND)win->display };
 
-	vkCreateWin32SurfaceKHR(inst, &win32, NULL, (VkSurfaceKHR*)win->glWin);
+	vkCreateWin32SurfaceKHR((VkInstance)inst, &win32, NULL, (VkSurfaceKHR*)win->glWin);
 	#endif
 	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 	VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_KHR, 0, 0, win->display, win->window };
 
-	vkCreateMacOSSurfaceMVK(inst, &macos, NULL, (VkSurfaceKHR*)win->glWin);
+	vkCreateMacOSSurfaceMVK((VkInstance)inst, &macos, NULL, (VkSurfaceKHR*)win->glWin);
 	#endif
 }
 
@@ -2381,6 +2380,10 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 		DragAcceptFiles((HWND)win->display, TRUE);
 
     win->window = GetDC((HWND)win->display);
+
+#ifdef RGFW_WINDOWS
+    win->hinstance = (void*)inh;
+#endif
 
  	#ifdef RGFW_GL 
     
