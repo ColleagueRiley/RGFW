@@ -31,7 +31,7 @@ endif
 ifeq ($(detected_OS),Darwin)        # Mac OS X
 	LIBS := -I./ext/Silicon/ -lm -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo -w $(STATIC)
 	EXT = 
-	LIB_EXT = .lib
+	LIB_EXT = .dylib
 endif
 ifeq ($(detected_OS),Linux)
     LIBS := -I./include -lX11 -lm -lGL $(STATIC)
