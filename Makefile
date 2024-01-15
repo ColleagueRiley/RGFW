@@ -1,4 +1,5 @@
 CC = gcc
+AR = ar
 
 LIBS := -lshell32 -lgdi32 -lm -lopengl32
 EXT = .exe
@@ -65,8 +66,8 @@ RGFW.o:
 
 libRGFW$(LIB_EXT):
 	make RGFW.o
-	gcc -shared RGFW.o $(LIBS) -o libRGFW$(LIB_EXT)
+	$(CC) -shared RGFW.o $(LIBS) -o libRGFW$(LIB_EXT)
 
 libRGFW.a:
 	make RGFW.o
-	ar rcs libRGFW.a *.o
+	$(AR) rcs libRGFW.a *.o
