@@ -181,7 +181,7 @@ void destroy_window_rgfw(RGFW_window* window) {
 VkSurfaceKHR create_surface_rgfw(VkInstance instance, RGFW_window* window) {
     VkSurfaceKHR surface = VK_NULL_HANDLE;
     RGFW_initVulkan(window, instance);
-    surface = (VkSurfaceKHR)&window->glWin;
+    surface = (VkSurfaceKHR)window->glWin;
     return surface;
 }
 
@@ -367,7 +367,7 @@ int create_swapchain() {
     VkPresentModeKHR presentMode = init.swapchain.present_mode;
     VkExtent2D extent = init.swapchain.extent;
 
-    VkSurfaceCapabilitiesKHR capabilities;
+    VkSurfaceCapabilitiesKHR capabilities = {0};
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(init.physical_device, init.surface, &capabilities);
 
     init.swapchain.requested_min_image_count = capabilities.minImageCount;
@@ -910,10 +910,12 @@ int main() {
             }
         }
 
-        int res = draw_frame();
-        if (res != 0) {
-            printf("failed to draw frame \n");
-            return -1;
+        if (running) {
+            int res = draw_frame();
+            if (res != 0) {
+                printf("failed to draw frame \n");
+                return -1;
+            }
         }
     }
     vkDeviceWaitIdle(init.device);
