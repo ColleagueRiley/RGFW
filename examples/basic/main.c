@@ -1,9 +1,12 @@
+#define RGFWDEF
 #define RGFW_ALLOC_DROPFILES
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
 #define RGFW_NO_X11_CURSOR
 
 #include "RGFW.h"
+#include <GL/gl.h>
+#include <stdio.h>
 
 void drawLoop(RGFW_window* w); /* I seperate the draw loop only because it's run twice */
 void* loop2(void *);
