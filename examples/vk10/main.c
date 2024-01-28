@@ -171,7 +171,7 @@ int init_data() {
 }
 
 RGFW_window* create_window_rgfw(const char* window_name) {
-    return RGFW_createWindow( "Vulkan", SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT, RGFW_ALLOW_DND);
+    return RGFW_createWindow( "Vulkan", SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT, RGFW_ALLOW_DND | RGFW_CENTER);
 }
 
 void destroy_window_rgfw(RGFW_window* window) {
