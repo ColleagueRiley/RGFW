@@ -5,7 +5,6 @@
 #define RGFW_NO_X11_CURSOR
 
 #include "RGFW.h"
-#include <GL/gl.h>
 #include <stdio.h>
 
 void drawLoop(RGFW_window* w); /* I seperate the draw loop only because it's run twice */
@@ -16,7 +15,7 @@ unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF,
 unsigned char running = 1;
 
 int main() {
-    RGFW_window* win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_CENTER);
+    RGFW_window* win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_ALLOW_DND);
     RGFW_window_makeCurrent(win);
     
     if (win == NULL)
