@@ -586,17 +586,17 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 	#ifdef RGFW_X11
 	VkXlibSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, 0, 0, (Display*)win->display, (Window)win->window };
 
-	vkCreateXlibSurfaceKHR((VkInstance)inst, &x11, NULL, (VkSurfaceKHR*)&win->glWin);
+	vkCreateXlibSurfaceKHR((VkInstance)inst, &x11, NULL, (VkSurfaceKHR*)win->glWin);
 	#endif
 	#ifdef RGFW_WINDOWS
 	VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, (HINSTANCE)win->hinstance, (HWND)win->display };
 
-	vkCreateWin32SurfaceKHR((VkInstance)inst, &win32, NULL, (VkSurfaceKHR*)&win->glWin);
+	vkCreateWin32SurfaceKHR((VkInstance)inst, &win32, NULL, (VkSurfaceKHR*)win->glWin);
 	#endif
 	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 	VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_KHR, 0, 0, win->display, win->window };
 
-	vkCreateMacOSSurfaceMVK((VkInstance)inst, &macos, NULL, (VkSurfaceKHR*)&win->glWin);
+	vkCreateMacOSSurfaceMVK((VkInstance)inst, &macos, NULL, (VkSurfaceKHR*)win->glWin);
 	#endif
 }
 
@@ -2359,27 +2359,15 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	else
 		window_style |= WS_POPUP | WS_VISIBLE |  WS_SYSMENU | WS_MINIMIZEBOX;
 
-	RECT rect = { 0, 0, w, h };
-	AdjustWindowRectEx(&rect, window_style, FALSE, WS_EX_APPWINDOW);
+	HWND dummyWin = CreateWindowA(Class.lpszClassName, name, window_style, x, y, w, h, 0, 0, inh, 0);
 
-	x = CW_USEDEFAULT;
-	y = CW_USEDEFAULT;
-	w = rect.right - rect.left;
-	h = rect.bottom - rect.top;
+	GetWindowRect(dummyWin, &windowRect);
+	GetClientRect(dummyWin, &clientRect);
+	DestroyWindow(dummyWin);
 
+	h += (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
+	
     win->display = CreateWindowA( Class.lpszClassName, name, window_style, x, y, w, h, 0, 0, inh, 0);
-
-
-	GetWindowRect(win->display, &windowRect);
-	GetClientRect(win->display, &clientRect);
-
-	#ifndef RGFW_RECT
-	win->h +=  (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
-	RGFW_window_resize(win, win->w, win->h);
-	#else
-	win->r.h += (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
-	RGFW_window_resize(win, win->r.w, win->r.h);
-	#endif
 
 	if (RGFW_TRANSPARENT_WINDOW & args) {
 		SetWindowLong((HWND)win->display, GWL_EXSTYLE, GetWindowLong((HWND)win->display, GWL_EXSTYLE) | WS_EX_LAYERED);
