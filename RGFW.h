@@ -374,10 +374,16 @@ RGFWDEF void RGFW_window_setMouseDefault(RGFW_window* win); /* sets the mouse to
 /* where the mouse is on the screen, x = [0], y = [1] */
 RGFWDEF int* RGFW_window_getGlobalMousePoint(RGFW_window* win);
 
+#ifndef __WIN32
 #define RGFW_window_hideMouse(win) { \
 	u8 RGFW_blk[] = {0, 0, 0, 0}; /* for c++ support */\
 	RGFW_window_setMouse(win, RGFW_blk, 1, 1, 4); \
 }
+#else
+RGFWDEF void RGFW_window_hideMouse(RGFW_window* win);
+#endif
+
+RGFWDEF void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y);
 
 /* if the window should close (RGFW_close was sent or escape was pressed) */
 RGFWDEF u8 RGFW_window_shouldClose(RGFW_window* win); 
@@ -613,6 +619,7 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 #ifdef RGFW_WINDOWS
 
 #include <windows.h>
+#include <winuser.h>
 #include <windowsx.h>
 #include <shellapi.h>
 
@@ -1874,6 +1881,12 @@ void RGFW_window_setMouse(RGFW_window* win, u8* image, i32 width, i32 height, i3
 	#endif
 }
 
+void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) {
+    Window root = RootWindow(win->display, DefaultScreen(win->display));
+
+    XWarpPointer(win->display, None, root, 0, 0, 0, 0, x, y);
+}
+
 void RGFW_window_setMouseDefault(RGFW_window* win) {
 	/* free the previous cursor */
 	if (win->cursor != NULL && win->cursor != (void*)-1)
@@ -2508,6 +2521,9 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	win->render = 1;
 	#endif
 
+	if (RGFW_HIDE_MOUSE & args)
+		RGFW_window_hideMouse(win);
+	
     ShowWindow((HWND)win->display, SW_SHOWNORMAL);
 
     return win;
@@ -2569,6 +2585,10 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	win->event.droppedFilesCount = 0;
 
+    win->event.inFocus = (GetForegroundWindow() == win->display);
+
+	SetCursor(win->cursor);
+	SetWindowLongPtr(win->display, GCLP_HCURSOR, (DWORD)win->cursor);
 
 	if (PeekMessage(&msg, (HWND)win->display, 0u, 0u, PM_REMOVE)) {
 		switch (msg.message) {
@@ -2600,6 +2620,9 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 				#endif
 
 				win->event.type = RGFW_mousePosChanged;
+				
+				SetCursor(win->cursor);
+				SetWindowLongPtr(win->display, GCLP_HCURSOR, (DWORD)win->cursor);
 				break;
 
 			case WM_LBUTTONDOWN:
@@ -2730,13 +2753,6 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	if (!IsWindow((HWND)win->display))
 		win->event.type = RGFW_quit;
-
-    win->event.inFocus = (GetForegroundWindow() == win->display);
-
-	if (win->event.inFocus)
-		SetCursor((HCURSOR)win->cursor);
-	else
-		RGFW_window_setMouseDefault(win);
 
 	if (win->event.type)
 		return &win->event;
@@ -2966,6 +2982,9 @@ u16 RGFW_registerJoystickF(RGFW_window* win, char* file) {
 
 	return win->joystickCount - 1;
 }
+
+void RGFW_window_hideMouse(RGFW_window* win) { ShowCursor(FALSE); }
+void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) { SetCursorPos(x, y); }
 
 char* createUTF8FromWideStringWin32(const WCHAR* source) {
     char* target;
@@ -3236,6 +3255,9 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 		si_func_to_SEL("NSWindow", performDragOperation);
 	}
 
+	if (RGFW_HIDE_MOUSE & args)
+		RGFW_window_hideMouse(win);
+	
     // Show the window
     NSWindow_makeKeyAndOrderFront(win->window, NULL);
 	NSWindow_setIsVisible(win->window, true);
@@ -3509,6 +3531,11 @@ void RGFW_window_setMouseDefault(RGFW_window* win) {
 	RGFW_window_setMouse(win, NULL, 0, 0, 0);
 }
 
+void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) {
+	CGEventRef moveEvent = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, CGPointMake(x, y), kCGMouseButtonLeft);
+	CGEventPost(kCGHIDEventTap, moveEvent);
+	CFRelease(moveEvent);
+}
 
 u8 RGFW_window_isFullscreen(RGFW_window* win) {
     return (NSWindow_styleMask(win->window) & NSFullScreenWindowMask) == NSFullScreenWindowMask;
@@ -3770,7 +3797,6 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	#endif
 }
 
-
 void RGFW_window_maximize(RGFW_window* win) {
 	u32* screen = RGFW_window_screenSize(win);
 
@@ -3881,7 +3907,7 @@ u32 RGFW_getFPS(void) {
 #define RGFW_Minus RGFW_OS_BASED_VALUE(0x002d, 189, 27)
 #define RGFW_Equals RGFW_OS_BASED_VALUE(0x003d, 187, 24)
 #define RGFW_BackSpace RGFW_OS_BASED_VALUE(0xff08, 322, 51)
-#define RGFW_Tab RGFW_OS_BASED_VALUE(0xff89, 0x09, 9, 48)
+#define RGFW_Tab RGFW_OS_BASED_VALUE(0xff89, 0x09, 48)
 #define RGFW_CapsLock RGFW_OS_BASED_VALUE(0xffe5, 20, 57)
 #define RGFW_ShiftL RGFW_OS_BASED_VALUE(0xffe1, 0xA0, 56)
 #define RGFW_ControlL RGFW_OS_BASED_VALUE(0xffe3, 0xA2, 59)
