@@ -144,6 +144,7 @@ extern "C" {
 #define RGFW_FULLSCREEN (1L<<8) /* if the window should be fullscreen by default or not */
 #define RGFW_CENTER (1L<<10)
 #define RGFW_OPENGL_SOFTWARE (1L<<11) /* use OpenGL software rendering */
+#define RGFW_MOUSE_CHANGED	(1L<<1) /*!< mouse change (for winargs)*/
 /*! event codes */
 #define RGFW_keyPressed 2 /*!< a key has been pressed*/
 #define RGFW_keyReleased 3 /*!< a key has been released*/
@@ -202,22 +203,11 @@ u8 RGFW_JS_R2 = 7; /* right trigger */
 
 /* NOTE: some parts of the data can represent different things based on the event (read comments in RGFW_Event struct) */
 typedef struct RGFW_Event {
-    u8 type; /*!< which event has been sen t?*/
-    u8 button; /*!< which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed OR which joystick axis was moved*/
-  	i32 x, y; /*!< mouse x, y of event */
-
-    u64 ledState;
-
-    u32 keyCode; /*!< keycode of event*/
-
 	#ifdef RGFW_WINDOWS
 	char keyName[16]; /* key name of event*/
 	#else
 	char* keyName; /*!< key name of event */
 	#endif
-
-	/*! drag and drop data */
-	u32 droppedFilesCount; /*!< house many files were dropped */
 	
 	/* 260 max paths with a max length of 260 */
 	#ifdef RGFW_ALLOC_DROPFILES
@@ -226,16 +216,24 @@ typedef struct RGFW_Event {
 	char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH]; /*!< dropped files*/
 	#endif
 
-	/*! joystick*/
-	u16 joystick; /* which joystick this event applies to (if applicable to any) */
-	u8 axisesCount; /* number of axises */
-	i8 axis[4][2]; /* x, y of axises (-100 to 100) */
+	u64 ledState;
+  	i32 x, y; /*!< mouse x, y of event */
+    u32 keyCode; /*!< keycode of event*/
 
-		
+	/*! drag and drop data */
+	u32 droppedFilesCount; /*!< house many files were dropped */
 	u32 current_ticks, frames;
-	
 	u32 fps; /*the current fps of the window [the fps is checked when events are checked]*/
 	u32 inFocus;  /*if the window is in focus or not*/
+	
+	/*! joystick*/
+	u16 joystick; /* which joystick this event applies to (if applicable to any) */
+
+	u8 type; /*!< which event has been sen t?*/
+    u8 button; /*!< which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed OR which joystick axis was moved*/
+
+	u8 axisesCount; /* number of axises */
+	i8 axis[4][2]; /* x, y of axises (-100 to 100) */
 } RGFW_Event; /*!< Event structure for checking/getting events */
 
 typedef struct RGFW_window {
@@ -246,30 +244,6 @@ typedef struct RGFW_window {
     void* hinstance; /*!< windows hinstance*/
 	#endif
 
-	#ifndef RGFW_RECT
-	i32 x, y; /*!< window pos, x, y */
-	u32 w, h; /*!< window size, w, h*/
-	#else
-	RGFW_RECT r;
-	#endif
-
-	u32 fpsCap; /*!< the fps cap of the window should run at (change this var to change the fps cap, 0 = no limit)*/
-	/*[the fps is capped when events are checked]*/
-
-	u8 dnd; /*!< if dnd is enabled or on (based on window creating args) */
-
-	void* cursor;
-	u8 cursorChanged;
-
-	u16 joystickCount;
-	i32 joysticks[4]; /* limit of 4 joysticks at a time */
-	u8 jsPressed[4][16]; /* if a key is currently pressed or not (per joystick) */
-
-	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER) 
-	u8* buffer; /*OSMesa buffer*/
-	u8 render; /* if OSMesa should render on the screen or not (set by window args by default but it can be changed in runtime if you want) */
-	#endif
-
 	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 	void* view; /*apple viewpoint thingy*/
 	#endif
@@ -278,8 +252,44 @@ typedef struct RGFW_window {
 	void* EGL_surface;
 	void* EGL_display;
 	#endif
+	
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER) 
+	u8* buffer; /*OSMesa buffer*/
+	#endif
+	
+	void* cursor;
+
+	u8 jsPressed[4][16]; /* if a key is currently pressed or not (per joystick) */
 
 	RGFW_Event event; /*!< current event */
+
+	#ifndef RGFW_RECT
+	i32 x, y; /*!< window pos, x, y */
+	u32 w, h; /*!< window size, w, h*/
+	#else
+	RGFW_RECT r;
+	#endif
+
+	i32 joysticks[4]; /* limit of 4 joysticks at a time */
+
+	u16 joystickCount;
+
+	u8 fpsCap; /*!< the fps cap of the window should run at (change this var to change the fps cap, 0 = no limit)*/
+		/*[the fps is capped when events are checked]*/
+
+	#ifdef __APPLE__
+	u8 cursorChanged; /* for steve jobs */
+	#endif
+
+	u8 winArgs; /* windows args (for RGFW to check) */ 
+	/*
+		!< if dnd is enabled or on (based on window creating args) 
+		cursorChanged
+	*/
+
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER) 
+	u8 render; /* if OSMesa should render on the screen or not (set by window args by default but it can be changed in runtime if you want) */
+	#endif
 } RGFW_window; /*!< Window structure for managing the window */
 
 #if defined(RGFW_X11) || defined(__APPLE__)
@@ -607,6 +617,8 @@ void RGFW_initVulkan(RGFW_window* win, void* inst) {
 }
 
 #endif /* RGFW_VULKAN */
+
+RGFW_window* RGFW_root = NULL;
 
 #ifdef RGFW_X11
 #include <X11/Xlib.h>
@@ -1043,7 +1055,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	win->joystickCount = 0;
 	win->dnd = 0;
 	win->cursor = NULL;
-	win->cursorChanged = 0;
+	win->winArgs = 0;
 	
 	if ((Display *)win->display == NULL)
 		return win;
@@ -1121,7 +1133,12 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 		glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
 		glXGetProcAddressARB((GLubyte*)"glXCreateContextAttribsARB" );
 
-		win->glWin = glXCreateContextAttribsARB((Display*)win->display, bestFbc, 0, True, context_attribs);
+		GLXContext ctx = NULL; 
+		
+		if (RGFW_root != NULL)
+			RGFW_root->glWin;
+		
+		win->glWin = glXCreateContextAttribsARB((Display*)win->display, bestFbc, ctx, True, context_attribs);
 	}
 
 	#endif
@@ -1209,7 +1226,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 		RGFW_window_hideMouse(win);
 
 	if (RGFW_ALLOW_DND & args) { /* init drag and drop atoms and turn on drag and drop for this window */
-		win->dnd = 1;
+		win->winArgs |= RGFW_ALLOW_DND;
 
 		XdndAware         = XInternAtom((Display*)win->display, "XdndAware",         False);
 		XdndTypeList      = XInternAtom((Display*)win->display, "XdndTypeList",      False);
@@ -1240,6 +1257,9 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
 	RGFW_windowsOpen++;
 
+	if (RGFW_root == NULL)
+		RGFW_root = win;
+		
     return win; /*return newly created window*/
 }
 
@@ -1672,10 +1692,10 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		}
 	}
 
-	if (win->event.inFocus && win->cursorChanged) {
+	if (win->event.inFocus && (win->args & RGFW_MOUSE_CHANGED)) {
 		XDefineCursor((Display*)win->display, (Window)win->window, (Cursor)win->cursor);
 
-		win->cursorChanged = 0;
+		win->args &= ~RGFW_MOUSE_CHANGED;
 	}
 
 	XFlush((Display*)win->display);
@@ -1694,6 +1714,13 @@ void RGFW_window_close(RGFW_window* win) {
 	XFreeCursor((Display*)win->display, (Cursor)win->cursor);
 
 	if ((Display*)win->display) {
+		#ifdef RGFW_GL
+		glXDestroyContext((Display *)win->display, win->glWin);
+		#endif
+
+		if (win == RGFW_root)
+			RGFW_root = NULL;
+		
 		if ((Drawable)win->window)
 			XDestroyWindow((Display *)win->display, (Drawable)win->window); /* close the window*/
 
@@ -1712,8 +1739,9 @@ void RGFW_window_close(RGFW_window* win) {
 	}
 	#endif
 
+	RGFW_windowsOpen--;
 	#if !defined(RGFW_NO_X11_CURSOR_PRELOAD) && !defined(RGFW_NO_X11_CURSOR)
-	if (X11Cursorhandle != NULL && !RGFW_windowsOpen) {
+	if (X11Cursorhandle != NULL && RGFW_windowsOpen <= 0) {
 		dlclose(X11Cursorhandle);
 
 		X11Cursorhandle = NULL;
@@ -1736,8 +1764,6 @@ void RGFW_window_close(RGFW_window* win) {
 	#endif
 
 	RGFW_FREE(win); /* free collected window data */
-
-	RGFW_windowsOpen--;
 }
 
 void RGFW_window_move(RGFW_window* win, i32 x, i32 y) {
@@ -1875,7 +1901,7 @@ void RGFW_window_setMouse(RGFW_window* win, u8* image, i32 width, i32 height, i3
         *target = (alpha << 24) | (((source[0] * alpha) / 255) << 16) | (((source[1] * alpha) / 255) <<  8) | (((source[2] * alpha) / 255) <<  0);
     }
 
-	win->cursorChanged = 1;
+	win->args |= RGFW_MOUSE_CHANGED;
     win->cursor = (void*)XcursorImageLoadCursor((Display*)win->display, native);
 	XcursorImageDestroy(native);
 	#endif
@@ -1892,7 +1918,7 @@ void RGFW_window_setMouseDefault(RGFW_window* win) {
 	if (win->cursor != NULL && win->cursor != (void*)-1)
 		XFreeCursor((Display*)win->display, (Cursor)win->cursor);
 
-	win->cursorChanged = 1;
+	win->args |= RGFW_MOUSE_CHANGED;
 	win->cursor = (void*)XCreateFontCursor((Display*)win->display, XC_left_ptr);
 }
 
@@ -2385,9 +2411,10 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	if (RGFW_TRANSPARENT_WINDOW & args) {
 		SetWindowLong((HWND)win->display, GWL_EXSTYLE, GetWindowLong((HWND)win->display, GWL_EXSTYLE) | WS_EX_LAYERED);
 	}
-	if (RGFW_ALLOW_DND & args)
+	if (RGFW_ALLOW_DND & args) {
+		win->winArgs |= RGFW_ALLOW_DND;
 		DragAcceptFiles((HWND)win->display, TRUE);
-
+	}
     win->window = GetDC((HWND)win->display);
 
 #ifdef RGFW_WINDOWS
@@ -2419,7 +2446,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
     prc = wglGetCurrentContext();
 
     wglMakeCurrent(win->window, win->glWin);
-    
+	
     if (wglCreateContextAttribsARB == NULL) {
         wglCreateContextAttribsARB = (wglCreateContextAttribsARB_type)
             wglGetProcAddress("wglCreateContextAttribsARB");
@@ -2483,6 +2510,12 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 		printf("Failed to create an accelerated OpenGL Context\n");
 	#endif
 
+	#ifdef RGFW_GL
+	if (RGFW_root != NULL)
+		if (wglShareLists((HGLRC)RGFW_root->glWin, (HGLRC)win->glWin) == 0) {
+			printf("Failed to link to dummy context : %i\n", GetLastError()); 
+		}
+	#endif
 
 	#ifdef RGFW_OSMESA
 
@@ -2526,6 +2559,9 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	
     ShowWindow((HWND)win->display, SW_SHOWNORMAL);
 
+	if (RGFW_root == NULL)
+		RGFW_root = win;
+	
     return win;
 }
 
@@ -2588,7 +2624,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
     win->event.inFocus = (GetForegroundWindow() == win->display);
 
 	SetCursor(win->cursor);
-	SetWindowLongPtr(win->display, GCLP_HCURSOR, (DWORD)win->cursor);
+	SetWindowLongPtr(win->display, GCLP_HCURSOR, (LONG_PTR)win->cursor);
 
 	if (PeekMessage(&msg, (HWND)win->display, 0u, 0u, PM_REMOVE)) {
 		switch (msg.message) {
@@ -2622,7 +2658,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 				win->event.type = RGFW_mousePosChanged;
 				
 				SetCursor(win->cursor);
-				SetWindowLongPtr(win->display, GCLP_HCURSOR, (DWORD)win->cursor);
+				SetWindowLongPtr(win->display, GCLP_HCURSOR, (LONG_PTR)win->cursor);
 				break;
 
 			case WM_LBUTTONDOWN:
@@ -2861,6 +2897,9 @@ void RGFW_window_close(RGFW_window* win) {
 	RGFW_closeEGL(win);
 	#endif
 
+	if (win->glWin == RGFW_root)
+		RGFW_root = NULL;
+	
 	#ifdef RGFW_GL
 	wglDeleteContext((HGLRC)win->glWin); /* delete opengl context */
 	#endif
@@ -3225,7 +3264,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
     NSRect contentRect = NSMakeRect(0, 0, w, h);
     win->view = NSView_initWithFrame(contentRect);
 	#endif
-	
+
 	#ifdef RGFW_OSMESA
 	win->glWin = OSMesaCreateContext(OSMESA_RGBA, NULL);
 	win->buffer = RGFW_MALLOC(w * h * 4);
@@ -3244,6 +3283,8 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
     NSWindow_setContentView(win->window, win->view);
 
 	if (RGFW_ALLOW_DND & args) {
+		win->winArgs |= RGFW_ALLOW_DND;
+		
 		siArray(NSPasteboardType) array = si_array_init((NSPasteboardType[]){NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString}, sizeof(*array), 3);
 	    NSView_registerForDraggedTypes(win->view, array);
 		si_array_free(array);
@@ -3288,6 +3329,9 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 			break;
 		}
 
+	if (RGFW_root == NULL)
+		RGFW_root = win;
+	
     return win;
 }
 
