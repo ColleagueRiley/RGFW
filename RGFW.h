@@ -1528,7 +1528,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			break;
 
         case SelectionNotify:
-			if (E.xselection.property == XdndSelection && win->dnd) {
+			if (E.xselection.property == XdndSelection && (win->winArgs | RGFW_ALLOW_DND)) {
 				char* data;
                 u64 result;
 
