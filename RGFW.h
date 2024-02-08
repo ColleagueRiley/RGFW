@@ -1053,7 +1053,6 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	win->event.inFocus = 1;
 	win->event.droppedFilesCount = 0;
 	win->joystickCount = 0;
-	win->dnd = 0;
 	win->cursor = NULL;
 	win->winArgs = 0;
 	
@@ -1369,7 +1368,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 				much of this event (drag and drop code) is source from glfw
 			*/
 
-			else if (win->dnd) {
+			else if (win->winArgs & RGFW_ALLOW_DND) {
 				u8 formFree = 0;
 
 				if (E.xclient.message_type == XdndEnter) {
@@ -1692,10 +1691,10 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		}
 	}
 
-	if (win->event.inFocus && (win->args & RGFW_MOUSE_CHANGED)) {
+	if (win->event.inFocus && (win->winArgs & RGFW_MOUSE_CHANGED)) {
 		XDefineCursor((Display*)win->display, (Window)win->window, (Cursor)win->cursor);
 
-		win->args &= ~RGFW_MOUSE_CHANGED;
+		win->winArgs &= ~RGFW_MOUSE_CHANGED;
 	}
 
 	XFlush((Display*)win->display);
@@ -1901,7 +1900,7 @@ void RGFW_window_setMouse(RGFW_window* win, u8* image, i32 width, i32 height, i3
         *target = (alpha << 24) | (((source[0] * alpha) / 255) << 16) | (((source[1] * alpha) / 255) <<  8) | (((source[2] * alpha) / 255) <<  0);
     }
 
-	win->args |= RGFW_MOUSE_CHANGED;
+	win->winArgs |= RGFW_MOUSE_CHANGED;
     win->cursor = (void*)XcursorImageLoadCursor((Display*)win->display, native);
 	XcursorImageDestroy(native);
 	#endif
@@ -1918,7 +1917,7 @@ void RGFW_window_setMouseDefault(RGFW_window* win) {
 	if (win->cursor != NULL && win->cursor != (void*)-1)
 		XFreeCursor((Display*)win->display, (Cursor)win->cursor);
 
-	win->args |= RGFW_MOUSE_CHANGED;
+	win->winArgs |= RGFW_MOUSE_CHANGED;
 	win->cursor = (void*)XCreateFontCursor((Display*)win->display, XC_left_ptr);
 }
 
