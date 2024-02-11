@@ -1947,7 +1947,7 @@ const char* RGFW_readClipboard(void) {
 	if (event.xselection.property == 0)
 		return result;
 	
-	XGetWindowProperty((Display*)RGFW_root->display, (Window)win->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
+	XGetWindowProperty((Display*)RGFW_root->display, (Window)RGFW_root->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
 		&fmtid, &resbits, &ressize, &restail, (u8**)&result);
 
 	if (fmtid != incrid)
@@ -1957,7 +1957,7 @@ const char* RGFW_readClipboard(void) {
 		while (event.type != PropertyNotify || event.xproperty.atom != propid || event.xproperty.state != PropertyNewValue) 
 			XNextEvent((Display*)RGFW_root->display, &event);
 
-		XGetWindowProperty((Display*)RGFW_root->display, (Window)win->window, propid, 0, LONG_MAX/4, True, AnyPropertyType, 
+		XGetWindowProperty((Display*)RGFW_root->display, (Window)RGFW_root->window, propid, 0, LONG_MAX/4, True, AnyPropertyType, 
 										&fmtid, &resbits, &ressize, &restail, (u8**)&result);
 	} while (ressize > 0);
 
