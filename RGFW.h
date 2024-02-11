@@ -382,7 +382,7 @@ RGFWDEF void RGFW_window_setMouse(RGFW_window* win, u8* image, i32 width, i32 he
 RGFWDEF void RGFW_window_setMouseDefault(RGFW_window* win); /* sets the mouse to1` the default mouse image */
 
 /* where the mouse is on the screen, x = [0], y = [1] */
-RGFWDEF int* RGFW_window_getGlobalMousePoint(RGFW_window* win);
+RGFWDEF u32* RGFW_window_getGlobalMousePoint(RGFW_window* win);
 
 #ifndef __WIN32
 #define RGFW_window_hideMouse(win) { \
@@ -424,8 +424,8 @@ RGFWDEF u32 RGFW_keyStrToKeyCode(char* key); /*!< converts a string of a key to 
 RGFWDEF char RGFW_keystrToChar(const char*);
 
 /*! clipboard functions*/
-RGFWDEF const char* RGFW_window_readClipboard(RGFW_window* win); /*!< read clipboard data */
-RGFWDEF void RGFW_window_writeClipboard(RGFW_window* win, const char* text, u32 textLen); /*!< write text to the clipboard */
+RGFWDEF const char* RGFW_readClipboard(void); /*!< read clipboard data */
+RGFWDEF void RGFW_writeClipboard(const char* text, u32 textLen); /*!< write text to the clipboard */
 
 #ifndef RGFW_NO_THREADS
 /*! threading functions*/
@@ -1273,8 +1273,8 @@ u32* RGFW_window_screenSize(RGFW_window* win) {
 	return RGFWScreen;
 }
 
-int* RGFW_window_getGlobalMousePoint(RGFW_window* win) {
-	static i32 RGFWMouse[2];
+u32* RGFW_window_getGlobalMousePoint(RGFW_window* win) {
+	static u32 RGFWMouse[2];
 
 	i32 x, y;
 	u32 z;
@@ -1291,7 +1291,6 @@ typedef struct XDND {
 XDND xdnd;
 
 int xAxis = 0, yAxis = 0;
-
 
 RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	win->event.type = 0;
@@ -1830,7 +1829,7 @@ void RGFW_window_restore(RGFW_window* win) {
 }
 
 void RGFW_window_setName(RGFW_window* win, char* name) {
-	XStoreName((Display *)win->display, (Window)win->window, name);
+	XStoreName((Display*)win->display, (Window)win->window, name);
 }
 
 /*
@@ -1888,7 +1887,7 @@ void RGFW_window_setMouse(RGFW_window* win, u8* image, i32 width, i32 height, i3
     native->xhot = 0;
     native->yhot = 0;
 
-    u8* source = (u8*) image;
+    u8* source = (u8*)image;
     XcursorPixel* target = native->pixels;
 
 	i32 i;
@@ -1924,39 +1923,43 @@ void RGFW_window_setMouseDefault(RGFW_window* win) {
 /*
 	the majority function is sourced from GLFW
 */
-const char* RGFW_window_readClipboard(RGFW_window* win) {
+const char* RGFW_readClipboard(void) {
 	char* result = NULL;
 	u64 ressize, restail;
 	i32 resbits;
 	static Atom bufid = 0, fmtid, propid, incrid;
 
 	if (bufid == 0) {
-		bufid = XInternAtom((Display*)win->display, "CLIPBOARD", False),
-		fmtid = XInternAtom((Display*)win->display, "STRING", False),
-		propid = XInternAtom((Display*)win->display, "XSEL_DATA", False),
-		incrid = XInternAtom((Display*)win->display, "INCR", False);
+		bufid = XInternAtom((Display*)RGFW_root->display, "CLIPBOARD", False),
+		fmtid = XInternAtom((Display*)RGFW_root->display, "STRING", False),
+		propid = XInternAtom((Display*RGFW_root->display, "XSEL_DATA", False),
+		incrid = XInternAtom((Display*)RGFW_root->display, "INCR", False);
 	}
 
 	XEvent event;
 
-	XSelectInput ((Display*)win->display, (Window)win->window, PropertyChangeMask);
-	XConvertSelection((Display*)win->display, bufid, fmtid, propid, (Window)win->window, CurrentTime);
+	XSelectInput ((Display*)RGFW_root->display, (Window)win->window, PropertyChangeMask);
+	XConvertSelection((Display*)RGFW_root->displayy, bufid, fmtid, propid, (Window)win->window, CurrentTime);
 	do {
-		XNextEvent((Display*)win->display, &event);
+		XNextEvent((Display*)RGFW_root->display, &event);
 	} while (event.type != SelectionNotify || event.xselection.selection != bufid);
 
-	if (event.xselection.property) {
-		XGetWindowProperty((Display*)win->display, (Window)win->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
-			&fmtid, &resbits, &ressize, &restail, (u8**)&result);
+	if (event.xselection.property == 0)
+		return result;
+	
+	XGetWindowProperty((Display*)RGFW_root->display, (Window)win->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
+		&fmtid, &resbits, &ressize, &restail, (u8**)&result);
 
-		if (fmtid == incrid)
-			do {
-			while (event.type != PropertyNotify || event.xproperty.atom != propid || event.xproperty.state != PropertyNewValue) XNextEvent((Display*)win->display, &event);
+	if (fmtid != incrid)
+		return result;
 
-			XGetWindowProperty((Display*)win->display, (Window)win->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
-				&fmtid, &resbits, &ressize, &restail, (u8**)&result);
-			} while (ressize > 0);
-	}
+	do {
+		while (event.type != PropertyNotify || event.xproperty.atom != propid || event.xproperty.state != PropertyNewValue) 
+			XNextEvent((Display*)RGFW_root->display, &event);
+
+		XGetWindowProperty((Display*)RGFW_root->display, (Window)win->window, propid, 0, LONG_MAX/4, True, AnyPropertyType, 
+										&fmtid, &resbits, &ressize, &restail, (u8**)&result);
+	} while (ressize > 0);
 
 	return result;
 }
@@ -1964,7 +1967,7 @@ const char* RGFW_window_readClipboard(RGFW_window* win) {
 /*
 	almost all of this function is sourced from GLFW
 */
-void RGFW_window_writeClipboard(RGFW_window* win, const char* text, u32 textLen) {
+void RGFW_writeClipboard(const char* text, u32 textLen) {
     static Atom CLIPBOARD = 0, 
 				UTF8_STRING = 0, 
 				SAVE_TARGETS = 0, 
@@ -1974,114 +1977,112 @@ void RGFW_window_writeClipboard(RGFW_window* win, const char* text, u32 textLen)
 				CLIPBOARD_MANAGER = 0;
 
 	if (CLIPBOARD == 0) {
-		CLIPBOARD = XInternAtom((Display*)win->display, "CLIPBOARD", False);
-		UTF8_STRING = XInternAtom((Display*)win->display, "UTF8_STRING", False);
-		SAVE_TARGETS = XInternAtom((Display*)win->display, "SAVE_TARGETS", False);
-		TARGETS = XInternAtom((Display*)win->display, "TARGETS", False);
-		MULTIPLE = XInternAtom((Display*)win->display, "MULTIPLE", False);
-		ATOM_PAIR = XInternAtom((Display*)win->display, "ATOM_PAIR", False);
-		CLIPBOARD_MANAGER = XInternAtom((Display*)win->display, "CLIPBOARD_MANAGER", False);
+		CLIPBOARD = XInternAtom((Display*)RGFW_root->display, "CLIPBOARD", False);
+		UTF8_STRING = XInternAtom((Display*)RGFW_root->display, "UTF8_STRING", False);
+		SAVE_TARGETS = XInternAtom((Display*)RGFW_root->display, "SAVE_TARGETS", False);
+		TARGETS = XInternAtom((Display*)RGFW_root->displayy, "TARGETS", False);
+		MULTIPLE = XInternAtom((Display*)RGFW_root->display, "MULTIPLE", False);
+		ATOM_PAIR = XInternAtom((Display*)RGFW_root->display, "ATOM_PAIR", False);
+		CLIPBOARD_MANAGER = XInternAtom((Display*)RGFW_root->display, "CLIPBOARD_MANAGER", False);
 	}
 
-    XSetSelectionOwner((Display*)win->display, CLIPBOARD, (Window)win->window, CurrentTime);
+	Window win = XDefaultRootWindow((Display*)RGFW_root->display);
 
-    XConvertSelection((Display*)win->display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, (Window)win->window, CurrentTime);
+    XSetSelectionOwner((Display*)RGFW_root->display, CLIPBOARD, (Window)win->window, CurrentTime);
+
+    XConvertSelection((Display*)RGFW_root->display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, (Window)win->window, CurrentTime);
 
     for (;;) {
         XEvent event;
 
-        XNextEvent((Display*)win->display, &event);
-        switch (event.type) {
-            case SelectionRequest: {
-                const XSelectionRequestEvent* request = &event.xselectionrequest;
+        XNextEvent((Display*)RGFW_root->display, &event);
+        if (event.type != SelectionRequest)
+			return; 
+		
+		const XSelectionRequestEvent* request = &event.xselectionrequest;
 
-                XEvent reply = { SelectionNotify };
+		XEvent reply = { SelectionNotify };
 
-                char* selectionString = NULL;
-                const Atom formats[] = { UTF8_STRING, XA_STRING };
-                const i32 formatCount = sizeof(formats) / sizeof(formats[0]);
+		char* selectionString = NULL;
+		const Atom formats[] = { UTF8_STRING, XA_STRING };
+		const i32 formatCount = sizeof(formats) / sizeof(formats[0]);
 
-                selectionString = (char*)text;
+		selectionString = (char*)text;
 
-                if (request->target == TARGETS) {
-                    const Atom targets[] = { TARGETS,
-                                            MULTIPLE,
-                                            UTF8_STRING,
-                                            XA_STRING };
+		if (request->target == TARGETS) {
+			const Atom targets[] = { TARGETS,
+									MULTIPLE,
+									UTF8_STRING,
+									XA_STRING };
 
-                    XChangeProperty((Display*)win->display,
-                                    request->requestor,
-                                    request->property,
-                                    4,
-                                    32,
-                                    PropModeReplace,
-                                    (u8*) targets,
-                                    sizeof(targets) / sizeof(targets[0]));
+			XChangeProperty((Display*)RGFW_root->display,
+							request->requestor,
+							request->property,
+							4,
+							32,
+							PropModeReplace,
+							(u8*) targets,
+							sizeof(targets) / sizeof(targets[0]));
 
-                    reply.xselection.property = request->property;
-                }
+			reply.xselection.property = request->property;
+		}
 
-                if (request->target == MULTIPLE) {
+		if (request->target == MULTIPLE) {
 
-                    Atom* targets;
+			Atom* targets;
 
-                    Atom actualType;
-                  	i32 actualFormat;
-                    u64 count, bytesAfter;
+			Atom actualType;
+			i32 actualFormat;
+			u64 count, bytesAfter;
 
-                    XGetWindowProperty((Display*)win->display, request->requestor, request->property, 0, LONG_MAX, False, ATOM_PAIR,  &actualType, &actualFormat, &count, &bytesAfter, (u8**) &targets);
+			XGetWindowProperty((Display*)RGFW_root->display, request->requestor, request->property, 0, LONG_MAX, False, ATOM_PAIR,  &actualType, &actualFormat, &count, &bytesAfter, (u8**) &targets);
 
-                    u64 i;
-                    for (i = 0;  i < count;  i += 2) {
-                      	i32 j;
+			u64 i;
+			for (i = 0;  i < count;  i += 2) {
+				i32 j;
 
-                        for (j = 0;  j < formatCount;  j++) {
-                            if (targets[i] == formats[j])
-                                break;
-                        }
+				for (j = 0;  j < formatCount;  j++) {
+					if (targets[i] == formats[j])
+						break;
+				}
 
-                        if (j < formatCount)
-                        {
-                            XChangeProperty((Display*)win->display,
-                                            request->requestor,
-                                            targets[i + 1],
-                                            targets[i],
-                                            8,
-                                            PropModeReplace,
-                                            (u8 *) selectionString,
-                                            textLen);
-                        }
-                        else
-                            targets[i + 1] = None;
-                    }
-
-                    XChangeProperty((Display*)win->display,
-                                    request->requestor,
-                                    request->property,
-                                    ATOM_PAIR,
-                                    32,
-                                    PropModeReplace,
-                                    (u8*) targets,
-                                    count);
-
-                    XFree(targets);
-
-                    reply.xselection.property = request->property;
-                }
-
-                reply.xselection.display = request->display;
-                reply.xselection.requestor = request->requestor;
-                reply.xselection.selection = request->selection;
-                reply.xselection.target = request->target;
-                reply.xselection.time = request->time;
-
-                XSendEvent((Display*)win->display, request->requestor, False, 0, &reply);
-                break;
+				if (j < formatCount)
+				{
+					XChangeProperty((Display*)RGFW_root->display,
+									request->requestor,
+									targets[i + 1],
+									targets[i],
+									8,
+									PropModeReplace,
+									(u8 *) selectionString,
+									textLen);
+				}
+				else
+					targets[i + 1] = None;
 			}
 
-            default: return;
-        }
-    }
+			XChangeProperty((Display*)RGFW_root->display,
+							request->requestor,
+							request->property,
+							ATOM_PAIR,
+							32,
+							PropModeReplace,
+							(u8*) targets,
+							count);
+
+			XFree(targets);
+
+			reply.xselection.property = request->property;
+		}
+
+		reply.xselection.display = request->display;
+		reply.xselection.requestor = request->requestor;
+		reply.xselection.selection = request->selection;
+		reply.xselection.target = request->target;
+		reply.xselection.time = request->time;
+
+		XSendEvent((Display*)RGFW_root->display, request->requestor, False, 0, &reply);
+	}
 }
 
 u16 RGFW_registerJoystick(RGFW_window* win, i32 jsNumber) {
@@ -2207,14 +2208,11 @@ u8 RGFW_isMaximized(RGFW_window* win) {
 }
 
 char keyboard[32];
-Display* RGFWd = (Display*)0;
 
 u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
-	if (RGFWd == (Display*)0) RGFWd = XOpenDisplay(0);
-
 	Display* d;
 	if (win == (RGFW_window*)0)
-		d = RGFWd;
+		d = RGFW_root->display;
 	else if (!win->event.inFocus)
 		return 0;
 	else
@@ -2512,7 +2510,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	#ifdef RGFW_GL
 	if (RGFW_root != NULL)
 		if (wglShareLists((HGLRC)RGFW_root->glWin, (HGLRC)win->glWin) == 0) {
-			printf("Failed to link to dummy context : %i\n", GetLastError()); 
+			printf("Failed to link to dummy context : %li\n", GetLastError()); 
 		}
 	#endif
 
@@ -2574,9 +2572,9 @@ u32* RGFW_window_screenSize(RGFW_window* win) {
 	return RGFW_ScreenSize;
 }
 
-int RGFWMouse[2];
+u32 RGFWMouse[2];
 
-int* RGFW_window_getGlobalMousePoint(RGFW_window* win) {
+u32* RGFW_window_getGlobalMousePoint(RGFW_window* win) {
 
 	POINT p; 
 	GetCursorPos(&p);
@@ -2961,7 +2959,7 @@ void RGFW_window_setIcon(RGFW_window* win, u8* src, i32 width, i32 height, i32 c
     SendMessageW((HWND)win->display, WM_SETICON, ICON_SMALL, (LPARAM) handle);
 }
 
-const char* RGFW_window_readClipboard(RGFW_window* win) {
+const char* RGFW_readClipboard(void) {
     /* Open the clipboard */
     if (!OpenClipboard(NULL))
         return (char*)"";
@@ -2983,11 +2981,9 @@ const char* RGFW_window_readClipboard(RGFW_window* win) {
 	return text;
 }
 
-void RGFW_window_writeClipboard(RGFW_window* win, const char* text, u32 textLen) {
+void RGFW_writeClipboard(const char* text, u32 textLen) {
     HANDLE object;
     WCHAR* buffer;
-
-    MultiByteToWideChar(CP_UTF8, 0, text, -1, NULL, textLen);
 
     object = GlobalAlloc(GMEM_MOVEABLE, textLen * sizeof(WCHAR));
     if (!object)
@@ -3002,7 +2998,7 @@ void RGFW_window_writeClipboard(RGFW_window* win, const char* text, u32 textLen)
     MultiByteToWideChar(CP_UTF8, 0, text, -1, buffer, textLen);
     GlobalUnlock(object);
 
-    if (!OpenClipboard((HWND)win->display)) {
+    if (!OpenClipboard((HWND)RGFW_root->display)) {
         GlobalFree(object);
         return;
     }
@@ -3607,9 +3603,9 @@ u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
 	return RGFW_keyMap[key];
 }
 
-const char* RGFW_window_readClipboard(RGFW_window* win){ return (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString); }
+const char* RGFW_readClipboard(void){ return (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString); }
 
-void RGFW_window_writeClipboard(RGFW_window* win, const char* text, u32 textLen) {
+void RGFW_writeClipboard(const char* text, u32 textLen) {
 	siArray(NSPasteboardType) array = si_array_init((NSPasteboardType[]){NSPasteboardTypeString}, sizeof(*array), 1);
 	NSPasteBoard_declareTypes(NSPasteboard_generalPasteboard(), array, NULL);
 

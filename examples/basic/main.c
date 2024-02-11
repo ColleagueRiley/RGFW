@@ -15,12 +15,12 @@ unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF,
 unsigned char running = 1;
 
 int main() {
-    RGFW_window* win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_ALLOW_DND);
+    RGFW_window* win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_ALLOW_DND | RGFW_CENTER);
     RGFW_window_makeCurrent(win);
     
     if (win == NULL)
         return 1;
-
+win->cursor = NULL;
     win->fpsCap = 60;
 
     RGFW_createThread(loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
@@ -50,7 +50,6 @@ int main() {
     glClearColor(0, 0, 0, 0);
 
     while (running && !RGFW_isPressedI(win, RGFW_Escape)) {
-        frames++;
 
         /* 
             check all of the avaliable events all at once
@@ -70,9 +69,9 @@ int main() {
                 break;
             }
             if (RGFW_isPressedI(win, RGFW_Up))
-                printf("Pasted : %s\n", RGFW_window_readClipboard(win));
+                printf("Pasted : %s\n", RGFW_readClipboard());
             else if (RGFW_isPressedI(win, RGFW_Down))
-                RGFW_window_writeClipboard(win, "DOWN", 4);
+                RGFW_writeClipboard("DOWN", 4);
             else if (RGFW_isPressedI(win, RGFW_Space))
                 printf("fps : %i\n", win->event.fps);
             else if (RGFW_isPressedI(win, RGFW_w) && frames >= 30) {
@@ -87,9 +86,9 @@ int main() {
                 
                 frames = 0;
             }
-            else if (RGFW_isPressedI(win, RGFW_t)) 
+            else if (RGFW_isPressedI(win, RGFW_t)) {
                 RGFW_window_setMouse(win, icon, 3, 3, 4);
-            
+            }
             if (win->event.type == RGFW_dnd) {
                 for (i = 0; i < win->event.droppedFilesCount; i++)
                     printf("dropped : %s\n", win->event.droppedFiles[i]);
