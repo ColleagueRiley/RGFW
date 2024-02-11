@@ -1938,7 +1938,7 @@ const char* RGFW_readClipboard(void) {
 
 	XEvent event;
 
-	XSelectInput ((Display*)RGFW_root->display, (Window)win->window, PropertyChangeMask);
+	XSelectInput ((Display*)RGFW_root->display, (Window)RGFW_root->window, PropertyChangeMask);
 	XConvertSelection((Display*)RGFW_root->display, bufid, fmtid, propid, (Window)RGFW_root->window, CurrentTime);
 	do {
 		XNextEvent((Display*)RGFW_root->display, &event);
