@@ -1939,7 +1939,7 @@ const char* RGFW_readClipboard(void) {
 	XEvent event;
 
 	XSelectInput ((Display*)RGFW_root->display, (Window)win->window, PropertyChangeMask);
-	XConvertSelection((Display*)RGFW_root->displayy, bufid, fmtid, propid, (Window)win->window, CurrentTime);
+	XConvertSelection((Display*)RGFW_root->display, bufid, fmtid, propid, (Window)RGFW_root->window, CurrentTime);
 	do {
 		XNextEvent((Display*)RGFW_root->display, &event);
 	} while (event.type != SelectionNotify || event.xselection.selection != bufid);
@@ -1980,17 +1980,15 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 		CLIPBOARD = XInternAtom((Display*)RGFW_root->display, "CLIPBOARD", False);
 		UTF8_STRING = XInternAtom((Display*)RGFW_root->display, "UTF8_STRING", False);
 		SAVE_TARGETS = XInternAtom((Display*)RGFW_root->display, "SAVE_TARGETS", False);
-		TARGETS = XInternAtom((Display*)RGFW_root->displayy, "TARGETS", False);
+		TARGETS = XInternAtom((Display*)RGFW_root->display, "TARGETS", False);
 		MULTIPLE = XInternAtom((Display*)RGFW_root->display, "MULTIPLE", False);
 		ATOM_PAIR = XInternAtom((Display*)RGFW_root->display, "ATOM_PAIR", False);
 		CLIPBOARD_MANAGER = XInternAtom((Display*)RGFW_root->display, "CLIPBOARD_MANAGER", False);
 	}
 
-	Window win = XDefaultRootWindow((Display*)RGFW_root->display);
+    XSetSelectionOwner((Display*)RGFW_root->display, CLIPBOARD, (Window)RGFW_root->indow, CurrentTime);
 
-    XSetSelectionOwner((Display*)RGFW_root->display, CLIPBOARD, (Window)win->window, CurrentTime);
-
-    XConvertSelection((Display*)RGFW_root->display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, (Window)win->window, CurrentTime);
+    XConvertSelection((Display*)RGFW_root->display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, (Window)RGFW_root->window, CurrentTime);
 
     for (;;) {
         XEvent event;
@@ -3344,7 +3342,7 @@ u32* RGFW_window_screenSize(RGFW_window* win){
 	return RGFW_SreenSize;
 }
 
-int* RGFW_window_getGlobalMousePoint(RGFW_window* win) {
+u32* RGFW_window_getGlobalMousePoint(RGFW_window* win) {
 	static i32 RGFW_mousePoint[2];
 	RGFW_mousePoint[0] = win->event.x;	
 	RGFW_mousePoint[1] = win->event.y;
