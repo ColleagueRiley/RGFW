@@ -1932,7 +1932,7 @@ const char* RGFW_readClipboard(void) {
 	if (bufid == 0) {
 		bufid = XInternAtom((Display*)RGFW_root->display, "CLIPBOARD", False),
 		fmtid = XInternAtom((Display*)RGFW_root->display, "STRING", False),
-		propid = XInternAtom((Display*RGFW_root->display, "XSEL_DATA", False),
+		propid = XInternAtom((Display*)RGFW_root->display, "XSEL_DATA", False),
 		incrid = XInternAtom((Display*)RGFW_root->display, "INCR", False);
 	}
 
@@ -1986,7 +1986,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 		CLIPBOARD_MANAGER = XInternAtom((Display*)RGFW_root->display, "CLIPBOARD_MANAGER", False);
 	}
 
-    XSetSelectionOwner((Display*)RGFW_root->display, CLIPBOARD, (Window)RGFW_root->indow, CurrentTime);
+    XSetSelectionOwner((Display*)RGFW_root->display, CLIPBOARD, (Window)RGFW_root->window, CurrentTime);
 
     XConvertSelection((Display*)RGFW_root->display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, (Window)RGFW_root->window, CurrentTime);
 
