@@ -2968,9 +2968,8 @@ const char* RGFW_readClipboard(void) {
         CloseClipboard();
         return (char*)"";
     }
-
-	static char text[7];
-	strcpy(text, (char*)GlobalLock(hData));
+	
+	char* text = strdup(GlobalLock(hData));
 	
     /* Release the clipboard data */
     GlobalUnlock(hData);
@@ -2983,7 +2982,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
     HANDLE object;
     WCHAR* buffer;
 
-    object = GlobalAlloc(GMEM_MOVEABLE, textLen * sizeof(WCHAR));
+    object = GlobalAlloc(GMEM_MOVEABLE, (1 + textLen) * sizeof(WCHAR));
     if (!object)
         return;
 
