@@ -21,6 +21,11 @@
 */
 
 /*
+    (MAKE SURE RGFW_IMPLEMENTATION is in exactly one header or you use -D RGFW_IMPLEMENTATION)
+	#define RGFW_IMPLEMENTATION - makes it so source code is included with header
+*/
+
+/*
 	#define RGFW_IMPLEMENTATION - (semi-option) makes it so source code is included
 	#define RGFW_PRINT_ERRORS - (optional) makes it so RGFW prints errors when they're found
 	#define RGFW_OSMESA - (optional) use OSmesa as backend (instead of system's opengl api + regular opengl)
