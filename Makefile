@@ -1,8 +1,7 @@
 CC = gcc
 AR = ar
 
-VulkanSDK = C:\VulkanSDK\1.3.275.0
-LIBS := -lshell32 -lgdi32 -lm -lopengl32 -I $(VulkanSDK)\Include -L $(VulkanSDK)\Lib
+LIBS := -lshell32 -lgdi32 -lm -lopengl32 -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib
 EXT = .exe
 LIB_EXT = .dll
 STATIC =
@@ -44,7 +43,7 @@ endif
 all:
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -o basic
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -o gl33
-	$(CC) examples/vk10/main.c $(LIBS) -lvulkan -I./ -Wall -o vk10
+	$(CC) examples/vk10/main.c $(LIBS) -lvulkan-1 -I./ -Wall -o vk10
 
 clean:
 	rm ./examples/basic/basic ./examples/basic/basic.exe ./examples/gl33/gl33 ./examples/gl33/gl33.exe ./examples/vk10/vk10 ./examples/vk10/vk10.exe -f
@@ -54,7 +53,7 @@ debug:
 
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/basic/basic
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/gl33/gl33
-	$(CC) examples/vk10/main.c $(LIBS) -lvulkan -I./ -Wall -D RGFW_DEBUG -o examples/vk10/vk10
+	$(CC) examples/vk10/main.c $(LIBS) -lvulkan-1 -I./ -Wall -D RGFW_DEBUG -o examples/vk10/vk10
 
 	./examples/basic/basic$(EXT)
 	./examples/gl33/gl33$(EXT)
