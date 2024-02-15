@@ -1,7 +1,7 @@
 CC = gcc
 AR = ar
 
-LIBS := -lshell32 -lgdi32 -lm -lopengl32 -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib
+LIBS := -lshell32 -lgdi32 -lm -lopengl32 -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
 EXT = .exe
 LIB_EXT = .dll
 STATIC =
@@ -25,17 +25,17 @@ else
 endif
 
 ifeq ($(detected_OS),Windows)
-	LIBS := -lshell32 -lgdi32 -lm -ldwmapi -lopengl32 $(STATIC) -I C:\VulkanSDK\1.3.275.0\Include -L C:\VulkanSDK\1.3.275.0\Lib
+	LIBS := -lshell32 -lgdi32 -lm -ldwmapi -lopengl32 $(STATIC) -I C:\VulkanSDK\1.3.275.0\Include -L C:\VulkanSDK\1.3.275.0\Lib -lvulkan1
 	EXT = .exe
 	LIB_EXT = .dll
 endif
 ifeq ($(detected_OS),Darwin)        # Mac OS X
-	LIBS := -I./ext/Silicon/ -lm -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo -w $(STATIC)
+	LIBS := -I./ext/Silicon/ -lm -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo -w $(STATIC) -lvulkan
 	EXT = 
 	LIB_EXT = .dylib
 endif
 ifeq ($(detected_OS),Linux)
-    LIBS := -I./include -lX11 -lm -lGL $(STATIC)
+    LIBS := -I./include -lX11 -lm -lGL -lvulkan $(STATIC)
 	EXT =
 	LIB_EXT = .so
 endif
@@ -43,7 +43,7 @@ endif
 all:
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -o basic
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -o gl33
-	$(CC) examples/vk10/main.c $(LIBS) -lvulkan-1 -I./ -Wall -o vk10
+	$(CC) examples/vk10/main.c $(LIBS) -I./ -Wall -o vk10
 
 clean:
 	rm ./examples/basic/basic ./examples/basic/basic.exe ./examples/gl33/gl33 ./examples/gl33/gl33.exe ./examples/vk10/vk10 ./examples/vk10/vk10.exe -f

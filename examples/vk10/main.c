@@ -181,7 +181,13 @@ void destroy_window_rgfw(RGFW_window* window) {
 VkSurfaceKHR create_surface_rgfw(VkInstance instance, RGFW_window* window) {
     VkSurfaceKHR surface = VK_NULL_HANDLE;
     RGFW_initVulkan(window, instance);
-    surface = (VkSurfaceKHR)window->glWin;
+    surface = (VkSurfaceKHR)window->rSurf;
+    
+    if (surface == VK_NULL_HANDLE) {
+        printf("failed to create shader module\n");
+        exit(0);
+    }
+
     return surface;
 }
 
@@ -247,7 +253,6 @@ int device_initialization() {
         return -1;
     }
 
-
     // setup debug messenger
     if (enableValidationLayers) {
         VkDebugUtilsMessengerCreateInfoEXT debug_create_info = {0};
@@ -308,7 +313,7 @@ int device_initialization() {
     }
     if (!present_family_index_found) {
         printf("failed to found present family index!\n");
-        return -1;
+        //return -1;
     }
 
     float queuePriority = 1.0f;
