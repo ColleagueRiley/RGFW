@@ -139,6 +139,20 @@ extern "C" {
 #define RGFW_GL
 #endif
 
+#ifdef RGFW_VULKAN
+#ifdef RGFW_X11
+#define VK_USE_PLATFORM_XLIB_KHR
+#endif
+#ifdef RGFW_WINDOWS
+#define VK_USE_PLATFORM_WINDOWS_KHR
+#endif
+#ifdef __APPLE__
+#define VK_USE_PLATFORM_MACOS_MVK
+#endif
+
+#include <vulkan/vulkan.h>
+#endif
+
 /*! Optional arguments for making a windows */
 #define RGFW_TRANSPARENT_WINDOW		(1L<<9) /*!< If the window is transparent*/
 #define RGFW_NO_BORDER		(1L<<3) /*!< If the window doesn't have border*/
@@ -244,7 +258,11 @@ typedef struct RGFW_Event {
 typedef struct RGFW_window {
     void* display; /*!< source display */
     void* window; /*!< source window */
-    void* glWin; /*!< source opengl context */
+    #ifndef RGFW_VULKAN
+	void* rSurf; /*!< source opengl context */
+	#else
+	VkSurfaceKHR rSurf; /*!< source opengl context */
+	#endif
 	#ifdef RGFW_WINDOWS
     void* hinstance; /*!< windows hinstance*/
 	#endif
@@ -313,21 +331,9 @@ RGFW_window* RGFW_createWindow(
 ); /*!< function to create a window struct */
 
 
-#ifdef VULKAN
-#ifdef RGFW_X11
-#define VK_USE_PLATFORM_XLIB_KHR
-#endif
-#ifdef RGFW_WINDOWS
-#define VK_USE_PLATFORMRGFW_WINDOWS_KHR
-#endif
-#ifdef __APPLE__
-#define VK_USE_PLATFORM_MACOS_MVK
-#endif
-
-#include <vulkan/vulkan.h>
-
+#ifdef RGFW_VULKAN
 /*! initializes a vulkan rendering context for the RGFW window, you still need to load your own vulkan instance, ect, ect
-	this outputs the vulkan surface into win->glWin
+	this outputs the vulkan surface into win->rSurf
 	RGFW_VULKAN must be defined for this function to be defined
 
 */
@@ -591,33 +597,21 @@ u8 RGFW_Error() { return RGFW_error; }
 #endif
 
 #ifdef RGFW_VULKAN
-#ifdef RGFW_X11
-#define VK_USE_PLATFORM_XLIB_KHR
-#endif
-#ifdef RGFW_WINDOWS
-#define VK_USE_PLATFORM_WIN32_KHR
-#endif
-#ifdef __APPLE__
-#define VK_USE_PLATFORM_MACOS_MVK
-#endif
-
-#include <vulkan/vulkan.h>
-
 void RGFW_initVulkan(RGFW_window* win, void* inst) {
 	#ifdef RGFW_X11
 	VkXlibSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, 0, 0, (Display*)win->display, (Window)win->window };
 
-	vkCreateXlibSurfaceKHR((VkInstance)inst, &x11, NULL, (VkSurfaceKHR*)win->glWin);
+	vkCreateXlibSurfaceKHR((VkInstance)inst, &x11, NULL, &win->rSurf);
 	#endif
 	#ifdef RGFW_WINDOWS
 	VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, (HINSTANCE)win->hinstance, (HWND)win->display };
 
-	vkCreateWin32SurfaceKHR((VkInstance)inst, &win32, NULL, (VkSurfaceKHR*)win->glWin);
+	vkCreateWin32SurfaceKHR((VkInstance)inst, &win32, NULL, &win->rSurf);
 	#endif
 	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 	VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_KHR, 0, 0, win->display, win->window };
 
-	vkCreateMacOSSurfaceMVK((VkInstance)inst, &macos, NULL, (VkSurfaceKHR*)win->glWin);
+	vkCreateMacOSSurfaceMVK((VkInstance)inst, &macos, NULL, &win->rSurf);
 	#endif
 }
 
@@ -912,10 +906,10 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 	eglBindAPI(EGL_OPENGL_API);
 	#endif
   
-	win->glWin = eglCreateContext(win->EGL_display, config, EGL_NO_CONTEXT, NULL);
+	win->rSurf = eglCreateContext(win->EGL_display, config, EGL_NO_CONTEXT, NULL);
     win->EGL_surface = eglCreateWindowSurface(win->EGL_display, config, (EGLNativeWindowType)win->window, NULL);
 
-    eglMakeCurrent(win->EGL_display, win->EGL_surface, win->EGL_surface, win->glWin);
+    eglMakeCurrent(win->EGL_display, win->EGL_surface, win->EGL_surface, win->rSurf);
 	eglSwapBuffers(win->EGL_display, win->EGL_surface);
 
 	eglSwapInterval(win->EGL_display, 1);
@@ -925,7 +919,7 @@ void* RGFW_getProcAddress(const char* procname) { return (void*)eglGetProcAddres
 
 void RGFW_closeEGL(RGFW_window* win) {
     eglDestroySurface(win->EGL_display, win->EGL_surface);
-    eglDestroyContext(win->EGL_display, win->glWin);
+    eglDestroyContext(win->EGL_display, win->rSurf);
 
     eglTerminate(win->EGL_display);
 }
@@ -1140,9 +1134,9 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 		GLXContext ctx = NULL; 
 		
 		if (RGFW_root != NULL)
-			RGFW_root->glWin;
+			RGFW_root->rSurf;
 		
-		win->glWin = glXCreateContextAttribsARB((Display*)win->display, bestFbc, ctx, True, context_attribs);
+		win->rSurf = glXCreateContextAttribsARB((Display*)win->display, bestFbc, ctx, True, context_attribs);
 	}
 
 	#endif
@@ -1159,9 +1153,9 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 										DefaultVisual((Display*)win->display, XDefaultScreen((Display*)win->display)), CWEventMask, &wa);
 
 		#ifdef RGFW_OSMESA
-		win->glWin = OSMesaCreateContext(OSMESA_RGBA, NULL);
+		win->rSurf = OSMesaCreateContext(OSMESA_RGBA, NULL);
 		win->buffer = RGFW_MALLOC(w * h * 4);
-		OSMesaMakeCurrent(win->glWin, win->buffer, GL_UNSIGNED_BYTE, w, h);
+		OSMesaMakeCurrent(win->rSurf, win->buffer, GL_UNSIGNED_BYTE, w, h);
 		#ifndef RGFW_GL
 		win->render = 1;
 		#endif
@@ -1213,7 +1207,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	if (RGFW_OPENGL & args) {
 	#endif
-		glXMakeCurrent((Display *)win->display, (Drawable)win->window, (GLXContext)win->glWin);
+		glXMakeCurrent((Display *)win->display, (Drawable)win->window, (GLXContext)win->rSurf);
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 		win->render = 0;
 	}
@@ -1718,7 +1712,7 @@ void RGFW_window_close(RGFW_window* win) {
 
 	if ((Display*)win->display) {
 		#ifdef RGFW_GL
-		glXDestroyContext((Display *)win->display, win->glWin);
+		glXDestroyContext((Display *)win->display, win->rSurf);
 		#endif
 
 		if (win == RGFW_root)
@@ -2440,12 +2434,12 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
     SetPixelFormat(win->window, ChoosePixelFormat(win->window, &pfd), &pfd);
 
-    win->glWin = wglCreateContext(win->window);
+    win->rSurf = wglCreateContext(win->window);
 
     pdc = wglGetCurrentDC();
     prc = wglGetCurrentContext();
 
-    wglMakeCurrent(win->window, win->glWin);
+    wglMakeCurrent(win->window, win->rSurf);
 	
     if (wglCreateContextAttribsARB == NULL) {
         wglCreateContextAttribsARB = (wglCreateContextAttribsARB_type)
@@ -2467,7 +2461,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	wglMakeCurrent(pdc, prc);
 
     if (wglCreateContextAttribsARB != NULL) {
-        wglDeleteContext((HGLRC)win->glWin);
+        wglDeleteContext((HGLRC)win->rSurf);
 
       	i32 attribs[40];
 		PIXELFORMATDESCRIPTOR pfd = {sizeof(pfd), 1, PFD_TYPE_RGBA, PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, 32, 8, PFD_MAIN_PLANE, 24, 8};
@@ -2499,11 +2493,11 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
             SET_ATTRIB(0, 0);
 
-            win->glWin = wglCreateContextAttribsARB((HDC)win->window, NULL, attribs);
+            win->rSurf = wglCreateContextAttribsARB((HDC)win->window, NULL, attribs);
         }
         else {
 			printf("Failed to create an accelerated OpenGL Context\n");
-		    win->glWin = wglCreateContext((HDC)win->window);
+		    win->rSurf = wglCreateContext((HDC)win->window);
 		}
 	}
 	else 
@@ -2512,7 +2506,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 
 	#ifdef RGFW_GL
 	if (RGFW_root != NULL)
-		if (wglShareLists((HGLRC)RGFW_root->glWin, (HGLRC)win->glWin) == 0) {
+		if (wglShareLists((HGLRC)RGFW_root->rSurf, (HGLRC)win->rSurf) == 0) {
 			printf("Failed to link to dummy context : %li\n", GetLastError()); 
 		}
 	#endif
@@ -2530,7 +2524,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 		#ifdef RGFW_GL
 		ReleaseDC((HWND)win->display, (HDC)win->window);
 		win->window = GetDC((HWND)win->display);
-		wglMakeCurrent((HDC)win->window, (HGLRC)win->glWin);
+		wglMakeCurrent((HDC)win->window, (HGLRC)win->rSurf);
 		#endif
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 		win->buffer = NULL;
@@ -2538,10 +2532,10 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	#ifdef RGFW_OSMESA 
 	}
 	else {
-		win->glWin = (void*)OSMesaCreateContext(OSMESA_RGBA, NULL);
+		win->rSurf = (void*)OSMesaCreateContext(OSMESA_RGBA, NULL);
 		win->buffer = RGFW_MALLOC(w * h * 4);
 
-		OSMesaMakeCurrent(win->glWin, win->buffer, GL_UNSIGNED_BYTE, w, h);
+		OSMesaMakeCurrent(win->rSurf, win->buffer, GL_UNSIGNED_BYTE, w, h);
 	}
 	#endif
 
@@ -2897,11 +2891,11 @@ void RGFW_window_close(RGFW_window* win) {
 	RGFW_closeEGL(win);
 	#endif
 
-	if (win->glWin == RGFW_root)
+	if (win->rSurf == RGFW_root)
 		RGFW_root = NULL;
 	
 	#ifdef RGFW_GL
-	wglDeleteContext((HGLRC)win->glWin); /* delete opengl context */
+	wglDeleteContext((HGLRC)win->rSurf); /* delete opengl context */
 	#endif
 	DeleteDC((HDC)win->window); /* delete window */
 	DestroyWindow((HWND)win->display); /* delete display */
@@ -3224,7 +3218,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
     if (RGFW_TRANSPARENT_WINDOW & args) {
 		#ifdef RGFW_GL
 		i32 opacity = 0;
-		NSOpenGLContext_setValues(win->glWin, &opacity, NSOpenGLContextParameterSurfaceOpacity);
+		NSOpenGLContext_setValues(win->rSurf, &opacity, NSOpenGLContextParameterSurfaceOpacity);
 		#endif
 		NSWindow_setOpaque(win->window, false);
 		NSWindow_setBackgroundColor(win->window, NSColor_colorWithSRGB(0, 0, 0, 0));
@@ -3255,7 +3249,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	win->view = NSOpenGLView_initWithFrame(NSMakeRect(0, 0, w, h), format);
 	NSOpenGLView_prepareOpenGL(win->view);
 
-	NSOpenGLContext_makeCurrentContext(win->glWin);
+	NSOpenGLContext_makeCurrentContext(win->rSurf);
 
 	#else
     NSRect contentRect = NSMakeRect(0, 0, w, h);
@@ -3263,9 +3257,9 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u64
 	#endif
 
 	#ifdef RGFW_OSMESA
-	win->glWin = OSMesaCreateContext(OSMESA_RGBA, NULL);
+	win->rSurf = OSMesaCreateContext(OSMESA_RGBA, NULL);
 	win->buffer = RGFW_MALLOC(w * h * 4);
-	OSMesaMakeCurrent(win->glWin, win->buffer, GL_UNSIGNED_BYTE, w, h);
+	OSMesaMakeCurrent(win->rSurf, win->buffer, GL_UNSIGNED_BYTE, w, h);
 	
 	#ifdef RGFW_OPENGL
 	win->render = 0;
@@ -3680,17 +3674,17 @@ void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { pthread_setschedp
 void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 	#ifdef RGFW_GL
 		#ifdef RGFW_X11
-			glXMakeCurrent((Display *)win->display, (Drawable)win->window, (GLXContext)win->glWin);
+			glXMakeCurrent((Display *)win->display, (Drawable)win->window, (GLXContext)win->rSurf);
 		#endif
 		#ifdef RGFW_WINDOWS
-			wglMakeCurrent((HDC)win->window, (HGLRC)win->glWin);
+			wglMakeCurrent((HDC)win->window, (HGLRC)win->rSurf);
 		#endif
 		#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
-		NSOpenGLContext_makeCurrentContext(win->glWin);
+		NSOpenGLContext_makeCurrentContext(win->rSurf);
 		#endif
 	#else
 	#ifdef RGFW_EGL
-	eglMakeCurrent(win->EGL_display, win->EGL_surface, win->EGL_surface, win->glWin);
+	eglMakeCurrent(win->EGL_display, win->EGL_surface, win->EGL_surface, win->rSurf);
 	#endif
 	#endif
 
@@ -3732,8 +3726,8 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 
 	#endif
 	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
-	win->glWin = NSOpenGLView_openGLContext(win->view);
-	NSOpenGLContext_setValues(win->glWin, &swapInterval, NSOpenGLContextParameterSwapInterval);
+	win->rSurf = NSOpenGLView_openGLContext(win->view);
+	NSOpenGLContext_setValues(win->rSurf, &swapInterval, NSOpenGLContextParameterSwapInterval);
 	#endif
 	#endif
 
@@ -3760,7 +3754,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	SwapBuffers((HDC)win->window);
 	#endif
 	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
-	NSOpenGLContext_flushBuffer(win->glWin);
+	NSOpenGLContext_flushBuffer(win->rSurf);
 	#endif
 	#endif
 
