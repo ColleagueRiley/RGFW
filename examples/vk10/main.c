@@ -90,46 +90,52 @@ const uint32_t frag_code[] = {
     0x0000000e,0x0003003e,0x00000009,0x00000012,0x000100fd,0x00010038
 };
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+RGFW_vulkanInfo* vulkan_info;
+
+VkShaderModule createShaderModule(const uint32_t* code, size_t code_size) {
+    VkShaderModuleCreateInfo create_info = {0};
+    create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    create_info.codeSize = code_size;
+    create_info.pCode = code;
+
+    VkShaderModule shaderModule;
+    if (vkCreateShaderModule(RGFW_vulkan_info.device, &create_info, NULL, &shaderModule) != VK_SUCCESS) {
+        return VK_NULL_HANDLE; // failed to create shader module
+    }
+
+    return shaderModule;
+}
 
 int draw_frame(RGFW_window* win) {
-    vkWaitForFences(RGFW_vulkan_info.device, 1, &RGFW_vulkan_info.in_flight_fences[RGFW_vulkan_info.current_frame], VK_TRUE, UINT64_MAX);
+    vkWaitForFences(vulkan_info->device, 1, &vulkan_info->in_flight_fences[vulkan_info->current_frame], VK_TRUE, UINT64_MAX);
 
     uint32_t image_index = 0;
-    VkResult result = vkAcquireNextImageKHR(RGFW_vulkan_info.device, win->swapchain, UINT64_MAX, RGFW_vulkan_info.available_semaphores[RGFW_vulkan_info.current_frame], VK_NULL_HANDLE, &image_index);
+    VkResult result = vkAcquireNextImageKHR(vulkan_info->device, win->swapchain, UINT64_MAX, vulkan_info->available_semaphores[vulkan_info->current_frame], VK_NULL_HANDLE, &image_index);
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        return RGFW_recreate_swapchain(win);
-    } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-        printf("failed to acquire swapchain image. Error %i\n", result);
-        return -1;
+    if (vulkan_info->image_in_flight[image_index] != VK_NULL_HANDLE) {
+        vkWaitForFences(vulkan_info->device, 1, &vulkan_info->image_in_flight[image_index], VK_TRUE, UINT64_MAX);
     }
-
-    if (RGFW_vulkan_info.image_in_flight[image_index] != VK_NULL_HANDLE) {
-        vkWaitForFences(RGFW_vulkan_info.device, 1, &RGFW_vulkan_info.image_in_flight[image_index], VK_TRUE, UINT64_MAX);
-    }
-    RGFW_vulkan_info.image_in_flight[image_index] = RGFW_vulkan_info.in_flight_fences[RGFW_vulkan_info.current_frame];
+    vulkan_info->image_in_flight[image_index] = vulkan_info->in_flight_fences[vulkan_info->current_frame];
 
     VkSubmitInfo submitInfo = {0};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    VkSemaphore wait_semaphores[] = { RGFW_vulkan_info.available_semaphores[RGFW_vulkan_info.current_frame] };
+    VkSemaphore wait_semaphores[] = { vulkan_info->available_semaphores[vulkan_info->current_frame] };
     VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = wait_semaphores;
     submitInfo.pWaitDstStageMask = wait_stages;
 
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &RGFW_vulkan_info.command_buffers[image_index];
+    submitInfo.pCommandBuffers = &vulkan_info->command_buffers[image_index];
 
-    VkSemaphore signal_semaphores[] = { RGFW_vulkan_info.finished_semaphore[RGFW_vulkan_info.current_frame] };
+    VkSemaphore signal_semaphores[] = { vulkan_info->finished_semaphore[vulkan_info->current_frame] };
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signal_semaphores;
 
-    vkResetFences(RGFW_vulkan_info.device, 1, &RGFW_vulkan_info.in_flight_fences[RGFW_vulkan_info.current_frame]);
+    vkResetFences(vulkan_info->device, 1, &vulkan_info->in_flight_fences[vulkan_info->current_frame]);
 
-    if (vkQueueSubmit(RGFW_vulkan_info.graphics_queue, 1, &submitInfo, RGFW_vulkan_info.in_flight_fences[RGFW_vulkan_info.current_frame]) != VK_SUCCESS) {
+    if (vkQueueSubmit(vulkan_info->graphics_queue, 1, &submitInfo, vulkan_info->in_flight_fences[vulkan_info->current_frame]) != VK_SUCCESS) {
         printf("failed to submit draw command buffer\n");
         return -1; //"failed to submit draw command buffer
     }
@@ -146,24 +152,15 @@ int draw_frame(RGFW_window* win) {
 
     present_info.pImageIndices = &image_index;
 
-    result = vkQueuePresentKHR(RGFW_vulkan_info.present_queue, &present_info);
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-        return RGFW_recreate_swapchain(win);
-    } else if (result != VK_SUCCESS) {
-        printf("failed to present swapchain image\n");
-        return -1;
-    }
+    result = vkQueuePresentKHR(vulkan_info->present_queue, &present_info);
 
-    RGFW_vulkan_info.current_frame = (RGFW_vulkan_info.current_frame + 1) % RGFW_MAX_FRAMES_IN_FLIGHT;
+    vulkan_info->current_frame = (vulkan_info->current_frame + 1) % RGFW_MAX_FRAMES_IN_FLIGHT;
     return 0;
 }
 
 int createGraphicsPipeline(RGFW_window* win) {
-    size_t vert_fileSize = sizeof(vert_code);
-    size_t frag_fileSize = sizeof(frag_code);
-
-    VkShaderModule vert_module = RGFW_createShaderModule(vert_code, vert_fileSize);
-    VkShaderModule frag_module = RGFW_createShaderModule(frag_code, frag_fileSize);
+    VkShaderModule vert_module = createShaderModule(vert_code, sizeof(vert_code));
+    VkShaderModule frag_module = createShaderModule(frag_code, sizeof(frag_code));
     if (vert_module == VK_NULL_HANDLE || frag_module == VK_NULL_HANDLE) {
         printf("failed to create shader module\n");
         return -1; // failed to create shader modules
@@ -175,11 +172,9 @@ int createGraphicsPipeline(RGFW_window* win) {
     vert_stage_info.module = vert_module;
     vert_stage_info.pName = "main";
 
-    VkPipelineShaderStageCreateInfo frag_stage_info = {0};
-    frag_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    VkPipelineShaderStageCreateInfo frag_stage_info = vert_stage_info;
     frag_stage_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     frag_stage_info.module = frag_module;
-    frag_stage_info.pName = "main";
 
     VkPipelineShaderStageCreateInfo shader_stages[] = { vert_stage_info, frag_stage_info };
 
@@ -249,7 +244,7 @@ int createGraphicsPipeline(RGFW_window* win) {
     pipeline_layout_info.setLayoutCount = 0;
     pipeline_layout_info.pushConstantRangeCount = 0;
 
-    if (vkCreatePipelineLayout(RGFW_vulkan_info.device, &pipeline_layout_info, NULL, &RGFW_vulkan_info.pipeline_layout) != VK_SUCCESS) {
+    if (vkCreatePipelineLayout(vulkan_info->device, &pipeline_layout_info, NULL, &vulkan_info->pipeline_layout) != VK_SUCCESS) {
         printf("failed to create pipeline layout\n");
         return -1; // failed to create pipeline layout
     }
@@ -272,37 +267,39 @@ int createGraphicsPipeline(RGFW_window* win) {
     pipeline_info.pMultisampleState = &multisampling;
     pipeline_info.pColorBlendState = &color_blending;
     pipeline_info.pDynamicState = &dynamic_info;
-    pipeline_info.layout = RGFW_vulkan_info.pipeline_layout;
-    pipeline_info.renderPass = RGFW_vulkan_info.render_pass;
+    pipeline_info.layout = vulkan_info->pipeline_layout;
+    pipeline_info.renderPass = vulkan_info->render_pass;
     pipeline_info.subpass = 0;
     pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
 
-    if (vkCreateGraphicsPipelines(RGFW_vulkan_info.device, VK_NULL_HANDLE, 1, &pipeline_info, NULL, &RGFW_vulkan_info.graphics_pipeline) != VK_SUCCESS) {
+    if (vkCreateGraphicsPipelines(vulkan_info->device, VK_NULL_HANDLE, 1, &pipeline_info, NULL, &vulkan_info->graphics_pipeline) != VK_SUCCESS) {
         printf("failed to create pipline\n");
         return -1; // failed to create graphics pipeline
     }
 
-    vkDestroyShaderModule(RGFW_vulkan_info.device, frag_module, NULL);
-    vkDestroyShaderModule(RGFW_vulkan_info.device, vert_module, NULL);
+    vkDestroyShaderModule(vulkan_info->device, frag_module, NULL);
+    vkDestroyShaderModule(vulkan_info->device, vert_module, NULL);
     return 0;
 }
 
 int commandBuffers(RGFW_window* win) {
     for (size_t i = 0; i < win->image_count; i++) {
+        /* begin command buffer */
         VkCommandBufferBeginInfo begin_info = {0};
         begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-        if (vkBeginCommandBuffer(RGFW_vulkan_info.command_buffers[i], &begin_info) != VK_SUCCESS) {
+        if (vkBeginCommandBuffer(vulkan_info->command_buffers[i], &begin_info) != VK_SUCCESS) {
             return -1; // failed to begin recording command buffer
         }
 
         VkRenderPassBeginInfo render_pass_info = {0};
         render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        render_pass_info.renderPass = RGFW_vulkan_info.render_pass;
-        render_pass_info.framebuffer = RGFW_vulkan_info.framebuffers[i];
+        render_pass_info.renderPass = vulkan_info->render_pass;
+        render_pass_info.framebuffer = vulkan_info->framebuffers[i];
         render_pass_info.renderArea.offset.x = 0;
         render_pass_info.renderArea.offset.y = 0;
         render_pass_info.renderArea.extent = (VkExtent2D){win->w, win->h};
+        
         VkClearValue clearColor;
         clearColor.color.float32[0] = 1.0f;
         clearColor.color.float32[1] = 1.0f;
@@ -324,18 +321,18 @@ int commandBuffers(RGFW_window* win) {
         scissor.offset.y = 0;
         scissor.extent = (VkExtent2D){win->w, win->h};
 
-        vkCmdSetViewport(RGFW_vulkan_info.command_buffers[i], 0, 1, &viewport);
-        vkCmdSetScissor(RGFW_vulkan_info.command_buffers[i], 0, 1, &scissor);
+        vkCmdSetViewport(vulkan_info->command_buffers[i], 0, 1, &viewport);
+        vkCmdSetScissor(vulkan_info->command_buffers[i], 0, 1, &scissor);
 
-        vkCmdBeginRenderPass(RGFW_vulkan_info.command_buffers[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(vulkan_info->command_buffers[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdBindPipeline(RGFW_vulkan_info.command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, RGFW_vulkan_info.graphics_pipeline);
+        vkCmdBindPipeline(vulkan_info->command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan_info->graphics_pipeline);
 
-        vkCmdDraw(RGFW_vulkan_info.command_buffers[i], 3, 1, 0, 0);
+        vkCmdDraw(vulkan_info->command_buffers[i], 3, 1, 0, 0);
 
-        vkCmdEndRenderPass(RGFW_vulkan_info.command_buffers[i]);
+        vkCmdEndRenderPass(vulkan_info->command_buffers[i]);
 
-        if (vkEndCommandBuffer(RGFW_vulkan_info.command_buffers[i]) != VK_SUCCESS) {
+        if (vkEndCommandBuffer(vulkan_info->command_buffers[i]) != VK_SUCCESS) {
             printf("failed to record command buffer\n");
             return -1; // failed to record command buffer!
         }
@@ -344,12 +341,12 @@ int commandBuffers(RGFW_window* win) {
 }
  
 int main() {
-    RGFW_window* win = RGFW_createWindow("Vulkan Example", SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT, RGFW_ALLOW_DND | RGFW_CENTER);;
-    RGFW_initVulkan(win);   
+    RGFW_window* win = RGFW_createWindow("Vulkan Example", 0, 0, 800, 600, RGFW_ALLOW_DND | RGFW_CENTER);;
+    vulkan_info = RGFW_initVulkan(win);   
 
     createGraphicsPipeline(win);
 
-    uint32_t running = 1;
+    uint8_t running = 1;
     while (running && !RGFW_isPressedI(win, RGFW_Escape)) {
         while (RGFW_window_checkEvent(win)) {
             if (win->event.type == RGFW_quit) {
@@ -362,9 +359,7 @@ int main() {
         commandBuffers(win);
     }
     
-    vkDeviceWaitIdle(RGFW_vulkan_info.device);
-    
-    RGFW_freeVulkan();
     RGFW_window_close(win);
+    RGFW_freeVulkan();
     return 0;
 }

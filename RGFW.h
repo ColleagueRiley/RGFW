@@ -376,9 +376,6 @@ typedef struct {
 RGFWDEF RGFW_vulkanInfo* RGFW_initVulkan(RGFW_window* win);
 RGFWDEF void RGFW_freeVulkan(void);
 
-RGFWDEF int RGFW_recreate_swapchain(RGFW_window* win);
-VkShaderModule RGFW_createShaderModule(const uint32_t* code, size_t code_size);
-
 RGFWDEF int RGFW_initData(RGFW_window* win);
 RGFWDEF RGFW_vulkanInfo* RGFW_createSurface(VkInstance instance, RGFW_window* win);
 int RGFW_deviceInitialization(RGFW_window* win);
@@ -956,20 +953,6 @@ int RGFW_createRenderPass() {
     return 0;
 }
 
-VkShaderModule RGFW_createShaderModule(const uint32_t* code, size_t code_size) {
-    VkShaderModuleCreateInfo create_info = {0};
-    create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    create_info.codeSize = code_size;
-    create_info.pCode = code;
-
-    VkShaderModule shaderModule;
-    if (vkCreateShaderModule(RGFW_vulkan_info.device, &create_info, NULL, &shaderModule) != VK_SUCCESS) {
-        return VK_NULL_HANDLE; // failed to create shader module
-    }
-
-    return shaderModule;
-}
-
 int RGFW_createCommandPool() {
     VkCommandPoolCreateInfo pool_info = {0};
     pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -1105,38 +1088,16 @@ int RGFW_createFramebuffers(RGFW_window* win) {
     return 0;
 }
 
-int RGFW_recreate_swapchain(RGFW_window* win) {
+void RGFW_freeVulkan(void) {
     vkDeviceWaitIdle(RGFW_vulkan_info.device);
 
-    vkDestroyCommandPool(RGFW_vulkan_info.device, RGFW_vulkan_info.command_pool, NULL);
-
-    for (int i = 0; i < win->image_count; i++) {
-        vkDestroyFramebuffer(RGFW_vulkan_info.device, RGFW_vulkan_info.framebuffers[i], NULL);
-    }
-
-    for (int i = 0; i < win->image_count; i++) {
-        vkDestroyImageView(RGFW_vulkan_info.device, win->swapchain_image_views[i], NULL);
-    }
-
-    if (
-        RGFW_createSwapchain(win) ||
-        RGFW_createFramebuffers(win) ||
-        RGFW_createCommandPool() ||
-        RGFW_createCommandBuffers(win)
-    )
-        return -11;
-    return 0;
-}
-
-void RGFW_freeVulkan(void) {
-    for (size_t i = 0; i < RGFW_MAX_FRAMES_IN_FLIGHT; i++) {
+	for (size_t i = 0; i < RGFW_MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(RGFW_vulkan_info.device, RGFW_vulkan_info.finished_semaphore[i], NULL);
         vkDestroySemaphore(RGFW_vulkan_info.device, RGFW_vulkan_info.available_semaphores[i], NULL);
         vkDestroyFence(RGFW_vulkan_info.device, RGFW_vulkan_info.in_flight_fences[i], NULL);
     }
 
     vkDestroyCommandPool(RGFW_vulkan_info.device, RGFW_vulkan_info.command_pool, NULL);
-
 
     vkDestroyPipeline(RGFW_vulkan_info.device, RGFW_vulkan_info.graphics_pipeline, NULL);
     vkDestroyPipelineLayout(RGFW_vulkan_info.device, RGFW_vulkan_info.pipeline_layout, NULL);
@@ -1149,8 +1110,9 @@ void RGFW_freeVulkan(void) {
         }
     #endif
 
+	vkDestroyDevice(RGFW_vulkan_info.device, NULL);
     vkDestroyInstance(RGFW_vulkan_info.instance, NULL);
-
+    
     free(RGFW_vulkan_info.framebuffers);
     free(RGFW_vulkan_info.command_buffers);
     free(RGFW_vulkan_info.available_semaphores);
@@ -2250,15 +2212,10 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 void RGFW_window_close(RGFW_window* win) {
 	#ifdef RGFW_VULKAN
     for (int i = 0; i < win->image_count; i++) {
-        vkDestroyFramebuffer(RGFW_vulkan_info.device, RGFW_vulkan_info.framebuffers[i], NULL);
-    }
-
-    for (int i = 0; i < win->image_count; i++) {
         vkDestroyImageView(RGFW_vulkan_info.device, win->swapchain_image_views[i], NULL);
     }
 
     vkDestroySwapchainKHR(RGFW_vulkan_info.device, win->swapchain, NULL);
-    vkDestroyDevice(RGFW_vulkan_info.device, NULL);
     vkDestroySurfaceKHR(RGFW_vulkan_info.instance, win->rSurf, NULL);
     free(win->swapchain_image_views);
     free(win->swapchain_images);
@@ -3459,7 +3416,6 @@ void RGFW_window_close(RGFW_window* win) {
     }
 
     vkDestroySwapchainKHR(RGFW_vulkan_info.device, win->swapchain, NULL);
-    vkDestroyDevice(RGFW_vulkan_info.device, NULL);
     vkDestroySurfaceKHR(RGFW_vulkan_info.instance, win->rSurf, NULL);
     free(win->swapchain_image_views);
     free(win->swapchain_images);
@@ -4208,7 +4164,6 @@ void RGFW_window_close(RGFW_window* win){
     }
 
     vkDestroySwapchainKHR(RGFW_vulkan_info.device, win->swapchain, NULL);
-    vkDestroyDevice(RGFW_vulkan_info.device, NULL);
     vkDestroySurfaceKHR(RGFW_vulkan_info.instance, win->rSurf, NULL);
     free(win->swapchain_image_views);
     free(win->swapchain_images);
