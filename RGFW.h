@@ -436,15 +436,7 @@ RGFWDEF void RGFW_window_setMouseDefault(RGFW_window* win); /* sets the mouse to
 /* where the mouse is on the screen, x = [0], y = [1] */
 RGFWDEF u32* RGFW_window_getGlobalMousePoint(RGFW_window* win);
 
-#ifndef __WIN32
-#define RGFW_window_showMouse(win, show) { \
-	u8 RGFW_blk[] = {0, 0, 0, 0}; /* for c++ support */\
-	if (show) RGFW_window_setMouse(win, RGFW_blk, 1, 1, 4); \
-	else RGFW_window_setMouseDefault(win);\
-}
-#else
 RGFWDEF void RGFW_window_showMouse(RGFW_window* win, i8 show);
-#endif
 
 RGFWDEF void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y);
 
@@ -622,6 +614,16 @@ u8 RGFW_Error() { return RGFW_error; }
     attribs[index++] = a; \
     attribs[index++] = v; \
 }
+
+#ifndef __WIN32
+void RGFW_window_showMouse(RGFW_window* win, i8 show) {
+	static u8 RGFW_blk[] = {0, 0, 0, 0};
+	if (show) 
+		RGFW_window_setMouse(win, RGFW_blk, 1, 1, 4); 
+	else 
+		RGFW_window_setMouseDefault(win);
+}
+#endif
 
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
