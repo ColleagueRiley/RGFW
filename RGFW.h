@@ -269,7 +269,7 @@ typedef struct RGFW_window {
 
 	/* vulkan data */
     VkSwapchainKHR swapchain;
-    uint32_t image_count;
+    u32 image_count;
 	VkImage* swapchain_images;
     VkImageView* swapchain_image_views;
 	#endif
@@ -658,8 +658,8 @@ RGFW_vulkanInfo* RGFW_initVulkan(RGFW_window* win) {
     )
         return NULL;
 	
-    uint32_t graphics_family_index = 0;
-    uint32_t present_family_index = 0;
+    u32 graphics_family_index = 0;
+    u32 present_family_index = 0;
 
     vkGetDeviceQueue(RGFW_vulkan_info.device, graphics_family_index, 0, &RGFW_vulkan_info.graphics_queue);
     vkGetDeviceQueue(RGFW_vulkan_info.device, present_family_index, 0, &RGFW_vulkan_info.present_queue);
@@ -715,7 +715,7 @@ int RGFW_deviceInitialization(RGFW_window* win) {
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_0;
 
-    uint32_t rgfwExtensionCount = 2;
+    u32 rgfwExtensionCount = 2;
     const char* rgfwExtensions[2] = {
         (char[]){"VK_KHR_surface"},
 #ifdef RGFW_WINDOWS
@@ -728,7 +728,7 @@ int RGFW_deviceInitialization(RGFW_window* win) {
     };
 
     const char** extensions;
-    uint32_t extension_count;
+    u32 extension_count;
     #ifdef RGFW_DEBUG
         extension_count = rgfwExtensionCount + 1;
         extensions = (const char**)malloc(sizeof(const char*) * extension_count);
@@ -791,14 +791,14 @@ int RGFW_deviceInitialization(RGFW_window* win) {
 
     RGFW_createSurface(RGFW_vulkan_info.instance, win);
 
-    uint32_t deviceCount = 0;
+    u32 deviceCount = 0;
     vkEnumeratePhysicalDevices(RGFW_vulkan_info.instance, &deviceCount, NULL);
     VkPhysicalDevice* devices = (VkPhysicalDevice*)malloc(sizeof(VkPhysicalDevice) * deviceCount);
     vkEnumeratePhysicalDevices(RGFW_vulkan_info.instance, &deviceCount, devices);
 
     RGFW_vulkan_info.physical_device = devices[0];
 
-    uint32_t queue_family_count = 0;
+    u32 queue_family_count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(RGFW_vulkan_info.physical_device, &queue_family_count, NULL);
     VkQueueFamilyProperties* queueFamilies = (VkQueueFamilyProperties*)malloc(sizeof(VkQueueFamilyProperties) * queue_family_count);
     vkGetPhysicalDeviceQueueFamilyProperties(RGFW_vulkan_info.physical_device, &queue_family_count, queueFamilies);
@@ -879,13 +879,13 @@ int RGFW_createSwapchain(RGFW_window* win) {
         return -1;
     }
 
-    uint32_t imageCount;
+    u32 imageCount;
     vkGetSwapchainImagesKHR(RGFW_vulkan_info.device, win->swapchain, &imageCount, NULL);
     win->swapchain_images = (VkImage*)malloc(sizeof(VkImage) * imageCount);
     vkGetSwapchainImagesKHR(RGFW_vulkan_info.device, win->swapchain, &imageCount, win->swapchain_images);
 
     win->swapchain_image_views = (VkImageView*)malloc(sizeof(VkImageView) * imageCount);
-    for(uint32_t i=0; i < imageCount; i++){
+    for(u32 i=0; i < imageCount; i++){
         VkImageViewCreateInfo image_view_cre_infos = {0};
         image_view_cre_infos.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         image_view_cre_infos.image = win->swapchain_images[i];
@@ -972,7 +972,7 @@ int RGFW_createCommandBuffers(RGFW_window* win) {
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool = RGFW_vulkan_info.command_pool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = (uint32_t)win->image_count;
+    allocInfo.commandBufferCount = (u32)win->image_count;
 
     if (vkAllocateCommandBuffers(RGFW_vulkan_info.device, &allocInfo, RGFW_vulkan_info.command_buffers) != VK_SUCCESS) {
         return -1; // failed to allocate command buffers;

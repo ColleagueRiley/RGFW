@@ -41,15 +41,18 @@ ifeq ($(detected_OS),Linux)
 endif
 
 all:
+	make vulkan_shaders
+
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -o basic
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -o gl33
 	$(CC) examples/vk10/main.c $(LIBS) -I./ -Wall -o vk10
 
 clean:
-	rm ./examples/basic/basic ./examples/basic/basic.exe ./examples/gl33/gl33 ./examples/gl33/gl33.exe ./examples/vk10/vk10 ./examples/vk10/vk10.exe -f
+	rm ./examples/basic/basic ./examples/basic/basic.exe ./examples/gl33/gl33 ./examples/gl33/gl33.exe ./examples/vk10/vk10 ./examples/vk10/vk10.exe examples/vk10/shaders/*.h -f
 
 debug:
 	make clean
+	make vulkan_shaders
 
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/basic/basic
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/gl33/gl33
@@ -57,6 +60,15 @@ debug:
 
 	./examples/basic/basic$(EXT)
 	./examples/gl33/gl33$(EXT)
+	./examples/vk10/vk10$(EXT)
+
+vulkan_shaders:
+	glslangValidator -V examples/vk10/shaders/vert.vert -o examples/vk10/shaders/vert.h --vn vert_code
+	glslangValidator -V examples/vk10/shaders/frag.frag -o examples/vk10/shaders/frag.h --vn frag_code
+
+debug_vulkan:
+	make vulkan_shaders
+	$(CC) examples/vk10/main.c $(LIBS) -lvulkan-1 -I./ -Wall -D RGFW_DEBUG -o examples/vk10/vk10
 	./examples/vk10/vk10$(EXT)
 
 RGFW.o:
