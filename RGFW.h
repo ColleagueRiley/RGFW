@@ -440,7 +440,7 @@ RGFWDEF u32* RGFW_window_getGlobalMousePoint(RGFW_window* win);
 #define RGFW_window_showMouse(win, show) { \
 	u8 RGFW_blk[] = {0, 0, 0, 0}; /* for c++ support */\
 	if (show) RGFW_window_setMouse(win, RGFW_blk, 1, 1, 4); \
-	else RGFW_window_setMouseDefault(win)\
+	else RGFW_window_setMouseDefault(win);\
 }
 #else
 RGFWDEF void RGFW_window_showMouse(RGFW_window* win, i8 show);
