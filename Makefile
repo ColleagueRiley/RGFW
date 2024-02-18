@@ -1,7 +1,7 @@
 CC = gcc
 AR = ar
 
-LIBS := -lshell32 -lgdi32 -lm -lopengl32 -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
+LIBS := -lshell32 -lgdi32 -lm -lopengl32 -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1 -ggdb
 EXT = .exe
 LIB_EXT = .dll
 STATIC =
@@ -25,7 +25,7 @@ else
 endif
 
 ifeq ($(detected_OS),Windows)
-	LIBS := -lshell32 -lgdi32 -lm -ldwmapi -lopengl32 $(STATIC) -I C:\VulkanSDK\1.3.275.0\Include -L C:\VulkanSDK\1.3.275.0\Lib -lvulkan1
+	LIBS := -ggdb -lshell32 -lgdi32 -lm -ldwmapi -lopengl32 $(STATIC) -I C:\VulkanSDK\1.3.275.0\Include -L C:\VulkanSDK\1.3.275.0\Lib -lvulkan1
 	EXT = .exe
 	LIB_EXT = .dll
 endif

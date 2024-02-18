@@ -20,7 +20,7 @@ int main() {
     
     if (win == NULL)
         return 1;
-win->cursor = NULL;
+    
     win->fpsCap = 60;
 
     RGFW_createThread(loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
@@ -69,23 +69,15 @@ win->cursor = NULL;
                 break;
             }
             if (RGFW_isPressedI(win, RGFW_Up))
-                printf("Pasted : %s\n", RGFW_readClipboard());
+                printf("Pasted : %s\n", RGFW_readClipboard(NULL));
             else if (RGFW_isPressedI(win, RGFW_Down))
                 RGFW_writeClipboard("DOWN", 4);
             else if (RGFW_isPressedI(win, RGFW_Space))
                 printf("fps : %i\n", win->event.fps);
-            else if (RGFW_isPressedI(win, RGFW_w) && frames >= 30) {
-                if (!mouseHidden) {
-                    RGFW_window_hideMouse(win);
-                    mouseHidden = 1;
-                }
-                else {
-                    RGFW_window_setMouseDefault(win);
-                    mouseHidden = 0;
-                }
-                
-                frames = 0;
-            }
+            else if (RGFW_isPressedI(win, RGFW_w))
+                RGFW_window_setMouseDefault(win);
+            else if (RGFW_isPressedI(win, RGFW_q))
+                RGFW_window_showMouse(win, 0);
             else if (RGFW_isPressedI(win, RGFW_t)) {
                 RGFW_window_setMouse(win, icon, 3, 3, 4);
             }
@@ -122,7 +114,7 @@ void drawLoop(RGFW_window *w) {
     glClearColor(255, 255, 255, 255);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
+    
     glBegin(GL_TRIANGLES);
         glColor3f(1, 0, 0); glVertex2f(-0.6, -0.75);
         glColor3f(0, 1, 0); glVertex2f(0.6, -0.75);
