@@ -2,7 +2,6 @@
 #define RGFW_ALLOC_DROPFILES
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
-#define RGFW_NO_X11_CURSOR
 
 #include "RGFW.h"
 #include <stdio.h>
@@ -23,7 +22,7 @@ int main() {
     
     win->fpsCap = 60;
 
-    RGFW_createThread(loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
+    //RGFW_createThread(loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
 
     /*unsigned short js = RGFW_registerJoystick(win, 0);*/
     unsigned char i, frames = 60;
@@ -50,7 +49,6 @@ int main() {
     glClearColor(0, 0, 0, 0);
 
     while (running && !RGFW_isPressedI(win, RGFW_Escape)) {
-
         /* 
             check all of the avaliable events all at once
             this is to avoid any input lag
@@ -60,7 +58,8 @@ int main() {
             but not using this method could cause input lag
         */
 
-        while (RGFW_window_checkEvent(win))  {
+        while (RGFW_window_checkEvent(win)) {
+            RGFW_window_setMouse(win, icon, 3, 3, 4);
             if (win->event.type == RGFW_windowAttribsChange) {
                 printf("attribs changed\n");
             }
@@ -68,8 +67,11 @@ int main() {
                 running = 0;  
                 break;
             }
-            if (RGFW_isPressedI(win, RGFW_Up))
-                printf("Pasted : %s\n", RGFW_readClipboard(NULL));
+            if (RGFW_isPressedI(win, RGFW_Up)) {
+                char* str = RGFW_readClipboard(NULL);
+                printf("Pasted : %s\n", str);
+                free(str);
+            }
             else if (RGFW_isPressedI(win, RGFW_Down))
                 RGFW_writeClipboard("DOWN", 4);
             else if (RGFW_isPressedI(win, RGFW_Space))

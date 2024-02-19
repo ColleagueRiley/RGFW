@@ -618,7 +618,7 @@ u8 RGFW_Error() { return RGFW_error; }
 #ifndef __WIN32
 void RGFW_window_showMouse(RGFW_window* win, i8 show) {
 	static u8 RGFW_blk[] = {0, 0, 0, 0};
-	if (show) 
+	if (show == 0) 
 		RGFW_window_setMouse(win, RGFW_blk, 1, 1, 4); 
 	else 
 		RGFW_window_setMouseDefault(win);
@@ -1565,8 +1565,8 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16
 		XFree(fbc);
 
 		/* Get a visual */
-		XVisualInfo *vi = glXGetVisualFromFBConfig((Display*)win->display, bestFbc);
-
+		XVisualInfo* vi = glXGetVisualFromFBConfig((Display*)win->display, bestFbc);
+		
 		/* make X window attrubutes*/
 		XSetWindowAttributes swa;
 		Colormap cmap;
@@ -1584,10 +1584,14 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16
 							0, vi->depth, InputOutput, vi->visual,
 							CWBorderPixel|CWColormap|CWEventMask, &swa);
 
+
+		XFreeColors((Display*)win->display, swa.colormap, NULL, 0, 0); 
+
 		if (RGFW_TRANSPARENT_WINDOW & args)
 			XMatchVisualInfo((Display *)win->display, DefaultScreen((Display *)win->display), 32, TrueColor, vi); /* for RGBA backgrounds*/
 
-	
+		XFree(vi);
+
 		i32 context_attribs[7] = {0, 0, 0, 0, 0, 0, 0};
 		context_attribs[0] = GLX_CONTEXT_PROFILE_MASK_ARB;
 		context_attribs[1] = GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
@@ -1650,7 +1654,8 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16
         sh->min_width = sh->max_width = w;
         sh->min_height = sh->max_height = h;
 
-        XSetWMSizeHints((Display *)win->display, (Drawable)win->window, sh,  XA_WM_NORMAL_HINTS);
+        XSetWMSizeHints((Display *)win->display, (Drawable)win->window, sh, XA_WM_NORMAL_HINTS);
+		XFree(sh);
     }
 
     if (RGFW_NO_BORDER & args) {
@@ -1663,7 +1668,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16
 			value = XInternAtom((Display *)win->display, "_NET_WM_WINDOW_TYPE_DOCK", False);
 		}
 
-        XChangeProperty((Display *)win->display, (Drawable)win->window, window_type,XA_ATOM, 32, PropModeReplace, (u8 *)&value, 1); /* toggle border*/
+        XChangeProperty((Display *)win->display, (Drawable)win->window, window_type, XA_ATOM, 32, PropModeReplace, (u8 *)&value, 1); /* toggle border*/
     }
 
     XSelectInput((Display *)win->display, (Drawable)win->window, event_mask); /* tell X11 what events we want*/
@@ -2014,63 +2019,64 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 				XGetWindowProperty((Display*)win->display, E.xselection.requestor, E.xselection.property, 0, LONG_MAX, False, E.xselection.target, &actualType, &actualFormat, &result, &bytesAfter, (u8**) &data);
 
-                if (result) {
-					/*
-					SOURCED FROM GLFW _glfwParseUriList
-					Copyright (c) 2002-2006 Marcus Geelnard
-					Copyright (c) 2006-2019 Camilla Löwy
-					*/
+                if (result)
+					break;
+				
+				/*
+				SOURCED FROM GLFW _glfwParseUriList
+				Copyright (c) 2002-2006 Marcus Geelnard
+				Copyright (c) 2006-2019 Camilla Löwy
+				*/
 
-					const char* prefix = "file://";
-					
-					char* line;
+				const char* prefix = "file://";
+				
+				char* line;
 
-					win->event.droppedFilesCount = 0;
+				win->event.droppedFilesCount = 0;
 
-					win->event.type = RGFW_dnd;
+				win->event.type = RGFW_dnd;
 
-					while ((line = strtok(data, "\r\n"))) {
-						char path[RGFW_MAX_PATH];
+				while ((line = strtok(data, "\r\n"))) {
+					char path[RGFW_MAX_PATH];
 
-						data = NULL;
+					data = NULL;
 
-						if (line[0] == '#')
-							continue;
+					if (line[0] == '#')
+						continue;
 
-						char* l;						
-						for (l = line; 1; l++) {
-							if ((l - line) > 7)
-								break;
-							else if (*l != prefix[(l - line)])
-								break;
-							else if (*l == '\0' && prefix[(l - line)] == '\0') {
-								line += 7;
-								while (*line != '/')
-									line++;
-								break;
-							}
-							else if (*l == '\0')
-								break; 
+					char* l;						
+					for (l = line; 1; l++) {
+						if ((l - line) > 7)
+							break;
+						else if (*l != prefix[(l - line)])
+							break;
+						else if (*l == '\0' && prefix[(l - line)] == '\0') {
+							line += 7;
+							while (*line != '/')
+								line++;
+							break;
 						}
-
-						win->event.droppedFilesCount++;
-      
-						size_t index = 0; 
-						while (*line) {
-							if (line[0] == '%' && line[1] && line[2]) {
-								const char digits[3] = { line[1], line[2], '\0' };
-								path[index] = (char) strtol(digits, NULL, 16);
-								line += 2;
-							}
-							else
-								path[index] = *line;
-
-							index++;
-							line++;
-						}
-						
-						strcpy(win->event.droppedFiles[win->event.droppedFilesCount - 1], path);
+						else if (*l == '\0')
+							break; 
 					}
+
+					win->event.droppedFilesCount++;
+	
+					size_t index = 0; 
+					while (*line) {
+						if (line[0] == '%' && line[1] && line[2]) {
+							const char digits[3] = { line[1], line[2], '\0' };
+							path[index] = (char) strtol(digits, NULL, 16);
+							line += 2;
+						}
+						else
+							path[index] = *line;
+
+						index++;
+						line++;
+					}
+					
+					strcpy(win->event.droppedFiles[win->event.droppedFilesCount - 1], path);
 				}
 
                 if (data)
@@ -2110,12 +2116,12 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			XGetWindowAttributes((Display *)win->display, (Window)win->window, &a);
 
 			#ifndef RGFW_RECT
-			win->x = a.x;
-			win->y = a.y;
-			win->w = a.width;
-			win->h = a.height; 
+			win->x = E.xconfigure.x;
+			win->y = E.xconfigure.y;
+			win->w = E.xconfigure.width;
+			win->h = E.xconfigure.height;
 			#else
-			win->r = (RGFW_RECT){a.x, a.y, a.width, a.height};
+			win->r = (RGFW_RECT){E.xconfigure.x, E.xconfigure.y, E.xconfigure.width, E.xconfigure.height};
 			#endif
 			#endif
 
@@ -2409,6 +2415,7 @@ void RGFW_window_setMouse(RGFW_window* win, u8* image, i32 width, i32 height, i3
 
 	win->winArgs |= RGFW_MOUSE_CHANGED;
     win->cursor = (void*)XcursorImageLoadCursor((Display*)win->display, native);
+		
 	XcursorImageDestroy(native);
 	#endif
 }
@@ -2744,7 +2751,6 @@ u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
 		d = (Display*)win->display;
 
 	XQueryKeymap(d, keyboard); /* query the keymap */
-
 
 	KeyCode kc2 = XKeysymToKeycode(d, key); /* convert the key to a keycode */
 	return !!(keyboard[kc2 >> 3] & (1 << (kc2 & 7)));				/* check if the key is pressed */
