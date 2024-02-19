@@ -1696,9 +1696,6 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16
     XMapWindow((Display *)win->display, (Drawable)win->window);						  /* draw the window*/
     XMoveWindow((Display *)win->display, (Drawable)win->window, x, y); /* move the window to it's proper cords*/
 
-	if (RGFW_HIDE_MOUSE & args)
-		RGFW_window_showMouse(win, 0);
-
 	if (RGFW_ALLOW_DND & args) { /* init drag and drop atoms and turn on drag and drop for this window */
 		win->winArgs |= RGFW_ALLOW_DND;
 
@@ -1728,6 +1725,9 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16
 	}
 
 	RGFW_window_setMouseDefault(win);
+
+	if (RGFW_HIDE_MOUSE & args)
+		RGFW_window_showMouse(win, 0);
 
 	RGFW_windowsOpen++;
 
