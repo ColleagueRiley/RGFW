@@ -1609,7 +1609,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16
 		GLXContext ctx = NULL; 
 		
 		if (RGFW_root != NULL)
-			RGFW_root->rSurf;
+			ctx = RGFW_root->rSurf;
 		
 		win->rSurf = glXCreateContextAttribsARB((Display*)win->display, bestFbc, ctx, True, context_attribs);
 	}
