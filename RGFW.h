@@ -1585,8 +1585,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16
 							CWBorderPixel|CWColormap|CWEventMask, &swa);
 
 
-		XFreeColors((Display*)win->display, swa.colormap, NULL, 0, 0); 
-
+		XFreeColors((Display*)win->display, cmap, NULL, 0, 0);
 		if (RGFW_TRANSPARENT_WINDOW & args)
 			XMatchVisualInfo((Display *)win->display, DefaultScreen((Display *)win->display), 32, TrueColor, vi); /* for RGBA backgrounds*/
 

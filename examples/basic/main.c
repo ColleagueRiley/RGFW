@@ -59,7 +59,6 @@ int main() {
         */
 
         while (RGFW_window_checkEvent(win)) {
-            RGFW_window_setMouse(win, icon, 3, 3, 4);
             if (win->event.type == RGFW_windowAttribsChange) {
                 printf("attribs changed\n");
             }
