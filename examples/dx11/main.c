@@ -2,9 +2,33 @@
 #define RGFW_DIRECTX
 #include "RGFW.h"
 
-#include <D3dx9math.h>
+#define MULTILINE_STR(...) #__VA_ARGS__
 
-typedef struct {FLOAT X, Y, Z;} Vertex;
+const char* shaderString = MULTILINE_STR(
+    typedef struct {float x, y, z;} Vertex;
+
+    struct VOut
+    {
+        float4 position : SV_POSITION;
+    };
+
+    VOut VS(float4 position : POSITION)
+    {
+        VOut output;
+
+        output.position = position;
+
+        return output;
+    }
+
+
+    float4 PS(float4 position : SV_POSITION) : SV_TARGET
+    {
+        return float4(1.0, 0.0, 0.0, 1.0);
+    }
+);
+
+typedef struct {float x, y, z;} Vertex;
 
 int main() {
     RGFW_window* win = RGFW_createWindow("name", 0, 0, 500, 500, RGFW_CENTER);
@@ -53,8 +77,9 @@ int main() {
     ID3D10Blob* pVertexShaderBlob = NULL;
     ID3D10Blob* pPixelShaderBlob = NULL;
     ID3D10Blob* pErrorBlob = NULL;
-    D3DCompileFromFile(L"triangle.hlsl", NULL, NULL, "VS", "vs_5_0", 0, 0, &pVertexShaderBlob, &pErrorBlob);
-    D3DCompileFromFile(L"triangle.hlsl", NULL, NULL, "PS", "ps_5_0", 0, 0, &pPixelShaderBlob, &pErrorBlob);
+
+    D3DCompile(shaderString, strlen(shaderString), NULL, NULL, NULL, "VS", "vs_5_0", 0, 0, &pVertexShaderBlob, &pErrorBlob);
+    D3DCompile(shaderString, strlen(shaderString), NULL, NULL, NULL, "PS", "ps_5_0", 0, 0, &pPixelShaderBlob, &pErrorBlob);
 
     // Create shaders
     ID3D11VertexShader* pVertexShader;
