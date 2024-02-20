@@ -1,6 +1,7 @@
 CC = gcc
 AR = ar
 
+DX11_LIBS = -ldxgi -ld3d11 -luuid -ld3dcompiler
 LIBS := -lshell32 -lgdi32 -lm -lopengl32 -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1 -ggdb
 EXT = .exe
 LIB_EXT = .dll
@@ -47,8 +48,11 @@ all:
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -o gl33
 	$(CC) examples/vk10/main.c $(LIBS) -I./ -Wall -o vk10
 
+DX11:
+	$(CC) examples/dx11/main.c $(LIBS) $(DX11_LIBS) -I./ -Wall -o examples/dx11/dx11
+
 clean:
-	rm ./examples/basic/basic ./examples/basic/basic.exe ./examples/gl33/gl33 ./examples/gl33/gl33.exe ./examples/vk10/vk10 ./examples/vk10/vk10.exe examples/vk10/shaders/*.h -f
+	rm ./examples/basic/basic ./examples/basic/basic.exe ./examples/gl33/gl33 ./examples/gl33/gl33.exe ./examples/vk10/vk10 ./examples/vk10/vk10.exe examples/vk10/shaders/*.h -f examples/dx11/dx11
 
 debug:
 	make clean
@@ -70,6 +74,10 @@ debug_vulkan:
 	make vulkan_shaders
 	$(CC) examples/vk10/main.c $(LIBS) -lvulkan-1 -I./ -Wall -D RGFW_DEBUG -o examples/vk10/vk10
 	./examples/vk10/vk10$(EXT)
+
+debugDX11:
+	$(CC) examples/dx11/main.c $(LIBS) $(DX11_LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/dx11/dx11
+	cd ./examples/dx11/ && ./dx11.exe
 
 RGFW.o:
 	cp RGFW.h RGFW.c
