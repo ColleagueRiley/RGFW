@@ -33,6 +33,7 @@
 	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
 	#define RGFW_OPENGL_ES - (optional) use EGL to load and use Opengl ES for backend rendering (instead of the system's opengl api)
 	#define VULKAN - (optional) use vulkan for the rendering backend (rather than opengl)
+	#define DIRECTX - (optional) use directX for the rendering backend (rather than opengl) (windows only, defaults to opengl for unix)
 
 	#define RGFW_LINK_EGL (optional) (windows only) if EGL is being used, if EGL functions should be defined dymanically (using GetProcAddress)
 	#define RGFW_LINK_OSMESA (optional) (windows only) if EGL is being used, if OS Mesa functions should be defined dymanically  (using GetProcAddress)
@@ -96,7 +97,7 @@ extern "C" {
 /* makes sure the header file part is only defined once by default */
 #ifndef RGFW_HEADER
 
-#define RGFW_HEADER
+#define RGFW_HEADERf
 
 #if !defined(u8)
     #include <stdint.h>
@@ -139,6 +140,10 @@ extern "C" {
 #define RGFW_GL
 #endif
 
+#if defined(RGFW_DIRECTX) && defined(RGFW_GL) && defined(RGFW_WINDOWS)
+#undef RGFW_GL
+#endif
+
 #ifdef RGFW_VULKAN
 #ifndef RGFW_MAX_FRAMES_IN_FLIGHT
 #define RGFW_MAX_FRAMES_IN_FLIGHT 2
@@ -155,6 +160,17 @@ extern "C" {
 #endif
 
 #include <vulkan/vulkan.h>
+#endif
+
+#if defined(RGFW_DIRECTX) && defined(RGFW_WINDOWS)
+#include <d3d11.h>
+#include <dxgi.h>
+#include <dxgi.h>
+#include <d3dcompiler.h>
+
+#ifndef __cplusplus
+#define __uuidof(T) IID_##T
+#endif
 #endif
 
 /*! Optional arguments for making a windows */
@@ -262,9 +278,10 @@ typedef struct RGFW_Event {
 typedef struct RGFW_window {
     void* display; /*!< source display */
     void* window; /*!< source window */
-    #ifndef RGFW_VULKAN
+    #if !defined(RGFW_VULKAN)
 	void* rSurf; /*!< source opengl context */
 	#else
+	#ifdef RGFW_VULKAN
 	VkSurfaceKHR rSurf; /*!< source opengl context */
 
 	/* vulkan data */
@@ -273,8 +290,15 @@ typedef struct RGFW_window {
 	VkImage* swapchain_images;
     VkImageView* swapchain_image_views;
 	#endif
+	#endif
+
 	#ifndef RGFW_WINDOWS
 	void* cursor;
+	#else
+	#if defined(RGFW_DIRECTX)
+	IDXGISwapChain* swapchain;
+	ID3D11RenderTargetView* renderTargetView;
+	#endif
 	#endif
 
 	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
@@ -383,6 +407,17 @@ int RGFW_createCommandPool();
 int RGFW_createCommandBuffers(RGFW_window* win);
 int RGFW_createSyncObjects(RGFW_window* win);
 RGFWDEF int RGFW_createFramebuffers(RGFW_window* win);
+#endif
+
+#ifdef RGFW_DIRECTX
+typedef struct {
+	IDXGIFactory* pFactory;
+	IDXGIAdapter* pAdapter;
+	ID3D11Device* pDevice;
+	ID3D11DeviceContext* pDeviceContext;
+} RGFW_directXinfo;
+
+RGFWDEF RGFW_directXinfo* RGFW_getDirectXInfo(void);
 #endif
 
 RGFWDEF unsigned int* RGFW_window_screenSize(RGFW_window* win);
@@ -497,6 +532,7 @@ RGFWDEF u16 RGFW_registerJoystickF(RGFW_window* win, char* file);
 
 RGFWDEF u8 RGFW_isPressedJS(RGFW_window* win, u16 controller, u8 button);
 
+#ifdef RGFW_GL
 /*! Get max OpenGL version */
 RGFWDEF u8* RGFW_getMaxGLVersion();
 
@@ -504,7 +540,6 @@ RGFWDEF u8* RGFW_getMaxGLVersion();
 RGFWDEF void RGFW_setGLVersion(i32 major, i32 minor);
 
 /*! native opengl functions */
-#ifndef RGFW_VULKAN
 RGFWDEF void* RGFW_getProcAddress(const char* procname); /* get native opengl proc address */
 #endif
 RGFWDEF void RGFW_window_swapBuffers(RGFW_window* win); /* swap the opengl buffer */
@@ -1269,6 +1304,7 @@ typedef struct RGFW_Timespec {
 
 u8 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { return win->jsPressed[c][button]; }
 
+#ifdef RGFW_GL
 int RGFW_majorVersion = 0, RGFW_minorVersion = 0;
 
 void RGFW_setGLVersion(i32 major, i32 minor) {
@@ -1295,6 +1331,7 @@ u8* RGFW_getMaxGLVersion() {
 
     return version;
 }
+#endif
 
 #ifdef RGFW_EGL
 
@@ -2787,6 +2824,13 @@ PFN_wglGetSwapIntervalEXT wglGetSwapIntervalEXTSrc = NULL;
 #define wglGetSwapIntervalEXT wglGetSwapIntervalEXTSrc
 
 
+
+#if defined(RGFW_DIRECTX)
+RGFW_directXinfo RGFW_dxInfo;
+
+RGFW_directXinfo* RGFW_getDirectXInfo(void) { return &RGFW_dxInfo; }
+#endif
+
 void* RGFWjoystickApi = NULL;
 
 /* these two wgl functions need to be preloaded */
@@ -2845,6 +2889,7 @@ PFN_wglGetCurrentContext wglGetCurrentContextSRC;
 void* RGFW_getProcAddress(const char* procname) { return (void*)wglGetProcAddress(procname); }
 #endif
 
+
 RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16 args) {
 	#ifdef RGFW_WGL_LOAD
 	if (wglinstance == NULL) { 
@@ -2859,7 +2904,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16
 	}
 	#endif
 
-	#ifndef RGFW_VULKAN
+	#ifdef RGFW_GL
 	typedef BOOL (APIENTRY *PFNWGLCHOOSEPIXELFORMATARBPROC)(HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
 	static PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = NULL;
 	#endif
@@ -2945,6 +2990,45 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16
 		DragAcceptFiles((HWND)win->display, TRUE);
 	}
     win->window = GetDC((HWND)win->display);
+
+	#ifdef RGFW_DIRECTX
+    if (FAILED(CreateDXGIFactory(&__uuidof(IDXGIFactory), (void**)&RGFW_dxInfo.pFactory))) {
+        MessageBox(NULL, "Failed to create DXGI Factory", "Error", MB_OK | MB_ICONERROR);
+        return NULL;
+    }
+
+    if (FAILED(RGFW_dxInfo.pFactory->lpVtbl->EnumAdapters(RGFW_dxInfo.pFactory, 0, &RGFW_dxInfo.pAdapter))) {
+        MessageBox(NULL, "Failed to enumerate DXGI adapters", "Error", MB_OK | MB_ICONERROR);
+        RGFW_dxInfo.pFactory->lpVtbl->Release(RGFW_dxInfo.pFactory);
+        return NULL;
+    }
+
+    D3D_FEATURE_LEVEL featureLevels[] = { D3D_FEATURE_LEVEL_11_0 };
+
+    if (FAILED(D3D11CreateDevice(RGFW_dxInfo.pAdapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, 0, featureLevels, 1, D3D11_SDK_VERSION, &RGFW_dxInfo.pDevice, NULL, &RGFW_dxInfo.pDeviceContext))) {
+        MessageBox(NULL, "Failed to create Direct3D device", "Error", MB_OK | MB_ICONERROR);
+        RGFW_dxInfo.pAdapter->lpVtbl->Release(RGFW_dxInfo.pAdapter);
+        RGFW_dxInfo.pFactory->lpVtbl->Release(RGFW_dxInfo.pFactory);
+        return NULL;
+    }
+
+    DXGI_SWAP_CHAIN_DESC swapChainDesc = {0};
+    swapChainDesc.BufferCount = 1;
+    swapChainDesc.BufferDesc.Width = win->w;
+    swapChainDesc.BufferDesc.Height = win->h;
+    swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapChainDesc.OutputWindow = (HWND)win->display;
+    swapChainDesc.SampleDesc.Count = 1;
+    swapChainDesc.SampleDesc.Quality = 0;
+    swapChainDesc.Windowed = TRUE;
+    RGFW_dxInfo.pFactory->lpVtbl->CreateSwapChain(RGFW_dxInfo.pFactory, (IUnknown*)RGFW_dxInfo.pDevice, &swapChainDesc, &win->swapchain);
+	
+	ID3D11Texture2D* pBackBuffer;
+	win->swapchain->lpVtbl->GetBuffer(win->swapchain, 0, &__uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
+    RGFW_dxInfo.pDevice->lpVtbl->CreateRenderTargetView(RGFW_dxInfo.pDevice, (ID3D11Resource*)pBackBuffer, NULL, &win->renderTargetView);
+    pBackBuffer->lpVtbl->Release(pBackBuffer);
+	#endif
 
  	#ifdef RGFW_GL 
     
@@ -3465,8 +3549,21 @@ void RGFW_window_close(RGFW_window* win) {
 	RGFW_closeEGL(win);
 	#endif
 
-	if (win == RGFW_root)
+	if (win == RGFW_root) {
+		#ifdef RGFW_DIRECTX
+		RGFW_dxInfo.pDeviceContext->lpVtbl->Release(RGFW_dxInfo.pDeviceContext);
+		RGFW_dxInfo.pDevice->lpVtbl->Release(RGFW_dxInfo.pDevice);
+		RGFW_dxInfo.pAdapter->lpVtbl->Release(RGFW_dxInfo.pAdapter);
+		RGFW_dxInfo.pFactory->lpVtbl->Release(RGFW_dxInfo.pFactory);
+		#endif
+		
 		RGFW_root = NULL;
+	}
+
+	#ifdef RGFW_DIRECTX
+	win->swapchain->lpVtbl->Release(win->swapchain);
+	win->renderTargetView->lpVtbl->Release(win->renderTargetView);
+	#endif
 
 	#ifdef RGFW_GL
 	wglDeleteContext((HGLRC)win->rSurf); /* delete opengl context */
@@ -4367,7 +4464,12 @@ void RGFW_window_makeCurrent(RGFW_window* win) {
 	if (!win->render)
 	#endif
 	#endif
-	RGFW_window_makeCurrent_OpenGL(win);
+
+	#if defined(RGFW_WINDOWS) && defined(RGFW_DIRECTX)
+	RGFW_dxInfo.pDeviceContext->lpVtbl->OMSetRenderTargets(RGFW_dxInfo.pDeviceContext, 1, &win->renderTargetView, NULL);
+	#endif
+
+ 	RGFW_window_makeCurrent_OpenGL(win);
 }
 
 void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) { 
@@ -4419,6 +4521,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	
 	RGFW_window_makeCurrent(win);
 
+	#ifdef RGFW_GL
 	#ifdef RGFW_EGL
 	eglSwapBuffers(win->EGL_display, win->EGL_surface);
 	#else
@@ -4432,7 +4535,13 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	NSOpenGLContext_flushBuffer(win->rSurf);
 	#endif
 	#endif
+	#endif
 
+
+	#if defined(RGFW_WINDOWS) && defined(RGFW_DIRECTX)
+	win->swapchain->lpVtbl->Present(win->swapchain, 0, 0);
+	#endif
+	
 	/* clear the window*/
 
 
