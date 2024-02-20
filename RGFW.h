@@ -683,7 +683,7 @@ void RGFW_window_showMouse(RGFW_window* win, i8 show) {
 RGFW_vulkanInfo RGFW_vulkan_info;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL RGFW_vulkanDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
-    printf("validation layer: %s\n", pCallbackData->pMessage);
+    fprintf(stderr, "validation layer: %s\n", pCallbackData->pMessage);
 
     return VK_FALSE;
 }
@@ -812,7 +812,7 @@ int RGFW_deviceInitialization(RGFW_window* win) {
     #endif
 
     if (vkCreateInstance(&instance_create_info, NULL, &RGFW_vulkan_info.instance) != VK_SUCCESS) {
-        printf("failed to create instance!\n");
+        fprintf(stderr, "failed to create instance!\n");
         return -1;
     }
 
@@ -826,11 +826,11 @@ int RGFW_deviceInitialization(RGFW_window* win) {
 
         PFN_vkCreateDebugUtilsMessengerEXT func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(RGFW_vulkan_info.instance, "vkCreateDebugUtilsMessengerEXT");
         if (func == NULL) {
-            printf("vkCreateDebugUtilsMessengerEXT not found!\n");
+            fprintf(stderr, "vkCreateDebugUtilsMessengerEXT not found!\n");
             return -1;
         } else {
             if (func(RGFW_vulkan_info.instance, &debug_create_info, NULL, &RGFW_vulkan_info.debugMessenger) != VK_SUCCESS) {
-                printf("failed to set up debug messenger!\n");
+                fprintf(stderr, "failed to set up debug messenger!\n");
                 return -1;
             }
         }
@@ -885,7 +885,7 @@ int RGFW_deviceInitialization(RGFW_window* win) {
     device_create_info.pEnabledFeatures = &device_features;
 
     if (vkCreateDevice(RGFW_vulkan_info.physical_device, &device_create_info, NULL, &RGFW_vulkan_info.device) != VK_SUCCESS) {
-        printf("failed to create logical device!\n");
+        fprintf(stderr, "failed to create logical device!\n");
         return -1;
     }
 
@@ -924,7 +924,7 @@ int RGFW_createSwapchain(RGFW_window* win) {
     swapchain_create_info.oldSwapchain = VK_NULL_HANDLE;
 
     if (vkCreateSwapchainKHR(RGFW_vulkan_info.device, &swapchain_create_info, NULL, &win->swapchain) != VK_SUCCESS) {
-        printf("failed to create swap chain!\n");
+        fprintf(stderr, "failed to create swap chain!\n");
         return -1;
     }
 
@@ -950,7 +950,7 @@ int RGFW_createSwapchain(RGFW_window* win) {
         image_view_cre_infos.subresourceRange.baseArrayLayer = 0;
         image_view_cre_infos.subresourceRange.layerCount = 1;
         if (vkCreateImageView(RGFW_vulkan_info.device, &image_view_cre_infos, NULL, &win->swapchain_image_views[i]) != VK_SUCCESS) {
-            printf("failed to create image views!");
+            fprintf(stderr, "failed to create image views!");
             return -1;
         }
     }
@@ -996,7 +996,7 @@ int RGFW_createRenderPass(void) {
     render_pass_info.pDependencies = &dependency;
 
     if (vkCreateRenderPass(RGFW_vulkan_info.device, &render_pass_info, NULL, &RGFW_vulkan_info.render_pass) != VK_SUCCESS) {
-        printf("failed to create render pass\n");
+        fprintf(stderr, "failed to create render pass\n");
         return -1; // failed to create render pass!
     }
     return 0;
@@ -1008,7 +1008,7 @@ int RGFW_createCommandPool(void) {
     pool_info.queueFamilyIndex = 0;
 
     if (vkCreateCommandPool(RGFW_vulkan_info.device, &pool_info, NULL, &RGFW_vulkan_info.command_pool) != VK_SUCCESS) {
-        printf("failed to create command pool\n");
+        fprintf(stderr, "failed to create command pool\n");
         return -1; // failed to create command pool
     }
     return 0;
@@ -1051,7 +1051,7 @@ int RGFW_createSyncObjects(RGFW_window* win) {
         if (vkCreateSemaphore(RGFW_vulkan_info.device, &semaphore_info, NULL, &RGFW_vulkan_info.available_semaphores[i]) != VK_SUCCESS ||
             vkCreateSemaphore(RGFW_vulkan_info.device, &semaphore_info, NULL, &RGFW_vulkan_info.finished_semaphore[i]) != VK_SUCCESS ||
             vkCreateFence(RGFW_vulkan_info.device, &fence_info, NULL, &RGFW_vulkan_info.in_flight_fences[i]) != VK_SUCCESS) {
-            printf("failed to create sync objects\n");
+            fprintf(stderr, "failed to create sync objects\n");
             return -1; // failed to create synchronization objects for a frame
         }
     }
@@ -2673,7 +2673,7 @@ u16 RGFW_registerJoystickF(RGFW_window* win, char* file) {
 	else {
 		#ifdef RGFW_PRINT_ERRORS
 		RGFW_error = 1;
-		printf("Error RGFW_registerJoystickF : Cannot open file %s\n", file);
+		fprintf(stderr, "Error RGFW_registerJoystickF : Cannot open file %s\n", file);
 		#endif
 	}
 
@@ -2992,13 +2992,10 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16
     win->window = GetDC((HWND)win->display);
 
 	#ifdef RGFW_DIRECTX
-    if (FAILED(CreateDXGIFactory(&__uuidof(IDXGIFactory), (void**)&RGFW_dxInfo.pFactory))) {
-        MessageBox(NULL, "Failed to create DXGI Factory", "Error", MB_OK | MB_ICONERROR);
-        return NULL;
-    }
+    assert(FAILED(CreateDXGIFactory(&__uuidof(IDXGIFactory), (void**)&RGFW_dxInfo.pFactory)) == 0);
 
     if (FAILED(RGFW_dxInfo.pFactory->lpVtbl->EnumAdapters(RGFW_dxInfo.pFactory, 0, &RGFW_dxInfo.pAdapter))) {
-        MessageBox(NULL, "Failed to enumerate DXGI adapters", "Error", MB_OK | MB_ICONERROR);
+    	fprintf(stderr, "Failed to enumerate DXGI adapters\n");
         RGFW_dxInfo.pFactory->lpVtbl->Release(RGFW_dxInfo.pFactory);
         return NULL;
     }
@@ -3006,7 +3003,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16
     D3D_FEATURE_LEVEL featureLevels[] = { D3D_FEATURE_LEVEL_11_0 };
 
     if (FAILED(D3D11CreateDevice(RGFW_dxInfo.pAdapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, 0, featureLevels, 1, D3D11_SDK_VERSION, &RGFW_dxInfo.pDevice, NULL, &RGFW_dxInfo.pDeviceContext))) {
-        MessageBox(NULL, "Failed to create Direct3D device", "Error", MB_OK | MB_ICONERROR);
+        fprintf(stderr, "Failed to create Direct3D device\n");
         RGFW_dxInfo.pAdapter->lpVtbl->Release(RGFW_dxInfo.pAdapter);
         RGFW_dxInfo.pFactory->lpVtbl->Release(RGFW_dxInfo.pFactory);
         return NULL;
@@ -3068,7 +3065,7 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16
 
 	if ((wglCreateContextAttribsARB != NULL && wglChoosePixelFormatARB == NULL) || wglChoosePixelFormatARB == NULL) {
 		#ifdef RGFW_DEBUG
-		printf("Failed to load wglCreateContextAttribsARB func\n");
+		fprintf(stderr, "Failed to load wglCreateContextAttribsARB func\n");
 		exit(0);
 		#endif
 	}
@@ -3111,18 +3108,18 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16
             win->rSurf = wglCreateContextAttribsARB((HDC)win->window, NULL, attribs);
         }
         else {
-			printf("Failed to create an accelerated OpenGL Context\n");
+			fprintf(stderr, "Failed to create an accelerated OpenGL Context\n");
 		    win->rSurf = wglCreateContext((HDC)win->window);
 		}
 	}
 	else 
-		printf("Failed to create an accelerated OpenGL Context\n");
+		fprintf(stderr, "Failed to create an accelerated OpenGL Context\n");
 	#endif
 
 	#ifdef RGFW_GL
 	if (RGFW_root != NULL)
 		if (wglShareLists((HGLRC)RGFW_root->rSurf, (HGLRC)win->rSurf) == 0) {
-			printf("Failed to link to dummy context : %li\n", GetLastError()); 
+			fprintf(stderr, "Failed to link to dummy context : %li\n", GetLastError()); 
 		}
 	#endif
 
@@ -4331,7 +4328,7 @@ u8 RGFW_isMaximized(RGFW_window* win) {
 u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
 	if (key >= 128){
 		#ifdef RGFW_PRINT_ERRORS
-		printf("RGFW_isPressedI : invalid keycode\n");
+		fprintf(stderr, "RGFW_isPressedI : invalid keycode\n");
 		#endif
 		RGFW_error = 1;
 	}
@@ -4486,7 +4483,7 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	static void* loadSwapFunc = (void*)1;
 
 	if (loadSwapFunc == NULL) {
-		printf("wglSwapIntervalEXT not supported\n");
+		fprintf(stderr, "wglSwapIntervalEXT not supported\n");
 		win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
 		return;
 	}
@@ -4497,7 +4494,7 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	}
 
 	if (wglSwapIntervalEXT(swapInterval) == FALSE)
-		printf("Failed to set swap interval\n");
+		fprintf(stderr, "Failed to set swap interval\n");
 
 	#endif
 	#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
@@ -4610,7 +4607,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 
 	#ifdef RGFW_VULKAN
 	#ifdef RGFW_PRINT_ERRORS
-	printf("RGFW_window_swapBuffers %s\n", "RGFW_window_swapBuffers is not yet supported for Vulkan");
+	fprintf(stderr, "RGFW_window_swapBuffers %s\n", "RGFW_window_swapBuffers is not yet supported for Vulkan");
 	RGFW_error = 1;
 	#endif
 	#endif
