@@ -298,6 +298,7 @@ typedef struct RGFW_window {
 	#if defined(RGFW_DIRECTX)
 	IDXGISwapChain* swapchain;
 	ID3D11RenderTargetView* renderTargetView;
+	ID3D11DepthStencilView* pDepthStencilView;
 	#endif
 	#endif
 
@@ -1076,8 +1077,13 @@ int RGFW_createFramebuffers(RGFW_window* win) {
         framebuffer_info.renderPass = RGFW_vulkan_info.render_pass;
         framebuffer_info.attachmentCount = 1;
         framebuffer_info.pAttachments = attachments;
+		#ifdef RGFW_RECT
+        framebuffer_info.width = win->r.w;
+        framebuffer_info.height = win->r.h;
+		#else
         framebuffer_info.width = win->w;
         framebuffer_info.height = win->h;
+		#endif
         framebuffer_info.layers = 1;
 
         if (vkCreateFramebuffer(RGFW_vulkan_info.device, &framebuffer_info, NULL, &RGFW_vulkan_info.framebuffers[i]) != VK_SUCCESS) {
@@ -3011,8 +3017,13 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16
 
     DXGI_SWAP_CHAIN_DESC swapChainDesc = {0};
     swapChainDesc.BufferCount = 1;
-    swapChainDesc.BufferDesc.Width = win->w;
+	#ifdef RGFW_RECT
+    swapChainDesc.BufferDesc.Width = win->r.w;
+    swapChainDesc.BufferDesc.Height = win->r.h;
+	#else
+	swapChainDesc.BufferDesc.Width = win->w;
     swapChainDesc.BufferDesc.Height = win->h;
+	#endif
     swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swapChainDesc.OutputWindow = (HWND)win->display;
@@ -3025,6 +3036,36 @@ RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, u16
 	win->swapchain->lpVtbl->GetBuffer(win->swapchain, 0, &__uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
     RGFW_dxInfo.pDevice->lpVtbl->CreateRenderTargetView(RGFW_dxInfo.pDevice, (ID3D11Resource*)pBackBuffer, NULL, &win->renderTargetView);
     pBackBuffer->lpVtbl->Release(pBackBuffer);
+
+	D3D11_TEXTURE2D_DESC depthStencilDesc = {};
+	#ifdef RGFW_RECT
+	depthStencilDesc.Width = win->r.w;
+	depthStencilDesc.Height = win->r.h;
+	#else
+	depthStencilDesc.Width = win->w;
+	depthStencilDesc.Height = win->h;
+	#endif
+	depthStencilDesc.MipLevels = 1;
+	depthStencilDesc.ArraySize = 1;
+	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilDesc.SampleDesc.Count = 1;
+	depthStencilDesc.SampleDesc.Quality = 0;
+	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+	ID3D11Texture2D* pDepthStencilTexture = NULL;
+	RGFW_dxInfo.pDevice->lpVtbl->CreateTexture2D(RGFW_dxInfo.pDevice, &depthStencilDesc, NULL, &pDepthStencilTexture);
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
+	depthStencilViewDesc.Format = depthStencilDesc.Format;
+	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	depthStencilViewDesc.Texture2D.MipSlice = 0;
+
+	RGFW_dxInfo.pDevice->lpVtbl->CreateDepthStencilView(RGFW_dxInfo.pDevice, (ID3D11Resource*)pDepthStencilTexture, &depthStencilViewDesc, &win->pDepthStencilView);
+	
+	pDepthStencilTexture->lpVtbl->Release(pDepthStencilTexture);
+
+	RGFW_dxInfo.pDeviceContext->lpVtbl->OMSetRenderTargets(RGFW_dxInfo.pDeviceContext, 1, &win->renderTargetView, win->pDepthStencilView);
 	#endif
 
  	#ifdef RGFW_GL 
@@ -3560,6 +3601,7 @@ void RGFW_window_close(RGFW_window* win) {
 	#ifdef RGFW_DIRECTX
 	win->swapchain->lpVtbl->Release(win->swapchain);
 	win->renderTargetView->lpVtbl->Release(win->renderTargetView);
+	win->pDepthStencilView->lpVtbl->Release(win->pDepthStencilView);
 	#endif
 
 	#ifdef RGFW_GL
