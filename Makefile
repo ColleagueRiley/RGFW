@@ -70,14 +70,9 @@ vulkan_shaders:
 	glslangValidator -V examples/vk10/shaders/vert.vert -o examples/vk10/shaders/vert.h --vn vert_code
 	glslangValidator -V examples/vk10/shaders/frag.frag -o examples/vk10/shaders/frag.h --vn frag_code
 
-debug_vulkan:
-	make vulkan_shaders
-	$(CC) examples/vk10/main.c $(LIBS) -lvulkan-1 -I./ -Wall -D RGFW_DEBUG -o examples/vk10/vk10
-	./examples/vk10/vk10$(EXT)
-
 debugDX11:
 	$(CC) examples/dx11/main.c $(LIBS) $(DX11_LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/dx11/dx11
-	cd ./examples/dx11/ && ./dx11.exe
+	./dx11.exe
 
 RGFW.o:
 	cp RGFW.h RGFW.c
