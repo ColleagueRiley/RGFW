@@ -22,9 +22,8 @@ int main() {
     
     win->fpsCap = 60;
 
-    //RGFW_createThread(loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
+    RGFW_createThread(loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
 
-    /*unsigned short js = RGFW_registerJoystick(win, 0);*/
     unsigned char i, frames = 60;
     unsigned char mouseHidden = 0;
 
@@ -37,27 +36,11 @@ int main() {
 
     RGFW_window_swapInterval(win, 60);
 
-    glEnable(GL_ALPHA_TEST);        
-    glEnable(GL_DEPTH_TEST);        
-    glEnable(GL_COLOR_MATERIAL);
-
-    glEnable(GL_LIGHTING);          
-    glEnable(GL_LIGHT0);            
-
     glEnable(GL_BLEND);             
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0, 0, 0, 0);
 
     while (running && !RGFW_isPressedI(win, RGFW_Escape)) {
-        /* 
-            check all of the avaliable events all at once
-            this is to avoid any input lag
-
-            this isn't required, RGFW_checkEvents can be used without a loop
-
-            but not using this method could cause input lag
-        */
-
         while (RGFW_window_checkEvent(win)) {
             if (win->event.type == RGFW_windowAttribsChange) {
                 printf("attribs changed\n");
@@ -103,15 +86,6 @@ int main() {
 
 void drawLoop(RGFW_window *w) {
     #ifndef RGFW_VULKAN
-    glEnable(GL_ALPHA_TEST);        
-    glEnable(GL_DEPTH_TEST);        
-    glEnable(GL_COLOR_MATERIAL);
-
-    glEnable(GL_LIGHTING);          
-    glEnable(GL_LIGHT0);            
-
-    glEnable(GL_BLEND);             
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(255, 255, 255, 255);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
