@@ -74,7 +74,7 @@ int main() {
                 printf("pressed %i\n", win->event.button);
 
             else if (win->event.type == RGFW_jsAxisMove && !win->event.button)
-                printf("{%i, %i}\n", win->event.axis[0][0], win->event.axis[0][1]);
+                printf("{%i, %i}\n", win->event.axis[0].x, win->event.axis[0].y);
         }
 
         RGFW_window_makeCurrent(win);
