@@ -2527,9 +2527,9 @@ char* RGFW_readClipboard(size_t* size) {
 	XConvertSelection((Display*)RGFW_root->display, bufid, fmtid, propid, (Window)RGFW_root->window, CurrentTime);
 	do {
 		XNextEvent((Display*)RGFW_root->display, &event);
-	} while (event.type != SelectionNotify || event.type.xselection.selection != bufid);
+	} while (event.type != SelectionNotify || event.xselection.selection != bufid);
 
-	if (event.type.xselection.property == 0)
+	if (event.xselection.property == 0)
 		return result;
 	
 	XGetWindowProperty((Display*)RGFW_root->display, (Window)RGFW_root->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
@@ -2542,7 +2542,7 @@ char* RGFW_readClipboard(size_t* size) {
 		*size = 0;
 
 	do {
-		while (event.type != PropertyNotify || event.point.xproperty.atom != propid || event.point.xproperty.state != PropertyNewValue) 
+		while (event.type != PropertyNotify || event.xproperty.atom != propid || event.xproperty.state != PropertyNewValue) 
 			XNextEvent((Display*)RGFW_root->display, &event);
 
 		XGetWindowProperty((Display*)RGFW_root->display, (Window)RGFW_root->window, propid, 0, LONG_MAX/4, True, AnyPropertyType, 
@@ -2585,7 +2585,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
         if (event.type != SelectionRequest)
 			return; 
 		
-		const XSelectionRequestEvent* request = &event.type.xselectionrequest;
+		const XSelectionRequestEvent* request = &event.xselectionrequest;
 
 		XEvent reply = { SelectionNotify };
 
@@ -4018,15 +4018,12 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 RGFW_area RGFW_window_screenSize(RGFW_window* win){
 	assert(win != NULL);
 	
-	static u32 RGFW_SreenSize[2];
 	static CGDirectDisplayID display = 0;
 	
 	if (display == 0)
 		display = CGMainDisplayID();
 
 	return RGFW_AREA(CGDisplayPixelsWide(display), CGDisplayPixelsHigh(display));
-
-	return RGFW_SreenSize;
 }
 
 RGFW_vector RGFW_window_getGlobalMousePoint(RGFW_window* win) {
