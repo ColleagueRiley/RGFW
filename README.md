@@ -121,8 +121,25 @@ RGFW is far more portable as it is a single-header library. It also does not use
 | OSMesa | ✓  | ✓ |
 | Direct X | ✓  | X |
 
+# project
+projects that use RGFW in some way
+## RSGL (made by the same author)
+[RSGL](https://github.com/ColleagueRiley/RSGL) is A modular simple-to-use cross-platform GUI library for easily creating GUI apps and games. It combines the freedom of lower-level GUI libraries with modern C techniques, offering both simplicity and convenience. 
+
+It uses RGFW as a backend.
+
+## RGL (made by the same author)
+[RGL](https://github.com/ColleagueRiley/RGL) is a simple ultra-lightweight OpenGL version abstraction layer HEAVILY based on RLGL that uses the opengl pipeline style.
+
+It uses RGFW for it's examples
+
+## RFont (made by the same author)
+[RFont](https://github.com/ColleagueRiley/RFont) is a simple-to-use single header modular font rendering library written in C. 
+
+It uses RGFW for it's examples
+
 # License
-RGFW uses the libpng license, this means you can use RGFW freely as long as you do not claim you wrote this software, mark altered versions as such and keep the license included with the header.
+RGFW uses the zlib/libpng license, this means you can use RGFW freely as long as you do not claim you wrote this software, mark altered versions as such and keep the license included with the header.
 
 ```
 Permission is granted to anyone to use this software for any purpose,
