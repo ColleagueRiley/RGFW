@@ -14,7 +14,7 @@ unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF,
 unsigned char running = 1;
 
 int main() {
-    RGFW_window* win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_ALLOW_DND | RGFW_CENTER);
+    RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_ALLOW_DND | RGFW_CENTER);
     RGFW_window_makeCurrent(win);
     
     if (win == NULL)
@@ -27,7 +27,7 @@ int main() {
     unsigned char i, frames = 60;
     unsigned char mouseHidden = 0;
 
-    RGFW_window_setIcon(win, icon, 3, 3, 4);
+    RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
 
     #ifndef RGFW_VULKAN
     glEnable(GL_BLEND);
@@ -63,7 +63,7 @@ int main() {
             else if (RGFW_isPressedI(win, RGFW_q))
                 RGFW_window_showMouse(win, 0);
             else if (RGFW_isPressedI(win, RGFW_t)) {
-                RGFW_window_setMouse(win, icon, 3, 3, 4);
+                RGFW_window_setMouse(win, icon, RGFW_AREA(3, 3), 4);
             }
             if (win->event.type == RGFW_dnd) {
                 for (i = 0; i < win->event.droppedFilesCount; i++)
@@ -106,7 +106,7 @@ void drawLoop(RGFW_window *w) {
 
 void* loop2(void* args) {
     #ifndef __APPLE__
-    RGFW_window* win = RGFW_createWindow("subwindow", 200, 200, 200, 200, 0);
+    RGFW_window* win = RGFW_createWindow("subwindow", RGFW_RECT(200, 200, 200, 200), 0);
     win->fpsCap = 60;
 
     while (running) {

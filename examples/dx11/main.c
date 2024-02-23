@@ -31,7 +31,7 @@ const char* shaderString = MULTILINE_STR(
 typedef struct {float x, y, z;} Vertex;
 
 int main() {
-    RGFW_window* win = RGFW_createWindow("name", 0, 0, 500, 500, RGFW_CENTER);
+    RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(0, 0, 500, 500), RGFW_CENTER);
     RGFW_window_makeCurrent(win);
 
     RGFW_directXinfo dxInfo = *RGFW_getDirectXInfo();
@@ -40,8 +40,8 @@ int main() {
     D3D11_VIEWPORT viewport;
     viewport.TopLeftX = 0;
     viewport.TopLeftY = 0;
-    viewport.Width = win->w;
-    viewport.Height = win->h;
+    viewport.Width = win->r.w;
+    viewport.Height = win->r.h;
     viewport.MinDepth = 0.0f;
     viewport.MaxDepth = 1.0f;
     dxInfo.pDeviceContext->lpVtbl->RSSetViewports(dxInfo.pDeviceContext, 1, &viewport);
