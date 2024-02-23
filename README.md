@@ -7,7 +7,7 @@
 ![cplus workflow windows](https://github.com/ColleagueRiley/RGFW/actions/workflows/macos.yml/badge.svg)
 
 # About
-RGFW is a a multi-platform single-header very simple-to-use framework library for creating GUI Libraries or simple GUI programs. it is meant to be used as a very small and flexable alternative library to GLFW. 
+RGFW is free multi-platform single-header very simple-to-use framework library for creating GUI Libraries or simple GUI programs. it is meant to be used as a very small and flexable alternative library to GLFW. 
 
 The window backends it supports include, XLib (UNIX), Cocoas (MacOS) and WinAPI (Windows)\
 The graphics backends it supports include, OpenGL (EGL, software, OSMesa, GLES), Vulkan, DirectX and software rendering buffers.
@@ -120,3 +120,20 @@ RGFW is far more portable as it is a single-header library. It also does not use
 | EGL | ✓  | ✓ |
 | OSMesa | ✓  | ✓ |
 | Direct X | ✓  | X |
+
+# License
+RGFW uses the libpng license, this means you can use RGFW freely as long as you do not claim you wrote this software, mark altered versions as such and keep the license included with the header.
+
+```
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+  
+1. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software. If you use this software
+   in a product, an acknowledgment in the product documentation would be
+   appreciated but is not required. 
+2. Altered source versions must be plainly marked as such, and must not be
+   misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
+```
