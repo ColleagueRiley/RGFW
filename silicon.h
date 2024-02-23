@@ -23,7 +23,7 @@
 
 /*
     define args
-    (MAKE SURE ** #define SILICON_IMPLEMENTATION ** is in at least one header or you use -D SILICON_IMPLEMENTATION)
+    (MAKE SURE ** #define SILICON_IMPLEMENTATION ** is in exactly one header or you use -D SILICON_IMPLEMENTATION)
     #define SI_NO_RELEASE - do not define release (just use NSRelease)
 */
 
@@ -43,6 +43,7 @@
 
 #define NS_ENUM(type, name) type name; enum
 
+#define GL_SILENCE_DEPRECATION
 #ifndef GL_SILENCE_DEPRECATION
 #define NS_OPENGL_DEPRECATED(minVers, maxVers) API_DEPRECATED("OpenGL API deprecated; please use Metal and MetalKit.  (Define GL_SILENCE_DEPRECATION to silence these warnings.)", macos(minVers,maxVers))
 #define NS_OPENGL_ENUM_DEPRECATED(minVers, maxVers) API_DEPRECATED("OpenGL API deprecated; please use Metal and MetalKit.  (Define GL_SILENCE_DEPRECATION to silence these warnings.)", macos(minVers,maxVers))
@@ -1552,10 +1553,12 @@ enum { /* classes */
     NS_WINDOW_STYLE_MASK_CODE,
     NS_STRING_FROM_CLASS_CODE,
     NS_STRING_IS_EQUAL_CODE,
+    NS_WINDOW_SET_MAX_SIZE_CODE,
+    NS_WINDOW_SET_MIN_SIZE_CODE,
 };
 
-void* SI_NS_CLASSES[36] = {NULL};
-void* SI_NS_FUNCTIONS[233];
+void* SI_NS_CLASSES[38] = {NULL};
+void* SI_NS_FUNCTIONS[236];
 
 void si_initNS(void) {    
 	SI_NS_CLASSES[NS_APPLICATION_CODE] = objc_getClass("NSApplication");
@@ -1829,6 +1832,8 @@ void si_initNS(void) {
     SI_NS_FUNCTIONS[NS_WINDOW_PERFORM_MINIATURIZE_CODE] = sel_getUid("performMiniaturize:");
     SI_NS_FUNCTIONS[NS_WINDOW_PERFORM_ZOOM_CODE] = sel_getUid("performZoom:");
     SI_NS_FUNCTIONS[NS_WINDOW_STYLE_MASK_CODE] = sel_getUid("styleMask");
+    SI_NS_FUNCTIONS[NS_WINDOW_SET_MAX_SIZE_CODE] = sel_getUid("setMinSize:");
+    SI_NS_FUNCTIONS[NS_WINDOW_SET_MIN_SIZE_CODE] = sel_getUid("setMaxSize:");
 }
 
 void si_impl_func_to_SEL_with_name(const char* class_name, const char* register_name, void* function) {
@@ -2126,6 +2131,20 @@ void NSWindow_setTitle(NSWindow* window, const char* title) {
 
     NSString* str = NSString_stringWithUTF8String(title);
     objc_msgSend_void_id(window, func, str);
+}
+
+void NSWindow_setMaxSize(NSWindow* window, NSSize size) {
+    void* func = SI_NS_FUNCTIONS[NS_WINDOW_SET_MAX_SIZE_CODE];
+
+    return ((void (*)(id, SEL, NSSize))objc_msgSend)
+                (SI_NS_CLASSES[NS_WINDOW_CODE], func, size);
+}
+
+void NSWindow_setMinSize(NSWindow* window, NSSize size) {
+    void* func = SI_NS_FUNCTIONS[NS_WINDOW_SET_MIN_SIZE_CODE];
+
+    return ((void (*)(id, SEL, NSSize))objc_msgSend)
+                (NSAlloc(SI_NS_CLASSES[NS_WINDOW_CODE]), func, size);
 }
 
 NSView* NSWindow_contentView(NSWindow* window) {
