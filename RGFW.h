@@ -2527,9 +2527,9 @@ char* RGFW_readClipboard(size_t* size) {
 	XConvertSelection((Display*)RGFW_root->display, bufid, fmtid, propid, (Window)RGFW_root->window, CurrentTime);
 	do {
 		XNextEvent((Display*)RGFW_root->display, &event);
-	} while (event.type != SelectionNotify || event.point.xselection.selection != bufid);
+	} while (event.type != SelectionNotify || event.type.xselection.selection != bufid);
 
-	if (event.point.xselection.property == 0)
+	if (event.type.xselection.property == 0)
 		return result;
 	
 	XGetWindowProperty((Display*)RGFW_root->display, (Window)RGFW_root->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
@@ -2585,7 +2585,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
         if (event.type != SelectionRequest)
 			return; 
 		
-		const XSelectionRequestEvent* request = &event.point.xselectionrequest;
+		const XSelectionRequestEvent* request = &event.type.xselectionrequest;
 
 		XEvent reply = { SelectionNotify };
 
@@ -4015,7 +4015,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 }
 
 
-u32* RGFW_window_screenSize(RGFW_window* win){
+RGFW_area RGFW_window_screenSize(RGFW_window* win){
 	assert(win != NULL);
 	
 	static u32 RGFW_SreenSize[2];
@@ -4023,21 +4023,16 @@ u32* RGFW_window_screenSize(RGFW_window* win){
 	
 	if (display == 0)
 		display = CGMainDisplayID();
-	
-	RGFW_SreenSize[0] = CGDisplayPixelsWide(display);
-	RGFW_SreenSize[1] = CGDisplayPixelsHigh(display);
+
+	return RGFW_AREA(CGDisplayPixelsWide(display), CGDisplayPixelsHigh(display));
 
 	return RGFW_SreenSize;
 }
 
-u32* RGFW_window_getGlobalMousePoint(RGFW_window* win) {
+RGFW_vector RGFW_window_getGlobalMousePoint(RGFW_window* win) {
 	assert(win != NULL);
-	
-	static i32 RGFW_mousePoint[2];
-	RGFW_mousePoint[0] = win->event.point.x;	
-	RGFW_mousePoint[1] = win->event.point.y;
 
-	return RGFW_mousePoint; /* the point is loaded during event checks */
+	return win->event.point; /* the point is loaded during event checks */
 }
 
 u32 RGFW_keysPressed[10]; /*10 keys at a time*/
@@ -4175,11 +4170,11 @@ RGFWDEF void RGFW_window_move(RGFW_window* win, RGFW_vector v) {
 	NSWindow_setFrameAndDisplay(win->window, NSMakeRect(win->r.x, win->r.y, win->r.w, win->r.h), true, true);
 }
 
-RGFWDEF void RGFW_window_resize(RGFW_window* win, u32 w, u32 h) {
+RGFWDEF void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 	assert(win != NULL);
 	
-	win->r.w = w;
-	win->r.h = h;
+	win->r.w = a.w;
+	win->r.h = a.h;
 	NSWindow_setFrameAndDisplay(win->window, NSMakeRect(win->r.x, win->r.y, win->r.w, win->r.h), true, true);
 }
 
@@ -4207,7 +4202,7 @@ void RGFW_window_setIcon(RGFW_window* win, u8* data, RGFW_area area, i32 channel
 	/* code by EimaMei  */
     // Make a bitmap representation, then copy the loaded image into it.
     NSBitmapImageRep* representation = NSBitmapImageRep_initWithBitmapData(NULL, area.w, area.h, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", NSBitmapFormatAlphaNonpremultiplied, area.w * channels, 8 * channels);
-    memcpy(NSBitmapImageRep_bitmapData(representation), data, area.w * area.h * area.channels);
+    memcpy(NSBitmapImageRep_bitmapData(representation), data, area.w * area.h * channels);
 
     // Add ze representation.
     NSImage* dock_image = NSImage_initWithSize(NSMakeSize(area.w, area.h));
