@@ -2959,6 +2959,8 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	if (RGFW_CENTER & args)
 		rect = RGFW_RECT((screenArea.w - rect.w) / 2,  (screenArea.h - rect.h) / 2, rect.w, rect.h);
 
+	win->r = rect;
+
 	win->fpsCap = 0;
 	win->event.inFocus = 1;
 	win->joystickCount = 0;
@@ -3204,8 +3206,6 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
 	if (RGFW_HIDE_MOUSE & args)
 		RGFW_window_showMouse(win, 0);
-	
-	win->r = rect;
 
     ShowWindow((HWND)win->display, SW_SHOWNORMAL);
 
