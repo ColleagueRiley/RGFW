@@ -43,7 +43,6 @@
 
 #define NS_ENUM(type, name) type name; enum
 
-#define GL_SILENCE_DEPRECATION
 #ifndef GL_SILENCE_DEPRECATION
 #define NS_OPENGL_DEPRECATED(minVers, maxVers) API_DEPRECATED("OpenGL API deprecated; please use Metal and MetalKit.  (Define GL_SILENCE_DEPRECATION to silence these warnings.)", macos(minVers,maxVers))
 #define NS_OPENGL_ENUM_DEPRECATED(minVers, maxVers) API_DEPRECATED("OpenGL API deprecated; please use Metal and MetalKit.  (Define GL_SILENCE_DEPRECATION to silence these warnings.)", macos(minVers,maxVers))
@@ -1319,6 +1318,10 @@ enum { /* classes */
     NS_SLIDER_CODE,
     NS_URL_CODE,
     NS_BUNDLE_CODE,
+	NS_CLASS_MAX
+};
+
+enum{
 	/* functions */
 	NS_APPLICATION_SET_ACTIVATION_POLICY_CODE = 0,
 	NS_APPLICATION_SAPP_CODE,
@@ -1555,10 +1558,12 @@ enum { /* classes */
     NS_STRING_IS_EQUAL_CODE,
     NS_WINDOW_SET_MAX_SIZE_CODE,
     NS_WINDOW_SET_MIN_SIZE_CODE,
+	
+	NS_FUNC_MAX
 };
 
-void* SI_NS_CLASSES[38] = {NULL};
-void* SI_NS_FUNCTIONS[236];
+void* SI_NS_CLASSES[NS_CLASS_MAX] = {NULL};
+void* SI_NS_FUNCTIONS[NS_FUNC_MAX];
 
 void si_initNS(void) {    
 	SI_NS_CLASSES[NS_APPLICATION_CODE] = objc_getClass("NSApplication");
@@ -2144,7 +2149,7 @@ void NSWindow_setMinSize(NSWindow* window, NSSize size) {
     void* func = SI_NS_FUNCTIONS[NS_WINDOW_SET_MIN_SIZE_CODE];
 
     return ((void (*)(id, SEL, NSSize))objc_msgSend)
-                (NSAlloc(SI_NS_CLASSES[NS_WINDOW_CODE]), func, size);
+                (SI_NS_CLASSES[NS_WINDOW_CODE], func, size);
 }
 
 NSView* NSWindow_contentView(NSWindow* window) {
