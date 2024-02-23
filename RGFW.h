@@ -202,8 +202,7 @@ extern "C" {
 #define RGFW_mouseButtonReleased 5 /*!< a mouse button has been released (left,middle,right)*/
 #define RGFW_mousePosChanged 6 /*!< the position of the mouse has been changed*/
 /*! mouse event note
-	the x and why of the mouse can be found in
-	RGFW_Event.x and RGFW_Event.y respectively
+	the x and y of the mouse can be found in the vector, RGFW_Event.point
 	
 	RGFW_Event.button holds which mouse button was pressed
 */
@@ -226,8 +225,7 @@ extern "C" {
 #define RGFW_dnd 34 /*!< a file has been dropped into the window*/
 #define RGFW_dnd_init 35 /*!< the start of a dnd event, when the place where the file drop is known */
 /* dnd data note
-	The x and y coords of the drop are stored in
-	RGFW_Event.x and RGFW_Event.y respectively
+	The x and y coords of the drop are stored in the vector RGFW_Event.point
 
 	RGFW_Event.droppedFilesCount holds how many files were dropped
 	
@@ -319,7 +317,7 @@ typedef struct RGFW_Event {
 	u32 droppedFilesCount; /*!< house many files were dropped */
 
 	u32 type; /*!< which event has been sent?*/
-	i32 x, y; /*!< mouse x, y of event (or drop point) */
+	RGFW_vector point; /*!< mouse x, y of event (or drop point) */
     u32 keyCode; /*!< keycode of event 	!!Keycodes defined at the bottom of the header file!! */
 
 	u32 inFocus;  /*if the window is in focus or not*/
@@ -334,7 +332,7 @@ typedef struct RGFW_Event {
     u8 button; /*!< which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed*/
   	
 	u8 axisesCount; /* number of axises */
-	i8 axis[4][2]; /* x, y of axises (-100 to 100) */
+	RGFW_vector axis[2]; /* x, y of axises (-100 to 100) */
 } RGFW_Event; /*!< Event structure for checking/getting events */
 
 typedef struct RGFW_window {
@@ -725,7 +723,7 @@ u8 RGFW_Error() { return RGFW_error; }
 void RGFW_window_showMouse(RGFW_window* win, i8 show) {
 	static u8 RGFW_blk[] = {0, 0, 0, 0};
 	if (show == 0) 
-		RGFW_window_setMouse(win, RGFW_blk, 1, 1, 4); 
+		RGFW_window_setMouse(win, RGFW_blk, RGFW_AREA(1, 1), 4); 
 	else 
 		RGFW_window_setMouseDefault(win);
 }
@@ -1923,8 +1921,8 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			break;
 
 		case MotionNotify:
-			win->event.x = E.xmotion.x;
-			win->event.y = E.xmotion.y;
+			win->event.point.x = E.xmotion.x;
+			win->event.point.y = E.xmotion.y;
 			win->event.type = RGFW_mousePosChanged;
 			break;
 
@@ -2072,8 +2070,8 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 										&xpos, &ypos,
 										&dummy);
 
-					win->event.x = xpos;
-					win->event.y = ypos;
+					win->event.point.x = xpos;
+					win->event.point.y = ypos;
 
 					XEvent reply = { ClientMessage };
 					reply.xclient.window = xdnd.source;
@@ -2237,8 +2235,8 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 								else
 									yAxis = e.value;
 
-								win->event.axis[e.number / 2][0] = xAxis / 327.67;
-								win->event.axis[e.number / 2][1] = yAxis / 327.67;
+								win->event.axis[e.number / 2].x = xAxis / 327.67;
+								win->event.axis[e.number / 2].y = yAxis / 327.67;
 								win->event.type = RGFW_jsAxisMove;
 								win->event.joystick = e.number / 2;
 								break;
@@ -2529,9 +2527,9 @@ char* RGFW_readClipboard(size_t* size) {
 	XConvertSelection((Display*)RGFW_root->display, bufid, fmtid, propid, (Window)RGFW_root->window, CurrentTime);
 	do {
 		XNextEvent((Display*)RGFW_root->display, &event);
-	} while (event.type != SelectionNotify || event.xselection.selection != bufid);
+	} while (event.type != SelectionNotify || event.point.xselection.selection != bufid);
 
-	if (event.xselection.property == 0)
+	if (event.point.xselection.property == 0)
 		return result;
 	
 	XGetWindowProperty((Display*)RGFW_root->display, (Window)RGFW_root->window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
@@ -2544,7 +2542,7 @@ char* RGFW_readClipboard(size_t* size) {
 		*size = 0;
 
 	do {
-		while (event.type != PropertyNotify || event.xproperty.atom != propid || event.xproperty.state != PropertyNewValue) 
+		while (event.type != PropertyNotify || event.point.xproperty.atom != propid || event.point.xproperty.state != PropertyNewValue) 
 			XNextEvent((Display*)RGFW_root->display, &event);
 
 		XGetWindowProperty((Display*)RGFW_root->display, (Window)RGFW_root->window, propid, 0, LONG_MAX/4, True, AnyPropertyType, 
@@ -2587,7 +2585,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
         if (event.type != SelectionRequest)
 			return; 
 		
-		const XSelectionRequestEvent* request = &event.xselectionrequest;
+		const XSelectionRequestEvent* request = &event.point.xselectionrequest;
 
 		XEvent reply = { SelectionNotify };
 
@@ -3294,8 +3292,8 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 				break;
 
 			case WM_MOUSEMOVE:
-				win->event.x = msg.pt.x - win->r.x;
-				win->event.y = msg.pt.y - win->r.y;
+				win->event.point.x = msg.pt.x - win->r.x;
+				win->event.point.y = msg.pt.y - win->r.y;
 
 				win->event.type = RGFW_mousePosChanged;
 				break;
@@ -3351,8 +3349,8 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 					/* Move the mouse to the position of the drop */
 					DragQueryPoint(drop, &pt);
 
-					win->event.x = pt.x;
-					win->event.y = pt.y;
+					win->event.point.x = pt.x;
+					win->event.point.y = pt.y;
 
 					for (i = 0;  i < win->event.droppedFilesCount;  i++) {
 						const UINT length = DragQueryFileW(drop, i, NULL, 0);
@@ -3462,7 +3460,7 @@ u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
 	else return 0;
 }
 
-HICON RGFW_loadHandleImage(RGFW_window* win, u8* src, i32 width, i32 height, BOOL icon) {
+HICON RGFW_loadHandleImage(RGFW_window* win, u8* src, RGFW_area a, BOOL icon) {
 	assert(win != NULL);
 	
   	i32 i;
@@ -3476,8 +3474,8 @@ HICON RGFW_loadHandleImage(RGFW_window* win, u8* src, i32 width, i32 height, BOO
 
     ZeroMemory(&bi, sizeof(bi));
     bi.bV5Size        = sizeof(bi);
-    bi.bV5Width       = width;
-    bi.bV5Height      = -height;
+    bi.bV5Width       = a.w;
+    bi.bV5Height      = -a.h;
     bi.bV5Planes      = 1;
     bi.bV5BitCount    = 32;
     bi.bV5Compression = BI_BITFIELDS;
@@ -3495,9 +3493,9 @@ HICON RGFW_loadHandleImage(RGFW_window* win, u8* src, i32 width, i32 height, BOO
                              (DWORD) 0);
     ReleaseDC(NULL, dc);
 
-    mask = CreateBitmap(width, height, 1, 1, NULL);
+    mask = CreateBitmap(a.w, a.h, 1, 1, NULL);
 
-    for (i = 0;  i < width * height;  i++) {
+    for (i = 0;  i < a.w * a.h;  i++) {
         target[0] = source[2];
         target[1] = source[1];
         target[2] = source[0];
@@ -3524,7 +3522,7 @@ HICON RGFW_loadHandleImage(RGFW_window* win, u8* src, i32 width, i32 height, BOO
 void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels) {
 	assert(win != NULL);
 	
-	HCURSOR cursor = (HCURSOR)RGFW_loadHandleImage(win, image, a.w, a.h, FALSE);
+	HCURSOR cursor = (HCURSOR)RGFW_loadHandleImage(win, image, a, FALSE);
 	SetClassLongPtr(win->display, GCLP_HCURSOR, (LPARAM)cursor);
 	SetCursor(cursor);
 	DestroyCursor(cursor);
@@ -3629,7 +3627,7 @@ void RGFW_window_setName(RGFW_window* win, char* name) {
 void RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
 	assert(win != NULL);
 	
-    HICON handle = RGFW_loadHandleImage(win, src, a.w, a.h, TRUE);
+    HICON handle = RGFW_loadHandleImage(win, src, a, TRUE);
 
 	SetClassLongPtr(win->display, GCLP_HICON, (LPARAM)handle); 
 
@@ -3825,8 +3823,8 @@ bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
 	RGFW_windows[i]->event.type = RGFW_dnd;
 
 	NSPoint p = NSDraggingInfo_draggingLocation(sender);
-	RGFW_windows[i]->event.x = p.x;
-	RGFW_windows[i]->event.x = p.y;
+	RGFW_windows[i]->event.point.x = p.x;
+	RGFW_windows[i]->event.point.x = p.y;
 
     return true;
 }
@@ -4036,8 +4034,8 @@ u32* RGFW_window_getGlobalMousePoint(RGFW_window* win) {
 	assert(win != NULL);
 	
 	static i32 RGFW_mousePoint[2];
-	RGFW_mousePoint[0] = win->event.x;	
-	RGFW_mousePoint[1] = win->event.y;
+	RGFW_mousePoint[0] = win->event.point.x;	
+	RGFW_mousePoint[1] = win->event.point.y;
 
 	return RGFW_mousePoint; /* the point is loaded during event checks */
 }
@@ -4134,8 +4132,8 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 				NSPoint p = NSEvent_locationInWindow(e);
 
-				win->event.x = p.x;
-				win->event.y = p.y;
+				win->event.point.x = p.x;
+				win->event.point.y = p.y;
 				break;
 
 
@@ -4169,11 +4167,11 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 }
 
 
-RGFWDEF void RGFW_window_move(RGFW_window* win, i32 x, i32 y) {
+RGFWDEF void RGFW_window_move(RGFW_window* win, RGFW_vector v) {
 	assert(win != NULL);
 
-	win->r.x = x;
-	win->r.y = y;
+	win->r.x = v.x;
+	win->r.y = v.y;
 	NSWindow_setFrameAndDisplay(win->window, NSMakeRect(win->r.x, win->r.y, win->r.w, win->r.h), true, true);
 }
 
@@ -4203,16 +4201,16 @@ RGFWDEF void RGFW_window_setName(RGFW_window* win, char* name) {
 	NSWindow_setTitle(win->window, name);
 }
 
-void RGFW_window_setIcon(RGFW_window* win, u8* data, i32 width, i32 height, i32 channels) {
+void RGFW_window_setIcon(RGFW_window* win, u8* data, RGFW_area area, i32 channels) {
 	assert(win != NULL);
 	
 	/* code by EimaMei  */
     // Make a bitmap representation, then copy the loaded image into it.
-    NSBitmapImageRep* representation = NSBitmapImageRep_initWithBitmapData(NULL, width, height, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", NSBitmapFormatAlphaNonpremultiplied, width * channels, 8 * channels);
-    memcpy(NSBitmapImageRep_bitmapData(representation), data, width * height * channels);
+    NSBitmapImageRep* representation = NSBitmapImageRep_initWithBitmapData(NULL, area.w, area.h, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", NSBitmapFormatAlphaNonpremultiplied, area.w * channels, 8 * channels);
+    memcpy(NSBitmapImageRep_bitmapData(representation), data, area.w * area.h * area.channels);
 
     // Add ze representation.
-    NSImage* dock_image = NSImage_initWithSize(NSMakeSize(width, height));
+    NSImage* dock_image = NSImage_initWithSize(NSMakeSize(area.w, area.h));
     NSImage_addRepresentation(dock_image, (NSImageRep*)representation);
 
     // Finally, set the dock image to it.
@@ -4223,7 +4221,7 @@ void RGFW_window_setIcon(RGFW_window* win, u8* data, i32 width, i32 height, i32 
     release(representation);
 }
 
-void RGFW_window_setMouse(RGFW_window* win, u8* image, i32 width, i32 height, i32 channels) {
+void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels) {
 	assert(win != NULL);
 	
 	if (image == NULL) {
@@ -4238,11 +4236,11 @@ void RGFW_window_setMouse(RGFW_window* win, u8* image, i32 width, i32 height, i3
 
 	/* NOTE(EimaMei): Code by yours truly. */
     // Make a bitmap representation, then copy the loaded image into it.
-    NSBitmapImageRep* representation = NSBitmapImageRep_initWithBitmapData(NULL, width, height, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", NSBitmapFormatAlphaNonpremultiplied, width * channels, 8 * channels);
-    memcpy(NSBitmapImageRep_bitmapData(representation), image, width * height * channels);
+    NSBitmapImageRep* representation = NSBitmapImageRep_initWithBitmapData(NULL, a.w, a.h, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", NSBitmapFormatAlphaNonpremultiplied, a.w * channels, 8 * channels);
+    memcpy(NSBitmapImageRep_bitmapData(representation), image, a.w * a.h * channels);
 
     // Add ze representation.
-    NSImage* cursor_image = NSImage_initWithSize(NSMakeSize(width, height));
+    NSImage* cursor_image = NSImage_initWithSize(NSMakeSize(a.w, a.h));
     NSImage_addRepresentation(cursor_image, (NSImageRep*)representation);
 
     // Finally, set the cursor image.
@@ -4265,10 +4263,10 @@ void RGFW_window_setMouseDefault(RGFW_window* win) {
 	RGFW_window_setMouse(win, NULL, RGFW_AREA(0, 0), 0);
 }
 
-void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) {
+void RGFW_window_moveMouse(RGFW_window* win, RGFW_vector v) {
 	assert(win != NULL);
 	
-	CGEventRef moveEvent = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, CGPointMake(x, y), kCGMouseButtonLeft);
+	CGEventRef moveEvent = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, CGPointMake(v.x, v.y), kCGMouseButtonLeft);
 	CGEventPost(kCGHIDEventTap, moveEvent);
 	CFRelease(moveEvent);
 }
