@@ -1717,7 +1717,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		XSetWindowAttributes wa;
 		wa.event_mask = event_mask;
 
-		win->window = (void*)XCreateWindow((Display*)win->display, XDefaultRootWindow((Display*)win->display), x, y, w, h, 0, 0, InputOutput,
+		win->window = (void*)XCreateWindow((Display*)win->display, XDefaultRootWindow((Display*)win->display), rect.x, rect.y, rect.w, rect.h, 0, 0, InputOutput,
 										DefaultVisual((Display*)win->display, XDefaultScreen((Display*)win->display)), CWEventMask, &wa);
 
 		#ifdef RGFW_OSMESA
