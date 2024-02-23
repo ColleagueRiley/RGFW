@@ -4193,6 +4193,14 @@ void RGFW_window_setName(RGFW_window* win, char* name) {
 	NSWindow_setTitle(win->window, name);
 }
 
+void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
+	NSWindow_setMinSize(win->window, NSMakeSize(a.w, a.h));
+}
+
+void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
+    NSWindow_setMaxSize(win->window, NSMakeSize(a.w, a.h));
+}
+
 void RGFW_window_setIcon(RGFW_window* win, u8* data, RGFW_area area, i32 channels) {
 	assert(win != NULL);
 	
