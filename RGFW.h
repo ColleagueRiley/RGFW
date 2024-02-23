@@ -380,7 +380,7 @@ typedef struct RGFW_window {
 
 	RGFW_Event event; /*!< current event */
 	
-	RGFW_rect r; /* this is the same data, but stored in a struct */
+	RGFW_rect r; /* the x, y, w and h of the struct */
 
 	i32 joysticks[4]; /* limit of 4 joysticks at a time */
 	u16 joystickCount; /* the actual amount of joysticks */
@@ -3233,12 +3233,12 @@ RGFW_vector RGFW_window_getGlobalMousePoint(RGFW_window* win) {
 	return RGFW_VECTOR(p.x, p.y);
 }
 
-RGFWDEF void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
+void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
 	assert(win != NULL);
 	win->minSize = a;
 }
 
-RGFWDEF void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
+void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 	assert(win != NULL);
 	win->maxSize = a;
 }
@@ -3421,7 +3421,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		return NULL;
 }
 
-RGFWDEF u8 RGFW_window_isFullscreen(RGFW_window* win) {
+u8 RGFW_window_isFullscreen(RGFW_window* win) {
 	assert(win != NULL);
 	
     WINDOWPLACEMENT placement;
@@ -3429,13 +3429,13 @@ RGFWDEF u8 RGFW_window_isFullscreen(RGFW_window* win) {
     return placement.showCmd == SW_SHOWMAXIMIZED;
 }
 
-RGFWDEF u8 RGFW_window_isHidden(RGFW_window* win) {
+u8 RGFW_window_isHidden(RGFW_window* win) {
 	assert(win != NULL);
 	
     return IsWindowVisible((HWND)win->display) == 0 && !RGFW_isMinimized(win);
 }
 
-RGFWDEF u8 RGFW_isMinimized(RGFW_window* win) {
+u8 RGFW_isMinimized(RGFW_window* win) {
 	assert(win != NULL);
 	
     WINDOWPLACEMENT placement;
@@ -3443,7 +3443,7 @@ RGFWDEF u8 RGFW_isMinimized(RGFW_window* win) {
     return placement.showCmd == SW_SHOWMINIMIZED;
 }
 
-RGFWDEF u8 RGFW_isMaximized(RGFW_window* win) {
+u8 RGFW_isMaximized(RGFW_window* win) {
 	assert(win != NULL);
 	
     WINDOWPLACEMENT placement;
@@ -4159,7 +4159,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 }
 
 
-RGFWDEF void RGFW_window_move(RGFW_window* win, RGFW_vector v) {
+void RGFW_window_move(RGFW_window* win, RGFW_vector v) {
 	assert(win != NULL);
 
 	win->r.x = v.x;
@@ -4167,7 +4167,7 @@ RGFWDEF void RGFW_window_move(RGFW_window* win, RGFW_vector v) {
 	NSWindow_setFrameAndDisplay(win->window, NSMakeRect(win->r.x, win->r.y, win->r.w, win->r.h), true, true);
 }
 
-RGFWDEF void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
+void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 	assert(win != NULL);
 	
 	win->r.w = a.w;
@@ -4187,7 +4187,7 @@ void RGFW_window_restore(RGFW_window* win) {
 	NSWindow_performZoom(win->window, NULL);
 }
 
-RGFWDEF void RGFW_window_setName(RGFW_window* win, char* name) {
+void RGFW_window_setName(RGFW_window* win, char* name) {
 	assert(win != NULL);
 	
 	NSWindow_setTitle(win->window, name);
