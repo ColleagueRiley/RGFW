@@ -31,7 +31,7 @@
 	#define RGFW_IMPLEMENTATION - (required) makes it so the source code is included
 	#define RGFW_PRINT_ERRORS - (optional) makes it so RGFW prints errors when they're found
 	#define RGFW_OSMESA - (optional) use OSmesa as backend (instead of system's opengl api + regular opengl)
-	#define RGFW_BUFFER - (optional) just draw directly to (RGFW) window pixel buffer that is drawn to screen
+	#define RGFW_BUFFER - (optional) just draw directly to (RGFW) window pixel buffer that is drawn to screen (the buffer is in the BGR format)
 	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
 	#define RGFW_OPENGL_ES - (optional) use EGL to load and use Opengl ES for backend rendering (instead of the system's opengl api)
 	#define VULKAN - (optional) use vulkan for the rendering backend (rather than opengl)
@@ -376,6 +376,7 @@ typedef struct RGFW_window {
 	
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER) 
 	u8* buffer; /* buffer for non-GPU systems (OSMesa, basic software rendering) */
+				/* when rendering using RGFW_BUFFER, the buffer is in the BGR format */
 	void* bitmap; /* API's bitmap for storing or managing (ex. HBITMAP or XImage) */
 	#if defined(RGFW_BUFFER) && defined(RGFW_WINDOWS)
 	void* hdcMem; /* window stored in memory that winapi needs to render buffers */
@@ -1737,9 +1738,9 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		#endif
 
 		#ifdef RGFW_BUFFER
-		win->buffer = RGFW_CALLOC(0, rect.w * rect.h * 4);
+		win->buffer = RGFW_MALLOC(rect.w * rect.h * 4);
 		win->bitmap = XCreateImage(win->display, DefaultVisual(win->display, XDefaultScreen(win->display)), DefaultDepth(win->display, XDefaultScreen(win->display)),
-                                ZPixmap, 0, NULL, win->r.w, win->r.h, 32, 0);
+                                ZPixmap, 0, (char*)win->buffer, rect.w, rect.h, 32, 0);
 
 		win->render = 1;
 		#endif
@@ -2291,6 +2292,13 @@ void RGFW_window_close(RGFW_window* win) {
 
 	XFreeCursor((Display*)win->display, (Cursor)win->cursor);
 
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+	if (win->buffer != NULL) {
+		XDestroyImage((XImage*)win->bitmap);
+		win->render = 0;
+	}
+	#endif
+
 	if ((Display*)win->display) {
 		#ifdef RGFW_GL
 		glXDestroyContext((Display *)win->display, win->rSurf);
@@ -2333,13 +2341,6 @@ void RGFW_window_close(RGFW_window* win) {
 	u8 i;
 	for (i = 0; i < win->joystickCount; i++)
 		close(win->joysticks[i]);
-
-	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-	if (win->buffer != NULL) {
-		RGFW_FREE(win->buffer);
-		win->render = 0;
-	}
-	#endif
 
 	RGFW_FREE(win); /* free collected window data */
 }
