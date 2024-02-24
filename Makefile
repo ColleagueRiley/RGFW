@@ -42,12 +42,11 @@ ifeq ($(detected_OS),Linux)
 endif
 
 all:
-	make vulkan_shaders
-
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -o basic
-	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -o gl33
-	$(CC) examples/vk10/main.c $(LIBS) -I./ -Wall -o vk10
 	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -o buffer
+	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -o gl33
+	make vulkan_shaders
+	$(CC) examples/vk10/main.c $(LIBS) -I./ -Wall -o vk10
 
 DX11:
 	$(CC) examples/dx11/main.c $(LIBS) $(DX11_LIBS) -I./ -Wall -o examples/dx11/dx11
@@ -57,15 +56,17 @@ clean:
 
 debug:
 	make clean
-	make vulkan_shaders
 
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/basic/basic
-	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/gl33/gl33
 	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/buffer/buffer
-	$(CC) examples/vk10/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/vk10/vk10
 	./examples/basic/basic$(EXT)
-	./examples/gl33/gl33$(EXT)
 	./examples/buffer/buffer$(EXT)
+
+	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/gl33/gl33
+	./examples/gl33/gl33$(EXT)
+
+	make vulkan_shaders
+	$(CC) examples/vk10/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/vk10/vk10
 	./examples/vk10/vk10$(EXT)
 
 vulkan_shaders:
