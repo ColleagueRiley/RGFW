@@ -2,7 +2,8 @@ CC = gcc
 AR = ar
 
 DX11_LIBS = -ldxgi -ld3d11 -luuid -ld3dcompiler
-LIBS := -lshell32 -lgdi32 -lm -lopengl32 -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1 -ggdb
+VULAKN_LIBS = -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
+LIBS := -lshell32 -lgdi32 -lm -lopengl32 -ggdb
 EXT = .exe
 LIB_EXT = .dll
 STATIC =
@@ -27,16 +28,19 @@ endif
 
 ifeq ($(detected_OS),Windows)
 	LIBS := -ggdb -lshell32 -lgdi32 -lm -ldwmapi -lopengl32 $(STATIC) -I C:\VulkanSDK\1.3.275.0\Include -L C:\VulkanSDK\1.3.275.0\Lib -lvulkan1
+	VULAKN_LIBS = -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
 	EXT = .exe
 	LIB_EXT = .dll
 endif
 ifeq ($(detected_OS),Darwin)        # Mac OS X
 	LIBS := -I./ext/Silicon/ -lm -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo -w $(STATIC) -lvulkan
+	VULAKN_LIBS = -lvulkan
 	EXT = 
 	LIB_EXT = .dylib
 endif
 ifeq ($(detected_OS),Linux)
     LIBS := -I./include -lX11 -lm -lGL -lvulkan $(STATIC)
+	VULAKN_LIBS = -lvulkan
 	EXT =
 	LIB_EXT = .so
 endif
@@ -46,7 +50,7 @@ all:
 	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -o buffer
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -o gl33
 	make vulkan_shaders
-	$(CC) examples/vk10/main.c $(LIBS) -I./ -Wall -o vk10
+	$(CC) examples/vk10/main.c $(LIBS) $(VULAKN_LIBS) -I./ -Wall -o vk10
 
 DX11:
 	$(CC) examples/dx11/main.c $(LIBS) $(DX11_LIBS) -I./ -Wall -o examples/dx11/dx11
@@ -66,7 +70,7 @@ debug:
 	./examples/gl33/gl33$(EXT)
 
 	make vulkan_shaders
-	$(CC) examples/vk10/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/vk10/vk10
+	$(CC) examples/vk10/main.c $(LIBS) $(VULAKN_LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/vk10/vk10
 	./examples/vk10/vk10$(EXT)
 
 vulkan_shaders:
