@@ -1558,6 +1558,7 @@ enum{
 	NS_STRING_IS_EQUAL_CODE,
 	NS_WINDOW_SET_MAX_SIZE_CODE,
 	NS_WINDOW_SET_MIN_SIZE_CODE,
+	NS_GRAPHICS_CONTEXT_WIDTH_WINDOW_CODE,
   
 	NS_FUNC_LEN
 };
@@ -1839,6 +1840,7 @@ void si_initNS(void) {
 	SI_NS_FUNCTIONS[NS_WINDOW_STYLE_MASK_CODE] = sel_getUid("styleMask");
 	SI_NS_FUNCTIONS[NS_WINDOW_SET_MAX_SIZE_CODE] = sel_getUid("setMinSize:");
 	SI_NS_FUNCTIONS[NS_WINDOW_SET_MIN_SIZE_CODE] = sel_getUid("setMaxSize:");
+	SI_NS_FUNCTIONS[NS_GRAPHICS_CONTEXT_WIDTH_WINDOW_CODE] = sel_getUid("graphicsContextWithWindow:");
 }
 
 void si_impl_func_to_SEL_with_name(const char* class_name, const char* register_name, void* function) {
@@ -2351,6 +2353,11 @@ NSGraphicsContext* NSGraphicsContext_currentContext(NSGraphicsContext* context) 
 void NSGraphicsContext_setCurrentContext(NSGraphicsContext* context, NSGraphicsContext* currentContext) {
 	void* func = SI_NS_FUNCTIONS[NS_GRAPHICS_CONTEXT_SET_CURRENT_CONTEXT_CODE];
 	objc_msgSend_void_id(context, func, currentContext);
+}
+
+NSGraphicsContext* NSGraphicsContext_graphicsContextWithWindow(NSWindow* window) {
+	void* func = SI_NS_FUNCTIONS[NS_GRAPHICS_CONTEXT_WIDTH_WINDOW_CODE];
+	return objc_msgSend_id_id(SI_NS_CLASSES[NS_GRAPHICS_CONTEXT_CODE], func, window);
 }
 
 void NSMenuItem_setSubmenu(NSMenuItem* item, NSMenu* submenu) {
