@@ -340,11 +340,11 @@ typedef struct RGFW_Event {
 typedef struct RGFW_window {
     void* display; /*!< source display */
     void* window; /*!< source window */
-    #if !defined(RGFW_VULKAN)
-	void* rSurf; /*!< source opengl context */
+    #if !defined(RGFW_VULKAN) || defined(RGFW_MACOS)
+	void* rSurf; /*!< source graphics context */
 	#else
 	#ifdef RGFW_VULKAN
-	VkSurfaceKHR rSurf; /*!< source opengl context */
+	VkSurfaceKHR rSurf; /*!< source graphics context */
 
 	/* vulkan data */
     VkSwapchainKHR swapchain;
@@ -3978,6 +3978,11 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	#ifdef RGFW_BUFFER
 	win->buffer = RGFW_MALLOC(rect.w * rect.h * 4);
 	win->render = 1;
+
+	win->rSurf = NULL;
+	win->rSurf = NSGraphicsContext_graphicsContextWithWindow(win->window);
+	if (win->rSurf == NULL)
+		printf("Failed to create NSGraphicsContext\n");
 	#endif
 
     NSWindow_setContentView(win->window, win->view);
@@ -4499,6 +4504,7 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	#endif
 
 	win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
+
 }
 
 void RGFW_window_swapBuffers(RGFW_window* win) { 
@@ -4563,25 +4569,26 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 			SelectObject(win->hdcMem, oldbmp);
 		#endif
 		#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
-		CGRect rect = CGRectMake (0, 0, win->r.w, win->r.h);// 2
 		struct CGColorSpace* colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
 
 		CGContextRef bitmapContext = CGBitmapContextCreate (win->buffer,
 										win->r.w,
 										win->r.h,
-										4,
-										(win->r.w * 4),
+										8,
+										(win->r.w * 4 * sizeof(u8)),
 										colorSpace,
 										kCGImageAlphaPremultipliedLast);
 
-		CGColorSpaceRelease( colorSpace );
+
+		NSGraphicsContext* old = NSGraphicsContext_currentContext(win->rSurf);
 
 		struct CGImage* myImage = CGBitmapContextCreateImage(bitmapContext);
+		
+		CGContextDrawImage(win->rSurf, CGRectMake(0, 0, win->r.w, win->r.h), myImage);
 
-		NSGraphicsContext* context = NSGraphicsContext_currentContext(NULL);
-
-		CGContextDrawImage(context, rect, myImage);
-
+		NSGraphicsContext_currentContext(old);
+		
+		CGColorSpaceRelease(colorSpace);
 		CGContextRelease(bitmapContext);
 		CGImageRelease(myImage);
 		#endif
