@@ -50,7 +50,7 @@ int main()
     RGFW_window_makeCurrent(window);
     // RGFW_window_swapInterval(window, 60);
 
-    if (RGL_loadGL3(RGFW_getProcAddress))
+    if (RGL_loadGL3((RGLloadfunc)RGFW_getProcAddress))
     {
         printf("Failed to initialize GLAD\n");
         return -1;

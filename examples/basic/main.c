@@ -24,8 +24,7 @@ int main() {
 
     RGFW_createThread(loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
 
-    unsigned char i, frames = 60;
-    unsigned char mouseHidden = 0;
+    unsigned char i;
 
     RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
 
