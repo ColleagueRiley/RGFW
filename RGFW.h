@@ -376,6 +376,10 @@ typedef struct RGFW_window {
 	
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER) 
 	u8* buffer; /* buffer for non-GPU systems (OSMesa, basic software rendering) */
+	void* bitmap; /* API's bitmap for storing or managing (ex. HBITMAP or XImage) */
+	#if defined(RGFW_BUFFER) && defined(RGFW_WINDOWS)
+	void* hdcMem; /* window stored in memory that winapi needs to render buffers */
+	#endif
 	#endif
 
 	u8 jsPressed[4][16]; /* if a key is currently pressed or not (per joystick) */
@@ -1540,9 +1544,6 @@ Atom XdndAware, XdndTypeList,     XdndSelection,    XdndEnter,        XdndPositi
 
 Atom wm_delete_window = 0;
 
-#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-XImage* RGFW_omesa_ximage;
-#endif
 #if !defined(RGFW_NO_X11_CURSOR) && !defined(RGFW_NO_X11_CURSOR_PRELOAD)
 typedef XcursorImage* (* PFN_XcursorImageCreate)(int,int);
 typedef void (* PFN_XcursorImageDestroy)(XcursorImage*);
@@ -1724,7 +1725,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
 		#ifdef RGFW_OSMESA
 		win->rSurf = OSMesaCreateContext(OSMESA_RGBA, NULL);
-		win->buffer = RGFW_MALLOC(w * h * 4);
+		win->buffer = RGFW_MALLOC(rect.w * rect.h * 4);
 		OSMesaMakeCurrent(win->rSurf, win->buffer, GL_UNSIGNED_BYTE, w, h);
 		#ifndef RGFW_GL
 		win->render = 1;
@@ -1736,7 +1737,10 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		#endif
 
 		#ifdef RGFW_BUFFER
-		win->buffer = RGFW_MALLOC(w * h * 4);
+		win->buffer = RGFW_CALLOC(0, rect.w * rect.h * 4);
+		win->bitmap = XCreateImage(win->display, DefaultVisual(win->display, XDefaultScreen(win->display)), DefaultDepth(win->display, XDefaultScreen(win->display)),
+                                ZPixmap, 0, NULL, win->r.w, win->r.h, 32, 0);
+
 		win->render = 1;
 		#endif
 	}
@@ -3191,7 +3195,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	}
 	else {
 		win->rSurf = (void*)OSMesaCreateContext(OSMESA_RGBA, NULL);
-		win->buffer = RGFW_MALLOC(w * h * 4);
+		win->buffer = RGFW_MALLOC(rect.w * rect.h * 4);
 
 		OSMesaMakeCurrent(win->rSurf, win->buffer, GL_UNSIGNED_BYTE, w, h);
 	}
@@ -3202,7 +3206,16 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	#endif
 
 	#ifdef RGFW_BUFFER
-	win->buffer = RGFW_MALLOC(w * h * 4);
+	BITMAPINFO bmi = {0};
+	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bmi.bmiHeader.biWidth = rect.w;
+	bmi.bmiHeader.biHeight = -rect.h;
+	bmi.bmiHeader.biPlanes = 1;
+	bmi.bmiHeader.biBitCount = 32;
+	bmi.bmiHeader.biCompression = BI_RGB;
+
+	win->bitmap = CreateDIBSection(win->window, &bmi, DIB_RGB_COLORS, (void **)&win->buffer, 0, 0);
+	win->hdcMem = CreateCompatibleDC(win->window);
 	win->render = 1;
 	#endif
 
@@ -3577,13 +3590,18 @@ void RGFW_window_close(RGFW_window* win) {
 	win->pDepthStencilView->lpVtbl->Release(win->pDepthStencilView);
 	#endif
 
+	#ifdef RGFW_BUFFER
+	DeleteDC(win->hdcMem);
+	DeleteObject(win->bitmap);
+	#endif
+
 	#ifdef RGFW_GL
 	wglDeleteContext((HGLRC)win->rSurf); /* delete opengl context */
 	#endif
 	DeleteDC((HDC)win->window); /* delete window */
 	DestroyWindow((HWND)win->display); /* delete display */
 
-	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+	#if defined(RGFW_OSMESA)
 	if (win->buffer != NULL)
 		RGFW_FREE(win->buffer);
 	#endif
@@ -3942,13 +3960,13 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	NSOpenGLContext_makeCurrentContext(win->rSurf);
 
 	#else
-    NSRect contentRect = NSMakeRect(0, 0, w, h);
+    NSRect contentRect = NSMakeRect(0, 0, rect.w, rect.h);
     win->view = NSView_initWithFrame(contentRect);
 	#endif
 
 	#ifdef RGFW_OSMESA
 	win->rSurf = OSMesaCreateContext(OSMESA_RGBA, NULL);
-	win->buffer = RGFW_MALLOC(w * h * 4);
+	win->buffer = RGFW_MALLOC(rect.w * rect.h * 4);
 	OSMesaMakeCurrent(win->rSurf, win->buffer, GL_UNSIGNED_BYTE, w, h);
 	
 	#ifdef RGFW_OPENGL
@@ -3957,7 +3975,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	#endif
 
 	#ifdef RGFW_BUFFER
-	win->buffer = RGFW_MALLOC(w * h * 4);
+	win->buffer = RGFW_MALLOC(rect.w * rect.h * 4);
 	win->render = 1;
 	#endif
 
@@ -4517,10 +4535,10 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
     if (win->render) { 
 		#ifdef RGFW_OSMESA
-		u8* row = (u8*) RGFW_MALLOC(win->r.w * 4);
+		u8* row = (u8*) RGFW_MALLOC(win->r.w * 3);
 
 		i32 half_height = win->r.h / 2;
-		i32 stride = win->r.w * 4;
+		i32 stride = win->r.w * 3;
 
 		i32 y;
 		for (y = 0; y < half_height; ++y) {
@@ -4535,21 +4553,13 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 		#endif
 		
 		#ifdef RGFW_X11
-			RGFW_omesa_ximage = XCreateImage(win->display, DefaultVisual(win->display, XDefaultScreen(win->display)), DefaultDepth(win->display, XDefaultScreen(win->display)),
-								ZPixmap, 0, (char*)win->buffer, win->r.w, win->r.h, 32, 0);
-
-			XPutImage(win->display, (Window)win->window, XDefaultGC(win->display, XDefaultScreen(win->display)), RGFW_omesa_ximage, 0, 0, 0, 0, win->r.w, win->r.h);
+			win->bitmap->data = (char*)win->buffer;
+			XPutImage(win->display, (Window)win->window, XDefaultGC(win->display, XDefaultScreen(win->display)), win->bitmap, 0, 0, 0, 0, win->r.w, win->r.h);
 		#endif
 		#ifdef RGFW_WINDOWS
-			HBITMAP hbitmap = CreateBitmap(win->r.w, win->r.h, 1, 32, (void*)win->buffer);
-			HDC hdcMem = CreateCompatibleDC(win->window);
-			
-			HBITMAP hOld = (HBITMAP)SelectObject(hdcMem, hbitmap);
-			BitBlt(win->window, 0, 0, win->r.w, win->r.h, hdcMem, 0, 0, SRCCOPY);
-			SelectObject(hdcMem, hOld);
-
-			DeleteDC(hdcMem);
-			DeleteObject(hbitmap);
+			HGDIOBJ oldbmp = SelectObject(win->hdcMem, win->bitmap);
+			BitBlt(win->window, 0, 0, win->r.w, win->r.h, win->hdcMem, 0, 0, SRCCOPY);
+			SelectObject(win->hdcMem, oldbmp);
 		#endif
 		#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
 		CGRect rect = CGRectMake (0, 0, win->r.w, win->r.h);// 2
