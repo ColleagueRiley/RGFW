@@ -33,13 +33,13 @@ ifeq ($(detected_OS),Windows)
 	LIB_EXT = .dll
 endif
 ifeq ($(detected_OS),Darwin)        # Mac OS X
-	LIBS := -I./ext/Silicon/ -lm -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo -w $(STATIC) -lvulkan
+	LIBS := -I./ext/Silicon/ -lm -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo -w $(STATIC)
 	VULAKN_LIBS = -lvulkan
 	EXT = 
 	LIB_EXT = .dylib
 endif
 ifeq ($(detected_OS),Linux)
-    LIBS := -I./include -lX11 -lm -lGL -lvulkan $(STATIC)
+    LIBS := -I./include -lX11 -lm -lGL $(STATIC)
 	VULAKN_LIBS = -lvulkan
 	EXT =
 	LIB_EXT = .so
@@ -56,7 +56,7 @@ DX11:
 	$(CC) examples/dx11/main.c $(LIBS) $(DX11_LIBS) -I./ -Wall -o examples/dx11/dx11
 
 clean:
-	rm ./examples/basic/basic ./examples/basic/basic.exe ./examples/gl33/gl33 ./examples/gl33/gl33.exe ./examples/vk10/vk10 ./examples/vk10/vk10.exe examples/vk10/shaders/*.h -f examples/dx11/dx11
+	rm -f ./examples/basic/basic ./examples/basic/basic.exe ./examples/gl33/gl33 ./examples/gl33/gl33.exe ./examples/vk10/vk10 ./examples/vk10/vk10.exe examples/vk10/shaders/*.h examples/dx11/dx11
 
 debug:
 	make clean
