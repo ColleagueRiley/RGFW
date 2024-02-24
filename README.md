@@ -47,6 +47,9 @@ A basic example can be found in `examples/basic`, it includes a basic OpenGL exa
 ## basic 
 A basic example can be found in `examples/basic`, it includes a basic OpenGL example of just about all of RGFW's functionalities.
 
+## buff
+`examples/buffer` is an example which shows how you can use software rendering with RGFW using RGFW_BUFFER mode which allows you to render directly to the window's draw buffer.
+
 ## a very simple example
 ```c
 #define RGFW_IMPLEMENTATION
