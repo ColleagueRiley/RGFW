@@ -47,6 +47,7 @@ all:
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -o basic
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -o gl33
 	$(CC) examples/vk10/main.c $(LIBS) -I./ -Wall -o vk10
+	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -o buffer
 
 DX11:
 	$(CC) examples/dx11/main.c $(LIBS) $(DX11_LIBS) -I./ -Wall -o examples/dx11/dx11
@@ -61,10 +62,12 @@ debug:
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/basic/basic
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/gl33/gl33
 	$(CC) examples/vk10/main.c $(LIBS) -lvulkan-1 -I./ -Wall -D RGFW_DEBUG -o examples/vk10/vk10
+	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/buffer/buffer
 
 	./examples/basic/basic$(EXT)
 	./examples/gl33/gl33$(EXT)
 	./examples/vk10/vk10$(EXT)
+	./examples/buffer/buffer$(EXT)
 
 vulkan_shaders:
 	glslangValidator -V examples/vk10/shaders/vert.vert -o examples/vk10/shaders/vert.h --vn vert_code
