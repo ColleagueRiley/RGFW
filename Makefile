@@ -61,13 +61,12 @@ debug:
 
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/basic/basic
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/gl33/gl33
-	$(CC) examples/vk10/main.c $(LIBS) -lvulkan-1 -I./ -Wall -D RGFW_DEBUG -o examples/vk10/vk10
 	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/buffer/buffer
-
+	$(CC) examples/vk10/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/vk10/vk10
 	./examples/basic/basic$(EXT)
 	./examples/gl33/gl33$(EXT)
-	./examples/vk10/vk10$(EXT)
 	./examples/buffer/buffer$(EXT)
+	./examples/vk10/vk10$(EXT)
 
 vulkan_shaders:
 	glslangValidator -V examples/vk10/shaders/vert.vert -o examples/vk10/shaders/vert.h --vn vert_code
