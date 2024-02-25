@@ -4039,6 +4039,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
 	RGFW_windows[RGFW_windows_size - 1] = NULL;
 	
+	size_t i;
 	for (i = 0; i < RGFW_windows_size; i++)
 		if (!RGFW_windows[i]){
 			RGFW_windows[i] = win;
