@@ -414,8 +414,8 @@ typedef struct RGFW_window_src {
 	#ifdef RGFW_WINDOWS
 	HBITMAP bitmap;
 	#endif
-	#ifdef RGFW_LINUX
-	XImage bitmap;
+	#ifdef RGFW_X11
+	XImage* bitmap;
 	#endif
 	#ifdef RGFW_MACOS
 	void* bitmap; /* API's bitmap for storing or managing */
@@ -3716,7 +3716,7 @@ char* RGFW_readClipboard(size_t* size) {
         return (char*)"";
     }
 
-	wchar_t* wstr = GlobalLock(hData);
+	wchar_t* wstr = (wchar_t*)GlobalLock(hData);
 
 	char* text;
 	
@@ -4534,7 +4534,7 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	}
 
 	if (wglSwapIntervalEXT == NULL) {
-		loadSwapFunc = wglGetProcAddress("wglSwapIntervalEXT");
+		loadSwapFunc = (void*)wglGetProcAddress("wglSwapIntervalEXT");
 		wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)loadSwapFunc;
 	}
 
@@ -4609,7 +4609,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 		#endif
 		
 		#ifdef RGFW_X11
-			((XImage*)win->src.bitmap)->data = (char*)win->buffer;
+			win->src.bitmap->data = (char*)win->buffer;
 			XPutImage(win->src.display, (Window)win->src.window, XDefaultGC(win->src.display, XDefaultScreen(win->src.display)), win->src.bitmap, 0, 0, 0, 0, win->r.w, win->r.h);
 		#endif
 		#ifdef RGFW_WINDOWS
