@@ -715,7 +715,7 @@ u8 icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF,    0xFF, 0x00, 0x00, 0xFF,     0xF
 int main() {
     RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(500, 500, 500, 500), (u64)0);
 
-    RGFW_window_setIcon(win, icon, 3, 3, 4);
+    RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
 
     for (;;) {
         RGFW_window_checkEvent(win); // NOTE: checking events outside of a while loop may cause input lag 
