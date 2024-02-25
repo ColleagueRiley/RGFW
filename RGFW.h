@@ -495,7 +495,7 @@ RGFW_window* RGFW_createWindow(
 ); /*!< function to create a window struct */
 
 /* get the size of the screen to an area struct */
-RGFWDEF RGFW_area RGFW_window_screenSize(RGFW_window* win);
+RGFWDEF RGFW_area RGFW_getScreenSize(void);
 
 /* 
 	this function checks an *individual* event (and updates window structure attributes)
@@ -810,14 +810,65 @@ void RGFW_window_showMouse(RGFW_window* win, i8 show) {
 }
 #endif
 
+RGFWDEF RGFW_window* RGFW_window_basic_init (RGFW_rect rect, u16 args);
+
+RGFW_window* RGFW_window_basic_init (RGFW_rect rect, u16 args) {
+	RGFW_window* win = (RGFW_window*)RGFW_MALLOC(sizeof(RGFW_window)); /* make a new RGFW struct */
+
+	#ifdef RGFW_ALLOC_DROPFILES
+    win->event.droppedFiles = (char**)RGFW_MALLOC(sizeof(char*) * RGFW_MAX_DROPS);
+	
+	i32 i;
+	for (i = 0; i < RGFW_MAX_DROPS; i++)
+		win->event.droppedFiles[i] = (char*)RGFW_CALLOC(RGFW_MAX_PATH, sizeof(char));
+	#endif
+
+	#ifndef RGFW_X11 
+	RGFW_area screenR = RGFW_getScreenSize();
+	#else
+	Screen* scrn = DefaultScreenOfDisplay((Display*)win->src.display);
+	RGFW_area screenR = RGFW_AREA(scrn->width, scrn->height);
+	#endif
+
+	if (RGFW_FULLSCREEN & args)
+		rect = RGFW_RECT(0, 0, screenR.w, screenR.h);
+
+	if (RGFW_CENTER & args)
+		rect = RGFW_RECT((screenR.w - rect.w) / 2, (screenR.h - rect.h) / 2, rect.w, rect.h);
+
+	/* set and init the new window's data */
+	win->r = rect;
+	win->fpsCap = 0;
+	win->event.inFocus = 1;
+	win->event.droppedFilesCount = 0;
+	win->src.joystickCount = 0;
+	#ifdef RGFW_X11
+	win->src.cursor = 0;
+	#endif
+	#ifdef RGFW_MACOS
+	win->src.cursor = NULL;
+	#endif
+	#ifdef RGFW_WINDOWS
+	win->src.maxSize = RGFW_AREA(0, 0);
+	win->src.minSize = RGFW_AREA(0, 0);
+	#endif
+	win->src.winArgs = 0;
+
+	return win;
+}
+
 #ifdef RGFW_MACOS
 #define GL_SILENCE_DEPRECATION
 #define SILICON_IMPLEMENTATION
 #include "silicon.h"
 #endif
 
-#ifdef RGFW_EGL
+#if defined(RGFW_GL) || defined(RGFW_EGL) || defined(RGFW_OSMESA)
+#ifndef __APPLE__
 #include <GL/gl.h>
+#else
+#include <OpenGL/gl.h>
+#endif
 #endif
 
 #ifdef RGFW_VULKAN
@@ -1453,12 +1504,6 @@ void RGFW_setGLVersion(i32 major, i32 minor) {
 	RGFW_minorVersion = minor;
 }
 
-#ifndef __APPLE__
-#include <GL/gl.h>
-#else
-#include <OpenGL/gl.h>
-#endif
-
 u8* RGFW_getMaxGLVersion() {
     RGFW_window* dummy = RGFW_createWindow("dummy", RGFW_RECT(0, 0, 1, 1), 0);
 
@@ -1577,8 +1622,6 @@ void RGFW_closeEGL(RGFW_window* win) {
 #endif /* RGFW_EGL */
 
 #ifdef RGFW_X11
-
-#include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
 #include <X11/keysymdef.h>
@@ -1588,9 +1631,7 @@ void RGFW_closeEGL(RGFW_window* win) {
 #include <X11/cursorfont.h> /* for hiding */
 
 #include <limits.h> /* for data limits (mainly used in drag and drop functions) */
-#include <string.h> /* strlen and other char* managing functions */
 #include <fcntl.h>
-#include <assert.h>
 
 #ifdef __linux__
 #include <linux/joystick.h>
@@ -1645,41 +1686,12 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	}
 	#endif
 
-	RGFW_window* win = (RGFW_window*)RGFW_MALLOC(sizeof(RGFW_window)); /* make a new RGFW struct */
-
-	#ifdef RGFW_ALLOC_DROPFILES
-    win->event.droppedFiles = (char**)RGFW_MALLOC(sizeof(char*) * RGFW_MAX_DROPS);
-	
-	i32 i;
-	for (i = 0; i < RGFW_MAX_DROPS; i++)
-		win->event.droppedFiles[i] = (char*)RGFW_CALLOC(RGFW_MAX_PATH, sizeof(char));
-	#endif
-
     XInitThreads(); /* init X11 threading*/
-
-    /* init the display*/
-	win->src.display = XOpenDisplay(0);
-
-	RGFW_area screenR = RGFW_window_screenSize(win);
-
-	if (RGFW_FULLSCREEN & args)
-		rect = RGFW_RECT(0, 0, screenR.w, screenR.h);
-
-	if (RGFW_CENTER & args)
-		rect = RGFW_RECT((screenR.w - rect.w) / 2, (screenR.h - rect.h) / 2, rect.w, rect.h);
 
 	if (RGFW_OPENGL_SOFTWARE & args)
 		setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
 
-	/* set and init the new window's data */
-	win->r = rect;
-	win->fpsCap = 0;
-	win->event.inFocus = 1;
-	win->event.droppedFilesCount = 0;
-	win->src.joystickCount = 0;
-	win->src.cursor = 0;
-	win->src.winArgs = 0;
-	
+	RGFW_window* win = RGFW_window_basic_init(rect, args);	
 	if ((Display *)win->src.display == NULL)
 		return win;
 
@@ -1893,22 +1905,22 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
     return win; /*return newly created window*/
 }
 
-RGFW_area RGFW_window_screenSize(RGFW_window* win) {
-	assert(win != NULL);
+RGFW_area RGFW_getScreenSize(void) {
+	assert(RGFW_root != NULL);
 
-	Screen* scrn = DefaultScreenOfDisplay((Display*)win->src.display);
+	Screen* scrn = DefaultScreenOfDisplay((Display*)RGFW_root->src.display);
 	return RGFW_AREA(scrn->width, scrn->height);
 }
 
-RGFW_vector RGFW_window_getGlobalMousePoint(RGFW_window* win) {
-	assert(win != NULL);
+RGFW_vector RGFW_getGlobalMousePoint(void) {
+	assert(RGFW_root != NULL);
 	
 	RGFW_vector RGFWMouse;
 
 	i32 x, y;
 	u32 z;
 	Window window1, window2;
-    XQueryPointer((Display*)win->src.display, XDefaultRootWindow((Display*)win->src.display), &window1, &window2, &x, &RGFWMouse.x, &RGFWMouse.y, &y, &z);
+    XQueryPointer((Display*)RGFW_root->src.display, XDefaultRootWindow((Display*)RGFW_root->src.display), &window1, &window2, &x, &RGFWMouse.x, &RGFWMouse.y, &y, &z);
 
 	return RGFWMouse;
 }
@@ -2888,8 +2900,6 @@ u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
 #endif
 
 #ifdef RGFW_WINDOWS
-#include <GL/gl.h>
-
 char* createUTF8FromWideStringWin32(const WCHAR* source);
 
 #define GL_FRONT				0x0404
@@ -3004,32 +3014,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
     if (name[0] == 0) name = (char*)" ";
 
-	RGFW_window* win = (RGFW_window*)RGFW_MALLOC(sizeof(RGFW_window));
-
-	#ifdef RGFW_ALLOC_DROPFILES
-    win->event.droppedFiles = (char**)RGFW_MALLOC(sizeof(char*) * RGFW_MAX_DROPS);
-	
-	i32 i;
-	for (i = 0; i < RGFW_MAX_DROPS; i++)
-		win->event.droppedFiles[i] = (char*)RGFW_CALLOC(RGFW_MAX_PATH, sizeof(char));
-	#endif
-
-	RGFW_area screenArea = RGFW_window_screenSize(win);
-
-	if (RGFW_FULLSCREEN & args)
-		rect = RGFW_RECT(0, 0, screenArea.w, screenArea.h);
-
-	if (RGFW_CENTER & args)
-		rect = RGFW_RECT((screenArea.w - rect.w) / 2,  (screenArea.h - rect.h) / 2, rect.w, rect.h);
-
-	win->r = rect;
-
-	win->fpsCap = 0;
-	win->event.inFocus = 1;
-	win->src.joystickCount = 0;
-	win->event.droppedFilesCount = 0;
-	win->src.maxSize = RGFW_AREA(0, 0);
-	win->src.minSize = RGFW_AREA(0, 0);
+	RGFW_window* win = RGFW_window_basic_init(rect, args);
 
     HINSTANCE inh = GetModuleHandle(NULL);
 
@@ -3288,16 +3273,16 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 }
 
 
-RGFW_area RGFW_window_screenSize(RGFW_window* win) {
-	assert(win != NULL);
+RGFW_area RGFW_getScreenSize(void) {
+	assert(RGFW_root != NULL);
 
 	return RGFW_AREA(GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES));
 }
 
 u32 RGFWMouse[2];
 
-RGFW_vector RGFW_window_getGlobalMousePoint(RGFW_window* win) {
-	assert(win != NULL);
+RGFW_vector RGFW_getGlobalMousePoint(void) {
+	assert(RGFW_root != NULL);
 
 	POINT p; 
 	GetCursorPos(&p);
@@ -3931,39 +3916,9 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	void* WindowDelegateClass = objc_allocateClassPair((Class)objc_getClass("NSObject"), "WindowDelegate", 0);
 	class_addMethod(WindowDelegateClass, sel_registerName("windowDidResize:"), (IMP)RGFW_windowDidResize,  "v@:@");
 
-	RGFW_window* win = (RGFW_window*)malloc(sizeof(RGFW_window));
-    if (!win) {
-        // Handle memory allocation error
-        fprintf(stderr, "Failed to allocate memory for window\n");
-        exit(EXIT_FAILURE);
-    }
-
     NSApp = NSApplication_sharedApplication();
 
-	RGFW_area screenArea = RGFW_window_screenSize(win);
-
-	if (RGFW_FULLSCREEN & args)
-		rect = RGFW_RECT(0, 0, screenArea.w, screenArea.h);
-
-	if (RGFW_CENTER & args)
-		rect = RGFW_RECT((screenArea.w - rect.w) / 2, (screenArea.h - rect.h) / 2, rect.w, rect.h);
-
-	win->r = rect;
-
-	win->fpsCap = 0;
-	win->event.inFocus = 1;
-	win->event.type = 0;
-	win->event.droppedFilesCount = 0;
-
-	win->src.cursor = NSCursor_currentCursor();
-
-	u32 i;
-	#ifdef RGFW_ALLOC_DROPFILES
-    win->event.droppedFiles = (char**)RGFW_MALLOC(sizeof(char*) * RGFW_MAX_DROPS);
-	
-	for (i = 0; i < RGFW_MAX_DROPS; i++)
-		win->event.droppedFiles[i] = (char*)RGFW_CALLOC(RGFW_MAX_PATH, sizeof(char));
-	#endif
+	RGFW_window* win = RGFW_window_basic_init(rect, args);
 
 	NSRect windowRect = NSMakeRect(win->r.x, win->r.y, win->r.w, win->r.h);
 	NSBackingStoreType macArgs = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled;
@@ -4097,8 +4052,8 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 }
 
 
-RGFW_area RGFW_window_screenSize(RGFW_window* win){
-	assert(win != NULL);
+RGFW_area RGFW_getScreenSize(void){
+	assert(RGFW_root != NULL);
 	
 	static CGDirectDisplayID display = 0;
 	
@@ -4108,10 +4063,10 @@ RGFW_area RGFW_window_screenSize(RGFW_window* win){
 	return RGFW_AREA(CGDisplayPixelsWide(display), CGDisplayPixelsHigh(display));
 }
 
-RGFW_vector RGFW_window_getGlobalMousePoint(RGFW_window* win) {
-	assert(win != NULL);
+RGFW_vector RGFW_getGlobalMousePoint(void) {
+	assert(RGFW_root != NULL);
 
-	return win->event.point; /* the point is loaded during event checks */
+	return RGFW_root->event.point; /* the point is loaded during event checks */
 }
 
 u32 RGFW_keysPressed[10]; /*10 keys at a time*/
@@ -4662,7 +4617,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 void RGFW_window_maximize(RGFW_window* win) {
 	assert(win != NULL);
 	
-	RGFW_area screen = RGFW_window_screenSize(win);
+	RGFW_area screen = RGFW_getScreenSize();
 
 	RGFW_window_move(win, RGFW_VECTOR(0, 0));
 	RGFW_window_resize(win, screen);
