@@ -62,6 +62,7 @@ void drawRect(RGFW_window* win, RGFW_rect r, u8 color[3]) {
 
 int main() {
     RGFW_window* win = RGFW_createWindow("Basic buffer example", RGFW_RECT(0, 0, 500, 500), RGFW_CENTER);
+    win->fpsCap = 60;
 
     bitmap_rgbToBgr(icon, RGFW_AREA(3, 3));
 
