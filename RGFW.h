@@ -2006,249 +2006,247 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 				break;
 			
 			u8 formFree = 0;
-			switch(E.xclient.message_type) {
-				case XdndEnter: {
-					u64 count;
-					Atom* formats = (Atom*)0;
-					Bool list = E.xclient.data.l[1] & 1;
+			if (E.xclient.message_type == XdndEnter) {
+				u64 count;
+				Atom* formats = (Atom*)0;
+				Bool list = E.xclient.data.l[1] & 1;
 
-					xdnd.source  = E.xclient.data.l[0];
-					xdnd.version = E.xclient.data.l[1] >> 24;
-					xdnd.format  = None;
+				xdnd.source  = E.xclient.data.l[0];
+				xdnd.version = E.xclient.data.l[1] >> 24;
+				xdnd.format  = None;
 
-					if (xdnd.version > 5)
-						break;
-
-					if (list) {
-						Atom actualType;
-						i32 actualFormat;
-						u64 bytesAfter;
-
-						XGetWindowProperty((Display*)win->src.display,
-										xdnd.source,
-										XdndTypeList,
-										0,
-										LONG_MAX,
-										False,
-										4,
-										&actualType,
-										&actualFormat,
-										&count,
-										&bytesAfter,
-										(u8**) &formats);
-					}
-					else {
-						formats = (Atom*)RGFW_MALLOC(E.xclient.data.l[2] + E.xclient.data.l[3] + E.xclient.data.l[4]);
-						formFree = 1;
-
-						count = 0;
-
-						if (E.xclient.data.l[2] != None)
-							formats[count++] = E.xclient.data.l[2];
-						if (E.xclient.data.l[3] != None)
-							formats[count++] = E.xclient.data.l[3];
-						if (E.xclient.data.l[4] != None)
-							formats[count++] = E.xclient.data.l[4];
-					}
-
-					u32 i;
-					for (i = 0;  i < count;  i++) {
-						char* name = XGetAtomName((Display*)win->src.display, formats[i]);
-						
-						char* links[2] = {(char*)(const char*)"text/uri-list", (char*)(const char*)"text/plain"};
-						for (; 1; name++) {
-							u32 j;
-							for (j = 0; j < 2; j++) {
-								if (*links[j] != *name) {
-									links[j] = (char*)(const char*)"\1";
-									continue;
-								}
-								
-								if (*links[j] == '\0' && *name == '\0')
-									xdnd.format = formats[i];
-
-								if (*links[j] != '\0' && *links[j] != '\1') 
-									links[j]++;
-							}
-
-							if (*name == '\0')
-								break;
-						}
-					}
-
-					if (list && formats) {
-						XFree(formats);
-						formats = (Atom*)0;
-					}
-					else if (formFree && formats != (Atom*)0) {
-						RGFW_FREE(formats);
-
-						formats = (Atom*)0;
-						formFree = 1;
-					}
-
+				if (xdnd.version > 5)
 					break;
+
+				if (list) {
+					Atom actualType;
+					i32 actualFormat;
+					u64 bytesAfter;
+
+					XGetWindowProperty((Display*)win->src.display,
+									xdnd.source,
+									XdndTypeList,
+									0,
+									LONG_MAX,
+									False,
+									4,
+									&actualType,
+									&actualFormat,
+									&count,
+									&bytesAfter,
+									(u8**) &formats);
 				}
-				case XdndPosition: {
-					const i32 xabs = (E.xclient.data.l[2] >> 16) & 0xffff;
-					const i32 yabs = (E.xclient.data.l[2]) & 0xffff;
-					Window dummy;
-					i32 xpos, ypos;
+				else {
+					formats = (Atom*)RGFW_MALLOC(E.xclient.data.l[2] + E.xclient.data.l[3] + E.xclient.data.l[4]);
+					formFree = 1;
 
-					if (xdnd.version > 5)
-						break;
+					count = 0;
 
-					XTranslateCoordinates((Display*)win->src.display,
-										XDefaultRootWindow((Display*)win->src.display),
-										(Window)win->src.window,
-										xabs, yabs,
-										&xpos, &ypos,
-										&dummy);
+					if (E.xclient.data.l[2] != None)
+						formats[count++] = E.xclient.data.l[2];
+					if (E.xclient.data.l[3] != None)
+						formats[count++] = E.xclient.data.l[3];
+					if (E.xclient.data.l[4] != None)
+						formats[count++] = E.xclient.data.l[4];
+				}
 
-					win->event.point.x = xpos;
-					win->event.point.y = ypos;
+				u32 i;
+				for (i = 0;  i < count;  i++) {
+					char* name = XGetAtomName((Display*)win->src.display, formats[i]);
+					
+					char* links[2] = {(char*)(const char*)"text/uri-list", (char*)(const char*)"text/plain"};
+					for (; 1; name++) {
+						u32 j;
+						for (j = 0; j < 2; j++) {
+							if (*links[j] != *name) {
+								links[j] = (char*)(const char*)"\1";
+								continue;
+							}
+							
+							if (*links[j] == '\0' && *name == '\0')
+								xdnd.format = formats[i];
 
+							if (*links[j] != '\0' && *links[j] != '\1') 
+								links[j]++;
+						}
+
+						if (*name == '\0')
+							break;
+					}
+				}
+
+				if (list && formats) {
+					XFree(formats);
+					formats = (Atom*)0;
+				}
+				else if (formFree && formats != (Atom*)0) {
+					RGFW_FREE(formats);
+
+					formats = (Atom*)0;
+					formFree = 1;
+				}
+
+				break;
+			}
+			else if (E.xclient.message_type ==  XdndPosition) {
+				const i32 xabs = (E.xclient.data.l[2] >> 16) & 0xffff;
+				const i32 yabs = (E.xclient.data.l[2]) & 0xffff;
+				Window dummy;
+				i32 xpos, ypos;
+
+				if (xdnd.version > 5)
+					break;
+
+				XTranslateCoordinates((Display*)win->src.display,
+									XDefaultRootWindow((Display*)win->src.display),
+									(Window)win->src.window,
+									xabs, yabs,
+									&xpos, &ypos,
+									&dummy);
+
+				win->event.point.x = xpos;
+				win->event.point.y = ypos;
+
+				XEvent reply = { ClientMessage };
+				reply.xclient.window = xdnd.source;
+				reply.xclient.message_type = XdndStatus;
+				reply.xclient.format = 32;
+				reply.xclient.data.l[0] = (long)win->src.window;
+				reply.xclient.data.l[2] = 0;
+				reply.xclient.data.l[3] = 0;
+
+				if (xdnd.format) {
+					reply.xclient.data.l[1] = 1;
+					if (xdnd.version >= 2)
+						reply.xclient.data.l[4] = XdndActionCopy;
+				}
+
+				XSendEvent((Display*)win->src.display, xdnd.source, False, NoEventMask, &reply);
+				XFlush((Display*)win->src.display);
+			}
+			else if (E.xclient.message_type == XdndDrop) {
+				if (xdnd.version > 5)
+					break;
+				
+				win->event.type = RGFW_dnd_init;
+
+				if (xdnd.format) {
+					Time time = CurrentTime;
+
+					if (xdnd.version >= 1)
+						time = E.xclient.data.l[2];
+
+					XConvertSelection((Display*)win->src.display,
+									XdndSelection,
+									xdnd.format,
+									XdndSelection,
+									(Window)win->src.window,
+									time);
+				}
+				else if (xdnd.version >= 2) {
 					XEvent reply = { ClientMessage };
 					reply.xclient.window = xdnd.source;
-					reply.xclient.message_type = XdndStatus;
+					reply.xclient.message_type = XdndFinished;
 					reply.xclient.format = 32;
 					reply.xclient.data.l[0] = (long)win->src.window;
-					reply.xclient.data.l[2] = 0;
-					reply.xclient.data.l[3] = 0;
+					reply.xclient.data.l[1] = 0;
+					reply.xclient.data.l[2] = None;
 
-					if (xdnd.format) {
-						reply.xclient.data.l[1] = 1;
-						if (xdnd.version >= 2)
-							reply.xclient.data.l[4] = XdndActionCopy;
-					}
-
-					XSendEvent((Display*)win->src.display, xdnd.source, False, NoEventMask, &reply);
+					XSendEvent((Display*)win->src.display, xdnd.source,
+							False, NoEventMask, &reply);
 					XFlush((Display*)win->src.display);
 				}
-				break;
-				
-				case XdndDrop: {
-					if (xdnd.version > 5)
-						break;
-					
-					win->event.type = RGFW_dnd_init;
-
-					if (xdnd.format) {
-						Time time = CurrentTime;
-
-						if (xdnd.version >= 1)
-							time = E.xclient.data.l[2];
-
-						XConvertSelection((Display*)win->src.display,
-										XdndSelection,
-										xdnd.format,
-										XdndSelection,
-										(Window)win->src.window,
-										time);
-					}
-					else if (xdnd.version >= 2) {
-						XEvent reply = { ClientMessage };
-						reply.xclient.window = xdnd.source;
-						reply.xclient.message_type = XdndFinished;
-						reply.xclient.format = 32;
-						reply.xclient.data.l[0] = (long)win->src.window;
-						reply.xclient.data.l[1] = 0;
-						reply.xclient.data.l[2] = None;
-
-						XSendEvent((Display*)win->src.display, xdnd.source,
-								False, NoEventMask, &reply);
-						XFlush((Display*)win->src.display);
-					}
-				}
-				default: break;
 			}
+			break;
         case SelectionNotify:
-			if (E.xselection.property == XdndSelection && (win->src.winArgs | RGFW_ALLOW_DND)) {
-				char* data;
-                u64 result;
+			/* this is only for checking for xdnd drops */
+			if (E.xselection.property != XdndSelection || !(win->src.winArgs | RGFW_ALLOW_DND))
+				break;
 
-				Atom actualType;
-				i32 actualFormat;
-				u64 bytesAfter;
+			char* data;
+			u64 result;
 
-				XGetWindowProperty((Display*)win->src.display, E.xselection.requestor, E.xselection.property, 0, LONG_MAX, False, E.xselection.target, &actualType, &actualFormat, &result, &bytesAfter, (u8**) &data);
+			Atom actualType;
+			i32 actualFormat;
+			u64 bytesAfter;
 
-                if (result)
-					break;
-				
-				/*
-				SOURCED FROM GLFW _glfwParseUriList
-				Copyright (c) 2002-2006 Marcus Geelnard
-				Copyright (c) 2006-2019 Camilla Löwy
-				*/
+			XGetWindowProperty((Display*)win->src.display, E.xselection.requestor, E.xselection.property, 0, LONG_MAX, False, E.xselection.target, &actualType, &actualFormat, &result, &bytesAfter, (u8**) &data);
 
-				const char* prefix = "file://";
-				
-				char* line;
+			if (result)
+				break;
+			
+			/*
+			SOURCED FROM GLFW _glfwParseUriList
+			Copyright (c) 2002-2006 Marcus Geelnard
+			Copyright (c) 2006-2019 Camilla Löwy
+			*/
 
-				win->event.droppedFilesCount = 0;
+			const char* prefix = "file://";
+			
+			char* line;
 
-				win->event.type = RGFW_dnd;
+			win->event.droppedFilesCount = 0;
 
-				while ((line = strtok(data, "\r\n"))) {
-					char path[RGFW_MAX_PATH];
+			win->event.type = RGFW_dnd;
 
-					data = NULL;
+			while ((line = strtok(data, "\r\n"))) {
+				char path[RGFW_MAX_PATH];
 
-					if (line[0] == '#')
-						continue;
+				data = NULL;
 
-					char* l;						
-					for (l = line; 1; l++) {
-						if ((l - line) > 7)
-							break;
-						else if (*l != prefix[(l - line)])
-							break;
-						else if (*l == '\0' && prefix[(l - line)] == '\0') {
-							line += 7;
-							while (*line != '/')
-								line++;
-							break;
-						}
-						else if (*l == '\0')
-							break; 
+				if (line[0] == '#')
+					continue;
+
+				char* l;						
+				for (l = line; 1; l++) {
+					if ((l - line) > 7)
+						break;
+					else if (*l != prefix[(l - line)])
+						break;
+					else if (*l == '\0' && prefix[(l - line)] == '\0') {
+						line += 7;
+						while (*line != '/')
+							line++;
+						break;
 					}
-
-					win->event.droppedFilesCount++;
-	
-					size_t index = 0; 
-					while (*line) {
-						if (line[0] == '%' && line[1] && line[2]) {
-							const char digits[3] = { line[1], line[2], '\0' };
-							path[index] = (char) strtol(digits, NULL, 16);
-							line += 2;
-						}
-						else
-							path[index] = *line;
-
-						index++;
-						line++;
-					}
-					
-					strcpy(win->event.droppedFiles[win->event.droppedFilesCount - 1], path);
+					else if (*l == '\0')
+						break; 
 				}
 
-                if (data)
-                    XFree(data);
+				win->event.droppedFilesCount++;
 
-                if (xdnd.version >= 2) {
-                    XEvent reply = { ClientMessage };
-                    reply.xclient.window = xdnd.source;
-                    reply.xclient.message_type = XdndFinished;
-                    reply.xclient.format = 32;
-                    reply.xclient.data.l[0] = (long)win->src.display;
-                    reply.xclient.data.l[1] = result;
-                    reply.xclient.data.l[2] = XdndActionCopy;
+				size_t index = 0; 
+				while (*line) {
+					if (line[0] == '%' && line[1] && line[2]) {
+						const char digits[3] = { line[1], line[2], '\0' };
+						path[index] = (char) strtol(digits, NULL, 16);
+						line += 2;
+					}
+					else
+						path[index] = *line;
 
-                    XSendEvent((Display*)win->src.display, xdnd.source, False, NoEventMask, &reply);
-                    XFlush((Display*)win->src.display);
-                }
-            }
+					index++;
+					line++;
+				}
+				
+				strcpy(win->event.droppedFiles[win->event.droppedFilesCount - 1], path);
+			}
+
+			if (data)
+				XFree(data);
+
+			if (xdnd.version >= 2) {
+				XEvent reply = { ClientMessage };
+				reply.xclient.window = xdnd.source;
+				reply.xclient.message_type = XdndFinished;
+				reply.xclient.format = 32;
+				reply.xclient.data.l[0] = (long)win->src.display;
+				reply.xclient.data.l[1] = result;
+				reply.xclient.data.l[2] = XdndActionCopy;
+
+				XSendEvent((Display*)win->src.display, xdnd.source, False, NoEventMask, &reply);
+				XFlush((Display*)win->src.display);
+			}
 
 			break;
 
