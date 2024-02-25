@@ -302,10 +302,6 @@ u8 RGFW_JS_R1 = 6; /* right bumper */
 u8 RGFW_JS_R2 = 7; /* right trigger */
 #endif /* RGFW_NO_JOYSTICK_CODES */
 
-#ifdef __cplusplus
-
-#endif
-
 /* basic vector type, if there's not already a point/vector type of choice */
 #ifndef RGFW_vector
 typedef struct {i32 x, y;} RGFW_vector;
@@ -1650,6 +1646,10 @@ void RGFW_closeEGL(RGFW_window* win) {
 }
 
 #endif /* RGFW_EGL */
+
+/*
+This is where OS specific stuff starts
+*/
 
 #ifdef RGFW_X11
 #include <X11/Xutil.h>
@@ -3176,34 +3176,28 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
 		SetPixelFormat((HDC)win->src.window, pixelFormat, &pfd);
 
-        if (wglCreateContextAttribsARB) {
-			i32 index = 0;
-			
-			SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
+		i32 index = 0;
+		
+		SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
 
-            if (RGFW_majorVersion || RGFW_minorVersion) {
-                SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion);
-                SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_minorVersion);
-            }
-
-            SET_ATTRIB(0, 0);
-
-            win->src.rSurf = wglCreateContextAttribsARB((HDC)win->src.window, NULL, attribs);
-        }
-        else {
-			fprintf(stderr, "Failed to create an accelerated OpenGL Context\n");
-		    win->src.rSurf = wglCreateContext((HDC)win->src.window);
+		if (RGFW_majorVersion || RGFW_minorVersion) {
+			SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion);
+			SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_minorVersion);
 		}
+
+		SET_ATTRIB(0, 0);
+
+		win->src.rSurf = wglCreateContextAttribsARB((HDC)win->src.window, NULL, attribs);
 	}
-	else 
+	else {
 		fprintf(stderr, "Failed to create an accelerated OpenGL Context\n");
+		win->src.rSurf = wglCreateContext((HDC)win->src.window);
+	}
 	#endif
 
 	#ifdef RGFW_OPENGL
-	if (RGFW_root != NULL)
-		if (wglShareLists((HGLRC)RGFW_root->src.rSurf, (HGLRC)win->src.rSurf) == 0) {
-			fprintf(stderr, "Failed to link to dummy context : %li\n", GetLastError()); 
-		}
+	if (RGFW_root != NULL && wglShareLists((HGLRC)RGFW_root->src.rSurf, (HGLRC)win->src.rSurf) == 0)
+		fprintf(stderr, "Failed to link to dummy context : %li\n", GetLastError());
 	#endif
 
 	#ifdef RGFW_OSMESA
@@ -3241,8 +3235,6 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 RGFW_area RGFW_getScreenSize(void) {
 	return RGFW_AREA(GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES));
 }
-
-u32 RGFWMouse[2];
 
 RGFW_vector RGFW_getGlobalMousePoint(void) {
 	POINT p; 
