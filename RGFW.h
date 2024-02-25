@@ -170,6 +170,13 @@ extern "C" {
 #include <vulkan/vulkan.h>
 #endif
 
+#if defined(RGFW_X11) && defined(RGFW_GL)
+#ifndef GLX_MESA_swap_control
+#define  GLX_MESA_swap_control
+#endif
+#include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
+#endif
+
 #if defined(RGFW_DIRECTX) && defined(RGFW_WINDOWS)
 #include <d3d11.h>
 #include <dxgi.h>
@@ -1570,13 +1577,6 @@ void RGFW_closeEGL(RGFW_window* win) {
 #include <X11/keysymdef.h>
 #include <unistd.h>
 
-#ifdef RGFW_GL
-
-#ifndef GLX_MESA_swap_control
-#define  GLX_MESA_swap_control
-#endif
-#include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
-#endif
 #include <X11/XKBlib.h> /* for converting keycode to string */
 #include <X11/cursorfont.h> /* for hiding */
 
@@ -1670,7 +1670,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	win->event.inFocus = 1;
 	win->event.droppedFilesCount = 0;
 	win->src.joystickCount = 0;
-	win->src.cursor = NULL;
+	win->src.cursor = 0;
 	win->src.winArgs = 0;
 	
 	if ((Display *)win->src.display == NULL)
@@ -2516,7 +2516,7 @@ void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels
 	
 	#ifndef RGFW_NO_X11_CURSOR
 	/* free the previous cursor */
-	if (win->src.cursor != NULL && win->src.cursor != -1)
+	if (win->src.cursor && win->src.cursor != -1)
 		XFreeCursor((Display*)win->src.display, (Cursor)win->src.cursor);
 
 	XcursorImage* native = XcursorImageCreate(a.w, a.h);
@@ -2554,7 +2554,7 @@ void RGFW_window_setMouseDefault(RGFW_window* win) {
 	assert(win != NULL);
 	
 	/* free the previous cursor */
-	if (win->src.cursor != NULL && win->src.cursor != -1)
+	if (win->src.cursor && win->src.cursor != -1)
 		XFreeCursor((Display*)win->src.display, (Cursor)win->src.cursor);
 
 	win->src.winArgs |= RGFW_MOUSE_CHANGED;
@@ -3847,7 +3847,7 @@ u32 RGFW_windows_size = 0;
 u32 RGFW_OnClose(void* self) {
 	u32 i;
 	for (i = 0; i < RGFW_windows_size; i++)
-		if (RGFW_windows[i] && RGFW_windows[i]->window == self)
+		if (RGFW_windows[i] && RGFW_windows[i]->src.window == self)
 			break;
 
 	RGFW_windows[i]->event.type = RGFW_quit;
@@ -3870,7 +3870,7 @@ bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
 	bool found = false;
 
 	for (i = 0; i < RGFW_windows_size; i++)
-		if (RGFW_windows[i]->window == window){
+		if (RGFW_windows[i]->src.window == window){
 			found = true;
 			break;
 		}
@@ -4444,7 +4444,7 @@ void RGFW_window_close(RGFW_window* win){
 
 	u32 i;
 	for (i = 0; i < RGFW_windows_size; i++)
-		if (RGFW_windows[i]->window == win->src.window){
+		if (RGFW_windows[i]->src.window == win->src.window){
 			RGFW_windows[i] = NULL;
 			break;
 		}
