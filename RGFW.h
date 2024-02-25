@@ -2002,10 +2002,12 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 				much of this event (drag and drop code) is source from glfw
 			*/
 
-			else if (win->src.winArgs & RGFW_ALLOW_DND) {
-				u8 formFree = 0;
-
-				if (E.xclient.message_type == XdndEnter) {
+			if ((win->src.winArgs & RGFW_ALLOW_DND) == 0)
+				break;
+			
+			u8 formFree = 0;
+			switch(E.xclient.message_type) {
+				case XdndEnter: {
 					u64 count;
 					Atom* formats = (Atom*)0;
 					Bool list = E.xclient.data.l[1] & 1;
@@ -2084,44 +2086,10 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 						formats = (Atom*)0;
 						formFree = 1;
 					}
+
+					break;
 				}
-				else if (E.xclient.message_type == XdndDrop) {
-					win->event.type = RGFW_dnd_init;
-
-					Time time = CurrentTime;
-
-					if (xdnd.version > 5)
-						break;
-
-					if (xdnd.format) {
-						if (xdnd.version >= 1)
-							time = E.xclient.data.l[2];
-
-						XConvertSelection((Display*)win->src.display,
-										XdndSelection,
-										xdnd.format,
-										XdndSelection,
-										(Window)win->src.window,
-										time);
-
-
-					}
-					else if (xdnd.version >= 2) {
-						XEvent reply = { ClientMessage };
-						reply.xclient.window = xdnd.source;
-						reply.xclient.message_type = XdndFinished;
-						reply.xclient.format = 32;
-						reply.xclient.data.l[0] = (long)win->src.window;
-						reply.xclient.data.l[1] = 0;
-						reply.xclient.data.l[2] = None;
-
-						XSendEvent((Display*)win->src.display, xdnd.source,
-								False, NoEventMask, &reply);
-						XFlush((Display*)win->src.display);
-					}
-				}
-
-				else if (E.xclient.message_type == XdndPosition) {
+				case XdndPosition: {
 					const i32 xabs = (E.xclient.data.l[2] >> 16) & 0xffff;
 					const i32 yabs = (E.xclient.data.l[2]) & 0xffff;
 					Window dummy;
@@ -2157,10 +2125,43 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 					XSendEvent((Display*)win->src.display, xdnd.source, False, NoEventMask, &reply);
 					XFlush((Display*)win->src.display);
 				}
+				break;
+				
+				case XdndDrop: {
+					if (xdnd.version > 5)
+						break;
+					
+					win->event.type = RGFW_dnd_init;
+
+					if (xdnd.format) {
+						Time time = CurrentTime;
+
+						if (xdnd.version >= 1)
+							time = E.xclient.data.l[2];
+
+						XConvertSelection((Display*)win->src.display,
+										XdndSelection,
+										xdnd.format,
+										XdndSelection,
+										(Window)win->src.window,
+										time);
+					}
+					else if (xdnd.version >= 2) {
+						XEvent reply = { ClientMessage };
+						reply.xclient.window = xdnd.source;
+						reply.xclient.message_type = XdndFinished;
+						reply.xclient.format = 32;
+						reply.xclient.data.l[0] = (long)win->src.window;
+						reply.xclient.data.l[1] = 0;
+						reply.xclient.data.l[2] = None;
+
+						XSendEvent((Display*)win->src.display, xdnd.source,
+								False, NoEventMask, &reply);
+						XFlush((Display*)win->src.display);
+					}
+				}
+				default: break;
 			}
-
-			break;
-
         case SelectionNotify:
 			if (E.xselection.property == XdndSelection && (win->src.winArgs | RGFW_ALLOW_DND)) {
 				char* data;
