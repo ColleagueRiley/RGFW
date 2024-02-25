@@ -225,7 +225,7 @@ int createGraphicsPipeline(RGFW_window* win) {
 }
 
 int commandBuffers(RGFW_window* win) {
-    for (size_t i = 0; i < win->image_count; i++) {
+    for (size_t i = 0; i < win->src.image_count; i++) {
         /* begin command buffer */
         VkCommandBufferBeginInfo begin_info = {0};
         begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
