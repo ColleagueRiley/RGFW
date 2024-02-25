@@ -177,6 +177,18 @@ extern "C" {
 #include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
 #endif
 
+#ifdef RGFW_EGL
+#include <EGL/egl.h>
+#endif
+
+#ifdef RGFW_OSMESA
+#ifndef __APPLE__
+#include <GL/osmesa.h>
+#else
+#include <OpenGL/osmesa.h>
+#endif
+#endif
+
 #if defined(RGFW_DIRECTX) && defined(RGFW_WINDOWS)
 #include <d3d11.h>
 #include <dxgi.h>
@@ -364,7 +376,7 @@ typedef struct RGFW_window_src {
 	void* window;
 	#endif
 
-    #ifdef RGFW_GL
+    #if defined(RGFW_GL) && !defined(RGFW_OSMESA)
 	#ifdef RGFW_MACOS
 	void* rSurf; /*!< source graphics context */
 	#endif
@@ -383,6 +395,10 @@ typedef struct RGFW_window_src {
     u32 image_count;
 	VkImage* swapchain_images;
     VkImageView* swapchain_image_views;
+	#endif
+
+	#ifdef RGFW_OSMESA
+	OSMesaContext rSurf;
 	#endif
 	#endif
 
@@ -800,16 +816,7 @@ void RGFW_window_showMouse(RGFW_window* win, i8 show) {
 #include "silicon.h"
 #endif
 
-#ifdef RGFW_OSMESA
-#ifndef __APPLE__
-#include <GL/osmesa.h>
-#else
-#include <OpenGL/osmesa.h>
-#endif
-#endif
-
 #ifdef RGFW_EGL
-#include <EGL/egl.h>
 #include <GL/gl.h>
 #endif
 
