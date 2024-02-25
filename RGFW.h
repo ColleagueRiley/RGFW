@@ -1758,7 +1758,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	/* Get a visual */
 	XVisualInfo* vi = glXGetVisualFromFBConfig((Display*)win->src.display, bestFbc);
 	#else
-	XVIsualInfo* vi = XDefaultVisual((Display*)win->src.display, XDefaultScreen((Display*)win->src.display));
+	XVisualInfo* vi = XDefaultVisual((Display*)win->src.display, XDefaultScreen((Display*)win->src.display));
 	#endif
 	/* make X window attrubutes*/
 	XSetWindowAttributes swa;
