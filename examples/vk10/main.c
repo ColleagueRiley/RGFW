@@ -40,7 +40,7 @@ int draw_frame(RGFW_window* win) {
     vkWaitForFences(vulkan_info->device, 1, &vulkan_info->in_flight_fences[vulkan_info->current_frame], VK_TRUE, UINT64_MAX);
 
     u32 image_index = 0;
-    vkAcquireNextImageKHR(vulkan_info->device, win->swapchain, UINT64_MAX, vulkan_info->available_semaphores[vulkan_info->current_frame], VK_NULL_HANDLE, &image_index);
+    vkAcquireNextImageKHR(vulkan_info->device, win->src.swapchain, UINT64_MAX, vulkan_info->available_semaphores[vulkan_info->current_frame], VK_NULL_HANDLE, &image_index);
 
     if (vulkan_info->image_in_flight[image_index] != VK_NULL_HANDLE) {
         vkWaitForFences(vulkan_info->device, 1, &vulkan_info->image_in_flight[image_index], VK_TRUE, UINT64_MAX);
@@ -76,7 +76,7 @@ int draw_frame(RGFW_window* win) {
     present_info.waitSemaphoreCount = 1;
     present_info.pWaitSemaphores = signal_semaphores;
 
-    VkSwapchainKHR swapChains[] = { win->swapchain };
+    VkSwapchainKHR swapChains[] = { win->src.swapchain };
     present_info.swapchainCount = 1;
     present_info.pSwapchains = swapChains;
 
