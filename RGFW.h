@@ -818,6 +818,9 @@ RGFW_window* RGFW_window_basic_init (RGFW_rect rect, u16 args) {
 	#ifndef RGFW_X11 
 	RGFW_area screenR = RGFW_getScreenSize();
 	#else
+	win->src.display = XOpenDisplay(NULL);
+	assert(win->src.display != NULL);
+
 	Screen* scrn = DefaultScreenOfDisplay((Display*)win->src.display);
 	RGFW_area screenR = RGFW_AREA(scrn->width, scrn->height);
 	#endif
@@ -854,10 +857,11 @@ void RGFW_init_buffer(RGFW_window* win) {
 	#if !defined(RGFW_WINDOWS) || defined(RGFW_OSMESA)
 	win->buffer = RGFW_MALLOC(win->r.w * win->r.h * 4);
 	#endif
+
 	#ifdef RGFW_OSMESA
 	win->src.rSurf = OSMesaCreateContext(OSMESA_RGBA, NULL);
 	OSMesaMakeCurrent(win->src.rSurf, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
-	#else
+	#endif
 	#ifdef RGFW_MACOS
 		win->src.rSurf = NSGraphicsContext_graphicsContextWithWindow(win->src.window);
 		if (win->src.rSurf == NULL)
@@ -878,7 +882,6 @@ void RGFW_init_buffer(RGFW_window* win) {
 
 	win->src.bitmap = CreateDIBSection(win->src.window, &bmi, DIB_RGB_COLORS, (void **)&win->buffer, 0, 0);
 	win->src.hdcMem = CreateCompatibleDC(win->src.window);
-	#endif
 	#endif
 	#endif
 }
@@ -1722,8 +1725,6 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
 
 	RGFW_window* win = RGFW_window_basic_init(rect, args);	
-	if ((Display *)win->src.display == NULL)
-		return win;
 
    	u64 event_mask =  KeyPressMask | KeyReleaseMask  | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask; /* X11 events accepted*/
 
@@ -1734,6 +1735,11 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	GLXFBConfig* fbc = glXChooseFBConfig((Display*)win->src.display, DefaultScreen(win->src.display), visual_attribs, &fbcount);
 
 	i32 best_fbc = -1, worst_fbc = -1, best_num_samp = -1, worst_num_samp = 999;
+
+	if (fbcount == 0) {
+		printf("Failed to find any valid GLX configs\n");
+		return NULL;
+	}
 
 	i32 i;
 	for (i = 0; i < fbcount; i++) {
@@ -1751,15 +1757,29 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		XFree(vi);
 	}
 
+	if (best_fbc == -1) { 
+		printf("Failed to get a valid GLX visual\n");
+		return NULL;
+	}
+
 	GLXFBConfig bestFbc = fbc[best_fbc];
-
-	XFree(fbc);
-
+	
 	/* Get a visual */
 	XVisualInfo* vi = glXGetVisualFromFBConfig((Display*)win->src.display, bestFbc);
+	
+	XFree(fbc);
+
+	i8 depth = 32;
+	u32 valuemask = CWBorderPixel|CWColormap;
 	#else
-	XVisualInfo* vi = XDefaultVisual((Display*)win->src.display, XDefaultScreen((Display*)win->src.display));
+    XVisualInfo* vi = (XVisualInfo*)malloc(sizeof(XVisualInfo));
+	vi->screen = DefaultScreen((Display*)win->src.display);
+	vi->visual = DefaultVisual((Display*)win->src.display, vi->screen);
+
+	i8 depth = 0;
+	u32 valuemask = 0;
 	#endif
+	
 	/* make X window attrubutes*/
 	XSetWindowAttributes swa;
 	Colormap cmap;
@@ -1774,8 +1794,8 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
 	/* create the window*/
 	win->src.window = XCreateWindow((Display *)win->src.display, RootWindow((Display *)win->src.display, vi->screen), win->r.x, win->r.y, win->r.w, win->r.h,
-						0, vi->depth, InputOutput, vi->visual,
-						CWBorderPixel|CWColormap|CWEventMask, &swa);
+						0, depth, InputOutput, vi->visual,
+						valuemask|CWEventMask, &swa);
 
 
 	XFreeColors((Display*)win->src.display, cmap, NULL, 0, 0);
@@ -4498,6 +4518,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	
 	#ifdef RGFW_X11
 		win->src.bitmap->data = (char*)win->buffer;
+		
 		XPutImage(win->src.display, (Window)win->src.window, XDefaultGC(win->src.display, XDefaultScreen(win->src.display)), win->src.bitmap, 0, 0, 0, 0, win->r.w, win->r.h);
 	#endif
 	#ifdef RGFW_WINDOWS
