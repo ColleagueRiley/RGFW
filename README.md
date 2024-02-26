@@ -84,7 +84,7 @@ int main() {
 
 # Documentation
 
-There is a lot of in-header-documentation, but more doucmentation can be found [here](https://RSGL.github.io/RGFW)
+There is a lot of in-header-documentation, but more documentation can be found [here](https://RSGL.github.io/RGFW)
 
 If you wish to build the documentation your self, there is also an Doxygen file attached.
 
