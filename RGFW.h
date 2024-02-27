@@ -362,6 +362,7 @@ typedef struct RGFW_window_src {
 	#ifdef RGFW_WINDOWS
     HWND display; /*!< source display */
     HDC window; /*!< source window */
+	u32 hOffset; /* window offset */
 	#endif
 	#ifdef RGFW_X11
     Display* display; /*!< source display */
@@ -3055,8 +3056,8 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	GetClientRect(dummyWin, &clientRect);
 	DestroyWindow(dummyWin);
 
-	u32 hOffset = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
-    win->src.display = CreateWindowA( Class.lpszClassName, name, window_style, win->r.x, win->r.y, win->r.w, win->r.h + hOffset, 0, 0, inh, 0);
+	win->src.hOffset = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
+    win->src.display = CreateWindowA( Class.lpszClassName, name, window_style, win->r.x, win->r.y, win->r.w, win->r.h + win->src.hOffset, 0, 0, inh, 0);
 
 	if (RGFW_TRANSPARENT_WINDOW & args) {
 		SetWindowLong((HWND)win->src.display, GWL_EXSTYLE, GetWindowLong((HWND)win->src.display, GWL_EXSTYLE) | WS_EX_LAYERED);
@@ -3320,8 +3321,8 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 				break;
 
 			case WM_MOUSEMOVE:
-				win->event.point.x = msg.pt.x - win->r.x;
-				win->event.point.y = msg.pt.y - win->r.y;
+				win->event.point.x = GET_X_LPARAM(msg.lParam);
+				win->event.point.y = GET_Y_LPARAM(msg.lParam);
 
 				win->event.type = RGFW_mousePosChanged;
 				break;
