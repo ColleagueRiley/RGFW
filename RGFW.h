@@ -1769,14 +1769,13 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	
 	XFree(fbc);
 
-	i8 depth = 32;
 	u32 valuemask = CWBorderPixel|CWColormap;
 	#else
     XVisualInfo* vi = (XVisualInfo*)malloc(sizeof(XVisualInfo));
 	vi->screen = DefaultScreen((Display*)win->src.display);
 	vi->visual = DefaultVisual((Display*)win->src.display, vi->screen);
 
-	i8 depth = 0;
+	vi->depth = 0;
 	u32 valuemask = 0;
 	#endif
 	
@@ -1794,7 +1793,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
 	/* create the window*/
 	win->src.window = XCreateWindow((Display *)win->src.display, RootWindow((Display *)win->src.display, vi->screen), win->r.x, win->r.y, win->r.w, win->r.h,
-						0, depth, InputOutput, vi->visual,
+						0, vi->depth, InputOutput, vi->visual,
 						valuemask|CWEventMask, &swa);
 
 
