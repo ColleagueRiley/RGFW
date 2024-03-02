@@ -3027,8 +3027,12 @@ typedef BOOL (APIENTRY *PFNWGLCHOOSEPIXELFORMATARBPROC)(HDC hdc, const int *piAt
 static PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = NULL;
 
 static void wglLoadPixelFormat(RGFW_window* win, CONST PIXELFORMATDESCRIPTOR *ppfd) {
-	if (wglChoosePixelFormatARB)
+	if (wglChoosePixelFormatARB == NULL) {
+		#ifdef RGFW_DEBUG
+		printf("Failed to load the wglChoosePixelFormatARB\n");
+		#endif
 		return;
+	}
 
 	int piAttribIList[] = { 
 					WGL_DRAW_TO_WINDOW_ARB,GL_TRUE,
@@ -3050,7 +3054,6 @@ static void wglLoadPixelFormat(RGFW_window* win, CONST PIXELFORMATDESCRIPTOR *pp
 
 	int nPixelFormat;
 
-	BOOL bValidPixFormat;
 	UINT nMaxFormats = sizeof(piAttribIList) / sizeof(piAttribIList[0]);
 	UINT nNumFormats;
 	
