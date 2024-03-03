@@ -615,6 +615,12 @@ RGFWDEF u8 RGFW_isPressedJS(RGFW_window* win, u16 controller, u8 button);
 #ifdef RGFW_OPENGL
 /*! Get max OpenGL version */
 RGFWDEF u8* RGFW_getMaxGLVersion();
+/* OpenGL init hints */
+RGFWDEF void RGFW_setGLStencil(i32 stencil); /* set stencil buffer bit size (8 by default) */
+RGFWDEF void RGFW_setGLSamples(i32 samples); /* set number of sampiling buffers (4 by default) */
+RGFWDEF void RGFW_setGLStereo(i32 stereo); /* use GL_STEREO (GL_FALSE by default) */
+RGFWDEF void RGFW_setGLAuxBuffers(i32 auxBuffers); /* number of aux buffers (0 by default) */
+
 /*! Set OpenGL version hint */
 RGFWDEF void RGFW_setGLVersion(i32 major, i32 minor);
 RGFWDEF void* RGFW_getProcAddress(const char* procname); /* get native opengl proc address */
@@ -1531,7 +1537,13 @@ typedef struct RGFW_Timespec {
 u8 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { return win->src.jsPressed[c][button]; }
 
 #ifdef RGFW_OPENGL
-int RGFW_majorVersion = 0, RGFW_minorVersion = 0;
+i32 RGFW_majorVersion = 0, RGFW_minorVersion = 0;
+i32 RSGL_STENCIL = 8, RSGL_SAMPLES = 4, RSGL_STEREO = GL_FALSE, RSGL_AUX_BUFFERS = 0;
+
+void RGFW_setGLStencil(i32 stencil) { RSGL_STENCIL = stencil; }
+void RGFW_setGLSamples(i32 samples) { RSGL_SAMPLES = samples; }
+void RGFW_setGLStereo(i32 stereo) { RSGL_STEREO = stereo; }
+void RGFW_setGLAuxBuffers(i32 auxBuffers) { RSGL_AUX_BUFFERS = auxBuffers; }
 
 void RGFW_setGLVersion(i32 major, i32 minor) {
 	RGFW_majorVersion = major; 
@@ -1734,7 +1746,23 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
    	u64 event_mask =  KeyPressMask | KeyReleaseMask  | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask; /* X11 events accepted*/
 
 	#ifdef RGFW_OPENGL
-	static i32 visual_attribs[] = {   GLX_X_RENDERABLE    , True,   GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,  GLX_RENDER_TYPE     , GLX_RGBA_BIT,   GLX_X_VISUAL_TYPE   , GLX_TRUE_COLOR,   GLX_RED_SIZE        , 8,   GLX_GREEN_SIZE      , 8,   GLX_BLUE_SIZE       , 8,   GLX_ALPHA_SIZE      , 8,   GLX_DEPTH_SIZE      , 24,   GLX_STENCIL_SIZE    , 8,   GLX_DOUBLEBUFFER    , True,    None   };
+	static i32 visual_attribs[] = {   
+									GLX_X_RENDERABLE    , True,   
+									GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,  
+									GLX_RENDER_TYPE     , GLX_RGBA_BIT,   
+									GLX_X_VISUAL_TYPE   , GLX_TRUE_COLOR,   
+									GLX_RED_SIZE        , 8,   
+									GLX_GREEN_SIZE      , 8,   
+									GLX_BLUE_SIZE       , 8,   
+									GLX_ALPHA_SIZE      , 8,   
+									GLX_DEPTH_SIZE      , 24,    
+									GLX_DOUBLEBUFFER    , True,    
+									GLX_STENCIL_SIZE	, RSGL_STENCIL,
+									GLX_SAMPLE_BUFFERS	, RSGL_SAMPLES,
+									GLX_STEREO			, RSGL_STEREO,
+									GLX_AUX_BUFFERS		, RSGL_AUX_BUFFERS,
+									None   
+								};
 	
 	i32 fbcount;
 	GLXFBConfig* fbc = glXChooseFBConfig((Display*)win->src.display, DefaultScreen(win->src.display), visual_attribs, &fbcount);
@@ -2981,7 +3009,6 @@ wglCreateContextAttribsARB_type wglCreateContextAttribsARB = NULL;
 #define WGL_ACCUM_BLUE_BITS_ARB 0x2020
 #define WGL_ACCUM_ALPHA_BITS_ARB 0x2021
 #define WGL_DEPTH_BITS_ARB 0x2022
-#define WGL_STENCIL_BITS_ARB 0x2023
 #define WGL_AUX_BUFFERS_ARB 0x2024
 #define WGL_STEREO_ARB 0x2012
 #define WGL_DEPTH_BITS_ARB                        0x2022
@@ -3192,8 +3219,10 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 				WGL_PIXEL_TYPE_ARB,         WGL_TYPE_RGBA_ARB,
 				WGL_COLOR_BITS_ARB,         32,
 				WGL_DEPTH_BITS_ARB,         24,
-				WGL_STENCIL_BITS_ARB,       8,
-				WGL_SAMPLES_ARB,            4,
+				WGL_STENCIL_BITS_ARB, 		RSGL_STENCIL,
+				WGL_SAMPLES_ARB,			RSGL_SAMPLES,
+				WGL_STEREO_ARB,            	RSGL_STEREO,
+				WGL_AUX_BUFFERS_ARB, 		RSGL_AUX_BUFFERS,
 				0
 			};
 
@@ -3953,8 +3982,12 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		NSOpenGLPFAColorSize, 24,
 		NSOpenGLPFAAlphaSize, 8,
 		NSOpenGLPFADepthSize, 24,
-		NSOpenGLPFAStencilSize, 8,
 		NSOpenGLPFANoRecovery,
+		NSOpenGLPFAStencilSize, RSGL_STENCIL,
+		NSOpenGLPFASampleBuffers, RSGL_SAMPLES,
+		NSOpenGLPFAStereo, RSGL_STEREO,
+		NSOpenGLPFAAuxBuffers, RSGL_AUX_BUFFERS,
+
 		0, 0, 0
 	};
 	
