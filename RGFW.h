@@ -3647,15 +3647,17 @@ void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels
 }
 
 void RGFW_window_setMouseDefault(RGFW_window* win) {
-	RGFW_window_setMouseStandard(win, IDC_ARROW);
+	RGFW_window_setMouseStandard(win, 32512);
 }
 
 void RGFW_window_setMouseStandard(RGFW_window* win, i32 mouse) {
 	assert(win != NULL);
 	
+	char* icon = MAKEINTRESOURCE(mouse);
+
 	RGFW_window_showMouse(win, 1);
-	SetClassLongPtr(win->src.display, GCLP_HCURSOR, (LPARAM)LoadCursor(NULL, mouse));
-	SetCursor(LoadCursor(NULL, mouse));
+	SetClassLongPtr(win->src.display, GCLP_HCURSOR, (LPARAM)LoadCursor(NULL, icon));
+	SetCursor(LoadCursor(NULL, icon));
 }
 
 void RGFW_window_hide(RGFW_window* win) {
@@ -3663,7 +3665,7 @@ void RGFW_window_hide(RGFW_window* win) {
 }
 
 void RGFW_window_show(RGFW_window* win) {
-	HideWindow(win->src.display, SW_RESTORE);
+	ShowWindow(win->src.display, SW_RESTORE);
 }
 
 void RGFW_window_close(RGFW_window* win) {
