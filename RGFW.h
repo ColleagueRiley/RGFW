@@ -45,6 +45,8 @@
 	#define RGFW_NO_X11_CURSOR (optional) (unix only) don't use XCursor
 	#define RGFW_NO_X11_CURSOR_PRELOAD (optional) (unix only) Use XCursor, but don't link it in code, (you'll have to link it with -lXcursor)
 
+	#define RGFW_NO_DPI - Do not include calculate DPI (no XRM nor libShcore included)
+
 	#define RGFW_ALLOC_DROPFILES (optional) if room should be allocating for drop files (by default it's global data)
 	#define RGFW_MALLOC x - choose what function to use to allocate, by default the standard malloc is used
 	#define RGFW_CALLOC x - choose what function to use to allocate (calloc), by default the standard calloc is used
@@ -1399,7 +1401,9 @@ RGFW_window* RGFW_root = NULL;
 #endif
 #include <dlfcn.h>
 
-#include <X11/Xrm.h>
+#ifndef RGFW_NO_DPI
+#include <X11/extensions/Xrandr.h>
+#endif
 
 #define RGFW_MOUSE_CHANGED	(1L<<1) /*!< mouse change (for winargs)*/
 #endif
@@ -2976,6 +2980,7 @@ u8 RGFW_window_isMaximized(RGFW_window* win) {
 static void XGetSystemContentScale(Display* display, float* xscale, float* yscale) {
     float xdpi = 96.f, ydpi = 96.f;
 
+	#ifndef RGFW_NO_DPI
     char* rms = XResourceManagerString(display);
     XrmDatabase db = NULL;
 
@@ -2994,7 +2999,8 @@ static void XGetSystemContentScale(Display* display, float* xscale, float* yscal
 	if (XrmGetResource(db, "Xft.dpi", "Xft.Dpi", &type, &value) && type && strcmp(type, "String") == 0)
 		xdpi = ydpi = atof(value.addr);
 	XrmDestroyDatabase(db);
-    
+	#endif
+
 	*xscale = xdpi / 96.f;
     *yscale = ydpi / 96.f;
 }
@@ -3736,11 +3742,13 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
     monitor.rect.y = monitorInfo.rcWork.top;
     monitor.rect.w = monitorInfo.rcWork.right -  monitorInfo.rcWork.left;
     monitor.rect.h = monitorInfo.rcWork.bottom -  monitorInfo.rcWork.top;
-
+	
+	#ifndef RGFW_NO_DPI
 	u32 x, y;
     GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &x, &y);
 	monitor.scaleX = x / (float)USER_DEFAULT_SCREEN_DPI;
 	monitor.scaleY = y / (float)USER_DEFAULT_SCREEN_DPI;
+	#endif
 
     HDC hdc = GetDC(NULL);
 	/* get pixels per inch */
