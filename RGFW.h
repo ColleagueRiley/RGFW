@@ -3019,7 +3019,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 
 	XGetSystemContentScale(display, &monitor.scaleX, &monitor.scaleY);
 
-	XRRScreenResources* sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
+	XRRScreenResources* sr = X`RRGetScreenResourcesCurrent(display, RootWindow(display, screen));
 
 	XRRCrtcInfo* ci = NULL;
     int crtc = 0;
@@ -4660,6 +4660,43 @@ u8 RGFW_window_isMaximized(RGFW_window* win) {
 	assert(win != NULL);
 	
     return NSWindow_isZoomed(win->src.window) == YES;
+}
+
+RGFW_monitor RGFW_NScreateMonitor(CGDirectDisplayID display) {
+    RGFW_monitor monitor;
+    
+    CGRect bounds = CGDisplayBounds(display);
+	monitor.rect = RGFW_RECT((int)bounds.origin.x, (int)bounds.origin.y, (int)bounds.size.width, (int)bounds.size.height);
+	
+	CGSize screenSizeMM = CGDisplayScreenSize(display);
+    monitor.physW = screenSizeMM.Width / 25.4;
+    monitor.physH = screenSizeMM.height / 25.4;
+
+ 	CGSize screenPointSize = CGSizeMake(screenSizeMM.width, screenSizeMM.height);
+    monitor.scaleX = screenSize.width / screenPointSize.width;
+	monitor.scaleY = screenSize.height / screenPointSize.height;
+
+    return monitor;
+}
+
+
+RGFW_monitor RGFW_monitors[6];
+RGFW_monitor* RGFW_getMonitors(void) {
+
+	return RGFW_monitors;
+}
+
+RGFW_monitor RGFW_getPrimaryMonitor(void) {
+
+    return RGFW_NSCreateMonitor(primary);
+}
+
+RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
+	static CGDirectDisplayID display = 0;
+	if (display == 0)
+		display = CGMainDisplayID();
+	
+	return RGFW_NSCreateMonitor(display);
 }
 
 u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
