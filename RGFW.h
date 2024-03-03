@@ -323,7 +323,7 @@ typedef struct {u32 w, h;} RGFW_area;
 #define RGFW_AREA(w, h) (RGFW_area){w, h}
 
 typedef struct RGFW_monitor {
-	char* name[128];  /* monitor name */
+	char name[128];  /* monitor name */
 	RGFW_rect rect; /* monitor Workarea */
 	float scaleX, scaleY; /* monitor content scale*/
 	float physW, physH; /* monitor physical size */
@@ -1398,6 +1398,8 @@ RGFW_window* RGFW_root = NULL;
 #include <X11/Xcursor/Xcursor.h>
 #endif
 #include <dlfcn.h>
+
+#include <X11/Xrm.h>
 
 #define RGFW_MOUSE_CHANGED	(1L<<1) /*!< mouse change (for winargs)*/
 #endif
@@ -3003,8 +3005,8 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	Display* display = XOpenDisplay(NULL);
 
 	monitor.rect = RGFW_RECT(0, 0, DisplayWidth(display, screen), DisplayHeight(display, screen));
-	monitor.physW  = (rect.w * 25.4f / 96.f);
-	monitor.physH = (rect.h * 25.4f / 96.f);
+	monitor.physW  = (monitor.rect.w * 25.4f / 96.f);
+	monitor.physH = (monitor.rect.h * 25.4f / 96.f);
 
 	strncpy(monitor.name, DisplayString(display), 128);
 
@@ -3015,9 +3017,10 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	XRRCrtcInfo* ci = NULL;
     int crtc = 0;
 
-    if (sr->ncrtc > crtc)
+    if (sr->ncrtc > crtc) {
         ci = XRRGetCrtcInfo(display, sr, sr->crtcs[crtc]);
-     
+	}
+	
 	if (ci == NULL) {
         XRRFreeScreenResources(sr);
         XCloseDisplay(display);
