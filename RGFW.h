@@ -534,6 +534,17 @@ void RGFW_window_setIcon(RGFW_window* win, /*!< source window */
 RGFWDEF void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels);
 RGFWDEF void RGFW_window_setMouseDefault(RGFW_window* win); /* sets the mouse to1` the default mouse image */
 
+/* hide the window */
+RGFWDEF void RGFW_window_hide(RGFW_window* win);
+/* show the window */
+RGFWDEF void RGFW_window_show(RGFW_window* win);
+
+/* 
+	makes it so `RGFW_window_shouldClose` returns true
+	by setting the window event.type to RGFW_quit
+*/
+RGFWDEF void RGFW_window_setShouldClose(RGFW_window* win);
+
 /* where the mouse is on the screen */
 RGFWDEF RGFW_vector RGFW_getGlobalMousePoint(void);
 
@@ -1986,7 +1997,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	XEvent E; /* raw X11 event */
 
 	/* if there is no unread qued events, get a new one */
-	if (XEventsQueued((Display*)win->src.display, QueuedAlready) + XEventsQueued((Display*)win->src.display, QueuedAfterReading))
+	if (XEventsQueued((Display*)win->src.display, QueuedAlready) + XEventsQueued((Display*)win->src.display, QueuedAfterReading) && win->event.type != RGFW_quit)
 		XNextEvent((Display*)win->src.display, &E);
 	else {
 		return NULL;
@@ -2621,6 +2632,14 @@ void RGFW_window_setMouseDefault(RGFW_window* win) {
 
 	win->src.winArgs |= RGFW_MOUSE_CHANGED;
 	win->src.cursor = XCreateFontCursor((Display*)win->src.display, XC_left_ptr);
+}
+
+void RGFW_window_hide(RGFW_window* win) {
+	XMapWindow(win->src.display, win->src.window);
+}
+
+void RGFW_window_show(RGFW_window* win) {
+	XUnMapWindow(win->src.display, win->src.window);
 }
 
 /*
@@ -3359,6 +3378,9 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
     win->event.inFocus = (GetForegroundWindow() == win->src.display);
 
+	if (win->event.type == RGFW_quit)
+		return NULL;
+	
 	if (PeekMessage(&msg, (HWND)win->src.display, 0u, 0u, PM_REMOVE)) {
 		switch (msg.message) {
 			case WM_CLOSE:
@@ -3622,6 +3644,14 @@ void RGFW_window_setMouseDefault(RGFW_window* win) {
 	RGFW_window_showMouse(win, 1);
 	SetClassLongPtr(win->src.display, GCLP_HCURSOR, (LPARAM)LoadCursor(NULL, IDC_ARROW));
 	SetCursor(LoadCursor(NULL, IDC_ARROW));
+}
+
+void RGFW_window_hide(RGFW_window* win) {
+	ShowWindow(win->src.display, SW_HIDE);
+}
+
+void RGFW_window_show(RGFW_window* win) {
+	HideWindow(win->src.display, SW_RESTORE);
 }
 
 void RGFW_window_close(RGFW_window* win) {
@@ -4140,6 +4170,9 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NSDate_distantFuture(), NSDefaultRunLoopMode, true);
 
+	if (win->event.type == RGFW_quit)
+		return NULL;
+
 	if (NSEvent_window(e) == win->src.window) {
 		u8 button = 0;
 
@@ -4351,6 +4384,16 @@ void RGFW_window_moveMouse(RGFW_window* win, RGFW_vector v) {
 	CGEventRef moveEvent = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, CGPointMake(v.x, v.y), kCGMouseButtonLeft);
 	CGEventPost(kCGHIDEventTap, moveEvent);
 	CFRelease(moveEvent);
+}
+
+
+void RGFW_window_hide(RGFW_window* win) {
+	NSWindow_setIsVisible(win->src.window, false);
+}
+
+void RGFW_window_show(RGFW_window* win) {
+	NSWindow_makeKeyAndOrderFront(win->src.window, NULL);
+	NSWindow_setIsVisible(win->src.window, true);
 }
 
 u8 RGFW_window_isFullscreen(RGFW_window* win) {
@@ -4667,6 +4710,8 @@ u8 RGFW_window_shouldClose(RGFW_window* win) {
 	/* || RGFW_isPressedI(win, RGFW_Escape) */
 	return (win->event.type == RGFW_quit || RGFW_isPressedI(win, RGFW_OS_BASED_VALUE(0xff1b, 0x1B, 53)));
 }
+
+void RGFW_window_setShouldClose(RGFW_window* win) { win->event.type = RGFW_quit; }
 
 void RGFW_sleep(u32 microsecond) {
    struct timespec time;
