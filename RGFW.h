@@ -1403,6 +1403,7 @@ RGFW_window* RGFW_root = NULL;
 
 #ifndef RGFW_NO_DPI
 #include <X11/extensions/Xrandr.h>
+#include <X11/Xresource.h>
 #endif
 
 #define RGFW_MOUSE_CHANGED	(1L<<1) /*!< mouse change (for winargs)*/
@@ -3055,13 +3056,13 @@ RGFW_monitor RGFW_getPrimaryMonitor(void) {
 	assert(RGFW_root != NULL);
 	
     i32 primary = -1;
-    Window root = DefaultRootWindow(RGFW_root->display);
-    XRRScreenResources *res = XRRGetScreenResources(RGFW_root->display, root);
+    Window root = DefaultRootWindow(RGFW_root->src.display);
+    XRRScreenResources *res = XRRGetScreenResources(RGFW_root->src.display, root);
 
     for (int i = 0; i < res->noutput; i++) {
-        XRROutputInfo *output_info = XRRGetOutputInfo(RGFW_root->display, res, res->outputs[i]);
+        XRROutputInfo *output_info = XRRGetOutputInfo(RGFW_root->src.display, res, res->outputs[i]);
         if (output_info->connection == RR_Connected && output_info->crtc) {
-            XRRCrtcInfo *crtc_info = XRRGetCrtcInfo(RGFW_root->display, res, output_info->crtc);
+            XRRCrtcInfo *crtc_info = XRRGetCrtcInfo(RGFW_root->src.display, res, output_info->crtc);
             if (crtc_info->mode != None && crtc_info->x == 0 && crtc_info->y == 0) {
                 primary = i;
                 XRRFreeCrtcInfo(crtc_info);
