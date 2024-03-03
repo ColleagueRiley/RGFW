@@ -3,7 +3,7 @@ AR = ar
 
 DX11_LIBS = -ldxgi -ld3d11 -luuid -ld3dcompiler
 VULAKN_LIBS = -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
-LIBS := -lshell32 -lgdi32 -lm -lopengl32 -ggdb
+LIBS := -lshell32  -lgdi32 -lm -lopengl32 -ggdb -lShcore
 EXT = .exe
 LIB_EXT = .dll
 STATIC =
@@ -27,7 +27,7 @@ else
 endif
 
 ifeq ($(detected_OS),Windows)
-	LIBS := -ggdb -lshell32 -lgdi32 -lm -ldwmapi -lopengl32 $(STATIC) -I C:\VulkanSDK\1.3.275.0\Include -L C:\VulkanSDK\1.3.275.0\Lib -lvulkan1
+	LIBS := -ggdb -lshell32 -lgdi32 -lShcore -lm -ldwmapi -lopengl32 $(STATIC) -I C:\VulkanSDK\1.3.275.0\Include -L C:\VulkanSDK\1.3.275.0\Lib -lvulkan1
 	VULAKN_LIBS = -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
 	EXT = .exe
 	LIB_EXT = .dll
@@ -39,7 +39,7 @@ ifeq ($(detected_OS),Darwin)        # Mac OS X
 	LIB_EXT = .dylib
 endif
 ifeq ($(detected_OS),Linux)
-    LIBS := -I./include -lX11 -lm -lGL $(STATIC)
+    LIBS := -I./include -lXrm -lX11 -lm -lGL $(STATIC)
 	VULAKN_LIBS = -lvulkan
 	EXT =
 	LIB_EXT = .so
@@ -47,7 +47,7 @@ endif
 
 all:
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -o basic
-	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -o buffer
+	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wa1ll -o buffer
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -o gl33
 	make vulkan_shaders
 	$(CC) examples/vk10/main.c $(LIBS) $(VULAKN_LIBS) -I./ -Wall -o vk10
