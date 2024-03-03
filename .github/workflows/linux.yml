@@ -23,6 +23,9 @@ jobs:
     - name: apt-vulkan
       run: sudo apt install vulkan-sdk
 
+    - name: install_xrandr
+      run: sudo apt install libxrandr-dev
+
     - name: apt
       run: sudo apt-get install mesa-common-dev libglx-dev libxcursor-dev mesa-vulkan-drivers
     - name: make
