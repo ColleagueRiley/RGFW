@@ -4673,8 +4673,8 @@ RGFW_monitor RGFW_NScreateMonitor(CGDirectDisplayID display) {
     monitor.physH = screenSizeMM.height / 25.4;
 
  	CGSize screenPointSize = CGSizeMake(screenSizeMM.width, screenSizeMM.height);
-    monitor.scaleX = rect.w / screenPointSize.width;
-	monitor.scaleY = rect.h / screenPointSize.height;
+    monitor.scaleX = monitor.rect.w / screenPointSize.width;
+	monitor.scaleY = monitor.rect.h / screenPointSize.height;
 
     return monitor;
 }
