@@ -65,7 +65,7 @@ int main() {
     i32 running = 1;
 
     while (running) {
-        while(RGFW_window_checkEvent(win) {
+        while (RGFW_window_checkEvent(win)) {
             if (win->event.type == RGFW_quit || RGFW_isPressedI(win, RGFW_Escape)) {
                 running = 0;
                 break;
@@ -89,7 +89,7 @@ There is a lot of in-header-documentation, but more documentation can be found [
 If you wish to build the documentation yourself, there is also a Doxygen file attached.
 
 # RGFW vs GLFW
-RGFW is far more portable as it is a single-header library. It also does not use callbacks and focuses on trying to be straightforward. In essence, this means RGFW tries to work with the programmer rather than forcing the programmer to work around it. RGFW uses far less RAM and storage than GLFW.
+RGFW is more portable, in part because single-header library. It does not use callbacks and focuses on trying to be straightforward. RGFW tries to work with the programmer rather than forcing the programmer to work around it. It also uses far less RAM and storage than GLFW.
 
 | Feature | RGFW | GLFW |
 | --- | --- | --- |
