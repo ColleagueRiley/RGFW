@@ -2639,7 +2639,7 @@ void RGFW_window_setMouseStandard(RGFW_window* win, i32 mouse) {
 		XFreeCursor((Display*)win->src.display, (Cursor)win->src.cursor);
 
 	win->src.winArgs |= RGFW_MOUSE_CHANGED;
-	win->src.cursor = XCreateFontCursor((Display*)win->src.display, standard);
+	win->src.cursor = XCreateFontCursor((Display*)win->src.display, mouse);
 }
 
 void RGFW_window_hide(RGFW_window* win) {
@@ -2647,7 +2647,7 @@ void RGFW_window_hide(RGFW_window* win) {
 }
 
 void RGFW_window_show(RGFW_window* win) {
-	XUnMapWindow(win->src.display, win->src.window);
+	XUnmapWindow(win->src.display, win->src.window);
 }
 
 /*
