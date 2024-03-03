@@ -47,7 +47,7 @@ endif
 
 all:
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -o basic
-	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wa1ll -o buffer
+	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -o buffer
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -o gl33
 	make vulkan_shaders
 	$(CC) examples/vk10/main.c $(LIBS) $(VULAKN_LIBS) -I./ -Wall -o vk10
