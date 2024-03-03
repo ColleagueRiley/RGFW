@@ -2,22 +2,22 @@
 ![THE RGFW Logo](https://github.com/ColleagueRiley/RGFW/blob/main/logo.png?raw=true)
 
 ## Build statuses
-![cplus workflow](https://github.com/ColleagueRiley/RGFW/actions/workflows/linux.yml/badge.svg)
-![cplus workflow windows](https://github.com/ColleagueRiley/RGFW/actions/workflows/windows.yml/badge.svg)
-![cplus workflow windows](https://github.com/ColleagueRiley/RGFW/actions/workflows/macos.yml/badge.svg)
+![workflow](https://github.com/ColleagueRiley/RGFW/actions/workflows/linux.yml/badge.svg)
+![workflow windows](https://github.com/ColleagueRiley/RGFW/actions/workflows/windows.yml/badge.svg)
+![workflow windows](https://github.com/ColleagueRiley/RGFW/actions/workflows/macos.yml/badge.svg)
 
 # About
-RGFW is free multi-platform single-header very simple-to-use framework library for creating GUI Libraries or simple GUI programs. it is meant to be used as a very small and flexable alternative library to GLFW. 
+RGFW is a free multi-platform single-header very simple-to-use framework library for creating GUI Libraries or simple GUI programs. it is meant to be used as a very small and flexible alternative library to GLFW. 
 
-The window backends it supports include, XLib (UNIX), Cocoas (MacOS) and WinAPI (Windows)\
-The graphics backends it supports include, OpenGL (EGL, software, OSMesa, GLES), Vulkan, DirectX and software rendering buffers.
+The window backend supports XLib (UNIX), Cocoas (MacOS) and WinAPI (Windows)\
+The graphics backend supports OpenGL (EGL, software, OSMesa, GLES), Vulkan, DirectX and software rendering buffers.
 
 This library
 
 1) is single header and portable (written in C89 in mind)
 2) is very small compared to other libraries
-3) only depends on system API libraries, winapi, X11, Cocoa (except for Silicon (for macOS) which is included)
-4) let's you create a window with an graphics context (opengl, vulkan or directX) and manage the window and it's events only with a few function calls 
+3) only depends on system API libraries, Winapi, X11, Cocoa (except for Silicon (for macOS) which is included)
+4) lets you create a window with a graphics context (OpenGL, Vulkan or DirectX) and manage the window and its events only with a few function calls 
 
 This library does not
 
@@ -26,10 +26,10 @@ This library does not
 
 # examples
 ## compiling
-The examples can be compiled by using `make debug`, which compiles them in debug mode then runs them\
+The examples can be compiled by using `make debug`, which compiles them in debug mode and then runs them\
 or `make` which simply compiles them.
 
-The dx11 example has it's own Makefile functions because it is windows only, those include
+The dx11 example has its own Makefile functions because it is Windows only, those include
 `make DX11` and `make debugDX11`
 
 ## basic 
@@ -48,7 +48,7 @@ A basic example can be found in `examples/basic`, it includes a basic OpenGL exa
 A basic example can be found in `examples/basic`, it includes a basic OpenGL example of just about all of RGFW's functionalities.
 
 ## buff
-`examples/buffer` is an example which shows how you can use software rendering with RGFW using RGFW_BUFFER mode which allows you to render directly to the window's draw buffer.
+`examples/buffer` is an example that shows how you can use software rendering with RGFW using RGFW_BUFFER mode which allows you to render directly to the window's draw buffer.
 
 ## a very simple example
 ```c
@@ -86,10 +86,10 @@ int main() {
 
 There is a lot of in-header-documentation, but more documentation can be found [here](https://RSGL.github.io/RGFW)
 
-If you wish to build the documentation your self, there is also an Doxygen file attached.
+If you wish to build the documentation yourself, there is also a Doxygen file attached.
 
 # RGFW vs GLFW
-RGFW is far more portable as it is a single-header library. It also does not use callbacks and focus on trying to more straight forward and easy-to-use. In essence, this means RGFW tries to work with the programmer rather than forcing the programmer to work around it. Despite the fact that both RGFW and GLFW have very simular feature sets, ignoring features RGFW supports that GLFW doesn't or vice versa, RGFW uses far less RAM and storage than GLFW.
+RGFW is far more portable as it is a single-header library. It also does not use callbacks and focuses on trying to be straightforward. In essence, this means RGFW tries to work with the programmer rather than forcing the programmer to work around it. RGFW uses far less RAM and storage than GLFW.
 
 | Feature | RGFW | GLFW |
 | --- | --- | --- |
@@ -132,17 +132,17 @@ projects that use RGFW in some way
 It uses RGFW as a backend.
 
 ## RGL (made by the same author)
-[RGL](https://github.com/ColleagueRiley/RGL) is a simple ultra-lightweight OpenGL version abstraction layer HEAVILY based on RLGL that uses the opengl pipeline style.
+[RGL](https://github.com/ColleagueRiley/RGL) is a simple ultra-lightweight OpenGL version abstraction layer HEAVILY based on RLGL that uses the OpenGL pipeline style.
 
 It uses RGFW for it's examples
 
 ## RFont (made by the same author)
-[RFont](https://github.com/ColleagueRiley/RFont) is a simple-to-use single header modular font rendering library written in C. 
+[RFont](https://github.com/ColleagueRiley/RFont) is a simple-to-use single-header modular font rendering library written in C. 
 
 It uses RGFW for it's examples
 
 # License
-RGFW uses the zlib/libpng license, this means you can use RGFW freely as long as you do not claim you wrote this software, mark altered versions as such and keep the license included with the header.
+RGFW uses the Zlib/libPNG license, this means you can use RGFW freely as long as you do not claim you wrote this software, mark altered versions as such and keep the license included with the header.
 
 ```
 Permission is granted to anyone to use this software for any purpose,
