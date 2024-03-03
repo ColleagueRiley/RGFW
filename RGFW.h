@@ -322,6 +322,22 @@ typedef struct {u32 w, h;} RGFW_area;
 #define RGFW_RECT(x, y, w, h) (RGFW_rect){x, y, w, h}
 #define RGFW_AREA(w, h) (RGFW_area){w, h}
 
+typedef struct RGFW_monitor {
+	char* name[128];  /* monitor name */
+	RGFW_rect rect; /* monitor Workarea */
+	float scaleX, scaleY; /* monitor content scale*/
+	float physW, physH; /* monitor physical size */
+} RGFW_monitor;
+
+/*
+NOTE : Monitor functions should be ran only as many times as needed (not in a loop)
+*/
+
+/* get an array of all the monitors (max 6) */
+RGFWDEF RGFW_monitor* RGFW_getMonitors(void);
+/* get the primary monitor */
+RGFWDEF RGFW_monitor RGFW_getPrimaryMonitor(void);
+
 /* NOTE: some parts of the data can represent different things based on the event (read comments in RGFW_Event struct) */
 typedef struct RGFW_Event {
 	#ifdef RGFW_WINDOWS
@@ -564,9 +580,13 @@ RGFWDEF u8 RGFW_window_isFullscreen(RGFW_window* win);
 /* if window is hidden */
 RGFWDEF u8 RGFW_window_isHidden(RGFW_window* win);
 /* if window is minimized */
-RGFWDEF u8 RGFW_isMinimized(RGFW_window* win);
+RGFWDEF u8 RGFW_window_isMinimized(RGFW_window* win);
 /* if window is maximized */
-RGFWDEF u8 RGFW_isMaximized(RGFW_window* win);
+RGFWDEF u8 RGFW_window_isMaximized(RGFW_window* win);
+
+/* get the struct of the window's monitor  */
+RGFWDEF RGFW_monitor RGFW_window_getMonitor(RGFW_window* win);
+
 /*!< make the window the current opengl drawing context */
 RGFWDEF void RGFW_window_makeCurrent(RGFW_window* win); 
 
@@ -1388,6 +1408,7 @@ RGFW_window* RGFW_root = NULL;
 #include <winuser.h>
 #include <windowsx.h>
 #include <shellapi.h>
+#include <shellscalingapi.h>
 #endif
 
 #if defined(RGFW_MACOS)
@@ -2878,10 +2899,10 @@ u8 RGFW_window_isHidden(RGFW_window* win) {
     XWindowAttributes windowAttributes;
     XGetWindowAttributes(win->src.display, (Window)win->src.window, &windowAttributes);
 
-    return (windowAttributes.map_state == IsUnmapped && !RGFW_isMinimized(win));
+    return (windowAttributes.map_state == IsUnmapped && !RGFW_window_isMinimized(win));
 }
 
-u8 RGFW_isMinimized(RGFW_window* win) {
+u8 RGFW_window_isMinimized(RGFW_window* win) {
 	assert(win != NULL);
 	
     static Atom prop = 0;
@@ -2908,7 +2929,7 @@ u8 RGFW_isMinimized(RGFW_window* win) {
     return 0;
 }
 
-u8 RGFW_isMaximized(RGFW_window* win) {
+u8 RGFW_window_isMaximized(RGFW_window* win) {
 	assert(win != NULL);
 	
     static Atom net_wm_state = 0;
@@ -2948,6 +2969,108 @@ u8 RGFW_isMaximized(RGFW_window* win) {
 	}
 
     return 0;
+}
+
+static void XGetSystemContentScale(Display* display, float* xscale, float* yscale) {
+    float xdpi = 96.f, ydpi = 96.f;
+
+    char* rms = XResourceManagerString(display);
+    XrmDatabase db = NULL;
+
+	if (rms && db)
+		db = XrmGetStringDatabase(rms);
+	
+	if (db == 0) {
+	    *xscale = xdpi / 96.f;
+    	*yscale = ydpi / 96.f;
+		return;
+	}
+
+	XrmValue value;
+	char* type = NULL;
+
+	if (XrmGetResource(db, "Xft.dpi", "Xft.Dpi", &type, &value) && type && strcmp(type, "String") == 0)
+		xdpi = ydpi = atof(value.addr);
+	XrmDestroyDatabase(db);
+    
+	*xscale = xdpi / 96.f;
+    *yscale = ydpi / 96.f;
+}
+
+RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
+	RGFW_monitor monitor;
+
+	Display* display = XOpenDisplay(NULL);
+
+	monitor.rect = RGFW_RECT(0, 0, DisplayWidth(display, screen), DisplayHeight(display, screen));
+	monitor.physW  = (rect.w * 25.4f / 96.f);
+	monitor.physH = (rect.h * 25.4f / 96.f);
+
+	strncpy(monitor.name, DisplayString(display), 128);
+
+	XGetSystemContentScale(&monitor.scaleX, &monitor.scaleY);
+
+	XRRScreenResources* sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
+
+	XRRCrtcInfo* ci = NULL;
+    int crtc = 0;
+
+    if (sr->ncrtc > crtc)
+        ci = XRRGetCrtcInfo(display, sr, sr->crtcs[crtc]);
+     
+	if (ci == NULL) {
+        XRRFreeScreenResources(sr);
+        XCloseDisplay(display);
+        return monitor;
+    }
+
+	monitor.rect.x = ci->x;
+	monitor.rect.y = ci->y;
+
+	XRRFreeCrtcInfo(ci);
+	XRRFreeScreenResources(sr);
+
+	XCloseDisplay(display);
+
+	return monitor;
+}
+
+RGFW_monitor RGFW_monitors[6];
+RGFW_monitor* RGFW_getMonitors(void) {
+	size_t i;
+	for (i = 0; i < ScreenCount(RGFW_root->src.display) && i < 6; i++)
+		RGFW_monitors[i] = RGFW_XCreateMonitor(i);
+}
+
+RGFW_monitor RGFW_getPrimaryMonitor(void) {
+	assert(RGFW_root != NULL);
+	
+    i32 primary = -1;
+    Window root = DefaultRootWindow(RGFW_root->display);
+    XRRScreenResources *res = XRRGetScreenResources(RGFW_root->display, root);
+
+    for (int i = 0; i < res->noutput; i++) {
+        XRROutputInfo *output_info = XRRGetOutputInfo(RGFW_root->display, res, res->outputs[i]);
+        if (output_info->connection == RR_Connected && output_info->crtc) {
+            XRRCrtcInfo *crtc_info = XRRGetCrtcInfo(RGFW_root->display, res, output_info->crtc);
+            if (crtc_info->mode != None && crtc_info->x == 0 && crtc_info->y == 0) {
+                primary = i;
+                XRRFreeCrtcInfo(crtc_info);
+                XRRFreeOutputInfo(output_info);
+                break;
+            }
+            XRRFreeCrtcInfo(crtc_info);
+        }
+        XRRFreeOutputInfo(output_info);
+    }
+
+    XRRFreeScreenResources(res);
+
+    return RGFW_XCreateMonitor(primary);
+}
+
+RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
+	return RGFW_XCreateMonitor(DefaultScreen(win->src.display));
 }
 
 char keyboard[32];
@@ -3550,10 +3673,10 @@ u8 RGFW_window_isFullscreen(RGFW_window* win) {
 u8 RGFW_window_isHidden(RGFW_window* win) {
 	assert(win != NULL);
 	
-    return IsWindowVisible((HWND)win->src.display) == 0 && !RGFW_isMinimized(win);
+    return IsWindowVisible((HWND)win->src.display) == 0 && !RGFW_window_isMinimized(win);
 }
 
-u8 RGFW_isMinimized(RGFW_window* win) {
+u8 RGFW_window_isMinimized(RGFW_window* win) {
 	assert(win != NULL);
 	
     WINDOWPLACEMENT placement;
@@ -3561,12 +3684,98 @@ u8 RGFW_isMinimized(RGFW_window* win) {
     return placement.showCmd == SW_SHOWMINIMIZED;
 }
 
-u8 RGFW_isMaximized(RGFW_window* win) {
+u8 RGFW_window_isMaximized(RGFW_window* win) {
 	assert(win != NULL);
 	
     WINDOWPLACEMENT placement;
     GetWindowPlacement((HWND)win->src.display, &placement);
     return placement.showCmd == SW_SHOWMAXIMIZED;
+}
+
+typedef struct { int iIndex; HMONITOR hMonitor; } RGFW_mInfo;
+BOOL CALLBACK GetMonitorByHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
+  RGFW_mInfo* info = (RGFW_mInfo*)dwData;
+  if (info->hMonitor == hMonitor) 
+  	return FALSE;
+
+  info->iIndex++;
+  return TRUE;
+}
+
+RGFW_monitor win32CreateMonitor(HMONITOR src) {
+    RGFW_monitor monitor;
+    MONITORINFO monitorInfo;
+
+    monitorInfo.cbSize = sizeof(MONITORINFO);
+    GetMonitorInfo(src, &monitorInfo);
+
+	RGFW_mInfo info;
+	info.iIndex = 0;
+	info.hMonitor = src;
+
+	/* get the monitor's index */
+	if (EnumDisplayMonitors(NULL, NULL, GetMonitorByHandle, (LPARAM)&info)) {
+		DISPLAY_DEVICE dd;
+		dd.cb = sizeof(dd);
+		
+		/* loop through the devices until you find a device with the monitor's index */
+		size_t deviceIndex;
+		for (deviceIndex = 0; EnumDisplayDevices(0, deviceIndex, &dd, 0); deviceIndex++) {
+			char* deviceName = dd.DeviceName;
+			if (EnumDisplayDevices(deviceName, info.iIndex, &dd, 0)) {
+				strcpy(monitor.name, dd.DeviceString); /* copy the monitor's name */
+				break;
+			}
+		}
+	}
+
+    monitor.rect.x = monitorInfo.rcWork.left;
+    monitor.rect.y = monitorInfo.rcWork.top;
+    monitor.rect.w = monitorInfo.rcWork.right -  monitorInfo.rcWork.left;
+    monitor.rect.h = monitorInfo.rcWork.bottom -  monitorInfo.rcWork.top;
+
+	u32 x, y;
+    GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &x, &y);
+	monitor.scaleX = x / (float)USER_DEFAULT_SCREEN_DPI;
+	monitor.scaleY = y / (float)USER_DEFAULT_SCREEN_DPI;
+
+    HDC hdc = GetDC(NULL);
+	/* get pixels per inch */
+    i32 ppiX = GetDeviceCaps(hdc, LOGPIXELSX);
+	i32 ppiY = GetDeviceCaps(hdc, LOGPIXELSY);
+    ReleaseDC(NULL, hdc);
+
+    /* Calculate physical height in inches */
+    monitor.physW = GetSystemMetrics(SM_CYSCREEN) / (double)ppiX;
+    monitor.physH = GetSystemMetrics(SM_CXSCREEN) / (double)ppiY;
+
+    return monitor;
+}
+
+RGFW_monitor RGFW_monitors[6];
+BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
+	RGFW_mInfo* info = (RGFW_mInfo*)dwData;
+	
+	RGFW_monitors[info->iIndex] = win32CreateMonitor(hMonitor);
+	info->iIndex++;
+  	return TRUE;
+}
+
+RGFW_monitor RGFW_getPrimaryMonitor(void) {
+	return win32CreateMonitor(MonitorFromPoint((POINT){0, 0}, MONITOR_DEFAULTTOPRIMARY));
+}
+
+RGFW_monitor* RGFW_getMonitors(void) {
+	RGFW_mInfo info;
+	info.iIndex = 0;
+	while (EnumDisplayMonitors(NULL, NULL, GetMonitorHandle, (LPARAM)&info));
+
+	return RGFW_monitors;
+}
+
+RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
+	HMONITOR src = MonitorFromWindow(win->src.display, MONITOR_DEFAULTTOPRIMARY);
+	return win32CreateMonitor(src);
 }
 
 u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
@@ -4424,16 +4633,16 @@ u8 RGFW_window_isFullscreen(RGFW_window* win) {
 u8 RGFW_window_isHidden(RGFW_window* win) {
 	assert(win != NULL);
 	
-    return NSWindow_isVisible(win) == NO && !RGFW_isMinimized(win);
+    return NSWindow_isVisible(win) == NO && !RGFW_window_isMinimized(win);
 }
 
-u8 RGFW_isMinimized(RGFW_window* win) {
+u8 RGFW_window_isMinimized(RGFW_window* win) {
 	assert(win != NULL);
 	
     return NSWindow_isMiniaturized(win->src.window) == YES;
 }
 
-u8 RGFW_isMaximized(RGFW_window* win) {
+u8 RGFW_window_isMaximized(RGFW_window* win) {
 	assert(win != NULL);
 	
     return NSWindow_isZoomed(win->src.window) == YES;
