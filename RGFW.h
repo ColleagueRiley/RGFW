@@ -3019,7 +3019,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 
 	XGetSystemContentScale(display, &monitor.scaleX, &monitor.scaleY);
 
-	XRRScreenResources* sr = X`RRGetScreenResourcesCurrent(display, RootWindow(display, screen));
+	XRRScreenResources* sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
 
 	XRRCrtcInfo* ci = NULL;
     int crtc = 0;
@@ -4669,12 +4669,12 @@ RGFW_monitor RGFW_NScreateMonitor(CGDirectDisplayID display) {
 	monitor.rect = RGFW_RECT((int)bounds.origin.x, (int)bounds.origin.y, (int)bounds.size.width, (int)bounds.size.height);
 	
 	CGSize screenSizeMM = CGDisplayScreenSize(display);
-    monitor.physW = screenSizeMM.Width / 25.4;
+    monitor.physW = screenSizeMM.width / 25.4;
     monitor.physH = screenSizeMM.height / 25.4;
 
  	CGSize screenPointSize = CGSizeMake(screenSizeMM.width, screenSizeMM.height);
-    monitor.scaleX = screenSize.width / screenPointSize.width;
-	monitor.scaleY = screenSize.height / screenPointSize.height;
+    monitor.scaleX = rect.w / screenPointSize.width;
+	monitor.scaleY = rect.h / screenPointSize.height;
 
     return monitor;
 }
@@ -4688,7 +4688,7 @@ RGFW_monitor* RGFW_getMonitors(void) {
 
 RGFW_monitor RGFW_getPrimaryMonitor(void) {
 
-    return RGFW_NSCreateMonitor(primary);
+ //   return RGFW_NSCreateMonitor(primary);
 }
 
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
