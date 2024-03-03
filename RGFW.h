@@ -4662,7 +4662,7 @@ u8 RGFW_window_isMaximized(RGFW_window* win) {
     return NSWindow_isZoomed(win->src.window) == YES;
 }
 
-RGFW_monitor RGFW_NScreateMonitor(CGDirectDisplayID display) {
+static RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display) {
     RGFW_monitor monitor;
     
     CGRect bounds = CGDisplayBounds(display);
