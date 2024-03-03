@@ -3017,7 +3017,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 
 	strncpy(monitor.name, DisplayString(display), 128);
 
-	XGetSystemContentScale(&monitor.scaleX, &monitor.scaleY);
+	XGetSystemContentScale(display, &monitor.scaleX, &monitor.scaleY);
 
 	XRRScreenResources* sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
 
@@ -3050,6 +3050,8 @@ RGFW_monitor* RGFW_getMonitors(void) {
 	size_t i;
 	for (i = 0; i < ScreenCount(RGFW_root->src.display) && i < 6; i++)
 		RGFW_monitors[i] = RGFW_XCreateMonitor(i);
+	
+	return RGFW_monitors;
 }
 
 RGFW_monitor RGFW_getPrimaryMonitor(void) {
