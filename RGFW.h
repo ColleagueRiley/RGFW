@@ -209,6 +209,7 @@ extern "C" {
 #define RGFW_FULLSCREEN (1L<<8) /* the window is fullscreen by default or not */
 #define RGFW_CENTER (1L<<10) /*! center the window on the screen */
 #define RGFW_OPENGL_SOFTWARE (1L<<11) /*! use OpenGL software rendering */
+#define RGFW_COCOA_MOVE_TO_RESOURCE_DIR (1L << 12) /* (cocoa only), move to resource folder */
 
 /*! event codes */
 #define RGFW_keyPressed 2 /* a key has been pressed */
@@ -836,10 +837,10 @@ RGFW_window* RGFW_window_basic_init (RGFW_rect rect, u16 args) {
 	RGFW_area screenR = RGFW_AREA(scrn->width, scrn->height);
 	#endif
 
-	if (RGFW_FULLSCREEN & args)
+	if (args & RGFW_FULLSCREEN)
 		rect = RGFW_RECT(0, 0, screenR.w, screenR.h);
 
-	if (RGFW_CENTER & args)
+	if (args & RGFW_CENTER)
 		rect = RGFW_RECT((screenR.w - rect.w) / 2, (screenR.h - rect.h) / 2, rect.w, rect.h);
 
 	/* set and init the new window's data */
@@ -1738,7 +1739,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
     XInitThreads(); /* init X11 threading*/
 
-	if (RGFW_OPENGL_SOFTWARE & args)
+	if (args & RGFW_OPENGL_SOFTWARE)
 		setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
 
 	RGFW_window* win = RGFW_window_basic_init(rect, args);	
@@ -1831,7 +1832,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
 
 	XFreeColors((Display*)win->src.display, cmap, NULL, 0, 0);
-	if (RGFW_TRANSPARENT_WINDOW & args)
+	if (args & RGFW_TRANSPARENT_WINDOW)
 		XMatchVisualInfo((Display *)win->src.display, DefaultScreen((Display *)win->src.display), 32, TrueColor, vi); /* for RGBA backgrounds*/
 
 	XFree(vi);
@@ -1866,7 +1867,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
 	RGFW_init_buffer(win);
 	
-    if (RGFW_NO_RESIZE & args) { /* make it so the user can't resize the window*/
+    if (args & RGFW_NO_RESIZE) { /* make it so the user can't resize the window*/
         XSizeHints* sh = XAllocSizeHints();
         sh->flags = (1L << 4) | (1L << 5);
         sh->min_width = sh->max_width = win->r.w;
@@ -1876,7 +1877,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		XFree(sh);
     }
 
-    if (RGFW_NO_BORDER & args) {
+    if (args & RGFW_NO_BORDER) {
 		/* Atom vars for no-border*/
         static Atom window_type = 0;
         static Atom value = 0;
@@ -1908,7 +1909,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
     XMapWindow((Display *)win->src.display, (Drawable)win->src.window);						  /* draw the window*/
     XMoveWindow((Display *)win->src.display, (Drawable)win->src.window, win->r.x, win->r.y); /* move the window to it's proper cords*/
 
-	if (RGFW_ALLOW_DND & args) { /* init drag and drop atoms and turn on drag and drop for this window */
+	if (args & RGFW_ALLOW_DND) { /* init drag and drop atoms and turn on drag and drop for this window */
 		win->src.winArgs |= RGFW_ALLOW_DND;
 
 		XdndAware         = XInternAtom((Display*)win->src.display, "XdndAware",         False);
@@ -1938,7 +1939,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
 	RGFW_window_setMouseDefault(win);
 
-	if (RGFW_HIDE_MOUSE & args)
+	if (args & RGFW_HIDE_MOUSE)
 		RGFW_window_showMouse(win, 0);
 
 	RGFW_windowsOpen++;
@@ -3086,10 +3087,10 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
     RECT windowRect, clientRect;
 
-	if (!(RGFW_NO_BORDER & args)) {
+	if (!(args & RGFW_NO_BORDER)) {
 		window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER | WS_VISIBLE | WS_MINIMIZEBOX;
 		
-		if (!(RGFW_NO_RESIZE & args))
+		if (!(args & RGFW_NO_RESIZE))
 			window_style |= WS_SIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME;
 	}
 	else
@@ -3103,10 +3104,10 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	u32 hOffset = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
     win->src.display = CreateWindowA( Class.lpszClassName, name, window_style, win->r.x, win->r.y, win->r.w, win->r.h + hOffset, 0, 0, inh, 0);
 
-	if (RGFW_TRANSPARENT_WINDOW & args) {
+	if (args & RGFW_TRANSPARENT_WINDOW) {
 		SetWindowLong((HWND)win->src.display, GWL_EXSTYLE, GetWindowLong((HWND)win->src.display, GWL_EXSTYLE) | WS_EX_LAYERED);
 	}
-	if (RGFW_ALLOW_DND & args) {
+	if (args & RGFW_ALLOW_DND) {
 		win->src.winArgs |= RGFW_ALLOW_DND;
 		DragAcceptFiles((HWND)win->src.display, TRUE);
 	}
@@ -3207,7 +3208,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
     if (wglCreateContextAttribsARB != NULL) {
 		PIXELFORMATDESCRIPTOR pfd = {sizeof(pfd), 1, PFD_TYPE_RGBA, PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, 32, 8, PFD_MAIN_PLANE, 24, 8};
 
-		if (RGFW_OPENGL_SOFTWARE & args)
+		if (args & RGFW_OPENGL_SOFTWARE)
 			pfd.dwFlags |= PFD_GENERIC_FORMAT | PFD_GENERIC_ACCELERATED;
 
 		if (wglChoosePixelFormatARB != NULL) {
@@ -3297,7 +3298,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	RGFW_createOpenGLContext(win);
 	#endif
 
-	if (RGFW_HIDE_MOUSE & args)
+	if (args & RGFW_HIDE_MOUSE)
 		RGFW_window_showMouse(win, 0);
 
     ShowWindow((HWND)win->src.display, SW_SHOWNORMAL);
@@ -3929,6 +3930,32 @@ printf("resize\n");
 
 NSApplication* NSApp;
 
+static void NSMoveToResourceDir(void) {
+	/* sourced from glfw */
+    char resourcesPath[MAXPATHLEN];
+
+    CFBundleRef bundle = CFBundleGetMainBundle();
+    if (!bundle)
+        return;
+
+    CFURLRef resourcesURL = CFBundleCopyResourcesDirectoryURL(bundle);
+    CFStringRef last = CFURLCopyLastPathComponent(resourcesURL);
+
+    if (
+		CFStringCompare(CFSTR("Resources"), last, 0) != kCFCompareEqualTo ||
+		CFURLGetFileSystemRepresentation(resourcesURL, true, (u8*) resourcesPath, MAXPATHLEN) == 0
+	) {
+        CFRelease(last);
+        CFRelease(resourcesURL);
+        return;
+    }
+
+    CFRelease(last);
+    CFRelease(resourcesURL);
+
+    chdir(resourcesPath);
+}
+
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
     static u8 RGFW_loaded = 0;
 
@@ -3953,9 +3980,9 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	NSRect windowRect = NSMakeRect(win->r.x, win->r.y, win->r.w, win->r.h);
 	NSBackingStoreType macArgs = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled;
 
-	if (!(RGFW_NO_RESIZE & args))
+	if (!(args & RGFW_NO_RESIZE))
 		macArgs |= NSWindowStyleMaskResizable;
-	if (!(RGFW_NO_BORDER & args))
+	if (!(args & RGFW_NO_BORDER))
 		macArgs |= NSWindowStyleMaskTitled;
 	else
 		macArgs |= NSWindowStyleMaskBorderless;
@@ -3965,7 +3992,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	NSRetain(win->src.window);
 	NSWindow_setTitle(win->src.window, name);
 
-    if (RGFW_TRANSPARENT_WINDOW & args) {
+    if (args & RGFW_TRANSPARENT_WINDOW) {
 		#ifdef RGFW_OPENGL
 		i32 opacity = 0;
 		NSOpenGLContext_setValues(win->src.rSurf, &opacity, NSOpenGLContextParameterSurfaceOpacity);
@@ -3991,7 +4018,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		0, 0, 0
 	};
 	
-	if (RGFW_OPENGL_SOFTWARE & args)
+	if (args & RGFW_OPENGL_SOFTWARE)
 		attributes[2] = 0;
 
 	if (RGFW_majorVersion >= 4 || RGFW_majorVersion  >= 3) {
@@ -4014,7 +4041,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
     NSWindow_setContentView(win->src.window, win->src.view);
 
-	if (RGFW_ALLOW_DND & args) {
+	if (args & RGFW_ALLOW_DND) {
 		win->src.winArgs |= RGFW_ALLOW_DND;
 		
 		siArray(NSPasteboardType) array = si_array_init((NSPasteboardType[]){NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString}, sizeof(*array), 3);
@@ -4028,9 +4055,12 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		si_func_to_SEL("NSWindow", performDragOperation);
 	}
 
-	if (RGFW_HIDE_MOUSE & args)
+	if (args & RGFW_HIDE_MOUSE)
 		RGFW_window_showMouse(win, 0);
 	
+	if (args & RGFW_COCOA_MOVE_TO_RESOURCE_DIR)
+		NSMoveToResourceDir();
+
     // Show the window
     NSWindow_makeKeyAndOrderFront(win->src.window, NULL);
 	NSWindow_setIsVisible(win->src.window, true);
