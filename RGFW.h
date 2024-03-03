@@ -1746,7 +1746,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
    	u64 event_mask =  KeyPressMask | KeyReleaseMask  | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask; /* X11 events accepted*/
 
 	#ifdef RGFW_OPENGL
-	static i32 visual_attribs[] = {   
+	i32 visual_attribs[] = {   
 									GLX_X_RENDERABLE    , True,   
 									GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,  
 									GLX_RENDER_TYPE     , GLX_RGBA_BIT,   
