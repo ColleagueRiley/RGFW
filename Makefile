@@ -39,7 +39,7 @@ ifeq ($(detected_OS),Darwin)        # Mac OS X
 	LIB_EXT = .dylib
 endif
 ifeq ($(detected_OS),Linux)
-    LIBS := -I./include -lXrm -lX11 -lm -lGL $(STATIC)
+    LIBS := -I./include -lXrandr -lX11 -lm -lGL $(STATIC)
 	VULAKN_LIBS = -lvulkan
 	EXT =
 	LIB_EXT = .so
