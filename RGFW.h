@@ -442,6 +442,8 @@ typedef struct RGFW_window_src {
 	i32 joysticks[4]; /* limit of 4 joysticks at a time */
 	u16 joystickCount; /* the actual amount of joysticks */
 
+	RGFW_area scale; /* window scaling */
+
 	#ifdef RGFW_MACOS
 	
 	#ifdef RGFW_BUFFER
@@ -532,6 +534,8 @@ void RGFW_window_setIcon(RGFW_window* win, /*!< source window */
 
 /*!< sets mouse to bitmap (very simular to RGFW_window_setIcon), image NOT resized by default*/
 RGFWDEF void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels);
+/*!< sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the file) */
+RGFWDEF	void RGFW_window_setMouseStandard(RGFW_window* win, i32 mouse);
 RGFWDEF void RGFW_window_setMouseDefault(RGFW_window* win); /* sets the mouse to1` the default mouse image */
 
 /* hide the window */
@@ -2624,6 +2628,10 @@ void RGFW_window_moveMouse(RGFW_window* win, RGFW_vector v) {
 }
 
 void RGFW_window_setMouseDefault(RGFW_window* win) {
+	RGFW_window_setMouseStandard(win, XC_left_ptr);
+}
+
+void RGFW_window_setMouseStandard(RGFW_window* win, i32 mouse) {
 	assert(win != NULL);
 	
 	/* free the previous cursor */
@@ -2631,7 +2639,7 @@ void RGFW_window_setMouseDefault(RGFW_window* win) {
 		XFreeCursor((Display*)win->src.display, (Cursor)win->src.cursor);
 
 	win->src.winArgs |= RGFW_MOUSE_CHANGED;
-	win->src.cursor = XCreateFontCursor((Display*)win->src.display, XC_left_ptr);
+	win->src.cursor = XCreateFontCursor((Display*)win->src.display, standard);
 }
 
 void RGFW_window_hide(RGFW_window* win) {
@@ -3639,11 +3647,15 @@ void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels
 }
 
 void RGFW_window_setMouseDefault(RGFW_window* win) {
+	RGFW_window_setMouseStandard(win, IDC_ARROW);
+}
+
+void RGFW_window_setMouseStandard(RGFW_window* win, i32 mouse) {
 	assert(win != NULL);
 	
 	RGFW_window_showMouse(win, 1);
-	SetClassLongPtr(win->src.display, GCLP_HCURSOR, (LPARAM)LoadCursor(NULL, IDC_ARROW));
-	SetCursor(LoadCursor(NULL, IDC_ARROW));
+	SetClassLongPtr(win->src.display, GCLP_HCURSOR, (LPARAM)LoadCursor(NULL, mouse));
+	SetCursor(LoadCursor(NULL, mouse));
 }
 
 void RGFW_window_hide(RGFW_window* win) {
@@ -4370,12 +4382,17 @@ void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels
 }
 
 void RGFW_window_setMouseDefault(RGFW_window* win) {
+	RGFW_window_setMouseStandard(win, NSCursor_arrowCursor());
+}
+
+void RGFW_window_setMouseStandard(RGFW_window* win, i32 mouse) {
 	assert(win != NULL);
 	
 	if (win->src.cursor != NULL && win->src.cursor != NULL)
 		release(win->src.cursor);
-	
-	RGFW_window_setMouse(win, NULL, RGFW_AREA(0, 0), 0);
+
+	NSCursor_set(mouse);
+	win->src.cursor = NULL;
 }
 
 void RGFW_window_moveMouse(RGFW_window* win, RGFW_vector v) {
@@ -4917,6 +4934,18 @@ u32 RGFW_getFPS(void) {
 #define RGFW_KP_0 RGFW_OS_BASED_VALUE(0xffb0, 0x60, 83)
 #define RGFW_KP_Period RGFW_OS_BASED_VALUE(0xffae, 0x6E, 65)
 #define RGFW_KP_Return RGFW_OS_BASED_VALUE(0xff8d, 0x92, 77)
+
+/* mouse icons */
+#define RGFW_MOUSE_ARROW 				RGFW_OS_BASED_VALUE(68,   32512, NSCursor_arrowCursor())
+#define RGFW_MOUSE_IBEAM 				RGFW_OS_BASED_VALUE(152,  32513, NSCursor_IBeamCursor())
+#define RGFW_MOUSE_CROSSHAIR		 	RGFW_OS_BASED_VALUE(34,   32515, NSCursor_crosshairCursor())
+#define RGFW_MOUSE_POINTING_HAND 		RGFW_OS_BASED_VALUE(60,   32649, NSCursor_pointingHandCursor())
+#define RGFW_MOUSE_RESIZE_EW 			RGFW_OS_BASED_VALUE(108,  32644, NSCursor_resizeLeftRightCursor())
+#define RGFW_MOUSE_RESIZE_NS  			RGFW_OS_BASED_VALUE(116,  32645, NSCursor_resizeUpDownCursor())
+#define RGFW_MOUSE_RESIZE_ALL 			RGFW_OS_BASED_VALUE(52,   32646, NSCursor_closedHandCursor())
+#define RGFW_MOUSE_RESIZE_NWSE 			RGFW_OS_BASED_VALUE(12,   32642, NSCursor_performSelector(selector("_windowResizeNorthWestSouthEastCursor")))
+#define RGFW_MOUSE_RESIZE_NESW 			RGFW_OS_BASED_VALUE(14,   32643, NSCursor_performSelector(selector("_windowResizeNorthEastSouthWestCursor")))
+#define RGFW_MOUSE_NOT_ALLOWED 			RGFW_OS_BASED_VALUE(0,    32648, NSCursor_operationNotAllowedCursor())
 
 #ifdef __cplusplus
 }
