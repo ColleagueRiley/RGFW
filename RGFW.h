@@ -560,6 +560,13 @@ RGFWDEF void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 
 /*!< sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the file) */
 RGFWDEF	void RGFW_window_setMouseStandard(RGFW_window* win, i32 mouse);
 RGFWDEF void RGFW_window_setMouseDefault(RGFW_window* win); /* sets the mouse to1` the default mouse image */
+/* 
+	holds the mouse in place by moving the mouse back each time it moves
+	you can still use win->event.point to see how much it moved before it was put back in place
+
+	this is useful for a 3D camera
+*/
+RGFWDEF void RGFW_window_mouseHold(RGFW_window* win);
 
 /* hide the window */
 RGFWDEF void RGFW_window_hide(RGFW_window* win);
@@ -1421,9 +1428,10 @@ RGFW_window* RGFW_root = NULL;
 #include <X11/extensions/Xrandr.h>
 #include <X11/Xresource.h>
 #endif
-
-#define RGFW_MOUSE_CHANGED	(1L<<1) /*!< mouse change (for winargs)*/
 #endif
+
+#define RGFW_MOUSE_CHANGED		(1L<<1) /*!< mouse change (for winargs)*/
+#define RGFW_HOLD_MOUSE			(1L<<2) /*!< hold the moues still */
 
 #ifdef RGFW_WINDOWS
 #include <wchar.h>
@@ -2438,6 +2446,14 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		win->src.winArgs &= ~RGFW_MOUSE_CHANGED;
 	}
 
+#define RGFW_rectCollidePoint(r, v) (v.x >= r.x && v.y >= r.y && v.w <= r.w && v.h <= r.h)
+
+	if (win->src.winArgs &  RGFW_HOLD_MOUSE && win->event.inFocus &&
+		RGFW_rectCollidePoint(win->r, RGFW_window_getGlobalMousePoint(win)) == 0) {
+            RGFW_window_moveMouse(win, win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2));
+	}
+			
+
 	XFlush((Display*)win->src.display);
 
 	if (win->event.type)
@@ -2672,6 +2688,10 @@ void RGFW_window_moveMouse(RGFW_window* win, RGFW_vector v) {
     Window root = RootWindow(win->src.display, DefaultScreen(win->src.display));
 
     XWarpPointer(win->src.display, None, root, 0, 0, 0, 0, v.x, v.y);
+}
+
+RGFWDEF void RGFW_window_disableMouse(RGFW_window* win) {
+
 }
 
 void RGFW_window_setMouseDefault(RGFW_window* win) {
@@ -5019,11 +5039,15 @@ u8 RGFW_window_shouldClose(RGFW_window* win) {
 	return (win->event.type == RGFW_quit || RGFW_isPressedI(win, RGFW_OS_BASED_VALUE(0xff1b, 0x1B, 53)));
 }
 
+void RGFW_window_setShouldClose(RGFW_window* win) { win->event.type = RGFW_quit; }
+
 void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m) {
 	RGFW_window_move(win, RGFW_VECTOR(m.rect.x + win->r.x, m.rect.y + win->r.y));
 }
 
-void RGFW_window_setShouldClose(RGFW_window* win) { win->event.type = RGFW_quit; }
+void RGFW_window_mouseHold(RGFW_window* win) {
+	win->src.winArgs |= RGFW_HOLD_MOUSE;
+}
 
 void RGFW_sleep(u32 microsecond) {
    struct timespec time;
