@@ -212,6 +212,7 @@ extern "C" {
 #define RGFW_CENTER (1L<<10) /*! center the window on the screen */
 #define RGFW_OPENGL_SOFTWARE (1L<<11) /*! use OpenGL software rendering */
 #define RGFW_COCOA_MOVE_TO_RESOURCE_DIR (1L << 12) /* (cocoa only), move to resource folder */
+#define RGFW_SCALE_TO_MONITOR (1L << 13) /* scale the window to the screen */
 
 /*! event codes */
 #define RGFW_keyPressed 2 /* a key has been pressed */
@@ -381,6 +382,7 @@ typedef struct RGFW_window_src {
 	#ifdef RGFW_WINDOWS
     HWND display; /*!< source display */
     HDC window; /*!< source window */
+	u32 hOffset; /*!< height offset for window */
 	#endif
 	#ifdef RGFW_X11
     Display* display; /*!< source display */
@@ -527,6 +529,9 @@ RGFWDEF void RGFW_window_move(RGFW_window* win,
 								RGFW_vector v/* new pos*/
 						);
 
+/* move to a specific monitor */
+RGFWDEF void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m);
+
 RGFWDEF void RGFW_window_resize(RGFW_window* win,
 								RGFW_area a/* new size*/
 						);
@@ -585,6 +590,12 @@ RGFWDEF u8 RGFW_window_isHidden(RGFW_window* win);
 RGFWDEF u8 RGFW_window_isMinimized(RGFW_window* win);
 /* if window is maximized */
 RGFWDEF u8 RGFW_window_isMaximized(RGFW_window* win);
+
+/* 
+scale the window to the monitor, 
+this is run by default if the user uses the arg `RGFW_SCALE_TO_MONITOR` during window creation
+*/
+RGFWDEF void RGFW_window_scaleToMonitor(RGFW_window* win);
 
 /* get the struct of the window's monitor  */
 RGFWDEF RGFW_monitor RGFW_window_getMonitor(RGFW_window* win);
@@ -858,7 +869,6 @@ RGFW_window* RGFW_window_basic_init (RGFW_rect rect, u16 args) {
 
 	#ifdef RGFW_ALLOC_DROPFILES
     win->event.droppedFiles = (char**)RGFW_MALLOC(sizeof(char*) * RGFW_MAX_DROPS);
-	
 	i32 i;
 	for (i = 0; i < RGFW_MAX_DROPS; i++)
 		win->event.droppedFiles[i] = (char*)RGFW_CALLOC(RGFW_MAX_PATH, sizeof(char));
@@ -899,6 +909,12 @@ RGFW_window* RGFW_window_basic_init (RGFW_rect rect, u16 args) {
 	win->src.winArgs = 0;
 
 	return win;
+}
+
+void RGFW_window_scaleToMonitor(RGFW_window* win) {
+	RGFW_monitor monitor = RGFW_window_getMonitor(win);
+	printf("%i %f\n", win->r.h, win->r.h * (monitor.scaleY / 2));
+	RGFW_window_resize(win, RGFW_AREA((monitor.scaleX) * win->r.w, (monitor.scaleX) * win->r.h));
 }
 
 void RGFW_init_buffer(RGFW_window* win) {
@@ -1909,7 +1925,10 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	#endif
 
 	RGFW_init_buffer(win);
-	
+
+	if (args & RGFW_SCALE_TO_MONITOR)
+		RGFW_window_scaleToMonitor(win);
+
     if (args & RGFW_NO_RESIZE) { /* make it so the user can't resize the window*/
         XSizeHints* sh = XAllocSizeHints();
         sh->flags = (1L << 4) | (1L << 5);
@@ -3263,8 +3282,8 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	GetWindowRect(dummyWin, &windowRect);
 	GetClientRect(dummyWin, &clientRect);
 
-	u32 hOffset = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
-    win->src.display = CreateWindowA( Class.lpszClassName, name, window_style, win->r.x, win->r.y, win->r.w, win->r.h + hOffset, 0, 0, inh, 0);
+	win->src.hOffset = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
+    win->src.display = CreateWindowA( Class.lpszClassName, name, window_style, win->r.x, win->r.y, win->r.w, win->r.h + win->src.hOffset, 0, 0, inh, 0);
 
 	if (args & RGFW_TRANSPARENT_WINDOW) {
 		SetWindowLong((HWND)win->src.display, GWL_EXSTYLE, GetWindowLong((HWND)win->src.display, GWL_EXSTYLE) | WS_EX_LAYERED);
@@ -3455,6 +3474,9 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
 	DestroyWindow(dummyWin);
 	RGFW_init_buffer(win);
+
+	if (args & RGFW_SCALE_TO_MONITOR)
+		RGFW_window_scaleToMonitor(win);
 	
 	#ifdef RGFW_EGL
 	RGFW_createOpenGLContext(win);
@@ -3748,9 +3770,9 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 	
 	#ifndef RGFW_NO_DPI
 	u32 x, y;
-    GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &x, &y);
-	monitor.scaleX = x / (float)USER_DEFAULT_SCREEN_DPI;
-	monitor.scaleY = y / (float)USER_DEFAULT_SCREEN_DPI;
+    GetDpiForMonitor(src, MDT_ANGULAR_DPI, &x, &y);
+	monitor.scaleX = (float)(x) / (float)USER_DEFAULT_SCREEN_DPI;
+	monitor.scaleY = (float)(y) / (float)USER_DEFAULT_SCREEN_DPI;
 	#endif
 
     HDC hdc = GetDC(NULL);
@@ -3770,8 +3792,12 @@ RGFW_monitor RGFW_monitors[6];
 BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
 	RGFW_mInfo* info = (RGFW_mInfo*)dwData;
 	
+	if (info->iIndex >= 6)
+		return FALSE;
+	
 	RGFW_monitors[info->iIndex] = win32CreateMonitor(hMonitor);
 	info->iIndex++;
+
   	return TRUE;
 }
 
@@ -3965,7 +3991,7 @@ void RGFW_window_move(RGFW_window* win, RGFW_vector v) {
 	
 	win->r.x = v.x;
 	win->r.y = v.y;
-	SetWindowPos((HWND)win->src.display, (HWND)win->src.display, win->r.x, win->r.y, win->r.w, win->r.h, 0);
+	SetWindowPos((HWND)win->src.display, HWND_TOP, win->r.x, win->r.y, 0, 0, SWP_NOSIZE);
 }
 
 void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
@@ -3973,7 +3999,7 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 	
 	win->r.w = a.w;
 	win->r.h = a.h;
-	SetWindowPos((HWND)win->src.display, (HWND)win->src.display, win->r.x, win->r.y, win->r.w, win->r.h, 0);
+	SetWindowPos((HWND)win->src.display, HWND_TOP, 0, 0, win->r.w, win->r.h + win->src.hOffset, SWP_NOMOVE);
 }
 
 
@@ -4305,6 +4331,9 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	#endif
 
 	RGFW_init_buffer(win);
+
+	if (args & RGFW_SCALE_TO_MONITOR)
+		RGFW_window_scaleToMonitor(win);
 
     NSWindow_setContentView(win->src.window, win->src.view);
 
@@ -4988,6 +5017,10 @@ u8 RGFW_window_shouldClose(RGFW_window* win) {
 	
 	/* || RGFW_isPressedI(win, RGFW_Escape) */
 	return (win->event.type == RGFW_quit || RGFW_isPressedI(win, RGFW_OS_BASED_VALUE(0xff1b, 0x1B, 53)));
+}
+
+void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m) {
+	RGFW_window_move(win, RGFW_VECTOR(m.rect.x + win->r.x, m.rect.y + win->r.y));
 }
 
 void RGFW_window_setShouldClose(RGFW_window* win) { win->event.type = RGFW_quit; }
