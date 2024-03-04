@@ -2446,11 +2446,10 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		win->src.winArgs &= ~RGFW_MOUSE_CHANGED;
 	}
 
-#define RGFW_rectCollidePoint(r, v) (v.x >= r.x && v.y >= r.y && v.w <= r.w && v.h <= r.h)
-
+	RGFW_vector mouse = RGFW_getGlobalMousePoint();
 	if (win->src.winArgs &  RGFW_HOLD_MOUSE && win->event.inFocus &&
-		RGFW_rectCollidePoint(win->r, RGFW_window_getGlobalMousePoint(win)) == 0) {
-            RGFW_window_moveMouse(win, win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2));
+		(mouse.x != win->r.x + (win->r.w / 2) || mouse.y != win->r.y + (win->r.h / 2))) {
+            RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
 	}
 			
 
@@ -3697,6 +3696,12 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	else 
 		win->event.type = 0;
 
+	RGFW_vector mouse = RGFW_getGlobalMousePoint();
+	if (win->src.winArgs &  RGFW_HOLD_MOUSE && win->event.inFocus &&
+		(mouse.x != win->r.x + (win->r.w / 2) || mouse.y != win->r.y + (win->r.h / 2))) {
+            RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
+	}
+
 	win->event.lockState = 0;
 
 	if ((GetKeyState(VK_CAPITAL) & 0x0001)!=0)
@@ -4553,6 +4558,12 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	NSApplication_updateWindows(NSApp);
 
+	RGFW_vector mouse = RGFW_getGlobalMousePoint();
+	if (win->src.winArgs &  RGFW_HOLD_MOUSE && win->event.inFocus &&
+		(mouse.x != win->r.x + (win->r.w / 2) || mouse.y != win->r.y + (win->r.h / 2))) {
+            RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
+	}
+	
 	if (win->event.type)
 		return &win->event;
 	else
