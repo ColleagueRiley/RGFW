@@ -557,8 +557,14 @@ void RGFW_window_setIcon(RGFW_window* win, /*!< source window */
 
 /*!< sets mouse to bitmap (very simular to RGFW_window_setIcon), image NOT resized by default*/
 RGFWDEF void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels);
+
 /*!< sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the file) */
+#ifdef RGFW_MACOS
+RGFWDEF void RGFW_window_setMouseStandard(RGFW_window* win, void* mouse);
+#else
 RGFWDEF	void RGFW_window_setMouseStandard(RGFW_window* win, i32 mouse);
+#endif
+
 RGFWDEF void RGFW_window_setMouseDefault(RGFW_window* win); /* sets the mouse to1` the default mouse image */
 /* 
 	holds the mouse in place by moving the mouse back each time it moves
@@ -713,7 +719,7 @@ typedef struct {
 } RGFW_vulkanInfo;
 
 /*! initializes a vulkan rendering context for the RGFW window,
-	this outputs the vulkan surface into win->src.rSurf
+	this outputs the vulkan surface into wwin->src.rSurf
 	other vulkan data is stored in the global instance of the RGFW_vulkanInfo structure which is returned 
 	by the initVulkan() function
 	RGFW_VULKAN must be defined for this function to be defined
@@ -837,6 +843,12 @@ int main() {
 #include <math.h>
 #include <assert.h>
 
+#ifdef RGFW_MACOS
+#define GL_SILENCE_DEPRECATION
+#define SILICON_IMPLEMENTATION
+#include "silicon.h"
+#endif
+
 #define RGFW_ASSERT(check, str) {\
 	if (!(check)) { \
 		printf(str); \
@@ -908,6 +920,7 @@ RGFW_window* RGFW_window_basic_init (RGFW_rect rect, u16 args) {
 	#endif
 	#ifdef RGFW_MACOS
 	win->src.cursor = NULL;
+	RGFW_window_setMouseDefault(win);
 	#endif
 	#ifdef RGFW_WINDOWS
 	win->src.maxSize = RGFW_AREA(0, 0);
@@ -957,12 +970,6 @@ void RGFW_init_buffer(RGFW_window* win) {
 	#endif
 	#endif
 }
-
-#ifdef RGFW_MACOS
-#define GL_SILENCE_DEPRECATION
-#define SILICON_IMPLEMENTATION
-#include "silicon.h"
-#endif
 
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL) || defined(RGFW_OSMESA)
 #ifndef __APPLE__
@@ -1606,12 +1613,12 @@ u8 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { return win->src.jsPres
 
 #ifdef RGFW_OPENGL
 i32 RGFW_majorVersion = 0, RGFW_minorVersion = 0;
-i32 RSGL_STENCIL = 8, RSGL_SAMPLES = 4, RSGL_STEREO = GL_FALSE, RSGL_AUX_BUFFERS = 0;
+i32 RGFW_STENCIL = 8, RGFW_SAMPLES = 4, RGFW_STEREO = GL_FALSE, RGFW_AUX_BUFFERS = 0;
 
-void RGFW_setGLStencil(i32 stencil) { RSGL_STENCIL = stencil; }
-void RGFW_setGLSamples(i32 samples) { RSGL_SAMPLES = samples; }
-void RGFW_setGLStereo(i32 stereo) { RSGL_STEREO = stereo; }
-void RGFW_setGLAuxBuffers(i32 auxBuffers) { RSGL_AUX_BUFFERS = auxBuffers; }
+void RGFW_setGLStencil(i32 stencil) { RGFW_STENCIL = stencil; }
+void RGFW_setGLSamples(i32 samples) { RGFW_SAMPLES = samples; }
+void RGFW_setGLStereo(i32 stereo) { RGFW_STEREO = stereo; }
+void RGFW_setGLAuxBuffers(i32 auxBuffers) { RGFW_AUX_BUFFERS = auxBuffers; }
 
 void RGFW_setGLVersion(i32 major, i32 minor) {
 	RGFW_majorVersion = major; 
@@ -1825,10 +1832,10 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 									GLX_ALPHA_SIZE      , 8,   
 									GLX_DEPTH_SIZE      , 24,    
 									GLX_DOUBLEBUFFER    , True,    
-									GLX_STENCIL_SIZE	, RSGL_STENCIL,
-									GLX_SAMPLE_BUFFERS	, RSGL_SAMPLES,
-									GLX_STEREO			, RSGL_STEREO,
-									GLX_AUX_BUFFERS		, RSGL_AUX_BUFFERS,
+									GLX_STENCIL_SIZE	, RGFW_STENCIL,
+									GLX_SAMPLE_BUFFERS	, RGFW_SAMPLES,
+									GLX_STEREO			, RGFW_STEREO,
+									GLX_AUX_BUFFERS		, RGFW_AUX_BUFFERS,
 									None   
 								};
 	
@@ -3420,10 +3427,10 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 				WGL_PIXEL_TYPE_ARB,         WGL_TYPE_RGBA_ARB,
 				WGL_COLOR_BITS_ARB,         32,
 				WGL_DEPTH_BITS_ARB,         24,
-				WGL_STENCIL_BITS_ARB, 		RSGL_STENCIL,
-				WGL_SAMPLES_ARB,			RSGL_SAMPLES,
-				WGL_STEREO_ARB,            	RSGL_STEREO,
-				WGL_AUX_BUFFERS_ARB, 		RSGL_AUX_BUFFERS,
+				WGL_STENCIL_BITS_ARB, 		RGFW_STENCIL,
+				WGL_SAMPLES_ARB,		RGFW_SAMPLES,
+				WGL_STEREO_ARB,            	RGFW_STEREO,
+				WGL_AUX_BUFFERS_ARB, 		RGFW_AUX_BUFFERS,
 				0
 			};
 
@@ -4250,7 +4257,7 @@ NSApplication* NSApp;
 
 static void NSMoveToResourceDir(void) {
 	/* sourced from glfw */
-    char resourcesPath[MAXPATHLEN];
+    char resourcesPath[255];
 
     CFBundleRef bundle = CFBundleGetMainBundle();
     if (!bundle)
@@ -4261,7 +4268,7 @@ static void NSMoveToResourceDir(void) {
 
     if (
 		CFStringCompare(CFSTR("Resources"), last, 0) != kCFCompareEqualTo ||
-		CFURLGetFileSystemRepresentation(resourcesURL, true, (u8*) resourcesPath, MAXPATHLEN) == 0
+		CFURLGetFileSystemRepresentation(resourcesURL, true, (u8*) resourcesPath, 255) == 0
 	) {
         CFRelease(last);
         CFRelease(resourcesURL);
@@ -4328,26 +4335,51 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		NSOpenGLPFAAlphaSize, 8,
 		NSOpenGLPFADepthSize, 24,
 		NSOpenGLPFANoRecovery,
-		NSOpenGLPFAStencilSize, RSGL_STENCIL,
-		NSOpenGLPFASampleBuffers, RSGL_SAMPLES,
-		NSOpenGLPFAStereo, RSGL_STEREO,
-		NSOpenGLPFAAuxBuffers, RSGL_AUX_BUFFERS,
-
-		0, 0, 0
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 	};
 	
 	if (args & RGFW_OPENGL_SOFTWARE)
 		attributes[2] = 0;
 
+	size_t index = 9;	
+	if (RGFW_STENCIL) {
+		attributes[index] = NSOpenGLPFAStencilSize; 
+		attributes[index + 1] = RGFW_STENCIL;
+		index += 2;
+	}
+
+        if (RGFW_SAMPLES) {
+                attributes[index] = NSOpenGLPFASampleBuffers;
+                attributes[index + 1] = RGFW_SAMPLES;
+		index += 2;
+        } 
+
+        if (RGFW_STEREO) {
+                attributes[index] = NSOpenGLPFAStereo;;
+                attributes[index + 1] = RGFW_STEREO;
+        	index += 2;
+	} 
+
+        if (RGFW_AUX_BUFFERS) {
+                attributes[index] = NSOpenGLPFAAuxBuffers;;
+                attributes[index + 1] = RGFW_AUX_BUFFERS;
+        	index += 2;
+	} 
+
+	attributes[index] = NSOpenGLPFAOpenGLProfile;
+	attributes[index + 1] = NSOpenGLProfileVersionLegacy;
+
 	if (RGFW_majorVersion >= 4 || RGFW_majorVersion  >= 3) {
-		attributes[11] = NSOpenGLPFAOpenGLProfile;
-        attributes[12] = (RGFW_majorVersion  >= 4) ? NSOpenGLProfileVersion4_1Core : NSOpenGLProfileVersion3_2Core;
+		attributes[index + 1] = (u32)((RGFW_majorVersion  >= 4) ? NSOpenGLProfileVersion4_1Core : NSOpenGLProfileVersion3_2Core);
 	}
 
 	NSOpenGLPixelFormat* format = NSOpenGLPixelFormat_initWithAttributes(attributes);
+	if (format == NULL)
+		printf("Failed to load pixel format\n");
 	win->src.view = NSOpenGLView_initWithFrame(NSMakeRect(0, 0, win->r.w, win->r.h), format);
 	NSOpenGLView_prepareOpenGL(win->src.view);
 
+	win->src.rSurf = NSOpenGLView_openGLContext(win->src.view);
 	NSOpenGLContext_makeCurrentContext(win->src.rSurf);
 
 	#else
@@ -4359,9 +4391,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
 	if (args & RGFW_SCALE_TO_MONITOR)
 		RGFW_window_scaleToMonitor(win);
-
     NSWindow_setContentView(win->src.window, win->src.view);
-
 	if (args & RGFW_ALLOW_DND) {
 		win->src.winArgs |= RGFW_ALLOW_DND;
 		
@@ -4382,8 +4412,8 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	if (args & RGFW_COCOA_MOVE_TO_RESOURCE_DIR)
 		NSMoveToResourceDir();
 
-    // Show the window
-    NSWindow_makeKeyAndOrderFront(win->src.window, NULL);
+    	// Show the window
+    	NSWindow_makeKeyAndOrderFront(win->src.window, NULL);
 	NSWindow_setIsVisible(win->src.window, true);
 
 	NSApplication_setActivationPolicy(NSApp, NSApplicationActivationPolicyRegular);
@@ -4670,14 +4700,14 @@ void RGFW_window_setMouseDefault(RGFW_window* win) {
 	RGFW_window_setMouseStandard(win, NSCursor_arrowCursor());
 }
 
-void RGFW_window_setMouseStandard(RGFW_window* win, i32 mouse) {
+void RGFW_window_setMouseStandard(RGFW_window* win, void* mouse) {
 	assert(win != NULL);
 	
-	if (win->src.cursor != NULL && win->src.cursor != NULL)
+	if (win->src.cursor != NULL)
 		release(win->src.cursor);
 
-	NSCursor_set(mouse);
-	win->src.cursor = NULL;
+	win->src.cursor = mouse;
+	NSCursor_set(win->src.cursor);
 }
 
 void RGFW_window_moveMouse(RGFW_window* win, RGFW_vector v) {
@@ -4877,7 +4907,7 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 			wglMakeCurrent((HDC)win->src.window, (HGLRC)win->src.rSurf);
 		#endif
 		#if defined(RGFW_MACOS)
-		NSOpenGLContext_makeCurrentContext(win->src.rSurf);
+		NSOpenGLContext_makeCurrentContext(win->src.rSurf);;
 		#endif
 	#else
 	#ifdef RGFW_EGL
@@ -4911,7 +4941,7 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	static void* loadSwapFunc = (void*)1;
 
 	if (loadSwapFunc == NULL) {
-		fprintf(stderr, "wglSwapIntervalEXT not supported\n");
+		fprintf(stderr, "wglSwapIntervalEXT not supported\n");	
 		win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
 		return;
 	}
@@ -4926,7 +4956,6 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 
 	#endif
 	#if defined(RGFW_MACOS)
-	win->src.rSurf = NSOpenGLView_openGLContext(win->src.view);
 	NSOpenGLContext_setValues(win->src.rSurf, &swapInterval, NSOpenGLContextParameterSwapInterval);
 	#endif
 	#endif
