@@ -3554,6 +3554,99 @@ void RGFW_window_restore(RGFW_window* win) {
 	ShowWindow((HWND)win->src.display, SW_RESTORE);
 }
 
+static i32 RGFW_checkXInput(RGFW_Event* e) {
+    static WORD buttons[4];
+	static BYTE triggers[4][2] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
+
+    size_t i;
+    for(i = 0; i < 4; i++ ) {        
+        XINPUT_STATE state;
+        if(XInputGetState(i, &state) == ERROR_DEVICE_NOT_CONNECTED)
+            return 0;
+		
+		e->button = 0;
+        if (state.Gamepad.wButtons & XINPUT_GAMEPAD_A && !(buttons[i] & XINPUT_GAMEPAD_A)) {
+            e->button = RGFW_JS_A;
+			e->type = RGFW_jsButtonPressed;
+			return 1;			
+		}
+        else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_B && !(buttons[i] & XINPUT_GAMEPAD_B)) 
+            e->button = RGFW_JS_B;
+        else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y && !(buttons[i] & XINPUT_GAMEPAD_Y))
+            e->button = RGFW_JS_Y;
+        else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_X && !(buttons[i] & XINPUT_GAMEPAD_X))
+            e->button = RGFW_JS_X;
+        else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_START && !(buttons[i] & XINPUT_GAMEPAD_START))
+            e->button = RGFW_JS_START;
+        else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK&& !(buttons[i] & XINPUT_GAMEPAD_BACK))
+            e->button = RGFW_JS_SELECT;
+        else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP && !(buttons[i] & XINPUT_GAMEPAD_DPAD_UP))
+            e->button = RGFW_JS_UP;
+        else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN && !(buttons[i] & XINPUT_GAMEPAD_DPAD_DOWN))
+            e->button = RGFW_JS_DOWN;
+        else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT && !(buttons[i] & XINPUT_GAMEPAD_DPAD_LEFT)) 
+            e->button = RGFW_JS_LEFT;
+        else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT && !(buttons[i] & XINPUT_GAMEPAD_DPAD_RIGHT))
+            e->button = RGFW_JS_RIGHT;
+        else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER && !(buttons[i] & XINPUT_GAMEPAD_LEFT_SHOULDER))
+            e->button = RGFW_JS_L1;
+        else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER && !(buttons[i] & XINPUT_GAMEPAD_RIGHT_SHOULDER))
+            e->button = RGFW_JS_R1;
+        else if (state.Gamepad.bLeftTrigger && triggers[i][0] == 0)
+            e->button = RGFW_JS_L2;
+        else if (state.Gamepad.bRightTrigger && triggers[i][1] == 0)
+            e->button = RGFW_JS_R2;
+
+		triggers[i][0] = state.Gamepad.bLeftTrigger;
+		triggers[i][1] = state.Gamepad.bRightTrigger;
+
+        buttons[i] = state.Gamepad.wButtons;
+
+		if (e->button) {
+			e->type = RGFW_jsButtonPressed;
+			return 1;
+		}
+
+		#define INPUT_DEADZONE  ( 0.24f * (float)(0x7FFF) )  // Default to 24% of the +/- 32767 range.   This is a reasonable default value but can be altered if needed.
+
+        if( ( state.Gamepad.sThumbLX < INPUT_DEADZONE &&
+            state.Gamepad.sThumbLX > -INPUT_DEADZONE ) &&
+            ( state.Gamepad.sThumbLY < INPUT_DEADZONE &&
+            state.Gamepad.sThumbLY > -INPUT_DEADZONE ) )
+        {
+            state.Gamepad.sThumbLX = 0;
+            state.Gamepad.sThumbLY = 0;
+        }
+
+        if( ( state.Gamepad.sThumbRX < INPUT_DEADZONE &&
+            state.Gamepad.sThumbRX > -INPUT_DEADZONE ) &&
+            ( state.Gamepad.sThumbRY < INPUT_DEADZONE &&
+            state.Gamepad.sThumbRY > -INPUT_DEADZONE ) )
+        {
+            state.Gamepad.sThumbRX = 0;
+            state.Gamepad.sThumbRY = 0;
+        }
+
+        e->axisesCount = 2;
+        RGFW_vector axis1 = RGFW_VECTOR(state.Gamepad.sThumbLX, state.Gamepad.sThumbLY);
+        RGFW_vector axis2 = RGFW_VECTOR(state.Gamepad.sThumbRX, state.Gamepad.sThumbRY);
+	
+		if (axis1.x != e->axis[0].x || axis1.y != e->axis[0].y || axis2.x != e->axis[1].x || axis2.y != e->axis[1].y) {
+			e->type = RGFW_jsAxisMove;
+	
+			e->axis[0] = axis1;
+			e->axis[1] = axis2;
+			
+			return 1;
+		}
+		
+		e->axis[0] = axis1;
+		e->axis[1] = axis2;
+	}
+
+	return 0;
+}
+
 RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	assert(win != NULL);
 	
@@ -3568,6 +3661,8 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	win->event.droppedFilesCount = 0;
 
     win->event.inFocus = (GetForegroundWindow() == win->src.display);
+
+	XInputEnable(win->event.inFocus);
 
 	if (win->event.type == RGFW_quit)
 		return NULL;
