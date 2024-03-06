@@ -122,6 +122,7 @@ extern "C" {
 /* plus it helps with cross-compiling because RGFW_X11 won't be accidently defined */
 #define RGFW_WINDOWS 
 #include <windows.h>
+#include <XInput.h>
 
 #else 
 #if defined(__unix__) && !defined(__APPLE__) && !defined(RGFW_X11)
