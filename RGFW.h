@@ -283,29 +283,26 @@ extern "C" {
 #define RGFW_CAPSLOCK (1L << 1)
 #define RGFW_NUMLOCK (1L << 2)
 
-/*
-	When compiling the header, if you choose to, you will get a double link error,
-	because of the joystick codes
-	simply add -D RGFW_NO_JOYSTICK_CODES to fix the issue
-*/
-#ifndef RGFW_NO_JOYSTICK_CODES
 /*! joystick button codes (based on xbox/playstation), you may need to change these values per controller */
-u8 RGFW_JS_A = 0; /* or PS X button */
-u8 RGFW_JS_B = 1; /* or PS circle button */
-u8 RGFW_JS_Y = 2; /* or PS triangle button */
-u8 RGFW_JS_X = 3; /* or PS square button */
-u8 RGFW_JS_START = 9; /* start button */
-u8 RGFW_JS_SELECT = 8; /* select button */
-u8 RGFW_JS_HOME = 10; /* home button */
-u8 RGFW_JS_UP = 13; /* dpad up */
-u8 RGFW_JS_DOWN = 14; /* dpad down*/
-u8 RGFW_JS_LEFT = 15; /* dpad left */
-u8 RGFW_JS_RIGHT = 16; /* dpad right */
-u8 RGFW_JS_L1 = 4; /* left bump */
-u8 RGFW_JS_L2 = 5; /* left trigger*/
-u8 RGFW_JS_R1 = 6; /* right bumper */
-u8 RGFW_JS_R2 = 7; /* right trigger */
-#endif /* RGFW_NO_JOYSTICK_CODES */
+#ifndef RGFW_JS_A
+
+#define RGFW_JS_A 0 /* or PS X button */
+#define RGFW_JS_B 1 /* or PS circle button */
+#define RGFW_JS_Y 2 /* or PS triangle button */
+#define RGFW_JS_X 3 /* or PS square button */
+#define RGFW_JS_START 9 /* start button */
+#define RGFW_JS_SELECT 8 /* select button */
+#define RGFW_JS_HOME 10 /* home button */
+#define RGFW_JS_UP 13 /* dpad up */
+#define RGFW_JS_DOWN 14 /* dpad down*/
+#define RGFW_JS_LEFT 15 /* dpad left */
+#define RGFW_JS_RIGHT 16 /* dpad right */
+#define RGFW_JS_L1 4 /* left bump */
+#define RGFW_JS_L2 5 /* left trigger*/
+#define RGFW_JS_R1 6 /* right bumper */
+#define RGFW_JS_R2 7 /* right trigger */
+
+#endif
 
 /* basic vector type, if there's not already a point/vector type of choice */
 #ifndef RGFW_vector
