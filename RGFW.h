@@ -672,7 +672,7 @@ RGFWDEF void RGFW_setThreadPriority(RGFW_thread thread, u8 priority); /*!< sets 
 RGFWDEF u16 RGFW_registerJoystick(RGFW_window* win, i32 jsNumber);
 RGFWDEF u16 RGFW_registerJoystickF(RGFW_window* win, char* file);
 
-RGFWDEF u8 RGFW_isPressedJS(RGFW_window* win, u16 controller, u8 button);
+RGFWDEF u32 RGFW_isPressedJS(RGFW_window* win, u16 controller, u8 button);
 
 /*! native opengl functions */
 #ifdef RGFW_OPENGL
@@ -1610,7 +1610,32 @@ typedef struct RGFW_Timespec {
 	u32 tv_nsec;	/* Nanoseconds.  */
 } RGFW_Timespec; /*time struct for fps functions*/
 
-u8 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { return win->src.jsPressed[c][button]; }
+#ifndef RGFW_WINDOWS
+u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { return win->src.jsPressed[c][button]; }
+#else
+u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) {
+    XINPUT_STATE state;
+    if (XInputGetState(c, &state) == ERROR_DEVICE_NOT_CONNECTED)
+        return 0;
+    
+	if (button == RGFW_JS_A) return state.Gamepad.wButtons & XINPUT_GAMEPAD_A;
+	else if (button == RGFW_JS_B) return state.Gamepad.wButtons & XINPUT_GAMEPAD_B; 
+    else if (button == RGFW_JS_Y) return state.Gamepad.wButtons & XINPUT_GAMEPAD_Y;
+    else if (button == RGFW_JS_X) return state.Gamepad.wButtons & XINPUT_GAMEPAD_X; 
+    else if (button == RGFW_JS_START) return state.Gamepad.wButtons & XINPUT_GAMEPAD_START;
+    else if (button == RGFW_JS_SELECT) return state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK;
+    else if (button == RGFW_JS_UP) return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP; 
+    else if (button == RGFW_JS_DOWN) return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN; 
+    else if (button == RGFW_JS_LEFT) return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT; 
+    else if (button == RGFW_JS_RIGHT) return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
+    else if (button == RGFW_JS_L1) return state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER;
+    else if (button == RGFW_JS_R1) return state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER;
+    else if (button == RGFW_JS_L2 && state.Gamepad.bLeftTrigger) return 1;
+    else if (button == RGFW_JS_R2 && state.Gamepad.bRightTrigger) return 1;
+
+    return 0;
+}
+#endif
 
 #ifdef RGFW_OPENGL
 i32 RGFW_majorVersion = 0, RGFW_minorVersion = 0;
@@ -3664,6 +3689,9 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
     win->event.inFocus = (GetForegroundWindow() == win->src.display);
 
 	XInputEnable(win->event.inFocus);
+
+	if (RGFW_checkXInput(&win->event))
+		return &win->event;
 
 	if (win->event.type == RGFW_quit)
 		return NULL;
