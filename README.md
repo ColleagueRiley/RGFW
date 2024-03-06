@@ -103,7 +103,7 @@ RGFW is more portable, in part because single-header library. It does not use ca
 | multi-threading | ✓  | X |
 | drag and drop (input) | ✓  | ✓ |
 | drag and drop (output) | X | X |
-| joystick input | ~ (linux only) | ✓ |
+| joystick input | ~ (no macos support) | ✓ |
 | live window struct | ✓  | X |
 | event pipeline (dynamic) | ✓  | X |
 | multi-buffering | ✓  | ✓ |
