@@ -41,6 +41,7 @@ void main()
 
 int main()
 {
+    RGFW_setGLVersion(3, 3);
     RGFW_window* window = RGFW_createWindow("LearnOpenGL", RGFW_RECT(SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT), RGFW_ALLOW_DND | RGFW_CENTER);
     if (window == NULL)
     {
