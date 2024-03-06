@@ -17,4 +17,4 @@ jobs:
       run: gcc -I./ ./examples/basic/main.c -lXInput -lopengl32 -lShcore -lshell32 -lgdi32
 
     - name: gcc-gl33
-      run: gcc -I./ ./examples/gl33/main.c -Wall -Wall -lShcore -lopengl32 -lshell32 -lgdi32 -std=c99
+      run: gcc -I./ ./examples/gl33/main.c -lXInput -Wall -Wall -lShcore -lopengl32 -lshell32 -lgdi32 -std=c99
