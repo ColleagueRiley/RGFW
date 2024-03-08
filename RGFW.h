@@ -1856,7 +1856,6 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 									GLX_DEPTH_SIZE      , 24,    
 									GLX_DOUBLEBUFFER    , True,    
 									GLX_STENCIL_SIZE	, RGFW_STENCIL,
-									GLX_SAMPLE_BUFFERS	, RGFW_SAMPLES,
 									GLX_STEREO			, RGFW_STEREO,
 									GLX_AUX_BUFFERS		, RGFW_AUX_BUFFERS,
 									None   
@@ -1865,7 +1864,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	i32 fbcount;
 	GLXFBConfig* fbc = glXChooseFBConfig((Display*)win->src.display, DefaultScreen(win->src.display), visual_attribs, &fbcount);
 
-	i32 best_fbc = -1, worst_fbc = -1, best_num_samp = -1, worst_num_samp = 999;
+	i32 best_fbc = -1, worst_fbc = -1, best_num_samp = RGFW_SAMPLES, worst_num_samp = 0;
 
 	if (fbcount == 0) {
 		printf("Failed to find any valid GLX configs\n");
@@ -1880,9 +1879,9 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 			glXGetFBConfigAttrib((Display*)win->src.display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
 			glXGetFBConfigAttrib((Display*)win->src.display, fbc[i], GLX_SAMPLES, &samples );
 
-			if ( (best_fbc < 0 || samp_buf) && (samples > best_num_samp) )
+			if ( (best_fbc < 0 || samp_buf) && (samples == best_num_samp) )
 				best_fbc = i, best_num_samp = samples;
-			if ( (worst_fbc < 0 || !samp_buf) || (samples < worst_num_samp) )
+			if ( (worst_fbc < 0 || !samp_buf) || (samples != worst_num_samp) )
 				worst_fbc = i, worst_num_samp = samples;
 		}
 		XFree(vi);
