@@ -4657,7 +4657,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			win->event.type = RGFW_mouseButtonReleased;
 			break;
 		
-		case NSEventTypeScrollWheel:
+		case NSEventTypeScrollWheel: {
 			double deltaY = NSEvent_deltaY(e);
 
 			if (deltaY > 0)
@@ -4668,6 +4668,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			
 			win->event.type = RGFW_mouseButtonReleased;
 			break;
+		}
 		case NSEventTypeRightMouseUp:
 			win->event.button = RGFW_mouseRight;
 			win->event.type = RGFW_mouseButtonReleased;
