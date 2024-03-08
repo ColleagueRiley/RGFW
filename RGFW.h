@@ -4612,97 +4612,95 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NSDate_distantFuture(), NSDefaultRunLoopMode, true);
 
-	if (win->event.type == RGFW_quit)
+	if (win->event.type == RGFW_quit || NSEvent_window(e) != win->src.window)
 		return NULL;
 
-	if (NSEvent_window(e) == win->src.window) {
-		u8 button = 0;
+	switch (NSEvent_type(e)) {
+		case NSEventTypeKeyDown:
+			win->event.type = RGFW_keyPressed;
+			win->event.keyCode = (u16)NSEvent_keyCode(e);
+			win->event.keyName = (char*)NSEvent_characters(e);
 
-		switch (NSEvent_type(e)) {
-			case NSEventTypeKeyDown:
-				win->event.type = RGFW_keyPressed;
-				win->event.keyCode = (u16)NSEvent_keyCode(e);
-				win->event.keyName = (char*)NSEvent_characters(e);
+			RGFW_keyMap[win->event.keyCode] = 1;
+			break;
 
-				RGFW_keyMap[win->event.keyCode] = 1;
-				break;
+		case NSEventTypeKeyUp:
+			win->event.type = RGFW_keyReleased;
+			win->event.keyCode = (u16)NSEvent_keyCode(e);
+			win->event.keyName = (char*)NSEvent_characters(e);
 
-			case NSEventTypeKeyUp:
-				win->event.type = RGFW_keyReleased;
-				win->event.keyCode = (u16)NSEvent_keyCode(e);
-				win->event.keyName = (char*)NSEvent_characters(e);
+			RGFW_keyMap[win->event.keyCode] = 0;
+			break;
 
-				RGFW_keyMap[win->event.keyCode] = 0;
+		case NSEventTypeLeftMouseDown:
+			win->event.button = RGFW_mouseLeft;
+			win->event.type = RGFW_mouseButtonReleased;
+			break;
 
-				break;
+		case NSEventTypeOtherMouseDown:
+			win->event.button = RGFW_mouseMiddle;
+			win->event.type = RGFW_mouseButtonReleased;
+			break;
+		
+		case NSEventTypeRightMouseDown:
+			win->event.button = RGFW_mouseRight;
+			win->event.type = RGFW_mouseButtonReleased;
+			break;
 
-			case NSEventTypeLeftMouseDown:
-				button = 1;
-				win->event.button = 2;
-			case NSEventTypeOtherMouseDown:
-				button = 1;
-				if (!button)
-				win->event.button = 1;
-			case NSEventTypeRightMouseDown:
-				if (!button)
-				win->event.button = 0;
+		case NSEventTypeLeftMouseUp:
+			win->event.button = RGFW_mouseLeft;
+			win->event.type = RGFW_mouseButtonReleased;
+			break;
+		
+		case NSEventTypeOtherMouseUp:
+			win->event.button = RGFW_mouseMiddle;
+			win->event.type = RGFW_mouseButtonReleased;
+			break;
+		
+		case NSEventTypeScrollWheel:
+			double deltaY = NSEvent_deltaY(e);
 
-				win->event.type = RGFW_mouseButtonPressed;
-				break;
+			if (deltaY > 0)
+				win->event.button = RGFW_mouseScrollUp;
 
-			case NSEventTypeLeftMouseUp:
-				button = 1;
-				if (NSEvent_type(e) == NSEventTypeLeftMouseUp)
-					win->event.button = RGFW_mouseLeft;
-			case NSEventTypeOtherMouseUp:
-				if (!button && NSEvent_type(e) == NSEventTypeOtherMouseUp)
-				win->event.button = RGFW_mouseMiddle;
-				button = 1;
-			case NSEventTypeScrollWheel:
-				if (!button && NSEvent_type(e) == NSEventTypeScrollWheel){
-					double deltaY = NSEvent_deltaY(e);
+			else if (deltaY < 0)
+				win->event.button = RGFW_mouseScrollDown;
+			
+			win->event.type = RGFW_mouseButtonReleased;
+			break;
+		case NSEventTypeRightMouseUp:
+			win->event.button = RGFW_mouseRight;
+			win->event.type = RGFW_mouseButtonReleased;
+			break;
 
-					if (deltaY > 0)
-						win->event.button = RGFW_mouseScrollUp;
+		case NSEventTypeMouseMoved:
+			win->event.type = RGFW_mousePosChanged;
 
-					else if (deltaY < 0)
-						win->event.button = RGFW_mouseScrollDown;
-				}
-				button = 1;
-			case NSEventTypeRightMouseUp:
-				if (!button)
-				win->event.button = RGFW_mouseRight;
+			NSPoint p = NSEvent_locationInWindow(e);
 
-				win->event.type = RGFW_mouseButtonReleased;
-				break;
-
-			case NSEventTypeMouseMoved:
-				win->event.type = RGFW_mousePosChanged;
-
-				NSPoint p = NSEvent_locationInWindow(e);
-
-				win->event.point.x = p.x;
-				win->event.point.y = p.y;
-				break;
+			win->event.point.x = p.x;
+			win->event.point.y = p.y;
+			break;
 
 
-			default: break;
+		default: 
+			win->event.type = 0;
+			break;
+	}
+
+	if (win->src.cursorChanged && win->event.inFocus) {
+		if (win->src.cursor == NULL)
+			CGDisplayHideCursor(kCGDirectMainDisplay);
+		else {
+			CGDisplayShowCursor(kCGDirectMainDisplay);
+
+			if (win->src.cursor == NULL) 
+				NSCursor_set(NSCursor_arrowCursor());
+			else 
+				NSCursor_set(win->src.cursor);
 		}
 
-		if (win->src.cursorChanged && win->event.inFocus) {
-			if (win->src.cursor == NULL)
-				CGDisplayHideCursor(kCGDirectMainDisplay);
-			else {
-				CGDisplayShowCursor(kCGDirectMainDisplay);
-
-				if (win->src.cursor == NULL) 
-					NSCursor_set(NSCursor_arrowCursor());
-				else 
-					NSCursor_set(win->src.cursor);
-			}
-
-			win->src.cursorChanged = false;
-		}
+		win->src.cursorChanged = false;
 	}
 
 	NSApplication_sendEvent(NSApp, e);
