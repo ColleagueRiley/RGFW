@@ -4609,9 +4609,8 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			NSCursor_set(win->src.cursor);
 	}
 
-	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NSDate_distantFuture(), NSDefaultRunLoopMode, true);
-
-	if (win->event.type == RGFW_quit || NSEvent_window(e) != win->src.window)
+	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, NSDefaultRunLoopMode, true);
+	if (win->event.type == RGFW_quit || e == NULL || NSEvent_window(e) != win->src.window)
 		return NULL;
 
 	switch (NSEvent_type(e)) {
