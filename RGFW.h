@@ -4633,17 +4633,17 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		case NSEventTypeLeftMouseDown:
 			win->event.button = RGFW_mouseLeft;
-			win->event.type = RGFW_mouseButtonReleased;
+			win->event.type = RGFW_mouseButtonPressed;
 			break;
 
 		case NSEventTypeOtherMouseDown:
 			win->event.button = RGFW_mouseMiddle;
-			win->event.type = RGFW_mouseButtonReleased;
+			win->event.type = RGFW_mouseButtonPressed;
 			break;
 		
 		case NSEventTypeRightMouseDown:
 			win->event.button = RGFW_mouseRight;
-			win->event.type = RGFW_mouseButtonReleased;
+			win->event.type = RGFW_mouseButtonPressed;
 			break;
 
 		case NSEventTypeLeftMouseUp:
@@ -4677,9 +4677,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			win->event.type = RGFW_mousePosChanged;
 
 			NSPoint p = NSEvent_locationInWindow(e);
-
-			win->event.point.x = p.x;
-			win->event.point.y = p.y;
+			win->event.point = RGFW_VECTOR((u32)p.x, (u32)(win->r.h - p.y));
 			break;
 
 
