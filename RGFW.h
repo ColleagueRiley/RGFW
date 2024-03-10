@@ -4491,16 +4491,18 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		printf("Failed to load pixel format\n");
 	win->src.view = NSOpenGLView_initWithFrame(NSMakeRect(0, 0, win->r.w, win->r.h), format);
 	NSOpenGLView_prepareOpenGL(win->src.view);
-	
-	NSWindow_contentView_setWantsLayer(win->src.window, true);
-	
-	win->src.rSurf = NSOpenGLView_openGLContext(win->src.view);
-	NSOpenGLContext_makeCurrentContext(win->src.rSurf);
 
 	#else
     NSRect contentRect = NSMakeRect(0, 0, win->r.w, win->r.h);
     win->src.view = NSView_initWithFrame(contentRect);
 	#endif
+
+
+	NSWindow_contentView_setWantsLayer(win->src.window, true);
+	NSWindow_setContentView(win, (NSView*)view);
+	
+	win->src.rSurf = NSOpenGLView_openGLContext(win->src.view);
+	NSOpenGLContext_makeCurrentContext(win->src.rSurf);
 
     if (args & RGFW_TRANSPARENT_WINDOW) {
 		#ifdef RGFW_OPENGL
@@ -4519,10 +4521,11 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
 	RGFW_init_buffer(win);
 
+	
 	if (args & RGFW_SCALE_TO_MONITOR)
 		RGFW_window_scaleToMonitor(win);
-    NSWindow_setContentView(win->src.window, win->src.view);
-	if (args & RGFW_ALLOW_DND) {
+   
+   if (args & RGFW_ALLOW_DND) {
 		win->src.winArgs |= RGFW_ALLOW_DND;
 		
 		siArray(NSPasteboardType) array = si_array_init((NSPasteboardType[]){NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString}, sizeof(*array), 3);
