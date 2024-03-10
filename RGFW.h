@@ -4499,8 +4499,8 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
 
 	NSWindow_contentView_setWantsLayer(win->src.window, true);
-	NSWindow_setContentView(win, (NSView*)view);
-	
+	NSWindow_setContentView(win, (NSView*)win->src.view);
+
 	win->src.rSurf = NSOpenGLView_openGLContext(win->src.view);
 	NSOpenGLContext_makeCurrentContext(win->src.rSurf);
 
