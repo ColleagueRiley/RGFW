@@ -4378,8 +4378,6 @@ printf("resize\n");
 
 NSApplication* NSApp;
 
-CVReturn displayCallback(CVDisplayLinkRef displayLink, const CVTimeStamp *inNow, const CVTimeStamp *inOutputTime, CVOptionFlags flagsIn, CVOptionFlags *flagsOut, void *displayLinkContext) { return kCVReturnSuccess; };
-
 static void NSMoveToResourceDir(void) {
 	/* sourced from glfw */
     char resourcesPath[255];
@@ -4515,7 +4513,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	}
 
 	win->src.display = CGMainDisplayID();
-	CVDisplayLinkCreateWithCGDisplay(win->src.display, &displayLink);
+	CVDisplayLinkCreateWithCGDisplay(win->src.display, &win->src.displayLink);
 	CVDisplayLinkSetOutputCallback(win->src.displayLink, displayCallback, win);
 	CVDisplayLinkStart(win->src.displayLink);
 
