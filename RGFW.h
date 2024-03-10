@@ -4497,7 +4497,6 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
     win->src.view = NSView_initWithFrame(contentRect);
 	#endif
 
-
 	NSWindow_contentView_setWantsLayer(win->src.window, true);
 	NSWindow_setContentView(win, (NSView*)win->src.view);
 
@@ -4520,7 +4519,6 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	CVDisplayLinkStart(win->src.displayLink);
 
 	RGFW_init_buffer(win);
-
 	
 	if (args & RGFW_SCALE_TO_MONITOR)
 		RGFW_window_scaleToMonitor(win);
@@ -4606,6 +4604,10 @@ u32 RGFW_keysPressed[10]; /*10 keys at a time*/
 RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	assert(win != NULL);
 	
+	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, NSDefaultRunLoopMode, true);
+	if (win->event.type == RGFW_quit || e == NULL || NSEvent_window(e) != win->src.window)
+		return NULL;
+
 	if (win->event.droppedFilesCount) {
 		i32 i;
 		for (i = 0; i < win->event.droppedFilesCount; i++)
@@ -4624,10 +4626,6 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		if (win->src.cursorChanged != 2 || NSCursor_currentCursor() != win->src.cursor)
 			NSCursor_set(win->src.cursor);
 	}
-
-	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, NSDefaultRunLoopMode, true);
-	if (win->event.type == RGFW_quit || e == NULL || NSEvent_window(e) != win->src.window)
-		return NULL;
 
 	switch (NSEvent_type(e)) {
 		case NSEventTypeKeyDown:
