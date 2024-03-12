@@ -1666,6 +1666,93 @@ u8* RGFW_getMaxGLVersion() {
 
     return version;
 }
+
+#define RGFW_GL_RENDER_TYPE 		RGFW_OS_BASED_VALUE(GLX_X_VISUAL_TYPE,    	0x2003,		NSOpenGLPFAAccelerated)
+#define RGFW_GL_ALPHA_SIZE 		RGFW_OS_BASED_VALUE(GLX_ALPHA_SIZE,       	0x201b,		NSOpenGLPFAAlphaSize)
+#define RGFW_GL_DEPTH_SIZE 		RGFW_OS_BASED_VALUE(GLX_DEPTH_SIZE,       	0x2022,		NSOpenGLPFADepthSize)
+#define RGFW_GL_DOUBLEBUFFER 		RGFW_OS_BASED_VALUE(GLX_DOUBLEBUFFER,     	0x2011, 	NSOpenGLPFADoubleBuffer)   
+#define RGFW_GL_STENCIL_SIZE 		RGFW_OS_BASED_VALUE(GLX_STENCIL_SIZE,	 	0x2023,	NSOpenGLPFAStencilSize)
+#define RGFW_GL_SAMPLES			RGFW_OS_BASED_VALUE(GLX_SAMPLES, 		 	0x2042,	    NSOpenGLPFASamples)
+#define RGFW_GL_STEREO 			RGFW_OS_BASED_VALUE(GLX_STEREO,	 		 	0x2012,			NSOpenGLPFAStereo)
+#define RGFW_GL_AUX_BUFFERS		RGFW_OS_BASED_VALUE(GLX_AUX_BUFFERS,	    0x2024,	NSOpenGLPFAAuxBuffers)
+
+#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
+#define RGFW_GL_DRAW 			RGFW_OS_BASED_VALUE(GLX_X_RENDERABLE,	 	0x2001,					0)
+#define RGFW_GL_DRAW_TYPE 		RGFW_OS_BASED_VALUE(GLX_RENDER_TYPE,     	0x2013,						0)
+#define RGFW_GL_USE_OPENGL		RGFW_OS_BASED_VALUE(GLX_USE_GL,				0x2010						0)
+#define RGFW_GL_FULL_FORMAT		RGFW_OS_BASED_VALUE(GLX_TRUE_COLOR,   	 	0x2027,						0)
+#define RGFW_GL_RED_SIZE		RGFW_OS_BASED_VALUE(GLX_RED_SIZE,         	0x2015,						0)
+#define RGFW_GL_GREEN_SIZE		RGFW_OS_BASED_VALUE(GLX_GREEN_SIZE,       	0x2017,						0)
+#define RGFW_GL_BLUE_SIZE		RGFW_OS_BASED_VALUE(GLX_BLUE_SIZE, 	 		0x2019,						0)
+#define RGFW_GL_USE_RGBA		RGFW_OS_BASED_VALUE(GLX_RGBA_BIT,   	 	0x202B,						0)
+#endif
+
+#ifdef RGFW_WINDOWS
+#define WGL_COLOR_BITS_ARB                        0x2014
+#define WGL_NUMBER_PIXEL_FORMATS_ARB 			0x2000
+#define WGL_CONTEXT_MAJOR_VERSION_ARB             0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB             0x2092
+#define WGL_CONTEXT_PROFILE_MASK_ARB              0x9126
+#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+#define WGL_SAMPLE_BUFFERS_ARB               0x2041
+#define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20a9
+#endif
+
+static i32* RGFW_initAttribs(void) {
+	static i32 attribs[] = {  
+							RGFW_GL_RENDER_TYPE, 	
+							#ifndef RGFW_MACOS
+							RGFW_GL_FULL_FORMAT,     
+							#endif
+							RGFW_GL_ALPHA_SIZE      , 8,   
+							RGFW_GL_DEPTH_SIZE      , 24,    
+							RGFW_GL_DOUBLEBUFFER    , 1,    
+
+							#if defined(RGFW_X11) || defined(RGFW_MACOS)
+							RGFW_GL_USE_OPENGL,		1,
+							RGFW_GL_DRAW, 1,   
+							RGFW_GL_RED_SIZE        , 8,   
+							RGFW_GL_GREEN_SIZE      , 8, 
+							RGFW_GL_BLUE_SIZE       , 8,   
+							RGFW_GL_DRAW_TYPE     , RGFW_GL_USE_RGBA,  
+							#endif 
+							
+							#ifdef RGFW_X11
+							GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,  
+							#endif
+
+							#ifdef RGFW_MACOS
+							NSOpenGLPFANoRecovery,
+							NSOpenGLPFAColorSize, 24,
+							#endif
+
+							#ifdef RGFW_WINDOWS
+							WGL_COLOR_BITS_ARB,	 32,
+							#endif
+							
+							0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		};
+
+	size_t index = (sizeof(attribs) / sizeof(attribs[0])) - 13;
+
+	#define RGFW_GL_ADD_ATTRIB(attrib, attVal) \
+		if (attVal) { \
+			attribs[index] = attrib;\
+			attribs[index + 1] = attVal;\
+			index += 2;\
+		}	\
+
+	RGFW_GL_ADD_ATTRIB(RGFW_GL_STENCIL_SIZE, RGFW_STENCIL);
+	RGFW_GL_ADD_ATTRIB(RGFW_GL_STEREO, RGFW_STEREO);
+	RGFW_GL_ADD_ATTRIB(RGFW_GL_AUX_BUFFERS, RGFW_AUX_BUFFERS);
+	
+	#ifndef RGFW_X11
+	RGFW_GL_ADD_ATTRIB(0x2042, RGFW_SAMPLES);
+	#endif 
+
+	return attribs;
+}
+
 #endif
 
 #ifdef RGFW_EGL
@@ -1849,23 +1936,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
    	u64 event_mask =  KeyPressMask | KeyReleaseMask  | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask; /* X11 events accepted*/
 
 	#ifdef RGFW_OPENGL
-	i32 visual_attribs[] = {   
-									GLX_X_RENDERABLE    , True,   
-									GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,  
-									GLX_RENDER_TYPE     , GLX_RGBA_BIT,   
-									GLX_X_VISUAL_TYPE   , GLX_TRUE_COLOR,   
-									GLX_RED_SIZE        , 8,   
-									GLX_GREEN_SIZE      , 8,   
-									GLX_BLUE_SIZE       , 8,   
-									GLX_ALPHA_SIZE      , 8,   
-									GLX_DEPTH_SIZE      , 24,    
-									GLX_DOUBLEBUFFER    , True,    
-									GLX_STENCIL_SIZE	, RGFW_STENCIL,
-									GLX_STEREO			, RGFW_STEREO,
-									GLX_AUX_BUFFERS		, RGFW_AUX_BUFFERS,
-									None   
-								};
-	
+	i32* visual_attribs = RGFW_initAttribs();
 	i32 fbcount;
 	GLXFBConfig* fbc = glXChooseFBConfig((Display*)win->src.display, DefaultScreen(win->src.display), visual_attribs, &fbcount);
 
@@ -3445,20 +3516,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 			pfd.dwFlags |= PFD_GENERIC_FORMAT | PFD_GENERIC_ACCELERATED;
 
 		if (wglChoosePixelFormatARB != NULL) {
-			int pixel_format_attribs[] = {
-				WGL_DRAW_TO_WINDOW_ARB,     GL_TRUE,
-				WGL_SUPPORT_OPENGL_ARB,     GL_TRUE,
-				WGL_DOUBLE_BUFFER_ARB,      GL_TRUE,
-				WGL_ACCELERATION_ARB,       WGL_FULL_ACCELERATION_ARB,
-				WGL_PIXEL_TYPE_ARB,         WGL_TYPE_RGBA_ARB,
-				WGL_COLOR_BITS_ARB,         32,
-				WGL_DEPTH_BITS_ARB,         24,
-				WGL_STENCIL_BITS_ARB, 		RGFW_STENCIL,
-				WGL_SAMPLES_ARB,		RGFW_SAMPLES,
-				WGL_STEREO_ARB,            	RGFW_STEREO,
-				WGL_AUX_BUFFERS_ARB, 		RGFW_AUX_BUFFERS,
-				0
-			};
+			int* pixel_format_attribs = RGFW_initAttribs();
 
 			int pixel_format;
 			UINT num_formats;
@@ -4442,44 +4500,8 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	NSWindow_setTitle(win->src.window, name);
 
 	#ifdef RGFW_OPENGL
-	NSOpenGLPixelFormatAttribute attributes[] = {
-		NSOpenGLPFAAccelerated,
-		NSOpenGLPFADoubleBuffer,
-		NSOpenGLPFAColorSize, 24,
-		NSOpenGLPFAAlphaSize, 8,
-		NSOpenGLPFADepthSize, 24,
-		NSOpenGLPFANoRecovery,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-	};
+	NSOpenGLPixelFormatAttribute attributes* = RGFW_initAttribs();
 	
-	if (args & RGFW_OPENGL_SOFTWARE)
-		attributes[2] = 0;
-
-	size_t index = 9;	
-	if (RGFW_STENCIL) {
-		attributes[index] = NSOpenGLPFAStencilSize; 
-		attributes[index + 1] = RGFW_STENCIL;
-		index += 2;
-	}
-
-        if (RGFW_SAMPLES) {
-                attributes[index] = NSOpenGLPFASampleBuffers;
-                attributes[index + 1] = RGFW_SAMPLES;
-		index += 2;
-        } 
-
-        if (RGFW_STEREO) {
-                attributes[index] = NSOpenGLPFAStereo;;
-                attributes[index + 1] = RGFW_STEREO;
-        	index += 2;
-	} 
-
-        if (RGFW_AUX_BUFFERS) {
-                attributes[index] = NSOpenGLPFAAuxBuffers;;
-                attributes[index + 1] = RGFW_AUX_BUFFERS;
-        	index += 2;
-	} 
-
 	attributes[index] = NSOpenGLPFAOpenGLProfile;
 	attributes[index + 1] = NSOpenGLProfileVersionLegacy;
 
