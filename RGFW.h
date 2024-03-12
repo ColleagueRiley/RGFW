@@ -1751,11 +1751,11 @@ static i32* RGFW_initAttribs(void) {
 	#endif 
 
 	#ifdef RGFW_MACOS
-	attributes[index] = NSOpenGLPFAOpenGLProfile;
-	attributes[index + 1] = NSOpenGLProfileVersionLegacy;
+	attribs[index] = NSOpenGLPFAOpenGLProfile;
+	attribs[index + 1] = NSOpenGLProfileVersionLegacy;
 
 	if (RGFW_majorVersion >= 4 || RGFW_majorVersion  >= 3) {
-		attributes[index + 1] = (u32)((RGFW_majorVersion  >= 4) ? NSOpenGLProfileVersion4_1Core : NSOpenGLProfileVersion3_2Core);
+		attribs[index + 1] = (u32)((RGFW_majorVersion  >= 4) ? NSOpenGLProfileVersion4_1Core : NSOpenGLProfileVersion3_2Core);
 	}
 	#endif
 
