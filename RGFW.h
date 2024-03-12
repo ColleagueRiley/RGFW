@@ -941,7 +941,9 @@ void RGFW_window_scaleToMonitor(RGFW_window* win) {
 void RGFW_init_buffer(RGFW_window* win) {
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	#if !defined(RGFW_WINDOWS) || defined(RGFW_OSMESA)
-	win->buffer = RGFW_MALLOC(win->r.w * win->r.h * 4);
+	RGFW_area area = RGFW_getScreenSize();
+
+	win->buffer = RGFW_MALLOC(area.w * area.h * 4);
 	#endif
 
 	#ifdef RGFW_OSMESA
@@ -2394,7 +2396,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 				reply.xclient.window = xdnd.source;
 				reply.xclient.message_type = XdndFinished;
 				reply.xclient.format = 32;
-				reply.xclient.data.l[0] = (long)win->src.display;
+				reply.xclient.data.l[0] = (long)win->src.window;
 				reply.xclient.data.l[1] = result;
 				reply.xclient.data.l[2] = XdndActionCopy;
 
