@@ -1756,7 +1756,7 @@ static i32* RGFW_initAttribs(void) {
 
 	if (RGFW_majorVersion >= 4 || RGFW_majorVersion  >= 3)
 		RGFW_GL_ADD_ATTRIB(((RGFW_majorVersion >= 4) ? NSOpenGLProfileVersion4_1Core : 
-														NSOpenGLProfileVersion3_2Core, 1));
+														NSOpenGLProfileVersion3_2Core), 1);
 	#endif
 
 	return attribs;
