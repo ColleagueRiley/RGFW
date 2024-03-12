@@ -1708,7 +1708,7 @@ static i32* RGFW_initAttribs(void) {
 							RGFW_GL_DEPTH_SIZE      , 24,    
 							RGFW_GL_DOUBLEBUFFER    , 1,    
 
-							#if defined(RGFW_X11) || defined(RGFW_MACOS)
+							#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
 							RGFW_GL_USE_OPENGL,		1,
 							RGFW_GL_DRAW, 1,   
 							RGFW_GL_RED_SIZE        , 8,   
