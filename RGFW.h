@@ -1698,15 +1698,18 @@ u8* RGFW_getMaxGLVersion() {
 #define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20a9
 #endif
 
-static i32* RGFW_initAttribs(void) {
-	static i32 attribs[] = {  
+static u32* RGFW_initAttribs(void) {
+	static u32 attribs[] = {  
 							RGFW_GL_RENDER_TYPE, 	
 							#ifndef RGFW_MACOS
 							RGFW_GL_FULL_FORMAT,     
 							#endif
 							RGFW_GL_ALPHA_SIZE      , 8,   
 							RGFW_GL_DEPTH_SIZE      , 24,    
-							RGFW_GL_DOUBLEBUFFER    , 1,    
+							RGFW_GL_DOUBLEBUFFER    , 
+							#ifndef RGFW_MACOS
+							1,    
+							#endif
 
 							#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
 							RGFW_GL_USE_OPENGL,		1,
@@ -1758,6 +1761,8 @@ static i32* RGFW_initAttribs(void) {
 		attribs[index + 1] = (u32)((RGFW_majorVersion  >= 4) ? NSOpenGLProfileVersion4_1Core : NSOpenGLProfileVersion3_2Core);
 	}
 	#endif
+
+	RGFW_GL_ADD_ATTRIB(0, 0);
 
 	return attribs;
 }
