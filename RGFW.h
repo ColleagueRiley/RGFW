@@ -4500,8 +4500,8 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	NSWindow_setTitle(win->src.window, name);
 
 	#ifdef RGFW_OPENGL
-	NSOpenGLPixelFormatAttribute attributes* = RGFW_initAttribs();
-	
+	NSOpenGLPixelFormatAttribute* attributes = RGFW_initAttribs();
+
 	attributes[index] = NSOpenGLPFAOpenGLProfile;
 	attributes[index + 1] = NSOpenGLProfileVersionLegacy;
 
