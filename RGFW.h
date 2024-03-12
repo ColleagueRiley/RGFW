@@ -1672,7 +1672,7 @@ u8* RGFW_getMaxGLVersion() {
 #define RGFW_GL_DEPTH_SIZE 		RGFW_OS_BASED_VALUE(GLX_DEPTH_SIZE,       	0x2022,		NSOpenGLPFADepthSize)
 #define RGFW_GL_DOUBLEBUFFER 		RGFW_OS_BASED_VALUE(GLX_DOUBLEBUFFER,     	0x2011, 	NSOpenGLPFADoubleBuffer)   
 #define RGFW_GL_STENCIL_SIZE 		RGFW_OS_BASED_VALUE(GLX_STENCIL_SIZE,	 	0x2023,	NSOpenGLPFAStencilSize)
-#define RGFW_GL_SAMPLES			RGFW_OS_BASED_VALUE(GLX_SAMPLES, 		 	0x2042,	    NSOpenGLPFASamples)
+#define RGFW_GL_SAMPLES			RGFW_OS_BASED_VALUE(GLX_SAMPLES, 		 	0x2042,	    NSOpenGLPFASampleBuffers)
 #define RGFW_GL_STEREO 			RGFW_OS_BASED_VALUE(GLX_STEREO,	 		 	0x2012,			NSOpenGLPFAStereo)
 #define RGFW_GL_AUX_BUFFERS		RGFW_OS_BASED_VALUE(GLX_AUX_BUFFERS,	    0x2024,	NSOpenGLPFAAuxBuffers)
 
@@ -1750,13 +1750,11 @@ static u32* RGFW_initAttribs(void) {
 	RGFW_GL_ADD_ATTRIB(RGFW_GL_AUX_BUFFERS, RGFW_AUX_BUFFERS);
 	
 	#ifndef RGFW_X11
-	RGFW_GL_ADD_ATTRIB(0x2042, RGFW_SAMPLES);
+	RGFW_GL_ADD_ATTRIB(RGFW_GL_SAMPLES, RGFW_SAMPLES);
 	#endif 
 
 	#ifdef RGFW_MACOS
-	attribs[index] = NSOpenGLPFAOpenGLProfile;
-	attribs[index + 1] = NSOpenGLProfileVersionLegacy;
-
+	RGFW_GL_ADD_ATTRIB(NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersionLegacy);
 	if (RGFW_majorVersion >= 4 || RGFW_majorVersion  >= 3) {
 		attribs[index + 1] = (u32)((RGFW_majorVersion  >= 4) ? NSOpenGLProfileVersion4_1Core : NSOpenGLProfileVersion3_2Core);
 	}
