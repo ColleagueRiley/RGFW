@@ -1750,6 +1750,15 @@ static i32* RGFW_initAttribs(void) {
 	RGFW_GL_ADD_ATTRIB(0x2042, RGFW_SAMPLES);
 	#endif 
 
+	#ifdef RGFW_MACOS
+	RGFW_GL_ADD_ATTRIB(NSOpenGLPFAOpenGLProfile, 1);
+	RGFW_GL_ADD_ATTRIB(NSOpenGLProfileVersionLegacy, 1);
+
+	if (RGFW_majorVersion >= 4 || RGFW_majorVersion  >= 3)
+		RGFW_GL_ADD_ATTRIB(((RGFW_majorVersion >= 4) ? NSOpenGLProfileVersion4_1Core : 
+														NSOpenGLProfileVersion3_2Core, 1));
+	#endif
+
 	return attribs;
 }
 
@@ -4500,16 +4509,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	NSWindow_setTitle(win->src.window, name);
 
 	#ifdef RGFW_OPENGL
-	NSOpenGLPixelFormatAttribute* attributes = RGFW_initAttribs();
-
-	attributes[index] = NSOpenGLPFAOpenGLProfile;
-	attributes[index + 1] = NSOpenGLProfileVersionLegacy;
-
-	if (RGFW_majorVersion >= 4 || RGFW_majorVersion  >= 3) {
-		attributes[index + 1] = (u32)((RGFW_majorVersion  >= 4) ? NSOpenGLProfileVersion4_1Core : NSOpenGLProfileVersion3_2Core);
-	}
-
-	NSOpenGLPixelFormat* format = NSOpenGLPixelFormat_initWithAttributes(attributes);
+	NSOpenGLPixelFormat* format = NSOpenGLPixelFormat_initWithAttributes((NSOpenGLPixelFormatAttribute*)RGFW_initAttribs());
 	if (format == NULL)
 		printf("Failed to load pixel format\n");
 	win->src.view = NSOpenGLView_initWithFrame(NSMakeRect(0, 0, win->r.w, win->r.h), format);
