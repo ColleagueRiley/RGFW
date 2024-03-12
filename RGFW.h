@@ -1754,10 +1754,13 @@ static u32* RGFW_initAttribs(void) {
 	#endif 
 
 	#ifdef RGFW_MACOS
-	RGFW_GL_ADD_ATTRIB(NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersionLegacy);
+	attribs[index] = NSOpenGLPFAOpenGLProfile;
+	attribs[index + 1] = NSOpenGLProfileVersionLegacy;
+
 	if (RGFW_majorVersion >= 4 || RGFW_majorVersion  >= 3) {
-		attribs[index] = (u32)((RGFW_majorVersion  >= 4) ? NSOpenGLProfileVersion4_1Core : NSOpenGLProfileVersion3_2Core);
+		attribs[index + 1] = (u32)((RGFW_majorVersion  >= 4) ? NSOpenGLProfileVersion4_1Core : NSOpenGLProfileVersion3_2Core);
 	}
+
 	#endif
 
 	RGFW_GL_ADD_ATTRIB(0, 0);
