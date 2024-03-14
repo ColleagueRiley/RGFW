@@ -11,7 +11,7 @@ void* loop2(void *);
 
 
 unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
-unsigned char running = 1;
+unsigned char running = 1, running2 = 1;
 
 int main() {
     RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_ALLOW_DND | RGFW_CENTER);
@@ -20,8 +20,6 @@ int main() {
     if (win == NULL)
         return 1;
     
-    win->fpsCap = 60;
-
     RGFW_createThread(loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
 
     unsigned char i;
@@ -30,13 +28,11 @@ int main() {
 
     #ifndef RGFW_VULKAN
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     #endif
 
-    RGFW_window_swapInterval(win, 60);
+    RGFW_window_swapInterval(win, 1);
 
     glEnable(GL_BLEND);             
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0, 0, 0, 0);
 
     while (running && !RGFW_isPressedI(win, RGFW_Escape)) {
@@ -75,11 +71,12 @@ int main() {
             else if (win->event.type == RGFW_jsAxisMove && !win->event.button)
                 printf("{%i, %i}\n", win->event.axis[0].x, win->event.axis[0].y);
         }
-
+        
         RGFW_window_makeCurrent(win);
         drawLoop(win);
     }
 
+    running2 = 0;
     RGFW_window_close(win);
 }
 
@@ -106,9 +103,8 @@ void drawLoop(RGFW_window *w) {
 void* loop2(void* args) {
     #ifndef __APPLE__
     RGFW_window* win = RGFW_createWindow("subwindow", RGFW_RECT(200, 200, 200, 200), 0);
-    win->fpsCap = 60;
 
-    while (running) {
+    while (running2) {
         /* 
             not using a while loop here because there is only one event I care about 
         */
