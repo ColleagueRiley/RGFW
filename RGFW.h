@@ -1951,9 +1951,9 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
    	u64 event_mask =  KeyPressMask | KeyReleaseMask  | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask; /* X11 events accepted*/
 
 	#ifdef RGFW_OPENGL
-	i32* visual_attribs = RGFW_initAttribs();
+	u32* visual_attribs = RGFW_initAttribs();
 	i32 fbcount;
-	GLXFBConfig* fbc = glXChooseFBConfig((Display*)win->src.display, DefaultScreen(win->src.display), visual_attribs, &fbcount);
+	GLXFBConfig* fbc = glXChooseFBConfig((Display*)win->src.display, DefaultScreen(win->src.display), (i32*)visual_attribs, &fbcount);
 
 	i32 best_fbc = -1;
 
@@ -2845,11 +2845,9 @@ void RGFW_window_show(RGFW_window* win) {
 	the majority function is sourced from GLFW
 */
 char* RGFW_readClipboard(size_t* size) {
-	static Atom UTF8 = NULL;
-	if (UTF8 == NULL)
+	static Atom UTF8 = 0;
+	if (UTF8 == 0)
 		UTF8 = XInternAtom(RGFW_root->src.display, "UTF8_STRING", True); 
-
-	char * c = 0;
 
 	XEvent event;
 	int format;
@@ -5182,8 +5180,9 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	
 	#ifdef RGFW_X11
 		win->src.bitmap->data = (char*)win->buffer;
-		
-		XPutImage(win->src.display, (Window)win->src.window, XDefaultGC(win->src.display, XDefaultScreen(win->src.display)), win->src.bitmap, 0, 0, 0, 0, win->r.w, win->r.h);
+
+		RGFW_area area = RGFW_getScreenSize();
+		XPutImage(win->src.display, (Window)win->src.window, XDefaultGC(win->src.display, XDefaultScreen(win->src.display)), win->src.bitmap, 0, 0, 0, 0, area.w, area.h);
 	#endif
 	#ifdef RGFW_WINDOWS
 		HGDIOBJ oldbmp = SelectObject(win->src.hdcMem, win->src.bitmap);
