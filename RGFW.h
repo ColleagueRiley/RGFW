@@ -957,7 +957,7 @@ void RGFW_init_buffer(RGFW_window* win) {
 	#endif
 	#ifdef RGFW_X11
 			win->src.bitmap = XCreateImage(win->src.display, DefaultVisual(win->src.display, XDefaultScreen(win->src.display)), DefaultDepth(win->src.display, XDefaultScreen(win->src.display)),
-                                ZPixmap, 0, (char*)win->buffer, win->r.w, win->r.h, 32, 0);
+                                ZPixmap, 0, (char*)win->buffer, area.w, area.h, 32, 0);
 	#endif
 	#ifdef RGFW_WINDOWS
 	BITMAPINFO bmi = {0};
@@ -2051,6 +2051,9 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	RGFW_createOpenGLContext(win);
 	#endif
 
+	if (RGFW_root == NULL)
+		RGFW_root = win;
+
 	RGFW_init_buffer(win);
 
 	if (args & RGFW_SCALE_TO_MONITOR)
@@ -2132,9 +2135,6 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		RGFW_window_showMouse(win, 0);
 
 	RGFW_windowsOpen++;
-
-	if (RGFW_root == NULL)
-		RGFW_root = win;
 		
     return win; /*return newly created window*/
 }
@@ -2174,13 +2174,13 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	
 	XEvent E; /* raw X11 event */
 
-	/* if there is no unread qued events, get a new one */
+/* if there is no unread qued events, get a new one */
 	if (XEventsQueued((Display*)win->src.display, QueuedAlready) + XEventsQueued((Display*)win->src.display, QueuedAfterReading) && win->event.type != RGFW_quit)
 		XNextEvent((Display*)win->src.display, &E);
 	else {
 		return NULL;
 	}
-
+	
 	u32 i;
 
 	if (win->event.droppedFilesCount) {
@@ -2190,6 +2190,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	win->event.droppedFilesCount = 0;
 	win->event.type = 0;
+
 
 	switch (E.type) {
 		case KeyPress:
@@ -2237,8 +2238,10 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		case ClientMessage:
 			/* if the client closed the window*/
-			if (E.xclient.data.l[0] == (i64)wm_delete_window)
+			if (E.xclient.data.l[0] == (i64)wm_delete_window) {
 				win->event.type = RGFW_quit;
+				break;
+			}
 
 			/*
 				much of this event (drag and drop code) is source from glfw
@@ -2330,7 +2333,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 				break;
 			}
-			else if (E.xclient.message_type ==  XdndPosition) {
+			if (E.xclient.message_type ==  XdndPosition) {
 				const i32 xabs = (E.xclient.data.l[2] >> 16) & 0xffff;
 				const i32 yabs = (E.xclient.data.l[2]) & 0xffff;
 				Window dummy;
@@ -2365,39 +2368,42 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 				XSendEvent((Display*)win->src.display, xdnd.source, False, NoEventMask, &reply);
 				XFlush((Display*)win->src.display);
+				break;
 			}
-			else if (E.xclient.message_type == XdndDrop) {
-				if (xdnd.version > 5)
-					break;
-				
-				win->event.type = RGFW_dnd_init;
+			
+			if (E.xclient.message_type != XdndDrop)
+				break;
 
-				if (xdnd.format) {
-					Time time = CurrentTime;
+			if (xdnd.version > 5)
+				break;
+			
+			win->event.type = RGFW_dnd_init;
 
-					if (xdnd.version >= 1)
-						time = E.xclient.data.l[2];
+			if (xdnd.format) {
+				Time time = CurrentTime;
 
-					XConvertSelection((Display*)win->src.display,
-									XdndSelection,
-									xdnd.format,
-									XdndSelection,
-									(Window)win->src.window,
-									time);
-				}
-				else if (xdnd.version >= 2) {
-					XEvent reply = { ClientMessage };
-					reply.xclient.window = xdnd.source;
-					reply.xclient.message_type = XdndFinished;
-					reply.xclient.format = 32;
-					reply.xclient.data.l[0] = (long)win->src.window;
-					reply.xclient.data.l[1] = 0;
-					reply.xclient.data.l[2] = None;
+				if (xdnd.version >= 1)
+					time = E.xclient.data.l[2];
 
-					XSendEvent((Display*)win->src.display, xdnd.source,
-							False, NoEventMask, &reply);
-					XFlush((Display*)win->src.display);
-				}
+				XConvertSelection((Display*)win->src.display,
+								XdndSelection,
+								xdnd.format,
+								XdndSelection,
+								(Window)win->src.window,
+								time);
+			}
+			else if (xdnd.version >= 2) {
+				XEvent reply = { ClientMessage };
+				reply.xclient.window = xdnd.source;
+				reply.xclient.message_type = XdndFinished;
+				reply.xclient.format = 32;
+				reply.xclient.data.l[0] = (long)win->src.window;
+				reply.xclient.data.l[1] = 0;
+				reply.xclient.data.l[2] = None;
+
+				XSendEvent((Display*)win->src.display, xdnd.source,
+						False, NoEventMask, &reply);
+				XFlush((Display*)win->src.display);
 			}
 			break;
         case SelectionNotify:
@@ -2414,9 +2420,9 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 			XGetWindowProperty((Display*)win->src.display, E.xselection.requestor, E.xselection.property, 0, LONG_MAX, False, E.xselection.target, &actualType, &actualFormat, &result, &bytesAfter, (u8**) &data);
 
-			if (result)
-				break;
-			
+			if (result == 0)
+				break;			
+
 			/*
 			SOURCED FROM GLFW _glfwParseUriList
 			Copyright (c) 2002-2006 Marcus Geelnard
@@ -2839,47 +2845,46 @@ void RGFW_window_show(RGFW_window* win) {
 	the majority function is sourced from GLFW
 */
 char* RGFW_readClipboard(size_t* size) {
-	char* result = NULL;
-	u64 ressize, restail;
-	i32 resbits;
-	static Atom bufid = 0, fmtid, propid, incrid;
+	static Atom UTF8 = NULL;
+	if (UTF8 == NULL)
+		UTF8 = XInternAtom(RGFW_root->src.display, "UTF8_STRING", True); 
 
-	if (bufid == 0) {
-		bufid = XInternAtom((Display*)RGFW_root->src.display, "CLIPBOARD", False),
-		fmtid = XInternAtom((Display*)RGFW_root->src.display, "STRING", False),
-		propid = XInternAtom((Display*)RGFW_root->src.display, "XSEL_DATA", False),
-		incrid = XInternAtom((Display*)RGFW_root->src.display, "INCR", False);
-	}
+	char * c = 0;
 
 	XEvent event;
+	int format;
+	unsigned long N, sizeN;
+	char * data, * s = NULL;
+	Atom target;
+	Atom CLIPBOARD = 0, XSEL_DATA = 0;
 
-	XSelectInput ((Display*)RGFW_root->src.display, (Window)RGFW_root->src.window, PropertyChangeMask);
-	XConvertSelection((Display*)RGFW_root->src.display, bufid, fmtid, propid, (Window)RGFW_root->src.window, CurrentTime);
-	do {
-		XNextEvent((Display*)RGFW_root->src.display, &event);
-	} while (event.type != SelectionNotify || event.xselection.selection != bufid);
+	if (CLIPBOARD == 0) {
+		CLIPBOARD= XInternAtom(RGFW_root->src.display, "CLIPBOARD", 0);
+		XSEL_DATA = XInternAtom(RGFW_root->src.display, "XSEL_DATA", 0);
+	}	
 
-	if (event.xselection.property == 0)
-		return result;
+	XConvertSelection(RGFW_root->src.display, CLIPBOARD, UTF8, XSEL_DATA, RGFW_root->src.window, CurrentTime);
+	XSync(RGFW_root->src.display, 0);
+	XNextEvent(RGFW_root->src.display, &event);
 	
-	XGetWindowProperty((Display*)RGFW_root->src.display, (Window)RGFW_root->src.window, propid, 0, LONG_MAX/4, True, AnyPropertyType,
-		&fmtid, &resbits, &ressize, &restail, (u8**)&result);
+	if (event.type != SelectionNotify || event.xselection.selection != CLIPBOARD || event.xselection.property == 0)
+		return NULL;
 
-	if (fmtid != incrid)
-		return result;
+	XGetWindowProperty(event.xselection.display, event.xselection.requestor,
+		event.xselection.property, 0L,(~0L), 0, AnyPropertyType, &target,
+		&format, &sizeN, &N,(unsigned char**)&data);
+	
+	if(target == UTF8 || target == XA_STRING) {
+		s = strndup(data, sizeN);
+		XFree(data);
+	}
 
-	if (size != NULL)
-		*size = 0;
+	XDeleteProperty(event.xselection.display, event.xselection.requestor, event.xselection.property);
 
-	do {
-		while (event.type != PropertyNotify || event.xproperty.atom != propid || event.xproperty.state != PropertyNewValue) 
-			XNextEvent((Display*)RGFW_root->src.display, &event);
+	if (s != NULL && size != NULL)
+		*size = sizeN;
 
-		XGetWindowProperty((Display*)RGFW_root->src.display, (Window)RGFW_root->src.window, propid, 0, LONG_MAX/4, True, AnyPropertyType, 
-										&fmtid, &resbits, (size != NULL) ? size : & ressize, &restail, (u8**)&result);
-	} while (ressize > 0 || (size != NULL && *size));
-
-	return result;
+	return s;
 }
 
 /*
