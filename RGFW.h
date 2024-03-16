@@ -33,7 +33,8 @@
 	#define RGFW_OSMESA - (optional) use OSmesa as backend (instead of system's opengl api + regular opengl)
 	#define RGFW_BUFFER - (optional) just draw directly to (RGFW) window pixel buffer that is drawn to screen (the buffer is in the BGRA format)
 	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
-	#define RGFW_OPENGL_ES - (optional) use EGL to load and use Opengl ES for backend rendering (instead of the system's opengl api)
+	#define RGFW_OPENGL_ES1 - (optional) use EGL to load and use Opengl ES (version 1) for backend rendering (instead of the system's opengl api)
+	#define RGFW_OPENGL_ES2 - (optional) use OpenGL ES (version 2)
 	#define VULKAN - (optional) use vulkan for the rendering backend (rather than opengl)
 	#define DIRECTX - (optional) use directX for the rendering backend (rather than opengl) (windows only, defaults to opengl for unix)
 
@@ -140,7 +141,7 @@ extern "C" {
 #include <CoreVideo/CVDisplayLink.h>
 #endif
 
-#if defined(RGFW_OPENGL_ES) && !defined(RGFW_EGL)
+#if (defined(RGFW_OPENGL_ES1) || defined(RGFW_OPENGL_ES2)) && !defined(RGFW_EGL)
 #define RGFW_EGL
 #endif
 #if defined(RGFW_EGL) && defined(__APPLE__)
@@ -386,6 +387,7 @@ typedef struct RGFW_window_src {
 	#ifdef RGFW_X11
     Display* display; /*!< source display */
     Window window; /*!< source window */
+	Cursor cursor;
 	#endif
 	#ifdef RGFW_MACOS
 	u32 display;
@@ -419,13 +421,7 @@ typedef struct RGFW_window_src {
 	#endif
 	#endif
 
-	#ifndef RGFW_WINDOWS
-	#ifdef RGFW_X11
-	Cursor cursor;
-	#else
-	void* cursor; /* current cursor (for unix) */
-	#endif
-	#else
+	#ifdef RGFW_WINDOWS
 	RGFW_area maxSize, minSize;
 	#if defined(RGFW_DIRECTX)
 	IDXGISwapChain* swapchain;
@@ -871,7 +867,7 @@ u8 RGFW_Error() { return RGFW_error; }
     attribs[index++] = a; \
 }
 
-#ifndef __WIN32
+#ifdef RGFW_X11
 void RGFW_window_showMouse(RGFW_window* win, i8 show) {
 	static u8 RGFW_blk[] = {0, 0, 0, 0};
 	if (show == 0) 
@@ -920,7 +916,6 @@ RGFW_window* RGFW_window_basic_init (RGFW_rect rect, u16 args) {
 	win->src.cursor = 0;
 	#endif
 	#ifdef RGFW_MACOS
-	win->src.cursor = NULL;
 	RGFW_window_setMouseDefault(win);
 	#endif
 	#ifdef RGFW_WINDOWS
@@ -1046,7 +1041,7 @@ RGFW_vulkanInfo* RGFW_createSurface(VkInstance instance, RGFW_window* win) {
 	vkCreateWin32SurfaceKHR(RGFW_vulkan_info.instance, &win32, NULL, &win->src.rSurf);
 	#endif
 	#if defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
-	VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_KHR, 0, 0, win->src.display, win->src.window };
+	VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, win->src.display, win->src.window };
 
 	vkCreateMacOSSurfaceMVK(RGFW_vulkan_info.instance, &macos, NULL, &win->src.rSurf);
 	#endif
@@ -1698,10 +1693,11 @@ u8* RGFW_getMaxGLVersion() {
 #define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20a9
 #endif
 
-static u32* RGFW_initAttribs(void) {
+static u32* RGFW_initAttribs(i32 useSoftware) {
 	static u32 attribs[] = {  
-							RGFW_GL_RENDER_TYPE, 	
 							#ifndef RGFW_MACOS
+							RGFW_GL_RENDER_TYPE, 	
+							NSOpenGLPFARendererID, kCGLRendererGenericFloatID,
 							RGFW_GL_FULL_FORMAT,     
 							#endif
 							RGFW_GL_ALPHA_SIZE      , 8,   
@@ -1743,7 +1739,7 @@ static u32* RGFW_initAttribs(void) {
 			attribs[index] = attrib;\
 			attribs[index + 1] = attVal;\
 			index += 2;\
-		}	\
+		}
 
 	RGFW_GL_ADD_ATTRIB(RGFW_GL_STENCIL_SIZE, RGFW_STENCIL);
 	RGFW_GL_ADD_ATTRIB(RGFW_GL_STEREO, RGFW_STEREO);
@@ -1752,6 +1748,16 @@ static u32* RGFW_initAttribs(void) {
 	#ifndef RGFW_X11
 	RGFW_GL_ADD_ATTRIB(RGFW_GL_SAMPLES, RGFW_SAMPLES);
 	#endif 
+
+	#ifdef RGFW_MACOS
+	if (useSoftware) {
+		RGFW_GL_ADD_ATTRIB(NSOpenGLPFARendererID, kCGLRendererGenericFloatID);
+	}
+	else { 
+		attribs[index] = RGFW_GL_RENDER_TYPE;
+		index += 1;
+	}
+	#endif
 
 	#ifdef RGFW_MACOS
 	attribs[index] = NSOpenGLPFAOpenGLProfile;
@@ -1771,7 +1777,7 @@ static u32* RGFW_initAttribs(void) {
 #endif
 
 #ifdef RGFW_EGL
-
+	
 #if defined(RGFW_LINK_EGL)
 typedef EGLBoolean (EGLAPIENTRY * PFN_eglInitialize)(EGLDisplay,EGLint*,EGLint*);
 
@@ -1808,7 +1814,18 @@ PFNEGLDESTROYSURFACEPROC eglDestroySurfaceSource;
 #define EGL_CONTEXT_MAJOR_VERSION_KHR 0x3098
 #define EGL_CONTEXT_MINOR_VERSION_KHR 0x30fb
 
+#ifndef RGFW_GL_ADD_ATTRIB
+#define RGFW_GL_ADD_ATTRIB(attrib, attVal) \
+	if (attVal) { \
+		attribs[index] = attrib;\
+		attribs[index + 1] = attVal;\
+		index += 2;\
+	}
+#endif
+
 void RGFW_createOpenGLContext(RGFW_window* win) {
+	static EGLContext globalCtx = EGL_NO_CONTEXT;
+
 	#if defined(RGFW_LINK_EGL)
     eglInitializeSource = (PFNEGLINITIALIZEPROC)eglGetProcAddress("eglInitialize");
     eglGetConfigsSource = (PFNEGLGETCONFIGSPROC)eglGetProcAddress("eglGetConfigs");
@@ -1834,7 +1851,10 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
     EGLint config_attribs[] = {
         EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
         EGL_RENDERABLE_TYPE,
-		#ifdef RGFW_OPENGL_ES
+		#ifdef RGFW_OPENGL_ES1
+		EGL_OPENGL_ES1_BIT,
+		#endif
+		#ifdef RGFW_OPENGL_ES2
 		EGL_OPENGL_ES2_BIT,
 		#else
 		EGL_OPENGL_BIT,
@@ -1846,14 +1866,28 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
     EGLint num_configs;
     eglChooseConfig(win->src.EGL_display, config_attribs, &config, 1, &num_configs);
 
-	#ifdef RGFW_OPENGL_ES
+	#if defined(RGFW_OPENGL_ES2) || defined(RGFW_OPENGL_ES1)
     eglBindAPI(EGL_OPENGL_ES_API);
 	#else
 	eglBindAPI(EGL_OPENGL_API);
 	#endif
   
-	win->src.rSurf = eglCreateContext(win->src.EGL_display, config, EGL_NO_CONTEXT, NULL);
+	EGLint attribs[] {
+		EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT,
+		0, 0, 0, 0
+	};
+
+	size_t index = 2;
+	RGFW_GL_ADD_ATTRIB(EGL_STENCIL_SIZE, RGFW_STENCIL);
+	RGFW_GL_ADD_ATTRIB(EGL_SAMPLES, RGFW_SAMPLES);
+	RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MAJOR_VERSION, RGFW_majorVersion);
+	RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MINOR_VERSION, RGFW_minorVersion);
+
+	win->src.rSurf = eglCreateContext(win->src.EGL_display, config, globalCtx, attribs);
     win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType)win->src.window, NULL);
+
+	if (globalCtx == EGL_NO_CONTEXT)
+		RGFW_EGLglobalContext = win->src.rSurf;
 
     eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.rSurf);
 	eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
@@ -1951,7 +1985,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
    	u64 event_mask =  KeyPressMask | KeyReleaseMask  | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask; /* X11 events accepted*/
 
 	#ifdef RGFW_OPENGL
-	u32* visual_attribs = RGFW_initAttribs();
+	u32* visual_attribs = RGFW_initAttribs(args & RGFW_OPENGL_SOFTWARE);
 	i32 fbcount;
 	GLXFBConfig* fbc = glXChooseFBConfig((Display*)win->src.display, DefaultScreen(win->src.display), (i32*)visual_attribs, &fbcount);
 
@@ -3534,7 +3568,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 			pfd.dwFlags |= PFD_GENERIC_FORMAT | PFD_GENERIC_ACCELERATED;
 
 		if (wglChoosePixelFormatARB != NULL) {
-			int* pixel_format_attribs = RGFW_initAttribs();
+			int* pixel_format_attribs = RGFW_initAttribs(args & RGFW_OPENGL_SOFTWARE);
 
 			int pixel_format;
 			UINT num_formats;
@@ -4389,7 +4423,7 @@ void* RGFW_getProcAddress(const char* procname) {
 	
 CVReturn displayCallback(CVDisplayLinkRef displayLink, const CVTimeStamp *inNow, const CVTimeStamp *inOutputTime, CVOptionFlags flagsIn, CVOptionFlags *flagsOut, void *displayLinkContext) { return kCVReturnSuccess; }
 
-RGFW_window** RGFW_windows;
+RGFW_window* RGFW_windows[10];
 u32 RGFW_windows_size = 0;
 
 u32 RGFW_OnClose(void* self) {
@@ -4453,7 +4487,7 @@ printf("resize\n");
     // Handle window resize logic here...
 }
 
-NSApplication* NSApp;
+NSApplication* NSApp = NULL;
 
 static void NSMoveToResourceDir(void) {
 	/* sourced from glfw */
@@ -4481,6 +4515,10 @@ static void NSMoveToResourceDir(void) {
     chdir(resourcesPath);
 }
 
+void windowDidResize(NSNotification* notification) {
+  printf("Resize\n");
+}
+
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
     static u8 RGFW_loaded = 0;
 
@@ -4496,10 +4534,12 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	si_func_to_SEL("NSWindow", performKeyEquivalent);
 
 	void* WindowDelegateClass = objc_allocateClassPair((Class)objc_getClass("NSObject"), "WindowDelegate", 0);
-	class_addMethod(WindowDelegateClass, sel_registerName("windowDidResize:"), (IMP)RGFW_windowDidResize,  "v@:@");
+	class_addMethod(WindowDelegateClass, sel_registerName("windowDidResize"), (IMP)windowDidResize,  "v@:@");
 
-    NSApp = NSApplication_sharedApplication();
-	NSApplication_setActivationPolicy(NSApp, NSApplicationActivationPolicyRegular);
+	if (NSApp == NULL) {
+		NSApp = NSApplication_sharedApplication();
+		NSApplication_setActivationPolicy(NSApp, NSApplicationActivationPolicyRegular);
+	}
 
 	RGFW_window* win = RGFW_window_basic_init(rect, args);
 
@@ -4511,30 +4551,42 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	if (!(args & RGFW_NO_BORDER))
 		macArgs |= NSWindowStyleMaskTitled;
 	else
-		macArgs |= NSWindowStyleMaskBorderless;
+		macArgs = NSWindowStyleMaskBorderless;
 
     win->src.window = NSWindow_init(windowRect, macArgs, macArgs, false);
-	NSRetain(win->src.window);
 	NSWindow_setTitle(win->src.window, name);
 
 	#ifdef RGFW_OPENGL
-	NSOpenGLPixelFormatAttribute* attrs = RGFW_initAttribs();
+	NSOpenGLPixelFormatAttribute* attrs = RGFW_initAttribs(args & RGFW_OPENGL_SOFTWARE);
 	NSOpenGLPixelFormat* format = NSOpenGLPixelFormat_initWithAttributes(attrs);
-	if (format == NULL)
-		printf("Failed to load pixel format\n");
+	
+	if (format == NULL) {
+		printf("Failed to load pixel format ");
+
+		NSOpenGLPixelFormatAttribute* attrs = RGFW_initAttribs(1);
+		format = NSOpenGLPixelFormat_initWithAttributes(attrs);
+		if (format == NULL)
+			printf("and loading software rendering OpenGL failed\n");
+		else
+			printf("Switching to software rendering\n");
+	}
+
 	win->src.view = NSOpenGLView_initWithFrame(NSMakeRect(0, 0, win->r.w, win->r.h), format);
 	NSOpenGLView_prepareOpenGL(win->src.view);
-
+	win->src.rSurf = NSOpenGLView_openGLContext(win->src.view);
+	
 	#else
     NSRect contentRect = NSMakeRect(0, 0, win->r.w, win->r.h);
     win->src.view = NSView_initWithFrame(contentRect);
 	#endif
 
+	
 	NSWindow_contentView_setWantsLayer(win->src.window, true);
 	NSWindow_setContentView(win->src.window, (NSView*)win->src.view);
 
-	win->src.rSurf = NSOpenGLView_openGLContext(win->src.view);
+	#ifdef RGFW_OPENGL
 	NSOpenGLContext_makeCurrentContext(win->src.rSurf);
+	#endif
 
     if (args & RGFW_TRANSPARENT_WINDOW) {
 		#ifdef RGFW_OPENGL
@@ -4576,6 +4628,14 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	if (args & RGFW_COCOA_MOVE_TO_RESOURCE_DIR)
 		NSMoveToResourceDir();
 
+  //NSNotificationCenter_addObserver(NSNotificationCenter_defaultCenter(), win->src.window, si_func_to_SEL("NSWindow", windowDidEnterFullScreen), "NSWindowDidEnterFullScreenNotification", win->src.window);
+  //NSNotificationCenter_addObserver(NSNotificationCenter_defaultCenter(), win->src.window, sel_registerName(windowDidExitFullScreen), "NSWindowDidExitFullScreenNotification", win->src.window);
+  //NSNotificationCenter_addObserver(NSNotificationCenter_defaultCenter(), window, sel_registerName(windowDidMove),"NSWindowDidMoveNotification", window);
+  //NSNotificationCenter_addObserver(NSNotificationCenter_defaultCenter(), win->src.window, sel_registerName(windowDidResize), "NSWindowDidResizeNotification", win->src.window);
+  //NSNotificationCenter_addObserver(NSNotificationCenter_defaultCenter(), window, sel_registerName(windowDidMiniaturize), "NSWindowDidMiniaturizeNotification", window);
+  //NSNotificationCenter_addObserver(NSNotificationCenter_defaultCenter(), window, sel_registerName(windowDidDeMiniaturize), "NSWindowDidDeminiaturizeNotification", window);
+
+
 	// Show the window
 	NSWindow_makeKeyAndOrderFront(win->src.window, NULL);
 	NSWindow_setIsVisible(win->src.window, true);
@@ -4584,30 +4644,24 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		NSWindow_makeMainWindow(win->src.window);
 
 		RGFW_loaded = 1;
-    }
+	}
 	
 	NSApplication_finishLaunching(NSApp);
 	
 	RGFW_windows_size++;
 
-	RGFW_window** nWins = (RGFW_window**)malloc(sizeof(RGFW_window*) * RGFW_windows_size);
-	
-	memcpy(nWins, RGFW_windows, sizeof(RGFW_window) * (RGFW_windows_size - 1));
-	free(RGFW_windows);
-	
-	RGFW_windows = nWins;
-
-	RGFW_windows[RGFW_windows_size - 1] = NULL;
-	
 	size_t i;
 	for (i = 0; i < RGFW_windows_size; i++)
 		if (!RGFW_windows[i]){
 			RGFW_windows[i] = win;
 			break;
 		}
-
+	
 	if (RGFW_root == NULL)
 		RGFW_root = win;
+	
+	NSRetain(win->src.window);
+	NSRetain(NSApp);
 	
     return win;
 }
@@ -4637,9 +4691,17 @@ u32 RGFW_keysPressed[10]; /*10 keys at a time*/
 RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	assert(win != NULL);
 	
+	if (win->event.type == RGFW_quit)
+		return &win->event;
+
 	NSEvent* e = NSApplication_nextEventMatchingMask(NSApp, NSEventMaskAny, NULL, NSDefaultRunLoopMode, true);
-	if (win->event.type == RGFW_quit || e == NULL || NSEvent_window(e) != win->src.window)
+	if (e == NULL)
 		return NULL;
+	
+	if (NSEvent_window(e) != win->src.window) {
+		NSApplication_postEvent(NSApp, e, 0);
+		return NULL;
+	}
 
 	if (win->event.droppedFilesCount) {
 		i32 i;
@@ -4648,17 +4710,9 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	}
 
 	win->event.droppedFilesCount = 0;
+	win->event.type = 0;
 
 	win->event.inFocus = NSWindow_isKeyWindow(win->src.window);
-
-	/* NOTE(EimaMei): This is super janky code, THANKS APPLE. For some reason it takes a few frames AFTER becoming focused to allow setting the cursor. */
-	if (win->event.inFocus && win->src.cursor != NULL && win->src.cursor != NULL && (win->src.cursorChanged != 2 || NSCursor_currentCursor() != win->src.cursor)) {
-		if (win->src.cursorChanged != 2)
-			win->src.cursorChanged++;
-
-		if (win->src.cursorChanged != 2 || NSCursor_currentCursor() != win->src.cursor)
-			NSCursor_set(win->src.cursor);
-	}
 
 	switch (NSEvent_type(e)) {
 		case NSEventTypeKeyDown:
@@ -4677,6 +4731,16 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			RGFW_keyMap[win->event.keyCode] = 0;
 			break;
 
+		case NSEventTypeLeftMouseDragged:
+		case NSEventTypeOtherMouseDragged:
+		case NSEventTypeRightMouseDragged:
+		case NSEventTypeMouseMoved:
+			win->event.type = RGFW_mousePosChanged;
+
+			NSPoint p = NSEvent_locationInWindow(e);
+			win->event.point = RGFW_VECTOR((u32)p.x, (u32)(win->r.h - p.y));
+			break;
+		
 		case NSEventTypeLeftMouseDown:
 			win->event.button = RGFW_mouseLeft;
 			win->event.type = RGFW_mouseButtonPressed;
@@ -4719,46 +4783,20 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			win->event.type = RGFW_mouseButtonReleased;
 			break;
 
-		case NSEventTypeMouseMoved:
-			win->event.type = RGFW_mousePosChanged;
-
-			NSPoint p = NSEvent_locationInWindow(e);
-			win->event.point = RGFW_VECTOR((u32)p.x, (u32)(win->r.h - p.y));
-			break;
-
-
 		default: 
-			win->event.type = 0;
 			break;
-	}
-
-	if (win->src.cursorChanged && win->event.inFocus) {
-		if (win->src.cursor == NULL)
-			CGDisplayHideCursor(kCGDirectMainDisplay);
-		else {
-			CGDisplayShowCursor(kCGDirectMainDisplay);
-
-			if (win->src.cursor == NULL) 
-				NSCursor_set(NSCursor_arrowCursor());
-			else 
-				NSCursor_set(win->src.cursor);
-		}
-
-		win->src.cursorChanged = false;
 	}
 
 	NSApplication_sendEvent(NSApp, e);
 
-	RGFW_vector mouse = RGFW_getGlobalMousePoint();
-	if (win->src.winArgs &  RGFW_HOLD_MOUSE && win->event.inFocus &&
-		(mouse.x != win->r.x + (win->r.w / 2) || mouse.y != win->r.y + (win->r.h / 2))) {
-            RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
+	if (win->src.winArgs &  RGFW_HOLD_MOUSE) {
+		RGFW_vector mouse = RGFW_getGlobalMousePoint();
+		if (win->event.inFocus && (mouse.x != win->r.x + (win->r.w / 2) || mouse.y != win->r.y + (win->r.h / 2))) {
+				RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
+		}
 	}
-	
-	if (win->event.type)
-		return &win->event;
-	else
-		return NULL;
+
+	return &win->event;
 }
 
 
@@ -4829,13 +4867,8 @@ void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels
 	
 	if (image == NULL) {
 		NSCursor_set(NSCursor_arrowCursor());
-		win->src.cursor = NULL;
-
-		return ;
+		return;
 	}
-
-	if (win->src.cursor != NULL && win->src.cursor != NULL)
-		release(win->src.cursor);
 
 	/* NOTE(EimaMei): Code by yours truly. */
     // Make a bitmap representation, then copy the loaded image into it.
@@ -4849,8 +4882,7 @@ void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels
     // Finally, set the cursor image.
     NSCursor* cursor = NSCursor_initWithImage(cursor_image, NSMakePoint(0, 0));
 
-	win->src.cursor = cursor;
-	win->src.cursorChanged = true;
+	NSCursor_set(cursor);
 
     // Free the garbage.
     release(cursor_image);
@@ -4861,14 +4893,16 @@ void RGFW_window_setMouseDefault(RGFW_window* win) {
 	RGFW_window_setMouseStandard(win, NSCursor_arrowCursor());
 }
 
-void RGFW_window_setMouseStandard(RGFW_window* win, void* mouse) {
-	assert(win != NULL);
-	
-	if (win->src.cursor != NULL)
-		release(win->src.cursor);
+void RGFW_window_showMouse(RGFW_window* win, i8 show) {
+	if (show)
+		CGDisplayShowCursor(kCGDirectMainDisplay);
+	else
+		CGDisplayHideCursor(kCGDirectMainDisplay);
+}
 
-	win->src.cursor = mouse;
-	NSCursor_set(win->src.cursor);
+void RGFW_window_setMouseStandard(RGFW_window* win, void* mouse) {
+	CGDisplayShowCursor(kCGDirectMainDisplay);
+	NSCursor_set(mouse);
 }
 
 void RGFW_window_moveMouse(RGFW_window* win, RGFW_vector v) {
@@ -4958,7 +4992,7 @@ u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
 }
 
 char* RGFW_readClipboard(size_t* size){
-	char* str = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString); 
+	char* str = strdup((char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString)); 
 	if (size != NULL)
 		*size = strlen(str);
 	return str;
@@ -5004,9 +5038,6 @@ void RGFW_window_close(RGFW_window* win){
 	
 	release(win->src.view);
 
-	if (win->src.cursor != NULL && win->src.cursor != NULL)
-		release(win->src.cursor);
-
 	#ifdef RGFW_ALLOC_DROPFILES
 	{
 		i32 i;
@@ -5027,13 +5058,13 @@ void RGFW_window_close(RGFW_window* win){
 
 	if (!i){
 		RGFW_windows_size = 0;
-		RGFW_FREE(RGFW_windows);
+
+		NSApplication_terminate(NSApp, (id)win->src.window);
+		NSApp = NULL;
 	}
 	
 	CVDisplayLinkStop(win->src.displayLink);
 	CVDisplayLinkRelease(win->src.displayLink);
-
-	NSApplication_terminate(NSApp, (id)win->src.window);
 }
 #endif
 
@@ -5083,7 +5114,9 @@ void RGFW_window_makeCurrent(RGFW_window* win) {
 	RGFW_dxInfo.pDeviceContext->lpVtbl->OMSetRenderTargets(RGFW_dxInfo.pDeviceContext, 1, &win->src.renderTargetView, NULL);
 	#endif
 
+	#ifdef RGFW_OPENGL
  	RGFW_window_makeCurrent_OpenGL(win);
+	#endif
 }
 
 void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) { 
