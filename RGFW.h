@@ -1697,7 +1697,6 @@ static u32* RGFW_initAttribs(i32 useSoftware) {
 	static u32 attribs[] = {  
 							#ifndef RGFW_MACOS
 							RGFW_GL_RENDER_TYPE, 	
-							NSOpenGLPFARendererID, kCGLRendererGenericFloatID,
 							RGFW_GL_FULL_FORMAT,     
 							#endif
 							RGFW_GL_ALPHA_SIZE      , 8,   
