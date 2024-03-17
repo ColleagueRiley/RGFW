@@ -2,17 +2,13 @@ MACOS silicon.h:
 
 - make sure DND works
 - RGFW_windowAttribsChange support
-- fix multi-window bugs
-- setMax/Min window size
-
-- version control (EGL)
-- fix macOS DND string bug (string has extra data at the end)
+- fix buffer rendering
 
 (addons)
     - init drag function (drag n' drop) (output)
     
 (multiplatform support)
-    - controller support (windows) (macos)
+    - controller support (macos)
 
 (testing)
     - test EGL and OSmesa for (windows) (macos)
