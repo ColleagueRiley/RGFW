@@ -117,6 +117,11 @@ extern "C" {
 	typedef int64_t    i64;
 #endif
 
+#if defined(RGFW_X11) && defined(__APPLE__)
+#define RGFW_MACOS_X11
+#undef __APPLE__
+#endif
+
 #if defined(_WIN32) && !defined(RGFW_X11) /* (if you're using X11 on windows some how) */
 
 /* this name looks better */
@@ -126,17 +131,14 @@ extern "C" {
 #include <XInput.h>
 
 #else 
-#if defined(__unix__) && !defined(__APPLE__) && !defined(RGFW_X11)
+#if defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11)
+#define RGFW_MACOS_X11
 #define RGFW_X11
 #include <X11/Xlib.h>
 #endif
 #endif
 
-#if defined(__APPLE__) && defined(RGFW_X11)
-#define RGFW_MACOS_X11
-#endif
-
-#if defined(__APPLE__) && !defined(RGFW_MACOS_X11)
+#if defined(__APPLE__) && !defined(RGFW_MACOS_X11) && !defined(RGFW_X11)
 #define RGFW_MACOS
 #include <CoreVideo/CVDisplayLink.h>
 #endif
@@ -929,7 +931,7 @@ RGFW_window* RGFW_window_basic_init (RGFW_rect rect, u16 args) {
 
 void RGFW_window_scaleToMonitor(RGFW_window* win) {
 	RGFW_monitor monitor = RGFW_window_getMonitor(win);
-	printf("%i %f\n", win->r.h, win->r.h * (monitor.scaleY / 2));
+
 	RGFW_window_resize(win, RGFW_AREA((monitor.scaleX) * win->r.w, (monitor.scaleX) * win->r.h));
 }
 
@@ -2088,6 +2090,10 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		RGFW_root = win;
 
 	RGFW_init_buffer(win);
+
+	#ifdef RGFW_VULKAN
+	RGFW_initVulkan(win);
+	#endif
 
 	if (args & RGFW_SCALE_TO_MONITOR)
 		RGFW_window_scaleToMonitor(win);
@@ -3636,6 +3642,10 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	DestroyWindow(dummyWin);
 	RGFW_init_buffer(win);
 
+	#ifdef RGFW_VULKAN
+	RGFW_initVulkan(win);
+	#endif
+
 	if (args & RGFW_SCALE_TO_MONITOR)
 		RGFW_window_scaleToMonitor(win);
 	
@@ -4603,6 +4613,10 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	CVDisplayLinkStart(win->src.displayLink);
 
 	RGFW_init_buffer(win);
+
+	#ifdef RGFW_VULKAN
+	RGFW_initVulkan(win);
+	#endif
 	
 	if (args & RGFW_SCALE_TO_MONITOR)
 		RGFW_window_scaleToMonitor(win);
@@ -4824,7 +4838,7 @@ void RGFW_window_minimize(RGFW_window* win) {
 void RGFW_window_restore(RGFW_window* win) {
 	assert(win != NULL);
 	
-	NSWindow_performZoom(win->src.window, NULL);
+	NSWindow_deminiaturize(win->src.window, NULL);
 }
 
 void RGFW_window_setName(RGFW_window* win, char* name) {
@@ -4956,27 +4970,37 @@ static RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display) {
     monitor.physW = screenSizeMM.width / 25.4;
     monitor.physH = screenSizeMM.height / 25.4;
 
- 	CGSize screenPointSize = CGSizeMake(screenSizeMM.width, screenSizeMM.height);
-    monitor.scaleX = monitor.rect.w / screenPointSize.width;
-	monitor.scaleY = monitor.rect.h / screenPointSize.height;
+    monitor.scaleX = (monitor.rect.w / (screenSizeMM.width)) / 2.6;
+	monitor.scaleY = (monitor.rect.h / (screenSizeMM.height)) / 2.6;
+
+	snprintf(monitor.name, 128, "%i %i %i", CGDisplayModelNumber(display), CGDisplayVendorNumber(display), CGDisplaySerialNumber(display));
 
     return monitor;
 }
 
 
-RGFW_monitor RGFW_monitors[6];
-RGFW_monitor* RGFW_getMonitors(void) {
+static RGFW_monitor RGFW_monitors[7];
 
-	return RGFW_monitors;
+RGFW_monitor* RGFW_getMonitors(void) {
+    static CGDirectDisplayID displays[7];
+    u32 count;
+
+    if (CGGetActiveDisplayList(6, displays, &count) != kCGErrorSuccess)
+        return NULL;
+
+    for (u32 i = 0; i < count; i++)
+        RGFW_monitors[i] = RGFW_NSCreateMonitor(displays[i]);
+
+    return RGFW_monitors;
 }
 
 RGFW_monitor RGFW_getPrimaryMonitor(void) {
-
- //   return RGFW_NSCreateMonitor(primary);
+    CGDirectDisplayID primary = CGMainDisplayID();
+    return RGFW_NSCreateMonitor(primary);
 }
 
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
-	return RGFW_NSCreateMonitor(win->src.display);
+    return RGFW_NSCreateMonitor(win->src.display);
 }
 
 u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
