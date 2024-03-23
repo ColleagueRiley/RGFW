@@ -957,10 +957,12 @@ void RGFW_init_buffer(RGFW_window* win) {
                                 ZPixmap, 0, (char*)win->buffer, area.w, area.h, 32, 0);
 	#endif
 	#ifdef RGFW_WINDOWS
+	RGFW_area area = RGFW_getScreenSize();
+
 	BITMAPINFO bmi = {0};
 	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bmi.bmiHeader.biWidth = win->r.w;
-	bmi.bmiHeader.biHeight = -win->r.h;
+	bmi.bmiHeader.biWidth = area.w;
+	bmi.bmiHeader.biHeight = -area.h;
 	bmi.bmiHeader.biPlanes = 1;
 	bmi.bmiHeader.biBitCount = 32;
 	bmi.bmiHeader.biCompression = BI_RGB;
@@ -3416,6 +3418,20 @@ typedef BOOL (APIENTRY *PFNWGLCHOOSEPIXELFORMATARBPROC)(HDC hdc, const int *piAt
 static PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = NULL;
 #endif
 
+RGFW_window RGFW_eventWindow = {{NULL}};
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+    switch (message) {
+        case WM_SIZE: 
+			RGFW_eventWindow.r.w = LOWORD(lParam);
+			RGFW_eventWindow.r.h = HIWORD(lParam);
+			RGFW_eventWindow.src.display = hWnd;
+            return DefWindowProc(hWnd, message, wParam, lParam); // Call DefWindowProc after handling
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
+    }
+}
+
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	#ifdef RGFW_WGL_LOAD
 	if (wglinstance == NULL) { 
@@ -3440,7 +3456,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	Class.lpszClassName = name;
 	Class.hInstance = inh;
 	Class.hCursor = LoadCursor(NULL, IDC_ARROW);
-	Class.lpfnWndProc = DefWindowProc;
+	Class.lpfnWndProc = WndProc;
 
     RegisterClassA(&Class);
 
@@ -3797,6 +3813,16 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	
 	MSG msg;
 
+	if (RGFW_eventWindow.src.display == win->src.display) {
+		win->r.w = RGFW_eventWindow.r.w;
+		win->r.h = RGFW_eventWindow.r.h;
+
+		win->event.type = RGFW_windowAttribsChange;
+		RGFW_eventWindow.src.display = NULL;
+
+		return &win->event.type;
+	}
+
 	if (win->event.droppedFilesCount) {
 		i32 i;
 		for (i = 0; i < win->event.droppedFilesCount; i++)
@@ -3909,13 +3935,6 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 					DragFinish(drop);
 				}
 				break;
-
-			case WM_SIZE: {
-				win->event.type = RGFW_windowAttribsChange;
-				win->r.w = LOWORD(msg.lParam);
-				win->r.h = HIWORD(msg.lParam);
-				break;
-			}
 			case WM_MOVE: {
 				win->event.type = RGFW_windowAttribsChange;
 				win->r.x = GET_X_LPARAM(msg.lParam);
@@ -5377,7 +5396,7 @@ u32 RGFW_getFPS(void) {
 #define RGFW_F2 RGFW_OS_BASED_VALUE(0xffbf, 0x71, 121)
 #define RGFW_F3 RGFW_OS_BASED_VALUE(0xffc0, 0x72, 100)
 #define RGFW_F4 RGFW_OS_BASED_VALUE(0xffc1, 0x73, 119)
-#define RGFW_F5 RGFW_OS_BASED_VALUE(0xffc2 0x74, 97)
+#define RGFW_F5 RGFW_OS_BASED_VALUE(0xffc2, 0x74, 97)
 #define RGFW_F6 RGFW_OS_BASED_VALUE(0xffc3, 0x75, 98)
 #define RGFW_F7 RGFW_OS_BASED_VALUE(0xffc4, 0x76, 99)
 #define RGFW_F8 RGFW_OS_BASED_VALUE(0xffc5, 0x77, 101)
@@ -5408,11 +5427,11 @@ u32 RGFW_getFPS(void) {
 #define RGFW_Tab RGFW_OS_BASED_VALUE(0xff89, 0x09, 48)
 #define RGFW_CapsLock RGFW_OS_BASED_VALUE(0xffe5, 20, 57)
 #define RGFW_ShiftL RGFW_OS_BASED_VALUE(0xffe1, 0xA0, 56)
-#define RGFW_ControlL RGFW_OS_BASED_VALUE(0xffe3, 0xA2, 59)
+#define RGFW_ControlL RGFW_OS_BASED_VALUE(0xffe3, 0x11, 59)
 #define RGFW_AltL RGFW_OS_BASED_VALUE(0xffe9, 164, 58)
 #define RGFW_SuperL RGFW_OS_BASED_VALUE(0xffeb, 0x5B, 55) 
 #define RGFW_ShiftR RGFW_OS_BASED_VALUE(0xffe2, 0x5C, 56)
-#define RGFW_ControlR RGFW_OS_BASED_VALUE(0xffe4, 0xA3, 59)
+#define RGFW_ControlR RGFW_OS_BASED_VALUE(0xffe4, 0x11, 59)
 #define RGFW_AltR RGFW_OS_BASED_VALUE(0xffea, 165, 58)
 #define RGFW_SuperR RGFW_OS_BASED_VALUE(0xffec, 0xA4, 55)
 #define RGFW_Space RGFW_OS_BASED_VALUE(0x0020,  0x20, 49)
