@@ -3422,9 +3422,12 @@ RGFW_window RGFW_eventWindow = {{NULL}};
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
+		case WM_MOVE:
+			RGFW_eventWindow.r = RGFW_RECT(RGFW_eventWindow.r.x, RGFW_eventWindow.r.y, -1, -1);
+			RGFW_eventWindow.src.display = hWnd;
+			return DefWindowProc(hWnd, message, wParam, lParam);
         case WM_SIZE: 
-			RGFW_eventWindow.r.w = LOWORD(lParam);
-			RGFW_eventWindow.r.h = HIWORD(lParam);
+			RGFW_eventWindow.r = RGFW_RECT(-1, -1, RGFW_eventWindow.r.w, RGFW_eventWindow.r.h);
 			RGFW_eventWindow.src.display = hWnd;
             return DefWindowProc(hWnd, message, wParam, lParam); // Call DefWindowProc after handling
         default:
@@ -3814,8 +3817,13 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	MSG msg;
 
 	if (RGFW_eventWindow.src.display == win->src.display) {
-		win->r.w = RGFW_eventWindow.r.w;
-		win->r.h = RGFW_eventWindow.r.h;
+		if (win->r.x == -1) {
+			win->r.w = RGFW_eventWindow.r.w;
+			win->r.h = RGFW_eventWindow.r.h;
+		} else {
+			win->r.x = RGFW_eventWindow.r.x;
+			win->r.y = RGFW_eventWindow.r.y;			
+		}
 
 		win->event.type = RGFW_windowAttribsChange;
 		RGFW_eventWindow.src.display = NULL;
@@ -3935,12 +3943,6 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 					DragFinish(drop);
 				}
 				break;
-			case WM_MOVE: {
-				win->event.type = RGFW_windowAttribsChange;
-				win->r.x = GET_X_LPARAM(msg.lParam);
-				win->r.y = GET_Y_LPARAM(msg.lParam);
-				break;
-			}
 			case WM_GETMINMAXINFO:
 			{
 				if (win->src.maxSize.w == 0 && win->src.maxSize.h == 0)
