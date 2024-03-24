@@ -572,6 +572,8 @@ RGFWDEF void RGFW_window_setMouseDefault(RGFW_window* win); /* sets the mouse to
 	this is useful for a 3D camera
 */
 RGFWDEF void RGFW_window_mouseHold(RGFW_window* win);
+/* undo hold */
+RGFWDEF void RGFW_window_mouseUnhold(RGFW_window* win);
 
 /* hide the window */
 RGFWDEF void RGFW_window_hide(RGFW_window* win);
@@ -3423,11 +3425,13 @@ RGFW_window RGFW_eventWindow = {{NULL}};
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
 		case WM_MOVE:
-			RGFW_eventWindow.r = RGFW_RECT(RGFW_eventWindow.r.x, RGFW_eventWindow.r.y, -1, -1);
+			RGFW_eventWindow.r.x = LOWORD(lParam);
+			RGFW_eventWindow.r.y = HIWORD(lParam);
 			RGFW_eventWindow.src.display = hWnd;
 			return DefWindowProc(hWnd, message, wParam, lParam);
         case WM_SIZE: 
-			RGFW_eventWindow.r = RGFW_RECT(-1, -1, RGFW_eventWindow.r.w, RGFW_eventWindow.r.h);
+			RGFW_eventWindow.r.w = LOWORD(lParam);
+			RGFW_eventWindow.r.h = HIWORD(lParam);
 			RGFW_eventWindow.src.display = hWnd;
             return DefWindowProc(hWnd, message, wParam, lParam); // Call DefWindowProc after handling
         default:
@@ -3450,6 +3454,8 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	#endif
 
     if (name[0] == 0) name = (char*)" ";
+
+	RGFW_eventWindow.r = RGFW_RECT(-1, -1, -1, -1);
 
 	RGFW_window* win = RGFW_window_basic_init(rect, args);
 
@@ -3817,16 +3823,20 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	MSG msg;
 
 	if (RGFW_eventWindow.src.display == win->src.display) {
-		if (win->r.x == -1) {
-			win->r.w = RGFW_eventWindow.r.w;
-			win->r.h = RGFW_eventWindow.r.h;
-		} else {
+		if (RGFW_eventWindow.r.x != -1) {
 			win->r.x = RGFW_eventWindow.r.x;
 			win->r.y = RGFW_eventWindow.r.y;			
 		}
 
+		if (RGFW_eventWindow.r.w != -1) {
+			win->r.w = RGFW_eventWindow.r.w;
+			win->r.h = RGFW_eventWindow.r.h;
+		}
+
 		win->event.type = RGFW_windowAttribsChange;
+
 		RGFW_eventWindow.src.display = NULL;
+		RGFW_eventWindow.r = RGFW_RECT(-1, -1, -1, -1);
 
 		return &win->event.type;
 	}
@@ -5324,6 +5334,10 @@ void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m) {
 
 void RGFW_window_mouseHold(RGFW_window* win) {
 	win->src.winArgs |= RGFW_HOLD_MOUSE;
+}
+
+void RGFW_window_mouseUnhold(RGFW_window* win) {
+	win->src.winArgs ^= RGFW_HOLD_MOUSE;
 }
 
 void RGFW_sleep(u32 microsecond) {
