@@ -136,7 +136,7 @@ extern "C" {
 #define RGFW_X11
 #include <X11/Xlib.h>
 #endif
-#endif
+#endif 	
 
 #if defined(__APPLE__) && !defined(RGFW_MACOS_X11) && !defined(RGFW_X11)
 #define RGFW_MACOS
@@ -2851,10 +2851,21 @@ void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels
 
 void RGFW_window_moveMouse(RGFW_window* win, RGFW_vector v) {
 	assert(win != NULL);
-	
-    Window root = RootWindow(win->src.display, DefaultScreen(win->src.display));
 
-    XWarpPointer(win->src.display, None, root, 0, 0, 0, 0, v.x, v.y);
+  	XEvent event;
+	XQueryPointer (win->src.display, DefaultRootWindow (win->src.display),
+					&event.xbutton.root, &event.xbutton.window,
+					&event.xbutton.x_root, &event.xbutton.y_root,
+					&event.xbutton.x, &event.xbutton.y,
+					&event.xbutton.state);
+	
+	if (event.xbutton.x == v.x && event.xbutton.y == v.y)
+		return;	
+
+	XWarpPointer(win->src.display, None, None, 0, 0, 0, 0, -event.xbutton.x, -event.xbutton.y);
+	XWarpPointer(win->src.display, None, None, 0, 0, 0, 0, v.x, v.y);
+
+	//XWarpPointer (win->src.display, None, root, 0, 0, 0, 0, v.x, v.y);
 }
 
 RGFWDEF void RGFW_window_disableMouse(RGFW_window* win) {
@@ -5267,9 +5278,8 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	
 	#ifdef RGFW_X11
 		win->src.bitmap->data = (char*)win->buffer;
-
-		RGFW_area area = RGFW_getScreenSize();
-		XPutImage(win->src.display, (Window)win->src.window, XDefaultGC(win->src.display, XDefaultScreen(win->src.display)), win->src.bitmap, 0, 0, 0, 0, area.w, area.h);
+		
+		XPutImage(win->src.display, (Window)win->src.window, XDefaultGC(win->src.display, XDefaultScreen(win->src.display)), win->src.bitmap, 0, 0, 0, 0, win->r.w, win->r.h);
 	#endif
 	#ifdef RGFW_WINDOWS
 		HGDIOBJ oldbmp = SelectObject(win->src.hdcMem, win->src.bitmap);
