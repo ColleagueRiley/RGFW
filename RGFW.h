@@ -5278,7 +5278,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	
 	#ifdef RGFW_X11
 		win->src.bitmap->data = (char*)win->buffer;
-		
+
 		XPutImage(win->src.display, (Window)win->src.window, XDefaultGC(win->src.display, XDefaultScreen(win->src.display)), win->src.bitmap, 0, 0, 0, 0, win->r.w, win->r.h);
 	#endif
 	#ifdef RGFW_WINDOWS
