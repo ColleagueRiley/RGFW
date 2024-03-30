@@ -729,8 +729,10 @@ typedef struct {
 RGFWDEF RGFW_vulkanInfo* RGFW_initVulkan(RGFW_window* win);
 RGFWDEF void RGFW_freeVulkan(void);
 
+RGFWDEF RGFW_vulkanInfo* RGFW_getVulkanInfo(void);
+
 RGFWDEF int RGFW_initData(RGFW_window* win);
-RGFWDEF RGFW_vulkanInfo* RGFW_createSurface(VkInstance instance, RGFW_window* win);
+RGFWDEF void RGFW_createSurface(VkInstance instance, RGFW_window* win);
 int RGFW_deviceInitialization(RGFW_window* win);
 int RGFW_createSwapchain(RGFW_window* win);
 RGFWDEF int RGFW_createRenderPass();
@@ -1030,7 +1032,7 @@ int RGFW_initData(RGFW_window* win) {
     return 0;
 }
 
-RGFW_vulkanInfo* RGFW_createSurface(VkInstance instance, RGFW_window* win) {
+void RGFW_createSurface(VkInstance instance, RGFW_window* win) {
 	assert(win != NULL);
 	assert(instance);
 
@@ -1051,7 +1053,9 @@ RGFW_vulkanInfo* RGFW_createSurface(VkInstance instance, RGFW_window* win) {
 
 	vkCreateMacOSSurfaceMVK(RGFW_vulkan_info.instance, &macos, NULL, &win->src.rSurf);
 	#endif
+}
 
+RGFW_vulkanInfo* RGFW_getVulkanInfo(void) {
 	return &RGFW_vulkan_info;
 }
 
@@ -1061,84 +1065,33 @@ int RGFW_deviceInitialization(RGFW_window* win) {
     VkApplicationInfo appInfo = { 0 };
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "RGFW app";
-    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName = "No Engine";
-    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_0;
+	appInfo.apiVersion = VK_MAKE_VERSION(1, 0, 0);
 
-    u32 rgfwExtensionCount = 2;
-    const char* rgfwExtensions[2] = {
-        (char[]){"VK_KHR_surface"},
-#ifdef RGFW_WINDOWS
-        (char[]){"VK_KHR_win32_surface"},
-#elif defined(RGFW_RGFW_X11)
-        (char*[]){"VK_KHR_xlib_surface"},
-#elif defined(RGFW_MACOS)
-        (char[]){"VK_MVK_macos_surface"},
-#endif
-    };
-
-    const char** extensions;
-    u32 extension_count;
-    #ifdef RGFW_DEBUG
-        extension_count = rgfwExtensionCount + 1;
-        extensions = (const char**)malloc(sizeof(const char*) * extension_count);
-        for (int i = 0; i < rgfwExtensionCount; i++) {
-            extensions[i] = rgfwExtensions[i];
-        }
-        extensions[extension_count - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
-    #else
-        extension_count = rgfwExtensionCount;
-        extensions = rgfwExtensions;
-    #endif
+	char* extension =
+	#ifdef RGFW_WINDOWS
+		"VK_KHR_win32_surface";
+	#elif defined(RGFW_X11)
+		VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
+	#elif defined(RGFW_MACOS)
+		"VK_MVK_macos_surface";
+	#else
+		NULL;
+	#endif
 
     VkInstanceCreateInfo instance_create_info = {0};
     instance_create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instance_create_info.pApplicationInfo = &appInfo;
-    instance_create_info.enabledExtensionCount = extension_count;
-    instance_create_info.ppEnabledExtensionNames = extensions;
-
-
-    const char* validation_layer_name[] = {"VK_LAYER_KHRONOS_validation"};
-
-    #ifdef RGFW_DEBUG
-        VkDebugUtilsMessengerCreateInfoEXT debug_create_info = {0};
-        debug_create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        debug_create_info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        debug_create_info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        debug_create_info.pfnUserCallback = RGFW_vulkanDebugCallback;
-
-        instance_create_info.enabledLayerCount = 1;
-        instance_create_info.ppEnabledLayerNames = validation_layer_name;
-        instance_create_info.pNext = &debug_create_info;
-    #else
-        instance_create_info.enabledLayerCount = 0;
-    #endif
+    instance_create_info.enabledExtensionCount = extension ? 2 : 0,
+    instance_create_info.ppEnabledExtensionNames = (char* [2]) {
+            VK_KHR_SURFACE_EXTENSION_NAME,
+            extension
+	};
 
     if (vkCreateInstance(&instance_create_info, NULL, &RGFW_vulkan_info.instance) != VK_SUCCESS) {
         fprintf(stderr, "failed to create instance!\n");
         return -1;
     }
 
-
-    // setup debug messenger
-    #ifdef RGFW_DEBUG
-        debug_create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        debug_create_info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        debug_create_info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        debug_create_info.pfnUserCallback = RGFW_vulkanDebugCallback;
-
-        PFN_vkCreateDebugUtilsMessengerEXT func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(RGFW_vulkan_info.instance, "vkCreateDebugUtilsMessengerEXT");
-        if (func == NULL) {
-            fprintf(stderr, "vkCreateDebugUtilsMessengerEXT not found!\n");
-            return -1;
-        } else {
-            if (func(RGFW_vulkan_info.instance, &debug_create_info, NULL, &RGFW_vulkan_info.debugMessenger) != VK_SUCCESS) {
-                fprintf(stderr, "failed to set up debug messenger!\n");
-                return -1;
-            }
-        }
-    #endif
 
     RGFW_createSurface(RGFW_vulkan_info.instance, win);
 
@@ -1180,12 +1133,6 @@ int RGFW_deviceInitialization(RGFW_window* win) {
     };
 
     device_create_info.ppEnabledExtensionNames = device_extensions;
-    #ifdef RGFW_DEBUG
-        device_create_info.enabledLayerCount = 1;
-        device_create_info.ppEnabledLayerNames = validation_layer_name;
-    #else
-        device_create_info.enabledLayerCount = 0;
-    #endif
     device_create_info.pEnabledFeatures = &device_features;
 
     if (vkCreateDevice(RGFW_vulkan_info.physical_device, &device_create_info, NULL, &RGFW_vulkan_info.device) != VK_SUCCESS) {
@@ -1219,7 +1166,7 @@ int RGFW_createSwapchain(RGFW_window* win) {
     swapchain_create_info.imageExtent = (VkExtent2D){win->r.w, win->r.h};
     swapchain_create_info.imageArrayLayers = 1;
     swapchain_create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    swapchain_create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+    swapchain_create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     swapchain_create_info.queueFamilyIndexCount = 2;
     swapchain_create_info.preTransform = capabilities.currentTransform;
     swapchain_create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
