@@ -106,7 +106,7 @@ int main() {
             break;
 
         float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-        dxInfo.pDeviceContext->lpVtbl->ClearRenderTargetView(dxInfo.pDeviceContext, win->renderTargetView, clearColor);
+        dxInfo.pDeviceContext->lpVtbl->ClearRenderTargetView(dxInfo.pDeviceContext, win->src.renderTargetView, clearColor);
 
         UINT stride = sizeof(Vertex);
         UINT offset = 0;
