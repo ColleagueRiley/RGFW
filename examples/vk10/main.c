@@ -36,7 +36,7 @@ VkShaderModule createShaderModule(const u32* code, size_t code_size) {
     return shaderModule;
 }
 
-int draw_frame(RGFW_window* win) {
+int draw_frame(RGFW_window* win) { 
     vkWaitForFences(vulkan_info->device, 1, &vulkan_info->in_flight_fences[vulkan_info->current_frame], VK_TRUE, UINT64_MAX);
 
     u32 image_index = 0;
@@ -284,7 +284,7 @@ int commandBuffers(RGFW_window* win) {
 
 int main() {
     RGFW_window* win = RGFW_createWindow("Vulkan Example", RGFW_RECT(0, 0, 500, 500), RGFW_ALLOW_DND | RGFW_CENTER);;
-    vulkan_info = RGFW_initVulkan(win);   
+    vulkan_info = RGFW_getVulkanInfo();   
     
     createGraphicsPipeline(win);
 
