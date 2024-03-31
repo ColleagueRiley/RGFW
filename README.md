@@ -131,6 +131,9 @@ projects that use RGFW in some way
 
 It uses RGFW as a backend.
 
+## PureDoom-RGFW
+[PureDOOM-RGFW](https://github.com/ColleagueRiley/PureDoom-RGFW) is an example of the PureDOOM source port, using RGFW and miniaudio.
+
 ## RGL (made by the same author)
 [RGL](https://github.com/ColleagueRiley/RGL) is a simple ultra-lightweight OpenGL version abstraction layer HEAVILY based on RLGL that uses the OpenGL pipeline style.
 
