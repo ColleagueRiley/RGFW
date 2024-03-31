@@ -25,6 +25,8 @@ This library does not
 2) do anything above the bare minimum in terms of functionality 
 
 # examples
+![examples](https://github.com/ColleagueRiley/RGFW/blob/main/screenshot.PNG?raw=true)
+
 ## compiling
 The examples can be compiled by using `make debug`, which compiles them in debug mode and then runs them\
 or `make` which simply compiles them.
