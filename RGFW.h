@@ -31,7 +31,7 @@
 	#define RGFW_IMPLEMENTATION - (required) makes it so the source code is included
 	#define RGFW_PRINT_ERRORS - (optional) makes it so RGFW prints errors when they're found
 	#define RGFW_OSMESA - (optional) use OSmesa as backend (instead of system's opengl api + regular opengl)
-	#define RGFW_BUFFER - (optional) just draw directly to (RGFW) window pixel buffer that is drawn to screen (the buffer is in the BGRA format)
+	#define RGFW_BUFFER - (optional) just draw directly to (RGFW) window pixel buffer that is drawn to screen (the buffer is in the RGBA format)
 	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
 	#define RGFW_OPENGL_ES1 - (optional) use EGL to load and use Opengl ES (version 1) for backend rendering (instead of the system's opengl api)
 	#define RGFW_OPENGL_ES2 - (optional) use OpenGL ES (version 2)
@@ -484,7 +484,7 @@ typedef struct RGFW_window {
 
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER) 
 	u8* buffer; /* buffer for non-GPU systems (OSMesa, basic software rendering) */
-				/* when rendering using RGFW_BUFFER, the buffer is in the BGRA format */
+				/* when rendering using RGFW_BUFFER, the buffer is in the RGBA format */
 	#endif
 
 	RGFW_Event event; /*!< current event */
@@ -963,15 +963,26 @@ void RGFW_init_buffer(RGFW_window* win) {
 	#ifdef RGFW_WINDOWS
 	RGFW_area area = RGFW_getScreenSize();
 
-	BITMAPINFO bmi = {0};
-	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bmi.bmiHeader.biWidth = area.w;
-	bmi.bmiHeader.biHeight = -area.h;
-	bmi.bmiHeader.biPlanes = 1;
-	bmi.bmiHeader.biBitCount = 32;
-	bmi.bmiHeader.biCompression = BI_RGB;
+	BITMAPV5HEADER bi = {0};
+    ZeroMemory(&bi, sizeof(bi));
+    bi.bV5Size        = sizeof(bi);
+    bi.bV5Width       = area.w;
+    bi.bV5Height      = -area.h;
+    bi.bV5Planes      = 1;
+    bi.bV5BitCount    = 32;
+    bi.bV5Compression = BI_BITFIELDS;
+    bi.bV5BlueMask     = 0x00ff0000;
+    bi.bV5GreenMask   = 0x0000ff00;
+    bi.bV5RedMask    = 0x000000ff;
+    bi.bV5AlphaMask   = 0xff000000;
 
-	win->src.bitmap = CreateDIBSection(win->src.window, &bmi, DIB_RGB_COLORS, (void **)&win->buffer, 0, 0);
+    win->src.bitmap = CreateDIBSection(win->src.window,
+                             (BITMAPINFO*) &bi,
+                             DIB_RGB_COLORS,
+                             (void**) &win->buffer,
+                             NULL,
+                             (DWORD) 0);
+
 	win->src.hdcMem = CreateCompatibleDC(win->src.window);
 	#endif
 	#endif
