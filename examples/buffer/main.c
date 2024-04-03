@@ -68,8 +68,6 @@ int main() {
 
     screenSize = RGFW_getScreenSize();
 
-    bitmap_rgbToBgr(icon, RGFW_AREA(3, 3));
-
     i8 running = 1;
     while (running) {
         while (RGFW_window_checkEvent(win)) {
@@ -79,8 +77,8 @@ int main() {
             }
         } 
         
-        clear(win, (u8[3]){255, 0, 0});
-        drawRect(win, RGFW_RECT(200, 200, 200, 200), (u8[3]){0, 0, 255});
+        clear(win, (u8[3]){0, 0, 255});
+        drawRect(win, RGFW_RECT(200, 200, 200, 200), (u8[3]){255, 0, 0});
 
         drawBitmap(win, icon, RGFW_RECT(100, 100, 3, 3));
 

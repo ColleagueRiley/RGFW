@@ -957,8 +957,12 @@ void RGFW_init_buffer(RGFW_window* win) {
 			printf("Failed to create NSGraphicsContext\n");
 	#endif
 	#ifdef RGFW_X11
-			win->src.bitmap = XCreateImage(win->src.display, DefaultVisual(win->src.display, XDefaultScreen(win->src.display)), DefaultDepth(win->src.display, XDefaultScreen(win->src.display)),
-                                ZPixmap, 0, (char*)win->buffer, area.w, area.h, 32, 0);
+			win->src.bitmap =  XCreateImage(
+					win->src.display, DefaultVisual(win->src.display, XDefaultScreen(win->src.display)),
+					DefaultDepth(win->src.display, XDefaultScreen(win->src.display)),
+					ZPixmap, 0, NULL, area.w, area.h,
+					32, 0
+			);
 	#endif
 	#ifdef RGFW_WINDOWS
 	RGFW_area area = RGFW_getScreenSize();
@@ -5235,7 +5239,21 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	#endif
 	
 	#ifdef RGFW_X11
-		win->src.bitmap->data = (char*)win->buffer;
+		RGFW_area area = RGFW_getScreenSize();
+		
+		#ifndef RGFW_X11_DONT_CONVERT_BGR
+		win->src.bitmap->data = (const char*)win->buffer;
+		u32 x, y;
+		for (y = 0; y < win->r.h; y++) {
+			for (x = 0; x < win->r.w; x++) {
+				u32 index = (y * 4 * area.w) + x * 4;
+
+				u8 red = win->src.bitmap->data[index];
+				win->src.bitmap->data[index] = win->buffer[index + 2];
+				win->src.bitmap->data[index + 2] = red;
+			}
+		}    
+		#endif
 
 		XPutImage(win->src.display, (Window)win->src.window, XDefaultGC(win->src.display, XDefaultScreen(win->src.display)), win->src.bitmap, 0, 0, 0, 0, win->r.w, win->r.h);
 	#endif
