@@ -220,6 +220,8 @@ extern "C" {
 #define RGFW_SCALE_TO_MONITOR (1L << 13) /* scale the window to the screen */
 
 #define RGFW_NO_GPU_RENDER (1L<<14) /* don't render (using the GPU based API)*/
+#define RGFW_NO_CPU_RENDER (1L<<15) /* don't render (using the CPU based buffer rendering)*/
+
 
 /*! event codes */
 #define RGFW_keyPressed 2 /* a key has been pressed */
@@ -5216,6 +5218,15 @@ void RGFW_window_setGPURender(RGFW_window* win, i8 set) {
 		win->src.winArgs ^=	RGFW_NO_GPU_RENDER;
 }
 
+void RGFW_window_setCPURender(RGFW_window* win, i8 set) {
+	if (!set && !(win->src.winArgs & RGFW_NO_CPU_RENDER))
+		win->src.winArgs |=	RGFW_NO_CPU_RENDER;
+	
+	else if (set && win->src.winArgs & RGFW_NO_CPU_RENDER)
+		win->src.winArgs ^=	RGFW_NO_CPU_RENDER;
+}
+
+
 void RGFW_window_swapBuffers(RGFW_window* win) { 
 	assert(win != NULL);
 	
@@ -5226,78 +5237,80 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 
 	/* clear the window*/
 
-	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-	#ifdef RGFW_OSMESA
-	u8* row = (u8*) RGFW_MALLOC(win->r.w * 3);
+	if (!(win->src.winArgs & RGFW_NO_CPU_RENDER)) {
+		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+		#ifdef RGFW_OSMESA
+		u8* row = (u8*) RGFW_MALLOC(win->r.w * 3);
 
-	i32 half_height = win->r.h / 2;
-	i32 stride = win->r.w * 3;
+		i32 half_height = win->r.h / 2;
+		i32 stride = win->r.w * 3;
 
-	i32 y;
-	for (y = 0; y < half_height; ++y) {
-		i32 top_offset = y * stride;
-		i32 bottom_offset = (win->r.h - y - 1) * stride;
-		memcpy(row, win->buffer + top_offset, stride);
-		memcpy(win->buffer + top_offset, win->buffer + bottom_offset, stride);
-		memcpy(win->buffer + bottom_offset, row, stride);
-	}
+		i32 y;
+		for (y = 0; y < half_height; ++y) {
+			i32 top_offset = y * stride;
+			i32 bottom_offset = (win->r.h - y - 1) * stride;
+			memcpy(row, win->buffer + top_offset, stride);
+			memcpy(win->buffer + top_offset, win->buffer + bottom_offset, stride);
+			memcpy(win->buffer + bottom_offset, row, stride);
+		}
 
-	RGFW_FREE(row);
-	#endif
-	
-	#ifdef RGFW_X11
-		RGFW_area area = RGFW_getScreenSize();
+		RGFW_FREE(row);
+		#endif
 		
-		#ifndef RGFW_X11_DONT_CONVERT_BGR
-		win->src.bitmap->data = (const char*)win->buffer;
-		u32 x, y;
-		for (y = 0; y < win->r.h; y++) {
-			for (x = 0; x < win->r.w; x++) {
-				u32 index = (y * 4 * area.w) + x * 4;
+		#ifdef RGFW_X11
+			RGFW_area area = RGFW_getScreenSize();
+			
+			#ifndef RGFW_X11_DONT_CONVERT_BGR
+			win->src.bitmap->data = (const char*)win->buffer;
+			u32 x, y;
+			for (y = 0; y < win->r.h; y++) {
+				for (x = 0; x < win->r.w; x++) {
+					u32 index = (y * 4 * area.w) + x * 4;
 
-				u8 red = win->src.bitmap->data[index];
-				win->src.bitmap->data[index] = win->buffer[index + 2];
-				win->src.bitmap->data[index + 2] = red;
-			}
-		}    
+					u8 red = win->src.bitmap->data[index];
+					win->src.bitmap->data[index] = win->buffer[index + 2];
+					win->src.bitmap->data[index + 2] = red;
+				}
+			}    
+			#endif
+
+			XPutImage(win->src.display, (Window)win->src.window, XDefaultGC(win->src.display, XDefaultScreen(win->src.display)), win->src.bitmap, 0, 0, 0, 0, win->r.w, win->r.h);
+		#endif
+		#ifdef RGFW_WINDOWS
+			HGDIOBJ oldbmp = SelectObject(win->src.hdcMem, win->src.bitmap);
+			BitBlt(win->src.window, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
+			SelectObject(win->src.hdcMem, oldbmp);
+		#endif	
+		#if defined(RGFW_MACOS)
+		RGFW_area area = RGFW_getScreenSize();
+		NSView* view = NSWindow_contentView(win->src.window);
+		((void(*)(id, SEL, NSRect))objc_msgSend)(NSView_layer(view),
+			sel_registerName("setFrame:"),
+			NSMakeRect(0, 0, win->r.w, win->r.h));
+
+		NSBitmapImageRep* rep = NSBitmapImageRep_initWithBitmapData(
+			&win->buffer, win->r.w, win->r.h, 8, 4, true, false,
+			"NSDeviceRGBColorSpace", 0,
+			area.w * 4, 32
+		);
+		id image = NSAlloc(SI_NS_CLASSES[NS_IMAGE_CODE]);
+		NSImage_addRepresentation(image, rep);
+
+		CALayer_setContents(NSView_layer(view), (id)image);
+
+		release(image);
+		release(rep);
+		#endif
 		#endif
 
-		XPutImage(win->src.display, (Window)win->src.window, XDefaultGC(win->src.display, XDefaultScreen(win->src.display)), win->src.bitmap, 0, 0, 0, 0, win->r.w, win->r.h);
-	#endif
-	#ifdef RGFW_WINDOWS
-		HGDIOBJ oldbmp = SelectObject(win->src.hdcMem, win->src.bitmap);
-		BitBlt(win->src.window, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
-		SelectObject(win->src.hdcMem, oldbmp);
-	#endif	
-	#if defined(RGFW_MACOS)
-	RGFW_area area = RGFW_getScreenSize();
-	NSView* view = NSWindow_contentView(win->src.window);
-	((void(*)(id, SEL, NSRect))objc_msgSend)(NSView_layer(view),
-		sel_registerName("setFrame:"),
-		NSMakeRect(0, 0, win->r.w, win->r.h));
+		#ifdef RGFW_VULKAN
+		#ifdef RGFW_PRINT_ERRORS
+		fprintf(stderr, "RGFW_window_swapBuffers %s\n", "RGFW_window_swapBuffers is not yet supported for Vulkan");
+		RGFW_error = 1;
+		#endif
+		#endif
+	}
 
-	NSBitmapImageRep* rep = NSBitmapImageRep_initWithBitmapData(
-		&win->buffer, win->r.w, win->r.h, 8, 4, true, false,
-		"NSDeviceRGBColorSpace", 0,
-		area.w * 4, 32
-	);
-	id image = NSAlloc(SI_NS_CLASSES[NS_IMAGE_CODE]);
-	NSImage_addRepresentation(image, rep);
-
-	CALayer_setContents(NSView_layer(view), (id)image);
-
-	release(image);
-	release(rep);
-	#endif
-	#endif
-
-	#ifdef RGFW_VULKAN
-	#ifdef RGFW_PRINT_ERRORS
-	fprintf(stderr, "RGFW_window_swapBuffers %s\n", "RGFW_window_swapBuffers is not yet supported for Vulkan");
-	RGFW_error = 1;
-	#endif
-	#endif
-	
 	if (win->src.winArgs & RGFW_NO_GPU_RENDER)
 		return;
 
