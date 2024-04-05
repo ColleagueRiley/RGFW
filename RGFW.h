@@ -219,6 +219,8 @@ extern "C" {
 #define RGFW_COCOA_MOVE_TO_RESOURCE_DIR (1L << 12) /* (cocoa only), move to resource folder */
 #define RGFW_SCALE_TO_MONITOR (1L << 13) /* scale the window to the screen */
 
+#define RGFW_NO_GPU_RENDER (1L<<14) /* don't render (using the GPU based API)*/
+
 /*! event codes */
 #define RGFW_keyPressed 2 /* a key has been pressed */
 #define RGFW_keyReleased 3 /*!< a key has been released*/
@@ -472,7 +474,7 @@ typedef struct RGFW_window_src {
 	u8 cursorChanged; /* for steve jobs */
 	#endif
 
-	u8 winArgs; /* windows args (for RGFW to check) */ 
+	u32 winArgs; /* windows args (for RGFW to check) */ 
 	/*
 		!< if dnd is enabled or on (based on window creating args) 
 		cursorChanged
@@ -691,6 +693,8 @@ RGFWDEF void* RGFW_getProcAddress(const char* procname); /* get native opengl pr
 /* supports openGL, directX, OSMesa, EGL and software rendering */
 RGFWDEF void RGFW_window_swapBuffers(RGFW_window* win); /* swap the rendering buffer */
 RGFWDEF void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval); 
+
+RGFWDEF void RGFW_window_setGPURender(RGFW_window* win, i8 set);
 
 #ifdef RGFW_VULKAN
 typedef struct {
@@ -5183,6 +5187,14 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 
 }
 
+void RGFW_window_setGPURender(RGFW_window* win, i8 set) {
+	if (!set && !(win->src.winArgs & RGFW_NO_GPU_RENDER))
+		win->src.winArgs |=	RGFW_NO_GPU_RENDER;
+	
+	else if (set && win->src.winArgs & RGFW_NO_GPU_RENDER)
+		win->src.winArgs ^=	RGFW_NO_GPU_RENDER;
+}
+
 void RGFW_window_swapBuffers(RGFW_window* win) { 
 	assert(win != NULL);
 	
@@ -5191,29 +5203,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	
 	RGFW_window_makeCurrent(win);
 
-	#ifdef RGFW_OPENGL
-	#ifdef RGFW_EGL
-	eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
-	#else
-	#if defined(RGFW_X11) && defined(RGFW_OPENGL)
-	glXSwapBuffers((Display*)win->src.display, (Window)win->src.window);
-	#endif
-	#ifdef RGFW_WINDOWS
-	SwapBuffers((HDC)win->src.window);
-	#endif
-	#if defined(RGFW_MACOS)
-	NSOpenGLContext_flushBuffer(win->src.rSurf);
-	#endif
-	#endif
-	#endif
-
-
-	#if defined(RGFW_WINDOWS) && defined(RGFW_DIRECTX)
-	win->src.swapchain->lpVtbl->Present(win->src.swapchain, 0, 0);
-	#endif
-	
 	/* clear the window*/
-
 
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	#ifdef RGFW_OSMESA
@@ -5275,6 +5265,29 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	fprintf(stderr, "RGFW_window_swapBuffers %s\n", "RGFW_window_swapBuffers is not yet supported for Vulkan");
 	RGFW_error = 1;
 	#endif
+	#endif
+	
+	if (win->src.winArgs & RGFW_NO_GPU_RENDER)
+		return;
+
+	#ifdef RGFW_OPENGL
+	#ifdef RGFW_EGL
+	eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
+	#else
+	#if defined(RGFW_X11) && defined(RGFW_OPENGL)
+	glXSwapBuffers((Display*)win->src.display, (Window)win->src.window);
+	#endif
+	#ifdef RGFW_WINDOWS
+	SwapBuffers((HDC)win->src.window);
+	#endif
+	#if defined(RGFW_MACOS)
+	NSOpenGLContext_flushBuffer(win->src.rSurf);
+	#endif
+	#endif
+	#endif
+
+	#if defined(RGFW_WINDOWS) && defined(RGFW_DIRECTX)
+	win->src.swapchain->lpVtbl->Present(win->src.swapchain, 0, 0);
 	#endif
 }
 
