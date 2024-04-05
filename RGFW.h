@@ -967,8 +967,6 @@ void RGFW_init_buffer(RGFW_window* win) {
 			);
 	#endif
 	#ifdef RGFW_WINDOWS
-	RGFW_area area = RGFW_getScreenSize();
-
 	BITMAPV5HEADER bi = {0};
     ZeroMemory(&bi, sizeof(bi));
     bi.bV5Size        = sizeof(bi);
