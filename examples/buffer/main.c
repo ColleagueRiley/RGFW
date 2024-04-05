@@ -68,7 +68,6 @@ int main() {
 
     screenSize = RGFW_getScreenSize();
 
-
     i8 running = 1;
     while (running) {
         while (RGFW_window_checkEvent(win)) {

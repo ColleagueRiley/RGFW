@@ -452,6 +452,7 @@ typedef struct RGFW_window_src {
 	#endif
 	#ifdef RGFW_MACOS
 	void* bitmap; /* API's bitmap for storing or managing */
+	void* image;
 	#endif
 	#if defined(RGFW_BUFFER) && defined(RGFW_WINDOWS)
 	HDC hdcMem; /* window stored in memory that winapi needs to render buffers */
@@ -944,10 +945,10 @@ void RGFW_window_scaleToMonitor(RGFW_window* win) {
 }
 
 void RGFW_init_buffer(RGFW_window* win) {
-	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-	#if !defined(RGFW_WINDOWS) || defined(RGFW_OSMESA)
 	RGFW_area area = RGFW_getScreenSize();
 
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+	#if !(defined(RGFW_WINDOWS)) || defined(RGFW_OSMESA)
 	win->buffer = RGFW_MALLOC(area.w * area.h * 4);
 	#endif
 
@@ -955,14 +956,13 @@ void RGFW_init_buffer(RGFW_window* win) {
 	win->src.rSurf = OSMesaCreateContext(OSMESA_RGBA, NULL);
 	OSMesaMakeCurrent(win->src.rSurf, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
 	#endif
-	#ifdef RGFW_MACOS
-		win->src.rSurf = NSGraphicsContext_graphicsContextWithWindow(win->src.window);
-		if (win->src.rSurf == NULL)
-			printf("Failed to create NSGraphicsContext\n");
-	#endif
 	#ifdef RGFW_X11
-			win->src.bitmap = XCreateImage(win->src.display, DefaultVisual(win->src.display, XDefaultScreen(win->src.display)), DefaultDepth(win->src.display, XDefaultScreen(win->src.display)),
-                                ZPixmap, 0, (char*)win->buffer, area.w, area.h, 32, 0);
+			win->src.bitmap =  XCreateImage(
+					win->src.display, DefaultVisual(win->src.display, XDefaultScreen(win->src.display)),
+					DefaultDepth(win->src.display, XDefaultScreen(win->src.display)),
+					ZPixmap, 0, NULL, area.w, area.h,
+					32, 0
+			);
 	#endif
 	#ifdef RGFW_WINDOWS
 	RGFW_area area = RGFW_getScreenSize();
@@ -4494,11 +4494,6 @@ bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
     return true;
 }
 
-typedef void NSNotification;
-void RGFW_windowDidResize(void* sender, NSNotification *notification) {
-printf("resize\n");
-    // Handle window resize logic here...
-}
 
 NSApplication* NSApp = NULL;
 
@@ -4528,8 +4523,30 @@ static void NSMoveToResourceDir(void) {
     chdir(resourcesPath);
 }
 
-void windowDidResize(NSNotification* notification) {
-  printf("Resize\n");
+NSSize RGFW__osxWindowResize(void* self, SEL sel, NSSize frameSize) {
+	u32 i;
+	for (i = 0; i < RGFW_windows_size; i++) {
+		if (RGFW_windows[i] && NSWindow_delegate(RGFW_windows[i]->src.window) == self) {
+			RGFW_windows[i]->r.w = frameSize.width;
+			RGFW_windows[i]->r.h = frameSize.height;
+			break;
+		}
+	}
+
+	return frameSize;
+}
+
+void RGFW__osxWindowMove(void* self, SEL sel) {
+	u32 i;
+	for (i = 0; i < RGFW_windows_size; i++) {
+		if (RGFW_windows[i] && NSWindow_delegate(RGFW_windows[i]->src.window) == self) {
+/*			NSRect frame = NSWindow_frame(RGFW_windows[i]->src.window);
+			RGFW_windows[i]->r.x = (i32)frame.origin.x;
+			RGFW_windows[i]->r.y = (i32)frame.origin.y;
+	*/
+			break;
+		}
+	}
 }
 
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
@@ -4539,15 +4556,10 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	Imagine a universe, where MacOS had a proper system API (we would probably have like 20% better performance).
 	*/
 	si_func_to_SEL_with_name(SI_DEFAULT, "windowShouldClose", RGFW_OnClose);
-	si_func_to_SEL_with_name(SI_DEFAULT, "NSWindowDidResizeNotification", RGFW_windowDidResize);
-	si_func_to_SEL_with_name("NSWindow", "windowDidResize", RGFW_windowDidResize);
 
 	/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
 	si_func_to_SEL("NSWindow", acceptsFirstResponder);
 	si_func_to_SEL("NSWindow", performKeyEquivalent);
-
-	void* WindowDelegateClass = objc_allocateClassPair((Class)objc_getClass("NSObject"), "WindowDelegate", 0);
-	class_addMethod(WindowDelegateClass, sel_registerName("windowDidResize"), (IMP)windowDidResize,  "v@:@");
 
 	if (NSApp == NULL) {
 		NSApp = NSApplication_sharedApplication();
@@ -4624,6 +4636,17 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	
 	if (args & RGFW_SCALE_TO_MONITOR)
 		RGFW_window_scaleToMonitor(win);
+
+	if (args & RGFW_HIDE_MOUSE)
+		RGFW_window_showMouse(win, 0);
+	
+	if (args & RGFW_COCOA_MOVE_TO_RESOURCE_DIR)
+		NSMoveToResourceDir();
+
+	Class delegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "WindowDelegate", 0);
+	class_addMethod(delegateClass, sel_registerName("windowWillResize:toSize:"), (IMP)RGFW__osxWindowResize, "{NSSize=ff}@:{NSSize=ff}");
+	class_addMethod(delegateClass, sel_registerName("windowWillMove:"), (IMP)RGFW__osxWindowMove, "");
+
    
    if (args & RGFW_ALLOW_DND) {
 		win->src.winArgs |= RGFW_ALLOW_DND;
@@ -4633,25 +4656,16 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		si_array_free(array);
 
 		/* NOTE(EimaMei): Drag 'n Drop requires too many damn functions for just a Drag 'n Drop event. */
-		si_func_to_SEL("NSWindow", draggingEntered);
-		si_func_to_SEL("NSWindow", draggingUpdated);
-		si_func_to_SEL("NSWindow", prepareForDragOperation);
-		si_func_to_SEL("NSWindow", performDragOperation);
+		class_addMethod(delegateClass, sel_registerName("draggingEntered:"), (IMP)draggingEntered, "");
+		class_addMethod(delegateClass, sel_registerName("draggingUpdated:"), (IMP)draggingUpdated, "");
+		class_addMethod(delegateClass, sel_registerName("prepareForDragOperation:"), (IMP)prepareForDragOperation, "");
+		class_addMethod(delegateClass, sel_registerName("performDragOperation:"), (IMP)performDragOperation, "");
 	}
 
-	if (args & RGFW_HIDE_MOUSE)
-		RGFW_window_showMouse(win, 0);
-	
-	if (args & RGFW_COCOA_MOVE_TO_RESOURCE_DIR)
-		NSMoveToResourceDir();
+	id delegate = NSInit(NSAlloc(delegateClass));
+	object_setInstanceVariable(delegate, "RGFW_window", win);
 
-  //NSNotificationCenter_addObserver(NSNotificationCenter_defaultCenter(), win->src.window, si_func_to_SEL("NSWindow", windowDidEnterFullScreen), "NSWindowDidEnterFullScreenNotification", win->src.window);
-  //NSNotificationCenter_addObserver(NSNotificationCenter_defaultCenter(), win->src.window, sel_registerName(windowDidExitFullScreen), "NSWindowDidExitFullScreenNotification", win->src.window);
-  //NSNotificationCenter_addObserver(NSNotificationCenter_defaultCenter(), window, sel_registerName(windowDidMove),"NSWindowDidMoveNotification", window);
-  //NSNotificationCenter_addObserver(NSNotificationCenter_defaultCenter(), win->src.window, sel_registerName(windowDidResize), "NSWindowDidResizeNotification", win->src.window);
-  //NSNotificationCenter_addObserver(NSNotificationCenter_defaultCenter(), window, sel_registerName(windowDidMiniaturize), "NSWindowDidMiniaturizeNotification", window);
-  //NSNotificationCenter_addObserver(NSNotificationCenter_defaultCenter(), window, sel_registerName(windowDidDeMiniaturize), "NSWindowDidDeminiaturizeNotification", window);
-
+	NSWindow_setDelegate(win->src.window, delegate);
 
 	// Show the window
 	NSWindow_makeKeyAndOrderFront(win->src.window, NULL);
@@ -5090,8 +5104,15 @@ void RGFW_window_close(RGFW_window* win){
 		NSApp = NULL;
 	}
 	
+	#ifdef RGFW_BUFFER
+	release(win->src.bitmap);
+	release(win->src.image);
+	#endif
+
 	CVDisplayLinkStop(win->src.displayLink);
 	CVDisplayLinkRelease(win->src.displayLink);
+
+	free(win);
 }
 #endif
 
@@ -5225,7 +5246,21 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	#endif
 	
 	#ifdef RGFW_X11
-		win->src.bitmap->data = (char*)win->buffer;
+		RGFW_area area = RGFW_getScreenSize();
+		
+		#ifndef RGFW_X11_DONT_CONVERT_BGR
+		win->src.bitmap->data = (const char*)win->buffer;
+		u32 x, y;
+		for (y = 0; y < win->r.h; y++) {
+			for (x = 0; x < win->r.w; x++) {
+				u32 index = (y * 4 * area.w) + x * 4;
+
+				u8 red = win->src.bitmap->data[index];
+				win->src.bitmap->data[index] = win->buffer[index + 2];
+				win->src.bitmap->data[index + 2] = red;
+			}
+		}    
+		#endif
 
 		XPutImage(win->src.display, (Window)win->src.window, XDefaultGC(win->src.display, XDefaultScreen(win->src.display)), win->src.bitmap, 0, 0, 0, 0, win->r.w, win->r.h);
 	#endif
@@ -5233,30 +5268,26 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 		HGDIOBJ oldbmp = SelectObject(win->src.hdcMem, win->src.bitmap);
 		BitBlt(win->src.window, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
 		SelectObject(win->src.hdcMem, oldbmp);
-	#endif
+	#endif	
 	#if defined(RGFW_MACOS)
-	struct CGColorSpace* colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+	RGFW_area area = RGFW_getScreenSize();
+	NSView* view = NSWindow_contentView(win->src.window);
+	((void(*)(id, SEL, NSRect))objc_msgSend)(NSView_layer(view),
+		sel_registerName("setFrame:"),
+		NSMakeRect(0, 0, win->r.w, win->r.h));
 
-	CGContextRef bitmapContext = CGBitmapContextCreate (win->buffer,
-									win->r.w,
-									win->r.h,
-									8,
-									(win->r.w * 4 * sizeof(u8)),
-									colorSpace,
-									kCGImageAlphaPremultipliedLast);
+	NSBitmapImageRep* rep = NSBitmapImageRep_initWithBitmapData(
+		&win->buffer, win->r.w, win->r.h, 8, 4, true, false,
+		"NSDeviceRGBColorSpace", 0,
+		area.w * 4, 32
+	);
+	id image = NSAlloc(SI_NS_CLASSES[NS_IMAGE_CODE]);
+	NSImage_addRepresentation(image, rep);
 
+	CALayer_setContents(NSView_layer(view), (id)image);
 
-	NSGraphicsContext* old = NSGraphicsContext_currentContext(win->src.rSurf);
-
-	struct CGImage* myImage = CGBitmapContextCreateImage(bitmapContext);
-	
-	CGContextDrawImage(win->src.rSurf, CGRectMake(0, 0, win->r.w, win->r.h), myImage);
-
-	NSGraphicsContext_currentContext(old);
-	
-	CGColorSpaceRelease(colorSpace);
-	CGContextRelease(bitmapContext);
-	CGImageRelease(myImage);
+	release(image);
+	release(rep);
 	#endif
 	#endif
 
