@@ -1,8 +1,6 @@
 MACOS silicon.h:
 
 - make sure DND works
-- RGFW_windowAttribsChange support
-- fix buffer rendering
 
 (addons)
     - init drag function (drag n' drop) (output)
