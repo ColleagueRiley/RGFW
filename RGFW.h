@@ -4920,6 +4920,7 @@ NSSize RGFW__osxWindowResize(void* self, SEL sel, NSSize frameSize) {
 		if (RGFW_windows[i] && NSWindow_delegate(RGFW_windows[i]) == self) {
 			RGFW_windows[i]->r.w = frameSize.width;
 			RGFW_windows[i]->r.h = frameSize.height;
+			RGFW_windows[i]->event.type = RGFW_windowAttribsChange;
 			
 			return frameSize;
 		}
@@ -4935,7 +4936,8 @@ void RGFW__osxWindowMove(void* self, SEL sel) {
 			NSRect frame = ((NSRect (*)(id, SEL))abi_objc_msgSend_stret)(RGFW_windows[i]->src.window, sel_registerName("frame"));
 			RGFW_windows[i]->r.x = (i32)frame.origin.x;
 			RGFW_windows[i]->r.y = (i32)frame.origin.y;
-	
+
+			RGFW_windows[i]->event.type = RGFW_windowAttribsChange;
 			return;
 		}
 	}
@@ -5060,15 +5062,13 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	Class delegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "WindowDelegate", 0);
 	class_addMethod(delegateClass, sel_registerName("windowWillResize:toSize:"), (IMP)RGFW__osxWindowResize, "{NSSize=ff}@:{NSSize=ff}");
 	class_addMethod(delegateClass, sel_registerName("windowWillMove:"), (IMP)RGFW__osxWindowMove, "");
+	class_addMethod(delegateClass, sel_registerName("windowDidMove:"), (IMP)RGFW__osxWindowMove, "");
 
    
    if (args & RGFW_ALLOW_DND) {
 		win->src.winArgs |= RGFW_ALLOW_DND;
 		
 		NSPasteboardType array[] = {"public.url", "public.file-url", NSPasteboardTypeString, NULL};
-		size_t i;
-		for (i = 0; i < 3; i++)
-			printf("%s\n", array[i]);
 	    NSView_registerForDraggedTypes(win->src.view, array, 3);
 
 		/* NOTE(EimaMei): Drag 'n Drop requires too many damn functions for just a Drag 'n Drop event. */
@@ -5229,6 +5229,12 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	static void* eventFunc = NULL;
 	if (eventFunc == NULL)
 		eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
+
+
+	if (win->event.type == RGFW_windowAttribsChange && win->event.keyCode != 120) {
+		win->event.keyCode = 120;
+		return &win->event;
+	}
 
 	NSEvent* e = (NSEvent *)((id (*)(id, SEL, NSEventMask, void*, NSString*, bool))objc_msgSend)
 					(NSApp, eventFunc, ULONG_MAX, NULL, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
