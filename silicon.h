@@ -158,6 +158,7 @@ typedef void NSSavePanel;
 typedef void NSOpenPanel;
 typedef void NSColorPanel;
 typedef void NSBundle;
+typedef void CALayer;
 typedef void NSNotification;
 typedef void NSNotificationCenter;
 #ifndef __OBJC__
@@ -1244,7 +1245,7 @@ const NSSize _NSZeroSize = {0, 0};
 #define selector(function) si_SEL_exists(#function":")
 
 SEL si_impl_SEL_exists(const char* name, const char* filename, int line) {
-	SEL selector = sel_getUid(name);
+	SEL selector = sel_registerName(name);
 
 	Class original_class = nil;
 	unsigned int class_count = 0;
@@ -1325,6 +1326,7 @@ enum { /* classes */
 	NS_SLIDER_CODE,
 	NS_URL_CODE,
 	NS_BUNDLE_CODE,
+	NS_CA_TRANSACTION_CODE,
 	NS_NOTIFICATIONCENTER_CODE,
 	NS_CLASS_LEN
 };
@@ -1398,7 +1400,9 @@ enum{
 	NS_WINDOW_CONVERT_POINT_FROM_SCREEN_CODE,
 	NS_WINDOW_DISPLAY_CODE,
 	NS_VIEW_INIT_CODE,
+	NS_VIEW_LAYER_CODE,
 	NS_VIEW_INIT_WITH_FRAME_CODE,
+	NS_VIEW_SET_FRAME_CODE,
 	NS_VIEW_ADD_SUBVIEW_CODE,
 	NS_VIEW_REGISTER_FOR_DRAGGED_TYPES_CODE,
 	NS_EVENT_TYPE_CODE,
@@ -1556,7 +1560,17 @@ enum{
 	NS_SAVE_PANEL_NAME_FIELD_STRING_VALUE_CODE,
 	NS_SAVE_PANEL_URL_CODE,
 	NS_SAVE_PANEL_RUN_MODAL_CODE,
+	CA_LAYER_CONTENTS_CODE,
+	CA_LAYER_IS_HIDDEN_CODE,
+	CA_LAYER_SET_HIDDEN_CODE,
+	CA_LAYER_SET_NEEDS_DISPLAY_CODE,
+	CA_TRANSACTION_BEGIN_CODE,
+	CA_TRANSACTION_COMMIT_CODE,
+	CA_TRANSACTION_FLUSH_CODE,
+	CA_TRANSACTION_DISABLE_ACTIONS_CODE,
+	CA_TRANSACTION_SET_DISABLE_ACTIONS_CODE,
 	NSURL_PATH_CODE,
+	CA_LAYER_SET_CONTENTS_CODE,
 	NSURL_FILE_URL_WITH_PATH_CODE,
 	NS_AUTORELEASE_CODE,
 	NS_INIT_CODE,
@@ -1624,257 +1638,270 @@ void si_initNS(void) {
 	SI_NS_CLASSES[NS_SLIDER_CODE] = objc_getClass("NSSlider");
 	SI_NS_CLASSES[NS_URL_CODE] = objc_getClass("NSURL");
 	SI_NS_CLASSES[NS_BUNDLE_CODE] = objc_getClass("NSBundle");
+	SI_NS_CLASSES[NS_CA_TRANSACTION_CODE] = objc_getClass("CATransaction");
 	SI_NS_CLASSES[NS_NOTIFICATIONCENTER_CODE] = objc_getClass("NSNotificationCenter");
 
-	SI_NS_FUNCTIONS[NS_APPLICATION_SET_ACTIVATION_POLICY_CODE] = sel_getUid("setActivationPolicy:");
-	SI_NS_FUNCTIONS[NS_APPLICATION_SAPP_CODE] = sel_getUid("sharedApplication");
+	SI_NS_FUNCTIONS[NS_APPLICATION_SET_ACTIVATION_POLICY_CODE] = sel_registerName("setActivationPolicy:");
+	SI_NS_FUNCTIONS[NS_APPLICATION_SAPP_CODE] = sel_registerName("sharedApplication");
 	SI_NS_FUNCTIONS[NS_APPLICATION_RUN_CODE] = sel_registerName("run");	
-	SI_NS_FUNCTIONS[NS_APPLICATION_FL_CODE] = sel_getUid("finishLaunching");
+	SI_NS_FUNCTIONS[NS_APPLICATION_FL_CODE] = sel_registerName("finishLaunching");
 	SI_NS_FUNCTIONS[NS_WINDOW_INITR_CODE] = sel_registerName("initWithContentRect:styleMask:backing:defer:");
-	SI_NS_FUNCTIONS[NS_WINDOW_MAKEOF_CODE] = sel_getUid("orderFront:");
+	SI_NS_FUNCTIONS[NS_WINDOW_MAKEOF_CODE] = sel_registerName("orderFront:");
 	SI_NS_FUNCTIONS[NS_VALUE_RECT_CODE] = sel_registerName("valueWithRect:");
 	SI_NS_FUNCTIONS[NS_RELEASE_CODE] = sel_registerName("release");
-	SI_NS_FUNCTIONS[NS_OPENGL_FB_CODE] = sel_getUid("flushBuffer");
-	SI_NS_FUNCTIONS[NS_COLOR_CLEAR_CODE] = sel_getUid("clearColor");
-	SI_NS_FUNCTIONS[NS_COLOR_KEYBOARD_FOCUS_INDICATOR_CODE] = sel_getUid("keyboardFocusIndicatorColor");
-	SI_NS_FUNCTIONS[NS_COLOR_SET_CODE] = sel_getUid("set:");
-	SI_NS_FUNCTIONS[NS_COLOR_WITH_RGB_CODE] = sel_getUid("colorWithRed:green:blue:alpha:");
-	SI_NS_FUNCTIONS[NS_COLOR_WITH_SRGB_CODE] = sel_getUid("colorWithSRGBRed:green:blue:alpha:");
-	SI_NS_FUNCTIONS[NS_COLOR_WITH_CALIBRATED_CODE] = sel_getUid("colorWithCalibratedWhite:alpha:");
-	SI_NS_FUNCTIONS[NS_APPLICATION_MAIN_MENU_CODE] = sel_getUid("mainMenu");
-	SI_NS_FUNCTIONS[NS_APPLICATION_SET_MAIN_MENU_CODE] = sel_getUid("setMainMenu:");
-	SI_NS_FUNCTIONS[NS_APPLICATION_SERVICES_MENU_CODE] = sel_getUid("servicesMenu");
-	SI_NS_FUNCTIONS[NS_APPLICATION_SET_SERVICES_MENU_CODE] = sel_getUid("setServicesMenu:");
-	SI_NS_FUNCTIONS[NS_APPLICATION_HELP_MENU_CODE] = sel_getUid("helpMenu");
-	SI_NS_FUNCTIONS[NS_APPLICATION_SET_HELP_MENU_CODE] = sel_getUid("setHelpMenu:");
-	SI_NS_FUNCTIONS[NS_APPLICATION_WINDOWS_MENU_CODE] = sel_getUid("windowsMenu");
-	SI_NS_FUNCTIONS[NS_APPLICATION_SET_WINDOWS_MENU_CODE] = sel_getUid("setWindowsMenu:");
-	SI_NS_FUNCTIONS[NS_WINDOW_DELEGATE_CODE] = sel_getUid("delegate");
-	SI_NS_FUNCTIONS[NS_WINDOW_SET_DELEGATE_CODE] = sel_getUid("setDelegate:");
-	SI_NS_FUNCTIONS[NS_WINDOW_IS_VISIBLE_CODE] = sel_getUid("isVisible");
-	SI_NS_FUNCTIONS[NS_WINDOW_SET_IS_VISIBLE_CODE] = sel_getUid("setIsVisible:");
-	SI_NS_FUNCTIONS[NS_WINDOW_BACKGROUND_COLOR_CODE] = sel_getUid("backgroundColor");
-	SI_NS_FUNCTIONS[NS_WINDOW_SET_BACKGROUND_COLOR_CODE] = sel_getUid("setBackgroundColor:");
-	SI_NS_FUNCTIONS[NS_WINDOW_IS_OPAQUE_CODE] = sel_getUid("isOpaque");
-	SI_NS_FUNCTIONS[NS_WINDOW_SET_OPAQUE_CODE] = sel_getUid("setOpaque:");
-	SI_NS_FUNCTIONS[NS_WINDOW_ALPHA_VALUE_CODE] = sel_getUid("alphaValue");
-	SI_NS_FUNCTIONS[NS_WINDOW_SET_ALPHA_VALUE_CODE] = sel_getUid("setAlphaValue:");
-	SI_NS_FUNCTIONS[NS_WINDOW_ACCEPTS_MOUSE_MOVED_EVENTS_CODE] = sel_getUid("acceptsMouseMovedEvents");
-	SI_NS_FUNCTIONS[NS_WINDOW_SET_ACCEPTS_MOUSE_MOVED_EVENTS_CODE] = sel_getUid("setAcceptsMouseMovedEvents:");
-	SI_NS_FUNCTIONS[NS_GRAPHICS_CONTEXT_CURRENT_CONTEXT_CODE] = sel_getUid("currentContext");
-	SI_NS_FUNCTIONS[NS_MENU_ITEM_SET_SUBMENU_CODE] = sel_getUid("setSubmenu:");
-	SI_NS_FUNCTIONS[NS_MENU_ITEM_TITLE_CODE] = sel_getUid("title");
-	SI_NS_FUNCTIONS[NS_WINDOW_INIT_CODE] = sel_getUid("initWithContentRect:styleMask:backing:defer:");
-	SI_NS_FUNCTIONS[NS_WINDOW_ORDER_FRONT_CODE] = sel_getUid("orderFront:");
-	SI_NS_FUNCTIONS[NS_WINDOW_MAKE_KEY_AND_ORDER_FRONT_CODE] = sel_getUid("makeKeyAndOrderFront:");
-	SI_NS_FUNCTIONS[NS_WINDOW_MAKE_KEY_WINDOW_CODE] = sel_getUid("makeKeyWindow");
-	SI_NS_FUNCTIONS[NS_WINDOW_IS_KEY_WINDOW_CODE] = sel_getUid("isKeyWindow");
-	SI_NS_FUNCTIONS[NS_WINDOW_CENTER_CODE] = sel_getUid("center");
-	SI_NS_FUNCTIONS[NS_WINDOW_MAKE_MAIN_WINDOW_CODE] = sel_getUid("makeMainWindow");
-	SI_NS_FUNCTIONS[NS_WINDOW_SET_FRAME_AND_DISPLAY_CODE] = sel_getUid("setFrame:display:animate:");
-	SI_NS_FUNCTIONS[NS_WINDOW_CONVERT_POINT_FROM_SCREEN_CODE] = sel_getUid("convertPointFromScreen:");
-	SI_NS_FUNCTIONS[NS_WINDOW_DISPLAY_CODE] = sel_getUid("display");
-	SI_NS_FUNCTIONS[NS_VIEW_INIT_CODE] = sel_getUid("init");
-	SI_NS_FUNCTIONS[NS_VIEW_INIT_WITH_FRAME_CODE] = sel_getUid("initWithFrame:");
-	SI_NS_FUNCTIONS[NS_VIEW_ADD_SUBVIEW_CODE] = sel_getUid("addSubview:");
-	SI_NS_FUNCTIONS[NS_VIEW_REGISTER_FOR_DRAGGED_TYPES_CODE] = sel_getUid("registerForDraggedTypes:");
-	SI_NS_FUNCTIONS[NS_EVENT_TYPE_CODE] = sel_getUid("type");
-	SI_NS_FUNCTIONS[NS_EVENT_LOCATION_IN_WINDOW_CODE] = sel_getUid("locationInWindow");
-	SI_NS_FUNCTIONS[NS_EVENT_MODIFIER_FLAGS_CODE] = sel_getUid("modifierFlags");
-	SI_NS_FUNCTIONS[NS_EVENT_KEY_CODE_CODE] = sel_getUid("keyCode");
-	SI_NS_FUNCTIONS[NS_EVENT_CHARACTERS_CODE] = sel_getUid("characters");
-	SI_NS_FUNCTIONS[NS_EVENT_DELTA_Y_CODE] = sel_getUid("deltaY");
-	SI_NS_FUNCTIONS[NS_EVENT_KEY_CODE_FOR_CHAR_CODE] = sel_getUid("keyCodeForChar:");
-	SI_NS_FUNCTIONS[NS_EVENT_MOUSE_LOCATION_CODE] = sel_getUid("mouseLocation");
-	SI_NS_FUNCTIONS[NS_EVENT_WINDOW_CODE] = sel_getUid("window");
-	SI_NS_FUNCTIONS[NS_DRAGGING_INFO_DRAGGING_PASTEBOARD_CODE] = sel_getUid("draggingPasteboard");
-	SI_NS_FUNCTIONS[NS_DRAGGING_INFO_DRAGGING_LOCATION_CODE] = sel_getUid("draggingLocation");
-	SI_NS_FUNCTIONS[NS_DRAGGING_INFO_NUMBER_OF_VALID_ITEMS_FOR_DROP_CODE] = sel_getUid("numberOfValidItemsForDrop");
-	SI_NS_FUNCTIONS[NS_DRAGGING_INFO_SET_NUMBER_OF_VALID_ITEMS_FOR_DROP_CODE] = sel_getUid("setNumberOfValidItemsForDrop:");
-	SI_NS_FUNCTIONS[NS_DRAGGING_INFO_DRAGGING_DESTINATION_WINDOW_CODE] = sel_getUid("draggingDestinationWindow");
-	SI_NS_FUNCTIONS[NS_IMAGE_INIT_WITH_SIZE_CODE] = sel_getUid("initWithSize:");
-	SI_NS_FUNCTIONS[NS_IMAGE_INIT_WITH_DATA_CODE] = sel_getUid("initWithData:");
-	SI_NS_FUNCTIONS[NS_IMAGE_INIT_WITH_FILE_CODE] = sel_getUid("initWithFile:");
-	SI_NS_FUNCTIONS[NS_IMAGE_INIT_WITH_CGIMAGE_CODE] = sel_getUid("initWithCGImage:size:");
-	SI_NS_FUNCTIONS[NS_IMAGE_ADD_REPRESENTATION_CODE] = sel_getUid("addRepresentation:");
-	SI_NS_FUNCTIONS[NS_CURSOR_CURRENT_CURSOR_CODE] = sel_getUid("currentCursor");
-	SI_NS_FUNCTIONS[NS_CURSOR_IMAGE_CODE] = sel_getUid("image");
-	SI_NS_FUNCTIONS[NS_CURSOR_HOT_SPOT_CODE] = sel_getUid("hotSpot");
-	SI_NS_FUNCTIONS[NS_CURSOR_ARROW_CURSOR_CODE] = sel_getUid("arrowCursor");
-	SI_NS_FUNCTIONS[NS_CURSOR_IBEAM_CURSOR_CODE] = sel_getUid("IBeamCursor");
-	SI_NS_FUNCTIONS[NS_CURSOR_CROSHAIR_CURSOR_CODE] = sel_getUid("crosshairCursor");
-	SI_NS_FUNCTIONS[NS_CURSOR_POINTING_HAND_CURSOR_CODE] = sel_getUid("pointingHandCursor");
-	SI_NS_FUNCTIONS[NS_CURSOR_RESIZE_LEFT_RIGHT_CURSOR_CODE] = sel_getUid("resizeLeftRightCursor");
-	SI_NS_FUNCTIONS[NS_CURSOR_RESIZE_UP_DOWN_CURSOR_CODE] = sel_getUid("resizeUpDownCursor");
-	SI_NS_FUNCTIONS[NS_CURSOR_CLOSED_HAND_CURSOR_CODE] = sel_getUid("closedHandCursor");
-	SI_NS_FUNCTIONS[NS_CURSOR_OPERATION_NOT_ALLOWED_CURSOR_CODE] = sel_getUid("operationNotAllowedCursor");
-	SI_NS_FUNCTIONS[NS_CURSOR_INIT_WITH_IMAGE_CODE] = sel_getUid("initWithImage:hotSpot:");
-	SI_NS_FUNCTIONS[NS_CURSOR_HIDE_CODE] = sel_getUid("hide");
-	SI_NS_FUNCTIONS[NS_CURSOR_UNHIDE_CODE] = sel_getUid("unhide");
-	SI_NS_FUNCTIONS[NS_CURSOR_POP_CODE] = sel_getUid("pop");
-	SI_NS_FUNCTIONS[NS_CURSOR_PUSH_CODE] = sel_getUid("push");
-	SI_NS_FUNCTIONS[NS_CURSOR_SET_CODE] = sel_getUid("set");
-	SI_NS_FUNCTIONS[NS_PASTEBOARD_GENERAL_PASTEBOARD_CODE] = sel_getUid("generalPasteboard");
-	SI_NS_FUNCTIONS[NS_PASTEBOARD_STRING_FOR_TYPE_CODE] = sel_getUid("stringForType:");
-	SI_NS_FUNCTIONS[NS_PASTEBOARD_DECLARE_TYPES_CODE] = sel_getUid("declareTypes:owner:");
-	SI_NS_FUNCTIONS[NS_PASTEBOARD_SET_STRING_CODE] = sel_getUid("setString:forType:");
-	SI_NS_FUNCTIONS[NS_PASTEBOARD_READ_OBJECTS_FOR_CLASSES_CODE] = sel_getUid("readObjectsForClasses:options:");
-	SI_NS_FUNCTIONS[NS_MENU_INIT_CODE] = sel_getUid("initWithTitle:");
-	SI_NS_FUNCTIONS[NS_MENU_ADD_ITEM_CODE] = sel_getUid("addItem:");
-	SI_NS_FUNCTIONS[NS_MENU_ITEM_SET_TITLE_CODE] = sel_getUid("setTitle:");
-	SI_NS_FUNCTIONS[NS_WINDOW_SET_TITLE_CODE] = sel_getUid("setTitle:");
-	SI_NS_FUNCTIONS[NS_MENU_ITEM_SUBMENU_CODE] = sel_getUid("submenu");
-	SI_NS_FUNCTIONS[NS_MENU_ITEM_INIT_CODE] = sel_getUid("initWithTitle:action:keyEquivalent:");
-	SI_NS_FUNCTIONS[NS_MENU_ITEM_ARRAY_CODE] = sel_getUid("itemArray");
-	SI_NS_FUNCTIONS[NS_MENU_ITEM_SEPARATOR_ITEM_CODE] = sel_getUid("separatorItem");
-	SI_NS_FUNCTIONS[NS_OPENGL_PIXEL_FORMAT_INIT_WITH_ATTRIBUTES_CODE] = sel_getUid("initWithAttributes:");
-	SI_NS_FUNCTIONS[NS_OPENGL_VIEW_INIT_WITH_FRAME_CODE] = sel_getUid("initWithFrame:pixelFormat:");
-	SI_NS_FUNCTIONS[NS_OPENGL_VIEW_PREPARE_OPENGL_CODE] = sel_getUid("prepareOpenGL");
-	SI_NS_FUNCTIONS[NS_OPENGL_VIEW_OPENGL_CONTEXT_CODE] = sel_getUid("openGLContext");
-	SI_NS_FUNCTIONS[NS_OPENGL_CONTEXT_SET_VALUES_CODE] = sel_getUid("setValues:forParameter:");
-	SI_NS_FUNCTIONS[NS_OPENGL_CONTEXT_MAKE_CURRENT_CONTEXT_CODE] = sel_getUid("makeCurrentContext");
-	SI_NS_FUNCTIONS[NS_BITMAPIMAGEREP_BITMAP_CODE] = sel_getUid("bitmapData");
-	SI_NS_FUNCTIONS[NS_BITMAPIMAGEREP_INIT_BITMAP_CODE] = sel_getUid("initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:");
-	SI_NS_FUNCTIONS[NS_VIEW_SET_WANTSLAYER_CODE] = sel_getUid("setWantsLayer:");
-	SI_NS_FUNCTIONS[NS_VIEW_SET_LAYER_CONTENTS_CODE] = sel_getUid("setLayerContents:");
-	SI_NS_FUNCTIONS[NS_STRING_WIDTH_UTF8_STRING_CODE] = sel_getUid("stringWithUTF8String:");
-	SI_NS_FUNCTIONS[NS_STRING_IS_EQUAL_CODE] = sel_getUid("isEqual:");
-	SI_NS_FUNCTIONS[NS_ARRAY_SI_ARRAY_CODE] = sel_getUid("initWithObjects:count:");
-	SI_NS_FUNCTIONS[NS_WINDOW_SET_CONTENT_VIEW_CODE] = sel_getUid("setContentView:");
-	SI_NS_FUNCTIONS[NS_APPLICATION_NEXT_EVENT_MATCHING_MASK_CODE] = sel_getUid("nextEventMatchingMask:untilDate:inMode:dequeue:");
-	SI_NS_FUNCTIONS[NS_APPLICATION_SEND_EVENT_CODE] = sel_getUid("sendEvent:");
-	SI_NS_FUNCTIONS[NS_APPLICATION_POST_EVENT_CODE] = sel_getUid("postEvent:atStart:");
-	SI_NS_FUNCTIONS[NS_APPLICATION_UPDATE_WINDOWS_CODE] = sel_getUid("updateWindows");
-	SI_NS_FUNCTIONS[NS_OPENGL_CONTEXT_FLUSH_BUFFER_CODE] = sel_getUid("flushBuffer");
-	SI_NS_FUNCTIONS[NS_APPLICATION_TERMINATE_CODE] = sel_getUid("terminate:");
-	SI_NS_FUNCTIONS[NS_STROKE_LINE_CODE] = sel_getUid("strokeLine:");
-	SI_NS_FUNCTIONS[NS_AUTO_RELEASE_POOL_INIT_CODE] = sel_getUid("init");
-	SI_NS_FUNCTIONS[NS_DISTANT_FUTURE_CODE] = sel_getUid("distantFuture");
-	SI_NS_FUNCTIONS[NS_FRAME_CODE] = sel_getUid("frame");
-	SI_NS_FUNCTIONS[NS_SCREEN_MAIN_SCREEN_CODE] = sel_getUid("mainScreen");
-	SI_NS_FUNCTIONS[NS_RETAIN_CODE] = sel_getUid("retain");
-	SI_NS_FUNCTIONS[NS_ARRAY_COUNT_CODE] = sel_getUid("count");
-	SI_NS_FUNCTIONS[NS_OBJECT_AT_INDEX_CODE] = sel_getUid("objectAtIndex:");
-	SI_NS_FUNCTIONS[NS_UTF8_STRING_CODE] = sel_getUid("UTF8String");
-	SI_NS_FUNCTIONS[NS_SCREEN_VISIBLE_FRAME_CODE] = sel_getUid("visibleFrame");
-	SI_NS_FUNCTIONS[NS_WINDOW_TITLE_CODE] = sel_getUid("title");
-	SI_NS_FUNCTIONS[NS_WINDOW_CONTENT_VIEW_CODE] = sel_getUid("contentView");
-	SI_NS_FUNCTIONS[NS_APPLICATION_ACTIVATE_IGNORING_OTHER_APPS_CODE] = sel_getUid("activateIgnoringOtherApps:");
-	SI_NS_FUNCTIONS[NS_APPLICATION_STOP_CODE] = sel_getUid("stop:");
-	SI_NS_FUNCTIONS[NS_APPLICATION_APPLICATION_ICON_IMAGE_CODE] = sel_getUid("applicationIconImage");
-	SI_NS_FUNCTIONS[NS_APPLICATION_SET_APPLICATION_ICON_IMAGE_CODE] = sel_getUid("setApplicationIconImage:");
-	SI_NS_FUNCTIONS[NS_APPLICATION_ACTIVATION_POLICY_CODE] = sel_getUid("activationPolicy");
-	SI_NS_FUNCTIONS[NS_TEXT_FIELD_STRING_VALUE_CODE] = sel_getUid("stringValue");
-	SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_STRING_VALUE_CODE] = sel_getUid("setStringValue:");
-	SI_NS_FUNCTIONS[NS_TEXT_FIELD_IS_BEZELED_CODE] = sel_getUid("isBezeled");
-	SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_BEZELED_CODE] = sel_getUid("setBezeled:");
-	SI_NS_FUNCTIONS[NS_TEXT_FIELD_DRAWS_BACKGROUND_CODE] = sel_getUid("drawsBackground");
-	SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_DRAWS_BACKGROUND_CODE] = sel_getUid("setDrawsBackground:");
-	SI_NS_FUNCTIONS[NS_TEXT_FIELD_IS_EDITABLE_CODE] = sel_getUid("isEditable");
-	SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_EDITABLE_CODE] = sel_getUid("setEditable:");
-	SI_NS_FUNCTIONS[NS_TEXT_FIELD_IS_SELECTABLE_CODE] = sel_getUid("isSelectable");
-	SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_SEDITABLE_CODE] = sel_getUid("setSelectable:");
-	SI_NS_FUNCTIONS[NS_TEXT_FIELD_TEXT_COLOR_CODE] = sel_getUid("textColor");
-	SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_TEXT_COLOR_CODE] = sel_getUid("setTextColor:");
-	SI_NS_FUNCTIONS[NS_TEXT_FIELD_FONT_CODE] = sel_getUid("font");
-	SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_FONT_CODE] = sel_getUid("setFont:");
-	SI_NS_FUNCTIONS[NS_TEXT_FIELD_INIT_FRAME_CODE] = sel_getUid("initWithFrame:");
-	SI_NS_FUNCTIONS[NS_FONT_MANAGER_SHARED_FONT_MANAGER_CODE] = sel_getUid("sharedFontManager");
-	SI_NS_FUNCTIONS[NS_FONT_MANAGER_CONVERT_FONT_CODE] = sel_getUid("convertFont:");
-	SI_NS_FUNCTIONS[NS_FONT_MANAGER_CONVERT_TO_HAVE_FONT_CODE] = sel_getUid("convertFont:toHaveTrait:");
-	SI_NS_FUNCTIONS[NS_PROCESS_INFO_PROCESS_INFO_CODE] = sel_getUid("processInfo");
-	SI_NS_FUNCTIONS[NS_PROCESS_INFO_PROCESS_NAME_CODE] = sel_getUid("processName");
-	SI_NS_FUNCTIONS[NS_SLIDER_SET_TARGET_CODE] = sel_getUid("setTarget:");
-	SI_NS_FUNCTIONS[NS_SLIDER_TARGET_CODE] = sel_getUid("target");
-	SI_NS_FUNCTIONS[NS_SLIDER_SET_ACTION_CODE] = sel_getUid("setAction:");
-	SI_NS_FUNCTIONS[NS_SLIDER_ACTION_CODE] = sel_getUid("action");
-	SI_NS_FUNCTIONS[NS_SLIDER_SET_FONT_CODE] = sel_getUid("setFont:");
-	SI_NS_FUNCTIONS[NS_SLIDER_FONT_CODE] = sel_getUid("font");
-	SI_NS_FUNCTIONS[NS_SLIDER_SET_DOUBLE_VALUE_CODE] = sel_getUid("setDoubleValue:");
-	SI_NS_FUNCTIONS[NS_SLIDER_DOUBLE_VALUE_CODE] = sel_getUid("doubleValue");
-	SI_NS_FUNCTIONS[NS_SLIDER_SET_MAX_VALUE_CODE] = sel_getUid("setMaxValue:");
-	SI_NS_FUNCTIONS[NS_SLIDER_MAX_VALUE_CODE] = sel_getUid("maxValue");
-	SI_NS_FUNCTIONS[NS_SLIDER_INIT_WITH_FRAME_CODE] = sel_getUid("initWithFrame:");
-	SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_SET_DOUBLE_VALUE_CODE] = sel_getUid("setDoubleValue:");
-	SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_DOUBLE_VALUE_CODE] = sel_getUid("doubleValue");
-	SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_SET_MAX_VALUE_CODE] = sel_getUid("setMaxValue:");
-	SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_MAX_VALUE_CODE] = sel_getUid("maxValue");
-	SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_SET_INDETERMINATE_CODE] = sel_getUid("setIndeterminate:");
-	SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_INDETERMINATE_CODE] = sel_getUid("isIndeterminate");
-	SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_INIT_CODE] = sel_getUid("initWithFrame:");
-	SI_NS_FUNCTIONS[NS_GRAPHICS_CONTEXT_CURRENT_CONTEXT_CODE] = sel_getUid("currentContext");
-	SI_NS_FUNCTIONS[NS_GRAPHICS_CONTEXT_SET_CURRENT_CONTEXT_CODE] = sel_getUid("setCurrentContext:");
-	SI_NS_FUNCTIONS[NS_MENU_ITEM_SET_TITLE_CODE] = sel_getUid("setTitle:");
-	SI_NS_FUNCTIONS[NS_FONT_INIT_CODE] = sel_getUid("fontWithName:size:");
-	SI_NS_FUNCTIONS[NS_FONT_FONT_NAME_CODE] = sel_getUid("fontName");
-	SI_NS_FUNCTIONS[NS_BUTTON_TITLE_CODE] = sel_getUid("title");
-	SI_NS_FUNCTIONS[NS_BUTTON_SET_TITLE_CODE] = sel_getUid("setTitle:");
-	SI_NS_FUNCTIONS[NS_BUTTON_BEZEL_STYLE_CODE] = sel_getUid("bezelStyle");
-	SI_NS_FUNCTIONS[NS_BUTTON_SET_BEZEL_STYLE_CODE] = sel_getUid("setBezelStyle:");
-	SI_NS_FUNCTIONS[NS_BUTTON_TARGET_CODE] = sel_getUid("target");
-	SI_NS_FUNCTIONS[NS_BUTTON_SET_TARGET_CODE] = sel_getUid("setTarget:");
-	SI_NS_FUNCTIONS[NS_BUTTON_ACTION_CODE] = sel_getUid("action");
-	SI_NS_FUNCTIONS[NS_BUTTON_SET_ACTION_CODE] = sel_getUid("setAction:");
-	SI_NS_FUNCTIONS[NS_BUTTON_AUTO_RESIZE_MASK_CODE] = sel_getUid("autoresizingMask");
-	SI_NS_FUNCTIONS[NS_BUTTON_SET_AUTO_RESIZE_MASK_CODE] = sel_getUid("setAutoresizingMask:");
-	SI_NS_FUNCTIONS[NS_BUTTON_STATE_CODE] = sel_getUid("state");
-	SI_NS_FUNCTIONS[NS_BUTTON_SET_STATE_CODE] = sel_getUid("setState:");
-	SI_NS_FUNCTIONS[NS_BUTTON_ALLOWS_MIXED_STATE_CODE] = sel_getUid("allowsMixedState");
-	SI_NS_FUNCTIONS[NS_BUTTON_SET_ALLOWS_MIXED_STATE_CODE] = sel_getUid("setAllowsMixedState:");
-	SI_NS_FUNCTIONS[NS_BUTTON_INIT_WITH_FRAME_CODE] = sel_getUid("initWithFrame:");
-	SI_NS_FUNCTIONS[NS_BUTTON_SET_BUTTON_TYPE_CODE] = sel_getUid("setButtonType:");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_INDEX_OF_SELECTED_ITEM_CODE] = sel_getUid("indexOfSelectedItem");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_TARGET_CODE] = sel_getUid("target");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_TARGET_CODE] = sel_getUid("setTarget:");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_ACTION_CODE] = sel_getUid("action");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_ACTION_CODE] = sel_getUid("setAction:");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_FONT_CODE] = sel_getUid("font");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_FONT_CODE] = sel_getUid("setFont:");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_STRING_VALUE_CODE] = sel_getUid("stringValue");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_STRING_VALUE_CODE] = sel_getUid("setStringValue:");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_IS_BEZELED_CODE] = sel_getUid("isBezeled");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_IS_BEZELED_CODE] = sel_getUid("setBezeled:");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_DRAWS_BACKGROUND_CODE] = sel_getUid("drawsBackground");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_DRAWS_BACKGROUND_CODE] = sel_getUid("setDrawsBackground:");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_IS_EDITABLE_CODE] = sel_getUid("isEditable");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_IS_EDITABLE_CODE] = sel_getUid("setEditable:");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_IS_SELECTABLE_CODE] = sel_getUid("isSelectable");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_IS_SELECTABLE_CODE] = sel_getUid("setSelectable:");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_TEXT_COLOR_CODE] = sel_getUid("textColor");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_TEXT_COLOR_CODE] = sel_getUid("setTextColor:");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_INIT_WITH_FRAME_CODE] = sel_getUid("initWithFrame:");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_ADD_ITEM_CODE] = sel_getUid("addItemWithObjectValue:");
-	SI_NS_FUNCTIONS[NS_COMBOBOX_SELECT_ITEM_CODE] = sel_getUid("selectItemAtIndex:");
-	SI_NS_FUNCTIONS[NS_SAVE_PANEL_SET_CAN_CREATE_DIRECTORIES_CODE] = sel_getUid("setCanCreateDirectories:");
-	SI_NS_FUNCTIONS[NS_SAVE_PANEL_CAN_CREATE_DIRECTORIES_CODE] = sel_getUid("canCreateDirectories");
-	SI_NS_FUNCTIONS[NS_SAVE_PANEL_SET_ALLOWED_FILE_TYPES_CODE] = sel_getUid("setAllowedFileTypes:");
-	SI_NS_FUNCTIONS[NS_SAVE_PANEL_ALLOWED_FILE_TYPES_CODE] = sel_getUid("allowedFileTypes");
-	SI_NS_FUNCTIONS[NS_SAVE_PANEL_SET_DIRECTORY_URL_CODE] = sel_getUid("setDirectoryURL:");
-	SI_NS_FUNCTIONS[NS_SAVE_PANEL_DIRECTORY_URL_CODE] = sel_getUid("directoryURL");
-	SI_NS_FUNCTIONS[NS_SAVE_PANEL_SET_NAME_FIELD_STRING_VALUE_CODE] = sel_getUid("setNameFieldStringValue:");
-	SI_NS_FUNCTIONS[NS_SAVE_PANEL_NAME_FIELD_STRING_VALUE_CODE] = sel_getUid("nameFieldStringValue");
-	SI_NS_FUNCTIONS[NS_SAVE_PANEL_URL_CODE] = sel_getUid("URL");
-	SI_NS_FUNCTIONS[NS_SAVE_PANEL_RUN_MODAL_CODE] = sel_getUid("runModal");
-	SI_NS_FUNCTIONS[NSURL_PATH_CODE] = sel_getUid("path");
-	SI_NS_FUNCTIONS[NSURL_FILE_URL_WITH_PATH_CODE] = sel_getUid("fileURLWithPath:");
-	SI_NS_FUNCTIONS[NS_AUTORELEASE_CODE] = sel_getUid("autorelease");
-	SI_NS_FUNCTIONS[NS_INIT_CODE] = sel_getUid("init");
-	SI_NS_FUNCTIONS[NS_AUTO_RELEASE_POOL_DRAIN_CODE] = sel_getUid("drain");
-	SI_NS_FUNCTIONS[NS_OBJECT_FOR_KEY_CODE] = sel_getUid("objectForKey:");
-	SI_NS_FUNCTIONS[NS_INFO_DICTIONARY_CODE] = sel_getUid("infoDictionary");
-	SI_NS_FUNCTIONS[NS_INFO_MAIN_BUNDLE_CODE] = sel_getUid("mainBundle");
-	SI_NS_FUNCTIONS[NS_WINDOW_IS_MINIATURIZED_CODE] = sel_getUid("isMiniaturized");
-	SI_NS_FUNCTIONS[NS_WINDOW_IS_ZOOMED_CODE] = sel_getUid("isZoomed");
-	SI_NS_FUNCTIONS[NS_WINDOW_PERFORM_MINIATURIZE_CODE] = sel_getUid("performMiniaturize:");
-	SI_NS_FUNCTIONS[NS_WINDOW_DEMINIATURIZE_CODE] = sel_getUid("deminiaturize:");
-	SI_NS_FUNCTIONS[NS_WINDOW_PERFORM_ZOOM_CODE] = sel_getUid("performZoom:");
-	SI_NS_FUNCTIONS[NS_WINDOW_STYLE_MASK_CODE] = sel_getUid("styleMask");
-	SI_NS_FUNCTIONS[NS_WINDOW_SET_MAX_SIZE_CODE] = sel_getUid("setMaxSize:");
-	SI_NS_FUNCTIONS[NS_WINDOW_SET_MIN_SIZE_CODE] = sel_getUid("setMinSize:");
-	SI_NS_FUNCTIONS[NS_GRAPHICS_CONTEXT_WIDTH_WINDOW_CODE] = sel_getUid("graphicsContextWithWindow:");
-	SI_NS_FUNCTIONS[NS_CURSOR_PERFORM_SELECTOR] = sel_getUid("performSelector:");
-	SI_NS_FUNCTIONS[NS_NOTIFICATIONCENTER_ADD_OBSERVER] = sel_getUid("addObserver:selector:name:object:");
-	SI_NS_FUNCTIONS[NS_NOTIFICATIONCENTER_DEFAULT_CENTER] = sel_getUid("defaultCenter");
+	SI_NS_FUNCTIONS[NS_OPENGL_FB_CODE] = sel_registerName("flushBuffer");
+	SI_NS_FUNCTIONS[NS_COLOR_CLEAR_CODE] = sel_registerName("clearColor");
+	SI_NS_FUNCTIONS[NS_COLOR_KEYBOARD_FOCUS_INDICATOR_CODE] = sel_registerName("keyboardFocusIndicatorColor");
+	SI_NS_FUNCTIONS[NS_COLOR_SET_CODE] = sel_registerName("set:");
+	SI_NS_FUNCTIONS[NS_COLOR_WITH_RGB_CODE] = sel_registerName("colorWithRed:green:blue:alpha:");
+	SI_NS_FUNCTIONS[NS_COLOR_WITH_SRGB_CODE] = sel_registerName("colorWithSRGBRed:green:blue:alpha:");
+	SI_NS_FUNCTIONS[NS_COLOR_WITH_CALIBRATED_CODE] = sel_registerName("colorWithCalibratedWhite:alpha:");
+	SI_NS_FUNCTIONS[NS_APPLICATION_MAIN_MENU_CODE] = sel_registerName("mainMenu");
+	SI_NS_FUNCTIONS[NS_APPLICATION_SET_MAIN_MENU_CODE] = sel_registerName("setMainMenu:");
+	SI_NS_FUNCTIONS[NS_APPLICATION_SERVICES_MENU_CODE] = sel_registerName("servicesMenu");
+	SI_NS_FUNCTIONS[NS_APPLICATION_SET_SERVICES_MENU_CODE] = sel_registerName("setServicesMenu:");
+	SI_NS_FUNCTIONS[NS_APPLICATION_HELP_MENU_CODE] = sel_registerName("helpMenu");
+	SI_NS_FUNCTIONS[NS_APPLICATION_SET_HELP_MENU_CODE] = sel_registerName("setHelpMenu:");
+	SI_NS_FUNCTIONS[NS_APPLICATION_WINDOWS_MENU_CODE] = sel_registerName("windowsMenu");
+	SI_NS_FUNCTIONS[NS_APPLICATION_SET_WINDOWS_MENU_CODE] = sel_registerName("setWindowsMenu:");
+	SI_NS_FUNCTIONS[NS_WINDOW_DELEGATE_CODE] = sel_registerName("delegate");
+	SI_NS_FUNCTIONS[NS_WINDOW_SET_DELEGATE_CODE] = sel_registerName("setDelegate:");
+	SI_NS_FUNCTIONS[NS_WINDOW_IS_VISIBLE_CODE] = sel_registerName("isVisible");
+	SI_NS_FUNCTIONS[NS_WINDOW_SET_IS_VISIBLE_CODE] = sel_registerName("setIsVisible:");
+	SI_NS_FUNCTIONS[NS_WINDOW_BACKGROUND_COLOR_CODE] = sel_registerName("backgroundColor");
+	SI_NS_FUNCTIONS[NS_WINDOW_SET_BACKGROUND_COLOR_CODE] = sel_registerName("setBackgroundColor:");
+	SI_NS_FUNCTIONS[NS_WINDOW_IS_OPAQUE_CODE] = sel_registerName("isOpaque");
+	SI_NS_FUNCTIONS[NS_WINDOW_SET_OPAQUE_CODE] = sel_registerName("setOpaque:");
+	SI_NS_FUNCTIONS[NS_WINDOW_ALPHA_VALUE_CODE] = sel_registerName("alphaValue");
+	SI_NS_FUNCTIONS[NS_WINDOW_SET_ALPHA_VALUE_CODE] = sel_registerName("setAlphaValue:");
+	SI_NS_FUNCTIONS[NS_WINDOW_ACCEPTS_MOUSE_MOVED_EVENTS_CODE] = sel_registerName("acceptsMouseMovedEvents");
+	SI_NS_FUNCTIONS[NS_WINDOW_SET_ACCEPTS_MOUSE_MOVED_EVENTS_CODE] = sel_registerName("setAcceptsMouseMovedEvents:");
+	SI_NS_FUNCTIONS[NS_GRAPHICS_CONTEXT_CURRENT_CONTEXT_CODE] = sel_registerName("currentContext");
+	SI_NS_FUNCTIONS[NS_MENU_ITEM_SET_SUBMENU_CODE] = sel_registerName("setSubmenu:");
+	SI_NS_FUNCTIONS[NS_MENU_ITEM_TITLE_CODE] = sel_registerName("title");
+	SI_NS_FUNCTIONS[NS_WINDOW_INIT_CODE] = sel_registerName("initWithContentRect:styleMask:backing:defer:");
+	SI_NS_FUNCTIONS[NS_WINDOW_ORDER_FRONT_CODE] = sel_registerName("orderFront:");
+	SI_NS_FUNCTIONS[NS_WINDOW_MAKE_KEY_AND_ORDER_FRONT_CODE] = sel_registerName("makeKeyAndOrderFront:");
+	SI_NS_FUNCTIONS[NS_WINDOW_MAKE_KEY_WINDOW_CODE] = sel_registerName("makeKeyWindow");
+	SI_NS_FUNCTIONS[NS_WINDOW_IS_KEY_WINDOW_CODE] = sel_registerName("isKeyWindow");
+	SI_NS_FUNCTIONS[NS_WINDOW_CENTER_CODE] = sel_registerName("center");
+	SI_NS_FUNCTIONS[NS_WINDOW_MAKE_MAIN_WINDOW_CODE] = sel_registerName("makeMainWindow");
+	SI_NS_FUNCTIONS[NS_WINDOW_SET_FRAME_AND_DISPLAY_CODE] = sel_registerName("setFrame:display:animate:");
+	SI_NS_FUNCTIONS[NS_WINDOW_CONVERT_POINT_FROM_SCREEN_CODE] = sel_registerName("convertPointFromScreen:");
+	SI_NS_FUNCTIONS[NS_WINDOW_DISPLAY_CODE] = sel_registerName("display");
+	SI_NS_FUNCTIONS[NS_VIEW_INIT_CODE] = sel_registerName("init");
+	SI_NS_FUNCTIONS[NS_VIEW_INIT_WITH_FRAME_CODE] = sel_registerName("initWithFrame:");
+	SI_NS_FUNCTIONS[NS_VIEW_SET_FRAME_CODE] = sel_registerName("setFrame:");
+	SI_NS_FUNCTIONS[NS_VIEW_LAYER_CODE] = sel_registerName("layer");
+	SI_NS_FUNCTIONS[NS_VIEW_ADD_SUBVIEW_CODE] = sel_registerName("addSubview:");
+	SI_NS_FUNCTIONS[NS_VIEW_REGISTER_FOR_DRAGGED_TYPES_CODE] = sel_registerName("registerForDraggedTypes:");
+	SI_NS_FUNCTIONS[NS_EVENT_TYPE_CODE] = sel_registerName("type");
+	SI_NS_FUNCTIONS[NS_EVENT_LOCATION_IN_WINDOW_CODE] = sel_registerName("locationInWindow");
+	SI_NS_FUNCTIONS[NS_EVENT_MODIFIER_FLAGS_CODE] = sel_registerName("modifierFlags");
+	SI_NS_FUNCTIONS[NS_EVENT_KEY_CODE_CODE] = sel_registerName("keyCode");
+	SI_NS_FUNCTIONS[NS_EVENT_CHARACTERS_CODE] = sel_registerName("characters");
+	SI_NS_FUNCTIONS[NS_EVENT_DELTA_Y_CODE] = sel_registerName("deltaY");
+	SI_NS_FUNCTIONS[NS_EVENT_KEY_CODE_FOR_CHAR_CODE] = sel_registerName("keyCodeForChar:");
+	SI_NS_FUNCTIONS[NS_EVENT_MOUSE_LOCATION_CODE] = sel_registerName("mouseLocation");
+	SI_NS_FUNCTIONS[NS_EVENT_WINDOW_CODE] = sel_registerName("window");
+	SI_NS_FUNCTIONS[NS_DRAGGING_INFO_DRAGGING_PASTEBOARD_CODE] = sel_registerName("draggingPasteboard");
+	SI_NS_FUNCTIONS[NS_DRAGGING_INFO_DRAGGING_LOCATION_CODE] = sel_registerName("draggingLocation");
+	SI_NS_FUNCTIONS[NS_DRAGGING_INFO_NUMBER_OF_VALID_ITEMS_FOR_DROP_CODE] = sel_registerName("numberOfValidItemsForDrop");
+	SI_NS_FUNCTIONS[NS_DRAGGING_INFO_SET_NUMBER_OF_VALID_ITEMS_FOR_DROP_CODE] = sel_registerName("setNumberOfValidItemsForDrop:");
+	SI_NS_FUNCTIONS[NS_DRAGGING_INFO_DRAGGING_DESTINATION_WINDOW_CODE] = sel_registerName("draggingDestinationWindow");
+	SI_NS_FUNCTIONS[NS_IMAGE_INIT_WITH_SIZE_CODE] = sel_registerName("initWithSize:");
+	SI_NS_FUNCTIONS[NS_IMAGE_INIT_WITH_DATA_CODE] = sel_registerName("initWithData:");
+	SI_NS_FUNCTIONS[NS_IMAGE_INIT_WITH_FILE_CODE] = sel_registerName("initWithFile:");
+	SI_NS_FUNCTIONS[NS_IMAGE_INIT_WITH_CGIMAGE_CODE] = sel_registerName("initWithCGImage:size:");
+	SI_NS_FUNCTIONS[NS_IMAGE_ADD_REPRESENTATION_CODE] = sel_registerName("addRepresentation:");
+	SI_NS_FUNCTIONS[NS_CURSOR_CURRENT_CURSOR_CODE] = sel_registerName("currentCursor");
+	SI_NS_FUNCTIONS[NS_CURSOR_IMAGE_CODE] = sel_registerName("image");
+	SI_NS_FUNCTIONS[NS_CURSOR_HOT_SPOT_CODE] = sel_registerName("hotSpot");
+	SI_NS_FUNCTIONS[NS_CURSOR_ARROW_CURSOR_CODE] = sel_registerName("arrowCursor");
+	SI_NS_FUNCTIONS[NS_CURSOR_IBEAM_CURSOR_CODE] = sel_registerName("IBeamCursor");
+	SI_NS_FUNCTIONS[NS_CURSOR_CROSHAIR_CURSOR_CODE] = sel_registerName("crosshairCursor");
+	SI_NS_FUNCTIONS[NS_CURSOR_POINTING_HAND_CURSOR_CODE] = sel_registerName("pointingHandCursor");
+	SI_NS_FUNCTIONS[NS_CURSOR_RESIZE_LEFT_RIGHT_CURSOR_CODE] = sel_registerName("resizeLeftRightCursor");
+	SI_NS_FUNCTIONS[NS_CURSOR_RESIZE_UP_DOWN_CURSOR_CODE] = sel_registerName("resizeUpDownCursor");
+	SI_NS_FUNCTIONS[NS_CURSOR_CLOSED_HAND_CURSOR_CODE] = sel_registerName("closedHandCursor");
+	SI_NS_FUNCTIONS[NS_CURSOR_OPERATION_NOT_ALLOWED_CURSOR_CODE] = sel_registerName("operationNotAllowedCursor");
+	SI_NS_FUNCTIONS[NS_CURSOR_INIT_WITH_IMAGE_CODE] = sel_registerName("initWithImage:hotSpot:");
+	SI_NS_FUNCTIONS[NS_CURSOR_HIDE_CODE] = sel_registerName("hide");
+	SI_NS_FUNCTIONS[NS_CURSOR_UNHIDE_CODE] = sel_registerName("unhide");
+	SI_NS_FUNCTIONS[NS_CURSOR_POP_CODE] = sel_registerName("pop");
+	SI_NS_FUNCTIONS[NS_CURSOR_PUSH_CODE] = sel_registerName("push");
+	SI_NS_FUNCTIONS[NS_CURSOR_SET_CODE] = sel_registerName("set");
+	SI_NS_FUNCTIONS[NS_PASTEBOARD_GENERAL_PASTEBOARD_CODE] = sel_registerName("generalPasteboard");
+	SI_NS_FUNCTIONS[NS_PASTEBOARD_STRING_FOR_TYPE_CODE] = sel_registerName("stringForType:");
+	SI_NS_FUNCTIONS[NS_PASTEBOARD_DECLARE_TYPES_CODE] = sel_registerName("declareTypes:owner:");
+	SI_NS_FUNCTIONS[NS_PASTEBOARD_SET_STRING_CODE] = sel_registerName("setString:forType:");
+	SI_NS_FUNCTIONS[NS_PASTEBOARD_READ_OBJECTS_FOR_CLASSES_CODE] = sel_registerName("readObjectsForClasses:options:");
+	SI_NS_FUNCTIONS[NS_MENU_INIT_CODE] = sel_registerName("initWithTitle:");
+	SI_NS_FUNCTIONS[NS_MENU_ADD_ITEM_CODE] = sel_registerName("addItem:");
+	SI_NS_FUNCTIONS[NS_MENU_ITEM_SET_TITLE_CODE] = sel_registerName("setTitle:");
+	SI_NS_FUNCTIONS[NS_WINDOW_SET_TITLE_CODE] = sel_registerName("setTitle:");
+	SI_NS_FUNCTIONS[NS_MENU_ITEM_SUBMENU_CODE] = sel_registerName("submenu");
+	SI_NS_FUNCTIONS[NS_MENU_ITEM_INIT_CODE] = sel_registerName("initWithTitle:action:keyEquivalent:");
+	SI_NS_FUNCTIONS[NS_MENU_ITEM_ARRAY_CODE] = sel_registerName("itemArray");
+	SI_NS_FUNCTIONS[NS_MENU_ITEM_SEPARATOR_ITEM_CODE] = sel_registerName("separatorItem");
+	SI_NS_FUNCTIONS[NS_OPENGL_PIXEL_FORMAT_INIT_WITH_ATTRIBUTES_CODE] = sel_registerName("initWithAttributes:");
+	SI_NS_FUNCTIONS[NS_OPENGL_VIEW_INIT_WITH_FRAME_CODE] = sel_registerName("initWithFrame:pixelFormat:");
+	SI_NS_FUNCTIONS[NS_OPENGL_VIEW_PREPARE_OPENGL_CODE] = sel_registerName("prepareOpenGL");
+	SI_NS_FUNCTIONS[NS_OPENGL_VIEW_OPENGL_CONTEXT_CODE] = sel_registerName("openGLContext");
+	SI_NS_FUNCTIONS[NS_OPENGL_CONTEXT_SET_VALUES_CODE] = sel_registerName("setValues:forParameter:");
+	SI_NS_FUNCTIONS[NS_OPENGL_CONTEXT_MAKE_CURRENT_CONTEXT_CODE] = sel_registerName("makeCurrentContext");
+	SI_NS_FUNCTIONS[NS_BITMAPIMAGEREP_BITMAP_CODE] = sel_registerName("bitmapData");
+	SI_NS_FUNCTIONS[NS_BITMAPIMAGEREP_INIT_BITMAP_CODE] = sel_registerName("initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:");
+	SI_NS_FUNCTIONS[NS_VIEW_SET_WANTSLAYER_CODE] = sel_registerName("setWantsLayer:");
+	SI_NS_FUNCTIONS[NS_VIEW_SET_LAYER_CONTENTS_CODE] = sel_registerName("setLayerContents:");
+	SI_NS_FUNCTIONS[NS_STRING_WIDTH_UTF8_STRING_CODE] = sel_registerName("stringWithUTF8String:");
+	SI_NS_FUNCTIONS[NS_STRING_IS_EQUAL_CODE] = sel_registerName("isEqual:");
+	SI_NS_FUNCTIONS[NS_ARRAY_SI_ARRAY_CODE] = sel_registerName("initWithObjects:count:");
+	SI_NS_FUNCTIONS[NS_WINDOW_SET_CONTENT_VIEW_CODE] = sel_registerName("setContentView:");
+	SI_NS_FUNCTIONS[NS_APPLICATION_NEXT_EVENT_MATCHING_MASK_CODE] = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
+	SI_NS_FUNCTIONS[NS_APPLICATION_SEND_EVENT_CODE] = sel_registerName("sendEvent:");
+	SI_NS_FUNCTIONS[NS_APPLICATION_POST_EVENT_CODE] = sel_registerName("postEvent:atStart:");
+	SI_NS_FUNCTIONS[NS_APPLICATION_UPDATE_WINDOWS_CODE] = sel_registerName("updateWindows");
+	SI_NS_FUNCTIONS[NS_OPENGL_CONTEXT_FLUSH_BUFFER_CODE] = sel_registerName("flushBuffer");
+	SI_NS_FUNCTIONS[NS_APPLICATION_TERMINATE_CODE] = sel_registerName("terminate:");
+	SI_NS_FUNCTIONS[NS_STROKE_LINE_CODE] = sel_registerName("strokeLine:");
+	SI_NS_FUNCTIONS[NS_AUTO_RELEASE_POOL_INIT_CODE] = sel_registerName("init");
+	SI_NS_FUNCTIONS[NS_DISTANT_FUTURE_CODE] = sel_registerName("distantFuture");
+	SI_NS_FUNCTIONS[NS_FRAME_CODE] = sel_registerName("frame");
+	SI_NS_FUNCTIONS[NS_SCREEN_MAIN_SCREEN_CODE] = sel_registerName("mainScreen");
+	SI_NS_FUNCTIONS[NS_RETAIN_CODE] = sel_registerName("retain");
+	SI_NS_FUNCTIONS[NS_ARRAY_COUNT_CODE] = sel_registerName("count");
+	SI_NS_FUNCTIONS[NS_OBJECT_AT_INDEX_CODE] = sel_registerName("objectAtIndex:");
+	SI_NS_FUNCTIONS[NS_UTF8_STRING_CODE] = sel_registerName("UTF8String");
+	SI_NS_FUNCTIONS[NS_SCREEN_VISIBLE_FRAME_CODE] = sel_registerName("visibleFrame");
+	SI_NS_FUNCTIONS[NS_WINDOW_TITLE_CODE] = sel_registerName("title");
+	SI_NS_FUNCTIONS[NS_WINDOW_CONTENT_VIEW_CODE] = sel_registerName("contentView");
+	SI_NS_FUNCTIONS[NS_APPLICATION_ACTIVATE_IGNORING_OTHER_APPS_CODE] = sel_registerName("activateIgnoringOtherApps:");
+	SI_NS_FUNCTIONS[NS_APPLICATION_STOP_CODE] = sel_registerName("stop:");
+	SI_NS_FUNCTIONS[NS_APPLICATION_APPLICATION_ICON_IMAGE_CODE] = sel_registerName("applicationIconImage");
+	SI_NS_FUNCTIONS[NS_APPLICATION_SET_APPLICATION_ICON_IMAGE_CODE] = sel_registerName("setApplicationIconImage:");
+	SI_NS_FUNCTIONS[NS_APPLICATION_ACTIVATION_POLICY_CODE] = sel_registerName("activationPolicy");
+	SI_NS_FUNCTIONS[NS_TEXT_FIELD_STRING_VALUE_CODE] = sel_registerName("stringValue");
+	SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_STRING_VALUE_CODE] = sel_registerName("setStringValue:");
+	SI_NS_FUNCTIONS[NS_TEXT_FIELD_IS_BEZELED_CODE] = sel_registerName("isBezeled");
+	SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_BEZELED_CODE] = sel_registerName("setBezeled:");
+	SI_NS_FUNCTIONS[NS_TEXT_FIELD_DRAWS_BACKGROUND_CODE] = sel_registerName("drawsBackground");
+	SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_DRAWS_BACKGROUND_CODE] = sel_registerName("setDrawsBackground:");
+	SI_NS_FUNCTIONS[NS_TEXT_FIELD_IS_EDITABLE_CODE] = sel_registerName("isEditable");
+	SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_EDITABLE_CODE] = sel_registerName("setEditable:");
+	SI_NS_FUNCTIONS[NS_TEXT_FIELD_IS_SELECTABLE_CODE] = sel_registerName("isSelectable");
+	SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_SEDITABLE_CODE] = sel_registerName("setSelectable:");
+	SI_NS_FUNCTIONS[NS_TEXT_FIELD_TEXT_COLOR_CODE] = sel_registerName("textColor");
+	SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_TEXT_COLOR_CODE] = sel_registerName("setTextColor:");
+	SI_NS_FUNCTIONS[NS_TEXT_FIELD_FONT_CODE] = sel_registerName("font");
+	SI_NS_FUNCTIONS[NS_TEXT_FIELD_SET_FONT_CODE] = sel_registerName("setFont:");
+	SI_NS_FUNCTIONS[NS_TEXT_FIELD_INIT_FRAME_CODE] = sel_registerName("initWithFrame:");
+	SI_NS_FUNCTIONS[NS_FONT_MANAGER_SHARED_FONT_MANAGER_CODE] = sel_registerName("sharedFontManager");
+	SI_NS_FUNCTIONS[NS_FONT_MANAGER_CONVERT_FONT_CODE] = sel_registerName("convertFont:");
+	SI_NS_FUNCTIONS[NS_FONT_MANAGER_CONVERT_TO_HAVE_FONT_CODE] = sel_registerName("convertFont:toHaveTrait:");
+	SI_NS_FUNCTIONS[NS_PROCESS_INFO_PROCESS_INFO_CODE] = sel_registerName("processInfo");
+	SI_NS_FUNCTIONS[NS_PROCESS_INFO_PROCESS_NAME_CODE] = sel_registerName("processName");
+	SI_NS_FUNCTIONS[NS_SLIDER_SET_TARGET_CODE] = sel_registerName("setTarget:");
+	SI_NS_FUNCTIONS[NS_SLIDER_TARGET_CODE] = sel_registerName("target");
+	SI_NS_FUNCTIONS[NS_SLIDER_SET_ACTION_CODE] = sel_registerName("setAction:");
+	SI_NS_FUNCTIONS[NS_SLIDER_ACTION_CODE] = sel_registerName("action");
+	SI_NS_FUNCTIONS[NS_SLIDER_SET_FONT_CODE] = sel_registerName("setFont:");
+	SI_NS_FUNCTIONS[NS_SLIDER_FONT_CODE] = sel_registerName("font");
+	SI_NS_FUNCTIONS[NS_SLIDER_SET_DOUBLE_VALUE_CODE] = sel_registerName("setDoubleValue:");
+	SI_NS_FUNCTIONS[NS_SLIDER_DOUBLE_VALUE_CODE] = sel_registerName("doubleValue");
+	SI_NS_FUNCTIONS[NS_SLIDER_SET_MAX_VALUE_CODE] = sel_registerName("setMaxValue:");
+	SI_NS_FUNCTIONS[NS_SLIDER_MAX_VALUE_CODE] = sel_registerName("maxValue");
+	SI_NS_FUNCTIONS[NS_SLIDER_INIT_WITH_FRAME_CODE] = sel_registerName("initWithFrame:");
+	SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_SET_DOUBLE_VALUE_CODE] = sel_registerName("setDoubleValue:");
+	SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_DOUBLE_VALUE_CODE] = sel_registerName("doubleValue");
+	SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_SET_MAX_VALUE_CODE] = sel_registerName("setMaxValue:");
+	SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_MAX_VALUE_CODE] = sel_registerName("maxValue");
+	SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_SET_INDETERMINATE_CODE] = sel_registerName("setIndeterminate:");
+	SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_INDETERMINATE_CODE] = sel_registerName("isIndeterminate");
+	SI_NS_FUNCTIONS[NS_PROGRESS_INDICATOR_INIT_CODE] = sel_registerName("initWithFrame:");
+	SI_NS_FUNCTIONS[NS_GRAPHICS_CONTEXT_CURRENT_CONTEXT_CODE] = sel_registerName("currentContext");
+	SI_NS_FUNCTIONS[NS_GRAPHICS_CONTEXT_SET_CURRENT_CONTEXT_CODE] = sel_registerName("setCurrentContext:");
+	SI_NS_FUNCTIONS[NS_MENU_ITEM_SET_TITLE_CODE] = sel_registerName("setTitle:");
+	SI_NS_FUNCTIONS[NS_FONT_INIT_CODE] = sel_registerName("fontWithName:size:");
+	SI_NS_FUNCTIONS[NS_FONT_FONT_NAME_CODE] = sel_registerName("fontName");
+	SI_NS_FUNCTIONS[NS_BUTTON_TITLE_CODE] = sel_registerName("title");
+	SI_NS_FUNCTIONS[NS_BUTTON_SET_TITLE_CODE] = sel_registerName("setTitle:");
+	SI_NS_FUNCTIONS[NS_BUTTON_BEZEL_STYLE_CODE] = sel_registerName("bezelStyle");
+	SI_NS_FUNCTIONS[NS_BUTTON_SET_BEZEL_STYLE_CODE] = sel_registerName("setBezelStyle:");
+	SI_NS_FUNCTIONS[NS_BUTTON_TARGET_CODE] = sel_registerName("target");
+	SI_NS_FUNCTIONS[NS_BUTTON_SET_TARGET_CODE] = sel_registerName("setTarget:");
+	SI_NS_FUNCTIONS[NS_BUTTON_ACTION_CODE] = sel_registerName("action");
+	SI_NS_FUNCTIONS[NS_BUTTON_SET_ACTION_CODE] = sel_registerName("setAction:");
+	SI_NS_FUNCTIONS[NS_BUTTON_AUTO_RESIZE_MASK_CODE] = sel_registerName("autoresizingMask");
+	SI_NS_FUNCTIONS[NS_BUTTON_SET_AUTO_RESIZE_MASK_CODE] = sel_registerName("setAutoresizingMask:");
+	SI_NS_FUNCTIONS[NS_BUTTON_STATE_CODE] = sel_registerName("state");
+	SI_NS_FUNCTIONS[NS_BUTTON_SET_STATE_CODE] = sel_registerName("setState:");
+	SI_NS_FUNCTIONS[NS_BUTTON_ALLOWS_MIXED_STATE_CODE] = sel_registerName("allowsMixedState");
+	SI_NS_FUNCTIONS[NS_BUTTON_SET_ALLOWS_MIXED_STATE_CODE] = sel_registerName("setAllowsMixedState:");
+	SI_NS_FUNCTIONS[NS_BUTTON_INIT_WITH_FRAME_CODE] = sel_registerName("initWithFrame:");
+	SI_NS_FUNCTIONS[NS_BUTTON_SET_BUTTON_TYPE_CODE] = sel_registerName("setButtonType:");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_INDEX_OF_SELECTED_ITEM_CODE] = sel_registerName("indexOfSelectedItem");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_TARGET_CODE] = sel_registerName("target");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_TARGET_CODE] = sel_registerName("setTarget:");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_ACTION_CODE] = sel_registerName("action");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_ACTION_CODE] = sel_registerName("setAction:");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_FONT_CODE] = sel_registerName("font");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_FONT_CODE] = sel_registerName("setFont:");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_STRING_VALUE_CODE] = sel_registerName("stringValue");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_STRING_VALUE_CODE] = sel_registerName("setStringValue:");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_IS_BEZELED_CODE] = sel_registerName("isBezeled");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_IS_BEZELED_CODE] = sel_registerName("setBezeled:");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_DRAWS_BACKGROUND_CODE] = sel_registerName("drawsBackground");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_DRAWS_BACKGROUND_CODE] = sel_registerName("setDrawsBackground:");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_IS_EDITABLE_CODE] = sel_registerName("isEditable");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_IS_EDITABLE_CODE] = sel_registerName("setEditable:");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_IS_SELECTABLE_CODE] = sel_registerName("isSelectable");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_IS_SELECTABLE_CODE] = sel_registerName("setSelectable:");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_TEXT_COLOR_CODE] = sel_registerName("textColor");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_SET_TEXT_COLOR_CODE] = sel_registerName("setTextColor:");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_INIT_WITH_FRAME_CODE] = sel_registerName("initWithFrame:");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_ADD_ITEM_CODE] = sel_registerName("addItemWithObjectValue:");
+	SI_NS_FUNCTIONS[NS_COMBOBOX_SELECT_ITEM_CODE] = sel_registerName("selectItemAtIndex:");
+	SI_NS_FUNCTIONS[NS_SAVE_PANEL_SET_CAN_CREATE_DIRECTORIES_CODE] = sel_registerName("setCanCreateDirectories:");
+	SI_NS_FUNCTIONS[NS_SAVE_PANEL_CAN_CREATE_DIRECTORIES_CODE] = sel_registerName("canCreateDirectories");
+	SI_NS_FUNCTIONS[NS_SAVE_PANEL_SET_ALLOWED_FILE_TYPES_CODE] = sel_registerName("setAllowedFileTypes:");
+	SI_NS_FUNCTIONS[NS_SAVE_PANEL_ALLOWED_FILE_TYPES_CODE] = sel_registerName("allowedFileTypes");
+	SI_NS_FUNCTIONS[NS_SAVE_PANEL_SET_DIRECTORY_URL_CODE] = sel_registerName("setDirectoryURL:");
+	SI_NS_FUNCTIONS[NS_SAVE_PANEL_DIRECTORY_URL_CODE] = sel_registerName("directoryURL");
+	SI_NS_FUNCTIONS[NS_SAVE_PANEL_SET_NAME_FIELD_STRING_VALUE_CODE] = sel_registerName("setNameFieldStringValue:");
+	SI_NS_FUNCTIONS[NS_SAVE_PANEL_NAME_FIELD_STRING_VALUE_CODE] = sel_registerName("nameFieldStringValue");
+	SI_NS_FUNCTIONS[NS_SAVE_PANEL_URL_CODE] = sel_registerName("URL");
+	SI_NS_FUNCTIONS[NS_SAVE_PANEL_RUN_MODAL_CODE] = sel_registerName("runModal");
+	SI_NS_FUNCTIONS[CA_LAYER_CONTENTS_CODE] = sel_registerName("contents");
+	SI_NS_FUNCTIONS[CA_LAYER_SET_CONTENTS_CODE] = sel_registerName("setContents:");
+	SI_NS_FUNCTIONS[CA_LAYER_IS_HIDDEN_CODE] = sel_registerName("isHidden");
+	SI_NS_FUNCTIONS[CA_LAYER_SET_NEEDS_DISPLAY_CODE] = sel_registerName("setNeedsDisplay");
+	SI_NS_FUNCTIONS[CA_LAYER_SET_HIDDEN_CODE] = sel_registerName("setHidden:");
+	SI_NS_FUNCTIONS[CA_TRANSACTION_BEGIN_CODE] = sel_registerName("begin");
+	SI_NS_FUNCTIONS[CA_TRANSACTION_COMMIT_CODE] = sel_registerName("commit");
+	SI_NS_FUNCTIONS[CA_TRANSACTION_FLUSH_CODE] = sel_registerName("flush");
+	SI_NS_FUNCTIONS[CA_TRANSACTION_DISABLE_ACTIONS_CODE] = sel_registerName("disableActions");
+	SI_NS_FUNCTIONS[CA_TRANSACTION_SET_DISABLE_ACTIONS_CODE] = sel_registerName("setDisableActions:");
+	SI_NS_FUNCTIONS[NSURL_PATH_CODE] = sel_registerName("path");
+	SI_NS_FUNCTIONS[NSURL_FILE_URL_WITH_PATH_CODE] = sel_registerName("fileURLWithPath:");
+	SI_NS_FUNCTIONS[NS_AUTORELEASE_CODE] = sel_registerName("autorelease");
+	SI_NS_FUNCTIONS[NS_INIT_CODE] = sel_registerName("init");
+	SI_NS_FUNCTIONS[NS_AUTO_RELEASE_POOL_DRAIN_CODE] = sel_registerName("drain");
+	SI_NS_FUNCTIONS[NS_OBJECT_FOR_KEY_CODE] = sel_registerName("objectForKey:");
+	SI_NS_FUNCTIONS[NS_INFO_DICTIONARY_CODE] = sel_registerName("infoDictionary");
+	SI_NS_FUNCTIONS[NS_INFO_MAIN_BUNDLE_CODE] = sel_registerName("mainBundle");
+	SI_NS_FUNCTIONS[NS_WINDOW_IS_MINIATURIZED_CODE] = sel_registerName("isMiniaturized");
+	SI_NS_FUNCTIONS[NS_WINDOW_IS_ZOOMED_CODE] = sel_registerName("isZoomed");
+	SI_NS_FUNCTIONS[NS_WINDOW_PERFORM_MINIATURIZE_CODE] = sel_registerName("performMiniaturize:");
+	SI_NS_FUNCTIONS[NS_WINDOW_DEMINIATURIZE_CODE] = sel_registerName("deminiaturize:");
+	SI_NS_FUNCTIONS[NS_WINDOW_PERFORM_ZOOM_CODE] = sel_registerName("performZoom:");
+	SI_NS_FUNCTIONS[NS_WINDOW_STYLE_MASK_CODE] = sel_registerName("styleMask");
+	SI_NS_FUNCTIONS[NS_WINDOW_SET_MAX_SIZE_CODE] = sel_registerName("setMaxSize:");
+	SI_NS_FUNCTIONS[NS_WINDOW_SET_MIN_SIZE_CODE] = sel_registerName("setMinSize:");
+	SI_NS_FUNCTIONS[NS_GRAPHICS_CONTEXT_WIDTH_WINDOW_CODE] = sel_registerName("graphicsContextWithWindow:");
+	SI_NS_FUNCTIONS[NS_CURSOR_PERFORM_SELECTOR] = sel_registerName("performSelector:");
+	SI_NS_FUNCTIONS[NS_NOTIFICATIONCENTER_ADD_OBSERVER] = sel_registerName("addObserver:selector:name:object:");
+	SI_NS_FUNCTIONS[NS_NOTIFICATIONCENTER_DEFAULT_CENTER] = sel_registerName("defaultCenter");
 }
 
 void si_impl_func_to_SEL_with_name(const char* class_name, const char* register_name, void* function) {
@@ -2151,7 +2178,7 @@ NSScreen* NSScreen_mainScreen(void) {
 NSRect NSScreen_frame(NSScreen* screen) {
 	void* func = SI_NS_FUNCTIONS[NS_FRAME_CODE];
 	
-	return ((NSRect (*)(id, SEL))objc_msgSend) (screen, func);
+	return ((NSRect (*)(id, SEL))abi_objc_msgSend_stret)(screen, func);
 }
 
 NSRect NSScreen_visibleFrame(NSScreen* screen) {
@@ -2414,7 +2441,7 @@ void NSMenuItem_setTitle(NSMenuItem* item, const char* title) {
 NSRect NSWindow_frame(NSWindow* window) {
 	void* func = SI_NS_FUNCTIONS[NS_FRAME_CODE];
 
-	return ((NSRect (*)(id, SEL))objc_msgSend) (window, func);
+	return ((NSRect (*)(id, SEL))abi_objc_msgSend_stret)(window, func);
 }
 
 bool NSWindow_isKeyWindow(NSWindow* window) {
@@ -2491,6 +2518,17 @@ NSView* NSView_initWithFrame(NSRect frameRect) {
 	void* nclass = SI_NS_CLASSES[NS_VIEW_CODE];
 	void* func = SI_NS_FUNCTIONS[NS_VIEW_INIT_WITH_FRAME_CODE];
 	return objc_msgSend_id_rect(NSAlloc(nclass), func, frameRect);
+}
+
+NSView* NSView_setFrame(NSView* view, NSRect frameRect) {
+	void* func = SI_NS_FUNCTIONS[NS_VIEW_SET_FRAME_CODE];
+	return objc_msgSend_id_rect(view, func, frameRect);
+}
+
+
+CALayer* NSView_layer(NSView* view) {
+	void* func = SI_NS_FUNCTIONS[NS_VIEW_LAYER_CODE];
+	return (CALayer*)objc_msgSend_id(view, func);
 }
 
 void NSView_addSubview(NSView* view, NSView* subview) {
@@ -3221,10 +3259,41 @@ NSModalResponse NSSavePanel_runModal(NSSavePanel* savePanel) {
 	return objc_msgSend_uint(savePanel, func);
 }
 
+id CALayer_contents(CALayer* layer) {
+	void* func = SI_NS_FUNCTIONS[CA_LAYER_CONTENTS_CODE];
+	return objc_msgSend_id(layer, func);
+}
+void CALayer_setContents(CALayer* layer, id contents) {
+	void* func = SI_NS_FUNCTIONS[CA_LAYER_SET_CONTENTS_CODE];
+	objc_msgSend_void_id(layer, func, contents);
+}
+
 const char* NSURL_path(NSURL* url) {
 	void* func = SI_NS_FUNCTIONS[NSURL_PATH_CODE];
 	return (const char*)NSString_to_char((NSString *)objc_msgSend_id(url, func));
 }
+
+void CATransaction_begin(void) {
+	void* class = SI_NS_CLASSES[NS_CA_TRANSACTION_CODE];
+	void* func = SI_NS_FUNCTIONS[CA_TRANSACTION_BEGIN_CODE];
+
+	objc_msgSend_void(class, func);
+}
+
+void CATransaction_commit(void) {
+	void* class = SI_NS_CLASSES[NS_CA_TRANSACTION_CODE];
+	void* func = SI_NS_FUNCTIONS[CA_TRANSACTION_COMMIT_CODE];
+
+	objc_msgSend_void(class, func);
+}
+
+void CATransaction_setDisableActions(bool flag) {
+	void* class = SI_NS_CLASSES[NS_CA_TRANSACTION_CODE];
+	void* func = SI_NS_FUNCTIONS[CA_TRANSACTION_SET_DISABLE_ACTIONS_CODE];
+
+	objc_msgSend_void_bool(class, func, flag);
+}
+
 
 NSURL* NSURL_fileURLWithPath(const char* path) {
 	void* func = SI_NS_FUNCTIONS[NSURL_FILE_URL_WITH_PATH_CODE];
