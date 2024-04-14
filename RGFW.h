@@ -5262,6 +5262,22 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	win->event.inFocus = (bool)objc_msgSend_bool(win->src.window, sel_registerName("isKeyWindow"));
 
 	switch (objc_msgSend_uint(e, sel_registerName("type"))) {
+
+		case NSEventTypeFlagsChanged: {
+			u32 flags = objc_msgSend_uint(e, sel_registerName("modifierFlags"));
+			#define NSEventModifierFlagCommand 		1 << 20
+			#define NSEventModifierFlagControl 		1 << 18
+			#define NSEventModifierFlagCapsLock 	1 << 16
+			#define NSEventModifierFlagShift 		1 << 17
+			#define NSEventModifierFlagOption 		1 << 19
+			#define NSEventModifierFlagNumericPad   1 << 21
+
+			if (flags & NSEventModifierFlagCapsLock && win->event.lockState & RGFW_CAPSLOCK)
+				win->event.lockState ^= RGFW_CAPSLOCK;
+			else if (flags & NSEventModifierFlagCapsLock)
+				win->event.lockState |= RGFW_CAPSLOCK;
+			break;
+		}
 		case NSEventTypeKeyDown:
 			win->event.type = RGFW_keyPressed;
 			win->event.keyCode = (u16)objc_msgSend_uint(e,  sel_registerName("keyCode"));
@@ -5926,18 +5942,38 @@ void RGFW_window_checkFPS(RGFW_window* win) {
     currentFrame = RGFW_getTime();
 } 
 
+#ifdef __APPLE__
+#include <mach/mach_time.h>
+#endif
+
 u32 RGFW_getTimeNS(void) {
+	#ifndef __APPLE__
     struct timespec ts = { 0 };
     clock_gettime(1, &ts);
-	
+
 	return ts.tv_nsec;
+	#else
+    static mach_timebase_info_data_t timebase_info;
+    if (timebase_info.denom == 0) {
+        mach_timebase_info(&timebase_info);
+    }
+    return mach_absolute_time() * timebase_info.numer / timebase_info.denom;
+	#endif
 }
 
 u32 RGFW_getTime(void) {
+	#ifndef __APPLE__
     struct timespec ts = { 0 };
     clock_gettime(1, &ts);
 	
 	return ts.tv_sec;
+	#else
+    static mach_timebase_info_data_t timebase_info;
+    if (timebase_info.denom == 0) {
+        mach_timebase_info(&timebase_info);
+    }
+    return (double)mach_absolute_time() * (double)timebase_info.numer / ((double)timebase_info.denom * 1e9);
+	#endif
 }
 
 u32 RGFW_getFPS(void) {
@@ -6103,8 +6139,8 @@ u32 RGFW_getFPS(void) {
 #define RGFW_KP_Return RGFW_OS_BASED_VALUE(0xff8d, 0x92, 77)
 
 #ifdef __APPLE__
-NSCursor* NSCursor_arrowStr(char* str);
-void NSCursor_performSelector(NSCursor* cursor, void* selector);
+void* NSCursor_arrowStr(char* str);
+void NSCursor_performSelector(void* cursor, void* selector);
 #endif
 
 /* mouse icons */
