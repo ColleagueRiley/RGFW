@@ -627,7 +627,7 @@ RGFWDEF u8 RGFW_isPressedI(RGFW_window* win, u32 key); /*!< if key is pressed (k
 	!!Keycodes defined at the bottom of the header file!!
 */
  /*!< converts a key code to it's key string */
-RGFWDEF char* RGFW_keyCodeTokeyStr(u32 key);
+RGFWDEF char* RGFW_keyCodeTokeyStr(u64 key);
 /*!< converts a string of a key to it's key code */
 RGFWDEF u32 RGFW_keyStrToKeyCode(char* key);
 /*!< if key is pressed (key string) */
@@ -1806,7 +1806,7 @@ RGFW_window* RGFW_root = NULL;
 u8 RGFW_keyMap[128] = { 0 };
 #endif
 
-char* RGFW_keyCodeTokeyStr(u32 key) {				
+char* RGFW_keyCodeTokeyStr(u64 key) {				
 	#if defined(RGFW_MACOS)
 	static char* keyStrs[128] = {"a", "s", "d", "f", "h", "g", "z", "x", "c", "v", "0", "b", "q", "w", "e", "r", "y", "t", "1", "2", "3", "4", "6", "5", "Equals", "9", "7", "Minus", "8", "0", "CloseBracket", "o", "u", "Bracket", "i", "p", "Return", "l", "j", "Apostrophe", "k", "Semicolon", "BackSlash", "Comma", "Slash", "n", "m", "Period", "Tab", "Space", "Backtick", "BackSpace", "0", "Escape", "0", "Super", "Shift", "CapsLock", "Alt", "Control", "0", "0", "0", "0", "0", "KP_Period", "0", "KP_Minus", "0", "0", "0", "0", "Numlock", "0", "0", "0", "KP_Multiply", "KP_Return", "0", "0", "0", "0", "KP_Slash", "KP_0", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "0", "KP_8", "KP_9", "0", "0", "0", "F5", "F6", "F7", "F3", "F8", "F9", "0", "F11", "0", "F13", "0", "F14", "0", "F10", "0", "F12", "0", "F15", "Insert", "Home", "PageUp", "Delete", "F4", "End", "F2", "PageDown", "Left", "Right", "Down", "Up", "F1"};
 
@@ -1817,7 +1817,13 @@ char* RGFW_keyCodeTokeyStr(u32 key) {
 	#endif
 	#ifdef RGFW_WINDOWS
 	static char keyName[16];
-	GetKeyNameTextA(key, keyName, 16);
+	GetKeyNameText(key, keyName, 16);
+
+	if ((!(GetKeyState(VK_CAPITAL) & 0x0001) && !(GetKeyState(VK_SHIFT) & 0x8000)) || 
+		((GetKeyState(VK_CAPITAL) & 0x0001) && (GetKeyState(VK_SHIFT) & 0x8000))) {
+		CharLowerBuff(keyName, 16);
+	}
+
 	return keyName;
 	#endif
 }
@@ -1942,7 +1948,9 @@ char RGFW_keystrToChar(const char* str) {
 		"question", "?",
 		"slash", "/",
 		"space", " ",
-		"Return", "\n"
+		"Return", "\n",
+		"Enter", "\n",
+		"enter", "\n",
 	};
 
 	u8 i = 0;
@@ -4198,7 +4206,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		RGFW_eventWindow.src.display = NULL;
 		RGFW_eventWindow.r = RGFW_RECT(-1, -1, -1, -1);
 
-		return &win->event.type;
+		return &win->event;
 	}
 
 	if (win->event.droppedFilesCount) {
@@ -4218,7 +4226,10 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	if (win->event.type == RGFW_quit)
 		return NULL;
-	
+
+	static BYTE keyboardState[256];
+	GetKeyboardState(keyboardState);
+
 	if (PeekMessage(&msg, (HWND)win->src.display, 0u, 0u, PM_REMOVE)) {
 		switch (msg.message) {
 			case WM_CLOSE:
@@ -4228,14 +4239,23 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 			case WM_KEYUP:
 				win->event.keyCode = msg.wParam;
-				GetKeyNameTextA(msg.lParam, win->event.keyName, 16);
+				strncpy(win->event.keyName, RGFW_keyCodeTokeyStr(msg.lParam), 16);
+				if (GetKeyState(VK_SHIFT) & 0x8000) {
+					ToAscii(msg.wParam, MapVirtualKey(msg.wParam, MAPVK_VK_TO_CHAR), 
+										keyboardState, (LPWORD)win->event.keyName, 0);
+				}
+
 				win->event.type = RGFW_keyReleased;
 				break;
 
 			case WM_KEYDOWN:
 				win->event.keyCode = msg.wParam;
-				
-				GetKeyNameTextA(msg.lParam, win->event.keyName, 16);
+				strncpy(win->event.keyName, RGFW_keyCodeTokeyStr(msg.lParam), 16);
+				if (GetKeyState(VK_SHIFT) & 0x8000) {
+					ToAscii(msg.wParam, MapVirtualKey(msg.wParam, MAPVK_VK_TO_CHAR), 
+										keyboardState, (LPWORD)win->event.keyName, 0);
+				}
+
 				win->event.type = RGFW_keyPressed;
 				break;
 
@@ -4914,6 +4934,7 @@ static void NSMoveToResourceDir(void) {
     chdir(resourcesPath);
 }
 
+
 NSSize RGFW__osxWindowResize(void* self, SEL sel, NSSize frameSize) {
 	u32 i;
 	for (i = 0; i < RGFW_windows_size; i++) {
@@ -5262,22 +5283,6 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	win->event.inFocus = (bool)objc_msgSend_bool(win->src.window, sel_registerName("isKeyWindow"));
 
 	switch (objc_msgSend_uint(e, sel_registerName("type"))) {
-
-		case NSEventTypeFlagsChanged: {
-			u32 flags = objc_msgSend_uint(e, sel_registerName("modifierFlags"));
-			#define NSEventModifierFlagCommand 		1 << 20
-			#define NSEventModifierFlagControl 		1 << 18
-			#define NSEventModifierFlagCapsLock 	1 << 16
-			#define NSEventModifierFlagShift 		1 << 17
-			#define NSEventModifierFlagOption 		1 << 19
-			#define NSEventModifierFlagNumericPad   1 << 21
-
-			if (flags & NSEventModifierFlagCapsLock && win->event.lockState & RGFW_CAPSLOCK)
-				win->event.lockState ^= RGFW_CAPSLOCK;
-			else if (flags & NSEventModifierFlagCapsLock)
-				win->event.lockState |= RGFW_CAPSLOCK;
-			break;
-		}
 		case NSEventTypeKeyDown:
 			win->event.type = RGFW_keyPressed;
 			win->event.keyCode = (u16)objc_msgSend_uint(e,  sel_registerName("keyCode"));
@@ -6032,7 +6037,7 @@ u32 RGFW_getFPS(void) {
 
 #define RGFW_Minus RGFW_OS_BASED_VALUE(0x002d, 189, 27)
 #define RGFW_Equals RGFW_OS_BASED_VALUE(0x003d, 187, 24)
-#define RGFW_BackSpace RGFW_OS_BASED_VALUE(0xff08, 322, 51)
+#define RGFW_BackSpace RGFW_OS_BASED_VALUE(0xff08, 8, 51)
 #define RGFW_Tab RGFW_OS_BASED_VALUE(0xff89, 0x09, 48)
 #define RGFW_CapsLock RGFW_OS_BASED_VALUE(0xffe5, 20, 57)
 #define RGFW_ShiftL RGFW_OS_BASED_VALUE(0xffe1, 0xA0, 56)
