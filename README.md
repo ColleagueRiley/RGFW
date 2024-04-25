@@ -84,6 +84,12 @@ int main() {
 }
 ```
 
+# Contacts
+- email : ColleagueRiley@gmail.com 
+- discord : ColleagueRiley
+- discord server : https://discord.gg/pXVNgVVbvh
+
+
 # Documentation
 
 There is a lot of in-header-documentation, but more documentation can be found [here](https://RSGL.github.io/RGFW)
