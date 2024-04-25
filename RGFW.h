@@ -1352,7 +1352,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		ZeroMemory(&bi, sizeof(bi));
 		bi.bV5Size = sizeof(bi);
 		bi.bV5Width = area.w;
-		bi.bV5Height = -area.h;
+		bi.bV5Height = -((LONG) area.h);
 		bi.bV5Planes = 1;
 		bi.bV5BitCount = 32;
 		bi.bV5Compression = BI_BITFIELDS;
@@ -5814,7 +5814,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #endif
 #ifdef RGFW_WINDOWS
 			HGDIOBJ oldbmp = SelectObject(win->src.hdcMem, win->src.bitmap);
-			BitBlt(win->src.window, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
+			BitBlt(win->src.display, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
 			SelectObject(win->src.hdcMem, oldbmp);
 #endif	
 #if defined(RGFW_MACOS)
@@ -5914,10 +5914,10 @@ typedef struct { i32 x, y; } RGFW_vector;
 #endif
 	}
 
+	static float currentFrameTime = 0;
+
 	void RGFW_window_checkFPS(RGFW_window* win) {
 		assert(win != NULL);
-
-		static float currentFrameTime = 0;
 
 		win->event.fps = RGFW_getFPS();
 
@@ -5928,7 +5928,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		double elapsedTime = RGFW_getTime() - currentFrameTime;
 
 		if (elapsedTime < targetFrameTime) {
-			u32 sleepTime = (u32) ((targetFrameTime - elapsedTime) * 1e6);
+			u32 sleepTime = (u32) ((targetFrameTime - elapsedTime) * 1e3);
 			RGFW_sleep(sleepTime);
 		}
 
@@ -5970,7 +5970,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		LARGE_INTEGER counter;
 		QueryPerformanceCounter(&counter);
 
-		return (u32) (counter.QuadPart / frequency.QuadPart);
+		return (u32) (counter.QuadPart / (double) frequency.QuadPart);
 #elif defined(__unix__)
 		struct timespec ts = { 0 };
 		clock_gettime(1, &ts);
