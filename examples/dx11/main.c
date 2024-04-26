@@ -21,7 +21,9 @@ const char* shaderString = MULTILINE_STR(
 
     float4 PS(VOut input) : SV_TARGET
     {
-        return float4(1.0, 0.0, 0.0, 1.0);
+        float z = (input.position.y * 0.095) +  (input.position.x  *  0.09);
+
+        return float4(input.position.y / 255, input.position.x / 255, z / 255, 1.0);
     }
 );
 
