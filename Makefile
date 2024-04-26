@@ -33,13 +33,13 @@ ifeq ($(detected_OS),Windows)
 	LIB_EXT = .dll
 endif
 ifeq ($(detected_OS),Darwin)        # Mac OS X
-	LIBS := -I./ext/Silicon/ -lm -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo -w $(STATIC)
+	LIBS := -lm -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo -w $(STATIC)
 	VULAKN_LIBS = -lvulkan
 	EXT = 
 	LIB_EXT = .dylib
 endif
 ifeq ($(detected_OS),Linux)
-    LIBS := -I./include -lXrandr -lX11 -lm -lGL $(STATIC)
+    LIBS := -lXrandr -lX11 -lm -lGL $(STATIC)
 	VULAKN_LIBS = -lvulkan
 	EXT =
 	LIB_EXT = .so
@@ -78,7 +78,7 @@ vulkan_shaders:
 	glslangValidator -V examples/vk10/shaders/frag.frag -o examples/vk10/shaders/frag.h --vn frag_code
 
 debugDX11:
-	$(CC) examples/dx11/main.c $(LIBS) $(DX11_LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/dx11/dx11
+	$(CC) examples/dx11/main.c $(LIBS) $(DX11_LIBS) -I./ -Wall -D RGFW_DEBUG -o dx11
 	./dx11.exe
 
 RGFW.o:
