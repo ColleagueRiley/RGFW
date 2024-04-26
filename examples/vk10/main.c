@@ -133,15 +133,15 @@ int createGraphicsPipeline(RGFW_window* win) {
     VkViewport viewport;
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = (float)win->r.w;
-    viewport.height = (float)win->r.h;
+    viewport.width = (float)500;
+    viewport.height = (float)500;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor;
     scissor.offset.x = 0;
     scissor.offset.y = 0;
-    scissor.extent = (VkExtent2D){win->r.w, win->r.h};
+    scissor.extent = (VkExtent2D){500, 500};
 
     VkPipelineViewportStateCreateInfo viewport_state = {0};
     viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -240,7 +240,7 @@ int commandBuffers(RGFW_window* win) {
         render_pass_info.framebuffer = vulkan_info->framebuffers[i];
         render_pass_info.renderArea.offset.x = 0;
         render_pass_info.renderArea.offset.y = 0;
-        render_pass_info.renderArea.extent = (VkExtent2D){win->r.w, win->r.h};
+        render_pass_info.renderArea.extent = (VkExtent2D){500, 500};
         
         VkClearValue clearColor;
         clearColor.color.float32[0] = 1.0f;
@@ -253,15 +253,15 @@ int commandBuffers(RGFW_window* win) {
         VkViewport viewport;
         viewport.x = 0.0f;
         viewport.y = 0.0f;
-        viewport.width = (float)win->r.w;
-        viewport.height = (float)win->r.h;
+        viewport.width = (float)500;
+        viewport.height = (float)500;
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
 
         VkRect2D scissor;
         scissor.offset.x = 0;
         scissor.offset.y = 0;
-        scissor.extent = (VkExtent2D){win->r.w, win->r.h};
+        scissor.extent = (VkExtent2D){500, 500};
 
         vkCmdSetViewport(vulkan_info->command_buffers[i], 0, 1, &viewport);
         vkCmdSetScissor(vulkan_info->command_buffers[i], 0, 1, &scissor);
