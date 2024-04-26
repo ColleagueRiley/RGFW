@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2023 ColleagueRiley
+* Copyright (C) 2023-24 ColleagueRiley
 *
 * libpng license
 *
@@ -383,13 +383,13 @@ typedef struct { i32 x, y; } RGFW_vector;
 	/* source data for the window (used by the APIs) */
 	typedef struct RGFW_window_src {
 #ifdef RGFW_WINDOWS
-		HWND window; /*!< source display */
-		HDC display; /*!< source window */
+		HWND window; /*!< source window */
+		HDC hdc; /*!< source HDC */
 		u32 hOffset; /*!< height offset for window */
 #endif
 #ifdef RGFW_X11
 		Display* display; /*!< source display */
-		Window window; /*!< source window */
+		Window display; /*!< source window */
 		Cursor cursor;
 #endif
 #ifdef RGFW_MACOS
@@ -1280,21 +1280,20 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 #ifdef RGFW_ALLOC_DROPFILES
 		win->event.droppedFiles = (char**) RGFW_MALLOC(sizeof(char*) * RGFW_MAX_DROPS);
-		i32 i;
+		u32 i;
 		for (i = 0; i < RGFW_MAX_DROPS; i++)
 			win->event.droppedFiles[i] = (char*) RGFW_CALLOC(RGFW_MAX_PATH, sizeof(char));
 #endif
 
-#ifndef RGFW_X11 
-		RGFW_area screenR = RGFW_getScreenSize();
-#else
+#ifdef RGFW_X11 
+		/* open X11 display */
+		/* this is done here so the screen size can be accessed */
 		win->src.display = XOpenDisplay(NULL);
 		assert(win->src.display != NULL);
-
-		Screen* scrn = DefaultScreenOfDisplay((Display*) win->src.display);
-		RGFW_area screenR = RGFW_AREA(scrn->width, scrn->height);
 #endif
 
+		RGFW_area screenR = RGFW_getScreenSize();
+		
 		if (args & RGFW_FULLSCREEN)
 			rect = RGFW_RECT(0, 0, screenR.w, screenR.h);
 
@@ -1361,14 +1360,14 @@ typedef struct { i32 x, y; } RGFW_vector;
 		bi.bV5RedMask = 0x000000ff;
 		bi.bV5AlphaMask = 0xff000000;
 
-		win->src.bitmap = CreateDIBSection(win->src.display,
+		win->src.bitmap = CreateDIBSection(win->src.hdc,
 			(BITMAPINFO*) &bi,
 			DIB_RGB_COLORS,
 			(void**) &win->buffer,
 			NULL,
 			(DWORD) 0);
 
-		win->src.hdcMem = CreateCompatibleDC(win->src.display);
+		win->src.hdcMem = CreateCompatibleDC(win->src.hdc);
 #endif
 #endif
 	}
@@ -1383,12 +1382,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 #ifdef RGFW_VULKAN
 	RGFW_vulkanInfo RGFW_vulkan_info;
-
-	static VKAPI_ATTR VkBool32 VKAPI_CALL RGFW_vulkanDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
-		fprintf(stderr, "validation layer: %s\n", pCallbackData->pMessage);
-
-		return VK_FALSE;
-	}
 
 	RGFW_vulkanInfo* RGFW_initVulkan(RGFW_window* win) {
 		assert(win != NULL);
@@ -1478,7 +1471,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		instance_create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		instance_create_info.pApplicationInfo = &appInfo;
 		instance_create_info.enabledExtensionCount = extension ? 2 : 0,
-			instance_create_info.ppEnabledExtensionNames = (char* [2]){
+			instance_create_info.ppEnabledExtensionNames = (const char* [2]){
 					VK_KHR_SURFACE_EXTENSION_NAME,
 					extension
 		};
@@ -2050,7 +2043,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20a9
 #endif
 
-	static u32* RGFW_initAttribs(i32 useSoftware) {
+	static u32* RGFW_initAttribs(u32 useSoftware) {
 		static u32 attribs[] = {
 								#ifndef RGFW_MACOS
 								RGFW_GL_RENDER_TYPE,
@@ -2351,7 +2344,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 			return NULL;
 		}
 
-		i32 i;
+		u32 i;
 		for (i = 0; i < fbcount; i++) {
 			XVisualInfo* vi = glXGetVisualFromFBConfig((Display*) win->src.display, fbc[i]);
 			if (vi == NULL)
@@ -3017,7 +3010,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 #ifdef RGFW_ALLOC_DROPFILES
 		{
-			i32 i;
+			u32 i;
 			for (i = 0; i < RGFW_MAX_DROPS; i++)
 				RGFW_FREE(win->event.droppedFiles[i]);
 
@@ -3131,7 +3124,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		*target++ = a.w;
 		*target++ = a.h;
 
-		i32 i;
+		u32 i;
 
 		for (i = 0; i < a.w * a.h; i++) {
 			if (channels == 3)
@@ -3178,7 +3171,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		u8* source = (u8*) image;
 		XcursorPixel* target = native->pixels;
 
-		i32 i;
+		u32 i;
 		for (i = 0; i < a.w * a.h; i++, target++, source += 4) {
 			u8 alpha = 0xFF;
 			if (channels == 4)
@@ -3814,6 +3807,10 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		RGFW_window* win = RGFW_window_basic_init(rect, args);
 
+		if (RGFW_root == NULL) {
+			RGFW_root = win;
+		}
+		
 		HINSTANCE inh = GetModuleHandleA(NULL);
 
 		WNDCLASSA Class = { 0 }; /* Setup the Window class. */
@@ -3851,7 +3848,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 			win->src.winArgs |= RGFW_ALLOW_DND;
 			DragAcceptFiles(win->src.window, TRUE);
 		}
-		win->src.display = GetDC(win->src.window);
+		win->src.hdc = GetDC(win->src.window);
 
 #ifdef RGFW_DIRECTX
 		assert(FAILED(CreateDXGIFactory(&__uuidof(IDXGIFactory), (void**) &RGFW_dxInfo.pFactory)) == 0);
@@ -3915,7 +3912,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 #endif
 
 #ifdef RGFW_OPENGL 
-
 		HDC dummy_dc = GetDC(dummyWin);
 
 		PIXELFORMATDESCRIPTOR pfd = {
@@ -3952,22 +3948,22 @@ typedef struct { i32 x, y; } RGFW_vector;
 				pfd.dwFlags |= PFD_GENERIC_FORMAT | PFD_GENERIC_ACCELERATED;
 
 			if (wglChoosePixelFormatARB != NULL) {
-				int* pixel_format_attribs = RGFW_initAttribs(args & RGFW_OPENGL_SOFTWARE);
+				i32* pixel_format_attribs = (i32*)RGFW_initAttribs(args & RGFW_OPENGL_SOFTWARE);
 
 				int pixel_format;
 				UINT num_formats;
-				wglChoosePixelFormatARB(win->src.display, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
+				wglChoosePixelFormatARB(win->src.hdc, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
 				if (!num_formats) {
 					printf("Failed to set the OpenGL 3.3 pixel format.\n");
 				}
 
-				DescribePixelFormat(win->src.display, pixel_format, sizeof(pfd), &pfd);
-				if (!SetPixelFormat(win->src.display, pixel_format, &pfd)) {
+				DescribePixelFormat(win->src.hdc, pixel_format, sizeof(pfd), &pfd);
+				if (!SetPixelFormat(win->src.hdc, pixel_format, &pfd)) {
 					printf("Failed to set the OpenGL 3.3 pixel format.\n");
 				}
 			}
 
-			i32 index = 0;
+			u32 index = 0;
 			i32 attribs[40];
 
 			SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
@@ -3986,35 +3982,32 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 			SET_ATTRIB(0, 0);
 
-			win->src.rSurf = wglCreateContextAttribsARB(win->src.display, NULL, attribs);
+			win->src.rSurf = wglCreateContextAttribsARB(win->src.hdc, NULL, attribs);
 		} else {
 			fprintf(stderr, "Failed to create an accelerated OpenGL Context\n");
 
-			int pixel_format = ChoosePixelFormat(win->src.display, &pfd);
-			SetPixelFormat(win->src.display, pixel_format, &pfd);
+			int pixel_format = ChoosePixelFormat(win->src.hdc, &pfd);
+			SetPixelFormat(win->src.hdc, pixel_format, &pfd);
 
-			win->src.rSurf = wglCreateContext(win->src.display);
-			wglMakeCurrent(win->src.display, win->src.rSurf);
+			win->src.rSurf = wglCreateContext(win->src.hdc);
 		}
-#endif
-
-#ifdef RGFW_OPENGL
-		if (RGFW_root != NULL && wglShareLists((HGLRC) RGFW_root->src.rSurf, (HGLRC) win->src.rSurf) == 0)
-			fprintf(stderr, "Failed to link to dummy context : %li\n", GetLastError());
+		
+		wglMakeCurrent(win->src.hdc, win->src.rSurf);
+		wglShareLists(RGFW_root->src.rSurf, win->src.rSurf);
 #endif
 
 #ifdef RGFW_OSMESA
-#ifdef RGFW_LINK_OSMESA
-		OSMesaMakeCurrentSource = (PFN_OSMesaMakeCurrent) GetProcAddress(win->src.display, "OSMesaMakeCurrent");
-		OSMesaCreateContextSource = (PFN_OSMesaCreateContext) GetProcAddress(win->src.display, "OSMesaCreateContext");
-		OSMesaDestroyContextSource = (PFN_OSMesaDestroyContext) GetProcAddress(win->src.display, "OSMesaDestroyContext");
+#ifdef RGFW_LINK_OSM ESA
+		OSMesaMakeCurrentSource = (PFN_OSMesaMakeCurrent) GetProcAddress(win->src.hdc, "OSMesaMakeCurrent");
+		OSMesaCreateContextSource = (PFN_OSMesaCreateContext) GetProcAddress(win->src.hdc, "OSMesaCreateContext");
+		OSMesaDestroyContextSource = (PFN_OSMesaDestroyContext) GetProcAddress(win->src.hdc, "OSMesaDestroyContext");
 #endif
 #endif
 
 #ifdef RGFW_OPENGL
-		ReleaseDC(win->src.window, win->src.display);
-		win->src.display = GetDC(win->src.window);
-		wglMakeCurrent(win->src.display, win->src.rSurf);
+		ReleaseDC(win->src.window, win->src.hdc);
+		win->src.hdc = GetDC(win->src.window);
+		wglMakeCurrent(win->src.hdc, win->src.rSurf);
 #endif
 
 		DestroyWindow(dummyWin);
@@ -4035,9 +4028,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 			RGFW_window_showMouse(win, 0);
 
 		ShowWindow(win->src.window, SW_SHOWNORMAL);
-
-		if (RGFW_root == NULL)
-			RGFW_root = win;
 
 		return win;
 	}
@@ -4634,7 +4624,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #ifdef RGFW_OPENGL
 		wglDeleteContext((HGLRC) win->src.rSurf); /* delete opengl context */
 #endif
-		DeleteDC(win->src.display); /* delete device context */
+		DeleteDC(win->src.hdc); /* delete device context */
 		DestroyWindow(win->src.window); /* delete window */
 
 #if defined(RGFW_OSMESA)
@@ -4644,7 +4634,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 #ifdef RGFW_ALLOC_DROPFILES
 		{
-			i32 i;
+			u32 i;
 			for (i = 0; i < RGFW_MAX_DROPS; i++)
 				RGFW_FREE(win->event.droppedFiles[i]);
 
@@ -5256,7 +5246,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		}
 
 		if (win->event.droppedFilesCount) {
-			i32 i;
+			u32 i;
 			for (i = 0; i < win->event.droppedFilesCount; i++)
 				win->event.droppedFiles[i][0] = '\0';
 		}
@@ -5619,7 +5609,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 #ifdef RGFW_ALLOC_DROPFILES
 		{
-			i32 i;
+			u32 i;
 			for (i = 0; i < RGFW_MAX_DROPS; i++)
 				RGFW_FREE(win->event.droppedFiles[i]);
 
@@ -5680,7 +5670,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		glXMakeCurrent((Display*) win->src.window, (Drawable) win->src.display, (GLXContext) win->src.rSurf);
 #endif
 #ifdef RGFW_WINDOWS
-		wglMakeCurrent(win->src.display, (HGLRC) win->src.rSurf);
+		wglMakeCurrent(win->src.hdc, (HGLRC) win->src.rSurf);
 #endif
 #if defined(RGFW_MACOS)
 		objc_msgSend_void(win->src.rSurf, sel_registerName("makeCurrentContext"));
@@ -5814,7 +5804,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #endif
 #ifdef RGFW_WINDOWS
 			HGDIOBJ oldbmp = SelectObject(win->src.hdcMem, win->src.bitmap);
-			BitBlt(win->src.display, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
+			BitBlt(win->src.hdc, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
 			SelectObject(win->src.hdcMem, oldbmp);
 #endif	
 #if defined(RGFW_MACOS)
@@ -5859,7 +5849,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		glXSwapBuffers((Display*) win->src.display, (Window) win->src.window);
 #endif
 #ifdef RGFW_WINDOWS
-		SwapBuffers(win->src.display);
+		SwapBuffers(win->src.hdc);
 #endif
 #if defined(RGFW_MACOS)
 		NSOpenGLContext_flushBuffer(win->src.rSurf);
@@ -5896,10 +5886,19 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 	void RGFW_window_mouseHold(RGFW_window* win) {
 		win->src.winArgs |= RGFW_HOLD_MOUSE;
+
+		#ifdef RGFW_WINDOWS
+		RECT rect = {win->r.x, win->r.y, win->r.x + win->r.w, win->r.y + win->r.h};
+		ClipCursor(&rect);
+		#endif
 	}
 
 	void RGFW_window_mouseUnhold(RGFW_window* win) {
 		win->src.winArgs ^= RGFW_HOLD_MOUSE;
+
+		#ifdef RGFW_WINDOWS
+		ClipCursor(NULL);
+		#endif
 	}
 
 	void RGFW_sleep(u32 ms) {
@@ -5940,7 +5939,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #endif
 
 	u32 RGFW_getTimeNS(void) {
-#ifdef _MSC_VER
+#ifdef RGFW_WINDOWS
 		LARGE_INTEGER frequency;
 		QueryPerformanceFrequency(&frequency);
 
@@ -5960,10 +5959,11 @@ typedef struct { i32 x, y; } RGFW_vector;
 		}
 		return mach_absolute_time() * timebase_info.numer / timebase_info.denom;
 #endif
+		return 0;
 	}
 
 	u32 RGFW_getTime(void) {
-#ifdef _MSC_VER
+#ifdef RGFW_WINDOWS
 		LARGE_INTEGER frequency;
 		QueryPerformanceFrequency(&frequency);
 
@@ -5983,6 +5983,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		}
 		return (double) mach_absolute_time() * (double) timebase_info.numer / ((double) timebase_info.denom * 1e9);
 #endif
+		return 0;
 	}
 
 	u32 RGFW_getFPS(void) {
@@ -5993,7 +5994,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 		static i16 frameCount;
 		double currentSeconds = (double) RGFW_getTime();//glfwGetTime();
 		double elapsedSeconds = currentSeconds - previousSeconds;
-
 		static double fps = 0;
 
 		if (elapsedSeconds > 0.25) {
