@@ -757,8 +757,8 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 	/*! Supporting functions */
 	RGFWDEF void RGFW_window_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_window_checkEvent)*/
-	RGFWDEF u32 RGFW_getTime(void); /* get time in seconds */
-	RGFWDEF u32 RGFW_getTimeNS(void); /* get time in nanoseconds */
+	RGFWDEF u64 RGFW_getTime(void); /* get time in seconds */
+	RGFWDEF u64 RGFW_getTimeNS(void); /* get time in nanoseconds */
 	RGFWDEF u32 RGFW_getFPS(void); /* get current FPS (win->event.fps) */
 	RGFWDEF void RGFW_sleep(u32 microsecond); /* sleep for a set time */
 #endif /* RGFW_HEADER */
@@ -839,17 +839,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 #ifdef RGFW_WINDOWS
 
 #define WIN32_LEAN_AND_MEAN
-#if defined(_WIN32)
-#define WIN32
-#endif
-#if defined(_WIN64)
-#define WIN64
-#define _AMD64_
-#undef _X86_
-#else
-#undef _AMD64_
-#define _X86_
-#endif
 
 #include <windows.h>
 
@@ -5974,7 +5963,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #include <mach/mach_time.h>
 #endif
 
-	u32 RGFW_getTimeNS(void) {
+	u64 RGFW_getTimeNS(void) {
 #ifdef RGFW_WINDOWS
 		LARGE_INTEGER frequency;
 		QueryPerformanceFrequency(&frequency);
@@ -5982,7 +5971,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		LARGE_INTEGER counter;
 		QueryPerformanceCounter(&counter);
 
-		return (u32) (counter.QuadPart * 1e9 / frequency.QuadPart);
+		return (u64) (counter.QuadPart * 1e9 / frequency.QuadPart);
 #elif defined(__unix__)
 		struct timespec ts = { 0 };
 		clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -5999,15 +5988,14 @@ typedef struct { i32 x, y; } RGFW_vector;
 		return 0;
 	}
 
-	u32 RGFW_getTime(void) {
+	u64 RGFW_getTime(void) {
 #ifdef RGFW_WINDOWS
 		LARGE_INTEGER frequency;
 		QueryPerformanceFrequency(&frequency);
 
 		LARGE_INTEGER counter;
 		QueryPerformanceCounter(&counter);
-
-		return (u32) (counter.QuadPart / (double) frequency.QuadPart);
+		return (u64) (counter.QuadPart / (double) frequency.QuadPart);
 #elif defined(__unix__)
 		struct timespec ts = { 0 };
 		clock_gettime(CLOCK_MONOTONIC, &ts);
