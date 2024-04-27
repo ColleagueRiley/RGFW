@@ -5948,7 +5948,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		return (u32) (counter.QuadPart * 1e9 / frequency.QuadPart);
 #elif defined(__unix__)
-		double time = 0.0;
 		struct timespec ts = { 0 };
 		clock_gettime(CLOCK_MONOTONIC, &ts);
 		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
@@ -5974,12 +5973,11 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		return (u32) (counter.QuadPart / (double) frequency.QuadPart);
 #elif defined(__unix__)
-		double time = 0.0;
 		struct timespec ts = { 0 };
 		clock_gettime(CLOCK_MONOTONIC, &ts);
 		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
 
-		return (double)(nanoSeconds - CORE.Time.base) * 1e-9;
+		return (double)(nanoSeconds) * 1e-9;
 #elif defined(__APPLE__)
 		static mach_timebase_info_data_t timebase_info;
 		if (timebase_info.denom == 0) {
