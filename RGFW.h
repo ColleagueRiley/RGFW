@@ -838,7 +838,22 @@ typedef struct { i32 x, y; } RGFW_vector;
 #include <assert.h>
 
 #ifdef RGFW_WINDOWS
+
+#define WIN32_LEAN_AND_MEAN
+#if defined(_WIN32)
+#define WIN32
+#endif
+#if defined(_WIN64)
+#define WIN64
+#define _AMD64_
+#undef _X86_
+#else
+#undef _AMD64_
+#define _X86_
+#endif
+
 #include <windows.h>
+
 #endif
 
 #ifdef RGFW_MACOS
@@ -1244,6 +1259,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		return objc_msgSend_id(window, func);
 	}
 #endif
+
 
 #define RGFW_ASSERT(check, str) {\
 	if (!(check)) { \
@@ -4765,7 +4781,8 @@ typedef struct { i32 x, y; } RGFW_vector;
 	void RGFW_window_showMouse(RGFW_window* win, i8 show) {
 		assert(win != NULL);
 
-		ShowCursor(show);
+		SetClassLongPtrA(win->src.window, GCLP_HCURSOR, (LPARAM) LoadCursorA(NULL, NULL));
+		SetCursor(LoadCursorA(NULL, NULL));
 	}
 	void RGFW_window_moveMouse(RGFW_window* win, RGFW_vector p) {
 		assert(win != NULL);
