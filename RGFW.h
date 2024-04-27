@@ -127,8 +127,8 @@ extern "C" {
 
 	/* this name looks better */
 	/* plus it helps with cross-compiling because RGFW_X11 won't be accidently defined */
-#define RGFW_WINDOWS 
-#include <windows.h>
+#define RGFW_WINDOWS
+#include <windef.h>
 #include <XInput.h>
 
 #else 
@@ -389,7 +389,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #endif
 #ifdef RGFW_X11
 		Display* display; /*!< source display */
-		Window display; /*!< source window */
+		Window window; /*!< source window */
 		Cursor cursor;
 #endif
 #ifdef RGFW_MACOS
@@ -1781,9 +1781,9 @@ typedef struct { i32 x, y; } RGFW_vector;
 #define RGFW_HOLD_MOUSE			(1L<<2) /*!< hold the moues still */
 
 #ifdef RGFW_WINDOWS
+#include <processthreadsapi.h>
 #include <wchar.h>
 #include <locale.h>
-#include <winuser.h>
 #include <windowsx.h>
 #include <shellapi.h>
 #include <shellscalingapi.h>
@@ -5948,10 +5948,12 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		return (u32) (counter.QuadPart * 1e9 / frequency.QuadPart);
 #elif defined(__unix__)
+		double time = 0.0;
 		struct timespec ts = { 0 };
-		clock_gettime(1, &ts);
+		clock_gettime(CLOCK_MONOTONIC, &ts);
+		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
 
-		return ts.tv_nsec;
+		return nanoSeconds;
 #elif defined(__APPLE__)
 		static mach_timebase_info_data_t timebase_info;
 		if (timebase_info.denom == 0) {
@@ -5972,10 +5974,12 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		return (u32) (counter.QuadPart / (double) frequency.QuadPart);
 #elif defined(__unix__)
+		double time = 0.0;
 		struct timespec ts = { 0 };
-		clock_gettime(1, &ts);
+		clock_gettime(CLOCK_MONOTONIC, &ts);
+		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
 
-		return ts.tv_sec;
+		return (double)(nanoSeconds - CORE.Time.base) * 1e-9;
 #elif defined(__APPLE__)
 		static mach_timebase_info_data_t timebase_info;
 		if (timebase_info.denom == 0) {
@@ -6022,7 +6026,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #define RGFW_F10 RGFW_OS_BASED_VALUE(0xffc7, 0x79, 110)
 #define RGFW_F11 RGFW_OS_BASED_VALUE(0xffc8, 0x7A, 104)
 #define RGFW_F12 RGFW_OS_BASED_VALUE(0xffc9, 0x7B, 112)
-#define RGFW_F13 RGFW_OS_BASED_VALUE(0xffca 0x7C, 106)
+#define RGFW_F13 RGFW_OS_BASED_VALUE(0xffca, 0x7C, 106)
 #define RGFW_F14 RGFW_OS_BASED_VALUE(0xffcb, 0x7D, 108)
 #define RGFW_F15 RGFW_OS_BASED_VALUE(0xffcc, 0x7E, 114)
 
