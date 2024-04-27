@@ -141,7 +141,6 @@ extern "C" {
 
 #if defined(__APPLE__) && !defined(RGFW_MACOS_X11) && !defined(RGFW_X11)
 #define RGFW_MACOS
-#include <CoreVideo/CVDisplayLink.h>
 #endif
 
 #if (defined(RGFW_OPENGL_ES1) || defined(RGFW_OPENGL_ES2)) && !defined(RGFW_EGL)
@@ -394,7 +393,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #endif
 #ifdef RGFW_MACOS
 		u32 display;
-		CVDisplayLinkRef displayLink;
+		void* displayLink;
 		void* window;
 #endif
 
@@ -857,6 +856,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #endif
 
 #ifdef RGFW_MACOS
+#include <CoreVideo/CVDisplayLink.h>
 
 	/*
 		based on silicon.h
@@ -969,7 +969,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #define SI_ARRAY_HEADER(s) ((siArrayHeader*)s - 1)
 
 	void* si_array_init_reserve(size_t sizeof_element, size_t count) {
-		void* ptr = malloc(sizeof(siArrayHeader) + (sizeof_element * count));
+		siArrayHeader* ptr = malloc(sizeof(siArrayHeader) + (sizeof_element * count));
 		void* array = ptr + sizeof(siArrayHeader);
 
 		siArrayHeader* header = SI_ARRAY_HEADER(array);
@@ -1312,7 +1312,15 @@ typedef struct { i32 x, y; } RGFW_vector;
 		assert(win->src.display != NULL);
 #endif
 
+		#ifndef RGFW_X11 
 		RGFW_area screenR = RGFW_getScreenSize();
+		#else
+		win->src.display = XOpenDisplay(NULL);
+		assert(win->src.display != NULL);
+
+		Screen* scrn = DefaultScreenOfDisplay((Display*)win->src.display);
+		RGFW_area screenR = RGFW_AREA(scrn->width, scrn->height);
+		#endif
 		
 		if (args & RGFW_FULLSCREEN)
 			rect = RGFW_RECT(0, 0, screenR.w, screenR.h);
@@ -1387,7 +1395,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 			NULL,
 			(DWORD) 0);
 
-		win->src.hdcMem = (HDC)CreateCompatibleDC((HDC)win->src.hdc);
+		win->src.hdcMem = CreateCompatibleDC(win->src.hdc);
 #endif
 #endif
 	}
@@ -5688,7 +5696,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 #ifdef RGFW_OPENGL
 #ifdef RGFW_X11
-		glXMakeCurrent((Display*) win->src.window, (Drawable) win->src.display, (GLXContext) win->src.rSurf);
+		glXMakeCurrent((Display*) win->src.display, (Drawable) win->src.window, (GLXContext) win->src.rSurf);
 #endif
 #ifdef RGFW_WINDOWS
 		wglMakeCurrent(win->src.hdc, (HGLRC) win->src.rSurf);
@@ -5946,6 +5954,13 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		double targetFrameTime = 1.0 / win->fpsCap;
 		double elapsedTime = RGFW_getTime() - currentFrameTime;
+
+		if (elapsedTime < targetFrameTime) {
+			u32 sleepTime = (u32) ((targetFrameTime - elapsedTime) * 1e3);
+			RGFW_sleep(sleepTime);
+		}
+
+		currentFrameTime = (float) RGFW_getTime();
 
 		if (elapsedTime < targetFrameTime) {
 			u32 sleepTime = (u32) ((targetFrameTime - elapsedTime) * 1e3);
