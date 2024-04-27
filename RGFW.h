@@ -141,7 +141,6 @@ extern "C" {
 
 #if defined(__APPLE__) && !defined(RGFW_MACOS_X11) && !defined(RGFW_X11)
 #define RGFW_MACOS
-#include <CoreVideo/CVDisplayLink.h>
 #endif
 
 #if (defined(RGFW_OPENGL_ES1) || defined(RGFW_OPENGL_ES2)) && !defined(RGFW_EGL)
@@ -394,7 +393,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #endif
 #ifdef RGFW_MACOS
 		u32 display;
-		CVDisplayLinkRef displayLink;
+		void* displayLink;
 		void* window;
 #endif
 
@@ -838,6 +837,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #include <assert.h>
 
 #ifdef RGFW_MACOS
+#include <CoreVideo/CVDisplayLink.h>
 
 	/*
 		based on silicon.h
@@ -950,7 +950,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #define SI_ARRAY_HEADER(s) ((siArrayHeader*)s - 1)
 
 	void* si_array_init_reserve(size_t sizeof_element, size_t count) {
-		void* ptr = malloc(sizeof(siArrayHeader) + (sizeof_element * count));
+		siArrayHeader* ptr = malloc(sizeof(siArrayHeader) + (sizeof_element * count));
 		void* array = ptr + sizeof(siArrayHeader);
 
 		siArrayHeader* header = SI_ARRAY_HEADER(array);
