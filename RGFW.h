@@ -837,6 +837,10 @@ typedef struct { i32 x, y; } RGFW_vector;
 #include <math.h>
 #include <assert.h>
 
+#ifdef RGFW_WINDOWS
+#include <windows.h>
+#endif
+
 #ifdef RGFW_MACOS
 
 	/*
@@ -1367,7 +1371,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 			NULL,
 			(DWORD) 0);
 
-		win->src.hdcMem = CreateCompatibleDC(win->src.hdc);
+		win->src.hdcMem = (HDC)CreateCompatibleDC((HDC)win->src.hdc);
 #endif
 #endif
 	}
