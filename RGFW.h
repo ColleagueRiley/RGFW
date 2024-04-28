@@ -3805,8 +3805,22 @@ typedef struct { i32 x, y; } RGFW_vector;
 			return DefWindowProcA(hWnd, message, wParam, lParam);
 		}
 	}
+	
+	#ifndef RGFW_NO_DPI
+	static HMODULE RGFW_Shcore_dll = NULL;
+	typedef HRESULT (WINAPI * PFN_GetDpiForMonitor)(HMONITOR,MONITOR_DPI_TYPE,UINT*,UINT*);
+	PFN_GetDpiForMonitor GetDpiForMonitorSRC = NULL;
+	#define GetDpiForMonitor GetDpiForMonitorSRC
+	#endif
 
 	RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
+		#ifndef RGFW_NO_DPI
+		if (RGFW_Shcore_dll == NULL) {
+			RGFW_Shcore_dll = LoadLibraryA("shcore.dll");
+			GetDpiForMonitorSRC = (PFN_GetDpiForMonitor)GetProcAddress(RGFW_Shcore_dll, "GetDpiForMonitor");
+		}
+		#endif
+
 #ifdef RGFW_WGL_LOAD
 		if (wglinstance == NULL) {
 			wglinstance = LoadLibraryA("opengl32.dll");
@@ -4627,6 +4641,20 @@ typedef struct { i32 x, y; } RGFW_vector;
 			RGFW_dxInfo.pAdapter->lpVtbl->Release(RGFW_dxInfo.pAdapter);
 			RGFW_dxInfo.pFactory->lpVtbl->Release(RGFW_dxInfo.pFactory);
 #endif
+
+			#ifndef RGFW_NO_DPI
+			if (RGFW_Shcore_dll == NULL) {
+				FreeLibrary(RGFW_Shcore_dll);
+				RGFW_Shcore_dll = NULL;
+			}
+			#endif
+
+			#ifdef RGFW_WGL_LOAD
+			if (wglinstance != NULL) {
+				FreeLibrary(wglinstance);
+				wglinstance = NULL;
+			}
+			#endif
 
 			RGFW_root = NULL;
 		}
