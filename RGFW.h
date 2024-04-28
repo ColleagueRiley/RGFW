@@ -374,6 +374,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		u16 joystick; /* which joystick this event applies to (if applicable to any) */
 
 		u8 button; /*!< which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed*/
+		double scroll; /* the raw mouse scroll value */
 
 		u8 axisesCount; /* number of axises */
 		RGFW_vector axis[2]; /* x, y of axises (-100 to 100) */
@@ -1319,6 +1320,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		/* set and init the new window's data */
 		win->r = rect;
+		printf("%i\n", win->r.w);
 		win->fpsCap = 0;
 		win->event.inFocus = 1;
 		win->event.droppedFilesCount = 0;
@@ -4276,6 +4278,8 @@ typedef struct { i32 x, y; } RGFW_vector;
 				else
 					win->event.button = RGFW_mouseScrollDown;
 
+				win->event.scroll = (SHORT) HIWORD(msg.wParam) / (double) WHEEL_DELTA;
+
 				win->event.type = RGFW_mouseButtonPressed;
 				break;
 
@@ -5334,6 +5338,8 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 			else if (deltaY < 0)
 				win->event.button = RGFW_mouseScrollDown;
+
+			win->event.scroll = deltaY;
 
 			win->event.type = RGFW_mouseButtonReleased;
 			break;
