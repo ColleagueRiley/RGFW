@@ -1320,7 +1320,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		/* set and init the new window's data */
 		win->r = rect;
-		printf("%i\n", win->r.w);
 		win->fpsCap = 0;
 		win->event.inFocus = 1;
 		win->event.droppedFilesCount = 0;
@@ -1979,9 +1978,15 @@ typedef struct { i32 x, y; } RGFW_vector;
 #ifndef RGFW_WINDOWS
 	u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { return win->src.jsPressed[c][button]; }
 #else
+
+	typedef DWORD (WINAPI * PFN_XInputGetState)(DWORD,XINPUT_STATE*);
+	PFN_XInputGetState XInputGetStateSRC = NULL;
+	#define XInputGetState XInputGetStateSRC
+	static HMODULE RGFW_XInput_dll = NULL;
+	
 	u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) {
 		XINPUT_STATE state;
-		if (XInputGetState(c, &state) == ERROR_DEVICE_NOT_CONNECTED)
+		if (XInputGetState == NULL || XInputGetState(c, &state) == ERROR_DEVICE_NOT_CONNECTED)
 			return 0;
 
 		if (button == RGFW_JS_A) return state.Gamepad.wButtons & XINPUT_GAMEPAD_A;
@@ -3813,7 +3818,32 @@ typedef struct { i32 x, y; } RGFW_vector;
 	#define GetDpiForMonitor GetDpiForMonitorSRC
 	#endif
 
+	void RGFW_loadXInput(void) {
+		u32 i;
+		static const char* names[] = { 
+			"xinput1_4.dll",
+			"xinput1_3.dll",
+			"xinput9_1_0.dll",
+			"xinput1_2.dll",
+			"xinput1_1.dll"
+		};
+
+		for (i = 0; i < sizeof(names) / sizeof(const char*);  i++) {
+			RGFW_XInput_dll = LoadLibraryA(names[i]);
+
+			if (RGFW_XInput_dll) {
+				XInputGetStateSRC = (PFN_XInputGetState)GetProcAddress(RGFW_XInput_dll, "XInputGetState");
+			
+				if (XInputGetStateSRC == NULL)
+					printf("Failed to load XInputGetState");
+			}
+		}
+	}
+
 	RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
+		if (RGFW_XInput_dll == NULL)
+			RGFW_loadXInput();
+		
 		#ifndef RGFW_NO_DPI
 		if (RGFW_Shcore_dll == NULL) {
 			RGFW_Shcore_dll = LoadLibraryA("shcore.dll");
@@ -4107,7 +4137,9 @@ typedef struct { i32 x, y; } RGFW_vector;
 		size_t i;
 		for (i = 0; i < 4; i++) {
 			XINPUT_STATE state;
-			if (XInputGetState((DWORD) i, &state) == ERROR_DEVICE_NOT_CONNECTED)
+			if (XInputGetState == NULL ||
+				XInputGetState((DWORD) i, &state) == ERROR_DEVICE_NOT_CONNECTED
+			)
 				return 0;
 
 			e->button = 0;
@@ -4225,8 +4257,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 		win->event.droppedFilesCount = 0;
 
 		win->event.inFocus = (GetForegroundWindow() == win->src.window);
-
-		XInputEnable(win->event.inFocus);
 
 		if (RGFW_checkXInput(&win->event))
 			return &win->event;
@@ -4464,10 +4494,12 @@ typedef struct { i32 x, y; } RGFW_vector;
 		monitor.rect.h = monitorInfo.rcWork.bottom - monitorInfo.rcWork.top;
 
 #ifndef RGFW_NO_DPI
-		u32 x, y;
-		GetDpiForMonitor(src, MDT_ANGULAR_DPI, &x, &y);
-		monitor.scaleX = (float) (x) / (float) USER_DEFAULT_SCREEN_DPI;
-		monitor.scaleY = (float) (y) / (float) USER_DEFAULT_SCREEN_DPI;
+		if (GetDpiForMonitor != NULL) {
+			u32 x, y;
+			GetDpiForMonitor(src, MDT_ANGULAR_DPI, &x, &y);
+			monitor.scaleX = (float) (x) / (float) USER_DEFAULT_SCREEN_DPI;
+			monitor.scaleY = (float) (y) / (float) USER_DEFAULT_SCREEN_DPI;
+		}
 #endif
 
 		HDC hdc = GetDC(NULL);
@@ -4641,6 +4673,11 @@ typedef struct { i32 x, y; } RGFW_vector;
 			RGFW_dxInfo.pAdapter->lpVtbl->Release(RGFW_dxInfo.pAdapter);
 			RGFW_dxInfo.pFactory->lpVtbl->Release(RGFW_dxInfo.pFactory);
 #endif
+
+			if (RGFW_XInput_dll == NULL) {
+				FreeLibrary(RGFW_XInput_dll);
+				RGFW_XInput_dll = NULL;
+			}
 
 			#ifndef RGFW_NO_DPI
 			if (RGFW_Shcore_dll == NULL) {
