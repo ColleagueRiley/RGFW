@@ -4674,13 +4674,13 @@ typedef struct { i32 x, y; } RGFW_vector;
 			RGFW_dxInfo.pFactory->lpVtbl->Release(RGFW_dxInfo.pFactory);
 #endif
 
-			if (RGFW_XInput_dll == NULL) {
+			if (RGFW_XInput_dll != NULL) {
 				FreeLibrary(RGFW_XInput_dll);
 				RGFW_XInput_dll = NULL;
 			}
 
 			#ifndef RGFW_NO_DPI
-			if (RGFW_Shcore_dll == NULL) {
+			if (RGFW_Shcore_dll != NULL) {
 				FreeLibrary(RGFW_Shcore_dll);
 				RGFW_Shcore_dll = NULL;
 			}
