@@ -1272,7 +1272,7 @@ typedef struct { i32 x, y; } RGFW_vector;
     attribs[index++] = a; \
 }
 
-#ifdef RGFW_X11
+#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
 	void RGFW_window_showMouse(RGFW_window* win, i8 show) {
 		static u8 RGFW_blk[] = { 0, 0, 0, 0 };
 		if (show == 0)
@@ -2541,9 +2541,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		RGFW_window_setMouseDefault(win);
 
-		if (args & RGFW_HIDE_MOUSE)
-			RGFW_window_showMouse(win, 0);
-
 		RGFW_windowsOpen++;
 
 		return win; /*return newly created window*/
@@ -2981,7 +2978,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 			(mouse.x != win->r.x + (win->r.w / 2) || mouse.y != win->r.y + (win->r.h / 2))) {
 			RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
 		}
-
 
 		XFlush((Display*) win->src.display);
 
@@ -4673,7 +4669,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 			RGFW_dxInfo.pAdapter->lpVtbl->Release(RGFW_dxInfo.pAdapter);
 			RGFW_dxInfo.pFactory->lpVtbl->Release(RGFW_dxInfo.pFactory);
 #endif
-
+		
 			if (RGFW_XInput_dll != NULL) {
 				FreeLibrary(RGFW_XInput_dll);
 				RGFW_XInput_dll = NULL;
@@ -4844,12 +4840,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 		return win->src.joystickCount - 1;
 	}
 
-	void RGFW_window_showMouse(RGFW_window* win, i8 show) {
-		assert(win != NULL);
-
-		SetClassLongPtrA(win->src.window, GCLP_HCURSOR, (LPARAM) LoadCursorA(NULL, NULL));
-		SetCursor(LoadCursorA(NULL, NULL));
-	}
 	void RGFW_window_moveMouse(RGFW_window* win, RGFW_vector p) {
 		assert(win != NULL);
 
@@ -5535,10 +5525,12 @@ typedef struct { i32 x, y; } RGFW_vector;
 	}
 
 	void RGFW_window_showMouse(RGFW_window* win, i8 show) {
-		if (show)
+		if (show) {
 			CGDisplayShowCursor(kCGDirectMainDisplay);
-		else
+		}
+		else {
 			CGDisplayHideCursor(kCGDirectMainDisplay);
+		}
 	}
 
 	void RGFW_window_setMouseStandard(RGFW_window* win, void* mouse) {
