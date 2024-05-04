@@ -127,7 +127,22 @@ extern "C" {
 
 	/* this name looks better */
 	/* plus it helps with cross-compiling because RGFW_X11 won't be accidently defined */
+	
 #define RGFW_WINDOWS
+
+#if defined(_WIN32)
+#define WIN32
+#endif
+
+#if defined(_WIN64)
+#define WIN64
+#define _AMD64_
+#undef _X86_
+#else
+#undef _AMD64_
+#define _X86_
+#endif
+
 #include <windef.h>
 #include <XInput.h>
 
@@ -3756,8 +3771,9 @@ typedef struct { i32 x, y; } RGFW_vector;
 #define WGL_SAMPLES_ARB 0x2042
 #define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20a9
 
+static HMODULE wglinstance = NULL;
+
 #ifdef RGFW_WGL_LOAD
-	static HMODULE wglinstance = NULL;
 	typedef HGLRC(WINAPI* PFN_wglCreateContext)(HDC);
 	typedef BOOL(WINAPI* PFN_wglDeleteContext)(HGLRC);
 	typedef PROC(WINAPI* PFN_wglGetProcAddress)(LPCSTR);
@@ -3782,7 +3798,13 @@ typedef struct { i32 x, y; } RGFW_vector;
 #endif
 
 #ifdef RGFW_OPENGL
-	void* RGFW_getProcAddress(const char* procname) { return (void*) wglGetProcAddress(procname); }
+	void* RGFW_getProcAddress(const char* procname) { 
+		void* proc = (void*) wglGetProcAddress(procname);
+		if (proc)
+			return proc;
+
+		return (void*) GetProcAddress(wglinstance, procname); 
+	}
 
 	typedef BOOL(APIENTRY* PFNWGLCHOOSEPIXELFORMATARBPROC)(HDC hdc, const int* piAttribIList, const FLOAT* pfAttribFList, UINT nMaxFormats, int* piFormats, UINT* nNumFormats);
 	static PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = NULL;
@@ -3847,18 +3869,17 @@ typedef struct { i32 x, y; } RGFW_vector;
 		}
 		#endif
 
-#ifdef RGFW_WGL_LOAD
 		if (wglinstance == NULL) {
 			wglinstance = LoadLibraryA("opengl32.dll");
-
+#ifdef RGFW_WGL_LOAD
 			wglCreateContextSRC = (PFN_wglCreateContext) GetProcAddress(wglinstance, "wglCreateContext");
 			wglDeleteContextSRC = (PFN_wglDeleteContext) GetProcAddress(wglinstance, "wglDeleteContext");
 			wglGetProcAddressSRC = (PFN_wglGetProcAddress) GetProcAddress(wglinstance, "wglGetProcAddress");
 			wglMakeCurrentSRC = (PFN_wglMakeCurrent) GetProcAddress(wglinstance, "wglMakeCurrent");
 			wglGetCurrentDCSRC = (PFN_wglGetCurrentDC) GetProcAddress(wglinstance, "wglGetCurrentDC");
 			wglGetCurrentContextSRC = (PFN_wglGetCurrentContext) GetProcAddress(wglinstance, "wglGetCurrentContext");
-		}
 #endif
+		}
 
 		if (name[0] == 0) name = (char*) " ";
 
@@ -4024,15 +4045,15 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 			u32 index = 0;
 			i32 attribs[40];
-
-			SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
+#define  WGL_CONTEXT_CORE_PROFILE_BIT_ARB        0x00000001
+			SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB);
 
 			if (RGFW_majorVersion || RGFW_minorVersion) {
 				SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion);
 				SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_minorVersion);
 			}
 
-			SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
+			SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB);
 
 			if (RGFW_majorVersion || RGFW_minorVersion) {
 				SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion);
@@ -4142,6 +4163,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 			if (state.Gamepad.wButtons & XINPUT_GAMEPAD_A && !(buttons[i] & XINPUT_GAMEPAD_A)) {
 				e->button = RGFW_JS_A;
 				e->type = RGFW_jsButtonPressed;
+				buttons[i] = state.Gamepad.wButtons;
 				return 1;
 			} else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_B && !(buttons[i] & XINPUT_GAMEPAD_B))
 				e->button = RGFW_JS_B;
@@ -4173,13 +4195,50 @@ typedef struct { i32 x, y; } RGFW_vector;
 			triggers[i][0] = state.Gamepad.bLeftTrigger;
 			triggers[i][1] = state.Gamepad.bRightTrigger;
 
-			buttons[i] = state.Gamepad.wButtons;
-
 			if (e->button) {
+				buttons[i] = state.Gamepad.wButtons;
 				e->type = RGFW_jsButtonPressed;
 				return 1;
 			}
 
+			if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_A) && (buttons[i] & XINPUT_GAMEPAD_A)) {
+				e->button = RGFW_JS_A;
+				e->type = RGFW_jsButtonReleased;
+				buttons[i] = state.Gamepad.wButtons;
+				return 1;
+			} else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_B) && (buttons[i] & XINPUT_GAMEPAD_B))
+				e->button = RGFW_JS_B;
+			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) && (buttons[i] & XINPUT_GAMEPAD_Y))
+				e->button = RGFW_JS_Y;
+			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_X) && (buttons[i] & XINPUT_GAMEPAD_X))
+				e->button = RGFW_JS_X;
+			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_START) && (buttons[i] & XINPUT_GAMEPAD_START))
+				e->button = RGFW_JS_START;
+			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) && (buttons[i] & XINPUT_GAMEPAD_BACK))
+				e->button = RGFW_JS_SELECT;
+			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) && (buttons[i] & XINPUT_GAMEPAD_DPAD_UP))
+				e->button = RGFW_JS_UP;
+			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) && (buttons[i] & XINPUT_GAMEPAD_DPAD_DOWN))
+				e->button = RGFW_JS_DOWN;
+			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) && (buttons[i] & XINPUT_GAMEPAD_DPAD_LEFT))
+				e->button = RGFW_JS_LEFT;
+			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) && (buttons[i] & XINPUT_GAMEPAD_DPAD_RIGHT))
+				e->button = RGFW_JS_RIGHT;
+			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) && (buttons[i] & XINPUT_GAMEPAD_LEFT_SHOULDER))
+				e->button = RGFW_JS_L1;
+			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) && (buttons[i] & XINPUT_GAMEPAD_RIGHT_SHOULDER))
+				e->button = RGFW_JS_R1;
+			else if (state.Gamepad.bLeftTrigger == 0 && triggers[i][0] != 0)
+				e->button = RGFW_JS_L2;
+			else if (state.Gamepad.bRightTrigger == 0 && triggers[i][1] != 0)
+				e->button = RGFW_JS_R2;
+			
+			buttons[i] = state.Gamepad.wButtons;
+
+			if (e->button) {
+				e->type = RGFW_jsButtonReleased;
+				return 1;
+			}
 #define INPUT_DEADZONE  ( 0.24f * (float)(0x7FFF) )  // Default to 24% of the +/- 32767 range.   This is a reasonable default value but can be altered if needed.
 
 			if ((state.Gamepad.sThumbLX < INPUT_DEADZONE &&
@@ -4682,12 +4741,10 @@ typedef struct { i32 x, y; } RGFW_vector;
 			}
 			#endif
 
-			#ifdef RGFW_WGL_LOAD
 			if (wglinstance != NULL) {
 				FreeLibrary(wglinstance);
 				wglinstance = NULL;
 			}
-			#endif
 
 			RGFW_root = NULL;
 		}
@@ -4878,7 +4935,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 	void* RGFWnsglFramework = NULL;
 
 #ifdef RGFW_OPENGL
-	void* RGFW_getProcAddress(const char* procname) {
+	void* RGFW_getProcAddress(void* procname) {
 		if (RGFWnsglFramework == NULL)
 			RGFWnsglFramework = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
 
