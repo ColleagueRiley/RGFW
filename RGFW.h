@@ -4951,7 +4951,7 @@ static HMODULE wglinstance = NULL;
 	void* RGFWnsglFramework = NULL;
 
 #ifdef RGFW_OPENGL
-	void* RGFW_getProcAddress(void* procname) {
+	void* RGFW_getProcAddress(const char* procname) {
 		if (RGFWnsglFramework == NULL)
 			RGFWnsglFramework = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
 
