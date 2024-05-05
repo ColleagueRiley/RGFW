@@ -144,7 +144,12 @@ extern "C" {
 #endif
 
 #include <windef.h>
+
+#ifdef __MINGW32__
+#include <xinput.h>
+#else
 #include <XInput.h>
+#endif
 
 #else 
 #if defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11)
@@ -2594,6 +2599,48 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		win->event.type = 0;
 
+#ifdef __linux__
+		{
+			u8 i;
+			for (i = 0; i < win->src.joystickCount; i++) {
+				struct js_event e;
+
+
+				if (!win->src.joysticks[i])
+					continue;
+
+				i32 flags = fcntl(win->src.joysticks[i], F_GETFL, 0);
+				fcntl(win->src.joysticks[i], F_SETFL, flags | O_NONBLOCK);
+
+				ssize_t bytes;
+				while ((bytes = read(win->src.joysticks[i], &e, sizeof(e))) > 0) {
+					switch (e.type) {
+					case JS_EVENT_BUTTON:
+						win->event.type = e.value ? RGFW_jsButtonPressed : RGFW_jsButtonReleased;
+						win->event.button = e.number;
+						win->src.jsPressed[i][e.number] = e.value;
+						return &win->event;
+					case JS_EVENT_AXIS:
+						ioctl(win->src.joysticks[i], JSIOCGAXES, &win->event.axisesCount);
+
+						if ((e.number == 0 || e.number % 2) && e.number != 1)
+							xAxis = e.value;
+						else
+							yAxis = e.value;
+
+						win->event.axis[e.number / 2].x = xAxis;
+						win->event.axis[e.number / 2].y = yAxis;
+						win->event.type = RGFW_jsAxisMove;
+						win->event.joystick = e.number / 2;
+						return &win->event;
+
+					default: break;
+					}
+				}
+			}
+		}
+#endif
+
 		XEvent E; /* raw X11 event */
 
 		/* if there is no unread qued events, get a new one */
@@ -2649,6 +2696,14 @@ typedef struct { i32 x, y; } RGFW_vector;
 		case ButtonPress:
 		case ButtonRelease:
 			win->event.type = (E.type == ButtonPress) ? RGFW_mouseButtonPressed : RGFW_mouseButtonReleased;
+		
+			if (win->event.button == RGFW_mouseScrollUp) {
+				win->event.scroll = 1;
+			}
+			else if (win->event.button == RGFW_mouseScrollDown) {
+				win->event.scroll = -1;
+			}
+
 			win->event.button = E.xbutton.button;
 			break;
 
@@ -2938,46 +2993,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 			break;
 		}
 		default: {
-#ifdef __linux__
-			u8 i;
-			for (i = 0; i < win->src.joystickCount; i++) {
-				struct js_event e;
-
-				if (!win->src.joysticks[i])
-					continue;
-
-				i32 flags = fcntl(win->src.joysticks[i], F_GETFL, 0);
-				fcntl(win->src.joysticks[i], F_SETFL, flags | O_NONBLOCK);
-
-				ssize_t bytes;
-				while ((bytes = read(win->src.joysticks[i], &e, sizeof(e))) > 0) {
-					switch (e.type) {
-					case JS_EVENT_BUTTON:
-						win->event.type = e.value ? RGFW_jsButtonPressed : RGFW_jsButtonReleased;
-						win->event.button = e.number;
-
-						win->src.jsPressed[i][e.number] = e.value;
-						break;
-					case JS_EVENT_AXIS:
-						ioctl(win->src.joysticks[i], JSIOCGAXES, &win->event.axisesCount);
-
-						if ((e.number == 0 || e.number % 2) && e.number != 1)
-							xAxis = e.value;
-						else
-							yAxis = e.value;
-
-						win->event.axis[e.number / 2].x = xAxis / 327.67;
-						win->event.axis[e.number / 2].y = yAxis / 327.67;
-						win->event.type = RGFW_jsAxisMove;
-						win->event.joystick = e.number / 2;
-						break;
-
-					default: break;
-					}
-				}
-			}
-#endif
-
 			break;
 		}
 		}
@@ -2988,11 +3003,14 @@ typedef struct { i32 x, y; } RGFW_vector;
 			win->src.winArgs &= ~RGFW_MOUSE_CHANGED;
 		}
 
-		RGFW_vector mouse = RGFW_getGlobalMousePoint();
-		if (win->src.winArgs & RGFW_HOLD_MOUSE && win->event.inFocus &&
-			(mouse.x != win->r.x + (win->r.w / 2) || mouse.y != win->r.y + (win->r.h / 2))) {
-			RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
-		}
+			RGFW_vector mouse = RGFW_getGlobalMousePoint();
+			if (win->src.winArgs & RGFW_HOLD_MOUSE && win->event.inFocus && win->event.type == RGFW_mousePosChanged) {
+				RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
+				
+				if (XEventsQueued((Display*) win->src.display, QueuedAfterReading) <= 1)
+					XSync(win->src.display, True);
+			}
+			
 
 		XFlush((Display*) win->src.display);
 
@@ -3237,8 +3255,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		XWarpPointer(win->src.display, None, None, 0, 0, 0, 0, -event.xbutton.x, -event.xbutton.y);
 		XWarpPointer(win->src.display, None, None, 0, 0, 0, 0, v.x, v.y);
-
-		//XWarpPointer (win->src.display, None, root, 0, 0, 0, 0, v.x, v.y);
 	}
 
 	RGFWDEF void RGFW_window_disableMouse(RGFW_window* win) {
