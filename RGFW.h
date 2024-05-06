@@ -1151,15 +1151,14 @@ typedef struct { i32 x, y; } RGFW_vector;
 			(NSAlloc(nsclass), func, array, len);
 	}
 
-	void NSView_registerForDraggedTypes(void* view, NSPasteboardType* newTypes, size_t len) {
+	void NSregisterForDraggedTypes(void* view, NSPasteboardType* newTypes, size_t len) {
 		NSString** ntypes = cstrToNSStringArray(newTypes, len);
 
 		void* func = sel_registerName("registerForDraggedTypes:");
 
-		NSArray* array = ((id(*)(id, SEL, NSPasteboardType*, NSUInteger))objc_msgSend)
-			(NSAlloc(objc_getClass("NSArray")), sel_registerName("initWithObjects:count:"), ntypes, len);
+		NSArray* array = c_array_to_NSArray(ntypes, len);
 
-		objc_msgSend_void_id(view, func, array);
+		objc_msgSend_void_id(view, sel_registerName("registerForDraggedTypes:"), array);
 
 		NSRelease(array);
 	}
@@ -4989,12 +4988,14 @@ static HMODULE wglinstance = NULL;
 	bool acceptsFirstResponder() { return true; }
 	bool performKeyEquivalent(NSEvent* event) { return true; }
 
-	NSDragOperation draggingEntered(NSDraggingInfo* sender) { return NSDragOperationCopy; }
-	NSDragOperation draggingUpdated(NSDraggingInfo* sender) { return NSDragOperationCopy; }
-	bool prepareForDragOperation(NSDraggingInfo* sender) { return true; }
+	NSDragOperation draggingEntered(id self, SEL sel, id sender) { return NSDragOperationCopy; }
+	NSDragOperation draggingUpdated(id self, SEL sel, id sender) { return NSDragOperationCopy; }
+	bool prepareForDragOperation(void) { return true; }
+
+	void RGFW__osxDraggingEnded(id self, SEL sel, id sender) { return; }
 
 	/* NOTE(EimaMei): Usually, you never need 'id self, SEL cmd' for C -> Obj-C methods. This isn't the case. */
-	bool performDragOperation(id self, SEL cmd, NSDraggingInfo* sender) {
+	bool performDragOperation(id self, SEL sel, id sender) {
 		NSWindow* window = objc_msgSend_id(sender, sel_registerName("draggingDestinationWindow"));
 		u32 i;
 		bool found = false;
@@ -5087,6 +5088,15 @@ static HMODULE wglinstance = NULL;
 			}
 		}
 	}
+
+	#ifdef __cplusplus
+	#define APPKIT_EXTERN		extern "C"
+	#else
+	#define APPKIT_EXTERN		extern
+	#endif
+
+	APPKIT_EXTERN NSPasteboardType const NSPasteboardTypeURL = "public.url";                        API_AVAILABLE(macos(10.13)); // Equivalent to kUTTypeURL
+	APPKIT_EXTERN NSPasteboardType const NSPasteboardTypeFileURL  = "public.file-url";                  API_AVAILABLE(macos(10.13)); // Equivalent to kUTTypeFileURL
 
 	RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		static u8 RGFW_loaded = 0;
@@ -5213,14 +5223,26 @@ static HMODULE wglinstance = NULL;
 		if (args & RGFW_ALLOW_DND) {
 			win->src.winArgs |= RGFW_ALLOW_DND;
 
-			NSPasteboardType array[] = { "public.url", "public.file-url", NSPasteboardTypeString, NULL };
-			NSView_registerForDraggedTypes(win->src.view, array, 3);
+/*
+		NSPasteboardType types[] = {NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString};
+
+		siArray(NSPasteboardType) array = sic_arrayInit(types, sizeof(id), countof(types));
+		NSWindow_registerForDraggedTypes(win->hwnd, array);
+
+		win->dndHead = win->dndPrev = out;
+*/
+
+			NSPasteboardType array[] = {NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString};
+			NSregisterForDraggedTypes(win->src.window, array, 3);
 
 			/* NOTE(EimaMei): Drag 'n Drop requires too many damn functions for just a Drag 'n Drop event. */
-			class_addMethod(delegateClass, sel_registerName("draggingEntered:"), (IMP) draggingEntered, "");
-			class_addMethod(delegateClass, sel_registerName("draggingUpdated:"), (IMP) draggingUpdated, "");
-			class_addMethod(delegateClass, sel_registerName("prepareForDragOperation:"), (IMP) prepareForDragOperation, "");
-			class_addMethod(delegateClass, sel_registerName("performDragOperation:"), (IMP) performDragOperation, "");
+			class_addMethod(delegateClass, "draggingEntered:", draggingEntered, "l@:@");
+			class_addMethod(delegateClass, "draggingUpdated:", draggingUpdated, "l@:@");
+			class_addMethod(delegateClass, "draggingExited:", RGFW__osxDraggingEnded, "v@:@");
+			class_addMethod(delegateClass, "draggingEnded:", RGFW__osxDraggingEnded, "v@:@");
+			class_addMethod(delegateClass, "prepareForDragOperation:", prepareForDragOperation, "B@:@");
+			class_addMethod(delegateClass, "performDragOperation:", performDragOperation, "B@:@");
+
 		}
 
 		id delegate = objc_msgSend_id(NSAlloc(delegateClass), sel_registerName("init"));
@@ -5374,8 +5396,7 @@ static HMODULE wglinstance = NULL;
 		static void* eventFunc = NULL;
 		if (eventFunc == NULL)
 			eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
-
-
+		
 		if (win->event.type == RGFW_windowAttribsChange && win->event.keyCode != 120) {
 			win->event.keyCode = 120;
 			return &win->event;
@@ -5431,6 +5452,13 @@ static HMODULE wglinstance = NULL;
 			NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(e, sel_registerName("locationInWindow"));
 
 			win->event.point = RGFW_VECTOR((u32) p.x, (u32) (win->r.h - p.y));
+
+			if (win->src.winArgs & RGFW_HOLD_MOUSE) {
+				RGFW_vector mouse = RGFW_getGlobalMousePoint();
+				if ((mouse.x != win->r.x + (win->r.w / 2) || mouse.y != win->r.y + (win->r.h / 2))) {
+					RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
+				}
+			}
 			break;
 
 		case NSEventTypeLeftMouseDown:
@@ -5482,13 +5510,6 @@ static HMODULE wglinstance = NULL;
 		}
 
 		objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
-
-		if (win->src.winArgs & RGFW_HOLD_MOUSE) {
-			RGFW_vector mouse = RGFW_getGlobalMousePoint();
-			if (win->event.inFocus && (mouse.x != win->r.x + (win->r.w / 2) || mouse.y != win->r.y + (win->r.h / 2))) {
-				RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
-			}
-		}
 
 		return &win->event;
 	}
@@ -5614,9 +5635,7 @@ static HMODULE wglinstance = NULL;
 	void RGFW_window_moveMouse(RGFW_window* win, RGFW_vector v) {
 		assert(win != NULL);
 
-		CGEventRef moveEvent = CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, CGPointMake(v.x, v.y), kCGMouseButtonLeft);
-		CGEventPost(kCGHIDEventTap, moveEvent);
-		CFRelease(moveEvent);
+		CGWarpMouseCursorPosition(CGPointMake(v.x, v.y));
 	}
 
 
