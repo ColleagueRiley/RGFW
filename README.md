@@ -12,6 +12,8 @@ RGFW is a free multi-platform single-header very simple-to-use framework library
 The window backend supports XLib (UNIX), Cocoas (MacOS) and WinAPI (Windows)\
 The graphics backend supports OpenGL (EGL, software, OSMesa, GLES), Vulkan, DirectX and software rendering buffers.
 
+RGFW was designed as a backend for RSGL, but it can be used standalone or for other libraries. It is also an optional alternative backend for Raylib.
+
 This library
 
 1) is single header and portable (written in C89 in mind)
@@ -91,6 +93,8 @@ int main() {
 
 
 # Documentation
+[![AltText](https://github.com/ColleagueRiley/ColleagueRiley/blob/main/rsgl.png?raw=true)](https://github.com/ColleagueRiley/RSGL)\
+(Image functions as a button)
 
 There is a lot of in-header-documentation, but more documentation can be found [here](https://RSGL.github.io/RGFW)
 
@@ -139,15 +143,26 @@ projects that use RGFW in some way
 
 It uses RGFW as a backend.
 
+## Raylib
+[Raylib][https://github.com/raysan5/raylib] is a simple and easy-to-use library to enjoy videogames programming.
+
+Raylib uses RGFW as an optional alternative platform.
+
 ## PureDoom-RGFW
 [PureDOOM-RGFW](https://github.com/ColleagueRiley/PureDoom-RGFW) is an example of the PureDOOM source port, using RGFW and miniaudio.
 
 ## RGL (made by the same author)
+[![AltText](https://github.com/ColleagueRiley/ColleagueRiley/blob/main/rgl.png?raw=true)](https://github.com/ColleagueRiley/RGL)\
+(image functions as a button)
+
 [RGL](https://github.com/ColleagueRiley/RGL) is a simple ultra-lightweight OpenGL version abstraction layer HEAVILY based on RLGL that uses the OpenGL pipeline style.
 
 It uses RGFW for it's examples
 
 ## RFont (made by the same author)
+[![AltText](https://github.com/ColleagueRiley/ColleagueRiley/blob/main/rfont.png?raw=true)](https://github.com/ColleagueRiley/RFont)\
+(image functions as a button)
+
 [RFont](https://github.com/ColleagueRiley/RFont) is a simple-to-use single-header modular font rendering library written in C. 
 
 It uses RGFW for it's examples
