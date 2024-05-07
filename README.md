@@ -146,7 +146,7 @@ feel free to do a PR if you want RGFW added to the list
 It uses RGFW as a backend.
 
 ## Raylib
-(Raylib)[https://github.com/raysan5/raylib] is a simple and easy-to-use library to enjoy videogames programming.
+[Raylib](https://github.com/raysan5/raylib) is a simple and easy-to-use library to enjoy videogames programming.
 
 Raylib uses RGFW as an optional alternative platform.
 
