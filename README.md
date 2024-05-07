@@ -12,7 +12,7 @@ RGFW is a free multi-platform single-header very simple-to-use framework library
 The window backend supports XLib (UNIX), Cocoas (MacOS) and WinAPI (Windows)\
 The graphics backend supports OpenGL (EGL, software, OSMesa, GLES), Vulkan, DirectX and software rendering buffers.
 
-RGFW was designed as a backend for RSGL, but it can be used standalone or for other libraries. It is also an optional alternative backend for Raylib.
+RGFW was designed as a backend for RSGL, but it can be used standalone or for other libraries, such as Raylib which uses it as an optional alternative backend.
 
 This library
 
@@ -137,14 +137,16 @@ RGFW is more portable, in part because single-header library. It does not use ca
 | Direct X | ✓  | X |
 
 # project
-projects that use RGFW in some way
+projects that use RGFW in some way\
+feel free to do a PR if you want RGFW added to the list
+
 ## RSGL (made by the same author)
 [RSGL](https://github.com/ColleagueRiley/RSGL) is A modular simple-to-use cross-platform GUI library for easily creating GUI apps and games. It combines the freedom of lower-level GUI libraries with modern C techniques, offering both simplicity and convenience. 
 
 It uses RGFW as a backend.
 
 ## Raylib
-[Raylib][https://github.com/raysan5/raylib] is a simple and easy-to-use library to enjoy videogames programming.
+(Raylib)[https://github.com/raysan5/raylib] is a simple and easy-to-use library to enjoy videogames programming.
 
 Raylib uses RGFW as an optional alternative platform.
 
