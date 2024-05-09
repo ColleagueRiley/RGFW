@@ -137,8 +137,8 @@ RGFW is more portable, in part because single-header library. It does not use ca
 | Direct X | ✓  | X |
 
 # project
-projects that use RGFW in some way\
-feel free to do a PR if you want RGFW added to the list
+Projects that use RGFW in some way\
+Feel free to do a PR if you want something added to the list
 
 ## RSGL (made by the same author)
 [RSGL](https://github.com/ColleagueRiley/RSGL) is A modular simple-to-use cross-platform GUI library for easily creating GUI apps and games. It combines the freedom of lower-level GUI libraries with modern C techniques, offering both simplicity and convenience. 
