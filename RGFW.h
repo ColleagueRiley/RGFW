@@ -6074,7 +6074,7 @@ static HMODULE wglinstance = NULL;
 	}
 
 	void RGFW_sleep(u32 ms) {
-#ifndef _MSC_VER
+#ifndef RGFW_WINDOWS
 		struct timespec time;
 		time.tv_sec = 0;
 		time.tv_nsec = ms * 1000;
