@@ -2753,8 +2753,8 @@ typedef struct { i32 x, y; } RGFW_vector;
 						4,
 						&actualType,
 						&actualFormat,
-						&count,
-						&bytesAfter,
+						(unsigned long*) &count,
+						(unsigned long*) &bytesAfter,
 						(u8**) &formats);
 				} else {
 					formats = (Atom*) RGFW_MALLOC(E.xclient.data.l[2] + E.xclient.data.l[3] + E.xclient.data.l[4]);
@@ -3002,7 +3002,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 			win->src.winArgs &= ~RGFW_MOUSE_CHANGED;
 		}
 
-			RGFW_vector mouse = RGFW_getGlobalMousePoint();
 			if (win->src.winArgs & RGFW_HOLD_MOUSE && win->event.inFocus && win->event.type == RGFW_mousePosChanged) {
 				RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
 				
@@ -4060,15 +4059,15 @@ static HMODULE wglinstance = NULL;
 
 			u32 index = 0;
 			i32 attribs[40];
-#define  WGL_CONTEXT_CORE_PROFILE_BIT_ARB        0x00000001
-			SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB);
+
+			SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
 
 			if (RGFW_majorVersion || RGFW_minorVersion) {
 				SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion);
 				SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_minorVersion);
 			}
 
-			SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB);
+			SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
 
 			if (RGFW_majorVersion || RGFW_minorVersion) {
 				SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion);
