@@ -100,6 +100,14 @@ There is a lot of in-header-documentation, but more documentation can be found [
 
 If you wish to build the documentation yourself, there is also a Doxygen file attached.
 
+# Bindings
+| Language | platform | APIs | URL |
+| --- | --- | --- | --- |
+| C | MacOS, Linux, Windows | OpenGL, DirectX, Vulkan, Buffer | (This Repo) |
+| Python | MacOS, Linux, Windows | Mainly OpenGL | [RGFW-Python](https://github.com/ColleagueRiley/RGFW-Python) |
+
+Feel free to do a PR if you want a binding added to the list
+
 # RGFW vs GLFW
 RGFW is more portable, in part because single-header library. It does not use callbacks and focuses on trying to be straightforward. RGFW tries to work with the programmer rather than forcing the programmer to work around it. It also uses far less RAM and storage than GLFW.
 
@@ -149,6 +157,9 @@ It uses RGFW as a backend.
 [Raylib](https://github.com/raysan5/raylib) is a simple and easy-to-use library to enjoy videogames programming.
 
 Raylib uses RGFW as an optional alternative platform.
+
+### Raylib GO
+[Raylib](https://github.com/gen2brain/raylib-go) go bindings for Raylib. With explicit support for RGFW. (PLATFORM_DESKTOP_RGFW) 
 
 ## PureDoom-RGFW
 [PureDOOM-RGFW](https://github.com/ColleagueRiley/PureDoom-RGFW) is an example of the PureDOOM source port, using RGFW and miniaudio.
