@@ -1,20 +1,109 @@
-name: macos
+name: macOS
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ "main" ]
+    paths:
+      - '**'
+      - 'examples/**'
+      - '.github/workflows/macos.yml'
   pull_request:
-    branches: [ "main" ]
+    paths:
+      - '**'
+      - 'examples/**'
+      - '.github/workflows/macos.yml'
+  release:
+    types: [published]
+
+permissions:
+  contents: read
 
 jobs:
   build:
-
+    permissions:
+      contents: write  # for actions/upload-release-asset to upload release asset
     runs-on: macos-latest
-
-    steps:
-    - uses: actions/checkout@v3
-    - name: gcc-basic
-      run: gcc -I./ ./examples/basic/main.c -Wall -framework AppKit -framework OpenGL -framework CoreVideo -std=c99
     
-    - name: gcc-gl33
-      run: gcc -I./ ./examples/gl33/main.c -framework AppKit -framework OpenGL -framework CoreVideo -std=c99
+    env:
+      RELEASE_NAME: RGFW-dev_macos
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+    
+    - name: Setup Release Version
+      run: |
+        echo "RELEASE_NAME=RGFW-${{ github.event.release.tag_name }}_macos" >> $GITHUB_ENV
+      shell: bash
+      if: github.event_name == 'release' && github.event.action == 'published'
+
+    - name: Setup Environment
+      run: | 
+        mkdir build
+        cd build
+        mkdir ${{ env.RELEASE_NAME }}
+        cd ${{ env.RELEASE_NAME }}
+        mkdir include
+        mkdir lib
+        cd ../..
+   
+    # Generating static + shared library, note that i386 architecture is deprecated
+    # Defining GL_SILENCE_DEPRECATION because OpenGL is deprecated on macOS
+    - name: Build Library
+      run: |
+        clang --version
+        
+        # Extract version numbers from Makefile
+        brew install grep
+        
+        # Build RGFW x86_64 static
+        make libRGFW.a CUSTOM_CFLAGS="-target x86_64-apple-macos10.12 -DGL_SILENCE_DEPRECATION"
+        mv libRGFW.a /tmp/libRGFW_x86_64.a
+        rm -f RGFW.o
+        
+        # Build RGFW arm64 static
+        make libRGFW.a CUSTOM_CFLAGS="-target arm64-apple-macos11 -DGL_SILENCE_DEPRECATION"
+        mv libRGFW.a /tmp/libRGFW_arm64.a
+        rm -f RGFW.o
+        
+        # Join x86_64 and arm64 static
+        lipo -create -output build/${{ env.RELEASE_NAME }}/lib/libRGFW.a /tmp/libRGFW_x86_64.a /tmp/libRGFW_arm64.a
+        
+        # Build RGFW x86_64 dynamic
+        make libRGFW.dylib CUSTOM_CFLAGS="-target x86_64-apple-macos10.12 -DGL_SILENCE_DEPRECATION"
+        mv libRGFW.dylib /tmp/libRGFW_x86_64.dylib
+        rm -f RGFW.o
+        
+        # Build RGFW arm64 dynamic
+        make libRGFW.dylib CUSTOM_CFLAGS="-target arm64-apple-macos11 -DGL_SILENCE_DEPRECATION"
+        mv libRGFW.dylib /tmp/libRGFW_arm64.dylib
+        
+        # Join x86_64 and arm64 dynamic
+        rm -f ./build/lib/*
+        lipo -create -output libRGFW.dylib /tmp/libRGFW_x86_64.dylib /tmp/libRGFW_arm64.dylib
+        ln -sv libRGFW.dylib  build/${{ env.RELEASE_NAME }}/lib/libRGFW.dylib
+  
+    - name: Generate Artifacts
+      run: |
+        mkdir -p build
+        mkdir -p build/include
+        mkdir -p build/lib
+        cp -v ./RGFW.h ./build/${{ env.RELEASE_NAME }}/include
+        cp -v ./README.md ./build/${{ env.RELEASE_NAME }}/README.md
+        cp -v ./LICENSE ./build/${{ env.RELEASE_NAME }}/LICENSE
+        cd build
+        tar -czvf ${{ env.RELEASE_NAME }}.tar.gz ${{ env.RELEASE_NAME }}
+        
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.RELEASE_NAME }}.tar.gz
+        path: ./build/${{ env.RELEASE_NAME }}.tar.gz
+        
+    - name: Upload Artifact to Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./build/${{ env.RELEASE_NAME }}.tar.gz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: github.event_name == 'release' && github.event.action == 'published'

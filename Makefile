@@ -1,6 +1,8 @@
 CC = gcc
 AR = ar
 
+CUSTOM_CFLAGS = 
+
 DX11_LIBS = -ldxgi -ld3d11 -luuid -ld3dcompiler
 VULAKN_LIBS = -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
 LIBS := -w -lgdi32 -lm -lopengl32 -ggdb 
@@ -83,12 +85,12 @@ debugDX11:
 
 RGFW.o:
 	cp RGFW.h RGFW.c
-	$(CC) -c RGFW.c -D RGFW_IMPLEMENTATION -D RGFW_NO_JOYSTICK_CODES -fPIC
+	$(CC) $(CUSTOM_CFLAGS) -c RGFW.c -D RGFW_IMPLEMENTATION -D RGFW_NO_JOYSTICK_CODES -fPIC
 	rm RGFW.c
 
 libRGFW$(LIB_EXT):
 	make RGFW.o
-	$(CC) -shared RGFW.o $(LIBS) -o libRGFW$(LIB_EXT)
+	$(CC) $(CUSTOM_CFLAGS) -shared RGFW.o $(LIBS) -o libRGFW$(LIB_EXT)
 
 libRGFW.a:
 	make RGFW.o
