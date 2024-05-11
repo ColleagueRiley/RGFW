@@ -62,9 +62,9 @@ A basic example can be found in `examples/basic`, it includes a basic OpenGL exa
 u8 icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF,    0xFF, 0x00, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF,   0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
 
 int main() {
-    RGFW_window* win = RGFW_createWindow("name", 500, 500, 500, 500, (u64)0);
+    RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_CENTER);
 
-    RGFW_window_setIcon(win, icon, 3, 3, 4);
+    RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
 
     i32 running = 1;
 
@@ -93,9 +93,6 @@ int main() {
 
 
 # Documentation
-[![AltText](https://github.com/ColleagueRiley/ColleagueRiley/blob/main/rsgl.png?raw=true)](https://github.com/ColleagueRiley/RSGL)\
-(Image functions as a button)
-
 There is a lot of in-header-documentation, but more documentation can be found [here](https://RSGL.github.io/RGFW)
 
 If you wish to build the documentation yourself, there is also a Doxygen file attached.
@@ -149,6 +146,9 @@ Projects that use RGFW in some way\
 Feel free to do a PR if you want something added to the list
 
 ## RSGL (made by the same author)
+[![AltText](https://github.com/ColleagueRiley/ColleagueRiley/blob/main/rsgl.png?raw=true)](https://github.com/ColleagueRiley/RSGL)\
+(Image functions as a button)
+
 [RSGL](https://github.com/ColleagueRiley/RSGL) is A modular simple-to-use cross-platform GUI library for easily creating GUI apps and games. It combines the freedom of lower-level GUI libraries with modern C techniques, offering both simplicity and convenience. 
 
 It uses RGFW as a backend.
