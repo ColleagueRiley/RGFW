@@ -27,12 +27,8 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        bits: [32, 64]
+        bits: [64]
         include:
-        - bits: 32
-          ARCH: "i386"
-          ARCH_NAME: "i386"
-          COMPILER_PATH: "/user/bin"
         - bits: 64
           ARCH: "x86_64"
           ARCH_NAME: "amd64"
@@ -65,12 +61,6 @@ jobs:
         cd ../../../RGFW
         # ${{ matrix.ARCH }}-linux-gnu-gcc -v
       
-    # TODO: Support 32bit (i386) static/shared library building
-    - name: Build Library
-      run: |
-        make libRGFW.a CUSTOM_CFLAGS="-m32"
-      if: matrix.bits == 32
-
     - name: Build Library
       run: |
         make libRGFW.a
