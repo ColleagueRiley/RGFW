@@ -50,6 +50,7 @@ endif
 all:
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -o basic
 	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -o buffer
+	$(CC) examples/portableGL/main.c $(LIBS) -I./ -Wall -o portableGL
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -o gl33
 	make vulkan_shaders
 	$(CC) examples/vk10/main.c $(LIBS) $(VULAKN_LIBS) -I./ -Wall -o vk10
@@ -64,9 +65,13 @@ debug:
 	make clean
 
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/basic/basic
+	./examples/buffer/buffer$(EXT)
+
+	$(CC) examples/portableGL/main.c $(LIBS) -I./ -Wall -o examples/portableGL/portableGL
+	./examples/portableGL/portableGL
+
 	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/buffer/buffer
 	./examples/basic/basic$(EXT)
-	./examples/buffer/buffer$(EXT)
 
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/gl33/gl33
 	./examples/gl33/gl33$(EXT)

@@ -54,6 +54,9 @@ A basic example can be found in `examples/basic`, it includes a basic OpenGL exa
 ## buff
 `examples/buffer` is an example that shows how you can use software rendering with RGFW using RGFW_BUFFER mode which allows you to render directly to the window's draw buffer.
 
+## PortableGL
+`examples/PortableGL` is an example that shows how you'd use RGFW with `portablegl.h`.
+
 ## a very simple example
 ```c
 #define RGFW_IMPLEMENTATION
