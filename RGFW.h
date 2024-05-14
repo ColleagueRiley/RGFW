@@ -2435,8 +2435,9 @@ typedef struct { i32 x, y; } RGFW_vector;
 			i32 samp_buf, samples;
 			glXGetFBConfigAttrib((Display*) win->src.display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
 			glXGetFBConfigAttrib((Display*) win->src.display, fbc[i], GLX_SAMPLES, &samples);
-			if ((best_fbc < 0 || samp_buf) && (samples == RGFW_SAMPLES))
+			if ((best_fbc < 0 || samp_buf) && (samples == RGFW_SAMPLES || best_fbc == -1)) {
 				best_fbc = i;
+			}
 		}
 
 		if (best_fbc == -1) {
