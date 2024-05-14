@@ -2290,7 +2290,40 @@ typedef struct { i32 x, y; } RGFW_vector;
 		eglSwapInterval(win->src.EGL_display, 1);
 	}
 
-	void* RGFW_getProcAddress(const char* procname) { return (void*) eglGetProcAddress(procname); }
+	#ifdef RGFW_APPLE
+	void* RGFWnsglFramework = NULL;
+	#elif defined(RGFW_WINDOWS)
+	static HMODULE wglinstance = NULL;
+	#endif
+
+	void* RGFW_getProcAddress(const char* procname) { 
+		void* proc = NULL;
+
+		#ifdef RGFW_X11
+		proc = glXGetProcAddress((GLubyte*) procname);
+		#elif defined(RGFW_APPLE)
+		if (RGFWnsglFramework == NULL)
+			RGFWnsglFramework = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
+
+		CFStringRef symbolName = CFStringCreateWithCString(kCFAllocatorDefault, procname, kCFStringEncodingASCII);
+
+		proc = CFBundleGetFunctionPointerForName(RGFWnsglFramework, symbolName);
+
+		CFRelease(symbolName);	
+	
+		#elif defined(RGFW_WINDOWS)
+			proc = (void*) wglGetProcAddress(procname);
+			if (proc)
+				return proc;
+
+			proc = (void*) GetProcAddress(wglinstance, procname); 
+		#endif
+
+		if (proc)
+			return proc;
+
+		return (void*) eglGetProcAddress(procname); 
+	}
 
 	void RGFW_closeEGL(RGFW_window* win) {
 		eglDestroySurface(win->src.EGL_display, win->src.EGL_surface);
@@ -3789,7 +3822,9 @@ typedef struct { i32 x, y; } RGFW_vector;
 #define WGL_SAMPLES_ARB 0x2042
 #define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20a9
 
+#ifndef RGFW_EGL
 static HMODULE wglinstance = NULL;
+#endif
 
 #ifdef RGFW_WGL_LOAD
 	typedef HGLRC(WINAPI* PFN_wglCreateContext)(HDC);
@@ -4949,9 +4984,9 @@ static HMODULE wglinstance = NULL;
 
 #if defined(RGFW_MACOS)
 
+#ifdef RGFW_OPENGL
 	void* RGFWnsglFramework = NULL;
 
-#ifdef RGFW_OPENGL
 	void* RGFW_getProcAddress(const char* procname) {
 		if (RGFWnsglFramework == NULL)
 			RGFWnsglFramework = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
