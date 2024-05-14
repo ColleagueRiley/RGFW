@@ -64,13 +64,13 @@ clean:
 debug:
 	make clean
 
-	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/basic/basic
+	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/buffer/buffer
 	./examples/buffer/buffer$(EXT)
 
 	$(CC) examples/portableGL/main.c $(LIBS) -I./ -Wall -o examples/portableGL/portableGL
 	./examples/portableGL/portableGL
-
-	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/buffer/buffer
+	
+	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/basic/basic
 	./examples/basic/basic$(EXT)
 
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/gl33/gl33
