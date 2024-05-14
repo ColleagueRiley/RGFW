@@ -193,7 +193,7 @@ extern "C" {
 #include <vulkan/vulkan.h>
 #endif
 
-#if defined(RGFW_X11) && defined(RGFW_OPENGL)
+#if defined(RGFW_X11) && (defined(RGFW_OPENGL) || defined(RGFW_EGL))
 #ifndef GLX_MESA_swap_control
 #define  GLX_MESA_swap_control
 #endif
