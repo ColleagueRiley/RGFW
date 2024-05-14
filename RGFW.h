@@ -418,7 +418,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		void* window;
 #endif
 
-#if defined(RGFW_OPENGL) && !defined(RGFW_OSMESA)
+#if (defined(RGFW_OPENGL)  || defined(RGFW_EGL)) && !defined(RGFW_OSMESA)
 #ifdef RGFW_MACOS
 		void* rSurf; /*!< source graphics context */
 #endif
@@ -2027,7 +2027,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 	}
 #endif
 
-#ifdef RGFW_OPENGL
+#if defined(RGFW_OPENGL) || defined(RGFW_EGL)
 	i32 RGFW_majorVersion = 0, RGFW_minorVersion = 0;
 	i32 RGFW_STENCIL = 8, RGFW_SAMPLES = 4, RGFW_STEREO = GL_FALSE, RGFW_AUX_BUFFERS = 0;
 
@@ -2233,7 +2233,11 @@ typedef struct { i32 x, y; } RGFW_vector;
 		eglDestroySurfaceSource = (PFNEGLDESTROYSURFACEPROC) eglGetProcAddress("eglDestroySurface");
 #endif /* RGFW_LINK_EGL */
 
+		#ifdef RGFW_WINDOWS
+		win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.hdc);
+		#else
 		win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.display);
+		#endif
 
 		EGLint major, minor;
 
@@ -2263,7 +2267,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		eglBindAPI(EGL_OPENGL_API);
 #endif
 
-		EGLint attribs[]{
+		EGLint attribs[] = {
 			EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT,
 			0, 0, 0, 0
 		};
@@ -2278,7 +2282,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
 
 		if (globalCtx == EGL_NO_CONTEXT)
-			RGFW_EGLglobalContext = win->src.rSurf;
+			globalCtx = win->src.rSurf;
 
 		eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.rSurf);
 		eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
@@ -4087,7 +4091,7 @@ static HMODULE wglinstance = NULL;
 		}
 		
 		wglMakeCurrent(win->src.hdc, win->src.rSurf);
-		wglShareLists(RGFW_root->src.rSurf, win->src.rSurf);
+		//wglShareLists(RGFW_root->src.rSurf, win->src.rSurf);
 #endif
 
 #ifdef RGFW_OSMESA
