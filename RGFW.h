@@ -6057,7 +6057,7 @@ static HMODULE wglinstance = NULL;
 #elif defined(RGFW_OPENGL)
 #if defined(RGFW_X11) && defined(RGFW_OPENGL)
 		glXSwapBuffers((Display*) win->src.display, (Window) win->src.window);
-#elif RGFW_WINDOWS
+#elif defined(RGFW_WINDOWS)
 		SwapBuffers(win->src.hdc);
 #elif defined(RGFW_MACOS)
 		NSOpenGLContext_flushBuffer(win->src.rSurf);
