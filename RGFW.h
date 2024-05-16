@@ -193,7 +193,7 @@ extern "C" {
 #include <vulkan/vulkan.h>
 #endif
 
-#if defined(RGFW_X11) && defined(RGFW_OPENGL)
+#if defined(RGFW_X11) && (defined(RGFW_OPENGL))
 #ifndef GLX_MESA_swap_control
 #define  GLX_MESA_swap_control
 #endif
@@ -418,7 +418,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		void* window;
 #endif
 
-#if (defined(RGFW_OPENGL)  || defined(RGFW_EGL)) && !defined(RGFW_OSMESA)
+#if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA)
 #ifdef RGFW_MACOS
 		void* rSurf; /*!< source graphics context */
 #endif
@@ -460,6 +460,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #ifdef RGFW_EGL
 		EGLSurface EGL_surface;
 		EGLDisplay EGL_display;
+		EGLContext EGL_context;
 #endif
 
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER) 
@@ -2029,7 +2030,13 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL)
 	i32 RGFW_majorVersion = 0, RGFW_minorVersion = 0;
+	
+	#ifndef RGFW_EGL
 	i32 RGFW_STENCIL = 8, RGFW_SAMPLES = 4, RGFW_STEREO = GL_FALSE, RGFW_AUX_BUFFERS = 0;
+	#else
+	i32 RGFW_STENCIL = 0, RGFW_SAMPLES = 0, RGFW_STEREO = GL_FALSE, RGFW_AUX_BUFFERS = 0;
+	#endif
+
 
 	void RGFW_setGLStencil(i32 stencil) { RGFW_STENCIL = stencil; }
 	void RGFW_setGLSamples(i32 samples) { RGFW_SAMPLES = samples; }
@@ -2054,6 +2061,8 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		return version;
 	}
+
+#ifndef RGFW_EGL
 
 #define RGFW_GL_RENDER_TYPE 		RGFW_OS_BASED_VALUE(GLX_X_VISUAL_TYPE,    	0x2003,		73)
 #define RGFW_GL_ALPHA_SIZE 		RGFW_OS_BASED_VALUE(GLX_ALPHA_SIZE,       	0x201b,		11)
@@ -2165,9 +2174,9 @@ typedef struct { i32 x, y; } RGFW_vector;
 		return attribs;
 	}
 
-#endif
+#else
 
-#ifdef RGFW_EGL
+#include <EGL/egl.h>
 
 #if defined(RGFW_LINK_EGL)
 	typedef EGLBoolean(EGLAPIENTRY* PFN_eglInitialize)(EGLDisplay, EGLint*, EGLint*);
@@ -2202,8 +2211,8 @@ typedef struct { i32 x, y; } RGFW_vector;
 #endif
 
 
-#define EGL_CONTEXT_MAJOR_VERSION_KHR 0x3098
-#define EGL_CONTEXT_MINOR_VERSION_KHR 0x30fb
+#define EGL_SURFACE_MAJOR_VERSION_KHR 0x3098
+#define EGL_SURFACE_MINOR_VERSION_KHR 0x30fb
 
 #ifndef RGFW_GL_ADD_ATTRIB
 #define RGFW_GL_ADD_ATTRIB(attrib, attVal) \
@@ -2214,9 +2223,8 @@ typedef struct { i32 x, y; } RGFW_vector;
 	}
 #endif
 
-	void RGFW_createOpenGLContext(RGFW_window* win) {
-		static EGLContext globalCtx = EGL_NO_CONTEXT;
 
+	void RGFW_createOpenGLContext(RGFW_window* win) {
 #if defined(RGFW_LINK_EGL)
 		eglInitializeSource = (PFNEGLINITIALIZEPROC) eglGetProcAddress("eglInitialize");
 		eglGetConfigsSource = (PFNEGLGETCONFIGSPROC) eglGetProcAddress("eglGetConfigs");
@@ -2243,7 +2251,11 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		eglInitialize(win->src.EGL_display, &major, &minor);
 
-		EGLint config_attribs[] = {
+		#ifndef EGL_OPENGL_ES1_BIT
+		#define EGL_OPENGL_ES1_BIT 0x1
+		#endif
+
+		EGLint egl_config[] = {
 			EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
 			EGL_RENDERABLE_TYPE,
 			#ifdef RGFW_OPENGL_ES1
@@ -2254,52 +2266,74 @@ typedef struct { i32 x, y; } RGFW_vector;
 			#else
 			EGL_OPENGL_BIT,
 			#endif
-			EGL_NONE
+			EGL_NONE, EGL_NONE
 		};
 
 		EGLConfig config;
-		EGLint num_configs;
-		eglChooseConfig(win->src.EGL_display, config_attribs, &config, 1, &num_configs);
+		EGLint numConfigs;
+		eglChooseConfig(win->src.EGL_display, egl_config, &config, 1, &numConfigs);
 
-#if defined(RGFW_OPENGL_ES2) || defined(RGFW_OPENGL_ES1)
-		eglBindAPI(EGL_OPENGL_ES_API);
-#else
-		eglBindAPI(EGL_OPENGL_API);
-#endif
 
-		EGLint attribs[] = {
-			EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT,
-			0, 0, 0, 0
-		};
-
-		size_t index = 2;
-		RGFW_GL_ADD_ATTRIB(EGL_STENCIL_SIZE, RGFW_STENCIL);
-		RGFW_GL_ADD_ATTRIB(EGL_SAMPLES, RGFW_SAMPLES);
-		RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MAJOR_VERSION, RGFW_majorVersion);
-		RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MINOR_VERSION, RGFW_minorVersion);
-
-		win->src.rSurf = eglCreateContext(win->src.EGL_display, config, globalCtx, attribs);
 		win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
 
-		if (globalCtx == EGL_NO_CONTEXT)
-			globalCtx = win->src.rSurf;
+		EGLint attribs[] = {
+			EGL_CONTEXT_CLIENT_VERSION,
+			#ifdef RGFW_OPENGL_ES1
+			1,
+			#else
+			2,
+			#endif
+			EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE
+		};
 
-		eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.rSurf);
+		size_t index = 4;
+		RGFW_GL_ADD_ATTRIB(EGL_STENCIL_SIZE, RGFW_STENCIL);
+		RGFW_GL_ADD_ATTRIB(EGL_SAMPLES, RGFW_SAMPLES);
+
+		if (RGFW_majorVersion) {
+			RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT);
+			RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MAJOR_VERSION, RGFW_majorVersion);
+			RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MINOR_VERSION, RGFW_minorVersion);
+		}
+
+		#if defined(RGFW_OPENGL_ES1) || defined(RGFW_OPENGL_ES2)
+		eglBindAPI(EGL_OPENGL_ES_API);
+		#else
+		eglBindAPI(EGL_OPENGL_API);		
+		#endif
+
+      	win->src.EGL_context = eglCreateContext(win->src.EGL_display, config, EGL_NO_CONTEXT, attribs);
+
+		eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.EGL_context);
 		eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
-
-		eglSwapInterval(win->src.EGL_display, 1);
 	}
 
-	void* RGFW_getProcAddress(const char* procname) { return (void*) eglGetProcAddress(procname); }
+	#ifdef RGFW_APPLE
+	void* RGFWnsglFramework = NULL;
+	#elif defined(RGFW_WINDOWS)
+	static HMODULE wglinstance = NULL;
+	#endif
+
+	void* RGFW_getProcAddress(const char* procname) { 
+		#if defined(RGFW_WINDOWS)
+			void* proc = (void*) GetProcAddress(wglinstance, procname); 
+
+			if (proc)
+				return proc;
+		#endif
+
+		return (void*) eglGetProcAddress(procname); 
+	}
 
 	void RGFW_closeEGL(RGFW_window* win) {
 		eglDestroySurface(win->src.EGL_display, win->src.EGL_surface);
-		eglDestroyContext(win->src.EGL_display, win->src.rSurf);
+		eglDestroyContext(win->src.EGL_display, win->src.EGL_context);
 
 		eglTerminate(win->src.EGL_display);
 	}
 
 #endif /* RGFW_EGL */
+#endif /* RGFW_GL stuff? */
 
 	/*
 	This is where OS specific stuff starts
@@ -2402,8 +2436,9 @@ typedef struct { i32 x, y; } RGFW_vector;
 			i32 samp_buf, samples;
 			glXGetFBConfigAttrib((Display*) win->src.display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
 			glXGetFBConfigAttrib((Display*) win->src.display, fbc[i], GLX_SAMPLES, &samples);
-			if ((best_fbc < 0 || samp_buf) && (samples == RGFW_SAMPLES))
+			if ((best_fbc < 0 || samp_buf) && (samples == RGFW_SAMPLES || best_fbc == -1)) {
 				best_fbc = i;
+			}
 		}
 
 		if (best_fbc == -1) {
@@ -2475,11 +2510,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		win->src.rSurf = glXCreateContextAttribsARB((Display*) win->src.display, bestFbc, ctx, True, context_attribs);
 #endif
-
-#ifdef RGFW_EGL
-		RGFW_createOpenGLContext(win);
-#endif
-
 		if (RGFW_root == NULL)
 			RGFW_root = win;
 
@@ -2561,6 +2591,10 @@ typedef struct { i32 x, y; } RGFW_vector;
 				XdndAware, 4, 32,
 				PropModeReplace, (u8*) &version, 1); /* turns on drag and drop */
 		}
+
+		#ifdef RGFW_EGL
+			RGFW_createOpenGLContext(win);
+		#endif
 
 		RGFW_window_setMouseDefault(win);
 
@@ -5852,7 +5886,7 @@ static HMODULE wglinstance = NULL;
 #endif
 #else
 #ifdef RGFW_EGL
-		eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.rSurf);
+		eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.EGL_context);
 #endif
 #endif
 
@@ -6016,19 +6050,15 @@ static HMODULE wglinstance = NULL;
 		if (win->src.winArgs & RGFW_NO_GPU_RENDER)
 			return;
 
-#ifdef RGFW_OPENGL
 #ifdef RGFW_EGL
 		eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
-#else
+#elif defined(RGFW_OPENGL)
 #if defined(RGFW_X11) && defined(RGFW_OPENGL)
 		glXSwapBuffers((Display*) win->src.display, (Window) win->src.window);
-#endif
-#ifdef RGFW_WINDOWS
+#elif defined(RGFW_WINDOWS)
 		SwapBuffers(win->src.hdc);
-#endif
-#if defined(RGFW_MACOS)
+#elif defined(RGFW_MACOS)
 		NSOpenGLContext_flushBuffer(win->src.rSurf);
-#endif
 #endif
 #endif
 

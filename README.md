@@ -45,6 +45,9 @@ A basic example can be found in `examples/basic`, it includes a basic OpenGL exa
 ## gl33
 `examples/gl33` is a minimalistic example of the use of OpenGL 3.3 with RGFW, this example was made by [AICDG](https://github.com/THISISAGOODNAME)
 
+## gles2
+`examples/gles2` is a minimalistic example of the use of OpenGL ES 2 with RGFW
+
 ## vk10
 `examples/vk10` is a minimalistic example of the use of Vulkan with RGFW, this example was made by [AICDG](https://github.com/THISISAGOODNAME)
 

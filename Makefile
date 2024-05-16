@@ -52,6 +52,7 @@ all:
 	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -o buffer
 	$(CC) examples/portableGL/main.c $(LIBS) -I./ -Wall -o portableGL
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -o gl33
+	$(CC) examples/gles2/main.c -lEGL $(LIBS) -I./ -Wall -o gles2
 	make vulkan_shaders
 	$(CC) examples/vk10/main.c $(LIBS) $(VULAKN_LIBS) -I./ -Wall -o vk10
 
@@ -59,22 +60,25 @@ DX11:
 	$(CC) examples/dx11/main.c $(LIBS) $(DX11_LIBS) -I./ -Wall -o examples/dx11/dx11
 
 clean:
-	rm -f ./examples/basic/basic ./examples/basic/basic.exe ./examples/gl33/gl33 ./examples/gl33/gl33.exe ./examples/vk10/vk10 ./examples/vk10/vk10.exe examples/vk10/shaders/*.h examples/dx11/dx11
+	rm -f ./examples/basic/basic ./examples/basic/basic.exe ./examples/gles2/gles2 ./examples/gles2/gles2.exe ./examples/gl33/gl33 ./examples/gl33/gl33.exe ./examples/vk10/vk10 ./examples/vk10/vk10.exe examples/vk10/shaders/*.h examples/dx11/dx11
 
 debug:
 	make clean
 
-	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/basic/basic
+	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/buffer/buffer
 	./examples/buffer/buffer$(EXT)
 
 	$(CC) examples/portableGL/main.c $(LIBS) -I./ -Wall -o examples/portableGL/portableGL
 	./examples/portableGL/portableGL
-
-	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/buffer/buffer
+	
+	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/basic/basic
 	./examples/basic/basic$(EXT)
 
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/gl33/gl33
 	./examples/gl33/gl33$(EXT)
+
+	$(CC) examples/gles2/main.c $(LIBS) -lEGL -I./ -Wall -D RGFW_DEBUG -o examples/gl33/gl33
+	./examples/gles2/gles2$(EXT)
 
 	make vulkan_shaders
 	$(CC) examples/vk10/main.c $(LIBS) $(VULAKN_LIBS) -I./ -Wall -D RGFW_DEBUG -o examples/vk10/vk10
