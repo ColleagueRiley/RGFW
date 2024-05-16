@@ -2279,7 +2279,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		EGLint attribs[] = {
 			EGL_CONTEXT_CLIENT_VERSION,
 			#ifdef RGFW_OPENGL_ES1
-			1,
+			3,
 			#else
 			2,
 			#endif
