@@ -3823,9 +3823,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #define WGL_SAMPLES_ARB 0x2042
 #define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20a9
 
-#ifndef RGFW_EGL
 static HMODULE wglinstance = NULL;
-#endif
 
 #ifdef RGFW_WGL_LOAD
 	typedef HGLRC(WINAPI* PFN_wglCreateContext)(HDC);
@@ -4127,7 +4125,7 @@ static HMODULE wglinstance = NULL;
 		}
 		
 		wglMakeCurrent(win->src.hdc, win->src.rSurf);
-		//wglShareLists(RGFW_root->src.rSurf, win->src.rSurf);
+		wglShareLists(RGFW_root->src.rSurf, win->src.rSurf);
 #endif
 
 #ifdef RGFW_OSMESA
@@ -4985,9 +4983,9 @@ static HMODULE wglinstance = NULL;
 
 #if defined(RGFW_MACOS)
 
-#ifdef RGFW_OPENGL
 	void* RGFWnsglFramework = NULL;
 
+#ifdef RGFW_OPENGL
 	void* RGFW_getProcAddress(const char* procname) {
 		if (RGFWnsglFramework == NULL)
 			RGFWnsglFramework = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
