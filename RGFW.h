@@ -34,7 +34,9 @@
 	#define RGFW_BUFFER - (optional) just draw directly to (RGFW) window pixel buffer that is drawn to screen (the buffer is in the RGBA format)
 	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
 	#define RGFW_OPENGL_ES1 - (optional) use EGL to load and use Opengl ES (version 1) for backend rendering (instead of the system's opengl api)
+									This version doesn't work for desktops (I'm pretty sure)
 	#define RGFW_OPENGL_ES2 - (optional) use OpenGL ES (version 2)
+	#define RGFW_OPENGL_ES3 - (optional) use OpenGL ES (version 3)
 	#define RGFW_VULKAN - (optional) use vulkan for the rendering backend (rather than opengl)
 	#define RGFW_DIRECTX - (optional) use directX for the rendering backend (rather than opengl) (windows only, defaults to opengl for unix)
 	#define RGFW_NO_API - (optional) don't use any rendering API (no opengl, no vulkan, no directX)
@@ -163,7 +165,7 @@ extern "C" {
 #define RGFW_MACOS
 #endif
 
-#if (defined(RGFW_OPENGL_ES1) || defined(RGFW_OPENGL_ES2)) && !defined(RGFW_EGL)
+#if (defined(RGFW_OPENGL_ES1) || defined(RGFW_OPENGL_ES2) || defined(RGFW_OPENGL_ES3)) && !defined(RGFW_EGL)
 #define RGFW_EGL
 #endif
 #if defined(RGFW_EGL) && defined(__APPLE__)
@@ -2260,8 +2262,9 @@ typedef struct { i32 x, y; } RGFW_vector;
 			EGL_RENDERABLE_TYPE,
 			#ifdef RGFW_OPENGL_ES1
 			EGL_OPENGL_ES1_BIT,
-			#endif
-			#ifdef RGFW_OPENGL_ES2
+			#elif defined(RGFW_OPENGL_ES3)
+			EGL_OPENGL_ES3_BIT,
+			#elif defined(RGFW_OPENGL_ES2)
 			EGL_OPENGL_ES2_BIT,
 			#else
 			EGL_OPENGL_BIT,
@@ -2279,7 +2282,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		EGLint attribs[] = {
 			EGL_CONTEXT_CLIENT_VERSION,
 			#ifdef RGFW_OPENGL_ES1
-			3,
+			1,
 			#else
 			2,
 			#endif
@@ -2291,12 +2294,13 @@ typedef struct { i32 x, y; } RGFW_vector;
 		RGFW_GL_ADD_ATTRIB(EGL_SAMPLES, RGFW_SAMPLES);
 
 		if (RGFW_majorVersion) {
+			attribs[1] = RGFW_majorVersion;
 			RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT);
 			RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MAJOR_VERSION, RGFW_majorVersion);
 			RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MINOR_VERSION, RGFW_minorVersion);
 		}
 
-		#if defined(RGFW_OPENGL_ES1) || defined(RGFW_OPENGL_ES2)
+		#if defined(RGFW_OPENGL_ES1) || defined(RGFW_OPENGL_ES2) || defined(RGFW_OPENGL_ES3)
 		eglBindAPI(EGL_OPENGL_ES_API);
 		#else
 		eglBindAPI(EGL_OPENGL_API);		
@@ -6161,7 +6165,7 @@ static HMODULE wglinstance = NULL;
 		return (u64) (counter.QuadPart * 1e9 / frequency.QuadPart);
 #elif defined(__unix__)
 		struct timespec ts = { 0 };
-		clock_gettime(CLOCK_MONOTONIC, &ts);
+		clock_gettime(1, &ts);
 		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
 
 		return nanoSeconds;
@@ -6185,7 +6189,7 @@ static HMODULE wglinstance = NULL;
 		return (u64) (counter.QuadPart / (double) frequency.QuadPart);
 #elif defined(__unix__)
 		struct timespec ts = { 0 };
-		clock_gettime(CLOCK_MONOTONIC, &ts);
+		clock_gettime(1, &ts);
 		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
 
 		return (double)(nanoSeconds) * 1e-9;
