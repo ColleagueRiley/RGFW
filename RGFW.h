@@ -1307,6 +1307,10 @@ typedef struct { i32 x, y; } RGFW_vector;
 	}
 #endif
 
+	#ifdef RGFW_WINDOWS
+	#include <timeapi.h>
+	#endif
+
 	RGFWDEF RGFW_window* RGFW_window_basic_init(RGFW_rect rect, u16 args);
 	RGFWDEF void RGFW_init_buffer(RGFW_window* win);
 
