@@ -6119,7 +6119,7 @@ static HMODULE wglinstance = NULL;
 #ifndef RGFW_WINDOWS
 		struct timespec time;
 		time.tv_sec = 0;
-		time.tv_nsec = ms * 1000;
+		time.tv_nsec = ms * 1e+6;
 
 		nanosleep(&time, NULL);
 #else
