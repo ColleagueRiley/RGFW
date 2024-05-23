@@ -167,6 +167,9 @@ Raylib uses RGFW as an optional alternative platform.
 ### Raylib GO
 [Raylib](https://github.com/gen2brain/raylib-go) go bindings for Raylib. With explicit support for RGFW. (PLATFORM_DESKTOP_RGFW) 
 
+## Claymore
+[Claymore](https://github.com/Code-Nycticebus/claymore) is a C Game Engine designed by Nycticebus that uses RGFW as a backend.
+
 ## PureDoom-RGFW
 [PureDOOM-RGFW](https://github.com/ColleagueRiley/PureDoom-RGFW) is an example of the PureDOOM source port, using RGFW and miniaudio.
 
