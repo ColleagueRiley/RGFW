@@ -1,3 +1,7 @@
+#ifdef __APPLE__
+#define GL_SILENCE_DEPRECATION
+#endif
+
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -44,10 +48,12 @@ void main()
 );
 
 
-int main()
+int main(void)
 {
     RGFW_setGLVersion(3, 3);
     RGFW_window* window = RGFW_createWindow("LearnOpenGL", RGFW_RECT(SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT), RGFW_ALLOW_DND | RGFW_CENTER);
+    window->fpsCap = 60;
+
     if (window == NULL)
     {
         printf("Failed to create RGFW window\n");
@@ -163,6 +169,9 @@ int main()
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         // glBindVertexArray(0); // no need to unbind it every time
 
+        if (RGFW_isPressedI(window, RGFW_Space))
+            printf("fps : %i\n", window->event.fps);
+                        
         RGFW_window_swapBuffers(window);
     }
 

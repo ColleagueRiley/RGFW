@@ -89,6 +89,8 @@ int draw_frame(RGFW_window* win) {
 }
 
 int createGraphicsPipeline(RGFW_window* win) {
+    RGFW_UNUSED(win);
+    
     VkShaderModule vert_module = createShaderModule(vert_code, sizeof(vert_code));
     VkShaderModule frag_module = createShaderModule(frag_code, sizeof(frag_code));
 
@@ -282,7 +284,7 @@ int commandBuffers(RGFW_window* win) {
     return 0;
 } 
 
-int main() {
+int main(void) {
     RGFW_window* win = RGFW_createWindow("Vulkan Example", RGFW_RECT(0, 0, 500, 500), RGFW_ALLOW_DND | RGFW_CENTER);;
     vulkan_info = RGFW_getVulkanInfo();   
     

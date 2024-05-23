@@ -19,7 +19,7 @@ void clear(RGFW_window* win, u8 color[3]) {
 
     /* loop through each *pixel* (not channel) of the buffer */
     u32 x, y;
-    for (y = 0; y < win->r.h; y++) {
+    for (y = 0; y < (u32)win->r.h; y++) {
         for (x = 0; x < screenSize.w; x++) {
             u32 index = (y * 4 * screenSize.w) + x * 4;
             
@@ -46,7 +46,7 @@ void bitmap_rgbToBgr(u8* bitmap, RGFW_area a) {
 
 void drawBitmap(RGFW_window* win, u8* bitmap, RGFW_rect rect) {
     u32 y;
-    for (y = 0; y < rect.h; y++) {
+    for (y = 0; y < (u32)rect.h; y++) {
         u32 index = (rect.y + y) * (4 * screenSize.w) + rect.x * 4;
         memcpy(win->buffer + index, bitmap + (4 * rect.w * y), rect.w * 4 * sizeof(u8));
     }
@@ -62,7 +62,7 @@ void drawRect(RGFW_window* win, RGFW_rect r, u8 color[3]) {
     }
 }
 
-int main() {
+int main(void) {
     RGFW_window* win = RGFW_createWindow("Basic buffer example", RGFW_RECT(0, 0, 500, 500), RGFW_CENTER);
     win->fpsCap = 60;
 
@@ -76,7 +76,7 @@ int main() {
                 break;
             }
         } 
-        
+
         clear(win, (u8[3]){0, 0, 255});
         drawRect(win, RGFW_RECT(200, 200, 200, 200), (u8[3]){255, 0, 0});
 

@@ -1,6 +1,7 @@
 #define PORTABLEGL_IMPLEMENTATION
 #include "portablegl.h"
 
+#define __gltypes_h_
 #define RGFW_BUFFER
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"

@@ -7,7 +7,12 @@
 #include <stdio.h>
 
 void drawLoop(RGFW_window* w); /* I seperate the draw loop only because it's run twice */
-void* loop2(void *);
+
+#ifdef RGFW_WINDOWS
+DWORD loop2(void* args);
+#else
+void* loop2(void* args);
+#endif
 
 
 unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
@@ -15,18 +20,16 @@ unsigned char running = 1, running2 = 1;
 
 RGFW_window* win2;
 
-int main() {
+int main(void) {    
     RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_ALLOW_DND | RGFW_CENTER);
     RGFW_window_makeCurrent(win);
 
     RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
 
     RGFW_window_swapInterval(win, 1);
-
     #ifdef RGFW_MACOS
     win2 = RGFW_createWindow("subwindow", RGFW_RECT(200, 200, 200, 200), 0);
     #endif
-
     RGFW_createThread(loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
 
     unsigned char i;
@@ -78,8 +81,10 @@ int main() {
             else if (win->event.type == RGFW_jsAxisMove && !win->event.button)
                 printf("{%i, %i}\n", win->event.axis[0].x, win->event.axis[0].y);
         }
-
+        
         drawLoop(win);
+        
+		RGFW_window_checkFPS(win);
     }
 
     running2 = 0;
@@ -110,7 +115,13 @@ void drawLoop(RGFW_window *w) {
 }
 
 
+#ifdef RGFW_WINDOWS
+DWORD loop2(void* args) {
+#else
 void* loop2(void* args) {
+#endif
+    RGFW_UNUSED(args)
+
     #ifndef __APPLE__
     RGFW_window* win = RGFW_createWindow("subwindow", RGFW_RECT(200, 200, 200, 200), 0);
     #else
@@ -140,5 +151,9 @@ void* loop2(void* args) {
     running = 0;
     RGFW_window_close(win);
 
+    #ifdef RGFW_WINDOWS
+    return 0;
+    #else
     return NULL;
+    #endif
 }

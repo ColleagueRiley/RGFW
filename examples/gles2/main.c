@@ -19,16 +19,7 @@ GLuint load_shader(const char *shaderSource, GLenum type) {
   return shader;
 }
 
-static GLuint getAttribLocationOrDie(GLuint shaderProgram, const char *name) {
-    GLuint loc = glGetAttribLocation(shaderProgram, name);
-    if (loc < 0) {
-        printf("Couldn't find attribute %s", name);
-        exit(1);
-    }
-    return loc;
-}
-
-int main(int argc, char **argv) {
+int main(void) {
   RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(0, 0, 500, 500), RGFW_CENTER);
 
    ///////  the openGL part  ///////////////////////////////////////////////////////////////
@@ -96,8 +87,8 @@ int main(int argc, char **argv) {
    GLuint mvp_matrix_loc = glGetUniformLocation(shaderProgram, "mvp_matrix");
    glUniformMatrix4fv(mvp_matrix_loc, 1, GL_FALSE, display_transform_cols);
 
-   GLuint position_loc = getAttribLocationOrDie(shaderProgram, "a_position");
-   GLuint color_loc = getAttribLocationOrDie(shaderProgram, "a_color");
+   GLuint position_loc = glGetAttribLocation(shaderProgram, "a_position");
+   GLuint color_loc = glGetAttribLocation(shaderProgram, "a_color");
    glVertexAttribPointer(position_loc, 2, GL_FLOAT, GL_FALSE, attribute_stride, (void *) &attribute_array);
    glVertexAttribPointer(color_loc, 3, GL_FLOAT, GL_FALSE, attribute_stride, ((void *) &attribute_array) + 2 * sizeof(float));
    glEnableVertexAttribArray(position_loc);

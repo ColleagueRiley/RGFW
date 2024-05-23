@@ -27,7 +27,7 @@ const char* shaderString = MULTILINE_STR(
     }
 );
 
-int main() {
+int main(void) {
     RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(0, 0, 500, 500), RGFW_CENTER);
     RGFW_window_makeCurrent(win);
 
