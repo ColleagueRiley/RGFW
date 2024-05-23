@@ -3299,6 +3299,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		win->src.cursor = XcursorImageLoadCursor((Display*) win->src.display, native);
 
 		XcursorImageDestroy(native);
+#else
+	RGFW_UNUSED(image) RGFW_UNUSED(a.w) RGFW_UNUSED(channels)
 #endif
 	}
 
@@ -3679,7 +3681,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		monitor.physW = (monitor.rect.w * 25.4f / 96.f);
 		monitor.physH = (monitor.rect.h * 25.4f / 96.f);
 
-		strncpy(monitor.name, DisplayString(display), 128);
+		strcpy(monitor.name, DisplayString(display));
 
 		XGetSystemContentScale(display, &monitor.scaleX, &monitor.scaleY);
 
