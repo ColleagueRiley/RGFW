@@ -83,8 +83,6 @@ int main(void) {
         }
         
         drawLoop(win);
-        
-		RGFW_window_checkFPS(win);
     }
 
     running2 = 0;
