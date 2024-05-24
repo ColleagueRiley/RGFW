@@ -889,7 +889,10 @@ typedef struct { i32 x, y; } RGFW_vector;
 		based on silicon.h
 	*/
 
+#ifndef GL_SILENCE_DEPRECATION
 #define GL_SILENCE_DEPRECATION
+#endif
+
 #include <CoreVideo/CVDisplayLink.h>
 #include <ApplicationServices/ApplicationServices.h>
 #include <objc/runtime.h>
@@ -5529,7 +5532,7 @@ static HMODULE wglinstance = NULL;
 	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		assert(win != NULL);
 
-		memcpy(RGFW_keyBoard_prev, RGFW_keyboard, 128);
+		memcpy(RGFW_keyBoard_prev, RGFW_keyBoard, 128);
 
 		if (win->event.type == RGFW_quit)
 			return &win->event;
