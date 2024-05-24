@@ -638,7 +638,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 	this is run by default if the user uses the arg `RGFW_SCALE_TO_MONITOR` during window creation
 	*/
 	RGFWDEF void RGFW_window_scaleToMonitor(RGFW_window* win);
-
 	/* get the struct of the window's monitor  */
 	RGFWDEF RGFW_monitor RGFW_window_getMonitor(RGFW_window* win);
 
@@ -650,6 +649,11 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 	/*!< if window == NULL, it checks if the key is pressed globally. Otherwise, it checks only if the key is pressed while the window in focus.*/
 	RGFWDEF u8 RGFW_isPressedI(RGFW_window* win, u32 key); /*!< if key is pressed (key code)*/
+
+	RGFWDEF u8 RGFW_wasPressedI(RGFW_window* win, u32 key); /*!< if key was pressed (checks prev keymap only) (key code)*/
+
+	RGFWDEF u8 RGFW_isHeldI(RGFW_window* win, u32 key); /*!< if key is held (key code)*/
+	RGFWDEF u8 RGFW_isReleasedI(RGFW_window* win, u32 key); /*!< if key is released (key code)*/
 
 	/*
 		!!Keycodes defined at the bottom of the header file!!
@@ -1849,8 +1853,17 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #endif
 
 #if defined(RGFW_MACOS)
-	u8 RGFW_keyMap[128] = { 0 };
+	u8 RGFW_keyBoard[128] = { 0 };
+	u8 RGFW_keyBoard_prev[128];
 #endif
+
+	u8 RGFW_isHeldI(RGFW_window* win, u32 key) {
+		return (RGFW_isPressedI(win, key) && RGFW_wasPressedI(win, key));
+	}
+
+	u8 RGFW_isReleasedI(RGFW_window* win, u32 key) {
+		return (!RGFW_isPressedI(win, key) && RGFW_wasPressedI(win, key));	
+	}
 
 	char* RGFW_keyCodeTokeyStr(u64 key) {
 #if defined(RGFW_MACOS)
@@ -2657,8 +2670,13 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 	int xAxis = 0, yAxis = 0;
 
+	char RGFW_keyboard[32];
+	char RGFW_keyboard_prev[32];
+
 	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		assert(win != NULL);
+
+		memcpy(RGFW_keyboard_prev, RGFW_keyboard, 32);
 
 		win->event.type = 0;
 
@@ -2754,6 +2772,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				else if (win->event.keyCode == XK_Num_Lock)
 					win->event.lockState |= RGFW_NUMLOCK;
 			}
+
+			XQueryKeymap(win->src.display, RGFW_keyboard); /* query the keymap */
 			break;
 
 		case ButtonPress:
@@ -3750,9 +3770,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 		return RGFW_XCreateMonitor(DefaultScreen(win->src.display));
 	}
-
-	char keyboard[32];
-
+	
 	u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
 		Display* d;
 		if (win == (RGFW_window*) 0)
@@ -3761,11 +3779,22 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			return 0;
 		else
 			d = (Display*) win->src.display;
-
-		XQueryKeymap(d, keyboard); /* query the keymap */
-
+		
 		KeyCode kc2 = XKeysymToKeycode(d, key); /* convert the key to a keycode */
-		return !!(keyboard[kc2 >> 3] & (1 << (kc2 & 7)));				/* check if the key is pressed */
+		return !!(RGFW_keyboard[kc2 >> 3] & (1 << (kc2 & 7)));				/* check if the key is pressed */
+	}
+
+	u8 RGFW_wasPressedI(RGFW_window* win, u32 key) {
+		Display* d;
+		if (win == (RGFW_window*) 0)
+			d = RGFW_root->src.display;
+		else if (!win->event.inFocus)
+			return 0;
+		else
+			d = (Display*) win->src.display;
+		
+		KeyCode kc2 = XKeysymToKeycode(d, key); /* convert the key to a keycode */
+		return !!(RGFW_keyboard_prev[kc2 >> 3] & (1 << (kc2 & 7)));				/* check if the key is pressed */
 	}
 
 #endif
@@ -3870,13 +3899,13 @@ static HMODULE wglinstance = NULL;
 	PFN_wglGetCurrentDC wglGetCurrentDCSRC;
 	PFN_wglGetCurrentContext wglGetCurrentContextSRC;
 
-#define wglCreateContext wglCreateContextSRC
-#define wglDeleteContext wglDeleteContextSRC
-#define wglGetProcAddress wglGetProcAddressSRC
-#define wglMakeCurrent wglMakeCurrentSRC
+	#define wglCreateContext wglCreateContextSRC
+	#define wglDeleteContext wglDeleteContextSRC
+	#define wglGetProcAddress wglGetProcAddressSRC
+	#define wglMakeCurrent wglMakeCurrentSRC
 
-#define wglGetCurrentDC wglGetCurrentDCSRC
-#define wglGetCurrentContext wglGetCurrentContextSRC
+	#define wglGetCurrentDC wglGetCurrentDCSRC
+	#define wglGetCurrentContext wglGetCurrentContextSRC
 #endif
 
 #ifdef RGFW_OPENGL
@@ -4362,8 +4391,13 @@ static HMODULE wglinstance = NULL;
 		return 0;
 	}
 
+	BYTE RGFW_keyBoard[256];
+	BYTE RGFW_keyBoard_prev[256];
+
 	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		assert(win != NULL);
+
+		memcpy(RGFW_keyBoard_prev, RGFW_keyBoard, 256);
 
 		MSG msg;
 
@@ -4403,7 +4437,6 @@ static HMODULE wglinstance = NULL;
 			return NULL;
 
 		static BYTE keyboardState[256];
-		GetKeyboardState(keyboardState);
 
 		if (PeekMessageA(&msg, win->src.window, 0u, 0u, PM_REMOVE)) {
 			switch (msg.message) {
@@ -4421,6 +4454,7 @@ static HMODULE wglinstance = NULL;
 				}
 
 				win->event.type = RGFW_keyReleased;
+				GetKeyboardState(RGFW_keyBoard);
 				break;
 
 			case WM_KEYDOWN:
@@ -4432,6 +4466,7 @@ static HMODULE wglinstance = NULL;
 				}
 
 				win->event.type = RGFW_keyPressed;
+				GetKeyboardState(RGFW_keyBoard);
 				break;
 
 			case WM_MOUSEMOVE:
@@ -4693,9 +4728,20 @@ static HMODULE wglinstance = NULL;
 		if (win != NULL && !win->event.inFocus)
 			return 0;
 
-		if (GetAsyncKeyState(key) & 0x8000)
+		if (RGFW_keyBoard[key] & 0x80)
 			return 1;
-		else return 0;
+
+		return 0;
+	}
+
+	u8 RGFW_wasPressedI(RGFW_window* win, u32 key) {
+		if (win != NULL && !win->event.inFocus)
+			return 0;
+
+		if (RGFW_keyBoard_prev[key] & 0x80)
+			return 1;
+
+		return 0;
 	}
 
 	HICON RGFW_loadHandleImage(RGFW_window* win, u8* src, RGFW_area a, BOOL icon) {
@@ -5479,8 +5525,11 @@ static HMODULE wglinstance = NULL;
 
 	};
 
+
 	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		assert(win != NULL);
+
+		memcpy(RGFW_keyBoard_prev, RGFW_keyboard, 128);
 
 		if (win->event.type == RGFW_quit)
 			return &win->event;
@@ -5525,7 +5574,7 @@ static HMODULE wglinstance = NULL;
 			win->event.keyCode = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
 			win->event.keyName = (char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("characters")));
 
-			RGFW_keyMap[win->event.keyCode] = 1;
+			RGFW_keyBoard[win->event.keyCode] = 1;
 			break;
 
 		case NSEventTypeKeyUp:
@@ -5533,7 +5582,7 @@ static HMODULE wglinstance = NULL;
 			win->event.keyCode = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
 			win->event.keyName = (char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("characters")));
 
-			RGFW_keyMap[win->event.keyCode] = 0;
+			RGFW_keyBoard[win->event.keyCode] = 0;
 			break;
 
 		case NSEventTypeLeftMouseDragged:
@@ -5822,7 +5871,19 @@ static HMODULE wglinstance = NULL;
 			RGFW_error = 1;
 		}
 
-		return RGFW_keyMap[key];
+		return RGFW_keyBoard[key];
+	}
+
+	u8 RGFW_wasPressedI(RGFW_window* win, u32 key) {
+		RGFW_UNUSED(win);
+		if (key >= 128) {
+#ifdef RGFW_PRINT_ERRORS
+			fprintf(stderr, "RGFW_wasPressedI : invalid keycode\n");
+#endif
+			RGFW_error = 1;
+		}
+
+		return RGFW_keyBoard_prev[key];
 	}
 
 #ifdef __cplusplus
