@@ -2678,9 +2678,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		assert(win != NULL);
-
-		memcpy(RGFW_keyboard_prev, RGFW_keyboard, 32);
-
 		win->event.type = 0;
 
 #ifdef __linux__
@@ -2748,6 +2745,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		switch (E.type) {
 		case KeyPress:
 		case KeyRelease:
+			memcpy(RGFW_keyboard_prev, RGFW_keyboard, 32);
+
 			/* check if it's a real key release */
 			if (E.type == KeyRelease && XEventsQueued((Display*) win->src.display, QueuedAfterReading)) { /* get next event if there is one*/
 				XEvent NE;
@@ -4400,8 +4399,6 @@ static HMODULE wglinstance = NULL;
 	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		assert(win != NULL);
 
-		memcpy(RGFW_keyBoard_prev, RGFW_keyBoard, 256);
-
 		MSG msg;
 
 		if (RGFW_eventWindow.src.window == win->src.window) {
@@ -4449,6 +4446,8 @@ static HMODULE wglinstance = NULL;
 				break;
 
 			case WM_KEYUP:
+				memcpy(RGFW_keyBoard_prev, RGFW_keyBoard, 256);
+
 				win->event.keyCode = (u32) msg.wParam;
 				strncpy(win->event.keyName, RGFW_keyCodeTokeyStr(msg.lParam), 16);
 				if (GetKeyState(VK_SHIFT) & 0x8000) {
@@ -4461,6 +4460,8 @@ static HMODULE wglinstance = NULL;
 				break;
 
 			case WM_KEYDOWN:
+				memcpy(RGFW_keyBoard_prev, RGFW_keyBoard, 256);
+
 				win->event.keyCode = (u32) msg.wParam;
 				strncpy(win->event.keyName, RGFW_keyCodeTokeyStr(msg.lParam), 16);
 				if (GetKeyState(VK_SHIFT) & 0x8000) {
@@ -5532,8 +5533,6 @@ static HMODULE wglinstance = NULL;
 	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		assert(win != NULL);
 
-		memcpy(RGFW_keyBoard_prev, RGFW_keyBoard, 128);
-
 		if (win->event.type == RGFW_quit)
 			return &win->event;
 
@@ -5573,6 +5572,8 @@ static HMODULE wglinstance = NULL;
 
 		switch (objc_msgSend_uint(e, sel_registerName("type"))) {
 		case NSEventTypeKeyDown:
+			RGFW_keyBoard_prev[win->event.keyCode] = RGFW_keyBoard[win->event.keyCode];
+
 			win->event.type = RGFW_keyPressed;
 			win->event.keyCode = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
 			win->event.keyName = (char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("characters")));
@@ -5581,6 +5582,8 @@ static HMODULE wglinstance = NULL;
 			break;
 
 		case NSEventTypeKeyUp:
+			RGFW_keyBoard_prev[win->event.keyCode] = RGFW_keyBoard[win->event.keyCode];
+
 			win->event.type = RGFW_keyReleased;
 			win->event.keyCode = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
 			win->event.keyName = (char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("characters")));
