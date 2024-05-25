@@ -2738,8 +2738,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		switch (E.type) {
 		case KeyPress:
 		case KeyRelease:
-			memcpy(RGFW_keyboard_prev, RGFW_keyboard, 32);
-
 			/* check if it's a real key release */
 			if (E.type == KeyRelease && XEventsQueued((Display*) win->src.display, QueuedAfterReading)) { /* get next event if there is one*/
 				XEvent NE;
@@ -2752,6 +2750,11 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			/* set event key data */
 			win->event.keyCode = XkbKeycodeToKeysym((Display*) win->src.display, E.xkey.keycode, 0, E.xkey.state & ShiftMask ? 1 : 0);
 			win->event.keyName = XKeysymToString(win->event.keyCode); /* convert to string */
+
+			if (RGFW_isPressedI(win, win->event.keyCode)) 
+				RGFW_keyboard_prev[E.xkey.keycode >> 3] |= (1 << (E.xkey.keycode & 7));
+			else
+				RGFW_keyboard_prev[E.xkey.keycode >> 3] |= 0;
 
 			/* get keystate data */
 			win->event.type = (E.type == KeyPress) ? RGFW_keyPressed : RGFW_keyReleased;
@@ -3784,7 +3787,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			d = (Display*) win->src.display;
 		
 		KeyCode kc2 = XKeysymToKeycode(d, key); /* convert the key to a keycode */
-		return !!(RGFW_keyboard[kc2 >> 3] & (1 << (kc2 & 7)));				/* check if the key is pressed */
+		return (RGFW_keyboard[kc2 >> 3] & (1 << (kc2 & 7)));				/* check if the key is pressed */
 	}
 
 	u8 RGFW_wasPressedI(RGFW_window* win, u32 key) {
@@ -4439,11 +4442,14 @@ static HMODULE wglinstance = NULL;
 				break;
 
 			case WM_KEYUP:
-				memcpy(RGFW_keyBoard_prev, RGFW_keyBoard, 256);
-
 				win->event.keyCode = (u32) msg.wParam;
+				if (RGFW_isPressedI(win, win->event.keyCode))
+					RGFW_keyBoard_prev[win->event.keyCode] |= 0x80;
+				else
+					RGFW_keyBoard_prev[win->event.keyCode] = 0;
+
 				strncpy(win->event.keyName, RGFW_keyCodeTokeyStr(msg.lParam), 16);
-				if (GetKeyState(VK_SHIFT) & 0x8000) {
+				if (RGFW_isPressedI(win, VK_SHIFT)) {
 					ToAscii((UINT) msg.wParam, MapVirtualKey((UINT) msg.wParam, MAPVK_VK_TO_CHAR),
 						keyboardState, (LPWORD) win->event.keyName, 0);
 				}
@@ -4453,11 +4459,15 @@ static HMODULE wglinstance = NULL;
 				break;
 
 			case WM_KEYDOWN:
-				memcpy(RGFW_keyBoard_prev, RGFW_keyBoard, 256);
-
 				win->event.keyCode = (u32) msg.wParam;
+
+				if (RGFW_isPressedI(win, win->event.keyCode))
+					RGFW_keyBoard_prev[win->event.keyCode] |= 0x80;
+				else
+					RGFW_keyBoard_prev[win->event.keyCode] = 0;
+
 				strncpy(win->event.keyName, RGFW_keyCodeTokeyStr(msg.lParam), 16);
-				if (GetKeyState(VK_SHIFT) & 0x8000) {
+				if (RGFW_isPressedI(win, VK_SHIFT) & 0x8000) {
 					ToAscii((UINT) msg.wParam, MapVirtualKey((UINT) msg.wParam, MAPVK_VK_TO_CHAR),
 						keyboardState, (LPWORD) win->event.keyName, 0);
 				}
