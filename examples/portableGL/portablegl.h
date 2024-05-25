@@ -211,6 +211,17 @@ PGL_SIMPLE_THICK_LINES
     thickness at a relatively low number (like 8) so the problems are less
     obvious.
 
+PGL_DISABLE_COLOR_MASK
+    If defined, color masking (which is set using glColorMask()) is ignored
+    which provides some performance benefit though it varies depending on
+    what you're doing.
+
+PGL_EXCLUDE_STUBS
+    If defined, PGL will exclude stubs for dozens of OpenGL functions that
+    make porting existing OpenGL projects and reusing existing OpenGL
+    helper/library code with PortableGL much easier.  This might make
+    sense to define if you're starting a PGL project from scratch.
+
 There are also these predefined maximums which you can change.
 However, considering the performance limitations of PortableGL, they are
 probably more than enough.
@@ -334,12 +345,6 @@ extern "C" {
 #define CVEC_MEMMOVE(dst, src, sz) PGL_MEMMOVE(dst, src, sz)
 #endif
 
-#ifndef PGL_SIMPLE_THICK_LINES
-#define DRAW_THICK_LINE draw_thick_line
-#else
-#define DRAW_THICK_LINE draw_thick_line_simple
-#endif
-
 #ifndef CRSW_MATH_H
 #define CRSW_MATH_H
 
@@ -389,7 +394,7 @@ typedef int32_t  i32;
 typedef int64_t  i64;
 
 // returns float [0,1)
-inline float rsw_randf()
+inline float rsw_randf(void)
 {
 	return rand() / (RAND_MAX + 1.0f);
 }
@@ -1746,11 +1751,11 @@ PGL_VECTORIZE_VEC(isinf)
 // Most of these are elsewhere in the the file
 // TODO Where should these go?
 
-static float distance_vec2(vec2 a, vec2 b)
+static inline float distance_vec2(vec2 a, vec2 b)
 {
 	return length_vec2(sub_vec2s(a, b));
 }
-static float distance_vec3(vec3 a, vec3 b)
+static inline float distance_vec3(vec3 a, vec3 b)
 {
 	return length_vec3(sub_vec3s(a, b));
 }
@@ -2055,7 +2060,7 @@ typedef uint64_t  GLuint64;
 typedef int32_t   GLsizei;
 
 typedef int32_t   GLenum;
-typedef int32_t   GLbitfield;
+typedef uint32_t  GLbitfield;
 
 typedef intptr_t  GLintptr;
 typedef uintptr_t GLsizeiptr;
@@ -2068,7 +2073,7 @@ typedef float     GLclampf;
 typedef double    GLdouble;
 typedef double    GLclampd;
 
-
+#define PGL_UNUSED(var) (void)(var)
 
 enum
 {
@@ -2911,6 +2916,13 @@ typedef struct glContext
 	GLboolean poly_offset_fill;
 	GLboolean scissor_test;
 
+	GLboolean red_mask;
+	GLboolean green_mask;
+	GLboolean blue_mask;
+	GLboolean alpha_mask;
+	GLbitfield color_mask;
+
+
 	// stencil test requires a lot of state, especially for
 	// something that I think will rarely be used... is it even worth having?
 	GLboolean stencil_test;
@@ -3071,13 +3083,14 @@ void glViewport(int x, int y, GLsizei width, GLsizei height);
 
 
 GLubyte* glGetString(GLenum name);
-GLenum glGetError();
+GLenum glGetError(void);
 void glGetBooleanv(GLenum pname, GLboolean* data);
 void glGetFloatv(GLenum pname, GLfloat* data);
 void glGetIntegerv(GLenum pname, GLint* data);
 GLboolean glIsEnabled(GLenum cap);
 GLboolean glIsProgram(GLuint program);
 
+void glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
 void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
 void glClearDepthf(GLfloat depth);
 void glClearDepth(GLdouble depth);
@@ -3163,16 +3176,20 @@ GLuint pglCreateProgram(vert_func vertex_shader, frag_func fragment_shader, GLsi
 void glDeleteProgram(GLuint program);
 void glUseProgram(GLuint program);
 
+// These are here, not in pgl_ext.h/c because they take the place of standard OpenGL
+// functions glUniform*() and glProgramUniform*()
 void pglSetUniform(void* uniform);
+void pglSetProgramUniform(GLuint program, void* uniform);
 
 
+
+#ifndef PGL_EXCLUDE_STUBS
 
 // Stubs to let real OpenGL libs compile with minimal modifications/ifdefs
 // add what you need
 //
 const GLubyte* glGetStringi(GLenum name, GLuint index);
 
-void glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
 void glColorMaski(GLuint buf, GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
 
 void glGenerateMipmap(GLenum target);
@@ -3252,7 +3269,7 @@ void glCompileShader(GLuint shader);
 void glGetShaderInfoLog(GLuint shader, GLsizei maxLength, GLsizei* length, GLchar* infoLog);
 
 // use pglCreateProgram()
-GLuint glCreateProgram();
+GLuint glCreateProgram(void);
 
 void glLinkProgram(GLuint program);
 void glShaderSource(GLuint shader, GLsizei count, const GLchar** string, const GLint* length);
@@ -3307,10 +3324,10 @@ void glUniformMatrix4x2fv(GLint location, GLsizei count, GLboolean transpose, co
 void glUniformMatrix3x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
 void glUniformMatrix4x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
 
+#endif
 
 
-
-void pglClearScreen();
+void pglClearScreen(void);
 
 //This isn't possible in regular OpenGL, changing the interpolation of vs output of
 //an existing shader.  You'd have to switch between 2 almost identical shaders.
@@ -3322,7 +3339,7 @@ glVertexAttribPointer(index, size, type, normalized, stride, (void*)(offset))
 //TODO
 //pglDrawRect(x, y, w, h)
 //pglDrawPoint(x, y)
-void pglDrawFrame();
+void pglDrawFrame(void);
 
 // TODO should these be called pglMapped* since that's what they do?  I don't think so, since it's too different from actual spec for mapped buffers
 void pglBufferData(GLenum target, GLsizei size, const GLvoid* data, GLenum usage);
@@ -3360,7 +3377,7 @@ void put_triangle(Color c1, Color c2, Color c3, vec2 p1, vec2 p2, vec2 p3);
 
 
 
-extern inline float rsw_randf();
+extern inline float rsw_randf(void);
 extern inline float rsw_randf_range(float min, float max);
 extern inline double rsw_map(double x, double a, double b, double c, double d);
 extern inline float rsw_mapf(float x, float a, float b, float c, float d);
@@ -5800,7 +5817,6 @@ static glContext* c;
 
 static Color blend_pixel(vec4 src, vec4 dst);
 static int fragment_processing(int x, int y, float z);
-static void draw_pixel_vec2(vec4 cf, vec2 pos, float z);
 static void draw_pixel(vec4 cf, int x, int y, float z, int do_frag_processing);
 static void run_pipeline(GLenum mode, const GLvoid* indices, GLsizei count, GLsizei instance, GLuint base_instance, GLboolean use_elements);
 
@@ -5815,7 +5831,8 @@ static void draw_triangle(glVertex* v0, glVertex* v1, glVertex* v2, unsigned int
 
 static void draw_line_clip(glVertex* v1, glVertex* v2);
 static void draw_line_shader(vec3 hp1, vec3 hp2, float w1, float w2, float* v1_out, float* v2_out, unsigned int provoke, float poly_offset);
-static void draw_thick_line_simple(vec3 hp1, vec3 hp2, float w1, float w2, float* v1_out, float* v2_out, unsigned int provoke, float poly_offset);
+
+// This is the prototype for either implementation; only one is defined based on PGL_SIMPLE_THICK_LINES
 static void draw_thick_line(vec3 hp1, vec3 hp2, float w1, float w2, float* v1_out, float* v2_out, unsigned int provoke, float poly_offset);
 
 /* this clip epsilon is needed to avoid some rounding errors after
@@ -5834,8 +5851,8 @@ static inline int gl_clipcode(vec4 pt)
 	return
 		(((pt.z < -w) |
 		 ((pt.z >  w) << 1)) &
-		 (!c->depth_clamp |
-		  !c->depth_clamp << 1)) |
+		 ((!c->depth_clamp) |
+		  (!c->depth_clamp) << 1)) |
 
 		((pt.x < -w) << 2) |
 		((pt.x >  w) << 3) |
@@ -6277,7 +6294,7 @@ static void draw_line_clip(glVertex* v1, glVertex* v2)
 		if (c->line_width < 1.5f) {
 			draw_line_shader(hp1, hp2, t1.w, t2.w, v1->vs_out, v2->vs_out, provoke, 0.0f);
 		} else {
-			DRAW_THICK_LINE(hp1, hp2, t1.w, t2.w, v1->vs_out, v2->vs_out, provoke, 0.0f);
+			draw_thick_line(hp1, hp2, t1.w, t2.w, v1->vs_out, v2->vs_out, provoke, 0.0f);
 		}
 	} else {
 
@@ -6310,7 +6327,7 @@ static void draw_line_clip(glVertex* v1, glVertex* v2)
 			if (c->line_width < 1.5f) {
 				draw_line_shader(hp1, hp2, t1.w, t2.w, v1->vs_out, v2->vs_out, provoke, 0.0f);
 			} else {
-				DRAW_THICK_LINE(hp1, hp2, t1.w, t2.w, v1->vs_out, v2->vs_out, provoke, 0.0f);
+				draw_thick_line(hp1, hp2, t1.w, t2.w, v1->vs_out, v2->vs_out, provoke, 0.0f);
 			}
 		}
 	}
@@ -6495,7 +6512,8 @@ static void draw_line_shader(vec3 hp1, vec3 hp2, float w1, float w2, float* v1_o
 	}
 }
 
-static void draw_thick_line_simple(vec3 hp1, vec3 hp2, float w1, float w2, float* v1_out, float* v2_out, unsigned int provoke, float poly_offset)
+#ifdef PGL_SIMPLE_THICK_LINES
+static void draw_thick_line(vec3 hp1, vec3 hp2, float w1, float w2, float* v1_out, float* v2_out, unsigned int provoke, float poly_offset)
 {
 	float tmp;
 	float* tmp_ptr;
@@ -6677,7 +6695,7 @@ static void draw_thick_line_simple(vec3 hp1, vec3 hp2, float w1, float w2, float
 		}
 	}
 }
-
+#else
 static void draw_thick_line(vec3 hp1, vec3 hp2, float w1, float w2, float* v1_out, float* v2_out, unsigned int provoke, float poly_offset)
 {
 	float tmp;
@@ -6718,7 +6736,7 @@ static void draw_thick_line(vec3 hp1, vec3 hp2, float w1, float w2, float* v1_ou
 	vec2 p1 = { x1, y1 };
 	vec2 p2 = { x2, y2 };
 	vec2 v12 = sub_vec2s(p2, p1);
-	vec2 v1r, v2r, pr;
+	vec2 v1r, pr; // v2r
 
 	float dot_1212 = dot_vec2s(v12, v12);
 
@@ -6752,7 +6770,7 @@ static void draw_thick_line(vec3 hp1, vec3 hp2, float w1, float w2, float* v1_ou
 	int fragdepth_or_discard = c->programs.a[c->cur_program].fragdepth_or_discard;
 
 	float t, x, y, z, w, e, dist;
-	float width2 = width*width;
+	//float width2 = width*width;
 
 	// calculate x_max or just use last logic?
 	//int last = 0;
@@ -6788,7 +6806,7 @@ static void draw_thick_line(vec3 hp1, vec3 hp2, float w1, float w2, float* v1_ou
 		for (x = x_min; x < x_max; ++x) {
 			pr.x = x;
 			v1r = sub_vec2s(pr, p1);
-			v2r = sub_vec2s(pr, p2);
+			//v2r = sub_vec2s(pr, p2);
 			e = dot_vec2s(v1r, v12);
 
 			// c lies past the ends of the segment v12
@@ -6824,6 +6842,7 @@ static void draw_thick_line(vec3 hp1, vec3 hp2, float w1, float w2, float* v1_ou
 		}
 	}
 }
+#endif
 
 static void draw_triangle(glVertex* v0, glVertex* v1, glVertex* v2, unsigned int provoke)
 {
@@ -7045,6 +7064,8 @@ static void draw_triangle_clip(glVertex* v0, glVertex* v1, glVertex* v2, unsigne
 static void draw_triangle_point(glVertex* v0, glVertex* v1,  glVertex* v2, unsigned int provoke)
 {
 	//TODO use provoke?
+	PGL_UNUSED(provoke);
+
 	glVertex* vert[3] = { v0, v1, v2 };
 	vec3 hp[3];
 	hp[0] = vec4_to_vec3h(v0->screen_space);
@@ -7095,13 +7116,13 @@ static void draw_triangle_line(glVertex* v0, glVertex* v1,  glVertex* v2, unsign
 	} else {
 
 		if (v0->edge_flag) {
-			DRAW_THICK_LINE(hp0, hp1, w0, w1, v0->vs_out, v1->vs_out, provoke, poly_offset);
+			draw_thick_line(hp0, hp1, w0, w1, v0->vs_out, v1->vs_out, provoke, poly_offset);
 		}
 		if (v1->edge_flag) {
-			DRAW_THICK_LINE(hp1, hp2, w1, w2, v1->vs_out, v2->vs_out, provoke, poly_offset);
+			draw_thick_line(hp1, hp2, w1, w2, v1->vs_out, v2->vs_out, provoke, poly_offset);
 		}
 		if (v2->edge_flag) {
-			DRAW_THICK_LINE(hp2, hp0, w2, w0, v2->vs_out, v0->vs_out, provoke, poly_offset);
+			draw_thick_line(hp2, hp0, w2, w0, v2->vs_out, v0->vs_out, provoke, poly_offset);
 		}
 	}
 }
@@ -7559,8 +7580,6 @@ static void stencil_op(int stencil, int depth, u8* dest)
 
 }
 
-static void draw_pixel_vec2(vec4 cf, vec2 pos, float z)
-{
 /*
  * spec pg 110:
 Point rasterization produces a fragment for each framebuffer pixel whose center
@@ -7572,9 +7591,6 @@ would fall on the very edge of a 1 pixel square.  I think just drawing the upper
 corner pixel in these cases is fine and makes sense since width and height are actually 0.01 less
 than full, see make_viewport_matrix
 */
-
-	draw_pixel(cf, pos.x, pos.y, z, GL_TRUE);
-}
 
 static int fragment_processing(int x, int y, float z)
 {
@@ -7657,12 +7673,23 @@ static void draw_pixel(vec4 cf, int x, int y, float z, int do_frag_processing)
 		src_color = logic_ops_pixel(src_color, dest_color);
 	}
 
-
 	//Dithering
+
+	// TODO configuration to turn off 
+#ifndef PGL_DISABLE_COLOR_MASK
+	if (!c->red_mask) src_color.r = dest_color.r;
+	if (!c->green_mask) src_color.g = dest_color.g;
+	if (!c->blue_mask) src_color.b = dest_color.b;
+	if (!c->alpha_mask) src_color.a = dest_color.a;
+#endif
+
 
 	//((u32*)c->back_buffer.buf)[(buf.h-1-y)*buf.w + x] = c.a << 24 | c.c << 16 | c.g << 8 | c.b;
 	//((u32*)c->back_buffer.lastrow)[-y*c->back_buffer.w + x] = c.a << 24 | c.c << 16 | c.g << 8 | c.b;
 	*dest = (u32)src_color.a << c->Ashift | (u32)src_color.r << c->Rshift | (u32)src_color.g << c->Gshift | (u32)src_color.b << c->Bshift;
+
+
+
 }
 
 
@@ -7738,11 +7765,17 @@ void INIT_TEX(glTexture* tex, GLenum target)
 // default pass through shaders for index 0
 void default_vs(float* vs_output, vec4* vertex_attribs, Shader_Builtins* builtins, void* uniforms)
 {
+	PGL_UNUSED(vs_output);
+	PGL_UNUSED(uniforms);
+
 	builtins->gl_Position = vertex_attribs[PGL_ATTR_VERT];
 }
 
 void default_fs(float* fs_input, Shader_Builtins* builtins, void* uniforms)
 {
+	PGL_UNUSED(fs_input);
+	PGL_UNUSED(uniforms);
+
 	vec4* fragcolor = &builtins->gl_FragColor;
 	//wish I could use a compound literal, stupid C++ compatibility
 	fragcolor->x = 1.0f;
@@ -7849,6 +7882,13 @@ int init_glContext(glContext* context, u32** back, int w, int h, int bitdepth, u
 	c->Gmask = Gmask;
 	c->Bmask = Bmask;
 	c->Amask = Amask;
+
+	c->red_mask = GL_TRUE;
+	c->green_mask = GL_TRUE;
+	c->blue_mask = GL_TRUE;
+	c->alpha_mask = GL_TRUE;
+	c->color_mask = Rmask | Gmask | Bmask | Amask;
+
 	GET_SHIFT(Rmask, c->Rshift);
 	GET_SHIFT(Gmask, c->Gshift);
 	GET_SHIFT(Bmask, c->Bshift);
@@ -7941,7 +7981,7 @@ int init_glContext(glContext* context, u32** back, int w, int h, int bitdepth, u
 
 	//program 0 is supposed to be undefined but not invalid so I'll
 	//just make it default, no transform, just draws things red
-	glProgram tmp_prog = { default_vs, default_fs, NULL, 0, {0}, GL_FALSE };
+	glProgram tmp_prog = { default_vs, default_fs, NULL, 0, {0}, GL_FALSE, GL_FALSE };
 	cvec_push_glProgram(&c->programs, tmp_prog);
 	glUseProgram(0);
 
@@ -8075,7 +8115,7 @@ GLubyte* glGetString(GLenum name)
 	}
 }
 
-GLenum glGetError()
+GLenum glGetError(void)
 {
 	GLenum err = c->error;
 	c->error = GL_NO_ERROR;
@@ -8276,13 +8316,14 @@ void glBindBuffer(GLenum target, GLuint buffer)
 
 void glBufferData(GLenum target, GLsizei size, const GLvoid* data, GLenum usage)
 {
+	//TODO check for usage later
+	PGL_UNUSED(usage);
+
 	if (target != GL_ARRAY_BUFFER && target != GL_ELEMENT_ARRAY_BUFFER) {
 		if (!c->error)
 			c->error = GL_INVALID_ENUM;
 		return;
 	}
-
-	//TODO check for usage later
 
 	target -= GL_ARRAY_BUFFER;
 	if (c->bound_buffers[target] == 0) {
@@ -8335,6 +8376,7 @@ void glBufferSubData(GLenum target, GLsizei offset, GLsizei size, const GLvoid* 
 void glNamedBufferData(GLuint buffer, GLsizei size, const GLvoid* data, GLenum usage)
 {
 	//check for usage later
+	PGL_UNUSED(usage);
 
 	if (buffer == 0 || buffer >= c->buffers.size || c->buffers.a[buffer].deleted) {
 		if (!c->error)
@@ -8551,6 +8593,10 @@ void glPixelStorei(GLenum pname, GLint param)
 
 void glTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid* data)
 {
+	//ignore level and internalformat for now
+	PGL_UNUSED(level);
+	PGL_UNUSED(internalformat);
+
 	if (target != GL_TEXTURE_1D) {
 		if (!c->error)
 			c->error = GL_INVALID_ENUM;
@@ -8568,8 +8614,6 @@ void glTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 			c->error = GL_INVALID_ENUM;
 		return;
 	}
-
-	//ignore level and internalformat for now
 
 	int components;
 #ifdef PGL_DONT_CONVERT_TEXTURES
@@ -8608,6 +8652,11 @@ void glTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 
 void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid* data)
 {
+	// ignore level and internalformat for now
+	// (the latter is always converted to RGBA32 anyway)
+	PGL_UNUSED(level);
+	PGL_UNUSED(internalformat);
+
 	// TODO GL_TEXTURE_1D_ARRAY
 	if (target != GL_TEXTURE_2D &&
 	    target != GL_TEXTURE_RECTANGLE &&
@@ -8628,16 +8677,11 @@ void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 		return;
 	}
 
-	//ignore level for now
-
 	if (type != GL_UNSIGNED_BYTE) {
 		if (!c->error)
 			c->error = GL_INVALID_ENUM;
 		return;
 	}
-
-	// TODO internalformat ignored for now, always converted
-	// to RGBA32 anyway
 
 	int components;
 #ifdef PGL_DONT_CONVERT_TEXTURES
@@ -8733,6 +8777,11 @@ void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 
 void glTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid* data)
 {
+	// ignore level and internalformat for now
+	// (the latter is always converted to RGBA32 anyway)
+	PGL_UNUSED(level);
+	PGL_UNUSED(internalformat);
+
 	if (target != GL_TEXTURE_3D && target != GL_TEXTURE_2D_ARRAY) {
 		if (!c->error)
 			c->error = GL_INVALID_ENUM;
@@ -8745,7 +8794,6 @@ void glTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 		return;
 	}
 
-	//ignore level and internalformat for now
 	if (type != GL_UNSIGNED_BYTE) {
 		if (!c->error)
 			c->error = GL_INVALID_ENUM;
@@ -8796,6 +8844,9 @@ void glTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 
 void glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const GLvoid* data)
 {
+	//ignore level for now
+	PGL_UNUSED(level);
+
 	if (target != GL_TEXTURE_1D) {
 		if (!c->error)
 			c->error = GL_INVALID_ENUM;
@@ -8807,8 +8858,6 @@ void glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, G
 			c->error = GL_INVALID_ENUM;
 		return;
 	}
-
-	//ignore level for now
 
 	int cur_tex = c->bound_textures[target-GL_TEXTURE_UNBOUND-1];
 
@@ -8836,6 +8885,9 @@ void glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, G
 
 void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid* data)
 {
+	//ignore level for now
+	PGL_UNUSED(level);
+
 	// TODO GL_TEXTURE_1D_ARRAY
 	if (target != GL_TEXTURE_2D &&
 	    target != GL_TEXTURE_CUBE_MAP_POSITIVE_X &&
@@ -8848,8 +8900,6 @@ void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, G
 			c->error = GL_INVALID_ENUM;
 		return;
 	}
-
-	//ignore level for now
 
 	if (type != GL_UNSIGNED_BYTE) {
 		if (!c->error)
@@ -8913,14 +8963,15 @@ void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, G
 
 void glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const GLvoid* data)
 {
+	//ignore level for now
+	PGL_UNUSED(level);
+
 	if (target != GL_TEXTURE_3D && target != GL_TEXTURE_2D_ARRAY) {
 		if (!c->error)
 			c->error = GL_INVALID_ENUM;
 		return;
 	}
 
-	//ignore level for now
-	
 	if (type != GL_UNSIGNED_BYTE) {
 		if (!c->error)
 			c->error = GL_INVALID_ENUM;
@@ -9310,6 +9361,30 @@ void glDepthMask(GLboolean flag)
 	c->depth_mask = flag;
 }
 
+void glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
+{
+#ifndef PGL_DISABLE_COLOR_MASK
+	// !! ensures 1 or 0
+	red = !!red;
+	green = !!green;
+	blue = !!blue;
+	alpha = !!alpha;
+
+	c->red_mask   = red;
+	c->green_mask = green;
+	c->blue_mask  = blue;
+	c->alpha_mask = alpha;
+
+	// By multiplying by the masks the user gave in init_glContext I don't
+	// need to shift them
+	u32 rmask = red*c->Rmask;
+	u32 gmask = green*c->Gmask;
+	u32 bmask = blue*c->Bmask;
+	u32 amask = alpha*c->Amask;
+	c->color_mask = rmask | gmask | bmask | amask;
+#endif
+}
+
 void glClear(GLbitfield mask)
 {
 	if (!(mask & (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT))) {
@@ -9326,12 +9401,26 @@ void glClear(GLbitfield mask)
 	Color col = c->clear_color;
 	u32 color = (u32)col.a << c->Ashift | (u32)col.r << c->Rshift | (u32)col.g << c->Gshift | (u32)col.b << c->Bshift;
 
+#ifndef PGL_DISABLE_COLOR_MASK
+	// clear out channels not enabled for writing
+	color &= c->color_mask;
+	// used to erase channels to be written
+	u32 clear_mask = ~c->color_mask;
+	u32 tmp;
+#endif
+
 	float cd = c->clear_depth;
 	u8 cs = c->clear_stencil;
 	if (!c->scissor_test) {
 		if (mask & GL_COLOR_BUFFER_BIT) {
 			for (int i=0; i<sz; ++i) {
+#ifdef PGL_DISABLE_COLOR_MASK
 				((u32*)c->back_buffer.buf)[i] = color;
+#else
+				tmp = ((u32*)c->back_buffer.buf)[i];
+				tmp &= clear_mask;
+				((u32*)c->back_buffer.buf)[i] = tmp | color;
+#endif
 			}
 		}
 		if (mask & GL_DEPTH_BUFFER_BIT) {
@@ -9352,7 +9441,13 @@ void glClear(GLbitfield mask)
 		if (mask & GL_COLOR_BUFFER_BIT) {
 			for (int y=c->ly; y<c->uy; ++y) {
 				for (int x=c->lx; x<c->ux; ++x) {
+#ifdef PGL_DISABLE_COLOR_MASK
 					((u32*)c->back_buffer.lastrow)[-y*w + x] = color;
+#else
+					tmp = ((u32*)c->back_buffer.lastrow)[-y*w + x];
+					tmp &= clear_mask;
+					((u32*)c->back_buffer.lastrow)[-y*w + x] = tmp | color;
+#endif
 				}
 			}
 		}
@@ -9777,6 +9872,9 @@ GLuint pglCreateProgram(vert_func vertex_shader, frag_func fragment_shader, GLsi
 	return c->programs.size-1;
 }
 
+// Doesn't really do anything except mark for re-use, you
+// could still use it even if it wasn't current as long as
+// no new program get's assigned to the same spot
 void glDeleteProgram(GLuint program)
 {
 	if (!program)
@@ -9793,6 +9891,7 @@ void glDeleteProgram(GLuint program)
 
 void glUseProgram(GLuint program)
 {
+	// Not a problem is program is marked "deleted" already
 	if (program >= c->programs.size) {
 		if (!c->error)
 			c->error = GL_INVALID_VALUE;
@@ -9812,6 +9911,18 @@ void pglSetUniform(void* uniform)
 	//TODO check for NULL? definitely if I ever switch to storing a local
 	//copy in glProgram
 	c->programs.a[c->cur_program].uniform = uniform;
+}
+
+void pglSetProgramUniform(GLuint program, void* uniform)
+{
+	// can set uniform for a "deleted" program
+	if (program >= c->programs.size) {
+		if (!c->error)
+			c->error = GL_INVALID_OPERATION; // error in glProgramUniform*() functions
+		return;
+	}
+
+	c->programs.a[program].uniform = uniform;
 }
 
 
@@ -10112,12 +10223,13 @@ void* glMapNamedBuffer(GLuint buffer, GLenum access)
 }
 
 
+#ifndef PGL_EXCLUDE_STUBS
+
 // Stubs to let real OpenGL libs compile with minimal modifications/ifdefs
 // add what you need
 
 const GLubyte* glGetStringi(GLenum name, GLuint index) { return NULL; }
 
-void glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha) {}
 void glColorMaski(GLuint buf, GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha) {}
 
 void glGenerateMipmap(GLenum target)
@@ -10187,7 +10299,7 @@ void glGetShaderiv(GLuint shader, GLenum pname, GLint* params) { }
 void glDeleteShader(GLuint shader) { }
 void glDetachShader(GLuint program, GLuint shader) { }
 
-GLuint glCreateProgram() { return 0; }
+GLuint glCreateProgram(void) { return 0; }
 GLuint glCreateShader(GLenum shaderType) { return 0; }
 GLint glGetUniformLocation(GLuint program, const GLchar* name) { return 0; }
 GLint glGetAttribLocation(GLuint program, const GLchar* name) { return 0; }
@@ -10257,7 +10369,7 @@ void glUniformMatrix4x2fv(GLint location, GLsizei count, GLboolean transpose, co
 void glUniformMatrix3x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) { }
 void glUniformMatrix4x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) { }
 
-
+#endif
 
 
 /*************************************
@@ -10292,7 +10404,7 @@ int clampi(int i, int min, int max)
 
 static int wrap(int i, int size, GLenum mode)
 {
-	int tmp, tmp2;
+	int tmp;
 	switch (mode)
 	{
 	case GL_REPEAT:
@@ -10316,7 +10428,6 @@ static int wrap(int i, int size, GLenum mode)
 	case GL_MIRRORED_REPEAT:
 		if (i < 0) i = -i;
 		tmp = i / size;
-		tmp2 = i / (2*size);  // TODO what was this for?
 		if (tmp % 2)
 			return (size-1) - (i - tmp * size);
 		else
@@ -10794,7 +10905,7 @@ vec4 texture_cubemap(GLuint texture, float x, float y, float z)
 //you can use it elsewhere, independently of a glContext
 //etc.
 //
-void pglClearScreen()
+void pglClearScreen(void)
 {
 	memset(c->back_buffer.buf, 255, c->back_buffer.w * c->back_buffer.h * 4);
 }
@@ -10820,7 +10931,7 @@ void pglSetInterp(GLsizei n, GLenum* interpolation)
 //TODO
 //pglDrawRect(x, y, w, h)
 //pglDrawPoint(x, y)
-void pglDrawFrame()
+void pglDrawFrame(void)
 {
 	frag_func frag_shader = c->programs.a[c->cur_program].fragment_shader;
 
@@ -10844,13 +10955,14 @@ void pglDrawFrame()
 
 void pglBufferData(GLenum target, GLsizei size, const GLvoid* data, GLenum usage)
 {
+	//TODO check for usage later
+	PGL_UNUSED(usage);
+
 	if (target != GL_ARRAY_BUFFER && target != GL_ELEMENT_ARRAY_BUFFER) {
 		if (!c->error)
 			c->error = GL_INVALID_ENUM;
 		return;
 	}
-
-	//check for usage later
 
 	target -= GL_ARRAY_BUFFER;
 	if (c->bound_buffers[target] == 0) {
@@ -10892,6 +11004,11 @@ void pglBufferData(GLenum target, GLsizei size, const GLvoid* data, GLenum usage
 // support
 void pglTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid* data)
 {
+	// ignore level and internalformat for now
+	// (the latter is always converted to RGBA32 anyway)
+	PGL_UNUSED(level);
+	PGL_UNUSED(internalformat);
+
 	if (target != GL_TEXTURE_1D) {
 		if (!c->error)
 			c->error = GL_INVALID_ENUM;
@@ -10923,8 +11040,6 @@ void pglTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei wid
 		return;
 	}
 
-	//ignore level for now
-
 	int cur_tex = c->bound_textures[target-GL_TEXTURE_UNBOUND-1];
 
 	c->textures.a[cur_tex].w = width;
@@ -10945,6 +11060,11 @@ void pglTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei wid
 
 void pglTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid* data)
 {
+	// ignore level and internalformat for now
+	// (the latter is always converted to RGBA32 anyway)
+	PGL_UNUSED(level);
+	PGL_UNUSED(internalformat);
+
 	// TODO handle cubemap properly
 	if (target != GL_TEXTURE_2D &&
 	    target != GL_TEXTURE_RECTANGLE &&
@@ -10983,8 +11103,6 @@ void pglTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei wid
 			c->error = GL_INVALID_VALUE;
 		return;
 	}
-
-	//ignore level for now
 
 	//TODO support other types?
 	if (type != GL_UNSIGNED_BYTE) {
@@ -11053,6 +11171,11 @@ void pglTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei wid
 
 void pglTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid* data)
 {
+	// ignore level and internalformat for now
+	// (the latter is always converted to RGBA32 anyway)
+	PGL_UNUSED(level);
+	PGL_UNUSED(internalformat);
+
 	if (target != GL_TEXTURE_3D && target != GL_TEXTURE_2D_ARRAY) {
 		if (!c->error)
 			c->error = GL_INVALID_ENUM;
@@ -11083,8 +11206,6 @@ void pglTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei wid
 			c->error = GL_INVALID_VALUE;
 		return;
 	}
-
-	//ignore level for now
 
 	int cur_tex = c->bound_textures[target-GL_TEXTURE_UNBOUND-1];
 
@@ -11577,17 +11698,21 @@ void put_triangle(Color c1, Color c2, Color c3, vec2 p1, vec2 p2, vec2 p3)
 // Identity Shader, no transformation, uniform color
 static void pgl_identity_vs(float* vs_output, vec4* vertex_attribs, Shader_Builtins* builtins, void* uniforms)
 {
+	PGL_UNUSED(vs_output);
+	PGL_UNUSED(uniforms);
 	builtins->gl_Position = vertex_attribs[PGL_ATTR_VERT];
 }
 
 static void pgl_identity_fs(float* fs_input, Shader_Builtins* builtins, void* uniforms)
 {
+	PGL_UNUSED(fs_input);
 	builtins->gl_FragColor = ((pgl_uniforms*)uniforms)->color;
 }
 
 // Flat Shader, Applies the uniform model view matrix transformation, uniform color
 static void flat_vs(float* vs_output, vec4* vertex_attribs, Shader_Builtins* builtins, void* uniforms)
 {
+	PGL_UNUSED(vs_output);
 	builtins->gl_Position = mult_mat4_vec4(*((mat4*)uniforms), vertex_attribs[PGL_ATTR_VERT]);
 }
 
@@ -11603,6 +11728,7 @@ static void pgl_shaded_vs(float* vs_output, vec4* vertex_attribs, Shader_Builtin
 
 static void pgl_shaded_fs(float* fs_input, Shader_Builtins* builtins, void* uniforms)
 {
+	PGL_UNUSED(uniforms);
 	builtins->gl_FragColor = ((vec4*)fs_input)[0];
 }
 
@@ -11864,3 +11990,4 @@ void pgl_init_std_shaders(GLuint programs[PGL_NUM_SHADERS])
 #undef clamp
 #undef clampi
 #endif
+
