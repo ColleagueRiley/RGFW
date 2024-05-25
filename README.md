@@ -6,8 +6,10 @@
 ![workflow windows](https://github.com/ColleagueRiley/RGFW/actions/workflows/windows.yml/badge.svg)
 ![workflow windows](https://github.com/ColleagueRiley/RGFW/actions/workflows/macos.yml/badge.svg)
 
+A crossplatform lightweight single-header very simple-to-use window abstraction library for creating GUI Libraries or simple GUI programs. 
+
 # About
-RGFW is a free multi-platform single-header very simple-to-use framework library for creating GUI Libraries or simple GUI programs. it is meant to be used as a very small and flexible alternative library to GLFW. 
+RGFW is a free multi-platform single-header very simple-to-use window abstraction framework for creating GUI Libraries or simple GUI programs. it is meant to be used as a very small and flexible alternative library to GLFW. 
 
 The window backend supports XLib (UNIX), Cocoas (MacOS) and WinAPI (Windows)\
 The graphics backend supports OpenGL (EGL, software, OSMesa, GLES), Vulkan, DirectX and software rendering buffers.
@@ -111,42 +113,6 @@ If you wish to build the documentation yourself, there is also a Doxygen file at
 
 Feel free to do a PR if you want a binding added to the list
 
-# RGFW vs GLFW
-RGFW is more portable, in part because single-header library. It does not use callbacks and focuses on trying to be straightforward. RGFW tries to work with the programmer rather than forcing the programmer to work around it. It also uses far less RAM and storage than GLFW.
-
-| Feature | RGFW | GLFW |
-| --- | --- | --- |
-| .o size  (avg) | 46kb  | 280kb |
-| .so size (avg) | 94kb | 433kb |
-| .h size | 152kb  | 256kb |
-| basic demo lines | ~130  | ~160 |
-| memory ussage (linux) | 47 Mib | 55.9 Mib |
-| --- | --- | --- |
-| fps counter | ✓  | X |
-| multi-threading | ✓  | X |
-| drag and drop (input) | ✓  | ✓ |
-| drag and drop (output) | X | X |
-| joystick input | ~ (no macos support) | ✓ |
-| live window struct | ✓  | X |
-| event pipeline (dynamic) | ✓  | X |
-| multi-buffering | ✓  | ✓ |
-| set icon based on bitmap | ✓  | ✓ |
-| clipboard I/O | ✓  | ✓ |
-| multi-window support | ✓  | ✓ |
-| hide/show mouse | ✓  | ✓ |
-| no resize window | ✓  | ✓ |
-| no border window | ✓  | X |
-| transparent window | ✓  | ✓ |
-| key strings | ✓  | ✓ |
-| custom cursors | ✓  | ✓ |
-| wayland | ~ (backwards comp.)  | ✓ |
-| OpenGL | ✓  | ✓ |
-| Vulkan | ✓  | ✓ |
-| OpenGL ES | ✓  | ✓ |
-| EGL | ✓  | ✓ |
-| OSMesa | ✓  | ✓ |
-| Direct X | ✓  | X |
-
 # project
 Projects that use RGFW in some way\
 Feel free to do a PR if you want something added to the list
@@ -188,6 +154,42 @@ It uses RGFW for it's examples
 [RFont](https://github.com/ColleagueRiley/RFont) is a simple-to-use single-header modular font rendering library written in C. 
 
 It uses RGFW for it's examples
+
+# RGFW vs GLFW
+RGFW is more portable, in part because single-header library. It does not use callbacks and focuses on trying to be straightforward. RGFW tries to work with the programmer rather than forcing the programmer to work around it. It also uses far less RAM and storage than GLFW.
+
+| Feature | RGFW | GLFW |
+| --- | --- | --- |
+| .o size  (avg) | 46kb  | 280kb |
+| .so size (avg) | 94kb | 433kb |
+| .h size | 152kb  | 256kb |
+| basic demo lines | ~130  | ~160 |
+| memory ussage (linux) | 47 Mib | 55.9 Mib |
+| --- | --- | --- |
+| fps counter | ✓  | X |
+| multi-threading | ✓  | X |
+| drag and drop (input) | ✓  | ✓ |
+| drag and drop (output) | X | X |
+| joystick input | ~ (no macos support) | ✓ |
+| live window struct | ✓  | X |
+| event pipeline (dynamic) | ✓  | X |
+| multi-buffering | ✓  | ✓ |
+| set icon based on bitmap | ✓  | ✓ |
+| clipboard I/O | ✓  | ✓ |
+| multi-window support | ✓  | ✓ |
+| hide/show mouse | ✓  | ✓ |
+| no resize window | ✓  | ✓ |
+| no border window | ✓  | X |
+| transparent window | ✓  | ✓ |
+| key strings | ✓  | ✓ |
+| custom cursors | ✓  | ✓ |
+| wayland | ~ (backwards comp.)  | ✓ |
+| OpenGL | ✓  | ✓ |
+| Vulkan | ✓  | ✓ |
+| OpenGL ES | ✓  | ✓ |
+| EGL | ✓  | ✓ |
+| OSMesa | ✓  | ✓ |
+| Direct X | ✓  | X |
 
 # License
 RGFW uses the Zlib/libPNG license, this means you can use RGFW freely as long as you do not claim you wrote this software, mark altered versions as such and keep the license included with the header.
