@@ -112,7 +112,7 @@ extern "C" {
 #define RGFW_HEADER
 
 #if !defined(u8)
-#include <stdint.h>
+	#include <stdint.h>
 
 	typedef uint8_t     u8;
 	typedef int8_t      i8;
@@ -394,10 +394,10 @@ typedef struct { i32 x, y; } RGFW_vector;
 		RGFW_vector point; /*!< mouse x, y of event (or drop point) */
 		u32 keyCode; /*!< keycode of event 	!!Keycodes defined at the bottom of the header file!! */
 
-		u32 inFocus;  /*if the window is in focus or not*/
-
 		u32 fps; /*the current fps of the window [the fps is checked when events are checked]*/
 		u64 frameTime, frameTime2; /* this is used for counting the fps */
+
+		u8 inFocus;  /*if the window is in focus or not*/
 
 		u8 lockState;
 
@@ -519,7 +519,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		RGFW_rect r; /* the x, y, w and h of the struct */
 
-		u8 fpsCap; /*!< the fps cap of the window should run at (change this var to change the fps cap, 0 = no limit)*/
+		u32 fpsCap; /*!< the fps cap of the window should run at (change this var to change the fps cap, 0 = no limit)*/
 		/*[the fps is capped when events are checked]*/
 	} RGFW_window; /*!< Window structure for managing the window */
 
@@ -2732,13 +2732,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		}
 
 		u32 i;
-
-		if (win->event.droppedFilesCount) {
-			for (i = 0; i < win->event.droppedFilesCount; i++)
-				win->event.droppedFiles[i][0] = '\0';
-		}
-
-		win->event.droppedFilesCount = 0;
 		win->event.type = 0;
 
 
@@ -2804,6 +2797,14 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				win->event.type = RGFW_quit;
 				break;
 			}
+			
+			/* reset DND values */
+			if (win->event.droppedFilesCount) {
+				for (i = 0; i < win->event.droppedFilesCount; i++)
+					win->event.droppedFiles[i][0] = '\0';
+			}
+
+			win->event.droppedFilesCount = 0;
 
 			/*
 				much of this event (drag and drop code) is source from glfw
@@ -3088,13 +3089,13 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			win->src.winArgs &= ~RGFW_MOUSE_CHANGED;
 		}
 
-			if (win->src.winArgs & RGFW_HOLD_MOUSE && win->event.inFocus && win->event.type == RGFW_mousePosChanged) {
-				RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
-				
-				if (XEventsQueued((Display*) win->src.display, QueuedAfterReading) <= 1)
-					XSync(win->src.display, True);
-			}
+		if (win->src.winArgs & RGFW_HOLD_MOUSE && win->event.inFocus && win->event.type == RGFW_mousePosChanged) {
+			RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
 			
+			if (XEventsQueued((Display*) win->src.display, QueuedAfterReading) <= 1)
+				XSync(win->src.display, True);
+		}
+		
 
 		XFlush((Display*) win->src.display);
 
@@ -4420,14 +4421,6 @@ static HMODULE wglinstance = NULL;
 			return &win->event;
 		}
 
-		if (win->event.droppedFilesCount) {
-			u32 i;
-			for (i = 0; i < win->event.droppedFilesCount; i++)
-				win->event.droppedFiles[i][0] = '\0';
-		}
-
-		win->event.droppedFilesCount = 0;
-
 		win->event.inFocus = (GetForegroundWindow() == win->src.window);
 
 		if (RGFW_checkXInput(&win->event))
@@ -4521,6 +4514,15 @@ static HMODULE wglinstance = NULL;
 					much of this event is source from glfw
 				*/
 			case WM_DROPFILES: {
+
+				if (win->event.droppedFilesCount) {
+					u32 i;
+					for (i = 0; i < win->event.droppedFilesCount; i++)
+						win->event.droppedFiles[i][0] = '\0';
+				}
+
+				win->event.droppedFilesCount = 0;
+
 				win->event.type = RGFW_dnd;
 
 				HDROP drop = (HDROP) msg.wParam;
