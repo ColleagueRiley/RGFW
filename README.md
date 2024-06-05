@@ -94,24 +94,6 @@ int main() {
 }
 ```
 
-# Contacts
-- email : ColleagueRiley@gmail.com 
-- discord : ColleagueRiley
-- discord server : https://discord.gg/pXVNgVVbvh
-
-# Supporting RGFW
-  Things you can do if you want to support the development of RGFW:
-
-  - File issues of bugs, potential bugs, potential performance issues you find or any suggestions you have.
-  - Code reviews, code reviews are always accepted
-  - Feature requests 
-  - Pull requests, fixing issues, bugs, misspellings, etc. 
-  - Starring RGFW, a small thing but it means a lot to me
-  - Sharing RGFW with others is the best way for RGFW to build and grow a community
-  - Listing RGFW as a dependency if you use RGFW for a project
-
-  If you want to contribute to RGFW but don't know what to contribute, you can check the `TODO` file.
-
 # Documentation
 There is a lot of in-header-documentation, but more documentation can be found [here](https://RSGL.github.io/RGFW)
 
@@ -166,6 +148,24 @@ It uses RGFW for it's examples
 [RFont](https://github.com/ColleagueRiley/RFont) is a simple-to-use single-header modular font rendering library written in C. 
 
 It uses RGFW for it's examples
+
+# Contacts
+- email : ColleagueRiley@gmail.com 
+- discord : ColleagueRiley
+- discord server : https://discord.gg/pXVNgVVbvh
+
+# Supporting RGFW
+  Things you can do if you want to support the development of RGFW:
+
+  - File issues of bugs, potential bugs, potential performance issues you find or any suggestions you have.
+  - Code reviews, code reviews are always accepted
+  - Feature requests 
+  - Pull requests, fixing issues, bugs, misspellings, etc. 
+  - Starring RGFW, a small thing but it means a lot to me
+  - Sharing RGFW with others is the best way for RGFW to build and grow a community
+  - Listing RGFW as a dependency if you use RGFW for a project
+
+  If you want to contribute to RGFW but don't know what to contribute, you can check the `TODO` file.
 
 # RGFW vs GLFW
 RGFW is more portable, in part because single-header library. It does not use callbacks and focuses on trying to be straightforward. RGFW tries to work with the programmer rather than forcing the programmer to work around it. It also uses far less RAM and storage than GLFW.
