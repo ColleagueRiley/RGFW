@@ -14,3 +14,10 @@ MACOS silicon.h:
 (upkeepy)
     - check for memory leaks (after updates are done) (mostly done)
     - Document source code
+
+- make sure a new API can be added easily (without changing any other RGFW code)
+- test older versions of windows (XP, Windows 98, 95?, Vista, 7)
+- ensure support for UTF-16 
+- Full Code Review 
+- homebrew apis? (wii)
+- webasm support

@@ -6,7 +6,7 @@
 ![workflow windows](https://github.com/ColleagueRiley/RGFW/actions/workflows/windows.yml/badge.svg)
 ![workflow windows](https://github.com/ColleagueRiley/RGFW/actions/workflows/macos.yml/badge.svg)
 
-A crossplatform lightweight single-header very simple-to-use window abstraction library for creating GUI Libraries or simple GUI programs. 
+A cross-platform lightweight single-header very simple-to-use window abstraction library for creating GUI Libraries or simple GUI programs. 
 
 # About
 RGFW is a free multi-platform single-header very simple-to-use window abstraction framework for creating GUI Libraries or simple GUI programs. it is meant to be used as a very small and flexible alternative library to GLFW. 
@@ -99,6 +99,18 @@ int main() {
 - discord : ColleagueRiley
 - discord server : https://discord.gg/pXVNgVVbvh
 
+# Supporting RGFW
+  Things you can do if you want to support the development of RGFW:
+
+  - File issues of bugs, potential bugs, potential performance issues you find or any suggestions you have.
+  - Code reviews, code reviews are always accepted
+  - Feature requests 
+  - Pull requests, fixing issues, bugs, misspellings, etc. 
+  - Starring RGFW, a small thing but it means a lot to me
+  - Sharing RGFW with others is the best way for RGFW to build and grow a community
+  - Listing RGFW as a dependency if you use RGFW for a project
+
+  If you want to contribute to RGFW but don't know what to contribute, you can check the `TODO` file.
 
 # Documentation
 There is a lot of in-header-documentation, but more documentation can be found [here](https://RSGL.github.io/RGFW)
