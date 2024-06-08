@@ -1,19 +1,8 @@
-MACOS silicon.h:
-
-- make sure DND works
+MACOS:
+    - controller support
 
 (addons)
     - init drag function (drag n' drop) (output)
-    
-(multiplatform support)
-    - controller support (macos)
-
-(testing)
-    - test EGL and OSmesa for (windows) (macos)
-
-(upkeepy)
-    - check for memory leaks (after updates are done) (mostly done)
-    - Document source code
 
 - make sure a new API can be added easily (without changing any other RGFW code)
 - test older versions of windows (XP, Windows 98, 95?, Vista, 7)
