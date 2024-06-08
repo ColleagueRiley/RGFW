@@ -426,6 +426,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		u32 display;
 		void* displayLink;
 		void* window;
+		u8 dndPassed;
 #endif
 
 #if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA)
@@ -1164,21 +1165,17 @@ typedef struct { i32 x, y; } RGFW_vector;
 	}
 
 	NSArray* c_array_to_NSArray(void* array, size_t len) {
-		void* func = sel_registerName("initWithObjects:count:");
+		SEL func = sel_registerName("initWithObjects:count:");
 		void* nsclass = objc_getClass("NSArray");
-
-		return ((id(*)(id, SEL, void*, NSUInteger))objc_msgSend)
-			(NSAlloc(nsclass), func, array, len);
+		return ((id (*)(id, SEL, void*, NSUInteger))objc_msgSend)
+					(NSAlloc(nsclass), func, array, len);
 	}
-
+ 
 	void NSregisterForDraggedTypes(void* view, NSPasteboardType* newTypes, size_t len) {
 		NSString** ntypes = cstrToNSStringArray((char**)newTypes, len);
 
-		
 		NSArray* array = c_array_to_NSArray(ntypes, len);
-
 		objc_msgSend_void_id(view, sel_registerName("registerForDraggedTypes:"), array);
-
 		NSRelease(array);
 	}
 
@@ -1271,13 +1268,17 @@ typedef struct { i32 x, y; } RGFW_vector;
 			(pasteboard, func, array, options);
 
 		NSRelease(array);
-
 		NSUInteger count = NSArray_count(output);
 
 		const char** res = si_array_init_reserve(sizeof(const char*), count);
 
-		for (NSUInteger i = 0; i < count; i++)
-			res[i] = NSString_to_char(NSArray_objectAtIndex(output, i));
+		void* path_func = sel_registerName("path");
+
+		for (NSUInteger i = 0; i < count; i++) {
+			void* url = NSArray_objectAtIndex(output, i);
+			NSString* url_str = ((id(*)(id, SEL))objc_msgSend)(url, path_func);
+			res[i] = NSString_to_char(url_str);
+		}
 
 		return res;
 	}
@@ -5160,9 +5161,9 @@ static HMODULE wglinstance = NULL;
 			i = 0;
 
 		Class array[] = { objc_getClass("NSURL"), NULL };
-		char** droppedFiles = (char**) NSPasteboard_readObjectsForClasses(
-			(NSPasteboard*) objc_msgSend_id(sender, sel_registerName("draggingPasteboard")),
-			array, 1, NULL);
+		NSPasteboard* pasteBoard = objc_msgSend_id(sender, sel_registerName("draggingPasteboard"));
+		
+		char** droppedFiles = (char**) NSPasteboard_readObjectsForClasses(pasteBoard, array, 1, NULL);
 
 		RGFW_windows[i]->event.droppedFilesCount = si_array_len(droppedFiles);
 
@@ -5172,11 +5173,12 @@ static HMODULE wglinstance = NULL;
 			strcpy(RGFW_windows[i]->event.droppedFiles[y], droppedFiles[y]);
 
 		RGFW_windows[i]->event.type = RGFW_dnd;
+		RGFW_windows[i]->src.dndPassed = false;
 
-		NSPoint p = *(NSPoint*) objc_msgSend_id(sender, sel_registerName("draggingLocation"));
-		RGFW_windows[i]->event.point.x = p.x;
-		RGFW_windows[i]->event.point.x = p.y;
+		NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
 
+		RGFW_windows[i]->event.point.x = (i32)p.x;
+		RGFW_windows[i]->event.point.x = (i32)p.y;
 		return true;
 	}
 
@@ -5369,42 +5371,30 @@ static HMODULE wglinstance = NULL;
 			NSMoveToResourceDir();
 
 		Class delegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "WindowDelegate", 0);
+		
+
 		class_addMethod(delegateClass, sel_registerName("windowWillResize:toSize:"), (IMP) RGFW__osxWindowResize, "{NSSize=ff}@:{NSSize=ff}");
 		class_addMethod(delegateClass, sel_registerName("windowWillMove:"), (IMP) RGFW__osxWindowMove, "");
 		class_addMethod(delegateClass, sel_registerName("windowDidMove:"), (IMP) RGFW__osxWindowMove, "");
-		class_addMethod(delegateClass, sel_registerName("windowKeyPressed:"), (IMP) RGFW__osxWindowMove, "");
-
-
-		if (args & RGFW_ALLOW_DND) {
-			win->src.winArgs |= RGFW_ALLOW_DND;
-
-/*
-		NSPasteboardType types[] = {NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString};
-
-		siArray(NSPasteboardType) array = sic_arrayInit(types, sizeof(id), countof(types));
-		NSWindow_registerForDraggedTypes(win->hwnd, array);
-
-		win->dndHead = win->dndPrev = out;
-*/
-
-			NSPasteboardType array[] = {NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString};
-			NSregisterForDraggedTypes(win->src.window, array, 3);
-
-			/* NOTE(EimaMei): Drag 'n Drop requires too many damn functions for just a Drag 'n Drop event. */
-			class_addMethod(delegateClass, (SEL)"draggingEntered:", (IMP)draggingEntered, "l@:@");
-			class_addMethod(delegateClass, (SEL)"draggingUpdated:", (IMP)draggingUpdated, "l@:@");
-			class_addMethod(delegateClass, (SEL)"draggingExited:", (IMP)RGFW__osxDraggingEnded, "v@:@");
-			class_addMethod(delegateClass, (SEL)"draggingEnded:", (IMP)RGFW__osxDraggingEnded, "v@:@");
-			class_addMethod(delegateClass, (SEL)"prepareForDragOperation:", (IMP)prepareForDragOperation, "B@:@");
-			class_addMethod(delegateClass, (SEL)"performDragOperation:", (IMP)performDragOperation, "B@:@");
-
-		}
+		class_addMethod(delegateClass, sel_registerName("draggingEntered:"), (IMP)draggingEntered, "l@:@");
+		class_addMethod(delegateClass, sel_registerName("draggingUpdated:"), (IMP)draggingUpdated, "l@:@");
+		class_addMethod(delegateClass, sel_registerName("draggingExited:"), (IMP)RGFW__osxDraggingEnded, "v@:@");
+		class_addMethod(delegateClass, sel_registerName("draggingEnded:"), (IMP)RGFW__osxDraggingEnded, "v@:@");
+		class_addMethod(delegateClass, sel_registerName("prepareForDragOperation:"), (IMP)prepareForDragOperation, "B@:@");
+		class_addMethod(delegateClass, sel_registerName("performDragOperation:"), (IMP)performDragOperation, "B@:@");
 
 		id delegate = objc_msgSend_id(NSAlloc(delegateClass), sel_registerName("init"));
 
 		object_setInstanceVariable(delegate, "RGFW_window", win);
 
 		objc_msgSend_void_id(win->src.window, sel_registerName("setDelegate:"), delegate);
+
+		if (args & RGFW_ALLOW_DND) {
+			win->src.winArgs |= RGFW_ALLOW_DND;
+
+			NSPasteboardType types[] = {NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString};
+			NSregisterForDraggedTypes(win->src.window, types, 3);
+		}
 
 		// Show the window
 		((id(*)(id, SEL, SEL))objc_msgSend)(win->src.window, sel_registerName("makeKeyAndOrderFront:"), NULL);
@@ -5415,6 +5405,8 @@ static HMODULE wglinstance = NULL;
 
 			RGFW_loaded = 1;
 		}
+
+		objc_msgSend_void(win->src.window, sel_registerName("makeKeyWindow"));
 
 		NSApplication_finishLaunching(NSApp);
 
@@ -5555,6 +5547,11 @@ static HMODULE wglinstance = NULL;
 
 		if (win->event.type == RGFW_quit)
 			return &win->event;
+
+		if (win->event.type == RGFW_dnd && win->src.dndPassed == 0) {
+			win->src.dndPassed = 1;
+			return &win->event;
+		}
 
 		static void* eventFunc = NULL;
 		if (eventFunc == NULL)
