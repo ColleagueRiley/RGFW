@@ -2691,8 +2691,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		i32 x, y;
 		u32 z;
 		Window window1, window2;
-		XQueryPointer((Display*) RGFW_root->src.display, XDefaultRootWindow((Display*) RGFW_root->src.display), &window1, &window2, &RGFWMouse.x, &RGFWMouse.y, &x &y, &z);
-
+		XQueryPointer((Display*) RGFW_root->src.display, XDefaultRootWindow((Display*) RGFW_root->src.display), &window1, &window2, &RGFWMouse.x, &RGFWMouse.y, &x, &y, &z);
+ 
 		return RGFWMouse;
 	}
 
@@ -4540,20 +4540,20 @@ static HMODULE wglinstance = NULL;
 			case WM_LBUTTONDOWN:
 				win->event.button = RGFW_mouseLeft;
 				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = true;
+				RGFW_mouseButtons[win->event.button] = 1;
 				win->event.type = RGFW_mouseButtonPressed;
 				break;
 			case WM_RBUTTONDOWN:
 				win->event.button = RGFW_mouseRight;
 				win->event.type = RGFW_mouseButtonPressed;
 				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = true;
+				RGFW_mouseButtons[win->event.button] = 1;
 				break;
 			case WM_MBUTTONDOWN:
 				win->event.button = RGFW_mouseMiddle;
 				win->event.type = RGFW_mouseButtonPressed;
 				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = true;
+				RGFW_mouseButtons[win->event.button] = 1;
 				break;
 
 			case WM_MOUSEWHEEL:
@@ -4563,7 +4563,7 @@ static HMODULE wglinstance = NULL;
 					win->event.button = RGFW_mouseScrollDown;
 
 				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = true;
+				RGFW_mouseButtons[win->event.button] = 1;
 
 				win->event.scroll = (SHORT) HIWORD(msg.wParam) / (double) WHEEL_DELTA;
 
@@ -4576,21 +4576,21 @@ static HMODULE wglinstance = NULL;
 				win->event.type = RGFW_mouseButtonReleased;
 
 				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = false;
+				RGFW_mouseButtons[win->event.button] = 0;
 				break;
 			case WM_RBUTTONUP:
 				win->event.button = RGFW_mouseRight;
 				win->event.type = RGFW_mouseButtonReleased;
 
 				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = false;
+				RGFW_mouseButtons[win->event.button] = 0;
 				break;
 			case WM_MBUTTONUP:
 				win->event.button = RGFW_mouseMiddle;
 				win->event.type = RGFW_mouseButtonReleased;
 
 				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = false;
+				RGFW_mouseButtons[win->event.button] = 0;
 				break;
 
 				/*
@@ -5221,11 +5221,11 @@ static HMODULE wglinstance = NULL;
 
 		NSWindow* window = objc_msgSend_id(sender, sel_registerName("draggingDestinationWindow"));
 		u32 i;
-		bool found = false;
+		bool found = 0;
 
 		for (i = 0; i < RGFW_windows_size; i++)
 			if (RGFW_windows[i]->src.window == window) {
-				found = true;
+				found = 1;
 				break;
 			}
 
@@ -5245,7 +5245,7 @@ static HMODULE wglinstance = NULL;
 			strcpy(RGFW_windows[i]->event.droppedFiles[y], droppedFiles[y]);
 
 		RGFW_windows[i]->event.type = RGFW_dnd;
-		RGFW_windows[i]->src.dndPassed = false;
+		RGFW_windows[i]->src.dndPassed = 0;
 
 		NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
 
@@ -5521,7 +5521,7 @@ static HMODULE wglinstance = NULL;
 	}
 
 	RGFW_vector RGFW_window_getMousePoint(RGFW_window* win) {
-		NSPoint p =  ((NSPoint(*)(id, SEL)) objc_msgSend)(win->window, sel_registerName("mouseLocationOutsideOfEventStream"));
+		NSPoint p =  ((NSPoint(*)(id, SEL)) objc_msgSend)(win->src.window, sel_registerName("mouseLocationOutsideOfEventStream"));
 
 		return RGFW_VECTOR((u32) p.x, (u32) (p.y));
 	}
@@ -5774,34 +5774,34 @@ static HMODULE wglinstance = NULL;
 				win->event.button = RGFW_mouseLeft;
 				win->event.type = RGFW_mouseButtonPressed;
 				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = true;
+				RGFW_mouseButtons[win->event.button] = 1;
 				break;
 
 			case NSEventTypeOtherMouseDown:
 				win->event.button = RGFW_mouseMiddle;
 				win->event.type = RGFW_mouseButtonPressed;
 				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = true;
+				RGFW_mouseButtons[win->event.button] = 1;
 				break;
 
 			case NSEventTypeRightMouseDown:
 				win->event.button = RGFW_mouseRight;
 				win->event.type = RGFW_mouseButtonPressed;
 				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = true;
+				RGFW_mouseButtons[win->event.button] = 1;
 				break;
 
 			case NSEventTypeLeftMouseUp:
 				win->event.button = RGFW_mouseLeft;
 				win->event.type = RGFW_mouseButtonReleased;
 				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = false;
+				RGFW_mouseButtons[win->event.button] = 0;
 				break;
 
 			case NSEventTypeOtherMouseUp:
 				win->event.button = RGFW_mouseMiddle;
 				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = false;
+				RGFW_mouseButtons[win->event.button] = 0;
 				win->event.type = RGFW_mouseButtonReleased;
 				break;
 
@@ -5816,7 +5816,7 @@ static HMODULE wglinstance = NULL;
 				}
 
 				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = true;
+				RGFW_mouseButtons[win->event.button] = 1;
 
 				win->event.scroll = deltaY;
 
@@ -5826,7 +5826,7 @@ static HMODULE wglinstance = NULL;
 			case NSEventTypeRightMouseUp:
 				win->event.button = RGFW_mouseRight;
 				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = false;
+				RGFW_mouseButtons[win->event.button] = 0;
 				win->event.type = RGFW_mouseButtonReleased;
 				break;
 
