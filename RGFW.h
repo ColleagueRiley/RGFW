@@ -4291,7 +4291,7 @@ static HMODULE wglinstance = NULL;
 	RGFW_vector RGFW_window_getMousePoint(RGFW_window* win) {
 		POINT p;
 		GetCursorPos(&p);
-		ScreenToClient(win->window, &p);
+		ScreenToClient(win->src.window, &p);
 
 		return RGFW_VECTOR(p.x, p.y);
 	}
