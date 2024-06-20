@@ -155,12 +155,6 @@ extern "C" {
 
 #include <windef.h>
 
-#ifdef __MINGW32__
-#include <xinput.h>
-#else
-#include <XInput.h>
-#endif
-
 #else 
 #if defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11)
 #define RGFW_MACOS_X11
@@ -2066,6 +2060,12 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #ifndef RGFW_WINDOWS
 	u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { return win->src.jsPressed[c][button]; }
 #else
+
+	#ifdef __MINGW32__
+	#include <xinput.h>
+	#else
+	#include <XInput.h>
+	#endif
 
 	typedef u64 (WINAPI * PFN_XInputGetState)(DWORD,XINPUT_STATE*);
 	PFN_XInputGetState XInputGetStateSRC = NULL;
