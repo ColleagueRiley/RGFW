@@ -84,10 +84,10 @@ int main() {
             }
         }
 
-		RGFW_window_swapBuffers(win);
+        RGFW_window_swapBuffers(win);
 
-		glClearColor(0xFF, 0XFF, 0xFF, 0xFF);
-		glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0xFF, 0XFF, 0xFF, 0xFF);
+        glClear(GL_COLOR_BUFFER_BIT);
     }
 
     RGFW_window_close(win);
