@@ -50,6 +50,7 @@ endif
 all: examples/basic/main.c examples/buffer/main.c examples/portableGL/main.c  examples/gl33/main.c examples/gles2/main.c examples/vk10/main.c ./RGFW.h
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o basic
 	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o buffer
+	$(CC) examples/first-person-camera/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o camera
 	$(CC) examples/portableGL/main.c $(LIBS) -I./ -w -o portableGL
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o gl33
 	$(CC) examples/gles2/main.c -lEGL $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o gles2
@@ -70,7 +71,10 @@ debug: examples/basic/main.c examples/buffer/main.c examples/portableGL/main.c  
 
 	$(CC) examples/portableGL/main.c $(LIBS) -I./ -w -o examples/portableGL/portableGL
 	./examples/portableGL/portableGL
-	
+
+	$(CC) examples/first-person-camera/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -D RGFW_DEBUG -o examples/first-person-camera/camera
+	./examples/first-person-camera/camera$(EXT)
+
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -D RGFW_DEBUG -o examples/basic/basic
 	./examples/basic/basic$(EXT)
 

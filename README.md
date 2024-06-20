@@ -62,6 +62,9 @@ A basic example can be found in `examples/basic`, it includes a basic OpenGL exa
 ## PortableGL
 `examples/PortableGL` is an example that shows how you'd use RGFW with `portablegl.h`.
 
+## first person camera
+`examples/first-person-camera` is an example that shows how you'd make a game with a first person camera with RGFW
+
 ## a very simple example
 ```c
 #define RGFW_IMPLEMENTATION
