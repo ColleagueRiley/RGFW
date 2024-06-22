@@ -112,16 +112,27 @@ extern "C" {
 #define RGFW_HEADER
 
 #if !defined(u8)
-	#include <stdint.h>
+	#if defined(_MSC_VER) || defined(__SYMBIAN32__)
+		typedef unsigned char 	u8;
+		typedef signed char		i8;
+		typedef unsigned short  u16;
+		typedef signed short 	i16;
+		typedef unsigned int 	u32;
+		typedef signed int		i32;
+		typedef unsigned long	u64;
+		typedef signed long		i64;
+	#else
+		#include <stdint.h>
 
-	typedef uint8_t     u8;
-	typedef int8_t      i8;
-	typedef uint16_t   u16;
-	typedef int16_t    i16;
-	typedef uint32_t   u32;
-	typedef int32_t    i32;
-	typedef uint64_t   u64;
-	typedef int64_t    i64;
+		typedef uint8_t     u8;
+		typedef int8_t      i8;
+		typedef uint16_t   u16;
+		typedef int16_t    i16;
+		typedef uint32_t   u32;
+		typedef int32_t    i32;
+		typedef uint64_t   u64;
+		typedef int64_t    i64;
+	#endif
 #endif
 
 #if defined(RGFW_X11) && defined(__APPLE__)
@@ -154,6 +165,12 @@ extern "C" {
 #endif
 
 #include <windef.h>
+
+#ifdef __MINGW32__
+#include <xinput.h>
+#else
+#include <XInput.h>
+#endif
 
 #else 
 #if defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11)
@@ -414,6 +431,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #ifdef RGFW_X11
 		Display* display; /*!< source display */
 		Window window; /*!< source window */
+		Cursor cursor;
 #endif
 #ifdef RGFW_MACOS
 		u32 display;
@@ -489,7 +507,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 		u16 joystickCount; /* the actual amount of joysticks */
 
 		RGFW_area scale; /* window scaling */
-		RGFW_area holdArea; /* holding the mouse */
 
 #ifdef RGFW_MACOS
 		u8 cursorChanged; /* for steve jobs */
@@ -593,9 +610,8 @@ typedef struct { i32 x, y; } RGFW_vector;
 		you can still use win->event.point to see how much it moved before it was put back in place
 
 		this is useful for a 3D camera
-		if area = {0, 0}, the area is set to the window's current size divided by 2
 	*/
-	RGFWDEF void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area);
+	RGFWDEF void RGFW_window_mouseHold(RGFW_window* win);
 	/* undo hold */
 	RGFWDEF void RGFW_window_mouseUnhold(RGFW_window* win);
 
@@ -1374,6 +1390,9 @@ typedef struct { i32 x, y; } RGFW_vector;
 		win->event.inFocus = 1;
 		win->event.droppedFilesCount = 0;
 		win->src.joystickCount = 0;
+#ifdef RGFW_X11
+		win->src.cursor = 0;
+#endif
 #ifdef RGFW_MACOS
 		RGFW_window_setMouseDefault(win);
 #endif
@@ -2058,12 +2077,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #ifndef RGFW_WINDOWS
 	u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { return win->src.jsPressed[c][button]; }
 #else
-
-	#ifdef __MINGW32__
-	#include <xinput.h>
-	#else
-	#include <XInput.h>
-	#endif
 
 	typedef u64 (WINAPI * PFN_XInputGetState)(DWORD,XINPUT_STATE*);
 	PFN_XInputGetState XInputGetStateSRC = NULL;
@@ -3109,9 +3122,11 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			XKeyboardState keystate;
 			XGetKeyboardControl((Display*) win->src.display, &keystate);
 			win->event.lockState = keystate.led_mask;
+
 			break;
 		case FocusOut:
 			win->event.inFocus = 0;
+			RGFW_window_setMouseDefault(win);
 			break;
 		case ConfigureNotify: {
 #ifndef RGFW_NO_X11_WINDOW_ATTRIB
@@ -3126,6 +3141,19 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		default: {
 			break;
 		}
+		}
+
+		if (win->event.inFocus && (win->src.winArgs & RGFW_MOUSE_CHANGED)) {
+			XDefineCursor((Display*) win->src.display, (Window) win->src.window, (Cursor) win->src.cursor);
+
+			win->src.winArgs &= ~RGFW_MOUSE_CHANGED;
+		}
+
+		if (win->src.winArgs & RGFW_HOLD_MOUSE && win->event.inFocus && win->event.type == RGFW_mousePosChanged) {
+			RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
+			
+			if (XEventsQueued((Display*) win->src.display, QueuedAfterReading) <= 1)
+				XSync(win->src.display, True);
 		}
 		
 
@@ -3154,6 +3182,9 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #ifdef RGFW_EGL
 		RGFW_closeEGL(win);
 #endif
+
+		XFreeCursor((Display*) win->src.display, (Cursor) win->src.cursor);
+
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 		if (win->buffer != NULL) {
 			XDestroyImage((XImage*) win->src.bitmap);
@@ -3327,6 +3358,10 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		assert(win != NULL);
 
 #ifndef RGFW_NO_X11_CURSOR
+		/* free the previous cursor */
+		if (win->src.cursor)
+			XFreeCursor((Display*) win->src.display, (Cursor) win->src.cursor);
+
 		XcursorImage* native = XcursorImageCreate(a.w, a.h);
 		native->xhot = 0;
 		native->yhot = 0;
@@ -3342,12 +3377,11 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 			*target = (alpha << 24) | (((source[0] * alpha) / 255) << 16) | (((source[1] * alpha) / 255) << 8) | (((source[2] * alpha) / 255) << 0);
 		}
-		
-		Cursor cursor = XcursorImageLoadCursor((Display*) win->src.display, native);
 
-		XDefineCursor((Display*) win->src.display, (Window) win->src.window, (Cursor) cursor);
+		win->src.winArgs |= RGFW_MOUSE_CHANGED;
+		win->src.cursor = XcursorImageLoadCursor((Display*) win->src.display, native);
+
 		XcursorImageDestroy(native);
-		XFreeCursor(win->src.display, cursor);
 #else
 	RGFW_UNUSED(image) RGFW_UNUSED(a.w) RGFW_UNUSED(channels)
 #endif
@@ -3381,9 +3415,12 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	void RGFW_window_setMouseStandard(RGFW_window* win, i32 mouse) {
 		assert(win != NULL);
 
-		Cursor cursor = XCreateFontCursor((Display*) win->src.display, mouse);
-		XDefineCursor((Display*) win->src.display, (Window) win->src.window, (Cursor) cursor);
-		XFreeCursor(win->src.display, cursor);
+		/* free the previous cursor */
+		if (win->src.cursor)
+			XFreeCursor((Display*) win->src.display, (Cursor) win->src.cursor);
+
+		win->src.winArgs |= RGFW_MOUSE_CHANGED;
+		win->src.cursor = XCreateFontCursor((Display*) win->src.display, mouse);
 	}
 
 	void RGFW_window_hide(RGFW_window* win) {
@@ -4632,6 +4669,12 @@ static HMODULE wglinstance = NULL;
 		else
 			win->event.type = 0;
 
+		RGFW_vector mouse = RGFW_getGlobalMousePoint();
+		if (win->src.winArgs & RGFW_HOLD_MOUSE && win->event.inFocus &&
+			(mouse.x != win->r.x + (win->r.w / 2) || mouse.y != win->r.y + (win->r.h / 2))) {
+			RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
+		}
+
 		win->event.lockState = 0;
 
 		if ((GetKeyState(VK_CAPITAL) & 0x0001) != 0)
@@ -5729,6 +5772,13 @@ static HMODULE wglinstance = NULL;
 				NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(e, sel_registerName("locationInWindow"));
 
 				win->event.point = RGFW_VECTOR((u32) p.x, (u32) (win->r.h - p.y));
+
+				if (win->src.winArgs & RGFW_HOLD_MOUSE) {
+					RGFW_vector mouse = RGFW_getGlobalMousePoint();
+					if ((mouse.x != win->r.x + (win->r.w / 2) || mouse.y != win->r.y + (win->r.h / 2))) {
+						RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
+					}
+				}
 				break;
 
 			case NSEventTypeLeftMouseDown:
@@ -6362,25 +6412,13 @@ static HMODULE wglinstance = NULL;
 		RGFW_window_move(win, RGFW_VECTOR(m.rect.x + win->r.x, m.rect.y + win->r.y));
 	}
 
-	void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area) {
-		if (!(win->src.winArgs & RGFW_HOLD_MOUSE)) {
-			win->src.winArgs |= RGFW_HOLD_MOUSE;
-			
-			if (!area.w & !area.h)
-				area = RGFW_AREA(win->r.w / 2, win->r.h / 2);
+	void RGFW_window_mouseHold(RGFW_window* win) {
+		win->src.winArgs |= RGFW_HOLD_MOUSE;
 
-			win->src.holdArea = area;
-
-			#ifdef RGFW_WINDOWS
-			RECT rect = {win->r.x, win->r.y, win->r.x + win->r.w, win->r.y + win->r.h};
-			ClipCursor(&rect);
-			#elif defined(RGFW_X11)
-
-			#endif
-
-		}
-		
-		RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (i32)(win->src.holdArea.w), win->r.y + (i32)(win->src.holdArea.h)));		
+		#ifdef RGFW_WINDOWS
+		RECT rect = {win->r.x, win->r.y, win->r.x + win->r.w, win->r.y + win->r.h};
+		ClipCursor(&rect);
+		#endif
 	}
 
 	void RGFW_window_mouseUnhold(RGFW_window* win) {
@@ -6388,8 +6426,6 @@ static HMODULE wglinstance = NULL;
 
 		#ifdef RGFW_WINDOWS
 		ClipCursor(NULL);
-		#elif defined(RGFW_X11)
-
 		#endif
 	}
 
