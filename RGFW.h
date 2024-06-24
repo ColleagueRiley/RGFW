@@ -1062,14 +1062,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		return array;
 	}
-
-	void si_array_free(void* array) {
-		if (array == NULL)
-			return;
-
-		free(SI_ARRAY_HEADER(array));
-	}
-
+	
 	unsigned char* NSBitmapImageRep_bitmapData(NSBitmapImageRep* imageRep) {
 		return ((unsigned char* (*)(id, SEL))objc_msgSend)
 			(imageRep, sel_registerName("bitmapData"));
@@ -1568,14 +1561,14 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		u32 deviceCount = 0;
 		vkEnumeratePhysicalDevices(RGFW_vulkan_info.instance, &deviceCount, NULL);
-		VkPhysicalDevice* devices = (VkPhysicalDevice*) malloc(sizeof(VkPhysicalDevice) * deviceCount);
+		VkPhysicalDevice* devices = (VkPhysicalDevice*) RGFW_MALLOC(sizeof(VkPhysicalDevice) * deviceCount);
 		vkEnumeratePhysicalDevices(RGFW_vulkan_info.instance, &deviceCount, devices);
 
 		RGFW_vulkan_info.physical_device = devices[0];
 
 		u32 queue_family_count = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(RGFW_vulkan_info.physical_device, &queue_family_count, NULL);
-		VkQueueFamilyProperties* queueFamilies = (VkQueueFamilyProperties*) malloc(sizeof(VkQueueFamilyProperties) * queue_family_count);
+		VkQueueFamilyProperties* queueFamilies = (VkQueueFamilyProperties*) RGFW_MALLOC(sizeof(VkQueueFamilyProperties) * queue_family_count);
 		vkGetPhysicalDeviceQueueFamilyProperties(RGFW_vulkan_info.physical_device, &queue_family_count, queueFamilies);
 
 		float queuePriority = 1.0f;
@@ -1652,10 +1645,10 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		u32 imageCount;
 		vkGetSwapchainImagesKHR(RGFW_vulkan_info.device, win->src.swapchain, &imageCount, NULL);
-		win->src.swapchain_images = (VkImage*) malloc(sizeof(VkImage) * imageCount);
+		win->src.swapchain_images = (VkImage*) RGFW_MALLOC(sizeof(VkImage) * imageCount);
 		vkGetSwapchainImagesKHR(RGFW_vulkan_info.device, win->src.swapchain, &imageCount, win->src.swapchain_images);
 
-		win->src.swapchain_image_views = (VkImageView*) malloc(sizeof(VkImageView) * imageCount);
+		win->src.swapchain_image_views = (VkImageView*) RGFW_MALLOC(sizeof(VkImageView) * imageCount);
 		for (u32 i = 0; i < imageCount; i++) {
 			VkImageViewCreateInfo image_view_cre_infos = { 0 };
 			image_view_cre_infos.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -1739,7 +1732,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	int RGFW_createCommandBuffers(RGFW_window* win) {
 		assert(win != NULL);
 
-		RGFW_vulkan_info.command_buffers = (VkCommandBuffer*) malloc(sizeof(VkCommandBuffer) * win->src.image_count);
+		RGFW_vulkan_info.command_buffers = (VkCommandBuffer*) RGFW_MALLOC(sizeof(VkCommandBuffer) * win->src.image_count);
 
 		VkCommandBufferAllocateInfo allocInfo = { 0 };
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -1757,10 +1750,10 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	int RGFW_createSyncObjects(RGFW_window* win) {
 		assert(win != NULL);
 
-		RGFW_vulkan_info.available_semaphores = (VkSemaphore*) malloc(sizeof(VkSemaphore) * RGFW_MAX_FRAMES_IN_FLIGHT);
-		RGFW_vulkan_info.finished_semaphore = (VkSemaphore*) malloc(sizeof(VkSemaphore) * RGFW_MAX_FRAMES_IN_FLIGHT);
-		RGFW_vulkan_info.in_flight_fences = (VkFence*) malloc(sizeof(VkFence) * RGFW_MAX_FRAMES_IN_FLIGHT);
-		RGFW_vulkan_info.image_in_flight = (VkFence*) malloc(sizeof(VkFence) * win->src.image_count);
+		RGFW_vulkan_info.available_semaphores = (VkSemaphore*) RGFW_MALLOC(sizeof(VkSemaphore) * RGFW_MAX_FRAMES_IN_FLIGHT);
+		RGFW_vulkan_info.finished_semaphore = (VkSemaphore*) RGFW_MALLOC(sizeof(VkSemaphore) * RGFW_MAX_FRAMES_IN_FLIGHT);
+		RGFW_vulkan_info.in_flight_fences = (VkFence*) RGFW_MALLOC(sizeof(VkFence) * RGFW_MAX_FRAMES_IN_FLIGHT);
+		RGFW_vulkan_info.image_in_flight = (VkFence*) RGFW_MALLOC(sizeof(VkFence) * win->src.image_count);
 
 		VkSemaphoreCreateInfo semaphore_info = { 0 };
 		semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -1788,7 +1781,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	int RGFW_createFramebuffers(RGFW_window* win) {
 		assert(win != NULL);
 
-		RGFW_vulkan_info.framebuffers = (VkFramebuffer*) malloc(sizeof(VkFramebuffer) * win->src.image_count);
+		RGFW_vulkan_info.framebuffers = (VkFramebuffer*) RGFW_MALLOC(sizeof(VkFramebuffer) * win->src.image_count);
 
 		for (size_t i = 0; i < win->src.image_count; i++) {
 			VkImageView attachments[] = { win->src.swapchain_image_views[i] };
@@ -1834,12 +1827,12 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		vkDestroyDevice(RGFW_vulkan_info.device, NULL);
 		vkDestroyInstance(RGFW_vulkan_info.instance, NULL);
 
-		free(RGFW_vulkan_info.framebuffers);
-		free(RGFW_vulkan_info.command_buffers);
-		free(RGFW_vulkan_info.available_semaphores);
-		free(RGFW_vulkan_info.finished_semaphore);
-		free(RGFW_vulkan_info.in_flight_fences);
-		free(RGFW_vulkan_info.image_in_flight);
+		RGFW_FREE(RGFW_vulkan_info.framebuffers);
+		RGFW_FREE(RGFW_vulkan_info.command_buffers);
+		RGFW_FREE(RGFW_vulkan_info.available_semaphores);
+		RGFW_FREE(RGFW_vulkan_info.finished_semaphore);
+		RGFW_FREE(RGFW_vulkan_info.in_flight_fences);
+		RGFW_FREE(RGFW_vulkan_info.image_in_flight);
 	}
 
 #endif /* RGFW_VULKAN */
@@ -2535,7 +2528,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		u32 valuemask = CWBorderPixel | CWColormap;
 #else
-		XVisualInfo* vi = (XVisualInfo*) malloc(sizeof(XVisualInfo));
+		XVisualInfo* vi = (XVisualInfo*) RGFW_MALLOC(sizeof(XVisualInfo));
 		vi->screen = DefaultScreen((Display*) win->src.display);
 		vi->visual = DefaultVisual((Display*) win->src.display, vi->screen);
 
@@ -3156,8 +3149,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		vkDestroySwapchainKHR(RGFW_vulkan_info.device, win->src.swapchain, NULL);
 		vkDestroySurfaceKHR(RGFW_vulkan_info.instance, win->src.rSurf, NULL);
-		free(win->src.swapchain_image_views);
-		free(win->src.swapchain_images);
+		RGFW_FREE(win->src.swapchain_image_views);
+		RGFW_FREE(win->src.swapchain_images);
 #endif
 
 #ifdef RGFW_EGL
@@ -4917,8 +4910,8 @@ static HMODULE wglinstance = NULL;
 
 		vkDestroySwapchainKHR(RGFW_vulkan_info.device, win->src.swapchain, NULL);
 		vkDestroySurfaceKHR(RGFW_vulkan_info.instance, win->src.rSurf, NULL);
-		free(win->src.swapchain_image_views);
-		free(win->src.swapchain_images);
+		RGFW_FREE(win->src.swapchain_image_views);
+		RGFW_FREE(win->src.swapchain_images);
 #endif
 
 #ifdef RGFW_EGL
@@ -5047,7 +5040,7 @@ static HMODULE wglinstance = NULL;
 			if (textLen == 0)
 				return (char*) "";
 
-			text = (char*) malloc((textLen * sizeof(char)) + 1);
+			text = (char*) RGFW_MALLOC((textLen * sizeof(char)) + 1);
 
 			wcstombs(text, wstr, (textLen) +1);
 
@@ -6053,7 +6046,7 @@ static HMODULE wglinstance = NULL;
 		char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString);
 		size_t clip_len = strlen(clip); 
 
-		char* str = (char*)RGFW_malloc(sizeof(char) * clip_len);
+		char* str = (char*)RGFW_MALLOC(sizeof(char) * clip_len);
 		strcpy(str, clip);
 
 		if (size != NULL)
@@ -6100,8 +6093,8 @@ static HMODULE wglinstance = NULL;
 
 		vkDestroySwapchainKHR(RGFW_vulkan_info.device, win->src.swapchain, NULL);
 		vkDestroySurfaceKHR(RGFW_vulkan_info.instance, win->src.rSurf, NULL);
-		free(win->src.swapchain_image_views);
-		free(win->src.swapchain_images);
+		RGFW_FREE(win->src.swapchain_image_views);
+		RGFW_FREE(win->src.swapchain_images);
 #endif
 
 		release(win->src.view);
@@ -6139,7 +6132,7 @@ static HMODULE wglinstance = NULL;
 		CVDisplayLinkStop(win->src.displayLink);
 		CVDisplayLinkRelease(win->src.displayLink);
 
-		free(win);
+		RGFW_FREE(win);
 	}
 #endif
 
