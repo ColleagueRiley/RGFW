@@ -293,6 +293,10 @@ extern "C" {
 	RGFW_Event.axisCount says how many axis there are
 */
 #define RGFW_windowAttribsChange 10 /*!< the window was moved or resized (by the user) */
+
+#define RGFW_focusIn 11 /*!< window is in focus now */
+#define RGFW_focusOut 12 /*!< window is out of focus now */
+
 /* attribs change event note
 	The event data is sent straight to the window structure
 	with win->r.x, win->r.y, win->r.w and win->r.h
@@ -3112,9 +3116,13 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			XGetKeyboardControl((Display*) win->src.display, &keystate);
 			win->event.lockState = keystate.led_mask;
 
+			win->event.type = RGFW_focusIn;
+			break;
+
 			break;
 		case FocusOut:
 			win->event.inFocus = 0;
+			win->event.type = RGFW_focusOut;
 			break;
 		case ConfigureNotify: {
 #ifndef RGFW_NO_X11_WINDOW_ATTRIB
@@ -4474,6 +4482,16 @@ static HMODULE wglinstance = NULL;
 				win->event.type = RGFW_quit;
 				break;
 
+			case WM_ACTIVATE:
+				win->event.inFocus = (LOWORD(wparam) == WA_INACTIVE);
+
+				if (win->event.inFocus)
+					win->event.type = RGFW_focusIn;
+				else
+					win->event.type = RGFW_focusOut;
+				
+				break;
+
 			case WM_KEYUP:
 				win->event.keyCode = (u32) msg.wParam;
 				if (RGFW_isPressedI(win, win->event.keyCode))
@@ -5636,7 +5654,18 @@ static HMODULE wglinstance = NULL;
 		win->event.droppedFilesCount = 0;
 		win->event.type = 0;
 
-		win->event.inFocus = (bool) objc_msgSend_bool(win->src.window, sel_registerName("isKeyWindow"));
+		bool isKey = (bool) objc_msgSend_bool(win->src.window, sel_registerName("isKeyWindow"));
+		
+		if (win->event.inFocus != isKey) {
+			win->event.inFocus = isKey;
+			
+			if (win->event.inFocus)
+				win->event.type = RGFW_focusIn;
+			else
+				win->event.type = RGFW_focusOut;
+
+			return &win->event
+		}
 
 		switch (objc_msgSend_uint(e, sel_registerName("type"))) {
 			case NSEventTypeKeyDown:
