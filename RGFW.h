@@ -4483,7 +4483,7 @@ static HMODULE wglinstance = NULL;
 				break;
 
 			case WM_ACTIVATE:
-				win->event.inFocus = (LOWORD(wparam) == WA_INACTIVE);
+				win->event.inFocus = (LOWORD(msg.wparam) == WA_INACTIVE);
 
 				if (win->event.inFocus)
 					win->event.type = RGFW_focusIn;
@@ -5664,7 +5664,7 @@ static HMODULE wglinstance = NULL;
 			else
 				win->event.type = RGFW_focusOut;
 
-			return &win->event
+			return &win->event;
 		}
 
 		switch (objc_msgSend_uint(e, sel_registerName("type"))) {
