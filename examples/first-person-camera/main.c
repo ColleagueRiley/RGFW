@@ -23,8 +23,8 @@ int main(void) {
 
     unsigned char texture_data[] =
                     {
-                        0,   0, 0, 255,          150, 0, 0, 255,
-                        150, 0, 0, 255,          0,   0, 0, 255
+                        0,   0,   0,   255,          255, 255, 255, 255,
+                        255, 255, 255, 255,          0,   0,   0,   255
                     };
 
     glBindTexture(GL_TEXTURE_2D,texture);
@@ -49,23 +49,40 @@ int main(void) {
                 break;
 
             switch (win->event.type) {
-                case RGFW_mousePosChanged:                    
+                case RGFW_mousePosChanged:         
                     int dev_x = (win->r.w / 2) - win->event.point.x;
                     int dev_y = (win->r.h / 2) - win->event.point.y;
-
                     /* apply the changes to pitch and yaw*/
-                    yaw = (float)dev_x;
-                    pitch = (float)dev_y / 50.0;
+                    yaw += (float)dev_x / 15.0;
+                    pitch += (float)dev_y / 15.0;
                     posChanged = 1;
                     break;
                 case RGFW_keyPressed:
-                    if (win->event.keyCode == RGFW_Return) {
-                        RGFW_window_showMouse(win, 0);
-                        holdMouse = 1;
-                    }
-                    if (win->event.keyCode == RGFW_BackSpace) {
-                        RGFW_window_showMouse(win, 1);
-                        holdMouse = 0;
+                    switch (win->event.keyCode) {
+                        case RGFW_Return:
+                            RGFW_window_showMouse(win, 0);
+                            holdMouse = 1;
+                            break;
+                        
+                        case RGFW_BackSpace:
+                            RGFW_window_showMouse(win, 1);
+                            holdMouse = 0;
+                            break;
+
+                        case RGFW_Left:
+                            yaw += 5;
+                            break;
+                        case RGFW_Right:
+                            yaw -= 5;
+                            break;
+                        case RGFW_Up:
+                            pitch += 5;
+                            break;
+                        case RGFW_Down:
+                            pitch -= 5;
+                            break;
+
+                        default: break;
                     }
                     break;
                 default:
@@ -74,7 +91,7 @@ int main(void) {
         }
 
         if (holdMouse && posChanged && win->event.inFocus) {
-            RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));
+            RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
             posChanged = 0;
         }
 
@@ -108,10 +125,23 @@ int main(void) {
 
         glBegin(GL_QUADS);
 
+        glColor3ub(150, 0, 0); 
         glTexCoord2f(0.0,  0.0);   glVertex3f(-50.0, -5.0,  -50.0);
-        glTexCoord2f(25.0, 0.0);  glVertex3f(50.0,   -5.0,  -50.0);
-        glTexCoord2f(25.0, 25.0); glVertex3f(50.0,   -5.0,  50.0);
+        glTexCoord2f(25.0, 0.0);   glVertex3f(50.0,   -5.0,  -50.0);
+        glTexCoord2f(25.0, 25.0);  glVertex3f(50.0,   -5.0,  50.0);
         glTexCoord2f(0.0,  25.0);  glVertex3f(-50.0, -5.0,  50.0);
+
+        glColor3ub(255, 192, 203); 
+        glTexCoord2f(0.0,  0.0);   glVertex3f(-50.0, -5.0,  -50);
+        glTexCoord2f(25.0, 0.0);   glVertex3f(50.0,   -5.0,  -50);
+        glTexCoord2f(25.0, 25.0);  glVertex3f(50.0,   50.0,  1);
+        glTexCoord2f(0.0,  25.0);  glVertex3f(-50.0, 50.0,  1);
+
+        glColor3ub(0, 0, 203); 
+        glTexCoord2f(0.0,  0.0);   glVertex3f(-50.0, -5.0,  50);
+        glTexCoord2f(25.0, 0.0);   glVertex3f(50.0,   -5.0,  50);
+        glTexCoord2f(25.0, 25.0);  glVertex3f(50.0,   50.0,  -50);
+        glTexCoord2f(0.0,  25.0);  glVertex3f(-50.0, 50.0,  -50);
 
         glEnd();
 
