@@ -292,10 +292,11 @@ extern "C" {
 	RGFW_Event.axis holds the data of all the axis
 	RGFW_Event.axisCount says how many axis there are
 */
-#define RGFW_windowAttribsChange 10 /*!< the window was moved or resized (by the user) */
+#define RGFW_windowMoved 10 /*!< the window was moved (by the user) */
+#define RGFW_windowResized 11 /*!< the window was resized (by the user) */
 
-#define RGFW_focusIn 11 /*!< window is in focus now */
-#define RGFW_focusOut 12 /*!< window is out of focus now */
+#define RGFW_focusIn 12 /*!< window is in focus now */
+#define RGFW_focusOut 13 /*!< window is out of focus now */
 
 /* attribs change event note
 	The event data is sent straight to the window structure
@@ -3125,13 +3126,13 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			win->event.type = RGFW_focusOut;
 			break;
 		case ConfigureNotify: {
-#ifndef RGFW_NO_X11_WINDOW_ATTRIB
-			XWindowAttributes a;
-			XGetWindowAttributes((Display*) win->src.display, (Window) win->src.window, &a);
-			win->r = RGFW_RECT(E.xconfigure.x, E.xconfigure.y, E.xconfigure.width, E.xconfigure.height);
-#endif
+            if (E.xconfigure.x != win->r.x || E.xconfigure.y != win->r.y)
+				win->event.type = RGFW_windowMoved;
+            else if (E.xconfigure.width != win->r.w || E.xconfigure.height != win->r.h)
+				win->event.type = RGFW_windowResized;
 
-			win->event.type = RGFW_windowAttribsChange;
+			win->r = RGFW_RECT(E.xconfigure.x, E.xconfigure.y, E.xconfigure.width, E.xconfigure.height);
+						
 			break;
 		}
 		default: {
@@ -4450,14 +4451,14 @@ static HMODULE wglinstance = NULL;
 			if (RGFW_eventWindow.r.x != -1) {
 				win->r.x = RGFW_eventWindow.r.x;
 				win->r.y = RGFW_eventWindow.r.y;
+				win->event.type = RGFW_windowMoved;
 			}
 
 			if (RGFW_eventWindow.r.w != -1) {
 				win->r.w = RGFW_eventWindow.r.w;
 				win->r.h = RGFW_eventWindow.r.h;
+				win->event.type = RGFW_windowResized;
 			}
-
-			win->event.type = RGFW_windowAttribsChange;
 
 			RGFW_eventWindow.src.window = NULL;
 			RGFW_eventWindow.r = RGFW_RECT(-1, -1, -1, -1);
@@ -5283,7 +5284,7 @@ static HMODULE wglinstance = NULL;
 			if (RGFW_windows[i] && NSWindow_delegate(RGFW_windows[i]) == self) {
 				RGFW_windows[i]->r.w = frameSize.width;
 				RGFW_windows[i]->r.h = frameSize.height;
-				RGFW_windows[i]->event.type = RGFW_windowAttribsChange;
+				RGFW_windows[i]->event.type = RGFW_windowResized;
 
 				return frameSize;
 			}
@@ -5302,7 +5303,7 @@ static HMODULE wglinstance = NULL;
 				RGFW_windows[i]->r.x = (i32) frame.origin.x;
 				RGFW_windows[i]->r.y = (i32) frame.origin.y;
 
-				RGFW_windows[i]->event.type = RGFW_windowAttribsChange;
+				RGFW_windows[i]->event.type = RGFW_windowMoved;
 				return;
 			}
 		}
@@ -5626,7 +5627,7 @@ static HMODULE wglinstance = NULL;
 		if (eventFunc == NULL)
 			eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
 		
-		if (win->event.type == RGFW_windowAttribsChange && win->event.keyCode != 120) {
+		if ((win->event.type == RGFW_windowMoved || win->event.type == RGFW_windowResized) && win->event.keyCode != 120) {
 			win->event.keyCode = 120;
 			return &win->event;
 		}

@@ -47,8 +47,11 @@ int main(void) {
         #endif
 
         while (RGFW_window_checkEvent(win)) {
-            if (win->event.type == RGFW_windowAttribsChange) {
-                printf("attribs changed\n");
+            if (win->event.type == RGFW_windowMoved) {
+                printf("window moved\n");
+            }
+            else if (win->event.type == RGFW_windowResized) {
+                printf("window resized\n");
             }
             if (win->event.type == RGFW_quit) {
                 running = 0;  
@@ -86,7 +89,6 @@ int main(void) {
     }
 
     running2 = 0;
-    
     RGFW_window_close(win);
 }
 
