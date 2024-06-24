@@ -2064,12 +2064,13 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #define M_PI		3.14159265358979323846	/* pi */
 #endif
 
-	typedef struct RGFW_Timespec {
-		time_t tv_sec;		/* Seconds.  */
-		u32 tv_nsec;	/* Nanoseconds.  */
-	} RGFW_Timespec; /*time struct for fps functions*/
-
 #ifndef RGFW_WINDOWS
+	struct timespec;
+
+	int nanosleep(const struct timespec* duration, struct timespec* rem);
+	int clock_gettime(clockid_t clk_id, struct timespec* tp);
+	int setenv(const char *name, const char *value, int overwrite);
+
 	u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { return win->src.jsPressed[c][button]; }
 #else
 
@@ -3436,7 +3437,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			&format, &sizeN, &N, (unsigned char**) &data);
 
 		if (target == UTF8 || target == XA_STRING) {
-			s = strndup(data, sizeN);
+			s = (char*)RGFW_MALLOC(sizeof(char) * sizeN);
+			strcpy(s, data);
 			XFree(data);
 		}
 
@@ -6048,9 +6050,14 @@ static HMODULE wglinstance = NULL;
 #endif
 
 	char* RGFW_readClipboard(size_t* size) {
-		char* str = strdup((char*) NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString));
+		char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString);
+		size_t clip_len = strlen(clip); 
+
+		char* str = (char*)RGFW_malloc(sizeof(char) * clip_len);
+		strcpy(str, clip);
+
 		if (size != NULL)
-			*size = strlen(str);
+			*size = clip_len;
 		return str;
 	}
 
