@@ -4483,7 +4483,7 @@ static HMODULE wglinstance = NULL;
 				break;
 
 			case WM_ACTIVATE:
-				win->event.inFocus = (LOWORD(msg.wparam) == WA_INACTIVE);
+				win->event.inFocus = (LOWORD(msg.wParam) == WA_INACTIVE);
 
 				if (win->event.inFocus)
 					win->event.type = RGFW_focusIn;
