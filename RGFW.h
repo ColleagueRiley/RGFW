@@ -2708,7 +2708,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		i32 x, y;
 		u32 z;
 		Window window1, window2;
-		XQueryPointer((Display*) win->src.display, XDefaultRootWindow((Display*) win->src.display), &window1, &window2, &x, &y, &RGFWMouse.x, &RGFWMouse.y, &z);
+		XQueryPointer((Display*) win->src.display, win->src.window, &window1, &window2, &x, &y, &RGFWMouse.x, &RGFWMouse.y, &z);
 
 		return RGFWMouse;
 	}
