@@ -3128,7 +3128,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		case ConfigureNotify: {
             if (E.xconfigure.x != win->r.x || E.xconfigure.y != win->r.y)
 				win->event.type = RGFW_windowMoved;
-            else if (E.xconfigure.width != win->r.w || E.xconfigure.height != win->r.h)
+            if (E.xconfigure.width != win->r.w || E.xconfigure.height != win->r.h)
 				win->event.type = RGFW_windowResized;
 
 			win->r = RGFW_RECT(E.xconfigure.x, E.xconfigure.y, E.xconfigure.width, E.xconfigure.height);
