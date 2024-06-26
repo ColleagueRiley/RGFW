@@ -2162,31 +2162,14 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	}
 
 	char* RGFW_keyCodeTokeyStr(u64 key) {
-#if defined(RGFW_MACOS)
-		static char* keyStrs[128] = { "a", "s", "d", "f", "h", "g", "z", "x", "c", "v", "0", "b", "q", "w", "e", "r", "y", "t", "1", "2", "3", "4", "6", "5", "Equals", "9", "7", "Minus", "8", "0", "CloseBracket", "o", "u", "Bracket", "i", "p", "Return", "l", "j", "Apostrophe", "k", "Semicolon", "BackSlash", "Comma", "Slash", "n", "m", "Period", "Tab", "Space", "Backtick", "BackSpace", "0", "Escape", "0", "Super", "Shift", "CapsLock", "Alt", "Control", "0", "0", "0", "0", "0", "KP_Period", "0", "KP_Minus", "0", "0", "0", "0", "Numlock", "0", "0", "0", "KP_Multiply", "KP_Return", "0", "0", "0", "0", "KP_Slash", "KP_0", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "0", "KP_8", "KP_9", "0", "0", "0", "F5", "F6", "F7", "F3", "F8", "F9", "0", "F11", "0", "F13", "0", "F14", "0", "F10", "0", "F12", "0", "F15", "Insert", "Home", "PageUp", "Delete", "F4", "End", "F2", "PageDown", "Left", "Right", "Down", "Up", "F1" };
+		static char* keyStrs[128] = {"Escape", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", 	"Backtick", 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 	"-", "=", "BackSpace", "Tab", "CapsLock", "ShiftL", "ControlL", "AltL", "SuperL", "ShiftR", "ControlR", "AltR", "SuperR", " ", 	"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 	".", ",", "-", "[", "]", ";", "Return", "'", "\\", 	"Up", "Down", "Left", "Right", 	"Delete", "Insert", "End", "Home", "PageUp", "PageDown", 	"Numlock", "KP_Slash", "Multiply", "KP_Minus", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "KP_8", "KP_9", "KP_0", "KP_Period", "KP_Return" };
 
 		return keyStrs[key];
-#endif
-#ifdef RGFW_X11
-		return XKeysymToString(key);
-#endif
-#ifdef RGFW_WINDOWS
-		static char keyName[16];
-		GetKeyNameTextA((LONG) key, keyName, 16);
-
-		if ((!(GetKeyState(VK_CAPITAL) & 0x0001) && !(GetKeyState(VK_SHIFT) & 0x8000)) ||
-			((GetKeyState(VK_CAPITAL) & 0x0001) && (GetKeyState(VK_SHIFT) & 0x8000))) {
-			CharLowerBuffA(keyName, 16);
-		}
-
-		return keyName;
-#endif
 	}
 
 	u32 RGFW_keyStrToKeyCode(char* key) {
-#if defined(RGFW_MACOS)
-		static char* keyStrs[128] = { "a", "s", "d", "f", "h", "g", "z", "x", "c", "v", "0", "b", "q", "w", "e", "r", "y", "t", "1", "2", "3", "4", "6", "5", "Equals", "9", "7", "Minus", "8", "0", "CloseBracket", "o", "u", "Bracket", "i", "p", "Return", "l", "j", "Apostrophe", "k", "Semicolon", "BackSlash", "Comma", "Slash", "n", "m", "Period", "Tab", "Space", "Backtick", "BackSpace", "0", "Escape", "0", "Super", "Shift", "CapsLock", "Alt", "Control", "0", "0", "0", "0", "0", "KP_Period", "0", "KP_Minus", "0", "0", "0", "0", "Numlock", "0", "0", "0", "KP_Multiply", "KP_Return", "0", "0", "0", "0", "KP_Slash", "KP_0", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "0", "KP_8", "KP_9", "0", "0", "0", "F5", "F6", "F7", "F3", "F8", "F9", "0", "F11", "0", "F13", "0", "F14", "0", "F10", "0", "F12", "0", "F15", "Insert", "Home", "PageUp", "Delete", "F4", "End", "F2", "PageDown", "Left", "Right", "Down", "Up", "F1" };
-
+		static char* keyStrs[128] = {"Escape", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", 	"Backtick", 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 	"-", "=", "BackSpace", "Tab", "CapsLock", "ShiftL", "ControlL", "AltL", "SuperL", "ShiftR", "ControlR", "AltR", "SuperR", " ", 	"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 	".", ",", "-", "[", "]", ";", "Return", "'", "\\", 	"Up", "Down", "Left", "Right", 	"Delete", "Insert", "End", "Home", "PageUp", "PageDown", 	"Numlock", "KP_Slash", "Multiply", "KP_Minus", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "KP_8", "KP_9", "KP_0", "KP_Period", "KP_Return" };
+		
 		key--;
 		while (key++) {
 			u32 i;
@@ -2209,58 +2192,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			if (*key == '\0')
 				break;
 		}
-
-#endif
-#ifdef RGFW_X11
-		if (strcmp(key, "Space") == 0) key = (char*) "space";
-
-		return RGFW_apiKeyCodeToRGFW(XStringToKeysym(key));
-#endif
-#ifdef RGFW_WINDOWS
-		if (key[1]) {
-			struct { char* key; i32 code; } keyStrs[] = {
-						{"Super_L", VK_LWIN},
-						{"Super_R", VK_RWIN},
-						{"Space", VK_SPACE},
-						{"Return", VK_RETURN},
-						{"Caps_Lock", VK_CAPITAL},
-						{"Tab", VK_TAB},
-						{"Right", VK_RIGHT},
-						{"Left", VK_LEFT},
-						{"Up", VK_UP},
-						{"Down", VK_DOWN},
-						{"ShiftL", VK_LSHIFT},
-						{"ShiftR", VK_RSHIFT},
-						{"ControlL", VK_RCONTROL},
-						{"ControlR", VK_RCONTROL}
-			};
-
-
-			while (key++) {
-				u32 i;
-				for (i = 0; i < 14; i++) {
-					if (*keyStrs[i].key != '\0' && *keyStrs[i].key != '\1')
-						keyStrs[i].key++;
-
-					if (*keyStrs[i].key != *key) {
-						keyStrs[i].key = "\1";
-						continue;
-					}
-
-					if (*keyStrs[i].key == '\0' && *key == '\0')
-						return keyStrs[i].code;
-				}
-
-				if (*key == '\0')
-					break;
-			}
-		}
-
-		i32 vKey = VkKeyScan(key[0]);
-
-		return RGFW_apiKeyCodeToRGFW(vKey);
-#endif /* RGFW_WINDOWS */
-
+		
 		return 0;
 	}
 
@@ -4721,12 +4653,23 @@ static HMODULE wglinstance = NULL;
 				
 				break;
 
-			case WM_KEYUP:
+			case WM_KEYUP: {
 				win->event.keyCode = RGFW_apiKeyCodeToRGFW((u32) msg.wParam);
 								
 				RGFW_keyboard_prev[win->event.keyCode] = RGFW_isPressedI(win, win->event.keyCode);
 
-				strncpy(win->event.keyName, RGFW_keyCodeTokeyStr(msg.lParam), 16);
+				static char keyName[16];
+				
+				{
+					GetKeyNameTextA((LONG) key, keyName, 16);
+
+					if ((!(GetKeyState(VK_CAPITAL) & 0x0001) && !(GetKeyState(VK_SHIFT) & 0x8000)) ||
+						((GetKeyState(VK_CAPITAL) & 0x0001) && (GetKeyState(VK_SHIFT) & 0x8000))) {
+						CharLowerBuffA(keyName, 16);
+					}
+				}
+				
+				strncpy(win->event.keyName, keyName, 16);
 				if (RGFW_isPressedI(win, RGFW_ShiftL)) {
 					ToAscii((UINT) msg.wParam, MapVirtualKey((UINT) msg.wParam, MAPVK_VK_TO_CHAR),
 						keyboardState, (LPWORD) win->event.keyName, 0);
@@ -4735,6 +4678,7 @@ static HMODULE wglinstance = NULL;
 				win->event.type = RGFW_keyReleased;
 				RGFW_keyboard[win->event.keyCode] = 0;
 				break;
+			}
 
 			case WM_KEYDOWN:
 				win->event.keyCode = RGFW_apiKeyCodeToRGFW((u32) msg.wParam);
