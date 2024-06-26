@@ -107,6 +107,7 @@ If you wish to build the documentation yourself, there is also a Doxygen file at
 | --- | --- | --- | --- |
 | C | MacOS, Linux, Windows | OpenGL, DirectX, Vulkan, Buffer | (This Repo) |
 | Python | MacOS, Linux, Windows | Mainly OpenGL | [RGFW-Python](https://github.com/ColleagueRiley/RGFW-Python) |
+| Odin | MacOS, Linux, Windows | Mainly OpenGL | [RGFW-Odin](https://github.com/ColleagueRiley/RGFW-Odin) |
 
 Feel free to do a PR if you want a binding added to the list
 
@@ -126,12 +127,18 @@ It uses RGFW as a backend.
 [Raylib](https://github.com/raysan5/raylib) is a simple and easy-to-use library to enjoy videogames programming.
 
 Raylib uses RGFW as an optional alternative platform.
+[rcore_desktop_rgfw.c](https://github.com/raysan5/raylib/blob/master/src/platforms/rcore_desktop_rgfw.c)
 
 ### Raylib GO
 [Raylib](https://github.com/gen2brain/raylib-go) go bindings for Raylib. With explicit support for RGFW. (PLATFORM_DESKTOP_RGFW) 
 
 ## Claymore
 [Claymore](https://github.com/Code-Nycticebus/claymore) is a C Game Engine designed by Nycticebus that uses RGFW as a backend.
+
+## Silk
+[Silk](https://github.com/itsYakub/Silk) is a single-header 2D graphics library that renders via software rendering. The repo includes examples using multiple libraries, including RGFW.
+
+[example_rgfw](https://github.com/itsYakub/Silk/tree/main/examples/example_rgfw)
 
 ## PureDoom-RGFW
 [PureDOOM-RGFW](https://github.com/ColleagueRiley/PureDoom-RGFW) is an example of the PureDOOM source port, using RGFW and miniaudio.
