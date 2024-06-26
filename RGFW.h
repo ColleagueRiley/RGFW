@@ -1149,7 +1149,7 @@ This is the start of keycode data
 	#elif defined(RGFW_WINDOWS)
 	u32 RGFW_mouseIconSrc[] = {32512, 32513, 32515, 32649, 32644, 32645, 32646, 32642, 32643, 32648};
 	#elif defined(RGFW_MACOS)
-	char* RGFW_macIconSrc[] = {"arrowCursor", "IBeamCursor", "crosshairCursor", "pointingHandCursor", "resizeLeftRightCursor", "resizeUpDownCursor", "closedHandCursor", "_windowResizeNorthWestSouthEastCursor", "_windowResizeNorthEastSouthWestCursor", "operationNotAllowedCursor"};
+	char* RGFW_mouseIconSrc[] = {"arrowCursor", "IBeamCursor", "crosshairCursor", "pointingHandCursor", "resizeLeftRightCursor", "resizeUpDownCursor", "closedHandCursor", "_windowResizeNorthWestSouthEastCursor", "_windowResizeNorthEastSouthWestCursor", "operationNotAllowedCursor"};
 	#endif
 
 	u8 RGFW_keyboard[128] = { 0 };
@@ -6149,17 +6149,12 @@ static HMODULE wglinstance = NULL;
 		}
 	}
 
-	void RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
-		if (mouse > (sizeof(RGFW_mouseIconSrc) / sizeof(u32)))
+	void RGFW_window_setMouseStandard(RGFW_window* win, u8 stdMouses) {
+		if (stdMouses > ((sizeof(RGFW_mouseIconSrc)) / (sizeof(char*))))
 			return;
 		
-		char* mouseStr = RGFW_mouseIconSrc[mouse];
-		void* mouse = NULL
-
-		if (mouseStr[0] == '_')
-			mouse = NSCursor_performSelector(selector(mouseStr));
-		else
-			mouse = NSCursor_arrowStr(mouseStr);
+		char* mouseStr = RGFW_mouseIconSrc[stdMouses];
+		void* mouse = NSCursor_arrowStr(mouseStr);
 
 		if (mouse == NULL)
 			return;
