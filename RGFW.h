@@ -825,7 +825,8 @@ typedef struct { i32 x, y; } RGFW_vector;
 	RGFWDEF void RGFW_sleep(u64 microsecond); /* sleep for a set time */
 
 	typedef enum {
-		RGFW_Escape = 1,
+		RGFW_KEY_NULL = 0,
+		RGFW_Escape,
 		RGFW_F1,
 		RGFW_F2,
 		RGFW_F3,
