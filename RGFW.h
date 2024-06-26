@@ -266,7 +266,7 @@ extern "C" {
 /*! key event note
 	the code of the key pressed is stored in
 	RGFW_Event.keyCode
-	!!Keycodes defined at the bottom of the header file!!
+	!!Keycodes defined at the bottom of the RGFW_HEADER part of this file!!
 
 	while a string version is stored in
 	RGFW_Event.KeyString
@@ -408,7 +408,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		u32 type; /*!< which event has been sent?*/
 		RGFW_vector point; /*!< mouse x, y of event (or drop point) */
-		u32 keyCode; /*!< keycode of event 	!!Keycodes defined at the bottom of the header file!! */
+		u32 keyCode; /*!< keycode of event 	!!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! */
 
 		u32 fps; /*the current fps of the window [the fps is checked when events are checked]*/
 		u64 frameTime, frameTime2; /* this is used for counting the fps */
@@ -601,12 +601,8 @@ typedef struct { i32 x, y; } RGFW_vector;
 	/*!< sets mouse to bitmap (very simular to RGFW_window_setIcon), image NOT resized by default*/
 	RGFWDEF void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels);
 
-	/*!< sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the file) */
-#ifdef RGFW_MACOS
-	RGFWDEF void RGFW_window_setMouseStandard(RGFW_window* win, void* mouse);
-#else
-	RGFWDEF	void RGFW_window_setMouseStandard(RGFW_window* win, i32 mouse);
-#endif
+	/*!< sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the RGFW_HEADER part of this file) */
+	RGFWDEF	void RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse);
 
 	RGFWDEF void RGFW_window_setMouseDefault(RGFW_window* win); /* sets the mouse to1` the default mouse image */
 	/*
@@ -680,7 +676,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 	RGFWDEF u8 RGFW_wasMousePressed(RGFW_window* win, u8 button);
 
 	/*
-		!!Keycodes defined at the bottom of the header file!!
+		!!Keycodes defined at the bottom of RGFW_HEADER part of this file!!
 	*/
 	/*!< converts a key code to it's key string */
 	RGFWDEF char* RGFW_keyCodeTokeyStr(u64 key);
@@ -938,6 +934,19 @@ typedef struct { i32 x, y; } RGFW_vector;
 		RGFW_KP_Return
 	} RGFW_Key;
 
+	typedef enum RGFW_mouseIcons {
+		RGFW_MOUSE_ARROW = 0,
+		RGFW_MOUSE_IBEA,
+		RGFW_MOUSE_CROSSHAIR,
+		RGFW_MOUSE_POINTING_HAND,
+		RGFW_MOUSE_RESIZE_EW,
+		RGFW_MOUSE_RESIZE_NS,
+		RGFW_MOUSE_RESIZE_ALL,
+		RGFW_MOUSE_RESIZE_NWSE,
+		RGFW_MOUSE_RESIZE_NESW,
+		RGFW_MOUSE_NOT_ALLOWED,
+	} RGFW_mouseIcons;
+
 #endif /* RGFW_HEADER */
 
 	/*
@@ -1134,6 +1143,14 @@ This is the start of keycode data
 		[RGFW_OS_BASED_VALUE(9, 0x1B, 53)] = RGFW_Escape,
 		[RGFW_OS_BASED_VALUE(110, 0x24, 116)] = RGFW_Home,
 	};
+
+	#ifdef RGFW_X11
+	u8 RGFW_mouseIconSrc[] = {68, 152, 34, 60, 108, 116, 52, 12, 14, 0};  
+	#elif defined(RGFW_WINDOWS)
+	u32 RGFW_mouseIconSrc[] = {32512, 32513, 32515, 32649, 32644, 32645, 32646, 32642, 32643, 32648};
+	#elif defined(RGFW_MACOS)
+	char* RGFW_macIconSrc[] = {"arrowCursor", "IBeamCursor", "crosshairCursor", "pointingHandCursor", "resizeLeftRightCursor", "resizeUpDownCursor", "closedHandCursor", "_windowResizeNorthWestSouthEastCursor", "_windowResizeNorthEastSouthWestCursor", "operationNotAllowedCursor"};
+	#endif
 
 	u8 RGFW_keyboard[128] = { 0 };
 	u8 RGFW_keyboard_prev[128];
@@ -3577,11 +3594,16 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	}
 
 	void RGFW_window_setMouseDefault(RGFW_window* win) {
-		RGFW_window_setMouseStandard(win, XC_left_ptr);
+		RGFW_window_setMouseStandard(win, RGFW_MOUSE_ARROW);
 	}
 
-	void RGFW_window_setMouseStandard(RGFW_window* win, i32 mouse) {
+	void RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 		assert(win != NULL);
+
+		if (mouse > (sizeof(RGFW_mouseIconSrc) / sizeof(u8)))
+			return;
+		
+		mouse = RGFW_mouseIconSrc[mouse];
 
 		Cursor cursor = XCreateFontCursor((Display*) win->src.display, mouse);
 		XDefineCursor((Display*) win->src.display, (Window) win->src.window, (Cursor) cursor);
@@ -5055,11 +5077,16 @@ static HMODULE wglinstance = NULL;
 	}
 
 	void RGFW_window_setMouseDefault(RGFW_window* win) {
-		RGFW_window_setMouseStandard(win, 32512);
+		RGFW_window_setMouseStandard(win, RGFW_MOUSE_ARROW);
 	}
 
-	void RGFW_window_setMouseStandard(RGFW_window* win, i32 mouse) {
+	void RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 		assert(win != NULL);
+
+		if (mouse > (sizeof(RGFW_mouseIconSrc) / sizeof(u32)))
+			return;
+		
+		mouse = RGFW_mouseIconSrc[mouse];
 
 		char* icon = MAKEINTRESOURCEA(mouse);
 
@@ -6108,7 +6135,7 @@ static HMODULE wglinstance = NULL;
 	}
 
 	void RGFW_window_setMouseDefault(RGFW_window* win) {
-		RGFW_window_setMouseStandard(win, NSCursor_arrowStr("arrowCursor"));
+		RGFW_window_setMouseStandard(win, RGFW_MOUSE_ARROW);
 	}
 
 	void RGFW_window_showMouse(RGFW_window* win, i8 show) {
@@ -6122,7 +6149,21 @@ static HMODULE wglinstance = NULL;
 		}
 	}
 
-	void RGFW_window_setMouseStandard(RGFW_window* win, void* mouse) {
+	void RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
+		if (mouse > (sizeof(RGFW_mouseIconSrc) / sizeof(u32)))
+			return;
+		
+		char* mouseStr = RGFW_mouseIconSrc[mouse];
+		void* mouse = NULL
+
+		if (mouseStr[0] == '_')
+			mouse = NSCursor_performSelector(selector(mouseStr));
+		else
+			mouse = NSCursor_arrowStr(mouseStr);
+
+		if (mouse == NULL)
+			return;
+
 		RGFW_UNUSED(win);
 		CGDisplayShowCursor(kCGDirectMainDisplay);
 		objc_msgSend_void(mouse, sel_registerName("set"));
