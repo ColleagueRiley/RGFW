@@ -4661,7 +4661,7 @@ static HMODULE wglinstance = NULL;
 				static char keyName[16];
 				
 				{
-					GetKeyNameTextA((LONG) key, keyName, 16);
+					GetKeyNameTextA((LONG) msg.lParam, keyName, 16);
 
 					if ((!(GetKeyState(VK_CAPITAL) & 0x0001) && !(GetKeyState(VK_SHIFT) & 0x8000)) ||
 						((GetKeyState(VK_CAPITAL) & 0x0001) && (GetKeyState(VK_SHIFT) & 0x8000))) {
@@ -4670,6 +4670,7 @@ static HMODULE wglinstance = NULL;
 				}
 				
 				strncpy(win->event.keyName, keyName, 16);
+
 				if (RGFW_isPressedI(win, RGFW_ShiftL)) {
 					ToAscii((UINT) msg.wParam, MapVirtualKey((UINT) msg.wParam, MAPVK_VK_TO_CHAR),
 						keyboardState, (LPWORD) win->event.keyName, 0);
@@ -4678,14 +4679,25 @@ static HMODULE wglinstance = NULL;
 				win->event.type = RGFW_keyReleased;
 				RGFW_keyboard[win->event.keyCode] = 0;
 				break;
-			}
 
-			case WM_KEYDOWN:
+			case WM_KEYDOWN: {
 				win->event.keyCode = RGFW_apiKeyCodeToRGFW((u32) msg.wParam);
 
 				RGFW_keyboard_prev[win->event.keyCode] = RGFW_isPressedI(win, win->event.keyCode);
 
-				strncpy(win->event.keyName, RGFW_keyCodeTokeyStr(msg.lParam), 16);
+				static char keyName[16];
+				
+				{
+					GetKeyNameTextA((LONG) msg.lParam, keyName, 16);
+
+					if ((!(GetKeyState(VK_CAPITAL) & 0x0001) && !(GetKeyState(VK_SHIFT) & 0x8000)) ||
+						((GetKeyState(VK_CAPITAL) & 0x0001) && (GetKeyState(VK_SHIFT) & 0x8000))) {
+						CharLowerBuffA(keyName, 16);
+					}
+				}
+				
+				strncpy(win->event.keyName, keyName, 16);
+
 				if (RGFW_isPressedI(win, RGFW_ShiftL) & 0x8000) {
 					ToAscii((UINT) msg.wParam, MapVirtualKey((UINT) msg.wParam, MAPVK_VK_TO_CHAR),
 						keyboardState, (LPWORD) win->event.keyName, 0);
@@ -4694,6 +4706,7 @@ static HMODULE wglinstance = NULL;
 				win->event.type = RGFW_keyPressed;
 				RGFW_keyboard[win->event.keyCode] = 1;
 				break;
+			}
 
 			case WM_MOUSEMOVE:
 				win->event.point.x = GET_X_LPARAM(msg.lParam);
