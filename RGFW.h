@@ -1100,13 +1100,17 @@ This is the start of keycode data
 		[RGFW_OS_BASED_VALUE(37, 0x11, 59)] = RGFW_ControlL,
 		[RGFW_OS_BASED_VALUE(64, 164, 58)] = RGFW_AltL,
 		[RGFW_OS_BASED_VALUE(133, 0x5B, 55)] = RGFW_SuperL,
-		[RGFW_OS_BASED_VALUE(62, 0x5C, 56)] = RGFW_ShiftR,
-		#ifndef RGFW_WINDOWS
+		
+		#if !defined(RGFW_WINDOWS) && !defined(RGFW_MACOS)
 		[RGFW_OS_BASED_VALUE(105, 0x11, 59)] = RGFW_ControlR,
 		[RGFW_OS_BASED_VALUE(135, 0xA4, 55)] = RGFW_SuperR,
 		#endif
 
+		#if !defined(RGFW_MACOS)
+		[RGFW_OS_BASED_VALUE(62, 0x5C, 56)] = RGFW_ShiftR,
 		[RGFW_OS_BASED_VALUE(108, 165, 58)] = RGFW_AltR,
+		#endif
+
 		[RGFW_OS_BASED_VALUE(67, 0x70, 127)] = RGFW_F1,
 		[RGFW_OS_BASED_VALUE(68, 0x71, 121)] = RGFW_F2,
 		[RGFW_OS_BASED_VALUE(69, 0x72, 100)] = RGFW_F3,
@@ -5880,7 +5884,7 @@ static HMODULE wglinstance = NULL;
 				break;
 			}
 
-			case NSEventTypeKeyUp:
+			case NSEventTypeKeyUp: {
 				u32 key = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
 				win->event.keyCode = RGFW_apiKeyCodeToRGFW(key);;
 
@@ -5891,6 +5895,7 @@ static HMODULE wglinstance = NULL;
 
 				RGFW_keyboard[win->event.keyCode] = 0;
 				break;
+			}
 
 			case NSEventTypeFlagsChanged: {
 				u32 flags = objc_msgSend_uint(e, sel_registerName("modifierFlags"));
