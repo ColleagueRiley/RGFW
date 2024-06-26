@@ -935,15 +935,16 @@ typedef struct { i32 x, y; } RGFW_vector;
 	} RGFW_Key;
 
 	typedef enum RGFW_mouseIcons {
-		RGFW_MOUSE_ARROW = 0,
-		RGFW_MOUSE_IBEA,
+		RGFW_MOUSE_NORMAL = 0,
+		RGFW_MOUSE_ARROW,
+		RGFW_MOUSE_IBEAM,
 		RGFW_MOUSE_CROSSHAIR,
 		RGFW_MOUSE_POINTING_HAND,
 		RGFW_MOUSE_RESIZE_EW,
 		RGFW_MOUSE_RESIZE_NS,
-		RGFW_MOUSE_RESIZE_ALL,
 		RGFW_MOUSE_RESIZE_NWSE,
 		RGFW_MOUSE_RESIZE_NESW,
+		RGFW_MOUSE_RESIZE_ALL,
 		RGFW_MOUSE_NOT_ALLOWED,
 	} RGFW_mouseIcons;
 
@@ -1145,11 +1146,11 @@ This is the start of keycode data
 	};
 
 	#ifdef RGFW_X11
-	u8 RGFW_mouseIconSrc[] = {68, 152, 34, 60, 108, 116, 52, 12, 14, 0};  
+	u8 RGFW_mouseIconSrc[] = {68, 68, 152, 34, 60, 108, 116, 12, 14, 52, 0};  
 	#elif defined(RGFW_WINDOWS)
-	u32 RGFW_mouseIconSrc[] = {32512, 32513, 32515, 32649, 32644, 32645, 32646, 32642, 32643, 32648};
+	u32 RGFW_mouseIconSrc[] = {32512, 32512, 32513, 32515, 32649, 32644, 32645, 32642, 32643, 32646, 32648};
 	#elif defined(RGFW_MACOS)
-	char* RGFW_mouseIconSrc[] = {"arrowCursor", "IBeamCursor", "crosshairCursor", "pointingHandCursor", "resizeLeftRightCursor", "resizeUpDownCursor", "closedHandCursor", "_windowResizeNorthWestSouthEastCursor", "_windowResizeNorthEastSouthWestCursor", "operationNotAllowedCursor"};
+	char* RGFW_mouseIconSrc[] = {"arrowCursor", "arrowCursor", "IBeamCursor", "crosshairCursor", "pointingHandCursor", "resizeLeftRightCursor", "resizeUpDownCursor", "_windowResizeNorthWestSouthEastCursor", "_windowResizeNorthEastSouthWestCursor", "closedHandCursor", "operationNotAllowedCursor"};
 	#endif
 
 	u8 RGFW_keyboard[128] = { 0 };
