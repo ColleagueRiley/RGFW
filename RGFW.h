@@ -4679,7 +4679,7 @@ static HMODULE wglinstance = NULL;
 				win->event.type = RGFW_keyReleased;
 				RGFW_keyboard[win->event.keyCode] = 0;
 				break;
-
+			}
 			case WM_KEYDOWN: {
 				win->event.keyCode = RGFW_apiKeyCodeToRGFW((u32) msg.wParam);
 
