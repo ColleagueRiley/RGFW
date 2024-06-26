@@ -111,7 +111,7 @@ If you wish to build the documentation yourself, there is also a Doxygen file at
 
 Feel free to do a PR if you want a binding added to the list
 
-# project
+# projects
 Projects that use RGFW in some way\
 Feel free to do a PR if you want something added to the list
 
