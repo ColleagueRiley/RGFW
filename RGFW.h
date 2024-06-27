@@ -687,7 +687,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 /*! clipboard functions*/
 	RGFWDEF char* RGFW_readClipboard(size_t* size); /*!< read clipboard data */
-#define RGFW_clipboardFree free /* the string returned from RGFW_readClipboard must be freed */
+	RGFWDEF void RGFW_clipboardFree(char* str); /* the string returned from RGFW_readClipboard must be freed */
 
 	RGFWDEF void RGFW_writeClipboard(const char* text, u32 textLen); /*!< write text to the clipboard */
 
@@ -2137,6 +2137,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #include <shellapi.h>
 #include <shellscalingapi.h>
 #endif
+
+	void RGFW_clipboardFree(char* str) { RGFW_FREE(str); }
 	
 	u8 RGFW_mouseButtons[5] = { 0 };
 	u8 RGFW_mouseButtons_prev[5];
