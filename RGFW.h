@@ -391,11 +391,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 	/* NOTE: some parts of the data can represent different things based on the event (read comments in RGFW_Event struct) */
 	typedef struct RGFW_Event {
-#ifdef RGFW_WINDOWS
 		char keyName[16]; /* key name of event*/
-#else
-		char* keyName; /*!< key name of event */
-#endif
 
 		/*! drag and drop data */
 		/* 260 max paths with a max length of 260 */
@@ -3007,7 +3003,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			/* set event key data */
 			KeySym sym = XkbKeycodeToKeysym((Display*) win->src.display, E.xkey.keycode, 0, E.xkey.state & ShiftMask ? 1 : 0);
 			win->event.keyCode = RGFW_apiKeyCodeToRGFW(E.xkey.keycode);
-			win->event.keyName = XKeysymToString(sym); /* convert to string */
+			strncpy(win->event.keyName, XKeysymToString(sym), 16);
 
 			RGFW_keyboard_prev[win->event.keyCode] = RGFW_isPressedI(win, win->event.keyCode);
 			
@@ -5866,8 +5862,8 @@ static HMODULE wglinstance = NULL;
 				RGFW_keyboard_prev[win->event.keyCode] = RGFW_keyboard[win->event.keyCode];
 
 				win->event.type = RGFW_keyPressed;
-				win->event.keyName = (char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("characters")));
-
+				char* str = (char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("characters")));
+				strncpy(win->event.keyName, str, 16);
 				RGFW_keyboard[win->event.keyCode] = 1;
 				break;
 			}
@@ -5879,7 +5875,8 @@ static HMODULE wglinstance = NULL;
 				RGFW_keyboard_prev[win->event.keyCode] = RGFW_keyboard[win->event.keyCode];
 
 				win->event.type = RGFW_keyReleased;
-				win->event.keyName = (char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("characters")));
+				char* str = (char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("characters")));
+				strncpy(win->event.keyName, str, 16);
 
 				RGFW_keyboard[win->event.keyCode] = 0;
 				break;
