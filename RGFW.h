@@ -99,7 +99,7 @@
 #endif
 
 #ifndef RGFW_UNUSED
-#define RGFW_UNUSED(x) if (x){}
+#define RGFW_UNUSED(x) (void)(x)
 #endif
 
 #ifdef __cplusplus
@@ -1243,21 +1243,40 @@ this is the end of keycode data
 */
 
 
-	RGFW_windowmovefunc RGFW_windowMoveCallbackSrc = NULL;
-	RGFW_windowresizefunc RGFW_windowResizeCallbackSrc = NULL;
-	RGFW_windowquitfunc RGFW_windowQuitCallbackSrc = NULL;
-	RGFW_mouseposfunc RGFW_mousePosCallbackSrc = NULL;
-	RGFW_windowrefreshfunc RGFW_windowRefreshCallbackSrc = NULL;
-	RGFW_focusfunc RGFW_focusCallbackSrc = NULL;
-	RGFW_mouseNotifyfunc RGFW_mouseNotifyCallBackSrc = NULL;
-	RGFW_dndfunc RGFW_dndCallbackSrc = NULL;
-	RGFW_dndInitfunc RGFW_dndInitCallbackSrc = NULL;
-	RGFW_keyfunc RGFW_keyCallbackSrc = NULL;
-	RGFW_mousebuttonfunc RGFW_mouseButtonCallbackSrc = NULL;
-	RGFW_jsButtonfunc RGFW_jsButtonCallbackSrc = NULL;
-	RGFW_jsAxisfunc RGFW_jsAxisCallbackSrc = NULL;
+	/*
+		These exist to avoid the 
+		if (func == NULL) check 
+		for (allegedly) better performance
+	*/
+	void RGFW_windowmovefuncEMPTY(RGFW_window* win, RGFW_rect r) { RGFW_UNUSED(win); RGFW_UNUSED(r); }
+	void RGFW_windowresizefuncEMPTY(RGFW_window* win, RGFW_rect r) { RGFW_UNUSED(win); RGFW_UNUSED(r); }
+	void RGFW_windowquitfuncEMPTY(RGFW_window* win) { RGFW_UNUSED(win); }
+	void RGFW_focusfuncEMPTY(RGFW_window* win, u8 inFocus) {RGFW_UNUSED(win); RGFW_UNUSED(inFocus);}
+	void RGFW_mouseNotifyfuncEMPTY(RGFW_window* win, RGFW_vector point, u8 status) {RGFW_UNUSED(win); RGFW_UNUSED(point); RGFW_UNUSED(status);}
+	void RGFW_mouseposfuncEMPTY(RGFW_window* win, RGFW_vector point) {RGFW_UNUSED(win); RGFW_UNUSED(point);}
+	void RGFW_dndfuncEMPTY(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
+	void RGFW_dndInitfuncEMPTY(RGFW_window* win, RGFW_vector point) {RGFW_UNUSED(win); RGFW_UNUSED(point);}
+	void RGFW_windowrefreshfuncEMPTY(RGFW_window* win) {RGFW_UNUSED(win); }
+	void RGFW_keyfuncEMPTY(RGFW_window* win, u32 keycode, char keyName[16], u8 lockState, u8 pressed) {RGFW_UNUSED(win); RGFW_UNUSED(keycode); RGFW_UNUSED(keyName); RGFW_UNUSED(lockState); RGFW_UNUSED(pressed);}
+	void RGFW_mousebuttonfuncEMPTY(RGFW_window* win, u8 button, double scroll, u8 pressed) {RGFW_UNUSED(win); RGFW_UNUSED(button); RGFW_UNUSED(scroll); RGFW_UNUSED(pressed);}
+	void RGFW_jsButtonfuncEMPTY(RGFW_window* win, u16 joystick, u8 button, u8 pressed){RGFW_UNUSED(win); RGFW_UNUSED(joystick); RGFW_UNUSED(button); RGFW_UNUSED(pressed); }
+	void RGFW_jsAxisfuncEMPTY(RGFW_window* win, u16 joystick, RGFW_vector axis[2], u8 axisesCount){RGFW_UNUSED(win); RGFW_UNUSED(joystick); RGFW_UNUSED(axis); RGFW_UNUSED(axisesCount); }
 
-	void RGFW_window_checkEvents(RGFW_window* win) { while (RGFW_window_checkEvent(win) != NULL); }
+	RGFW_windowmovefunc RGFW_windowMoveCallbackSrc = RGFW_windowmovefuncEMPTY;
+	RGFW_windowresizefunc RGFW_windowResizeCallbackSrc = RGFW_windowresizefuncEMPTY;
+	RGFW_windowquitfunc RGFW_windowQuitCallbackSrc = RGFW_windowquitfuncEMPTY;
+	RGFW_mouseposfunc RGFW_mousePosCallbackSrc = RGFW_mouseposfuncEMPTY;
+	RGFW_windowrefreshfunc RGFW_windowRefreshCallbackSrc = RGFW_windowrefreshfuncEMPTY;
+	RGFW_focusfunc RGFW_focusCallbackSrc = RGFW_focusfuncEMPTY;
+	RGFW_mouseNotifyfunc RGFW_mouseNotifyCallBackSrc = RGFW_mouseNotifyfuncEMPTY;
+	RGFW_dndfunc RGFW_dndCallbackSrc = RGFW_dndfuncEMPTY;
+	RGFW_dndInitfunc RGFW_dndInitCallbackSrc = RGFW_dndInitfuncEMPTY;
+	RGFW_keyfunc RGFW_keyCallbackSrc = RGFW_keyfuncEMPTY;
+	RGFW_mousebuttonfunc RGFW_mouseButtonCallbackSrc = RGFW_mousebuttonfuncEMPTY;
+	RGFW_jsButtonfunc RGFW_jsButtonCallbackSrc = RGFW_jsButtonfuncEMPTY;
+	RGFW_jsAxisfunc RGFW_jsAxisCallbackSrc = RGFW_jsAxisfuncEMPTY;
+
+	void RGFW_window_checkEvents(RGFW_window* win) { while (RGFW_window_checkEvent(win) != NULL && win->event.type != RGFW_quit); }
 	
 	void RGFW_setWindowMoveCallback(RGFW_windowmovefunc func) { RGFW_windowMoveCallbackSrc = func; }
 	void RGFW_setWindowResizeCallback(RGFW_windowresizefunc func) { RGFW_windowResizeCallbackSrc = func; }
@@ -6830,8 +6849,8 @@ static HMODULE wglinstance = NULL;
 
 	u8 RGFW_window_shouldClose(RGFW_window* win) {
 		assert(win != NULL);
-
-		/* || RGFW_isPressedI(win, RGFW_Escape) */
+		if (win->event.type == RGFW_quit)
+			printf("hi\n");
 		return (win->event.type == RGFW_quit || RGFW_isPressedI(win, RGFW_Escape));
 	}
 
