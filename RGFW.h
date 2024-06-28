@@ -99,7 +99,7 @@
 #endif
 
 #ifndef RGFW_UNUSED
-#define RGFW_UNUSED(x) (void)(x)
+#define RGFW_UNUSED(x) (void)(x);
 #endif
 
 #ifdef __cplusplus
