@@ -2,7 +2,7 @@
 #include "RGFW.h"
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("RGFW Events", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_CENTER);
+    RGFW_window* win = RGFW_createWindow("RGFW Events", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_CENTER | RGFW_ALLOW_DND);
     
     while (RGFW_window_shouldClose(win) == 0) {
         while (RGFW_window_checkEvent(win)) {
@@ -47,9 +47,13 @@ int main(void) {
                 case RGFW_quit:
                     printf("Quit\n");
                     break;
-                case RGFW_dnd:
+                case RGFW_dnd: {
                     printf("DND Drop : %i %i\n", win->event.point.x, win->event.point.y);
+                    u32 i;
+                    for (i = 0; i < win->event.droppedFilesCount; i++)
+                        printf("dropped : %s\n", win->event.droppedFiles[i]);
                     break;
+                }
                 case RGFW_dnd_init:
                     printf("DND Init : %i %i\n", win->event.point.x, win->event.point.y);
                     break;

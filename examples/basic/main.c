@@ -24,6 +24,9 @@ int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_ALLOW_DND | RGFW_CENTER);
     RGFW_window_makeCurrent(win);
 
+
+    printf("%li\n", sizeof(RGFW_rect));
+
     RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
 
     RGFW_window_swapInterval(win, 1);
@@ -40,6 +43,8 @@ int main(void) {
 
     glEnable(GL_BLEND);             
     glClearColor(0, 0, 0, 0);
+
+    RGFW_window_setMouseStandard(win, RGFW_MOUSE_RESIZE_NESW);
 
     while (running && !RGFW_isPressedI(win, RGFW_Escape)) {   
         #ifdef __APPLE__
@@ -72,7 +77,8 @@ int main(void) {
                 RGFW_window_showMouse(win, 0);
             else if (RGFW_isPressedI(win, RGFW_t)) {
                 RGFW_window_setMouse(win, icon, RGFW_AREA(3, 3), 4);
-            }
+            }   
+
             if (win->event.type == RGFW_dnd) {
                 for (i = 0; i < win->event.droppedFilesCount; i++)
                     printf("dropped : %s\n", win->event.droppedFiles[i]);
@@ -120,7 +126,7 @@ DWORD loop2(void* args) {
 #else
 void* loop2(void* args) {
 #endif
-    RGFW_UNUSED(args)
+    RGFW_UNUSED(args);
 
     #ifndef __APPLE__
     RGFW_window* win = RGFW_createWindow("subwindow", RGFW_RECT(200, 200, 200, 200), 0);
