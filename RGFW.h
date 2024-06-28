@@ -5546,7 +5546,6 @@ static HMODULE wglinstance = NULL;
 			}
 		}
 	}
-}
 
 
 	#ifdef __cplusplus
