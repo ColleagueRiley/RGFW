@@ -51,6 +51,7 @@ all: examples/basic/main.c examples/buffer/main.c examples/portableGL/main.c  ex
 	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o basic
 	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o buffer
 	$(CC) examples/events/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o events
+	$(CC) examples/callbacks/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o callbacks
 	$(CC) examples/first-person-camera/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o camera
 	$(CC) examples/portableGL/main.c $(LIBS) -I./ -w -o portableGL
 	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o gl33
@@ -64,7 +65,7 @@ DX11: examples/dx11/main.c
 clean:
 	rm -f ./examples/basic/basic ./examples/basic/basic.exe ./examples/gles2/gles2 ./examples/gles2/gles2.exe ./examples/gl33/gl33 ./examples/gl33/gl33.exe ./examples/vk10/vk10 ./examples/vk10/vk10.exe examples/vk10/shaders/*.h examples/dx11/DX11
 
-debug: examples/basic/main.c examples/buffer/main.c examples/events/main.c examples/portableGL/main.c  examples/gl33/main.c examples/gles2/main.c examples/vk10/main.c ./RGFW.h
+debug: examples/*/main.c ./RGFW.h
 	make clean
 
 	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -D RGFW_DEBUG -o examples/buffer/buffer
@@ -72,6 +73,9 @@ debug: examples/basic/main.c examples/buffer/main.c examples/events/main.c examp
 
 	$(CC) examples/events/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -D RGFW_DEBUG -o examples/events/events
 	./examples/events/events$(EXT)
+
+	$(CC) examples/callbacks/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -D RGFW_DEBUG -o examples/callbacks/callbacks
+	./examples/callbacks/callbacks$(EXT)
 
 	$(CC) examples/portableGL/main.c $(LIBS) -I./ -w -o examples/portableGL/portableGL
 	./examples/portableGL/portableGL

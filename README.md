@@ -42,7 +42,10 @@ The dx11 example has its own Makefile functions because it is Windows only, thos
 A basic example can be found in `examples/basic`, it includes a basic OpenGL example of just about all of RGFW's functionalities.
 
 ## events 
-A example can be found in `examples/events`, it shows all the events and the data they send.
+The event example can be found in `examples/events`, it shows all the events and the data they send.
+
+## callbacks 
+The callback example can be found in `examples/callbacks`, it shows all the events and the data they send, but processed with callbacks instead. 
 
 ## dx11
 `examples/dx11` is a minimalistic example of the use of DirectX with RGFW
