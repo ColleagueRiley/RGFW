@@ -748,6 +748,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 	RGFWDEF void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval);
 
 	RGFWDEF void RGFW_window_setGPURender(RGFW_window* win, i8 set);
+	RGFWDEF void RGFW_window_setCPURender(RGFW_window* win, i8 set);
 
 #ifdef RGFW_VULKAN
 	typedef struct {
