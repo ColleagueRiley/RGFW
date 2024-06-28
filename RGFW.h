@@ -5041,7 +5041,7 @@ static HMODULE wglinstance = NULL;
 				mmi->ptMinTrackSize.x = win->src.minSize.w;
 				mmi->ptMinTrackSize.y = win->src.minSize.h;
 				mmi->ptMaxTrackSize.x = win->src.maxSize.w;
-				mmi->ptMaxTrackSize.y = win->src.maxSize.h;f
+				mmi->ptMaxTrackSize.y = win->src.maxSize.h;
 				return 0;
 			}
 			default:
@@ -5572,7 +5572,7 @@ static HMODULE wglinstance = NULL;
 		for (i = 0; i < RGFW_windows_size; i++)
 			if (RGFW_windows[i] && NSWindow_delegate(RGFW_windows[i]) == self) {
 				RGFW_windows[i]->event.type = RGFW_quit;
-				RGFW_windowQuitCallback(win)
+				RGFW_windowQuitCallback(RGFW_windows[i])
 				return true;
 			}
 
@@ -5631,7 +5631,7 @@ static HMODULE wglinstance = NULL;
 
 		RGFW_windows[i]->event.point.x = (i32)p.x;
 		RGFW_windows[i]->event.point.x = (i32)p.y;
-		RGFW_dndCallback(win, (char**)win->event.droppedFiles, win->event.droppedFilesCount)
+		RGFW_dndCallback(RGFW_windows[i], (char**)RGFW_windows[i]->event.droppedFiles, RGFW_windows[i]->event.droppedFilesCount)
 		return true;
 	}
 
@@ -5674,7 +5674,7 @@ static HMODULE wglinstance = NULL;
 				RGFW_windows[i]->r.w = frameSize.width;
 				RGFW_windows[i]->r.h = frameSize.height;
 				RGFW_windows[i]->event.type = RGFW_windowResized;
-				RGFW_windowResizeCallback(win, RGFW_windows[i]->r)
+				RGFW_windowResizeCallback(RGFW_windows[i], RGFW_windows[i]->r)
 
 				return frameSize;
 			}
@@ -5694,7 +5694,7 @@ static HMODULE wglinstance = NULL;
 				RGFW_windows[i]->r.y = (i32) frame.origin.y;
 
 				RGFW_windows[i]->event.type = RGFW_windowMoved;
-				RGFW_windowMoveCallback(win, RGFW_windows[i]->r)
+				RGFW_windowMoveCallback(RGFW_windows[i], RGFW_windows[i]->r)
 				return;
 			}
 		}
@@ -5707,7 +5707,7 @@ static HMODULE wglinstance = NULL;
 		for (i = 0; i < RGFW_windows_size; i++) {
 			if (RGFW_windows[i] && NSWindow_delegate(RGFW_windows[i]) == self) {
 				RGFW_windows[i]->event.type = RGFW_windowRefresh;
-				RGFW_windowResizeCallback(win)
+				RGFW_windowResizeCallback(RGFW_windows[i])
 				return;
 			}
 		}
@@ -6067,11 +6067,11 @@ static HMODULE wglinstance = NULL;
 			
 			if (win->event.inFocus) {
 				win->event.type = RGFW_focusIn;
-				RGFW_focusCallbackSrc(win, 1)
+				RGFW_focusCallback(win, 1)
 			}
 			else {
 				win->event.type = RGFW_focusOut;
-				RGFW_focusCallbackSrc(win, 0)
+				RGFW_focusCallback(win, 0)
 			}
 
 			return &win->event;
