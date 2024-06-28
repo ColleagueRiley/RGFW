@@ -298,6 +298,11 @@ extern "C" {
 #define RGFW_focusIn 12 /*!< window is in focus now */
 #define RGFW_focusOut 13 /*!< window is out of focus now */
 
+#define RGFW_mouseEnter 14 /* mouse entered the window */
+#define RGFW_mouseLeave 15 /* mouse left the window */
+
+#define RGFW_windowRefresh 16 /* The window content needs to be refreshed */
+
 /* attribs change event note
 	The event data is sent straight to the window structure
 	with win->r.x, win->r.y, win->r.w and win->r.h
@@ -2125,6 +2130,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #endif
 
 #define RGFW_HOLD_MOUSE			(1L<<2) /*!< hold the moues still */
+#define RGFW_MOUSE_LEFT 		(1L<<3) /* if mouse left the window */
 
 #ifdef RGFW_WINDOWS
 #include <processthreadsapi.h>
@@ -2697,7 +2703,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		RGFW_window* win = RGFW_window_basic_init(rect, args);
 
-		u64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask; /* X11 events accepted*/
+		u64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /* X11 events accepted*/
 
 #ifdef RGFW_OPENGL
 		u32* visual_attribs = RGFW_initAttribs(args & RGFW_OPENGL_SOFTWARE);
@@ -3047,6 +3053,10 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			win->event.point.y = E.xmotion.y;
 			win->event.type = RGFW_mousePosChanged;
 			break;
+		
+		case Expose:
+			win->event.type = RGFW_windowRefresh;
+			break;
 
 		case ClientMessage:
 			/* if the client closed the window*/
@@ -3328,6 +3338,19 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			win->event.inFocus = 0;
 			win->event.type = RGFW_focusOut;
 			break;
+		
+		case EnterNotify: {
+			win->event.type = RGFW_mouseEnter;
+			win->event.type = E.xcrossing.x;
+			win->event.type = E.xcrossing.y;
+			break;
+		}
+
+		case LeaveNotify: {
+			win->event.type = RGFW_mouseLeave;
+			break;
+		}
+
 		case ConfigureNotify: {
 			// detect resize
       			if (E.xconfigure.width != win->r.w || E.xconfigure.height != win->r.h) {
@@ -4675,7 +4698,16 @@ static HMODULE wglinstance = NULL;
 					win->event.type = RGFW_focusOut;
 				
 				break;
-
+			
+			case WM_PAINT:
+				win->event.type = RGFW_windowRefresh;
+				break;
+			
+			case WM_MOUSELEAVE:
+				win->event.type = RGFW_mouseLeave;
+				win->src.winArgs |= RGFW_MOUSE_LEFT;
+				break;
+			
 			case WM_KEYUP: {
 				win->event.keyCode = RGFW_apiKeyCodeToRGFW((u32) msg.wParam);
 								
@@ -4732,10 +4764,16 @@ static HMODULE wglinstance = NULL;
 			}
 
 			case WM_MOUSEMOVE:
+				win->event.type = RGFW_mousePosChanged;
+
+				if (win->src.winArgs & RGFW_MOUSE_LEFT) {
+					win->src.winArgs ^= RGFW_MOUSE_LEFT;
+					win->event.type = RGFW_mouseEnter;
+				}
+
 				win->event.point.x = GET_X_LPARAM(msg.lParam);
 				win->event.point.y = GET_Y_LPARAM(msg.lParam);
 
-				win->event.type = RGFW_mousePosChanged;
 				break;
 
 			case WM_LBUTTONDOWN:
@@ -5497,6 +5535,20 @@ static HMODULE wglinstance = NULL;
 		}
 	}
 
+	void RGFW__osxUpdateLayer(void* self, SEL sel) {
+		RGFW_UNUSED(sel);
+
+		u32 i;
+		for (i = 0; i < RGFW_windows_size; i++) {
+			if (RGFW_windows[i] && NSWindow_delegate(RGFW_windows[i]) == self) {
+				RGFW_windows[i]->event.type = RGFW_windowRefresh;
+				return;
+			}
+		}
+	}
+}
+
+
 	#ifdef __cplusplus
 	#define APPKIT_EXTERN		extern "C"
 	#else
@@ -5623,9 +5675,9 @@ static HMODULE wglinstance = NULL;
 			NSMoveToResourceDir();
 
 		Class delegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "WindowDelegate", 0);
-		
 
 		class_addMethod(delegateClass, sel_registerName("windowWillResize:toSize:"), (IMP) RGFW__osxWindowResize, "{NSSize=ff}@:{NSSize=ff}");
+		class_addMethod(delegateClass, sel_registerName("updateLayer:"), (IMP) RGFW__osxUpdateLayer, "");
 		class_addMethod(delegateClass, sel_registerName("windowWillMove:"), (IMP) RGFW__osxWindowMove, "");
 		class_addMethod(delegateClass, sel_registerName("windowDidMove:"), (IMP) RGFW__osxWindowMove, "");
 		class_addMethod(delegateClass, sel_registerName("draggingEntered:"), (IMP)draggingEntered, "l@:@");
@@ -5815,7 +5867,7 @@ static HMODULE wglinstance = NULL;
 		if (eventFunc == NULL)
 			eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
 		
-		if ((win->event.type == RGFW_windowMoved || win->event.type == RGFW_windowResized) && win->event.keyCode != 120) {
+		if ((win->event.type == RGFW_windowMoved || win->event.type == RGFW_windowResized || win->event.type == RGFW_windowRefresh) && win->event.keyCode != 120) {
 			win->event.keyCode = 120;
 			return &win->event;
 		}
@@ -5857,6 +5909,18 @@ static HMODULE wglinstance = NULL;
 		}
 
 		switch (objc_msgSend_uint(e, sel_registerName("type"))) {
+			case NSEventTypeMouseEntered: {
+				win->event.type = RGFW_mouseEnter;
+				NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(e, sel_registerName("locationInWindow"));
+
+				win->event.point = RGFW_VECTOR((u32) p.x, (u32) (win->r.h - p.y));
+				break;
+			}
+			
+			case NSEventTypeMouseExited:
+				win->event.type = RGFW_mouseLeave;
+				break;
+
 			case NSEventTypeKeyDown: {
 				u32 key = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
 				win->event.keyCode = RGFW_apiKeyCodeToRGFW(key);
