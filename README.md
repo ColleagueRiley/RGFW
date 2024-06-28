@@ -1,10 +1,10 @@
-# Riley's Gui library FrameWork
+# Riley's GUI library FrameWork
 ![THE RGFW Logo](https://github.com/ColleagueRiley/RGFW/blob/main/logo.png?raw=true)
 
 ## Build statuses
 ![workflow](https://github.com/ColleagueRiley/RGFW/actions/workflows/linux.yml/badge.svg)
 ![workflow windows](https://github.com/ColleagueRiley/RGFW/actions/workflows/windows.yml/badge.svg)
-![workflow windows](https://github.com/ColleagueRiley/RGFW/actions/workflows/macos.yml/badge.svg)
+![workflow macOS](https://github.com/ColleagueRiley/RGFW/actions/workflows/macos.yml/badge.svg)
 
 A cross-platform lightweight single-header very simple-to-use window abstraction library for creating GUI Libraries or simple GUI programs. 
 
@@ -15,6 +15,9 @@ The window backend supports XLib (UNIX), Cocoas (MacOS) and WinAPI (Windows)\
 The graphics backend supports OpenGL (EGL, software, OSMesa, GLES), Vulkan, DirectX and software rendering buffers.
 
 RGFW was designed as a backend for RSGL, but it can be used standalone or for other libraries, such as Raylib which uses it as an optional alternative backend.
+
+RGFW is multi-paradigm,\
+By default RGFW uses a flexible event system, similar to that of SDL, however you can use callbacks if you prefer that method. 
 
 This library
 
@@ -78,19 +81,28 @@ A basic example can be found in `examples/basic`, it includes a basic OpenGL exa
 
 u8 icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF,    0xFF, 0x00, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF,   0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
 
+void keyfunc(RGFW_window* win, u32 keycode, char keyName[16], u8 lockState, u8 pressed) {
+    printf("this is probably early\n");
+}
+
 int main() {
     RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_CENTER);
 
     RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
+    
+    RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want 
 
     i32 running = 1;
 
     while (running) {
-        while (RGFW_window_checkEvent(win)) {
+        while (RGFW_window_checkEvent(win)) { // or RGFW_window_checkEvents(); if you only want callbacks
             if (win->event.type == RGFW_quit || RGFW_isPressedI(win, RGFW_Escape)) {
                 running = 0;
                 break;
             }
+
+            if (win->event.type == RGFW_keyPressed) // this is the 'normal' way of handling an event
+                printf("This is probably late\n");
         }
 
         RGFW_window_swapBuffers(win);
@@ -184,15 +196,16 @@ It uses RGFW for it's examples
   If you want to contribute to RGFW but don't know what to contribute, you can check the `TODO` file.
 
 # RGFW vs GLFW
-RGFW is more portable, in part because single-header library. It does not use callbacks and focuses on trying to be straightforward. RGFW tries to work with the programmer rather than forcing the programmer to work around it. It also uses far less RAM and storage than GLFW.
+RGFW is more portable, in part because single-header library. It does not force you to use callbacks and focuses on trying to be straightforward. RGFW tries to work with the programmer rather than forcing the programmer to work around it. It also uses far less RAM and storage than GLFW.
+
+RGFW allows you to use callbacks optionally if you prefer that method.
 
 | Feature | RGFW | GLFW |
 | --- | --- | --- |
 | .o size  (avg) | 46kb  | 280kb |
 | .so size (avg) | 94kb | 433kb |
-| .h size | 152kb  | 256kb |
-| basic demo lines | ~130  | ~160 |
-| memory ussage (linux) | 47 Mib | 55.9 Mib |
+| .h size | 224.1kb  | 256kb |
+| memory ussage (linux) | ~40 Mib | 55.9 Mib |
 | --- | --- | --- |
 | fps counter | ✓  | X |
 | multi-threading | ✓  | X |
