@@ -5707,7 +5707,7 @@ static HMODULE wglinstance = NULL;
 		for (i = 0; i < RGFW_windows_size; i++) {
 			if (RGFW_windows[i] && NSWindow_delegate(RGFW_windows[i]) == self) {
 				RGFW_windows[i]->event.type = RGFW_windowRefresh;
-				RGFW_windowResizeCallback(RGFW_windows[i])
+				RGFW_windowRefreshCallback(RGFW_windows[i])
 				return;
 			}
 		}
@@ -6192,11 +6192,12 @@ static HMODULE wglinstance = NULL;
 					break;
 				}
 
-				if (win->event.type == RGFW_keyPressed)
+				if (win->event.type == RGFW_keyPressed) {
 					RGFW_keyCallback(win, win->event.keyCode, win->event.keyName, win->event.lockState, 1)
-				else if (win->event.type == RGFW_keyReleased)
+				}
+				else if (win->event.type == RGFW_keyReleased) {
 					RGFW_keyCallback(win, win->event.keyCode, win->event.keyName, win->event.lockState, 0)
-				
+				}
 
 				break;
 			}
