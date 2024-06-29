@@ -1232,9 +1232,7 @@ This is the start of keycode data
 	}
 
 /*
-
-this is the end of keycode data
-
+	this is the end of keycode data
 */
 
 
@@ -1295,12 +1293,6 @@ this is the end of keycode data
 	no more event call back defines
 */
 
-#ifdef RGFW_WINDOWS
-
-#include <windows.h>
-
-#endif
-
 #ifdef RGFW_MACOS
 	/*
 		based on silicon.h
@@ -1314,6 +1306,7 @@ this is the end of keycode data
 #include <ApplicationServices/ApplicationServices.h>
 #include <objc/runtime.h>
 #include <objc/message.h>
+#include <mach/mach_time.h>
 
 	typedef CGRect NSRect;
 	typedef CGPoint NSPoint;
@@ -2235,7 +2228,16 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 #endif /* RGFW_VULKAN */
 
-	RGFW_window* RGFW_root = NULL;
+RGFW_window* RGFW_root = NULL;
+
+
+/*
+
+
+Start of Linux / Unix defines
+
+
+*/
 
 #ifdef RGFW_X11
 #include <X11/Xlib.h>
@@ -2260,6 +2262,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #include <windowsx.h>
 #include <shellapi.h>
 #include <shellscalingapi.h>
+#include <windows.h>
 #endif
 
 	void RGFW_clipboardFree(char* str) { RGFW_FREE(str); }
@@ -2438,6 +2441,29 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	}
 #endif
 
+#ifdef RGFW_OSMESA
+RGFWDEF void RGFW_OSMesa_reorganize(void);
+
+/* reorganize buffer for osmesa */
+void RGFW_OSMesa_reorganize(void) {
+	u8* row = (u8*) RGFW_MALLOC(win->r.w * 3);
+
+	i32 half_height = win->r.h / 2;
+	i32 stride = win->r.w * 3;
+
+	i32 y;
+	for (y = 0; y < half_height; ++y) {
+		i32 top_offset = y * stride;
+		i32 bottom_offset = (win->r.h - y - 1) * stride;
+		memcpy(row, win->buffer + top_offset, stride);
+		memcpy(win->buffer + top_offset, win->buffer + bottom_offset, stride);
+		memcpy(win->buffer + bottom_offset, row, stride);
+	}
+
+	RGFW_FREE(row);
+}
+#endif
+
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL)
 	i32 RGFW_majorVersion = 0, RGFW_minorVersion = 0;
 	
@@ -2504,7 +2530,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #define WGL_SAMPLE_BUFFERS_ARB               0x2041
 #define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20a9
 #endif
-
 	static u32* RGFW_initAttribs(u32 useSoftware) {
 		RGFW_UNUSED(useSoftware);
 		static u32 attribs[] = {
@@ -2745,7 +2770,20 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		eglTerminate(win->src.EGL_display);
 	}
 
+	void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
+		assert(win != NULL);
+		
+		eglSwapInterval(win->src.EGL_display, swapInterval);
+
+		win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
+
+	}
 #endif /* RGFW_EGL */
+
+/* 
+	end of RGFW_EGL defines
+*/
+
 #endif /* RGFW_GL stuff? */
 
 	/*
@@ -4191,7 +4229,105 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 		return RGFW_XCreateMonitor(DefaultScreen(win->src.display));
 	}
+
+	#ifdef RGFW_OPENGL
+	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
+		assert(win != NULL);
+
+		glXMakeCurrent((Display*) win->src.display, (Drawable) win->src.window, (GLXContext) win->src.rSurf);
+	}
+	#endif
+
+
+	void RGFW_window_swapBuffers(RGFW_window* win) {
+		assert(win != NULL);
+
+		RGFW_window_makeCurrent(win);
+
+		/* clear the window*/
+
+		if (!(win->src.winArgs & RGFW_NO_CPU_RENDER)) {
+#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+			#ifdef RGFW_OSMESA
+			RGFW_OSMesa_reorganize();
+			#endif
+			RGFW_area area = RGFW_getScreenSize();
+
+#ifndef RGFW_X11_DONT_CONVERT_BGR
+			win->src.bitmap->data = (char*) win->buffer;
+			u32 x, y;
+			for (y = 0; y < (u32)win->r.h; y++) {
+				for (x = 0; x < (u32)win->r.w; x++) {
+					u32 index = (y * 4 * area.w) + x * 4;
+
+					u8 red = win->src.bitmap->data[index];
+					win->src.bitmap->data[index] = win->buffer[index + 2];
+					win->src.bitmap->data[index + 2] = red;
+				}
+			}
 #endif
+
+			XPutImage(win->src.display, (Window) win->src.window, XDefaultGC(win->src.display, XDefaultScreen(win->src.display)), win->src.bitmap, 0, 0, 0, 0, win->r.w, win->r.h);
+#endif
+
+#ifdef RGFW_VULKAN
+#ifdef RGFW_PRINT_ERRORS
+			fprintf(stderr, "RGFW_window_swapBuffers %s\n", "RGFW_window_swapBuffers is not yet supported for Vulkan");
+			RGFW_error = 1;
+#endif
+#endif
+		}
+
+		if (!(win->src.winArgs & RGFW_NO_GPU_RENDER)) {
+			#ifdef RGFW_EGL
+					eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
+			#elif defined(RGFW_OPENGL)
+					glXSwapBuffers((Display*) win->src.display, (Window) win->src.window);
+			#endif
+		}
+
+		RGFW_window_checkFPS(win);
+	}
+	
+	void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
+		assert(win != NULL);
+
+		#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)		
+		((PFNGLXSWAPINTERVALEXTPROC) glXGetProcAddress((GLubyte*) "glXSwapIntervalEXT"))((Display*) win->src.display, (Window) win->src.window, swapInterval);
+		#endif
+
+		win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
+
+	}
+
+	u64 RGFW_getTimeNS(void) { 
+		struct timespec ts = { 0 };
+		clock_gettime(1, &ts);
+		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
+
+		return nanoSeconds;
+	}
+
+	u64 RGFW_getTime(void) {
+		struct timespec ts = { 0 };
+		clock_gettime(1, &ts);
+		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
+
+		return (double)(nanoSeconds) * 1e-9;
+	}
+/* 
+	End of linux / unix defines
+*/
+
+#endif /* RGFW_X11 */
+
+
+/*
+
+	Start of Windows defines
+
+
+*/
 
 #ifdef RGFW_WINDOWS
 	char* createUTF8FromWideStringWin32(const WCHAR* source);
@@ -5519,6 +5655,80 @@ static HMODULE wglinstance = NULL;
 		SetCursorPos(p.x, p.y);
 	}
 
+
+	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
+		assert(win != NULL);
+		wglMakeCurrent(win->src.hdc, (HGLRC) win->src.rSurf);
+	}
+
+	void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
+		assert(win != NULL);
+		
+		#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
+		typedef BOOL(APIENTRY* PFNWGLSWAPINTERVALEXTPROC)(int interval);
+		static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
+		static void* loadSwapFunc = (void*) 1;
+
+		if (loadSwapFunc == NULL) {
+			fprintf(stderr, "wglSwapIntervalEXT not supported\n");
+			win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
+			return;
+		}
+
+		if (wglSwapIntervalEXT == NULL) {
+			loadSwapFunc = (void*) wglGetProcAddress("wglSwapIntervalEXT");
+			wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC) loadSwapFunc;
+		}
+
+		if (wglSwapIntervalEXT(swapInterval) == FALSE)
+			fprintf(stderr, "Failed to set swap interval\n");
+		#endif
+
+		win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
+
+	}
+
+	void RGFW_window_swapBuffers(RGFW_window* win) {
+		assert(win != NULL);
+
+		RGFW_window_makeCurrent(win);
+
+		/* clear the window*/
+
+		if (!(win->src.winArgs & RGFW_NO_CPU_RENDER)) {
+#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+			#ifdef RGFW_OSMESA
+			RGFW_OSMesa_reorganize();
+			#endif
+
+			HGDIOBJ oldbmp = SelectObject(win->src.hdcMem, win->src.bitmap);
+			BitBlt(win->src.hdc, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
+			SelectObject(win->src.hdcMem, oldbmp);
+#endif
+
+#ifdef RGFW_VULKAN
+#ifdef RGFW_PRINT_ERRORS
+			fprintf(stderr, "RGFW_window_swapBuffers %s\n", "RGFW_window_swapBuffers is not yet supported for Vulkan");
+			RGFW_error = 1;
+#endif
+#endif
+		}
+
+		if (!(win->src.winArgs & RGFW_NO_GPU_RENDER)) {
+			#ifdef RGFW_EGL
+					eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
+			#elif defined(RGFW_OPENGL)
+					SwapBuffers(win->src.hdc);
+			#endif
+
+			#if defined(RGFW_WINDOWS) && defined(RGFW_DIRECTX)
+					win->src.swapchain->lpVtbl->Present(win->src.swapchain, 0, 0);
+			#endif
+		}
+
+		RGFW_window_checkFPS(win);
+	}
+
 	char* createUTF8FromWideStringWin32(const WCHAR* source) {
 		char* target;
 		i32 size;
@@ -5538,13 +5748,49 @@ static HMODULE wglinstance = NULL;
 		return target;
 	}
 
+	u64 RGFW_getTimeNS(void) {
+		LARGE_INTEGER frequency;
+		QueryPerformanceFrequency(&frequency);
+
+		LARGE_INTEGER counter;
+		QueryPerformanceCounter(&counter);
+
+		return (u64) (counter.QuadPart * 1e9 / frequency.QuadPart);
+	}
+
+	u64 RGFW_getTime(void) {
+		LARGE_INTEGER frequency;
+		QueryPerformanceFrequency(&frequency);
+
+		LARGE_INTEGER counter;
+		QueryPerformanceCounter(&counter);
+		return (u64) (counter.QuadPart / (double) frequency.QuadPart);
+	}
+	
+	void RGFW_sleep(u64 ms) {
+		Sleep(ms);
+	}
+
 #ifndef RGFW_NO_THREADS
 	RGFW_thread RGFW_createThread(RGFW_threadFunc_ptr ptr, void* args) { return CreateThread(NULL, 0, ptr, args, 0, NULL); }
 	void RGFW_cancelThread(RGFW_thread thread) { CloseHandle((HANDLE) thread); }
 	void RGFW_joinThread(RGFW_thread thread) { WaitForSingleObject((HANDLE) thread, INFINITE); }
 	void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { SetThreadPriority((HANDLE) thread, priority); }
 #endif
-#endif
+#endif /* RGFW_WINDOWS */
+
+/*
+	End of Windows defines
+*/
+
+
+
+/* 
+
+	Start of MacOS defines
+
+
+*/
 
 #if defined(RGFW_MACOS)
 
@@ -5725,13 +5971,6 @@ static HMODULE wglinstance = NULL;
 			}
 		}
 	}
-
-
-	#ifdef __cplusplus
-	#define APPKIT_EXTERN		extern "C"
-	#else
-	#define APPKIT_EXTERN		extern
-	#endif
 
 	NSPasteboardType const NSPasteboardTypeURL = "public.url";
 	NSPasteboardType const NSPasteboardTypeFileURL  = "public.file-url";
@@ -6518,12 +6757,6 @@ static HMODULE wglinstance = NULL;
 		return RGFW_NSCreateMonitor(win->src.display);
 	}
 
-#ifdef __cplusplus
-#define APPKIT_EXTERN		extern "C"
-#else
-#define APPKIT_EXTERN		extern
-#endif
-
 	char* RGFW_readClipboard(size_t* size) {
 		char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString);
 		size_t clip_len = strlen(clip); 
@@ -6559,6 +6792,76 @@ static HMODULE wglinstance = NULL;
 		assert(win != NULL);
 
 		return win->src.joystickCount - 1;
+	}
+
+
+	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
+		assert(win != NULL);
+		objc_msgSend_void(win->src.rSurf, sel_registerName("makeCurrentContext"));
+	}
+
+
+	void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
+		assert(win != NULL);
+		#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
+		
+		NSOpenGLContext_setValues(win->src.rSurf, &swapInterval, 222);
+		#endif
+
+		win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
+	}
+	
+	void RGFW_window_swapBuffers(RGFW_window* win) {
+		assert(win != NULL);
+
+		RGFW_window_makeCurrent(win);
+
+		/* clear the window*/
+
+		if (!(win->src.winArgs & RGFW_NO_CPU_RENDER)) {
+#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+			#ifdef RGFW_OSMESA
+			RGFW_OSMesa_reorganize();
+			#endif
+
+			RGFW_area area = RGFW_getScreenSize();
+			void* view = NSWindow_contentView(win->src.window);
+			void* layer = objc_msgSend_id(view, sel_registerName("layer"));
+
+			((void(*)(id, SEL, NSRect))objc_msgSend)(layer,
+				sel_registerName("setFrame:"),
+				NSMakeRect(0, 0, win->r.w, win->r.h));
+
+			NSBitmapImageRep* rep = NSBitmapImageRep_initWithBitmapData(
+				&win->buffer, win->r.w, win->r.h, 8, 4, true, false,
+				"NSDeviceRGBColorSpace", 0,
+				area.w * 4, 32
+			);
+			id image = NSAlloc((id)objc_getClass("NSImage"));
+			NSImage_addRepresentation(image, rep);
+			objc_msgSend_void_id(layer, sel_registerName("setContents:"), (id) image);
+
+			release(image);
+			release(rep);
+#endif
+
+#ifdef RGFW_VULKAN
+#ifdef RGFW_PRINT_ERRORS
+			fprintf(stderr, "RGFW_window_swapBuffers %s\n", "RGFW_window_swapBuffers is not yet supported for Vulkan");
+			RGFW_error = 1;
+#endif
+#endif
+		}
+
+		if (!(win->src.winArgs & RGFW_NO_GPU_RENDER)) {
+			#ifdef RGFW_EGL
+					eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
+			#elif defined(RGFW_OPENGL)
+					NSOpenGLContext_flushBuffer(win->src.rSurf);
+			#endif
+		}
+
+		RGFW_window_checkFPS(win);
 	}
 
 	void RGFW_window_close(RGFW_window* win) {
@@ -6616,10 +6919,31 @@ static HMODULE wglinstance = NULL;
 
 		RGFW_FREE(win);
 	}
-#endif
 
+	u64 RGFW_getTimeNS(void) {
+		static mach_timebase_info_data_t timebase_info;
+		if (timebase_info.denom == 0) {
+			mach_timebase_info(&timebase_info);
+		}
+		return mach_absolute_time() * timebase_info.numer / timebase_info.denom;
+	}
+
+	u64 RGFW_getTime(void) {
+		static mach_timebase_info_data_t timebase_info;
+		if (timebase_info.denom == 0) {
+			mach_timebase_info(&timebase_info);
+		}
+		return (double) mach_absolute_time() * (double) timebase_info.numer / ((double) timebase_info.denom * 1e9);
+	}
+#endif /* RGFW_MACOS */
+
+/*
+	End of MaOS defines
+*/
+
+/* unix (macOS, linux) only stuff */
 #if defined(RGFW_X11) || defined(RGFW_MACOS)
-
+/* unix threading */
 #ifndef RGFW_NO_THREADS
 #include <pthread.h>
 
@@ -6636,28 +6960,21 @@ static HMODULE wglinstance = NULL;
 	void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { pthread_setschedprio(thread, priority); }
 #endif
 #endif
-#endif
+/* unix sleep */
+	void RGFW_sleep(u64 ms) {
+		struct timespec time;
+		time.tv_sec = 0;
+		time.tv_nsec = ms * 1e+6;
 
-	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
-		assert(win != NULL);
-
-#ifdef RGFW_OPENGL
-#ifdef RGFW_X11
-		glXMakeCurrent((Display*) win->src.display, (Drawable) win->src.window, (GLXContext) win->src.rSurf);
-#endif
-#ifdef RGFW_WINDOWS
-		wglMakeCurrent(win->src.hdc, (HGLRC) win->src.rSurf);
-#endif
-#if defined(RGFW_MACOS)
-		objc_msgSend_void(win->src.rSurf, sel_registerName("makeCurrentContext"));
-#endif
-#else
-#ifdef RGFW_EGL
-		eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.EGL_context);
-#endif
-#endif
-
+		nanosleep(&time, NULL);
 	}
+
+#endif /* end of unix / mac stuff*/
+
+
+/*
+	more generic code 
+*/
 
 	void RGFW_window_makeCurrent(RGFW_window* win) {
 		assert(win != NULL);
@@ -6669,47 +6986,6 @@ static HMODULE wglinstance = NULL;
 #ifdef RGFW_OPENGL
 		RGFW_window_makeCurrent_OpenGL(win);
 #endif
-	}
-
-	void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
-		assert(win != NULL);
-
-#ifdef RGFW_OPENGL
-#ifdef RGFW_X11
-		((PFNGLXSWAPINTERVALEXTPROC) glXGetProcAddress((GLubyte*) "glXSwapIntervalEXT"))((Display*) win->src.display, (Window) win->src.window, swapInterval);
-#endif
-#ifdef RGFW_WINDOWS
-
-		typedef BOOL(APIENTRY* PFNWGLSWAPINTERVALEXTPROC)(int interval);
-		static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
-		static void* loadSwapFunc = (void*) 1;
-
-		if (loadSwapFunc == NULL) {
-			fprintf(stderr, "wglSwapIntervalEXT not supported\n");
-			win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
-			return;
-		}
-
-		if (wglSwapIntervalEXT == NULL) {
-			loadSwapFunc = (void*) wglGetProcAddress("wglSwapIntervalEXT");
-			wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC) loadSwapFunc;
-		}
-
-		if (wglSwapIntervalEXT(swapInterval) == FALSE)
-			fprintf(stderr, "Failed to set swap interval\n");
-
-#endif
-#if defined(RGFW_MACOS)
-		NSOpenGLContext_setValues(win->src.rSurf, &swapInterval, 222);
-#endif
-#endif
-
-#ifdef RGFW_EGL
-		eglSwapInterval(win->src.EGL_display, swapInterval);
-#endif
-
-		win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
-
 	}
 
 	void RGFW_window_setGPURender(RGFW_window* win, i8 set) {
@@ -6728,110 +7004,6 @@ static HMODULE wglinstance = NULL;
 			win->src.winArgs ^= RGFW_NO_CPU_RENDER;
 	}
 
-
-	void RGFW_window_swapBuffers(RGFW_window* win) {
-		assert(win != NULL);
-
-		RGFW_window_makeCurrent(win);
-
-		/* clear the window*/
-
-		if (!(win->src.winArgs & RGFW_NO_CPU_RENDER)) {
-#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-#ifdef RGFW_OSMESA
-			u8* row = (u8*) RGFW_MALLOC(win->r.w * 3);
-
-			i32 half_height = win->r.h / 2;
-			i32 stride = win->r.w * 3;
-
-			i32 y;
-			for (y = 0; y < half_height; ++y) {
-				i32 top_offset = y * stride;
-				i32 bottom_offset = (win->r.h - y - 1) * stride;
-				memcpy(row, win->buffer + top_offset, stride);
-				memcpy(win->buffer + top_offset, win->buffer + bottom_offset, stride);
-				memcpy(win->buffer + bottom_offset, row, stride);
-			}
-
-			RGFW_FREE(row);
-#endif
-
-#ifdef RGFW_X11
-			RGFW_area area = RGFW_getScreenSize();
-
-#ifndef RGFW_X11_DONT_CONVERT_BGR
-			win->src.bitmap->data = (char*) win->buffer;
-			u32 x, y;
-			for (y = 0; y < (u32)win->r.h; y++) {
-				for (x = 0; x < (u32)win->r.w; x++) {
-					u32 index = (y * 4 * area.w) + x * 4;
-
-					u8 red = win->src.bitmap->data[index];
-					win->src.bitmap->data[index] = win->buffer[index + 2];
-					win->src.bitmap->data[index + 2] = red;
-				}
-			}
-#endif
-
-			XPutImage(win->src.display, (Window) win->src.window, XDefaultGC(win->src.display, XDefaultScreen(win->src.display)), win->src.bitmap, 0, 0, 0, 0, win->r.w, win->r.h);
-#endif
-#ifdef RGFW_WINDOWS
-			HGDIOBJ oldbmp = SelectObject(win->src.hdcMem, win->src.bitmap);
-			BitBlt(win->src.hdc, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
-			SelectObject(win->src.hdcMem, oldbmp);
-#endif	
-#if defined(RGFW_MACOS)
-			RGFW_area area = RGFW_getScreenSize();
-			void* view = NSWindow_contentView(win->src.window);
-			void* layer = objc_msgSend_id(view, sel_registerName("layer"));
-
-			((void(*)(id, SEL, NSRect))objc_msgSend)(layer,
-				sel_registerName("setFrame:"),
-				NSMakeRect(0, 0, win->r.w, win->r.h));
-
-			NSBitmapImageRep* rep = NSBitmapImageRep_initWithBitmapData(
-				&win->buffer, win->r.w, win->r.h, 8, 4, true, false,
-				"NSDeviceRGBColorSpace", 0,
-				area.w * 4, 32
-			);
-			id image = NSAlloc((id)objc_getClass("NSImage"));
-			NSImage_addRepresentation(image, rep);
-			objc_msgSend_void_id(layer, sel_registerName("setContents:"), (id) image);
-
-			release(image);
-			release(rep);
-#endif
-#endif
-
-#ifdef RGFW_VULKAN
-#ifdef RGFW_PRINT_ERRORS
-			fprintf(stderr, "RGFW_window_swapBuffers %s\n", "RGFW_window_swapBuffers is not yet supported for Vulkan");
-			RGFW_error = 1;
-#endif
-#endif
-		}
-
-		if (!(win->src.winArgs & RGFW_NO_GPU_RENDER)) {
-			#ifdef RGFW_EGL
-					eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
-			#elif defined(RGFW_OPENGL)
-			#if defined(RGFW_X11) && defined(RGFW_OPENGL)
-					glXSwapBuffers((Display*) win->src.display, (Window) win->src.window);
-			#elif defined(RGFW_WINDOWS)
-					SwapBuffers(win->src.hdc);
-			#elif defined(RGFW_MACOS)
-					NSOpenGLContext_flushBuffer(win->src.rSurf);
-			#endif
-			#endif
-
-			#if defined(RGFW_WINDOWS) && defined(RGFW_DIRECTX)
-					win->src.swapchain->lpVtbl->Present(win->src.swapchain, 0, 0);
-			#endif
-		}
-
-		RGFW_window_checkFPS(win);
-	}
-
 	void RGFW_window_maximize(RGFW_window* win) {
 		assert(win != NULL);
 
@@ -6843,8 +7015,6 @@ static HMODULE wglinstance = NULL;
 
 	u8 RGFW_window_shouldClose(RGFW_window* win) {
 		assert(win != NULL);
-		if (win->event.type == RGFW_quit)
-			printf("hi\n");
 		return (win->event.type == RGFW_quit || RGFW_isPressedI(win, RGFW_Escape));
 	}
 
@@ -6878,18 +7048,6 @@ static HMODULE wglinstance = NULL;
 		#endif
 	}
 
-	void RGFW_sleep(u64 ms) {
-#ifndef RGFW_WINDOWS
-		struct timespec time;
-		time.tv_sec = 0;
-		time.tv_nsec = ms * 1e+6;
-
-		nanosleep(&time, NULL);
-#else
-		Sleep(ms);
-#endif
-	}
-
 	void RGFW_window_checkFPS(RGFW_window* win) {
 		u64 deltaTime = RGFW_getTimeNS() - win->event.frameTime;
 
@@ -6915,59 +7073,6 @@ static HMODULE wglinstance = NULL;
 			
 			win->event.frameTime2 = RGFW_getTimeNS();
 		}
-	}
-
-#ifdef __APPLE__
-#include <mach/mach_time.h>
-#endif
-
-	u64 RGFW_getTimeNS(void) {
-#ifdef RGFW_WINDOWS
-		LARGE_INTEGER frequency;
-		QueryPerformanceFrequency(&frequency);
-
-		LARGE_INTEGER counter;
-		QueryPerformanceCounter(&counter);
-
-		return (u64) (counter.QuadPart * 1e9 / frequency.QuadPart);
-#elif defined(__unix__)
-		struct timespec ts = { 0 };
-		clock_gettime(1, &ts);
-		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
-
-		return nanoSeconds;
-#elif defined(__APPLE__)
-		static mach_timebase_info_data_t timebase_info;
-		if (timebase_info.denom == 0) {
-			mach_timebase_info(&timebase_info);
-		}
-		return mach_absolute_time() * timebase_info.numer / timebase_info.denom;
-#endif
-		return 0;
-	}
-
-	u64 RGFW_getTime(void) {
-#ifdef RGFW_WINDOWS
-		LARGE_INTEGER frequency;
-		QueryPerformanceFrequency(&frequency);
-
-		LARGE_INTEGER counter;
-		QueryPerformanceCounter(&counter);
-		return (u64) (counter.QuadPart / (double) frequency.QuadPart);
-#elif defined(__unix__)
-		struct timespec ts = { 0 };
-		clock_gettime(1, &ts);
-		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
-
-		return (double)(nanoSeconds) * 1e-9;
-#elif defined(__APPLE__)
-		static mach_timebase_info_data_t timebase_info;
-		if (timebase_info.denom == 0) {
-			mach_timebase_info(&timebase_info);
-		}
-		return (double) mach_absolute_time() * (double) timebase_info.numer / ((double) timebase_info.denom * 1e9);
-#endif
-		return 0;
 	}
 
 #endif /*RGFW_IMPLEMENTATION*/
