@@ -281,9 +281,9 @@ extern "C" {
 
 	RGFW_Event.button holds which mouse button was pressed
 */
-RGFW_jsButtonPressed 7 /*!< a joystick button was pressed */
-RGFW_jsButtonReleased 8 /*!< a joystick button was released */
-RGFW_jsAxisMove 9 /*!< an axis of a joystick was moved*/
+#define RGFW_jsButtonPressed 7 /*!< a joystick button was pressed */
+#define RGFW_jsButtonReleased 8 /*!< a joystick button was released */
+#define RGFW_jsAxisMove 9 /*!< an axis of a joystick was moved*/
 /*! joystick event note
 	RGFW_Event.joystick holds which joystick was altered, if any
 	RGFW_Event.button holds which joystick button was pressed
@@ -1357,10 +1357,10 @@ RGFW_window* RGFW_root = NULL;
 	u8 RGFW_mouseButtons_prev[5];
 
 	u8 RGFW_isMousePressed(RGFW_window* win, u8 button) {
-		return RGFW_mouseButtons[button]; 
+		return RGFW_mouseButtons[button] && (win != NULL) && win->event.inFocus; 
 	}
 	u8 RGFW_wasMousePressed(RGFW_window* win, u8 button) { 
-		return RGFW_mouseButtons_prev[button]; 
+		return RGFW_mouseButtons_prev[button] && (win != NULL) && win->event.inFocus; 
 	}
 	u8 RGFW_isMouseHeld(RGFW_window* win, u8 button) {
 		return (RGFW_isMousePressed(win, button) && RGFW_wasMousePressed(win, button));
@@ -1484,9 +1484,9 @@ RGFW_window* RGFW_root = NULL;
 		win->event.frameTime = RGFW_getTimeNS();
 		
 		if (win->fpsCap == 0)
-			break;
-
-		u64 deltaTime = RGFW_getTimeNS() - win->event.frameTime2;
+			return;
+		
+		deltaTime = RGFW_getTimeNS() - win->event.frameTime2;
 		win->event.fps = round(1e+9 / deltaTime);
 		win->event.frameTime2 = RGFW_getTimeNS();
 	}
@@ -4397,7 +4397,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	}
 
 
-	u8 RGFW_xinput2RGFW[] {
+	u8 RGFW_xinput2RGFW[] = {
 		RGFW_JS_UP,
 		RGFW_JS_DOWN,
 		RGFW_JS_LEFT,
