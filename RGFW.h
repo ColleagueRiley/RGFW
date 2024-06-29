@@ -808,6 +808,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 	/*! Set OpenGL version hint */
 	RGFWDEF void RGFW_setGLVersion(i32 major, i32 minor);
 	RGFWDEF void* RGFW_getProcAddress(const char* procname); /* get native opengl proc address */
+	RGFWDEF void RGFW_window_makeCurrent_OpenGL(RGFW_window* win); /* to be called by RGFW_window_makeCurrent */
 #endif
 	/* supports openGL, directX, OSMesa, EGL and software rendering */
 	RGFWDEF void RGFW_window_swapBuffers(RGFW_window* win); /* swap the rendering buffer */
@@ -1087,6 +1088,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #include <assert.h>
 
 /*
+RGFW_IMPLEMENTATION starts with generic RGFW defines
 
 This is the start of keycode data
 
@@ -1362,17 +1364,268 @@ MacOS -> windows and linux already don't have keycodes as macros, so there's no 
 		RGFW_window_resize(win, RGFW_AREA(((u32) monitor.scaleX) * win->r.w, ((u32) monitor.scaleX) * win->r.h));
 	}
 
-#if defined(RGFW_OPENGL) || defined(RGFW_EGL) || defined(RGFW_OSMESA)
-#ifndef __APPLE__
-#ifndef GL_SILENCE_DEPRECATION
-#define GL_SILENCE_DEPRECATION
+RGFW_window* RGFW_root = NULL;
+
+
+#define RGFW_HOLD_MOUSE			(1L<<2) /*!< hold the moues still */
+#define RGFW_MOUSE_LEFT 		(1L<<3) /* if mouse left the window */
+
+	void RGFW_clipboardFree(char* str) { RGFW_FREE(str); }
+	
+	u8 RGFW_mouseButtons[5] = { 0 };
+	u8 RGFW_mouseButtons_prev[5];
+
+	u8 RGFW_isMousePressed(RGFW_window* win, u8 button) {
+		if (win != NULL && !win->event.inFocus)
+			return 0;
+
+		return RGFW_mouseButtons[button]; 
+	}
+	u8 RGFW_wasMousePressed(RGFW_window* win, u8 button) { 
+		if (win != NULL && !win->event.inFocus)
+			return 0;
+
+		return RGFW_mouseButtons_prev[button]; 
+	}
+	u8 RGFW_isMouseHeld(RGFW_window* win, u8 button) {
+		return (RGFW_isMousePressed(win, button) && RGFW_wasMousePressed(win, button));
+	}
+	u8 RGFW_isMouseReleased(RGFW_window* win, u8 button) {
+		return (!RGFW_isMousePressed(win, button) && RGFW_wasMousePressed(win, button));	
+	}
+
+	u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
+		RGFW_UNUSED(win);
+		
+		return RGFW_keyboard[key];
+	}
+
+	u8 RGFW_wasPressedI(RGFW_window* win, u32 key) {
+		RGFW_UNUSED(win);
+
+		return RGFW_keyboard_prev[key];
+	}
+
+	u8 RGFW_isHeldI(RGFW_window* win, u32 key) {
+		return (RGFW_isPressedI(win, key) && RGFW_wasPressedI(win, key));
+	}
+
+	u8 RGFW_isReleasedI(RGFW_window* win, u32 key) {
+		return (!RGFW_isPressedI(win, key) && RGFW_wasPressedI(win, key));	
+	}
+
+	char* RGFW_keyCodeTokeyStr(u64 key) {
+		static char* keyStrs[128] = {"Escape", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", 	"Backtick", 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 	"-", "=", "BackSpace", "Tab", "CapsLock", "ShiftL", "ControlL", "AltL", "SuperL", "ShiftR", "ControlR", "AltR", "SuperR", " ", 	"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 	".", ",", "-", "[", "]", ";", "Return", "'", "\\", 	"Up", "Down", "Left", "Right", 	"Delete", "Insert", "End", "Home", "PageUp", "PageDown", 	"Numlock", "KP_Slash", "Multiply", "KP_Minus", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "KP_8", "KP_9", "KP_0", "KP_Period", "KP_Return" };
+
+		return keyStrs[key];
+	}
+
+	u32 RGFW_keyStrToKeyCode(char* key) {
+		static char* keyStrs[128] = {"Escape", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", 	"Backtick", 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 	"-", "=", "BackSpace", "Tab", "CapsLock", "ShiftL", "ControlL", "AltL", "SuperL", "ShiftR", "ControlR", "AltR", "SuperR", " ", 	"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 	".", ",", "-", "[", "]", ";", "Return", "'", "\\", 	"Up", "Down", "Left", "Right", 	"Delete", "Insert", "End", "Home", "PageUp", "PageDown", 	"Numlock", "KP_Slash", "Multiply", "KP_Minus", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "KP_8", "KP_9", "KP_0", "KP_Period", "KP_Return" };
+		
+		key--;
+		while (key++) {
+			u32 i;
+			for (i = 0; i < 128; i++) {
+				if (*keyStrs[i] == '\1')
+					continue;
+
+				if (*keyStrs[i] != *key) {
+					keyStrs[i] = "\1";
+					continue;
+				}
+
+				if (*keyStrs[i] == '\0' && *key == '\0')
+					return RGFW_apiKeyCodeToRGFW(i);
+
+				else
+					keyStrs[i]++;
+			}
+
+			if (*key == '\0')
+				break;
+		}
+		
+		return 0;
+	}
+
+
+	char RGFW_keystrToChar(const char* str) {
+		if (str[1] == 0)
+			return str[0];
+
+		static const char* map[] = {
+			"asciitilde", "`",
+			"grave", "~",
+			"exclam", "!",
+			"at", "@",
+			"numbersign", "#",
+			"dollar", "$",
+			"percent", "%%",
+			"asciicircum", "^",
+			"ampersand", "&",
+			"asterisk", "*",
+			"parenleft", "(",
+			"parenright", ")",
+			"underscore", "_",
+			"minus", "-",
+			"plus", "+",
+			"equal", "=",
+			"braceleft", "{",
+			"bracketleft", "[",
+			"bracketright", "]",
+			"braceright", "}",
+			"colon", ":",
+			"semicolon", ";",
+			"quotedbl", "\"",
+			"apostrophe", "'",
+			"bar", "|",
+			"backslash", "\'",
+			"less", "<",
+			"comma", ",",
+			"greater", ">",
+			"period", ".",
+			"question", "?",
+			"slash", "/",
+			"space", " ",
+			"Return", "\n",
+			"Enter", "\n",
+			"enter", "\n",
+		};
+
+		u8 i = 0;
+		for (i = 0; i < (sizeof(map) / sizeof(char*)); i += 2)
+			if (strcmp(map[i], str) == 0)
+				return *map[i + 1];
+
+		return '\0';
+	}
+
+	void RGFW_window_makeCurrent(RGFW_window* win) {
+		assert(win != NULL);
+
+#if defined(RGFW_WINDOWS) && defined(RGFW_DIRECTX)
+		RGFW_dxInfo.pDeviceContext->lpVtbl->OMSetRenderTargets(RGFW_dxInfo.pDeviceContext, 1, &win->src.renderTargetView, NULL);
 #endif
 
-#include <GL/gl.h>
-#else
-#include <OpenGL/gl.h>
+#ifdef RGFW_OPENGL
+		RGFW_window_makeCurrent_OpenGL(win);
 #endif
-#endif
+	}
+
+	void RGFW_window_setGPURender(RGFW_window* win, i8 set) {
+		if (!set && !(win->src.winArgs & RGFW_NO_GPU_RENDER))
+			win->src.winArgs |= RGFW_NO_GPU_RENDER;
+
+		else if (set && win->src.winArgs & RGFW_NO_GPU_RENDER)
+			win->src.winArgs ^= RGFW_NO_GPU_RENDER;
+	}
+
+	void RGFW_window_setCPURender(RGFW_window* win, i8 set) {
+		if (!set && !(win->src.winArgs & RGFW_NO_CPU_RENDER))
+			win->src.winArgs |= RGFW_NO_CPU_RENDER;
+
+		else if (set && win->src.winArgs & RGFW_NO_CPU_RENDER)
+			win->src.winArgs ^= RGFW_NO_CPU_RENDER;
+	}
+
+	void RGFW_window_maximize(RGFW_window* win) {
+		assert(win != NULL);
+
+		RGFW_area screen = RGFW_getScreenSize();
+
+		RGFW_window_move(win, RGFW_VECTOR(0, 0));
+		RGFW_window_resize(win, screen);
+	}
+
+	u8 RGFW_window_shouldClose(RGFW_window* win) {
+		assert(win != NULL);
+		return (win->event.type == RGFW_quit || RGFW_isPressedI(win, RGFW_Escape));
+	}
+
+	void RGFW_window_setShouldClose(RGFW_window* win) { win->event.type = RGFW_quit; RGFW_windowQuitCallback(win); }
+
+	void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m) {
+		RGFW_window_move(win, RGFW_VECTOR(m.rect.x + win->r.x, m.rect.y + win->r.y));
+	}
+
+	#ifdef RGFW_WINDOWS
+	BOOL ClipCursor(const RECT *lpRect);	
+	#endif
+
+	void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area) {
+		if (!(win->src.winArgs & RGFW_HOLD_MOUSE)) {
+			#ifdef RGFW_WINDOWS
+			RECT rect = {win->r.x, win->r.y, win->r.x + win->r.w, win->r.y + win->r.h};
+			ClipCursor(&rect);
+			#endif
+		}
+
+		win->src.winArgs |= RGFW_HOLD_MOUSE;
+
+		if (!area.w && !area.h)
+			area = RGFW_AREA(win->r.w / 2, win->r.h / 2);
+
+		RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (area.w), win->r.y + (area.h)));
+	}
+
+	void RGFW_window_mouseUnhold(RGFW_window* win) {
+		win->src.winArgs ^= RGFW_HOLD_MOUSE;
+
+		#ifdef RGFW_WINDOWS
+		ClipCursor(NULL);
+		#endif
+	}
+
+	void RGFW_window_checkFPS(RGFW_window* win) {
+		u64 deltaTime = RGFW_getTimeNS() - win->event.frameTime;
+
+		u64 fps = round(1e+9 / deltaTime);
+		win->event.fps = fps;
+
+		if (win->fpsCap && fps > win->fpsCap) {
+			u64 frameTimeNS = 1e+9 / win->fpsCap;
+			u64 sleepTimeMS = (frameTimeNS - deltaTime) / 1e6;
+
+			if (sleepTimeMS > 0) {
+				RGFW_sleep(sleepTimeMS);
+				win->event.frameTime = 0;
+			}
+		}
+
+		win->event.frameTime = RGFW_getTimeNS();
+		
+		if (win->fpsCap) {
+			u64 deltaTime = RGFW_getTimeNS() - win->event.frameTime2;
+
+			win->event.fps = round(1e+9 / deltaTime);
+			
+			win->event.frameTime2 = RGFW_getTimeNS();
+		}
+	}
+
+	#ifndef M_PI
+	#define M_PI		3.14159265358979323846	/* pi */
+	#endif
+
+	#if defined(RGFW_X11) || defined(RGFW_MACOS)
+		struct timespec;
+
+		int nanosleep(const struct timespec* duration, struct timespec* rem);
+		int clock_gettime(clockid_t clk_id, struct timespec* tp);
+		int setenv(const char *name, const char *value, int overwrite);
+
+		u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { return win->src.jsPressed[c][button]; }
+	#endif
+
+/*
+	graphics API spcific code (end of generic code)
+	starts here 
+*/
+
+/* 
+	Vulkan defines start here
+*/
 
 #ifdef RGFW_VULKAN
 	RGFW_vulkanInfo RGFW_vulkan_info;
@@ -1754,183 +2007,26 @@ MacOS -> windows and linux already don't have keycodes as macros, so there's no 
 		RGFW_FREE(RGFW_vulkan_info.image_in_flight);
 	}
 
-#endif /* RGFW_VULKAN */
+/* RGFW_VULKAN */
+/* vulkan defines end here*/
 
-RGFW_window* RGFW_root = NULL;
+/* 
+	OpenGL defines start here   (Normal, EGL, OSMesa)
+*/
 
-
-#define RGFW_HOLD_MOUSE			(1L<<2) /*!< hold the moues still */
-#define RGFW_MOUSE_LEFT 		(1L<<3) /* if mouse left the window */
-
-	void RGFW_clipboardFree(char* str) { RGFW_FREE(str); }
-	
-	u8 RGFW_mouseButtons[5] = { 0 };
-	u8 RGFW_mouseButtons_prev[5];
-
-	u8 RGFW_isMousePressed(RGFW_window* win, u8 button) {
-		if (win != NULL && !win->event.inFocus)
-			return 0;
-
-		return RGFW_mouseButtons[button]; 
-	}
-	u8 RGFW_wasMousePressed(RGFW_window* win, u8 button) { 
-		if (win != NULL && !win->event.inFocus)
-			return 0;
-
-		return RGFW_mouseButtons_prev[button]; 
-	}
-	u8 RGFW_isMouseHeld(RGFW_window* win, u8 button) {
-		return (RGFW_isMousePressed(win, button) && RGFW_wasMousePressed(win, button));
-	}
-	u8 RGFW_isMouseReleased(RGFW_window* win, u8 button) {
-		return (!RGFW_isMousePressed(win, button) && RGFW_wasMousePressed(win, button));	
-	}
-
-	u8 RGFW_isPressedI(RGFW_window* win, u32 key) {
-		RGFW_UNUSED(win);
-		
-		return RGFW_keyboard[key];
-	}
-
-	u8 RGFW_wasPressedI(RGFW_window* win, u32 key) {
-		RGFW_UNUSED(win);
-
-		return RGFW_keyboard_prev[key];
-	}
-
-	u8 RGFW_isHeldI(RGFW_window* win, u32 key) {
-		return (RGFW_isPressedI(win, key) && RGFW_wasPressedI(win, key));
-	}
-
-	u8 RGFW_isReleasedI(RGFW_window* win, u32 key) {
-		return (!RGFW_isPressedI(win, key) && RGFW_wasPressedI(win, key));	
-	}
-
-	char* RGFW_keyCodeTokeyStr(u64 key) {
-		static char* keyStrs[128] = {"Escape", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", 	"Backtick", 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 	"-", "=", "BackSpace", "Tab", "CapsLock", "ShiftL", "ControlL", "AltL", "SuperL", "ShiftR", "ControlR", "AltR", "SuperR", " ", 	"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 	".", ",", "-", "[", "]", ";", "Return", "'", "\\", 	"Up", "Down", "Left", "Right", 	"Delete", "Insert", "End", "Home", "PageUp", "PageDown", 	"Numlock", "KP_Slash", "Multiply", "KP_Minus", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "KP_8", "KP_9", "KP_0", "KP_Period", "KP_Return" };
-
-		return keyStrs[key];
-	}
-
-	u32 RGFW_keyStrToKeyCode(char* key) {
-		static char* keyStrs[128] = {"Escape", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", 	"Backtick", 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 	"-", "=", "BackSpace", "Tab", "CapsLock", "ShiftL", "ControlL", "AltL", "SuperL", "ShiftR", "ControlR", "AltR", "SuperR", " ", 	"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 	".", ",", "-", "[", "]", ";", "Return", "'", "\\", 	"Up", "Down", "Left", "Right", 	"Delete", "Insert", "End", "Home", "PageUp", "PageDown", 	"Numlock", "KP_Slash", "Multiply", "KP_Minus", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "KP_8", "KP_9", "KP_0", "KP_Period", "KP_Return" };
-		
-		key--;
-		while (key++) {
-			u32 i;
-			for (i = 0; i < 128; i++) {
-				if (*keyStrs[i] == '\1')
-					continue;
-
-				if (*keyStrs[i] != *key) {
-					keyStrs[i] = "\1";
-					continue;
-				}
-
-				if (*keyStrs[i] == '\0' && *key == '\0')
-					return RGFW_apiKeyCodeToRGFW(i);
-
-				else
-					keyStrs[i]++;
-			}
-
-			if (*key == '\0')
-				break;
-		}
-		
-		return 0;
-	}
-
-
-	char RGFW_keystrToChar(const char* str) {
-		if (str[1] == 0)
-			return str[0];
-
-		static const char* map[] = {
-			"asciitilde", "`",
-			"grave", "~",
-			"exclam", "!",
-			"at", "@",
-			"numbersign", "#",
-			"dollar", "$",
-			"percent", "%%",
-			"asciicircum", "^",
-			"ampersand", "&",
-			"asterisk", "*",
-			"parenleft", "(",
-			"parenright", ")",
-			"underscore", "_",
-			"minus", "-",
-			"plus", "+",
-			"equal", "=",
-			"braceleft", "{",
-			"bracketleft", "[",
-			"bracketright", "]",
-			"braceright", "}",
-			"colon", ":",
-			"semicolon", ";",
-			"quotedbl", "\"",
-			"apostrophe", "'",
-			"bar", "|",
-			"backslash", "\'",
-			"less", "<",
-			"comma", ",",
-			"greater", ">",
-			"period", ".",
-			"question", "?",
-			"slash", "/",
-			"space", " ",
-			"Return", "\n",
-			"Enter", "\n",
-			"enter", "\n",
-		};
-
-		u8 i = 0;
-		for (i = 0; i < (sizeof(map) / sizeof(char*)); i += 2)
-			if (strcmp(map[i], str) == 0)
-				return *map[i + 1];
-
-		return '\0';
-	}
-
-#ifndef M_PI
-#define M_PI		3.14159265358979323846	/* pi */
+#elif defined(RGFW_OPENGL) || defined(RGFW_EGL) || defined(RGFW_OSMESA)
+#ifndef __APPLE__
+#ifndef GL_SILENCE_DEPRECATION
+#define GL_SILENCE_DEPRECATION
 #endif
 
-#ifndef RGFW_WINDOWS
-	struct timespec;
-
-	int nanosleep(const struct timespec* duration, struct timespec* rem);
-	int clock_gettime(clockid_t clk_id, struct timespec* tp);
-	int setenv(const char *name, const char *value, int overwrite);
-
-	u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { return win->src.jsPressed[c][button]; }
+#include <GL/gl.h>
+#else
+#include <OpenGL/gl.h>
 #endif
 
-#ifdef RGFW_OSMESA
-RGFWDEF void RGFW_OSMesa_reorganize(void);
-
-/* reorganize buffer for osmesa */
-void RGFW_OSMesa_reorganize(void) {
-	u8* row = (u8*) RGFW_MALLOC(win->r.w * 3);
-
-	i32 half_height = win->r.h / 2;
-	i32 stride = win->r.w * 3;
-
-	i32 y;
-	for (y = 0; y < half_height; ++y) {
-		i32 top_offset = y * stride;
-		i32 bottom_offset = (win->r.h - y - 1) * stride;
-		memcpy(row, win->buffer + top_offset, stride);
-		memcpy(win->buffer + top_offset, win->buffer + bottom_offset, stride);
-		memcpy(win->buffer + bottom_offset, row, stride);
-	}
-
-	RGFW_FREE(row);
-}
-#endif
-
-#if defined(RGFW_OPENGL) || defined(RGFW_EGL)
+/* EGL, normal OpenGL only */
+#if !defined(RGFW_OSMESA) 
 	i32 RGFW_majorVersion = 0, RGFW_minorVersion = 0;
 	
 	#ifndef RGFW_EGL
@@ -1964,6 +2060,7 @@ void RGFW_OSMesa_reorganize(void) {
 		return version;
 	}
 
+/* OPENGL normal only (no EGL / OSMesa) */
 #ifndef RGFW_EGL
 
 #define RGFW_GL_RENDER_TYPE 		RGFW_OS_BASED_VALUE(GLX_X_VISUAL_TYPE,    	0x2003,		73)
@@ -2076,7 +2173,8 @@ void RGFW_OSMesa_reorganize(void) {
 		return attribs;
 	}
 
-#else
+/* EGL only (no OSMesa nor normal OPENGL) */
+#elif defined(RGFW_EGL)
 
 #include <EGL/egl.h>
 
@@ -2250,11 +2348,36 @@ void RGFW_OSMesa_reorganize(void) {
 	end of RGFW_EGL defines
 */
 
-#endif /* RGFW_GL stuff? */
+/* OPENGL Normal / EGL defines only (no OS MESA)  Ends here */
 
-	/*
-	This is where OS specific stuff starts
-	*/
+#elif defined(RGFW_OSMESA) /* OSmesa only */
+RGFWDEF void RGFW_OSMesa_reorganize(void);
+
+/* reorganize buffer for osmesa */
+void RGFW_OSMesa_reorganize(void) {
+	u8* row = (u8*) RGFW_MALLOC(win->r.w * 3);
+
+	i32 half_height = win->r.h / 2;
+	i32 stride = win->r.w * 3;
+
+	i32 y;
+	for (y = 0; y < half_height; ++y) {
+		i32 top_offset = y * stride;
+		i32 bottom_offset = (win->r.h - y - 1) * stride;
+		memcpy(row, win->buffer + top_offset, stride);
+		memcpy(win->buffer + top_offset, win->buffer + bottom_offset, stride);
+		memcpy(win->buffer + bottom_offset, row, stride);
+	}
+
+	RGFW_FREE(row);
+}
+#endif /* RGFW_OSMesa */
+
+#endif /* RGFW_GL (OpenGL, EGL, OSMesa )*/
+
+/*
+This is where OS specific stuff starts
+*/
 
 
 /*
@@ -6945,111 +7068,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	}
 
 #endif /* end of unix / mac stuff*/
-
-
-/*
-	more generic code 
-*/
-
-	void RGFW_window_makeCurrent(RGFW_window* win) {
-		assert(win != NULL);
-
-#if defined(RGFW_WINDOWS) && defined(RGFW_DIRECTX)
-		RGFW_dxInfo.pDeviceContext->lpVtbl->OMSetRenderTargets(RGFW_dxInfo.pDeviceContext, 1, &win->src.renderTargetView, NULL);
-#endif
-
-#ifdef RGFW_OPENGL
-		RGFW_window_makeCurrent_OpenGL(win);
-#endif
-	}
-
-	void RGFW_window_setGPURender(RGFW_window* win, i8 set) {
-		if (!set && !(win->src.winArgs & RGFW_NO_GPU_RENDER))
-			win->src.winArgs |= RGFW_NO_GPU_RENDER;
-
-		else if (set && win->src.winArgs & RGFW_NO_GPU_RENDER)
-			win->src.winArgs ^= RGFW_NO_GPU_RENDER;
-	}
-
-	void RGFW_window_setCPURender(RGFW_window* win, i8 set) {
-		if (!set && !(win->src.winArgs & RGFW_NO_CPU_RENDER))
-			win->src.winArgs |= RGFW_NO_CPU_RENDER;
-
-		else if (set && win->src.winArgs & RGFW_NO_CPU_RENDER)
-			win->src.winArgs ^= RGFW_NO_CPU_RENDER;
-	}
-
-	void RGFW_window_maximize(RGFW_window* win) {
-		assert(win != NULL);
-
-		RGFW_area screen = RGFW_getScreenSize();
-
-		RGFW_window_move(win, RGFW_VECTOR(0, 0));
-		RGFW_window_resize(win, screen);
-	}
-
-	u8 RGFW_window_shouldClose(RGFW_window* win) {
-		assert(win != NULL);
-		return (win->event.type == RGFW_quit || RGFW_isPressedI(win, RGFW_Escape));
-	}
-
-	void RGFW_window_setShouldClose(RGFW_window* win) { win->event.type = RGFW_quit; RGFW_windowQuitCallback(win); }
-
-	void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m) {
-		RGFW_window_move(win, RGFW_VECTOR(m.rect.x + win->r.x, m.rect.y + win->r.y));
-	}
-
-	void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area) {
-		if (!(win->src.winArgs & RGFW_HOLD_MOUSE)) {
-			#ifdef RGFW_WINDOWS
-			RECT rect = {win->r.x, win->r.y, win->r.x + win->r.w, win->r.y + win->r.h};
-			ClipCursor(&rect);
-			#endif
-		}
-
-		win->src.winArgs |= RGFW_HOLD_MOUSE;
-
-		if (!area.w && !area.h)
-			area = RGFW_AREA(win->r.w / 2, win->r.h / 2);
-
-		RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (area.w), win->r.y + (area.h)));
-	}
-
-	void RGFW_window_mouseUnhold(RGFW_window* win) {
-		win->src.winArgs ^= RGFW_HOLD_MOUSE;
-
-		#ifdef RGFW_WINDOWS
-		ClipCursor(NULL);
-		#endif
-	}
-
-	void RGFW_window_checkFPS(RGFW_window* win) {
-		u64 deltaTime = RGFW_getTimeNS() - win->event.frameTime;
-
-		u64 fps = round(1e+9 / deltaTime);
-		win->event.fps = fps;
-
-		if (win->fpsCap && fps > win->fpsCap) {
-			u64 frameTimeNS = 1e+9 / win->fpsCap;
-			u64 sleepTimeMS = (frameTimeNS - deltaTime) / 1e6;
-
-			if (sleepTimeMS > 0) {
-				RGFW_sleep(sleepTimeMS);
-				win->event.frameTime = 0;
-			}
-		}
-
-		win->event.frameTime = RGFW_getTimeNS();
-		
-		if (win->fpsCap) {
-			u64 deltaTime = RGFW_getTimeNS() - win->event.frameTime2;
-
-			win->event.fps = round(1e+9 / deltaTime);
-			
-			win->event.frameTime2 = RGFW_getTimeNS();
-		}
-	}
-
 #endif /*RGFW_IMPLEMENTATION*/
 
 #ifdef __cplusplus
