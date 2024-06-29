@@ -63,8 +63,8 @@ jobs:
       
     - name: Build Library
       run: |
-        make libRGFW.a
-        make libRGFW.so
+        make libRGFW.a CC=clang
+        make libRGFW.so CC=clang
         cp -v ./libRGFW.so ./build/${{ env.RELEASE_NAME }}/lib
       if: matrix.bits == 64
     
