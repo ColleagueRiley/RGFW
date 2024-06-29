@@ -1980,6 +1980,10 @@ void RGFW_OSMesa_reorganize(void) {
 #define RGFW_GL_USE_RGBA		RGFW_OS_BASED_VALUE(GLX_RGBA_BIT,   	 	0x202B,						0)
 #endif
 
+#ifdef RGFW_MACOS
+#define kCGLRendererGenericFloatID 0x00002001
+#endif
+
 #ifdef RGFW_WINDOWS
 #define WGL_COLOR_BITS_ARB                        0x2014
 #define WGL_NUMBER_PIXEL_FORMATS_ARB 			0x2000
