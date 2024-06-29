@@ -1283,405 +1283,6 @@ This is the start of keycode data
 	no more event call back defines
 */
 
-#ifdef RGFW_MACOS
-	/*
-		based on silicon.h
-	*/
-
-#ifndef GL_SILENCE_DEPRECATION
-#define GL_SILENCE_DEPRECATION
-#endif
-
-#include <CoreVideo/CVDisplayLink.h>
-#include <ApplicationServices/ApplicationServices.h>
-#include <objc/runtime.h>
-#include <objc/message.h>
-#include <mach/mach_time.h>
-
-	typedef CGRect NSRect;
-	typedef CGPoint NSPoint;
-	typedef CGSize NSSize;
-
-	typedef void NSBitmapImageRep;
-	typedef void NSCursor;
-	typedef void NSDraggingInfo;
-	typedef void NSWindow;
-	typedef void NSApplication;
-	typedef void NSScreen;
-	typedef void NSEvent;
-	typedef void NSString;
-	typedef void NSOpenGLContext;
-	typedef void NSPasteboard;
-	typedef void NSColor;
-	typedef void NSArray;
-	typedef void NSImageRep;
-	typedef void NSImage;
-	typedef void NSOpenGLView;
-
-
-	typedef const char* NSPasteboardType;
-	typedef unsigned long NSUInteger;
-	typedef long NSInteger;
-	typedef NSInteger NSModalResponse;
-
-#ifdef __arm64__
-	/* ARM just uses objc_msgSend */
-#define abi_objc_msgSend_stret objc_msgSend
-#define abi_objc_msgSend_fpret objc_msgSend
-#else /* __i386__ */ 
-	/* x86 just uses abi_objc_msgSend_fpret and (NSColor *)objc_msgSend_id respectively */
-#define abi_objc_msgSend_stret objc_msgSend_stret
-#define abi_objc_msgSend_fpret objc_msgSend_fpret
-#endif
-
-#define NSAlloc(nsclass) objc_msgSend_id((id)nsclass, sel_registerName("alloc"))
-#define objc_msgSend_bool			((BOOL (*)(id, SEL))objc_msgSend)
-#define objc_msgSend_void			((void (*)(id, SEL))objc_msgSend)
-#define objc_msgSend_void_id		((void (*)(id, SEL, id))objc_msgSend)
-#define objc_msgSend_uint			((NSUInteger (*)(id, SEL))objc_msgSend)
-#define objc_msgSend_void_bool		((void (*)(id, SEL, BOOL))objc_msgSend)
-#define objc_msgSend_void_SEL		((void (*)(id, SEL, SEL))objc_msgSend)
-#define objc_msgSend_id				((id (*)(id, SEL))objc_msgSend)
-
-#define si_declare_single(class, name, func)	\
-	void class##_##name(class* obj) { \
-		return objc_msgSend_void(obj, sel_registerName(func)); \
-	}
-
-
-#define loadFunc(funcName) \
-	static void* func = NULL;\
-	if (func == NULL) \
-		func = sel_registerName(funcName);
-
-	void NSRelease(id obj) {
-		loadFunc("release");
-		objc_msgSend_void(obj, func);
-	}
-
-#define release NSRelease
-
-	si_declare_single(NSApplication, finishLaunching, "finishLaunching")
-		si_declare_single(NSOpenGLContext, flushBuffer, "flushBuffer")
-
-		NSString* NSString_stringWithUTF8String(const char* str) {
-		loadFunc("stringWithUTF8String:");
-
-		return ((id(*)(id, SEL, const char*))objc_msgSend)
-			((id)objc_getClass("NSString"), func, str);
-	}
-
-	const char* NSString_to_char(NSString* str) {
-		return ((const char* (*)(id, SEL)) objc_msgSend) (str, sel_registerName("UTF8String"));
-	}
-
-	void si_impl_func_to_SEL_with_name(const char* class_name, const char* register_name, void* function) {
-		Class selected_class;
-
-		if (strcmp(class_name, "NSView") == 0) {
-			selected_class = objc_getClass("ViewClass");
-		} else if (strcmp(class_name, "NSWindow") == 0) {
-			selected_class = objc_getClass("WindowClass");
-		} else {
-			selected_class = objc_getClass(class_name);
-		}
-
-		class_addMethod(selected_class, sel_registerName(register_name), (IMP) function, 0);
-	}
-
-	/* Header for the array. */
-	typedef struct siArrayHeader {
-		size_t count;
-		/* TODO(EimaMei): Add a `type_width` later on. */
-	} siArrayHeader;
-
-	/* Gets the header of the siArray. */
-#define SI_ARRAY_HEADER(s) ((siArrayHeader*)s - 1)
-
-	void* si_array_init_reserve(size_t sizeof_element, size_t count) {
-		siArrayHeader* ptr = malloc(sizeof(siArrayHeader) + (sizeof_element * count));
-		void* array = ptr + sizeof(siArrayHeader);
-
-		siArrayHeader* header = SI_ARRAY_HEADER(array);
-		header->count = count;
-
-		return array;
-	}
-
-#define si_array_len(array) (SI_ARRAY_HEADER(array)->count)
-#define si_func_to_SEL(class_name, function) si_impl_func_to_SEL_with_name(class_name, #function":", function)
-	/* Creates an Objective-C method (SEL) from a regular C function with the option to set the register name.*/
-#define si_func_to_SEL_with_name(class_name, register_name, function) si_impl_func_to_SEL_with_name(class_name, register_name":", function)
-
-	NSRect NSMakeRect(double x, double y, double width, double height) {
-		NSRect r;
-		r.origin.x = x;
-		r.origin.y = y;
-		r.size.width = width;
-		r.size.height = height;
-
-		return r;
-	}
-
-	NSPoint NSMakePoint(double x, double y) {
-		NSPoint point;
-		point.x = x;
-		point.y = y;
-		return point;
-	}
-
-	NSSize NSMakeSize(double w, double h) {
-		NSSize size;
-		size.width = w;
-		size.height = h;
-		return size;
-	}
-
-	void* si_array_init(void* allocator, size_t sizeof_element, size_t count) {
-		void* array = si_array_init_reserve(sizeof_element, count);
-		memcpy(array, allocator, sizeof_element * count);
-
-		return array;
-	}
-	
-	unsigned char* NSBitmapImageRep_bitmapData(NSBitmapImageRep* imageRep) {
-		return ((unsigned char* (*)(id, SEL))objc_msgSend)
-			(imageRep, sel_registerName("bitmapData"));
-	}
-
-#define NS_ENUM(type, name) type name; enum
-
-	typedef NS_ENUM(NSUInteger, NSBitmapFormat) {
-		NSBitmapFormatAlphaFirst = 1 << 0,       // 0 means is alpha last (RGBA, CMYKA, etc.)
-			NSBitmapFormatAlphaNonpremultiplied = 1 << 1,       // 0 means is premultiplied
-			NSBitmapFormatFloatingPointSamples = 1 << 2,  // 0 is integer
-
-			NSBitmapFormatSixteenBitLittleEndian API_AVAILABLE(macos(10.10)) = (1 << 8),
-			NSBitmapFormatThirtyTwoBitLittleEndian API_AVAILABLE(macos(10.10)) = (1 << 9),
-			NSBitmapFormatSixteenBitBigEndian API_AVAILABLE(macos(10.10)) = (1 << 10),
-			NSBitmapFormatThirtyTwoBitBigEndian API_AVAILABLE(macos(10.10)) = (1 << 11)
-	};
-
-	NSBitmapImageRep* NSBitmapImageRep_initWithBitmapData(unsigned char** planes, NSInteger width, NSInteger height, NSInteger bps, NSInteger spp, bool alpha, bool isPlanar, const char* colorSpaceName, NSBitmapFormat bitmapFormat, NSInteger rowBytes, NSInteger pixelBits) {
-		void* func = sel_registerName("initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:");
-
-		return (NSBitmapImageRep*) ((id(*)(id, SEL, unsigned char**, NSInteger, NSInteger, NSInteger, NSInteger, bool, bool, const char*, NSBitmapFormat, NSInteger, NSInteger))objc_msgSend)
-			(NSAlloc((id)objc_getClass("NSBitmapImageRep")), func, planes, width, height, bps, spp, alpha, isPlanar, NSString_stringWithUTF8String(colorSpaceName), bitmapFormat, rowBytes, pixelBits);
-	}
-
-	NSColor* NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha) {
-		void* nsclass = objc_getClass("NSColor");
-		void* func = sel_registerName("colorWithSRGBRed:green:blue:alpha:");
-		return ((id(*)(id, SEL, CGFloat, CGFloat, CGFloat, CGFloat))objc_msgSend)
-			(nsclass, func, red, green, blue, alpha);
-	}
-
-	NSCursor* NSCursor_initWithImage(NSImage* newImage, NSPoint aPoint) {
-		void* func = sel_registerName("initWithImage:hotSpot:");
-		void* nsclass = objc_getClass("NSCursor");
-
-		return (NSCursor*) ((id(*)(id, SEL, id, NSPoint))objc_msgSend)
-			(NSAlloc(nsclass), func, newImage, aPoint);
-	}
-
-	void NSImage_addRepresentation(NSImage* image, NSImageRep* imageRep) {
-		void* func = sel_registerName("addRepresentation:");
-		objc_msgSend_void_id(image, func, imageRep);
-	}
-
-	NSImage* NSImage_initWithSize(NSSize size) {
-		void* func = sel_registerName("initWithSize:");
-		return ((id(*)(id, SEL, NSSize))objc_msgSend)
-			(NSAlloc((id)objc_getClass("NSImage")), func, size);
-	}
-#define NS_OPENGL_ENUM_DEPRECATED(minVers, maxVers) API_AVAILABLE(macos(minVers))
-	typedef NS_ENUM(NSInteger, NSOpenGLContextParameter) {
-		NSOpenGLContextParameterSwapInterval           NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 222, /* 1 param.  0 -> Don't sync, 1 -> Sync to vertical retrace     */
-			NSOpenGLContextParameterSurfaceOrder           NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 235, /* 1 param.  1 -> Above Window (default), -1 -> Below Window    */
-			NSOpenGLContextParameterSurfaceOpacity         NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 236, /* 1 param.  1-> Surface is opaque (default), 0 -> non-opaque   */
-			NSOpenGLContextParameterSurfaceBackingSize     NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 304, /* 2 params.  Width/height of surface backing size              */
-			NSOpenGLContextParameterReclaimResources       NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 308, /* 0 params.                                                    */
-			NSOpenGLContextParameterCurrentRendererID      NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 309, /* 1 param.   Retrieves the current renderer ID                 */
-			NSOpenGLContextParameterGPUVertexProcessing    NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 310, /* 1 param.   Currently processing vertices with GPU (get)      */
-			NSOpenGLContextParameterGPUFragmentProcessing  NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 311, /* 1 param.   Currently processing fragments with GPU (get)     */
-			NSOpenGLContextParameterHasDrawable            NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 314, /* 1 param.   Boolean returned if drawable is attached          */
-			NSOpenGLContextParameterMPSwapsInFlight        NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 315, /* 1 param.   Max number of swaps queued by the MP GL engine    */
-
-			NSOpenGLContextParameterSwapRectangle API_DEPRECATED("", macos(10.0, 10.14)) = 200, /* 4 params.  Set or get the swap rectangle {x, y, w, h} */
-			NSOpenGLContextParameterSwapRectangleEnable API_DEPRECATED("", macos(10.0, 10.14)) = 201, /* Enable or disable the swap rectangle */
-			NSOpenGLContextParameterRasterizationEnable API_DEPRECATED("", macos(10.0, 10.14)) = 221, /* Enable or disable all rasterization */
-			NSOpenGLContextParameterStateValidation API_DEPRECATED("", macos(10.0, 10.14)) = 301, /* Validate state for multi-screen functionality */
-			NSOpenGLContextParameterSurfaceSurfaceVolatile API_DEPRECATED("", macos(10.0, 10.14)) = 306, /* 1 param.   Surface volatile state */
-	};
-
-
-	void NSOpenGLContext_setValues(NSOpenGLContext* context, const int* vals, NSOpenGLContextParameter param) {
-		void* func = sel_registerName("setValues:forParameter:");
-		((void (*)(id, SEL, const int*, NSOpenGLContextParameter))objc_msgSend)
-			(context, func, vals, param);
-	}
-
-	void* NSOpenGLPixelFormat_initWithAttributes(const uint32_t* attribs) {
-		void* func = sel_registerName("initWithAttributes:");
-		return (void*) ((id(*)(id, SEL, const uint32_t*))objc_msgSend)
-			(NSAlloc((id)objc_getClass("NSOpenGLPixelFormat")), func, attribs);
-	}
-
-	NSOpenGLView* NSOpenGLView_initWithFrame(NSRect frameRect, uint32_t* format) {
-		void* func = sel_registerName("initWithFrame:pixelFormat:");
-		return (NSOpenGLView*) ((id(*)(id, SEL, NSRect, uint32_t*))objc_msgSend)
-			(NSAlloc((id)objc_getClass("NSOpenGLView")), func, frameRect, format);
-	}
-
-	void NSCursor_performSelector(NSCursor* cursor, void* selector) {
-		void* func = sel_registerName("performSelector:");
-		objc_msgSend_void_SEL(cursor, func, selector);
-	}
-
-	NSPasteboard* NSPasteboard_generalPasteboard(void) {
-		return (NSPasteboard*) objc_msgSend_id((id)objc_getClass("NSPasteboard"), sel_registerName("generalPasteboard"));
-	}
-
-	NSString** cstrToNSStringArray(char** strs, size_t len) {
-		static NSString* nstrs[6];
-		size_t i;
-		for (i = 0; i < len; i++)
-			nstrs[i] = NSString_stringWithUTF8String(strs[i]);
-
-		return nstrs;
-	}
-
-	const char* NSPasteboard_stringForType(NSPasteboard* pasteboard, NSPasteboardType dataType) {
-		void* func = sel_registerName("stringForType:");
-		return (const char*) NSString_to_char(((id(*)(id, SEL, const char*))objc_msgSend)(pasteboard, func, NSString_stringWithUTF8String(dataType)));
-	}
-
-	NSArray* c_array_to_NSArray(void* array, size_t len) {
-		SEL func = sel_registerName("initWithObjects:count:");
-		void* nsclass = objc_getClass("NSArray");
-		return ((id (*)(id, SEL, void*, NSUInteger))objc_msgSend)
-					(NSAlloc(nsclass), func, array, len);
-	}
- 
-	void NSregisterForDraggedTypes(void* view, NSPasteboardType* newTypes, size_t len) {
-		NSString** ntypes = cstrToNSStringArray((char**)newTypes, len);
-
-		NSArray* array = c_array_to_NSArray(ntypes, len);
-		objc_msgSend_void_id(view, sel_registerName("registerForDraggedTypes:"), array);
-		NSRelease(array);
-	}
-
-	NSInteger NSPasteBoard_declareTypes(NSPasteboard* pasteboard, NSPasteboardType* newTypes, size_t len, void* owner) {
-		NSString** ntypes = cstrToNSStringArray((char**)newTypes, len);
-
-		void* func = sel_registerName("declareTypes:owner:");
-
-		NSArray* array = c_array_to_NSArray(ntypes, len);
-
-		NSInteger output = ((NSInteger(*)(id, SEL, id, void*))objc_msgSend)
-			(pasteboard, func, array, owner);
-		NSRelease(array);
-
-		return output;
-	}
-
-	bool NSPasteBoard_setString(NSPasteboard* pasteboard, const char* stringToWrite, NSPasteboardType dataType) {
-		void* func = sel_registerName("setString:forType:");
-		return ((bool (*)(id, SEL, id, NSPasteboardType))objc_msgSend)
-			(pasteboard, func, NSString_stringWithUTF8String(stringToWrite), NSString_stringWithUTF8String(dataType));
-	}
-
-	void NSRetain(id obj) { objc_msgSend_void(obj, sel_registerName("retain")); }
-
-	typedef enum NSApplicationActivationPolicy {
-		NSApplicationActivationPolicyRegular,
-		NSApplicationActivationPolicyAccessory,
-		NSApplicationActivationPolicyProhibited
-	} NSApplicationActivationPolicy;
-
-	typedef NS_ENUM(u32, NSBackingStoreType) {
-		NSBackingStoreRetained = 0,
-			NSBackingStoreNonretained = 1,
-			NSBackingStoreBuffered = 2
-	};
-
-	typedef NS_ENUM(u32, NSWindowStyleMask) {
-		NSWindowStyleMaskBorderless = 0,
-			NSWindowStyleMaskTitled = 1 << 0,
-			NSWindowStyleMaskClosable = 1 << 1,
-			NSWindowStyleMaskMiniaturizable = 1 << 2,
-			NSWindowStyleMaskResizable = 1 << 3,
-			NSWindowStyleMaskTexturedBackground = 1 << 8, /* deprecated */
-			NSWindowStyleMaskUnifiedTitleAndToolbar = 1 << 12,
-			NSWindowStyleMaskFullScreen = 1 << 14,
-			NSWindowStyleMaskFullSizeContentView = 1 << 15,
-			NSWindowStyleMaskUtilityWindow = 1 << 4,
-			NSWindowStyleMaskDocModalWindow = 1 << 6,
-			NSWindowStyleMaskNonactivatingPanel = 1 << 7,
-			NSWindowStyleMaskHUDWindow = 1 << 13
-	};
-
-	typedef const char* NSPasteboardType;
-	NSPasteboardType const NSPasteboardTypeString = "public.utf8-plain-text"; // Replaces NSStringPboardType
-
-
-
-	typedef NS_ENUM(i32, NSDragOperation) {
-		NSDragOperationNone = 0,
-			NSDragOperationCopy = 1,
-			NSDragOperationLink = 2,
-			NSDragOperationGeneric = 4,
-			NSDragOperationPrivate = 8,
-			NSDragOperationMove = 16,
-			NSDragOperationDelete = 32,
-			NSDragOperationEvery = ULONG_MAX,
-
-			//NSDragOperationAll_Obsolete	API_DEPRECATED("", macos(10.0,10.10)) = 15, // Use NSDragOperationEvery
-			//NSDragOperationAll API_DEPRECATED("", macos(10.0,10.10)) = NSDragOperationAll_Obsolete, // Use NSDragOperationEvery
-	};
-
-
-	NSUInteger NSArray_count(NSArray* array) {
-		void* func = sel_registerName("count");
-		return ((NSUInteger(*)(id, SEL))objc_msgSend)(array, func);
-	}
-
-	void* NSArray_objectAtIndex(NSArray* array, NSUInteger index) {
-		void* func = sel_registerName("objectAtIndex:");
-		return ((id(*)(id, SEL, NSUInteger))objc_msgSend)(array, func, index);
-	}
-
-	const char** NSPasteboard_readObjectsForClasses(NSPasteboard* pasteboard, Class* classArray, size_t len, void* options) {
-		void* func = sel_registerName("readObjectsForClasses:options:");
-
-		NSArray* array = c_array_to_NSArray(classArray, len);
-
-		NSArray* output = (NSArray*) ((id(*)(id, SEL, id, void*))objc_msgSend)
-			(pasteboard, func, array, options);
-
-		NSRelease(array);
-		NSUInteger count = NSArray_count(output);
-
-		const char** res = si_array_init_reserve(sizeof(const char*), count);
-
-		void* path_func = sel_registerName("path");
-
-		for (NSUInteger i = 0; i < count; i++) {
-			void* url = NSArray_objectAtIndex(output, i);
-			NSString* url_str = ((id(*)(id, SEL))objc_msgSend)(url, path_func);
-			res[i] = NSString_to_char(url_str);
-		}
-
-		return res;
-	}
-
-	void* NSWindow_contentView(NSWindow* window) {
-		void* func = sel_registerName("contentView");
-		return objc_msgSend_id(window, func);
-	}
-#endif
-
-
 #define RGFW_ASSERT(check, str) {\
 	if (!(check)) { \
 		printf(str); \
@@ -5781,6 +5382,370 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 */
 
 #if defined(RGFW_MACOS)
+	/*
+		based on silicon.h
+		start of cocoa wrapper
+	*/
+
+#ifndef GL_SILENCE_DEPRECATION
+#define GL_SILENCE_DEPRECATION
+#endif
+
+#include <CoreVideo/CVDisplayLink.h>
+#include <ApplicationServices/ApplicationServices.h>
+#include <objc/runtime.h>
+#include <objc/message.h>
+#include <mach/mach_time.h>
+
+	typedef CGRect NSRect;
+	typedef CGPoint NSPoint;
+	typedef CGSize NSSize;
+
+	typedef void NSBitmapImageRep;
+	typedef void NSCursor;
+	typedef void NSDraggingInfo;
+	typedef void NSWindow;
+	typedef void NSApplication;
+	typedef void NSScreen;
+	typedef void NSEvent;
+	typedef void NSString;
+	typedef void NSOpenGLContext;
+	typedef void NSPasteboard;
+	typedef void NSColor;
+	typedef void NSArray;
+	typedef void NSImageRep;
+	typedef void NSImage;
+	typedef void NSOpenGLView;
+
+
+	typedef const char* NSPasteboardType;
+	typedef unsigned long NSUInteger;
+	typedef long NSInteger;
+	typedef NSInteger NSModalResponse;
+
+#ifdef __arm64__
+	/* ARM just uses objc_msgSend */
+#define abi_objc_msgSend_stret objc_msgSend
+#define abi_objc_msgSend_fpret objc_msgSend
+#else /* __i386__ */ 
+	/* x86 just uses abi_objc_msgSend_fpret and (NSColor *)objc_msgSend_id respectively */
+#define abi_objc_msgSend_stret objc_msgSend_stret
+#define abi_objc_msgSend_fpret objc_msgSend_fpret
+#endif
+
+#define NSAlloc(nsclass) objc_msgSend_id((id)nsclass, sel_registerName("alloc"))
+#define objc_msgSend_bool			((BOOL (*)(id, SEL))objc_msgSend)
+#define objc_msgSend_void			((void (*)(id, SEL))objc_msgSend)
+#define objc_msgSend_void_id		((void (*)(id, SEL, id))objc_msgSend)
+#define objc_msgSend_uint			((NSUInteger (*)(id, SEL))objc_msgSend)
+#define objc_msgSend_void_bool		((void (*)(id, SEL, BOOL))objc_msgSend)
+#define objc_msgSend_void_SEL		((void (*)(id, SEL, SEL))objc_msgSend)
+#define objc_msgSend_id				((id (*)(id, SEL))objc_msgSend)
+
+#define si_declare_single(class, name, func)	\
+	void class##_##name(class* obj) { \
+		return objc_msgSend_void(obj, sel_registerName(func)); \
+	}
+
+
+#define loadFunc(funcName) \
+	static void* func = NULL;\
+	if (func == NULL) \
+		func = sel_registerName(funcName);
+
+	void NSRelease(id obj) {
+		loadFunc("release");
+		objc_msgSend_void(obj, func);
+	}
+
+#define release NSRelease
+
+	si_declare_single(NSApplication, finishLaunching, "finishLaunching")
+		si_declare_single(NSOpenGLContext, flushBuffer, "flushBuffer")
+
+		NSString* NSString_stringWithUTF8String(const char* str) {
+		loadFunc("stringWithUTF8String:");
+
+		return ((id(*)(id, SEL, const char*))objc_msgSend)
+			((id)objc_getClass("NSString"), func, str);
+	}
+
+	const char* NSString_to_char(NSString* str) {
+		return ((const char* (*)(id, SEL)) objc_msgSend) (str, sel_registerName("UTF8String"));
+	}
+
+	void si_impl_func_to_SEL_with_name(const char* class_name, const char* register_name, void* function) {
+		Class selected_class;
+
+		if (strcmp(class_name, "NSView") == 0) {
+			selected_class = objc_getClass("ViewClass");
+		} else if (strcmp(class_name, "NSWindow") == 0) {
+			selected_class = objc_getClass("WindowClass");
+		} else {
+			selected_class = objc_getClass(class_name);
+		}
+
+		class_addMethod(selected_class, sel_registerName(register_name), (IMP) function, 0);
+	}
+
+	/* Header for the array. */
+	typedef struct siArrayHeader {
+		size_t count;
+		/* TODO(EimaMei): Add a `type_width` later on. */
+	} siArrayHeader;
+
+	/* Gets the header of the siArray. */
+#define SI_ARRAY_HEADER(s) ((siArrayHeader*)s - 1)
+
+	void* si_array_init_reserve(size_t sizeof_element, size_t count) {
+		siArrayHeader* ptr = malloc(sizeof(siArrayHeader) + (sizeof_element * count));
+		void* array = ptr + sizeof(siArrayHeader);
+
+		siArrayHeader* header = SI_ARRAY_HEADER(array);
+		header->count = count;
+
+		return array;
+	}
+
+#define si_array_len(array) (SI_ARRAY_HEADER(array)->count)
+#define si_func_to_SEL(class_name, function) si_impl_func_to_SEL_with_name(class_name, #function":", function)
+	/* Creates an Objective-C method (SEL) from a regular C function with the option to set the register name.*/
+#define si_func_to_SEL_with_name(class_name, register_name, function) si_impl_func_to_SEL_with_name(class_name, register_name":", function)
+	
+	unsigned char* NSBitmapImageRep_bitmapData(NSBitmapImageRep* imageRep) {
+		return ((unsigned char* (*)(id, SEL))objc_msgSend)
+			(imageRep, sel_registerName("bitmapData"));
+	}
+
+#define NS_ENUM(type, name) type name; enum
+
+	typedef NS_ENUM(NSUInteger, NSBitmapFormat) {
+		NSBitmapFormatAlphaFirst = 1 << 0,       // 0 means is alpha last (RGBA, CMYKA, etc.)
+			NSBitmapFormatAlphaNonpremultiplied = 1 << 1,       // 0 means is premultiplied
+			NSBitmapFormatFloatingPointSamples = 1 << 2,  // 0 is integer
+
+			NSBitmapFormatSixteenBitLittleEndian API_AVAILABLE(macos(10.10)) = (1 << 8),
+			NSBitmapFormatThirtyTwoBitLittleEndian API_AVAILABLE(macos(10.10)) = (1 << 9),
+			NSBitmapFormatSixteenBitBigEndian API_AVAILABLE(macos(10.10)) = (1 << 10),
+			NSBitmapFormatThirtyTwoBitBigEndian API_AVAILABLE(macos(10.10)) = (1 << 11)
+	};
+
+	NSBitmapImageRep* NSBitmapImageRep_initWithBitmapData(unsigned char** planes, NSInteger width, NSInteger height, NSInteger bps, NSInteger spp, bool alpha, bool isPlanar, const char* colorSpaceName, NSBitmapFormat bitmapFormat, NSInteger rowBytes, NSInteger pixelBits) {
+		void* func = sel_registerName("initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:");
+
+		return (NSBitmapImageRep*) ((id(*)(id, SEL, unsigned char**, NSInteger, NSInteger, NSInteger, NSInteger, bool, bool, const char*, NSBitmapFormat, NSInteger, NSInteger))objc_msgSend)
+			(NSAlloc((id)objc_getClass("NSBitmapImageRep")), func, planes, width, height, bps, spp, alpha, isPlanar, NSString_stringWithUTF8String(colorSpaceName), bitmapFormat, rowBytes, pixelBits);
+	}
+
+	NSColor* NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha) {
+		void* nsclass = objc_getClass("NSColor");
+		void* func = sel_registerName("colorWithSRGBRed:green:blue:alpha:");
+		return ((id(*)(id, SEL, CGFloat, CGFloat, CGFloat, CGFloat))objc_msgSend)
+			(nsclass, func, red, green, blue, alpha);
+	}
+
+	NSCursor* NSCursor_initWithImage(NSImage* newImage, NSPoint aPoint) {
+		void* func = sel_registerName("initWithImage:hotSpot:");
+		void* nsclass = objc_getClass("NSCursor");
+
+		return (NSCursor*) ((id(*)(id, SEL, id, NSPoint))objc_msgSend)
+			(NSAlloc(nsclass), func, newImage, aPoint);
+	}
+
+	void NSImage_addRepresentation(NSImage* image, NSImageRep* imageRep) {
+		void* func = sel_registerName("addRepresentation:");
+		objc_msgSend_void_id(image, func, imageRep);
+	}
+
+	NSImage* NSImage_initWithSize(NSSize size) {
+		void* func = sel_registerName("initWithSize:");
+		return ((id(*)(id, SEL, NSSize))objc_msgSend)
+			(NSAlloc((id)objc_getClass("NSImage")), func, size);
+	}
+#define NS_OPENGL_ENUM_DEPRECATED(minVers, maxVers) API_AVAILABLE(macos(minVers))
+	typedef NS_ENUM(NSInteger, NSOpenGLContextParameter) {
+		NSOpenGLContextParameterSwapInterval           NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 222, /* 1 param.  0 -> Don't sync, 1 -> Sync to vertical retrace     */
+			NSOpenGLContextParameterSurfaceOrder           NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 235, /* 1 param.  1 -> Above Window (default), -1 -> Below Window    */
+			NSOpenGLContextParameterSurfaceOpacity         NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 236, /* 1 param.  1-> Surface is opaque (default), 0 -> non-opaque   */
+			NSOpenGLContextParameterSurfaceBackingSize     NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 304, /* 2 params.  Width/height of surface backing size              */
+			NSOpenGLContextParameterReclaimResources       NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 308, /* 0 params.                                                    */
+			NSOpenGLContextParameterCurrentRendererID      NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 309, /* 1 param.   Retrieves the current renderer ID                 */
+			NSOpenGLContextParameterGPUVertexProcessing    NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 310, /* 1 param.   Currently processing vertices with GPU (get)      */
+			NSOpenGLContextParameterGPUFragmentProcessing  NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 311, /* 1 param.   Currently processing fragments with GPU (get)     */
+			NSOpenGLContextParameterHasDrawable            NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 314, /* 1 param.   Boolean returned if drawable is attached          */
+			NSOpenGLContextParameterMPSwapsInFlight        NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 315, /* 1 param.   Max number of swaps queued by the MP GL engine    */
+
+			NSOpenGLContextParameterSwapRectangle API_DEPRECATED("", macos(10.0, 10.14)) = 200, /* 4 params.  Set or get the swap rectangle {x, y, w, h} */
+			NSOpenGLContextParameterSwapRectangleEnable API_DEPRECATED("", macos(10.0, 10.14)) = 201, /* Enable or disable the swap rectangle */
+			NSOpenGLContextParameterRasterizationEnable API_DEPRECATED("", macos(10.0, 10.14)) = 221, /* Enable or disable all rasterization */
+			NSOpenGLContextParameterStateValidation API_DEPRECATED("", macos(10.0, 10.14)) = 301, /* Validate state for multi-screen functionality */
+			NSOpenGLContextParameterSurfaceSurfaceVolatile API_DEPRECATED("", macos(10.0, 10.14)) = 306, /* 1 param.   Surface volatile state */
+	};
+
+
+	void NSOpenGLContext_setValues(NSOpenGLContext* context, const int* vals, NSOpenGLContextParameter param) {
+		void* func = sel_registerName("setValues:forParameter:");
+		((void (*)(id, SEL, const int*, NSOpenGLContextParameter))objc_msgSend)
+			(context, func, vals, param);
+	}
+
+	void* NSOpenGLPixelFormat_initWithAttributes(const uint32_t* attribs) {
+		void* func = sel_registerName("initWithAttributes:");
+		return (void*) ((id(*)(id, SEL, const uint32_t*))objc_msgSend)
+			(NSAlloc((id)objc_getClass("NSOpenGLPixelFormat")), func, attribs);
+	}
+
+	NSOpenGLView* NSOpenGLView_initWithFrame(NSRect frameRect, uint32_t* format) {
+		void* func = sel_registerName("initWithFrame:pixelFormat:");
+		return (NSOpenGLView*) ((id(*)(id, SEL, NSRect, uint32_t*))objc_msgSend)
+			(NSAlloc((id)objc_getClass("NSOpenGLView")), func, frameRect, format);
+	}
+
+	void NSCursor_performSelector(NSCursor* cursor, void* selector) {
+		void* func = sel_registerName("performSelector:");
+		objc_msgSend_void_SEL(cursor, func, selector);
+	}
+
+	NSPasteboard* NSPasteboard_generalPasteboard(void) {
+		return (NSPasteboard*) objc_msgSend_id((id)objc_getClass("NSPasteboard"), sel_registerName("generalPasteboard"));
+	}
+
+	NSString** cstrToNSStringArray(char** strs, size_t len) {
+		static NSString* nstrs[6];
+		size_t i;
+		for (i = 0; i < len; i++)
+			nstrs[i] = NSString_stringWithUTF8String(strs[i]);
+
+		return nstrs;
+	}
+
+	const char* NSPasteboard_stringForType(NSPasteboard* pasteboard, NSPasteboardType dataType) {
+		void* func = sel_registerName("stringForType:");
+		return (const char*) NSString_to_char(((id(*)(id, SEL, const char*))objc_msgSend)(pasteboard, func, NSString_stringWithUTF8String(dataType)));
+	}
+
+	NSArray* c_array_to_NSArray(void* array, size_t len) {
+		SEL func = sel_registerName("initWithObjects:count:");
+		void* nsclass = objc_getClass("NSArray");
+		return ((id (*)(id, SEL, void*, NSUInteger))objc_msgSend)
+					(NSAlloc(nsclass), func, array, len);
+	}
+ 
+	void NSregisterForDraggedTypes(void* view, NSPasteboardType* newTypes, size_t len) {
+		NSString** ntypes = cstrToNSStringArray((char**)newTypes, len);
+
+		NSArray* array = c_array_to_NSArray(ntypes, len);
+		objc_msgSend_void_id(view, sel_registerName("registerForDraggedTypes:"), array);
+		NSRelease(array);
+	}
+
+	NSInteger NSPasteBoard_declareTypes(NSPasteboard* pasteboard, NSPasteboardType* newTypes, size_t len, void* owner) {
+		NSString** ntypes = cstrToNSStringArray((char**)newTypes, len);
+
+		void* func = sel_registerName("declareTypes:owner:");
+
+		NSArray* array = c_array_to_NSArray(ntypes, len);
+
+		NSInteger output = ((NSInteger(*)(id, SEL, id, void*))objc_msgSend)
+			(pasteboard, func, array, owner);
+		NSRelease(array);
+
+		return output;
+	}
+
+	bool NSPasteBoard_setString(NSPasteboard* pasteboard, const char* stringToWrite, NSPasteboardType dataType) {
+		void* func = sel_registerName("setString:forType:");
+		return ((bool (*)(id, SEL, id, NSPasteboardType))objc_msgSend)
+			(pasteboard, func, NSString_stringWithUTF8String(stringToWrite), NSString_stringWithUTF8String(dataType));
+	}
+
+	void NSRetain(id obj) { objc_msgSend_void(obj, sel_registerName("retain")); }
+
+	typedef enum NSApplicationActivationPolicy {
+		NSApplicationActivationPolicyRegular,
+		NSApplicationActivationPolicyAccessory,
+		NSApplicationActivationPolicyProhibited
+	} NSApplicationActivationPolicy;
+
+	typedef NS_ENUM(u32, NSBackingStoreType) {
+		NSBackingStoreRetained = 0,
+			NSBackingStoreNonretained = 1,
+			NSBackingStoreBuffered = 2
+	};
+
+	typedef NS_ENUM(u32, NSWindowStyleMask) {
+		NSWindowStyleMaskBorderless = 0,
+			NSWindowStyleMaskTitled = 1 << 0,
+			NSWindowStyleMaskClosable = 1 << 1,
+			NSWindowStyleMaskMiniaturizable = 1 << 2,
+			NSWindowStyleMaskResizable = 1 << 3,
+			NSWindowStyleMaskTexturedBackground = 1 << 8, /* deprecated */
+			NSWindowStyleMaskUnifiedTitleAndToolbar = 1 << 12,
+			NSWindowStyleMaskFullScreen = 1 << 14,
+			NSWindowStyleMaskFullSizeContentView = 1 << 15,
+			NSWindowStyleMaskUtilityWindow = 1 << 4,
+			NSWindowStyleMaskDocModalWindow = 1 << 6,
+			NSWindowStyleMaskNonactivatingPanel = 1 << 7,
+			NSWindowStyleMaskHUDWindow = 1 << 13
+	};
+
+	typedef const char* NSPasteboardType;
+	NSPasteboardType const NSPasteboardTypeString = "public.utf8-plain-text"; // Replaces NSStringPboardType
+
+
+
+	typedef NS_ENUM(i32, NSDragOperation) {
+		NSDragOperationNone = 0,
+			NSDragOperationCopy = 1,
+			NSDragOperationLink = 2,
+			NSDragOperationGeneric = 4,
+			NSDragOperationPrivate = 8,
+			NSDragOperationMove = 16,
+			NSDragOperationDelete = 32,
+			NSDragOperationEvery = ULONG_MAX,
+
+			//NSDragOperationAll_Obsolete	API_DEPRECATED("", macos(10.0,10.10)) = 15, // Use NSDragOperationEvery
+			//NSDragOperationAll API_DEPRECATED("", macos(10.0,10.10)) = NSDragOperationAll_Obsolete, // Use NSDragOperationEvery
+	};
+
+	void* NSArray_objectAtIndex(NSArray* array, NSUInteger index) {
+		void* func = sel_registerName("objectAtIndex:");
+		return ((id(*)(id, SEL, NSUInteger))objc_msgSend)(array, func, index);
+	}
+
+	const char** NSPasteboard_readObjectsForClasses(NSPasteboard* pasteboard, Class* classArray, size_t len, void* options) {
+		void* func = sel_registerName("readObjectsForClasses:options:");
+
+		NSArray* array = c_array_to_NSArray(classArray, len);
+
+		NSArray* output = (NSArray*) ((id(*)(id, SEL, id, void*))objc_msgSend)
+			(pasteboard, func, array, options);
+
+		NSRelease(array);
+		NSUInteger count = ((NSUInteger(*)(id, SEL))objc_msgSend)(output, sel_registerName("count"));
+
+		const char** res = si_array_init_reserve(sizeof(const char*), count);
+
+		void* path_func = sel_registerName("path");
+
+		for (NSUInteger i = 0; i < count; i++) {
+			void* url = NSArray_objectAtIndex(output, i);
+			NSString* url_str = ((id(*)(id, SEL))objc_msgSend)(url, path_func);
+			res[i] = NSString_to_char(url_str);
+		}
+
+		return res;
+	}
+
+	void* NSWindow_contentView(NSWindow* window) {
+		void* func = sel_registerName("contentView");
+		return objc_msgSend_id(window, func);
+	}
+
+	/*
+		End of cocoa wrapper
+	*/
+
 	char* RGFW_mouseIconSrc[] = {"arrowCursor", "arrowCursor", "IBeamCursor", "crosshairCursor", "pointingHandCursor", "resizeLeftRightCursor", "resizeUpDownCursor", "_windowResizeNorthWestSouthEastCursor", "_windowResizeNorthEastSouthWestCursor", "closedHandCursor", "operationNotAllowedCursor"};
 
 	void* RGFWnsglFramework = NULL;
@@ -6042,12 +6007,12 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				printf("Switching to software rendering\n");
 		}
 
-		win->src.view = NSOpenGLView_initWithFrame(NSMakeRect(0, 0, win->r.w, win->r.h), format);
+		win->src.view = NSOpenGLView_initWithFrame((NSRect){{0, 0}, {win->r.w, win->r.h}}, format);
 		objc_msgSend_void(win->src.view, sel_registerName("prepareOpenGL"));
 		win->src.rSurf = objc_msgSend_id(win->src.view, sel_registerName("openGLContext"));
 
 #else
-		NSRect contentRect = NSMakeRect(0, 0, win->r.w, win->r.h);
+		NSRect contentRect = ())(0, 0, win->r.w, win->r.h);
 		win->src.view = ((id(*)(id, SEL, NSRect))objc_msgSend)
 			(NSAlloc((id)objc_getClass("NSView")), sel_registerName("initWithFrame:"),
 				contentRect);
@@ -6554,7 +6519,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		win->r.x = v.x;
 		win->r.y = v.y;
 		((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
-			(win->src.window, sel_registerName("setFrame:display:animate:"), NSMakeRect(win->r.x, win->r.y, win->r.w, win->r.h), true, true);
+			(win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{win->r.x, win->r.y}, {win->r.w, win->r.h}}, true, true);
 	}
 
 	void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
@@ -6563,7 +6528,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		win->r.w = a.w;
 		win->r.h = a.h;
 		((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
-			(win->src.window, sel_registerName("setFrame:display:animate:"), NSMakeRect(win->r.x, win->r.y, win->r.w, win->r.h), true, true);
+			(win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{win->r.x, win->r.y}, {win->r.w, win->r.h}}, true, true);
 	}
 
 	void RGFW_window_minimize(RGFW_window* win) {
@@ -6587,12 +6552,12 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 	void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
 		((void (*)(id, SEL, NSSize))objc_msgSend)
-			(win->src.window, sel_registerName("setMinSize:"), NSMakeSize(a.w, a.h));
+			(win->src.window, sel_registerName("setMinSize:"), (NSSize){a.w, a.h});
 	}
 
 	void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 		((void (*)(id, SEL, NSSize))objc_msgSend)
-			(win->src.window, sel_registerName("setMaxSize:"), NSMakeSize(a.w, a.h));
+			(win->src.window, sel_registerName("setMaxSize:"), (NSSize){a.w, a.h});
 	}
 
 	void RGFW_window_setIcon(RGFW_window* win, u8* data, RGFW_area area, i32 channels) {
@@ -6604,7 +6569,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		memcpy(NSBitmapImageRep_bitmapData(representation), data, area.w * area.h * channels);
 
 		// Add ze representation.
-		void* dock_image = NSImage_initWithSize(NSMakeSize(area.w, area.h));
+		void* dock_image = NSImage_initWithSize((NSSize){area.w, area.h});
 		NSImage_addRepresentation(dock_image, (void*) representation);
 
 		// Finally, set the dock image to it.
@@ -6634,11 +6599,11 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		memcpy(NSBitmapImageRep_bitmapData(representation), image, a.w * a.h * channels);
 
 		// Add ze representation.
-		void* cursor_image = NSImage_initWithSize(NSMakeSize(a.w, a.h));
+		void* cursor_image = NSImage_initWithSize((NSSize){a.w, a.h});
 		NSImage_addRepresentation(cursor_image, representation);
 
 		// Finally, set the cursor image.
-		void* cursor = NSCursor_initWithImage(cursor_image, NSMakePoint(0, 0));
+		void* cursor = NSCursor_initWithImage(cursor_image, (NSPoint){0.0, 0.0});
 
 		objc_msgSend_void(cursor, sel_registerName("set"));
 
@@ -6838,7 +6803,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 			((void(*)(id, SEL, NSRect))objc_msgSend)(layer,
 				sel_registerName("setFrame:"),
-				NSMakeRect(0, 0, win->r.w, win->r.h));
+				(NSRect){{0, 0}, {win->r.w, win->r.h}};
 
 			NSBitmapImageRep* rep = NSBitmapImageRep_initWithBitmapData(
 				&win->buffer, win->r.w, win->r.h, 8, 4, true, false,
