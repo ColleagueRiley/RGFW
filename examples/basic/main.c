@@ -23,10 +23,7 @@ RGFW_window* win2;
 int main(void) {    
     RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_ALLOW_DND | RGFW_CENTER);
     RGFW_window_makeCurrent(win);
-
-
-    printf("%li\n", sizeof(RGFW_rect));
-
+    
     RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
 
     RGFW_window_swapInterval(win, 1);
