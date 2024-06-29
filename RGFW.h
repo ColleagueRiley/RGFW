@@ -4414,7 +4414,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		RGFW_JS_HOME,
 		RGFW_JS_L2,
 		RGFW_JS_R2
-	}
+	};
 
 	static i32 RGFW_checkXInput(RGFW_Event* e) {
 		static WORD buttons[4];
