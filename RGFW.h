@@ -253,6 +253,7 @@ extern "C" {
 #define RGFW_OPENGL_SOFTWARE (1L<<11) /*! use OpenGL software rendering */
 #define RGFW_COCOA_MOVE_TO_RESOURCE_DIR (1L << 12) /* (cocoa only), move to resource folder */
 #define RGFW_SCALE_TO_MONITOR (1L << 13) /* scale the window to the screen */
+#define RGFW_NO_INIT_API (1L << 2) /* DO not init an API (mostly for bindings, you should use `#define RGFW_NO_API` in C */
 
 #define RGFW_NO_GPU_RENDER (1L<<14) /* don't render (using the GPU based API)*/
 #define RGFW_NO_CPU_RENDER (1L<<15) /* don't render (using the CPU based buffer rendering)*/
@@ -684,29 +685,11 @@ typedef struct { i32 x, y; } RGFW_vector;
 	RGFWDEF u8 RGFW_isMouseReleased(RGFW_window* win, u8 button);
 	RGFWDEF u8 RGFW_wasMousePressed(RGFW_window* win, u8 button);
 
-	/*
-		!!Keycodes defined at the bottom of RGFW_HEADER part of this file!!
-	*/
-	/*!< converts a key code to it's key string */
-	RGFWDEF char* RGFW_keyCodeTokeyStr(u64 key);
-
 /*! clipboard functions*/
 	RGFWDEF char* RGFW_readClipboard(size_t* size); /*!< read clipboard data */
 	RGFWDEF void RGFW_clipboardFree(char* str); /* the string returned from RGFW_readClipboard must be freed */
 
 	RGFWDEF void RGFW_writeClipboard(const char* text, u32 textLen); /*!< write text to the clipboard */
-
-	/*
-		convert a keyString to a char version
-	*/
-	RGFWDEF char RGFW_keystrToChar(const char*);
-	/*
-		ex.
-		"parenleft" -> '('
-		"A" -> 'A',
-		"Return" -> "\n"
-	*/
-
 
 	/* 
 		
@@ -1410,63 +1393,6 @@ RGFW_window* RGFW_root = NULL;
 		return (!RGFW_isPressedI(win, key) && RGFW_wasPressedI(win, key));	
 	}
 	
-	char* RGFW_keyCodeTokeyStr(u64 key) {
-		static char* keyStrs[128] = {"Escape", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", 	"Backtick", 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 	"-", "=", "BackSpace", "Tab", "CapsLock", "ShiftL", "ControlL", "AltL", "SuperL", "ShiftR", "ControlR", "AltR", "SuperR", " ", 	"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 	".", ",", "-", "[", "]", ";", "Return", "'", "\\", 	"Up", "Down", "Left", "Right", 	"Delete", "Insert", "End", "Home", "PageUp", "PageDown", 	"Numlock", "KP_Slash", "Multiply", "KP_Minus", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "KP_8", "KP_9", "KP_0", "KP_Period", "KP_Return" };
-
-		return keyStrs[key];
-	}
-
-	char RGFW_keystrToChar(const char* str) {
-		if (str[1] == 0)
-			return str[0];
-
-		static const char* map[] = {
-			"asciitilde", "`",
-			"grave", "~",
-			"exclam", "!",
-			"at", "@",
-			"numbersign", "#",
-			"dollar", "$",
-			"percent", "%%",
-			"asciicircum", "^",
-			"ampersand", "&",
-			"asterisk", "*",
-			"parenleft", "(",
-			"parenright", ")",
-			"underscore", "_",
-			"minus", "-",
-			"plus", "+",
-			"equal", "=",
-			"braceleft", "{",
-			"bracketleft", "[",
-			"bracketright", "]",
-			"braceright", "}",
-			"colon", ":",
-			"semicolon", ";",
-			"quotedbl", "\"",
-			"apostrophe", "'",
-			"bar", "|",
-			"backslash", "\'",
-			"less", "<",
-			"comma", ",",
-			"greater", ">",
-			"period", ".",
-			"question", "?",
-			"slash", "/",
-			"space", " ",
-			"Return", "\n",
-			"Enter", "\n",
-			"enter", "\n",
-		};
-
-		u8 i = 0;
-		for (i = 0; i < (sizeof(map) / sizeof(char*)); i += 2)
-			if (strcmp(map[i], str) == 0)
-				return *map[i + 1];
-
-		return '\0';
-	}
-
 	void RGFW_window_makeCurrent(RGFW_window* win) {
 		assert(win != NULL);
 
@@ -2531,6 +2457,7 @@ Start of Linux / Unix defines
 
 		XFree(vi);
 
+		if ((args & RGFW_NO_INIT_API) == 0) {
 #ifdef RGFW_OPENGL
 		i32 context_attribs[7] = { 0, 0, 0, 0, 0, 0, 0 };
 		context_attribs[0] = GLX_CONTEXT_PROFILE_MASK_ARB;
@@ -2562,6 +2489,7 @@ Start of Linux / Unix defines
 #ifdef RGFW_VULKAN
 		RGFW_initVulkan(win);
 #endif
+		}
 
 		if (args & RGFW_SCALE_TO_MONITOR)
 			RGFW_window_scaleToMonitor(win);
@@ -2599,7 +2527,8 @@ Start of Linux / Unix defines
 
 		/* connect the context to the window*/
 #ifdef RGFW_OPENGL
-		glXMakeCurrent((Display*) win->src.display, (Drawable) win->src.window, (GLXContext) win->src.rSurf);
+		if ((args & RGFW_NO_INIT_API) == 0)
+			glXMakeCurrent((Display*) win->src.display, (Drawable) win->src.window, (GLXContext) win->src.rSurf);
 #endif
 
 		/* set the background*/
@@ -2637,7 +2566,8 @@ Start of Linux / Unix defines
 		}
 
 		#ifdef RGFW_EGL
-			RGFW_createOpenGLContext(win);
+			if ((args & RGFW_NO_INIT_API) == 0)
+				RGFW_createOpenGLContext(win);
 		#endif
 
 		RGFW_window_setMouseDefault(win);
@@ -4249,6 +4179,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		}
 		win->src.hdc = GetDC(win->src.window);
 
+		if ((args & RGFW_NO_INIT_API) == 0) {
 #ifdef RGFW_DIRECTX
 		assert(FAILED(CreateDXGIFactory(&__uuidof(IDXGIFactory), (void**) &RGFW_dxInfo.pFactory)) == 0);
 
@@ -4394,6 +4325,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		wglMakeCurrent(win->src.hdc, win->src.rSurf);
 		wglShareLists(RGFW_root->src.rSurf, win->src.rSurf);
 #endif
+	}
 
 #ifdef RGFW_OSMESA
 #ifdef RGFW_LINK_OSM ESA
@@ -4404,23 +4336,27 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #endif
 
 #ifdef RGFW_OPENGL
-		ReleaseDC(win->src.window, win->src.hdc);
-		win->src.hdc = GetDC(win->src.window);
-		wglMakeCurrent(win->src.hdc, win->src.rSurf);
+		if ((args & RGFW_NO_INIT_API) == 0) {
+			ReleaseDC(win->src.window, win->src.hdc);
+			win->src.hdc = GetDC(win->src.window);
+			wglMakeCurrent(win->src.hdc, win->src.rSurf);
+		}
 #endif
 
 		DestroyWindow(dummyWin);
 		RGFW_init_buffer(win);
 
 #ifdef RGFW_VULKAN
-		RGFW_initVulkan(win);
+		if ((args & RGFW_NO_INIT_API) == 0)
+			RGFW_initVulkan(win);
 #endif
 
 		if (args & RGFW_SCALE_TO_MONITOR)
 			RGFW_window_scaleToMonitor(win);
 
 #ifdef RGFW_EGL
-		RGFW_createOpenGLContext(win);
+		if ((args & RGFW_NO_INIT_API) == 0)
+			RGFW_createOpenGLContext(win);
 #endif
 
 		if (args & RGFW_HIDE_MOUSE)
@@ -6080,6 +6016,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		objc_msgSend_void_id(win->src.window, sel_registerName("setTitle:"), str);
 
 #ifdef RGFW_OPENGL
+	if ((args & RGFW_NO_INIT_API) == 0) {
 		void* attrs = RGFW_initAttribs(args & RGFW_OPENGL_SOFTWARE);
 		void* format = NSOpenGLPixelFormat_initWithAttributes(attrs);
 
@@ -6097,14 +6034,14 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		win->src.view = NSOpenGLView_initWithFrame((NSRect){{0, 0}, {win->r.w, win->r.h}}, format);
 		objc_msgSend_void(win->src.view, sel_registerName("prepareOpenGL"));
 		win->src.rSurf = objc_msgSend_id(win->src.view, sel_registerName("openGLContext"));
-
-#else
+	} else
+#endif
+	{
 		NSRect contentRect = ())(0, 0, win->r.w, win->r.h);
 		win->src.view = ((id(*)(id, SEL, NSRect))objc_msgSend)
 			(NSAlloc((id)objc_getClass("NSView")), sel_registerName("initWithFrame:"),
 				contentRect);
-#endif
-
+	}
 
 		void* contentView = NSWindow_contentView(win->src.window);
 		objc_msgSend_void_bool(contentView, sel_registerName("setWantsLayer:"), true);
@@ -6112,12 +6049,15 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		objc_msgSend_void_id(win->src.window, sel_registerName("setContentView:"), win->src.view);
 
 #ifdef RGFW_OPENGL
-		objc_msgSend_void(win->src.rSurf, sel_registerName("makeCurrentContext"));
+		if ((args & RGFW_NO_INIT_API) == 0)
+			objc_msgSend_void(win->src.rSurf, sel_registerName("makeCurrentContext"));
 #endif
 		if (args & RGFW_TRANSPARENT_WINDOW) {
 #ifdef RGFW_OPENGL
+		if ((args & RGFW_NO_INIT_API) == 0) {
 			i32 opacity = 0;
 			NSOpenGLContext_setValues(win->src.rSurf, &opacity, 304);
+		}
 #endif
 
 			objc_msgSend_void_bool(win->src.window, sel_registerName("setOpaque:"), false);
@@ -6137,7 +6077,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		RGFW_init_buffer(win);
 
 #ifdef RGFW_VULKAN
-		RGFW_initVulkan(win);
+		if ((args & RGFW_NO_INIT_API) == 0)
+			RGFW_initVulkan(win);
 #endif
 
 		if (args & RGFW_SCALE_TO_MONITOR)
