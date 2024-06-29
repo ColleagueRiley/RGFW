@@ -6043,7 +6043,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	} else
 #endif
 	{
-		NSRect contentRect = (NSRect){{0, 0}, {win->r.w, win->r.h};
+		NSRect contentRect = (NSRect){{0, 0}, {win->r.w, win->r.h}};
 		win->src.view = ((id(*)(id, SEL, NSRect))objc_msgSend)
 			(NSAlloc((id)objc_getClass("NSView")), sel_registerName("initWithFrame:"),
 				contentRect);
