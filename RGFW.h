@@ -1981,7 +1981,7 @@ void RGFW_OSMesa_reorganize(void) {
 #endif
 
 #ifdef RGFW_MACOS
-#define kCGLRendererGenericFloatID 0x00002001
+#include <CGLRenderers.h>
 #endif
 
 #ifdef RGFW_WINDOWS
