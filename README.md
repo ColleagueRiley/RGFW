@@ -1,4 +1,4 @@
-# Riley's GUI library FrameWork
+# Riley's Graphics library FrameWork
 ![THE RGFW Logo](https://github.com/ColleagueRiley/RGFW/blob/main/logo.png?raw=true)
 
 ## Build statuses
@@ -6,10 +6,10 @@
 ![workflow windows](https://github.com/ColleagueRiley/RGFW/actions/workflows/windows.yml/badge.svg)
 ![workflow macOS](https://github.com/ColleagueRiley/RGFW/actions/workflows/macos.yml/badge.svg)
 
-A cross-platform lightweight single-header very simple-to-use window abstraction library for creating GUI Libraries or simple GUI programs. 
+A cross-platform lightweight single-header very simple-to-use window abstraction library for creating graphics Libraries or simple graphical programs. 
 
 # About
-RGFW is a free multi-platform single-header very simple-to-use window abstraction framework for creating GUI Libraries or simple GUI programs. it is meant to be used as a very small and flexible alternative library to GLFW. 
+RGFW is a free multi-platform single-header very simple-to-use window abstraction framework for creating graphics Libraries or simple graphical programs. it is meant to be used as a very small and flexible alternative library to GLFW. 
 
 The window backend supports XLib (UNIX), Cocoas (MacOS) and WinAPI (Windows)\
 The graphics backend supports OpenGL (EGL, software, OSMesa, GLES), Vulkan, DirectX and software rendering buffers.
@@ -137,7 +137,7 @@ Feel free to do a PR if you want something added to the list
 [![AltText](https://github.com/ColleagueRiley/ColleagueRiley/blob/main/rsgl.png?raw=true)](https://github.com/ColleagueRiley/RSGL)\
 (Image functions as a button)
 
-[RSGL](https://github.com/ColleagueRiley/RSGL) is A modular simple-to-use cross-platform GUI library for easily creating GUI apps and games. It combines the freedom of lower-level GUI libraries with modern C techniques, offering both simplicity and convenience. 
+[RSGL](https://github.com/ColleagueRiley/RSGL) is A modular simple-to-use cross-platform graphics library for easily creating graphics apps and games. It combines the freedom of lower-level graphics libraries with modern C techniques, offering both simplicity and convenience. 
 
 It uses RGFW as a backend.
 
