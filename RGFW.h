@@ -3421,18 +3421,23 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 				size_t index = 0;
 				while (*line) {
+					if (index >= RGFW_MAX_PATH)
+						break;
+
 					if (line[0] == '%' && line[1] && line[2]) {
 						const char digits[3] = { line[1], line[2], '\0' };
 						path[index] = (char) strtol(digits, NULL, 16);
 						line += 2;
 					} else
 						path[index] = *line;
-
+					
 					index++;
 					line++;
 				}
+
 				path[index] = '\0';
-				strcpy(win->event.droppedFiles[win->event.droppedFilesCount - 1], path);
+				strncpy(win->event.droppedFiles[win->event.droppedFilesCount - 1], path, index);
+				win->event.droppedFiles[win->event.droppedFilesCount - 1][index] = '\0';
 			}
 
 			if (data)
@@ -5028,8 +5033,8 @@ static HMODULE wglinstance = NULL;
 					WCHAR* buffer = (WCHAR*) RGFW_CALLOC((size_t) length + 1, sizeof(WCHAR));
 
 					DragQueryFileW(drop, i, buffer, length + 1);
-					strcpy(win->event.droppedFiles[i], createUTF8FromWideStringWin32(buffer));
-
+					strncpy(win->event.droppedFiles[i], createUTF8FromWideStringWin32(buffer), RGFW_MAX_PATH);
+					win->event.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
 					RGFW_FREE(buffer);
 				}
 
@@ -5626,8 +5631,11 @@ static HMODULE wglinstance = NULL;
 
 		u32 y;
 
-		for (y = 0; y < RGFW_windows[i]->event.droppedFilesCount; y++)
-			strcpy(RGFW_windows[i]->event.droppedFiles[y], droppedFiles[y]);
+		for (y = 0; y < RGFW_windows[i]->event.droppedFilesCount; y++) {
+			strncpy(RGFW_windows[i]->event.droppedFiles[y], droppedFiles[y], RGFW_MAX_PATH);
+
+			RGFW_windows[i]->event.droppedFiles[y][RGFW_MAX_PATH - 1] = '\0';
+		}
 
 		RGFW_windows[i]->event.type = RGFW_dnd;
 		RGFW_windows[i]->src.dndPassed = 0;
