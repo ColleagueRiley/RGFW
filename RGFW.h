@@ -281,9 +281,9 @@ extern "C" {
 
 	RGFW_Event.button holds which mouse button was pressed
 */
-#define RGFW_jsButtonPressed 7 /*!< a joystick button was pressed */
-#define RGFW_jsButtonReleased 8 /*!< a joystick button was released */
-#define RGFW_jsAxisMove 9 /*!< an axis of a joystick was moved*/
+RGFW_jsButtonPressed 7 /*!< a joystick button was pressed */
+RGFW_jsButtonReleased 8 /*!< a joystick button was released */
+RGFW_jsAxisMove 9 /*!< an axis of a joystick was moved*/
 /*! joystick event note
 	RGFW_Event.joystick holds which joystick was altered, if any
 	RGFW_Event.button holds which joystick button was pressed
@@ -338,23 +338,25 @@ extern "C" {
 #define RGFW_NUMLOCK (1L << 2)
 
 /*! joystick button codes (based on xbox/playstation), you may need to change these values per controller */
-#ifndef RGFW_JS_A
+#ifndef RGFW_joystick_codes
 
-#define RGFW_JS_A 0 /* or PS X button */
-#define RGFW_JS_B 1 /* or PS circle button */
-#define RGFW_JS_Y 2 /* or PS triangle button */
-#define RGFW_JS_X 3 /* or PS square button */
-#define RGFW_JS_START 9 /* start button */
-#define RGFW_JS_SELECT 8 /* select button */
-#define RGFW_JS_HOME 10 /* home button */
-#define RGFW_JS_UP 13 /* dpad up */
-#define RGFW_JS_DOWN 14 /* dpad down*/
-#define RGFW_JS_LEFT 15 /* dpad left */
-#define RGFW_JS_RIGHT 16 /* dpad right */
-#define RGFW_JS_L1 4 /* left bump */
-#define RGFW_JS_L2 5 /* left trigger*/
-#define RGFW_JS_R1 6 /* right bumper */
-#define RGFW_JS_R2 7 /* right trigger */
+typedef enum RGFW_joystick_codes {
+	RGFW_JS_A = 0, /* or PS X button */
+	RGFW_JS_B = 1, /* or PS circle button */
+	RGFW_JS_Y = 2, /* or PS triangle button */
+	RGFW_JS_X = 3, /* or PS square button */
+	RGFW_JS_START = 9, /* start button */
+	RGFW_JS_SELECT = 8, /* select button */
+	RGFW_JS_HOME = 10, /* home button */
+	RGFW_JS_UP = 13, /* dpad up */
+	RGFW_JS_DOWN = 14, /* dpad down*/
+	RGFW_JS_LEFT = 15, /* dpad left */
+	RGFW_JS_RIGHT = 16, /* dpad right */
+	RGFW_JS_L1 = 4, /* left bump */
+	RGFW_JS_L2 = 5, /* left trigger*/
+ 	RGFW_JS_R1 = 6, /* right bumper */
+	RGFW_JS_R2 = 7, /* right trigger */
+} RGFW_joystick_codes;
 
 #endif
 
@@ -1355,15 +1357,9 @@ RGFW_window* RGFW_root = NULL;
 	u8 RGFW_mouseButtons_prev[5];
 
 	u8 RGFW_isMousePressed(RGFW_window* win, u8 button) {
-		if (win != NULL && !win->event.inFocus)
-			return 0;
-
 		return RGFW_mouseButtons[button]; 
 	}
 	u8 RGFW_wasMousePressed(RGFW_window* win, u8 button) { 
-		if (win != NULL && !win->event.inFocus)
-			return 0;
-
 		return RGFW_mouseButtons_prev[button]; 
 	}
 	u8 RGFW_isMouseHeld(RGFW_window* win, u8 button) {
@@ -1446,12 +1442,12 @@ RGFW_window* RGFW_root = NULL;
 	#endif
 
 	void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area) {
+		#ifdef RGFW_WINDOWS
 		if (!(win->src.winArgs & RGFW_HOLD_MOUSE)) {
-			#ifdef RGFW_WINDOWS
 			RECT rect = {win->r.x, win->r.y, win->r.x + win->r.w, win->r.y + win->r.h};
 			ClipCursor(&rect);
-			#endif
 		}
+		#endif
 
 		win->src.winArgs |= RGFW_HOLD_MOUSE;
 
@@ -1487,14 +1483,15 @@ RGFW_window* RGFW_root = NULL;
 
 		win->event.frameTime = RGFW_getTimeNS();
 		
-		if (win->fpsCap) {
-			u64 deltaTime = RGFW_getTimeNS() - win->event.frameTime2;
+		if (win->fpsCap == 0)
+			break;
 
-			win->event.fps = round(1e+9 / deltaTime);
-			
-			win->event.frameTime2 = RGFW_getTimeNS();
-		}
+		u64 deltaTime = RGFW_getTimeNS() - win->event.frameTime2;
+		win->event.fps = round(1e+9 / deltaTime);
+		win->event.frameTime2 = RGFW_getTimeNS();
 	}
+	
+	u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { return win->src.jsPressed[c][button]; }
 	
 	#if defined(RGFW_X11) || defined(RGFW_MACOS)
 		struct timespec;
@@ -1502,8 +1499,6 @@ RGFW_window* RGFW_root = NULL;
 		int nanosleep(const struct timespec* duration, struct timespec* rem);
 		int clock_gettime(clockid_t clk_id, struct timespec* tp);
 		int setenv(const char *name, const char *value, int overwrite);
-
-		u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { return win->src.jsPressed[c][button]; }
 	#endif
 
 /*
@@ -2629,7 +2624,7 @@ Start of Linux / Unix defines
 				struct js_event e;
 
 
-				if (!win->src.joysticks[i])
+				if (win->src.joysticks[i] == 0)
 					continue;
 
 				i32 flags = fcntl(win->src.joysticks[i], F_GETFL, 0);
@@ -2702,15 +2697,24 @@ Start of Linux / Unix defines
 			win->event.type = (E.type == KeyPress) ? RGFW_keyPressed : RGFW_keyReleased;
 
 			if (win->event.type == RGFW_keyReleased) {
-				if (sym == XK_Caps_Lock && win->event.lockState & RGFW_CAPSLOCK)
-					win->event.lockState ^= RGFW_CAPSLOCK;
-				else if (sym == XK_Caps_Lock)
-					win->event.lockState |= RGFW_CAPSLOCK;
+				switch (sym) {
+					case XK_Caps_Lock:
+						if (win->event.lockState & RGFW_CAPSLOCK)
+							win->event.lockState ^= RGFW_CAPSLOCK;
+						else
+							win->event.lockState |= RGFW_CAPSLOCK;
+						break;
 
-				else if (sym == XK_Num_Lock && win->event.lockState & RGFW_NUMLOCK)
-					win->event.lockState ^= RGFW_NUMLOCK;
-				else if (sym == XK_Num_Lock)
-					win->event.lockState |= RGFW_NUMLOCK;
+					case XK_Num_Lock:
+						if ( win->event.lockState & RGFW_NUMLOCK)
+							win->event.lockState ^= RGFW_NUMLOCK;
+						else
+							win->event.lockState |= RGFW_NUMLOCK;
+
+						break;
+					
+					default: break;
+				}
 			}
 			
 			RGFW_keyboard[win->event.keyCode] = (E.type == KeyPress);
@@ -2719,13 +2723,16 @@ Start of Linux / Unix defines
 
 		case ButtonPress:
 		case ButtonRelease:
-			win->event.type = (E.type == ButtonPress) ? RGFW_mouseButtonPressed : RGFW_mouseButtonReleased;
-		
-			if (win->event.button == RGFW_mouseScrollUp) {
-				win->event.scroll = 1;
-			}
-			else if (win->event.button == RGFW_mouseScrollDown) {
-				win->event.scroll = -1;
+			win->event.type = E.type; // the events match 
+			
+			switch(win->event.button) {
+				case RGFW_mouseScrollUp:
+					win->event.scroll = 1;
+					break;
+				case RGFW_mouseScrollDown:
+					win->event.scroll = -1;
+					break;
+				default: break;
 			}
 
 			win->event.button = E.xbutton.button;
@@ -2754,6 +2761,10 @@ Start of Linux / Unix defines
 				break;
 			}
 			
+
+			if ((win->src.winArgs & RGFW_ALLOW_DND) == 0)
+				break;
+
 			/* reset DND values */
 			if (win->event.droppedFilesCount) {
 				for (i = 0; i < win->event.droppedFilesCount; i++)
@@ -2765,9 +2776,6 @@ Start of Linux / Unix defines
 			/*
 				much of this event (drag and drop code) is source from glfw
 			*/
-
-			if ((win->src.winArgs & RGFW_ALLOW_DND) == 0)
-				break;
 
 			u8 formFree = 0;
 			if (E.xclient.message_type == XdndEnter) {
@@ -2818,23 +2826,26 @@ Start of Linux / Unix defines
 					char* name = XGetAtomName((Display*) win->src.display, formats[i]);
 
 					char* links[2] = { (char*) (const char*) "text/uri-list", (char*) (const char*) "text/plain" };
-					for (; 1; name++) {
+					while (1) {
 						u32 j;
 						for (j = 0; j < 2; j++) {
 							if (*links[j] != *name) {
 								links[j] = (char*) (const char*) "\1";
+								name++;
 								continue;
 							}
 
 							if (*links[j] == '\0' && *name == '\0')
 								xdnd.format = formats[i];
 
-							if (*links[j] != '\0' && *links[j] != '\1')
+							if (*links[j] > 1)
 								links[j]++;
 						}
 
 						if (*name == '\0')
 							break;
+
+						name++;
 					}
 				}
 
@@ -3867,31 +3878,6 @@ Start of Linux / Unix defines
 	PFN_XInputGetState XInputGetStateSRC = NULL;
 	#define XInputGetState XInputGetStateSRC
 	static HMODULE RGFW_XInput_dll = NULL;
-	
-	u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) {
-		RGFW_UNUSED(win)
-		
-		XINPUT_STATE state;
-		if (XInputGetState == NULL || XInputGetState(c, &state) == ERROR_DEVICE_NOT_CONNECTED)
-			return 0;
-
-		if (button == RGFW_JS_A) return state.Gamepad.wButtons & XINPUT_GAMEPAD_A;
-		else if (button == RGFW_JS_B) return state.Gamepad.wButtons & XINPUT_GAMEPAD_B;
-		else if (button == RGFW_JS_Y) return state.Gamepad.wButtons & XINPUT_GAMEPAD_Y;
-		else if (button == RGFW_JS_X) return state.Gamepad.wButtons & XINPUT_GAMEPAD_X;
-		else if (button == RGFW_JS_START) return state.Gamepad.wButtons & XINPUT_GAMEPAD_START;
-		else if (button == RGFW_JS_SELECT) return state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK;
-		else if (button == RGFW_JS_UP) return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP;
-		else if (button == RGFW_JS_DOWN) return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
-		else if (button == RGFW_JS_LEFT) return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
-		else if (button == RGFW_JS_RIGHT) return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
-		else if (button == RGFW_JS_L1) return state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER;
-		else if (button == RGFW_JS_R1) return state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER;
-		else if (button == RGFW_JS_L2 && state.Gamepad.bLeftTrigger) return 1;
-		else if (button == RGFW_JS_R2 && state.Gamepad.bRightTrigger) return 1;
-
-		return 0;
-	}
 
 	u32 RGFW_mouseIconSrc[] = {OCR_NORMAL, OCR_NORMAL, OCR_IBEAM, OCR_CROSS, OCR_HAND, OCR_SIZEWE, OCR_SIZENS, OCR_SIZENWSE, OCR_SIZENESW, OCR_SIZEALL, OCR_NO};
 
@@ -4408,6 +4394,26 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		assert(win != NULL);
 
 		ShowWindow(win->src.window, SW_RESTORE);
+	}
+
+
+	u8 RGFW_xinput2RGFW[] {
+		RGFW_JS_UP,
+		RGFW_JS_DOWN,
+		RGFW_JS_LEFT,
+		RGFW_JS_RIGHT,
+		RGFW_JS_START,
+		RGFW_JS_SELECT,
+		0, 0,
+		RGFW_JS_L1,
+		RGFW_JS_R1,
+		RGFW_JS_A,
+		RGFW_JS_B,
+		RGFW_JS_Y,
+		RGFW_JS_X,
+		RGFW_JS_HOME,
+		RGFW_JS_L2,
+		RGFW_JS_R2
 	}
 
 	static i32 RGFW_checkXInput(RGFW_Event* e) {
@@ -6037,7 +6043,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	} else
 #endif
 	{
-		NSRect contentRect = ())(0, 0, win->r.w, win->r.h);
+		NSRect contentRect = (NSRect){{0, 0}, {win->r.w, win->r.h};
 		win->src.view = ((id(*)(id, SEL, NSRect))objc_msgSend)
 			(NSAlloc((id)objc_getClass("NSView")), sel_registerName("initWithFrame:"),
 				contentRect);
