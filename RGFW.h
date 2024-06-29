@@ -6800,7 +6800,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		return win->src.joystickCount - 1;
 	}
 
-	#ifndef RGFW_OPENGL
+	#ifdef RGFW_OPENGL
 	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 		assert(win != NULL);
 		objc_msgSend_void(win->src.rSurf, sel_registerName("makeCurrentContext"));
