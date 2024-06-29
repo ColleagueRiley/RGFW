@@ -1088,10 +1088,12 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 /*
 
-
 This is the start of keycode data
 
-
+Why not use macros instead of the numbers itself?
+Windows -> Not all virtual keys are macros (VK_0 - VK_1, VK_a - VK_z)
+Linux -> Only symcodes are values, (XK_0 - XK_1, XK_a - XK_z) are larger than 0xFF00, I can't find any way to work with them without making the array an unreasonable size
+MacOS -> windows and linux already don't have keycodes as macros, so there's no point
 */
 
 	u8 RGFW_keycodes[] = {
@@ -1362,6 +1364,10 @@ This is the start of keycode data
 
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL) || defined(RGFW_OSMESA)
 #ifndef __APPLE__
+#ifndef GL_SILENCE_DEPRECATION
+#define GL_SILENCE_DEPRECATION
+#endif
+
 #include <GL/gl.h>
 #else
 #include <OpenGL/gl.h>
@@ -1980,10 +1986,6 @@ void RGFW_OSMesa_reorganize(void) {
 #define RGFW_GL_USE_RGBA		RGFW_OS_BASED_VALUE(GLX_RGBA_BIT,   	 	0x202B,						0)
 #endif
 
-#ifdef RGFW_MACOS
-#include <CGLRenderers.h>
-#endif
-
 #ifdef RGFW_WINDOWS
 #define WGL_COLOR_BITS_ARB                        0x2014
 #define WGL_NUMBER_PIXEL_FORMATS_ARB 			0x2000
@@ -2052,7 +2054,7 @@ void RGFW_OSMesa_reorganize(void) {
 
 #ifdef RGFW_MACOS
 		if (useSoftware) {
-			RGFW_GL_ADD_ATTRIB(70, kCGLRendererGenericFloatID);
+			RGFW_GL_ADD_ATTRIB(70, 0x00002001);
 		} else {
 			attribs[index] = RGFW_GL_RENDER_TYPE;
 			index += 1;
@@ -5390,10 +5392,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		based on silicon.h
 		start of cocoa wrapper
 	*/
-
-#ifndef GL_SILENCE_DEPRECATION
-#define GL_SILENCE_DEPRECATION
-#endif
 
 #include <CoreVideo/CVDisplayLink.h>
 #include <ApplicationServices/ApplicationServices.h>
