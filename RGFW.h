@@ -689,10 +689,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 	*/
 	/*!< converts a key code to it's key string */
 	RGFWDEF char* RGFW_keyCodeTokeyStr(u64 key);
-	/*!< converts a string of a key to it's key code */
-	RGFWDEF u32 RGFW_keyStrToKeyCode(char* key);
-	/*!< if key is pressed (key string) */
-#define RGFW_isPressedS(win, key) RGFW_isPressedI(win, RGFW_keyStrToKeyCode(key))
 
 /*! clipboard functions*/
 	RGFWDEF char* RGFW_readClipboard(size_t* size); /*!< read clipboard data */
@@ -1413,42 +1409,12 @@ RGFW_window* RGFW_root = NULL;
 	u8 RGFW_isReleasedI(RGFW_window* win, u32 key) {
 		return (!RGFW_isPressedI(win, key) && RGFW_wasPressedI(win, key));	
 	}
-
+	
 	char* RGFW_keyCodeTokeyStr(u64 key) {
 		static char* keyStrs[128] = {"Escape", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", 	"Backtick", 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 	"-", "=", "BackSpace", "Tab", "CapsLock", "ShiftL", "ControlL", "AltL", "SuperL", "ShiftR", "ControlR", "AltR", "SuperR", " ", 	"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 	".", ",", "-", "[", "]", ";", "Return", "'", "\\", 	"Up", "Down", "Left", "Right", 	"Delete", "Insert", "End", "Home", "PageUp", "PageDown", 	"Numlock", "KP_Slash", "Multiply", "KP_Minus", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "KP_8", "KP_9", "KP_0", "KP_Period", "KP_Return" };
 
 		return keyStrs[key];
 	}
-
-	u32 RGFW_keyStrToKeyCode(char* key) {
-		static char* keyStrs[128] = {"Escape", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", 	"Backtick", 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 	"-", "=", "BackSpace", "Tab", "CapsLock", "ShiftL", "ControlL", "AltL", "SuperL", "ShiftR", "ControlR", "AltR", "SuperR", " ", 	"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 	".", ",", "-", "[", "]", ";", "Return", "'", "\\", 	"Up", "Down", "Left", "Right", 	"Delete", "Insert", "End", "Home", "PageUp", "PageDown", 	"Numlock", "KP_Slash", "Multiply", "KP_Minus", "KP_1", "KP_2", "KP_3", "KP_4", "KP_5", "KP_6", "KP_7", "KP_8", "KP_9", "KP_0", "KP_Period", "KP_Return" };
-		
-		key--;
-		while (key++) {
-			u32 i;
-			for (i = 0; i < 128; i++) {
-				if (*keyStrs[i] == '\1')
-					continue;
-
-				if (*keyStrs[i] != *key) {
-					keyStrs[i] = "\1";
-					continue;
-				}
-
-				if (*keyStrs[i] == '\0' && *key == '\0')
-					return RGFW_apiKeyCodeToRGFW(i);
-
-				else
-					keyStrs[i]++;
-			}
-
-			if (*key == '\0')
-				break;
-		}
-		
-		return 0;
-	}
-
 
 	char RGFW_keystrToChar(const char* str) {
 		if (str[1] == 0)
@@ -1603,11 +1569,7 @@ RGFW_window* RGFW_root = NULL;
 			win->event.frameTime2 = RGFW_getTimeNS();
 		}
 	}
-
-	#ifndef M_PI
-	#define M_PI		3.14159265358979323846	/* pi */
-	#endif
-
+	
 	#if defined(RGFW_X11) || defined(RGFW_MACOS)
 		struct timespec;
 
