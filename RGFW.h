@@ -164,8 +164,6 @@ extern "C" {
 #define _X86_
 #endif
 
-#include <windef.h>
-
 #ifdef __MINGW32__
 #include <xinput.h>
 #else
@@ -244,7 +242,7 @@ extern "C" {
 #endif
 #endif
 
-		/*! Optional arguments for making a windows */
+/*! Optional arguments for making a windows */
 #define RGFW_TRANSPARENT_WINDOW		(1L<<9) /*!< the window is transparent */
 #define RGFW_NO_BORDER		(1L<<3) /*!< the window doesn't have border */
 #define RGFW_NO_RESIZE		(1L<<4) /*!< the window cannot be resized  by the user */
@@ -1211,14 +1209,6 @@ This is the start of keycode data
 		[RGFW_OS_BASED_VALUE(110, 0x24, 116)] = RGFW_Home,
 	};
 
-	#ifdef RGFW_X11
-	u8 RGFW_mouseIconSrc[] = {68, 68, 152, 34, 60, 108, 116, 12, 14, 52, 0};  
-	#elif defined(RGFW_WINDOWS)
-	u32 RGFW_mouseIconSrc[] = {32512, 32512, 32513, 32515, 32649, 32644, 32645, 32642, 32643, 32646, 32648};
-	#elif defined(RGFW_MACOS)
-	char* RGFW_mouseIconSrc[] = {"arrowCursor", "arrowCursor", "IBeamCursor", "crosshairCursor", "pointingHandCursor", "resizeLeftRightCursor", "resizeUpDownCursor", "_windowResizeNorthWestSouthEastCursor", "_windowResizeNorthEastSouthWestCursor", "closedHandCursor", "operationNotAllowedCursor"};
-	#endif
-
 	u8 RGFW_keyboard[128] = { 0 };
 	u8 RGFW_keyboard_prev[128];
 
@@ -1723,32 +1713,17 @@ This is the start of keycode data
 	}
 #endif
 
-	#ifdef RGFW_WINDOWS
-	__declspec(dllimport) u32 __stdcall timeBeginPeriod(u32 uPeriod);
-	#endif
-
 	RGFWDEF RGFW_window* RGFW_window_basic_init(RGFW_rect rect, u16 args);
 	RGFWDEF void RGFW_init_buffer(RGFW_window* win);
 
 	RGFW_window* RGFW_window_basic_init(RGFW_rect rect, u16 args) {
 		RGFW_window* win = (RGFW_window*) RGFW_MALLOC(sizeof(RGFW_window)); /* make a new RGFW struct */
 
-		#ifdef RGFW_WINDOWS
-		timeBeginPeriod(1);
-		#endif
- 
 #ifdef RGFW_ALLOC_DROPFILES
 		win->event.droppedFiles = (char**) RGFW_MALLOC(sizeof(char*) * RGFW_MAX_DROPS);
 		u32 i;
 		for (i = 0; i < RGFW_MAX_DROPS; i++)
 			win->event.droppedFiles[i] = (char*) RGFW_CALLOC(RGFW_MAX_PATH, sizeof(char));
-#endif
-
-#ifdef RGFW_X11 
-		/* open X11 display */
-		/* this is done here so the screen size can be accessed */
-		win->src.display = XOpenDisplay(NULL);
-		assert(win->src.display != NULL);
 #endif
 
 		#ifndef RGFW_X11 
@@ -1773,13 +1748,6 @@ This is the start of keycode data
 		win->event.inFocus = 1;
 		win->event.droppedFilesCount = 0;
 		win->src.joystickCount = 0;
-#ifdef RGFW_MACOS
-		RGFW_window_setMouseDefault(win);
-#endif
-#ifdef RGFW_WINDOWS
-		win->src.maxSize = RGFW_AREA(0, 0);
-		win->src.minSize = RGFW_AREA(0, 0);
-#endif
 		win->src.winArgs = 0;
 
 		return win;
@@ -1789,53 +1757,6 @@ This is the start of keycode data
 		RGFW_monitor monitor = RGFW_window_getMonitor(win);
 
 		RGFW_window_resize(win, RGFW_AREA(((u32) monitor.scaleX) * win->r.w, ((u32) monitor.scaleX) * win->r.h));
-	}
-
-	void RGFW_init_buffer(RGFW_window* win) {
-#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-		RGFW_area area = RGFW_getScreenSize();
-#if !(defined(RGFW_WINDOWS)) || defined(RGFW_OSMESA)
-		win->buffer = RGFW_MALLOC(area.w * area.h * 4);
-#endif
-
-#ifdef RGFW_OSMESA
-		win->src.rSurf = OSMesaCreateContext(OSMESA_RGBA, NULL);
-		OSMesaMakeCurrent(win->src.rSurf, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
-#endif
-#ifdef RGFW_X11
-		win->src.bitmap = XCreateImage(
-			win->src.display, DefaultVisual(win->src.display, XDefaultScreen(win->src.display)),
-			DefaultDepth(win->src.display, XDefaultScreen(win->src.display)),
-			ZPixmap, 0, NULL, area.w, area.h,
-			32, 0
-		);
-#endif
-#ifdef RGFW_WINDOWS
-		BITMAPV5HEADER bi = { 0 };
-		ZeroMemory(&bi, sizeof(bi));
-		bi.bV5Size = sizeof(bi);
-		bi.bV5Width = area.w;
-		bi.bV5Height = -((LONG) area.h);
-		bi.bV5Planes = 1;
-		bi.bV5BitCount = 32;
-		bi.bV5Compression = BI_BITFIELDS;
-		bi.bV5BlueMask = 0x00ff0000;
-		bi.bV5GreenMask = 0x0000ff00;
-		bi.bV5RedMask = 0x000000ff;
-		bi.bV5AlphaMask = 0xff000000;
-
-		win->src.bitmap = CreateDIBSection(win->src.hdc,
-			(BITMAPINFO*) &bi,
-			DIB_RGB_COLORS,
-			(void**) &win->buffer,
-			NULL,
-			(DWORD) 0);
-
-		win->src.hdcMem = CreateCompatibleDC(win->src.hdc);
-#endif
-#else
-RGFW_UNUSED(win); /* if buffer rendering is not being used */
-#endif
 	}
 
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL) || defined(RGFW_OSMESA)
@@ -2231,39 +2152,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 RGFW_window* RGFW_root = NULL;
 
 
-/*
-
-
-Start of Linux / Unix defines
-
-
-*/
-
-#ifdef RGFW_X11
-#include <X11/Xlib.h>
-#ifndef RGFW_NO_X11_CURSOR
-#include <X11/Xcursor/Xcursor.h>
-#endif
-#include <dlfcn.h>
-
-#ifndef RGFW_NO_DPI
-#include <X11/extensions/Xrandr.h>
-#include <X11/Xresource.h>
-#endif
-#endif
-
 #define RGFW_HOLD_MOUSE			(1L<<2) /*!< hold the moues still */
 #define RGFW_MOUSE_LEFT 		(1L<<3) /* if mouse left the window */
-
-#ifdef RGFW_WINDOWS
-#include <processthreadsapi.h>
-#include <wchar.h>
-#include <locale.h>
-#include <windowsx.h>
-#include <shellapi.h>
-#include <shellscalingapi.h>
-#include <windows.h>
-#endif
 
 	void RGFW_clipboardFree(char* str) { RGFW_FREE(str); }
 	
@@ -2408,37 +2298,6 @@ Start of Linux / Unix defines
 	int setenv(const char *name, const char *value, int overwrite);
 
 	u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { return win->src.jsPressed[c][button]; }
-#else
-
-	typedef u64 (WINAPI * PFN_XInputGetState)(DWORD,XINPUT_STATE*);
-	PFN_XInputGetState XInputGetStateSRC = NULL;
-	#define XInputGetState XInputGetStateSRC
-	static HMODULE RGFW_XInput_dll = NULL;
-	
-	u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) {
-		RGFW_UNUSED(win)
-		
-		XINPUT_STATE state;
-		if (XInputGetState == NULL || XInputGetState(c, &state) == ERROR_DEVICE_NOT_CONNECTED)
-			return 0;
-
-		if (button == RGFW_JS_A) return state.Gamepad.wButtons & XINPUT_GAMEPAD_A;
-		else if (button == RGFW_JS_B) return state.Gamepad.wButtons & XINPUT_GAMEPAD_B;
-		else if (button == RGFW_JS_Y) return state.Gamepad.wButtons & XINPUT_GAMEPAD_Y;
-		else if (button == RGFW_JS_X) return state.Gamepad.wButtons & XINPUT_GAMEPAD_X;
-		else if (button == RGFW_JS_START) return state.Gamepad.wButtons & XINPUT_GAMEPAD_START;
-		else if (button == RGFW_JS_SELECT) return state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK;
-		else if (button == RGFW_JS_UP) return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP;
-		else if (button == RGFW_JS_DOWN) return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
-		else if (button == RGFW_JS_LEFT) return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
-		else if (button == RGFW_JS_RIGHT) return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
-		else if (button == RGFW_JS_L1) return state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER;
-		else if (button == RGFW_JS_R1) return state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER;
-		else if (button == RGFW_JS_L2 && state.Gamepad.bLeftTrigger) return 1;
-		else if (button == RGFW_JS_R2 && state.Gamepad.bRightTrigger) return 1;
-
-		return 0;
-	}
 #endif
 
 #ifdef RGFW_OSMESA
@@ -2790,7 +2649,26 @@ void RGFW_OSMesa_reorganize(void) {
 	This is where OS specific stuff starts
 	*/
 
+
+/*
+
+
+Start of Linux / Unix defines
+
+
+*/
+
 #ifdef RGFW_X11
+#ifndef RGFW_NO_X11_CURSOR
+#include <X11/Xcursor/Xcursor.h>
+#endif
+#include <dlfcn.h>
+
+#ifndef RGFW_NO_DPI
+#include <X11/extensions/Xrandr.h>
+#include <X11/Xresource.h>
+#endif
+
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
 #include <X11/keysymdef.h>
@@ -2806,6 +2684,7 @@ void RGFW_OSMesa_reorganize(void) {
 #include <linux/joystick.h>
 #endif
 
+	u8 RGFW_mouseIconSrc[] = { XC_arrow, XC_left_ptr, XC_xterm, XC_crosshair, XC_hand2, XC_sb_h_double_arrow, XC_sb_v_double_arrow, XC_bottom_left_corner, XC_bottom_right_corner, XC_fleur, XC_X_cursor};  
 	/*atoms needed for drag and drop*/
 	Atom XdndAware, XdndTypeList, XdndSelection, XdndEnter, XdndPosition, XdndStatus, XdndLeave, XdndDrop, XdndFinished, XdndActionCopy, XdndActionMove, XdndActionLink, XdndActionAsk, XdndActionPrivate;
 
@@ -2837,6 +2716,28 @@ void RGFW_OSMesa_reorganize(void) {
 #ifdef RGFW_OPENGL
 	void* RGFW_getProcAddress(const char* procname) { return (void*) glXGetProcAddress((GLubyte*) procname); }
 #endif
+
+	void RGFW_init_buffer(RGFW_window* win) {
+#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+		RGFW_area area = RGFW_getScreenSize();
+		win->buffer = RGFW_MALLOC(area.w * area.h * 4);
+
+		#ifdef RGFW_OSMESA
+				win->src.rSurf = OSMesaCreateContext(OSMESA_RGBA, NULL);
+				OSMesaMakeCurrent(win->src.rSurf, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
+		#endif
+
+		win->src.bitmap = XCreateImage(
+			win->src.display, DefaultVisual(win->src.display, XDefaultScreen(win->src.display)),
+			DefaultDepth(win->src.display, XDefaultScreen(win->src.display)),
+			ZPixmap, 0, NULL, area.w, area.h,
+			32, 0
+		);
+
+		#else
+		RGFW_UNUSED(win); /* if buffer rendering is not being used */
+		#endif
+	}
 
 	RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 #if !defined(RGFW_NO_X11_CURSOR) && !defined(RGFW_NO_X11_CURSOR_PRELOAD)
@@ -4288,17 +4189,18 @@ void RGFW_OSMesa_reorganize(void) {
 
 		RGFW_window_checkFPS(win);
 	}
-	
+
+	#if !defined(RGFW_EGL)	
 	void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 		assert(win != NULL);
 
-		#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)		
+		#if defined(RGFW_OPENGL)	
 		((PFNGLXSWAPINTERVALEXTPROC) glXGetProcAddress((GLubyte*) "glXSwapIntervalEXT"))((Display*) win->src.display, (Window) win->src.window, swapInterval);
 		#endif
 
 		win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
-
 	}
+	#endif
 
 	u64 RGFW_getTimeNS(void) { 
 		struct timespec ts = { 0 };
@@ -4330,6 +4232,47 @@ void RGFW_OSMesa_reorganize(void) {
 */
 
 #ifdef RGFW_WINDOWS
+	#include <processthreadsapi.h>
+	#include <wchar.h>
+	#include <locale.h>
+	#include <windowsx.h>
+	#include <shellapi.h>
+	#include <shellscalingapi.h>
+	#include <windows.h>
+	#include <winuser.rh>
+
+	typedef u64 (WINAPI * PFN_XInputGetState)(DWORD,XINPUT_STATE*);
+	PFN_XInputGetState XInputGetStateSRC = NULL;
+	#define XInputGetState XInputGetStateSRC
+	static HMODULE RGFW_XInput_dll = NULL;
+	
+	u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) {
+		RGFW_UNUSED(win)
+		
+		XINPUT_STATE state;
+		if (XInputGetState == NULL || XInputGetState(c, &state) == ERROR_DEVICE_NOT_CONNECTED)
+			return 0;
+
+		if (button == RGFW_JS_A) return state.Gamepad.wButtons & XINPUT_GAMEPAD_A;
+		else if (button == RGFW_JS_B) return state.Gamepad.wButtons & XINPUT_GAMEPAD_B;
+		else if (button == RGFW_JS_Y) return state.Gamepad.wButtons & XINPUT_GAMEPAD_Y;
+		else if (button == RGFW_JS_X) return state.Gamepad.wButtons & XINPUT_GAMEPAD_X;
+		else if (button == RGFW_JS_START) return state.Gamepad.wButtons & XINPUT_GAMEPAD_START;
+		else if (button == RGFW_JS_SELECT) return state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK;
+		else if (button == RGFW_JS_UP) return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP;
+		else if (button == RGFW_JS_DOWN) return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
+		else if (button == RGFW_JS_LEFT) return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
+		else if (button == RGFW_JS_RIGHT) return state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
+		else if (button == RGFW_JS_L1) return state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER;
+		else if (button == RGFW_JS_R1) return state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER;
+		else if (button == RGFW_JS_L2 && state.Gamepad.bLeftTrigger) return 1;
+		else if (button == RGFW_JS_R2 && state.Gamepad.bRightTrigger) return 1;
+
+		return 0;
+	}
+
+	u32 RGFW_mouseIconSrc[] = {OCR_NORMAL, OCR_NORMAL, OCR_IBEAM, OCR_CROSS, OCR_HAND, OCR_SIZEWE, OCR_SIZENS, OCR_SIZENWSE, OCR_SIZENESW, OCR_SIZEALL, OCR_NO};
+
 	char* createUTF8FromWideStringWin32(const WCHAR* source);
 
 #define GL_FRONT				0x0404
@@ -4477,6 +4420,8 @@ static HMODULE wglinstance = NULL;
 	#define GetDpiForMonitor GetDpiForMonitorSRC
 	#endif
 
+	__declspec(dllimport) u32 __stdcall timeBeginPeriod(u32 uPeriod);
+
 	void RGFW_loadXInput(void) {
 		u32 i;
 		static const char* names[] = { 
@@ -4497,6 +4442,41 @@ static HMODULE wglinstance = NULL;
 					printf("Failed to load XInputGetState");
 			}
 		}
+	}
+
+	void RGFW_init_buffer(RGFW_window* win) {
+#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+	RGFW_area area = RGFW_getScreenSize();
+
+	BITMAPV5HEADER bi = { 0 };
+	ZeroMemory(&bi, sizeof(bi));
+	bi.bV5Size = sizeof(bi);
+	bi.bV5Width = area.w;
+	bi.bV5Height = -((LONG) area.h);
+	bi.bV5Planes = 1;
+	bi.bV5BitCount = 32;
+	bi.bV5Compression = BI_BITFIELDS;
+	bi.bV5BlueMask = 0x00ff0000;
+	bi.bV5GreenMask = 0x0000ff00;
+	bi.bV5RedMask = 0x000000ff;
+	bi.bV5AlphaMask = 0xff000000;
+
+	win->src.bitmap = CreateDIBSection(win->src.hdc,
+		(BITMAPINFO*) &bi,
+		DIB_RGB_COLORS,
+		(void**) &win->buffer,
+		NULL,
+		(DWORD) 0);
+
+	win->src.hdcMem = CreateCompatibleDC(win->src.hdc);
+
+	#if defined(RGFW_OSMESA)
+	win->src.rSurf = OSMesaCreateContext(OSMESA_RGBA, NULL);
+	OSMesaMakeCurrent(win->src.rSurf, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
+	#endif
+#else
+RGFW_UNUSED(win); /* if buffer rendering is not being used */
+#endif
 	}
 
 	RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
@@ -4522,12 +4502,17 @@ static HMODULE wglinstance = NULL;
 #endif
 		}
 
+		timeBeginPeriod(1);
+
 		if (name[0] == 0) name = (char*) " ";
 
 		RGFW_eventWindow.r = RGFW_RECT(-1, -1, -1, -1);
 		RGFW_eventWindow.src.window = NULL;
 
 		RGFW_window* win = RGFW_window_basic_init(rect, args);
+
+		win->src.maxSize = RGFW_AREA(0, 0);
+		win->src.minSize = RGFW_AREA(0, 0);
 
 		if (RGFW_root == NULL) {
 			RGFW_root = win;
@@ -5655,16 +5640,18 @@ static HMODULE wglinstance = NULL;
 		SetCursorPos(p.x, p.y);
 	}
 
-
+	#ifdef RGFW_OPENGL
 	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 		assert(win != NULL);
 		wglMakeCurrent(win->src.hdc, (HGLRC) win->src.rSurf);
 	}
+	#endif
 
+	#ifndef RGFW_EGL
 	void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 		assert(win != NULL);
 		
-		#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
+		#if defined(RGFW_OPENGL)
 		typedef BOOL(APIENTRY* PFNWGLSWAPINTERVALEXTPROC)(int interval);
 		static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
 		static void* loadSwapFunc = (void*) 1;
@@ -5687,6 +5674,7 @@ static HMODULE wglinstance = NULL;
 		win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
 
 	}
+	#endif
 
 	void RGFW_window_swapBuffers(RGFW_window* win) {
 		assert(win != NULL);
@@ -5793,6 +5781,7 @@ static HMODULE wglinstance = NULL;
 */
 
 #if defined(RGFW_MACOS)
+	char* RGFW_mouseIconSrc[] = {"arrowCursor", "arrowCursor", "IBeamCursor", "crosshairCursor", "pointingHandCursor", "resizeLeftRightCursor", "resizeUpDownCursor", "_windowResizeNorthWestSouthEastCursor", "_windowResizeNorthEastSouthWestCursor", "closedHandCursor", "operationNotAllowedCursor"};
 
 	void* RGFWnsglFramework = NULL;
 
@@ -5972,6 +5961,21 @@ static HMODULE wglinstance = NULL;
 		}
 	}
 
+
+	void RGFW_init_buffer(RGFW_window* win) {
+		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+			RGFW_area area = RGFW_getScreenSize();
+			win->buffer = RGFW_MALLOC(area.w * area.h * 4);
+
+		#ifdef RGFW_OSMESA
+				win->src.rSurf = OSMesaCreateContext(OSMESA_RGBA, NULL);
+				OSMesaMakeCurrent(win->src.rSurf, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
+		#endif
+		#else
+		RGFW_UNUSED(win); /* if buffer rendering is not being used */
+		#endif
+	}
+
 	NSPasteboardType const NSPasteboardTypeURL = "public.url";
 	NSPasteboardType const NSPasteboardTypeFileURL  = "public.file-url";
 
@@ -5995,6 +5999,8 @@ static HMODULE wglinstance = NULL;
 		}
 
 		RGFW_window* win = RGFW_window_basic_init(rect, args);
+		
+		RGFW_window_setMouseDefault(win);
 
 		NSRect windowRect;
 		windowRect.origin.x = win->r.x;
@@ -6794,22 +6800,24 @@ static HMODULE wglinstance = NULL;
 		return win->src.joystickCount - 1;
 	}
 
-
+	#ifndef RGFW_OPENGL
 	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 		assert(win != NULL);
 		objc_msgSend_void(win->src.rSurf, sel_registerName("makeCurrentContext"));
 	}
+	#endif
 
-
+	#if !defined(RGFW_EGL)
 	void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 		assert(win != NULL);
-		#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
+		#if defined(RGFW_OPENGL)
 		
 		NSOpenGLContext_setValues(win->src.rSurf, &swapInterval, 222);
 		#endif
 
 		win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
 	}
+	#endif
 	
 	void RGFW_window_swapBuffers(RGFW_window* win) {
 		assert(win != NULL);
