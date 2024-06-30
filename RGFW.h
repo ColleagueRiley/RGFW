@@ -6322,72 +6322,32 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				u32 flags = objc_msgSend_uint(e, sel_registerName("modifierFlags"));
 				memcpy(RGFW_keyboard_prev + RGFW_CapsLock, RGFW_keyboard + RGFW_CapsLock, 9);
 
-				if ((flags & NSEventModifierFlagCapsLock) && !RGFW_wasPressedI(win, RGFW_CapsLock)) {
-					RGFW_keyboard[RGFW_CapsLock] = 1;
-					win->event.type = RGFW_keyPressed;
-					win->event.keyCode = RGFW_apiKeyCodeToRGFW(57);
-					break;
-				} if (!(flags & NSEventModifierFlagCapsLock) && RGFW_wasPressedI(win, RGFW_CapsLock)) {
-					RGFW_keyboard[RGFW_CapsLock] = 0;
-					win->event.type = RGFW_keyReleased;
-					win->event.keyCode = RGFW_apiKeyCodeToRGFW(57);
-					break;
-				}
+				u8 i; 
+				for (i = 0; i < 5; i++) {
+					u32 shift = (1 << (i + 16));
+					u32 key = i + RGFW_CapsLock;
 
-				if ((flags & NSEventModifierFlagOption) && !RGFW_wasPressedI(win, RGFW_AltL)) {
-					RGFW_keyboard[RGFW_AltL] = 1;
-					RGFW_keyboard[RGFW_AltR] = 1;
-					win->event.type = RGFW_keyPressed;
-					win->event.keyCode = RGFW_apiKeyCodeToRGFW(58);
-					break;
-				} if (!(flags & NSEventModifierFlagOption) && RGFW_wasPressedI(win, RGFW_AltL)) {
-					RGFW_keyboard[RGFW_AltL] = 0;
-					RGFW_keyboard[RGFW_AltR] = 0;
-					win->event.type = RGFW_keyReleased;
-					win->event.keyCode = RGFW_apiKeyCodeToRGFW(58);
-					break;
-				} 
+					if ((flags & shift) && !RGFW_wasPressedI(win, key)) {
+						RGFW_keyboard[key] = 1;
 
-				if ((flags & NSEventModifierFlagControl) && !RGFW_wasPressedI(win, RGFW_ControlL)) {
-					RGFW_keyboard[RGFW_ControlL] = 1;
-					RGFW_keyboard[RGFW_ControlR] = 1;
-					win->event.type = RGFW_keyPressed;
-					win->event.keyCode = RGFW_apiKeyCodeToRGFW(59);
-					break;
-				} if (!(flags & NSEventModifierFlagControl) && RGFW_wasPressedI(win, RGFW_ControlL)) {
-					RGFW_keyboard[RGFW_ControlL] = 0;
-					RGFW_keyboard[RGFW_ControlR] = 0;
-					win->event.type = RGFW_keyReleased;
-					win->event.keyCode = 59;
-					break;
-				}
+						if (key != RGFW_CapsLock)
+							RGFW_keyboard[key + 4] = 1;
+						
+						win->event.type = RGFW_keyPressed;
+						win->event.keyCode = key;
+						break;
+					} 
+					
+					if (!(flags & shift) && RGFW_wasPressedI(win, key)) {
+						RGFW_keyboard[key] = 0;
+						
+						if (key != RGFW_CapsLock)
+							RGFW_keyboard[key + 4] = 0;
 
-				if ((flags & NSEventModifierFlagCommand) && !RGFW_wasPressedI(win, RGFW_SuperL)) {
-					RGFW_keyboard[RGFW_SuperL] = 1;
-					RGFW_keyboard[RGFW_SuperR] = 1;
-					win->event.type = RGFW_keyPressed;
-					win->event.keyCode = RGFW_apiKeyCodeToRGFW(55);
-					break;
-				} if (!(flags & NSEventModifierFlagCommand) && RGFW_wasPressedI(win, RGFW_SuperL)) {
-					RGFW_keyboard[RGFW_SuperL] = 0;
-					RGFW_keyboard[RGFW_SuperR] = 0;
-					win->event.type = RGFW_keyReleased;
-					win->event.keyCode = RGFW_apiKeyCodeToRGFW(55);
-					break;
-				} 
-
-				if ((flags & NSEventModifierFlagShift) && !RGFW_wasPressedI(win, RGFW_ShiftL)) {
-					RGFW_keyboard[RGFW_ShiftL] = 1;
-					RGFW_keyboard[RGFW_ShiftR] = 1;
-					win->event.type = RGFW_keyPressed;
-					win->event.keyCode = RGFW_apiKeyCodeToRGFW(56);
-					break;
-				} if (!(flags & NSEventModifierFlagShift) && RGFW_wasPressedI(win, RGFW_ShiftL)) {
-					RGFW_keyboard[RGFW_ShiftL] = 0;
-					RGFW_keyboard[RGFW_ShiftR] = 0;
-					win->event.type = RGFW_keyReleased;
-					win->event.keyCode = RGFW_apiKeyCodeToRGFW(56);
-					break;
+						win->event.type = RGFW_keyReleased;
+						win->event.keyCode = key;
+						break;
+					}
 				}
 
 				if (win->event.type == RGFW_keyPressed) {
