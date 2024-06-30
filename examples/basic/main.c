@@ -32,6 +32,8 @@ int main(void) {
     
     RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
 
+    RGFW_setWindowRefreshCallback(refreshCallback);
+
     RGFW_window_swapInterval(win, 1);
     #ifdef RGFW_MACOS
     win2 = RGFW_createWindow("subwindow", RGFW_RECT(200, 200, 200, 200), 0);
