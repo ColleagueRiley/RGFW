@@ -5412,32 +5412,15 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #define objc_msgSend_void_SEL		((void (*)(id, SEL, SEL))objc_msgSend)
 #define objc_msgSend_id				((id (*)(id, SEL))objc_msgSend)
 
-#define si_declare_single(class, name, func)	\
-	void class##_##name(class* obj) { \
-		return objc_msgSend_void(obj, sel_registerName(func)); \
-	}
-
-
-#define loadFunc(funcName) \
-	static void* func = NULL;\
-	if (func == NULL) \
-		func = sel_registerName(funcName);
-
 	void NSRelease(id obj) {
-		loadFunc("release");
-		objc_msgSend_void(obj, func);
+		objc_msgSend_void(obj, sel_registerName("release"));
 	}
 
-#define release NSRelease
+	#define release NSRelease
 
-	si_declare_single(NSApplication, finishLaunching, "finishLaunching")
-		si_declare_single(NSOpenGLContext, flushBuffer, "flushBuffer")
-
-		NSString* NSString_stringWithUTF8String(const char* str) {
-		loadFunc("stringWithUTF8String:");
-
+	NSString* NSString_stringWithUTF8String(const char* str) {	
 		return ((id(*)(id, SEL, const char*))objc_msgSend)
-			((id)objc_getClass("NSString"), func, str);
+			((id)objc_getClass("NSString"), loadFunc("stringWithUTF8String:"), str);
 	}
 
 	const char* NSString_to_char(NSString* str) {
@@ -6075,7 +6058,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		objc_msgSend_void(win->src.window, sel_registerName("makeKeyWindow"));
 
-		NSApplication_finishLaunching(NSApp);
+		objc_msgSend_void(NSApp, sel_registerName("finishLaunching"));
 
 		RGFW_windows_size++;
 
@@ -6350,12 +6333,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 					}
 				}
 
-				if (win->event.type == RGFW_keyPressed) {
-					RGFW_keyCallback(win, win->event.keyCode, win->event.keyName, win->event.lockState, 1);
-				}
-				else if (win->event.type == RGFW_keyReleased) {
-					RGFW_keyCallback(win, win->event.keyCode, win->event.keyName, win->event.lockState, 0);
-				}
+				RGFW_keyCallback(win, win->event.keyCode, win->event.keyName, win->event.lockState, win->event.type == RGFW_keyPressed);
 
 				break;
 			}
@@ -6765,7 +6743,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			#ifdef RGFW_EGL
 					eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
 			#elif defined(RGFW_OPENGL)
-					NSOpenGLContext_flushBuffer(win->src.rSurf);
+					objc_msgSend_void(win->src.rSurf, sel_registerName("flushBuffer"));
 			#endif
 		}
 
