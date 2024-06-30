@@ -3877,6 +3877,11 @@ Start of Linux / Unix defines
 	typedef u64 (WINAPI * PFN_XInputGetState)(DWORD,XINPUT_STATE*);
 	PFN_XInputGetState XInputGetStateSRC = NULL;
 	#define XInputGetState XInputGetStateSRC
+
+	typedef u64 (WINAPI * PFN_XInputGetKeystroke)(DWORD, DWORD, PXINPUT_KEYSTROKE);
+	PFN_XInputGetKeystroke XInputGetKeystrokeSRC = NULL;
+	#define XInputGetKeystroke XInputGetKeystrokeSRC
+
 	static HMODULE RGFW_XInput_dll = NULL;
 
 	u32 RGFW_mouseIconSrc[] = {OCR_NORMAL, OCR_NORMAL, OCR_IBEAM, OCR_CROSS, OCR_HAND, OCR_SIZEWE, OCR_SIZENS, OCR_SIZENWSE, OCR_SIZENESW, OCR_SIZEALL, OCR_NO};
@@ -4398,116 +4403,52 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 
 	u8 RGFW_xinput2RGFW[] = {
-		RGFW_JS_UP,
-		RGFW_JS_DOWN,
-		RGFW_JS_LEFT,
-		RGFW_JS_RIGHT,
-		RGFW_JS_START,
-		RGFW_JS_SELECT,
-		0, 0,
-		RGFW_JS_L1,
-		RGFW_JS_R1,
-		RGFW_JS_A,
-		RGFW_JS_B,
-		RGFW_JS_Y,
-		RGFW_JS_X,
-		RGFW_JS_HOME,
-		RGFW_JS_L2,
-		RGFW_JS_R2
+		RGFW_JS_A, /* or PS X button */
+		RGFW_JS_B, /* or PS circle button */
+		RGFW_JS_X, /* or PS square button */
+		RGFW_JS_Y, /* or PS triangle button */
+		RGFW_JS_R1, /* right bumper */
+		RGFW_JS_L1, /* left bump */
+		RGFW_JS_L2, /* left trigger*/
+		RGFW_JS_R2, /* right trigger */
+		0, 0, 0, 0, 0, 0, 0, 0,
+		RGFW_JS_UP, /* dpad up */
+		RGFW_JS_DOWN, /* dpad down*/
+		RGFW_JS_LEFT, /* dpad left */
+		RGFW_JS_RIGHT, /* dpad right */
+		RGFW_JS_START, /* start button */
+		RGFW_JS_SELECT/* select button */
 	};
 
 	static i32 RGFW_checkXInput(RGFW_Event* e) {
-		static WORD buttons[4];
-		static BYTE triggers[4][2] = { {0, 0}, {0, 0}, {0, 0}, {0, 0} };
-
 		size_t i;
 		for (i = 0; i < 4; i++) {
+			XINPUT_KEYSTROKE keystroke;
+
+			if (XInputGetKeystroke == NULL)
+				return 0;
+
+			DWORD result = XInputGetKeystroke((DWORD)i, 0, &keystroke);
+
+			if ((keystroke.Flags & XINPUT_KEYSTROKE_REPEAT) == 0 && result != ERROR_EMPTY) {
+				if (result != ERROR_SUCCESS)
+					return 0;
+
+				if (keystroke.VirtualKey > VK_PAD_BACK)
+					continue;
+
+				// RGFW_jsButtonPressed + 1 = RGFW_jsButtonReleased
+				e->type = RGFW_jsButtonPressed + !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
+				e->button = RGFW_xinput2RGFW[keystroke.VirtualKey - 0x5800];
+
+				return 1;
+			}
+
 			XINPUT_STATE state;
 			if (XInputGetState == NULL ||
 				XInputGetState((DWORD) i, &state) == ERROR_DEVICE_NOT_CONNECTED
 			)
 				return 0;
-
-			e->button = 0;
-			if (state.Gamepad.wButtons & XINPUT_GAMEPAD_A && !(buttons[i] & XINPUT_GAMEPAD_A)) {
-				e->button = RGFW_JS_A;
-				e->type = RGFW_jsButtonPressed;
-				buttons[i] = state.Gamepad.wButtons;
-				return 1;
-			} else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_B && !(buttons[i] & XINPUT_GAMEPAD_B))
-				e->button = RGFW_JS_B;
-			else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y && !(buttons[i] & XINPUT_GAMEPAD_Y))
-				e->button = RGFW_JS_Y;
-			else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_X && !(buttons[i] & XINPUT_GAMEPAD_X))
-				e->button = RGFW_JS_X;
-			else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_START && !(buttons[i] & XINPUT_GAMEPAD_START))
-				e->button = RGFW_JS_START;
-			else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK && !(buttons[i] & XINPUT_GAMEPAD_BACK))
-				e->button = RGFW_JS_SELECT;
-			else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP && !(buttons[i] & XINPUT_GAMEPAD_DPAD_UP))
-				e->button = RGFW_JS_UP;
-			else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN && !(buttons[i] & XINPUT_GAMEPAD_DPAD_DOWN))
-				e->button = RGFW_JS_DOWN;
-			else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT && !(buttons[i] & XINPUT_GAMEPAD_DPAD_LEFT))
-				e->button = RGFW_JS_LEFT;
-			else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT && !(buttons[i] & XINPUT_GAMEPAD_DPAD_RIGHT))
-				e->button = RGFW_JS_RIGHT;
-			else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER && !(buttons[i] & XINPUT_GAMEPAD_LEFT_SHOULDER))
-				e->button = RGFW_JS_L1;
-			else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER && !(buttons[i] & XINPUT_GAMEPAD_RIGHT_SHOULDER))
-				e->button = RGFW_JS_R1;
-			else if (state.Gamepad.bLeftTrigger && triggers[i][0] == 0)
-				e->button = RGFW_JS_L2;
-			else if (state.Gamepad.bRightTrigger && triggers[i][1] == 0)
-				e->button = RGFW_JS_R2;
-
-			triggers[i][0] = state.Gamepad.bLeftTrigger;
-			triggers[i][1] = state.Gamepad.bRightTrigger;
-
-			if (e->button) {
-				buttons[i] = state.Gamepad.wButtons;
-				e->type = RGFW_jsButtonPressed;
-				return 1;
-			}
-
-			if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_A) && (buttons[i] & XINPUT_GAMEPAD_A)) {
-				e->button = RGFW_JS_A;
-				e->type = RGFW_jsButtonReleased;
-				buttons[i] = state.Gamepad.wButtons;
-				return 1;
-			} else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_B) && (buttons[i] & XINPUT_GAMEPAD_B))
-				e->button = RGFW_JS_B;
-			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) && (buttons[i] & XINPUT_GAMEPAD_Y))
-				e->button = RGFW_JS_Y;
-			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_X) && (buttons[i] & XINPUT_GAMEPAD_X))
-				e->button = RGFW_JS_X;
-			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_START) && (buttons[i] & XINPUT_GAMEPAD_START))
-				e->button = RGFW_JS_START;
-			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) && (buttons[i] & XINPUT_GAMEPAD_BACK))
-				e->button = RGFW_JS_SELECT;
-			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) && (buttons[i] & XINPUT_GAMEPAD_DPAD_UP))
-				e->button = RGFW_JS_UP;
-			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) && (buttons[i] & XINPUT_GAMEPAD_DPAD_DOWN))
-				e->button = RGFW_JS_DOWN;
-			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) && (buttons[i] & XINPUT_GAMEPAD_DPAD_LEFT))
-				e->button = RGFW_JS_LEFT;
-			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) && (buttons[i] & XINPUT_GAMEPAD_DPAD_RIGHT))
-				e->button = RGFW_JS_RIGHT;
-			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) && (buttons[i] & XINPUT_GAMEPAD_LEFT_SHOULDER))
-				e->button = RGFW_JS_L1;
-			else if (!(state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) && (buttons[i] & XINPUT_GAMEPAD_RIGHT_SHOULDER))
-				e->button = RGFW_JS_R1;
-			else if (state.Gamepad.bLeftTrigger == 0 && triggers[i][0] != 0)
-				e->button = RGFW_JS_L2;
-			else if (state.Gamepad.bRightTrigger == 0 && triggers[i][1] != 0)
-				e->button = RGFW_JS_R2;
-			
-			buttons[i] = state.Gamepad.wButtons;
-
-			if (e->button) {
-				e->type = RGFW_jsButtonReleased;
-				return 1;
-			}
 #define INPUT_DEADZONE  ( 0.24f * (float)(0x7FFF) )  // Default to 24% of the +/- 32767 range.   This is a reasonable default value but can be altered if needed.
 
 			if ((state.Gamepad.sThumbLX < INPUT_DEADZONE &&
