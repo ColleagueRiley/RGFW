@@ -5420,7 +5420,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 	NSString* NSString_stringWithUTF8String(const char* str) {	
 		return ((id(*)(id, SEL, const char*))objc_msgSend)
-			((id)objc_getClass("NSString"), loadFunc("stringWithUTF8String:"), str);
+			((id)objc_getClass("NSString"), sel_registerName("stringWithUTF8String:"), str);
 	}
 
 	const char* NSString_to_char(NSString* str) {
