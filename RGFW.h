@@ -6337,7 +6337,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 						RGFW_keyboard[key].current = 1;
 
 						if (key != RGFW_CapsLock)
-							RGFW_keyboard[key .current+ 4] = 1;
+							RGFW_keyboard[key+ 4].current = 1;
 						
 						win->event.type = RGFW_keyPressed;
 						win->event.keyCode = key;
@@ -6348,7 +6348,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 						RGFW_keyboard[key].current = 0;
 						
 						if (key != RGFW_CapsLock)
-							RGFW_keyboard[key .current+ 4] = 0;
+							RGFW_keyboard[key + 4].current = 0;
 
 						win->event.type = RGFW_keyReleased;
 						win->event.keyCode = key;
