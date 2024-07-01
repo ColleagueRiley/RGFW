@@ -685,10 +685,10 @@ typedef struct { i32 x, y; } RGFW_vector;
 	/*!< if window == NULL, it checks if the key is pressed globally. Otherwise, it checks only if the key is pressed while the window in focus.*/
 	RGFWDEF u8 RGFW_isPressed(RGFW_window* win, u8 key); /*!< if key is pressed (key code)*/
 
-	RGFWDEF u8 RGFW_wasPressedI(RGFW_window* win, u8 key); /*!< if key was pressed (checks prev keymap only) (key code)*/
+	RGFWDEF u8 RGFW_wasPressed(RGFW_window* win, u8 key); /*!< if key was pressed (checks prev keymap only) (key code)*/
 
-	RGFWDEF u8 RGFW_isHeldI(RGFW_window* win, u8 key); /*!< if key is held (key code)*/
-	RGFWDEF u8 RGFW_isReleasedI(RGFW_window* win, u8 key); /*!< if key is released (key code)*/
+	RGFWDEF u8 RGFW_isHeld(RGFW_window* win, u8 key); /*!< if key is held (key code)*/
+	RGFWDEF u8 RGFW_isReleased(RGFW_window* win, u8 key); /*!< if key is released (key code)*/
 
 	RGFWDEF u8 RGFW_isClicked(RGFW_window* win, u8 key);
 
@@ -1387,22 +1387,22 @@ RGFW_window* RGFW_root = NULL;
 		return RGFW_keyboard[key].current;
 	}
 
-	u8 RGFW_wasPressedI(RGFW_window* win, u8 key) {
+	u8 RGFW_wasPressed(RGFW_window* win, u8 key) {
 		RGFW_UNUSED(win);
 
 		return RGFW_keyboard[key].prev;
 	}
 
-	u8 RGFW_isHeldI(RGFW_window* win, u8 key) {
-		return (RGFW_isPressed(win, key) && RGFW_wasPressedI(win, key));
+	u8 RGFW_isHeld(RGFW_window* win, u8 key) {
+		return (RGFW_isPressed(win, key) && RGFW_wasPressed(win, key));
 	}
 
 	u8 RGFW_isClicked(RGFW_window* win, u8 key) {
-		return (RGFW_isPressed(win, key) && !RGFW_wasPressedI(win, key));
+		return (RGFW_isPressed(win, key) && !RGFW_wasPressed(win, key));
 	}
 
-	u8 RGFW_isReleasedI(RGFW_window* win, u8 key) {
-		return (!RGFW_isPressed(win, key) && RGFW_wasPressedI(win, key));	
+	u8 RGFW_isReleased(RGFW_window* win, u8 key) {
+		return (!RGFW_isPressed(win, key) && RGFW_wasPressed(win, key));	
 	}
 	
 	void RGFW_window_makeCurrent(RGFW_window* win) {
@@ -6333,7 +6333,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 					u32 shift = (1 << (i + 16));
 					u32 key = i + RGFW_CapsLock;
 
-					if ((flags & shift) && !RGFW_wasPressedI(win, key)) {
+					if ((flags & shift) && !RGFW_wasPressed(win, key)) {
 						RGFW_keyboard[key].current = 1;
 
 						if (key != RGFW_CapsLock)
@@ -6344,7 +6344,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 						break;
 					} 
 					
-					if (!(flags & shift) && RGFW_wasPressedI(win, key)) {
+					if (!(flags & shift) && RGFW_wasPressed(win, key)) {
 						RGFW_keyboard[key].current = 0;
 						
 						if (key != RGFW_CapsLock)
