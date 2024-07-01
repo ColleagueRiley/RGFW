@@ -51,7 +51,7 @@ int main(void) {
 
     RGFW_window_setMouseStandard(win, RGFW_MOUSE_RESIZE_NESW);
 
-    while (running && !RGFW_isPressedI(win, RGFW_Escape)) {   
+    while (running && RGFW_isPressed(win, RGFW_Escape)) {   
         #ifdef __APPLE__
         RGFW_window_checkEvent(win2);
         #endif
@@ -67,20 +67,20 @@ int main(void) {
                 running = 0;  
                 break;
             }
-            if (RGFW_isPressedI(win, RGFW_Up)) {
+            if (RGFW_isPressed(win, RGFW_Up)) {
                 char* str = RGFW_readClipboard(NULL);
                 printf("Pasted : %s\n", str);
                 free(str);
             }
-            else if (RGFW_isPressedI(win, RGFW_Down))
+            else if (RGFW_isPressed(win, RGFW_Down))
                 RGFW_writeClipboard("DOWN", 4);
-            else if (RGFW_isPressedI(win, RGFW_Space))
+            else if (RGFW_isPressed(win, RGFW_Space))
                 printf("fps : %i\n", win->event.fps);
-            else if (RGFW_isPressedI(win, RGFW_w))
+            else if (RGFW_isPressed(win, RGFW_w))
                 RGFW_window_setMouseDefault(win);
-            else if (RGFW_isPressedI(win, RGFW_q))
+            else if (RGFW_isPressed(win, RGFW_q))
                 RGFW_window_showMouse(win, 0);
-            else if (RGFW_isPressedI(win, RGFW_t)) {
+            else if (RGFW_isPressed(win, RGFW_t)) {
                 RGFW_window_setMouse(win, icon, RGFW_AREA(3, 3), 4);
             }   
 

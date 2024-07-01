@@ -37,7 +37,7 @@ void mouseNotifyfunc(RGFW_window* win, RGFW_vector point, u8 status) {
 }
 
 void mouseposfunc(RGFW_window* win, RGFW_vector point) {
-    if (window != win || RGFW_isPressedI(win, RGFW_ControlL) == 0) return;
+    if (window != win || RGFW_isPressed(win, RGFW_ControlL) == 0) return;
     printf("mouse moved %i %i\n", point.x, point.y);
 }
 

@@ -291,7 +291,7 @@ int main(void) {
     createGraphicsPipeline(win);
 
     u8 running = 1;
-    while (running && !RGFW_isPressedI(win, RGFW_Escape)) {
+    while (running && !RGFW_isPressed(win, RGFW_Escape)) {
         while (RGFW_window_checkEvent(win)) {
             if (win->event.type == RGFW_quit) {
                 running = 0;

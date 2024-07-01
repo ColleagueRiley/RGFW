@@ -71,7 +71,7 @@ int main(void) {
     i8 running = 1;
     while (running) {
         while (RGFW_window_checkEvent(win)) {
-            if (win->event.type == RGFW_quit || RGFW_isPressedI(win, RGFW_Escape)) {
+            if (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_Escape)) {
                 running = 0;
                 break;
             }
