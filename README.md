@@ -21,7 +21,7 @@ By default RGFW uses a flexible event system, similar to that of SDL, however yo
 
 This library
 
-1) is single header and portable (written in C89 in mind)
+1) is single header and portable (written in C99 in mind)
 2) is very small compared to other libraries
 3) only depends on system API libraries, Winapi, X11, Cocoa
 4) lets you create a window with a graphics context (OpenGL, Vulkan or DirectX) and manage the window and its events only with a few function calls 
