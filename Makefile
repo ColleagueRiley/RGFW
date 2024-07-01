@@ -96,6 +96,10 @@ debug: examples/*/main.c ./RGFW.h
 	$(CC) examples/vk10/main.c $(LIBS) $(VULAKN_LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -D RGFW_DEBUG -o examples/vk10/vk10
 	./examples/vk10/vk10$(EXT)
 
+performance-checker:
+	$(CC) examples/performance-checker/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o examples/performance-checker/performance-checker
+	./examples/performance-checker/performance-checker$(EXT)
+
 vulkan_shaders:
 	glslangValidator -V examples/vk10/shaders/vert.vert -o examples/vk10/shaders/vert.h --vn vert_code
 	glslangValidator -V examples/vk10/shaders/frag.frag -o examples/vk10/shaders/frag.h --vn frag_code
