@@ -547,6 +547,9 @@ typedef struct { i32 x, y; } RGFW_vector;
 	typedef void* RGFW_thread; /* thread type for window */
 #endif
 
+	/* this has to be set before createWindow is called, else the fulscreen size is used */
+	RGFWDEF void RGFW_setBufferSize(RGFW_area size); /* the buffer cannot be resized (by RGFW) */
+
 	RGFW_window* RGFW_createWindow(
 		const char* name, /* name of the window */
 		RGFW_rect rect, /* rect of window */
@@ -1287,17 +1290,13 @@ MacOS -> windows and linux already don't have keycodes as macros, so there's no 
 #define ADD_ATTRIB(a) { \
     assert(((size_t) index + 1) < sizeof(attribs) / sizeof(attribs[0])); \
     attribs[index++] = a; \
-}
-
-#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
-	void RGFW_window_showMouse(RGFW_window* win, i8 show) {
-		static u8 RGFW_blk[] = { 0, 0, 0, 0 };
-		if (show == 0)
-			RGFW_window_setMouse(win, RGFW_blk, RGFW_AREA(1, 1), 4);
-		else
-			RGFW_window_setMouseDefault(win);
+}	
+	
+	RGFW_area RGFW_bufferSize = {0, 0};
+	void RGFW_setBufferSize(RGFW_area size) {
+		RGFW_bufferSize = size;
 	}
-#endif
+
 
 	RGFWDEF RGFW_window* RGFW_window_basic_init(RGFW_rect rect, u16 args);
 	RGFWDEF void RGFW_init_buffer(RGFW_window* win);
@@ -1493,6 +1492,16 @@ RGFW_window* RGFW_root = NULL;
 	
 	u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { return win->src.jsPressed[c][button]; }
 	
+	#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
+		void RGFW_window_showMouse(RGFW_window* win, i8 show) {
+			static u8 RGFW_blk[] = { 0, 0, 0, 0 };
+			if (show == 0)
+				RGFW_window_setMouse(win, RGFW_blk, RGFW_AREA(1, 1), 4);
+			else
+				RGFW_window_setMouseDefault(win);
+		}
+	#endif
+
 	#if defined(RGFW_X11) || defined(RGFW_MACOS)
 		struct timespec;
 
@@ -2332,8 +2341,10 @@ Start of Linux / Unix defines
 
 	void RGFW_init_buffer(RGFW_window* win) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-		RGFW_area area = RGFW_getScreenSize();
-		win->buffer = RGFW_MALLOC(area.w * area.h * 4);
+		if (RGFW_bufferSize.w == 0 && RGFW_bufferSize.h == 0)
+			RGFW_bufferSize = RGFW_getScreenSize();
+		
+		win->buffer = RGFW_MALLOC(RGFW_bufferSize.w * RGFW_bufferSize.h * 4);
 
 		#ifdef RGFW_OSMESA
 				win->src.rSurf = OSMesaCreateContext(OSMESA_RGBA, NULL);
@@ -2343,7 +2354,7 @@ Start of Linux / Unix defines
 		win->src.bitmap = XCreateImage(
 			win->src.display, DefaultVisual(win->src.display, XDefaultScreen(win->src.display)),
 			DefaultDepth(win->src.display, XDefaultScreen(win->src.display)),
-			ZPixmap, 0, NULL, area.w, area.h,
+			ZPixmap, 0, NULL, RGFW_bufferSize.w, RGFW_bufferSize.h,
 			32, 0
 		);
 
@@ -2420,12 +2431,14 @@ Start of Linux / Unix defines
 
 		u32 valuemask = CWBorderPixel | CWColormap;
 #else
-		XVisualInfo* vi = (XVisualInfo*) RGFW_MALLOC(sizeof(XVisualInfo));
-		vi->screen = DefaultScreen((Display*) win->src.display);
-		vi->visual = DefaultVisual((Display*) win->src.display, vi->screen);
+		XVisualInfo viNorm;
+		viNorm.screen = DefaultScreen((Display*) win->src.display);
+		viNorm.visual = DefaultVisual((Display*) win->src.display, viNorm.screen);
 
-		vi->depth = 0;
+		viNorm.depth = 0;
 		u32 valuemask = 0;
+
+		XVisualInfo* vi = &viNorm;
 #endif
 
 		/* make X window attrubutes*/
@@ -2450,7 +2463,9 @@ Start of Linux / Unix defines
 		if (args & RGFW_TRANSPARENT_WINDOW)
 			XMatchVisualInfo((Display*) win->src.display, DefaultScreen((Display*) win->src.display), 32, TrueColor, vi); /* for RGBA backgrounds*/
 
+		#ifdef RGFW_OPENGL
 		XFree(vi);
+		#endif
 
 		if ((args & RGFW_NO_INIT_API) == 0) {
 #ifdef RGFW_OPENGL
@@ -2761,10 +2776,6 @@ Start of Linux / Unix defines
 				break;
 			}
 			
-
-			if ((win->src.winArgs & RGFW_ALLOW_DND) == 0)
-				break;
-
 			/* reset DND values */
 			if (win->event.droppedFilesCount) {
 				for (i = 0; i < win->event.droppedFilesCount; i++)
@@ -2777,10 +2788,14 @@ Start of Linux / Unix defines
 				much of this event (drag and drop code) is source from glfw
 			*/
 
-			u8 formFree = 0;
+			if ((win->src.winArgs & RGFW_ALLOW_DND) == 0)
+				break;
+
 			if (E.xclient.message_type == XdndEnter) {
 				u64 count;
-				Atom* formats = (Atom*) 0;
+				Atom* formats;
+				Atom real_formats[6];
+
 				Bool list = E.xclient.data.l[1] & 1;
 
 				xdnd.source = E.xclient.data.l[0];
@@ -2808,17 +2823,16 @@ Start of Linux / Unix defines
 						(unsigned long*) &bytesAfter,
 						(u8**) &formats);
 				} else {
-					formats = (Atom*) RGFW_MALLOC(E.xclient.data.l[2] + E.xclient.data.l[3] + E.xclient.data.l[4]);
-					formFree = 1;
-
 					count = 0;
 
 					if (E.xclient.data.l[2] != None)
-						formats[count++] = E.xclient.data.l[2];
+						real_formats[count++] = E.xclient.data.l[2];
 					if (E.xclient.data.l[3] != None)
-						formats[count++] = E.xclient.data.l[3];
+						real_formats[count++] = E.xclient.data.l[3];
 					if (E.xclient.data.l[4] != None)
-						formats[count++] = E.xclient.data.l[4];
+						real_formats[count++] = E.xclient.data.l[4];
+					
+					formats = real_formats;
 				}
 
 				u32 i;
@@ -2826,37 +2840,28 @@ Start of Linux / Unix defines
 					char* name = XGetAtomName((Display*) win->src.display, formats[i]);
 
 					char* links[2] = { (char*) (const char*) "text/uri-list", (char*) (const char*) "text/plain" };
-					while (1) {
+					for (; 1; name++) {
 						u32 j;
 						for (j = 0; j < 2; j++) {
 							if (*links[j] != *name) {
 								links[j] = (char*) (const char*) "\1";
-								name++;
 								continue;
 							}
 
 							if (*links[j] == '\0' && *name == '\0')
 								xdnd.format = formats[i];
 
-							if (*links[j] > 1)
+							if (*links[j] != '\0' && *links[j] != '\1')
 								links[j]++;
 						}
 
 						if (*name == '\0')
 							break;
-
-						name++;
 					}
 				}
 
-				if (list && formats) {
+				if (list) {
 					XFree(formats);
-					formats = (Atom*) 0;
-				} else if (formFree && formats != (Atom*) 0) {
-					RGFW_FREE(formats);
-
-					formats = (Atom*) 0;
-					formFree = 1;
 				}
 
 				break;
@@ -2993,23 +2998,18 @@ Start of Linux / Unix defines
 
 				size_t index = 0;
 				while (*line) {
-					if (index >= RGFW_MAX_PATH)
-						break;
-
 					if (line[0] == '%' && line[1] && line[2]) {
 						const char digits[3] = { line[1], line[2], '\0' };
 						path[index] = (char) strtol(digits, NULL, 16);
 						line += 2;
 					} else
 						path[index] = *line;
-					
+
 					index++;
 					line++;
 				}
-
 				path[index] = '\0';
-				strncpy(win->event.droppedFiles[win->event.droppedFilesCount - 1], path, index);
-				win->event.droppedFiles[win->event.droppedFilesCount - 1][index] = '\0';
+				strcpy(win->event.droppedFiles[win->event.droppedFilesCount - 1], path);
 			}
 
 			if (data)
@@ -3029,7 +3029,6 @@ Start of Linux / Unix defines
 			}
 
 			RGFW_dndCallback(win, (char**)win->event.droppedFiles, win->event.droppedFilesCount);
-
 			break;
 
 		case FocusIn:
@@ -3785,7 +3784,7 @@ Start of Linux / Unix defines
 			#ifdef RGFW_OSMESA
 			RGFW_OSMesa_reorganize();
 			#endif
-			RGFW_area area = RGFW_getScreenSize();
+			RGFW_area area = RGFW_bufferSize;
 
 #ifndef RGFW_X11_DONT_CONVERT_BGR
 			win->src.bitmap->data = (char*) win->buffer;
@@ -3835,7 +3834,8 @@ Start of Linux / Unix defines
 	}
 	#endif
 
-	u64 RGFW_getTimeNS(void) { 
+
+	u64 	RGFW_getTimeNS(void) { 
 		struct timespec ts = { 0 };
 		clock_gettime(1, &ts);
 		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
@@ -4059,13 +4059,14 @@ static HMODULE wglinstance = NULL;
 
 	void RGFW_init_buffer(RGFW_window* win) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-	RGFW_area area = RGFW_getScreenSize();
-
+	if (RGFW_bufferSize.w == 0 && RGFW_bufferSize.h == 0)
+		RGFW_bufferSize = RGFW_getScreenSize();
+	
 	BITMAPV5HEADER bi = { 0 };
 	ZeroMemory(&bi, sizeof(bi));
 	bi.bV5Size = sizeof(bi);
-	bi.bV5Width = area.w;
-	bi.bV5Height = -((LONG) area.h);
+	bi.bV5Width = RGFW_bufferSize.w;
+	bi.bV5Height = -((LONG) RGFW_bufferSize.h);
 	bi.bV5Planes = 1;
 	bi.bV5BitCount = 32;
 	bi.bV5Compression = BI_BITFIELDS;
@@ -4080,7 +4081,7 @@ static HMODULE wglinstance = NULL;
 		(void**) &win->buffer,
 		NULL,
 		(DWORD) 0);
-
+	
 	win->src.hdcMem = CreateCompatibleDC(win->src.hdc);
 
 	#if defined(RGFW_OSMESA)
@@ -4420,7 +4421,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		RGFW_JS_SELECT/* select button */
 	};
 
-	static i32 RGFW_checkXInput(RGFW_Event* e) {
+	static i32 RGFW_checkXInput(RGFW_window* win, RGFW_Event* e) {
 		size_t i;
 		for (i = 0; i < 4; i++) {
 			XINPUT_KEYSTROKE keystroke;
@@ -4440,6 +4441,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				// RGFW_jsButtonPressed + 1 = RGFW_jsButtonReleased
 				e->type = RGFW_jsButtonPressed + !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 				e->button = RGFW_xinput2RGFW[keystroke.VirtualKey - 0x5800];
+				win->src.jsPressed[i][e->button] = !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 
 				return 1;
 			}
@@ -4517,7 +4519,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		win->event.inFocus = (GetForegroundWindow() == win->src.window);
 
-		if (RGFW_checkXInput(&win->event))
+		if (RGFW_checkXInput(win, &win->event))
 			return &win->event;
 
 		if (win->event.type == RGFW_quit) {
@@ -5882,8 +5884,10 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 	void RGFW_init_buffer(RGFW_window* win) {
 		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-			RGFW_area area = RGFW_getScreenSize();
-			win->buffer = RGFW_MALLOC(area.w * area.h * 4);
+			if (RGFW_bufferSize.w == 0 && RGFW_bufferSize.h == 0)
+				RGFW_bufferSize = RGFW_getScreenSize();
+				
+			win->buffer = RGFW_MALLOC(RGFW_bufferSize.w * RGFW_bufferSize.h * 4);
 
 		#ifdef RGFW_OSMESA
 				win->src.rSurf = OSMesaCreateContext(OSMESA_RGBA, NULL);
@@ -6710,7 +6714,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			RGFW_OSMesa_reorganize();
 			#endif
 
-			RGFW_area area = RGFW_getScreenSize();
+			RGFW_area area = RGFW_bufferSize;
 			void* view = NSWindow_contentView(win->src.window);
 			void* layer = objc_msgSend_id(view, sel_registerName("layer"));
 
