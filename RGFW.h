@@ -139,6 +139,10 @@ extern "C" {
 	#endif
 #endif
 
+#if !defined(b8)
+	typedef u8 b8;
+#endif
+
 #if defined(RGFW_X11) && defined(__APPLE__)
 #define RGFW_MACOS_X11
 #undef __APPLE__
@@ -420,7 +424,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		
 		u8 keyCode; /*!< keycode of event 	!!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! */
 
-		u8 inFocus;  /*if the window is in focus or not*/
+		b8 inFocus;  /*if the window is in focus or not*/
 
 		u8 lockState;
 
@@ -448,7 +452,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		u32 display;
 		void* displayLink;
 		void* window;
-		u8 dndPassed;
+		b8 dndPassed;
 #endif
 
 #if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA)
@@ -520,7 +524,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		RGFW_area scale; /* window scaling */
 
 #ifdef RGFW_MACOS
-		u8 cursorChanged; /* for steve jobs */
+		b8 cursorChanged; /* for steve jobs */
 #endif
 
 		u32 winArgs; /* windows args (for RGFW to check) */
@@ -608,6 +612,10 @@ typedef struct { i32 x, y; } RGFW_vector;
 	RGFWDEF void RGFW_window_minimize(RGFW_window* win); /* minimize the window (in taskbar (per OS))*/
 	RGFWDEF void RGFW_window_restore(RGFW_window* win); /* restore the window from minimized (per OS)*/
 
+	RGFWDEF void RGFW_window_setBorder(RGFW_window* win, b8 border); /* if the window should have a border or not (borderless) based on bool value of `border` */
+	
+	RGFWDEF void RGFW_window_setDND(RGFW_window* win, b8 allow); /* turn on / off dnd (RGFW_ALLOW_DND stil must be passed to the window)*/
+
 	RGFWDEF void RGFW_window_setName(RGFW_window* win,
 		char* name
 	);
@@ -658,15 +666,15 @@ typedef struct { i32 x, y; } RGFW_vector;
 	RGFWDEF void RGFW_window_moveMouse(RGFW_window* win, RGFW_vector v);
 
 	/* if the window should close (RGFW_close was sent or escape was pressed) */
-	RGFWDEF u8 RGFW_window_shouldClose(RGFW_window* win);
+	RGFWDEF b8 RGFW_window_shouldClose(RGFW_window* win);
 	/* if window is fullscreen'd */
-	RGFWDEF u8 RGFW_window_isFullscreen(RGFW_window* win);
+	RGFWDEF b8 RGFW_window_isFullscreen(RGFW_window* win);
 	/* if window is hidden */
-	RGFWDEF u8 RGFW_window_isHidden(RGFW_window* win);
+	RGFWDEF b8 RGFW_window_isHidden(RGFW_window* win);
 	/* if window is minimized */
-	RGFWDEF u8 RGFW_window_isMinimized(RGFW_window* win);
+	RGFWDEF b8 RGFW_window_isMinimized(RGFW_window* win);
 	/* if window is maximized */
-	RGFWDEF u8 RGFW_window_isMaximized(RGFW_window* win);
+	RGFWDEF b8 RGFW_window_isMaximized(RGFW_window* win);
 
 	/*
 	scale the window to the monitor,
@@ -680,22 +688,22 @@ typedef struct { i32 x, y; } RGFW_vector;
 	RGFWDEF void RGFW_window_makeCurrent(RGFW_window* win);
 
 	/*error handling*/
-	RGFWDEF u8 RGFW_Error(void); /* returns true if an error has occurred (doesn't print errors itself) */
+	RGFWDEF b8 RGFW_Error(void); /* returns true if an error has occurred (doesn't print errors itself) */
 
 	/*!< if window == NULL, it checks if the key is pressed globally. Otherwise, it checks only if the key is pressed while the window in focus.*/
-	RGFWDEF u8 RGFW_isPressed(RGFW_window* win, u8 key); /*!< if key is pressed (key code)*/
+	RGFWDEF b8 RGFW_isPressed(RGFW_window* win, u8 key); /*!< if key is pressed (key code)*/
 
-	RGFWDEF u8 RGFW_wasPressed(RGFW_window* win, u8 key); /*!< if key was pressed (checks prev keymap only) (key code)*/
+	RGFWDEF b8 RGFW_wasPressed(RGFW_window* win, u8 key); /*!< if key was pressed (checks prev keymap only) (key code)*/
 
-	RGFWDEF u8 RGFW_isHeld(RGFW_window* win, u8 key); /*!< if key is held (key code)*/
-	RGFWDEF u8 RGFW_isReleased(RGFW_window* win, u8 key); /*!< if key is released (key code)*/
+	RGFWDEF b8 RGFW_isHeld(RGFW_window* win, u8 key); /*!< if key is held (key code)*/
+	RGFWDEF b8 RGFW_isReleased(RGFW_window* win, u8 key); /*!< if key is released (key code)*/
 
-	RGFWDEF u8 RGFW_isClicked(RGFW_window* win, u8 key);
+	RGFWDEF b8 RGFW_isClicked(RGFW_window* win, u8 key);
 
-	RGFWDEF u8 RGFW_isMousePressed(RGFW_window* win, u8 button);
-	RGFWDEF u8 RGFW_isMouseHeld(RGFW_window* win, u8 button);
-	RGFWDEF u8 RGFW_isMouseReleased(RGFW_window* win, u8 button);
-	RGFWDEF u8 RGFW_wasMousePressed(RGFW_window* win, u8 button);
+	RGFWDEF b8 RGFW_isMousePressed(RGFW_window* win, u8 button);
+	RGFWDEF b8 RGFW_isMouseHeld(RGFW_window* win, u8 button);
+	RGFWDEF b8 RGFW_isMouseReleased(RGFW_window* win, u8 button);
+	RGFWDEF b8 RGFW_wasMousePressed(RGFW_window* win, u8 button);
 
 /*! clipboard functions*/
 	RGFWDEF char* RGFW_readClipboard(size_t* size); /*!< read clipboard data */
@@ -719,9 +727,9 @@ typedef struct { i32 x, y; } RGFW_vector;
 	/* RGFW_quit, the window that was closed */
 	typedef void (* RGFW_windowquitfunc)(RGFW_window* win);
 	/* RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its inFocus */
-	typedef void (* RGFW_focusfunc)(RGFW_window* win, u8 inFocus);
+	typedef void (* RGFW_focusfunc)(RGFW_window* win, b8 inFocus);
 	/* RGFW_mouseEnter / RGFW_mouseLeave, the window that changed, the point of the mouse (enter only) and if the mouse has entered */
-	typedef void (* RGFW_mouseNotifyfunc)(RGFW_window* win, RGFW_vector point, u8 status);
+	typedef void (* RGFW_mouseNotifyfunc)(RGFW_window* win, RGFW_vector point, b8 status);
 	/* RGFW_mousePosChanged, the window that the move happened on and the new point of the mouse  */
 	typedef void (* RGFW_mouseposfunc)(RGFW_window* win, RGFW_vector point);
 	/*  RGFW_dnd, the window that had the drop, the drop data and the amount files dropped */
@@ -731,11 +739,11 @@ typedef struct { i32 x, y; } RGFW_vector;
 	/* RGFW_windowRefresh, the window that needs to be refreshed */
 	typedef void (* RGFW_windowrefreshfunc)(RGFW_window* win);
 	/* RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the keycode, the string version, the state of mod keys, if it was a press (else it's a release) */
-	typedef void (* RGFW_keyfunc)(RGFW_window* win, u32 keycode, char keyName[16], u8 lockState, u8 pressed);
+	typedef void (* RGFW_keyfunc)(RGFW_window* win, u32 keycode, char keyName[16], u8 lockState, b8 pressed);
 	/* RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release)  */
-	typedef void (* RGFW_mousebuttonfunc)(RGFW_window* win, u8 button, double scroll, u8 pressed);
+	typedef void (* RGFW_mousebuttonfunc)(RGFW_window* win, u8 button, double scroll, b8 pressed);
 	/* RGFW_jsButtonPressed / RGFW_jsButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) */
-	typedef void (* RGFW_jsButtonfunc)(RGFW_window* win, u16 joystick, u8 button, u8 pressed);
+	typedef void (* RGFW_jsButtonfunc)(RGFW_window* win, u16 joystick, u8 button, b8 pressed);
 	/* RGFW_jsAxisMove, the window that got the event, the joystick in question, the axis values and the amount of axises */
 	typedef void (* RGFW_jsAxisfunc)(RGFW_window* win, u16 joystick, RGFW_vector axis[2], u8 axisesCount);
 
@@ -1207,8 +1215,8 @@ MacOS -> windows and linux already don't have keycodes as macros, so there's no 
 	};
 
 	typedef struct {
-		u8 current  : 1;
-		u8 prev  : 1;
+		b8 current  : 1;
+		b8 prev  : 1;
 	} RGFW_keyState;
 
 	RGFW_keyState RGFW_keyboard[final_key] = { {0, 0} };
@@ -1240,15 +1248,15 @@ MacOS -> windows and linux already don't have keycodes as macros, so there's no 
 	void RGFW_windowmovefuncEMPTY(RGFW_window* win, RGFW_rect r) { RGFW_UNUSED(win); RGFW_UNUSED(r); }
 	void RGFW_windowresizefuncEMPTY(RGFW_window* win, RGFW_rect r) { RGFW_UNUSED(win); RGFW_UNUSED(r); }
 	void RGFW_windowquitfuncEMPTY(RGFW_window* win) { RGFW_UNUSED(win); }
-	void RGFW_focusfuncEMPTY(RGFW_window* win, u8 inFocus) {RGFW_UNUSED(win); RGFW_UNUSED(inFocus);}
-	void RGFW_mouseNotifyfuncEMPTY(RGFW_window* win, RGFW_vector point, u8 status) {RGFW_UNUSED(win); RGFW_UNUSED(point); RGFW_UNUSED(status);}
+	void RGFW_focusfuncEMPTY(RGFW_window* win, b8 inFocus) {RGFW_UNUSED(win); RGFW_UNUSED(inFocus);}
+	void RGFW_mouseNotifyfuncEMPTY(RGFW_window* win, RGFW_vector point, b8 status) {RGFW_UNUSED(win); RGFW_UNUSED(point); RGFW_UNUSED(status);}
 	void RGFW_mouseposfuncEMPTY(RGFW_window* win, RGFW_vector point) {RGFW_UNUSED(win); RGFW_UNUSED(point);}
 	void RGFW_dndfuncEMPTY(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
 	void RGFW_dndInitfuncEMPTY(RGFW_window* win, RGFW_vector point) {RGFW_UNUSED(win); RGFW_UNUSED(point);}
 	void RGFW_windowrefreshfuncEMPTY(RGFW_window* win) {RGFW_UNUSED(win); }
-	void RGFW_keyfuncEMPTY(RGFW_window* win, u32 keycode, char keyName[16], u8 lockState, u8 pressed) {RGFW_UNUSED(win); RGFW_UNUSED(keycode); RGFW_UNUSED(keyName); RGFW_UNUSED(lockState); RGFW_UNUSED(pressed);}
-	void RGFW_mousebuttonfuncEMPTY(RGFW_window* win, u8 button, double scroll, u8 pressed) {RGFW_UNUSED(win); RGFW_UNUSED(button); RGFW_UNUSED(scroll); RGFW_UNUSED(pressed);}
-	void RGFW_jsButtonfuncEMPTY(RGFW_window* win, u16 joystick, u8 button, u8 pressed){RGFW_UNUSED(win); RGFW_UNUSED(joystick); RGFW_UNUSED(button); RGFW_UNUSED(pressed); }
+	void RGFW_keyfuncEMPTY(RGFW_window* win, u32 keycode, char keyName[16], u8 lockState, b8 pressed) {RGFW_UNUSED(win); RGFW_UNUSED(keycode); RGFW_UNUSED(keyName); RGFW_UNUSED(lockState); RGFW_UNUSED(pressed);}
+	void RGFW_mousebuttonfuncEMPTY(RGFW_window* win, u8 button, double scroll, b8 pressed) {RGFW_UNUSED(win); RGFW_UNUSED(button); RGFW_UNUSED(scroll); RGFW_UNUSED(pressed);}
+	void RGFW_jsButtonfuncEMPTY(RGFW_window* win, u16 joystick, u8 button, b8 pressed){RGFW_UNUSED(win); RGFW_UNUSED(joystick); RGFW_UNUSED(button); RGFW_UNUSED(pressed); }
 	void RGFW_jsAxisfuncEMPTY(RGFW_window* win, u16 joystick, RGFW_vector axis[2], u8 axisesCount){RGFW_UNUSED(win); RGFW_UNUSED(joystick); RGFW_UNUSED(axis); RGFW_UNUSED(axisesCount); }
 
 	RGFW_windowmovefunc RGFW_windowMoveCallback = RGFW_windowmovefuncEMPTY;
@@ -1291,19 +1299,14 @@ MacOS -> windows and linux already don't have keycodes as macros, so there's no 
 	} \
 }
 
-	u8 RGFW_error = 0;
-	u8 RGFW_Error() { return RGFW_error; }
+	b8 RGFW_error = 0;
+	b8 RGFW_Error() { return RGFW_error; }
 
 #define SET_ATTRIB(a, v) { \
     assert(((size_t) index + 1) < sizeof(attribs) / sizeof(attribs[0])); \
     attribs[index++] = a; \
     attribs[index++] = v; \
 }
-
-#define ADD_ATTRIB(a) { \
-    assert(((size_t) index + 1) < sizeof(attribs) / sizeof(attribs[0])); \
-    attribs[index++] = a; \
-}	
 	
 	RGFW_area RGFW_bufferSize = {0, 0};
 	void RGFW_setBufferSize(RGFW_area size) {
@@ -1365,43 +1368,43 @@ RGFW_window* RGFW_root = NULL;
 
 	void RGFW_clipboardFree(char* str) { RGFW_FREE(str); }
 	
-	u8 RGFW_mouseButtons[5] = { 0 };
-	u8 RGFW_mouseButtons_prev[5];
+	b8 RGFW_mouseButtons[5] = { 0 };
+	b8 RGFW_mouseButtons_prev[5];
 
-	u8 RGFW_isMousePressed(RGFW_window* win, u8 button) {
+	b8 RGFW_isMousePressed(RGFW_window* win, u8 button) {
 		return RGFW_mouseButtons[button] && (win != NULL) && win->event.inFocus; 
 	}
-	u8 RGFW_wasMousePressed(RGFW_window* win, u8 button) { 
+	b8 RGFW_wasMousePressed(RGFW_window* win, u8 button) { 
 		return RGFW_mouseButtons_prev[button] && (win != NULL) && win->event.inFocus; 
 	}
-	u8 RGFW_isMouseHeld(RGFW_window* win, u8 button) {
+	b8 RGFW_isMouseHeld(RGFW_window* win, u8 button) {
 		return (RGFW_isMousePressed(win, button) && RGFW_wasMousePressed(win, button));
 	}
-	u8 RGFW_isMouseReleased(RGFW_window* win, u8 button) {
+	b8 RGFW_isMouseReleased(RGFW_window* win, u8 button) {
 		return (!RGFW_isMousePressed(win, button) && RGFW_wasMousePressed(win, button));	
 	}
 
-	u8 RGFW_isPressed(RGFW_window* win, u8 key) {
+	b8 RGFW_isPressed(RGFW_window* win, u8 key) {
 		RGFW_UNUSED(win);
 		
 		return RGFW_keyboard[key].current;
 	}
 
-	u8 RGFW_wasPressed(RGFW_window* win, u8 key) {
+	b8 RGFW_wasPressed(RGFW_window* win, u8 key) {
 		RGFW_UNUSED(win);
 
 		return RGFW_keyboard[key].prev;
 	}
 
-	u8 RGFW_isHeld(RGFW_window* win, u8 key) {
+	b8 RGFW_isHeld(RGFW_window* win, u8 key) {
 		return (RGFW_isPressed(win, key) && RGFW_wasPressed(win, key));
 	}
 
-	u8 RGFW_isClicked(RGFW_window* win, u8 key) {
+	b8 RGFW_isClicked(RGFW_window* win, u8 key) {
 		return (RGFW_isPressed(win, key) && !RGFW_wasPressed(win, key));
 	}
 
-	u8 RGFW_isReleased(RGFW_window* win, u8 key) {
+	b8 RGFW_isReleased(RGFW_window* win, u8 key) {
 		return (!RGFW_isPressed(win, key) && RGFW_wasPressed(win, key));	
 	}
 	
@@ -1442,7 +1445,7 @@ RGFW_window* RGFW_root = NULL;
 		RGFW_window_resize(win, screen);
 	}
 
-	u8 RGFW_window_shouldClose(RGFW_window* win) {
+	b8 RGFW_window_shouldClose(RGFW_window* win) {
 		assert(win != NULL);
 		return (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_Escape));
 	}
@@ -1454,7 +1457,9 @@ RGFW_window* RGFW_root = NULL;
 	}
 
 	#ifdef RGFW_WINDOWS
-	BOOL ClipCursor(const RECT *lpRect);	
+	#ifndef ClipCursor
+	__declspec(dllimport) BOOL ClipCursor(const RECT *lpRect);	
+	#endif
 	#endif
 
 	void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area) {
@@ -1525,6 +1530,14 @@ RGFW_window* RGFW_root = NULL;
 		int nanosleep(const struct timespec* duration, struct timespec* rem);
 		int clock_gettime(clockid_t clk_id, struct timespec* tp);
 		int setenv(const char *name, const char *value, int overwrite);
+
+		void RGFW_window_setDND(RGFW_window* win, b8 allow) {
+			if (allow && !(win->src.winArgs & RGFW_ALLOW_DND))
+				win->src.winArgs |= RGFW_ALLOW_DND;
+
+			else if (!allow && (win->src.winArgs & RGFW_ALLOW_DND))
+				win->src.winArgs ^= RGFW_ALLOW_DND;
+		}
 	#endif
 
 /*
@@ -2380,6 +2393,27 @@ Start of Linux / Unix defines
 		#endif
 	}
 
+
+
+	void RGFW_window_setBorder(RGFW_window* win, u8 border) {
+		static Atom _MOTIF_WM_HINTS = 0;
+		if (_MOTIF_WM_HINTS == 0 )
+			_MOTIF_WM_HINTS = XInternAtom(win->src.display, "_MOTIF_WM_HINTS", False);
+		
+		struct __x11WindowHints {
+			unsigned long flags, functions, decorations, status;
+			long input_mode;
+		} hints;
+		hints.flags = (1L << 1);
+		hints.decorations = !border;
+
+		XChangeProperty(
+			win->src.display, win->src.window,
+			_MOTIF_WM_HINTS, _MOTIF_WM_HINTS,
+			32, PropModeReplace, (u8*)&hints, 5
+		);
+	}
+
 	RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 #if !defined(RGFW_NO_X11_CURSOR) && !defined(RGFW_NO_X11_CURSOR_PRELOAD)
 		if (X11Cursorhandle == NULL) {
@@ -2532,16 +2566,7 @@ Start of Linux / Unix defines
 		}
 
 		if (args & RGFW_NO_BORDER) {
-			/* Atom vars for no-border*/
-			static Atom window_type = 0;
-			static Atom value = 0;
-
-			if (window_type == 0) {
-				window_type = XInternAtom((Display*) win->src.display, "_NET_WM_WINDOW_TYPE", False);
-				value = XInternAtom((Display*) win->src.display, "_NET_WM_WINDOW_TYPE_DOCK", False);
-			}
-
-			XChangeProperty((Display*) win->src.display, (Drawable) win->src.window, window_type, XA_ATOM, 32, PropModeReplace, (u8*) &value, 1); /* toggle border*/
+			RGFW_window_setBorder(win, 0);
 		}
 
 		XSelectInput((Display*) win->src.display, (Drawable) win->src.window, event_mask); /* tell X11 what events we want*/
@@ -4110,6 +4135,10 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #endif
 	}
 
+	void RGFW_window_setDND(RGFW_window* win, b8 allow) {
+		DragAcceptFiles(win->src.window, allow);
+	}
+
 	RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		if (RGFW_XInput_dll == NULL)
 			RGFW_loadXInput();
@@ -4184,7 +4213,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		}
 		if (args & RGFW_ALLOW_DND) {
 			win->src.winArgs |= RGFW_ALLOW_DND;
-			DragAcceptFiles(win->src.window, TRUE);
+			RGFW_window_setDND(win, 1);
 		}
 		win->src.hdc = GetDC(win->src.window);
 
@@ -4374,6 +4403,25 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		ShowWindow(win->src.window, SW_SHOWNORMAL);
 
 		return win;
+	}
+
+	void RGFW_window_setBorder(RGFW_window* win, u8 border) {
+		DWORD style = GetWindowLong(win->src.window, GWL_STYLE);
+
+		if (border == 0) {
+			SetWindowLong(win->src.window, GWL_STYLE, style & ~WS_OVERLAPPEDWINDOW);
+			SetWindowPos(
+				win->src.window, HWND_TOP, 0, 0, 0, 0,
+				SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE
+			);
+		}
+		else {
+			SetWindowLong(win->src.window, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
+			SetWindowPos(
+				win->src.window, HWND_TOP, 0, 0, 0, 0,
+				SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE
+			);
+		}
 	}
 
 
@@ -4718,8 +4766,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				/*
 					much of this event is source from glfw
 				*/
-			case WM_DROPFILES: {
-
+			case WM_DROPFILES: {				
 				if (win->event.droppedFilesCount) {
 					u32 i;
 					for (i = 0; i < win->event.droppedFilesCount; i++)
@@ -6099,6 +6146,19 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		return win;
 	}
 
+	void RGFW_window_setBorder(RGFW_window* win, u8 border) {
+		NSBackingStoreType storeType = NSWindowStyleMaskBorderless;
+		if (!borderless) {
+			storeType = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
+		}
+		if (!(win->arg & SI_WINDOW_NO_RESIZE)) {
+			storeType |= NSWindowStyleMaskResizable;
+		}
+		
+		((void (*)(id, SEL, NSBackingStoreType))objc_msgSend)(win->src.window, sel_registerName("setStyleMask:"), storeType);
+
+		objc_msgSend_void_bool(win->src.window, sel_registerName("setHasShadow:"), borderless);
+	}
 
 	RGFW_area RGFW_getScreenSize(void) {
 		static CGDirectDisplayID display = 0;
