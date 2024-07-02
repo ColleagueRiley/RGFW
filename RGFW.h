@@ -2509,6 +2509,17 @@ Start of Linux / Unix defines
 			0, vi->depth, InputOutput, vi->visual,
 			valuemask | CWEventMask, &swa);
 
+		{
+			// In your .desktop app, if you set the property
+			// StartupWMClass=RGFW that will assoicate the launcher icon
+			// with your application
+			XClassHint *hint = XAllocClassHint();
+			assert(hint != NULL);
+			hint->res_class = "RGFW";
+			hint->res_name = name; // just use the window name as the app name
+			XSetClassHint((Display*) win->src.display, win->src.window, hint);
+			XFree(hint);
+		}
 
 		XFreeColors((Display*) win->src.display, cmap, NULL, 0, 0);
 		if (args & RGFW_TRANSPARENT_WINDOW)
