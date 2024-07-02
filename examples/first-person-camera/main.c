@@ -49,7 +49,7 @@ int main(void) {
                 break;
 
             switch (win->event.type) {
-                case RGFW_mousePosChanged:         
+                case RGFW_mousePosChanged: {      
                     int dev_x = (win->r.w / 2) - win->event.point.x;
                     int dev_y = (win->r.h / 2) - win->event.point.y;
                     /* apply the changes to pitch and yaw*/
@@ -57,6 +57,7 @@ int main(void) {
                     pitch += (float)dev_y / 15.0;
                     posChanged = 1;
                     break;
+                }
                 case RGFW_keyPressed:
                     switch (win->event.keyCode) {
                         case RGFW_Return:

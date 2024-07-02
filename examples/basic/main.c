@@ -51,7 +51,7 @@ int main(void) {
 
     RGFW_window_setMouseStandard(win, RGFW_MOUSE_RESIZE_NESW);
 
-    while (running && RGFW_isPressed(win, RGFW_Escape)) {   
+    while (running && !RGFW_isPressed(win, RGFW_Escape)) {   
         #ifdef __APPLE__
         RGFW_window_checkEvent(win2);
         #endif
