@@ -1938,13 +1938,13 @@ RGFW_window* RGFW_root = NULL;
 
 #elif defined(RGFW_OPENGL) || defined(RGFW_EGL) || defined(RGFW_OSMESA)
 #ifndef __APPLE__
+#include <GL/gl.h>
+#else
 #ifndef GL_SILENCE_DEPRECATION
 #define GL_SILENCE_DEPRECATION
 #endif
-
-#include <GL/gl.h>
-#else
 #include <OpenGL/gl.h>
+#include <OpenGL/OpenGL.h>
 #endif
 
 /* EGL, normal OpenGL only */
@@ -2015,6 +2015,7 @@ RGFW_window* RGFW_root = NULL;
 #define WGL_SAMPLE_BUFFERS_ARB               0x2041
 #define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20a9
 #endif
+
 	static u32* RGFW_initAttribs(u32 useSoftware) {
 		RGFW_UNUSED(useSoftware);
 		static u32 attribs[] = {
@@ -2073,7 +2074,7 @@ RGFW_window* RGFW_root = NULL;
 
 #ifdef RGFW_MACOS
 		if (useSoftware) {
-			RGFW_GL_ADD_ATTRIB(70, 0x00002001);
+			RGFW_GL_ADD_ATTRIB(70, kCGLRendererGenericFloatID);
 		} else {
 			attribs[index] = RGFW_GL_RENDER_TYPE;
 			index += 1;
@@ -5800,21 +5801,18 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		return kCVReturnSuccess; 
 	}
 
-	RGFW_window* RGFW_windows[10];
-	u32 RGFW_windows_size = 0;
-
 	id NSWindow_delegate(RGFW_window* win) {
 		return (id) objc_msgSend_id(win->src.window, sel_registerName("delegate"));
 	}
 
 	u32 RGFW_OnClose(void* self) {
-		u32 i;
-		for (i = 0; i < RGFW_windows_size; i++)
-			if (RGFW_windows[i] && NSWindow_delegate(RGFW_windows[i]) == self) {
-				RGFW_windows[i]->event.type = RGFW_quit;
-				RGFW_windowQuitCallback(RGFW_windows[i]);
-				return true;
-			}
+		RGFW_window* win = NULL;
+		object_getInstanceVariable(self, "RGFW_window", (void*)&win);
+		if (win == NULL)
+			return true;
+
+		win->event.type = RGFW_quit;
+		RGFW_windowQuitCallback(win);
 
 		return true;
 	}
@@ -5825,13 +5823,25 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 	NSDragOperation draggingEntered(id self, SEL sel, id sender) { 
 		RGFW_UNUSED(sender); RGFW_UNUSED(self); RGFW_UNUSED(sel);  
+
 		return NSDragOperationCopy; 
 	}
 	NSDragOperation draggingUpdated(id self, SEL sel, id sender) { 
 		RGFW_UNUSED(sender); RGFW_UNUSED(self); RGFW_UNUSED(sel); 
 		return NSDragOperationCopy; 
 	}
-	bool prepareForDragOperation(void) { return true; }
+	bool prepareForDragOperation(id self) {
+		RGFW_window* win = NULL;
+		object_getInstanceVariable(self, "RGFW_window", (void*)&win);
+		if (win == NULL)
+			return true;
+		
+		if (!(win->src.winArgs & RGFW_ALLOW_DND)) {
+			return false;
+		}
+		
+		return true;
+	}
 
 	void RGFW__osxDraggingEnded(id self, SEL sel, id sender) { RGFW_UNUSED(sender); RGFW_UNUSED(self); RGFW_UNUSED(sel);  return; }
 
@@ -5839,15 +5849,14 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	bool performDragOperation(id self, SEL sel, id sender) {
 		RGFW_UNUSED(sender); RGFW_UNUSED(self); RGFW_UNUSED(sel); 
 
-		NSWindow* window = objc_msgSend_id(sender, sel_registerName("draggingDestinationWindow"));
+		RGFW_window* win = NULL;
+		object_getInstanceVariable(self, "RGFW_window", (void*)&win);
+		if (win == NULL)
+			return true;
+
+		//NSWindow* window = objc_msgSend_id(sender, sel_registerName("draggingDestinationWindow"));
 		u32 i;
 		bool found = 0;
-
-		for (i = 0; i < RGFW_windows_size; i++)
-			if (RGFW_windows[i]->src.window == window) {
-				found = 1;
-				break;
-			}
 
 		if (!found)
 			i = 0;
@@ -5857,24 +5866,24 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		
 		char** droppedFiles = (char**) NSPasteboard_readObjectsForClasses(pasteBoard, array, 1, NULL);
 
-		RGFW_windows[i]->event.droppedFilesCount = si_array_len(droppedFiles);
+		win->event.droppedFilesCount = si_array_len(droppedFiles);
 
 		u32 y;
 
-		for (y = 0; y < RGFW_windows[i]->event.droppedFilesCount; y++) {
-			strncpy(RGFW_windows[i]->event.droppedFiles[y], droppedFiles[y], RGFW_MAX_PATH);
+		for (y = 0; y < win->event.droppedFilesCount; y++) {
+			strncpy(win->event.droppedFiles[y], droppedFiles[y], RGFW_MAX_PATH);
 
-			RGFW_windows[i]->event.droppedFiles[y][RGFW_MAX_PATH - 1] = '\0';
+			win->event.droppedFiles[y][RGFW_MAX_PATH - 1] = '\0';
 		}
 
-		RGFW_windows[i]->event.type = RGFW_dnd;
-		RGFW_windows[i]->src.dndPassed = 0;
+		win->event.type = RGFW_dnd;
+		win->src.dndPassed = 0;
 
 		NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
 
-		RGFW_windows[i]->event.point.x = (i32)p.x;
-		RGFW_windows[i]->event.point.x = (i32)p.y;
-		RGFW_dndCallback(RGFW_windows[i], (char**)RGFW_windows[i]->event.droppedFiles, RGFW_windows[i]->event.droppedFilesCount);
+		win->event.point.x = (i32)p.x;
+		win->event.point.x = (i32)p.y;
+		RGFW_dndCallback(win, (char**)win->event.droppedFiles, win->event.droppedFilesCount);
 		return true;
 	}
 
@@ -5911,49 +5920,44 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	NSSize RGFW__osxWindowResize(void* self, SEL sel, NSSize frameSize) {
 		RGFW_UNUSED(sel); 
 
-		u32 i;
-		for (i = 0; i < RGFW_windows_size; i++) {
-			if (RGFW_windows[i] && NSWindow_delegate(RGFW_windows[i]) == self) {
-				RGFW_windows[i]->r.w = frameSize.width;
-				RGFW_windows[i]->r.h = frameSize.height;
-				RGFW_windows[i]->event.type = RGFW_windowResized;
-				RGFW_windowResizeCallback(RGFW_windows[i], RGFW_windows[i]->r);
-
-				return frameSize;
-			}
-		}
-
+		RGFW_window* win = NULL;
+		object_getInstanceVariable(self, "RGFW_window", (void*)&win);
+		if (win == NULL)
+			return frameSize;
+		
+		win->r.w = frameSize.width;
+		win->r.h = frameSize.height;
+		win->event.type = RGFW_windowResized;
+		RGFW_windowResizeCallback(win, win->r);
 		return frameSize;
 	}
 
 	void RGFW__osxWindowMove(void* self, SEL sel) {
 		RGFW_UNUSED(sel); 
 
-		u32 i;
-		for (i = 0; i < RGFW_windows_size; i++) {
-			if (RGFW_windows[i] && NSWindow_delegate(RGFW_windows[i]) == self) {
-				NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)(RGFW_windows[i]->src.window, sel_registerName("frame"));
-				RGFW_windows[i]->r.x = (i32) frame.origin.x;
-				RGFW_windows[i]->r.y = (i32) frame.origin.y;
+		RGFW_window* win = NULL;
+		object_getInstanceVariable(self, "RGFW_window", (void*)&win);
+		if (win == NULL)
+			return;
+		
+		NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)(win->src.window, sel_registerName("frame"));
+		win->r.x = (i32) frame.origin.x;
+		win->r.y = (i32) frame.origin.y;
 
-				RGFW_windows[i]->event.type = RGFW_windowMoved;
-				RGFW_windowMoveCallback(RGFW_windows[i], RGFW_windows[i]->r);
-				return;
-			}
-		}
+		win->event.type = RGFW_windowMoved;
+		RGFW_windowMoveCallback(win, win->r);
 	}
 
 	void RGFW__osxUpdateLayer(void* self, SEL sel) {
 		RGFW_UNUSED(sel);
 
-		u32 i;
-		for (i = 0; i < RGFW_windows_size; i++) {
-			if (RGFW_windows[i] && NSWindow_delegate(RGFW_windows[i]) == self) {
-				RGFW_windows[i]->event.type = RGFW_windowRefresh;
-				RGFW_windowRefreshCallback(RGFW_windows[i]);
-				return;
-			}
-		}
+		RGFW_window* win = NULL;
+		object_getInstanceVariable(self, "RGFW_window", (void*)&win);
+		if (win == NULL)
+			return;
+		
+		win->event.type = RGFW_windowRefresh;
+		RGFW_windowRefreshCallback(win);
 	}
 
 
@@ -6101,6 +6105,12 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		Class delegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "WindowDelegate", 0);
 
+		class_addIvar(
+			delegateClass, "RGFW_window",
+			sizeof(RGFW_window*), rint(log2(sizeof(RGFW_window*))),
+			"L"
+		);
+
 		class_addMethod(delegateClass, sel_registerName("windowWillResize:toSize:"), (IMP) RGFW__osxWindowResize, "{NSSize=ff}@:{NSSize=ff}");
 		class_addMethod(delegateClass, sel_registerName("updateLayer:"), (IMP) RGFW__osxUpdateLayer, "");
 		class_addMethod(delegateClass, sel_registerName("windowWillMove:"), (IMP) RGFW__osxWindowMove, "");
@@ -6139,15 +6149,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		objc_msgSend_void(NSApp, sel_registerName("finishLaunching"));
 
-		RGFW_windows_size++;
-
-		size_t i;
-		for (i = 0; i < RGFW_windows_size; i++)
-			if (!RGFW_windows[i]) {
-				RGFW_windows[i] = win;
-				break;
-			}
-
 		if (RGFW_root == NULL)
 			RGFW_root = win;
 
@@ -6159,16 +6160,16 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 	void RGFW_window_setBorder(RGFW_window* win, u8 border) {
 		NSBackingStoreType storeType = NSWindowStyleMaskBorderless;
-		if (!borderless) {
+		if (!border) {
 			storeType = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
 		}
-		if (!(win->arg & SI_WINDOW_NO_RESIZE)) {
+		if (!(win->src.winArgs & RGFW_NO_RESIZE)) {
 			storeType |= NSWindowStyleMaskResizable;
 		}
 		
 		((void (*)(id, SEL, NSBackingStoreType))objc_msgSend)(win->src.window, sel_registerName("setStyleMask:"), storeType);
 
-		objc_msgSend_void_bool(win->src.window, sel_registerName("setHasShadow:"), borderless);
+		objc_msgSend_void_bool(win->src.window, sel_registerName("setHasShadow:"), border);
 	}
 
 	RGFW_area RGFW_getScreenSize(void) {
@@ -6737,11 +6738,21 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 	char* RGFW_readClipboard(size_t* size) {
 		char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString);
-		size_t clip_len = strlen(clip); 
+		
+		size_t clip_len = 1;
+
+		if (clip != NULL) {
+			clip_len = strlen(clip) + 1; 
+		}
 
 		char* str = (char*)RGFW_MALLOC(sizeof(char) * clip_len);
-		strcpy(str, clip);
+		
+		if (clip != NULL) {
+			strcpy(str, clip);
+		}
 
+		str[clip_len] = '\0';
+		
 		if (size != NULL)
 			*size = clip_len;
 		return str;
@@ -6810,7 +6821,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 			((void(*)(id, SEL, NSRect))objc_msgSend)(layer,
 				sel_registerName("setFrame:"),
-				(NSRect){{0, 0}, {win->r.w, win->r.h}};
+				(NSRect){{0, 0}, {win->r.w, win->r.h}});
 
 			NSBitmapImageRep* rep = NSBitmapImageRep_initWithBitmapData(
 				&win->buffer, win->r.w, win->r.h, 8, 4, true, false,
@@ -6875,16 +6886,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		}
 #endif
 
-		u32 i;
-		for (i = 0; i < RGFW_windows_size; i++)
-			if (RGFW_windows[i]->src.window == win->src.window) {
-				RGFW_windows[i] = NULL;
-				break;
-			}
-
-		if (!i) {
-			RGFW_windows_size = 0;
-
+		if (RGFW_root == win) {
 			objc_msgSend_void_id(NSApp, sel_registerName("terminate:"), (id) win->src.window);
 			NSApp = NULL;
 		}
