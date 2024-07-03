@@ -59,7 +59,7 @@
 
 /*
 	Credits :
-		EimaMei/Sacode : Much of the code for creating windows using winapi, Wrote the Silicon library, helped with MacOS Support
+		EimaMei/Sacode : Much of the code for creating windows using winapi, Wrote the Silicon library, helped with MacOS Support, siliapp.h -> referencing 
 
 		stb - This project is heavily inspired by the stb single header files
 
@@ -72,6 +72,13 @@
 
 			Copyright (c) 2002-2006 Marcus Geelnard
 			Copyright (c) 2006-2019 Camilla Löwy
+
+		contributors : (feel free to put yourself here if you contribute)
+		krisvers -> code review
+		EimaMei (SaCode) -> code review
+		Code-Nycticebus -> bug fixes
+		Rob Rohan -> X11 bugs and missing features
+		AICDG (@THISISAGOODNAME) -> vulkan support 
 */
 
 #ifndef RGFW_MALLOC
@@ -2513,11 +2520,11 @@ Start of Linux / Unix defines
 		{
 			// In your .desktop app, if you set the property
 			// StartupWMClass=RGFW that will assoicate the launcher icon
-			// with your application
+			// with your application - robrohan 
 			XClassHint *hint = XAllocClassHint();
 			assert(hint != NULL);
 			hint->res_class = "RGFW";
-			hint->res_name = name; // just use the window name as the app name
+			hint->res_name = (char*)name; // just use the window name as the app name
 			XSetClassHint((Display*) win->src.display, win->src.window, hint);
 			XFree(hint);
 		}
@@ -3379,8 +3386,7 @@ Start of Linux / Unix defines
 		if (event.xbutton.x == v.x && event.xbutton.y == v.y)
 			return;
 
-		XWarpPointer(win->src.display, None, None, 0, 0, 0, 0, -event.xbutton.x, -event.xbutton.y);
-		XWarpPointer(win->src.display, None, None, 0, 0, 0, 0, v.x, v.y);
+		XWarpPointer(win->src.display, None, win->src.window, 0, 0, 0, 0, (int) v.x - win->r.x, (int) v.y - win->r.y);
 	}
 
 	RGFWDEF void RGFW_window_disableMouse(RGFW_window* win) {
