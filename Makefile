@@ -10,11 +10,13 @@ EXT = .exe
 LIB_EXT = .dll
 STATIC =
 
+WARNINGS = -Wall -Werror -Wstrict-prototypes -Wextra
+
 ifeq ($(CC),x86_64-w64-mingw32-gcc)
 	STATIC = --static
 endif
 
-ifneq (,$(filter $(CC),winegcc x86_64-w64-mingw32-gcc))
+ifneq (,$(filter $(CC),winegcc x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc))
     detected_OS := Windows
 	LIB_EXT = .dll
 else
@@ -48,19 +50,19 @@ ifeq ($(detected_OS),Linux)
 endif
 
 all: examples/basic/main.c examples/buffer/main.c examples/portableGL/main.c  examples/gl33/main.c examples/gles2/main.c examples/vk10/main.c ./RGFW.h
-	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o basic
-	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o buffer
-	$(CC) examples/events/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o events
-	$(CC) examples/callbacks/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o callbacks
-	$(CC) examples/first-person-camera/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o camera
+	$(CC) examples/basic/main.c $(LIBS) -I./ $(WARNINGS) -o basic
+	$(CC) examples/buffer/main.c $(LIBS) -I./ $(WARNINGS) -o buffer
+	$(CC) examples/events/main.c $(LIBS) -I./ $(WARNINGS) -o events
+	$(CC) examples/callbacks/main.c $(LIBS) -I./ $(WARNINGS) -o callbacks
+	$(CC) examples/first-person-camera/main.c $(LIBS) -I./ $(WARNINGS) -o camera
 	$(CC) examples/portableGL/main.c $(LIBS) -I./ -w -o portableGL
-	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o gl33
-	$(CC) examples/gles2/main.c -lEGL $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o gles2
+	$(CC) examples/gl33/main.c $(LIBS) -I./ $(WARNINGS) -o gl33
+	$(CC) examples/gles2/main.c -lEGL $(LIBS) -I./ $(WARNINGS) -o gles2
 	make vulkan_shaders
-	$(CC) examples/vk10/main.c $(LIBS) $(VULAKN_LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o vk10
+	$(CC) examples/vk10/main.c $(LIBS) $(VULAKN_LIBS) -I./ $(WARNINGS) -o vk10
 
 DX11: examples/dx11/main.c
-	$(CC) $^ $(LIBS) $(DX11_LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o examples/dx11/$@
+	$(CC) $^ $(LIBS) $(DX11_LIBS) -I./ $(WARNINGS) -o examples/dx11/$@
 
 clean:
 	rm -f ./examples/basic/basic ./examples/basic/basic.exe ./examples/gles2/gles2 ./examples/gles2/gles2.exe ./examples/gl33/gl33 ./examples/gl33/gl33.exe ./examples/vk10/vk10 ./examples/vk10/vk10.exe examples/vk10/shaders/*.h examples/dx11/DX11
@@ -68,36 +70,36 @@ clean:
 debug: examples/*/main.c ./RGFW.h
 	make clean
 
-	$(CC) examples/buffer/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -D RGFW_DEBUG -o examples/buffer/buffer
+	$(CC) examples/buffer/main.c $(LIBS) -I./ $(WARNINGS) -D RGFW_DEBUG -o examples/buffer/buffer
 	./examples/buffer/buffer$(EXT)
 
-	$(CC) examples/events/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -D RGFW_DEBUG -o examples/events/events
+	$(CC) examples/events/main.c $(LIBS) -I./ $(WARNINGS) -D RGFW_DEBUG -o examples/events/events
 	./examples/events/events$(EXT)
 
-	$(CC) examples/callbacks/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -D RGFW_DEBUG -o examples/callbacks/callbacks
+	$(CC) examples/callbacks/main.c $(LIBS) -I./ $(WARNINGS) -D RGFW_DEBUG -o examples/callbacks/callbacks
 	./examples/callbacks/callbacks$(EXT)
 
 	$(CC) examples/portableGL/main.c $(LIBS) -I./ -w -o examples/portableGL/portableGL
 	./examples/portableGL/portableGL
 
-	$(CC) examples/first-person-camera/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -D RGFW_DEBUG -o examples/first-person-camera/camera
+	$(CC) examples/first-person-camera/main.c $(LIBS) -I./ $(WARNINGS) -D RGFW_DEBUG -o examples/first-person-camera/camera
 	./examples/first-person-camera/camera$(EXT)
 
-	$(CC) examples/basic/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -D RGFW_DEBUG -o examples/basic/basic
+	$(CC) examples/basic/main.c $(LIBS) -I./ $(WARNINGS) -D RGFW_DEBUG -o examples/basic/basic
 	./examples/basic/basic$(EXT)
 
-	$(CC) examples/gl33/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -D RGFW_DEBUG -o examples/gl33/gl33
+	$(CC) examples/gl33/main.c $(LIBS) -I./ $(WARNINGS) -D RGFW_DEBUG -o examples/gl33/gl33
 	./examples/gl33/gl33$(EXT)
 
-	$(CC) examples/gles2/main.c $(LIBS) -lEGL -I./ -Wall -Werror -Wstrict-prototypes -Wextra -D RGFW_DEBUG -o examples/gles2/gles2
+	$(CC) examples/gles2/main.c $(LIBS) -lEGL -I./ $(WARNINGS) -D RGFW_DEBUG -o examples/gles2/gles2
 	./examples/gles2/gles2$(EXT)
 
 	make vulkan_shaders
-	$(CC) examples/vk10/main.c $(LIBS) $(VULAKN_LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -D RGFW_DEBUG -o examples/vk10/vk10
+	$(CC) examples/vk10/main.c $(LIBS) $(VULAKN_LIBS) -I./ $(WARNINGS) -D RGFW_DEBUG -o examples/vk10/vk10
 	./examples/vk10/vk10$(EXT)
 
 performance-checker:
-	$(CC) examples/performance-checker/main.c $(LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -o examples/performance-checker/performance-checker
+	$(CC) examples/performance-checker/main.c $(LIBS) -I./ $(WARNINGS) -o examples/performance-checker/performance-checker
 	./examples/performance-checker/performance-checker$(EXT)
 
 vulkan_shaders:
@@ -105,7 +107,7 @@ vulkan_shaders:
 	glslangValidator -V examples/vk10/shaders/frag.frag -o examples/vk10/shaders/frag.h --vn frag_code
 
 debugDX11: examples/dx11/main.c
-	$(CC) $^ $(LIBS) $(DX11_LIBS) -I./ -Wall -Werror -Wstrict-prototypes -Wextra -D RGFW_DEBUG -o dx11
+	$(CC) $^ $(LIBS) $(DX11_LIBS) -I./ $(WARNINGS) -D RGFW_DEBUG -o dx11
 	./dx11.exe
 
 RGFW.o: RGFW.h
