@@ -623,6 +623,10 @@ typedef struct { i32 x, y; } RGFW_vector;
 	
 	RGFWDEF void RGFW_window_setDND(RGFW_window* win, b8 allow); /* turn on / off dnd (RGFW_ALLOW_DND stil must be passed to the window)*/
 
+	RGFWDEF void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough); /* turn on / off mouse passthrough */
+
+	RGFWDEF void RGFW_window_setTransparent(RGFW_window* win); /* turn on / off window transparancy */
+
 	RGFWDEF void RGFW_window_setName(RGFW_window* win,
 		char* name
 	);
@@ -1280,7 +1284,7 @@ MacOS -> windows and linux already don't have keycodes as macros, so there's no 
 	RGFW_jsButtonfunc RGFW_jsButtonCallback = RGFW_jsButtonfuncEMPTY;
 	RGFW_jsAxisfunc RGFW_jsAxisCallback = RGFW_jsAxisfuncEMPTY;
 
-	void RGFW_window_checkEvents(RGFW_window* win) { while (RGFW_window_checkEvent(win) != NULL && win->event.type != RGFW_quit); }
+	void RGFW_window_checkEvents(RGFW_window* win) { while (RGFW_window_checkEvent(win) != NULL && RGFW_window_shouldClose(win) == 0) { if (win->event.type == RGFW_quit) return; }}
 	
 	void RGFW_setWindowMoveCallback(RGFW_windowmovefunc func) { RGFW_windowMoveCallback = func; }
 	void RGFW_setWindowResizeCallback(RGFW_windowresizefunc func) { RGFW_windowResizeCallback = func; }
@@ -2336,6 +2340,8 @@ Start of Linux / Unix defines
 
 #include <X11/XKBlib.h> /* for converting keycode to string */
 #include <X11/cursorfont.h> /* for hiding */
+#include <X11/extensions/shapeconst.h>
+#include <X11/extensions/shape.h>
 
 #include <limits.h> /* for data limits (mainly used in drag and drop functions) */
 #include <fcntl.h>
@@ -2592,7 +2598,7 @@ Start of Linux / Unix defines
 
 		/* make it so the user can't close the window until the program does*/
 		if (wm_delete_window == 0)
-			wm_delete_window = XInternAtom((Display*) win->src.display, "WM_DELETE_WINDOW", 1);
+			wm_delete_window = XInternAtom((Display*) win->src.display, "WM_DELETE_WINDOW", False);
 
 		XSetWMProtocols((Display*) win->src.display, (Drawable) win->src.window, &wm_delete_window, 1);
 
@@ -2691,6 +2697,11 @@ Start of Linux / Unix defines
 
 	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		assert(win != NULL);
+
+		if (win->event.type == RGFW_quit) {
+			return NULL;
+		}
+
 		win->event.type = 0;
 
 #ifdef __linux__
@@ -3156,76 +3167,6 @@ Start of Linux / Unix defines
 			return NULL;
 	}
 
-	void RGFW_window_close(RGFW_window* win) {
-		assert(win != NULL);
-
-#ifdef RGFW_VULKAN
-		for (u32 i = 0; i < win->src.image_count; i++) {
-			vkDestroyImageView(RGFW_vulkan_info.device, win->src.swapchain_image_views[i], NULL);
-		}
-
-		vkDestroySwapchainKHR(RGFW_vulkan_info.device, win->src.swapchain, NULL);
-		vkDestroySurfaceKHR(RGFW_vulkan_info.instance, win->src.rSurf, NULL);
-		RGFW_FREE(win->src.swapchain_image_views);
-		RGFW_FREE(win->src.swapchain_images);
-#endif
-
-#ifdef RGFW_EGL
-		RGFW_closeEGL(win);
-#endif
-
-#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-		if (win->buffer != NULL) {
-			XDestroyImage((XImage*) win->src.bitmap);
-		}
-#endif
-
-		if ((Display*) win->src.display) {
-#ifdef RGFW_OPENGL
-			glXDestroyContext((Display*) win->src.display, win->src.rSurf);
-#endif
-
-			if (win == RGFW_root)
-				RGFW_root = NULL;
-
-			if ((Drawable) win->src.window)
-				XDestroyWindow((Display*) win->src.display, (Drawable) win->src.window); /* close the window*/
-
-			if (win->src.display)
-				XCloseDisplay((Display*) win->src.display); /* kill the display*/
-		}
-
-#ifdef RGFW_ALLOC_DROPFILES
-		{
-			u32 i;
-			for (i = 0; i < RGFW_MAX_DROPS; i++)
-				RGFW_FREE(win->event.droppedFiles[i]);
-
-
-			RGFW_FREE(win->event.droppedFiles);
-		}
-#endif
-
-		RGFW_windowsOpen--;
-#if !defined(RGFW_NO_X11_CURSOR_PRELOAD) && !defined(RGFW_NO_X11_CURSOR)
-		if (X11Cursorhandle != NULL && RGFW_windowsOpen <= 0) {
-			dlclose(X11Cursorhandle);
-
-			X11Cursorhandle = NULL;
-		}
-#endif
-
-		/* set cleared display / window to NULL for error checking */
-		win->src.display = (Display*) 0;
-		win->src.window = (Window) 0;
-
-		u8 i;
-		for (i = 0; i < win->src.joystickCount; i++)
-			close(win->src.joysticks[i]);
-
-		RGFW_FREE(win); /* free collected window data */
-	}
-
 	void RGFW_window_move(RGFW_window* win, RGFW_vector v) {
 		assert(win != NULL);
 		win->r.x = v.x;
@@ -3288,12 +3229,56 @@ Start of Linux / Unix defines
 
 		XMapWindow(win->src.display, (Window) win->src.window);
 		XFlush(win->src.display);
-	}
+	}	
 
 	void RGFW_window_setName(RGFW_window* win, char* name) {
 		assert(win != NULL);
 
 		XStoreName((Display*) win->src.display, (Window) win->src.window, name);
+	}
+	
+	void* RGFW_libxshape = NULL;
+
+	void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
+		assert(win != NULL);
+		
+		#if defined(__CYGWIN__)
+			RGFW_libxshape = dlopen("libXext-6.so", RTLD_LAZY | RTLD_LOCAL);
+		#elif defined(__OpenBSD__) || defined(__NetBSD__)
+			RGFW_libxshape = dlopen("libXext.so", RTLD_LAZY | RTLD_LOCAL);
+		#else
+    		RGFW_libxshape = dlopen("libXext.so.6", RTLD_LAZY | RTLD_LOCAL);
+		#endif
+		
+		typedef void (* PFN_XShapeCombineMask)(Display*,Window,int,int,int,Pixmap,int);
+		static PFN_XShapeCombineMask XShapeCombineMask;
+		
+		typedef void (* PFN_XShapeCombineRegion)(Display*,Window,int,int,int,Region,int);
+		static PFN_XShapeCombineRegion XShapeCombineRegion;
+		
+		if (XShapeCombineMask != NULL)
+			XShapeCombineMask = (PFN_XShapeCombineMask) dlsym(RGFW_libxshape, "XShapeCombineMask");
+
+		if (XShapeCombineRegion != NULL)
+			XShapeCombineRegion = (PFN_XShapeCombineRegion) dlsym(RGFW_libxshape, "XShapeCombineMask");
+
+		if (passthrough) {
+			Region region = XCreateRegion();
+			XShapeCombineRegion(win->src.display, win->src.window, ShapeInput, 0, 0, region, ShapeSet);
+			XDestroyRegion(region);
+
+			return;
+		}
+
+		XShapeCombineMask(win->src.display, win->src.window, ShapeInput, 0, 0, None, ShapeSet);
+	}
+
+	void RGFW_window_setTransparent(RGFW_window* win) {
+		assert(win != NULL);
+		
+        Atom atom = XInternAtom(win->src.display, "_NET_WM_CM_S", False);
+
+		XGetSelectionOwner(win->src.display, atom);
 	}
 
 	/*
@@ -3894,6 +3879,81 @@ Start of Linux / Unix defines
 	}
 	#endif
 
+
+	void RGFW_window_close(RGFW_window* win) {
+		assert(win != NULL);
+
+#ifdef RGFW_VULKAN
+		for (u32 i = 0; i < win->src.image_count; i++) {
+			vkDestroyImageView(RGFW_vulkan_info.device, win->src.swapchain_image_views[i], NULL);
+		}
+
+		vkDestroySwapchainKHR(RGFW_vulkan_info.device, win->src.swapchain, NULL);
+		vkDestroySurfaceKHR(RGFW_vulkan_info.instance, win->src.rSurf, NULL);
+		RGFW_FREE(win->src.swapchain_image_views);
+		RGFW_FREE(win->src.swapchain_images);
+#endif
+
+#ifdef RGFW_EGL
+		RGFW_closeEGL(win);
+#endif
+
+#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+		if (win->buffer != NULL) {
+			XDestroyImage((XImage*) win->src.bitmap);
+		}
+#endif
+
+		if ((Display*) win->src.display) {
+#ifdef RGFW_OPENGL
+			glXDestroyContext((Display*) win->src.display, win->src.rSurf);
+#endif
+
+			if (win == RGFW_root)
+				RGFW_root = NULL;
+
+			if ((Drawable) win->src.window)
+				XDestroyWindow((Display*) win->src.display, (Drawable) win->src.window); /* close the window*/
+
+			if (win->src.display)
+				XCloseDisplay((Display*) win->src.display); /* kill the display*/
+		}
+
+#ifdef RGFW_ALLOC_DROPFILES
+		{
+			u32 i;
+			for (i = 0; i < RGFW_MAX_DROPS; i++)
+				RGFW_FREE(win->event.droppedFiles[i]);
+
+
+			RGFW_FREE(win->event.droppedFiles);
+		}
+#endif
+
+		RGFW_windowsOpen--;
+#if !defined(RGFW_NO_X11_CURSOR_PRELOAD) && !defined(RGFW_NO_X11_CURSOR)
+		if (X11Cursorhandle != NULL && RGFW_windowsOpen <= 0) {
+			dlclose(X11Cursorhandle);
+
+			X11Cursorhandle = NULL;
+		}
+#endif
+
+		if (RGFW_libxshape != NULL && RGFW_windowsOpen <= 0) {
+			dlclose(RGFW_libxshape);
+			RGFW_libxshape = NULL;
+		}
+
+		/* set cleared display / window to NULL for error checking */
+		win->src.display = (Display*) 0;
+		win->src.window = (Window) 0;
+
+		u8 i;
+		for (i = 0; i < win->src.joystickCount; i++)
+			close(win->src.joysticks[i]);
+
+		RGFW_FREE(win); /* free collected window data */
+	}
 
 	u64 	RGFW_getTimeNS(void) { 
 		struct timespec ts = { 0 };
@@ -4577,6 +4637,10 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		assert(win != NULL);
 
+		if (win->event.type == RGFW_quit) {
+			return NULL;
+		}
+
 		MSG msg;
 
 		if (RGFW_eventWindow.src.window == win->src.window) {
@@ -4604,11 +4668,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		if (RGFW_checkXInput(win, &win->event))
 			return &win->event;
-
-		if (win->event.type == RGFW_quit) {
-			RGFW_windowQuitCallback(win);
-			return NULL;
-		}
 
 		static BYTE keyboardState[256];
 
@@ -5199,6 +5258,39 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		assert(win != NULL);
 
 		SetWindowTextA(win->src.window, name);
+	}
+
+	/* sourced from GLFW */
+	void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
+		assert(win != NULL);
+
+		COLORREF key = 0;
+		BYTE alpha = 0;
+		DWORD flags = 0;
+		DWORD exStyle = GetWindowLongW(win->src.window, GWL_EXSTYLE);
+
+		if (exStyle & WS_EX_LAYERED)
+			GetLayeredWindowAttributes(win->src.window, &key, &alpha, &flags);
+
+		if (passthrough)
+			exStyle |= (WS_EX_TRANSPARENT | WS_EX_LAYERED);
+		else
+		{
+			exStyle &= ~WS_EX_TRANSPARENT;
+			// NOTE: Window opacity also needs the layered window style so do not
+			//       remove it if the window is alpha blended
+			if (exStyle & WS_EX_LAYERED)
+			{
+				if (!(flags & LWA_ALPHA))
+					exStyle &= ~WS_EX_LAYERED;
+			}
+		}
+
+		SetWindowLongW(win->src.window, GWL_EXSTYLE, exStyle);
+
+		if (passthrough) {
+			SetLayeredWindowAttributes(win->src.window, key, alpha, flags);
+		}
 	}
 
 	/* much of this function is sourced from GLFW */
@@ -6301,7 +6393,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		assert(win != NULL);
 
 		if (win->event.type == RGFW_quit)
-			return &win->event;
+			return NULL;
 
 		if (win->event.type == RGFW_dnd && win->src.dndPassed == 0) {
 			win->src.dndPassed = 1;
@@ -6562,6 +6654,10 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		NSString* str = NSString_stringWithUTF8String(name);
 		objc_msgSend_void_id(win->src.window, sel_registerName("setTitle:"), str);
+	}
+
+	void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
+		objc_msgSend_void_bool(win->src.window, sel_registerName("setIgnoresMouseEvents:"), passthrough);
 	}
 
 	void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
