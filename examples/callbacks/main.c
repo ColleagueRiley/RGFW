@@ -99,10 +99,10 @@ int main(void) {
     while (RGFW_window_shouldClose(window) == 0) {
         RGFW_window_checkEvents(window);
 
-        RGFW_window_swapBuffers(window);
-
         glClearColor(0.15, 0, 0.25, 0xFF);
         glClear(GL_COLOR_BUFFER_BIT);
+        
+        RGFW_window_swapBuffers(window);
     }
 
     RGFW_window_close(window);
