@@ -41,9 +41,9 @@ void mouseposfunc(RGFW_window* win, RGFW_vector point) {
     printf("mouse moved %i %i\n", point.x, point.y);
 }
 
-void dndfunc(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount) {
+void dndfunc(RGFW_window* win, char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount) {
     if (window != win) return;
-
+    
     u32 i;
     for (i = 0; i < droppedFilesCount; i++)
         printf("dropped : %s\n", droppedFiles[i]);
