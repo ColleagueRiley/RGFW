@@ -37,7 +37,6 @@
 									This version doesn't work for desktops (I'm pretty sure)
 	#define RGFW_OPENGL_ES2 - (optional) use OpenGL ES (version 2)
 	#define RGFW_OPENGL_ES3 - (optional) use OpenGL ES (version 3)
-	#define RGFW_VULKAN - (optional) use vulkan for the rendering backend (rather than opengl)
 	#define RGFW_DIRECTX - (optional) use directX for the rendering backend (rather than opengl) (windows only, defaults to opengl for unix)
 	#define RGFW_NO_API - (optional) don't use any rendering API (no opengl, no vulkan, no directX)
 
@@ -78,7 +77,7 @@
 		EimaMei (SaCode) -> code review
 		Code-Nycticebus -> bug fixes
 		Rob Rohan -> X11 bugs and missing features
-		AICDG (@THISISAGOODNAME) -> vulkan support 
+		AICDG (@THISISAGOODNAME) -> vulkan support (example)
 */
 
 #ifndef RGFW_MALLOC
@@ -209,26 +208,8 @@ extern "C" {
 #undef RGFW_EGL
 #endif
 
-#if !defined(RGFW_OSMESA) && !defined(RGFW_EGL) && !defined(RGFW_OPENGL) && !defined (RGFW_VULKAN) && !defined(RGFW_DIRECTX) && !defined(RGFW_BUFFER) && !defined(RGFW_NO_API)
+#if !defined(RGFW_OSMESA) && !defined(RGFW_EGL) && !defined(RGFW_OPENGL) && !defined(RGFW_DIRECTX) && !defined(RGFW_BUFFER) && !defined(RGFW_NO_API)
 #define RGFW_OPENGL
-#endif
-
-#ifdef RGFW_VULKAN
-#ifndef RGFW_MAX_FRAMES_IN_FLIGHT
-#define RGFW_MAX_FRAMES_IN_FLIGHT 2
-#endif
-
-#ifdef RGFW_X11
-#define VK_USE_PLATFORM_XLIB_KHR
-#endif
-#ifdef RGFW_WINDOWS
-#define VK_USE_PLATFORM_WIN32_KHR
-#endif
-#ifdef RGFW_MACOS
-#define VK_USE_PLATFORM_MACOS_MVK
-#endif
-
-#include <vulkan/vulkan.h>
 #endif
 
 #if defined(RGFW_X11) && (defined(RGFW_OPENGL))
@@ -262,7 +243,7 @@ extern "C" {
 #endif
 
 /*! Optional arguments for making a windows */
-#define RGFW_TRANSPARENT_WINDOW		(1L<<9) /*!< the window is transparent */
+#define RGFW_TRANSPARENT_WINDOW		(1L<<9) /*!< the window is transparent (only properly works on X11) */
 #define RGFW_NO_BORDER		(1L<<3) /*!< the window doesn't have border */
 #define RGFW_NO_RESIZE		(1L<<4) /*!< the window cannot be resized  by the user */
 #define RGFW_ALLOW_DND     (1L<<5) /*!< the window supports drag and drop*/
@@ -477,15 +458,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 		GLXContext rSurf; /*!< source graphics context */
 #endif
 #else
-#ifdef RGFW_VULKAN
-		VkSurfaceKHR rSurf; /*!< source graphics context */
-
-		/* vulkan data */
-		VkSwapchainKHR swapchain;
-		u32 image_count;
-		VkImage* swapchain_images;
-		VkImageView* swapchain_image_views;
-#endif
 
 #ifdef RGFW_OSMESA
 		OSMesaContext rSurf;
@@ -746,8 +718,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 	typedef void (* RGFW_mouseNotifyfunc)(RGFW_window* win, RGFW_vector point, b8 status);
 	/* RGFW_mousePosChanged, the window that the move happened on and the new point of the mouse  */
 	typedef void (* RGFW_mouseposfunc)(RGFW_window* win, RGFW_vector point);
-	/*  RGFW_dnd, the window that had the drop, the drop data and the amount files dropped */
-	typedef void (* RGFW_dndfunc)(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount);
 	/* RGFW_dnd_init, the window, the point of the drop on the windows */
 	typedef void (* RGFW_dndInitfunc)(RGFW_window* win, RGFW_vector point);
 	/* RGFW_windowRefresh, the window that needs to be refreshed */
@@ -760,7 +730,13 @@ typedef struct { i32 x, y; } RGFW_vector;
 	typedef void (* RGFW_jsButtonfunc)(RGFW_window* win, u16 joystick, u8 button, b8 pressed);
 	/* RGFW_jsAxisMove, the window that got the event, the joystick in question, the axis values and the amount of axises */
 	typedef void (* RGFW_jsAxisfunc)(RGFW_window* win, u16 joystick, RGFW_vector axis[2], u8 axisesCount);
-
+	
+	/*  RGFW_dnd, the window that had the drop, the drop data and the amount files dropped */
+	#ifdef RGFW_ALLOC_DROPFILES
+	typedef void (* RGFW_dndfunc)(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount);
+	#else
+	typedef void (* RGFW_dndfunc)(RGFW_window* win, char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount);
+	#endif
 
 	RGFWDEF void RGFW_setWindowMoveCallback(RGFW_windowmovefunc func);
 	RGFWDEF void RGFW_setWindowResizeCallback(RGFW_windowresizefunc func);
@@ -829,57 +805,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 	RGFWDEF void RGFW_window_setGPURender(RGFW_window* win, i8 set);
 	RGFWDEF void RGFW_window_setCPURender(RGFW_window* win, i8 set);
-
-#ifdef RGFW_VULKAN
-	typedef struct {
-		VkInstance instance;
-		VkPhysicalDevice physical_device;
-		VkDevice device;
-
-		VkDebugUtilsMessengerEXT debugMessenger;
-
-		VkQueue graphics_queue;
-		VkQueue present_queue;
-
-		VkFramebuffer* framebuffers;
-
-		VkRenderPass render_pass;
-		VkPipelineLayout pipeline_layout;
-		VkPipeline graphics_pipeline;
-
-		VkCommandPool command_pool;
-		VkCommandBuffer* command_buffers;
-
-		VkSemaphore* available_semaphores;
-		VkSemaphore* finished_semaphore;
-		VkFence* in_flight_fences;
-		VkFence* image_in_flight;
-		size_t current_frame;
-	} RGFW_vulkanInfo;
-
-	/*! initializes a vulkan rendering context for the RGFW window,
-		this outputs the vulkan surface into wwin->src.rSurf
-		other vulkan data is stored in the global instance of the RGFW_vulkanInfo structure which is returned
-		by the initVulkan() function
-		RGFW_VULKAN must be defined for this function to be defined
-
-	*/
-	RGFWDEF RGFW_vulkanInfo* RGFW_initVulkan(RGFW_window* win);
-	RGFWDEF void RGFW_freeVulkan(void);
-
-	RGFWDEF RGFW_vulkanInfo* RGFW_getVulkanInfo(void);
-
-	RGFWDEF int RGFW_initData(RGFW_window* win);
-	RGFWDEF void RGFW_createSurface(VkInstance instance, RGFW_window* win);
-	int RGFW_deviceInitialization(RGFW_window* win);
-	int RGFW_createSwapchain(RGFW_window* win);
-	RGFWDEF int RGFW_createRenderPass(void);
-	int RGFW_createCommandPool(void);
-	int RGFW_createCommandBuffers(RGFW_window* win);
-	int RGFW_createSyncObjects(RGFW_window* win);
-	RGFWDEF int RGFW_createFramebuffers(RGFW_window* win);
-#endif
-
 #ifdef RGFW_DIRECTX
 	typedef struct {
 		IDXGIFactory* pFactory;
@@ -1265,13 +1190,18 @@ MacOS -> windows and linux already don't have keycodes as macros, so there's no 
 	void RGFW_focusfuncEMPTY(RGFW_window* win, b8 inFocus) {RGFW_UNUSED(win); RGFW_UNUSED(inFocus);}
 	void RGFW_mouseNotifyfuncEMPTY(RGFW_window* win, RGFW_vector point, b8 status) {RGFW_UNUSED(win); RGFW_UNUSED(point); RGFW_UNUSED(status);}
 	void RGFW_mouseposfuncEMPTY(RGFW_window* win, RGFW_vector point) {RGFW_UNUSED(win); RGFW_UNUSED(point);}
-	void RGFW_dndfuncEMPTY(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
 	void RGFW_dndInitfuncEMPTY(RGFW_window* win, RGFW_vector point) {RGFW_UNUSED(win); RGFW_UNUSED(point);}
 	void RGFW_windowrefreshfuncEMPTY(RGFW_window* win) {RGFW_UNUSED(win); }
 	void RGFW_keyfuncEMPTY(RGFW_window* win, u32 keycode, char keyName[16], u8 lockState, b8 pressed) {RGFW_UNUSED(win); RGFW_UNUSED(keycode); RGFW_UNUSED(keyName); RGFW_UNUSED(lockState); RGFW_UNUSED(pressed);}
 	void RGFW_mousebuttonfuncEMPTY(RGFW_window* win, u8 button, double scroll, b8 pressed) {RGFW_UNUSED(win); RGFW_UNUSED(button); RGFW_UNUSED(scroll); RGFW_UNUSED(pressed);}
 	void RGFW_jsButtonfuncEMPTY(RGFW_window* win, u16 joystick, u8 button, b8 pressed){RGFW_UNUSED(win); RGFW_UNUSED(joystick); RGFW_UNUSED(button); RGFW_UNUSED(pressed); }
 	void RGFW_jsAxisfuncEMPTY(RGFW_window* win, u16 joystick, RGFW_vector axis[2], u8 axisesCount){RGFW_UNUSED(win); RGFW_UNUSED(joystick); RGFW_UNUSED(axis); RGFW_UNUSED(axisesCount); }
+
+	#ifdef RGFW_ALLOC_DROPFILES
+	void RGFW_dndfuncEMPTY(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
+	#else
+	void RGFW_dndfuncEMPTY(RGFW_window* win, char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
+	#endif
 
 	RGFW_windowmovefunc RGFW_windowMoveCallback = RGFW_windowmovefuncEMPTY;
 	RGFW_windowresizefunc RGFW_windowResizeCallback = RGFW_windowresizefuncEMPTY;
@@ -1553,398 +1483,12 @@ RGFW_window* RGFW_root = NULL;
 	starts here 
 */
 
-/* 
-	Vulkan defines start here
-*/
-
-#ifdef RGFW_VULKAN
-	RGFW_vulkanInfo RGFW_vulkan_info;
-
-	RGFW_vulkanInfo* RGFW_initVulkan(RGFW_window* win) {
-		assert(win != NULL);
-
-		if (
-			RGFW_initData(win) ||
-			RGFW_deviceInitialization(win) ||
-			RGFW_createSwapchain(win)
-			)
-			return NULL;
-
-		u32 graphics_family_index = 0;
-		u32 present_family_index = 0;
-
-		vkGetDeviceQueue(RGFW_vulkan_info.device, graphics_family_index, 0, &RGFW_vulkan_info.graphics_queue);
-		vkGetDeviceQueue(RGFW_vulkan_info.device, present_family_index, 0, &RGFW_vulkan_info.present_queue);
-
-		if (
-			RGFW_createRenderPass() ||
-			RGFW_createFramebuffers(win) ||
-			RGFW_createCommandPool() ||
-			RGFW_createCommandBuffers(win) ||
-			RGFW_createSyncObjects(win)
-			)
-			return NULL;
-
-		return &RGFW_vulkan_info;
-	}
-
-	int RGFW_initData(RGFW_window* win) {
-		assert(win != NULL);
-
-		win->src.swapchain = VK_NULL_HANDLE;
-		win->src.image_count = 0;
-		RGFW_vulkan_info.current_frame = 0;
-
-		return 0;
-	}
-
-	void RGFW_createSurface(VkInstance instance, RGFW_window* win) {
-		assert(win != NULL);
-		assert(instance);
-
-		win->src.rSurf = VK_NULL_HANDLE;
-
-#ifdef RGFW_X11
-		VkXlibSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, 0, 0, (Display*) win->src.display, (Window) win->src.window };
-
-		vkCreateXlibSurfaceKHR(RGFW_vulkan_info.instance, &x11, NULL, &win->src.rSurf);
-#endif
-#ifdef RGFW_WINDOWS
-		VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, GetModuleHandle(NULL), win->src.window };
-
-		vkCreateWin32SurfaceKHR(RGFW_vulkan_info.instance, &win32, NULL, &win->src.rSurf);
-#endif
-#if defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
-		VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, win->src.display, win->src.window };
-
-		vkCreateMacOSSurfaceMVK(RGFW_vulkan_info.instance, &macos, NULL, &win->src.rSurf);
-#endif
-	}
-
-	RGFW_vulkanInfo* RGFW_getVulkanInfo(void) {
-		return &RGFW_vulkan_info;
-	}
-
-	int RGFW_deviceInitialization(RGFW_window* win) {
-		assert(win != NULL);
-
-		VkApplicationInfo appInfo = { 0 };
-		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		appInfo.pApplicationName = "RGFW app";
-		appInfo.apiVersion = VK_MAKE_VERSION(1, 0, 0);
-
-		char* extension =
-#ifdef RGFW_WINDOWS
-			"VK_KHR_win32_surface";
-#elif defined(RGFW_X11)
-			VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
-#elif defined(RGFW_MACOS)
-			"VK_MVK_macos_surface";
-#else
-			NULL;
-#endif
-
-		VkInstanceCreateInfo instance_create_info = { 0 };
-		instance_create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-		instance_create_info.pApplicationInfo = &appInfo;
-		instance_create_info.enabledExtensionCount = extension ? 2 : 0,
-			instance_create_info.ppEnabledExtensionNames = (const char* [2]){
-					VK_KHR_SURFACE_EXTENSION_NAME,
-					extension
-		};
-
-		if (vkCreateInstance(&instance_create_info, NULL, &RGFW_vulkan_info.instance) != VK_SUCCESS) {
-			fprintf(stderr, "failed to create instance!\n");
-			return -1;
-		}
-
-
-		RGFW_createSurface(RGFW_vulkan_info.instance, win);
-
-		u32 deviceCount = 0;
-		vkEnumeratePhysicalDevices(RGFW_vulkan_info.instance, &deviceCount, NULL);
-		VkPhysicalDevice* devices = (VkPhysicalDevice*) RGFW_MALLOC(sizeof(VkPhysicalDevice) * deviceCount);
-		vkEnumeratePhysicalDevices(RGFW_vulkan_info.instance, &deviceCount, devices);
-
-		RGFW_vulkan_info.physical_device = devices[0];
-
-		u32 queue_family_count = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(RGFW_vulkan_info.physical_device, &queue_family_count, NULL);
-		VkQueueFamilyProperties* queueFamilies = (VkQueueFamilyProperties*) RGFW_MALLOC(sizeof(VkQueueFamilyProperties) * queue_family_count);
-		vkGetPhysicalDeviceQueueFamilyProperties(RGFW_vulkan_info.physical_device, &queue_family_count, queueFamilies);
-
-		float queuePriority = 1.0f;
-
-		VkPhysicalDeviceFeatures device_features = { 0 };
-
-		VkDeviceCreateInfo device_create_info = { 0 };
-		device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		VkDeviceQueueCreateInfo queue_create_infos[2] = {
-			{0},
-			{0},
-		};
-		queue_create_infos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queue_create_infos[0].queueCount = 1;
-		queue_create_infos[0].pQueuePriorities = &queuePriority;
-		queue_create_infos[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queue_create_infos[1].queueCount = 1;
-		queue_create_infos[1].pQueuePriorities = &queuePriority;
-		device_create_info.queueCreateInfoCount = 2;
-		device_create_info.pQueueCreateInfos = queue_create_infos;
-
-		device_create_info.enabledExtensionCount = 1;
-
-		const char* device_extensions[] = {
-			VK_KHR_SWAPCHAIN_EXTENSION_NAME
-		};
-
-		device_create_info.ppEnabledExtensionNames = device_extensions;
-		device_create_info.pEnabledFeatures = &device_features;
-
-		if (vkCreateDevice(RGFW_vulkan_info.physical_device, &device_create_info, NULL, &RGFW_vulkan_info.device) != VK_SUCCESS) {
-			fprintf(stderr, "failed to create logical device!\n");
-			return -1;
-		}
-
-		return 0;
-	}
-
-	int RGFW_createSwapchain(RGFW_window* win) {
-		assert(win != NULL);
-
-		VkSurfaceFormatKHR surfaceFormat = { VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
-		VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
-
-		VkSurfaceCapabilitiesKHR capabilities = { 0 };
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(RGFW_vulkan_info.physical_device, win->src.rSurf, &capabilities);
-
-		win->src.image_count = capabilities.minImageCount + 1;
-		if (capabilities.maxImageCount > 0 && win->src.image_count > capabilities.maxImageCount) {
-			win->src.image_count = capabilities.maxImageCount;
-		}
-
-		VkSwapchainCreateInfoKHR swapchain_create_info = { 0 };
-		swapchain_create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		swapchain_create_info.surface = win->src.rSurf;
-		swapchain_create_info.minImageCount = win->src.image_count;
-		swapchain_create_info.imageFormat = surfaceFormat.format;
-		swapchain_create_info.imageColorSpace = surfaceFormat.colorSpace;
-		swapchain_create_info.imageExtent = (VkExtent2D){ win->r.w, win->r.h };
-		swapchain_create_info.imageArrayLayers = 1;
-		swapchain_create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		swapchain_create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		swapchain_create_info.queueFamilyIndexCount = 2;
-		swapchain_create_info.preTransform = capabilities.currentTransform;
-		swapchain_create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-		swapchain_create_info.presentMode = presentMode;
-		swapchain_create_info.clipped = VK_TRUE;
-		swapchain_create_info.oldSwapchain = VK_NULL_HANDLE;
-
-		if (vkCreateSwapchainKHR(RGFW_vulkan_info.device, &swapchain_create_info, NULL, &win->src.swapchain) != VK_SUCCESS) {
-			fprintf(stderr, "failed to create swap chain!\n");
-			return -1;
-		}
-
-		u32 imageCount;
-		vkGetSwapchainImagesKHR(RGFW_vulkan_info.device, win->src.swapchain, &imageCount, NULL);
-		win->src.swapchain_images = (VkImage*) RGFW_MALLOC(sizeof(VkImage) * imageCount);
-		vkGetSwapchainImagesKHR(RGFW_vulkan_info.device, win->src.swapchain, &imageCount, win->src.swapchain_images);
-
-		win->src.swapchain_image_views = (VkImageView*) RGFW_MALLOC(sizeof(VkImageView) * imageCount);
-		for (u32 i = 0; i < imageCount; i++) {
-			VkImageViewCreateInfo image_view_cre_infos = { 0 };
-			image_view_cre_infos.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			image_view_cre_infos.image = win->src.swapchain_images[i];
-			image_view_cre_infos.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			image_view_cre_infos.format = VK_FORMAT_B8G8R8A8_SRGB;
-			image_view_cre_infos.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-			image_view_cre_infos.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-			image_view_cre_infos.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-			image_view_cre_infos.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-			image_view_cre_infos.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			image_view_cre_infos.subresourceRange.baseMipLevel = 0;
-			image_view_cre_infos.subresourceRange.levelCount = 1;
-			image_view_cre_infos.subresourceRange.baseArrayLayer = 0;
-			image_view_cre_infos.subresourceRange.layerCount = 1;
-			if (vkCreateImageView(RGFW_vulkan_info.device, &image_view_cre_infos, NULL, &win->src.swapchain_image_views[i]) != VK_SUCCESS) {
-				fprintf(stderr, "failed to create image views!");
-				return -1;
-			}
-		}
-
-		return 0;
-	}
-
-	int RGFW_createRenderPass(void) {
-		VkAttachmentDescription color_attachment = { 0 };
-		color_attachment.format = VK_FORMAT_B8G8R8A8_SRGB;
-		color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-		VkAttachmentReference color_attachment_ref = { 0 };
-		color_attachment_ref.attachment = 0;
-		color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		VkSubpassDescription subpass = { 0 };
-		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		subpass.colorAttachmentCount = 1;
-		subpass.pColorAttachments = &color_attachment_ref;
-
-		VkSubpassDependency dependency = { 0 };
-		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		dependency.dstSubpass = 0;
-		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependency.srcAccessMask = 0;
-		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-		VkRenderPassCreateInfo render_pass_info = { 0 };
-		render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		render_pass_info.attachmentCount = 1;
-		render_pass_info.pAttachments = &color_attachment;
-		render_pass_info.subpassCount = 1;
-		render_pass_info.pSubpasses = &subpass;
-		render_pass_info.dependencyCount = 1;
-		render_pass_info.pDependencies = &dependency;
-
-		if (vkCreateRenderPass(RGFW_vulkan_info.device, &render_pass_info, NULL, &RGFW_vulkan_info.render_pass) != VK_SUCCESS) {
-			fprintf(stderr, "failed to create render pass\n");
-			return -1; // failed to create render pass!
-		}
-		return 0;
-	}
-
-	int RGFW_createCommandPool(void) {
-		VkCommandPoolCreateInfo pool_info = { 0 };
-		pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		pool_info.queueFamilyIndex = 0;
-
-		if (vkCreateCommandPool(RGFW_vulkan_info.device, &pool_info, NULL, &RGFW_vulkan_info.command_pool) != VK_SUCCESS) {
-			fprintf(stderr, "failed to create command pool\n");
-			return -1; // failed to create command pool
-		}
-		return 0;
-	}
-
-	int RGFW_createCommandBuffers(RGFW_window* win) {
-		assert(win != NULL);
-
-		RGFW_vulkan_info.command_buffers = (VkCommandBuffer*) RGFW_MALLOC(sizeof(VkCommandBuffer) * win->src.image_count);
-
-		VkCommandBufferAllocateInfo allocInfo = { 0 };
-		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.commandPool = RGFW_vulkan_info.command_pool;
-		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandBufferCount = (u32) win->src.image_count;
-
-		if (vkAllocateCommandBuffers(RGFW_vulkan_info.device, &allocInfo, RGFW_vulkan_info.command_buffers) != VK_SUCCESS) {
-			return -1; // failed to allocate command buffers;
-		}
-
-		return 0;
-	}
-
-	int RGFW_createSyncObjects(RGFW_window* win) {
-		assert(win != NULL);
-
-		RGFW_vulkan_info.available_semaphores = (VkSemaphore*) RGFW_MALLOC(sizeof(VkSemaphore) * RGFW_MAX_FRAMES_IN_FLIGHT);
-		RGFW_vulkan_info.finished_semaphore = (VkSemaphore*) RGFW_MALLOC(sizeof(VkSemaphore) * RGFW_MAX_FRAMES_IN_FLIGHT);
-		RGFW_vulkan_info.in_flight_fences = (VkFence*) RGFW_MALLOC(sizeof(VkFence) * RGFW_MAX_FRAMES_IN_FLIGHT);
-		RGFW_vulkan_info.image_in_flight = (VkFence*) RGFW_MALLOC(sizeof(VkFence) * win->src.image_count);
-
-		VkSemaphoreCreateInfo semaphore_info = { 0 };
-		semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-		VkFenceCreateInfo fence_info = { 0 };
-		fence_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-		fence_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-		for (size_t i = 0; i < RGFW_MAX_FRAMES_IN_FLIGHT; i++) {
-			if (vkCreateSemaphore(RGFW_vulkan_info.device, &semaphore_info, NULL, &RGFW_vulkan_info.available_semaphores[i]) != VK_SUCCESS ||
-				vkCreateSemaphore(RGFW_vulkan_info.device, &semaphore_info, NULL, &RGFW_vulkan_info.finished_semaphore[i]) != VK_SUCCESS ||
-				vkCreateFence(RGFW_vulkan_info.device, &fence_info, NULL, &RGFW_vulkan_info.in_flight_fences[i]) != VK_SUCCESS) {
-				fprintf(stderr, "failed to create sync objects\n");
-				return -1; // failed to create synchronization objects for a frame
-			}
-		}
-
-		for (size_t i = 0; i < win->src.image_count; i++) {
-			RGFW_vulkan_info.image_in_flight[i] = VK_NULL_HANDLE;
-		}
-
-		return 0;
-	}
-
-	int RGFW_createFramebuffers(RGFW_window* win) {
-		assert(win != NULL);
-
-		RGFW_vulkan_info.framebuffers = (VkFramebuffer*) RGFW_MALLOC(sizeof(VkFramebuffer) * win->src.image_count);
-
-		for (size_t i = 0; i < win->src.image_count; i++) {
-			VkImageView attachments[] = { win->src.swapchain_image_views[i] };
-
-			VkFramebufferCreateInfo framebuffer_info = { 0 };
-			framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-			framebuffer_info.renderPass = RGFW_vulkan_info.render_pass;
-			framebuffer_info.attachmentCount = 1;
-			framebuffer_info.pAttachments = attachments;
-			framebuffer_info.width = win->r.w;
-			framebuffer_info.height = win->r.h;
-			framebuffer_info.layers = 1;
-
-			if (vkCreateFramebuffer(RGFW_vulkan_info.device, &framebuffer_info, NULL, &RGFW_vulkan_info.framebuffers[i]) != VK_SUCCESS) {
-				return -1; // failed to create framebuffer
-			}
-		}
-		return 0;
-	}
-
-	void RGFW_freeVulkan(void) {
-		vkDeviceWaitIdle(RGFW_vulkan_info.device);
-
-		for (size_t i = 0; i < RGFW_MAX_FRAMES_IN_FLIGHT; i++) {
-			vkDestroySemaphore(RGFW_vulkan_info.device, RGFW_vulkan_info.finished_semaphore[i], NULL);
-			vkDestroySemaphore(RGFW_vulkan_info.device, RGFW_vulkan_info.available_semaphores[i], NULL);
-			vkDestroyFence(RGFW_vulkan_info.device, RGFW_vulkan_info.in_flight_fences[i], NULL);
-		}
-
-		vkDestroyCommandPool(RGFW_vulkan_info.device, RGFW_vulkan_info.command_pool, NULL);
-
-		vkDestroyPipeline(RGFW_vulkan_info.device, RGFW_vulkan_info.graphics_pipeline, NULL);
-		vkDestroyPipelineLayout(RGFW_vulkan_info.device, RGFW_vulkan_info.pipeline_layout, NULL);
-		vkDestroyRenderPass(RGFW_vulkan_info.device, RGFW_vulkan_info.render_pass, NULL);
-
-#ifdef RGFW_DEBUG
-		PFN_vkDestroyDebugUtilsMessengerEXT func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(RGFW_vulkan_info.instance, "vkDestroyDebugUtilsMessengerEXT");
-		if (func != NULL) {
-			func(RGFW_vulkan_info.instance, RGFW_vulkan_info.debugMessenger, NULL);
-		}
-#endif
-
-		vkDestroyDevice(RGFW_vulkan_info.device, NULL);
-		vkDestroyInstance(RGFW_vulkan_info.instance, NULL);
-
-		RGFW_FREE(RGFW_vulkan_info.framebuffers);
-		RGFW_FREE(RGFW_vulkan_info.command_buffers);
-		RGFW_FREE(RGFW_vulkan_info.available_semaphores);
-		RGFW_FREE(RGFW_vulkan_info.finished_semaphore);
-		RGFW_FREE(RGFW_vulkan_info.in_flight_fences);
-		RGFW_FREE(RGFW_vulkan_info.image_in_flight);
-	}
-
-/* RGFW_VULKAN */
-/* vulkan defines end here*/
 
 /* 
 	OpenGL defines start here   (Normal, EGL, OSMesa)
 */
 
-#elif defined(RGFW_OPENGL) || defined(RGFW_EGL) || defined(RGFW_OSMESA)
+#if defined(RGFW_OPENGL) || defined(RGFW_EGL) || defined(RGFW_OSMESA)
 #ifndef __APPLE__
 #include <GL/gl.h>
 #else
@@ -2571,10 +2115,6 @@ Start of Linux / Unix defines
 			RGFW_root = win;
 
 		RGFW_init_buffer(win, vi);
-
-#ifdef RGFW_VULKAN
-		RGFW_initVulkan(win);
-#endif
 		}
 
 		if (args & RGFW_SCALE_TO_MONITOR)
@@ -3100,7 +2640,7 @@ Start of Linux / Unix defines
 				XFlush((Display*) win->src.display);
 			}
 
-			RGFW_dndCallback(win, (char**)win->event.droppedFiles, win->event.droppedFilesCount);
+			RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
 			break;
 
 		case FocusIn:
@@ -3838,13 +3378,6 @@ Start of Linux / Unix defines
 #endif	
 			XPutImage(win->src.display, (Window) win->src.window, win->src.gc, win->src.bitmap, 0, 0, 0, 0, RGFW_bufferSize.w, RGFW_bufferSize.h);
 #endif
-
-#ifdef RGFW_VULKAN
-#ifdef RGFW_PRINT_ERRORS
-			fprintf(stderr, "RGFW_window_swapBuffers %s\n", "RGFW_window_swapBuffers is not yet supported for Vulkan");
-			RGFW_error = 1;
-#endif
-#endif
 		}
 
 		if (!(win->src.winArgs & RGFW_NO_GPU_RENDER)) {
@@ -3873,18 +3406,6 @@ Start of Linux / Unix defines
 
 	void RGFW_window_close(RGFW_window* win) {
 		assert(win != NULL);
-
-#ifdef RGFW_VULKAN
-		for (u32 i = 0; i < win->src.image_count; i++) {
-			vkDestroyImageView(RGFW_vulkan_info.device, win->src.swapchain_image_views[i], NULL);
-		}
-
-		vkDestroySwapchainKHR(RGFW_vulkan_info.device, win->src.swapchain, NULL);
-		vkDestroySurfaceKHR(RGFW_vulkan_info.instance, win->src.rSurf, NULL);
-		RGFW_FREE(win->src.swapchain_image_views);
-		RGFW_FREE(win->src.swapchain_images);
-#endif
-
 #ifdef RGFW_EGL
 		RGFW_closeEGL(win);
 #endif
@@ -4464,11 +3985,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		DestroyWindow(dummyWin);
 		RGFW_init_buffer(win);
 
-#ifdef RGFW_VULKAN
-		if ((args & RGFW_NO_INIT_API) == 0)
-			RGFW_initVulkan(win);
-#endif
-
 		if (args & RGFW_SCALE_TO_MONITOR)
 			RGFW_window_scaleToMonitor(win);
 
@@ -4889,7 +4405,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				}
 
 				DragFinish(drop);
-				RGFW_dndCallback(win, (char**)win->event.droppedFiles, win->event.droppedFilesCount);
+				RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
 			}
 				break;
 			case WM_GETMINMAXINFO:
@@ -5145,10 +4661,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		if (mouse > (sizeof(RGFW_mouseIconSrc) / sizeof(u32)))
 			return;
-		
-		mouse = RGFW_mouseIconSrc[mouse];
 
-		char* icon = MAKEINTRESOURCEA(mouse);
+		char* icon = MAKEINTRESOURCEA(RGFW_mouseIconSrc[mouse]);
 
 		SetClassLongPtrA(win->src.window, GCLP_HCURSOR, (LPARAM) LoadCursorA(NULL, icon));
 		SetCursor(LoadCursorA(NULL, icon));
@@ -5164,21 +4678,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 	void RGFW_window_close(RGFW_window* win) {
 		assert(win != NULL);
-
-#ifdef RGFW_VULKAN
-		for (u32 i = 0; i < win->src.image_count; i++) {
-			vkDestroyFramebuffer(RGFW_vulkan_info.device, RGFW_vulkan_info.framebuffers[i], NULL);
-		}
-
-		for (u32 i = 0; i < win->src.image_count; i++) {
-			vkDestroyImageView(RGFW_vulkan_info.device, win->src.swapchain_image_views[i], NULL);
-		}
-
-		vkDestroySwapchainKHR(RGFW_vulkan_info.device, win->src.swapchain, NULL);
-		vkDestroySurfaceKHR(RGFW_vulkan_info.instance, win->src.rSurf, NULL);
-		RGFW_FREE(win->src.swapchain_image_views);
-		RGFW_FREE(win->src.swapchain_images);
-#endif
 
 #ifdef RGFW_EGL
 		RGFW_closeEGL(win);
@@ -5454,13 +4953,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			HGDIOBJ oldbmp = SelectObject(win->src.hdcMem, win->src.bitmap);
 			BitBlt(win->src.hdc, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
 			SelectObject(win->src.hdcMem, oldbmp);
-#endif
-
-#ifdef RGFW_VULKAN
-#ifdef RGFW_PRINT_ERRORS
-			fprintf(stderr, "RGFW_window_swapBuffers %s\n", "RGFW_window_swapBuffers is not yet supported for Vulkan");
-			RGFW_error = 1;
-#endif
 #endif
 		}
 
@@ -5992,7 +5484,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		win->event.point.x = (i32)p.x;
 		win->event.point.x = (i32)p.y;
-		RGFW_dndCallback(win, (char**)win->event.droppedFiles, win->event.droppedFilesCount);
+		RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
 		return true;
 	}
 
@@ -6197,11 +5689,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		CVDisplayLinkStart(win->src.displayLink);
 
 		RGFW_init_buffer(win);
-
-#ifdef RGFW_VULKAN
-		if ((args & RGFW_NO_INIT_API) == 0)
-			RGFW_initVulkan(win);
-#endif
 
 		if (args & RGFW_SCALE_TO_MONITOR)
 			RGFW_window_scaleToMonitor(win);
@@ -6948,13 +6435,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			release(image);
 			release(rep);
 #endif
-
-#ifdef RGFW_VULKAN
-#ifdef RGFW_PRINT_ERRORS
-			fprintf(stderr, "RGFW_window_swapBuffers %s\n", "RGFW_window_swapBuffers is not yet supported for Vulkan");
-			RGFW_error = 1;
-#endif
-#endif
 		}
 
 		if (!(win->src.winArgs & RGFW_NO_GPU_RENDER)) {
@@ -6970,22 +6450,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 	void RGFW_window_close(RGFW_window* win) {
 		assert(win != NULL);
-
-#ifdef RGFW_VULKAN
-		for (int i = 0; i < win->src.image_count; i++) {
-			vkDestroyFramebuffer(RGFW_vulkan_info.device, RGFW_vulkan_info.framebuffers[i], NULL);
-		}
-
-		for (int i = 0; i < win->src.image_count; i++) {
-			vkDestroyImageView(RGFW_vulkan_info.device, win->src.swapchain_image_views[i], NULL);
-		}
-
-		vkDestroySwapchainKHR(RGFW_vulkan_info.device, win->src.swapchain, NULL);
-		vkDestroySurfaceKHR(RGFW_vulkan_info.instance, win->src.rSurf, NULL);
-		RGFW_FREE(win->src.swapchain_image_views);
-		RGFW_FREE(win->src.swapchain_images);
-#endif
-
 		release(win->src.view);
 
 #ifdef RGFW_ALLOC_DROPFILES
