@@ -62,7 +62,7 @@ int main(void) {
             }
         }
 
-        glClearColor(0.25, 0, 0.15, 0xFF);
+        glClearColor(0.25, 0, 0.15, 0.25);
         glClear(GL_COLOR_BUFFER_BIT);
 
         RGFW_window_swapBuffers(win);

@@ -176,13 +176,17 @@ extern "C" {
 #undef _X86_
 #else
 #undef _AMD64_
+#ifndef _X86_
 #define _X86_
 #endif
+#endif
 
+#ifndef RGFW_NO_XINPUT
 #ifdef __MINGW32__
 #include <xinput.h>
 #else
 #include <XInput.h>
+#endif
 #endif
 
 #else 
@@ -513,6 +517,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #endif
 #ifdef RGFW_X11
 		XImage* bitmap;
+		GC gc;
 #endif
 #ifdef RGFW_MACOS
 		void* bitmap; /* API's bitmap for storing or managing */
@@ -624,9 +629,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 	RGFWDEF void RGFW_window_setDND(RGFW_window* win, b8 allow); /* turn on / off dnd (RGFW_ALLOW_DND stil must be passed to the window)*/
 
 	RGFWDEF void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough); /* turn on / off mouse passthrough */
-
-	RGFWDEF void RGFW_window_setTransparent(RGFW_window* win); /* turn on / off window transparancy */
-
+	
 	RGFWDEF void RGFW_window_setName(RGFW_window* win,
 		char* name
 	);
@@ -787,7 +790,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 	#if defined(__unix__) || defined(__APPLE__) 
 	typedef void* (* RGFW_threadFunc_ptr)(void*);
 	#else
-	typedef DWORD (* RGFW_threadFunc_ptr)(void*);
+	typedef DWORD (__stdcall *RGFW_threadFunc_ptr) (LPVOID lpThreadParameter);  
 	#endif
 
 	RGFWDEF RGFW_thread RGFW_createThread(RGFW_threadFunc_ptr ptr, void* args); /*!< create a thread*/
@@ -1326,7 +1329,6 @@ MacOS -> windows and linux already don't have keycodes as macros, so there's no 
 
 
 	RGFWDEF RGFW_window* RGFW_window_basic_init(RGFW_rect rect, u16 args);
-	RGFWDEF void RGFW_init_buffer(RGFW_window* win);
 
 	RGFW_window* RGFW_window_basic_init(RGFW_rect rect, u16 args) {
 		RGFW_window* win = (RGFW_window*) RGFW_MALLOC(sizeof(RGFW_window)); /* make a new RGFW struct */
@@ -1467,20 +1469,17 @@ RGFW_window* RGFW_root = NULL;
 		RGFW_window_move(win, RGFW_VECTOR(m.rect.x + win->r.x, m.rect.y + win->r.y));
 	}
 
-	#ifdef RGFW_WINDOWS
-	#ifndef ClipCursor
-	__declspec(dllimport) BOOL ClipCursor(const RECT *lpRect);	
-	#endif
+	RGFWDEF void RGFW_clipCursor(RGFW_rect);
+	
+	#ifndef RGFW_WINDOWS
+	void RGFW_clipCursor(RGFW_rect) { }
 	#endif
 
 	void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area) {
-		#ifdef RGFW_WINDOWS
 		if (!(win->src.winArgs & RGFW_HOLD_MOUSE)) {
-			RECT rect = {win->r.x, win->r.y, win->r.x + win->r.w, win->r.y + win->r.h};
-			ClipCursor(&rect);
+			RGFW_clipCursor(win->r);
 		}
-		#endif
-
+		
 		win->src.winArgs |= RGFW_HOLD_MOUSE;
 
 		if (!area.w && !area.h)
@@ -1492,9 +1491,7 @@ RGFW_window* RGFW_root = NULL;
 	void RGFW_window_mouseUnhold(RGFW_window* win) {
 		win->src.winArgs ^= RGFW_HOLD_MOUSE;
 
-		#ifdef RGFW_WINDOWS
-		ClipCursor(NULL);
-		#endif
+		RGFW_clipCursor(RGFW_RECT(0, 0, 0, 0));
 	}
 
 	void RGFW_window_checkFPS(RGFW_window* win) {
@@ -2383,7 +2380,8 @@ Start of Linux / Unix defines
 	void* RGFW_getProcAddress(const char* procname) { return (void*) glXGetProcAddress((GLubyte*) procname); }
 #endif
 
-	void RGFW_init_buffer(RGFW_window* win) {
+	RGFWDEF void RGFW_init_buffer(RGFW_window* win, XVisualInfo* vi);
+	void RGFW_init_buffer(RGFW_window* win, XVisualInfo* vi) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 		if (RGFW_bufferSize.w == 0 && RGFW_bufferSize.h == 0)
 			RGFW_bufferSize = RGFW_getScreenSize();
@@ -2396,14 +2394,17 @@ Start of Linux / Unix defines
 		#endif
 
 		win->src.bitmap = XCreateImage(
-			win->src.display, DefaultVisual(win->src.display, XDefaultScreen(win->src.display)),
-			DefaultDepth(win->src.display, XDefaultScreen(win->src.display)),
+			win->src.display, vi->visual,
+			vi->depth,
 			ZPixmap, 0, NULL, RGFW_bufferSize.w, RGFW_bufferSize.h,
 			32, 0
 		);
 
+		win->src.gc = XCreateGC(win->src.display, win->src.window, 0, NULL);
+
 		#else
 		RGFW_UNUSED(win); /* if buffer rendering is not being used */
+		RGFW_UNUSED(vi)
 		#endif
 	}
 
@@ -2494,54 +2495,53 @@ Start of Linux / Unix defines
 
 		XFree(fbc);
 
-		u32 valuemask = CWBorderPixel | CWColormap;
+		if (args & RGFW_TRANSPARENT_WINDOW) {
+			XMatchVisualInfo((Display*) win->src.display, DefaultScreen((Display*) win->src.display), 32, TrueColor, vi); /* for RGBA backgrounds*/
+		}
 #else
 		XVisualInfo viNorm;
-		viNorm.screen = DefaultScreen((Display*) win->src.display);
-		viNorm.visual = DefaultVisual((Display*) win->src.display, viNorm.screen);
 
+		viNorm.visual = DefaultVisual((Display*) win->src.display, DefaultScreen((Display*) win->src.display));
+		
 		viNorm.depth = 0;
-		u32 valuemask = 0;
-
 		XVisualInfo* vi = &viNorm;
+		
+		XMatchVisualInfo((Display*) win->src.display, DefaultScreen((Display*) win->src.display), 32, TrueColor, vi); /* for RGBA backgrounds*/
 #endif
-
 		/* make X window attrubutes*/
 		XSetWindowAttributes swa;
 		Colormap cmap;
 
 		swa.colormap = cmap = XCreateColormap((Display*) win->src.display,
-			RootWindow(win->src.display, vi->screen),
+			DefaultRootWindow(win->src.display),
 			vi->visual, AllocNone);
 
 		swa.background_pixmap = None;
 		swa.border_pixel = 0;
 		swa.event_mask = event_mask;
+		
+		swa.background_pixel = 0;
 
 		/* create the window*/
-		win->src.window = XCreateWindow((Display*) win->src.display, RootWindow((Display*) win->src.display, vi->screen), win->r.x, win->r.y, win->r.w, win->r.h,
+		win->src.window = XCreateWindow((Display*) win->src.display, DefaultRootWindow((Display*) win->src.display), win->r.x, win->r.y, win->r.w, win->r.h,
 			0, vi->depth, InputOutput, vi->visual,
-			valuemask | CWEventMask, &swa);
-
-		{
-			// In your .desktop app, if you set the property
-			// StartupWMClass=RGFW that will assoicate the launcher icon
-			// with your application - robrohan 
-			XClassHint *hint = XAllocClassHint();
-			assert(hint != NULL);
-			hint->res_class = "RGFW";
-			hint->res_name = (char*)name; // just use the window name as the app name
-			XSetClassHint((Display*) win->src.display, win->src.window, hint);
-			XFree(hint);
-		}
+			CWColormap | CWBorderPixel | CWBackPixel | CWEventMask, &swa);
 
 		XFreeColors((Display*) win->src.display, cmap, NULL, 0, 0);
-		if (args & RGFW_TRANSPARENT_WINDOW)
-			XMatchVisualInfo((Display*) win->src.display, DefaultScreen((Display*) win->src.display), 32, TrueColor, vi); /* for RGBA backgrounds*/
 
 		#ifdef RGFW_OPENGL
 		XFree(vi);
 		#endif
+
+		// In your .desktop app, if you set the property
+		// StartupWMClass=RGFW that will assoicate the launcher icon
+		// with your application - robrohan 
+		XClassHint *hint = XAllocClassHint();
+		assert(hint != NULL);
+		hint->res_class = "RGFW";
+		hint->res_name = (char*)name; // just use the window name as the app name
+		XSetClassHint((Display*) win->src.display, win->src.window, hint);
+		XFree(hint);
 
 		if ((args & RGFW_NO_INIT_API) == 0) {
 #ifdef RGFW_OPENGL
@@ -2570,7 +2570,7 @@ Start of Linux / Unix defines
 		if (RGFW_root == NULL)
 			RGFW_root = win;
 
-		RGFW_init_buffer(win);
+		RGFW_init_buffer(win, vi);
 
 #ifdef RGFW_VULKAN
 		RGFW_initVulkan(win);
@@ -3273,14 +3273,6 @@ Start of Linux / Unix defines
 		XShapeCombineMask(win->src.display, win->src.window, ShapeInput, 0, 0, None, ShapeSet);
 	}
 
-	void RGFW_window_setTransparent(RGFW_window* win) {
-		assert(win != NULL);
-		
-        Atom atom = XInternAtom(win->src.display, "_NET_WM_CM_S", False);
-
-		XGetSelectionOwner(win->src.display, atom);
-	}
-
 	/*
 		the majority function is sourced from GLFW
 	*/
@@ -3823,7 +3815,6 @@ Start of Linux / Unix defines
 		RGFW_window_makeCurrent(win);
 
 		/* clear the window*/
-
 		if (!(win->src.winArgs & RGFW_NO_CPU_RENDER)) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 			#ifdef RGFW_OSMESA
@@ -3841,11 +3832,11 @@ Start of Linux / Unix defines
 					u8 red = win->src.bitmap->data[index];
 					win->src.bitmap->data[index] = win->buffer[index + 2];
 					win->src.bitmap->data[index + 2] = red;
+
 				}
 			}
-#endif
-
-			XPutImage(win->src.display, (Window) win->src.window, XDefaultGC(win->src.display, XDefaultScreen(win->src.display)), win->src.bitmap, 0, 0, 0, 0, win->r.w, win->r.h);
+#endif	
+			XPutImage(win->src.display, (Window) win->src.window, win->src.gc, win->src.bitmap, 0, 0, 0, 0, RGFW_bufferSize.w, RGFW_bufferSize.h);
 #endif
 
 #ifdef RGFW_VULKAN
@@ -3901,6 +3892,7 @@ Start of Linux / Unix defines
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 		if (win->buffer != NULL) {
 			XDestroyImage((XImage*) win->src.bitmap);
+			XFreeGC(win->src.display, win->src.gc);
 		}
 #endif
 
@@ -3914,9 +3906,8 @@ Start of Linux / Unix defines
 
 			if ((Drawable) win->src.window)
 				XDestroyWindow((Display*) win->src.display, (Drawable) win->src.window); /* close the window*/
-
-			if (win->src.display)
-				XCloseDisplay((Display*) win->src.display); /* kill the display*/
+			
+			XCloseDisplay((Display*) win->src.display); /* kill the display*/
 		}
 
 #ifdef RGFW_ALLOC_DROPFILES
@@ -3994,15 +3985,17 @@ Start of Linux / Unix defines
 	#include <windows.h>
 	#include <winuser.rh>
 
-	typedef u64 (WINAPI * PFN_XInputGetState)(DWORD,XINPUT_STATE*);
+	#ifndef RGFW_NO_XINPUT
+	typedef HRESULT (WINAPI * PFN_XInputGetState)(DWORD,XINPUT_STATE*);
 	PFN_XInputGetState XInputGetStateSRC = NULL;
 	#define XInputGetState XInputGetStateSRC
 
-	typedef u64 (WINAPI * PFN_XInputGetKeystroke)(DWORD, DWORD, PXINPUT_KEYSTROKE);
+	typedef HRESULT (WINAPI * PFN_XInputGetKeystroke)(DWORD, DWORD, PXINPUT_KEYSTROKE);
 	PFN_XInputGetKeystroke XInputGetKeystrokeSRC = NULL;
 	#define XInputGetKeystroke XInputGetKeystrokeSRC
 
 	static HMODULE RGFW_XInput_dll = NULL;
+	#endif
 
 	u32 RGFW_mouseIconSrc[] = {OCR_NORMAL, OCR_NORMAL, OCR_IBEAM, OCR_CROSS, OCR_HAND, OCR_SIZEWE, OCR_SIZENS, OCR_SIZENWSE, OCR_SIZENESW, OCR_SIZEALL, OCR_NO};
 
@@ -4043,9 +4036,8 @@ Start of Linux / Unix defines
 	void* RGFWjoystickApi = NULL;
 
 	/* these two wgl functions need to be preloaded */
-	typedef long long int (WINAPI* wglCreateContextAttribsARB_type)(HDC hdc, HGLRC hShareContext,
-		const int* attribList);
-	wglCreateContextAttribsARB_type wglCreateContextAttribsARB = NULL;
+	typedef HGLRC (WINAPI *PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC hdc, HGLRC hglrc, const int *attribList);
+	PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 
 	/* defines for creating ARB attributes */
 #define WGL_NUMBER_PIXEL_FORMATS_ARB 0x2000
@@ -4123,7 +4115,7 @@ static HMODULE wglinstance = NULL;
 		return (void*) GetProcAddress(wglinstance, procname); 
 	}
 
-	typedef u64 (APIENTRY* PFNWGLCHOOSEPIXELFORMATARBPROC)(HDC hdc, const int* piAttribIList, const FLOAT* pfAttribFList, UINT nMaxFormats, int* piFormats, UINT* nNumFormats);
+	typedef HRESULT (APIENTRY* PFNWGLCHOOSEPIXELFORMATARBPROC)(HDC hdc, const int* piAttribIList, const FLOAT* pfAttribFList, UINT nMaxFormats, int* piFormats, UINT* nNumFormats);
 	static PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = NULL;
 #endif
 
@@ -4148,13 +4140,14 @@ static HMODULE wglinstance = NULL;
 	
 	#ifndef RGFW_NO_DPI
 	static HMODULE RGFW_Shcore_dll = NULL;
-	typedef u64 (WINAPI * PFN_GetDpiForMonitor)(HMONITOR,MONITOR_DPI_TYPE,UINT*,UINT*);
+	typedef HRESULT (WINAPI * PFN_GetDpiForMonitor)(HMONITOR,MONITOR_DPI_TYPE,UINT*,UINT*);
 	PFN_GetDpiForMonitor GetDpiForMonitorSRC = NULL;
 	#define GetDpiForMonitor GetDpiForMonitorSRC
 	#endif
 
 	__declspec(dllimport) u32 __stdcall timeBeginPeriod(u32 uPeriod);
 
+	#ifndef RGFW_NO_XINPUT
 	void RGFW_loadXInput(void) {
 		u32 i;
 		static const char* names[] = { 
@@ -4176,7 +4169,9 @@ static HMODULE wglinstance = NULL;
 			}
 		}
 	}
+	#endif
 
+	RGFWDEF void RGFW_init_buffer(RGFW_window* win);
 	void RGFW_init_buffer(RGFW_window* win) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	if (RGFW_bufferSize.w == 0 && RGFW_bufferSize.h == 0)
@@ -4217,10 +4212,22 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		DragAcceptFiles(win->src.window, allow);
 	}
 
+	void RGFW_clipCursor(RGFW_rect rect) {
+		if (rect.x && rect.y && rect.w && rect.h) {
+			RECT r = {rect.x, rect.y, rect.x + rect.w, rect.y + rect.h};
+			ClipCursor(&r);
+			return;
+		}
+
+		ClipCursor(NULL);
+	}
+
 	RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
+		#ifndef RGFW_NO_XINPUT
 		if (RGFW_XInput_dll == NULL)
 			RGFW_loadXInput();
-		
+		#endif
+
 		#ifndef RGFW_NO_DPI
 		if (RGFW_Shcore_dll == NULL) {
 			RGFW_Shcore_dll = LoadLibraryA("shcore.dll");
@@ -4286,9 +4293,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		win->src.hOffset = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
 		win->src.window = CreateWindowA(Class.lpszClassName, name, window_style, win->r.x, win->r.y, win->r.w, win->r.h + win->src.hOffset, 0, 0, inh, 0);
 
-		if (args & RGFW_TRANSPARENT_WINDOW) {
-			SetWindowLongA(win->src.window, GWL_EXSTYLE, GetWindowLongA(win->src.window, GWL_EXSTYLE) | WS_EX_LAYERED);
-		}
 		if (args & RGFW_ALLOW_DND) {
 			win->src.winArgs |= RGFW_ALLOW_DND;
 			RGFW_window_setDND(win, 1);
@@ -4365,10 +4369,10 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			.nVersion = 1,
 			.iPixelType = PFD_TYPE_RGBA,
 			.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-			.cColorBits = 32,
+			.cColorBits = 24,
 			.cAlphaBits = 8,
 			.iLayerType = PFD_MAIN_PLANE,
-			.cDepthBits = 24,
+			.cDepthBits = 32,
 			.cStencilBits = 8,
 		};
 
@@ -4379,7 +4383,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		wglMakeCurrent(dummy_dc, dummy_context);
 
 		if (wglChoosePixelFormatARB == NULL) {
-			wglCreateContextAttribsARB = (wglCreateContextAttribsARB_type) wglGetProcAddress("wglCreateContextAttribsARB");
+			wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC) wglGetProcAddress("wglCreateContextAttribsARB");
 			wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC) wglGetProcAddress("wglChoosePixelFormatARB");
 		}
 
@@ -6058,7 +6062,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		RGFW_windowRefreshCallback(win);
 	}
 
-
+	RGFWDEF void RGFW_init_buffer(RGFW_window* win);
 	void RGFW_init_buffer(RGFW_window* win) {
 		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 			if (RGFW_bufferSize.w == 0 && RGFW_bufferSize.h == 0)

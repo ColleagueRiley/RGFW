@@ -1,5 +1,7 @@
 #define RGFW_IMPLEMENTATION
 #define RGFW_BUFFER
+
+
 #include "RGFW.h"
 
 u8 icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
@@ -7,9 +9,9 @@ u8 icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00
 RGFW_area screenSize;
 
 /* fill buffer with a color, clearing anything that was on it */
-void clear(RGFW_window* win, u8 color[3]) {
+void clear(RGFW_window* win, u8 color[4]) {
     /* if all the values are the same */
-    if (color[0] == color[1] && color[0] == color[2]) {
+    if (color[0] == color[1] && color[0] == color[2] && color[0] == color[3]) {
         /* set it all in one function */
         memset(win->buffer, 0, screenSize.w * win->r.h * 4 * sizeof(u8));  
         return;
@@ -24,7 +26,7 @@ void clear(RGFW_window* win, u8 color[3]) {
             u32 index = (y * 4 * screenSize.w) + x * 4;
             
             /* copy the color to that pixel */
-            memcpy(win->buffer + index, color, 3 * sizeof(u8));
+            memcpy(win->buffer + index, color, 4 * sizeof(u8));
         }
     }    
 }
@@ -52,18 +54,18 @@ void drawBitmap(RGFW_window* win, u8* bitmap, RGFW_rect rect) {
     }
 }
 
-void drawRect(RGFW_window* win, RGFW_rect r, u8 color[3]) {
+void drawRect(RGFW_window* win, RGFW_rect r, u8 color[4]) {
     for(int x = r.x; x < (r.x + r.w); x++) {
         for(int y = r.y; y < (r.y + r.h); y++) {
             int index = y * (4 * screenSize.w) + x * 4;
             
-            memcpy(win->buffer + index, color, 3 * sizeof(u8));
+            memcpy(win->buffer + index, color, 4 * sizeof(u8));
         }
     }
 }
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("Basic buffer example", RGFW_RECT(0, 0, 500, 500), RGFW_CENTER);
+    RGFW_window* win = RGFW_createWindow("Basic buffer example", RGFW_RECT(0, 0, 500, 500), RGFW_CENTER | RGFW_TRANSPARENT_WINDOW);
     win->fpsCap = 60;
 
     screenSize = RGFW_getScreenSize();
@@ -77,8 +79,8 @@ int main(void) {
             }
         } 
 
-        clear(win, (u8[3]){0, 0, 255});
-        drawRect(win, RGFW_RECT(200, 200, 200, 200), (u8[3]){255, 0, 0});
+        clear(win, (u8[4]){0, 0, 255, 15});
+        drawRect(win, RGFW_RECT(200, 200, 200, 200), (u8[4]){255, 0, 0, 255});
 
         drawBitmap(win, icon, RGFW_RECT(100, 100, 3, 3));
         
