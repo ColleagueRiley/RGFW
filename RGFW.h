@@ -1472,7 +1472,7 @@ RGFW_window* RGFW_root = NULL;
 	RGFWDEF void RGFW_clipCursor(RGFW_rect);
 	
 	#ifndef RGFW_WINDOWS
-	void RGFW_clipCursor(RGFW_rect) { }
+	void RGFW_clipCursor(RGFW_rect r) { RGFW_UNUSED(r) }
 	#endif
 
 	void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area) {
@@ -4207,7 +4207,7 @@ static HMODULE wglinstance = NULL;
 RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #endif
 	}
-
+#include <dwmapi.h>
 	void RGFW_window_setDND(RGFW_window* win, b8 allow) {
 		DragAcceptFiles(win->src.window, allow);
 	}
