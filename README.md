@@ -62,6 +62,8 @@ The callback example can be found in `examples/callbacks`, it shows all the even
 ## vk10
 `examples/vk10` is a minimalistic example of the use of Vulkan with RGFW, this example was made by [AICDG](https://github.com/THISISAGOODNAME)
 
+It also includes `examples/vk10/RGFW_vulkan.h` which can be used to create a basic vulkan context for RGFW.
+
 ## basic 
 A basic example can be found in `examples/basic`, it includes a basic OpenGL example of just about all of RGFW's functionalities.
 
