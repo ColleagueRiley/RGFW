@@ -3986,11 +3986,11 @@ Start of Linux / Unix defines
 	#include <winuser.rh>
 
 	#ifndef RGFW_NO_XINPUT
-	typedef HRESULT (WINAPI * PFN_XInputGetState)(DWORD,XINPUT_STATE*);
+	typedef DWORD (WINAPI * PFN_XInputGetState)(DWORD,XINPUT_STATE*);
 	PFN_XInputGetState XInputGetStateSRC = NULL;
 	#define XInputGetState XInputGetStateSRC
 
-	typedef HRESULT (WINAPI * PFN_XInputGetKeystroke)(DWORD, DWORD, PXINPUT_KEYSTROKE);
+	typedef DWORD (WINAPI * PFN_XInputGetKeystroke)(DWORD, DWORD, PXINPUT_KEYSTROKE);
 	PFN_XInputGetKeystroke XInputGetKeystrokeSRC = NULL;
 	#define XInputGetKeystroke XInputGetKeystrokeSRC
 
@@ -4162,7 +4162,7 @@ static HMODULE wglinstance = NULL;
 			RGFW_XInput_dll = LoadLibraryA(names[i]);
 
 			if (RGFW_XInput_dll) {
-				XInputGetStateSRC = (PFN_XInputGetState)GetProcAddress(RGFW_XInput_dll, "XInputGetState");
+				XInputGetStateSRC = (PFN_XInputGetState)(void*)GetProcAddress(RGFW_XInput_dll, "XInputGetState");
 			
 				if (XInputGetStateSRC == NULL)
 					printf("Failed to load XInputGetState");
@@ -4231,7 +4231,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		#ifndef RGFW_NO_DPI
 		if (RGFW_Shcore_dll == NULL) {
 			RGFW_Shcore_dll = LoadLibraryA("shcore.dll");
-			GetDpiForMonitorSRC = (PFN_GetDpiForMonitor)GetProcAddress(RGFW_Shcore_dll, "GetDpiForMonitor");
+			GetDpiForMonitorSRC = (PFN_GetDpiForMonitor)(void*)GetProcAddress(RGFW_Shcore_dll, "GetDpiForMonitor");
 		}
 		#endif
 
@@ -4259,10 +4259,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		win->src.maxSize = RGFW_AREA(0, 0);
 		win->src.minSize = RGFW_AREA(0, 0);
 
-		if (RGFW_root == NULL) {
-			RGFW_root = win;
-		}
-		
+
 		HINSTANCE inh = GetModuleHandleA(NULL);
 
 		WNDCLASSA Class = { 0 }; /* Setup the Window class. */
@@ -4383,8 +4380,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		wglMakeCurrent(dummy_dc, dummy_context);
 
 		if (wglChoosePixelFormatARB == NULL) {
-			wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC) wglGetProcAddress("wglCreateContextAttribsARB");
-			wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC) wglGetProcAddress("wglChoosePixelFormatARB");
+			wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC) (void*) wglGetProcAddress("wglCreateContextAttribsARB");
+			wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC) (void*)wglGetProcAddress("wglChoosePixelFormatARB");
 		}
 
 		wglMakeCurrent(dummy_dc, 0);
@@ -4442,8 +4439,9 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			win->src.rSurf = wglCreateContext(win->src.hdc);
 		}
 		
+
+		
 		wglMakeCurrent(win->src.hdc, win->src.rSurf);
-		wglShareLists(RGFW_root->src.rSurf, win->src.rSurf);
 #endif
 	}
 
@@ -4483,6 +4481,15 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			RGFW_window_showMouse(win, 0);
 
 		ShowWindow(win->src.window, SW_SHOWNORMAL);
+		
+		
+		if (RGFW_root == NULL)
+			RGFW_root = win;
+		
+		#ifdef RGFW_OPENGL
+		else 
+			wglShareLists(RGFW_root->src.rSurf, win->src.rSurf);
+		#endif
 
 		return win;
 	}
