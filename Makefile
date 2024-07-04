@@ -12,11 +12,8 @@ STATIC =
 
 WARNINGS = -Wall -Werror -Wstrict-prototypes -Wextra
 
-ifeq ($(CC),x86_64-w64-mingw32-gcc)
-	STATIC = --static
-endif
-
 ifneq (,$(filter $(CC),winegcc x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc))
+	STATIC = --static
     detected_OS := Windows
 	LIB_EXT = .dll
 else
@@ -31,7 +28,7 @@ else
 endif
 
 ifeq ($(detected_OS),Windows)
-	LIBS := -ggdb -lshell32 -lwinmm -lgdi32 -lopengl32 $(STATIC)
+	LIBS := -ggdb -ldwmapi -lshell32 -lwinmm -lgdi32 -lopengl32 $(STATIC)
 	VULAKN_LIBS = -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
 	EXT = .exe
 	LIB_EXT = .dll
