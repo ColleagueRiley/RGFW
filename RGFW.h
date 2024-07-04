@@ -96,6 +96,12 @@
 #endif
 #endif
 
+/* for windows 95 testing (not that it works well) */
+#ifdef RGFW_WIN95
+#define RGFW_NO_MONITOR
+#define RGFW_NO_PASSTHROUGH
+#endif
+
 #ifndef RGFWDEF
 #ifdef __APPLE__
 #define RGFWDEF static inline
@@ -379,6 +385,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 #define RGFW_RECT(x, y, w, h) (RGFW_rect){x, y, w, h}
 #define RGFW_AREA(w, h) (RGFW_area){w, h}
 
+	#ifndef RGFW_NO_MONITOR
 	typedef struct RGFW_monitor {
 		char name[128];  /* monitor name */
 		RGFW_rect rect; /* monitor Workarea */
@@ -394,6 +401,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 	RGFWDEF RGFW_monitor* RGFW_getMonitors(void);
 	/* get the primary monitor */
 	RGFWDEF RGFW_monitor RGFW_getPrimaryMonitor(void);
+	#endif
 
 	/* NOTE: some parts of the data can represent different things based on the event (read comments in RGFW_Event struct) */
 	typedef struct RGFW_Event {
@@ -580,9 +588,10 @@ typedef struct { i32 x, y; } RGFW_vector;
 		RGFW_vector v/* new pos*/
 	);
 
+	#ifndef RGFW_NO_MONITOR
 	/* move to a specific monitor */
 	RGFWDEF void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m);
-
+	#endif
 	RGFWDEF void RGFW_window_resize(RGFW_window* win,
 		RGFW_area a/* new size*/
 	);
@@ -600,8 +609,10 @@ typedef struct { i32 x, y; } RGFW_vector;
 	
 	RGFWDEF void RGFW_window_setDND(RGFW_window* win, b8 allow); /* turn on / off dnd (RGFW_ALLOW_DND stil must be passed to the window)*/
 
+	#ifndef RGFW_NO_PASSTHROUGH
 	RGFWDEF void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough); /* turn on / off mouse passthrough */
-	
+	#endif 
+
 	RGFWDEF void RGFW_window_setName(RGFW_window* win,
 		char* name
 	);
@@ -662,6 +673,8 @@ typedef struct { i32 x, y; } RGFW_vector;
 	/* if window is maximized */
 	RGFWDEF b8 RGFW_window_isMaximized(RGFW_window* win);
 
+
+	#ifndef RGFW_NO_MONITOR
 	/*
 	scale the window to the monitor,
 	this is run by default if the user uses the arg `RGFW_SCALE_TO_MONITOR` during window creation
@@ -669,6 +682,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 	RGFWDEF void RGFW_window_scaleToMonitor(RGFW_window* win);
 	/* get the struct of the window's monitor  */
 	RGFWDEF RGFW_monitor RGFW_window_getMonitor(RGFW_window* win);
+	#endif
 
 	/*!< make the window the current opengl drawing context */
 	RGFWDEF void RGFW_window_makeCurrent(RGFW_window* win);
@@ -1297,11 +1311,13 @@ MacOS -> windows and linux already don't have keycodes as macros, so there's no 
 		return win;
 	}
 
+	#ifndef RGFW_NO_MONITOR
 	void RGFW_window_scaleToMonitor(RGFW_window* win) {
 		RGFW_monitor monitor = RGFW_window_getMonitor(win);
 
 		RGFW_window_resize(win, RGFW_AREA(((u32) monitor.scaleX) * win->r.w, ((u32) monitor.scaleX) * win->r.h));
 	}
+	#endif
 
 RGFW_window* RGFW_root = NULL;
 
@@ -1395,9 +1411,11 @@ RGFW_window* RGFW_root = NULL;
 
 	void RGFW_window_setShouldClose(RGFW_window* win) { win->event.type = RGFW_quit; RGFW_windowQuitCallback(win); }
 
+	#ifndef RGFW_NO_MONITOR
 	void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m) {
 		RGFW_window_move(win, RGFW_VECTOR(m.rect.x + win->r.x, m.rect.y + win->r.y));
 	}
+	#endif
 
 	RGFWDEF void RGFW_clipCursor(RGFW_rect);
 	
@@ -2116,9 +2134,12 @@ Start of Linux / Unix defines
 
 		RGFW_init_buffer(win, vi);
 		}
+		
 
+		#ifndef RGFW_NO_MONITOR
 		if (args & RGFW_SCALE_TO_MONITOR)
 			RGFW_window_scaleToMonitor(win);
+		#endif
 
 		if (args & RGFW_NO_RESIZE) { /* make it so the user can't resize the window*/
 			XSizeHints* sh = XAllocSizeHints();
@@ -2779,6 +2800,7 @@ Start of Linux / Unix defines
 	
 	void* RGFW_libxshape = NULL;
 
+	#ifndef RGFW_NO_PASSTHROUGH
 	void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
 		assert(win != NULL);
 		
@@ -2812,6 +2834,7 @@ Start of Linux / Unix defines
 
 		XShapeCombineMask(win->src.display, win->src.window, ShapeInput, 0, 0, None, ShapeSet);
 	}
+	#endif
 
 	/*
 		the majority function is sourced from GLFW
@@ -3985,8 +4008,11 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		DestroyWindow(dummyWin);
 		RGFW_init_buffer(win);
 
+
+		#ifndef RGFW_NO_MONITOR
 		if (args & RGFW_SCALE_TO_MONITOR)
 			RGFW_window_scaleToMonitor(win);
+		#endif
 
 #ifdef RGFW_EGL
 		if ((args & RGFW_NO_INIT_API) == 0)
@@ -4495,7 +4521,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		info->iIndex++;
 		return TRUE;
 	}
-
+	
+	#ifndef RGFW_NO_MONITOR
 	RGFW_monitor win32CreateMonitor(HMONITOR src) {
 		RGFW_monitor monitor;
 		MONITORINFO monitorInfo;
@@ -4549,7 +4576,10 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		return monitor;
 	}
+	#endif /* RGFW_NO_MONITOR */
+	
 
+	#ifndef RGFW_NO_MONITOR
 	RGFW_monitor RGFW_monitors[6];
 	BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
 		RGFW_UNUSED(hdcMonitor)
@@ -4582,6 +4612,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		HMONITOR src = MonitorFromWindow(win->src.window, MONITOR_DEFAULTTOPRIMARY);
 		return win32CreateMonitor(src);
 	}
+	#endif
 
 	HICON RGFW_loadHandleImage(RGFW_window* win, u8* src, RGFW_area a, BOOL icon) {
 		assert(win != NULL);
@@ -4771,14 +4802,15 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	}
 
 	/* sourced from GLFW */
+	#ifndef RGFW_NO_PASSTHROUGH
 	void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
 		assert(win != NULL);
-
+		
 		COLORREF key = 0;
 		BYTE alpha = 0;
 		DWORD flags = 0;
 		DWORD exStyle = GetWindowLongW(win->src.window, GWL_EXSTYLE);
-
+		
 		if (exStyle & WS_EX_LAYERED)
 			GetLayeredWindowAttributes(win->src.window, &key, &alpha, &flags);
 
@@ -4802,10 +4834,12 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			SetLayeredWindowAttributes(win->src.window, key, alpha, flags);
 		}
 	}
+	#endif
 
 	/* much of this function is sourced from GLFW */
 	void RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
 		assert(win != NULL);
+		#ifndef RGFW_WIN95
 		RGFW_UNUSED(channels)
 
 		HICON handle = RGFW_loadHandleImage(win, src, a, TRUE);
@@ -4813,6 +4847,11 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		SetClassLongPtrA(win->src.window, GCLP_HICON, (LPARAM) handle);
 
 		DestroyIcon(handle);
+		#else
+		RGFW_UNUSED(src)
+		RGFW_UNUSED(a)
+		RGFW_UNUSED(channels)
+		#endif
 	}
 
 	char* RGFW_readClipboard(size_t* size) {
@@ -5690,8 +5729,10 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		RGFW_init_buffer(win);
 
+		#ifndef RGFW_NO_MONITOR
 		if (args & RGFW_SCALE_TO_MONITOR)
 			RGFW_window_scaleToMonitor(win);
+		#endif
 
 		if (args & RGFW_HIDE_MOUSE)
 			RGFW_window_showMouse(win, 0);
@@ -6154,9 +6195,11 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		objc_msgSend_void_id(win->src.window, sel_registerName("setTitle:"), str);
 	}
 
+	#ifndef RGFW_NO_PASSTHROUGH
 	void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
 		objc_msgSend_void_bool(win->src.window, sel_registerName("setIgnoresMouseEvents:"), passthrough);
 	}
+	#endif
 
 	void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
 		((void (*)(id, SEL, NSSize))objc_msgSend)
