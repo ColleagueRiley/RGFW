@@ -2337,7 +2337,12 @@ Start of Linux / Unix defines
 			/* set event key data */
 			KeySym sym = XkbKeycodeToKeysym((Display*) win->src.display, E.xkey.keycode, 0, E.xkey.state & ShiftMask ? 1 : 0);
 			win->event.keyCode = RGFW_apiKeyCodeToRGFW(E.xkey.keycode);
-			strncpy(win->event.keyName, XKeysymToString(sym), 16);
+			
+			char* str = XKeysymToString(sym);
+			if (str != NULL)
+				strncpy(win->event.keyName, str, 16);
+
+			win->event.keyName[15] = '\0';		
 
 			RGFW_keyboard[win->event.keyCode].prev = RGFW_isPressed(win, win->event.keyCode);
 			
