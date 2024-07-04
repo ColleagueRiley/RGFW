@@ -100,7 +100,7 @@ int main() {
 
     while (running) {
         while (RGFW_window_checkEvent(win)) { // or RGFW_window_checkEvents(); if you only want callbacks
-            if (win->event.type == RGFW_quit || RGFW_isPressedI(win, RGFW_Escape)) {
+            if (win->event.type == RGFW_quit || !RGFW_isPressedI(win, RGFW_Escape)) {
                 running = 0;
                 break;
             }
@@ -108,11 +108,11 @@ int main() {
             if (win->event.type == RGFW_keyPressed) // this is the 'normal' way of handling an event
                 printf("This is probably late\n");
         }
-
-        RGFW_window_swapBuffers(win);
-
+        
         glClearColor(0xFF, 0XFF, 0xFF, 0xFF);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        RGFW_window_swapBuffers(win);
     }
 
     RGFW_window_close(win);
