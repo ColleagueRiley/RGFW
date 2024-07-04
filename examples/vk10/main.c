@@ -25,7 +25,7 @@
 
 RGFW_vulkanInfo* vulkan_info;
 
-int createGraphicsPipeline(RGFW_window_vulkanInfo* vulkWin);
+int createGraphicsPipeline(void);
 int commandBuffers(RGFW_window_vulkanInfo* vulkWin);
 int draw_frame(RGFW_window_vulkanInfo* vulkWin);
 
@@ -35,7 +35,7 @@ int main(void) {
     RGFW_window_vulkanInfo vulkWin;
 
     vulkan_info = RGFW_initVulkan(win, &vulkWin);    
-    createGraphicsPipeline(&vulkWin);
+    createGraphicsPipeline();
 
     u8 running = 1;
     while (running && !RGFW_isPressed(win, RGFW_Escape)) {
@@ -56,7 +56,7 @@ int main(void) {
     return 0;
 }
 
-int createGraphicsPipeline(RGFW_window_vulkanInfo* vulkWin) {    
+int createGraphicsPipeline(void) {    
     VkShaderModule vert_module = RGFW_createShaderModule(vert_code, sizeof(vert_code));
     VkShaderModule frag_module = RGFW_createShaderModule(frag_code, sizeof(frag_code));
 
