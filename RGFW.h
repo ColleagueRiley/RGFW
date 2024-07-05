@@ -1307,6 +1307,7 @@ MacOS -> windows and linux already don't have keycodes as macros, so there's no 
 		win->event.droppedFilesCount = 0;
 		win->src.joystickCount = 0;
 		win->src.winArgs = 0;
+		win->event.lockState = 0;
 
 		return win;
 	}
@@ -1479,6 +1480,19 @@ RGFW_window* RGFW_root = NULL;
 				RGFW_window_setMouseDefault(win);
 		}
 	#endif
+
+	RGFWDEF void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock);	
+	void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
+		if (capital && !(win->event.lockState & RGFW_CAPSLOCK))
+			win->event.lockState |= RGFW_CAPSLOCK;
+		else if (!capital && (win->event.lockState & RGFW_CAPSLOCK))			
+			win->event.lockState ^= RGFW_CAPSLOCK;
+		
+		if (numlock && !(win->event.lockState & RGFW_NUMLOCK))
+			win->event.lockState |= RGFW_NUMLOCK;
+		else if (!numlock && (win->event.lockState & RGFW_NUMLOCK))
+			win->event.lockState ^= RGFW_NUMLOCK;
+	}
 
 	#if defined(RGFW_X11) || defined(RGFW_MACOS)
 		struct timespec;
@@ -2349,27 +2363,11 @@ Start of Linux / Unix defines
 			/* get keystate data */
 			win->event.type = (E.type == KeyPress) ? RGFW_keyPressed : RGFW_keyReleased;
 
-			if (win->event.type == RGFW_keyReleased) {
-				switch (sym) {
-					case XK_Caps_Lock:
-						if (win->event.lockState & RGFW_CAPSLOCK)
-							win->event.lockState ^= RGFW_CAPSLOCK;
-						else
-							win->event.lockState |= RGFW_CAPSLOCK;
-						break;
+			XKeyboardState keystate;
+			XGetKeyboardControl((Display*) win->src.display, &keystate);
 
-					case XK_Num_Lock:
-						if ( win->event.lockState & RGFW_NUMLOCK)
-							win->event.lockState ^= RGFW_NUMLOCK;
-						else
-							win->event.lockState |= RGFW_NUMLOCK;
+			RGFW_updateLockState(win, (keystate.led_mask & 1), (keystate.led_mask & 2));
 
-						break;
-					
-					default: break;
-				}
-			}
-			
 			RGFW_keyboard[win->event.keyCode].current = (E.type == KeyPress);
 			RGFW_keyCallback(win, win->event.keyCode, win->event.keyName, win->event.lockState, (E.type == KeyPress));
 			break;
@@ -2671,11 +2669,6 @@ Start of Linux / Unix defines
 
 		case FocusIn:
 			win->event.inFocus = 1;
-
-			XKeyboardState keystate;
-			XGetKeyboardControl((Display*) win->src.display, &keystate);
-			win->event.lockState = keystate.led_mask;
-
 			win->event.type = RGFW_focusIn;
 			RGFW_focusCallback(win, 1);
 			break;
@@ -4222,6 +4215,38 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			return &win->event;
 		}
 
+
+		static HDROP drop;
+		
+		if (win->event.type == RGFW_dnd_init) {
+			if (win->event.droppedFilesCount) {
+				u32 i;
+				for (i = 0; i < win->event.droppedFilesCount; i++)
+					win->event.droppedFiles[i][0] = '\0';
+			}
+
+			win->event.droppedFilesCount = 0;
+			win->event.droppedFilesCount = DragQueryFileW(drop, 0xffffffff, NULL, 0);
+			//win->event.droppedFiles = (char**)RGFW_CALLOC(win->event.droppedFilesCount, sizeof(char*));
+
+			u32 i;
+			for (i = 0; i < win->event.droppedFilesCount; i++) {
+				const UINT length = DragQueryFileW(drop, i, NULL, 0);
+				WCHAR* buffer = (WCHAR*) RGFW_CALLOC((size_t) length + 1, sizeof(WCHAR));
+
+				DragQueryFileW(drop, i, buffer, length + 1);
+				strncpy(win->event.droppedFiles[i], createUTF8FromWideStringWin32(buffer), RGFW_MAX_PATH);
+				win->event.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
+				RGFW_FREE(buffer);
+			}
+
+			DragFinish(drop);
+			RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
+			
+			win->event.type = RGFW_dnd;
+			return &win->event;
+		}
+
 		win->event.inFocus = (GetForegroundWindow() == win->src.window);
 
 		if (RGFW_checkXInput(win, &win->event))
@@ -4277,7 +4302,9 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 						CharLowerBuffA(keyName, 16);
 					}
 				}
-				
+
+				RGFW_updateLockState(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001));
+
 				strncpy(win->event.keyName, keyName, 16);
 
 				if (RGFW_isPressed(win, RGFW_ShiftL)) {
@@ -4305,7 +4332,9 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 						CharLowerBuffA(keyName, 16);
 					}
 				}
-				
+								
+				RGFW_updateLockState(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001));
+
 				strncpy(win->event.keyName, keyName, 16);
 
 				if (RGFW_isPressed(win, RGFW_ShiftL) & 0x8000) {
@@ -4402,22 +4431,10 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 					much of this event is source from glfw
 				*/
 			case WM_DROPFILES: {				
-				if (win->event.droppedFilesCount) {
-					u32 i;
-					for (i = 0; i < win->event.droppedFilesCount; i++)
-						win->event.droppedFiles[i][0] = '\0';
-				}
+				win->event.type = RGFW_dnd_init;
 
-				win->event.droppedFilesCount = 0;
-
-				win->event.type = RGFW_dnd;
-
-				HDROP drop = (HDROP) msg.wParam;
+				drop = (HDROP) msg.wParam;
 				POINT pt;
-				u32 i;
-
-				win->event.droppedFilesCount = DragQueryFileW(drop, 0xffffffff, NULL, 0);
-				//win->event.droppedFiles = (char**)RGFW_CALLOC(win->event.droppedFilesCount, sizeof(char*));
 
 				/* Move the mouse to the position of the drop */
 				DragQueryPoint(drop, &pt);
@@ -4425,18 +4442,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				win->event.point.x = pt.x;
 				win->event.point.y = pt.y;
 
-				for (i = 0; i < win->event.droppedFilesCount; i++) {
-					const UINT length = DragQueryFileW(drop, i, NULL, 0);
-					WCHAR* buffer = (WCHAR*) RGFW_CALLOC((size_t) length + 1, sizeof(WCHAR));
-
-					DragQueryFileW(drop, i, buffer, length + 1);
-					strncpy(win->event.droppedFiles[i], createUTF8FromWideStringWin32(buffer), RGFW_MAX_PATH);
-					win->event.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
-					RGFW_FREE(buffer);
-				}
-
-				DragFinish(drop);
-				RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
+				RGFW_dndInitCallback(win, win->event.point);
 			}
 				break;
 			case WM_GETMINMAXINFO:
@@ -4462,16 +4468,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		else
 			win->event.type = 0;
-
-		win->event.lockState = 0;
-
-		if ((GetKeyState(VK_CAPITAL) & 0x0001) != 0)
-			win->event.lockState |= RGFW_CAPSLOCK;
-		if ((GetKeyState(VK_NUMLOCK) & 0x0001) != 0)
-			win->event.lockState |= RGFW_NUMLOCK;
-		if ((GetKeyState(VK_SCROLL) & 0x0001) != 0)
-			win->event.lockState |= 3;
-
 
 		if (!IsWindow(win->src.window)) {
 			win->event.type = RGFW_quit;
@@ -5930,7 +5926,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		NSEventModifierFlagShift = 1 << 17,
 		NSEventModifierFlagControl = 1 << 18,
 		NSEventModifierFlagOption = 1 << 19,
-		NSEventModifierFlagCommand = 1 << 20
+		NSEventModifierFlagCommand = 1 << 20,
+		NSEventModifierFlagNumericPad = 1 << 21
 	} NSEventModifierFlags;
 
 	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
@@ -6017,6 +6014,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				char* str = (char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("characters")));
 				strncpy(win->event.keyName, str, 16);
 				RGFW_keyboard[win->event.keyCode].current = 1;
+
 				RGFW_keyCallback(win, win->event.keyCode, win->event.keyName, win->event.lockState, 1);
 				break;
 			}
@@ -6042,7 +6040,10 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				u8 i;
 				for (i = 0; i < 9; i++)
 					RGFW_keyboard[i + RGFW_CapsLock].prev = 0;
- 
+
+
+				RGFW_updateLockState(win, (flags & NSEventModifierFlagCapsLock), (flags & NSEventModifierFlagNumericPad));
+				
 				for (i = 0; i < 5; i++) {
 					u32 shift = (1 << (i + 16));
 					u32 key = i + RGFW_CapsLock;
