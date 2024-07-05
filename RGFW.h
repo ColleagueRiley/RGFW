@@ -249,7 +249,7 @@ extern "C" {
 #endif
 
 /*! Optional arguments for making a windows */
-#define RGFW_TRANSPARENT_WINDOW		(1L<<9) /*!< the window is transparent (only properly works on X11) */
+#define RGFW_TRANSPARENT_WINDOW		(1L<<9) /*!< the window is transparent (only properly works on X11 and MacOS) */
 #define RGFW_NO_BORDER		(1L<<3) /*!< the window doesn't have border */
 #define RGFW_NO_RESIZE		(1L<<4) /*!< the window cannot be resized  by the user */
 #define RGFW_ALLOW_DND     (1L<<5) /*!< the window supports drag and drop*/
@@ -424,7 +424,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 		
 		u8 keyCode; /*!< keycode of event 	!!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! */
 
-		b8 inFocus;  /*if the window is in focus or not*/
+		b8 inFocus;  /*if the window is in focus or not (this is always true for MacOS windows due to the api being weird) */
 
 		u8 lockState;
 
@@ -1419,28 +1419,31 @@ RGFW_window* RGFW_root = NULL;
 	#endif
 
 	RGFWDEF void RGFW_clipCursor(RGFW_rect);
-	
-	#ifndef RGFW_WINDOWS
+			
+	#if !defined(RGFW_WINDOWS) && !defined(RGFW_MACOS)	
 	void RGFW_clipCursor(RGFW_rect r) { RGFW_UNUSED(r) }
 	#endif
 
 	void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area) {
 		if (!(win->src.winArgs & RGFW_HOLD_MOUSE)) {
 			RGFW_clipCursor(win->r);
+			win->src.winArgs |= RGFW_HOLD_MOUSE;
 		}
 		
-		win->src.winArgs |= RGFW_HOLD_MOUSE;
-
 		if (!area.w && !area.h)
 			area = RGFW_AREA(win->r.w / 2, win->r.h / 2);
-
+		
+		#ifndef RGFW_MACOS
 		RGFW_window_moveMouse(win, RGFW_VECTOR(win->r.x + (area.w), win->r.y + (area.h)));
+		#endif
 	}
 
 	void RGFW_window_mouseUnhold(RGFW_window* win) {
-		win->src.winArgs ^= RGFW_HOLD_MOUSE;
+		if ((win->src.winArgs & RGFW_HOLD_MOUSE)) {
+			win->src.winArgs ^= RGFW_HOLD_MOUSE;
 
-		RGFW_clipCursor(RGFW_RECT(0, 0, 0, 0));
+			RGFW_clipCursor(RGFW_RECT(0, 0, 0, 0));
+		}
 	}
 
 	void RGFW_window_checkFPS(RGFW_window* win) {
@@ -3755,13 +3758,13 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	}
 
 	void RGFW_clipCursor(RGFW_rect rect) {
-		if (rect.x && rect.y && rect.w && rect.h) {
-			RECT r = {rect.x, rect.y, rect.x + rect.w, rect.y + rect.h};
-			ClipCursor(&r);
+		if (!rect.x && !rect.y && rect.w && !rect.h) {
+			ClipCursor(NULL);
 			return;
 		}
 
-		ClipCursor(NULL);
+		RECT r = {rect.x, rect.y, rect.x + rect.w, rect.y + rect.h};
+		ClipCursor(&r);
 	}
 
 	RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
@@ -5465,10 +5468,29 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	NSDragOperation draggingEntered(id self, SEL sel, id sender) { 
 		RGFW_UNUSED(sender); RGFW_UNUSED(self); RGFW_UNUSED(sel);  
 
+		printf("hi\n");
 		return NSDragOperationCopy; 
 	}
 	NSDragOperation draggingUpdated(id self, SEL sel, id sender) { 
-		RGFW_UNUSED(sender); RGFW_UNUSED(self); RGFW_UNUSED(sel); 
+		RGFW_UNUSED(sel); 
+
+		RGFW_window* win = NULL;
+		object_getInstanceVariable(self, "RGFW_window", (void*)&win);
+		if (win == NULL)
+			return true;
+		
+		if (!(win->src.winArgs & RGFW_ALLOW_DND)) {
+			return false;
+		}
+
+		win->event.type = RGFW_dnd_init;
+		win->src.dndPassed = 0;
+
+		NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
+
+		win->event.point = RGFW_VECTOR((u32) p.x, (u32) (win->r.h - p.y));
+		RGFW_dndInitCallback(win, win->event.point);
+
 		return NSDragOperationCopy; 
 	}
 	bool prepareForDragOperation(id self) {
@@ -5480,7 +5502,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		if (!(win->src.winArgs & RGFW_ALLOW_DND)) {
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -5521,9 +5543,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		win->src.dndPassed = 0;
 
 		NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
+		win->event.point = RGFW_VECTOR((u32) p.x, (u32) (win->r.h - p.y));
 
-		win->event.point.x = (i32)p.x;
-		win->event.point.x = (i32)p.y;
 		RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
 		return true;
 	}
@@ -5710,7 +5731,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #ifdef RGFW_OPENGL
 		if ((args & RGFW_NO_INIT_API) == 0) {
 			i32 opacity = 0;
-			NSOpenGLContext_setValues(win->src.rSurf, &opacity, 304);
+			#define NSOpenGLCPSurfaceOpacity 236
+			NSOpenGLContext_setValues(win->src.rSurf, &opacity, NSOpenGLCPSurfaceOpacity);
 		}
 #endif
 
@@ -5718,9 +5740,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 			objc_msgSend_void_id(win->src.window, sel_registerName("setBackgroundColor:"),
 				NSColor_colorWithSRGB(0, 0, 0, 0));
-
-			((void (*)(id, SEL, CGFloat))objc_msgSend)
-				(win->src.window, sel_registerName("setAlphaValue:"), 0x00);
 		}
 
 		win->src.display = CGMainDisplayID();
@@ -5832,7 +5851,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	RGFW_vector RGFW_window_getMousePoint(RGFW_window* win) {
 		NSPoint p =  ((NSPoint(*)(id, SEL)) objc_msgSend)(win->src.window, sel_registerName("mouseLocationOutsideOfEventStream"));
 
-		return RGFW_VECTOR((u32) p.x, (u32) (p.y));
+		return RGFW_VECTOR((u32) p.x, (u32) (win->r.h - p.y));
 	}
 
 	u32 RGFW_keysPressed[10]; /*10 keys at a time*/
@@ -5932,11 +5951,11 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		assert(win != NULL);
-
+		
 		if (win->event.type == RGFW_quit)
 			return NULL;
 
-		if (win->event.type == RGFW_dnd && win->src.dndPassed == 0) {
+		if ((win->event.type == RGFW_dnd || win->event.type == RGFW_dnd_init) && win->src.dndPassed == 0) {
 			win->src.dndPassed = 1;
 			return &win->event;
 		}
@@ -5952,7 +5971,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		NSEvent* e = (NSEvent*) ((id(*)(id, SEL, NSEventMask, void*, NSString*, bool))objc_msgSend)
 			(NSApp, eventFunc, ULONG_MAX, NULL, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
-
 
 		if (e == NULL)
 			return NULL;
@@ -5972,23 +5990,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		win->event.droppedFilesCount = 0;
 		win->event.type = 0;
-
-		bool isKey = (bool) objc_msgSend_bool(win->src.window, sel_registerName("isKeyWindow"));
-		
-		if (win->event.inFocus != isKey) {
-			win->event.inFocus = isKey;
-			
-			if (win->event.inFocus) {
-				win->event.type = RGFW_focusIn;
-				RGFW_focusCallback(win, 1);
-			}
-			else {
-				win->event.type = RGFW_focusOut;
-				RGFW_focusCallback(win, 0);
-			}
-
-			return &win->event;
-		}
 
 		switch (objc_msgSend_uint(e, sel_registerName("type"))) {
 			case NSEventTypeMouseEntered: {
@@ -6036,13 +6037,11 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 			case NSEventTypeFlagsChanged: {
 				u32 flags = objc_msgSend_uint(e, sel_registerName("modifierFlags"));
-
+				RGFW_updateLockState(win, ((u32)(flags & NSEventModifierFlagCapsLock) % 255), ((flags & NSEventModifierFlagNumericPad) % 255));
+				
 				u8 i;
 				for (i = 0; i < 9; i++)
 					RGFW_keyboard[i + RGFW_CapsLock].prev = 0;
-
-
-				RGFW_updateLockState(win, (flags & NSEventModifierFlagCapsLock), (flags & NSEventModifierFlagNumericPad));
 				
 				for (i = 0; i < 5; i++) {
 					u32 shift = (1 << (i + 16));
@@ -6081,8 +6080,17 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			case NSEventTypeMouseMoved:
 				win->event.type = RGFW_mousePosChanged;
 				NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(e, sel_registerName("locationInWindow"));
-
 				win->event.point = RGFW_VECTOR((u32) p.x, (u32) (win->r.h - p.y));
+
+				if ((win->src.winArgs & RGFW_HOLD_MOUSE)) {
+					p.x = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaX"));
+					p.y = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaY"));
+					
+					p.x = ((win->r.w / 2)) + p.x;
+					p.y = ((win->r.h / 2)) + p.y;
+					win->event.point = RGFW_VECTOR((u32) p.x, (u32) (p.y));
+				}
+
 				RGFW_mousePosCallback(win, win->event.point);
 				break;
 
@@ -6299,11 +6307,15 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		objc_msgSend_void(mouse, sel_registerName("set"));
 	}
 
+	void RGFW_clipCursor(RGFW_rect r) { 
+		CGWarpMouseCursorPosition(CGPointMake(r.x + (r.w / 2), r.y + (r.h / 2)));
+		CGAssociateMouseAndMouseCursorPosition((!r.x && !r.y && r.w && !r.h));
+	}
+
 	void RGFW_window_moveMouse(RGFW_window* win, RGFW_vector v) {
 		RGFW_UNUSED(win);
-		assert(win != NULL);
 
-		CGWarpMouseCursorPosition(CGPointMake(v.x, v.y));
+		CGWarpMouseCursorPosition(CGPointMake(v.x, v.y));		
 	}
 
 
