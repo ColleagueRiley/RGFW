@@ -78,10 +78,9 @@ jobs:
         make libRGFW.dylib CUSTOM_CFLAGS="-target arm64-apple-macos11 -DGL_SILENCE_DEPRECATION"
         mv libRGFW.dylib /tmp/libRGFW_arm64.dylib
         
-        # Join x86_64 and arm64 dynamic
+        # move x86_64 and arm64 dynamic
         rm -f ./build/lib/*
-        lipo -create -output libRGFW.dylib /tmp/libRGFW_x86_64.dylib /tmp/libRGFW_arm64.dylib
-        ln -sv libRGFW.dylib  build/${{ env.RELEASE_NAME }}/lib/libRGFW.dylib
+        mv /tmp/libRGFW_x86_64.dylib /tmp/libRGFW_arm64.dylib build/${{ env.RELEASE_NAME }}/lib/
   
     - name: Generate Artifacts
       run: |
