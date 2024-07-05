@@ -248,8 +248,12 @@ extern "C" {
 #endif
 #endif
 
+#ifndef RGFW_ALPHA
+#define RGFW_ALPHA 128 /* alpha value for RGFW_TRANSPARENT_WINDOW (WINAPI ONLY, macOS + linux don't need this) */
+#endif
+
 /*! Optional arguments for making a windows */
-#define RGFW_TRANSPARENT_WINDOW		(1L<<9) /*!< the window is transparent (only properly works on X11 and MacOS, although it's useable for windows) */
+#define RGFW_TRANSPARENT_WINDOW		(1L<<9) /*!< the window is transparent (only properly works on X11 and MacOS, although it's although for windows) */
 #define RGFW_NO_BORDER		(1L<<3) /*!< the window doesn't have border */
 #define RGFW_NO_RESIZE		(1L<<4) /*!< the window cannot be resized  by the user */
 #define RGFW_ALLOW_DND     (1L<<5) /*!< the window supports drag and drop*/
@@ -4026,7 +4030,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		if (args & RGFW_TRANSPARENT_WINDOW) {
 			SetWindowLong(win->src.window, GWL_EXSTYLE, GetWindowLong(win->src.window, GWL_EXSTYLE) | WS_EX_LAYERED);
-			SetLayeredWindowAttributes(win->src.window, RGB(255, 255, 255), 128, LWA_ALPHA);
+			SetLayeredWindowAttributes(win->src.window, RGB(255, 255, 255), RGFW_ALPHA, LWA_ALPHA);
 		}
 
 		ShowWindow(win->src.window, SW_SHOWNORMAL);
