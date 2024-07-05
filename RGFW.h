@@ -249,7 +249,7 @@ extern "C" {
 #endif
 
 /*! Optional arguments for making a windows */
-#define RGFW_TRANSPARENT_WINDOW		(1L<<9) /*!< the window is transparent (only properly works on X11 and MacOS) */
+#define RGFW_TRANSPARENT_WINDOW		(1L<<9) /*!< the window is transparent (only properly works on X11 and MacOS, although it's useable for windows) */
 #define RGFW_NO_BORDER		(1L<<3) /*!< the window doesn't have border */
 #define RGFW_NO_RESIZE		(1L<<4) /*!< the window cannot be resized  by the user */
 #define RGFW_ALLOW_DND     (1L<<5) /*!< the window supports drag and drop*/
@@ -1601,6 +1601,10 @@ RGFW_window* RGFW_root = NULL;
 #define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 #define WGL_SAMPLE_BUFFERS_ARB               0x2041
 #define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20a9
+#define WGL_PIXEL_TYPE_ARB                        0x2013
+#define WGL_TYPE_RGBA_ARB                         0x202B
+
+#define WGL_TRANSPARENT_ARB   					  0x200A
 #endif
 
 	static u32* RGFW_initAttribs(u32 useSoftware) {
@@ -1636,6 +1640,8 @@ RGFW_window* RGFW_root = NULL;
 								#endif
 
 								#ifdef RGFW_WINDOWS
+								WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+								WGL_TRANSPARENT_ARB, TRUE,
 								WGL_COLOR_BITS_ARB,	 32,
 								#endif
 
@@ -2127,7 +2133,7 @@ Start of Linux / Unix defines
 		i32 context_attribs[7] = { 0, 0, 0, 0, 0, 0, 0 };
 		context_attribs[0] = GLX_CONTEXT_PROFILE_MASK_ARB;
 		context_attribs[1] = GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
-
+		
 		if (RGFW_majorVersion || RGFW_minorVersion) {
 			context_attribs[2] = GLX_CONTEXT_MAJOR_VERSION_ARB;
 			context_attribs[3] = RGFW_majorVersion;
@@ -3588,13 +3594,11 @@ Start of Linux / Unix defines
 #define WGL_NUMBER_PIXEL_FORMATS_ARB 0x2000
 #define WGL_CONTEXT_MAJOR_VERSION_ARB             0x2091
 #define WGL_CONTEXT_MINOR_VERSION_ARB             0x2092
-#define WGL_TRANSPARENT_ARB   					  0x200A
 #define WGL_DRAW_TO_WINDOW_ARB                    0x2001
 #define WGL_ACCELERATION_ARB                      0x2003
 #define WGL_NO_ACCELERATION_ARB 0x2025
 #define WGL_SUPPORT_OPENGL_ARB                    0x2010
 #define WGL_DOUBLE_BUFFER_ARB                     0x2011
-#define WGL_PIXEL_TYPE_ARB                        0x2013
 #define WGL_COLOR_BITS_ARB                        0x2014
 #define WGL_RED_BITS_ARB 0x2015
 #define WGL_RED_SHIFT_ARB 0x2016
@@ -3615,7 +3619,6 @@ Start of Linux / Unix defines
 #define WGL_DEPTH_BITS_ARB                        0x2022
 #define WGL_STENCIL_BITS_ARB 					  0x2023
 #define WGL_FULL_ACCELERATION_ARB                 0x2027
-#define WGL_TYPE_RGBA_ARB                         0x202B
 #define WGL_CONTEXT_FLAGS_ARB                     0x2094
 #define WGL_CONTEXT_PROFILE_MASK_ARB              0x9126
 #define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
@@ -3752,7 +3755,7 @@ static HMODULE wglinstance = NULL;
 RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #endif
 	}
-#include <dwmapi.h>
+
 	void RGFW_window_setDND(RGFW_window* win, b8 allow) {
 		DragAcceptFiles(win->src.window, allow);
 	}
@@ -3984,8 +3987,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			win->src.rSurf = wglCreateContext(win->src.hdc);
 		}
 		
-
-		
 		wglMakeCurrent(win->src.hdc, win->src.rSurf);
 #endif
 	}
@@ -4023,8 +4024,12 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		if (args & RGFW_HIDE_MOUSE)
 			RGFW_window_showMouse(win, 0);
 
+		if (args & RGFW_TRANSPARENT_WINDOW) {
+			SetWindowLong(win->src.window, GWL_EXSTYLE, GetWindowLong(win->src.window, GWL_EXSTYLE) | WS_EX_LAYERED);
+			SetLayeredWindowAttributes(win->src.window, RGB(255, 255, 255), 128, LWA_ALPHA);
+		}
+
 		ShowWindow(win->src.window, SW_SHOWNORMAL);
-		
 		
 		if (RGFW_root == NULL)
 			RGFW_root = win;
