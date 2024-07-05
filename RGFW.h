@@ -1177,7 +1177,7 @@ MacOS -> windows and linux already don't have keycodes as macros, so there's no 
 	} RGFW_keyState;
 
 	RGFW_keyState RGFW_keyboard[final_key] = { {0, 0} };
-
+	
 	RGFWDEF u32 RGFW_apiKeyCodeToRGFW(u32 keycode);
 
 	u32 RGFW_apiKeyCodeToRGFW(u32 keycode) {
@@ -1185,6 +1185,15 @@ MacOS -> windows and linux already don't have keycodes as macros, so there's no 
 			return 0;
 		
 		return RGFW_keycodes[keycode];
+	}
+
+	RGFWDEF void RGFW_resetKey(void);
+	void RGFW_resetKey(void) {
+		size_t len = final_key;
+		
+		size_t i; 
+		for (i = 0; i < len; i++) 
+			RGFW_keyboard[i].prev = 0;
 	}
 
 /*
@@ -1336,9 +1345,11 @@ RGFW_window* RGFW_root = NULL;
 	b8 RGFW_mouseButtons_prev[5];
 
 	b8 RGFW_isMousePressed(RGFW_window* win, u8 button) {
+		assert(win != NULL);
 		return RGFW_mouseButtons[button] && (win != NULL) && win->event.inFocus; 
 	}
-	b8 RGFW_wasMousePressed(RGFW_window* win, u8 button) { 
+	b8 RGFW_wasMousePressed(RGFW_window* win, u8 button) {
+		assert(win != NULL); 
 		return RGFW_mouseButtons_prev[button] && (win != NULL) && win->event.inFocus; 
 	}
 	b8 RGFW_isMouseHeld(RGFW_window* win, u8 button) {
@@ -1349,15 +1360,13 @@ RGFW_window* RGFW_root = NULL;
 	}
 
 	b8 RGFW_isPressed(RGFW_window* win, u8 key) {
-		RGFW_UNUSED(win);
-		
-		return RGFW_keyboard[key].current;
+		assert(win != NULL);
+		return RGFW_keyboard[key].current && win->event.inFocus;
 	}
 
 	b8 RGFW_wasPressed(RGFW_window* win, u8 key) {
-		RGFW_UNUSED(win);
-
-		return RGFW_keyboard[key].prev;
+		assert(win != NULL);
+		return RGFW_keyboard[key].prev && win->event.inFocus;
 	}
 
 	b8 RGFW_isHeld(RGFW_window* win, u8 key) {
@@ -1365,7 +1374,7 @@ RGFW_window* RGFW_root = NULL;
 	}
 
 	b8 RGFW_isClicked(RGFW_window* win, u8 key) {
-		return (RGFW_isPressed(win, key) && !RGFW_wasPressed(win, key));
+		return (RGFW_wasPressed(win, key) && !RGFW_isPressed(win, key));
 	}
 
 	b8 RGFW_isReleased(RGFW_window* win, u8 key) {
@@ -2286,6 +2295,9 @@ Start of Linux / Unix defines
 	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		assert(win != NULL);
 
+		if (win->event.type == 0) 
+			RGFW_resetKey();
+
 		if (win->event.type == RGFW_quit) {
 			return NULL;
 		}
@@ -2658,7 +2670,7 @@ Start of Linux / Unix defines
 					line++;
 				}
 				path[index] = '\0';
-				strcpy(win->event.droppedFiles[win->event.droppedFilesCount - 1], path);
+				strncpy(win->event.droppedFiles[win->event.droppedFilesCount - 1], path, index + 1);
 			}
 
 			if (data)
@@ -3003,7 +3015,8 @@ Start of Linux / Unix defines
 
 		if (target == UTF8 || target == XA_STRING) {
 			s = (char*)RGFW_MALLOC(sizeof(char) * sizeN);
-			strcpy(s, data);
+			strncpy(s, data, sizeN);
+			s[sizeN] = '\0';
 			XFree(data);
 		}
 
@@ -3286,7 +3299,7 @@ Start of Linux / Unix defines
 		XrmValue value;
 		char* type = NULL;
 
-		if (XrmGetResource(db, "Xft.dpi", "Xft.Dpi", &type, &value) && type && strcmp(type, "String") == 0)
+		if (XrmGetResource(db, "Xft.dpi", "Xft.Dpi", &type, &value) && type && strncmp(type, "String", 7) == 0)
 			xdpi = ydpi = atof(value.addr);
 		XrmDestroyDatabase(db);
 #endif
@@ -3304,7 +3317,7 @@ Start of Linux / Unix defines
 		monitor.physW = (monitor.rect.w * 25.4f / 96.f);
 		monitor.physH = (monitor.rect.h * 25.4f / 96.f);
 
-		strcpy(monitor.name, DisplayString(display));
+		strncpy(monitor.name, DisplayString(display), 128);
 
 		XGetSystemContentScale(display, &monitor.scaleX, &monitor.scaleY);
 
@@ -4557,7 +4570,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			for (deviceIndex = 0; EnumDisplayDevicesA(0, (DWORD) deviceIndex, &dd, 0); deviceIndex++) {
 				char* deviceName = dd.DeviceName;
 				if (EnumDisplayDevicesA(deviceName, info.iIndex, &dd, 0)) {
-					strcpy(monitor.name, dd.DeviceString); /* copy the monitor's name */
+					strncpy(monitor.name, dd.DeviceString, 128); /* copy the monitor's name */
 					break;
 				}
 			}
@@ -4896,6 +4909,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 			if (size != NULL)
 				*size = textLen + 1;
+
+			text[textLen] = '\0';
 		}
 
 		/* Release the clipboard data */
@@ -6418,7 +6433,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		char* str = (char*)RGFW_MALLOC(sizeof(char) * clip_len);
 		
 		if (clip != NULL) {
-			strcpy(str, clip);
+			strncpy(str, clip, clip_len);
 		}
 
 		str[clip_len] = '\0';
