@@ -1360,13 +1360,11 @@ RGFW_window* RGFW_root = NULL;
 	}
 
 	b8 RGFW_isPressed(RGFW_window* win, u8 key) {
-		assert(win != NULL);
-		return RGFW_keyboard[key].current && win->event.inFocus;
+		return RGFW_keyboard[key].current && (win == NULL || win->event.inFocus);
 	}
 
 	b8 RGFW_wasPressed(RGFW_window* win, u8 key) {
-		assert(win != NULL);
-		return RGFW_keyboard[key].prev && win->event.inFocus;
+		return RGFW_keyboard[key].prev && (win == NULL || win->event.inFocus);
 	}
 
 	b8 RGFW_isHeld(RGFW_window* win, u8 key) {
@@ -1992,7 +1990,7 @@ Start of Linux / Unix defines
 		#endif
 
 		win->src.bitmap = XCreateImage(
-			win->src.display, vi->visual,
+			win->src.display, XDefaultVisual(win->src.display, vi->screen),
 			vi->depth,
 			ZPixmap, 0, NULL, RGFW_bufferSize.w, RGFW_bufferSize.h,
 			32, 0
@@ -2771,13 +2769,16 @@ Start of Linux / Unix defines
 	void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
 		assert(win != NULL);
 
+		if (a.w == 0 && a.h == 0)
+			return;
+
 		XSizeHints hints;
 		long flags;
 
 		XGetWMNormalHints(win->src.display, (Window) win->src.window, &hints, &flags);
 
 		hints.flags |= PMinSize;
-
+		
 		hints.min_width = a.w;
 		hints.min_height = a.h;
 
@@ -2786,6 +2787,9 @@ Start of Linux / Unix defines
 
 	void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 		assert(win != NULL);
+
+		if (a.w == 0 && a.h == 0)
+			return;
 
 		XSizeHints hints;
 		long flags;
@@ -6240,11 +6244,17 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	#endif
 
 	void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
+		if (a.w == 0 && a.h == 0)
+			return;
+
 		((void (*)(id, SEL, NSSize))objc_msgSend)
 			(win->src.window, sel_registerName("setMinSize:"), (NSSize){a.w, a.h});
 	}
 
 	void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
+		if (a.w == 0 && a.h == 0)
+			return;
+
 		((void (*)(id, SEL, NSSize))objc_msgSend)
 			(win->src.window, sel_registerName("setMaxSize:"), (NSSize){a.w, a.h});
 	}
