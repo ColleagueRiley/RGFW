@@ -12,7 +12,7 @@ STATIC =
 
 WARNINGS = -Wall -Werror -Wstrict-prototypes -Wextra
 
-ifneq (,$(filter $(CC),winegcc x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc))
+ifneq (,$(filter $(CC),winegcc /opt/msvc/bin/x64/cl.exe))
 	STATIC = --static
     detected_OS := Windows
 	LIB_EXT = .dll
@@ -46,6 +46,14 @@ ifeq ($(detected_OS),Linux)
 	LIB_EXT = .so
 endif
 
+ifneq (,$(filter $(CC),cc /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
+	WARNINGS =
+	STATIC = /static
+	LIBS = $(STATIC)
+	EXT = .exe
+	LIB_EXT = .dll
+endif
+
 all: examples/basic/main.c examples/buffer/main.c examples/portableGL/main.c  examples/gl33/main.c examples/gles2/main.c examples/vk10/main.c ./RGFW.h
 	$(CC) examples/basic/main.c $(LIBS) -I./ $(WARNINGS) -o basic
 	$(CC) examples/buffer/main.c $(LIBS) -I./ $(WARNINGS) -o buffer
@@ -62,7 +70,7 @@ DX11: examples/dx11/main.c
 	$(CC) $^ $(LIBS) $(DX11_LIBS) -I./ $(WARNINGS) -o examples/dx11/$@
 
 clean:
-	rm -f ./examples/basic/basic ./examples/basic/basic.exe ./examples/gles2/gles2 ./examples/gles2/gles2.exe ./examples/gl33/gl33 ./examples/gl33/gl33.exe ./examples/vk10/vk10 ./examples/vk10/vk10.exe examples/vk10/shaders/*.h examples/dx11/DX11
+	rm -f *.exe ./examples/basic/basic ./examples/basic/basic.exe ./examples/gles2/gles2 ./examples/gles2/gles2.exe ./examples/gl33/gl33 ./examples/gl33/gl33.exe ./examples/vk10/vk10 ./examples/vk10/vk10.exe examples/vk10/shaders/*.h examples/dx11/DX11
 
 debug: examples/*/main.c ./RGFW.h
 	make clean
