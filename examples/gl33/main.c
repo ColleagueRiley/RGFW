@@ -15,12 +15,6 @@
 #define RGFW_PRINT_ERRORS
 #include <RGFW.h>
 
-#if _MSC_VER
-#pragma comment(lib, "gdi32")
-#pragma comment(lib, "shell32")
-#pragma comment(lib, "opengl32")
-#endif
-
 #define MULTILINE_STR(...) #__VA_ARGS__
 
 #include <stdbool.h>

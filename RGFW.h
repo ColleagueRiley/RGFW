@@ -1544,6 +1544,7 @@ RGFW_window* RGFW_root = NULL;
 
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL) || defined(RGFW_OSMESA)
 #ifdef RGFW_WINDOWS
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
 
@@ -3560,6 +3561,8 @@ Start of Linux / Unix defines
 */
 
 #ifdef RGFW_WINDOWS
+	#define WIN32_LEAN_AND_MEAN
+	
 	#include <processthreadsapi.h>
 	#include <wchar.h>
 	#include <locale.h>
