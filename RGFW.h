@@ -458,13 +458,6 @@ typedef struct { i32 x, y; } RGFW_vector;
 		void* window;
 		b8 dndPassed;
 #endif
-#if defined(RGFW_MACOS) && defined(RGFW_BUFFER)
-        // When drawing directly to the buffer
-        // saving the represensation and image
-        // saves heaps of allocations
-        void* g_rep;
-        void* g_image;
-#endif
 
 #if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA)
 #ifdef RGFW_MACOS
@@ -5890,11 +5883,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		NSRetain(win->src.window);
 		NSRetain(NSApp);
 
-        // RR
-#ifdef RGFW_BUFFER
-        win->src.g_rep = NULL;
-        win->src.g_image = NULL;
-#endif
         RGFW_setWindowQuitCallback(RGFW_window_quitCallbackMac);
 		return win;
 	}
@@ -6655,8 +6643,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #ifdef RGFW_BUFFER
 		//release(win->src.bitmap);
 		//release(win->src.image);
-        // NSRelease(win->src.g_image);
-        // NSRelease(win->src.g_rep);
 #endif
 
 		// CVDisplayLinkStop(win->src.displayLink);
