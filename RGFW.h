@@ -76,7 +76,7 @@
 		krisvers -> code review
 		EimaMei (SaCode) -> code review
 		Code-Nycticebus -> bug fixes
-		Rob Rohan -> X11 bugs and missing features
+		Rob Rohan -> X11 bugs and missing features, MacOS/Cocoa fixing memory issues/bugs 
 		AICDG (@THISISAGOODNAME) -> vulkan support (example)
 */
 
@@ -5174,8 +5174,18 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #define objc_msgSend_void_id		((void (*)(id, SEL, id))objc_msgSend)
 #define objc_msgSend_uint			((NSUInteger (*)(id, SEL))objc_msgSend)
 #define objc_msgSend_void_bool		((void (*)(id, SEL, BOOL))objc_msgSend)
+#define objc_msgSend_bool_void		((BOOL (*)(id, SEL))objc_msgSend)
 #define objc_msgSend_void_SEL		((void (*)(id, SEL, SEL))objc_msgSend)
 #define objc_msgSend_id				((id (*)(id, SEL))objc_msgSend)
+#define objc_msgSend_id_id				((id (*)(id, SEL, id))objc_msgSend)
+#define objc_msgSend_id_bool			((BOOL (*)(id, SEL, id))objc_msgSend)
+#define objc_msgSend_int ((id (*)(id, SEL, int))objc_msgSend)
+#define objc_msgSend_arr ((id (*)(id, SEL, int))objc_msgSend)
+#define objc_msgSend_ptr ((id (*)(id, SEL, void*))objc_msgSend)
+#define objc_msgSend_class ((id (*)(Class, SEL))objc_msgSend)
+#define objc_msgSend_class_char ((id (*)(Class, SEL, char*))objc_msgSend)
+
+	NSApplication* NSApp = NULL;
 
 	void NSRelease(id obj) {
 		objc_msgSend_void(obj, sel_registerName("release"));
@@ -5511,7 +5521,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	NSDragOperation draggingEntered(id self, SEL sel, id sender) { 
 		RGFW_UNUSED(sender); RGFW_UNUSED(self); RGFW_UNUSED(sel);  
 
-		printf("hi\n");
 		return NSDragOperationCopy; 
 	}
 	NSDragOperation draggingUpdated(id self, SEL sel, id sender) { 
@@ -5520,10 +5529,10 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		RGFW_window* win = NULL;
 		object_getInstanceVariable(self, "RGFW_window", (void*)&win);
 		if (win == NULL)
-			return true;
+			return 0;
 		
 		if (!(win->src.winArgs & RGFW_ALLOW_DND)) {
-			return false;
+			return 0;
 		}
 
 		win->event.type = RGFW_dnd_init;
@@ -5557,43 +5566,55 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		RGFW_window* win = NULL;
 		object_getInstanceVariable(self, "RGFW_window", (void*)&win);
-		if (win == NULL)
-			return true;
 
-		//NSWindow* window = objc_msgSend_id(sender, sel_registerName("draggingDestinationWindow"));
-		u32 i;
-		bool found = 0;
+        if (win == NULL)
+			return false;
 
-		if (!found)
-			i = 0;
+		// NSPasteboard* pasteBoard = objc_msgSend_id(sender, sel_registerName("draggingPasteboard"));
 
-		Class array[] = { objc_getClass("NSURL"), NULL };
-		NSPasteboard* pasteBoard = objc_msgSend_id(sender, sel_registerName("draggingPasteboard"));
-		
-		char** droppedFiles = (char**) NSPasteboard_readObjectsForClasses(pasteBoard, array, 1, NULL);
+        /////////////////////////////
+        id pasteBoard = objc_msgSend_id(sender, sel_registerName("draggingPasteboard"));
 
-		win->event.droppedFilesCount = si_array_len(droppedFiles);
+        // Get the types of data available on the pasteboard
+        id types = objc_msgSend_id(pasteBoard, sel_registerName("types"));
 
-		u32 y;
+        // Get the string type for file URLs
+        id fileURLsType = objc_msgSend_class_char(objc_getClass("NSString"), sel_registerName("stringWithUTF8String:"), "NSFilenamesPboardType");
 
-		for (y = 0; y < win->event.droppedFilesCount; y++) {
-			strncpy(win->event.droppedFiles[y], droppedFiles[y], RGFW_MAX_PATH);
+        // Check if the pasteboard contains file URLs
+        if (objc_msgSend_id_bool(types, sel_registerName("containsObject:"), fileURLsType) == 0) {
+		    #ifdef RGFW_DEBUG
+            printf("No files found on the pasteboard.\n");
+			#endif
 
-			win->event.droppedFiles[y][RGFW_MAX_PATH - 1] = '\0';
+			return 0;
 		}
+
+		id fileURLs = objc_msgSend_id_id(pasteBoard, sel_registerName("propertyListForType:"), fileURLsType);
+		int count = ((int (*)(id, SEL))objc_msgSend)(fileURLs, sel_registerName("count"));
+
+		if (count == 0)
+			return 0;
+
+		for (int i = 0; i < count; i++) {
+			id fileURL = objc_msgSend_arr(fileURLs, sel_registerName("objectAtIndex:"), i);
+			const char *filePath = ((const char* (*)(id, SEL))objc_msgSend)(fileURL, sel_registerName("UTF8String"));
+			// printf("File: %s\n", filePath);
+			strncpy(win->event.droppedFiles[i], filePath, RGFW_MAX_PATH);
+			win->event.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
+		}
+		win->event.droppedFilesCount = count;
 
 		win->event.type = RGFW_dnd;
 		win->src.dndPassed = 0;
-
+		
 		NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
 		win->event.point = RGFW_VECTOR((u32) p.x, (u32) (win->r.h - p.y));
-
+		
 		RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
-		return true;
+	
+    	return false;
 	}
-
-
-	NSApplication* NSApp = NULL;
 
 	static void NSMoveToResourceDir(void) {
 		/* sourced from glfw */
@@ -5696,6 +5717,10 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
 		si_func_to_SEL("NSWindow", acceptsFirstResponder);
 		si_func_to_SEL("NSWindow", performKeyEquivalent);
+
+		// RR Create an autorelease pool
+		id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+		pool = objc_msgSend_id(pool, sel_registerName("init"));
 
 		if (NSApp == NULL) {
 			NSApp = objc_msgSend_id((id)objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
@@ -6003,25 +6028,32 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			return &win->event;
 		}
 
+		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+        eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
+
 		static void* eventFunc = NULL;
-		if (eventFunc == NULL)
+		if (eventFunc == NULL) 
 			eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
-		
+
 		if ((win->event.type == RGFW_windowMoved || win->event.type == RGFW_windowResized || win->event.type == RGFW_windowRefresh) && win->event.keyCode != 120) {
 			win->event.keyCode = 120;
+			objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 			return &win->event;
 		}
 
 		NSEvent* e = (NSEvent*) ((id(*)(id, SEL, NSEventMask, void*, NSString*, bool))objc_msgSend)
 			(NSApp, eventFunc, ULONG_MAX, NULL, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
 
-		if (e == NULL)
+		if (e == NULL) {
+			objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 			return NULL;
-
+		}
+		
 		if (objc_msgSend_id(e, sel_registerName("window")) != win->src.window) {
 			((void (*)(id, SEL, id, bool))objc_msgSend)
 				(NSApp, sel_registerName("postEvent:atStart:"), e, 0);
-
+						
+			objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 			return NULL;
 		}
 
@@ -6033,7 +6065,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		win->event.droppedFilesCount = 0;
 		win->event.type = 0;
-
+		
 		switch (objc_msgSend_uint(e, sel_registerName("type"))) {
 			case NSEventTypeMouseEntered: {
 				win->event.type = RGFW_mouseEnter;
@@ -6210,7 +6242,9 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		}
 
 		objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
-
+		((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
+				
+		objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 		return &win->event;
 	}
 
@@ -6512,6 +6546,28 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	}
 	#endif
 	
+	// Function to create a CGImageRef from an array of bytes
+	CGImageRef createImageFromBytes(unsigned char *buffer, int width, int height)
+	{
+		// Define color space
+        CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+        // Create bitmap context
+        CGContextRef context = CGBitmapContextCreate(
+        		buffer, 
+        		width, height,
+        		8,
+        		RGFW_bufferSize.w * 4, 
+        		colorSpace,
+        		kCGImageAlphaPremultipliedLast);
+        // Create image from bitmap context
+        CGImageRef image = CGBitmapContextCreateImage(context);
+        // Release the color space and context
+        CGColorSpaceRelease(colorSpace);
+        CGContextRelease(context);
+                         
+        return image;
+    }
+
 	void RGFW_window_swapBuffers(RGFW_window* win) {
 		assert(win != NULL);
 
@@ -6525,7 +6581,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			RGFW_OSMesa_reorganize();
 			#endif
 
-			RGFW_area area = RGFW_bufferSize;
 			void* view = NSWindow_contentView(win->src.window);
 			void* layer = objc_msgSend_id(view, sel_registerName("layer"));
 
@@ -6533,17 +6588,21 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				sel_registerName("setFrame:"),
 				(NSRect){{0, 0}, {win->r.w, win->r.h}});
 
-			NSBitmapImageRep* rep = NSBitmapImageRep_initWithBitmapData(
-				&win->buffer, win->r.w, win->r.h, 8, 4, true, false,
-				"NSDeviceRGBColorSpace", 0,
-				area.w * 4, 32
-			);
-			id image = NSAlloc((id)objc_getClass("NSImage"));
-			NSImage_addRepresentation(image, rep);
-			objc_msgSend_void_id(layer, sel_registerName("setContents:"), (id) image);
-
-			release(image);
-			release(rep);
+            CGImageRef image = createImageFromBytes(win->buffer, win->r.w, win->r.h);
+            // Get the current graphics context
+            id graphicsContext = objc_msgSend_class(objc_getClass("NSGraphicsContext"), sel_registerName("currentContext"));
+            // Get the CGContext from the current NSGraphicsContext
+            id cgContext = objc_msgSend_id(graphicsContext, sel_registerName("graphicsPort"));
+			// Draw the image in the context
+			NSRect bounds = (NSRect){{0,0}, {win->r.w, win->r.h}};
+		    CGContextDrawImage((void*)cgContext, *(CGRect*)&bounds, image);
+          	// Flush the graphics context to ensure the drawing is displayed
+            objc_msgSend_id(graphicsContext, sel_registerName("flushGraphics"));
+            
+            objc_msgSend_void_id(layer, sel_registerName("setContents:"), (id)image);
+            objc_msgSend_id(layer, sel_registerName("setNeedsDisplay"));
+            
+            CGImageRelease(image);
 #endif
 		}
 
@@ -6572,12 +6631,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			RGFW_FREE(win->event.droppedFiles);
 		}
 #endif
-
-		if (RGFW_root == win) {
-			objc_msgSend_void_id(NSApp, sel_registerName("terminate:"), (id) win->src.window);
-			NSApp = NULL;
-		}
-
+	
 #ifdef RGFW_BUFFER
 		release(win->src.bitmap);
 		release(win->src.image);
