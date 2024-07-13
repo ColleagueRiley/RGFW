@@ -87,7 +87,7 @@ DX11: examples$(OS_DIR)dx11$(OS_DIR)main.c
 clean:
 	rm -f *.exe .$(OS_DIR)examples$(OS_DIR)basic$(OS_DIR)basic .$(OS_DIR)examples$(OS_DIR)basic$(OS_DIR)basic.exe .$(OS_DIR)examples$(OS_DIR)gles2$(OS_DIR)gles2 .$(OS_DIR)examples$(OS_DIR)gles2$(OS_DIR)gles2.exe .$(OS_DIR)examples$(OS_DIR)gl33$(OS_DIR)gl33 .$(OS_DIR)examples$(OS_DIR)gl33$(OS_DIR)gl33.exe .$(OS_DIR)examples$(OS_DIR)vk10$(OS_DIR)vk10 .$(OS_DIR)examples$(OS_DIR)vk10$(OS_DIR)vk10.exe examples$(OS_DIR)vk10$(OS_DIR)shaders$(OS_DIR)*.h examples$(OS_DIR)dx11$(OS_DIR)DX11
 
-debug: examples$(OS_DIR)*$(OS_DIR)main.c .$(OS_DIR)RGFW.h
+debug: examples$(OS_DIR)basic$(OS_DIR)main.c examples$(OS_DIR)buffer$(OS_DIR)main.c examples$(OS_DIR)portableGL$(OS_DIR)main.c  examples$(OS_DIR)gl33$(OS_DIR)main.c examples$(OS_DIR)gles2$(OS_DIR)main.c examples$(OS_DIR)vk10$(OS_DIR)main.c .$(OS_DIR)RGFW.h
 	make clean
 
 	$(CC) examples$(OS_DIR)buffer$(OS_DIR)main.c $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)buffer$(OS_DIR)buffer
