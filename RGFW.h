@@ -54,6 +54,9 @@
 	#define RGFW_MALLOC x - choose what function to use to allocate, by default the standard malloc is used
 	#define RGFW_CALLOC x - choose what function to use to allocate (calloc), by default the standard calloc is used
 	#define RGFW_FREE x - choose what function to use to allocated memory, by default the standard free is used
+
+ 	#define RGFW_BUILD_LIBTYPE_SHARED - Use when building a shared library 
+    #define RGFW_USE_LIBTYPE_SHARED - Use when using RGFW as a shared library
 */
 
 /*
@@ -109,6 +112,24 @@
 #define RGFW_NO_MONITOR
 #define RGFW_NO_PASSTHROUGH
 #endif
+
+/* sourced from raylib */
+#ifdef defined(RGFW_BUILD_LIBTYPE_SHARED) ||  defined(RGFW_BUILD_LIBTYPE_SHARED)
+#if defined(_WIN32)
+    #if defined(__TINYC__) && (defined(RGFW_BUILD_LIBTYPE_SHARED) ||  defined(RGFW_BUILD_LIBTYPE_SHARED))
+        #define __declspec(x) __attribute__((x))
+    #endif
+    #if defined(RGFW_BUILD_LIBTYPE_SHARED)
+        #define RGFWDEF __declspec(dllexport)     // We are building the library as a Win32 shared library (.dll)
+    #elif defined(RGFW_USE_LIBTYPE_SHARED)
+        #define RGFWDEF __declspec(dllimport)     // We are using the library as a Win32 shared library (.dll)
+    #endif
+#else
+    #if defined(RGFW_BUILD_LIBTYPE_SHARED)
+        #define RGFWDEF __attribute__((visibility("default"))) // We are building as a Unix shared library (.so/.dylib)
+    #endif
+#endif
+#endif 
 
 #ifndef RGFWDEF
 #ifdef __APPLE__
