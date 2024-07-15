@@ -21,7 +21,7 @@ jobs:
 
     - name: Compile to WebAssembly
       run: |
-        make debug
+        make debug CC=emcc
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
