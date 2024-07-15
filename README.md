@@ -11,7 +11,7 @@ A cross-platform lightweight single-header very simple-to-use window abstraction
 # About
 RGFW is a free multi-platform single-header very simple-to-use window abstraction framework for creating graphics Libraries or simple graphical programs. it is meant to be used as a very small and flexible alternative library to GLFW. 
 
-The window backend supports XLib (UNIX), Cocoas (MacOS) and WinAPI (tested on windows *XP*, 10 and 11, and reactOS)\
+The window backend supports XLib (UNIX), Cocoas (MacOS), webASM (emscripten) and WinAPI (tested on windows *XP*, 10 and 11, and reactOS)\
 Windows 95 & 98 have also been tested with RGFW, although results are iffy
 
 The graphics backend supports OpenGL (EGL, software, OSMesa, GLES), Vulkan, DirectX and software rendering buffers.
@@ -36,12 +36,19 @@ This library does not
 # examples
 ![examples](https://github.com/ColleagueRiley/RGFW/blob/main/screenshot.PNG?raw=true)
 
+The examples can also [run in your browser](https://colleagueriley.github.io/)
+
 ## compiling
 The examples can be compiled by using `make debug`, which compiles them in debug mode and then runs them\
 or `make` which simply compiles them.
 
 The dx11 example has its own Makefile functions because it is Windows only, those include
 `make DX11` and `make debugDX11`
+
+You can do CC=`compiler` to specify a specific compiler\
+Tested and supported compilers include, `gcc`, `clang`, `[x86_64 / i686-w64]-w64-mingw32-gcc`, `cl` (linux AND windows)
+
+`tcc` has also been tested but work on linux only
 
 ## basic 
 A basic example can be found in `examples/basic`, it includes a basic OpenGL example of just about all of RGFW's functionalities.
