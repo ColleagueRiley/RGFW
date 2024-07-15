@@ -91,8 +91,11 @@ all: examples$(OS_DIR)basic$(OS_DIR)main.c examples$(OS_DIR)buffer$(OS_DIR)main.
 	$(CC) examples$(OS_DIR)portableGL$(OS_DIR)main.c $(LIBS) -I. -w -o portableGL$(EXT)
 	$(CC) examples$(OS_DIR)gl33$(OS_DIR)main.c $(LINK_GL3) $(LIBS) -I. $(WARNINGS) -o gl33$(EXT)
 	$(CC) examples$(OS_DIR)gles2$(OS_DIR)main.c $(LINK_GL2) -lEGL $(LIBS) -I. $(WARNINGS) -o gles2$(EXT)
+
+ifeq (,$(filter $(CC),emcc))
 	make vulkan_shaders
 	$(CC) examples$(OS_DIR)vk10$(OS_DIR)main.c $(LIBS) $(VULAKN_LIBS) -I. $(WARNINGS) -o vk10$(EXT)
+endif
 
 DX11: examples$(OS_DIR)dx11$(OS_DIR)main.c
 	$(CC) $^ $(LIBS) $(DX11_LIBS) -I. $(WARNINGS) -o examples$(OS_DIR)dx11$(OS_DIR)$@
@@ -156,9 +159,9 @@ ifeq (,$(filter $(CC),emcc))
 	.$(OS_DIR)examples$(OS_DIR)gles2$(OS_DIR)gles2$(EXT)
 endif
 
+ifeq (,$(filter $(CC),emcc))
 	make vulkan_shaders
 	$(CC) examples$(OS_DIR)vk10$(OS_DIR)main.c $(LIBS) $(VULAKN_LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)vk10$(OS_DIR)vk10$(EXT)
-ifeq (,$(filter $(CC),emcc))
 	.$(OS_DIR)examples$(OS_DIR)vk10$(OS_DIR)vk10$(EXT)
 endif
 
