@@ -10,4 +10,12 @@ WINDOWS:
 - make sure a new API can be added easily (without changing any other RGFW code)
 - ensure support for UTF-16 
 - homebrew apis? (wii)
-- webasm support
+
+
+
+- webasm support :
+    - opengl advanced context setup
+
+    - joystick event
+    - RGFW_registerJoystick
+    - RGFW_registerJoystickF

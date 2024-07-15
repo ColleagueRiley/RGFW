@@ -10,7 +10,7 @@ RGFWDEF void update_camera(void);
 RGFWDEF void glPerspective(double fovY, double aspect, double zNear, double zFar);
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("First person camera", RGFW_RECT(0, 0, 800, 450), RGFW_CENTER | RGFW_NO_RESIZE);
+    RGFW_window* win = RGFW_createWindow("First person camera", RGFW_RECT(0, 0, 800, 450), RGFW_CENTER | RGFW_NO_RESIZE );
     win->fpsCap = 60;
 
     RGFW_window_showMouse(win, 0);
@@ -126,23 +126,20 @@ int main(void) {
 
         glBegin(GL_QUADS);
 
-        glColor3ub(150, 0, 0); 
-        glTexCoord2f(0.0,  0.0);   glVertex3f(-50.0, -5.0,  -50.0);
-        glTexCoord2f(25.0, 0.0);   glVertex3f(50.0,   -5.0,  -50.0);
-        glTexCoord2f(25.0, 25.0);  glVertex3f(50.0,   -5.0,  50.0);
-        glTexCoord2f(0.0,  25.0);  glVertex3f(-50.0, -5.0,  50.0);
+        glColor3ub(150, 0, 0);  glTexCoord2f(0.0,  0.0);   glVertex3f(-50.0, -5.0,  -50.0);
+        glColor3ub(150, 0, 0);  glTexCoord2f(25.0, 0.0);   glVertex3f(50.0,   -5.0,  -50.0);
+        glColor3ub(150, 0, 0);  glTexCoord2f(25.0, 25.0);  glVertex3f(50.0,   -5.0,  50.0);
+        glColor3ub(150, 0, 0);  glTexCoord2f(0.0,  25.0);  glVertex3f(-50.0, -5.0,  50.0);
 
-        glColor3ub(255, 192, 203); 
-        glTexCoord2f(0.0,  0.0);   glVertex3f(-50.0, -5.0,  -50);
-        glTexCoord2f(25.0, 0.0);   glVertex3f(50.0,   -5.0,  -50);
-        glTexCoord2f(25.0, 25.0);  glVertex3f(50.0,   50.0,  1);
-        glTexCoord2f(0.0,  25.0);  glVertex3f(-50.0, 50.0,  1);
+        glColor3ub(255, 192, 203);  glTexCoord2f(0.0,  0.0);   glVertex3f(-50.0, -5.0,  -50);
+        glColor3ub(255, 192, 203);  glTexCoord2f(25.0, 0.0);   glVertex3f(50.0,   -5.0,  -50);
+        glColor3ub(255, 192, 203);  glTexCoord2f(25.0, 25.0);  glVertex3f(50.0,   50.0,  1);
+        glColor3ub(255, 192, 203);  glTexCoord2f(0.0,  25.0);  glVertex3f(-50.0, 50.0,  1);
 
-        glColor3ub(0, 0, 203); 
-        glTexCoord2f(0.0,  0.0);   glVertex3f(-50.0, -5.0,  50);
-        glTexCoord2f(25.0, 0.0);   glVertex3f(50.0,   -5.0,  50);
-        glTexCoord2f(25.0, 25.0);  glVertex3f(50.0,   50.0,  -50);
-        glTexCoord2f(0.0,  25.0);  glVertex3f(-50.0, 50.0,  -50);
+        glColor3ub(0, 0, 203); glTexCoord2f(0.0,  0.0);   glVertex3f(-50.0, -5.0,  50);
+        glColor3ub(0, 0, 203); glTexCoord2f(25.0, 0.0);   glVertex3f(50.0,   -5.0,  50);
+        glColor3ub(0, 0, 203); glTexCoord2f(25.0, 25.0);  glVertex3f(50.0,   50.0,  -50);
+        glColor3ub(0, 0, 203); glTexCoord2f(0.0,  25.0);  glVertex3f(-50.0, 50.0,  -50);
 
         glEnd();
 

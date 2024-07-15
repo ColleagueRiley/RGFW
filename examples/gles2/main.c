@@ -3,12 +3,15 @@
     https://gist.github.com/jfuerth/82b816510bb2cc063c9945baf1093fd9
 */
 
+#ifndef __EMSCRIPTEN__
 #define RGFW_EGL
 #define RGFW_OPENGL_ES2
-#define RGFW_IMPLEMENTATION
-#include "RGFW.h"
+#endif
 
 #include <GLES2/gl2.h>
+
+#define RGFW_IMPLEMENTATION
+#include "RGFW.h"
 
 GLuint load_shader(const char *shaderSource, GLenum type) {
   GLuint shader = glCreateShader(type);

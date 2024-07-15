@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html> 
+
+<head> 
+  <title> RGFW test </title> 
+
+  <style>
+    canvas {
+      border:1px solid black;
+    }
+  </style>
+
+<style>
+  #log {
+      white-space: pre-wrap; /* To preserve whitespace and line breaks */
+      background-color: #000000;
+      color: #f1f1f1;
+      padding: 10px;
+      border: 1px solid #120808;
+      max-height: 100px;
+      overflow-y: auto;
+      font-family: monospace;
+  }
+</style>
+</head>
+
+
+<body style="background-color:rgb(15, 25, 45);"> 
+  
+  <div style = "text-align:center;">
+    <canvas id="canvas">
+    </canvas>
+  </div>  
+
+  
+  <script async src = "../examples/gl33/gl33.js"> </script> 
+  <script >
+    document.addEventListener("DOMContentLoaded", function(event) {
+      if (document.querySelector('Component') == null) {
+        var script = document.querySelector('script[src="../examples/gl33/gl33.js"]')
+        document.head.removeChild(script)
+      }
+    }); 
+  </script>
+
+    <script async src = "../gl33.js"> </script> 
+    <script >
+    document.addEventListener("DOMContentLoaded", function(event) {
+        if (document.querySelector('Component') == null) {
+        var script = document.querySelector('script[src="../gl33.js"]')
+        document.head.removeChild(script)
+        }
+    }); 
+    </script>
+
+<div id="log"></div>
+
+<script>
+  (function() {
+      var logContainer = document.getElementById('log');
+      var originalLog = console.log;
+
+      console.log = function(message) {
+          if (typeof message === 'object') {
+              message = JSON.stringify(message, null, 2);
+          }
+          logContainer.innerHTML += message + '\n';
+          logContainer.scrollTop = logContainer.scrollHeight; // Auto-scroll to the bottom
+          originalLog.apply(console, arguments);
+      };
+  })();
+</script>
+
+</body>
+
+</html>

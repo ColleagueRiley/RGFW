@@ -3,6 +3,7 @@
 
 #define u8 u8
 
+
 #define __gltypes_h_
 #define RGFW_BUFFER
 #define RGFW_IMPLEMENTATION
