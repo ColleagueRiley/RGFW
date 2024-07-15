@@ -36,7 +36,7 @@ This library does not
 # examples
 ![examples](https://github.com/ColleagueRiley/RGFW/blob/main/screenshot.PNG?raw=true)
 
-The examples can also [run in your browser](https://colleagueriley.github.io/)
+The examples can also [run in your browser](https://colleagueriley.github.io/RGFW/)
 
 ## compiling
 The examples can be compiled by using `make debug`, which compiles them in debug mode and then runs them\
