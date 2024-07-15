@@ -7152,8 +7152,9 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	#endif
 
 	emscripten_webgl_commit_frame();
+	
 	if (win->fpsCap == 0 || win->fpsCap < 100) {
-		RGFW_sleep(1);
+		RGFW_sleep(0);
 	}
 
 	
@@ -7167,14 +7168,14 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 
 #ifndef RGFW_EGL
 void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
-	/*#ifdef RGFW_OPENGL
+	#ifdef RGFW_OPENGL
 	typedef struct WebGLContextHandle {
 		uint32_t explicit_swap_control;
 		unsigned long int owning_thread;
 	} WebGLContextHandle;
 
 	((WebGLContextHandle*)win->src.rSurf)->explicit_swap_control = swapInterval;
-	#endif*/
+	#endif
 
 	win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
 }
