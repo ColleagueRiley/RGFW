@@ -4,18 +4,12 @@ MACOS:
 WINDOWS:
     - RGFW_TRANSPARENT_WINDOW
 
+- WEBASM:
+    - joystick support (joystick event, RGFW_registerJoystick, RGFW_registerJoystickF)
+
 (addons)
     - init drag function (drag n' drop) (output)
 
 - make sure a new API can be added easily (without changing any other RGFW code)
 - ensure support for UTF-16 
 - homebrew apis? (wii)
-
-
-
-- webasm support :
-    - opengl advanced context setup
-
-    - joystick event
-    - RGFW_registerJoystick
-    - RGFW_registerJoystickF
