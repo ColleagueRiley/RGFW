@@ -17,11 +17,11 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Set up Emscripten
-      uses: jasonelwood/setup-emsdk@v9
+      uses: mymindstorm/setup-emsdk@v14
 
     - name: Compile to WebAssembly
       run: |
-        make debug
+        make debug CC=emcc
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
