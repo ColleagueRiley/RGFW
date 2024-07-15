@@ -6939,6 +6939,20 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	win->event.inFocus = 1;
 
     EmscriptenWebGLContextAttributes attrs;
+    attrs.alpha = EM_TRUE;
+    attrs.depth = EM_TRUE;
+    attrs.stencil = RGFW_STENCIL;
+    attrs.antialias = RGFW_SAMPLES;
+    attrs.premultipliedAlpha = EM_TRUE;
+    attrs.preserveDrawingBuffer = EM_FALSE;
+	attrs.renderViaOffscreenBackBuffer = RGFW_AUX_BUFFERS;
+    attrs.failIfMajorPerformanceCaveat = EM_FALSE;
+	attrs.majorVersion = (RGFW_majorVersion == 0) ? 1 : RGFW_majorVersion;
+	attrs.minorVersion = RGFW_minorVersion;
+	
+    attrs.enableExtensionsByDefault = EM_TRUE;
+    attrs.explicitSwapControl = EM_TRUE;
+
     emscripten_webgl_init_context_attributes(&attrs);
     win->src.rSurf = emscripten_webgl_create_context("#canvas", &attrs);
     emscripten_webgl_make_context_current(win->src.rSurf);
@@ -7138,8 +7152,10 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	#endif
 
 	emscripten_webgl_commit_frame();
-	if (win->fpsCap == 0 || win->fpsCap < 100)
-		win->fpsCap = 60;
+	if (win->fpsCap == 0 || win->fpsCap < 100) {
+		RGFW_sleep(1);
+	}
+
 	
 	RGFW_window_checkFPS(win);
 }
