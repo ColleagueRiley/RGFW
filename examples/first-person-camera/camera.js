@@ -907,15 +907,15 @@ function dbg(...args) {
 // === Body ===
 
 var ASM_CONSTS = {
-  68872: () => { Module.useWebGL = true; GLImmediate.init(); },  
- 68918: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 68989: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 69046: () => { return window.mouseX || 0; },  
- 69077: () => { return window.mouseY || 0; },  
- 69108: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 69255: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 69308: () => { return window.innerWidth; },  
- 69338: () => { return window.innerHeight; }
+  68880: () => { Module.useWebGL = true; GLImmediate.init(); },  
+ 68926: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 68997: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 69054: () => { return window.mouseX || 0; },  
+ 69085: () => { return window.mouseY || 0; },  
+ 69116: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
+ 69263: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 69316: () => { return window.innerWidth; },  
+ 69346: () => { return window.innerHeight; }
 };
 
 // end include: preamble.js

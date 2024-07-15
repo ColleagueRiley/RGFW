@@ -907,14 +907,14 @@ function dbg(...args) {
 // === Body ===
 
 var ASM_CONSTS = {
-  69184: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 69255: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 69312: () => { return window.mouseX || 0; },  
- 69343: () => { return window.mouseY || 0; },  
- 69374: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 69521: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 69574: () => { return window.innerWidth; },  
- 69604: () => { return window.innerHeight; }
+  69192: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 69263: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 69320: () => { return window.mouseX || 0; },  
+ 69351: () => { return window.mouseY || 0; },  
+ 69382: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
+ 69529: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 69582: () => { return window.innerWidth; },  
+ 69612: () => { return window.innerHeight; }
 };
 
 // end include: preamble.js
