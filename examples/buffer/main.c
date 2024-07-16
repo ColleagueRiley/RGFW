@@ -67,7 +67,7 @@ void drawRect(RGFW_window* win, RGFW_rect r, u8 color[4]) {
 int main(void) {
     RGFW_window* win = RGFW_createWindow("Basic buffer example", RGFW_RECT(0, 0, 500, 500), RGFW_CENTER | RGFW_TRANSPARENT_WINDOW);
     win->fpsCap = 60;
-
+    
     screenSize = RGFW_getScreenSize();
     
     i8 running = 1;
