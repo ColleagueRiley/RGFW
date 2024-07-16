@@ -339,7 +339,7 @@ extern "C" {
 	RGFW_Event.axisCount says how many axis there are
 */
 #define RGFW_windowMoved 10 /*!< the window was moved (by the user) */
-#define RGFW_windowResized 11 /*!< the window was resized (by the user) */
+#define RGFW_windowResized 11 /*!< the window was resized (by the user), [on webASM this means the browser was resized] */
 
 #define RGFW_focusIn 12 /*!< window is in focus now */
 #define RGFW_focusOut 13 /*!< window is out of focus now */
@@ -6756,8 +6756,7 @@ EM_BOOL on_resize(int eventType, const EmscriptenUiEvent* e, void* userData) {
 	RGFW_events[RGFW_eventLen].type = RGFW_windowResized;
 	RGFW_eventLen++;
 
-	RGFW_root->r = RGFW_RECT(0, 0, e->windowInnerWidth, e->windowInnerHeight);
-	RGFW_windowResizeCallback(RGFW_root, RGFW_root->r);
+	RGFW_windowResizeCallback(RGFW_root, RGFW_RECT(e->windowInnerWidth, e->windowInnerHeight));
     return EM_TRUE;
 }
 
