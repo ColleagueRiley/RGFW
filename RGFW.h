@@ -187,7 +187,15 @@ extern "C" {
 
 #ifdef __EMSCRIPTEN__
 #define RGFW_WEBASM
+
+#ifndef RGFW_NO_API
 #define RGFW_OPENGL
+#endif
+
+#ifdef RGFW_EGL
+#undef RGFW_EGL
+#endif
+
 #include <emscripten/html5.h>
 #include <emscripten/key_codes.h>
 #endif
@@ -477,98 +485,76 @@ typedef struct { i32 x, y; } RGFW_vector;
 		u8 axisesCount; /* number of axises */
 		RGFW_vector axis[2]; /* x, y of axises (-100 to 100) */
 	} RGFW_Event; /*!< Event structure for checking/getting events */
-
+	
 	/* source data for the window (used by the APIs) */
+	
 	typedef struct RGFW_window_src {
 #ifdef RGFW_WINDOWS
 		HWND window; /*!< source window */
 		HDC hdc; /*!< source HDC */
 		u32 hOffset; /*!< height offset for window */
-#endif
-#ifdef RGFW_X11
+	#if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
+			HGLRC ctx; /*!< source graphics context */
+	#elif defined(RGFW_OSMESA)
+			OSMesaContext ctx;
+	#elif defined(RGFW_DIRECTX)
+			IDXGISwapChain* swapchain;
+			ID3D11RenderTargetView* renderTargetView;
+			ID3D11DepthStencilView* pDepthStencilView;
+	#elif defined(RGFW_EGL)
+			EGLSurface EGL_surface;
+			EGLDisplay EGL_display;
+			EGLContext EGL_context;
+	#endif
+
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER) 
+			HBITMAP bitmap;
+	#endif
+		RGFW_area maxSize, minSize; /* for setting max/min resize (RGFW_WINDOWS) */
+#elif defined(RGFW_X11)
 		Display* display; /*!< source display */
 		Window window; /*!< source window */
-#endif
-#ifdef RGFW_MACOS
+	#if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
+			GLXContext ctx; /*!< source graphics context */
+	#elif defined(RGFW_OSMESA)
+			OSMesaContext ctx;
+	#elif defined(RGFW_EGL)
+			EGLSurface EGL_surface;
+			EGLDisplay EGL_display;
+			EGLContext EGL_context;
+	#endif
+
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER) 
+			XImage* bitmap;
+			GC gc;
+	#endif
+#elif defined(RGFW_MACOS)
 		u32 display;
 		void* displayLink;
 		void* window;
 		b8 dndPassed;
-#endif
+	#if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
+			void* ctx; /*!< source graphics context */
+	#elif defined(RGFW_OSMESA)
+			OSMesaContext ctx;
+	#elif defined(RGFW_EGL)
+			EGLSurface EGL_surface;
+			EGLDisplay EGL_display;
+			EGLContext EGL_context;
+	#endif
 
-#if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA)
-#ifdef RGFW_MACOS
-		void* rSurf; /*!< source graphics context */
-#endif
-#ifdef RGFW_WINDOWS
-		HGLRC rSurf; /*!< source graphics context */
-#endif
-#ifdef RGFW_X11
-		GLXContext rSurf; /*!< source graphics context */
-#endif
-#ifdef RGFW_WEBASM
-		EMSCRIPTEN_WEBGL_CONTEXT_HANDLE rSurf;
-#endif
-#else
-
-#ifdef RGFW_OSMESA
-		OSMesaContext rSurf;
-#endif
-#endif
-
-#ifdef RGFW_WINDOWS
-		RGFW_area maxSize, minSize;
-#if defined(RGFW_DIRECTX)
-		IDXGISwapChain* swapchain;
-		ID3D11RenderTargetView* renderTargetView;
-		ID3D11DepthStencilView* pDepthStencilView;
-#endif
-#endif
-
-#if defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
 		void* view; /*apple viewpoint thingy*/
-#endif
 
-#ifdef RGFW_EGL
-		EGLSurface EGL_surface;
-		EGLDisplay EGL_display;
-		EGLContext EGL_context;
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER) 
+			void* bitmap; /* API's bitmap for storing or managing */
+			void* image;
+	#endif
+#elif defined(RGFW_WEBASM)
+		EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
 #endif
-
-#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER) 
-#ifdef RGFW_WINDOWS
-		HBITMAP bitmap;
-#endif
-#ifdef RGFW_X11
-		XImage* bitmap;
-		GC gc;
-#endif
-#ifdef RGFW_MACOS
-		void* bitmap; /* API's bitmap for storing or managing */
-		void* image;
-#endif
-#if defined(RGFW_BUFFER) && defined(RGFW_WINDOWS)
-		HDC hdcMem; /* window stored in memory that winapi needs to render buffers */
-#endif
-#endif
-
-		u8 jsPressed[4][16]; /* if a key is currently pressed or not (per joystick) */
-
-		i32 joysticks[4]; /* limit of 4 joysticks at a time */
-		u16 joystickCount; /* the actual amount of joysticks */
-
-		RGFW_area scale; /* window scaling */
-
-#ifdef RGFW_MACOS
-		b8 cursorChanged; /* for steve jobs */
-#endif
-
-		u32 winArgs; /* windows args (for RGFW to check) */
-		/*
-			!< if dnd is enabled or on (based on window creating args)
-			cursorChanged
-		*/
 	} RGFW_window_src;
+
+
 
 	typedef struct RGFW_window {
 		RGFW_window_src src;
@@ -584,6 +570,8 @@ typedef struct { i32 x, y; } RGFW_vector;
 
 		u32 fpsCap; /*!< the fps cap of the window should run at (change this var to change the fps cap, 0 = no limit)*/
 		/*[the fps is capped when events are checked]*/
+
+		u32 _winArgs; /* windows args (for RGFW to check) */
 	} RGFW_window; /*!< Window structure for managing the window */
 
 #if defined(RGFW_X11) || defined(RGFW_MACOS)
@@ -1244,6 +1232,11 @@ MacOS -> windows and linux already don't have keycodes as macros, so there's no 
 	this is the end of keycode data
 */
 
+/* joystick data */
+	u8 RGFW_jsPressed[4][16]; /* if a key is currently pressed or not (per joystick) */
+
+	i32 RGFW_joysticks[4]; /* limit of 4 joysticks at a time */
+	u16 RGFW_joystickCount; /* the actual amount of joysticks */
 
 /* 
 	event callback defines start here
@@ -1362,8 +1355,8 @@ MacOS -> windows and linux already don't have keycodes as macros, so there's no 
 		win->fpsCap = 0;
 		win->event.inFocus = 1;
 		win->event.droppedFilesCount = 0;
-		win->src.joystickCount = 0;
-		win->src.winArgs = 0;
+		RGFW_joystickCount = 0;
+		win->_winArgs = 0;
 		win->event.lockState = 0;
 
 		return win;
@@ -1385,16 +1378,15 @@ RGFW_window* RGFW_root = NULL;
 
 	void RGFW_clipboardFree(char* str) { RGFW_FREE(str); }
 	
-	b8 RGFW_mouseButtons[5] = { 0 };
-	b8 RGFW_mouseButtons_prev[5];
+	RGFW_keyState RGFW_mouseButtons[5] = { 0 };
 
 	b8 RGFW_isMousePressed(RGFW_window* win, u8 button) {
 		assert(win != NULL);
-		return RGFW_mouseButtons[button] && (win != NULL) && win->event.inFocus; 
+		return RGFW_mouseButtons[button].current && (win != NULL) && win->event.inFocus; 
 	}
 	b8 RGFW_wasMousePressed(RGFW_window* win, u8 button) {
 		assert(win != NULL); 
-		return RGFW_mouseButtons_prev[button] && (win != NULL) && win->event.inFocus; 
+		return RGFW_mouseButtons[button].prev && (win != NULL) && win->event.inFocus; 
 	}
 	b8 RGFW_isMouseHeld(RGFW_window* win, u8 button) {
 		return (RGFW_isMousePressed(win, button) && RGFW_wasMousePressed(win, button));
@@ -1436,19 +1428,19 @@ RGFW_window* RGFW_root = NULL;
 	}
 
 	void RGFW_window_setGPURender(RGFW_window* win, i8 set) {
-		if (!set && !(win->src.winArgs & RGFW_NO_GPU_RENDER))
-			win->src.winArgs |= RGFW_NO_GPU_RENDER;
+		if (!set && !(win->_winArgs & RGFW_NO_GPU_RENDER))
+			win->_winArgs |= RGFW_NO_GPU_RENDER;
 
-		else if (set && win->src.winArgs & RGFW_NO_GPU_RENDER)
-			win->src.winArgs ^= RGFW_NO_GPU_RENDER;
+		else if (set && win->_winArgs & RGFW_NO_GPU_RENDER)
+			win->_winArgs ^= RGFW_NO_GPU_RENDER;
 	}
 
 	void RGFW_window_setCPURender(RGFW_window* win, i8 set) {
-		if (!set && !(win->src.winArgs & RGFW_NO_CPU_RENDER))
-			win->src.winArgs |= RGFW_NO_CPU_RENDER;
+		if (!set && !(win->_winArgs & RGFW_NO_CPU_RENDER))
+			win->_winArgs |= RGFW_NO_CPU_RENDER;
 
-		else if (set && win->src.winArgs & RGFW_NO_CPU_RENDER)
-			win->src.winArgs ^= RGFW_NO_CPU_RENDER;
+		else if (set && win->_winArgs & RGFW_NO_CPU_RENDER)
+			win->_winArgs ^= RGFW_NO_CPU_RENDER;
 	}
 
 	void RGFW_window_maximize(RGFW_window* win) {
@@ -1480,9 +1472,9 @@ RGFW_window* RGFW_root = NULL;
 	#endif
 
 	void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area) {
-		if (!(win->src.winArgs & RGFW_HOLD_MOUSE)) {
+		if (!(win->_winArgs & RGFW_HOLD_MOUSE)) {
 			RGFW_clipCursor(win->r);
-			win->src.winArgs |= RGFW_HOLD_MOUSE;
+			win->_winArgs |= RGFW_HOLD_MOUSE;
 		}
 		
 		if (!area.w && !area.h)
@@ -1494,8 +1486,8 @@ RGFW_window* RGFW_root = NULL;
 	}
 
 	void RGFW_window_mouseUnhold(RGFW_window* win) {
-		if ((win->src.winArgs & RGFW_HOLD_MOUSE)) {
-			win->src.winArgs ^= RGFW_HOLD_MOUSE;
+		if ((win->_winArgs & RGFW_HOLD_MOUSE)) {
+			win->_winArgs ^= RGFW_HOLD_MOUSE;
 
 			RGFW_clipCursor(RGFW_RECT(0, 0, 0, 0));
 		}
@@ -1527,7 +1519,10 @@ RGFW_window* RGFW_root = NULL;
 		win->event.frameTime2 = RGFW_getTimeNS();
 	}
 	
-	u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { return win->src.jsPressed[c][button]; }
+	u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { 
+		RGFW_UNUSED(win);
+		return RGFW_jsPressed[c][button]; 
+	}
 	
 	#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
 		void RGFW_window_showMouse(RGFW_window* win, i8 show) {
@@ -1560,11 +1555,11 @@ RGFW_window* RGFW_root = NULL;
 		int setenv(const char *name, const char *value, int overwrite);
 
 		void RGFW_window_setDND(RGFW_window* win, b8 allow) {
-			if (allow && !(win->src.winArgs & RGFW_ALLOW_DND))
-				win->src.winArgs |= RGFW_ALLOW_DND;
+			if (allow && !(win->_winArgs & RGFW_ALLOW_DND))
+				win->_winArgs |= RGFW_ALLOW_DND;
 
-			else if (!allow && (win->src.winArgs & RGFW_ALLOW_DND))
-				win->src.winArgs ^= RGFW_ALLOW_DND;
+			else if (!allow && (win->_winArgs & RGFW_ALLOW_DND))
+				win->_winArgs ^= RGFW_ALLOW_DND;
 		}
 	#endif
 
@@ -2034,8 +2029,8 @@ Start of Linux / Unix defines
 		win->buffer = RGFW_MALLOC(RGFW_bufferSize.w * RGFW_bufferSize.h * 4);
 
 		#ifdef RGFW_OSMESA
-				win->src.rSurf = OSMesaCreateContext(OSMESA_RGBA, NULL);
-				OSMesaMakeCurrent(win->src.rSurf, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
+				win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
+				OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
 		#endif
 
 		win->src.bitmap = XCreateImage(
@@ -2208,9 +2203,9 @@ Start of Linux / Unix defines
 		GLXContext ctx = NULL;
 
 		if (RGFW_root != NULL)
-			ctx = RGFW_root->src.rSurf;
+			ctx = RGFW_root->src.ctx;
 
-		win->src.rSurf = glXCreateContextAttribsARB((Display*) win->src.display, bestFbc, ctx, True, context_attribs);
+		win->src.ctx = glXCreateContextAttribsARB((Display*) win->src.display, bestFbc, ctx, True, context_attribs);
 #endif
 		if (RGFW_root == NULL)
 			RGFW_root = win;
@@ -2249,7 +2244,7 @@ Start of Linux / Unix defines
 		/* connect the context to the window*/
 #ifdef RGFW_OPENGL
 		if ((args & RGFW_NO_INIT_API) == 0)
-			glXMakeCurrent((Display*) win->src.display, (Drawable) win->src.window, (GLXContext) win->src.rSurf);
+			glXMakeCurrent((Display*) win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);
 #endif
 
 		/* set the background*/
@@ -2259,7 +2254,7 @@ Start of Linux / Unix defines
 		XMoveWindow((Display*) win->src.display, (Drawable) win->src.window, win->r.x, win->r.y); /* move the window to it's proper cords*/
 
 		if (args & RGFW_ALLOW_DND) { /* init drag and drop atoms and turn on drag and drop for this window */
-			win->src.winArgs |= RGFW_ALLOW_DND;
+			win->_winArgs |= RGFW_ALLOW_DND;
 
 			XdndAware = XInternAtom((Display*) win->src.display, "XdndAware", False);
 			XdndTypeList = XInternAtom((Display*) win->src.display, "XdndTypeList", False);
@@ -2354,27 +2349,27 @@ Start of Linux / Unix defines
 #ifdef __linux__
 		{
 			u8 i;
-			for (i = 0; i < win->src.joystickCount; i++) {
+			for (i = 0; i < RGFW_joystickCount; i++) {
 				struct js_event e;
 
 
-				if (win->src.joysticks[i] == 0)
+				if (RGFW_joysticks[i] == 0)
 					continue;
 
-				i32 flags = fcntl(win->src.joysticks[i], F_GETFL, 0);
-				fcntl(win->src.joysticks[i], F_SETFL, flags | O_NONBLOCK);
+				i32 flags = fcntl(RGFW_joysticks[i], F_GETFL, 0);
+				fcntl(RGFW_joysticks[i], F_SETFL, flags | O_NONBLOCK);
 
 				ssize_t bytes;
-				while ((bytes = read(win->src.joysticks[i], &e, sizeof(e))) > 0) {
+				while ((bytes = read(RGFW_joysticks[i], &e, sizeof(e))) > 0) {
 					switch (e.type) {
 					case JS_EVENT_BUTTON:
 						win->event.type = e.value ? RGFW_jsButtonPressed : RGFW_jsButtonReleased;
 						win->event.button = e.number;
-						win->src.jsPressed[i][e.number] = e.value;
+						RGFW_jsPressed[i][e.number] = e.value;
 						RGFW_jsButtonCallback(win, i, e.number, e.value);
 						return &win->event;
 					case JS_EVENT_AXIS:
-						ioctl(win->src.joysticks[i], JSIOCGAXES, &win->event.axisesCount);
+						ioctl(RGFW_joysticks[i], JSIOCGAXES, &win->event.axisesCount);
 
 						if ((e.number == 0 || e.number % 2) && e.number != 1)
 							xAxis = e.value;
@@ -2459,8 +2454,8 @@ Start of Linux / Unix defines
 			}
 
 			win->event.button = E.xbutton.button;
-			RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-			RGFW_mouseButtons[win->event.button] = (E.type == ButtonPress);
+			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+			RGFW_mouseButtons[win->event.button].current = (E.type == ButtonPress);
 			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, (E.type == ButtonPress));
 			break;
 
@@ -2496,7 +2491,7 @@ Start of Linux / Unix defines
 				much of this event (drag and drop code) is source from glfw
 			*/
 
-			if ((win->src.winArgs & RGFW_ALLOW_DND) == 0)
+			if ((win->_winArgs & RGFW_ALLOW_DND) == 0)
 				break;
 
 			if (E.xclient.message_type == XdndEnter) {
@@ -2650,7 +2645,7 @@ Start of Linux / Unix defines
 			break;
 		case SelectionNotify:
 			/* this is only for checking for xdnd drops */
-			if (E.xselection.property != XdndSelection || !(win->src.winArgs | RGFW_ALLOW_DND))
+			if (E.xselection.property != XdndSelection || !(win->_winArgs | RGFW_ALLOW_DND))
 				break;
 
 			char* data;
@@ -3217,14 +3212,14 @@ Start of Linux / Unix defines
 
 		i32 js = open(file, O_RDONLY);
 
-		if (js && win->src.joystickCount < 4) {
-			win->src.joystickCount++;
+		if (js && RGFW_joystickCount < 4) {
+			RGFW_joystickCount++;
 
-			win->src.joysticks[win->src.joystickCount - 1] = open(file, O_RDONLY);
+			RGFW_joysticks[RGFW_joystickCount - 1] = open(file, O_RDONLY);
 
 			u8 i;
 			for (i = 0; i < 16; i++)
-				win->src.jsPressed[win->src.joystickCount - 1][i] = 0;
+				RGFW_jsPressed[RGFW_joystickCount - 1][i] = 0;
 
 		}
 
@@ -3235,7 +3230,7 @@ Start of Linux / Unix defines
 #endif
 		}
 
-		return win->src.joystickCount - 1;
+		return RGFW_joystickCount - 1;
 #endif
 	}
 
@@ -3444,7 +3439,7 @@ Start of Linux / Unix defines
 	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 		assert(win != NULL);
 
-		glXMakeCurrent((Display*) win->src.display, (Drawable) win->src.window, (GLXContext) win->src.rSurf);
+		glXMakeCurrent((Display*) win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);
 	}
 	#endif
 
@@ -3455,7 +3450,7 @@ Start of Linux / Unix defines
 		RGFW_window_makeCurrent(win);
 
 		/* clear the window*/
-		if (!(win->src.winArgs & RGFW_NO_CPU_RENDER)) {
+		if (!(win->_winArgs & RGFW_NO_CPU_RENDER)) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 			#ifdef RGFW_OSMESA
 			RGFW_OSMesa_reorganize();
@@ -3480,7 +3475,7 @@ Start of Linux / Unix defines
 #endif
 		}
 
-		if (!(win->src.winArgs & RGFW_NO_GPU_RENDER)) {
+		if (!(win->_winArgs & RGFW_NO_GPU_RENDER)) {
 			#ifdef RGFW_EGL
 					eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
 			#elif defined(RGFW_OPENGL)
@@ -3519,7 +3514,7 @@ Start of Linux / Unix defines
 
 		if ((Display*) win->src.display) {
 #ifdef RGFW_OPENGL
-			glXDestroyContext((Display*) win->src.display, win->src.rSurf);
+			glXDestroyContext((Display*) win->src.display, win->src.ctx);
 #endif
 
 			if (win == RGFW_root)
@@ -3561,8 +3556,8 @@ Start of Linux / Unix defines
 		win->src.window = (Window) 0;
 
 		u8 i;
-		for (i = 0; i < win->src.joystickCount; i++)
-			close(win->src.joysticks[i]);
+		for (i = 0; i < RGFW_joystickCount; i++)
+			close(RGFW_joysticks[i]);
 
 		RGFW_FREE(win); /* free collected window data */
 	}
@@ -3820,8 +3815,8 @@ static HMODULE wglinstance = NULL;
 	win->src.hdcMem = CreateCompatibleDC(win->src.hdc);
 
 	#if defined(RGFW_OSMESA)
-	win->src.rSurf = OSMesaCreateContext(OSMESA_RGBA, NULL);
-	OSMesaMakeCurrent(win->src.rSurf, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
+	win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
+	OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
 	#endif
 #else
 RGFW_UNUSED(win); /* if buffer rendering is not being used */
@@ -3911,7 +3906,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		win->src.window = CreateWindowA(Class.lpszClassName, name, window_style, win->r.x, win->r.y, win->r.w, win->r.h + win->src.hOffset, 0, 0, inh, 0);
 
 		if (args & RGFW_ALLOW_DND) {
-			win->src.winArgs |= RGFW_ALLOW_DND;
+			win->_winArgs |= RGFW_ALLOW_DND;
 			RGFW_window_setDND(win, 1);
 		}
 		win->src.hdc = GetDC(win->src.window);
@@ -4049,17 +4044,17 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 			SET_ATTRIB(0, 0);
 
-			win->src.rSurf = (HGLRC)wglCreateContextAttribsARB(win->src.hdc, NULL, attribs);
+			win->src.ctx = (HGLRC)wglCreateContextAttribsARB(win->src.hdc, NULL, attribs);
 		} else {
 			fprintf(stderr, "Failed to create an accelerated OpenGL Context\n");
 
 			int pixel_format = ChoosePixelFormat(win->src.hdc, &pfd);
 			SetPixelFormat(win->src.hdc, pixel_format, &pfd);
 
-			win->src.rSurf = wglCreateContext(win->src.hdc);
+			win->src.ctx = wglCreateContext(win->src.hdc);
 		}
 		
-		wglMakeCurrent(win->src.hdc, win->src.rSurf);
+		wglMakeCurrent(win->src.hdc, win->src.ctx);
 #endif
 	}
 
@@ -4075,7 +4070,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		if ((args & RGFW_NO_INIT_API) == 0) {
 			ReleaseDC(win->src.window, win->src.hdc);
 			win->src.hdc = GetDC(win->src.window);
-			wglMakeCurrent(win->src.hdc, win->src.rSurf);
+			wglMakeCurrent(win->src.hdc, win->src.ctx);
 		}
 #endif
 
@@ -4108,7 +4103,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		
 		#ifdef RGFW_OPENGL
 		else 
-			wglShareLists(RGFW_root->src.rSurf, win->src.rSurf);
+			wglShareLists(RGFW_root->src.ctx, win->src.ctx);
 		#endif
 
 		return win;
@@ -4215,7 +4210,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				// RGFW_jsButtonPressed + 1 = RGFW_jsButtonReleased
 				e->type = RGFW_jsButtonPressed + !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 				e->button = RGFW_xinput2RGFW[keystroke.VirtualKey - 0x5800];
-				win->src.jsPressed[i][e->button] = !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
+				RGFW_jsPressed[i][e->button] = !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 
 				return 1;
 			}
@@ -4363,7 +4358,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			
 			case WM_MOUSELEAVE:
 				win->event.type = RGFW_mouseLeave;
-				win->src.winArgs |= RGFW_MOUSE_LEFT;
+				win->_winArgs |= RGFW_MOUSE_LEFT;
 				RGFW_mouseNotifyCallBack(win, win->event.point, 0);
 				break;
 			
@@ -4436,8 +4431,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 				RGFW_mousePosCallback(win, win->event.point);
 
-				if (win->src.winArgs & RGFW_MOUSE_LEFT) {
-					win->src.winArgs ^= RGFW_MOUSE_LEFT;
+				if (win->_winArgs & RGFW_MOUSE_LEFT) {
+					win->_winArgs ^= RGFW_MOUSE_LEFT;
 					win->event.type = RGFW_mouseEnter;
 					RGFW_mouseNotifyCallBack(win, win->event.point, 1);
 				}
@@ -4446,23 +4441,23 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 			case WM_LBUTTONDOWN:
 				win->event.button = RGFW_mouseLeft;
-				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = 1;
+				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+				RGFW_mouseButtons[win->event.button].current = 1;
 				win->event.type = RGFW_mouseButtonPressed;
 				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
 				break;
 			case WM_RBUTTONDOWN:
 				win->event.button = RGFW_mouseRight;
 				win->event.type = RGFW_mouseButtonPressed;
-				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = 1;
+				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+				RGFW_mouseButtons[win->event.button].current = 1;
 				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
 				break;
 			case WM_MBUTTONDOWN:
 				win->event.button = RGFW_mouseMiddle;
 				win->event.type = RGFW_mouseButtonPressed;
-				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = 1;
+				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+				RGFW_mouseButtons[win->event.button].current = 1;
 				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
 				break;
 
@@ -4472,8 +4467,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				else
 					win->event.button = RGFW_mouseScrollDown;
 
-				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = 1;
+				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+				RGFW_mouseButtons[win->event.button].current = 1;
 
 				win->event.scroll = (SHORT) HIWORD(msg.wParam) / (double) WHEEL_DELTA;
 
@@ -4486,24 +4481,24 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				win->event.button = RGFW_mouseLeft;
 				win->event.type = RGFW_mouseButtonReleased;
 
-				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = 0;
+				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+				RGFW_mouseButtons[win->event.button].current = 0;
 				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
 				break;
 			case WM_RBUTTONUP:
 				win->event.button = RGFW_mouseRight;
 				win->event.type = RGFW_mouseButtonReleased;
 
-				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = 0;
+				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+				RGFW_mouseButtons[win->event.button].current = 0;
 				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
 				break;
 			case WM_MBUTTONUP:
 				win->event.button = RGFW_mouseMiddle;
 				win->event.type = RGFW_mouseButtonReleased;
 
-				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = 0;
+				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+				RGFW_mouseButtons[win->event.button].current = 0;
 				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
 				break;
 
@@ -4835,7 +4830,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #endif
 
 #ifdef RGFW_OPENGL
-		wglDeleteContext((HGLRC) win->src.rSurf); /* delete opengl context */
+		wglDeleteContext((HGLRC) win->src.ctx); /* delete opengl context */
 #endif
 		DeleteDC(win->src.hdc); /* delete device context */
 		DestroyWindow(win->src.window); /* delete window */
@@ -5014,7 +5009,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		assert(win != NULL);
 		RGFW_UNUSED(file)
 
-		return win->src.joystickCount - 1;
+		return RGFW_joystickCount - 1;
 	}
 
 	void RGFW_window_moveMouse(RGFW_window* win, RGFW_vector p) {
@@ -5026,7 +5021,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	#ifdef RGFW_OPENGL
 	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 		assert(win != NULL);
-		wglMakeCurrent(win->src.hdc, (HGLRC) win->src.rSurf);
+		wglMakeCurrent(win->src.hdc, (HGLRC) win->src.ctx);
 	}
 	#endif
 
@@ -5066,7 +5061,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		/* clear the window*/
 
-		if (!(win->src.winArgs & RGFW_NO_CPU_RENDER)) {
+		if (!(win->_winArgs & RGFW_NO_CPU_RENDER)) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 			#ifdef RGFW_OSMESA
 			RGFW_OSMesa_reorganize();
@@ -5078,7 +5073,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #endif
 		}
 
-		if (!(win->src.winArgs & RGFW_NO_GPU_RENDER)) {
+		if (!(win->_winArgs & RGFW_NO_GPU_RENDER)) {
 			#ifdef RGFW_EGL
 					eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
 			#elif defined(RGFW_OPENGL)
@@ -5329,9 +5324,9 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #define NS_OPENGL_ENUM_DEPRECATED(minVers, maxVers) API_AVAILABLE(macos(minVers))
 	typedef NS_ENUM(NSInteger, NSOpenGLContextParameter) {
 		NSOpenGLContextParameterSwapInterval           NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 222, /* 1 param.  0 -> Don't sync, 1 -> Sync to vertical retrace     */
-			NSOpenGLContextParameterSurfaceOrder           NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 235, /* 1 param.  1 -> Above Window (default), -1 -> Below Window    */
-			NSOpenGLContextParameterSurfaceOpacity         NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 236, /* 1 param.  1-> Surface is opaque (default), 0 -> non-opaque   */
-			NSOpenGLContextParameterSurfaceBackingSize     NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 304, /* 2 params.  Width/height of surface backing size              */
+			NSOpenGLContextParametectxaceOrder           NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 235, /* 1 param.  1 -> Above Window (default), -1 -> Below Window    */
+			NSOpenGLContextParametectxaceOpacity         NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 236, /* 1 param.  1-> Surface is opaque (default), 0 -> non-opaque   */
+			NSOpenGLContextParametectxaceBackingSize     NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 304, /* 2 params.  Width/height of surface backing size              */
 			NSOpenGLContextParameterReclaimResources       NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 308, /* 0 params.                                                    */
 			NSOpenGLContextParameterCurrentRendererID      NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 309, /* 1 param.   Retrieves the current renderer ID                 */
 			NSOpenGLContextParameterGPUVertexProcessing    NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 310, /* 1 param.   Currently processing vertices with GPU (get)      */
@@ -5343,7 +5338,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			NSOpenGLContextParameterSwapRectangleEnable API_DEPRECATED("", macos(10.0, 10.14)) = 201, /* Enable or disable the swap rectangle */
 			NSOpenGLContextParameterRasterizationEnable API_DEPRECATED("", macos(10.0, 10.14)) = 221, /* Enable or disable all rasterization */
 			NSOpenGLContextParameterStateValidation API_DEPRECATED("", macos(10.0, 10.14)) = 301, /* Validate state for multi-screen functionality */
-			NSOpenGLContextParameterSurfaceSurfaceVolatile API_DEPRECATED("", macos(10.0, 10.14)) = 306, /* 1 param.   Surface volatile state */
+			NSOpenGLContextParametectxaceSurfaceVolatile API_DEPRECATED("", macos(10.0, 10.14)) = 306, /* 1 param.   Surface volatile state */
 	};
 
 
@@ -5567,7 +5562,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		if (win == NULL)
 			return 0;
 		
-		if (!(win->src.winArgs & RGFW_ALLOW_DND)) {
+		if (!(win->_winArgs & RGFW_ALLOW_DND)) {
 			return 0;
 		}
 
@@ -5587,7 +5582,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		if (win == NULL)
 			return true;
 		
-		if (!(win->src.winArgs & RGFW_ALLOW_DND)) {
+		if (!(win->_winArgs & RGFW_ALLOW_DND)) {
 			return false;
 		}
 
@@ -5731,8 +5726,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			win->buffer = RGFW_MALLOC(RGFW_bufferSize.w * RGFW_bufferSize.h * 4);
 
 		#ifdef RGFW_OSMESA
-				win->src.rSurf = OSMesaCreateContext(OSMESA_RGBA, NULL);
-				OSMesaMakeCurrent(win->src.rSurf, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
+				win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
+				OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
 		#endif
 		#else
 		RGFW_UNUSED(win); /* if buffer rendering is not being used */
@@ -5812,7 +5807,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		win->src.view = NSOpenGLView_initWithFrame((NSRect){{0, 0}, {win->r.w, win->r.h}}, format);
 		objc_msgSend_void(win->src.view, sel_registerName("prepareOpenGL"));
-		win->src.rSurf = objc_msgSend_id(win->src.view, sel_registerName("openGLContext"));
+		win->src.ctx = objc_msgSend_id(win->src.view, sel_registerName("openGLContext"));
 	} else
 #endif
 	{
@@ -5829,14 +5824,14 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 #ifdef RGFW_OPENGL
 		if ((args & RGFW_NO_INIT_API) == 0)
-			objc_msgSend_void(win->src.rSurf, sel_registerName("makeCurrentContext"));
+			objc_msgSend_void(win->src.ctx, sel_registerName("makeCurrentContext"));
 #endif
 		if (args & RGFW_TRANSPARENT_WINDOW) {
 #ifdef RGFW_OPENGL
 		if ((args & RGFW_NO_INIT_API) == 0) {
 			i32 opacity = 0;
 			#define NSOpenGLCPSurfaceOpacity 236
-			NSOpenGLContext_setValues(win->src.rSurf, &opacity, NSOpenGLCPSurfaceOpacity);
+			NSOpenGLContext_setValues(win->src.ctx, &opacity, NSOpenGLCPSurfaceOpacity);
 		}
 #endif
 
@@ -5890,7 +5885,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		objc_msgSend_void_id(win->src.window, sel_registerName("setDelegate:"), delegate);
 
 		if (args & RGFW_ALLOW_DND) {
-			win->src.winArgs |= RGFW_ALLOW_DND;
+			win->_winArgs |= RGFW_ALLOW_DND;
 
 			NSPasteboardType types[] = {NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString};
 			NSregisterForDraggedTypes(win->src.window, types, 3);
@@ -5924,7 +5919,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		if (!border) {
 			storeType = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
 		}
-		if (!(win->src.winArgs & RGFW_NO_RESIZE)) {
+		if (!(win->_winArgs & RGFW_NO_RESIZE)) {
 			storeType |= NSWindowStyleMaskResizable;
 		}
 		
@@ -6193,7 +6188,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(e, sel_registerName("locationInWindow"));
 				win->event.point = RGFW_VECTOR((u32) p.x, (u32) (win->r.h - p.y));
 
-				if ((win->src.winArgs & RGFW_HOLD_MOUSE)) {
+				if ((win->_winArgs & RGFW_HOLD_MOUSE)) {
 					p.x = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaX"));
 					p.y = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaY"));
 					
@@ -6208,47 +6203,47 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			case NSEventTypeLeftMouseDown:
 				win->event.button = RGFW_mouseLeft;
 				win->event.type = RGFW_mouseButtonPressed;
-				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = 1;
+				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+				RGFW_mouseButtons[win->event.button].current = 1;
 				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
 				break;
 
 			case NSEventTypeOtherMouseDown:
 				win->event.button = RGFW_mouseMiddle;
 				win->event.type = RGFW_mouseButtonPressed;
-				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = 1;
+				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+				RGFW_mouseButtons[win->event.button].current = 1;
 				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
 				break;
 
 			case NSEventTypeRightMouseDown:
 				win->event.button = RGFW_mouseRight;
 				win->event.type = RGFW_mouseButtonPressed;
-				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = 1;
+				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+				RGFW_mouseButtons[win->event.button].current = 1;
 				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
 				break;
 
 			case NSEventTypeLeftMouseUp:
 				win->event.button = RGFW_mouseLeft;
 				win->event.type = RGFW_mouseButtonReleased;
-				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = 0;
+				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+				RGFW_mouseButtons[win->event.button].current = 0;
 				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
 				break;
 
 			case NSEventTypeOtherMouseUp:
 				win->event.button = RGFW_mouseMiddle;
-				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = 0;
+				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+				RGFW_mouseButtons[win->event.button].current = 0;
 				win->event.type = RGFW_mouseButtonReleased;
 				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
 				break;
 
 			case NSEventTypeRightMouseUp:
 				win->event.button = RGFW_mouseRight;
-				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = 0;
+				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+				RGFW_mouseButtons[win->event.button].current = 0;
 				win->event.type = RGFW_mouseButtonReleased;
 				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
 				break;
@@ -6263,8 +6258,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 					win->event.button = RGFW_mouseScrollDown;
 				}
 
-				RGFW_mouseButtons_prev[win->event.button] = RGFW_mouseButtons[win->event.button];
-				RGFW_mouseButtons[win->event.button] = 1;
+				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+				RGFW_mouseButtons[win->event.button].current = 1;
 
 				win->event.scroll = deltaY;
 
@@ -6560,13 +6555,13 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		assert(win != NULL);
 
-		return win->src.joystickCount - 1;
+		return RGFW_joystickCount - 1;
 	}
 
 	#ifdef RGFW_OPENGL
 	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 		assert(win != NULL);
-		objc_msgSend_void(win->src.rSurf, sel_registerName("makeCurrentContext"));
+		objc_msgSend_void(win->src.ctx, sel_registerName("makeCurrentContext"));
 	}
 	#endif
 
@@ -6575,7 +6570,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		assert(win != NULL);
 		#if defined(RGFW_OPENGL)
 		
-		NSOpenGLContext_setValues(win->src.rSurf, &swapInterval, 222);
+		NSOpenGLContext_setValues(win->src.ctx, &swapInterval, 222);
 		#endif
 
 		win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
@@ -6611,7 +6606,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		/* clear the window*/
 
-		if (!(win->src.winArgs & RGFW_NO_CPU_RENDER)) {
+		if (!(win->_winArgs & RGFW_NO_CPU_RENDER)) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 			#ifdef RGFW_OSMESA
 			RGFW_OSMesa_reorganize();
@@ -6642,11 +6637,11 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #endif
 		}
 
-		if (!(win->src.winArgs & RGFW_NO_GPU_RENDER)) {
+		if (!(win->_winArgs & RGFW_NO_GPU_RENDER)) {
 			#ifdef RGFW_EGL
 					eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
 			#elif defined(RGFW_OPENGL)
-					objc_msgSend_void(win->src.rSurf, sel_registerName("flushBuffer"));
+					objc_msgSend_void(win->src.ctx, sel_registerName("flushBuffer"));
 			#endif
 		}
 
@@ -6798,7 +6793,7 @@ EM_BOOL on_mousemove(int eventType, const EmscriptenMouseEvent* e, void* userDat
 
 	RGFW_events[RGFW_eventLen].type = RGFW_mousePosChanged;
 
-	if ((RGFW_root->src.winArgs & RGFW_HOLD_MOUSE)) {
+	if ((RGFW_root->_winArgs & RGFW_HOLD_MOUSE)) {
 		RGFW_vector p = RGFW_VECTOR(e->movementX, e->movementY);
 		
 		p.x = ((RGFW_root->r.w / 2)) + p.x;
@@ -6821,8 +6816,8 @@ EM_BOOL on_mousedown(int eventType, const EmscriptenMouseEvent* e, void* userDat
 	RGFW_events[RGFW_eventLen].button = e->button + 1; 
 	RGFW_events[RGFW_eventLen].scroll = 0;
 
-	RGFW_mouseButtons_prev[RGFW_events[RGFW_eventLen].button] = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button];	
-	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button] = 1;
+	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;	
+	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current = 1;
 
 	RGFW_mouseButtonCallback(RGFW_root, RGFW_events[RGFW_eventLen].button, RGFW_events[RGFW_eventLen].scroll, 1);
 	RGFW_eventLen++;
@@ -6838,8 +6833,8 @@ EM_BOOL on_mouseup(int eventType, const EmscriptenMouseEvent* e, void* userData)
 	RGFW_events[RGFW_eventLen].button = e->button + 1; 
 	RGFW_events[RGFW_eventLen].scroll = 0;
 
-	RGFW_mouseButtons_prev[RGFW_events[RGFW_eventLen].button] = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button];	
-	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button] = 0;
+	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;	
+	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current = 0;
 
 	RGFW_mouseButtonCallback(RGFW_root, RGFW_events[RGFW_eventLen].button, RGFW_events[RGFW_eventLen].scroll, 0);
 	RGFW_eventLen++;
@@ -6854,8 +6849,8 @@ EM_BOOL on_wheel(int eventType, const EmscriptenWheelEvent* e, void* userData) {
 	RGFW_events[RGFW_eventLen].button = RGFW_mouseScrollUp + (e->deltaY < 0); 
 	RGFW_events[RGFW_eventLen].scroll = e->deltaY;
 
-	RGFW_mouseButtons_prev[RGFW_events[RGFW_eventLen].button] = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button];	
-	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button] = 1;
+	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;	
+	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current = 1;
 
 	RGFW_mouseButtonCallback(RGFW_root, RGFW_events[RGFW_eventLen].button, RGFW_events[RGFW_eventLen].scroll, 1);
 	RGFW_eventLen++;
@@ -6872,8 +6867,8 @@ EM_BOOL on_touchstart(int eventType, const EmscriptenTouchEvent* e, void* userDa
 	RGFW_events[RGFW_eventLen].scroll = 0;
 
 
-	RGFW_mouseButtons_prev[RGFW_events[RGFW_eventLen].button] = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button];	
-	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button] = 1;
+	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;	
+	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current = 1;
 
 	RGFW_mouseButtonCallback(RGFW_root, RGFW_events[RGFW_eventLen].button, RGFW_events[RGFW_eventLen].scroll, 1);
 	RGFW_eventLen++;
@@ -6900,8 +6895,8 @@ EM_BOOL on_touchend(int eventType, const EmscriptenTouchEvent* e, void* userData
 	RGFW_events[RGFW_eventLen].button = 1; 
 	RGFW_events[RGFW_eventLen].scroll = 0;
 
-	RGFW_mouseButtons_prev[RGFW_events[RGFW_eventLen].button] = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button];	
-	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button] = 0;
+	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;	
+	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current = 0;
 
 	RGFW_mouseButtonCallback(RGFW_root, RGFW_events[RGFW_eventLen].button, RGFW_events[RGFW_eventLen].scroll, 0);
 	RGFW_eventLen++;
@@ -6919,8 +6914,8 @@ void RGFW_init_buffer(RGFW_window* win) {
 		
 		win->buffer = RGFW_MALLOC(RGFW_bufferSize.w * RGFW_bufferSize.h * 4);
 	#ifdef RGFW_OSMESA
-			win->src.rSurf = OSMesaCreateContext(OSMESA_RGBA, NULL);
-			OSMesaMakeCurrent(win->src.rSurf, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
+			win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
+			OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
 	#endif
 	#else
 	RGFW_UNUSED(win); /* if buffer rendering is not being used */
@@ -6935,6 +6930,11 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
     RGFW_window* win = (RGFW_window*)malloc(sizeof(RGFW_window));
     win->r = rect;
 	win->fpsCap = 0;
+	win->event.inFocus = 1;
+	win->event.droppedFilesCount = 0;
+	RGFW_joystickCount = 0;
+	win->_winArgs = 0;
+	win->event.lockState = 0;
 	win->event.inFocus = 1;
 
     EmscriptenWebGLContextAttributes attrs;
@@ -6953,8 +6953,8 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
     attrs.explicitSwapControl = EM_TRUE;
 
     emscripten_webgl_init_context_attributes(&attrs);
-    win->src.rSurf = emscripten_webgl_create_context("#canvas", &attrs);
-    emscripten_webgl_make_context_current(win->src.rSurf);
+    win->src.ctx = emscripten_webgl_create_context("#canvas", &attrs);
+    emscripten_webgl_make_context_current(win->src.ctx);
 
 	#ifdef LEGACY_GL_EMULATION
 	EM_ASM("Module.useWebGL = true; GLImmediate.init();");
@@ -6979,11 +6979,6 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
     emscripten_set_focusout_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, on_focusout);
 
 	RGFW_init_buffer(win);
-
-	#ifdef RGFW_EGL
-	RGFW_createOpenGLContext(win);
-	#endif
-
 	glViewport(0, 0, rect.w, rect.h);
 	
 	RGFW_root = win; 
@@ -7112,7 +7107,7 @@ char* RGFW_readClipboard(size_t* size) {
 
 void RGFW_window_swapBuffers(RGFW_window* win) {
 	#ifdef RGFW_BUFFER
-	if (!(win->src.winArgs & RGFW_NO_CPU_RENDER)) {		
+	if (!(win->_winArgs & RGFW_NO_CPU_RENDER)) {		
 		glEnable(GL_TEXTURE_2D);
 
 		GLuint texture;
@@ -7161,7 +7156,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 
 
 void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
-    emscripten_webgl_make_context_current(win->src.rSurf);
+    emscripten_webgl_make_context_current(win->src.ctx);
 }
 
 #ifndef RGFW_EGL
@@ -7171,7 +7166,7 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 #endif
 
 void RGFW_window_close(RGFW_window* win) {
-    emscripten_webgl_destroy_context(win->src.rSurf);
+    emscripten_webgl_destroy_context(win->src.ctx);
 
     free(win);
 }
