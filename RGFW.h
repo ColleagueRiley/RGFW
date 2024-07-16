@@ -6756,7 +6756,7 @@ EM_BOOL on_resize(int eventType, const EmscriptenUiEvent* e, void* userData) {
 	RGFW_events[RGFW_eventLen].type = RGFW_windowResized;
 	RGFW_eventLen++;
 
-	RGFW_windowResizeCallback(RGFW_root, RGFW_RECT(e->windowInnerWidth, e->windowInnerHeight));
+	RGFW_windowResizeCallback(RGFW_root, RGFW_RECT(0, 0, e->windowInnerWidth, e->windowInnerHeight));
     return EM_TRUE;
 }
 
