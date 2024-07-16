@@ -1,19 +1,26 @@
 <!DOCTYPE html>
-<html> 
+<html>
 
-<head> 
-  <title> RGFW test </title> 
+<head>
+  <title> RGFW test </title>
 
   <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      color: rgb(200, 200, 200)
+    }
+
     canvas {
-      border:1px solid black;
+      border: 1px solid black;
     }
   </style>
 
 
-<style>
-  #log {
-      white-space: pre-wrap; /* To preserve whitespace and line breaks */
+  <style>
+    #log {
+      white-space: pre-wrap;
+      /* To preserve whitespace and line breaks */
       background-color: #000000;
       color: #f1f1f1;
       padding: 10px;
@@ -21,21 +28,44 @@
       max-height: 100px;
       overflow-y: auto;
       font-family: monospace;
-  }
-</style>
+    }
+  </style>
+
+  <style>
+    .header img {
+      float: left;
+      width: 80px;
+      height: 80px;
+      background: #555;
+    }
+
+    .header h1 {
+      position: relative;
+      top: 18px;
+      left: 10px;
+    }
+  </style>
 </head>
 
-<body style="background-color:rgb(15, 25, 45);"> 
+<body style="background-color:rgb(15, 25, 45);">
+  <div class="header">
+    <a href="../index.html"> <img src="../logo.png" alt="RGFW logo"> </a>
+    <h1>RGFW WebASM Example &nbsp;&nbsp;&nbsp;&nbsp;
   
-  <div style = "text-align:center;">
+    <a href="https://github.com/ColleagueRiley/RGFW/blob/main/examples/events/main.c">Source Code</h4> </a>
+
+    </h1>
+  </div>
+
+  <div style="text-align:center;">
     <canvas id="canvas">
     </canvas>
   </div>
-  
-  
-  <script async src = "../examples/events/events.js"> </script> 
-  <script >
-    document.addEventListener("DOMContentLoaded", function(event) {
+
+
+  <script async src="../examples/events/events.js"> </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function (event) {
       if (document.querySelector('Component') == null) {
         var script = document.querySelector('script[src="../examples/events/events.js"]')
         document.head.removeChild(script)
@@ -43,34 +73,34 @@
     }); 
   </script>
 
-    <script async src = "../events.js"> </script> 
-    <script >
-    document.addEventListener("DOMContentLoaded", function(event) {
-        if (document.querySelector('Component') == null) {
+  <script async src="../events.js"> </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function (event) {
+      if (document.querySelector('Component') == null) {
         var script = document.querySelector('script[src="../events.js"]')
         document.head.removeChild(script)
-        }
+      }
     }); 
-    </script>
+  </script>
 
 
-<div id="log"></div>
+  <div id="log"></div>
 
-<script>
-  (function() {
+  <script>
+    (function () {
       var logContainer = document.getElementById('log');
       var originalLog = console.log;
 
-      console.log = function(message) {
-          if (typeof message === 'object') {
-              message = JSON.stringify(message, null, 2);
-          }
-          logContainer.innerHTML += message + '\n';
-          logContainer.scrollTop = logContainer.scrollHeight; // Auto-scroll to the bottom
-          originalLog.apply(console, arguments);
+      console.log = function (message) {
+        if (typeof message === 'object') {
+          message = JSON.stringify(message, null, 2);
+        }
+        logContainer.innerHTML += message + '\n';
+        logContainer.scrollTop = logContainer.scrollHeight; // Auto-scroll to the bottom
+        originalLog.apply(console, arguments);
       };
-  })();
-</script>
+    })();
+  </script>
 </body>
 </body>
 
