@@ -508,6 +508,7 @@ typedef struct { i32 x, y; } RGFW_vector;
 	#endif
 
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER) 
+			HDC hdcMem;
 			HBITMAP bitmap;
 	#endif
 		RGFW_area maxSize, minSize; /* for setting max/min resize (RGFW_WINDOWS) */
