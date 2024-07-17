@@ -2555,7 +2555,7 @@ Start of Linux / Unix defines
 					deltaX += raw->raw_values[0];
 				if (XIMaskIsSet(raw->valuators.mask, 1) != 0)
 					deltaY += raw->raw_values[1];
-				
+
 				win->event.point = RGFW_POINT(
 						(i32)((double)((double)(win->r.w / 2)) + deltaX),
 						(i32)((double)((double)(win->r.h / 2)) + deltaY));
@@ -5272,7 +5272,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		start of cocoa wrapper
 	*/
 
-/#include <CoreVideo/CVDisplayLink.h>
+#include <CoreVideo/CVDisplayLink.h>
 #include <ApplicationServices/ApplicationServices.h>
 #include <objc/runtime.h>
 #include <objc/message.h>
