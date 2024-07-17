@@ -27,7 +27,7 @@ void focusfunc(RGFW_window* win, u8 inFocus) {
         printf("window out of focus\n");
 }
 
-void mouseNotifyfunc(RGFW_window* win, RGFW_vector point, u8 status) {
+void mouseNotifyfunc(RGFW_window* win, RGFW_point point, u8 status) {
     if (window != win) return;
     
     if (status)
@@ -36,7 +36,7 @@ void mouseNotifyfunc(RGFW_window* win, RGFW_vector point, u8 status) {
         printf("mouse leave\n");
 }
 
-void mouseposfunc(RGFW_window* win, RGFW_vector point) {
+void mouseposfunc(RGFW_window* win, RGFW_point point) {
     if (window != win || RGFW_isPressed(win, RGFW_ControlL) == 0) return;
     printf("mouse moved %i %i\n", point.x, point.y);
 }
@@ -49,7 +49,7 @@ void dndfunc(RGFW_window* win, char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH],
         printf("dropped : %s\n", droppedFiles[i]);
 }
 
-void dndInitfunc(RGFW_window* win, RGFW_vector point) {
+void dndInitfunc(RGFW_window* win, RGFW_point point) {
     if (window != win) return;
     printf("dnd init at %i %i\n", point.x, point.y);
 }
