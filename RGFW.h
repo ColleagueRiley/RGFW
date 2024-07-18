@@ -2181,6 +2181,7 @@ Start of Linux / Unix defines
 			i32 samp_buf, samples;
 			glXGetFBConfigAttrib((Display*) win->src.display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
 			glXGetFBConfigAttrib((Display*) win->src.display, fbc[i], GLX_SAMPLES, &samples);
+			
 			if ((best_fbc < 0 || samp_buf) && (samples == RGFW_SAMPLES || best_fbc == -1)) {
 				best_fbc = i;
 			}
@@ -2195,12 +2196,13 @@ Start of Linux / Unix defines
 
 		/* Get a visual */
 		XVisualInfo* vi = glXGetVisualFromFBConfig((Display*) win->src.display, bestFbc);
-
+		
 		XFree(fbc);
-
+		
 		if (args & RGFW_TRANSPARENT_WINDOW) {
 			XMatchVisualInfo((Display*) win->src.display, DefaultScreen((Display*) win->src.display), 32, TrueColor, vi); /* for RGBA backgrounds*/
 		}
+		
 #else
 		XVisualInfo viNorm;
 
@@ -2597,7 +2599,7 @@ Start of Linux / Unix defines
 				break;
 
 			if (E.xclient.message_type == XdndEnter) {
-				u64 count;
+				unsigned long count;
 				Atom* formats;
 				Atom real_formats[6];
 
@@ -2613,7 +2615,7 @@ Start of Linux / Unix defines
 				if (list) {
 					Atom actualType;
 					i32 actualFormat;
-					u64 bytesAfter;
+					unsigned long bytesAfter;
 
 					XGetWindowProperty((Display*) win->src.display,
 						xdnd.source,
@@ -2624,8 +2626,8 @@ Start of Linux / Unix defines
 						4,
 						&actualType,
 						&actualFormat,
-						(unsigned long*) &count,
-						(unsigned long*) &bytesAfter,
+						&count,
+						&bytesAfter,
 						(u8**) &formats);
 				} else {
 					count = 0;
@@ -2641,7 +2643,7 @@ Start of Linux / Unix defines
 				}
 
 				u32 i;
-				for (i = 0; i < count; i++) {
+				for (i = 0; i < (u32)count; i++) {
 					char* name = XGetAtomName((Display*) win->src.display, formats[i]);
 
 					char* links[2] = { (char*) (const char*) "text/uri-list", (char*) (const char*) "text/plain" };
@@ -2751,11 +2753,11 @@ Start of Linux / Unix defines
 				break;
 
 			char* data;
-			u64 result;
+			unsigned long result;
 
 			Atom actualType;
 			i32 actualFormat;
-			u64 bytesAfter;
+			unsigned long bytesAfter;
 
 			XGetWindowProperty((Display*) win->src.display, E.xselection.requestor, E.xselection.property, 0, LONG_MAX, False, E.xselection.target, &actualType, &actualFormat, &result, &bytesAfter, (u8**) &data);
 
@@ -3203,7 +3205,7 @@ Start of Linux / Unix defines
 		XSetSelectionOwner((Display*) RGFW_root->src.display, CLIPBOARD, (Window) RGFW_root->src.window, CurrentTime);
 
 		XConvertSelection((Display*) RGFW_root->src.display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, (Window) RGFW_root->src.window, CurrentTime);
-
+		
 		for (;;) {
 			XEvent event;
 
@@ -3220,7 +3222,7 @@ Start of Linux / Unix defines
 			const i32 formatCount = sizeof(formats) / sizeof(formats[0]);
 
 			selectionString = (char*) text;
-
+		
 			if (request->target == TARGETS) {
 				const Atom targets[] = { TARGETS,
 										MULTIPLE,
@@ -3240,17 +3242,16 @@ Start of Linux / Unix defines
 			}
 
 			if (request->target == MULTIPLE) {
-
 				Atom* targets;
 
 				Atom actualType;
 				i32 actualFormat;
-				u64 count, bytesAfter;
+				unsigned long count, bytesAfter;
 
 				XGetWindowProperty((Display*) RGFW_root->src.display, request->requestor, request->property, 0, LONG_MAX, False, ATOM_PAIR, &actualType, &actualFormat, &count, &bytesAfter, (u8**) &targets);
 
-				u64 i;
-				for (i = 0; i < count; i += 2) {
+				unsigned long i;
+				for (i = 0; i < (u32)count; i += 2) {
 					i32 j;
 
 					for (j = 0; j < formatCount; j++) {
@@ -3370,7 +3371,7 @@ Start of Linux / Unix defines
 
 		Atom actual_type;
 		i32 actual_format;
-		u64 nitems, bytes_after;
+		unsigned long nitems, bytes_after;
 		unsigned char* prop_data;
 
 		i16 status = XGetWindowProperty(win->src.display, (Window) win->src.window, prop, 0, 2, False,
@@ -3403,7 +3404,7 @@ Start of Linux / Unix defines
 
 		Atom actual_type;
 		i32 actual_format;
-		u64 nitems, bytes_after;
+		unsigned long nitems, bytes_after;
 		unsigned char* prop_data;
 
 		i16 status = XGetWindowProperty(win->src.display, (Window) win->src.window, net_wm_state, 0, 1024, False,
