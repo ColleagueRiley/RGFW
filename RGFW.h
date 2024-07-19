@@ -594,10 +594,22 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win); /*!< check current event (
 
 /* 
 	check all the events until there are none left,  
+	waitMS -> Allows the function to keep checking for events even after `RGFW_window_checkEvent == NULL`
+			  if waitMS == 0, the loop will stop when there are no more events (`RGFW_window_checkEvent == NULL`)
+			  if waitMS == a positive integer, the loop will wait that many miliseconds after there are no more events until it returns
+			  if waitMS == a negative integer, the loop will not return until it gets another event
 	this should only be used if you're using callbacks only
 */
-RGFWDEF void RGFW_window_checkEvents(RGFW_window* win);
+typedef RGFW_ENUM(u8, RGFW_eventWait) {
+	RGFW_NO_WAIT = 0,
+	RGFW_WAIT = -1
+};
+RGFWDEF void RGFW_window_checkEvents(RGFW_window* win, i64 waitMS);
 
+/* 
+	Tell RGFW_window_checkEvents to stop waiting, to be ran from another thread
+*/
+void RGFW_stopCheckEvents(void);
 
 /*! window managment functions*/
 RGFWDEF void RGFW_window_close(RGFW_window* win); /*!< close the window and free leftover data */
@@ -1293,7 +1305,29 @@ RGFW_mousebuttonfunc RGFW_mouseButtonCallback = RGFW_mousebuttonfuncEMPTY;
 RGFW_jsButtonfunc RGFW_jsButtonCallback = RGFW_jsButtonfuncEMPTY;
 RGFW_jsAxisfunc RGFW_jsAxisCallback = RGFW_jsAxisfuncEMPTY;
 
-void RGFW_window_checkEvents(RGFW_window* win) { while (RGFW_window_checkEvent(win) != NULL && RGFW_window_shouldClose(win) == 0) { if (win->event.type == RGFW_quit) return; }}
+b8 RGFW_checkEvents_forceStop = RGFW_FALSE;
+
+void RGFW_stopCheckEvents(void) { RGFW_checkEvents_forceStop = RGFW_TRUE; }
+
+void RGFW_window_checkEvents(RGFW_window* win, i64 waitMS) { 
+	u64 start = (RGFW_getTimeNS() / 1e+6);
+	
+	do {
+		b8 gotEvent = RGFW_FALSE;
+		while (RGFW_window_checkEvent(win) != NULL && RGFW_window_shouldClose(win) == 0) { 
+			gotEvent = RGFW_TRUE;
+			if (win->event.type == RGFW_quit) return; 
+		}
+
+		if (gotEvent)
+			return;
+		
+	} while ((waitMS < 0 || (RGFW_getTimeNS() / 1e+6) - start < waitMS) && RGFW_checkEvents_forceStop == RGFW_FALSE);
+
+	if (RGFW_checkEvents_forceStop == RGFW_TRUE) {
+		RGFW_checkEvents_forceStop = RGFW_FALSE;
+	}
+}
 
 void RGFW_setWindowMoveCallback(RGFW_windowmovefunc func) { RGFW_windowMoveCallback = func; }
 void RGFW_setWindowResizeCallback(RGFW_windowresizefunc func) { RGFW_windowResizeCallback = func; }
@@ -2173,9 +2207,9 @@ Start of Linux / Unix defines
 		u32 i;
 		for (i = 0; i < (u32)fbcount; i++) {
 			XVisualInfo* vi = glXGetVisualFromFBConfig((Display*) win->src.display, fbc[i]);
-			if (vi == NULL)
+                        if (vi == NULL)
 				continue;
-
+                        
 			XFree(vi);
 
 			i32 samp_buf, samples;
@@ -3676,7 +3710,7 @@ Start of Linux / Unix defines
 		RGFW_FREE(win); /* free collected window data */
 	}
 
-	u64 	RGFW_getTimeNS(void) { 
+	u64 RGFW_getTimeNS(void) { 
 		struct timespec ts = { 0 };
 		clock_gettime(1, &ts);
 		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
