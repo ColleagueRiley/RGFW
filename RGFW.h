@@ -6209,7 +6209,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		
 		if (win->event.type == RGFW_quit)
 			return NULL;
-
+		
 		if ((win->event.type == RGFW_dnd || win->event.type == RGFW_dnd_init) && win->src.dndPassed == 0) {
 			win->src.dndPassed = 1;
 			return &win->event;
@@ -6228,8 +6228,13 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			return &win->event;
 		}
 
+		NSDate* date = NULL;
+
+		if (win->_winArgs  & RGFW_EV_WAITING)
+			date = objc_msgSend_id(objc_getClass("NSDate"), sel_registerName("distantFuture"));
+		
 		NSEvent* e = (NSEvent*) ((id(*)(id, SEL, NSEventMask, void*, NSString*, bool))objc_msgSend)
-			(NSApp, eventFunc, ULONG_MAX, NULL, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
+			(NSApp, eventFunc, ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
 
 		if (e == NULL) {
 			objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
