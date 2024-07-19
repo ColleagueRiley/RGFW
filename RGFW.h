@@ -604,7 +604,7 @@ typedef RGFW_ENUM(u8, RGFW_eventWait) {
 	RGFW_NO_WAIT = 0,
 	RGFW_WAIT = -1
 };
-RGFWDEF void RGFW_window_checkEvents(RGFW_window* win, i64 waitMS);
+RGFWDEF void RGFW_window_checkEvents(RGFW_window* win, i32 waitMS);
 
 /* 
 	Tell RGFW_window_checkEvents to stop waiting, to be ran from another thread
@@ -1309,24 +1309,17 @@ b8 RGFW_checkEvents_forceStop = RGFW_FALSE;
 
 void RGFW_stopCheckEvents(void) { RGFW_checkEvents_forceStop = RGFW_TRUE; }
 
-void RGFW_window_checkEvents(RGFW_window* win, i64 waitMS) { 
+void RGFW_window_checkEvents(RGFW_window* win, i32 waitMS) { 
 	u64 start = (RGFW_getTimeNS() / 1e+6);
 	
 	do {
-		b8 gotEvent = RGFW_FALSE;
 		while (RGFW_window_checkEvent(win) != NULL && RGFW_window_shouldClose(win) == 0) { 
-			gotEvent = RGFW_TRUE;
+			RGFW_checkEvents_forceStop = RGFW_TRUE;
 			if (win->event.type == RGFW_quit) return; 
-		}
-
-		if (gotEvent)
-			return;
-		
+		}		
 	} while ((waitMS < 0 || (RGFW_getTimeNS() / 1e+6) - start < waitMS) && RGFW_checkEvents_forceStop == RGFW_FALSE);
 
-	if (RGFW_checkEvents_forceStop == RGFW_TRUE) {
-		RGFW_checkEvents_forceStop = RGFW_FALSE;
-	}
+	RGFW_checkEvents_forceStop = RGFW_FALSE;
 }
 
 void RGFW_setWindowMoveCallback(RGFW_windowmovefunc func) { RGFW_windowMoveCallback = func; }
