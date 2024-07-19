@@ -2216,11 +2216,8 @@ Start of Linux / Unix defines
 			i32 samp_buf, samples, depth;
 			glXGetFBConfigAttrib((Display*) win->src.display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
 			glXGetFBConfigAttrib((Display*) win->src.display, fbc[i], GLX_SAMPLES, &samples);
-                        glXGetFBConfigAttrib((Display*) win->src.display, fbc[i], GLX_DEPTH_SIZE, &depth);
-printf("%i\n", depth);
-			if ((best_fbc < 0 || samp_buf) && (samples == RGFW_SAMPLES || best_fbc == -1) 
-&& (!(args & RGFW_TRANSPARENT_WINDOW) || depth == 32 || best_fbc == -1))
- {
+			
+			if ((best_fbc < 0 || samp_buf) && (samples == RGFW_SAMPLES || best_fbc == -1)) {
 				best_fbc = i;
 			}
 		}
@@ -2234,12 +2231,13 @@ printf("%i\n", depth);
 
 		/* Get a visual */
 		XVisualInfo* vi = glXGetVisualFromFBConfig((Display*) win->src.display, bestFbc);
-
+		
 		XFree(fbc);
-
+		
 		if (args & RGFW_TRANSPARENT_WINDOW) {
 			//XMatchVisualInfo((Display*) win->src.display, DefaultScreen((Display*) win->src.display), 32, TrueColor, vi); /* for RGBA backgrounds*/
 		}
+		
 #else
 		XVisualInfo viNorm;
 
@@ -2636,7 +2634,7 @@ printf("%i\n", depth);
 				break;
 
 			if (E.xclient.message_type == XdndEnter) {
-				u64 count;
+				unsigned long count;
 				Atom* formats;
 				Atom real_formats[6];
 
@@ -2652,7 +2650,7 @@ printf("%i\n", depth);
 				if (list) {
 					Atom actualType;
 					i32 actualFormat;
-					u64 bytesAfter;
+					unsigned long bytesAfter;
 
 					XGetWindowProperty((Display*) win->src.display,
 						xdnd.source,
@@ -2663,8 +2661,8 @@ printf("%i\n", depth);
 						4,
 						&actualType,
 						&actualFormat,
-						(unsigned long*) &count,
-						(unsigned long*) &bytesAfter,
+						&count,
+						&bytesAfter,
 						(u8**) &formats);
 				} else {
 					count = 0;
@@ -2680,7 +2678,7 @@ printf("%i\n", depth);
 				}
 
 				u32 i;
-				for (i = 0; i < count; i++) {
+				for (i = 0; i < (u32)count; i++) {
 					char* name = XGetAtomName((Display*) win->src.display, formats[i]);
 
 					char* links[2] = { (char*) (const char*) "text/uri-list", (char*) (const char*) "text/plain" };
@@ -2790,11 +2788,11 @@ printf("%i\n", depth);
 				break;
 
 			char* data;
-			u64 result;
+			unsigned long result;
 
 			Atom actualType;
 			i32 actualFormat;
-			u64 bytesAfter;
+			unsigned long bytesAfter;
 
 			XGetWindowProperty((Display*) win->src.display, E.xselection.requestor, E.xselection.property, 0, LONG_MAX, False, E.xselection.target, &actualType, &actualFormat, &result, &bytesAfter, (u8**) &data);
 
@@ -3242,7 +3240,7 @@ printf("%i\n", depth);
 		XSetSelectionOwner((Display*) RGFW_root->src.display, CLIPBOARD, (Window) RGFW_root->src.window, CurrentTime);
 
 		XConvertSelection((Display*) RGFW_root->src.display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, (Window) RGFW_root->src.window, CurrentTime);
-
+		
 		for (;;) {
 			XEvent event;
 
@@ -3259,7 +3257,7 @@ printf("%i\n", depth);
 			const i32 formatCount = sizeof(formats) / sizeof(formats[0]);
 
 			selectionString = (char*) text;
-
+		
 			if (request->target == TARGETS) {
 				const Atom targets[] = { TARGETS,
 										MULTIPLE,
@@ -3279,17 +3277,16 @@ printf("%i\n", depth);
 			}
 
 			if (request->target == MULTIPLE) {
-
 				Atom* targets;
 
 				Atom actualType;
 				i32 actualFormat;
-				u64 count, bytesAfter;
+				unsigned long count, bytesAfter;
 
 				XGetWindowProperty((Display*) RGFW_root->src.display, request->requestor, request->property, 0, LONG_MAX, False, ATOM_PAIR, &actualType, &actualFormat, &count, &bytesAfter, (u8**) &targets);
 
-				u64 i;
-				for (i = 0; i < count; i += 2) {
+				unsigned long i;
+				for (i = 0; i < (u32)count; i += 2) {
 					i32 j;
 
 					for (j = 0; j < formatCount; j++) {
@@ -3409,7 +3406,7 @@ printf("%i\n", depth);
 
 		Atom actual_type;
 		i32 actual_format;
-		u64 nitems, bytes_after;
+		unsigned long nitems, bytes_after;
 		unsigned char* prop_data;
 
 		i16 status = XGetWindowProperty(win->src.display, (Window) win->src.window, prop, 0, 2, False,
@@ -3442,7 +3439,7 @@ printf("%i\n", depth);
 
 		Atom actual_type;
 		i32 actual_format;
-		u64 nitems, bytes_after;
+		unsigned long nitems, bytes_after;
 		unsigned char* prop_data;
 
 		i16 status = XGetWindowProperty(win->src.display, (Window) win->src.window, net_wm_state, 0, 1024, False,
