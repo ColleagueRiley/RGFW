@@ -1716,7 +1716,6 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 								RGFW_GL_ALPHA_SIZE      , 8,
 								RGFW_GL_DEPTH_SIZE      , 24,
 								RGFW_GL_DOUBLEBUFFER    ,
-								GLX_TRANSPARENT_TYPE_EXT, GLX_TRANSPARENT_RGB_EXT,
 								#ifndef RGFW_MACOS
 								1,
 								#endif
@@ -2213,7 +2212,7 @@ Start of Linux / Unix defines
                         
 			XFree(vi);
 
-			i32 samp_buf, samples, depth;
+			i32 samp_buf, samples;
 			glXGetFBConfigAttrib((Display*) win->src.display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
 			glXGetFBConfigAttrib((Display*) win->src.display, fbc[i], GLX_SAMPLES, &samples);
 			
@@ -2235,7 +2234,7 @@ Start of Linux / Unix defines
 		XFree(fbc);
 		
 		if (args & RGFW_TRANSPARENT_WINDOW) {
-			//XMatchVisualInfo((Display*) win->src.display, DefaultScreen((Display*) win->src.display), 32, TrueColor, vi); /* for RGBA backgrounds*/
+			XMatchVisualInfo((Display*) win->src.display, DefaultScreen((Display*) win->src.display), 32, TrueColor, vi); /* for RGBA backgrounds*/
 		}
 		
 #else
