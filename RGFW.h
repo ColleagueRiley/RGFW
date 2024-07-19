@@ -299,7 +299,7 @@
 
 #define RGFW_NO_GPU_RENDER (1L<<14) /* don't render (using the GPU based API)*/
 #define RGFW_NO_CPU_RENDER (1L<<15) /* don't render (using the CPU based buffer rendering)*/
-
+#define RGFW_EV_WAITING (1L<<16) /* RGFW_windowCheckEvents, waiting */
 
 /*! event codes */
 #define RGFW_keyPressed 2 /* a key has been pressed */
@@ -1307,19 +1307,27 @@ RGFW_jsAxisfunc RGFW_jsAxisCallback = RGFW_jsAxisfuncEMPTY;
 
 b8 RGFW_checkEvents_forceStop = RGFW_FALSE;
 
-void RGFW_stopCheckEvents(void) { RGFW_checkEvents_forceStop = RGFW_TRUE; }
+void RGFW_stopCheckEvents(void) { 
+	RGFW_checkEvents_forceStop = RGFW_TRUE; 
+}
 
 void RGFW_window_checkEvents(RGFW_window* win, i32 waitMS) { 
 	u64 start = (RGFW_getTimeNS() / 1e+6);
+	
+	if (!(win->_winArgs & RGFW_EV_WAITING))
+		win->_winArgs |= RGFW_EV_WAITING;
 	
 	do {
 		while (RGFW_window_checkEvent(win) != NULL && RGFW_window_shouldClose(win) == 0) { 
 			RGFW_checkEvents_forceStop = RGFW_TRUE;
 			if (win->event.type == RGFW_quit) return; 
-		}		
-	} while ((waitMS < 0 || (RGFW_getTimeNS() / 1e+6) - start < waitMS) && RGFW_checkEvents_forceStop == RGFW_FALSE);
-
+		}
+	} while ((waitMS < 0 || (RGFW_getTimeNS() / 1e+6) - start < waitMS) && RGFW_checkEvents_forceStop == RGFW_FALSE && RGFW_window_shouldClose(win) == 0);
+	
 	RGFW_checkEvents_forceStop = RGFW_FALSE;
+	
+	if (win->_winArgs  & RGFW_EV_WAITING)
+		win->_winArgs ^= RGFW_EV_WAITING;
 }
 
 void RGFW_setWindowMoveCallback(RGFW_windowmovefunc func) { RGFW_windowMoveCallback = func; }
@@ -2487,7 +2495,10 @@ Start of Linux / Unix defines
 		XEvent E; /* raw X11 event */
 
 		/* if there is no unread qued events, get a new one */
-		if ((QLength(win->src.display) || XEventsQueued((Display*) win->src.display, QueuedAlready) + XEventsQueued((Display*) win->src.display, QueuedAfterReading)) && win->event.type != RGFW_quit)
+		if (((win->_winArgs & RGFW_EV_WAITING) || 
+			QLength(win->src.display) || XEventsQueued((Display*) win->src.display, QueuedAlready) + XEventsQueued((Display*) win->src.display, QueuedAfterReading)) 
+			&& win->event.type != RGFW_quit
+		)
 			XNextEvent((Display*) win->src.display, &E);
 		else {
 			return NULL;
@@ -4334,6 +4345,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 	};
 
 	static i32 RGFW_checkXInput(RGFW_window* win, RGFW_Event* e) {
+		RGFW_UNUSED(win)
+		
 		size_t i;
 		for (i = 0; i < 4; i++) {
 			XINPUT_KEYSTROKE keystroke;
