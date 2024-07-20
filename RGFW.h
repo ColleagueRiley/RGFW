@@ -6289,17 +6289,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		NSEvent* e = (NSEvent*) ((id(*)(id, SEL, NSEventType, NSPoint, NSEventModifierFlags, void*, NSInteger, void**, NSInteger, NSInteger))objc_msgSend)
 			(NSApp, sel_registerName("nextEventMatchingMask:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:"), 
-				NSMakePoint(0, 0), 0, 0, 0, NULL, 0, 0, 0);
-
-		NSEvent* event = [NSEvent 	:NSEventTypeApplicationDefined
-											location:NSMakePoint(0, 0)
-									modifierFlags:0
-										timestamp:0
-										windowNumber:0
-											context:nil
-											subtype:0
-											data1:0
-											data2:0];
+				(NSPoint){0, 0}, 0, 0, 0, NULL, 0, 0, 0);
 
 		((void (*)(id, SEL, id, bool))objc_msgSend)
 			(NSApp, sel_registerName("postEvent:atStart:"), e, 1);
@@ -6313,7 +6303,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
         eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
 
-		date = ((void*) ((id(*)(id, SEL, double)objc_msgSend))
+		void* date = ((void*) ((id(*)(id, SEL, double)objc_msgSend)))
 					(objc_getClass("NSDate"), sel_registerName("dateWithTimeIntervalSinceNow:"), waitMS);
 
 		NSEvent* e = (NSEvent*) ((id(*)(id, SEL, NSEventMask, void*, NSString*, bool))objc_msgSend)
@@ -7268,6 +7258,15 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	}
 
     return win;
+}
+
+
+void RGFW_stopCheckEvents(void) { 
+
+}
+
+void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
+
 }
 
 RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
