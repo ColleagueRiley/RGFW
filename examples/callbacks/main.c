@@ -82,7 +82,7 @@ void mousebuttonfunc(RGFW_window* win, u8 button, double scroll, u8 pressed) {
 
 
 int main(void) {
-    window = RGFW_createWindow("name", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_CENTER | RGFW_ALLOW_DND);
+    window = RGFW_createWindow("RGFW Callbacks", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_CENTER | RGFW_ALLOW_DND);
 
 	RGFW_setWindowMoveCallback(windowmovefunc);
 	RGFW_setWindowResizeCallback(windowresizefunc);
@@ -97,7 +97,7 @@ int main(void) {
 	RGFW_setMouseButtonCallback(mousebuttonfunc);
 
     while (RGFW_window_shouldClose(window) == 0) {
-        RGFW_window_checkEvents(window, RGFW_WAIT);
+        RGFW_window_checkEvents(window, 1000);
         glClearColor(0.15, 0, 0.25, 0xFF);
         glClear(GL_COLOR_BUFFER_BIT);
         

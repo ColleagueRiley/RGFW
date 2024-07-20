@@ -299,7 +299,6 @@
 
 #define RGFW_NO_GPU_RENDER (1L<<14) /* don't render (using the GPU based API)*/
 #define RGFW_NO_CPU_RENDER (1L<<15) /* don't render (using the CPU based buffer rendering)*/
-#define RGFW_EV_WAITING (1L<<16) /* RGFW_windowCheckEvents, waiting */
 
 /*! event codes */
 #define RGFW_keyPressed 2 /* a key has been pressed */
@@ -593,23 +592,30 @@ RGFWDEF RGFW_area RGFW_getScreenSize(void);
 RGFW_Event* RGFW_window_checkEvent(RGFW_window* win); /*!< check current event (returns a pointer to win->event or NULL if there is no event)*/
 
 /* 
-	check all the events until there are none left,  
-	waitMS -> Allows the function to keep checking for events even after `RGFW_window_checkEvent == NULL`
-			  if waitMS == 0, the loop will stop when there are no more events (`RGFW_window_checkEvent == NULL`)
+	for RGFW_window_eventWait and RGFW_window_checkEvents
+	waitMS -> Allows th	e function to keep checking for events even after `RGFW_window_checkEvent == NULL`
+			  if waitMS == 0, the loop will not wait for events
 			  if waitMS == a positive integer, the loop will wait that many miliseconds after there are no more events until it returns
 			  if waitMS == a negative integer, the loop will not return until it gets another event
+*/
+typedef RGFW_ENUM(i32, RGFW_eventWait) {
+	RGFW_NEXT = -1,
+	RGFW_NO_WAIT = 0
+};
+
+/* sleep until RGFW gets an event or the timer ends (defined by OS) */
+RGFWDEF void RGFW_window_eventWait(RGFW_window* win, i32 waitMS);
+
+/* 
+	check all the events until there are none left, 
 	this should only be used if you're using callbacks only
 */
-typedef RGFW_ENUM(u8, RGFW_eventWait) {
-	RGFW_NO_WAIT = 0,
-	RGFW_WAIT = -1
-};
 RGFWDEF void RGFW_window_checkEvents(RGFW_window* win, i32 waitMS);
 
 /* 
-	Tell RGFW_window_checkEvents to stop waiting, to be ran from another thread
+	Tell RGFW_window_eventWait to stop waiting, to be ran from another thread
 */
-void RGFW_stopCheckEvents(void);
+RGFWDEF void RGFW_stopCheckEvents(void);
 
 /*! window managment functions*/
 RGFWDEF void RGFW_window_close(RGFW_window* win); /*!< close the window and free leftover data */
@@ -1305,34 +1311,16 @@ RGFW_mousebuttonfunc RGFW_mouseButtonCallback = RGFW_mousebuttonfuncEMPTY;
 RGFW_jsButtonfunc RGFW_jsButtonCallback = RGFW_jsButtonfuncEMPTY;
 RGFW_jsAxisfunc RGFW_jsAxisCallback = RGFW_jsAxisfuncEMPTY;
 
-b8 RGFW_checkEvents_forceStop = RGFW_FALSE;
-
-void RGFW_stopCheckEvents(void) { 
-	RGFW_checkEvents_forceStop = RGFW_TRUE; 
-}
-
 void RGFW_window_checkEvents(RGFW_window* win, i32 waitMS) { 
-	u64 start = (RGFW_getTimeNS() / 1e+6);
-	
-	if (!(win->_winArgs & RGFW_EV_WAITING))
-		win->_winArgs |= RGFW_EV_WAITING;
-	
-	do {
-		while (RGFW_window_checkEvent(win) != NULL && RGFW_window_shouldClose(win) == 0) { 
-			RGFW_checkEvents_forceStop = RGFW_TRUE;
-			if (win->event.type == RGFW_quit) return; 
-		}
+	RGFW_window_eventWait(win, waitMS);
 
-		#ifdef RGFW_WEBASM /* webasm needs to run the sleep function for asyncify */
-			RGFW_sleep(0);
-		#endif
-
-	} while ((waitMS < 0 || (RGFW_getTimeNS() / 1e+6) - start < waitMS) && RGFW_checkEvents_forceStop == RGFW_FALSE && RGFW_window_shouldClose(win) == 0);
+	while (RGFW_window_checkEvent(win) != NULL && RGFW_window_shouldClose(win) == 0) { 
+		if (win->event.type == RGFW_quit) return; 
+	}
 	
-	RGFW_checkEvents_forceStop = RGFW_FALSE;
-	
-	if (win->_winArgs  & RGFW_EV_WAITING)
-		win->_winArgs ^= RGFW_EV_WAITING;
+	#ifdef RGFW_WEBASM /* webasm needs to run the sleep function for asyncify */
+		RGFW_sleep(0);
+	#endif
 }
 
 void RGFW_setWindowMoveCallback(RGFW_windowmovefunc func) { RGFW_windowMoveCallback = func; }
@@ -2033,6 +2021,7 @@ Start of Linux / Unix defines
 
 #include <limits.h> /* for data limits (mainly used in drag and drop functions) */
 #include <fcntl.h>
+#include <poll.h>
 
 #ifdef __linux__
 #include <linux/joystick.h>
@@ -2431,6 +2420,75 @@ Start of Linux / Unix defines
 		return RGFWMouse;
 	}
 
+
+	int RGFW_eventWait_forceStop[] = {0, 0, 0};
+
+	void RGFW_stopCheckEvents(void) { 
+		RGFW_eventWait_forceStop[2] = 1;
+		while (1) {
+			const char byte = 0;
+			const ssize_t result = write(RGFW_eventWait_forceStop[1], &byte, 1);
+			if (result == 1 || result == -1)
+				break;
+		}
+	}
+
+	void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
+		if (waitMS == 0)
+			return;
+		
+		u8 i;
+
+		if (RGFW_eventWait_forceStop[0] == 0 || RGFW_eventWait_forceStop[1] == 0) {
+			if (pipe(RGFW_eventWait_forceStop) != -1) {
+				fcntl(RGFW_eventWait_forceStop[0], F_GETFL, 0);
+				fcntl(RGFW_eventWait_forceStop[0], F_GETFD, 0);
+				fcntl(RGFW_eventWait_forceStop[1], F_GETFL, 0);
+				fcntl(RGFW_eventWait_forceStop[1], F_GETFD, 0);
+			}
+		}
+		
+		struct pollfd fds[] = {
+			{ ConnectionNumber(win->src.display), POLLIN, 0 },
+			{ RGFW_eventWait_forceStop[0], POLLIN, 0 },
+			#ifdef __linux__ /* blank space for 4 joystick files*/
+			{ -1, POLLIN, 0 }, {-1, POLLIN, 0 }, {-1, POLLIN, 0 },  {-1, POLLIN, 0} 
+			#endif
+		};
+
+		u8 index = 2;
+		
+		#if defined(__linux__)
+			for (i = 0; i < RGFW_joystickCount; i++) {
+				if (RGFW_joysticks[i] == 0)
+					continue;
+
+				fds[index].fd = RGFW_joysticks[i];
+				index++;
+			}
+		#endif
+
+
+		u64 start = RGFW_getTimeNS();
+
+		while (XPending(win->src.display) == 0 && waitMS >= -1) {
+			if (poll(fds, index, waitMS) <= 0)
+				break;
+	
+			if (waitMS > 0) {
+				waitMS -= (RGFW_getTimeNS() - start) / 1e+6;
+			}
+		}
+
+		/* drain any data in the stop request */
+		if (RGFW_eventWait_forceStop[2]) {	
+			char data[64];
+			read(RGFW_eventWait_forceStop[0], data, sizeof(data));
+			
+			RGFW_eventWait_forceStop[2] = 0;
+		}
+	}
+
 	typedef struct XDND {
 		long source, version;
 		i32 format;
@@ -2500,8 +2558,7 @@ Start of Linux / Unix defines
 		XEvent E; /* raw X11 event */
 
 		/* if there is no unread qued events, get a new one */
-		if (((win->_winArgs & RGFW_EV_WAITING) || 
-			QLength(win->src.display) || XEventsQueued((Display*) win->src.display, QueuedAlready) + XEventsQueued((Display*) win->src.display, QueuedAfterReading)) 
+		if ((QLength(win->src.display) || XEventsQueued((Display*) win->src.display, QueuedAlready) + XEventsQueued((Display*) win->src.display, QueuedAfterReading)) 
 			&& win->event.type != RGFW_quit
 		)
 			XNextEvent((Display*) win->src.display, &E);
@@ -3708,13 +3765,20 @@ Start of Linux / Unix defines
 			RGFW_libxshape = NULL;
 		}
 
+		if (RGFW_windowsOpen <= 0) {
+			if (RGFW_eventWait_forceStop[0] || RGFW_eventWait_forceStop[1]){
+				close(RGFW_eventWait_forceStop[0]);
+				close(RGFW_eventWait_forceStop[1]);
+			}
+
+			u8 i;
+			for (i = 0; i < RGFW_joystickCount; i++)
+				close(RGFW_joysticks[i]);
+		}
+
 		/* set cleared display / window to NULL for error checking */
 		win->src.display = (Display*) 0;
 		win->src.window = (Window) 0;
-
-		u8 i;
-		for (i = 0; i < RGFW_joystickCount; i++)
-			close(RGFW_joysticks[i]);
 
 		RGFW_FREE(win); /* free collected window data */
 	}
@@ -4419,6 +4483,16 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		}
 
 		return 0;
+	}
+
+	void RGFW_stopCheckEvents(void) { 
+		PostMessageW(RGFW_root->src.window, WM_NULL, 0, 0);
+	}
+
+	void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
+		RGFW_UNUSED(win);
+
+		MsgWaitForMultipleObjects(0, NULL, FALSE, (DWORD) (waitMS * 1e3), QS_ALLINPUT);
 	}
 
 	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
@@ -6209,6 +6283,41 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		NSEventModifierFlagNumericPad = 1 << 21
 	} NSEventModifierFlags;
 
+	void RGFW_stopCheckEvents(void) { 
+		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+        eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
+
+		NSEvent* e = (NSEvent*) ((id(*)(id, SEL, NSEventType, NSPoint, NSEventModifierFlags, void*, NSInteger, void**, short, NSInteger, NSInteger))objc_msgSend)
+			(NSApp, sel_registerName("otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:"), 
+				NSEventTypeApplicationDefined, (NSPoint){0, 0}, 0, 0, 0, NULL, 0, 0, 0);
+
+		((void (*)(id, SEL, id, bool))objc_msgSend)
+			(NSApp, sel_registerName("postEvent:atStart:"), e, 1);
+
+		objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
+	}
+
+	void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
+		RGFW_UNUSED(win);
+		
+		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+        eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
+
+		void* date = (void*) ((id(*)(id, SEL, double))objc_msgSend)
+					(objc_getClass("NSDate"), sel_registerName("dateWithTimeIntervalSinceNow:"), waitMS);
+
+		NSEvent* e = (NSEvent*) ((id(*)(id, SEL, NSEventMask, void*, NSString*, bool))objc_msgSend)
+			(NSApp, sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:"), 
+				ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
+
+
+		if (e) {
+			objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
+		}
+
+		objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
+	}
+
 	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		assert(win != NULL);
 		
@@ -6235,9 +6344,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		void* date = NULL;
 
-		if (win->_winArgs  & RGFW_EV_WAITING)
-			date = objc_msgSend_id(objc_getClass("NSDate"), sel_registerName("distantFuture"));
-		
 		NSEvent* e = (NSEvent*) ((id(*)(id, SEL, NSEventMask, void*, NSString*, bool))objc_msgSend)
 			(NSApp, eventFunc, ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
 
@@ -7073,6 +7179,26 @@ EM_BOOL on_touchend(int eventType, const EmscriptenTouchEvent* e, void* userData
 }
 
 EM_BOOL on_touchcancel(int eventType, const EmscriptenTouchEvent* e, void* userData) { RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(e); return EM_TRUE; }
+
+
+b8 RGFW_stopCheckEvents_bool = RGFW_FALSE;
+void RGFW_stopCheckEvents(void) { 
+	RGFW_stopCheckEvents_bool = RGFW_TRUE;
+}
+
+void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
+	RGFW_UNUSED(win);
+
+	u32 start = (u32)(((u64)RGFW_getTimeNS()) / 1e+6);
+
+	while ((RGFW_eventLen == 0) && RGFW_stopCheckEvents_bool == RGFW_FALSE && 
+		(waitMS < 0 || (RGFW_getTimeNS() / 1e+6) - start < waitMS)
+	) {
+		emscripten_sleep(0);
+	}
+	
+	RGFW_stopCheckEvents_bool = RGFW_FALSE;
+}
 
 RGFWDEF void RGFW_init_buffer(RGFW_window* win);
 void RGFW_init_buffer(RGFW_window* win) {
