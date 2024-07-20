@@ -6287,8 +6287,8 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
         eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
 
-		NSEvent* e = (NSEvent*) ((id(*)(id, SEL, NSEventType, NSPoint, NSEventModifierFlags, void*, NSInteger, void**, NSInteger, NSInteger))objc_msgSend)
-			(NSApp, sel_registerName("nextEventMatchingMask:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:"), 
+		NSEvent* e = (NSEvent*) ((id(*)(id, SEL, NSEventType, NSPoint, NSEventModifierFlags, void*, NSInteger, void**, short, NSInteger, NSInteger))objc_msgSend)
+			(NSApp, sel_registerName("otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:"), 
 				NSEventTypeApplicationDefined, (NSPoint){0, 0}, 0, 0, 0, NULL, 0, 0, 0);
 
 		((void (*)(id, SEL, id, bool))objc_msgSend)
@@ -6303,7 +6303,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
         eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
 
-		void* date = (void*) ((id(*)(id, SEL, double)objc_msgSend))
+		void* date = (void*) ((id(*)(id, SEL, double))objc_msgSend)
 					(objc_getClass("NSDate"), sel_registerName("dateWithTimeIntervalSinceNow:"), waitMS);
 
 		NSEvent* e = (NSEvent*) ((id(*)(id, SEL, NSEventMask, void*, NSString*, bool))objc_msgSend)
