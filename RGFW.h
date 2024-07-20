@@ -1322,6 +1322,11 @@ void RGFW_window_checkEvents(RGFW_window* win, i32 waitMS) {
 			RGFW_checkEvents_forceStop = RGFW_TRUE;
 			if (win->event.type == RGFW_quit) return; 
 		}
+
+		#ifdef RGFW_WEBASM /* webasm needs to run the sleep function for asyncify */
+			RGFW_sleep(0);
+		#endif
+
 	} while ((waitMS < 0 || (RGFW_getTimeNS() / 1e+6) - start < waitMS) && RGFW_checkEvents_forceStop == RGFW_FALSE && RGFW_window_shouldClose(win) == 0);
 	
 	RGFW_checkEvents_forceStop = RGFW_FALSE;
