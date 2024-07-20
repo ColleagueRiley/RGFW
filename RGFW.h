@@ -6228,7 +6228,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			return &win->event;
 		}
 
-		NSDate* date = NULL;
+		void* date = NULL;
 
 		if (win->_winArgs  & RGFW_EV_WAITING)
 			date = objc_msgSend_id(objc_getClass("NSDate"), sel_registerName("distantFuture"));
