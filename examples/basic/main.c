@@ -56,7 +56,9 @@ int main(void) {
         RGFW_window_checkEvent(win2);
         #endif
 
-        while (RGFW_window_checkEvent(win)) {
+        RGFW_window_eventWait(win, RGFW_NEXT);
+        
+        while (RGFW_window_checkEvent(win) != NULL) {
             if (win->event.type == RGFW_windowMoved) {
                 printf("window moved\n");
             }
@@ -95,7 +97,7 @@ int main(void) {
             else if (win->event.type == RGFW_jsAxisMove && !win->event.button)
                 printf("{%i, %i}\n", win->event.axis[0].x, win->event.axis[0].y);
         }
-        
+
         drawLoop(win);
     }
 
@@ -150,11 +152,15 @@ void* loop2(void* args) {
         /* 
             I could've also done
 
-            if (RGFW_checkEvents(win) == RGFW_quit)
+            if (RGFW_checkEvents(win).type == RGFW_quit)
         */
 
         if (win->event.type == RGFW_quit)
             break;
+
+        if (win->event.type == RGFW_mouseButtonPressed) {
+            RGFW_stopCheckEvents();
+        }
 
         drawLoop(win);
     }
