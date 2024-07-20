@@ -7180,6 +7180,26 @@ EM_BOOL on_touchend(int eventType, const EmscriptenTouchEvent* e, void* userData
 
 EM_BOOL on_touchcancel(int eventType, const EmscriptenTouchEvent* e, void* userData) { RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(e); return EM_TRUE; }
 
+
+b8 RGFW_stopCheckEvents_bool = RGFW_FALSE;
+void RGFW_stopCheckEvents(void) { 
+	RGFW_stopCheckEvents_bool = RGFW_TRUE;
+}
+
+void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
+	RGFW_UNUSED(win);
+
+	u32 start = (u32)(((u64)RGFW_getTimeNS()) / 1e+6);
+
+	while ((RGFW_eventLen == 0) && RGFW_stopCheckEvents_bool == RGFW_FALSE && 
+		(waitMS < 0 || (RGFW_getTimeNS() / 1e+6) - start < waitMS)
+	) {
+		emscripten_sleep(0);
+	}
+	
+	RGFW_stopCheckEvents_bool = RGFW_FALSE;
+}
+
 RGFWDEF void RGFW_init_buffer(RGFW_window* win);
 void RGFW_init_buffer(RGFW_window* win) {
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
@@ -7258,15 +7278,6 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	}
 
     return win;
-}
-
-
-void RGFW_stopCheckEvents(void) { 
-
-}
-
-void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
-	
 }
 
 RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
