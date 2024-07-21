@@ -6340,7 +6340,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
         eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
 
-		void* date = (void*) ((id(*)(id, SEL, double))objc_msgSend)
+		void* date = (void*) ((id(*)(Class, SEL, double))objc_msgSend)
 					(objc_getClass("NSDate"), sel_registerName("dateWithTimeIntervalSinceNow:"), waitMS);
 
 		NSEvent* e = (NSEvent*) ((id(*)(id, SEL, NSEventMask, void*, NSString*, bool))objc_msgSend)
@@ -6501,7 +6501,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 					p.x = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaX"));
 					p.y = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaY"));
 					
-					win->event.point = RGFW_POINT((u32) p.x, (u32) (p.y));
+					win->event.point = RGFW_POINT((u32) -p.x, (u32) -p.y);
 				}
 
 				RGFW_mousePosCallback(win, win->event.point);
