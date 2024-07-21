@@ -40,8 +40,7 @@ int main(void) {
     glPerspective(60, 16.0 / 9.0, 1, 75);
     glMatrixMode(GL_MODELVIEW);
 
-    i32 holdMouse = 1;
-    i32 posChanged = 0;
+    RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
 
     while (RGFW_window_shouldClose(win) == 0) {
         while (RGFW_window_checkEvent(win)) {
@@ -50,24 +49,23 @@ int main(void) {
 
             switch (win->event.type) {
                 case RGFW_mousePosChanged: {      
-                    int dev_x = (win->r.w / 2) - win->event.point.x;
-                    int dev_y = (win->r.h / 2) - win->event.point.y;
+                    int dev_x = win->event.point.x;
+                    int dev_y = win->event.point.y;
                     /* apply the changes to pitch and yaw*/
                     yaw += (float)dev_x / 15.0;
                     pitch += (float)dev_y / 15.0;
-                    posChanged = 1;
                     break;
                 }
                 case RGFW_keyPressed:
                     switch (win->event.keyCode) {
                         case RGFW_Return:
                             RGFW_window_showMouse(win, 0);
-                            holdMouse = 1;
+                            RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
                             break;
                         
                         case RGFW_BackSpace:
                             RGFW_window_showMouse(win, 1);
-                            holdMouse = 0;
+                            RGFW_window_mouseUnhold(win);    
                             break;
 
                         case RGFW_Left:
@@ -89,11 +87,6 @@ int main(void) {
                 default:
                     break;
             }
-        }
-
-        if (holdMouse && posChanged && win->event.inFocus) {
-            RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
-            posChanged = 0;
         }
 
         if (win->event.type == RGFW_quit)

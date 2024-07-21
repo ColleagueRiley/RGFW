@@ -552,6 +552,8 @@ typedef struct RGFW_window {
 	RGFW_Event event; /*!< current event */
 
 	RGFW_rect r; /* the x, y, w and h of the struct */
+	
+	RGFW_point _lastMousePoint; /* last cusor point (for raw mouse data) */
 
 	u32 fpsCap; /*!< the fps cap of the window should run at (change this var to change the fps cap, 0 = no limit)*/
 	/*[the fps is capped when events are checked]*/
@@ -674,8 +676,8 @@ RGFWDEF	void RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse);
 
 RGFWDEF void RGFW_window_setMouseDefault(RGFW_window* win); /* sets the mouse to the default mouse icon */
 /*
-	holds the mouse in place by moving the mouse back each time it moves
-	you can still use win->event.point to see how much it moved before it was put back in place
+	Locks cursor at the center of the window
+	win->event.point become raw mouse movement data 
 
 	this is useful for a 3D camera
 */
@@ -1507,27 +1509,26 @@ void RGFW_window_setShouldClose(RGFW_window* win) { win->event.type = RGFW_quit;
 	}
 #endif
 
-RGFWDEF void RGFW_clipCursor(RGFW_window* win, RGFW_rect);
+RGFWDEF void RGFW_captureCursor(RGFW_window* win, RGFW_rect);
 
 void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area) {
-	if (!(win->_winArgs & RGFW_HOLD_MOUSE)) {
-		RGFW_clipCursor(win, win->r);
-		win->_winArgs |= RGFW_HOLD_MOUSE;
-	}
+	if ((win->_winArgs & RGFW_HOLD_MOUSE))
+		return;
 	
+
 	if (!area.w && !area.h)
 		area = RGFW_AREA(win->r.w / 2, win->r.h / 2);
-	
-	#if !defined(RGFW_MACOS) && !defined(RGFW_WEBASM)
+		
+	win->_winArgs |= RGFW_HOLD_MOUSE;
+	RGFW_captureCursor(win, win->r);
 	RGFW_window_moveMouse(win, RGFW_POINT(win->r.x + (area.w), win->r.y + (area.h)));
-	#endif
 }
 
 void RGFW_window_mouseUnhold(RGFW_window* win) {
 	if ((win->_winArgs & RGFW_HOLD_MOUSE)) {
 		win->_winArgs ^= RGFW_HOLD_MOUSE;
 
-		RGFW_clipCursor(win, RGFW_RECT(0, 0, 0, 0));
+		RGFW_captureCursor(win, RGFW_RECT(0, 0, 0, 0));
 	}
 }
 
@@ -2117,7 +2118,7 @@ Start of Linux / Unix defines
 		);
 	}
 
-	void RGFW_clipCursor(RGFW_window* win, RGFW_rect r) { 
+	void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) { 
 		XIEventMask em;
 		em.deviceid = XIAllMasterDevices;
 
@@ -2629,6 +2630,15 @@ Start of Linux / Unix defines
 		case MotionNotify:
 			win->event.point.x = E.xmotion.x;
 			win->event.point.y = E.xmotion.y;
+			
+			if ((win->_winArgs & RGFW_HOLD_MOUSE)) {
+				win->event.point.x = win->_lastMousePoint.x - win->event.point.x;
+				win->event.point.y = win->_lastMousePoint.y - win->event.point.y;
+
+				RGFW_window_moveMouse(win, RGFW_POINT(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
+			}
+
+			win->_lastMousePoint = RGFW_POINT(E.xmotion.x, E.xmotion.y);
 
 			win->event.type = RGFW_mousePosChanged;
 			RGFW_mousePosCallback(win, win->event.point);
@@ -2658,9 +2668,7 @@ Start of Linux / Unix defines
 				if (XIMaskIsSet(raw->valuators.mask, 1) != 0)
 					deltaY += raw->raw_values[1];
 
-				win->event.point = RGFW_POINT(
-						(i32)((double)((double)(win->r.w / 2)) + deltaX),
-						(i32)((double)((double)(win->r.h / 2)) + deltaY));
+				win->event.point = RGFW_POINT((u32)-deltaX, (u32)-deltaY);
 
 				win->event.type = RGFW_mousePosChanged;
 				RGFW_mousePosCallback(win, win->event.point);
@@ -4048,16 +4056,25 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		DragAcceptFiles(win->src.window, allow);
 	}
 
-	void RGFW_clipCursor(RGFW_window* win, RGFW_rect rect) {
+	void RGFW_captureCursor(RGFW_window* win, RGFW_rect rect) {
 		RGFW_UNUSED(win)
 
 		if (!rect.x && !rect.y && rect.w && !rect.h) {
 			ClipCursor(NULL);
+    		const RAWINPUTDEVICE id = { 0x01, 0x02, RIDEV_REMOVE, NULL };
+    		RegisterRawInputDevices(&id, 1, sizeof(id));
+
 			return;
 		}
 		
-		RECT r = {rect.x, rect.y, rect.x + rect.w, rect.y + rect.h};
-		ClipCursor(&r);
+		RECT clipRect;
+		GetClientRect(win->src.window, &clipRect);
+		ClientToScreen(win->src.window, (POINT*) &clipRect.left);
+		ClientToScreen(win->src.window, (POINT*) &clipRect.right);
+		ClipCursor(&clipRect);
+
+	    const RAWINPUTDEVICE id = { 0x01, 0x02, 0, win->src.window };
+		RegisterRawInputDevices(&id, 1, sizeof(id));
 	}
 
 	RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
@@ -4659,11 +4676,14 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			}
 
 			case WM_MOUSEMOVE:
+				if ((win->_winArgs & RGFW_HOLD_MOUSE))
+					break;
+
 				win->event.type = RGFW_mousePosChanged;
 
 				win->event.point.x = GET_X_LPARAM(msg.lParam);
 				win->event.point.y = GET_Y_LPARAM(msg.lParam);
-
+				
 				RGFW_mousePosCallback(win, win->event.point);
 
 				if (win->_winArgs & RGFW_MOUSE_LEFT) {
@@ -4673,6 +4693,23 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				}
 
 				break;
+
+			case WM_INPUT: {
+				if (!(win->_winArgs & RGFW_HOLD_MOUSE))
+					break;
+				
+				unsigned size = sizeof(RAWINPUT);
+				static RAWINPUT raw[sizeof(RAWINPUT)];
+				GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, raw, &size, sizeof(RAWINPUTHEADER));
+
+				if (raw->header.dwType != RIM_TYPEMOUSE || (raw->data.mouse.lLastX == 0 && raw->data.mouse.lLastY == 0) )
+					break;
+				
+				win->event.type = RGFW_mousePosChanged;
+				win->event.point.x = -raw->data.mouse.lLastX;
+				win->event.point.y = -raw->data.mouse.lLastY;
+				break;
+			}
 
 			case WM_LBUTTONDOWN:
 				win->event.button = RGFW_mouseLeft;
@@ -6464,8 +6501,6 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 					p.x = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaX"));
 					p.y = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaY"));
 					
-					p.x = ((win->r.w / 2)) + p.x;
-					p.y = ((win->r.h / 2)) + p.y;
 					win->event.point = RGFW_POINT((u32) p.x, (u32) (p.y));
 				}
 
@@ -6693,7 +6728,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		objc_msgSend_void(mouse, sel_registerName("set"));
 	}
 
-	void RGFW_clipCursor(RGFW_window* win, RGFW_rect r) { 
+	void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) { 
 		RGFW_UNUSED(win)
 
 		CGWarpMouseCursorPosition(CGPointMake(r.x + (r.w / 2), r.y + (r.h / 2)));
@@ -7068,17 +7103,14 @@ EM_BOOL on_mousemove(int eventType, const EmscriptenMouseEvent* e, void* userDat
 	RGFW_events[RGFW_eventLen].type = RGFW_mousePosChanged;
 
 	if ((RGFW_root->_winArgs & RGFW_HOLD_MOUSE)) {
-		RGFW_point p = RGFW_POINT(e->movementX, e->movementY);
-		
-		p.x = ((RGFW_root->r.w / 2)) + p.x;
-		p.y = ((RGFW_root->r.h / 2)) + p.y;
+		RGFW_point p = RGFW_POINT(-e->movementX, -e->movementY);
 		RGFW_events[RGFW_eventLen].point = p;
 	}
 	else
 		RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->targetX, e->targetY);
 	RGFW_eventLen++;
 	
-	RGFW_mousePosCallback(RGFW_root, RGFW_POINT(e->targetX, e->targetY));
+	RGFW_mousePosCallback(RGFW_root, RGFW_events[RGFW_eventLen].point);
     return EM_TRUE;
 }
 
@@ -7480,7 +7512,7 @@ u64 RGFW_getTime(void) {
 	return emscripten_get_now() * 1000;
 }
 
-void RGFW_clipCursor(RGFW_window* win, RGFW_rect r) { 
+void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) { 
 	RGFW_UNUSED(win)
 	if (!r.x && !r.y && !r.w && !r.h) {
 		emscripten_exit_pointerlock();
