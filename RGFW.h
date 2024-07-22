@@ -1618,9 +1618,9 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 		#include <windows.h>
 	#endif
 
-	#ifndef __APPLE__
+	#if !defined(__APPLE__) && !defined(RGFW_NO_GL_HEADER)
 		#include <GL/gl.h>
-	#else
+	#elif defined(__APPLE__)
 		#ifndef GL_SILENCE_DEPRECATION
 			#define GL_SILENCE_DEPRECATION
 		#endif
@@ -7021,7 +7021,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 RGFW_Event RGFW_events[20];
 size_t RGFW_eventLen = 0;
 
-EM_BOOL on_keydown(int eventType, const EmscriptenKeyboardEvent* e, void* userData) {
+EM_BOOL Emscripten_on_keydown(int eventType, const EmscriptenKeyboardEvent* e, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 	
 	RGFW_events[RGFW_eventLen].type = RGFW_keyPressed;
@@ -7037,7 +7037,7 @@ EM_BOOL on_keydown(int eventType, const EmscriptenKeyboardEvent* e, void* userDa
     return EM_TRUE;
 }
 
-EM_BOOL on_keyup(int eventType, const EmscriptenKeyboardEvent* e, void* userData) {
+EM_BOOL Emscripten_on_keyup(int eventType, const EmscriptenKeyboardEvent* e, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
 	RGFW_events[RGFW_eventLen].type = RGFW_keyReleased;
@@ -7054,7 +7054,7 @@ EM_BOOL on_keyup(int eventType, const EmscriptenKeyboardEvent* e, void* userData
     return EM_TRUE;
 }
 
-EM_BOOL on_resize(int eventType, const EmscriptenUiEvent* e, void* userData) {
+EM_BOOL Emscripten_on_resize(int eventType, const EmscriptenUiEvent* e, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
 	RGFW_events[RGFW_eventLen].type = RGFW_windowResized;
@@ -7064,7 +7064,7 @@ EM_BOOL on_resize(int eventType, const EmscriptenUiEvent* e, void* userData) {
     return EM_TRUE;
 }
 
-EM_BOOL on_fullscreenchange(int eventType, const EmscriptenFullscreenChangeEvent* e, void* userData) {
+EM_BOOL Emscripten_on_fullscreenchange(int eventType, const EmscriptenFullscreenChangeEvent* e, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
 	RGFW_events[RGFW_eventLen].type = RGFW_windowResized;
@@ -7075,7 +7075,7 @@ EM_BOOL on_fullscreenchange(int eventType, const EmscriptenFullscreenChangeEvent
     return EM_TRUE;
 }
 
-EM_BOOL on_focusin(int eventType, const EmscriptenFocusEvent* e, void* userData) {
+EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* e, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(e);
 
 	RGFW_events[RGFW_eventLen].type = RGFW_focusIn;
@@ -7086,7 +7086,7 @@ EM_BOOL on_focusin(int eventType, const EmscriptenFocusEvent* e, void* userData)
     return EM_TRUE;
 }
 
-EM_BOOL on_focusout(int eventType, const EmscriptenFocusEvent* e, void* userData) {
+EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* e, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(e);
 
 	RGFW_events[RGFW_eventLen].type = RGFW_focusOut;
@@ -7097,7 +7097,7 @@ EM_BOOL on_focusout(int eventType, const EmscriptenFocusEvent* e, void* userData
     return EM_TRUE;
 }
 
-EM_BOOL on_mousemove(int eventType, const EmscriptenMouseEvent* e, void* userData) {
+EM_BOOL Emscripten_on_mousemove(int eventType, const EmscriptenMouseEvent* e, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
 	RGFW_events[RGFW_eventLen].type = RGFW_mousePosChanged;
@@ -7114,7 +7114,7 @@ EM_BOOL on_mousemove(int eventType, const EmscriptenMouseEvent* e, void* userDat
     return EM_TRUE;
 }
 
-EM_BOOL on_mousedown(int eventType, const EmscriptenMouseEvent* e, void* userData) {
+EM_BOOL Emscripten_on_mousedown(int eventType, const EmscriptenMouseEvent* e, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
 	RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonPressed;
@@ -7131,7 +7131,7 @@ EM_BOOL on_mousedown(int eventType, const EmscriptenMouseEvent* e, void* userDat
     return EM_TRUE;
 }
 
-EM_BOOL on_mouseup(int eventType, const EmscriptenMouseEvent* e, void* userData) {
+EM_BOOL Emscripten_on_mouseup(int eventType, const EmscriptenMouseEvent* e, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
 	RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonReleased;
@@ -7147,7 +7147,7 @@ EM_BOOL on_mouseup(int eventType, const EmscriptenMouseEvent* e, void* userData)
     return EM_TRUE;
 }
 
-EM_BOOL on_wheel(int eventType, const EmscriptenWheelEvent* e, void* userData) {
+EM_BOOL Emscripten_on_wheel(int eventType, const EmscriptenWheelEvent* e, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
 	RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonPressed;
@@ -7164,7 +7164,7 @@ EM_BOOL on_wheel(int eventType, const EmscriptenWheelEvent* e, void* userData) {
     return EM_TRUE;
 }
 
-EM_BOOL on_touchstart(int eventType, const EmscriptenTouchEvent* e, void* userData) { 
+EM_BOOL Emscripten_on_touchstart(int eventType, const EmscriptenTouchEvent* e, void* userData) { 
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
 	RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonPressed;
@@ -7181,7 +7181,7 @@ EM_BOOL on_touchstart(int eventType, const EmscriptenTouchEvent* e, void* userDa
 
 	return EM_TRUE;
 }
-EM_BOOL on_touchmove(int eventType, const EmscriptenTouchEvent* e, void* userData) { 
+EM_BOOL Emscripten_on_touchmove(int eventType, const EmscriptenTouchEvent* e, void* userData) { 
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
 	RGFW_events[RGFW_eventLen].type = RGFW_mousePosChanged;
@@ -7193,7 +7193,7 @@ EM_BOOL on_touchmove(int eventType, const EmscriptenTouchEvent* e, void* userDat
 	return EM_TRUE;
 }
 
-EM_BOOL on_touchend(int eventType, const EmscriptenTouchEvent* e, void* userData) {
+EM_BOOL Emscripten_on_touchend(int eventType, const EmscriptenTouchEvent* e, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 	
 	RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonReleased;
@@ -7210,8 +7210,38 @@ EM_BOOL on_touchend(int eventType, const EmscriptenTouchEvent* e, void* userData
 	return EM_TRUE;
 }
 
-EM_BOOL on_touchcancel(int eventType, const EmscriptenTouchEvent* e, void* userData) { RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(e); return EM_TRUE; }
+EM_BOOL Emscripten_on_touchcancel(int eventType, const EmscriptenTouchEvent* e, void* userData) { RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(e); return EM_TRUE; }
 
+EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamepadEvent, void *userData) {	
+	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
+
+	if (gamepadEvent->index >= 4)
+		return 0;
+
+	RGFW_joysticks[gamepadEvent->index] = gamepadEvent->connected;
+
+    return 1; // The event was consumed by the callback handler
+}
+
+void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(const char** filename, size_t count) {
+	if (!(RGFW_root->_winArgs & RGFW_ALLOW_DND))
+		return;
+	RGFW_UNUSED(filename);
+	RGFW_events[RGFW_eventLen].type = RGFW_dnd;
+	size_t i;
+	for (i = 0; i < count && i < RGFW_MAX_DROPS; i++) {
+		//printf("%s\n", filename[i]);
+		//strncpy(RGFW_events[RGFW_eventLen].droppedFiles[i], filename[i], RGFW_MAX_PATH);
+		//printf("h\n");
+		RGFW_events[RGFW_eventLen].droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
+	} 
+//printf("%zu\n", count);
+	RGFW_events[RGFW_eventLen].droppedFilesCount = count;
+
+	
+	RGFW_dndCallback(RGFW_root, RGFW_events[RGFW_eventLen].droppedFiles, count);
+	RGFW_eventLen++;
+}
 
 b8 RGFW_stopCheckEvents_bool = RGFW_FALSE;
 void RGFW_stopCheckEvents(void) { 
@@ -7220,7 +7250,7 @@ void RGFW_stopCheckEvents(void) {
 
 void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 	RGFW_UNUSED(win);
-
+	
 	u32 start = (u32)(((u64)RGFW_getTimeNS()) / 1e+6);
 
 	while ((RGFW_eventLen == 0) && RGFW_stopCheckEvents_bool == RGFW_FALSE && 
@@ -7248,11 +7278,25 @@ void RGFW_init_buffer(RGFW_window* win) {
 	#endif
 }
 
+void EMSCRIPTEN_KEEPALIVE RGFW_makeSetValue(char** arr, size_t index, char* file) { arr[index] = file; }
+
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <errno.h>
+
+void EMSCRIPTEN_KEEPALIVE RGFW_mkdir(char* name) { mkdir(name, 0755); }
+
+void EMSCRIPTEN_KEEPALIVE RGFW_writeFile(const char *path, const char *data, size_t len) {
+    FILE *file = fopen(path, "wb");
+    fwrite(data, sizeof(char), len, file);
+    fclose(file);
+}
+
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	RGFW_UNUSED(name) 
 
 	RGFW_UNUSED(RGFW_initAttribs);
-
+	
     RGFW_window* win = RGFW_window_basic_init(rect, args);
 
     EmscriptenWebGLContextAttributes attrs;
@@ -7279,22 +7323,78 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	#endif
 
 	emscripten_set_canvas_element_size("#canvas", rect.w, rect.h);
+	emscripten_set_window_title(name);
 
 	/* load callbacks */
-    emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, on_keydown);
-    emscripten_set_keyup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, on_keyup);
-    emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, on_resize);
-    emscripten_set_fullscreenchange_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, NULL, EM_FALSE, on_fullscreenchange);
-    emscripten_set_mousemove_callback("#canvas", NULL, EM_FALSE, on_mousemove);
-    emscripten_set_touchstart_callback("#canvas", NULL, EM_FALSE, on_touchstart);
-    emscripten_set_touchend_callback("#canvas", NULL, EM_FALSE, on_touchend);
-    emscripten_set_touchmove_callback("#canvas", NULL, EM_FALSE, on_touchmove);
-    emscripten_set_touchcancel_callback("#canvas", NULL, EM_FALSE, on_touchcancel);
-    emscripten_set_mousedown_callback("#canvas", NULL, EM_FALSE, on_mousedown);
-    emscripten_set_mouseup_callback("#canvas", NULL, EM_FALSE, on_mouseup);
-    emscripten_set_wheel_callback("#canvas", NULL, EM_FALSE, on_wheel);
-    emscripten_set_focusin_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, on_focusin);
-    emscripten_set_focusout_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, on_focusout);
+    emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, Emscripten_on_keydown);
+    emscripten_set_keyup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, Emscripten_on_keyup);
+    emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, Emscripten_on_resize);
+    emscripten_set_fullscreenchange_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, NULL, EM_FALSE, Emscripten_on_fullscreenchange);
+    emscripten_set_mousemove_callback("#canvas", NULL, EM_FALSE, Emscripten_on_mousemove);
+    emscripten_set_touchstart_callback("#canvas", NULL, EM_FALSE, Emscripten_on_touchstart);
+    emscripten_set_touchend_callback("#canvas", NULL, EM_FALSE, Emscripten_on_touchend);
+    emscripten_set_touchmove_callback("#canvas", NULL, EM_FALSE, Emscripten_on_touchmove);
+    emscripten_set_touchcancel_callback("#canvas", NULL, EM_FALSE, Emscripten_on_touchcancel);
+    emscripten_set_mousedown_callback("#canvas", NULL, EM_FALSE, Emscripten_on_mousedown);
+    emscripten_set_mouseup_callback("#canvas", NULL, EM_FALSE, Emscripten_on_mouseup);
+    emscripten_set_wheel_callback("#canvas", NULL, EM_FALSE, Emscripten_on_wheel);
+    emscripten_set_focusin_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, Emscripten_on_focusin);
+    emscripten_set_focusout_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, Emscripten_on_focusout);
+	emscripten_set_gamepadconnected_callback(NULL, 1, Emscripten_on_gamepad);
+	emscripten_set_gamepaddisconnected_callback(NULL, 1, Emscripten_on_gamepad);
+	if (args & RGFW_ALLOW_DND)  {
+		win->_winArgs |= RGFW_ALLOW_DND;
+	}
+
+    EM_ASM({
+		var canvas = document.getElementById('canvas');
+        canvas.addEventListener('drop', function(e) {
+            e.preventDefault();
+            if (e.dataTransfer.file < 0)
+				return;
+
+			var filenames = _malloc(e.dataTransfer.files.length*4);
+			var filenamesArray = [];
+			var count = e.dataTransfer.files.length;
+
+			/* Read and save the files to emscripten's files */
+			var drop_dir = '.rgfw_dropped_files';
+			Module._RGFW_mkdir(drop_dir);
+
+			for (var i = 0; i < count; i++) {
+				var file = e.dataTransfer.files[i];
+
+				var path = '/' + drop_dir + '/' + file.name.replace("//", '_');
+				var reader = new FileReader();
+				
+				reader.onloadend = (e) => {
+					if (reader.readyState != 2) {
+						out('failed to read dropped file: '+file.name+': '+reader.error);
+					}
+					else {
+						var data = e.target.result;
+						_RGFW_writeFile(path, new Uint8Array(data), file.size);
+					}
+				};
+
+				reader.readAsArrayBuffer(file);
+
+				var filename = stringToNewUTF8(path);
+				filenamesArray.push(filename);
+				
+				Module._RGFW_makeSetValue(filenames, i, filename);
+			}
+			
+			Module._Emscripten_onDrop(filenames, count);
+			
+			for (var i = 0; i < count; ++i) {
+				_free(filenamesArray[i]);
+			}
+			_free(filenames);
+        }, true);
+
+        canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true);
+    });
 
 	RGFW_init_buffer(win);
 	glViewport(0, 0, rect.w, rect.h);
@@ -7314,10 +7414,56 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
 RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	static u8 index = 0;
-
+	
 	if (index == 0) 
 		RGFW_resetKey();
 
+	/* check gamepads */
+    for (int i = 0; (i < emscripten_get_num_gamepads()) && (i < 4); i++) {
+		if (RGFW_joysticks[i] == 0)
+			continue;;
+		
+        EmscriptenGamepadEvent gamepadState;
+
+        if (emscripten_get_gamepad_status(i, &gamepadState) != EMSCRIPTEN_RESULT_SUCCESS)
+			break;
+
+		// Register buttons data for every connected gamepad
+		for (int j = 0; (j < gamepadState.numButtons) && (j < 16); j++) {
+			u32 map[] = {
+				RGFW_JS_A, RGFW_JS_X, RGFW_JS_B, RGFW_JS_Y,
+				RGFW_JS_L1, RGFW_JS_R1, RGFW_JS_L2, RGFW_JS_R2,
+				RGFW_JS_SELECT, RGFW_JS_START,
+				0, 0,
+				RGFW_JS_UP, RGFW_JS_DOWN, RGFW_JS_LEFT, RGFW_JS_RIGHT
+			};
+
+			u32 button = map[j]; 
+			if (RGFW_jsPressed[i][button] != gamepadState.digitalButton[j]) {
+				win->event.type = RGFW_jsButtonPressed;
+				win->event.joystick = i;
+				win->event.button = map[j];
+				return &win->event;
+			}
+
+			RGFW_jsPressed[i][button] = gamepadState.digitalButton[j];
+		}
+
+		for (int j = 0; (j < gamepadState.numAxes) && (j < 4); j += 2) {
+			win->event.axisesCount = gamepadState.numAxes;
+			if (win->event.axis[j].x != gamepadState.axis[j] || 
+				win->event.axis[j].y != gamepadState.axis[j + 1]
+			) {
+				win->event.axis[j].x = gamepadState.axis[j];
+				win->event.axis[j].y = gamepadState.axis[j + 1];
+				win->event.type = RGFW_jsAxisMove;
+				win->event.joystick = i;
+				return &win->event;
+			}
+		}
+    }
+
+	/* check queued events */
 	if (RGFW_eventLen == 0)
 		return NULL;
 	
@@ -7430,9 +7576,6 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 
 		GLuint texture;
 		glGenTextures(1,&texture);
-
-		//glPixelStorei( GL_PACK_ROW_LENGTH, RGFW_bufferSize.w);
-		//glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, RGFW_bufferSize.h);
 
 		glBindTexture(GL_TEXTURE_2D,texture);
 		
