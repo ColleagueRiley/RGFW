@@ -1,0 +1,221 @@
+.TH "md_README" 3 "Tue Jul 23 2024" "RGFW" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md_README \- Riley's Graphics library FrameWork 
+.PP
+
+.SH "Build statuses"
+.PP
+  
+.PP
+A cross-platform lightweight single-header very simple-to-use window abstraction library for creating graphics Libraries or simple graphical programs\&.
+.SH "About"
+.PP
+RGFW is a free multi-platform single-header very simple-to-use window abstraction framework for creating graphics Libraries or simple graphical programs\&. it is meant to be used as a very small and flexible alternative library to GLFW\&.
+.PP
+The window backend supports XLib (UNIX), Cocoas (MacOS), webASM (emscripten) and WinAPI (tested on windows \fIXP\fP, 10 and 11, and reactOS)\\ Windows 95 & 98 have also been tested with RGFW, although results are iffy 
+.br
+.PP
+The graphics backend supports OpenGL (EGL, software, OSMesa, GLES), Vulkan, DirectX and software rendering buffers\&.
+.PP
+RGFW was designed as a backend for RSGL, but it can be used standalone or for other libraries, such as Raylib which uses it as an optional alternative backend\&.
+.PP
+RGFW is multi-paradigm,\\ By default RGFW uses a flexible event system, similar to that of SDL, however you can use callbacks if you prefer that method\&.
+.PP
+This library
+.PP
+1) is single header and portable (written in C99 in mind) 2) is very small compared to other libraries 3) only depends on system API libraries, Winapi, X11, Cocoa 4) lets you create a window with a graphics context (OpenGL, Vulkan or DirectX) and manage the window and its events only with a few function calls
+.PP
+This library does not
+.PP
+1) Handle any rendering for you (other than creating your graphics context) 2) do anything above the bare minimum in terms of functionality
+.SH "Officially tested Platforms"
+.PP
+.IP "\(bu" 2
+Linux
+.IP "\(bu" 2
+Raspberry PI OS
+.IP "\(bu" 2
+Windows, (XP, Windows 10, 11, ReactOS)
+.IP "\(bu" 2
+MacOS, (10\&.13, 10\&.14, 14\&.5) (x86_64)
+.IP "\(bu" 2
+HTML5 (webasm / Emscripten)
+.PP
+.SH "examples"
+.PP
+.PP
+The examples can also \fCrun in your browser\fP with emscripten
+.SS "compiling"
+The examples can be compiled by using \fCmake debug\fP, which compiles them in debug mode and then runs them\\ or \fCmake\fP which simply compiles them\&.
+.PP
+The dx11 example has its own Makefile functions because it is Windows only, those include \fCmake DX11\fP and \fCmake debugDX11\fP
+.PP
+You can do CC=\fCcompiler\fP to specify a specific compiler\\ Tested and supported compilers include, \fCgcc\fP, \fCclang\fP, \fC[x86_64 / i686-w64]-w64-mingw32-gcc\fP, \fCcl\fP (linux AND windows)
+.PP
+\fCtcc\fP has also been tested but work on linux only
+.SS "basic"
+A basic example can be found in \fCexamples/basic\fP, it includes a basic OpenGL example of just about all of RGFW's functionalities\&.
+.SS "events"
+The event example can be found in \fCexamples/events\fP, it shows all the events and the data they send\&.
+.SS "callbacks"
+The callback example can be found in \fCexamples/callbacks\fP, it shows all the events and the data they send, but processed with callbacks instead\&.
+.SS "dx11"
+\fCexamples/dx11\fP is a minimalistic example of the use of DirectX with RGFW
+.SS "gl33"
+\fCexamples/gl33\fP is a minimalistic example of the use of OpenGL 3\&.3 with RGFW, this example was made by \fCAICDG\fP
+.SS "gles2"
+\fCexamples/gles2\fP is a minimalistic example of the use of OpenGL ES 2 with RGFW
+.SS "vk10"
+\fCexamples/vk10\fP is a minimalistic example of the use of Vulkan with RGFW, this example was made by \fCAICDG\fP
+.PP
+It also includes \fCexamples/vk10/RGFW_vulkan\&.h\fP which can be used to create a basic vulkan context for RGFW\&.
+.SS "basic"
+A basic example can be found in \fCexamples/basic\fP, it includes a basic OpenGL example of just about all of RGFW's functionalities\&.
+.SS "buff"
+\fCexamples/buffer\fP is an example that shows how you can use software rendering with RGFW using RGFW_BUFFER mode which allows you to render directly to the window's draw buffer\&.
+.SS "PortableGL"
+\fCexamples/PortableGL\fP is an example that shows how you'd use RGFW with \fCportablegl\&.h\fP\&.
+.SS "first person camera"
+\fCexamples/first-person-camera\fP is an example that shows how you'd make a game with a first person camera with RGFW
+.SS "a very simple example"
+.PP
+.nf
+#define RGFW_IMPLEMENTATION
+#include "RGFW\&.h"
+
+u8 icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF,    0xFF, 0x00, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF,   0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
+
+void keyfunc(RGFW_window* win, u32 keycode, char keyName[16], u8 lockState, u8 pressed) {
+    printf("this is probably early\n");
+}
+
+int main() {
+    RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_CENTER);
+
+    RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
+    
+    RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want 
+
+    i32 running = 1;
+
+    while (running) {
+        while (RGFW_window_checkEvent(win)) { // or RGFW_window_checkEvents(); if you only want callbacks
+            if (win->event\&.type == RGFW_quit || RGFW_isPressed(win, RGFW_Escape)) {
+                running = 0;
+                break;
+            }
+
+            if (win->event\&.type == RGFW_keyPressed) // this is the 'normal' way of handling an event
+                printf("This is probably late\n");
+        }
+        
+        glClearColor(0xFF, 0XFF, 0xFF, 0xFF);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        RGFW_window_swapBuffers(win);
+    }
+
+    RGFW_window_close(win);
+}
+.fi
+.PP
+.SH "Documentation"
+.PP
+There is a lot of in-header-documentation, but more documentation can be found \fChere\fP
+.PP
+If you wish to build the documentation yourself, there is also a Doxygen file attached\&.
+.SH "Bindings"
+.PP
+Language   platform   APIs   URL    C   MacOS, Linux, Windows   OpenGL, DirectX, Vulkan, Buffer   (This Repo)    Python   MacOS, Linux, Windows   OpenGL and Buffer   \fCRGFW-Python\fP    Odin   MacOS, Linux, Windows   OpenGL and Buffer   \fCRGFW-Odin\fP   
+.PP
+Feel free to do a PR if you want a binding added to the list
+.SH "projects"
+.PP
+Projects that use RGFW in some way\\ Feel free to do a PR if you want something added to the list
+.SS "RSGL (made by the same author)"
+\fC\fP\\ (Image functions as a button)
+.PP
+\fCRSGL\fP is A modular simple-to-use cross-platform graphics library for easily creating graphics apps and games\&. It combines the freedom of lower-level graphics libraries with modern C techniques, offering both simplicity and convenience\&.
+.PP
+It uses RGFW as a backend\&.
+.SS "Raylib"
+\fCRaylib\fP is a simple and easy-to-use library to enjoy videogames programming\&.
+.PP
+Raylib uses RGFW as an optional alternative platform\&. \fCrcore_desktop_rgfw\&.c\fP
+.SS "Raylib GO"
+\fCRaylib\fP go bindings for Raylib\&. With explicit support for RGFW\&. (PLATFORM_DESKTOP_RGFW)
+.SS "Claymore"
+\fCClaymore\fP is a C Game Engine designed by Nycticebus that uses RGFW as a backend\&.
+.SS "Silk"
+\fCSilk\fP is a single-header 2D graphics library that renders via software rendering\&. The repo includes examples using multiple libraries, including RGFW\&.
+.PP
+\fCexample_rgfw\fP
+.SS "PureDoom-RGFW"
+\fCPureDOOM-RGFW\fP is an example of the PureDOOM source port, using RGFW and miniaudio\&.
+.SS "RGL (made by the same author)"
+\fC\fP\\ (image functions as a button)
+.PP
+\fCRGL\fP is a simple ultra-lightweight OpenGL version abstraction layer HEAVILY based on RLGL that uses the OpenGL pipeline style\&.
+.PP
+It uses RGFW for it's examples
+.SS "RFont (made by the same author)"
+\fC\fP\\ (image functions as a button)
+.PP
+\fCRFont\fP is a simple-to-use single-header modular font rendering library written in C\&.
+.PP
+It uses RGFW for it's examples
+.SH "Contacts"
+.PP
+.IP "\(bu" 2
+email : ColleagueRiley@gmail.com
+.IP "\(bu" 2
+discord : ColleagueRiley
+.IP "\(bu" 2
+discord server : https://discord.gg/pXVNgVVbvh
+.PP
+.SH "Supporting RGFW"
+.PP
+Things you can do if you want to support the development of RGFW:
+.PP
+.IP "\(bu" 2
+File issues of bugs, potential bugs, potential performance issues you find or any suggestions you have\&.
+.IP "\(bu" 2
+Code reviews, code reviews are always accepted
+.IP "\(bu" 2
+Feature requests
+.IP "\(bu" 2
+Pull requests, fixing issues, bugs, misspellings, etc\&.
+.IP "\(bu" 2
+Starring RGFW, a small thing but it means a lot to me
+.IP "\(bu" 2
+Sharing RGFW with others is the best way for RGFW to build and grow a community
+.IP "\(bu" 2
+Listing RGFW as a dependency if you use RGFW for a project
+.PP
+.PP
+If you want to contribute to RGFW but don't know what to contribute, you can check the \fCTODO\fP file\&.
+.SH "RGFW vs GLFW"
+.PP
+A comparison of RGFW and GLFW can be found at \fCthis gist\fP
+.SH "License"
+.PP
+RGFW uses the Zlib/libPNG license, this means you can use RGFW freely as long as you do not claim you wrote this software, mark altered versions as such and keep the license included with the header\&.
+.PP
+.PP
+.nf
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+  
+1\&. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software\&. If you use this software
+   in a product, an acknowledgment in the product documentation would be
+   appreciated but is not required\&. 
+2\&. Altered source versions must be plainly marked as such, and must not be
+   misrepresented as being the original software\&.
+3\&. This notice may not be removed or altered from any source distribution\&.
+.fi
+.PP
+ 

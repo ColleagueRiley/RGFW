@@ -1,0 +1,78 @@
+.TH "RGFW_Event" 3 "Tue Jul 23 2024" "RGFW" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+RGFW_Event
+.SH SYNOPSIS
+.br
+.PP
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "char \fBkeyName\fP [16]"
+.br
+.ti -1c
+.RI "char \fBdroppedFiles\fP [RGFW_MAX_DROPS][RGFW_MAX_PATH]"
+.br
+.ti -1c
+.RI "u32 \fBdroppedFilesCount\fP"
+.br
+.ti -1c
+.RI "u32 \fBtype\fP"
+.br
+.ti -1c
+.RI "\fBRGFW_point\fP \fBpoint\fP"
+.br
+.ti -1c
+.RI "u32 \fBfps\fP"
+.br
+.ti -1c
+.RI "u64 \fBframeTime\fP"
+.br
+.ti -1c
+.RI "u64 \fBframeTime2\fP"
+.br
+.ti -1c
+.RI "u8 \fBkeyCode\fP"
+.br
+.ti -1c
+.RI "b8 \fBinFocus\fP"
+.br
+.ti -1c
+.RI "u8 \fBlockState\fP"
+.br
+.ti -1c
+.RI "u16 \fBjoystick\fP"
+.br
+.ti -1c
+.RI "u8 \fBbutton\fP"
+.br
+.ti -1c
+.RI "double \fBscroll\fP"
+.br
+.ti -1c
+.RI "u8 \fBaxisesCount\fP"
+.br
+.ti -1c
+.RI "\fBRGFW_point\fP \fBaxis\fP [2]"
+.br
+.in -1c
+.SH "Member Data Documentation"
+.PP 
+.SS "u8 RGFW_Event::button"
+which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed 
+.SS "char RGFW_Event::droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH]"
+drag and drop data dropped files 
+.SS "u32 RGFW_Event::droppedFilesCount"
+house many files were dropped 
+.SS "u8 RGFW_Event::keyCode"
+keycode of event !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! 
+.SS "\fBRGFW_point\fP RGFW_Event::point"
+mouse x, y of event (or drop point) 
+.SS "u32 RGFW_Event::type"
+which event has been sent? 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for RGFW from the source code\&.
