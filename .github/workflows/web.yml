@@ -19,9 +19,16 @@ jobs:
     - name: Set up Emscripten
       uses: mymindstorm/setup-emsdk@v14
 
+    - name: make doxygen docs 
+      uses: mattnotmitt/doxygen-action@v1.9.5
+      with:
+          working-directory: 'submodule/'
+          doxyfile-path: './'
+              
     - name: Compile to WebAssembly
       run: |
         make debug CC=emcc
+        mv html docs
         
     - name: Deploy Pages
       uses: peaceiris/actions-gh-pages@v4
