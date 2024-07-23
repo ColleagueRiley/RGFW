@@ -421,10 +421,10 @@
 #ifndef RGFW_NO_MONITOR
 	/*! structure for monitor data */
 	typedef struct RGFW_monitor {
-		char name[128];  /* monitor name */
-		RGFW_rect rect; /* monitor Workarea */
-		float scaleX, scaleY; /* monitor content scale*/
-		float physW, physH; /* monitor physical size */
+		char name[128]; /*!< monitor name */
+		RGFW_rect rect; /*!< monitor Workarea */
+		float scaleX, scaleY; /*!< monitor content scale*/
+		float physW, physH; /*!< monitor physical size */
 	} RGFW_monitor;
 
 	/*
@@ -455,7 +455,7 @@ typedef struct RGFW_Event {
 	RGFW_point point; /*!< mouse x, y of event (or drop point) */
 	
 	u32 fps; /*the current fps of the window [the fps is checked when events are checked]*/
-	u64 frameTime, frameTime2; /* this is used for counting the fps */
+	u64 frameTime, frameTime2; /*!< this is used for counting the fps */
 	
 	u8 keyCode; /*!< keycode of event 	!!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! */
 
@@ -466,7 +466,7 @@ typedef struct RGFW_Event {
 	u16 joystick; /*! which joystick this event applies to (if applicable to any) */
 
 	u8 button; /*!< which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed*/
-	double scroll; /* the raw mouse scroll value */
+	double scroll; /*!< the raw mouse scroll value */
 
 	u8 axisesCount; /*!< number of axises */
 	RGFW_point axis[2]; /*!< x, y of axises (-100 to 100) */
@@ -496,7 +496,7 @@ typedef struct RGFW_window_src {
 		HDC hdcMem;
 		HBITMAP bitmap;
 #endif
-	RGFW_area maxSize, minSize; /* for setting max/min resize (RGFW_WINDOWS) */
+	RGFW_area maxSize, minSize; /*!< for setting max/min resize (RGFW_WINDOWS) */
 #elif defined(RGFW_X11)
 	Display* display; /*!< source display */
 	Window window; /*!< source window */
@@ -532,7 +532,7 @@ typedef struct RGFW_window_src {
 	void* view; /*apple viewpoint thingy*/
 
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER) 
-		void* bitmap; /* API's bitmap for storing or managing */
+		void* bitmap; /*!< API's bitmap for storing or managing */
 		void* image;
 #endif
 #elif defined(RGFW_WEBASM)
@@ -563,16 +563,16 @@ typedef struct RGFW_window {
 } RGFW_window; /*!< Window structure for managing the window */
 
 #if defined(RGFW_X11) || defined(RGFW_MACOS)
-	typedef u64 RGFW_thread; /* thread type unix */
+	typedef u64 RGFW_thread; /*!< thread type unix */
 #else
-	typedef void* RGFW_thread; /* thread type for window */
+	typedef void* RGFW_thread; /*!< thread type for window */
 #endif
 
 /** * @defgroup Window_management
 * @{ */ 
 
 /*! this has to be set before createWindow is called, else the fulscreen size is used */
-RGFWDEF void RGFW_setBufferSize(RGFW_area size); /* the buffer cannot be resized (by RGFW) */
+RGFWDEF void RGFW_setBufferSize(RGFW_area size); /*!< the buffer cannot be resized (by RGFW) */
 
 RGFW_window* RGFW_createWindow(
 	const char* name, /* name of the window */
@@ -580,10 +580,10 @@ RGFW_window* RGFW_createWindow(
 	u16 args /* extra arguments (NULL / (u16)0 means no args used)*/
 ); /*!< function to create a window struct */
 
-/* get the size of the screen to an area struct */
+/*! get the size of the screen to an area struct */
 RGFWDEF RGFW_area RGFW_getScreenSize(void);
 
-/*
+/*!
 	this function checks an *individual* event (and updates window structure attributes)
 	this means, using this function without a while loop may cause event lag
 
@@ -597,7 +597,7 @@ RGFWDEF RGFW_area RGFW_getScreenSize(void);
 
 RGFW_Event* RGFW_window_checkEvent(RGFW_window* win); /*!< check current event (returns a pointer to win->event or NULL if there is no event)*/
 
-/* 
+/*!
 	for RGFW_window_eventWait and RGFW_window_checkEvents
 	waitMS -> Allows th	e function to keep checking for events even after `RGFW_window_checkEvent == NULL`
 			  if waitMS == 0, the loop will not wait for events
@@ -609,16 +609,16 @@ typedef RGFW_ENUM(i32, RGFW_eventWait) {
 	RGFW_NO_WAIT = 0
 };
 
-/* sleep until RGFW gets an event or the timer ends (defined by OS) */
+/*! sleep until RGFW gets an event or the timer ends (defined by OS) */
 RGFWDEF void RGFW_window_eventWait(RGFW_window* win, i32 waitMS);
 
-/* 
+/*!
 	check all the events until there are none left, 
 	this should only be used if you're using callbacks only
 */
 RGFWDEF void RGFW_window_checkEvents(RGFW_window* win, i32 waitMS);
 
-/* 
+/*! 
 	Tell RGFW_window_eventWait to stop waiting, to be ran from another thread
 */
 RGFWDEF void RGFW_stopCheckEvents(void);
@@ -626,17 +626,17 @@ RGFWDEF void RGFW_stopCheckEvents(void);
 /*! window managment functions*/
 RGFWDEF void RGFW_window_close(RGFW_window* win); /*!< close the window and free leftover data */
 
-/* moves window to a given point */
+/*! moves window to a given point */
 RGFWDEF void RGFW_window_move(RGFW_window* win,
-	RGFW_point v/* new pos*/
+	RGFW_point v/*!< new pos*/
 );
 
 #ifndef RGFW_NO_MONITOR
-	/* move to a specific monitor */
+	/*! move to a specific monitor */
 	RGFWDEF void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m /* monitor */);
 #endif
 
-/* resize window to a current size/area */
+/*! resize window to a current size/area */
 RGFWDEF void RGFW_window_resize(RGFW_window* win, /*!< source window */
 	RGFW_area a/*!< new size*/
 );
@@ -657,7 +657,7 @@ RGFWDEF void RGFW_window_setBorder(RGFW_window* win, b8 border);
 RGFWDEF void RGFW_window_setDND(RGFW_window* win, b8 allow);
 
 #ifndef RGFW_NO_PASSTHROUGH
-	/* turn on / off mouse passthrough */
+	/*!! turn on / off mouse passthrough */
 	RGFWDEF void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough);
 #endif 
 
@@ -678,7 +678,7 @@ RGFWDEF void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 
 /*!< sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the RGFW_HEADER part of this file) */
 RGFWDEF	void RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse);
 
-RGFWDEF void RGFW_window_setMouseDefault(RGFW_window* win); /* sets the mouse to the default mouse icon */
+RGFWDEF void RGFW_window_setMouseDefault(RGFW_window* win); /*!< sets the mouse to the default mouse icon */
 /*
 	Locks cursor at the center of the window
 	win->event.point become raw mouse movement data 
@@ -686,12 +686,12 @@ RGFWDEF void RGFW_window_setMouseDefault(RGFW_window* win); /* sets the mouse to
 	this is useful for a 3D camera
 */
 RGFWDEF void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area);
-/* stop holding the mouse and let it move freely */
+/*! stop holding the mouse and let it move freely */
 RGFWDEF void RGFW_window_mouseUnhold(RGFW_window* win);
 
-/* hide the window */
+/*! hide the window */
 RGFWDEF void RGFW_window_hide(RGFW_window* win);
-/* show the window */
+/*! show the window */
 RGFWDEF void RGFW_window_show(RGFW_window* win);
 
 /*
@@ -700,26 +700,26 @@ RGFWDEF void RGFW_window_show(RGFW_window* win);
 */
 RGFWDEF void RGFW_window_setShouldClose(RGFW_window* win);
 
-/* where the mouse is on the screen */
+/*! where the mouse is on the screen */
 RGFWDEF RGFW_point RGFW_getGlobalMousePoint(void);
 
-/* where the mouse is on the window */
+/*! where the mouse is on the window */
 RGFWDEF RGFW_point RGFW_window_getMousePoint(RGFW_window* win);
 
-/* show the mouse or hide the mouse*/
+/*! show the mouse or hide the mouse*/
 RGFWDEF void RGFW_window_showMouse(RGFW_window* win, i8 show);
-/* move the mouse to a set x, y pos*/
+/*! move the mouse to a set x, y pos*/
 RGFWDEF void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v);
 
-/* if the window should close (RGFW_close was sent or escape was pressed) */
+/*! if the window should close (RGFW_close was sent or escape was pressed) */
 RGFWDEF b8 RGFW_window_shouldClose(RGFW_window* win);
-/* if window is fullscreen'd */
+/*! if window is fullscreen'd */
 RGFWDEF b8 RGFW_window_isFullscreen(RGFW_window* win);
-/* if window is hidden */
+/*! if window is hidden */
 RGFWDEF b8 RGFW_window_isHidden(RGFW_window* win);
-/* if window is minimized */
+/*! if window is minimized */
 RGFWDEF b8 RGFW_window_isMinimized(RGFW_window* win);
-/* if window is maximized */
+/*! if window is maximized */
 RGFWDEF b8 RGFW_window_isMaximized(RGFW_window* win);
 
 /** @} */ 
@@ -733,7 +733,7 @@ scale the window to the monitor,
 this is run by default if the user uses the arg `RGFW_SCALE_TO_MONITOR` during window creation
 */
 RGFWDEF void RGFW_window_scaleToMonitor(RGFW_window* win);
-/* get the struct of the window's monitor  */
+/*! get the struct of the window's monitor  */
 RGFWDEF RGFW_monitor RGFW_window_getMonitor(RGFW_window* win);
 #endif
 
@@ -743,7 +743,7 @@ RGFWDEF RGFW_monitor RGFW_window_getMonitor(RGFW_window* win);
 * @{ */ 
 
 /*error handling*/
-RGFWDEF b8 RGFW_Error(void); /* returns true if an error has occurred (doesn't print errors itself) */
+RGFWDEF b8 RGFW_Error(void); /*!< returns true if an error has occurred (doesn't print errors itself) */
 
 /*!< if window == NULL, it checks if the key is pressed globally. Otherwise, it checks only if the key is pressed while the window in focus.*/
 RGFWDEF b8 RGFW_isPressed(RGFW_window* win, u8 key); /*!< if key is pressed (key code)*/
@@ -754,22 +754,22 @@ RGFWDEF b8 RGFW_isHeld(RGFW_window* win, u8 key); /*!< if key is held (key code)
 RGFWDEF b8 RGFW_isReleased(RGFW_window* win, u8 key); /*!< if key is released (key code)*/
 
 /* if a key is pressed and then released, pretty much the same as RGFW_isReleased */
-RGFWDEF b8 RGFW_isClicked(RGFW_window* win, u8 key /* key code*/);
+RGFWDEF b8 RGFW_isClicked(RGFW_window* win, u8 key /*!< key code*/);
 
-/* if a mouse button is pressed */
-RGFWDEF b8 RGFW_isMousePressed(RGFW_window* win, u8 button /* mouse button code */ );
-/* if a mouse button is held */
-RGFWDEF b8 RGFW_isMouseHeld(RGFW_window* win, u8 button /* mouse button code */ );
-/* if a mouse button was released */
-RGFWDEF b8 RGFW_isMouseReleased(RGFW_window* win, u8 button /* mouse button code */ );
-/* if a mouse button was pressed (checks previous state only) */
-RGFWDEF b8 RGFW_wasMousePressed(RGFW_window* win, u8 button /* mouse button code */ );
+/*! if a mouse button is pressed */
+RGFWDEF b8 RGFW_isMousePressed(RGFW_window* win, u8 button /*!< mouse button code */ );
+/*! if a mouse button is held */
+RGFWDEF b8 RGFW_isMouseHeld(RGFW_window* win, u8 button /*!< mouse button code */ );
+/*! if a mouse button was released */
+RGFWDEF b8 RGFW_isMouseReleased(RGFW_window* win, u8 button /*!< mouse button code */ );
+/*! if a mouse button was pressed (checks previous state only) */
+RGFWDEF b8 RGFW_wasMousePressed(RGFW_window* win, u8 button /*!< mouse button code */ );
 /** @} */ 
 
 /** * @defgroup Clipboard
 * @{ */ 
 RGFWDEF char* RGFW_readClipboard(size_t* size); /*!< read clipboard data */
-RGFWDEF void RGFW_clipboardFree(char* str); /* the string returned from RGFW_readClipboard must be freed */
+RGFWDEF void RGFW_clipboardFree(char* str); /*!< the string returned from RGFW_readClipboard must be freed */
 
 RGFWDEF void RGFW_writeClipboard(const char* text, u32 textLen); /*!< write text to the clipboard */
 /** @} */ 
@@ -785,33 +785,33 @@ RGFWDEF void RGFW_writeClipboard(const char* text, u32 textLen); /*!< write text
 * @{ 
 */
 
-/* RGFW_windowMoved, the window and its new rect value  */
+/*! RGFW_windowMoved, the window and its new rect value  */
 typedef void (* RGFW_windowmovefunc)(RGFW_window* win, RGFW_rect r);
-/* RGFW_windowResized, the window and its new rect value  */
+/*! RGFW_windowResized, the window and its new rect value  */
 typedef void (* RGFW_windowresizefunc)(RGFW_window* win, RGFW_rect r);
-/* RGFW_quit, the window that was closed */
+/*! RGFW_quit, the window that was closed */
 typedef void (* RGFW_windowquitfunc)(RGFW_window* win);
-/* RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its inFocus */
+/*! RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its inFocus */
 typedef void (* RGFW_focusfunc)(RGFW_window* win, b8 inFocus);
-/* RGFW_mouseEnter / RGFW_mouseLeave, the window that changed, the point of the mouse (enter only) and if the mouse has entered */
+/*! RGFW_mouseEnter / RGFW_mouseLeave, the window that changed, the point of the mouse (enter only) and if the mouse has entered */
 typedef void (* RGFW_mouseNotifyfunc)(RGFW_window* win, RGFW_point point, b8 status);
-/* RGFW_mousePosChanged, the window that the move happened on and the new point of the mouse  */
+/*! RGFW_mousePosChanged, the window that the move happened on and the new point of the mouse  */
 typedef void (* RGFW_mouseposfunc)(RGFW_window* win, RGFW_point point);
-/* RGFW_dnd_init, the window, the point of the drop on the windows */
+/*! RGFW_dnd_init, the window, the point of the drop on the windows */
 typedef void (* RGFW_dndInitfunc)(RGFW_window* win, RGFW_point point);
-/* RGFW_windowRefresh, the window that needs to be refreshed */
+/*! RGFW_windowRefresh, the window that needs to be refreshed */
 typedef void (* RGFW_windowrefreshfunc)(RGFW_window* win);
-/* RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the keycode, the string version, the state of mod keys, if it was a press (else it's a release) */
+/*! RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the keycode, the string version, the state of mod keys, if it was a press (else it's a release) */
 typedef void (* RGFW_keyfunc)(RGFW_window* win, u32 keycode, char keyName[16], u8 lockState, b8 pressed);
-/* RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release)  */
+/*! RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release)  */
 typedef void (* RGFW_mousebuttonfunc)(RGFW_window* win, u8 button, double scroll, b8 pressed);
-/* RGFW_jsButtonPressed / RGFW_jsButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) */
+/*! RGFW_jsButtonPressed / RGFW_jsButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) */
 typedef void (* RGFW_jsButtonfunc)(RGFW_window* win, u16 joystick, u8 button, b8 pressed);
-/* RGFW_jsAxisMove, the window that got the event, the joystick in question, the axis values and the amount of axises */
+/*! RGFW_jsAxisMove, the window that got the event, the joystick in question, the axis values and the amount of axises */
 typedef void (* RGFW_jsAxisfunc)(RGFW_window* win, u16 joystick, RGFW_point axis[2], u8 axisesCount);
 
 
-/*  RGFW_dnd, the window that had the drop, the drop data and the amount files dropped */
+/*!  RGFW_dnd, the window that had the drop, the drop data and the amount files dropped */
 #ifdef RGFW_ALLOC_DROPFILES
 	typedef void (* RGFW_dndfunc)(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount);
 #else
@@ -892,7 +892,7 @@ RGFWDEF u32 RGFW_isPressedJS(RGFW_window* win, u16 controller, u8 button);
 RGFWDEF void RGFW_window_makeCurrent(RGFW_window* win);
 
 /* supports openGL, directX, OSMesa, EGL and software rendering */
-RGFWDEF void RGFW_window_swapBuffers(RGFW_window* win); /* swap the rendering buffer */
+RGFWDEF void RGFW_window_swapBuffers(RGFW_window* win); /*!< swap the rendering buffer */
 RGFWDEF void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval);
 
 RGFWDEF void RGFW_window_setGPURender(RGFW_window* win, i8 set);
@@ -902,16 +902,16 @@ RGFWDEF void RGFW_window_setCPURender(RGFW_window* win, i8 set);
 #ifdef RGFW_OPENGL
 	/*! Get max OpenGL version */
 	RGFWDEF u8* RGFW_getMaxGLVersion(void);
-	/* OpenGL init hints */
-	RGFWDEF void RGFW_setGLStencil(i32 stencil); /* set stencil buffer bit size (8 by default) */
-	RGFWDEF void RGFW_setGLSamples(i32 samples); /* set number of sampiling buffers (4 by default) */
-	RGFWDEF void RGFW_setGLStereo(i32 stereo); /* use GL_STEREO (GL_FALSE by default) */
-	RGFWDEF void RGFW_setGLAuxBuffers(i32 auxBuffers); /* number of aux buffers (0 by default) */
+	/*! OpenGL init hints */
+	RGFWDEF void RGFW_setGLStencil(i32 stencil); /*!< set stencil buffer bit size (8 by default) */
+	RGFWDEF void RGFW_setGLSamples(i32 samples); /*!< set number of sampiling buffers (4 by default) */
+	RGFWDEF void RGFW_setGLStereo(i32 stereo); /*!< use GL_STEREO (GL_FALSE by default) */
+	RGFWDEF void RGFW_setGLAuxBuffers(i32 auxBuffers); /*!< number of aux buffers (0 by default) */
 
 	/*! Set OpenGL version hint */
 	RGFWDEF void RGFW_setGLVersion(i32 major, i32 minor);
-	RGFWDEF void* RGFW_getProcAddress(const char* procname); /* get native opengl proc address */
-	RGFWDEF void RGFW_window_makeCurrent_OpenGL(RGFW_window* win); /* to be called by RGFW_window_makeCurrent */
+	RGFWDEF void* RGFW_getProcAddress(const char* procname); /*!< get native opengl proc address */
+	RGFWDEF void RGFW_window_makeCurrent_OpenGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
 #elif defined(RGFW_DIRECTX)
 	typedef struct {
 		IDXGIFactory* pFactory;
@@ -933,11 +933,11 @@ RGFWDEF void RGFW_window_setCPURender(RGFW_window* win, i8 set);
 * @{ */ 
 
 RGFWDEF void RGFW_window_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_window_checkEvent)*/
-RGFWDEF u64 RGFW_getTime(void); /* get time in seconds */
-RGFWDEF u64 RGFW_getTimeNS(void); /* get time in nanoseconds */
-RGFWDEF void RGFW_sleep(u64 milisecond); /* sleep for a set time */
+RGFWDEF u64 RGFW_getTime(void); /*!< get time in seconds */
+RGFWDEF u64 RGFW_getTimeNS(void); /*!< get time in nanoseconds */
+RGFWDEF void RGFW_sleep(u64 milisecond); /*!< sleep for a set time */
 
-/* 
+/*!
 	key codes and mouse icon enums
 */
 
@@ -1290,9 +1290,9 @@ u32 RGFW_apiKeyCodeToRGFW(u32 keycode) {
 
 RGFWDEF void RGFW_resetKey(void);
 void RGFW_resetKey(void) {
-	size_t len = final_key; /* last_key == length */
+	size_t len = final_key; /*!< last_key == length */
 	
-	size_t i; /* reset each previous state  */
+	size_t i; /*!< reset each previous state  */
 	for (i = 0; i < len; i++)
 		RGFW_keyboard[i].prev = 0;
 }
@@ -1302,10 +1302,10 @@ void RGFW_resetKey(void) {
 */
 
 /* joystick data */
-u8 RGFW_jsPressed[4][16]; /* if a key is currently pressed or not (per joystick) */
+u8 RGFW_jsPressed[4][16]; /*!< if a key is currently pressed or not (per joystick) */
 
-i32 RGFW_joysticks[4]; /* limit of 4 joysticks at a time */
-u16 RGFW_joystickCount; /* the actual amount of joysticks */
+i32 RGFW_joysticks[4]; /*!< limit of 4 joysticks at a time */
+u16 RGFW_joystickCount; /*!< the actual amount of joysticks */
 
 /* 
 	event callback defines start here
@@ -1405,7 +1405,7 @@ RGFWDEF RGFW_window* RGFW_window_basic_init(RGFW_rect rect, u16 args);
 
 /* do a basic initialization for RGFW_window, this is to standard it for each OS */
 RGFW_window* RGFW_window_basic_init(RGFW_rect rect, u16 args) {
-	RGFW_window* win = (RGFW_window*) RGFW_MALLOC(sizeof(RGFW_window)); /* make a new RGFW struct */
+	RGFW_window* win = (RGFW_window*) RGFW_MALLOC(sizeof(RGFW_window)); /*!< make a new RGFW struct */
 
 	/* clear out dnd info */
 #ifdef RGFW_ALLOC_DROPFILES
@@ -2129,7 +2129,7 @@ Start of Linux / Unix defines
 		win->src.gc = XCreateGC(win->src.display, win->src.window, 0, NULL);
 
 		#else
-		RGFW_UNUSED(win); /* if buffer rendering is not being used */
+		RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		RGFW_UNUSED(vi)
 		#endif
 	}
@@ -2216,14 +2216,14 @@ Start of Linux / Unix defines
 		}
 #endif
 
-		XInitThreads(); /* init X11 threading*/
+		XInitThreads(); /*!< init X11 threading*/
 
 		if (args & RGFW_OPENGL_SOFTWARE)
 			setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
 
 		RGFW_window* win = RGFW_window_basic_init(rect, args);
 
-		u64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /* X11 events accepted*/
+		u64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /*!< X11 events accepted*/
 
 #ifdef RGFW_OPENGL
 		u32* visual_attribs = RGFW_initAttribs(args & RGFW_OPENGL_SOFTWARE);
@@ -2267,7 +2267,7 @@ Start of Linux / Unix defines
 		XFree(fbc);
 		
 		if (args & RGFW_TRANSPARENT_WINDOW) {
-			XMatchVisualInfo((Display*) win->src.display, DefaultScreen((Display*) win->src.display), 32, TrueColor, vi); /* for RGBA backgrounds*/
+			XMatchVisualInfo((Display*) win->src.display, DefaultScreen((Display*) win->src.display), 32, TrueColor, vi); /*!< for RGBA backgrounds*/
 		}
 		
 #else
@@ -2278,7 +2278,7 @@ Start of Linux / Unix defines
 		viNorm.depth = 0;
 		XVisualInfo* vi = &viNorm;
 		
-		XMatchVisualInfo((Display*) win->src.display, DefaultScreen((Display*) win->src.display), 32, TrueColor, vi); /* for RGBA backgrounds*/
+		XMatchVisualInfo((Display*) win->src.display, DefaultScreen((Display*) win->src.display), 32, TrueColor, vi); /*!< for RGBA backgrounds*/
 #endif
 		/* make X window attrubutes*/
 		XSetWindowAttributes swa;
@@ -2365,7 +2365,7 @@ Start of Linux / Unix defines
 			RGFW_window_setBorder(win, 0);
 		}
 
-		XSelectInput((Display*) win->src.display, (Drawable) win->src.window, event_mask); /* tell X11 what events we want*/
+		XSelectInput((Display*) win->src.display, (Drawable) win->src.window, event_mask); /*!< tell X11 what events we want*/
 
 		/* make it so the user can't close the window until the program does*/
 		if (wm_delete_window == 0)
@@ -2380,10 +2380,10 @@ Start of Linux / Unix defines
 #endif
 
 		/* set the background*/
-		XStoreName((Display*) win->src.display, (Drawable) win->src.window, name); /* set the name*/
+		XStoreName((Display*) win->src.display, (Drawable) win->src.window, name); /*!< set the name*/
 
 		XMapWindow((Display*) win->src.display, (Drawable) win->src.window);						  /* draw the window*/
-		XMoveWindow((Display*) win->src.display, (Drawable) win->src.window, win->r.x, win->r.y); /* move the window to it's proper cords*/
+		XMoveWindow((Display*) win->src.display, (Drawable) win->src.window, win->r.x, win->r.y); /*!< move the window to it's proper cords*/
 
 		if (args & RGFW_ALLOW_DND) { /* init drag and drop atoms and turn on drag and drop for this window */
 			win->_winArgs |= RGFW_ALLOW_DND;
@@ -2410,7 +2410,7 @@ Start of Linux / Unix defines
 
 			XChangeProperty((Display*) win->src.display, (Window) win->src.window,
 				XdndAware, 4, 32,
-				PropModeReplace, (u8*) &version, 1); /* turns on drag and drop */
+				PropModeReplace, (u8*) &version, 1); /*!< turns on drag and drop */
 		}
 
 		#ifdef RGFW_EGL
@@ -2530,7 +2530,7 @@ Start of Linux / Unix defines
 	typedef struct XDND {
 		long source, version;
 		i32 format;
-	} XDND; /* data structure for xdnd events */
+	} XDND; /*!< data structure for xdnd events */
 	XDND xdnd;
 
 	int xAxis = 0, yAxis = 0;
@@ -2593,7 +2593,7 @@ Start of Linux / Unix defines
 
 		XPending(win->src.display);
 
-		XEvent E; /* raw X11 event */
+		XEvent E; /*!< raw X11 event */
 
 		/* if there is no unread qued events, get a new one */
 		if ((QLength(win->src.display) || XEventsQueued((Display*) win->src.display, QueuedAlready) + XEventsQueued((Display*) win->src.display, QueuedAfterReading)) 
@@ -3773,9 +3773,9 @@ Start of Linux / Unix defines
 				RGFW_root = NULL;
 
 			if ((Drawable) win->src.window)
-				XDestroyWindow((Display*) win->src.display, (Drawable) win->src.window); /* close the window*/
+				XDestroyWindow((Display*) win->src.display, (Drawable) win->src.window); /*!< close the window*/
 			
-			XCloseDisplay((Display*) win->src.display); /* kill the display*/
+			XCloseDisplay((Display*) win->src.display); /*!< kill the display*/
 		}
 
 #ifdef RGFW_ALLOC_DROPFILES
@@ -3825,7 +3825,7 @@ Start of Linux / Unix defines
 		win->src.display = (Display*) 0;
 		win->src.window = (Window) 0;
 
-		RGFW_FREE(win); /* free collected window data */
+		RGFW_FREE(win); /*!< free collected window data */
 	}
 
 	u64 RGFW_getTimeNS(void) { 
@@ -4085,7 +4085,7 @@ static HMODULE wglinstance = NULL;
 	OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
 	#endif
 #else
-RGFW_UNUSED(win); /* if buffer rendering is not being used */
+RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 #endif
 	}
 
@@ -4154,7 +4154,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 
 		HINSTANCE inh = GetModuleHandleA(NULL);
 
-		WNDCLASSA Class = { 0 }; /* Setup the Window class. */
+		WNDCLASSA Class = { 0 }; /*!< Setup the Window class. */
 		Class.lpszClassName = name;
 		Class.hInstance = inh;
 		Class.hCursor = LoadCursor(NULL, IDC_ARROW);
@@ -4929,7 +4929,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 			for (deviceIndex = 0; EnumDisplayDevicesA(0, (DWORD) deviceIndex, &dd, 0); deviceIndex++) {
 				char* deviceName = dd.DeviceName;
 				if (EnumDisplayDevicesA(deviceName, info.iIndex, &dd, 0)) {
-					strncpy(monitor.name, dd.DeviceString, 128); /* copy the monitor's name */
+					strncpy(monitor.name, dd.DeviceString, 128); /*!< copy the monitor's name */
 					break;
 				}
 			}
@@ -5139,10 +5139,10 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 #endif
 
 #ifdef RGFW_OPENGL
-		wglDeleteContext((HGLRC) win->src.ctx); /* delete opengl context */
+		wglDeleteContext((HGLRC) win->src.ctx); /*!< delete opengl context */
 #endif
-		DeleteDC(win->src.hdc); /* delete device context */
-		DestroyWindow(win->src.window); /* delete window */
+		DeleteDC(win->src.hdc); /*!< delete device context */
+		DestroyWindow(win->src.window); /*!< delete window */
 
 #if defined(RGFW_OSMESA)
 		if (win->buffer != NULL)
@@ -6039,7 +6039,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 				OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
 		#endif
 		#else
-		RGFW_UNUSED(win); /* if buffer rendering is not being used */
+		RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		#endif
 	}
 
@@ -6253,7 +6253,7 @@ RGFW_UNUSED(win); /* if buffer rendering is not being used */
 		CGPoint point = CGEventGetLocation(e);
 		CFRelease(e);
 
-		return RGFW_POINT((u32) point.x, (u32) point.y); /* the point is loaded during event checks */
+		return RGFW_POINT((u32) point.x, (u32) point.y); /*!< the point is loaded during event checks */
 	}
 
 	RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
@@ -7311,7 +7311,7 @@ void RGFW_init_buffer(RGFW_window* win) {
 			OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
 	#endif
 	#else
-	RGFW_UNUSED(win); /* if buffer rendering is not being used */
+	RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	#endif
 }
 
