@@ -134,8 +134,7 @@ int main() {
 ```
 
 # Documentation
-There is a lot of in-header-documentation, but more documentation can be found [here](https://RSGL.github.io/RGFW)
-
+There is a lot of in-header-documentation, but more documentation can be found at https://colleagueriley.github.io/RGFW/docs/index.html
 If you wish to build the documentation yourself, there is also a Doxygen file attached.
 
 # Bindings
@@ -222,7 +221,7 @@ RGFW uses the Zlib/libPNG license, this means you can use RGFW freely as long as
 ```
 Permission is granted to anyone to use this software for any purpose,
 including commercial applications, and to alter it and redistribute it
-freely, subject to the following restrictions:
+freely, subject to the following restrictions:fdocu
   
 1. The origin of this software must not be misrepresented; you must not
    claim that you wrote the original software. If you use this software
