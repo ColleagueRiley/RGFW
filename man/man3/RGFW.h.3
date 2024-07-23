@@ -1,0 +1,783 @@
+.TH "RGFW.h" 3 "Tue Jul 23 2024" "RGFW" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+RGFW.h
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <stdlib\&.h>\fP
+.br
+\fC#include <time\&.h>\fP
+.br
+\fC#include <stdint\&.h>\fP
+.br
+
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "struct \fBRGFW_point\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_rect\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_area\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_monitor\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_Event\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_window_src\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_window\fP"
+.br
+.in -1c
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBRGFW_MALLOC\fP   malloc"
+.br
+.ti -1c
+.RI "#define \fBRGFW_CALLOC\fP   calloc"
+.br
+.ti -1c
+.RI "#define \fBRGFW_FREE\fP   free"
+.br
+.ti -1c
+.RI "#define \fBinline\fP   __inline"
+.br
+.ti -1c
+.RI "#define \fBRGFWDEF\fP   \fBinline\fP"
+.br
+.ti -1c
+.RI "#define \fBRGFW_ENUM\fP(type,  name)   type name; enum"
+.br
+.ti -1c
+.RI "#define \fBRGFW_UNUSED\fP(x)   (void)(x);"
+.br
+.ti -1c
+.RI "#define \fBRGFW_HEADER\fP"
+.br
+.ti -1c
+.RI "#define \fBRGFW_TRUE\fP   1"
+.br
+.ti -1c
+.RI "#define \fBRGFW_FALSE\fP   0"
+.br
+.ti -1c
+.RI "#define \fBRGFW_OPENGL\fP"
+.br
+.ti -1c
+.RI "#define \fBRGFW_ALPHA\fP   128 /* alpha value for \fBRGFW_TRANSPARENT_WINDOW\fP (WINAPI ONLY, macOS + linux don't need this) */"
+.br
+.ti -1c
+.RI "#define \fBRGFW_TRANSPARENT_WINDOW\fP   (1L<<9)"
+.br
+.ti -1c
+.RI "#define \fBRGFW_NO_BORDER\fP   (1L<<3)"
+.br
+.ti -1c
+.RI "#define \fBRGFW_NO_RESIZE\fP   (1L<<4)"
+.br
+.ti -1c
+.RI "#define \fBRGFW_ALLOW_DND\fP   (1L<<5)"
+.br
+.ti -1c
+.RI "#define \fBRGFW_HIDE_MOUSE\fP   (1L<<6) /*! the window should hide the mouse or not (can be toggled later on) using `RGFW_window_mouseShow*/"
+.br
+.ti -1c
+.RI "#define \fBRGFW_FULLSCREEN\fP   (1L<<8) /* the window is fullscreen by default or not */"
+.br
+.ti -1c
+.RI "#define \fBRGFW_CENTER\fP   (1L<<10) /*! center the window on the screen */"
+.br
+.ti -1c
+.RI "#define \fBRGFW_OPENGL_SOFTWARE\fP   (1L<<11) /*! use OpenGL software rendering */"
+.br
+.ti -1c
+.RI "#define \fBRGFW_COCOA_MOVE_TO_RESOURCE_DIR\fP   (1L << 12) /* (cocoa only), move to resource folder */"
+.br
+.ti -1c
+.RI "#define \fBRGFW_SCALE_TO_MONITOR\fP   (1L << 13) /* scale the window to the screen */"
+.br
+.ti -1c
+.RI "#define \fBRGFW_NO_INIT_API\fP   (1L << 2) /* DO not init an API (mostly for bindings, you should use `#define RGFW_NO_API` in C */"
+.br
+.ti -1c
+.RI "#define \fBRGFW_NO_GPU_RENDER\fP   (1L<<14) /* don't render (using the GPU based API)*/"
+.br
+.ti -1c
+.RI "#define \fBRGFW_NO_CPU_RENDER\fP   (1L<<15) /* don't render (using the CPU based buffer rendering)*/"
+.br
+.ti -1c
+.RI "#define \fBRGFW_keyPressed\fP   2 /* a key has been pressed */"
+.br
+.ti -1c
+.RI "#define \fBRGFW_keyReleased\fP   3"
+.br
+.ti -1c
+.RI "#define \fBRGFW_mouseButtonPressed\fP   4"
+.br
+.ti -1c
+.RI "#define \fBRGFW_mouseButtonReleased\fP   5"
+.br
+.ti -1c
+.RI "#define \fBRGFW_mousePosChanged\fP   6"
+.br
+.ti -1c
+.RI "#define \fBRGFW_jsButtonPressed\fP   7"
+.br
+.ti -1c
+.RI "#define \fBRGFW_jsButtonReleased\fP   8"
+.br
+.ti -1c
+.RI "#define \fBRGFW_jsAxisMove\fP   9"
+.br
+.ti -1c
+.RI "#define \fBRGFW_windowMoved\fP   10"
+.br
+.ti -1c
+.RI "#define \fBRGFW_windowResized\fP   11"
+.br
+.ti -1c
+.RI "#define \fBRGFW_focusIn\fP   12"
+.br
+.ti -1c
+.RI "#define \fBRGFW_focusOut\fP   13"
+.br
+.ti -1c
+.RI "#define \fBRGFW_mouseEnter\fP   14 /* mouse entered the window */"
+.br
+.ti -1c
+.RI "#define \fBRGFW_mouseLeave\fP   15 /* mouse left the window */"
+.br
+.ti -1c
+.RI "#define \fBRGFW_windowRefresh\fP   16 /* The window content needs to be refreshed */"
+.br
+.ti -1c
+.RI "#define \fBRGFW_quit\fP   33"
+.br
+.ti -1c
+.RI "#define \fBRGFW_dnd\fP   34"
+.br
+.ti -1c
+.RI "#define \fBRGFW_dnd_init\fP   35"
+.br
+.ti -1c
+.RI "#define \fBRGFW_mouseLeft\fP   1"
+.br
+.ti -1c
+.RI "#define \fBRGFW_mouseMiddle\fP   2"
+.br
+.ti -1c
+.RI "#define \fBRGFW_mouseRight\fP   3"
+.br
+.ti -1c
+.RI "#define \fBRGFW_mouseScrollUp\fP   4"
+.br
+.ti -1c
+.RI "#define \fBRGFW_mouseScrollDown\fP   5"
+.br
+.ti -1c
+.RI "#define \fBRGFW_MAX_PATH\fP   260 /* max length of a path (for dnd) */"
+.br
+.ti -1c
+.RI "#define \fBRGFW_MAX_DROPS\fP   260 /* max items you can drop at once */"
+.br
+.ti -1c
+.RI "#define \fBRGFW_CAPSLOCK\fP   (1L << 1)"
+.br
+.ti -1c
+.RI "#define \fBRGFW_NUMLOCK\fP   (1L << 2)"
+.br
+.ti -1c
+.RI "#define \fBRGFW_POINT\fP(x,  y)   (\fBRGFW_point\fP){x, y}"
+.br
+.ti -1c
+.RI "#define \fBRGFW_RECT\fP(x,  y,  w,  h)   (\fBRGFW_rect\fP){x, y, w, h}"
+.br
+.ti -1c
+.RI "#define \fBRGFW_AREA\fP(w,  h)   (\fBRGFW_area\fP){w, h}"
+.br
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef uint8_t \fBu8\fP"
+.br
+.ti -1c
+.RI "typedef int8_t \fBi8\fP"
+.br
+.ti -1c
+.RI "typedef uint16_t \fBu16\fP"
+.br
+.ti -1c
+.RI "typedef int16_t \fBi16\fP"
+.br
+.ti -1c
+.RI "typedef uint32_t \fBu32\fP"
+.br
+.ti -1c
+.RI "typedef int32_t \fBi32\fP"
+.br
+.ti -1c
+.RI "typedef uint64_t \fBu64\fP"
+.br
+.ti -1c
+.RI "typedef int64_t \fBi64\fP"
+.br
+.ti -1c
+.RI "typedef \fBu8\fP \fBb8\fP"
+.br
+.ti -1c
+.RI "typedef \fBu32\fP \fBb32\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_Event\fP \fBRGFW_Event\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_window_src\fP \fBRGFW_window_src\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_window\fP \fBRGFW_window\fP"
+.br
+.ti -1c
+.RI "typedef void * \fBRGFW_thread\fP"
+.br
+.ti -1c
+.RI "typedef void(* \fBRGFW_windowmovefunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
+.br
+.ti -1c
+.RI "typedef void(* \fBRGFW_windowresizefunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
+.br
+.ti -1c
+.RI "typedef void(* \fBRGFW_windowquitfunc\fP) (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "typedef void(* \fBRGFW_focusfunc\fP) (\fBRGFW_window\fP *win, \fBb8\fP inFocus)"
+.br
+.ti -1c
+.RI "typedef void(* \fBRGFW_mouseNotifyfunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point, \fBb8\fP status)"
+.br
+.ti -1c
+.RI "typedef void(* \fBRGFW_mouseposfunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point)"
+.br
+.ti -1c
+.RI "typedef void(* \fBRGFW_dndInitfunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point)"
+.br
+.ti -1c
+.RI "typedef void(* \fBRGFW_windowrefreshfunc\fP) (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu32\fP keycode, char keyName[16], \fBu8\fP lockState, \fBb8\fP pressed)"
+.br
+.ti -1c
+.RI "typedef void(* \fBRGFW_mousebuttonfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP button, double scroll, \fBb8\fP pressed)"
+.br
+.ti -1c
+.RI "typedef void(* \fBRGFW_jsButtonfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP joystick, \fBu8\fP button, \fBb8\fP pressed)"
+.br
+.ti -1c
+.RI "typedef void(* \fBRGFW_jsAxisfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP joystick, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount)"
+.br
+.ti -1c
+.RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, char droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP], \fBu32\fP droppedFilesCount)"
+.br
+.ti -1c
+.RI "typedef DWORD(__stdcall * \fBRGFW_threadFunc_ptr\fP) (LPVOID lpThreadParameter)"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_joystick_codes)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP * \fBRGFW_getMonitors\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP \fBRGFW_getPrimaryMonitor\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setBufferSize\fP (\fBRGFW_area\fP size)"
+.br
+.ti -1c
+.RI "\fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, \fBu16\fP args)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_area\fP \fBRGFW_getScreenSize\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFW_Event\fP * \fBRGFW_window_checkEvent\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_eventWait)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_eventWait\fP (\fBRGFW_window\fP *win, \fBi32\fP waitMS)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_checkEvents\fP (\fBRGFW_window\fP *win, \fBi32\fP waitMS)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_stopCheckEvents\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_close\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_move\fP (\fBRGFW_window\fP *win, \fBRGFW_point\fP v)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_moveToMonitor\fP (\fBRGFW_window\fP *win, \fBRGFW_monitor\fP m)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_resize\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP a)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setMinSize\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP a)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setMaxSize\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP a)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_maximize\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_minimize\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_restore\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setBorder\fP (\fBRGFW_window\fP *win, \fBb8\fP border)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setDND\fP (\fBRGFW_window\fP *win, \fBb8\fP allow)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setMousePassthrough\fP (\fBRGFW_window\fP *win, \fBb8\fP passthrough)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setName\fP (\fBRGFW_window\fP *win, char *name)"
+.br
+.ti -1c
+.RI "void \fBRGFW_window_setIcon\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBu8\fP *image, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouseStandard\fP (\fBRGFW_window\fP *win, \fBu8\fP mouse)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouseDefault\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_mouseHold\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP area)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_mouseUnhold\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_hide\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_show\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setShouldClose\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_getGlobalMousePoint\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_window_getMousePoint\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_showMouse\fP (\fBRGFW_window\fP *win, \fBi8\fP show)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_moveMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_point\fP v)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_window_shouldClose\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_window_isFullscreen\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_window_isHidden\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_window_isMinimized\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_window_isMaximized\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_scaleToMonitor\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP \fBRGFW_window_getMonitor\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_Error\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isPressed\fP (\fBRGFW_window\fP *win, \fBu8\fP key)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_wasPressed\fP (\fBRGFW_window\fP *win, \fBu8\fP key)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isHeld\fP (\fBRGFW_window\fP *win, \fBu8\fP key)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isReleased\fP (\fBRGFW_window\fP *win, \fBu8\fP key)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isClicked\fP (\fBRGFW_window\fP *win, \fBu8\fP key)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isMousePressed\fP (\fBRGFW_window\fP *win, \fBu8\fP button)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isMouseHeld\fP (\fBRGFW_window\fP *win, \fBu8\fP button)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isMouseReleased\fP (\fBRGFW_window\fP *win, \fBu8\fP button)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_wasMousePressed\fP (\fBRGFW_window\fP *win, \fBu8\fP button)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP char * \fBRGFW_readClipboard\fP (size_t *size)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_clipboardFree\fP (char *str)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_writeClipboard\fP (const char *text, \fBu32\fP textLen)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setWindowMoveCallback\fP (\fBRGFW_windowmovefunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setWindowResizeCallback\fP (\fBRGFW_windowresizefunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setWindowQuitCallback\fP (\fBRGFW_windowquitfunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setMousePosCallback\fP (\fBRGFW_mouseposfunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setWindowRefreshCallback\fP (\fBRGFW_windowrefreshfunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setFocusCallback\fP (\fBRGFW_focusfunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setMouseNotifyCallBack\fP (\fBRGFW_mouseNotifyfunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setDndCallback\fP (\fBRGFW_dndfunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setDndInitCallback\fP (\fBRGFW_dndInitfunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setKeyCallback\fP (\fBRGFW_keyfunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setMouseButtonCallback\fP (\fBRGFW_mousebuttonfunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setjsButtonCallback\fP (\fBRGFW_jsButtonfunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setjsAxisCallback\fP (\fBRGFW_jsAxisfunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_thread\fP \fBRGFW_createThread\fP (\fBRGFW_threadFunc_ptr\fP ptr, void *args)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_cancelThread\fP (\fBRGFW_thread\fP thread)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_joinThread\fP (\fBRGFW_thread\fP thread)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setThreadPriority\fP (\fBRGFW_thread\fP thread, \fBu8\fP priority)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu16\fP \fBRGFW_registerJoystick\fP (\fBRGFW_window\fP *win, \fBi32\fP jsNumber)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu16\fP \fBRGFW_registerJoystickF\fP (\fBRGFW_window\fP *win, char *file)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_isPressedJS\fP (\fBRGFW_window\fP *win, \fBu16\fP controller, \fBu8\fP button)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_swapBuffers\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_swapInterval\fP (\fBRGFW_window\fP *win, \fBi32\fP swapInterval)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setGPURender\fP (\fBRGFW_window\fP *win, \fBi8\fP set)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setCPURender\fP (\fBRGFW_window\fP *win, \fBi8\fP set)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu8\fP * \fBRGFW_getMaxGLVersion\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLStencil\fP (\fBi32\fP stencil)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLSamples\fP (\fBi32\fP samples)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLStereo\fP (\fBi32\fP stereo)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLAuxBuffers\fP (\fBi32\fP auxBuffers)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLVersion\fP (\fBi32\fP major, \fBi32\fP minor)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void * \fBRGFW_getProcAddress\fP (const char *procname)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent_OpenGL\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_checkFPS\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTime\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimeNS\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_sleep\fP (\fBu64\fP milisecond)"
+.br
+.ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_Key)"
+.br
+.ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_mouseIcons)"
+.br
+.in -1c
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define inline   __inline"
+
+.SS "#define RGFW_ALLOW_DND   (1L<<5)"
+the window supports drag and drop 
+.SS "#define RGFW_ALPHA   128 /* alpha value for \fBRGFW_TRANSPARENT_WINDOW\fP (WINAPI ONLY, macOS + linux don't need this) */"
+
+.SS "#define RGFW_AREA(w, h)   (\fBRGFW_area\fP){w, h}"
+
+.SS "#define RGFW_CALLOC   calloc"
+
+.SS "#define RGFW_CAPSLOCK   (1L << 1)"
+
+.SS "#define RGFW_CENTER   (1L<<10) /*! center the window on the screen */"
+
+.SS "#define RGFW_COCOA_MOVE_TO_RESOURCE_DIR   (1L << 12) /* (cocoa only), move to resource folder */"
+
+.SS "#define RGFW_dnd   34"
+a file has been dropped into the window 
+.SS "#define RGFW_dnd_init   35"
+the start of a dnd event, when the place where the file drop is known 
+.SS "#define RGFW_ENUM(type, name)   type name; enum"
+
+.SS "#define RGFW_FALSE   0"
+
+.SS "#define RGFW_focusIn   12"
+window is in focus now 
+.SS "#define RGFW_focusOut   13"
+window is out of focus now 
+.SS "#define RGFW_FREE   free"
+
+.SS "#define RGFW_FULLSCREEN   (1L<<8) /* the window is fullscreen by default or not */"
+
+.SS "#define RGFW_HEADER"
+
+.SS "#define RGFW_HIDE_MOUSE   (1L<<6) /*! the window should hide the mouse or not (can be toggled later on) using `RGFW_window_mouseShow*/"
+
+.SS "#define RGFW_jsAxisMove   9"
+an axis of a joystick was moved 
+.SS "#define RGFW_jsButtonPressed   7"
+mouse event note the x and y of the mouse can be found in the vector, \fBRGFW_Event\&.point\fP
+.PP
+\fBRGFW_Event\&.button\fP holds which mouse button was pressed a joystick button was pressed 
+.SS "#define RGFW_jsButtonReleased   8"
+a joystick button was released 
+.SS "#define RGFW_keyPressed   2 /* a key has been pressed */"
+event codes 
+.SS "#define RGFW_keyReleased   3"
+a key has been released 
+.SS "#define RGFW_MALLOC   malloc"
+
+.SS "#define RGFW_MAX_DROPS   260 /* max items you can drop at once */"
+
+.SS "#define RGFW_MAX_PATH   260 /* max length of a path (for dnd) */"
+
+.SS "#define RGFW_mouseButtonPressed   4"
+key event note the code of the key pressed is stored in \fBRGFW_Event\&.keyCode\fP !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!!
+.PP
+while a string version is stored in RGFW_Event\&.KeyString
+.PP
+\fBRGFW_Event\&.lockState\fP holds the current lockState this means if CapsLock, NumLock are active or not a mouse button has been pressed (left,middle,right) 
+.SS "#define RGFW_mouseButtonReleased   5"
+a mouse button has been released (left,middle,right) 
+.SS "#define RGFW_mouseEnter   14 /* mouse entered the window */"
+
+.SS "#define RGFW_mouseLeave   15 /* mouse left the window */"
+
+.SS "#define RGFW_mouseLeft   1"
+mouse button codes (\fBRGFW_Event\&.button\fP) left mouse button is pressed 
+.SS "#define RGFW_mouseMiddle   2"
+mouse-wheel-button is pressed 
+.SS "#define RGFW_mousePosChanged   6"
+the position of the mouse has been changed 
+.SS "#define RGFW_mouseRight   3"
+right mouse button is pressed 
+.SS "#define RGFW_mouseScrollDown   5"
+mouse wheel is scrolling down 
+.SS "#define RGFW_mouseScrollUp   4"
+mouse wheel is scrolling up 
+.SS "#define RGFW_NO_BORDER   (1L<<3)"
+the window doesn't have border 
+.SS "#define RGFW_NO_CPU_RENDER   (1L<<15) /* don't render (using the CPU based buffer rendering)*/"
+
+.SS "#define RGFW_NO_GPU_RENDER   (1L<<14) /* don't render (using the GPU based API)*/"
+
+.SS "#define RGFW_NO_INIT_API   (1L << 2) /* DO not init an API (mostly for bindings, you should use `#define RGFW_NO_API` in C */"
+
+.SS "#define RGFW_NO_RESIZE   (1L<<4)"
+the window cannot be resized by the user 
+.SS "#define RGFW_NUMLOCK   (1L << 2)"
+
+.SS "#define RGFW_OPENGL"
+
+.SS "#define RGFW_OPENGL_SOFTWARE   (1L<<11) /*! use OpenGL software rendering */"
+
+.SS "#define RGFW_POINT(x, y)   (\fBRGFW_point\fP){x, y}"
+
+.SS "#define RGFW_quit   33"
+the user clicked the quit button 
+.SS "#define RGFW_RECT(x, y, w, h)   (\fBRGFW_rect\fP){x, y, w, h}"
+
+.SS "#define RGFW_SCALE_TO_MONITOR   (1L << 13) /* scale the window to the screen */"
+
+.SS "#define RGFW_TRANSPARENT_WINDOW   (1L<<9)"
+Optional arguments for making a windows the window is transparent (only properly works on X11 and MacOS, although it's although for windows) 
+.SS "#define RGFW_TRUE   1"
+
+.SS "#define RGFW_UNUSED(x)   (void)(x);"
+
+.SS "#define RGFW_windowMoved   10"
+joystick event note \fBRGFW_Event\&.joystick\fP holds which joystick was altered, if any \fBRGFW_Event\&.button\fP holds which joystick button was pressed
+.PP
+\fBRGFW_Event\&.axis\fP holds the data of all the axis RGFW_Event\&.axisCount says how many axis there are the window was moved (by the user) 
+.SS "#define RGFW_windowRefresh   16 /* The window content needs to be refreshed */"
+
+.SS "#define RGFW_windowResized   11"
+the window was resized (by the user), [on webASM this means the browser was resized] 
+.SS "#define RGFWDEF   \fBinline\fP"
+
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef \fBu32\fP \fBb32\fP"
+
+.SS "typedef \fBu8\fP \fBb8\fP"
+
+.SS "typedef int16_t \fBi16\fP"
+
+.SS "typedef int32_t \fBi32\fP"
+
+.SS "typedef int64_t \fBi64\fP"
+
+.SS "typedef int8_t \fBi8\fP"
+
+.SS "typedef struct \fBRGFW_Event\fP \fBRGFW_Event\fP"
+Event structure for checking/getting events 
+.SS "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
+structure for monitor data 
+.SS "typedef void* \fBRGFW_thread\fP"
+
+.SS "typedef struct \fBRGFW_window\fP \fBRGFW_window\fP"
+Window structure for managing the window 
+.SS "typedef struct \fBRGFW_window_src\fP \fBRGFW_window_src\fP"
+source data for the window (used by the APIs) 
+.SS "typedef uint16_t \fBu16\fP"
+
+.SS "typedef uint32_t \fBu32\fP"
+
+.SS "typedef uint64_t \fBu64\fP"
+
+.SS "typedef uint8_t \fBu8\fP"
+
+.SH "Function Documentation"
+.PP 
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_joystick_codes)"
+joystick button codes (based on xbox/playstation), you may need to change these values per controller < or PS X button
+.PP
+< or PS circle button
+.PP
+< or PS triangle button
+.PP
+< or PS square button
+.PP
+< start button
+.PP
+< select button
+.PP
+< home button
+.PP
+< dpad up
+.PP
+< dpad down
+.PP
+< dpad left
+.PP
+< dpad right
+.PP
+< left bump
+.PP
+< left trigger
+.PP
+< right bumper
+.PP
+< right trigger
+.SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP * RGFW_getMonitors (void)"
+get an array of all the monitors (max 6) 
+.SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP RGFW_getPrimaryMonitor (void)"
+get the primary monitor 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for RGFW from the source code\&.

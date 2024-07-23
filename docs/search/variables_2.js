@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['event_0',['event',['../structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91',1,'RGFW_window']]]
+  ['button_0',['button',['../structRGFW__Event.html#ae696791fd6733fab391495d9ec94d50e',1,'RGFW_Event']]]
 ];

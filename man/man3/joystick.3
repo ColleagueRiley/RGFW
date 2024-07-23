@@ -1,0 +1,41 @@
+.TH "joystick" 3 "Tue Jul 23 2024" "RGFW" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+joystick \- Joystick
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu16\fP \fBRGFW_registerJoystick\fP (\fBRGFW_window\fP *win, \fBi32\fP jsNumber)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu16\fP \fBRGFW_registerJoystickF\fP (\fBRGFW_window\fP *win, char *file)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_isPressedJS\fP (\fBRGFW_window\fP *win, \fBu16\fP controller, \fBu8\fP button)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.IP "\(bu" 2
+
+.PP
+
+.SH "Function Documentation"
+.PP 
+.SS "\fBRGFWDEF\fP \fBu32\fP RGFW_isPressedJS (\fBRGFW_window\fP * win, \fBu16\fP controller, \fBu8\fP button)"
+
+.SS "\fBRGFWDEF\fP \fBu16\fP RGFW_registerJoystick (\fBRGFW_window\fP * win, \fBi32\fP jsNumber)"
+joystick count starts at 0
+.PP
+< register joystick to window based on a number (the number is based on when it was connected eg\&. /dev/js0) 
+.SS "\fBRGFWDEF\fP \fBu16\fP RGFW_registerJoystickF (\fBRGFW_window\fP * win, char * file)"
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for RGFW from the source code\&.

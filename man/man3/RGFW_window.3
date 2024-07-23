@@ -6,6 +6,8 @@ RGFW_window
 .SH SYNOPSIS
 .br
 .PP
+.PP
+\fC#include <RGFW\&.h>\fP
 .SS "Public Attributes"
 
 .in +1c
@@ -22,18 +24,26 @@ RGFW_window
 .RI "\fBRGFW_point\fP \fB_lastMousePoint\fP"
 .br
 .ti -1c
-.RI "u32 \fBfpsCap\fP"
+.RI "\fBu32\fP \fBfpsCap\fP"
 .br
 .ti -1c
-.RI "u32 \fB_winArgs\fP"
+.RI "\fBu32\fP \fB_winArgs\fP"
 .br
 .in -1c
 .SH "Member Data Documentation"
 .PP 
+.SS "\fBRGFW_point\fP RGFW_window::_lastMousePoint"
+last cusor point (for raw mouse data) 
+.SS "\fBu32\fP RGFW_window::_winArgs"
+windows args (for RGFW to check) 
 .SS "\fBRGFW_Event\fP RGFW_window::event"
 current event 
-.SS "u32 RGFW_window::fpsCap"
+.SS "\fBu32\fP RGFW_window::fpsCap"
 the fps cap of the window should run at (change this var to change the fps cap, 0 = no limit) 
+.SS "\fBRGFW_rect\fP RGFW_window::r"
+the x, y, w and h of the struct 
+.SS "\fBRGFW_window_src\fP RGFW_window::src"
+src window data 
 
 .SH "Author"
 .PP 

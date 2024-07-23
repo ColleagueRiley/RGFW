@@ -1,0 +1,91 @@
+.TH "graphics_API" 3 "Tue Jul 23 2024" "RGFW" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+graphics_API \- Graphics_API
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_swapBuffers\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_swapInterval\fP (\fBRGFW_window\fP *win, \fBi32\fP swapInterval)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setGPURender\fP (\fBRGFW_window\fP *win, \fBi8\fP set)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setCPURender\fP (\fBRGFW_window\fP *win, \fBi8\fP set)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu8\fP * \fBRGFW_getMaxGLVersion\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLStencil\fP (\fBi32\fP stencil)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLSamples\fP (\fBi32\fP samples)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLStereo\fP (\fBi32\fP stereo)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLAuxBuffers\fP (\fBi32\fP auxBuffers)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLVersion\fP (\fBi32\fP major, \fBi32\fP minor)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void * \fBRGFW_getProcAddress\fP (const char *procname)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent_OpenGL\fP (\fBRGFW_window\fP *win)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.IP "\(bu" 2
+
+.PP
+
+.SH "Function Documentation"
+.PP 
+.SS "\fBRGFWDEF\fP \fBu8\fP * RGFW_getMaxGLVersion (void)"
+native API functions
+.PP
+Get max OpenGL version 
+.SS "\fBRGFWDEF\fP void * RGFW_getProcAddress (const char * procname)"
+
+.SS "\fBRGFWDEF\fP void RGFW_setGLAuxBuffers (\fBi32\fP auxBuffers)"
+
+.SS "\fBRGFWDEF\fP void RGFW_setGLSamples (\fBi32\fP samples)"
+
+.SS "\fBRGFWDEF\fP void RGFW_setGLStencil (\fBi32\fP stencil)"
+
+.SS "\fBRGFWDEF\fP void RGFW_setGLStereo (\fBi32\fP stereo)"
+
+.SS "\fBRGFWDEF\fP void RGFW_setGLVersion (\fBi32\fP major, \fBi32\fP minor)"
+Set OpenGL version hint 
+.SS "\fBRGFWDEF\fP void RGFW_window_makeCurrent (\fBRGFW_window\fP * win)"
+< make the window the current opengl drawing context 
+.SS "\fBRGFWDEF\fP void RGFW_window_makeCurrent_OpenGL (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_setCPURender (\fBRGFW_window\fP * win, \fBi8\fP set)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_setGPURender (\fBRGFW_window\fP * win, \fBi8\fP set)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_swapBuffers (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_swapInterval (\fBRGFW_window\fP * win, \fBi32\fP swapInterval)"
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for RGFW from the source code\&.

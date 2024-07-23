@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['point_0',['point',['../structRGFW__Event.html#a24f3618ec1e02e5824b800d0dd28e05c',1,'RGFW_Event']]]
+  ['event_0',['event',['../structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91',1,'RGFW_window']]]
 ];

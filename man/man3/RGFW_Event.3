@@ -6,6 +6,8 @@ RGFW_Event
 .SH SYNOPSIS
 .br
 .PP
+.PP
+\fC#include <RGFW\&.h>\fP
 .SS "Public Attributes"
 
 .in +1c
@@ -13,64 +15,87 @@ RGFW_Event
 .RI "char \fBkeyName\fP [16]"
 .br
 .ti -1c
-.RI "char \fBdroppedFiles\fP [RGFW_MAX_DROPS][RGFW_MAX_PATH]"
+.RI "char \fBdroppedFiles\fP [\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP]"
 .br
 .ti -1c
-.RI "u32 \fBdroppedFilesCount\fP"
+.RI "\fBu32\fP \fBdroppedFilesCount\fP"
 .br
 .ti -1c
-.RI "u32 \fBtype\fP"
+.RI "\fBu32\fP \fBtype\fP"
 .br
 .ti -1c
 .RI "\fBRGFW_point\fP \fBpoint\fP"
 .br
 .ti -1c
-.RI "u32 \fBfps\fP"
+.RI "\fBu32\fP \fBfps\fP"
 .br
 .ti -1c
-.RI "u64 \fBframeTime\fP"
+.RI "\fBu64\fP \fBframeTime\fP"
 .br
 .ti -1c
-.RI "u64 \fBframeTime2\fP"
+.RI "\fBu64\fP \fBframeTime2\fP"
 .br
 .ti -1c
-.RI "u8 \fBkeyCode\fP"
+.RI "\fBu8\fP \fBkeyCode\fP"
 .br
 .ti -1c
-.RI "b8 \fBinFocus\fP"
+.RI "\fBb8\fP \fBinFocus\fP"
 .br
 .ti -1c
-.RI "u8 \fBlockState\fP"
+.RI "\fBu8\fP \fBlockState\fP"
 .br
 .ti -1c
-.RI "u16 \fBjoystick\fP"
+.RI "\fBu16\fP \fBjoystick\fP"
 .br
 .ti -1c
-.RI "u8 \fBbutton\fP"
+.RI "\fBu8\fP \fBbutton\fP"
 .br
 .ti -1c
 .RI "double \fBscroll\fP"
 .br
 .ti -1c
-.RI "u8 \fBaxisesCount\fP"
+.RI "\fBu8\fP \fBaxisesCount\fP"
 .br
 .ti -1c
 .RI "\fBRGFW_point\fP \fBaxis\fP [2]"
 .br
 .in -1c
+.SH "Detailed Description"
+.PP 
+Event structure for checking/getting events 
 .SH "Member Data Documentation"
 .PP 
-.SS "u8 RGFW_Event::button"
-which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed 
-.SS "char RGFW_Event::droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH]"
+.SS "\fBRGFW_point\fP RGFW_Event::axis[2]"
+x, y of axises (-100 to 100) 
+.SS "\fBu8\fP RGFW_Event::axisesCount"
+number of axises 
+.SS "\fBu8\fP RGFW_Event::button"
+which joystick this event applies to (if applicable to any) which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed 
+.SS "char RGFW_Event::droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP]"
 drag and drop data dropped files 
-.SS "u32 RGFW_Event::droppedFilesCount"
+.SS "\fBu32\fP RGFW_Event::droppedFilesCount"
 house many files were dropped 
-.SS "u8 RGFW_Event::keyCode"
+.SS "\fBu32\fP RGFW_Event::fps"
+
+.SS "\fBu64\fP RGFW_Event::frameTime"
+
+.SS "\fBu64\fP RGFW_Event::frameTime2"
+
+.SS "\fBb8\fP RGFW_Event::inFocus"
+if the window is in focus or not (this is always true for MacOS windows due to the api being weird) 
+.SS "\fBu16\fP RGFW_Event::joystick"
+
+.SS "\fBu8\fP RGFW_Event::keyCode"
 keycode of event !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! 
+.SS "char RGFW_Event::keyName[16]"
+key name of event 
+.SS "\fBu8\fP RGFW_Event::lockState"
+
 .SS "\fBRGFW_point\fP RGFW_Event::point"
 mouse x, y of event (or drop point) 
-.SS "u32 RGFW_Event::type"
+.SS "double RGFW_Event::scroll"
+
+.SS "\fBu32\fP RGFW_Event::type"
 which event has been sent? 
 
 .SH "Author"

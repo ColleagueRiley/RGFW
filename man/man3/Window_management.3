@@ -1,0 +1,241 @@
+.TH "Window_management" 3 "Tue Jul 23 2024" "RGFW" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+Window_management \- Window_management
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setBufferSize\fP (\fBRGFW_area\fP size)"
+.br
+.ti -1c
+.RI "\fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, \fBu16\fP args)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_area\fP \fBRGFW_getScreenSize\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFW_Event\fP * \fBRGFW_window_checkEvent\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_eventWait)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_eventWait\fP (\fBRGFW_window\fP *win, \fBi32\fP waitMS)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_checkEvents\fP (\fBRGFW_window\fP *win, \fBi32\fP waitMS)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_stopCheckEvents\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_close\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_move\fP (\fBRGFW_window\fP *win, \fBRGFW_point\fP v)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_moveToMonitor\fP (\fBRGFW_window\fP *win, \fBRGFW_monitor\fP m)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_resize\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP a)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setMinSize\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP a)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setMaxSize\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP a)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_maximize\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_minimize\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_restore\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setBorder\fP (\fBRGFW_window\fP *win, \fBb8\fP border)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setDND\fP (\fBRGFW_window\fP *win, \fBb8\fP allow)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setMousePassthrough\fP (\fBRGFW_window\fP *win, \fBb8\fP passthrough)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setName\fP (\fBRGFW_window\fP *win, char *name)"
+.br
+.ti -1c
+.RI "void \fBRGFW_window_setIcon\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBu8\fP *image, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouseStandard\fP (\fBRGFW_window\fP *win, \fBu8\fP mouse)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouseDefault\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_mouseHold\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP area)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_mouseUnhold\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_hide\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_show\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setShouldClose\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_getGlobalMousePoint\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_window_getMousePoint\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_showMouse\fP (\fBRGFW_window\fP *win, \fBi8\fP show)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_moveMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_point\fP v)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_window_shouldClose\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_window_isFullscreen\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_window_isHidden\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_window_isMinimized\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_window_isMaximized\fP (\fBRGFW_window\fP *win)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.IP "\(bu" 2
+
+.PP
+
+.SH "Function Documentation"
+.PP 
+.SS "\fBRGFW_window\fP * RGFW_createWindow (const char * name, \fBRGFW_rect\fP rect, \fBu16\fP args)"
+function to create a window struct 
+.SS "typedef RGFW_ENUM (\fBi32\fP, RGFW_eventWait)"
+
+.SS "\fBRGFWDEF\fP \fBRGFW_point\fP RGFW_getGlobalMousePoint (void)"
+
+.SS "\fBRGFWDEF\fP \fBRGFW_area\fP RGFW_getScreenSize (void)"
+
+.SS "\fBRGFWDEF\fP void RGFW_setBufferSize (\fBRGFW_area\fP size)"
+this has to be set before createWindow is called, else the fulscreen size is used 
+.SS "\fBRGFWDEF\fP void RGFW_stopCheckEvents (void)"
+
+.SS "\fBRGFW_Event\fP * RGFW_window_checkEvent (\fBRGFW_window\fP * win)"
+check current event (returns a pointer to win->event or NULL if there is no event) 
+.SS "\fBRGFWDEF\fP void RGFW_window_checkEvents (\fBRGFW_window\fP * win, \fBi32\fP waitMS)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_close (\fBRGFW_window\fP * win)"
+window managment functions close the window and free leftover data 
+.SS "\fBRGFWDEF\fP void RGFW_window_eventWait (\fBRGFW_window\fP * win, \fBi32\fP waitMS)"
+
+.SS "\fBRGFWDEF\fP \fBRGFW_point\fP RGFW_window_getMousePoint (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_hide (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP \fBb8\fP RGFW_window_isFullscreen (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP \fBb8\fP RGFW_window_isHidden (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP \fBb8\fP RGFW_window_isMaximized (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP \fBb8\fP RGFW_window_isMinimized (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_maximize (\fBRGFW_window\fP * win)"
+maximize the window size 
+.SS "\fBRGFWDEF\fP void RGFW_window_minimize (\fBRGFW_window\fP * win)"
+minimize the window (in taskbar (per OS)) 
+.SS "\fBRGFWDEF\fP void RGFW_window_mouseHold (\fBRGFW_window\fP * win, \fBRGFW_area\fP area)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_mouseUnhold (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_move (\fBRGFW_window\fP * win, \fBRGFW_point\fP v)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_moveMouse (\fBRGFW_window\fP * win, \fBRGFW_point\fP v)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_moveToMonitor (\fBRGFW_window\fP * win, \fBRGFW_monitor\fP m)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_resize (\fBRGFW_window\fP * win, \fBRGFW_area\fP a)"
+
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP source window
+.br
+\fIa\fP new size 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_window_restore (\fBRGFW_window\fP * win)"
+restore the window from minimized (per OS) 
+.SS "\fBRGFWDEF\fP void RGFW_window_setBorder (\fBRGFW_window\fP * win, \fBb8\fP border)"
+if the window should have a border or not (borderless) based on bool value of \fCborder\fP 
+.SS "\fBRGFWDEF\fP void RGFW_window_setDND (\fBRGFW_window\fP * win, \fBb8\fP allow)"
+turn on / off dnd (RGFW_ALLOW_DND stil must be passed to the window) 
+.SS "void RGFW_window_setIcon (\fBRGFW_window\fP * win, \fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+image resized by default sets mouse to bitmap (very simular to RGFW_window_setIcon), image NOT resized by default 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP source window
+.br
+\fIicon\fP icon bitmap
+.br
+\fIa\fP width and height of the bitmap
+.br
+\fIchannels\fP how many channels the bitmap has (rgb : 3, rgba : 4) 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_window_setMaxSize (\fBRGFW_window\fP * win, \fBRGFW_area\fP a)"
+set the minimum size a user can extend a window to a given size/area 
+.SS "\fBRGFWDEF\fP void RGFW_window_setMinSize (\fBRGFW_window\fP * win, \fBRGFW_area\fP a)"
+set the minimum size a user can shrink a window to a given size/area 
+.SS "\fBRGFWDEF\fP void RGFW_window_setMouse (\fBRGFW_window\fP * win, \fBu8\fP * image, \fBRGFW_area\fP a, \fBi32\fP channels)"
+sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the RGFW_HEADER part of this file) 
+.SS "\fBRGFWDEF\fP void RGFW_window_setMouseDefault (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_setMousePassthrough (\fBRGFW_window\fP * win, \fBb8\fP passthrough)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_setMouseStandard (\fBRGFW_window\fP * win, \fBu8\fP mouse)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_setName (\fBRGFW_window\fP * win, char * name)"
+rename window to a given string 
+.SS "\fBRGFWDEF\fP void RGFW_window_setShouldClose (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP \fBb8\fP RGFW_window_shouldClose (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_show (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_showMouse (\fBRGFW_window\fP * win, \fBi8\fP show)"
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for RGFW from the source code\&.

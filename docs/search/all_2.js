@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['event_0',['event',['../structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91',1,'RGFW_window']]]
+  ['b32_0',['b32',['../RGFW_8h.html#a636cf841c81f6e89013e7eac57f2ef49',1,'RGFW.h']]],
+  ['b8_1',['b8',['../RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73',1,'RGFW.h']]],
+  ['button_2',['button',['../structRGFW__Event.html#ae696791fd6733fab391495d9ec94d50e',1,'RGFW_Event']]]
 ];
