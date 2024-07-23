@@ -19,12 +19,12 @@ jobs:
     - name: Set up Emscripten
       uses: mymindstorm/setup-emsdk@v14
 
-    - name: make doxygen docs 
+    - name: Build doxygen docs
       uses: mattnotmitt/doxygen-action@v1.9.5
       with:
-          working-directory: 'submodule/'
+          working-directory: './'
           doxyfile-path: './'
-              
+            
     - name: Compile to WebAssembly
       run: |
         make debug CC=emcc
