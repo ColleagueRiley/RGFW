@@ -50,22 +50,57 @@ Input \- Input
 .SH "Function Documentation"
 .PP 
 .SS "\fBRGFWDEF\fP \fBb8\fP RGFW_Error (void)"
-
+returns true if an error has occurred (doesn't print errors itself) if window == NULL, it checks if the key is pressed globally\&. Otherwise, it checks only if the key is pressed while the window in focus\&. 
 .SS "\fBRGFWDEF\fP \fBb8\fP RGFW_isClicked (\fBRGFW_window\fP * win, \fBu8\fP key)"
+
+.PP
+\fBParameters\fP
+.RS 4
+\fIkey\fP key code 
+.RE
+.PP
 
 .SS "\fBRGFWDEF\fP \fBb8\fP RGFW_isHeld (\fBRGFW_window\fP * win, \fBu8\fP key)"
 if key is held (key code) 
 .SS "\fBRGFWDEF\fP \fBb8\fP RGFW_isMouseHeld (\fBRGFW_window\fP * win, \fBu8\fP button)"
+if a mouse button is held 
+.PP
+\fBParameters\fP
+.RS 4
+\fIbutton\fP mouse button code 
+.RE
+.PP
 
 .SS "\fBRGFWDEF\fP \fBb8\fP RGFW_isMousePressed (\fBRGFW_window\fP * win, \fBu8\fP button)"
+if a mouse button is pressed 
+.PP
+\fBParameters\fP
+.RS 4
+\fIbutton\fP mouse button code 
+.RE
+.PP
 
 .SS "\fBRGFWDEF\fP \fBb8\fP RGFW_isMouseReleased (\fBRGFW_window\fP * win, \fBu8\fP button)"
+if a mouse button was released 
+.PP
+\fBParameters\fP
+.RS 4
+\fIbutton\fP mouse button code 
+.RE
+.PP
 
 .SS "\fBRGFWDEF\fP \fBb8\fP RGFW_isPressed (\fBRGFW_window\fP * win, \fBu8\fP key)"
-< if window == NULL, it checks if the key is pressed globally\&. Otherwise, it checks only if the key is pressed while the window in focus\&. if key is pressed (key code) 
+if key is pressed (key code) 
 .SS "\fBRGFWDEF\fP \fBb8\fP RGFW_isReleased (\fBRGFW_window\fP * win, \fBu8\fP key)"
 if key is released (key code) 
 .SS "\fBRGFWDEF\fP \fBb8\fP RGFW_wasMousePressed (\fBRGFW_window\fP * win, \fBu8\fP button)"
+if a mouse button was pressed (checks previous state only) 
+.PP
+\fBParameters\fP
+.RS 4
+\fIbutton\fP mouse button code 
+.RE
+.PP
 
 .SS "\fBRGFWDEF\fP \fBb8\fP RGFW_wasPressed (\fBRGFW_window\fP * win, \fBu8\fP key)"
 if key was pressed (checks previous state only) (key code) 

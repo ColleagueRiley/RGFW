@@ -139,35 +139,41 @@ Window_management \- Window_management
 .SS "\fBRGFW_window\fP * RGFW_createWindow (const char * name, \fBRGFW_rect\fP rect, \fBu16\fP args)"
 function to create a window struct 
 .SS "typedef RGFW_ENUM (\fBi32\fP, RGFW_eventWait)"
-
+for RGFW_window_eventWait and RGFW_window_checkEvents waitMS -> Allows th e function to keep checking for events even after \fCRGFW_window_checkEvent == NULL\fP if waitMS == 0, the loop will not wait for events if waitMS == a positive integer, the loop will wait that many miliseconds after there are no more events until it returns if waitMS == a negative integer, the loop will not return until it gets another event 
 .SS "\fBRGFWDEF\fP \fBRGFW_point\fP RGFW_getGlobalMousePoint (void)"
-
+where the mouse is on the screen 
 .SS "\fBRGFWDEF\fP \fBRGFW_area\fP RGFW_getScreenSize (void)"
-
+get the size of the screen to an area struct 
 .SS "\fBRGFWDEF\fP void RGFW_setBufferSize (\fBRGFW_area\fP size)"
-this has to be set before createWindow is called, else the fulscreen size is used 
+this has to be set before createWindow is called, else the fulscreen size is used the buffer cannot be resized (by RGFW) 
 .SS "\fBRGFWDEF\fP void RGFW_stopCheckEvents (void)"
-
+Tell RGFW_window_eventWait to stop waiting, to be ran from another thread 
 .SS "\fBRGFW_Event\fP * RGFW_window_checkEvent (\fBRGFW_window\fP * win)"
-check current event (returns a pointer to win->event or NULL if there is no event) 
+this function checks an \fIindividual\fP event (and updates window structure attributes) this means, using this function without a while loop may cause event lag
+.PP
+ex\&.
+.PP
+while (RGFW_window_checkEvent(win) != NULL) [this keeps checking events until it reaches the last one]
+.PP
+this function is optional if you choose to use event callbacks, although you still need some way to tell RGFW to process events eg\&. \fCRGFW_window_checkEvents\fP check current event (returns a pointer to win->event or NULL if there is no event) 
 .SS "\fBRGFWDEF\fP void RGFW_window_checkEvents (\fBRGFW_window\fP * win, \fBi32\fP waitMS)"
-
+check all the events until there are none left, this should only be used if you're using callbacks only 
 .SS "\fBRGFWDEF\fP void RGFW_window_close (\fBRGFW_window\fP * win)"
 window managment functions close the window and free leftover data 
 .SS "\fBRGFWDEF\fP void RGFW_window_eventWait (\fBRGFW_window\fP * win, \fBi32\fP waitMS)"
-
+sleep until RGFW gets an event or the timer ends (defined by OS) 
 .SS "\fBRGFWDEF\fP \fBRGFW_point\fP RGFW_window_getMousePoint (\fBRGFW_window\fP * win)"
-
+where the mouse is on the window 
 .SS "\fBRGFWDEF\fP void RGFW_window_hide (\fBRGFW_window\fP * win)"
-
+hide the window 
 .SS "\fBRGFWDEF\fP \fBb8\fP RGFW_window_isFullscreen (\fBRGFW_window\fP * win)"
-
+if window is fullscreen'd 
 .SS "\fBRGFWDEF\fP \fBb8\fP RGFW_window_isHidden (\fBRGFW_window\fP * win)"
-
+if window is hidden 
 .SS "\fBRGFWDEF\fP \fBb8\fP RGFW_window_isMaximized (\fBRGFW_window\fP * win)"
-
+if window is maximized 
 .SS "\fBRGFWDEF\fP \fBb8\fP RGFW_window_isMinimized (\fBRGFW_window\fP * win)"
-
+if window is minimized 
 .SS "\fBRGFWDEF\fP void RGFW_window_maximize (\fBRGFW_window\fP * win)"
 maximize the window size 
 .SS "\fBRGFWDEF\fP void RGFW_window_minimize (\fBRGFW_window\fP * win)"
@@ -175,15 +181,22 @@ minimize the window (in taskbar (per OS))
 .SS "\fBRGFWDEF\fP void RGFW_window_mouseHold (\fBRGFW_window\fP * win, \fBRGFW_area\fP area)"
 
 .SS "\fBRGFWDEF\fP void RGFW_window_mouseUnhold (\fBRGFW_window\fP * win)"
-
+stop holding the mouse and let it move freely 
 .SS "\fBRGFWDEF\fP void RGFW_window_move (\fBRGFW_window\fP * win, \fBRGFW_point\fP v)"
+moves window to a given point 
+.PP
+\fBParameters\fP
+.RS 4
+\fIv\fP new pos 
+.RE
+.PP
 
 .SS "\fBRGFWDEF\fP void RGFW_window_moveMouse (\fBRGFW_window\fP * win, \fBRGFW_point\fP v)"
-
+move the mouse to a set x, y pos 
 .SS "\fBRGFWDEF\fP void RGFW_window_moveToMonitor (\fBRGFW_window\fP * win, \fBRGFW_monitor\fP m)"
-
+move to a specific monitor 
 .SS "\fBRGFWDEF\fP void RGFW_window_resize (\fBRGFW_window\fP * win, \fBRGFW_area\fP a)"
-
+resize window to a current size/area 
 .PP
 \fBParameters\fP
 .RS 4
@@ -221,9 +234,9 @@ set the minimum size a user can shrink a window to a given size/area
 .SS "\fBRGFWDEF\fP void RGFW_window_setMouse (\fBRGFW_window\fP * win, \fBu8\fP * image, \fBRGFW_area\fP a, \fBi32\fP channels)"
 sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the RGFW_HEADER part of this file) 
 .SS "\fBRGFWDEF\fP void RGFW_window_setMouseDefault (\fBRGFW_window\fP * win)"
-
+sets the mouse to the default mouse icon 
 .SS "\fBRGFWDEF\fP void RGFW_window_setMousePassthrough (\fBRGFW_window\fP * win, \fBb8\fP passthrough)"
-
+! turn on / off mouse passthrough 
 .SS "\fBRGFWDEF\fP void RGFW_window_setMouseStandard (\fBRGFW_window\fP * win, \fBu8\fP mouse)"
 
 .SS "\fBRGFWDEF\fP void RGFW_window_setName (\fBRGFW_window\fP * win, char * name)"
@@ -231,11 +244,11 @@ rename window to a given string
 .SS "\fBRGFWDEF\fP void RGFW_window_setShouldClose (\fBRGFW_window\fP * win)"
 
 .SS "\fBRGFWDEF\fP \fBb8\fP RGFW_window_shouldClose (\fBRGFW_window\fP * win)"
-
+if the window should close (RGFW_close was sent or escape was pressed) 
 .SS "\fBRGFWDEF\fP void RGFW_window_show (\fBRGFW_window\fP * win)"
-
+show the window 
 .SS "\fBRGFWDEF\fP void RGFW_window_showMouse (\fBRGFW_window\fP * win, \fBi8\fP show)"
-
+show the mouse or hide the mouse 
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.

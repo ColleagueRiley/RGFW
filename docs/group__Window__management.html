@@ -223,6 +223,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >for RGFW_window_eventWait and RGFW_window_checkEvents waitMS -&gt; Allows th e function to keep checking for events even after <code>RGFW_window_checkEvent == NULL</code> if waitMS == 0, the loop will not wait for events if waitMS == a positive integer, the loop will wait that many miliseconds after there are no more events until it returns if waitMS == a negative integer, the loop will not return until it gets another event </p>
 
 </div>
 </div>
@@ -241,6 +242,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >where the mouse is on the screen </p>
 
 </div>
 </div>
@@ -259,6 +261,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >get the size of the screen to an area struct </p>
 
 </div>
 </div>
@@ -277,7 +280,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >this has to be set before createWindow is called, else the fulscreen size is used </p>
+<p >this has to be set before createWindow is called, else the fulscreen size is used the buffer cannot be resized (by RGFW) </p>
 
 </div>
 </div>
@@ -296,6 +299,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >Tell RGFW_window_eventWait to stop waiting, to be ran from another thread </p>
 
 </div>
 </div>
@@ -314,7 +318,10 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >check current event (returns a pointer to win-&gt;event or NULL if there is no event) </p>
+<p >this function checks an <em>individual</em> event (and updates window structure attributes) this means, using this function without a while loop may cause event lag</p>
+<p >ex.</p>
+<p >while (RGFW_window_checkEvent(win) != NULL) [this keeps checking events until it reaches the last one]</p>
+<p >this function is optional if you choose to use event callbacks, although you still need some way to tell RGFW to process events eg. <code>RGFW_window_checkEvents</code> check current event (returns a pointer to win-&gt;event or NULL if there is no event) </p>
 
 </div>
 </div>
@@ -343,6 +350,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >check all the events until there are none left, this should only be used if you're using callbacks only </p>
 
 </div>
 </div>
@@ -390,6 +398,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >sleep until RGFW gets an event or the timer ends (defined by OS) </p>
 
 </div>
 </div>
@@ -408,6 +417,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >where the mouse is on the window </p>
 
 </div>
 </div>
@@ -426,6 +436,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >hide the window </p>
 
 </div>
 </div>
@@ -444,6 +455,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >if window is fullscreen'd </p>
 
 </div>
 </div>
@@ -462,6 +474,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >if window is hidden </p>
 
 </div>
 </div>
@@ -480,6 +493,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >if window is maximized </p>
 
 </div>
 </div>
@@ -498,6 +512,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >if window is minimized </p>
 
 </div>
 </div>
@@ -582,6 +597,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >stop holding the mouse and let it move freely </p>
 
 </div>
 </div>
@@ -610,6 +626,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >moves window to a given point </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">v</td><td>new pos </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -638,6 +661,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >move the mouse to a set x, y pos </p>
 
 </div>
 </div>
@@ -666,6 +690,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >move to a specific monitor </p>
 
 </div>
 </div>
@@ -694,6 +719,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >resize window to a current size/area </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">win</td><td>source window</td></tr>
@@ -945,6 +971,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >sets the mouse to the default mouse icon </p>
 
 </div>
 </div>
@@ -973,6 +1000,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >! turn on / off mouse passthrough </p>
 
 </div>
 </div>
@@ -1066,6 +1094,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >if the window should close (RGFW_close was sent or escape was pressed) </p>
 
 </div>
 </div>
@@ -1084,6 +1113,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >show the window </p>
 
 </div>
 </div>
@@ -1112,6 +1142,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >show the mouse or hide the mouse </p>
 
 </div>
 </div>

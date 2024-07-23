@@ -63,27 +63,27 @@ native API functions
 .PP
 Get max OpenGL version 
 .SS "\fBRGFWDEF\fP void * RGFW_getProcAddress (const char * procname)"
-
+get native opengl proc address 
 .SS "\fBRGFWDEF\fP void RGFW_setGLAuxBuffers (\fBi32\fP auxBuffers)"
-
+number of aux buffers (0 by default) 
 .SS "\fBRGFWDEF\fP void RGFW_setGLSamples (\fBi32\fP samples)"
-
+set number of sampiling buffers (4 by default) 
 .SS "\fBRGFWDEF\fP void RGFW_setGLStencil (\fBi32\fP stencil)"
-
+OpenGL init hints set stencil buffer bit size (8 by default) 
 .SS "\fBRGFWDEF\fP void RGFW_setGLStereo (\fBi32\fP stereo)"
-
+use GL_STEREO (GL_FALSE by default) 
 .SS "\fBRGFWDEF\fP void RGFW_setGLVersion (\fBi32\fP major, \fBi32\fP minor)"
 Set OpenGL version hint 
 .SS "\fBRGFWDEF\fP void RGFW_window_makeCurrent (\fBRGFW_window\fP * win)"
 < make the window the current opengl drawing context 
 .SS "\fBRGFWDEF\fP void RGFW_window_makeCurrent_OpenGL (\fBRGFW_window\fP * win)"
-
+to be called by RGFW_window_makeCurrent 
 .SS "\fBRGFWDEF\fP void RGFW_window_setCPURender (\fBRGFW_window\fP * win, \fBi8\fP set)"
 
 .SS "\fBRGFWDEF\fP void RGFW_window_setGPURender (\fBRGFW_window\fP * win, \fBi8\fP set)"
 
 .SS "\fBRGFWDEF\fP void RGFW_window_swapBuffers (\fBRGFW_window\fP * win)"
-
+swap the rendering buffer 
 .SS "\fBRGFWDEF\fP void RGFW_window_swapInterval (\fBRGFW_window\fP * win, \fBi32\fP swapInterval)"
 
 .SH "Author"

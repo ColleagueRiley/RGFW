@@ -98,31 +98,39 @@ Event callbacks, these are completely optional, you can use the normal RGFW_chec
 .SH "Typedef Documentation"
 .PP 
 .SS "typedef void(* RGFW_dndfunc) (\fBRGFW_window\fP *win, char droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP], \fBu32\fP droppedFilesCount)"
-
+RGFW_dnd, the window that had the drop, the drop data and the amount files dropped 
 .SS "typedef void(* RGFW_dndInitfunc) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point)"
-
+RGFW_dnd_init, the window, the point of the drop on the windows 
 .SS "typedef void(* RGFW_focusfunc) (\fBRGFW_window\fP *win, \fBb8\fP inFocus)"
-
+RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its inFocus 
 .SS "typedef void(* RGFW_jsAxisfunc) (\fBRGFW_window\fP *win, \fBu16\fP joystick, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount)"
-
+RGFW_jsAxisMove, the window that got the event, the joystick in question, the axis values and the amount of axises 
 .SS "typedef void(* RGFW_jsButtonfunc) (\fBRGFW_window\fP *win, \fBu16\fP joystick, \fBu8\fP button, \fBb8\fP pressed)"
-
+RGFW_jsButtonPressed / RGFW_jsButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
 .SS "typedef void(* RGFW_keyfunc) (\fBRGFW_window\fP *win, \fBu32\fP keycode, char keyName[16], \fBu8\fP lockState, \fBb8\fP pressed)"
-
+RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the keycode, the string version, the state of mod keys, if it was a press (else it's a release) 
 .SS "typedef void(* RGFW_mousebuttonfunc) (\fBRGFW_window\fP *win, \fBu8\fP button, double scroll, \fBb8\fP pressed)"
-
+RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
+.br
+ 
 .SS "typedef void(* RGFW_mouseNotifyfunc) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point, \fBb8\fP status)"
-
+RGFW_mouseEnter / RGFW_mouseLeave, the window that changed, the point of the mouse (enter only) and if the mouse has entered 
 .SS "typedef void(* RGFW_mouseposfunc) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point)"
-
+RGFW_mousePosChanged, the window that the move happened on and the new point of the mouse 
+.br
+ 
 .SS "typedef void(* RGFW_windowmovefunc) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
-
+RGFW_windowMoved, the window and its new rect value 
+.br
+ 
 .SS "typedef void(* RGFW_windowquitfunc) (\fBRGFW_window\fP *win)"
-
+RGFW_quit, the window that was closed 
 .SS "typedef void(* RGFW_windowrefreshfunc) (\fBRGFW_window\fP *win)"
-
+RGFW_windowRefresh, the window that needs to be refreshed 
 .SS "typedef void(* RGFW_windowresizefunc) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
-
+RGFW_windowResized, the window and its new rect value 
+.br
+ 
 .SH "Function Documentation"
 .PP 
 .SS "\fBRGFWDEF\fP void RGFW_setDndCallback (\fBRGFW_dndfunc\fP func)"
