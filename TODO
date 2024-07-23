@@ -4,9 +4,6 @@ MACOS:
 WINDOWS:
     - RGFW_TRANSPARENT_WINDOW
 
-- WEBASM:
-    - joystick support (joystick event, RGFW_registerJoystick, RGFW_registerJoystickF)
-
 (addons)
     - init drag function (drag n' drop) (output)
 
