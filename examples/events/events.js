@@ -893,15 +893,15 @@ function dbg(...args) {
 // === Body ===
 
 var ASM_CONSTS = {
-  69256: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenames = _malloc(e.dataTransfer.files.length*4); var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(filenames, i, filename); } Module._Emscripten_onDrop(filenames, count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } _free(filenames); }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 70371: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 70442: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 70499: () => { return window.mouseX || 0; },  
- 70530: () => { return window.mouseY || 0; },  
- 70561: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 70708: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 70761: () => { return window.innerWidth; },  
- 70791: () => { return window.innerHeight; }
+  69256: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
+ 70275: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 70346: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 70403: () => { return window.mouseX || 0; },  
+ 70434: () => { return window.mouseY || 0; },  
+ 70465: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
+ 70612: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 70665: () => { return window.innerWidth; },  
+ 70695: () => { return window.innerHeight; }
 };
 
 // end include: preamble.js
@@ -6191,6 +6191,15 @@ var ASM_CONSTS = {
       },
   };
 
+  
+  
+  var stringToNewUTF8 = (str) => {
+      var size = lengthBytesUTF8(str) + 1;
+      var ret = _malloc(size);
+      if (ret) stringToUTF8(str, ret, size);
+      return ret;
+    };
+
   FS.createPreloadedFile = FS_createPreloadedFile;
   FS.staticInit();;
 
@@ -6297,8 +6306,8 @@ var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors', 0);
 var _malloc = createExportWrapper('malloc', 1);
 var _free = createExportWrapper('free', 1);
-var _Emscripten_onDrop = Module['_Emscripten_onDrop'] = createExportWrapper('Emscripten_onDrop', 2);
-var _RGFW_makeSetValue = Module['_RGFW_makeSetValue'] = createExportWrapper('RGFW_makeSetValue', 3);
+var _Emscripten_onDrop = Module['_Emscripten_onDrop'] = createExportWrapper('Emscripten_onDrop', 1);
+var _RGFW_makeSetValue = Module['_RGFW_makeSetValue'] = createExportWrapper('RGFW_makeSetValue', 2);
 var _RGFW_mkdir = Module['_RGFW_mkdir'] = createExportWrapper('RGFW_mkdir', 1);
 var _RGFW_writeFile = Module['_RGFW_writeFile'] = createExportWrapper('RGFW_writeFile', 3);
 var _main = Module['_main'] = createExportWrapper('main', 2);
@@ -6328,6 +6337,7 @@ var _asyncify_stop_rewind = createExportWrapper('asyncify_stop_rewind', 0);
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
 
+Module['stringToNewUTF8'] = stringToNewUTF8;
 var missingLibrarySymbols = [
   'writeI53ToI64',
   'writeI53ToI64Clamped',
@@ -6393,7 +6403,6 @@ var missingLibrarySymbols = [
   'UTF32ToString',
   'stringToUTF32',
   'lengthBytesUTF32',
-  'stringToNewUTF8',
   'stringToUTF8OnStack',
   'writeArrayToMemory',
   'fillDeviceOrientationEventData',

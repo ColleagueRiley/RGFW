@@ -989,13 +989,13 @@ $(function() {
 <div class="line"><a id="l01129" name="l01129"></a><span class="lineno"> 1129</span><span class="comment">*/</span></div>
 <div class="line"><a id="l01130" name="l01130"></a><span class="lineno"> 1130</span> </div>
 <div class="line"><a id="l01131" name="l01131"></a><span class="lineno"> 1131</span><span class="preprocessor">#ifdef RGFW_X11</span></div>
-<div class="line"><a id="l01132" name="l01132"></a><span class="lineno"> 1132</span><span class="preprocessor">    #define RGFW_OS_BASED_VALUE(l, w, m, a) l</span></div>
+<div class="line"><a id="l01132" name="l01132"></a><span class="lineno"> 1132</span><span class="preprocessor">    #define RGFW_OS_BASED_VALUE(l, w, m, h) l</span></div>
 <div class="line"><a id="l01133" name="l01133"></a><span class="lineno"> 1133</span><span class="preprocessor">#elif defined(RGFW_WINDOWS)</span></div>
-<div class="line"><a id="l01134" name="l01134"></a><span class="lineno"> 1134</span><span class="preprocessor">    #define RGFW_OS_BASED_VALUE(l, w, m, a) w</span></div>
+<div class="line"><a id="l01134" name="l01134"></a><span class="lineno"> 1134</span><span class="preprocessor">    #define RGFW_OS_BASED_VALUE(l, w, m, h) w</span></div>
 <div class="line"><a id="l01135" name="l01135"></a><span class="lineno"> 1135</span><span class="preprocessor">#elif defined(RGFW_MACOS)</span></div>
-<div class="line"><a id="l01136" name="l01136"></a><span class="lineno"> 1136</span><span class="preprocessor">    #define RGFW_OS_BASED_VALUE(l, w, m, a) m</span></div>
+<div class="line"><a id="l01136" name="l01136"></a><span class="lineno"> 1136</span><span class="preprocessor">    #define RGFW_OS_BASED_VALUE(l, w, m, h) m</span></div>
 <div class="line"><a id="l01137" name="l01137"></a><span class="lineno"> 1137</span><span class="preprocessor">#elif defined(RGFW_WEBASM)</span></div>
-<div class="line"><a id="l01138" name="l01138"></a><span class="lineno"> 1138</span><span class="preprocessor">    #define RGFW_OS_BASED_VALUE(l, w, m, a) a</span></div>
+<div class="line"><a id="l01138" name="l01138"></a><span class="lineno"> 1138</span><span class="preprocessor">    #define RGFW_OS_BASED_VALUE(l, w, m, h) h</span></div>
 <div class="line"><a id="l01139" name="l01139"></a><span class="lineno"> 1139</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l01140" name="l01140"></a><span class="lineno"> 1140</span> </div>
 <div class="line"><a id="l01141" name="l01141"></a><span class="lineno"> 1141</span><span class="preprocessor">#ifdef RGFW_IMPLEMENTATION</span></div>
@@ -1479,7 +1479,7 @@ $(function() {
 <div class="line"><a id="l01623" name="l01623"></a><span class="lineno"> 1623</span>        win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#af2fbb4c2c7ea5852e63fe6355bc65861">lockState</a> ^= <a class="code hl_define" href="RGFW_8h.html#a9af87832b020cb4e9c25b1e3895750a0">RGFW_NUMLOCK</a>;</div>
 <div class="line"><a id="l01624" name="l01624"></a><span class="lineno"> 1624</span>}</div>
 <div class="line"><a id="l01625" name="l01625"></a><span class="lineno"> 1625</span> </div>
-<div class="line"><a id="l01626" name="l01626"></a><span class="lineno"> 1626</span><span class="preprocessor">#if defined(RGFW_X11) || defined(RGFW_MACOS)</span></div>
+<div class="line"><a id="l01626" name="l01626"></a><span class="lineno"> 1626</span><span class="preprocessor">#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM)</span></div>
 <div class="line"><a id="l01627" name="l01627"></a><span class="lineno"> 1627</span>    <span class="keyword">struct </span>timespec;</div>
 <div class="line"><a id="l01628" name="l01628"></a><span class="lineno"> 1628</span> </div>
 <div class="line"><a id="l01629" name="l01629"></a><span class="lineno"> 1629</span>    <span class="keywordtype">int</span> nanosleep(<span class="keyword">const</span> <span class="keyword">struct</span> timespec* duration, <span class="keyword">struct</span> timespec* rem);</div>
@@ -7106,517 +7106,523 @@ $(function() {
 <div class="line"><a id="l07260" name="l07260"></a><span class="lineno"> 7260</span>    <span class="keywordflow">return</span> 1; <span class="comment">// The event was consumed by the callback handler</span></div>
 <div class="line"><a id="l07261" name="l07261"></a><span class="lineno"> 7261</span>}</div>
 <div class="line"><a id="l07262" name="l07262"></a><span class="lineno"> 7262</span> </div>
-<div class="line"><a id="l07263" name="l07263"></a><span class="lineno"> 7263</span><span class="keywordtype">void</span> EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(<span class="keyword">const</span> <span class="keywordtype">char</span>** filename, <span class="keywordtype">size_t</span> count) {</div>
+<div class="line"><a id="l07263" name="l07263"></a><span class="lineno"> 7263</span><span class="keywordtype">void</span> EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(<span class="keywordtype">size_t</span> count) {</div>
 <div class="line"><a id="l07264" name="l07264"></a><span class="lineno"> 7264</span>    <span class="keywordflow">if</span> (!(RGFW_root-&gt;<a class="code hl_variable" href="structRGFW__window.html#a3ba41ce67f7dfd9389251c7b96b60b02">_winArgs</a> &amp; <a class="code hl_define" href="RGFW_8h.html#affdb12e47c4477768936a8a4b5f64cec">RGFW_ALLOW_DND</a>))</div>
 <div class="line"><a id="l07265" name="l07265"></a><span class="lineno"> 7265</span>        <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l07266" name="l07266"></a><span class="lineno"> 7266</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(filename);</div>
-<div class="line"><a id="l07267" name="l07267"></a><span class="lineno"> 7267</span>    RGFW_events[RGFW_eventLen].<a class="code hl_variable" href="structRGFW__Event.html#ac883520f0c38d1f756f9968ce1d44c9d">type</a> = <a class="code hl_define" href="RGFW_8h.html#a7af5b851aa21a6211435201e4c9d1e7d">RGFW_dnd</a>;</div>
-<div class="line"><a id="l07268" name="l07268"></a><span class="lineno"> 7268</span>    <span class="keywordtype">size_t</span> i;</div>
-<div class="line"><a id="l07269" name="l07269"></a><span class="lineno"> 7269</span>    <span class="keywordflow">for</span> (i = 0; i &lt; count &amp;&amp; i &lt; <a class="code hl_define" href="RGFW_8h.html#a9711b4ffc483384dffcbaa7f98c58385">RGFW_MAX_DROPS</a>; i++) {</div>
-<div class="line"><a id="l07270" name="l07270"></a><span class="lineno"> 7270</span>        <span class="comment">//printf(&quot;%s\n&quot;, filename[i]);</span></div>
-<div class="line"><a id="l07271" name="l07271"></a><span class="lineno"> 7271</span>        <span class="comment">//strncpy(RGFW_events[RGFW_eventLen].droppedFiles[i], filename[i], RGFW_MAX_PATH);</span></div>
-<div class="line"><a id="l07272" name="l07272"></a><span class="lineno"> 7272</span>        <span class="comment">//printf(&quot;h\n&quot;);</span></div>
-<div class="line"><a id="l07273" name="l07273"></a><span class="lineno"> 7273</span>        <span class="comment">//RGFW_events[RGFW_eventLen].droppedFiles[i][RGFW_MAX_PATH - 1] = &#39;\0&#39;;</span></div>
-<div class="line"><a id="l07274" name="l07274"></a><span class="lineno"> 7274</span>    } </div>
-<div class="line"><a id="l07275" name="l07275"></a><span class="lineno"> 7275</span><span class="comment">//printf(&quot;%zu\n&quot;, count);</span></div>
-<div class="line"><a id="l07276" name="l07276"></a><span class="lineno"> 7276</span>    RGFW_events[RGFW_eventLen].<a class="code hl_variable" href="structRGFW__Event.html#a540f1b7d015b2580aee0d8ad0b3c6dad">droppedFilesCount</a> = count;</div>
-<div class="line"><a id="l07277" name="l07277"></a><span class="lineno"> 7277</span> </div>
-<div class="line"><a id="l07278" name="l07278"></a><span class="lineno"> 7278</span>    </div>
-<div class="line"><a id="l07279" name="l07279"></a><span class="lineno"> 7279</span>    RGFW_dndCallback(RGFW_root, RGFW_events[RGFW_eventLen].droppedFiles, count);</div>
-<div class="line"><a id="l07280" name="l07280"></a><span class="lineno"> 7280</span>    RGFW_eventLen++;</div>
-<div class="line"><a id="l07281" name="l07281"></a><span class="lineno"> 7281</span>}</div>
-<div class="line"><a id="l07282" name="l07282"></a><span class="lineno"> 7282</span> </div>
-<div class="line"><a id="l07283" name="l07283"></a><span class="lineno"> 7283</span><a class="code hl_typedef" href="RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73">b8</a> RGFW_stopCheckEvents_bool = <a class="code hl_define" href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a>;</div>
-<div class="line"><a id="l07284" name="l07284"></a><span class="lineno"> 7284</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga77d53bb9ffadd6f6c5149be8a46612e1">RGFW_stopCheckEvents</a>(<span class="keywordtype">void</span>) { </div>
-<div class="line"><a id="l07285" name="l07285"></a><span class="lineno"> 7285</span>    RGFW_stopCheckEvents_bool = <a class="code hl_define" href="RGFW_8h.html#a4d7bc6cacdc3a02ad39672017d4d506e">RGFW_TRUE</a>;</div>
-<div class="line"><a id="l07286" name="l07286"></a><span class="lineno"> 7286</span>}</div>
-<div class="line"><a id="l07287" name="l07287"></a><span class="lineno"> 7287</span> </div>
-<div class="line"><a id="l07288" name="l07288"></a><span class="lineno"> 7288</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga4fa90ea8f1e3df26d24b02844b29e6cf">RGFW_window_eventWait</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> waitMS) {</div>
-<div class="line"><a id="l07289" name="l07289"></a><span class="lineno"> 7289</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win);</div>
-<div class="line"><a id="l07290" name="l07290"></a><span class="lineno"> 7290</span>    </div>
-<div class="line"><a id="l07291" name="l07291"></a><span class="lineno"> 7291</span>    <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> start = (<a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>)(((<a class="code hl_typedef" href="RGFW_8h.html#a3f7e2bcbb0b4c338f3c4f6c937cd4234">u64</a>)<a class="code hl_function" href="group__Supporting.html#ga2556ad5561537a8b328d062f8b8268e5">RGFW_getTimeNS</a>()) / 1e+6);</div>
-<div class="line"><a id="l07292" name="l07292"></a><span class="lineno"> 7292</span> </div>
-<div class="line"><a id="l07293" name="l07293"></a><span class="lineno"> 7293</span>    <span class="keywordflow">while</span> ((RGFW_eventLen == 0) &amp;&amp; RGFW_stopCheckEvents_bool == <a class="code hl_define" href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a> &amp;&amp; </div>
-<div class="line"><a id="l07294" name="l07294"></a><span class="lineno"> 7294</span>        (waitMS &lt; 0 || (<a class="code hl_function" href="group__Supporting.html#ga2556ad5561537a8b328d062f8b8268e5">RGFW_getTimeNS</a>() / 1e+6) - start &lt; waitMS)</div>
-<div class="line"><a id="l07295" name="l07295"></a><span class="lineno"> 7295</span>    ) {</div>
-<div class="line"><a id="l07296" name="l07296"></a><span class="lineno"> 7296</span>        emscripten_sleep(0);</div>
-<div class="line"><a id="l07297" name="l07297"></a><span class="lineno"> 7297</span>    }</div>
-<div class="line"><a id="l07298" name="l07298"></a><span class="lineno"> 7298</span>    </div>
-<div class="line"><a id="l07299" name="l07299"></a><span class="lineno"> 7299</span>    RGFW_stopCheckEvents_bool = <a class="code hl_define" href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a>;</div>
-<div class="line"><a id="l07300" name="l07300"></a><span class="lineno"> 7300</span>}</div>
-<div class="line"><a id="l07301" name="l07301"></a><span class="lineno"> 7301</span> </div>
-<div class="line"><a id="l07302" name="l07302"></a><span class="lineno"> 7302</span><a class="code hl_define" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <span class="keywordtype">void</span> RGFW_init_buffer(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win);</div>
-<div class="line"><a id="l07303" name="l07303"></a><span class="lineno"> 7303</span><span class="keywordtype">void</span> RGFW_init_buffer(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
-<div class="line"><a id="l07304" name="l07304"></a><span class="lineno"> 7304</span><span class="preprocessor">    #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)</span></div>
-<div class="line"><a id="l07305" name="l07305"></a><span class="lineno"> 7305</span>        <span class="keywordflow">if</span> (RGFW_bufferSize.<a class="code hl_variable" href="structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a">w</a> == 0 &amp;&amp; RGFW_bufferSize.<a class="code hl_variable" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">h</a> == 0)</div>
-<div class="line"><a id="l07306" name="l07306"></a><span class="lineno"> 7306</span>            RGFW_bufferSize = <a class="code hl_function" href="group__Window__management.html#ga2952eee39f36b85b6829976656043f97">RGFW_getScreenSize</a>();</div>
-<div class="line"><a id="l07307" name="l07307"></a><span class="lineno"> 7307</span>        </div>
-<div class="line"><a id="l07308" name="l07308"></a><span class="lineno"> 7308</span>        win-&gt;buffer = <a class="code hl_define" href="RGFW_8h.html#ab47fd2ebe30848f6f36c294ed522fa3f">RGFW_MALLOC</a>(RGFW_bufferSize.<a class="code hl_variable" href="structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a">w</a> * RGFW_bufferSize.<a class="code hl_variable" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">h</a> * 4);</div>
-<div class="line"><a id="l07309" name="l07309"></a><span class="lineno"> 7309</span><span class="preprocessor">    #ifdef RGFW_OSMESA</span></div>
-<div class="line"><a id="l07310" name="l07310"></a><span class="lineno"> 7310</span>            win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);</div>
-<div class="line"><a id="l07311" name="l07311"></a><span class="lineno"> 7311</span>            OSMesaMakeCurrent(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx, win-&gt;buffer, GL_UNSIGNED_BYTE, win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a638e63f187096f668c11438ae44d8700">r</a>.<a class="code hl_variable" href="structRGFW__rect.html#ae9b18887b7389dc05283e4e54881b801">w</a>, win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a638e63f187096f668c11438ae44d8700">r</a>.<a class="code hl_variable" href="structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d">h</a>);</div>
-<div class="line"><a id="l07312" name="l07312"></a><span class="lineno"> 7312</span><span class="preprocessor">    #endif</span></div>
-<div class="line"><a id="l07313" name="l07313"></a><span class="lineno"> 7313</span><span class="preprocessor">    #else</span></div>
-<div class="line"><a id="l07314" name="l07314"></a><span class="lineno"> 7314</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win); </div>
-<div class="line"><a id="l07315" name="l07315"></a><span class="lineno"> 7315</span><span class="preprocessor">    #endif</span></div>
+<div class="line"><a id="l07266" name="l07266"></a><span class="lineno"> 7266</span> </div>
+<div class="line"><a id="l07267" name="l07267"></a><span class="lineno"> 7267</span>    RGFW_events[RGFW_eventLen].<a class="code hl_variable" href="structRGFW__Event.html#a540f1b7d015b2580aee0d8ad0b3c6dad">droppedFilesCount</a> = count;   </div>
+<div class="line"><a id="l07268" name="l07268"></a><span class="lineno"> 7268</span>    RGFW_dndCallback(RGFW_root, RGFW_events[RGFW_eventLen].droppedFiles, count);</div>
+<div class="line"><a id="l07269" name="l07269"></a><span class="lineno"> 7269</span>    RGFW_eventLen++;</div>
+<div class="line"><a id="l07270" name="l07270"></a><span class="lineno"> 7270</span>}</div>
+<div class="line"><a id="l07271" name="l07271"></a><span class="lineno"> 7271</span> </div>
+<div class="line"><a id="l07272" name="l07272"></a><span class="lineno"> 7272</span><a class="code hl_typedef" href="RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73">b8</a> RGFW_stopCheckEvents_bool = <a class="code hl_define" href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a>;</div>
+<div class="line"><a id="l07273" name="l07273"></a><span class="lineno"> 7273</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga77d53bb9ffadd6f6c5149be8a46612e1">RGFW_stopCheckEvents</a>(<span class="keywordtype">void</span>) { </div>
+<div class="line"><a id="l07274" name="l07274"></a><span class="lineno"> 7274</span>    RGFW_stopCheckEvents_bool = <a class="code hl_define" href="RGFW_8h.html#a4d7bc6cacdc3a02ad39672017d4d506e">RGFW_TRUE</a>;</div>
+<div class="line"><a id="l07275" name="l07275"></a><span class="lineno"> 7275</span>}</div>
+<div class="line"><a id="l07276" name="l07276"></a><span class="lineno"> 7276</span> </div>
+<div class="line"><a id="l07277" name="l07277"></a><span class="lineno"> 7277</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga4fa90ea8f1e3df26d24b02844b29e6cf">RGFW_window_eventWait</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> waitMS) {</div>
+<div class="line"><a id="l07278" name="l07278"></a><span class="lineno"> 7278</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win);</div>
+<div class="line"><a id="l07279" name="l07279"></a><span class="lineno"> 7279</span>    </div>
+<div class="line"><a id="l07280" name="l07280"></a><span class="lineno"> 7280</span>    <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> start = (<a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>)(((<a class="code hl_typedef" href="RGFW_8h.html#a3f7e2bcbb0b4c338f3c4f6c937cd4234">u64</a>)<a class="code hl_function" href="group__Supporting.html#ga2556ad5561537a8b328d062f8b8268e5">RGFW_getTimeNS</a>()) / 1e+6);</div>
+<div class="line"><a id="l07281" name="l07281"></a><span class="lineno"> 7281</span> </div>
+<div class="line"><a id="l07282" name="l07282"></a><span class="lineno"> 7282</span>    <span class="keywordflow">while</span> ((RGFW_eventLen == 0) &amp;&amp; RGFW_stopCheckEvents_bool == <a class="code hl_define" href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a> &amp;&amp; </div>
+<div class="line"><a id="l07283" name="l07283"></a><span class="lineno"> 7283</span>        (waitMS &lt; 0 || (<a class="code hl_function" href="group__Supporting.html#ga2556ad5561537a8b328d062f8b8268e5">RGFW_getTimeNS</a>() / 1e+6) - start &lt; waitMS)</div>
+<div class="line"><a id="l07284" name="l07284"></a><span class="lineno"> 7284</span>    ) {</div>
+<div class="line"><a id="l07285" name="l07285"></a><span class="lineno"> 7285</span>        emscripten_sleep(0);</div>
+<div class="line"><a id="l07286" name="l07286"></a><span class="lineno"> 7286</span>    }</div>
+<div class="line"><a id="l07287" name="l07287"></a><span class="lineno"> 7287</span>    </div>
+<div class="line"><a id="l07288" name="l07288"></a><span class="lineno"> 7288</span>    RGFW_stopCheckEvents_bool = <a class="code hl_define" href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a>;</div>
+<div class="line"><a id="l07289" name="l07289"></a><span class="lineno"> 7289</span>}</div>
+<div class="line"><a id="l07290" name="l07290"></a><span class="lineno"> 7290</span> </div>
+<div class="line"><a id="l07291" name="l07291"></a><span class="lineno"> 7291</span><a class="code hl_define" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <span class="keywordtype">void</span> RGFW_init_buffer(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win);</div>
+<div class="line"><a id="l07292" name="l07292"></a><span class="lineno"> 7292</span><span class="keywordtype">void</span> RGFW_init_buffer(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
+<div class="line"><a id="l07293" name="l07293"></a><span class="lineno"> 7293</span><span class="preprocessor">    #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)</span></div>
+<div class="line"><a id="l07294" name="l07294"></a><span class="lineno"> 7294</span>        <span class="keywordflow">if</span> (RGFW_bufferSize.<a class="code hl_variable" href="structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a">w</a> == 0 &amp;&amp; RGFW_bufferSize.<a class="code hl_variable" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">h</a> == 0)</div>
+<div class="line"><a id="l07295" name="l07295"></a><span class="lineno"> 7295</span>            RGFW_bufferSize = <a class="code hl_function" href="group__Window__management.html#ga2952eee39f36b85b6829976656043f97">RGFW_getScreenSize</a>();</div>
+<div class="line"><a id="l07296" name="l07296"></a><span class="lineno"> 7296</span>        </div>
+<div class="line"><a id="l07297" name="l07297"></a><span class="lineno"> 7297</span>        win-&gt;buffer = <a class="code hl_define" href="RGFW_8h.html#ab47fd2ebe30848f6f36c294ed522fa3f">RGFW_MALLOC</a>(RGFW_bufferSize.<a class="code hl_variable" href="structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a">w</a> * RGFW_bufferSize.<a class="code hl_variable" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">h</a> * 4);</div>
+<div class="line"><a id="l07298" name="l07298"></a><span class="lineno"> 7298</span><span class="preprocessor">    #ifdef RGFW_OSMESA</span></div>
+<div class="line"><a id="l07299" name="l07299"></a><span class="lineno"> 7299</span>            win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);</div>
+<div class="line"><a id="l07300" name="l07300"></a><span class="lineno"> 7300</span>            OSMesaMakeCurrent(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx, win-&gt;buffer, GL_UNSIGNED_BYTE, win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a638e63f187096f668c11438ae44d8700">r</a>.<a class="code hl_variable" href="structRGFW__rect.html#ae9b18887b7389dc05283e4e54881b801">w</a>, win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a638e63f187096f668c11438ae44d8700">r</a>.<a class="code hl_variable" href="structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d">h</a>);</div>
+<div class="line"><a id="l07301" name="l07301"></a><span class="lineno"> 7301</span><span class="preprocessor">    #endif</span></div>
+<div class="line"><a id="l07302" name="l07302"></a><span class="lineno"> 7302</span><span class="preprocessor">    #else</span></div>
+<div class="line"><a id="l07303" name="l07303"></a><span class="lineno"> 7303</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win); </div>
+<div class="line"><a id="l07304" name="l07304"></a><span class="lineno"> 7304</span><span class="preprocessor">    #endif</span></div>
+<div class="line"><a id="l07305" name="l07305"></a><span class="lineno"> 7305</span>}</div>
+<div class="line"><a id="l07306" name="l07306"></a><span class="lineno"> 7306</span> </div>
+<div class="line"><a id="l07307" name="l07307"></a><span class="lineno"> 7307</span><span class="keywordtype">void</span> EMSCRIPTEN_KEEPALIVE RGFW_makeSetValue(<span class="keywordtype">size_t</span> index, <span class="keywordtype">char</span>* file) { </div>
+<div class="line"><a id="l07308" name="l07308"></a><span class="lineno"> 7308</span>    <span class="comment">/* This seems like a terrible idea, don&#39;t replicate this unless you hate yourself or the OS */</span></div>
+<div class="line"><a id="l07309" name="l07309"></a><span class="lineno"> 7309</span>    <span class="comment">/* TODO: find a better way to do this, </span></div>
+<div class="line"><a id="l07310" name="l07310"></a><span class="lineno"> 7310</span><span class="comment">        strcpy doesn&#39;t seem to work, maybe because of asyncio</span></div>
+<div class="line"><a id="l07311" name="l07311"></a><span class="lineno"> 7311</span><span class="comment">    */</span></div>
+<div class="line"><a id="l07312" name="l07312"></a><span class="lineno"> 7312</span> </div>
+<div class="line"><a id="l07313" name="l07313"></a><span class="lineno"> 7313</span>    RGFW_events[RGFW_eventLen].<a class="code hl_variable" href="structRGFW__Event.html#ac883520f0c38d1f756f9968ce1d44c9d">type</a> = <a class="code hl_define" href="RGFW_8h.html#a7af5b851aa21a6211435201e4c9d1e7d">RGFW_dnd</a>;</div>
+<div class="line"><a id="l07314" name="l07314"></a><span class="lineno"> 7314</span>    <span class="keywordtype">char</span>** arr = (<span class="keywordtype">char</span>**)&amp;RGFW_events[RGFW_eventLen].droppedFiles[index];</div>
+<div class="line"><a id="l07315" name="l07315"></a><span class="lineno"> 7315</span>    *arr = file;</div>
 <div class="line"><a id="l07316" name="l07316"></a><span class="lineno"> 7316</span>}</div>
 <div class="line"><a id="l07317" name="l07317"></a><span class="lineno"> 7317</span> </div>
-<div class="line"><a id="l07318" name="l07318"></a><span class="lineno"> 7318</span><span class="keywordtype">void</span> EMSCRIPTEN_KEEPALIVE RGFW_makeSetValue(<span class="keywordtype">char</span>** arr, <span class="keywordtype">size_t</span> index, <span class="keywordtype">char</span>* file) { arr[index] = file; }</div>
-<div class="line"><a id="l07319" name="l07319"></a><span class="lineno"> 7319</span> </div>
-<div class="line"><a id="l07320" name="l07320"></a><span class="lineno"> 7320</span><span class="preprocessor">#include &lt;sys/stat.h&gt;</span></div>
-<div class="line"><a id="l07321" name="l07321"></a><span class="lineno"> 7321</span><span class="preprocessor">#include &lt;sys/types.h&gt;</span></div>
-<div class="line"><a id="l07322" name="l07322"></a><span class="lineno"> 7322</span><span class="preprocessor">#include &lt;errno.h&gt;</span></div>
+<div class="line"><a id="l07318" name="l07318"></a><span class="lineno"> 7318</span><span class="preprocessor">#include &lt;sys/stat.h&gt;</span></div>
+<div class="line"><a id="l07319" name="l07319"></a><span class="lineno"> 7319</span><span class="preprocessor">#include &lt;sys/types.h&gt;</span></div>
+<div class="line"><a id="l07320" name="l07320"></a><span class="lineno"> 7320</span><span class="preprocessor">#include &lt;errno.h&gt;</span></div>
+<div class="line"><a id="l07321" name="l07321"></a><span class="lineno"> 7321</span> </div>
+<div class="line"><a id="l07322" name="l07322"></a><span class="lineno"> 7322</span><span class="keywordtype">void</span> EMSCRIPTEN_KEEPALIVE RGFW_mkdir(<span class="keywordtype">char</span>* name) { mkdir(name, 0755); }</div>
 <div class="line"><a id="l07323" name="l07323"></a><span class="lineno"> 7323</span> </div>
-<div class="line"><a id="l07324" name="l07324"></a><span class="lineno"> 7324</span><span class="keywordtype">void</span> EMSCRIPTEN_KEEPALIVE RGFW_mkdir(<span class="keywordtype">char</span>* name) { mkdir(name, 0755); }</div>
-<div class="line"><a id="l07325" name="l07325"></a><span class="lineno"> 7325</span> </div>
-<div class="line"><a id="l07326" name="l07326"></a><span class="lineno"> 7326</span><span class="keywordtype">void</span> EMSCRIPTEN_KEEPALIVE RGFW_writeFile(<span class="keyword">const</span> <span class="keywordtype">char</span> *path, <span class="keyword">const</span> <span class="keywordtype">char</span> *data, <span class="keywordtype">size_t</span> len) {</div>
-<div class="line"><a id="l07327" name="l07327"></a><span class="lineno"> 7327</span>    FILE *file = fopen(path, <span class="stringliteral">&quot;wb&quot;</span>);</div>
-<div class="line"><a id="l07328" name="l07328"></a><span class="lineno"> 7328</span>    fwrite(data, <span class="keyword">sizeof</span>(<span class="keywordtype">char</span>), len, file);</div>
-<div class="line"><a id="l07329" name="l07329"></a><span class="lineno"> 7329</span>    fclose(file);</div>
-<div class="line"><a id="l07330" name="l07330"></a><span class="lineno"> 7330</span>}</div>
-<div class="line"><a id="l07331" name="l07331"></a><span class="lineno"> 7331</span> </div>
-<div class="line"><a id="l07332" name="l07332"></a><span class="lineno"> 7332</span><a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* <a class="code hl_function" href="group__Window__management.html#gac14697524d0339d4049dba92efb7c00b">RGFW_createWindow</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, <a class="code hl_struct" href="structRGFW__rect.html">RGFW_rect</a> rect, <a class="code hl_typedef" href="RGFW_8h.html#ace9d960e74685e2cd84b36132dbbf8aa">u16</a> args) {</div>
-<div class="line"><a id="l07333" name="l07333"></a><span class="lineno"> 7333</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(name) </div>
-<div class="line"><a id="l07334" name="l07334"></a><span class="lineno"> 7334</span> </div>
-<div class="line"><a id="l07335" name="l07335"></a><span class="lineno"> 7335</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(RGFW_initAttribs);</div>
-<div class="line"><a id="l07336" name="l07336"></a><span class="lineno"> 7336</span>    </div>
-<div class="line"><a id="l07337" name="l07337"></a><span class="lineno"> 7337</span>    <a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win = RGFW_window_basic_init(rect, args);</div>
-<div class="line"><a id="l07338" name="l07338"></a><span class="lineno"> 7338</span> </div>
-<div class="line"><a id="l07339" name="l07339"></a><span class="lineno"> 7339</span>    EmscriptenWebGLContextAttributes attrs;</div>
-<div class="line"><a id="l07340" name="l07340"></a><span class="lineno"> 7340</span>    attrs.alpha = EM_TRUE;</div>
-<div class="line"><a id="l07341" name="l07341"></a><span class="lineno"> 7341</span>    attrs.depth = EM_TRUE;</div>
-<div class="line"><a id="l07342" name="l07342"></a><span class="lineno"> 7342</span>    attrs.alpha = EM_TRUE;</div>
-<div class="line"><a id="l07343" name="l07343"></a><span class="lineno"> 7343</span>    attrs.stencil = RGFW_STENCIL;</div>
-<div class="line"><a id="l07344" name="l07344"></a><span class="lineno"> 7344</span>    attrs.antialias = RGFW_SAMPLES;</div>
-<div class="line"><a id="l07345" name="l07345"></a><span class="lineno"> 7345</span>    attrs.premultipliedAlpha = EM_TRUE;</div>
-<div class="line"><a id="l07346" name="l07346"></a><span class="lineno"> 7346</span>    attrs.preserveDrawingBuffer = EM_FALSE;</div>
-<div class="line"><a id="l07347" name="l07347"></a><span class="lineno"> 7347</span>    attrs.renderViaOffscreenBackBuffer = RGFW_AUX_BUFFERS;</div>
-<div class="line"><a id="l07348" name="l07348"></a><span class="lineno"> 7348</span>    attrs.failIfMajorPerformanceCaveat = EM_FALSE;</div>
-<div class="line"><a id="l07349" name="l07349"></a><span class="lineno"> 7349</span>    attrs.majorVersion = (RGFW_majorVersion == 0) ? 1 : RGFW_majorVersion;</div>
-<div class="line"><a id="l07350" name="l07350"></a><span class="lineno"> 7350</span>    attrs.minorVersion = RGFW_minorVersion;</div>
-<div class="line"><a id="l07351" name="l07351"></a><span class="lineno"> 7351</span>    </div>
-<div class="line"><a id="l07352" name="l07352"></a><span class="lineno"> 7352</span>    attrs.enableExtensionsByDefault = EM_TRUE;</div>
-<div class="line"><a id="l07353" name="l07353"></a><span class="lineno"> 7353</span>    attrs.explicitSwapControl = EM_TRUE;</div>
-<div class="line"><a id="l07354" name="l07354"></a><span class="lineno"> 7354</span> </div>
-<div class="line"><a id="l07355" name="l07355"></a><span class="lineno"> 7355</span>    emscripten_webgl_init_context_attributes(&amp;attrs);</div>
-<div class="line"><a id="l07356" name="l07356"></a><span class="lineno"> 7356</span>    win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx = emscripten_webgl_create_context(<span class="stringliteral">&quot;#canvas&quot;</span>, &amp;attrs);</div>
-<div class="line"><a id="l07357" name="l07357"></a><span class="lineno"> 7357</span>    emscripten_webgl_make_context_current(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx);</div>
-<div class="line"><a id="l07358" name="l07358"></a><span class="lineno"> 7358</span> </div>
-<div class="line"><a id="l07359" name="l07359"></a><span class="lineno"> 7359</span><span class="preprocessor">    #ifdef LEGACY_GL_EMULATION</span></div>
-<div class="line"><a id="l07360" name="l07360"></a><span class="lineno"> 7360</span>    EM_ASM(<span class="stringliteral">&quot;Module.useWebGL = true; GLImmediate.init();&quot;</span>);</div>
-<div class="line"><a id="l07361" name="l07361"></a><span class="lineno"> 7361</span><span class="preprocessor">    #endif</span></div>
-<div class="line"><a id="l07362" name="l07362"></a><span class="lineno"> 7362</span> </div>
-<div class="line"><a id="l07363" name="l07363"></a><span class="lineno"> 7363</span>    emscripten_set_canvas_element_size(<span class="stringliteral">&quot;#canvas&quot;</span>, rect.<a class="code hl_variable" href="structRGFW__rect.html#ae9b18887b7389dc05283e4e54881b801">w</a>, rect.<a class="code hl_variable" href="structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d">h</a>);</div>
-<div class="line"><a id="l07364" name="l07364"></a><span class="lineno"> 7364</span>    emscripten_set_window_title(name);</div>
-<div class="line"><a id="l07365" name="l07365"></a><span class="lineno"> 7365</span> </div>
-<div class="line"><a id="l07366" name="l07366"></a><span class="lineno"> 7366</span>    <span class="comment">/* load callbacks */</span></div>
-<div class="line"><a id="l07367" name="l07367"></a><span class="lineno"> 7367</span>    emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, Emscripten_on_keydown);</div>
-<div class="line"><a id="l07368" name="l07368"></a><span class="lineno"> 7368</span>    emscripten_set_keyup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, Emscripten_on_keyup);</div>
-<div class="line"><a id="l07369" name="l07369"></a><span class="lineno"> 7369</span>    emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, Emscripten_on_resize);</div>
-<div class="line"><a id="l07370" name="l07370"></a><span class="lineno"> 7370</span>    emscripten_set_fullscreenchange_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, NULL, EM_FALSE, Emscripten_on_fullscreenchange);</div>
-<div class="line"><a id="l07371" name="l07371"></a><span class="lineno"> 7371</span>    emscripten_set_mousemove_callback(<span class="stringliteral">&quot;#canvas&quot;</span>, NULL, EM_FALSE, Emscripten_on_mousemove);</div>
-<div class="line"><a id="l07372" name="l07372"></a><span class="lineno"> 7372</span>    emscripten_set_touchstart_callback(<span class="stringliteral">&quot;#canvas&quot;</span>, NULL, EM_FALSE, Emscripten_on_touchstart);</div>
-<div class="line"><a id="l07373" name="l07373"></a><span class="lineno"> 7373</span>    emscripten_set_touchend_callback(<span class="stringliteral">&quot;#canvas&quot;</span>, NULL, EM_FALSE, Emscripten_on_touchend);</div>
-<div class="line"><a id="l07374" name="l07374"></a><span class="lineno"> 7374</span>    emscripten_set_touchmove_callback(<span class="stringliteral">&quot;#canvas&quot;</span>, NULL, EM_FALSE, Emscripten_on_touchmove);</div>
-<div class="line"><a id="l07375" name="l07375"></a><span class="lineno"> 7375</span>    emscripten_set_touchcancel_callback(<span class="stringliteral">&quot;#canvas&quot;</span>, NULL, EM_FALSE, Emscripten_on_touchcancel);</div>
-<div class="line"><a id="l07376" name="l07376"></a><span class="lineno"> 7376</span>    emscripten_set_mousedown_callback(<span class="stringliteral">&quot;#canvas&quot;</span>, NULL, EM_FALSE, Emscripten_on_mousedown);</div>
-<div class="line"><a id="l07377" name="l07377"></a><span class="lineno"> 7377</span>    emscripten_set_mouseup_callback(<span class="stringliteral">&quot;#canvas&quot;</span>, NULL, EM_FALSE, Emscripten_on_mouseup);</div>
-<div class="line"><a id="l07378" name="l07378"></a><span class="lineno"> 7378</span>    emscripten_set_wheel_callback(<span class="stringliteral">&quot;#canvas&quot;</span>, NULL, EM_FALSE, Emscripten_on_wheel);</div>
-<div class="line"><a id="l07379" name="l07379"></a><span class="lineno"> 7379</span>    emscripten_set_focusin_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, Emscripten_on_focusin);</div>
-<div class="line"><a id="l07380" name="l07380"></a><span class="lineno"> 7380</span>    emscripten_set_focusout_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, Emscripten_on_focusout);</div>
-<div class="line"><a id="l07381" name="l07381"></a><span class="lineno"> 7381</span>    emscripten_set_gamepadconnected_callback(NULL, 1, Emscripten_on_gamepad);</div>
-<div class="line"><a id="l07382" name="l07382"></a><span class="lineno"> 7382</span>    emscripten_set_gamepaddisconnected_callback(NULL, 1, Emscripten_on_gamepad);</div>
-<div class="line"><a id="l07383" name="l07383"></a><span class="lineno"> 7383</span>    <span class="keywordflow">if</span> (args &amp; <a class="code hl_define" href="RGFW_8h.html#affdb12e47c4477768936a8a4b5f64cec">RGFW_ALLOW_DND</a>)  {</div>
-<div class="line"><a id="l07384" name="l07384"></a><span class="lineno"> 7384</span>        win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a3ba41ce67f7dfd9389251c7b96b60b02">_winArgs</a> |= <a class="code hl_define" href="RGFW_8h.html#affdb12e47c4477768936a8a4b5f64cec">RGFW_ALLOW_DND</a>;</div>
-<div class="line"><a id="l07385" name="l07385"></a><span class="lineno"> 7385</span>    }</div>
-<div class="line"><a id="l07386" name="l07386"></a><span class="lineno"> 7386</span> </div>
-<div class="line"><a id="l07387" name="l07387"></a><span class="lineno"> 7387</span>    EM_ASM({</div>
-<div class="line"><a id="l07388" name="l07388"></a><span class="lineno"> 7388</span>        var canvas = document.getElementById(<span class="stringliteral">&#39;canvas&#39;</span>);</div>
-<div class="line"><a id="l07389" name="l07389"></a><span class="lineno"> 7389</span>        canvas.addEventListener(<span class="stringliteral">&#39;drop&#39;</span>, function(e) {</div>
-<div class="line"><a id="l07390" name="l07390"></a><span class="lineno"> 7390</span>            e.preventDefault();</div>
-<div class="line"><a id="l07391" name="l07391"></a><span class="lineno"> 7391</span>            <span class="keywordflow">if</span> (e.dataTransfer.file &lt; 0)</div>
-<div class="line"><a id="l07392" name="l07392"></a><span class="lineno"> 7392</span>                <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l07393" name="l07393"></a><span class="lineno"> 7393</span> </div>
-<div class="line"><a id="l07394" name="l07394"></a><span class="lineno"> 7394</span>            var filenames = _malloc(e.dataTransfer.files.length*4);</div>
-<div class="line"><a id="l07395" name="l07395"></a><span class="lineno"> 7395</span>            var filenamesArray = [];</div>
-<div class="line"><a id="l07396" name="l07396"></a><span class="lineno"> 7396</span>            var count = e.dataTransfer.files.length;</div>
-<div class="line"><a id="l07397" name="l07397"></a><span class="lineno"> 7397</span> </div>
-<div class="line"><a id="l07398" name="l07398"></a><span class="lineno"> 7398</span>            <span class="comment">/* Read and save the files to emscripten&#39;s files */</span></div>
-<div class="line"><a id="l07399" name="l07399"></a><span class="lineno"> 7399</span>            var drop_dir = <span class="stringliteral">&#39;.rgfw_dropped_files&#39;</span>;</div>
-<div class="line"><a id="l07400" name="l07400"></a><span class="lineno"> 7400</span>            Module._RGFW_mkdir(drop_dir);</div>
-<div class="line"><a id="l07401" name="l07401"></a><span class="lineno"> 7401</span> </div>
-<div class="line"><a id="l07402" name="l07402"></a><span class="lineno"> 7402</span>            for (var i = 0; i &lt; count; i++) {</div>
-<div class="line"><a id="l07403" name="l07403"></a><span class="lineno"> 7403</span>                var file = e.dataTransfer.files[i];</div>
-<div class="line"><a id="l07404" name="l07404"></a><span class="lineno"> 7404</span> </div>
-<div class="line"><a id="l07405" name="l07405"></a><span class="lineno"> 7405</span>                var path = <span class="charliteral">&#39;/&#39;</span> + drop_dir + <span class="charliteral">&#39;/&#39;</span> + file.name.replace(<span class="stringliteral">&quot;//&quot;</span>, <span class="charliteral">&#39;_&#39;</span>);</div>
-<div class="line"><a id="l07406" name="l07406"></a><span class="lineno"> 7406</span>                var reader = <span class="keyword">new</span> FileReader();</div>
-<div class="line"><a id="l07407" name="l07407"></a><span class="lineno"> 7407</span>                </div>
-<div class="line"><a id="l07408" name="l07408"></a><span class="lineno"> 7408</span>                reader.onloadend = (e) =&gt; {</div>
-<div class="line"><a id="l07409" name="l07409"></a><span class="lineno"> 7409</span>                    <span class="keywordflow">if</span> (reader.readyState != 2) {</div>
-<div class="line"><a id="l07410" name="l07410"></a><span class="lineno"> 7410</span>                        out(<span class="stringliteral">&#39;failed to read dropped file: &#39;</span>+file.name+<span class="stringliteral">&#39;: &#39;</span>+reader.error);</div>
-<div class="line"><a id="l07411" name="l07411"></a><span class="lineno"> 7411</span>                    }</div>
-<div class="line"><a id="l07412" name="l07412"></a><span class="lineno"> 7412</span>                    <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l07413" name="l07413"></a><span class="lineno"> 7413</span>                        var data = e.target.result;</div>
-<div class="line"><a id="l07414" name="l07414"></a><span class="lineno"> 7414</span>                        _RGFW_writeFile(path, <span class="keyword">new</span> Uint8Array(data), file.size);</div>
-<div class="line"><a id="l07415" name="l07415"></a><span class="lineno"> 7415</span>                    }</div>
-<div class="line"><a id="l07416" name="l07416"></a><span class="lineno"> 7416</span>                };</div>
-<div class="line"><a id="l07417" name="l07417"></a><span class="lineno"> 7417</span> </div>
-<div class="line"><a id="l07418" name="l07418"></a><span class="lineno"> 7418</span>                reader.readAsArrayBuffer(file);</div>
+<div class="line"><a id="l07324" name="l07324"></a><span class="lineno"> 7324</span><span class="keywordtype">void</span> EMSCRIPTEN_KEEPALIVE RGFW_writeFile(<span class="keyword">const</span> <span class="keywordtype">char</span> *path, <span class="keyword">const</span> <span class="keywordtype">char</span> *data, <span class="keywordtype">size_t</span> len) {</div>
+<div class="line"><a id="l07325" name="l07325"></a><span class="lineno"> 7325</span>    FILE* file = fopen(path, <span class="stringliteral">&quot;w+&quot;</span>);</div>
+<div class="line"><a id="l07326" name="l07326"></a><span class="lineno"> 7326</span>    <span class="keywordflow">if</span> (file == NULL)</div>
+<div class="line"><a id="l07327" name="l07327"></a><span class="lineno"> 7327</span>        <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l07328" name="l07328"></a><span class="lineno"> 7328</span> </div>
+<div class="line"><a id="l07329" name="l07329"></a><span class="lineno"> 7329</span>    fwrite(data, <span class="keyword">sizeof</span>(<span class="keywordtype">char</span>), len, file);</div>
+<div class="line"><a id="l07330" name="l07330"></a><span class="lineno"> 7330</span>    fclose(file);</div>
+<div class="line"><a id="l07331" name="l07331"></a><span class="lineno"> 7331</span>}</div>
+<div class="line"><a id="l07332" name="l07332"></a><span class="lineno"> 7332</span> </div>
+<div class="line"><a id="l07333" name="l07333"></a><span class="lineno"> 7333</span><a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* <a class="code hl_function" href="group__Window__management.html#gac14697524d0339d4049dba92efb7c00b">RGFW_createWindow</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, <a class="code hl_struct" href="structRGFW__rect.html">RGFW_rect</a> rect, <a class="code hl_typedef" href="RGFW_8h.html#ace9d960e74685e2cd84b36132dbbf8aa">u16</a> args) {</div>
+<div class="line"><a id="l07334" name="l07334"></a><span class="lineno"> 7334</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(name) </div>
+<div class="line"><a id="l07335" name="l07335"></a><span class="lineno"> 7335</span> </div>
+<div class="line"><a id="l07336" name="l07336"></a><span class="lineno"> 7336</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(RGFW_initAttribs);</div>
+<div class="line"><a id="l07337" name="l07337"></a><span class="lineno"> 7337</span>    </div>
+<div class="line"><a id="l07338" name="l07338"></a><span class="lineno"> 7338</span>    <a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win = RGFW_window_basic_init(rect, args);</div>
+<div class="line"><a id="l07339" name="l07339"></a><span class="lineno"> 7339</span> </div>
+<div class="line"><a id="l07340" name="l07340"></a><span class="lineno"> 7340</span>    EmscriptenWebGLContextAttributes attrs;</div>
+<div class="line"><a id="l07341" name="l07341"></a><span class="lineno"> 7341</span>    attrs.alpha = EM_TRUE;</div>
+<div class="line"><a id="l07342" name="l07342"></a><span class="lineno"> 7342</span>    attrs.depth = EM_TRUE;</div>
+<div class="line"><a id="l07343" name="l07343"></a><span class="lineno"> 7343</span>    attrs.alpha = EM_TRUE;</div>
+<div class="line"><a id="l07344" name="l07344"></a><span class="lineno"> 7344</span>    attrs.stencil = RGFW_STENCIL;</div>
+<div class="line"><a id="l07345" name="l07345"></a><span class="lineno"> 7345</span>    attrs.antialias = RGFW_SAMPLES;</div>
+<div class="line"><a id="l07346" name="l07346"></a><span class="lineno"> 7346</span>    attrs.premultipliedAlpha = EM_TRUE;</div>
+<div class="line"><a id="l07347" name="l07347"></a><span class="lineno"> 7347</span>    attrs.preserveDrawingBuffer = EM_FALSE;</div>
+<div class="line"><a id="l07348" name="l07348"></a><span class="lineno"> 7348</span>    attrs.renderViaOffscreenBackBuffer = RGFW_AUX_BUFFERS;</div>
+<div class="line"><a id="l07349" name="l07349"></a><span class="lineno"> 7349</span>    attrs.failIfMajorPerformanceCaveat = EM_FALSE;</div>
+<div class="line"><a id="l07350" name="l07350"></a><span class="lineno"> 7350</span>    attrs.majorVersion = (RGFW_majorVersion == 0) ? 1 : RGFW_majorVersion;</div>
+<div class="line"><a id="l07351" name="l07351"></a><span class="lineno"> 7351</span>    attrs.minorVersion = RGFW_minorVersion;</div>
+<div class="line"><a id="l07352" name="l07352"></a><span class="lineno"> 7352</span>    </div>
+<div class="line"><a id="l07353" name="l07353"></a><span class="lineno"> 7353</span>    attrs.enableExtensionsByDefault = EM_TRUE;</div>
+<div class="line"><a id="l07354" name="l07354"></a><span class="lineno"> 7354</span>    attrs.explicitSwapControl = EM_TRUE;</div>
+<div class="line"><a id="l07355" name="l07355"></a><span class="lineno"> 7355</span> </div>
+<div class="line"><a id="l07356" name="l07356"></a><span class="lineno"> 7356</span>    emscripten_webgl_init_context_attributes(&amp;attrs);</div>
+<div class="line"><a id="l07357" name="l07357"></a><span class="lineno"> 7357</span>    win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx = emscripten_webgl_create_context(<span class="stringliteral">&quot;#canvas&quot;</span>, &amp;attrs);</div>
+<div class="line"><a id="l07358" name="l07358"></a><span class="lineno"> 7358</span>    emscripten_webgl_make_context_current(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx);</div>
+<div class="line"><a id="l07359" name="l07359"></a><span class="lineno"> 7359</span> </div>
+<div class="line"><a id="l07360" name="l07360"></a><span class="lineno"> 7360</span><span class="preprocessor">    #ifdef LEGACY_GL_EMULATION</span></div>
+<div class="line"><a id="l07361" name="l07361"></a><span class="lineno"> 7361</span>    EM_ASM(<span class="stringliteral">&quot;Module.useWebGL = true; GLImmediate.init();&quot;</span>);</div>
+<div class="line"><a id="l07362" name="l07362"></a><span class="lineno"> 7362</span><span class="preprocessor">    #endif</span></div>
+<div class="line"><a id="l07363" name="l07363"></a><span class="lineno"> 7363</span> </div>
+<div class="line"><a id="l07364" name="l07364"></a><span class="lineno"> 7364</span>    emscripten_set_canvas_element_size(<span class="stringliteral">&quot;#canvas&quot;</span>, rect.<a class="code hl_variable" href="structRGFW__rect.html#ae9b18887b7389dc05283e4e54881b801">w</a>, rect.<a class="code hl_variable" href="structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d">h</a>);</div>
+<div class="line"><a id="l07365" name="l07365"></a><span class="lineno"> 7365</span>    emscripten_set_window_title(name);</div>
+<div class="line"><a id="l07366" name="l07366"></a><span class="lineno"> 7366</span> </div>
+<div class="line"><a id="l07367" name="l07367"></a><span class="lineno"> 7367</span>    <span class="comment">/* load callbacks */</span></div>
+<div class="line"><a id="l07368" name="l07368"></a><span class="lineno"> 7368</span>    emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, Emscripten_on_keydown);</div>
+<div class="line"><a id="l07369" name="l07369"></a><span class="lineno"> 7369</span>    emscripten_set_keyup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, Emscripten_on_keyup);</div>
+<div class="line"><a id="l07370" name="l07370"></a><span class="lineno"> 7370</span>    emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, Emscripten_on_resize);</div>
+<div class="line"><a id="l07371" name="l07371"></a><span class="lineno"> 7371</span>    emscripten_set_fullscreenchange_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, NULL, EM_FALSE, Emscripten_on_fullscreenchange);</div>
+<div class="line"><a id="l07372" name="l07372"></a><span class="lineno"> 7372</span>    emscripten_set_mousemove_callback(<span class="stringliteral">&quot;#canvas&quot;</span>, NULL, EM_FALSE, Emscripten_on_mousemove);</div>
+<div class="line"><a id="l07373" name="l07373"></a><span class="lineno"> 7373</span>    emscripten_set_touchstart_callback(<span class="stringliteral">&quot;#canvas&quot;</span>, NULL, EM_FALSE, Emscripten_on_touchstart);</div>
+<div class="line"><a id="l07374" name="l07374"></a><span class="lineno"> 7374</span>    emscripten_set_touchend_callback(<span class="stringliteral">&quot;#canvas&quot;</span>, NULL, EM_FALSE, Emscripten_on_touchend);</div>
+<div class="line"><a id="l07375" name="l07375"></a><span class="lineno"> 7375</span>    emscripten_set_touchmove_callback(<span class="stringliteral">&quot;#canvas&quot;</span>, NULL, EM_FALSE, Emscripten_on_touchmove);</div>
+<div class="line"><a id="l07376" name="l07376"></a><span class="lineno"> 7376</span>    emscripten_set_touchcancel_callback(<span class="stringliteral">&quot;#canvas&quot;</span>, NULL, EM_FALSE, Emscripten_on_touchcancel);</div>
+<div class="line"><a id="l07377" name="l07377"></a><span class="lineno"> 7377</span>    emscripten_set_mousedown_callback(<span class="stringliteral">&quot;#canvas&quot;</span>, NULL, EM_FALSE, Emscripten_on_mousedown);</div>
+<div class="line"><a id="l07378" name="l07378"></a><span class="lineno"> 7378</span>    emscripten_set_mouseup_callback(<span class="stringliteral">&quot;#canvas&quot;</span>, NULL, EM_FALSE, Emscripten_on_mouseup);</div>
+<div class="line"><a id="l07379" name="l07379"></a><span class="lineno"> 7379</span>    emscripten_set_wheel_callback(<span class="stringliteral">&quot;#canvas&quot;</span>, NULL, EM_FALSE, Emscripten_on_wheel);</div>
+<div class="line"><a id="l07380" name="l07380"></a><span class="lineno"> 7380</span>    emscripten_set_focusin_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, Emscripten_on_focusin);</div>
+<div class="line"><a id="l07381" name="l07381"></a><span class="lineno"> 7381</span>    emscripten_set_focusout_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, Emscripten_on_focusout);</div>
+<div class="line"><a id="l07382" name="l07382"></a><span class="lineno"> 7382</span>    emscripten_set_gamepadconnected_callback(NULL, 1, Emscripten_on_gamepad);</div>
+<div class="line"><a id="l07383" name="l07383"></a><span class="lineno"> 7383</span>    emscripten_set_gamepaddisconnected_callback(NULL, 1, Emscripten_on_gamepad);</div>
+<div class="line"><a id="l07384" name="l07384"></a><span class="lineno"> 7384</span>    </div>
+<div class="line"><a id="l07385" name="l07385"></a><span class="lineno"> 7385</span>    <span class="keywordflow">if</span> (args &amp; <a class="code hl_define" href="RGFW_8h.html#affdb12e47c4477768936a8a4b5f64cec">RGFW_ALLOW_DND</a>)  {</div>
+<div class="line"><a id="l07386" name="l07386"></a><span class="lineno"> 7386</span>        win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a3ba41ce67f7dfd9389251c7b96b60b02">_winArgs</a> |= <a class="code hl_define" href="RGFW_8h.html#affdb12e47c4477768936a8a4b5f64cec">RGFW_ALLOW_DND</a>;</div>
+<div class="line"><a id="l07387" name="l07387"></a><span class="lineno"> 7387</span>    }</div>
+<div class="line"><a id="l07388" name="l07388"></a><span class="lineno"> 7388</span> </div>
+<div class="line"><a id="l07389" name="l07389"></a><span class="lineno"> 7389</span>    EM_ASM({</div>
+<div class="line"><a id="l07390" name="l07390"></a><span class="lineno"> 7390</span>        var canvas = document.getElementById(<span class="stringliteral">&#39;canvas&#39;</span>);</div>
+<div class="line"><a id="l07391" name="l07391"></a><span class="lineno"> 7391</span>        canvas.addEventListener(<span class="stringliteral">&#39;drop&#39;</span>, function(e) {</div>
+<div class="line"><a id="l07392" name="l07392"></a><span class="lineno"> 7392</span>            e.preventDefault();</div>
+<div class="line"><a id="l07393" name="l07393"></a><span class="lineno"> 7393</span>            <span class="keywordflow">if</span> (e.dataTransfer.file &lt; 0)</div>
+<div class="line"><a id="l07394" name="l07394"></a><span class="lineno"> 7394</span>                <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l07395" name="l07395"></a><span class="lineno"> 7395</span> </div>
+<div class="line"><a id="l07396" name="l07396"></a><span class="lineno"> 7396</span>            var filenamesArray = [];</div>
+<div class="line"><a id="l07397" name="l07397"></a><span class="lineno"> 7397</span>            var count = e.dataTransfer.files.length;</div>
+<div class="line"><a id="l07398" name="l07398"></a><span class="lineno"> 7398</span> </div>
+<div class="line"><a id="l07399" name="l07399"></a><span class="lineno"> 7399</span>            <span class="comment">/* Read and save the files to emscripten&#39;s files */</span></div>
+<div class="line"><a id="l07400" name="l07400"></a><span class="lineno"> 7400</span>            var drop_dir = <span class="stringliteral">&#39;.rgfw_dropped_files&#39;</span>;</div>
+<div class="line"><a id="l07401" name="l07401"></a><span class="lineno"> 7401</span>            Module._RGFW_mkdir(drop_dir);</div>
+<div class="line"><a id="l07402" name="l07402"></a><span class="lineno"> 7402</span> </div>
+<div class="line"><a id="l07403" name="l07403"></a><span class="lineno"> 7403</span>            for (var i = 0; i &lt; count; i++) {</div>
+<div class="line"><a id="l07404" name="l07404"></a><span class="lineno"> 7404</span>                var file = e.dataTransfer.files[i];</div>
+<div class="line"><a id="l07405" name="l07405"></a><span class="lineno"> 7405</span> </div>
+<div class="line"><a id="l07406" name="l07406"></a><span class="lineno"> 7406</span>                var path = <span class="charliteral">&#39;/&#39;</span> + drop_dir + <span class="charliteral">&#39;/&#39;</span> + file.name.replace(<span class="stringliteral">&quot;//&quot;</span>, <span class="charliteral">&#39;_&#39;</span>);</div>
+<div class="line"><a id="l07407" name="l07407"></a><span class="lineno"> 7407</span>                var reader = <span class="keyword">new</span> FileReader();</div>
+<div class="line"><a id="l07408" name="l07408"></a><span class="lineno"> 7408</span>                </div>
+<div class="line"><a id="l07409" name="l07409"></a><span class="lineno"> 7409</span>                reader.onloadend = (e) =&gt; {</div>
+<div class="line"><a id="l07410" name="l07410"></a><span class="lineno"> 7410</span>                    <span class="keywordflow">if</span> (reader.readyState != 2) {</div>
+<div class="line"><a id="l07411" name="l07411"></a><span class="lineno"> 7411</span>                        out(<span class="stringliteral">&#39;failed to read dropped file: &#39;</span>+file.name+<span class="stringliteral">&#39;: &#39;</span>+reader.error);</div>
+<div class="line"><a id="l07412" name="l07412"></a><span class="lineno"> 7412</span>                    }</div>
+<div class="line"><a id="l07413" name="l07413"></a><span class="lineno"> 7413</span>                    <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l07414" name="l07414"></a><span class="lineno"> 7414</span>                        var data = e.target.result;</div>
+<div class="line"><a id="l07415" name="l07415"></a><span class="lineno"> 7415</span>                        </div>
+<div class="line"><a id="l07416" name="l07416"></a><span class="lineno"> 7416</span>                        _RGFW_writeFile(path, <span class="keyword">new</span> Uint8Array(data), file.size);</div>
+<div class="line"><a id="l07417" name="l07417"></a><span class="lineno"> 7417</span>                    }</div>
+<div class="line"><a id="l07418" name="l07418"></a><span class="lineno"> 7418</span>                };</div>
 <div class="line"><a id="l07419" name="l07419"></a><span class="lineno"> 7419</span> </div>
-<div class="line"><a id="l07420" name="l07420"></a><span class="lineno"> 7420</span>                var filename = stringToNewUTF8(path);</div>
-<div class="line"><a id="l07421" name="l07421"></a><span class="lineno"> 7421</span>                filenamesArray.push(filename);</div>
-<div class="line"><a id="l07422" name="l07422"></a><span class="lineno"> 7422</span>                </div>
-<div class="line"><a id="l07423" name="l07423"></a><span class="lineno"> 7423</span>                Module._RGFW_makeSetValue(filenames, i, filename);</div>
-<div class="line"><a id="l07424" name="l07424"></a><span class="lineno"> 7424</span>            }</div>
-<div class="line"><a id="l07425" name="l07425"></a><span class="lineno"> 7425</span>            </div>
-<div class="line"><a id="l07426" name="l07426"></a><span class="lineno"> 7426</span>            Module._Emscripten_onDrop(filenames, count);</div>
-<div class="line"><a id="l07427" name="l07427"></a><span class="lineno"> 7427</span>            </div>
-<div class="line"><a id="l07428" name="l07428"></a><span class="lineno"> 7428</span>            <span class="keywordflow">for</span> (var i = 0; i &lt; count; ++i) {</div>
-<div class="line"><a id="l07429" name="l07429"></a><span class="lineno"> 7429</span>                _free(filenamesArray[i]);</div>
-<div class="line"><a id="l07430" name="l07430"></a><span class="lineno"> 7430</span>            }</div>
-<div class="line"><a id="l07431" name="l07431"></a><span class="lineno"> 7431</span>            _free(filenames);</div>
-<div class="line"><a id="l07432" name="l07432"></a><span class="lineno"> 7432</span>        }, <span class="keyword">true</span>);</div>
-<div class="line"><a id="l07433" name="l07433"></a><span class="lineno"> 7433</span> </div>
-<div class="line"><a id="l07434" name="l07434"></a><span class="lineno"> 7434</span>        canvas.addEventListener(<span class="stringliteral">&#39;dragover&#39;</span>, function(e) { e.preventDefault(); <span class="keywordflow">return</span> <span class="keyword">false</span>; }, <span class="keyword">true</span>);</div>
-<div class="line"><a id="l07435" name="l07435"></a><span class="lineno"> 7435</span>    });</div>
-<div class="line"><a id="l07436" name="l07436"></a><span class="lineno"> 7436</span> </div>
-<div class="line"><a id="l07437" name="l07437"></a><span class="lineno"> 7437</span>    RGFW_init_buffer(win);</div>
-<div class="line"><a id="l07438" name="l07438"></a><span class="lineno"> 7438</span>    glViewport(0, 0, rect.<a class="code hl_variable" href="structRGFW__rect.html#ae9b18887b7389dc05283e4e54881b801">w</a>, rect.<a class="code hl_variable" href="structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d">h</a>);</div>
-<div class="line"><a id="l07439" name="l07439"></a><span class="lineno"> 7439</span>    </div>
-<div class="line"><a id="l07440" name="l07440"></a><span class="lineno"> 7440</span>    RGFW_root = win; </div>
-<div class="line"><a id="l07441" name="l07441"></a><span class="lineno"> 7441</span> </div>
-<div class="line"><a id="l07442" name="l07442"></a><span class="lineno"> 7442</span>    <span class="keywordflow">if</span> (args &amp; <a class="code hl_define" href="RGFW_8h.html#a8380dc8842fec2f82957bd101fb8cca8">RGFW_HIDE_MOUSE</a>) {</div>
-<div class="line"><a id="l07443" name="l07443"></a><span class="lineno"> 7443</span>        <a class="code hl_function" href="group__Window__management.html#gab43e1937c20843643455a5b01dae9c54">RGFW_window_showMouse</a>(win, 0);</div>
-<div class="line"><a id="l07444" name="l07444"></a><span class="lineno"> 7444</span>    }</div>
-<div class="line"><a id="l07445" name="l07445"></a><span class="lineno"> 7445</span> </div>
-<div class="line"><a id="l07446" name="l07446"></a><span class="lineno"> 7446</span>    <span class="keywordflow">if</span> (args &amp; <a class="code hl_define" href="RGFW_8h.html#ab3e38a57a4f4c1788b169e5b241d64ab">RGFW_FULLSCREEN</a>) {</div>
-<div class="line"><a id="l07447" name="l07447"></a><span class="lineno"> 7447</span>        <a class="code hl_function" href="group__Window__management.html#ga49cb75955ec07bb68faf7f260b30e693">RGFW_window_resize</a>(win, <a class="code hl_function" href="group__Window__management.html#ga2952eee39f36b85b6829976656043f97">RGFW_getScreenSize</a>());</div>
-<div class="line"><a id="l07448" name="l07448"></a><span class="lineno"> 7448</span>    }</div>
-<div class="line"><a id="l07449" name="l07449"></a><span class="lineno"> 7449</span> </div>
-<div class="line"><a id="l07450" name="l07450"></a><span class="lineno"> 7450</span>    <span class="keywordflow">return</span> win;</div>
-<div class="line"><a id="l07451" name="l07451"></a><span class="lineno"> 7451</span>}</div>
-<div class="line"><a id="l07452" name="l07452"></a><span class="lineno"> 7452</span> </div>
-<div class="line"><a id="l07453" name="l07453"></a><span class="lineno"> 7453</span><a class="code hl_struct" href="structRGFW__Event.html">RGFW_Event</a>* <a class="code hl_function" href="group__Window__management.html#gaa97b9a6fe1c8a47636e6036ba923fbd3">RGFW_window_checkEvent</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
-<div class="line"><a id="l07454" name="l07454"></a><span class="lineno"> 7454</span>    <span class="keyword">static</span> <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> index = 0;</div>
-<div class="line"><a id="l07455" name="l07455"></a><span class="lineno"> 7455</span>    </div>
-<div class="line"><a id="l07456" name="l07456"></a><span class="lineno"> 7456</span>    <span class="keywordflow">if</span> (index == 0) </div>
-<div class="line"><a id="l07457" name="l07457"></a><span class="lineno"> 7457</span>        RGFW_resetKey();</div>
-<div class="line"><a id="l07458" name="l07458"></a><span class="lineno"> 7458</span> </div>
-<div class="line"><a id="l07459" name="l07459"></a><span class="lineno"> 7459</span>    <span class="comment">/* check gamepads */</span></div>
-<div class="line"><a id="l07460" name="l07460"></a><span class="lineno"> 7460</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; (i &lt; emscripten_get_num_gamepads()) &amp;&amp; (i &lt; 4); i++) {</div>
-<div class="line"><a id="l07461" name="l07461"></a><span class="lineno"> 7461</span>        <span class="keywordflow">if</span> (RGFW_joysticks[i] == 0)</div>
-<div class="line"><a id="l07462" name="l07462"></a><span class="lineno"> 7462</span>            <span class="keywordflow">continue</span>;;</div>
-<div class="line"><a id="l07463" name="l07463"></a><span class="lineno"> 7463</span>        </div>
-<div class="line"><a id="l07464" name="l07464"></a><span class="lineno"> 7464</span>        EmscriptenGamepadEvent gamepadState;</div>
-<div class="line"><a id="l07465" name="l07465"></a><span class="lineno"> 7465</span> </div>
-<div class="line"><a id="l07466" name="l07466"></a><span class="lineno"> 7466</span>        <span class="keywordflow">if</span> (emscripten_get_gamepad_status(i, &amp;gamepadState) != EMSCRIPTEN_RESULT_SUCCESS)</div>
-<div class="line"><a id="l07467" name="l07467"></a><span class="lineno"> 7467</span>            <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l07468" name="l07468"></a><span class="lineno"> 7468</span> </div>
-<div class="line"><a id="l07469" name="l07469"></a><span class="lineno"> 7469</span>        <span class="comment">// Register buttons data for every connected gamepad</span></div>
-<div class="line"><a id="l07470" name="l07470"></a><span class="lineno"> 7470</span>        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j = 0; (j &lt; gamepadState.numButtons) &amp;&amp; (j &lt; 16); j++) {</div>
-<div class="line"><a id="l07471" name="l07471"></a><span class="lineno"> 7471</span>            <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> map[] = {</div>
-<div class="line"><a id="l07472" name="l07472"></a><span class="lineno"> 7472</span>                RGFW_JS_A, RGFW_JS_X, RGFW_JS_B, RGFW_JS_Y,</div>
-<div class="line"><a id="l07473" name="l07473"></a><span class="lineno"> 7473</span>                RGFW_JS_L1, RGFW_JS_R1, RGFW_JS_L2, RGFW_JS_R2,</div>
-<div class="line"><a id="l07474" name="l07474"></a><span class="lineno"> 7474</span>                RGFW_JS_SELECT, RGFW_JS_START,</div>
-<div class="line"><a id="l07475" name="l07475"></a><span class="lineno"> 7475</span>                0, 0,</div>
-<div class="line"><a id="l07476" name="l07476"></a><span class="lineno"> 7476</span>                RGFW_JS_UP, RGFW_JS_DOWN, RGFW_JS_LEFT, RGFW_JS_RIGHT</div>
-<div class="line"><a id="l07477" name="l07477"></a><span class="lineno"> 7477</span>            };</div>
-<div class="line"><a id="l07478" name="l07478"></a><span class="lineno"> 7478</span> </div>
-<div class="line"><a id="l07479" name="l07479"></a><span class="lineno"> 7479</span>            <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> button = map[j]; </div>
-<div class="line"><a id="l07480" name="l07480"></a><span class="lineno"> 7480</span>            <span class="keywordflow">if</span> (RGFW_jsPressed[i][button] != gamepadState.digitalButton[j]) {</div>
-<div class="line"><a id="l07481" name="l07481"></a><span class="lineno"> 7481</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#ac883520f0c38d1f756f9968ce1d44c9d">type</a> = <a class="code hl_define" href="RGFW_8h.html#a16b1951172fe6822d44c0e1c8971dafa">RGFW_jsButtonPressed</a>;</div>
-<div class="line"><a id="l07482" name="l07482"></a><span class="lineno"> 7482</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#afdaca09dfbe5021b13e28800d8fe3aff">joystick</a> = i;</div>
-<div class="line"><a id="l07483" name="l07483"></a><span class="lineno"> 7483</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#ae696791fd6733fab391495d9ec94d50e">button</a> = map[j];</div>
-<div class="line"><a id="l07484" name="l07484"></a><span class="lineno"> 7484</span>                <span class="keywordflow">return</span> &amp;win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>;</div>
-<div class="line"><a id="l07485" name="l07485"></a><span class="lineno"> 7485</span>            }</div>
-<div class="line"><a id="l07486" name="l07486"></a><span class="lineno"> 7486</span> </div>
-<div class="line"><a id="l07487" name="l07487"></a><span class="lineno"> 7487</span>            RGFW_jsPressed[i][button] = gamepadState.digitalButton[j];</div>
-<div class="line"><a id="l07488" name="l07488"></a><span class="lineno"> 7488</span>        }</div>
-<div class="line"><a id="l07489" name="l07489"></a><span class="lineno"> 7489</span> </div>
-<div class="line"><a id="l07490" name="l07490"></a><span class="lineno"> 7490</span>        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j = 0; (j &lt; gamepadState.numAxes) &amp;&amp; (j &lt; 4); j += 2) {</div>
-<div class="line"><a id="l07491" name="l07491"></a><span class="lineno"> 7491</span>            win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#acf99a876c09df1c60733653e3d77e489">axisesCount</a> = gamepadState.numAxes;</div>
-<div class="line"><a id="l07492" name="l07492"></a><span class="lineno"> 7492</span>            <span class="keywordflow">if</span> (win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#a6a6c3e98e718328d2cc5144c8365e668">axis</a>[j].<a class="code hl_variable" href="structRGFW__point.html#a1e4ef1395966022c65b8b69db9e8e592">x</a> != gamepadState.axis[j] || </div>
-<div class="line"><a id="l07493" name="l07493"></a><span class="lineno"> 7493</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#a6a6c3e98e718328d2cc5144c8365e668">axis</a>[j].<a class="code hl_variable" href="structRGFW__point.html#a5f31b208f21b8cb3f65c225a07936a93">y</a> != gamepadState.axis[j + 1]</div>
-<div class="line"><a id="l07494" name="l07494"></a><span class="lineno"> 7494</span>            ) {</div>
-<div class="line"><a id="l07495" name="l07495"></a><span class="lineno"> 7495</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#a6a6c3e98e718328d2cc5144c8365e668">axis</a>[j].<a class="code hl_variable" href="structRGFW__point.html#a1e4ef1395966022c65b8b69db9e8e592">x</a> = gamepadState.axis[j];</div>
-<div class="line"><a id="l07496" name="l07496"></a><span class="lineno"> 7496</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#a6a6c3e98e718328d2cc5144c8365e668">axis</a>[j].<a class="code hl_variable" href="structRGFW__point.html#a5f31b208f21b8cb3f65c225a07936a93">y</a> = gamepadState.axis[j + 1];</div>
-<div class="line"><a id="l07497" name="l07497"></a><span class="lineno"> 7497</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#ac883520f0c38d1f756f9968ce1d44c9d">type</a> = <a class="code hl_define" href="RGFW_8h.html#a3796a8209855411933c6df7ba91e8760">RGFW_jsAxisMove</a>;</div>
-<div class="line"><a id="l07498" name="l07498"></a><span class="lineno"> 7498</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#afdaca09dfbe5021b13e28800d8fe3aff">joystick</a> = i;</div>
-<div class="line"><a id="l07499" name="l07499"></a><span class="lineno"> 7499</span>                <span class="keywordflow">return</span> &amp;win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>;</div>
-<div class="line"><a id="l07500" name="l07500"></a><span class="lineno"> 7500</span>            }</div>
-<div class="line"><a id="l07501" name="l07501"></a><span class="lineno"> 7501</span>        }</div>
-<div class="line"><a id="l07502" name="l07502"></a><span class="lineno"> 7502</span>    }</div>
-<div class="line"><a id="l07503" name="l07503"></a><span class="lineno"> 7503</span> </div>
-<div class="line"><a id="l07504" name="l07504"></a><span class="lineno"> 7504</span>    <span class="comment">/* check queued events */</span></div>
-<div class="line"><a id="l07505" name="l07505"></a><span class="lineno"> 7505</span>    <span class="keywordflow">if</span> (RGFW_eventLen == 0)</div>
-<div class="line"><a id="l07506" name="l07506"></a><span class="lineno"> 7506</span>        <span class="keywordflow">return</span> NULL;</div>
-<div class="line"><a id="l07507" name="l07507"></a><span class="lineno"> 7507</span>    </div>
-<div class="line"><a id="l07508" name="l07508"></a><span class="lineno"> 7508</span>    RGFW_events[index].<a class="code hl_variable" href="structRGFW__Event.html#af583c59d703b79bdc197caea0d0265a7">fps</a> = win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#af583c59d703b79bdc197caea0d0265a7">fps</a>;</div>
-<div class="line"><a id="l07509" name="l07509"></a><span class="lineno"> 7509</span>    RGFW_events[index].<a class="code hl_variable" href="structRGFW__Event.html#a12fce4f53276e22cda983ff2da18f510">frameTime</a> = win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#a12fce4f53276e22cda983ff2da18f510">frameTime</a>;</div>
-<div class="line"><a id="l07510" name="l07510"></a><span class="lineno"> 7510</span>    RGFW_events[index].<a class="code hl_variable" href="structRGFW__Event.html#ae433faef4822130d8ba3cc064fa718f4">frameTime2</a> = win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#ae433faef4822130d8ba3cc064fa718f4">frameTime2</a>;</div>
-<div class="line"><a id="l07511" name="l07511"></a><span class="lineno"> 7511</span>    RGFW_events[index].<a class="code hl_variable" href="structRGFW__Event.html#a73f8902da9456948ae878640754a301e">inFocus</a> = win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#a73f8902da9456948ae878640754a301e">inFocus</a>;</div>
-<div class="line"><a id="l07512" name="l07512"></a><span class="lineno"> 7512</span> </div>
-<div class="line"><a id="l07513" name="l07513"></a><span class="lineno"> 7513</span>    win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a> = RGFW_events[index];</div>
+<div class="line"><a id="l07420" name="l07420"></a><span class="lineno"> 7420</span>                reader.readAsArrayBuffer(file);     </div>
+<div class="line"><a id="l07421" name="l07421"></a><span class="lineno"> 7421</span>                <span class="comment">// This works weird on webgl 2+</span></div>
+<div class="line"><a id="l07422" name="l07422"></a><span class="lineno"> 7422</span>                var filename = stringToNewUTF8(path);</div>
+<div class="line"><a id="l07423" name="l07423"></a><span class="lineno"> 7423</span> </div>
+<div class="line"><a id="l07424" name="l07424"></a><span class="lineno"> 7424</span>                filenamesArray.push(filename);</div>
+<div class="line"><a id="l07425" name="l07425"></a><span class="lineno"> 7425</span>                </div>
+<div class="line"><a id="l07426" name="l07426"></a><span class="lineno"> 7426</span>                Module._RGFW_makeSetValue(i, filename);</div>
+<div class="line"><a id="l07427" name="l07427"></a><span class="lineno"> 7427</span>            }</div>
+<div class="line"><a id="l07428" name="l07428"></a><span class="lineno"> 7428</span>            </div>
+<div class="line"><a id="l07429" name="l07429"></a><span class="lineno"> 7429</span>            Module._Emscripten_onDrop(count);</div>
+<div class="line"><a id="l07430" name="l07430"></a><span class="lineno"> 7430</span>            </div>
+<div class="line"><a id="l07431" name="l07431"></a><span class="lineno"> 7431</span>            <span class="keywordflow">for</span> (var i = 0; i &lt; count; ++i) {</div>
+<div class="line"><a id="l07432" name="l07432"></a><span class="lineno"> 7432</span>                _free(filenamesArray[i]);</div>
+<div class="line"><a id="l07433" name="l07433"></a><span class="lineno"> 7433</span>            }</div>
+<div class="line"><a id="l07434" name="l07434"></a><span class="lineno"> 7434</span>        }, <span class="keyword">true</span>);</div>
+<div class="line"><a id="l07435" name="l07435"></a><span class="lineno"> 7435</span> </div>
+<div class="line"><a id="l07436" name="l07436"></a><span class="lineno"> 7436</span>        canvas.addEventListener(<span class="stringliteral">&#39;dragover&#39;</span>, function(e) { e.preventDefault(); <span class="keywordflow">return</span> <span class="keyword">false</span>; }, <span class="keyword">true</span>);</div>
+<div class="line"><a id="l07437" name="l07437"></a><span class="lineno"> 7437</span>    });</div>
+<div class="line"><a id="l07438" name="l07438"></a><span class="lineno"> 7438</span> </div>
+<div class="line"><a id="l07439" name="l07439"></a><span class="lineno"> 7439</span>    RGFW_init_buffer(win);</div>
+<div class="line"><a id="l07440" name="l07440"></a><span class="lineno"> 7440</span>    glViewport(0, 0, rect.<a class="code hl_variable" href="structRGFW__rect.html#ae9b18887b7389dc05283e4e54881b801">w</a>, rect.<a class="code hl_variable" href="structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d">h</a>);</div>
+<div class="line"><a id="l07441" name="l07441"></a><span class="lineno"> 7441</span>    </div>
+<div class="line"><a id="l07442" name="l07442"></a><span class="lineno"> 7442</span>    RGFW_root = win; </div>
+<div class="line"><a id="l07443" name="l07443"></a><span class="lineno"> 7443</span> </div>
+<div class="line"><a id="l07444" name="l07444"></a><span class="lineno"> 7444</span>    <span class="keywordflow">if</span> (args &amp; <a class="code hl_define" href="RGFW_8h.html#a8380dc8842fec2f82957bd101fb8cca8">RGFW_HIDE_MOUSE</a>) {</div>
+<div class="line"><a id="l07445" name="l07445"></a><span class="lineno"> 7445</span>        <a class="code hl_function" href="group__Window__management.html#gab43e1937c20843643455a5b01dae9c54">RGFW_window_showMouse</a>(win, 0);</div>
+<div class="line"><a id="l07446" name="l07446"></a><span class="lineno"> 7446</span>    }</div>
+<div class="line"><a id="l07447" name="l07447"></a><span class="lineno"> 7447</span> </div>
+<div class="line"><a id="l07448" name="l07448"></a><span class="lineno"> 7448</span>    <span class="keywordflow">if</span> (args &amp; <a class="code hl_define" href="RGFW_8h.html#ab3e38a57a4f4c1788b169e5b241d64ab">RGFW_FULLSCREEN</a>) {</div>
+<div class="line"><a id="l07449" name="l07449"></a><span class="lineno"> 7449</span>        <a class="code hl_function" href="group__Window__management.html#ga49cb75955ec07bb68faf7f260b30e693">RGFW_window_resize</a>(win, <a class="code hl_function" href="group__Window__management.html#ga2952eee39f36b85b6829976656043f97">RGFW_getScreenSize</a>());</div>
+<div class="line"><a id="l07450" name="l07450"></a><span class="lineno"> 7450</span>    }</div>
+<div class="line"><a id="l07451" name="l07451"></a><span class="lineno"> 7451</span> </div>
+<div class="line"><a id="l07452" name="l07452"></a><span class="lineno"> 7452</span>    <span class="keywordflow">return</span> win;</div>
+<div class="line"><a id="l07453" name="l07453"></a><span class="lineno"> 7453</span>}</div>
+<div class="line"><a id="l07454" name="l07454"></a><span class="lineno"> 7454</span> </div>
+<div class="line"><a id="l07455" name="l07455"></a><span class="lineno"> 7455</span><a class="code hl_struct" href="structRGFW__Event.html">RGFW_Event</a>* <a class="code hl_function" href="group__Window__management.html#gaa97b9a6fe1c8a47636e6036ba923fbd3">RGFW_window_checkEvent</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
+<div class="line"><a id="l07456" name="l07456"></a><span class="lineno"> 7456</span>    <span class="keyword">static</span> <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> index = 0;</div>
+<div class="line"><a id="l07457" name="l07457"></a><span class="lineno"> 7457</span>    </div>
+<div class="line"><a id="l07458" name="l07458"></a><span class="lineno"> 7458</span>    <span class="keywordflow">if</span> (index == 0) </div>
+<div class="line"><a id="l07459" name="l07459"></a><span class="lineno"> 7459</span>        RGFW_resetKey();</div>
+<div class="line"><a id="l07460" name="l07460"></a><span class="lineno"> 7460</span> </div>
+<div class="line"><a id="l07461" name="l07461"></a><span class="lineno"> 7461</span>    <span class="comment">/* check gamepads */</span></div>
+<div class="line"><a id="l07462" name="l07462"></a><span class="lineno"> 7462</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; (i &lt; emscripten_get_num_gamepads()) &amp;&amp; (i &lt; 4); i++) {</div>
+<div class="line"><a id="l07463" name="l07463"></a><span class="lineno"> 7463</span>        <span class="keywordflow">if</span> (RGFW_joysticks[i] == 0)</div>
+<div class="line"><a id="l07464" name="l07464"></a><span class="lineno"> 7464</span>            <span class="keywordflow">continue</span>;;</div>
+<div class="line"><a id="l07465" name="l07465"></a><span class="lineno"> 7465</span>        </div>
+<div class="line"><a id="l07466" name="l07466"></a><span class="lineno"> 7466</span>        EmscriptenGamepadEvent gamepadState;</div>
+<div class="line"><a id="l07467" name="l07467"></a><span class="lineno"> 7467</span> </div>
+<div class="line"><a id="l07468" name="l07468"></a><span class="lineno"> 7468</span>        <span class="keywordflow">if</span> (emscripten_get_gamepad_status(i, &amp;gamepadState) != EMSCRIPTEN_RESULT_SUCCESS)</div>
+<div class="line"><a id="l07469" name="l07469"></a><span class="lineno"> 7469</span>            <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l07470" name="l07470"></a><span class="lineno"> 7470</span> </div>
+<div class="line"><a id="l07471" name="l07471"></a><span class="lineno"> 7471</span>        <span class="comment">// Register buttons data for every connected gamepad</span></div>
+<div class="line"><a id="l07472" name="l07472"></a><span class="lineno"> 7472</span>        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j = 0; (j &lt; gamepadState.numButtons) &amp;&amp; (j &lt; 16); j++) {</div>
+<div class="line"><a id="l07473" name="l07473"></a><span class="lineno"> 7473</span>            <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> map[] = {</div>
+<div class="line"><a id="l07474" name="l07474"></a><span class="lineno"> 7474</span>                RGFW_JS_A, RGFW_JS_X, RGFW_JS_B, RGFW_JS_Y,</div>
+<div class="line"><a id="l07475" name="l07475"></a><span class="lineno"> 7475</span>                RGFW_JS_L1, RGFW_JS_R1, RGFW_JS_L2, RGFW_JS_R2,</div>
+<div class="line"><a id="l07476" name="l07476"></a><span class="lineno"> 7476</span>                RGFW_JS_SELECT, RGFW_JS_START,</div>
+<div class="line"><a id="l07477" name="l07477"></a><span class="lineno"> 7477</span>                0, 0,</div>
+<div class="line"><a id="l07478" name="l07478"></a><span class="lineno"> 7478</span>                RGFW_JS_UP, RGFW_JS_DOWN, RGFW_JS_LEFT, RGFW_JS_RIGHT</div>
+<div class="line"><a id="l07479" name="l07479"></a><span class="lineno"> 7479</span>            };</div>
+<div class="line"><a id="l07480" name="l07480"></a><span class="lineno"> 7480</span> </div>
+<div class="line"><a id="l07481" name="l07481"></a><span class="lineno"> 7481</span>            <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> button = map[j]; </div>
+<div class="line"><a id="l07482" name="l07482"></a><span class="lineno"> 7482</span>            <span class="keywordflow">if</span> (RGFW_jsPressed[i][button] != gamepadState.digitalButton[j]) {</div>
+<div class="line"><a id="l07483" name="l07483"></a><span class="lineno"> 7483</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#ac883520f0c38d1f756f9968ce1d44c9d">type</a> = <a class="code hl_define" href="RGFW_8h.html#a16b1951172fe6822d44c0e1c8971dafa">RGFW_jsButtonPressed</a>;</div>
+<div class="line"><a id="l07484" name="l07484"></a><span class="lineno"> 7484</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#afdaca09dfbe5021b13e28800d8fe3aff">joystick</a> = i;</div>
+<div class="line"><a id="l07485" name="l07485"></a><span class="lineno"> 7485</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#ae696791fd6733fab391495d9ec94d50e">button</a> = map[j];</div>
+<div class="line"><a id="l07486" name="l07486"></a><span class="lineno"> 7486</span>                <span class="keywordflow">return</span> &amp;win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>;</div>
+<div class="line"><a id="l07487" name="l07487"></a><span class="lineno"> 7487</span>            }</div>
+<div class="line"><a id="l07488" name="l07488"></a><span class="lineno"> 7488</span> </div>
+<div class="line"><a id="l07489" name="l07489"></a><span class="lineno"> 7489</span>            RGFW_jsPressed[i][button] = gamepadState.digitalButton[j];</div>
+<div class="line"><a id="l07490" name="l07490"></a><span class="lineno"> 7490</span>        }</div>
+<div class="line"><a id="l07491" name="l07491"></a><span class="lineno"> 7491</span> </div>
+<div class="line"><a id="l07492" name="l07492"></a><span class="lineno"> 7492</span>        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j = 0; (j &lt; gamepadState.numAxes) &amp;&amp; (j &lt; 4); j += 2) {</div>
+<div class="line"><a id="l07493" name="l07493"></a><span class="lineno"> 7493</span>            win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#acf99a876c09df1c60733653e3d77e489">axisesCount</a> = gamepadState.numAxes;</div>
+<div class="line"><a id="l07494" name="l07494"></a><span class="lineno"> 7494</span>            <span class="keywordflow">if</span> (win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#a6a6c3e98e718328d2cc5144c8365e668">axis</a>[j].<a class="code hl_variable" href="structRGFW__point.html#a1e4ef1395966022c65b8b69db9e8e592">x</a> != gamepadState.axis[j] || </div>
+<div class="line"><a id="l07495" name="l07495"></a><span class="lineno"> 7495</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#a6a6c3e98e718328d2cc5144c8365e668">axis</a>[j].<a class="code hl_variable" href="structRGFW__point.html#a5f31b208f21b8cb3f65c225a07936a93">y</a> != gamepadState.axis[j + 1]</div>
+<div class="line"><a id="l07496" name="l07496"></a><span class="lineno"> 7496</span>            ) {</div>
+<div class="line"><a id="l07497" name="l07497"></a><span class="lineno"> 7497</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#a6a6c3e98e718328d2cc5144c8365e668">axis</a>[j].<a class="code hl_variable" href="structRGFW__point.html#a1e4ef1395966022c65b8b69db9e8e592">x</a> = gamepadState.axis[j];</div>
+<div class="line"><a id="l07498" name="l07498"></a><span class="lineno"> 7498</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#a6a6c3e98e718328d2cc5144c8365e668">axis</a>[j].<a class="code hl_variable" href="structRGFW__point.html#a5f31b208f21b8cb3f65c225a07936a93">y</a> = gamepadState.axis[j + 1];</div>
+<div class="line"><a id="l07499" name="l07499"></a><span class="lineno"> 7499</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#ac883520f0c38d1f756f9968ce1d44c9d">type</a> = <a class="code hl_define" href="RGFW_8h.html#a3796a8209855411933c6df7ba91e8760">RGFW_jsAxisMove</a>;</div>
+<div class="line"><a id="l07500" name="l07500"></a><span class="lineno"> 7500</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#afdaca09dfbe5021b13e28800d8fe3aff">joystick</a> = i;</div>
+<div class="line"><a id="l07501" name="l07501"></a><span class="lineno"> 7501</span>                <span class="keywordflow">return</span> &amp;win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>;</div>
+<div class="line"><a id="l07502" name="l07502"></a><span class="lineno"> 7502</span>            }</div>
+<div class="line"><a id="l07503" name="l07503"></a><span class="lineno"> 7503</span>        }</div>
+<div class="line"><a id="l07504" name="l07504"></a><span class="lineno"> 7504</span>    }</div>
+<div class="line"><a id="l07505" name="l07505"></a><span class="lineno"> 7505</span> </div>
+<div class="line"><a id="l07506" name="l07506"></a><span class="lineno"> 7506</span>    <span class="comment">/* check queued events */</span></div>
+<div class="line"><a id="l07507" name="l07507"></a><span class="lineno"> 7507</span>    <span class="keywordflow">if</span> (RGFW_eventLen == 0)</div>
+<div class="line"><a id="l07508" name="l07508"></a><span class="lineno"> 7508</span>        <span class="keywordflow">return</span> NULL;</div>
+<div class="line"><a id="l07509" name="l07509"></a><span class="lineno"> 7509</span>    </div>
+<div class="line"><a id="l07510" name="l07510"></a><span class="lineno"> 7510</span>    RGFW_events[index].<a class="code hl_variable" href="structRGFW__Event.html#af583c59d703b79bdc197caea0d0265a7">fps</a> = win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#af583c59d703b79bdc197caea0d0265a7">fps</a>;</div>
+<div class="line"><a id="l07511" name="l07511"></a><span class="lineno"> 7511</span>    RGFW_events[index].<a class="code hl_variable" href="structRGFW__Event.html#a12fce4f53276e22cda983ff2da18f510">frameTime</a> = win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#a12fce4f53276e22cda983ff2da18f510">frameTime</a>;</div>
+<div class="line"><a id="l07512" name="l07512"></a><span class="lineno"> 7512</span>    RGFW_events[index].<a class="code hl_variable" href="structRGFW__Event.html#ae433faef4822130d8ba3cc064fa718f4">frameTime2</a> = win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#ae433faef4822130d8ba3cc064fa718f4">frameTime2</a>;</div>
+<div class="line"><a id="l07513" name="l07513"></a><span class="lineno"> 7513</span>    RGFW_events[index].<a class="code hl_variable" href="structRGFW__Event.html#a73f8902da9456948ae878640754a301e">inFocus</a> = win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#a73f8902da9456948ae878640754a301e">inFocus</a>;</div>
 <div class="line"><a id="l07514" name="l07514"></a><span class="lineno"> 7514</span> </div>
-<div class="line"><a id="l07515" name="l07515"></a><span class="lineno"> 7515</span>    RGFW_eventLen--;</div>
+<div class="line"><a id="l07515" name="l07515"></a><span class="lineno"> 7515</span>    win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a> = RGFW_events[index];</div>
 <div class="line"><a id="l07516" name="l07516"></a><span class="lineno"> 7516</span> </div>
-<div class="line"><a id="l07517" name="l07517"></a><span class="lineno"> 7517</span>    <span class="keywordflow">if</span> (RGFW_eventLen)</div>
-<div class="line"><a id="l07518" name="l07518"></a><span class="lineno"> 7518</span>        index++;</div>
-<div class="line"><a id="l07519" name="l07519"></a><span class="lineno"> 7519</span>    <span class="keywordflow">else</span></div>
-<div class="line"><a id="l07520" name="l07520"></a><span class="lineno"> 7520</span>        index = 0;</div>
-<div class="line"><a id="l07521" name="l07521"></a><span class="lineno"> 7521</span> </div>
-<div class="line"><a id="l07522" name="l07522"></a><span class="lineno"> 7522</span>    <span class="keywordflow">return</span> &amp;win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>;</div>
-<div class="line"><a id="l07523" name="l07523"></a><span class="lineno"> 7523</span>}</div>
-<div class="line"><a id="l07524" name="l07524"></a><span class="lineno"> 7524</span> </div>
-<div class="line"><a id="l07525" name="l07525"></a><span class="lineno"> 7525</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga49cb75955ec07bb68faf7f260b30e693">RGFW_window_resize</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a> a) {</div>
-<div class="line"><a id="l07526" name="l07526"></a><span class="lineno"> 7526</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win)</div>
-<div class="line"><a id="l07527" name="l07527"></a><span class="lineno"> 7527</span>    emscripten_set_canvas_element_size(<span class="stringliteral">&quot;#canvas&quot;</span>, a.<a class="code hl_variable" href="structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a">w</a>, a.<a class="code hl_variable" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">h</a>);</div>
-<div class="line"><a id="l07528" name="l07528"></a><span class="lineno"> 7528</span>}</div>
-<div class="line"><a id="l07529" name="l07529"></a><span class="lineno"> 7529</span> </div>
-<div class="line"><a id="l07530" name="l07530"></a><span class="lineno"> 7530</span><span class="comment">/* NOTE: I don&#39;t know if this is possible */</span></div>
-<div class="line"><a id="l07531" name="l07531"></a><span class="lineno"> 7531</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga1f8210bbda82bd96122267c39f9c85c3">RGFW_window_moveMouse</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_struct" href="structRGFW__point.html">RGFW_point</a> v) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(v); }</div>
-<div class="line"><a id="l07532" name="l07532"></a><span class="lineno"> 7532</span><span class="comment">/* this one might be possible but it looks iffy */</span></div>
-<div class="line"><a id="l07533" name="l07533"></a><span class="lineno"> 7533</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga7c3b0a4c1c9866d83ef33a737dd72594">RGFW_window_setMouse</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>* image, <a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a> a, <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> channels) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(channels) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(a) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(image) }</div>
-<div class="line"><a id="l07534" name="l07534"></a><span class="lineno"> 7534</span> </div>
-<div class="line"><a id="l07535" name="l07535"></a><span class="lineno"> 7535</span><span class="keyword">const</span> <span class="keywordtype">char</span> RGFW_CURSORS[11][12] = {</div>
-<div class="line"><a id="l07536" name="l07536"></a><span class="lineno"> 7536</span>    <span class="stringliteral">&quot;default&quot;</span>,</div>
-<div class="line"><a id="l07537" name="l07537"></a><span class="lineno"> 7537</span>    <span class="stringliteral">&quot;default&quot;</span>,</div>
-<div class="line"><a id="l07538" name="l07538"></a><span class="lineno"> 7538</span>    <span class="stringliteral">&quot;text&quot;</span>,</div>
-<div class="line"><a id="l07539" name="l07539"></a><span class="lineno"> 7539</span>    <span class="stringliteral">&quot;crosshair&quot;</span>,</div>
-<div class="line"><a id="l07540" name="l07540"></a><span class="lineno"> 7540</span>    <span class="stringliteral">&quot;pointer&quot;</span>,</div>
-<div class="line"><a id="l07541" name="l07541"></a><span class="lineno"> 7541</span>    <span class="stringliteral">&quot;ew-resize&quot;</span>,</div>
-<div class="line"><a id="l07542" name="l07542"></a><span class="lineno"> 7542</span>    <span class="stringliteral">&quot;ns-resize&quot;</span>,</div>
-<div class="line"><a id="l07543" name="l07543"></a><span class="lineno"> 7543</span>    <span class="stringliteral">&quot;nwse-resize&quot;</span>,</div>
-<div class="line"><a id="l07544" name="l07544"></a><span class="lineno"> 7544</span>    <span class="stringliteral">&quot;nesw-resize&quot;</span>,</div>
-<div class="line"><a id="l07545" name="l07545"></a><span class="lineno"> 7545</span>    <span class="stringliteral">&quot;move&quot;</span>,</div>
-<div class="line"><a id="l07546" name="l07546"></a><span class="lineno"> 7546</span>    <span class="stringliteral">&quot;not-allowed&quot;</span></div>
-<div class="line"><a id="l07547" name="l07547"></a><span class="lineno"> 7547</span>};</div>
-<div class="line"><a id="l07548" name="l07548"></a><span class="lineno"> 7548</span> </div>
-<div class="line"><a id="l07549" name="l07549"></a><span class="lineno"> 7549</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga9a26703617c4c49c6b82e804a991e9c0">RGFW_window_setMouseStandard</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> mouse) {</div>
-<div class="line"><a id="l07550" name="l07550"></a><span class="lineno"> 7550</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win)</div>
-<div class="line"><a id="l07551" name="l07551"></a><span class="lineno"> 7551</span>    EM_ASM( { document.getElementById(<span class="stringliteral">&quot;canvas&quot;</span>).style.cursor = UTF8ToString($0); }, RGFW_CURSORS[mouse]);</div>
-<div class="line"><a id="l07552" name="l07552"></a><span class="lineno"> 7552</span>}</div>
-<div class="line"><a id="l07553" name="l07553"></a><span class="lineno"> 7553</span> </div>
-<div class="line"><a id="l07554" name="l07554"></a><span class="lineno"> 7554</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga0a22958af5bd979c087e3e309e64db1a">RGFW_window_setMouseDefault</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
-<div class="line"><a id="l07555" name="l07555"></a><span class="lineno"> 7555</span>    <a class="code hl_function" href="group__Window__management.html#ga9a26703617c4c49c6b82e804a991e9c0">RGFW_window_setMouseStandard</a>(win, RGFW_MOUSE_NORMAL);</div>
-<div class="line"><a id="l07556" name="l07556"></a><span class="lineno"> 7556</span>}</div>
-<div class="line"><a id="l07557" name="l07557"></a><span class="lineno"> 7557</span> </div>
-<div class="line"><a id="l07558" name="l07558"></a><span class="lineno"> 7558</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#gab43e1937c20843643455a5b01dae9c54">RGFW_window_showMouse</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#ae3702327b5f47e83b431e22b33da7b58">i8</a> show) {</div>
-<div class="line"><a id="l07559" name="l07559"></a><span class="lineno"> 7559</span>    <span class="keywordflow">if</span> (show)</div>
-<div class="line"><a id="l07560" name="l07560"></a><span class="lineno"> 7560</span>        <a class="code hl_function" href="group__Window__management.html#ga0a22958af5bd979c087e3e309e64db1a">RGFW_window_setMouseDefault</a>(win);</div>
-<div class="line"><a id="l07561" name="l07561"></a><span class="lineno"> 7561</span>    <span class="keywordflow">else</span></div>
-<div class="line"><a id="l07562" name="l07562"></a><span class="lineno"> 7562</span>        EM_ASM(document.getElementById(<span class="stringliteral">&#39;canvas&#39;</span>).style.cursor = <span class="stringliteral">&#39;none&#39;</span>;);</div>
-<div class="line"><a id="l07563" name="l07563"></a><span class="lineno"> 7563</span>}</div>
-<div class="line"><a id="l07564" name="l07564"></a><span class="lineno"> 7564</span> </div>
-<div class="line"><a id="l07565" name="l07565"></a><span class="lineno"> 7565</span><a class="code hl_struct" href="structRGFW__point.html">RGFW_point</a> <a class="code hl_function" href="group__Window__management.html#ga4ad826ac2c2514025697e8ad64e4e1c9">RGFW_getGlobalMousePoint</a>(<span class="keywordtype">void</span>) {</div>
-<div class="line"><a id="l07566" name="l07566"></a><span class="lineno"> 7566</span>    <a class="code hl_struct" href="structRGFW__point.html">RGFW_point</a> point;</div>
-<div class="line"><a id="l07567" name="l07567"></a><span class="lineno"> 7567</span>    point.<a class="code hl_variable" href="structRGFW__point.html#a1e4ef1395966022c65b8b69db9e8e592">x</a> = EM_ASM_INT({</div>
-<div class="line"><a id="l07568" name="l07568"></a><span class="lineno"> 7568</span>        <span class="keywordflow">return</span> window.mouseX || 0;</div>
-<div class="line"><a id="l07569" name="l07569"></a><span class="lineno"> 7569</span>    });</div>
-<div class="line"><a id="l07570" name="l07570"></a><span class="lineno"> 7570</span>    point.<a class="code hl_variable" href="structRGFW__point.html#a5f31b208f21b8cb3f65c225a07936a93">y</a> = EM_ASM_INT({</div>
-<div class="line"><a id="l07571" name="l07571"></a><span class="lineno"> 7571</span>        <span class="keywordflow">return</span> window.mouseY || 0;</div>
-<div class="line"><a id="l07572" name="l07572"></a><span class="lineno"> 7572</span>    });</div>
-<div class="line"><a id="l07573" name="l07573"></a><span class="lineno"> 7573</span>    <span class="keywordflow">return</span> point;</div>
-<div class="line"><a id="l07574" name="l07574"></a><span class="lineno"> 7574</span>}</div>
-<div class="line"><a id="l07575" name="l07575"></a><span class="lineno"> 7575</span> </div>
-<div class="line"><a id="l07576" name="l07576"></a><span class="lineno"> 7576</span><a class="code hl_struct" href="structRGFW__point.html">RGFW_point</a> <a class="code hl_function" href="group__Window__management.html#ga1d970bf9f2042f7ccdd6c132c6f576fa">RGFW_window_getMousePoint</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
-<div class="line"><a id="l07577" name="l07577"></a><span class="lineno"> 7577</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win);</div>
-<div class="line"><a id="l07578" name="l07578"></a><span class="lineno"> 7578</span>    </div>
-<div class="line"><a id="l07579" name="l07579"></a><span class="lineno"> 7579</span>    EmscriptenMouseEvent mouseEvent;</div>
-<div class="line"><a id="l07580" name="l07580"></a><span class="lineno"> 7580</span>    emscripten_get_mouse_status(&amp;mouseEvent);</div>
-<div class="line"><a id="l07581" name="l07581"></a><span class="lineno"> 7581</span>    <span class="keywordflow">return</span> <a class="code hl_define" href="RGFW_8h.html#a4e893e75a8f37ccc1fe0dc388339bcdf">RGFW_POINT</a>( mouseEvent.targetX,  mouseEvent.targetY);</div>
-<div class="line"><a id="l07582" name="l07582"></a><span class="lineno"> 7582</span>}</div>
-<div class="line"><a id="l07583" name="l07583"></a><span class="lineno"> 7583</span> </div>
-<div class="line"><a id="l07584" name="l07584"></a><span class="lineno"> 7584</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga238e2c030e0de4343a3e28aa92dc622e">RGFW_window_setMousePassthrough</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73">b8</a> passthrough) {</div>
-<div class="line"><a id="l07585" name="l07585"></a><span class="lineno"> 7585</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win);</div>
-<div class="line"><a id="l07586" name="l07586"></a><span class="lineno"> 7586</span> </div>
-<div class="line"><a id="l07587" name="l07587"></a><span class="lineno"> 7587</span>    EM_ASM_({</div>
-<div class="line"><a id="l07588" name="l07588"></a><span class="lineno"> 7588</span>        var canvas = document.getElementById(<span class="stringliteral">&#39;canvas&#39;</span>);</div>
-<div class="line"><a id="l07589" name="l07589"></a><span class="lineno"> 7589</span>        <span class="keywordflow">if</span> ($0) {</div>
-<div class="line"><a id="l07590" name="l07590"></a><span class="lineno"> 7590</span>            canvas.style.pointerEvents = <span class="stringliteral">&#39;none&#39;</span>;</div>
-<div class="line"><a id="l07591" name="l07591"></a><span class="lineno"> 7591</span>        } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l07592" name="l07592"></a><span class="lineno"> 7592</span>            canvas.style.pointerEvents = <span class="stringliteral">&#39;auto&#39;</span>;</div>
-<div class="line"><a id="l07593" name="l07593"></a><span class="lineno"> 7593</span>        }</div>
-<div class="line"><a id="l07594" name="l07594"></a><span class="lineno"> 7594</span>    }, passthrough);</div>
-<div class="line"><a id="l07595" name="l07595"></a><span class="lineno"> 7595</span>}</div>
-<div class="line"><a id="l07596" name="l07596"></a><span class="lineno"> 7596</span> </div>
-<div class="line"><a id="l07597" name="l07597"></a><span class="lineno"> 7597</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Clipboard.html#ga0de2f0466a3ae4cc9986101de14dbdee">RGFW_writeClipboard</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* text, <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> textLen) {</div>
-<div class="line"><a id="l07598" name="l07598"></a><span class="lineno"> 7598</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(textLen)</div>
-<div class="line"><a id="l07599" name="l07599"></a><span class="lineno"> 7599</span>    EM_ASM({ navigator.clipboard.writeText(UTF8ToString($0)); }, text);</div>
-<div class="line"><a id="l07600" name="l07600"></a><span class="lineno"> 7600</span>}</div>
-<div class="line"><a id="l07601" name="l07601"></a><span class="lineno"> 7601</span> </div>
-<div class="line"><a id="l07602" name="l07602"></a><span class="lineno"> 7602</span> </div>
-<div class="line"><a id="l07603" name="l07603"></a><span class="lineno"> 7603</span><span class="keywordtype">char</span>* <a class="code hl_function" href="group__Clipboard.html#gafd7703681c9d137e58b900b448277a42">RGFW_readClipboard</a>(<span class="keywordtype">size_t</span>* size) {</div>
-<div class="line"><a id="l07604" name="l07604"></a><span class="lineno"> 7604</span>    <span class="comment">/*</span></div>
-<div class="line"><a id="l07605" name="l07605"></a><span class="lineno"> 7605</span><span class="comment">        placeholder code for later</span></div>
-<div class="line"><a id="l07606" name="l07606"></a><span class="lineno"> 7606</span><span class="comment">        I&#39;m not sure if this is possible do the the async stuff</span></div>
-<div class="line"><a id="l07607" name="l07607"></a><span class="lineno"> 7607</span><span class="comment">    */</span></div>
-<div class="line"><a id="l07608" name="l07608"></a><span class="lineno"> 7608</span>    </div>
-<div class="line"><a id="l07609" name="l07609"></a><span class="lineno"> 7609</span>    <span class="keywordflow">if</span> (size != NULL)</div>
-<div class="line"><a id="l07610" name="l07610"></a><span class="lineno"> 7610</span>        *size = 0;</div>
-<div class="line"><a id="l07611" name="l07611"></a><span class="lineno"> 7611</span>    </div>
-<div class="line"><a id="l07612" name="l07612"></a><span class="lineno"> 7612</span>    <span class="keywordtype">char</span>* str = malloc(1);</div>
-<div class="line"><a id="l07613" name="l07613"></a><span class="lineno"> 7613</span>    str[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
-<div class="line"><a id="l07614" name="l07614"></a><span class="lineno"> 7614</span> </div>
-<div class="line"><a id="l07615" name="l07615"></a><span class="lineno"> 7615</span>    <span class="keywordflow">return</span> str;</div>
-<div class="line"><a id="l07616" name="l07616"></a><span class="lineno"> 7616</span>}</div>
-<div class="line"><a id="l07617" name="l07617"></a><span class="lineno"> 7617</span> </div>
-<div class="line"><a id="l07618" name="l07618"></a><span class="lineno"> 7618</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__graphics__API.html#ga986713977b14a729d11b228cfe7a1776">RGFW_window_swapBuffers</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
-<div class="line"><a id="l07619" name="l07619"></a><span class="lineno"> 7619</span><span class="preprocessor">    #ifdef RGFW_BUFFER</span></div>
-<div class="line"><a id="l07620" name="l07620"></a><span class="lineno"> 7620</span>    <span class="keywordflow">if</span> (!(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a3ba41ce67f7dfd9389251c7b96b60b02">_winArgs</a> &amp; <a class="code hl_define" href="RGFW_8h.html#a33ab677fa73ce074352de4a59ae18498">RGFW_NO_CPU_RENDER</a>)) {        </div>
-<div class="line"><a id="l07621" name="l07621"></a><span class="lineno"> 7621</span>        glEnable(GL_TEXTURE_2D);</div>
-<div class="line"><a id="l07622" name="l07622"></a><span class="lineno"> 7622</span> </div>
-<div class="line"><a id="l07623" name="l07623"></a><span class="lineno"> 7623</span>        GLuint texture;</div>
-<div class="line"><a id="l07624" name="l07624"></a><span class="lineno"> 7624</span>        glGenTextures(1,&amp;texture);</div>
-<div class="line"><a id="l07625" name="l07625"></a><span class="lineno"> 7625</span> </div>
-<div class="line"><a id="l07626" name="l07626"></a><span class="lineno"> 7626</span>        glBindTexture(GL_TEXTURE_2D,texture);</div>
-<div class="line"><a id="l07627" name="l07627"></a><span class="lineno"> 7627</span>        </div>
-<div class="line"><a id="l07628" name="l07628"></a><span class="lineno"> 7628</span>        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);</div>
-<div class="line"><a id="l07629" name="l07629"></a><span class="lineno"> 7629</span>        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);</div>
-<div class="line"><a id="l07630" name="l07630"></a><span class="lineno"> 7630</span>        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);</div>
-<div class="line"><a id="l07631" name="l07631"></a><span class="lineno"> 7631</span>        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);</div>
-<div class="line"><a id="l07632" name="l07632"></a><span class="lineno"> 7632</span> </div>
-<div class="line"><a id="l07633" name="l07633"></a><span class="lineno"> 7633</span>        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, RGFW_bufferSize.<a class="code hl_variable" href="structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a">w</a>, RGFW_bufferSize.<a class="code hl_variable" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">h</a>, 0, GL_RGBA, GL_UNSIGNED_BYTE, win-&gt;buffer);</div>
-<div class="line"><a id="l07634" name="l07634"></a><span class="lineno"> 7634</span>        </div>
-<div class="line"><a id="l07635" name="l07635"></a><span class="lineno"> 7635</span>        <span class="keywordtype">float</span> ratioX = ((float)win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a638e63f187096f668c11438ae44d8700">r</a>.<a class="code hl_variable" href="structRGFW__rect.html#ae9b18887b7389dc05283e4e54881b801">w</a> / (<span class="keywordtype">float</span>)RGFW_bufferSize.<a class="code hl_variable" href="structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a">w</a>);</div>
-<div class="line"><a id="l07636" name="l07636"></a><span class="lineno"> 7636</span>        <span class="keywordtype">float</span> ratioY = ((float)win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a638e63f187096f668c11438ae44d8700">r</a>.<a class="code hl_variable" href="structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d">h</a> / (<span class="keywordtype">float</span>)RGFW_bufferSize.<a class="code hl_variable" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">h</a>);</div>
-<div class="line"><a id="l07637" name="l07637"></a><span class="lineno"> 7637</span> </div>
-<div class="line"><a id="l07638" name="l07638"></a><span class="lineno"> 7638</span>        <span class="comment">// Set up the viewport</span></div>
-<div class="line"><a id="l07639" name="l07639"></a><span class="lineno"> 7639</span>        glClear(GL_COLOR_BUFFER_BIT);</div>
-<div class="line"><a id="l07640" name="l07640"></a><span class="lineno"> 7640</span> </div>
-<div class="line"><a id="l07641" name="l07641"></a><span class="lineno"> 7641</span>        glBegin(GL_TRIANGLES);</div>
-<div class="line"><a id="l07642" name="l07642"></a><span class="lineno"> 7642</span>            glTexCoord2f(0, ratioY); glColor3f(1, 1, 1); glVertex2f(-1, -1);</div>
-<div class="line"><a id="l07643" name="l07643"></a><span class="lineno"> 7643</span>            glTexCoord2f(0, 0); glColor3f(1, 1, 1); glVertex2f(-1, 1);</div>
-<div class="line"><a id="l07644" name="l07644"></a><span class="lineno"> 7644</span>            glTexCoord2f(ratioX, ratioY); glColor3f(1, 1, 1); glVertex2f(1, -1);</div>
-<div class="line"><a id="l07645" name="l07645"></a><span class="lineno"> 7645</span> </div>
-<div class="line"><a id="l07646" name="l07646"></a><span class="lineno"> 7646</span>            glTexCoord2f(ratioX, 0); glColor3f(1, 1, 1); glVertex2f(1, 1);</div>
-<div class="line"><a id="l07647" name="l07647"></a><span class="lineno"> 7647</span>            glTexCoord2f(ratioX, ratioY); glColor3f(1, 1, 1); glVertex2f(1, -1);</div>
-<div class="line"><a id="l07648" name="l07648"></a><span class="lineno"> 7648</span>            glTexCoord2f(0, 0); glColor3f(1, 1, 1); glVertex2f(-1, 1);</div>
-<div class="line"><a id="l07649" name="l07649"></a><span class="lineno"> 7649</span>        glEnd();</div>
-<div class="line"><a id="l07650" name="l07650"></a><span class="lineno"> 7650</span> </div>
-<div class="line"><a id="l07651" name="l07651"></a><span class="lineno"> 7651</span>        glDeleteTextures(1, &amp;texture);</div>
-<div class="line"><a id="l07652" name="l07652"></a><span class="lineno"> 7652</span>    }</div>
-<div class="line"><a id="l07653" name="l07653"></a><span class="lineno"> 7653</span><span class="preprocessor">    #endif</span></div>
-<div class="line"><a id="l07654" name="l07654"></a><span class="lineno"> 7654</span> </div>
-<div class="line"><a id="l07655" name="l07655"></a><span class="lineno"> 7655</span>    emscripten_webgl_commit_frame();</div>
-<div class="line"><a id="l07656" name="l07656"></a><span class="lineno"> 7656</span>    </div>
-<div class="line"><a id="l07657" name="l07657"></a><span class="lineno"> 7657</span>    <span class="keywordflow">if</span> (win-&gt;<a class="code hl_variable" href="structRGFW__window.html#ab45f948b586e28d51709b2c3e262dc8b">fpsCap</a> == 0 || win-&gt;<a class="code hl_variable" href="structRGFW__window.html#ab45f948b586e28d51709b2c3e262dc8b">fpsCap</a> &lt; 100) {</div>
-<div class="line"><a id="l07658" name="l07658"></a><span class="lineno"> 7658</span>        emscripten_sleep(0);</div>
-<div class="line"><a id="l07659" name="l07659"></a><span class="lineno"> 7659</span>    }</div>
-<div class="line"><a id="l07660" name="l07660"></a><span class="lineno"> 7660</span>    </div>
-<div class="line"><a id="l07661" name="l07661"></a><span class="lineno"> 7661</span>    <a class="code hl_function" href="group__Supporting.html#ga3aeca38f4f407ec6b5bd10a4b207b55e">RGFW_window_checkFPS</a>(win);</div>
-<div class="line"><a id="l07662" name="l07662"></a><span class="lineno"> 7662</span>}</div>
-<div class="line"><a id="l07663" name="l07663"></a><span class="lineno"> 7663</span> </div>
-<div class="line"><a id="l07664" name="l07664"></a><span class="lineno"> 7664</span> </div>
-<div class="line"><a id="l07665" name="l07665"></a><span class="lineno"> 7665</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__graphics__API.html#gadadcc358f0746221759449d50871cdd6">RGFW_window_makeCurrent_OpenGL</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
-<div class="line"><a id="l07666" name="l07666"></a><span class="lineno"> 7666</span>    emscripten_webgl_make_context_current(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx);</div>
-<div class="line"><a id="l07667" name="l07667"></a><span class="lineno"> 7667</span>}</div>
-<div class="line"><a id="l07668" name="l07668"></a><span class="lineno"> 7668</span> </div>
-<div class="line"><a id="l07669" name="l07669"></a><span class="lineno"> 7669</span><span class="preprocessor">#ifndef RGFW_EGL</span></div>
-<div class="line"><a id="l07670" name="l07670"></a><span class="lineno"> 7670</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__graphics__API.html#ga35cb1a503e81224799d2b71cdf42a016">RGFW_window_swapInterval</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> swapInterval) {</div>
-<div class="line"><a id="l07671" name="l07671"></a><span class="lineno"> 7671</span>    win-&gt;<a class="code hl_variable" href="structRGFW__window.html#ab45f948b586e28d51709b2c3e262dc8b">fpsCap</a> = (swapInterval == 1) ? 0 : swapInterval;</div>
-<div class="line"><a id="l07672" name="l07672"></a><span class="lineno"> 7672</span>}</div>
-<div class="line"><a id="l07673" name="l07673"></a><span class="lineno"> 7673</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l07674" name="l07674"></a><span class="lineno"> 7674</span> </div>
-<div class="line"><a id="l07675" name="l07675"></a><span class="lineno"> 7675</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#gab9fbaeec9a1268374ab141b6ccfc41a3">RGFW_window_close</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
-<div class="line"><a id="l07676" name="l07676"></a><span class="lineno"> 7676</span>    emscripten_webgl_destroy_context(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx);</div>
-<div class="line"><a id="l07677" name="l07677"></a><span class="lineno"> 7677</span> </div>
-<div class="line"><a id="l07678" name="l07678"></a><span class="lineno"> 7678</span>    free(win);</div>
-<div class="line"><a id="l07679" name="l07679"></a><span class="lineno"> 7679</span>}</div>
-<div class="line"><a id="l07680" name="l07680"></a><span class="lineno"> 7680</span> </div>
-<div class="line"><a id="l07681" name="l07681"></a><span class="lineno"> 7681</span><span class="keywordtype">int</span> RGFW_innerWidth(<span class="keywordtype">void</span>) {   <span class="keywordflow">return</span> EM_ASM_INT({ <span class="keywordflow">return</span> window.innerWidth; });  }</div>
-<div class="line"><a id="l07682" name="l07682"></a><span class="lineno"> 7682</span><span class="keywordtype">int</span> RGFW_innerHeight(<span class="keywordtype">void</span>) {  <span class="keywordflow">return</span> EM_ASM_INT({ <span class="keywordflow">return</span> window.innerHeight; });  }</div>
-<div class="line"><a id="l07683" name="l07683"></a><span class="lineno"> 7683</span> </div>
-<div class="line"><a id="l07684" name="l07684"></a><span class="lineno"> 7684</span><a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a> <a class="code hl_function" href="group__Window__management.html#ga2952eee39f36b85b6829976656043f97">RGFW_getScreenSize</a>(<span class="keywordtype">void</span>) {</div>
-<div class="line"><a id="l07685" name="l07685"></a><span class="lineno"> 7685</span>    <span class="keywordflow">return</span> <a class="code hl_define" href="RGFW_8h.html#a5edc5249799c8eb95f2a45db37f8b36d">RGFW_AREA</a>(RGFW_innerWidth(), RGFW_innerHeight());</div>
-<div class="line"><a id="l07686" name="l07686"></a><span class="lineno"> 7686</span>}</div>
-<div class="line"><a id="l07687" name="l07687"></a><span class="lineno"> 7687</span> </div>
-<div class="line"><a id="l07688" name="l07688"></a><span class="lineno"> 7688</span><span class="keywordtype">void</span>* <a class="code hl_function" href="group__graphics__API.html#ga0c232c2ac5e6f95f9bf07a0abcaef0c2">RGFW_getProcAddress</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* procname) { </div>
-<div class="line"><a id="l07689" name="l07689"></a><span class="lineno"> 7689</span>    <span class="keywordflow">return</span> emscripten_webgl_get_proc_address(procname);</div>
-<div class="line"><a id="l07690" name="l07690"></a><span class="lineno"> 7690</span>}</div>
-<div class="line"><a id="l07691" name="l07691"></a><span class="lineno"> 7691</span> </div>
-<div class="line"><a id="l07692" name="l07692"></a><span class="lineno"> 7692</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Supporting.html#ga89d25fafe12c27addf2cab9c67be8e6e">RGFW_sleep</a>(<a class="code hl_typedef" href="RGFW_8h.html#a3f7e2bcbb0b4c338f3c4f6c937cd4234">u64</a> milisecond) {</div>
-<div class="line"><a id="l07693" name="l07693"></a><span class="lineno"> 7693</span>    emscripten_sleep(milisecond);</div>
-<div class="line"><a id="l07694" name="l07694"></a><span class="lineno"> 7694</span>}</div>
-<div class="line"><a id="l07695" name="l07695"></a><span class="lineno"> 7695</span> </div>
-<div class="line"><a id="l07696" name="l07696"></a><span class="lineno"> 7696</span><a class="code hl_typedef" href="RGFW_8h.html#a3f7e2bcbb0b4c338f3c4f6c937cd4234">u64</a> <a class="code hl_function" href="group__Supporting.html#ga2556ad5561537a8b328d062f8b8268e5">RGFW_getTimeNS</a>(<span class="keywordtype">void</span>) {</div>
-<div class="line"><a id="l07697" name="l07697"></a><span class="lineno"> 7697</span>    <span class="keywordflow">return</span> emscripten_get_now() * 1e+6;</div>
-<div class="line"><a id="l07698" name="l07698"></a><span class="lineno"> 7698</span>}</div>
-<div class="line"><a id="l07699" name="l07699"></a><span class="lineno"> 7699</span> </div>
-<div class="line"><a id="l07700" name="l07700"></a><span class="lineno"> 7700</span><a class="code hl_typedef" href="RGFW_8h.html#a3f7e2bcbb0b4c338f3c4f6c937cd4234">u64</a> <a class="code hl_function" href="group__Supporting.html#gaeb9d3d63a8833248ed1009c91e29b253">RGFW_getTime</a>(<span class="keywordtype">void</span>) {</div>
-<div class="line"><a id="l07701" name="l07701"></a><span class="lineno"> 7701</span>    <span class="keywordflow">return</span> emscripten_get_now() * 1000;</div>
-<div class="line"><a id="l07702" name="l07702"></a><span class="lineno"> 7702</span>}</div>
-<div class="line"><a id="l07703" name="l07703"></a><span class="lineno"> 7703</span> </div>
-<div class="line"><a id="l07704" name="l07704"></a><span class="lineno"> 7704</span><span class="keywordtype">void</span> RGFW_captureCursor(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_struct" href="structRGFW__rect.html">RGFW_rect</a> r) { </div>
-<div class="line"><a id="l07705" name="l07705"></a><span class="lineno"> 7705</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win)</div>
-<div class="line"><a id="l07706" name="l07706"></a><span class="lineno"> 7706</span>    <span class="keywordflow">if</span> (!r.<a class="code hl_variable" href="structRGFW__rect.html#ae1678a152978fb1f00cb6b42341d0707">x</a> &amp;&amp; !r.<a class="code hl_variable" href="structRGFW__rect.html#ad40246748adb4990db561294096ce5b0">y</a> &amp;&amp; !r.<a class="code hl_variable" href="structRGFW__rect.html#ae9b18887b7389dc05283e4e54881b801">w</a> &amp;&amp; !r.<a class="code hl_variable" href="structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d">h</a>) {</div>
-<div class="line"><a id="l07707" name="l07707"></a><span class="lineno"> 7707</span>        emscripten_exit_pointerlock();</div>
-<div class="line"><a id="l07708" name="l07708"></a><span class="lineno"> 7708</span>        <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l07709" name="l07709"></a><span class="lineno"> 7709</span>    }</div>
-<div class="line"><a id="l07710" name="l07710"></a><span class="lineno"> 7710</span> </div>
-<div class="line"><a id="l07711" name="l07711"></a><span class="lineno"> 7711</span>    emscripten_request_pointerlock(<span class="stringliteral">&quot;#canvas&quot;</span>, 1);</div>
-<div class="line"><a id="l07712" name="l07712"></a><span class="lineno"> 7712</span>}</div>
-<div class="line"><a id="l07713" name="l07713"></a><span class="lineno"> 7713</span> </div>
-<div class="line"><a id="l07714" name="l07714"></a><span class="lineno"> 7714</span><span class="comment">/* unsupported functions */</span></div>
-<div class="line"><a id="l07715" name="l07715"></a><span class="lineno"> 7715</span><a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a>* <a class="code hl_function" href="RGFW_8h.html#acdce84b508a6d3eca700357d33027965">RGFW_getMonitors</a>(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> NULL; }</div>
-<div class="line"><a id="l07716" name="l07716"></a><span class="lineno"> 7716</span><a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a> <a class="code hl_function" href="RGFW_8h.html#a9b687e5aac56d2c3af094ebb3caf1fc5">RGFW_getPrimaryMonitor</a>(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> (<a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a>){}; }</div>
-<div class="line"><a id="l07717" name="l07717"></a><span class="lineno"> 7717</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga1d2a9a61b4acc071f8cc2723723a3ce5">RGFW_window_move</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_struct" href="structRGFW__point.html">RGFW_point</a> v) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(v) }</div>
-<div class="line"><a id="l07718" name="l07718"></a><span class="lineno"> 7718</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga62a242f890c1def944d0b4771b6c79d4">RGFW_window_setMinSize</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a> a) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(a)  }</div>
-<div class="line"><a id="l07719" name="l07719"></a><span class="lineno"> 7719</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#gacd5210fddb2ff8e834c25923070ee9f7">RGFW_window_setMaxSize</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a> a) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(a)  }</div>
-<div class="line"><a id="l07720" name="l07720"></a><span class="lineno"> 7720</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#gadf5a4e9746a8340b1ec5b6f290d7c907">RGFW_window_minimize</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win)}</div>
-<div class="line"><a id="l07721" name="l07721"></a><span class="lineno"> 7721</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga68d347a9064621a8691398f358ee46a3">RGFW_window_restore</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) }</div>
-<div class="line"><a id="l07722" name="l07722"></a><span class="lineno"> 7722</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga35b78984ed0960ba2cc04e6049da07e9">RGFW_window_setBorder</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73">b8</a> border) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(border)  }</div>
-<div class="line"><a id="l07723" name="l07723"></a><span class="lineno"> 7723</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga1b6b22034bd87011ae893157a6300fca">RGFW_window_setDND</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73">b8</a> allow)  { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(allow)  }</div>
-<div class="line"><a id="l07724" name="l07724"></a><span class="lineno"> 7724</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga79615ab6c585b4fbd17fe27a60b0b981">RGFW_window_setName</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <span class="keywordtype">char</span>* name) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(name)  }</div>
-<div class="line"><a id="l07725" name="l07725"></a><span class="lineno"> 7725</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga050fc99ded4b0210ddc136d49d27ecdc">RGFW_window_setIcon</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>* icon, <a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a> a, <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> channels) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(icon) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(a) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(channels)  }</div>
-<div class="line"><a id="l07726" name="l07726"></a><span class="lineno"> 7726</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#gad0dd15469e9f8648345b52f0f9c0c023">RGFW_window_hide</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) }</div>
-<div class="line"><a id="l07727" name="l07727"></a><span class="lineno"> 7727</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#gaf8ea66870c99917ef07acd09ad6d7746">RGFW_window_show</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {<a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) }</div>
-<div class="line"><a id="l07728" name="l07728"></a><span class="lineno"> 7728</span><a class="code hl_typedef" href="RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73">b8</a> <a class="code hl_function" href="group__Window__management.html#ga7d518d36fdc7fc24a62ed53105e65f4b">RGFW_window_isHidden</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <span class="keywordflow">return</span> 0; }</div>
-<div class="line"><a id="l07729" name="l07729"></a><span class="lineno"> 7729</span><a class="code hl_typedef" href="RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73">b8</a> <a class="code hl_function" href="group__Window__management.html#ga4bb8435006b3f1d1f4bd62ce54581a2d">RGFW_window_isMinimized</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <span class="keywordflow">return</span> 0; }</div>
-<div class="line"><a id="l07730" name="l07730"></a><span class="lineno"> 7730</span><a class="code hl_typedef" href="RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73">b8</a> <a class="code hl_function" href="group__Window__management.html#ga260f8c3d4b46f3c60657c8c8f18730c9">RGFW_window_isMaximized</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <span class="keywordflow">return</span> 0; }</div>
-<div class="line"><a id="l07731" name="l07731"></a><span class="lineno"> 7731</span><a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a> <a class="code hl_function" href="group__Monitor.html#ga648797c3385a4ec20bbc511dc49907d0">RGFW_window_getMonitor</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <span class="keywordflow">return</span> (<a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a>){}; }</div>
-<div class="line"><a id="l07732" name="l07732"></a><span class="lineno"> 7732</span> </div>
-<div class="line"><a id="l07733" name="l07733"></a><span class="lineno"> 7733</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l07734" name="l07734"></a><span class="lineno"> 7734</span> </div>
-<div class="line"><a id="l07735" name="l07735"></a><span class="lineno"> 7735</span><span class="comment">/* end of web asm defines */</span></div>
-<div class="line"><a id="l07736" name="l07736"></a><span class="lineno"> 7736</span> </div>
-<div class="line"><a id="l07737" name="l07737"></a><span class="lineno"> 7737</span><span class="comment">/* unix (macOS, linux, web asm) only stuff */</span></div>
-<div class="line"><a id="l07738" name="l07738"></a><span class="lineno"> 7738</span><span class="preprocessor">#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM)</span></div>
-<div class="line"><a id="l07739" name="l07739"></a><span class="lineno"> 7739</span><span class="comment">/* unix threading */</span></div>
-<div class="line"><a id="l07740" name="l07740"></a><span class="lineno"> 7740</span><span class="preprocessor">#ifndef RGFW_NO_THREADS</span></div>
-<div class="line"><a id="l07741" name="l07741"></a><span class="lineno"> 7741</span><span class="preprocessor">#include &lt;pthread.h&gt;</span></div>
+<div class="line"><a id="l07517" name="l07517"></a><span class="lineno"> 7517</span>    RGFW_eventLen--;</div>
+<div class="line"><a id="l07518" name="l07518"></a><span class="lineno"> 7518</span> </div>
+<div class="line"><a id="l07519" name="l07519"></a><span class="lineno"> 7519</span>    <span class="keywordflow">if</span> (RGFW_eventLen)</div>
+<div class="line"><a id="l07520" name="l07520"></a><span class="lineno"> 7520</span>        index++;</div>
+<div class="line"><a id="l07521" name="l07521"></a><span class="lineno"> 7521</span>    <span class="keywordflow">else</span></div>
+<div class="line"><a id="l07522" name="l07522"></a><span class="lineno"> 7522</span>        index = 0;</div>
+<div class="line"><a id="l07523" name="l07523"></a><span class="lineno"> 7523</span> </div>
+<div class="line"><a id="l07524" name="l07524"></a><span class="lineno"> 7524</span>    <span class="keywordflow">return</span> &amp;win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>;</div>
+<div class="line"><a id="l07525" name="l07525"></a><span class="lineno"> 7525</span>}</div>
+<div class="line"><a id="l07526" name="l07526"></a><span class="lineno"> 7526</span> </div>
+<div class="line"><a id="l07527" name="l07527"></a><span class="lineno"> 7527</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga49cb75955ec07bb68faf7f260b30e693">RGFW_window_resize</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a> a) {</div>
+<div class="line"><a id="l07528" name="l07528"></a><span class="lineno"> 7528</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win)</div>
+<div class="line"><a id="l07529" name="l07529"></a><span class="lineno"> 7529</span>    emscripten_set_canvas_element_size(<span class="stringliteral">&quot;#canvas&quot;</span>, a.<a class="code hl_variable" href="structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a">w</a>, a.<a class="code hl_variable" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">h</a>);</div>
+<div class="line"><a id="l07530" name="l07530"></a><span class="lineno"> 7530</span>}</div>
+<div class="line"><a id="l07531" name="l07531"></a><span class="lineno"> 7531</span> </div>
+<div class="line"><a id="l07532" name="l07532"></a><span class="lineno"> 7532</span><span class="comment">/* NOTE: I don&#39;t know if this is possible */</span></div>
+<div class="line"><a id="l07533" name="l07533"></a><span class="lineno"> 7533</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga1f8210bbda82bd96122267c39f9c85c3">RGFW_window_moveMouse</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_struct" href="structRGFW__point.html">RGFW_point</a> v) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(v); }</div>
+<div class="line"><a id="l07534" name="l07534"></a><span class="lineno"> 7534</span><span class="comment">/* this one might be possible but it looks iffy */</span></div>
+<div class="line"><a id="l07535" name="l07535"></a><span class="lineno"> 7535</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga7c3b0a4c1c9866d83ef33a737dd72594">RGFW_window_setMouse</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>* image, <a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a> a, <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> channels) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(channels) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(a) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(image) }</div>
+<div class="line"><a id="l07536" name="l07536"></a><span class="lineno"> 7536</span> </div>
+<div class="line"><a id="l07537" name="l07537"></a><span class="lineno"> 7537</span><span class="keyword">const</span> <span class="keywordtype">char</span> RGFW_CURSORS[11][12] = {</div>
+<div class="line"><a id="l07538" name="l07538"></a><span class="lineno"> 7538</span>    <span class="stringliteral">&quot;default&quot;</span>,</div>
+<div class="line"><a id="l07539" name="l07539"></a><span class="lineno"> 7539</span>    <span class="stringliteral">&quot;default&quot;</span>,</div>
+<div class="line"><a id="l07540" name="l07540"></a><span class="lineno"> 7540</span>    <span class="stringliteral">&quot;text&quot;</span>,</div>
+<div class="line"><a id="l07541" name="l07541"></a><span class="lineno"> 7541</span>    <span class="stringliteral">&quot;crosshair&quot;</span>,</div>
+<div class="line"><a id="l07542" name="l07542"></a><span class="lineno"> 7542</span>    <span class="stringliteral">&quot;pointer&quot;</span>,</div>
+<div class="line"><a id="l07543" name="l07543"></a><span class="lineno"> 7543</span>    <span class="stringliteral">&quot;ew-resize&quot;</span>,</div>
+<div class="line"><a id="l07544" name="l07544"></a><span class="lineno"> 7544</span>    <span class="stringliteral">&quot;ns-resize&quot;</span>,</div>
+<div class="line"><a id="l07545" name="l07545"></a><span class="lineno"> 7545</span>    <span class="stringliteral">&quot;nwse-resize&quot;</span>,</div>
+<div class="line"><a id="l07546" name="l07546"></a><span class="lineno"> 7546</span>    <span class="stringliteral">&quot;nesw-resize&quot;</span>,</div>
+<div class="line"><a id="l07547" name="l07547"></a><span class="lineno"> 7547</span>    <span class="stringliteral">&quot;move&quot;</span>,</div>
+<div class="line"><a id="l07548" name="l07548"></a><span class="lineno"> 7548</span>    <span class="stringliteral">&quot;not-allowed&quot;</span></div>
+<div class="line"><a id="l07549" name="l07549"></a><span class="lineno"> 7549</span>};</div>
+<div class="line"><a id="l07550" name="l07550"></a><span class="lineno"> 7550</span> </div>
+<div class="line"><a id="l07551" name="l07551"></a><span class="lineno"> 7551</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga9a26703617c4c49c6b82e804a991e9c0">RGFW_window_setMouseStandard</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> mouse) {</div>
+<div class="line"><a id="l07552" name="l07552"></a><span class="lineno"> 7552</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win)</div>
+<div class="line"><a id="l07553" name="l07553"></a><span class="lineno"> 7553</span>    EM_ASM( { document.getElementById(<span class="stringliteral">&quot;canvas&quot;</span>).style.cursor = UTF8ToString($0); }, RGFW_CURSORS[mouse]);</div>
+<div class="line"><a id="l07554" name="l07554"></a><span class="lineno"> 7554</span>}</div>
+<div class="line"><a id="l07555" name="l07555"></a><span class="lineno"> 7555</span> </div>
+<div class="line"><a id="l07556" name="l07556"></a><span class="lineno"> 7556</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga0a22958af5bd979c087e3e309e64db1a">RGFW_window_setMouseDefault</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
+<div class="line"><a id="l07557" name="l07557"></a><span class="lineno"> 7557</span>    <a class="code hl_function" href="group__Window__management.html#ga9a26703617c4c49c6b82e804a991e9c0">RGFW_window_setMouseStandard</a>(win, RGFW_MOUSE_NORMAL);</div>
+<div class="line"><a id="l07558" name="l07558"></a><span class="lineno"> 7558</span>}</div>
+<div class="line"><a id="l07559" name="l07559"></a><span class="lineno"> 7559</span> </div>
+<div class="line"><a id="l07560" name="l07560"></a><span class="lineno"> 7560</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#gab43e1937c20843643455a5b01dae9c54">RGFW_window_showMouse</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#ae3702327b5f47e83b431e22b33da7b58">i8</a> show) {</div>
+<div class="line"><a id="l07561" name="l07561"></a><span class="lineno"> 7561</span>    <span class="keywordflow">if</span> (show)</div>
+<div class="line"><a id="l07562" name="l07562"></a><span class="lineno"> 7562</span>        <a class="code hl_function" href="group__Window__management.html#ga0a22958af5bd979c087e3e309e64db1a">RGFW_window_setMouseDefault</a>(win);</div>
+<div class="line"><a id="l07563" name="l07563"></a><span class="lineno"> 7563</span>    <span class="keywordflow">else</span></div>
+<div class="line"><a id="l07564" name="l07564"></a><span class="lineno"> 7564</span>        EM_ASM(document.getElementById(<span class="stringliteral">&#39;canvas&#39;</span>).style.cursor = <span class="stringliteral">&#39;none&#39;</span>;);</div>
+<div class="line"><a id="l07565" name="l07565"></a><span class="lineno"> 7565</span>}</div>
+<div class="line"><a id="l07566" name="l07566"></a><span class="lineno"> 7566</span> </div>
+<div class="line"><a id="l07567" name="l07567"></a><span class="lineno"> 7567</span><a class="code hl_struct" href="structRGFW__point.html">RGFW_point</a> <a class="code hl_function" href="group__Window__management.html#ga4ad826ac2c2514025697e8ad64e4e1c9">RGFW_getGlobalMousePoint</a>(<span class="keywordtype">void</span>) {</div>
+<div class="line"><a id="l07568" name="l07568"></a><span class="lineno"> 7568</span>    <a class="code hl_struct" href="structRGFW__point.html">RGFW_point</a> point;</div>
+<div class="line"><a id="l07569" name="l07569"></a><span class="lineno"> 7569</span>    point.<a class="code hl_variable" href="structRGFW__point.html#a1e4ef1395966022c65b8b69db9e8e592">x</a> = EM_ASM_INT({</div>
+<div class="line"><a id="l07570" name="l07570"></a><span class="lineno"> 7570</span>        <span class="keywordflow">return</span> window.mouseX || 0;</div>
+<div class="line"><a id="l07571" name="l07571"></a><span class="lineno"> 7571</span>    });</div>
+<div class="line"><a id="l07572" name="l07572"></a><span class="lineno"> 7572</span>    point.<a class="code hl_variable" href="structRGFW__point.html#a5f31b208f21b8cb3f65c225a07936a93">y</a> = EM_ASM_INT({</div>
+<div class="line"><a id="l07573" name="l07573"></a><span class="lineno"> 7573</span>        <span class="keywordflow">return</span> window.mouseY || 0;</div>
+<div class="line"><a id="l07574" name="l07574"></a><span class="lineno"> 7574</span>    });</div>
+<div class="line"><a id="l07575" name="l07575"></a><span class="lineno"> 7575</span>    <span class="keywordflow">return</span> point;</div>
+<div class="line"><a id="l07576" name="l07576"></a><span class="lineno"> 7576</span>}</div>
+<div class="line"><a id="l07577" name="l07577"></a><span class="lineno"> 7577</span> </div>
+<div class="line"><a id="l07578" name="l07578"></a><span class="lineno"> 7578</span><a class="code hl_struct" href="structRGFW__point.html">RGFW_point</a> <a class="code hl_function" href="group__Window__management.html#ga1d970bf9f2042f7ccdd6c132c6f576fa">RGFW_window_getMousePoint</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
+<div class="line"><a id="l07579" name="l07579"></a><span class="lineno"> 7579</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win);</div>
+<div class="line"><a id="l07580" name="l07580"></a><span class="lineno"> 7580</span>    </div>
+<div class="line"><a id="l07581" name="l07581"></a><span class="lineno"> 7581</span>    EmscriptenMouseEvent mouseEvent;</div>
+<div class="line"><a id="l07582" name="l07582"></a><span class="lineno"> 7582</span>    emscripten_get_mouse_status(&amp;mouseEvent);</div>
+<div class="line"><a id="l07583" name="l07583"></a><span class="lineno"> 7583</span>    <span class="keywordflow">return</span> <a class="code hl_define" href="RGFW_8h.html#a4e893e75a8f37ccc1fe0dc388339bcdf">RGFW_POINT</a>( mouseEvent.targetX,  mouseEvent.targetY);</div>
+<div class="line"><a id="l07584" name="l07584"></a><span class="lineno"> 7584</span>}</div>
+<div class="line"><a id="l07585" name="l07585"></a><span class="lineno"> 7585</span> </div>
+<div class="line"><a id="l07586" name="l07586"></a><span class="lineno"> 7586</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga238e2c030e0de4343a3e28aa92dc622e">RGFW_window_setMousePassthrough</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73">b8</a> passthrough) {</div>
+<div class="line"><a id="l07587" name="l07587"></a><span class="lineno"> 7587</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win);</div>
+<div class="line"><a id="l07588" name="l07588"></a><span class="lineno"> 7588</span> </div>
+<div class="line"><a id="l07589" name="l07589"></a><span class="lineno"> 7589</span>    EM_ASM_({</div>
+<div class="line"><a id="l07590" name="l07590"></a><span class="lineno"> 7590</span>        var canvas = document.getElementById(<span class="stringliteral">&#39;canvas&#39;</span>);</div>
+<div class="line"><a id="l07591" name="l07591"></a><span class="lineno"> 7591</span>        <span class="keywordflow">if</span> ($0) {</div>
+<div class="line"><a id="l07592" name="l07592"></a><span class="lineno"> 7592</span>            canvas.style.pointerEvents = <span class="stringliteral">&#39;none&#39;</span>;</div>
+<div class="line"><a id="l07593" name="l07593"></a><span class="lineno"> 7593</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l07594" name="l07594"></a><span class="lineno"> 7594</span>            canvas.style.pointerEvents = <span class="stringliteral">&#39;auto&#39;</span>;</div>
+<div class="line"><a id="l07595" name="l07595"></a><span class="lineno"> 7595</span>        }</div>
+<div class="line"><a id="l07596" name="l07596"></a><span class="lineno"> 7596</span>    }, passthrough);</div>
+<div class="line"><a id="l07597" name="l07597"></a><span class="lineno"> 7597</span>}</div>
+<div class="line"><a id="l07598" name="l07598"></a><span class="lineno"> 7598</span> </div>
+<div class="line"><a id="l07599" name="l07599"></a><span class="lineno"> 7599</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Clipboard.html#ga0de2f0466a3ae4cc9986101de14dbdee">RGFW_writeClipboard</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* text, <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> textLen) {</div>
+<div class="line"><a id="l07600" name="l07600"></a><span class="lineno"> 7600</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(textLen)</div>
+<div class="line"><a id="l07601" name="l07601"></a><span class="lineno"> 7601</span>    EM_ASM({ navigator.clipboard.writeText(UTF8ToString($0)); }, text);</div>
+<div class="line"><a id="l07602" name="l07602"></a><span class="lineno"> 7602</span>}</div>
+<div class="line"><a id="l07603" name="l07603"></a><span class="lineno"> 7603</span> </div>
+<div class="line"><a id="l07604" name="l07604"></a><span class="lineno"> 7604</span> </div>
+<div class="line"><a id="l07605" name="l07605"></a><span class="lineno"> 7605</span><span class="keywordtype">char</span>* <a class="code hl_function" href="group__Clipboard.html#gafd7703681c9d137e58b900b448277a42">RGFW_readClipboard</a>(<span class="keywordtype">size_t</span>* size) {</div>
+<div class="line"><a id="l07606" name="l07606"></a><span class="lineno"> 7606</span>    <span class="comment">/*</span></div>
+<div class="line"><a id="l07607" name="l07607"></a><span class="lineno"> 7607</span><span class="comment">        placeholder code for later</span></div>
+<div class="line"><a id="l07608" name="l07608"></a><span class="lineno"> 7608</span><span class="comment">        I&#39;m not sure if this is possible do the the async stuff</span></div>
+<div class="line"><a id="l07609" name="l07609"></a><span class="lineno"> 7609</span><span class="comment">    */</span></div>
+<div class="line"><a id="l07610" name="l07610"></a><span class="lineno"> 7610</span>    </div>
+<div class="line"><a id="l07611" name="l07611"></a><span class="lineno"> 7611</span>    <span class="keywordflow">if</span> (size != NULL)</div>
+<div class="line"><a id="l07612" name="l07612"></a><span class="lineno"> 7612</span>        *size = 0;</div>
+<div class="line"><a id="l07613" name="l07613"></a><span class="lineno"> 7613</span>    </div>
+<div class="line"><a id="l07614" name="l07614"></a><span class="lineno"> 7614</span>    <span class="keywordtype">char</span>* str = malloc(1);</div>
+<div class="line"><a id="l07615" name="l07615"></a><span class="lineno"> 7615</span>    str[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><a id="l07616" name="l07616"></a><span class="lineno"> 7616</span> </div>
+<div class="line"><a id="l07617" name="l07617"></a><span class="lineno"> 7617</span>    <span class="keywordflow">return</span> str;</div>
+<div class="line"><a id="l07618" name="l07618"></a><span class="lineno"> 7618</span>}</div>
+<div class="line"><a id="l07619" name="l07619"></a><span class="lineno"> 7619</span> </div>
+<div class="line"><a id="l07620" name="l07620"></a><span class="lineno"> 7620</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__graphics__API.html#ga986713977b14a729d11b228cfe7a1776">RGFW_window_swapBuffers</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
+<div class="line"><a id="l07621" name="l07621"></a><span class="lineno"> 7621</span><span class="preprocessor">    #ifdef RGFW_BUFFER</span></div>
+<div class="line"><a id="l07622" name="l07622"></a><span class="lineno"> 7622</span>    <span class="keywordflow">if</span> (!(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a3ba41ce67f7dfd9389251c7b96b60b02">_winArgs</a> &amp; <a class="code hl_define" href="RGFW_8h.html#a33ab677fa73ce074352de4a59ae18498">RGFW_NO_CPU_RENDER</a>)) {        </div>
+<div class="line"><a id="l07623" name="l07623"></a><span class="lineno"> 7623</span>        glEnable(GL_TEXTURE_2D);</div>
+<div class="line"><a id="l07624" name="l07624"></a><span class="lineno"> 7624</span> </div>
+<div class="line"><a id="l07625" name="l07625"></a><span class="lineno"> 7625</span>        GLuint texture;</div>
+<div class="line"><a id="l07626" name="l07626"></a><span class="lineno"> 7626</span>        glGenTextures(1,&amp;texture);</div>
+<div class="line"><a id="l07627" name="l07627"></a><span class="lineno"> 7627</span> </div>
+<div class="line"><a id="l07628" name="l07628"></a><span class="lineno"> 7628</span>        glBindTexture(GL_TEXTURE_2D,texture);</div>
+<div class="line"><a id="l07629" name="l07629"></a><span class="lineno"> 7629</span>        </div>
+<div class="line"><a id="l07630" name="l07630"></a><span class="lineno"> 7630</span>        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);</div>
+<div class="line"><a id="l07631" name="l07631"></a><span class="lineno"> 7631</span>        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);</div>
+<div class="line"><a id="l07632" name="l07632"></a><span class="lineno"> 7632</span>        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);</div>
+<div class="line"><a id="l07633" name="l07633"></a><span class="lineno"> 7633</span>        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);</div>
+<div class="line"><a id="l07634" name="l07634"></a><span class="lineno"> 7634</span> </div>
+<div class="line"><a id="l07635" name="l07635"></a><span class="lineno"> 7635</span>        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, RGFW_bufferSize.<a class="code hl_variable" href="structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a">w</a>, RGFW_bufferSize.<a class="code hl_variable" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">h</a>, 0, GL_RGBA, GL_UNSIGNED_BYTE, win-&gt;buffer);</div>
+<div class="line"><a id="l07636" name="l07636"></a><span class="lineno"> 7636</span>        </div>
+<div class="line"><a id="l07637" name="l07637"></a><span class="lineno"> 7637</span>        <span class="keywordtype">float</span> ratioX = ((float)win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a638e63f187096f668c11438ae44d8700">r</a>.<a class="code hl_variable" href="structRGFW__rect.html#ae9b18887b7389dc05283e4e54881b801">w</a> / (<span class="keywordtype">float</span>)RGFW_bufferSize.<a class="code hl_variable" href="structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a">w</a>);</div>
+<div class="line"><a id="l07638" name="l07638"></a><span class="lineno"> 7638</span>        <span class="keywordtype">float</span> ratioY = ((float)win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a638e63f187096f668c11438ae44d8700">r</a>.<a class="code hl_variable" href="structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d">h</a> / (<span class="keywordtype">float</span>)RGFW_bufferSize.<a class="code hl_variable" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">h</a>);</div>
+<div class="line"><a id="l07639" name="l07639"></a><span class="lineno"> 7639</span> </div>
+<div class="line"><a id="l07640" name="l07640"></a><span class="lineno"> 7640</span>        <span class="comment">// Set up the viewport</span></div>
+<div class="line"><a id="l07641" name="l07641"></a><span class="lineno"> 7641</span>        glClear(GL_COLOR_BUFFER_BIT);</div>
+<div class="line"><a id="l07642" name="l07642"></a><span class="lineno"> 7642</span> </div>
+<div class="line"><a id="l07643" name="l07643"></a><span class="lineno"> 7643</span>        glBegin(GL_TRIANGLES);</div>
+<div class="line"><a id="l07644" name="l07644"></a><span class="lineno"> 7644</span>            glTexCoord2f(0, ratioY); glColor3f(1, 1, 1); glVertex2f(-1, -1);</div>
+<div class="line"><a id="l07645" name="l07645"></a><span class="lineno"> 7645</span>            glTexCoord2f(0, 0); glColor3f(1, 1, 1); glVertex2f(-1, 1);</div>
+<div class="line"><a id="l07646" name="l07646"></a><span class="lineno"> 7646</span>            glTexCoord2f(ratioX, ratioY); glColor3f(1, 1, 1); glVertex2f(1, -1);</div>
+<div class="line"><a id="l07647" name="l07647"></a><span class="lineno"> 7647</span> </div>
+<div class="line"><a id="l07648" name="l07648"></a><span class="lineno"> 7648</span>            glTexCoord2f(ratioX, 0); glColor3f(1, 1, 1); glVertex2f(1, 1);</div>
+<div class="line"><a id="l07649" name="l07649"></a><span class="lineno"> 7649</span>            glTexCoord2f(ratioX, ratioY); glColor3f(1, 1, 1); glVertex2f(1, -1);</div>
+<div class="line"><a id="l07650" name="l07650"></a><span class="lineno"> 7650</span>            glTexCoord2f(0, 0); glColor3f(1, 1, 1); glVertex2f(-1, 1);</div>
+<div class="line"><a id="l07651" name="l07651"></a><span class="lineno"> 7651</span>        glEnd();</div>
+<div class="line"><a id="l07652" name="l07652"></a><span class="lineno"> 7652</span> </div>
+<div class="line"><a id="l07653" name="l07653"></a><span class="lineno"> 7653</span>        glDeleteTextures(1, &amp;texture);</div>
+<div class="line"><a id="l07654" name="l07654"></a><span class="lineno"> 7654</span>    }</div>
+<div class="line"><a id="l07655" name="l07655"></a><span class="lineno"> 7655</span><span class="preprocessor">    #endif</span></div>
+<div class="line"><a id="l07656" name="l07656"></a><span class="lineno"> 7656</span> </div>
+<div class="line"><a id="l07657" name="l07657"></a><span class="lineno"> 7657</span>    emscripten_webgl_commit_frame();</div>
+<div class="line"><a id="l07658" name="l07658"></a><span class="lineno"> 7658</span>    </div>
+<div class="line"><a id="l07659" name="l07659"></a><span class="lineno"> 7659</span>    <span class="keywordflow">if</span> (win-&gt;<a class="code hl_variable" href="structRGFW__window.html#ab45f948b586e28d51709b2c3e262dc8b">fpsCap</a> == 0 || win-&gt;<a class="code hl_variable" href="structRGFW__window.html#ab45f948b586e28d51709b2c3e262dc8b">fpsCap</a> &lt; 100) {</div>
+<div class="line"><a id="l07660" name="l07660"></a><span class="lineno"> 7660</span>        emscripten_sleep(0);</div>
+<div class="line"><a id="l07661" name="l07661"></a><span class="lineno"> 7661</span>    }</div>
+<div class="line"><a id="l07662" name="l07662"></a><span class="lineno"> 7662</span>    </div>
+<div class="line"><a id="l07663" name="l07663"></a><span class="lineno"> 7663</span>    <a class="code hl_function" href="group__Supporting.html#ga3aeca38f4f407ec6b5bd10a4b207b55e">RGFW_window_checkFPS</a>(win);</div>
+<div class="line"><a id="l07664" name="l07664"></a><span class="lineno"> 7664</span>}</div>
+<div class="line"><a id="l07665" name="l07665"></a><span class="lineno"> 7665</span> </div>
+<div class="line"><a id="l07666" name="l07666"></a><span class="lineno"> 7666</span> </div>
+<div class="line"><a id="l07667" name="l07667"></a><span class="lineno"> 7667</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__graphics__API.html#gadadcc358f0746221759449d50871cdd6">RGFW_window_makeCurrent_OpenGL</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
+<div class="line"><a id="l07668" name="l07668"></a><span class="lineno"> 7668</span>    emscripten_webgl_make_context_current(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx);</div>
+<div class="line"><a id="l07669" name="l07669"></a><span class="lineno"> 7669</span>}</div>
+<div class="line"><a id="l07670" name="l07670"></a><span class="lineno"> 7670</span> </div>
+<div class="line"><a id="l07671" name="l07671"></a><span class="lineno"> 7671</span><span class="preprocessor">#ifndef RGFW_EGL</span></div>
+<div class="line"><a id="l07672" name="l07672"></a><span class="lineno"> 7672</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__graphics__API.html#ga35cb1a503e81224799d2b71cdf42a016">RGFW_window_swapInterval</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> swapInterval) {</div>
+<div class="line"><a id="l07673" name="l07673"></a><span class="lineno"> 7673</span>    win-&gt;<a class="code hl_variable" href="structRGFW__window.html#ab45f948b586e28d51709b2c3e262dc8b">fpsCap</a> = (swapInterval == 1) ? 0 : swapInterval;</div>
+<div class="line"><a id="l07674" name="l07674"></a><span class="lineno"> 7674</span>}</div>
+<div class="line"><a id="l07675" name="l07675"></a><span class="lineno"> 7675</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l07676" name="l07676"></a><span class="lineno"> 7676</span> </div>
+<div class="line"><a id="l07677" name="l07677"></a><span class="lineno"> 7677</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#gab9fbaeec9a1268374ab141b6ccfc41a3">RGFW_window_close</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
+<div class="line"><a id="l07678" name="l07678"></a><span class="lineno"> 7678</span>    emscripten_webgl_destroy_context(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx);</div>
+<div class="line"><a id="l07679" name="l07679"></a><span class="lineno"> 7679</span> </div>
+<div class="line"><a id="l07680" name="l07680"></a><span class="lineno"> 7680</span>    free(win);</div>
+<div class="line"><a id="l07681" name="l07681"></a><span class="lineno"> 7681</span>}</div>
+<div class="line"><a id="l07682" name="l07682"></a><span class="lineno"> 7682</span> </div>
+<div class="line"><a id="l07683" name="l07683"></a><span class="lineno"> 7683</span><span class="keywordtype">int</span> RGFW_innerWidth(<span class="keywordtype">void</span>) {   <span class="keywordflow">return</span> EM_ASM_INT({ <span class="keywordflow">return</span> window.innerWidth; });  }</div>
+<div class="line"><a id="l07684" name="l07684"></a><span class="lineno"> 7684</span><span class="keywordtype">int</span> RGFW_innerHeight(<span class="keywordtype">void</span>) {  <span class="keywordflow">return</span> EM_ASM_INT({ <span class="keywordflow">return</span> window.innerHeight; });  }</div>
+<div class="line"><a id="l07685" name="l07685"></a><span class="lineno"> 7685</span> </div>
+<div class="line"><a id="l07686" name="l07686"></a><span class="lineno"> 7686</span><a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a> <a class="code hl_function" href="group__Window__management.html#ga2952eee39f36b85b6829976656043f97">RGFW_getScreenSize</a>(<span class="keywordtype">void</span>) {</div>
+<div class="line"><a id="l07687" name="l07687"></a><span class="lineno"> 7687</span>    <span class="keywordflow">return</span> <a class="code hl_define" href="RGFW_8h.html#a5edc5249799c8eb95f2a45db37f8b36d">RGFW_AREA</a>(RGFW_innerWidth(), RGFW_innerHeight());</div>
+<div class="line"><a id="l07688" name="l07688"></a><span class="lineno"> 7688</span>}</div>
+<div class="line"><a id="l07689" name="l07689"></a><span class="lineno"> 7689</span> </div>
+<div class="line"><a id="l07690" name="l07690"></a><span class="lineno"> 7690</span><span class="keywordtype">void</span>* <a class="code hl_function" href="group__graphics__API.html#ga0c232c2ac5e6f95f9bf07a0abcaef0c2">RGFW_getProcAddress</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* procname) { </div>
+<div class="line"><a id="l07691" name="l07691"></a><span class="lineno"> 7691</span>    <span class="keywordflow">return</span> emscripten_webgl_get_proc_address(procname);</div>
+<div class="line"><a id="l07692" name="l07692"></a><span class="lineno"> 7692</span>}</div>
+<div class="line"><a id="l07693" name="l07693"></a><span class="lineno"> 7693</span> </div>
+<div class="line"><a id="l07694" name="l07694"></a><span class="lineno"> 7694</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Supporting.html#ga89d25fafe12c27addf2cab9c67be8e6e">RGFW_sleep</a>(<a class="code hl_typedef" href="RGFW_8h.html#a3f7e2bcbb0b4c338f3c4f6c937cd4234">u64</a> milisecond) {</div>
+<div class="line"><a id="l07695" name="l07695"></a><span class="lineno"> 7695</span>    emscripten_sleep(milisecond);</div>
+<div class="line"><a id="l07696" name="l07696"></a><span class="lineno"> 7696</span>}</div>
+<div class="line"><a id="l07697" name="l07697"></a><span class="lineno"> 7697</span> </div>
+<div class="line"><a id="l07698" name="l07698"></a><span class="lineno"> 7698</span><a class="code hl_typedef" href="RGFW_8h.html#a3f7e2bcbb0b4c338f3c4f6c937cd4234">u64</a> <a class="code hl_function" href="group__Supporting.html#ga2556ad5561537a8b328d062f8b8268e5">RGFW_getTimeNS</a>(<span class="keywordtype">void</span>) {</div>
+<div class="line"><a id="l07699" name="l07699"></a><span class="lineno"> 7699</span>    <span class="keywordflow">return</span> emscripten_get_now() * 1e+6;</div>
+<div class="line"><a id="l07700" name="l07700"></a><span class="lineno"> 7700</span>}</div>
+<div class="line"><a id="l07701" name="l07701"></a><span class="lineno"> 7701</span> </div>
+<div class="line"><a id="l07702" name="l07702"></a><span class="lineno"> 7702</span><a class="code hl_typedef" href="RGFW_8h.html#a3f7e2bcbb0b4c338f3c4f6c937cd4234">u64</a> <a class="code hl_function" href="group__Supporting.html#gaeb9d3d63a8833248ed1009c91e29b253">RGFW_getTime</a>(<span class="keywordtype">void</span>) {</div>
+<div class="line"><a id="l07703" name="l07703"></a><span class="lineno"> 7703</span>    <span class="keywordflow">return</span> emscripten_get_now() * 1000;</div>
+<div class="line"><a id="l07704" name="l07704"></a><span class="lineno"> 7704</span>}</div>
+<div class="line"><a id="l07705" name="l07705"></a><span class="lineno"> 7705</span> </div>
+<div class="line"><a id="l07706" name="l07706"></a><span class="lineno"> 7706</span><span class="keywordtype">void</span> RGFW_captureCursor(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_struct" href="structRGFW__rect.html">RGFW_rect</a> r) { </div>
+<div class="line"><a id="l07707" name="l07707"></a><span class="lineno"> 7707</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win)</div>
+<div class="line"><a id="l07708" name="l07708"></a><span class="lineno"> 7708</span>    <span class="keywordflow">if</span> (!r.<a class="code hl_variable" href="structRGFW__rect.html#ae1678a152978fb1f00cb6b42341d0707">x</a> &amp;&amp; !r.<a class="code hl_variable" href="structRGFW__rect.html#ad40246748adb4990db561294096ce5b0">y</a> &amp;&amp; !r.<a class="code hl_variable" href="structRGFW__rect.html#ae9b18887b7389dc05283e4e54881b801">w</a> &amp;&amp; !r.<a class="code hl_variable" href="structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d">h</a>) {</div>
+<div class="line"><a id="l07709" name="l07709"></a><span class="lineno"> 7709</span>        emscripten_exit_pointerlock();</div>
+<div class="line"><a id="l07710" name="l07710"></a><span class="lineno"> 7710</span>        <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l07711" name="l07711"></a><span class="lineno"> 7711</span>    }</div>
+<div class="line"><a id="l07712" name="l07712"></a><span class="lineno"> 7712</span> </div>
+<div class="line"><a id="l07713" name="l07713"></a><span class="lineno"> 7713</span>    emscripten_request_pointerlock(<span class="stringliteral">&quot;#canvas&quot;</span>, 1);</div>
+<div class="line"><a id="l07714" name="l07714"></a><span class="lineno"> 7714</span>}</div>
+<div class="line"><a id="l07715" name="l07715"></a><span class="lineno"> 7715</span> </div>
+<div class="line"><a id="l07716" name="l07716"></a><span class="lineno"> 7716</span> </div>
+<div class="line"><a id="l07717" name="l07717"></a><span class="lineno"> 7717</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga79615ab6c585b4fbd17fe27a60b0b981">RGFW_window_setName</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <span class="keywordtype">char</span>* name) {</div>
+<div class="line"><a id="l07718" name="l07718"></a><span class="lineno"> 7718</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win);</div>
+<div class="line"><a id="l07719" name="l07719"></a><span class="lineno"> 7719</span>    emscripten_set_window_title(name);</div>
+<div class="line"><a id="l07720" name="l07720"></a><span class="lineno"> 7720</span>}</div>
+<div class="line"><a id="l07721" name="l07721"></a><span class="lineno"> 7721</span> </div>
+<div class="line"><a id="l07722" name="l07722"></a><span class="lineno"> 7722</span><span class="comment">/* unsupported functions */</span></div>
+<div class="line"><a id="l07723" name="l07723"></a><span class="lineno"> 7723</span><a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a>* <a class="code hl_function" href="RGFW_8h.html#acdce84b508a6d3eca700357d33027965">RGFW_getMonitors</a>(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> NULL; }</div>
+<div class="line"><a id="l07724" name="l07724"></a><span class="lineno"> 7724</span><a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a> <a class="code hl_function" href="RGFW_8h.html#a9b687e5aac56d2c3af094ebb3caf1fc5">RGFW_getPrimaryMonitor</a>(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> (<a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a>){}; }</div>
+<div class="line"><a id="l07725" name="l07725"></a><span class="lineno"> 7725</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga1d2a9a61b4acc071f8cc2723723a3ce5">RGFW_window_move</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_struct" href="structRGFW__point.html">RGFW_point</a> v) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(v) }</div>
+<div class="line"><a id="l07726" name="l07726"></a><span class="lineno"> 7726</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga62a242f890c1def944d0b4771b6c79d4">RGFW_window_setMinSize</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a> a) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(a)  }</div>
+<div class="line"><a id="l07727" name="l07727"></a><span class="lineno"> 7727</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#gacd5210fddb2ff8e834c25923070ee9f7">RGFW_window_setMaxSize</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a> a) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(a)  }</div>
+<div class="line"><a id="l07728" name="l07728"></a><span class="lineno"> 7728</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#gadf5a4e9746a8340b1ec5b6f290d7c907">RGFW_window_minimize</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win)}</div>
+<div class="line"><a id="l07729" name="l07729"></a><span class="lineno"> 7729</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga68d347a9064621a8691398f358ee46a3">RGFW_window_restore</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) }</div>
+<div class="line"><a id="l07730" name="l07730"></a><span class="lineno"> 7730</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga35b78984ed0960ba2cc04e6049da07e9">RGFW_window_setBorder</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73">b8</a> border) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(border)  }</div>
+<div class="line"><a id="l07731" name="l07731"></a><span class="lineno"> 7731</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga050fc99ded4b0210ddc136d49d27ecdc">RGFW_window_setIcon</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>* icon, <a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a> a, <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> channels) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(icon) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(a) <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(channels)  }</div>
+<div class="line"><a id="l07732" name="l07732"></a><span class="lineno"> 7732</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#gad0dd15469e9f8648345b52f0f9c0c023">RGFW_window_hide</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) }</div>
+<div class="line"><a id="l07733" name="l07733"></a><span class="lineno"> 7733</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#gaf8ea66870c99917ef07acd09ad6d7746">RGFW_window_show</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {<a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) }</div>
+<div class="line"><a id="l07734" name="l07734"></a><span class="lineno"> 7734</span><a class="code hl_typedef" href="RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73">b8</a> <a class="code hl_function" href="group__Window__management.html#ga7d518d36fdc7fc24a62ed53105e65f4b">RGFW_window_isHidden</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <span class="keywordflow">return</span> 0; }</div>
+<div class="line"><a id="l07735" name="l07735"></a><span class="lineno"> 7735</span><a class="code hl_typedef" href="RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73">b8</a> <a class="code hl_function" href="group__Window__management.html#ga4bb8435006b3f1d1f4bd62ce54581a2d">RGFW_window_isMinimized</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <span class="keywordflow">return</span> 0; }</div>
+<div class="line"><a id="l07736" name="l07736"></a><span class="lineno"> 7736</span><a class="code hl_typedef" href="RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73">b8</a> <a class="code hl_function" href="group__Window__management.html#ga260f8c3d4b46f3c60657c8c8f18730c9">RGFW_window_isMaximized</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <span class="keywordflow">return</span> 0; }</div>
+<div class="line"><a id="l07737" name="l07737"></a><span class="lineno"> 7737</span><a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a> <a class="code hl_function" href="group__Monitor.html#ga648797c3385a4ec20bbc511dc49907d0">RGFW_window_getMonitor</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win) <span class="keywordflow">return</span> (<a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a>){}; }</div>
+<div class="line"><a id="l07738" name="l07738"></a><span class="lineno"> 7738</span> </div>
+<div class="line"><a id="l07739" name="l07739"></a><span class="lineno"> 7739</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l07740" name="l07740"></a><span class="lineno"> 7740</span> </div>
+<div class="line"><a id="l07741" name="l07741"></a><span class="lineno"> 7741</span><span class="comment">/* end of web asm defines */</span></div>
 <div class="line"><a id="l07742" name="l07742"></a><span class="lineno"> 7742</span> </div>
-<div class="line"><a id="l07743" name="l07743"></a><span class="lineno"> 7743</span>    <a class="code hl_typedef" href="RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8">RGFW_thread</a> <a class="code hl_function" href="group__Threads.html#gabb829fbe339184bf68a558526db8fa8e">RGFW_createThread</a>(<a class="code hl_typedef" href="group__Threads.html#ga13d60c1d8ee57056290acdc59bfc37a0">RGFW_threadFunc_ptr</a> ptr, <span class="keywordtype">void</span>* args) {</div>
-<div class="line"><a id="l07744" name="l07744"></a><span class="lineno"> 7744</span>        <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(args);</div>
-<div class="line"><a id="l07745" name="l07745"></a><span class="lineno"> 7745</span>        </div>
-<div class="line"><a id="l07746" name="l07746"></a><span class="lineno"> 7746</span>        <a class="code hl_typedef" href="RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8">RGFW_thread</a> t;</div>
-<div class="line"><a id="l07747" name="l07747"></a><span class="lineno"> 7747</span>        pthread_create((pthread_t*) &amp;t, NULL, *ptr, NULL);</div>
-<div class="line"><a id="l07748" name="l07748"></a><span class="lineno"> 7748</span>        <span class="keywordflow">return</span> t;</div>
-<div class="line"><a id="l07749" name="l07749"></a><span class="lineno"> 7749</span>    }</div>
-<div class="line"><a id="l07750" name="l07750"></a><span class="lineno"> 7750</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="group__Threads.html#ga86aab7e48c958b8985d261dce599fbd2">RGFW_cancelThread</a>(<a class="code hl_typedef" href="RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8">RGFW_thread</a> thread) { pthread_cancel((pthread_t) thread); }</div>
-<div class="line"><a id="l07751" name="l07751"></a><span class="lineno"> 7751</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="group__Threads.html#ga43401d0d164edea95f9c6cd2df093473">RGFW_joinThread</a>(<a class="code hl_typedef" href="RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8">RGFW_thread</a> thread) { pthread_join((pthread_t) thread, NULL); }</div>
-<div class="line"><a id="l07752" name="l07752"></a><span class="lineno"> 7752</span><span class="preprocessor">#ifdef __linux__</span></div>
-<div class="line"><a id="l07753" name="l07753"></a><span class="lineno"> 7753</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="group__Threads.html#ga4ff572bb2d0f4bcb2e146fb00b17ea2a">RGFW_setThreadPriority</a>(<a class="code hl_typedef" href="RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8">RGFW_thread</a> thread, <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> priority) { pthread_setschedprio(thread, priority); }</div>
-<div class="line"><a id="l07754" name="l07754"></a><span class="lineno"> 7754</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l07755" name="l07755"></a><span class="lineno"> 7755</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l07756" name="l07756"></a><span class="lineno"> 7756</span> </div>
-<div class="line"><a id="l07757" name="l07757"></a><span class="lineno"> 7757</span><span class="preprocessor">#ifndef RGFW_WEBASM</span></div>
-<div class="line"><a id="l07758" name="l07758"></a><span class="lineno"> 7758</span><span class="comment">/* unix sleep */</span></div>
-<div class="line"><a id="l07759" name="l07759"></a><span class="lineno"> 7759</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="group__Supporting.html#ga89d25fafe12c27addf2cab9c67be8e6e">RGFW_sleep</a>(<a class="code hl_typedef" href="RGFW_8h.html#a3f7e2bcbb0b4c338f3c4f6c937cd4234">u64</a> ms) {</div>
-<div class="line"><a id="l07760" name="l07760"></a><span class="lineno"> 7760</span>        <span class="keyword">struct </span>timespec time;</div>
-<div class="line"><a id="l07761" name="l07761"></a><span class="lineno"> 7761</span>        time.tv_sec = 0;</div>
-<div class="line"><a id="l07762" name="l07762"></a><span class="lineno"> 7762</span>        time.tv_nsec = ms * 1e+6;</div>
-<div class="line"><a id="l07763" name="l07763"></a><span class="lineno"> 7763</span> </div>
-<div class="line"><a id="l07764" name="l07764"></a><span class="lineno"> 7764</span>        nanosleep(&amp;time, NULL);</div>
-<div class="line"><a id="l07765" name="l07765"></a><span class="lineno"> 7765</span>    }</div>
-<div class="line"><a id="l07766" name="l07766"></a><span class="lineno"> 7766</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l07767" name="l07767"></a><span class="lineno"> 7767</span> </div>
-<div class="line"><a id="l07768" name="l07768"></a><span class="lineno"> 7768</span><span class="preprocessor">#endif </span><span class="comment">/* end of unix / mac stuff*/</span><span class="preprocessor"></span></div>
-<div class="line"><a id="l07769" name="l07769"></a><span class="lineno"> 7769</span><span class="preprocessor">#endif </span><span class="comment">/*RGFW_IMPLEMENTATION*/</span><span class="preprocessor"></span></div>
-<div class="line"><a id="l07770" name="l07770"></a><span class="lineno"> 7770</span> </div>
-<div class="line"><a id="l07771" name="l07771"></a><span class="lineno"> 7771</span><span class="preprocessor">#ifdef __cplusplus</span></div>
-<div class="line"><a id="l07772" name="l07772"></a><span class="lineno"> 7772</span>}</div>
-<div class="line"><a id="l07773" name="l07773"></a><span class="lineno"> 7773</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l07743" name="l07743"></a><span class="lineno"> 7743</span><span class="comment">/* unix (macOS, linux, web asm) only stuff */</span></div>
+<div class="line"><a id="l07744" name="l07744"></a><span class="lineno"> 7744</span><span class="preprocessor">#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM)</span></div>
+<div class="line"><a id="l07745" name="l07745"></a><span class="lineno"> 7745</span><span class="comment">/* unix threading */</span></div>
+<div class="line"><a id="l07746" name="l07746"></a><span class="lineno"> 7746</span><span class="preprocessor">#ifndef RGFW_NO_THREADS</span></div>
+<div class="line"><a id="l07747" name="l07747"></a><span class="lineno"> 7747</span><span class="preprocessor">#include &lt;pthread.h&gt;</span></div>
+<div class="line"><a id="l07748" name="l07748"></a><span class="lineno"> 7748</span> </div>
+<div class="line"><a id="l07749" name="l07749"></a><span class="lineno"> 7749</span>    <a class="code hl_typedef" href="RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8">RGFW_thread</a> <a class="code hl_function" href="group__Threads.html#gabb829fbe339184bf68a558526db8fa8e">RGFW_createThread</a>(<a class="code hl_typedef" href="group__Threads.html#ga13d60c1d8ee57056290acdc59bfc37a0">RGFW_threadFunc_ptr</a> ptr, <span class="keywordtype">void</span>* args) {</div>
+<div class="line"><a id="l07750" name="l07750"></a><span class="lineno"> 7750</span>        <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(args);</div>
+<div class="line"><a id="l07751" name="l07751"></a><span class="lineno"> 7751</span>        </div>
+<div class="line"><a id="l07752" name="l07752"></a><span class="lineno"> 7752</span>        <a class="code hl_typedef" href="RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8">RGFW_thread</a> t;</div>
+<div class="line"><a id="l07753" name="l07753"></a><span class="lineno"> 7753</span>        pthread_create((pthread_t*) &amp;t, NULL, *ptr, NULL);</div>
+<div class="line"><a id="l07754" name="l07754"></a><span class="lineno"> 7754</span>        <span class="keywordflow">return</span> t;</div>
+<div class="line"><a id="l07755" name="l07755"></a><span class="lineno"> 7755</span>    }</div>
+<div class="line"><a id="l07756" name="l07756"></a><span class="lineno"> 7756</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="group__Threads.html#ga86aab7e48c958b8985d261dce599fbd2">RGFW_cancelThread</a>(<a class="code hl_typedef" href="RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8">RGFW_thread</a> thread) { pthread_cancel((pthread_t) thread); }</div>
+<div class="line"><a id="l07757" name="l07757"></a><span class="lineno"> 7757</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="group__Threads.html#ga43401d0d164edea95f9c6cd2df093473">RGFW_joinThread</a>(<a class="code hl_typedef" href="RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8">RGFW_thread</a> thread) { pthread_join((pthread_t) thread, NULL); }</div>
+<div class="line"><a id="l07758" name="l07758"></a><span class="lineno"> 7758</span><span class="preprocessor">#ifdef __linux__</span></div>
+<div class="line"><a id="l07759" name="l07759"></a><span class="lineno"> 7759</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="group__Threads.html#ga4ff572bb2d0f4bcb2e146fb00b17ea2a">RGFW_setThreadPriority</a>(<a class="code hl_typedef" href="RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8">RGFW_thread</a> thread, <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> priority) { pthread_setschedprio(thread, priority); }</div>
+<div class="line"><a id="l07760" name="l07760"></a><span class="lineno"> 7760</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l07761" name="l07761"></a><span class="lineno"> 7761</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l07762" name="l07762"></a><span class="lineno"> 7762</span> </div>
+<div class="line"><a id="l07763" name="l07763"></a><span class="lineno"> 7763</span><span class="preprocessor">#ifndef RGFW_WEBASM</span></div>
+<div class="line"><a id="l07764" name="l07764"></a><span class="lineno"> 7764</span><span class="comment">/* unix sleep */</span></div>
+<div class="line"><a id="l07765" name="l07765"></a><span class="lineno"> 7765</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="group__Supporting.html#ga89d25fafe12c27addf2cab9c67be8e6e">RGFW_sleep</a>(<a class="code hl_typedef" href="RGFW_8h.html#a3f7e2bcbb0b4c338f3c4f6c937cd4234">u64</a> ms) {</div>
+<div class="line"><a id="l07766" name="l07766"></a><span class="lineno"> 7766</span>        <span class="keyword">struct </span>timespec time;</div>
+<div class="line"><a id="l07767" name="l07767"></a><span class="lineno"> 7767</span>        time.tv_sec = 0;</div>
+<div class="line"><a id="l07768" name="l07768"></a><span class="lineno"> 7768</span>        time.tv_nsec = ms * 1e+6;</div>
+<div class="line"><a id="l07769" name="l07769"></a><span class="lineno"> 7769</span> </div>
+<div class="line"><a id="l07770" name="l07770"></a><span class="lineno"> 7770</span>        nanosleep(&amp;time, NULL);</div>
+<div class="line"><a id="l07771" name="l07771"></a><span class="lineno"> 7771</span>    }</div>
+<div class="line"><a id="l07772" name="l07772"></a><span class="lineno"> 7772</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l07773" name="l07773"></a><span class="lineno"> 7773</span> </div>
+<div class="line"><a id="l07774" name="l07774"></a><span class="lineno"> 7774</span><span class="preprocessor">#endif </span><span class="comment">/* end of unix / mac stuff*/</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l07775" name="l07775"></a><span class="lineno"> 7775</span><span class="preprocessor">#endif </span><span class="comment">/*RGFW_IMPLEMENTATION*/</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l07776" name="l07776"></a><span class="lineno"> 7776</span> </div>
+<div class="line"><a id="l07777" name="l07777"></a><span class="lineno"> 7777</span><span class="preprocessor">#ifdef __cplusplus</span></div>
+<div class="line"><a id="l07778" name="l07778"></a><span class="lineno"> 7778</span>}</div>
+<div class="line"><a id="l07779" name="l07779"></a><span class="lineno"> 7779</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aRGFW_8h_html_a002c109b94e397128241aa36b17a6aa9"><div class="ttname"><a href="RGFW_8h.html#a002c109b94e397128241aa36b17a6aa9">RGFW_focusIn</a></div><div class="ttdeci">#define RGFW_focusIn</div><div class="ttdef"><b>Definition:</b> RGFW.h:338</div></div>
 <div class="ttc" id="aRGFW_8h_html_a0a8fd3de6a07f662db3510eed0988f30"><div class="ttname"><a href="RGFW_8h.html#a0a8fd3de6a07f662db3510eed0988f30">RGFW_mouseMiddle</a></div><div class="ttdeci">#define RGFW_mouseMiddle</div><div class="ttdef"><b>Definition:</b> RGFW.h:364</div></div>
 <div class="ttc" id="aRGFW_8h_html_a0cd0ab13d2d18af10035d4d6899b5833"><div class="ttname"><a href="RGFW_8h.html#a0cd0ab13d2d18af10035d4d6899b5833">RGFW_mouseScrollUp</a></div><div class="ttdeci">#define RGFW_mouseScrollUp</div><div class="ttdef"><b>Definition:</b> RGFW.h:366</div></div>

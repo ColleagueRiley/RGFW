@@ -894,15 +894,15 @@ function dbg(...args) {
 
 var ASM_CONSTS = {
   73560: () => { Module.useWebGL = true; GLImmediate.init(); },  
- 73606: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenames = _malloc(e.dataTransfer.files.length*4); var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(filenames, i, filename); } Module._Emscripten_onDrop(filenames, count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } _free(filenames); }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 74721: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 74792: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 74849: () => { return window.mouseX || 0; },  
- 74880: () => { return window.mouseY || 0; },  
- 74911: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 75058: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 75111: () => { return window.innerWidth; },  
- 75141: () => { return window.innerHeight; }
+ 73606: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
+ 74625: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 74696: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 74753: () => { return window.mouseX || 0; },  
+ 74784: () => { return window.mouseY || 0; },  
+ 74815: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
+ 74962: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 75015: () => { return window.innerWidth; },  
+ 75045: () => { return window.innerHeight; }
 };
 
 // end include: preamble.js
@@ -11493,6 +11493,7 @@ var ASM_CONSTS = {
   };
 
 
+
   FS.createPreloadedFile = FS_createPreloadedFile;
   FS.staticInit();;
 
@@ -11619,8 +11620,8 @@ var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors', 0);
 var _malloc = createExportWrapper('malloc', 1);
 var _free = createExportWrapper('free', 1);
-var _Emscripten_onDrop = Module['_Emscripten_onDrop'] = createExportWrapper('Emscripten_onDrop', 2);
-var _RGFW_makeSetValue = Module['_RGFW_makeSetValue'] = createExportWrapper('RGFW_makeSetValue', 3);
+var _Emscripten_onDrop = Module['_Emscripten_onDrop'] = createExportWrapper('Emscripten_onDrop', 1);
+var _RGFW_makeSetValue = Module['_RGFW_makeSetValue'] = createExportWrapper('RGFW_makeSetValue', 2);
 var _RGFW_mkdir = Module['_RGFW_mkdir'] = createExportWrapper('RGFW_mkdir', 1);
 var _RGFW_writeFile = Module['_RGFW_writeFile'] = createExportWrapper('RGFW_writeFile', 3);
 var _main = Module['_main'] = createExportWrapper('main', 2);
@@ -11649,6 +11650,7 @@ var _asyncify_stop_rewind = createExportWrapper('asyncify_stop_rewind', 0);
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
 
+Module['stringToNewUTF8'] = stringToNewUTF8;
 var missingLibrarySymbols = [
   'writeI53ToI64Clamped',
   'writeI53ToI64Signaling',
@@ -11859,7 +11861,6 @@ var unexportedSymbols = [
   'lengthBytesUTF8',
   'intArrayFromString',
   'UTF16Decoder',
-  'stringToNewUTF8',
   'JSEvents',
   'registerKeyEventCallback',
   'specialHTMLTargets',
