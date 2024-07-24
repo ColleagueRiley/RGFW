@@ -1129,13 +1129,13 @@ int main() {
 */
 
 #ifdef RGFW_X11
-	#define RGFW_OS_BASED_VALUE(l, w, m, a) l
+	#define RGFW_OS_BASED_VALUE(l, w, m, h) l
 #elif defined(RGFW_WINDOWS)
-	#define RGFW_OS_BASED_VALUE(l, w, m, a) w
+	#define RGFW_OS_BASED_VALUE(l, w, m, h) w
 #elif defined(RGFW_MACOS)
-	#define RGFW_OS_BASED_VALUE(l, w, m, a) m
+	#define RGFW_OS_BASED_VALUE(l, w, m, h) m
 #elif defined(RGFW_WEBASM)
-	#define RGFW_OS_BASED_VALUE(l, w, m, a) a
+	#define RGFW_OS_BASED_VALUE(l, w, m, h) h
 #endif
 
 #ifdef RGFW_IMPLEMENTATION
@@ -1623,7 +1623,7 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 		win->event.lockState ^= RGFW_NUMLOCK;
 }
 
-#if defined(RGFW_X11) || defined(RGFW_MACOS)
+#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM)
 	struct timespec;
 
 	int nanosleep(const struct timespec* duration, struct timespec* rem);
@@ -7260,22 +7260,11 @@ EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamep
     return 1; // The event was consumed by the callback handler
 }
 
-void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(const char** filename, size_t count) {
+void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(size_t count) {
 	if (!(RGFW_root->_winArgs & RGFW_ALLOW_DND))
 		return;
-	RGFW_UNUSED(filename);
-	RGFW_events[RGFW_eventLen].type = RGFW_dnd;
-	size_t i;
-	for (i = 0; i < count && i < RGFW_MAX_DROPS; i++) {
-		//printf("%s\n", filename[i]);
-		//strncpy(RGFW_events[RGFW_eventLen].droppedFiles[i], filename[i], RGFW_MAX_PATH);
-		//printf("h\n");
-		//RGFW_events[RGFW_eventLen].droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
-	} 
-//printf("%zu\n", count);
-	RGFW_events[RGFW_eventLen].droppedFilesCount = count;
 
-	
+	RGFW_events[RGFW_eventLen].droppedFilesCount = count;	
 	RGFW_dndCallback(RGFW_root, RGFW_events[RGFW_eventLen].droppedFiles, count);
 	RGFW_eventLen++;
 }
@@ -7315,7 +7304,16 @@ void RGFW_init_buffer(RGFW_window* win) {
 	#endif
 }
 
-void EMSCRIPTEN_KEEPALIVE RGFW_makeSetValue(char** arr, size_t index, char* file) { arr[index] = file; }
+void EMSCRIPTEN_KEEPALIVE RGFW_makeSetValue(size_t index, char* file) { 
+	/* This seems like a terrible idea, don't replicate this unless you hate yourself or the OS */
+	/* TODO: find a better way to do this, 
+		strcpy doesn't seem to work, maybe because of asyncio
+	*/
+
+	RGFW_events[RGFW_eventLen].type = RGFW_dnd;
+	char** arr = (char**)&RGFW_events[RGFW_eventLen].droppedFiles[index];
+	*arr = file;
+}
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -7324,7 +7322,10 @@ void EMSCRIPTEN_KEEPALIVE RGFW_makeSetValue(char** arr, size_t index, char* file
 void EMSCRIPTEN_KEEPALIVE RGFW_mkdir(char* name) { mkdir(name, 0755); }
 
 void EMSCRIPTEN_KEEPALIVE RGFW_writeFile(const char *path, const char *data, size_t len) {
-    FILE *file = fopen(path, "wb");
+    FILE* file = fopen(path, "w+");
+	if (file == NULL)
+		return;
+
     fwrite(data, sizeof(char), len, file);
     fclose(file);
 }
@@ -7380,6 +7381,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
     emscripten_set_focusout_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, EM_FALSE, Emscripten_on_focusout);
 	emscripten_set_gamepadconnected_callback(NULL, 1, Emscripten_on_gamepad);
 	emscripten_set_gamepaddisconnected_callback(NULL, 1, Emscripten_on_gamepad);
+	
 	if (args & RGFW_ALLOW_DND)  {
 		win->_winArgs |= RGFW_ALLOW_DND;
 	}
@@ -7391,7 +7393,6 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
             if (e.dataTransfer.file < 0)
 				return;
 
-			var filenames = _malloc(e.dataTransfer.files.length*4);
 			var filenamesArray = [];
 			var count = e.dataTransfer.files.length;
 
@@ -7411,24 +7412,25 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 					}
 					else {
 						var data = e.target.result;
+						
 						_RGFW_writeFile(path, new Uint8Array(data), file.size);
 					}
 				};
 
-				reader.readAsArrayBuffer(file);
-
+				reader.readAsArrayBuffer(file);		
+				// This works weird on webgl 2+
 				var filename = stringToNewUTF8(path);
+
 				filenamesArray.push(filename);
 				
-				Module._RGFW_makeSetValue(filenames, i, filename);
+				Module._RGFW_makeSetValue(i, filename);
 			}
 			
-			Module._Emscripten_onDrop(filenames, count);
+			Module._Emscripten_onDrop(count);
 			
 			for (var i = 0; i < count; ++i) {
 				_free(filenamesArray[i]);
 			}
-			_free(filenames);
         }, true);
 
         canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true);
@@ -7711,6 +7713,12 @@ void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) {
 	emscripten_request_pointerlock("#canvas", 1);
 }
 
+
+void RGFW_window_setName(RGFW_window* win, char* name) {
+	RGFW_UNUSED(win);
+	emscripten_set_window_title(name);
+}
+
 /* unsupported functions */
 RGFW_monitor* RGFW_getMonitors(void) { return NULL; }
 RGFW_monitor RGFW_getPrimaryMonitor(void) { return (RGFW_monitor){}; }
@@ -7720,8 +7728,6 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) { RGFW_UNUSED(win) RG
 void RGFW_window_minimize(RGFW_window* win) { RGFW_UNUSED(win)}
 void RGFW_window_restore(RGFW_window* win) { RGFW_UNUSED(win) }
 void RGFW_window_setBorder(RGFW_window* win, b8 border) { RGFW_UNUSED(win) RGFW_UNUSED(border)  }
-void RGFW_window_setDND(RGFW_window* win, b8 allow)  { RGFW_UNUSED(win) RGFW_UNUSED(allow)  }
-void RGFW_window_setName(RGFW_window* win, char* name) { RGFW_UNUSED(win) RGFW_UNUSED(name)  }
 void RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win) RGFW_UNUSED(icon) RGFW_UNUSED(a) RGFW_UNUSED(channels)  }
 void RGFW_window_hide(RGFW_window* win) { RGFW_UNUSED(win) }
 void RGFW_window_show(RGFW_window* win) {RGFW_UNUSED(win) }
