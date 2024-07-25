@@ -1498,6 +1498,11 @@ b8 RGFW_isReleased(RGFW_window* win, u8 key) {
 	return (!RGFW_isPressed(win, key) && RGFW_wasPressed(win, key));	
 }
 
+#if defined(RGFW_WINDOWS)  && defined(RGFW_DIRECTX) /* defines for directX context*/
+	RGFW_directXinfo RGFW_dxInfo;
+	RGFW_directXinfo* RGFW_getDirectXInfo(void) { return &RGFW_dxInfo; }
+#endif
+
 void RGFW_window_makeCurrent(RGFW_window* win) {
 	assert(win != NULL);
 
@@ -3909,13 +3914,6 @@ Start of Linux / Unix defines
 	PFN_wglGetSwapIntervalEXT wglGetSwapIntervalEXTSrc = NULL;
 #define wglGetSwapIntervalEXT wglGetSwapIntervalEXTSrc
 
-
-
-#if defined(RGFW_DIRECTX)
-	RGFW_directXinfo RGFW_dxInfo;
-
-	RGFW_directXinfo* RGFW_getDirectXInfo(void) { return &RGFW_dxInfo; }
-#endif
 
 	void* RGFWjoystickApi = NULL;
 
@@ -7418,7 +7416,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 				};
 
 				reader.readAsArrayBuffer(file);		
-				// This works weird on webgl 2+
+				// This works weird on modern opengl
 				var filename = stringToNewUTF8(path);
 
 				filenamesArray.push(filename);
