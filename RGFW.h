@@ -147,7 +147,7 @@
 #endif
 
 #ifdef __cplusplus
-	extern "C" {
+	//extern "C" {
 #endif
 
 	/* makes sure the header file part is only defined once by default */
@@ -413,9 +413,9 @@ typedef RGFW_ENUM(u8, RGFW_event_types) {
 	typedef struct { u32 w, h; } RGFW_area;
 #endif
 
-#define RGFW_POINT(x, y) (RGFW_point){x, y}
-#define RGFW_RECT(x, y, w, h) (RGFW_rect){x, y, w, h}
-#define RGFW_AREA(w, h) (RGFW_area){w, h}
+#define RGFW_POINT(x, y) (RGFW_point){(i32)(x), (i32)(y)}
+#define RGFW_RECT(x, y, w, h) (RGFW_rect){(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
+#define RGFW_AREA(w, h) (RGFW_area){(u32)(w), (u32)(h)}
 
 #ifndef RGFW_NO_MONITOR
 	/*! structure for monitor data */
@@ -1156,120 +1156,146 @@ This is the start of keycode data
 	MacOS -> windows and linux already don't have keycodes as macros, so there's no point
 */
 
-u8 RGFW_keycodes[] = {
-	[RGFW_OS_BASED_VALUE(49, 192, 50, DOM_VK_BACK_QUOTE)] = RGFW_Backtick,
 
-	[RGFW_OS_BASED_VALUE(19, 0x30, 29, DOM_VK_0)] = RGFW_0,
-	[RGFW_OS_BASED_VALUE(10, 0x31, 18, DOM_VK_1)] = RGFW_1,
-	[RGFW_OS_BASED_VALUE(11, 0x32, 19, DOM_VK_2)] = RGFW_2,
-	[RGFW_OS_BASED_VALUE(12, 0x33, 20, DOM_VK_3)] = RGFW_3,
-	[RGFW_OS_BASED_VALUE(13, 0x34, 21, DOM_VK_4)] = RGFW_4,
-	[RGFW_OS_BASED_VALUE(14, 0x35, 23, DOM_VK_5)] = RGFW_5,
-	[RGFW_OS_BASED_VALUE(15, 0x36, 22, DOM_VK_6)] = RGFW_6,
-	[RGFW_OS_BASED_VALUE(16, 0x37, 26, DOM_VK_7)] = RGFW_7,
-	[RGFW_OS_BASED_VALUE(17, 0x38, 28, DOM_VK_8)] = RGFW_8,
-	[RGFW_OS_BASED_VALUE(18, 0x39, 25, DOM_VK_9)] = RGFW_9,
 
-	[RGFW_OS_BASED_VALUE(65, 0x20, 49, DOM_VK_SPACE)] = RGFW_Space,
+/* 
+	the c++ compiler doesn't support setting up an array like, 
+	we'll have to do it during runtime using a function & this messy setup
+*/
+#ifndef __cplusplus
+#define RGFW_NEXT ,
+#define RGFW_MAP
+#else 
+#define RGFW_NEXT ;
+#define RGFW_MAP RGFW_keycodes
+#endif
 
-	[RGFW_OS_BASED_VALUE(38, 0x41, 0, DOM_VK_A)] = RGFW_a,
-	[RGFW_OS_BASED_VALUE(56, 0x42, 11, DOM_VK_B)] = RGFW_b,
-	[RGFW_OS_BASED_VALUE(54, 0x43, 8, DOM_VK_C)] = RGFW_c,
-	[RGFW_OS_BASED_VALUE(40, 0x44, 2, DOM_VK_D)] = RGFW_d,
-	[RGFW_OS_BASED_VALUE(26, 0x45, 14, DOM_VK_E)] = RGFW_e,
-	[RGFW_OS_BASED_VALUE(41, 0x46, 3, DOM_VK_F)] = RGFW_f,
-	[RGFW_OS_BASED_VALUE(42, 0x47, 5, DOM_VK_G)] = RGFW_g,
-	[RGFW_OS_BASED_VALUE(43, 0x48, 4, DOM_VK_H)] = RGFW_h,
-	[RGFW_OS_BASED_VALUE(31, 0x49, 34, DOM_VK_I)] = RGFW_i,
-	[RGFW_OS_BASED_VALUE(44, 0x4A, 38, DOM_VK_J)] = RGFW_j,
-	[RGFW_OS_BASED_VALUE(45, 0x4B, 40, DOM_VK_K)] = RGFW_k,
-	[RGFW_OS_BASED_VALUE(46, 0x4C, 37, DOM_VK_L)] = RGFW_l,
-	[RGFW_OS_BASED_VALUE(58, 0x4D, 46, DOM_VK_M)] = RGFW_m,
-	[RGFW_OS_BASED_VALUE(57, 0x4E, 45, DOM_VK_N)] = RGFW_n,
-	[RGFW_OS_BASED_VALUE(32, 0x4F, 31, DOM_VK_O)] = RGFW_o,
-	[RGFW_OS_BASED_VALUE(33, 0x50, 35, DOM_VK_P)] = RGFW_p,
-	[RGFW_OS_BASED_VALUE(24, 0x51, 12, DOM_VK_Q)] = RGFW_q,
-	[RGFW_OS_BASED_VALUE(27, 0x52, 15, DOM_VK_R)] = RGFW_r,
-	[RGFW_OS_BASED_VALUE(39, 0x53, 1, DOM_VK_S)] = RGFW_s,
-	[RGFW_OS_BASED_VALUE(28, 0x54, 17, DOM_VK_T)] = RGFW_t,
-	[RGFW_OS_BASED_VALUE(30, 0x55, 32, DOM_VK_U)] = RGFW_u,
-	[RGFW_OS_BASED_VALUE(55, 0x56, 9, DOM_VK_V)] = RGFW_v,
-	[RGFW_OS_BASED_VALUE(25, 0x57, 13, DOM_VK_W)] = RGFW_w,
-	[RGFW_OS_BASED_VALUE(53, 0x58, 7, DOM_VK_X)] = RGFW_x,
-	[RGFW_OS_BASED_VALUE(29, 0x59, 16, DOM_VK_Y)] = RGFW_y,
-	[RGFW_OS_BASED_VALUE(52, 0x5A, 6, DOM_VK_Z)] = RGFW_z,
+u8 RGFW_keycodes [RGFW_OS_BASED_VALUE(136, 337, 128, DOM_VK_WIN_OEM_CLEAR + 1)] = {
+#ifdef __cplusplus
+	0
+};
+void RGFW_init_keys(void) {
+#endif
+	RGFW_MAP [RGFW_OS_BASED_VALUE(49, 192, 50, DOM_VK_BACK_QUOTE)] = RGFW_Backtick 		RGFW_NEXT
 
-	[RGFW_OS_BASED_VALUE(60, 190, 47, DOM_VK_PERIOD)] = RGFW_Period,
-	[RGFW_OS_BASED_VALUE(59, 188, 43, DOM_VK_COMMA)] = RGFW_Comma,
-	[RGFW_OS_BASED_VALUE(61, 191, 44, DOM_VK_SLASH)] = RGFW_Slash,
-	[RGFW_OS_BASED_VALUE(34, 219, 33, DOM_VK_OPEN_BRACKET)] = RGFW_Bracket,
-	[RGFW_OS_BASED_VALUE(35, 221, 30, DOM_VK_CLOSE_BRACKET)] = RGFW_CloseBracket,
-	[RGFW_OS_BASED_VALUE(47, 186, 41, DOM_VK_SEMICOLON)] = RGFW_Semicolon,
-	[RGFW_OS_BASED_VALUE(48, 222, 39, DOM_VK_QUOTE)] = RGFW_Quote,
-	[RGFW_OS_BASED_VALUE(51, 322, 42, DOM_VK_BACK_SLASH)] = RGFW_BackSlash,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(19, 0x30, 29, DOM_VK_0)] = RGFW_0 					RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(10, 0x31, 18, DOM_VK_1)] = RGFW_1						RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(11, 0x32, 19, DOM_VK_2)] = RGFW_2						RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(12, 0x33, 20, DOM_VK_3)] = RGFW_3						RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(13, 0x34, 21, DOM_VK_4)] = RGFW_4						RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(14, 0x35, 23, DOM_VK_5)] = RGFW_5                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(15, 0x36, 22, DOM_VK_6)] = RGFW_6                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(16, 0x37, 26, DOM_VK_7)] = RGFW_7                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(17, 0x38, 28, DOM_VK_8)] = RGFW_8                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(18, 0x39, 25, DOM_VK_9)] = RGFW_9,
+
+	RGFW_MAP [RGFW_OS_BASED_VALUE(65, 0x20, 49, DOM_VK_SPACE)] = RGFW_Space,
+
+	RGFW_MAP [RGFW_OS_BASED_VALUE(38, 0x41, 0, DOM_VK_A)] = RGFW_a                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(56, 0x42, 11, DOM_VK_B)] = RGFW_b                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(54, 0x43, 8, DOM_VK_C)] = RGFW_c                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(40, 0x44, 2, DOM_VK_D)] = RGFW_d                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(26, 0x45, 14, DOM_VK_E)] = RGFW_e                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(41, 0x46, 3, DOM_VK_F)] = RGFW_f                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(42, 0x47, 5, DOM_VK_G)] = RGFW_g                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(43, 0x48, 4, DOM_VK_H)] = RGFW_h                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(31, 0x49, 34, DOM_VK_I)] = RGFW_i                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(44, 0x4A, 38, DOM_VK_J)] = RGFW_j                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(45, 0x4B, 40, DOM_VK_K)] = RGFW_k                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(46, 0x4C, 37, DOM_VK_L)] = RGFW_l                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(58, 0x4D, 46, DOM_VK_M)] = RGFW_m                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(57, 0x4E, 45, DOM_VK_N)] = RGFW_n                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(32, 0x4F, 31, DOM_VK_O)] = RGFW_o                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(33, 0x50, 35, DOM_VK_P)] = RGFW_p                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(24, 0x51, 12, DOM_VK_Q)] = RGFW_q                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(27, 0x52, 15, DOM_VK_R)] = RGFW_r                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(39, 0x53, 1, DOM_VK_S)] = RGFW_s                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(28, 0x54, 17, DOM_VK_T)] = RGFW_t                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(30, 0x55, 32, DOM_VK_U)] = RGFW_u                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(55, 0x56, 9, DOM_VK_V)] = RGFW_v                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(25, 0x57, 13, DOM_VK_W)] = RGFW_w                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(53, 0x58, 7, DOM_VK_X)] = RGFW_x                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(29, 0x59, 16, DOM_VK_Y)] = RGFW_y                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(52, 0x5A, 6, DOM_VK_Z)] = RGFW_z,
+
+	RGFW_MAP [RGFW_OS_BASED_VALUE(60, 190, 47, DOM_VK_PERIOD)] = RGFW_Period             			RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(59, 188, 43, DOM_VK_COMMA)] = RGFW_Comma               			RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(61, 191, 44, DOM_VK_SLASH)] = RGFW_Slash               			RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(34, 219, 33, DOM_VK_OPEN_BRACKET)] = RGFW_Bracket      			RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(35, 221, 30, DOM_VK_CLOSE_BRACKET)] = RGFW_CloseBracket             RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(47, 186, 41, DOM_VK_SEMICOLON)] = RGFW_Semicolon                 RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(48, 222, 39, DOM_VK_QUOTE)] = RGFW_Quote                 			RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(51, 322, 42, DOM_VK_BACK_SLASH)] = RGFW_BackSlash,
 	
-	[RGFW_OS_BASED_VALUE(36, 0x0D, 36, DOM_VK_RETURN)] = RGFW_Return,
-	[RGFW_OS_BASED_VALUE(119, 0x2E, 118, DOM_VK_DELETE)] = RGFW_Delete,
-	[RGFW_OS_BASED_VALUE(77, 0x90, 72, DOM_VK_NUM_LOCK)] = RGFW_Numlock,
-	[RGFW_OS_BASED_VALUE(106, 0x6F, 82, DOM_VK_DIVIDE)] = RGFW_KP_Slash,
-	[RGFW_OS_BASED_VALUE(63, 0x6A, 76, DOM_VK_MULTIPLY)] = RGFW_Multiply,
-	[RGFW_OS_BASED_VALUE(82, 0x6D, 67, DOM_VK_SUBTRACT)] = RGFW_KP_Minus,
-	[RGFW_OS_BASED_VALUE(87, 0x61, 84, DOM_VK_NUMPAD1)] = RGFW_KP_1,
-	[RGFW_OS_BASED_VALUE(88, 0x62, 85, DOM_VK_NUMPAD2)] = RGFW_KP_2,
-	[RGFW_OS_BASED_VALUE(89, 0x63, 86, DOM_VK_NUMPAD3)] = RGFW_KP_3,
-	[RGFW_OS_BASED_VALUE(83, 0x64, 87, DOM_VK_NUMPAD4)] = RGFW_KP_4,
-	[RGFW_OS_BASED_VALUE(84, 0x65, 88, DOM_VK_NUMPAD5)] = RGFW_KP_5,
-	[RGFW_OS_BASED_VALUE(85, 0x66, 89, DOM_VK_NUMPAD6)] = RGFW_KP_6,
-	[RGFW_OS_BASED_VALUE(79, 0x67, 90, DOM_VK_NUMPAD7)] = RGFW_KP_7,
-	[RGFW_OS_BASED_VALUE(80, 0x68, 92, DOM_VK_NUMPAD8)] = RGFW_KP_8,
-	[RGFW_OS_BASED_VALUE(81, 0x69, 93, DOM_VK_NUMPAD9)] = RGFW_KP_9,
-	[RGFW_OS_BASED_VALUE(90, 0x60, 83, DOM_VK_NUMPAD0)] = RGFW_KP_0,
-	[RGFW_OS_BASED_VALUE(91, 0x6E, 65, DOM_VK_DECIMAL)] = RGFW_KP_Period,
-	[RGFW_OS_BASED_VALUE(104, 0x92, 77, 0)] = RGFW_KP_Return,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(36, 0x0D, 36, DOM_VK_RETURN)] = RGFW_Return              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(119, 0x2E, 118, DOM_VK_DELETE)] = RGFW_Delete                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(77, 0x90, 72, DOM_VK_NUM_LOCK)] = RGFW_Numlock               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(106, 0x6F, 82, DOM_VK_DIVIDE)] = RGFW_KP_Slash               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(63, 0x6A, 76, DOM_VK_MULTIPLY)] = RGFW_Multiply              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(82, 0x6D, 67, DOM_VK_SUBTRACT)] = RGFW_KP_Minus              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(87, 0x61, 84, DOM_VK_NUMPAD1)] = RGFW_KP_1               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(88, 0x62, 85, DOM_VK_NUMPAD2)] = RGFW_KP_2               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(89, 0x63, 86, DOM_VK_NUMPAD3)] = RGFW_KP_3               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(83, 0x64, 87, DOM_VK_NUMPAD4)] = RGFW_KP_4               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(84, 0x65, 88, DOM_VK_NUMPAD5)] = RGFW_KP_5               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(85, 0x66, 89, DOM_VK_NUMPAD6)] = RGFW_KP_6               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(79, 0x67, 90, DOM_VK_NUMPAD7)] = RGFW_KP_7               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(80, 0x68, 92, DOM_VK_NUMPAD8)] = RGFW_KP_8               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(81, 0x69, 93, DOM_VK_NUMPAD9)] = RGFW_KP_9               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(90, 0x60, 83, DOM_VK_NUMPAD0)] = RGFW_KP_0               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(91, 0x6E, 65, DOM_VK_DECIMAL)] = RGFW_KP_Period              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(104, 0x92, 77, 0)] = RGFW_KP_Return,
 	
-	[RGFW_OS_BASED_VALUE(20, 189, 27, DOM_VK_HYPHEN_MINUS)] = RGFW_Minus,
-	[RGFW_OS_BASED_VALUE(21, 187, 24, DOM_VK_EQUALS)] = RGFW_Equals,
-	[RGFW_OS_BASED_VALUE(22, 8, 51, DOM_VK_BACK_SPACE)] = RGFW_BackSpace,
-	[RGFW_OS_BASED_VALUE(23, 0x09, 48, DOM_VK_TAB)] = RGFW_Tab,
-	[RGFW_OS_BASED_VALUE(66, 20, 57, DOM_VK_CAPS_LOCK)] = RGFW_CapsLock,
-	[RGFW_OS_BASED_VALUE(50, 0xA0, 56, DOM_VK_SHIFT)] = RGFW_ShiftL,
-	[RGFW_OS_BASED_VALUE(37, 0x11, 59, DOM_VK_CONTROL)] = RGFW_ControlL,
-	[RGFW_OS_BASED_VALUE(64, 164, 58, DOM_VK_ALT)] = RGFW_AltL,
-	[RGFW_OS_BASED_VALUE(133, 0x5B, 55, DOM_VK_WIN)] = RGFW_SuperL,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(20, 189, 27, DOM_VK_HYPHEN_MINUS)] = RGFW_Minus              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(21, 187, 24, DOM_VK_EQUALS)] = RGFW_Equals               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(22, 8, 51, DOM_VK_BACK_SPACE)] = RGFW_BackSpace              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(23, 0x09, 48, DOM_VK_TAB)] = RGFW_Tab                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(66, 20, 57, DOM_VK_CAPS_LOCK)] = RGFW_CapsLock               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(50, 0xA0, 56, DOM_VK_SHIFT)] = RGFW_ShiftL               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(37, 0x11, 59, DOM_VK_CONTROL)] = RGFW_ControlL               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(64, 164, 58, DOM_VK_ALT)] = RGFW_AltL                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(133, 0x5B, 55, DOM_VK_WIN)] = RGFW_SuperL,
 	
 	#if !defined(RGFW_WINDOWS) && !defined(RGFW_MACOS) && !defined(RGFW_WEBASM)
-	[RGFW_OS_BASED_VALUE(105, 0x11, 59, 0)] = RGFW_ControlR,
-	[RGFW_OS_BASED_VALUE(135, 0xA4, 55, 0)] = RGFW_SuperR,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(105, 0x11, 59, 0)] = RGFW_ControlR               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(135, 0xA4, 55, 0)] = RGFW_SuperR,
 	#endif
 
 	#if !defined(RGFW_MACOS) && !defined(RGFW_WEBASM)
-	[RGFW_OS_BASED_VALUE(62, 0x5C, 56, 0)] = RGFW_ShiftR,
-	[RGFW_OS_BASED_VALUE(108, 165, 58, 0)] = RGFW_AltR,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(62, 0x5C, 56, 0)] = RGFW_ShiftR              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(108, 165, 58, 0)] = RGFW_AltR,
 	#endif
 
-	[RGFW_OS_BASED_VALUE(67, 0x70, 127, DOM_VK_F1)] = RGFW_F1,
-	[RGFW_OS_BASED_VALUE(68, 0x71, 121, DOM_VK_F2)] = RGFW_F2,
-	[RGFW_OS_BASED_VALUE(69, 0x72, 100, DOM_VK_F3)] = RGFW_F3,
-	[RGFW_OS_BASED_VALUE(70, 0x73, 119, DOM_VK_F4)] = RGFW_F4,
-	[RGFW_OS_BASED_VALUE(71, 0x74, 97, DOM_VK_F5)] = RGFW_F5,
-	[RGFW_OS_BASED_VALUE(72, 0x75, 98, DOM_VK_F6)] = RGFW_F6,
-	[RGFW_OS_BASED_VALUE(73, 0x76, 99, DOM_VK_F7)] = RGFW_F7,
-	[RGFW_OS_BASED_VALUE(74, 0x77, 101, DOM_VK_F8)] = RGFW_F8,
-	[RGFW_OS_BASED_VALUE(75, 0x78, 102, DOM_VK_F9)] = RGFW_F9,
-	[RGFW_OS_BASED_VALUE(76, 0x79, 110, DOM_VK_F10)] = RGFW_F10,
-	[RGFW_OS_BASED_VALUE(95, 0x7A, 104, DOM_VK_F11)] = RGFW_F11,
-	[RGFW_OS_BASED_VALUE(96, 0x7B, 112, DOM_VK_F12)] = RGFW_F12,
-	[RGFW_OS_BASED_VALUE(111, 0x26, 126, DOM_VK_UP)] = RGFW_Up,
-	[RGFW_OS_BASED_VALUE(116, 0x28, 125, DOM_VK_DOWN)] = RGFW_Down,
-	[RGFW_OS_BASED_VALUE(113, 0x25, 123, DOM_VK_LEFT)] = RGFW_Left,
-	[RGFW_OS_BASED_VALUE(114, 0x27, 124, DOM_VK_RIGHT)] = RGFW_Right,
-	[RGFW_OS_BASED_VALUE(118, 0x2D, 115, DOM_VK_INSERT)] = RGFW_Insert,
-	[RGFW_OS_BASED_VALUE(115, 0x23, 120, DOM_VK_END)] = RGFW_End,
-	[RGFW_OS_BASED_VALUE(112, 336, 117, DOM_VK_PAGE_UP)] = RGFW_PageUp,
-	[RGFW_OS_BASED_VALUE(117, 325, 122, DOM_VK_PAGE_DOWN)] = RGFW_PageDown,
-	[RGFW_OS_BASED_VALUE(9, 0x1B, 53, DOM_VK_ESCAPE)] = RGFW_Escape,
-	[RGFW_OS_BASED_VALUE(110, 0x24, 116, DOM_VK_HOME)] = RGFW_Home,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(67, 0x70, 127, DOM_VK_F1)] = RGFW_F1                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(68, 0x71, 121, DOM_VK_F2)] = RGFW_F2                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(69, 0x72, 100, DOM_VK_F3)] = RGFW_F3                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(70, 0x73, 119, DOM_VK_F4)] = RGFW_F4                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(71, 0x74, 97, DOM_VK_F5)] = RGFW_F5              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(72, 0x75, 98, DOM_VK_F6)] = RGFW_F6              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(73, 0x76, 99, DOM_VK_F7)] = RGFW_F7              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(74, 0x77, 101, DOM_VK_F8)] = RGFW_F8                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(75, 0x78, 102, DOM_VK_F9)] = RGFW_F9                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(76, 0x79, 110, DOM_VK_F10)] = RGFW_F10               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(95, 0x7A, 104, DOM_VK_F11)] = RGFW_F11               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(96, 0x7B, 112, DOM_VK_F12)] = RGFW_F12               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(111, 0x26, 126, DOM_VK_UP)] = RGFW_Up                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(116, 0x28, 125, DOM_VK_DOWN)] = RGFW_Down                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(113, 0x25, 123, DOM_VK_LEFT)] = RGFW_Left                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(114, 0x27, 124, DOM_VK_RIGHT)] = RGFW_Right              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(118, 0x2D, 115, DOM_VK_INSERT)] = RGFW_Insert                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(115, 0x23, 120, DOM_VK_END)] = RGFW_End                  		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(112, 336, 117, DOM_VK_PAGE_UP)] = RGFW_PageUp                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(117, 325, 122, DOM_VK_PAGE_DOWN)] = RGFW_PageDown            RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(9, 0x1B, 53, DOM_VK_ESCAPE)] = RGFW_Escape                   		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(110, 0x24, 116, DOM_VK_HOME)] = RGFW_Home                    		RGFW_NEXT
+#ifndef __cplusplus
 };
+#else 
+}
+#endif
+
+#undef RGFW_NEXT
+#undef RGFW_MAP
 
 typedef struct {
 	b8 current  : 1;
@@ -1281,6 +1307,12 @@ RGFW_keyState RGFW_keyboard[final_key] = { {0, 0} };
 RGFWDEF u32 RGFW_apiKeyCodeToRGFW(u32 keycode);
 
 u32 RGFW_apiKeyCodeToRGFW(u32 keycode) {
+	#ifdef __cplusplus
+	if (RGFW_OS_BASED_VALUE(49, 192, 50, DOM_VK_BACK_QUOTE) != RGFW_Backtick) {
+		RGFW_init_keys();
+	}
+	#endif
+
 	/* make sure the key isn't out of bounds */
 	if (keycode > sizeof(RGFW_keycodes) / sizeof(u8))
 		return 0;
@@ -1477,7 +1509,7 @@ RGFW_window* RGFW_window_basic_init(RGFW_rect rect, u16 args) {
 	assert(win->src.display != NULL);
 
 	Screen* scrn = DefaultScreenOfDisplay((Display*)win->src.display);
-	RGFW_area screenR = RGFW_AREA(scrn->width, scrn->height);
+	RGFW_area screenR = RGFW_AREA((u32)scrn->width, (u32)scrn->height);
 	#endif
 	
 	/* rect based the requested args */
@@ -1515,7 +1547,7 @@ RGFW_window* RGFW_root = NULL;
 
 void RGFW_clipboardFree(char* str) { RGFW_FREE(str); }
 
-RGFW_keyState RGFW_mouseButtons[5] = { 0 };
+RGFW_keyState RGFW_mouseButtons[5] = { 0, 0, 0, 0, 0, 0 };
 
 b8 RGFW_isMousePressed(RGFW_window* win, u8 button) {
 	assert(win != NULL);
@@ -2369,7 +2401,7 @@ Start of Linux / Unix defines
 		// with your application - robrohan 
 		XClassHint *hint = XAllocClassHint();
 		assert(hint != NULL);
-		hint->res_class = "RGFW";
+		hint->res_class = (char*)"RGFW";
 		hint->res_name = (char*)name; // just use the window name as the app name
 		XSetClassHint((Display*) win->src.display, win->src.window, hint);
 		XFree(hint);
@@ -2669,7 +2701,7 @@ Start of Linux / Unix defines
 
 		switch (E.type) {
 		case KeyPress:
-		case KeyRelease:
+		case KeyRelease: {
 			win->event.repeat = RGFW_FALSE;
 			/* check if it's a real key release */
 			if (E.type == KeyRelease && XEventsQueued((Display*) win->src.display, QueuedAfterReading)) { /* get next event if there is one*/
@@ -2681,10 +2713,10 @@ Start of Linux / Unix defines
 			}
 
 			/* set event key data */
-			KeySym sym = XkbKeycodeToKeysym((Display*) win->src.display, E.xkey.keycode, 0, E.xkey.state & ShiftMask ? 1 : 0);
+			KeySym sym = (KeySym)XkbKeycodeToKeysym((Display*) win->src.display, E.xkey.keycode, 0, E.xkey.state & ShiftMask ? 1 : 0);
 			win->event.keyCode = RGFW_apiKeyCodeToRGFW(E.xkey.keycode);
 			
-			char* str = XKeysymToString(sym);
+			char* str = (char*)XKeysymToString(sym);
 			if (str != NULL)
 				strncpy(win->event.keyName, str, 16);
 
@@ -2702,7 +2734,7 @@ Start of Linux / Unix defines
 			RGFW_keyboard[win->event.keyCode].current = (E.type == KeyPress);
 			RGFW_keyCallback(win, win->event.keyCode, win->event.keyName, win->event.lockState, (E.type == KeyPress));
 			break;
-
+		}
 		case ButtonPress:
 		case ButtonRelease:
 			win->event.type = E.type; // the events match 
@@ -2955,7 +2987,7 @@ Start of Linux / Unix defines
 
 			RGFW_dndInitCallback(win, win->event.point);
 			break;
-		case SelectionNotify:
+		case SelectionNotify: {
 			/* this is only for checking for xdnd drops */
 			if (E.xselection.property != XdndSelection || !(win->_winArgs | RGFW_ALLOW_DND))
 				break;
@@ -2978,7 +3010,7 @@ Start of Linux / Unix defines
 			Copyright (c) 2006-2019 Camilla Löwy
 			*/
 
-			const char* prefix = "file://";
+			const char* prefix = (const char*)"file://";
 
 			char* line;
 
@@ -3045,7 +3077,7 @@ Start of Linux / Unix defines
 
 			RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
 			break;
-
+		}
 		case FocusIn:
 			win->event.inFocus = 1;
 			win->event.type = RGFW_focusIn;
@@ -3409,27 +3441,25 @@ Start of Linux / Unix defines
 			ATOM_PAIR = XInternAtom((Display*) RGFW_root->src.display, "ATOM_PAIR", False);
 			CLIPBOARD_MANAGER = XInternAtom((Display*) RGFW_root->src.display, "CLIPBOARD_MANAGER", False);
 		}
-
+		
 		XSetSelectionOwner((Display*) RGFW_root->src.display, CLIPBOARD, (Window) RGFW_root->src.window, CurrentTime);
 
 		XConvertSelection((Display*) RGFW_root->src.display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, (Window) RGFW_root->src.window, CurrentTime);
-		
 		for (;;) {
 			XEvent event;
 
 			XNextEvent((Display*) RGFW_root->src.display, &event);
-			if (event.type != SelectionRequest)
-				return;
+			if (event.type != SelectionRequest) {
+				break;
+			}
 
 			const XSelectionRequestEvent* request = &event.xselectionrequest;
 
 			XEvent reply = { SelectionNotify };
+			reply.xselection.property = 0;
 
-			char* selectionString = NULL;
 			const Atom formats[] = { UTF8_STRING, XA_STRING };
 			const i32 formatCount = sizeof(formats) / sizeof(formats[0]);
-
-			selectionString = (char*) text;
 		
 			if (request->target == TARGETS) {
 				const Atom targets[] = { TARGETS,
@@ -3450,11 +3480,11 @@ Start of Linux / Unix defines
 			}
 
 			if (request->target == MULTIPLE) {
-				Atom* targets;
+				Atom* targets = NULL;
 
-				Atom actualType;
-				i32 actualFormat;
-				unsigned long count, bytesAfter;
+				Atom actualType = 0;
+				int actualFormat = 0;
+				unsigned long count = 0, bytesAfter = 0;
 
 				XGetWindowProperty((Display*) RGFW_root->src.display, request->requestor, request->property, 0, LONG_MAX, False, ATOM_PAIR, &actualType, &actualFormat, &count, &bytesAfter, (u8**) &targets);
 
@@ -3475,10 +3505,12 @@ Start of Linux / Unix defines
 							targets[i],
 							8,
 							PropModeReplace,
-							(u8*) selectionString,
+							(u8*) text,
 							textLen);
-					} else
+						XFlush(RGFW_root->src.display);
+					} else {
 						targets[i + 1] = None;
+					}
 				}
 
 				XChangeProperty((Display*) RGFW_root->src.display,
@@ -3490,6 +3522,7 @@ Start of Linux / Unix defines
 					(u8*) targets,
 					count);
 
+				XFlush(RGFW_root->src.display);
 				XFree(targets);
 
 				reply.xselection.property = request->property;
@@ -3502,6 +3535,7 @@ Start of Linux / Unix defines
 			reply.xselection.time = request->time;
 
 			XSendEvent((Display*) RGFW_root->src.display, request->requestor, False, 0, &reply);
+			XFlush(RGFW_root->src.display);
 		}
 	}
 
@@ -3892,7 +3926,7 @@ Start of Linux / Unix defines
 	}
 
 	u64 RGFW_getTimeNS(void) { 
-		struct timespec ts = { 0 };
+		struct timespec ts = { 0, 0 };
 		clock_gettime(1, &ts);
 		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
 
@@ -3900,7 +3934,7 @@ Start of Linux / Unix defines
 	}
 
 	u64 RGFW_getTime(void) {
-		struct timespec ts = { 0 };
+		struct timespec ts = { 0, 0 };
 		clock_gettime(1, &ts);
 		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
 
@@ -7824,5 +7858,5 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win) return 
 #endif /*RGFW_IMPLEMENTATION*/
 
 #ifdef __cplusplus
-}
+//}
 #endif
