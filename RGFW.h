@@ -4116,9 +4116,7 @@ static HMODULE wglinstance = NULL;
 	#define GetDpiForMonitor GetDpiForMonitorSRC
 	#endif
 
-	extern "C" {
-		__declspec(dllimport) u32 __stdcall timeBeginPeriod(u32 uPeriod);
-	}
+	__declspec(dllimport) u32 __stdcall timeBeginPeriod(u32 uPeriod);
 	
 	#ifndef RGFW_NO_XINPUT
 	void RGFW_loadXInput(void) {
