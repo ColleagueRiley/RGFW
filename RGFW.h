@@ -1547,7 +1547,7 @@ RGFW_window* RGFW_root = NULL;
 
 void RGFW_clipboardFree(char* str) { RGFW_FREE(str); }
 
-RGFW_keyState RGFW_mouseButtons[5] = { 0, 0, 0, 0, 0, 0 };
+RGFW_keyState RGFW_mouseButtons[5] = { {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0} };
 
 b8 RGFW_isMousePressed(RGFW_window* win, u8 button) {
 	assert(win != NULL);
