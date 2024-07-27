@@ -7100,19 +7100,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 */
 
 /*
-	x ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// ASM defines
+	WEBASM defines
 */
 
 #ifdef RGFW_WEBASM
-
-
-#define RGFW_jsButtonPressed 7 /*!< a joystick button was pressed */
-#define RGFW_jsButtonReleased 8 /*!< a joystick button was released */
-#define RGFW_jsAxisMove 9 /*!< an axis of a joystick was moved*/
-
-#define RGFW_mouseEnter 14 /* mouse entered the window */
-#define RGFW_mouseLeave 15 /* mouse left the window */
-
 RGFW_Event RGFW_events[20];
 size_t RGFW_eventLen = 0;
 
