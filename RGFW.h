@@ -6523,7 +6523,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				win->event.type = RGFW_keyPressed;
 				char* str = (char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("characters")));
 				strncpy(win->event.keyName, str, 16);
-				win->event.repeat = RGFW_isPressed(win, swin->event.keyCode);
+				win->event.repeat = RGFW_isPressed(win, win->event.keyCode);
 				RGFW_keyboard[win->event.keyCode].current = 1;
 
 				RGFW_keyCallback(win, win->event.keyCode, win->event.keyName, win->event.lockState, 1);
