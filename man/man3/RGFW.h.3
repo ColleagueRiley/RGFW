@@ -144,13 +144,13 @@ RGFW.h
 .RI "#define \fBRGFW_NUMLOCK\fP   (1L << 2)"
 .br
 .ti -1c
-.RI "#define \fBRGFW_POINT\fP(x,  y)   (\fBRGFW_point\fP){x, y}"
+.RI "#define \fBRGFW_POINT\fP(x,  y)   (\fBRGFW_point\fP){(\fBi32\fP)(x), (\fBi32\fP)(y)}"
 .br
 .ti -1c
-.RI "#define \fBRGFW_RECT\fP(x,  y,  w,  h)   (\fBRGFW_rect\fP){x, y, w, h}"
+.RI "#define \fBRGFW_RECT\fP(x,  y,  w,  h)   (\fBRGFW_rect\fP){(\fBi32\fP)(x), (\fBi32\fP)(y), (\fBi32\fP)(w), (\fBi32\fP)(h)}"
 .br
 .ti -1c
-.RI "#define \fBRGFW_AREA\fP(w,  h)   (\fBRGFW_area\fP){w, h}"
+.RI "#define \fBRGFW_AREA\fP(w,  h)   (\fBRGFW_area\fP){(\fBu32\fP)(w), (\fBu32\fP)(h)}"
 .br
 .in -1c
 .SS "Typedefs"
@@ -547,7 +547,7 @@ RGFW.h
 the window supports drag and drop 
 .SS "#define RGFW_ALPHA   128 /* alpha value for \fBRGFW_TRANSPARENT_WINDOW\fP (WINAPI ONLY, macOS + linux don't need this) */"
 
-.SS "#define RGFW_AREA(w, h)   (\fBRGFW_area\fP){w, h}"
+.SS "#define RGFW_AREA(w, h)   (\fBRGFW_area\fP){(\fBu32\fP)(w), (\fBu32\fP)(h)}"
 
 .SS "#define RGFW_CALLOC   calloc"
 
@@ -601,9 +601,9 @@ the window cannot be resized by the user
 
 .SS "#define RGFW_OPENGL_SOFTWARE   (1L<<11) /*! use OpenGL software rendering */"
 
-.SS "#define RGFW_POINT(x, y)   (\fBRGFW_point\fP){x, y}"
+.SS "#define RGFW_POINT(x, y)   (\fBRGFW_point\fP){(\fBi32\fP)(x), (\fBi32\fP)(y)}"
 
-.SS "#define RGFW_RECT(x, y, w, h)   (\fBRGFW_rect\fP){x, y, w, h}"
+.SS "#define RGFW_RECT(x, y, w, h)   (\fBRGFW_rect\fP){(\fBi32\fP)(x), (\fBi32\fP)(y), (\fBi32\fP)(w), (\fBi32\fP)(h)}"
 
 .SS "#define RGFW_SCALE_TO_MONITOR   (1L << 13) /* scale the window to the screen */"
 

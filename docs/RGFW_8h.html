@@ -172,11 +172,11 @@ Macros</h2></td></tr>
 <tr class="separator:a16e5dc55283934fa4791e4f2e0cd33c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9af87832b020cb4e9c25b1e3895750a0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a9af87832b020cb4e9c25b1e3895750a0">RGFW_NUMLOCK</a>&#160;&#160;&#160;(1L &lt;&lt; 2)</td></tr>
 <tr class="separator:a9af87832b020cb4e9c25b1e3895750a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4e893e75a8f37ccc1fe0dc388339bcdf"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a4e893e75a8f37ccc1fe0dc388339bcdf">RGFW_POINT</a>(x,  y)&#160;&#160;&#160;(<a class="el" href="structRGFW__point.html">RGFW_point</a>){x, y}</td></tr>
+<tr class="memitem:a4e893e75a8f37ccc1fe0dc388339bcdf"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a4e893e75a8f37ccc1fe0dc388339bcdf">RGFW_POINT</a>(x,  y)&#160;&#160;&#160;(<a class="el" href="structRGFW__point.html">RGFW_point</a>){(<a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>)(x), (<a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>)(y)}</td></tr>
 <tr class="separator:a4e893e75a8f37ccc1fe0dc388339bcdf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2de5caedcb0adb5dc80d9f23758e0599"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a2de5caedcb0adb5dc80d9f23758e0599">RGFW_RECT</a>(x,  y,  w,  h)&#160;&#160;&#160;(<a class="el" href="structRGFW__rect.html">RGFW_rect</a>){x, y, w, h}</td></tr>
+<tr class="memitem:a2de5caedcb0adb5dc80d9f23758e0599"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a2de5caedcb0adb5dc80d9f23758e0599">RGFW_RECT</a>(x,  y,  w,  h)&#160;&#160;&#160;(<a class="el" href="structRGFW__rect.html">RGFW_rect</a>){(<a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>)(x), (<a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>)(y), (<a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>)(w), (<a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>)(h)}</td></tr>
 <tr class="separator:a2de5caedcb0adb5dc80d9f23758e0599"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5edc5249799c8eb95f2a45db37f8b36d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a5edc5249799c8eb95f2a45db37f8b36d">RGFW_AREA</a>(w,  h)&#160;&#160;&#160;(<a class="el" href="structRGFW__area.html">RGFW_area</a>){w, h}</td></tr>
+<tr class="memitem:a5edc5249799c8eb95f2a45db37f8b36d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a5edc5249799c8eb95f2a45db37f8b36d">RGFW_AREA</a>(w,  h)&#160;&#160;&#160;(<a class="el" href="structRGFW__area.html">RGFW_area</a>){(<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>)(w), (<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>)(h)}</td></tr>
 <tr class="separator:a5edc5249799c8eb95f2a45db37f8b36d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
@@ -502,7 +502,7 @@ Functions</h2></td></tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td>&#160;&#160;&#160;(<a class="el" href="structRGFW__area.html">RGFW_area</a>){w, h}</td>
+          <td></td><td>&#160;&#160;&#160;(<a class="el" href="structRGFW__area.html">RGFW_area</a>){(<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>)(w), (<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>)(h)}</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -915,7 +915,7 @@ Functions</h2></td></tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td>&#160;&#160;&#160;(<a class="el" href="structRGFW__point.html">RGFW_point</a>){x, y}</td>
+          <td></td><td>&#160;&#160;&#160;(<a class="el" href="structRGFW__point.html">RGFW_point</a>){(<a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>)(x), (<a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>)(y)}</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -955,7 +955,7 @@ Functions</h2></td></tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td>&#160;&#160;&#160;(<a class="el" href="structRGFW__rect.html">RGFW_rect</a>){x, y, w, h}</td>
+          <td></td><td>&#160;&#160;&#160;(<a class="el" href="structRGFW__rect.html">RGFW_rect</a>){(<a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>)(x), (<a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>)(y), (<a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>)(w), (<a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>)(h)}</td>
         </tr>
       </table>
 </div><div class="memdoc">
