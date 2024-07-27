@@ -13,7 +13,7 @@ STATIC =
 WARNINGS = -Wall -Werror -Wstrict-prototypes -Wextra
 OS_DIR = \\
 
-ifneq (,$(filter $(CC),winegcc x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc))
+ifneq (,$(filter $(CC),winegcc x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-mingw32-g++))
 	STATIC = --static
     detected_OS := WindowsCross
 	LIB_EXT = .dll
@@ -77,7 +77,8 @@ ifneq (,$(filter $(CC),emcc))
 	LINK_GL1 = -s LEGACY_GL_EMULATION -D LEGACY_GL_EMULATION -sGL_UNSAFE_OPTS=0
 	LINK_GL3 = -s FULL_ES3 
 	LINK_GL2 = -s FULL_ES2	
-	LIBS = -s WASM=1 -s ASYNCIFY -s USE_WEBGL2 -s GL_SUPPORT_EXPLICIT_SWAP_CONTROL=1 -sEXPORTED_RUNTIME_METHODS=stringToNewUTF8
+	EXPORTED_JS = -s EXPORTED_RUNTIME_METHODS="['stringToNewUTF8']"
+	LIBS = -s WASM=1 -s ASYNCIFY -s USE_WEBGL2 -s GL_SUPPORT_EXPLICIT_SWAP_CONTROL=1 $(EXPORTED_JS)
 	EXT = .js
 endif
 

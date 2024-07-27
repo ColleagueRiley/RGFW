@@ -147,7 +147,7 @@
 #endif
 
 #ifdef __cplusplus
-	//extern "C" {
+	extern "C" {
 #endif
 
 	/* makes sure the header file part is only defined once by default */
@@ -2203,7 +2203,7 @@ Start of Linux / Unix defines
 		if (RGFW_bufferSize.w == 0 && RGFW_bufferSize.h == 0)
 			RGFW_bufferSize = RGFW_getScreenSize();
 		
-		win->buffer = RGFW_MALLOC(RGFW_bufferSize.w * RGFW_bufferSize.h * 4);
+		win->buffer = (u8*)RGFW_MALLOC(RGFW_bufferSize.w * RGFW_bufferSize.h * 4);
 
 		#ifdef RGFW_OSMESA
 				win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
@@ -4116,8 +4116,10 @@ static HMODULE wglinstance = NULL;
 	#define GetDpiForMonitor GetDpiForMonitorSRC
 	#endif
 
-	__declspec(dllimport) u32 __stdcall timeBeginPeriod(u32 uPeriod);
-
+	extern "C" {
+		__declspec(dllimport) u32 __stdcall timeBeginPeriod(u32 uPeriod);
+	}
+	
 	#ifndef RGFW_NO_XINPUT
 	void RGFW_loadXInput(void) {
 		u32 i;
@@ -7879,5 +7881,5 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win) return 
 #endif /*RGFW_IMPLEMENTATION*/
 
 #ifdef __cplusplus
-//}
+}
 #endif
