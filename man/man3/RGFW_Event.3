@@ -1,4 +1,4 @@
-.TH "RGFW_Event" 3 "Thu Jul 25 2024" "RGFW" \" -*- nroff -*-
+.TH "RGFW_Event" 3 "Sat Jul 27 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -37,6 +37,9 @@ RGFW_Event
 .br
 .ti -1c
 .RI "\fBu8\fP \fBkeyCode\fP"
+.br
+.ti -1c
+.RI "\fBb8\fP \fBrepeat\fP"
 .br
 .ti -1c
 .RI "\fBb8\fP \fBinFocus\fP"
@@ -93,6 +96,8 @@ key name of event
 
 .SS "\fBRGFW_point\fP RGFW_Event::point"
 mouse x, y of event (or drop point) 
+.SS "\fBb8\fP RGFW_Event::repeat"
+key press event repeated (the key is being held) 
 .SS "double RGFW_Event::scroll"
 the raw mouse scroll value 
 .SS "\fBu32\fP RGFW_Event::type"

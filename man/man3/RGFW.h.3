@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Thu Jul 25 2024" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Sat Jul 27 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -115,60 +115,6 @@ RGFW.h
 .br
 .ti -1c
 .RI "#define \fBRGFW_NO_CPU_RENDER\fP   (1L<<15) /* don't render (using the CPU based buffer rendering)*/"
-.br
-.ti -1c
-.RI "#define \fBRGFW_keyPressed\fP   2 /* a key has been pressed */"
-.br
-.ti -1c
-.RI "#define \fBRGFW_keyReleased\fP   3"
-.br
-.ti -1c
-.RI "#define \fBRGFW_mouseButtonPressed\fP   4"
-.br
-.ti -1c
-.RI "#define \fBRGFW_mouseButtonReleased\fP   5"
-.br
-.ti -1c
-.RI "#define \fBRGFW_mousePosChanged\fP   6"
-.br
-.ti -1c
-.RI "#define \fBRGFW_jsButtonPressed\fP   7"
-.br
-.ti -1c
-.RI "#define \fBRGFW_jsButtonReleased\fP   8"
-.br
-.ti -1c
-.RI "#define \fBRGFW_jsAxisMove\fP   9"
-.br
-.ti -1c
-.RI "#define \fBRGFW_windowMoved\fP   10"
-.br
-.ti -1c
-.RI "#define \fBRGFW_windowResized\fP   11"
-.br
-.ti -1c
-.RI "#define \fBRGFW_focusIn\fP   12"
-.br
-.ti -1c
-.RI "#define \fBRGFW_focusOut\fP   13"
-.br
-.ti -1c
-.RI "#define \fBRGFW_mouseEnter\fP   14 /* mouse entered the window */"
-.br
-.ti -1c
-.RI "#define \fBRGFW_mouseLeave\fP   15 /* mouse left the window */"
-.br
-.ti -1c
-.RI "#define \fBRGFW_windowRefresh\fP   16 /* The window content needs to be refreshed */"
-.br
-.ti -1c
-.RI "#define \fBRGFW_quit\fP   33"
-.br
-.ti -1c
-.RI "#define \fBRGFW_dnd\fP   34"
-.br
-.ti -1c
-.RI "#define \fBRGFW_dnd_init\fP   35"
 .br
 .ti -1c
 .RI "#define \fBRGFW_mouseLeft\fP   1"
@@ -301,6 +247,9 @@ RGFW.h
 .SS "Functions"
 
 .in +1c
+.ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_event_types)"
+.br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_joystick_codes)"
 .br
@@ -473,43 +422,43 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_writeClipboard\fP (const char *text, \fBu32\fP textLen)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setWindowMoveCallback\fP (\fBRGFW_windowmovefunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_windowmovefunc\fP \fBRGFW_setWindowMoveCallback\fP (\fBRGFW_windowmovefunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setWindowResizeCallback\fP (\fBRGFW_windowresizefunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_windowresizefunc\fP \fBRGFW_setWindowResizeCallback\fP (\fBRGFW_windowresizefunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setWindowQuitCallback\fP (\fBRGFW_windowquitfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_windowquitfunc\fP \fBRGFW_setWindowQuitCallback\fP (\fBRGFW_windowquitfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setMousePosCallback\fP (\fBRGFW_mouseposfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_mouseposfunc\fP \fBRGFW_setMousePosCallback\fP (\fBRGFW_mouseposfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setWindowRefreshCallback\fP (\fBRGFW_windowrefreshfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_windowrefreshfunc\fP \fBRGFW_setWindowRefreshCallback\fP (\fBRGFW_windowrefreshfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setFocusCallback\fP (\fBRGFW_focusfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_focusfunc\fP \fBRGFW_setFocusCallback\fP (\fBRGFW_focusfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setMouseNotifyCallBack\fP (\fBRGFW_mouseNotifyfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_mouseNotifyfunc\fP \fBRGFW_setMouseNotifyCallBack\fP (\fBRGFW_mouseNotifyfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setDndCallback\fP (\fBRGFW_dndfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_dndfunc\fP \fBRGFW_setDndCallback\fP (\fBRGFW_dndfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setDndInitCallback\fP (\fBRGFW_dndInitfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_dndInitfunc\fP \fBRGFW_setDndInitCallback\fP (\fBRGFW_dndInitfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setKeyCallback\fP (\fBRGFW_keyfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_keyfunc\fP \fBRGFW_setKeyCallback\fP (\fBRGFW_keyfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setMouseButtonCallback\fP (\fBRGFW_mousebuttonfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_mousebuttonfunc\fP \fBRGFW_setMouseButtonCallback\fP (\fBRGFW_mousebuttonfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setjsButtonCallback\fP (\fBRGFW_jsButtonfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_jsButtonfunc\fP \fBRGFW_setjsButtonCallback\fP (\fBRGFW_jsButtonfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setjsAxisCallback\fP (\fBRGFW_jsAxisfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_jsAxisfunc\fP \fBRGFW_setjsAxisCallback\fP (\fBRGFW_jsAxisfunc\fP func)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_thread\fP \fBRGFW_createThread\fP (\fBRGFW_threadFunc_ptr\fP ptr, void *args)"
@@ -608,18 +557,10 @@ the window supports drag and drop
 
 .SS "#define RGFW_COCOA_MOVE_TO_RESOURCE_DIR   (1L << 12) /* (cocoa only), move to resource folder */"
 
-.SS "#define RGFW_dnd   34"
-a file has been dropped into the window 
-.SS "#define RGFW_dnd_init   35"
-the start of a dnd event, when the place where the file drop is known 
 .SS "#define RGFW_ENUM(type, name)   type name; enum"
 
 .SS "#define RGFW_FALSE   0"
 
-.SS "#define RGFW_focusIn   12"
-window is in focus now 
-.SS "#define RGFW_focusOut   13"
-window is out of focus now 
 .SS "#define RGFW_FREE   free"
 
 .SS "#define RGFW_FULLSCREEN   (1L<<8) /* the window is fullscreen by default or not */"
@@ -628,42 +569,16 @@ window is out of focus now
 
 .SS "#define RGFW_HIDE_MOUSE   (1L<<6) /*! the window should hide the mouse or not (can be toggled later on) using `RGFW_window_mouseShow*/"
 
-.SS "#define RGFW_jsAxisMove   9"
-an axis of a joystick was moved 
-.SS "#define RGFW_jsButtonPressed   7"
-mouse event note the x and y of the mouse can be found in the vector, \fBRGFW_Event\&.point\fP
-.PP
-\fBRGFW_Event\&.button\fP holds which mouse button was pressed a joystick button was pressed 
-.SS "#define RGFW_jsButtonReleased   8"
-a joystick button was released 
-.SS "#define RGFW_keyPressed   2 /* a key has been pressed */"
-event codes 
-.SS "#define RGFW_keyReleased   3"
-a key has been released 
 .SS "#define RGFW_MALLOC   malloc"
 
 .SS "#define RGFW_MAX_DROPS   260 /* max items you can drop at once */"
 
 .SS "#define RGFW_MAX_PATH   260 /* max length of a path (for dnd) */"
 
-.SS "#define RGFW_mouseButtonPressed   4"
-key event note the code of the key pressed is stored in \fBRGFW_Event\&.keyCode\fP !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!!
-.PP
-while a string version is stored in RGFW_Event\&.KeyString
-.PP
-\fBRGFW_Event\&.lockState\fP holds the current lockState this means if CapsLock, NumLock are active or not a mouse button has been pressed (left,middle,right) 
-.SS "#define RGFW_mouseButtonReleased   5"
-a mouse button has been released (left,middle,right) 
-.SS "#define RGFW_mouseEnter   14 /* mouse entered the window */"
-
-.SS "#define RGFW_mouseLeave   15 /* mouse left the window */"
-
 .SS "#define RGFW_mouseLeft   1"
 mouse button codes (\fBRGFW_Event\&.button\fP) left mouse button is pressed 
 .SS "#define RGFW_mouseMiddle   2"
 mouse-wheel-button is pressed 
-.SS "#define RGFW_mousePosChanged   6"
-the position of the mouse has been changed 
 .SS "#define RGFW_mouseRight   3"
 right mouse button is pressed 
 .SS "#define RGFW_mouseScrollDown   5"
@@ -688,8 +603,6 @@ the window cannot be resized by the user
 
 .SS "#define RGFW_POINT(x, y)   (\fBRGFW_point\fP){x, y}"
 
-.SS "#define RGFW_quit   33"
-the user clicked the quit button 
 .SS "#define RGFW_RECT(x, y, w, h)   (\fBRGFW_rect\fP){x, y, w, h}"
 
 .SS "#define RGFW_SCALE_TO_MONITOR   (1L << 13) /* scale the window to the screen */"
@@ -700,14 +613,6 @@ Optional arguments for making a windows the window is transparent (only properly
 
 .SS "#define RGFW_UNUSED(x)   (void)(x);"
 
-.SS "#define RGFW_windowMoved   10"
-joystick event note \fBRGFW_Event\&.joystick\fP holds which joystick was altered, if any \fBRGFW_Event\&.button\fP holds which joystick button was pressed
-.PP
-\fBRGFW_Event\&.axis\fP holds the data of all the axis RGFW_Event\&.axisCount says how many axis there are the window was moved (by the user) 
-.SS "#define RGFW_windowRefresh   16 /* The window content needs to be refreshed */"
-
-.SS "#define RGFW_windowResized   11"
-the window was resized (by the user), [on webASM this means the browser was resized] 
 .SS "#define RGFWDEF   \fBinline\fP"
 
 .SH "Typedef Documentation"
@@ -744,6 +649,50 @@ source data for the window (used by the APIs)
 
 .SH "Function Documentation"
 .PP 
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_event_types)"
+event codes
+.PP
+< a key has been released
+.PP
+key event note the code of the key pressed is stored in \fBRGFW_Event\&.keyCode\fP !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!!
+.PP
+while a string version is stored in RGFW_Event\&.KeyString
+.PP
+\fBRGFW_Event\&.lockState\fP holds the current lockState this means if CapsLock, NumLock are active or not
+.PP
+< a mouse button has been pressed (left,middle,right)
+.PP
+< a mouse button has been released (left,middle,right)
+.PP
+< the position of the mouse has been changed
+.PP
+mouse event note the x and y of the mouse can be found in the vector, \fBRGFW_Event\&.point\fP
+.PP
+\fBRGFW_Event\&.button\fP holds which mouse button was pressed
+.PP
+< a joystick button was pressed
+.PP
+< a joystick button was released
+.PP
+< an axis of a joystick was moved
+.PP
+joystick event note \fBRGFW_Event\&.joystick\fP holds which joystick was altered, if any \fBRGFW_Event\&.button\fP holds which joystick button was pressed
+.PP
+\fBRGFW_Event\&.axis\fP holds the data of all the axis RGFW_Event\&.axisCount says how many axis there are
+.PP
+< the window was moved (by the user)
+.PP
+< the window was resized (by the user), [on webASM this means the browser was resized]
+.PP
+< window is in focus now
+.PP
+< window is out of focus now
+.PP
+< the user clicked the quit button
+.PP
+< a file has been dropped into the window
+.PP
+< the start of a dnd event, when the place where the file drop is known
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_joystick_codes)"
 joystick button codes (based on xbox/playstation), you may need to change these values per controller < or PS X button
 .PP

@@ -300,64 +300,63 @@
 #define RGFW_NO_GPU_RENDER (1L<<14) /* don't render (using the GPU based API)*/
 #define RGFW_NO_CPU_RENDER (1L<<15) /* don't render (using the CPU based buffer rendering)*/
 
-/*! event codes */
-#define RGFW_keyPressed 2 /* a key has been pressed */
-#define RGFW_keyReleased 3 /*!< a key has been released*/
-/*! key event note
-	the code of the key pressed is stored in
-	RGFW_Event.keyCode
-	!!Keycodes defined at the bottom of the RGFW_HEADER part of this file!!
+typedef RGFW_ENUM(u8, RGFW_event_types) {
+	/*! event codes */
+ 	RGFW_keyPressed = 1, /* a key has been pressed */
+	RGFW_keyReleased, /*!< a key has been released*/
+	/*! key event note
+		the code of the key pressed is stored in
+		RGFW_Event.keyCode
+		!!Keycodes defined at the bottom of the RGFW_HEADER part of this file!!
 
-	while a string version is stored in
-	RGFW_Event.KeyString
+		while a string version is stored in
+		RGFW_Event.KeyString
 
-	RGFW_Event.lockState holds the current lockState
-	this means if CapsLock, NumLock are active or not
-*/
-#define RGFW_mouseButtonPressed 4 /*!< a mouse button has been pressed (left,middle,right)*/
-#define RGFW_mouseButtonReleased 5 /*!< a mouse button has been released (left,middle,right)*/
-#define RGFW_mousePosChanged 6 /*!< the position of the mouse has been changed*/
-/*! mouse event note
-	the x and y of the mouse can be found in the vector, RGFW_Event.point
+		RGFW_Event.lockState holds the current lockState
+		this means if CapsLock, NumLock are active or not
+	*/
+	RGFW_mouseButtonPressed, /*!< a mouse button has been pressed (left,middle,right)*/
+	RGFW_mouseButtonReleased, /*!< a mouse button has been released (left,middle,right)*/
+	RGFW_mousePosChanged, /*!< the position of the mouse has been changed*/
+	/*! mouse event note
+		the x and y of the mouse can be found in the vector, RGFW_Event.point
 
-	RGFW_Event.button holds which mouse button was pressed
-*/
-#define RGFW_jsButtonPressed 7 /*!< a joystick button was pressed */
-#define RGFW_jsButtonReleased 8 /*!< a joystick button was released */
-#define RGFW_jsAxisMove 9 /*!< an axis of a joystick was moved*/
-/*! joystick event note
-	RGFW_Event.joystick holds which joystick was altered, if any
-	RGFW_Event.button holds which joystick button was pressed
+		RGFW_Event.button holds which mouse button was pressed
+	*/
+	RGFW_jsButtonPressed, /*!< a joystick button was pressed */
+	RGFW_jsButtonReleased, /*!< a joystick button was released */
+	RGFW_jsAxisMove, /*!< an axis of a joystick was moved*/
+	/*! joystick event note
+		RGFW_Event.joystick holds which joystick was altered, if any
+		RGFW_Event.button holds which joystick button was pressed
 
-	RGFW_Event.axis holds the data of all the axis
-	RGFW_Event.axisCount says how many axis there are
-*/
-#define RGFW_windowMoved 10 /*!< the window was moved (by the user) */
-#define RGFW_windowResized 11 /*!< the window was resized (by the user), [on webASM this means the browser was resized] */
+		RGFW_Event.axis holds the data of all the axis
+		RGFW_Event.axisCount says how many axis there are
+	*/
+	RGFW_windowMoved, /*!< the window was moved (by the user) */
+	RGFW_windowResized, /*!< the window was resized (by the user), [on webASM this means the browser was resized] */
+	RGFW_focusIn, /*!< window is in focus now */
+	RGFW_focusOut, /*!< window is out of focus now */
+	RGFW_mouseEnter, /* mouse entered the window */
+	RGFW_mouseLeave, /* mouse left the window */
+	RGFW_windowRefresh, /* The window content needs to be refreshed */
 
-#define RGFW_focusIn 12 /*!< window is in focus now */
-#define RGFW_focusOut 13 /*!< window is out of focus now */
+	/* attribs change event note
+		The event data is sent straight to the window structure
+		with win->r.x, win->r.y, win->r.w and win->r.h
+	*/
+	RGFW_quit, /*!< the user clicked the quit button*/ 
+	RGFW_dnd, /*!< a file has been dropped into the window*/
+	RGFW_dnd_init /*!< the start of a dnd event, when the place where the file drop is known */
+	/* dnd data note
+		The x and y coords of the drop are stored in the vector RGFW_Event.point
 
-#define RGFW_mouseEnter 14 /* mouse entered the window */
-#define RGFW_mouseLeave 15 /* mouse left the window */
+		RGFW_Event.droppedFilesCount holds how many files were dropped
 
-#define RGFW_windowRefresh 16 /* The window content needs to be refreshed */
-
-/* attribs change event note
-	The event data is sent straight to the window structure
-	with win->r.x, win->r.y, win->r.w and win->r.h
-*/
-#define RGFW_quit 33 /*!< the user clicked the quit button*/ 
-#define RGFW_dnd 34 /*!< a file has been dropped into the window*/
-#define RGFW_dnd_init 35 /*!< the start of a dnd event, when the place where the file drop is known */
-/* dnd data note
-	The x and y coords of the drop are stored in the vector RGFW_Event.point
-
-	RGFW_Event.droppedFilesCount holds how many files were dropped
-
-	This is also the size of the array which stores all the dropped file string,
-	RGFW_Event.droppedFiles
-*/
+		This is also the size of the array which stores all the dropped file string,
+		RGFW_Event.droppedFiles
+	*/
+};
 
 /*! mouse button codes (RGFW_Event.button) */
 #define RGFW_mouseLeft  1 /*!< left mouse button is pressed*/
@@ -458,6 +457,7 @@ typedef struct RGFW_Event {
 	u64 frameTime, frameTime2; /*!< this is used for counting the fps */
 	
 	u8 keyCode; /*!< keycode of event 	!!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! */
+	b8 repeat; /*!< key press event repeated (the key is being held) */
 
 	b8 inFocus;  /*!< if the window is in focus or not (this is always true for MacOS windows due to the api being weird) */
 
@@ -811,38 +811,38 @@ typedef void (* RGFW_jsButtonfunc)(RGFW_window* win, u16 joystick, u8 button, b8
 typedef void (* RGFW_jsAxisfunc)(RGFW_window* win, u16 joystick, RGFW_point axis[2], u8 axisesCount);
 
 
-/*!  RGFW_dnd, the window that had the drop, the drop data and the amount files dropped */
+/*!  RGFW_dnd, the window that had the drop, the drop data and the amount files dropped returns previous callback function (if it was set) */
 #ifdef RGFW_ALLOC_DROPFILES
 	typedef void (* RGFW_dndfunc)(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount);
 #else
 	typedef void (* RGFW_dndfunc)(RGFW_window* win, char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount);
 #endif
-/*! set callback for a window move event */
-RGFWDEF void RGFW_setWindowMoveCallback(RGFW_windowmovefunc func);
-/*! set callback for a window resize event */
-RGFWDEF void RGFW_setWindowResizeCallback(RGFW_windowresizefunc func);
-/*! set callback for a window quit event */
-RGFWDEF void RGFW_setWindowQuitCallback(RGFW_windowquitfunc func);
-/*! set callback for a mouse move event */
-RGFWDEF void RGFW_setMousePosCallback(RGFW_mouseposfunc func);
-/*! set callback for a window refresh event */
-RGFWDEF void RGFW_setWindowRefreshCallback(RGFW_windowrefreshfunc func);
-/*! set callback for a window focus change event */
-RGFWDEF void RGFW_setFocusCallback(RGFW_focusfunc func);
-/*! set callback for a mouse notify event */
-RGFWDEF void RGFW_setMouseNotifyCallBack(RGFW_mouseNotifyfunc func);
-/*! set callback for a drop event event */
-RGFWDEF void RGFW_setDndCallback(RGFW_dndfunc func);
-/*! set callback for a start of a drop event */
-RGFWDEF void RGFW_setDndInitCallback(RGFW_dndInitfunc func);
-/*! set callback for a key (press / release ) event */
-RGFWDEF void RGFW_setKeyCallback(RGFW_keyfunc func);
-/*! set callback for a mouse button (press / release ) event */
-RGFWDEF void RGFW_setMouseButtonCallback(RGFW_mousebuttonfunc func);
-/*! set callback for a controller button (press / release ) event */
-RGFWDEF void RGFW_setjsButtonCallback(RGFW_jsButtonfunc func);
-/*! set callback for a joystick axis mov event */
-RGFWDEF void RGFW_setjsAxisCallback(RGFW_jsAxisfunc func);
+/*! set callback for a window move event returns previous callback function (if it was set)  */
+RGFWDEF RGFW_windowmovefunc RGFW_setWindowMoveCallback(RGFW_windowmovefunc func);
+/*! set callback for a window resize event returns previous callback function (if it was set)  */
+RGFWDEF RGFW_windowresizefunc RGFW_setWindowResizeCallback(RGFW_windowresizefunc func);
+/*! set callback for a window quit event returns previous callback function (if it was set)  */
+RGFWDEF RGFW_windowquitfunc RGFW_setWindowQuitCallback(RGFW_windowquitfunc func);
+/*! set callback for a mouse move event returns previous callback function (if it was set)  */
+RGFWDEF RGFW_mouseposfunc RGFW_setMousePosCallback(RGFW_mouseposfunc func);
+/*! set callback for a window refresh event returns previous callback function (if it was set)  */
+RGFWDEF RGFW_windowrefreshfunc RGFW_setWindowRefreshCallback(RGFW_windowrefreshfunc func);
+/*! set callback for a window focus change event returns previous callback function (if it was set)  */
+RGFWDEF RGFW_focusfunc RGFW_setFocusCallback(RGFW_focusfunc func);
+/*! set callback for a mouse notify event returns previous callback function (if it was set)  */
+RGFWDEF RGFW_mouseNotifyfunc RGFW_setMouseNotifyCallBack(RGFW_mouseNotifyfunc func);
+/*! set callback for a drop event event returns previous callback function (if it was set)  */
+RGFWDEF RGFW_dndfunc RGFW_setDndCallback(RGFW_dndfunc func);
+/*! set callback for a start of a drop event returns previous callback function (if it was set)  */
+RGFWDEF RGFW_dndInitfunc RGFW_setDndInitCallback(RGFW_dndInitfunc func);
+/*! set callback for a key (press / release ) event returns previous callback function (if it was set)  */
+RGFWDEF RGFW_keyfunc RGFW_setKeyCallback(RGFW_keyfunc func);
+/*! set callback for a mouse button (press / release ) event returns previous callback function (if it was set)  */
+RGFWDEF RGFW_mousebuttonfunc RGFW_setMouseButtonCallback(RGFW_mousebuttonfunc func);
+/*! set callback for a controller button (press / release ) event returns previous callback function (if it was set)  */
+RGFWDEF RGFW_jsButtonfunc RGFW_setjsButtonCallback(RGFW_jsButtonfunc func);
+/*! set callback for a joystick axis mov event returns previous callback function (if it was set)  */
+RGFWDEF RGFW_jsAxisfunc RGFW_setjsAxisCallback(RGFW_jsAxisfunc func);
 
 /** @} */ 
 
@@ -1362,19 +1362,73 @@ void RGFW_window_checkEvents(RGFW_window* win, i32 waitMS) {
 	#endif
 }
 
-void RGFW_setWindowMoveCallback(RGFW_windowmovefunc func) { RGFW_windowMoveCallback = func; }
-void RGFW_setWindowResizeCallback(RGFW_windowresizefunc func) { RGFW_windowResizeCallback = func; }
-void RGFW_setWindowQuitCallback(RGFW_windowquitfunc func) { RGFW_windowQuitCallback = func; }
-void RGFW_setMousePosCallback(RGFW_mouseposfunc func) { RGFW_mousePosCallback = func; }
-void RGFW_setWindowRefreshCallback(RGFW_windowrefreshfunc func) { RGFW_windowRefreshCallback = func; }
-void RGFW_setFocusCallback(RGFW_focusfunc func) { RGFW_focusCallback = func; }
-void RGFW_setMouseNotifyCallBack(RGFW_mouseNotifyfunc func) { RGFW_mouseNotifyCallBack = func; }
-void RGFW_setDndCallback(RGFW_dndfunc func) { RGFW_dndCallback = func; }
-void RGFW_setDndInitCallback(RGFW_dndInitfunc func) { RGFW_dndInitCallback = func; }
-void RGFW_setKeyCallback(RGFW_keyfunc func) { RGFW_keyCallback = func; }
-void RGFW_setMouseButtonCallback(RGFW_mousebuttonfunc func) { RGFW_mouseButtonCallback = func; }
-void RGFW_setjsButtonCallback(RGFW_jsButtonfunc func) { RGFW_jsButtonCallback = func; }
-void RGFW_setjsAxisCallback(RGFW_jsAxisfunc func) { RGFW_jsAxisCallback = func; }
+RGFW_windowmovefunc RGFW_setWindowMoveCallback(RGFW_windowmovefunc func) { 
+	RGFW_windowmovefunc	prev =  (RGFW_windowMoveCallback == RGFW_windowmovefuncEMPTY) ? NULL : RGFW_windowMoveCallback;
+	RGFW_windowMoveCallback = func;
+	return prev;
+}
+RGFW_windowresizefunc RGFW_setWindowResizeCallback(RGFW_windowresizefunc func) {
+    RGFW_windowresizefunc prev = (RGFW_windowResizeCallback == RGFW_windowresizefuncEMPTY) ? NULL : RGFW_windowResizeCallback;
+    RGFW_windowResizeCallback = func;
+    return prev;
+}
+RGFW_windowquitfunc RGFW_setWindowQuitCallback(RGFW_windowquitfunc func) {
+    RGFW_windowquitfunc prev = (RGFW_windowQuitCallback == RGFW_windowquitfuncEMPTY) ? NULL : RGFW_windowQuitCallback;
+    RGFW_windowQuitCallback = func;
+    return prev;
+}
+
+RGFW_mouseposfunc RGFW_setMousePosCallback(RGFW_mouseposfunc func) {
+    RGFW_mouseposfunc prev = (RGFW_mousePosCallback == RGFW_mouseposfuncEMPTY) ? NULL : RGFW_mousePosCallback;
+    RGFW_mousePosCallback = func;
+    return prev;
+}
+RGFW_windowrefreshfunc RGFW_setWindowRefreshCallback(RGFW_windowrefreshfunc func) {
+    RGFW_windowrefreshfunc prev = (RGFW_windowRefreshCallback == RGFW_windowrefreshfuncEMPTY) ? NULL : RGFW_windowRefreshCallback;
+    RGFW_windowRefreshCallback = func;
+    return prev;
+}
+RGFW_focusfunc RGFW_setFocusCallback(RGFW_focusfunc func) {
+    RGFW_focusfunc prev = (RGFW_focusCallback == RGFW_focusfuncEMPTY) ? NULL : RGFW_focusCallback;
+    RGFW_focusCallback = func;
+    return prev;
+}
+
+RGFW_mouseNotifyfunc RGFW_setMouseNotifyCallBack(RGFW_mouseNotifyfunc func) {
+    RGFW_mouseNotifyfunc prev = (RGFW_mouseNotifyCallBack == RGFW_mouseNotifyfuncEMPTY) ? NULL : RGFW_mouseNotifyCallBack;
+    RGFW_mouseNotifyCallBack = func;
+    return prev;
+}
+RGFW_dndfunc RGFW_setDndCallback(RGFW_dndfunc func) {
+    RGFW_dndfunc prev = (RGFW_dndCallback == RGFW_dndfuncEMPTY) ? NULL : RGFW_dndCallback;
+    RGFW_dndCallback = func;
+    return prev;
+}
+RGFW_dndInitfunc RGFW_setDndInitCallback(RGFW_dndInitfunc func) {
+    RGFW_dndInitfunc prev = (RGFW_dndInitCallback == RGFW_dndInitfuncEMPTY) ? NULL : RGFW_dndInitCallback;
+    RGFW_dndInitCallback = func;
+    return prev;
+}
+RGFW_keyfunc RGFW_setKeyCallback(RGFW_keyfunc func) {
+    RGFW_keyfunc prev = (RGFW_keyCallback == RGFW_keyfuncEMPTY) ? NULL : RGFW_keyCallback;
+    RGFW_keyCallback = func;
+    return prev;
+}
+RGFW_mousebuttonfunc RGFW_setMouseButtonCallback(RGFW_mousebuttonfunc func) {
+    RGFW_mousebuttonfunc prev = (RGFW_mouseButtonCallback == RGFW_mousebuttonfuncEMPTY) ? NULL : RGFW_mouseButtonCallback;
+    RGFW_mouseButtonCallback = func;
+    return prev;
+}
+RGFW_jsButtonfunc RGFW_setjsButtonCallback(RGFW_jsButtonfunc func) {
+    RGFW_jsButtonfunc prev = (RGFW_jsButtonCallback == RGFW_jsButtonfuncEMPTY) ? NULL : RGFW_jsButtonCallback;
+    RGFW_jsButtonCallback = func;
+    return prev;
+}
+RGFW_jsAxisfunc RGFW_setjsAxisCallback(RGFW_jsAxisfunc func) {
+    RGFW_jsAxisfunc prev = (RGFW_jsAxisCallback == RGFW_jsAxisfuncEMPTY) ? NULL : RGFW_jsAxisCallback;
+    RGFW_jsAxisCallback = func;
+    return prev;
+}
 /* 
 no more event call back defines
 */
@@ -2616,13 +2670,14 @@ Start of Linux / Unix defines
 		switch (E.type) {
 		case KeyPress:
 		case KeyRelease:
+			win->event.repeat = RGFW_FALSE;
 			/* check if it's a real key release */
 			if (E.type == KeyRelease && XEventsQueued((Display*) win->src.display, QueuedAfterReading)) { /* get next event if there is one*/
 				XEvent NE;
 				XPeekEvent((Display*) win->src.display, &NE);
 
 				if (E.xkey.time == NE.xkey.time && E.xkey.keycode == NE.xkey.keycode) /* check if the current and next are both the same*/
-					break;
+					win->event.repeat = RGFW_TRUE;
 			}
 
 			/* set event key data */
@@ -2644,7 +2699,6 @@ Start of Linux / Unix defines
 			XGetKeyboardControl((Display*) win->src.display, &keystate);
 
 			RGFW_updateLockState(win, (keystate.led_mask & 1), (keystate.led_mask & 2));
-
 			RGFW_keyboard[win->event.keyCode].current = (E.type == KeyPress);
 			RGFW_keyCallback(win, win->event.keyCode, win->event.keyName, win->event.lockState, (E.type == KeyPress));
 			break;
@@ -2665,6 +2719,10 @@ Start of Linux / Unix defines
 
 			win->event.button = E.xbutton.button;
 			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+
+			if (win->event.repeat == RGFW_FALSE)
+				win->event.repeat = RGFW_isPressed(win, win->event.keyCode);
+
 			RGFW_mouseButtons[win->event.button].current = (E.type == ButtonPress);
 			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, (E.type == ButtonPress));
 			break;
@@ -3328,7 +3386,7 @@ Start of Linux / Unix defines
 			*size = sizeN;
 
 		return s;
-	}
+		}
 
 	/*
 		almost all of this function is sourced from GLFW
@@ -4694,7 +4752,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 						CharLowerBuffA(keyName, 16);
 					}
 				}
-								
+				
 				RGFW_updateLockState(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001));
 
 				strncpy(win->event.keyName, keyName, 16);
@@ -4705,6 +4763,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				}
 
 				win->event.type = RGFW_keyPressed;
+				win->event.repeat = RGFW_isPressed(win, win->event.keyCode);
 				RGFW_keyboard[win->event.keyCode].current = 1;
 				RGFW_keyCallback(win, win->event.keyCode, win->event.keyName, win->event.lockState, 1);
 				break;
@@ -6464,6 +6523,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				win->event.type = RGFW_keyPressed;
 				char* str = (char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("characters")));
 				strncpy(win->event.keyName, str, 16);
+				win->event.repeat = RGFW_isPressed(win, win->event.keyCode);
 				RGFW_keyboard[win->event.keyCode].current = 1;
 
 				RGFW_keyCallback(win, win->event.keyCode, win->event.keyName, win->event.lockState, 1);
@@ -7040,19 +7100,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 */
 
 /*
-	x ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// ASM defines
+	WEBASM defines
 */
 
 #ifdef RGFW_WEBASM
-
-
-#define RGFW_jsButtonPressed 7 /*!< a joystick button was pressed */
-#define RGFW_jsButtonReleased 8 /*!< a joystick button was released */
-#define RGFW_jsAxisMove 9 /*!< an axis of a joystick was moved*/
-
-#define RGFW_mouseEnter 14 /* mouse entered the window */
-#define RGFW_mouseLeave 15 /* mouse left the window */
-
 RGFW_Event RGFW_events[20];
 size_t RGFW_eventLen = 0;
 
