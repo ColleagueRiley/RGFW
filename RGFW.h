@@ -4244,7 +4244,12 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		HINSTANCE inh = GetModuleHandleA(NULL);
 
+		#ifndef __cplusplus
 		WNDCLASSA Class = { 0 }; /*!< Setup the Window class. */
+		#else
+		WNDCLASSA Class = { };
+		#endif
+
 		Class.lpszClassName = name;
 		Class.hInstance = inh;
 		Class.hCursor = LoadCursor(NULL, IDC_ARROW);
@@ -4344,15 +4349,19 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		HDC dummy_dc = GetDC(dummyWin);
 
 		PIXELFORMATDESCRIPTOR pfd = {
-			.nSize = sizeof(pfd),
-			.nVersion = 1,
-			.iPixelType = PFD_TYPE_RGBA,
-			.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-			.cColorBits = 24,
-			.cAlphaBits = 8,
-			.iLayerType = PFD_MAIN_PLANE,
-			.cDepthBits = 32,
-			.cStencilBits = 8,
+			/*.nSize*/  sizeof(pfd),
+			/*.nVersion*/ 1,
+			/*.dwFlags*/ PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+			/*.iPixelType*/ PFD_TYPE_RGBA,
+			/*.cColorBits*/ 24,
+			0, 0, 0, 0, 0, 0,
+			/*.cAlphaBits*/ 8,
+			0, 0, 0, 0, 0, 0,
+			/*.cDepthBits*/ 32,
+			/*.cStencilBits*/ 8,
+			0,
+			/*.iLayerType*/ PFD_MAIN_PLANE,
+			0, 0, 0, 0
 		};
 
 		int pixel_format = ChoosePixelFormat(dummy_dc, &pfd);
@@ -4958,7 +4967,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	u8 RGFW_window_isFullscreen(RGFW_window* win) {
 		assert(win != NULL);
 
+		#ifndef __cplusplus
 		WINDOWPLACEMENT placement = { 0 };
+		#else
+		WINDOWPLACEMENT placement = {  };
+		#endif
 		GetWindowPlacement(win->src.window, &placement);
 		return placement.showCmd == SW_SHOWMAXIMIZED;
 	}
@@ -4972,7 +4985,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	u8 RGFW_window_isMinimized(RGFW_window* win) {
 		assert(win != NULL);
 
+		#ifndef __cplusplus
 		WINDOWPLACEMENT placement = { 0 };
+		#else
+		WINDOWPLACEMENT placement = {  };
+		#endif
 		GetWindowPlacement(win->src.window, &placement);
 		return placement.showCmd == SW_SHOWMINIMIZED;
 	}
@@ -4980,7 +4997,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	u8 RGFW_window_isMaximized(RGFW_window* win) {
 		assert(win != NULL);
 
+		#ifndef __cplusplus
 		WINDOWPLACEMENT placement = { 0 };
+		#else
+		WINDOWPLACEMENT placement = {  };
+		#endif
 		GetWindowPlacement(win->src.window, &placement);
 		return placement.showCmd == SW_SHOWMAXIMIZED;
 	}
@@ -7694,7 +7715,7 @@ char* RGFW_readClipboard(size_t* size) {
 	if (size != NULL)
 		*size = 0;
 	
-	char* str = malloc(1);
+	char* str = (char*)malloc(1);
 	str[0] = '\0';
 
 	return str;
