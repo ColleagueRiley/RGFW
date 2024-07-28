@@ -76,9 +76,6 @@ The callback example can be found in `examples/callbacks`, it shows all the even
 ## dx11
 `examples/dx11` is a minimalistic example of the use of DirectX with RGFW
 
-## nuklear
-`examples/nuklear` is an example showing how you can use RGFW with the nuklear GUI library
-
 ## gl33
 `examples/gl33` is a minimalistic example of the use of OpenGL 3.3 with RGFW, this example was made by [AICDG](https://github.com/THISISAGOODNAME)
 
