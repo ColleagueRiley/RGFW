@@ -82,6 +82,8 @@ ifneq (,$(filter $(CC),emcc))
 	EXT = .js
 endif
 
+CC += -std=c99
+
 all: examples$(OS_DIR)basic$(OS_DIR)main.c examples$(OS_DIR)buffer$(OS_DIR)main.c examples$(OS_DIR)portableGL$(OS_DIR)main.c  examples$(OS_DIR)gl33$(OS_DIR)main.c examples$(OS_DIR)gles2$(OS_DIR)main.c examples$(OS_DIR)vk10$(OS_DIR)main.c .$(OS_DIR)RGFW.h
 	$(CC) examples$(OS_DIR)basic$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -o basic$(EXT)
 	$(CC) examples$(OS_DIR)buffer$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -o buffer$(EXT)
