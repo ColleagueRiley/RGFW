@@ -76,6 +76,7 @@ var menudata={children:[
 {text:"File List",url:"files.html"},
 {text:"File Members",url:"globals.html",children:[
 {text:"All",url:"globals.html",children:[
+{text:"_",url:"globals.html#index__5F"},
 {text:"b",url:"globals.html#index_b"},
 {text:"i",url:"globals.html#index_i"},
 {text:"r",url:"globals.html#index_r"},
@@ -84,5 +85,6 @@ var menudata={children:[
 {text:"r",url:"globals_func.html#index_r"}]},
 {text:"Typedefs",url:"globals_type.html"},
 {text:"Macros",url:"globals_defs.html",children:[
+{text:"_",url:"globals_defs.html#index__5F"},
 {text:"i",url:"globals_defs.html#index_i"},
 {text:"r",url:"globals_defs.html#index_r"}]}]}]}]}

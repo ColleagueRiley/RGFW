@@ -92,6 +92,12 @@
 #endif
 
 #ifndef RGFW_MALLOC
+	#if __STDC_VERSION__ >= 199901L
+	#define _XOPEN_SOURCE 600
+	#else
+	#define _XOPEN_SOURCE 500
+	#endif /* __STDC_VERSION__ */
+
 	#include <stdlib.h>
 	#include <time.h>
 	#define RGFW_MALLOC malloc
@@ -3925,9 +3931,9 @@ Start of Linux / Unix defines
 
 		RGFW_FREE(win); /*!< free collected window data */
 	}
-
+	
 	u64 RGFW_getTimeNS(void) { 
-		struct timespec ts = { 0, 0 };
+		struct timespec ts = { 0 };
 		clock_gettime(1, &ts);
 		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
 
@@ -3935,7 +3941,7 @@ Start of Linux / Unix defines
 	}
 
 	u64 RGFW_getTime(void) {
-		struct timespec ts = { 0, 0 };
+		struct timespec ts = { 0 };
 		clock_gettime(1, &ts);
 		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
 
@@ -7191,7 +7197,7 @@ EM_BOOL Emscripten_on_keyup(int eventType, const EmscriptenKeyboardEvent* e, voi
 	RGFW_keyboard[RGFW_apiKeyCodeToRGFW(e->keyCode)].prev = RGFW_keyboard[RGFW_apiKeyCodeToRGFW(e->keyCode)].current;
 	RGFW_keyboard[RGFW_apiKeyCodeToRGFW(e->keyCode)].current = 0;
 
-	RGFW_keyCallback(RGFW_root, e->keyCode, RGFW_events[RGFW_eventLen].keyName, 0, 0);
+	RGFW_keyCallback(RGFW_root, RGFW_apiKeyCodeToRGFW(e->keyCode), RGFW_events[RGFW_eventLen].keyName, 0, 0);
 
     return EM_TRUE;
 }
