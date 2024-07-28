@@ -146,7 +146,7 @@
 	#define RGFW_UNUSED(x) (void)(x);
 #endif
 
-#ifdef __cplusplus
+#if defined(__cplusplus) && !defined(__EMSCRIPTEN__)
 	extern "C" {
 #endif
 
@@ -549,7 +549,8 @@ typedef struct RGFW_window {
 	u8* buffer; /*!< buffer for non-GPU systems (OSMesa, basic software rendering) */
 	/* when rendering using RGFW_BUFFER, the buffer is in the RGBA format */
 #endif
-
+	void* userPtr; /* ptr for usr data */
+	
 	RGFW_Event event; /*!< current event */
 
 	RGFW_rect r; /*!< the x, y, w and h of the struct */
@@ -7380,6 +7381,9 @@ void RGFW_stopCheckEvents(void) {
 
 void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 	RGFW_UNUSED(win);
+
+	if (waitMS == 0)
+		return;
 	
 	u32 start = (u32)(((u64)RGFW_getTimeNS()) / 1e+6);
 
@@ -7878,6 +7882,6 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win) return 
 #endif /* end of unix / mac stuff*/
 #endif /*RGFW_IMPLEMENTATION*/
 
-#ifdef __cplusplus
+#if defined(__cplusplus) && !defined(__EMSCRIPTEN__)
 }
 #endif
