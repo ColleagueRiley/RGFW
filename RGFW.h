@@ -1603,6 +1603,8 @@ void RGFW_window_makeCurrent(RGFW_window* win) {
 	RGFW_dxInfo.pDeviceContext->lpVtbl->OMSetRenderTargets(RGFW_dxInfo.pDeviceContext, 1, &win->src.renderTargetView, NULL);
 #elif defined(RGFW_OPENGL)
 	RGFW_window_makeCurrent_OpenGL(win);
+#else
+	RGFW_UNUSED(win)
 #endif
 }
 
@@ -5060,6 +5062,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		monitor.rect.h = monitorInfo.rcWork.bottom - monitorInfo.rcWork.top;
 
 #ifndef RGFW_NO_DPI
+		#ifndef USER_DEFAULT_SCREEN_DPI
+		#define USER_DEFAULT_SCREEN_DPI 96
+		#endif
+
 		if (GetDpiForMonitor != NULL) {
 			u32 x, y;
 			GetDpiForMonitor(src, MDT_ANGULAR_DPI, &x, &y);
@@ -5483,7 +5489,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	#endif
 
 	void RGFW_window_swapBuffers(RGFW_window* win) {
-		assert(win != NULL);
+		//assert(win != NULL);
 
 		RGFW_window_makeCurrent(win);
 
