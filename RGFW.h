@@ -2738,7 +2738,7 @@ Start of Linux / Unix defines
 		}
 		case ButtonPress:
 		case ButtonRelease:
-			win->event.type = E.type; // the events match 
+			win->event.type = RGFW_mouseButtonPressed + (E.type == ButtonRelease); // the events match 
 			
 			switch(win->event.button) {
 				case RGFW_mouseScrollUp:
