@@ -7023,8 +7023,8 @@ $(function() {
 <div class="line"><a id="l07174" name="l07174"></a><span class="lineno"> 7174</span> </div>
 <div class="line"><a id="l07175" name="l07175"></a><span class="lineno"> 7175</span>    RGFW_keyboard[RGFW_apiKeyCodeToRGFW(e-&gt;keyCode)].prev = RGFW_keyboard[RGFW_apiKeyCodeToRGFW(e-&gt;keyCode)].current;</div>
 <div class="line"><a id="l07176" name="l07176"></a><span class="lineno"> 7176</span>    RGFW_keyboard[RGFW_apiKeyCodeToRGFW(e-&gt;keyCode)].current = 1;</div>
-<div class="line"><a id="l07177" name="l07177"></a><span class="lineno"> 7177</span>    RGFW_keyCallback(RGFW_root, e-&gt;keyCode, RGFW_events[RGFW_eventLen].keyName, 0, 1);</div>
-<div class="line"><a id="l07178" name="l07178"></a><span class="lineno"> 7178</span> </div>
+<div class="line"><a id="l07177" name="l07177"></a><span class="lineno"> 7177</span>    RGFW_keyCallback(RGFW_root, RGFW_apiKeyCodeToRGFW(e-&gt;keyCode), RGFW_events[RGFW_eventLen].keyName, 0, 1);</div>
+<div class="line"><a id="l07178" name="l07178"></a><span class="lineno"> 7178</span>    </div>
 <div class="line"><a id="l07179" name="l07179"></a><span class="lineno"> 7179</span>    <span class="keywordflow">return</span> EM_TRUE;</div>
 <div class="line"><a id="l07180" name="l07180"></a><span class="lineno"> 7180</span>}</div>
 <div class="line"><a id="l07181" name="l07181"></a><span class="lineno"> 7181</span> </div>
