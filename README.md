@@ -40,6 +40,13 @@ This library does not
 - MacOS, (10.13, 10.14, 14.5) (x86_64)
 - HTML5 (webasm / Emscripten)
 
+# Supported GUI libraries
+Libries with an RGFW backend\
+[imgui (imgui_imp_rgfw.h)](https://github.com/ColleagueRiley/imgui_imp_rgfw.h) (in my own repo)\
+[raylib + raygui](https://github.com/raysan5/raylib) (PLATFORM_DESKTOP_RGFW)\
+[RSGL](https://github.com/ColleagueRiley/RSGL) (technically a graphics library with GUI elements)\
+[Nuklear][https://github.com/ColleagueRiley/nuklear_rgfw] (there's also an example for opengl 2 in this repo)
+
 # examples
 ![examples](https://github.com/ColleagueRiley/RGFW/blob/main/screenshot.PNG?raw=true)
 
@@ -68,6 +75,9 @@ The callback example can be found in `examples/callbacks`, it shows all the even
 
 ## dx11
 `examples/dx11` is a minimalistic example of the use of DirectX with RGFW
+
+## nuklear
+`examples/nuklear` is an example showing how you can use RGFW with the nuklear GUI library
 
 ## gl33
 `examples/gl33` is a minimalistic example of the use of OpenGL 3.3 with RGFW, this example was made by [AICDG](https://github.com/THISISAGOODNAME)
