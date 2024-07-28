@@ -1,4 +1,4 @@
-.TH "RGFW_window" 3 "Sat Jul 27 2024" "RGFW" \" -*- nroff -*-
+.TH "RGFW_window" 3 "Sun Jul 28 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -13,6 +13,9 @@ RGFW_window
 .in +1c
 .ti -1c
 .RI "\fBRGFW_window_src\fP \fBsrc\fP"
+.br
+.ti -1c
+.RI "void * \fBuserPtr\fP"
 .br
 .ti -1c
 .RI "\fBRGFW_Event\fP \fBevent\fP"
@@ -44,6 +47,8 @@ the fps cap of the window should run at (change this var to change the fps cap, 
 the x, y, w and h of the struct 
 .SS "\fBRGFW_window_src\fP RGFW_window::src"
 src window data 
+.SS "void* RGFW_window::userPtr"
+
 
 .SH "Author"
 .PP 

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['x_0',['x',['../structRGFW__point.html#a1e4ef1395966022c65b8b69db9e8e592',1,'RGFW_point::x()'],['../structRGFW__rect.html#ae1678a152978fb1f00cb6b42341d0707',1,'RGFW_rect::x()']]]
+  ['w_0',['w',['../structRGFW__rect.html#ae9b18887b7389dc05283e4e54881b801',1,'RGFW_rect::w()'],['../structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a',1,'RGFW_area::w()']]]
 ];
