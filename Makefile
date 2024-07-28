@@ -90,7 +90,6 @@ all: examples$(OS_DIR)basic$(OS_DIR)main.c examples$(OS_DIR)buffer$(OS_DIR)main.
 	$(CC) examples$(OS_DIR)callbacks$(OS_DIR)main.c $(LIBS) -I. $(WARNINGS) -o callbacks$(EXT)
 	$(CC) examples$(OS_DIR)first-person-camera$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -o camera$(EXT)
 	$(CC) examples$(OS_DIR)portableGL$(OS_DIR)main.c $(LIBS) -I. -w -o portableGL$(EXT)
-	$(CC) examples$(OS_DIR)nuklear$(OS_DIR)main.c $(LINK_GL3) $(LIBS) -I. $(WARNINGS) -o nuklear$(EXT)
 	$(CC) examples$(OS_DIR)gl33$(OS_DIR)main.c $(LINK_GL3) $(LIBS) -I. $(WARNINGS) -o gl33$(EXT)
 	$(CC) examples$(OS_DIR)gles2$(OS_DIR)main.c $(LINK_GL2) -lEGL $(LIBS) -I. $(WARNINGS) -o gles2$(EXT)
 
@@ -105,7 +104,7 @@ DX11: examples$(OS_DIR)dx11$(OS_DIR)main.c
 clean:
 	rm -f *.exe .$(OS_DIR)examples$(OS_DIR)silk$(OS_DIR)silk .$(OS_DIR)examples$(OS_DIR)basic$(OS_DIR)basic .$(OS_DIR)examples$(OS_DIR)basic$(OS_DIR)basic.exe .$(OS_DIR)examples$(OS_DIR)gles2$(OS_DIR)gles2 .$(OS_DIR)examples$(OS_DIR)gles2$(OS_DIR)gles2.exe .$(OS_DIR)examples$(OS_DIR)gl33$(OS_DIR)gl33 .$(OS_DIR)examples$(OS_DIR)gl33$(OS_DIR)gl33.exe .$(OS_DIR)examples$(OS_DIR)vk10$(OS_DIR)vk10 .$(OS_DIR)examples$(OS_DIR)vk10$(OS_DIR)vk10.exe examples$(OS_DIR)vk10$(OS_DIR)shaders$(OS_DIR)*.h examples$(OS_DIR)dx11$(OS_DIR)DX11
 
-debug: examples$(OS_DIR)basic$(OS_DIR)main.c examples$(OS_DIR)buffer$(OS_DIR)main.c examples$(OS_DIR)portableGL$(OS_DIR)main.c  examples$(OS_DIR)nuklear$(OS_DIR)main.c examples$(OS_DIR)gl33$(OS_DIR)main.c examples$(OS_DIR)gles2$(OS_DIR)main.c examples$(OS_DIR)vk10$(OS_DIR)main.c .$(OS_DIR)RGFW.h
+debug: examples$(OS_DIR)basic$(OS_DIR)main.c examples$(OS_DIR)buffer$(OS_DIR)main.c examples$(OS_DIR)portableGL$(OS_DIR)main.c examples$(OS_DIR)gl33$(OS_DIR)main.c examples$(OS_DIR)gles2$(OS_DIR)main.c examples$(OS_DIR)vk10$(OS_DIR)main.c .$(OS_DIR)RGFW.h
 	make clean
 
 	$(CC) examples$(OS_DIR)buffer$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)buffer$(OS_DIR)buffer$(EXT)
@@ -148,12 +147,6 @@ endif
 	
 ifeq (,$(filter $(CC),emcc))
 	.$(OS_DIR)examples$(OS_DIR)basic$(OS_DIR)basic$(EXT)
-endif
-
-	$(CC) examples$(OS_DIR)nuklear$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)nuklear$(OS_DIR)nuklear$(EXT)
-
-ifeq (,$(filter $(CC),emcc))
-	.$(OS_DIR)examples$(OS_DIR)nuklear$(OS_DIR)nuklear$(EXT)
 endif
 
 	$(CC) examples$(OS_DIR)gl33$(OS_DIR)main.c $(LINK_GL3) $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)gl33$(OS_DIR)gl33$(EXT)
