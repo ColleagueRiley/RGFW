@@ -32,8 +32,9 @@ jobs:
 
     - name: get nuklear webasm
       run: |
-        cd webasm && wget https://github.com/ColleagueRiley/nuklear_rgfw/raw/main/rgfw_opengl2/rgfw-nuklear.wasm
-        cd webasm && wget https://raw.githubusercontent.com/ColleagueRiley/nuklear_rgfw/main/rgfw_opengl2/rgfw-nuklear.js
+        cd webasm 
+        wget https://github.com/ColleagueRiley/nuklear_rgfw/raw/main/rgfw_opengl2/rgfw-nuklear.wasm
+        wget https://raw.githubusercontent.com/ColleagueRiley/nuklear_rgfw/main/rgfw_opengl2/rgfw-nuklear.js
         
     - name: Deploy Pages
       uses: peaceiris/actions-gh-pages@v4
