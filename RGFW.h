@@ -57,6 +57,8 @@
 
  	#define RGFW_EXPORT - Use when building RGFW 
     #define RGFW_IMPORT - Use when linking with RGFW (not as a single-header)
+	
+	#define RGFW_STD_INT - force the use stdint.h (for systems that might not have stdint.h (msvc)) 
 */
 
 /*
@@ -162,7 +164,7 @@
 #define RGFW_HEADER
 
 #if !defined(u8)
-	#if defined(_MSC_VER) || defined(__SYMBIAN32__) /* MSVC might not have stdint.h */
+	#if (defined(_MSC_VER) || defined(__SYMBIAN32__) && !defined(RGFW_STD_INT)) /* MSVC might not have stdint.h */
 		typedef unsigned char 	u8;
 		typedef signed char		i8;
 		typedef unsigned short  u16;
@@ -1611,7 +1613,7 @@ void RGFW_window_makeCurrent(RGFW_window* win) {
 void RGFW_window_setGPURender(RGFW_window* win, i8 set) {
 	if (!set && !(win->_winArgs & RGFW_NO_GPU_RENDER))
 		win->_winArgs |= RGFW_NO_GPU_RENDER;
-
+		
 	else if (set && win->_winArgs & RGFW_NO_GPU_RENDER)
 		win->_winArgs ^= RGFW_NO_GPU_RENDER;
 }
