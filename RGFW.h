@@ -893,15 +893,15 @@ RGFWDEF u32 RGFW_isPressedJS(RGFW_window* win, u16 controller, u8 button);
 /** * @defgroup graphics_API
 * @{ */ 
 
-/*!< make the window the current opengl drawing context */
+/*!< make the window the current opengl drawing context
+
+	NOTE:
+ 	if you want to switch the graphics context's thread, 
+	you have to run RGFW_window_makeCurrent(NULL); on the old thread
+	then RGFW_window_makeCurrent(valid_window) on the new thread
+*/
 RGFWDEF void RGFW_window_makeCurrent(RGFW_window* win);
 
-
-/*! make the window and thread the current opengl drawing context 
-	should only be called once in a thread to init the thread for 
-	the graphics context
-*/
-RGFWDEF void RGFW_window_makeCurrent_thread(RGFW_window* win);
 
 /* supports openGL, directX, OSMesa, EGL and software rendering */
 RGFWDEF void RGFW_window_swapBuffers(RGFW_window* win); /*!< swap the rendering buffer */
@@ -1601,10 +1601,11 @@ b8 RGFW_isReleased(RGFW_window* win, u8 key) {
 #endif
 
 void RGFW_window_makeCurrent(RGFW_window* win) {
-	assert(win != NULL);
-
 #if defined(RGFW_WINDOWS) && defined(RGFW_DIRECTX)
-	RGFW_dxInfo.pDeviceContext->lpVtbl->OMSetRenderTargets(RGFW_dxInfo.pDeviceContext, 1, &win->src.renderTargetView, NULL);
+	if (win == NULL)
+		RGFW_dxInfo.pDeviceContext->lpVtbl->OMSetRenderTargets(RGFW_dxInfo.pDeviceContext, 1, NULL, NULL);
+	else
+		RGFW_dxInfo.pDeviceContext->lpVtbl->OMSetRenderTargets(RGFW_dxInfo.pDeviceContext, 1, &win->src.renderTargetView, NULL);
 #elif defined(RGFW_OPENGL)
 	RGFW_window_makeCurrent_OpenGL(win);
 #else
@@ -1866,11 +1867,11 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 								RGFW_GL_GREEN_SIZE      , 8,
 								RGFW_GL_BLUE_SIZE       , 8,
 								RGFW_GL_DRAW_TYPE     , RGFW_GL_USE_RGBA,
-								#endif 
+									#endif 
 
 								#ifdef RGFW_X11
 								GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,
-								#endif
+								#endif	
 
 								#ifdef RGFW_MACOS
 								72,
@@ -1879,7 +1880,6 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 
 								#ifdef RGFW_WINDOWS
 								WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
-								WGL_TRANSPARENT_ARB, TRUE,
 								WGL_COLOR_BITS_ARB,	 32,
 								#endif
 
@@ -3808,9 +3808,10 @@ Start of Linux / Unix defines
 
 	#ifdef RGFW_OPENGL
 	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
-		assert(win != NULL);
-
-		glXMakeCurrent((Display*) win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);
+		if (win == NULL)
+			glXMakeCurrent((Display*) NULL, (Drawable)NULL, (GLXContext) NULL);
+		else
+			glXMakeCurrent((Display*) win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);
 	}
 	#endif
 
@@ -5467,28 +5468,12 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		SetCursorPos(p.x, p.y);
 	}
 
-
-	void RGFW_window_makeCurrent_thread(RGFW_window* win) {
-		#ifdef RGFW_OPENGL
-			HDC hDC = GetDC(win->src.window);
-			if (hDC == NULL || win->src.ctx == NULL)
-				return;
-			
-			wglDeleteContext(win->src.ctx);
-
-			HGLRC hRC = wglCreateContext(hDC);
-			wglMakeCurrent(hDC, hRC);
-
-			win->src.ctx = hRC;
-		#else
-		RGFW_UNUSED(win)
-		#endif
-	}
-
 	#ifdef RGFW_OPENGL
 	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
-		assert(win != NULL);
-		wglMakeCurrent(win->src.hdc, (HGLRC) win->src.ctx);
+		if (win == NULL)
+			wglMakeCurrent(NULL, NULL);
+		else
+			wglMakeCurrent(win->src.hdc, (HGLRC) win->src.ctx);
 	}
 	#endif
 
@@ -7818,7 +7803,10 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 
 
 void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
-    emscripten_webgl_make_context_current(win->src.ctx);
+	if (win == NULL)
+	    emscripten_webgl_make_context_current(0);
+	else
+	    emscripten_webgl_make_context_current(win->src.ctx);
 }
 
 #ifndef RGFW_EGL

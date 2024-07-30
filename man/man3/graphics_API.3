@@ -13,9 +13,6 @@ graphics_API \- Graphics_API
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent_thread\fP (\fBRGFW_window\fP *win)"
-.br
-.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_swapBuffers\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
@@ -83,11 +80,11 @@ use GL_STEREO (GL_FALSE by default)
 .SS "\fBRGFWDEF\fP void RGFW_setGLVersion (RGFW_GL_profile profile, \fBi32\fP major, \fBi32\fP minor)"
 Set OpenGL version hint (core or compatibility profile) 
 .SS "\fBRGFWDEF\fP void RGFW_window_makeCurrent (\fBRGFW_window\fP * win)"
-< make the window the current opengl drawing context 
+< make the window the current opengl drawing context
+.PP
+NOTE: if you want to switch the graphics context's thread, you have to run RGFW_window_makeCurrent(NULL); on the old thread then RGFW_window_makeCurrent(valid_window) on the new thread 
 .SS "\fBRGFWDEF\fP void RGFW_window_makeCurrent_OpenGL (\fBRGFW_window\fP * win)"
 to be called by RGFW_window_makeCurrent 
-.SS "\fBRGFWDEF\fP void RGFW_window_makeCurrent_thread (\fBRGFW_window\fP * win)"
-make the window and thread the current opengl drawing context should only be called once in a thread to init the thread for the graphics context 
 .SS "\fBRGFWDEF\fP void RGFW_window_setCPURender (\fBRGFW_window\fP * win, \fBi8\fP set)"
 
 .SS "\fBRGFWDEF\fP void RGFW_window_setGPURender (\fBRGFW_window\fP * win, \fBi8\fP set)"
