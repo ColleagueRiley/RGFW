@@ -150,8 +150,7 @@ If you wish to build the documentation yourself, there is also a Doxygen file at
 | C | MacOS, Linux, Windows | OpenGL, DirectX, Vulkan, Buffer | (This Repo) |
 | Python | MacOS, Linux, Windows | OpenGL and Buffer | [RGFW-Python](https://github.com/ColleagueRiley/RGFW-Python) |
 | Odin | MacOS, Linux, Windows | OpenGL and Buffer | [RGFW-Odin](https://github.com/ColleagueRiley/RGFW-Odin) |
-| C3 (WIP) | MacOS, Linux, Windows | ? Vulkan | [RGFW.c3](https://github.com/tonis2/rgfw.c3/tree/main
-) |
+| C3 (WIP) | MacOS, Linux, Windows | ? Vulkan | [RGFW.c3](https://github.com/tonis2/rgfw.c3/tree/main) |
 
 Feel free to do a PR if you want a binding added to the list
 
