@@ -160,7 +160,7 @@
 #define RGFW_HEADER
 
 #if !defined(u8)
-	#if (defined(_MSC_VER) || defined(__SYMBIAN32__) && !defined(RGFW_STD_INT)) /* MSVC might not have stdint.h */
+	#if ((defined(_MSC_VER) || defined(__SYMBIAN32__)) && !defined(RGFW_STD_INT)) /* MSVC might not have stdint.h */
 		typedef unsigned char 	u8;
 		typedef signed char		i8;
 		typedef unsigned short  u16;
@@ -897,7 +897,11 @@ RGFWDEF u32 RGFW_isPressedJS(RGFW_window* win, u16 controller, u8 button);
 RGFWDEF void RGFW_window_makeCurrent(RGFW_window* win);
 
 
-
+/*! make the window and thread the current opengl drawing context 
+	should only be called once in a thread to init the thread for 
+	the graphics context
+*/
+RGFWDEF void RGFW_window_makeCurrent_thread(RGFW_window* win);
 
 /* supports openGL, directX, OSMesa, EGL and software rendering */
 RGFWDEF void RGFW_window_swapBuffers(RGFW_window* win); /*!< swap the rendering buffer */
