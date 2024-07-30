@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['_5fxopen_5fsource_0',['_XOPEN_SOURCE',['../RGFW_8h.html#a78c99ffd76a7bb3c8c74db76207e9ab4',1,'RGFW.h']]]
+  ['_5f_5fuse_5fposix199309_0',['__USE_POSIX199309',['../RGFW_8h.html#a4ad9e77eef1d695b1a5cca6a76116bcf',1,'RGFW.h']]]
 ];

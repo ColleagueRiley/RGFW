@@ -1,4 +1,4 @@
-.TH "graphics_API" 3 "Mon Jul 29 2024" "RGFW" \" -*- nroff -*-
+.TH "graphics_API" 3 "Tue Jul 30 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -40,7 +40,10 @@ graphics_API \- Graphics_API
 .RI "\fBRGFWDEF\fP void \fBRGFW_setGLAuxBuffers\fP (\fBi32\fP auxBuffers)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLVersion\fP (\fBi32\fP major, \fBi32\fP minor)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_GL_profile)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLVersion\fP (RGFW_GL_profile profile, \fBi32\fP major, \fBi32\fP minor)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void * \fBRGFW_getProcAddress\fP (const char *procname)"
@@ -58,6 +61,8 @@ graphics_API \- Graphics_API
 
 .SH "Function Documentation"
 .PP 
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_GL_profile)"
+which profile to use for the opengl verion 
 .SS "\fBRGFWDEF\fP \fBu8\fP * RGFW_getMaxGLVersion (void)"
 native API functions
 .PP
@@ -72,8 +77,8 @@ set number of sampiling buffers (4 by default)
 OpenGL init hints set stencil buffer bit size (8 by default) 
 .SS "\fBRGFWDEF\fP void RGFW_setGLStereo (\fBi32\fP stereo)"
 use GL_STEREO (GL_FALSE by default) 
-.SS "\fBRGFWDEF\fP void RGFW_setGLVersion (\fBi32\fP major, \fBi32\fP minor)"
-Set OpenGL version hint 
+.SS "\fBRGFWDEF\fP void RGFW_setGLVersion (RGFW_GL_profile profile, \fBi32\fP major, \fBi32\fP minor)"
+Set OpenGL version hint (core or compatibility profile) 
 .SS "\fBRGFWDEF\fP void RGFW_window_makeCurrent (\fBRGFW_window\fP * win)"
 < make the window the current opengl drawing context 
 .SS "\fBRGFWDEF\fP void RGFW_window_makeCurrent_OpenGL (\fBRGFW_window\fP * win)"

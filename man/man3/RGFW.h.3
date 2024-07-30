@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Mon Jul 29 2024" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Tue Jul 30 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -42,7 +42,7 @@ RGFW.h
 
 .in +1c
 .ti -1c
-.RI "#define \fB_XOPEN_SOURCE\fP   500"
+.RI "#define \fB__USE_POSIX199309\fP"
 .br
 .ti -1c
 .RI "#define \fBRGFW_MALLOC\fP   malloc"
@@ -515,7 +515,10 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_setGLAuxBuffers\fP (\fBi32\fP auxBuffers)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLVersion\fP (\fBi32\fP major, \fBi32\fP minor)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_GL_profile)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLVersion\fP (RGFW_GL_profile profile, \fBi32\fP major, \fBi32\fP minor)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void * \fBRGFW_getProcAddress\fP (const char *procname)"
@@ -544,7 +547,7 @@ RGFW.h
 .in -1c
 .SH "Macro Definition Documentation"
 .PP 
-.SS "#define _XOPEN_SOURCE   500"
+.SS "#define __USE_POSIX199309"
 
 .SS "#define inline   __inline"
 
