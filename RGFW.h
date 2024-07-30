@@ -7804,7 +7804,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 
 void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 	if (win == NULL)
-	    emscripten_webgl_make_context_current(NULL);
+	    emscripten_webgl_make_context_current(0);
 	else
 	    emscripten_webgl_make_context_current(win->src.ctx);
 }
