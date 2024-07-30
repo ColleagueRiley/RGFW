@@ -65,8 +65,11 @@ void main()
 
 int main(void)
 {
-    RGFW_setGLVersion(3, 3);
+    RGFW_setGLVersion(RGFW_GL_CORE, 3, 3);
+
     RGFW_window* window = RGFW_createWindow("LearnOpenGL", RGFW_RECT(SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT), RGFW_ALLOW_DND | RGFW_CENTER);
+     printf("Version OpenGL:           %s\n", glGetString(GL_VERSION));
+     printf("Version GLSL:             %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
     window->fpsCap = 60;
 
     if (window == NULL)

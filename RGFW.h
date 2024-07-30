@@ -94,13 +94,9 @@
 #endif
 
 #ifndef RGFW_MALLOC
-	#if __STDC_VERSION__ >= 199901L
-	#define _XOPEN_SOURCE 600
-	#else
-	#define _XOPEN_SOURCE 500
-	#endif /* __STDC_VERSION__ */
-
 	#include <stdlib.h>
+
+	#define __USE_POSIX199309
 	#include <time.h>
 	#define RGFW_MALLOC malloc
 	#define RGFW_CALLOC calloc
@@ -900,6 +896,9 @@ RGFWDEF u32 RGFW_isPressedJS(RGFW_window* win, u16 controller, u8 button);
 /*!< make the window the current opengl drawing context */
 RGFWDEF void RGFW_window_makeCurrent(RGFW_window* win);
 
+
+
+
 /* supports openGL, directX, OSMesa, EGL and software rendering */
 RGFWDEF void RGFW_window_swapBuffers(RGFW_window* win); /*!< swap the rendering buffer */
 RGFWDEF void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval);
@@ -917,8 +916,10 @@ RGFWDEF void RGFW_window_setCPURender(RGFW_window* win, i8 set);
 	RGFWDEF void RGFW_setGLStereo(i32 stereo); /*!< use GL_STEREO (GL_FALSE by default) */
 	RGFWDEF void RGFW_setGLAuxBuffers(i32 auxBuffers); /*!< number of aux buffers (0 by default) */
 
-	/*! Set OpenGL version hint */
-	RGFWDEF void RGFW_setGLVersion(i32 major, i32 minor);
+	/*! which profile to use for the opengl verion */
+	typedef RGFW_ENUM(u8, RGFW_GL_profile)  { RGFW_GL_CORE = 0,  RGFW_GL_COMPATIBILITY  };
+	/*! Set OpenGL version hint (core or compatibility profile)*/
+	RGFWDEF void RGFW_setGLVersion(RGFW_GL_profile profile, i32 major, i32 minor);
 	RGFWDEF void* RGFW_getProcAddress(const char* procname); /*!< get native opengl proc address */
 	RGFWDEF void RGFW_window_makeCurrent_OpenGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
 #elif defined(RGFW_DIRECTX)
@@ -1260,7 +1261,7 @@ void RGFW_init_keys(void) {
 	RGFW_MAP [RGFW_OS_BASED_VALUE(22, 8, 51, DOM_VK_BACK_SPACE)] = RGFW_BackSpace              RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(23, 0x09, 48, DOM_VK_TAB)] = RGFW_Tab                		RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(66, 20, 57, DOM_VK_CAPS_LOCK)] = RGFW_CapsLock               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(50, 0xA0, 56, DOM_VK_SHIFT)] = RGFW_ShiftL               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(50, 0x10, 56, DOM_VK_SHIFT)] = RGFW_ShiftL               RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(37, 0x11, 59, DOM_VK_CONTROL)] = RGFW_ControlL               RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(64, 164, 58, DOM_VK_ALT)] = RGFW_AltL                		RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(133, 0x5B, 55, DOM_VK_WIN)] = RGFW_SuperL,
@@ -1268,9 +1269,6 @@ void RGFW_init_keys(void) {
 	#if !defined(RGFW_WINDOWS) && !defined(RGFW_MACOS) && !defined(RGFW_WEBASM)
 	RGFW_MAP [RGFW_OS_BASED_VALUE(105, 0x11, 59, 0)] = RGFW_ControlR               RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(135, 0xA4, 55, 0)] = RGFW_SuperR,
-	#endif
-
-	#if !defined(RGFW_MACOS) && !defined(RGFW_WEBASM)
 	RGFW_MAP [RGFW_OS_BASED_VALUE(62, 0x5C, 56, 0)] = RGFW_ShiftR              RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(108, 165, 58, 0)] = RGFW_AltR,
 	#endif
@@ -1770,6 +1768,7 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 /* EGL, normal OpenGL only */
 #if !defined(RGFW_OSMESA) 
 	i32 RGFW_majorVersion = 0, RGFW_minorVersion = 0;
+	b8 RGFW_profile = RGFW_GL_CORE;
 	
 	#ifndef RGFW_EGL
 	i32 RGFW_STENCIL = 8, RGFW_SAMPLES = 4, RGFW_STEREO = GL_FALSE, RGFW_AUX_BUFFERS = 0;
@@ -1783,7 +1782,8 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 	void RGFW_setGLStereo(i32 stereo) { RGFW_STEREO = stereo; }
 	void RGFW_setGLAuxBuffers(i32 auxBuffers) { RGFW_AUX_BUFFERS = auxBuffers; }
 
-	void RGFW_setGLVersion(i32 major, i32 minor) {
+	void RGFW_setGLVersion(b8 profile, i32 major, i32 minor) {
+		RGFW_profile = profile;
 		RGFW_majorVersion = major;
 		RGFW_minorVersion = minor;
 	}
@@ -1831,6 +1831,7 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 	#define WGL_CONTEXT_MAJOR_VERSION_ARB             0x2091
 	#define WGL_CONTEXT_MINOR_VERSION_ARB             0x2092
 	#define WGL_CONTEXT_PROFILE_MASK_ARB              0x9126
+	#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
 	#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 	#define WGL_SAMPLE_BUFFERS_ARB               0x2041
 	#define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20a9
@@ -2042,7 +2043,14 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 
 		if (RGFW_majorVersion) {
 			attribs[1] = RGFW_majorVersion;
-			RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT);
+
+			if (RGFW_profile == RGFW_GL_CORE) {
+				RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT);
+			}
+			else {
+				RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT);
+			}
+
 			RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MAJOR_VERSION, RGFW_majorVersion);
 			RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MINOR_VERSION, RGFW_minorVersion);
 		}
@@ -2421,7 +2429,10 @@ Start of Linux / Unix defines
 #ifdef RGFW_OPENGL
 		i32 context_attribs[7] = { 0, 0, 0, 0, 0, 0, 0 };
 		context_attribs[0] = GLX_CONTEXT_PROFILE_MASK_ARB;
-		context_attribs[1] = GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+		if (RGFW_profile == RGFW_GL_CORE) 
+			context_attribs[1] = GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+		else 
+			context_attribs[1] = GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
 		
 		if (RGFW_majorVersion || RGFW_minorVersion) {
 			context_attribs[2] = GLX_CONTEXT_MAJOR_VERSION_ARB;
@@ -4415,14 +4426,12 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			u32 index = 0;
 			i32 attribs[40];
 
-			SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
-
-			if (RGFW_majorVersion || RGFW_minorVersion) {
-				SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion);
-				SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_minorVersion);
+			if (RGFW_profile == RGFW_GL_CORE) {
+				SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB);
 			}
-
-			SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
+			else {
+				SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
+			}
 
 			if (RGFW_majorVersion || RGFW_minorVersion) {
 				SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion);
@@ -5452,6 +5461,24 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		assert(win != NULL);
 
 		SetCursorPos(p.x, p.y);
+	}
+
+
+	void RGFW_window_makeCurrent_thread(RGFW_window* win) {
+		#ifdef RGFW_OPENGL
+			HDC hDC = GetDC(win->src.window);
+			if (hDC == NULL || win->src.ctx == NULL)
+				return;
+			
+			wglDeleteContext(win->src.ctx);
+
+			HGLRC hRC = wglCreateContext(hDC);
+			wglMakeCurrent(hDC, hRC);
+
+			win->src.ctx = hRC;
+		#else
+		RGFW_UNUSED(win)
+		#endif
 	}
 
 	#ifdef RGFW_OPENGL
