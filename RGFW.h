@@ -911,7 +911,7 @@ RGFWDEF void RGFW_window_setGPURender(RGFW_window* win, i8 set);
 RGFWDEF void RGFW_window_setCPURender(RGFW_window* win, i8 set);
 
 /*! native API functions */
-#ifdef RGFW_OPENGL
+#if defined(RGFW_OPENGL) || (defined(RGFW_OPENGL_ES1) || defined(RGFW_OPENGL_ES2) || defined(RGFW_OPENGL_ES3)) && !defined(RGFW_EGL)
 	/*! Get max OpenGL version */
 	RGFWDEF u8* RGFW_getMaxGLVersion(void);
 	/*! OpenGL init hints */
