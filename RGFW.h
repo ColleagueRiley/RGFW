@@ -83,6 +83,7 @@
 		Code-Nycticebus -> bug fixes
 		Rob Rohan -> X11 bugs and missing features, MacOS/Cocoa fixing memory issues/bugs 
 		AICDG (@THISISAGOODNAME) -> vulkan support (example)
+		@Easymode -> support, testing/debugging, bug fixes and reviews
 */
 
 #if _MSC_VER
@@ -902,6 +903,7 @@ RGFWDEF u32 RGFW_isPressedJS(RGFW_window* win, u16 controller, u8 button);
 */
 RGFWDEF void RGFW_window_makeCurrent(RGFW_window* win);
 
+RGFWDEF u64 RGFW_window_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (must by ran manually by the user at the end of a frame), returns win->event.fps */
 
 /* supports openGL, directX, OSMesa, EGL and software rendering */
 RGFWDEF void RGFW_window_swapBuffers(RGFW_window* win); /*!< swap the rendering buffer */
@@ -945,8 +947,6 @@ RGFWDEF void RGFW_window_setCPURender(RGFW_window* win, i8 set);
 
 /** * @defgroup Supporting
 * @{ */ 
-
-RGFWDEF void RGFW_window_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (ran by RGFW_window_checkEvent)*/
 RGFWDEF u64 RGFW_getTime(void); /*!< get time in seconds */
 RGFWDEF u64 RGFW_getTimeNS(void); /*!< get time in nanoseconds */
 RGFWDEF void RGFW_sleep(u64 milisecond); /*!< sleep for a set time */
@@ -1674,7 +1674,7 @@ void RGFW_window_mouseUnhold(RGFW_window* win) {
 	}
 }
 
-void RGFW_window_checkFPS(RGFW_window* win) {
+u64 RGFW_window_checkFPS(RGFW_window* win) {
 	u64 deltaTime = RGFW_getTimeNS() - win->event.frameTime;
 
 	u64 fps = round(1e+9 / deltaTime);
@@ -1698,6 +1698,8 @@ void RGFW_window_checkFPS(RGFW_window* win) {
 	deltaTime = RGFW_getTimeNS() - win->event.frameTime2;
 	win->event.fps = round(1e+9 / deltaTime);
 	win->event.frameTime2 = RGFW_getTimeNS();
+
+	return win->event.fps;
 }
 
 u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { 
@@ -3819,8 +3821,6 @@ Start of Linux / Unix defines
 	void RGFW_window_swapBuffers(RGFW_window* win) {
 		assert(win != NULL);
 
-		RGFW_window_makeCurrent(win);
-
 		/* clear the window*/
 		if (!(win->_winArgs & RGFW_NO_CPU_RENDER)) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
@@ -3854,8 +3854,6 @@ Start of Linux / Unix defines
 					glXSwapBuffers((Display*) win->src.display, (Window) win->src.window);
 			#endif
 		}
-
-		RGFW_window_checkFPS(win);
 	}
 
 	#if !defined(RGFW_EGL)	
@@ -5508,9 +5506,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 	void RGFW_window_swapBuffers(RGFW_window* win) {
 		//assert(win != NULL);
-
-		RGFW_window_makeCurrent(win);
-
 		/* clear the window*/
 
 		if (!(win->_winArgs & RGFW_NO_CPU_RENDER)) {
@@ -5536,8 +5531,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 					win->src.swapchain->lpVtbl->Present(win->src.swapchain, 0, 0);
 			#endif
 		}
-
-		RGFW_window_checkFPS(win);
 	}
 
 	char* createUTF8FromWideStringWin32(const WCHAR* source) {
@@ -7091,9 +7084,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 	void RGFW_window_swapBuffers(RGFW_window* win) {
 		assert(win != NULL);
-
-		RGFW_window_makeCurrent(win);
-
 		/* clear the window*/
 
 		if (!(win->_winArgs & RGFW_NO_CPU_RENDER)) {
@@ -7134,8 +7124,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 					objc_msgSend_void(win->src.ctx, sel_registerName("flushBuffer"));
 			#endif
 		}
-
-		RGFW_window_checkFPS(win);
 	}
 
 	void RGFW_window_close(RGFW_window* win) {
@@ -7797,8 +7785,6 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	if (win->fpsCap == 0 || win->fpsCap < 100) {
 		emscripten_sleep(0);
 	}
-	
-	RGFW_window_checkFPS(win);
 }
 
 
