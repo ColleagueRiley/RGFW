@@ -49,6 +49,9 @@ graphics_API \- Graphics_API
 .RI "\fBRGFWDEF\fP void \fBRGFW_setGLVersion\fP (RGFW_GL_profile profile, \fBi32\fP major, \fBi32\fP minor)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setDoubleBuffer\fP (\fBb8\fP useDoubleBuffer)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP void * \fBRGFW_getProcAddress\fP (const char *procname)"
 .br
 .ti -1c
@@ -72,6 +75,8 @@ native API functions
 Get max OpenGL version 
 .SS "\fBRGFWDEF\fP void * RGFW_getProcAddress (const char * procname)"
 get native opengl proc address 
+.SS "\fBRGFWDEF\fP void RGFW_setDoubleBuffer (\fBb8\fP useDoubleBuffer)"
+
 .SS "\fBRGFWDEF\fP void RGFW_setGLAuxBuffers (\fBi32\fP auxBuffers)"
 number of aux buffers (0 by default) 
 .SS "\fBRGFWDEF\fP void RGFW_setGLSamples (\fBi32\fP samples)"
