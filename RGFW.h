@@ -418,9 +418,15 @@ typedef RGFW_ENUM(u8, RGFW_event_types) {
 	typedef struct { u32 w, h; } RGFW_area;
 #endif
 
+#ifndef __cplusplus
 #define RGFW_POINT(x, y) (RGFW_point){(i32)(x), (i32)(y)}
 #define RGFW_RECT(x, y, w, h) (RGFW_rect){(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
 #define RGFW_AREA(w, h) (RGFW_area){(u32)(w), (u32)(h)}
+#else
+#define RGFW_POINT(x, y) {(i32)(x), (i32)(y)}
+#define RGFW_RECT(x, y, w, h) {(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
+#define RGFW_AREA(w, h) {(u32)(w), (u32)(h)}
+#endif
 
 #ifndef RGFW_NO_MONITOR
 	/*! structure for monitor data */
@@ -923,8 +929,9 @@ RGFWDEF void RGFW_window_setCPURender(RGFW_window* win, i8 set);
 	typedef RGFW_ENUM(u8, RGFW_GL_profile)  { RGFW_GL_CORE = 0,  RGFW_GL_COMPATIBILITY  };
 	/*! Set OpenGL version hint (core or compatibility profile)*/
 	RGFWDEF void RGFW_setGLVersion(RGFW_GL_profile profile, i32 major, i32 minor);
-	RGFWDEF void* RGFW_getProcAddress(const char* procname); /*!< get native opengl proc address */
-	RGFWDEF void RGFW_window_makeCurrent_OpenGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
+	RGFWDEF void RGFW_setDoubleBuffer(b8 useDoubleBuffer); 
+    RGFWDEF void* RGFW_getProcAddress(const char* procname); /*!< get native opengl proc address */
+    RGFWDEF void RGFW_window_makeCurrent_OpenGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
 #elif defined(RGFW_DIRECTX)
 	typedef struct {
 		IDXGIFactory* pFactory;
@@ -1775,9 +1782,9 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 	b8 RGFW_profile = RGFW_GL_CORE;
 	
 	#ifndef RGFW_EGL
-	i32 RGFW_STENCIL = 8, RGFW_SAMPLES = 4, RGFW_STEREO = GL_FALSE, RGFW_AUX_BUFFERS = 0;
+	i32 RGFW_STENCIL = 8, RGFW_SAMPLES = 4, RGFW_STEREO = GL_FALSE, RGFW_AUX_BUFFERS = 0, RGFW_DOUBLE_BUFFER = 1;
 	#else
-	i32 RGFW_STENCIL = 0, RGFW_SAMPLES = 0, RGFW_STEREO = GL_FALSE, RGFW_AUX_BUFFERS = 0;
+	i32 RGFW_STENCIL = 0, RGFW_SAMPLES = 0, RGFW_STEREO = GL_FALSE, RGFW_AUX_BUFFERS = 0, RGFW_DOUBLE_BUFFER = 1;
 	#endif
 
 
@@ -1785,9 +1792,10 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 	void RGFW_setGLSamples(i32 samples) { RGFW_SAMPLES = samples; }
 	void RGFW_setGLStereo(i32 stereo) { RGFW_STEREO = stereo; }
 	void RGFW_setGLAuxBuffers(i32 auxBuffers) { RGFW_AUX_BUFFERS = auxBuffers; }
+    void RGFW_setDoubleBuffer(b8 useDoubleBuffer) { RGFW_DOUBLE_BUFFER = useDoubleBuffer; } 
 
 	void RGFW_setGLVersion(b8 profile, i32 major, i32 minor) {
-		RGFW_profile = profile;
+        RGFW_profile = profile;
 		RGFW_majorVersion = major;
 		RGFW_minorVersion = minor;
 	}
@@ -4373,18 +4381,18 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		HDC dummy_dc = GetDC(dummyWin);
 
 		PIXELFORMATDESCRIPTOR pfd = {
-			/*.nSize*/  sizeof(pfd),
-			/*.nVersion*/ 1,
-			/*.dwFlags*/ PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-			/*.iPixelType*/ PFD_TYPE_RGBA,
-			/*.cColorBits*/ 24,
+			sizeof(pfd),
+			1, /* version */
+			PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, /* flags */
+		    PFD_TYPE_RGBA, /* ipixel type */
+			24, /* color bits */
 			0, 0, 0, 0, 0, 0,
-			/*.cAlphaBits*/ 8,
+			8, /* alpha bits */
 			0, 0, 0, 0, 0, 0,
-			/*.cDepthBits*/ 32,
-			/*.cStencilBits*/ 8,
+			32, /* depth bits */
+			8, /* stencil bits */ 
 			0,
-			/*.iLayerType*/ PFD_MAIN_PLANE,
+			PFD_MAIN_PLANE, /* Layer type */
 			0, 0, 0, 0
 		};
 
@@ -5120,8 +5128,12 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	}
 
 	RGFW_monitor RGFW_getPrimaryMonitor(void) {
+        #ifdef __cplusplus
+        return win32CreateMonitor(MonitorFromPoint({ 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
+        #else
 		return win32CreateMonitor(MonitorFromPoint((POINT) { 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
-	}
+	    #endif
+    }
 
 	RGFW_monitor* RGFW_getMonitors(void) {
 		RGFW_mInfo info;
