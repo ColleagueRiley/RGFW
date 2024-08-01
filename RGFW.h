@@ -458,7 +458,6 @@ typedef struct RGFW_Event {
 	u32 type; /*!< which event has been sent?*/
 	RGFW_point point; /*!< mouse x, y of event (or drop point) */
 	
-	u32 fps; /*the current fps of the window [the fps is checked when events are checked]*/
 	u64 frameTime, frameTime2; /*!< this is used for counting the fps */
 	
 	u8 keyCode; /*!< keycode of event 	!!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! */
@@ -561,10 +560,7 @@ typedef struct RGFW_window {
 	RGFW_rect r; /*!< the x, y, w and h of the struct */
 	
 	RGFW_point _lastMousePoint; /*!< last cusor point (for raw mouse data) */
-
-	u32 fpsCap; /*!< the fps cap of the window should run at (change this var to change the fps cap, 0 = no limit)*/
-	/*[the fps is capped when events are checked]*/
-
+	
 	u32 _winArgs; /*!< windows args (for RGFW to check) */
 } RGFW_window; /*!< Window structure for managing the window */
 
@@ -903,7 +899,8 @@ RGFWDEF u32 RGFW_isPressedJS(RGFW_window* win, u16 controller, u8 button);
 */
 RGFWDEF void RGFW_window_makeCurrent(RGFW_window* win);
 
-RGFWDEF u64 RGFW_window_checkFPS(RGFW_window* win); /*!< updates fps / sets fps to cap (must by ran manually by the user at the end of a frame), returns win->event.fps */
+/*< updates fps / sets fps to cap (must by ran manually by the user at the end of a frame), returns current fps */
+RGFWDEF u32 RGFW_window_checkFPS(RGFW_window* win, u32 fpsCap);
 
 /* supports openGL, directX, OSMesa, EGL and software rendering */
 RGFWDEF void RGFW_window_swapBuffers(RGFW_window* win); /*!< swap the rendering buffer */
@@ -913,7 +910,7 @@ RGFWDEF void RGFW_window_setGPURender(RGFW_window* win, i8 set);
 RGFWDEF void RGFW_window_setCPURender(RGFW_window* win, i8 set);
 
 /*! native API functions */
-#if defined(RGFW_OPENGL) || (defined(RGFW_OPENGL_ES1) || defined(RGFW_OPENGL_ES2) || defined(RGFW_OPENGL_ES3)) && !defined(RGFW_EGL)
+#if defined(RGFW_OPENGL) || defined(RGFW_EGL)
 	/*! Get max OpenGL version */
 	RGFWDEF u8* RGFW_getMaxGLVersion(void);
 	/*! OpenGL init hints */
@@ -1532,7 +1529,6 @@ RGFW_window* RGFW_window_basic_init(RGFW_rect rect, u16 args) {
 
 	/* set and init the new window's data */
 	win->r = rect;
-	win->fpsCap = 0;
 	win->event.inFocus = 1;
 	win->event.droppedFilesCount = 0;
 	RGFW_joystickCount = 0;
@@ -1674,14 +1670,15 @@ void RGFW_window_mouseUnhold(RGFW_window* win) {
 	}
 }
 
-u64 RGFW_window_checkFPS(RGFW_window* win) {
+u32 RGFW_window_checkFPS(RGFW_window* win, u32 fpsCap) {
 	u64 deltaTime = RGFW_getTimeNS() - win->event.frameTime;
 
+	u32 output_fps = 0;
 	u64 fps = round(1e+9 / deltaTime);
-	win->event.fps = fps;
+	output_fps= fps;
 
-	if (win->fpsCap && fps > win->fpsCap) {
-		u64 frameTimeNS = 1e+9 / win->fpsCap;
+	if (fpsCap && fps > fpsCap) {
+		u64 frameTimeNS = 1e+9 / fpsCap;
 		u64 sleepTimeMS = (frameTimeNS - deltaTime) / 1e6;
 
 		if (sleepTimeMS > 0) {
@@ -1692,14 +1689,14 @@ u64 RGFW_window_checkFPS(RGFW_window* win) {
 
 	win->event.frameTime = RGFW_getTimeNS();
 	
-	if (win->fpsCap == 0)
-		return;
+	if (fpsCap == 0)
+		return (u32) output_fps;
 	
 	deltaTime = RGFW_getTimeNS() - win->event.frameTime2;
-	win->event.fps = round(1e+9 / deltaTime);
+	output_fps = round(1e+9 / deltaTime);
 	win->event.frameTime2 = RGFW_getTimeNS();
 
-	return win->event.fps;
+	return output_fps;
 }
 
 u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { 
@@ -2073,6 +2070,10 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 		eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
 	}
 
+	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
+		eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.EGL_context);
+	}
+
 	#ifdef RGFW_APPLE
 	void* RGFWnsglFramework = NULL;
 	#elif defined(RGFW_WINDOWS)
@@ -2101,8 +2102,6 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 		assert(win != NULL);
 		
 		eglSwapInterval(win->src.EGL_display, swapInterval);
-
-		win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
 
 	}
 #endif /* RGFW_EGL */
@@ -3862,9 +3861,9 @@ Start of Linux / Unix defines
 
 		#if defined(RGFW_OPENGL)	
 		((PFNGLXSWAPINTERVALEXTPROC) glXGetProcAddress((GLubyte*) "glXSwapIntervalEXT"))((Display*) win->src.display, (Window) win->src.window, swapInterval);
+		#else
+		RGFW_UNUSED(swapInterval);
 		#endif
-
-		win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
 	}
 	#endif
 
@@ -5486,7 +5485,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		if (loadSwapFunc == NULL) {
 			fprintf(stderr, "wglSwapIntervalEXT not supported\n");
-			win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
 			return;
 		}
 
@@ -5498,8 +5496,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		if (wglSwapIntervalEXT(swapInterval) == FALSE)
 			fprintf(stderr, "Failed to set swap interval\n");
 		#endif
-
-		win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
 
 	}
 	#endif
@@ -7055,8 +7051,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		
 		NSOpenGLContext_setValues(win->src.ctx, &swapInterval, 222);
 		#endif
-
-		win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
 	}
 	#endif
 	
@@ -7781,10 +7775,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	#endif
 
 	emscripten_webgl_commit_frame();
-	
-	if (win->fpsCap == 0 || win->fpsCap < 100) {
-		emscripten_sleep(0);
-	}
+	emscripten_sleep(0);
 }
 
 
@@ -7797,7 +7788,7 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 
 #ifndef RGFW_EGL
 void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
-	win->fpsCap = (swapInterval == 1) ? 0 : swapInterval;
+
 }
 #endif
 

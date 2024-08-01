@@ -66,12 +66,8 @@ void main()
 int main(void)
 {
     RGFW_setGLVersion(RGFW_GL_CORE, 3, 3);
-
     RGFW_window* window = RGFW_createWindow("LearnOpenGL", RGFW_RECT(SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT), RGFW_ALLOW_DND | RGFW_CENTER);
-     printf("Version OpenGL:           %s\n", glGetString(GL_VERSION));
-     printf("Version GLSL:             %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
-    window->fpsCap = 60;
-
+    
     if (window == NULL)
     {
         printf("Failed to create RGFW window\n");
@@ -165,6 +161,8 @@ int main(void)
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+    u32 fps = 0;
+
     // render loop
     // -----------
     bool running = true;
@@ -190,9 +188,10 @@ int main(void)
         // glBindVertexArray(0); // no need to unbind it every time
 
         if (RGFW_isPressed(window, RGFW_Space))
-            printf("fps : %i\n", window->event.fps);
+            printf("fps : %i\n", fps);
                         
         RGFW_window_swapBuffers(window);
+        fps = RGFW_window_checkFPS(window, 60);
     }
 
     glDeleteVertexArrays(1, &VAO);

@@ -12,7 +12,6 @@
 int main(void) {
     RGFW_setBufferSize(RGFW_AREA(500, 500));
     RGFW_window* win = RGFW_createWindow("Basic buffer example", RGFW_RECT(0, 0, 500, 500), RGFW_CENTER | RGFW_TRANSPARENT_WINDOW | RGFW_NO_RESIZE);
-    win->fpsCap = 60;
 
     u32 angle = 0;
 
@@ -59,6 +58,7 @@ int main(void) {
         angle++;
 
         RGFW_window_swapBuffers(win);
+        RGFW_window_checkFPS(win, 60);
     }
 
     RGFW_window_close(win);
