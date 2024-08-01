@@ -1689,7 +1689,7 @@ u32 RGFW_window_checkFPS(RGFW_window* win, u32 fpsCap) {
 
 	win->event.frameTime = RGFW_getTimeNS();
 	
-	if (fpsCap == 0)
+	if (fpsCap == 0) 
 		return (u32) output_fps;
 	
 	deltaTime = RGFW_getTimeNS() - win->event.frameTime2;
@@ -7627,7 +7627,6 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 	if (RGFW_eventLen == 0)
 		return NULL;
 	
-	RGFW_events[index].fps = win->event.fps;
 	RGFW_events[index].frameTime = win->event.frameTime;
 	RGFW_events[index].frameTime2 = win->event.frameTime2;
 	RGFW_events[index].inFocus = win->event.inFocus;
@@ -7787,9 +7786,7 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 }
 
 #ifndef RGFW_EGL
-void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
-
-}
+void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) { RGFW_UNUSED(win); RGFW_UNUSED(swapInterval); }
 #endif
 
 void RGFW_window_close(RGFW_window* win) {
