@@ -7737,6 +7737,8 @@ char* RGFW_readClipboard(size_t* size) {
 }
 
 void RGFW_window_swapBuffers(RGFW_window* win) {
+	RGFW_UNUSED(win);
+	
 	#ifdef RGFW_BUFFER
 	if (!(win->_winArgs & RGFW_NO_CPU_RENDER)) {		
 		glEnable(GL_TEXTURE_2D);
