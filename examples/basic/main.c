@@ -50,6 +50,8 @@ int main(void) {
     glClearColor(0, 0, 0, 0);
 
     RGFW_window_setMouseStandard(win, RGFW_MOUSE_RESIZE_NESW);
+    
+    u32 fps = 0;
 
     while (running && !RGFW_isPressed(win, RGFW_Escape)) {   
         #ifdef __APPLE__
@@ -77,7 +79,7 @@ int main(void) {
             else if (RGFW_isPressed(win, RGFW_Down))
                 RGFW_writeClipboard("DOWN", 4);
             else if (RGFW_isPressed(win, RGFW_Space))
-                printf("fps : %i\n", win->event.fps);
+                printf("fps : %i\n", fps);
             else if (RGFW_isPressed(win, RGFW_w))
                 RGFW_window_setMouseDefault(win);
             else if (RGFW_isPressed(win, RGFW_q))
@@ -99,6 +101,7 @@ int main(void) {
         }
 
         drawLoop(win);
+        fps = RGFW_window_checkFPS(win, 0);
     }
 
     running2 = 0;

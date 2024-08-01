@@ -1,4 +1,4 @@
-.TH "RGFW_window" 3 "Wed Jul 31 2024" "RGFW" \" -*- nroff -*-
+.TH "RGFW_window" 3 "Thu Aug 1 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -27,9 +27,6 @@ RGFW_window
 .RI "\fBRGFW_point\fP \fB_lastMousePoint\fP"
 .br
 .ti -1c
-.RI "\fBu32\fP \fBfpsCap\fP"
-.br
-.ti -1c
 .RI "\fBu32\fP \fB_winArgs\fP"
 .br
 .in -1c
@@ -41,8 +38,6 @@ last cusor point (for raw mouse data)
 windows args (for RGFW to check) 
 .SS "\fBRGFW_Event\fP RGFW_window::event"
 current event 
-.SS "\fBu32\fP RGFW_window::fpsCap"
-the fps cap of the window should run at (change this var to change the fps cap, 0 = no limit) 
 .SS "\fBRGFW_rect\fP RGFW_window::r"
 the x, y, w and h of the struct 
 .SS "\fBRGFW_window_src\fP RGFW_window::src"

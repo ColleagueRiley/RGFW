@@ -11,7 +11,6 @@ RGFWDEF void glPerspective(double fovY, double aspect, double zNear, double zFar
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("First person camera", RGFW_RECT(0, 0, 800, 450), RGFW_CENTER | RGFW_NO_RESIZE );
-    win->fpsCap = 60;
 
     RGFW_window_showMouse(win, 0);
     glEnable(GL_DEPTH_TEST);
@@ -137,6 +136,7 @@ int main(void) {
         glEnd();
 
         RGFW_window_swapBuffers(win);
+        RGFW_window_checkFPS(win, 60);
     }
 
     glDeleteTextures(1, &texture);
