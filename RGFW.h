@@ -4383,8 +4383,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
         
         u32 pfd_flags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL; 
         
-        if (RGFW_DOUBLE_BUFFER)    
-            pfd_flags |= PFD_DOUBLEBUFFER;
+        //if (RGFW_DOUBLE_BUFFER)    
+             pfd_flags |= PFD_DOUBLEBUFFER;
 		
         PIXELFORMATDESCRIPTOR pfd = {
 			sizeof(pfd),
@@ -4418,7 +4418,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		ReleaseDC(dummyWin, dummy_dc);
 
 		if (wglCreateContextAttribsARB != NULL) {
-			PIXELFORMATDESCRIPTOR pfd = (PIXELFORMATDESCRIPTOR){ sizeof(pfd), 1, PFD_TYPE_RGBA, PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, 32, 8, PFD_MAIN_PLANE, 24, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+			PIXELFORMATDESCRIPTOR pfd = (PIXELFORMATDESCRIPTOR){ sizeof(pfd), 1, pfd_flags, PFD_TYPE_RGBA, 32, 8, PFD_MAIN_PLANE, 24, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 			if (args & RGFW_OPENGL_SOFTWARE)
 				pfd.dwFlags |= PFD_GENERIC_FORMAT | PFD_GENERIC_ACCELERATED;
@@ -7485,7 +7485,12 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
     attrs.antialias = RGFW_SAMPLES;
     attrs.premultipliedAlpha = EM_TRUE;
     attrs.preserveDrawingBuffer = EM_FALSE;
-	attrs.renderViaOffscreenBackBuffer = RGFW_AUX_BUFFERS;
+	
+    if (RGFW_DOUBLE_BUFFER == 0)
+        attrs.renderViaOffscreenBackBuffer = 0;
+    else
+        attrs.renderViaOffscreenBackBuffer = RGFW_AUX_BUFFERS;
+    
     attrs.failIfMajorPerformanceCaveat = EM_FALSE;
 	attrs.majorVersion = (RGFW_majorVersion == 0) ? 1 : RGFW_majorVersion;
 	attrs.minorVersion = RGFW_minorVersion;
