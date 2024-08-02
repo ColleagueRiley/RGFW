@@ -7340,46 +7340,55 @@ EM_BOOL Emscripten_on_wheel(int eventType, const EmscriptenWheelEvent* e, void* 
 EM_BOOL Emscripten_on_touchstart(int eventType, const EmscriptenTouchEvent* e, void* userData) { 
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
-	RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonPressed;
-	RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->touches[0].targetX, e->touches[0].targetY);
-	RGFW_events[RGFW_eventLen].button = 1; 
-	RGFW_events[RGFW_eventLen].scroll = 0;
+    size_t i; 
+    for (i = 0; i < (size_t)e->numTouches; i++) { 
+	    RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonPressed;
+	    RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY);
+	    RGFW_events[RGFW_eventLen].button = 1; 
+	    RGFW_events[RGFW_eventLen].scroll = 0;
 
 
-	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;	
-	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current = 1;
+	    RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;	
+	    RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current = 1;
 
-	RGFW_mouseButtonCallback(RGFW_root, RGFW_events[RGFW_eventLen].button, RGFW_events[RGFW_eventLen].scroll, 1);
-	RGFW_eventLen++;
+        RGFW_mousePosCallback(RGFW_root, RGFW_events[RGFW_eventLen].point);
+
+	    RGFW_mouseButtonCallback(RGFW_root, RGFW_events[RGFW_eventLen].button, RGFW_events[RGFW_eventLen].scroll, 1);
+    	RGFW_eventLen++;
+    }
 
 	return EM_TRUE;
 }
 EM_BOOL Emscripten_on_touchmove(int eventType, const EmscriptenTouchEvent* e, void* userData) { 
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
+    
+    size_t i; 
+    for (i = 0; i < (size_t)e->numTouches; i++) { 
+   	    RGFW_events[RGFW_eventLen].type = RGFW_mousePosChanged;
+	    RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY);
 
-	RGFW_events[RGFW_eventLen].type = RGFW_mousePosChanged;
-	RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->touches[0].targetX, e->touches[0].targetY);
-
-	RGFW_mousePosCallback(RGFW_root, RGFW_events[RGFW_eventLen].point);
-	RGFW_eventLen++;
-
-	return EM_TRUE;
+        RGFW_mousePosCallback(RGFW_root, RGFW_events[RGFW_eventLen].point);
+	    RGFW_eventLen++;
+    }
+    return EM_TRUE;
 }
 
 EM_BOOL Emscripten_on_touchend(int eventType, const EmscriptenTouchEvent* e, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 	
-	RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonReleased;
-	RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->touches[0].targetX, e->touches[0].targetY);
-	RGFW_events[RGFW_eventLen].button = 1; 
-	RGFW_events[RGFW_eventLen].scroll = 0;
+    size_t i; 
+    for (i = 0; i < (size_t)e->numTouches; i++) { 
+	    RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonReleased;
+	    RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY);
+	    RGFW_events[RGFW_eventLen].button = 1; 
+	    RGFW_events[RGFW_eventLen].scroll = 0;
 
-	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;	
-	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current = 0;
-
-	RGFW_mouseButtonCallback(RGFW_root, RGFW_events[RGFW_eventLen].button, RGFW_events[RGFW_eventLen].scroll, 0);
-	RGFW_eventLen++;
-
+	    RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;	
+	    RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current = 0;
+        
+	    RGFW_mouseButtonCallback(RGFW_root, RGFW_events[RGFW_eventLen].button, RGFW_events[RGFW_eventLen].scroll, 0);
+	    RGFW_eventLen++;
+    }
 	return EM_TRUE;
 }
 
