@@ -7341,7 +7341,7 @@ EM_BOOL Emscripten_on_touchstart(int eventType, const EmscriptenTouchEvent* e, v
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
     size_t i; 
-    for (i = 0; i < e->numTouches; i++) { 
+    for (i = 0; i < (size_t)e->numTouches; i++) { 
 	    RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonPressed;
 	    RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY);
 	    RGFW_events[RGFW_eventLen].button = 1; 
@@ -7363,7 +7363,7 @@ EM_BOOL Emscripten_on_touchmove(int eventType, const EmscriptenTouchEvent* e, vo
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
     
     size_t i; 
-    for (i = 0; i < e->numTouches; i++) { 
+    for (i = 0; i < (size_t)e->numTouches; i++) { 
    	    RGFW_events[RGFW_eventLen].type = RGFW_mousePosChanged;
 	    RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY);
 
@@ -7377,7 +7377,7 @@ EM_BOOL Emscripten_on_touchend(int eventType, const EmscriptenTouchEvent* e, voi
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 	
     size_t i; 
-    for (i = 0; i < e->numTouches; i++) { 
+    for (i = 0; i < (size_t)e->numTouches; i++) { 
 	    RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonReleased;
 	    RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY);
 	    RGFW_events[RGFW_eventLen].button = 1; 
