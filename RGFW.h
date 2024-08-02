@@ -1896,9 +1896,8 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 			attribs[index + 1] = attVal;\
 			index += 2;\
 		}
-        
-        if (RGFW_DOUBLE_BUFFER)
-            RGFW_GL_ADD_ATTRIB(RGFW_GL_DOUBLEBUFFER, 1);
+         
+        RGFW_GL_ADD_ATTRIB(RGFW_GL_DOUBLEBUFFER, 1);
         
         RGFW_GL_ADD_ATTRIB(RGFW_GL_STENCIL_SIZE, RGFW_STENCIL);
 		RGFW_GL_ADD_ATTRIB(RGFW_GL_STEREO, RGFW_STEREO);
