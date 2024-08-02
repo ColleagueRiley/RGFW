@@ -893,15 +893,15 @@ function dbg(...args) {
 // === Body ===
 
 var ASM_CONSTS = {
-  69408: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 70427: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 70498: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 70555: () => { return window.mouseX || 0; },  
- 70586: () => { return window.mouseY || 0; },  
- 70617: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 70764: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 70817: () => { return window.innerWidth; },  
- 70847: () => { return window.innerHeight; }
+  69416: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
+ 70435: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 70506: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 70563: () => { return window.mouseX || 0; },  
+ 70594: () => { return window.mouseY || 0; },  
+ 70625: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
+ 70772: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 70825: () => { return window.innerWidth; },  
+ 70855: () => { return window.innerHeight; }
 };
 
 // end include: preamble.js
