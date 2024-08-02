@@ -1862,11 +1862,6 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 								#endif
 								RGFW_GL_ALPHA_SIZE      , 8,
 								RGFW_GL_DEPTH_SIZE      , 24,
-								RGFW_GL_DOUBLEBUFFER    ,
-								#ifndef RGFW_MACOS
-								1,
-								#endif
-
 								#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
 								RGFW_GL_USE_OPENGL,		1,
 								RGFW_GL_DRAW, 1,
@@ -1901,8 +1896,11 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 			attribs[index + 1] = attVal;\
 			index += 2;\
 		}
-
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_STENCIL_SIZE, RGFW_STENCIL);
+        
+        if (RGFW_DOUBLE_BUFFER)
+            RGFW_GL_ADD_ATTRIB(RGFW_GL_DOUBLEBUFFER, 1);
+        
+        RGFW_GL_ADD_ATTRIB(RGFW_GL_STENCIL_SIZE, RGFW_STENCIL);
 		RGFW_GL_ADD_ATTRIB(RGFW_GL_STEREO, RGFW_STEREO);
 		RGFW_GL_ADD_ATTRIB(RGFW_GL_AUX_BUFFERS, RGFW_AUX_BUFFERS);
 
@@ -2045,12 +2043,15 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 			#else
 			2,
 			#endif
-			EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE
+			EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE,
 		};
 
 		size_t index = 4;
 		RGFW_GL_ADD_ATTRIB(EGL_STENCIL_SIZE, RGFW_STENCIL);
 		RGFW_GL_ADD_ATTRIB(EGL_SAMPLES, RGFW_SAMPLES);
+
+        if (RGFW_DOUBLE_BUFFER)
+            RGFW_GL_ADD_ATTRIB(EGL_RENDER_BUFFER, EGL_BACK_BUFFER);
 
 		if (RGFW_majorVersion) {
 			attribs[1] = RGFW_majorVersion;
@@ -4379,11 +4380,16 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 #ifdef RGFW_OPENGL 
 		HDC dummy_dc = GetDC(dummyWin);
-
-		PIXELFORMATDESCRIPTOR pfd = {
+        
+        u32 pfd_flags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL; 
+        
+        if (RGFW_DOUBLE_BUFFER)    
+            pfd_flags |= PFD_DOUBLEBUFFER;
+		
+        PIXELFORMATDESCRIPTOR pfd = {
 			sizeof(pfd),
 			1, /* version */
-			PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, /* flags */
+			pfd_flags,
 		    PFD_TYPE_RGBA, /* ipixel type */
 			24, /* color bits */
 			0, 0, 0, 0, 0, 0,
@@ -5507,7 +5513,9 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		if (wglSwapIntervalEXT(swapInterval) == FALSE)
 			fprintf(stderr, "Failed to set swap interval\n");
-		#endif
+		#else
+        RGFW_UNUSED(swapInterval);
+        #endif
 
 	}
 	#endif
