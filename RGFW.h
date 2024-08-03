@@ -2698,7 +2698,7 @@ Start of Linux / Unix defines
 						RGFW_jsButtonCallback(win, i, e.number, e.value);
 						return &win->event;
 					case JS_EVENT_AXIS: {
-						ioctl(RGFW_joysticks[i], JSIOCGAXES, &win->event.axisCount);
+						ioctl(RGFW_joysticks[i], JSIOCGAXES, &win->event.axisesCount);
 	
 						if ((e.number == 0 || e.number % 2) && e.number != 1)
 							xAxis = e.value;

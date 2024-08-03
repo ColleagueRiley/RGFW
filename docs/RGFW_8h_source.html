@@ -2546,7 +2546,7 @@ $(function() {
 <div class="line"><a id="l02698" name="l02698"></a><span class="lineno"> 2698</span>                        RGFW_jsButtonCallback(win, i, e.number, e.value);</div>
 <div class="line"><a id="l02699" name="l02699"></a><span class="lineno"> 2699</span>                        <span class="keywordflow">return</span> &amp;win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>;</div>
 <div class="line"><a id="l02700" name="l02700"></a><span class="lineno"> 2700</span>                    <span class="keywordflow">case</span> JS_EVENT_AXIS: {</div>
-<div class="line"><a id="l02701" name="l02701"></a><span class="lineno"> 2701</span>                        ioctl(RGFW_joysticks[i], JSIOCGAXES, &amp;win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.axisCount);</div>
+<div class="line"><a id="l02701" name="l02701"></a><span class="lineno"> 2701</span>                        ioctl(RGFW_joysticks[i], JSIOCGAXES, &amp;win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#acf99a876c09df1c60733653e3d77e489">axisesCount</a>);</div>
 <div class="line"><a id="l02702" name="l02702"></a><span class="lineno"> 2702</span>    </div>
 <div class="line"><a id="l02703" name="l02703"></a><span class="lineno"> 2703</span>                        <span class="keywordflow">if</span> ((e.number == 0 || e.number % 2) &amp;&amp; e.number != 1)</div>
 <div class="line"><a id="l02704" name="l02704"></a><span class="lineno"> 2704</span>                            xAxis = e.value;</div>
