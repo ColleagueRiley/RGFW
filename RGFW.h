@@ -97,7 +97,10 @@
 #ifndef RGFW_MALLOC
 	#include <stdlib.h>
 
+	#ifndef __USE_POSIX199309
 	#define __USE_POSIX199309
+	#endif
+
 	#include <time.h>
 	#define RGFW_MALLOC malloc
 	#define RGFW_CALLOC calloc
@@ -2694,10 +2697,8 @@ Start of Linux / Unix defines
 						RGFW_jsPressed[i][e.number] = e.value;
 						RGFW_jsButtonCallback(win, i, e.number, e.value);
 						return &win->event;
-					case JS_EVENT_AXIS:
-						u8 axisCount;
-						ioctl(RGFW_joysticks[i], JSIOCGAXES, &axisCount);
-						win->event.axisesCount = axisCount;
+					case JS_EVENT_AXIS: {
+						ioctl(RGFW_joysticks[i], JSIOCGAXES, &win->event.axisCount);
 	
 						if ((e.number == 0 || e.number % 2) && e.number != 1)
 							xAxis = e.value;
@@ -2710,6 +2711,7 @@ Start of Linux / Unix defines
 						win->event.joystick = i;
 						RGFW_jsAxisCallback(win, i, win->event.axis, win->event.axisesCount);
 						return &win->event;
+					}
 
 					default: break;
 					}
