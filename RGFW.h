@@ -250,6 +250,14 @@
 		#endif
 	#endif
 
+#elif defined(RGFW_WAYLAND)
+    #if !defined(RGFW_NO_API) && (!defined(RGFW_BUFFER) || defined(RGFW_OPENGL))
+		#define RGFW_EGL
+		#define RGFW_OPENGL
+		#include <wayland-egl.h>
+	#endif
+
+	#include <wayland-client.h>
 #elif (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  && !defined(RGFW_WEBASM)
 	#define RGFW_MACOS_X11
 	#define RGFW_X11
@@ -526,6 +534,26 @@ typedef struct RGFW_window_src {
 		XImage* bitmap;
 		GC gc;
 #endif
+#elif defined(RGFW_WAYLAND)
+	struct wl_display* display;
+	struct wl_surface* surface;
+	struct wl_buffer* wl_buffer;
+	struct wl_keyboard* keyboard;
+
+	struct xdg_surface* xdg_surface;
+	struct xdg_toplevel* xdg_toplevel;
+	struct zxdg_toplevel_decoration_v1* decoration;
+	RGFW_Event events[20];
+		i32 eventLen;
+		size_t eventIndex;
+	#if defined(RGFW_EGL)
+			struct wl_egl_window* window;
+			EGLSurface EGL_surface;
+			EGLDisplay EGL_display;
+			EGLContext EGL_context;
+	#elif defined(RGFW_OSMESA)
+		OSMesaContext ctx;
+	#endif
 #elif defined(RGFW_MACOS)
 	u32 display;
 	void* displayLink;
@@ -1149,14 +1177,17 @@ int main() {
 */
 
 #ifdef RGFW_X11
-	#define RGFW_OS_BASED_VALUE(l, w, m, h) l
+	#define RGFW_OS_BASED_VALUE(l, w, m, h, ww) l
 #elif defined(RGFW_WINDOWS)
-	#define RGFW_OS_BASED_VALUE(l, w, m, h) w
+	#define RGFW_OS_BASED_VALUE(l, w, m, h, ww) w
 #elif defined(RGFW_MACOS)
-	#define RGFW_OS_BASED_VALUE(l, w, m, h) m
+	#define RGFW_OS_BASED_VALUE(l, w, m, h, ww) m
 #elif defined(RGFW_WEBASM)
-	#define RGFW_OS_BASED_VALUE(l, w, m, h) h
+	#define RGFW_OS_BASED_VALUE(l, w, m, h, ww) h
+#elif defined(RGFW_WAYLAND)
+    #define RGFW_OS_BASED_VALUE(l, w, m, h, ww) ww  
 #endif
+
 
 #ifdef RGFW_IMPLEMENTATION
 
@@ -1190,121 +1221,128 @@ This is the start of keycode data
 #define RGFW_MAP RGFW_keycodes
 #endif
 
-u8 RGFW_keycodes [RGFW_OS_BASED_VALUE(136, 337, 128, DOM_VK_WIN_OEM_CLEAR + 1)] = {
+#ifdef RGFW_WAYLAND
+#include <linux/input-event-codes.h>
+#endif
+
+u8 RGFW_keycodes [RGFW_OS_BASED_VALUE(136, 337, 128, DOM_VK_WIN_OEM_CLEAR + 1, 130)] = {
 #ifdef __cplusplus
 	0
 };
 void RGFW_init_keys(void) {
 #endif
-	RGFW_MAP [RGFW_OS_BASED_VALUE(49, 192, 50, DOM_VK_BACK_QUOTE)] = RGFW_Backtick 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(49, 192, 50, DOM_VK_BACK_QUOTE, KEY_GRAVE)] = RGFW_Backtick 		RGFW_NEXT
 
-	RGFW_MAP [RGFW_OS_BASED_VALUE(19, 0x30, 29, DOM_VK_0)] = RGFW_0 					RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(10, 0x31, 18, DOM_VK_1)] = RGFW_1						RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(11, 0x32, 19, DOM_VK_2)] = RGFW_2						RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(12, 0x33, 20, DOM_VK_3)] = RGFW_3						RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(13, 0x34, 21, DOM_VK_4)] = RGFW_4						RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(14, 0x35, 23, DOM_VK_5)] = RGFW_5                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(15, 0x36, 22, DOM_VK_6)] = RGFW_6                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(16, 0x37, 26, DOM_VK_7)] = RGFW_7                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(17, 0x38, 28, DOM_VK_8)] = RGFW_8                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(18, 0x39, 25, DOM_VK_9)] = RGFW_9,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(19, 0x30, 29, DOM_VK_0, KEY_0)] = RGFW_0 					RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(10, 0x31, 18, DOM_VK_1, KEY_1)] = RGFW_1						RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(11, 0x32, 19, DOM_VK_2, KEY_2)] = RGFW_2						RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(12, 0x33, 20, DOM_VK_3, KEY_3)] = RGFW_3						RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(13, 0x34, 21, DOM_VK_4, KEY_4)] = RGFW_4						RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(14, 0x35, 23, DOM_VK_5, KEY_5)] = RGFW_5                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(15, 0x36, 22, DOM_VK_6, KEY_6)] = RGFW_6                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(16, 0x37, 26, DOM_VK_7, KEY_7)] = RGFW_7                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(17, 0x38, 28, DOM_VK_8, KEY_8)] = RGFW_8                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(18, 0x39, 25, DOM_VK_9, KEY_9)] = RGFW_9,
 
-	RGFW_MAP [RGFW_OS_BASED_VALUE(65, 0x20, 49, DOM_VK_SPACE)] = RGFW_Space,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(65, 0x20, 49, DOM_VK_SPACE, KEY_SPACE)] = RGFW_Space,
 
-	RGFW_MAP [RGFW_OS_BASED_VALUE(38, 0x41, 0, DOM_VK_A)] = RGFW_a                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(56, 0x42, 11, DOM_VK_B)] = RGFW_b                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(54, 0x43, 8, DOM_VK_C)] = RGFW_c                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(40, 0x44, 2, DOM_VK_D)] = RGFW_d                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(26, 0x45, 14, DOM_VK_E)] = RGFW_e                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(41, 0x46, 3, DOM_VK_F)] = RGFW_f                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(42, 0x47, 5, DOM_VK_G)] = RGFW_g                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(43, 0x48, 4, DOM_VK_H)] = RGFW_h                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(31, 0x49, 34, DOM_VK_I)] = RGFW_i                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(44, 0x4A, 38, DOM_VK_J)] = RGFW_j                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(45, 0x4B, 40, DOM_VK_K)] = RGFW_k                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(46, 0x4C, 37, DOM_VK_L)] = RGFW_l                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(58, 0x4D, 46, DOM_VK_M)] = RGFW_m                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(57, 0x4E, 45, DOM_VK_N)] = RGFW_n                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(32, 0x4F, 31, DOM_VK_O)] = RGFW_o                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(33, 0x50, 35, DOM_VK_P)] = RGFW_p                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(24, 0x51, 12, DOM_VK_Q)] = RGFW_q                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(27, 0x52, 15, DOM_VK_R)] = RGFW_r                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(39, 0x53, 1, DOM_VK_S)] = RGFW_s                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(28, 0x54, 17, DOM_VK_T)] = RGFW_t                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(30, 0x55, 32, DOM_VK_U)] = RGFW_u                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(55, 0x56, 9, DOM_VK_V)] = RGFW_v                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(25, 0x57, 13, DOM_VK_W)] = RGFW_w                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(53, 0x58, 7, DOM_VK_X)] = RGFW_x                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(29, 0x59, 16, DOM_VK_Y)] = RGFW_y                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(52, 0x5A, 6, DOM_VK_Z)] = RGFW_z,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(38, 0x41, 0, DOM_VK_A, KEY_A)] = RGFW_a                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(56, 0x42, 11, DOM_VK_B, KEY_B)] = RGFW_b                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(54, 0x43, 8, DOM_VK_C, KEY_C)] = RGFW_c                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(40, 0x44, 2, DOM_VK_D, KEY_D)] = RGFW_d                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(26, 0x45, 14, DOM_VK_E, KEY_E)] = RGFW_e                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(41, 0x46, 3, DOM_VK_F, KEY_F)] = RGFW_f                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(42, 0x47, 5, DOM_VK_G, KEY_G)] = RGFW_g                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(43, 0x48, 4, DOM_VK_H, KEY_H)] = RGFW_h                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(31, 0x49, 34, DOM_VK_I, KEY_I)] = RGFW_i                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(44, 0x4A, 38, DOM_VK_J, KEY_J)] = RGFW_j                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(45, 0x4B, 40, DOM_VK_K, KEY_K)] = RGFW_k                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(46, 0x4C, 37, DOM_VK_L, KEY_L)] = RGFW_l                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(58, 0x4D, 46, DOM_VK_M, KEY_M)] = RGFW_m                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(57, 0x4E, 45, DOM_VK_N, KEY_N)] = RGFW_n                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(32, 0x4F, 31, DOM_VK_O, KEY_O)] = RGFW_o                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(33, 0x50, 35, DOM_VK_P, KEY_P)] = RGFW_p                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(24, 0x51, 12, DOM_VK_Q, KEY_Q)] = RGFW_q                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(27, 0x52, 15, DOM_VK_R, KEY_R)] = RGFW_r                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(39, 0x53, 1, DOM_VK_S, KEY_S)] = RGFW_s                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(28, 0x54, 17, DOM_VK_T, KEY_T)] = RGFW_t                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(30, 0x55, 32, DOM_VK_U, KEY_U)] = RGFW_u                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(55, 0x56, 9, DOM_VK_V, KEY_V)] = RGFW_v                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(25, 0x57, 13, DOM_VK_W, KEY_W)] = RGFW_w                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(53, 0x58, 7, DOM_VK_X, KEY_X)] = RGFW_x                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(29, 0x59, 16, DOM_VK_Y, KEY_Y)] = RGFW_y                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(52, 0x5A, 6, DOM_VK_Z, KEY_Z)] = RGFW_z,
 
-	RGFW_MAP [RGFW_OS_BASED_VALUE(60, 190, 47, DOM_VK_PERIOD)] = RGFW_Period             			RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(59, 188, 43, DOM_VK_COMMA)] = RGFW_Comma               			RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(61, 191, 44, DOM_VK_SLASH)] = RGFW_Slash               			RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(34, 219, 33, DOM_VK_OPEN_BRACKET)] = RGFW_Bracket      			RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(35, 221, 30, DOM_VK_CLOSE_BRACKET)] = RGFW_CloseBracket             RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(47, 186, 41, DOM_VK_SEMICOLON)] = RGFW_Semicolon                 RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(48, 222, 39, DOM_VK_QUOTE)] = RGFW_Quote                 			RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(51, 322, 42, DOM_VK_BACK_SLASH)] = RGFW_BackSlash,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(60, 190, 47, DOM_VK_PERIOD, KEY_DOT)] = RGFW_Period             			RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(59, 188, 43, DOM_VK_COMMA, KEY_COMMA)] = RGFW_Comma               			RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(61, 191, 44, DOM_VK_SLASH, KEY_SLASH)] = RGFW_Slash               			RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(34, 219, 33, DOM_VK_OPEN_BRACKET, KEY_LEFTBRACE)] = RGFW_Bracket      			RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(35, 221, 30, DOM_VK_CLOSE_BRACKET, KEY_RIGHTBRACE)] = RGFW_CloseBracket             RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(47, 186, 41, DOM_VK_SEMICOLON, KEY_SEMICOLON)] = RGFW_Semicolon                 RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(48, 222, 39, DOM_VK_QUOTE, KEY_APOSTROPHE)] = RGFW_Quote                 			RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(51, 322, 42, DOM_VK_BACK_SLASH, KEY_BACKSLASH)] = RGFW_BackSlash,
 	
-	RGFW_MAP [RGFW_OS_BASED_VALUE(36, 0x0D, 36, DOM_VK_RETURN)] = RGFW_Return              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(119, 0x2E, 118, DOM_VK_DELETE)] = RGFW_Delete                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(77, 0x90, 72, DOM_VK_NUM_LOCK)] = RGFW_Numlock               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(106, 0x6F, 82, DOM_VK_DIVIDE)] = RGFW_KP_Slash               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(63, 0x6A, 76, DOM_VK_MULTIPLY)] = RGFW_Multiply              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(82, 0x6D, 67, DOM_VK_SUBTRACT)] = RGFW_KP_Minus              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(87, 0x61, 84, DOM_VK_NUMPAD1)] = RGFW_KP_1               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(88, 0x62, 85, DOM_VK_NUMPAD2)] = RGFW_KP_2               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(89, 0x63, 86, DOM_VK_NUMPAD3)] = RGFW_KP_3               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(83, 0x64, 87, DOM_VK_NUMPAD4)] = RGFW_KP_4               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(84, 0x65, 88, DOM_VK_NUMPAD5)] = RGFW_KP_5               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(85, 0x66, 89, DOM_VK_NUMPAD6)] = RGFW_KP_6               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(79, 0x67, 90, DOM_VK_NUMPAD7)] = RGFW_KP_7               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(80, 0x68, 92, DOM_VK_NUMPAD8)] = RGFW_KP_8               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(81, 0x69, 93, DOM_VK_NUMPAD9)] = RGFW_KP_9               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(90, 0x60, 83, DOM_VK_NUMPAD0)] = RGFW_KP_0               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(91, 0x6E, 65, DOM_VK_DECIMAL)] = RGFW_KP_Period              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(104, 0x92, 77, 0)] = RGFW_KP_Return,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(36, 0x0D, 36, DOM_VK_RETURN, KEY_ENTER)] = RGFW_Return              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(119, 0x2E, 118, DOM_VK_DELETE, KEY_DELETE)] = RGFW_Delete                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(77, 0x90, 72, DOM_VK_NUM_LOCK, KEY_NUMLOCK)] = RGFW_Numlock               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(106, 0x6F, 82, DOM_VK_DIVIDE, KEY_KPSLASH)] = RGFW_KP_Slash               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(63, 0x6A, 76, DOM_VK_MULTIPLY, KEY_KPASTERISK)] = RGFW_Multiply              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(82, 0x6D, 67, DOM_VK_SUBTRACT, KEY_KPMINUS)] = RGFW_KP_Minus              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(87, 0x61, 84, DOM_VK_NUMPAD1, KEY_KP1)] = RGFW_KP_1               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(88, 0x62, 85, DOM_VK_NUMPAD2, KEY_KP2)] = RGFW_KP_2               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(89, 0x63, 86, DOM_VK_NUMPAD3, KEY_KP3)] = RGFW_KP_3               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(83, 0x64, 87, DOM_VK_NUMPAD4, KEY_KP4)] = RGFW_KP_4               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(84, 0x65, 88, DOM_VK_NUMPAD5, KEY_KP5)] = RGFW_KP_5               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(85, 0x66, 89, DOM_VK_NUMPAD6, KEY_KP6)] = RGFW_KP_6               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(79, 0x67, 90, DOM_VK_NUMPAD7, KEY_KP7)] = RGFW_KP_7               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(80, 0x68, 92, DOM_VK_NUMPAD8, KEY_KP8)] = RGFW_KP_8               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(81, 0x69, 93, DOM_VK_NUMPAD9, KEY_KP9)] = RGFW_KP_9               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(90, 0x60, 83, DOM_VK_NUMPAD0, KEY_KP0)] = RGFW_KP_0               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(91, 0x6E, 65, DOM_VK_DECIMAL, KEY_KPDOT)] = RGFW_KP_Period              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(104, 0x92, 77, 0, KEY_KPENTER)] = RGFW_KP_Return,
 	
-	RGFW_MAP [RGFW_OS_BASED_VALUE(20, 189, 27, DOM_VK_HYPHEN_MINUS)] = RGFW_Minus              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(21, 187, 24, DOM_VK_EQUALS)] = RGFW_Equals               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(22, 8, 51, DOM_VK_BACK_SPACE)] = RGFW_BackSpace              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(23, 0x09, 48, DOM_VK_TAB)] = RGFW_Tab                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(66, 20, 57, DOM_VK_CAPS_LOCK)] = RGFW_CapsLock               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(50, 0x10, 56, DOM_VK_SHIFT)] = RGFW_ShiftL               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(37, 0x11, 59, DOM_VK_CONTROL)] = RGFW_ControlL               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(64, 164, 58, DOM_VK_ALT)] = RGFW_AltL                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(133, 0x5B, 55, DOM_VK_WIN)] = RGFW_SuperL,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(20, 189, 27, DOM_VK_HYPHEN_MINUS, KEY_MINUS)] = RGFW_Minus              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(21, 187, 24, DOM_VK_EQUALS, KEY_EQUAL)] = RGFW_Equals               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(22, 8, 51, DOM_VK_BACK_SPACE, KEY_BACKSPACE)] = RGFW_BackSpace              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(23, 0x09, 48, DOM_VK_TAB, KEY_TAB)] = RGFW_Tab                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(66, 20, 57, DOM_VK_CAPS_LOCK, KEY_CAPSLOCK)] = RGFW_CapsLock               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(50, 0xA0, 56, DOM_VK_SHIFT, KEY_LEFTSHIFT)] = RGFW_ShiftL               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(37, 0x11, 59, DOM_VK_CONTROL, KEY_LEFTCTRL)] = RGFW_ControlL               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(64, 164, 58, DOM_VK_ALT, KEY_LEFTALT)] = RGFW_AltL                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(133, 0x5B, 55, DOM_VK_WIN, KEY_LEFTMETA)] = RGFW_SuperL,
 	
 	#if !defined(RGFW_WINDOWS) && !defined(RGFW_MACOS) && !defined(RGFW_WEBASM)
-	RGFW_MAP [RGFW_OS_BASED_VALUE(105, 0x11, 59, 0)] = RGFW_ControlR               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(135, 0xA4, 55, 0)] = RGFW_SuperR,
-	RGFW_MAP [RGFW_OS_BASED_VALUE(62, 0x5C, 56, 0)] = RGFW_ShiftR              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(108, 165, 58, 0)] = RGFW_AltR,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(105, 0x11, 59, 0, KEY_RIGHTCTRL)] = RGFW_ControlR               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(135, 0xA4, 55, 0, KEY_RIGHTMETA)] = RGFW_SuperR,
 	#endif
 
-	RGFW_MAP [RGFW_OS_BASED_VALUE(67, 0x70, 127, DOM_VK_F1)] = RGFW_F1                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(68, 0x71, 121, DOM_VK_F2)] = RGFW_F2                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(69, 0x72, 100, DOM_VK_F3)] = RGFW_F3                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(70, 0x73, 119, DOM_VK_F4)] = RGFW_F4                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(71, 0x74, 97, DOM_VK_F5)] = RGFW_F5              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(72, 0x75, 98, DOM_VK_F6)] = RGFW_F6              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(73, 0x76, 99, DOM_VK_F7)] = RGFW_F7              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(74, 0x77, 101, DOM_VK_F8)] = RGFW_F8                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(75, 0x78, 102, DOM_VK_F9)] = RGFW_F9                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(76, 0x79, 110, DOM_VK_F10)] = RGFW_F10               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(95, 0x7A, 104, DOM_VK_F11)] = RGFW_F11               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(96, 0x7B, 112, DOM_VK_F12)] = RGFW_F12               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(111, 0x26, 126, DOM_VK_UP)] = RGFW_Up                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(116, 0x28, 125, DOM_VK_DOWN)] = RGFW_Down                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(113, 0x25, 123, DOM_VK_LEFT)] = RGFW_Left                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(114, 0x27, 124, DOM_VK_RIGHT)] = RGFW_Right              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(118, 0x2D, 115, DOM_VK_INSERT)] = RGFW_Insert                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(115, 0x23, 120, DOM_VK_END)] = RGFW_End                  		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(112, 336, 117, DOM_VK_PAGE_UP)] = RGFW_PageUp                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(117, 325, 122, DOM_VK_PAGE_DOWN)] = RGFW_PageDown            RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(9, 0x1B, 53, DOM_VK_ESCAPE)] = RGFW_Escape                   		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(110, 0x24, 116, DOM_VK_HOME)] = RGFW_Home                    		RGFW_NEXT
+	#if !defined(RGFW_MACOS) && !defined(RGFW_WEBASM)
+	RGFW_MAP [RGFW_OS_BASED_VALUE(62, 0x5C, 56, 0, KEY_RIGHTSHIFT)] = RGFW_ShiftR              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(108, 165, 58, 0, KEY_RIGHTALT)] = RGFW_AltR,
+	#endif
+
+	RGFW_MAP [RGFW_OS_BASED_VALUE(67, 0x70, 127, DOM_VK_F1, KEY_F1)] = RGFW_F1                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(68, 0x71, 121, DOM_VK_F2, KEY_F2)] = RGFW_F2                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(69, 0x72, 100, DOM_VK_F3, KEY_F3)] = RGFW_F3                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(70, 0x73, 119, DOM_VK_F4, KEY_F4)] = RGFW_F4                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(71, 0x74, 97, DOM_VK_F5, KEY_F5)] = RGFW_F5              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(72, 0x75, 98, DOM_VK_F6, KEY_F6)] = RGFW_F6              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(73, 0x76, 99, DOM_VK_F7, KEY_F7)] = RGFW_F7              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(74, 0x77, 101, DOM_VK_F8, KEY_F8)] = RGFW_F8                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(75, 0x78, 102, DOM_VK_F9, KEY_F9)] = RGFW_F9                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(76, 0x79, 110, DOM_VK_F10, KEY_F10)] = RGFW_F10               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(95, 0x7A, 104, DOM_VK_F11, KEY_F11)] = RGFW_F11               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(96, 0x7B, 112, DOM_VK_F12, KEY_F12)] = RGFW_F12               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(111, 0x26, 126, DOM_VK_UP, KEY_UP)] = RGFW_Up                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(116, 0x28, 125, DOM_VK_DOWN, KEY_DOWN)] = RGFW_Down                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(113, 0x25, 123, DOM_VK_LEFT, KEY_LEFT)] = RGFW_Left                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(114, 0x27, 124, DOM_VK_RIGHT, KEY_RIGHT)] = RGFW_Right              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(118, 0x2D, 115, DOM_VK_INSERT, KEY_INSERT)] = RGFW_Insert                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(115, 0x23, 120, DOM_VK_END, KEY_END)] = RGFW_End                  		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(112, 336, 117, DOM_VK_PAGE_UP, KEY_PAGEUP)] = RGFW_PageUp                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(117, 325, 122, DOM_VK_PAGE_DOWN, KEY_PAGEDOWN)] = RGFW_PageDown            RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(9, 0x1B, 53, DOM_VK_ESCAPE, KEY_ESC)] = RGFW_Escape                   		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(110, 0x24, 116, DOM_VK_HOME, KEY_HOME)] = RGFW_Home                    		RGFW_NEXT
 #ifndef __cplusplus
 };
 #else 
@@ -1325,7 +1363,7 @@ RGFWDEF u32 RGFW_apiKeyCodeToRGFW(u32 keycode);
 
 u32 RGFW_apiKeyCodeToRGFW(u32 keycode) {
 	#ifdef __cplusplus
-	if (RGFW_OS_BASED_VALUE(49, 192, 50, DOM_VK_BACK_QUOTE) != RGFW_Backtick) {
+	if (RGFW_OS_BASED_VALUE(49, 192, 50, DOM_VK_BACK_QUOTE, KEY_GRAVE) != RGFW_Backtick) {
 		RGFW_init_keys();
 	}
 	#endif
@@ -1736,7 +1774,7 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 		win->event.lockState ^= RGFW_NUMLOCK;
 }
 
-#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM)
+#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM) || defined(RGFW_WAYLAND)
 	struct timespec;
 
 	int nanosleep(const struct timespec* duration, struct timespec* rem);
@@ -1819,24 +1857,24 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 /* OPENGL normal only (no EGL / OSMesa) */
 #ifndef RGFW_EGL
 
-#define RGFW_GL_RENDER_TYPE 		RGFW_OS_BASED_VALUE(GLX_X_VISUAL_TYPE,    	0x2003,		73, 0)
-	#define RGFW_GL_ALPHA_SIZE 		RGFW_OS_BASED_VALUE(GLX_ALPHA_SIZE,       	0x201b,		11,     0)
-	#define RGFW_GL_DEPTH_SIZE 		RGFW_OS_BASED_VALUE(GLX_DEPTH_SIZE,       	0x2022,		12,     0)
-	#define RGFW_GL_DOUBLEBUFFER 		RGFW_OS_BASED_VALUE(GLX_DOUBLEBUFFER,     	0x2011, 	5,  0)   
-	#define RGFW_GL_STENCIL_SIZE 		RGFW_OS_BASED_VALUE(GLX_STENCIL_SIZE,	 	0x2023,	13,     0)
-	#define RGFW_GL_SAMPLES			RGFW_OS_BASED_VALUE(GLX_SAMPLES, 		 	0x2042,	    55,     0)
-	#define RGFW_GL_STEREO 			RGFW_OS_BASED_VALUE(GLX_STEREO,	 		 	0x2012,			6,  0)
-	#define RGFW_GL_AUX_BUFFERS		RGFW_OS_BASED_VALUE(GLX_AUX_BUFFERS,	    0x2024,	7, 		    0)
+#define RGFW_GL_RENDER_TYPE 		RGFW_OS_BASED_VALUE(GLX_X_VISUAL_TYPE,    	0x2003,		73, 0, 0)
+	#define RGFW_GL_ALPHA_SIZE 		RGFW_OS_BASED_VALUE(GLX_ALPHA_SIZE,       	0x201b,		11,     0, 0)
+	#define RGFW_GL_DEPTH_SIZE 		RGFW_OS_BASED_VALUE(GLX_DEPTH_SIZE,       	0x2022,		12,     0, 0)
+	#define RGFW_GL_DOUBLEBUFFER 		RGFW_OS_BASED_VALUE(GLX_DOUBLEBUFFER,     	0x2011, 	5,  0, 0)   
+	#define RGFW_GL_STENCIL_SIZE 		RGFW_OS_BASED_VALUE(GLX_STENCIL_SIZE,	 	0x2023,	13,     0, 0)
+	#define RGFW_GL_SAMPLES			RGFW_OS_BASED_VALUE(GLX_SAMPLES, 		 	0x2042,	    55,     0, 0)
+	#define RGFW_GL_STEREO 			RGFW_OS_BASED_VALUE(GLX_STEREO,	 		 	0x2012,			6,  0, 0)
+	#define RGFW_GL_AUX_BUFFERS		RGFW_OS_BASED_VALUE(GLX_AUX_BUFFERS,	    0x2024,	7, 		    0, 0)
 
 #if defined(RGFW_X11) || defined(RGFW_WINDOWS)
-	#define RGFW_GL_DRAW 			RGFW_OS_BASED_VALUE(GLX_X_RENDERABLE,	 	0x2001,					0, 0)
-	#define RGFW_GL_DRAW_TYPE 		RGFW_OS_BASED_VALUE(GLX_RENDER_TYPE,     	0x2013,						0, 0)
-	#define RGFW_GL_USE_OPENGL		RGFW_OS_BASED_VALUE(GLX_USE_GL,				0x2010,						0, 0)
-	#define RGFW_GL_FULL_FORMAT		RGFW_OS_BASED_VALUE(GLX_TRUE_COLOR,   	 	0x2027,						0, 0)
-	#define RGFW_GL_RED_SIZE		RGFW_OS_BASED_VALUE(GLX_RED_SIZE,         	0x2015,						0, 0)
-	#define RGFW_GL_GREEN_SIZE		RGFW_OS_BASED_VALUE(GLX_GREEN_SIZE,       	0x2017,						0, 0)
-	#define RGFW_GL_BLUE_SIZE		RGFW_OS_BASED_VALUE(GLX_BLUE_SIZE, 	 		0x2019,						0, 0)
-	#define RGFW_GL_USE_RGBA		RGFW_OS_BASED_VALUE(GLX_RGBA_BIT,   	 	0x202B,						0, 0)
+	#define RGFW_GL_DRAW 			RGFW_OS_BASED_VALUE(GLX_X_RENDERABLE,	 	0x2001,					0, 0, 0)
+	#define RGFW_GL_DRAW_TYPE 		RGFW_OS_BASED_VALUE(GLX_RENDER_TYPE,     	0x2013,						0, 0, 0)
+	#define RGFW_GL_USE_OPENGL		RGFW_OS_BASED_VALUE(GLX_USE_GL,				0x2010,						0, 0, 0)
+	#define RGFW_GL_FULL_FORMAT		RGFW_OS_BASED_VALUE(GLX_TRUE_COLOR,   	 	0x2027,						0, 0, 0)
+	#define RGFW_GL_RED_SIZE		RGFW_OS_BASED_VALUE(GLX_RED_SIZE,         	0x2015,						0, 0, 0)
+	#define RGFW_GL_GREEN_SIZE		RGFW_OS_BASED_VALUE(GLX_GREEN_SIZE,       	0x2017,						0, 0, 0)
+	#define RGFW_GL_BLUE_SIZE		RGFW_OS_BASED_VALUE(GLX_BLUE_SIZE, 	 		0x2019,						0, 0, 0)
+	#define RGFW_GL_USE_RGBA		RGFW_OS_BASED_VALUE(GLX_RGBA_BIT,   	 	0x202B,						0, 0, 0)
 #endif
 
 #ifdef RGFW_WINDOWS
@@ -2152,6 +2190,62 @@ This is where OS specific stuff starts
 */
 
 
+#if defined(RGFW_WAYLAND) || defined(RGFW_X11)
+	int RGFW_eventWait_forceStop[] = {0, 0, 0}; /* for wait events */
+
+	#ifdef __linux__
+		#include <linux/joystick.h>
+		#include <fcntl.h>
+		#include <unistd.h>
+		
+		RGFW_Event* RGFW_linux_updateJoystick(RGFW_window* win) {
+			static int xAxis = 0, yAxis = 0;
+			u8 i;
+			for (i = 0; i < RGFW_joystickCount; i++) {
+				struct js_event e;
+
+
+				if (RGFW_joysticks[i] == 0)
+					continue;
+
+				i32 flags = fcntl(RGFW_joysticks[i], F_GETFL, 0);
+				fcntl(RGFW_joysticks[i], F_SETFL, flags | O_NONBLOCK);
+
+				ssize_t bytes;
+				while ((bytes = read(RGFW_joysticks[i], &e, sizeof(e))) > 0) {
+					switch (e.type) {
+					case JS_EVENT_BUTTON:
+						win->event.type = e.value ? RGFW_jsButtonPressed : RGFW_jsButtonReleased;
+						win->event.button = e.number;
+						RGFW_jsPressed[i][e.number] = e.value;
+						RGFW_jsButtonCallback(win, i, e.number, e.value);
+						return &win->event;
+					case JS_EVENT_AXIS:
+						ioctl(RGFW_joysticks[i], JSIOCGAXES, &win->event.axisesCount);
+
+						if ((e.number == 0 || e.number % 2) && e.number != 1)
+							xAxis = e.value;
+						else
+							yAxis = e.value;
+
+						win->event.axis[e.number / 2].x = xAxis;
+						win->event.axis[e.number / 2].y = yAxis;
+						win->event.type = RGFW_jsAxisMove;
+						win->event.joystick = i;
+						RGFW_jsAxisCallback(win, i, win->event.axis, win->event.axisesCount);
+						return &win->event;
+
+						default: break;
+					}
+				}
+			}
+
+			return NULL;
+		}
+
+	#endif
+#endif
+
 /*
 
 
@@ -2183,8 +2277,8 @@ Start of Linux / Unix defines
 #include <X11/extensions/XInput2.h>
 
 #include <limits.h> /* for data limits (mainly used in drag and drop functions) */
-#include <fcntl.h>
 #include <poll.h>
+
 
 #ifdef __linux__
 #include <linux/joystick.h>
@@ -2586,75 +2680,6 @@ Start of Linux / Unix defines
 		return RGFWMouse;
 	}
 
-
-	int RGFW_eventWait_forceStop[] = {0, 0, 0};
-
-	void RGFW_stopCheckEvents(void) { 
-		RGFW_eventWait_forceStop[2] = 1;
-		while (1) {
-			const char byte = 0;
-			const ssize_t result = write(RGFW_eventWait_forceStop[1], &byte, 1);
-			if (result == 1 || result == -1)
-				break;
-		}
-	}
-
-	void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
-		if (waitMS == 0)
-			return;
-		
-		u8 i;
-
-		if (RGFW_eventWait_forceStop[0] == 0 || RGFW_eventWait_forceStop[1] == 0) {
-			if (pipe(RGFW_eventWait_forceStop) != -1) {
-				fcntl(RGFW_eventWait_forceStop[0], F_GETFL, 0);
-				fcntl(RGFW_eventWait_forceStop[0], F_GETFD, 0);
-				fcntl(RGFW_eventWait_forceStop[1], F_GETFL, 0);
-				fcntl(RGFW_eventWait_forceStop[1], F_GETFD, 0);
-			}
-		}
-		
-		struct pollfd fds[] = {
-			{ ConnectionNumber(win->src.display), POLLIN, 0 },
-			{ RGFW_eventWait_forceStop[0], POLLIN, 0 },
-			#ifdef __linux__ /* blank space for 4 joystick files*/
-			{ -1, POLLIN, 0 }, {-1, POLLIN, 0 }, {-1, POLLIN, 0 },  {-1, POLLIN, 0} 
-			#endif
-		};
-
-		u8 index = 2;
-		
-		#if defined(__linux__)
-			for (i = 0; i < RGFW_joystickCount; i++) {
-				if (RGFW_joysticks[i] == 0)
-					continue;
-
-				fds[index].fd = RGFW_joysticks[i];
-				index++;
-			}
-		#endif
-
-
-		u64 start = RGFW_getTimeNS();
-
-		while (XPending(win->src.display) == 0 && waitMS >= -1) {
-			if (poll(fds, index, waitMS) <= 0)
-				break;
-	
-			if (waitMS > 0) {
-				waitMS -= (RGFW_getTimeNS() - start) / 1e+6;
-			}
-		}
-
-		/* drain any data in the stop request */
-		if (RGFW_eventWait_forceStop[2]) {	
-			char data[64];
-			read(RGFW_eventWait_forceStop[0], data, sizeof(data));
-			
-			RGFW_eventWait_forceStop[2] = 0;
-		}
-	}
-
 	typedef struct XDND {
 		long source, version;
 		i32 format;
@@ -2676,48 +2701,9 @@ Start of Linux / Unix defines
 		win->event.type = 0;
 
 #ifdef __linux__
-		{
-			u8 i;
-			for (i = 0; i < RGFW_joystickCount; i++) {
-				struct js_event e;
-
-
-				if (RGFW_joysticks[i] == 0)
-					continue;
-
-				i32 flags = fcntl(RGFW_joysticks[i], F_GETFL, 0);
-				fcntl(RGFW_joysticks[i], F_SETFL, flags | O_NONBLOCK);
-
-				ssize_t bytes;
-				while ((bytes = read(RGFW_joysticks[i], &e, sizeof(e))) > 0) {
-					switch (e.type) {
-					case JS_EVENT_BUTTON:
-						win->event.type = e.value ? RGFW_jsButtonPressed : RGFW_jsButtonReleased;
-						win->event.button = e.number;
-						RGFW_jsPressed[i][e.number] = e.value;
-						RGFW_jsButtonCallback(win, i, e.number, e.value);
-						return &win->event;
-					case JS_EVENT_AXIS: {
-						ioctl(RGFW_joysticks[i], JSIOCGAXES, &win->event.axisesCount);
-	
-						if ((e.number == 0 || e.number % 2) && e.number != 1)
-							xAxis = e.value;
-						else
-							yAxis = e.value;
-
-						win->event.axis[e.number / 2].x = xAxis;
-						win->event.axis[e.number / 2].y = yAxis;
-						win->event.type = RGFW_jsAxisMove;
-						win->event.joystick = i;
-						RGFW_jsAxisCallback(win, i, win->event.axis, win->event.axisesCount);
-						return &win->event;
-					}
-
-					default: break;
-					}
-				}
-			}
-		}
+	RGFW_Event* event = RGFW_linux_updateJoystick(win);
+	if (event != NULL)
+		return event;
 #endif
 
 		XPending(win->src.display);
@@ -3577,46 +3563,6 @@ Start of Linux / Unix defines
 		}
 	}
 
-	u16 RGFW_registerJoystick(RGFW_window* win, i32 jsNumber) {
-		assert(win != NULL);
-
-#ifdef __linux__
-		char file[15];
-		sprintf(file, "/dev/input/js%i", jsNumber);
-
-		return RGFW_registerJoystickF(win, file);
-#endif
-	}
-
-	u16 RGFW_registerJoystickF(RGFW_window* win, char* file) {
-		assert(win != NULL);
-
-#ifdef __linux__
-
-		i32 js = open(file, O_RDONLY);
-
-		if (js && RGFW_joystickCount < 4) {
-			RGFW_joystickCount++;
-
-			RGFW_joysticks[RGFW_joystickCount - 1] = open(file, O_RDONLY);
-
-			u8 i;
-			for (i = 0; i < 16; i++)
-				RGFW_jsPressed[RGFW_joystickCount - 1][i] = 0;
-
-		}
-
-		else {
-#ifdef RGFW_PRINT_ERRORS
-			RGFW_error = 1;
-			fprintf(stderr, "Error RGFW_registerJoystickF : Cannot open file %s\n", file);
-#endif
-		}
-
-		return RGFW_joystickCount - 1;
-#endif
-	}
-
 	u8 RGFW_window_isFullscreen(RGFW_window* win) {
 		assert(win != NULL);
 
@@ -3960,6 +3906,133 @@ Start of Linux / Unix defines
 		RGFW_FREE(win); /*!< free collected window data */
 	}
 	
+
+/* 
+	End of X11 linux / unix defines
+*/
+
+#endif /* RGFW_X11 */
+
+
+/* wayland or X11 defines*/
+#if defined(RGFW_WAYLAND) || defined(RGFW_X11)
+#include <fcntl.h>
+#include <poll.h>
+#include <unistd.h>
+	u16 RGFW_registerJoystickF(RGFW_window* win, char* file) {
+		assert(win != NULL);
+
+#ifdef __linux__
+
+		i32 js = open(file, O_RDONLY);
+
+		if (js && RGFW_joystickCount < 4) {
+			RGFW_joystickCount++;
+
+			RGFW_joysticks[RGFW_joystickCount - 1] = open(file, O_RDONLY);
+
+			u8 i;
+			for (i = 0; i < 16; i++)
+				RGFW_jsPressed[RGFW_joystickCount - 1][i] = 0;
+
+		}
+
+		else {
+#ifdef RGFW_PRINT_ERRORS
+			RGFW_error = 1;
+			fprintf(stderr, "Error RGFW_registerJoystickF : Cannot open file %s\n", file);
+#endif
+		}
+
+		return RGFW_joystickCount - 1;
+#endif
+	}
+	
+	u16 RGFW_registerJoystick(RGFW_window* win, i32 jsNumber) {
+		assert(win != NULL);
+
+#ifdef __linux__
+		char file[15];
+		sprintf(file, "/dev/input/js%i", jsNumber);
+
+		return RGFW_registerJoystickF(win, file);
+#endif
+	}
+	
+	void RGFW_stopCheckEvents(void) { 
+		RGFW_eventWait_forceStop[2] = 1;
+		while (1) {
+			const char byte = 0;
+			const ssize_t result = write(RGFW_eventWait_forceStop[1], &byte, 1);
+			if (result == 1 || result == -1)
+				break;
+		}
+	}
+
+	void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
+		if (waitMS == 0)
+			return;
+		
+		u8 i;
+
+		if (RGFW_eventWait_forceStop[0] == 0 || RGFW_eventWait_forceStop[1] == 0) {
+			if (pipe(RGFW_eventWait_forceStop) != -1) {
+				fcntl(RGFW_eventWait_forceStop[0], F_GETFL, 0);
+				fcntl(RGFW_eventWait_forceStop[0], F_GETFD, 0);
+				fcntl(RGFW_eventWait_forceStop[1], F_GETFL, 0);
+				fcntl(RGFW_eventWait_forceStop[1], F_GETFD, 0);
+			}
+		}
+
+		struct pollfd fds[] = {
+			#ifdef RGFW_WAYLAND
+			{ wl_display_get_fd(win->src.display), POLLIN, 0 },
+			#else
+			{ ConnectionNumber(win->src.display), POLLIN, 0 },
+			#endif
+			{ RGFW_eventWait_forceStop[0], POLLIN, 0 },
+			#ifdef __linux__ /* blank space for 4 joystick files*/
+			{ -1, POLLIN, 0 }, {-1, POLLIN, 0 }, {-1, POLLIN, 0 },  {-1, POLLIN, 0} 
+			#endif
+		};
+
+		u8 index = 2;
+		
+		#if defined(__linux__)
+			for (i = 0; i < RGFW_joystickCount; i++) {
+				if (RGFW_joysticks[i] == 0)
+					continue;
+
+				fds[index].fd = RGFW_joysticks[i];
+				index++;
+			}
+		#endif
+
+
+		u64 start = RGFW_getTimeNS();
+
+		#ifdef RGFW_WAYLAND
+		while (wl_display_dispatch(win->src.display) <= 0 && waitMS >= -1) {
+		#else
+		while (XPending(win->src.display) == 0 && waitMS >= -1) {
+		#endif
+			if (poll(fds, index, waitMS) <= 0)
+				break;
+
+			if (waitMS > 0) {
+				waitMS -= (RGFW_getTimeNS() - start) / 1e+6;
+			}
+		}
+
+		/* drain any data in the stop request */
+		if (RGFW_eventWait_forceStop[2]) {	
+			char data[64];
+			read(RGFW_eventWait_forceStop[0], data, sizeof(data));
+			
+			RGFW_eventWait_forceStop[2] = 0;
+		}
+	}
+
 	u64 RGFW_getTimeNS(void) { 
 		struct timespec ts = { 0 };
 		clock_gettime(1, &ts);
@@ -3975,11 +4048,862 @@ Start of Linux / Unix defines
 
 		return (double)(nanoSeconds) * 1e-9;
 	}
-/* 
-	End of linux / unix defines
+#endif /* end of wayland or X11 time defines*/
+
+
+/*
+
+	Start of Wayland defines
+
+
 */
 
-#endif /* RGFW_X11 */
+#ifdef RGFW_WAYLAND
+/*
+Wayland TODO:
+- bugs with checkEvent
+- fix RGFW_keyPressed lock state
+
+	RGFW_windowMoved, 		the window was moved (by the user)
+	RGFW_windowResized  	the window was resized (by the user), [on webASM this means the browser was resized]
+	RGFW_windowRefresh	 	The window content needs to be refreshed
+
+	RGFW_dnd 				a file has been dropped into the window
+	RGFW_dnd_init
+
+- window args:
+	#define RGFW_NO_RESIZE	 			the window cannot be resized  by the user
+	#define RGFW_ALLOW_DND     			the window supports drag and drop
+	#define RGFW_SCALE_TO_MONITOR 			scale the window to the screen 
+
+- fix RGFW_window_checkEvents
+- other missing functions functions ("TODO wayland") (~30 functions)
+- fix buffer rendering weird behavior
+*/
+	#include <errno.h>
+	#include <unistd.h>
+	#include <sys/mman.h>
+	#include <xkbcommon/xkbcommon.h>
+	#include <xkbcommon/xkbcommon-keysyms.h>
+	#include <dirent.h>
+	#include <linux/kd.h> 
+
+RGFW_window* RGFW_key_win = NULL;
+
+void RGFW_eventPipe_push(RGFW_window* win, RGFW_Event event) {
+	if (win == NULL) {
+		win = RGFW_key_win;
+
+		if (win == NULL) return;
+	}
+	
+	if (win->src.eventLen >= 19) {
+		win->src.eventLen = 0;
+		win->src.eventIndex = 0;
+	}
+
+	win->src.events[win->src.eventLen] = event;	
+	win->src.eventLen++;
+}
+
+RGFW_Event RGFW_eventPipe_pop(RGFW_window* win) {
+	RGFW_Event event;
+	event.type = 0;
+	
+	if (win->src.eventLen <= 0) {
+		win->src.eventIndex = 0;
+		win->src.eventLen = 0;
+		printf("none\n");
+		return event;
+	}
+	
+	win->src.eventLen--;
+	
+	if (win->src.eventLen && win->src.eventIndex < 19)
+		win->src.eventIndex++;
+	
+	event = win->src.events[ win->src.eventIndex ];
+	win->src.events[ win->src.eventIndex].type = 0;
+	return event;
+}
+
+/* wayland global garbage (wayland bad, X11 is fine (ish) (not really)) */
+#include "xdg-shell.h"
+#include "xdg-decoration-unstable-v1.h"
+
+struct xdg_wm_base *xdg_wm_base;
+struct wl_compositor* RGFW_compositor = NULL;
+struct wl_shm* shm = NULL;
+struct wl_shell* RGFW_shell = NULL;
+static struct wl_seat *seat = NULL;
+static struct xkb_context *xkb_context;
+static struct xkb_keymap *keymap = NULL;
+static struct xkb_state *xkb_state = NULL;
+enum zxdg_toplevel_decoration_v1_mode client_preferred_mode, RGFW_current_mode;
+static struct zxdg_decoration_manager_v1 *decoration_manager = NULL;
+
+static void xdg_wm_base_ping_handler(void *data,
+        struct xdg_wm_base *wm_base, uint32_t serial)
+{
+	RGFW_UNUSED(data);
+    xdg_wm_base_pong(wm_base, serial);
+}
+
+static const struct xdg_wm_base_listener xdg_wm_base_listener = {
+    .ping = xdg_wm_base_ping_handler,
+};
+
+b8 RGFW_wl_configured = 0;
+
+static void xdg_surface_configure_handler(void *data,
+        struct xdg_surface *xdg_surface, uint32_t serial)
+{	
+	RGFW_UNUSED(data);
+    xdg_surface_ack_configure(xdg_surface, serial);
+	#ifdef RGFW_DEBUG
+	printf("Surface configured\n");
+	#endif
+	RGFW_wl_configured = 1;
+}
+
+static const struct xdg_surface_listener xdg_surface_listener = {
+    .configure = xdg_surface_configure_handler,
+};
+
+static void xdg_toplevel_configure_handler(void *data,
+        struct xdg_toplevel *toplevel, int32_t width, int32_t height,
+        struct wl_array *states)
+{
+	RGFW_UNUSED(data); RGFW_UNUSED(toplevel); RGFW_UNUSED(states)
+    fprintf(stderr, "XDG toplevel configure: %dx%d\n", width, height);
+}
+
+static void xdg_toplevel_close_handler(void *data,
+        struct xdg_toplevel *toplevel)
+{
+	RGFW_UNUSED(data);
+	RGFW_window* win = (RGFW_window*)xdg_toplevel_get_user_data(toplevel);
+	if (win == NULL)
+		win = RGFW_key_win;
+	
+	RGFW_Event ev;
+	ev.type = RGFW_quit;
+
+	RGFW_eventPipe_push(win, ev); 	
+
+	RGFW_windowQuitCallback(win);
+}
+
+static void shm_format_handler(void *data,
+        struct wl_shm *shm, uint32_t format)
+{
+	RGFW_UNUSED(data); RGFW_UNUSED(shm);
+    fprintf(stderr, "Format %d\n", format);
+}
+
+static const struct wl_shm_listener shm_listener = {
+    .format = shm_format_handler,
+};
+
+static const struct xdg_toplevel_listener xdg_toplevel_listener = {
+    .configure = xdg_toplevel_configure_handler,
+    .close = xdg_toplevel_close_handler,
+};
+
+RGFW_window* RGFW_mouse_win = NULL;
+
+static void pointer_enter(void *data, struct wl_pointer *pointer, uint32_t serial, struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y) {
+	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(serial); RGFW_UNUSED(surface_x); RGFW_UNUSED(surface_y);
+	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
+	RGFW_mouse_win = win;
+
+	RGFW_Event ev;
+	ev.type = RGFW_mouseEnter;
+	ev.point = win->event.point;
+
+	RGFW_eventPipe_push(win, ev); 	
+
+	RGFW_mouseNotifyCallBack(win, win->event.point, RGFW_TRUE);
+}
+static void pointer_leave(void *data, struct wl_pointer *pointer, uint32_t serial, struct wl_surface *surface) {
+	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(serial); RGFW_UNUSED(surface);
+	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
+	if (RGFW_mouse_win == win)
+		RGFW_mouse_win = NULL;
+	
+	RGFW_Event ev;
+	ev.type = RGFW_mouseLeave;
+	ev.point = win->event.point;
+	RGFW_eventPipe_push(win, ev);
+
+	RGFW_mouseNotifyCallBack(win,  win->event.point, RGFW_FALSE);
+}
+static void pointer_motion(void *data, struct wl_pointer *pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y) {
+	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(x); RGFW_UNUSED(y);
+
+	assert(RGFW_mouse_win != NULL);
+	
+	RGFW_Event ev;
+	ev.type = RGFW_mousePosChanged;
+	ev.point = RGFW_POINT(wl_fixed_to_double(x), wl_fixed_to_double(y));
+	RGFW_eventPipe_push(RGFW_mouse_win, ev);
+	
+	RGFW_mousePosCallback(RGFW_mouse_win, RGFW_POINT(wl_fixed_to_double(x), wl_fixed_to_double(y)));
+}
+static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t serial, uint32_t time, uint32_t button, uint32_t state) {
+	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(serial);
+	assert(RGFW_mouse_win != NULL);
+
+	u32 b = (button - 0x110) + 1;
+
+	/* flip right and middle button codes */
+	if (b == 2) b = 3;
+	else if (b == 3) b = 2;
+	
+	RGFW_mouseButtons[b].prev = RGFW_mouseButtons[b].current;
+	RGFW_mouseButtons[b].current = state;
+
+	RGFW_Event ev;
+	ev.type = RGFW_mouseButtonPressed + state;
+	ev.button = b;
+	RGFW_eventPipe_push(RGFW_mouse_win, ev);
+
+	RGFW_mouseButtonCallback(RGFW_mouse_win, b, 0, state);
+}
+static void pointer_axis(void *data, struct wl_pointer *pointer, uint32_t time, uint32_t axis, wl_fixed_t value) {
+	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time);  RGFW_UNUSED(axis);
+	assert(RGFW_mouse_win != NULL); 
+
+	double scroll = wl_fixed_to_double(value);
+
+	RGFW_Event ev;
+	ev.type = RGFW_mouseButtonPressed;
+	ev.button = RGFW_mouseScrollUp + (scroll < 0);
+	RGFW_eventPipe_push(RGFW_mouse_win, ev);
+
+	RGFW_mouseButtonCallback(RGFW_mouse_win, RGFW_mouseScrollUp + (scroll < 0), scroll, 1);
+}
+
+void RGFW_doNothing(void) { }
+static struct wl_pointer_listener pointer_listener = (struct wl_pointer_listener){&pointer_enter, &pointer_leave, &pointer_motion, &pointer_button, &pointer_axis, (void*)&RGFW_doNothing, (void*)&RGFW_doNothing, (void*)&RGFW_doNothing, (void*)&RGFW_doNothing, (void*)&RGFW_doNothing, (void*)&RGFW_doNothing};
+
+static void keyboard_keymap (void *data, struct wl_keyboard *keyboard, uint32_t format, int32_t fd, uint32_t size) {
+	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(format);
+
+	char *keymap_string = mmap (NULL, size, PROT_READ, MAP_SHARED, fd, 0);
+	xkb_keymap_unref (keymap);
+	keymap = xkb_keymap_new_from_string (xkb_context, keymap_string, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
+	
+	munmap (keymap_string, size);
+	close (fd);
+	xkb_state_unref (xkb_state);
+	xkb_state = xkb_state_new (keymap);
+}
+static void keyboard_enter (void *data, struct wl_keyboard *keyboard, uint32_t serial, struct wl_surface *surface, struct wl_array *keys) { 
+	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(keys);
+
+	RGFW_key_win = (RGFW_window*)wl_surface_get_user_data(surface);
+
+	RGFW_Event ev;
+	ev.type = RGFW_focusIn;
+	ev.inFocus = RGFW_TRUE;
+	RGFW_key_win->event.inFocus = RGFW_TRUE;
+
+	RGFW_eventPipe_push((RGFW_window*)RGFW_mouse_win, ev);
+
+	RGFW_focusCallback(RGFW_key_win, RGFW_TRUE);
+}
+static void keyboard_leave (void *data, struct wl_keyboard *keyboard, uint32_t serial, struct wl_surface *surface) { 
+	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial);
+
+	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
+	if (RGFW_key_win == win)
+		RGFW_key_win = NULL;	
+
+	RGFW_Event ev;
+	ev.type = RGFW_focusOut;
+	ev.inFocus = RGFW_FALSE;
+	win->event.inFocus = RGFW_FALSE;
+	RGFW_eventPipe_push(win, ev);
+
+	RGFW_focusCallback(win, RGFW_FALSE);
+}
+static void keyboard_key (void *data, struct wl_keyboard *keyboard, uint32_t serial, uint32_t time, uint32_t key, uint32_t state) {
+	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(time); 
+
+	assert(RGFW_key_win != NULL);
+
+	xkb_keysym_t keysym = xkb_state_key_get_one_sym (xkb_state, key+8);
+	char name[16];
+	xkb_keysym_get_name(keysym, name, 16);
+
+	u32 RGFW_key = RGFW_apiKeyCodeToRGFW(key);
+	RGFW_keyboard[RGFW_key].prev = RGFW_keyboard[RGFW_key].current;
+	RGFW_keyboard[RGFW_key].current = state;
+	
+	RGFW_Event ev;
+	ev.type = RGFW_keyPressed + state;
+	ev.keyCode = RGFW_key;
+	strcpy(ev.keyName, name);
+	ev.repeat = RGFW_isHeld(RGFW_key_win, RGFW_key);
+	RGFW_eventPipe_push(RGFW_key_win, ev);
+	
+	RGFW_updateLockState(RGFW_key_win, xkb_keymap_mod_get_index(keymap, "Lock"), xkb_keymap_mod_get_index(keymap, "Mod2"));
+
+	RGFW_keyCallback(RGFW_key_win, RGFW_key, name, RGFW_key_win->event.lockState, state);
+}
+static void keyboard_modifiers (void *data, struct wl_keyboard *keyboard, uint32_t serial, uint32_t mods_depressed, uint32_t mods_latched, uint32_t mods_locked, uint32_t group) {
+	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(time); 
+	xkb_state_update_mask (xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
+}
+static struct wl_keyboard_listener keyboard_listener = {&keyboard_keymap, &keyboard_enter, &keyboard_leave, &keyboard_key, &keyboard_modifiers, (void*)&RGFW_doNothing};
+
+static void seat_capabilities (void *data, struct wl_seat *seat, uint32_t capabilities) {
+	RGFW_UNUSED(data);
+
+	if (capabilities & WL_SEAT_CAPABILITY_POINTER) {
+		struct wl_pointer *pointer = wl_seat_get_pointer (seat);
+		wl_pointer_add_listener (pointer, &pointer_listener, NULL);
+	}
+	if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD) {
+		struct wl_keyboard *keyboard = wl_seat_get_keyboard (seat);
+		wl_keyboard_add_listener (keyboard, &keyboard_listener, NULL);
+	}
+}
+static struct wl_seat_listener seat_listener = {&seat_capabilities, (void*)&RGFW_doNothing};
+
+static void wl_global_registry_handler(void *data,
+		struct wl_registry *registry, uint32_t id, const char *interface,
+		uint32_t version)
+{
+	RGFW_UNUSED(data); RGFW_UNUSED(version);
+
+    if (strcmp(interface, "wl_compositor") == 0) {
+		RGFW_compositor = wl_registry_bind(registry,
+			id, &wl_compositor_interface, 4);
+	} else if (strcmp(interface, "xdg_wm_base") == 0) {
+	xdg_wm_base = wl_registry_bind(registry,
+		id, &xdg_wm_base_interface, 1);
+	} else if (strcmp(interface, zxdg_decoration_manager_v1_interface.name) == 0) {
+		decoration_manager = wl_registry_bind(registry, id, &zxdg_decoration_manager_v1_interface, 1);
+    } else if (strcmp(interface, "wl_shm") == 0) {
+        shm = wl_registry_bind(registry,
+            id, &wl_shm_interface, 1);
+        wl_shm_add_listener(shm, &shm_listener, NULL);
+	} else if (strcmp(interface,"wl_seat") == 0) {
+		seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
+		wl_seat_add_listener(seat, &seat_listener, NULL);
+	}
+
+	else {
+		#ifdef RGFW_DEBUG
+		printf("did not register %s\n", interface);
+		return;
+		#endif
+	}
+
+		#ifdef RGFW_DEBUG
+		printf("registered %s\n", interface);
+		#endif
+}
+
+static void wl_global_registry_remove(void *data, struct wl_registry *registry, uint32_t name) { RGFW_UNUSED(data); RGFW_UNUSED(registry); RGFW_UNUSED(name); }
+static const struct wl_registry_listener registry_listener = {
+	.global = wl_global_registry_handler,
+	.global_remove = wl_global_registry_remove,
+};
+
+static const char *get_mode_name(enum zxdg_toplevel_decoration_v1_mode mode) {
+	switch (mode) {
+	case ZXDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE:
+		return "client-side decorations";
+	case ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE:
+		return "server-side decorations";
+	}
+	abort();
+}
+
+
+static void decoration_handle_configure(void *data,
+		struct zxdg_toplevel_decoration_v1 *decoration,
+		enum zxdg_toplevel_decoration_v1_mode mode) {
+	RGFW_UNUSED(data); RGFW_UNUSED(decoration);
+	printf("Using %s\n", get_mode_name(mode));
+	RGFW_current_mode = mode;
+}
+
+static const struct zxdg_toplevel_decoration_v1_listener decoration_listener = {
+	.configure = decoration_handle_configure,
+};
+
+static void randname(char *buf) {
+	struct timespec ts;
+	clock_gettime(CLOCK_REALTIME, &ts);
+	long r = ts.tv_nsec;
+	for (int i = 0; i < 6; ++i) {
+		buf[i] = 'A'+(r&15)+(r&16)*2;
+		r >>= 5;
+	}
+}
+
+static int anonymous_shm_open(void) {
+	char name[] = "/RGFW-wayland-XXXXXX";
+	int retries = 100;
+
+	do {
+		randname(name + strlen(name) - 6);
+
+		--retries;
+		// shm_open guarantees that O_CLOEXEC is set
+		int fd = shm_open(name, O_RDWR | O_CREAT | O_EXCL, 0600);
+		if (fd >= 0) {
+			shm_unlink(name);
+			return fd;
+		}
+	} while (retries > 0 && errno == EEXIST);
+
+	return -1;
+}
+
+int create_shm_file(off_t size) {
+	int fd = anonymous_shm_open();
+	if (fd < 0) {
+		return fd;
+	}
+
+	if (ftruncate(fd, size) < 0) {
+		close(fd);
+		return -1;
+	}
+
+	return fd;
+}
+
+	/* normal wayland RGFW stuff */
+	
+	RGFW_area RGFW_getScreenSize(void) {
+		RGFW_area area = {};
+
+		if (RGFW_root != NULL)
+			/* this isn't right but it's here for buffers */
+			area = RGFW_AREA(RGFW_root->r.w, RGFW_root->r.h);
+		
+		/* TODO wayland */
+		return area;
+	}
+
+	void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) {
+		RGFW_UNUSED(win); RGFW_UNUSED(r);
+
+		/* TODO wayland */
+	}
+
+
+	RGFWDEF void RGFW_init_buffer(RGFW_window* win);
+	void RGFW_init_buffer(RGFW_window* win) {
+		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+			struct wl_shm_pool *pool;
+			int fd;
+
+			size_t size = win->r.w * win->r.h * 4;
+			fd = create_shm_file(size);
+			if (fd < 0) {
+				fprintf(stderr, "Failed to create a buffer. size: %ld\n", size);
+				exit(1);
+			}
+
+			win->buffer = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+			if (win->buffer == MAP_FAILED) {
+				fprintf(stderr, "mmap failed!\n");
+				close(fd);
+				exit(1);
+			}
+
+			pool = wl_shm_create_pool(shm, fd, size);
+			win->src.wl_buffer = wl_shm_pool_create_buffer(pool, 0, win->r.w, win->r.h, win->r.w * 4,
+				WL_SHM_FORMAT_ARGB8888);
+			wl_shm_pool_destroy(pool);
+
+			close(fd);
+
+			u8 color[] = {0x00, 0x00, 0x00, 0xFF};
+
+			size_t i;
+			for (i = 0; i < size; i += 4) {
+				memcpy(&win->buffer[i], color, 4);
+			}
+
+			#if defined(RGFW_OSMESA)
+					win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
+					OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
+			#endif
+
+			wl_surface_attach(win->src.surface, win->src.wl_buffer, 0, 0);
+			wl_surface_commit(win->src.surface);
+		#else
+		RGFW_UNUSED(win);
+		#endif
+	}
+   
+
+	RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
+		RGFW_window* win = RGFW_window_basic_init(rect, args);
+
+		win->src.display = wl_display_connect(NULL);
+		if (win->src.display == NULL) {
+			#ifdef RGFW_DEBUG
+				fprintf(stderr, "Failed to load Wayland display\n");
+			#endif
+			return NULL;
+		}
+		
+		struct wl_registry *registry = wl_display_get_registry(win->src.display);
+		wl_registry_add_listener(registry, &registry_listener, NULL);
+			
+		wl_display_dispatch(win->src.display);
+		wl_display_roundtrip(win->src.display);
+
+		if (RGFW_compositor == NULL) {
+			#ifdef RGFW_DEBUG
+				fprintf(stderr, "Can't find compositor.\n");
+			#endif
+			
+			return NULL;
+		}
+
+		if (RGFW_root == NULL)
+			xdg_wm_base_add_listener(xdg_wm_base, &xdg_wm_base_listener, NULL);
+		
+		xkb_context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+
+		win->src.surface = wl_compositor_create_surface(RGFW_compositor);
+		wl_surface_set_user_data(win->src.surface, win);
+
+		win->src.xdg_surface = xdg_wm_base_get_xdg_surface(xdg_wm_base, win->src.surface);
+		xdg_surface_add_listener(win->src.xdg_surface, &xdg_surface_listener, NULL);
+	
+		xdg_wm_base_set_user_data(xdg_wm_base, win);
+
+		win->src.xdg_toplevel = xdg_surface_get_toplevel(win->src.xdg_surface);
+		xdg_toplevel_set_user_data(win->src.xdg_toplevel, win);
+		xdg_toplevel_set_title(win->src.xdg_toplevel, name);
+		xdg_toplevel_add_listener(win->src.xdg_toplevel, &xdg_toplevel_listener, NULL);
+
+		xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->r.w, win->r.h);
+		
+		if (!(args & RGFW_NO_BORDER)) {
+			win->src.decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
+						decoration_manager, win->src.xdg_toplevel);
+		}
+
+
+		if (args & RGFW_OPENGL_SOFTWARE)
+			setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
+
+		wl_display_roundtrip(win->src.display);
+
+		wl_surface_commit(win->src.surface);
+		
+		/* wait for the surface to be configured */
+		while (wl_display_dispatch(win->src.display) != -1 && !RGFW_wl_configured) { }
+		
+		
+		#ifdef RGFW_OPENGL
+			if ((args & RGFW_NO_INIT_API) == 0) {
+				win->src.window = wl_egl_window_create(win->src.surface, win->r.w, win->r.h);
+				RGFW_createOpenGLContext(win);
+			}
+		#endif	
+
+		RGFW_init_buffer(win);
+
+		if (args & RGFW_HIDE_MOUSE) {
+			RGFW_window_showMouse(win, 0);
+		}
+		
+		if (RGFW_root == NULL) {
+			RGFW_root = win;
+		}
+		
+		win->src.eventIndex = 0;
+		win->src.eventLen = 0;
+		
+		return win;
+	}
+
+	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
+		if (wl_display_dispatch(win->src.display) == -1) {
+			return NULL;
+		}
+
+		#ifdef __linux__
+			RGFW_Event* event = RGFW_linux_updateJoystick(win);
+			if (event != NULL)
+				return event;
+		#endif
+		
+		if (win->src.eventIndex == 0) 
+			RGFW_resetKey();
+		
+		if (win->src.eventLen == 0)
+			return NULL;
+		
+		RGFW_Event ev = RGFW_eventPipe_pop(win);					
+
+		if (ev.type ==  0 || win->event.type == RGFW_quit) {
+			return NULL;
+		}
+
+        ev.frameTime = win->event.frameTime;
+        ev.frameTime2 = win->event.frameTime2;
+        ev.inFocus = win->event.inFocus;
+        win->event = ev;
+		
+		return &win->event;
+	}
+
+
+	void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
+		RGFW_UNUSED(win); RGFW_UNUSED(a);
+
+		/* TODO wayland */
+	}
+
+	void RGFW_window_move(RGFW_window* win, RGFW_point v) {
+		RGFW_UNUSED(win); RGFW_UNUSED(v);
+
+		/* TODO wayland */
+	}
+
+	void RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
+		RGFW_UNUSED(win); RGFW_UNUSED(src); RGFW_UNUSED(a); RGFW_UNUSED(channels)
+		/* TODO wayland */
+	}
+
+	void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v) {
+		RGFW_UNUSED(win); RGFW_UNUSED(v);
+
+		/* TODO wayland */
+	}
+
+	void RGFW_window_showMouse(RGFW_window* win, i8 show) {
+		RGFW_UNUSED(win);
+
+		if (show) {
+
+		}
+		else {
+			
+		}
+
+		/* TODO wayland */
+	}
+
+	b8 RGFW_window_isMaximized(RGFW_window* win) {
+		RGFW_UNUSED(win);
+		/* TODO wayland */
+		return 0;
+	}
+
+	b8 RGFW_window_isMinimized(RGFW_window* win) {
+		RGFW_UNUSED(win);
+		/* TODO wayland */
+		return 0;
+	}
+
+	b8 RGFW_window_isHidden(RGFW_window* win) {
+		RGFW_UNUSED(win);
+		/* TODO wayland */
+		return 0;
+	}
+
+	b8 RGFW_window_isFullscreen(RGFW_window* win) {
+		RGFW_UNUSED(win);
+		/* TODO wayland */
+		return 0;
+	}
+
+	RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
+		RGFW_UNUSED(win);
+		/* TODO wayland */
+		return RGFW_POINT(0, 0);
+	}
+			
+	RGFW_point RGFW_getGlobalMousePoint(void) {
+		/* TODO wayland */
+		return RGFW_POINT(0, 0);
+	}
+			
+	void RGFW_window_show(RGFW_window* win) {
+		RGFW_UNUSED(win);
+
+	/* TODO wayland */
+	}
+		
+	void RGFW_window_hide(RGFW_window* win) {
+		RGFW_UNUSED(win);
+
+	/* TODO wayland */
+	}
+		
+	void RGFW_window_setMouseDefault(RGFW_window* win) {
+		RGFW_UNUSED(win);
+
+	/* TODO wayland */
+	}
+		
+	void RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
+		RGFW_UNUSED(win); RGFW_UNUSED(mouse);
+
+	/* TODO wayland */
+	}
+		
+	void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels) {
+		RGFW_UNUSED(win); RGFW_UNUSED(image); RGFW_UNUSED(a); RGFW_UNUSED(channels)
+
+	/* TODO wayland */
+	}
+		
+	void RGFW_window_setName(RGFW_window* win, char* name) {
+		RGFW_UNUSED(win); RGFW_UNUSED(name);
+
+		/* TODO wayland */
+	}
+		
+	void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
+		RGFW_UNUSED(win); RGFW_UNUSED(passthrough);
+
+	/* TODO wayland */
+	}
+		
+	void RGFW_window_setBorder(RGFW_window* win, b8 border) {
+		RGFW_UNUSED(win); RGFW_UNUSED(border);
+
+	/* TODO wayland */
+	}
+		
+	void RGFW_window_restore(RGFW_window* win) {
+		RGFW_UNUSED(win);
+
+	/* TODO wayland */
+	}
+		
+	void RGFW_window_minimize(RGFW_window* win) {
+		RGFW_UNUSED(win);
+
+	/* TODO wayland */
+	}
+		
+	void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
+		RGFW_UNUSED(win); RGFW_UNUSED(a);
+
+	/* TODO wayland */
+	}
+		
+	void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
+		RGFW_UNUSED(win); RGFW_UNUSED(a);
+
+	/* TODO wayland */
+	}
+
+	RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
+		RGFW_monitor m = {};
+		RGFW_UNUSED(win);
+		RGFW_UNUSED(m);
+		/* TODO wayland */
+
+		return m;
+	}
+
+
+	#ifndef RGFW_EGL
+	void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) { RGFW_UNUSED(win); RGFW_UNUSED(swapInterval); }
+	#endif
+
+	void RGFW_window_swapBuffers(RGFW_window* win) {
+		assert(win != NULL);
+
+		/* clear the window*/
+		#ifdef RGFW_BUFFER
+		if (!(win->_winArgs & RGFW_NO_CPU_RENDER)) {
+			#ifndef RGFW_X11_DONT_CONVERT_BGR
+				u32 x, y;
+				for (y = 0; y < (u32)win->r.h; y++) {
+					for (x = 0; x < (u32)win->r.w; x++) {
+						u32 index = (y * 4 * win->r.w) + x * 4;
+
+						u8 red = win->buffer[index];
+						win->buffer[index] = win->buffer[index + 2];
+						win->buffer[index + 2] = red;
+
+					}
+				}
+			#endif	
+		}
+		
+		
+		if (!(win->_winArgs & RGFW_NO_GPU_RENDER)) 
+		#endif
+		{
+		#ifdef RGFW_OPENGL
+			eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
+		#endif
+		}
+		
+		wl_display_flush(win->src.display);
+	}
+
+	void RGFW_window_close(RGFW_window* win) {
+		#ifdef RGFW_EGL
+			RGFW_closeEGL(win);
+		#endif
+
+		if (RGFW_root == win) {
+			RGFW_root = NULL;
+		}
+
+		xdg_toplevel_destroy(win->src.xdg_toplevel);
+		xdg_surface_destroy(win->src.xdg_surface);
+		wl_surface_destroy(win->src.surface);
+
+		#ifdef RGFW_BUFFER
+		wl_buffer_destroy(win->src.wl_buffer);
+		#endif
+		
+		wl_display_disconnect(win->src.display);
+		RGFW_FREE(win);
+	}
+
+	RGFW_monitor RGFW_getPrimaryMonitor(void) {
+		/* TODO wayland */
+
+		return (RGFW_monitor){};
+	}
+						
+	RGFW_monitor* RGFW_getMonitors(void) {
+		/* TODO wayland */
+
+		return NULL;
+	}
+
+	void RGFW_writeClipboard(const char* text, u32 textLen) {
+		RGFW_UNUSED(text); RGFW_UNUSED(textLen);
+
+		/* TODO wayland */
+	}
+
+	char* RGFW_readClipboard(size_t* size) {
+		RGFW_UNUSED(size);
+
+		/* TODO wayland */
+
+		return NULL;
+	}
+#endif /* RGFW_WAYLAND */
+
+/* 
+	End of Wayland defines
+*/
 
 
 /*
@@ -7894,7 +8818,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win) return 
 /* end of web asm defines */
 
 /* unix (macOS, linux, web asm) only stuff */
-#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM)
+#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM)  || defined(RGFW_WAYLAND)
 /* unix threading */
 #ifndef RGFW_NO_THREADS
 #include <pthread.h>
@@ -7909,7 +8833,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win) return 
 	void RGFW_cancelThread(RGFW_thread thread) { pthread_cancel((pthread_t) thread); }
 	void RGFW_joinThread(RGFW_thread thread) { pthread_join((pthread_t) thread, NULL); }
 #ifdef __linux__
-	void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { pthread_setschedprio(thread, priority); }
+	void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { pthread_setschedprio((pthread_t)thread, priority); }
 #endif
 #endif
 
