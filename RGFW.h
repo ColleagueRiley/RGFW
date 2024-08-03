@@ -1869,7 +1869,6 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 #if defined(RGFW_X11) || defined(RGFW_WINDOWS)
 	#define RGFW_GL_DRAW 			RGFW_OS_BASED_VALUE(GLX_X_RENDERABLE,	 	0x2001,					0, 0, 0)
 	#define RGFW_GL_DRAW_TYPE 		RGFW_OS_BASED_VALUE(GLX_RENDER_TYPE,     	0x2013,						0, 0, 0)
-	#define RGFW_GL_USE_OPENGL		RGFW_OS_BASED_VALUE(GLX_USE_GL,				0x2010,						0, 0, 0)
 	#define RGFW_GL_FULL_FORMAT		RGFW_OS_BASED_VALUE(GLX_TRUE_COLOR,   	 	0x2027,						0, 0, 0)
 	#define RGFW_GL_RED_SIZE		RGFW_OS_BASED_VALUE(GLX_RED_SIZE,         	0x2015,						0, 0, 0)
 	#define RGFW_GL_GREEN_SIZE		RGFW_OS_BASED_VALUE(GLX_GREEN_SIZE,       	0x2017,						0, 0, 0)
@@ -1878,6 +1877,7 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 #endif
 
 #ifdef RGFW_WINDOWS
+	#define WGL_SUPPORT_OPENGL_ARB                    0x2010
 	#define WGL_COLOR_BITS_ARB                        0x2014
 	#define WGL_NUMBER_PIXEL_FORMATS_ARB 			0x2000
 	#define WGL_CONTEXT_MAJOR_VERSION_ARB             0x2091
@@ -1903,13 +1903,12 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 								RGFW_GL_ALPHA_SIZE      , 8,
 								RGFW_GL_DEPTH_SIZE      , 24,
 								#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
-								RGFW_GL_USE_OPENGL,		1,
 								RGFW_GL_DRAW, 1,
 								RGFW_GL_RED_SIZE        , 8,
 								RGFW_GL_GREEN_SIZE      , 8,
 								RGFW_GL_BLUE_SIZE       , 8,
 								RGFW_GL_DRAW_TYPE     , RGFW_GL_USE_RGBA,
-									#endif 
+								#endif 
 
 								#ifdef RGFW_X11
 								GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,
@@ -1921,6 +1920,7 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 								#endif
 
 								#ifdef RGFW_WINDOWS
+								WGL_SUPPORT_OPENGL_ARB,		1,
 								WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
 								WGL_COLOR_BITS_ARB,	 32,
 								#endif
@@ -4979,7 +4979,6 @@ int create_shm_file(off_t size) {
 #define WGL_DRAW_TO_WINDOW_ARB                    0x2001
 #define WGL_ACCELERATION_ARB                      0x2003
 #define WGL_NO_ACCELERATION_ARB 0x2025
-#define WGL_SUPPORT_OPENGL_ARB                    0x2010
 #define WGL_DOUBLE_BUFFER_ARB                     0x2011
 #define WGL_COLOR_BITS_ARB                        0x2014
 #define WGL_RED_BITS_ARB 0x2015
