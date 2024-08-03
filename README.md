@@ -14,6 +14,8 @@ RGFW is a free multi-platform single-header very simple-to-use window abstractio
 The window backend supports XLib (UNIX), Cocoas (MacOS), webASM (emscripten) and WinAPI (tested on windows *XP*, 10 and 11, and reactOS)\
 Windows 95 & 98 have also been tested with RGFW, although results are iffy  
 
+Wayland: to compile wayland add (RGFW_WAYLAND=1). Wayland support is very experimental and broken.
+
 The graphics backend supports OpenGL (EGL, software, OSMesa, GLES), Vulkan, DirectX and software rendering buffers.
 
 RGFW was designed as a backend for RSGL, but it can be used standalone or for other libraries, such as Raylib which uses it as an optional alternative backend.
