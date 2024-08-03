@@ -52,6 +52,10 @@ ifeq ($(detected_OS),Linux)
 	OS_DIR = /
 endif
 
+ifeq ($(RGFW_WAYLAND),1)
+	LIBS = -D RGFW_WAYLAND xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-client -lEGL -lxkbcommon -lGL -lwayland-egl -lm 
+endif
+
 ifneq (,$(filter $(CC),cl))
 	OS_DIR = \\
 
@@ -85,6 +89,7 @@ else
 endif
 
 all: examples$(OS_DIR)basic$(OS_DIR)main.c examples$(OS_DIR)buffer$(OS_DIR)main.c examples$(OS_DIR)portableGL$(OS_DIR)main.c  examples$(OS_DIR)gl33$(OS_DIR)main.c examples$(OS_DIR)gles2$(OS_DIR)main.c examples$(OS_DIR)vk10$(OS_DIR)main.c .$(OS_DIR)RGFW.h
+	make initwayland
 	$(CC) examples$(OS_DIR)basic$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -o basic$(EXT)
 	$(CC) examples$(OS_DIR)buffer$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -o buffer$(EXT)
 	$(CC) examples$(OS_DIR)silk$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -o silk$(EXT)
@@ -108,6 +113,7 @@ clean:
 
 debug: examples$(OS_DIR)basic$(OS_DIR)main.c examples$(OS_DIR)buffer$(OS_DIR)main.c examples$(OS_DIR)portableGL$(OS_DIR)main.c examples$(OS_DIR)gl33$(OS_DIR)main.c examples$(OS_DIR)gles2$(OS_DIR)main.c examples$(OS_DIR)vk10$(OS_DIR)main.c .$(OS_DIR)RGFW.h
 	make clean
+	make initwayland
 
 	$(CC) examples$(OS_DIR)buffer$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)buffer$(OS_DIR)buffer$(EXT)
 	
@@ -181,6 +187,7 @@ debugDX11: examples$(OS_DIR)dx11$(OS_DIR)main.c
 	.$(OS_DIR)dx11.exe
 
 RGFW.o: RGFW.h
+	make initwayland
 	$(CC) -x c $(CUSTOM_CFLAGS) -c RGFW.h -D RGFW_IMPLEMENTATION -fPIC -D RGFW_EXPORT
 
 libRGFW$(LIB_EXT): RGFW.h RGFW.o
@@ -190,3 +197,13 @@ libRGFW$(LIB_EXT): RGFW.h RGFW.o
 libRGFW.a: RGFW.h RGFW.o
 	make RGFW.o
 	$(AR) rcs libRGFW.a *.o
+
+
+initwayland:
+ifeq ($(RGFW_WAYLAND),1)
+	wayland-scanner client-header /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml xdg-shell.h
+	wayland-scanner public-code /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml xdg-shell.c
+
+	wayland-scanner client-header /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.h
+	wayland-scanner public-code /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.c 
+endif
