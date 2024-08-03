@@ -27,12 +27,6 @@ RGFW_Event
 .RI "\fBRGFW_point\fP \fBpoint\fP"
 .br
 .ti -1c
-.RI "\fBu64\fP \fBframeTime\fP"
-.br
-.ti -1c
-.RI "\fBu64\fP \fBframeTime2\fP"
-.br
-.ti -1c
 .RI "\fBu8\fP \fBkeyCode\fP"
 .br
 .ti -1c
@@ -45,19 +39,25 @@ RGFW_Event
 .RI "\fBu8\fP \fBlockState\fP"
 .br
 .ti -1c
-.RI "\fBu16\fP \fBjoystick\fP"
-.br
-.ti -1c
 .RI "\fBu8\fP \fBbutton\fP"
 .br
 .ti -1c
 .RI "double \fBscroll\fP"
 .br
 .ti -1c
+.RI "\fBu16\fP \fBjoystick\fP"
+.br
+.ti -1c
 .RI "\fBu8\fP \fBaxisesCount\fP"
 .br
 .ti -1c
 .RI "\fBRGFW_point\fP \fBaxis\fP [2]"
+.br
+.ti -1c
+.RI "\fBu64\fP \fBframeTime\fP"
+.br
+.ti -1c
+.RI "\fBu64\fP \fBframeTime2\fP"
 .br
 .in -1c
 .SH "Detailed Description"
@@ -68,9 +68,9 @@ Event structure for checking/getting events
 .SS "\fBRGFW_point\fP RGFW_Event::axis[2]"
 x, y of axises (-100 to 100) 
 .SS "\fBu8\fP RGFW_Event::axisesCount"
-number of axises 
+which joystick this event applies to (if applicable to any) number of axises 
 .SS "\fBu8\fP RGFW_Event::button"
-which joystick this event applies to (if applicable to any) which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed 
+
 .SS "char RGFW_Event::droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP]"
 drag and drop data dropped files 
 .SS "\fBu32\fP RGFW_Event::droppedFilesCount"
