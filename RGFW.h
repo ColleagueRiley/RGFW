@@ -457,28 +457,29 @@ typedef struct RGFW_Event {
 #ifdef RGFW_ALLOC_DROPFILES
 	char** droppedFiles;
 #else
-	//char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH]; /*!< dropped files*/
+	char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH]; /*!< dropped files*/
 #endif
 	u32 droppedFilesCount; /*!< house many files were dropped */
 
 	u32 type; /*!< which event has been sent?*/
 	RGFW_point point; /*!< mouse x, y of event (or drop point) */
 	
-	u8 keyCode; /*!< keycode of event 	!!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! */	
+	u64 frameTime, frameTime2; /*!< this is used for counting the fps */
 	
+	u8 keyCode; /*!< keycode of event 	!!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! */
 	b8 repeat; /*!< key press event repeated (the key is being held) */
+
 	b8 inFocus;  /*!< if the window is in focus or not (this is always true for MacOS windows due to the api being weird) */
 
 	u8 lockState;
-	
-	u8 button; /* !< which mouse button was pressed */
-	double scroll; /*!< the raw mouse scroll value */
 
 	u16 joystick; /*! which joystick this event applies to (if applicable to any) */
+
+	u8 button; /*!< which mouse button has been clicked (0) left (1) middle (2) right OR which joystick button was pressed*/
+	double scroll; /*!< the raw mouse scroll value */
+
 	u8 axisesCount; /*!< number of axises */
 	RGFW_point axis[2]; /*!< x, y of axises (-100 to 100) */
-
-	u64 frameTime, frameTime2; /*!< this is used for counting the fps */
 } RGFW_Event;
 
 /*! source data for the window (used by the APIs) */
@@ -2695,10 +2696,8 @@ Start of Linux / Unix defines
 						RGFW_jsButtonCallback(win, i, e.number, e.value);
 						return &win->event;
 					case JS_EVENT_AXIS:
-						u8 axisCount;
-						ioctl(RGFW_joysticks[i], JSIOCGAXES, &axisCount);
-						win->event.axisesCount = axisCount;
-	
+						ioctl(RGFW_joysticks[i], JSIOCGAXES, &win->event.axisesCount);
+
 						if ((e.number == 0 || e.number % 2) && e.number != 1)
 							xAxis = e.value;
 						else
