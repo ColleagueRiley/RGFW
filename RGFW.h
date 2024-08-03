@@ -1915,12 +1915,12 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 								#endif	
 
 								#ifdef RGFW_MACOS
-								WGL_SUPPORT_OPENGL_ARB,		1,
 								72,
 								8, 24,
 								#endif
 
 								#ifdef RGFW_WINDOWS
+								WGL_SUPPORT_OPENGL_ARB,		1,
 								WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
 								WGL_COLOR_BITS_ARB,	 32,
 								#endif
