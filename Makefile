@@ -1,16 +1,16 @@
 CC = gcc
 AR = ar
 
-CUSTOM_CFLAGS = 
+CUSTOM_CFLAGS =
 
 DX11_LIBS = -ldxgi -ld3d11 -luuid -ld3dcompiler
 VULAKN_LIBS = -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
-LIBS :=-lgdi32 -lm -lopengl32 -lwinmm -ggdb 
+LIBS :=-lgdi32 -lm -lopengl32 -lwinmm -ggdb
 EXT = .exe
 LIB_EXT = .dll
 STATIC =
 
-WARNINGS = -Wall -Werror -Wstrict-prototypes -Wextra
+WARNINGS =  -Wall -Werror -Wstrict-prototypes -Wextra -Wstrict-prototypes -Wold-style-definition -Wno-missing-field-initializers -Wno-unknown-pragmas -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-missing-braces -Wno-missing-variable-declarations -Wno-redundant-decls -Wno-unused-function -Wno-unused-label -Wno-unused-result -Wno-incompatible-pointer-types -Wno-format -Wno-format-extra-args -Wno-implicit-function-declaration -Wno-implicit-int -Wno-pointer-sign -Wno-switch -Wno-switch-default -Wno-switch-enum -Wno-unused-value -Wno-type-limits
 OS_DIR = \\
 
 ifneq (,$(filter $(CC),winegcc x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-mingw32-g++))
@@ -40,7 +40,7 @@ endif
 ifeq ($(detected_OS),Darwin)        # Mac OS X
 	LIBS := -lm -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo$(STATIC)
 	VULAKN_LIBS = -lvulkan
-	EXT = 
+	EXT =
 	LIB_EXT = .dylib
 	OS_DIR = /
 endif
@@ -53,7 +53,7 @@ ifeq ($(detected_OS),Linux)
 endif
 
 ifeq ($(RGFW_WAYLAND),1)
-	LIBS = -D RGFW_WAYLAND xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-client -lEGL -lxkbcommon -lGL -lwayland-egl -lm 
+	LIBS = -D RGFW_WAYLAND xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-client -lEGL -lxkbcommon -lGL -lwayland-egl -lm
 endif
 
 ifneq (,$(filter $(CC),cl))
@@ -73,14 +73,14 @@ ifneq (,$(filter $(CC),cl /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	LIB_EXT = .dll
 endif
 
-LINK_GL1 = 
+LINK_GL1 =
 LINK_GL3 =
-LINK_GL2 = 
+LINK_GL2 =
 
 ifeq ($(CC),emcc)
 	LINK_GL1 = -s LEGACY_GL_EMULATION -D LEGACY_GL_EMULATION -sGL_UNSAFE_OPTS=0
-	LINK_GL3 = -s FULL_ES3 
-	LINK_GL2 = -s FULL_ES2	
+	LINK_GL3 = -s FULL_ES3
+	LINK_GL2 = -s FULL_ES2
 	EXPORTED_JS = -s EXPORTED_RUNTIME_METHODS="['stringToNewUTF8']"
 	LIBS = -s WASM=1 -s ASYNCIFY -s USE_WEBGL2 -s GL_SUPPORT_EXPLICIT_SWAP_CONTROL=1 $(EXPORTED_JS)
 	EXT = .js
@@ -116,25 +116,25 @@ debug: examples$(OS_DIR)basic$(OS_DIR)main.c examples$(OS_DIR)buffer$(OS_DIR)mai
 	make initwayland
 
 	$(CC) examples$(OS_DIR)buffer$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)buffer$(OS_DIR)buffer$(EXT)
-	
+
 ifeq (,$(filter $(CC),emcc))
 	.$(OS_DIR)examples$(OS_DIR)buffer$(OS_DIR)buffer$(EXT)
 endif
 
 	$(CC) examples$(OS_DIR)silk$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)silk$(OS_DIR)silk$(EXT)
-	
+
 ifeq (,$(filter $(CC),emcc))
 	.$(OS_DIR)examples$(OS_DIR)silk$(OS_DIR)silk$(EXT)
 endif
 
 	$(CC) examples$(OS_DIR)events$(OS_DIR)main.c $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)events$(OS_DIR)events$(EXT)
-	
+
 ifeq (,$(filter $(CC),emcc))
 	.$(OS_DIR)examples$(OS_DIR)events$(OS_DIR)events$(EXT)
 endif
 
 	$(CC) examples$(OS_DIR)callbacks$(OS_DIR)main.c $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)callbacks$(OS_DIR)callbacks$(EXT)
-	
+
 ifeq (,$(filter $(CC),emcc))
 	.$(OS_DIR)examples$(OS_DIR)callbacks$(OS_DIR)callbacks$(EXT)
 endif
@@ -152,7 +152,7 @@ ifeq (,$(filter $(CC),emcc))
 endif
 
 	$(CC) examples$(OS_DIR)basic$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)basic$(OS_DIR)basic$(EXT)
-	
+
 ifeq (,$(filter $(CC),emcc))
 	.$(OS_DIR)examples$(OS_DIR)basic$(OS_DIR)basic$(EXT)
 endif
@@ -205,5 +205,5 @@ ifeq ($(RGFW_WAYLAND),1)
 	wayland-scanner public-code /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml xdg-shell.c
 
 	wayland-scanner client-header /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.h
-	wayland-scanner public-code /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.c 
+	wayland-scanner public-code /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.c
 endif
