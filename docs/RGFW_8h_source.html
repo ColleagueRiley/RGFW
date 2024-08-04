@@ -3873,7 +3873,7 @@ $(function() {
 <div class="line"><a id="l04027" name="l04027"></a><span class="lineno"> 4027</span>        <span class="comment">/* drain any data in the stop request */</span></div>
 <div class="line"><a id="l04028" name="l04028"></a><span class="lineno"> 4028</span>        <span class="keywordflow">if</span> (RGFW_eventWait_forceStop[2]) {  </div>
 <div class="line"><a id="l04029" name="l04029"></a><span class="lineno"> 4029</span>            <span class="keywordtype">char</span> data[64];</div>
-<div class="line"><a id="l04030" name="l04030"></a><span class="lineno"> 4030</span>            read(RGFW_eventWait_forceStop[0], data, <span class="keyword">sizeof</span>(data));</div>
+<div class="line"><a id="l04030" name="l04030"></a><span class="lineno"> 4030</span>            (void)!read(RGFW_eventWait_forceStop[0], data, <span class="keyword">sizeof</span>(data));</div>
 <div class="line"><a id="l04031" name="l04031"></a><span class="lineno"> 4031</span>            </div>
 <div class="line"><a id="l04032" name="l04032"></a><span class="lineno"> 4032</span>            RGFW_eventWait_forceStop[2] = 0;</div>
 <div class="line"><a id="l04033" name="l04033"></a><span class="lineno"> 4033</span>        }</div>

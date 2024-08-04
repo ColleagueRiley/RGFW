@@ -1,13 +1,23 @@
+
+#define SILK_PIXELBUFFER_WIDTH 500
+#define SILK_PIXELBUFFER_HEIGHT 500
+#define SILK_IMPLEMENTATION
+#include "silk.h"
+
+#include <stdint.h>
+
+typedef int8_t      i8;
+typedef uint16_t   u16;
+typedef int16_t    i16;
+typedef uint64_t   u64;
+typedef int64_t    i64;
+
+
+#define u8 u8
 #define RGFW_IMPLEMENTATION
 #define RGFW_BUFFER
 
 #include "RGFW.h"
-
-#define SILK_PIXELBUFFER_WIDTH 500
-#define SILK_PIXELBUFFER_HEIGHT 500
-
-#define SILK_IMPLEMENTATION
-#include "silk.h"
 
 int main(void) {
     RGFW_setBufferSize(RGFW_AREA(500, 500));
