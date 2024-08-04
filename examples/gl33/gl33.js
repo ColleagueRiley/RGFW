@@ -894,14 +894,10 @@ function dbg(...args) {
 
 var ASM_CONSTS = {
   69416: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 70435: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 70506: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 70563: () => { return window.mouseX || 0; },  
- 70594: () => { return window.mouseY || 0; },  
- 70625: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 70772: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 70825: () => { return window.innerWidth; },  
- 70855: () => { return window.innerHeight; }
+ 70435: () => { return window.innerWidth; },  
+ 70465: () => { return window.innerHeight; },  
+ 70496: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 70553: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); }
 };
 
 // end include: preamble.js
@@ -6802,12 +6798,12 @@ var wasmImports = {
 };
 var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors', 0);
-var _malloc = createExportWrapper('malloc', 1);
-var _free = createExportWrapper('free', 1);
 var _Emscripten_onDrop = Module['_Emscripten_onDrop'] = createExportWrapper('Emscripten_onDrop', 1);
 var _RGFW_makeSetValue = Module['_RGFW_makeSetValue'] = createExportWrapper('RGFW_makeSetValue', 2);
 var _RGFW_mkdir = Module['_RGFW_mkdir'] = createExportWrapper('RGFW_mkdir', 1);
 var _RGFW_writeFile = Module['_RGFW_writeFile'] = createExportWrapper('RGFW_writeFile', 3);
+var _malloc = createExportWrapper('malloc', 1);
+var _free = createExportWrapper('free', 1);
 var _main = Module['_main'] = createExportWrapper('main', 2);
 var _fflush = createExportWrapper('fflush', 1);
 var _strerror = createExportWrapper('strerror', 1);

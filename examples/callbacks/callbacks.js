@@ -894,14 +894,10 @@ function dbg(...args) {
 
 var ASM_CONSTS = {
   69408: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 70427: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 70498: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 70555: () => { return window.mouseX || 0; },  
- 70586: () => { return window.mouseY || 0; },  
- 70617: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 70764: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 70817: () => { return window.innerWidth; },  
- 70847: () => { return window.innerHeight; }
+ 70427: () => { return window.innerWidth; },  
+ 70457: () => { return window.innerHeight; },  
+ 70488: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 70545: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); }
 };
 
 // end include: preamble.js
@@ -6304,12 +6300,12 @@ var wasmImports = {
 };
 var wasmExports = createWasm();
 var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors', 0);
-var _malloc = createExportWrapper('malloc', 1);
-var _free = createExportWrapper('free', 1);
 var _Emscripten_onDrop = Module['_Emscripten_onDrop'] = createExportWrapper('Emscripten_onDrop', 1);
 var _RGFW_makeSetValue = Module['_RGFW_makeSetValue'] = createExportWrapper('RGFW_makeSetValue', 2);
 var _RGFW_mkdir = Module['_RGFW_mkdir'] = createExportWrapper('RGFW_mkdir', 1);
 var _RGFW_writeFile = Module['_RGFW_writeFile'] = createExportWrapper('RGFW_writeFile', 3);
+var _malloc = createExportWrapper('malloc', 1);
+var _free = createExportWrapper('free', 1);
 var _main = Module['_main'] = createExportWrapper('main', 2);
 var _fflush = createExportWrapper('fflush', 1);
 var _strerror = createExportWrapper('strerror', 1);
@@ -6320,12 +6316,12 @@ var _emscripten_stack_get_end = () => (_emscripten_stack_get_end = wasmExports['
 var __emscripten_stack_restore = (a0) => (__emscripten_stack_restore = wasmExports['_emscripten_stack_restore'])(a0);
 var __emscripten_stack_alloc = (a0) => (__emscripten_stack_alloc = wasmExports['_emscripten_stack_alloc'])(a0);
 var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'])();
+var dynCall_iiii = Module['dynCall_iiii'] = createExportWrapper('dynCall_iiii', 4);
 var dynCall_vii = Module['dynCall_vii'] = createExportWrapper('dynCall_vii', 3);
 var dynCall_vi = Module['dynCall_vi'] = createExportWrapper('dynCall_vi', 2);
 var dynCall_viii = Module['dynCall_viii'] = createExportWrapper('dynCall_viii', 4);
 var dynCall_viiiii = Module['dynCall_viiiii'] = createExportWrapper('dynCall_viiiii', 6);
 var dynCall_viidi = Module['dynCall_viidi'] = createExportWrapper('dynCall_viidi', 5);
-var dynCall_iiii = Module['dynCall_iiii'] = createExportWrapper('dynCall_iiii', 4);
 var dynCall_jiji = Module['dynCall_jiji'] = createExportWrapper('dynCall_jiji', 5);
 var dynCall_ii = Module['dynCall_ii'] = createExportWrapper('dynCall_ii', 2);
 var dynCall_iidiiii = Module['dynCall_iidiiii'] = createExportWrapper('dynCall_iidiiii', 7);

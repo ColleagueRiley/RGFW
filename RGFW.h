@@ -139,7 +139,7 @@
 #endif 
 
 #ifndef RGFWDEF
-	#ifdef __APPLE__
+	#ifdef __clang__
 		#define RGFWDEF static inline
 	#else
 		#define RGFWDEF inline
