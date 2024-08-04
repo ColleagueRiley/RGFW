@@ -6834,9 +6834,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			NSWindowStyleMaskHUDWindow = 1 << 13
 	};
 
-	typedef const char* NSPasteboardType;
 	NSPasteboardType const NSPasteboardTypeString = "public.utf8-plain-text"; // Replaces NSStringPboardType
-
 
 
 	typedef NS_ENUM(i32, NSDragOperation) {
