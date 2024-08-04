@@ -4027,7 +4027,7 @@ Start of Linux / Unix defines
 		/* drain any data in the stop request */
 		if (RGFW_eventWait_forceStop[2]) {	
 			char data[64];
-			read(RGFW_eventWait_forceStop[0], data, sizeof(data));
+			(void)!read(RGFW_eventWait_forceStop[0], data, sizeof(data));
 			
 			RGFW_eventWait_forceStop[2] = 0;
 		}
