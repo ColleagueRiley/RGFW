@@ -160,7 +160,11 @@ RGFW$(OBJ_FILE): RGFW.h
 
 libRGFW$(LIB_EXT): RGFW.h RGFW$(OBJ_FILE)
 	make RGFW$(OBJ_FILE)
+ifeq ($(CC) cl)
+	link /DLL /OUT:libRGFW.dll RGFW.obj
+else
 	$(CC) $(CUSTOM_CFLAGS) -shared RGFW$(OBJ_FILE) $(LIBS) -o libRGFW$(LIB_EXT)
+endif
 
 libRGFW.a: RGFW.h RGFW$(OBJ_FILE)
 	make RGFW$(OBJ_FILE)
@@ -171,7 +175,6 @@ initwayland:
 ifeq ($(RGFW_WAYLAND),1)
 	wayland-scanner client-header /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml xdg-shell.h
 	wayland-scanner public-code /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml xdg-shell.c
-
 	wayland-scanner client-header /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.h
 	wayland-scanner public-code /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.c
 else
