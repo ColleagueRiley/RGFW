@@ -27,7 +27,7 @@ jobs:
             
     - name: Compile to WebAssembly
       run: |
-        make debug CC=emcc
+        make CC=emcc
         mv html docs
 
     - name: get nuklear webasm
