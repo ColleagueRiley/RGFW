@@ -160,7 +160,7 @@ RGFW$(OBJ_FILE): RGFW.h
 
 libRGFW$(LIB_EXT): RGFW.h RGFW$(OBJ_FILE)
 	make RGFW$(OBJ_FILE)
-ifeq ($(CC) cl)
+ifeq ($(CC), cl)
 	link /DLL /OUT:libRGFW.dll RGFW.obj
 else
 	$(CC) $(CUSTOM_CFLAGS) -shared RGFW$(OBJ_FILE) $(LIBS) -o libRGFW$(LIB_EXT)
