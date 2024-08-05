@@ -25,6 +25,8 @@ OS_DIR = \\
 NO_GLES = 1
 detected_OS = windows
 
+OBJ_FILE = .o
+
 # not using a cross compiler
 ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-mingw32-g++ /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	detected_OS := $(shell uname 2>/dev/null || echo Unknown)
@@ -148,17 +150,17 @@ endif
 	make clean
 
 
-RGFW.o: RGFW.h
+RGFW.$(OBJ_FILE): RGFW.h
 	make initwayland
 	$(CC) -x c $(CUSTOM_CFLAGS) -c RGFW.h -D RGFW_IMPLEMENTATION -fPIC -D RGFW_EXPORT
 
-libRGFW$(LIB_EXT): RGFW.h RGFW.o
-	make RGFW.o
-	$(CC) $(CUSTOM_CFLAGS) -shared RGFW.o $(LIBS) -o libRGFW$(LIB_EXT)
+libRGFW$(LIB_EXT): RGFW.h RGFW.$(OBJ_FILE)
+	make RGFW.$(OBJ_FILE)
+	$(CC) $(CUSTOM_CFLAGS) -shared RGFW.$(OBJ_FILE) $(LIBS) -o libRGFW$(LIB_EXT)
 
 libRGFW.a: RGFW.h RGFW.o
-	make RGFW.o
-	$(AR) rcs libRGFW.a RGFW.o
+	make RGFW.$(OBJ_FILE)
+	$(AR) rcs libRGFW.a RGFW.$(OBJ_FILE)
 
 
 initwayland:
@@ -173,7 +175,7 @@ else
 endif
 
 clean:
-	rm -f *.o *.a *.so $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)  .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.exe .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.js .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.wasm 
+	rm -f *.o *.obj *.dll .dylib *.a *.so $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)  .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.exe .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.js .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.wasm 
 	
 
 .PHONY: all examples clean
