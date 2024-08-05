@@ -1,54 +1,50 @@
+# CUSTOM ARGS :
+# RGFW_WAYLAND=1 -> use wayland 
+# NO_VULKAN=1 -> do not compile the vulkan example
+# NO_GLES=1 -> do not compile the gles example (on by default for non-linux OSes)
+
 CC = gcc
 AR = ar
 
+# used for compiling RGFW.o
 CUSTOM_CFLAGS =
+# used for the examples
+CFLAGS = 
 
-DX11_LIBS = -ldxgi -ld3d11 -luuid -ld3dcompiler
-VULAKN_LIBS = -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
-LIBS :=-lgdi32 -lm -lopengl32 -lwinmm -ggdb
+DX11_LIBS = -static -lgdi32 -lm -lwinmm -ldxgi -ld3d11 -luuid -ld3dcompiler
+VULKAN_LIBS = -lgdi32 -lm -lwinmm -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
+LIBS := -static -lgdi32 -lm -lopengl32 -lwinmm -ggdb
 EXT = .exe
 LIB_EXT = .dll
-STATIC =
+
+LIBS += -D _WIN32_WINNT="0x0501"
 
 WARNINGS =  -Wall -Werror -Wstrict-prototypes -Wextra -Wstrict-prototypes -Wold-style-definition -Wno-missing-field-initializers -Wno-unknown-pragmas -Wno-unused-parameter -Wno-unused-but-set-variable -Wno-missing-braces -Wno-missing-variable-declarations -Wno-redundant-decls -Wno-unused-function -Wno-unused-label -Wno-unused-result -Wno-incompatible-pointer-types -Wno-format -Wno-format-extra-args -Wno-implicit-function-declaration -Wno-implicit-int -Wno-pointer-sign -Wno-switch -Wno-switch-default -Wno-switch-enum -Wno-unused-value -Wno-type-limits
 OS_DIR = \\
 
-ifneq (,$(filter $(CC),winegcc x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-mingw32-g++))
-	STATIC = --static
-    detected_OS := WindowsCross
-	LIB_EXT = .dll
-	OS_DIR = /
-else
-	ifeq '$(findstring ;,$(PATH))' ';'
-		detected_OS := Windows
-	else
-		detected_OS := $(shell uname 2>/dev/null || echo Unknown)
-		detected_OS := $(patsubst CYGWIN%,Cygwin,$(detected_OS))
-		detected_OS := $(patsubst MSYS%,MSYS,$(detected_OS))
-		detected_OS := $(patsubst MINGW%,MSYS,$(detected_OS))
+NO_GLES = 1
+detected_OS = windows
+
+# not using a cross compiler
+ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-mingw32-g++))
+	detected_OS := $(shell uname 2>/dev/null || echo Unknown)
+
+	ifeq ($(detected_OS),Darwin)        # Mac OS X
+		LIBS := -lm -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo
+		VULKAN_LIBS = -lm  -framework Foundation -framework AppKit --framework CoreVideo -lvulkan
+		EXT =
+		LIB_EXT = .dylib
+		OS_DIR = /
 	endif
-endif
-
-ifeq ($(detected_OS),Windows)
-	LIBS := -ggdb -ldwmapi -lshell32 -lwinmm -lgdi32 -lopengl32 $(STATIC)
-	VULAKN_LIBS = -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
-	EXT = .exe
-	LIB_EXT = .dll
-	OS_DIR = \\
-
-endif
-ifeq ($(detected_OS),Darwin)        # Mac OS X
-	LIBS := -lm -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo$(STATIC)
-	VULAKN_LIBS = -lvulkan
-	EXT =
-	LIB_EXT = .dylib
-	OS_DIR = /
-endif
-ifeq ($(detected_OS),Linux)
-    LIBS := -lXrandr -lX11 -lm -lGL -ldl -lpthread $(STATIC)
-	VULAKN_LIBS = -lvulkan
-	EXT =
-	LIB_EXT = .so
+	ifeq ($(detected_OS),Linux)
+    	LIBS := -lXrandr -lX11 -lm -lGL -ldl -lpthread
+		VULKAN_LIBS = -lm -ldl -lpthread -lvulkan
+		EXT =
+		LIB_EXT = .so
+		OS_DIR = /
+		NO_GLES = 0
+	endif
+else
 	OS_DIR = /
 endif
 
@@ -84,107 +80,85 @@ ifeq ($(CC),emcc)
 	EXPORTED_JS = -s EXPORTED_RUNTIME_METHODS="['stringToNewUTF8']"
 	LIBS = -s WASM=1 -s ASYNCIFY -s USE_WEBGL2 -s GL_SUPPORT_EXPLICIT_SWAP_CONTROL=1 $(EXPORTED_JS)
 	EXT = .js
+	NO_GLES = 0
+	NO_VULKAN = 1
+	detected_OS = web
 else
-	LIBS += -std=c99 -D _WIN32_WINNT="0x0501"
+	LIBS += -std=c99 
 endif
 
-all: examples$(OS_DIR)basic$(OS_DIR)main.c examples$(OS_DIR)buffer$(OS_DIR)main.c examples$(OS_DIR)portableGL$(OS_DIR)main.c  examples$(OS_DIR)gl33$(OS_DIR)main.c examples$(OS_DIR)gles2$(OS_DIR)main.c examples$(OS_DIR)vk10$(OS_DIR)main.c .$(OS_DIR)RGFW.h
-	make initwayland
-	$(CC) examples$(OS_DIR)basic$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -o basic$(EXT)
-	$(CC) examples$(OS_DIR)buffer$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -o buffer$(EXT)
-	$(CC) examples$(OS_DIR)silk$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -o silk$(EXT)
-	$(CC) examples$(OS_DIR)events$(OS_DIR)main.c $(LIBS) -I. $(WARNINGS) -o events$(EXT)
-	$(CC) examples$(OS_DIR)callbacks$(OS_DIR)main.c $(LIBS) -I. $(WARNINGS) -o callbacks$(EXT)
-	$(CC) examples$(OS_DIR)first-person-camera$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -o camera$(EXT)
-	$(CC) examples$(OS_DIR)portableGL$(OS_DIR)main.c $(LIBS) -I. -w -o portableGL$(EXT)
-	$(CC) examples$(OS_DIR)gl33$(OS_DIR)main.c $(LINK_GL3) $(LIBS) -I. $(WARNINGS) -o gl33$(EXT)
-	$(CC) examples$(OS_DIR)gles2$(OS_DIR)main.c $(LINK_GL2) -lEGL $(LIBS) -I. $(WARNINGS) -o gles2$(EXT)
+EXAMPLE_OUTPUTS = \
+    examples/basic/basic \
+    examples/buffer/buffer \
+	examples/silk/silk \
+	examples/events/events \
+	examples/callbacks/callbacks \
+	examples/first-person-camera/camera 
 
-ifeq (,$(filter $(CC),emcc))
-	make vulkan_shaders
-	$(CC) examples$(OS_DIR)vk10$(OS_DIR)main.c $(LIBS) $(VULAKN_LIBS) -I. $(WARNINGS) -o vk10$(EXT)
+EXAMPLE_OUTPUTS_CUSTOM = \
+	examples/gl33/gl33 \
+	examples/portableGL/pgl \
+	examples/gles2/gles2 \
+	examples/vk10/vk10 \
+	examples/dx11/dx11
+
+all: $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) libRGFW.a
+
+examples: $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)
+
+examples/portableGL/pgl: examples/portableGL/pgl.c
+ifneq ($(CC), emcc)
+	$(CC)  -w $(CFLAGS) -I. $< $(LIBS) -o $@ 
+else
+	@echo "the portableGL example doesn't support html5"
 endif
 
-DX11: examples$(OS_DIR)dx11$(OS_DIR)main.c
-	$(CC) $^ $(LIBS) $(DX11_LIBS) -I. $(WARNINGS) -o examples$(OS_DIR)dx11$(OS_DIR)$@
+examples/gles2/gles2: examples/gles2/gles2.c
+ifneq ($(NO_GLES), 1)
+	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lEGL -o $@$(EXT)
+else
+	@echo gles has been disabled
+endif
 
-clean:
-	rm -f *.exe .$(OS_DIR)examples$(OS_DIR)silk$(OS_DIR)silk .$(OS_DIR)examples$(OS_DIR)basic$(OS_DIR)basic .$(OS_DIR)examples$(OS_DIR)basic$(OS_DIR)basic.exe .$(OS_DIR)examples$(OS_DIR)gles2$(OS_DIR)gles2 .$(OS_DIR)examples$(OS_DIR)gles2$(OS_DIR)gles2.exe .$(OS_DIR)examples$(OS_DIR)gl33$(OS_DIR)gl33 .$(OS_DIR)examples$(OS_DIR)gl33$(OS_DIR)gl33.exe .$(OS_DIR)examples$(OS_DIR)vk10$(OS_DIR)vk10 .$(OS_DIR)examples$(OS_DIR)vk10$(OS_DIR)vk10.exe examples$(OS_DIR)vk10$(OS_DIR)shaders$(OS_DIR)*.h examples$(OS_DIR)dx11$(OS_DIR)DX11
+examples/vk10/vk10: examples/vk10/vk10.c
+ifneq ($(NO_VULKAN), 1)
+	$(CC)  $(CFLAGS) -I. $< $(VULKAN_LIBS) -o $@
+else
+	@echo vulkan has been disabled
+endif
 
-debug: examples$(OS_DIR)basic$(OS_DIR)main.c examples$(OS_DIR)buffer$(OS_DIR)main.c examples$(OS_DIR)portableGL$(OS_DIR)main.c examples$(OS_DIR)gl33$(OS_DIR)main.c examples$(OS_DIR)gles2$(OS_DIR)main.c examples$(OS_DIR)vk10$(OS_DIR)main.c .$(OS_DIR)RGFW.h
+
+examples/dx11/dx11: examples/dx11/dx11.c
+ifeq ($(detected_OS), windows)
+	$(CC) $(CFLAGS) -I. $<  $(DX11_LIBS) -o $@
+else
+	@echo directX is not supported on $(detected_OS)
+endif
+
+examples/gl33/gl33: examples/gl33/gl33.c
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL3) -o $@$(EXT)
+
+$(EXAMPLE_OUTPUTS): %: %.c
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL1)  -o $@$(EXT)
+
+debug: all
+	@for exe in $(EXAMPLE_OUTPUTS); do \
+		echo "Running $$exe..."; \
+		.$(OS_DIR)$$exe$(EXT); \
+	done
+
+	./examples/portableGL/pgl$(EXT)
+ifneq ($(NO_GLES), 1)
+	./examples/gles2/gles2$(EXT)
+endif
+ifneq ($(NO_VULKAN), 1)
+	./examples/vk10/vk10$(EXT)
+endif
+ifeq ($(detected_OS), windows)
+	./examples/dx11/dx11.exe
+endif
 	make clean
-	make initwayland
 
-	$(CC) examples$(OS_DIR)buffer$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)buffer$(OS_DIR)buffer$(EXT)
-
-ifeq (,$(filter $(CC),emcc))
-	.$(OS_DIR)examples$(OS_DIR)buffer$(OS_DIR)buffer$(EXT)
-endif
-
-	$(CC) examples$(OS_DIR)silk$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)silk$(OS_DIR)silk$(EXT)
-
-ifeq (,$(filter $(CC),emcc))
-	.$(OS_DIR)examples$(OS_DIR)silk$(OS_DIR)silk$(EXT)
-endif
-
-	$(CC) examples$(OS_DIR)events$(OS_DIR)main.c $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)events$(OS_DIR)events$(EXT)
-
-ifeq (,$(filter $(CC),emcc))
-	.$(OS_DIR)examples$(OS_DIR)events$(OS_DIR)events$(EXT)
-endif
-
-	$(CC) examples$(OS_DIR)callbacks$(OS_DIR)main.c $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)callbacks$(OS_DIR)callbacks$(EXT)
-
-ifeq (,$(filter $(CC),emcc))
-	.$(OS_DIR)examples$(OS_DIR)callbacks$(OS_DIR)callbacks$(EXT)
-endif
-
-
-ifeq (,$(filter $(CC),emcc))
-	$(CC) examples$(OS_DIR)portableGL$(OS_DIR)main.c $(LIBS) -I. -w -o examples$(OS_DIR)portableGL$(OS_DIR)portableGL$(EXT)
-	.$(OS_DIR)examples$(OS_DIR)portableGL$(OS_DIR)portableGL
-endif
-
-	$(CC) examples$(OS_DIR)first-person-camera$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)first-person-camera$(OS_DIR)camera$(EXT)
-
-ifeq (,$(filter $(CC),emcc))
-	.$(OS_DIR)examples$(OS_DIR)first-person-camera$(OS_DIR)camera$(EXT)
-endif
-
-	$(CC) examples$(OS_DIR)basic$(OS_DIR)main.c $(LINK_GL1) $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)basic$(OS_DIR)basic$(EXT)
-
-ifeq (,$(filter $(CC),emcc))
-	.$(OS_DIR)examples$(OS_DIR)basic$(OS_DIR)basic$(EXT)
-endif
-
-	$(CC) examples$(OS_DIR)gl33$(OS_DIR)main.c $(LINK_GL3) $(LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)gl33$(OS_DIR)gl33$(EXT)
-
-ifeq (,$(filter $(CC),emcc))
-	.$(OS_DIR)examples$(OS_DIR)gl33$(OS_DIR)gl33$(EXT)
-endif
-
-	$(CC) examples$(OS_DIR)gles2$(OS_DIR)main.c $(LINK_GL2) $(LIBS) -lEGL -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)gles2$(OS_DIR)gles2$(EXT)
-ifeq (,$(filter $(CC),emcc))
-	.$(OS_DIR)examples$(OS_DIR)gles2$(OS_DIR)gles2$(EXT)
-endif
-
-ifeq (,$(filter $(CC),emcc))
-	make vulkan_shaders
-	$(CC) examples$(OS_DIR)vk10$(OS_DIR)main.c $(LIBS) $(VULAKN_LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o examples$(OS_DIR)vk10$(OS_DIR)vk10$(EXT)
-	.$(OS_DIR)examples$(OS_DIR)vk10$(OS_DIR)vk10$(EXT)
-endif
-
-performance-checker:
-	$(CC) examples$(OS_DIR)performance-checker$(OS_DIR)main.c $(LIBS) -I. $(WARNINGS) -o examples$(OS_DIR)performance-checker$(OS_DIR)performance-checker
-	.$(OS_DIR)examples$(OS_DIR)performance-checker$(OS_DIR)performance-checker$(EXT)
-
-vulkan_shaders:
-	glslangValidator -V examples$(OS_DIR)vk10$(OS_DIR)shaders$(OS_DIR)vert.vert -o examples$(OS_DIR)vk10$(OS_DIR)shaders$(OS_DIR)vert.h --vn vert_code
-	glslangValidator -V examples$(OS_DIR)vk10$(OS_DIR)shaders$(OS_DIR)frag.frag -o examples$(OS_DIR)vk10$(OS_DIR)shaders$(OS_DIR)frag.h --vn frag_code
-
-debugDX11: examples$(OS_DIR)dx11$(OS_DIR)main.c
-	$(CC) $^ $(LIBS) $(DX11_LIBS) -I. $(WARNINGS) -D RGFW_DEBUG -o dx11
-	.$(OS_DIR)dx11.exe
 
 RGFW.o: RGFW.h
 	make initwayland
@@ -196,7 +170,7 @@ libRGFW$(LIB_EXT): RGFW.h RGFW.o
 
 libRGFW.a: RGFW.h RGFW.o
 	make RGFW.o
-	$(AR) rcs libRGFW.a *.o
+	$(AR) rcs libRGFW.a RGFW.o
 
 
 initwayland:
@@ -206,4 +180,13 @@ ifeq ($(RGFW_WAYLAND),1)
 
 	wayland-scanner client-header /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.h
 	wayland-scanner public-code /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.c
+else
+		
 endif
+
+clean:
+	rm -f $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.$(EXT) .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.wasm 
+	
+
+.PHONY: all examples clean
+
