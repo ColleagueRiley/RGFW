@@ -185,7 +185,7 @@ else
 endif
 
 clean:
-	rm -f $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.$(EXT) .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.wasm 
+	rm -f *.o *.a *.so $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)  .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.exe .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.js .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.wasm 
 	
 
 .PHONY: all examples clean
