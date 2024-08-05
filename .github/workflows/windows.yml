@@ -69,7 +69,13 @@ jobs:
       uses: microsoft/setup-msbuild@v2
       if: matrix.compiler == 'msvc16'
 
+    - name: Add msvc
+      uses: ilammy/msvc-dev-cmd@v1
 
+    - name: Build app for release
+      run: |
+        set "vs_path=%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
+      
     - name: Build Library (MSVC16 64bit)
       run: |
         windres.exe --version
