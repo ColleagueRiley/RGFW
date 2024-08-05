@@ -26,7 +26,7 @@ NO_GLES = 1
 detected_OS = windows
 
 # not using a cross compiler
-ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-mingw32-g++))
+ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-mingw32-g++ /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	detected_OS := $(shell uname 2>/dev/null || echo Unknown)
 
 	ifeq ($(detected_OS),Darwin)        # Mac OS X
@@ -52,28 +52,16 @@ ifeq ($(RGFW_WAYLAND),1)
 	LIBS = -D RGFW_WAYLAND xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-client -lEGL -lxkbcommon -lGL -lwayland-egl -lm
 endif
 
-ifneq (,$(filter $(CC),cl))
-	OS_DIR = \\
-
-endif
-
-ifneq (,$(filter $(CC),/opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
-	OS_DIR = /
-endif
-
-ifneq (,$(filter $(CC),cl /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
-	WARNINGS =
-	STATIC = /static
-	LIBS = $(STATIC)
-	EXT = .exe
-	LIB_EXT = .dll
-endif
-
 LINK_GL1 =
 LINK_GL3 =
 LINK_GL2 =
 
-ifeq ($(CC),emcc)
+ifneq (,$(filter $(CC),cl /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
+	WARNINGS =
+	LIBS = /static
+	DX11_LIBS =
+	VULKAN_LIBS = 
+else ifeq ($(CC),emcc)
 	LINK_GL1 = -s LEGACY_GL_EMULATION -D LEGACY_GL_EMULATION -sGL_UNSAFE_OPTS=0
 	LINK_GL3 = -s FULL_ES3
 	LINK_GL2 = -s FULL_ES2
@@ -149,13 +137,13 @@ debug: all
 
 	./examples/portableGL/pgl$(EXT)
 ifneq ($(NO_GLES), 1)
-	./examples/gles2/gles2$(EXT)
+		./examples/gles2/gles2$(EXT)
 endif
 ifneq ($(NO_VULKAN), 1)
-	./examples/vk10/vk10$(EXT)
+		./examples/vk10/vk10$(EXT)
 endif
 ifeq ($(detected_OS), windows)
-	./examples/dx11/dx11.exe
+		./examples/dx11/dx11.exe
 endif
 	make clean
 
