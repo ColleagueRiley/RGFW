@@ -103,7 +103,7 @@ Officially tested Platforms</h1>
 </ul>
 <h1><a class="anchor" id="autotoc_md4"></a>
 Supported GUI libraries</h1>
-<p >Libries with an RGFW backend\ <a href="https://github.com/ColleagueRiley/imgui_imp_rgfw.h">imgui (imgui_imp_rgfw.h)</a> (in my own repo)\ <a href="https://github.com/raysan5/raylib">raylib + raygui</a> (PLATFORM_DESKTOP_RGFW)\ <a href="https://github.com/ColleagueRiley/RSGL">RSGL</a> (technically a graphics library with GUI elements)\ [Nuklear][<a href="https://github.com/ColleagueRiley/nuklear_rgfw">https://github.com/ColleagueRiley/nuklear_rgfw</a>] (there's also an example for opengl 2 in this repo)</p>
+<p >A list of GUI libraries that can be used with RGFW can be found on the RGFW wiki <a href="https://github.com/ColleagueRiley/RGFW/wiki/GUI-libraries-that-can-be-used-with-RGFW">here</a></p>
 <h1><a class="anchor" id="autotoc_md5"></a>
 examples</h1>
 <p ><img src="https://github.com/ColleagueRiley/RGFW/blob/main/screenshot.PNG?raw=true" alt="examples" class="inline"/></p>
@@ -210,78 +210,24 @@ Documentation</h1>
 <p >There is a lot of in-header-documentation, but more documentation can be found at <a href="https://colleagueriley.github.io/RGFW/docs/index.html">https://colleagueriley.github.io/RGFW/docs/index.html</a> If you wish to build the documentation yourself, there is also a Doxygen file attached.</p>
 <h1><a class="anchor" id="autotoc_md20"></a>
 Bindings</h1>
-<table class="markdownTable">
-<tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Language   </th><th class="markdownTableHeadNone">platform   </th><th class="markdownTableHeadNone">APIs   </th><th class="markdownTableHeadNone">URL    </th></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">C   </td><td class="markdownTableBodyNone">MacOS, Linux, Windows   </td><td class="markdownTableBodyNone">OpenGL, DirectX, Vulkan, Buffer   </td><td class="markdownTableBodyNone">(This Repo)    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Python   </td><td class="markdownTableBodyNone">MacOS, Linux, Windows   </td><td class="markdownTableBodyNone">OpenGL and Buffer   </td><td class="markdownTableBodyNone"><a href="https://github.com/ColleagueRiley/RGFW-Python">RGFW-Python</a>    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Odin   </td><td class="markdownTableBodyNone">MacOS, Linux, Windows   </td><td class="markdownTableBodyNone">OpenGL and Buffer   </td><td class="markdownTableBodyNone"><a href="https://github.com/ColleagueRiley/RGFW-Odin">RGFW-Odin</a>    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">C3 (WIP)   </td><td class="markdownTableBodyNone">MacOS, Linux, Windows   </td><td class="markdownTableBodyNone">? Vulkan   </td><td class="markdownTableBodyNone"><a href="https://github.com/tonis2/rgfw.c3/tree/main">RGFW.c3</a>   </td></tr>
-</table>
-<p >Feel free to do a PR if you want a binding added to the list</p>
+<p >A list of bindings can be found on the RGFW wiki <a href="https://github.com/ColleagueRiley/RGFW/wiki/Bindings">here</a></p>
 <h1><a class="anchor" id="autotoc_md21"></a>
 projects</h1>
-<p >Projects that use RGFW in some way\ Feel free to do a PR if you want something added to the list</p>
-<h2><a class="anchor" id="autotoc_md22"></a>
-RSGL (made by the same author)</h2>
-<p ><a href="https://github.com/ColleagueRiley/RSGL"><img src="https://github.com/ColleagueRiley/ColleagueRiley/blob/main/rsgl.png?raw=true" alt="AltText" class="inline"/></a>\ (Image functions as a button)</p>
-<p ><a href="https://github.com/ColleagueRiley/RSGL">RSGL</a> is A modular simple-to-use cross-platform graphics library for easily creating graphics apps and games. It combines the freedom of lower-level graphics libraries with modern C techniques, offering both simplicity and convenience.</p>
-<p >It uses RGFW as a backend.</p>
-<h2><a class="anchor" id="autotoc_md23"></a>
-Raylib</h2>
-<p ><a href="https://github.com/raysan5/raylib">Raylib</a> is a simple and easy-to-use library to enjoy videogames programming.</p>
-<p >Raylib uses RGFW as an optional alternative platform. <a href="https://github.com/raysan5/raylib/blob/master/src/platforms/rcore_desktop_rgfw.c">rcore_desktop_rgfw.c</a></p>
-<h3><a class="anchor" id="autotoc_md24"></a>
-Raylib GO</h3>
-<p ><a href="https://github.com/gen2brain/raylib-go">Raylib</a> go bindings for Raylib. With explicit support for RGFW. (PLATFORM_DESKTOP_RGFW)</p>
-<h2><a class="anchor" id="autotoc_md25"></a>
-Claymore</h2>
-<p ><a href="https://github.com/Code-Nycticebus/claymore">Claymore</a> is a C Game Engine designed by Nycticebus that uses RGFW as a backend.</p>
-<h2><a class="anchor" id="autotoc_md26"></a>
-Silk</h2>
-<p ><a href="https://github.com/itsYakub/Silk">Silk</a> is a single-header 2D graphics library that renders via software rendering. The repo includes examples using multiple libraries, including RGFW.</p>
-<p ><a href="https://github.com/itsYakub/Silk/tree/main/examples/example_rgfw">example_rgfw</a></p>
-<h2><a class="anchor" id="autotoc_md27"></a>
-PureDoom-RGFW</h2>
-<p ><a href="https://github.com/ColleagueRiley/PureDoom-RGFW">PureDOOM-RGFW</a> is an example of the PureDOOM source port, using RGFW and miniaudio.</p>
-<h2><a class="anchor" id="autotoc_md28"></a>
-RGL (made by the same author)</h2>
-<p ><a href="https://github.com/ColleagueRiley/RGL"><img src="https://github.com/ColleagueRiley/ColleagueRiley/blob/main/rgl.png?raw=true" alt="AltText" class="inline"/></a>\ (image functions as a button)</p>
-<p ><a href="https://github.com/ColleagueRiley/RGL">RGL</a> is a simple ultra-lightweight OpenGL version abstraction layer HEAVILY based on RLGL that uses the OpenGL pipeline style.</p>
-<p >It uses RGFW for it's examples</p>
-<h2><a class="anchor" id="autotoc_md29"></a>
-RFont (made by the same author)</h2>
-<p ><a href="https://github.com/ColleagueRiley/RFont"><img src="https://github.com/ColleagueRiley/ColleagueRiley/blob/main/rfont.png?raw=true" alt="AltText" class="inline"/></a>\ (image functions as a button)</p>
-<p ><a href="https://github.com/ColleagueRiley/RFont">RFont</a> is a simple-to-use single-header modular font rendering library written in C.</p>
-<p >It uses RGFW for it's examples</p>
-<h1><a class="anchor" id="autotoc_md30"></a>
+<p >A list of projects that use RGFW can be found on the RGFW wiki <a href="https://github.com/ColleagueRiley/RGFW/wiki/Projects-that-use-RGFW">here</a></p>
+<h1><a class="anchor" id="autotoc_md22"></a>
 Contacts</h1>
 <ul>
 <li>email : <a href="#" onclick="location.href='mai'+'lto:'+'Col'+'le'+'agu'+'eR'+'ile'+'y@'+'gma'+'il'+'.co'+'m'; return false;">Colle<span class="obfuscator">.nosp@m.</span>ague<span class="obfuscator">.nosp@m.</span>Riley<span class="obfuscator">.nosp@m.</span>@gma<span class="obfuscator">.nosp@m.</span>il.co<span class="obfuscator">.nosp@m.</span>m</a></li>
 <li>discord : ColleagueRiley</li>
 <li>discord server : <a href="https://discord.gg/pXVNgVVbvh">https://discord.gg/pXVNgVVbvh</a></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md31"></a>
+<h1><a class="anchor" id="autotoc_md23"></a>
 Supporting RGFW</h1>
-<p >Things you can do if you want to support the development of RGFW:</p>
-<ul>
-<li>File issues of bugs, potential bugs, potential performance issues you find or any suggestions you have.</li>
-<li>Code reviews, code reviews are always accepted</li>
-<li>Feature requests</li>
-<li>Pull requests, fixing issues, bugs, misspellings, etc.</li>
-<li>Starring RGFW, a small thing but it means a lot to me</li>
-<li>Sharing RGFW with others is the best way for RGFW to build and grow a community</li>
-<li>Listing RGFW as a dependency if you use RGFW for a project</li>
-</ul>
-<p >If you want to contribute to RGFW but don't know what to contribute, you can check the <code>TODO</code> file.</p>
-<h1><a class="anchor" id="autotoc_md32"></a>
+<p >There is a RGFW wiki page about things you can do if you want to support the development of RGFW <a href="https://github.com/ColleagueRiley/RGFW/wiki/Supporting-RGFW">here</a>.</p>
+<h1><a class="anchor" id="autotoc_md24"></a>
 RGFW vs GLFW</h1>
-<p >A comparison of RGFW and GLFW can be found at <a href="https://gist.github.com/ColleagueRiley/dd9a5807a353cd7e6b73d230a8c841de">this gist</a></p>
-<h1><a class="anchor" id="autotoc_md33"></a>
+<p >A comparison of RGFW and GLFW can be found at <a href="https://github.com/ColleagueRiley/RGFW/wiki/RGFW-vs-GLFW">on the wiki</a></p>
+<h1><a class="anchor" id="autotoc_md25"></a>
 License</h1>
 <p >RGFW uses the Zlib/libPNG license, this means you can use RGFW freely as long as you do not claim you wrote this software, mark altered versions as such and keep the license included with the header.</p>
 <div class="fragment"><div class="line">Permission is granted to anyone to use this software for any purpose,</div>
