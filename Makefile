@@ -151,17 +151,17 @@ endif
 	make clean
 
 
-RGFW.$(OBJ_FILE): RGFW.h
+RGFW$(OBJ_FILE): RGFW.h
 	make initwayland
 	$(CC) -x c $(CUSTOM_CFLAGS) -c RGFW.h -D RGFW_IMPLEMENTATION -fPIC -D RGFW_EXPORT
 
-libRGFW$(LIB_EXT): RGFW.h RGFW.$(OBJ_FILE)
+libRGFW$(LIB_EXT): RGFW.h RGFW$(OBJ_FILE)
 	make RGFW.$(OBJ_FILE)
-	$(CC) $(CUSTOM_CFLAGS) -shared RGFW.$(OBJ_FILE) $(LIBS) -o libRGFW$(LIB_EXT)
+	$(CC) $(CUSTOM_CFLAGS) -shared RGFW$(OBJ_FILE) $(LIBS) -o libRGFW$(LIB_EXT)
 
 libRGFW.a: RGFW.h RGFW.o
 	make RGFW.$(OBJ_FILE)
-	$(AR) rcs libRGFW.a RGFW.$(OBJ_FILE)
+	$(AR) rcs libRGFW.a RGFW$(OBJ_FILE)
 
 
 initwayland:
