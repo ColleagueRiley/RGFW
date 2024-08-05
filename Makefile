@@ -97,21 +97,21 @@ all: $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) libRGFW.a
 
 examples: $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)
 
-examples/portableGL/pgl: examples/portableGL/pgl.c
+examples/portableGL/pgl: examples/portableGL/pgl.c RGFW.h
 ifneq ($(CC), emcc)
 	$(CC)  -w $(CFLAGS) -I. $< $(LIBS) -o $@ 
 else
 	@echo "the portableGL example doesn't support html5"
 endif
 
-examples/gles2/gles2: examples/gles2/gles2.c
+examples/gles2/gles2: examples/gles2/gles2.c RGFW.h
 ifneq ($(NO_GLES), 1)
 	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lEGL -o $@$(EXT)
 else
 	@echo gles has been disabled
 endif
 
-examples/vk10/vk10: examples/vk10/vk10.c
+examples/vk10/vk10: examples/vk10/vk10.c RGFW.h
 ifneq ($(NO_VULKAN), 1)
 	$(CC)  $(CFLAGS) -I. $< $(VULKAN_LIBS) -o $@
 else
@@ -119,17 +119,17 @@ else
 endif
 
 
-examples/dx11/dx11: examples/dx11/dx11.c
+examples/dx11/dx11: examples/dx11/dx11.c RGFW.h
 ifeq ($(detected_OS), windows)
 	$(CC) $(CFLAGS) -I. $<  $(DX11_LIBS) -o $@
 else
 	@echo directX is not supported on $(detected_OS)
 endif
 
-examples/gl33/gl33: examples/gl33/gl33.c
+examples/gl33/gl33: examples/gl33/gl33.c RGFW.h
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL3) -o $@$(EXT)
 
-$(EXAMPLE_OUTPUTS): %: %.c
+$(EXAMPLE_OUTPUTS): %: %.c RGFW.h
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL1)  -o $@$(EXT)
 
 debug: all
