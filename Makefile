@@ -139,6 +139,7 @@ debug: all
 	done
 
 	./examples/portableGL/pgl$(EXT)
+	./examples/gl33/gl33$(EXT)
 ifneq ($(NO_GLES), 1)
 		./examples/gles2/gles2$(EXT)
 endif
