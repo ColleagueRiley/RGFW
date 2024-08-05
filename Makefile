@@ -63,6 +63,7 @@ ifneq (,$(filter $(CC),cl /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	LIBS = /static
 	DX11_LIBS =
 	VULKAN_LIBS = 
+	OBJ_FILE = .obj
 else ifeq ($(CC),emcc)
 	LINK_GL1 = -s LEGACY_GL_EMULATION -D LEGACY_GL_EMULATION -sGL_UNSAFE_OPTS=0
 	LINK_GL3 = -s FULL_ES3
