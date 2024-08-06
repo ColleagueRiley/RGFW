@@ -77,7 +77,7 @@ int main(void) {
                 break;
             }   
         } 
-        
+
         clear(win, (u8[4]){0, 0, 255, 15});
         drawRect(win, RGFW_RECT(200, 200, 200, 200), (u8[4]){255, 0, 0, 255});
 

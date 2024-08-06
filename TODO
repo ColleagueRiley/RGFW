@@ -2,11 +2,14 @@ MACOS:
     - controller support
 
 WINDOWS:
-    - RGFW_TRANSPARENT_WINDOW
+    - RGFW_TRANSPARENT_WINDOW (use real alpha)
 
 (addons)
     - init drag function (drag n' drop) (output)
+	(alloing users to drop to other apps)
+	(this will probably be a big pain to do)
 
-- make sure a new API can be added easily (without changing any other RGFW code)
 - ensure support for UTF-16 
+- fix wayland stuff
+- android backend
 - homebrew apis? (wii)
