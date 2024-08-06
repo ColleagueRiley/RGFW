@@ -4065,7 +4065,6 @@ Start of Linux / Unix defines
 #ifdef RGFW_WAYLAND
 /*
 Wayland TODO:
-- bugs with checkEvent
 - fix RGFW_keyPressed lock state
 
 	RGFW_windowMoved, 		the window was moved (by the user)
@@ -4080,7 +4079,6 @@ Wayland TODO:
 	#define RGFW_ALLOW_DND     			the window supports drag and drop
 	#define RGFW_SCALE_TO_MONITOR 			scale the window to the screen 
 
-- fix RGFW_window_checkEvents
 - other missing functions functions ("TODO wayland") (~30 functions)
 - fix buffer rendering weird behavior
 */
