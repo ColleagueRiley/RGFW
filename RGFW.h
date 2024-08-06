@@ -2082,7 +2082,7 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 			#else
 			2,
 			#endif
-			EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE,
+			EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE
 		};
 
 		size_t index = 4;
@@ -2094,6 +2094,9 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 
 		if (RGFW_majorVersion) {
 			attribs[1] = RGFW_majorVersion;
+	
+			RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MAJOR_VERSION, RGFW_majorVersion);
+			RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MINOR_VERSION, RGFW_minorVersion);
 
 			if (RGFW_profile == RGFW_GL_CORE) {
 				RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT);
@@ -2102,8 +2105,6 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 				RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT);
 			}
 
-			RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MAJOR_VERSION, RGFW_majorVersion);
-			RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MINOR_VERSION, RGFW_minorVersion);
 		}
 
 		#if defined(RGFW_OPENGL_ES1) || defined(RGFW_OPENGL_ES2) || defined(RGFW_OPENGL_ES3)
@@ -2111,8 +2112,11 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 		#else
 		eglBindAPI(EGL_OPENGL_API);		
 		#endif
-
-      	win->src.EGL_context = eglCreateContext(win->src.EGL_display, config, EGL_NO_CONTEXT, attribs);
+      		
+		win->src.EGL_context = eglCreateContext(win->src.EGL_display, config, EGL_NO_CONTEXT, attribs);
+		
+		if (win->src.EGL_context == NULL)
+			fprintf(stderr, "failed to create an EGL opengl context\n");
 
 		eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.EGL_context);
 		eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
@@ -4097,34 +4101,27 @@ void RGFW_eventPipe_push(RGFW_window* win, RGFW_Event event) {
 		if (win == NULL) return;
 	}
 	
-	if (win->src.eventLen >= 19) {
-		win->src.eventLen = 0;
-		win->src.eventIndex = 0;
-	}
+	if (win->src.eventLen >= (i32)(sizeof(win->src.events) / sizeof(win->src.events[0])))
+		return;
 
-	win->src.events[win->src.eventLen] = event;	
-	win->src.eventLen++;
+	win->src.events[win->src.eventLen] = event;
+	win->src.eventLen += 1;
 }
 
 RGFW_Event RGFW_eventPipe_pop(RGFW_window* win) {
-	RGFW_Event event;
-	event.type = 0;
+	RGFW_Event ev;
+	ev.type = 0;
 	
-	if (win->src.eventLen <= 0) {
-		win->src.eventIndex = 0;
-		win->src.eventLen = 0;
-		printf("none\n");
-		return event;
+	if (win->src.eventLen > -1)
+		win->src.eventLen -= 1;
+	
+	if (win->src.eventLen >= 0)  
+		ev = win->src.events[win->src.eventLen];
+	else {
+		printf("H2\n");
 	}
-	
-	win->src.eventLen--;
-	
-	if (win->src.eventLen && win->src.eventIndex < 19)
-		win->src.eventIndex++;
-	
-	event = win->src.events[ win->src.eventIndex ];
-	win->src.events[ win->src.eventIndex].type = 0;
-	return event;
+
+	return ev;	
 }
 
 /* wayland global garbage (wayland bad, X11 is fine (ish) (not really)) */
@@ -4479,6 +4476,37 @@ int create_shm_file(off_t size) {
 	return fd;
 }
 
+static void wl_surface_frame_done(void *data, struct wl_callback *cb, uint32_t time) {
+	#ifdef RGFW_BUFFER
+		RGFW_window* win = (RGFW_window*)data;
+		if ((win->_winArgs & RGFW_NO_CPU_RENDER))
+			return;	
+		
+		#ifndef RGFW_X11_DONT_CONVERT_BGR
+			u32 x, y;
+			for (y = 0; y < (u32)win->r.h; y++) {
+				for (x = 0; x < (u32)win->r.w; x++) {
+					u32 index = (y * 4 * win->r.w) + x * 4;
+
+					u8 red = win->buffer[index];
+					win->buffer[index] = win->buffer[index + 2];
+					win->buffer[index + 2] = red;
+
+				}
+			}
+		#endif	
+	
+		wl_surface_attach(win->src.surface, win->src.wl_buffer, 0, 0);
+		wl_surface_damage_buffer(win->src.surface, 0, 0, win->r.w, win->r.h);
+		wl_surface_commit(win->src.surface);
+	#endif
+}
+
+static const struct wl_callback_listener wl_surface_frame_listener = {
+	.done = wl_surface_frame_done,
+};
+
+
 	/* normal wayland RGFW stuff */
 	
 	RGFW_area RGFW_getScreenSize(void) {
@@ -4501,12 +4529,9 @@ int create_shm_file(off_t size) {
 
 	RGFWDEF void RGFW_init_buffer(RGFW_window* win);
 	void RGFW_init_buffer(RGFW_window* win) {
-		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-			struct wl_shm_pool *pool;
-			int fd;
-
+		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)	
 			size_t size = win->r.w * win->r.h * 4;
-			fd = create_shm_file(size);
+			int fd = create_shm_file(size);
 			if (fd < 0) {
 				fprintf(stderr, "Failed to create a buffer. size: %ld\n", size);
 				exit(1);
@@ -4519,12 +4544,15 @@ int create_shm_file(off_t size) {
 				exit(1);
 			}
 
-			pool = wl_shm_create_pool(shm, fd, size);
+			struct wl_shm_pool* pool = wl_shm_create_pool(shm, fd, size);
 			win->src.wl_buffer = wl_shm_pool_create_buffer(pool, 0, win->r.w, win->r.h, win->r.w * 4,
 				WL_SHM_FORMAT_ARGB8888);
 			wl_shm_pool_destroy(pool);
 
 			close(fd);
+			
+			wl_surface_attach(win->src.surface, win->src.wl_buffer, 0, 0);
+			wl_surface_commit(win->src.surface);
 
 			u8 color[] = {0x00, 0x00, 0x00, 0xFF};
 
@@ -4532,14 +4560,11 @@ int create_shm_file(off_t size) {
 			for (i = 0; i < size; i += 4) {
 				memcpy(&win->buffer[i], color, 4);
 			}
-
+	
 			#if defined(RGFW_OSMESA)
 					win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
 					OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
 			#endif
-
-			wl_surface_attach(win->src.surface, win->src.wl_buffer, 0, 0);
-			wl_surface_commit(win->src.surface);
 		#else
 		RGFW_UNUSED(win);
 		#endif
@@ -4548,7 +4573,9 @@ int create_shm_file(off_t size) {
 
 	RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		RGFW_window* win = RGFW_window_basic_init(rect, args);
-
+		
+		fprintf(stderr, "Warning: RGFW Wayland support is experimental\n");
+		
 		win->src.display = wl_display_connect(NULL);
 		if (win->src.display == NULL) {
 			#ifdef RGFW_DEBUG
@@ -4617,6 +4644,10 @@ int create_shm_file(off_t size) {
 
 		RGFW_init_buffer(win);
 
+		struct wl_callback* callback = wl_surface_frame(win->src.surface);
+   		wl_callback_add_listener(callback, &wl_surface_frame_listener, win);	
+		wl_surface_commit(win->src.surface);
+
 		if (args & RGFW_HIDE_MOUSE) {
 			RGFW_window_showMouse(win, 0);
 		}
@@ -4632,8 +4663,11 @@ int create_shm_file(off_t size) {
 	}
 
 	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
-		if (wl_display_dispatch(win->src.display) == -1) {
-			return NULL;
+		if (win->src.eventIndex == 0) {
+			if (wl_display_roundtrip(win->src.display) == -1) {
+				return NULL;
+			}
+			RGFW_resetKey();
 		}
 
 		#ifdef __linux__
@@ -4642,19 +4676,17 @@ int create_shm_file(off_t size) {
 				return event;
 		#endif
 		
-		if (win->src.eventIndex == 0) 
-			RGFW_resetKey();
-		
-		if (win->src.eventLen == 0)
-			return NULL;
-		
-		RGFW_Event ev = RGFW_eventPipe_pop(win);					
+		if (win->src.eventLen == 0) {
+				return NULL;
+		}
 
+		RGFW_Event ev = RGFW_eventPipe_pop(win);
+		
 		if (ev.type ==  0 || win->event.type == RGFW_quit) {
 			return NULL;
 		}
-
-        ev.frameTime = win->event.frameTime;
+        
+		ev.frameTime = win->event.frameTime;
         ev.frameTime2 = win->event.frameTime2;
         ev.inFocus = win->event.inFocus;
         win->event = ev;
@@ -4824,24 +4856,8 @@ int create_shm_file(off_t size) {
 		assert(win != NULL);
 
 		/* clear the window*/
-		#ifdef RGFW_BUFFER
-		if (!(win->_winArgs & RGFW_NO_CPU_RENDER)) {
-			#ifndef RGFW_X11_DONT_CONVERT_BGR
-				u32 x, y;
-				for (y = 0; y < (u32)win->r.h; y++) {
-					for (x = 0; x < (u32)win->r.w; x++) {
-						u32 index = (y * 4 * win->r.w) + x * 4;
-
-						u8 red = win->buffer[index];
-						win->buffer[index] = win->buffer[index + 2];
-						win->buffer[index + 2] = red;
-
-					}
-				}
-			#endif	
-		}
-		
-		
+		#ifdef RGFW_BUFFER	
+		wl_surface_frame_done(win, NULL, 0);
 		if (!(win->_winArgs & RGFW_NO_GPU_RENDER)) 
 		#endif
 		{

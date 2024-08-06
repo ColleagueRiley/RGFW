@@ -70,7 +70,6 @@ int main() {
 		glClearColor(0xFF, 0xFF, 0xFF, 0xFF);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
-
 		RGFW_window_swapBuffers(win);
 	}
 

@@ -145,7 +145,8 @@ void* loop2(void* args) {
     #endif
 
     while (running2) {
-        /* 
+//printf("hello\n");
+		/* 
             not using a while loop here because there is only one event I care about 
         */
         #ifndef __APPLE__

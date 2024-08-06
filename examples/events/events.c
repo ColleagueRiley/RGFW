@@ -5,7 +5,12 @@ int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW Events", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_CENTER | RGFW_ALLOW_DND | RGFW_TRANSPARENT_WINDOW);
 
     while (RGFW_window_shouldClose(win) == 0) {
-        RGFW_window_eventWait(win, RGFW_NEXT);
+		glClearColor(0.25, 0, 0.15, 0.25);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        RGFW_window_swapBuffers(win);
+
+		RGFW_window_eventWait(win, RGFW_NEXT);
         while (RGFW_window_checkEvent(win)) {
             switch (win->event.type) {
                 case RGFW_keyPressed:
@@ -61,12 +66,7 @@ int main(void) {
                 default:
                     break;
             }
-        }
-
-        glClearColor(0.25, 0, 0.15, 0.25);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        RGFW_window_swapBuffers(win);
+        }	
     }
 
     RGFW_window_close(win);
