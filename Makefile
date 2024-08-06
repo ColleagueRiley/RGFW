@@ -40,7 +40,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 	endif
 	ifeq ($(detected_OS),Linux)
     	LIBS := -lXrandr -lX11 -lm -lGL -ldl -lpthread
-		VULKAN_LIBS = -lm -ldl -lpthread -lvulkan
+		VULKAN_LIBS = -lX11 -lXrandr -lm -ldl -lpthread -lvulkan
 		EXT =
 		LIB_EXT = .so
 		OS_DIR = /
@@ -113,6 +113,9 @@ endif
 
 examples/vk10/vk10: examples/vk10/vk10.c RGFW.h
 ifneq ($(NO_VULKAN), 1)
+	glslangValidator -V examples/vk10/shaders/vert.vert -o examples/vk10/shaders/vert.h --vn vert_code
+	glslangValidator -V examples/vk10/shaders/frag.frag -o examples/vk10/shaders/frag.h --vn frag_code
+
 	$(CC)  $(CFLAGS) -I. $< $(VULKAN_LIBS) -o $@
 else
 	@echo vulkan has been disabled
