@@ -93,7 +93,7 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/vk10/vk10 \
 	examples/dx11/dx11
 
-all: $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) libRGFW.a
+all: xdg-shell.c $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) libRGFW.a
 
 examples: $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)
 
@@ -123,7 +123,7 @@ endif
 
 
 examples/dx11/dx11: examples/dx11/dx11.c RGFW.h
-ifeq ($(detected_OS), windows)
+ifneq (,$(filter $(detected_OS), windows Windows_NT))
 	$(CC) $(CFLAGS) -I. $<  $(DX11_LIBS) -o $@
 else
 	@echo directX is not supported on $(detected_OS)
@@ -174,6 +174,8 @@ libRGFW.a: RGFW.h RGFW$(OBJ_FILE)
 	make RGFW$(OBJ_FILE)
 	$(AR) rcs libRGFW.a RGFW$(OBJ_FILE)
 
+xdg-shell.c:
+	make initwayland
 
 initwayland:
 ifeq ($(RGFW_WAYLAND),1)
