@@ -1892,8 +1892,12 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 
 	#define WGL_TRANSPARENT_ARB   					  0x200A
 #endif
-
-	static u32* RGFW_initAttribs(u32 useSoftware) {
+	
+/*  The window'ing api needs to know how to render the data we (or opengl) give it 
+	MacOS and Windows do this using a structure called a "pixel format" 
+	X11 calls it a "Visual"
+	This function returns the attributes for the format we want */
+	static u32* RGFW_initFormatAttribs(u32 useSoftware) {
 		RGFW_UNUSED(useSoftware);
 		static u32 attribs[] = {
 								#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
@@ -1957,13 +1961,15 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 #endif
 
 #ifdef RGFW_MACOS
+		/* macOS has the surface attribs and the opengl attribs connected for some reason
+			maybe this is to give macOS more control to limit openGL/the opengl version? */
+
 		attribs[index] = 99;
 		attribs[index + 1] = 0x1000;
 
 		if (RGFW_majorVersion >= 4 || RGFW_majorVersion >= 3) {
 			attribs[index + 1] = (u32) ((RGFW_majorVersion >= 4) ? 0x4100 : 0x3200);
 		}
-
 #endif
 
 		RGFW_GL_ADD_ATTRIB(0, 0);
@@ -2449,14 +2455,14 @@ Start of Linux / Unix defines
 		u64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /*!< X11 events accepted*/
 
 #ifdef RGFW_OPENGL
-		u32* visual_attribs = RGFW_initAttribs(args & RGFW_OPENGL_SOFTWARE);
+		u32* visual_attribs = RGFW_initFormatAttribs(args & RGFW_OPENGL_SOFTWARE);
 		i32 fbcount;
 		GLXFBConfig* fbc = glXChooseFBConfig((Display*) win->src.display, DefaultScreen(win->src.display), (i32*) visual_attribs, &fbcount);
 
 		i32 best_fbc = -1;
 
 		if (fbcount == 0) {
-			printf("Failed to find any valid GLX configs\n");
+			printf("Failed to find any valid GLX visual configs\n");
 			return NULL;
 		}
 
@@ -2539,7 +2545,7 @@ Start of Linux / Unix defines
 		XFree(hint);
 
 		if ((args & RGFW_NO_INIT_API) == 0) {
-#ifdef RGFW_OPENGL
+#ifdef RGFW_OPENGL /* This is the second part of setting up opengl. This is where we ask OpenGL for a specific version. */ 
 		i32 context_attribs[7] = { 0, 0, 0, 0, 0, 0, 0 };
 		context_attribs[0] = GLX_CONTEXT_PROFILE_MASK_ARB;
 		if (RGFW_profile == RGFW_GL_CORE) 
@@ -5355,7 +5361,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		wglMakeCurrent(dummy_dc, 0);
 		wglDeleteContext(dummy_context);
 		ReleaseDC(dummyWin, dummy_dc);
-
+		
+		/* try to create the pixel format we want for opengl and then try to create an opengl context for the specified version */ 
 		if (wglCreateContextAttribsARB != NULL) {
 			PIXELFORMATDESCRIPTOR pfd = (PIXELFORMATDESCRIPTOR){ sizeof(pfd), 1, pfd_flags, PFD_TYPE_RGBA, 32, 8, PFD_MAIN_PLANE, 24, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -5363,21 +5370,22 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				pfd.dwFlags |= PFD_GENERIC_FORMAT | PFD_GENERIC_ACCELERATED;
 
 			if (wglChoosePixelFormatARB != NULL) {
-				i32* pixel_format_attribs = (i32*)RGFW_initAttribs(args & RGFW_OPENGL_SOFTWARE);
+				i32* pixel_format_attribs = (i32*)RGFW_initFormatAttribs(args & RGFW_OPENGL_SOFTWARE);
 
 				int pixel_format;
 				UINT num_formats;
 				wglChoosePixelFormatARB(win->src.hdc, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
 				if (!num_formats) {
-					printf("Failed to set the OpenGL 3.3 pixel format.\n");
+					printf("Failed to create a pixel format for WGL.\n");
 				}
 
 				DescribePixelFormat(win->src.hdc, pixel_format, sizeof(pfd), &pfd);
 				if (!SetPixelFormat(win->src.hdc, pixel_format, &pfd)) {
-					printf("Failed to set the OpenGL 3.3 pixel format.\n");
+					printf("Failed to set the WGL pixel format.\n");
 				}
 			}
-
+			
+			/* create opengl/WGL context for the specified version */ 
 			u32 index = 0;
 			i32 attribs[40];
 
@@ -5387,7 +5395,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			else {
 				SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
 			}
-
+			
 			if (RGFW_majorVersion || RGFW_minorVersion) {
 				SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion);
 				SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_minorVersion);
@@ -5396,7 +5404,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			SET_ATTRIB(0, 0);
 
 			win->src.ctx = (HGLRC)wglCreateContextAttribsARB(win->src.hdc, NULL, attribs);
-		} else {
+		} else { /* fall back to a default context (probably opengl 2 or something) */
 			fprintf(stderr, "Failed to create an accelerated OpenGL Context\n");
 
 			int pixel_format = ChoosePixelFormat(win->src.hdc, &pfd);
@@ -7189,20 +7197,22 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 #ifdef RGFW_OPENGL
 	if ((args & RGFW_NO_INIT_API) == 0) {
-		void* attrs = RGFW_initAttribs(args & RGFW_OPENGL_SOFTWARE);
+		void* attrs = RGFW_initFormatAttribs(args & RGFW_OPENGL_SOFTWARE);
 		void* format = NSOpenGLPixelFormat_initWithAttributes(attrs);
 
 		if (format == NULL) {
-			printf("Failed to load pixel format ");
+			printf("Failed to load pixel format for OpenGL\n");
 
-			void* attrs = RGFW_initAttribs(1);
+			void* attrs = RGFW_initFormatAttribs(1);
 			format = NSOpenGLPixelFormat_initWithAttributes(attrs);
 			if (format == NULL)
 				printf("and loading software rendering OpenGL failed\n");
 			else
 				printf("Switching to software rendering\n");
 		}
-
+		
+		/* the pixel format can be passed directly to opengl context creation to create a context 
+			this is because the format also includes information about the opengl version (which may be a bad thing) */
 		win->src.view = NSOpenGLView_initWithFrame((NSRect){{0, 0}, {win->r.w, win->r.h}}, format);
 		objc_msgSend_void(win->src.view, sel_registerName("prepareOpenGL"));
 		win->src.ctx = objc_msgSend_id(win->src.view, sel_registerName("openGLContext"));
@@ -8419,7 +8429,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_writeFile(const char *path, const char *data, siz
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	RGFW_UNUSED(name) 
 
-	RGFW_UNUSED(RGFW_initAttribs);
+	RGFW_UNUSED(RGFW_initFormatAttribs);
 	
     RGFW_window* win = RGFW_window_basic_init(rect, args);
 
