@@ -26,7 +26,7 @@ void refreshCallback(RGFW_window* win) {
 
 RGFW_window* win2;
 
-int main(void) {   
+int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_ALLOW_DND | RGFW_CENTER);
     RGFW_window_makeCurrent(win);
     
@@ -34,7 +34,6 @@ int main(void) {
 
     RGFW_setWindowRefreshCallback(refreshCallback);
 
-    RGFW_window_swapInterval(win, 1);
     #ifdef RGFW_MACOS
     win2 = RGFW_createWindow("subwindow", RGFW_RECT(200, 200, 200, 200), 0);
     #endif
