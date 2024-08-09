@@ -7300,7 +7300,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		}
 
 		// Show the window
-		((id(*)(id, SEL, SEL))objc_msgSend)(win->src.window, sel_registerName("makeKeyAndOrderFront:"), NULL);
+		((id(*)(id, SEL, SEL))objc_msgSend)(win->src.window, sel_registerName("makeKeyAndOrderFront:"), win->src.window);
 		objc_msgSend_void_bool(win->src.window, sel_registerName("setIsVisible:"), true);
 
 		if (!RGFW_loaded) {
