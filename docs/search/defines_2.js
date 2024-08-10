@@ -35,5 +35,6 @@ var searchData=
   ['rgfw_5ftransparent_5fwindow_32',['RGFW_TRANSPARENT_WINDOW',['../RGFW_8h.html#a33982b6a8c2c7086b2dc4baf8cfae63b',1,'RGFW.h']]],
   ['rgfw_5ftrue_33',['RGFW_TRUE',['../RGFW_8h.html#a4d7bc6cacdc3a02ad39672017d4d506e',1,'RGFW.h']]],
   ['rgfw_5funused_34',['RGFW_UNUSED',['../RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64',1,'RGFW.h']]],
-  ['rgfwdef_35',['RGFWDEF',['../RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f',1,'RGFW.h']]]
+  ['rgfw_5fwindow_5fhide_35',['RGFW_WINDOW_HIDE',['../RGFW_8h.html#aeae6a33ea6ff4f212b51ce5be5c9de8e',1,'RGFW.h']]],
+  ['rgfwdef_36',['RGFWDEF',['../RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f',1,'RGFW.h']]]
 ];

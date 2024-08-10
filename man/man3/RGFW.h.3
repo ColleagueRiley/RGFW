@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Fri Aug 9 2024" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Sat Aug 10 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -118,6 +118,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "#define \fBRGFW_NO_CPU_RENDER\fP   (1L<<15) /* don't render (using the CPU based buffer rendering)*/"
+.br
+.ti -1c
+.RI "#define \fBRGFW_WINDOW_HIDE\fP   (1L <<  16)/* the window is hidden */"
 .br
 .ti -1c
 .RI "#define \fBRGFW_mouseLeft\fP   1"
@@ -389,6 +392,15 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_Error\fP (void)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_shouldShift\fP (\fBu32\fP keycode, \fBu8\fP lockState)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP char \fBRGFW_keyCodeToChar\fP (\fBu32\fP keycode, \fBb8\fP shift)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP char \fBRGFW_keyCodeToCharAuto\fP (\fBu32\fP keycode, \fBu8\fP lockState)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isPressed\fP (\fBRGFW_window\fP *win, \fBu8\fP key)"
 .br
 .ti -1c
@@ -623,6 +635,8 @@ Optional arguments for making a windows the window is transparent (only properly
 .SS "#define RGFW_TRUE   1"
 
 .SS "#define RGFW_UNUSED(x)   (void)(x);"
+
+.SS "#define RGFW_WINDOW_HIDE   (1L <<  16)/* the window is hidden */"
 
 .SS "#define RGFWDEF   \fBinline\fP"
 
