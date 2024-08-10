@@ -51,7 +51,7 @@ else
 endif
 
 ifeq ($(RGFW_WAYLAND),1)
-	LIBS = -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-client -lEGL -lxkbcommon -lGL -lwayland-egl -lm
+	LIBS = -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lEGL -lxkbcommon -lGL -lwayland-egl -lm
 endif
 
 LINK_GL1 =
