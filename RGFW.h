@@ -1834,7 +1834,7 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 #endif
 
 /*
-	graphics API spcific code (end of generic code)
+	graphics API specific code (end of generic code)
 	starts here 
 */
 
@@ -1846,6 +1846,7 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL) || defined(RGFW_OSMESA)
 	#ifdef RGFW_WINDOWS
 		#define WIN32_LEAN_AND_MEAN
+		#define OEMRESOURCE
 		#include <windows.h>
 	#endif
 
@@ -5008,6 +5009,8 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 
 #ifdef RGFW_WINDOWS
 	#define WIN32_LEAN_AND_MEAN
+	#define OEMRESOURCE
+	#include <windows.h>
 	
 	#include <processthreadsapi.h>
 	#include <wchar.h>
@@ -5015,8 +5018,6 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 	#include <windowsx.h>
 	#include <shellapi.h>
 	#include <shellscalingapi.h>
-	#include <windows.h>
-	#include <winuser.rh>
 
 	#ifndef RGFW_NO_XINPUT
 	typedef DWORD (WINAPI * PFN_XInputGetState)(DWORD,XINPUT_STATE*);
@@ -5435,7 +5436,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		
 		/* try to create the pixel format we want for opengl and then try to create an opengl context for the specified version */ 
 		if (wglCreateContextAttribsARB != NULL) {
-			PIXELFORMATDESCRIPTOR pfd = (PIXELFORMATDESCRIPTOR){ sizeof(pfd), 1, pfd_flags, PFD_TYPE_RGBA, 32, 8, PFD_MAIN_PLANE, 24, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+			PIXELFORMATDESCRIPTOR pfd = {sizeof(pfd), 1, pfd_flags, PFD_TYPE_RGBA, 32, 8, PFD_MAIN_PLANE, 24, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 			if (args & RGFW_OPENGL_SOFTWARE)
 				pfd.dwFlags |= PFD_GENERIC_FORMAT | PFD_GENERIC_ACCELERATED;
