@@ -957,8 +957,6 @@ RGFWDEF void RGFW_window_setCPURender(RGFW_window* win, i8 set);
 
 /*! native API functions */
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL)
-	/*! Get max OpenGL version */
-	RGFWDEF u8* RGFW_getMaxGLVersion(void);
 	/*! OpenGL init hints */
 	RGFWDEF void RGFW_setGLStencil(i32 stencil); /*!< set stencil buffer bit size (8 by default) */
 	RGFWDEF void RGFW_setGLSamples(i32 samples); /*!< set number of sampiling buffers (4 by default) */
@@ -1882,20 +1880,6 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
         RGFW_profile = profile;
 		RGFW_majorVersion = major;
 		RGFW_minorVersion = minor;
-	}
-
-	u8* RGFW_getMaxGLVersion(void) {
-		RGFW_window* dummy = RGFW_createWindow("dummy", RGFW_RECT(0, 0, 1, 1), 0);
-
-		const char* versionStr = (const char*) glGetString(GL_VERSION);
-
-		static u8 version[2];
-		version[0] = versionStr[0] - '0',
-		version[1] = versionStr[2] - '0';
-
-		RGFW_window_close(dummy);
-
-		return version;
 	}
 
 /* OPENGL normal only (no EGL / OSMesa) */
