@@ -1866,9 +1866,9 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 	b8 RGFW_profile = RGFW_GL_CORE;
 	
 	#ifndef RGFW_EGL
-	i32 RGFW_STENCIL = 8, RGFW_SAMPLES = 4, RGFW_STEREO = GL_FALSE, RGFW_AUX_BUFFERS = 0, RGFW_DOUBLE_BUFFER = 1;
+	i32 RGFW_STENCIL = 8, RGFW_SAMPLES = 4, RGFW_STEREO = 0, RGFW_AUX_BUFFERS = 0, RGFW_DOUBLE_BUFFER = 1;
 	#else
-	i32 RGFW_STENCIL = 0, RGFW_SAMPLES = 0, RGFW_STEREO = GL_FALSE, RGFW_AUX_BUFFERS = 0, RGFW_DOUBLE_BUFFER = 1;
+	i32 RGFW_STENCIL = 0, RGFW_SAMPLES = 0, RGFW_STEREO = 0, RGFW_AUX_BUFFERS = 0, RGFW_DOUBLE_BUFFER = 1;
 	#endif
 
 
@@ -1876,7 +1876,7 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 	void RGFW_setGLSamples(i32 samples) { RGFW_SAMPLES = samples; }
 	void RGFW_setGLStereo(i32 stereo) { RGFW_STEREO = stereo; }
 	void RGFW_setGLAuxBuffers(i32 auxBuffers) { RGFW_AUX_BUFFERS = auxBuffers; }
-    void RGFW_setDoubleBuffer(b8 useDoubleBuffer) { RGFW_DOUBLE_BUFFER = useDoubleBuffer; } 
+	void RGFW_setDoubleBuffer(b8 useDoubleBuffer) { RGFW_DOUBLE_BUFFER = useDoubleBuffer; }
 
 	void RGFW_setGLVersion(b8 profile, i32 major, i32 minor) {
         RGFW_profile = profile;
@@ -1891,7 +1891,7 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 
 		static u8 version[2];
 		version[0] = versionStr[0] - '0',
-			version[1] = versionStr[2] - '0';
+		version[1] = versionStr[2] - '0';
 
 		RGFW_window_close(dummy);
 
