@@ -69,16 +69,16 @@ int main(void) {
                             break;
 
                         case RGFW_Left:
-                            yaw += 5;
-                            break;
-                        case RGFW_Right:
                             yaw -= 5;
                             break;
+                        case RGFW_Right:
+                            yaw += 5;
+                            break;
                         case RGFW_Up:
-                            pitch += 5;
+                            pitch -= 5;
                             break;
                         case RGFW_Down:
-                            pitch -= 5;
+                            pitch += 5;
                             break;
 
                         default: break;
@@ -102,13 +102,13 @@ int main(void) {
         }
         
         if (RGFW_isPressed(win, RGFW_a)) {
-            camX += cos((yaw + 180) * DEG2RAD)/5.0;
-            camZ -= sin((yaw + 180) * DEG2RAD)/5.0;
+            camX += cos(yaw * DEG2RAD)/5.0;
+            camZ -= sin(yaw * DEG2RAD)/5.0;
         }
         
         if (RGFW_isPressed(win, RGFW_d)) {
-            camX += cos(yaw * DEG2RAD)/5.0;
-            camZ -= sin(yaw * DEG2RAD)/5.0;
+            camX += cos((yaw + 180) * DEG2RAD)/5.0;
+            camZ -= sin((yaw + 180) * DEG2RAD)/5.0;
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
