@@ -5296,7 +5296,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		RECT windowRect, clientRect;
 
 		if (!(args & RGFW_NO_BORDER)) {
-			window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER | WS_VISIBLE | WS_MINIMIZEBOX;
+			window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER | WS_MINIMIZEBOX;
 
 			if (!(args & RGFW_NO_RESIZE))
 				window_style |= WS_SIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME;
