@@ -2822,15 +2822,15 @@ Start of Linux / Unix defines
 			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, (E.type == ButtonPress));
 			break;
 
-		case MotionNotify:
+		case MotionNotify:	
 			win->event.point.x = E.xmotion.x;
 			win->event.point.y = E.xmotion.y;
 			
 			if ((win->_winArgs & RGFW_HOLD_MOUSE)) {
-				win->event.point.x = win->_lastMousePoint.x - win->event.point.x;
-				win->event.point.y = win->_lastMousePoint.y - win->event.point.y;
+				win->event.point.y = E.xmotion.y;
 
-				RGFW_window_moveMouse(win, RGFW_POINT(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
+				win->event.point.x = win->_lastMousePoint.x - abs(win->event.point.x);
+				win->event.point.y = win->_lastMousePoint.y - abs(win->event.point.y);
 			}
 
 			win->_lastMousePoint = RGFW_POINT(E.xmotion.x, E.xmotion.y);
@@ -2865,6 +2865,8 @@ Start of Linux / Unix defines
 
 				win->event.point = RGFW_POINT((i32)deltaX, (i32)deltaY);
 				
+				RGFW_window_moveMouse(win, RGFW_POINT(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
+
 				win->event.type = RGFW_mousePosChanged;
 				RGFW_mousePosCallback(win, win->event.point);
             }
