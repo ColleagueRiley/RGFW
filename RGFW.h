@@ -5305,7 +5305,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		} else
 			window_style |= WS_POPUP | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX;
 
-		HWND dummyWin = CreateWindowA(Class.lpszClassName, name, window_style, win->r.x, win->r.y, win->r.w, win->r.h, 0, 0, inh, 0);
+		HWND dummyWin = CreateWindowA(Class.lpszClassName, name, 0, win->r.x, win->r.y, win->r.w, win->r.h, 0, 0, inh, 0);
 
 		GetWindowRect(dummyWin, &windowRect);
 		GetClientRect(dummyWin, &clientRect);
