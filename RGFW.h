@@ -1736,6 +1736,7 @@ void RGFW_window_setShouldClose(RGFW_window* win) { win->event.type = RGFW_quit;
 #endif
 
 RGFWDEF void RGFW_captureCursor(RGFW_window* win, RGFW_rect);
+RGFWDEF void RGFW_releaseCursor(RGFW_window* win);
 
 void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area) {
 	if ((win->_winArgs & RGFW_HOLD_MOUSE))
@@ -1747,14 +1748,14 @@ void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area) {
 		
 	win->_winArgs |= RGFW_HOLD_MOUSE;
 	RGFW_captureCursor(win, win->r);
-	RGFW_window_moveMouse(win, RGFW_POINT(win->r.x + (area.w), win->r.y + (area.h)));
+	RGFW_window_moveMouse(win, RGFW_POINT(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
 }
 
 void RGFW_window_mouseUnhold(RGFW_window* win) {
 	if ((win->_winArgs & RGFW_HOLD_MOUSE)) {
 		win->_winArgs ^= RGFW_HOLD_MOUSE;
 
-		RGFW_captureCursor(win, RGFW_RECT(0, 0, 0, 0));
+		RGFW_releaseCursor(win);
 	}
 }
 
@@ -2411,30 +2412,30 @@ Start of Linux / Unix defines
 			32, PropModeReplace, (u8*)&hints, 5
 		);
 	}
+	
+	void RGFW_releaseCursor(RGFW_window* win) {
+		XUngrabPointer(win->src.display, CurrentTime);
 
-	void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) { 
+		/* disable raw input */
+		unsigned char mask[] = { 0 };
 		XIEventMask em;
 		em.deviceid = XIAllMasterDevices;
-
-		/* grab the cursor if the rect struct isn't zeroed out, else ungrab*/
-		if (!r.x && !r.y && r.w && !r.h) { 
-			XUngrabPointer(win->src.display, CurrentTime);
-
-			/* disable raw input */
-			unsigned char mask[] = { 0 };
-			em.mask_len = sizeof(mask);
-			em.mask = mask;
-			XISelectEvents(win->src.display, XDefaultRootWindow(win->src.display), &em, 1);
-			return;
-		}
-
-		/* enable raw input */
-		unsigned char mask[XIMaskLen(XI_RawMotion)] = { 0 };
-
 		em.mask_len = sizeof(mask);
 		em.mask = mask;
+
+		XISelectEvents(win->src.display, XDefaultRootWindow(win->src.display), &em, 1);
+	}
+	
+	void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) { 
+		/* enable raw input */
+		unsigned char mask[XIMaskLen(XI_RawMotion)] = { 0 };
 		XISetMask(mask, XI_RawMotion);
 
+		XIEventMask em;
+		em.deviceid = XIAllMasterDevices;
+		em.mask_len = sizeof(mask);
+		em.mask = mask;
+		
 		XISelectEvents(win->src.display, XDefaultRootWindow(win->src.display), &em, 1);
 
 		XGrabPointer(win->src.display, win->src.window, True, PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
@@ -2862,8 +2863,8 @@ Start of Linux / Unix defines
 				if (XIMaskIsSet(raw->valuators.mask, 1) != 0)
 					deltaY += raw->raw_values[1];
 
-				win->event.point = RGFW_POINT((u32)-deltaX, (u32)-deltaY);
-
+				win->event.point = RGFW_POINT((i32)deltaX, (i32)deltaY);
+				
 				win->event.type = RGFW_mousePosChanged;
 				RGFW_mousePosCallback(win, win->event.point);
             }
@@ -4555,6 +4556,10 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 		/* TODO wayland */
 		return area;
 	}
+	
+	void RGFW_releaseCursor(RGFW_window* win) {
+		RGFW_UNUSED(win);
+	}
 
 	void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) {
 		RGFW_UNUSED(win); RGFW_UNUSED(r);
@@ -5219,16 +5224,14 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		DragAcceptFiles(win->src.window, allow);
 	}
 
+	void RGFW_releaseCursor(RGFW_window* win) {
+		ClipCursor(NULL);
+    	const RAWINPUTDEVICE id = { 0x01, 0x02, RIDEV_REMOVE, NULL };
+    	RegisterRawInputDevices(&id, 1, sizeof(id));	
+	}
+
 	void RGFW_captureCursor(RGFW_window* win, RGFW_rect rect) {
 		RGFW_UNUSED(win)
-
-		if (!rect.x && !rect.y && rect.w && !rect.h) {
-			ClipCursor(NULL);
-    		const RAWINPUTDEVICE id = { 0x01, 0x02, RIDEV_REMOVE, NULL };
-    		RegisterRawInputDevices(&id, 1, sizeof(id));
-
-			return;
-		}
 		
 		RECT clipRect;
 		GetClientRect(win->src.window, &clipRect);
@@ -5882,8 +5885,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 					break;
 				
 				win->event.type = RGFW_mousePosChanged;
-				win->event.point.x = -raw->data.mouse.lLastX;
-				win->event.point.y = -raw->data.mouse.lLastY;
+				win->event.point.x = raw->data.mouse.lLastX;
+				win->event.point.y = raw->data.mouse.lLastY;
 				break;
 			}
 
@@ -7612,7 +7615,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				win->event.type = RGFW_mouseEnter;
 				NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(e, sel_registerName("locationInWindow"));
 
-				win->event.point = RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y));
+				win->event.point = RGFW_POINT((i32) p.x, (i32) (win->r.h - p.y));
 				RGFW_mouseNotifyCallBack(win, win->event.point, 1);
 				break;
 			}
@@ -7703,7 +7706,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 					p.x = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaX"));
 					p.y = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaY"));
 					
-					win->event.point = RGFW_POINT((u32) -p.x, (u32) -p.y);
+					win->event.point = RGFW_POINT((i32)p.x, (i32)p.y);
 				}
 
 				RGFW_mousePosCallback(win, win->event.point);
@@ -7929,12 +7932,16 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		CGDisplayShowCursor(kCGDirectMainDisplay);
 		objc_msgSend_void(mouse, sel_registerName("set"));
 	}
+	
+	void RGFW_releaseCursor(RGFW_window* win) {
+		CGAssociateMouseAndMouseCursorPosition(1);	
+	}
 
 	void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) { 
 		RGFW_UNUSED(win)
 
 		CGWarpMouseCursorPosition(CGPointMake(r.x + (r.w / 2), r.y + (r.h / 2)));
-		CGAssociateMouseAndMouseCursorPosition((!r.x && !r.y && r.w && !r.h));
+		CGAssociateMouseAndMouseCursorPosition(0);
 	}
 
 	void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v) {
@@ -8289,7 +8296,7 @@ EM_BOOL Emscripten_on_mousemove(int eventType, const EmscriptenMouseEvent* e, vo
 	RGFW_events[RGFW_eventLen].type = RGFW_mousePosChanged;
 
 	if ((RGFW_root->_winArgs & RGFW_HOLD_MOUSE)) {
-		RGFW_point p = RGFW_POINT(-e->movementX, -e->movementY);
+		RGFW_point p = RGFW_POINT(e->movementX, e->movementY);
 		RGFW_events[RGFW_eventLen].point = p;
 	}
 	else
@@ -8866,12 +8873,12 @@ u64 RGFW_getTime(void) {
 	return emscripten_get_now() * 1000;
 }
 
+void RGFW_releaseCursor(RGFW_window* win) {
+	emscripten_exit_pointerlock();
+}
+
 void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) { 
 	RGFW_UNUSED(win)
-	if (!r.x && !r.y && !r.w && !r.h) {
-		emscripten_exit_pointerlock();
-		return;
-	}
 
 	emscripten_request_pointerlock("#canvas", 1);
 }

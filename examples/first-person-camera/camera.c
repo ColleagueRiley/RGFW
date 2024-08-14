@@ -50,7 +50,8 @@ int main(void) {
                 case RGFW_mousePosChanged: {      
                     int dev_x = win->event.point.x;
                     int dev_y = win->event.point.y;
-                    /* apply the changes to pitch and yaw*/
+                    
+					/* apply the changes to pitch and yaw*/
                     yaw += (float)dev_x / 15.0;
                     pitch += (float)dev_y / 15.0;
                     break;
@@ -151,10 +152,10 @@ void update_camera(void) {
     else if (pitch <= -60)
         pitch = -60;
 
-    glRotatef(-pitch, 1.0, 0.0, 0.0);
-    glRotatef(-yaw, 0.0, 1.0, 0.0);
+    glRotatef(pitch, 1.0, 0.0, 0.0);
+    glRotatef(yaw, 0.0, 1.0, 0.0);
 
-    glTranslatef(-camX, 0.0, -camZ);
+    glTranslatef(camX, 0.0, -camZ);
 }
 
 void glPerspective(double fovY, double aspect, double zNear, double zFar) {
