@@ -5006,7 +5006,9 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 	#include <windowsx.h>
 	#include <shellapi.h>
 	#include <shellscalingapi.h>
-
+	
+	__declspec(dllimport) int __stdcall WideCharToMultiByte( UINT CodePage, DWORD dwFlags, const WCHAR* lpWideCharStr, int cchWideChar,  LPSTR lpMultiByteStr, int cbMultiByte, LPCCH lpDefaultChar, LPBOOL lpUsedDefaultChar);
+	
 	#ifndef RGFW_NO_XINPUT
 	typedef DWORD (WINAPI * PFN_XInputGetState)(DWORD,XINPUT_STATE*);
 	PFN_XInputGetState XInputGetStateSRC = NULL;
