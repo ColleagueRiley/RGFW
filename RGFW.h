@@ -2322,7 +2322,7 @@ Start of Linux / Unix defines
 
 	u8 RGFW_mouseIconSrc[] = { XC_arrow, XC_left_ptr, XC_xterm, XC_crosshair, XC_hand2, XC_sb_h_double_arrow, XC_sb_v_double_arrow, XC_bottom_left_corner, XC_bottom_right_corner, XC_fleur, XC_X_cursor};  
 	/*atoms needed for drag and drop*/
-	Atom XdndAware, XdndTypeList, XdndSelection, XdndEnter, XdndPosition, XdndStatus, XdndLeave, XdndDrop, XdndFinished, XdndActionCopy, XdndActionMove, XdndActionLink, XdndActionAsk, XdndActionPrivate;
+	Atom XdndAware, XdndTypeList, XdndSelection, XdndEnter, XdndPosition, XdndStatus, XdndLeave, XdndDrop, XdndFinished, XdndActionCopy, XtextPlain, XtextUriList;
 
 	Atom wm_delete_window = 0;
 
@@ -2646,7 +2646,6 @@ Start of Linux / Unix defines
 		if (args & RGFW_ALLOW_DND) { /* init drag and drop atoms and turn on drag and drop for this window */
 			win->_winArgs |= RGFW_ALLOW_DND;
 
-			XdndAware = XInternAtom((Display*) win->src.display, "XdndAware", False);
 			XdndTypeList = XInternAtom((Display*) win->src.display, "XdndTypeList", False);
 			XdndSelection = XInternAtom((Display*) win->src.display, "XdndSelection", False);
 
@@ -2660,15 +2659,16 @@ Start of Linux / Unix defines
 
 			/* actions */
 			XdndActionCopy = XInternAtom((Display*) win->src.display, "XdndActionCopy", False);
-			XdndActionMove = XInternAtom((Display*) win->src.display, "XdndActionMove", False);
-			XdndActionLink = XInternAtom((Display*) win->src.display, "XdndActionLink", False);
-			XdndActionAsk = XInternAtom((Display*) win->src.display, "XdndActionAsk", False);
-			XdndActionPrivate = XInternAtom((Display*) win->src.display, "XdndActionPrivate", False);
-			const Atom version = 5;
+
+			XtextUriList = XInternAtom((Display*) win->src.display, "text/uri-list", False); 
+			XtextPlain = XInternAtom((Display*) win->src.display, "text/plain", False);
+
+			XdndAware = XInternAtom((Display*) win->src.display, "XdndAware", False);
+			const u8 version = 5;
 
 			XChangeProperty((Display*) win->src.display, (Window) win->src.window,
 				XdndAware, 4, 32,
-				PropModeReplace, (u8*) &version, 1); /*!< turns on drag and drop */
+				PropModeReplace, &version, 1); /*!< turns on drag and drop */
 		}
 
 		#ifdef RGFW_EGL
@@ -2716,16 +2716,15 @@ Start of Linux / Unix defines
 		return RGFWMouse;
 	}
 
-	typedef struct XDND {
-		long source, version;
-		i32 format;
-	} XDND; /*!< data structure for xdnd events */
-	XDND xdnd;
-
 	int xAxis = 0, yAxis = 0;
 
 	RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		assert(win != NULL);
+
+		static struct {
+			long source, version;
+			i32 format;
+		} xdnd;
 
 		if (win->event.type == 0) 
 			RGFW_resetKey();
@@ -2893,12 +2892,15 @@ Start of Linux / Unix defines
 
 			win->event.droppedFilesCount = 0;
 
-			/*
-				much of this event (drag and drop code) is source from glfw
-			*/
-
 			if ((win->_winArgs & RGFW_ALLOW_DND) == 0)
 				break;
+
+			XEvent reply = { ClientMessage };
+			reply.xclient.window = xdnd.source;
+			reply.xclient.format = 32;
+			reply.xclient.data.l[0] = (long) win->src.window;
+			reply.xclient.data.l[1] = 0;
+			reply.xclient.data.l[2] = None;
 
 			if (E.xclient.message_type == XdndEnter) {
 				unsigned long count;
@@ -2944,28 +2946,11 @@ Start of Linux / Unix defines
 					formats = real_formats;
 				}
 
-				u32 i;
-				for (i = 0; i < (u32)count; i++) {
-					char* name = XGetAtomName((Display*) win->src.display, formats[i]);
-
-					char* links[2] = { (char*) (const char*) "text/uri-list", (char*) (const char*) "text/plain" };
-					for (; 1; name++) {
-						u32 j;
-						for (j = 0; j < 2; j++) {
-							if (*links[j] != *name) {
-								links[j] = (char*) (const char*) "\1";
-								continue;
-							}
-
-							if (*links[j] == '\0' && *name == '\0')
-								xdnd.format = formats[i];
-
-							if (*links[j] != '\0' && *links[j] != '\1')
-								links[j]++;
-						}
-
-						if (*name == '\0')
-							break;
+				unsigned long i;
+				for (i = 0; i < count; i++) {
+				    if (formats[i] == XtextUriList || formats[i] == XtextPlain) {
+						xdnd.format = formats[i];
+						break;
 					}
 				}
 
@@ -2994,13 +2979,8 @@ Start of Linux / Unix defines
 				win->event.point.x = xpos;
 				win->event.point.y = ypos;
 
-				XEvent reply = { ClientMessage };
 				reply.xclient.window = xdnd.source;
 				reply.xclient.message_type = XdndStatus;
-				reply.xclient.format = 32;
-				reply.xclient.data.l[0] = (long) win->src.window;
-				reply.xclient.data.l[2] = 0;
-				reply.xclient.data.l[3] = 0;
 
 				if (xdnd.format) {
 					reply.xclient.data.l[1] = 1;
@@ -3035,12 +3015,6 @@ Start of Linux / Unix defines
 					time);
 			} else if (xdnd.version >= 2) {
 				XEvent reply = { ClientMessage };
-				reply.xclient.window = xdnd.source;
-				reply.xclient.message_type = XdndFinished;
-				reply.xclient.format = 32;
-				reply.xclient.data.l[0] = (long) win->src.window;
-				reply.xclient.data.l[1] = 0;
-				reply.xclient.data.l[2] = None;
 
 				XSendEvent((Display*) win->src.display, xdnd.source,
 					False, NoEventMask, &reply);
@@ -3125,11 +3099,7 @@ Start of Linux / Unix defines
 				XFree(data);
 
 			if (xdnd.version >= 2) {
-				XEvent reply = { ClientMessage };
-				reply.xclient.window = xdnd.source;
 				reply.xclient.message_type = XdndFinished;
-				reply.xclient.format = 32;
-				reply.xclient.data.l[0] = (long) win->src.window;
 				reply.xclient.data.l[1] = result;
 				reply.xclient.data.l[2] = XdndActionCopy;
 
