@@ -5047,7 +5047,7 @@ var ASM_CONSTS = {
           var contextAttributes = {
             antialias: false,
             alpha: false,
-            majorVersion: (typeof WebGL2RenderingContext != 'undefined') ? 2 : 1,
+            majorVersion: 1,
           };
   
           if (webGLContextAttributes) {
@@ -5465,15 +5465,6 @@ var ASM_CONSTS = {
       }
     };
   
-  var webgl_enable_WEBGL_draw_instanced_base_vertex_base_instance = (ctx) =>
-      // Closure is expected to be allowed to minify the '.dibvbi' property, so not accessing it quoted.
-      !!(ctx.dibvbi = ctx.getExtension('WEBGL_draw_instanced_base_vertex_base_instance'));
-  
-  var webgl_enable_WEBGL_multi_draw_instanced_base_vertex_base_instance = (ctx) => {
-      // Closure is expected to be allowed to minify the '.mdibvbi' property, so not accessing it quoted.
-      return !!(ctx.mdibvbi = ctx.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance'));
-    };
-  
   var webgl_enable_WEBGL_multi_draw = (ctx) => {
       // Closure is expected to be allowed to minify the '.multiDrawWebgl' property, so not accessing it quoted.
       return !!(ctx.multiDrawWebgl = ctx.getExtension('WEBGL_multi_draw'));
@@ -5500,13 +5491,6 @@ var ASM_CONSTS = {
         'WEBGL_color_buffer_float',
         'WEBGL_depth_texture',
         'WEBGL_draw_buffers',
-        // WebGL 2 extensions
-        'EXT_color_buffer_float',
-        'EXT_conservative_depth',
-        'EXT_disjoint_timer_query_webgl2',
-        'EXT_texture_norm16',
-        'NV_shader_noperspective_interpolation',
-        'WEBGL_clip_cull_distance',
         // WebGL 1 and WebGL 2 extensions
         'EXT_color_buffer_half_float',
         'EXT_depth_clamp',
@@ -5545,14 +5529,9 @@ var ASM_CONSTS = {
   offscreenCanvases:{
   },
   queries:[],
-  samplers:[],
-  transformFeedbacks:[],
-  syncs:[],
   byteSizeByTypeRoot:5120,
   byteSizeByType:[1,1,2,2,4,4,4,2,3,4,8],
   stringCache:{
-  },
-  stringiCache:{
   },
   unpackAlignment:4,
   unpackRowLength:0,
@@ -5719,10 +5698,6 @@ var ASM_CONSTS = {
         }
   
         var ctx =
-          (webGLContextAttributes.majorVersion > 1)
-          ?
-            canvas.getContext("webgl2", webGLContextAttributes)
-          :
           (canvas.getContext("webgl", webGLContextAttributes)
             // https://caniuse.com/#feat=webgl
             );
@@ -5801,21 +5776,7 @@ var ASM_CONSTS = {
         webgl_enable_ANGLE_instanced_arrays(GLctx);
         webgl_enable_OES_vertex_array_object(GLctx);
         webgl_enable_WEBGL_draw_buffers(GLctx);
-        // Extensions that are available from WebGL >= 2 (no-op if called on a WebGL 1 context active)
-        webgl_enable_WEBGL_draw_instanced_base_vertex_base_instance(GLctx);
-        webgl_enable_WEBGL_multi_draw_instanced_base_vertex_base_instance(GLctx);
   
-        // On WebGL 2, EXT_disjoint_timer_query is replaced with an alternative
-        // that's based on core APIs, and exposes only the queryCounterEXT()
-        // entrypoint.
-        if (context.version >= 2) {
-          GLctx.disjointTimerQueryExt = GLctx.getExtension("EXT_disjoint_timer_query_webgl2");
-        }
-  
-        // However, Firefox exposes the WebGL 1 version on WebGL 2 as well and
-        // thus we look for the WebGL 1 version again if the WebGL 2 version
-        // isn't present. https://bugzilla.mozilla.org/show_bug.cgi?id=1328882
-        if (context.version < 2 || !GLctx.disjointTimerQueryExt)
         {
           GLctx.disjointTimerQueryExt = GLctx.getExtension("EXT_disjoint_timer_query");
         }
@@ -10371,13 +10332,6 @@ var ASM_CONSTS = {
       if (deserialized != num) warnOnce(`writeI53ToI64() out of range: serialized JS Number ${num} to Wasm heap as bytes lo=${ptrToString(HEAPU32[offset])}, hi=${ptrToString(HEAPU32[offset+1])}, which deserializes back to ${deserialized} instead!`);
     };
   
-  
-  var webglGetExtensions = function $webglGetExtensions() {
-      var exts = getEmscriptenSupportedExtensions(GLctx);
-      exts = exts.concat(exts.map((e) => "GL_" + e));
-      return exts;
-    };
-  
   var emscriptenWebGLGet = (name_, p, type) => {
       // Guard against user passing a null pointer.
       // Note that GLES2 spec does not say anything about how passing a null
@@ -10400,7 +10354,6 @@ var ASM_CONSTS = {
           // Do not write anything to the out pointer, since no binary formats are
           // supported.
           return;
-        case 0x87FE: // GL_NUM_PROGRAM_BINARY_FORMATS
         case 0x8DF9: // GL_NUM_SHADER_BINARY_FORMATS
           ret = 0;
           break;
@@ -10413,22 +10366,6 @@ var ASM_CONSTS = {
           ret = formats ? formats.length : 0;
           break;
   
-        case 0x821D: // GL_NUM_EXTENSIONS
-          if (GL.currentContext.version < 2) {
-            // Calling GLES3/WebGL2 function with a GLES2/WebGL1 context
-            GL.recordError(0x502 /* GL_INVALID_OPERATION */);
-            return;
-          }
-          ret = webglGetExtensions().length;
-          break;
-        case 0x821B: // GL_MAJOR_VERSION
-        case 0x821C: // GL_MINOR_VERSION
-          if (GL.currentContext.version < 2) {
-            GL.recordError(0x500); // GL_INVALID_ENUM
-            return;
-          }
-          ret = name_ == 0x821B ? 3 : 0; // return version 3.0
-          break;
       }
   
       if (ret === undefined) {
@@ -10456,17 +10393,6 @@ var ASM_CONSTS = {
                 case 0x8CA7: // RENDERBUFFER_BINDING
                 case 0x8069: // TEXTURE_BINDING_2D
                 case 0x85B5: // WebGL 2 GL_VERTEX_ARRAY_BINDING, or WebGL 1 extension OES_vertex_array_object GL_VERTEX_ARRAY_BINDING_OES
-                case 0x8F36: // COPY_READ_BUFFER_BINDING or COPY_READ_BUFFER
-                case 0x8F37: // COPY_WRITE_BUFFER_BINDING or COPY_WRITE_BUFFER
-                case 0x88ED: // PIXEL_PACK_BUFFER_BINDING
-                case 0x88EF: // PIXEL_UNPACK_BUFFER_BINDING
-                case 0x8CAA: // READ_FRAMEBUFFER_BINDING
-                case 0x8919: // SAMPLER_BINDING
-                case 0x8C1D: // TEXTURE_BINDING_2D_ARRAY
-                case 0x806A: // TEXTURE_BINDING_3D
-                case 0x8E25: // TRANSFORM_FEEDBACK_BINDING
-                case 0x8C8F: // TRANSFORM_FEEDBACK_BUFFER_BINDING
-                case 0x8A28: // UNIFORM_BUFFER_BINDING
                 case 0x8514: { // TEXTURE_BINDING_CUBE_MAP
                   ret = 0;
                   break;
@@ -10528,6 +10454,12 @@ var ASM_CONSTS = {
     };
   
   
+  var webglGetExtensions = function $webglGetExtensions() {
+      var exts = getEmscriptenSupportedExtensions(GLctx);
+      exts = exts.concat(exts.map((e) => "GL_" + e));
+      return exts;
+    };
+  
   var _glGetString = (name_) => {
       var ret = GL.stringCache[name_];
       if (!ret) {
@@ -10550,7 +10482,6 @@ var ASM_CONSTS = {
             var webGLVersion = GLctx.getParameter(0x1F02 /*GL_VERSION*/);
             // return GLES version string corresponding to the version of the WebGL context
             var glVersion = `OpenGL ES 2.0 (${webGLVersion})`;
-            if (GL.currentContext.version >= 2) glVersion = `OpenGL ES 3.0 (${webGLVersion})`;
             ret = stringToNewUTF8(glVersion);
             break;
           case 0x8B8C /* GL_SHADING_LANGUAGE_VERSION */:
@@ -10642,21 +10573,6 @@ var ASM_CONSTS = {
         GLctx.currentElementArrayBufferBinding = buffer;
       }
   
-      if (target == 0x88EB /*GL_PIXEL_PACK_BUFFER*/) {
-        // In WebGL 2 glReadPixels entry point, we need to use a different WebGL 2
-        // API function call when a buffer is bound to
-        // GL_PIXEL_PACK_BUFFER_BINDING point, so must keep track whether that
-        // binding point is non-null to know what is the proper API function to
-        // call.
-        GLctx.currentPixelPackBufferBinding = buffer;
-      } else if (target == 0x88EC /*GL_PIXEL_UNPACK_BUFFER*/) {
-        // In WebGL 2 gl(Compressed)Tex(Sub)Image[23]D entry points, we need to
-        // use a different WebGL 2 API function call when a buffer is bound to
-        // GL_PIXEL_UNPACK_BUFFER_BINDING point, so must keep track whether that
-        // binding point is non-null to know what is the proper API function to
-        // call.
-        GLctx.currentPixelUnpackBufferBinding = buffer;
-      }
       GLctx.bindBuffer(target, GL.buffers[buffer]);
     };
   
@@ -11570,7 +11486,6 @@ var missingLibrarySymbols = [
   '__glGetActiveAttribOrUniform',
   'writeGLArray',
   'registerWebGlEventCallback',
-  'emscriptenWebGLGetIndexed',
   'emulGlGenVertexArrays',
   'emulGlDeleteVertexArrays',
   'emulGlIsVertexArray',
@@ -11726,8 +11641,6 @@ var unexportedSymbols = [
   'Fibers',
   'SDL',
   'SDL_gfx',
-  'webgl_enable_WEBGL_draw_instanced_base_vertex_base_instance',
-  'webgl_enable_WEBGL_multi_draw_instanced_base_vertex_base_instance',
   'GLEmulation',
   'GLImmediate',
   'GLImmediateSetup',
