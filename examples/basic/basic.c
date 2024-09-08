@@ -41,10 +41,6 @@ int main(void) {
 
     unsigned char i;
 
-    #ifndef RGFW_VULKAN
-    glEnable(GL_BLEND);
-    #endif
-
     glEnable(GL_BLEND);             
     glClearColor(0, 0, 0, 0);
 

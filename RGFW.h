@@ -3450,7 +3450,7 @@ Start of Linux / Unix defines
 			*size = sizeN;
 
 		return s;
-		}
+	}
 
 	/*
 		almost all of this function is sourced from GLFW
@@ -3490,9 +3490,6 @@ Start of Linux / Unix defines
 			XEvent reply = { SelectionNotify };
 			reply.xselection.property = 0;
 
-			const Atom formats[] = { UTF8_STRING, XA_STRING };
-			const i32 formatCount = sizeof(formats) / sizeof(formats[0]);
-		
 			if (request->target == TARGETS) {
 				const Atom targets[] = { TARGETS,
 										MULTIPLE,
@@ -3522,15 +3519,7 @@ Start of Linux / Unix defines
 
 				unsigned long i;
 				for (i = 0; i < (u32)count; i += 2) {
-					i32 j;
-
-					for (j = 0; j < formatCount; j++) {
-						if (targets[i] == formats[j])
-							break;
-					}
-
-					if (j < formatCount)
-					{
+					if (targets[i] == UTF8_STRING || targets[i] == XA_STRING) {
 						XChangeProperty((Display*) RGFW_root->src.display,
 							request->requestor,
 							targets[i + 1],
@@ -8502,7 +8491,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
     emscripten_webgl_make_context_current(win->src.ctx);
 
 	#ifdef LEGACY_GL_EMULATION
-	EM_ASM("Module.useWebGL = true; GLImmediate.init();");
+	//EM_ASM("GLImmediate.init();");
 	#endif
 
 	emscripten_set_canvas_element_size("#canvas", rect.w, rect.h);
