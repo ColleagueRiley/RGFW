@@ -7216,7 +7216,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 			if (RGFW_className != NULL) {
 				NSString* str = NSString_stringWithUTF8String(RGFW_className);
-				((void (*)(id, SEL, NSString))objc_msgSend)
+				((void (*)(id, SEL, NSString*))objc_msgSend)
 					(NSApp, sel_registerName("setName:"), str);
 			}
 		}
@@ -8865,11 +8865,12 @@ u64 RGFW_getTime(void) {
 }
 
 void RGFW_releaseCursor(RGFW_window* win) {
+	RGFW_unused(win);
 	emscripten_exit_pointerlock();
 }
 
 void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) { 
-	RGFW_UNUSED(win)
+	RGFW_UNUSED(win); RGFW_unused(r);
 
 	emscripten_request_pointerlock("#canvas", 1);
 }
