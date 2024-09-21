@@ -7213,12 +7213,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 			((void (*)(id, SEL, NSUInteger))objc_msgSend)
 				(NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
-
-			if (RGFW_className != NULL) {
-				NSString* str = NSString_stringWithUTF8String(RGFW_className);
-				((void (*)(id, SEL, NSString*))objc_msgSend)
-					(NSApp, sel_registerName("setName:"), str);
-			}
 		}
 
 		RGFW_window* win = RGFW_window_basic_init(rect, args);
