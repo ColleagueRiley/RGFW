@@ -611,6 +611,13 @@ typedef struct RGFW_window {
 /** * @defgroup Window_management
 * @{ */ 
 
+
+/*! 
+ * the class name for X11 and WinAPI. apps with the same class will be grouped by the WM
+ * by default the class name will == the root window's name
+*/
+RGFWDEF void RGFW_setClassName(char* name);
+
 /*! this has to be set before createWindow is called, else the fulscreen size is used */
 RGFWDEF void RGFW_setBufferSize(RGFW_area size); /*!< the buffer cannot be resized (by RGFW) */
 
@@ -1637,6 +1644,11 @@ RGFW_window* RGFW_root = NULL;
 #define RGFW_HOLD_MOUSE			(1L<<2) /*!< hold the moues still */
 #define RGFW_MOUSE_LEFT 		(1L<<3) /* if mouse left the window */
 
+char* RGFW_className = NULL;
+void RGFW_setClassName(char* name) {
+	RGFW_className = name;
+}
+
 void RGFW_clipboardFree(char* str) { RGFW_FREE(str); }
 
 RGFW_keyState RGFW_mouseButtons[5] = { {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0} };
@@ -2563,9 +2575,13 @@ Start of Linux / Unix defines
 		// In your .desktop app, if you set the property
 		// StartupWMClass=RGFW that will assoicate the launcher icon
 		// with your application - robrohan 
+		
+		if (RGFW_className == NULL)
+			RGFW_className = (char*)name;
+
 		XClassHint *hint = XAllocClassHint();
 		assert(hint != NULL);
-		hint->res_class = (char*)"RGFW";
+		hint->res_class = (char*)RGFW_className;
 		hint->res_name = (char*)name; // just use the window name as the app name
 		XSetClassHint((Display*) win->src.display, win->src.window, hint);
 		XFree(hint);
@@ -4965,7 +4981,9 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 	#include <windowsx.h>
 	#include <shellapi.h>
 	#include <shellscalingapi.h>
-	
+
+	#include <winuser.h>
+
 	__declspec(dllimport) int __stdcall WideCharToMultiByte( UINT CodePage, DWORD dwFlags, const WCHAR* lpWideCharStr, int cchWideChar,  LPSTR lpMultiByteStr, int cbMultiByte, LPCCH lpDefaultChar, LPBOOL lpUsedDefaultChar);
 	
 	#ifndef RGFW_NO_XINPUT
@@ -5185,6 +5203,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	}
 
 	void RGFW_releaseCursor(RGFW_window* win) {
+		RGFW_UNUSED(win);
 		ClipCursor(NULL);
     	const RAWINPUTDEVICE id = { 0x01, 0x02, RIDEV_REMOVE, NULL };
     	RegisterRawInputDevices(&id, 1, sizeof(id));	
@@ -5247,7 +5266,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		WNDCLASSA Class = { };
 		#endif
 
-		Class.lpszClassName = name;
+		if (RGFW_className == NULL)
+			RGFW_className = (char*)name;
+
+		Class.lpszClassName = RGFW_className;
 		Class.hInstance = inh;
 		Class.hCursor = LoadCursor(NULL, IDC_ARROW);
 		Class.lpfnWndProc = WndProc;
@@ -7191,6 +7213,12 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 			((void (*)(id, SEL, NSUInteger))objc_msgSend)
 				(NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
+
+			if (RGFW_className != NULL) {
+				NSString* str = NSString_stringWithUTF8String(RGFW_className);
+				((void (*)(id, SEL, NSString))objc_msgSend)
+					(NSApp, sel_registerName("setName:"), str);
+			}
 		}
 
 		RGFW_window* win = RGFW_window_basic_init(rect, args);
@@ -7894,6 +7922,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	}
 	
 	void RGFW_releaseCursor(RGFW_window* win) {
+		RGFW_UNUSED(win);
 		CGAssociateMouseAndMouseCursorPosition(1);	
 	}
 
@@ -8049,6 +8078,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		#if defined(RGFW_OPENGL)
 		
 		NSOpenGLContext_setValues(win->src.ctx, &swapInterval, 222);
+		#else
+		RGFW_UNUSED(swapInterval);
 		#endif
 	}
 	#endif
