@@ -8865,12 +8865,12 @@ u64 RGFW_getTime(void) {
 }
 
 void RGFW_releaseCursor(RGFW_window* win) {
-	RGFW_unused(win);
+	RGFW_UNUSED(win);
 	emscripten_exit_pointerlock();
 }
 
 void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) { 
-	RGFW_UNUSED(win); RGFW_unused(r);
+	RGFW_UNUSED(win); RGFW_UNUSED(r);
 
 	emscripten_request_pointerlock("#canvas", 1);
 }
