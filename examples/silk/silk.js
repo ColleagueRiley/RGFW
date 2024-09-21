@@ -326,6 +326,7 @@ function updateMemoryViews() {
   Module['HEAPF32'] = HEAPF32 = new Float32Array(b);
   Module['HEAPF64'] = HEAPF64 = new Float64Array(b);
 }
+
 // end include: runtime_shared.js
 assert(!Module['STACK_SIZE'], 'STACK_SIZE can no longer be set at runtime.  Use -sSTACK_SIZE at link time')
 
@@ -547,7 +548,6 @@ function abort(what) {
   err(what);
 
   ABORT = true;
-  EXITSTATUS = 1;
 
   if (what.indexOf('RuntimeError: unreachable') >= 0) {
     what += '. "unreachable" may be due to ASYNCIFY_STACK_SIZE not being large enough (try increasing it)';
@@ -774,7 +774,7 @@ var tempI64;
 
 // include: runtime_debug.js
 // Endianness check
-(function() {
+(() => {
   var h16 = new Int16Array(1);
   var h8 = new Int8Array(h16.buffer);
   h16[0] = 0x6373;
@@ -3684,11 +3684,11 @@ var ASM_CONSTS = {
         var mtime = stat.mtime.getTime();
         var ctime = stat.ctime.getTime();
         (tempI64 = [Math.floor(atime / 1000)>>>0,(tempDouble = Math.floor(atime / 1000),(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? (+(Math.floor((tempDouble)/4294967296.0)))>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)], HEAP32[(((buf)+(40))>>2)] = tempI64[0],HEAP32[(((buf)+(44))>>2)] = tempI64[1]);
-        HEAPU32[(((buf)+(48))>>2)] = (atime % 1000) * 1000;
+        HEAPU32[(((buf)+(48))>>2)] = (atime % 1000) * 1000 * 1000;
         (tempI64 = [Math.floor(mtime / 1000)>>>0,(tempDouble = Math.floor(mtime / 1000),(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? (+(Math.floor((tempDouble)/4294967296.0)))>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)], HEAP32[(((buf)+(56))>>2)] = tempI64[0],HEAP32[(((buf)+(60))>>2)] = tempI64[1]);
-        HEAPU32[(((buf)+(64))>>2)] = (mtime % 1000) * 1000;
+        HEAPU32[(((buf)+(64))>>2)] = (mtime % 1000) * 1000 * 1000;
         (tempI64 = [Math.floor(ctime / 1000)>>>0,(tempDouble = Math.floor(ctime / 1000),(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? (+(Math.floor((tempDouble)/4294967296.0)))>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)], HEAP32[(((buf)+(72))>>2)] = tempI64[0],HEAP32[(((buf)+(76))>>2)] = tempI64[1]);
-        HEAPU32[(((buf)+(80))>>2)] = (ctime % 1000) * 1000;
+        HEAPU32[(((buf)+(80))>>2)] = (ctime % 1000) * 1000 * 1000;
         (tempI64 = [stat.ino>>>0,(tempDouble = stat.ino,(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? (+(Math.floor((tempDouble)/4294967296.0)))>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)], HEAP32[(((buf)+(88))>>2)] = tempI64[0],HEAP32[(((buf)+(92))>>2)] = tempI64[1]);
         return 0;
       },
@@ -4609,7 +4609,7 @@ var ASM_CONSTS = {
               }
             };
             addEventListener("message", Browser_setImmediate_messageHandler, true);
-            Browser.setImmediate = /** @type{function(function(): ?, ...?): number} */(function Browser_emulated_setImmediate(func) {
+            Browser.setImmediate = /** @type{function(function(): ?, ...?): number} */((func) => {
               setImmediates.push(func);
               if (ENVIRONMENT_IS_WORKER) {
                 Module['setImmediates'] ??= [];
@@ -4629,6 +4629,63 @@ var ASM_CONSTS = {
       return 0;
     };
   
+  
+  
+  var runtimeKeepaliveCounter = 0;
+  var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
+  var _proc_exit = (code) => {
+      EXITSTATUS = code;
+      if (!keepRuntimeAlive()) {
+        Module['onExit']?.(code);
+        ABORT = true;
+      }
+      quit_(code, new ExitStatus(code));
+    };
+  
+  /** @suppress {duplicate } */
+  /** @param {boolean|number=} implicit */
+  var exitJS = (status, implicit) => {
+      EXITSTATUS = status;
+  
+      checkUnflushedContent();
+  
+      // if exit() was called explicitly, warn the user if the runtime isn't actually being shut down
+      if (keepRuntimeAlive() && !implicit) {
+        var msg = `program exited (with status: ${status}), but keepRuntimeAlive() is set (counter=${runtimeKeepaliveCounter}) due to an async operation, so halting execution but not exiting the runtime or preventing further async execution (you can use emscripten_force_exit, if you want to force a true shutdown)`;
+        err(msg);
+      }
+  
+      _proc_exit(status);
+    };
+  var _exit = exitJS;
+  
+  var handleException = (e) => {
+      // Certain exception types we do not treat as errors since they are used for
+      // internal control flow.
+      // 1. ExitStatus, which is thrown by exit()
+      // 2. "unwind", which is thrown by emscripten_unwind_to_js_event_loop() and others
+      //    that wish to return to JS event loop.
+      if (e instanceof ExitStatus || e == 'unwind') {
+        return EXITSTATUS;
+      }
+      checkStackCookie();
+      if (e instanceof WebAssembly.RuntimeError) {
+        if (_emscripten_stack_get_current() <= 0) {
+          err('Stack overflow detected.  You can try increasing -sSTACK_SIZE (currently set to 65536)');
+        }
+      }
+      quit_(1, e);
+    };
+  
+  var maybeExit = () => {
+      if (!keepRuntimeAlive()) {
+        try {
+          _exit(EXITSTATUS);
+        } catch (e) {
+          handleException(e);
+        }
+      }
+    };
   
   
     /**
@@ -4653,6 +4710,7 @@ var ASM_CONSTS = {
       function checkIsRunning() {
         if (thisMainLoopId < Browser.mainLoop.currentlyRunningMainloop) {
           
+          maybeExit();
           return false;
         }
         return true;
@@ -4744,63 +4802,7 @@ var ASM_CONSTS = {
       }
     };
   
-  var handleException = (e) => {
-      // Certain exception types we do not treat as errors since they are used for
-      // internal control flow.
-      // 1. ExitStatus, which is thrown by exit()
-      // 2. "unwind", which is thrown by emscripten_unwind_to_js_event_loop() and others
-      //    that wish to return to JS event loop.
-      if (e instanceof ExitStatus || e == 'unwind') {
-        return EXITSTATUS;
-      }
-      checkStackCookie();
-      if (e instanceof WebAssembly.RuntimeError) {
-        if (_emscripten_stack_get_current() <= 0) {
-          err('Stack overflow detected.  You can try increasing -sSTACK_SIZE (currently set to 65536)');
-        }
-      }
-      quit_(1, e);
-    };
   
-  
-  var runtimeKeepaliveCounter = 0;
-  var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
-  var _proc_exit = (code) => {
-      EXITSTATUS = code;
-      if (!keepRuntimeAlive()) {
-        Module['onExit']?.(code);
-        ABORT = true;
-      }
-      quit_(code, new ExitStatus(code));
-    };
-  
-  /** @suppress {duplicate } */
-  /** @param {boolean|number=} implicit */
-  var exitJS = (status, implicit) => {
-      EXITSTATUS = status;
-  
-      checkUnflushedContent();
-  
-      // if exit() was called explicitly, warn the user if the runtime isn't actually being shut down
-      if (keepRuntimeAlive() && !implicit) {
-        var msg = `program exited (with status: ${status}), but keepRuntimeAlive() is set (counter=${runtimeKeepaliveCounter}) due to an async operation, so halting execution but not exiting the runtime or preventing further async execution (you can use emscripten_force_exit, if you want to force a true shutdown)`;
-        err(msg);
-      }
-  
-      _proc_exit(status);
-    };
-  var _exit = exitJS;
-  
-  
-  var maybeExit = () => {
-      if (!keepRuntimeAlive()) {
-        try {
-          _exit(EXITSTATUS);
-        } catch (e) {
-          handleException(e);
-        }
-      }
-    };
   var callUserCallback = (func) => {
       if (ABORT) {
         err('user callback triggered after runtime exited or application aborted.  Ignoring.');
@@ -5431,6 +5433,9 @@ var ASM_CONSTS = {
   var webgl_enable_ANGLE_instanced_arrays = (ctx) => {
       // Extension available in WebGL 1 from Firefox 26 and Google Chrome 30 onwards. Core feature in WebGL 2.
       var ext = ctx.getExtension('ANGLE_instanced_arrays');
+      // Because this extension is a core function in WebGL 2, assign the extension entry points in place of
+      // where the core functions will reside in WebGL 2. This way the calling code can call these without
+      // having to dynamically branch depending if running against WebGL 1 or WebGL 2.
       if (ext) {
         ctx['vertexAttribDivisor'] = (index, divisor) => ext['vertexAttribDivisorANGLE'](index, divisor);
         ctx['drawArraysInstanced'] = (mode, first, count, primcount) => ext['drawArraysInstancedANGLE'](mode, first, count, primcount);
@@ -5460,6 +5465,18 @@ var ASM_CONSTS = {
       }
     };
   
+  var webgl_enable_EXT_polygon_offset_clamp = (ctx) => {
+      return !!(ctx.extPolygonOffsetClamp = ctx.getExtension('EXT_polygon_offset_clamp'));
+    };
+  
+  var webgl_enable_EXT_clip_control = (ctx) => {
+      return !!(ctx.extClipControl = ctx.getExtension('EXT_clip_control'));
+    };
+  
+  var webgl_enable_WEBGL_polygon_mode = (ctx) => {
+      return !!(ctx.webglPolygonMode = ctx.getExtension('WEBGL_polygon_mode'));
+    };
+  
   var webgl_enable_WEBGL_multi_draw = (ctx) => {
       // Closure is expected to be allowed to minify the '.multiDrawWebgl' property, so not accessing it quoted.
       return !!(ctx.multiDrawWebgl = ctx.getExtension('WEBGL_multi_draw'));
@@ -5487,9 +5504,11 @@ var ASM_CONSTS = {
         'WEBGL_depth_texture',
         'WEBGL_draw_buffers',
         // WebGL 1 and WebGL 2 extensions
+        'EXT_clip_control',
         'EXT_color_buffer_half_float',
         'EXT_depth_clamp',
         'EXT_float_blend',
+        'EXT_polygon_offset_clamp',
         'EXT_texture_compression_bptc',
         'EXT_texture_compression_rgtc',
         'EXT_texture_filter_anisotropic',
@@ -5505,6 +5524,7 @@ var ASM_CONSTS = {
         'WEBGL_debug_shaders',
         'WEBGL_lose_context',
         'WEBGL_multi_draw',
+        'WEBGL_polygon_mode'
       ];
       // .getSupportedExtensions() can return null if context is lost, so coerce to empty array.
       return (ctx.getSupportedExtensions() || []).filter(ext => supportedExtensions.includes(ext));
@@ -5766,17 +5786,19 @@ var ASM_CONSTS = {
         context.compressionExt = GLctx.getExtension('WEBGL_compressed_texture_s3tc');
         context.anisotropicExt = GLctx.getExtension('EXT_texture_filter_anisotropic');
   
+        // Extensions that are available in both WebGL 1 and WebGL 2
+        webgl_enable_WEBGL_multi_draw(GLctx);
+        webgl_enable_EXT_polygon_offset_clamp(GLctx);
+        webgl_enable_EXT_clip_control(GLctx);
+        webgl_enable_WEBGL_polygon_mode(GLctx);
         // Extensions that are only available in WebGL 1 (the calls will be no-ops
         // if called on a WebGL 2 context active)
         webgl_enable_ANGLE_instanced_arrays(GLctx);
         webgl_enable_OES_vertex_array_object(GLctx);
         webgl_enable_WEBGL_draw_buffers(GLctx);
-  
         {
           GLctx.disjointTimerQueryExt = GLctx.getExtension("EXT_disjoint_timer_query");
         }
-  
-        webgl_enable_WEBGL_multi_draw(GLctx);
   
         getEmscriptenSupportedExtensions(GLctx).forEach((ext) => {
           // WEBGL_lose_context, WEBGL_debug_renderer_info and WEBGL_debug_shaders
@@ -6362,7 +6384,7 @@ var ASM_CONSTS = {
           0x80A0: 1  // GL_SAMPLE_COVERAGE
         };
   
-        var glEnable = _glEnable;
+        var orig_glEnable = _glEnable;
         _glEnable = _emscripten_glEnable = (cap) => {
           // Clean up the renderer on any change to the rendering state. The optimization of
           // skipping renderer setup is aimed at the case of multiple glDraw* right after each other
@@ -6410,10 +6432,11 @@ var ASM_CONSTS = {
           } else if (!(cap in validCapabilities)) {
             return;
           }
-          glEnable(cap);
+          orig_glEnable(cap);
         };
+        
   
-        var glDisable = _glDisable;
+        var orig_glDisable = _glDisable;
         _glDisable = _emscripten_glDisable = (cap) => {
           GLImmediate.lastRenderer?.cleanup();
           if (cap == 0xB60 /* GL_FOG */) {
@@ -6459,9 +6482,11 @@ var ASM_CONSTS = {
           } else if (!(cap in validCapabilities)) {
             return;
           }
-          glDisable(cap);
+          orig_glDisable(cap);
         };
+        
   
+        var orig_glIsEnabled = _glIsEnabled;
         _glIsEnabled = _emscripten_glIsEnabled = (cap) => {
           if (cap == 0xB60 /* GL_FOG */) {
             return GLEmulation.fogEnabled ? 1 : 0;
@@ -6480,8 +6505,9 @@ var ASM_CONSTS = {
           }
           return GLctx.isEnabled(cap);
         };
+        
   
-        var glGetBooleanv = _glGetBooleanv;
+        var orig_glGetBooleanv = _glGetBooleanv;
         _glGetBooleanv = _emscripten_glGetBooleanv = (pname, p) => {
           var attrib = GLEmulation.getAttributeFromCapability(pname);
           if (attrib !== null) {
@@ -6490,10 +6516,11 @@ var ASM_CONSTS = {
             HEAP8[p] = result === true ? 1 : 0;
             return;
           }
-          glGetBooleanv(pname, p);
+          orig_glGetBooleanv(pname, p);
         };
+        
   
-        var glGetIntegerv = _glGetIntegerv;
+        var orig_glGetIntegerv = _glGetIntegerv;
         _glGetIntegerv = _emscripten_glGetIntegerv = (pname, params) => {
           
           switch (pname) {
@@ -6572,10 +6599,11 @@ var ASM_CONSTS = {
               return;
             }
           }
-          glGetIntegerv(pname, params);
+          orig_glGetIntegerv(pname, params);
         };
+        
   
-        var glGetString = _glGetString;
+        var orig_glGetString = _glGetString;
         _glGetString = _emscripten_glGetString = (name_) => {
           if (GL.stringCache[name_]) return GL.stringCache[name_];
           switch (name_) {
@@ -6587,22 +6615,24 @@ var ASM_CONSTS = {
               );
               return GL.stringCache[name_] = ret;
           }
-          return glGetString(name_);
+          return orig_glGetString(name_);
         };
+        
   
         // Do some automatic rewriting to work around GLSL differences. Note that this must be done in
         // tandem with the rest of the program, by itself it cannot suffice.
         // Note that we need to remember shader types for this rewriting, saving sources makes it easier to debug.
         GL.shaderInfos = {};
-        var glCreateShader = _glCreateShader;
+        var orig_glCreateShader = _glCreateShader;
         _glCreateShader = _emscripten_glCreateShader = (shaderType) => {
-          var id = glCreateShader(shaderType);
+          var id = orig_glCreateShader(shaderType);
           GL.shaderInfos[id] = {
             type: shaderType,
             ftransform: false
           };
           return id;
         };
+        
   
         function ensurePrecision(source) {
           if (!/precision +(low|medium|high)p +float *;/.test(source)) {
@@ -6611,7 +6641,7 @@ var ASM_CONSTS = {
           return source;
         }
   
-        var glShaderSource = _glShaderSource;
+        var orig_glShaderSource = _glShaderSource;
         _glShaderSource = _emscripten_glShaderSource = (shader, count, string, length) => {
           
           
@@ -6717,21 +6747,24 @@ var ASM_CONSTS = {
           }
           GLctx.shaderSource(GL.shaders[shader], source);
         };
+        
   
-        var glCompileShader = _glCompileShader;
+        var orig_glCompileShader = _glCompileShader;
         _glCompileShader = _emscripten_glCompileShader = (shader) => {
           GLctx.compileShader(GL.shaders[shader]);
         };
+        
   
         GL.programShaders = {};
-        var glAttachShader = _glAttachShader;
+        var orig_glAttachShader = _glAttachShader;
         _glAttachShader = _emscripten_glAttachShader = (program, shader) => {
           GL.programShaders[program] ||= [];
           GL.programShaders[program].push(shader);
-          glAttachShader(program, shader);
+          orig_glAttachShader(program, shader);
         };
+        
   
-        var glDetachShader = _glDetachShader;
+        var orig_glDetachShader = _glDetachShader;
         _glDetachShader = _emscripten_glDetachShader = (program, shader) => {
           var programShader = GL.programShaders[program];
           if (!programShader) {
@@ -6740,47 +6773,52 @@ var ASM_CONSTS = {
           }
           var index = programShader.indexOf(shader);
           programShader.splice(index, 1);
-          glDetachShader(program, shader);
+          orig_glDetachShader(program, shader);
         };
+        
   
-        var glUseProgram = _glUseProgram;
+        var orig_glUseProgram = _glUseProgram;
         _glUseProgram = _emscripten_glUseProgram = (program) => {
           if (GL.currProgram != program) {
             GLImmediate.currentRenderer = null; // This changes the FFP emulation shader program, need to recompute that.
             GL.currProgram = program;
             GLImmediate.fixedFunctionProgram = 0;
-            glUseProgram(program);
+            orig_glUseProgram(program);
           }
         }
+        
   
-        var glDeleteProgram = _glDeleteProgram;
+        var orig_glDeleteProgram = _glDeleteProgram;
         _glDeleteProgram = _emscripten_glDeleteProgram = (program) => {
-          glDeleteProgram(program);
+          orig_glDeleteProgram(program);
           if (program == GL.currProgram) {
             GLImmediate.currentRenderer = null; // This changes the FFP emulation shader program, need to recompute that.
             GL.currProgram = 0;
           }
         };
+        
   
         // If attribute 0 was not bound, bind it to 0 for WebGL performance reasons. Track if 0 is free for that.
         var zeroUsedPrograms = {};
-        var glBindAttribLocation = _glBindAttribLocation;
+        var orig_glBindAttribLocation = _glBindAttribLocation;
         _glBindAttribLocation = _emscripten_glBindAttribLocation = (program, index, name) => {
           if (index == 0) zeroUsedPrograms[program] = true;
-          glBindAttribLocation(program, index, name);
+          orig_glBindAttribLocation(program, index, name);
         };
+        
   
-        var glLinkProgram = _glLinkProgram;
+        var orig_glLinkProgram = _glLinkProgram;
         _glLinkProgram = _emscripten_glLinkProgram = (program) => {
           if (!(program in zeroUsedPrograms)) {
             GLctx.bindAttribLocation(GL.programs[program], 0, 'a_position');
           }
-          glLinkProgram(program);
+          orig_glLinkProgram(program);
         };
+        
   
-        var glBindBuffer = _glBindBuffer;
+        var orig_glBindBuffer = _glBindBuffer;
         _glBindBuffer = _emscripten_glBindBuffer = (target, buffer) => {
-          glBindBuffer(target, buffer);
+          orig_glBindBuffer(target, buffer);
           if (target == GLctx.ARRAY_BUFFER) {
             if (GLEmulation.currentVao) {
               assert(GLEmulation.currentVao.arrayBuffer == buffer || GLEmulation.currentVao.arrayBuffer == 0 || buffer == 0, 'TODO: support for multiple array buffers in vao');
@@ -6790,8 +6828,9 @@ var ASM_CONSTS = {
             if (GLEmulation.currentVao) GLEmulation.currentVao.elementArrayBuffer = buffer;
           }
         };
+        
   
-        var glGetFloatv = _glGetFloatv;
+        var orig_glGetFloatv = _glGetFloatv;
         _glGetFloatv = _emscripten_glGetFloatv = (pname, params) => {
           
           if (pname == 0xBA6) { // GL_MODELVIEW_MATRIX
@@ -6818,39 +6857,44 @@ var ASM_CONSTS = {
           } else if (pname == 0xBC2) { // GL_ALPHA_TEST_REF
             HEAPF32[((params)>>2)] = GLEmulation.alphaTestRef;
           } else {
-            glGetFloatv(pname, params);
+            orig_glGetFloatv(pname, params);
           }
         };
+        
   
-        var glHint = _glHint;
+        var orig_glHint = _glHint;
         _glHint = _emscripten_glHint = (target, mode) => {
           if (target == 0x84EF) { // GL_TEXTURE_COMPRESSION_HINT
             return;
           }
-          glHint(target, mode);
+          orig_glHint(target, mode);
         };
+        
   
-        var glEnableVertexAttribArray = _glEnableVertexAttribArray;
+        var orig_glEnableVertexAttribArray = _glEnableVertexAttribArray;
         _glEnableVertexAttribArray = _emscripten_glEnableVertexAttribArray = (index) => {
-          glEnableVertexAttribArray(index);
+          orig_glEnableVertexAttribArray(index);
           GLEmulation.enabledVertexAttribArrays[index] = 1;
           if (GLEmulation.currentVao) GLEmulation.currentVao.enabledVertexAttribArrays[index] = 1;
         };
+        
   
-        var glDisableVertexAttribArray = _glDisableVertexAttribArray;
+        var orig_glDisableVertexAttribArray = _glDisableVertexAttribArray;
         _glDisableVertexAttribArray = _emscripten_glDisableVertexAttribArray = (index) => {
-          glDisableVertexAttribArray(index);
+          orig_glDisableVertexAttribArray(index);
           delete GLEmulation.enabledVertexAttribArrays[index];
           if (GLEmulation.currentVao) delete GLEmulation.currentVao.enabledVertexAttribArrays[index];
         };
+        
   
-        var glVertexAttribPointer = _glVertexAttribPointer;
+        var orig_glVertexAttribPointer = _glVertexAttribPointer;
         _glVertexAttribPointer = _emscripten_glVertexAttribPointer = (index, size, type, normalized, stride, pointer) => {
-          glVertexAttribPointer(index, size, type, normalized, stride, pointer);
+          orig_glVertexAttribPointer(index, size, type, normalized, stride, pointer);
           if (GLEmulation.currentVao) { // TODO: avoid object creation here? likely not hot though
             GLEmulation.currentVao.vertexAttribPointers[index] = [index, size, type, normalized, stride, pointer];
           }
         };
+        
       },
   getAttributeFromCapability(cap) {
         var attrib = null;
@@ -8969,7 +9013,7 @@ var ASM_CONSTS = {
         renderer.cleanup();
       },
   };
-  GLImmediate.matrixLib = (function() {
+  GLImmediate.matrixLib = (() => {
   
   /**
    * @fileoverview gl-matrix - High performance matrix and vector operations for WebGL
@@ -11802,6 +11846,9 @@ var unexportedSymbols = [
   'webgl_enable_OES_vertex_array_object',
   'webgl_enable_WEBGL_draw_buffers',
   'webgl_enable_WEBGL_multi_draw',
+  'webgl_enable_EXT_polygon_offset_clamp',
+  'webgl_enable_EXT_clip_control',
+  'webgl_enable_WEBGL_polygon_mode',
   'GL',
   'emscriptenWebGLGet',
   'computeUnpackAlignedImageSize',
@@ -11905,10 +11952,8 @@ function run() {
 
   if (Module['setStatus']) {
     Module['setStatus']('Running...');
-    setTimeout(function() {
-      setTimeout(function() {
-        Module['setStatus']('');
-      }, 1);
+    setTimeout(() => {
+      setTimeout(() => Module['setStatus'](''), 1);
       doRun();
     }, 1);
   } else
@@ -11939,7 +11984,7 @@ function checkUnflushedContent() {
   try { // it doesn't matter if it fails
     _fflush(0);
     // also flush in the JS FS layer
-    ['stdout', 'stderr'].forEach(function(name) {
+    ['stdout', 'stderr'].forEach((name) => {
       var info = FS.analyzePath('/dev/' + name);
       if (!info) return;
       var stream = info.object;

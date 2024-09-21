@@ -79,6 +79,8 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:gada5d32ffbd78e6faf68fb12be2cd5bc3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#gada5d32ffbd78e6faf68fb12be2cd5bc3">RGFW_setClassName</a> (char *name)</td></tr>
+<tr class="separator:gada5d32ffbd78e6faf68fb12be2cd5bc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gadce2abfbc7f38f80e4f5490e88d05593"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#gadce2abfbc7f38f80e4f5490e88d05593">RGFW_setBufferSize</a> (<a class="el" href="structRGFW__area.html">RGFW_area</a> size)</td></tr>
 <tr class="separator:gadce2abfbc7f38f80e4f5490e88d05593"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac14697524d0339d4049dba92efb7c00b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structRGFW__window.html">RGFW_window</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#gac14697524d0339d4049dba92efb7c00b">RGFW_createWindow</a> (const char *name, <a class="el" href="structRGFW__rect.html">RGFW_rect</a> rect, <a class="el" href="RGFW_8h.html#ace9d960e74685e2cd84b36132dbbf8aa">u16</a> args)</td></tr>
@@ -281,6 +283,25 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p >this has to be set before createWindow is called, else the fulscreen size is used the buffer cannot be resized (by RGFW) </p>
+
+</div>
+</div>
+<a id="gada5d32ffbd78e6faf68fb12be2cd5bc3" name="gada5d32ffbd78e6faf68fb12be2cd5bc3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gada5d32ffbd78e6faf68fb12be2cd5bc3">&#9670;&#160;</a></span>RGFW_setClassName()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void RGFW_setClassName </td>
+          <td>(</td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >the class name for X11 and WinAPI. apps with the same class will be grouped by the WM by default the class name will == the root window's name </p>
 
 </div>
 </div>

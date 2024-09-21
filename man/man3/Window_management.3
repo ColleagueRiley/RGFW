@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Sun Sep 8 2024" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Sat Sep 21 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -9,6 +9,9 @@ Window_management \- Window_management
 .SS "Functions"
 
 .in +1c
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setClassName\fP (char *name)"
+.br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setBufferSize\fP (\fBRGFW_area\fP size)"
 .br
@@ -146,6 +149,8 @@ where the mouse is on the screen
 get the size of the screen to an area struct 
 .SS "\fBRGFWDEF\fP void RGFW_setBufferSize (\fBRGFW_area\fP size)"
 this has to be set before createWindow is called, else the fulscreen size is used the buffer cannot be resized (by RGFW) 
+.SS "\fBRGFWDEF\fP void RGFW_setClassName (char * name)"
+the class name for X11 and WinAPI\&. apps with the same class will be grouped by the WM by default the class name will == the root window's name 
 .SS "\fBRGFWDEF\fP void RGFW_stopCheckEvents (void)"
 Tell RGFW_window_eventWait to stop waiting, to be ran from another thread 
 .SS "\fBRGFW_Event\fP * RGFW_window_checkEvent (\fBRGFW_window\fP * win)"
