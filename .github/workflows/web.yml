@@ -18,7 +18,9 @@ jobs:
 
     - name: Set up Emscripten
       uses: mymindstorm/setup-emsdk@v14
-
+      with:
+        version: 3.1.52
+      
     - name: Build doxygen docs
       uses: mattnotmitt/doxygen-action@v1.9.5
       with:
