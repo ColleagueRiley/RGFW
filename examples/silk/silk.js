@@ -965,11 +965,12 @@ function dbg(text) {
 // === Body ===
 
 var ASM_CONSTS = {
-  71360: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 72379: () => { return window.innerWidth; },  
- 72409: () => { return window.innerHeight; },  
- 72440: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 72497: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); }
+  71360: () => { Module.useWebGL = true; GLImmediate.init(); },  
+ 71406: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
+ 72425: () => { return window.innerWidth; },  
+ 72455: () => { return window.innerHeight; },  
+ 72486: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 72543: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); }
 };
 
 

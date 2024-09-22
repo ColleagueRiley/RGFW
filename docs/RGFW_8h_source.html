@@ -8353,7 +8353,7 @@ $(function() {
 <div class="line"><a id="l08516" name="l08516"></a><span class="lineno"> 8516</span>    emscripten_webgl_make_context_current(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx);</div>
 <div class="line"><a id="l08517" name="l08517"></a><span class="lineno"> 8517</span> </div>
 <div class="line"><a id="l08518" name="l08518"></a><span class="lineno"> 8518</span><span class="preprocessor">    #ifdef LEGACY_GL_EMULATION</span></div>
-<div class="line"><a id="l08519" name="l08519"></a><span class="lineno"> 8519</span>    <span class="comment">//EM_ASM(&quot;GLImmediate.init();&quot;);</span></div>
+<div class="line"><a id="l08519" name="l08519"></a><span class="lineno"> 8519</span>    EM_ASM(<span class="stringliteral">&quot;Module.useWebGL = true; GLImmediate.init();&quot;</span>);  </div>
 <div class="line"><a id="l08520" name="l08520"></a><span class="lineno"> 8520</span><span class="preprocessor">    #endif</span></div>
 <div class="line"><a id="l08521" name="l08521"></a><span class="lineno"> 8521</span> </div>
 <div class="line"><a id="l08522" name="l08522"></a><span class="lineno"> 8522</span>    emscripten_set_canvas_element_size(<span class="stringliteral">&quot;#canvas&quot;</span>, rect.<a class="code hl_variable" href="structRGFW__rect.html#ae9b18887b7389dc05283e4e54881b801">w</a>, rect.<a class="code hl_variable" href="structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d">h</a>);</div>

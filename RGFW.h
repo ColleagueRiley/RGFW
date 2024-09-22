@@ -8516,7 +8516,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
     emscripten_webgl_make_context_current(win->src.ctx);
 
 	#ifdef LEGACY_GL_EMULATION
-	//EM_ASM("GLImmediate.init();");
+	EM_ASM("Module.useWebGL = true; GLImmediate.init();");	
 	#endif
 
 	emscripten_set_canvas_element_size("#canvas", rect.w, rect.h);
