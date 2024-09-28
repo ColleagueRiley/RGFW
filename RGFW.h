@@ -5210,8 +5210,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	}
 
 	void RGFW_captureCursor(RGFW_window* win, RGFW_rect rect) {
-		RGFW_UNUSED(win)
-		
+		RGFW_UNUSED(win); RGFW_UNUSED(rect);
+
 		RECT clipRect;
 		GetClientRect(win->src.window, &clipRect);
 		ClientToScreen(win->src.window, (POINT*) &clipRect.left);
