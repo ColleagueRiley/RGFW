@@ -1639,8 +1639,10 @@ RGFW_window* RGFW_root = NULL;
 #define RGFW_HOLD_MOUSE			(1L<<2) /*!< hold the moues still */
 #define RGFW_MOUSE_LEFT 		(1L<<3) /* if mouse left the window */
 
-RGDWDEF void RGFW_window_cocoaSetLayer(RGFW_window* win);
+#ifdef RGFW_MACOS
+RGFWDEF void RGFW_window_cocoaSetLayer(RGFW_window* win);
 RGFWDEF void* RGFW_cocoaGetLayer(RGFW_window* win);
+#endif
 
 char* RGFW_className = NULL;
 void RGFW_setClassName(char* name) {
@@ -7198,7 +7200,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 
 	void RGFW_window_cocoaSetLayer(RGFW_window* win, void* layer) {
-		objc_msgSend_id((win->src.view, sel_registerName("setLayer"), layer);
+		objc_msgSend_id(win->src.view, sel_registerName("setLayer"), layer);
 	}
 
 	void* RGFW_cocoaGetLayer(RGFW_window* win) {
