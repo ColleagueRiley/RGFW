@@ -642,7 +642,7 @@ RGFWDEF RGFW_area RGFW_getScreenSize(void);
 	although you still need some way to tell RGFW to process events eg. `RGFW_window_checkEvents`
 */
 
-RGDWDEF RGFW_Event* RGFW_window_checkEvent(RGFW_window* win); /*!< check current event (returns a pointer to win->event or NULL if there is no event)*/
+RGFWDEF RGFW_Event* RGFW_window_checkEvent(RGFW_window* win); /*!< check current event (returns a pointer to win->event or NULL if there is no event)*/
 
 /*!
 	for RGFW_window_eventWait and RGFW_window_checkEvents
