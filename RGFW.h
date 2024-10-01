@@ -277,8 +277,7 @@
 
 #ifdef RGFW_EGL
 	#if defined(__APPLE__)
-		#warning  EGL is not supported for Cocoa, switching back to the native opengl api
-		#undef RGFW_EGL
+		#warning  EGL is not supported for Cocoa
 	#endif
 
 	#include <EGL/egl.h>
@@ -2085,6 +2084,8 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 
 		#ifdef RGFW_WINDOWS
 		win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.hdc);
+		#ifdef RGFW_MACOS
+		win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType)0);
 		#else
 		win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.display);
 		#endif
@@ -7243,6 +7244,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		NSString* str = NSString_stringWithUTF8String(name);
 		objc_msgSend_void_id(win->src.window, sel_registerName("setTitle:"), str);
+
+#ifdef RGFW_EGL
+		if ((args & RGFW_NO_INIT_API) == 0)
+			RGFW_createOpenGLContext(win);
+#endif
 
 #ifdef RGFW_OPENGL
 	if ((args & RGFW_NO_INIT_API) == 0) {
