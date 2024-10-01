@@ -7037,7 +7037,7 @@ $(function() {
 <div class="line"><a id="l07200" name="l07200"></a><span class="lineno"> 7200</span> </div>
 <div class="line"><a id="l07201" name="l07201"></a><span class="lineno"> 7201</span> </div>
 <div class="line"><a id="l07202" name="l07202"></a><span class="lineno"> 7202</span>    <span class="keywordtype">void</span> RGFW_window_cocoaSetLayer(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <span class="keywordtype">void</span>* layer) {</div>
-<div class="line"><a id="l07203" name="l07203"></a><span class="lineno"> 7203</span>        objc_msgSend_id(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.view, sel_registerName(<span class="stringliteral">&quot;setLayer&quot;</span>), layer);</div>
+<div class="line"><a id="l07203" name="l07203"></a><span class="lineno"> 7203</span>        objc_msgSend_void_id(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.view, sel_registerName(<span class="stringliteral">&quot;setLayer&quot;</span>), layer);</div>
 <div class="line"><a id="l07204" name="l07204"></a><span class="lineno"> 7204</span>    }</div>
 <div class="line"><a id="l07205" name="l07205"></a><span class="lineno"> 7205</span> </div>
 <div class="line"><a id="l07206" name="l07206"></a><span class="lineno"> 7206</span>    <span class="keywordtype">void</span>* RGFW_cocoaGetLayer(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
