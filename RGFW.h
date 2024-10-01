@@ -1640,7 +1640,7 @@ RGFW_window* RGFW_root = NULL;
 #define RGFW_MOUSE_LEFT 		(1L<<3) /* if mouse left the window */
 
 #ifdef RGFW_MACOS
-RGFWDEF void RGFW_window_cocoaSetLayer(RGFW_window* win);
+RGFWDEF void RGFW_window_cocoaSetLayer(RGFW_window* win, void* layer);
 RGFWDEF void* RGFW_cocoaGetLayer(RGFW_window* win);
 #endif
 
