@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Sat Sep 28 2024" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Tue Oct 1 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -272,13 +272,13 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_setBufferSize\fP (\fBRGFW_area\fP size)"
 .br
 .ti -1c
-.RI "\fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, \fBu16\fP args)"
+.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, \fBu16\fP args)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_area\fP \fBRGFW_getScreenSize\fP (void)"
 .br
 .ti -1c
-.RI "\fBRGFW_Event\fP * \fBRGFW_window_checkEvent\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_Event\fP * \fBRGFW_window_checkEvent\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_eventWait)"
@@ -332,7 +332,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setName\fP (\fBRGFW_window\fP *win, char *name)"
 .br
 .ti -1c
-.RI "void \fBRGFW_window_setIcon\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setIcon\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBu8\fP *image, \fBRGFW_area\fP a, \fBi32\fP channels)"
