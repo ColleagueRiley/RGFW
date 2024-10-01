@@ -276,10 +276,6 @@
 #endif
 
 #ifdef RGFW_EGL
-	#if defined(__APPLE__)
-		#warning  EGL is not supported for Cocoa
-	#endif
-
 	#include <EGL/egl.h>
 #elif defined(RGFW_OSMESA)
 	#ifndef __APPLE__
@@ -1643,6 +1639,9 @@ RGFW_window* RGFW_root = NULL;
 #define RGFW_HOLD_MOUSE			(1L<<2) /*!< hold the moues still */
 #define RGFW_MOUSE_LEFT 		(1L<<3) /* if mouse left the window */
 
+RGDWDEF void RGFW_window_cocoaSetLayer(RGFW_window* win);
+RGFWDEF void* RGFW_cocoaGetLayer(RGFW_window* win);
+
 char* RGFW_className = NULL;
 void RGFW_setClassName(char* name) {
 	RGFW_className = name;
@@ -2117,8 +2116,15 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 		EGLint numConfigs;
 		eglChooseConfig(win->src.EGL_display, egl_config, &config, 1, &numConfigs);
 
-
-		win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
+		#if defined(RGFW_MACOS)
+		    void* layer = RGFW_cocoaGetLayer(); 
+		
+			RGFW_window_cocoaSetLayer(RGFW_window* win, layer);
+			
+			win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) layer, NULL);
+		#else
+			win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
+		#endif
 
 		EGLint attribs[] = {
 			EGL_CONTEXT_CLIENT_VERSION,
@@ -7189,6 +7195,16 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		#endif
 	}
+
+
+	void RGFW_window_cocoaSetLayer(RGFW_window* win, void* layer) {
+		objc_msgSend_void_id(win->src.view, sel_registerName("setLayer"), layer);
+	}
+
+	void* RGFW_cocoaGetLayer(RGFW_window* win) {
+		return objc_msgSend_id(objc_getClass("CAMetalLayer"), sel_registerName("layer"), layer);
+	}
+
 
 	NSPasteboardType const NSPasteboardTypeURL = "public.url";
 	NSPasteboardType const NSPasteboardTypeFileURL  = "public.file-url";
