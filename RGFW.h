@@ -621,7 +621,7 @@ RGFWDEF void RGFW_setClassName(char* name);
 /*! this has to be set before createWindow is called, else the fulscreen size is used */
 RGFWDEF void RGFW_setBufferSize(RGFW_area size); /*!< the buffer cannot be resized (by RGFW) */
 
-RGFW_window* RGFW_createWindow(
+RGFWDEF RGFW_window* RGFW_createWindow(
 	const char* name, /* name of the window */
 	RGFW_rect rect, /* rect of window */
 	u16 args /* extra arguments (NULL / (u16)0 means no args used)*/
@@ -642,7 +642,7 @@ RGFWDEF RGFW_area RGFW_getScreenSize(void);
 	although you still need some way to tell RGFW to process events eg. `RGFW_window_checkEvents`
 */
 
-RGFW_Event* RGFW_window_checkEvent(RGFW_window* win); /*!< check current event (returns a pointer to win->event or NULL if there is no event)*/
+RGDWDEF RGFW_Event* RGFW_window_checkEvent(RGFW_window* win); /*!< check current event (returns a pointer to win->event or NULL if there is no event)*/
 
 /*!
 	for RGFW_window_eventWait and RGFW_window_checkEvents
@@ -713,7 +713,7 @@ RGFWDEF void RGFW_window_setName(RGFW_window* win,
 	char* name
 );
 
-void RGFW_window_setIcon(RGFW_window* win, /*!< source window */
+RGFWDEF void RGFW_window_setIcon(RGFW_window* win, /*!< source window */
 	u8* icon /*!< icon bitmap */,
 	RGFW_area a /*!< width and height of the bitmap*/,
 	i32 channels /*!< how many channels the bitmap has (rgb : 3, rgba : 4) */
