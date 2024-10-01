@@ -7200,7 +7200,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 
 	void RGFW_window_cocoaSetLayer(RGFW_window* win, void* layer) {
-		objc_msgSend_id(win->src.view, sel_registerName("setLayer"), layer);
+		objc_msgSend_void_id(win->src.view, sel_registerName("setLayer"), layer);
 	}
 
 	void* RGFW_cocoaGetLayer(RGFW_window* win) {
