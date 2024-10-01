@@ -7202,7 +7202,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	}
 
 	void* RGFW_cocoaGetLayer(RGFW_window* win) {
-		return objc_msgSend_id(objc_getClass("CAMetalLayer"), sel_registerName("layer"), layer);
+		return objc_msgSend_id(objc_getClass("CAMetalLayer"), sel_registerName("layer"));
 	}
 
 
