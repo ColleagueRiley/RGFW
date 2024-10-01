@@ -2084,7 +2084,7 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 
 		#ifdef RGFW_WINDOWS
 		win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.hdc);
-		#ifdef RGFW_MACOS
+		#elif defined(RGFW_MACOS)
 		win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType)0);
 		#else
 		win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.display);
