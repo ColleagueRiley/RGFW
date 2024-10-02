@@ -1641,7 +1641,7 @@ RGFW_window* RGFW_root = NULL;
 
 #ifdef RGFW_MACOS
 RGFWDEF void RGFW_window_cocoaSetLayer(RGFW_window* win, void* layer);
-RGFWDEF void* RGFW_cocoaGetLayer(RGFW_window* win);
+RGFWDEF void* RGFW_cocoaGetLayer(void);
 #endif
 
 char* RGFW_className = NULL;
@@ -2121,7 +2121,7 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 		#if defined(RGFW_MACOS)
 		    void* layer = RGFW_cocoaGetLayer(); 
 		
-			RGFW_window_cocoaSetLayer(RGFW_window* win, layer);
+			RGFW_window_cocoaSetLayer(win, layer);
 			
 			win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) layer, NULL);
 		#else
@@ -7203,7 +7203,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		objc_msgSend_void_id(win->src.view, sel_registerName("setLayer"), layer);
 	}
 
-	void* RGFW_cocoaGetLayer(RGFW_window* win) {
+	void* RGFW_cocoaGetLayer(void) {
 		return objc_msgSend_class(objc_getClass("CAMetalLayer"), sel_registerName("layer"));
 	}
 
