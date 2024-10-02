@@ -1487,7 +1487,7 @@ $(function() {
 <div class="line"><a id="l01641" name="l01641"></a><span class="lineno"> 1641</span> </div>
 <div class="line"><a id="l01642" name="l01642"></a><span class="lineno"> 1642</span><span class="preprocessor">#ifdef RGFW_MACOS</span></div>
 <div class="line"><a id="l01643" name="l01643"></a><span class="lineno"> 1643</span><a class="code hl_define" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <span class="keywordtype">void</span> RGFW_window_cocoaSetLayer(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <span class="keywordtype">void</span>* layer);</div>
-<div class="line"><a id="l01644" name="l01644"></a><span class="lineno"> 1644</span><a class="code hl_define" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <span class="keywordtype">void</span>* RGFW_cocoaGetLayer(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win);</div>
+<div class="line"><a id="l01644" name="l01644"></a><span class="lineno"> 1644</span><a class="code hl_define" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <span class="keywordtype">void</span>* RGFW_cocoaGetLayer(<span class="keywordtype">void</span>);</div>
 <div class="line"><a id="l01645" name="l01645"></a><span class="lineno"> 1645</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l01646" name="l01646"></a><span class="lineno"> 1646</span> </div>
 <div class="line"><a id="l01647" name="l01647"></a><span class="lineno"> 1647</span><span class="keywordtype">char</span>* RGFW_className = NULL;</div>
@@ -1967,7 +1967,7 @@ $(function() {
 <div class="line"><a id="l02121" name="l02121"></a><span class="lineno"> 2121</span><span class="preprocessor">        #if defined(RGFW_MACOS)</span></div>
 <div class="line"><a id="l02122" name="l02122"></a><span class="lineno"> 2122</span>            <span class="keywordtype">void</span>* layer = RGFW_cocoaGetLayer(); </div>
 <div class="line"><a id="l02123" name="l02123"></a><span class="lineno"> 2123</span>        </div>
-<div class="line"><a id="l02124" name="l02124"></a><span class="lineno"> 2124</span>            RGFW_window_cocoaSetLayer(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, layer);</div>
+<div class="line"><a id="l02124" name="l02124"></a><span class="lineno"> 2124</span>            RGFW_window_cocoaSetLayer(win, layer);</div>
 <div class="line"><a id="l02125" name="l02125"></a><span class="lineno"> 2125</span>            </div>
 <div class="line"><a id="l02126" name="l02126"></a><span class="lineno"> 2126</span>            win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.EGL_surface = eglCreateWindowSurface(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.EGL_display, config, (EGLNativeWindowType) layer, NULL);</div>
 <div class="line"><a id="l02127" name="l02127"></a><span class="lineno"> 2127</span><span class="preprocessor">        #else</span></div>
@@ -7040,7 +7040,7 @@ $(function() {
 <div class="line"><a id="l07203" name="l07203"></a><span class="lineno"> 7203</span>        objc_msgSend_void_id(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.view, sel_registerName(<span class="stringliteral">&quot;setLayer&quot;</span>), layer);</div>
 <div class="line"><a id="l07204" name="l07204"></a><span class="lineno"> 7204</span>    }</div>
 <div class="line"><a id="l07205" name="l07205"></a><span class="lineno"> 7205</span> </div>
-<div class="line"><a id="l07206" name="l07206"></a><span class="lineno"> 7206</span>    <span class="keywordtype">void</span>* RGFW_cocoaGetLayer(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
+<div class="line"><a id="l07206" name="l07206"></a><span class="lineno"> 7206</span>    <span class="keywordtype">void</span>* RGFW_cocoaGetLayer(<span class="keywordtype">void</span>) {</div>
 <div class="line"><a id="l07207" name="l07207"></a><span class="lineno"> 7207</span>        <span class="keywordflow">return</span> objc_msgSend_class(objc_getClass(<span class="stringliteral">&quot;CAMetalLayer&quot;</span>), sel_registerName(<span class="stringliteral">&quot;layer&quot;</span>));</div>
 <div class="line"><a id="l07208" name="l07208"></a><span class="lineno"> 7208</span>    }</div>
 <div class="line"><a id="l07209" name="l07209"></a><span class="lineno"> 7209</span> </div>
