@@ -192,7 +192,7 @@
 	typedef u32 b32;
 #endif
 
-#define RGFW_TRUE 1
+#define RGFW_TRUE (!(0))
 #define RGFW_FALSE 0
 
 /* thse OS macros looks better & are standardized */
@@ -5241,6 +5241,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		if (RGFW_Shcore_dll == NULL) {
 			RGFW_Shcore_dll = LoadLibraryA("shcore.dll");
 			GetDpiForMonitorSRC = (PFN_GetDpiForMonitor)(void*)GetProcAddress(RGFW_Shcore_dll, "GetDpiForMonitor");
+			SetProcessDPIAware();
 		}
 		#endif
 
@@ -6093,6 +6094,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		if (GetDpiForMonitor != NULL) {
 			u32 x, y;
 			GetDpiForMonitor(src, MDT_ANGULAR_DPI, &x, &y);
+			
 			monitor.scaleX = (float) (x) / (float) USER_DEFAULT_SCREEN_DPI;
 			monitor.scaleY = (float) (y) / (float) USER_DEFAULT_SCREEN_DPI;
 		}
@@ -6107,7 +6109,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		/* Calculate physical height in inches */
 		monitor.physW = GetSystemMetrics(SM_CYSCREEN) / (float) ppiX;
 		monitor.physH = GetSystemMetrics(SM_CXSCREEN) / (float) ppiY;
-
+		
 		return monitor;
 	}
 	#endif /* RGFW_NO_MONITOR */
@@ -6142,7 +6144,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		RGFW_mInfo info;
 		info.iIndex = 0;
 		while (EnumDisplayMonitors(NULL, NULL, GetMonitorHandle, (LPARAM) &info));
-
+			
 		return RGFW_monitors;
 	}
 

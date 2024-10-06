@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Fri Oct 4 2024" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Sun Oct 6 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -69,7 +69,7 @@ RGFW.h
 .RI "#define \fBRGFW_HEADER\fP"
 .br
 .ti -1c
-.RI "#define \fBRGFW_TRUE\fP   1"
+.RI "#define \fBRGFW_TRUE\fP   (!(0))"
 .br
 .ti -1c
 .RI "#define \fBRGFW_FALSE\fP   0"
@@ -632,7 +632,7 @@ the window cannot be resized by the user
 
 .SS "#define RGFW_TRANSPARENT_WINDOW   (1L<<9)"
 Optional arguments for making a windows the window is transparent (only properly works on X11 and MacOS, although it's although for windows) 
-.SS "#define RGFW_TRUE   1"
+.SS "#define RGFW_TRUE   (!(0))"
 
 .SS "#define RGFW_UNUSED(x)   (void)(x);"
 
