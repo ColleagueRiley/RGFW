@@ -6094,7 +6094,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		if (GetDpiForMonitor != NULL) {
 			u32 x, y;
-			GetDpiForMonitor(src, MDT_ANGULAR_DPI, &x, &y);
+			GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &x, &y);
 			
 			monitor.scaleX = (float) (x) / (float) USER_DEFAULT_SCREEN_DPI;
 			monitor.scaleY = (float) (y) / (float) USER_DEFAULT_SCREEN_DPI;
