@@ -7,7 +7,7 @@
 static GLfloat   tex_buf[BUFFER_SIZE *  8];
 static GLfloat  vert_buf[BUFFER_SIZE *  8];
 static GLubyte color_buf[BUFFER_SIZE * 16];
-static GLuint  index_buf[BUFFER_SIZE *  6];
+static GLushort  index_buf[BUFFER_SIZE *  6];
 
 static int width  = 800;
 static int height = 600;
@@ -58,7 +58,7 @@ static void flush(void) {
   glTexCoordPointer(2, GL_FLOAT, 0, tex_buf);
   glVertexPointer(2, GL_FLOAT, 0, vert_buf);
   glColorPointer(4, GL_UNSIGNED_BYTE, 0, color_buf);
-  glDrawElements(GL_TRIANGLES, buf_idx * 6, GL_UNSIGNED_INT, index_buf);
+  glDrawElements(GL_TRIANGLES, buf_idx * 6, GL_UNSIGNED_SHORT, index_buf);
 
   glMatrixMode(GL_MODELVIEW);
   glPopMatrix();
