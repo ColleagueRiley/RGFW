@@ -259,7 +259,6 @@ int main(int argc, char **argv) {
 
         case RGFW_mouseButtonPressed:
 		  mu_input_scroll(ctx, 0, window->event.scroll * -30);
-		   __attribute__((fallthrough));
 		case RGFW_mouseButtonReleased: {
           int b = button_map[window->event.button & 0xff];
           if (b && window->event.type == RGFW_mouseButtonPressed) { mu_input_mousedown(ctx, window->event.point.x,  window->event.point.y , b); }
@@ -271,7 +270,6 @@ int main(int argc, char **argv) {
 		  char str[2] = {'\0', '\0'};
 		  str[0] = RGFW_keyCodeToCharAuto(window->event.keyCode, window->event.lockState);
 		  mu_input_text(ctx, str);
-		  __attribute__((fallthrough));
 	    }
 		case RGFW_keyReleased: {
           int c = key_map[window->event.keyCode & 0xff];
