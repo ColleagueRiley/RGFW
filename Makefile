@@ -84,10 +84,10 @@ EXAMPLE_OUTPUTS = \
 	examples/silk/silk \
 	examples/events/events \
 	examples/callbacks/callbacks \
-	examples/microui_demo/microui_demo \
 	examples/first-person-camera/camera 
 
 EXAMPLE_OUTPUTS_CUSTOM = \
+	examples/microui_demo/microui_demo \
 	examples/gl33/gl33 \
 	examples/portableGL/pgl \
 	examples/gles2/gles2 \
@@ -129,6 +129,9 @@ ifneq (,$(filter $(detected_OS), windows Windows_NT))
 else
 	@echo directX is not supported on $(detected_OS)
 endif
+
+examples/microui_demo/microui_demo: examples/microui_demo/microui_demo.c RGFW.h
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL1) $(LINK_GL2) -o $@$(EXT)
 
 examples/gl33/gl33: examples/gl33/gl33.c RGFW.h
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL3) -o $@$(EXT)
