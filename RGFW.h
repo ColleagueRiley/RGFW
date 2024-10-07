@@ -8036,11 +8036,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		monitor.rect = RGFW_RECT((int) bounds.origin.x, (int) bounds.origin.y, (int) bounds.size.width, (int) bounds.size.height);
 
 		CGSize screenSizeMM = CGDisplayScreenSize(display);
-		monitor.physW = screenSizeMM.width / 25.4;
-		monitor.physH = screenSizeMM.height / 25.4;
+		monitor.physW = screenSizeMM.width;
+		monitor.physH = screenSizeMM.height;
 
-		monitor.scaleX = (monitor.rect.w / (screenSizeMM.width)) / 2.6;
-		monitor.scaleY = (monitor.rect.h / (screenSizeMM.height)) / 2.6;
+		monitor.scaleX = ((monitor.rect.w / (screenSizeMM.width / 25.4)) / 96) + 0.25;
+		monitor.scaleY = ((monitor.rect.h / (screenSizeMM.height / 25.4)) / 96) + 0.25;
 
 		return monitor;
 	}
