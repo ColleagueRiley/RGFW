@@ -5933,7 +5933,7 @@ $(function() {
 <div class="line"><a id="l06094" name="l06094"></a><span class="lineno"> 6094</span> </div>
 <div class="line"><a id="l06095" name="l06095"></a><span class="lineno"> 6095</span>        <span class="keywordflow">if</span> (GetDpiForMonitor != NULL) {</div>
 <div class="line"><a id="l06096" name="l06096"></a><span class="lineno"> 6096</span>            <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> x, y;</div>
-<div class="line"><a id="l06097" name="l06097"></a><span class="lineno"> 6097</span>            GetDpiForMonitor(src, MDT_ANGULAR_DPI, &amp;x, &amp;y);</div>
+<div class="line"><a id="l06097" name="l06097"></a><span class="lineno"> 6097</span>            GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &amp;x, &amp;y);</div>
 <div class="line"><a id="l06098" name="l06098"></a><span class="lineno"> 6098</span>            </div>
 <div class="line"><a id="l06099" name="l06099"></a><span class="lineno"> 6099</span>            monitor.<a class="code hl_variable" href="structRGFW__monitor.html#ac991866248d4babbd78fe1a7fd8ee145">scaleX</a> = (float) (x) / (float) USER_DEFAULT_SCREEN_DPI;</div>
 <div class="line"><a id="l06100" name="l06100"></a><span class="lineno"> 6100</span>            monitor.<a class="code hl_variable" href="structRGFW__monitor.html#a906b121ba6fb271b108da0d063bb303e">scaleY</a> = (float) (y) / (float) USER_DEFAULT_SCREEN_DPI;</div>
