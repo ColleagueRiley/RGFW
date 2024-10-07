@@ -134,7 +134,7 @@ examples/microui_demo/microui_demo: examples/microui_demo/microui_demo.c RGFW.h
 ifneq ($(CC), emcc)
 	$(CC) $(CFLAGS) $(WARNINGS) -sVERBOSE -I. $< $(LIBS) $(LINK_GL1) -o $@$(EXT)
 else
-	$(CC) $(CFLAGS) $(WARNINGS) -s USE_WEBGL2 -I. $< $(LIBS) $(LINK_GL1) -o $@$(EXT)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -s USE_WEBGL2 $(LIBS) $(LINK_GL1) -o $@$(EXT)
 endif
 
 examples/gl33/gl33: examples/gl33/gl33.c RGFW.h
