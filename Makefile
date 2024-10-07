@@ -84,6 +84,7 @@ EXAMPLE_OUTPUTS = \
 	examples/silk/silk \
 	examples/events/events \
 	examples/callbacks/callbacks \
+	examples/microui_demo/microui_demo \
 	examples/first-person-camera/camera 
 
 EXAMPLE_OUTPUTS_CUSTOM = \

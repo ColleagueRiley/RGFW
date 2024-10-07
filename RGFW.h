@@ -3720,6 +3720,7 @@ Start of Linux / Unix defines
 
 		XGetSystemContentScale(display, &monitor.scaleX, &monitor.scaleY);
 
+		printf("%f %f\n", monitor.scaleX * 96.f, monitor.scaleY * 96.f);
 		XRRScreenResources* sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
 
 		XRRCrtcInfo* ci = NULL;
