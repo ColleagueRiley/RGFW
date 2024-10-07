@@ -1611,9 +1611,6 @@ RGFW_window* RGFW_window_basic_init(RGFW_rect rect, u16 args) {
 	if (args & RGFW_FULLSCREEN)
 		rect = RGFW_RECT(0, 0, screenR.w, screenR.h);
 
-	if (args & RGFW_CENTER)
-		rect = RGFW_RECT((screenR.w - rect.w) / 2, (screenR.h - rect.h) / 2, rect.w, rect.h);
-
 	/* set and init the new window's data */
 	win->r = rect;
 	win->event.inFocus = 1;
@@ -2633,6 +2630,11 @@ Start of Linux / Unix defines
 		if (args & RGFW_SCALE_TO_MONITOR)
 			RGFW_window_scaleToMonitor(win);
 		#endif
+
+		if (args & RGFW_CENTER) {
+			RGFW_area screenR = RGFW_getScreenSize();
+			RGFW_window_move(win, RGFW_POINT((screenR.w - win->r.w) / 2, (screenR.h - win->r.h) / 2));
+		}
 
 		if (args & RGFW_NO_RESIZE) { /* make it so the user can't resize the window*/
 			XSizeHints* sh = XAllocSizeHints();
@@ -3719,6 +3721,7 @@ Start of Linux / Unix defines
 		strncpy(monitor.name, DisplayString(display), 128);
 
 		XGetSystemContentScale(display, &monitor.scaleX, &monitor.scaleY);
+		// printf("%f %f\n", monitor.scaleX, monitor.scaleY);
 
 		XRRScreenResources* sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
 
@@ -4656,6 +4659,10 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 						decoration_manager, win->src.xdg_toplevel);
 		}
 
+		if (args & RGFW_CENTER) {
+			RGFW_area screenR = RGFW_getScreenSize();
+			RGFW_window_move(win, RGFW_POINT((screenR.w - win->r.w) / 2, (screenR.h - win->r.h) / 2));
+		}
 
 		if (args & RGFW_OPENGL_SOFTWARE)
 			setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
@@ -5489,6 +5496,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		if (args & RGFW_SCALE_TO_MONITOR)
 			RGFW_window_scaleToMonitor(win);
 		#endif
+	
+		if (args & RGFW_CENTER) {
+			RGFW_area screenR = RGFW_getScreenSize();
+			RGFW_window_move(win, RGFW_POINT((screenR.w - win->r.w) / 2, (screenR.h - win->r.h) / 2));
+		}
 
 #ifdef RGFW_EGL
 		if ((args & RGFW_NO_INIT_API) == 0)
@@ -7331,6 +7343,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		if (args & RGFW_SCALE_TO_MONITOR)
 			RGFW_window_scaleToMonitor(win);
 		#endif
+
+		if (args & RGFW_CENTER) {
+			RGFW_area screenR = RGFW_getScreenSize();
+			RGFW_window_move(win, RGFW_POINT((screenR.w - win->r.w) / 2, (screenR.h - win->r.h) / 2));
+		}
 
 		if (args & RGFW_HIDE_MOUSE)
 			RGFW_window_showMouse(win, 0);
