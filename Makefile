@@ -131,7 +131,7 @@ else
 endif
 
 examples/microui_demo/microui_demo: examples/microui_demo/microui_demo.c RGFW.h
-	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL1) $(LINK_GL2) -o $@$(EXT)
+	$(CC) $(CFLAGS) $(WARNINGS) -sVERBOSE -I. $< $(LIBS) $(LINK_GL1) $(LINK_GL2) -o $@$(EXT)
 
 examples/gl33/gl33: examples/gl33/gl33.c RGFW.h
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL3) -o $@$(EXT)
