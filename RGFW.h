@@ -3720,7 +3720,6 @@ Start of Linux / Unix defines
 
 		XGetSystemContentScale(display, &monitor.scaleX, &monitor.scaleY);
 
-		printf("%f %f\n", monitor.scaleX * 96.f, monitor.scaleY * 96.f);
 		XRRScreenResources* sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
 
 		XRRCrtcInfo* ci = NULL;
@@ -4135,9 +4134,6 @@ RGFW_Event RGFW_eventPipe_pop(RGFW_window* win) {
 	
 	if (win->src.eventLen >= 0)  
 		ev = win->src.events[win->src.eventLen];
-	else {
-		printf("H2\n");
-	}
 
 	return ev;	
 }
@@ -7097,7 +7093,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		for (int i = 0; i < count; i++) {
 			id fileURL = objc_msgSend_arr(fileURLs, sel_registerName("objectAtIndex:"), i);
 			const char *filePath = ((const char* (*)(id, SEL))objc_msgSend)(fileURL, sel_registerName("UTF8String"));
-			// printf("File: %s\n", filePath);
 			strncpy(win->event.droppedFiles[i], filePath, RGFW_MAX_PATH);
 			win->event.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
 		}
@@ -8008,8 +8003,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		monitor.scaleX = (monitor.rect.w / (screenSizeMM.width)) / 2.6;
 		monitor.scaleY = (monitor.rect.h / (screenSizeMM.height)) / 2.6;
-
-		snprintf(monitor.name, 128, "%i %i %i", CGDisplayModelNumber(display), CGDisplayVendorNumber(display), CGDisplaySerialNumber(display));
 
 		return monitor;
 	}
