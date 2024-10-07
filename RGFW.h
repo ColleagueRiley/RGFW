@@ -3713,33 +3713,54 @@ Start of Linux / Unix defines
 		RGFW_monitor monitor;
 
 		Display* display = XOpenDisplay(NULL);
+		
+		RGFW_area size = RGFW_getScreenSize();
 
-		monitor.rect = RGFW_RECT(0, 0, DisplayWidth(display, screen), DisplayHeight(display, screen));
-		monitor.physW = (monitor.rect.w * 25.4f / 96.f);
-		monitor.physH = (monitor.rect.h * 25.4f / 96.f);
-
-		strncpy(monitor.name, DisplayString(display), 128);
-
+		monitor.rect = RGFW_RECT(0, 0, size.w, size.h);
+		monitor.physW = DisplayWidthMM(display, screen);
+		monitor.physH = DisplayHeightMM(display, screen);
+		
 		XGetSystemContentScale(display, &monitor.scaleX, &monitor.scaleY);
-		// printf("%f %f\n", monitor.scaleX, monitor.scaleY);
-
 		XRRScreenResources* sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
 
 		XRRCrtcInfo* ci = NULL;
-		int crtc = 0;
+		int crtc = screen;
 
 		if (sr->ncrtc > crtc) {
 			ci = XRRGetCrtcInfo(display, sr, sr->crtcs[crtc]);
 		}
-
+		
 		if (ci == NULL) {
+			float dpi_width = round((double)monitor.rect.w/(((double)monitor.physW)/25.4));
+			float dpi_height = round((double)monitor.rect.h/(((double)monitor.physH)/25.4));
+		
+			monitor.scaleX = (float) (dpi_width) / (float) 96;
+			monitor.scaleY = (float) (dpi_height) / (float) 96;
 			XRRFreeScreenResources(sr);
 			XCloseDisplay(display);
 			return monitor;
 		}
+	    
+		XRROutputInfo* info = XRRGetOutputInfo (display, sr, sr->outputs[screen]);
+		monitor.physW = info->mm_width;
+		monitor.physH = info->mm_height;
 
 		monitor.rect.x = ci->x;
 		monitor.rect.y = ci->y;
+		monitor.rect.w = ci->width;
+		monitor.rect.h = ci->height;
+		
+		float dpi_width = round((double)monitor.rect.w/(((double)monitor.physW)/25.4));
+		float dpi_height = round((double)monitor.rect.h/(((double)monitor.physH)/25.4));
+
+		monitor.scaleX = (float) (dpi_width) / (float) 96;
+		monitor.scaleY = (float) (dpi_height) / (float) 96;		
+
+		if (monitor.scaleX > 1 && monitor.scaleX < 1.1)
+			monitor.scaleX = 1;
+
+		if (monitor.scaleY > 1 && monitor.scaleY < 1.1)
+			monitor.scaleY = 1;
 
 		XRRFreeCrtcInfo(ci);
 		XRRFreeScreenResources(sr);
