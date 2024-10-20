@@ -1979,7 +1979,7 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 
 		size_t index = (sizeof(attribs) / sizeof(attribs[0])) - 13;
 
-#define RGFW_GL_ADD_ATTRIB(attrib, attVal) \
+	#define RGFW_GL_ADD_ATTRIB(attrib, attVal) \
 		if (attVal) { \
 			attribs[index] = attrib;\
 			attribs[index + 1] = attVal;\
@@ -2532,7 +2532,9 @@ Start of Linux / Unix defines
 			glXGetFBConfigAttrib((Display*) win->src.display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
 			glXGetFBConfigAttrib((Display*) win->src.display, fbc[i], GLX_SAMPLES, &samples);
 			
-			if ((best_fbc < 0 || samp_buf) && (samples == RGFW_SAMPLES || best_fbc == -1)) {
+			//printf("%i\n", vi->depth);
+			if ((!(args & RGFW_TRANSPARENT_WINDOW) || vi->depth == 32) && 
+				(best_fbc < 0 || samp_buf) && (samples == RGFW_SAMPLES || best_fbc == -1)) {
 				best_fbc = i;
 			}
 		}
@@ -2548,11 +2550,6 @@ Start of Linux / Unix defines
 		XVisualInfo* vi = glXGetVisualFromFBConfig((Display*) win->src.display, bestFbc);
 		
 		XFree(fbc);
-		
-		if (args & RGFW_TRANSPARENT_WINDOW) {
-			XMatchVisualInfo((Display*) win->src.display, DefaultScreen((Display*) win->src.display), 32, TrueColor, vi); /*!< for RGBA backgrounds*/
-		}
-		
 #else
 		XVisualInfo viNorm;
 
