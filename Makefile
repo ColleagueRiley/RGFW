@@ -143,7 +143,7 @@ endif
 
 examples/webgpu/webgpu: examples/webgpu/webgpu.c RGFW.h
 ifeq ($(CC),emcc)        # web ASM
-	emcc main.c -I. --shell-file ./webasm/shell.html -s USE_WEBGPU=1 -o $@$(EXT)
+	emcc $< -I. --shell-file ./webasm/shell.html -s USE_WEBGPU=1 -o $@$(EXT)
 else
 	@echo webgpu is not supported on $(detected_OS)
 endif

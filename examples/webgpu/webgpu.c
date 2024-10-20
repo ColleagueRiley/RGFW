@@ -43,7 +43,6 @@ static state_t state;
 //--------------------------------------------------
 
 // callbacks
-static int  resize(int, const EmscriptenUiEvent*, void*);
 static void draw();
 
 // helper functions
@@ -111,8 +110,13 @@ int main(int argc, const char* argv[]) {
     //-----------------
     // init
     //-----------------
-    resize(0, NULL, NULL); // set size and create swapchain
-    emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, 0, false, (em_ui_callback_func)resize);
+	if (state.wgpu.swapchain) {
+			wgpuSwapChainRelease(state.wgpu.swapchain);
+			state.wgpu.swapchain = NULL;
+		}
+
+		state.wgpu.swapchain = create_swapchain();
+	}
 
     //-----------------
     // setup pipeline
@@ -255,7 +259,16 @@ int main(int argc, const char* argv[]) {
     //-----------------
 
 	while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
-		RGFW_window_checkEvent(win);
+		while (RGFW_window_checkEvent(win)) {
+			if (win->event.type == RGFW_windowResized) {
+				if (state.wgpu.swapchain) {
+					wgpuSwapChainRelease(state.wgpu.swapchain);
+					state.wgpu.swapchain = NULL;
+				}
+
+				state.wgpu.swapchain = create_swapchain();
+			}
+		}
 		draw();
 	}
 
@@ -321,20 +334,6 @@ void draw() {
     wgpuCommandEncoderRelease(cmd_encoder);
     wgpuCommandBufferRelease(cmd_buffer);
     wgpuTextureViewRelease(back_buffer);
-}
-
-// resize callback
-int resize(int event_type, const EmscriptenUiEvent* ui_event, void* user_data) {
-    (void)event_type, (void)ui_event, (void)user_data; // unused
-
-    if (state.wgpu.swapchain) {
-        wgpuSwapChainRelease(state.wgpu.swapchain);
-        state.wgpu.swapchain = NULL;
-    }
-
-    state.wgpu.swapchain = create_swapchain();
-
-    return 1;
 }
 
 // helper functions
