@@ -111,12 +111,11 @@ int main(int argc, const char* argv[]) {
     // init
     //-----------------
 	if (state.wgpu.swapchain) {
-			wgpuSwapChainRelease(state.wgpu.swapchain);
-			state.wgpu.swapchain = NULL;
-		}
-
-		state.wgpu.swapchain = create_swapchain();
+		wgpuSwapChainRelease(state.wgpu.swapchain);
+		state.wgpu.swapchain = NULL;
 	}
+
+	state.wgpu.swapchain = create_swapchain();
 
     //-----------------
     // setup pipeline
