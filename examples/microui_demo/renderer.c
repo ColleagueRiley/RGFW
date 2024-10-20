@@ -18,7 +18,9 @@ static RGFW_window* window;
 
 void r_init(void) {
   /* init RGFW window */
-  window = RGFW_createWindow("", RGFW_RECT(0, 0, width, height), RGFW_CENTER);
+  window = RGFW_createWindow("", RGFW_RECT(0, 0, width, height), RGFW_CENTER | RGFW_SCALE_TO_MONITOR);
+  width = window->r.w; 
+  height = window->r.h;
 
   /* init gl */
   glEnable(GL_BLEND);
