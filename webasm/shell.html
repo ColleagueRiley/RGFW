@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>webgpu</title>
+
+    <style>
+        body { background-color: black; }
+        canvas { position:absolute; top:0px; left:0px; border:none; margin:0; width: 100%; height: 100%; overflow: hidden; display: block; }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+
+    <script type='text/javascript'>
+        var Module = {
+            print: (function() {
+                return (text) => {console.log(text);
+            };
+            })(),
+            canvas: (function() {
+                return document.getElementById('canvas');
+            })(),
+        };
+
+        initWebGPU = async () => {
+            // Check to ensure the user agent supports WebGPU
+            if (!('gpu' in navigator)) {
+                const msg = '⚠️ WebGPU is not available on this browser.';
+
+                const pre = document.createElement('pre');
+                pre.style.color = '#f00';
+                pre.style.textAlign = 'center';
+                pre.textContent = msg;
+                document.body.appendChild(pre);
+
+                console.error(msg);
+
+                return false;
+            }
+
+            // Request an adapter
+            const adapter = await navigator.gpu.requestAdapter();
+            if (!adapter) {
+                console.error('No WebGPU adapters found.');
+                return false;
+            }
+
+            // Request a device
+            const device  = await adapter.requestDevice();
+            device.lost.then((info) => {
+                console.error(`WebGPU device was lost: ${info.message}`);
+                device = null;
+
+                if (info.reason != 'destroyed') {
+                    initWebGPU();
+                }
+            });
+
+            // Set WebGPU device in Module
+            Module.preinitializedWebGPUDevice = device;
+
+            return true;
+        }
+
+        initWebGPU();
+    </script>
+    {{{ SCRIPT }}}
+</body>
+</html>

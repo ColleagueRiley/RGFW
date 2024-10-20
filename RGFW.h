@@ -201,7 +201,7 @@
 #ifdef __EMSCRIPTEN__
 	#define RGFW_WEBASM
 
-	#ifndef RGFW_NO_API
+	#if !defined(RGFW_NO_API) && !defined(RGFW_WEBGPU)
 		#define RGFW_OPENGL
 	#endif
 
@@ -211,6 +211,10 @@
 
 	#include <emscripten/html5.h>
 	#include <emscripten/key_codes.h>
+
+	#ifdef RGFW_WEBGPU
+		#include <emscripten/html5_webgpu.h>
+	#endif
 #endif
 
 #if defined(RGFW_X11) && defined(__APPLE__)
@@ -573,7 +577,13 @@ typedef struct RGFW_window_src {
 		void* image;
 #endif
 #elif defined(RGFW_WEBASM)
-	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
+	#ifdef RGFW_WEBGPU
+		WGPUInstance ctx;
+        WGPUDevice device;
+        WGPUQueue queue;
+	#else
+		EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
+	#endif
 #endif
 } RGFW_window_src;
 
@@ -8547,7 +8557,8 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	RGFW_UNUSED(RGFW_initFormatAttribs);
 	
     RGFW_window* win = RGFW_window_basic_init(rect, args);
-
+	
+#ifndef RGFW_WEBGPU
     EmscriptenWebGLContextAttributes attrs;
     attrs.alpha = EM_TRUE;
     attrs.depth = EM_TRUE;
@@ -8576,6 +8587,11 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	#ifdef LEGACY_GL_EMULATION
 	EM_ASM("Module.useWebGL = true; GLImmediate.init();");	
 	#endif
+#else
+	win->src.ctx = wgpuCreateInstance(NULL);
+    win->src.device = emscripten_webgpu_get_device();
+    win->src.queue = wgpuDeviceGetQueue(win->src.device);
+#endif
 
 	emscripten_set_canvas_element_size("#canvas", rect.w, rect.h);
 	emscripten_set_window_title(name);
@@ -8871,16 +8887,20 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	}
 	#endif
 
+#ifndef RGFW_WEBGPU
 	emscripten_webgl_commit_frame();
+#endif
 	emscripten_sleep(0);
 }
 
 
 void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
+#ifndef RGFW_WEBGPU
 	if (win == NULL)
 	    emscripten_webgl_make_context_current(0);
 	else
 	    emscripten_webgl_make_context_current(win->src.ctx);
+#endif
 }
 
 #ifndef RGFW_EGL
@@ -8888,7 +8908,9 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) { RGFW_UNUSED(
 #endif
 
 void RGFW_window_close(RGFW_window* win) {
-    emscripten_webgl_destroy_context(win->src.ctx);
+#ifndef RGFW_WEBGPU
+	emscripten_webgl_destroy_context(win->src.ctx);
+#endif
 
     free(win);
 }

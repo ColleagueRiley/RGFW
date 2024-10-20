@@ -93,7 +93,8 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/gles2/gles2 \
 	examples/vk10/vk10 \
 	examples/dx11/dx11 \
-	examples/metal/metal
+	examples/metal/metal \
+	examples/webgpu/webgpu
 
 all: xdg-shell.c $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) libRGFW.a
 
@@ -140,6 +141,12 @@ else
 	@echo metal is not supported on $(detected_OS)
 endif
 
+examples/webgpu/webgpu: examples/webgpu/webgpu.c RGFW.h
+ifeq ($(CC),emcc)        # web ASM
+	emcc main.c -I. --shell-file ./webasm/shell.html -s USE_WEBGPU=1 -o $@$(EXT)
+else
+	@echo webgpu is not supported on $(detected_OS)
+endif
 
 examples/microui_demo/microui_demo: examples/microui_demo/microui_demo.c RGFW.h
 ifneq ($(CC), emcc)
