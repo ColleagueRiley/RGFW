@@ -38,6 +38,7 @@
 	#define RGFW_OPENGL_ES2 - (optional) use OpenGL ES (version 2)
 	#define RGFW_OPENGL_ES3 - (optional) use OpenGL ES (version 3)
 	#define RGFW_DIRECTX - (optional) use directX for the rendering backend (rather than opengl) (windows only, defaults to opengl for unix)
+	#define RGFW_WEBGPU - (optional) use webGPU for rendering (Web ONLY)
 	#define RGFW_NO_API - (optional) don't use any rendering API (no opengl, no vulkan, no directX)
 
 	#define RGFW_LINK_EGL (optional) (windows only) if EGL is being used, if EGL functions should be defined dymanically (using GetProcAddress)
@@ -84,6 +85,9 @@
 		Rob Rohan -> X11 bugs and missing features, MacOS/Cocoa fixing memory issues/bugs 
 		AICDG (@THISISAGOODNAME) -> vulkan support (example)
 		@Easymode -> support, testing/debugging, bug fixes and reviews
+		Joshua Rowe (omnisci3nce) - bug fix, review (macOS)
+		@lesleyrs -> bug fix, review (OpenGL)
+		Nick Porcino (meshula) - testing, organization, review (MacOS, examples)
 */
 
 #if _MSC_VER
@@ -1190,9 +1194,9 @@ int main() {
 	static : ar rcs RGFW.a RGFW.o
 	shared :
 		windows:
-			gcc -shared RGFW.o -lopengl32 -lshell32 -lgdi32 -o RGFW.dll
+			gcc -shared RGFW.o -lwinmm -lopengl32 -lshell32 -lgdi32 -o RGFW.dll
 		linux:
-			gcc -shared RGFW.o -lX11 -lXcursor -lGL -o RGFW.so
+			gcc -shared RGFW.o -lX11 -lXcursor -lGL -lXrandr -o RGFW.so
 		macos:
 			gcc -shared RGFW.o -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo
 */
@@ -2532,7 +2536,6 @@ Start of Linux / Unix defines
 			glXGetFBConfigAttrib((Display*) win->src.display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
 			glXGetFBConfigAttrib((Display*) win->src.display, fbc[i], GLX_SAMPLES, &samples);
 			
-			//printf("%i\n", vi->depth);
 			if ((!(args & RGFW_TRANSPARENT_WINDOW) || vi->depth == 32) && 
 				(best_fbc < 0 || samp_buf) && (samples == RGFW_SAMPLES || best_fbc == -1)) {
 				best_fbc = i;
