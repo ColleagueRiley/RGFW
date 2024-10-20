@@ -84,8 +84,7 @@ EXAMPLE_OUTPUTS = \
 	examples/silk/silk \
 	examples/events/events \
 	examples/callbacks/callbacks \
-	examples/first-person-camera/camera \
-	examples/metal
+	examples/first-person-camera/camera
 
 EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/microui_demo/microui_demo \
@@ -93,7 +92,8 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/portableGL/pgl \
 	examples/gles2/gles2 \
 	examples/vk10/vk10 \
-	examples/dx11/dx11
+	examples/dx11/dx11 \
+	examples/metal/metal
 
 all: xdg-shell.c $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) libRGFW.a
 
