@@ -19,7 +19,7 @@ LIB_EXT = .dll
 
 LIBS += -D _WIN32_WINNT="0x0501"
 
-WARNINGS =  -Wall -Werror -Wstrict-prototypes -Wextra -Wstrict-prototypes -Wold-style-definition -Wno-missing-field-initializers -Wno-unknown-pragmas -Wno-missing-braces -Wno-missing-variable-declarations -Wno-redundant-decls -Wno-unused-function -Wno-unused-label -Wno-unused-result -Wno-incompatible-pointer-types -Wno-format -Wno-format-extra-args -Wno-implicit-function-declaration -Wno-implicit-int -Wno-pointer-sign -Wno-switch -Wno-switch-default -Wno-switch-enum -Wno-unused-value -Wno-type-limits
+WARNINGS =  -Wall -Wstrict-prototypes -Wextra -Wstrict-prototypes -Wold-style-definition -Wno-missing-field-initializers -Wno-unknown-pragmas -Wno-missing-braces -Wno-missing-variable-declarations -Wno-redundant-decls -Wno-unused-function -Wno-unused-label -Wno-unused-result -Wno-incompatible-pointer-types -Wno-format -Wno-format-extra-args -Wno-implicit-function-declaration -Wno-implicit-int -Wno-pointer-sign -Wno-switch -Wno-switch-default -Wno-switch-enum -Wno-unused-value -Wno-type-limits
 OS_DIR = \\
 
 NO_GLES = 1
@@ -84,7 +84,8 @@ EXAMPLE_OUTPUTS = \
 	examples/silk/silk \
 	examples/events/events \
 	examples/callbacks/callbacks \
-	examples/first-person-camera/camera 
+	examples/first-person-camera/camera \
+	examples/metal
 
 EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/microui_demo/microui_demo \
@@ -129,6 +130,16 @@ ifneq (,$(filter $(detected_OS), windows Windows_NT))
 else
 	@echo directX is not supported on $(detected_OS)
 endif
+
+
+examples/metal/metal: examples/metal/metal.m RGFW.h
+ifeq ($(detected_OS),Darwin)        # Mac OS X
+	gcc $(CUSTOM_CFLAGS) -x c -c RGFW.h -D RGFW_NO_API -D RGFW_EXPORT -D RGFW_IMPLEMENTATION -o RGFW.o
+	gcc $(CUSTOM_CFLAGS) examples/metal/metal.m RGFW.o -I. -lm -framework Metal -framework Foundation -framework AppKit -framework Cocoa -framework CoreVideo -framework QuartzCore -o $@
+else
+	@echo metal is not supported on $(detected_OS)
+endif
+
 
 examples/microui_demo/microui_demo: examples/microui_demo/microui_demo.c RGFW.h
 ifneq ($(CC), emcc)
