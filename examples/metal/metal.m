@@ -35,6 +35,7 @@
 #define RGFW_NO_API
 #define RGFWDEF
 #import "RGFW.h"
+#import <Cocoa/Cocoa.h>
 
 #import <Metal/Metal.h>
 #import <QuartzCore/QuartzCore.h>

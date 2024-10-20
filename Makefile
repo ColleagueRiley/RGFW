@@ -72,10 +72,16 @@ else ifeq ($(CC),emcc)
 	LIBS = -s WASM=1 -s ASYNCIFY -s GL_SUPPORT_EXPLICIT_SWAP_CONTROL=1 $(EXPORTED_JS)
 	EXT = .js
 	NO_GLES = 0
-	NO_VULKAN = 1
 	detected_OS = web
 else
 	LIBS += -std=c99 
+endif
+
+VULKAN_CHECK := $(shell command -v vulkan)
+ifneq ($(VULKAN_CHECK),)
+	NO_VULKAN = 0
+else
+	NO_VULKAN = 1
 endif
 
 EXAMPLE_OUTPUTS = \
