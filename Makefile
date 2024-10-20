@@ -84,7 +84,8 @@ EXAMPLE_OUTPUTS = \
 	examples/silk/silk \
 	examples/events/events \
 	examples/callbacks/callbacks \
-	examples/first-person-camera/camera 
+	examples/first-person-camera/camera \
+	examples/metal
 
 EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/microui_demo/microui_demo \
@@ -129,6 +130,16 @@ ifneq (,$(filter $(detected_OS), windows Windows_NT))
 else
 	@echo directX is not supported on $(detected_OS)
 endif
+
+
+examples/metal/metal: examples/metal/metal.m RGFW.h
+ifeq ($(detected_OS),Darwin)        # Mac OS X
+	gcc $(CUSTOM_CFLAGS) -x c -c RGFW.h -D RGFW_NO_API -D RGFW_EXPORT -D RGFW_IMPLEMENTATION -o RGFW.o
+	gcc $(CUSTOM_CFLAGS) examples/metal/metal.m RGFW.o -I. -lm -framework Metal -framework Foundation -framework AppKit -framework Cocoa -framework CoreVideo -framework QuartzCore -o $@
+else
+	@echo metal is not supported on $(detected_OS)
+endif
+
 
 examples/microui_demo/microui_demo: examples/microui_demo/microui_demo.c RGFW.h
 ifneq ($(CC), emcc)
