@@ -5276,7 +5276,9 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		if (RGFW_Shcore_dll == NULL) {
 			RGFW_Shcore_dll = LoadLibraryA("shcore.dll");
 			GetDpiForMonitorSRC = (PFN_GetDpiForMonitor)(void*)GetProcAddress(RGFW_Shcore_dll, "GetDpiForMonitor");
-			SetProcessDPIAware();
+			#if defined(_WIN64) || (_WIN32_WINNT >= 0x0600)
+				SetProcessDPIAware();
+			#endif
 		}
 		#endif
 
