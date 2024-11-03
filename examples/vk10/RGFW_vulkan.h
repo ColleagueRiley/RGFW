@@ -130,12 +130,12 @@ void RGFW_createSurface(VkInstance instance, RGFW_window* win, RGFW_window_vulka
     vkCreateXlibSurfaceKHR(RGFW_vulkan_info.instance, &x11, NULL, &vulkWin->rSurf);
 #endif
 #ifdef RGFW_WINDOWS
-    VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, GetModuleHandle(NULL), vulkWin->window };
+    VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, GetModuleHandle(NULL), (HWND)win->src.window };
 
     vkCreateWin32SurfaceKHR(RGFW_vulkan_info.instance, &win32, NULL, &vulkWin->rSurf);
 #endif
 #if defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
-    VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, vulkWin->display, vulkWin->window };
+    VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, vulkWin->display, (void *)win->src.window };
 
     vkCreateMacOSSurfaceMVK(RGFW_vulkan_info.instance, &macos, NULL, &vulkWin->rSurf);
 #endif
