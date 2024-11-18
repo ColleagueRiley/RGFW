@@ -128,7 +128,7 @@ int main() {
                 printf("This is probably late\n");
         }
         
-        glClearColor(0xFF, 0XFF, 0xFF, 0xFF);
+        glClearColor(0xFF / 255.0f, 0XFF / 255.0f, 0xFF / 255.0f, 0xFF / 255.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         RGFW_window_swapBuffers(win);
@@ -136,6 +136,12 @@ int main() {
 
     RGFW_window_close(win);
 }
+```
+
+```sh
+linux : gcc main.c -lX11 -lXcursor -lGL
+windows : gcc main.c -lopengl32 -lshell32 -lgdi32
+macos : gcc main.c -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo
 ```
 
 # Documentation
@@ -165,7 +171,7 @@ RGFW uses the Zlib/libPNG license, this means you can use RGFW freely as long as
 ```
 Permission is granted to anyone to use this software for any purpose,
 including commercial applications, and to alter it and redistribute it
-freely, subject to the following restrictions:fdocu
+freely, subject to the following restrictions:
   
 1. The origin of this software must not be misrepresented; you must not
    claim that you wrote the original software. If you use this software

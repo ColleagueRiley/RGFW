@@ -179,7 +179,7 @@ a very simple example</h2>
 <div class="line">                printf(<span class="stringliteral">&quot;This is probably late\n&quot;</span>);</div>
 <div class="line">        }</div>
 <div class="line">        </div>
-<div class="line">        glClearColor(0xFF, 0XFF, 0xFF, 0xFF);</div>
+<div class="line">        glClearColor(0xFF / 255.0f, 0XFF / 255.0f, 0xFF / 255.0f, 0xFF / 255.0f);</div>
 <div class="line">        glClear(GL_COLOR_BUFFER_BIT);</div>
 <div class="line"> </div>
 <div class="line">        <a class="code hl_function" href="group__graphics__API.html#ga986713977b14a729d11b228cfe7a1776">RGFW_window_swapBuffers</a>(win);</div>
@@ -205,6 +205,9 @@ a very simple example</h2>
 <div class="ttc" id="astructRGFW__Event_html_ac883520f0c38d1f756f9968ce1d44c9d"><div class="ttname"><a href="structRGFW__Event.html#ac883520f0c38d1f756f9968ce1d44c9d">RGFW_Event::type</a></div><div class="ttdeci">u32 type</div><div class="ttdef"><b>Definition:</b> RGFW.h:480</div></div>
 <div class="ttc" id="astructRGFW__window_html"><div class="ttname"><a href="structRGFW__window.html">RGFW_window</a></div><div class="ttdef"><b>Definition:</b> RGFW.h:596</div></div>
 <div class="ttc" id="astructRGFW__window_html_aeedd10c5f013dc523933cb08d0f87c91"><div class="ttname"><a href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">RGFW_window::event</a></div><div class="ttdeci">RGFW_Event event</div><div class="ttdef"><b>Definition:</b> RGFW.h:605</div></div>
+</div><!-- fragment --><div class="fragment"><div class="line">linux : gcc main.c -lX11 -lXcursor -lGL</div>
+<div class="line">windows : gcc main.c -lopengl32 -lshell32 -lgdi32</div>
+<div class="line">macos : gcc main.c -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md19"></a>
 Documentation</h1>
 <p >There is a lot of in-header-documentation, but more documentation can be found at <a href="https://colleagueriley.github.io/RGFW/docs/index.html">https://colleagueriley.github.io/RGFW/docs/index.html</a> If you wish to build the documentation yourself, there is also a Doxygen file attached.</p>
@@ -232,7 +235,7 @@ License</h1>
 <p >RGFW uses the Zlib/libPNG license, this means you can use RGFW freely as long as you do not claim you wrote this software, mark altered versions as such and keep the license included with the header.</p>
 <div class="fragment"><div class="line">Permission is granted to anyone to use this software for any purpose,</div>
 <div class="line">including commercial applications, and to alter it and redistribute it</div>
-<div class="line">freely, subject to the following restrictions:fdocu</div>
+<div class="line">freely, subject to the following restrictions:</div>
 <div class="line">  </div>
 <div class="line">1. The origin of this software must not be misrepresented; you must not</div>
 <div class="line">   claim that you wrote the original software. If you use this software</div>
