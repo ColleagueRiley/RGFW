@@ -1,4 +1,4 @@
-.TH "RGFW_Event" 3 "Mon Nov 18 2024" "RGFW" \" -*- nroff -*-
+.TH "RGFW_Event" 3 "Thu Nov 21 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -51,7 +51,10 @@ RGFW_Event
 .RI "\fBu8\fP \fBaxisesCount\fP"
 .br
 .ti -1c
-.RI "\fBRGFW_point\fP \fBaxis\fP [2]"
+.RI "\fBu8\fP \fBwhichAxis\fP"
+.br
+.ti -1c
+.RI "\fBRGFW_point\fP \fBaxis\fP [4]"
 .br
 .ti -1c
 .RI "\fBu64\fP \fBframeTime\fP"
@@ -65,7 +68,7 @@ RGFW_Event
 Event structure for checking/getting events 
 .SH "Member Data Documentation"
 .PP 
-.SS "\fBRGFW_point\fP RGFW_Event::axis[2]"
+.SS "\fBRGFW_point\fP RGFW_Event::axis[4]"
 x, y of axises (-100 to 100) 
 .SS "\fBu8\fP RGFW_Event::axisesCount"
 which joystick this event applies to (if applicable to any) number of axises 
@@ -97,6 +100,8 @@ key press event repeated (the key is being held)
 the raw mouse scroll value 
 .SS "\fBu32\fP RGFW_Event::type"
 which event has been sent? 
+.SS "\fBu8\fP RGFW_Event::whichAxis"
+
 
 .SH "Author"
 .PP 

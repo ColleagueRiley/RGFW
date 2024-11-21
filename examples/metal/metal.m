@@ -36,6 +36,7 @@
 #define RGFWDEF
 #import "RGFW.h"
 
+#include <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
 #import <QuartzCore/QuartzCore.h>
 #import <simd/simd.h>

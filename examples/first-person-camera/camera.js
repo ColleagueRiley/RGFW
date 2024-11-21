@@ -4405,6 +4405,18 @@ var ASM_CONSTS = {
       abortOnCannotGrowMemory(requestedSize);
     };
 
+  /** @suppress {checkTypes} */
+  var _emscripten_sample_gamepad_data = () => {
+      try {
+        if (navigator.getGamepads) return (JSEvents.lastGamepadState = navigator.getGamepads())
+          ? 0 : -1;
+      } catch(e) {
+        err(`navigator.getGamepads() exists, but failed to execute with exception ${e}. Disabling Gamepad access.`);
+        navigator.getGamepads = null; // Disable getGamepads() so that it won't be attempted to be used again.
+      }
+      return -1;
+    };
+
   
   var findCanvasEventTarget = findEventTarget;
   var _emscripten_set_canvas_element_size = (target, width, height) => {
@@ -4532,17 +4544,6 @@ var ASM_CONSTS = {
       return JSEvents.registerOrRemoveHandler(eventHandler);
     };
   
-  /** @suppress {checkTypes} */
-  var _emscripten_sample_gamepad_data = () => {
-      try {
-        if (navigator.getGamepads) return (JSEvents.lastGamepadState = navigator.getGamepads())
-          ? 0 : -1;
-      } catch(e) {
-        err(`navigator.getGamepads() exists, but failed to execute with exception ${e}. Disabling Gamepad access.`);
-        navigator.getGamepads = null; // Disable getGamepads() so that it won't be attempted to be used again.
-      }
-      return -1;
-    };
   var _emscripten_set_gamepadconnected_callback_on_thread = (userData, useCapture, callbackfunc, targetThread) => {
       if (_emscripten_sample_gamepad_data()) return -1;
       return registerGamepadEventCallback(2, userData, useCapture, callbackfunc, 26, "gamepadconnected", targetThread);
@@ -11806,6 +11807,8 @@ var wasmImports = {
   emscripten_request_pointerlock: _emscripten_request_pointerlock,
   /** @export */
   emscripten_resize_heap: _emscripten_resize_heap,
+  /** @export */
+  emscripten_sample_gamepad_data: _emscripten_sample_gamepad_data,
   /** @export */
   emscripten_set_canvas_element_size: _emscripten_set_canvas_element_size,
   /** @export */
