@@ -2294,7 +2294,7 @@ This is where OS specific stuff starts
 						RGFW_jsButtonCallback(win, i, e.number, e.value);
 						
 						return &win->event;
-					case JS_EVENT_AXIS:
+					case JS_EVENT_AXIS: {
 						size_t axis = e.number / 2;
 						if (axis == 2) axis = 1;
 
@@ -2314,7 +2314,7 @@ This is where OS specific stuff starts
 						win->event.whichAxis = axis;
 						RGFW_jsAxisCallback(win, i, win->event.axis, win->event.axisesCount);
 						return &win->event;
-
+					}
 						default: break;
 					}
 				}
