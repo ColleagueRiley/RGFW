@@ -2139,7 +2139,7 @@ $(function() {
 <div class="line"><a id="l02294" name="l02294"></a><span class="lineno"> 2294</span>                        RGFW_jsButtonCallback(win, i, e.number, e.value);</div>
 <div class="line"><a id="l02295" name="l02295"></a><span class="lineno"> 2295</span>                        </div>
 <div class="line"><a id="l02296" name="l02296"></a><span class="lineno"> 2296</span>                        <span class="keywordflow">return</span> &amp;win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>;</div>
-<div class="line"><a id="l02297" name="l02297"></a><span class="lineno"> 2297</span>                    <span class="keywordflow">case</span> JS_EVENT_AXIS:</div>
+<div class="line"><a id="l02297" name="l02297"></a><span class="lineno"> 2297</span>                    <span class="keywordflow">case</span> JS_EVENT_AXIS: {</div>
 <div class="line"><a id="l02298" name="l02298"></a><span class="lineno"> 2298</span>                        <span class="keywordtype">size_t</span> axis = e.number / 2;</div>
 <div class="line"><a id="l02299" name="l02299"></a><span class="lineno"> 2299</span>                        <span class="keywordflow">if</span> (axis == 2) axis = 1;</div>
 <div class="line"><a id="l02300" name="l02300"></a><span class="lineno"> 2300</span> </div>
@@ -2159,7 +2159,7 @@ $(function() {
 <div class="line"><a id="l02314" name="l02314"></a><span class="lineno"> 2314</span>                        win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#a1ce60853bc9b9bec6c9da105d2e970ae">whichAxis</a> = axis;</div>
 <div class="line"><a id="l02315" name="l02315"></a><span class="lineno"> 2315</span>                        RGFW_jsAxisCallback(win, i, win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#a36795ab7dac3c1e549dfbff71a33d577">axis</a>, win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>.<a class="code hl_variable" href="structRGFW__Event.html#acf99a876c09df1c60733653e3d77e489">axisesCount</a>);</div>
 <div class="line"><a id="l02316" name="l02316"></a><span class="lineno"> 2316</span>                        <span class="keywordflow">return</span> &amp;win-&gt;<a class="code hl_variable" href="structRGFW__window.html#aeedd10c5f013dc523933cb08d0f87c91">event</a>;</div>
-<div class="line"><a id="l02317" name="l02317"></a><span class="lineno"> 2317</span> </div>
+<div class="line"><a id="l02317" name="l02317"></a><span class="lineno"> 2317</span>                    }</div>
 <div class="line"><a id="l02318" name="l02318"></a><span class="lineno"> 2318</span>                        <span class="keywordflow">default</span>: <span class="keywordflow">break</span>;</div>
 <div class="line"><a id="l02319" name="l02319"></a><span class="lineno"> 2319</span>                    }</div>
 <div class="line"><a id="l02320" name="l02320"></a><span class="lineno"> 2320</span>                }</div>
