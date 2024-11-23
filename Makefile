@@ -13,7 +13,7 @@ CFLAGS =
 
 DX11_LIBS = -static -lgdi32 -lm -lwinmm -ldxgi -ld3d11 -luuid -ld3dcompiler
 VULKAN_LIBS = -lgdi32 -lm -lwinmm -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
-LIBS := -static -lgdi32 -lm -lopengl32 -lwinmm -ggdb
+LIBS := -static -luser32 -lgdi32 -lm -lopengl32 -lwinmm -ggdb
 EXT = .exe
 LIB_EXT = .dll
 
