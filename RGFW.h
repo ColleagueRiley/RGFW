@@ -1787,12 +1787,12 @@ u32 RGFW_window_checkFPS(RGFW_window* win, u32 fpsCap) {
 	u64 deltaTime = RGFW_getTimeNS() - win->event.frameTime;
 
 	u32 output_fps = 0;
-	u64 fps = (u64)round(1e+9 / deltaTime);
+	u64 fps = round(1e+9 / deltaTime);
 	output_fps= fps;
 
 	if (fpsCap && fps > fpsCap) {
-		u64 frameTimeNS = (u64)(1e+9 / fpsCap);
-		u64 sleepTimeMS = (u64)((frameTimeNS - deltaTime) / 1e6);
+		u64 frameTimeNS = 1e+9 / fpsCap;
+		u64 sleepTimeMS = (frameTimeNS - deltaTime) / 1e6;
 
 		if (sleepTimeMS > 0) {
 			RGFW_sleep(sleepTimeMS);
@@ -1806,7 +1806,7 @@ u32 RGFW_window_checkFPS(RGFW_window* win, u32 fpsCap) {
 		return (u32) output_fps;
 	
 	deltaTime = RGFW_getTimeNS() - win->event.frameTime2;
-	output_fps = (u64)round(1e+9 / deltaTime);
+	output_fps = round(1e+9 / deltaTime);
 	win->event.frameTime2 = RGFW_getTimeNS();
 
 	return output_fps;
@@ -5198,22 +5198,29 @@ static HMODULE wglinstance = NULL;
 		u32 i;
 		static const char* names[] = { 
 			"xinput1_4.dll",
-			"xinput1_3.dll",
 			"xinput9_1_0.dll",
 			"xinput1_2.dll",
 			"xinput1_1.dll"
 		};
 
-		for (i = 0; i < sizeof(names) / sizeof(const char*);  i++) {
+		for (i = 0; i < sizeof(names) / sizeof(const char*) && (XInputGetStateSRC == NULL || XInputGetStateSRC != NULL);  i++) {
 			RGFW_XInput_dll = LoadLibraryA(names[i]);
 
-			if (RGFW_XInput_dll) {
+			if (RGFW_XInput_dll == NULL)
+				continue;
+
+			if (XInputGetStateSRC == NULL)
 				XInputGetStateSRC = (PFN_XInputGetState)(void*)GetProcAddress(RGFW_XInput_dll, "XInputGetState");
-			
-				if (XInputGetStateSRC == NULL)
-					printf("Failed to load XInputGetState");
-			}
+	
+			if (XInputGetKeystrokeSRC == NULL)
+				XInputGetKeystrokeSRC = (PFN_XInputGetKeystroke)(void*)GetProcAddress(RGFW_XInput_dll, "XInputGetKeystroke");	
 		}
+		
+		if (XInputGetStateSRC == NULL)
+			printf("RGFW ERR: Failed to load XInputGetState\n");
+		if (XInputGetKeystrokeSRC == NULL)
+			printf("RGFW ERR: Failed to load XInputGetKeystroke\n");
+
 	}
 	#endif
 
@@ -5651,12 +5658,13 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		RGFW_JS_LEFT, /* dpad left */
 		RGFW_JS_RIGHT, /* dpad right */
 		RGFW_JS_START, /* start button */
-		RGFW_JS_SELECT/* select button */
+		RGFW_JS_SELECT,/* select button */
+		RGFW_JS_L3, 
+		RGFW_JS_R3, 
 	};
 
 	static i32 RGFW_checkXInput(RGFW_window* win, RGFW_Event* e) {
 		RGFW_UNUSED(win)
-		
 		size_t i;
 		for (i = 0; i < 4; i++) {
 			XINPUT_KEYSTROKE keystroke;
@@ -5669,10 +5677,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			if ((keystroke.Flags & XINPUT_KEYSTROKE_REPEAT) == 0 && result != ERROR_EMPTY) {
 				if (result != ERROR_SUCCESS)
 					return 0;
-
-				if (keystroke.VirtualKey > VK_PAD_BACK)
+				
+				if (keystroke.VirtualKey > VK_PAD_RTHUMB_PRESS)
 					continue;
-
+					
 				// RGFW_jsButtonPressed + 1 = RGFW_jsButtonReleased
 				e->type = RGFW_jsButtonPressed + !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 				e->button = RGFW_xinput2RGFW[keystroke.VirtualKey - 0x5800];
@@ -5686,6 +5694,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				XInputGetState((DWORD) i, &state) == ERROR_DEVICE_NOT_CONNECTED
 			)
 				return 0;
+
 #define INPUT_DEADZONE  ( 0.24f * (float)(0x7FFF) )  // Default to 24% of the +/- 32767 range.   This is a reasonable default value but can be altered if needed.
 
 			if ((state.Gamepad.sThumbLX < INPUT_DEADZONE &&
@@ -5707,22 +5716,26 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			}
 
 			e->axisesCount = 2;
-			RGFW_point axis1 = RGFW_POINT(state.Gamepad.sThumbLX, state.Gamepad.sThumbLY);
-			RGFW_point axis2 = RGFW_POINT(state.Gamepad.sThumbRX, state.Gamepad.sThumbRY);
+			RGFW_point axis1 = RGFW_POINT(((float)state.Gamepad.sThumbLX / 32768.0f) * 100, ((float)state.Gamepad.sThumbLY / -32768.0f) * 100);
+			RGFW_point axis2 = RGFW_POINT(((float)state.Gamepad.sThumbRX / 32768.0f) * 100, ((float)state.Gamepad.sThumbRY / -32768.0f) * 100);
 
-			if (axis1.x != e->axis[0].x || axis1.y != e->axis[0].y || axis2.x != e->axis[1].x || axis2.y != e->axis[1].y) {
-				win->event.whichAxis = (axis1.x != e->axis[0].x || axis1.y != e->axis[0].y) ? 0 : 1;
+			if (axis1.x != e->axis[0].x || axis1.y != e->axis[0].y){ 
+				win->event.whichAxis = 0;
 				
 				e->type = RGFW_jsAxisMove;
 
 				e->axis[0] = axis1;
-				e->axis[1] = axis2;
 
 				return 1;
 			}
 
-			e->axis[0] = axis1;
-			e->axis[1] = axis2;
+			if (axis2.x != e->axis[1].x || axis2.y != e->axis[1].y) {
+				win->event.whichAxis = 1;
+				e->type = RGFW_jsAxisMove;
+				e->axis[1] = axis2;
+
+				return 1;
+			}
 		}
 
 		return 0;
