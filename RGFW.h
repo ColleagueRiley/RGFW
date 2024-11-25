@@ -88,6 +88,7 @@
 		Joshua Rowe (omnisci3nce) - bug fix, review (macOS)
 		@lesleyrs -> bug fix, review (OpenGL)
 		Nick Porcino (meshula) - testing, organization, review (MacOS, examples)
+		@DarekParodia -> code review (X11) (C++)
 */
 
 #if _MSC_VER
@@ -5295,7 +5296,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		if (RGFW_Shcore_dll == NULL) {
 			RGFW_Shcore_dll = LoadLibraryA("shcore.dll");
 			GetDpiForMonitorSRC = (PFN_GetDpiForMonitor)(void*)GetProcAddress(RGFW_Shcore_dll, "GetDpiForMonitor");
-			#if defined(_WIN64) || (_WIN32_WINNT >= 0x0600)
+			#if (_WIN32_WINNT >= 0x0600)
 				SetProcessDPIAware();
 			#endif
 		}

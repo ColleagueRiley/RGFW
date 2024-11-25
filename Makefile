@@ -17,7 +17,7 @@ LIBS := -static -luser32 -lgdi32 -lm -lopengl32 -lwinmm -ggdb
 EXT = .exe
 LIB_EXT = .dll
 
-LIBS += -D _WIN32_WINNT="0x0501"
+LIBS += -D _WIN32_WINNT=0x0501
 
 WARNINGS =  -Wall -Wstrict-prototypes -Wextra -Wstrict-prototypes -Wold-style-definition -Wno-missing-field-initializers -Wno-unknown-pragmas -Wno-missing-braces -Wno-missing-variable-declarations -Wno-redundant-decls -Wno-unused-function -Wno-unused-label -Wno-unused-result -Wno-incompatible-pointer-types -Wno-format -Wno-format-extra-args -Wno-implicit-function-declaration -Wno-implicit-int -Wno-pointer-sign -Wno-switch -Wno-switch-default -Wno-switch-enum -Wno-unused-value -Wno-type-limits
 OS_DIR = \\
@@ -150,9 +150,9 @@ endif
 
 examples/microui_demo/microui_demo: examples/microui_demo/microui_demo.c RGFW.h
 ifneq ($(CC), emcc)
-	$(CC) $(CFLAGS) -I. $< $(LIBS) $(LINK_GL1) -o $@$(EXT)
+	$(CC) $(CFLAGS) -I. $< examples/microui_demo/microui.c  $(LIBS) $(LINK_GL1) -o $@$(EXT)
 else
-	$(CC) $(CFLAGS) -I. $< -s USE_WEBGL2 $(LIBS) $(LINK_GL1) -o $@$(EXT)
+	$(CC) $(CFLAGS) -I. $< examples/microui_demo/microui.c -s USE_WEBGL2 $(LIBS) $(LINK_GL1) -o $@$(EXT)
 endif
 
 examples/gl33/gl33: examples/gl33/gl33.c RGFW.h

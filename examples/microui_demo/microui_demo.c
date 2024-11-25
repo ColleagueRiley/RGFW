@@ -1,3 +1,4 @@
+#undef _WIN32_WINNT
 #include <stdio.h>
 
 #define RGFW_IMPLEMENTATION
@@ -7,7 +8,6 @@
 
 // these are so small, might as well treat them as single-header files
 #include "renderer.c"
-#include "microui.c"
 
 static  char logbuf[64000];
 static   int logbuf_updated = 0;
