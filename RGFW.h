@@ -876,10 +876,10 @@ typedef void (* RGFW_windowrefreshfunc)(RGFW_window* win);
 typedef void (* RGFW_keyfunc)(RGFW_window* win, u32 keycode, char keyName[16], u8 lockState, b8 pressed);
 /*! RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release)  */
 typedef void (* RGFW_mousebuttonfunc)(RGFW_window* win, u8 button, double scroll, b8 pressed);
-/*! RGFW_jsButtonPressed / RGFW_jsButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) */
-typedef void (* RGFW_jsButtonfunc)(RGFW_window* win, u16 gamepad, u8 button, b8 pressed);
-/*! RGFW_jsAxisMove, the window that got the event, the gamepad in question, the axis values and the amount of axises */
-typedef void (* RGFW_jsAxisfunc)(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount);
+/*!gp /gp, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) */
+typedef void (* RGFW_gpButtonfunc)(RGFW_window* win, u16 gamepad, u8 button, b8 pressed);
+/*! RGFW_gpAxisMove, the window that got the event, the gamepad in question, the axis values and the amount of axises */
+typedef void (* RGFW_gpAxisfunc)(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount);
 
 
 /*!  RGFW_dnd, the window that had the drop, the drop data and the amount files dropped returns previous callback function (if it was set) */
@@ -911,9 +911,9 @@ RGFWDEF RGFW_keyfunc RGFW_setKeyCallback(RGFW_keyfunc func);
 /*! set callback for a mouse button (press / release ) event returns previous callback function (if it was set)  */
 RGFWDEF RGFW_mousebuttonfunc RGFW_setMouseButtonCallback(RGFW_mousebuttonfunc func);
 /*! set callback for a controller button (press / release ) event returns previous callback function (if it was set)  */
-RGFWDEF RGFW_jsButtonfunc RGFW_setjsButtonCallback(RGFW_jsButtonfunc func);
+RGFWDEF RGFW_gpButtonfunc RGFW_setgpButtonCallback(RGFW_gpButtonfunc func);
 /*! set callback for a gamepad axis mov event returns previous callback function (if it was set)  */
-RGFWDEF RGFW_jsAxisfunc RGFW_setjsAxisCallback(RGFW_jsAxisfunc func);
+RGFWDEF RGFW_gpAxisfunc RGFW_setgpAxisCallback(RGFW_gpAxisfunc func);
 
 /** @} */ 
 
@@ -949,10 +949,10 @@ RGFWDEF RGFW_jsAxisfunc RGFW_setjsAxisCallback(RGFW_jsAxisfunc func);
 
 /*! gamepad count starts at 0*/
 /*!< register gamepad to window based on a number (the number is based on when it was connected eg. /dev/js0)*/
-RGFWDEF u16 RGFW_registerGamepad(RGFW_window* win, i32 jsNumber);
+RGFWDEF u16 RGFW_registerGamepad(RGFW_window* win, i32 gpNumber);
 RGFWDEF u16 RGFW_registerGamepadF(RGFW_window* win, char* file);
 
-RGFWDEF u32 RGFW_isPressedJS(RGFW_window* win, u16 controller, u8 button);
+RGFWDEF u32 RGFW_isPressedGP(RGFW_window* win, u16 controller, u8 button);
 
 /** @} */ 
 
@@ -1450,7 +1450,7 @@ char RGFW_keyCodeToCharAuto(u32 keycode, u8 lockState) { return RGFW_keyCodeToCh
 */
 
 /* gamepad data */
-u8 RGFW_jsPressed[4][16]; /*!< if a key is currently pressed or not (per gamepad) */
+u8 RGFW_gpPressed[4][16]; /*!< if a key is currently pressed or not (per gamepad) */
 
 i32 RGFW_gamepads[4]; /*!< limit of 4 gamepads at a time */
 u16 RGFW_gamepadCount; /*!< the actual amount of gamepads */
@@ -1475,8 +1475,8 @@ void RGFW_dndInitfuncEMPTY(RGFW_window* win, RGFW_point point) {RGFW_UNUSED(win)
 void RGFW_windowrefreshfuncEMPTY(RGFW_window* win) {RGFW_UNUSED(win); }
 void RGFW_keyfuncEMPTY(RGFW_window* win, u32 keycode, char keyName[16], u8 lockState, b8 pressed) {RGFW_UNUSED(win); RGFW_UNUSED(keycode); RGFW_UNUSED(keyName); RGFW_UNUSED(lockState); RGFW_UNUSED(pressed);}
 void RGFW_mousebuttonfuncEMPTY(RGFW_window* win, u8 button, double scroll, b8 pressed) {RGFW_UNUSED(win); RGFW_UNUSED(button); RGFW_UNUSED(scroll); RGFW_UNUSED(pressed);}
-void RGFW_jsButtonfuncEMPTY(RGFW_window* win, u16 gamepad, u8 button, b8 pressed){RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(button); RGFW_UNUSED(pressed); }
-void RGFW_jsAxisfuncEMPTY(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount){RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(axis); RGFW_UNUSED(axisesCount); }
+void RGFW_gpButtonfuncEMPTY(RGFW_window* win, u16 gamepad, u8 button, b8 pressed){RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(button); RGFW_UNUSED(pressed); }
+void RGFW_gpAxisfuncEMPTY(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount){RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(axis); RGFW_UNUSED(axisesCount); }
 
 #ifdef RGFW_ALLOC_DROPFILES
 void RGFW_dndfuncEMPTY(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
@@ -1495,8 +1495,8 @@ RGFW_dndfunc RGFW_dndCallback = RGFW_dndfuncEMPTY;
 RGFW_dndInitfunc RGFW_dndInitCallback = RGFW_dndInitfuncEMPTY;
 RGFW_keyfunc RGFW_keyCallback = RGFW_keyfuncEMPTY;
 RGFW_mousebuttonfunc RGFW_mouseButtonCallback = RGFW_mousebuttonfuncEMPTY;
-RGFW_jsButtonfunc RGFW_jsButtonCallback = RGFW_jsButtonfuncEMPTY;
-RGFW_jsAxisfunc RGFW_jsAxisCallback = RGFW_jsAxisfuncEMPTY;
+RGFW_gpButtonfunc RGFW_gpButtonCallback = RGFW_gpButtonfuncEMPTY;
+RGFW_gpAxisfunc RGFW_gpAxisCallback = RGFW_gpAxisfuncEMPTY;
 
 void RGFW_window_checkEvents(RGFW_window* win, i32 waitMS) { 
 	RGFW_window_eventWait(win, waitMS);
@@ -1567,14 +1567,14 @@ RGFW_mousebuttonfunc RGFW_setMouseButtonCallback(RGFW_mousebuttonfunc func) {
     RGFW_mouseButtonCallback = func;
     return prev;
 }
-RGFW_jsButtonfunc RGFW_setjsButtonCallback(RGFW_jsButtonfunc func) {
-    RGFW_jsButtonfunc prev = (RGFW_jsButtonCallback == RGFW_jsButtonfuncEMPTY) ? NULL : RGFW_jsButtonCallback;
-    RGFW_jsButtonCallback = func;
+RGFW_gpButtonfunc RGFW_setgpButtonCallback(RGFW_gpButtonfunc func) {
+    RGFW_gpButtonfunc prev = (RGFW_gpButtonCallback == RGFW_gpButtonfuncEMPTY) ? NULL : RGFW_gpButtonCallback;
+    RGFW_gpButtonCallback = func;
     return prev;
 }
-RGFW_jsAxisfunc RGFW_setjsAxisCallback(RGFW_jsAxisfunc func) {
-    RGFW_jsAxisfunc prev = (RGFW_jsAxisCallback == RGFW_jsAxisfuncEMPTY) ? NULL : RGFW_jsAxisCallback;
-    RGFW_jsAxisCallback = func;
+RGFW_gpAxisfunc RGFW_setgpAxisCallback(RGFW_gpAxisfunc func) {
+    RGFW_gpAxisfunc prev = (RGFW_gpAxisCallback == RGFW_gpAxisfuncEMPTY) ? NULL : RGFW_gpAxisCallback;
+    RGFW_gpAxisCallback = func;
     return prev;
 }
 /* 
@@ -1815,9 +1815,9 @@ u32 RGFW_window_checkFPS(RGFW_window* win, u32 fpsCap) {
 	return output_fps;
 }
 
-u32 RGFW_isPressedJS(RGFW_window* win, u16 c, u8 button) { 
+u32 RGFW_isPressedGP(RGFW_window* win, u16 c, u8 button) { 
 	RGFW_UNUSED(win);
-	return RGFW_jsPressed[c][button]; 
+	return RGFW_gpPressed[c][button]; 
 }
 
 #if defined(RGFW_X11) || defined(RGFW_WINDOWS)
@@ -2291,10 +2291,10 @@ This is where OS specific stuff starts
 				while ((bytes = read(RGFW_gamepads[i], &e, sizeof(e))) > 0) {
 					switch (e.type) {
 					case JS_EVENT_BUTTON:
-						win->event.type = e.value ? RGFW_jsButtonPressed : RGFW_jsButtonReleased;
+						win->event.type = e.value ?gp :gp;
 						win->event.button = e.number;
-						RGFW_jsPressed[i][e.number + 1] = e.value;
-						RGFW_jsButtonCallback(win, i, e.number, e.value);
+						RGFW_gpPressed[i][e.number + 1] = e.value;
+						RGFW_gpButtonCallback(win, i, e.number, e.value);
 						
 						return &win->event;
 					case JS_EVENT_AXIS: {
@@ -2312,10 +2312,10 @@ This is where OS specific stuff starts
 							}
 						}
 
-						win->event.type = RGFW_jsAxisMove;
+						win->event.type = RGFW_gpAxisMove;
 						win->event.gamepad = i;
 						win->event.whichAxis = axis;
-						RGFW_jsAxisCallback(win, i, win->event.axis, win->event.axisesCount);
+						RGFW_gpAxisCallback(win, i, win->event.axis, win->event.axisesCount);
 						return &win->event;
 					}
 						default: break;
@@ -4003,7 +4003,7 @@ Start of Linux / Unix defines
 
 			u8 i;
 			for (i = 0; i < 16; i++)
-				RGFW_jsPressed[RGFW_gamepadCount - 1][i] = 0;
+				RGFW_gpPressed[RGFW_gamepadCount - 1][i] = 0;
 
 		}
 
@@ -4018,12 +4018,12 @@ Start of Linux / Unix defines
 #endif
 	}
 	
-	u16 RGFW_registerGamepad(RGFW_window* win, i32 jsNumber) {
+	u16 RGFW_registerGamepad(RGFW_window* win, i32 gpNumber) {
 		assert(win != NULL);
 
 #ifdef __linux__
 		char file[15];
-		sprintf(file, "/dev/input/js%i", jsNumber);
+		sprintf(file, "/dev/input/js%i", gpNumber);
 
 		return RGFW_registerGamepadF(win, file);
 #endif
@@ -5689,10 +5689,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				if (keystroke.VirtualKey > VK_PAD_RTHUMB_PRESS)
 					continue;
 					
-				// RGFW_jsButtonPressed + 1 = RGFW_jsButtonReleased
-				e->type = RGFW_jsButtonPressed + !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
+				//gp + 1 = RGFW_gpButtonReleased
+				e->type = RGFW_gpButtonPressed + !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 				e->button = RGFW_xinput2RGFW[keystroke.VirtualKey - 0x5800];
-				RGFW_jsPressed[i][e->button] = !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
+				RGFW_gpPressed[i][e->button] = !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 
 				return 1;
 			}
@@ -5730,7 +5730,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			if (axis1.x != e->axis[0].x || axis1.y != e->axis[0].y){ 
 				win->event.whichAxis = 0;
 				
-				e->type = RGFW_jsAxisMove;
+				e->type = RGFW_gpAxisMove;
 
 				e->axis[0] = axis1;
 
@@ -5739,7 +5739,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 			if (axis2.x != e->axis[1].x || axis2.y != e->axis[1].y) {
 				win->event.whichAxis = 1;
-				e->type = RGFW_jsAxisMove;
+				e->type = RGFW_gpAxisMove;
 				e->axis[1] = axis2;
 
 				return 1;
@@ -6538,10 +6538,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		CloseClipboard();
 	}
 
-	u16 RGFW_registerGamepad(RGFW_window* win, i32 jsNumber) {
+	u16 RGFW_registerGamepad(RGFW_window* win, i32 gpNumber) {
 		assert(win != NULL);
 
-		RGFW_UNUSED(jsNumber)
+		RGFW_UNUSED(gpNumber)
 
 		return RGFW_registerGamepadF(win, (char*) "");
 	}
@@ -8148,8 +8148,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		NSPasteBoard_setString(NSPasteboard_generalPasteboard(), text, NSPasteboardTypeString);
 	}
 
-	u16 RGFW_registerGamepad(RGFW_window* win, i32 jsNumber) {
-		RGFW_UNUSED(jsNumber);
+	u16 RGFW_registerGamepad(RGFW_window* win, i32 gpNumber) {
+		RGFW_UNUSED(gpNumber);
 
 		assert(win != NULL);
 
@@ -8783,15 +8783,15 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			if (button == 404)
 				continue;
 
-			if (RGFW_jsPressed[i][button] != gamepadState.digitalButton[j]) {
+			if (RGFW_gpPressed[i][button] != gamepadState.digitalButton[j]) {
 				if (gamepadState.digitalButton[j])
-					win->event.type = RGFW_jsButtonPressed;
+					win->event.type =gp;
 				else
-					win->event.type = RGFW_jsButtonReleased;
+					win->event.type =gp;
 
 				win->event.gamepad = i;
 				win->event.button = map[j];
-				RGFW_jsPressed[i][button] = gamepadState.digitalButton[j];
+				RGFW_gpPressed[i][button] = gamepadState.digitalButton[j];
 				return &win->event;
 			}
 		}
@@ -8803,7 +8803,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			) {
 				win->event.axis[j / 2].x = (i8)(gamepadState.axis[j] * 100.0f);
 				win->event.axis[j / 2].y = (i8)(gamepadState.axis[j + 1] * 100.0f);
-				win->event.type = RGFW_jsAxisMove;
+				win->event.type = RGFW_gpAxisMove;
 				win->event.gamepad = i;
 				win->event.whichAxis = j / 2;
 				return &win->event;
