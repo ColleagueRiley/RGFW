@@ -88,6 +88,7 @@
 		Joshua Rowe (omnisci3nce) - bug fix, review (macOS)
 		@lesleyrs -> bug fix, review (OpenGL)
 		Nick Porcino (meshula) - testing, organization, review (MacOS, examples)
+		@DarekParodia -> code review (X11) (C++)
 */
 
 #if _MSC_VER
@@ -633,6 +634,8 @@ RGFWDEF void RGFW_setClassName(char* name);
 
 /*! this has to be set before createWindow is called, else the fulscreen size is used */
 RGFWDEF void RGFW_setBufferSize(RGFW_area size); /*!< the buffer cannot be resized (by RGFW) */
+
+/* NOTE: (windows)If the executable has an icon resource named RGFW_ICON, it will be set as the initial icon for the window.*/
 
 RGFWDEF RGFW_window* RGFW_createWindow(
 	const char* name, /* name of the window */
@@ -5294,7 +5297,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		if (RGFW_Shcore_dll == NULL) {
 			RGFW_Shcore_dll = LoadLibraryA("shcore.dll");
 			GetDpiForMonitorSRC = (PFN_GetDpiForMonitor)(void*)GetProcAddress(RGFW_Shcore_dll, "GetDpiForMonitor");
-			#if defined(_WIN64) || (_WIN32_WINNT >= 0x0600)
+			#if (_WIN32_WINNT >= 0x0600)
 				SetProcessDPIAware();
 			#endif
 		}
@@ -5339,6 +5342,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		Class.hCursor = LoadCursor(NULL, IDC_ARROW);
 		Class.lpfnWndProc = WndProc;
 
+		Class.hIcon = LoadImageA(GetModuleHandleW(NULL), "RGFW_ICON", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);		
+		if (Class.hIcon == NULL) {
+            Class.hIcon = LoadImageA(NULL, IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
+        }
+
 		RegisterClassA(&Class);
 
 		DWORD window_style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
@@ -5351,7 +5359,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			if (!(args & RGFW_NO_RESIZE))
 				window_style |= WS_SIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME;
 		} else
-			window_style |= WS_POPUP | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX;
+			window_style |= WS_POPUP | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX; 
+
 
 		HWND dummyWin = CreateWindowA(Class.lpszClassName, name, window_style, win->r.x, win->r.y, win->r.w, win->r.h, 0, 0, inh, 0);
 
@@ -8355,17 +8364,28 @@ EM_BOOL Emscripten_on_fullscreenchange(int eventType, const EmscriptenFullscreen
 	
 	RGFW_root->r = RGFW_RECT(0, 0, e->screenWidth, e->screenHeight);
 	
+	EM_ASM("Module.canvas.focus();");
+	
 	if (fullscreen == RGFW_FALSE) {
 		RGFW_root->r = RGFW_RECT(0, 0, ogRect.w, ogRect.h);
+		// emscripten_request_fullscreen("#canvas", 0);
+	} else {
+		#if __EMSCRIPTEN_major__  >= 1 && __EMSCRIPTEN_minor__  >= 29 && __EMSCRIPTEN_tiny__  >= 0
+			EmscriptenFullscreenStrategy FSStrat = {0};
+			FSStrat.scaleMode = EMSCRIPTEN_FULLSCREEN_SCALE_STRETCH;//EMSCRIPTEN_FULLSCREEN_SCALE_ASPECT;// : EMSCRIPTEN_FULLSCREEN_SCALE_STRETCH;
+			FSStrat.canvasResolutionScaleMode = EMSCRIPTEN_FULLSCREEN_CANVAS_SCALE_HIDEF;
+			FSStrat.filteringMode = EMSCRIPTEN_FULLSCREEN_FILTERING_DEFAULT;
+			emscripten_request_fullscreen_strategy("#canvas", 1, &FSStrat);
+		#else	
+			emscripten_request_fullscreen("#canvas", 1);
+		#endif
+	
 	}
 
 	emscripten_set_canvas_element_size("#canvas", RGFW_root->r.w, RGFW_root->r.h);
 
-	#ifdef LEGACY_GL_EMULATION
-	EM_ASM("Module.canvas.focus()");	
-	#endif
-
 	RGFW_windowResizeCallback(RGFW_root, RGFW_root->r);
+	
 	return EM_TRUE;
 }
 
