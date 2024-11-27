@@ -2808,7 +2808,7 @@ Start of Linux / Unix defines
 
 		u32 i;
 		win->event.type = 0;
-
+		XEvent reply = { ClientMessage };
 
 		switch (E.type) {
 		case KeyPress:
@@ -2947,7 +2947,6 @@ Start of Linux / Unix defines
 			if ((win->_winArgs & RGFW_ALLOW_DND) == 0)
 				break;
 
-			XEvent reply = { ClientMessage };
 			reply.xclient.window = xdnd.source;
 			reply.xclient.format = 32;
 			reply.xclient.data.l[0] = (long) win->src.window;
