@@ -8367,17 +8367,17 @@ EM_BOOL Emscripten_on_fullscreenchange(int eventType, const EmscriptenFullscreen
 	EM_ASM("Module.canvas.focus();");
 	
 	if (fullscreen == RGFW_FALSE) {
-		//RGFW_root->r = RGFW_RECT(0, 0, ogRect.w, ogRect.h);
-		//emscripten_request_fullscreen("#canvas", false);
+		RGFW_root->r = RGFW_RECT(0, 0, ogRect.w, ogRect.h);
+		// emscripten_request_fullscreen("#canvas", 0);
 	} else {
 		#if __EMSCRIPTEN_major__  >= 1 && __EMSCRIPTEN_minor__  >= 29 && __EMSCRIPTEN_tiny__  >= 0
 			EmscriptenFullscreenStrategy FSStrat = {0};
 			FSStrat.scaleMode = EMSCRIPTEN_FULLSCREEN_SCALE_STRETCH;//EMSCRIPTEN_FULLSCREEN_SCALE_ASPECT;// : EMSCRIPTEN_FULLSCREEN_SCALE_STRETCH;
 			FSStrat.canvasResolutionScaleMode = EMSCRIPTEN_FULLSCREEN_CANVAS_SCALE_HIDEF;
 			FSStrat.filteringMode = EMSCRIPTEN_FULLSCREEN_FILTERING_DEFAULT;
-			emscripten_request_fullscreen_strategy("#canvas", true, &FSStrat);
+			emscripten_request_fullscreen_strategy("#canvas", 1, &FSStrat);
 		#else	
-			emscripten_request_fullscreen("#canvas", true);
+			emscripten_request_fullscreen("#canvas", 1);
 		#endif
 	
 	}
