@@ -89,10 +89,10 @@ int main(void) {
                     printf("dropped : %s\n", win->event.droppedFiles[i]);
             }
 
-            else if (win->event.type == RGFW_jsButtonPressed)
+            else if (win->event.type == RGFW_gpButtonPressed)
                 printf("pressed %i\n", win->event.button);
 
-            else if (win->event.type == RGFW_jsAxisMove && !win->event.button)
+            else if (win->event.type == RGFW_gpAxisMove && !win->event.button)
                 printf("{%i, %i}\n", win->event.axis[0].x, win->event.axis[0].y);
         }
 
