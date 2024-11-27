@@ -8785,9 +8785,9 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 			if (RGFW_gpPressed[i][button] != gamepadState.digitalButton[j]) {
 				if (gamepadState.digitalButton[j])
-					win->event.type = RGFW_jsButtonPressed;
+					win->event.type = RGFW_gpButtonPressed;
 				else
-					win->event.type = RGFW_jsButtonReleased;
+					win->event.type = RGFW_gpButtonReleased;
 
 				win->event.gamepad = i;
 				win->event.button = map[j];
