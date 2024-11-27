@@ -8365,19 +8365,20 @@ EM_BOOL Emscripten_on_fullscreenchange(int eventType, const EmscriptenFullscreen
 	
 	RGFW_root->r = RGFW_RECT(0, 0, e->screenWidth, e->screenHeight);
 	
-	EM_ASM("Module.canvas.focus()");
+	EM_ASM("Module.canvas.focus();");
 	
 	if (fullscreen == RGFW_FALSE) {
-	//	RGFW_root->r = RGFW_RECT(0, 0, ogRect.w, ogRect.h);
+		//RGFW_root->r = RGFW_RECT(0, 0, ogRect.w, ogRect.h);
+		//emscripten_request_fullscreen("#canvas", false);
 	} else {
 		#if __EMSCRIPTEN_major__  >= 1 && __EMSCRIPTEN_minor__  >= 29 && __EMSCRIPTEN_tiny__  >= 0
 			EmscriptenFullscreenStrategy FSStrat = {0};
 			FSStrat.scaleMode = EMSCRIPTEN_FULLSCREEN_SCALE_STRETCH;//EMSCRIPTEN_FULLSCREEN_SCALE_ASPECT;// : EMSCRIPTEN_FULLSCREEN_SCALE_STRETCH;
 			FSStrat.canvasResolutionScaleMode = EMSCRIPTEN_FULLSCREEN_CANVAS_SCALE_HIDEF;
 			FSStrat.filteringMode = EMSCRIPTEN_FULLSCREEN_FILTERING_DEFAULT;
-			emscripten_request_fullscreen_strategy("canvas", true, &FSStrat);
-		#else
-			emscripten_request_fullscreen("canvas", true);
+			emscripten_request_fullscreen_strategy("#canvas", true, &FSStrat);
+		#else	
+			emscripten_request_fullscreen("#canvas", true);
 		#endif
 	
 	}
