@@ -40,10 +40,10 @@ Callbacks \- Callbacks
 .RI "typedef void(* \fBRGFW_mousebuttonfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP button, double scroll, \fBb8\fP pressed)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_jsButtonfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP joystick, \fBu8\fP button, \fBb8\fP pressed)"
+.RI "typedef void(* \fBRGFW_gpButtonfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBu8\fP button, \fBb8\fP pressed)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_jsAxisfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP joystick, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount)"
+.RI "typedef void(* \fBRGFW_gpAxisfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, char droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP], \fBu32\fP droppedFilesCount)"
@@ -86,10 +86,10 @@ Callbacks \- Callbacks
 .RI "\fBRGFWDEF\fP \fBRGFW_mousebuttonfunc\fP \fBRGFW_setMouseButtonCallback\fP (\fBRGFW_mousebuttonfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_jsButtonfunc\fP \fBRGFW_setjsButtonCallback\fP (\fBRGFW_jsButtonfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_gpButtonfunc\fP \fBRGFW_setgpButtonCallback\fP (\fBRGFW_gpButtonfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_jsAxisfunc\fP \fBRGFW_setjsAxisCallback\fP (\fBRGFW_jsAxisfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_gpAxisfunc\fP \fBRGFW_setgpAxisCallback\fP (\fBRGFW_gpAxisfunc\fP func)"
 .br
 .in -1c
 .SH "Detailed Description"
@@ -103,10 +103,10 @@ RGFW_dnd, the window that had the drop, the drop data and the amount files dropp
 RGFW_dnd_init, the window, the point of the drop on the windows 
 .SS "typedef void(* RGFW_focusfunc) (\fBRGFW_window\fP *win, \fBb8\fP inFocus)"
 RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its inFocus 
-.SS "typedef void(* RGFW_jsAxisfunc) (\fBRGFW_window\fP *win, \fBu16\fP joystick, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount)"
-RGFW_jsAxisMove, the window that got the event, the joystick in question, the axis values and the amount of axises 
-.SS "typedef void(* RGFW_jsButtonfunc) (\fBRGFW_window\fP *win, \fBu16\fP joystick, \fBu8\fP button, \fBb8\fP pressed)"
-RGFW_jsButtonPressed / RGFW_jsButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
+.SS "typedef void(* RGFW_gpAxisfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount)"
+RGFW_gpAxisMove, the window that got the event, the gamepad in question, the axis values and the amount of axises 
+.SS "typedef void(* RGFW_gpButtonfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBu8\fP button, \fBb8\fP pressed)"
+gp /gp, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
 .SS "typedef void(* RGFW_keyfunc) (\fBRGFW_window\fP *win, \fBu32\fP keycode, char keyName[16], \fBu8\fP lockState, \fBb8\fP pressed)"
 RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the keycode, the string version, the state of mod keys, if it was a press (else it's a release) 
 .SS "typedef void(* RGFW_mousebuttonfunc) (\fBRGFW_window\fP *win, \fBu8\fP button, double scroll, \fBb8\fP pressed)"
@@ -145,11 +145,11 @@ set callback for a start of a drop event returns previous callback function (if 
 set callback for a window focus change event returns previous callback function (if it was set) 
 .br
  
-.SS "\fBRGFWDEF\fP \fBRGFW_jsAxisfunc\fP RGFW_setjsAxisCallback (\fBRGFW_jsAxisfunc\fP func)"
-set callback for a joystick axis mov event returns previous callback function (if it was set) 
+.SS "\fBRGFWDEF\fP \fBRGFW_gpAxisfunc\fP RGFW_setgpAxisCallback (\fBRGFW_gpAxisfunc\fP func)"
+set callback for a gamepad axis mov event returns previous callback function (if it was set) 
 .br
  
-.SS "\fBRGFWDEF\fP \fBRGFW_jsButtonfunc\fP RGFW_setjsButtonCallback (\fBRGFW_jsButtonfunc\fP func)"
+.SS "\fBRGFWDEF\fP \fBRGFW_gpButtonfunc\fP RGFW_setgpButtonCallback (\fBRGFW_gpButtonfunc\fP func)"
 set callback for a controller button (press / release ) event returns previous callback function (if it was set) 
 .br
  

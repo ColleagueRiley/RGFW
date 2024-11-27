@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['h_0',['h',['../structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d',1,'RGFW_rect::h()'],['../structRGFW__area.html#acfd12a462e305d195296ce2b13f32007',1,'RGFW_area::h()']]]
+  ['gamepad_0',['gamepad',['../structRGFW__Event.html#a5fb2da9927bf9aa37d6c2f76c5992260',1,'RGFW_Event']]]
 ];

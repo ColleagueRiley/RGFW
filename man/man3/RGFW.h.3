@@ -238,10 +238,10 @@ RGFW.h
 .RI "typedef void(* \fBRGFW_mousebuttonfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP button, double scroll, \fBb8\fP pressed)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_jsButtonfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP joystick, \fBu8\fP button, \fBb8\fP pressed)"
+.RI "typedef void(* \fBRGFW_gpButtonfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBu8\fP button, \fBb8\fP pressed)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_jsAxisfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP joystick, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount)"
+.RI "typedef void(* \fBRGFW_gpAxisfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, char droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP], \fBu32\fP droppedFilesCount)"
@@ -257,7 +257,7 @@ RGFW.h
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_event_types)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_joystick_codes)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_gamepad_codes)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP * \fBRGFW_getMonitors\fP (void)"
@@ -473,10 +473,10 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_mousebuttonfunc\fP \fBRGFW_setMouseButtonCallback\fP (\fBRGFW_mousebuttonfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_jsButtonfunc\fP \fBRGFW_setjsButtonCallback\fP (\fBRGFW_jsButtonfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_gpButtonfunc\fP \fBRGFW_setgpButtonCallback\fP (\fBRGFW_gpButtonfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_jsAxisfunc\fP \fBRGFW_setjsAxisCallback\fP (\fBRGFW_jsAxisfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_gpAxisfunc\fP \fBRGFW_setgpAxisCallback\fP (\fBRGFW_gpAxisfunc\fP func)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_thread\fP \fBRGFW_createThread\fP (\fBRGFW_threadFunc_ptr\fP ptr, void *args)"
@@ -491,13 +491,13 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_setThreadPriority\fP (\fBRGFW_thread\fP thread, \fBu8\fP priority)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBu16\fP \fBRGFW_registerJoystick\fP (\fBRGFW_window\fP *win, \fBi32\fP jsNumber)"
+.RI "\fBRGFWDEF\fP \fBu16\fP \fBRGFW_registerGamepad\fP (\fBRGFW_window\fP *win, \fBi32\fP gpNumber)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBu16\fP \fBRGFW_registerJoystickF\fP (\fBRGFW_window\fP *win, char *file)"
+.RI "\fBRGFWDEF\fP \fBu16\fP \fBRGFW_registerGamepadF\fP (\fBRGFW_window\fP *win, char *file)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_isPressedJS\fP (\fBRGFW_window\fP *win, \fBu16\fP controller, \fBu8\fP button)"
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_isPressedGP\fP (\fBRGFW_window\fP *win, \fBu16\fP controller, \fBu8\fP button)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent\fP (\fBRGFW_window\fP *win)"
@@ -695,13 +695,13 @@ mouse event note the x and y of the mouse can be found in the vector, \fBRGFW_Ev
 .PP
 \fBRGFW_Event\&.button\fP holds which mouse button was pressed
 .PP
-< a joystick button was pressed
+< a gamepad button was pressed
 .PP
-< a joystick button was released
+< a gamepad button was released
 .PP
-< an axis of a joystick was moved
+< an axis of a gamepad was moved
 .PP
-joystick event note \fBRGFW_Event\&.joystick\fP holds which joystick was altered, if any \fBRGFW_Event\&.button\fP holds which joystick button was pressed
+gamepad event note \fBRGFW_Event\&.gamepad\fP holds which gamepad was altered, if any \fBRGFW_Event\&.button\fP holds which gamepad button was pressed
 .PP
 \fBRGFW_Event\&.axis\fP holds the data of all the axis RGFW_Event\&.axisCount says how many axis there are
 .PP
@@ -718,8 +718,8 @@ joystick event note \fBRGFW_Event\&.joystick\fP holds which joystick was altered
 < a file has been dropped into the window
 .PP
 < the start of a dnd event, when the place where the file drop is known
-.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_joystick_codes)"
-joystick button codes (based on xbox/playstation), you may need to change these values per controller < or PS X button
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_gamepad_codes)"
+gamepad button codes (based on xbox/playstation), you may need to change these values per controller < or PS X button
 .PP
 < or PS circle button
 .PP

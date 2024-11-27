@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['joystick_0',['joystick',['../structRGFW__Event.html#afdaca09dfbe5021b13e28800d8fe3aff',1,'RGFW_Event']]]
+  ['infocus_0',['inFocus',['../structRGFW__Event.html#a73f8902da9456948ae878640754a301e',1,'RGFW_Event']]]
 ];

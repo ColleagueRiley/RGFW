@@ -45,7 +45,7 @@ RGFW_Event
 .RI "double \fBscroll\fP"
 .br
 .ti -1c
-.RI "\fBu16\fP \fBjoystick\fP"
+.RI "\fBu16\fP \fBgamepad\fP"
 .br
 .ti -1c
 .RI "\fBu8\fP \fBaxisesCount\fP"
@@ -71,7 +71,7 @@ Event structure for checking/getting events
 .SS "\fBRGFW_point\fP RGFW_Event::axis[4]"
 x, y of axises (-100 to 100) 
 .SS "\fBu8\fP RGFW_Event::axisesCount"
-which joystick this event applies to (if applicable to any) number of axises 
+which gamepad this event applies to (if applicable to any) number of axises 
 .SS "\fBu8\fP RGFW_Event::button"
 
 .SS "char RGFW_Event::droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP]"
@@ -82,10 +82,10 @@ house many files were dropped
 
 .SS "\fBu64\fP RGFW_Event::frameTime2"
 this is used for counting the fps 
+.SS "\fBu16\fP RGFW_Event::gamepad"
+
 .SS "\fBb8\fP RGFW_Event::inFocus"
 if the window is in focus or not (this is always true for MacOS windows due to the api being weird) 
-.SS "\fBu16\fP RGFW_Event::joystick"
-
 .SS "\fBu8\fP RGFW_Event::keyCode"
 keycode of event !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! 
 .SS "char RGFW_Event::keyName[16]"

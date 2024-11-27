@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['w_0',['w',['../structRGFW__rect.html#ae9b18887b7389dc05283e4e54881b801',1,'RGFW_rect::w()'],['../structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a',1,'RGFW_area::w()']]],
-  ['whichaxis_1',['whichAxis',['../structRGFW__Event.html#a1ce60853bc9b9bec6c9da105d2e970ae',1,'RGFW_Event']]],
-  ['window_5fmanagement_2',['Window_management',['../group__Window__management.html',1,'']]]
+  ['x_0',['x',['../structRGFW__point.html#a1e4ef1395966022c65b8b69db9e8e592',1,'RGFW_point::x()'],['../structRGFW__rect.html#ae1678a152978fb1f00cb6b42341d0707',1,'RGFW_rect::x()']]]
 ];

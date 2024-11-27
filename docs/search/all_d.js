@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['monitor_0',['Monitor',['../group__Monitor.html',1,'']]]
+  ['name_0',['name',['../structRGFW__monitor.html#aaea809cea2ca3420c64b1ae3d69bb3ae',1,'RGFW_monitor']]]
 ];

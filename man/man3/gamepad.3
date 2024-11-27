@@ -1,0 +1,41 @@
+.TH "gamepad" 3 "Wed Nov 27 2024" "RGFW" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+gamepad \- Gamepad
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu16\fP \fBRGFW_registerGamepad\fP (\fBRGFW_window\fP *win, \fBi32\fP gpNumber)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu16\fP \fBRGFW_registerGamepadF\fP (\fBRGFW_window\fP *win, char *file)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_isPressedGP\fP (\fBRGFW_window\fP *win, \fBu16\fP controller, \fBu8\fP button)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+
+.IP "\(bu" 2
+
+.PP
+
+.SH "Function Documentation"
+.PP 
+.SS "\fBRGFWDEF\fP \fBu32\fP RGFW_isPressedGP (\fBRGFW_window\fP * win, \fBu16\fP controller, \fBu8\fP button)"
+
+.SS "\fBRGFWDEF\fP \fBu16\fP RGFW_registerGamepad (\fBRGFW_window\fP * win, \fBi32\fP gpNumber)"
+gamepad count starts at 0
+.PP
+< register gamepad to window based on a number (the number is based on when it was connected eg\&. /dev/js0) 
+.SS "\fBRGFWDEF\fP \fBu16\fP RGFW_registerGamepadF (\fBRGFW_window\fP * win, char * file)"
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for RGFW from the source code\&.

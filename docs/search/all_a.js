@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['joystick_0',['joystick',['../structRGFW__Event.html#afdaca09dfbe5021b13e28800d8fe3aff',1,'RGFW_Event']]],
-  ['joystick_1',['Joystick',['../group__joystick.html',1,'']]]
+  ['keycode_0',['keyCode',['../structRGFW__Event.html#ad7b475f01437b046f6d2ecfdf5a26174',1,'RGFW_Event']]],
+  ['keyname_1',['keyName',['../structRGFW__Event.html#aaaa744f5cfa61b4b41b5d32e1b06b4f7',1,'RGFW_Event']]]
 ];

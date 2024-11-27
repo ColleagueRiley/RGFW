@@ -107,7 +107,7 @@ $(function() {
 <li>RGFW_createWindow()&#160;:&#160;<a class="el" href="group__Window__management.html#ga11ec67e2c74b6fce259a0c323b25b5aa">RGFW.h</a></li>
 <li>RGFW_dndfunc&#160;:&#160;<a class="el" href="group__Callbacks.html#ga88b96a9a919baf0787bb4ba0dae9afcf">RGFW.h</a></li>
 <li>RGFW_dndInitfunc&#160;:&#160;<a class="el" href="group__Callbacks.html#ga0f23d16fc1842746e340f74ce5297238">RGFW.h</a></li>
-<li>RGFW_ENUM()&#160;:&#160;<a class="el" href="RGFW_8h.html#adc87c1ffeb473f47fbcc13262e9a2a9e">RGFW.h</a></li>
+<li>RGFW_ENUM()&#160;:&#160;<a class="el" href="RGFW_8h.html#a1a4378e6e4e1272f52c6d72ad99112df">RGFW.h</a></li>
 <li>RGFW_Error()&#160;:&#160;<a class="el" href="group__Input.html#ga6831f05709634efa2bf895e1c4aebf22">RGFW.h</a></li>
 <li>RGFW_Event&#160;:&#160;<a class="el" href="RGFW_8h.html#a21c798f7e1b4b6a7cda731179018c936">RGFW.h</a></li>
 <li>RGFW_FALSE&#160;:&#160;<a class="el" href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW.h</a></li>
@@ -121,6 +121,8 @@ $(function() {
 <li>RGFW_getScreenSize()&#160;:&#160;<a class="el" href="group__Window__management.html#ga2952eee39f36b85b6829976656043f97">RGFW.h</a></li>
 <li>RGFW_getTime()&#160;:&#160;<a class="el" href="group__Supporting.html#gaeb9d3d63a8833248ed1009c91e29b253">RGFW.h</a></li>
 <li>RGFW_getTimeNS()&#160;:&#160;<a class="el" href="group__Supporting.html#ga2556ad5561537a8b328d062f8b8268e5">RGFW.h</a></li>
+<li>RGFW_gpAxisfunc&#160;:&#160;<a class="el" href="group__Callbacks.html#gabde94fb7e576c96429a23e0ed23f99de">RGFW.h</a></li>
+<li>RGFW_gpButtonfunc&#160;:&#160;<a class="el" href="group__Callbacks.html#ga6397f3e1a5af7aad247d2f5d413c6272">RGFW.h</a></li>
 <li>RGFW_HEADER&#160;:&#160;<a class="el" href="RGFW_8h.html#ae8ceb9b5ca0a3bd4c747d97a803ab7cc">RGFW.h</a></li>
 <li>RGFW_HIDE_MOUSE&#160;:&#160;<a class="el" href="RGFW_8h.html#a8380dc8842fec2f82957bd101fb8cca8">RGFW.h</a></li>
 <li>RGFW_isClicked()&#160;:&#160;<a class="el" href="group__Input.html#gadb40c8c30c34649d32909ea8ea7daa48">RGFW.h</a></li>
@@ -129,11 +131,9 @@ $(function() {
 <li>RGFW_isMousePressed()&#160;:&#160;<a class="el" href="group__Input.html#ga59cbd47381667fdd17b2eeaad9383a4b">RGFW.h</a></li>
 <li>RGFW_isMouseReleased()&#160;:&#160;<a class="el" href="group__Input.html#ga23668b9f3110da11c338d8f1feefb2c0">RGFW.h</a></li>
 <li>RGFW_isPressed()&#160;:&#160;<a class="el" href="group__Input.html#ga97e8beeddfe37ec0eab69f61af5c1d4c">RGFW.h</a></li>
-<li>RGFW_isPressedJS()&#160;:&#160;<a class="el" href="group__joystick.html#ga32f5ed733c30a7c46ad17209ed333f9e">RGFW.h</a></li>
+<li>RGFW_isPressedGP()&#160;:&#160;<a class="el" href="group__gamepad.html#ga83dc44f64c14fcc9337d3e831fa120bd">RGFW.h</a></li>
 <li>RGFW_isReleased()&#160;:&#160;<a class="el" href="group__Input.html#ga2dec2f818a5e5ae8db36a6bb7cf8fb79">RGFW.h</a></li>
 <li>RGFW_joinThread()&#160;:&#160;<a class="el" href="group__Threads.html#ga43401d0d164edea95f9c6cd2df093473">RGFW.h</a></li>
-<li>RGFW_jsAxisfunc&#160;:&#160;<a class="el" href="group__Callbacks.html#ga2dc6da9bd677f9776dbc17559d8a25f4">RGFW.h</a></li>
-<li>RGFW_jsButtonfunc&#160;:&#160;<a class="el" href="group__Callbacks.html#ga8794775a5036413f8b2f8d9d908ca404">RGFW.h</a></li>
 <li>RGFW_keyCodeToChar()&#160;:&#160;<a class="el" href="group__Input.html#gabada7ca8fee8f18fa9b6c303bbdd5244">RGFW.h</a></li>
 <li>RGFW_keyCodeToCharAuto()&#160;:&#160;<a class="el" href="group__Input.html#ga662b2c646964192d6bfad14003c1017c">RGFW.h</a></li>
 <li>RGFW_keyfunc&#160;:&#160;<a class="el" href="group__Callbacks.html#ga73e5ef147d6e33c78165f4c31ee49ffa">RGFW.h</a></li>
@@ -160,8 +160,8 @@ $(function() {
 <li>RGFW_POINT&#160;:&#160;<a class="el" href="RGFW_8h.html#a4e893e75a8f37ccc1fe0dc388339bcdf">RGFW.h</a></li>
 <li>RGFW_readClipboard()&#160;:&#160;<a class="el" href="group__Clipboard.html#gafd7703681c9d137e58b900b448277a42">RGFW.h</a></li>
 <li>RGFW_RECT&#160;:&#160;<a class="el" href="RGFW_8h.html#a2de5caedcb0adb5dc80d9f23758e0599">RGFW.h</a></li>
-<li>RGFW_registerJoystick()&#160;:&#160;<a class="el" href="group__joystick.html#gad937c69f730c0446258b7dc6d406032e">RGFW.h</a></li>
-<li>RGFW_registerJoystickF()&#160;:&#160;<a class="el" href="group__joystick.html#ga217fb96feab90cce28156567b23d3bc0">RGFW.h</a></li>
+<li>RGFW_registerGamepad()&#160;:&#160;<a class="el" href="group__gamepad.html#ga149b4d8981621d79e8343f31a610a5e4">RGFW.h</a></li>
+<li>RGFW_registerGamepadF()&#160;:&#160;<a class="el" href="group__gamepad.html#ga649401b4ec70aa4958ae4c1360c45bd4">RGFW.h</a></li>
 <li>RGFW_SCALE_TO_MONITOR&#160;:&#160;<a class="el" href="RGFW_8h.html#a2b17686391d1a6da79f1003658b23469">RGFW.h</a></li>
 <li>RGFW_setBufferSize()&#160;:&#160;<a class="el" href="group__Window__management.html#gadce2abfbc7f38f80e4f5490e88d05593">RGFW.h</a></li>
 <li>RGFW_setClassName()&#160;:&#160;<a class="el" href="group__Window__management.html#gada5d32ffbd78e6faf68fb12be2cd5bc3">RGFW.h</a></li>
@@ -174,8 +174,8 @@ $(function() {
 <li>RGFW_setGLStencil()&#160;:&#160;<a class="el" href="group__graphics__API.html#gafbb6cf0d534d5015e94a521bf6109ceb">RGFW.h</a></li>
 <li>RGFW_setGLStereo()&#160;:&#160;<a class="el" href="group__graphics__API.html#ga5051ac31fd8d117708a396ab097c4981">RGFW.h</a></li>
 <li>RGFW_setGLVersion()&#160;:&#160;<a class="el" href="group__graphics__API.html#gaa93b4ef0de1ccc5dc6050dcb5f6cec03">RGFW.h</a></li>
-<li>RGFW_setjsAxisCallback()&#160;:&#160;<a class="el" href="group__Callbacks.html#ga53d2f71a53bd92b0a3c9709e72570fa9">RGFW.h</a></li>
-<li>RGFW_setjsButtonCallback()&#160;:&#160;<a class="el" href="group__Callbacks.html#ga0ea55c38dcd85ec5007d581349da1b2c">RGFW.h</a></li>
+<li>RGFW_setgpAxisCallback()&#160;:&#160;<a class="el" href="group__Callbacks.html#gae3100b54420bef84e23e55457ffd9e37">RGFW.h</a></li>
+<li>RGFW_setgpButtonCallback()&#160;:&#160;<a class="el" href="group__Callbacks.html#gac8f10e88928619929d3c72216697ee34">RGFW.h</a></li>
 <li>RGFW_setKeyCallback()&#160;:&#160;<a class="el" href="group__Callbacks.html#gaade2b5b8ca4d3e0d3e3fe219ff9e2795">RGFW.h</a></li>
 <li>RGFW_setMouseButtonCallback()&#160;:&#160;<a class="el" href="group__Callbacks.html#ga6bf38c7b6a245f81262c3d81b8db083e">RGFW.h</a></li>
 <li>RGFW_setMouseNotifyCallBack()&#160;:&#160;<a class="el" href="group__Callbacks.html#ga731449e179227cbc88f1e1be8dd74d43">RGFW.h</a></li>

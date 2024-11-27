@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['infocus_0',['inFocus',['../structRGFW__Event.html#a73f8902da9456948ae878640754a301e',1,'RGFW_Event']]]
+  ['h_0',['h',['../structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d',1,'RGFW_rect::h()'],['../structRGFW__area.html#acfd12a462e305d195296ce2b13f32007',1,'RGFW_area::h()']]]
 ];
