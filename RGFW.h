@@ -2291,7 +2291,7 @@ This is where OS specific stuff starts
 				while ((bytes = read(RGFW_gamepads[i], &e, sizeof(e))) > 0) {
 					switch (e.type) {
 					case JS_EVENT_BUTTON:
-						win->event.type = e.value ?gp :gp;
+						win->event.type = e.value ? RGFW_gpButtonPressed : RGFW_gpButtonReleased;
 						win->event.button = e.number;
 						RGFW_gpPressed[i][e.number + 1] = e.value;
 						RGFW_gpButtonCallback(win, i, e.number, e.value);
