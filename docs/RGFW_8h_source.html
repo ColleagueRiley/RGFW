@@ -1004,8 +1004,8 @@ $(function() {
 <div class="line"><a id="l01155" name="l01155"></a><span class="lineno"> 1155</span><span class="comment">/*</span></div>
 <div class="line"><a id="l01156" name="l01156"></a><span class="lineno"> 1156</span><span class="comment">Example to get you started :</span></div>
 <div class="line"><a id="l01157" name="l01157"></a><span class="lineno"> 1157</span><span class="comment"></span> </div>
-<div class="line"><a id="l01158" name="l01158"></a><span class="lineno"> 1158</span><span class="comment">linux : gcc main.c -lX11 -lXcursor -lGL</span></div>
-<div class="line"><a id="l01159" name="l01159"></a><span class="lineno"> 1159</span><span class="comment">windows : gcc main.c -lopengl32 -lshell32 -lgdi32</span></div>
+<div class="line"><a id="l01158" name="l01158"></a><span class="lineno"> 1158</span><span class="comment">linux : gcc main.c -lX11 -lXrandr -lGL</span></div>
+<div class="line"><a id="l01159" name="l01159"></a><span class="lineno"> 1159</span><span class="comment">windows : gcc main.c -lopengl32 -lwinmm -lshell32 -lgdi32</span></div>
 <div class="line"><a id="l01160" name="l01160"></a><span class="lineno"> 1160</span><span class="comment">macos : gcc main.c -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo</span></div>
 <div class="line"><a id="l01161" name="l01161"></a><span class="lineno"> 1161</span><span class="comment"></span> </div>
 <div class="line"><a id="l01162" name="l01162"></a><span class="lineno"> 1162</span><span class="comment">#define RGFW_IMPLEMENTATION</span></div>
@@ -1052,7 +1052,7 @@ $(function() {
 <div class="line"><a id="l01203" name="l01203"></a><span class="lineno"> 1203</span><span class="comment">        windows:</span></div>
 <div class="line"><a id="l01204" name="l01204"></a><span class="lineno"> 1204</span><span class="comment">            gcc -shared RGFW.o -lwinmm -lopengl32 -lshell32 -lgdi32 -o RGFW.dll</span></div>
 <div class="line"><a id="l01205" name="l01205"></a><span class="lineno"> 1205</span><span class="comment">        linux:</span></div>
-<div class="line"><a id="l01206" name="l01206"></a><span class="lineno"> 1206</span><span class="comment">            gcc -shared RGFW.o -lX11 -lXcursor -lGL -lXrandr -o RGFW.so</span></div>
+<div class="line"><a id="l01206" name="l01206"></a><span class="lineno"> 1206</span><span class="comment">            gcc -shared RGFW.o -lX11 -lGL -lXrandr -o RGFW.so</span></div>
 <div class="line"><a id="l01207" name="l01207"></a><span class="lineno"> 1207</span><span class="comment">        macos:</span></div>
 <div class="line"><a id="l01208" name="l01208"></a><span class="lineno"> 1208</span><span class="comment">            gcc -shared RGFW.o -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo</span></div>
 <div class="line"><a id="l01209" name="l01209"></a><span class="lineno"> 1209</span><span class="comment">*/</span></div>

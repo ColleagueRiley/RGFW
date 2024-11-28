@@ -129,8 +129,8 @@ int main() {
 .PP
 .PP
 .nf
-linux : gcc main\&.c -lX11 -lXcursor -lGL
-windows : gcc main\&.c -lopengl32 -lshell32 -lgdi32
+linux : gcc main\&.c -lX11 -lGL -lXrandr
+windows : gcc main\&.c -lopengl32 -lshell32 -lgdi32 -lwinmm
 macos : gcc main\&.c -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo
 .fi
 .PP
