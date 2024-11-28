@@ -10,7 +10,7 @@ void windowmovefunc(RGFW_window* win, RGFW_rect r) {
 
 void windowresizefunc(RGFW_window* win, RGFW_rect r) {
     if (window != win) return;
-    printf("window resized %i %i\n", r.x, r.y);
+    printf("window resized %i %i\n", r.w, r.h);
 }
 
 void windowquitfunc(RGFW_window* win) {
