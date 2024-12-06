@@ -37,6 +37,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		EXT =
 		LIB_EXT = .dylib
 		OS_DIR = /
+		NO_VULKAN = 1
 	endif
 	ifeq ($(detected_OS),Linux)
     	LIBS := -lXrandr -lX11 -lm -lGL -ldl -lpthread
