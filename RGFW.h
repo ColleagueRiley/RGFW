@@ -3773,8 +3773,8 @@ Start of Linux / Unix defines
 		}
 		
 		if (ci == NULL) {
-			float dpi_width = round((double)monitor.rect.w/((double)monitor.physW);
-			float dpi_height = round((double)monitor.rect.h/((double)monitor.physH));
+			float dpi_width = round((double)monitor.rect.w/(double)monitor.physW);
+			float dpi_height = round((double)monitor.rect.h/(double)monitor.physH);
 		
 			monitor.scaleX = (float) (dpi_width) / (float) 96;
 			monitor.scaleY = (float) (dpi_height) / (float) 96;
@@ -3792,8 +3792,8 @@ Start of Linux / Unix defines
 		monitor.rect.w = ci->width;
 		monitor.rect.h = ci->height;
 		
-		float dpi_width = round((double)monitor.rect.w/((double)monitor.physW);
-		float dpi_height = round((double)monitor.rect.h/((double)monitor.physH);
+		float dpi_width = round((double)monitor.rect.w/(double)monitor.physW);
+		float dpi_height = round((double)monitor.rect.h/(double)monitor.physH);
 
 		monitor.scaleX = (float) (dpi_width) / (float) 96;
 		monitor.scaleY = (float) (dpi_height) / (float) 96;		
