@@ -8101,8 +8101,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		monitor.rect = RGFW_RECT((int) bounds.origin.x, (int) bounds.origin.y, (int) bounds.size.width, (int) bounds.size.height);
 
 		CGSize screenSizeMM = CGDisplayScreenSize(display);
-		monitor.physW = screenSizeMM.w / 25.4;
-		monitor.physH = screenSizeMM.h / 25.4;
+		monitor.physW = (float)screenSizeMM.width / 25.4f;
+		monitor.physH = (float)screenSizeMM.height / 25.4f;
 
 		float dpi_width = round((double)monitor.rect.w/(double)monitor.physW);
 		float dpi_height = round((double)monitor.rect.h/(double)monitor.physH);
