@@ -2969,6 +2969,7 @@ Start of Linux / Unix defines
 
 					xdnd.source = E.xclient.data.l[0];
 					xdnd.version = E.xclient.data.l[1] >> 24;
+
 					xdnd.format = None;
 
 					if (xdnd.version > 5)
@@ -3157,6 +3158,8 @@ Start of Linux / Unix defines
 					XFree(data);
 
 				if (xdnd.version >= 2) {
+					XEvent reply = { ClientMessage };
+					reply.xclient.format = 32;
 					reply.xclient.message_type = XdndFinished;
 					reply.xclient.data.l[1] = result;
 					reply.xclient.data.l[2] = XdndActionCopy;
