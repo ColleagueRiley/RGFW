@@ -8097,6 +8097,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	}
 
 	static RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display) {
+		CGDisplayModeRef displayMode = CGDisplayCopyDisplayMode(displayID);
+		
 		RGFW_monitor monitor;
 
 		CGRect bounds = CGDisplayBounds(display);
@@ -8110,10 +8112,14 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		float dpi_height = round((double)monitor.rect.h/(double)monitor.physH);
 
 		// monitor.scaleX = (float) (dpi_width) / (float) 96;
-		// monitor.scaleY = (float) (dpi_height) / (float) 96;		
+		// monitor.scaleY = (float) (dpi_height) / (float) 96;	
 
-     	monitor.scaleX = (float) CGDisplayModeGetPixelWidth(display) / (float)CGDisplayModeGetWidth(display);
-     	monitor.scaleY = (float) CGDisplayModeGetPixelHeight(display) / (float)CGDisplayModeGetHeight(display);
+		CGDisplayModeRef displayMode = CGDisplayCopyDisplayMode(displayID);	
+
+     	monitor.scaleX = (float) CGDisplayModeGetPixelWidth(displayMode) / (float)CGDisplayModeGetWidth(displayMode);
+     	monitor.scaleY = (float) CGDisplayModeGetPixelHeight(displayMode) / (float)CGDisplayModeGetHeight(displayMode);
+
+		CGDisplayModeRelease(displayMode);
 
 		if (isinf(monitor.scaleX) || (monitor.scaleX > 1 && monitor.scaleX < 1.1))
 			monitor.scaleX = 1;
