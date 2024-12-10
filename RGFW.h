@@ -8096,9 +8096,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		return objc_msgSend_bool(win->src.window, sel_registerName("isZoomed"));
 	}
 
-	static RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display) {
-		CGDisplayModeRef displayMode = CGDisplayCopyDisplayMode(displayID);
-		
+	static RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display) {		
 		RGFW_monitor monitor;
 
 		CGRect bounds = CGDisplayBounds(display);
@@ -8114,7 +8112,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		// monitor.scaleX = (float) (dpi_width) / (float) 96;
 		// monitor.scaleY = (float) (dpi_height) / (float) 96;	
 
-		CGDisplayModeRef displayMode = CGDisplayCopyDisplayMode(displayID);	
+		CGDisplayModeRef displayMode = CGDisplayCopyDisplayMode(display);	
 
      	monitor.scaleX = (float) CGDisplayModeGetPixelWidth(displayMode) / (float)CGDisplayModeGetWidth(displayMode);
      	monitor.scaleY = (float) CGDisplayModeGetPixelHeight(displayMode) / (float)CGDisplayModeGetHeight(displayMode);
