@@ -8109,15 +8109,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		float dpi_width = round((double)monitor.rect.w/(double)monitor.physW);
 		float dpi_height = round((double)monitor.rect.h/(double)monitor.physH);
 
-		// monitor.scaleX = (float) (dpi_width) / (float) 96;
-		// monitor.scaleY = (float) (dpi_height) / (float) 96;	
-
-		CGDisplayModeRef displayMode = CGDisplayCopyDisplayMode(display);	
-
-     	monitor.scaleX = (float) CGDisplayModeGetPixelWidth(displayMode) / (float)CGDisplayModeGetWidth(displayMode);
-     	monitor.scaleY = (float) CGDisplayModeGetPixelHeight(displayMode) / (float)CGDisplayModeGetHeight(displayMode);
-
-		CGDisplayModeRelease(displayMode);
+		monitor.scaleX = (float) (dpi_width) / (float) 96;
+		monitor.scaleY = (float) (dpi_height) / (float) 96;	
 
 		if (isinf(monitor.scaleX) || (monitor.scaleX > 1 && monitor.scaleX < 1.1))
 			monitor.scaleX = 1;
