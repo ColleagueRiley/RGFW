@@ -30,6 +30,7 @@
 /*
 	#define RGFW_IMPLEMENTATION - (required) makes it so the source code is included
 	#define RGFW_PRINT_ERRORS - (optional) makes it so RGFW prints errors when they're found
+	#define RGFW_DEBUG - (optional) makes it so RGFW prints debug messages
 	#define RGFW_OSMESA - (optional) use OSmesa as backend (instead of system's opengl api + regular opengl)
 	#define RGFW_BUFFER - (optional) just draw directly to (RGFW) window pixel buffer that is drawn to screen (the buffer is in the RGBA format)
 	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
@@ -2422,6 +2423,10 @@ Start of Linux / Unix defines
 		
 		win->buffer = (u8*)RGFW_MALLOC(RGFW_bufferSize.w * RGFW_bufferSize.h * 4);
 
+		#ifdef RGFW_DEBUG
+		printf("RGFW INFO: createing a 4 channel %i by %i buffer\n", RGFW_bufferSize.w, RGFW_bufferSize.h);
+		#endif
+
 		#ifdef RGFW_OSMESA
 				win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
 				OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
@@ -2738,6 +2743,10 @@ Start of Linux / Unix defines
 			RGFW_window_setMouseDefault(win);
 
 			RGFW_windowsOpen++;
+
+			#ifdef RGFW_DEBUG
+			printf("RGFW INFO: a window with a rect of {%i, %i, %i, %i} \n", win->r.x, win->r.y, win->r.w, win->r.h);
+			#endif
 
 			return win; /*return newly created window*/
 		}
@@ -3783,6 +3792,10 @@ Start of Linux / Unix defines
 			monitor.scaleY = (float) (dpi_height) / (float) 96;
 			XRRFreeScreenResources(sr);
 			XCloseDisplay(display);
+
+			#ifdef RGFW_DEBUG
+			printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n", monitor.name, monitor.rect.x, monitor.rect.y, monitor.rect.w, monitor.rect.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY);
+			#endif
 			return monitor;
 		}
 	    
@@ -3811,6 +3824,10 @@ Start of Linux / Unix defines
 		XRRFreeScreenResources(sr);
 
 		XCloseDisplay(display);
+
+		#ifdef RGFW_DEBUG
+		printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n", monitor.name, monitor.rect.x, monitor.rect.y, monitor.rect.w, monitor.rect.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY);
+		#endif
 
 		return monitor;
 	}
@@ -4764,6 +4781,10 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 		
 		win->src.eventIndex = 0;
 		win->src.eventLen = 0;
+
+		#ifdef RGFW_DEBUG
+		printf("RGFW INFO: a window with a rect of {%i, %i, %i, %i} \n", win->r.x, win->r.y, win->r.w, win->r.h);
+		#endif
 		
 		return win;
 	}
@@ -5606,6 +5627,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			wglShareLists(RGFW_root->src.ctx, win->src.ctx);
 		#endif
 
+		#ifdef RGFW_DEBUG
+		printf("RGFW INFO: a window with a rect of {%i, %i, %i, %i} \n", win->r.x, win->r.y, win->r.w, win->r.h);
+		#endif
+
 		return win;
 	}
 
@@ -6208,6 +6233,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		monitor.physW = GetSystemMetrics(SM_CYSCREEN) / (float) ppiX;
 		monitor.physH = GetSystemMetrics(SM_CXSCREEN) / (float) ppiY;
 		
+		#ifdef RGFW_DEBUG
+		printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n", monitor.name, monitor.rect.x, monitor.rect.y, monitor.rect.w, monitor.rect.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY);
+		#endif
+
 		return monitor;
 	}
 	#endif /* RGFW_NO_MONITOR */
@@ -7496,6 +7525,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		NSRetain(win->src.window);
 		NSRetain(NSApp);
 
+		#ifdef RGFW_DEBUG
+		printf("RGFW INFO: a window with a rect of {%i, %i, %i, %i} \n", win->r.x, win->r.y, win->r.w, win->r.h);
+		#endif
+
 		return win;
 	}
 
@@ -8117,6 +8150,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		if (isinf(monitor.scaleY) || (monitor.scaleY > 1 && monitor.scaleY < 1.1))
 			monitor.scaleY = 1;
+
+		#ifdef RGFW_DEBUG
+		printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n", monitor.name, monitor.rect.x, monitor.rect.y, monitor.rect.w, monitor.rect.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY);
+		#endif
 
 		return monitor;
 	}
@@ -8776,6 +8813,10 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 	if (args & RGFW_FULLSCREEN) {
 		RGFW_window_resize(win, RGFW_getScreenSize());
 	}
+
+	#ifdef RGFW_DEBUG
+	printf("RGFW INFO: a window with a rect of {%i, %i, %i, %i} \n", win->r.x, win->r.y, win->r.w, win->r.h);
+	#endif
 
     return win;
 }
