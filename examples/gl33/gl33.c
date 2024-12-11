@@ -18,6 +18,7 @@
 #define RGFW_ALLOC_DROPFILES
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
+#define RGFW_DEBUG
 #include <RGFW.h>
 
 #define MULTILINE_STR(...) #__VA_ARGS__
