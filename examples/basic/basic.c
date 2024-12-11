@@ -2,6 +2,7 @@
 #define RGFW_ALLOC_DROPFILES
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
+#define RGFW_DEBUG
 
 #include "RGFW.h"
 #include <stdio.h>
