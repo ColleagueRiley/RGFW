@@ -87,11 +87,11 @@ macos : gcc main.c -framework Foundation -framework AppKit -framework OpenGL -fr
 You can find more examples [here](examples)
 
 # Officially tested Platforms 
+- Windows (ReactOS, XP, Windows 10, 11)
 - Linux
-- Raspberry PI OS
-- Windows, (XP, Windows 10, 11, ReactOS)
-- MacOS, (10.13, 10.14, 14.5) (x86_64)
+- MacOS (10.13, 10.14, 14.5) (x86_64)
 - HTML5 (webasm / Emscripten)
+- Raspberry PI OS
 
 # Supported GUI libraries
 A list of GUI libraries that can be used with RGFW can be found on the RGFW wiki [here](https://github.com/ColleagueRiley/RGFW/wiki/GUI-libraries-that-can-be-used-with-RGFW)
