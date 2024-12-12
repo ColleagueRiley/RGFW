@@ -84,7 +84,7 @@ macos : gcc main.c -framework Foundation -framework AppKit -framework OpenGL -fr
 ```
 
 ## other examples
-You can find more examples [here](https://github.com/ColleagueRiley/RGFW/tree/main/examples)
+You can find more examples [here](examples)
 
 # Officially tested Platforms 
 - Linux
