@@ -78,9 +78,9 @@ int main() {
 ```
 
 ```sh
-linux : gcc main.c -lX11 -lGL -lXrandr
-windows : gcc main.c -lopengl32 -lshell32 -lgdi32 -lwinmm
-macos : gcc main.c -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo
+linux : gcc main.c -lX11 -lGL -lXrandr -lm
+windows : gcc main.c -lopengl32 -lshell32 -lgdi32 -lwinmm -lm
+macos : gcc main.c -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo -lm
 ```
 
 ## other examples
