@@ -90,7 +90,9 @@ macos : gcc main.c -framework Foundation -framework AppKit -framework OpenGL -fr
 ```
 
 ## other examples
-You can find more examples [here](examples)
+![examples](screenshot.PNG)
+
+You can find more examples [here](examples) or [run it in your browser](https://colleagueriley.github.io/RGFW/) with emscripten
 
 # Officially tested Platforms 
 - Windows (ReactOS, XP, Windows 10, 11)
