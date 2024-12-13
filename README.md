@@ -35,114 +35,74 @@ This library does not
 1) Handle any rendering for you (other than creating your graphics context)
 2) do anything above the bare minimum in terms of functionality 
 
-# Officially tested Platforms 
-- Linux
-- Raspberry PI OS
-- Windows, (XP, Windows 10, 11, ReactOS)
-- MacOS, (10.13, 10.14, 14.5) (x86_64)
-- HTML5 (webasm / Emscripten)
-
-# Supported GUI libraries
-A list of GUI libraries that can be used with RGFW can be found on the RGFW wiki [here](https://github.com/ColleagueRiley/RGFW/wiki/GUI-libraries-that-can-be-used-with-RGFW)
-
-# examples
-![examples](https://github.com/ColleagueRiley/RGFW/blob/main/screenshot.PNG?raw=true)
-
-The examples can also [run in your browser](https://colleagueriley.github.io/RGFW/) with emscripten
-
-## compiling
-The examples can be compiled by using `make debug`, which compiles them in debug mode and then runs them\
-or `make` which simply compiles them.
-
-The dx11 example has its own Makefile functions because it is Windows only, those include
-`make DX11` and `make debugDX11`
-
-You can do CC=`compiler` to specify a specific compiler\
-Tested and supported compilers include, `gcc`, `clang`, `[x86_64 / i686-w64]-w64-mingw32-gcc`, `cl` (linux AND windows)
-
-`tcc` has also been tested but work on linux only
-
-## basic 
-A basic example can be found in `examples/basic`, it includes a basic OpenGL example of just about all of RGFW's functionalities.
-
-## events 
-The event example can be found in `examples/events`, it shows all the events and the data they send.
-
-## callbacks 
-The callback example can be found in `examples/callbacks`, it shows all the events and the data they send, but processed with callbacks instead. 
-
-## dx11
-`examples/dx11` is a minimalistic example of the use of DirectX with RGFW
-
-## gl33
-`examples/gl33` is a minimalistic example of the use of OpenGL 3.3 with RGFW, this example was made by [AICDG](https://github.com/THISISAGOODNAME)
-
-## gles2
-`examples/gles2` is a minimalistic example of the use of OpenGL ES 2 with RGFW
-
-## vk10
-`examples/vk10` is a minimalistic example of the use of Vulkan with RGFW, this example was made by [AICDG](https://github.com/THISISAGOODNAME)
-
-It also includes `examples/vk10/RGFW_vulkan.h` which can be used to create a basic vulkan context for RGFW.
-
-## basic 
-A basic example can be found in `examples/basic`, it includes a basic OpenGL example of just about all of RGFW's functionalities.
-
-## buff
-`examples/buffer` is an example that shows how you can use software rendering with RGFW using RGFW_BUFFER mode which allows you to render directly to the window's draw buffer.
-
-## PortableGL
-`examples/PortableGL` is an example that shows how you'd use RGFW with `portablegl.h`.
-
-## first person camera
-`examples/first-person-camera` is an example that shows how you'd make a game with a first person camera with RGFW
-
+# Getting started
 ## a very simple example
 ```c
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
-u8 icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF,    0xFF, 0x00, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF,   0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
-
 void keyfunc(RGFW_window* win, u32 keycode, char keyName[16], u8 lockState, u8 pressed) {
-    printf("this is probably early\n");
+    if (keycode == RGFW_Escape && pressed) {
+        RGFW_window_setShouldClose(win);
+    }
 }
 
 int main() {
-    RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_CENTER);
+    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), (u16)(RGFW_CENTER | RGFW_NO_RESIZE));
 
-    RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
-    
-    RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want 
+    RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want
 
-    i32 running = 1;
-
-    while (running) {
-        while (RGFW_window_checkEvent(win)) { // or RGFW_window_checkEvents(); if you only want callbacks
-            if (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_Escape)) {
-                running = 0;
-                break;
+    while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
+        while (RGFW_window_checkEvent(win)) {  // or RGFW_window_checkEvents(); if you only want callbacks
+            // you can either check the current event yourself
+            if (win->event.type == RGFW_mouseButtonPressed && win->event.button == RGFW_mouseLeft) {
+                printf("You clicked at x: %d, y: %d\n", win->event.point.x, win->event.point.y);
             }
 
-            if (win->event.type == RGFW_keyPressed) // this is the 'normal' way of handling an event
-                printf("This is probably late\n");
+            // or use the existing functions
+            if (RGFW_isMousePressed(win, RGFW_mouseRight)) {
+                printf("The right mouse button was clicked at x: %d, y: %d\n", win->event.point.x, win->event.point.y);
+            }
         }
         
-        glClearColor(0xFF / 255.0f, 0XFF / 255.0f, 0xFF / 255.0f, 0xFF / 255.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        // You can use modern OpenGL techniques, but this method is more straightforward for drawing just one triangle.
+        glBegin(GL_TRIANGLES);
+        glColor3f(1, 0, 0); glVertex2f(-0.6, -0.75);
+        glColor3f(0, 1, 0); glVertex2f(0.6, -0.75);
+        glColor3f(0, 0, 1); glVertex2f(0, 0.75);
+        glEnd();
 
         RGFW_window_swapBuffers(win);
     }
 
     RGFW_window_close(win);
+    return 0;
 }
 ```
 
 ```sh
-linux : gcc main.c -lX11 -lGL -lXrandr
-windows : gcc main.c -lopengl32 -lshell32 -lgdi32 -lwinmm
-macos : gcc main.c -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo
+linux : gcc main.c -lX11 -lGL -lXrandr -lm
+windows : gcc main.c -lopengl32 -lshell32 -lgdi32 -lwinmm -lm
+macos : gcc main.c -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo -lm
 ```
+
+## other examples
+![examples](screenshot.PNG)
+
+You can find more examples [here](examples) or [run it in your browser](https://colleagueriley.github.io/RGFW/) with emscripten
+
+# Officially tested Platforms 
+- Windows (ReactOS, XP, Windows 10, 11)
+- Linux
+- MacOS (10.13, 10.14, 14.5) (x86_64)
+- HTML5 (webasm / Emscripten)
+- Raspberry PI OS
+
+# Supported GUI libraries
+A list of GUI libraries that can be used with RGFW can be found on the RGFW wiki [here](https://github.com/ColleagueRiley/RGFW/wiki/GUI-libraries-that-can-be-used-with-RGFW)
 
 # Documentation
 There is a lot of in-header-documentation, but more documentation can be found at https://colleagueriley.github.io/RGFW/docs/index.html
