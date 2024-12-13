@@ -41,39 +41,45 @@ This library does not
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
-u8 icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF,    0xFF, 0x00, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF,   0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
-
 void keyfunc(RGFW_window* win, u32 keycode, char keyName[16], u8 lockState, u8 pressed) {
-    printf("this is probably early\n");
+    if (keycode == RGFW_Escape && pressed) {
+        RGFW_window_setShouldClose(win);
+    }
 }
 
 int main() {
-    RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_CENTER);
+    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), (u16)(RGFW_CENTER | RGFW_NO_RESIZE));
 
-    RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
-    
-    RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want 
+    RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want
 
-    i32 running = 1;
-
-    while (running) {
-        while (RGFW_window_checkEvent(win)) { // or RGFW_window_checkEvents(); if you only want callbacks
-            if (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_Escape)) {
-                running = 0;
-                break;
+    while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
+        while (RGFW_window_checkEvent(win)) {  // or RGFW_window_checkEvents(); if you only want callbacks
+            // you can either check the current event yourself
+            if (win->event.type == RGFW_mouseButtonPressed && win->event.button == RGFW_mouseLeft) {
+                printf("You clicked at x: %d, y: %d\n", win->event.point.x, win->event.point.y);
             }
 
-            if (win->event.type == RGFW_keyPressed) // this is the 'normal' way of handling an event
-                printf("This is probably late\n");
+            // or use the existing functions
+            if (RGFW_isMousePressed(win, RGFW_mouseRight)) {
+                printf("The right mouse button was clicked at x: %d, y: %d\n", win->event.point.x, win->event.point.y);
+            }
         }
         
-        glClearColor(0xFF / 255.0f, 0XFF / 255.0f, 0xFF / 255.0f, 0xFF / 255.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        // You can use modern OpenGL techniques, but this method is more straightforward for drawing just one triangle.
+        glBegin(GL_TRIANGLES);
+        glColor3f(1, 0, 0); glVertex2f(-0.6, -0.75);
+        glColor3f(0, 1, 0); glVertex2f(0.6, -0.75);
+        glColor3f(0, 0, 1); glVertex2f(0, 0.75);
+        glEnd();
 
         RGFW_window_swapBuffers(win);
     }
 
     RGFW_window_close(win);
+    return 0;
 }
 ```
 
