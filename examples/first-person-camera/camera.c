@@ -57,7 +57,7 @@ int main(void) {
                     break;
                 }
                 case RGFW_keyPressed:
-                    switch (win->event.keyCode) {
+                    switch (win->event.physicalKey) {
                         case RGFW_Return:
                             RGFW_window_showMouse(win, 0);
                             RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
