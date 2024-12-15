@@ -1413,24 +1413,20 @@ u32 RGFW_apiPhysicalToRGFW(u32 keycode) {
 	return RGFW_keycodes[keycode];
 }
 
-#ifdef RGFW_WINDOWS
-u32 CharLowerBuffA(char*, u32);
-#endif
-
 u32 RGFW_apiMappedToRGFW(u32 mappedKey) {
 	switch (mappedKey) {
 		#ifdef RGFW_WINDOWS
 		case 0xC0: return '`';
 		case 189: return '-';  
 		case 187: return '=';
-		case 190: return RGFW_Period;
-		case 188: return RGFW_Comma;
-		case 191: return RGFW_Slash;
-		case 219: return RGFW_Bracket;
-		case 221: return RGFW_CloseBracket; 
-		case 186: return RGFW_Semicolon;  
-		case 222: return RGFW_Apostrophe;  
-		case 322: return RGFW_BackSlash;
+		case 190: return '.';
+		case 188: return ',';
+		case 191: return '/';
+		case 219: return '[';
+		case 221: return ']'; 
+		case 186: return ';';  
+		case 222: return '\'';  
+		case 220: return '\\';
 		#else
 		case RGFW_OS_BASED_VALUE(226, 0, 0, 0, 0): return RGFW_ShiftR;
 		case RGFW_OS_BASED_VALUE(228, 0, 0, 0, 0): return RGFW_ControlR;
@@ -1490,10 +1486,6 @@ u32 RGFW_apiMappedToRGFW(u32 mappedKey) {
 		default: break;
 	}
 
-	#ifdef RGFW_WINDOWS
-	u8 ch = mappedKey;
-	CharLowerBuffA(&ch, 1);
-	#endif
 	return mappedKey;
 }
 
@@ -6019,8 +6011,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 					else win->event.physicalKey = RGFW_ControlL;
 				}
 
-				win->event.mappedKey = RGFW_apiMappedToRGFW((u32)msg.wParam);
-								
+				win->event.mappedKey = RGFW_apiMappedToRGFW(msg.wParam);
+
+				if (win->event.mappedKey >= 'A' && win->event.mappedKey <= 'Z')				
+					CharLowerBuffA(&win->event.mappedKey, 1);
+				
 				RGFW_keyboard[win->event.physicalKey].prev = RGFW_isPressed(win, win->event.physicalKey);
 
 				static char keyName[16];
@@ -6067,7 +6062,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 					else win->event.physicalKey = RGFW_ControlL;
 				}
 
-				win->event.mappedKey = RGFW_apiMappedToRGFW((u32)msg.wParam);
+				win->event.mappedKey = RGFW_apiMappedToRGFW(msg.wParam);
+				
+				if (win->event.mappedKey >= 'A' && win->event.mappedKey <= 'Z')				
+					CharLowerBuffA(&win->event.mappedKey, 1);
+					
 				RGFW_keyboard[win->event.physicalKey].prev = RGFW_isPressed(win, win->event.physicalKey);
 
 				static char keyName[16];
