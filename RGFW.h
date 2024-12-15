@@ -1413,11 +1413,89 @@ u32 RGFW_apiPhysicalToRGFW(u32 keycode) {
 	return RGFW_keycodes[keycode];
 }
 
-#ifndef RGFW_WINDOWS
-u32 RGFW_apiMappedToRGFW(u32 mappedKey) {
-	return 0;
-}
+#ifdef RGFW_WINDOWS
+u32 CharLowerBuffA(char*, u32);
 #endif
+
+u32 RGFW_apiMappedToRGFW(u32 mappedKey) {
+	switch (mappedKey) {
+		#ifdef RGFW_WINDOWS
+		case 0xC0: return '`';
+		case 189: return '-';  
+		case 187: return '=';
+		case 190: return RGFW_Period;
+		case 188: return RGFW_Comma;
+		case 191: return RGFW_Slash;
+		case 219: return RGFW_Bracket;
+		case 221: return RGFW_CloseBracket; 
+		case 186: return RGFW_Semicolon;  
+		case 222: return RGFW_Apostrophe;  
+		case 322: return RGFW_BackSlash;
+		#else
+		case RGFW_OS_BASED_VALUE(226, 0, 0, 0, 0): return RGFW_ShiftR;
+		case RGFW_OS_BASED_VALUE(228, 0, 0, 0, 0): return RGFW_ControlR;
+		case RGFW_OS_BASED_VALUE(234, 0, 0, 0, 0): return RGFW_AltR;
+		#endif
+
+		#ifndef RGFW_X11
+		case RGFW_OS_BASED_VALUE(0, 0x2D, 0, 0, 0): return RGFW_Insert;
+		#endif
+
+		case RGFW_OS_BASED_VALUE(253, 0x5B, 0, 0, 0): return RGFW_SuperL;
+		case RGFW_OS_BASED_VALUE(236, 0, 0, 0, 0): return RGFW_SuperR;
+		case RGFW_OS_BASED_VALUE(13, 0x0D, 0, 0, 0): return '\n';
+		case RGFW_OS_BASED_VALUE(227, 0x11, 0, 0, 0): return RGFW_ControlL;
+		case RGFW_OS_BASED_VALUE(229, 0x14, 0, 0, 0): return RGFW_CapsLock;
+		case RGFW_OS_BASED_VALUE(225, 0x10, 0, 0, 0): return RGFW_ShiftL;
+		case RGFW_OS_BASED_VALUE(83, 0x27, 0, 0, 0): return RGFW_Right;
+		case RGFW_OS_BASED_VALUE(81, 0x25, 0, 0, 0): return RGFW_Left;
+		case RGFW_OS_BASED_VALUE(82, 0x26, 0, 0, 0): return RGFW_Up;
+		case RGFW_OS_BASED_VALUE(84, 0x28, 0, 0, 0): return RGFW_Down;
+		case RGFW_OS_BASED_VALUE(127, 0x90, 0, 0, 0): return RGFW_Numlock;
+		case RGFW_OS_BASED_VALUE(156, 0x61, 0, 0, 0): 
+			printf("h\n");
+			return RGFW_KP_1;	
+		case RGFW_OS_BASED_VALUE(153, 0x62, 0, 0, 0): return RGFW_KP_2;
+		case RGFW_OS_BASED_VALUE(155, 0x63, 0, 0, 0): return RGFW_KP_3;
+		case RGFW_OS_BASED_VALUE(150, 0x64, 0, 0, 0): return RGFW_KP_4;
+		case RGFW_OS_BASED_VALUE(157, 0x65, 0, 0, 0): return RGFW_KP_5;
+		case RGFW_OS_BASED_VALUE(152, 0x66, 0, 0, 0): return RGFW_KP_6;
+		case RGFW_OS_BASED_VALUE(149, 0x67, 0, 0, 0): return RGFW_KP_7;
+		case RGFW_OS_BASED_VALUE(151, 0x68, 0, 0, 0): return RGFW_KP_8;
+		case RGFW_OS_BASED_VALUE(154, 0x69, 0, 0, 0): return RGFW_KP_9;
+		case RGFW_OS_BASED_VALUE(158, 0x60, 0, 0, 0): return RGFW_KP_0;
+		case RGFW_OS_BASED_VALUE(255, 0x2E, 0, 0, 0): return RGFW_Delete;
+		case RGFW_OS_BASED_VALUE(190, 0x70, 0, 0, 0): return RGFW_F1;  
+		case RGFW_OS_BASED_VALUE(191, 0x71, 0, 0, 0): return RGFW_F2;  
+		case RGFW_OS_BASED_VALUE(192, 0x72, 0, 0, 0): return RGFW_F3;  
+		case RGFW_OS_BASED_VALUE(193, 0x73, 0, 0, 0): return RGFW_F4;  
+		case RGFW_OS_BASED_VALUE(194, 0x74, 0, 0, 0): return RGFW_F5;  
+		case RGFW_OS_BASED_VALUE(195, 0x75, 0, 0, 0): return RGFW_F6;  
+		case RGFW_OS_BASED_VALUE(196, 0x76, 0, 0, 0): return RGFW_F7;  
+		case RGFW_OS_BASED_VALUE(197, 0x77, 0, 0, 0): return RGFW_F8;
+		case RGFW_OS_BASED_VALUE(198, 0x78, 0, 0, 0): return RGFW_F9;
+		case RGFW_OS_BASED_VALUE(199, 0x79, 0, 0, 0): return RGFW_F10;
+		case RGFW_OS_BASED_VALUE(200, 0x7A, 0, 0, 0): return RGFW_F11;
+		case RGFW_OS_BASED_VALUE(201, 0x7B, 0, 0, 0): return RGFW_F12;
+		case RGFW_OS_BASED_VALUE(87, 0x23, 0, 0, 0): return RGFW_End;
+		case RGFW_OS_BASED_VALUE(85, 336, 0, 0, 0): return RGFW_PageUp;
+		case RGFW_OS_BASED_VALUE(86, 325, 0, 0, 0): return RGFW_PageDown;
+		case RGFW_OS_BASED_VALUE(80, 0x24, 0, 0, 0): return RGFW_Home;
+		case RGFW_OS_BASED_VALUE(175, 0x6F, 0, 0, 0): return RGFW_KP_Slash;
+		case RGFW_OS_BASED_VALUE(170, 0x6A, 0, 0, 0): return RGFW_Multiply;  
+		case RGFW_OS_BASED_VALUE(173, 0x6D, 0, 0, 0): return RGFW_KP_Minus;  
+		case RGFW_OS_BASED_VALUE(159, 0x6E, 0, 0, 0): return RGFW_KP_Period;  
+		case RGFW_OS_BASED_VALUE(141, 0x92, 0, 0, 0): return RGFW_KP_Return;
+		case RGFW_OS_BASED_VALUE(233, 0x12, 0, 0, 0): return RGFW_AltL; 
+		default: break;
+	}
+
+	#ifdef RGFW_WINDOWS
+	u8 ch = mappedKey;
+	CharLowerBuffA(&ch, 1);
+	#endif
+	return mappedKey;
+}
 
 RGFWDEF void RGFW_resetKey(void);
 void RGFW_resetKey(void) {
@@ -2843,16 +2921,20 @@ Start of Linux / Unix defines
 					XEvent NE;
 					XPeekEvent((Display*) win->src.display, &NE);
 
-					if (E.xkey.time == NE.xkey.time && E.xkey.physicalKey == NE.xkey.keycode) /* check if the current and next are both the same*/
+					if (E.xkey.time == NE.xkey.time && E.xkey.keycode == NE.xkey.keycode) /* check if the current and next are both the same*/
 						win->event.repeat = RGFW_TRUE;
 				}
 
 				/* set event key data */
-				KeySym sym = (KeySym)XkbKeycodeToKeysym((Display*) win->src.display, E.xkey.physicalKey, 0, E.xkey.state & ShiftMask ? 1 : 0);
 				win->event.physicalKey = RGFW_apiPhysicalToRGFW(E.xkey.keycode);
 
-				win->event.physicalKey = RGFW_apiPhysicalToRGFW(mappedKey);
+				KeySym mappedKey = (KeySym)XkbKeycodeToKeysym((Display*) win->src.display, E.xkey.keycode, 0, 0);
+				if (mappedKey == XK_Insert)
+					mappedKey = RGFW_Insert;
+				else
+					win->event.mappedKey = RGFW_apiMappedToRGFW((u8)mappedKey);
 				
+				KeySym sym = (KeySym)XkbKeycodeToKeysym((Display*) win->src.display, E.xkey.keycode, 0, E.xkey.state & ShiftMask ? 1 : 0);
 				char* str = (char*)XKeysymToString(sym);
 				if (str != NULL)
 					strncpy(win->event.keyName, str, 16);
@@ -5238,73 +5320,6 @@ static HMODULE wglinstance = NULL;
 		}
 	}
 
-	u32 RGFW_apiMappedToRGFW(u32 mappedKey) {
-		switch (mappedKey) {
-			case VK_CONTROL: return RGFW_ControlL;
-			case VK_CAPITAL: return RGFW_CapsLock;
-			case VK_OEM_3: return '`';
-			case VK_SHIFT: return RGFW_ShiftL;
-			case VK_RIGHT: return RGFW_Right;
-			case VK_LEFT: return RGFW_Left;
-			case VK_DOWN: return RGFW_Down;
-			case VK_UP: return RGFW_Up;
-			case VK_RETURN: return '\n';
-			case 190: return RGFW_Period;
-			case 188: return RGFW_Comma;
-			case 191: return RGFW_Slash;
-			case 219: return RGFW_Bracket;
-			case 221: return RGFW_CloseBracket; 
-			case 186: return RGFW_Semicolon;  
-			case 222: return RGFW_Apostrophe;  
-			case 322: return RGFW_BackSlash;
-			case 0x2E: return RGFW_Delete; 
-			case 0x90: return RGFW_Numlock;
-			case 0x6F: return RGFW_KP_Slash;
-			case 0x6A: return RGFW_Multiply;  
-			case 0x6D: return RGFW_KP_Minus;  
-			case 0x61: return RGFW_KP_1;
-			case 0x62: return RGFW_KP_2;
-			case 0x63: return RGFW_KP_3;
-			case 0x64: return RGFW_KP_4;
-			case 0x65: return RGFW_KP_5;
-			case 0x66: return RGFW_KP_6;
-			case 0x67: return RGFW_KP_7;
-			case 0x68: return RGFW_KP_8;
-			case 0x69: return RGFW_KP_9;
-			case 0x60: return RGFW_KP_0;
-			case 0x6E: return RGFW_KP_Period;  
-			case 0x92: return RGFW_KP_Return;
-			case 189: return RGFW_Minus;  
-			case 187: return RGFW_Equals;
-			case 0x12: return RGFW_AltL; 
-			case 0x5B: return RGFW_SuperL;
-			case 0x70: return RGFW_F1;  
-			case 0x71: return RGFW_F2;  
-			case 0x72: return RGFW_F3;  
-			case 0x73: return RGFW_F4;  
-			case 0x74: return RGFW_F5;  
-			case 0x75: return RGFW_F6;  
-			case 0x76: return RGFW_F7;  
-			case 0x77: return RGFW_F8;
-			case 0x78: return RGFW_F9;
-			case 0x79: return RGFW_F10;
-			case 0x7A: return RGFW_F11;
-			case 0x7B: return RGFW_F12;
-			case 0x2D: return RGFW_Insert;
-			case 0x23: return RGFW_End;
-			case 336: return RGFW_PageUp;
-			case 325: return RGFW_PageDown;
-			case 0x24: return RGFW_Home;
-			default: break;
-		}
-		printf("%i\n", mappedKey);
-
-		u8 ch = mappedKey;
-		CharLowerBuffA(&ch, 1);
-
-		return ch;
-	}
-	
 	#ifndef RGFW_NO_DPI
 	static HMODULE RGFW_Shcore_dll = NULL;
 	typedef HRESULT (WINAPI * PFN_GetDpiForMonitor)(HMONITOR,MONITOR_DPI_TYPE,UINT*,UINT*);

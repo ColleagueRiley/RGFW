@@ -59,12 +59,12 @@ void windowrefreshfunc(RGFW_window* win) {
     printf("refresh\n");
 }
 
-void keyfunc(RGFW_window* win, u32 keycode, u32 scancode, char keyName[16], u8 lockState, u8 pressed) {
+void keyfunc(RGFW_window* win, u32 physicalKey, u32 mappedKey, char keyName[16], u8 lockState, u8 pressed) {
     if (window != win) return;
     if (pressed)
-        printf("key pressed : %i (%c) scan : %i (%c): %s with lockState : %i\n", keycode, keycode, scancode, scancode, keyName, lockState);
+        printf("key pressed : %i (%c) mapped : %i (%c): %s with lockState : %i\n", physicalKey, physicalKey, mappedKey, mappedKey, keyName, lockState);
     else
-        printf("key released : %i (%c) scan: %i (%c): %s with lockState : %i\n", keycode, keycode, scancode, scancode, keyName, lockState);
+        printf("key released : %i (%c) mapped: %i (%c): %s with lockState : %i\n", physicalKey, physicalKey, mappedKey, mappedKey, keyName, lockState);
 }
 
 void mousebuttonfunc(RGFW_window* win, u8 button, double scroll, u8 pressed) {
