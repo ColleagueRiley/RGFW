@@ -1414,9 +1414,6 @@ u32 RGFW_apiPhysicalToRGFW(u32 keycode) {
 }
 
 u32 RGFW_apiMappedToRGFW(u32 mappedKey) {
-	if (mappedKey >= 'A' && mappedKey <= 'Z')				
-		mappedKey += 'a' - 'A';
-	
 #ifndef RGFW_MACOS
 	switch (mappedKey) {
 		#ifdef RGFW_WINDOWS
@@ -1489,6 +1486,10 @@ u32 RGFW_apiMappedToRGFW(u32 mappedKey) {
 		default: break;
 	}
 #endif
+
+	if (mappedKey >= 'A' && mappedKey <= 'Z')				
+		mappedKey += 'a' - 'A';
+	
 	return mappedKey;
 }
 
@@ -6016,9 +6017,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 				win->event.mappedKey = RGFW_apiMappedToRGFW(msg.wParam);
 
-				if (win->event.mappedKey >= 'A' && win->event.mappedKey <= 'Z')				
-					CharLowerBuffA(&win->event.mappedKey, 1);
-				
 				RGFW_keyboard[win->event.physicalKey].prev = RGFW_isPressed(win, win->event.physicalKey);
 
 				static char keyName[16];
@@ -6067,9 +6065,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 				win->event.mappedKey = RGFW_apiMappedToRGFW(msg.wParam);
 				
-				if (win->event.mappedKey >= 'A' && win->event.mappedKey <= 'Z')				
-					CharLowerBuffA(&win->event.mappedKey, 1);
-					
 				RGFW_keyboard[win->event.physicalKey].prev = RGFW_isPressed(win, win->event.physicalKey);
 
 				static char keyName[16];
