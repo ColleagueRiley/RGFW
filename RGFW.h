@@ -1414,6 +1414,10 @@ u32 RGFW_apiPhysicalToRGFW(u32 keycode) {
 }
 
 u32 RGFW_apiMappedToRGFW(u32 mappedKey) {
+	if (mappedKey >= 'A' && mappedKey <= 'Z')				
+		mappedKey += 'a' - 'A';
+	
+#ifndef RGFW_MACOS
 	switch (mappedKey) {
 		#ifdef RGFW_WINDOWS
 		case 0xC0: return '`';
@@ -1484,7 +1488,7 @@ u32 RGFW_apiMappedToRGFW(u32 mappedKey) {
 		case RGFW_OS_BASED_VALUE(233, 0x12, 0, 0, 0): return RGFW_AltL; 
 		default: break;
 	}
-
+#endif
 	return mappedKey;
 }
 
@@ -7821,7 +7825,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 
 		if (e) {
-			objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
+			((void (*)(id, SEL, id, bool))objc_msgSend)
+				(NSApp, sel_registerName("postEvent:atStart:"), e, 1);		
 		}
 
 		objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
@@ -7895,7 +7900,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 			case NSEventTypeKeyDown: {
 				u32 key = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
-				win->event.mappedKey = RGFW_apiPhysicalToRGFW((u32)mappedKey);
+				
+				u32 mappedKey = *((u32*)((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));	
+
+				win->event.mappedKey = RGFW_apiMappedToRGFW((u8)mappedKey);
+
 				win->event.physicalKey = RGFW_apiPhysicalToRGFW(key);
 				RGFW_keyboard[win->event.physicalKey].prev = RGFW_keyboard[win->event.physicalKey].current;
 
@@ -7910,10 +7919,13 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			}
 
 			case NSEventTypeKeyUp: {
-				u32 key = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
-				win->event.mappedKey = RGFW_apiPhysicalToRGFW((u32)mappedKey);
+				u32 key = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));			
+	
+				u32 mappedKey = *((u32*)((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));	
+				win->event.mappedKey = RGFW_apiMappedToRGFW((u8)mappedKey);
+			
 				win->event.physicalKey = RGFW_apiPhysicalToRGFW(key);
-
+				
 				RGFW_keyboard[win->event.physicalKey].prev = RGFW_keyboard[win->event.physicalKey].current;
 
 				win->event.type = RGFW_keyReleased;
