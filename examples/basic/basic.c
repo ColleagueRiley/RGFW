@@ -52,7 +52,7 @@ int main(void) {
 
     while (running && !RGFW_isPressed(win, RGFW_Escape)) {   
         #ifdef __APPLE__
-        RGFW_window_checkEvent(win2);
+        if (win2) RGFW_window_checkEvent(win2);
         #endif
 
         RGFW_window_eventWait(win, RGFW_NEXT);
@@ -168,6 +168,10 @@ void* loop2(void* args) {
 
     running = 0;
     RGFW_window_close(win);
+	
+	#ifdef __APPLE__
+	win2 = NULL;
+	#endif
 
     #ifdef RGFW_WINDOWS
     return 0;
