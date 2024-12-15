@@ -1087,7 +1087,64 @@ RGFWDEF void RGFW_sleep(u64 milisecond); /*!< sleep for a set time */
 
 typedef RGFW_ENUM(u8, RGFW_Key) {
 	RGFW_KEY_NULL = 0,
-	RGFW_Escape,
+	RGFW_Escape = '\033',
+	RGFW_Backtick = '`',
+	RGFW_0 = '0',
+	RGFW_1 = '1',
+	RGFW_2 = '2',
+	RGFW_3 = '3',
+	RGFW_4 = '4',
+	RGFW_5 = '5',
+	RGFW_6 = '6',
+	RGFW_7 = '7',
+	RGFW_8 = '8',
+	RGFW_9 = '9',
+
+	RGFW_Minus = '-',
+	RGFW_Equals = '=',
+	RGFW_BackSpace = '\b',
+	RGFW_Tab = '\t',
+	RGFW_Space = ' ',
+
+	RGFW_a = 'a',
+	RGFW_b = 'b',
+	RGFW_c = 'c',
+	RGFW_d = 'd',
+	RGFW_e = 'e',
+	RGFW_f = 'f',
+	RGFW_g = 'g',
+	RGFW_h = 'h',
+	RGFW_i = 'i',
+	RGFW_j = 'j',
+	RGFW_k = 'k',
+	RGFW_l = 'l',
+	RGFW_m = 'm',
+	RGFW_n = 'n',
+	RGFW_o = 'o',
+	RGFW_p = 'p',
+	RGFW_q = 'q',
+	RGFW_r = 'r',
+	RGFW_s = 's',
+	RGFW_t = 't',
+	RGFW_u = 'u',
+	RGFW_v = 'v',
+	RGFW_w = 'w',
+	RGFW_x = 'x',
+	RGFW_y = 'y',
+	RGFW_z = 'z',
+
+	RGFW_Period = '.',
+	RGFW_Comma = ',',
+	RGFW_Slash = '/',
+	RGFW_Bracket = '{',
+	RGFW_CloseBracket = '}',
+	RGFW_Semicolon = ';',
+	RGFW_Apostrophe = '\'',
+	RGFW_BackSlash = '\\',
+	RGFW_Return = '\n',
+	
+	RGFW_Delete = '\177', /* 127 */
+
 	RGFW_F1,
 	RGFW_F2,
 	RGFW_F3,
@@ -1101,23 +1158,6 @@ typedef RGFW_ENUM(u8, RGFW_Key) {
 	RGFW_F11,
 	RGFW_F12,
 
-	RGFW_Backtick,
-
-	RGFW_0,
-	RGFW_1,
-	RGFW_2,
-	RGFW_3,
-	RGFW_4,
-	RGFW_5,
-	RGFW_6,
-	RGFW_7,
-	RGFW_8,
-	RGFW_9,
-
-	RGFW_Minus,
-	RGFW_Equals,
-	RGFW_BackSpace,
-	RGFW_Tab,
 	RGFW_CapsLock,
 	RGFW_ShiftL,
 	RGFW_ControlL,
@@ -1127,51 +1167,11 @@ typedef RGFW_ENUM(u8, RGFW_Key) {
 	RGFW_ControlR,
 	RGFW_AltR,
 	RGFW_SuperR,
-	RGFW_Space,
-
-	RGFW_a,
-	RGFW_b,
-	RGFW_c,
-	RGFW_d,
-	RGFW_e,
-	RGFW_f,
-	RGFW_g,
-	RGFW_h,
-	RGFW_i,
-	RGFW_j,
-	RGFW_k,
-	RGFW_l,
-	RGFW_m,
-	RGFW_n,
-	RGFW_o,
-	RGFW_p,
-	RGFW_q,
-	RGFW_r,
-	RGFW_s,
-	RGFW_t,
-	RGFW_u,
-	RGFW_v,
-	RGFW_w,
-	RGFW_x,
-	RGFW_y,
-	RGFW_z,
-
-	RGFW_Period,
-	RGFW_Comma,
-	RGFW_Slash,
-	RGFW_Bracket,
-	RGFW_CloseBracket,
-	RGFW_Semicolon,
-	RGFW_Return,
-	RGFW_Quote,
-	RGFW_BackSlash,
-
 	RGFW_Up,
 	RGFW_Down,
 	RGFW_Left,
 	RGFW_Right,
 
-	RGFW_Delete,
 	RGFW_Insert,
 	RGFW_End,
 	RGFW_Home,
@@ -1182,10 +1182,10 @@ typedef RGFW_ENUM(u8, RGFW_Key) {
 	RGFW_KP_Slash,
 	RGFW_Multiply,
 	RGFW_KP_Minus,
-	RGFW_KP_1,
-	RGFW_KP_2,
-	RGFW_KP_3,
-	RGFW_KP_4,
+	RGFW_KP_1, 
+	RGFW_KP_2, 
+	RGFW_KP_3, 
+	RGFW_KP_4, 
 	RGFW_KP_5,
 	RGFW_KP_6,
 	RGFW_KP_7,
@@ -1319,7 +1319,7 @@ void RGFW_init_keys(void) {
 	RGFW_MAP [RGFW_OS_BASED_VALUE(34, 0x01A, 33, DOM_VK_OPEN_BRACKET, KEY_LEFTBRACE)] = RGFW_Bracket      			RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(35, 0x01B, 30, DOM_VK_CLOSE_BRACKET, KEY_RIGHTBRACE)] = RGFW_CloseBracket             RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(47, 0x027, 41, DOM_VK_SEMICOLON, KEY_SEMICOLON)] = RGFW_Semicolon                 RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(48, 0x028, 39, DOM_VK_QUOTE, KEY_APOSTROPHE)] = RGFW_Quote                 			RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(48, 0x028, 39, DOM_VK_QUOTE, KEY_APOSTROPHE)] = RGFW_Apostrophe                 			RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(51, 0x02B, 42, DOM_VK_BACK_SLASH, KEY_BACKSLASH)] = RGFW_BackSlash,
 	
 	RGFW_MAP [RGFW_OS_BASED_VALUE(36, 0x01C, 36, DOM_VK_RETURN, KEY_ENTER)] = RGFW_Return              RGFW_NEXT
@@ -5239,7 +5239,70 @@ static HMODULE wglinstance = NULL;
 	}
 
 	u32 RGFW_apiMappedToRGFW(u32 mappedKey) {
-		return RGFW_apiPhysicalToRGFW(MapVirtualKeyW((u32)mappedKey, MAPVK_VSC_TO_VK));
+		switch (mappedKey) {
+			case VK_CONTROL: return RGFW_ControlL;
+			case VK_CAPITAL: return RGFW_CapsLock;
+			case VK_OEM_3: return '`';
+			case VK_SHIFT: return RGFW_ShiftL;
+			case VK_RIGHT: return RGFW_Right;
+			case VK_LEFT: return RGFW_Left;
+			case VK_DOWN: return RGFW_Down;
+			case VK_UP: return RGFW_Up;
+			case VK_RETURN: return '\n';
+			case 190: return RGFW_Period;
+			case 188: return RGFW_Comma;
+			case 191: return RGFW_Slash;
+			case 219: return RGFW_Bracket;
+			case 221: return RGFW_CloseBracket; 
+			case 186: return RGFW_Semicolon;  
+			case 222: return RGFW_Apostrophe;  
+			case 322: return RGFW_BackSlash;
+			case 0x2E: return RGFW_Delete; 
+			case 0x90: return RGFW_Numlock;
+			case 0x6F: return RGFW_KP_Slash;
+			case 0x6A: return RGFW_Multiply;  
+			case 0x6D: return RGFW_KP_Minus;  
+			case 0x61: return RGFW_KP_1;
+			case 0x62: return RGFW_KP_2;
+			case 0x63: return RGFW_KP_3;
+			case 0x64: return RGFW_KP_4;
+			case 0x65: return RGFW_KP_5;
+			case 0x66: return RGFW_KP_6;
+			case 0x67: return RGFW_KP_7;
+			case 0x68: return RGFW_KP_8;
+			case 0x69: return RGFW_KP_9;
+			case 0x60: return RGFW_KP_0;
+			case 0x6E: return RGFW_KP_Period;  
+			case 0x92: return RGFW_KP_Return;
+			case 189: return RGFW_Minus;  
+			case 187: return RGFW_Equals;
+			case 0x12: return RGFW_AltL; 
+			case 0x5B: return RGFW_SuperL;
+			case 0x70: return RGFW_F1;  
+			case 0x71: return RGFW_F2;  
+			case 0x72: return RGFW_F3;  
+			case 0x73: return RGFW_F4;  
+			case 0x74: return RGFW_F5;  
+			case 0x75: return RGFW_F6;  
+			case 0x76: return RGFW_F7;  
+			case 0x77: return RGFW_F8;
+			case 0x78: return RGFW_F9;
+			case 0x79: return RGFW_F10;
+			case 0x7A: return RGFW_F11;
+			case 0x7B: return RGFW_F12;
+			case 0x2D: return RGFW_Insert;
+			case 0x23: return RGFW_End;
+			case 336: return RGFW_PageUp;
+			case 325: return RGFW_PageDown;
+			case 0x24: return RGFW_Home;
+			default: break;
+		}
+		printf("%i\n", mappedKey);
+
+		u8 ch = mappedKey;
+		CharLowerBuffA(&ch, 1);
+
+		return ch;
 	}
 	
 	#ifndef RGFW_NO_DPI
@@ -5990,7 +6053,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				}
 
 				win->event.mappedKey = RGFW_apiMappedToRGFW((u32)msg.wParam);
-				
 				RGFW_keyboard[win->event.physicalKey].prev = RGFW_isPressed(win, win->event.physicalKey);
 
 				static char keyName[16];
