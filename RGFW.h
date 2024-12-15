@@ -208,11 +208,7 @@ int main() {
 #endif 
 
 #ifndef RGFWDEF
-	#ifdef __clang__
-		#define RGFWDEF static inline
-	#else
-		#define RGFWDEF inline
-	#endif
+	#define RGFWDEF inline
 #endif
 
 #ifndef RGFW_ENUM
@@ -1960,7 +1956,7 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 	MacOS and Windows do this using a structure called a "pixel format" 
 	X11 calls it a "Visual"
 	This function returns the attributes for the format we want */
-	static u32* RGFW_initFormatAttribs(u32 useSoftware) {
+	u32* RGFW_initFormatAttribs(u32 useSoftware) {
 		RGFW_UNUSED(useSoftware);
 		static u32 attribs[] = {
 								#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
