@@ -7238,7 +7238,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
     	return false;
 	}
 
-	static void NSMoveToResourceDir(void) {
+	void NSMoveToResourceDir(void) {
 		/* sourced from glfw */
 		char resourcesPath[255];
 
@@ -8159,7 +8159,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	}
 
 
-	static RGFW_monitor RGFW_monitors[7];
+	RGFW_monitor RGFW_monitors[7];
 
 	RGFW_monitor* RGFW_getMonitors(void) {
 		static CGDirectDisplayID displays[7];
