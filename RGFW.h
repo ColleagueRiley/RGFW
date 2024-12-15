@@ -8129,7 +8129,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		return objc_msgSend_bool(win->src.window, sel_registerName("isZoomed"));
 	}
 
-	static RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display) {		
+	RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display) {		
 		RGFW_monitor monitor;
 
 		CGRect bounds = CGDisplayBounds(display);
