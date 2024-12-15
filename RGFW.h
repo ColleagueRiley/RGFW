@@ -1449,7 +1449,6 @@ u32 RGFW_apiMappedToRGFW(u32 mappedKey) {
 		case RGFW_OS_BASED_VALUE(84, 0x28, 0, 0, 0): return RGFW_Down;
 		case RGFW_OS_BASED_VALUE(127, 0x90, 0, 0, 0): return RGFW_Numlock;
 		case RGFW_OS_BASED_VALUE(156, 0x61, 0, 0, 0): 
-			printf("h\n");
 			return RGFW_KP_1;	
 		case RGFW_OS_BASED_VALUE(153, 0x62, 0, 0, 0): return RGFW_KP_2;
 		case RGFW_OS_BASED_VALUE(155, 0x63, 0, 0, 0): return RGFW_KP_3;
