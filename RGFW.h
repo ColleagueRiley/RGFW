@@ -1414,7 +1414,12 @@ u32 RGFW_apiPhysicalToRGFW(u32 keycode) {
 }
 
 u32 RGFW_apiMappedToRGFW(u32 mappedKey) {
-#ifndef RGFW_MACOS
+	#if defined(RGFW_WAYLAND)
+		#undef RGFW_OS_BASED_VALUE
+		#define RGFW_OS_BASED_VALUE(l, w, m, h, ww) l 
+	#endif
+
+#if !defined(RGFW_MACOS)
 	switch (mappedKey) {
 		#ifdef RGFW_WINDOWS
 		case 0xC0: return '`';
@@ -1429,12 +1434,12 @@ u32 RGFW_apiMappedToRGFW(u32 mappedKey) {
 		case 222: return '\'';  
 		case 220: return '\\';
 		#else
-		case RGFW_OS_BASED_VALUE(226, 0, 0, 0, 0): return RGFW_ShiftR;
-		case RGFW_OS_BASED_VALUE(228, 0, 0, 0, 0): return RGFW_ControlR;
-		case RGFW_OS_BASED_VALUE(234, 0, 0, 0, 0): return RGFW_AltR;
+		case RGFW_OS_BASED_VALUE(226, 0, 0, 0, 226): return RGFW_ShiftR;
+		case RGFW_OS_BASED_VALUE(228, 0, 0, 0, 228): return RGFW_ControlR;
+		case RGFW_OS_BASED_VALUE(234, 0, 0, 0, 234): return RGFW_AltR;
 		#endif
 
-		#ifndef RGFW_X11
+		#if !defined(RGFW_X11) && !defined(RGFW_WAYLAND)
 		case RGFW_OS_BASED_VALUE(0, 0x2D, 0, 0, 0): return RGFW_Insert;
 		#endif
 
@@ -1449,8 +1454,7 @@ u32 RGFW_apiMappedToRGFW(u32 mappedKey) {
 		case RGFW_OS_BASED_VALUE(82, 0x26, 0, 0, 0): return RGFW_Up;
 		case RGFW_OS_BASED_VALUE(84, 0x28, 0, 0, 0): return RGFW_Down;
 		case RGFW_OS_BASED_VALUE(127, 0x90, 0, 0, 0): return RGFW_Numlock;
-		case RGFW_OS_BASED_VALUE(156, 0x61, 0, 0, 0): 
-			return RGFW_KP_1;	
+		case RGFW_OS_BASED_VALUE(156, 0x61, 0, 0, 0): return RGFW_KP_1;	
 		case RGFW_OS_BASED_VALUE(153, 0x62, 0, 0, 0): return RGFW_KP_2;
 		case RGFW_OS_BASED_VALUE(155, 0x63, 0, 0, 0): return RGFW_KP_3;
 		case RGFW_OS_BASED_VALUE(150, 0x64, 0, 0, 0): return RGFW_KP_4;
@@ -1486,6 +1490,11 @@ u32 RGFW_apiMappedToRGFW(u32 mappedKey) {
 		default: break;
 	}
 #endif
+
+	#if defined(RGFW_WAYLAND)
+		#undef RGFW_OS_BASED_VALUE
+		#define RGFW_OS_BASED_VALUE(l, w, m, h, ww) ww 
+	#endif
 
 	if (mappedKey >= 'A' && mappedKey <= 'Z')				
 		mappedKey += 'a' - 'A';
@@ -4526,6 +4535,8 @@ static void keyboard_key (void *data, struct wl_keyboard *keyboard, uint32_t ser
 	char name[16];
 	xkb_keysym_get_name(keysym, name, 16);
 
+	u32 mappedKey = (u8)RGFW_apiMappedToRGFW((u8)keysym);
+
 	u32 RGFW_key = RGFW_apiPhysicalToRGFW(key);
 	RGFW_keyboard[RGFW_key].prev = RGFW_keyboard[RGFW_key].current;
 	RGFW_keyboard[RGFW_key].current = state;
@@ -4538,7 +4549,7 @@ static void keyboard_key (void *data, struct wl_keyboard *keyboard, uint32_t ser
 	
 	RGFW_updateLockState(RGFW_key_win, xkb_keymap_mod_get_index(keymap, "Lock"), xkb_keymap_mod_get_index(keymap, "Mod2"));
 
-	RGFW_keyCallback(RGFW_key_win, RGFW_key, name, RGFW_key_win->event.lockState, state);
+	RGFW_keyCallback(RGFW_key_win, RGFW_key, mappedKey, name, RGFW_key_win->event.lockState, state);
 }
 static void keyboard_modifiers (void *data, struct wl_keyboard *keyboard, uint32_t serial, uint32_t mods_depressed, uint32_t mods_latched, uint32_t mods_locked, uint32_t group) {
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(time); 
