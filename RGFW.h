@@ -4434,6 +4434,9 @@ static void keyboard_key (void *data, struct wl_keyboard *keyboard, uint32_t ser
 	char name[16];
 	xkb_keysym_get_name(keysym, name, 16);
 
+
+	printf("%c\n", keysym);
+
 	u32 RGFW_key = RGFW_apiKeyCodeToRGFW(key);
 	RGFW_keyboard[RGFW_key].prev = RGFW_keyboard[RGFW_key].current;
 	RGFW_keyboard[RGFW_key].current = state;
@@ -9135,6 +9138,8 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win) return 
 	void RGFW_joinThread(RGFW_thread thread) { pthread_join((pthread_t) thread, NULL); }
 #ifdef __linux__
 	void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { pthread_setschedprio((pthread_t)thread, priority); }
+#else
+	void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { RGFW_UNUSED(thread); RGFW_UNUSED(priority); }
 #endif
 #endif
 
