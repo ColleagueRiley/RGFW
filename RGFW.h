@@ -8713,125 +8713,130 @@ EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamep
     return 1; // The event was consumed by the callback handler
 }
 
+
+u32 RGFW_webasmPhysicalToRGFW(u32 hash) {
+	switch(hash) {             /* 0x0000 */
+		case 0x67243A2DU /* Escape             */: return RGFW_Escape;               /* 0x0001 */
+		case 0x67251058U /* Digit0             */: return RGFW_0;                    /* 0x0002 */
+		case 0x67251059U /* Digit1             */: return RGFW_1;                    /* 0x0003 */
+		case 0x6725105AU /* Digit2             */: return RGFW_2;                    /* 0x0004 */
+		case 0x6725105BU /* Digit3             */: return RGFW_3;                    /* 0x0005 */
+		case 0x6725105CU /* Digit4             */: return RGFW_4;                    /* 0x0006 */
+		case 0x6725105DU /* Digit5             */: return RGFW_5;                    /* 0x0007 */
+		case 0x6725105EU /* Digit6             */: return RGFW_6;                    /* 0x0008 */
+		case 0x6725105FU /* Digit7             */: return RGFW_7;                    /* 0x0009 */
+		case 0x67251050U /* Digit8             */: return RGFW_8;                    /* 0x000A */
+		case 0x67251051U /* Digit9             */: return RGFW_9;                    /* 0x000B */
+		case 0x92E14DD3U /* Minus              */: return RGFW_Minus;                /* 0x000C */
+		case 0x92E1FBACU /* Equal              */: return RGFW_Equals;                /* 0x000D */
+		case 0x36BF1CB5U /* Backspace          */: return RGFW_BackSpace;            /* 0x000E */
+		case 0x7B8E51E2U /* Tab                */: return RGFW_Tab;                  /* 0x000F */
+		case 0x2C595B51U /* KeyQ               */: return RGFW_q;                    /* 0x0010 */
+		case 0x2C595B57U /* KeyW               */: return RGFW_w;                    /* 0x0011 */
+		case 0x2C595B45U /* KeyE               */: return RGFW_e;                    /* 0x0012 */
+		case 0x2C595B52U /* KeyR               */: return RGFW_r;                    /* 0x0013 */
+		case 0x2C595B54U /* KeyT               */: return RGFW_t;                    /* 0x0014 */
+		case 0x2C595B59U /* KeyY               */: return RGFW_y;                    /* 0x0015 */
+		case 0x2C595B55U /* KeyU               */: return RGFW_u;                    /* 0x0016 */
+		case 0x2C595B4FU /* KeyO               */: return RGFW_o;                    /* 0x0018 */
+		case 0x2C595B50U /* KeyP               */: return RGFW_p;                    /* 0x0019 */
+		case 0x45D8158CU /* BracketLeft        */: return RGFW_CloseBracket;         /* 0x001A */
+		case 0xDEEABF7CU /* BracketRight       */: return RGFW_Bracket;        /* 0x001B */
+		case 0x92E1C5D2U /* Enter              */: return RGFW_Return;                /* 0x001C */
+		case 0xE058958CU /* ControlLeft        */: return RGFW_ControlL;         /* 0x001D */
+		case 0x2C595B41U /* KeyA               */: return RGFW_a;                    /* 0x001E */
+		case 0x2C595B53U /* KeyS               */: return RGFW_s;                    /* 0x001F */
+		case 0x2C595B44U /* KeyD               */: return RGFW_d;                    /* 0x0020 */
+		case 0x2C595B46U /* KeyF               */: return RGFW_f;                    /* 0x0021 */
+		case 0x2C595B47U /* KeyG               */: return RGFW_g;                    /* 0x0022 */
+		case 0x2C595B48U /* KeyH               */: return RGFW_h;                    /* 0x0023 */
+		case 0x2C595B4AU /* KeyJ               */: return RGFW_j;                    /* 0x0024 */
+		case 0x2C595B4BU /* KeyK               */: return RGFW_k;                    /* 0x0025 */
+		case 0x2C595B4CU /* KeyL               */: return RGFW_l;                    /* 0x0026 */
+		case 0x2707219EU /* Semicolon          */: return RGFW_Semicolon;            /* 0x0027 */
+		case 0x92E0B58DU /* Quote              */: return RGFW_Apostrophe;                /* 0x0028 */
+		case 0x36BF358DU /* Backquote          */: return RGFW_Backtick;            /* 0x0029 */
+		case 0x26B1958CU /* ShiftLeft          */: return RGFW_ShiftL;           /* 0x002A */
+		case 0x36BF2438U /* Backslash          */: return RGFW_BackSlash;            /* 0x002B */
+		case 0x2C595B5AU /* KeyZ               */: return RGFW_z;                    /* 0x002C */
+		case 0x2C595B58U /* KeyX               */: return RGFW_x;                    /* 0x002D */
+		case 0x2C595B43U /* KeyC               */: return RGFW_c;                    /* 0x002E */
+		case 0x2C595B56U /* KeyV               */: return RGFW_v;                    /* 0x002F */
+		case 0x2C595B42U /* KeyB               */: return RGFW_b;                    /* 0x0030 */
+		case 0x2C595B4EU /* KeyN               */: return RGFW_n;                    /* 0x0031 */
+		case 0x2C595B4DU /* KeyM               */: return RGFW_m;                    /* 0x0032 */
+		case 0x92E1A1C1U /* Comma              */: return RGFW_Comma;                /* 0x0033 */
+		case 0x672FFAD4U /* Period             */: return RGFW_Period;               /* 0x0034 */
+		case 0x92E0A438U /* Slash              */: return RGFW_Slash;                /* 0x0035 */
+		case 0xC5A6BF7CU /* ShiftRight         */: return RGFW_ShiftR;
+		case 0x5D64DA91U /* NumpadMultiply     */: return RGFW_Multiply;
+		case 0xC914958CU /* AltLeft            */: return RGFW_AltL;             /* 0x0038 */
+		case 0x92E09CB5U /* Space              */: return RGFW_Space;                /* 0x0039 */
+		case 0xB8FAE73BU /* CapsLock           */: return RGFW_CapsLock;            /* 0x003A */
+		case 0x7174B789U /* F1                 */: return RGFW_F1;                   /* 0x003B */
+		case 0x7174B78AU /* F2                 */: return RGFW_F2;                   /* 0x003C */
+		case 0x7174B78BU /* F3                 */: return RGFW_F3;                   /* 0x003D */
+		case 0x7174B78CU /* F4                 */: return RGFW_F4;                   /* 0x003E */
+		case 0x7174B78DU /* F5                 */: return RGFW_F5;                   /* 0x003F */
+		case 0x7174B78EU /* F6                 */: return RGFW_F6;                   /* 0x0040 */
+		case 0x7174B78FU /* F7                 */: return RGFW_F7;                   /* 0x0041 */
+		case 0x7174B780U /* F8                 */: return RGFW_F8;                   /* 0x0042 */
+		case 0x7174B781U /* F9                 */: return RGFW_F9;                   /* 0x0043 */
+		case 0x7B8E57B0U /* F10                */: return RGFW_F10;                  /* 0x0044 */
+		case 0xC925FCDFU /* Numpad7            */: return RGFW_Multiply;             /* 0x0047 */
+		case 0xC925FCD0U /* Numpad8            */: return RGFW_KP_8;             /* 0x0048 */
+		case 0xC925FCD1U /* Numpad9            */: return RGFW_KP_9;             /* 0x0049 */
+		case 0x5EA3E8A4U /* NumpadSubtract     */: return RGFW_Minus;      /* 0x004A */
+		case 0xC925FCDCU /* Numpad4            */: return RGFW_KP_4;             /* 0x004B */
+		case 0xC925FCDDU /* Numpad5            */: return RGFW_KP_5;             /* 0x004C */
+		case 0xC925FCDEU /* Numpad6            */: return RGFW_KP_6;             /* 0x004D */
+		case 0xC925FCD9U /* Numpad1            */: return RGFW_KP_1;             /* 0x004F */
+		case 0xC925FCDAU /* Numpad2            */: return RGFW_KP_2;             /* 0x0050 */
+		case 0xC925FCDBU /* Numpad3            */: return RGFW_KP_3;             /* 0x0051 */
+		case 0xC925FCD8U /* Numpad0            */: return RGFW_KP_0;             /* 0x0052 */
+		case 0x95852DACU /* NumpadDecimal      */: return RGFW_KP_Period;       /* 0x0053 */
+		case 0x7B8E57B1U /* F11                */: return RGFW_F11;                  /* 0x0057 */
+		case 0x7B8E57B2U /* F12                */: return RGFW_F12;                  /* 0x0058 */
+		case 0x7393FBACU /* NumpadEqual        */: return RGFW_KP_Return;
+		case 0xB88EBF7CU /* AltRight           */: return RGFW_AltR;            /* 0xE038 */
+		case 0xC925873BU /* NumLock            */: return RGFW_Numlock;             /* 0xE045 */
+		case 0x2C595F45U /* Home               */: return RGFW_Home;                 /* 0xE047 */
+		case 0xC91BB690U /* ArrowUp            */: return RGFW_Up;             /* 0xE048 */
+		case 0x672F9210U /* PageUp             */: return RGFW_PageUp;              /* 0xE049 */
+		case 0x3799258CU /* ArrowLeft          */: return RGFW_Left;           /* 0xE04B */
+		case 0x4CE33F7CU /* ArrowRight         */: return RGFW_Right;          /* 0xE04D */
+		case 0x7B8E55DCU /* End                */: return RGFW_End;                  /* 0xE04F */
+		case 0x3799379EU /* ArrowDown          */: return RGFW_Down;           /* 0xE050 */
+		case 0xBA90179EU /* PageDown           */: return RGFW_PageDown;            /* 0xE051 */
+		case 0x6723CB2CU /* Insert             */: return RGFW_Insert;               /* 0xE052 */
+		case 0x6725C50DU /* Delete             */: return RGFW_Delete;               /* 0xE053 */
+		case 0x6723658CU /* OSLeft             */: return RGFW_SuperL;              /* 0xE05B */
+		case 0x39643F7CU /* MetaRight          */: return RGFW_SuperR;           /* 0xE05C */
+	}
+
+	return 0;
+}
+
 void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, b8 press) {
 	const char* iCode = code;
 	
-	unsigned int hash = 0;
+	u32 hash = 0;
 	while(*iCode) hash = ((hash ^ 0x7E057D79U) << 3) ^ (unsigned int)*iCode++;
 	
-	u32 physicalKey = 0; 
-	switch(hash) {             /* 0x0000 */
-		case 0x67243A2DU /* Escape             */: physicalKey = RGFW_Escape;               /* 0x0001 */
-		case 0x67251058U /* Digit0             */: physicalKey = RGFW_0;                    /* 0x0002 */
-		case 0x67251059U /* Digit1             */: physicalKey = RGFW_1;                    /* 0x0003 */
-		case 0x6725105AU /* Digit2             */: physicalKey = RGFW_2;                    /* 0x0004 */
-		case 0x6725105BU /* Digit3             */: physicalKey = RGFW_3;                    /* 0x0005 */
-		case 0x6725105CU /* Digit4             */: physicalKey = RGFW_4;                    /* 0x0006 */
-		case 0x6725105DU /* Digit5             */: physicalKey = RGFW_5;                    /* 0x0007 */
-		case 0x6725105EU /* Digit6             */: physicalKey = RGFW_6;                    /* 0x0008 */
-		case 0x6725105FU /* Digit7             */: physicalKey = RGFW_7;                    /* 0x0009 */
-		case 0x67251050U /* Digit8             */: physicalKey = RGFW_8;                    /* 0x000A */
-		case 0x67251051U /* Digit9             */: physicalKey = RGFW_9;                    /* 0x000B */
-		case 0x92E14DD3U /* Minus              */: physicalKey = RGFW_Minus;                /* 0x000C */
-		case 0x92E1FBACU /* Equal              */: physicalKey = RGFW_Equals;                /* 0x000D */
-		case 0x36BF1CB5U /* Backspace          */: physicalKey = RGFW_BackSpace;            /* 0x000E */
-		case 0x7B8E51E2U /* Tab                */: physicalKey = RGFW_Tab;                  /* 0x000F */
-		case 0x2C595B51U /* KeyQ               */: physicalKey = RGFW_q;                    /* 0x0010 */
-		case 0x2C595B57U /* KeyW               */: physicalKey = RGFW_w;                    /* 0x0011 */
-		case 0x2C595B45U /* KeyE               */: physicalKey = RGFW_e;                    /* 0x0012 */
-		case 0x2C595B52U /* KeyR               */: physicalKey = RGFW_r;                    /* 0x0013 */
-		case 0x2C595B54U /* KeyT               */: physicalKey = RGFW_t;                    /* 0x0014 */
-		case 0x2C595B59U /* KeyY               */: physicalKey = RGFW_y;                    /* 0x0015 */
-		case 0x2C595B55U /* KeyU               */: physicalKey = RGFW_u;                    /* 0x0016 */
-		case 0x2C595B4FU /* KeyO               */: physicalKey = RGFW_o;                    /* 0x0018 */
-		case 0x2C595B50U /* KeyP               */: physicalKey = RGFW_p;                    /* 0x0019 */
-		case 0x45D8158CU /* BracketLeft        */: physicalKey = RGFW_CloseBracket;         /* 0x001A */
-		case 0xDEEABF7CU /* BracketRight       */: physicalKey = RGFW_Bracket;        /* 0x001B */
-		case 0x92E1C5D2U /* Enter              */: physicalKey = RGFW_Return;                /* 0x001C */
-		case 0xE058958CU /* ControlLeft        */: physicalKey = RGFW_ControlL;         /* 0x001D */
-		case 0x2C595B41U /* KeyA               */: physicalKey = RGFW_a;                    /* 0x001E */
-		case 0x2C595B53U /* KeyS               */: physicalKey = RGFW_s;                    /* 0x001F */
-		case 0x2C595B44U /* KeyD               */: physicalKey = RGFW_d;                    /* 0x0020 */
-		case 0x2C595B46U /* KeyF               */: physicalKey = RGFW_f;                    /* 0x0021 */
-		case 0x2C595B47U /* KeyG               */: physicalKey = RGFW_g;                    /* 0x0022 */
-		case 0x2C595B48U /* KeyH               */: physicalKey = RGFW_h;                    /* 0x0023 */
-		case 0x2C595B4AU /* KeyJ               */: physicalKey = RGFW_j;                    /* 0x0024 */
-		case 0x2C595B4BU /* KeyK               */: physicalKey = RGFW_k;                    /* 0x0025 */
-		case 0x2C595B4CU /* KeyL               */: physicalKey = RGFW_l;                    /* 0x0026 */
-		case 0x2707219EU /* Semicolon          */: physicalKey = RGFW_Semicolon;            /* 0x0027 */
-		case 0x92E0B58DU /* Quote              */: physicalKey = RGFW_Apostrophe;                /* 0x0028 */
-		case 0x36BF358DU /* Backquote          */: physicalKey = RGFW_Backtick;            /* 0x0029 */
-		case 0x26B1958CU /* ShiftLeft          */: physicalKey = RGFW_ShiftL;           /* 0x002A */
-		case 0x36BF2438U /* Backslash          */: physicalKey = RGFW_BackSlash;            /* 0x002B */
-		case 0x2C595B5AU /* KeyZ               */: physicalKey = RGFW_z;                    /* 0x002C */
-		case 0x2C595B58U /* KeyX               */: physicalKey = RGFW_x;                    /* 0x002D */
-		case 0x2C595B43U /* KeyC               */: physicalKey = RGFW_c;                    /* 0x002E */
-		case 0x2C595B56U /* KeyV               */: physicalKey = RGFW_v;                    /* 0x002F */
-		case 0x2C595B42U /* KeyB               */: physicalKey = RGFW_b;                    /* 0x0030 */
-		case 0x2C595B4EU /* KeyN               */: physicalKey = RGFW_n;                    /* 0x0031 */
-		case 0x2C595B4DU /* KeyM               */: physicalKey = RGFW_m;                    /* 0x0032 */
-		case 0x92E1A1C1U /* Comma              */: physicalKey = RGFW_Comma;                /* 0x0033 */
-		case 0x672FFAD4U /* Period             */: physicalKey = RGFW_Period;               /* 0x0034 */
-		case 0x92E0A438U /* Slash              */: physicalKey = RGFW_Slash;                /* 0x0035 */
-		case 0xC5A6BF7CU /* ShiftRight         */: physicalKey = RGFW_ShiftR;
-		case 0x5D64DA91U /* NumpadMultiply     */: physicalKey = RGFW_Multiply;
-		case 0xC914958CU /* AltLeft            */: physicalKey = RGFW_AltL;             /* 0x0038 */
-		case 0x92E09CB5U /* Space              */: physicalKey = RGFW_Space;                /* 0x0039 */
-		case 0xB8FAE73BU /* CapsLock           */: physicalKey = RGFW_CapsLock;            /* 0x003A */
-		case 0x7174B789U /* F1                 */: physicalKey = RGFW_F1;                   /* 0x003B */
-		case 0x7174B78AU /* F2                 */: physicalKey = RGFW_F2;                   /* 0x003C */
-		case 0x7174B78BU /* F3                 */: physicalKey = RGFW_F3;                   /* 0x003D */
-		case 0x7174B78CU /* F4                 */: physicalKey = RGFW_F4;                   /* 0x003E */
-		case 0x7174B78DU /* F5                 */: physicalKey = RGFW_F5;                   /* 0x003F */
-		case 0x7174B78EU /* F6                 */: physicalKey = RGFW_F6;                   /* 0x0040 */
-		case 0x7174B78FU /* F7                 */: physicalKey = RGFW_F7;                   /* 0x0041 */
-		case 0x7174B780U /* F8                 */: physicalKey = RGFW_F8;                   /* 0x0042 */
-		case 0x7174B781U /* F9                 */: physicalKey = RGFW_F9;                   /* 0x0043 */
-		case 0x7B8E57B0U /* F10                */: physicalKey = RGFW_F10;                  /* 0x0044 */
-		case 0xC925FCDFU /* Numpad7            */: physicalKey = RGFW_Multiply;             /* 0x0047 */
-		case 0xC925FCD0U /* Numpad8            */: physicalKey = RGFW_KP_8;             /* 0x0048 */
-		case 0xC925FCD1U /* Numpad9            */: physicalKey = RGFW_KP_9;             /* 0x0049 */
-		case 0x5EA3E8A4U /* NumpadSubtract     */: physicalKey = RGFW_Minus;      /* 0x004A */
-		case 0xC925FCDCU /* Numpad4            */: physicalKey = RGFW_KP_4;             /* 0x004B */
-		case 0xC925FCDDU /* Numpad5            */: physicalKey = RGFW_KP_5;             /* 0x004C */
-		case 0xC925FCDEU /* Numpad6            */: physicalKey = RGFW_KP_6;             /* 0x004D */
-		case 0xC925FCD9U /* Numpad1            */: physicalKey = RGFW_KP_1;             /* 0x004F */
-		case 0xC925FCDAU /* Numpad2            */: physicalKey = RGFW_KP_2;             /* 0x0050 */
-		case 0xC925FCDBU /* Numpad3            */: physicalKey = RGFW_KP_3;             /* 0x0051 */
-		case 0xC925FCD8U /* Numpad0            */: physicalKey = RGFW_KP_0;             /* 0x0052 */
-		case 0x95852DACU /* NumpadDecimal      */: physicalKey = RGFW_KP_Period;       /* 0x0053 */
-		case 0x7B8E57B1U /* F11                */: physicalKey = RGFW_F11;                  /* 0x0057 */
-		case 0x7B8E57B2U /* F12                */: physicalKey = RGFW_F12;                  /* 0x0058 */
-		case 0x7393FBACU /* NumpadEqual        */: physicalKey = RGFW_KP_Return;
-		case 0xB88EBF7CU /* AltRight           */: physicalKey = RGFW_AltR;            /* 0xE038 */
-		case 0xC925873BU /* NumLock            */: physicalKey = RGFW_Numlock;             /* 0xE045 */
-		case 0x2C595F45U /* Home               */: physicalKey = RGFW_Home;                 /* 0xE047 */
-		case 0xC91BB690U /* ArrowUp            */: physicalKey = RGFW_Up;             /* 0xE048 */
-		case 0x672F9210U /* PageUp             */: physicalKey = RGFW_PageUp;              /* 0xE049 */
-		case 0x3799258CU /* ArrowLeft          */: physicalKey = RGFW_Left;           /* 0xE04B */
-		case 0x4CE33F7CU /* ArrowRight         */: physicalKey = RGFW_Right;          /* 0xE04D */
-		case 0x7B8E55DCU /* End                */: physicalKey = RGFW_End;                  /* 0xE04F */
-		case 0x3799379EU /* ArrowDown          */: physicalKey = RGFW_Down;           /* 0xE050 */
-		case 0xBA90179EU /* PageDown           */: physicalKey = RGFW_PageDown;            /* 0xE051 */
-		case 0x6723CB2CU /* Insert             */: physicalKey = RGFW_Insert;               /* 0xE052 */
-		case 0x6725C50DU /* Delete             */: physicalKey = RGFW_Delete;               /* 0xE053 */
-		case 0x6723658CU /* OSLeft             */: physicalKey = RGFW_SuperL;              /* 0xE05B */
-		case 0x39643F7CU /* MetaRight          */: physicalKey = RGFW_SuperR;           /* 0xE05C */
-	}
-
-	u8 keyCode = RGFW_apiMappedToRGFW((u8)(*((u32*)key)));
+	u32 physicalKey = RGFW_webasmPhysicalToRGFW(hash); 
+	u8 mappedKey = RGFW_apiMappedToRGFW((u8)(*((u32*)key)));
 
 	RGFW_events[RGFW_eventLen].type = press ? RGFW_keyPressed : RGFW_keyReleased;
 	memcpy(RGFW_events[RGFW_eventLen].keyName, key, 16);
 	RGFW_events[RGFW_eventLen].physicalKey = physicalKey;
-	RGFW_events[RGFW_eventLen].mappedKey = keyCode;
+	RGFW_events[RGFW_eventLen].mappedKey = mappedKey;
 	RGFW_events[RGFW_eventLen].lockState = 0;
 	RGFW_eventLen++;
 
-	RGFW_keyboard[keyCode].prev = RGFW_keyboard[keyCode].current;
-	RGFW_keyboard[keyCode].current = 0;
+	RGFW_keyboard[physicalKey].prev = RGFW_keyboard[physicalKey].current;
+	RGFW_keyboard[physicalKey].current = 0;
 	
-	RGFW_keyCallback(RGFW_root, RGFW_events[RGFW_eventLen].physicalKey, RGFW_events[RGFW_eventLen].mappedKey, RGFW_events[RGFW_eventLen].keyName, 0, press);
+	RGFW_keyCallback(RGFW_root, physicalKey, mappedKey, RGFW_events[RGFW_eventLen].keyName, 0, press);
 
 	free(key); 
 	free(code);
