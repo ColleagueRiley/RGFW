@@ -5221,9 +5221,9 @@ $(function() {
 <div class="line"><a id="l05383" name="l05383"></a><span class="lineno"> 5383</span>        Class.hCursor = LoadCursor(NULL, IDC_ARROW);</div>
 <div class="line"><a id="l05384" name="l05384"></a><span class="lineno"> 5384</span>        Class.lpfnWndProc = WndProc;</div>
 <div class="line"><a id="l05385" name="l05385"></a><span class="lineno"> 5385</span> </div>
-<div class="line"><a id="l05386" name="l05386"></a><span class="lineno"> 5386</span>        Class.hIcon = LoadImageA(GetModuleHandleW(NULL), <span class="stringliteral">&quot;RGFW_ICON&quot;</span>, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);        </div>
+<div class="line"><a id="l05386" name="l05386"></a><span class="lineno"> 5386</span>        Class.hIcon = (HICON)LoadImageA(GetModuleHandleW(NULL), <span class="stringliteral">&quot;RGFW_ICON&quot;</span>, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);     </div>
 <div class="line"><a id="l05387" name="l05387"></a><span class="lineno"> 5387</span>        <span class="keywordflow">if</span> (Class.hIcon == NULL) {</div>
-<div class="line"><a id="l05388" name="l05388"></a><span class="lineno"> 5388</span>            Class.hIcon = LoadImageA(NULL, IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);</div>
+<div class="line"><a id="l05388" name="l05388"></a><span class="lineno"> 5388</span>            Class.hIcon = (HICON)LoadImageA(NULL, IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);</div>
 <div class="line"><a id="l05389" name="l05389"></a><span class="lineno"> 5389</span>        }</div>
 <div class="line"><a id="l05390" name="l05390"></a><span class="lineno"> 5390</span> </div>
 <div class="line"><a id="l05391" name="l05391"></a><span class="lineno"> 5391</span>        RegisterClassA(&amp;Class);</div>
