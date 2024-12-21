@@ -5969,6 +5969,9 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			}
 
 			case WM_MOUSEMOVE: {
+				if ((win->_winArgs & RGFW_HOLD_MOUSE))
+					break;
+
 				win->event.type = RGFW_mousePosChanged;
 
 				i32 x = GET_X_LPARAM(msg.lParam);
@@ -5982,15 +5985,21 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 					RGFW_mouseNotifyCallBack(win, win->event.point, 1);
 				}
 
-				if ((win->_winArgs & RGFW_HOLD_MOUSE)) {
+				/*if ((win->_winArgs & RGFW_HOLD_MOUSE)) {			
+					RGFW_point p = RGFW_getGlobalMousePoint();
+					//p = RGFW_POINT(p.x + win->r.x, p.y + win->r.y);
+
 					win->event.point.x = x - win->_lastMousePoint.x;
 					win->event.point.y = y - win->_lastMousePoint.y;
-				} else {
-					win->event.point.x = x;
-					win->event.point.y = y;
-				}
+
+					win->_lastMousePoint = RGFW_POINT(x, y);
+					break;
+				}*/
 				
+				win->event.point.x = x;
+				win->event.point.y = y;
 				win->_lastMousePoint = RGFW_POINT(x, y);
+				
 				break;
 			}
 			case WM_INPUT: {
