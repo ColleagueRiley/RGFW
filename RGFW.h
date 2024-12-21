@@ -2862,6 +2862,7 @@ Start of Linux / Unix defines
 			case ButtonRelease:
 				win->event.type = RGFW_mouseButtonPressed + (E.type == ButtonRelease); // the events match 
 				
+				win->event.button = E.xbutton.button;
 				switch(win->event.button) {
 					case RGFW_mouseScrollUp:
 						win->event.scroll = 1;
@@ -2871,8 +2872,7 @@ Start of Linux / Unix defines
 						break;
 					default: break;
 				}
-
-				win->event.button = E.xbutton.button;
+				
 				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
 
 				if (win->event.repeat == RGFW_FALSE)
