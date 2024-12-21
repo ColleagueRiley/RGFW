@@ -4434,9 +4434,6 @@ static void keyboard_key (void *data, struct wl_keyboard *keyboard, uint32_t ser
 	char name[16];
 	xkb_keysym_get_name(keysym, name, 16);
 
-
-	printf("%c\n", keysym);
-
 	u32 RGFW_key = RGFW_apiKeyCodeToRGFW(key);
 	RGFW_keyboard[RGFW_key].prev = RGFW_keyboard[RGFW_key].current;
 	RGFW_keyboard[RGFW_key].current = state;
