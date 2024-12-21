@@ -2804,10 +2804,7 @@ Start of Linux / Unix defines
 				win->event.key = RGFW_apiKeyToRGFW(E.xkey.keycode);
 
 				KeySym sym = (KeySym)XkbKeycodeToKeysym((Display*) win->src.display, E.xkey.keycode, 0, E.xkey.state & ShiftMask ? 1 : 0);
-				if (mappedKey == XK_Insert)
-					mappedKey = RGFW_Insert;
-				else
-					win->event.keyChar = (u8)sym;
+				win->event.keyChar = (u8)sym;
 				
 				char* str = (char*)XKeysymToString(sym);
 				if (str != NULL)
