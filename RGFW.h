@@ -5311,7 +5311,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	void RGFW_releaseCursor(RGFW_window* win) {
 		RGFW_UNUSED(win);
 		ClipCursor(NULL);
-    	const RAWINPUTDEVICE id = { 0x01, 0x02, RIDEV_REMOVE, NULL };
+    	const RAWINPUTDEVICE id = { 0x01, 0x02, 0, NULL };
     	RegisterRawInputDevices(&id, 1, sizeof(id));	
 	}
 
@@ -5968,14 +5968,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				break;
 			}
 
-			case WM_MOUSEMOVE:
-				if ((win->_winArgs & RGFW_HOLD_MOUSE))
-					break;
-
+			case WM_MOUSEMOVE: {
 				win->event.type = RGFW_mousePosChanged;
 
-				win->event.point.x = GET_X_LPARAM(msg.lParam);
-				win->event.point.y = GET_Y_LPARAM(msg.lParam);
+				i32 x = GET_X_LPARAM(msg.lParam);
+				i32 y = GET_Y_LPARAM(msg.lParam);
 				
 				RGFW_mousePosCallback(win, win->event.point);
 
@@ -5985,22 +5982,58 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 					RGFW_mouseNotifyCallBack(win, win->event.point, 1);
 				}
 
+				if ((win->_winArgs & RGFW_HOLD_MOUSE)) {
+					win->event.point.x = x - win->_lastMousePoint.x;
+					win->event.point.y = y - win->_lastMousePoint.y;
+				} else {
+					win->event.point.x = x;
+					win->event.point.y = y;
+				}
+				
+				win->_lastMousePoint = RGFW_POINT(x, y);
 				break;
-
+			}
 			case WM_INPUT: {
 				if (!(win->_winArgs & RGFW_HOLD_MOUSE))
 					break;
 				
 				unsigned size = sizeof(RAWINPUT);
-				static RAWINPUT raw[sizeof(RAWINPUT)];
-				GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, raw, &size, sizeof(RAWINPUTHEADER));
+				static RAWINPUT raw = {};
 
-				if (raw->header.dwType != RIM_TYPEMOUSE || (raw->data.mouse.lLastX == 0 && raw->data.mouse.lLastY == 0) )
+				GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, &raw, &size, sizeof(RAWINPUTHEADER));
+
+				if (raw.header.dwType != RIM_TYPEMOUSE || (raw.data.mouse.lLastX == 0 && raw.data.mouse.lLastY == 0) )
 					break;
-				
+
+				if (raw.data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE) {
+					POINT pos = {0};
+					int width, height;
+
+					if (raw.data.mouse.usFlags & MOUSE_VIRTUAL_DESKTOP) {
+						pos.x += GetSystemMetrics(SM_XVIRTUALSCREEN);
+						pos.y += GetSystemMetrics(SM_YVIRTUALSCREEN);
+						width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+						height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+					}
+					else {
+						width = GetSystemMetrics(SM_CXSCREEN);
+						height = GetSystemMetrics(SM_CYSCREEN);
+					}
+
+					pos.x += (int) ((raw.data.mouse.lLastX / 65535.f) * width);
+					pos.y += (int) ((raw.data.mouse.lLastY / 65535.f) * height);
+					ScreenToClient(win->src.window, &pos);
+
+					win->event.point.x = pos.x - win->_lastMousePoint.x;
+					win->event.point.y = pos.y - win->_lastMousePoint.y;
+				} else {
+					win->event.point.x = raw.data.mouse.lLastX;
+					win->event.point.y = raw.data.mouse.lLastY;
+				}
+
 				win->event.type = RGFW_mousePosChanged;
-				win->event.point.x = raw->data.mouse.lLastX;
-				win->event.point.y = raw->data.mouse.lLastY;
+				win->_lastMousePoint.x += win->event.point.x;
+				win->_lastMousePoint.y += win->event.point.y;
 				break;
 			}
 
@@ -6604,7 +6637,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 	void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) {
 		assert(win != NULL);
-
+		win->_lastMousePoint = RGFW_POINT(p.x - win->r.x, p.y - win->r.y);
 		SetCursorPos(p.x, p.y);
 	}
 
