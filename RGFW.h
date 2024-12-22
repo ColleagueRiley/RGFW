@@ -2451,8 +2451,6 @@ Start of Linux / Unix defines
 		XISelectEvents(win->src.display, XDefaultRootWindow(win->src.display), &em, 1);
 
 		XGrabPointer(win->src.display, win->src.window, True, PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
-
-		win->_lastMousePoint = RGFW_POINT(p.x - win->r.x, p.y - win->r.y);
 		RGFW_window_moveMouse(win, RGFW_POINT(win->r.x + (i32)(r.w / 2), win->r.y + (i32)(r.h / 2)));
 	}
 
@@ -8147,7 +8145,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v) {
 		RGFW_UNUSED(win);
 
-		win->_lastMousePoint = RGFW_POINT(p.x - win->r.x, p.y - win->r.y);
+		win->_lastMousePoint = RGFW_POINT(v.x - win->r.x, v.y - win->r.y);
 		CGWarpMouseCursorPosition(CGPointMake(v.x, v.y));		
 	}
 
