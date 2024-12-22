@@ -5889,7 +5889,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				}
 
 				i16 charBuffer;
-				ToUnicodeEx(msg.wParam, scancode, keyboardState, (BYTE*)&charBuffer, 2, 0, NULL);
+				ToUnicodeEx(msg.wParam, scancode, keyboardState, (wchar_t*)&charBuffer, 2, 0, NULL);
 				
 				win->event.keyChar = (u8)charBuffer;
 				
@@ -5939,8 +5939,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 					else win->event.key = RGFW_ControlL;
 				}
 
-				u16 charBuffer;
-				ToUnicodeEx(msg.wParam, scancode, keyboardState, (BYTE*)&charBuffer, 2, 0, NULL);
+				i16 charBuffer;
+				ToUnicodeEx(msg.wParam, scancode, keyboardState, (wchar_t*)&charBuffer, 2, 0, NULL);
 				win->event.keyChar = (u8)charBuffer;
 				
 				RGFW_keyboard[win->event.key].prev = RGFW_isPressed(win, win->event.key);
