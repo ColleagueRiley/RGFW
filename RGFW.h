@@ -2452,6 +2452,7 @@ Start of Linux / Unix defines
 
 		XGrabPointer(win->src.display, win->src.window, True, PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 
+		win->_lastMousePoint = RGFW_POINT(p.x - win->r.x, p.y - win->r.y);
 		RGFW_window_moveMouse(win, RGFW_POINT(win->r.x + (i32)(r.w / 2), win->r.y + (i32)(r.h / 2)));
 	}
 
@@ -2852,8 +2853,8 @@ Start of Linux / Unix defines
 				if ((win->_winArgs & RGFW_HOLD_MOUSE)) {
 					win->event.point.y = E.xmotion.y;
 
-					win->event.point.x = win->_lastMousePoint.x - abs(win->event.point.x);
-					win->event.point.y = win->_lastMousePoint.y - abs(win->event.point.y);
+					win->event.point.x = win->_lastMousePoint.x + win->event.point.x;
+					win->event.point.y = win->_lastMousePoint.y + win->event.point.y;
 				}
 
 				win->_lastMousePoint = RGFW_POINT(E.xmotion.x, E.xmotion.y);
@@ -3413,6 +3414,7 @@ Start of Linux / Unix defines
 		if (event.xbutton.x == v.x && event.xbutton.y == v.y)
 			return;
 
+		win->_lastMousePoint = v;
 		XWarpPointer(win->src.display, None, win->src.window, 0, 0, 0, 0, (int) v.x - win->r.x, (int) v.y - win->r.y);
 	}
 
@@ -7802,7 +7804,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		switch (objc_msgSend_uint(e, sel_registerName("type"))) {
 			case NSEventTypeMouseEntered: {
 				win->event.type = RGFW_mouseEnter;
-				NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(e, sel_registerName("locationInWindow"));
+	 			NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(e, sel_registerName("locationInWindow"));
 
 				win->event.point = RGFW_POINT((i32) p.x, (i32) (win->r.h - p.y));
 				RGFW_mouseNotifyCallBack(win, win->event.point, 1);
@@ -8144,7 +8146,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 	void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v) {
 		RGFW_UNUSED(win);
-		
+
+		win->_lastMousePoint = RGFW_POINT(p.x - win->r.x, p.y - win->r.y);
 		CGWarpMouseCursorPosition(CGPointMake(v.x, v.y));		
 	}
 
