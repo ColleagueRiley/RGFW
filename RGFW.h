@@ -4407,13 +4407,14 @@ static void keyboard_key (void *data, struct wl_keyboard *keyboard, uint32_t ser
 	RGFW_Event ev;
 	ev.type = RGFW_keyPressed + state;
 	ev.key = RGFW_key;
+	ev.keyChar = (u8)keysym;
 	strcpy(ev.keyName, name);
 	ev.repeat = RGFW_isHeld(RGFW_key_win, RGFW_key);
 	RGFW_eventPipe_push(RGFW_key_win, ev);
 	
 	RGFW_updateLockState(RGFW_key_win, xkb_keymap_mod_get_index(keymap, "Lock"), xkb_keymap_mod_get_index(keymap, "Mod2"));
 
-	RGFW_keyCallback(RGFW_key_win, RGFW_key, name, RGFW_key_win->event.lockState, state);
+	RGFW_keyCallback(RGFW_key_win, RGFW_key, (u8)keysym, name, RGFW_key_win->event.lockState, state);
 }
 static void keyboard_modifiers (void *data, struct wl_keyboard *keyboard, uint32_t serial, uint32_t mods_depressed, uint32_t mods_latched, uint32_t mods_locked, uint32_t group) {
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(time); 
