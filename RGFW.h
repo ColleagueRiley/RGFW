@@ -3185,9 +3185,9 @@ Start of Linux / Unix defines
 
 					break;
 			}
-			default: {
-				break;
-			}
+			default: 
+				XFlush((Display*) win->src.display);
+				return RGFW_window_checkEvent(win);
 			}
 
 			XFlush((Display*) win->src.display);
@@ -6144,7 +6144,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				return 0;
 			}
 			default:
-				win->event.type = 0;
+				TranslateMessage(&msg);
+				DispatchMessageA(&msg);
+				
+				return RGFW_window_checkEvent(win);
 				break;
 			}
 
@@ -7977,8 +7980,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				break;
 			}
 
-			default:
-				break;
+			default:	return RGFW_window_checkEvent(win);
 		}
 
 		objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
