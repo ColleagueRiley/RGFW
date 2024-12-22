@@ -1,4 +1,4 @@
-.TH "RGFW_Event" 3 "Sat Dec 21 2024" "RGFW" \" -*- nroff -*-
+.TH "RGFW_Event" 3 "Sun Dec 22 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -27,7 +27,10 @@ RGFW_Event
 .RI "\fBRGFW_point\fP \fBpoint\fP"
 .br
 .ti -1c
-.RI "\fBu8\fP \fBkeyCode\fP"
+.RI "\fBu8\fP \fBkey\fP"
+.br
+.ti -1c
+.RI "\fBu8\fP \fBkeyChar\fP"
 .br
 .ti -1c
 .RI "\fBb8\fP \fBrepeat\fP"
@@ -86,8 +89,10 @@ this is used for counting the fps
 
 .SS "\fBb8\fP RGFW_Event::inFocus"
 if the window is in focus or not (this is always true for MacOS windows due to the api being weird) 
-.SS "\fBu8\fP RGFW_Event::keyCode"
-keycode of event !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! 
+.SS "\fBu8\fP RGFW_Event::key"
+the physical key of the event, refers to where key is physically !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! 
+.SS "\fBu8\fP RGFW_Event::keyChar"
+mapped key char of the event 
 .SS "char RGFW_Event::keyName[16]"
 key name of event 
 .SS "\fBu8\fP RGFW_Event::lockState"

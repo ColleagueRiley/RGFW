@@ -1,4 +1,4 @@
-.TH "Callbacks" 3 "Sat Dec 21 2024" "RGFW" \" -*- nroff -*-
+.TH "Callbacks" 3 "Sun Dec 22 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -34,7 +34,7 @@ Callbacks \- Callbacks
 .RI "typedef void(* \fBRGFW_windowrefreshfunc\fP) (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu32\fP keycode, char keyName[16], \fBu8\fP lockState, \fBb8\fP pressed)"
+.RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu32\fP key, \fBu32\fP mappedKey, char keyName[16], \fBu8\fP lockState, \fBb8\fP pressed)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_mousebuttonfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP button, double scroll, \fBb8\fP pressed)"
@@ -107,8 +107,8 @@ RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its inFo
 RGFW_gpAxisMove, the window that got the event, the gamepad in question, the axis values and the amount of axises 
 .SS "typedef void(* RGFW_gpButtonfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBu8\fP button, \fBb8\fP pressed)"
 gp /gp, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
-.SS "typedef void(* RGFW_keyfunc) (\fBRGFW_window\fP *win, \fBu32\fP keycode, char keyName[16], \fBu8\fP lockState, \fBb8\fP pressed)"
-RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the keycode, the string version, the state of mod keys, if it was a press (else it's a release) 
+.SS "typedef void(* RGFW_keyfunc) (\fBRGFW_window\fP *win, \fBu32\fP key, \fBu32\fP mappedKey, char keyName[16], \fBu8\fP lockState, \fBb8\fP pressed)"
+RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of mod keys, if it was a press (else it's a release) 
 .SS "typedef void(* RGFW_mousebuttonfunc) (\fBRGFW_window\fP *win, \fBu8\fP button, double scroll, \fBb8\fP pressed)"
 RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
 .br
