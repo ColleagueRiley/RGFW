@@ -4540,6 +4540,8 @@ int create_shm_file(off_t size) {
 }
 
 static void wl_surface_frame_done(void *data, struct wl_callback *cb, uint32_t time) {
+	RGFW_UNUSED(data); RGFW_UNUSED(cb); RGFW_UNUSED(time);
+
 	#ifdef RGFW_BUFFER
 		RGFW_window* win = (RGFW_window*)data;
 		if ((win->_winArgs & RGFW_NO_CPU_RENDER))
@@ -4585,11 +4587,13 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 	
 	void RGFW_releaseCursor(RGFW_window* win) {
 		RGFW_UNUSED(win);
+
+		/* TODO wayland */
 	}
 
 	void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) {
 		RGFW_UNUSED(win); RGFW_UNUSED(r);
-
+		
 		/* TODO wayland */
 	}
 
@@ -4793,8 +4797,20 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 
 	void RGFW_window_move(RGFW_window* win, RGFW_point v) {
 		RGFW_UNUSED(win); RGFW_UNUSED(v);
-
+		
 		/* TODO wayland */
+		assert(win != NULL);
+		struct wl_pointer *pointer = wl_seat_get_pointer(win->seat);
+		if (!pointer) {
+			return;
+		}
+
+		// Initiate the move operation
+		wl_shell_surface_move(win->shell_surface, pointer, win->serial);
+		win->r.x = v.x;
+		win->r.y = v.y;
+		
+		wl_display_flush(win->display);
 	}
 
 	void RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
@@ -4802,9 +4818,11 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 		/* TODO wayland */
 	}
 
-	void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v) {
+	void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) {
 		win->_lastMousePoint = RGFW_POINT(p.x - win->r.x, p.y - win->r.y);
-
+		#ifdef RGFW_DEBUG
+		printf("Wayland: The platform does not support moving the mouse\n");
+		#endif
 		/* TODO wayland */
 	}
 
@@ -5839,7 +5857,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		if (!IsWindow(win->src.window)) {
 			win->event.type = RGFW_quit;
 			RGFW_windowQuitCallback(win);
-			return &win->event.type;
+			return &win->event;
 		}
 
 		if (PeekMessageA(&msg, win->src.window, 0u, 0u, PM_REMOVE) == 0)
