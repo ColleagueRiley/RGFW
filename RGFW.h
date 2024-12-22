@@ -2851,8 +2851,8 @@ Start of Linux / Unix defines
 				if ((win->_winArgs & RGFW_HOLD_MOUSE)) {
 					win->event.point.y = E.xmotion.y;
 
-					win->event.point.x = win->_lastMousePoint.x - win->event.point.x;
-					win->event.point.y = win->_lastMousePoint.y - win->event.point.y;
+					win->event.point.x = win->event.point.x - win->_lastMousePoint.x;
+					win->event.point.y = win->event.point.y - win->_lastMousePoint.y;
 				}
 
 				win->_lastMousePoint = RGFW_POINT(E.xmotion.x, E.xmotion.y);
