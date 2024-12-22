@@ -5272,7 +5272,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	void RGFW_releaseCursor(RGFW_window* win) {
 		RGFW_UNUSED(win);
 		ClipCursor(NULL);
-    	const RAWINPUTDEVICE id = { 0x01, 0x02, 0, NULL };
+    	const RAWINPUTDEVICE id = { 0x01, 0x02, RIDEV_REMOVE, NULL };
     	RegisterRawInputDevices(&id, 1, sizeof(id));	
 	}
 

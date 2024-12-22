@@ -5113,7 +5113,7 @@ $(function() {
 <div class="line"><a id="l05272" name="l05272"></a><span class="lineno"> 5272</span>    <span class="keywordtype">void</span> RGFW_releaseCursor(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
 <div class="line"><a id="l05273" name="l05273"></a><span class="lineno"> 5273</span>        <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win);</div>
 <div class="line"><a id="l05274" name="l05274"></a><span class="lineno"> 5274</span>        ClipCursor(NULL);</div>
-<div class="line"><a id="l05275" name="l05275"></a><span class="lineno"> 5275</span>        <span class="keyword">const</span> RAWINPUTDEVICE <span class="keywordtype">id</span> = { 0x01, 0x02, 0, NULL };</div>
+<div class="line"><a id="l05275" name="l05275"></a><span class="lineno"> 5275</span>        <span class="keyword">const</span> RAWINPUTDEVICE <span class="keywordtype">id</span> = { 0x01, 0x02, RIDEV_REMOVE, NULL };</div>
 <div class="line"><a id="l05276" name="l05276"></a><span class="lineno"> 5276</span>        RegisterRawInputDevices(&amp;<span class="keywordtype">id</span>, 1, <span class="keyword">sizeof</span>(<span class="keywordtype">id</span>));    </div>
 <div class="line"><a id="l05277" name="l05277"></a><span class="lineno"> 5277</span>    }</div>
 <div class="line"><a id="l05278" name="l05278"></a><span class="lineno"> 5278</span> </div>
