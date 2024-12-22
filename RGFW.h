@@ -2851,8 +2851,8 @@ Start of Linux / Unix defines
 				if ((win->_winArgs & RGFW_HOLD_MOUSE)) {
 					win->event.point.y = E.xmotion.y;
 
-					win->event.point.x = win->_lastMousePoint.x + win->event.point.x;
-					win->event.point.y = win->_lastMousePoint.y + win->event.point.y;
+					win->event.point.x = win->_lastMousePoint.x - win->event.point.x;
+					win->event.point.y = win->_lastMousePoint.y - win->event.point.y;
 				}
 
 				win->_lastMousePoint = RGFW_POINT(E.xmotion.x, E.xmotion.y);
@@ -3399,7 +3399,7 @@ Start of Linux / Unix defines
 #endif
 	}
 
-	void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v) {
+	void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) {
 		assert(win != NULL);
 
 		XEvent event;
@@ -3409,11 +3409,11 @@ Start of Linux / Unix defines
 			&event.xbutton.x, &event.xbutton.y,
 			&event.xbutton.state);
 
-		if (event.xbutton.x == v.x && event.xbutton.y == v.y)
+		win->_lastMousePoint = RGFW_POINT(p.x - win->r.x, p.y - win->r.y);
+		if (event.xbutton.x == p.x && event.xbutton.y == p.y)
 			return;
 
-		win->_lastMousePoint = v;
-		XWarpPointer(win->src.display, None, win->src.window, 0, 0, 0, 0, (int) v.x - win->r.x, (int) v.y - win->r.y);
+		XWarpPointer(win->src.display, None, win->src.window, 0, 0, 0, 0, (int) p.x - win->r.x, (int) p.y - win->r.y);
 	}
 
 	RGFWDEF void RGFW_window_disableMouse(RGFW_window* win) {
