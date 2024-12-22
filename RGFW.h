@@ -5835,8 +5835,17 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		static BYTE keyboardState[256];
 		GetKeyboardState(keyboardState);
 
-		if (PeekMessageA(&msg, win->src.window, 0u, 0u, PM_REMOVE)) {
-			switch (msg.message) {
+
+		if (!IsWindow(win->src.window)) {
+			win->event.type = RGFW_quit;
+			RGFW_windowQuitCallback(win);
+			return &win->event.type;
+		}
+
+		if (PeekMessageA(&msg, win->src.window, 0u, 0u, PM_REMOVE) == 0)
+			return NULL;
+		
+		switch (msg.message) {
 			case WM_CLOSE:
 			case WM_QUIT:
 				RGFW_windowQuitCallback(win);
@@ -6153,20 +6162,9 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 			TranslateMessage(&msg);
 			DispatchMessageA(&msg);
-		}
 
-		else
-			win->event.type = 0;
 
-		if (!IsWindow(win->src.window)) {
-			win->event.type = RGFW_quit;
-			RGFW_windowQuitCallback(win);
-		}
-
-		if (win->event.type)
-			return &win->event;
-		else
-			return NULL;
+		return &win->event;
 	}
 
 	u8 RGFW_window_isFullscreen(RGFW_window* win) {
