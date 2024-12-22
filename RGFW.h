@@ -4803,7 +4803,7 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 	}
 
 	void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v) {
-		RGFW_UNUSED(win); RGFW_UNUSED(v);
+		win->_lastMousePoint = RGFW_POINT(p.x - win->r.x, p.y - win->r.y);
 
 		/* TODO wayland */
 	}
