@@ -7324,12 +7324,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		if (usagePage == kHIDPage_GenericDesktop) {
 			// Perform auto calibration
-			if (intValue < axis->minimum)
-				axis->minimum = intValue;
-			if (intValue > axis->maximum)
-				axis->maximum = intValue;
-
-			const float value = ((2.f * (intValue - axis->minimum) / intValue) - 1.f) * 100;
+			const float value = ((2.f * (intValue) / intValue) - 1.f) * 100;
 		}
 
 /*
