@@ -7344,19 +7344,19 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				
 				switch (usage) {
 					case kHIDUsage_GD_X:
-						RGFW_gpAxisCallback(RGFW_root, index, win->event.axis, 2, 0);
+						RGFW_gpAxisCallback(RGFW_root, index, RGFW_root->event.axis, 2, 0);
 						printf("Joystick X-axis: %f\n", value);
 						break;
 					case kHIDUsage_GD_Y:
 						printf("Joystick Y-axis: %f\n", value);
-						RGFW_gpAxisCallback(RGFW_root, index, win->event.axis, 2, 0);
+						RGFW_gpAxisCallback(RGFW_root, index, RGFW_root->event.axis, 2, 0);
 						break;
 					case kHIDUsage_GD_Rx:
 						printf("Joystick Rx-axis: %f\n", value);
-						RGFW_gpAxisCallback(RGFW_root, index, win->event.axis, 2, 1);
+						RGFW_gpAxisCallback(RGFW_root, index, RGFW_root->event.axis, 2, 1);
 						break;
 					case kHIDUsage_GD_Ry:
-						RGFW_gpAxisCallback(RGFW_root, index, win->event.axis, 2, 2);
+						RGFW_gpAxisCallback(RGFW_root, index, RGFW_root->event.axis, 2, 2);
 						printf("Joystick Ry-axis: %f\n", value);
 						break;
 					default:
