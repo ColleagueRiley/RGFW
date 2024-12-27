@@ -7322,11 +7322,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		CFIndex intValue = IOHIDValueGetIntegerValue(value);
 
-		if (usagePage == kHIDPage_GenericDesktop) {
-			// Perform auto calibration
-			const float value = ((2.f * (intValue) / intValue) - 1.f) * 100;
-		}
-
 /*
 	TODO:
 		create LUT: macos button -> RGFW button
@@ -7345,21 +7340,23 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				// printf("Button %u: %s\n", usage, intValue ? "Pressed" : "Released");
 				break;
 			case kHIDPage_GenericDesktop: {
+				const float value = ((2.f * (intValue) / intValue) - 1.f) * 100;
+				
 				switch (usage) {
 					case kHIDUsage_GD_X:
-						RGFW_gpAxisCallback(win, index, win->event.axis, 2, 0);
+						RGFW_gpAxisCallback(RSGL_root, index, win->event.axis, 2, 0);
 						printf("Joystick X-axis: %f\n", value);
 						break;
 					case kHIDUsage_GD_Y:
 						printf("Joystick Y-axis: %f\n", value);
-						RGFW_gpAxisCallback(win, index, win->event.axis, 2, 0);
+						RGFW_gpAxisCallback(RSGL_root, index, win->event.axis, 2, 0);
 						break;
 					case kHIDUsage_GD_Rx:
 						printf("Joystick Rx-axis: %f\n", value);
-						RGFW_gpAxisCallback(win, index, win->event.axis, 2, 1);
+						RGFW_gpAxisCallback(RSGL_root, index, win->event.axis, 2, 1);
 						break;
 					case kHIDUsage_GD_Ry:
-						RGFW_gpAxisCallback(win, index, win->event.axis, 2, 2);
+						RGFW_gpAxisCallback(RSGL_root, index, win->event.axis, 2, 2);
 						printf("Joystick Ry-axis: %f\n", value);
 						break;
 					default:
