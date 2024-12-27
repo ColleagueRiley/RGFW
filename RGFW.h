@@ -7337,6 +7337,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 //typedef void (* RGFW_gpButtonfunc)(RGFW_window* win, u16 gamepad, u8 button, b8 pressed);
 //typedef void (* RGFW_gpAxisfunc)(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount);
 
+		u8 button = 0;
+
 		switch (usagePage) {
 			case kHIDPage_Button:
 				RGFW_gpButtonCallback(RGFW_root, index, button, intValue);
@@ -7345,20 +7347,20 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			case kHIDPage_GenericDesktop: {
 				switch (usage) {
 					case kHIDUsage_GD_X:
-						RGFW_gpAxisfunc();
-						printf("Joystick X-axis: %ld\n", value);
+						RGFW_gpAxisCallback(win, index, win->event.axis, 2, 0);
+						printf("Joystick X-axis: %f\n", value);
 						break;
 					case kHIDUsage_GD_Y:
-						printf("Joystick Y-axis: %ld\n", value);
-						break;
-					case kHIDUsage_GD_Z:
-						printf("Joystick Z-axis: %ld\n", value);
+						printf("Joystick Y-axis: %f\n", value);
+						RGFW_gpAxisCallback(win, index, win->event.axis, 2, 0);
 						break;
 					case kHIDUsage_GD_Rx:
-						printf("Joystick Rx-axis: %ld\n", value);
+						printf("Joystick Rx-axis: %f\n", value);
+						RGFW_gpAxisCallback(win, index, win->event.axis, 2, 1);
 						break;
 					case kHIDUsage_GD_Ry:
-						printf("Joystick Ry-axis: %ld\n", value);
+						RGFW_gpAxisCallback(win, index, win->event.axis, 2, 2);
+						printf("Joystick Ry-axis: %f\n", value);
 						break;
 					default:
 						break;
