@@ -6827,6 +6827,9 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 #include <objc/message.h>
 #include <mach/mach_time.h>
 
+#include <IOKit/IOKitLib.h>
+#include <IOKit/hid/IOHIDManager.h>
+
 	typedef CGRect NSRect;
 	typedef CGPoint NSPoint;
 	typedef CGSize NSSize;
