@@ -241,7 +241,7 @@ RGFW.h
 .RI "typedef void(* \fBRGFW_gpButtonfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBu8\fP button, \fBb8\fP pressed)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_gpAxisfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount)"
+.RI "typedef void(* \fBRGFW_gpAxisfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount, \fBu8\fP whichAxis)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, char droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP], \fBu32\fP droppedFilesCount)"
@@ -694,9 +694,9 @@ mouse event note the x and y of the mouse can be found in the vector, \fBRGFW_Ev
 .PP
 gamepad event note \fBRGFW_Event\&.gamepad\fP holds which gamepad was altered, if any \fBRGFW_Event\&.button\fP holds which gamepad button was pressed
 .PP
-\fBRGFW_Event\&.axis\fP holds the data of all the axis RGFW_Event\&.axisCount says how many axis there are
+\fBRGFW_Event\&.axis\fP holds the data of all the axis \fBRGFW_Event\&.axisesCount\fP says how many axis there are
 .PP
-< the window was moved (by the user)
+< the window was moved (b the user)
 .PP
 < the window was resized (by the user), [on webASM this means the browser was resized]
 .PP

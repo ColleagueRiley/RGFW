@@ -4,7 +4,7 @@ var searchData=
   ['rgfw_5fdndinitfunc_1',['RGFW_dndInitfunc',['../group__Callbacks.html#ga0f23d16fc1842746e340f74ce5297238',1,'RGFW.h']]],
   ['rgfw_5fevent_2',['RGFW_Event',['../RGFW_8h.html#a21c798f7e1b4b6a7cda731179018c936',1,'RGFW.h']]],
   ['rgfw_5ffocusfunc_3',['RGFW_focusfunc',['../group__Callbacks.html#gaf38dcb718d7481ec4d42089b57a5a8a0',1,'RGFW.h']]],
-  ['rgfw_5fgpaxisfunc_4',['RGFW_gpAxisfunc',['../group__Callbacks.html#gabde94fb7e576c96429a23e0ed23f99de',1,'RGFW.h']]],
+  ['rgfw_5fgpaxisfunc_4',['RGFW_gpAxisfunc',['../group__Callbacks.html#ga719780221d5ffb8bf3b944ea41cf4ce6',1,'RGFW.h']]],
   ['rgfw_5fgpbuttonfunc_5',['RGFW_gpButtonfunc',['../group__Callbacks.html#ga6397f3e1a5af7aad247d2f5d413c6272',1,'RGFW.h']]],
   ['rgfw_5fkeyfunc_6',['RGFW_keyfunc',['../group__Callbacks.html#ga78c417ea7a496244066c0f90aca23d31',1,'RGFW.h']]],
   ['rgfw_5fmonitor_7',['RGFW_monitor',['../RGFW_8h.html#ae4f53c7d78c7c435bb81a99bd314df82',1,'RGFW.h']]],

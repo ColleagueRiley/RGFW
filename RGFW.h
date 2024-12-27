@@ -416,9 +416,9 @@ typedef RGFW_ENUM(u8, RGFW_event_types) {
 		RGFW_Event.button holds which gamepad button was pressed
 
 		RGFW_Event.axis holds the data of all the axis
-		RGFW_Event.axisCount says how many axis there are
+		RGFW_Event.axisesCount says how many axis there are
 	*/
-	RGFW_windowMoved, /*!< the window was moved (by the user) */
+	RGFW_windowMoved, /*!< the window was moved (b the user) */
 	RGFW_windowResized, /*!< the window was resized (by the user), [on webASM this means the browser was resized] */
 	RGFW_focusIn, /*!< window is in focus now */
 	RGFW_focusOut, /*!< window is out of focus now */
@@ -935,7 +935,7 @@ typedef void (* RGFW_mousebuttonfunc)(RGFW_window* win, u8 button, double scroll
 /*!gp /gp, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) */
 typedef void (* RGFW_gpButtonfunc)(RGFW_window* win, u16 gamepad, u8 button, b8 pressed);
 /*! RGFW_gpAxisMove, the window that got the event, the gamepad in question, the axis values and the amount of axises */
-typedef void (* RGFW_gpAxisfunc)(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount);
+typedef void (* RGFW_gpAxisfunc)(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount, u8 whichAxis);
 
 
 /*!  RGFW_dnd, the window that had the drop, the drop data and the amount files dropped returns previous callback function (if it was set) */
@@ -1443,7 +1443,7 @@ void RGFW_windowrefreshfuncEMPTY(RGFW_window* win) {RGFW_UNUSED(win); }
 void RGFW_keyfuncEMPTY(RGFW_window* win, u32 key, u32 mappedKey, char keyName[16], u8 lockState, b8 pressed) {RGFW_UNUSED(win); RGFW_UNUSED(key); RGFW_UNUSED(mappedKey); RGFW_UNUSED(keyName); RGFW_UNUSED(lockState); RGFW_UNUSED(pressed);}
 void RGFW_mousebuttonfuncEMPTY(RGFW_window* win, u8 button, double scroll, b8 pressed) {RGFW_UNUSED(win); RGFW_UNUSED(button); RGFW_UNUSED(scroll); RGFW_UNUSED(pressed);}
 void RGFW_gpButtonfuncEMPTY(RGFW_window* win, u16 gamepad, u8 button, b8 pressed){RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(button); RGFW_UNUSED(pressed); }
-void RGFW_gpAxisfuncEMPTY(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount){RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(axis); RGFW_UNUSED(axisesCount); }
+void RGFW_gpAxisfuncEMPTY(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount, u8 whichAxis){RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(axis); RGFW_UNUSED(axisesCount); RGFW_UNUSED(whichAxis); }
 
 #ifdef RGFW_ALLOC_DROPFILES
 void RGFW_dndfuncEMPTY(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
@@ -2282,7 +2282,7 @@ This is where OS specific stuff starts
 						win->event.type = RGFW_gpAxisMove;
 						win->event.gamepad = i;
 						win->event.whichAxis = axis;
-						RGFW_gpAxisCallback(win, i, win->event.axis, win->event.axisesCount);
+						RGFW_gpAxisCallback(win, i, win->event.axis, win->event.axisesCount, win->event.whichAxis);
 						return &win->event;
 					}
 						default: break;
@@ -5721,6 +5721,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				e->button = RGFW_xinput2RGFW[keystroke.VirtualKey - 0x5800];
 				RGFW_gpPressed[i][e->button] = !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 
+				RGFW_gpButtonCallback(win, i, e->button, e->type == RGFW_gpButtonPressed);
 				return 1;
 			}
 
@@ -5758,9 +5759,9 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				win->event.whichAxis = 0;
 				
 				e->type = RGFW_gpAxisMove;
-
 				e->axis[0] = axis1;
 
+				RGFW_gpAxisCallback(win, e->gamepad, e->axis, e->axisesCount, e->whichAxis);
 				return 1;
 			}
 
@@ -5769,6 +5770,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				e->type = RGFW_gpAxisMove;
 				e->axis[1] = axis2;
 
+				RGFW_gpAxisCallback(win, e->gamepad, e->axis, e->axisesCount, e->whichAxis);				
 				return 1;
 			}
 		}
@@ -7305,6 +7307,97 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
     	return false;
 	}
 
+	void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *sender, IOHIDValueRef value) {
+		RGFW_UNUSED(result); RGFW_UNUSED(sender);
+
+		size_t index = (size_t)context;
+
+		IOHIDElementRef element = IOHIDValueGetElement(value);
+
+		uint32_t usagePage = IOHIDElementGetUsagePage(element);
+		uint32_t usage = IOHIDElementGetUsage(element);
+
+		CFIndex intValue = IOHIDValueGetIntegerValue(value);
+
+		if (usagePage == kHIDPage_GenericDesktop) {
+			// Perform auto calibration
+			if (intValue < axis->minimum)
+				axis->minimum = intValue;
+			if (intValue > axis->maximum)
+				axis->maximum = intValue;
+
+			const float value = ((2.f * (intValue - axis->minimum) / intValue) - 1.f) * 100;
+		}
+
+/*
+	TODO:
+		create LUT: macos button -> RGFW button
+		convert intValue -> RGFW scale 
+		send event to RGFW_window somehow
+*/
+
+//typedef void (* RGFW_gpButtonfunc)(RGFW_window* win, u16 gamepad, u8 button, b8 pressed);
+//typedef void (* RGFW_gpAxisfunc)(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount);
+
+		switch (usagePage) {
+			case kHIDPage_Button:
+				RGFW_gpButtonCallback(RGFW_root, index, button, intValue);
+				// printf("Button %u: %s\n", usage, intValue ? "Pressed" : "Released");
+				break;
+			case kHIDPage_GenericDesktop: {
+				switch (usage) {
+					case kHIDUsage_GD_X:
+						RGFW_gpAxisfunc();
+						printf("Joystick X-axis: %ld\n", value);
+						break;
+					case kHIDUsage_GD_Y:
+						printf("Joystick Y-axis: %ld\n", value);
+						break;
+					case kHIDUsage_GD_Z:
+						printf("Joystick Z-axis: %ld\n", value);
+						break;
+					case kHIDUsage_GD_Rx:
+						printf("Joystick Rx-axis: %ld\n", value);
+						break;
+					case kHIDUsage_GD_Ry:
+						printf("Joystick Ry-axis: %ld\n", value);
+						break;
+					default:
+						break;
+				}
+			}
+		}
+	}
+
+	void RGFW__osxDeviceAddedCallback(void* context, IOReturn result, void *sender, IOHIDDeviceRef device) {
+		RGFW_UNUSED(context); RGFW_UNUSED(result); RGFW_UNUSED(sender);
+		CFNumberRef usageRef = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDPrimaryUsageKey));
+		int usage = 0;
+		if (usageRef)
+			CFNumberGetValue(usageRef, kCFNumberIntType, &usage);
+
+		if (usage != kHIDUsage_GD_Joystick && usage != kHIDUsage_GD_GamePad && usage != kHIDUsage_GD_MultiAxisController) {
+			return;
+		}
+		
+		size_t i = 0;
+		for (i; i < 4; i++) {
+			if (RGFW_gamepads[i] == 0)
+				break;
+		}
+
+		IOHIDDeviceRegisterInputValueCallback(device, RGFW__osxInputValueChangedCallback, RGFW_gamepads + RGFW_gamepadCount);
+		RGFW_gamepads[i] = 1;
+		RGFW_gamepadCount++;
+	}
+
+	void RGFW__osxDeviceRemovedCallback(void *context, IOReturn result, void *sender, IOHIDDeviceRef device) {
+		RGFW_UNUSED(context); RGFW_UNUSED(result); RGFW_UNUSED(sender); RGFW_UNUSED(device);
+		RGFW_gamepads[(size_t)context] = 0;
+		RGFW_gamepadCount--;
+	}
+
+
 	void NSMoveToResourceDir(void) {
 		/* sourced from glfw */
 		char resourcesPath[255];
@@ -7595,6 +7688,43 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		#ifdef RGFW_DEBUG
 		printf("RGFW INFO: a window with a rect of {%i, %i, %i, %i} \n", win->r.x, win->r.y, win->r.w, win->r.h);
 		#endif
+
+		/* init IOKit for gamepad API */
+		IOHIDManagerRef hidManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
+		if (!hidManager) {
+			fprintf(stderr, "Failed to create IOHIDManager.\n");
+			return win;
+		}
+
+		CFMutableDictionaryRef matchingDictionary = CFDictionaryCreateMutable(
+			kCFAllocatorDefault,
+			0,
+			&kCFTypeDictionaryKeyCallBacks,
+			&kCFTypeDictionaryValueCallBacks
+		);
+		if (!matchingDictionary) {
+			fprintf(stderr, "Failed to create matching dictionary.\n");
+			CFRelease(hidManager);
+			return win;
+		}
+
+		CFDictionarySetValue(
+			matchingDictionary,
+			CFSTR(kIOHIDDeviceUsagePageKey),
+			CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &(int){kHIDPage_GenericDesktop})
+		);
+
+		IOHIDManagerSetDeviceMatching(hidManager, matchingDictionary);
+
+		IOHIDManagerRegisterDeviceMatchingCallback(hidManager, RGFW__osxDeviceAddedCallback, NULL);
+		IOHIDManagerRegisterDeviceRemovalCallback(hidManager, RGFW__osxDeviceRemovedCallback, NULL);
+
+		IOHIDManagerScheduleWithRunLoop(hidManager, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+
+		IOHIDManagerOpen(hidManager, kIOHIDOptionsTypeNone);
+		
+		// Execute the run loop once in order to register any initially-attached joysticks
+		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, false);
 
 		return win;
 	}
@@ -9055,6 +9185,8 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 				win->event.gamepad = i;
 				win->event.button = map[j];
 				RGFW_gpPressed[i][button] = gamepadState.digitalButton[j];
+
+				RGFW_gpButtonCallback(win, win->event.gamepad, win->event.button, gamepadState.digitalButton[j]);
 				return &win->event;
 			}
 		}
@@ -9069,6 +9201,8 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 				win->event.type = RGFW_gpAxisMove;
 				win->event.gamepad = i;
 				win->event.whichAxis = j / 2;
+				
+				RGFW_gpAxisCallback(win, win->event.gamepad, win->event.axis, win->event.axisesCount, win->event.whichAxis);
 				return &win->event;
 			}
 		}

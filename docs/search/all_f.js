@@ -33,7 +33,7 @@ var searchData=
   ['rgfw_5fgetscreensize_30',['RGFW_getScreenSize',['../group__Window__management.html#ga2952eee39f36b85b6829976656043f97',1,'RGFW.h']]],
   ['rgfw_5fgettime_31',['RGFW_getTime',['../group__Supporting.html#gaeb9d3d63a8833248ed1009c91e29b253',1,'RGFW.h']]],
   ['rgfw_5fgettimens_32',['RGFW_getTimeNS',['../group__Supporting.html#ga2556ad5561537a8b328d062f8b8268e5',1,'RGFW.h']]],
-  ['rgfw_5fgpaxisfunc_33',['RGFW_gpAxisfunc',['../group__Callbacks.html#gabde94fb7e576c96429a23e0ed23f99de',1,'RGFW.h']]],
+  ['rgfw_5fgpaxisfunc_33',['RGFW_gpAxisfunc',['../group__Callbacks.html#ga719780221d5ffb8bf3b944ea41cf4ce6',1,'RGFW.h']]],
   ['rgfw_5fgpbuttonfunc_34',['RGFW_gpButtonfunc',['../group__Callbacks.html#ga6397f3e1a5af7aad247d2f5d413c6272',1,'RGFW.h']]],
   ['rgfw_5fheader_35',['RGFW_HEADER',['../RGFW_8h.html#ae8ceb9b5ca0a3bd4c747d97a803ab7cc',1,'RGFW.h']]],
   ['rgfw_5fhide_5fmouse_36',['RGFW_HIDE_MOUSE',['../RGFW_8h.html#a8380dc8842fec2f82957bd101fb8cca8',1,'RGFW.h']]],

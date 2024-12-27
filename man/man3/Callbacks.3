@@ -43,7 +43,7 @@ Callbacks \- Callbacks
 .RI "typedef void(* \fBRGFW_gpButtonfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBu8\fP button, \fBb8\fP pressed)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_gpAxisfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount)"
+.RI "typedef void(* \fBRGFW_gpAxisfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount, \fBu8\fP whichAxis)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, char droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP], \fBu32\fP droppedFilesCount)"
@@ -103,7 +103,7 @@ RGFW_dnd, the window that had the drop, the drop data and the amount files dropp
 RGFW_dnd_init, the window, the point of the drop on the windows 
 .SS "typedef void(* RGFW_focusfunc) (\fBRGFW_window\fP *win, \fBb8\fP inFocus)"
 RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its inFocus 
-.SS "typedef void(* RGFW_gpAxisfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount)"
+.SS "typedef void(* RGFW_gpAxisfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount, \fBu8\fP whichAxis)"
 RGFW_gpAxisMove, the window that got the event, the gamepad in question, the axis values and the amount of axises 
 .SS "typedef void(* RGFW_gpButtonfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBu8\fP button, \fBb8\fP pressed)"
 gp /gp, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
