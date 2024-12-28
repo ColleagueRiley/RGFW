@@ -7317,7 +7317,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		switch (usagePage) {
 			case kHIDPage_Button: {
 				u8 button = 0;
-				if (usage > sizeof(RGFW_osx2RGFW))
+				if (usage < sizeof(RGFW_osx2RGFW))
 					button = RGFW_osx2RGFW[usage];
 				
 				RGFW_gpButtonCallback(RGFW_root, index, button, intValue);

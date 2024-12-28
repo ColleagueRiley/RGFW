@@ -7157,7 +7157,7 @@ $(function() {
 <div class="line"><a id="l07317" name="l07317"></a><span class="lineno"> 7317</span>        <span class="keywordflow">switch</span> (usagePage) {</div>
 <div class="line"><a id="l07318" name="l07318"></a><span class="lineno"> 7318</span>            <span class="keywordflow">case</span> kHIDPage_Button: {</div>
 <div class="line"><a id="l07319" name="l07319"></a><span class="lineno"> 7319</span>                <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> button = 0;</div>
-<div class="line"><a id="l07320" name="l07320"></a><span class="lineno"> 7320</span>                <span class="keywordflow">if</span> (usage &gt; <span class="keyword">sizeof</span>(RGFW_osx2RGFW))</div>
+<div class="line"><a id="l07320" name="l07320"></a><span class="lineno"> 7320</span>                <span class="keywordflow">if</span> (usage &lt; <span class="keyword">sizeof</span>(RGFW_osx2RGFW))</div>
 <div class="line"><a id="l07321" name="l07321"></a><span class="lineno"> 7321</span>                    button = RGFW_osx2RGFW[usage];</div>
 <div class="line"><a id="l07322" name="l07322"></a><span class="lineno"> 7322</span>                </div>
 <div class="line"><a id="l07323" name="l07323"></a><span class="lineno"> 7323</span>                RGFW_gpButtonCallback(RGFW_root, index, button, intValue);</div>
