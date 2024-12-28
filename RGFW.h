@@ -7374,8 +7374,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		uint32_t usagePage = IOHIDElementGetUsagePage(element);
 		uint32_t usage = IOHIDElementGetUsage(element);
-		
-		IOHIDDeviceRef device = IOHIDValueGetDevice(value);
 
 		CFIndex intValue = IOHIDValueGetIntegerValue(value);
 
