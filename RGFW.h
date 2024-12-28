@@ -7291,6 +7291,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	}
 
 	int RGFW_osxPollControllerState(RGFW_window* win, IOHIDDeviceRef device) {
+		return 0;
+
 		size_t index = findControllerIndex(device);
 
 		IOHIDElementRef element;
@@ -7365,16 +7367,19 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *sender, IOHIDValueRef value) {
 		RGFW_UNUSED(result); RGFW_UNUSED(sender);
 
-		size_t index = (size_t)context;
-
 		IOHIDElementRef element = IOHIDValueGetElement(value);
+
+		IOHIDDeviceRef device = IOHIDElementGetDevice(element);
+		size_t index = findControllerIndex(device);
 
 		uint32_t usagePage = IOHIDElementGetUsagePage(element);
 		uint32_t usage = IOHIDElementGetUsage(element);
+		
+		IOHIDDeviceRef device = IOHIDValueGetDevice(value);
 
 		CFIndex intValue = IOHIDValueGetIntegerValue(value);
 
-		IOHIDDeviceRef device = IOHIDValueGetDevice(value);
+		//IOHIDDeviceRef device = IOHIDValueGetDevice(value);
 
 		/*u8 RGFW_osx2RGFW[] = {
 			RGFW_GP_A, 
@@ -7401,7 +7406,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				u8 button = 0;// RGFW_osx2RGFW[usage];
 				RGFW_gpButtonCallback(RGFW_root, index, button, intValue);
 				RGFW_gpPressed[(size_t)context][button] = intValue;
-				RGFW_root->src.gpPassed = 0;
+				//RGFW_root->src.gpPassed = 0;
 				RGFW_root->event.type = RGFW_gpButtonPressed + ((bool)intValue);
 				RGFW_root->event.button = button;
 				RGFW_root->event.gamepad = (size_t)context;
@@ -7421,7 +7426,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				RGFW_root->event.type = RGFW_gpAxisMove;
 				RGFW_root->event.gamepad = (size_t)context;
 
-				RGFW_root->src.gpPassed = 0;
+				//RGFW_root->src.gpPassed = 0;
 				RGFW_root->event.axis[0] = RGFW_gpAxes[(size_t)context][0];
 				RGFW_root->event.axis[1] = RGFW_gpAxes[(size_t)context][1];
 
