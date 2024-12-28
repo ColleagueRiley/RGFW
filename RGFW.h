@@ -7315,9 +7315,9 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			switch (usagePage) {
 				case kHIDPage_Button: {
 					u8 button = 0;// RGFW_osx2RGFW[usage];
-					RGFW_gpButtonCallback(win, index, button, intValue);
-					RGFW_gpPressed[index][button] = intValue;
-					win->event.type = RGFW_gpButtonPressed + ((bool)intValue);
+					RGFW_gpButtonCallback(win, index, button, value);
+					RGFW_gpPressed[index][button] = value;
+					win->event.type = RGFW_gpButtonPressed + ((bool)value);
 					win->event.button = button;
 					win->event.gamepad = index;
 
@@ -7325,13 +7325,13 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 					return 1;
 				}
 				case kHIDPage_GenericDesktop: {
-					const float value = ((2.f * (intValue) / intValue) - 1.f) * 100;
+					const float realValue = ((2.f * (value) / value) - 1.f) * 100;
 					
 					switch (usage) {
-						case kHIDUsage_GD_X: win->event.axis[0].x = value; break;
-						case kHIDUsage_GD_Y: win->event.axis[0].y = value; break;
-						case kHIDUsage_GD_Rx: win->event.axis[1].x = value; break;
-						case kHIDUsage_GD_Ry: win->event.axis[1].y = value; break;
+						case kHIDUsage_GD_X: win->event.axis[0].x = realValue; break;
+						case kHIDUsage_GD_Y: win->event.axis[0].y = realValue; break;
+						case kHIDUsage_GD_Rx: win->event.axis[1].x = realValue; break;
+						case kHIDUsage_GD_Ry: win->event.axis[1].y = realValue; break;
 						default: CFRelease(elements); return 0;
 					}
 					
