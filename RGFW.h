@@ -1004,11 +1004,8 @@ RGFWDEF RGFW_gpAxisfunc RGFW_setgpAxisCallback(RGFW_gpAxisfunc func);
 * @{ */ 
 
 /*! gamepad count starts at 0*/
-/*!< register gamepad to window based on a number (the number is based on when it was connected eg. /dev/js0)*/
-RGFWDEF u16 RGFW_registerGamepad(RGFW_window* win, i32 gpNumber);
-RGFWDEF u16 RGFW_registerGamepadF(RGFW_window* win, char* file);
-
 RGFWDEF u32 RGFW_isPressedGP(RGFW_window* win, u16 controller, u8 button);
+RGFWDEF RGFW_point RGFW_isGetGPAxis(RGFW_window* win, u16 controller, u16 whichAxis);
 
 /** @} */ 
 
@@ -1418,9 +1415,10 @@ void RGFW_resetKey(void) {
 
 /* gamepad data */
 u8 RGFW_gpPressed[4][16]; /*!< if a key is currently pressed or not (per gamepad) */
+RGFW_point RGFW_gpAxes[4][4]; /*!< if a key is currently pressed or not (per gamepad) */
 
-i32 RGFW_gamepads[4]; /*!< limit of 4 gamepads at a time */
-u16 RGFW_gamepadCount; /*!< the actual amount of gamepads */
+i32 RGFW_gamepads[4] = {0, 0, 0, 0}; /*!< limit of 4 gamepads at a time */
+u16 RGFW_gamepadCount = 0; /*!< the actual amount of gamepads */
 
 /* 
 	event callback defines start here
@@ -1603,7 +1601,6 @@ RGFW_window* RGFW_window_basic_init(RGFW_rect rect, u16 args) {
 	win->r = rect;
 	win->event.inFocus = 1;
 	win->event.droppedFilesCount = 0;
-	RGFW_gamepadCount = 0;
 	win->_winArgs = 0;
 	win->event.lockState = 0;
 
@@ -1785,6 +1782,11 @@ u32 RGFW_window_checkFPS(RGFW_window* win, u32 fpsCap) {
 u32 RGFW_isPressedGP(RGFW_window* win, u16 c, u8 button) { 
 	RGFW_UNUSED(win);
 	return RGFW_gpPressed[c][button]; 
+}
+
+RGFW_point RGFW_isGetGPAxis(RGFW_window* win, u16 controller, u16 whichAxis) {
+	RGFW_UNUSED(win);
+	return RGFW_gpAxes[controller][whichAxis];
 }
 
 #if defined(RGFW_X11) || defined(RGFW_WINDOWS)
@@ -2242,12 +2244,36 @@ This is where OS specific stuff starts
 		#include <fcntl.h>
 		#include <unistd.h>
 
-		RGFW_Event* RGFW_linux_updateGamepad(RGFW_window* win) {
+		u32 RGFW_linux_updateGamepad(RGFW_window* win) {
+			/* check for new gamepads */
+			static char* str[] = {"/dev/input/js0", "/dev/input/js1", "/dev/input/js2", "/dev/input/js3"} ;
+			for (size_t i = 0; i < 4; i++) {
+				if (RGFW_gamepads[i])
+					continue;
+				
+				i32 js = open(str[i], O_RDONLY);
+
+				if (js <= 0 || RGFW_gamepadCount >= 4)
+					break;
+				
+				#ifdef RGFW_DEBUG
+				printf("RGFW (linux): new controller added %s\n", str[i]);
+				#endif
+
+				RGFW_gamepadCount++;
+
+				RGFW_gamepads[RGFW_gamepadCount - 1] = js;
+
+				u8 i;
+				for (i = 0; i < 16; i++)
+					RGFW_gpPressed[RGFW_gamepadCount - 1][i] = 0;
+			}
+
+			/* check gamepad events */
 			u8 i;
+			
 			for (i = 0; i < RGFW_gamepadCount; i++) {
 				struct js_event e;
-
-
 				if (RGFW_gamepads[i] == 0)
 					continue;
 
@@ -2257,40 +2283,41 @@ This is where OS specific stuff starts
 				ssize_t bytes;
 				while ((bytes = read(RGFW_gamepads[i], &e, sizeof(e))) > 0) {
 					switch (e.type) {
-					case JS_EVENT_BUTTON:
-						win->event.type = e.value ? RGFW_gpButtonPressed : RGFW_gpButtonReleased;
-						win->event.button = e.number;
-						RGFW_gpPressed[i][e.number + 1] = e.value;
-						RGFW_gpButtonCallback(win, i, e.number, e.value);
-						
-						return &win->event;
-					case JS_EVENT_AXIS: {
-						size_t axis = e.number / 2;
-						if (axis == 2) axis = 1;
+						case JS_EVENT_BUTTON:
+							win->event.type = e.value ? RGFW_gpButtonPressed : RGFW_gpButtonReleased;
+							win->event.button = e.number;
+							RGFW_gpPressed[i][e.number + 1] = e.value;
+							RGFW_gpButtonCallback(win, i, e.number, e.value);
+							
+							return 1;
+						case JS_EVENT_AXIS: {
+							size_t axis = e.number / 2;
+							if (axis == 2) axis = 1;
 
-						ioctl(RGFW_gamepads[i], JSIOCGAXES, &win->event.axisesCount);
-						win->event.axisesCount = 2;
-						
-						if (axis < 3) { 
-							if (e.number == 0 || e.number == 3)	
-								win->event.axis[axis].x = (e.value / 32767.0f) * 100;
-							else if (e.number == 1 || e.number == 4) {
-								win->event.axis[axis].y = (e.value / 32767.0f) * 100;
+							ioctl(RGFW_gamepads[i], JSIOCGAXES, &win->event.axisesCount);
+							win->event.axisesCount = 2;
+							
+							if (axis < 3) { 
+								if (e.number == 0 || e.number == 3)	
+									RGFW_gpAxes[i][axis].x = (e.value / 32767.0f) * 100;
+								else if (e.number == 1 || e.number == 4) {
+									RGFW_gpAxes[i][axis].y = (e.value / 32767.0f) * 100;
+								}
 							}
-						}
 
-						win->event.type = RGFW_gpAxisMove;
-						win->event.gamepad = i;
-						win->event.whichAxis = axis;
-						RGFW_gpAxisCallback(win, i, win->event.axis, win->event.axisesCount, win->event.whichAxis);
-						return &win->event;
-					}
+							win->event.axis[axis] = RGFW_gpAxes[i][axis];
+							win->event.type = RGFW_gpAxisMove;
+							win->event.gamepad = i;
+							win->event.whichAxis = axis;
+							RGFW_gpAxisCallback(win, i, win->event.axis, win->event.axisesCount, win->event.whichAxis);
+							return 1;
+						}
 						default: break;
 					}
 				}
 			}
 
-			return NULL;
+			return 0;
 		}
 
 	#endif
@@ -2763,9 +2790,7 @@ Start of Linux / Unix defines
 			win->event.type = 0;
 
 #ifdef __linux__
-		RGFW_Event* event = RGFW_linux_updateGamepad(win);
-		if (event != NULL)
-			return event;
+		if (RGFW_linux_updateGamepad(win)) return &win->event;
 #endif
 
 			XPending(win->src.display);
@@ -3989,45 +4014,6 @@ Start of Linux / Unix defines
 #include <fcntl.h>
 #include <poll.h>
 #include <unistd.h>
-	u16 RGFW_registerGamepadF(RGFW_window* win, char* file) {
-		assert(win != NULL);
-
-#ifdef __linux__
-
-		i32 js = open(file, O_RDONLY);
-
-		if (js && RGFW_gamepadCount < 4) {
-			RGFW_gamepadCount++;
-
-			RGFW_gamepads[RGFW_gamepadCount - 1] = open(file, O_RDONLY);
-
-			u8 i;
-			for (i = 0; i < 16; i++)
-				RGFW_gpPressed[RGFW_gamepadCount - 1][i] = 0;
-
-		}
-
-		else {
-#ifdef RGFW_PRINT_ERRORS
-			RGFW_error = 1;
-			fprintf(stderr, "Error RGFW_registerGamepadF : Cannot open file %s\n", file);
-#endif
-		}
-
-		return RGFW_gamepadCount - 1;
-#endif
-	}
-	
-	u16 RGFW_registerGamepad(RGFW_window* win, i32 gpNumber) {
-		assert(win != NULL);
-
-#ifdef __linux__
-		char file[15];
-		sprintf(file, "/dev/input/js%i", gpNumber);
-
-		return RGFW_registerGamepadF(win, file);
-#endif
-	}
 	
 	void RGFW_stopCheckEvents(void) { 
 		RGFW_eventWait_forceStop[2] = 1;
@@ -4768,9 +4754,7 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 		}
 
 		#ifdef __linux__
-			RGFW_Event* event = RGFW_linux_updateGamepad(win);
-			if (event != NULL)
-				return event;
+			if (RGFW_linux_updateGamepad(win)) return &win->event;
 		#endif
 		
 		if (win->src.eventLen == 0) {
@@ -5760,6 +5744,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				
 				e->type = RGFW_gpAxisMove;
 				e->axis[0] = axis1;
+				RGFW_gpAxes[i][0] = e->axis[0];
 
 				RGFW_gpAxisCallback(win, e->gamepad, e->axis, e->axisesCount, e->whichAxis);
 				return 1;
@@ -5769,6 +5754,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				win->event.whichAxis = 1;
 				e->type = RGFW_gpAxisMove;
 				e->axis[1] = axis2;
+				RGFW_gpAxes[i][1] = e->axis[1];
 
 				RGFW_gpAxisCallback(win, e->gamepad, e->axis, e->axisesCount, e->whichAxis);				
 				return 1;
@@ -6657,21 +6643,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		CloseClipboard();
 	}
 
-	u16 RGFW_registerGamepad(RGFW_window* win, i32 gpNumber) {
-		assert(win != NULL);
-
-		RGFW_UNUSED(gpNumber)
-
-		return RGFW_registerGamepadF(win, (char*) "");
-	}
-
-	u16 RGFW_registerGamepadF(RGFW_window* win, char* file) {
-		assert(win != NULL);
-		RGFW_UNUSED(file)
-
-		return RGFW_gamepadCount - 1;
-	}
-
 	void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) {
 		assert(win != NULL);
 		win->_lastMousePoint = RGFW_POINT(p.x - win->r.x, p.y - win->r.y);
@@ -7331,6 +7302,9 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 //typedef void (* RGFW_gpButtonfunc)(RGFW_window* win, u16 gamepad, u8 button, b8 pressed);
 //typedef void (* RGFW_gpAxisfunc)(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount);
+
+// RGFW_gpAxes[i][axis]
+// RGFW_gpButtons[i][button]
 
 		switch (usagePage) {
 			case kHIDPage_Button: {
@@ -8418,22 +8392,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		NSPasteBoard_setString(NSPasteboard_generalPasteboard(), text, NSPasteboardTypeString);
 	}
 
-	u16 RGFW_registerGamepad(RGFW_window* win, i32 gpNumber) {
-		RGFW_UNUSED(gpNumber);
-
-		assert(win != NULL);
-
-		return RGFW_registerGamepadF(win, (char*) "");
-	}
-
-	u16 RGFW_registerGamepadF(RGFW_window* win, char* file) {
-		RGFW_UNUSED(file);
-
-		assert(win != NULL);
-
-		return RGFW_gamepadCount - 1;
-	}
-
 	#ifdef RGFW_OPENGL
 	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 		assert(win != NULL);
@@ -9190,11 +9148,14 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		for (int j = 0; (j < gamepadState.numAxes) && (j < 4); j += 2) {
 			win->event.axisesCount = gamepadState.numAxes / 2;
-			if (win->event.axis[j / 2].x != (i8)(gamepadState.axis[j] * 100.0f) || 
-				win->event.axis[j / 2].y != (i8)(gamepadState.axis[j + 1] * 100.0f)
+			if (RGFW_gpAxes[i][(size_t)(j / 2)].x != (i8)(gamepadState.axis[j] * 100.0f) || 
+				RGFW_gpAxes[i][(size_t)(j / 2)].y != (i8)(gamepadState.axis[j + 1] * 100.0f)
 			) {
-				win->event.axis[j / 2].x = (i8)(gamepadState.axis[j] * 100.0f);
-				win->event.axis[j / 2].y = (i8)(gamepadState.axis[j + 1] * 100.0f);
+				
+				RGFW_gpAxes[i][(size_t)(j / 2)].x = (i8)(gamepadState.axis[j] * 100.0f);
+				RGFW_gpAxes[i][(size_t)(j / 2)].y = (i8)(gamepadState.axis[j + 1] * 100.0f);
+				win->event.axis[(size_t)(j / 2)] = RGFW_gpAxes[i][(size_t)(j / 2)];
+
 				win->event.type = RGFW_gpAxisMove;
 				win->event.gamepad = i;
 				win->event.whichAxis = j / 2;

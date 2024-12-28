@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Fri Dec 27 2024" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Sat Dec 28 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -482,13 +482,10 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_setThreadPriority\fP (\fBRGFW_thread\fP thread, \fBu8\fP priority)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBu16\fP \fBRGFW_registerGamepad\fP (\fBRGFW_window\fP *win, \fBi32\fP gpNumber)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBu16\fP \fBRGFW_registerGamepadF\fP (\fBRGFW_window\fP *win, char *file)"
-.br
-.ti -1c
 .RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_isPressedGP\fP (\fBRGFW_window\fP *win, \fBu16\fP controller, \fBu8\fP button)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_isGetGPAxis\fP (\fBRGFW_window\fP *win, \fBu16\fP controller, \fBu16\fP whichAxis)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent\fP (\fBRGFW_window\fP *win)"

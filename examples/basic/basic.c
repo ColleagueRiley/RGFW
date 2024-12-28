@@ -56,7 +56,7 @@ int main(void) {
         #endif
 
         RGFW_window_eventWait(win, RGFW_NEXT);
-        
+
         while (RGFW_window_checkEvent(win) != NULL) {
             if (win->event.type == RGFW_windowMoved) {
                 printf("window moved\n");
@@ -162,6 +162,12 @@ void* loop2(void* args) {
         if (win->event.type == RGFW_mouseButtonPressed) {
             RGFW_stopCheckEvents();
         }
+
+        if (win->event.type == RGFW_gpButtonPressed)
+            printf("pressed %i\n", win->event.button);
+
+        else if (win->event.type == RGFW_gpAxisMove && !win->event.button)
+            printf("{%i, %i}\n", win->event.axis[0].x, win->event.axis[0].y);
 
         drawLoop(win);
     }
