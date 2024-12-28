@@ -7335,10 +7335,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				i8 value = (i8)((((float)value8) / (float)(255.0f / 2.0f)) * 100.0f);
 				
 				switch (usage) {
-					case kHIDUsage_GD_X: RGFW_gpAxes[index][0].x = value; break;
-					case kHIDUsage_GD_Y: RGFW_gpAxes[index][0].y = value; break;
-					case kHIDUsage_GD_Z: RGFW_gpAxes[index][1].x = value; break;
-					case kHIDUsage_GD_Rz: RGFW_gpAxes[index][1].y = value; break;
+					case kHIDUsage_GD_X: RGFW_gpAxes[index][0].x = value; RGFW_root->event.whichAxis = 0; break;
+					case kHIDUsage_GD_Y: RGFW_gpAxes[index][0].y = value; RGFW_root->event.whichAxis = 0; break;
+					case kHIDUsage_GD_Z: RGFW_gpAxes[index][1].x = value; RGFW_root->event.whichAxis = 1; break;
+					case kHIDUsage_GD_Rz: RGFW_gpAxes[index][1].y = value; RGFW_root->event.whichAxis = 1; break;
 					default: return;
 				}
 				
