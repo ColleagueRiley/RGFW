@@ -1,6 +1,3 @@
-MACOS:
-    - controller support
-
 WINDOWS:
     - RGFW_TRANSPARENT_WINDOW (use real alpha)
 
