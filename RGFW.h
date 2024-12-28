@@ -7304,29 +7304,22 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		CFIndex intValue = IOHIDValueGetIntegerValue(value);
 
-		/*u8 RGFW_osx2RGFW[] = {
-			RGFW_GP_A, 
-			RGFW_GP_B,
-			RGFW_GP_X,
-			RGFW_GP_Y,
-			RGFW_GP_R1,
-			RGFW_GP_L1,
-			RGFW_GP_L2,
-			RGFW_GP_R2,
-			0, 0, 0, 0, 0, 0, 0, 0,
-			RGFW_GP_UP,
-			RGFW_GP_DOWN,
-			RGFW_GP_LEFT,
-			RGFW_GP_RIGHT,
-			RGFW_GP_START,
+		u8 RGFW_osx2RGFW[] = {
+			0, 
 			RGFW_GP_SELECT,
-			RGFW_GP_L3, 
-			RGFW_GP_R3, 
-		};*/
+			RGFW_GP_L3, RGFW_GP_R3, RGFW_GP_START, 
+			RGFW_GP_UP, RGFW_GP_RIGHT, RGFW_GP_DOWN, RGFW_GP_LEFT,
+			RGFW_GP_L2, RGFW_GP_R2,
+			RGFW_GP_L1, RGFW_GP_R1,
+			RGFW_GP_Y, RGFW_GP_B, RGFW_GP_A, RGFW_GP_X
+		};
 
 		switch (usagePage) {
 			case kHIDPage_Button: {
-				u8 button = 0;// RGFW_osx2RGFW[usage];
+				u8 button = 0;
+				if (usage > sizeof(RGFW_osx2RGFW))
+					button = RGFW_osx2RGFW[usage];
+				
 				RGFW_gpButtonCallback(RGFW_root, index, button, intValue);
 				RGFW_gpPressed[(size_t)context][button] = intValue;
 				RGFW_root->src.gpPassed = 0;
@@ -7336,7 +7329,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				break;
 			}
 			case kHIDPage_GenericDesktop: {
-				const float value = ((2.f * (intValue) / intValue) - 1.f) * 100;
+				const i32 value = (i32)(((float)((2.f * (intValue) / intValue) - 1.f)) * 100.0f);
 				
 				switch (usage) {
 					case kHIDUsage_GD_X: RGFW_root->event.axis[0].x = value; break;
