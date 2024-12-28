@@ -7321,11 +7321,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 					button = RGFW_osx2RGFW[usage];
 				
 				RGFW_gpButtonCallback(RGFW_root, index, button, intValue);
-				RGFW_gpPressed[(size_t)context][button] = intValue;
+				RGFW_gpPressed[index][button] = intValue;
 				RGFW_root->src.gpPassed = 0;
 				RGFW_root->event.type = RGFW_gpButtonPressed + ((bool)intValue);
 				RGFW_root->event.button = button;
-				RGFW_root->event.gamepad = (size_t)context;
+				RGFW_root->event.gamepad = index;
 				break;
 			}
 			case kHIDPage_GenericDesktop: {
@@ -7340,11 +7340,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				}
 				
 				RGFW_root->event.type = RGFW_gpAxisMove;
-				RGFW_root->event.gamepad = (size_t)context;
+				RGFW_root->event.gamepad = index;
 
 				RGFW_root->src.gpPassed = 0;
-				RGFW_root->event.axis[0] = RGFW_gpAxes[(size_t)context][0];
-				RGFW_root->event.axis[1] = RGFW_gpAxes[(size_t)context][1];
+				RGFW_root->event.axis[0] = RGFW_gpAxes[index][0];
+				RGFW_root->event.axis[1] = RGFW_gpAxes[index][1];
 
 				RGFW_gpAxisCallback(RGFW_root, index, RGFW_root->event.axis, 2, RGFW_root->event.whichAxis);
 			}
