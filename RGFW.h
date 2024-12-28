@@ -7290,7 +7290,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		return -1;
 	}
 
-	RGFW_event RGFW_gpEventQueue[10];
+	RGFW_Event RGFW_gpEventQueue[10];
 	#define RGFW_gpEventQueueMAX 10
 	size_t RGFW_gpEventQueueCount = 0;
 	
@@ -7317,7 +7317,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			RGFW_GP_Y, RGFW_GP_B, RGFW_GP_A, RGFW_GP_X
 		};
 
-		RGFW_event event;
+		RGFW_Event event;
 
 		switch (usagePage) {
 			case kHIDPage_Button: {
@@ -7932,7 +7932,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			win->event.type = RGFW_gpEventQueue[RGFW_gpEventQueueMAX - RGFW_gpEventQueueCount].button;
 			win->event.whichAxis = RGFW_gpEventQueue[RGFW_gpEventQueueMAX - RGFW_gpEventQueueCount].whichAxis;
 			win->event.gamepad = RGFW_gpEventQueue[RGFW_gpEventQueueMAX - RGFW_gpEventQueueCount].gamepad;
-			win->event.axis = RGFW_gpEventQueue[RGFW_gpEventQueueMAX - RGFW_gpEventQueueCount].axis;
+			for (size_t i = 0; i < 4; i++)
+				win->event.axis[i] = RGFW_gpEventQueue[RGFW_gpEventQueueMAX - RGFW_gpEventQueueCount].axis[i];
 			return &win->event;
 		}
 		
