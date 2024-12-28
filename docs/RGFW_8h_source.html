@@ -7211,7 +7211,7 @@ $(function() {
 <div class="line"><a id="l07371" name="l07371"></a><span class="lineno"> 7371</span>                <span class="keywordflow">continue</span>;</div>
 <div class="line"><a id="l07372" name="l07372"></a><span class="lineno"> 7372</span> </div>
 <div class="line"><a id="l07373" name="l07373"></a><span class="lineno"> 7373</span>            RGFW_osxControllers[i] = device;</div>
-<div class="line"><a id="l07374" name="l07374"></a><span class="lineno"> 7374</span>            IOHIDDeviceRegisterInputValueCallback(device, RGFW__osxInputValueChangedCallback, RGFW_gamepads + RGFW_gamepadCount);</div>
+<div class="line"><a id="l07374" name="l07374"></a><span class="lineno"> 7374</span>            IOHIDDeviceRegisterInputValueCallback(device, RGFW__osxInputValueChangedCallback, NULL);</div>
 <div class="line"><a id="l07375" name="l07375"></a><span class="lineno"> 7375</span>            RGFW_gamepads[i] = i;</div>
 <div class="line"><a id="l07376" name="l07376"></a><span class="lineno"> 7376</span>            RGFW_gamepadCount++;    </div>
 <div class="line"><a id="l07377" name="l07377"></a><span class="lineno"> 7377</span>            <span class="keywordflow">break</span>;</div>
