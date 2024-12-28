@@ -7308,11 +7308,12 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			uint32_t usage = IOHIDElementGetUsage(element);
 			
 			IOHIDValueRef valuePtr;
-			CFIndex intValue = IOHIDValueGetIntegerValue(valuePtr);
 
-			if (IOHIDDeviceGetValue(device, element, &value) != kIOReturnSuccess) {
+			if (IOHIDDeviceGetValue(device, element, &valuePtr) != kIOReturnSuccess) {
 				CFRelease(elements); return 0;
 			}
+
+			CFIndex intValue = IOHIDValueGetIntegerValue(valuePtr);
 
 			switch (usagePage) {
 				case kHIDPage_Button: {
