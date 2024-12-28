@@ -632,7 +632,7 @@ typedef struct RGFW_window_src {
 	u32 display;
 	void* displayLink;
 	void* window;
-	b8 dndPassed;
+	b8 dndPassed, gpPassed;
 #if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
 		void* ctx; /*!< source graphics context */
 #elif defined(RGFW_OSMESA)
@@ -7203,6 +7203,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		win->event.type = RGFW_dnd_init;
 		win->src.dndPassed = 0;
+		win->src.gpPassed = 0;
 
 		NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
 
@@ -7310,32 +7311,32 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			case kHIDPage_Button: {
 				u8 button = 0;
 				RGFW_gpButtonCallback(RGFW_root, index, button, intValue);
-				// printf("Button %u: %s\n", usage, intValue ? "Pressed" : "Released");
+				RGFW_gpPressed[(size_t)context][button] = intValue;
+				win->src.gpPassed = 0;
+				RGFW_root->event.type = RGFW_gpButtonPressed + ((bool)intValue);
+				RGFW_root->event.button = button;
+				RGFW_root->event.gamepad = (size_t)context;
 				break;
 			}
 			case kHIDPage_GenericDesktop: {
 				const float value = ((2.f * (intValue) / intValue) - 1.f) * 100;
 				
 				switch (usage) {
-					case kHIDUsage_GD_X:
-						RGFW_gpAxisCallback(RGFW_root, index, RGFW_root->event.axis, 2, 0);
-						printf("Joystick X-axis: %f\n", value);
-						break;
-					case kHIDUsage_GD_Y:
-						printf("Joystick Y-axis: %f\n", value);
-						RGFW_gpAxisCallback(RGFW_root, index, RGFW_root->event.axis, 2, 0);
-						break;
-					case kHIDUsage_GD_Rx:
-						printf("Joystick Rx-axis: %f\n", value);
-						RGFW_gpAxisCallback(RGFW_root, index, RGFW_root->event.axis, 2, 1);
-						break;
-					case kHIDUsage_GD_Ry:
-						RGFW_gpAxisCallback(RGFW_root, index, RGFW_root->event.axis, 2, 2);
-						printf("Joystick Ry-axis: %f\n", value);
-						break;
-					default:
-						break;
+					case kHIDUsage_GD_X: RGFW_root->event.axis[0].x = value; break;
+					case kHIDUsage_GD_Y: RGFW_root->event.axis[0].y = value; break;
+					case kHIDUsage_GD_Rx: RGFW_root->event.axis[1].x = value; break;
+					case kHIDUsage_GD_Ry: RGFW_root->event.axis[1].y = value; break;
+					default: return;
 				}
+				
+				RGFW_root->event.type = RGFW_gpAxisMove;
+				RGFW_root->event.gamepad = (size_t)context;
+
+				win->src.gpPassed = 0;
+				RGFW_root->event.axis[0] = RGFW_gpAxes[(size_t)context][0];
+				RGFW_root->event.axis[1] = RGFW_gpAxes[(size_t)context][1];
+
+				RGFW_gpAxisCallback(RGFW_root, index, RGFW_root->event.axis, 2, RGFW_root->event.whichAxis);
 			}
 		}
 	}
@@ -7878,6 +7879,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		
 		if ((win->event.type == RGFW_dnd || win->event.type == RGFW_dnd_init) && win->src.dndPassed == 0) {
 			win->src.dndPassed = 1;
+			return &win->event;
+		}
+
+		if ((win->event.type == RGFW_gpButtonPressed || win->event.type == RGFW_gpAxisMove) && win->src.gpPassed == 0) {
+			win->src.gpPassed = 1;
 			return &win->event;
 		}
 
