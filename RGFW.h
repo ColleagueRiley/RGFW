@@ -7371,7 +7371,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				continue;
 
 			RGFW_osxControllers[i] = device;
-			IOHIDDeviceRegisterInputValueCallback(device, RGFW__osxInputValueChangedCallback, NULL);
 			RGFW_gamepads[i] = i;
 			RGFW_gamepadCount++;	
 			break;
