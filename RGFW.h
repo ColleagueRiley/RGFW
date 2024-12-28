@@ -632,7 +632,7 @@ typedef struct RGFW_window_src {
 	u32 display;
 	void* displayLink;
 	void* window;
-	b8 dndPassed, gpPassed;
+	b8 dndPassed;
 #if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
 		void* ctx; /*!< source graphics context */
 #elif defined(RGFW_OSMESA)
@@ -7289,6 +7289,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				return i;
 		return -1;
 	}
+
+	RGFW_event RGFW_gpEventQueue[10];
+	#define RGFW_gpEventQueueMAX 10
+	size_t RGFW_gpEventQueueCount = 0;
 	
 	void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *sender, IOHIDValueRef value) {
 		RGFW_UNUSED(context); RGFW_UNUSED(result); RGFW_UNUSED(sender);
@@ -7313,6 +7317,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			RGFW_GP_Y, RGFW_GP_B, RGFW_GP_A, RGFW_GP_X
 		};
 
+		RGFW_event event;
+
 		switch (usagePage) {
 			case kHIDPage_Button: {
 				u8 button = 0;
@@ -7321,10 +7327,12 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				
 				RGFW_gpButtonCallback(RGFW_root, index, button, intValue);
 				RGFW_gpPressed[index][button] = intValue;
-				RGFW_root->src.gpPassed = 0;
-				RGFW_root->event.type = intValue ? RGFW_gpButtonPressed: RGFW_gpButtonReleased;
-				RGFW_root->event.button = button;
-				RGFW_root->event.gamepad = index;
+				event.type = intValue ? RGFW_gpButtonPressed: RGFW_gpButtonReleased;
+				event.button = button;
+				event.gamepad = index;
+
+				RGFW_gpEventQueue[RGFW_gpEventQueueMAX - RGFW_gpEventQueueCount] = event;
+				RGFW_gpEventQueueCount++;
 				break;
 			}
 			case kHIDPage_GenericDesktop: {
@@ -7334,21 +7342,23 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				i8 value = (i8)((((float)value8) / (float)(255.0f / 2.0f)) * 100.0f);
 				
 				switch (usage) {
-					case kHIDUsage_GD_X: RGFW_gpAxes[index][0].x = value; RGFW_root->event.whichAxis = 0; break;
-					case kHIDUsage_GD_Y: RGFW_gpAxes[index][0].y = value; RGFW_root->event.whichAxis = 0; break;
-					case kHIDUsage_GD_Z: RGFW_gpAxes[index][1].x = value; RGFW_root->event.whichAxis = 1; break;
-					case kHIDUsage_GD_Rz: RGFW_gpAxes[index][1].y = value; RGFW_root->event.whichAxis = 1; break;
+					case kHIDUsage_GD_X: RGFW_gpAxes[index][0].x = value; event.whichAxis = 0; break;
+					case kHIDUsage_GD_Y: RGFW_gpAxes[index][0].y = value; event.whichAxis = 0; break;
+					case kHIDUsage_GD_Z: RGFW_gpAxes[index][1].x = value; event.whichAxis = 1; break;
+					case kHIDUsage_GD_Rz: RGFW_gpAxes[index][1].y = value; event.whichAxis = 1; break;
 					default: return;
 				}
 				
-				RGFW_root->event.type = RGFW_gpAxisMove;
-				RGFW_root->event.gamepad = index;
+				event.type = RGFW_gpAxisMove;
+				event.gamepad = index;
 
-				RGFW_root->src.gpPassed = 0;
-				RGFW_root->event.axis[0] = RGFW_gpAxes[index][0];
-				RGFW_root->event.axis[1] = RGFW_gpAxes[index][1];
+				event.axis[0] = RGFW_gpAxes[index][0];
+				event.axis[1] = RGFW_gpAxes[index][1];
 
-				RGFW_gpAxisCallback(RGFW_root, index, RGFW_root->event.axis, 2, RGFW_root->event.whichAxis);
+				RGFW_gpEventQueue[RGFW_gpEventQueueMAX - RGFW_gpEventQueueCount] = event;
+				RGFW_gpEventQueueCount++;
+
+				RGFW_gpAxisCallback(RGFW_root, index, event.axis, 2, event.whichAxis);
 			}
 		}
 	}
@@ -7915,11 +7925,17 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			win->src.dndPassed = 1;
 			return &win->event;
 		}
-
-		if ((win->event.type == RGFW_gpButtonPressed || win->event.type == RGFW_gpAxisMove) && win->src.gpPassed == 0) {
-			win->src.gpPassed = 1;
+		
+		if (RGFW_gpEventQueueCount) {
+			RGFW_gpEventQueueCount--;
+			win->event.type = RGFW_gpEventQueue[RGFW_gpEventQueueMAX - RGFW_gpEventQueueCount].type;
+			win->event.type = RGFW_gpEventQueue[RGFW_gpEventQueueMAX - RGFW_gpEventQueueCount].button;
+			win->event.whichAxis = RGFW_gpEventQueue[RGFW_gpEventQueueMAX - RGFW_gpEventQueueCount].whichAxis;
+			win->event.gamepad = RGFW_gpEventQueue[RGFW_gpEventQueueMAX - RGFW_gpEventQueueCount].gamepad;
+			win->event.axis = RGFW_gpEventQueue[RGFW_gpEventQueueMAX - RGFW_gpEventQueueCount].axis;
 			return &win->event;
 		}
+		
 
 		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
         eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
