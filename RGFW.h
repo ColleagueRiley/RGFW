@@ -6963,7 +6963,14 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		NSOpenGLContextParameterSwapInterval           NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 222, /* 1 param.  0 -> Don't sync, 1 -> Sync to vertical retrace     */
 			NSOpenGLContextParametectxaceOrder           NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 235, /* 1 param.  1 -> Above Window (default), -1 -> Below Window    */
 			NSOpenGLContextParametectxaceOpacity         NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 236, /* 1 param.  1-> Surface is opaque (default), 0 -> non-opaque   */
-			
+			NSOpenGLContextParametectxaceBackingSize     NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 304, /* 2 params.  Width/height of surface backing size              */
+			NSOpenGLContextParameterReclaimResources       NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 308, /* 0 params.                                                    */
+			NSOpenGLContextParameterCurrentRendererID      NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 309, /* 1 param.   Retrieves the current renderer ID                 */
+			NSOpenGLContextParameterGPUVertexProcessing    NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 310, /* 1 param.   Currently processing vertices with GPU (get)      */
+			NSOpenGLContextParameterGPUFragmentProcessing  NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 311, /* 1 param.   Currently processing fragments with GPU (get)     */
+			NSOpenGLContextParameterHasDrawable            NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 314, /* 1 param.   Boolean returned if drawable is attached          */
+			NSOpenGLContextParameterMPSwapsInFlight        NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 315, /* 1 param.   Max number of swaps queued by the MP GL engine    */
+
 			NSOpenGLContextParameterSwapRectangle API_DEPRECATED("", macos(10.0, 10.14)) = 200, /* 4 params.  Set or get the swap rectangle {x, y, w, h} */
 			NSOpenGLContextParameterSwapRectangleEnable API_DEPRECATED("", macos(10.0, 10.14)) = 201, /* Enable or disable the swap rectangle */
 			NSOpenGLContextParameterRasterizationEnable API_DEPRECATED("", macos(10.0, 10.14)) = 221, /* Enable or disable all rasterization */
@@ -7050,19 +7057,36 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 	void NSRetain(id obj) { objc_msgSend_void(obj, sel_registerName("retain")); }
 
-	typedef enum NSApplicationActivationPolicy { NSApplicationActivationPolicyRegular } NSApplicationActivationPolicy;
+	typedef enum NSApplicationActivationPolicy {
+		NSApplicationActivationPolicyRegular,
+		NSApplicationActivationPolicyAccessory,
+		NSApplicationActivationPolicyProhibited
+	} NSApplicationActivationPolicy;
+
+	typedef NS_ENUM(u32, NSBackingStoreType) {
+		NSBackingStoreRetained = 0,
+			NSBackingStoreNonretained = 1,
+			NSBackingStoreBuffered = 2
+	};
 
 	typedef NS_ENUM(u32, NSWindowStyleMask) {
-		NSBackingStoreBuffered = 2,
 		NSWindowStyleMaskBorderless = 0,
-		NSWindowStyleMaskTitled = 1 << 0,
-		NSWindowStyleMaskClosable = 1 << 1,
-		NSWindowStyleMaskMiniaturizable = 1 << 2,
-		NSWindowStyleMaskResizable = 1 << 3,
-		NSWindowStyleMaskFullScreen = 1 << 14,
+			NSWindowStyleMaskTitled = 1 << 0,
+			NSWindowStyleMaskClosable = 1 << 1,
+			NSWindowStyleMaskMiniaturizable = 1 << 2,
+			NSWindowStyleMaskResizable = 1 << 3,
+			NSWindowStyleMaskTexturedBackground = 1 << 8, /* deprecated */
+			NSWindowStyleMaskUnifiedTitleAndToolbar = 1 << 12,
+			NSWindowStyleMaskFullScreen = 1 << 14,
+			NSWindowStyleMaskFullSizeContentView = 1 << 15,
+			NSWindowStyleMaskUtilityWindow = 1 << 4,
+			NSWindowStyleMaskDocModalWindow = 1 << 6,
+			NSWindowStyleMaskNonactivatingPanel = 1 << 7,
+			NSWindowStyleMaskHUDWindow = 1 << 13
 	};
 
 	NSPasteboardType const NSPasteboardTypeString = "public.utf8-plain-text"; // Replaces NSStringPboardType
+
 
 	typedef NS_ENUM(i32, NSDragOperation) {
 		NSDragOperationNone = 0,
@@ -7073,6 +7097,9 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			NSDragOperationMove = 16,
 			NSDragOperationDelete = 32,
 			NSDragOperationEvery = ULONG_MAX,
+
+			//NSDragOperationAll_Obsolete	API_DEPRECATED("", macos(10.0,10.10)) = 15, // Use NSDragOperationEvery
+			//NSDragOperationAll API_DEPRECATED("", macos(10.0,10.10)) = NSDragOperationAll_Obsolete, // Use NSDragOperationEvery
 	};
 
 	void* NSArray_objectAtIndex(NSArray* array, NSUInteger index) {
