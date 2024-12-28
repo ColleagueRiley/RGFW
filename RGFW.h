@@ -7335,16 +7335,19 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			case kHIDPage_GenericDesktop: {
 				CFIndex logicalMin = IOHIDElementGetLogicalMin(element);
 				CFIndex logicalMax = IOHIDElementGetLogicalMax(element);
+				
 				if (logicalMax <= logicalMin) return;
+				if (intValue < logicalMin) intValue = logicalMin;
+				if (intValue > logicalMax) intValue = logicalMax;
 
 				//i8 value8 = (i8)intValue;
 				i8 value = (i8)(-100.0 + ((intValue - logicalMin) * 200.0) / (logicalMax - logicalMin));
 
 				switch (usage) {
-					case kHIDUsage_GD_X: RGFW_gpAxes[index][0].y = value; event.whichAxis = 0; break;
-					case kHIDUsage_GD_Y: RGFW_gpAxes[index][0].x = value; event.whichAxis = 0; break;
-					case kHIDUsage_GD_Z: RGFW_gpAxes[index][1].y = value; event.whichAxis = 1; break;
-					case kHIDUsage_GD_Rz: RGFW_gpAxes[index][1].x = value; event.whichAxis = 1; break;
+					case kHIDUsage_GD_X: RGFW_gpAxes[index][0].x = value; event.whichAxis = 0; break;
+					case kHIDUsage_GD_Y: RGFW_gpAxes[index][0].y = value; event.whichAxis = 0; break;
+					case kHIDUsage_GD_Z: RGFW_gpAxes[index][1].x = value; event.whichAxis = 1; break;
+					case kHIDUsage_GD_Rz: RGFW_gpAxes[index][1].y = value; event.whichAxis = 1; break;
 					default: return;
 				}
 
