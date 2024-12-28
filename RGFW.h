@@ -7292,7 +7292,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 
 	void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *sender, IOHIDValueRef value) {
-		RGFW_UNUSED(result); RGFW_UNUSED(sender);
+		RGFW_UNUSED(context); RGFW_UNUSED(result); RGFW_UNUSED(sender);
 
 		IOHIDElementRef element = IOHIDValueGetElement(value);
 
@@ -7332,10 +7332,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				const i32 value = (i32)(((float)((2.f * (intValue) / intValue) - 1.f)) * 100.0f);
 				
 				switch (usage) {
-					case kHIDUsage_GD_X: RGFW_root->event.axis[0].x = value; break;
-					case kHIDUsage_GD_Y: RGFW_root->event.axis[0].y = value; break;
-					case kHIDUsage_GD_Rx: RGFW_root->event.axis[1].x = value; break;
-					case kHIDUsage_GD_Ry: RGFW_root->event.axis[1].y = value; break;
+					case kHIDUsage_GD_X: RGFW_gpAxes[index][0].x = value; break;
+					case kHIDUsage_GD_Y: RGFW_gpAxes[index][0].y = value; break;
+					case kHIDUsage_GD_Rx: RGFW_gpAxes[index][1].x = value; break;
+					case kHIDUsage_GD_Ry: RGFW_gpAxes[index][1].y = value; break;
 					default: return;
 				}
 				
