@@ -7355,6 +7355,85 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		return 0;
 	}
 
+
+
+
+
+
+
+
+	void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *sender, IOHIDValueRef value) {
+		RGFW_UNUSED(result); RGFW_UNUSED(sender);
+
+		size_t index = (size_t)context;
+
+		IOHIDElementRef element = IOHIDValueGetElement(value);
+
+		uint32_t usagePage = IOHIDElementGetUsagePage(element);
+		uint32_t usage = IOHIDElementGetUsage(element);
+
+		CFIndex intValue = IOHIDValueGetIntegerValue(value);
+
+		IOHIDDeviceRef device = IOHIDValueGetDevice(value);
+
+		/*u8 RGFW_osx2RGFW[] = {
+			RGFW_GP_A, 
+			RGFW_GP_B,
+			RGFW_GP_X,
+			RGFW_GP_Y,
+			RGFW_GP_R1,
+			RGFW_GP_L1,
+			RGFW_GP_L2,
+			RGFW_GP_R2,
+			0, 0, 0, 0, 0, 0, 0, 0,
+			RGFW_GP_UP,
+			RGFW_GP_DOWN,
+			RGFW_GP_LEFT,
+			RGFW_GP_RIGHT,
+			RGFW_GP_START,
+			RGFW_GP_SELECT,
+			RGFW_GP_L3, 
+			RGFW_GP_R3, 
+		};*/
+
+		switch (usagePage) {
+			case kHIDPage_Button: {
+				u8 button = 0;// RGFW_osx2RGFW[usage];
+				RGFW_gpButtonCallback(RGFW_root, index, button, intValue);
+				RGFW_gpPressed[(size_t)context][button] = intValue;
+				RGFW_root->src.gpPassed = 0;
+				RGFW_root->event.type = RGFW_gpButtonPressed + ((bool)intValue);
+				RGFW_root->event.button = button;
+				RGFW_root->event.gamepad = (size_t)context;
+				break;
+			}
+			case kHIDPage_GenericDesktop: {
+				const float value = ((2.f * (intValue) / intValue) - 1.f) * 100;
+				
+				switch (usage) {
+					case kHIDUsage_GD_X: RGFW_root->event.axis[0].x = value; break;
+					case kHIDUsage_GD_Y: RGFW_root->event.axis[0].y = value; break;
+					case kHIDUsage_GD_Rx: RGFW_root->event.axis[1].x = value; break;
+					case kHIDUsage_GD_Ry: RGFW_root->event.axis[1].y = value; break;
+					default: return;
+				}
+				
+				RGFW_root->event.type = RGFW_gpAxisMove;
+				RGFW_root->event.gamepad = (size_t)context;
+
+				RGFW_root->src.gpPassed = 0;
+				RGFW_root->event.axis[0] = RGFW_gpAxes[(size_t)context][0];
+				RGFW_root->event.axis[1] = RGFW_gpAxes[(size_t)context][1];
+
+				RGFW_gpAxisCallback(RGFW_root, index, RGFW_root->event.axis, 2, RGFW_root->event.whichAxis);
+			}
+		}
+	}
+
+
+
+
+
 	void RGFW__osxDeviceAddedCallback(void* context, IOReturn result, void *sender, IOHIDDeviceRef device) {
 		RGFW_UNUSED(context); RGFW_UNUSED(result); RGFW_UNUSED(sender);
 		CFNumberRef usageRef = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDPrimaryUsageKey));
@@ -7371,6 +7450,9 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				continue;
 
 			RGFW_osxControllers[i] = device;
+
+			IOHIDDeviceRegisterInputValueCallback(device, RGFW__osxInputValueChangedCallback, NULL);
+
 			RGFW_gamepads[i] = i;
 			RGFW_gamepadCount++;	
 			break;
@@ -7379,6 +7461,15 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 	void RGFW__osxDeviceRemovedCallback(void *context, IOReturn result, void *sender, IOHIDDeviceRef device) {
 		RGFW_UNUSED(context); RGFW_UNUSED(result); RGFW_UNUSED(sender); RGFW_UNUSED(device);
+		CFNumberRef usageRef = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDPrimaryUsageKey));
+		int usage = 0;
+		if (usageRef)
+			CFNumberGetValue(usageRef, kCFNumberIntType, &usage);
+
+		if (usage != kHIDUsage_GD_Joystick && usage != kHIDUsage_GD_GamePad && usage != kHIDUsage_GD_MultiAxisController) {
+			return;
+		}
+
 		i32 index = findControllerIndex(device);
 		if (index != -1)
 			RGFW_osxControllers[index] = NULL;
