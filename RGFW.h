@@ -632,7 +632,7 @@ typedef struct RGFW_window_src {
 	u32 display;
 	void* displayLink;
 	void* window;
-	b8 dndPassed;
+	b8 dndPassed, gpPassed;
 #if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
 		void* ctx; /*!< source graphics context */
 #elif defined(RGFW_OSMESA)
@@ -7290,79 +7290,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		return -1;
 	}
 
-	int RGFW_osxPollControllerState(RGFW_window* win, IOHIDDeviceRef device) {
-		return 0;
-
-		size_t index = findControllerIndex(device);
-
-		IOHIDElementRef element;
-		CFArrayRef elements = IOHIDDeviceCopyMatchingElements(device, NULL, kIOHIDOptionsTypeNone);
-		if (!elements) {
-			return 0;
-		}
-
-		CFIndex count = CFArrayGetCount(elements);
-		for (CFIndex i = 0; i < count; i++) {
-			element = (IOHIDElementRef)CFArrayGetValueAtIndex(elements, i);
-
-			// Get usage page and usage to identify the element
-			uint32_t usagePage = IOHIDElementGetUsagePage(element);
-			uint32_t usage = IOHIDElementGetUsage(element);
-			
-			IOHIDValueRef valuePtr;
-
-			if (IOHIDDeviceGetValue(device, element, &valuePtr) != kIOReturnSuccess) {
-				CFRelease(elements); return 0;
-			}
-
-			CFIndex intValue = IOHIDValueGetIntegerValue(valuePtr);
-
-			switch (usagePage) {
-				case kHIDPage_Button: {
-					u8 button = 0;// RGFW_osx2RGFW[usage];
-					RGFW_gpButtonCallback(win, index, button, intValue);
-					RGFW_gpPressed[index][button] = intValue;
-					win->event.type = RGFW_gpButtonPressed + ((bool)intValue);
-					win->event.button = button;
-					win->event.gamepad = index;
-
-					CFRelease(elements);
-					return 1;
-				}
-				case kHIDPage_GenericDesktop: {
-					const float value = ((2.f * (intValue) / intValue) - 1.f) * 100;
-					
-					switch (usage) {
-						case kHIDUsage_GD_X: win->event.axis[0].x = value; break;
-						case kHIDUsage_GD_Y: win->event.axis[0].y = value; break;
-						case kHIDUsage_GD_Rx: win->event.axis[1].x = value; break;
-						case kHIDUsage_GD_Ry: win->event.axis[1].y = value; break;
-						default: CFRelease(elements); return 0;
-					}
-					
-					win->event.type = RGFW_gpAxisMove;
-					win->event.gamepad = index;
-					win->event.axis[0] = RGFW_gpAxes[index][0];
-					win->event.axis[1] = RGFW_gpAxes[index][1];
-
-					RGFW_gpAxisCallback(RGFW_root, index, RGFW_root->event.axis, 2, RGFW_root->event.whichAxis);
-					
-					CFRelease(elements);
-					return 1;
-				}
-			}
-		}
-		
-		CFRelease(elements);
-		return 0;
-	}
-
-
-
-
-
-
-
 
 	void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *sender, IOHIDValueRef value) {
 		RGFW_UNUSED(result); RGFW_UNUSED(sender);
@@ -7376,8 +7303,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		uint32_t usage = IOHIDElementGetUsage(element);
 
 		CFIndex intValue = IOHIDValueGetIntegerValue(value);
-
-		//IOHIDDeviceRef device = IOHIDValueGetDevice(value);
 
 		/*u8 RGFW_osx2RGFW[] = {
 			RGFW_GP_A, 
@@ -7404,7 +7329,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				u8 button = 0;// RGFW_osx2RGFW[usage];
 				RGFW_gpButtonCallback(RGFW_root, index, button, intValue);
 				RGFW_gpPressed[(size_t)context][button] = intValue;
-				//RGFW_root->src.gpPassed = 0;
+				RGFW_root->src.gpPassed = 0;
 				RGFW_root->event.type = RGFW_gpButtonPressed + ((bool)intValue);
 				RGFW_root->event.button = button;
 				RGFW_root->event.gamepad = (size_t)context;
@@ -7424,7 +7349,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				RGFW_root->event.type = RGFW_gpAxisMove;
 				RGFW_root->event.gamepad = (size_t)context;
 
-				//RGFW_root->src.gpPassed = 0;
+				RGFW_root->src.gpPassed = 0;
 				RGFW_root->event.axis[0] = RGFW_gpAxes[(size_t)context][0];
 				RGFW_root->event.axis[1] = RGFW_gpAxes[(size_t)context][1];
 
@@ -7577,6 +7502,45 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		return objc_msgSend_class(objc_getClass("CAMetalLayer"), sel_registerName("layer"));
 	}
 
+	RGFWDEF void RGFW_osxInitIOKit(void);
+	void RGFW_osxInitIOKit(void) {
+		IOHIDManagerRef hidManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
+		if (!hidManager) {
+			fprintf(stderr, "Failed to create IOHIDManager.\n");
+			return;
+		}
+
+		CFMutableDictionaryRef matchingDictionary = CFDictionaryCreateMutable(
+			kCFAllocatorDefault,
+			0,
+			&kCFTypeDictionaryKeyCallBacks,
+			&kCFTypeDictionaryValueCallBacks
+		);
+		if (!matchingDictionary) {
+			fprintf(stderr, "Failed to create matching dictionary.\n");
+			CFRelease(hidManager);
+			return;
+		}
+
+		CFDictionarySetValue(
+			matchingDictionary,
+			CFSTR(kIOHIDDeviceUsagePageKey),
+			CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &(int){kHIDPage_GenericDesktop})
+		);
+
+		IOHIDManagerSetDeviceMatching(hidManager, matchingDictionary);
+
+		IOHIDManagerRegisterDeviceMatchingCallback(hidManager, RGFW__osxDeviceAddedCallback, NULL);
+		IOHIDManagerRegisterDeviceRemovalCallback(hidManager, RGFW__osxDeviceRemovedCallback, NULL);
+
+		IOHIDManagerScheduleWithRunLoop(hidManager, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+
+		IOHIDManagerOpen(hidManager, kIOHIDOptionsTypeNone);
+		
+		// Execute the run loop once in order to register any initially-attached joysticks
+		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, false);
+	}
+
 
 	NSPasteboardType const NSPasteboardTypeURL = "public.url";
 	NSPasteboardType const NSPasteboardTypeFileURL  = "public.file-url";
@@ -7602,6 +7566,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 			((void (*)(id, SEL, NSUInteger))objc_msgSend)
 				(NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
+		
+			RGFW_osxInitIOKit();
 		}
 
 		RGFW_window* win = RGFW_window_basic_init(rect, args);
@@ -7771,44 +7737,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		#ifdef RGFW_DEBUG
 		printf("RGFW INFO: a window with a rect of {%i, %i, %i, %i} \n", win->r.x, win->r.y, win->r.w, win->r.h);
 		#endif
-
-		/* init IOKit for gamepad API */
-		IOHIDManagerRef hidManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
-		if (!hidManager) {
-			fprintf(stderr, "Failed to create IOHIDManager.\n");
-			return win;
-		}
-
-		CFMutableDictionaryRef matchingDictionary = CFDictionaryCreateMutable(
-			kCFAllocatorDefault,
-			0,
-			&kCFTypeDictionaryKeyCallBacks,
-			&kCFTypeDictionaryValueCallBacks
-		);
-		if (!matchingDictionary) {
-			fprintf(stderr, "Failed to create matching dictionary.\n");
-			CFRelease(hidManager);
-			return win;
-		}
-
-		CFDictionarySetValue(
-			matchingDictionary,
-			CFSTR(kIOHIDDeviceUsagePageKey),
-			CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &(int){kHIDPage_GenericDesktop})
-		);
-
-		IOHIDManagerSetDeviceMatching(hidManager, matchingDictionary);
-
-		IOHIDManagerRegisterDeviceMatchingCallback(hidManager, RGFW__osxDeviceAddedCallback, NULL);
-		IOHIDManagerRegisterDeviceRemovalCallback(hidManager, RGFW__osxDeviceRemovedCallback, NULL);
-
-		IOHIDManagerScheduleWithRunLoop(hidManager, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-
-		IOHIDManagerOpen(hidManager, kIOHIDOptionsTypeNone);
-		
-		// Execute the run loop once in order to register any initially-attached joysticks
-		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, false);
-
 		return win;
 	}
 
@@ -7993,16 +7921,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			return &win->event;
 		}
 
-
-		for (size_t i = 0; i < 4; i++) {
-			if (RGFW_osxControllers[i] == NULL)
-				continue;
-
-			if (RGFW_osxPollControllerState(win, RGFW_osxControllers[i])) {
-				return &win->event;
-			}
+		if ((win->event.type == RGFW_gpButtonPressed || win->event.type == RGFW_gpAxisMove) && win->src.gpPassed == 0) {
+			win->src.gpPassed = 1;
+			return &win->event;
 		}
-
 
 		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
         eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
