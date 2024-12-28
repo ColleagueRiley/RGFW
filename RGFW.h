@@ -869,9 +869,6 @@ RGFWDEF RGFW_monitor RGFW_window_getMonitor(RGFW_window* win);
 /** * @defgroup Input
 * @{ */
 
-/*error handling*/
-RGFWDEF b8 RGFW_Error(void); /*!< returns true if an error has occurred (doesn't print errors itself) */
-
 /*! if window == NULL, it checks if the key is pressed globally. Otherwise, it checks only if the key is pressed while the window in focus.*/
 RGFWDEF b8 RGFW_isPressed(RGFW_window* win, u8 key); /*!< if key is pressed (key code)*/
 
@@ -1552,9 +1549,6 @@ no more event call back defines
 		assert(check); \
 	} \
 }
-
-b8 RGFW_error = 0;
-b8 RGFW_Error(void) { return RGFW_error; }
 
 #define SET_ATTRIB(a, v) { \
     assert(((size_t) index + 1) < sizeof(attribs) / sizeof(attribs[0])); \
@@ -7339,10 +7333,15 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				break;
 			}
 			case kHIDPage_GenericDesktop: {
-				i8 value8 = (-((i8)intValue));
-				if (abs(value8) < (255 / 8)) value8 = 0;
+				CFIndex logicalMin = IOHIDElementGetLogicalMin(element);
+				CFIndex logicalMax = IOHIDElementGetLogicalMax(element);
+				
+				if (logicalMax <= logicalMin) return;
+				if (intValue < logicalMin) intValue = logicalMin;
+				if (intValue > logicalMax) intValue = logicalMax;
 
-				i8 value = (i8)((((float)value8) / (float)(255.0f / 2.0f)) * 100.0f);
+				//i8 value8 = (i8)intValue;
+				i8 value = (i8)(-100.0 + ((intValue - logicalMin) * 200.0) / (logicalMax - logicalMin));
 
 				switch (usage) {
 					case kHIDUsage_GD_X: RGFW_gpAxes[index][0].y = value; event.whichAxis = 0; break;
