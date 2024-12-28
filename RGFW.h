@@ -7203,7 +7203,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		win->event.type = RGFW_dnd_init;
 		win->src.dndPassed = 0;
-		win->src.gpPassed = 0;
 
 		NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
 
@@ -7297,22 +7296,14 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 /*
 	TODO:
 		create LUT: macos button -> RGFW button
-		convert intValue -> RGFW scale 
-		send event to RGFW_window somehow
 */
-
-//typedef void (* RGFW_gpButtonfunc)(RGFW_window* win, u16 gamepad, u8 button, b8 pressed);
-//typedef void (* RGFW_gpAxisfunc)(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount);
-
-// RGFW_gpAxes[i][axis]
-// RGFW_gpButtons[i][button]
 
 		switch (usagePage) {
 			case kHIDPage_Button: {
 				u8 button = 0;
 				RGFW_gpButtonCallback(RGFW_root, index, button, intValue);
 				RGFW_gpPressed[(size_t)context][button] = intValue;
-				win->src.gpPassed = 0;
+				RGFW_root->src.gpPassed = 0;
 				RGFW_root->event.type = RGFW_gpButtonPressed + ((bool)intValue);
 				RGFW_root->event.button = button;
 				RGFW_root->event.gamepad = (size_t)context;
@@ -7332,7 +7323,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				RGFW_root->event.type = RGFW_gpAxisMove;
 				RGFW_root->event.gamepad = (size_t)context;
 
-				win->src.gpPassed = 0;
+				RGFW_root->src.gpPassed = 0;
 				RGFW_root->event.axis[0] = RGFW_gpAxes[(size_t)context][0];
 				RGFW_root->event.axis[1] = RGFW_gpAxes[(size_t)context][1];
 
@@ -7353,7 +7344,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		}
 		
 		size_t i = 0;
-		for (i; i < 4; i++) {
+		for (; i < 4; i++) {
 			if (RGFW_gamepads[i] == 0)
 				break;
 		}
