@@ -632,7 +632,7 @@ typedef struct RGFW_window_src {
 	u32 display;
 	void* displayLink;
 	void* window;
-	b8 dndPassed, gpPassed;
+	b8 dndPassed;
 #if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
 		void* ctx; /*!< source graphics context */
 #elif defined(RGFW_OSMESA)
@@ -7281,55 +7281,75 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
     	return false;
 	}
 
-	void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *sender, IOHIDValueRef value) {
-		RGFW_UNUSED(result); RGFW_UNUSED(sender);
+	IOHIDDeviceRef RGFW_osxControllers[4] = {NULL};
 
-		size_t index = (size_t)context;
+	int findControllerIndex(IOHIDDeviceRef device) {
+		for (int i = 0; i < 4; i++)
+			if (RGFW_osxControllers[i] == device)
+				return i;
+		return -1;
+	}
 
-		IOHIDElementRef element = IOHIDValueGetElement(value);
+	int RGFW_osxPollControllerState(RGFW_window* win, IOHIDDeviceRef device) {
+		size_t index = findControllerIndex(device);
 
-		uint32_t usagePage = IOHIDElementGetUsagePage(element);
-		uint32_t usage = IOHIDElementGetUsage(element);
+		IOHIDElementRef element;
+		CFArrayRef elements = IOHIDDeviceCopyMatchingElements(device, NULL, kIOHIDOptionsTypeNone);
+		if (!elements) {
+			return 0;
+		}
 
-		CFIndex intValue = IOHIDValueGetIntegerValue(value);
+		CFIndex count = CFArrayGetCount(elements);
+		for (CFIndex i = 0; i < count; i++) {
+			element = (IOHIDElementRef)CFArrayGetValueAtIndex(elements, i);
 
-/*
-	TODO:
-		create LUT: macos button -> RGFW button
-*/
-
-		switch (usagePage) {
-			case kHIDPage_Button: {
-				u8 button = 0;
-				RGFW_gpButtonCallback(RGFW_root, index, button, intValue);
-				RGFW_gpPressed[(size_t)context][button] = intValue;
-				RGFW_root->src.gpPassed = 0;
-				RGFW_root->event.type = RGFW_gpButtonPressed + ((bool)intValue);
-				RGFW_root->event.button = button;
-				RGFW_root->event.gamepad = (size_t)context;
-				break;
+			// Get usage page and usage to identify the element
+			uint32_t usagePage = IOHIDElementGetUsagePage(element);
+			uint32_t usage = IOHIDElementGetUsage(element);
+			
+			IOHIDValueRef value;
+			if (IOHIDDeviceGetValue(device, element, &value) != kIOReturnSuccess) {
+				CFRelease(elements); return 0;
 			}
-			case kHIDPage_GenericDesktop: {
-				const float value = ((2.f * (intValue) / intValue) - 1.f) * 100;
-				
-				switch (usage) {
-					case kHIDUsage_GD_X: RGFW_root->event.axis[0].x = value; break;
-					case kHIDUsage_GD_Y: RGFW_root->event.axis[0].y = value; break;
-					case kHIDUsage_GD_Rx: RGFW_root->event.axis[1].x = value; break;
-					case kHIDUsage_GD_Ry: RGFW_root->event.axis[1].y = value; break;
-					default: return;
+
+			switch (usagePage) {
+				case kHIDPage_Button: {
+					u8 button = 0;// RGFW_osx2RGFW[usage];
+					RGFW_gpButtonCallback(win, index, button, intValue);
+					RGFW_gpPressed[index][button] = intValue;
+					win->event.type = RGFW_gpButtonPressed + ((bool)intValue);
+					win->event.button = button;
+					win->event.gamepad = index;
+
+					CFRelease(elements);
+					return 1;
 				}
-				
-				RGFW_root->event.type = RGFW_gpAxisMove;
-				RGFW_root->event.gamepad = (size_t)context;
+				case kHIDPage_GenericDesktop: {
+					const float value = ((2.f * (intValue) / intValue) - 1.f) * 100;
+					
+					switch (usage) {
+						case kHIDUsage_GD_X: win->event.axis[0].x = value; break;
+						case kHIDUsage_GD_Y: win->event.axis[0].y = value; break;
+						case kHIDUsage_GD_Rx: win->event.axis[1].x = value; break;
+						case kHIDUsage_GD_Ry: win->event.axis[1].y = value; break;
+						default: CFRelease(elements); return 0;
+					}
+					
+					win->event.type = RGFW_gpAxisMove;
+					win->event.gamepad = index;
+					win->event.axis[0] = RGFW_gpAxes[index][0];
+					win->event.axis[1] = RGFW_gpAxes[index][1];
 
-				RGFW_root->src.gpPassed = 0;
-				RGFW_root->event.axis[0] = RGFW_gpAxes[(size_t)context][0];
-				RGFW_root->event.axis[1] = RGFW_gpAxes[(size_t)context][1];
-
-				RGFW_gpAxisCallback(RGFW_root, index, RGFW_root->event.axis, 2, RGFW_root->event.whichAxis);
+					RGFW_gpAxisCallback(RGFW_root, index, RGFW_root->event.axis, 2, RGFW_root->event.whichAxis);
+					
+					CFRelease(elements);
+					return 1;
+				}
 			}
 		}
+		
+		CFRelease(elements);
+		return 0;
 	}
 
 	void RGFW__osxDeviceAddedCallback(void* context, IOReturn result, void *sender, IOHIDDeviceRef device) {
@@ -7343,20 +7363,24 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			return;
 		}
 		
-		size_t i = 0;
-		for (; i < 4; i++) {
-			if (RGFW_gamepads[i] == 0)
-				break;
-		}
+		for (size_t i = 0; i < 4; i++) {
+			if (RGFW_osxControllers[i] != NULL)
+				continue;
 
-		IOHIDDeviceRegisterInputValueCallback(device, RGFW__osxInputValueChangedCallback, RGFW_gamepads + RGFW_gamepadCount);
-		RGFW_gamepads[i] = 1;
-		RGFW_gamepadCount++;
+			RGFW_osxControllers[i] = device;
+			IOHIDDeviceRegisterInputValueCallback(device, RGFW__osxInputValueChangedCallback, RGFW_gamepads + RGFW_gamepadCount);
+			RGFW_gamepads[i] = i;
+			RGFW_gamepadCount++;	
+			break;
+		}
 	}
 
 	void RGFW__osxDeviceRemovedCallback(void *context, IOReturn result, void *sender, IOHIDDeviceRef device) {
 		RGFW_UNUSED(context); RGFW_UNUSED(result); RGFW_UNUSED(sender); RGFW_UNUSED(device);
-		RGFW_gamepads[(size_t)context] = 0;
+		i32 index = findControllerIndex(device);
+		if (index != -1)
+			RGFW_osxControllers[index] = NULL;
+		
 		RGFW_gamepadCount--;
 	}
 
@@ -7873,10 +7897,16 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			return &win->event;
 		}
 
-		if ((win->event.type == RGFW_gpButtonPressed || win->event.type == RGFW_gpAxisMove) && win->src.gpPassed == 0) {
-			win->src.gpPassed = 1;
-			return &win->event;
+
+		for (size_t i = 0; i < 4; i++) {
+			if (RGFW_osxControllers[i] == NULL)
+				continue;
+
+			if (RGFW_osxPollControllerState(win, RGFW_osxControllers[i])) {
+				return &win->event;
+			}
 		}
+
 
 		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
         eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
