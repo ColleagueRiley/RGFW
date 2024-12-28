@@ -6807,6 +6807,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 	typedef void NSBitmapImageRep;
 	typedef void NSCursor;
+	typedef void NSDraggingInfo;
 	typedef void NSWindow;
 	typedef void NSApplication;
 	typedef void NSEvent;
@@ -6815,6 +6816,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	typedef void NSPasteboard;
 	typedef void NSColor;
 	typedef void NSArray;
+	typedef void NSImageRep;
 	typedef void NSImage;
 	typedef void NSOpenGLView;
 
@@ -6911,6 +6913,19 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			(imageRep, sel_registerName("bitmapData"));
 	}
 
+#define NS_ENUM(type, name) type name; enum
+
+	typedef NS_ENUM(NSUInteger, NSBitmapFormat) {
+		NSBitmapFormatAlphaFirst = 1 << 0,       // 0 means is alpha last (RGBA, CMYKA, etc.)
+			NSBitmapFormatAlphaNonpremultiplied = 1 << 1,       // 0 means is premultiplied
+			NSBitmapFormatFloatingPointSamples = 1 << 2,  // 0 is integer
+
+			NSBitmapFormatSixteenBitLittleEndian API_AVAILABLE(macos(10.10)) = (1 << 8),
+			NSBitmapFormatThirtyTwoBitLittleEndian API_AVAILABLE(macos(10.10)) = (1 << 9),
+			NSBitmapFormatSixteenBitBigEndian API_AVAILABLE(macos(10.10)) = (1 << 10),
+			NSBitmapFormatThirtyTwoBitBigEndian API_AVAILABLE(macos(10.10)) = (1 << 11)
+	};
+
 	NSBitmapImageRep* NSBitmapImageRep_initWithBitmapData(unsigned char** planes, NSInteger width, NSInteger height, NSInteger bps, NSInteger spp, bool alpha, bool isPlanar, const char* colorSpaceName, NSBitmapFormat bitmapFormat, NSInteger rowBytes, NSInteger pixelBits) {
 		void* func = sel_registerName("initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:");
 
@@ -6933,7 +6948,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			(NSAlloc(nsclass), func, newImage, aPoint);
 	}
 
-	void NSImage_addRepresentation(NSImage* image, void* imageRep) {
+	void NSImage_addRepresentation(NSImage* image, NSImageRep* imageRep) {
 		void* func = sel_registerName("addRepresentation:");
 		objc_msgSend_void_id(image, func, imageRep);
 	}
@@ -6943,6 +6958,19 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		return ((id(*)(id, SEL, NSSize))objc_msgSend)
 			(NSAlloc((id)objc_getClass("NSImage")), func, size);
 	}
+#define NS_OPENGL_ENUM_DEPRECATED(minVers, maxVers) API_AVAILABLE(macos(minVers))
+	typedef NS_ENUM(NSInteger, NSOpenGLContextParameter) {
+		NSOpenGLContextParameterSwapInterval           NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 222, /* 1 param.  0 -> Don't sync, 1 -> Sync to vertical retrace     */
+			NSOpenGLContextParametectxaceOrder           NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 235, /* 1 param.  1 -> Above Window (default), -1 -> Below Window    */
+			NSOpenGLContextParametectxaceOpacity         NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 236, /* 1 param.  1-> Surface is opaque (default), 0 -> non-opaque   */
+			
+			NSOpenGLContextParameterSwapRectangle API_DEPRECATED("", macos(10.0, 10.14)) = 200, /* 4 params.  Set or get the swap rectangle {x, y, w, h} */
+			NSOpenGLContextParameterSwapRectangleEnable API_DEPRECATED("", macos(10.0, 10.14)) = 201, /* Enable or disable the swap rectangle */
+			NSOpenGLContextParameterRasterizationEnable API_DEPRECATED("", macos(10.0, 10.14)) = 221, /* Enable or disable all rasterization */
+			NSOpenGLContextParameterStateValidation API_DEPRECATED("", macos(10.0, 10.14)) = 301, /* Validate state for multi-screen functionality */
+			NSOpenGLContextParametectxaceSurfaceVolatile API_DEPRECATED("", macos(10.0, 10.14)) = 306, /* 1 param.   Surface volatile state */
+	};
+
 
 	void NSOpenGLContext_setValues(NSOpenGLContext* context, const int* vals, NSOpenGLContextParameter param) {
 		void* func = sel_registerName("setValues:forParameter:");
@@ -7024,7 +7052,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 	typedef enum NSApplicationActivationPolicy { NSApplicationActivationPolicyRegular } NSApplicationActivationPolicy;
 
-	#define NS_ENUM(type, name) type name; enum
 	typedef NS_ENUM(u32, NSWindowStyleMask) {
 		NSBackingStoreBuffered = 2,
 		NSWindowStyleMaskBorderless = 0,
