@@ -74,8 +74,12 @@ void drawGamepad(RGFW_window* w, size_t gamepad) {
     glClearColor(0.8, 0.8, 0.8, 1.0);  
 
     glColor3f(0.05, 0.05, 0.05); // Frame color: Black
-
+    
+    #ifdef __EMSCRIPTEN__
+    glBegin(GL_QUADS);
+    #else
     glBegin(GL_POLYGON);
+    #endif
         glVertex2f(RFONT_GET_WORLD(250, 45));   // Top-left corner
         glVertex2f(RFONT_GET_WORLD(250, 45));    // Top-left curve
         glVertex2f(RFONT_GET_WORLD(540, 45));    // Top-right curve
