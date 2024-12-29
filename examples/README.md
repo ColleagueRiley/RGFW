@@ -18,6 +18,9 @@ Tested and supported compilers include, `gcc`, `clang`, `[x86_64 / i686-w64]-w64
 ## basic 
 A basic example can be found in `examples/basic`, it includes a basic OpenGL example of just about all of RGFW's functionalities.
 
+## gamepad 
+A gamepad example can be found in `examples/gamepad`, includes a demo for RGFW's controller input api
+
 ## events 
 The event example can be found in `examples/events`, it shows all the events and the data they send.
 
