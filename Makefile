@@ -32,7 +32,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 	detected_OS := $(shell uname 2>/dev/null || echo Unknown)
 
 	ifeq ($(detected_OS),Darwin)        # Mac OS X
-		LIBS := -lm -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo
+		LIBS := -lm -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo -framework IOKit
 		VULKAN_LIBS = -lm  -framework Foundation -framework AppKit --framework CoreVideo -lvulkan
 		EXT =
 		LIB_EXT = .dylib
