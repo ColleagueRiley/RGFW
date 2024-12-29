@@ -52,9 +52,11 @@ void drawCircle(int cx, int cy, int radius, RGFW_window* w) {
 }
 
 void drawRect(int cx, int cy, int width, int height, RGFW_window* w) {
-    glBegin(GL_QUADS);
+    glBegin(GL_TRIANGLES);
         glVertex2f(RFONT_GET_WORLD(cx, cy));
         glVertex2f(RFONT_GET_WORLD(cx, cy + height));
+        glVertex2f(RFONT_GET_WORLD(cx + width, cy + height));
+        glVertex2f(RFONT_GET_WORLD(cx, cy));
         glVertex2f(RFONT_GET_WORLD(cx + width, cy + height));
         glVertex2f(RFONT_GET_WORLD(cx + width, cy));
     glEnd();
@@ -75,11 +77,9 @@ void drawGamepad(RGFW_window* w, size_t gamepad) {
 
     glColor3f(0.05, 0.05, 0.05); // Frame color: Black
     
-    #ifdef __EMSCRIPTEN__
-    glBegin(GL_QUADS);
-    #else
+    
+    #ifndef __EMSCRIPTEN__
     glBegin(GL_POLYGON);
-    #endif
         glVertex2f(RFONT_GET_WORLD(250, 45));   // Top-left corner
         glVertex2f(RFONT_GET_WORLD(250, 45));    // Top-left curve
         glVertex2f(RFONT_GET_WORLD(540, 45));    // Top-right curve
@@ -89,6 +89,9 @@ void drawGamepad(RGFW_window* w, size_t gamepad) {
         glVertex2f(RFONT_GET_WORLD(240, 300));  // Bottom-left corner
         glVertex2f(RFONT_GET_WORLD(200, 150));  // Left-side curve
     glEnd();
+    #else
+    drawRect(200, 45, 400, 300, w);
+    #endif
 
     glColor3f(0.3, 0.3, 0.3);
 
