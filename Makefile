@@ -81,6 +81,7 @@ endif
 
 EXAMPLE_OUTPUTS = \
     examples/basic/basic \
+	examples/gamepad/gamepad \
     examples/buffer/buffer \
 	examples/silk/silk \
 	examples/events/events \
