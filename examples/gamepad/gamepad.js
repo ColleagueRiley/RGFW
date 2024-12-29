@@ -11406,35 +11406,6 @@ var ASM_CONSTS = {
       GLImmediate.modifiedClientAttributes = true;
     };
 
-  
-  var _glLoadIdentity = () => {
-      GLImmediate.matricesModified = true;
-      GLImmediate.matrixVersion[GLImmediate.currentMatrix] = (GLImmediate.matrixVersion[GLImmediate.currentMatrix] + 1)|0;
-      GLImmediate.matrixLib.mat4.identity(GLImmediate.matrix[GLImmediate.currentMatrix]);
-    };
-
-  
-  
-  var _glMatrixMode = (mode) => {
-      if (mode == 0x1700 /* GL_MODELVIEW */) {
-        GLImmediate.currentMatrix = 0/*m*/;
-      } else if (mode == 0x1701 /* GL_PROJECTION */) {
-        GLImmediate.currentMatrix = 1/*p*/;
-      } else if (mode == 0x1702) { // GL_TEXTURE
-        GLImmediate.useTextureMatrix = true;
-        GLImmediate.currentMatrix = 2/*t*/ + GLImmediate.TexEnvJIT.getActiveTexture();
-      } else {
-        throw "Wrong mode " + mode + " passed to glMatrixMode";
-      }
-    };
-
-  var _glOrtho = (left, right, bottom, top_, nearVal, farVal) => {
-      GLImmediate.matricesModified = true;
-      GLImmediate.matrixVersion[GLImmediate.currentMatrix] = (GLImmediate.matrixVersion[GLImmediate.currentMatrix] + 1)|0;
-      GLImmediate.matrixLib.mat4.multiply(GLImmediate.matrix[GLImmediate.currentMatrix],
-          GLImmediate.matrixLib.mat4.ortho(left, right, bottom, top_, nearVal, farVal));
-    };
-
   var _glVertex2f = (x, y) => {
       assert(GLImmediate.mode >= 0); // must be in begin/end
       GLImmediate.vertexData[GLImmediate.vertexCounter++] = x;
@@ -11444,8 +11415,6 @@ var ASM_CONSTS = {
       assert(GLImmediate.vertexCounter << 2 < GL.MAX_TEMP_BUFFER_SIZE);
       GLImmediate.addRendererComponent(GLImmediate.VERTEX, 4, GLctx.FLOAT);
     };
-
-  var _glVertex2i = _glVertex2f;
 
   function _glViewport(x0, x1, x2, x3) { GLctx.viewport(x0, x1, x2, x3) }
 
@@ -11890,15 +11859,7 @@ var wasmImports = {
   /** @export */
   glEnd: _glEnd,
   /** @export */
-  glLoadIdentity: _glLoadIdentity,
-  /** @export */
-  glMatrixMode: _glMatrixMode,
-  /** @export */
-  glOrtho: _glOrtho,
-  /** @export */
   glVertex2f: _glVertex2f,
-  /** @export */
-  glVertex2i: _glVertex2i,
   /** @export */
   glViewport: _glViewport
 };
