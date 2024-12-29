@@ -1002,7 +1002,7 @@ RGFWDEF RGFW_gpAxisfunc RGFW_setgpAxisCallback(RGFW_gpAxisfunc func);
 
 /*! gamepad count starts at 0*/
 RGFWDEF u32 RGFW_isPressedGP(RGFW_window* win, u16 controller, u8 button);
-RGFWDEF RGFW_point RGFW_isGetGPAxis(RGFW_window* win, u16 controller, u16 whichAxis);
+RGFWDEF RGFW_point RGFW_getGamepadAxis(RGFW_window* win, u16 controller, u16 whichAxis);
 
 /** @} */
 
@@ -1778,7 +1778,7 @@ u32 RGFW_isPressedGP(RGFW_window* win, u16 c, u8 button) {
 	return RGFW_gpPressed[c][button];
 }
 
-RGFW_point RGFW_isGetGPAxis(RGFW_window* win, u16 controller, u16 whichAxis) {
+RGFW_point RGFW_getGamepadAxis(RGFW_window* win, u16 controller, u16 whichAxis) {
 	RGFW_UNUSED(win);
 	return RGFW_gpAxes[controller][whichAxis];
 }
@@ -5697,7 +5697,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				//gp + 1 = RGFW_gpButtonReleased
 				e->type = RGFW_gpButtonPressed + !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 				e->button = RGFW_xinput2RGFW[keystroke.VirtualKey - 0x5800];
-				RGFW_gpPressed[i][e->button] = !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
+				RGFW_gpPressed[i][e->button] = (keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 
 				RGFW_gpButtonCallback(win, i, e->button, e->type == RGFW_gpButtonPressed);
 				return 1;
