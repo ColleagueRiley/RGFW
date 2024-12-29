@@ -36,17 +36,22 @@ int main(void) {
 
 #define RFONT_GET_WORLD(x, y) (float)((x) / (((w->r.w) / 2.0f)) - 1.0f), (float)(1.0f - ((y) / ((w->r.h) / 2.0f)))
 
-void drawCircle(int cx, int cy, int radius, RGFW_window* w) {
-    glBegin(GL_TRIANGLE_FAN);
 
-    glVertex2f(RFONT_GET_WORLD((float)cx, (float)cy));
+
+void drawCircle(int cx, int cy, int radius, RGFW_window* w) {
+    glBegin(GL_TRIANGLES);
 
     for (int i = 0; i <= 32; ++i) {
-        float angle = i * 2.0f * 3.14159f / 32;
-        float x = radius * cosf(angle);
-        float y = radius * sinf(angle);
-        glVertex2f(RFONT_GET_WORLD((float)(cx + x), (float)(cy + y)));
+        glVertex2f(RFONT_GET_WORLD((float)cx, (float)cy));        
+        
+        for (i32 j = 1; j >= 0; j--) {
+            float angle = (i - j) * 2.0f * 3.14159f / 32;
+            float x = radius * cosf(angle);
+            float y = radius * sinf(angle);
+            glVertex2f(RFONT_GET_WORLD((float)(cx + x), (float)(cy + y)));
+        }
     }
+
     glEnd();
     glColor3f(0.3f, 0.3f, 0.3f);
 }
