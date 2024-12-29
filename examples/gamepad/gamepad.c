@@ -80,9 +80,6 @@ void colorIfPressed(RGFW_window* win, size_t gamepad, u32 button) {
 void drawGamepad(RGFW_window* w, size_t gamepad) {
     setupScreenCoordinates(w->r.w, w->r.h);
 
-    int screenWidth = w->r.w; 
-    int screenHeight = w->r.h;
-
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(0.8, 0.8, 0.8, 1.0);  
 
