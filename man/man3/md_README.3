@@ -40,7 +40,7 @@ This library does not
 #define RGFW_IMPLEMENTATION
 #include "RGFW\&.h"
 
-void keyfunc(RGFW_window* win, u32 keycode, char keyName[16], u8 lockState, u8 pressed) {
+void keyfunc(RGFW_window* win, u32 key , u32 keyChar , char keyName[16], u8 lockState, u8 pressed) {
     if (keycode == RGFW_Escape && pressed) {
         RGFW_window_setShouldClose(win);
     }

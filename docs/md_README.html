@@ -99,7 +99,7 @@ a very simple example</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#define RGFW_IMPLEMENTATION</span></div>
 <div class="line"><span class="preprocessor">#include &quot;<a class="code" href="RGFW_8h.html">RGFW.h</a>&quot;</span></div>
 <div class="line"> </div>
-<div class="line"><span class="keywordtype">void</span> keyfunc(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> keycode, <span class="keywordtype">char</span> keyName[16], <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> lockState, <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> pressed) {</div>
+<div class="line"><span class="keywordtype">void</span> keyfunc(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> key , <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> keyChar , <span class="keywordtype">char</span> keyName[16], <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> lockState, <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> pressed) {</div>
 <div class="line">    <span class="keywordflow">if</span> (keycode == RGFW_Escape &amp;&amp; pressed) {</div>
 <div class="line">        <a class="code hl_function" href="group__Window__management.html#gaf0292ade1017afd3d9df17e806bcb41b">RGFW_window_setShouldClose</a>(win);</div>
 <div class="line">    }</div>
