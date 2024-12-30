@@ -408,6 +408,8 @@ typedef RGFW_ENUM(u8, RGFW_event_types) {
 
 		RGFW_Event.button holds which mouse button was pressed
 	*/
+	RGFW_gpConnected, /*!< a gamepad was connected */
+	RGFW_gpDisconnected, /*!< a gamepad was disconnected */
 	RGFW_gpButtonPressed, /*!< a gamepad button was pressed */
 	RGFW_gpButtonReleased, /*!< a gamepad button was released */
 	RGFW_gpAxisMove, /*!< an axis of a gamepad was moved*/
@@ -1003,6 +1005,8 @@ RGFWDEF RGFW_gpAxisfunc RGFW_setgpAxisCallback(RGFW_gpAxisfunc func);
 /*! gamepad count starts at 0*/
 RGFWDEF u32 RGFW_isPressedGP(RGFW_window* win, u16 controller, u8 button);
 RGFWDEF RGFW_point RGFW_getGamepadAxis(RGFW_window* win, u16 controller, u16 whichAxis);
+RGFWDEF char* RGFW_getGamepadName(RGFW_window* win, u16 controller);
+RGFWDEF size_t RGFW_getGamepadCount(RGFW_window* win);
 
 /** @} */
 
@@ -1415,6 +1419,7 @@ u8 RGFW_gpPressed[4][16]; /*!< if a key is currently pressed or not (per gamepad
 RGFW_point RGFW_gpAxes[4][4]; /*!< if a key is currently pressed or not (per gamepad) */
 
 i32 RGFW_gamepads[4] = {0, 0, 0, 0}; /*!< limit of 4 gamepads at a time */
+char RGFW_gamepads_name[4][128]; /*!< gamepad names */
 u16 RGFW_gamepadCount = 0; /*!< the actual amount of gamepads */
 
 /*
@@ -1781,6 +1786,15 @@ u32 RGFW_isPressedGP(RGFW_window* win, u16 c, u8 button) {
 RGFW_point RGFW_getGamepadAxis(RGFW_window* win, u16 controller, u16 whichAxis) {
 	RGFW_UNUSED(win);
 	return RGFW_gpAxes[controller][whichAxis];
+}
+char* RGFW_getGamepadName(RGFW_window* win, u16 controller) {
+	RGFW_UNUSED(win);
+	return RGFW_gamepads_name[controller];
+}
+
+size_t RGFW_getGamepadCount(RGFW_window* win) {
+	RGFW_UNUSED(win);
+	return RGFW_gamepadCount;
 }
 
 #if defined(RGFW_X11) || defined(RGFW_WINDOWS)
@@ -2250,17 +2264,19 @@ This is where OS specific stuff starts
 				if (js <= 0 || RGFW_gamepadCount >= 4)
 					break;
 
-				#ifdef RGFW_DEBUG
-				printf("RGFW (linux): new controller added %s\n", str[i]);
-				#endif
-
 				RGFW_gamepadCount++;
 
-				RGFW_gamepads[RGFW_gamepadCount - 1] = js;
+				RGFW_gamepads[i] = js;
+
+				ioctl(js, JSIOCGNAME(sizeof(RGFW_gamepads_name[i])), RGFW_gamepads_name[i]);
+
+				#ifdef RGFW_DEBUG
+				printf("RGFW (linux): new controller added %s %s\n", str[i], RGFW_gamepads_name[i]);
+				#endif
 
 				u8 i;
 				for (i = 0; i < 16; i++)
-					RGFW_gpPressed[RGFW_gamepadCount - 1][i] = 0;
+					RGFW_gpPressed[i][i] = 0;
 			}
 
 			/* check gamepad events */
@@ -2274,15 +2290,33 @@ This is where OS specific stuff starts
 				i32 flags = fcntl(RGFW_gamepads[i], F_GETFL, 0);
 				fcntl(RGFW_gamepads[i], F_SETFL, flags | O_NONBLOCK);
 
+			if (ioctl(RGFW_gamepads[i], JSIOCGAXES, NULL) == -1) {
+				printf("hello\n");
+				RGFW_gamepadCount--;
+				close(RGFW_gamepads[i]);
+				RGFW_gamepads[i] = 0;
+				continue;
+			}
+
 				ssize_t bytes;
 				while ((bytes = read(RGFW_gamepads[i], &e, sizeof(e))) > 0) {
 					switch (e.type) {
 						case JS_EVENT_BUTTON:
 							win->event.type = e.value ? RGFW_gpButtonPressed : RGFW_gpButtonReleased;
-							win->event.button = e.number;
-							RGFW_gpPressed[i][e.number + 1] = e.value;
-							RGFW_gpButtonCallback(win, i, e.number, e.value);
-
+								u8 RGFW_linux2RGFW[2][RGFW_GP_R3 + 8] = {{ /* ps */
+										RGFW_GP_A, RGFW_GP_B, RGFW_GP_Y, RGFW_GP_X, RGFW_GP_L1, RGFW_GP_R1, RGFW_GP_L2, RGFW_GP_R2,
+										RGFW_GP_SELECT, RGFW_GP_START, RGFW_GP_HOME, RGFW_GP_L3, RGFW_GP_R3, RGFW_GP_UP, RGFW_GP_DOWN, RGFW_GP_LEFT, RGFW_GP_RIGHT,
+									},{ /* xbox */
+										RGFW_GP_A, RGFW_GP_B, RGFW_GP_X, RGFW_GP_Y, RGFW_GP_L1, RGFW_GP_R1, RGFW_GP_SELECT, RGFW_GP_START,
+										RGFW_GP_HOME, RGFW_GP_L3, RGFW_GP_R3, 255, 255, RGFW_GP_UP, RGFW_GP_DOWN, RGFW_GP_LEFT, RGFW_GP_RIGHT
+								}};
+							
+							win->event.button = RGFW_linux2RGFW[1][e.number];
+							if (win->event.button == 255) break;
+							
+							RGFW_gpPressed[i][win->event.button] = e.value;
+							RGFW_gpButtonCallback(win, i, win->event.button, e.value);
+							
 							return 1;
 						case JS_EVENT_AXIS: {
 							size_t axis = e.number / 2;
@@ -3984,8 +4018,10 @@ Start of Linux / Unix defines
 			}
 
 			u8 i;
-			for (i = 0; i < RGFW_gamepadCount; i++)
-				close(RGFW_gamepads[i]);
+			for (i = 0; i < RGFW_gamepadCount; i++) {
+				if(RGFW_gamepads[i]) 
+					close(RGFW_gamepads[i]);
+			}
 		}
 
 		/* set cleared display / window to NULL for error checking */
@@ -5706,8 +5742,19 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			XINPUT_STATE state;
 			if (XInputGetState == NULL ||
 				XInputGetState((DWORD) i, &state) == ERROR_DEVICE_NOT_CONNECTED
-			)
+			) {
+				RGFW_gamepads[i] = 0;
+				RGFW_gamepadCount--;
 				return 0;
+			}
+			
+			if (RGFW_gamepads[i] == 0) {
+				RGFW_gamepads[i] = 1;
+				RGFW_gamepadCount++;
+
+				
+				RGFW_gamepads_name[i][sizeof(RGFW_gamepads_name[i]) - 1] = '\0';
+			}
 
 #define INPUT_DEADZONE  ( 0.24f * (float)(0x7FFF) )  // Default to 24% of the +/- 32767 range.   This is a reasonable default value but can be altered if needed.
 
@@ -7386,7 +7433,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			RGFW_osxControllers[i] = device;
 
 			IOHIDDeviceRegisterInputValueCallback(device, RGFW__osxInputValueChangedCallback, NULL);
-
+			
+			CFStringRef deviceName = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDProductKey));
+			if (deviceName)
+				CFStringGetCString(deviceName, RGFW_gamepads_name[i], sizeof(RGFW_gamepads_name[i]), kCFStringEncodingUTF8);
+			
 			RGFW_gamepads[i] = i;
 			RGFW_gamepadCount++;
 			break;
@@ -8804,6 +8855,11 @@ EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamep
 
 	if (gamepadEvent->index >= 4)
 		return 0;
+
+	if (gamepadEvent->connected) {
+		memcpy(RGFW_gamepads_name[gamepadEvent->index], gamepadEvent->id, sizeof(RGFW_gamepads_name[gamepadEvent->index]));
+		RGFW_gamepadCount++;
+	} else RGFW_gamepadCount--;
 
 	RGFW_gamepads[gamepadEvent->index] = gamepadEvent->connected;
 
