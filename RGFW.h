@@ -7464,7 +7464,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			RGFW_gamepads[i] = i;
 			RGFW_gamepadCount++;
 			
-			Event ev;
+			RGFW_Event ev;
 			ev.type = RGFW_gpConnected;
 			ev.gamepad = i;
 			RGFW_gpEventQueue[RGFW_gpEventQueueCount] = ev;
@@ -7489,12 +7489,12 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		if (index != -1)
 			RGFW_osxControllers[index] = NULL;
 
-		Event ev;
+		RGFW_Event ev;
 		ev.type = RGFW_gpDisconnected;
-		ev.gamepad = i;
+		ev.gamepad = index;
 		RGFW_gpEventQueue[RGFW_gpEventQueueCount] = ev;
 		RGFW_gpEventQueueCount++;
-		RGFW_gamepadCallback(RGFW_root, i, 0);
+		RGFW_gamepadCallback(RGFW_root, index, 0);
 
 		RGFW_gamepadCount--;
 	}
@@ -8896,7 +8896,7 @@ EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamep
 	if (gamepadEvent->connected) {
 		memcpy(RGFW_gamepads_name[gamepadEvent->index], gamepadEvent->id, sizeof(RGFW_gamepads_name[gamepadEvent->index]));
 		RGFW_gamepadCount++;
-		RGFW_events[RGFW_eventLen].type = RGFW_gpisconnected;
+		RGFW_events[RGFW_eventLen].type = RGFW_gpConnected;
 	} else {
 		RGFW_gamepadCount--;
 		RGFW_events[RGFW_eventLen].type = RGFW_gpDisconnected;
