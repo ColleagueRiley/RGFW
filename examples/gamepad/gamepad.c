@@ -10,6 +10,8 @@ void drawGamepad(RGFW_window* w, size_t gamepad);
 int main(void) {
 	RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(0, 0, 800, 450), RGFW_CENTER);
     RGFW_window_makeCurrent(win);
+
+    size_t gamepad = 0;
     
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win) != NULL) {
@@ -23,12 +25,21 @@ int main(void) {
                 case RGFW_gpAxisMove:
                     printf("Gamepad (%i) axis (%i) {%i, %i}\n", win->event.gamepad, win->event.whichAxis, win->event.axis[win->event.whichAxis].x, win->event.axis[win->event.whichAxis].y);
                     break;
+                case RGFW_gpConnected:
+                    printf("Gamepad (%i) connected %s\n", win->event.gamepad, RGFW_getGamepadName(win, win->event.gamepad));
+                    break;
+                case RGFW_gpDisconnected:
+                    printf("Gamepad (%i) disconnected %s\n", win->event.gamepad, RGFW_getGamepadName(win, win->event.gamepad));
+                break;
                 
                 default: break;
             }
+        
+            if (RGFW_isPressed(win, RGFW_Left) && gamepad > 0) gamepad--;
+            if (RGFW_isPressed(win, RGFW_Right) && (gamepad + 1) < RGFW_getGamepadCount(win)) gamepad++;
         }
 
-        drawGamepad(win, 0);
+        drawGamepad(win, gamepad);
     }
 
     RGFW_window_close(win);
@@ -68,6 +79,29 @@ void drawRect(int cx, int cy, int width, int height, RGFW_window* w) {
     glColor3f(0.3, 0.3, 0.3);
 }
 
+
+void drawLine(int cx, int cy, int x2, int y2, RGFW_window* w) {
+    float thickness = 2;
+    float dx = x2 - cx;
+    float dy = y2 - cy;
+    float length = sqrt(dx * dx + dy * dy);
+    float ux = dx / length;
+    float uy = dy / length;
+
+    float offsetX = -uy * thickness / 2;
+    float offsetY = ux * thickness / 2;
+
+    glBegin(GL_TRIANGLES);
+        glVertex2f(RFONT_GET_WORLD(cx + offsetX, cy + offsetY));
+        glVertex2f(RFONT_GET_WORLD(cx - offsetX, cy - offsetY));
+        glVertex2f(RFONT_GET_WORLD(x2 + offsetX, y2 + offsetY));
+
+        glVertex2f(RFONT_GET_WORLD(cx - offsetX, cy - offsetY));
+        glVertex2f(RFONT_GET_WORLD(x2 + offsetX, y2 + offsetY));
+        glVertex2f(RFONT_GET_WORLD(x2 - offsetX, y2 - offsetY));
+    glEnd();
+}
+
 void colorIfPressed(RGFW_window* win, size_t gamepad, u32 button) {
     if (RGFW_isPressedGP(win, gamepad, button))
         glColor3f(0.8, 0, 0);
@@ -76,13 +110,23 @@ void colorIfPressed(RGFW_window* win, size_t gamepad, u32 button) {
 }
 
 void drawGamepad(RGFW_window* w, size_t gamepad) {
-
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(0.8, 0.8, 0.8, 1.0);  
 
-    glColor3f(0.05, 0.05, 0.05); // Frame color: Black
-    
-    
+    glColor3f(0.00, 0.00, 0.00);
+    if (gamepad == 3) {
+        RGFW_rect r = {w->r.w - 100 + 20, w->r.h - 100, 50, 80};
+        drawRect(r.x - 20, r.y, 2, r.h, w);
+        drawLine(r.x, r.y, r.x + r.w / 2, r.y + r.h, w);
+        drawLine(r.x + r.w / 2, r.y + r.h, r.x + r.w, r.y, w);
+    }
+    else {
+        for (size_t i = 0; i <= gamepad; i++)
+            drawRect(w->r.w - 100 + (i * 20), w->r.h - 100, 2, 80, w);
+    }
+
+    glColor3f(0.05, 0.05, 0.05);
+
     #ifndef __EMSCRIPTEN__
     glBegin(GL_POLYGON);
         glVertex2f(RFONT_GET_WORLD(250, 45));   // Top-left corner
@@ -104,6 +148,9 @@ void drawGamepad(RGFW_window* w, size_t gamepad) {
     drawCircle(436, 150, 9, w);
     colorIfPressed(w, gamepad, RGFW_GP_SELECT);
     drawCircle(352, 150, 9, w);
+    colorIfPressed(w, gamepad, RGFW_GP_HOME);
+    drawCircle(394, 110, 20, w);
+
     colorIfPressed(w, gamepad, RGFW_GP_X);
     drawCircle(501, 151, 15, w);
     colorIfPressed(w, gamepad, RGFW_GP_A);
