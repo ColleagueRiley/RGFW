@@ -965,19 +965,19 @@ function dbg(text) {
 // === Body ===
 
 var ASM_CONSTS = {
-  71112: () => { Module.canvas.focus(); },  
- 71137: () => { Module.useWebGL = true; GLImmediate.init(); },  
- 71183: () => { window.addEventListener("keydown", (event) => { Module._RGFW_handleKeyEvent(stringToNewUTF8(event.key), stringToNewUTF8(event.code), 1); }, true, ); },  
- 71336: () => { window.addEventListener("keyup", (event) => { Module._RGFW_handleKeyEvent(stringToNewUTF8(event.key), stringToNewUTF8(event.code), 0); }, true, ); },  
- 71487: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 72506: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 72577: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 72634: () => { return window.mouseX || 0; },  
- 72665: () => { return window.mouseY || 0; },  
- 72696: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 72843: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 72896: () => { return window.innerWidth; },  
- 72926: () => { return window.innerHeight; }
+  71160: () => { Module.canvas.focus(); },  
+ 71185: () => { Module.useWebGL = true; GLImmediate.init(); },  
+ 71231: () => { window.addEventListener("keydown", (event) => { Module._RGFW_handleKeyEvent(stringToNewUTF8(event.key), stringToNewUTF8(event.code), 1); }, true, ); },  
+ 71384: () => { window.addEventListener("keyup", (event) => { Module._RGFW_handleKeyEvent(stringToNewUTF8(event.key), stringToNewUTF8(event.code), 0); }, true, ); },  
+ 71535: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
+ 72554: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 72625: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 72682: () => { return window.mouseX || 0; },  
+ 72713: () => { return window.mouseY || 0; },  
+ 72744: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
+ 72891: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 72944: () => { return window.innerWidth; },  
+ 72974: () => { return window.innerHeight; }
 };
 
 
