@@ -5759,17 +5759,26 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			) {
 				RGFW_gamepads[i] = 0;
 				RGFW_gamepadCount--;
-				return 0;
+				
+				win->event.type = RGFW_gpDisconnected;
+				win->event.gamepad = i;
+				RGFW_gamepadCallback(win, i, 0);
+				return 1;
 			}
 			
 			if (RGFW_gamepads[i] == 0) {
 				RGFW_gamepads[i] = 1;
 				RGFW_gamepadCount++;
 
-				
+				char str[] = "Microsoft X-Box (XInput device)";
+				memcpy(RGFW_gamepads_name[i], str, sizeof(str));
 				RGFW_gamepads_name[i][sizeof(RGFW_gamepads_name[i]) - 1] = '\0';
+				win->event.type = RGFW_gpConnected;
+				win->event.gamepad = i;
+				RGFW_gamepadCallback(win, i, 1);
+				return 1;
 			}
-
+ 
 #define INPUT_DEADZONE  ( 0.24f * (float)(0x7FFF) )  // Default to 24% of the +/- 32767 range.   This is a reasonable default value but can be altered if needed.
 
 			if ((state.Gamepad.sThumbLX < INPUT_DEADZONE &&
@@ -7454,6 +7463,13 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			
 			RGFW_gamepads[i] = i;
 			RGFW_gamepadCount++;
+			
+			RGFW_Event ev;
+			ev.type = RGFW_gpConnected;
+			ev.gamepad = i;
+			RGFW_gpEventQueue[RGFW_gpEventQueueCount] = ev;
+			RGFW_gpEventQueueCount++;
+			RGFW_gamepadCallback(RGFW_root, i, 1);
 			break;
 		}
 	}
@@ -7472,6 +7488,13 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		i32 index = findControllerIndex(device);
 		if (index != -1)
 			RGFW_osxControllers[index] = NULL;
+
+		RGFW_Event ev;
+		ev.type = RGFW_gpDisconnected;
+		ev.gamepad = index;
+		RGFW_gpEventQueue[RGFW_gpEventQueueCount] = ev;
+		RGFW_gpEventQueueCount++;
+		RGFW_gamepadCallback(RGFW_root, index, 0);
 
 		RGFW_gamepadCount--;
 	}
@@ -8873,7 +8896,16 @@ EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamep
 	if (gamepadEvent->connected) {
 		memcpy(RGFW_gamepads_name[gamepadEvent->index], gamepadEvent->id, sizeof(RGFW_gamepads_name[gamepadEvent->index]));
 		RGFW_gamepadCount++;
-	} else RGFW_gamepadCount--;
+		RGFW_events[RGFW_eventLen].type = RGFW_gpConnected;
+	} else {
+		RGFW_gamepadCount--;
+		RGFW_events[RGFW_eventLen].type = RGFW_gpDisconnected;
+	}
+
+	RGFW_events[RGFW_eventLen].gamepad = gamepadEvent->index;
+	RGFW_eventLen++;
+
+	RGFW_gamepadCallback(RGFW_root, gamepadEvent->index, gamepadEvent->connected);
 
 	RGFW_gamepads[gamepadEvent->index] = gamepadEvent->connected;
 
