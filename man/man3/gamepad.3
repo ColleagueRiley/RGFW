@@ -1,4 +1,4 @@
-.TH "gamepad" 3 "Sun Dec 29 2024" "RGFW" \" -*- nroff -*-
+.TH "gamepad" 3 "Mon Dec 30 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -15,6 +15,12 @@ gamepad \- Gamepad
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_getGamepadAxis\fP (\fBRGFW_window\fP *win, \fBu16\fP controller, \fBu16\fP whichAxis)"
 .br
+.ti -1c
+.RI "\fBRGFWDEF\fP char * \fBRGFW_getGamepadName\fP (\fBRGFW_window\fP *win, \fBu16\fP controller)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP size_t \fBRGFW_getGamepadCount\fP (\fBRGFW_window\fP *win)"
+.br
 .in -1c
 .SH "Detailed Description"
 .PP 
@@ -26,6 +32,10 @@ gamepad \- Gamepad
 .SH "Function Documentation"
 .PP 
 .SS "\fBRGFWDEF\fP \fBRGFW_point\fP RGFW_getGamepadAxis (\fBRGFW_window\fP * win, \fBu16\fP controller, \fBu16\fP whichAxis)"
+
+.SS "\fBRGFWDEF\fP size_t RGFW_getGamepadCount (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP char * RGFW_getGamepadName (\fBRGFW_window\fP * win, \fBu16\fP controller)"
 
 .SS "\fBRGFWDEF\fP \fBu32\fP RGFW_isPressedGP (\fBRGFW_window\fP * win, \fBu16\fP controller, \fBu8\fP button)"
 gamepad count starts at 0 

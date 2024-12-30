@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Sun Dec 29 2024" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Mon Dec 30 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -485,6 +485,12 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_getGamepadAxis\fP (\fBRGFW_window\fP *win, \fBu16\fP controller, \fBu16\fP whichAxis)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP char * \fBRGFW_getGamepadName\fP (\fBRGFW_window\fP *win, \fBu16\fP controller)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP size_t \fBRGFW_getGamepadCount\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
@@ -679,6 +685,10 @@ while a string version is stored in RGFW_Event\&.KeyString
 mouse event note the x and y of the mouse can be found in the vector, \fBRGFW_Event\&.point\fP
 .PP
 \fBRGFW_Event\&.button\fP holds which mouse button was pressed
+.PP
+< a gamepad was connected
+.PP
+< a gamepad was disconnected
 .PP
 < a gamepad button was pressed
 .PP
