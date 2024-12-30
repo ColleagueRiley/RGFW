@@ -2326,7 +2326,7 @@ This is where OS specific stuff starts
 				ssize_t bytes;
 				while ((bytes = read(RGFW_gamepads[i], &e, sizeof(e))) > 0) {
 					switch (e.type) {
-						case JS_EVENT_BUTTON:
+						case JS_EVENT_BUTTON: {
 							size_t typeIndex = 0;
 							if (RGFW_gamepads_type[i] == RGFW_MICROSOFT)
 								typeIndex = 1;
@@ -2348,6 +2348,7 @@ This is where OS specific stuff starts
 							RGFW_gpButtonCallback(win, i, win->event.button, e.value);
 							
 							return 1;
+						}
 						case JS_EVENT_AXIS: {
 							size_t axis = e.number / 2;
 							if (axis == 2) axis = 1;
@@ -8928,6 +8929,7 @@ EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamep
 	if (gamepadEvent->index >= 4)
 		return 0;
 
+	size_t i = gamepadEvent->index;
 	if (gamepadEvent->connected) {
 		memcpy(RGFW_gamepads_name[gamepadEvent->index], gamepadEvent->id, sizeof(RGFW_gamepads_name[gamepadEvent->index]));
 		RGFW_gamepads_type[i] = RGFW_UNKNOWN;
