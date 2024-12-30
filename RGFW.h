@@ -1005,11 +1005,16 @@ RGFWDEF RGFW_gamepadfunc RGFW_setGamepadCallback(RGFW_gamepadfunc func);
 /** * @defgroup gamepad
 * @{ */
 
+typedef RGFW_ENUM(u8, RGFW_gpType) {
+	RGFW_MICROSOFT = 0, RGFW_SONY, RGFW_NINTENDO, RGFW_UNKNOWN
+};
+
 /*! gamepad count starts at 0*/
-RGFWDEF u32 RGFW_isPressedGP(RGFW_window* win, u16 controller, u8 button);
+RGFWDEF u32 RGFW_isPressedGP(RGFW_window* win, u8 controller, u8 button);
 RGFWDEF RGFW_point RGFW_getGamepadAxis(RGFW_window* win, u16 controller, u16 whichAxis);
 RGFWDEF char* RGFW_getGamepadName(RGFW_window* win, u16 controller);
 RGFWDEF size_t RGFW_getGamepadCount(RGFW_window* win);
+RGFWDEF RGFW_gpType RGFW_getGamepadType(RGFW_window* win, u16 controller);
 
 /** @} */
 
@@ -1418,9 +1423,10 @@ void RGFW_resetKey(void) {
 */
 
 /* gamepad data */
-u8 RGFW_gpPressed[4][16]; /*!< if a key is currently pressed or not (per gamepad) */
+u8 RGFW_gpPressed[4][18]; /*!< if a key is currently pressed or not (per gamepad) */
 RGFW_point RGFW_gpAxes[4][4]; /*!< if a key is currently pressed or not (per gamepad) */
 
+RGFW_gpType RGFW_gamepads_type[4]; /*!< if a key is currently pressed or not (per gamepad) */
 i32 RGFW_gamepads[4] = {0, 0, 0, 0}; /*!< limit of 4 gamepads at a time */
 char RGFW_gamepads_name[4][128]; /*!< gamepad names */
 u16 RGFW_gamepadCount = 0; /*!< the actual amount of gamepads */
@@ -1788,7 +1794,7 @@ u32 RGFW_window_checkFPS(RGFW_window* win, u32 fpsCap) {
 	return output_fps;
 }
 
-u32 RGFW_isPressedGP(RGFW_window* win, u16 c, u8 button) {
+u32 RGFW_isPressedGP(RGFW_window* win, u8 c, u8 button) {
 	RGFW_UNUSED(win);
 	return RGFW_gpPressed[c][button];
 }
@@ -1805,6 +1811,11 @@ char* RGFW_getGamepadName(RGFW_window* win, u16 controller) {
 size_t RGFW_getGamepadCount(RGFW_window* win) {
 	RGFW_UNUSED(win);
 	return RGFW_gamepadCount;
+}
+
+RGFW_gpType RGFW_getGamepadType(RGFW_window* win, u16 controller) {
+	RGFW_UNUSED(win);
+	return RGFW_gamepads_type[controller];
 }
 
 #if defined(RGFW_X11) || defined(RGFW_WINDOWS)
@@ -2287,6 +2298,15 @@ This is where OS specific stuff starts
 					RGFW_gpPressed[i][j] = 0;
 
 				win->event.type = RGFW_gpConnected;
+				
+				RGFW_gamepads_type[i] = RGFW_UNKNOWN;
+				if (strstr(RGFW_gamepads_name[i], "Microsoft") || strstr(RGFW_gamepads_name[i], "X-Box"))
+					RGFW_gamepads_type[i] = RGFW_MICROSOFT;
+				else if (strstr(RGFW_gamepads_name[i], "PlayStation") || strstr(RGFW_gamepads_name[i], "PS3") || strstr(RGFW_gamepads_name[i], "PS4") || strstr(RGFW_gamepads_name[i], "PS5"))
+					RGFW_gamepads_type[i] = RGFW_SONY;
+				else if (strstr(RGFW_gamepads_name[i], "Nintendo"))
+					RGFW_gamepads_type[i] = RGFW_NINTENDO;
+				
 				win->event.gamepad = i;
 				RGFW_gamepadCallback(win, i, 1);
 				return 1;
@@ -2307,18 +2327,23 @@ This is where OS specific stuff starts
 				while ((bytes = read(RGFW_gamepads[i], &e, sizeof(e))) > 0) {
 					switch (e.type) {
 						case JS_EVENT_BUTTON:
+							size_t typeIndex = 0;
+							if (RGFW_gamepads_type[i] == RGFW_MICROSOFT)
+								typeIndex = 1;
+							
 							win->event.type = e.value ? RGFW_gpButtonPressed : RGFW_gpButtonReleased;
-								u8 RGFW_linux2RGFW[2][RGFW_GP_R3 + 8] = {{ /* ps */
-										RGFW_GP_A, RGFW_GP_B, RGFW_GP_Y, RGFW_GP_X, RGFW_GP_L1, RGFW_GP_R1, RGFW_GP_L2, RGFW_GP_R2,
-										RGFW_GP_SELECT, RGFW_GP_START, RGFW_GP_HOME, RGFW_GP_L3, RGFW_GP_R3, RGFW_GP_UP, RGFW_GP_DOWN, RGFW_GP_LEFT, RGFW_GP_RIGHT,
-									},{ /* xbox */
-										RGFW_GP_A, RGFW_GP_B, RGFW_GP_X, RGFW_GP_Y, RGFW_GP_L1, RGFW_GP_R1, RGFW_GP_SELECT, RGFW_GP_START,
-										RGFW_GP_HOME, RGFW_GP_L3, RGFW_GP_R3, 255, 255, RGFW_GP_UP, RGFW_GP_DOWN, RGFW_GP_LEFT, RGFW_GP_RIGHT
-								}};
-							
-							win->event.button = RGFW_linux2RGFW[1][e.number];
+							u8 RGFW_linux2RGFW[2][RGFW_GP_R3 + 8] = {{ /* ps */
+									RGFW_GP_A, RGFW_GP_B, RGFW_GP_Y, RGFW_GP_X, RGFW_GP_L1, RGFW_GP_R1, RGFW_GP_L2, RGFW_GP_R2,
+									RGFW_GP_SELECT, RGFW_GP_START, RGFW_GP_HOME, RGFW_GP_L3, RGFW_GP_R3, RGFW_GP_UP, RGFW_GP_DOWN, RGFW_GP_LEFT, RGFW_GP_RIGHT,
+								},{ /* xbox */
+									RGFW_GP_A, RGFW_GP_B, RGFW_GP_X, RGFW_GP_Y, RGFW_GP_L1, RGFW_GP_R1, RGFW_GP_SELECT, RGFW_GP_START,
+									RGFW_GP_HOME, RGFW_GP_L3, RGFW_GP_R3, 255, 255, RGFW_GP_UP, RGFW_GP_DOWN, RGFW_GP_LEFT, RGFW_GP_RIGHT
+							}};
+
+							win->event.button = RGFW_linux2RGFW[typeIndex][e.number];
+							win->event.gamepad = i;
 							if (win->event.button == 255) break;
-							
+
 							RGFW_gpPressed[i][win->event.button] = e.value;
 							RGFW_gpButtonCallback(win, i, win->event.button, e.value);
 							
@@ -5775,6 +5800,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				RGFW_gamepads_name[i][sizeof(RGFW_gamepads_name[i]) - 1] = '\0';
 				win->event.type = RGFW_gpConnected;
 				win->event.gamepad = i;
+				RGFW_gamepads_type[i] = RGFW_MICROSOFT;
+
 				RGFW_gamepadCallback(win, i, 1);
 				return 1;
 			}
@@ -7461,6 +7488,14 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			if (deviceName)
 				CFStringGetCString(deviceName, RGFW_gamepads_name[i], sizeof(RGFW_gamepads_name[i]), kCFStringEncodingUTF8);
 			
+			RGFW_gamepads_type[i] = RGFW_UNKNOWN;
+			if (strstr(RGFW_gamepads_name[i], "Microsoft") || strstr(RGFW_gamepads_name[i], "X-Box"))
+				RGFW_gamepads_type[i] = RGFW_MICROSOFT;
+			else if (strstr(RGFW_gamepads_name[i], "PlayStation") || strstr(RGFW_gamepads_name[i], "PS3") || strstr(RGFW_gamepads_name[i], "PS4") || strstr(RGFW_gamepads_name[i], "PS5"))
+				RGFW_gamepads_type[i] = RGFW_SONY;
+			else if (strstr(RGFW_gamepads_name[i], "Nintendo"))
+				RGFW_gamepads_type[i] = RGFW_NINTENDO;
+
 			RGFW_gamepads[i] = i;
 			RGFW_gamepadCount++;
 			
@@ -8895,6 +8930,14 @@ EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamep
 
 	if (gamepadEvent->connected) {
 		memcpy(RGFW_gamepads_name[gamepadEvent->index], gamepadEvent->id, sizeof(RGFW_gamepads_name[gamepadEvent->index]));
+		RGFW_gamepads_type[i] = RGFW_UNKNOWN;
+		if (strstr(RGFW_gamepads_name[i], "Microsoft") || strstr(RGFW_gamepads_name[i], "X-Box"))
+			RGFW_gamepads_type[i] = RGFW_MICROSOFT;
+		else if (strstr(RGFW_gamepads_name[i], "PlayStation") || strstr(RGFW_gamepads_name[i], "PS3") || strstr(RGFW_gamepads_name[i], "PS4") || strstr(RGFW_gamepads_name[i], "PS5"))
+			RGFW_gamepads_type[i] = RGFW_SONY;
+		else if (strstr(RGFW_gamepads_name[i], "Nintendo"))
+			RGFW_gamepads_type[i] = RGFW_NINTENDO;
+
 		RGFW_gamepadCount++;
 		RGFW_events[RGFW_eventLen].type = RGFW_gpConnected;
 	} else {

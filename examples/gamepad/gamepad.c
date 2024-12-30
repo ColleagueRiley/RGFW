@@ -104,6 +104,9 @@ void drawLine(int cx, int cy, int x2, int y2, RGFW_window* w) {
 
 void colorIfPressed(RGFW_window* win, size_t gamepad, u32 button) {
     if (RGFW_isPressedGP(win, gamepad, button))
+        printf("%i %i\n",  gamepad, button);
+    
+    if (RGFW_isPressedGP(win, gamepad, button))
         glColor3f(0.8, 0, 0);
     else 
         glColor3f(0.3, 0.3, 0.3);
@@ -148,7 +151,7 @@ void drawGamepad(RGFW_window* w, size_t gamepad) {
     drawCircle(436, 150, 9, w);
     colorIfPressed(w, gamepad, RGFW_GP_SELECT);
     drawCircle(352, 150, 9, w);
-    colorIfPressed(w, gamepad, RGFW_GP_START);
+    colorIfPressed(w, gamepad, RGFW_GP_HOME);
     drawCircle(394, 110, 20, w);
 
     colorIfPressed(w, gamepad, RGFW_GP_X);
