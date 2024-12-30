@@ -104,9 +104,6 @@ void drawLine(int cx, int cy, int x2, int y2, RGFW_window* w) {
 
 void colorIfPressed(RGFW_window* win, size_t gamepad, u32 button) {
     if (RGFW_isPressedGP(win, gamepad, button))
-        printf("%i %i\n",  gamepad, button);
-    
-    if (RGFW_isPressedGP(win, gamepad, button))
         glColor3f(0.8, 0, 0);
     else 
         glColor3f(0.3, 0.3, 0.3);
