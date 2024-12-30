@@ -5769,7 +5769,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 				if (keystroke.VirtualKey > VK_PAD_RTHUMB_PRESS)
 					continue;
-
+				printf("h\n");
 				//gp + 1 = RGFW_gpButtonReleased
 				e->type = RGFW_gpButtonPressed + !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 				e->button = RGFW_xinput2RGFW[keystroke.VirtualKey - 0x5800];
@@ -5783,6 +5783,9 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			if (XInputGetState == NULL ||
 				XInputGetState((DWORD) i, &state) == ERROR_DEVICE_NOT_CONNECTED
 			) {
+				if (RGFW_gamepads[i] == 0)
+					continue;
+				
 				RGFW_gamepads[i] = 0;
 				RGFW_gamepadCount--;
 				
