@@ -104,6 +104,8 @@ Typedefs</h2></td></tr>
 <tr class="separator:ga6397f3e1a5af7aad247d2f5d413c6272"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga719780221d5ffb8bf3b944ea41cf4ce6"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#ga719780221d5ffb8bf3b944ea41cf4ce6">RGFW_gpAxisfunc</a>) (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#ace9d960e74685e2cd84b36132dbbf8aa">u16</a> gamepad, <a class="el" href="structRGFW__point.html">RGFW_point</a> axis[2], <a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> axisesCount, <a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> whichAxis)</td></tr>
 <tr class="separator:ga719780221d5ffb8bf3b944ea41cf4ce6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac8a99ee53c6faef79c6b44a18be04ef9"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#gac8a99ee53c6faef79c6b44a18be04ef9">RGFW_gamepadfunc</a>) (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#ace9d960e74685e2cd84b36132dbbf8aa">u16</a> gamepad, <a class="el" href="RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73">b8</a> connected)</td></tr>
+<tr class="separator:gac8a99ee53c6faef79c6b44a18be04ef9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga88b96a9a919baf0787bb4ba0dae9afcf"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#ga88b96a9a919baf0787bb4ba0dae9afcf">RGFW_dndfunc</a>) (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, char droppedFiles[<a class="el" href="RGFW_8h.html#a9711b4ffc483384dffcbaa7f98c58385">RGFW_MAX_DROPS</a>][<a class="el" href="RGFW_8h.html#af68d9cc4adea676883383a0406c176f4">RGFW_MAX_PATH</a>], <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> droppedFilesCount)</td></tr>
 <tr class="separator:ga88b96a9a919baf0787bb4ba0dae9afcf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -135,6 +137,8 @@ Functions</h2></td></tr>
 <tr class="separator:gac8f10e88928619929d3c72216697ee34"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae3100b54420bef84e23e55457ffd9e37"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Callbacks.html#ga719780221d5ffb8bf3b944ea41cf4ce6">RGFW_gpAxisfunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#gae3100b54420bef84e23e55457ffd9e37">RGFW_setgpAxisCallback</a> (<a class="el" href="group__Callbacks.html#ga719780221d5ffb8bf3b944ea41cf4ce6">RGFW_gpAxisfunc</a> func)</td></tr>
 <tr class="separator:gae3100b54420bef84e23e55457ffd9e37"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9029c047eda4df00906fe406e379c219"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Callbacks.html#gac8a99ee53c6faef79c6b44a18be04ef9">RGFW_gamepadfunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#ga9029c047eda4df00906fe406e379c219">RGFW_setGamepadCallback</a> (<a class="el" href="group__Callbacks.html#gac8a99ee53c6faef79c6b44a18be04ef9">RGFW_gamepadfunc</a> func)</td></tr>
+<tr class="separator:ga9029c047eda4df00906fe406e379c219"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p >Event callbacks, these are completely optional, you can use the normal RGFW_checkEvent() method if you prefer that </p>
@@ -181,6 +185,21 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p >RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its inFocus </p>
+
+</div>
+</div>
+<a id="gac8a99ee53c6faef79c6b44a18be04ef9" name="gac8a99ee53c6faef79c6b44a18be04ef9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gac8a99ee53c6faef79c6b44a18be04ef9">&#9670;&#160;</a></span>RGFW_gamepadfunc</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* RGFW_gamepadfunc) (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#ace9d960e74685e2cd84b36132dbbf8aa">u16</a> gamepad, <a class="el" href="RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73">b8</a> connected)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >RGFW_gpConnected/RGFW_gpDisconnected, the window that got the event, the gamepad in question, if the controller was connected (or disconnected if false) </p>
 
 </div>
 </div>
@@ -396,6 +415,25 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <p >set callback for a window focus change event returns previous callback function (if it was set) <br  />
  </p>
+
+</div>
+</div>
+<a id="ga9029c047eda4df00906fe406e379c219" name="ga9029c047eda4df00906fe406e379c219"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga9029c047eda4df00906fe406e379c219">&#9670;&#160;</a></span>RGFW_setGamepadCallback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Callbacks.html#gac8a99ee53c6faef79c6b44a18be04ef9">RGFW_gamepadfunc</a> RGFW_setGamepadCallback </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__Callbacks.html#gac8a99ee53c6faef79c6b44a18be04ef9">RGFW_gamepadfunc</a>&#160;</td>
+          <td class="paramname"><em>func</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >set callback for when a controller is connected or disconnected </p>
 
 </div>
 </div>
