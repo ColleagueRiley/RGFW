@@ -23,6 +23,12 @@ int main(void) {
                 case RGFW_gpAxisMove:
                     printf("Gamepad (%i) axis (%i) {%i, %i}\n", win->event.gamepad, win->event.whichAxis, win->event.axis[win->event.whichAxis].x, win->event.axis[win->event.whichAxis].y);
                     break;
+                case RGFW_gpConnected:
+                    printf("Gamepad (%i) connected\n", win->event.gamepad, RGFW_getGamepadName(win, win->event.gamepad));
+                    break;
+                case RGFW_gpDisconnected:
+                    printf("Gamepad (%i) disconnected\n", win->event.gamepad, RGFW_getGamepadName(win, win->event.gamepad));
+                break;
                 
                 default: break;
             }
