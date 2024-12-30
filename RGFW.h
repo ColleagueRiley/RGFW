@@ -7410,9 +7410,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			RGFW_GP_SELECT,
 			RGFW_GP_L3, RGFW_GP_R3, RGFW_GP_START,
 			RGFW_GP_UP, RGFW_GP_RIGHT, RGFW_GP_DOWN, RGFW_GP_LEFT,
-			RGFW_GP_L2, RGFW_GP_R2,
-			RGFW_GP_L1, RGFW_GP_R1,
-			RGFW_GP_Y, RGFW_GP_B, RGFW_GP_A, RGFW_GP_X
+			RGFW_GP_L2, RGFW_GP_R2, RGFW_GP_L1, RGFW_GP_R1,
+			RGFW_GP_Y, RGFW_GP_B, RGFW_GP_A, RGFW_GP_X, RGFW_GP_HOME
 		};
 
 		RGFW_Event event;
@@ -7464,10 +7463,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			}
 		}
 	}
-
-
-
-
 
 	void RGFW__osxDeviceAddedCallback(void* context, IOReturn result, void *sender, IOHIDDeviceRef device) {
 		RGFW_UNUSED(context); RGFW_UNUSED(result); RGFW_UNUSED(sender);
@@ -9342,7 +9337,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 				RGFW_GP_L1, RGFW_GP_R1, RGFW_GP_L2, RGFW_GP_R2,
 				RGFW_GP_SELECT, RGFW_GP_START,
 				RGFW_GP_L3, RGFW_GP_R3,
-				RGFW_GP_UP, RGFW_GP_DOWN, RGFW_GP_LEFT, RGFW_GP_RIGHT
+				RGFW_GP_UP, RGFW_GP_DOWN, RGFW_GP_LEFT, RGFW_GP_RIGHT, RGFW_GP_HOME
 			};
 
 
