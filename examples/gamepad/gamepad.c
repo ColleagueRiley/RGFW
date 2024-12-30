@@ -32,11 +32,12 @@ int main(void) {
                     printf("Gamepad (%i) disconnected %s\n", win->event.gamepad, RGFW_getGamepadName(win, win->event.gamepad));
                 break;
                 
+                case RGFW_keyPressed:
+                    if (win->event.key == RGFW_Left && gamepad > 0) gamepad--;
+                    if (win->event.key == RGFW_Right && (gamepad + 1) < RGFW_getGamepadCount(win)) gamepad++;
+                    break;
                 default: break;
             }
-        
-            if (RGFW_isPressed(win, RGFW_Left) && gamepad > 0) gamepad--;
-            if (RGFW_isPressed(win, RGFW_Right) && (gamepad + 1) < RGFW_getGamepadCount(win)) gamepad++;
         }
 
         drawGamepad(win, gamepad);
