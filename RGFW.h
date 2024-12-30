@@ -935,7 +935,8 @@ typedef void (* RGFW_mousebuttonfunc)(RGFW_window* win, u8 button, double scroll
 typedef void (* RGFW_gpButtonfunc)(RGFW_window* win, u16 gamepad, u8 button, b8 pressed);
 /*! RGFW_gpAxisMove, the window that got the event, the gamepad in question, the axis values and the amount of axises */
 typedef void (* RGFW_gpAxisfunc)(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount, u8 whichAxis);
-
+/*! RGFW_gpConnected/RGFW_gpDisconnected, the window that got the event, the gamepad in question, if the controller was connected (or disconnected if false) */
+typedef void (* RGFW_gamepadfunc)(RGFW_window* win, u16 gamepad, b8 connected);
 
 /*!  RGFW_dnd, the window that had the drop, the drop data and the amount files dropped returns previous callback function (if it was set) */
 #ifdef RGFW_ALLOC_DROPFILES
@@ -969,6 +970,8 @@ RGFWDEF RGFW_mousebuttonfunc RGFW_setMouseButtonCallback(RGFW_mousebuttonfunc fu
 RGFWDEF RGFW_gpButtonfunc RGFW_setgpButtonCallback(RGFW_gpButtonfunc func);
 /*! set callback for a gamepad axis mov event returns previous callback function (if it was set)  */
 RGFWDEF RGFW_gpAxisfunc RGFW_setgpAxisCallback(RGFW_gpAxisfunc func);
+/*! set callback for when a controller is connected or disconnected */
+RGFWDEF RGFW_gamepadfunc RGFW_setGamepadCallback(RGFW_gamepadfunc func);
 
 /** @} */
 
@@ -1444,6 +1447,7 @@ void RGFW_keyfuncEMPTY(RGFW_window* win, u32 key, u32 mappedKey, char keyName[16
 void RGFW_mousebuttonfuncEMPTY(RGFW_window* win, u8 button, double scroll, b8 pressed) {RGFW_UNUSED(win); RGFW_UNUSED(button); RGFW_UNUSED(scroll); RGFW_UNUSED(pressed);}
 void RGFW_gpButtonfuncEMPTY(RGFW_window* win, u16 gamepad, u8 button, b8 pressed){RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(button); RGFW_UNUSED(pressed); }
 void RGFW_gpAxisfuncEMPTY(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount, u8 whichAxis){RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(axis); RGFW_UNUSED(axisesCount); RGFW_UNUSED(whichAxis); }
+void RGFW_gamepadfuncEMPTY(RGFW_window* win, u16 gamepad, b8 connected) {RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(connected);}
 
 #ifdef RGFW_ALLOC_DROPFILES
 void RGFW_dndfuncEMPTY(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
@@ -1464,6 +1468,7 @@ RGFW_keyfunc RGFW_keyCallback = RGFW_keyfuncEMPTY;
 RGFW_mousebuttonfunc RGFW_mouseButtonCallback = RGFW_mousebuttonfuncEMPTY;
 RGFW_gpButtonfunc RGFW_gpButtonCallback = RGFW_gpButtonfuncEMPTY;
 RGFW_gpAxisfunc RGFW_gpAxisCallback = RGFW_gpAxisfuncEMPTY;
+RGFW_gamepadfunc RGFW_gamepadCallback = RGFW_gamepadfuncEMPTY;
 
 void RGFW_window_checkEvents(RGFW_window* win, i32 waitMS) {
 	RGFW_window_eventWait(win, waitMS);
@@ -1542,6 +1547,11 @@ RGFW_gpButtonfunc RGFW_setgpButtonCallback(RGFW_gpButtonfunc func) {
 RGFW_gpAxisfunc RGFW_setgpAxisCallback(RGFW_gpAxisfunc func) {
     RGFW_gpAxisfunc prev = (RGFW_gpAxisCallback == RGFW_gpAxisfuncEMPTY) ? NULL : RGFW_gpAxisCallback;
     RGFW_gpAxisCallback = func;
+    return prev;
+}
+RGFW_gamepadfunc RGFW_setGamepadCallback(RGFW_gamepadfunc func) {
+    RGFW_gamepadfunc prev = (RGFW_gamepadCallback == RGFW_gamepadfuncEMPTY) ? NULL : RGFW_gamepadCallback;
+    RGFW_gamepadCallback = func;
     return prev;
 }
 /*
@@ -2251,6 +2261,7 @@ This is where OS specific stuff starts
 		#include <linux/joystick.h>
 		#include <fcntl.h>
 		#include <unistd.h>
+		#include <errno.h>
 
 		u32 RGFW_linux_updateGamepad(RGFW_window* win) {
 			/* check for new gamepads */
@@ -2269,14 +2280,16 @@ This is where OS specific stuff starts
 				RGFW_gamepads[i] = js;
 
 				ioctl(js, JSIOCGNAME(sizeof(RGFW_gamepads_name[i])), RGFW_gamepads_name[i]);
+				RGFW_gamepads_name[i][sizeof(RGFW_gamepads_name[i]) - 1] = 0;
+				
+				u8 j;
+				for (j = 0; j < 16; j++)
+					RGFW_gpPressed[i][j] = 0;
 
-				#ifdef RGFW_DEBUG
-				printf("RGFW (linux): new controller added %s %s\n", str[i], RGFW_gamepads_name[i]);
-				#endif
-
-				u8 i;
-				for (i = 0; i < 16; i++)
-					RGFW_gpPressed[i][i] = 0;
+				win->event.type = RGFW_gpConnected;
+				win->event.gamepad = i;
+				RGFW_gamepadCallback(win, i, 1);
+				return 1;
 			}
 
 			/* check gamepad events */
@@ -2289,14 +2302,6 @@ This is where OS specific stuff starts
 
 				i32 flags = fcntl(RGFW_gamepads[i], F_GETFL, 0);
 				fcntl(RGFW_gamepads[i], F_SETFL, flags | O_NONBLOCK);
-
-			if (ioctl(RGFW_gamepads[i], JSIOCGAXES, NULL) == -1) {
-				printf("hello\n");
-				RGFW_gamepadCount--;
-				close(RGFW_gamepads[i]);
-				RGFW_gamepads[i] = 0;
-				continue;
-			}
 
 				ssize_t bytes;
 				while ((bytes = read(RGFW_gamepads[i], &e, sizeof(e))) > 0) {
@@ -2343,8 +2348,17 @@ This is where OS specific stuff starts
 						default: break;
 					}
 				}
-			}
-
+				if (bytes == -1 && errno == ENODEV) {
+					RGFW_gamepadCount--;
+					close(RGFW_gamepads[i]);
+					RGFW_gamepads[i] = 0;
+				
+					win->event.type = RGFW_gpDisconnected;
+					win->event.gamepad = i;
+					RGFW_gamepadCallback(win, i, 0);
+					return 1;
+				}
+			} 
 			return 0;
 		}
 
