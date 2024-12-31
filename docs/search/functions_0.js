@@ -27,7 +27,7 @@ var searchData=
   ['rgfw_5fjointhread_24',['RGFW_joinThread',['../group__Threads.html#ga43401d0d164edea95f9c6cd2df093473',1,'RGFW.h']]],
   ['rgfw_5freadclipboard_25',['RGFW_readClipboard',['../group__Clipboard.html#gafd7703681c9d137e58b900b448277a42',1,'RGFW.h']]],
   ['rgfw_5fsetbuffersize_26',['RGFW_setBufferSize',['../group__Window__management.html#gadce2abfbc7f38f80e4f5490e88d05593',1,'RGFW.h']]],
-  ['rgfw_5fsetclassname_27',['RGFW_setClassName',['../group__Window__management.html#gada5d32ffbd78e6faf68fb12be2cd5bc3',1,'RGFW.h']]],
+  ['rgfw_5fsetclassname_27',['RGFW_setClassName',['../group__Window__management.html#gad4e025c3958a7118fd3ec5728cc7c43e',1,'RGFW.h']]],
   ['rgfw_5fsetdndcallback_28',['RGFW_setDndCallback',['../group__Callbacks.html#ga1e81369ffe03b5775a26bb01969a7649',1,'RGFW.h']]],
   ['rgfw_5fsetdndinitcallback_29',['RGFW_setDndInitCallback',['../group__Callbacks.html#ga8a54548833f8cca9b94b23f6e37ba3b3',1,'RGFW.h']]],
   ['rgfw_5fsetdoublebuffer_30',['RGFW_setDoubleBuffer',['../group__graphics__API.html#ga27071bb0af6b97e580450158dc146381',1,'RGFW.h']]],
