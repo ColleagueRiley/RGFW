@@ -71,7 +71,7 @@ Example to get you started :
 
 linux : gcc main.c -lX11 -lXrandr -lGL -lm
 windows : gcc main.c -lopengl32 -lwinmm -lshell32 -lgdi32
-macos : gcc main.c -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo
+macos : gcc main.c -framework Foundation -framework AppKit -framework OpenGL -framework IOKit
 
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
@@ -124,7 +124,7 @@ int main() {
 		linux:
 			gcc -shared RGFW.o -lX11 -lGL -lXrandr -o RGFW.so
 		macos:
-			gcc -shared RGFW.o -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo
+			gcc -shared RGFW.o -framework Foundation -framework AppKit -framework OpenGL -framework IOKit
 */
 
 
@@ -634,7 +634,6 @@ typedef struct RGFW_window_src {
 	#endif
 #elif defined(RGFW_MACOS)
 	u32 display;
-	void* displayLink;
 	void* window;
 	b8 dndPassed;
 #if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
@@ -6904,7 +6903,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		start of cocoa wrapper
 	*/
 
-#include <CoreVideo/CVDisplayLink.h>
 #include <ApplicationServices/ApplicationServices.h>
 #include <objc/runtime.h>
 #include <objc/message.h>
@@ -7270,11 +7268,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		return symbol;
 	}
 #endif
-
-	CVReturn displayCallback(CVDisplayLinkRef displayLink, const CVTimeStamp* inNow, const CVTimeStamp* inOutputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* displayLinkContext) {
-		RGFW_UNUSED(displayLink) RGFW_UNUSED(inNow) RGFW_UNUSED(inOutputTime) RGFW_UNUSED(flagsIn) RGFW_UNUSED(flagsOut) RGFW_UNUSED(displayLinkContext)
-		return kCVReturnSuccess;
-	}
 
 	id NSWindow_delegate(RGFW_window* win) {
 		return (id) objc_msgSend_id(win->src.window, sel_registerName("delegate"));
@@ -7804,9 +7797,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		}
 
 		win->src.display = CGMainDisplayID();
-		CVDisplayLinkCreateWithCGDisplay(win->src.display, (CVDisplayLinkRef*)&win->src.displayLink);
-		CVDisplayLinkSetOutputCallback(win->src.displayLink, displayCallback, win);
-		CVDisplayLinkStart(win->src.displayLink);
 
 		RGFW_init_buffer(win);
 
@@ -8710,10 +8700,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 #ifdef RGFW_BUFFER
 		release(win->src.bitmap);
 		release(win->src.image);
-#endif
-
-		CVDisplayLinkStop(win->src.displayLink);
-		CVDisplayLinkRelease(win->src.displayLink);
 
 		RGFW_FREE(win);
 	}

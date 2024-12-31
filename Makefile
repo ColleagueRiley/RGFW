@@ -32,8 +32,8 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 	detected_OS := $(shell uname 2>/dev/null || echo Unknown)
 
 	ifeq ($(detected_OS),Darwin)        # Mac OS X
-		LIBS := -lm -framework Foundation -framework AppKit -framework OpenGL -framework CoreVideo -framework IOKit
-		VULKAN_LIBS = -lm  -framework Foundation -framework AppKit --framework CoreVideo -lvulkan
+		LIBS := -lm -framework Foundation -framework AppKit -framework OpenGL -framework IOKit
+		VULKAN_LIBS = -lm  -framework Foundation -framework AppKit -lvulkan
 		EXT =
 		LIB_EXT = .dylib
 		OS_DIR = /
@@ -138,7 +138,7 @@ endif
 examples/metal/metal: examples/metal/metal.m RGFW.h
 ifeq ($(detected_OS),Darwin)        # Mac OS X
 	gcc $(CUSTOM_CFLAGS) -x c -c RGFW.h -D RGFW_NO_API -D RGFW_EXPORT -D RGFW_IMPLEMENTATION -o RGFW.o
-	gcc $(CUSTOM_CFLAGS) examples/metal/metal.m RGFW.o -I. -lm -framework Metal -framework Foundation -framework AppKit -framework Cocoa -framework CoreVideo -framework QuartzCore -o $@
+	gcc $(CUSTOM_CFLAGS) examples/metal/metal.m RGFW.o -I. -lm -framework Metal -framework Foundation -framework AppKit -framework Cocoa -framework IOKit -framework QuartzCore -o $@
 else
 	@echo metal is not supported on $(detected_OS)
 endif
