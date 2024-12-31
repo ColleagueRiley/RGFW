@@ -3842,8 +3842,8 @@ Start of Linux / Unix defines
 		}
 
 		if (ci == NULL) {
-			float dpi_width = round((double)monitor.rect.w/(double)monitor.physW);
-			float dpi_height = round((double)monitor.rect.h/(double)monitor.physH);
+			float dpi_width = round((float)monitor.rect.w/(float)monitor.physW);
+			float dpi_height = round((float)monitor.rect.h/(float)monitor.physH);
 
 			monitor.scaleX = (float) (dpi_width) / (float) 96;
 			monitor.scaleY = (float) (dpi_height) / (float) 96;
@@ -3857,25 +3857,40 @@ Start of Linux / Unix defines
 		}
 
 		XRROutputInfo* info = XRRGetOutputInfo (display, sr, sr->outputs[screen]);
-		monitor.physW = info->mm_width / 25.4;
-		monitor.physH = info->mm_height / 25.4;
+		float physW = info->mm_width / 25.4;
+		float physH = info->mm_height / 25.4;
+
+		if (physW && physH) {
+			monitor.physW = physW;
+			monitor.physH = physH;
+		}
 
 		monitor.rect.x = ci->x;
 		monitor.rect.y = ci->y;
-		monitor.rect.w = ci->width;
-		monitor.rect.h = ci->height;
 
-		float dpi_width = round((double)monitor.rect.w/(double)monitor.physW);
-		float dpi_height = round((double)monitor.rect.h/(double)monitor.physH);
+		float w = ci->width;
+		float h = ci->height;
+		if (w && h) {
+			monitor.rect.w = w;
+			monitor.rect.h = h;
+		}
 
-		monitor.scaleX = (float) (dpi_width) / (float) 96;
-		monitor.scaleY = (float) (dpi_height) / (float) 96;
+		if (monitor.physW == 0 || monitor.physH == 0) {
+			monitor.scaleX = 0;
+			monitor.scaleY = 0;
+		} else {
+			float dpi_width = round((float)monitor.rect.w/(float)monitor.physW);
+			float dpi_height = round((float)monitor.rect.h/(float)monitor.physH);
+			
+			monitor.scaleX = (float) (dpi_width) / (float) 96;
+			monitor.scaleY = (float) (dpi_height) / (float) 96;
 
-		if (isinf(monitor.scaleX) || (monitor.scaleX > 1 && monitor.scaleX < 1.1))
-			monitor.scaleX = 1;
+			if (isinf(monitor.scaleX) || (monitor.scaleX > 1 && monitor.scaleX < 1.1))
+				monitor.scaleX = 1;
 
-		if (isinf(monitor.scaleY) || (monitor.scaleY > 1 && monitor.scaleY < 1.1))
-			monitor.scaleY = 1;
+			if (isinf(monitor.scaleY) || (monitor.scaleY > 1 && monitor.scaleY < 1.1))
+				monitor.scaleY = 1;
+		}
 
 		XRRFreeCrtcInfo(ci);
 		XRRFreeScreenResources(sr);
