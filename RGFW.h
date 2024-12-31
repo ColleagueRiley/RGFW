@@ -8063,7 +8063,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		if ((win->event.type == RGFW_dnd || win->event.type == RGFW_dnd_init) && win->src.dndPassed == 0) {
 			win->src.dndPassed = 1;
-			objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
 			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
 			return &win->event;
 		}
@@ -8085,7 +8084,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
             if (RGFW_gpEventQueueCount) index++;
             else index = 0;
 
-			objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
 			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
             return &win->event;
 		}
@@ -8100,7 +8098,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		if ((win->event.type == RGFW_windowMoved || win->event.type == RGFW_windowResized || win->event.type == RGFW_windowRefresh) && win->event.key != 120) {
 			win->event.key = 120;
 			objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
-			objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
 			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
 			return &win->event;
 		}
