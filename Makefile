@@ -75,8 +75,8 @@ else ifeq ($(CC),emcc)
 	NO_GLES = 0
 	NO_VULKAN = 1
 	detected_OS = web
-else
-	LIBS += -std=c99 
+else ifneq ($(CC),g++)
+	LIBS += -std=c99
 endif
 
 EXAMPLE_OUTPUTS = \
