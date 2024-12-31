@@ -223,6 +223,10 @@ int main() {
 #endif
 
 #if defined(__cplusplus) && !defined(__EMSCRIPTEN__)
+	#ifdef __clang__
+		#pragma clang diagnostic push
+		#pragma clang diagnostic ignored "-Wnullability-completeness"
+	#endif
 	extern "C" {
 #endif
 
@@ -504,15 +508,9 @@ typedef RGFW_ENUM(u8, RGFW_event_types) {
 	typedef struct { u32 w, h; } RGFW_area;
 #endif
 
-#ifndef __cplusplus
 #define RGFW_POINT(x, y) (RGFW_point){(i32)(x), (i32)(y)}
 #define RGFW_RECT(x, y, w, h) (RGFW_rect){(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
 #define RGFW_AREA(w, h) (RGFW_area){(u32)(w), (u32)(h)}
-#else
-#define RGFW_POINT(x, y) {(i32)(x), (i32)(y)}
-#define RGFW_RECT(x, y, w, h) {(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
-#define RGFW_AREA(w, h) {(u32)(w), (u32)(h)}
-#endif
 
 #ifndef RGFW_NO_MONITOR
 	/*! structure for monitor data */
@@ -697,7 +695,7 @@ typedef struct RGFW_window {
  * the class name for X11 and WinAPI. apps with the same class will be grouped by the WM
  * by default the class name will == the root window's name
 */
-RGFWDEF void RGFW_setClassName(char* name);
+RGFWDEF void RGFW_setClassName(const char* name);
 
 /*! this has to be set before createWindow is called, else the fulscreen size is used */
 RGFWDEF void RGFW_setBufferSize(RGFW_area size); /*!< the buffer cannot be resized (by RGFW) */
@@ -1643,8 +1641,8 @@ RGFWDEF void* RGFW_cocoaGetLayer(void);
 #endif
 
 char* RGFW_className = NULL;
-void RGFW_setClassName(char* name) {
-	RGFW_className = name;
+void RGFW_setClassName(const char* name) {
+	RGFW_className = (char*)name;
 }
 
 void RGFW_clipboardFree(char* str) { RGFW_FREE(str); }
@@ -2277,7 +2275,7 @@ This is where OS specific stuff starts
 
 		u32 RGFW_linux_updateGamepad(RGFW_window* win) {
 			/* check for new gamepads */
-			static char* str[] = {"/dev/input/js0", "/dev/input/js1", "/dev/input/js2", "/dev/input/js3"} ;
+			static const char* str[] = {"/dev/input/js0", "/dev/input/js1", "/dev/input/js2", "/dev/input/js3"} ;
 			for (size_t i = 0; i < 4; i++) {
 				if (RGFW_gamepads[i])
 					continue;
@@ -6915,22 +6913,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	typedef CGPoint NSPoint;
 	typedef CGSize NSSize;
 
-	typedef void NSBitmapImageRep;
-	typedef void NSCursor;
-	typedef void NSDraggingInfo;
-	typedef void NSWindow;
-	typedef void NSApplication;
-	typedef void NSEvent;
-	typedef void NSString;
-	typedef void NSOpenGLContext;
-	typedef void NSPasteboard;
-	typedef void NSColor;
-	typedef void NSArray;
-	typedef void NSImageRep;
-	typedef void NSImage;
-	typedef void NSOpenGLView;
-
-
 	typedef const char* NSPasteboardType;
 	typedef unsigned long NSUInteger;
 	typedef long NSInteger;
@@ -6947,37 +6929,33 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 #endif
 
 #define NSAlloc(nsclass) objc_msgSend_id((id)nsclass, sel_registerName("alloc"))
-#define objc_msgSend_bool			((BOOL (*)(id, SEL))objc_msgSend)
-#define objc_msgSend_void			((void (*)(id, SEL))objc_msgSend)
-#define objc_msgSend_void_id		((void (*)(id, SEL, id))objc_msgSend)
-#define objc_msgSend_uint			((NSUInteger (*)(id, SEL))objc_msgSend)
-#define objc_msgSend_void_bool		((void (*)(id, SEL, BOOL))objc_msgSend)
-#define objc_msgSend_bool_void		((BOOL (*)(id, SEL))objc_msgSend)
-#define objc_msgSend_void_SEL		((void (*)(id, SEL, SEL))objc_msgSend)
-#define objc_msgSend_id				((id (*)(id, SEL))objc_msgSend)
-#define objc_msgSend_id_id				((id (*)(id, SEL, id))objc_msgSend)
-#define objc_msgSend_id_bool			((BOOL (*)(id, SEL, id))objc_msgSend)
-#define objc_msgSend_int ((id (*)(id, SEL, int))objc_msgSend)
-#define objc_msgSend_arr ((id (*)(id, SEL, int))objc_msgSend)
-#define objc_msgSend_ptr ((id (*)(id, SEL, void*))objc_msgSend)
-#define objc_msgSend_class ((id (*)(Class, SEL))objc_msgSend)
-#define objc_msgSend_class_char ((id (*)(Class, SEL, char*))objc_msgSend)
+#define objc_msgSend_bool(x, y)			((BOOL (*)(id, SEL))objc_msgSend) ((id)(x), (SEL)y)
+#define objc_msgSend_void(x, y)			((void (*)(id, SEL))objc_msgSend) ((id)(x), (SEL)y)
+#define objc_msgSend_void_id(x, y, z)		((void (*)(id, SEL, id))objc_msgSend) ((id)x, (SEL)y, (id)z)
+#define objc_msgSend_uint(x, y)			((NSUInteger (*)(id, SEL))objc_msgSend)  ((id)(x), (SEL)y)
+#define objc_msgSend_void_bool(x, y, z)		((void (*)(id, SEL, BOOL))objc_msgSend)  ((id)(x), (SEL)y, (BOOL)z)
+#define objc_msgSend_bool_void(x, y)		((BOOL (*)(id, SEL))objc_msgSend)  ((id)(x), (SEL)y)
+#define objc_msgSend_void_SEL(x, y, z)		((void (*)(id, SEL, SEL))objc_msgSend)  ((id)(x), (SEL)y, (SEL)z)
+#define objc_msgSend_id(x, y)				((id (*)(id, SEL))objc_msgSend)  ((id)(x), (SEL)y)
+#define objc_msgSend_id_id(x, y, z)			((id (*)(id, SEL, id))objc_msgSend)  ((id)(x), (SEL)y, (id)z)
+#define objc_msgSend_id_bool(x, y, z)			((BOOL (*)(id, SEL, id))objc_msgSend)  ((id)(x), (SEL)y, (id)z)
+#define objc_msgSend_int(x, y, z) 				((id (*)(id, SEL, int))objc_msgSend)  ((id)(x), (SEL)y, (int)z)
+#define objc_msgSend_arr(x, y, z)				 	((id (*)(id, SEL, int))objc_msgSend)  ((id)(x), (SEL)y, (int)z)
+#define objc_msgSend_ptr(x, y, z) 					((id (*)(id, SEL, void*))objc_msgSend)  ((id)(x), (SEL)y, (void*)z)
+#define objc_msgSend_class(x, y) 					((id (*)(Class, SEL))objc_msgSend)  ((Class)(x), (SEL)y)
+#define objc_msgSend_class_char(x, y, z) 			((id (*)(Class, SEL, char*))objc_msgSend)  ((Class)(x), (SEL)y, (char*)z)
 
-	NSApplication* NSApp = NULL;
+	id NSApp = NULL;
 
-	void NSRelease(id obj) {
-		objc_msgSend_void(obj, sel_registerName("release"));
-	}
+	#define NSRelease(obj) objc_msgSend_void((id)obj, sel_registerName("release"))
 
-	#define release NSRelease
-
-	NSString* NSString_stringWithUTF8String(const char* str) {
+	id NSString_stringWithUTF8String(const char* str) {
 		return ((id(*)(id, SEL, const char*))objc_msgSend)
 			((id)objc_getClass("NSString"), sel_registerName("stringWithUTF8String:"), str);
 	}
 
-	const char* NSString_to_char(NSString* str) {
-		return ((const char* (*)(id, SEL)) objc_msgSend) (str, sel_registerName("UTF8String"));
+	const char* NSString_to_char(id str) {
+		return ((const char* (*)(id, SEL)) objc_msgSend) ((id)(id)str, sel_registerName("UTF8String"));
 	}
 
 	void si_impl_func_to_SEL_with_name(const char* class_name, const char* register_name, void* function) {
@@ -7004,7 +6982,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 #define SI_ARRAY_HEADER(s) ((siArrayHeader*)s - 1)
 
 	void* si_array_init_reserve(size_t sizeof_element, size_t count) {
-		siArrayHeader* ptr = malloc(sizeof(siArrayHeader) + (sizeof_element * count));
+		siArrayHeader* ptr = (siArrayHeader*)RGFW_MALLOC(sizeof(siArrayHeader) + (sizeof_element * count));
 		void* array = ptr + sizeof(siArrayHeader);
 
 		siArrayHeader* header = SI_ARRAY_HEADER(array);
@@ -7014,13 +6992,12 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	}
 
 #define si_array_len(array) (SI_ARRAY_HEADER(array)->count)
-#define si_func_to_SEL(class_name, function) si_impl_func_to_SEL_with_name(class_name, #function":", function)
+#define si_func_to_SEL(class_name, function) si_impl_func_to_SEL_with_name(class_name, #function":", (void*)function)
 	/* Creates an Objective-C method (SEL) from a regular C function with the option to set the register name.*/
-#define si_func_to_SEL_with_name(class_name, register_name, function) si_impl_func_to_SEL_with_name(class_name, register_name":", function)
+#define si_func_to_SEL_with_name(class_name, register_name, function) si_impl_func_to_SEL_with_name(class_name, register_name":", (void*)function)
 
-	unsigned char* NSBitmapImageRep_bitmapData(NSBitmapImageRep* imageRep) {
-		return ((unsigned char* (*)(id, SEL))objc_msgSend)
-			(imageRep, sel_registerName("bitmapData"));
+	unsigned char* NSBitmapImageRep_bitmapData(id imageRep) {
+		return ((unsigned char* (*)(id, SEL))objc_msgSend) ((id)imageRep, sel_registerName("bitmapData"));
 	}
 
 #define NS_ENUM(type, name) type name; enum
@@ -7036,35 +7013,35 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			NSBitmapFormatThirtyTwoBitBigEndian API_AVAILABLE(macos(10.10)) = (1 << 11)
 	};
 
-	NSBitmapImageRep* NSBitmapImageRep_initWithBitmapData(unsigned char** planes, NSInteger width, NSInteger height, NSInteger bps, NSInteger spp, bool alpha, bool isPlanar, const char* colorSpaceName, NSBitmapFormat bitmapFormat, NSInteger rowBytes, NSInteger pixelBits) {
-		void* func = sel_registerName("initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:");
+	id NSBitmapImageRep_initWithBitmapData(unsigned char** planes, NSInteger width, NSInteger height, NSInteger bps, NSInteger spp, bool alpha, bool isPlanar, const char* colorSpaceName, NSBitmapFormat bitmapFormat, NSInteger rowBytes, NSInteger pixelBits) {
+		SEL func = sel_registerName("initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:");
 
-		return (NSBitmapImageRep*) ((id(*)(id, SEL, unsigned char**, NSInteger, NSInteger, NSInteger, NSInteger, bool, bool, const char*, NSBitmapFormat, NSInteger, NSInteger))objc_msgSend)
+		return (id) ((id(*)(id, SEL, unsigned char**, NSInteger, NSInteger, NSInteger, NSInteger, bool, bool, id, NSBitmapFormat, NSInteger, NSInteger))objc_msgSend)
 			(NSAlloc((id)objc_getClass("NSBitmapImageRep")), func, planes, width, height, bps, spp, alpha, isPlanar, NSString_stringWithUTF8String(colorSpaceName), bitmapFormat, rowBytes, pixelBits);
 	}
 
-	NSColor* NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha) {
+	id NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha) {
 		void* nsclass = objc_getClass("NSColor");
-		void* func = sel_registerName("colorWithSRGBRed:green:blue:alpha:");
+		SEL func = sel_registerName("colorWithSRGBRed:green:blue:alpha:");
 		return ((id(*)(id, SEL, CGFloat, CGFloat, CGFloat, CGFloat))objc_msgSend)
-			(nsclass, func, red, green, blue, alpha);
+			((id)nsclass, func, red, green, blue, alpha);
 	}
 
-	NSCursor* NSCursor_initWithImage(NSImage* newImage, NSPoint aPoint) {
-		void* func = sel_registerName("initWithImage:hotSpot:");
+	id NSCursor_initWithImage(id newImage, NSPoint aPoint) {
+		SEL func = sel_registerName("initWithImage:hotSpot:");
 		void* nsclass = objc_getClass("NSCursor");
 
-		return (NSCursor*) ((id(*)(id, SEL, id, NSPoint))objc_msgSend)
+		return (id) ((id(*)(id, SEL, id, NSPoint))objc_msgSend)
 			(NSAlloc(nsclass), func, newImage, aPoint);
 	}
 
-	void NSImage_addRepresentation(NSImage* image, NSImageRep* imageRep) {
-		void* func = sel_registerName("addRepresentation:");
-		objc_msgSend_void_id(image, func, imageRep);
+	void NSImage_addRepresentation(id image, id imageRep) {
+		SEL func = sel_registerName("addRepresentation:");
+		objc_msgSend_void_id(image, func, (id)imageRep);
 	}
 
-	NSImage* NSImage_initWithSize(NSSize size) {
-		void* func = sel_registerName("initWithSize:");
+	id NSImage_initWithSize(NSSize size) {
+		SEL func = sel_registerName("initWithSize:");
 		return ((id(*)(id, SEL, NSSize))objc_msgSend)
 			(NSAlloc((id)objc_getClass("NSImage")), func, size);
 	}
@@ -7089,35 +7066,35 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	};
 
 
-	void NSOpenGLContext_setValues(NSOpenGLContext* context, const int* vals, NSOpenGLContextParameter param) {
-		void* func = sel_registerName("setValues:forParameter:");
+	void NSOpenGLContext_setValues(id context, const int* vals, NSOpenGLContextParameter param) {
+		SEL func = sel_registerName("setValues:forParameter:");
 		((void (*)(id, SEL, const int*, NSOpenGLContextParameter))objc_msgSend)
 			(context, func, vals, param);
 	}
 
 	void* NSOpenGLPixelFormat_initWithAttributes(const uint32_t* attribs) {
-		void* func = sel_registerName("initWithAttributes:");
+		SEL func = sel_registerName("initWithAttributes:");
 		return (void*) ((id(*)(id, SEL, const uint32_t*))objc_msgSend)
 			(NSAlloc((id)objc_getClass("NSOpenGLPixelFormat")), func, attribs);
 	}
 
-	NSOpenGLView* NSOpenGLView_initWithFrame(NSRect frameRect, uint32_t* format) {
-		void* func = sel_registerName("initWithFrame:pixelFormat:");
-		return (NSOpenGLView*) ((id(*)(id, SEL, NSRect, uint32_t*))objc_msgSend)
+	id NSOpenGLView_initWithFrame(NSRect frameRect, uint32_t* format) {
+		SEL func = sel_registerName("initWithFrame:pixelFormat:");
+		return (id) ((id(*)(id, SEL, NSRect, uint32_t*))objc_msgSend)
 			(NSAlloc((id)objc_getClass("NSOpenGLView")), func, frameRect, format);
 	}
 
-	void NSCursor_performSelector(NSCursor* cursor, void* selector) {
-		void* func = sel_registerName("performSelector:");
+	void NSCursor_performSelector(id cursor, SEL selector) {
+		SEL func = sel_registerName("performSelector:");
 		objc_msgSend_void_SEL(cursor, func, selector);
 	}
 
-	NSPasteboard* NSPasteboard_generalPasteboard(void) {
-		return (NSPasteboard*) objc_msgSend_id((id)objc_getClass("NSPasteboard"), sel_registerName("generalPasteboard"));
+	id NSPasteboard_generalPasteboard(void) {
+		return (id) objc_msgSend_id((id)objc_getClass("NSPasteboard"), sel_registerName("generalPasteboard"));
 	}
 
-	NSString** cstrToNSStringArray(char** strs, size_t len) {
-		static NSString* nstrs[6];
+	id* cstrToNSStringArray(char** strs, size_t len) {
+		static id nstrs[6];
 		size_t i;
 		for (i = 0; i < len; i++)
 			nstrs[i] = NSString_stringWithUTF8String(strs[i]);
@@ -7125,32 +7102,33 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		return nstrs;
 	}
 
-	const char* NSPasteboard_stringForType(NSPasteboard* pasteboard, NSPasteboardType dataType) {
-		void* func = sel_registerName("stringForType:");
-		return (const char*) NSString_to_char(((id(*)(id, SEL, const char*))objc_msgSend)(pasteboard, func, NSString_stringWithUTF8String(dataType)));
+	const char* NSPasteboard_stringForType(id pasteboard, NSPasteboardType dataType) {
+		SEL func = sel_registerName("stringForType:");
+		id nsstr = NSString_stringWithUTF8String(dataType);
+		return NSString_to_char(((id(*)(id, SEL, id))objc_msgSend)(pasteboard, func, nsstr));
 	}
 
-	NSArray* c_array_to_NSArray(void* array, size_t len) {
+	id c_array_to_NSArray(void* array, size_t len) {
 		SEL func = sel_registerName("initWithObjects:count:");
 		void* nsclass = objc_getClass("NSArray");
 		return ((id (*)(id, SEL, void*, NSUInteger))objc_msgSend)
 					(NSAlloc(nsclass), func, array, len);
 	}
 
-	void NSregisterForDraggedTypes(void* view, NSPasteboardType* newTypes, size_t len) {
-		NSString** ntypes = cstrToNSStringArray((char**)newTypes, len);
+	void NSregisterForDraggedTypes(id view, NSPasteboardType* newTypes, size_t len) {
+		id* ntypes = cstrToNSStringArray((char**)newTypes, len);
 
-		NSArray* array = c_array_to_NSArray(ntypes, len);
+		id array = c_array_to_NSArray(ntypes, len);
 		objc_msgSend_void_id(view, sel_registerName("registerForDraggedTypes:"), array);
 		NSRelease(array);
 	}
 
-	NSInteger NSPasteBoard_declareTypes(NSPasteboard* pasteboard, NSPasteboardType* newTypes, size_t len, void* owner) {
-		NSString** ntypes = cstrToNSStringArray((char**)newTypes, len);
+	NSInteger NSPasteBoard_declareTypes(id pasteboard, NSPasteboardType* newTypes, size_t len, void* owner) {
+		id* ntypes = cstrToNSStringArray((char**)newTypes, len);
 
-		void* func = sel_registerName("declareTypes:owner:");
+		SEL func = sel_registerName("declareTypes:owner:");
 
-		NSArray* array = c_array_to_NSArray(ntypes, len);
+		id array = c_array_to_NSArray(ntypes, len);
 
 		NSInteger output = ((NSInteger(*)(id, SEL, id, void*))objc_msgSend)
 			(pasteboard, func, array, owner);
@@ -7159,13 +7137,13 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		return output;
 	}
 
-	bool NSPasteBoard_setString(NSPasteboard* pasteboard, const char* stringToWrite, NSPasteboardType dataType) {
-		void* func = sel_registerName("setString:forType:");
-		return ((bool (*)(id, SEL, id, NSPasteboardType))objc_msgSend)
+	bool NSPasteBoard_setString(id pasteboard, const char* stringToWrite, NSPasteboardType dataType) {
+		SEL func = sel_registerName("setString:forType:");
+		return ((bool (*)(id, SEL, id, id))objc_msgSend)
 			(pasteboard, func, NSString_stringWithUTF8String(stringToWrite), NSString_stringWithUTF8String(dataType));
 	}
 
-	void NSRetain(id obj) { objc_msgSend_void(obj, sel_registerName("retain")); }
+	#define NSRetain(obj) objc_msgSend_void((id)obj, sel_registerName("retain"))
 
 	typedef enum NSApplicationActivationPolicy {
 		NSApplicationActivationPolicyRegular,
@@ -7212,37 +7190,34 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			//NSDragOperationAll API_DEPRECATED("", macos(10.0,10.10)) = NSDragOperationAll_Obsolete, // Use NSDragOperationEvery
 	};
 
-	void* NSArray_objectAtIndex(NSArray* array, NSUInteger index) {
-		void* func = sel_registerName("objectAtIndex:");
+	void* NSArray_objectAtIndex(id array, NSUInteger index) {
+		SEL func = sel_registerName("objectAtIndex:");
 		return ((id(*)(id, SEL, NSUInteger))objc_msgSend)(array, func, index);
 	}
 
-	const char** NSPasteboard_readObjectsForClasses(NSPasteboard* pasteboard, Class* classArray, size_t len, void* options) {
-		void* func = sel_registerName("readObjectsForClasses:options:");
+	const char** NSPasteboard_readObjectsForClasses(id pasteboard, Class* classArray, size_t len, void* options) {
+		SEL func = sel_registerName("readObjectsForClasses:options:");
 
-		NSArray* array = c_array_to_NSArray(classArray, len);
+		id array = c_array_to_NSArray(classArray, len);
 
-		NSArray* output = (NSArray*) ((id(*)(id, SEL, id, void*))objc_msgSend)
+		id output = (id) ((id(*)(id, SEL, id, void*))objc_msgSend)
 			(pasteboard, func, array, options);
 
 		NSRelease(array);
 		NSUInteger count = ((NSUInteger(*)(id, SEL))objc_msgSend)(output, sel_registerName("count"));
 
-		const char** res = si_array_init_reserve(sizeof(const char*), count);
-
-		void* path_func = sel_registerName("path");
-
+		const char** res = (const char**)si_array_init_reserve(sizeof(const char*), count);
 		for (NSUInteger i = 0; i < count; i++) {
-			void* url = NSArray_objectAtIndex(output, i);
-			NSString* url_str = ((id(*)(id, SEL))objc_msgSend)(url, path_func);
+			id url = (id)NSArray_objectAtIndex(output, i);
+			id url_str = ((id(*)(id, SEL))objc_msgSend)(url, sel_registerName("path"));
 			res[i] = NSString_to_char(url_str);
 		}
 
 		return res;
 	}
 
-	void* NSWindow_contentView(NSWindow* window) {
-		void* func = sel_registerName("contentView");
+	id NSWindow_contentView(id window) {
+		SEL func = sel_registerName("contentView");
 		return objc_msgSend_id(window, func);
 	}
 
@@ -7250,18 +7225,18 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		End of cocoa wrapper
 	*/
 
-	char* RGFW_mouseIconSrc[] = {"arrowCursor", "arrowCursor", "IBeamCursor", "crosshairCursor", "pointingHandCursor", "resizeLeftRightCursor", "resizeUpDownCursor", "_windowResizeNorthWestSouthEastCursor", "_windowResizeNorthEastSouthWestCursor", "closedHandCursor", "operationNotAllowedCursor"};
-
-	void* RGFWnsglFramework = NULL;
+	const char* RGFW_mouseIconSrc[] = {"arrowCursor", "arrowCursor", "IBeamCursor", "crosshairCursor", "pointingHandCursor", "resizeLeftRightCursor", "resizeUpDownCursor", "_windowResizeNorthWestSouthEastCursor", "_windowResizeNorthEastSouthWestCursor", "closedHandCursor", "operationNotAllowedCursor"};
 
 #ifdef RGFW_OPENGL
+	CFBundleRef RGFWnsglFramework = NULL;
+
 	void* RGFW_getProcAddress(const char* procname) {
 		if (RGFWnsglFramework == NULL)
 			RGFWnsglFramework = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
 
 		CFStringRef symbolName = CFStringCreateWithCString(kCFAllocatorDefault, procname, kCFStringEncodingASCII);
 
-		void* symbol = CFBundleGetFunctionPointerForName(RGFWnsglFramework, symbolName);
+		void* symbol = (void*)CFBundleGetFunctionPointerForName(RGFWnsglFramework, symbolName);
 
 		CFRelease(symbolName);
 
@@ -7270,12 +7245,12 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 #endif
 
 	id NSWindow_delegate(RGFW_window* win) {
-		return (id) objc_msgSend_id(win->src.window, sel_registerName("delegate"));
+		return (id) objc_msgSend_id((id)win->src.window, sel_registerName("delegate"));
 	}
 
-	u32 RGFW_OnClose(void* self) {
+	u32 RGFW_OnClose(id self) {
 		RGFW_window* win = NULL;
-		object_getInstanceVariable(self, "RGFW_window", (void*)&win);
+		object_getInstanceVariable(self, (const char*)"RGFW_window", (void**)&win);
 		if (win == NULL)
 			return true;
 
@@ -7287,7 +7262,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 	/* NOTE(EimaMei): Fixes the constant clicking when the app is running under a terminal. */
 	bool acceptsFirstResponder(void) { return true; }
-	bool performKeyEquivalent(NSEvent* event) { RGFW_UNUSED(event); return true; }
+	bool performKeyEquivalent(id event) { RGFW_UNUSED(event); return true; }
 
 	NSDragOperation draggingEntered(id self, SEL sel, id sender) {
 		RGFW_UNUSED(sender); RGFW_UNUSED(self); RGFW_UNUSED(sel);
@@ -7298,7 +7273,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		RGFW_UNUSED(sel);
 
 		RGFW_window* win = NULL;
-		object_getInstanceVariable(self, "RGFW_window", (void*)&win);
+		object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 		if (win == NULL)
 			return 0;
 
@@ -7318,7 +7293,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	}
 	bool prepareForDragOperation(id self) {
 		RGFW_window* win = NULL;
-		object_getInstanceVariable(self, "RGFW_window", (void*)&win);
+		object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 		if (win == NULL)
 			return true;
 
@@ -7336,12 +7311,12 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		RGFW_UNUSED(sender); RGFW_UNUSED(self); RGFW_UNUSED(sel);
 
 		RGFW_window* win = NULL;
-		object_getInstanceVariable(self, "RGFW_window", (void*)&win);
+		object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 
         if (win == NULL)
 			return false;
 
-		// NSPasteboard* pasteBoard = objc_msgSend_id(sender, sel_registerName("draggingPasteboard"));
+		// id pasteBoard = objc_msgSend_id(sender, sel_registerName("draggingPasteboard"));
 
         /////////////////////////////
         id pasteBoard = objc_msgSend_id(sender, sel_registerName("draggingPasteboard"));
@@ -7476,10 +7451,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 	void RGFW__osxDeviceAddedCallback(void* context, IOReturn result, void *sender, IOHIDDeviceRef device) {
 		RGFW_UNUSED(context); RGFW_UNUSED(result); RGFW_UNUSED(sender);
-		CFNumberRef usageRef = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDPrimaryUsageKey));
+		CFTypeRef usageRef = (CFTypeRef)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDPrimaryUsageKey));
 		int usage = 0;
 		if (usageRef)
-			CFNumberGetValue(usageRef, kCFNumberIntType, &usage);
+			CFNumberGetValue((CFNumberRef)usageRef, kCFNumberIntType, (void*)&usage);
 
 		if (usage != kHIDUsage_GD_Joystick && usage != kHIDUsage_GD_GamePad && usage != kHIDUsage_GD_MultiAxisController) {
 			return;
@@ -7493,7 +7468,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 			IOHIDDeviceRegisterInputValueCallback(device, RGFW__osxInputValueChangedCallback, NULL);
 			
-			CFStringRef deviceName = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDProductKey));
+			CFStringRef deviceName = (CFStringRef)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDProductKey));
 			if (deviceName)
 				CFStringGetCString(deviceName, RGFW_gamepads_name[i], sizeof(RGFW_gamepads_name[i]), kCFStringEncodingUTF8);
 			
@@ -7520,7 +7495,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 	void RGFW__osxDeviceRemovedCallback(void *context, IOReturn result, void *sender, IOHIDDeviceRef device) {
 		RGFW_UNUSED(context); RGFW_UNUSED(result); RGFW_UNUSED(sender); RGFW_UNUSED(device);
-		CFNumberRef usageRef = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDPrimaryUsageKey));
+		CFNumberRef usageRef = (CFNumberRef)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDPrimaryUsageKey));
 		int usage = 0;
 		if (usageRef)
 			CFNumberGetValue(usageRef, kCFNumberIntType, &usage);
@@ -7571,11 +7546,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	}
 
 
-	NSSize RGFW__osxWindowResize(void* self, SEL sel, NSSize frameSize) {
+	NSSize RGFW__osxWindowResize(id self, SEL sel, NSSize frameSize) {
 		RGFW_UNUSED(sel);
 
 		RGFW_window* win = NULL;
-		object_getInstanceVariable(self, "RGFW_window", (void*)&win);
+		object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 		if (win == NULL)
 			return frameSize;
 
@@ -7586,15 +7561,15 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		return frameSize;
 	}
 
-	void RGFW__osxWindowMove(void* self, SEL sel) {
+	void RGFW__osxWindowMove(id self, SEL sel) {
 		RGFW_UNUSED(sel);
 
 		RGFW_window* win = NULL;
-		object_getInstanceVariable(self, "RGFW_window", (void*)&win);
+		object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 		if (win == NULL)
 			return;
 
-		NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)(win->src.window, sel_registerName("frame"));
+		NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
 		win->r.x = (i32) frame.origin.x;
 		win->r.y = (i32) frame.origin.y;
 
@@ -7602,11 +7577,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		RGFW_windowMoveCallback(win, win->r);
 	}
 
-	void RGFW__osxUpdateLayer(void* self, SEL sel) {
+	void RGFW__osxUpdateLayer(id self, SEL sel) {
 		RGFW_UNUSED(sel);
 
 		RGFW_window* win = NULL;
-		object_getInstanceVariable(self, "RGFW_window", (void*)&win);
+		object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 		if (win == NULL)
 			return;
 
@@ -7633,11 +7608,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 
 	void RGFW_window_cocoaSetLayer(RGFW_window* win, void* layer) {
-		objc_msgSend_void_id(win->src.view, sel_registerName("setLayer"), layer);
+		objc_msgSend_void_id((id)win->src.view, sel_registerName("setLayer"), (id)layer);
 	}
 
 	void* RGFW_cocoaGetLayer(void) {
-		return objc_msgSend_class(objc_getClass("CAMetalLayer"), sel_registerName("layer"));
+		return objc_msgSend_class((id)objc_getClass("CAMetalLayer"), (SEL)sel_registerName("layer"));
 	}
 
 	RGFWDEF void RGFW_osxInitIOKit(void);
@@ -7663,7 +7638,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		CFDictionarySetValue(
 			matchingDictionary,
 			CFSTR(kIOHIDDeviceUsagePageKey),
-			CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &(int){kHIDPage_GenericDesktop})
+			CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, (int[]){kHIDPage_GenericDesktop})
 		);
 
 		IOHIDManagerSetDeviceMatching(hidManager, matchingDictionary);
@@ -7689,7 +7664,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		/* NOTE(EimaMei): Why does Apple hate good code? Like wtf, who thought of methods being a great idea???
 		Imagine a universe, where MacOS had a proper system API (we would probably have like 20% better performance).
 		*/
-		si_func_to_SEL_with_name("NSObject", "windowShouldClose", RGFW_OnClose);
+		si_func_to_SEL_with_name("NSObject", "windowShouldClose", (void*)RGFW_OnClose);
 
 		/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
 		si_func_to_SEL("NSWindow", acceptsFirstResponder);
@@ -7728,14 +7703,14 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			macArgs = NSWindowStyleMaskBorderless;
 		{
 			void* nsclass = objc_getClass("NSWindow");
-			void* func = sel_registerName("initWithContentRect:styleMask:backing:defer:");
+			SEL func = sel_registerName("initWithContentRect:styleMask:backing:defer:");
 
 			win->src.window = ((id(*)(id, SEL, NSRect, NSWindowStyleMask, NSBackingStoreType, bool))objc_msgSend)
 				(NSAlloc(nsclass), func, windowRect, macArgs, macArgs, false);
 		}
 
-		NSString* str = NSString_stringWithUTF8String(name);
-		objc_msgSend_void_id(win->src.window, sel_registerName("setTitle:"), str);
+		id str = NSString_stringWithUTF8String(name);
+		objc_msgSend_void_id((id)win->src.window, sel_registerName("setTitle:"), str);
 
 #ifdef RGFW_EGL
 		if ((args & RGFW_NO_INIT_API) == 0)
@@ -7745,13 +7720,13 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 #ifdef RGFW_OPENGL
 	if ((args & RGFW_NO_INIT_API) == 0) {
 		void* attrs = RGFW_initFormatAttribs(args & RGFW_OPENGL_SOFTWARE);
-		void* format = NSOpenGLPixelFormat_initWithAttributes(attrs);
+		void* format = NSOpenGLPixelFormat_initWithAttributes((uint32_t*)attrs);
 
 		if (format == NULL) {
 			printf("Failed to load pixel format for OpenGL\n");
 
 			void* attrs = RGFW_initFormatAttribs(1);
-			format = NSOpenGLPixelFormat_initWithAttributes(attrs);
+			format = NSOpenGLPixelFormat_initWithAttributes((uint32_t*)attrs);
 			if (format == NULL)
 				printf("and loading software rendering OpenGL failed\n");
 			else
@@ -7760,7 +7735,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		/* the pixel format can be passed directly to opengl context creation to create a context
 			this is because the format also includes information about the opengl version (which may be a bad thing) */
-		win->src.view = NSOpenGLView_initWithFrame((NSRect){{0, 0}, {win->r.w, win->r.h}}, format);
+		win->src.view = NSOpenGLView_initWithFrame((NSRect){{0, 0}, {win->r.w, win->r.h}}, (uint32_t*)format);
 		objc_msgSend_void(win->src.view, sel_registerName("prepareOpenGL"));
 		win->src.ctx = objc_msgSend_id(win->src.view, sel_registerName("openGLContext"));
 	} else
@@ -7772,10 +7747,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				contentRect);
 	}
 
-		void* contentView = NSWindow_contentView(win->src.window);
+		void* contentView = NSWindow_contentView((id)win->src.window);
 		objc_msgSend_void_bool(contentView, sel_registerName("setWantsLayer:"), true);
 
-		objc_msgSend_void_id(win->src.window, sel_registerName("setContentView:"), win->src.view);
+		objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
 
 #ifdef RGFW_OPENGL
 		if ((args & RGFW_NO_INIT_API) == 0)
@@ -7786,13 +7761,13 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		if ((args & RGFW_NO_INIT_API) == 0) {
 			i32 opacity = 0;
 			#define NSOpenGLCPSurfaceOpacity 236
-			NSOpenGLContext_setValues(win->src.ctx, &opacity, NSOpenGLCPSurfaceOpacity);
+			NSOpenGLContext_setValues((id)win->src.ctx, &opacity, NSOpenGLCPSurfaceOpacity);
 		}
 #endif
 
 			objc_msgSend_void_bool(win->src.window, sel_registerName("setOpaque:"), false);
 
-			objc_msgSend_void_id(win->src.window, sel_registerName("setBackgroundColor:"),
+			objc_msgSend_void_id((id)win->src.window, sel_registerName("setBackgroundColor:"),
 				NSColor_colorWithSRGB(0, 0, 0, 0));
 		}
 
@@ -7839,18 +7814,18 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		object_setInstanceVariable(delegate, "RGFW_window", win);
 
-		objc_msgSend_void_id(win->src.window, sel_registerName("setDelegate:"), delegate);
+		objc_msgSend_void_id((id)win->src.window, sel_registerName("setDelegate:"), delegate);
 
 		if (args & RGFW_ALLOW_DND) {
 			win->_winArgs |= RGFW_ALLOW_DND;
 
 			NSPasteboardType types[] = {NSPasteboardTypeURL, NSPasteboardTypeFileURL, NSPasteboardTypeString};
-			NSregisterForDraggedTypes(win->src.window, types, 3);
+			NSregisterForDraggedTypes((id)win->src.window, types, 3);
 		}
 
 		// Show the window
 		objc_msgSend_void_bool(NSApp, sel_registerName("activateIgnoringOtherApps:"), true);
-		((id(*)(id, SEL, SEL))objc_msgSend)(win->src.window, sel_registerName("makeKeyAndOrderFront:"), NULL);
+		((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("makeKeyAndOrderFront:"), (SEL)NULL);
 		objc_msgSend_void_bool(win->src.window, sel_registerName("setIsVisible:"), true);
 		
 		if (!RGFW_loaded) {
@@ -7884,7 +7859,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			storeType |= NSWindowStyleMaskResizable;
 		}
 
-		((void (*)(id, SEL, NSBackingStoreType))objc_msgSend)(win->src.window, sel_registerName("setStyleMask:"), storeType);
+		((void (*)(id, SEL, NSBackingStoreType))objc_msgSend)((id)win->src.window, sel_registerName("setStyleMask:"), storeType);
 
 		objc_msgSend_void_bool(win->src.window, sel_registerName("setHasShadow:"), border);
 	}
@@ -7909,7 +7884,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	}
 
 	RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
-		NSPoint p =  ((NSPoint(*)(id, SEL)) objc_msgSend)(win->src.window, sel_registerName("mouseLocationOutsideOfEventStream"));
+		NSPoint p =  ((NSPoint(*)(id, SEL)) objc_msgSend)((id)win->src.window, sel_registerName("mouseLocationOutsideOfEventStream"));
 
 		return RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y));
 	}
@@ -8013,9 +7988,9 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
         eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
 
-		NSEvent* e = (NSEvent*) ((id(*)(id, SEL, NSEventType, NSPoint, NSEventModifierFlags, void*, NSInteger, void**, short, NSInteger, NSInteger))objc_msgSend)
+		id e = (id) ((id(*)(id, SEL, NSEventType, NSPoint, NSEventModifierFlags, void*, NSInteger, void**, short, NSInteger, NSInteger))objc_msgSend)
 			(NSApp, sel_registerName("otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:"),
-				NSEventTypeApplicationDefined, (NSPoint){0, 0}, 0, 0, 0, NULL, 0, 0, 0);
+				NSEventTypeApplicationDefined, (NSPoint){0, 0}, (NSEventModifierFlags)0, NULL, (NSInteger)0, NULL, 0, 0, 0);
 
 		((void (*)(id, SEL, id, bool))objc_msgSend)
 			(NSApp, sel_registerName("postEvent:atStart:"), e, 1);
@@ -8032,7 +8007,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		void* date = (void*) ((id(*)(Class, SEL, double))objc_msgSend)
 					(objc_getClass("NSDate"), sel_registerName("dateWithTimeIntervalSinceNow:"), waitMS);
 
-		NSEvent* e = (NSEvent*) ((id(*)(id, SEL, NSEventMask, void*, NSString*, bool))objc_msgSend)
+		id e = (id) ((id(*)(id, SEL, NSEventMask, void*, id, bool))objc_msgSend)
 			(NSApp, sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:"),
 				ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
 
@@ -8081,7 +8056,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
         eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
 
-		static void* eventFunc = NULL;
+		static SEL eventFunc = (SEL)NULL;
 		if (eventFunc == NULL)
 			eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
 
@@ -8094,7 +8069,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		void* date = NULL;
 
-		NSEvent* e = (NSEvent*) ((id(*)(id, SEL, NSEventMask, void*, NSString*, bool))objc_msgSend)
+		id e = (id) ((id(*)(id, SEL, NSEventMask, void*, id, bool))objc_msgSend)
 			(NSApp, eventFunc, ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
 
 		if (e == NULL) {
@@ -8133,7 +8108,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				break;
 			}
 
-			case NSEventTypeMouseExited:
+			case NSEventTypeMouseExited: 
 				win->event.type = RGFW_mouseLeave;
 				RGFW_mouseNotifyCallBack(win, win->event.point, 0);
 				break;
@@ -8219,7 +8194,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			case NSEventTypeLeftMouseDragged:
 			case NSEventTypeOtherMouseDragged:
 			case NSEventTypeRightMouseDragged:
-			case NSEventTypeMouseMoved:
+			case NSEventTypeMouseMoved: {
 				win->event.type = RGFW_mousePosChanged;
 				NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(e, sel_registerName("locationInWindow"));
 				win->event.point = RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y));
@@ -8233,7 +8208,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 				RGFW_mousePosCallback(win, win->event.point);
 				break;
-
+			}
 			case NSEventTypeLeftMouseDown:
 				win->event.button = RGFW_mouseLeft;
 				win->event.type = RGFW_mouseButtonPressed;
@@ -8322,7 +8297,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		win->r.x = v.x;
 		win->r.y = v.y;
 		((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
-			(win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{win->r.x, win->r.y}, {win->r.w, win->r.h}}, true, true);
+			((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{win->r.x, win->r.y}, {win->r.w, win->r.h}}, true, true);
 	}
 
 	void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
@@ -8331,7 +8306,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		win->r.w = a.w;
 		win->r.h = a.h;
 		((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
-			(win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{win->r.x, win->r.y}, {win->r.w, win->r.h}}, true, true);
+			((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{win->r.x, win->r.y}, {win->r.w, win->r.h}}, true, true);
 	}
 
 	void RGFW_window_minimize(RGFW_window* win) {
@@ -8349,8 +8324,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	void RGFW_window_setName(RGFW_window* win, char* name) {
 		assert(win != NULL);
 
-		NSString* str = NSString_stringWithUTF8String(name);
-		objc_msgSend_void_id(win->src.window, sel_registerName("setTitle:"), str);
+		id str = NSString_stringWithUTF8String(name);
+		objc_msgSend_void_id((id)win->src.window, sel_registerName("setTitle:"), str);
 	}
 
 	#ifndef RGFW_NO_PASSTHROUGH
@@ -8364,7 +8339,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			return;
 
 		((void (*)(id, SEL, NSSize))objc_msgSend)
-			(win->src.window, sel_registerName("setMinSize:"), (NSSize){a.w, a.h});
+			((id)win->src.window, sel_registerName("setMinSize:"), (NSSize){a.w, a.h});
 	}
 
 	void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
@@ -8372,7 +8347,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			return;
 
 		((void (*)(id, SEL, NSSize))objc_msgSend)
-			(win->src.window, sel_registerName("setMaxSize:"), (NSSize){a.w, a.h});
+			((id)win->src.window, sel_registerName("setMaxSize:"), (NSSize){a.w, a.h});
 	}
 
 	void RGFW_window_setIcon(RGFW_window* win, u8* data, RGFW_area area, i32 channels) {
@@ -8380,24 +8355,24 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		/* code by EimaMei  */
 		// Make a bitmap representation, then copy the loaded image into it.
-		void* representation = NSBitmapImageRep_initWithBitmapData(NULL, area.w, area.h, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, area.w * channels, 8 * channels);
+		id representation = NSBitmapImageRep_initWithBitmapData(NULL, area.w, area.h, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, area.w * channels, 8 * channels);
 		memcpy(NSBitmapImageRep_bitmapData(representation), data, area.w * area.h * channels);
 
 		// Add ze representation.
-		void* dock_image = NSImage_initWithSize((NSSize){area.w, area.h});
-		NSImage_addRepresentation(dock_image, (void*) representation);
+		id dock_image = NSImage_initWithSize((NSSize){area.w, area.h});
+		NSImage_addRepresentation(dock_image, representation);
 
 		// Finally, set the dock image to it.
 		objc_msgSend_void_id(NSApp, sel_registerName("setApplicationIconImage:"), dock_image);
 		// Free the garbage.
-		release(dock_image);
-		release(representation);
+		NSRelease(dock_image);
+		NSRelease(representation);
 	}
 
-	NSCursor* NSCursor_arrowStr(char* str) {
+	id NSCursor_arrowStr(const char* str) {
 		void* nclass = objc_getClass("NSCursor");
-		void* func = sel_registerName(str);
-		return (NSCursor*) objc_msgSend_id(nclass, func);
+		SEL func = sel_registerName(str);
+		return (id) objc_msgSend_id(nclass, func);
 	}
 
 	void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels) {
@@ -8410,21 +8385,21 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		/* NOTE(EimaMei): Code by yours truly. */
 		// Make a bitmap representation, then copy the loaded image into it.
-		void* representation = NSBitmapImageRep_initWithBitmapData(NULL, a.w, a.h, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, a.w * channels, 8 * channels);
+		id representation = NSBitmapImageRep_initWithBitmapData(NULL, a.w, a.h, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, a.w * channels, 8 * channels);
 		memcpy(NSBitmapImageRep_bitmapData(representation), image, a.w * a.h * channels);
 
 		// Add ze representation.
-		void* cursor_image = NSImage_initWithSize((NSSize){a.w, a.h});
+		id cursor_image = NSImage_initWithSize((NSSize){a.w, a.h});
 		NSImage_addRepresentation(cursor_image, representation);
 
 		// Finally, set the cursor image.
-		void* cursor = NSCursor_initWithImage(cursor_image, (NSPoint){0.0, 0.0});
+		id cursor = NSCursor_initWithImage(cursor_image, (NSPoint){0.0, 0.0});
 
 		objc_msgSend_void(cursor, sel_registerName("set"));
 
 		// Free the garbage.
-		release(cursor_image);
-		release(representation);
+		NSRelease(cursor_image);
+		NSRelease(representation);
 	}
 
 	void RGFW_window_setMouseDefault(RGFW_window* win) {
@@ -8446,8 +8421,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		if (stdMouses > ((sizeof(RGFW_mouseIconSrc)) / (sizeof(char*))))
 			return;
 
-		char* mouseStr = RGFW_mouseIconSrc[stdMouses];
-		void* mouse = NSCursor_arrowStr(mouseStr);
+		const char* mouseStr = RGFW_mouseIconSrc[stdMouses];
+		id mouse = NSCursor_arrowStr(mouseStr);
 
 		if (mouse == NULL)
 			return;
@@ -8482,7 +8457,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	}
 
 	void RGFW_window_show(RGFW_window* win) {
-		((id(*)(id, SEL, SEL))objc_msgSend)(win->src.window, sel_registerName("makeKeyAndOrderFront:"), NULL);
+		((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("makeKeyAndOrderFront:"), NULL);
 		objc_msgSend_void_bool(win->src.window, sel_registerName("setIsVisible:"), true);
 	}
 
@@ -8609,7 +8584,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		assert(win != NULL);
 		#if defined(RGFW_OPENGL)
 
-		NSOpenGLContext_setValues(win->src.ctx, &swapInterval, 222);
+		NSOpenGLContext_setValues((id)win->src.ctx, &swapInterval, 222);
 		#else
 		RGFW_UNUSED(swapInterval);
 		#endif
@@ -8648,8 +8623,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			RGFW_OSMesa_reorganize();
 			#endif
 
-			void* view = NSWindow_contentView(win->src.window);
-			void* layer = objc_msgSend_id(view, sel_registerName("layer"));
+			id view = NSWindow_contentView((id)win->src.window);
+			id layer = objc_msgSend_id(view, sel_registerName("layer"));
 
 			((void(*)(id, SEL, NSRect))objc_msgSend)(layer,
 				sel_registerName("setFrame:"),
@@ -8684,7 +8659,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 	void RGFW_window_close(RGFW_window* win) {
 		assert(win != NULL);
-		release(win->src.view);
+		NSRelease(win->src.view);
 
 #ifdef RGFW_ALLOC_DROPFILES
 		{
@@ -8698,8 +8673,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 #endif
 
 #ifdef RGFW_BUFFER
-		release(win->src.bitmap);
-		release(win->src.image);
+		NSRelease(win->src.bitmap);
+		NSrelease(win->src.image);
 #endif
 
 		RGFW_FREE(win);
@@ -9097,8 +9072,8 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, b8 press) {
 
 	RGFW_keyCallback(RGFW_root, physicalKey, mappedKey, RGFW_events[RGFW_eventLen].keyName, 0, press);
 
-	free(key);
-	free(code);
+	RGFW_FREE(key);
+	RGFW_FREE(code);
 }
 
 void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(size_t count) {
@@ -9498,7 +9473,7 @@ char* RGFW_readClipboard(size_t* size) {
 	if (size != NULL)
 		*size = 0;
 
-	char* str = (char*)malloc(1);
+	char* str = (char*)RGFW_MALLOC(1);
 	str[0] = '\0';
 
 	return str;
@@ -9568,7 +9543,7 @@ void RGFW_window_close(RGFW_window* win) {
 	emscripten_webgl_destroy_context(win->src.ctx);
 #endif
 
-    free(win);
+    RGFW_FREE(win);
 }
 
 int RGFW_innerWidth(void) {   return EM_ASM_INT({ return window.innerWidth; });  }
@@ -9670,4 +9645,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win) return 
 
 #if defined(__cplusplus) && !defined(__EMSCRIPTEN__)
 }
+	#ifdef __clang__
+		#pragma clang diagnostic pop
+	#endif
 #endif
