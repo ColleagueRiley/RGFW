@@ -7862,7 +7862,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		objc_msgSend_void_bool(NSApp, sel_registerName("activateIgnoringOtherApps:"), true);
 		((id(*)(id, SEL, SEL))objc_msgSend)(win->src.window, sel_registerName("makeKeyAndOrderFront:"), NULL);
 		objc_msgSend_void_bool(win->src.window, sel_registerName("setIsVisible:"), true);
-
+		
 		if (!RGFW_loaded) {
 			objc_msgSend_void(win->src.window, sel_registerName("makeMainWindow"));
 
@@ -8063,6 +8063,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		if ((win->event.type == RGFW_dnd || win->event.type == RGFW_dnd_init) && win->src.dndPassed == 0) {
 			win->src.dndPassed = 1;
+			objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
+			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
 			return &win->event;
 		}
 
@@ -8070,9 +8072,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
             static u8 index = 0;
 
             /* check queued events */
-            if (RGFW_gpEventQueueCount == 0)
-                return NULL;
-			
             RGFW_gpEventQueueCount--;
 
             RGFW_Event ev = RGFW_gpEventQueue[index];
@@ -8086,6 +8085,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
             if (RGFW_gpEventQueueCount) index++;
             else index = 0;
 
+			objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
+			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
             return &win->event;
 		}
 
@@ -8099,6 +8100,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		if ((win->event.type == RGFW_windowMoved || win->event.type == RGFW_windowResized || win->event.type == RGFW_windowRefresh) && win->event.key != 120) {
 			win->event.key = 120;
 			objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
+			objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
+			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
 			return &win->event;
 		}
 
@@ -8109,6 +8112,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 		if (e == NULL) {
 			objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
+			objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
+			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
 			return NULL;
 		}
 
@@ -8117,6 +8122,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				(NSApp, sel_registerName("postEvent:atStart:"), e, 0);
 
 			objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
+			objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
+			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
 			return NULL;
 		}
 
@@ -8308,7 +8315,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				break;
 			}
 
-			default:	return RGFW_window_checkEvent(win);
+			default:
+				objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
+				((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
+				return RGFW_window_checkEvent(win);
 		}
 
 		objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
