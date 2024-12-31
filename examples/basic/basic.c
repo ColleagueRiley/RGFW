@@ -160,7 +160,7 @@ void* loop2(void* args) {
             break;
 
         if (win->event.type == RGFW_mouseButtonPressed) {
-            #ifdef __APPLE__
+            #ifndef __APPLE__
             RGFW_stopCheckEvents();
             #endif
         }
