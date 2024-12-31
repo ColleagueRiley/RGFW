@@ -6153,7 +6153,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 					break;
 
 				if (raw.data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE) {
-					POINT pos = {0};
+					POINT pos = {0, 0};
 					int width, height;
 
 					if (raw.data.mouse.usFlags & MOUSE_VIRTUAL_DESKTOP) {
