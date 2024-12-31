@@ -7957,8 +7957,8 @@ $(function() {
 <div class="line"><a id="l08118" name="l08118"></a><span class="lineno"> 8118</span>            ((void (*)(id, SEL, id, bool))objc_msgSend)</div>
 <div class="line"><a id="l08119" name="l08119"></a><span class="lineno"> 8119</span>                (NSApp, sel_registerName(<span class="stringliteral">&quot;postEvent:atStart:&quot;</span>), e, 0);</div>
 <div class="line"><a id="l08120" name="l08120"></a><span class="lineno"> 8120</span> </div>
-<div class="line"><a id="l08121" name="l08121"></a><span class="lineno"> 8121</span>            objc_msgSend_bool_void(eventPool, sel_registerName(<span class="stringliteral">&quot;drain&quot;</span>));</div>
-<div class="line"><a id="l08122" name="l08122"></a><span class="lineno"> 8122</span>            objc_msgSend_void_id(NSApp, sel_registerName(<span class="stringliteral">&quot;sendEvent:&quot;</span>), e);</div>
+<div class="line"><a id="l08121" name="l08121"></a><span class="lineno"> 8121</span>            objc_msgSend_void_id(NSApp, sel_registerName(<span class="stringliteral">&quot;sendEvent:&quot;</span>), e);</div>
+<div class="line"><a id="l08122" name="l08122"></a><span class="lineno"> 8122</span>            objc_msgSend_bool_void(eventPool, sel_registerName(<span class="stringliteral">&quot;drain&quot;</span>));</div>
 <div class="line"><a id="l08123" name="l08123"></a><span class="lineno"> 8123</span>            ((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName(<span class="stringliteral">&quot;updateWindows&quot;</span>));</div>
 <div class="line"><a id="l08124" name="l08124"></a><span class="lineno"> 8124</span>            <span class="keywordflow">return</span> NULL;</div>
 <div class="line"><a id="l08125" name="l08125"></a><span class="lineno"> 8125</span>        }</div>

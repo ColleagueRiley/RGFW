@@ -8118,8 +8118,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			((void (*)(id, SEL, id, bool))objc_msgSend)
 				(NSApp, sel_registerName("postEvent:atStart:"), e, 0);
 
-			objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 			objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
+			objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
 			return NULL;
 		}
