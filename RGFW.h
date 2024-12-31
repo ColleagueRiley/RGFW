@@ -2726,7 +2726,7 @@ Start of Linux / Unix defines
 		}
 
 		if (args & RGFW_NO_RESIZE) { /* make it so the user can't resize the window*/
-			XSizeHints sh = {0};
+			XSizeHints sh = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 			sh.flags = (1L << 4) | (1L << 5);
 			sh.min_width = sh.max_width = win->r.w;
 			sh.min_height = sh.max_height = win->r.h;
@@ -2894,6 +2894,12 @@ Start of Linux / Unix defines
 				win->event.key = RGFW_apiKeyToRGFW(E.xkey.keycode);
 
 				KeySym sym = (KeySym)XkbKeycodeToKeysym((Display*) win->src.display, E.xkey.keycode, 0, E.xkey.state & ShiftMask ? 1 : 0);
+				
+				if ((E.xkey.state & LockMask) && sym >= XK_a && sym <= XK_z)
+					sym = (E.xkey.state & ShiftMask) ? sym + 32 : sym - 32;
+				if ((u8)sym != (u32)sym) 
+					sym = 0;
+
 				win->event.keyChar = (u8)sym;
 
 				char* str = (char*)XKeysymToString(sym);
@@ -3312,7 +3318,7 @@ Start of Linux / Unix defines
 			if (!(win->_winArgs & RGFW_NO_RESIZE))
 				return;
 
-			XSizeHints sh = {0};
+			XSizeHints sh = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 			sh.flags = (1L << 4) | (1L << 5);
 			sh.min_width = sh.max_width = a.w;
 			sh.min_height = sh.max_height = a.h;
@@ -4174,7 +4180,7 @@ Start of Linux / Unix defines
 	}
 
 	u64 RGFW_getTimeNS(void) {
-		struct timespec ts = { 0 };
+		struct timespec ts = { 0, 0 };
 		clock_gettime(1, &ts);
 		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
 
@@ -4182,7 +4188,7 @@ Start of Linux / Unix defines
 	}
 
 	u64 RGFW_getTime(void) {
-		struct timespec ts = { 0 };
+		struct timespec ts = { 0, 0 };
 		clock_gettime(1, &ts);
 		unsigned long long int nanoSeconds = (unsigned long long int)ts.tv_sec*1000000000LLU + (unsigned long long int)ts.tv_nsec;
 
@@ -4477,6 +4483,7 @@ static void keyboard_key (void *data, struct wl_keyboard *keyboard, uint32_t ser
 	ev.type = RGFW_keyPressed + state;
 	ev.key = RGFW_key;
 	ev.keyChar = (u8)keysym;
+
 	strcpy(ev.keyName, name);
 	ev.repeat = RGFW_isHeld(RGFW_key_win, RGFW_key);
 	RGFW_eventPipe_push(RGFW_key_win, ev);
@@ -8117,10 +8124,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				u32 key = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
 
 				u32 mappedKey = *((u32*)((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));
-
+				if (((u8)mappedKey) == 239)
+					mappedKey = 0;
+				
 				win->event.keyChar = (u8)mappedKey;
-				if (win->event.keyChar == 139)
-					win->event.keyChar = 0;
 
 				win->event.key = RGFW_apiKeyToRGFW(key);
 				RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
@@ -8139,10 +8146,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				u32 key = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
 
 				u32 mappedKey = *((u32*)((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));
-				win->event.keyChar = (u8)mappedKey;
-				if (win->event.keyChar == 139)
-					win->event.keyChar = 0;
+				if (((u8)mappedKey) == 239)
+					mappedKey = 0;
 				
+				win->event.keyChar = (u8)mappedKey;
+
 				win->event.key = RGFW_apiKeyToRGFW(key);
 
 				RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
