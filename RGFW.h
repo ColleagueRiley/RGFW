@@ -8119,8 +8119,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 				u32 mappedKey = *((u32*)((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));
 
 				win->event.keyChar = (u8)mappedKey;
-				if (keyChar == 139)
-					keyChar = 0;
+				if (win->event.keyChar == 139)
+					win->event.keyChar = 0;
 
 				win->event.key = RGFW_apiKeyToRGFW(key);
 				RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
@@ -8140,8 +8140,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 				u32 mappedKey = *((u32*)((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));
 				win->event.keyChar = (u8)mappedKey;
-				if (keyChar == 139)
-					keyChar = 0;
+				if (win->event.keyChar == 139)
+					win->event.keyChar = 0;
 				
 				win->event.key = RGFW_apiKeyToRGFW(key);
 
