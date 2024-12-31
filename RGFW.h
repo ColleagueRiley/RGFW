@@ -253,11 +253,13 @@ int main() {
 		typedef uint64_t   u64;
 		typedef int64_t    i64;
 	#endif
+	#define u8 u8
 #endif
 
 #if !defined(b8) /* RGFW bool type */
 	typedef u8 b8;
 	typedef u32 b32;
+	#define b8 b8
 #endif
 
 #define RGFW_TRUE (!(0))

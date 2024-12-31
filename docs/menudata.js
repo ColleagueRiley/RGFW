@@ -86,5 +86,7 @@ var menudata={children:[
 {text:"Typedefs",url:"globals_type.html"},
 {text:"Macros",url:"globals_defs.html",children:[
 {text:"_",url:"globals_defs.html#index__5F"},
+{text:"b",url:"globals_defs.html#index_b"},
 {text:"i",url:"globals_defs.html#index_i"},
-{text:"r",url:"globals_defs.html#index_r"}]}]}]}]}
+{text:"r",url:"globals_defs.html#index_r"},
+{text:"u",url:"globals_defs.html#index_u"}]}]}]}]}

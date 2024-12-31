@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Mon Dec 30 2024" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Tue Dec 31 2024" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -67,6 +67,12 @@ RGFW.h
 .br
 .ti -1c
 .RI "#define \fBRGFW_HEADER\fP"
+.br
+.ti -1c
+.RI "#define \fBu8\fP   \fBu8\fP"
+.br
+.ti -1c
+.RI "#define \fBb8\fP   \fBb8\fP"
 .br
 .ti -1c
 .RI "#define \fBRGFW_TRUE\fP   (!(0))"
@@ -567,6 +573,8 @@ RGFW.h
 .PP 
 .SS "#define __USE_POSIX199309"
 
+.SS "#define \fBb8\fP   \fBb8\fP"
+
 .SS "#define inline   __inline"
 
 .SS "#define RGFW_ALLOW_DND   (1L<<5)"
@@ -642,6 +650,8 @@ Optional arguments for making a windows the window is transparent (only properly
 .SS "#define RGFW_WINDOW_HIDE   (1L <<  16)/* the window is hidden */"
 
 .SS "#define RGFWDEF   \fBinline\fP"
+
+.SS "#define \fBu8\fP   \fBu8\fP"
 
 .SH "Typedef Documentation"
 .PP 
