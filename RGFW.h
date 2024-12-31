@@ -8700,6 +8700,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 #ifdef RGFW_BUFFER
 		release(win->src.bitmap);
 		release(win->src.image);
+#endif
 
 		RGFW_FREE(win);
 	}
