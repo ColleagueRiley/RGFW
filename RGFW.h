@@ -8516,7 +8516,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		monitor.scaleX = (float) (dpi_width) / (float) 96;
 		monitor.scaleY = (float) (dpi_height) / (float) 96;*/
 	
-		monitor.scaleX = CGDisplayScaleFactor(display)
+		monitor.scaleX = CGDisplayScaleFactor(display);
 		monitor.scaleY = CGDisplayScaleFactor(display);
 
 		#ifdef RGFW_DEBUG
