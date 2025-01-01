@@ -8510,15 +8510,15 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		monitor.physW = (float)screenSizeMM.width / 25.4f;
 		monitor.physH = (float)screenSizeMM.height / 25.4f;
 
-		/*
+		
 		float dpi_width = round((double)monitor.rect.w/(double)monitor.physW);
 		float dpi_height = round((double)monitor.rect.h/(double)monitor.physH);
 
 		monitor.scaleX = (float) (dpi_width) / (float) 96;
-		monitor.scaleY = (float) (dpi_height) / (float) 96;*/
+		monitor.scaleY = (float) (dpi_height) / (float) 96;
 	
-		monitor.scaleX = CGDisplayScaleFactor(display);
-		monitor.scaleY = CGDisplayScaleFactor(display);
+		//monitor.scaleX = CGDisplayScaleFactor(display);
+		//monitor.scaleY = CGDisplayScaleFactor(display);
 
 		#ifdef RGFW_DEBUG
 		printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n", monitor.name, monitor.rect.x, monitor.rect.y, monitor.rect.w, monitor.rect.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY);
