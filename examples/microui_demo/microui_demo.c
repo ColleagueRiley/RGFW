@@ -13,7 +13,7 @@ static  char logbuf[64000];
 static   int logbuf_updated = 0;
 static float bg[3] = { 90, 95, 100 };
 
-
+  
 static void write_log(const char *text) {
   if (logbuf[0]) { strcat(logbuf, "\n"); }
   strcat(logbuf, text);
@@ -241,6 +241,8 @@ static int text_height(mu_Font font) {
 
 int main(int argc, char **argv) {
   RGFW_UNUSED(argc); RGFW_UNUSED(argv);
+  /* init RGFW window */
+  RGFW_window* window = RGFW_createWindow("", RGFW_RECT(0, 0, width, height), RGFW_CENTER | RGFW_SCALE_TO_MONITOR);
   r_init();
 
   /* init microui */
@@ -298,7 +300,9 @@ int main(int argc, char **argv) {
         case MU_COMMAND_CLIP: r_set_clip_rect(cmd->clip.rect); break;
       }
     }
+
     r_present();
+    RGFW_window_swapBuffers(window);
   }
 
   return 0;
