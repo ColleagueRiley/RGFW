@@ -6432,23 +6432,19 @@ var ASM_CONSTS = {
 
   function _glDisable(x0) { GLctx.disable(x0) }
 
-  var _glDrawElements = (mode, count, type, indices, start, end) => { // start, end are given if we come from glDrawRangeElements
-      if (GLImmediate.totalEnabledClientAttributes == 0 && mode <= 6 && GLctx.currentElementArrayBufferBinding) {
-        GLctx.drawElements(mode, count, type, indices);
+  var _glDrawArrays = (mode, first, count) => {
+      if (GLImmediate.totalEnabledClientAttributes == 0 && mode <= 6) {
+        GLctx.drawArrays(mode, first, count);
         return;
       }
-      if (!GLctx.currentElementArrayBufferBinding) {
-        assert(type == GLctx.UNSIGNED_SHORT); // We can only emulate buffers of this kind, for now
-      }
-      out("DrawElements doesn't actually prepareClientAttributes properly.");
       GLImmediate.prepareClientAttributes(count, false);
       GLImmediate.mode = mode;
       if (!GLctx.currentArrayBufferBinding) {
-        GLImmediate.firstVertex = end ? start : HEAP8.length; // if we don't know the start, set an invalid value and we will calculate it later from the indices
-        GLImmediate.lastVertex = end ? end+1 : 0;
-        GLImmediate.vertexData = HEAPF32.subarray(GLImmediate.vertexPointer >> 2, end ? (GLImmediate.vertexPointer + (end+1)*GLImmediate.stride) >> 2 : undefined); // XXX assuming float
+        GLImmediate.vertexData = HEAPF32.subarray((GLImmediate.vertexPointer)>>2, (GLImmediate.vertexPointer + (first+count)*GLImmediate.stride)>>2); // XXX assuming float
+        GLImmediate.firstVertex = first;
+        GLImmediate.lastVertex = first + count;
       }
-      GLImmediate.flush(count, 0, indices);
+      GLImmediate.flush(null, first);
       GLImmediate.mode = -1;
     };
 
@@ -12092,7 +12088,7 @@ var wasmImports = {
   /** @export */
   glDisable: _glDisable,
   /** @export */
-  glDrawElements: _glDrawElements,
+  glDrawArrays: _glDrawArrays,
   /** @export */
   glEnable: _glEnable,
   /** @export */
