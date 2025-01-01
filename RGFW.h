@@ -6908,6 +6908,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		start of cocoa wrapper
 	*/
 
+#include <CoreGraphics/CoreGraphics.h>
 #include <ApplicationServices/ApplicationServices.h>
 #include <objc/runtime.h>
 #include <objc/message.h>
