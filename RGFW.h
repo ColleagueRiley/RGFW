@@ -2,7 +2,7 @@
 *
 *	RGFW 1.2-dev
 *
-* Copyright (C) 2023-24 ColleagueRiley
+* Copyright (C) 2022-25 ColleagueRiley
 *
 * libpng license
 *
@@ -1191,7 +1191,7 @@ typedef RGFW_ENUM(u8, RGFW_Key) {
 	RGFW_KP_Period,
 	RGFW_KP_Return,
 
-	final_key
+	RGFW_final_key
 };
 
 
@@ -1390,7 +1390,7 @@ typedef struct {
 	b8 prev  : 1;
 } RGFW_keyState;
 
-RGFW_keyState RGFW_keyboard[final_key] = { {0, 0} };
+RGFW_keyState RGFW_keyboard[RGFW_final_key] = { {0, 0} };
 
 RGFWDEF u32 RGFW_apiKeyToRGFW(u32 keycode);
 
@@ -1410,7 +1410,7 @@ u32 RGFW_apiKeyToRGFW(u32 keycode) {
 
 RGFWDEF void RGFW_resetKey(void);
 void RGFW_resetKey(void) {
-	size_t len = final_key; /*!< last_key == length */
+	size_t len = RGFW_final_key; /*!< last_key == length */
 
 	size_t i; /*!< reset each previous state  */
 	for (i = 0; i < len; i++)
@@ -8686,7 +8686,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 
 #ifdef RGFW_BUFFER
 		NSRelease(win->src.bitmap);
-		NSrelease(win->src.image);
+		NSRelease(win->src.image);
 #endif
 
 		RGFW_FREE(win);
