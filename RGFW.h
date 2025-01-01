@@ -2,7 +2,7 @@
 *
 *	RGFW 1.2-dev
 *
-* Copyright (C) 2023-24 ColleagueRiley
+* Copyright (C) 2022-25 ColleagueRiley
 *
 * libpng license
 *
