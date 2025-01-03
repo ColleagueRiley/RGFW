@@ -657,8 +657,8 @@ typedef struct RGFW_window_src {
 #elif defined(RGFW_WEBASM)
 	#ifdef RGFW_WEBGPU
 		WGPUInstance ctx;
-        WPUDevice device;
-        WPUQueue queue;
+        WGPUDevice device;
+        WGPUQueue queue;
 	#else
 		EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
 	#endif
