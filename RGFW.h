@@ -6946,7 +6946,6 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 #define objc_msgSend_void_SEL(x, y, z)		((void (*)(id, SEL, SEL))objc_msgSend)  ((id)(x), (SEL)y, (SEL)z)
 #define objc_msgSend_id(x, y)				((id (*)(id, SEL))objc_msgSend)  ((id)(x), (SEL)y)
 #define objc_msgSend_id_id(x, y, z)			((id (*)(id, SEL, id))objc_msgSend)  ((id)(x), (SEL)y, (id)z)
-#define objc_msgSend_id_int(x, y, z)			((id (*)(id, SEL, id))objc_msgSend)  ((id)(x), (SEL)y, (int)z)
 #define objc_msgSend_id_bool(x, y, z)			((BOOL (*)(id, SEL, id))objc_msgSend)  ((id)(x), (SEL)y, (id)z)
 #define objc_msgSend_int(x, y, z) 				((id (*)(id, SEL, int))objc_msgSend)  ((id)(x), (SEL)y, (int)z)
 #define objc_msgSend_arr(x, y, z)				 	((id (*)(id, SEL, int))objc_msgSend)  ((id)(x), (SEL)y, (int)z)
@@ -8510,7 +8509,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		NSUInteger count = (NSUInteger)objc_msgSend_uint(screens, sel_registerName("count"));
 
 		for (NSUInteger i = 0; i < count; i++) {
-			id screen = objc_msgSend_id_int(screens, sel_registerName("objectAtIndex:"), (int)i);
+			id screen = ((id (*)(id, SEL, int))objc_msgSend) (screens, sel_registerName("objectAtIndex:"), (int)i);
 			id description = objc_msgSend_id(screen, sel_registerName("deviceDescription"));
 			id screenNumberKey = NSString_stringWithUTF8String("NSScreenNumber");
 			id screenNumber = objc_msgSend_id_id(description, sel_registerName("objectForKey:"), screenNumberKey);
