@@ -40,10 +40,10 @@ Callbacks \- Callbacks
 .RI "typedef void(* \fBRGFW_mousebuttonfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP button, double scroll, \fBb8\fP pressed)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_gpButtonfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBu8\fP button, \fBb8\fP pressed)"
+.RI "typedef void(* \fBRGFW_gamepadButtonfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBu8\fP button, \fBb8\fP pressed)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_gpAxisfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount, \fBu8\fP whichAxis)"
+.RI "typedef void(* \fBRGFW_gamepadAxisfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount, \fBu8\fP whichAxis)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_gamepadfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBb8\fP connected)"
@@ -89,10 +89,10 @@ Callbacks \- Callbacks
 .RI "\fBRGFWDEF\fP \fBRGFW_mousebuttonfunc\fP \fBRGFW_setMouseButtonCallback\fP (\fBRGFW_mousebuttonfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_gpButtonfunc\fP \fBRGFW_setgpButtonCallback\fP (\fBRGFW_gpButtonfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_gamepadButtonfunc\fP \fBRGFW_setgamepadButtonCallback\fP (\fBRGFW_gamepadButtonfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_gpAxisfunc\fP \fBRGFW_setgpAxisCallback\fP (\fBRGFW_gpAxisfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_gamepadAxisfunc\fP \fBRGFW_setgamepadAxisCallback\fP (\fBRGFW_gamepadAxisfunc\fP func)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_gamepadfunc\fP \fBRGFW_setGamepadCallback\fP (\fBRGFW_gamepadfunc\fP func)"
@@ -109,12 +109,12 @@ RGFW_dnd, the window that had the drop, the drop data and the amount files dropp
 RGFW_dnd_init, the window, the point of the drop on the windows 
 .SS "typedef void(* RGFW_focusfunc) (\fBRGFW_window\fP *win, \fBb8\fP inFocus)"
 RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its inFocus 
+.SS "typedef void(* RGFW_gamepadAxisfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount, \fBu8\fP whichAxis)"
+RGFW_gamepadAxisMove, the window that got the event, the gamepad in question, the axis values and the amount of axises 
+.SS "typedef void(* RGFW_gamepadButtonfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBu8\fP button, \fBb8\fP pressed)"
+gamepad /gamepad, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
 .SS "typedef void(* RGFW_gamepadfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBb8\fP connected)"
-RGFW_gpConnected/RGFW_gpDisconnected, the window that got the event, the gamepad in question, if the controller was connected (or disconnected if false) 
-.SS "typedef void(* RGFW_gpAxisfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount, \fBu8\fP whichAxis)"
-RGFW_gpAxisMove, the window that got the event, the gamepad in question, the axis values and the amount of axises 
-.SS "typedef void(* RGFW_gpButtonfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBu8\fP button, \fBb8\fP pressed)"
-gp /gp, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
+RGFW_gamepadConnected/RGFW_gamepadDisconnected, the window that got the event, the gamepad in question, if the controller was connected (or disconnected if false) 
 .SS "typedef void(* RGFW_keyfunc) (\fBRGFW_window\fP *win, \fBu32\fP key, \fBu32\fP mappedKey, char keyName[16], \fBu8\fP lockState, \fBb8\fP pressed)"
 RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of mod keys, if it was a press (else it's a release) 
 .SS "typedef void(* RGFW_mousebuttonfunc) (\fBRGFW_window\fP *win, \fBu8\fP button, double scroll, \fBb8\fP pressed)"
@@ -153,16 +153,16 @@ set callback for a start of a drop event returns previous callback function (if 
 set callback for a window focus change event returns previous callback function (if it was set) 
 .br
  
-.SS "\fBRGFWDEF\fP \fBRGFW_gamepadfunc\fP RGFW_setGamepadCallback (\fBRGFW_gamepadfunc\fP func)"
-set callback for when a controller is connected or disconnected 
-.SS "\fBRGFWDEF\fP \fBRGFW_gpAxisfunc\fP RGFW_setgpAxisCallback (\fBRGFW_gpAxisfunc\fP func)"
+.SS "\fBRGFWDEF\fP \fBRGFW_gamepadAxisfunc\fP RGFW_setgamepadAxisCallback (\fBRGFW_gamepadAxisfunc\fP func)"
 set callback for a gamepad axis mov event returns previous callback function (if it was set) 
 .br
  
-.SS "\fBRGFWDEF\fP \fBRGFW_gpButtonfunc\fP RGFW_setgpButtonCallback (\fBRGFW_gpButtonfunc\fP func)"
+.SS "\fBRGFWDEF\fP \fBRGFW_gamepadButtonfunc\fP RGFW_setgamepadButtonCallback (\fBRGFW_gamepadButtonfunc\fP func)"
 set callback for a controller button (press / release ) event returns previous callback function (if it was set) 
 .br
  
+.SS "\fBRGFWDEF\fP \fBRGFW_gamepadfunc\fP RGFW_setGamepadCallback (\fBRGFW_gamepadfunc\fP func)"
+set callback for when a controller is connected or disconnected 
 .SS "\fBRGFWDEF\fP \fBRGFW_keyfunc\fP RGFW_setKeyCallback (\fBRGFW_keyfunc\fP func)"
 set callback for a key (press / release ) event returns previous callback function (if it was set) 
 .br

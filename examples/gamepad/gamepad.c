@@ -16,19 +16,19 @@ int main(void) {
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win) != NULL) {
             switch (win->event.type) {
-                case RGFW_gpButtonPressed:
+                case RGFW_gamepadButtonPressed:
                     printf("Gamepad (%i) button pressed %i\n", win->event.gamepad, win->event.button);
                     break;
-                case RGFW_gpButtonReleased:
+                case RGFW_gamepadButtonReleased:
                     printf("Gamepad (%i) button pressed %i\n", win->event.gamepad, win->event.button);
                     break;
-                case RGFW_gpAxisMove:
+                case RGFW_gamepadAxisMove:
                     printf("Gamepad (%i) axis (%i) {%i, %i}\n", win->event.gamepad, win->event.whichAxis, win->event.axis[win->event.whichAxis].x, win->event.axis[win->event.whichAxis].y);
                     break;
-                case RGFW_gpConnected:
+                case RGFW_gamepadConnected:
                     printf("Gamepad (%i) connected %s\n", win->event.gamepad, RGFW_getGamepadName(win, win->event.gamepad));
                     break;
-                case RGFW_gpDisconnected:
+                case RGFW_gamepadDisconnected:
                     printf("Gamepad (%i) disconnected %s\n", win->event.gamepad, RGFW_getGamepadName(win, win->event.gamepad));
                 break;
                 
@@ -104,7 +104,7 @@ void drawLine(int cx, int cy, int x2, int y2, RGFW_window* w) {
 }
 
 void colorIfPressed(RGFW_window* win, size_t gamepad, u32 button) {
-    if (RGFW_isPressedGP(win, gamepad, button))
+    if (RGFW_isPressedgamepad(win, gamepad, button))
         glColor3f(0.8, 0, 0);
     else 
         glColor3f(0.3, 0.3, 0.3);
@@ -145,37 +145,37 @@ void drawGamepad(RGFW_window* w, size_t gamepad) {
 
     glColor3f(0.3, 0.3, 0.3);
 
-    colorIfPressed(w, gamepad, RGFW_GP_START);
+    colorIfPressed(w, gamepad, RGFW_gamepadStart);
     drawCircle(436, 150, 9, w);
-    colorIfPressed(w, gamepad, RGFW_GP_SELECT);
+    colorIfPressed(w, gamepad, RGFW_gamepadSelect);
     drawCircle(352, 150, 9, w);
-    colorIfPressed(w, gamepad, RGFW_GP_HOME);
+    colorIfPressed(w, gamepad, RGFW_gamepadHome);
     drawCircle(394, 110, 20, w);
 
-    colorIfPressed(w, gamepad, RGFW_GP_X);
+    colorIfPressed(w, gamepad, RGFW_gamepadX);
     drawCircle(501, 151, 15, w);
-    colorIfPressed(w, gamepad, RGFW_GP_A);
+    colorIfPressed(w, gamepad, RGFW_gamepadA);
     drawCircle(536, 187, 15, w);
-    colorIfPressed(w, gamepad, RGFW_GP_B);
+    colorIfPressed(w, gamepad, RGFW_gamepadB);
     drawCircle(572, 151, 15, w);
-    colorIfPressed(w, gamepad, RGFW_GP_Y);
+    colorIfPressed(w, gamepad, RGFW_gamepadY);
     drawCircle(536, 115, 15, w);
     
     // Draw buttons: d-pad
     drawRect(317, 202, 19, 71, w);
-    colorIfPressed(w, gamepad, RGFW_GP_UP);
+    colorIfPressed(w, gamepad, RGFW_gamepadUp);
     drawRect(317, 202, 19, 26, w);
-    colorIfPressed(w, gamepad, RGFW_GP_DOWN);
+    colorIfPressed(w, gamepad, RGFW_gamepadDown);
     drawRect(317, 202 + 45, 19, 26, w);
-    colorIfPressed(w, gamepad, RGFW_GP_LEFT);
+    colorIfPressed(w, gamepad, RGFW_gamepadLeft);
     drawRect(292, 228, 25, 19, w);
-    colorIfPressed(w, gamepad, RGFW_GP_RIGHT);
+    colorIfPressed(w, gamepad, RGFW_gamepadRight);
     drawRect(292 + 44, 228, 26, 19, w);
 
     // Draw buttons: left-right back
-    colorIfPressed(w, gamepad, RGFW_GP_L1);
+    colorIfPressed(w, gamepad, RGFW_gamepadL1);
     drawCircle(259, 61, 20, w);
-    colorIfPressed(w, gamepad, RGFW_GP_R1);
+    colorIfPressed(w, gamepad, RGFW_gamepadR1);
     drawCircle(536, 61, 20, w);
 
     RGFW_point leftStick = RGFW_getGamepadAxis(w, gamepad, 0);
@@ -186,7 +186,7 @@ void drawGamepad(RGFW_window* w, size_t gamepad) {
     drawCircle(259, 152, 33, w);
     glColor3f(0.2, 0.2, 0.2);
 
-    if (RGFW_isPressedGP(w, gamepad, RGFW_GP_L3))  glColor3f(0.3, 0, 0);
+    if (RGFW_isPressedgamepad(w, gamepad, RGFW_gamepadL3))  glColor3f(0.3, 0, 0);
     else  glColor3f(0.2, 0.2, 0.2);
     drawCircle(259 + (int)(((float)leftStick.x / 100.0f) * 20),
                 152 + (int)(((float)leftStick.y / 100.0f) * 20), 25, w);
@@ -195,7 +195,7 @@ void drawGamepad(RGFW_window* w, size_t gamepad) {
     glColor3f(0.3, 0.3, 0.3);
     drawCircle(461, 237, 33, w);
 
-    if (RGFW_isPressedGP(w, gamepad, RGFW_GP_R3))  glColor3f(0.3, 0, 0);
+    if (RGFW_isPressedgamepad(w, gamepad, RGFW_gamepadR3))  glColor3f(0.3, 0, 0);
     else  glColor3f(0.2, 0.2, 0.2);
 
     drawCircle(461 + (int)(((float)rightStick.x / 100.0f) * 20),
@@ -204,9 +204,9 @@ void drawGamepad(RGFW_window* w, size_t gamepad) {
     glColor3f(0.3, 0.3, 0.3);
 
     // Draw axis: left-right triggers
-    colorIfPressed(w, gamepad, RGFW_GP_L2);
+    colorIfPressed(w, gamepad, RGFW_gamepadL2);
     drawRect(170, 30, 15, 70, w);
-    colorIfPressed(w, gamepad, RGFW_GP_R2);
+    colorIfPressed(w, gamepad, RGFW_gamepadR2);
     drawRect(604, 30, 15, 70, w);
 
 

@@ -129,21 +129,6 @@ RGFW.h
 .RI "#define \fBRGFW_WINDOW_HIDE\fP   (1L <<  16)/* the window is hidden */"
 .br
 .ti -1c
-.RI "#define \fBRGFW_mouseLeft\fP   1"
-.br
-.ti -1c
-.RI "#define \fBRGFW_mouseMiddle\fP   2"
-.br
-.ti -1c
-.RI "#define \fBRGFW_mouseRight\fP   3"
-.br
-.ti -1c
-.RI "#define \fBRGFW_mouseScrollUp\fP   4"
-.br
-.ti -1c
-.RI "#define \fBRGFW_mouseScrollDown\fP   5"
-.br
-.ti -1c
 .RI "#define \fBRGFW_MAX_PATH\fP   260 /* max length of a path (for dnd) */"
 .br
 .ti -1c
@@ -244,10 +229,10 @@ RGFW.h
 .RI "typedef void(* \fBRGFW_mousebuttonfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP button, double scroll, \fBb8\fP pressed)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_gpButtonfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBu8\fP button, \fBb8\fP pressed)"
+.RI "typedef void(* \fBRGFW_gamepadButtonfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBu8\fP button, \fBb8\fP pressed)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_gpAxisfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount, \fBu8\fP whichAxis)"
+.RI "typedef void(* \fBRGFW_gamepadAxisfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount, \fBu8\fP whichAxis)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_gamepadfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBb8\fP connected)"
@@ -259,6 +244,13 @@ RGFW.h
 .RI "typedef DWORD(__stdcall * \fBRGFW_threadFunc_ptr\fP) (LPVOID lpThreadParameter)"
 .br
 .in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBRGFW_mouse_codes\fP { \fBRGFW_mouseNone\fP = 0, \fBRGFW_mouseLeft\fP, \fBRGFW_mouseMiddle\fP, \fBRGFW_mouseRight\fP, \fBRGFW_mouseScrollUp\fP, \fBRGFW_mouseScrollDown\fP }"
+.br
+.in -1c
 .SS "Functions"
 
 .in +1c
@@ -266,7 +258,7 @@ RGFW.h
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_event_types)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_gamepad_codes)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_gamepadcodes)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP * \fBRGFW_getMonitors\fP (void)"
@@ -470,10 +462,10 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_mousebuttonfunc\fP \fBRGFW_setMouseButtonCallback\fP (\fBRGFW_mousebuttonfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_gpButtonfunc\fP \fBRGFW_setgpButtonCallback\fP (\fBRGFW_gpButtonfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_gamepadButtonfunc\fP \fBRGFW_setgamepadButtonCallback\fP (\fBRGFW_gamepadButtonfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_gpAxisfunc\fP \fBRGFW_setgpAxisCallback\fP (\fBRGFW_gpAxisfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_gamepadAxisfunc\fP \fBRGFW_setgamepadAxisCallback\fP (\fBRGFW_gamepadAxisfunc\fP func)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_gamepadfunc\fP \fBRGFW_setGamepadCallback\fP (\fBRGFW_gamepadfunc\fP func)"
@@ -491,10 +483,10 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_setThreadPriority\fP (\fBRGFW_thread\fP thread, \fBu8\fP priority)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_gpType)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_gamepadType)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_isPressedGP\fP (\fBRGFW_window\fP *win, \fBu8\fP controller, \fBu8\fP button)"
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_isPressedgamepad\fP (\fBRGFW_window\fP *win, \fBu8\fP controller, \fBu8\fP button)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_getGamepadAxis\fP (\fBRGFW_window\fP *win, \fBu16\fP controller, \fBu16\fP whichAxis)"
@@ -506,7 +498,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP size_t \fBRGFW_getGamepadCount\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP RGFW_gpType \fBRGFW_getGamepadType\fP (\fBRGFW_window\fP *win, \fBu16\fP controller)"
+.RI "\fBRGFWDEF\fP RGFW_gamepadType \fBRGFW_getGamepadType\fP (\fBRGFW_window\fP *win, \fBu16\fP controller)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent\fP (\fBRGFW_window\fP *win)"
@@ -609,16 +601,6 @@ the window supports drag and drop
 
 .SS "#define RGFW_MAX_PATH   260 /* max length of a path (for dnd) */"
 
-.SS "#define RGFW_mouseLeft   1"
-mouse button codes (\fBRGFW_Event\&.button\fP) left mouse button is pressed 
-.SS "#define RGFW_mouseMiddle   2"
-mouse-wheel-button is pressed 
-.SS "#define RGFW_mouseRight   3"
-right mouse button is pressed 
-.SS "#define RGFW_mouseScrollDown   5"
-mouse wheel is scrolling down 
-.SS "#define RGFW_mouseScrollUp   4"
-mouse wheel is scrolling up 
 .SS "#define RGFW_NO_BORDER   (1L<<3)"
 the window doesn't have border 
 .SS "#define RGFW_NO_CPU_RENDER   (1L<<15) /* don't render (using the CPU based buffer rendering)*/"
@@ -685,10 +667,37 @@ source data for the window (used by the APIs)
 
 .SS "typedef uint8_t \fBu8\fP"
 
+.SH "Enumeration Type Documentation"
+.PP 
+.SS "enum \fBRGFW_mouse_codes\fP"
+mouse button codes (\fBRGFW_Event\&.button\fP) 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIRGFW_mouseNone \fP\fP
+no mouse button is pressed 
+.TP
+\fB\fIRGFW_mouseLeft \fP\fP
+left mouse button is pressed 
+.TP
+\fB\fIRGFW_mouseMiddle \fP\fP
+mouse-wheel-button is pressed 
+.TP
+\fB\fIRGFW_mouseRight \fP\fP
+right mouse button is pressed 
+.TP
+\fB\fIRGFW_mouseScrollUp \fP\fP
+mouse wheel is scrolling up 
+.TP
+\fB\fIRGFW_mouseScrollDown \fP\fP
+mouse wheel is scrolling down 
 .SH "Function Documentation"
 .PP 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_event_types)"
 event codes
+.PP
+< no event has been sent
 .PP
 < a key has been released
 .PP
@@ -735,8 +744,10 @@ gamepad event note \fBRGFW_Event\&.gamepad\fP holds which gamepad was altered, i
 < a file has been dropped into the window
 .PP
 < the start of a dnd event, when the place where the file drop is known
-.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_gamepad_codes)"
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_gamepadcodes)"
 gamepad button codes (based on xbox/playstation), you may need to change these values per controller < or PS X button
+.PP
+< or PS X button
 .PP
 < or PS circle button
 .PP
