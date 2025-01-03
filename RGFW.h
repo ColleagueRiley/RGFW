@@ -8515,7 +8515,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			id screenNumberKey = NSString_withUTF8String("NSScreenNumber");
 			id screenNumber = objc_msgSend_id_id(description, sel_registerName("objectForKey:"), screenNumberKey);
 
-			if ((CGDisplayID)objc_msgSend_uint(screenNumber, sel_registerName("unsignedIntValue")) == display) {
+			if ((CGDirectDisplayID)objc_msgSend_uint(screenNumber, sel_registerName("unsignedIntValue")) == display) {
 				return screen;
 			}
 		}
@@ -8527,7 +8527,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		RGFW_monitor monitor;
 
 		id screen = RGFW_getNSScreenForDisplayID(display);
-		CGFloat scale_factor = (CGFloat)(((id (*)(id, SEL, id))objc_msgSend) (screen, sel_registerName("backingScaleFactor")));
+		CGFloat scale_factor = ((CGFloat (*)(id, SEL))objc_msgSend) (screen, sel_registerName("backingScaleFactor")));
 		monitor.scaleX = scale_factor;
 		monitor.scaleY = scale_factor;
 
