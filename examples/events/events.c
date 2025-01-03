@@ -10,7 +10,7 @@ int main(void) {
 
         RGFW_window_swapBuffers(win);
 
-		RGFW_window_eventWait(win, RGFW_NEXT);
+		RGFW_window_eventWait(win, RGFW_waitNext);
         while (RGFW_window_checkEvent(win)) {
             switch (win->event.type) {
                 case RGFW_keyPressed:
