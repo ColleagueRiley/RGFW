@@ -287,7 +287,7 @@ int main() {
 	#include <emscripten/key_codes.h>
 
 	#ifdef RGFW_WEBGPU
-		#include <emscripten/html5_webGPU.h>
+		#include <emscripten/html5_webgpu.h>
 	#endif
 #endif
 
@@ -6922,7 +6922,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 #include <IOKit/hid/IOHIDManager.h>
 
 	typedef CGRect NSRect;
-	typedef Cgamepadoint NSPoint;
+	typedef CGPoint NSPoint;
 	typedef CGSize NSSize;
 
 	typedef const char* NSPasteboardType;
@@ -7017,7 +7017,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	typedef NS_ENUM(NSUInteger, NSBitmapFormat) {
 		NSBitmapFormatAlphaFirst = 1 << 0,       // 0 means is alpha last (RGBA, CMYKA, etc.)
 			NSBitmapFormatAlphaNonpremultiplied = 1 << 1,       // 0 means is premultiplied
-			NSBitmapFormatFloatingamepadointSamples = 1 << 2,  // 0 is integer
+			NSBitmapFormatFloatingpointSamples = 1 << 2,  // 0 is integer
 
 			NSBitmapFormatSixteenBitLittleEndian API_AVAILABLE(macos(10.10)) = (1 << 8),
 			NSBitmapFormatThirtyTwoBitLittleEndian API_AVAILABLE(macos(10.10)) = (1 << 9),
@@ -7181,11 +7181,11 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 			NSWindowStyleMaskFullSizeContentView = 1 << 15,
 			NSWindowStyleMaskUtilityWindow = 1 << 4,
 			NSWindowStyleMaskDocModalWindow = 1 << 6,
-			NSWindowStyleMaskNonactivatingamepadanel = 1 << 7,
+			NSWindowStyleMaskNonactivatingpanel = 1 << 7,
 			NSWindowStyleMaskHUDWindow = 1 << 13
 	};
 
-	NSPasteboardType const NSPasteboardTypeString = "public.utf8-plain-text"; // Replaces NSStringamepadboardType
+	NSPasteboardType const NSPasteboardTypeString = "public.utf8-plain-text"; // Replaces NSStringPasteboardType
 
 
 	typedef NS_ENUM(i32, NSDragOperation) {
@@ -7328,10 +7328,10 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
         if (win == NULL)
 			return false;
 
-		// id pasteBoard = objc_msgSend_id(sender, sel_registerName("draggingamepadasteboard"));
+		// id pasteBoard = objc_msgSend_id(sender, sel_registerName("draggingPasteboard"));
 
         /////////////////////////////
-        id pasteBoard = objc_msgSend_id(sender, sel_registerName("draggingamepadasteboard"));
+        id pasteBoard = objc_msgSend_id(sender, sel_registerName("draggingPasteboard"));
 
         // Get the types of data available on the pasteboard
         id types = objc_msgSend_id(pasteBoard, sel_registerName("types"));
@@ -7889,7 +7889,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		assert(RGFW_root != NULL);
 
 		CGEventRef e = CGEventCreate(NULL);
-		Cgamepadoint point = CGEventGetLocation(e);
+		CGPoint point = CGEventGetLocation(e);
 		CFRelease(e);
 
 		return RGFW_POINT((u32) point.x, (u32) point.y); /*!< the point is loaded during event checks */
@@ -8457,7 +8457,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) {
 		RGFW_UNUSED(win)
 
-		CGWarpMouseCursorPosition(CgamepadointMake(r.x + (r.w / 2), r.y + (r.h / 2)));
+		CGWarpMouseCursorPosition(CGPointMake(r.x + (r.w / 2), r.y + (r.h / 2)));
 		CGAssociateMouseAndMouseCursorPosition(0);
 	}
 
@@ -8465,7 +8465,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		RGFW_UNUSED(win);
 
 		win->_lastMousePoint = RGFW_POINT(v.x - win->r.x, v.y - win->r.y);
-		CGWarpMouseCursorPosition(CgamepadointMake(v.x, v.y));
+		CGWarpMouseCursorPosition(CGPointMake(v.x, v.y));
 	}
 
 
