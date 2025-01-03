@@ -8366,7 +8366,7 @@ $(function() {
 <div class="line"><a id="l08527" name="l08527"></a><span class="lineno"> 8527</span>        <a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a> monitor;</div>
 <div class="line"><a id="l08528" name="l08528"></a><span class="lineno"> 8528</span> </div>
 <div class="line"><a id="l08529" name="l08529"></a><span class="lineno"> 8529</span>        <span class="keywordtype">id</span> screen = RGFW_getNSScreenForDisplayID(display);</div>
-<div class="line"><a id="l08530" name="l08530"></a><span class="lineno"> 8530</span>        CGFloat scale_factor = ((CGFloat (*)(id, SEL))objc_msgSend) (screen, sel_registerName(<span class="stringliteral">&quot;backingScaleFactor&quot;</span>)));</div>
+<div class="line"><a id="l08530" name="l08530"></a><span class="lineno"> 8530</span>        CGFloat scale_factor = ((CGFloat (*)(id, SEL))objc_msgSend) (screen, sel_registerName(<span class="stringliteral">&quot;backingScaleFactor&quot;</span>));</div>
 <div class="line"><a id="l08531" name="l08531"></a><span class="lineno"> 8531</span>        monitor.<a class="code hl_variable" href="structRGFW__monitor.html#ac991866248d4babbd78fe1a7fd8ee145">scaleX</a> = scale_factor;</div>
 <div class="line"><a id="l08532" name="l08532"></a><span class="lineno"> 8532</span>        monitor.<a class="code hl_variable" href="structRGFW__monitor.html#a906b121ba6fb271b108da0d063bb303e">scaleY</a> = scale_factor;</div>
 <div class="line"><a id="l08533" name="l08533"></a><span class="lineno"> 8533</span> </div>

@@ -8527,7 +8527,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		RGFW_monitor monitor;
 
 		id screen = RGFW_getNSScreenForDisplayID(display);
-		CGFloat scale_factor = ((CGFloat (*)(id, SEL))objc_msgSend) (screen, sel_registerName("backingScaleFactor")));
+		CGFloat scale_factor = ((CGFloat (*)(id, SEL))objc_msgSend) (screen, sel_registerName("backingScaleFactor"));
 		monitor.scaleX = scale_factor;
 		monitor.scaleY = scale_factor;
 
