@@ -8341,7 +8341,7 @@ $(function() {
 <div class="line"><a id="l08502" name="l08502"></a><span class="lineno"> 8502</span>    }</div>
 <div class="line"><a id="l08503" name="l08503"></a><span class="lineno"> 8503</span> </div>
 <div class="line"><a id="l08504" name="l08504"></a><span class="lineno"> 8504</span> </div>
-<div class="line"><a id="l08505" name="l08505"></a><span class="lineno"> 8505</span>    <span class="keywordtype">id</span>* RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {</div>
+<div class="line"><a id="l08505" name="l08505"></a><span class="lineno"> 8505</span>    <span class="keywordtype">id</span> RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {</div>
 <div class="line"><a id="l08506" name="l08506"></a><span class="lineno"> 8506</span>        Class NSScreenClass = objc_getClass(<span class="stringliteral">&quot;NSScreen&quot;</span>);</div>
 <div class="line"><a id="l08507" name="l08507"></a><span class="lineno"> 8507</span> </div>
 <div class="line"><a id="l08508" name="l08508"></a><span class="lineno"> 8508</span>        <span class="keywordtype">id</span> screens = objc_msgSend_id(NSScreenClass, sel_registerName(<span class="stringliteral">&quot;screens&quot;</span>));</div>
@@ -8351,7 +8351,7 @@ $(function() {
 <div class="line"><a id="l08512" name="l08512"></a><span class="lineno"> 8512</span>        <span class="keywordflow">for</span> (NSUInteger i = 0; i &lt; count; i++) {</div>
 <div class="line"><a id="l08513" name="l08513"></a><span class="lineno"> 8513</span>            <span class="keywordtype">id</span> screen = objc_msgSend_id_int(screens, sel_registerName(<span class="stringliteral">&quot;objectAtIndex:&quot;</span>), (<span class="keywordtype">int</span>)i);</div>
 <div class="line"><a id="l08514" name="l08514"></a><span class="lineno"> 8514</span>            <span class="keywordtype">id</span> description = objc_msgSend_id(screen, sel_registerName(<span class="stringliteral">&quot;deviceDescription&quot;</span>));</div>
-<div class="line"><a id="l08515" name="l08515"></a><span class="lineno"> 8515</span>            <span class="keywordtype">id</span> screenNumberKey = NSString_withUTF8String(<span class="stringliteral">&quot;NSScreenNumber&quot;</span>);</div>
+<div class="line"><a id="l08515" name="l08515"></a><span class="lineno"> 8515</span>            <span class="keywordtype">id</span> screenNumberKey = NSString_stringWithUTF8String(<span class="stringliteral">&quot;NSScreenNumber&quot;</span>);</div>
 <div class="line"><a id="l08516" name="l08516"></a><span class="lineno"> 8516</span>            <span class="keywordtype">id</span> screenNumber = objc_msgSend_id_id(description, sel_registerName(<span class="stringliteral">&quot;objectForKey:&quot;</span>), screenNumberKey);</div>
 <div class="line"><a id="l08517" name="l08517"></a><span class="lineno"> 8517</span> </div>
 <div class="line"><a id="l08518" name="l08518"></a><span class="lineno"> 8518</span>            <span class="keywordflow">if</span> ((CGDirectDisplayID)objc_msgSend_uint(screenNumber, sel_registerName(<span class="stringliteral">&quot;unsignedIntValue&quot;</span>)) == display) {</div>
