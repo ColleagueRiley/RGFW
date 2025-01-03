@@ -8500,8 +8500,35 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		return objc_msgSend_bool(win->src.window, sel_registerName("isZoomed"));
 	}
 
+
+	NSScreen* RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
+		Class NSScreenClass = objc_getClass("NSScreen");
+
+		id screens = objc_msgSend_id(NSScreenClass, sel_registerName("screens"));
+
+		NSUInteger count = (NSUInteger)objc_msgSend_uint(screens, sel_registerName("count"));
+
+		for (NSUInteger i = 0; i < count; i++) {
+			id screen = objc_msgSend_id_int(screens, sel_registerName("objectAtIndex:"), (int)i);
+			id description = objc_msgSend_id(screen, sel_registerName("deviceDescription"));
+			id screenNumberKey = NSString_withUTF8String("NSScreenNumber");
+			id screenNumber = objc_msgSend_id_id(description, sel_registerName("objectForKey:"), screenNumberKey);
+
+			if ((CGDisplayID)objc_msgSend_uint(screenNumber, sel_registerName("unsignedIntValue")) == display) {
+				return (NSScreen*)screen;
+			}
+		}
+
+		return NULL;
+	}
+
 	RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display) {
 		RGFW_monitor monitor;
+
+		id screen = RGFW_getNSScreenForDisplayID(display);
+		CGFloat scale_factor = (CGFloat)objc_msgSend_id_double(screen, sel_registerName("backingScaleFactor"));
+		monitor.scaleX = scale_factor;
+		monitor.scaleY = scale_factor;
 
 		CGRect bounds = CGDisplayBounds(display);
 		monitor.rect = RGFW_RECT((int) bounds.origin.x, (int) bounds.origin.y, (int) bounds.size.width, (int) bounds.size.height);
@@ -8514,11 +8541,8 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		float dpi_width = round((double)monitor.rect.w/(double)monitor.physW);
 		float dpi_height = round((double)monitor.rect.h/(double)monitor.physH);
 
-		monitor.scaleX = (float) (dpi_width) / (float) 96;
-		monitor.scaleY = (float) (dpi_height) / (float) 96;
-	
-		//monitor.scaleX = CGDisplayScaleFactor(display);
-		//monitor.scaleY = CGDisplayScaleFactor(display);
+		//monitor.scaleX = (float) (dpi_width) / (float) 96;
+		//monitor.scaleY = (float) (dpi_height) / (float) 96;
 
 		#ifdef RGFW_DEBUG
 		printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n", monitor.name, monitor.rect.x, monitor.rect.y, monitor.rect.w, monitor.rect.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY);
