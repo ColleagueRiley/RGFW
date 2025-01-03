@@ -6946,6 +6946,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 #define objc_msgSend_void_SEL(x, y, z)		((void (*)(id, SEL, SEL))objc_msgSend)  ((id)(x), (SEL)y, (SEL)z)
 #define objc_msgSend_id(x, y)				((id (*)(id, SEL))objc_msgSend)  ((id)(x), (SEL)y)
 #define objc_msgSend_id_id(x, y, z)			((id (*)(id, SEL, id))objc_msgSend)  ((id)(x), (SEL)y, (id)z)
+#define objc_msgSend_id_int(x, y, z)			((id (*)(id, SEL, id))objc_msgSend)  ((id)(x), (SEL)y, (int)z)
 #define objc_msgSend_id_bool(x, y, z)			((BOOL (*)(id, SEL, id))objc_msgSend)  ((id)(x), (SEL)y, (id)z)
 #define objc_msgSend_int(x, y, z) 				((id (*)(id, SEL, int))objc_msgSend)  ((id)(x), (SEL)y, (int)z)
 #define objc_msgSend_arr(x, y, z)				 	((id (*)(id, SEL, int))objc_msgSend)  ((id)(x), (SEL)y, (int)z)
@@ -8526,7 +8527,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		RGFW_monitor monitor;
 
 		id screen = RGFW_getNSScreenForDisplayID(display);
-		CGFloat scale_factor = (CGFloat)objc_msgSend_id_double(screen, sel_registerName("backingScaleFactor"));
+		CGFloat scale_factor = (CGFloat)(((id (*)(id, SEL, id))objc_msgSend) (screen, sel_registerName("backingScaleFactor")));
 		monitor.scaleX = scale_factor;
 		monitor.scaleY = scale_factor;
 
