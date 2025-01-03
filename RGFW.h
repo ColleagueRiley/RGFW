@@ -8502,7 +8502,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 	}
 
 
-	id* RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
+	id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
 		Class NSScreenClass = objc_getClass("NSScreen");
 
 		id screens = objc_msgSend_id(NSScreenClass, sel_registerName("screens"));
@@ -8512,7 +8512,7 @@ RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
 		for (NSUInteger i = 0; i < count; i++) {
 			id screen = objc_msgSend_id_int(screens, sel_registerName("objectAtIndex:"), (int)i);
 			id description = objc_msgSend_id(screen, sel_registerName("deviceDescription"));
-			id screenNumberKey = NSString_withUTF8String("NSScreenNumber");
+			id screenNumberKey = NSString_stringWithUTF8String("NSScreenNumber");
 			id screenNumber = objc_msgSend_id_id(description, sel_registerName("objectForKey:"), screenNumberKey);
 
 			if ((CGDirectDisplayID)objc_msgSend_uint(screenNumber, sel_registerName("unsignedIntValue")) == display) {
