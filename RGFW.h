@@ -522,6 +522,7 @@ typedef RGFW_ENUM(u8, RGFW_gamepadcodes) {
 		char name[128]; /*!< monitor name */
 		RGFW_rect rect; /*!< monitor Workarea */
 		float scaleX, scaleY; /*!< monitor content scale*/
+		float pixelRatio; /*!< pixel ratio for monitor (1.0 for regular, 2.0 for)  */
 		float physW, physH; /*!< monitor physical size in inches*/
 	} RGFW_monitor;
 
@@ -8471,34 +8472,11 @@ u8 RGFW_window_isMaximized(RGFW_window* win) {
 }
 
 
-id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
-	Class NSScreenClass = objc_getClass("NSScreen");
-
-	id screens = objc_msgSend_id(NSScreenClass, sel_registerName("screens"));
-
-	NSUInteger count = (NSUInteger)objc_msgSend_uint(screens, sel_registerName("count"));
-
-	for (NSUInteger i = 0; i < count; i++) {
-		id screen = ((id (*)(id, SEL, int))objc_msgSend) (screens, sel_registerName("objectAtIndex:"), (int)i);
-		id description = objc_msgSend_id(screen, sel_registerName("deviceDescription"));
-		id screenNumberKey = NSString_stringWithUTF8String("NSScreenNumber");
-		id screenNumber = objc_msgSend_id_id(description, sel_registerName("objectForKey:"), screenNumberKey);
-
-		if ((CGDirectDisplayID)objc_msgSend_uint(screenNumber, sel_registerName("unsignedIntValue")) == display) {
-			return screen;
-		}
-	}
-
-	return NULL;
-}
-
 RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display) {
 	RGFW_monitor monitor;
 
-	id screen = RGFW_getNSScreenForDisplayID(display);
-	CGFloat scale_factor = ((CGFloat (*)(id, SEL))objc_msgSend) (screen, sel_registerName("backingScaleFactor"));
-	monitor.scaleX = scale_factor;
-	monitor.scaleY = scale_factor;
+	const char name[] = "MacOS\0";
+	strncpy(monitor.name, name, 6);
 
 	CGRect bounds = CGDisplayBounds(display);
 	monitor.rect = RGFW_RECT((int) bounds.origin.x, (int) bounds.origin.y, (int) bounds.size.width, (int) bounds.size.height);
@@ -8506,17 +8484,18 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display) {
 	CGSize screenSizeMM = CGDisplayScreenSize(display);
 	monitor.physW = (float)screenSizeMM.width / 25.4f;
 	monitor.physH = (float)screenSizeMM.height / 25.4f;
+	
+	float dpi_width = (monitor.rect.w/monitor.physW);
+	float dpi_height = (monitor.rect.h/monitor.physH);
+	
+	monitor.pixelRatio = (float)CGDisplayPixelsWide(display) / bounds.size.width;
+	float dpi = 96.0f * monitor.pixelRatio;
 
-	/* leaving this here incase it becomes useful later
-	float dpi_width = round((double)monitor.rect.w/(double)monitor.physW);
-	float dpi_height = round((double)monitor.rect.h/(double)monitor.physH);
-
-	monitor.scaleX = (float) (dpi_width) / (float) 96;
-	monitor.scaleY = (float) (dpi_height) / (float) 96;
-	*/
+	monitor.scaleX = ((i32)(((float) (dpi_width) / dpi) * 10.0f)) / 10.0f;
+	monitor.scaleY = ((i32)(((float) (dpi_height) / dpi) * 10.0f)) / 10.0f;
 
 	#ifdef RGFW_DEBUG
-	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n", monitor.name, monitor.rect.x, monitor.rect.y, monitor.rect.w, monitor.rect.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY);
+	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio:% f\n", monitor.name, monitor.rect.x, monitor.rect.y, monitor.rect.w, monitor.rect.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio);
 	#endif
 
 	return monitor;

@@ -1,4 +1,4 @@
-.TH "RGFW_monitor" 3 "Fri Jan 3 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_monitor" 3 "Sat Jan 4 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -24,6 +24,9 @@ RGFW_monitor
 .RI "float \fBscaleY\fP"
 .br
 .ti -1c
+.RI "float \fBpixelRatio\fP"
+.br
+.ti -1c
 .RI "float \fBphysW\fP"
 .br
 .ti -1c
@@ -41,6 +44,10 @@ monitor name
 monitor physical size in inches 
 .SS "float RGFW_monitor::physW"
 
+.SS "float RGFW_monitor::pixelRatio"
+pixel ratio for monitor (1\&.0 for regular, 2\&.0 for) 
+.br
+ 
 .SS "\fBRGFW_rect\fP RGFW_monitor::rect"
 monitor Workarea 
 .SS "float RGFW_monitor::scaleX"
