@@ -8501,7 +8501,7 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display) {
 	float ppi_height = (monitor.rect.h/monitor.physH);
 	
 	monitor.pixelRatio = (float)CGDisplayPixelsWide(display) / bounds.size.width;
-	float dpi = 96.0f * monitor.pixelRatio;``
+	float dpi = 96.0f * monitor.pixelRatio;
 
 	monitor.scaleX = ((i32)(((float) (ppi_width) / dpi) * 10.0f)) / 10.0f;
 	monitor.scaleY = ((i32)(((float) (ppi_height) / dpi) * 10.0f)) / 10.0f;
