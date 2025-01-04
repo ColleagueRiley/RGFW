@@ -6324,10 +6324,10 @@ BOOL CALLBACK GetMonitorByHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcM
 
 RGFW_monitor win32CreateMonitor(HMONITOR src) {
 	RGFW_monitor monitor;
-	MONITORINFO monitorInfo;
+	MONITORINFOEX  monitorInfo;
 
-	monitorInfo.cbSize = sizeof(MONITORINFO);
-	GetMonitorInfoA(src, &monitorInfo);
+	monitorInfo.cbSize = sizeof(MONITORINFOEX );
+	GetMonitorInfo(src, &monitorInfo);
 
 	RGFW_mInfo info;
 	info.iIndex = 0;
@@ -6354,37 +6354,30 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 	monitor.rect.w = monitorInfo.rcWork.right - monitorInfo.rcWork.left;
 	monitor.rect.h = monitorInfo.rcWork.bottom - monitorInfo.rcWork.top;
 
-	i32 dpiX = 96.0f, dpiY = 96.0f;
+	HDC hdc = CreateDC(monitorInfo.szDevice, NULL, NULL, NULL);
+	/* get pixels per inch */
+	float dpiX = (float)GetDeviceCaps(hdc, LOGPIXELSX);
+	float dpiY = (float)GetDeviceCaps(hdc, LOGPIXELSX);
+
+	monitor.scaleX  = dpiX / 96.0f;
+	monitor.scaleY  = dpiY / 96.0f;
+
+	monitor.physW = GetDeviceCaps(hdc, HORZSIZE) / 25.4;
+	monitor.physH = GetDeviceCaps(hdc, VERTSIZE) / 25.4;
+	DeleteDC(hdc);
 
 	#ifndef RGFW_NO_DPI
 		if (GetDpiForMonitor != NULL) {
-			GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
+			u32 x, y;
+			GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &x, &y);
+
+			monitor.pixelRatio = (float) (x) / (float) dpiX;
+			monitor.pixelRatio = (float) (y) / (float) dpiY;
 		}
 	#endif
-	
-	HDC hdc = GetDC(NULL);
-	/* get pixels per inch */
-	dpiX = GetDeviceCaps(hdc, LOGPIXELSX);
-	dpiY = GetDeviceCaps(hdc, LOGPIXELSY);
-	ReleaseDC(NULL, hdc);
-
-	/* Calculate physical height in inches */
-	monitor.physW = GetSystemMetrics(SM_CYSCREEN) / (float) dpiX;
-	monitor.physH = GetSystemMetrics(SM_CXSCREEN) / (float) dpiY;
-
-	if (dpiY > dpiX)
-		dpiX = dpiY;
-	
-	monitor.pixelRatio = (float) (dpiX) / (float) 96.0f;
-
-	float ppi_width = (monitor.rect.w / monitor.physW);
-	float ppi_height = (monitor.rect.h / monitor.physH);
-
-	monitor.scaleX = ((i32)(((float) (ppi_width) / dpiX) * 10.0f)) / 10.0f;
-	monitor.scaleY = ((i32)(((float) (ppi_height) / dpiY) * 10.0f)) / 10.0f;
 
 	#ifdef RGFW_DEBUG
-	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f   pixelRatio: %f\n\n", monitor.name, monitor.rect.x, monitor.rect.y, monitor.rect.w, monitor.rect.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio);
+	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n", monitor.name, monitor.rect.x, monitor.rect.y, monitor.rect.w, monitor.rect.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio);
 	#endif
 
 	return monitor;
