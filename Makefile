@@ -50,6 +50,10 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		NO_GLES = 0
 		NO_OSMESA = 0
 	endif
+
+	ifeq (,$(filter $(detected_OS),Linux Darwin))
+		detected_OS := windows
+	endif
 else
 	OS_DIR = /
 endif
@@ -124,7 +128,7 @@ examples/osmesa/osmesa: examples/osmesa/osmesa.c RGFW.h
 ifneq ($(NO_GLES), 1)
 	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lOSMesa -o $@$(EXT)
 else
-	@echo gles has been disabled
+	@echo osmesa has been disabled
 endif
 
 examples/vk10/vk10: examples/vk10/vk10.c RGFW.h

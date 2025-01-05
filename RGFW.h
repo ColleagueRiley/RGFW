@@ -323,6 +323,7 @@ int main() {
 	#endif
 
 	#if defined(RGFW_DIRECTX)
+		#define OEMRESOURCE
 		#include <d3d11.h>
 		#include <dxgi.h>
 		#include <dxgi.h>
@@ -6380,8 +6381,8 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 	RGFW_monitor monitor;
 	MONITORINFOEX  monitorInfo;
 
-	monitorInfo.cbSize = sizeof(MONITORINFOEX );
-	GetMonitorInfo(src, &monitorInfo);
+	monitorInfo.cbSize = sizeof(MONITORINFOEX);
+	GetMonitorInfoA(src, (LPMONITORINFO)&monitorInfo);
 
 	RGFW_mInfo info;
 	info.iIndex = 0;
