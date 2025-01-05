@@ -8481,7 +8481,7 @@ void RGFW_releaseCursor(RGFW_window* win) {
 }
 
 void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) {
-	RGFW_UNUSED(win)
+	RGFW_UNUSED(win);
 
 	CGWarpMouseCursorPosition(CGPointMake(r.x + (r.w / 2), r.y + (r.h / 2)));
 	CGAssociateMouseAndMouseCursorPosition(0);
