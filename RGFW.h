@@ -2645,7 +2645,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs
 
 		if (fbcount == 0) {
 			#ifdef RGFW_DEBUG
-			fprintf("Failed to find any valid GLX visual configs\n");
+			fprintf(stderr, "Failed to find any valid GLX visual configs\n");
 			#endif
 			return NULL;
 		}
@@ -2670,7 +2670,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs
 
 		if (best_fbc == -1) {
 			#ifdef RGFW_DEBUG
-			fprintf("Failed to get a valid GLX visual\n");
+			fprintf(stderr, "Failed to get a valid GLX visual\n");
 			#endif
 			return NULL;
 		}
