@@ -3542,7 +3542,7 @@ void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels
 		XFreeCursor((Display*) win->src.display, (Cursor) cursor);
 		XcursorImageDestroy(native);
 	#else
-		RGFW_UNUSED(image) RGFW_UNUSED(a.w) RGFW_UNUSED(channels)
+		RGFW_UNUSED(image); RGFW_UNUSED(a.w); RGFW_UNUSED(channels);
 	#endif
 }
 
@@ -4379,7 +4379,7 @@ static void xdg_toplevel_configure_handler(void *data,
         struct xdg_toplevel *toplevel, int32_t width, int32_t height,
         struct wl_array *states)
 {
-	RGFW_UNUSED(data); RGFW_UNUSED(toplevel); RGFW_UNUSED(states)
+	RGFW_UNUSED(data); RGFW_UNUSED(toplevel); RGFW_UNUSED(states);
     fprintf(stderr, "XDG toplevel configure: %dx%d\n", width, height);
 }
 
@@ -5801,7 +5801,7 @@ u8 RGFW_xinput2RGFW[] = {
 };
 
 static i32 RGFW_checkXInput(RGFW_window* win, RGFW_Event* e) {
-	RGFW_UNUSED(win)
+	RGFW_UNUSED(win);
 	size_t i;
 	for (i = 0; i < 4; i++) {
 		XINPUT_KEYSTROKE keystroke;
@@ -5963,7 +5963,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		u32 i;
 		for (i = 0; i < win->event.droppedFilesCount; i++) {
 			const UINT length = DragQueryFileW(drop, i, NULL, 0);
-			WCHAR* buffer = (WCHAR*) RGFW_alloc((size_t) length + 1, sizeof(WCHAR));
+			WCHAR* buffer = (WCHAR*) RGFW_alloc((size_t) length + 1);
 			memset(buffer, 0, length + 1);
 
 			DragQueryFileW(drop, i, buffer, length + 1);
@@ -6363,8 +6363,8 @@ u8 RGFW_window_isMaximized(RGFW_window* win) {
 
 typedef struct { int iIndex; HMONITOR hMonitor; } RGFW_mInfo;
 BOOL CALLBACK GetMonitorByHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
-	RGFW_UNUSED(hdcMonitor)
-	RGFW_UNUSED(lprcMonitor)
+	RGFW_UNUSED(hdcMonitor);
+	RGFW_UNUSED(lprcMonitor);
 
 	RGFW_mInfo* info = (RGFW_mInfo*) dwData;
 	if (info->hMonitor == hMonitor)
@@ -6442,8 +6442,8 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 
 RGFW_monitor RGFW_monitors[6];
 BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
-	RGFW_UNUSED(hdcMonitor)
-	RGFW_UNUSED(lprcMonitor)
+	RGFW_UNUSED(hdcMonitor);
+	RGFW_UNUSED(lprcMonitor);
 
 	RGFW_mInfo* info = (RGFW_mInfo*) dwData;
 
@@ -6540,7 +6540,7 @@ HICON RGFW_loadHandleImage(RGFW_window* win, u8* src, RGFW_area a, BOOL icon) {
 
 void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels) {
 	assert(win != NULL);
-	RGFW_UNUSED(channels)
+	RGFW_UNUSED(channels);
 
 	HCURSOR cursor = (HCURSOR) RGFW_loadHandleImage(win, image, a, FALSE);
 	SetClassLongPtrA(win->src.window, GCLP_HCURSOR, (LPARAM) cursor);
@@ -6706,7 +6706,7 @@ void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
 void RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
 	assert(win != NULL);
 	#ifndef RGFW_WIN95
-		RGFW_UNUSED(channels)
+		RGFW_UNUSED(channels);
 
 		HICON handle = RGFW_loadHandleImage(win, src, a, TRUE);
 
@@ -6714,9 +6714,9 @@ void RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
 
 		DestroyIcon(handle);
 	#else
-		RGFW_UNUSED(src)
-		RGFW_UNUSED(a)
-		RGFW_UNUSED(channels)
+		RGFW_UNUSED(src);
+		RGFW_UNUSED(a);
+		RGFW_UNUSED(channels);
 	#endif
 }
 
@@ -9220,7 +9220,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_writeFile(const char *path, const char *data, siz
 }
 
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs args) {
-	RGFW_UNUSED(name)
+	RGFW_UNUSED(name);
 
 	RGFW_UNUSED(RGFW_initFormatAttribs);
 
@@ -9458,14 +9458,14 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 }
 
 void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
-	RGFW_UNUSED(win)
+	RGFW_UNUSED(win);
 	emscripten_set_canvas_element_size("#canvas", a.w, a.h);
 }
 
 /* NOTE: I don't know if this is possible */
 void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v) { RGFW_UNUSED(win); RGFW_UNUSED(v); }
 /* this one might be possible but it looks iffy */
-void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(channels) RGFW_UNUSED(a) RGFW_UNUSED(image) }
+void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(channels); RGFW_UNUSED(a); RGFW_UNUSED(image); }
 
 const char RGFW_CURSORS[11][12] = {
     "default",
@@ -9482,7 +9482,7 @@ const char RGFW_CURSORS[11][12] = {
 };
 
 void RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
-	RGFW_UNUSED(win)
+	RGFW_UNUSED(win);
 	EM_ASM( { document.getElementById("canvas").style.cursor = UTF8ToString($0); }, RGFW_CURSORS[mouse]);
 }
 
@@ -9530,7 +9530,7 @@ void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
 }
 
 void RGFW_writeClipboard(const char* text, u32 textLen) {
-	RGFW_UNUSED(textLen)
+	RGFW_UNUSED(textLen);
 	EM_ASM({ navigator.clipboard.writeText(UTF8ToString($0)); }, text);
 }
 
@@ -9661,19 +9661,19 @@ void RGFW_window_setName(RGFW_window* win, char* name) {
 /* unsupported functions */
 RGFW_monitor* RGFW_getMonitors(void) { return NULL; }
 RGFW_monitor RGFW_getPrimaryMonitor(void) { return (RGFW_monitor){}; }
-void RGFW_window_move(RGFW_window* win, RGFW_point v) { RGFW_UNUSED(win) RGFW_UNUSED(v) }
-void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) { RGFW_UNUSED(win) RGFW_UNUSED(a)  }
-void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) { RGFW_UNUSED(win) RGFW_UNUSED(a)  }
-void RGFW_window_minimize(RGFW_window* win) { RGFW_UNUSED(win)}
-void RGFW_window_restore(RGFW_window* win) { RGFW_UNUSED(win) }
-void RGFW_window_setBorder(RGFW_window* win, b8 border) { RGFW_UNUSED(win) RGFW_UNUSED(border)  }
-void RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win) RGFW_UNUSED(icon) RGFW_UNUSED(a) RGFW_UNUSED(channels)  }
-void RGFW_window_hide(RGFW_window* win) { RGFW_UNUSED(win) }
-void RGFW_window_show(RGFW_window* win) {RGFW_UNUSED(win) }
-b8 RGFW_window_isHidden(RGFW_window* win) { RGFW_UNUSED(win) return 0; }
-b8 RGFW_window_isMinimized(RGFW_window* win) { RGFW_UNUSED(win) return 0; }
+void RGFW_window_move(RGFW_window* win, RGFW_point v) { RGFW_UNUSED(win); RGFW_UNUSED(v); }
+void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) { RGFW_UNUSED(win); RGFW_UNUSED(a);  }
+void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) { RGFW_UNUSED(win); RGFW_UNUSED(a);  }
+void RGFW_window_minimize(RGFW_window* win) { RGFW_UNUSED(win); }
+void RGFW_window_restore(RGFW_window* win) { RGFW_UNUSED(win); }
+void RGFW_window_setBorder(RGFW_window* win, b8 border) { RGFW_UNUSED(win); RGFW_UNUSED(border);  }
+void RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(icon); RGFW_UNUSED(a); RGFW_UNUSED(channels);  }
+void RGFW_window_hide(RGFW_window* win) { RGFW_UNUSED(win); }
+void RGFW_window_show(RGFW_window* win) {RGFW_UNUSED(win); }
+b8 RGFW_window_isHidden(RGFW_window* win) { RGFW_UNUSED(win); return 0; }
+b8 RGFW_window_isMinimized(RGFW_window* win) { RGFW_UNUSED(win); return 0; }
 b8 RGFW_window_isMaximized(RGFW_window* win) { RGFW_UNUSED(win) return 0; }
-RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win) return (RGFW_monitor){}; }
+RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win); return (RGFW_monitor){}; }
 #endif
 
 /* end of web asm defines */
