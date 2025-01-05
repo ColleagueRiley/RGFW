@@ -50,6 +50,10 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		NO_GLES = 0
 		NO_OSMESA = 0
 	endif
+
+	ifeq (,$(filter $(detected_OS),Linux Darwin))
+		detected_OS := windows
+	endif
 else
 	OS_DIR = /
 endif
@@ -100,7 +104,8 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/vk10/vk10 \
 	examples/dx11/dx11 \
 	examples/metal/metal \
-	examples/webgpu/webgpu
+	examples/webgpu/webgpu \
+	examples/minimal_links/minimal_links
 
 all: xdg-shell.c $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) libRGFW.a
 
@@ -124,7 +129,7 @@ examples/osmesa/osmesa: examples/osmesa/osmesa.c RGFW.h
 ifneq ($(NO_GLES), 1)
 	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lOSMesa -o $@$(EXT)
 else
-	@echo gles has been disabled
+	@echo osmesa has been disabled
 endif
 
 examples/vk10/vk10: examples/vk10/vk10.c RGFW.h
@@ -160,6 +165,20 @@ ifeq ($(CC),emcc)        # web ASM
 else
 	@echo webgpu is not supported on $(detected_OS)
 endif
+
+examples/minimal_links/minimal_links: examples/minimal_links/minimal_links.c RGFW.h
+ifeq ($(detected_OS),Linux)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lm -o $@$(EXT)
+else ifeq ($(detected_OS),windows)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lgdi32 -o $@$(EXT)
+else ifeq ($(detected_OS),Darwin)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -framework Foundation -framework AppKit  -o $@$(EXT)
+else ifeq ($(CC),emcc)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL3) -o $@$(EXT)
+else
+	@echo not sure what this platform is
+endif
+
 
 examples/microui_demo/microui_demo: examples/microui_demo/microui_demo.c RGFW.h
 ifneq ($(CC), emcc)
