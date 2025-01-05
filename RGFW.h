@@ -3258,7 +3258,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 				line++;
 			}
 			path[index] = '\0';
-			strncpy(win->event.droppedFiles[win->event.droppedFilesCount - 1], path, index + 1);
+			memcpy(win->event.droppedFiles[win->event.droppedFilesCount - 1], path, index + 1);
 		}
 
 		if (data)
@@ -3621,7 +3621,7 @@ char* RGFW_readClipboard(size_t* size) {
 
 	if (target == UTF8 || target == XA_STRING) {
 		s = (char*)RGFW_alloc(sizeof(char) * sizeN);
-		strncpy(s, data, sizeN);
+		memcpy(s, data, sizeN);
 		s[sizeN] = '\0';
 		XFree(data);
 	}
@@ -4646,12 +4646,18 @@ static void randname(char *buf) {
 	}
 }
 
+size_t wl_stringlen(char* name) {
+	size_t i = 0;
+	for (i; name[i]; i++);
+	return i;
+}
+
 static int anonymous_shm_open(void) {
 	char name[] = "/RGFW-wayland-XXXXXX";
 	int retries = 100;
 
 	do {
-		randname(name + strlen(name) - 6);
+		randname(name + wl_stringlen(name) - 6);
 
 		--retries;
 		// shm_open guarantees that O_CLOEXEC is set
@@ -5961,7 +5967,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			memset(buffer, 0, length + 1);
 
 			DragQueryFileW(drop, i, buffer, length + 1);
-			strncpy(win->event.droppedFiles[i], createUTF8FromWideStringWin32(buffer), RGFW_MAX_PATH);
+			memcpy(win->event.droppedFiles[i], createUTF8FromWideStringWin32(buffer), RGFW_MAX_PATH);
 			win->event.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
 			RGFW_free(buffer);
 		}
@@ -6355,7 +6361,7 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 		for (deviceIndex = 0; EnumDisplayDevicesA(0, (DWORD) deviceIndex, &dd, 0); deviceIndex++) {
 			char* deviceName = dd.DeviceName;
 			if (EnumDisplayDevicesA(deviceName, info.iIndex, &dd, 0)) {
-				strncpy(monitor.name, dd.DeviceString, 128); /*!< copy the monitor's name */
+				memcpy(monitor.name, dd.DeviceString, 128); /*!< copy the monitor's name */
 				break;
 			}
 		}
@@ -7099,10 +7105,14 @@ id* cstrToNSStringArray(char** strs, size_t len) {
 	return nstrs;
 }
 
-const char* NSPasteboard_stringForType(id pasteboard, NSPasteboardType dataType) {
+const char* NSPasteboard_stringForType(id pasteboard, NSPasteboardType dataType, size_t* len) {
 	SEL func = sel_registerName("stringForType:");
 	id nsstr = NSString_stringWithUTF8String(dataType);
-	return NSString_to_char(((id(*)(id, SEL, id))objc_msgSend)(pasteboard, func, nsstr));
+	id nsString = ((id(*)(id, SEL, id))objc_msgSend)(pasteboard, func, nsstr);
+	char* str = NSString_to_char(nsString);
+	if (len != NULL)
+		len = (size_t)((NSUInteger(*)(id, SEL))objc_msgSend)(output, sel_registerName("length"));
+	return str;
 }
 
 id c_array_to_NSArray(void* array, size_t len) {
@@ -7342,7 +7352,7 @@ bool performDragOperation(id self, SEL sel, id sender) {
 	for (int i = 0; i < count; i++) {
 		id fileURL = objc_msgSend_arr(fileURLs, sel_registerName("objectAtIndex:"), i);
 		const char *filePath = ((const char* (*)(id, SEL))objc_msgSend)(fileURL, sel_registerName("UTF8String"));
-		strncpy(win->event.droppedFiles[i], filePath, RGFW_MAX_PATH);
+		memcpy(win->event.droppedFiles[i], filePath, RGFW_MAX_PATH);
 		win->event.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
 	}
 	win->event.droppedFilesCount = count;
@@ -8508,7 +8518,7 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 	RGFW_monitor monitor;
 
 	const char name[] = "MacOS\0";
-	strncpy(monitor.name, name, 6);
+	memcpy(monitor.name, name, 6);
 
 	CGRect bounds = CGDisplayBounds(display);
 	monitor.rect = RGFW_RECT((int) bounds.origin.x, (int) bounds.origin.y, (int) bounds.size.width, (int) bounds.size.height);
@@ -8566,18 +8576,13 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 }
 
 char* RGFW_readClipboard(size_t* size) {
-	char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString);
-
-	size_t clip_len = 1;
-
-	if (clip != NULL) {
-		clip_len = strlen(clip) + 1;
-	}
+	size_t clip_len;
+	char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString, &clip_len);
 
 	char* str = (char*)RGFW_alloc(sizeof(char) * clip_len);
 
 	if (clip != NULL) {
-		strncpy(str, clip, clip_len);
+		memcpy(str, clip, clip_len);
 	}
 
 	str[clip_len] = '\0';
@@ -9094,7 +9099,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, b8 press) {
 	RGFW_keyboard[physicalKey].prev = RGFW_keyboard[physicalKey].current;
 	RGFW_keyboard[physicalKey].current = 0;
 
-	RGFW_keyCallback(RGFW_root, physicalKey, mappedKey, 0, press);
+	RGFW_keyCallback(RGFW_root, physicalKey, mappedKey, RGFW_events[RGFW_eventLen].keyName, 0, press);
 
 	RGFW_free(key);
 	RGFW_free(code);
@@ -9149,12 +9154,11 @@ void RGFW_init_buffer(RGFW_window* win) {
 
 void EMSCRIPTEN_KEEPALIVE RGFW_makeSetValue(size_t index, char* file) {
 	/* This seems like a terrible idea, don't replicate this unless you hate yourself or the OS */
-	/* TODO: find a better way to do this,
-		strcpy doesn't seem to work, maybe because of asyncio
+	/* TODO: find a better way to do this
 	*/
 
 	RGFW_events[RGFW_eventLen].type = RGFW_dnd;
-	strcpy((char*)RGFW_events[RGFW_eventLen].droppedFiles[index], file);
+	memcpy((char*)RGFW_events[RGFW_eventLen].droppedFiles[index], file, RGFW_MAX_PATH);
 }
 
 #include <sys/stat.h>
