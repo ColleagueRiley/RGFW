@@ -32,8 +32,7 @@
 
 /*
 	#define RGFW_IMPLEMENTATION - (required) makes it so the source code is included
-	#define RGFW_PRINT_ERRORS - (optional) makes it so RGFW prints errors when they're found
-	#define RGFW_DEBUG - (optional) makes it so RGFW prints debug messages
+	#define RGFW_DEBUG - (optional) makes it so RGFW prints debug messages anderrors when they're found
 	#define RGFW_OSMESA - (optional) use OSmesa as backend (instead of system's opengl api + regular opengl)
 	#define RGFW_BUFFER - (optional) just draw directly to (RGFW) window pixel buffer that is drawn to screen (the buffer is in the RGBA format)
 	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
@@ -52,6 +51,8 @@
 	#define RGFW_WGL_LOAD (optional) (windows only) if WGL should be loaded dynamically during runtime
 	#define RGFW_NO_X11_CURSOR (optional) (unix only) don't use XCursor
 	#define RGFW_NO_X11_CURSOR_PRELOAD (optional) (unix only) Use XCursor, but don't link it in code, (you'll have to link it with -lXcursor)
+	#define RGFW_NO_LOAD_WINMM (optional) (windows only) Use winmm (timeBeginPeriod), but don't link it in code, (you'll have to link it with -lwinmm)
+	#define RGFW_NO_WINMM (optional) (windows only) don't use winmm
 
 	#define RGFW_NO_DPI - Do not include calculate DPI (no XRM nor libShcore included)
 
@@ -1255,8 +1256,10 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 
 #ifdef RGFW_IMPLEMENTATION
 
+#ifdef RGFW_DEBUG
 #include <stdio.h>
-#include <string.h>
+#endif
+
 #include <math.h>
 #include <assert.h>
 
@@ -1608,13 +1611,6 @@ RGFW_gamepadfunc RGFW_setGamepadCallback(RGFW_gamepadfunc func) {
 /*
 no more event call back defines
 */
-
-#define RGFW_ASSERT(check, str) {\
-	if (!(check)) { \
-		printf(str); \
-		assert(check); \
-	} \
-}
 
 #define SET_ATTRIB(a, v) { \
     assert(((size_t) index + 1) < sizeof(attribs) / sizeof(attribs[0])); \
@@ -2231,9 +2227,11 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 
 	win->src.EGL_context = eglCreateContext(win->src.EGL_display, config, EGL_NO_CONTEXT, attribs);
 
-	if (win->src.EGL_context == NULL)
+	if (win->src.EGL_context == NULL) {
+		#ifdef RGFW_DEBUG
 		fprintf(stderr, "failed to create an EGL opengl context\n");
-
+		#endif
+	}
 	eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.EGL_context);
 	eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
 }
@@ -2645,7 +2643,9 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs
 		i32 best_fbc = -1;
 
 		if (fbcount == 0) {
-			printf("Failed to find any valid GLX visual configs\n");
+			#ifdef RGFW_DEBUG
+			fprintf("Failed to find any valid GLX visual configs\n");
+			#endif
 			return NULL;
 		}
 
@@ -2668,7 +2668,9 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs
 		}
 
 		if (best_fbc == -1) {
-			printf("Failed to get a valid GLX visual\n");
+			#ifdef RGFW_DEBUG
+			fprintf("Failed to get a valid GLX visual\n");
+			#endif
 			return NULL;
 		}
 
@@ -4375,7 +4377,9 @@ static void xdg_toplevel_configure_handler(void *data,
         struct wl_array *states)
 {
 	RGFW_UNUSED(data); RGFW_UNUSED(toplevel); RGFW_UNUSED(states);
+	#ifdef RGFW_DEBUG
     fprintf(stderr, "XDG toplevel configure: %dx%d\n", width, height);
+	#endif
 }
 
 static void xdg_toplevel_close_handler(void *data,
@@ -4398,7 +4402,9 @@ static void shm_format_handler(void *data,
         struct wl_shm *shm, uint32_t format)
 {
 	RGFW_UNUSED(data); RGFW_UNUSED(shm);
+	#ifdef RGFW_DEBUG
     fprintf(stderr, "Format %d\n", format);
+	#endif
 }
 
 static const struct wl_shm_listener shm_listener = {
@@ -4628,7 +4634,9 @@ static void decoration_handle_configure(void *data,
 		struct zxdg_toplevel_decoration_v1 *decoration,
 		enum zxdg_toplevel_decoration_v1_mode mode) {
 	RGFW_UNUSED(data); RGFW_UNUSED(decoration);
+	#ifdef RGFW_DEBUG
 	printf("Using %s\n", get_mode_name(mode));
+	#endif
 	RGFW_current_mode = mode;
 }
 
@@ -5263,6 +5271,7 @@ PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 	typedef BOOL(WINAPI* PFN_wglMakeCurrent)(HDC, HGLRC);
 	typedef HDC(WINAPI* PFN_wglGetCurrentDC)();
 	typedef HGLRC(WINAPI* PFN_wglGetCurrentContext)();
+	typedef BOOL(WINAPI* PFN_wglShareLists)(HGLRC, HGLRC);
 
 	PFN_wglCreateContext wglCreateContextSRC;
 	PFN_wglDeleteContext wglDeleteContextSRC;
@@ -5270,14 +5279,15 @@ PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 	PFN_wglMakeCurrent wglMakeCurrentSRC;
 	PFN_wglGetCurrentDC wglGetCurrentDCSRC;
 	PFN_wglGetCurrentContext wglGetCurrentContextSRC;
+	PFN_wglShareLists wglShareListsSRC;
 
 	#define wglCreateContext wglCreateContextSRC
 	#define wglDeleteContext wglDeleteContextSRC
 	#define wglGetProcAddress wglGetProcAddressSRC
 	#define wglMakeCurrent wglMakeCurrentSRC
-
 	#define wglGetCurrentDC wglGetCurrentDCSRC
 	#define wglGetCurrentContext wglGetCurrentContextSRC
+	#define wglShareLists wglShareListsSRC
 #endif
 
 #ifdef RGFW_OPENGL
@@ -5318,8 +5328,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	PFN_GetDpiForMonitor GetDpiForMonitorSRC = NULL;
 	#define GetDpiForMonitor GetDpiForMonitorSRC
 	#endif
-
-	__declspec(dllimport) u32 __stdcall timeBeginPeriod(u32 uPeriod);
+		
+	#if !defined(RGFW_NO_LOAD_WINMM) && !defined(RGFW_NO_WINMM)
+		static HMODULE RGFW_winmm_dll = NULL;
+		typedef u32 (WINAPI * PFN_timeBeginPeriod)(u32);
+		PFN_timeBeginPeriod timeBeginPeriodSRC = NULL;
+		#define timeBeginPeriod timeBeginPeriodSRC
+	#elif !defined(RGFW_NO_WINMM)
+		__declspec(dllimport) u32 __stdcall timeBeginPeriod(u32 uPeriod);
+	#endif
 
 	#ifndef RGFW_NO_XINPUT
 	void RGFW_loadXInput(void) {
@@ -5344,10 +5361,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				XInputGetKeystrokeSRC = (PFN_XInputGetKeystroke)(void*)GetProcAddress(RGFW_XInput_dll, "XInputGetKeystroke");
 		}
 
-		if (XInputGetStateSRC == NULL)
+		#ifdef RGFW_DEBUG
+		if (XInputGetStateSRC == NULL) {
 			printf("RGFW ERR: Failed to load XInputGetState\n");
 		if (XInputGetKeystrokeSRC == NULL)
 			printf("RGFW ERR: Failed to load XInputGetKeystroke\n");
+		#endif
 
 	}
 	#endif
@@ -5429,6 +5448,13 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs
 		}
 	#endif
 
+	#if !defined(RGFW_NO_LOAD_WINMM) && !defined(RGFW_NO_WINMM)
+		if (RGFW_winmm_dll == NULL) {
+			RGFW_winmm_dll = LoadLibraryA("winmm.dll");
+			timeBeginPeriodSRC = (PFN_timeBeginPeriod)(void*)GetProcAddress(RGFW_winmm_dll, "timeBeginPeriod");
+		}
+	#endif
+
 	if (wglinstance == NULL) {
 		wglinstance = LoadLibraryA("opengl32.dll");
 		#ifdef RGFW_WGL_LOAD
@@ -5438,6 +5464,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs
 			wglMakeCurrentSRC = (PFN_wglMakeCurrent) GetProcAddress(wglinstance, "wglMakeCurrent");
 			wglGetCurrentDCSRC = (PFN_wglGetCurrentDC) GetProcAddress(wglinstance, "wglGetCurrentDC");
 			wglGetCurrentContextSRC = (PFN_wglGetCurrentContext) GetProcAddress(wglinstance, "wglGetCurrentContext");
+			wglShareListsSRC = (PFN_wglShareLists)GetProcAddress(wglinstance, "wglShareLists");
 		#endif
 	}
 
@@ -5617,12 +5644,16 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs
 				UINT num_formats;
 				wglChoosePixelFormatARB(win->src.hdc, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
 				if (!num_formats) {
-					printf("Failed to create a pixel format for WGL.\n");
+					#ifdef RGFW_DEBUG
+					printf("Failed to create a pixel format for WGL.\n");	
+					#endif
 				}
 
 				DescribePixelFormat(win->src.hdc, pixel_format, sizeof(pfd), &pfd);
 				if (!SetPixelFormat(win->src.hdc, pixel_format, &pfd)) {
+					#ifdef RGFW_DEBUG
 					printf("Failed to set the WGL pixel format.\n");
+					#endif
 				}
 			}
 
@@ -5646,7 +5677,9 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs
 
 			win->src.ctx = (HGLRC)wglCreateContextAttribsARB(win->src.hdc, NULL, attribs);
 		} else { /* fall back to a default context (probably opengl 2 or something) */
+			#ifdef RGFW_DEBUG
 			fprintf(stderr, "Failed to create an accelerated OpenGL Context\n");
+			#endif
 
 			int pixel_format = ChoosePixelFormat(win->src.hdc, &pfd);
 			SetPixelFormat(win->src.hdc, pixel_format, &pfd);
@@ -5739,7 +5772,10 @@ void RGFW_window_setBorder(RGFW_window* win, u8 border) {
 
 
 RGFW_area RGFW_getScreenSize(void) {
-	return RGFW_AREA(GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES));
+	HDC dc = GetDC(NULL);
+	RGFW_area area = RGFW_AREA(GetDeviceCaps(dc, HORZRES), GetDeviceCaps(dc, VERTRES));
+	ReleaseDC(NULL, dc);
+	return area;
 }
 
 RGFW_point RGFW_getGlobalMousePoint(void) {
@@ -6563,6 +6599,13 @@ void RGFW_window_close(RGFW_window* win) {
 		}
 		#endif
 
+		#if !defined(RGFW_NO_LOAD_WINMM) && !defined(RGFW_NO_WINMM)
+			if (RGFW_winmm_dll != NULL) {
+				FreeLibrary(RGFW_winmm_dll);
+				RGFW_winmm_dll = NULL;
+			}
+		#endif
+
 		if (wglinstance != NULL) {
 			FreeLibrary(wglinstance);
 			wglinstance = NULL;
@@ -6585,7 +6628,7 @@ void RGFW_window_close(RGFW_window* win) {
 	#ifdef RGFW_OPENGL
 		wglDeleteContext((HGLRC) win->src.ctx); /*!< delete opengl context */
 	#endif
-		DeleteDC(win->src.hdc); /*!< delete device context */
+		ReleaseDC(win->src.window, win->src.hdc); /*!< delete device context */
 		DestroyWindow(win->src.window); /*!< delete window */
 
 	#if defined(RGFW_OSMESA)
@@ -6777,7 +6820,9 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	static void* loadSwapFunc = (void*) 1;
 
 	if (loadSwapFunc == NULL) {
+		#ifdef RGFW_DEBUG
 		fprintf(stderr, "wglSwapIntervalEXT not supported\n");
+		#endif
 		return;
 	}
 
@@ -6786,8 +6831,11 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 		wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC) loadSwapFunc;
 	}
 
-	if (wglSwapIntervalEXT(swapInterval) == FALSE)
+	if (wglSwapIntervalEXT(swapInterval) == FALSE) {
+		#ifdef RGFW_DEBUG
 		fprintf(stderr, "Failed to set swap interval\n");
+		#endif
+	}
 	#else
 	RGFW_UNUSED(swapInterval);
 	#endif
@@ -6846,7 +6894,9 @@ char* createUTF8FromWideStringWin32(const WCHAR* source) {
 static inline LARGE_INTEGER RGFW_win32_initTimer(void) {
 	static LARGE_INTEGER frequency = {{0, 0}};
 	if (frequency.QuadPart == 0) {
+		#if !defined(RGFW_NO_WINMM)
 		timeBeginPeriod(1);
+		#endif
 		QueryPerformanceFrequency(&frequency);
 	}
 
