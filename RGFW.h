@@ -5270,8 +5270,8 @@ PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 	typedef BOOL(WINAPI* PFN_wglDeleteContext)(HGLRC);
 	typedef PROC(WINAPI* PFN_wglGetProcAddress)(LPCSTR);
 	typedef BOOL(WINAPI* PFN_wglMakeCurrent)(HDC, HGLRC);
-	typedef HDC(WINAPI* PFN_wglGetCurrentDC)();
-	typedef HGLRC(WINAPI* PFN_wglGetCurrentContext)();
+	typedef HDC(WINAPI* PFN_wglGetCurrentDC)(void);
+	typedef HGLRC(WINAPI* PFN_wglGetCurrentContext)(void);
 	typedef BOOL(WINAPI* PFN_wglShareLists)(HGLRC, HGLRC);
 
 	PFN_wglCreateContext wglCreateContextSRC;
@@ -5459,13 +5459,13 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs
 	if (wglinstance == NULL) {
 		wglinstance = LoadLibraryA("opengl32.dll");
 		#ifdef RGFW_WGL_LOAD
-			wglCreateContextSRC = (PFN_wglCreateContext) GetProcAddress(wglinstance, "wglCreateContext");
-			wglDeleteContextSRC = (PFN_wglDeleteContext) GetProcAddress(wglinstance, "wglDeleteContext");
-			wglGetProcAddressSRC = (PFN_wglGetProcAddress) GetProcAddress(wglinstance, "wglGetProcAddress");
-			wglMakeCurrentSRC = (PFN_wglMakeCurrent) GetProcAddress(wglinstance, "wglMakeCurrent");
-			wglGetCurrentDCSRC = (PFN_wglGetCurrentDC) GetProcAddress(wglinstance, "wglGetCurrentDC");
-			wglGetCurrentContextSRC = (PFN_wglGetCurrentContext) GetProcAddress(wglinstance, "wglGetCurrentContext");
-			wglShareListsSRC = (PFN_wglShareLists)GetProcAddress(wglinstance, "wglShareLists");
+			wglCreateContextSRC = (PFN_wglCreateContext) (void*)GetProcAddress(wglinstance, "wglCreateContext");
+			wglDeleteContextSRC = (PFN_wglDeleteContext) (void*)GetProcAddress(wglinstance, "wglDeleteContext");
+			wglGetProcAddressSRC = (PFN_wglGetProcAddress) (void*)GetProcAddress(wglinstance, "wglGetProcAddress");
+			wglMakeCurrentSRC = (PFN_wglMakeCurrent) (void*)GetProcAddress(wglinstance, "wglMakeCurrent");
+			wglGetCurrentDCSRC = (PFN_wglGetCurrentDC) (void*)GetProcAddress(wglinstance, "wglGetCurrentDC");
+			wglGetCurrentContextSRC = (PFN_wglGetCurrentContext) (void*)GetProcAddress(wglinstance, "wglGetCurrentContext");
+			wglShareListsSRC = (PFN_wglShareLists) (void*)GetProcAddress(wglinstance, "wglShareLists");
 		#endif
 	}
 
