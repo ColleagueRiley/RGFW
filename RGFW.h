@@ -1261,6 +1261,8 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 #include <stdio.h>
 #endif
 
+#include <stdio.h>
+
 #include <math.h>
 #include <assert.h>
 
