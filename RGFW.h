@@ -522,7 +522,7 @@ typedef RGFW_ENUM(u8, RGFW_gamepadcodes) {
 		char name[128]; /*!< monitor name */
 		RGFW_rect rect; /*!< monitor Workarea */
 		float scaleX, scaleY; /*!< monitor content scale*/
-		float pixelRatio; /*!< pixel ratio for monitor (1.0 for regular, 2.0 for)  */
+		float pixelRatio; /*!< pixel ratio for monitor (1.0 for regular, 2.0 for hiDPI)  */
 		float physW, physH; /*!< monitor physical size in inches*/
 	} RGFW_monitor;
 
@@ -2239,19 +2239,19 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 /* OPENGL Normal / EGL defines only (no OS MESA)  Ends here */
 
 #elif defined(RGFW_OSMESA) /* OSmesa only */
-RGFWDEF void RGFW_OSMesa_reorganize(void);
+RGFWDEF void RGFW_OSMesa_reorganize(RGFW_window* win);
 
 /* reorganize buffer for osmesa */
-void RGFW_OSMesa_reorganize(void) {
-	u8* row = (u8*) RGFW_MALLOC(win->r.w * 3);
+void RGFW_OSMesa_reorganize(RGFW_window* win) {
+	u8* row = (u8*) RGFW_MALLOC(RGFW_bufferSize.w * 3);
 
-	i32 half_height = win->r.h / 2;
-	i32 stride = win->r.w * 3;
+	i32 half_height = RGFW_bufferSize.h / 2;
+	i32 stride = RGFW_bufferSize.w * 3;
 
 	i32 y;
 	for (y = 0; y < half_height; ++y) {
 		i32 top_offset = y * stride;
-		i32 bottom_offset = (win->r.h - y - 1) * stride;
+		i32 bottom_offset = (RGFW_bufferSize.h - y - 1) * stride;
 		memcpy(row, win->buffer + top_offset, stride);
 		memcpy(win->buffer + top_offset, win->buffer + bottom_offset, stride);
 		memcpy(win->buffer + bottom_offset, row, stride);
@@ -3974,10 +3974,10 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	/* clear the window*/
 	if (!(win->_winArgs & RGFW_NO_CPU_RENDER)) {
 		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-			#ifdef RGFW_OSMESA
-			RGFW_OSMesa_reorganize();
-			#endif
 			RGFW_area area = RGFW_bufferSize;
+			#ifdef RGFW_OSMESA
+			RGFW_OSMesa_reorganize(win);
+			#endif
 
 			#ifndef RGFW_X11_DONT_CONVERT_BGR
 				win->src.bitmap->data = (char*) win->buffer;
@@ -9468,11 +9468,12 @@ char* RGFW_readClipboard(size_t* size) {
 		I'm not sure if this is possible do the the async stuff
 	*/
 
+	size_t len = 0;
 	if (size != NULL)
-		*size = 0;
+		*size = len;
 
 	char* str = (char*)RGFW_MALLOC(1);
-	str[0] = '\0';
+	str[len] = '\0';
 
 	return str;
 }
