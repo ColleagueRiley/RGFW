@@ -7109,9 +7109,9 @@ const char* NSPasteboard_stringForType(id pasteboard, NSPasteboardType dataType,
 	SEL func = sel_registerName("stringForType:");
 	id nsstr = NSString_stringWithUTF8String(dataType);
 	id nsString = ((id(*)(id, SEL, id))objc_msgSend)(pasteboard, func, nsstr);
-	char* str = NSString_to_char(nsString);
+	const char* str = NSString_to_char(nsString);
 	if (len != NULL)
-		len = (size_t)((NSUInteger(*)(id, SEL))objc_msgSend)(output, sel_registerName("length"));
+		*len = (size_t)((NSUInteger(*)(id, SEL))objc_msgSend)(nsString, sel_registerName("length"));
 	return str;
 }
 
