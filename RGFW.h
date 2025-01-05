@@ -3927,33 +3927,45 @@ RGFW_monitor* RGFW_getMonitors(void) {
 
 RGFW_monitor RGFW_getPrimaryMonitor(void) {
 	assert(RGFW_root != NULL);
-
-	i32 primary = -1;
-	Window root = DefaultRootWindow(RGFW_root->src.display);
-	XRRScreenResources* res = XRRGetScreenResources(RGFW_root->src.display, root);
-
-	for (int i = 0; i < res->noutput; i++) {
-		XRROutputInfo* output_info = XRRGetOutputInfo(RGFW_root->src.display, res, res->outputs[i]);
-		if (output_info->connection == RR_Connected && output_info->crtc) {
-			XRRCrtcInfo* crtc_info = XRRGetCrtcInfo(RGFW_root->src.display, res, output_info->crtc);
-			if (crtc_info->mode != None && crtc_info->x == 0 && crtc_info->y == 0) {
-				primary = i;
-				XRRFreeCrtcInfo(crtc_info);
-				XRRFreeOutputInfo(output_info);
-				break;
-			}
-			XRRFreeCrtcInfo(crtc_info);
-		}
-		XRRFreeOutputInfo(output_info);
-	}
-
-	XRRFreeScreenResources(res);
-
-	return RGFW_XCreateMonitor(primary);
+	return RGFW_XCreateMonitor(DefaultScreen(RGFW_root->src.display));
 }
 
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
-	return RGFW_XCreateMonitor(DefaultScreen(win->src.display));
+	assert(win != NULL);
+
+    XRRScreenResources* screenRes = XRRGetScreenResources(win->src.display, DefaultRootWindow(display));
+	if (screenRes == NULL) {		
+		return (RGFW_monitor){};
+	}
+
+	XWindowAttributes attrs;
+    if (!XGetWindowAttributes(display, win->src.window, &attrs)) {
+        return (RGFW_monitor){};
+    }
+
+    for (size_t i = 0; i < screenRes->ncrtc; i++) {
+        XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(display, screenRes, screenRes->crtcs[i]);
+        if (!crtcInfo) continue;
+
+        int monitorX = crtcInfo->x;
+        int monitorY = crtcInfo->y;
+        int monitorWidth = crtcInfo->width;
+        int monitorHeight = crtcInfo->height;
+		
+        if (attrs.x >= monitorX &&
+            attrs.x < monitorX + monitorWidth &&
+            attrs.y >= monitorY &&
+            attrs.y < monitorY + monitorHeight) {
+            XRRFreeCrtcInfo(crtcInfo);
+            XRRFreeScreenResources(screenRes);
+            return RGFW_XCreateMonitor(i);
+        }
+
+        XRRFreeCrtcInfo(crtcInfo);
+    }
+
+    XRRFreeScreenResources(screenRes);
+	return (RGFW_monitor){};
 }
 
 #ifdef RGFW_OPENGL
