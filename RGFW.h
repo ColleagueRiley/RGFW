@@ -1261,7 +1261,7 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 #include <stdio.h>
 #endif
 
-#include <stdio.h>
+#include <string.h>
 
 #include <math.h>
 #include <assert.h>
@@ -9157,7 +9157,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, b8 press) {
 	RGFW_keyboard[physicalKey].prev = RGFW_keyboard[physicalKey].current;
 	RGFW_keyboard[physicalKey].current = 0;
 
-	RGFW_keyCallback(RGFW_root, physicalKey, mappedKey, RGFW_events[RGFW_eventLen].keyName, 0, press);
+	RGFW_keyCallback(RGFW_root, physicalKey, mappedKey, 0, press);
 
 	RGFW_free(key);
 	RGFW_free(code);
