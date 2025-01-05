@@ -9222,6 +9222,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_makeSetValue(size_t index, char* file) {
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <stdio.h>
 
 void EMSCRIPTEN_KEEPALIVE RGFW_mkdir(char* name) { mkdir(name, 0755); }
 
