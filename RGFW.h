@@ -392,7 +392,7 @@ typedef struct RGFW_allocator {
 	RGFW_allocatorFreefunc free;
 } RGFW_allocator;
 
-RGFWDEF void RGFW_loadAllocator(RGFW_allocator allocator);
+RGFWDEF RGFW_allocator RGFW_loadAllocator(RGFW_allocator allocator);
 RGFWDEF void* RGFW_alloc(size_t len);
 RGFWDEF void RGFW_free(void* ptr);
 
@@ -548,8 +548,6 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 /* NOTE: some parts of the data can represent different things based on the event (read comments in RGFW_Event struct) */
 /*! Event structure for checking/getting events */
 typedef struct RGFW_Event {
-	char keyName[16]; /*!< key name of event*/
-
 	/*! drag and drop data */
 	/* 260 max paths with a max length of 260 */
 #ifdef RGFW_ALLOC_DROPFILES
@@ -956,7 +954,7 @@ typedef void (* RGFW_dndInitfunc)(RGFW_window* win, RGFW_point point);
 /*! RGFW_windowRefresh, the window that needs to be refreshed */
 typedef void (* RGFW_windowrefreshfunc)(RGFW_window* win);
 /*! RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of mod keys, if it was a press (else it's a release) */
-typedef void (* RGFW_keyfunc)(RGFW_window* win, u32 key, u32 mappedKey, char keyName[16], u8 lockState, b8 pressed);
+typedef void (* RGFW_keyfunc)(RGFW_window* win, u32 key, u32 mappedKey, u8 lockState, b8 pressed);
 /*! RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release)  */
 typedef void (* RGFW_mousebuttonfunc)(RGFW_window* win, u8 button, double scroll, b8 pressed);
 /*!gamepad /gamepad, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) */
@@ -1271,8 +1269,10 @@ void* RGFW_allocatorMalloc(void* userdata, size_t size) { return RGFW_ALLOC(user
 void RGFW_allocatorFree(void* userdata, void* ptr) { RGFW_FREE(userdata, ptr); }
 RGFW_allocator RGFW_current_allocator = {RGFW_USERPTR, RGFW_allocatorMalloc, RGFW_allocatorFree};
 
-void RGFW_loadAllocator(RGFW_allocator allocator) {
+RGFW_allocator RGFW_loadAllocator(RGFW_allocator allocator) {
+	RGFW_allocator old = RGFW_current_allocator;
 	RGFW_current_allocator = allocator;
+	return old;
 }
 
 void* RGFW_alloc(size_t len) { return RGFW_current_allocator.alloc(RGFW_current_allocator.userdata, len); }
@@ -1494,7 +1494,7 @@ void RGFW_mouseNotifyfuncEMPTY(RGFW_window* win, RGFW_point point, b8 status) {R
 void RGFW_mouseposfuncEMPTY(RGFW_window* win, RGFW_point point) {RGFW_UNUSED(win); RGFW_UNUSED(point);}
 void RGFW_dndInitfuncEMPTY(RGFW_window* win, RGFW_point point) {RGFW_UNUSED(win); RGFW_UNUSED(point);}
 void RGFW_windowrefreshfuncEMPTY(RGFW_window* win) {RGFW_UNUSED(win); }
-void RGFW_keyfuncEMPTY(RGFW_window* win, u32 key, u32 mappedKey, char keyName[16], u8 lockState, b8 pressed) {RGFW_UNUSED(win); RGFW_UNUSED(key); RGFW_UNUSED(mappedKey); RGFW_UNUSED(keyName); RGFW_UNUSED(lockState); RGFW_UNUSED(pressed);}
+void RGFW_keyfuncEMPTY(RGFW_window* win, u32 key, u32 mappedKey, u8 lockState, b8 pressed) {RGFW_UNUSED(win); RGFW_UNUSED(key); RGFW_UNUSED(mappedKey); RGFW_UNUSED(lockState); RGFW_UNUSED(pressed);}
 void RGFW_mousebuttonfuncEMPTY(RGFW_window* win, u8 button, double scroll, b8 pressed) {RGFW_UNUSED(win); RGFW_UNUSED(button); RGFW_UNUSED(scroll); RGFW_UNUSED(pressed);}
 void RGFW_gamepadButtonfuncEMPTY(RGFW_window* win, u16 gamepad, u8 button, b8 pressed){RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(button); RGFW_UNUSED(pressed); }
 void RGFW_gamepadAxisfuncEMPTY(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount, u8 whichAxis){RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(axis); RGFW_UNUSED(axisesCount); RGFW_UNUSED(whichAxis); }
@@ -2947,12 +2947,6 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		win->event.keyChar = (u8)sym;
 
-		char* str = (char*)XKeysymToString(sym);
-		if (str != NULL)
-			strncpy(win->event.keyName, str, 16);
-
-		win->event.keyName[15] = '\0';
-
 		RGFW_keyboard[win->event.key].prev = RGFW_isPressed(win, win->event.key);
 
 		/* get keystate data */
@@ -2963,7 +2957,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		RGFW_updateLockState(win, (keystate.led_mask & 1), (keystate.led_mask & 2));
 		RGFW_keyboard[win->event.key].current = (E.type == KeyPress);
-		RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyName, win->event.lockState, (E.type == KeyPress));
+		RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.lockState, (E.type == KeyPress));
 		break;
 	}
 	case ButtonPress:
@@ -4550,8 +4544,7 @@ static void keyboard_key (void *data, struct wl_keyboard *keyboard, uint32_t ser
 	ev.type = RGFW_keyPressed + state;
 	ev.key = RGFW_key;
 	ev.keyChar = (u8)keysym;
-
-	strcpy(ev.keyName, name);
+	
 	ev.repeat = RGFW_isHeld(RGFW_key_win, RGFW_key);
 	RGFW_eventPipe_push(RGFW_key_win, ev);
 
@@ -6056,29 +6049,11 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			win->event.keyChar = (u8)charBuffer;
 
 			RGFW_keyboard[win->event.key].prev = RGFW_isPressed(win, win->event.key);
-
-			static char keyName[16];
-
-			{
-				GetKeyNameTextA((LONG) msg.lParam, keyName, 16);
-				if ((!(GetKeyState(VK_CAPITAL) & 0x0001) && !(GetKeyState(VK_SHIFT) & 0x8000)) ||
-					((GetKeyState(VK_CAPITAL) & 0x0001) && (GetKeyState(VK_SHIFT) & 0x8000))) {
-					CharLowerBuffA(keyName, 16);
-				}
-			}
-
 			RGFW_updateLockState(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001));
-
-			strncpy(win->event.keyName, keyName, 16);
-
-			if (RGFW_isPressed(win, RGFW_ShiftL)) {
-				ToAscii((UINT) msg.wParam, MapVirtualKey((UINT) msg.wParam, MAPVK_VK_TO_CHAR),
-					keyboardState, (LPWORD) win->event.keyName, 0);
-			}
 
 			win->event.type = RGFW_keyReleased;
 			RGFW_keyboard[win->event.key].current = 0;
-			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyName, win->event.lockState, 0);
+			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.lockState, 0);
 			break;
 		}
 		case WM_KEYDOWN: {
@@ -6107,30 +6082,12 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 
 			RGFW_keyboard[win->event.key].prev = RGFW_isPressed(win, win->event.key);
 
-			static char keyName[16];
-
-			{
-				GetKeyNameTextA((LONG) msg.lParam, keyName, 16);
-
-				if ((!(GetKeyState(VK_CAPITAL) & 0x0001) && !(GetKeyState(VK_SHIFT) & 0x8000)) ||
-					((GetKeyState(VK_CAPITAL) & 0x0001) && (GetKeyState(VK_SHIFT) & 0x8000))) {
-					CharLowerBuffA(keyName, 16);
-				}
-			}
-
 			RGFW_updateLockState(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001));
-
-			strncpy(win->event.keyName, keyName, 16);
-
-			if (RGFW_isPressed(win, RGFW_ShiftL) & 0x8000) {
-				ToAscii((UINT) msg.wParam, MapVirtualKey((UINT) msg.wParam, MAPVK_VK_TO_CHAR),
-					keyboardState, (LPWORD) win->event.keyName, 0);
-			}
 
 			win->event.type = RGFW_keyPressed;
 			win->event.repeat = RGFW_isPressed(win, win->event.key);
 			RGFW_keyboard[win->event.key].current = 1;
-			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyName, win->event.lockState, 1);
+			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.lockState, 1);
 			break;
 		}
 
@@ -8164,12 +8121,10 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
 
 			win->event.type = RGFW_keyPressed;
-			char* str = (char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("characters")));
-			strncpy(win->event.keyName, str, 16);
 			win->event.repeat = RGFW_isPressed(win, win->event.key);
 			RGFW_keyboard[win->event.key].current = 1;
 
-			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyName, win->event.lockState, 1);
+			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.lockState, 1);
 			break;
 		}
 
@@ -8187,11 +8142,9 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
 
 			win->event.type = RGFW_keyReleased;
-			char* str = (char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("characters")));
-			strncpy(win->event.keyName, str, 16);
 
 			RGFW_keyboard[win->event.key].current = 0;
-			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyName, win->event.lockState, 0);
+			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.lockState, 0);
 			break;
 		}
 
@@ -8230,7 +8183,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 				}
 			}
 
-			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyName, win->event.lockState, win->event.type == RGFW_keyPressed);
+			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.lockState, win->event.type == RGFW_keyPressed);
 
 			break;
 		}
@@ -9133,7 +9086,6 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, b8 press) {
 	}
 
 	RGFW_events[RGFW_eventLen].type = press ? RGFW_keyPressed : RGFW_keyReleased;
-	memcpy(RGFW_events[RGFW_eventLen].keyName, key, 16);
 	RGFW_events[RGFW_eventLen].key = physicalKey;
 	RGFW_events[RGFW_eventLen].keyChar = mappedKey;
 	RGFW_events[RGFW_eventLen].lockState = 0;
@@ -9142,7 +9094,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, b8 press) {
 	RGFW_keyboard[physicalKey].prev = RGFW_keyboard[physicalKey].current;
 	RGFW_keyboard[physicalKey].current = 0;
 
-	RGFW_keyCallback(RGFW_root, physicalKey, mappedKey, RGFW_events[RGFW_eventLen].keyName, 0, press);
+	RGFW_keyCallback(RGFW_root, physicalKey, mappedKey, 0, press);
 
 	RGFW_free(key);
 	RGFW_free(code);
