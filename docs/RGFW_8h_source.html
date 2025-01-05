@@ -3782,12 +3782,12 @@ $(function() {
 <div class="line"><a id="l03939" name="l03939"></a><span class="lineno"> 3939</span>    }</div>
 <div class="line"><a id="l03940" name="l03940"></a><span class="lineno"> 3940</span> </div>
 <div class="line"><a id="l03941" name="l03941"></a><span class="lineno"> 3941</span>    XWindowAttributes attrs;</div>
-<div class="line"><a id="l03942" name="l03942"></a><span class="lineno"> 3942</span>    <span class="keywordflow">if</span> (!XGetWindowAttributes(display, win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.window, &amp;attrs)) {</div>
+<div class="line"><a id="l03942" name="l03942"></a><span class="lineno"> 3942</span>    <span class="keywordflow">if</span> (!XGetWindowAttributes(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.display, win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.window, &amp;attrs)) {</div>
 <div class="line"><a id="l03943" name="l03943"></a><span class="lineno"> 3943</span>        <span class="keywordflow">return</span> (<a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a>){};</div>
 <div class="line"><a id="l03944" name="l03944"></a><span class="lineno"> 3944</span>    }</div>
 <div class="line"><a id="l03945" name="l03945"></a><span class="lineno"> 3945</span> </div>
 <div class="line"><a id="l03946" name="l03946"></a><span class="lineno"> 3946</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; screenRes-&gt;ncrtc; i++) {</div>
-<div class="line"><a id="l03947" name="l03947"></a><span class="lineno"> 3947</span>        XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(display, screenRes, screenRes-&gt;crtcs[i]);</div>
+<div class="line"><a id="l03947" name="l03947"></a><span class="lineno"> 3947</span>        XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.display, screenRes, screenRes-&gt;crtcs[i]);</div>
 <div class="line"><a id="l03948" name="l03948"></a><span class="lineno"> 3948</span>        <span class="keywordflow">if</span> (!crtcInfo) <span class="keywordflow">continue</span>;</div>
 <div class="line"><a id="l03949" name="l03949"></a><span class="lineno"> 3949</span> </div>
 <div class="line"><a id="l03950" name="l03950"></a><span class="lineno"> 3950</span>        <span class="keywordtype">int</span> monitorX = crtcInfo-&gt;x;</div>
