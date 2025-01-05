@@ -8528,7 +8528,6 @@ RGFW_monitor RGFW_monitors[7];
 
 RGFW_monitor* RGFW_getMonitors(void) {
 	static CGDirectDisplayID displays[7];
-	static id displays[7];
 	u32 count;
 
 	if (CGGetActiveDisplayList(6, displays, &count) != kCGErrorSuccess)
