@@ -8476,9 +8476,31 @@ u8 RGFW_window_isMaximized(RGFW_window* win) {
 	return objc_msgSend_bool(win->src.window, sel_registerName("isZoomed"));
 }
 
+id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
+	Class NSScreenClass = objc_getClass("NSScreen");
+
+	id screens = objc_msgSend_id(NSScreenClass, sel_registerName("screens"));
+
+	NSUInteger count = (NSUInteger)objc_msgSend_uint(screens, sel_registerName("count"));
+
+	for (NSUInteger i = 0; i < count; i++) {
+		id screen = ((id (*)(id, SEL, int))objc_msgSend) (screens, sel_registerName("objectAtIndex:"), (int)i);
+		id description = objc_msgSend_id(screen, sel_registerName("deviceDescription"));
+		id screenNumberKey = NSString_stringWithUTF8String("NSScreenNumber");
+		id screenNumber = objc_msgSend_id_id(description, sel_registerName("objectForKey:"), screenNumberKey);
+
+		if ((CGDirectDisplayID)objc_msgSend_uint(screenNumber, sel_registerName("unsignedIntValue")) == display) {
+			return screen;
+		}
+	}
+
+	return NULL;
+}
 
 RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display) {
 	RGFW_monitor monitor;
+
+	id screen = RGFW_getNSScreenForDisplayID(display);
 
 	const char name[] = "MacOS\0";
 	strncpy(monitor.name, name, 6);
@@ -8493,7 +8515,7 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display) {
 	float ppi_width = (monitor.rect.w/monitor.physW);
 	float ppi_height = (monitor.rect.h/monitor.physH);
 	
-	monitor.pixelRatio = (float)CGDisplayPixelsWide(display) / bounds.size.width;
+	monitor.pixelRatio = ((CGFloat (*)(id, SEL))abi_objc_msgSend_fpret) (screen, sel_registerName("backingScaleFactor"));
 	float dpi = 96.0f * monitor.pixelRatio;
 
 	monitor.scaleX = ((i32)(((float) (ppi_width) / dpi) * 10.0f)) / 10.0f;
