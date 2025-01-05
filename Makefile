@@ -166,7 +166,7 @@ else
 	@echo webgpu is not supported on $(detected_OS)
 endif
 
-examples/minimal_links/minimal_links:examples/minimal_links/minimal_links.c RGFW.h:
+examples/minimal_links/minimal_links: examples/minimal_links/minimal_links.c RGFW.h
 ifeq ($(detected_OS),Linux)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lm -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
