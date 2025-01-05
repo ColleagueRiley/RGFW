@@ -3939,12 +3939,12 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	}
 
 	XWindowAttributes attrs;
-    if (!XGetWindowAttributes(display, win->src.window, &attrs)) {
+    if (!XGetWindowAttributes(win->src.display, win->src.window, &attrs)) {
         return (RGFW_monitor){};
     }
 
     for (size_t i = 0; i < screenRes->ncrtc; i++) {
-        XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(display, screenRes, screenRes->crtcs[i]);
+        XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(win->src.display, screenRes, screenRes->crtcs[i]);
         if (!crtcInfo) continue;
 
         int monitorX = crtcInfo->x;
