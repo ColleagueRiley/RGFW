@@ -2,8 +2,18 @@
 #define RGFW_NO_API
 #define RGFW_WGL_LOAD
 
+#ifdef __linux__
+#define XDL_IMPLEMENTATION
+#include "XDL.h"
+#endif
+
 #include "RGFW.h"
+
 int main() {
+    #ifdef __linux__
+    XDLModule m = XDL_init();
+    #endif
+
     RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), (u16)(RGFW_center | RGFW_noResize));
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
@@ -13,5 +23,8 @@ int main() {
     }
 
     RGFW_window_close(win);
-    return 0;
+
+    #ifdef __linux__
+    XDL_close(m);
+    #endif
 }
