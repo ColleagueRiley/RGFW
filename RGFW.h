@@ -2242,6 +2242,7 @@ RGFWDEF void RGFW_OSMesa_reorganize(RGFW_window* win);
 
 /* reorganize buffer for osmesa */
 void RGFW_OSMesa_reorganize(RGFW_window* win) {
+	return;
 	u8* row = (u8*) RGFW_MALLOC(RGFW_bufferSize.w * 3);
 
 	i32 half_height = RGFW_bufferSize.h / 2;
@@ -2485,8 +2486,8 @@ void RGFW_init_buffer(RGFW_window* win, XVisualInfo* vi) {
 	#endif
 
 	#ifdef RGFW_OSMESA
-			win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
-			OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
+			win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
+			OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, RGFW_bufferSize.w, RGFW_bufferSize.h);
 	#endif
 
 	win->src.bitmap = XCreateImage(
@@ -3990,8 +3991,8 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 			RGFW_OSMesa_reorganize(win);
 			#endif
 
-			#ifndef RGFW_X11_DONT_CONVERT_BGR
-				win->src.bitmap->data = (char*) win->buffer;
+			win->src.bitmap->data = (char*) win->buffer;
+			#if !defined(RGFW_X11_DONT_CONVERT_BGR) && !defined(RGFW_OSMESA)
 				u32 x, y;
 				for (y = 0; y < (u32)win->r.h; y++) {
 					for (x = 0; x < (u32)win->r.w; x++) {

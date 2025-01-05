@@ -2,6 +2,7 @@
 # RGFW_WAYLAND=1 -> use wayland 
 # NO_VULKAN=1 -> do not compile the vulkan example
 # NO_GLES=1 -> do not compile the gles example (on by default for non-linux OSes)
+# NO_OSMESA=1 -> do not compile the osmesa example (on by default for non-linux OSes)
 
 CC = gcc
 AR = ar
@@ -23,6 +24,7 @@ WARNINGS =  -Wall -Wstrict-prototypes -Wextra -Wstrict-prototypes -Wold-style-de
 OS_DIR = \\
 
 NO_GLES = 1
+NO_OSMESA = 1
 detected_OS = windows
 
 OBJ_FILE = .o
@@ -46,6 +48,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		LIB_EXT = .so
 		OS_DIR = /
 		NO_GLES = 0
+		NO_OSMESA = 0
 	endif
 else
 	OS_DIR = /
@@ -79,6 +82,8 @@ else ifneq ($(CC),g++)
 	LIBS += -std=c99
 endif
 
+LIBS += -lOSMesa
+
 EXAMPLE_OUTPUTS = \
     examples/basic/basic \
 	examples/gamepad/gamepad \
@@ -93,6 +98,7 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/gl33/gl33 \
 	examples/portableGL/pgl \
 	examples/gles2/gles2 \
+	examples/osmesa/osmesa \
 	examples/vk10/vk10 \
 	examples/dx11/dx11 \
 	examples/metal/metal \
@@ -112,6 +118,13 @@ endif
 examples/gles2/gles2: examples/gles2/gles2.c RGFW.h
 ifneq ($(NO_GLES), 1)
 	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lEGL -o $@$(EXT)
+else
+	@echo gles has been disabled
+endif
+
+examples/osmesa/osmesa: examples/osmesa/osmesa.c RGFW.h
+ifneq ($(NO_GLES), 1)
+	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lOSMesa -o $@$(EXT)
 else
 	@echo gles has been disabled
 endif
@@ -172,6 +185,9 @@ debug: all
 	./examples/portableGL/pgl$(EXT)
 	./examples/gl33/gl33$(EXT)
 ifneq ($(NO_GLES), 1)
+		./examples/gles2/gles2$(EXT)
+endif
+ifneq ($(NO_OSMESA), 1)
 		./examples/gles2/gles2$(EXT)
 endif
 ifneq ($(NO_VULKAN), 1)
