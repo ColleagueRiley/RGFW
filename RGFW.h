@@ -636,7 +636,6 @@ typedef struct RGFW_window_src {
 		OSMesaContext ctx;
 	#endif
 #elif defined(RGFW_MACOS)
-	u32 display;
 	void* window;
 	b8 dndPassed;
 #if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
@@ -3835,7 +3834,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	monitor.physW = DisplayWidthMM(display, screen) / 25.4;
 	monitor.physH = DisplayHeightMM(display, screen) / 25.4;
 
-	char* name = XDisplayName(display);
+	char* name = XDisplayName((const char*)display);
 	memcpy(monitor.name, name, 128);
 
 	float dpi = XGetSystemContentDPI(display, screen);
@@ -3928,33 +3927,45 @@ RGFW_monitor* RGFW_getMonitors(void) {
 
 RGFW_monitor RGFW_getPrimaryMonitor(void) {
 	assert(RGFW_root != NULL);
-
-	i32 primary = -1;
-	Window root = DefaultRootWindow(RGFW_root->src.display);
-	XRRScreenResources* res = XRRGetScreenResources(RGFW_root->src.display, root);
-
-	for (int i = 0; i < res->noutput; i++) {
-		XRROutputInfo* output_info = XRRGetOutputInfo(RGFW_root->src.display, res, res->outputs[i]);
-		if (output_info->connection == RR_Connected && output_info->crtc) {
-			XRRCrtcInfo* crtc_info = XRRGetCrtcInfo(RGFW_root->src.display, res, output_info->crtc);
-			if (crtc_info->mode != None && crtc_info->x == 0 && crtc_info->y == 0) {
-				primary = i;
-				XRRFreeCrtcInfo(crtc_info);
-				XRRFreeOutputInfo(output_info);
-				break;
-			}
-			XRRFreeCrtcInfo(crtc_info);
-		}
-		XRRFreeOutputInfo(output_info);
-	}
-
-	XRRFreeScreenResources(res);
-
-	return RGFW_XCreateMonitor(primary);
+	return RGFW_XCreateMonitor(DefaultScreen(RGFW_root->src.display));
 }
 
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
-	return RGFW_XCreateMonitor(DefaultScreen(win->src.display));
+	assert(win != NULL);
+
+    XRRScreenResources* screenRes = XRRGetScreenResources(win->src.display, DefaultRootWindow(win->src.display));
+	if (screenRes == NULL) {		
+		return (RGFW_monitor){};
+	}
+
+	XWindowAttributes attrs;
+    if (!XGetWindowAttributes(win->src.display, win->src.window, &attrs)) {
+        return (RGFW_monitor){};
+    }
+
+    for (size_t i = 0; i < screenRes->ncrtc; i++) {
+        XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(win->src.display, screenRes, screenRes->crtcs[i]);
+        if (!crtcInfo) continue;
+
+        int monitorX = crtcInfo->x;
+        int monitorY = crtcInfo->y;
+        int monitorWidth = crtcInfo->width;
+        int monitorHeight = crtcInfo->height;
+		
+        if (attrs.x >= monitorX &&
+            attrs.x < monitorX + monitorWidth &&
+            attrs.y >= monitorY &&
+            attrs.y < monitorY + monitorHeight) {
+            XRRFreeCrtcInfo(crtcInfo);
+            XRRFreeScreenResources(screenRes);
+            return RGFW_XCreateMonitor(i);
+        }
+
+        XRRFreeCrtcInfo(crtcInfo);
+    }
+
+    XRRFreeScreenResources(screenRes);
+	return (RGFW_monitor){};
 }
 
 #ifdef RGFW_OPENGL
@@ -5416,7 +5427,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 
 	Class.hIcon = (HICON)LoadImageA(GetModuleHandleW(NULL), "RGFW_ICON", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
 	if (Class.hIcon == NULL) {
-		Class.hIcon = (HICON)LoadImageA(NULL, IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
+		Class.hIcon = (HICON)LoadImageA(NULL, (LPCSTR)IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
 	}
 
 	RegisterClassA(&Class);
@@ -6324,10 +6335,10 @@ BOOL CALLBACK GetMonitorByHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcM
 
 RGFW_monitor win32CreateMonitor(HMONITOR src) {
 	RGFW_monitor monitor;
-	MONITORINFO monitorInfo;
+	MONITORINFOEX  monitorInfo;
 
-	monitorInfo.cbSize = sizeof(MONITORINFO);
-	GetMonitorInfoA(src, &monitorInfo);
+	monitorInfo.cbSize = sizeof(MONITORINFOEX );
+	GetMonitorInfo(src, &monitorInfo);
 
 	RGFW_mInfo info;
 	info.iIndex = 0;
@@ -6354,37 +6365,30 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 	monitor.rect.w = monitorInfo.rcWork.right - monitorInfo.rcWork.left;
 	monitor.rect.h = monitorInfo.rcWork.bottom - monitorInfo.rcWork.top;
 
-	i32 dpiX = 96.0f, dpiY = 96.0f;
+	HDC hdc = CreateDC(monitorInfo.szDevice, NULL, NULL, NULL);
+	/* get pixels per inch */
+	float dpiX = (float)GetDeviceCaps(hdc, LOGPIXELSX);
+	float dpiY = (float)GetDeviceCaps(hdc, LOGPIXELSX);
+
+	monitor.scaleX  = dpiX / 96.0f;
+	monitor.scaleY  = dpiY / 96.0f;
+
+	monitor.physW = GetDeviceCaps(hdc, HORZSIZE) / 25.4;
+	monitor.physH = GetDeviceCaps(hdc, VERTSIZE) / 25.4;
+	DeleteDC(hdc);
 
 	#ifndef RGFW_NO_DPI
 		if (GetDpiForMonitor != NULL) {
-			GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
+			u32 x, y;
+			GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &x, &y);
+
+			monitor.pixelRatio = (float) (x) / (float) dpiX;
+			monitor.pixelRatio = (float) (y) / (float) dpiY;
 		}
 	#endif
-	
-	HDC hdc = GetDC(NULL);
-	/* get pixels per inch */
-	dpiX = GetDeviceCaps(hdc, LOGPIXELSX);
-	dpiY = GetDeviceCaps(hdc, LOGPIXELSY);
-	ReleaseDC(NULL, hdc);
-
-	/* Calculate physical height in inches */
-	monitor.physW = GetSystemMetrics(SM_CYSCREEN) / (float) dpiX;
-	monitor.physH = GetSystemMetrics(SM_CXSCREEN) / (float) dpiY;
-
-	if (dpiY > dpiX)
-		dpiX = dpiY;
-	
-	monitor.pixelRatio = (float) (dpiX) / (float) 96.0f;
-
-	float ppi_width = (monitor.rect.w / monitor.physW);
-	float ppi_height = (monitor.rect.h / monitor.physH);
-
-	monitor.scaleX = ((i32)(((float) (ppi_width) / dpiX) * 10.0f)) / 10.0f;
-	monitor.scaleY = ((i32)(((float) (ppi_height) / dpiY) * 10.0f)) / 10.0f;
 
 	#ifdef RGFW_DEBUG
-	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f   pixelRatio: %f\n\n", monitor.name, monitor.rect.x, monitor.rect.y, monitor.rect.w, monitor.rect.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio);
+	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n", monitor.name, monitor.rect.x, monitor.rect.y, monitor.rect.w, monitor.rect.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio);
 	#endif
 
 	return monitor;
@@ -7762,8 +7766,6 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		NSColor_colorWithSRGB(0, 0, 0, 0));
 	}
 
-	win->src.display = CGMainDisplayID();
-
 	RGFW_init_buffer(win);
 
 	#ifndef RGFW_NO_MONITOR
@@ -8483,8 +8485,28 @@ u8 RGFW_window_isMaximized(RGFW_window* win) {
 	return objc_msgSend_bool(win->src.window, sel_registerName("isZoomed"));
 }
 
+id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
+	Class NSScreenClass = objc_getClass("NSScreen");
 
-RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display) {
+	id screens = objc_msgSend_id(NSScreenClass, sel_registerName("screens"));
+
+	NSUInteger count = (NSUInteger)objc_msgSend_uint(screens, sel_registerName("count"));
+
+	for (NSUInteger i = 0; i < count; i++) {
+		id screen = ((id (*)(id, SEL, int))objc_msgSend) (screens, sel_registerName("objectAtIndex:"), (int)i);
+		id description = objc_msgSend_id(screen, sel_registerName("deviceDescription"));
+		id screenNumberKey = NSString_stringWithUTF8String("NSScreenNumber");
+		id screenNumber = objc_msgSend_id_id(description, sel_registerName("objectForKey:"), screenNumberKey);
+
+		if ((CGDirectDisplayID)objc_msgSend_uint(screenNumber, sel_registerName("unsignedIntValue")) == display) {
+			return screen;
+		}
+	}
+
+	return NULL;
+}
+
+RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 	RGFW_monitor monitor;
 
 	const char name[] = "MacOS\0";
@@ -8500,7 +8522,7 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display) {
 	float ppi_width = (monitor.rect.w/monitor.physW);
 	float ppi_height = (monitor.rect.h/monitor.physH);
 	
-	monitor.pixelRatio = (float)CGDisplayPixelsWide(display) / bounds.size.width;
+	monitor.pixelRatio = ((CGFloat (*)(id, SEL))abi_objc_msgSend_fpret) (screen, sel_registerName("backingScaleFactor"));
 	float dpi = 96.0f * monitor.pixelRatio;
 
 	monitor.scaleX = ((i32)(((float) (ppi_width) / dpi) * 10.0f)) / 10.0f;
@@ -8524,18 +8546,25 @@ RGFW_monitor* RGFW_getMonitors(void) {
 		return NULL;
 
 	for (u32 i = 0; i < count; i++)
-		RGFW_monitors[i] = RGFW_NSCreateMonitor(displays[i]);
+		RGFW_monitors[i] = RGFW_NSCreateMonitor(displays[i], RGFW_getNSScreenForDisplayID(displays[i]));
 
 	return RGFW_monitors;
 }
 
 RGFW_monitor RGFW_getPrimaryMonitor(void) {
 	CGDirectDisplayID primary = CGMainDisplayID();
-	return RGFW_NSCreateMonitor(primary);
+	return RGFW_NSCreateMonitor(primary, RGFW_getNSScreenForDisplayID(primary));
 }
 
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
-	return RGFW_NSCreateMonitor(win->src.display);
+	id screen = objc_msgSend_id(win->src.window, sel_registerName("screen"));
+	id description = objc_msgSend_id(screen, sel_registerName("deviceDescription"));
+	id screenNumberKey = NSString_stringWithUTF8String("NSScreenNumber");
+	id screenNumber = objc_msgSend_id_id(description, sel_registerName("objectForKey:"), screenNumberKey);
+
+	CGDirectDisplayID display = (CGDirectDisplayID)objc_msgSend_uint(screenNumber, sel_registerName("unsignedIntValue"));
+	
+	return RGFW_NSCreateMonitor(display, screen);
 }
 
 char* RGFW_readClipboard(size_t* size) {
