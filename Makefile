@@ -82,8 +82,6 @@ else ifneq ($(CC),g++)
 	LIBS += -std=c99
 endif
 
-LIBS += -lOSMesa
-
 EXAMPLE_OUTPUTS = \
     examples/basic/basic \
 	examples/gamepad/gamepad \

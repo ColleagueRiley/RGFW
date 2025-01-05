@@ -65,7 +65,7 @@ void drawRect(RGFW_window* win, RGFW_rect r, u8 color[4]) {
 }
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("Basic buffer example", RGFW_RECT(0, 0, 500, 500), RGFW_CENTER | RGFW_TRANSPARENT_WINDOW);
+    RGFW_window* win = RGFW_createWindow("Basic buffer example", RGFW_RECT(0, 0, 500, 500), RGFW_center| RGFW_transparent);
     
     screenSize = RGFW_getScreenSize();
     

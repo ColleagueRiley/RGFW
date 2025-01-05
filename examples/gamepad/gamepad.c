@@ -8,7 +8,7 @@
 void drawGamepad(RGFW_window* w, size_t gamepad);
 
 int main(void) {
-	RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(0, 0, 800, 450), RGFW_CENTER);
+	RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(0, 0, 800, 450), RGFW_center);
     RGFW_window_makeCurrent(win);
 
     size_t gamepad = 0;

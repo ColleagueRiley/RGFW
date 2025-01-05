@@ -69,7 +69,7 @@ int main(void)
 {
 	RGFW_setGLVersion(RGFW_glCore, 3, 3);
 
-	RGFW_window* window = RGFW_createWindow("LearnOpenGL", RGFW_RECT(SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT), RGFW_ALLOW_DND | RGFW_CENTER | RGFW_SCALE_TO_MONITOR);
+	RGFW_window* window = RGFW_createWindow("LearnOpenGL", RGFW_RECT(SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT), RGFW_allowDND | RGFW_center | RGFW_scaleToMonitor);
     if (window == NULL)
     {
         printf("Failed to create RGFW window\n");
