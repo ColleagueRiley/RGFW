@@ -636,7 +636,6 @@ typedef struct RGFW_window_src {
 		OSMesaContext ctx;
 	#endif
 #elif defined(RGFW_MACOS)
-	u32 display;
 	void* window;
 	b8 dndPassed;
 #if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
@@ -7755,8 +7754,6 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, u16 args) {
 		NSColor_colorWithSRGB(0, 0, 0, 0));
 	}
 
-	win->src.display = CGMainDisplayID();
-
 	RGFW_init_buffer(win);
 
 	#ifndef RGFW_NO_MONITOR
@@ -8497,10 +8494,8 @@ id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
 	return NULL;
 }
 
-RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display) {
+RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 	RGFW_monitor monitor;
-
-	id screen = RGFW_getNSScreenForDisplayID(display);
 
 	const char name[] = "MacOS\0";
 	strncpy(monitor.name, name, 6);
@@ -8539,18 +8534,25 @@ RGFW_monitor* RGFW_getMonitors(void) {
 		return NULL;
 
 	for (u32 i = 0; i < count; i++)
-		RGFW_monitors[i] = RGFW_NSCreateMonitor(displays[i]);
+		RGFW_monitors[i] = RGFW_NSCreateMonitor(displays[i], RGFW_getNSScreenForDisplayID(displays[i]));
 
 	return RGFW_monitors;
 }
 
 RGFW_monitor RGFW_getPrimaryMonitor(void) {
 	CGDirectDisplayID primary = CGMainDisplayID();
-	return RGFW_NSCreateMonitor(primary);
+	return RGFW_NSCreateMonitor(primary, RGFW_getNSScreenForDisplayID(primary));
 }
 
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
-	return RGFW_NSCreateMonitor(win->src.display);
+	id screen = objc_msgSend_id(win->src.window, sel_registerName("screen"));
+	id description = objc_msgSend_id(screen, sel_registerName("deviceDescription"));
+	id screenNumberKey = NSString_stringWithUTF8String("NSScreenNumber");
+	id screenNumber = objc_msgSend_id_id(description, sel_registerName("objectForKey:"), screenNumberKey);
+
+	CGDirectDisplayID display = (CGDirectDisplayID)objc_msgSend_uint(screenNumber, sel_registerName("unsignedIntValue"));
+	
+	return RGFW_NSCreateMonitor(display, screen);
 }
 
 char* RGFW_readClipboard(size_t* size) {
