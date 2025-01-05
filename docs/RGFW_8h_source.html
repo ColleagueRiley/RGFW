@@ -3677,7 +3677,7 @@ $(function() {
 <div class="line"><a id="l03834" name="l03834"></a><span class="lineno"> 3834</span>    monitor.<a class="code hl_variable" href="structRGFW__monitor.html#af4ba34d59dd83ca44148d44e82d75d35">physW</a> = DisplayWidthMM(display, screen) / 25.4;</div>
 <div class="line"><a id="l03835" name="l03835"></a><span class="lineno"> 3835</span>    monitor.<a class="code hl_variable" href="structRGFW__monitor.html#a9c3025aaf5b5f383d80a3516fca2a399">physH</a> = DisplayHeightMM(display, screen) / 25.4;</div>
 <div class="line"><a id="l03836" name="l03836"></a><span class="lineno"> 3836</span> </div>
-<div class="line"><a id="l03837" name="l03837"></a><span class="lineno"> 3837</span>    <span class="keywordtype">char</span>* name = XDisplayName(display);</div>
+<div class="line"><a id="l03837" name="l03837"></a><span class="lineno"> 3837</span>    <span class="keywordtype">char</span>* name = XDisplayName((<span class="keyword">const</span> <span class="keywordtype">char</span>*)display);</div>
 <div class="line"><a id="l03838" name="l03838"></a><span class="lineno"> 3838</span>    memcpy(monitor.<a class="code hl_variable" href="structRGFW__monitor.html#aaea809cea2ca3420c64b1ae3d69bb3ae">name</a>, name, 128);</div>
 <div class="line"><a id="l03839" name="l03839"></a><span class="lineno"> 3839</span> </div>
 <div class="line"><a id="l03840" name="l03840"></a><span class="lineno"> 3840</span>    <span class="keywordtype">float</span> dpi = XGetSystemContentDPI(display, screen);</div>
@@ -3776,7 +3776,7 @@ $(function() {
 <div class="line"><a id="l03933" name="l03933"></a><span class="lineno"> 3933</span><a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a> <a class="code hl_function" href="group__Monitor.html#ga648797c3385a4ec20bbc511dc49907d0">RGFW_window_getMonitor</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win) {</div>
 <div class="line"><a id="l03934" name="l03934"></a><span class="lineno"> 3934</span>    assert(win != NULL);</div>
 <div class="line"><a id="l03935" name="l03935"></a><span class="lineno"> 3935</span> </div>
-<div class="line"><a id="l03936" name="l03936"></a><span class="lineno"> 3936</span>    XRRScreenResources* screenRes = XRRGetScreenResources(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.display, DefaultRootWindow(display));</div>
+<div class="line"><a id="l03936" name="l03936"></a><span class="lineno"> 3936</span>    XRRScreenResources* screenRes = XRRGetScreenResources(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.display, DefaultRootWindow(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.display));</div>
 <div class="line"><a id="l03937" name="l03937"></a><span class="lineno"> 3937</span>    <span class="keywordflow">if</span> (screenRes == NULL) {        </div>
 <div class="line"><a id="l03938" name="l03938"></a><span class="lineno"> 3938</span>        <span class="keywordflow">return</span> (<a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a>){};</div>
 <div class="line"><a id="l03939" name="l03939"></a><span class="lineno"> 3939</span>    }</div>

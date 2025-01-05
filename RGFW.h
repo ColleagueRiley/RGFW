@@ -3834,7 +3834,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	monitor.physW = DisplayWidthMM(display, screen) / 25.4;
 	monitor.physH = DisplayHeightMM(display, screen) / 25.4;
 
-	char* name = XDisplayName(display);
+	char* name = XDisplayName((const char*)display);
 	memcpy(monitor.name, name, 128);
 
 	float dpi = XGetSystemContentDPI(display, screen);
@@ -3933,7 +3933,7 @@ RGFW_monitor RGFW_getPrimaryMonitor(void) {
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	assert(win != NULL);
 
-    XRRScreenResources* screenRes = XRRGetScreenResources(win->src.display, DefaultRootWindow(display));
+    XRRScreenResources* screenRes = XRRGetScreenResources(win->src.display, DefaultRootWindow(win->src.display));
 	if (screenRes == NULL) {		
 		return (RGFW_monitor){};
 	}
