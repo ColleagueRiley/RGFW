@@ -126,7 +126,7 @@ else
 endif
 
 examples/osmesa/osmesa: examples/osmesa/osmesa.c RGFW.h
-ifneq ($(NO_GLES), 1)
+ifneq ($(NO_OSMESA), 1)
 	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lOSMesa -o $@$(EXT)
 else
 	@echo osmesa has been disabled
