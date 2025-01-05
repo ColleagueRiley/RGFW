@@ -53,6 +53,7 @@
 	#define RGFW_NO_X11_CURSOR_PRELOAD (optional) (unix only) Use XCursor, but don't link it in code, (you'll have to link it with -lXcursor)
 	#define RGFW_NO_LOAD_WINMM (optional) (windows only) Use winmm (timeBeginPeriod), but don't link it in code, (you'll have to link it with -lwinmm)
 	#define RGFW_NO_WINMM (optional) (windows only) don't use winmm
+	#define RGFW_NO_IOKIT (optional) (macOS) don't use IOKit
 
 	#define RGFW_NO_DPI - Do not include calculate DPI (no XRM nor libShcore included)
 
@@ -6959,9 +6960,6 @@ void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { SetThreadPriority
 #include <objc/message.h>
 #include <mach/mach_time.h>
 
-#include <IOKit/IOKitLib.h>
-#include <IOKit/hid/IOHIDManager.h>
-
 typedef CGRect NSRect;
 typedef CGPoint NSPoint;
 typedef CGSize NSSize;
@@ -7418,6 +7416,10 @@ bool performDragOperation(id self, SEL sel, id sender) {
 	return false;
 }
 
+#ifndef RGFW_NO_IOKIT
+#include <IOKit/IOKitLib.h>
+#include <IOKit/hid/IOHIDManager.h>
+
 IOHIDDeviceRef RGFW_osxControllers[4] = {NULL};
 
 int findControllerIndex(IOHIDDeviceRef device) {
@@ -7575,6 +7577,45 @@ void RGFW__osxDeviceRemovedCallback(void *context, IOReturn result, void *sender
 	RGFW_gamepadCount--;
 }
 
+RGFWDEF void RGFW_osxInitIOKit(void);
+void RGFW_osxInitIOKit(void) {
+	IOHIDManagerRef hidManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
+	if (!hidManager) {
+		fprintf(stderr, "Failed to create IOHIDManager.\n");
+		return;
+	}
+
+	CFMutableDictionaryRef matchingDictionary = CFDictionaryCreateMutable(
+		kCFAllocatorDefault,
+		0,
+		&kCFTypeDictionaryKeyCallBacks,
+		&kCFTypeDictionaryValueCallBacks
+	);
+	if (!matchingDictionary) {
+		fprintf(stderr, "Failed to create matching dictionary.\n");
+		CFRelease(hidManager);
+		return;
+	}
+
+	CFDictionarySetValue(
+		matchingDictionary,
+		CFSTR(kIOHIDDeviceUsagePageKey),
+		CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, (int[]){kHIDPage_GenericDesktop})
+	);
+
+	IOHIDManagerSetDeviceMatching(hidManager, matchingDictionary);
+
+	IOHIDManagerRegisterDeviceMatchingCallback(hidManager, RGFW__osxDeviceAddedCallback, NULL);
+	IOHIDManagerRegisterDeviceRemovalCallback(hidManager, RGFW__osxDeviceRemovedCallback, NULL);
+
+	IOHIDManagerScheduleWithRunLoop(hidManager, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+
+	IOHIDManagerOpen(hidManager, kIOHIDOptionsTypeNone);
+
+	// Execute the run loop once in order to register any initially-attached joysticks
+	CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, false);
+}
+#endif
 
 void NSMoveToResourceDir(void) {
 	/* sourced from glfw */
@@ -7670,45 +7711,6 @@ void* RGFW_cocoaGetLayer(void) {
 	return objc_msgSend_class((id)objc_getClass("CAMetalLayer"), (SEL)sel_registerName("layer"));
 }
 
-RGFWDEF void RGFW_osxInitIOKit(void);
-void RGFW_osxInitIOKit(void) {
-	IOHIDManagerRef hidManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
-	if (!hidManager) {
-		fprintf(stderr, "Failed to create IOHIDManager.\n");
-		return;
-	}
-
-	CFMutableDictionaryRef matchingDictionary = CFDictionaryCreateMutable(
-		kCFAllocatorDefault,
-		0,
-		&kCFTypeDictionaryKeyCallBacks,
-		&kCFTypeDictionaryValueCallBacks
-	);
-	if (!matchingDictionary) {
-		fprintf(stderr, "Failed to create matching dictionary.\n");
-		CFRelease(hidManager);
-		return;
-	}
-
-	CFDictionarySetValue(
-		matchingDictionary,
-		CFSTR(kIOHIDDeviceUsagePageKey),
-		CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, (int[]){kHIDPage_GenericDesktop})
-	);
-
-	IOHIDManagerSetDeviceMatching(hidManager, matchingDictionary);
-
-	IOHIDManagerRegisterDeviceMatchingCallback(hidManager, RGFW__osxDeviceAddedCallback, NULL);
-	IOHIDManagerRegisterDeviceRemovalCallback(hidManager, RGFW__osxDeviceRemovedCallback, NULL);
-
-	IOHIDManagerScheduleWithRunLoop(hidManager, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-
-	IOHIDManagerOpen(hidManager, kIOHIDOptionsTypeNone);
-
-	// Execute the run loop once in order to register any initially-attached joysticks
-	CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, false);
-}
-
 
 NSPasteboardType const NSPasteboardTypeURL = "public.url";
 NSPasteboardType const NSPasteboardTypeFileURL  = "public.file-url";
@@ -7735,7 +7737,9 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs
 		((void (*)(id, SEL, NSUInteger))objc_msgSend)
 			(NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
 
-		RGFW_osxInitIOKit();
+		#ifndef RGFW_NO_IOKIT
+			RGFW_osxInitIOKit();
+		#endif
 	}
 
 	RGFW_window* win = RGFW_window_basic_init(rect, args);
@@ -8087,6 +8091,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		return &win->event;
 	}
 
+	#ifndef RGFW_NO_IOKIT
 	if (RGFW_gamepadEventQueueCount && win == RGFW_root) {
 		static u8 index = 0;
 
@@ -8107,6 +8112,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
 		return &win->event;
 	}
+	#endif
 
 	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
