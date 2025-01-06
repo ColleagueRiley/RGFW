@@ -197,7 +197,7 @@ int main() {
 	#include <string.h>
 
 	#define RGFW_MEMCPY(dist, src, len) memcpy(dist, src, len)
-	#define RGFW_STRNCMP(s1, s2, max) strcmp(s1, s2, max)
+	#define RGFW_STRNCMP(s1, s2, max) strncmp(s1, s2, max)
 #endif
 
 #if !_MSC_VER
@@ -3312,7 +3312,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			while (*line) {
 				if (line[0] == '%' && line[1] && line[2]) {
 					const char digits[3] = { line[1], line[2], '\0' };
-					//path[index] = (char) strtol(digits, NULL, 16);
+					path[index] = (char) strtol(digits, NULL, 16);
 					line += 2;
 				} else
 					path[index] = *line;
@@ -3913,7 +3913,7 @@ static float XGetSystemContentDPI(Display* display, i32 screen) {
 			char* type = NULL;
 
 			if (XrmGetResource(db, "Xft.dpi", "Xft.Dpi", &type, &value) && type && RGFW_STRNCMP(type, "String", 7) == 0) {
-				//dpi = (float)atof(value.addr);
+				dpi = (float)atof(value.addr);
 			}
 			XrmDestroyDatabase(db);
 		}
