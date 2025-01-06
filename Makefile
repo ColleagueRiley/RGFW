@@ -185,7 +185,7 @@ examples/nostl/nostl: examples/nostl/nostl.c RGFW.h
 ifeq ($(CC),emcc)
 	@echo nostl is not supported on this platform
 else ifeq ($(detected_OS),Linux)
-	$(CC) $(CFLAGS) $(LIBS) -nostdlib -I. $<  -o $@$(EXT)
+	$(CC) $(CFLAGS) -fno-stack-protector -lX11 -lXcursor -lGL -lXi -lXrandr -I. $<  -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
 	$(CC) $(CFLAGS) $(WARNINGS) -nostdlib -I. $< -lgdi32 -o $@$(EXT)
 else ifeq ($(detected_OS),Darwin)
