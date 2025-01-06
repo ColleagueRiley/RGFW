@@ -190,7 +190,7 @@ else ifeq ($(detected_OS),Linux)
 else ifeq ($(detected_OS),windows)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $<  -lkernel32 -lgdi32 -lshell32 -lUser32 -nostdlib -o $@$(EXT)
 else ifeq ($(detected_OS),Darwin)
-	$(CC) $(CFLAGS) -fno-stack-protector  $(WARNINGS) -I. $< -framework Foundation -framework AppKit -framework CoreServices -o $@$(EXT)
+	$(CC) $(CFLAGS) -fno-stack-protector  $(WARNINGS) -I. $< -framework Cocoa -o $@$(EXT)
 else
 	@echo nostl is not supported on this platform
 endif
