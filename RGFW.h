@@ -176,6 +176,10 @@ int main() {
 	#define RGFW_USERPTR NULL
 #endif
 
+#ifndef RGFW_ROUND
+#define RGFW_ROUND(x) (int)((x) >= 0 ? (x) + 0.5f : (x) - 0.5f)
+#endif
+
 #ifndef RGFW_ALLOC
 	#include <stdlib.h>
 
@@ -1263,7 +1267,6 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 
 #include <string.h>
 
-#include <math.h>
 #include <assert.h>
 
 /* 
@@ -1815,7 +1818,7 @@ u32 RGFW_window_checkFPS(RGFW_window* win, u32 fpsCap) {
 	u64 deltaTime = RGFW_getTimeNS() - win->event.frameTime;
 
 	u32 output_fps = 0;
-	u64 fps = round(1e+9 / deltaTime);
+	u64 fps = RGFW_ROUND(1e+9 / deltaTime);
 	output_fps= fps;
 
 	if (fpsCap && fps > fpsCap) {
@@ -1834,7 +1837,7 @@ u32 RGFW_window_checkFPS(RGFW_window* win, u32 fpsCap) {
 		return (u32) output_fps;
 
 	deltaTime = RGFW_getTimeNS() - win->event.frameTime2;
-	output_fps = round(1e+9 / deltaTime);
+	output_fps = RGFW_ROUND(1e+9 / deltaTime);
 	win->event.frameTime2 = RGFW_getTimeNS();
 
 	return output_fps;
@@ -3860,7 +3863,7 @@ static float XGetSystemContentDPI(Display* display, i32 screen) {
 			XrmDestroyDatabase(db);
 		}
 	#else
-		dpi = roundf(DisplayWidth(display, screen) / (DisplayWidthMM(display, screen) / 25.4));
+		dpi = RGFW_ROUND(DisplayWidth(display, screen) / (DisplayWidthMM(display, screen) / 25.4));
 	#endif
 
 	return dpi;
@@ -3891,8 +3894,8 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 		ci = XRRGetCrtcInfo(display, sr, sr->crtcs[crtc]);
 	}
 
-	float ppi_width = round((float)monitor.rect.w/(float)monitor.physW);
-	float ppi_height = round((float)monitor.rect.h/(float)monitor.physH);
+	float ppi_width = RGFW_ROUND((float)monitor.rect.w/(float)monitor.physW);
+	float ppi_height = RGFW_ROUND((float)monitor.rect.h/(float)monitor.physH);
 
 	monitor.scaleX = (float) (ppi_width) / dpi;
 	monitor.scaleY = (float) (ppi_height) / dpi;
@@ -3934,8 +3937,8 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 		monitor.scaleX = 0;
 		monitor.scaleY = 0;
 	} else {
-		float ppi_width = round((float)monitor.rect.w/(float)monitor.physW);
-		float ppi_height = round((float)monitor.rect.h/(float)monitor.physH);
+		float ppi_width = RGFW_ROUND((float)monitor.rect.w/(float)monitor.physW);
+		float ppi_height = RGFW_ROUND((float)monitor.rect.h/(float)monitor.physH);
 		
 		monitor.scaleX = (float) (ppi_width) / (float) dpi;
 		monitor.scaleY = (float) (ppi_height) / (float) dpi;

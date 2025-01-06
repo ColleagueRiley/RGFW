@@ -168,7 +168,7 @@ endif
 
 examples/minimal_links/minimal_links: examples/minimal_links/minimal_links.c RGFW.h
 ifeq ($(detected_OS),Linux)
-	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lm -o $@$(EXT)
+	$(CC) $(CFLAGS) -I. $<  -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lgdi32 -o $@$(EXT)
 else ifeq ($(detected_OS),Darwin)
