@@ -1,6 +1,7 @@
 #define RGFW_IMPLEMENTATION
 #define RGFW_NO_API
 #define RGFW_WGL_LOAD
+#define RGFW_NO_IOKIT
 
 #ifdef __linux__
 #define XDL_IMPLEMENTATION
