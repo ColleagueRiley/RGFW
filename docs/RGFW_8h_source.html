@@ -273,7 +273,7 @@ $(function() {
 <div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span><span class="preprocessor">    #include &lt;string.h&gt;</span></div>
 <div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span> </div>
 <div class="line"><a id="l00199" name="l00199"></a><span class="lineno"><a class="line" href="RGFW_8h.html#aef87ec6dcdfa590cf3ccc9a7a2dd25eb">  199</a></span><span class="preprocessor">    #define RGFW_MEMCPY(dist, src, len) memcpy(dist, src, len)</span></div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno"><a class="line" href="RGFW_8h.html#a040a460126bbe1cce5765c33cf90b700">  200</a></span><span class="preprocessor">    #define RGFW_STRNCMP(s1, s2, max) strcmp(s1, s2, max)</span></div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno"><a class="line" href="RGFW_8h.html#a040a460126bbe1cce5765c33cf90b700">  200</a></span><span class="preprocessor">    #define RGFW_STRNCMP(s1, s2, max) strncmp(s1, s2, max)</span></div>
 <div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span> </div>
 <div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span><span class="preprocessor">#if !_MSC_VER</span></div>
@@ -3155,7 +3155,7 @@ $(function() {
 <div class="line"><a id="l03312" name="l03312"></a><span class="lineno"> 3312</span>            <span class="keywordflow">while</span> (*line) {</div>
 <div class="line"><a id="l03313" name="l03313"></a><span class="lineno"> 3313</span>                <span class="keywordflow">if</span> (line[0] == <span class="charliteral">&#39;%&#39;</span> &amp;&amp; line[1] &amp;&amp; line[2]) {</div>
 <div class="line"><a id="l03314" name="l03314"></a><span class="lineno"> 3314</span>                    <span class="keyword">const</span> <span class="keywordtype">char</span> digits[3] = { line[1], line[2], <span class="charliteral">&#39;\0&#39;</span> };</div>
-<div class="line"><a id="l03315" name="l03315"></a><span class="lineno"> 3315</span>                    <span class="comment">//path[index] = (char) strtol(digits, NULL, 16);</span></div>
+<div class="line"><a id="l03315" name="l03315"></a><span class="lineno"> 3315</span>                    path[index] = (char) strtol(digits, NULL, 16);</div>
 <div class="line"><a id="l03316" name="l03316"></a><span class="lineno"> 3316</span>                    line += 2;</div>
 <div class="line"><a id="l03317" name="l03317"></a><span class="lineno"> 3317</span>                } <span class="keywordflow">else</span></div>
 <div class="line"><a id="l03318" name="l03318"></a><span class="lineno"> 3318</span>                    path[index] = *line;</div>
@@ -3756,7 +3756,7 @@ $(function() {
 <div class="line"><a id="l03913" name="l03913"></a><span class="lineno"> 3913</span>            <span class="keywordtype">char</span>* type = NULL;</div>
 <div class="line"><a id="l03914" name="l03914"></a><span class="lineno"> 3914</span> </div>
 <div class="line"><a id="l03915" name="l03915"></a><span class="lineno"> 3915</span>            <span class="keywordflow">if</span> (XrmGetResource(db, <span class="stringliteral">&quot;Xft.dpi&quot;</span>, <span class="stringliteral">&quot;Xft.Dpi&quot;</span>, &amp;type, &amp;value) &amp;&amp; type &amp;&amp; <a class="code hl_define" href="RGFW_8h.html#a040a460126bbe1cce5765c33cf90b700">RGFW_STRNCMP</a>(type, <span class="stringliteral">&quot;String&quot;</span>, 7) == 0) {</div>
-<div class="line"><a id="l03916" name="l03916"></a><span class="lineno"> 3916</span>                <span class="comment">//dpi = (float)atof(value.addr);</span></div>
+<div class="line"><a id="l03916" name="l03916"></a><span class="lineno"> 3916</span>                dpi = (float)atof(value.addr);</div>
 <div class="line"><a id="l03917" name="l03917"></a><span class="lineno"> 3917</span>            }</div>
 <div class="line"><a id="l03918" name="l03918"></a><span class="lineno"> 3918</span>            XrmDestroyDatabase(db);</div>
 <div class="line"><a id="l03919" name="l03919"></a><span class="lineno"> 3919</span>        }</div>
