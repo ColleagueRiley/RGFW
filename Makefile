@@ -12,9 +12,9 @@ CUSTOM_CFLAGS =
 # used for the examples
 CFLAGS = 
 
-DX11_LIBS = -static -lgdi32 -lm -lwinmm -ldxgi -ld3d11 -luuid -ld3dcompiler
-VULKAN_LIBS = -lgdi32 -lm -lwinmm -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
-LIBS := -static -luser32 -lgdi32 -lm -lopengl32 -lwinmm -ggdb
+DX11_LIBS = -static -lgdi32 -lwinmm -ldxgi -ld3d11 -luuid -ld3dcompiler
+VULKAN_LIBS = -lgdi32 -lwinmm -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
+LIBS := -static -luser32 -lgdi32 -lopengl32 -lwinmm -ggdb
 EXT = .exe
 LIB_EXT = .dll
 
@@ -34,16 +34,16 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 	detected_OS := $(shell uname 2>/dev/null || echo Unknown)
 
 	ifeq ($(detected_OS),Darwin)        # Mac OS X
-		LIBS := -lm -framework Foundation -framework AppKit -framework OpenGL -framework IOKit
-		VULKAN_LIBS = -lm  -framework Foundation -framework AppKit -lvulkan
+		LIBS := -framework Foundation -framework AppKit -framework OpenGL -framework IOKit
+		VULKAN_LIBS =  -framework Foundation -framework AppKit -lvulkan
 		EXT =
 		LIB_EXT = .dylib
 		OS_DIR = /
 		NO_VULKAN = 1
 	endif
 	ifeq ($(detected_OS),Linux)
-    	LIBS := -lXrandr -lX11 -lm -lGL -ldl -lpthread
-		VULKAN_LIBS = -lX11 -lXrandr -lm -ldl -lpthread -lvulkan
+    	LIBS := -lXrandr -lX11 -lGL -ldl -lpthread
+		VULKAN_LIBS = -lX11 -lXrandr -ldl -lpthread -lvulkan
 		EXT =
 		LIB_EXT = .so
 		OS_DIR = /
@@ -59,7 +59,7 @@ else
 endif
 
 ifeq ($(RGFW_WAYLAND),1)
-	LIBS = -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lEGL -lxkbcommon -lGL -lwayland-egl -lm
+	LIBS = -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lEGL -lxkbcommon -lGL -lwayland-egl
 endif
 
 LINK_GL1 =
@@ -89,14 +89,15 @@ endif
 
 EXAMPLE_OUTPUTS = \
     examples/basic/basic \
-	examples/gamepad/gamepad \
     examples/buffer/buffer \
 	examples/silk/silk \
 	examples/events/events \
-	examples/callbacks/callbacks \
-	examples/first-person-camera/camera
+	examples/callbacks/callbacks
+
 
 EXAMPLE_OUTPUTS_CUSTOM = \
+	examples/gamepad/gamepad \
+	examples/first-person-camera/camera \
 	examples/microui_demo/microui_demo \
 	examples/gl33/gl33 \
 	examples/portableGL/pgl \
@@ -155,7 +156,7 @@ endif
 examples/metal/metal: examples/metal/metal.m RGFW.h
 ifeq ($(detected_OS),Darwin)        # Mac OS X
 	gcc $(CUSTOM_CFLAGS) -x c -c RGFW.h -D RGFW_NO_API -D RGFW_EXPORT -D RGFW_IMPLEMENTATION -o RGFW.o
-	gcc $(CUSTOM_CFLAGS) examples/metal/metal.m RGFW.o -I. -lm -framework Metal -framework Foundation -framework AppKit -framework Cocoa -framework IOKit -framework QuartzCore -o $@
+	gcc $(CUSTOM_CFLAGS) examples/metal/metal.m RGFW.o -I. -framework Metal -framework Foundation -framework AppKit -framework Cocoa -framework IOKit -framework QuartzCore -o $@
 else
 	@echo metal is not supported on $(detected_OS)
 endif
@@ -202,6 +203,13 @@ else
 	$(CC) $(CFLAGS) -I. $< examples/microui_demo/microui.c -s USE_WEBGL2 $(LIBS) $(LINK_GL1) -o $@$(EXT)
 endif
 
+examples/gamepad/gamepad: examples/gamepad/gamepad.c RGFW.h
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
+
+examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.h
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
+
+
 examples/gl33/gl33: examples/gl33/gl33.c RGFW.h
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL3) -o $@$(EXT)
 
@@ -213,14 +221,16 @@ debug: all
 		echo "Running $$exe..."; \
 		.$(OS_DIR)$$exe$(EXT); \
 	done
-
+	
+	./examples/gamepad/gamepad
+	./examples/first-person-camera/camera
 	./examples/portableGL/pgl$(EXT)
 	./examples/gl33/gl33$(EXT)
 ifneq ($(NO_GLES), 1)
 		./examples/gles2/gles2$(EXT)
 endif
 ifneq ($(NO_OSMESA), 1)
-		./examples/gles2/gles2$(EXT)
+		./examples/osmesa/osmesa$(EXT)
 endif
 ifneq ($(NO_VULKAN), 1)
 		./examples/vk10/vk10$(EXT)

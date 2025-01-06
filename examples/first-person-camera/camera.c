@@ -1,6 +1,7 @@
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
+#include <math.h>
 #define DEG2RAD 3.14/180.0
 
 float pitch = 0.0, yaw= 0.0;

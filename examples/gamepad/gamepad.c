@@ -4,6 +4,7 @@
 
 #include "RGFW.h"
 #include <stdio.h>
+#include <math.h>
 
 void drawGamepad(RGFW_window* w, size_t gamepad);
 
