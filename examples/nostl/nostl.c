@@ -3,6 +3,7 @@
 #define RGFW_NO_UNIX_CLOCK
 #define RGFW_WGL_LOAD
 #define RGFW_NO_DPI
+#define RGFW_NO_IOKIT
 #include <stddef.h>
 
 char arr[100000];
@@ -19,7 +20,7 @@ void* myMalloc(size_t size) {
     return (char*)out;
 }
 
-void myFree(void*) { } 
+void myFree(void* ptr) { (void)(ptr); } 
 
 void* memoryCopy(void* _dist, const void* _src, size_t size) {
     const char* src = (char*)_src;
