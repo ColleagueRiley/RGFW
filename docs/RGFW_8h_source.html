@@ -6943,9 +6943,9 @@ $(function() {
 <div class="line"><a id="l07102" name="l07102"></a><span class="lineno"> 7102</span>    Class selected_class;</div>
 <div class="line"><a id="l07103" name="l07103"></a><span class="lineno"> 7103</span> </div>
 <div class="line"><a id="l07104" name="l07104"></a><span class="lineno"> 7104</span>    <span class="keywordflow">if</span> (<a class="code hl_define" href="RGFW_8h.html#a040a460126bbe1cce5765c33cf90b700">RGFW_STRNCMP</a>(class_name, <span class="stringliteral">&quot;NSView&quot;</span>, 6) == 0) {</div>
-<div class="line"><a id="l07105" name="l07105"></a><span class="lineno"> 7105</span>        selected_class = objc_getClass(<span class="stringliteral">&quot;ViewClass&quot;</span>, 9);</div>
+<div class="line"><a id="l07105" name="l07105"></a><span class="lineno"> 7105</span>        selected_class = objc_getClass(<span class="stringliteral">&quot;ViewClass&quot;</span>);</div>
 <div class="line"><a id="l07106" name="l07106"></a><span class="lineno"> 7106</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (<a class="code hl_define" href="RGFW_8h.html#a040a460126bbe1cce5765c33cf90b700">RGFW_STRNCMP</a>(class_name, <span class="stringliteral">&quot;NSWindow&quot;</span>, 8) == 0) {</div>
-<div class="line"><a id="l07107" name="l07107"></a><span class="lineno"> 7107</span>        selected_class = objc_getClass(<span class="stringliteral">&quot;WindowClass&quot;</span>, 11);</div>
+<div class="line"><a id="l07107" name="l07107"></a><span class="lineno"> 7107</span>        selected_class = objc_getClass(<span class="stringliteral">&quot;WindowClass&quot;</span>);</div>
 <div class="line"><a id="l07108" name="l07108"></a><span class="lineno"> 7108</span>    } <span class="keywordflow">else</span> {</div>
 <div class="line"><a id="l07109" name="l07109"></a><span class="lineno"> 7109</span>        selected_class = objc_getClass(class_name);</div>
 <div class="line"><a id="l07110" name="l07110"></a><span class="lineno"> 7110</span>    }</div>
