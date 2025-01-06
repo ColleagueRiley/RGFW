@@ -7102,9 +7102,9 @@ void si_impl_func_to_SEL_with_name(const char* class_name, const char* register_
 	Class selected_class;
 
 	if (RGFW_STRNCMP(class_name, "NSView", 6) == 0) {
-		selected_class = objc_getClass("ViewClass", 9);
+		selected_class = objc_getClass("ViewClass");
 	} else if (RGFW_STRNCMP(class_name, "NSWindow", 8) == 0) {
-		selected_class = objc_getClass("WindowClass", 11);
+		selected_class = objc_getClass("WindowClass");
 	} else {
 		selected_class = objc_getClass(class_name);
 	}
