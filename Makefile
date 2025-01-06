@@ -177,7 +177,19 @@ else ifeq ($(detected_OS),Darwin)
 else ifeq ($(CC),emcc)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL3) -o $@$(EXT)
 else
-	@echo not sure what this platform is
+	@echo minimal_links is not supported on this platform
+endif
+
+
+examples/nostl/nostl: examples/nostl/nostl.c RGFW.h
+ifeq ($(detected_OS),Linux)
+	$(CC) $(CFLAGS) $(LIBS) -nostdlib -I. $<  -o $@$(EXT)
+else ifeq ($(detected_OS),windows)
+	$(CC) $(CFLAGS) $(WARNINGS) -nostdlib -I. $< -lgdi32 -o $@$(EXT)
+else ifeq ($(detected_OS),Darwin)
+	$(CC) $(CFLAGS) $(WARNINGS) -nostdlib -I. $< -framework Foundation -framework AppKit  -o $@$(EXT)
+else ifeq ($(CC),emcc)
+	@echo nostl is not supported on this platform
 endif
 
 

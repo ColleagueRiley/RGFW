@@ -9241,8 +9241,6 @@ void EMSCRIPTEN_KEEPALIVE RGFW_writeFile(const char *path, const char *data, siz
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs args) {
 	RGFW_UNUSED(name);
 
-	RGFW_UNUSED(RGFW_initFormatAttribs);
-
     RGFW_window* win = RGFW_window_basic_init(rect, args);
 
 	#ifndef RGFW_WEBGPU
