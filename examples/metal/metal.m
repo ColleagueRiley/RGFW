@@ -48,10 +48,12 @@
 int main(void)
 {
 	id<MTLDevice> device = MTLCreateSystemDefaultDevice();
-	if (!device)
+	if (!device) {
+        printf("faield to create metal device");
 		exit(EXIT_FAILURE);
+    }
 
-    RGFW_window* window = RGFW_createWindow("RGFW Metal example", RGFW_RECT(0, 0, 640, 480), RGFW_CENTER);
+    RGFW_window* window = RGFW_createWindow("RGFW Metal example", RGFW_RECT(0, 0, 640, 480), RGFW_center);
 
     CAMetalLayer* layer = [CAMetalLayer layer];
     layer.device = device;
@@ -60,7 +62,7 @@ int main(void)
     NSView* view = (NSView*)window->src.view;
     [view setLayer: layer];
     // [view setWantsLayer: YES]; (I think RGFW already sets this)
-
+    
     MTLCompileOptions* compileOptions = [MTLCompileOptions new];
     compileOptions.languageVersion = MTLLanguageVersion1_1;
     NSError* compileError;
