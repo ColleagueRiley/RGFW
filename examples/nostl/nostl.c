@@ -2,6 +2,7 @@
 #define RGFW_NO_THREADS
 #define RGFW_NO_UNIX_CLOCK
 #define RGFW_WGL_LOAD
+#define RGFW_NO_DPI
 #include <stddef.h>
 
 char arr[100000];
@@ -53,6 +54,8 @@ size_t stringCompare(char* s1, char* s2, size_t size) {
 #define RGFW_STRNCMP(s1, s2, max) stringCompare(s1, s2, max)
 
 #define RGFW_ASSERT(x) (void)(x)
+
+#define RGFW_STRTOL(str, endptr, base) 0
 
 #include "RGFW.h"
 
