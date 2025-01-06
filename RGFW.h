@@ -196,10 +196,17 @@ int main() {
 #ifndef RGFW_MEMCPY
 	#include <string.h>
 
+	#ifdef RGFW_WINDOWS
+		#include <wchar.h>
+		#include <locale.h>
+	#endif
+
 	#define RGFW_MEMCPY(dist, src, len) memcpy(dist, src, len)
 	#define RGFW_STRNCMP(s1, s2, max) strncmp(s1, s2, max)
 	//required for X11
 	#define RGFW_STRTOL(str, endptr, base) strtol(str, endptr, base) 
+#else
+#undef _INC_STRING
 #endif
 
 #if !_MSC_VER
@@ -1653,7 +1660,7 @@ RGFW_window* RGFW_window_basic_init(RGFW_rect rect, RGFW_windowArgs args) {
 	u32 i;
 	for (i = 0; i < RGFW_MAX_DROPS; i++) {
 		win->event.droppedFiles[i] = (char*) RGFW_alloc(RGFW_MAX_PATH);
-		memset(win->event.droppedFiles[i], 0, RGFW_MAX_PATH);
+		win->event.droppedFiles[i][0] = 0;
 	}
 #endif
 
@@ -5293,8 +5300,6 @@ char* RGFW_readClipboard(size_t* size) {
 #include <windows.h>
 
 #include <processthreadsapi.h>
-#include <wchar.h>
-#include <locale.h>
 #include <windowsx.h>
 #include <shellapi.h>
 #include <shellscalingapi.h>
@@ -6090,7 +6095,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 		for (i = 0; i < win->event.droppedFilesCount; i++) {
 			const UINT length = DragQueryFileW(drop, i, NULL, 0);
 			WCHAR* buffer = (WCHAR*) RGFW_alloc((size_t) length + 1);
-			memset(buffer, 0, length + 1);
+			buffer[length] = 0;
 
 			DragQueryFileW(drop, i, buffer, length + 1);
 			RGFW_MEMCPY(win->event.droppedFiles[i], createUTF8FromWideStringWin32(buffer), RGFW_MAX_PATH);
@@ -6831,10 +6836,13 @@ char* RGFW_readClipboard(size_t* size) {
 
 	wchar_t* wstr = (wchar_t*) GlobalLock(hData);
 
+	char text_null = '\0';
 	char* text;
 
 	{
+		#ifdef LC_ALL
 		setlocale(LC_ALL, "en_US.UTF-8");
+		
 
 		size_t textLen = wcstombs(NULL, wstr, 0);
 		if (textLen == 0)
@@ -6846,8 +6854,12 @@ char* RGFW_readClipboard(size_t* size) {
 
 		if (size != NULL)
 			*size = textLen + 1;
-
 		text[textLen] = '\0';
+		#else
+		text = &text_null;
+		RGFW_UNUSED(wstr);
+		RGFW_UNUSED(size);
+		#endif
 	}
 
 	/* Release the clipboard data */
@@ -6970,8 +6982,8 @@ char* createUTF8FromWideStringWin32(const WCHAR* source) {
 		return NULL;
 	}
 
-	target = (char*) RGFW_alloc(size);
-	memset(target, 0, size);
+	target = (char*) RGFW_alloc(size + 1);
+	target[size] = 0;
 
 	if (!WideCharToMultiByte(CP_UTF8, 0, source, -1, target, size, NULL, NULL)) {
 		RGFW_free(target);
