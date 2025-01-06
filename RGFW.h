@@ -196,11 +196,6 @@ int main() {
 #ifndef RGFW_MEMCPY
 	#include <string.h>
 
-	#ifdef RGFW_WINDOWS
-		#include <wchar.h>
-		#include <locale.h>
-	#endif
-
 	#define RGFW_MEMCPY(dist, src, len) memcpy(dist, src, len)
 	#define RGFW_STRNCMP(s1, s2, max) strncmp(s1, s2, max)
 	//required for X11
@@ -5303,7 +5298,8 @@ char* RGFW_readClipboard(size_t* size) {
 #include <windowsx.h>
 #include <shellapi.h>
 #include <shellscalingapi.h>
-
+#include <wchar.h>
+#include <locale.h>
 #include <winuser.h>
 
 __declspec(dllimport) int __stdcall WideCharToMultiByte( UINT CodePage, DWORD dwFlags, const WCHAR* lpWideCharStr, int cchWideChar,  LPSTR lpMultiByteStr, int cbMultiByte, LPCCH lpDefaultChar, LPBOOL lpUsedDefaultChar);
@@ -6835,12 +6831,9 @@ char* RGFW_readClipboard(size_t* size) {
 	}
 
 	wchar_t* wstr = (wchar_t*) GlobalLock(hData);
-
-	char text_null = '\0';
 	char* text;
 
 	{
-		#ifdef LC_ALL
 		setlocale(LC_ALL, "en_US.UTF-8");
 		
 
@@ -6855,11 +6848,6 @@ char* RGFW_readClipboard(size_t* size) {
 		if (size != NULL)
 			*size = textLen + 1;
 		text[textLen] = '\0';
-		#else
-		text = &text_null;
-		RGFW_UNUSED(wstr);
-		RGFW_UNUSED(size);
-		#endif
 	}
 
 	/* Release the clipboard data */

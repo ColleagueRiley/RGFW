@@ -188,7 +188,7 @@ ifeq ($(CC),emcc)
 else ifeq ($(detected_OS),Linux)
 	$(CC) $(CFLAGS) -fno-stack-protector -lX11 -lXcursor -lGL -lXi -lXrandr -I. $<  -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
-	$(CC) $(CFLAGS) $(WARNINGS) -I. $<  -lkernel32 -lgdi32 -lshell32 -lUser32 -nostdlib -o $@$(EXT)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $<  -lkernel32 -lgdi32 -lshell32 -lUser32 -o $@$(EXT)
 else ifeq ($(detected_OS),Darwin)
 	$(CC) $(CFLAGS) $(WARNINGS) -nostdlib -I. $< -framework Foundation -framework AppKit  -o $@$(EXT)
 else
