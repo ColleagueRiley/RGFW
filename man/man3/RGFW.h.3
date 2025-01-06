@@ -10,6 +10,8 @@ RGFW.h
 .br
 \fC#include <time\&.h>\fP
 .br
+\fC#include <string\&.h>\fP
+.br
 \fC#include <stdint\&.h>\fP
 .br
 
@@ -61,6 +63,12 @@ RGFW.h
 .br
 .ti -1c
 .RI "#define \fBRGFW_FREE\fP(userptr,  ptr)   (\fBRGFW_UNUSED\fP(userptr),free(ptr))"
+.br
+.ti -1c
+.RI "#define \fBRGFW_MEMCPY\fP(dist,  src,  len)   memcpy(dist, src, len)"
+.br
+.ti -1c
+.RI "#define \fBRGFW_STRNCMP\fP(s1,  s2,  max)   strcmp(s1, s2, max)"
 .br
 .ti -1c
 .RI "#define \fBinline\fP   __inline"
@@ -574,6 +582,8 @@ RGFW.h
 
 .SS "#define RGFW_MAX_PATH   260 /* max length of a path (for dnd) */"
 
+.SS "#define RGFW_MEMCPY(dist, src, len)   memcpy(dist, src, len)"
+
 .SS "#define RGFW_NUMLOCK   (1L << 2)"
 
 .SS "#define RGFW_OPENGL"
@@ -583,6 +593,8 @@ RGFW.h
 .SS "#define RGFW_RECT(x, y, w, h)   (\fBRGFW_rect\fP){(\fBi32\fP)(x), (\fBi32\fP)(y), (\fBi32\fP)(w), (\fBi32\fP)(h)}"
 
 .SS "#define RGFW_ROUND(x)   (int)((x) >= 0 ? (x) + 0\&.5f : (x) \- 0\&.5f)"
+
+.SS "#define RGFW_STRNCMP(s1, s2, max)   strcmp(s1, s2, max)"
 
 .SS "#define RGFW_TRUE   (!(0))"
 
