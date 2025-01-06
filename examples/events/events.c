@@ -2,7 +2,7 @@
 #include "RGFW.h"
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("RGFW Events", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_CENTER | RGFW_ALLOW_DND | RGFW_TRANSPARENT_WINDOW);
+    RGFW_window* win = RGFW_createWindow("RGFW Events", RGFW_RECT(500, 500, 500, 500), RGFW_center | RGFW_allowDND | RGFW_transparent);
 
     while (RGFW_window_shouldClose(win) == 0) {
 		glClearColor(0.25, 0, 0.15, 0.25);

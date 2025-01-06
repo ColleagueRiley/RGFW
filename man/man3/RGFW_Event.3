@@ -1,4 +1,4 @@
-.TH "RGFW_Event" 3 "Sun Jan 5 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_Event" 3 "Mon Jan 6 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -11,9 +11,6 @@ RGFW_Event
 .SS "Public Attributes"
 
 .in +1c
-.ti -1c
-.RI "char \fBkeyName\fP [16]"
-.br
 .ti -1c
 .RI "char \fBdroppedFiles\fP [\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP]"
 .br
@@ -93,8 +90,6 @@ if the window is in focus or not (this is always true for MacOS windows due to t
 the physical key of the event, refers to where key is physically !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! 
 .SS "\fBu8\fP RGFW_Event::keyChar"
 mapped key char of the event 
-.SS "char RGFW_Event::keyName[16]"
-key name of event 
 .SS "\fBu8\fP RGFW_Event::lockState"
 
 .SS "\fBRGFW_point\fP RGFW_Event::point"

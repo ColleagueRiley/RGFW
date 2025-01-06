@@ -29,7 +29,7 @@ int main() {
 	RGFW_area area = RGFW_AREA(500, 500);
 	RGFW_setBufferSize(area);
 
-	RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_CENTER | RGFW_NO_RESIZE);
+	RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_center | RGFW_noResize);
 
 	glContext context;
 	init_glContext(&context, (u32**)&win->buffer, area.w, 500, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);

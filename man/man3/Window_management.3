@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Sun Jan 5 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Mon Jan 6 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -16,7 +16,7 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP void \fBRGFW_setBufferSize\fP (\fBRGFW_area\fP size)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, \fBu16\fP args)"
+.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowArgs args)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_area\fP \fBRGFW_getScreenSize\fP (void)"
@@ -139,7 +139,7 @@ Window_management \- Window_management
 
 .SH "Function Documentation"
 .PP 
-.SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_createWindow (const char * name, \fBRGFW_rect\fP rect, \fBu16\fP args)"
+.SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_createWindow (const char * name, \fBRGFW_rect\fP rect, RGFW_windowArgs args)"
 function to create a window struct 
 .SS "typedef RGFW_ENUM (\fBi32\fP, RGFW_eventWait)"
 for RGFW_window_eventWait and RGFW_window_checkEvents waitMS -> Allows th e function to keep checking for events even after \fCRGFW_window_checkEvent == NULL\fP if waitMS == 0, the loop will not wait for events if waitMS == a positive integer, the loop will wait that many miliseconds after there are no more events until it returns if waitMS == a negative integer, the loop will not return until it gets another event 
@@ -216,7 +216,7 @@ restore the window from minimized (per OS)
 .SS "\fBRGFWDEF\fP void RGFW_window_setBorder (\fBRGFW_window\fP * win, \fBb8\fP border)"
 if the window should have a border or not (borderless) based on bool value of \fCborder\fP 
 .SS "\fBRGFWDEF\fP void RGFW_window_setDND (\fBRGFW_window\fP * win, \fBb8\fP allow)"
-turn on / off dnd (RGFW_ALLOW_DND stil must be passed to the window) 
+turn on / off dnd (RGFW_allowDND stil must be passed to the window) 
 .SS "\fBRGFWDEF\fP void RGFW_window_setIcon (\fBRGFW_window\fP * win, \fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
 image resized by default sets mouse to bitmap (very simular to RGFW_window_setIcon), image NOT resized by default 
 .PP

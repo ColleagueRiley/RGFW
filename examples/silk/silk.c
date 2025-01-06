@@ -21,7 +21,7 @@ typedef int64_t    i64;
 
 int main(void) {
     RGFW_setBufferSize(RGFW_AREA(500, 500));
-    RGFW_window* win = RGFW_createWindow("Basic buffer example", RGFW_RECT(0, 0, 500, 500), RGFW_CENTER | RGFW_TRANSPARENT_WINDOW | RGFW_NO_RESIZE);
+    RGFW_window* win = RGFW_createWindow("Basic buffer example", RGFW_RECT(0, 0, 500, 500), RGFW_center | RGFW_transparent | RGFW_noResize);
 
     u32 angle = 0;
 

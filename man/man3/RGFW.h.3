@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Sun Jan 5 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Mon Jan 6 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -16,6 +16,9 @@ RGFW.h
 .SS "Classes"
 
 .in +1c
+.ti -1c
+.RI "struct \fBRGFW_allocator\fP"
+.br
 .ti -1c
 .RI "struct \fBRGFW_point\fP"
 .br
@@ -42,16 +45,22 @@ RGFW.h
 
 .in +1c
 .ti -1c
+.RI "#define \fBRGFW_UNUSED\fP(x)   (void)(x)"
+.br
+.ti -1c
+.RI "#define \fBRGFW_USERPTR\fP   NULL"
+.br
+.ti -1c
+.RI "#define \fBRGFW_ROUND\fP(x)   (int)((x) >= 0 ? (x) + 0\&.5f : (x) \- 0\&.5f)"
+.br
+.ti -1c
 .RI "#define \fB__USE_POSIX199309\fP"
 .br
 .ti -1c
-.RI "#define \fBRGFW_MALLOC\fP   malloc"
+.RI "#define \fBRGFW_ALLOC\fP(userptr,  size)   (\fBRGFW_UNUSED\fP(userptr),malloc(size))"
 .br
 .ti -1c
-.RI "#define \fBRGFW_CALLOC\fP   calloc"
-.br
-.ti -1c
-.RI "#define \fBRGFW_FREE\fP   free"
+.RI "#define \fBRGFW_FREE\fP(userptr,  ptr)   (\fBRGFW_UNUSED\fP(userptr),free(ptr))"
 .br
 .ti -1c
 .RI "#define \fBinline\fP   __inline"
@@ -61,9 +70,6 @@ RGFW.h
 .br
 .ti -1c
 .RI "#define \fBRGFW_ENUM\fP(type,  name)   type name; enum"
-.br
-.ti -1c
-.RI "#define \fBRGFW_UNUSED\fP(x)   (void)(x);"
 .br
 .ti -1c
 .RI "#define \fBRGFW_HEADER\fP"
@@ -84,49 +90,7 @@ RGFW.h
 .RI "#define \fBRGFW_OPENGL\fP"
 .br
 .ti -1c
-.RI "#define \fBRGFW_ALPHA\fP   128 /* alpha value for \fBRGFW_TRANSPARENT_WINDOW\fP (WINAPI ONLY, macOS + linux don't need this) */"
-.br
-.ti -1c
-.RI "#define \fBRGFW_TRANSPARENT_WINDOW\fP   (1L<<9)"
-.br
-.ti -1c
-.RI "#define \fBRGFW_NO_BORDER\fP   (1L<<3)"
-.br
-.ti -1c
-.RI "#define \fBRGFW_NO_RESIZE\fP   (1L<<4)"
-.br
-.ti -1c
-.RI "#define \fBRGFW_ALLOW_DND\fP   (1L<<5)"
-.br
-.ti -1c
-.RI "#define \fBRGFW_HIDE_MOUSE\fP   (1L<<6) /*! the window should hide the mouse or not (can be toggled later on) using `RGFW_window_mouseShow*/"
-.br
-.ti -1c
-.RI "#define \fBRGFW_FULLSCREEN\fP   (1L<<8) /* the window is fullscreen by default or not */"
-.br
-.ti -1c
-.RI "#define \fBRGFW_CENTER\fP   (1L<<10) /*! center the window on the screen */"
-.br
-.ti -1c
-.RI "#define \fBRGFW_OPENGL_SOFTWARE\fP   (1L<<11) /*! use OpenGL software rendering */"
-.br
-.ti -1c
-.RI "#define \fBRGFW_COCOA_MOVE_TO_RESOURCE_DIR\fP   (1L << 12) /* (cocoa only), move to resource folder */"
-.br
-.ti -1c
-.RI "#define \fBRGFW_SCALE_TO_MONITOR\fP   (1L << 13) /* scale the window to the screen */"
-.br
-.ti -1c
-.RI "#define \fBRGFW_NO_INIT_API\fP   (1L << 2) /* DO not init an API (mostly for bindings, you should use `#define RGFW_NO_API` in C */"
-.br
-.ti -1c
-.RI "#define \fBRGFW_NO_GPU_RENDER\fP   (1L<<14) /* don't render (using the GPU based API)*/"
-.br
-.ti -1c
-.RI "#define \fBRGFW_NO_CPU_RENDER\fP   (1L<<15) /* don't render (using the CPU based buffer rendering)*/"
-.br
-.ti -1c
-.RI "#define \fBRGFW_WINDOW_HIDE\fP   (1L <<  16)/* the window is hidden */"
+.RI "#define \fBRGFW_ALPHA\fP   128 /* alpha value for RGFW_transparent (WINAPI ONLY, macOS + linux don't need this) */"
 .br
 .ti -1c
 .RI "#define \fBRGFW_MAX_PATH\fP   260 /* max length of a path (for dnd) */"
@@ -184,6 +148,15 @@ RGFW.h
 .RI "typedef \fBu32\fP \fBb32\fP"
 .br
 .ti -1c
+.RI "typedef void *(* \fBRGFW_allocatorMallocfunc\fP) (void *userdata, size_t size)"
+.br
+.ti -1c
+.RI "typedef void(* \fBRGFW_allocatorFreefunc\fP) (void *userdata, void *ptr)"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_allocator\fP \fBRGFW_allocator\fP"
+.br
+.ti -1c
 .RI "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
 .br
 .ti -1c
@@ -223,7 +196,7 @@ RGFW.h
 .RI "typedef void(* \fBRGFW_windowrefreshfunc\fP) (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu32\fP key, \fBu32\fP mappedKey, char keyName[16], \fBu8\fP lockState, \fBb8\fP pressed)"
+.RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu32\fP key, \fBu32\fP mappedKey, \fBu8\fP lockState, \fBb8\fP pressed)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_mousebuttonfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP button, double scroll, \fBb8\fP pressed)"
@@ -255,10 +228,19 @@ RGFW.h
 
 .in +1c
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_event_types)"
+.RI "\fBRGFWDEF\fP \fBRGFW_allocator\fP \fBRGFW_loadAllocator\fP (\fBRGFW_allocator\fP allocator)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_gamepadcodes)"
+.RI "\fBRGFWDEF\fP void * \fBRGFW_alloc\fP (size_t len)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_free\fP (void *ptr)"
+.br
+.ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_eventTypes)"
+.br
+.ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_gamepadCodes)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP * \fBRGFW_getMonitors\fP (void)"
@@ -267,13 +249,16 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP \fBRGFW_getPrimaryMonitor\fP (void)"
 .br
 .ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu16\fP, RGFW_windowArgs)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setClassName\fP (const char *name)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setBufferSize\fP (\fBRGFW_area\fP size)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, \fBu16\fP args)"
+.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowArgs args)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_area\fP \fBRGFW_getScreenSize\fP (void)"
@@ -531,10 +516,10 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_setGLAuxBuffers\fP (\fBi32\fP auxBuffers)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_GL_profile)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glProfile)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLVersion\fP (RGFW_GL_profile profile, \fBi32\fP major, \fBi32\fP minor)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLVersion\fP (RGFW_glProfile profile, \fBi32\fP major, \fBi32\fP minor)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setDoubleBuffer\fP (\fBb8\fP useDoubleBuffer)"
@@ -569,67 +554,41 @@ RGFW.h
 
 .SS "#define inline   __inline"
 
-.SS "#define RGFW_ALLOW_DND   (1L<<5)"
-the window supports drag and drop 
-.SS "#define RGFW_ALPHA   128 /* alpha value for \fBRGFW_TRANSPARENT_WINDOW\fP (WINAPI ONLY, macOS + linux don't need this) */"
+.SS "#define RGFW_ALLOC(userptr, size)   (\fBRGFW_UNUSED\fP(userptr),malloc(size))"
+
+.SS "#define RGFW_ALPHA   128 /* alpha value for RGFW_transparent (WINAPI ONLY, macOS + linux don't need this) */"
 
 .SS "#define RGFW_AREA(w, h)   (\fBRGFW_area\fP){(\fBu32\fP)(w), (\fBu32\fP)(h)}"
 
-.SS "#define RGFW_CALLOC   calloc"
-
 .SS "#define RGFW_CAPSLOCK   (1L << 1)"
-
-.SS "#define RGFW_CENTER   (1L<<10) /*! center the window on the screen */"
-
-.SS "#define RGFW_COCOA_MOVE_TO_RESOURCE_DIR   (1L << 12) /* (cocoa only), move to resource folder */"
 
 .SS "#define RGFW_ENUM(type, name)   type name; enum"
 
 .SS "#define RGFW_FALSE   0"
 
-.SS "#define RGFW_FREE   free"
-
-.SS "#define RGFW_FULLSCREEN   (1L<<8) /* the window is fullscreen by default or not */"
+.SS "#define RGFW_FREE(userptr, ptr)   (\fBRGFW_UNUSED\fP(userptr),free(ptr))"
 
 .SS "#define RGFW_HEADER"
-
-.SS "#define RGFW_HIDE_MOUSE   (1L<<6) /*! the window should hide the mouse or not (can be toggled later on) using `RGFW_window_mouseShow*/"
-
-.SS "#define RGFW_MALLOC   malloc"
 
 .SS "#define RGFW_MAX_DROPS   260 /* max items you can drop at once */"
 
 .SS "#define RGFW_MAX_PATH   260 /* max length of a path (for dnd) */"
 
-.SS "#define RGFW_NO_BORDER   (1L<<3)"
-the window doesn't have border 
-.SS "#define RGFW_NO_CPU_RENDER   (1L<<15) /* don't render (using the CPU based buffer rendering)*/"
-
-.SS "#define RGFW_NO_GPU_RENDER   (1L<<14) /* don't render (using the GPU based API)*/"
-
-.SS "#define RGFW_NO_INIT_API   (1L << 2) /* DO not init an API (mostly for bindings, you should use `#define RGFW_NO_API` in C */"
-
-.SS "#define RGFW_NO_RESIZE   (1L<<4)"
-the window cannot be resized by the user 
 .SS "#define RGFW_NUMLOCK   (1L << 2)"
 
 .SS "#define RGFW_OPENGL"
-
-.SS "#define RGFW_OPENGL_SOFTWARE   (1L<<11) /*! use OpenGL software rendering */"
 
 .SS "#define RGFW_POINT(x, y)   (\fBRGFW_point\fP){(\fBi32\fP)(x), (\fBi32\fP)(y)}"
 
 .SS "#define RGFW_RECT(x, y, w, h)   (\fBRGFW_rect\fP){(\fBi32\fP)(x), (\fBi32\fP)(y), (\fBi32\fP)(w), (\fBi32\fP)(h)}"
 
-.SS "#define RGFW_SCALE_TO_MONITOR   (1L << 13) /* scale the window to the screen */"
+.SS "#define RGFW_ROUND(x)   (int)((x) >= 0 ? (x) + 0\&.5f : (x) \- 0\&.5f)"
 
-.SS "#define RGFW_TRANSPARENT_WINDOW   (1L<<9)"
-Optional arguments for making a windows the window is transparent (only properly works on X11 and MacOS, although it's although for windows) 
 .SS "#define RGFW_TRUE   (!(0))"
 
-.SS "#define RGFW_UNUSED(x)   (void)(x);"
+.SS "#define RGFW_UNUSED(x)   (void)(x)"
 
-.SS "#define RGFW_WINDOW_HIDE   (1L <<  16)/* the window is hidden */"
+.SS "#define RGFW_USERPTR   NULL"
 
 .SS "#define RGFWDEF   \fBinline\fP"
 
@@ -648,6 +607,12 @@ Optional arguments for making a windows the window is transparent (only properly
 .SS "typedef int64_t \fBi64\fP"
 
 .SS "typedef int8_t \fBi8\fP"
+
+.SS "typedef struct \fBRGFW_allocator\fP \fBRGFW_allocator\fP"
+
+.SS "typedef void(* RGFW_allocatorFreefunc) (void *userdata, void *ptr)"
+
+.SS "typedef void *(* RGFW_allocatorMallocfunc) (void *userdata, size_t size)"
 
 .SS "typedef struct \fBRGFW_Event\fP \fBRGFW_Event\fP"
 Event structure for checking/getting events 
@@ -694,7 +659,23 @@ mouse wheel is scrolling up
 mouse wheel is scrolling down 
 .SH "Function Documentation"
 .PP 
-.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_event_types)"
+.SS "\fBRGFWDEF\fP void * RGFW_alloc (size_t len)"
+
+.SS "typedef RGFW_ENUM (\fBu16\fP, RGFW_windowArgs)"
+Optional arguments for making a windows < the window is transparent (only properly works on X11 and MacOS, although it's although for windows)
+.PP
+< the window doesn't have border
+.PP
+< the window cannot be resized by the user
+.PP
+< the window supports drag and drop
+.PP
+the window should hide the mouse or not (can be toggled later on) using `RGFW_window_mouseShow
+.PP
+center the window on the screen
+.PP
+use OpenGL software rendering
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_eventTypes)"
 event codes
 .PP
 < no event has been sent
@@ -744,7 +725,7 @@ gamepad event note \fBRGFW_Event\&.gamepad\fP holds which gamepad was altered, i
 < a file has been dropped into the window
 .PP
 < the start of a dnd event, when the place where the file drop is known
-.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_gamepadcodes)"
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_gamepadCodes)"
 gamepad button codes (based on xbox/playstation), you may need to change these values per controller < or PS X button
 .PP
 < or PS X button
@@ -778,10 +759,14 @@ gamepad button codes (based on xbox/playstation), you may need to change these v
 < right trigger
 .PP
 < right thumb stick
+.SS "\fBRGFWDEF\fP void RGFW_free (void * ptr)"
+
 .SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP * RGFW_getMonitors (void)"
 get an array of all the monitors (max 6) 
 .SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP RGFW_getPrimaryMonitor (void)"
 get the primary monitor 
+.SS "\fBRGFWDEF\fP \fBRGFW_allocator\fP RGFW_loadAllocator (\fBRGFW_allocator\fP allocator)"
+
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.

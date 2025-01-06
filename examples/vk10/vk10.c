@@ -31,7 +31,7 @@ int draw_frame(RGFW_window_vulkanInfo* vulkWin);
 
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("Vulkan Example", RGFW_RECT(0, 0, 500, 500), RGFW_ALLOW_DND | RGFW_CENTER);;
+    RGFW_window* win = RGFW_createWindow("Vulkan Example", RGFW_RECT(0, 0, 500, 500), RGFW_allowDND | RGFW_center);;
     RGFW_window_vulkanInfo vulkWin;
 
     vulkan_info = RGFW_initVulkan(win, &vulkWin);    
