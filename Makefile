@@ -168,27 +168,29 @@ else
 endif
 
 examples/minimal_links/minimal_links: examples/minimal_links/minimal_links.c RGFW.h
-ifeq ($(detected_OS),Linux)
+ifeq ($(CC),emcc)
+	@echo nostl is not supported on this platform
+else ifeq ($(detected_OS),Linux)
 	$(CC) $(CFLAGS) -I. $<  -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lgdi32 -o $@$(EXT)
 else ifeq ($(detected_OS),Darwin)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -framework Foundation -framework AppKit  -o $@$(EXT)
-else ifeq ($(CC),emcc)
-	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL3) -o $@$(EXT)
 else
 	@echo minimal_links is not supported on this platform
 endif
 
 
 examples/nostl/nostl: examples/nostl/nostl.c RGFW.h
-ifeq ($(detected_OS),Linux)
+ifeq ($(CC),emcc)
+	@echo nostl is not supported on this platform
+else ifeq ($(detected_OS),Linux)
 	$(CC) $(CFLAGS) $(LIBS) -nostdlib -I. $<  -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
 	$(CC) $(CFLAGS) $(WARNINGS) -nostdlib -I. $< -lgdi32 -o $@$(EXT)
 else ifeq ($(detected_OS),Darwin)
 	$(CC) $(CFLAGS) $(WARNINGS) -nostdlib -I. $< -framework Foundation -framework AppKit  -o $@$(EXT)
-else ifeq ($(CC),emcc)
+else
 	@echo nostl is not supported on this platform
 endif
 
