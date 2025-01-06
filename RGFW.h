@@ -198,6 +198,8 @@ int main() {
 
 	#define RGFW_MEMCPY(dist, src, len) memcpy(dist, src, len)
 	#define RGFW_STRNCMP(s1, s2, max) strncmp(s1, s2, max)
+	//required for X11
+	#define RGFW_STRTOL(str, endptr, base) strtol(str, endptr, base) 
 #endif
 
 #if !_MSC_VER
@@ -2643,8 +2645,8 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs
 
 	XInitThreads(); /*!< init X11 threading*/
 
-	//if (args & RGFW_openglSoftware)
-	//	setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
+	if (args & RGFW_openglSoftware)
+		setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
 
 	RGFW_window* win = RGFW_window_basic_init(rect, args);
 
@@ -3312,7 +3314,7 @@ RGFW_Event* RGFW_window_checkEvent(RGFW_window* win) {
 			while (*line) {
 				if (line[0] == '%' && line[1] && line[2]) {
 					const char digits[3] = { line[1], line[2], '\0' };
-					path[index] = (char) strtol(digits, NULL, 16);
+					path[index] = (char) RGFW_STRTOL(digits, NULL, 16);
 					line += 2;
 				} else
 					path[index] = *line;
@@ -3940,14 +3942,17 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 
 	float dpi = XGetSystemContentDPI(display, screen);
 	monitor.pixelRatio = dpi / 96.0f;
-	XRRScreenResources* sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
 
-	XRRCrtcInfo* ci = NULL;
-	int crtc = screen;
+	#ifndef RGFW_NO_DPI
+		XRRScreenResources* sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
 
-	if (sr->ncrtc > crtc) {
-		ci = XRRGetCrtcInfo(display, sr, sr->crtcs[crtc]);
-	}
+		XRRCrtcInfo* ci = NULL;
+		int crtc = screen;
+
+		if (sr->ncrtc > crtc) {
+			ci = XRRGetCrtcInfo(display, sr, sr->crtcs[crtc]);
+		}
+	#endif
 
 	float ppi_width = RGFW_ROUND((float)monitor.rect.w/(float)monitor.physW);
 	float ppi_height = RGFW_ROUND((float)monitor.rect.h/(float)monitor.physH);
@@ -3955,24 +3960,25 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	monitor.scaleX = (float) (ppi_width) / dpi;
 	monitor.scaleY = (float) (ppi_height) / dpi;
 
-	XRROutputInfo* info = XRRGetOutputInfo (display, sr, sr->outputs[screen]);
-
-	if (info == NULL || ci == NULL) {
-		XRRFreeScreenResources(sr);
-		XCloseDisplay(display);
+	#ifndef RGFW_NO_DPI
+		XRROutputInfo* info = XRRGetOutputInfo (display, sr, sr->outputs[screen]);
 		
-		#ifdef RGFW_DEBUG
-		printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n", monitor.name, monitor.rect.x, monitor.rect.y, monitor.rect.w, monitor.rect.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio);
-		#endif
-		return monitor;
-	}
-
-
-	float physW = info->mm_width / 25.4;
-	float physH = info->mm_height / 25.4;
+		if (info == NULL || ci == NULL) {
+			XRRFreeScreenResources(sr);
+			XCloseDisplay(display);
+			
+			#ifdef RGFW_DEBUG
+			printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n", monitor.name, monitor.rect.x, monitor.rect.y, monitor.rect.w, monitor.rect.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio);
+			#endif
+			return monitor;
+		}
 	
-	RGFW_MEMCPY(monitor.name, info->name, 128);
 
+		float physW = info->mm_width / 25.4;
+		float physH = info->mm_height / 25.4;
+	
+		RGFW_MEMCPY(monitor.name, info->name, 128);
+	
 	if (physW && physH) {
 		monitor.physW = physW;
 		monitor.physH = physH;
@@ -3983,10 +3989,12 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 
 	float w = ci->width;
 	float h = ci->height;
+	
 	if (w && h) {
 		monitor.rect.w = w;
 		monitor.rect.h = h;
 	}
+	#endif
 
 	if (monitor.physW == 0 || monitor.physH == 0) {
 		monitor.scaleX = 0;
@@ -4005,8 +4013,10 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 			monitor.scaleY = 1;
 	}
 
-	XRRFreeCrtcInfo(ci);
-	XRRFreeScreenResources(sr);
+	#ifndef RGFW_NO_DPI
+		XRRFreeCrtcInfo(ci);
+		XRRFreeScreenResources(sr);
+	#endif
 
 	XCloseDisplay(display);
 
@@ -4034,15 +4044,16 @@ RGFW_monitor RGFW_getPrimaryMonitor(void) {
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
-    XRRScreenResources* screenRes = XRRGetScreenResources(win->src.display, DefaultRootWindow(win->src.display));
-	if (screenRes == NULL) {		
-		return (RGFW_monitor){};
-	}
-
 	XWindowAttributes attrs;
     if (!XGetWindowAttributes(win->src.display, win->src.window, &attrs)) {
         return (RGFW_monitor){};
     }
+
+	#ifndef RGFW_NO_DPI
+    XRRScreenResources* screenRes = XRRGetScreenResources(win->src.display, DefaultRootWindow(win->src.display));
+	if (screenRes == NULL) {		
+		return (RGFW_monitor){};
+	}
 
     for (int i = 0; i < screenRes->ncrtc; i++) {
         XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(win->src.display, screenRes, screenRes->crtcs[i]);
@@ -4066,6 +4077,15 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
     }
 
     XRRFreeScreenResources(screenRes);
+	#else 
+	size_t i;
+	for (i = 0; i < (size_t)ScreenCount(RGFW_root->src.display) && i < 6; i++) {
+		Screen* screen = ScreenOfDisplay(RGFW_root->src.display, i);
+        if (attrs.x >= 0 && attrs.x < 0 + XWidthOfScreen(screen) &&
+            attrs.y >= 0 && attrs.y < 0 + XHeightOfScreen(screen))
+            	return RGFW_XCreateMonitor(i);
+	}
+	#endif
 	return (RGFW_monitor){};
 }
 
@@ -6914,19 +6934,19 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 #endif
 
 void RGFW_window_swapBuffers(RGFW_window* win) {
-		//RGFW_ASSERT(win != NULL);
-		/* clear the window*/
+	RGFW_ASSERT(win != NULL);
+	/* clear the window*/
 
-		if (!(win->_winArgs & RGFW_noCPURender)) {
-			#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-				#ifdef RGFW_OSMESA
-					RGFW_OSMesa_reorganize();
-				#endif
-				HGDIOBJ oldbmp = SelectObject(win->src.hdcMem, win->src.bitmap);
-				BitBlt(win->src.hdc, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
-				SelectObject(win->src.hdcMem, oldbmp);
+	if (!(win->_winArgs & RGFW_noCPURender)) {
+		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+			#ifdef RGFW_OSMESA
+				RGFW_OSMesa_reorganize();
 			#endif
-		}
+			HGDIOBJ oldbmp = SelectObject(win->src.hdcMem, win->src.bitmap);
+			BitBlt(win->src.hdc, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
+			SelectObject(win->src.hdcMem, oldbmp);
+		#endif
+	}
 
 	if (!(win->_winArgs & RGFW_noGPURender)) {
 		#ifdef RGFW_EGL

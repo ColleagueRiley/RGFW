@@ -71,6 +71,9 @@ RGFW.h
 .RI "#define \fBRGFW_STRNCMP\fP(s1,  s2,  max)   strncmp(s1, s2, max)"
 .br
 .ti -1c
+.RI "#define \fBRGFW_STRTOL\fP(str,  endptr,  base)   strtol(str, endptr, base)"
+.br
+.ti -1c
 .RI "#define \fBinline\fP   __inline"
 .br
 .ti -1c
@@ -595,6 +598,8 @@ RGFW.h
 .SS "#define RGFW_ROUND(x)   (int)((x) >= 0 ? (x) + 0\&.5f : (x) \- 0\&.5f)"
 
 .SS "#define RGFW_STRNCMP(s1, s2, max)   strncmp(s1, s2, max)"
+
+.SS "#define RGFW_STRTOL(str, endptr, base)   strtol(str, endptr, base)"
 
 .SS "#define RGFW_TRUE   (!(0))"
 
