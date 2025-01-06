@@ -1906,8 +1906,11 @@ void RGFW_updateLockState(RGFW_window* win, b8 capital, b8 numlock) {
 #if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM) || defined(RGFW_WAYLAND)
 struct timespec;
 
+#ifndef RGFW_NO_UNIX_CLOCK
 int nanosleep(const struct timespec* duration, struct timespec* rem);
 int clock_gettime(clockid_t clk_id, struct timespec* tp);
+#endif
+
 int setenv(const char *name, const char *value, int overwrite);
 
 void RGFW_window_setDND(RGFW_window* win, b8 allow) {
@@ -7872,14 +7875,19 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs
 		void* format = NSOpenGLPixelFormat_initWithAttributes((uint32_t*)attrs);
 
 		if (format == NULL) {
+			#ifdef RGFW_DEBUG
 			printf("Failed to load pixel format for OpenGL\n");
-
+			#endif
+			
 			void* attrs = RGFW_initFormatAttribs(1);
 			format = NSOpenGLPixelFormat_initWithAttributes((uint32_t*)attrs);
+			
+			#ifdef RGFW_DEBUG
 			if (format == NULL)
 				printf("and loading software rendering OpenGL failed\n");
 			else
 				printf("Switching to software rendering\n");
+			#endif
 		}
 
 		/* the pixel format can be passed directly to opengl context creation to create a context
