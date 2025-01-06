@@ -3943,10 +3943,10 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 		monitor.scaleX = (float) (ppi_width) / (float) dpi;
 		monitor.scaleY = (float) (ppi_height) / (float) dpi;
 
-		if (isinf(monitor.scaleX) || (monitor.scaleX > 1 && monitor.scaleX < 1.1))
+		if ((monitor.scaleX > 1 && monitor.scaleX < 1.1))
 			monitor.scaleX = 1;
 
-		if (isinf(monitor.scaleY) || (monitor.scaleY > 1 && monitor.scaleY < 1.1))
+		if ((monitor.scaleY > 1 && monitor.scaleY < 1.1))
 			monitor.scaleY = 1;
 	}
 
