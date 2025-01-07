@@ -59,12 +59,7 @@ size_t stringCompare(char* s1, char* s2, size_t size) {
 #define RGFW_STRTOL(str, endptr, base) 0
 
 #include "RGFW.h"
-
-#ifndef RGFW_WINDOWS
 int main(void) {
-#else
-int __main(void) {
-#endif
     RGFW_window* win = RGFW_createWindow("no standard library", RGFW_RECT(0, 0, 200, 100), (u16)(RGFW_center | RGFW_allowDND));
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {

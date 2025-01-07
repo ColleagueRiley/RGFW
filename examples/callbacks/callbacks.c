@@ -1,5 +1,7 @@
 #define RGFW_IMPLEMENTATION
+#define RGFW_DEBUG
 #include "RGFW.h"
+
 
 RGFW_window* window;
 
@@ -59,12 +61,12 @@ void windowrefreshfunc(RGFW_window* win) {
     printf("refresh\n");
 }
 
-void keyfunc(RGFW_window* win, u32 physicalKey, u32 mappedKey, char keyName[16], u8 lockState, u8 pressed) {
+void keyfunc(RGFW_window* win, RGFW_Key key, char keyChar, RGFW_keymod keyMod, b8 pressed) {
     if (window != win) return;
     if (pressed)
-        printf("key pressed : %i (%c) mapped : %i (%c): %s with lockState : %i\n", physicalKey, physicalKey, mappedKey, mappedKey, keyName, lockState);
+        printf("key pressed : %i (%c) mapped : %i (%c): with modstate : %i\n", key, key, keyChar, keyChar, keyMod);
     else
-        printf("key released : %i (%c) mapped: %i (%c): %s with lockState : %i\n", physicalKey, physicalKey, mappedKey, mappedKey, keyName, lockState);
+        printf("key released : %i (%c) mapped: %i (%c): with modstate : %i\n", key, key, keyChar, keyChar, keyMod);
 }
 
 void mousebuttonfunc(RGFW_window* win, u8 button, double scroll, u8 pressed) {

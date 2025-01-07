@@ -145,6 +145,10 @@ typedef void (*glUniformMatrix4fvPROC)(GLint location, GLsizei count, GLboolean 
 typedef void (*glTexImage2DPROC)(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels);
 typedef void (*glActiveTexturePROC) (GLenum texture);
 typedef void (*glDebugMessageCallbackPROC)(void* callback, const void*);
+typedef void (*glDrawElementsPROC)(GLenum mode, GLsizei count, GLenum type, const void * indices);
+typedef void (*glClearPROC)(GLbitfield mask);
+typedef void (*glClearColorPROC)(GLfloat, GLfloat, GLfloat, GLfloat);
+ 
 
 glShaderSourcePROC glShaderSourceSRC = NULL;
 glCreateShaderPROC glCreateShaderSRC = NULL;
@@ -176,6 +180,9 @@ glGetUniformLocationPROC glGetUniformLocationSRC = NULL;
 glUniformMatrix4fvPROC glUniformMatrix4fvSRC = NULL;
 glActiveTexturePROC glActiveTextureSRC = NULL;
 glDebugMessageCallbackPROC glDebugMessageCallbackSRC = NULL;
+glDrawElementsPROC glDrawElementsSRC = NULL;
+glClearPROC glClearSRC = NULL;
+glClearColorPROC glClearColorSRC = NULL;
 
 #define glActiveTexture glActiveTextureSRC
 #define glShaderSource glShaderSourceSRC
@@ -207,6 +214,9 @@ glDebugMessageCallbackPROC glDebugMessageCallbackSRC = NULL;
 #define glGetUniformLocation glGetUniformLocationSRC
 #define glUniformMatrix4fv glUniformMatrix4fvSRC
 #define glDebugMessageCallback glDebugMessageCallbackSRC
+#define glDrawElements glDrawElementsSRC
+#define glClear glClearSRC
+#define glClearColor glClearColorSRC
 
 extern int RGL_loadGL3(RGLloadfunc proc);
 
@@ -246,6 +256,9 @@ int RGL_loadGL3(RGLloadfunc proc) {
     RGL_PROC_DEF(proc, glUniformMatrix4fv);
     RGL_PROC_DEF(proc, glActiveTexture);
     RGL_PROC_DEF(proc, glDebugMessageCallback);
+    RGL_PROC_DEF(proc, glDrawElements);
+    RGL_PROC_DEF(proc, glClear);
+    RGL_PROC_DEF(proc, glClearColor);
 
     if (
         glShaderSourceSRC == NULL ||

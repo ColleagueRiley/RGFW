@@ -1,4 +1,4 @@
-.TH "Callbacks" 3 "Mon Jan 6 2025" "RGFW" \" -*- nroff -*-
+.TH "Callbacks" 3 "Tue Jan 7 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -34,7 +34,7 @@ Callbacks \- Callbacks
 .RI "typedef void(* \fBRGFW_windowrefreshfunc\fP) (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu32\fP key, \fBu32\fP mappedKey, \fBu8\fP lockState, \fBb8\fP pressed)"
+.RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP key, char keyChar, RGFW_keymod keyMod, \fBb8\fP pressed)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_mousebuttonfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP button, double scroll, \fBb8\fP pressed)"
@@ -115,7 +115,7 @@ RGFW_gamepadAxisMove, the window that got the event, the gamepad in question, th
 gamepad /gamepad, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
 .SS "typedef void(* RGFW_gamepadfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBb8\fP connected)"
 RGFW_gamepadConnected/RGFW_gamepadDisconnected, the window that got the event, the gamepad in question, if the controller was connected (or disconnected if false) 
-.SS "typedef void(* RGFW_keyfunc) (\fBRGFW_window\fP *win, \fBu32\fP key, \fBu32\fP mappedKey, \fBu8\fP lockState, \fBb8\fP pressed)"
+.SS "typedef void(* RGFW_keyfunc) (\fBRGFW_window\fP *win, \fBu8\fP key, char keyChar, RGFW_keymod keyMod, \fBb8\fP pressed)"
 RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of mod keys, if it was a press (else it's a release) 
 .SS "typedef void(* RGFW_mousebuttonfunc) (\fBRGFW_window\fP *win, \fBu8\fP button, double scroll, \fBb8\fP pressed)"
 RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 

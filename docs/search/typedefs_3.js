@@ -1,7 +1,26 @@
 var searchData=
 [
-  ['u16_0',['u16',['../RGFW_8h.html#ace9d960e74685e2cd84b36132dbbf8aa',1,'RGFW.h']]],
-  ['u32_1',['u32',['../RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba',1,'RGFW.h']]],
-  ['u64_2',['u64',['../RGFW_8h.html#a3f7e2bcbb0b4c338f3c4f6c937cd4234',1,'RGFW.h']]],
-  ['u8_3',['u8',['../RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca',1,'RGFW.h']]]
+  ['rgfw_5fallocator_0',['RGFW_allocator',['../RGFW_8h.html#a12e02e16bb8da785e12022885192b244',1,'RGFW.h']]],
+  ['rgfw_5fallocatorfreefunc_1',['RGFW_allocatorFreefunc',['../RGFW_8h.html#a8af27cec6337544ed9a0706167156a6a',1,'RGFW.h']]],
+  ['rgfw_5fallocatormallocfunc_2',['RGFW_allocatorMallocfunc',['../RGFW_8h.html#a03decc888fdbe0e928135d2d230bff2f',1,'RGFW.h']]],
+  ['rgfw_5fdndfunc_3',['RGFW_dndfunc',['../group__Callbacks.html#ga88b96a9a919baf0787bb4ba0dae9afcf',1,'RGFW.h']]],
+  ['rgfw_5fdndinitfunc_4',['RGFW_dndInitfunc',['../group__Callbacks.html#ga0f23d16fc1842746e340f74ce5297238',1,'RGFW.h']]],
+  ['rgfw_5fevent_5',['RGFW_Event',['../RGFW_8h.html#a21c798f7e1b4b6a7cda731179018c936',1,'RGFW.h']]],
+  ['rgfw_5ffocusfunc_6',['RGFW_focusfunc',['../group__Callbacks.html#gaf38dcb718d7481ec4d42089b57a5a8a0',1,'RGFW.h']]],
+  ['rgfw_5fgamepadaxisfunc_7',['RGFW_gamepadAxisfunc',['../group__Callbacks.html#gac41270036ec7e6a1fe13f5195ffac620',1,'RGFW.h']]],
+  ['rgfw_5fgamepadbuttonfunc_8',['RGFW_gamepadButtonfunc',['../group__Callbacks.html#ga51b765242f5d4e0957edcc7846bcde1a',1,'RGFW.h']]],
+  ['rgfw_5fgamepadfunc_9',['RGFW_gamepadfunc',['../group__Callbacks.html#gac8a99ee53c6faef79c6b44a18be04ef9',1,'RGFW.h']]],
+  ['rgfw_5fkeyfunc_10',['RGFW_keyfunc',['../group__Callbacks.html#ga9f7fb510b530e9defde9f06447fb6e3e',1,'RGFW.h']]],
+  ['rgfw_5fmonitor_11',['RGFW_monitor',['../RGFW_8h.html#ae4f53c7d78c7c435bb81a99bd314df82',1,'RGFW.h']]],
+  ['rgfw_5fmousebuttonfunc_12',['RGFW_mousebuttonfunc',['../group__Callbacks.html#gac6e2dd7672895ab9f42675e968940654',1,'RGFW.h']]],
+  ['rgfw_5fmousenotifyfunc_13',['RGFW_mouseNotifyfunc',['../group__Callbacks.html#ga87a42ed9a18b27c9ae8a33fac73e8487',1,'RGFW.h']]],
+  ['rgfw_5fmouseposfunc_14',['RGFW_mouseposfunc',['../group__Callbacks.html#ga25051c19f1197f8b9cd68c1c5901d111',1,'RGFW.h']]],
+  ['rgfw_5fthread_15',['RGFW_thread',['../RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8',1,'RGFW.h']]],
+  ['rgfw_5fthreadfunc_5fptr_16',['RGFW_threadFunc_ptr',['../group__Threads.html#ga13d60c1d8ee57056290acdc59bfc37a0',1,'RGFW.h']]],
+  ['rgfw_5fwindow_17',['RGFW_window',['../RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6',1,'RGFW.h']]],
+  ['rgfw_5fwindow_5fsrc_18',['RGFW_window_src',['../RGFW_8h.html#abe2c5a2dd48c6c1b796834acbea50534',1,'RGFW.h']]],
+  ['rgfw_5fwindowmovefunc_19',['RGFW_windowmovefunc',['../group__Callbacks.html#gaee0b1849b0a801545113b5fa76272bf4',1,'RGFW.h']]],
+  ['rgfw_5fwindowquitfunc_20',['RGFW_windowquitfunc',['../group__Callbacks.html#ga18ae56dfa334dde3f7532077093c9691',1,'RGFW.h']]],
+  ['rgfw_5fwindowrefreshfunc_21',['RGFW_windowrefreshfunc',['../group__Callbacks.html#ga549ca7f50706b597bc36152bde169a9e',1,'RGFW.h']]],
+  ['rgfw_5fwindowresizefunc_22',['RGFW_windowresizefunc',['../group__Callbacks.html#gab6a2c06bb7288d94ea3d8f053fe292f2',1,'RGFW.h']]]
 ];

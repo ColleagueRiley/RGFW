@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['lockstate_0',['lockState',['../structRGFW__Event.html#af2fbb4c2c7ea5852e63fe6355bc65861',1,'RGFW_Event']]]
+  ['name_0',['name',['../structRGFW__monitor.html#aaea809cea2ca3420c64b1ae3d69bb3ae',1,'RGFW_monitor']]]
 ];

@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Mon Jan 6 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Tue Jan 7 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -110,10 +110,7 @@ RGFW.h
 .RI "#define \fBRGFW_MAX_DROPS\fP   260 /* max items you can drop at once */"
 .br
 .ti -1c
-.RI "#define \fBRGFW_CAPSLOCK\fP   (1L << 1)"
-.br
-.ti -1c
-.RI "#define \fBRGFW_NUMLOCK\fP   (1L << 2)"
+.RI "#define \fBRGFW_BIT\fP(x)   (1L << x)"
 .br
 .ti -1c
 .RI "#define \fBRGFW_POINT\fP(x,  y)   (\fBRGFW_point\fP){(\fBi32\fP)(x), (\fBi32\fP)(y)}"
@@ -207,7 +204,7 @@ RGFW.h
 .RI "typedef void(* \fBRGFW_windowrefreshfunc\fP) (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu32\fP key, \fBu32\fP mappedKey, \fBu8\fP lockState, \fBb8\fP pressed)"
+.RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP key, char keyChar, RGFW_keymod keyMod, \fBb8\fP pressed)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_mousebuttonfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP button, double scroll, \fBb8\fP pressed)"
@@ -249,6 +246,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_eventTypes)"
+.br
+.ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_keymod)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_gamepadCodes)"
@@ -571,7 +571,7 @@ RGFW.h
 
 .SS "#define RGFW_AREA(w, h)   (\fBRGFW_area\fP){(\fBu32\fP)(w), (\fBu32\fP)(h)}"
 
-.SS "#define RGFW_CAPSLOCK   (1L << 1)"
+.SS "#define RGFW_BIT(x)   (1L << x)"
 
 .SS "#define RGFW_ENUM(type, name)   type name; enum"
 
@@ -586,8 +586,6 @@ RGFW.h
 .SS "#define RGFW_MAX_PATH   260 /* max length of a path (for dnd) */"
 
 .SS "#define RGFW_MEMCPY(dist, src, len)   memcpy(dist, src, len)"
-
-.SS "#define RGFW_NUMLOCK   (1L << 2)"
 
 .SS "#define RGFW_OPENGL"
 
@@ -679,15 +677,15 @@ mouse wheel is scrolling down
 .SS "\fBRGFWDEF\fP void * RGFW_alloc (size_t len)"
 
 .SS "typedef RGFW_ENUM (\fBu16\fP, RGFW_windowArgs)"
-Optional arguments for making a windows < the window is transparent (only properly works on X11 and MacOS, although it's although for windows)
-.PP
-< the window doesn't have border
+Optional arguments for making a windows < the window doesn't have border
 .PP
 < the window cannot be resized by the user
 .PP
 < the window supports drag and drop
 .PP
 the window should hide the mouse or not (can be toggled later on) using `RGFW_window_mouseShow
+.PP
+< the window is transparent (only properly works on X11 and MacOS, although it's although for windows)
 .PP
 center the window on the screen
 .PP
@@ -703,7 +701,7 @@ key event note the code of the key pressed is stored in \fBRGFW_Event\&.key\fP !
 .PP
 while a string version is stored in RGFW_Event\&.KeyString
 .PP
-\fBRGFW_Event\&.lockState\fP holds the current lockState this means if CapsLock, NumLock are active or not
+\fBRGFW_Event\&.keyMod\fP holds the current keyMod this means if CapsLock, NumLock are active or not
 .PP
 < a mouse button has been pressed (left,middle,right)
 .PP
@@ -776,6 +774,8 @@ gamepad button codes (based on xbox/playstation), you may need to change these v
 < right trigger
 .PP
 < right thumb stick
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_keymod)"
+
 .SS "\fBRGFWDEF\fP void RGFW_free (void * ptr)"
 
 .SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP * RGFW_getMonitors (void)"

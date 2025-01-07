@@ -1,4 +1,4 @@
-.TH "RGFW_Event" 3 "Mon Jan 6 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_Event" 3 "Tue Jan 7 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -36,7 +36,7 @@ RGFW_Event
 .RI "\fBb8\fP \fBinFocus\fP"
 .br
 .ti -1c
-.RI "\fBu8\fP \fBlockState\fP"
+.RI "RGFW_keymod \fBkeyMod\fP"
 .br
 .ti -1c
 .RI "\fBu8\fP \fBbutton\fP"
@@ -90,7 +90,7 @@ if the window is in focus or not (this is always true for MacOS windows due to t
 the physical key of the event, refers to where key is physically !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! 
 .SS "\fBu8\fP RGFW_Event::keyChar"
 mapped key char of the event 
-.SS "\fBu8\fP RGFW_Event::lockState"
+.SS "RGFW_keymod RGFW_Event::keyMod"
 
 .SS "\fBRGFW_point\fP RGFW_Event::point"
 mouse x, y of event (or drop point) 

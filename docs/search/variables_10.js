@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['userdata_0',['userdata',['../structRGFW__allocator.html#acae051e384054a0b15b276d7870af28a',1,'RGFW_allocator']]],
-  ['userptr_1',['userPtr',['../structRGFW__window.html#a79f693fa547bb7834c244172f5f026b9',1,'RGFW_window']]]
+  ['w_0',['w',['../structRGFW__rect.html#ae9b18887b7389dc05283e4e54881b801',1,'RGFW_rect::w()'],['../structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a',1,'RGFW_area::w()']]],
+  ['whichaxis_1',['whichAxis',['../structRGFW__Event.html#a1ce60853bc9b9bec6c9da105d2e970ae',1,'RGFW_Event']]]
 ];

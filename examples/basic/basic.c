@@ -11,7 +11,7 @@ void drawLoop(RGFW_window* w); /* I seperate the draw loop only because it's run
 
 #ifdef RGFW_WINDOWS
 DWORD loop2(void* args);
-#else
+#else  
 void* loop2(void* args);
 #endif
 

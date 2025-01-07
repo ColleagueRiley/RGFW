@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['r_0',['r',['../structRGFW__window.html#a638e63f187096f668c11438ae44d8700',1,'RGFW_window']]],
-  ['rect_1',['rect',['../structRGFW__monitor.html#afad80514eed14d9349a5bb9c05f13d04',1,'RGFW_monitor']]],
-  ['repeat_2',['repeat',['../structRGFW__Event.html#a552543b84aa1402dc681d3b259ec988d',1,'RGFW_Event']]]
+  ['scalex_0',['scaleX',['../structRGFW__monitor.html#ac991866248d4babbd78fe1a7fd8ee145',1,'RGFW_monitor']]],
+  ['scaley_1',['scaleY',['../structRGFW__monitor.html#a906b121ba6fb271b108da0d063bb303e',1,'RGFW_monitor']]],
+  ['scroll_2',['scroll',['../structRGFW__Event.html#abdb3af67e91011ae2d03b613329f4774',1,'RGFW_Event']]],
+  ['src_3',['src',['../structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03',1,'RGFW_window']]]
 ];
