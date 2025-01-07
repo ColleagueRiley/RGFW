@@ -104,7 +104,7 @@ int main(void)
 
     while (!RGFW_window_shouldClose(window)) {
 		while (RGFW_window_checkEvent(window) != NULL) {
-			if (window->event.type == RGFW_eventQuit) 
+			if (window->event.type == RGFW_quit) 
 				break;
 		}
 

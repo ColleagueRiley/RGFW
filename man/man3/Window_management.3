@@ -16,7 +16,7 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP void \fBRGFW_setBufferSize\fP (\fBRGFW_area\fP size)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowArgs args)"
+.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_area\fP \fBRGFW_getScreenSize\fP (void)"
@@ -139,7 +139,7 @@ Window_management \- Window_management
 
 .SH "Function Documentation"
 .PP 
-.SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_createWindow (const char * name, \fBRGFW_rect\fP rect, RGFW_windowArgs args)"
+.SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_createWindow (const char * name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags)"
 function to create a window struct 
 .SS "typedef RGFW_ENUM (\fBi32\fP, RGFW_eventWait)"
 for RGFW_window_eventWait and RGFW_window_checkEvents waitMS -> Allows th e function to keep checking for events even after \fCRGFW_window_checkEvent == NULL\fP if waitMS == 0, the loop will not wait for events if waitMS == a positive integer, the loop will wait that many miliseconds after there are no more events until it returns if waitMS == a negative integer, the loop will not return until it gets another event 

@@ -102,13 +102,13 @@ a very simple example</h2>
 <div class="line"><span class="preprocessor">#include &lt;stdio.h&gt;</span></div>
 <div class="line"> </div>
 <div class="line"><span class="keywordtype">void</span> keyfunc(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, RGFW_Key key, <span class="keywordtype">char</span> keyChar, RGFW_keymod keyMod, <a class="code hl_typedef" href="RGFW_8h.html#ac0637ede9dd1adf38a4dffa452773d73">b8</a> pressed) {</div>
-<div class="line">    <span class="keywordflow">if</span> (key == RGFW_Escape &amp;&amp; pressed) {</div>
+<div class="line">    <span class="keywordflow">if</span> (key == RGFW_keysEscape &amp;&amp; pressed) {</div>
 <div class="line">        <a class="code hl_function" href="group__Window__management.html#gaf0292ade1017afd3d9df17e806bcb41b">RGFW_window_setShouldClose</a>(win);</div>
 <div class="line">    }</div>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line"><span class="keywordtype">int</span> main() {</div>
-<div class="line">    <a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win = <a class="code hl_function" href="group__Window__management.html#gafff7c604e2eea934ab6f9dab9eb5e961">RGFW_createWindow</a>(<span class="stringliteral">&quot;a window&quot;</span>, <a class="code hl_define" href="RGFW_8h.html#a2de5caedcb0adb5dc80d9f23758e0599">RGFW_RECT</a>(0, 0, 800, 600), RGFW_center | RGFW_noResize);</div>
+<div class="line">    <a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win = <a class="code hl_function" href="group__Window__management.html#gaf8a8eaf0d6031adb217117e43f161a3c">RGFW_createWindow</a>(<span class="stringliteral">&quot;a window&quot;</span>, <a class="code hl_define" href="RGFW_8h.html#a2de5caedcb0adb5dc80d9f23758e0599">RGFW_RECT</a>(0, 0, 800, 600), RGFW_windowCenter | RGFW_windowNoResize);</div>
 <div class="line"> </div>
 <div class="line">    <a class="code hl_function" href="group__Callbacks.html#gaade2b5b8ca4d3e0d3e3fe219ff9e2795">RGFW_setKeyCallback</a>(keyfunc); <span class="comment">// you can use callbacks like this if you want</span></div>
 <div class="line"> </div>
@@ -153,7 +153,7 @@ a very simple example</h2>
 <div class="ttc" id="agroup__Window__management_html_gab9fbaeec9a1268374ab141b6ccfc41a3"><div class="ttname"><a href="group__Window__management.html#gab9fbaeec9a1268374ab141b6ccfc41a3">RGFW_window_close</a></div><div class="ttdeci">RGFWDEF void RGFW_window_close(RGFW_window *win)</div></div>
 <div class="ttc" id="agroup__Window__management_html_gaf0292ade1017afd3d9df17e806bcb41b"><div class="ttname"><a href="group__Window__management.html#gaf0292ade1017afd3d9df17e806bcb41b">RGFW_window_setShouldClose</a></div><div class="ttdeci">RGFWDEF void RGFW_window_setShouldClose(RGFW_window *win)</div></div>
 <div class="ttc" id="agroup__Window__management_html_gaf7af05a4da3bbc3b8870fd29f82d1cf5"><div class="ttname"><a href="group__Window__management.html#gaf7af05a4da3bbc3b8870fd29f82d1cf5">RGFW_window_checkEvent</a></div><div class="ttdeci">RGFWDEF RGFW_event * RGFW_window_checkEvent(RGFW_window *win)</div></div>
-<div class="ttc" id="agroup__Window__management_html_gafff7c604e2eea934ab6f9dab9eb5e961"><div class="ttname"><a href="group__Window__management.html#gafff7c604e2eea934ab6f9dab9eb5e961">RGFW_createWindow</a></div><div class="ttdeci">RGFWDEF RGFW_window * RGFW_createWindow(const char *name, RGFW_rect rect, RGFW_windowArgs args)</div></div>
+<div class="ttc" id="agroup__Window__management_html_gaf8a8eaf0d6031adb217117e43f161a3c"><div class="ttname"><a href="group__Window__management.html#gaf8a8eaf0d6031adb217117e43f161a3c">RGFW_createWindow</a></div><div class="ttdeci">RGFWDEF RGFW_window * RGFW_createWindow(const char *name, RGFW_rect rect, RGFW_windowFlags flags)</div></div>
 <div class="ttc" id="agroup__graphics__API_html_ga986713977b14a729d11b228cfe7a1776"><div class="ttname"><a href="group__graphics__API.html#ga986713977b14a729d11b228cfe7a1776">RGFW_window_swapBuffers</a></div><div class="ttdeci">RGFWDEF void RGFW_window_swapBuffers(RGFW_window *win)</div></div>
 <div class="ttc" id="astructRGFW__event_html_a67b50f8eaad088c3e99a15b1d2adfeee"><div class="ttname"><a href="structRGFW__event.html#a67b50f8eaad088c3e99a15b1d2adfeee">RGFW_event::button</a></div><div class="ttdeci">u8 button</div><div class="ttdef"><b>Definition:</b> RGFW.h:601</div></div>
 <div class="ttc" id="astructRGFW__event_html_aba9e0d0df62210352604aedbb5829c11"><div class="ttname"><a href="structRGFW__event.html#aba9e0d0df62210352604aedbb5829c11">RGFW_event::point</a></div><div class="ttdeci">RGFW_point point</div><div class="ttdef"><b>Definition:</b> RGFW.h:591</div></div>

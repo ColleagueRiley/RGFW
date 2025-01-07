@@ -256,30 +256,30 @@ int main(int argc, char **argv) {
     /* handle RGFW events */
     while (RGFW_window_checkEvent(window)) {
       switch (window->event.type) {
-        case RGFW_eventQuit: break;
-        case RGFW_eventMousePosChanged: mu_input_mousemove(ctx, window->event.point.x,  window->event.point.y); break;
+        case RGFW_quit: break;
+        case RGFW_mousePosChanged: mu_input_mousemove(ctx, window->event.point.x,  window->event.point.y); break;
 
-        case RGFW_eventMouseButtonPressed:
+        case RGFW_mouseButtonPressed:
 		  mu_input_scroll(ctx, 0, window->event.scroll * -30);
-		case RGFW_eventMouseButtonReleased: {
+		case RGFW_mouseButtonReleased: {
           int b = button_map[window->event.button & 0xff];
-          if (b && window->event.type == RGFW_eventMouseButtonPressed) { mu_input_mousedown(ctx, window->event.point.x,  window->event.point.y , b); }
-          if (b && window->event.type == RGFW_eventMouseButtonReleased) { mu_input_mouseup(ctx, window->event.point.x,  window->event.point.y, b);   }
+          if (b && window->event.type == RGFW_mouseButtonPressed) { mu_input_mousedown(ctx, window->event.point.x,  window->event.point.y , b); }
+          if (b && window->event.type == RGFW_mouseButtonReleased) { mu_input_mouseup(ctx, window->event.point.x,  window->event.point.y, b);   }
           break;
         }
 		
-        case RGFW_eventKeyPressed: {
+        case RGFW_keyPressed: {
 		  char str[2] = {window->event.keyChar, '\0'};
 		  mu_input_text(ctx, str);
 	    }
-		case RGFW_eventKeyReleased: {
+		case RGFW_keyReleased: {
           int c = key_map[window->event.key & 0xff];
-          if (c && window->event.type == RGFW_eventKeyPressed) { mu_input_keydown(ctx, c); }
-          if (c && window->event.type == RGFW_eventKeyReleased) { mu_input_keyup(ctx, c);   }
+          if (c && window->event.type == RGFW_keyPressed) { mu_input_keydown(ctx, c); }
+          if (c && window->event.type == RGFW_keyReleased) { mu_input_keyup(ctx, c);   }
           break;
         }
 		
-		case RGFW_eventWindowResized:
+		case RGFW_windowResized:
 		  width = window->r.w; 
 		  height = window->r.h;
 		  break;

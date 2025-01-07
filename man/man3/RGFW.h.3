@@ -260,7 +260,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP \fBRGFW_getPrimaryMonitor\fP (void)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu16\fP, RGFW_windowArgs)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBu16\fP, RGFW_windowFlags)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setClassName\fP (const char *name)"
@@ -269,7 +269,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_setBufferSize\fP (\fBRGFW_area\fP size)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowArgs args)"
+.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_area\fP \fBRGFW_getScreenSize\fP (void)"
@@ -676,7 +676,7 @@ mouse wheel is scrolling down
 .PP 
 .SS "\fBRGFWDEF\fP void * RGFW_alloc (size_t len)"
 
-.SS "typedef RGFW_ENUM (\fBu16\fP, RGFW_windowArgs)"
+.SS "typedef RGFW_ENUM (\fBu16\fP, RGFW_windowFlags)"
 Optional arguments for making a windows < the window doesn't have border
 .PP
 < the window cannot be resized by the user

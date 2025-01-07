@@ -259,7 +259,7 @@ int main(int argc, const char* argv[]) {
 
 	while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
 		while (RGFW_window_checkEvent(win)) {
-			if (win->event.type == RGFW_eventWindowResized) {
+			if (win->event.type == RGFW_windowResized) {
 				if (state.wgpu.swapchain) {
 					wgpuSwapChainRelease(state.wgpu.swapchain);
 					state.wgpu.swapchain = NULL;

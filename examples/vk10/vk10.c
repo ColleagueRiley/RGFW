@@ -40,7 +40,7 @@ int main(void) {
     u8 running = 1;
     while (running && !RGFW_isPressed(win, RGFW_keyEscape)) {
         while (RGFW_window_checkEvent(win)) {
-            if (win->event.type == RGFW_eventQuit) {
+            if (win->event.type == RGFW_quit) {
                 running = 0;
                 break;
             }

@@ -43,13 +43,13 @@ This library does not
 #include <stdio\&.h>
 
 void keyfunc(RGFW_window* win, RGFW_Key key, char keyChar, RGFW_keymod keyMod, b8 pressed) {
-    if (key == RGFW_Escape && pressed) {
+    if (key == RGFW_keysEscape && pressed) {
         RGFW_window_setShouldClose(win);
     }
 }
 
 int main() {
-    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), RGFW_center | RGFW_noResize);
+    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), RGFW_windowCenter | RGFW_windowNoResize);
 
     RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want
 

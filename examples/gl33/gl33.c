@@ -172,7 +172,7 @@ int main(void)
     while (running && !RGFW_isPressed(window, RGFW_keyEscape))
     {
         while (RGFW_window_checkEvent(window)) {
-            if (window->event.type == RGFW_eventQuit) {
+            if (window->event.type == RGFW_quit) {
                 running = false;
                 break;
             }
