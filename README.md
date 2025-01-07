@@ -41,14 +41,16 @@ This library does not
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
-void keyfunc(RGFW_window* win, u32 key , u32 keyChar , char keyName[16], u8 lockState, u8 pressed) {
-    if (keycode == RGFW_Escape && pressed) {
+#include <stdio.h>
+
+void keyfunc(RGFW_window* win, RGFW_Key key, char keyChar, RGFW_keymod keyMod, b8 pressed) {
+    if (key == RGFW_Escape && pressed) {
         RGFW_window_setShouldClose(win);
     }
 }
 
 int main() {
-    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), (u16)(RGFW_CENTER | RGFW_NO_RESIZE));
+    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), RGFW_center | RGFW_noResize);
 
     RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want
 
@@ -85,8 +87,8 @@ int main() {
 
 ```sh
 linux : gcc main.c -lX11 -lGL -lXrandr
-windows : gcc main.c -lopengl32 -lshell32 -lgdi32 -lwinmm
-macos : gcc main.c -framework Foundation -framework AppKit -framework OpenGL -framework IOKit
+windows : gcc main.c -lopengl32 -lgdi32
+macos : gcc main.c -framework Cocoa -framework OpenGL -framework IOKit
 ```
 
 ## other examples

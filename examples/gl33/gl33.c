@@ -77,7 +77,7 @@ int main(void)
     }
     RGFW_window_makeCurrent(window);
     // RGFW_window_swapInterval(window, 60);
-
+    
     #ifndef RGFW_WEBASM
     if (RGL_loadGL3((RGLloadfunc)RGFW_getProcAddress))
     {

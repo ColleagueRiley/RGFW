@@ -12,9 +12,9 @@ CUSTOM_CFLAGS =
 # used for the examples
 CFLAGS = 
 
-DX11_LIBS = -static -lgdi32 -lwinmm -ldxgi -ld3d11 -luuid -ld3dcompiler
-VULKAN_LIBS = -lgdi32 -lwinmm -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
-LIBS := -static -luser32 -lgdi32 -lopengl32 -lwinmm -ggdb
+DX11_LIBS = -static -lgdi32 -ldxgi -ld3d11 -luuid -ld3dcompiler
+VULKAN_LIBS = -lgdi32 -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
+LIBS := -static -lgdi32 -lopengl32 -ggdb
 EXT = .exe
 LIB_EXT = .dll
 
