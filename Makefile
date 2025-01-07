@@ -211,7 +211,15 @@ examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.
 
 
 examples/gl33/gl33: examples/gl33/gl33.c RGFW.h
+ifeq ($(detected_OS),Linux)
+	$(CC) $(CFLAGS) -I. $<  -o $@$(EXT)
+else ifeq ($(detected_OS),windows)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lgdi32 -o $@$(EXT)
+else ifeq ($(detected_OS),Darwin)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -framework Cocoa  -o $@$(EXT)
+else
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL3) -o $@$(EXT)
+endif
 
 $(EXAMPLE_OUTPUTS): %: %.c RGFW.h
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL1)  -o $@$(EXT)

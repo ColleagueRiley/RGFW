@@ -29,6 +29,7 @@ This library
 2) is very small compared to other libraries
 3) only depends on system API libraries, Winapi, X11, Cocoa
 4) lets you create a window with a graphics context (OpenGL, Vulkan or DirectX) and manage the window and its events only with a few function calls 
+5) is customizable, you enable or disable features
 
 This library does not
 
@@ -91,6 +92,22 @@ windows : gcc main.c -lopengl32 -lgdi32
 macos : gcc main.c -framework Cocoa -framework OpenGL -framework IOKit
 ```
 
+## Dynamic Linking with XDL.h
+XDL can be used to dynamically link X11 functions to RGFW using `dl`. It allows X11 functions to loaded at runtime.
+
+To enable RGFW's use of XDL, add this line to your code:
+
+```c
+#define RGFW_USE_XDL
+```
+
+## OpenGL Linking Considerations
+    This only applies to Windows, macOS and X11 (if you're using `XDL.h`):
+    
+    By default, OpenGL does not need to be explicitly linked unless you are directly using OpenGL functions in your code. If you rely on a OpenGL loader library, you don't need to explicitly link OpenGL at all!
+
+    The examples/gl33/gl33 example demonstrates using OpenGL without explicitly linking it. 
+
 ## other examples
 ![examples](screenshot.PNG)
 
@@ -99,7 +116,7 @@ You can find more examples [here](examples) or [run it in your browser](https://
 # Officially tested Platforms 
 - Windows (ReactOS, XP, Windows 10, 11)
 - Linux
-- MacOS (10.13, 10.14, 14.5) (x86_64)
+- MacOS (10.13, 10.14, 10.15) (x86_64)
 - HTML5 (webasm / Emscripten)
 - Raspberry PI OS
 
