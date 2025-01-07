@@ -27,7 +27,7 @@ RGFW is multi-paradigm,\\ By default RGFW uses a flexible event system, similar 
 .PP
 This library
 .PP
-1) is single header and portable (written in C99 in mind) 2) is very small compared to other libraries 3) only depends on system API libraries, Winapi, X11, Cocoa 4) lets you create a window with a graphics context (OpenGL, Vulkan or DirectX) and manage the window and its events only with a few function calls
+1) is single header and portable (written in C99 in mind) 2) is very small compared to other libraries 3) only depends on system API libraries, Winapi, X11, Cocoa 4) lets you create a window with a graphics context (OpenGL, Vulkan or DirectX) and manage the window and its events only with a few function calls 5) is customizable, you enable or disable features
 .PP
 This library does not
 .PP
@@ -92,6 +92,22 @@ windows : gcc main\&.c -lopengl32 -lgdi32
 macos : gcc main\&.c -framework Cocoa -framework OpenGL -framework IOKit
 .fi
 .PP
+.SS "Dynamic Linking with XDL\&.h"
+XDL can be used to dynamically link X11 functions to RGFW using \fCdl\fP\&. It allows X11 functions to loaded at runtime\&.
+.PP
+To enable RGFW's use of XDL, add this line to your code:
+.PP
+.PP
+.nf
+#define RGFW_USE_XDL
+.fi
+.PP
+.SS "OpenGL Linking Considerations"
+This only applies to Windows, macOS and X11 (if you're using \fC\fBXDL\&.h\fP\fP):
+.PP
+By default, OpenGL does not need to be explicitly linked unless you are directly using OpenGL functions in your code\&. If you rely on a OpenGL loader library, you don't need to explicitly link OpenGL at all!
+.PP
+The examples/gl33/gl33 example demonstrates using OpenGL without explicitly linking it\&.
 .SS "other examples"
 .PP
 You can find more examples [here](examples) or \fCrun it in your browser\fP with emscripten
@@ -102,7 +118,7 @@ Windows (ReactOS, XP, Windows 10, 11)
 .IP "\(bu" 2
 Linux
 .IP "\(bu" 2
-MacOS (10\&.13, 10\&.14, 14\&.5) (x86_64)
+MacOS (10\&.13, 10\&.14, 10\&.15) (x86_64)
 .IP "\(bu" 2
 HTML5 (webasm / Emscripten)
 .IP "\(bu" 2

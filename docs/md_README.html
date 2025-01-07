@@ -89,7 +89,7 @@ About</h1>
 <p >RGFW was designed as a backend for RSGL, but it can be used standalone or for other libraries, such as Raylib which uses it as an optional alternative backend.</p>
 <p >RGFW is multi-paradigm,\ By default RGFW uses a flexible event system, similar to that of SDL, however you can use callbacks if you prefer that method.</p>
 <p >This library</p>
-<p >1) is single header and portable (written in C99 in mind) 2) is very small compared to other libraries 3) only depends on system API libraries, Winapi, X11, Cocoa 4) lets you create a window with a graphics context (OpenGL, Vulkan or DirectX) and manage the window and its events only with a few function calls</p>
+<p >1) is single header and portable (written in C99 in mind) 2) is very small compared to other libraries 3) only depends on system API libraries, Winapi, X11, Cocoa 4) lets you create a window with a graphics context (OpenGL, Vulkan or DirectX) and manage the window and its events only with a few function calls 5) is customizable, you enable or disable features</p>
 <p >This library does not</p>
 <p >1) Handle any rendering for you (other than creating your graphics context) 2) do anything above the bare minimum in terms of functionality</p>
 <h1><a class="anchor" id="autotoc_md3"></a>
@@ -166,44 +166,54 @@ a very simple example</h2>
 <div class="line">windows : gcc main.c -lopengl32 -lgdi32</div>
 <div class="line">macos : gcc main.c -framework Cocoa -framework OpenGL -framework IOKit</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md5"></a>
+Dynamic Linking with XDL.h</h2>
+<p >XDL can be used to dynamically link X11 functions to RGFW using <code>dl</code>. It allows X11 functions to loaded at runtime.</p>
+<p >To enable RGFW's use of XDL, add this line to your code:</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#define RGFW_USE_XDL</span></div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md6"></a>
+OpenGL Linking Considerations</h2>
+<p >This only applies to Windows, macOS and X11 (if you're using <code><a class="el" href="XDL_8h.html">XDL.h</a></code>):</p>
+<p >By default, OpenGL does not need to be explicitly linked unless you are directly using OpenGL functions in your code. If you rely on a OpenGL loader library, you don't need to explicitly link OpenGL at all!</p>
+<p >The examples/gl33/gl33 example demonstrates using OpenGL without explicitly linking it.</p>
+<h2><a class="anchor" id="autotoc_md7"></a>
 other examples</h2>
 <p ><img src="screenshot.PNG" alt="examples" class="inline"/></p>
 <p >You can find more examples [here](examples) or <a href="https://colleagueriley.github.io/RGFW/">run it in your browser</a> with emscripten</p>
-<h1><a class="anchor" id="autotoc_md6"></a>
+<h1><a class="anchor" id="autotoc_md8"></a>
 Officially tested Platforms</h1>
 <ul>
 <li>Windows (ReactOS, XP, Windows 10, 11)</li>
 <li>Linux</li>
-<li>MacOS (10.13, 10.14, 14.5) (x86_64)</li>
+<li>MacOS (10.13, 10.14, 10.15) (x86_64)</li>
 <li>HTML5 (webasm / Emscripten)</li>
 <li>Raspberry PI OS</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md7"></a>
+<h1><a class="anchor" id="autotoc_md9"></a>
 Supported GUI libraries</h1>
 <p >A list of GUI libraries that can be used with RGFW can be found on the RGFW wiki <a href="https://github.com/ColleagueRiley/RGFW/wiki/GUI-libraries-that-can-be-used-with-RGFW">here</a></p>
-<h1><a class="anchor" id="autotoc_md8"></a>
+<h1><a class="anchor" id="autotoc_md10"></a>
 Documentation</h1>
 <p >There is a lot of in-header-documentation, but more documentation can be found at <a href="https://colleagueriley.github.io/RGFW/docs/index.html">https://colleagueriley.github.io/RGFW/docs/index.html</a> If you wish to build the documentation yourself, there is also a Doxygen file attached.</p>
-<h1><a class="anchor" id="autotoc_md9"></a>
+<h1><a class="anchor" id="autotoc_md11"></a>
 Bindings</h1>
 <p >A list of bindings can be found on the RGFW wiki <a href="https://github.com/ColleagueRiley/RGFW/wiki/Bindings">here</a></p>
-<h1><a class="anchor" id="autotoc_md10"></a>
+<h1><a class="anchor" id="autotoc_md12"></a>
 projects</h1>
 <p >A list of projects that use RGFW can be found on the RGFW wiki <a href="https://github.com/ColleagueRiley/RGFW/wiki/Projects-that-use-RGFW">here</a></p>
-<h1><a class="anchor" id="autotoc_md11"></a>
+<h1><a class="anchor" id="autotoc_md13"></a>
 Contacts</h1>
 <ul>
 <li>email : <a href="#" onclick="location.href='mai'+'lto:'+'Col'+'le'+'agu'+'eR'+'ile'+'y@'+'gma'+'il'+'.co'+'m'; return false;">Colle<span class="obfuscator">.nosp@m.</span>ague<span class="obfuscator">.nosp@m.</span>Riley<span class="obfuscator">.nosp@m.</span>@gma<span class="obfuscator">.nosp@m.</span>il.co<span class="obfuscator">.nosp@m.</span>m</a></li>
 <li>discord : ColleagueRiley</li>
 <li>discord server : <a href="https://discord.gg/pXVNgVVbvh">https://discord.gg/pXVNgVVbvh</a></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md12"></a>
+<h1><a class="anchor" id="autotoc_md14"></a>
 Supporting RGFW</h1>
 <p >There is a RGFW wiki page about things you can do if you want to support the development of RGFW <a href="https://github.com/ColleagueRiley/RGFW/wiki/Supporting-RGFW">here</a>.</p>
-<h1><a class="anchor" id="autotoc_md13"></a>
+<h1><a class="anchor" id="autotoc_md15"></a>
 RGFW vs GLFW</h1>
 <p >A comparison of RGFW and GLFW can be found at <a href="https://github.com/ColleagueRiley/RGFW/wiki/RGFW-vs-GLFW">on the wiki</a></p>
-<h1><a class="anchor" id="autotoc_md14"></a>
+<h1><a class="anchor" id="autotoc_md16"></a>
 License</h1>
 <p >RGFW uses the Zlib/libPNG license, this means you can use RGFW freely as long as you do not claim you wrote this software, mark altered versions as such and keep the license included with the header.</p>
 <div class="fragment"><div class="line">Permission is granted to anyone to use this software for any purpose,</div>
