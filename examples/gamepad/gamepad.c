@@ -17,23 +17,23 @@ int main(void) {
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win) != NULL) {
             switch (win->event.type) {
-                case RGFW_eventGamepadButtonPressed:
+                case RGFW_gamepadButtonPressed:
                     printf("Gamepad (%i) button pressed %i\n", win->event.gamepad, win->event.button);
                     break;
-                case RGFW_eventGamepadButtonReleased:
+                case RGFW_gamepadButtonReleased:
                     printf("Gamepad (%i) button pressed %i\n", win->event.gamepad, win->event.button);
                     break;
-                case RGFW_eventGamepadAxisMove:
+                case RGFW_gamepadAxisMove:
                     printf("Gamepad (%i) axis (%i) {%i, %i}\n", win->event.gamepad, win->event.whichAxis, win->event.axis[win->event.whichAxis].x, win->event.axis[win->event.whichAxis].y);
                     break;
-                case RGFW_eventGamepadConnected:
+                case RGFW_gamepadConnected:
                     printf("Gamepad (%i) connected %s\n", win->event.gamepad, RGFW_getGamepadName(win, win->event.gamepad));
                     break;
-                case RGFW_eventGamepadDisconnected:
+                case RGFW_gamepadDisconnected:
                     printf("Gamepad (%i) disconnected %s\n", win->event.gamepad, RGFW_getGamepadName(win, win->event.gamepad));
                 break;
                 
-                case RGFW_eventKeyPressed:
+                case RGFW_keyPressed:
                     if (win->event.key == RGFW_keyLeft && gamepad > 0) gamepad--;
                     if (win->event.key == RGFW_keyRight && (gamepad + 1) < RGFW_getGamepadCount(win)) gamepad++;
                     break;

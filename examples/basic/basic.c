@@ -58,13 +58,13 @@ int main(void) {
         RGFW_window_eventWait(win, RGFW_eventWaitNext);
 
         while (RGFW_window_checkEvent(win) != NULL) {
-            if (win->event.type == RGFW_eventWindowMoved) {
+            if (win->event.type == RGFW_windowMoved) {
                 printf("window moved\n");
             }
-            else if (win->event.type == RGFW_eventWindowResized) {
+            else if (win->event.type == RGFW_windowResized) {
                 printf("window resized\n");
             }
-            if (win->event.type == RGFW_eventQuit) {
+            if (win->event.type == RGFW_quit) {
                 running = 0;  
                 break;
             }
@@ -85,15 +85,15 @@ int main(void) {
                 RGFW_window_setMouse(win, icon, RGFW_AREA(3, 3), 4);
             }
 
-            if (win->event.type == RGFW_eventDND) {
+            if (win->event.type == RGFW_DND) {
                 for (i = 0; i < win->event.droppedFilesCount; i++)
                     printf("dropped : %s\n", win->event.droppedFiles[i]);
             }
 
-            else if (win->event.type == RGFW_eventGamepadButtonPressed)
+            else if (win->event.type == RGFW_gamepadButtonPressed)
                 printf("pressed %i\n", win->event.button);
 
-            else if (win->event.type == RGFW_eventGamepadAxisMove)
+            else if (win->event.type == RGFW_gamepadAxisMove)
                 printf("Gamepad (%i) axis (%i) {%i, %i}\n", win->event.gamepad, win->event.whichAxis, win->event.axis[win->event.whichAxis].x, win->event.axis[win->event.whichAxis].y);
         }
 
@@ -153,22 +153,22 @@ void* loop2(void* args) {
         /* 
             I could've also done
 
-            if (RGFW_checkEvents(win).type == RGFW_eventquit)
+            if (RGFW_checkEvents(win).type == RGFW_quit)
         */
 
-        if (win->event.type == RGFW_eventQuit)
+        if (win->event.type == RGFW_quit)
             break;
 
-        if (win->event.type == RGFW_eventMouseButtonPressed) {
+        if (win->event.type == RGFW_mouseButtonPressed) {
             #ifndef __APPLE__
             RGFW_stopCheckEvents();
             #endif
         }
 
-        if (win->event.type == RGFW_eventGamepadButtonPressed)
+        if (win->event.type == RGFW_gamepadButtonPressed)
             printf("pressed %i\n", win->event.button);
 
-        else if (win->event.type == RGFW_eventGamepadAxisMove && !win->event.button)
+        else if (win->event.type == RGFW_gamepadAxisMove && !win->event.button)
             printf("Gamepad (%i) axis (%i) {%i, %i}\n", win->event.gamepad, win->event.whichAxis, win->event.axis[win->event.whichAxis].x, win->event.axis[win->event.whichAxis].y);
         drawLoop(win);
     }

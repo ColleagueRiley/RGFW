@@ -44,11 +44,11 @@ int main(void) {
 
     while (RGFW_window_shouldClose(win) == 0) {
         while (RGFW_window_checkEvent(win)) {
-            if (win->event.type == RGFW_eventQuit)
+            if (win->event.type == RGFW_quit)
                 break;
 
             switch (win->event.type) {
-                case RGFW_eventMousePosChanged: {      
+                case RGFW_mousePosChanged: {      
                     int dev_x = win->event.point.x;
                     int dev_y = win->event.point.y;
                     
@@ -57,7 +57,7 @@ int main(void) {
                     pitch += (float)dev_y / 15.0;
                     break;
                 }
-                case RGFW_eventKeyPressed:
+                case RGFW_keyPressed:
                     switch (win->event.key) {
                         case RGFW_keyReturn:
                             RGFW_window_showMouse(win, 0);
@@ -90,7 +90,7 @@ int main(void) {
             }
         }
 
-        if (win->event.type == RGFW_eventQuit)
+        if (win->event.type == RGFW_quit)
             break;
         
         if (RGFW_isPressed(win, RGFW_keyW)) {
