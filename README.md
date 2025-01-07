@@ -101,12 +101,14 @@ To enable RGFW's use of XDL, add this line to your code:
 #define RGFW_USE_XDL
 ```
 
-## OpenGL Linking Considerations
-    This only applies to Windows, macOS and X11 (if you're using `XDL.h`):
+## Linking OpenGL is not required
+This only applies to Windows, macOS and X11 (with `XDL.h`):
     
-    By default, OpenGL does not need to be explicitly linked unless you are directly using OpenGL functions in your code. If you rely on a OpenGL loader library, you don't need to explicitly link OpenGL at all!
+    
+By default, OpenGL does not need to be explicitly linked unless you are directly using OpenGL functions in your code. If you rely on a OpenGL loader library, you don't need to explicitly link OpenGL at all!
 
-    The examples/gl33/gl33 example demonstrates using OpenGL without explicitly linking it. 
+    
+The examples/gl33/gl33 example demonstrates using OpenGL without explicitly linking it. 
 
 ## other examples
 ![examples](screenshot.PNG)
