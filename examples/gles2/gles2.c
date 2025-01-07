@@ -23,7 +23,7 @@ GLuint load_shader(const char *shaderSource, GLenum type) {
 }
 
 int main(void) {
-  RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(0, 0, 500, 500), RGFW_center);
+  RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(0, 0, 500, 500), RGFW_windowCenter);
 
    ///////  the openGL part  ///////////////////////////////////////////////////////////////
  

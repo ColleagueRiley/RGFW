@@ -29,7 +29,7 @@ int main() {
 	RGFW_area area = RGFW_AREA(500, 500);
 	RGFW_setBufferSize(area);
 
-	RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_center | RGFW_noResize);
+	RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_windowCenter | RGFW_windowNoResize);
 
 	glContext context;
 	init_glContext(&context, (u32**)&win->buffer, area.w, 500, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
@@ -61,7 +61,7 @@ int main() {
 
 	while (running) {
 		while (RGFW_window_checkEvent(win)) {
-			if (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_Escape)) {
+			if (win->event.type == RGFW_eventQuit || RGFW_isPressed(win, RGFW_keyEscape)) {
 				running = 0;
 				break;
 			}

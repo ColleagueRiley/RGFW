@@ -5,7 +5,7 @@ var searchData=
   ['rgfw_5fallocatormallocfunc_2',['RGFW_allocatorMallocfunc',['../RGFW_8h.html#a03decc888fdbe0e928135d2d230bff2f',1,'RGFW.h']]],
   ['rgfw_5fdndfunc_3',['RGFW_dndfunc',['../group__Callbacks.html#ga88b96a9a919baf0787bb4ba0dae9afcf',1,'RGFW.h']]],
   ['rgfw_5fdndinitfunc_4',['RGFW_dndInitfunc',['../group__Callbacks.html#ga0f23d16fc1842746e340f74ce5297238',1,'RGFW.h']]],
-  ['rgfw_5fevent_5',['RGFW_Event',['../RGFW_8h.html#a21c798f7e1b4b6a7cda731179018c936',1,'RGFW.h']]],
+  ['rgfw_5fevent_5',['RGFW_event',['../RGFW_8h.html#aea63f79e85fe16723edb7cfc0caf0a12',1,'RGFW.h']]],
   ['rgfw_5ffocusfunc_6',['RGFW_focusfunc',['../group__Callbacks.html#gaf38dcb718d7481ec4d42089b57a5a8a0',1,'RGFW.h']]],
   ['rgfw_5fgamepadaxisfunc_7',['RGFW_gamepadAxisfunc',['../group__Callbacks.html#gac41270036ec7e6a1fe13f5195ffac620',1,'RGFW.h']]],
   ['rgfw_5fgamepadbuttonfunc_8',['RGFW_gamepadButtonfunc',['../group__Callbacks.html#ga51b765242f5d4e0957edcc7846bcde1a',1,'RGFW.h']]],

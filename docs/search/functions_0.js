@@ -56,7 +56,7 @@ var searchData=
   ['rgfw_5fstopcheckevents_53',['RGFW_stopCheckEvents',['../group__Window__management.html#ga77d53bb9ffadd6f6c5149be8a46612e1',1,'RGFW.h']]],
   ['rgfw_5fwasmousepressed_54',['RGFW_wasMousePressed',['../group__Input.html#gad66e77150e8f4b70ed6e7aba6dd82e32',1,'RGFW.h']]],
   ['rgfw_5fwaspressed_55',['RGFW_wasPressed',['../group__Input.html#ga55c79a52249727cdc872552e334f47c0',1,'RGFW.h']]],
-  ['rgfw_5fwindow_5fcheckevent_56',['RGFW_window_checkEvent',['../group__Window__management.html#gae4399d68b72a63fab108a33e3a7fa28b',1,'RGFW.h']]],
+  ['rgfw_5fwindow_5fcheckevent_56',['RGFW_window_checkEvent',['../group__Window__management.html#gaf7af05a4da3bbc3b8870fd29f82d1cf5',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fcheckevents_57',['RGFW_window_checkEvents',['../group__Window__management.html#ga0bbdc2aa27b93d4bf37ecd4709b3a87a',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fcheckfps_58',['RGFW_window_checkFPS',['../group__graphics__API.html#ga03a7dc0f1bcfe16ea58f536339cf4fe8',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fclose_59',['RGFW_window_close',['../group__Window__management.html#gab9fbaeec9a1268374ab141b6ccfc41a3',1,'RGFW.h']]],

@@ -53,7 +53,7 @@ int main(void)
 		exit(EXIT_FAILURE);
     }
 
-    RGFW_window* window = RGFW_createWindow("RGFW Metal example", RGFW_RECT(0, 0, 640, 480), RGFW_center);
+    RGFW_window* window = RGFW_createWindow("RGFW Metal example", RGFW_RECT(0, 0, 640, 480), RGFW_windowCenter);
 
     CAMetalLayer* layer = [CAMetalLayer layer];
     layer.device = device;
@@ -104,7 +104,7 @@ int main(void)
 
     while (!RGFW_window_shouldClose(window)) {
 		while (RGFW_window_checkEvent(window) != NULL) {
-			if (window->event.type == RGFW_quit) 
+			if (window->event.type == RGFW_eventQuit) 
 				break;
 		}
 

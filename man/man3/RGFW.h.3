@@ -34,7 +34,7 @@ RGFW.h
 .RI "struct \fBRGFW_monitor\fP"
 .br
 .ti -1c
-.RI "struct \fBRGFW_Event\fP"
+.RI "struct \fBRGFW_event\fP"
 .br
 .ti -1c
 .RI "struct \fBRGFW_window_src\fP"
@@ -168,7 +168,7 @@ RGFW.h
 .RI "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
 .br
 .ti -1c
-.RI "typedef struct \fBRGFW_Event\fP \fBRGFW_Event\fP"
+.RI "typedef struct \fBRGFW_event\fP \fBRGFW_event\fP"
 .br
 .ti -1c
 .RI "typedef struct \fBRGFW_window_src\fP \fBRGFW_window_src\fP"
@@ -275,7 +275,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_area\fP \fBRGFW_getScreenSize\fP (void)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_Event\fP * \fBRGFW_window_checkEvent\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_event\fP * \fBRGFW_window_checkEvent\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_eventWait)"
@@ -629,7 +629,7 @@ RGFW.h
 
 .SS "typedef void *(* RGFW_allocatorMallocfunc) (void *userdata, size_t size)"
 
-.SS "typedef struct \fBRGFW_Event\fP \fBRGFW_Event\fP"
+.SS "typedef struct \fBRGFW_event\fP \fBRGFW_event\fP"
 Event structure for checking/getting events 
 .SS "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
 structure for monitor data 
@@ -650,7 +650,7 @@ source data for the window (used by the APIs)
 .SH "Enumeration Type Documentation"
 .PP 
 .SS "enum \fBRGFW_mouse_codes\fP"
-mouse button codes (\fBRGFW_Event\&.button\fP) 
+mouse button codes (\fBRGFW_event\&.button\fP) 
 .PP
 \fBEnumerator\fP
 .in +1c
@@ -697,11 +697,11 @@ event codes
 .PP
 < a key has been released
 .PP
-key event note the code of the key pressed is stored in \fBRGFW_Event\&.key\fP !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!!
+key event note the code of the key pressed is stored in \fBRGFW_event\&.key\fP !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!!
 .PP
-while a string version is stored in RGFW_Event\&.KeyString
+while a string version is stored in RGFW_event\&.KeyString
 .PP
-\fBRGFW_Event\&.keyMod\fP holds the current keyMod this means if CapsLock, NumLock are active or not
+\fBRGFW_event\&.keyMod\fP holds the current keyMod this means if CapsLock, NumLock are active or not
 .PP
 < a mouse button has been pressed (left,middle,right)
 .PP
@@ -709,9 +709,9 @@ while a string version is stored in RGFW_Event\&.KeyString
 .PP
 < the position of the mouse has been changed
 .PP
-mouse event note the x and y of the mouse can be found in the vector, \fBRGFW_Event\&.point\fP
+mouse event note the x and y of the mouse can be found in the vector, \fBRGFW_event\&.point\fP
 .PP
-\fBRGFW_Event\&.button\fP holds which mouse button was pressed
+\fBRGFW_event\&.button\fP holds which mouse button was pressed
 .PP
 < a gamepad was connected
 .PP
@@ -723,9 +723,9 @@ mouse event note the x and y of the mouse can be found in the vector, \fBRGFW_Ev
 .PP
 < an axis of a gamepad was moved
 .PP
-gamepad event note \fBRGFW_Event\&.gamepad\fP holds which gamepad was altered, if any \fBRGFW_Event\&.button\fP holds which gamepad button was pressed
+gamepad event note \fBRGFW_event\&.gamepad\fP holds which gamepad was altered, if any \fBRGFW_event\&.button\fP holds which gamepad button was pressed
 .PP
-\fBRGFW_Event\&.axis\fP holds the data of all the axis \fBRGFW_Event\&.axisesCount\fP says how many axis there are
+\fBRGFW_event\&.axis\fP holds the data of all the axis \fBRGFW_event\&.axisesCount\fP says how many axis there are
 .PP
 < the window was moved (b the user)
 .PP

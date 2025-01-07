@@ -21,14 +21,14 @@ typedef int64_t    i64;
 
 int main(void) {
     RGFW_setBufferSize(RGFW_AREA(500, 500));
-    RGFW_window* win = RGFW_createWindow("Basic buffer example", RGFW_RECT(0, 0, 500, 500), RGFW_center | RGFW_transparent | RGFW_noResize);
+    RGFW_window* win = RGFW_createWindow("Basic buffer example", RGFW_RECT(0, 0, 500, 500), RGFW_windowCenter | RGFW_windowTransparent | RGFW_windowNoResize);
 
     u32 angle = 0;
 
     i8 running = 1;
     while (running) {
         while (RGFW_window_checkEvent(win)) {
-            if (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_Escape)) {
+            if (win->event.type == RGFW_eventQuit || RGFW_isPressed(win, RGFW_keyEscape)) {
                 running = 0;
                 break;
             }   

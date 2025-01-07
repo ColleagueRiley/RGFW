@@ -1,8 +1,8 @@
-.TH "RGFW_Event" 3 "Tue Jan 7 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_event" 3 "Tue Jan 7 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-RGFW_Event
+RGFW_event
 .SH SYNOPSIS
 .br
 .PP
@@ -68,39 +68,39 @@ RGFW_Event
 Event structure for checking/getting events 
 .SH "Member Data Documentation"
 .PP 
-.SS "\fBRGFW_point\fP RGFW_Event::axis[4]"
+.SS "\fBRGFW_point\fP RGFW_event::axis[4]"
 x, y of axises (-100 to 100) 
-.SS "\fBu8\fP RGFW_Event::axisesCount"
+.SS "\fBu8\fP RGFW_event::axisesCount"
 which gamepad this event applies to (if applicable to any) number of axises 
-.SS "\fBu8\fP RGFW_Event::button"
+.SS "\fBu8\fP RGFW_event::button"
 
-.SS "char RGFW_Event::droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP]"
+.SS "char RGFW_event::droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP]"
 drag and drop data dropped files 
-.SS "\fBu32\fP RGFW_Event::droppedFilesCount"
+.SS "\fBu32\fP RGFW_event::droppedFilesCount"
 house many files were dropped 
-.SS "\fBu64\fP RGFW_Event::frameTime"
+.SS "\fBu64\fP RGFW_event::frameTime"
 
-.SS "\fBu64\fP RGFW_Event::frameTime2"
+.SS "\fBu64\fP RGFW_event::frameTime2"
 this is used for counting the fps 
-.SS "\fBu16\fP RGFW_Event::gamepad"
+.SS "\fBu16\fP RGFW_event::gamepad"
 
-.SS "\fBb8\fP RGFW_Event::inFocus"
+.SS "\fBb8\fP RGFW_event::inFocus"
 if the window is in focus or not (this is always true for MacOS windows due to the api being weird) 
-.SS "\fBu8\fP RGFW_Event::key"
+.SS "\fBu8\fP RGFW_event::key"
 the physical key of the event, refers to where key is physically !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! 
-.SS "\fBu8\fP RGFW_Event::keyChar"
+.SS "\fBu8\fP RGFW_event::keyChar"
 mapped key char of the event 
-.SS "RGFW_keymod RGFW_Event::keyMod"
+.SS "RGFW_keymod RGFW_event::keyMod"
 
-.SS "\fBRGFW_point\fP RGFW_Event::point"
+.SS "\fBRGFW_point\fP RGFW_event::point"
 mouse x, y of event (or drop point) 
-.SS "\fBb8\fP RGFW_Event::repeat"
+.SS "\fBb8\fP RGFW_event::repeat"
 key press event repeated (the key is being held) 
-.SS "double RGFW_Event::scroll"
+.SS "double RGFW_event::scroll"
 the raw mouse scroll value 
-.SS "\fBu32\fP RGFW_Event::type"
+.SS "\fBu32\fP RGFW_event::type"
 which event has been sent? 
-.SS "\fBu8\fP RGFW_Event::whichAxis"
+.SS "\fBu8\fP RGFW_event::whichAxis"
 
 
 .SH "Author"

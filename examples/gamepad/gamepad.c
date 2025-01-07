@@ -9,7 +9,7 @@
 void drawGamepad(RGFW_window* w, size_t gamepad);
 
 int main(void) {
-	RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(0, 0, 800, 450), RGFW_center);
+	RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(0, 0, 800, 450), RGFW_windowCenter);
     RGFW_window_makeCurrent(win);
 
     size_t gamepad = 0;
@@ -17,25 +17,25 @@ int main(void) {
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win) != NULL) {
             switch (win->event.type) {
-                case RGFW_gamepadButtonPressed:
+                case RGFW_eventGamepadButtonPressed:
                     printf("Gamepad (%i) button pressed %i\n", win->event.gamepad, win->event.button);
                     break;
-                case RGFW_gamepadButtonReleased:
+                case RGFW_eventGamepadButtonReleased:
                     printf("Gamepad (%i) button pressed %i\n", win->event.gamepad, win->event.button);
                     break;
-                case RGFW_gamepadAxisMove:
+                case RGFW_eventGamepadAxisMove:
                     printf("Gamepad (%i) axis (%i) {%i, %i}\n", win->event.gamepad, win->event.whichAxis, win->event.axis[win->event.whichAxis].x, win->event.axis[win->event.whichAxis].y);
                     break;
-                case RGFW_gamepadConnected:
+                case RGFW_eventGamepadConnected:
                     printf("Gamepad (%i) connected %s\n", win->event.gamepad, RGFW_getGamepadName(win, win->event.gamepad));
                     break;
-                case RGFW_gamepadDisconnected:
+                case RGFW_eventGamepadDisconnected:
                     printf("Gamepad (%i) disconnected %s\n", win->event.gamepad, RGFW_getGamepadName(win, win->event.gamepad));
                 break;
                 
-                case RGFW_keyPressed:
-                    if (win->event.key == RGFW_Left && gamepad > 0) gamepad--;
-                    if (win->event.key == RGFW_Right && (gamepad + 1) < RGFW_getGamepadCount(win)) gamepad++;
+                case RGFW_eventKeyPressed:
+                    if (win->event.key == RGFW_keyLeft && gamepad > 0) gamepad--;
+                    if (win->event.key == RGFW_keyRight && (gamepad + 1) < RGFW_getGamepadCount(win)) gamepad++;
                     break;
                 default: break;
             }

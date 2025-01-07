@@ -39,7 +39,7 @@ void mouseNotifyfunc(RGFW_window* win, RGFW_point point, u8 status) {
 }
 
 void mouseposfunc(RGFW_window* win, RGFW_point point) {
-    if (window != win || RGFW_isPressed(win, RGFW_ControlL) == 0) return;
+    if (window != win || RGFW_isPressed(win, RGFW_keyControlL) == 0) return;
     printf("mouse moved %i %i\n", point.x, point.y);
 }
 
@@ -84,7 +84,7 @@ void mousebuttonfunc(RGFW_window* win, u8 button, double scroll, u8 pressed) {
 
 
 int main(void) {
-    window = RGFW_createWindow("RGFW Callbacks", RGFW_RECT(500, 500, 500, 500), RGFW_center | RGFW_allowDND);
+    window = RGFW_createWindow("RGFW Callbacks", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND);
 
 	RGFW_setWindowMoveCallback(windowmovefunc);
 	RGFW_setWindowResizeCallback(windowresizefunc);

@@ -11,7 +11,7 @@ RGFWDEF void update_camera(void);
 RGFWDEF void glPerspective(double fovY, double aspect, double zNear, double zFar);
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("First person camera", RGFW_RECT(0, 0, 800, 450), RGFW_center | RGFW_noResize );
+    RGFW_window* win = RGFW_createWindow("First person camera", RGFW_RECT(0, 0, 800, 450), RGFW_windowCenter | RGFW_windowNoResize );
 
     RGFW_window_showMouse(win, 0);
     glEnable(GL_DEPTH_TEST);
@@ -44,11 +44,11 @@ int main(void) {
 
     while (RGFW_window_shouldClose(win) == 0) {
         while (RGFW_window_checkEvent(win)) {
-            if (win->event.type == RGFW_quit)
+            if (win->event.type == RGFW_eventQuit)
                 break;
 
             switch (win->event.type) {
-                case RGFW_mousePosChanged: {      
+                case RGFW_eventMousePosChanged: {      
                     int dev_x = win->event.point.x;
                     int dev_y = win->event.point.y;
                     
@@ -57,28 +57,28 @@ int main(void) {
                     pitch += (float)dev_y / 15.0;
                     break;
                 }
-                case RGFW_keyPressed:
+                case RGFW_eventKeyPressed:
                     switch (win->event.key) {
-                        case RGFW_Return:
+                        case RGFW_keyReturn:
                             RGFW_window_showMouse(win, 0);
                             RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
                             break;
                         
-                        case RGFW_BackSpace:
+                        case RGFW_keyBackSpace:
                             RGFW_window_showMouse(win, 1);
                             RGFW_window_mouseUnhold(win);    
                             break;
 
-                        case RGFW_Left:
+                        case RGFW_keyLeft:
                             yaw -= 5;
                             break;
-                        case RGFW_Right:
+                        case RGFW_keyRight:
                             yaw += 5;
                             break;
-                        case RGFW_Up:
+                        case RGFW_keyUp:
                             pitch -= 5;
                             break;
-                        case RGFW_Down:
+                        case RGFW_keyDown:
                             pitch += 5;
                             break;
 
@@ -90,24 +90,24 @@ int main(void) {
             }
         }
 
-        if (win->event.type == RGFW_quit)
+        if (win->event.type == RGFW_eventQuit)
             break;
         
-        if (RGFW_isPressed(win, RGFW_w)) {
+        if (RGFW_isPressed(win, RGFW_keyW)) {
             camX += cos((yaw + 90) * DEG2RAD)/5.0;
             camZ -= sin((yaw + 90) * DEG2RAD)/5.0;
         }
-        if (RGFW_isPressed(win, RGFW_s)) {
+        if (RGFW_isPressed(win, RGFW_keyS)) {
             camX += cos((yaw + 270) * DEG2RAD)/5.0;
             camZ -= sin((yaw + 270) * DEG2RAD)/5.0;
         }
         
-        if (RGFW_isPressed(win, RGFW_a)) {
+        if (RGFW_isPressed(win, RGFW_keyA)) {
             camX += cos(yaw * DEG2RAD)/5.0;
             camZ -= sin(yaw * DEG2RAD)/5.0;
         }
         
-        if (RGFW_isPressed(win, RGFW_d)) {
+        if (RGFW_isPressed(win, RGFW_keyD)) {
             camX += cos((yaw + 180) * DEG2RAD)/5.0;
             camZ -= sin((yaw + 180) * DEG2RAD)/5.0;
         }

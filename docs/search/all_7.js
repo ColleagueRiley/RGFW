@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['gamepad_0',['gamepad',['../structRGFW__Event.html#a5fb2da9927bf9aa37d6c2f76c5992260',1,'RGFW_Event']]],
+  ['gamepad_0',['gamepad',['../structRGFW__event.html#ac3ccc0f1827eeca2563dfdaba0f3630f',1,'RGFW_event']]],
   ['gamepad_1',['Gamepad',['../group__gamepad.html',1,'']]],
   ['glxchoosefbconfig_2',['glXChooseFBConfig',['../XDL_8h.html#a53bea768c8f19fd587e2284c9fbd8df4',1,'XDL.h']]],
   ['glxchoosefbconfigsrc_3',['glXChooseFBConfigSrc',['../XDL_8h.html#ac241f385d48e99f4575d5f61acb2af2c',1,'XDL.h']]],

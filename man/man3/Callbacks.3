@@ -106,37 +106,37 @@ Event callbacks, these are completely optional, you can use the normal RGFW_chec
 .SS "typedef void(* RGFW_dndfunc) (\fBRGFW_window\fP *win, char droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP], \fBu32\fP droppedFilesCount)"
 RGFW_dnd, the window that had the drop, the drop data and the amount files dropped returns previous callback function (if it was set) 
 .SS "typedef void(* RGFW_dndInitfunc) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point)"
-RGFW_dnd_init, the window, the point of the drop on the windows 
+RGFW_eventDNDInit, the window, the point of the drop on the windows 
 .SS "typedef void(* RGFW_focusfunc) (\fBRGFW_window\fP *win, \fBb8\fP inFocus)"
-RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its inFocus 
+RGFW_eventFocusIn / RGFW_eventFocusOut, the window who's focus has changed and if its inFocus 
 .SS "typedef void(* RGFW_gamepadAxisfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount, \fBu8\fP whichAxis)"
-RGFW_gamepadAxisMove, the window that got the event, the gamepad in question, the axis values and the amount of axises 
+RGFW_eventGamepadAxisMove, the window that got the event, the gamepad in question, the axis values and the amount of axises 
 .SS "typedef void(* RGFW_gamepadButtonfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBu8\fP button, \fBb8\fP pressed)"
 gamepad /gamepad, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
 .SS "typedef void(* RGFW_gamepadfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBb8\fP connected)"
-RGFW_gamepadConnected/RGFW_gamepadDisconnected, the window that got the event, the gamepad in question, if the controller was connected (or disconnected if false) 
+RGFW_eventGamepadConnected/RGFW_gamepadDisconnected, the window that got the event, the gamepad in question, if the controller was connected (or disconnected if false) 
 .SS "typedef void(* RGFW_keyfunc) (\fBRGFW_window\fP *win, \fBu8\fP key, char keyChar, RGFW_keymod keyMod, \fBb8\fP pressed)"
-RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of mod keys, if it was a press (else it's a release) 
+RGFW_eventKeyPressed / RGFW_eventKeyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of mod keys, if it was a press (else it's a release) 
 .SS "typedef void(* RGFW_mousebuttonfunc) (\fBRGFW_window\fP *win, \fBu8\fP button, double scroll, \fBb8\fP pressed)"
-RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
+RGFW_eventMouseButtonPressed / RGFW_eventMouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
 .br
  
 .SS "typedef void(* RGFW_mouseNotifyfunc) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point, \fBb8\fP status)"
-RGFW_mouseEnter / RGFW_mouseLeave, the window that changed, the point of the mouse (enter only) and if the mouse has entered 
+RGFW_eventMouseEnter / RGFW_eventMouseLeave, the window that changed, the point of the mouse (enter only) and if the mouse has entered 
 .SS "typedef void(* RGFW_mouseposfunc) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point)"
-RGFW_mousePosChanged, the window that the move happened on and the new point of the mouse 
+RGFW_eventMousePosChanged, the window that the move happened on and the new point of the mouse 
 .br
  
 .SS "typedef void(* RGFW_windowmovefunc) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
-RGFW_windowMoved, the window and its new rect value 
+RGFW_eventWindowMoved, the window and its new rect value 
 .br
  
 .SS "typedef void(* RGFW_windowquitfunc) (\fBRGFW_window\fP *win)"
-RGFW_quit, the window that was closed 
+RGFW_eventQuit, the window that was closed 
 .SS "typedef void(* RGFW_windowrefreshfunc) (\fBRGFW_window\fP *win)"
 RGFW_windowRefresh, the window that needs to be refreshed 
 .SS "typedef void(* RGFW_windowresizefunc) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
-RGFW_windowResized, the window and its new rect value 
+RGFW_eventWindowResized, the window and its new rect value 
 .br
  
 .SH "Function Documentation"
