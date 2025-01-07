@@ -5925,6 +5925,8 @@ u8 RGFW_xinput2RGFW[] = {
 };
 
 static i32 RGFW_checkXInput(RGFW_window* win, RGFW_Event* e) {
+	#ifndef RGFW_NO_XINPUT
+
 	RGFW_UNUSED(win);
 	size_t i;
 	for (i = 0; i < 4; i++) {
@@ -6027,6 +6029,8 @@ static i32 RGFW_checkXInput(RGFW_window* win, RGFW_Event* e) {
 			return 1;
 		}
 	}
+
+	#endif
 
 	return 0;
 }
@@ -6710,7 +6714,9 @@ void RGFW_window_close(RGFW_window* win) {
 			RGFW_dxInfo.pFactory->lpVtbl->Release(RGFW_dxInfo.pFactory);
 		#endif
 
+		#ifndef RGFW_NO_XINPUT
 		RGFW_FREE_LIBRARY(RGFW_XInput_dll);
+		#endif
 
 		#ifndef RGFW_NO_DPI
 			RGFW_FREE_LIBRARY(RGFW_Shcore_dll);
