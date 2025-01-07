@@ -713,7 +713,7 @@ typedef RGFW_ENUM(u16, RGFW_windowFlags) {
 	RGFW_windowTransparent = RGFW_BIT(8), /*!< the window is transparent (only properly works on X11 and MacOS, although it's although for windows) */
 	RGFW_windowCenter = RGFW_BIT(9), /*! center the window on the screen */
 	RGFW_windowOpenglSoftware = RGFW_BIT(10), /*! use OpenGL software rendering */
-	RGFW_windowCocoaMoveToResourceDir = RGFW_BIT(11), /* (cocoa only), move to resource folder */
+	RGFW_windowCocoaCHDirToRes = RGFW_BIT(11), /* (cocoa only), change directory to resource folder */
 	RGFW_windowScaleToMonitor = RGFW_BIT(12), /* scale the window to the screen */
 	RGFW_windowHide = RGFW_BIT(13)/* the window is hidden */
 };
@@ -7940,7 +7940,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlag
 	if (flags & RGFW_windowHideMouse)
 		RGFW_window_showMouse(win, 0);
 
-	if (flags & RGFW_windowCocoaMoveToResourceDir)
+	if (flags & RGFW_windowCocoaCHDirToRes)
 		NSMoveToResourceDir();
 
 	Class delegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "WindowDelegate", 0);
