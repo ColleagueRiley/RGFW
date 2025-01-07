@@ -71,9 +71,9 @@
 /*
 Example to get you started :
 
-linux : gcc main.c -lX11 -lXrandr -lGL -lm
-windows : gcc main.c -lopengl32 -lwinmm -lshell32 -lgdi32
-macos : gcc main.c -framework Foundation -framework AppKit -framework OpenGL -framework IOKit
+linux : gcc main.c -lX11 -lXrandr -lGL
+windows : gcc main.c -lopengl32 -lgdi32
+macos : gcc main.c -framework Cocoa -framework OpenGL -framework IOKit
 
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
@@ -122,11 +122,11 @@ int main() {
 	static : ar rcs RGFW.a RGFW.o
 	shared :
 		windows:
-			gcc -shared RGFW.o -lwinmm -lopengl32 -lshell32 -lgdi32 -o RGFW.dll
+			gcc -shared RGFW.o -lopengl32 -lgdi32 -o RGFW.dll
 		linux:
 			gcc -shared RGFW.o -lX11 -lGL -lXrandr -o RGFW.so
 		macos:
-			gcc -shared RGFW.o -framework Foundation -framework AppKit -framework OpenGL -framework IOKit
+			gcc -shared RGFW.o -framework Cocoa -framework OpenGL -framework IOKit
 */
 
 
@@ -9230,7 +9230,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, b8 press) {
 	RGFW_events[RGFW_eventLen].type = press ? RGFW_keyPressed : RGFW_keyReleased;
 	RGFW_events[RGFW_eventLen].key = physicalKey;
 	RGFW_events[RGFW_eventLen].keyChar = mappedKey;
-	RGFW_events[RGFW_eventLen].keyMod = 0;
+	RGFW_events[RGFW_eventLen].keyMod = RGFW_root->event.keyMod;
 	RGFW_eventLen++;
 
 	RGFW_keyboard[physicalKey].prev = RGFW_keyboard[physicalKey].current;
@@ -9240,6 +9240,10 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, b8 press) {
 
 	RGFW_free(key);
 	RGFW_free(code);
+}
+
+void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyMods(b8 capital, b8 numlock, b8 control, b8 alt, b8 shift, b8 super) {
+	RGFW_updateKeyModsPro(RGFW_root, capital, numlock, control, alt, shift, super);
 }
 
 void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(size_t count) {
@@ -9380,14 +9384,18 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs
 	EM_ASM({
 		window.addEventListener("keydown",
 			(event) => {
+				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), getModifierState("NumLock"), getModifierState("Control"), getModifierState("Alt"), getModifierState("Shift"), getModifierState("Meta"));
 				Module._RGFW_handleKeyEvent(stringToNewUTF8(event.key), stringToNewUTF8(event.code), 1);
-			}, true,
+			}
+			getModifierState
+			, true,
 		);
 	});
 
 	EM_ASM({
 		window.addEventListener("keyup",
 			(event) => {
+				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), getModifierState("NumLock"), getModifierState("Control"), getModifierState("Alt"), getModifierState("Shift"), getModifierState("Meta"));
 				Module._RGFW_handleKeyEvent(stringToNewUTF8(event.key), stringToNewUTF8(event.code), 0);
 			}, true,
 		);

@@ -967,17 +967,17 @@ function dbg(text) {
 var ASM_CONSTS = {
   71192: () => { Module.canvas.focus(); },  
  71217: () => { Module.useWebGL = true; GLImmediate.init(); },  
- 71263: () => { window.addEventListener("keydown", (event) => { Module._RGFW_handleKeyEvent(stringToNewUTF8(event.key), stringToNewUTF8(event.code), 1); }, true, ); },  
- 71416: () => { window.addEventListener("keyup", (event) => { Module._RGFW_handleKeyEvent(stringToNewUTF8(event.key), stringToNewUTF8(event.code), 0); }, true, ); },  
- 71567: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 72586: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 72657: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 72714: () => { return window.mouseX || 0; },  
- 72745: () => { return window.mouseY || 0; },  
- 72776: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 72923: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 72976: () => { return window.innerWidth; },  
- 73006: () => { return window.innerHeight; }
+ 71263: () => { window.addEventListener("keydown", (event) => { Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), getModifierState("NumLock"), getModifierState("Control"), getModifierState("Alt"), getModifierState("Shift"), getModifierState("Meta")); Module._RGFW_handleKeyEvent(stringToNewUTF8(event.key), stringToNewUTF8(event.code), 1); } getModifierState , true, ); },  
+ 71634: () => { window.addEventListener("keyup", (event) => { Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), getModifierState("NumLock"), getModifierState("Control"), getModifierState("Alt"), getModifierState("Shift"), getModifierState("Meta")); Module._RGFW_handleKeyEvent(stringToNewUTF8(event.key), stringToNewUTF8(event.code), 0); }, true, ); },  
+ 71985: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
+ 73004: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 73075: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 73132: () => { return window.mouseX || 0; },  
+ 73163: () => { return window.mouseY || 0; },  
+ 73194: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
+ 73341: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 73394: () => { return window.innerWidth; },  
+ 73424: () => { return window.innerHeight; }
 };
 
 
@@ -11988,6 +11988,7 @@ var ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors');
 var _free = createExportWrapper('free');
 var _malloc = createExportWrapper('malloc');
 var _RGFW_handleKeyEvent = Module['_RGFW_handleKeyEvent'] = createExportWrapper('RGFW_handleKeyEvent');
+var _RGFW_handleKeyMods = Module['_RGFW_handleKeyMods'] = createExportWrapper('RGFW_handleKeyMods');
 var _Emscripten_onDrop = Module['_Emscripten_onDrop'] = createExportWrapper('Emscripten_onDrop');
 var _RGFW_makeSetValue = Module['_RGFW_makeSetValue'] = createExportWrapper('RGFW_makeSetValue');
 var _RGFW_mkdir = Module['_RGFW_mkdir'] = createExportWrapper('RGFW_mkdir');
