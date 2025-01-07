@@ -29,7 +29,7 @@ RGFW_window* win2;
 
 int main(void) {
 	RGFW_setClassName("RGFW Basic");
-    RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_allowDND | RGFW_center);
+    RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_windowAllowDND | RGFW_windowCenter);
     RGFW_window_makeCurrent(win);
     
     RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
@@ -50,50 +50,50 @@ int main(void) {
     
     u32 fps = 0;
 
-    while (running && !RGFW_isPressed(win, RGFW_Escape)) {   
+    while (running && !RGFW_isPressed(win, RGFW_keyEscape)) {   
         #ifdef __APPLE__
         if (win2) RGFW_window_checkEvent(win2);
         #endif
 
-        RGFW_window_eventWait(win, RGFW_waitNext);
+        RGFW_window_eventWait(win, RGFW_eventWaitNext);
 
         while (RGFW_window_checkEvent(win) != NULL) {
-            if (win->event.type == RGFW_windowMoved) {
+            if (win->event.type == RGFW_eventWindowMoved) {
                 printf("window moved\n");
             }
-            else if (win->event.type == RGFW_windowResized) {
+            else if (win->event.type == RGFW_eventWindowResized) {
                 printf("window resized\n");
             }
-            if (win->event.type == RGFW_quit) {
+            if (win->event.type == RGFW_eventQuit) {
                 running = 0;  
                 break;
             }
-            if (RGFW_isPressed(win, RGFW_Up)) {
+            if (RGFW_isPressed(win, RGFW_keyUp)) {
                 char* str = RGFW_readClipboard(NULL);
                 printf("Pasted : %s\n", str);
                 free(str);
             }
-            else if (RGFW_isPressed(win, RGFW_Down))
+            else if (RGFW_isPressed(win, RGFW_keyDown))
                 RGFW_writeClipboard("DOWN", 4);
-            else if (RGFW_isPressed(win, RGFW_Space))
+            else if (RGFW_isPressed(win, RGFW_keySpace))
                 printf("fps : %i\n", fps);
-            else if (RGFW_isPressed(win, RGFW_w))
+            else if (RGFW_isPressed(win, RGFW_keyW))
                 RGFW_window_setMouseDefault(win);
-            else if (RGFW_isPressed(win, RGFW_q))
+            else if (RGFW_isPressed(win, RGFW_keyQ))
                 RGFW_window_showMouse(win, 0);
-            else if (RGFW_isPressed(win, RGFW_t)) {
+            else if (RGFW_isPressed(win, RGFW_keyT)) {
                 RGFW_window_setMouse(win, icon, RGFW_AREA(3, 3), 4);
             }
 
-            if (win->event.type == RGFW_dnd) {
+            if (win->event.type == RGFW_eventDND) {
                 for (i = 0; i < win->event.droppedFilesCount; i++)
                     printf("dropped : %s\n", win->event.droppedFiles[i]);
             }
 
-            else if (win->event.type == RGFW_gamepadButtonPressed)
+            else if (win->event.type == RGFW_eventGamepadButtonPressed)
                 printf("pressed %i\n", win->event.button);
 
-            else if (win->event.type == RGFW_gamepadAxisMove)
+            else if (win->event.type == RGFW_eventGamepadAxisMove)
                 printf("Gamepad (%i) axis (%i) {%i, %i}\n", win->event.gamepad, win->event.whichAxis, win->event.axis[win->event.whichAxis].x, win->event.axis[win->event.whichAxis].y);
         }
 
@@ -153,22 +153,22 @@ void* loop2(void* args) {
         /* 
             I could've also done
 
-            if (RGFW_checkEvents(win).type == RGFW_quit)
+            if (RGFW_checkEvents(win).type == RGFW_eventquit)
         */
 
-        if (win->event.type == RGFW_quit)
+        if (win->event.type == RGFW_eventQuit)
             break;
 
-        if (win->event.type == RGFW_mouseButtonPressed) {
+        if (win->event.type == RGFW_eventMouseButtonPressed) {
             #ifndef __APPLE__
             RGFW_stopCheckEvents();
             #endif
         }
 
-        if (win->event.type == RGFW_gamepadButtonPressed)
+        if (win->event.type == RGFW_eventGamepadButtonPressed)
             printf("pressed %i\n", win->event.button);
 
-        else if (win->event.type == RGFW_gamepadAxisMove && !win->event.button)
+        else if (win->event.type == RGFW_eventGamepadAxisMove && !win->event.button)
             printf("Gamepad (%i) axis (%i) {%i, %i}\n", win->event.gamepad, win->event.whichAxis, win->event.axis[win->event.whichAxis].x, win->event.axis[win->event.whichAxis].y);
         drawLoop(win);
     }

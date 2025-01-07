@@ -7,7 +7,7 @@
 #include "RGFW.h"
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), (u16)(RGFW_center | RGFW_noResize));
+    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), (u16)(RGFW_windowCenter | RGFW_windowNoResize));
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win))

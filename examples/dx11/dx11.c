@@ -29,7 +29,7 @@ const char* shaderString = MULTILINE_STR(
 );
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(0, 0, 500, 500), RGFW_center);
+    RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(0, 0, 500, 500), RGFW_windowCenter);
     RGFW_window_makeCurrent(win);
 
     RGFW_directXinfo* dxInfo = RGFW_getDirectXInfo();
@@ -94,7 +94,7 @@ int main(void) {
     for (;;) {
         RGFW_window_checkEvent(win); // NOTE: checking events outside of a while loop may cause input lag 
 
-        if (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_Escape))
+        if (win->event.type == RGFW_eventQuit || RGFW_isPressed(win, RGFW_keyEscape))
             break;
 
         float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };

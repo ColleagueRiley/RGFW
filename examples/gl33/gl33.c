@@ -70,7 +70,7 @@ int main(void)
 {
 	RGFW_setGLVersion(RGFW_glCore, 3, 3);
 
-	RGFW_window* window = RGFW_createWindow("LearnOpenGL", RGFW_RECT(SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT), RGFW_allowDND | RGFW_center | RGFW_scaleToMonitor);
+	RGFW_window* window = RGFW_createWindow("LearnOpenGL", RGFW_RECT(SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT), RGFW_windowAllowDND | RGFW_windowCenter | RGFW_windowScaleToMonitor);
     if (window == NULL)
     {
         printf("Failed to create RGFW window\n");
@@ -169,10 +169,10 @@ int main(void)
     // render loop
     // -----------
     bool running = true;
-    while (running && !RGFW_isPressed(window, RGFW_Escape))
+    while (running && !RGFW_isPressed(window, RGFW_keyEscape))
     {
         while (RGFW_window_checkEvent(window)) {
-            if (window->event.type == RGFW_quit) {
+            if (window->event.type == RGFW_eventQuit) {
                 running = false;
                 break;
             }
@@ -190,7 +190,7 @@ int main(void)
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         // glBindVertexArray(0); // no need to unbind it every time
 
-        if (RGFW_isPressed(window, RGFW_Space))
+        if (RGFW_isPressed(window, RGFW_keySpace))
             printf("fps : %i\n", fps);
                         
         RGFW_window_swapBuffers(window);

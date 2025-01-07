@@ -7,11 +7,11 @@
 
 int main(void) {
 	RGFW_setClassName("RGFW Basic");
-    RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_allowDND | RGFW_center);
+    RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_windowAllowDND | RGFW_windowCenter);
     RGFW_window_makeCurrent(win);
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {   
-        RGFW_window_eventWait(win, RGFW_waitNext);
+        RGFW_window_eventWait(win, RGFW_eventWaitNext);
         while (RGFW_window_checkEvent(win) != NULL);
 
         RGFW_window_makeCurrent(win);

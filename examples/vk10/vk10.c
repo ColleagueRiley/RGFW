@@ -31,16 +31,16 @@ int draw_frame(RGFW_window_vulkanInfo* vulkWin);
 
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("Vulkan Example", RGFW_RECT(0, 0, 500, 500), RGFW_allowDND | RGFW_center);;
+    RGFW_window* win = RGFW_createWindow("Vulkan Example", RGFW_RECT(0, 0, 500, 500), RGFW_windowAllowDND | RGFW_windowCenter);
     RGFW_window_vulkanInfo vulkWin;
 
     vulkan_info = RGFW_initVulkan(win, &vulkWin);    
     createGraphicsPipeline();
 
     u8 running = 1;
-    while (running && !RGFW_isPressed(win, RGFW_Escape)) {
+    while (running && !RGFW_isPressed(win, RGFW_keyEscape)) {
         while (RGFW_window_checkEvent(win)) {
-            if (win->event.type == RGFW_quit) {
+            if (win->event.type == RGFW_eventQuit) {
                 running = 0;
                 break;
             }
