@@ -102,8 +102,8 @@ To enable RGFW's use of XDL, add this line to your code:
 #define RGFW_USE_XDL
 .fi
 .PP
-.SS "OpenGL Linking Considerations"
-This only applies to Windows, macOS and X11 (if you're using \fC\fBXDL\&.h\fP\fP):
+.SS "Linking OpenGL is not required"
+This only applies to Windows, macOS and X11 (with \fC\fBXDL\&.h\fP\fP):
 .PP
 By default, OpenGL does not need to be explicitly linked unless you are directly using OpenGL functions in your code\&. If you rely on a OpenGL loader library, you don't need to explicitly link OpenGL at all!
 .PP
