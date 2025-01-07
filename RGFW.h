@@ -319,7 +319,6 @@ int main() {
 
 #if defined(_WIN32) && !defined(RGFW_X11) && !defined(RGFW_WEBASM) /* (if you're using X11 on windows some how) */
 	#define RGFW_WINDOWS
-	#define RGFW_PROC_DEF(proc, name) if (name##SRC == NULL && proc != NULL) name##SRC = (PFN_##name)GetProcAddress(proc, #name)
 	/* make sure the correct architecture is defined */
 	#if defined(_WIN64)
 		#define _AMD64_
@@ -363,8 +362,6 @@ int main() {
 	#define RGFW_MACOS_X11
 	#define RGFW_X11
 	#include <X11/Xlib.h>
-	
-	#define RGFW_PROC_DEF(proc, name) if (name##SRC == NULL) name##SRC = (name##PROC)dlsym(proc, #name)
 #elif defined(__APPLE__) && !defined(RGFW_MACOS_X11) && !defined(RGFW_X11)  && !defined(RGFW_WEBASM)
 	#define RGFW_MACOS
 #endif
@@ -5443,6 +5440,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	__declspec(dllimport) u32 __stdcall timeBeginPeriod(u32 uPeriod);
 #endif
 
+#define RGFW_PROC_DEF(proc, name) if (name##SRC == NULL && proc != NULL) name##SRC = (PFN_##name)(void*)GetProcAddress(proc, #name)
+
 #ifndef RGFW_NO_XINPUT
 void RGFW_loadXInput(void) {
 	u32 i;
@@ -5625,7 +5624,9 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs
 		RGFW_ASSERT(FAILED(CreateDXGIFactory(&__uuidof(IDXGIFactory), (void**) &RGFW_dxInfo.pFactory)) == 0);
 
 		if (FAILED(RGFW_dxInfo.pFactory->lpVtbl->EnumAdapters(RGFW_dxInfo.pFactory, 0, &RGFW_dxInfo.pAdapter))) {
-			fprintf(stderr, "Failed to enumerate DXGI adapters\n");
+			#ifdef RGFW_DEBUG
+				fprintf(stderr, "Failed to enumerate DXGI adapters\n");
+			#endif
 			RGFW_dxInfo.pFactory->lpVtbl->Release(RGFW_dxInfo.pFactory);
 			return NULL;
 		}
@@ -5633,7 +5634,9 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowArgs
 		D3D_FEATURE_LEVEL featureLevels[] = { D3D_FEATURE_LEVEL_11_0 };
 
 		if (FAILED(D3D11CreateDevice(RGFW_dxInfo.pAdapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, 0, featureLevels, 1, D3D11_SDK_VERSION, &RGFW_dxInfo.pDevice, NULL, &RGFW_dxInfo.pDeviceContext))) {
-			fprintf(stderr, "Failed to create Direct3D device\n");
+			#ifdef RGFW_DEBUG
+				fprintf(stderr, "Failed to create Direct3D device\n");
+			#endif
 			RGFW_dxInfo.pAdapter->lpVtbl->Release(RGFW_dxInfo.pAdapter);
 			RGFW_dxInfo.pFactory->lpVtbl->Release(RGFW_dxInfo.pFactory);
 			return NULL;

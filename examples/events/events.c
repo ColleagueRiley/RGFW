@@ -1,6 +1,8 @@
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
+#include <stdio.h>
+
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW Events", RGFW_RECT(500, 500, 500, 500), RGFW_center | RGFW_allowDND | RGFW_transparent);
 
