@@ -45,7 +45,7 @@ This library does not
 #include <stdio.h>
 
 void keyfunc(RGFW_window* win, RGFW_Key key, char keyChar, RGFW_keymod keyMod, b8 pressed) {
-    if (key == RGFW_keysEscape && pressed) {
+    if (key == RGFW_keyEscape && pressed) {
         RGFW_window_setShouldClose(win);
     }
 }

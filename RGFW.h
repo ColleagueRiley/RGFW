@@ -53,6 +53,7 @@
 	#define RGFW_NO_WINMM (optional) (windows only) don't use winmm
 	#define RGFW_NO_IOKIT (optional) (macOS) don't use IOKit
 	#define RGFW_NO_UNIX_CLOCK (optional) (unux) don't link unix clock functions
+	#define RGFW_NO_DWM (windows only) - Do not use or linj dwmapi
 	#define RGFW_USE_XDL (optional) (X11) use X11 in RGFW (must include XDL.h along with RGFW) (XLib Dynamic Loader)
 
 	#define RGFW_NO_DPI - Do not include calculate DPI (no XRM nor libShcore included)
@@ -312,12 +313,12 @@ int main() {
 	#endif
 #endif
 
-#if defined(RGFW_X11) && defined(__APPLE__)
+#if defined(RGFW_X11) && defined(__APPLE__) && !defined(RGFW_CUSTOM_BACKEND)
 	#define RGFW_MACOS_X11
 	#undef __APPLE__
 #endif
 
-#if defined(_WIN32) && !defined(RGFW_X11) && !defined(RGFW_WEBASM) /* (if you're using X11 on windows some how) */
+#if defined(_WIN32) && !defined(RGFW_X11) && !defined(RGFW_WEBASM) && !defined(RGFW_CUSTOM_BACKEND) /* (if you're using X11 on windows some how) */
 	#define RGFW_WINDOWS
 	/* make sure the correct architecture is defined */
 	#if defined(_WIN64)
@@ -358,11 +359,11 @@ int main() {
 	#endif
 
 	#include <wayland-client.h>
-#elif (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  && !defined(RGFW_WEBASM)
+#elif (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  && !defined(RGFW_WEBASM)  && !defined(RGFW_CUSTOM_BACKEND)
 	#define RGFW_MACOS_X11
 	#define RGFW_X11
 	#include <X11/Xlib.h>
-#elif defined(__APPLE__) && !defined(RGFW_MACOS_X11) && !defined(RGFW_X11)  && !defined(RGFW_WEBASM)
+#elif defined(__APPLE__) && !defined(RGFW_MACOS_X11) && !defined(RGFW_X11)  && !defined(RGFW_WEBASM)  && !defined(RGFW_CUSTOM_BACKEND)
 	#define RGFW_MACOS
 #endif
 
@@ -611,8 +612,8 @@ typedef struct RGFW_event {
 } RGFW_event;
 
 /*! source data for the window (used by the APIs) */
-typedef struct RGFW_window_src {
 #ifdef RGFW_WINDOWS
+typedef struct RGFW_window_src {
 	HWND window; /*!< source window */
 	HDC hdc; /*!< source HDC */
 	u32 hOffset; /*!< height offset for window */
@@ -635,7 +636,9 @@ typedef struct RGFW_window_src {
 		HBITMAP bitmap;
 	#endif
 	RGFW_area maxSize, minSize; /*!< for setting max/min resize (RGFW_WINDOWS) */
+} RGFW_window_src;
 #elif defined(RGFW_X11)
+typedef struct RGFW_window_src {
 	Display* display; /*!< source display */
 	Window window; /*!< source window */
 	#if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
@@ -652,7 +655,9 @@ typedef struct RGFW_window_src {
 		XImage* bitmap;
 		GC gc;
 #endif
+} RGFW_window_src;
 #elif defined(RGFW_WAYLAND)
+typedef struct RGFW_window_src {
 	struct wl_display* display;
 	struct wl_surface* surface;
 	struct wl_buffer* wl_buffer;
@@ -672,7 +677,9 @@ typedef struct RGFW_window_src {
 	#elif defined(RGFW_OSMESA)
 		OSMesaContext ctx;
 	#endif
+} RGFW_window_src;
 #elif defined(RGFW_MACOS)
+typedef struct RGFW_window_src {
 	void* window;
 	b8 dndPassed;
 #if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
@@ -691,7 +698,9 @@ typedef struct RGFW_window_src {
 		void* bitmap; /*!< API's bitmap for storing or managing */
 		void* image;
 #endif
+} RGFW_window_src;
 #elif defined(RGFW_WEBASM)
+typedef struct RGFW_window_src {
 	#ifdef RGFW_WEBGPU
 		WGPUInstance ctx;
         WGPUDevice device;
@@ -699,8 +708,8 @@ typedef struct RGFW_window_src {
 	#else
 		EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
 	#endif
-#endif
 } RGFW_window_src;
+#endif
 
 /*! Optional arguments for making a windows */
 typedef RGFW_ENUM(u16, RGFW_windowFlags) {
@@ -1042,7 +1051,7 @@ RGFWDEF RGFW_gamepadfunc RGFW_setGamepadCallback(RGFW_gamepadfunc func);
 	which is a good idea generally
 */
 
-#if defined(__unix__) || defined(__APPLE__) || defined(RGFW_WEBASM)
+#if defined(__unix__) || defined(__APPLE__) || defined(RGFW_WEBASM) || defined(RGFW_CUSTOM_BACKEND)
 	typedef void* (* RGFW_threadFunc_ptr)(void*);
 #else
 	typedef DWORD (__stdcall *RGFW_threadFunc_ptr) (LPVOID lpThreadParameter);
@@ -1250,6 +1259,7 @@ typedef RGFW_ENUM(u8, RGFW_Key) {
 	RGFW_keyLast
 };
 
+RGFWDEF u32 RGFW_apiKeyToRGFW(u32 keycode);
 
 typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	RGFW_mouseNormal = 0,
@@ -1327,6 +1337,9 @@ This is the start of keycode data
 	the c++ compiler doesn't support setting up an array like,
 	we'll have to do it during runtime using a function & this messy setup
 */
+
+#ifndef RGFW_CUSTOM_BACKEND
+
 #ifndef __cplusplus
 #define RGFW_NEXT ,
 #define RGFW_MAP
@@ -1463,15 +1476,6 @@ void RGFW_init_keys(void) {
 #undef RGFW_NEXT
 #undef RGFW_MAP
 
-typedef struct {
-	b8 current  : 1;
-	b8 prev  : 1;
-} RGFW_keyState;
-
-RGFW_keyState RGFW_keyboard[RGFW_keyLast] = { {0, 0} };
-
-RGFWDEF u32 RGFW_apiKeyToRGFW(u32 keycode);
-
 u32 RGFW_apiKeyToRGFW(u32 keycode) {
 	#ifdef __cplusplus
 	if (RGFW_OS_BASED_VALUE(49, 192, 50, DOM_VK_BACK_QUOTE, KEY_GRAVE) != RGFW_Backtick) {
@@ -1485,6 +1489,14 @@ u32 RGFW_apiKeyToRGFW(u32 keycode) {
 
 	return RGFW_keycodes[keycode];
 }
+#endif
+
+typedef struct {
+	b8 current  : 1;
+	b8 prev  : 1;
+} RGFW_keyState;
+
+RGFW_keyState RGFW_keyboard[RGFW_keyLast] = { {0, 0} };
 
 RGFWDEF void RGFW_resetKey(void);
 void RGFW_resetKey(void) {
@@ -1763,6 +1775,7 @@ b8 RGFW_isReleased(RGFW_window* win, u8 key) {
 	RGFW_directXinfo* RGFW_getDirectXInfo(void) { return &RGFW_dxInfo; }
 #endif
 
+#ifndef RGFW_CUSTOM_BACKEND
 void RGFW_window_makeCurrent(RGFW_window* win) {
 #if defined(RGFW_WINDOWS) && defined(RGFW_DIRECTX)
 	if (win == NULL)
@@ -1775,6 +1788,7 @@ void RGFW_window_makeCurrent(RGFW_window* win) {
 	RGFW_UNUSED(win);
 #endif
 }
+#endif
 
 void RGFW_window_setGPURender(RGFW_window* win, i8 set) {
 	if (!set && !(win->_flags & RGFW_NO_GPU_RENDER))
@@ -1999,7 +2013,7 @@ void RGFW_setGLVersion(b8 profile, i32 major, i32 minor) {
 }
 
 /* OPENGL normal only (no EGL / OSMesa) */
-#ifndef RGFW_EGL
+#if !defined(RGFW_EGL) && !defined(RGFW_CUSTOM_BACKEND)
 
 #define RGFW_GL_RENDER_TYPE 		RGFW_OS_BASED_VALUE(GLX_X_VISUAL_TYPE,    	0x2003,		73, 0, 0)
 	#define RGFW_GL_ALPHA_SIZE 		RGFW_OS_BASED_VALUE(GLX_ALPHA_SIZE,       	0x201b,		11,     0, 0)
@@ -2290,12 +2304,12 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 #ifdef RGFW_APPLE
 void* RGFWnsglFramework = NULL;
 #elif defined(RGFW_WINDOWS)
-static HMODULE wglinstance = NULL;
+static HMODULE RGFW_wgl_dll = NULL;
 #endif
 
 void* RGFW_getProcAddress(const char* procname) {
 	#if defined(RGFW_WINDOWS)
-		void* proc = (void*) GetProcAddress(wglinstance, procname);
+		void* proc = (void*) GetProcAddress(RGFW_wgl_dll, procname);
 
 		if (proc)
 			return proc;
@@ -5370,7 +5384,7 @@ typedef HGLRC (WINAPI *PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC hdc, HGLRC hglrc, 
 PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 
 #ifndef RGFW_EGL
-	static HMODULE wglinstance = NULL;
+	static HMODULE RGFW_wgl_dll = NULL;
 #endif
 
 #ifndef RGFW_NO_LOAD_WGL
@@ -5405,7 +5419,7 @@ PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 		if (proc)
 			return proc;
 
-		return (void*) GetProcAddress(wglinstance, procname);
+		return (void*) GetProcAddress(RGFW_wgl_dll, procname);
 	}
 
 	typedef HRESULT (APIENTRY* PFNWGLCHOOSEPIXELFORMATARBPROC)(HDC hdc, const int* piAttribIList, const FLOAT* pfAttribFList, UINT nMaxFormats, int* piFormats, UINT* nNumFormats);
@@ -5437,7 +5451,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	PFN_GetDpiForMonitor GetDpiForMonitorSRC = NULL;
 	#define GetDpiForMonitor GetDpiForMonitorSRC
 #endif
-	
+
+#ifndef RGFW_NO_DWM
+static HMODULE RGFW_dwm_dll = NULL;
+typedef struct _MARGINS { int cxLeftWidth; int cxRightWidth; int cyTopHeight; int cyBottomHeight; } MARGINS,*PMARGINS;
+typedef HRESULT (WINAPI * PFN_DwmExtendFrameIntoClientArea)(HWND, const MARGINS*);
+PFN_DwmExtendFrameIntoClientArea DwmExtendFrameIntoClientAreaSRC = NULL;
+#define DwmExtendFrameIntoClientArea DwmExtendFrameIntoClientAreaSRC
+#endif
+
 #if !defined(RGFW_NO_LOAD_WINMM) && !defined(RGFW_NO_WINMM)
 	static HMODULE RGFW_winmm_dll = NULL;
 	typedef u32 (WINAPI * PFN_timeBeginPeriod)(u32);
@@ -5553,16 +5575,21 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlag
 		RGFW_PROC_DEF(RGFW_winmm_dll, timeBeginPeriod);
 	#endif
 
-	RGFW_LOAD_LIBRARY(wglinstance, "opengl32.dll");
+	#ifndef RGFW_NO_DWM
+	RGFW_LOAD_LIBRARY(RGFW_dwm_dll, "dwmapi.dll");
+	RGFW_PROC_DEF(RGFW_dwm_dll, DwmExtendFrameIntoClientArea);
+	#endif
+
+	RGFW_LOAD_LIBRARY(RGFW_wgl_dll, "opengl32.dll");
 	#ifndef RGFW_NO_LOAD_WGL
-		RGFW_PROC_DEF(wglinstance, wglCreateContext);
-		RGFW_PROC_DEF(wglinstance, wglDeleteContext);
-		RGFW_PROC_DEF(wglinstance, wglDeleteContext);
-		RGFW_PROC_DEF(wglinstance, wglGetProcAddress);
-		RGFW_PROC_DEF(wglinstance, wglMakeCurrent);
-		RGFW_PROC_DEF(wglinstance, wglGetCurrentDC);
-		RGFW_PROC_DEF(wglinstance, wglGetCurrentContext);
-		RGFW_PROC_DEF(wglinstance, wglShareLists);
+		RGFW_PROC_DEF(RGFW_wgl_dll, wglCreateContext);
+		RGFW_PROC_DEF(RGFW_wgl_dll, wglDeleteContext);
+		RGFW_PROC_DEF(RGFW_wgl_dll, wglDeleteContext);
+		RGFW_PROC_DEF(RGFW_wgl_dll, wglGetProcAddress);
+		RGFW_PROC_DEF(RGFW_wgl_dll, wglMakeCurrent);
+		RGFW_PROC_DEF(RGFW_wgl_dll, wglGetCurrentDC);
+		RGFW_PROC_DEF(RGFW_wgl_dll, wglGetCurrentContext);
+		RGFW_PROC_DEF(RGFW_wgl_dll, wglShareLists);
 	#endif
 
 	if (name[0] == 0) name = (char*) " ";
@@ -5611,9 +5638,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlag
 	} else
 		window_style |= WS_POPUP | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX;
 
-
 	HWND dummyWin = CreateWindowA(Class.lpszClassName, name, window_style, win->r.x, win->r.y, win->r.w, win->r.h, 0, 0, inh, 0);
-
 	GetWindowRect(dummyWin, &windowRect);
 	GetClientRect(dummyWin, &clientRect);
 
@@ -5700,21 +5725,23 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlag
         //if (RGFW_DOUBLE_BUFFER)
              pfd_flags |= PFD_DOUBLEBUFFER;
 
-        PIXELFORMATDESCRIPTOR pfd = {
-			sizeof(pfd),
-			1, /* version */
-			pfd_flags,
-		    PFD_TYPE_RGBA, /* ipixel type */
-			24, /* color bits */
-			0, 0, 0, 0, 0, 0,
-			8, /* alpha bits */
-			0, 0, 0, 0, 0, 0,
-			32, /* depth bits */
-			8, /* stencil bits */
-			0,
-			PFD_MAIN_PLANE, /* Layer type */
-			0, 0, 0, 0
+		PIXELFORMATDESCRIPTOR pfd = {
+			sizeof(PIXELFORMATDESCRIPTOR), // Size of the descriptor
+			1,                             // Version
+			pfd_flags,                    // Flags to specify what the pixel format supports (e.g., PFD_SUPPORT_OPENGL)
+			PFD_TYPE_RGBA,                 // Pixel type is RGBA
+			24,                            // Color bits (red, green, blue channels)
+			0, 0, 0, 0, 0, 0,             // No color bits for unused channels
+			8,                             // Alpha bits (important for transparency)
+			0,                             // No accumulation buffer bits needed
+			0, 0, 0, 0,                   // No accumulation bits
+			32,                            // Depth buffer bits
+			8,                             // Stencil buffer bits
+			0,                             // Auxiliary buffer bits (unused)
+			PFD_MAIN_PLANE,                // Use the main plane for rendering
+			0, 0, 0, 0                     // Reserved fields
 		};
+
 
 		int pixel_format = ChoosePixelFormat(dummy_dc, &pfd);
 		SetPixelFormat(dummy_dc, pixel_format, &pfd);
@@ -5823,8 +5850,8 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlag
 		RGFW_window_showMouse(win, 0);
 
 	if (flags & RGFW_windowTransparent) {
-		SetWindowLong(win->src.window, GWL_EXSTYLE, GetWindowLong(win->src.window, GWL_EXSTYLE) | WS_EX_LAYERED);
-		SetLayeredWindowAttributes(win->src.window, RGB(255, 255, 255), RGFW_ALPHA, LWA_ALPHA);
+        MARGINS margins = {-1};
+        DwmExtendFrameIntoClientArea(win->src.window, &margins);
 	}
 
 	ShowWindow(win->src.window, SW_SHOWNORMAL);
@@ -6733,7 +6760,7 @@ void RGFW_window_close(RGFW_window* win) {
 			RGFW_FREE_LIBRARY(RGFW_winmm_dll);
 		#endif
 
-		RGFW_FREE_LIBRARY(wglinstance);
+		RGFW_FREE_LIBRARY(RGFW_wgl_dll);
 		RGFW_root = NULL;
 	}
 
