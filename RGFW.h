@@ -506,12 +506,12 @@ enum RGFW_mouse_codes {
 
 /* for RGFW_event.lockstate */
 typedef RGFW_ENUM(u8, RGFW_keymod) {
-	RGFW_modCapsLock = RGFW_BIT(1),
-	RGFW_modNumLock  = RGFW_BIT(2),
-	RGFW_modControl  = RGFW_BIT(3),
-	RGFW_modAlt = RGFW_BIT(4),
-	RGFW_modShift  = RGFW_BIT(5),
-	RGFW_modSuper = RGFW_BIT(6)
+	RGFW_modCapsLock = RGFW_BIT(0),
+	RGFW_modNumLock  = RGFW_BIT(1),
+	RGFW_modControl  = RGFW_BIT(2),
+	RGFW_modAlt = RGFW_BIT(3),
+	RGFW_modShift  = RGFW_BIT(4),
+	RGFW_modSuper = RGFW_BIT(5)
 };
 
 /*! gamepad button codes (based on xbox/playstation), you may need to change these values per controller */
@@ -713,18 +713,18 @@ typedef struct RGFW_window_src {
 
 /*! Optional arguments for making a windows */
 typedef RGFW_ENUM(u16, RGFW_windowFlags) {
-	RGFW_windowNoInitAPI = RGFW_BIT(2), /* DO not init an API (mostly for bindings, you should use `#define RGFW_NO_API` in C */
-	RGFW_windowNoBorder = RGFW_BIT(3), /*!< the window doesn't have border */
-	RGFW_windowNoResize = RGFW_BIT(4), /*!< the window cannot be resized  by the user */
-	RGFW_windowAllowDND = RGFW_BIT(5), /*!< the window supports drag and drop*/
-	RGFW_windowHideMouse = RGFW_BIT(6), /*! the window should hide the mouse or not (can be toggled later on) using `RGFW_window_mouseShow*/
-	RGFW_windowFullscreen = RGFW_BIT(7), /* the window is fullscreen by default or not */
-	RGFW_windowTransparent = RGFW_BIT(8), /*!< the window is transparent (only properly works on X11 and MacOS, although it's although for windows) */
-	RGFW_windowCenter = RGFW_BIT(9), /*! center the window on the screen */
-	RGFW_windowOpenglSoftware = RGFW_BIT(10), /*! use OpenGL software rendering */
-	RGFW_windowCocoaCHDirToRes = RGFW_BIT(11), /* (cocoa only), change directory to resource folder */
-	RGFW_windowScaleToMonitor = RGFW_BIT(12), /* scale the window to the screen */
-	RGFW_windowHide = RGFW_BIT(13)/* the window is hidden */
+	RGFW_windowNoInitAPI = RGFW_BIT(0), /* DO not init an API (mostly for bindings, you should use `#define RGFW_NO_API` in C */
+	RGFW_windowNoBorder = RGFW_BIT(1), /*!< the window doesn't have border */
+	RGFW_windowNoResize = RGFW_BIT(2), /*!< the window cannot be resized  by the user */
+	RGFW_windowAllowDND = RGFW_BIT(3), /*!< the window supports drag and drop*/
+	RGFW_windowHideMouse = RGFW_BIT(4), /*! the window should hide the mouse or not (can be toggled later on) using `RGFW_window_mouseShow*/
+	RGFW_windowFullscreen = RGFW_BIT(5), /* the window is fullscreen by default or not */
+	RGFW_windowTransparent = RGFW_BIT(6), /*!< the window is transparent (only properly works on X11 and MacOS, although it's although for windows) */
+	RGFW_windowCenter = RGFW_BIT(7), /*! center the window on the screen */
+	RGFW_windowOpenglSoftware = RGFW_BIT(8), /*! use OpenGL software rendering */
+	RGFW_windowCocoaCHDirToRes = RGFW_BIT(9), /* (cocoa only), change directory to resource folder */
+	RGFW_windowScaleToMonitor = RGFW_BIT(10), /* scale the window to the screen */
+	RGFW_windowHide = RGFW_BIT(11)/* the window is hidden */
 };
 
 typedef struct RGFW_window {
@@ -1716,10 +1716,10 @@ void RGFW_window_scaleToMonitor(RGFW_window* win) {
 
 RGFW_window* RGFW_root = NULL;
 
-#define RGFW_NO_GPU_RENDER 		RGFW_BIT(14) /* don't render (using the GPU based API)*/
-#define RGFW_NO_CPU_RENDER 		RGFW_BIT(15) /* don't render (using the CPU based buffer rendering)*/
-#define RGFW_HOLD_MOUSE			RGFW_BIT(2) /*!< hold the moues still */
-#define RGFW_MOUSE_LEFT 		RGFW_BIT(3) /* if mouse left the window */
+#define RGFW_NO_GPU_RENDER 		RGFW_BIT(12) /* don't render (using the GPU based API)*/
+#define RGFW_NO_CPU_RENDER 		RGFW_BIT(13) /* don't render (using the CPU based buffer rendering)*/
+#define RGFW_HOLD_MOUSE			RGFW_BIT(14) /*!< hold the moues still */
+#define RGFW_MOUSE_LEFT 		RGFW_BIT(15) /* if mouse left the window */
 
 #ifdef RGFW_MACOS
 RGFWDEF void RGFW_window_cocoaSetLayer(RGFW_window* win, void* layer);
@@ -5365,7 +5365,7 @@ __declspec(dllimport) int __stdcall WideCharToMultiByte( UINT CodePage, DWORD dw
 
 u32 RGFW_mouseIconSrc[] = {OCR_NORMAL, OCR_NORMAL, OCR_IBEAM, OCR_CROSS, OCR_HAND, OCR_SIZEWE, OCR_SIZENS, OCR_SIZENWSE, OCR_SIZENESW, OCR_SIZEALL, OCR_NO};
 
-char* createUTF8FromWideStringWin32(const WCHAR* source);
+char* RGFW_createUTF8FromWideStringWin32(const WCHAR* source);
 
 #define GL_FRONT				0x0404
 #define GL_BACK					0x0405
@@ -6125,11 +6125,20 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		u32 i;
 		for (i = 0; i < win->event.droppedFilesCount; i++) {
 			const UINT length = DragQueryFileW(drop, i, NULL, 0);
-			WCHAR* buffer = (WCHAR*) RGFW_alloc((size_t) length + 1);
+			if (length == 0)
+				continue;
+			
+			WCHAR* buffer = (WCHAR*) RGFW_alloc(length + RGFW_MAX_PATH);
 			buffer[length] = 0;
 
 			DragQueryFileW(drop, i, buffer, length + 1);
-			RGFW_MEMCPY(win->event.droppedFiles[i], createUTF8FromWideStringWin32(buffer), RGFW_MAX_PATH);
+			if (buffer == NULL)
+				continue;
+
+			char* str = RGFW_createUTF8FromWideStringWin32(buffer);
+			if (str != NULL)
+				RGFW_MEMCPY(win->event.droppedFiles[i], str, length + 1);
+			
 			win->event.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
 			RGFW_free(buffer);
 		}
@@ -6987,7 +6996,10 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	}
 }
 
-char* createUTF8FromWideStringWin32(const WCHAR* source) {
+char* RGFW_createUTF8FromWideStringWin32(const WCHAR* source) {
+	if (source == NULL) {
+		return NULL;
+	}
 	char* target;
 	i32 size;
 
