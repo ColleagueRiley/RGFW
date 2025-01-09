@@ -98,9 +98,6 @@ RGFW.h
 .RI "#define \fBRGFW_OPENGL\fP"
 .br
 .ti -1c
-.RI "#define \fBRGFW_ALPHA\fP   128 /* alpha value for RGFW_transparent (WINAPI ONLY, macOS + linux don't need this) */"
-.br
-.ti -1c
 .RI "#define \fBRGFW_MAX_PATH\fP   260 /* max length of a path (for dnd) */"
 .br
 .ti -1c
@@ -566,8 +563,6 @@ RGFW.h
 .SS "#define inline   __inline"
 
 .SS "#define RGFW_ALLOC(userptr, size)   (\fBRGFW_UNUSED\fP(userptr),malloc(size))"
-
-.SS "#define RGFW_ALPHA   128 /* alpha value for RGFW_transparent (WINAPI ONLY, macOS + linux don't need this) */"
 
 .SS "#define RGFW_AREA(w, h)   (\fBRGFW_area\fP){(\fBu32\fP)(w), (\fBu32\fP)(h)}"
 
