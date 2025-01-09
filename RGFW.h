@@ -5214,6 +5214,8 @@ b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) 
 
 	wl_surface_attach(RGFW_cursor_surface, cursor_buffer, 0, 0);
 	wl_surface_commit(RGFW_cursor_surface);
+
+	return 1;
 }
 
 void RGFW_window_setName(RGFW_window* win, char* name) {
@@ -6690,6 +6692,7 @@ b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) 
 	SetClassLongPtrA(win->src.window, GCLP_HCURSOR, (LPARAM) cursor);
 	SetCursor(cursor);
 	DestroyCursor(cursor);
+	return 1;
 }
 
 b32 RGFW_window_setMouseDefault(RGFW_window* win) {
@@ -8589,7 +8592,7 @@ b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) 
 
 	if (image == NULL) {
 		objc_msgSend_void(NSCursor_arrowStr("arrowCursor"), sel_registerName("set"));
-		return;
+		return 0;
 	}
 
 	/* NOTE(EimaMei): Code by yours truly. */
@@ -8609,6 +8612,7 @@ b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) 
 	// Free the garbage.
 	NSRelease(cursor_image);
 	NSRelease(representation);
+	return 1;
 }
 
 b32 RGFW_window_setMouseDefault(RGFW_window* win) {
@@ -9631,7 +9635,7 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 /* NOTE: I don't know if this is possible */
 void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v) { RGFW_UNUSED(win); RGFW_UNUSED(v); }
 /* this one might be possible but it looks iffy */
-b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(channels); RGFW_UNUSED(a); RGFW_UNUSED(icon); }
+b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(channels); RGFW_UNUSED(a); RGFW_UNUSED(icon); return 1; }
 
 const char RGFW_CURSORS[11][12] = {
     "default",
