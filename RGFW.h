@@ -82,7 +82,7 @@ macos : gcc main.c -framework Cocoa -framework OpenGL -framework IOKit
 u8 icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF,    0xFF, 0x00, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF,   0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
 
 int main() {
-	RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(500, 500, 500, 500), (u64)0);
+	RGFW_window* win = RGFW_createWindowPtr("name", RGFW_RECT(500, 500, 500, 500), (u64)0);
 
 	RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
 
@@ -506,12 +506,12 @@ enum RGFW_mouse_codes {
 
 /* for RGFW_event.lockstate */
 typedef RGFW_ENUM(u8, RGFW_keymod) {
-	RGFW_modCapsLock = RGFW_BIT(1),
-	RGFW_modNumLock  = RGFW_BIT(2),
-	RGFW_modControl  = RGFW_BIT(3),
-	RGFW_modAlt = RGFW_BIT(4),
-	RGFW_modShift  = RGFW_BIT(5),
-	RGFW_modSuper = RGFW_BIT(6)
+	RGFW_modCapsLock = RGFW_BIT(0),
+	RGFW_modNumLock  = RGFW_BIT(1),
+	RGFW_modControl  = RGFW_BIT(2),
+	RGFW_modAlt = RGFW_BIT(3),
+	RGFW_modShift  = RGFW_BIT(4),
+	RGFW_modSuper = RGFW_BIT(5)
 };
 
 /*! gamepad button codes (based on xbox/playstation), you may need to change these values per controller */
@@ -713,18 +713,18 @@ typedef struct RGFW_window_src {
 
 /*! Optional arguments for making a windows */
 typedef RGFW_ENUM(u16, RGFW_windowFlags) {
-	RGFW_windowNoInitAPI = RGFW_BIT(2), /* DO not init an API (mostly for bindings, you should use `#define RGFW_NO_API` in C */
-	RGFW_windowNoBorder = RGFW_BIT(3), /*!< the window doesn't have border */
-	RGFW_windowNoResize = RGFW_BIT(4), /*!< the window cannot be resized  by the user */
-	RGFW_windowAllowDND = RGFW_BIT(5), /*!< the window supports drag and drop*/
-	RGFW_windowHideMouse = RGFW_BIT(6), /*! the window should hide the mouse or not (can be toggled later on) using `RGFW_window_mouseShow*/
-	RGFW_windowFullscreen = RGFW_BIT(7), /* the window is fullscreen by default or not */
-	RGFW_windowTransparent = RGFW_BIT(8), /*!< the window is transparent (only properly works on X11 and MacOS, although it's although for windows) */
-	RGFW_windowCenter = RGFW_BIT(9), /*! center the window on the screen */
-	RGFW_windowOpenglSoftware = RGFW_BIT(10), /*! use OpenGL software rendering */
-	RGFW_windowCocoaCHDirToRes = RGFW_BIT(11), /* (cocoa only), change directory to resource folder */
-	RGFW_windowScaleToMonitor = RGFW_BIT(12), /* scale the window to the screen */
-	RGFW_windowHide = RGFW_BIT(13)/* the window is hidden */
+	RGFW_windowNoInitAPI = RGFW_BIT(0), /* DO not init an API (mostly for bindings, you should use `#define RGFW_NO_API` in C */
+	RGFW_windowNoBorder = RGFW_BIT(1), /*!< the window doesn't have border */
+	RGFW_windowNoResize = RGFW_BIT(2), /*!< the window cannot be resized  by the user */
+	RGFW_windowAllowDND = RGFW_BIT(3), /*!< the window supports drag and drop*/
+	RGFW_windowHideMouse = RGFW_BIT(4), /*! the window should hide the mouse or not (can be toggled later on) using `RGFW_window_mouseShow*/
+	RGFW_windowFullscreen = RGFW_BIT(5), /* the window is fullscreen by default or not */
+	RGFW_windowTransparent = RGFW_BIT(6), /*!< the window is transparent (only properly works on X11 and MacOS, although it's although for windows) */
+	RGFW_windowCenter = RGFW_BIT(7), /*! center the window on the screen */
+	RGFW_windowOpenglSoftware = RGFW_BIT(8), /*! use OpenGL software rendering */
+	RGFW_windowCocoaCHDirToRes = RGFW_BIT(9), /* (cocoa only), change directory to resource folder */
+	RGFW_windowScaleToMonitor = RGFW_BIT(10), /* scale the window to the screen */
+	RGFW_windowHide = RGFW_BIT(11)/* the window is hidden */
 };
 
 typedef struct RGFW_window {
@@ -770,7 +770,14 @@ RGFWDEF RGFW_window* RGFW_createWindow(
 	const char* name, /* name of the window */
 	RGFW_rect rect, /* rect of window */
 	RGFW_windowFlags flags /* extra arguments (NULL / (u16)0 means no flags used)*/
-); /*!< function to create a window struct */
+); /*!< function to create a window and struct */
+
+RGFWDEF RGFW_window* RGFW_createWindowPtr(
+	const char* name, /* name of the window */
+	RGFW_rect rect, /* rect of window */
+	RGFW_windowFlags flags, /* extra arguments (NULL / (u16)0 means no flags used)*/
+	RGFW_window* win /* ptr to the window struct you want to use */
+); /*!< function to create a window (without allocating a window struct) */
 
 /*! get the size of the screen to an area struct */
 RGFWDEF RGFW_area RGFW_getScreenSize(void);
@@ -858,7 +865,7 @@ RGFWDEF void RGFW_window_setName(RGFW_window* win,
 	char* name
 );
 
-RGFWDEF void RGFW_window_setIcon(RGFW_window* win, /*!< source window */
+RGFWDEF b32 RGFW_window_setIcon(RGFW_window* win, /*!< source window */
 	u8* icon /*!< icon bitmap */,
 	RGFW_area a /*!< width and height of the bitmap*/,
 	i32 channels /*!< how many channels the bitmap has (rgb : 3, rgba : 4) */
@@ -1664,13 +1671,16 @@ void RGFW_setBufferSize(RGFW_area size) {
 	RGFW_bufferSize = size;
 }
 
+RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
+	RGFW_window* win = RGFW_alloc(sizeof(RGFW_window));
+	return RGFW_createWindowPtr(name, rect, flags, win);
+}
 
-RGFWDEF RGFW_window* RGFW_window_basic_init(RGFW_rect rect, RGFW_windowFlags flags);
+
+RGFWDEF void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags flags);
 
 /* do a basic initialization for RGFW_window, this is to standard it for each OS */
-RGFW_window* RGFW_window_basic_init(RGFW_rect rect, RGFW_windowFlags flags) {
-	RGFW_window* win = (RGFW_window*) RGFW_alloc(sizeof(RGFW_window)); /*!< make a new RGFW struct */
-
+void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags flags) {
 	/* clear out dnd info */
 #ifdef RGFW_ALLOC_DROPFILES
 	win->event.droppedFiles = (char**) RGFW_alloc(sizeof(char*) * RGFW_MAX_DROPS);
@@ -1702,8 +1712,6 @@ RGFW_window* RGFW_window_basic_init(RGFW_rect rect, RGFW_windowFlags flags) {
 	win->event.droppedFilesCount = 0;
 	win->_flags = 0;
 	win->event.keyMod = 0;
-
-	return win;
 }
 
 #ifndef RGFW_NO_MONITOR
@@ -1716,10 +1724,10 @@ void RGFW_window_scaleToMonitor(RGFW_window* win) {
 
 RGFW_window* RGFW_root = NULL;
 
-#define RGFW_NO_GPU_RENDER 		RGFW_BIT(14) /* don't render (using the GPU based API)*/
-#define RGFW_NO_CPU_RENDER 		RGFW_BIT(15) /* don't render (using the CPU based buffer rendering)*/
-#define RGFW_HOLD_MOUSE			RGFW_BIT(2) /*!< hold the moues still */
-#define RGFW_MOUSE_LEFT 		RGFW_BIT(3) /* if mouse left the window */
+#define RGFW_NO_GPU_RENDER 		RGFW_BIT(12) /* don't render (using the GPU based API)*/
+#define RGFW_NO_CPU_RENDER 		RGFW_BIT(13) /* don't render (using the CPU based buffer rendering)*/
+#define RGFW_HOLD_MOUSE			RGFW_BIT(14) /*!< hold the moues still */
+#define RGFW_MOUSE_LEFT 		RGFW_BIT(15) /* if mouse left the window */
 
 #ifdef RGFW_MACOS
 RGFWDEF void RGFW_window_cocoaSetLayer(RGFW_window* win, void* layer);
@@ -2662,7 +2670,7 @@ void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) {
 	RGFW_window_moveMouse(win, RGFW_POINT(win->r.x + (i32)(r.w / 2), win->r.y + (i32)(r.h / 2)));
 }
 
-RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
+RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	#ifdef RGFW_USE_XDL
 		XDL_init();
 	#endif
@@ -2702,7 +2710,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlag
 	if (flags & RGFW_windowOpenglSoftware)
 		setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
 
-	RGFW_window* win = RGFW_window_basic_init(rect, flags);
+	RGFW_window_basic_init(win, rect, flags);
 
 	u64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /*!< X11 events accepted*/
 
@@ -3583,81 +3591,82 @@ void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
 
 #endif /* RGFW_NO_PASSTHROUGH */
 
-/*
-	the majority function is sourced from GLFW
-*/
+b32 RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
+	assert(win != NULL); assert(icon != NULL);
+	assert(channels == 3 || channels == 4);
 
-void RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
-	RGFW_ASSERT(win != NULL);
+	i32 longCount = 2 + (a.w * a.h);
 
-	i32 longCount = 2 + a.w * a.h;
+	unsigned long* data = (unsigned long*) RGFW_alloc(longCount * sizeof(unsigned long));
+	data[0] = (unsigned long)a.width;
+	data[1] = (unsigned long)a.height;
 
-	u64* X11Icon = (u64*) RGFW_alloc(longCount * sizeof(u64));
-	u64* target = X11Icon;
+	unsigned long* target = &data[2];
 
-	*target++ = a.w;
-	*target++ = a.h;
+	u32 x, y;
 
-	u32 i;
+	for (x = 0; x < a.width; x++) {
+		for (y = 0; y < a.height; y++) {
+			size_t i = y * a.width + x;
+			u32 alpha = (channels == 4) ? icon[i * 4 + 3] : 0xFF;
 
-	for (i = 0; i < a.w * a.h; i++) {
-		if (channels == 3)
-			*target++ = ((icon[i * 3 + 0]) << 16) |
-			((icon[i * 3 + 1]) << 8) |
-			((icon[i * 3 + 2]) << 0) |
-			(0xFF << 24);
-
-		else if (channels == 4)
-			*target++ = ((icon[i * 4 + 0]) << 16) |
-			((icon[i * 4 + 1]) << 8) |
-			((icon[i * 4 + 2]) << 0) |
-			((icon[i * 4 + 3]) << 24);
+			target[i] = (unsigned long)((icon[i * 4 + 0]) << 16) |
+						(unsigned long)((icon[i * 4 + 1]) <<  8) |
+						(unsigned long)((icon[i * 4 + 2]) <<  0) |
+						(unsigned long)(alpha << 24);
+		}
 	}
 
 	static Atom NET_WM_ICON = 0;
 	if (NET_WM_ICON == 0)
 		NET_WM_ICON = XInternAtom((Display*) win->src.display, "_NET_WM_ICON", False);
 
-	XChangeProperty((Display*) win->src.display, (Window) win->src.window,
-		NET_WM_ICON,
-		6, 32,
-		PropModeReplace,
-		(u8*) X11Icon,
-		longCount);
+	b32 res = (b32)XChangeProperty(
+		win->src.display, win->src.window, NET_WM_ICON, XA_CARDINAL, 32,
+		PropModeReplace, (u8*)data, count
+	);
 
-	RGFW_free(X11Icon);
+	RGFW_free(data);
 
 	XFlush((Display*) win->src.display);
+
+	return res;
 }
 
 void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels) {
-	RGFW_ASSERT(win != NULL);
+	RGFW_ASSERT(win != NULL); assert(image);
+	assert(channels == 3 || channels == 4);
 
-	#ifndef RGFW_NO_X11_CURSOR
-		XcursorImage* native = XcursorImageCreate(a.w, a.h);
-		native->xhot = 0;
-		native->yhot = 0;
+#ifndef RGFW_NO_X11_CURSOR
+	XcursorImage* native = XcursorImageCreate(a.width, a.height);
+	native->xhot = 0;
+	native->yhot = 0;
 
-		u8* source = (u8*) image;
-		XcursorPixel* target = native->pixels;
+	XcursorPixel* target = native->pixels;
+	for (size_t x = 0; x < a.width; x++) {
+		for (size_t y = 0; y < a.height; y++) {
+			size_t i = y * a.width + x;
+			u32 alpha = (channels == 4) ? icon[i * 4 + 3] : 0xFF;
 
-		u32 i;
-		for (i = 0; i < a.w * a.h; i++, target++, source += 4) {
-			u8 alpha = 0xFF;
-			if (channels == 4)
-				alpha = source[3];
-
-			*target = (alpha << 24) | (((source[0] * alpha) / 255) << 16) | (((source[1] * alpha) / 255) << 8) | (((source[2] * alpha) / 255) << 0);
+			target[i] = (u32)((icon[i * 4 + 0]) << 16)
+				| (u32)((icon[i * 4 + 1]) << 8)
+				| (u32)((icon[i * 4 + 2]) << 0)
+				| (u32)(alpha << 24);
 		}
+	}
 
-		Cursor cursor = XcursorImageLoadCursor((Display*) win->src.display, native);
-		XDefineCursor((Display*) win->src.display, (Window) win->src.window, (Cursor) cursor);
+	Cursor cursor = XcursorImageLoadCursor(win->src.display, native);
 
-		XFreeCursor((Display*) win->src.display, (Cursor) cursor);
-		XcursorImageDestroy(native);
-	#else
-		RGFW_UNUSED(image); RGFW_UNUSED(a.w); RGFW_UNUSED(channels);
-	#endif
+	b32 res = (b32)XDefineCursor(win->src.display, win->src.window, cursor);
+	if (res) XFreeCursor(win->src.display, cursor);
+	
+	XcursorImageDestroy(native);
+
+	return (b32)res;
+#else
+	RGFW_UNUSED(image); RGFW_UNUSED(a.w); RGFW_UNUSED(channels);
+	return 0;
+#endif
 }
 
 void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) {
@@ -4933,8 +4942,8 @@ void RGFW_init_buffer(RGFW_window* win) {
 	#endif
 }
 
-RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
-	RGFW_window* win = RGFW_window_basic_init(rect, flags);
+RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
+	RGFW_window_basic_init(win, rect, flags);
 
 	fprintf(stderr, "Warning: RGFW Wayland support is experimental\n");
 
@@ -5102,9 +5111,10 @@ void RGFW_window_move(RGFW_window* win, RGFW_point v) {
 	wl_display_flush(win->display);
 }
 
-void RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
+b32 RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
 	RGFW_UNUSED(win); RGFW_UNUSED(src); RGFW_UNUSED(a); RGFW_UNUSED(channels)
 	/* TODO wayland */
+	return 0;
 }
 
 void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) {
@@ -5365,7 +5375,7 @@ __declspec(dllimport) int __stdcall WideCharToMultiByte( UINT CodePage, DWORD dw
 
 u32 RGFW_mouseIconSrc[] = {OCR_NORMAL, OCR_NORMAL, OCR_IBEAM, OCR_CROSS, OCR_HAND, OCR_SIZEWE, OCR_SIZENS, OCR_SIZENWSE, OCR_SIZENESW, OCR_SIZEALL, OCR_NO};
 
-char* createUTF8FromWideStringWin32(const WCHAR* source);
+char* RGFW_createUTF8FromWideStringWin32(const WCHAR* source);
 
 #define GL_FRONT				0x0404
 #define GL_BACK					0x0405
@@ -5556,7 +5566,7 @@ void RGFW_captureCursor(RGFW_window* win, RGFW_rect rect) {
 
 u32 RGFW_windowsOpen = 0;
 
-RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
+RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	#ifndef RGFW_NO_XINPUT
 		if (RGFW_XInput_dll == NULL)
 			RGFW_loadXInput();
@@ -5597,7 +5607,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlag
 	RGFW_eventWindow.r = RGFW_RECT(-1, -1, -1, -1);
 	RGFW_eventWindow.src.window = NULL;
 
-	RGFW_window* win = RGFW_window_basic_init(rect, flags);
+	RGFW_window_basic_init(win, rect, flags);
 
 	win->src.maxSize = RGFW_AREA(0, 0);
 	win->src.minSize = RGFW_AREA(0, 0);
@@ -6125,11 +6135,20 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		u32 i;
 		for (i = 0; i < win->event.droppedFilesCount; i++) {
 			const UINT length = DragQueryFileW(drop, i, NULL, 0);
-			WCHAR* buffer = (WCHAR*) RGFW_alloc((size_t) length + 1);
+			if (length == 0)
+				continue;
+			
+			WCHAR* buffer = (WCHAR*) RGFW_alloc(length + RGFW_MAX_PATH);
 			buffer[length] = 0;
 
 			DragQueryFileW(drop, i, buffer, length + 1);
-			RGFW_MEMCPY(win->event.droppedFiles[i], createUTF8FromWideStringWin32(buffer), RGFW_MAX_PATH);
+			if (buffer == NULL)
+				continue;
+
+			char* str = RGFW_createUTF8FromWideStringWin32(buffer);
+			if (str != NULL)
+				RGFW_MEMCPY(win->event.droppedFiles[i], str, length + 1);
+			
 			win->event.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
 			RGFW_free(buffer);
 		}
@@ -6827,7 +6846,7 @@ void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
 #endif
 
 /* much of this function is sourced from GLFW */
-void RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
+b32 RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
 	RGFW_ASSERT(win != NULL);
 	#ifndef RGFW_WIN95
 		RGFW_UNUSED(channels);
@@ -6837,10 +6856,12 @@ void RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
 		SetClassLongPtrA(win->src.window, GCLP_HICON, (LPARAM) handle);
 
 		DestroyIcon(handle);
+		return 1;
 	#else
 		RGFW_UNUSED(src);
 		RGFW_UNUSED(a);
 		RGFW_UNUSED(channels);
+		return 0;
 	#endif
 }
 
@@ -6987,7 +7008,10 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	}
 }
 
-char* createUTF8FromWideStringWin32(const WCHAR* source) {
+char* RGFW_createUTF8FromWideStringWin32(const WCHAR* source) {
+	if (source == NULL) {
+		return NULL;
+	}
 	char* target;
 	i32 size;
 
@@ -7830,7 +7854,7 @@ void* RGFW_cocoaGetLayer(void) {
 NSPasteboardType const NSPasteboardTypeURL = "public.url";
 NSPasteboardType const NSPasteboardTypeFileURL  = "public.file-url";
 
-RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
+RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	static u8 RGFW_loaded = 0;
 
 	/* NOTE(EimaMei): Why does Apple hate good code? Like wtf, who thought of methods being a great idea???
@@ -7857,7 +7881,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlag
 		#endif
 	}
 
-	RGFW_window* win = RGFW_window_basic_init(rect, flags);
+	RGFW_window_basic_init(win, rect, flags);
 
 	RGFW_window_setMouseDefault(win);
 
@@ -8533,7 +8557,7 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 		((id)win->src.window, sel_registerName("setMaxSize:"), (NSSize){a.w, a.h});
 }
 
-void RGFW_window_setIcon(RGFW_window* win, u8* data, RGFW_area area, i32 channels) {
+b32 RGFW_window_setIcon(RGFW_window* win, u8* data, RGFW_area area, i32 channels) {
 	RGFW_ASSERT(win != NULL);
 
 	/* code by EimaMei  */
@@ -8550,6 +8574,8 @@ void RGFW_window_setIcon(RGFW_window* win, u8* data, RGFW_area area, i32 channel
 	// Free the garbage.
 	NSRelease(dock_image);
 	NSRelease(representation);
+
+	return 1;
 }
 
 id NSCursor_arrowStr(const char* str) {
@@ -9358,10 +9384,10 @@ void EMSCRIPTEN_KEEPALIVE RGFW_writeFile(const char *path, const char *data, siz
     fclose(file);
 }
 
-RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
+RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	RGFW_UNUSED(name);
 
-    RGFW_window* win = RGFW_window_basic_init(rect, flags);
+    RGFW_window_basic_init(win, rect, flags);
 
 	#ifndef RGFW_WEBGPU
 		EmscriptenWebGLContextAttributes attrs;
@@ -9807,7 +9833,7 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) { RGFW_UNUSED(win); R
 void RGFW_window_minimize(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_restore(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_setBorder(RGFW_window* win, b8 border) { RGFW_UNUSED(win); RGFW_UNUSED(border);  }
-void RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(icon); RGFW_UNUSED(a); RGFW_UNUSED(channels);  }
+b32 RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(icon); RGFW_UNUSED(a); RGFW_UNUSED(channels); return 0;  }
 void RGFW_window_hide(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_show(RGFW_window* win) {RGFW_UNUSED(win); }
 b8 RGFW_window_isHidden(RGFW_window* win) { RGFW_UNUSED(win); return 0; }

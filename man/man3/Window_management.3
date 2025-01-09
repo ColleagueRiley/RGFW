@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Wed Jan 8 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Thu Jan 9 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -17,6 +17,9 @@ Window_management \- Window_management
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindowPtr\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_area\fP \fBRGFW_getScreenSize\fP (void)"
@@ -76,7 +79,7 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setName\fP (\fBRGFW_window\fP *win, char *name)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_setIcon\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.RI "\fBRGFWDEF\fP \fBb32\fP \fBRGFW_window_setIcon\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBu8\fP *image, \fBRGFW_area\fP a, \fBi32\fP channels)"
@@ -140,7 +143,9 @@ Window_management \- Window_management
 .SH "Function Documentation"
 .PP 
 .SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_createWindow (const char * name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags)"
-function to create a window struct 
+function to create a window and struct 
+.SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_createWindowPtr (const char * name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window\fP * win)"
+function to create a window (without allocating a window struct) 
 .SS "typedef RGFW_ENUM (\fBi32\fP, RGFW_eventWait)"
 for RGFW_window_eventWait and RGFW_window_checkEvents waitMS -> Allows th e function to keep checking for events even after \fCRGFW_window_checkEvent == NULL\fP if waitMS == 0, the loop will not wait for events if waitMS == a positive integer, the loop will wait that many miliseconds after there are no more events until it returns if waitMS == a negative integer, the loop will not return until it gets another event 
 .SS "\fBRGFWDEF\fP \fBRGFW_point\fP RGFW_getGlobalMousePoint (void)"
@@ -217,7 +222,7 @@ restore the window from minimized (per OS)
 if the window should have a border or not (borderless) based on bool value of \fCborder\fP 
 .SS "\fBRGFWDEF\fP void RGFW_window_setDND (\fBRGFW_window\fP * win, \fBb8\fP allow)"
 turn on / off dnd (RGFW_windowAllowDND stil must be passed to the window) 
-.SS "\fBRGFWDEF\fP void RGFW_window_setIcon (\fBRGFW_window\fP * win, \fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.SS "\fBRGFWDEF\fP \fBb32\fP RGFW_window_setIcon (\fBRGFW_window\fP * win, \fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
 image resized by default sets mouse to bitmap (very simular to RGFW_window_setIcon), image NOT resized by default 
 .PP
 \fBParameters\fP
