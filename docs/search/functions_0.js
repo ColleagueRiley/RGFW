@@ -91,7 +91,7 @@ var searchData=
   ['rgfw_5fwindow_5fsetminsize_88',['RGFW_window_setMinSize',['../group__Window__management.html#ga62a242f890c1def944d0b4771b6c79d4',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fsetmouse_89',['RGFW_window_setMouse',['../group__Window__management.html#ga456e41ac42166d432143e353a9282fd8',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fsetmousedefault_90',['RGFW_window_setMouseDefault',['../group__Window__management.html#ga16d642f0893c60e3fd848fc11f79323e',1,'RGFW.h']]],
-  ['rgfw_5fwindow_5fsetmousepassthrough_91',['RGFW_window_setMousePassthrough',['../group__Window__management.html#ga7e7ebb26c9e03b9b8b6eed92d04a4ee0',1,'RGFW.h']]],
+  ['rgfw_5fwindow_5fsetmousepassthrough_91',['RGFW_window_setMousePassthrough',['../group__Window__management.html#ga238e2c030e0de4343a3e28aa92dc622e',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fsetmousestandard_92',['RGFW_window_setMouseStandard',['../group__Window__management.html#ga3d717eb1badc690e4fe74e399f50f81a',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fsetname_93',['RGFW_window_setName',['../group__Window__management.html#ga79615ab6c585b4fbd17fe27a60b0b981',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fsetshouldclose_94',['RGFW_window_setShouldClose',['../group__Window__management.html#gaf0292ade1017afd3d9df17e806bcb41b',1,'RGFW.h']]],

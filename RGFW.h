@@ -857,7 +857,7 @@ RGFWDEF void RGFW_window_setDND(RGFW_window* win, b8 allow);
 
 #ifndef RGFW_NO_PASSTHROUGH
 	/*!! turn on / off mouse passthrough */
-	RGFWDEF b32 RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough);
+	RGFWDEF void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough);
 #endif
 
 /*! rename window to a given string */
@@ -3555,7 +3555,7 @@ void* RGFW_libxshape = NULL;
 
 #ifndef RGFW_NO_PASSTHROUGH
 
-b32 RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
+void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
 	RGFW_ASSERT(win != NULL);
 
 	#if defined(__CYGWIN__)
@@ -5224,7 +5224,7 @@ void RGFW_window_setName(RGFW_window* win, char* name) {
 	xdg_toplevel_set_title(win->src.xdg_toplevel, name);
 }
 
-b32 RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
+void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
 	RGFW_UNUSED(win); RGFW_UNUSED(passthrough);
 
 /* TODO wayland */
@@ -6818,7 +6818,7 @@ void RGFW_window_setName(RGFW_window* win, char* name) {
 /* sourced from GLFW */
 #ifndef RGFW_NO_PASSTHROUGH
 
-b32 RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
+void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
 	RGFW_ASSERT(win != NULL);
 
 	COLORREF key = 0;
@@ -8542,7 +8542,7 @@ void RGFW_window_setName(RGFW_window* win, char* name) {
 }
 
 #ifndef RGFW_NO_PASSTHROUGH
-b32 RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
+void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
 	objc_msgSend_void_bool(win->src.window, sel_registerName("setIgnoresMouseEvents:"), passthrough);
 }
 #endif
@@ -9692,7 +9692,7 @@ RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
 	return RGFW_POINT( mouseEvent.targetX,  mouseEvent.targetY);
 }
 
-b32 RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
+void RGFW_window_setMousePassthrough(RGFW_window* win, b8 passthrough) {
 	RGFW_UNUSED(win);
 
     EM_ASM_({

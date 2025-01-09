@@ -73,7 +73,7 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setDND\fP (\fBRGFW_window\fP *win, \fBb8\fP allow)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBb32\fP \fBRGFW_window_setMousePassthrough\fP (\fBRGFW_window\fP *win, \fBb8\fP passthrough)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setMousePassthrough\fP (\fBRGFW_window\fP *win, \fBb8\fP passthrough)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setName\fP (\fBRGFW_window\fP *win, char *name)"
@@ -245,7 +245,7 @@ set the minimum size a user can shrink a window to a given size/area
 sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the RGFW_HEADER part of this file) 
 .SS "\fBRGFWDEF\fP \fBb32\fP RGFW_window_setMouseDefault (\fBRGFW_window\fP * win)"
 sets the mouse to the default mouse icon 
-.SS "\fBRGFWDEF\fP \fBb32\fP RGFW_window_setMousePassthrough (\fBRGFW_window\fP * win, \fBb8\fP passthrough)"
+.SS "\fBRGFWDEF\fP void RGFW_window_setMousePassthrough (\fBRGFW_window\fP * win, \fBb8\fP passthrough)"
 ! turn on / off mouse passthrough 
 .SS "\fBRGFWDEF\fP \fBb32\fP RGFW_window_setMouseStandard (\fBRGFW_window\fP * win, \fBu8\fP mouse)"
 
