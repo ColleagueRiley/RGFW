@@ -5464,7 +5464,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 #ifndef RGFW_NO_DWM
 static HMODULE RGFW_dwm_dll = NULL;
-typedef struct _DWM_BLURBEHIND { DWORD dwFlags; WINBOOL fEnable; HRGN hRgnBlur; WINBOOL fTransitionOnMaximized;} DWM_BLURBEHIND, *PDWM_BLURBEHIND;
+typedef struct { DWORD dwFlags; int fEnable; HRGN hRgnBlur; int fTransitionOnMaximized;} DWM_BLURBEHIND;
 typedef HRESULT (WINAPI * PFN_DwmEnableBlurBehindWindow)(HWND, const DWM_BLURBEHIND*);
 PFN_DwmEnableBlurBehindWindow DwmEnableBlurBehindWindowSRC = NULL;
 #endif

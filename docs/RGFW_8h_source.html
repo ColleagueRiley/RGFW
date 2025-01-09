@@ -5306,7 +5306,7 @@ $(function() {
 <div class="line"><a id="l05464" name="l05464"></a><span class="lineno"> 5464</span> </div>
 <div class="line"><a id="l05465" name="l05465"></a><span class="lineno"> 5465</span><span class="preprocessor">#ifndef RGFW_NO_DWM</span></div>
 <div class="line"><a id="l05466" name="l05466"></a><span class="lineno"> 5466</span><span class="keyword">static</span> HMODULE RGFW_dwm_dll = NULL;</div>
-<div class="line"><a id="l05467" name="l05467"></a><span class="lineno"> 5467</span><span class="keyword">typedef</span> <span class="keyword">struct </span>_DWM_BLURBEHIND { DWORD dwFlags; WINBOOL fEnable; HRGN hRgnBlur; WINBOOL fTransitionOnMaximized;} DWM_BLURBEHIND, *PDWM_BLURBEHIND;</div>
+<div class="line"><a id="l05467" name="l05467"></a><span class="lineno"> 5467</span><span class="keyword">typedef</span> <span class="keyword">struct </span>{ DWORD dwFlags; <span class="keywordtype">int</span> fEnable; HRGN hRgnBlur; <span class="keywordtype">int</span> fTransitionOnMaximized;} DWM_BLURBEHIND;</div>
 <div class="line"><a id="l05468" name="l05468"></a><span class="lineno"> 5468</span><span class="keyword">typedef</span> HRESULT (WINAPI * PFN_DwmEnableBlurBehindWindow)(HWND, <span class="keyword">const</span> DWM_BLURBEHIND*);</div>
 <div class="line"><a id="l05469" name="l05469"></a><span class="lineno"> 5469</span>PFN_DwmEnableBlurBehindWindow DwmEnableBlurBehindWindowSRC = NULL;</div>
 <div class="line"><a id="l05470" name="l05470"></a><span class="lineno"> 5470</span><span class="preprocessor">#endif</span></div>
