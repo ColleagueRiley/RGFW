@@ -6143,23 +6143,21 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		u32 i;
 		for (i = 0; i < win->event.droppedFilesCount; i++) {
-			const UINT length = DragQueryFileW(drop, i, NULL, 0);
+			UINT length = DragQueryFileW(drop, i, NULL, 0);
 			if (length == 0)
 				continue;
 			
-			WCHAR* buffer = (WCHAR*) RGFW_alloc(length + RGFW_MAX_PATH);
-			buffer[length] = 0;
+			WCHAR buffer[RGFW_MAX_PATH * 2];
+			if (length > (RGFW_MAX_PATH * 2) - 1)
+				length = RGFW_MAX_PATH * 2;
 
 			DragQueryFileW(drop, i, buffer, length + 1);
-			if (buffer == NULL)
-				continue;
 
 			char* str = RGFW_createUTF8FromWideStringWin32(buffer);
 			if (str != NULL)
 				RGFW_MEMCPY(win->event.droppedFiles[i], str, length + 1);
 			
 			win->event.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
-			RGFW_free(buffer);
 		}
 
 		DragFinish(drop);
@@ -7023,19 +7021,18 @@ char* RGFW_createUTF8FromWideStringWin32(const WCHAR* source) {
 	if (source == NULL) {
 		return NULL;
 	}
-	char* target;
-	i32 size;
-
-	size = WideCharToMultiByte(CP_UTF8, 0, source, -1, NULL, 0, NULL, NULL);
+	i32 size = WideCharToMultiByte(CP_UTF8, 0, source, -1, NULL, 0, NULL, NULL);
 	if (!size) {
 		return NULL;
 	}
 
-	target = (char*) RGFW_alloc(size + 1);
+	static char target[RGFW_MAX_PATH * 2];
+	if (size > RGFW_MAX_PATH * 2) 
+		size = RGFW_MAX_PATH * 2;
+	
 	target[size] = 0;
 
 	if (!WideCharToMultiByte(CP_UTF8, 0, source, -1, target, size, NULL, NULL)) {
-		RGFW_free(target);
 		return NULL;
 	}
 
@@ -7181,17 +7178,6 @@ typedef struct siArrayHeader {
 
 /* Gets the header of the siArray. */
 #define SI_ARRAY_HEADER(s) ((siArrayHeader*)s - 1)
-
-void* si_array_init_reserve(size_t sizeof_element, size_t count) {
-	siArrayHeader* ptr = (siArrayHeader*)RGFW_alloc(sizeof(siArrayHeader) + (sizeof_element * count));
-	void* array = ptr + sizeof(siArrayHeader);
-
-	siArrayHeader* header = SI_ARRAY_HEADER(array);
-	header->count = count;
-
-	return array;
-}
-
 #define si_array_len(array) (SI_ARRAY_HEADER(array)->count)
 #define si_func_to_SEL(class_name, function) si_impl_func_to_SEL_with_name(class_name, #function":", (void*)function)
 /* Creates an Objective-C method (SEL) from a regular C function with the option to set the register name.*/
@@ -7398,27 +7384,6 @@ typedef NS_ENUM(i32, NSDragOperation) {
 void* NSArray_objectAtIndex(id array, NSUInteger index) {
 	SEL func = sel_registerName("objectAtIndex:");
 	return ((id(*)(id, SEL, NSUInteger))objc_msgSend)(array, func, index);
-}
-
-const char** NSPasteboard_readObjectsForClasses(id pasteboard, Class* classArray, size_t len, void* options) {
-	SEL func = sel_registerName("readObjectsForClasses:options:");
-
-	id array = c_array_to_NSArray(classArray, len);
-
-	id output = (id) ((id(*)(id, SEL, id, void*))objc_msgSend)
-		(pasteboard, func, array, options);
-
-	NSRelease(array);
-	NSUInteger count = ((NSUInteger(*)(id, SEL))objc_msgSend)(output, sel_registerName("count"));
-
-	const char** res = (const char**)si_array_init_reserve(sizeof(const char*), count);
-	for (NSUInteger i = 0; i < count; i++) {
-		id url = (id)NSArray_objectAtIndex(output, i);
-		id url_str = ((id(*)(id, SEL))objc_msgSend)(url, sel_registerName("path"));
-		res[i] = NSString_to_char(url_str);
-	}
-
-	return res;
 }
 
 id NSWindow_contentView(id window) {
