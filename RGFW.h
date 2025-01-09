@@ -399,10 +399,6 @@ int main() {
 	#include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
 #endif
 
-#ifndef RGFW_ALPHA
-	#define RGFW_ALPHA 128 /* alpha value for RGFW_transparent (WINAPI ONLY, macOS + linux don't need this) */
-#endif
-
 /* 
 	RGFW_allocator (optional)
 	you can ignore this if you use standard malloc/free
@@ -5468,11 +5464,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 #ifndef RGFW_NO_DWM
 static HMODULE RGFW_dwm_dll = NULL;
-typedef struct _MARGINS { int cxLeftWidth; int cxRightWidth; int cyTopHeight; int cyBottomHeight; } MARGINS,*PMARGINS;
 typedef struct _DWM_BLURBEHIND { DWORD dwFlags; WINBOOL fEnable; HRGN hRgnBlur; WINBOOL fTransitionOnMaximized;} DWM_BLURBEHIND, *PDWM_BLURBEHIND;
 typedef HRESULT (WINAPI * PFN_DwmEnableBlurBehindWindow)(HWND, const DWM_BLURBEHIND*);
 PFN_DwmEnableBlurBehindWindow DwmEnableBlurBehindWindowSRC = NULL;
-#define DwmEnableBlurBehindWindow DwmEnableBlurBehindWindowSRC
 #endif
 
 #if !defined(RGFW_NO_LOAD_WINMM) && !defined(RGFW_NO_WINMM)
@@ -5865,11 +5859,18 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		RGFW_window_showMouse(win, 0);
 
 	if (flags & RGFW_windowTransparent) {
-		DWM_BLURBEHIND bb = {0};
-		bb.dwFlags = 0x1;
-		bb.fEnable = TRUE;
-		bb.hRgnBlur = NULL;
-		DwmEnableBlurBehindWindow(win->src.window, &bb);
+		if (DwmEnableBlurBehindWindowSRC != NULL) {
+		#ifndef RGFW_NO_DWM
+			DWM_BLURBEHIND bb = {0};
+			bb.dwFlags = 0x1;
+			bb.fEnable = TRUE;
+			bb.hRgnBlur = NULL;
+			DwmEnableBlurBehindWindowSRC(win->src.window, &bb);
+		#endif
+		} else {
+			SetWindowLong(win->src.window, GWL_EXSTYLE, WS_EX_LAYERED);
+			SetLayeredWindowAttributes(win->src.window, 0, 128,  LWA_ALPHA);
+		}
 	}
 
 	ShowWindow(win->src.window, SW_SHOWNORMAL);
