@@ -5469,9 +5469,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 #ifndef RGFW_NO_DWM
 static HMODULE RGFW_dwm_dll = NULL;
 typedef struct _MARGINS { int cxLeftWidth; int cxRightWidth; int cyTopHeight; int cyBottomHeight; } MARGINS,*PMARGINS;
-typedef HRESULT (WINAPI * PFN_DwmExtendFrameIntoClientArea)(HWND, const MARGINS*);
-PFN_DwmExtendFrameIntoClientArea DwmExtendFrameIntoClientAreaSRC = NULL;
-#define DwmExtendFrameIntoClientArea DwmExtendFrameIntoClientAreaSRC
+typedef struct _DWM_BLURBEHIND { DWORD dwFlags; WINBOOL fEnable; HRGN hRgnBlur; WINBOOL fTransitionOnMaximized;} DWM_BLURBEHIND, *PDWM_BLURBEHIND;
+typedef HRESULT (WINAPI * PFN_DwmEnableBlurBehindWindow)(HWND, const DWM_BLURBEHIND*);
+PFN_DwmEnableBlurBehindWindow DwmEnableBlurBehindWindowSRC = NULL;
+#define DwmEnableBlurBehindWindow DwmEnableBlurBehindWindowSRC
 #endif
 
 #if !defined(RGFW_NO_LOAD_WINMM) && !defined(RGFW_NO_WINMM)
@@ -5591,7 +5592,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	#ifndef RGFW_NO_DWM
 	RGFW_LOAD_LIBRARY(RGFW_dwm_dll, "dwmapi.dll");
-	RGFW_PROC_DEF(RGFW_dwm_dll, DwmExtendFrameIntoClientArea);
+	RGFW_PROC_DEF(RGFW_dwm_dll, DwmEnableBlurBehindWindow);
 	#endif
 
 	RGFW_LOAD_LIBRARY(RGFW_wgl_dll, "opengl32.dll");
@@ -5744,7 +5745,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			1,                             // Version
 			pfd_flags,                    // Flags to specify what the pixel format supports (e.g., PFD_SUPPORT_OPENGL)
 			PFD_TYPE_RGBA,                 // Pixel type is RGBA
-			24,                            // Color bits (red, green, blue channels)
+			32,                            // Color bits (red, green, blue channels)
 			0, 0, 0, 0, 0, 0,             // No color bits for unused channels
 			8,                             // Alpha bits (important for transparency)
 			0,                             // No accumulation buffer bits needed
@@ -5864,8 +5865,11 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		RGFW_window_showMouse(win, 0);
 
 	if (flags & RGFW_windowTransparent) {
-        MARGINS margins = {-1};
-        DwmExtendFrameIntoClientArea(win->src.window, &margins);
+		DWM_BLURBEHIND bb = {0};
+		bb.dwFlags = 0x1;
+		bb.fEnable = TRUE;
+		bb.hRgnBlur = NULL;
+		DwmEnableBlurBehindWindow(win->src.window, &bb);
 	}
 
 	ShowWindow(win->src.window, SW_SHOWNORMAL);
