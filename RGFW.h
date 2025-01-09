@@ -8593,7 +8593,7 @@ id NSCursor_arrowStr(const char* str) {
 b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
 	RGFW_ASSERT(win != NULL);
 
-	if (image == NULL) {
+	if (icon == NULL) {
 		objc_msgSend_void(NSCursor_arrowStr("arrowCursor"), sel_registerName("set"));
 		return 0;
 	}
