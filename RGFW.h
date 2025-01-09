@@ -3691,14 +3691,14 @@ RGFWDEF void RGFW_window_disableMouse(RGFW_window* win) {
 }
 
 b32 RGFW_window_setMouseDefault(RGFW_window* win) {
-	RGFW_window_setMouseStandard(win, RGFW_mouseArrow);
+	return RGFW_window_setMouseStandard(win, RGFW_mouseArrow);
 }
 
 b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	RGFW_ASSERT(win != NULL);
 
 	if (mouse > (sizeof(RGFW_mouseIconSrc) / sizeof(u8)))
-		return;
+		return 0;
 
 	mouse = RGFW_mouseIconSrc[mouse];
 
@@ -3706,6 +3706,7 @@ b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	XDefineCursor((Display*) win->src.display, (Window) win->src.window, (Cursor) cursor);
 
 	XFreeCursor((Display*) win->src.display, (Cursor) cursor);
+	return 1;
 }
 
 void RGFW_window_hide(RGFW_window* win) {
@@ -5190,7 +5191,7 @@ void RGFW_window_hide(RGFW_window* win) {
 b32 RGFW_window_setMouseDefault(RGFW_window* win) {
 	RGFW_UNUSED(win);
 
-	RGFW_window_setMouseStandard(win, RGFW_mouseNormal);
+	return RGFW_window_setMouseStandard(win, RGFW_mouseNormal);
 }
 
 b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
@@ -5204,6 +5205,7 @@ b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 
 	wl_surface_attach(RGFW_cursor_surface, cursor_buffer, 0, 0);
 	wl_surface_commit(RGFW_cursor_surface);
+	return 1;
 }
 
 b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
@@ -5214,6 +5216,8 @@ b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) 
 
 	wl_surface_attach(RGFW_cursor_surface, cursor_buffer, 0, 0);
 	wl_surface_commit(RGFW_cursor_surface);
+
+	return 1;
 }
 
 void RGFW_window_setName(RGFW_window* win, char* name) {
@@ -6690,22 +6694,24 @@ b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) 
 	SetClassLongPtrA(win->src.window, GCLP_HCURSOR, (LPARAM) cursor);
 	SetCursor(cursor);
 	DestroyCursor(cursor);
+	return 1;
 }
 
 b32 RGFW_window_setMouseDefault(RGFW_window* win) {
-	RGFW_window_setMouseStandard(win, RGFW_mouseArrow);
+	return RGFW_window_setMouseStandard(win, RGFW_mouseArrow);
 }
 
 b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	RGFW_ASSERT(win != NULL);
 
 	if (mouse > (sizeof(RGFW_mouseIconSrc) / sizeof(u32)))
-		return;
+		return 0;
 
 	char* icon = MAKEINTRESOURCEA(RGFW_mouseIconSrc[mouse]);
 
 	SetClassLongPtrA(win->src.window, GCLP_HCURSOR, (LPARAM) LoadCursorA(NULL, icon));
 	SetCursor(LoadCursorA(NULL, icon));
+	return 1;
 }
 
 void RGFW_window_hide(RGFW_window* win) {
@@ -8587,9 +8593,9 @@ id NSCursor_arrowStr(const char* str) {
 b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
 	RGFW_ASSERT(win != NULL);
 
-	if (image == NULL) {
+	if (icon == NULL) {
 		objc_msgSend_void(NSCursor_arrowStr("arrowCursor"), sel_registerName("set"));
-		return;
+		return 0;
 	}
 
 	/* NOTE(EimaMei): Code by yours truly. */
@@ -8609,10 +8615,11 @@ b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) 
 	// Free the garbage.
 	NSRelease(cursor_image);
 	NSRelease(representation);
+	return 1;
 }
 
 b32 RGFW_window_setMouseDefault(RGFW_window* win) {
-	RGFW_window_setMouseStandard(win, RGFW_mouseArrow);
+	return RGFW_window_setMouseStandard(win, RGFW_mouseArrow);
 }
 
 void RGFW_window_showMouse(RGFW_window* win, i8 show) {
@@ -8628,17 +8635,19 @@ void RGFW_window_showMouse(RGFW_window* win, i8 show) {
 
 b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 stdMouses) {
 	if (stdMouses > ((sizeof(RGFW_mouseIconSrc)) / (sizeof(char*))))
-		return;
+		return 0;
 
 	const char* mouseStr = RGFW_mouseIconSrc[stdMouses];
 	id mouse = NSCursor_arrowStr(mouseStr);
 
 	if (mouse == NULL)
-		return;
+		return 0;
 
 	RGFW_UNUSED(win);
 	CGDisplayShowCursor(kCGDirectMainDisplay);
 	objc_msgSend_void(mouse, sel_registerName("set"));
+
+	return 1;
 }
 
 void RGFW_releaseCursor(RGFW_window* win) {
@@ -9631,7 +9640,7 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 /* NOTE: I don't know if this is possible */
 void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v) { RGFW_UNUSED(win); RGFW_UNUSED(v); }
 /* this one might be possible but it looks iffy */
-b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(channels); RGFW_UNUSED(a); RGFW_UNUSED(icon); }
+b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(channels); RGFW_UNUSED(a); RGFW_UNUSED(icon); return 1; }
 
 const char RGFW_CURSORS[11][12] = {
     "default",
@@ -9650,10 +9659,11 @@ const char RGFW_CURSORS[11][12] = {
 b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	RGFW_UNUSED(win);
 	EM_ASM( { document.getElementById("canvas").style.cursor = UTF8ToString($0); }, RGFW_CURSORS[mouse]);
+	return 1;
 }
 
 b32 RGFW_window_setMouseDefault(RGFW_window* win) {
-	RGFW_window_setMouseStandard(win, RGFW_mouseNormal);
+	return RGFW_window_setMouseStandard(win, RGFW_mouseNormal);
 }
 
 void RGFW_window_showMouse(RGFW_window* win, i8 show) {

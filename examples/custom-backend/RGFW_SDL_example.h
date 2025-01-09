@@ -33,7 +33,7 @@ void RGFW_releaseCursor(RGFW_window* win) {
 
 #ifndef RGFW_NO_MONITOR
     RGFW_monitor* RGFW_getMonitors(void) {
-
+        
     }
 	RGFW_monitor RGFW_getPrimaryMonitor(void) {
 
