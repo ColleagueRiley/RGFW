@@ -380,6 +380,9 @@ XDL.h
 .RI "#define \fBglXChooseFBConfig\fP   \fBglXChooseFBConfigSrc\fP"
 .br
 .ti -1c
+.RI "#define \fBglXDestroyContext\fP   \fBglXDestroyContextSrc\fP"
+.br
+.ti -1c
 .RI "#define \fBglXSwapIntervalEXT\fP   \fBglXSwapIntervalEXTSrc\fP"
 .br
 .in -1c
@@ -770,6 +773,9 @@ XDL.h
 .ti -1c
 .RI "typedef PFNGLXCHOOSEFBCONFIGPROC \fBPFN_glXChooseFBConfig\fP"
 .br
+.ti -1c
+.RI "typedef void(* \fBPFN_glXDestroyContext\fP) (Display *dpy, GLXContext ctx)"
+.br
 .in -1c
 .SS "Functions"
 
@@ -1141,6 +1147,9 @@ XDL.h
 .ti -1c
 .RI "\fBPFN_glXChooseFBConfig\fP \fBglXChooseFBConfigSrc\fP"
 .br
+.ti -1c
+.RI "\fBPFN_glXDestroyContext\fP \fBglXDestroyContextSrc\fP"
+.br
 .in -1c
 .SH "Macro Definition Documentation"
 .PP 
@@ -1149,6 +1158,8 @@ XDL.h
 .SS "#define glXChooseVisual   \fBglXChooseVisualSrc\fP"
 
 .SS "#define glXCreateContext   \fBglXCreateContextSrc\fP"
+
+.SS "#define glXDestroyContext   \fBglXDestroyContextSrc\fP"
 
 .SS "#define glXGetFBConfigAttrib   \fBglXGetFBConfigAttribSrc\fP"
 
@@ -1391,6 +1402,8 @@ XDL.h
 .SS "typedef XVisualInfo *(* PFN_glXChooseVisual) (Display *, int, int *)"
 
 .SS "typedef GLXContext(* PFN_glXCreateContext) (Display *, XVisualInfo *, GLXContext, Bool)"
+
+.SS "typedef void(* PFN_glXDestroyContext) (Display *dpy, GLXContext ctx)"
 
 .SS "typedef PFNGLXGETFBCONFIGATTRIBPROC \fBPFN_glXGetFBConfigAttrib\fP"
 
@@ -1655,6 +1668,8 @@ XDL.h
 .SS "\fBPFN_glXChooseVisual\fP glXChooseVisualSrc"
 
 .SS "\fBPFN_glXCreateContext\fP glXCreateContextSrc"
+
+.SS "\fBPFN_glXDestroyContext\fP glXDestroyContextSrc"
 
 .SS "\fBPFN_glXGetFBConfigAttrib\fP glXGetFBConfigAttribSrc"
 
