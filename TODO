@@ -1,3 +1,7 @@
+- win->buffer (allow user to allocate)
+- clipboard handle alloc/free on RGFW end
+- fix: linux VM picks up mouse in linux joystick API
+
 - ensure support for UTF-16 
 - fix wayland stuff
 - android backend

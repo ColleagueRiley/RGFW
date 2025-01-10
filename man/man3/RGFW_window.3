@@ -1,4 +1,4 @@
-.TH "RGFW_window" 3 "Thu Jan 9 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_window" 3 "Fri Jan 10 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -29,6 +29,9 @@ RGFW_window
 .ti -1c
 .RI "\fBu32\fP \fB_flags\fP"
 .br
+.ti -1c
+.RI "\fBRGFW_allocator\fP \fB_mem\fP"
+.br
 .in -1c
 .SH "Member Data Documentation"
 .PP 
@@ -36,6 +39,8 @@ RGFW_window
 windows flags (for RGFW to check) 
 .SS "\fBRGFW_point\fP RGFW_window::_lastMousePoint"
 last cusor point (for raw mouse data) 
+.SS "\fBRGFW_allocator\fP RGFW_window::_mem"
+the allocator that was used to allocate RGFW window data, used to free it 
 .SS "\fBRGFW_event\fP RGFW_window::event"
 current event 
 .SS "\fBRGFW_rect\fP RGFW_window::r"

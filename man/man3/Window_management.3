@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Thu Jan 9 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Fri Jan 10 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -6,6 +6,13 @@ Window_management \- Window_management
 .SH SYNOPSIS
 .br
 .PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef void \fBRGFW_mouse\fP"
+.br
+.in -1c
 .SS "Functions"
 
 .in +1c
@@ -76,13 +83,19 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMousePassthrough\fP (\fBRGFW_window\fP *win, \fBb8\fP passthrough)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_setName\fP (\fBRGFW_window\fP *win, char *name)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setName\fP (\fBRGFW_window\fP *win, const char *name)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBb32\fP \fBRGFW_window_setIcon\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBb32\fP \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.RI "\fBRGFWDEF\fP \fBRGFW_mouse\fP * \fBRGFW_window_loadMouse\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_mouse\fP *mouse)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_freeMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_mouse\fP *mouse)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBb32\fP \fBRGFW_window_setMouseStandard\fP (\fBRGFW_window\fP *win, \fBu8\fP mouse)"
@@ -140,6 +153,10 @@ Window_management \- Window_management
 
 .PP
 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef void \fBRGFW_mouse\fP"
+loads mouse from bitmap (similar to RGFW_window_setIcon), icon NOT resized by default 
 .SH "Function Documentation"
 .PP 
 .SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_createWindow (const char * name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags)"
@@ -172,6 +189,8 @@ check all the events until there are none left, this should only be used if you'
 window managment functions close the window and free leftover data 
 .SS "\fBRGFWDEF\fP void RGFW_window_eventWait (\fBRGFW_window\fP * win, \fBi32\fP waitMS)"
 sleep until RGFW gets an event or the timer ends (defined by OS) 
+.SS "\fBRGFWDEF\fP void RGFW_window_freeMouse (\fBRGFW_window\fP * win, \fBRGFW_mouse\fP * mouse)"
+sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the RGFW_HEADER part of this file) 
 .SS "\fBRGFWDEF\fP \fBRGFW_point\fP RGFW_window_getMousePoint (\fBRGFW_window\fP * win)"
 where the mouse is on the window 
 .SS "\fBRGFWDEF\fP void RGFW_window_hide (\fBRGFW_window\fP * win)"
@@ -184,6 +203,8 @@ if window is hidden
 if window is maximized 
 .SS "\fBRGFWDEF\fP \fBb8\fP RGFW_window_isMinimized (\fBRGFW_window\fP * win)"
 if window is minimized 
+.SS "\fBRGFWDEF\fP \fBRGFW_mouse\fP * RGFW_window_loadMouse (\fBRGFW_window\fP * win, \fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+sets mouse to RGFW_mouse icon (loaded from a bitmap struct) 
 .SS "\fBRGFWDEF\fP void RGFW_window_maximize (\fBRGFW_window\fP * win)"
 maximize the window size 
 .SS "\fBRGFWDEF\fP void RGFW_window_minimize (\fBRGFW_window\fP * win)"
@@ -223,7 +244,7 @@ if the window should have a border or not (borderless) based on bool value of \f
 .SS "\fBRGFWDEF\fP void RGFW_window_setDND (\fBRGFW_window\fP * win, \fBb8\fP allow)"
 turn on / off dnd (RGFW_windowAllowDND stil must be passed to the window) 
 .SS "\fBRGFWDEF\fP \fBb32\fP RGFW_window_setIcon (\fBRGFW_window\fP * win, \fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
-image resized by default sets mouse to bitmap (very simular to RGFW_window_setIcon), icon NOT resized by default 
+image resized by default 
 .PP
 \fBParameters\fP
 .RS 4
@@ -241,15 +262,15 @@ image resized by default sets mouse to bitmap (very simular to RGFW_window_setIc
 set the minimum size a user can extend a window to a given size/area 
 .SS "\fBRGFWDEF\fP void RGFW_window_setMinSize (\fBRGFW_window\fP * win, \fBRGFW_area\fP a)"
 set the minimum size a user can shrink a window to a given size/area 
-.SS "\fBRGFWDEF\fP \fBb32\fP RGFW_window_setMouse (\fBRGFW_window\fP * win, \fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
-sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the RGFW_HEADER part of this file) 
+.SS "\fBRGFWDEF\fP void RGFW_window_setMouse (\fBRGFW_window\fP * win, \fBRGFW_mouse\fP * mouse)"
+frees RGFW_mouse data 
 .SS "\fBRGFWDEF\fP \fBb32\fP RGFW_window_setMouseDefault (\fBRGFW_window\fP * win)"
 sets the mouse to the default mouse icon 
 .SS "\fBRGFWDEF\fP void RGFW_window_setMousePassthrough (\fBRGFW_window\fP * win, \fBb8\fP passthrough)"
 ! turn on / off mouse passthrough 
 .SS "\fBRGFWDEF\fP \fBb32\fP RGFW_window_setMouseStandard (\fBRGFW_window\fP * win, \fBu8\fP mouse)"
 
-.SS "\fBRGFWDEF\fP void RGFW_window_setName (\fBRGFW_window\fP * win, char * name)"
+.SS "\fBRGFWDEF\fP void RGFW_window_setName (\fBRGFW_window\fP * win, const char * name)"
 rename window to a given string 
 .SS "\fBRGFWDEF\fP void RGFW_window_setShouldClose (\fBRGFW_window\fP * win)"
 

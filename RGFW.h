@@ -82,7 +82,7 @@ macos : gcc main.c -framework Cocoa -framework OpenGL -framework IOKit
 u8 icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF,    0xFF, 0x00, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF,   0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF,     0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
 
 int main() {
-	RGFW_window* win = RGFW_createWindowPtr("name", RGFW_RECT(500, 500, 500, 500), (u64)0);
+	RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(100, 100, 500, 500), (u64)0);
 
 	RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
 
@@ -708,7 +708,7 @@ typedef struct RGFW_window_src {
 #endif
 
 /*! Optional arguments for making a windows */
-typedef RGFW_ENUM(u16, RGFW_windowFlags) {
+typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowNoInitAPI = RGFW_BIT(0), /* DO not init an API (mostly for bindings, you should use `#define RGFW_NO_API` in C */
 	RGFW_windowNoBorder = RGFW_BIT(1), /*!< the window doesn't have border */
 	RGFW_windowNoResize = RGFW_BIT(2), /*!< the window cannot be resized  by the user */
@@ -739,6 +739,7 @@ typedef struct RGFW_window {
 	RGFW_point _lastMousePoint; /*!< last cusor point (for raw mouse data) */
 
 	u32 _flags; /*!< windows flags (for RGFW to check) */
+	RGFW_allocator _mem; /*!< the allocator that was used to allocate RGFW window data, used to free it*/
 } RGFW_window; /*!< Window structure for managing the window */
 
 #if defined(RGFW_X11) || defined(RGFW_MACOS)
@@ -858,7 +859,7 @@ RGFWDEF void RGFW_window_setDND(RGFW_window* win, b8 allow);
 
 /*! rename window to a given string */
 RGFWDEF void RGFW_window_setName(RGFW_window* win,
-	char* name
+	const char* name
 );
 
 RGFWDEF b32 RGFW_window_setIcon(RGFW_window* win, /*!< source window */
@@ -867,8 +868,14 @@ RGFWDEF b32 RGFW_window_setIcon(RGFW_window* win, /*!< source window */
 	i32 channels /*!< how many channels the bitmap has (rgb : 3, rgba : 4) */
 ); /*!< image resized by default */
 
-/*!< sets mouse to bitmap (very simular to RGFW_window_setIcon), icon NOT resized by default*/
-RGFWDEF b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels);
+typedef void RGFW_mouse;
+
+/*!< loads mouse from bitmap (similar to RGFW_window_setIcon), icon NOT resized by default*/
+RGFWDEF RGFW_mouse* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels);
+/*!< sets mouse to RGFW_mouse icon (loaded from a bitmap struct) */
+RGFWDEF void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse);
+/*!< frees RGFW_mouse data */
+RGFWDEF void RGFW_window_freeMouse(RGFW_window* win, RGFW_mouse* mouse);
 
 /*!< sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the RGFW_HEADER part of this file) */
 RGFWDEF	b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse);
@@ -1006,9 +1013,9 @@ typedef void (* RGFW_gamepadfunc)(RGFW_window* win, u16 gamepad, b8 connected);
 
 /*!  RGFW_dnd, the window that had the drop, the drop data and the amount files dropped returns previous callback function (if it was set) */
 #ifdef RGFW_ALLOC_DROPFILES
-	typedef void (* RGFW_dndfunc)(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount);
+	typedef void (* RGFW_dndfunc)(RGFW_window* win, const char** droppedFiles, u32 droppedFilesCount);
 #else
-	typedef void (* RGFW_dndfunc)(RGFW_window* win, char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount);
+	typedef void (* RGFW_dndfunc)(RGFW_window* win, const char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount);
 #endif
 /*! set callback for a window move event returns previous callback function (if it was set)  */
 RGFWDEF RGFW_windowmovefunc RGFW_setWindowMoveCallback(RGFW_windowmovefunc func);
@@ -1078,7 +1085,7 @@ typedef RGFW_ENUM(u8, RGFW_gamepadType) {
 /*! gamepad count starts at 0*/
 RGFWDEF u32 RGFW_isPressedgamepad(RGFW_window* win, u8 controller, u8 button);
 RGFWDEF RGFW_point RGFW_getGamepadAxis(RGFW_window* win, u16 controller, u16 whichAxis);
-RGFWDEF char* RGFW_getGamepadName(RGFW_window* win, u16 controller);
+RGFWDEF const char* RGFW_getGamepadName(RGFW_window* win, u16 controller);
 RGFWDEF size_t RGFW_getGamepadCount(RGFW_window* win);
 RGFWDEF RGFW_gamepadType RGFW_getGamepadType(RGFW_window* win, u16 controller);
 
@@ -1548,9 +1555,9 @@ void RGFW_gamepadAxisfuncEMPTY(RGFW_window* win, u16 gamepad, RGFW_point axis[2]
 void RGFW_gamepadfuncEMPTY(RGFW_window* win, u16 gamepad, b8 connected) {RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(connected);}
 
 #ifdef RGFW_ALLOC_DROPFILES
-void RGFW_dndfuncEMPTY(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
+void RGFW_dndfuncEMPTY(RGFW_window* win, const char** droppedFiles, u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
 #else
-void RGFW_dndfuncEMPTY(RGFW_window* win, char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
+void RGFW_dndfuncEMPTY(RGFW_window* win, const char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
 #endif
 
 RGFW_windowmovefunc RGFW_windowMoveCallback = RGFW_windowmovefuncEMPTY;
@@ -1662,6 +1669,13 @@ no more event call back defines
     attribs[index++] = v; \
 }
 
+#define RGFW_NO_GPU_RENDER 		RGFW_BIT(20) /* don't render (using the GPU based API)*/
+#define RGFW_NO_CPU_RENDER 		RGFW_BIT(21) /* don't render (using the CPU based buffer rendering)*/
+#define RGFW_HOLD_MOUSE			RGFW_BIT(22) /*!< hold the moues still */
+#define RGFW_MOUSE_LEFT 		RGFW_BIT(23) /* if mouse left the window */
+#define RGFW_WINDOW_ALLOC 		RGFW_BIT(24) /* if window was allocated by RGFW */
+#define RGFW_BUFFER_ALLOC 		RGFW_BIT(25) /* if window.buffer was allocated by RGFW */
+
 RGFW_area RGFW_bufferSize = {0, 0};
 void RGFW_setBufferSize(RGFW_area size) {
 	RGFW_bufferSize = size;
@@ -1669,6 +1683,7 @@ void RGFW_setBufferSize(RGFW_area size) {
 
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
 	RGFW_window* win = RGFW_alloc(sizeof(RGFW_window));
+	win->_flags |= RGFW_WINDOW_ALLOC;
 	return RGFW_createWindowPtr(name, rect, flags, win);
 }
 
@@ -1712,6 +1727,7 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 	win->event.droppedFilesCount = 0;
 	win->_flags = 0;
 	win->event.keyMod = 0;
+	win->_mem.free = RGFW_current_allocator.free;
 }
 
 #ifndef RGFW_NO_MONITOR
@@ -1723,11 +1739,6 @@ void RGFW_window_scaleToMonitor(RGFW_window* win) {
 #endif
 
 RGFW_window* RGFW_root = NULL;
-
-#define RGFW_NO_GPU_RENDER 		RGFW_BIT(12) /* don't render (using the GPU based API)*/
-#define RGFW_NO_CPU_RENDER 		RGFW_BIT(13) /* don't render (using the CPU based buffer rendering)*/
-#define RGFW_HOLD_MOUSE			RGFW_BIT(14) /*!< hold the moues still */
-#define RGFW_MOUSE_LEFT 		RGFW_BIT(15) /* if mouse left the window */
 
 #ifdef RGFW_MACOS
 RGFWDEF void RGFW_window_cocoaSetLayer(RGFW_window* win, void* layer);
@@ -1898,9 +1909,9 @@ RGFW_point RGFW_getGamepadAxis(RGFW_window* win, u16 controller, u16 whichAxis) 
 	RGFW_UNUSED(win);
 	return RGFW_gamepadAxes[controller][whichAxis];
 }
-char* RGFW_getGamepadName(RGFW_window* win, u16 controller) {
+const char* RGFW_getGamepadName(RGFW_window* win, u16 controller) {
 	RGFW_UNUSED(win);
-	return RGFW_gamepads_name[controller];
+	return (const char*)RGFW_gamepads_name[controller];
 }
 
 size_t RGFW_getGamepadCount(RGFW_window* win) {
@@ -1917,7 +1928,7 @@ RGFW_gamepadType RGFW_getGamepadType(RGFW_window* win, u16 controller) {
 void RGFW_window_showMouse(RGFW_window* win, i8 show) {
 	static u8 RGFW_blk[] = { 0, 0, 0, 0 };
 	if (show == 0)
-		RGFW_window_setMouse(win, RGFW_blk, RGFW_AREA(1, 1), 4);
+		RGFW_window_loadMouse(win, RGFW_blk, RGFW_AREA(1, 1), 4);
 	else
 		RGFW_window_setMouseDefault(win);
 }
@@ -2564,6 +2575,7 @@ void RGFW_init_buffer(RGFW_window* win, XVisualInfo* vi) {
 		RGFW_bufferSize = RGFW_getScreenSize();
 
 	win->buffer = (u8*)RGFW_alloc(RGFW_bufferSize.w * RGFW_bufferSize.h * 4);
+	win->_flags |= RGFW_BUFFER_ALLOC;
 
 	#ifdef RGFW_DEBUG
 	printf("RGFW INFO: createing a 4 channel %i by %i buffer\n", RGFW_bufferSize.w, RGFW_bufferSize.h);
@@ -3513,7 +3525,7 @@ void RGFW_window_restore(RGFW_window* win) {
 	XFlush(win->src.display);
 }
 
-void RGFW_window_setName(RGFW_window* win, char* name) {
+void RGFW_window_setName(RGFW_window* win, const char* name) {
 	RGFW_ASSERT(win != NULL);
 
 	XStoreName((Display*) win->src.display, (Window) win->src.window, name);
@@ -3601,7 +3613,7 @@ b32 RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
 	return res;
 }
 
-b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
+RGFW_mouse* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
 	RGFW_ASSERT(win != NULL); assert(icon);
 	assert(channels == 3 || channels == 4);
 
@@ -3624,17 +3636,23 @@ b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) 
 	}
 
 	Cursor cursor = XcursorImageLoadCursor(win->src.display, native);
-
-	b32 res = (b32)XDefineCursor(win->src.display, win->src.window, cursor);
-	if (res) XFreeCursor(win->src.display, cursor);
-	
 	XcursorImageDestroy(native);
 
-	return (b32)res;
+	return (void*)cursor;
 #else
 	RGFW_UNUSED(image); RGFW_UNUSED(a.w); RGFW_UNUSED(channels);
-	return 0;
+	return NULL;
 #endif
+}
+
+void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
+	assert(win && mouse);
+	XDefineCursor(win->src.display, win->src.window, (Cursor)mouse);
+}
+
+void RGFW_window_freeMouse(RGFW_window* win, RGFW_mouse* mouse) {
+	assert(win); assert(mouse);
+	XFreeCursor(win->src.display, (Cursor)mouse);
 }
 
 void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) {
@@ -4194,6 +4212,8 @@ void RGFW_window_close(RGFW_window* win) {
 		if (win->buffer != NULL) {
 			XDestroyImage((XImage*) win->src.bitmap);
 			XFreeGC(win->src.display, win->src.gc);
+			if ((win->_flags & RGFW_BUFFER_ALLOC))
+				win->_mem.free(win->_mem.userdata, win->buffer);
 		}
 	#endif
 
@@ -4215,10 +4235,10 @@ void RGFW_window_close(RGFW_window* win) {
 		{
 			u32 i;
 			for (i = 0; i < RGFW_MAX_DROPS; i++)
-				RGFW_free(win->event.droppedFiles[i]);
+				win->_mem.free(win->_mem.userdata, win->event.droppedFiles[i]);
 
 
-			RGFW_free(win->event.droppedFiles);
+			win->_mem.free(win->_mem.userdata, win->event.droppedFiles);
 		}
 	#endif
 
@@ -4259,7 +4279,8 @@ void RGFW_window_close(RGFW_window* win) {
 		#endif
 	}
 
-	RGFW_free(win); /*!< free collected window data */
+	if ((win->_flags & RGFW_WINDOW_ALLOC))
+		win->_mem.free(win->_mem.userdata, win); /*!< free collected window data */
 }
 
 
@@ -4881,6 +4902,8 @@ void RGFW_init_buffer(RGFW_window* win) {
 			exit(1);
 		}
 
+		win->_flags |= RGFW_BUFFER_ALLOC;
+
 		struct wl_shm_pool* pool = wl_shm_create_pool(shm, fd, size);
 		win->src.wl_buffer = wl_shm_pool_create_buffer(pool, 0, win->r.w, win->r.h, win->r.w * 4,
 			WL_SHM_FORMAT_ARGB8888);
@@ -5172,7 +5195,7 @@ b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	return 1;
 }
 
-b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
+void* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
 	RGFW_UNUSED(win); RGFW_UNUSED(image); RGFW_UNUSED(a); RGFW_UNUSED(channels)
 	//struct wl_cursor* cursor = wl_cursor_theme_get_cursor(RGFW_wl_cursor_theme, iconStrings[mouse]);
 	//RGFW_cursor_image = icon;
@@ -5181,10 +5204,18 @@ b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) 
 	wl_surface_attach(RGFW_cursor_surface, cursor_buffer, 0, 0);
 	wl_surface_commit(RGFW_cursor_surface);
 
-	return 1;
+	return cursor_buffer;
 }
 
-void RGFW_window_setName(RGFW_window* win, char* name) {
+void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
+	RGFW_UNUSED(win); RGFW_UNUSED(mouse);
+}
+
+void RGFW_window_freeMouse(RGFW_window* win, RGFW_mouse* mouse) {
+	RGFW_UNUSED(win); RGFW_UNUSED(mouse);
+}
+
+void RGFW_window_setName(RGFW_window* win, const char* name) {
 	xdg_toplevel_set_title(win->src.xdg_toplevel, name);
 }
 
@@ -5267,12 +5298,16 @@ void RGFW_window_close(RGFW_window* win) {
 	xdg_surface_destroy(win->src.xdg_surface);
 	wl_surface_destroy(win->src.surface);
 
-	#ifdef RGFW_BUFFER
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 		wl_buffer_destroy(win->src.wl_buffer);
+		if ((win->_flags & RGFW_BUFFER_ALLOC))
+			munmap(win->buffer, win->r.w * win->r.h * 4);
 	#endif
 
 	wl_display_disconnect(win->src.display);
-	RGFW_free(win);
+
+	if ((win->_flags & RGFW_WINDOW_ALLOC))
+		win->_mem.free(win->_mem.userdata, win);
 }
 
 RGFW_monitor RGFW_getPrimaryMonitor(void) {
@@ -6657,15 +6692,23 @@ HICON RGFW_loadHandleImage(RGFW_window* win, u8* src, RGFW_area a, BOOL icon) {
 	return handle;
 }
 
-b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
+void* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_UNUSED(channels);
 
 	HCURSOR cursor = (HCURSOR) RGFW_loadHandleImage(win, icon, a, FALSE);
-	SetClassLongPtrA(win->src.window, GCLP_HCURSOR, (LPARAM) cursor);
-	SetCursor(cursor);
-	DestroyCursor(cursor);
-	return 1;
+	return cursor;
+}
+
+void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
+	assert(win && mouse);
+	SetClassLongPtrA(win->src.window, GCLP_HCURSOR, (LPARAM) mouse);
+	SetCursor((HCURSOR)mouse);
+}
+
+void RGFW_window_freeMouse(RGFW_window* win, RGFW_mouse* mouse) {
+	assert(win && mouse);
+	DestroyCursor((HCURSOR)mouse);
 }
 
 b32 RGFW_window_setMouseDefault(RGFW_window* win) {
@@ -6720,19 +6763,13 @@ void RGFW_window_close(RGFW_window* win) {
 		ReleaseDC(win->src.window, win->src.hdc); /*!< delete device context */
 		DestroyWindow(win->src.window); /*!< delete window */
 
-	#if defined(RGFW_OSMESA)
-		if (win->buffer != NULL)
-			RGFW_free(win->buffer);
-	#endif
-
 	#ifdef RGFW_ALLOC_DROPFILES
 		{
 			u32 i;
 			for (i = 0; i < RGFW_MAX_DROPS; i++)
-				RGFW_free(win->event.droppedFiles[i]);
+				win->_mem.free(win->_mem.userdata, win->event.droppedFiles[i]);
 
-
-			RGFW_free(win->event.droppedFiles);
+			win->_mem.free(win->_mem.userdata, win->event.droppedFiles);
 		}
 	#endif
 
@@ -6760,7 +6797,8 @@ void RGFW_window_close(RGFW_window* win) {
 		RGFW_root = NULL;
 	}
 
-	RGFW_free(win);
+	if ((win->_flags & RGFW_WINDOW_ALLOC))
+		win->_mem.free(win->_mem.userdata, win);
 }
 
 void RGFW_window_move(RGFW_window* win, RGFW_point v) {
@@ -6780,7 +6818,7 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 }
 
 
-void RGFW_window_setName(RGFW_window* win, char* name) {
+void RGFW_window_setName(RGFW_window* win, const char* name) {
 	RGFW_ASSERT(win != NULL);
 
 	SetWindowTextA(win->src.window, name);
@@ -7774,6 +7812,7 @@ void RGFW_init_buffer(RGFW_window* win) {
 			RGFW_bufferSize = RGFW_getScreenSize();
 
 		win->buffer = RGFW_alloc(RGFW_bufferSize.w * RGFW_bufferSize.h * 4);
+		win->_flags |= RGFW_BUFFER_ALLOC;
 	#ifdef RGFW_OSMESA
 		win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
 		OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
@@ -8469,7 +8508,7 @@ void RGFW_window_restore(RGFW_window* win) {
 	objc_msgSend_void_SEL(win->src.window, sel_registerName("deminiaturize:"), NULL);
 }
 
-void RGFW_window_setName(RGFW_window* win, char* name) {
+void RGFW_window_setName(RGFW_window* win, const char* name) {
 	RGFW_ASSERT(win != NULL);
 
 	id str = NSString_stringWithUTF8String(name);
@@ -8525,12 +8564,12 @@ id NSCursor_arrowStr(const char* str) {
 	return (id) objc_msgSend_id(nclass, func);
 }
 
-b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
+RGFW_mouse* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
 	RGFW_ASSERT(win != NULL);
 
 	if (icon == NULL) {
 		objc_msgSend_void(NSCursor_arrowStr("arrowCursor"), sel_registerName("set"));
-		return 0;
+		return NULL;
 	}
 
 	/* NOTE(EimaMei): Code by yours truly. */
@@ -8545,12 +8584,21 @@ b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) 
 	// Finally, set the cursor image.
 	id cursor = NSCursor_initWithImage(cursor_image, (NSPoint){0.0, 0.0});
 
-	objc_msgSend_void(cursor, sel_registerName("set"));
-
 	// Free the garbage.
 	NSRelease(cursor_image);
 	NSRelease(representation);
-	return 1;
+
+	return (void*)cursor;
+}
+
+void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
+	assert(win); assert(mouse);
+	objc_msgSend_void((id)mouse, sel_registerName("set"));
+}
+
+void RGFW_window_freeMouse(RGFW_window* win, RGFW_mouse* mouse) {
+	assert(win); assert(mouse);
+	NSRelease((id)mouse);
 }
 
 b32 RGFW_window_setMouseDefault(RGFW_window* win) {
@@ -8839,19 +8887,22 @@ void RGFW_window_close(RGFW_window* win) {
 		{
 			u32 i;
 			for (i = 0; i < RGFW_MAX_DROPS; i++)
-				RGFW_free(win->event.droppedFiles[i]);
+				win->_mem.free(win->_mem.userdata, win->event.droppedFiles[i]);
 
 
-			RGFW_free(win->event.droppedFiles);
+			win->_mem.free(win->_mem.userdata, win->event.droppedFiles);
 		}
 	#endif
 
-	#ifdef RGFW_BUFFER
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 		NSRelease(win->src.bitmap);
 		NSRelease(win->src.image);
+		if ((win->_flags & RGFW_BUFFER_ALLOC))
+			win->_mem.free(win->_mem.userdata, win->buffer);
 	#endif
 
-	RGFW_free(win);
+	if ((win->_flags & RGFW_WINDOW_ALLOC))
+		win->_mem.free(win->_mem.userdata, win);
 }
 
 u64 RGFW_getTimeNS(void) {
@@ -9290,6 +9341,7 @@ void RGFW_init_buffer(RGFW_window* win) {
 			RGFW_bufferSize = RGFW_getScreenSize();
 
 		win->buffer = RGFW_alloc(RGFW_bufferSize.w * RGFW_bufferSize.h * 4);
+		win->_flags |= RGFW_BUFFER_ALLOC;
 	#ifdef RGFW_OSMESA
 			win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
 			OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
@@ -9571,7 +9623,10 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 /* NOTE: I don't know if this is possible */
 void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v) { RGFW_UNUSED(win); RGFW_UNUSED(v); }
 /* this one might be possible but it looks iffy */
-b32 RGFW_window_setMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(channels); RGFW_UNUSED(a); RGFW_UNUSED(icon); return 1; }
+RGFW_mouse* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(channels); RGFW_UNUSED(a); RGFW_UNUSED(icon); return NULL; }
+
+void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) { RGFW_UNUSED(win); RGFW_UNUSED(mouse); }
+void RGFW_window_freeMouse(RGFW_window* win, RGFW_mouse* mouse) { RGFW_UNUSED(win); RGFW_UNUSED(mouse); }
 
 const char RGFW_CURSORS[11][12] = {
     "default",
@@ -9721,8 +9776,14 @@ void RGFW_window_close(RGFW_window* win) {
 #ifndef RGFW_WEBGPU
 	emscripten_webgl_destroy_context(win->src.ctx);
 #endif
+	
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+	if ((win->_flags & RGFW_BUFFER_ALLOC))
+		win->_mem.free(win->_mem.userdata, win->buffer);
+	#endif
 
-    RGFW_free(win);
+	if ((win->_flags & RGFW_WINDOW_ALLOC))
+	    win->_mem.free(win->_mem.userdata, win);
 }
 
 int RGFW_innerWidth(void) {   return EM_ASM_INT({ return window.innerWidth; });  }
@@ -9760,7 +9821,7 @@ void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) {
 }
 
 
-void RGFW_window_setName(RGFW_window* win, char* name) {
+void RGFW_window_setName(RGFW_window* win, const char* name) {
 	RGFW_UNUSED(win);
 	emscripten_set_window_title(name);
 }

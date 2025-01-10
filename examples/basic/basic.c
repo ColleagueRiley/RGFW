@@ -50,6 +50,8 @@ int main(void) {
     
     u32 fps = 0;
 
+    RGFW_mouse* mouse = RGFW_window_loadMouse(win, icon, RGFW_AREA(3, 3), 4);
+
     while (running && !RGFW_isPressed(win, RGFW_keyEscape)) {   
         #ifdef __APPLE__
         if (win2) RGFW_window_checkEvent(win2);
@@ -82,7 +84,7 @@ int main(void) {
             else if (RGFW_isPressed(win, RGFW_keyQ))
                 RGFW_window_showMouse(win, 0);
             else if (RGFW_isPressed(win, RGFW_keyT)) {
-                RGFW_window_setMouse(win, icon, RGFW_AREA(3, 3), 4);
+                RGFW_window_setMouse(win, mouse);
             }
 
             if (win->event.type == RGFW_DND) {
@@ -100,6 +102,8 @@ int main(void) {
         drawLoop(win);
         fps = RGFW_window_checkFPS(win, 0);
     }
+
+    RGFW_window_freeMouse(win, mouse);
 
     running2 = 0;
     RGFW_window_close(win);

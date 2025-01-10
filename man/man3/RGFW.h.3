@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Thu Jan 9 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Fri Jan 10 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -171,6 +171,9 @@ RGFW.h
 .RI "typedef void * \fBRGFW_thread\fP"
 .br
 .ti -1c
+.RI "typedef void \fBRGFW_mouse\fP"
+.br
+.ti -1c
 .RI "typedef void(* \fBRGFW_windowmovefunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
 .br
 .ti -1c
@@ -210,7 +213,7 @@ RGFW.h
 .RI "typedef void(* \fBRGFW_gamepadfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBb8\fP connected)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, char droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP], \fBu32\fP droppedFilesCount)"
+.RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, const char droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP], \fBu32\fP droppedFilesCount)"
 .br
 .ti -1c
 .RI "typedef DWORD(__stdcall * \fBRGFW_threadFunc_ptr\fP) (LPVOID lpThreadParameter)"
@@ -251,7 +254,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP \fBRGFW_getPrimaryMonitor\fP (void)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu16\fP, RGFW_windowFlags)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBu32\fP, RGFW_windowFlags)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setClassName\fP (const char *name)"
@@ -320,13 +323,19 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMousePassthrough\fP (\fBRGFW_window\fP *win, \fBb8\fP passthrough)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_setName\fP (\fBRGFW_window\fP *win, char *name)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setName\fP (\fBRGFW_window\fP *win, const char *name)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBb32\fP \fBRGFW_window_setIcon\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBb32\fP \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.RI "\fBRGFWDEF\fP \fBRGFW_mouse\fP * \fBRGFW_window_loadMouse\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_mouse\fP *mouse)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_freeMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_mouse\fP *mouse)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBb32\fP \fBRGFW_window_setMouseStandard\fP (\fBRGFW_window\fP *win, \fBu8\fP mouse)"
@@ -482,7 +491,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_getGamepadAxis\fP (\fBRGFW_window\fP *win, \fBu16\fP controller, \fBu16\fP whichAxis)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP char * \fBRGFW_getGamepadName\fP (\fBRGFW_window\fP *win, \fBu16\fP controller)"
+.RI "\fBRGFWDEF\fP const char * \fBRGFW_getGamepadName\fP (\fBRGFW_window\fP *win, \fBu16\fP controller)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP size_t \fBRGFW_getGamepadCount\fP (\fBRGFW_window\fP *win)"
@@ -669,7 +678,7 @@ mouse wheel is scrolling down
 .PP 
 .SS "\fBRGFWDEF\fP void * RGFW_alloc (size_t len)"
 
-.SS "typedef RGFW_ENUM (\fBu16\fP, RGFW_windowFlags)"
+.SS "typedef RGFW_ENUM (\fBu32\fP, RGFW_windowFlags)"
 source data for the window (used by the APIs)
 .PP
 Optional arguments for making a windows < the window doesn't have border
