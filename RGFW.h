@@ -788,6 +788,11 @@ RGFWDEF RGFW_window* RGFW_createWindowPtr(
 /*! get the size of the screen to an area struct */
 RGFWDEF RGFW_area RGFW_getScreenSize(void);
 
+/*! frees win->buffer (if it was allocated by RGFW) and sets the pointer to your pointer */
+RGFWDEF void RGFW_window_setBufferPtr(RGFW_window* win, u8* ptr, RGFW_area size); 
+/*< the new buffer is not be resized or freed (by RGFW) */
+
+
 /*!
 	this function checks an *individual* event (and updates window structure attributes)
 	this means, using this function without a while loop may cause event lag
@@ -1740,6 +1745,18 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 	win->_flags = 0;
 	win->event.keyMod = 0;
 	win->_mem.free = RGFW_current_allocator.free;
+}
+
+void RGFW_window_setBufferPtr(RGFW_window* win, u8* ptr, RGFW_area size) {
+	#ifdef RGFW_BUFFER
+		if (win->buffer != NULL && ((win->_flags & RGFW_BUFFER_ALLOC))) {
+			win->_mem.free(win->_mem.userdata, win->buffer);
+			win->_flags ^= RGFW_BUFFER_ALLOC;
+		}
+
+		RGFW_bufferSize = size;
+		win->buffer = ptr;
+	#endif
 }
 
 #ifndef RGFW_NO_MONITOR
