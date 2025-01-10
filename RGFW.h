@@ -2408,10 +2408,13 @@ This is where OS specific stuff starts
 		#include <errno.h>
 
 		u32 RGFW_linux_updateGamepad(RGFW_window* win) {
+			static size_t skip = 0;
+			
 			/* check for new gamepads */
-			static const char* str[] = {"/dev/input/js0", "/dev/input/js1", "/dev/input/js2", "/dev/input/js3"} ;
-			for (size_t i = 0; i < 4; i++) {
-				if (RGFW_gamepads[i])
+			static const char* str[] = {"/dev/input/js0", "/dev/input/js1", "/dev/input/js2", "/dev/input/js3", "/dev/input/js4", "/dev/input/js5"};
+			for (size_t i = 0; i < 6; i++) {
+				size_t index = RGFW_gamepadCount;
+				if (RGFW_gamepads[index])
 					continue;
 
 				i32 js = open(str[i], O_RDONLY);
@@ -2438,29 +2441,29 @@ This is where OS specific stuff starts
 
 				RGFW_gamepadCount++;
 
-				RGFW_gamepads[i] = js;
+				RGFW_gamepads[index] = js;
 
-				ioctl(js, JSIOCGNAME(sizeof(RGFW_gamepads_name[i])), RGFW_gamepads_name[i]);
-				RGFW_gamepads_name[i][sizeof(RGFW_gamepads_name[i]) - 1] = 0;
+				ioctl(js, JSIOCGNAME(sizeof(RGFW_gamepads_name[index])), RGFW_gamepads_name[i]);
+				RGFW_gamepads_name[index][sizeof(RGFW_gamepads_name[index]) - 1] = 0;
 				
 				u8 j;
 				for (j = 0; j < 16; j++)
-					RGFW_gamepadPressed[i][j] = 0;
-
+					RGFW_gamepadPressed[index][j] = 0;
+				
 				win->event.type = RGFW_gamepadConnected;
 				
-				RGFW_gamepads_type[i] = RGFW_gamepadUnknown;
-				if (strstr(RGFW_gamepads_name[i], "Microsoft") || strstr(RGFW_gamepads_name[i], "X-Box"))
-					RGFW_gamepads_type[i] = RGFW_gamepadMicrosoft;
-				else if (strstr(RGFW_gamepads_name[i], "PlayStation") || strstr(RGFW_gamepads_name[i], "PS3") || strstr(RGFW_gamepads_name[i], "PS4") || strstr(RGFW_gamepads_name[i], "PS5"))
-					RGFW_gamepads_type[i] = RGFW_gamepadSony;
-				else if (strstr(RGFW_gamepads_name[i], "Nintendo"))
-					RGFW_gamepads_type[i] = RGFW_gamepadNintendo;
-				else if (strstr(RGFW_gamepads_name[i], "Logitech"))
-					RGFW_gamepads_type[i] = RGFW_gamepadLogitech;
+				RGFW_gamepads_type[index] = RGFW_gamepadUnknown;
+				if (strstr(RGFW_gamepads_name[index], "Microsoft") || strstr(RGFW_gamepads_name[i], "X-Box"))
+					RGFW_gamepads_type[index] = RGFW_gamepadMicrosoft;
+				else if (strstr(RGFW_gamepads_name[index], "PlayStation") || strstr(RGFW_gamepads_name[i], "PS3") || strstr(RGFW_gamepads_name[i], "PS4") || strstr(RGFW_gamepads_name[i], "PS5"))
+					RGFW_gamepads_type[index] = RGFW_gamepadSony;
+				else if (strstr(RGFW_gamepads_name[index], "Nintendo"))
+					RGFW_gamepads_type[index] = RGFW_gamepadNintendo;
+				else if (strstr(RGFW_gamepads_name[index], "Logitech"))
+					RGFW_gamepads_type[index] = RGFW_gamepadLogitech;
 
-				win->event.gamepad = i;
-				RGFW_gamepadCallback(win, i, 1);
+				win->event.gamepad = index;
+				RGFW_gamepadCallback(win, index, 1);
 				return 1;
 			}
 
