@@ -162,6 +162,9 @@ RGFW.h
 .RI "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
 .br
 .ti -1c
+.RI "typedef void \fBRGFW_mouse\fP"
+.br
+.ti -1c
 .RI "typedef struct \fBRGFW_event\fP \fBRGFW_event\fP"
 .br
 .ti -1c
@@ -169,9 +172,6 @@ RGFW.h
 .br
 .ti -1c
 .RI "typedef void * \fBRGFW_thread\fP"
-.br
-.ti -1c
-.RI "typedef void \fBRGFW_mouse\fP"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_windowmovefunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
@@ -254,6 +254,12 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP \fBRGFW_getPrimaryMonitor\fP (void)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_mouse\fP * \fBRGFW_loadMouse\fP (\fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_freeMouse\fP (\fBRGFW_mouse\fP *mouse)"
+.br
+.ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu32\fP, RGFW_windowFlags)"
 .br
 .ti -1c
@@ -329,13 +335,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBb32\fP \fBRGFW_window_setIcon\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_mouse\fP * \fBRGFW_loadMouse\fP (\fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
-.br
-.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_mouse\fP *mouse)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_freeMouse\fP (\fBRGFW_mouse\fP *mouse)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBb32\fP \fBRGFW_window_setMouseStandard\fP (\fBRGFW_window\fP *win, \fBu8\fP mouse)"
@@ -637,6 +637,8 @@ RGFW.h
 Event structure for checking/getting events 
 .SS "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
 structure for monitor data 
+.SS "typedef void \fBRGFW_mouse\fP"
+loads mouse from bitmap (similar to RGFW_window_setIcon), icon NOT resized by default 
 .SS "typedef void* \fBRGFW_thread\fP"
 thread type for window 
 .SS "typedef struct \fBRGFW_window\fP \fBRGFW_window\fP"
@@ -782,12 +784,16 @@ gamepad button codes (based on xbox/playstation), you may need to change these v
 
 .SS "\fBRGFWDEF\fP void RGFW_free (void * ptr)"
 
+.SS "\fBRGFWDEF\fP void RGFW_freeMouse (\fBRGFW_mouse\fP * mouse)"
+
 .SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP * RGFW_getMonitors (void)"
 get an array of all the monitors (max 6) 
 .SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP RGFW_getPrimaryMonitor (void)"
 get the primary monitor 
 .SS "\fBRGFWDEF\fP \fBRGFW_allocator\fP RGFW_loadAllocator (\fBRGFW_allocator\fP allocator)"
 
+.SS "\fBRGFWDEF\fP \fBRGFW_mouse\fP * RGFW_loadMouse (\fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+frees RGFW_mouse data 
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.
