@@ -8596,7 +8596,7 @@ void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
 	objc_msgSend_void((id)mouse, sel_registerName("set"));
 }
 
-void RGFW_window_freeMouse(RGFW_mouse* mouse) {
+void RGFW_freeMouse(RGFW_mouse* mouse) {
 	assert(mouse);
 	NSRelease((id)mouse);
 }
