@@ -970,9 +970,7 @@ RGFWDEF b8 RGFW_wasMousePressed(RGFW_window* win, u8 button /*!< mouse button co
 
 /** * @defgroup Clipboard
 * @{ */
-RGFWDEF char* RGFW_readClipboard(size_t* size); /*!< read clipboard data */
-RGFWDEF void RGFW_clipboardFree(char* str); /*!< the string returned from RGFW_readClipboard must be freed */
-
+RGFWDEF const char* RGFW_readClipboard(size_t* size); /*!< read clipboard data */
 RGFWDEF void RGFW_writeClipboard(const char* text, u32 textLen); /*!< write text to the clipboard */
 /** @} */
 
@@ -1332,6 +1330,17 @@ RGFW_allocator RGFW_loadAllocator(RGFW_allocator allocator) {
 
 void* RGFW_alloc(size_t len) { return RGFW_current_allocator.alloc(RGFW_current_allocator.userdata, len); }
 void RGFW_free(void* ptr) { RGFW_current_allocator.free(RGFW_current_allocator.userdata, ptr); }
+
+
+char* RGFW_clipboard_data = NULL;
+RGFW_allocator RGFW_clipboard_alloc;
+
+void RGFW_clipboard_switch(char* new) {
+	if (RGFW_clipboard_data != NULL) 
+		RGFW_clipboard_alloc.free(RGFW_clipboard_alloc.userdata, RGFW_clipboard_data);
+	RGFW_clipboard_data =  new;
+	RGFW_clipboard_alloc = RGFW_current_allocator;
+}
 
 /*
 RGFW_IMPLEMENTATION starts with generic RGFW defines
@@ -1752,8 +1761,6 @@ char* RGFW_className = NULL;
 void RGFW_setClassName(const char* name) {
 	RGFW_className = (char*)name;
 }
-
-void RGFW_clipboardFree(char* str) { RGFW_free(str); }
 
 RGFW_keyState RGFW_mouseButtons[5] = { {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0} };
 
@@ -3714,7 +3721,7 @@ void RGFW_window_show(RGFW_window* win) {
 /*
 	the majority function is sourced from GLFW
 */
-char* RGFW_readClipboard(size_t* size) {
+const char* RGFW_readClipboard(size_t* size) {
 	static Atom UTF8 = 0;
 	if (UTF8 == 0)
 		UTF8 = XInternAtom(RGFW_root->src.display, "UTF8_STRING", True);
@@ -3754,6 +3761,8 @@ char* RGFW_readClipboard(size_t* size) {
 	if (s != NULL && size != NULL)
 		*size = sizeN;
 
+	RGFW_clipboard_switch(s);
+	
 	return s;
 }
 
@@ -4286,6 +4295,8 @@ void RGFW_window_close(RGFW_window* win) {
 		}
 		#endif
 	}
+
+	RGFW_clipboard_switch(NULL);
 
 	if ((win->_flags & RGFW_WINDOW_ALLOC))
 		win->_mem.free(win->_mem.userdata, win); /*!< free collected window data */
@@ -5314,6 +5325,8 @@ void RGFW_window_close(RGFW_window* win) {
 
 	wl_display_disconnect(win->src.display);
 
+	RGFW_clipboard_switch(NULL);
+
 	if ((win->_flags & RGFW_WINDOW_ALLOC))
 		win->_mem.free(win->_mem.userdata, win);
 }
@@ -5336,12 +5349,12 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	/* TODO wayland */
 }
 
-char* RGFW_readClipboard(size_t* size) {
+const char* RGFW_readClipboard(size_t* size) {
 	RGFW_UNUSED(size);
 
 	/* TODO wayland */
 
-	return NULL;
+	return "\0";
 }
 #endif /* RGFW_WAYLAND */
 
@@ -6802,6 +6815,8 @@ void RGFW_window_close(RGFW_window* win) {
 		RGFW_root = NULL;
 	}
 
+	RGFW_clipboard_switch(NULL);
+
 	if ((win->_flags & RGFW_WINDOW_ALLOC))
 		win->_mem.free(win->_mem.userdata, win);
 }
@@ -6885,7 +6900,7 @@ b32 RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
 	#endif
 }
 
-char* RGFW_readClipboard(size_t* size) {
+const char* RGFW_readClipboard(size_t* size) {
 	/* Open the clipboard */
 	if (OpenClipboard(NULL) == 0)
 		return (char*) "";
@@ -6909,12 +6924,13 @@ char* RGFW_readClipboard(size_t* size) {
 			return (char*) "";
 
 		text = (char*) RGFW_alloc((textLen * sizeof(char)) + 1);
-
 		wcstombs(text, wstr, (textLen) +1);
 
 		if (size != NULL)
 			*size = textLen + 1;
 		text[textLen] = '\0';
+
+		RGFW_clipboard_switch(text);
 	}
 
 	/* Release the clipboard data */
@@ -8773,7 +8789,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	return RGFW_NSCreateMonitor(display, screen);
 }
 
-char* RGFW_readClipboard(size_t* size) {
+const char* RGFW_readClipboard(size_t* size) {
 	size_t clip_len;
 	char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString, &clip_len);
 
@@ -8787,6 +8803,9 @@ char* RGFW_readClipboard(size_t* size) {
 
 	if (size != NULL)
 		*size = clip_len;
+
+	RGFW_clipboard_switch(str);
+
 	return str;
 }
 
@@ -8903,6 +8922,8 @@ void RGFW_window_close(RGFW_window* win) {
 		if ((win->_flags & RGFW_BUFFER_ALLOC))
 			win->_mem.free(win->_mem.userdata, win->buffer);
 	#endif
+
+	RGFW_clipboard_switch(NULL);
 
 	if ((win->_flags & RGFW_WINDOW_ALLOC))
 		win->_mem.free(win->_mem.userdata, win);
@@ -9700,7 +9721,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 }
 
 
-char* RGFW_readClipboard(size_t* size) {
+const char* RGFW_readClipboard(size_t* size) {
 	/*
 		placeholder code for later
 		I'm not sure if this is possible do the the async stuff
@@ -9710,10 +9731,7 @@ char* RGFW_readClipboard(size_t* size) {
 	if (size != NULL)
 		*size = len;
 
-	char* str = (char*)RGFW_alloc(1);
-	str[len] = '\0';
-
-	return str;
+	return "\0";
 }
 
 void RGFW_window_swapBuffers(RGFW_window* win) {
@@ -9784,6 +9802,8 @@ void RGFW_window_close(RGFW_window* win) {
 	if ((win->_flags & RGFW_BUFFER_ALLOC))
 		win->_mem.free(win->_mem.userdata, win->buffer);
 	#endif
+
+	RGFW_clipboard_switch(NULL);
 
 	if ((win->_flags & RGFW_WINDOW_ALLOC))
 	    win->_mem.free(win->_mem.userdata, win);

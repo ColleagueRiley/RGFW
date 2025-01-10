@@ -71,9 +71,8 @@ int main(void) {
                 break;
             }
             if (RGFW_isPressed(win, RGFW_keyUp)) {
-                char* str = RGFW_readClipboard(NULL);
+                const char* str = RGFW_readClipboard(NULL);
                 printf("Pasted : %s\n", str);
-                free(str);
             }
             else if (RGFW_isPressed(win, RGFW_keyDown))
                 RGFW_writeClipboard("DOWN", 4);
