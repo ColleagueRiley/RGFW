@@ -6868,7 +6868,7 @@ b32 RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
 	#ifndef RGFW_WIN95
 		RGFW_UNUSED(channels);
 
-		HICON handle = RGFW_loadHandleImage(win, src, a, TRUE);
+		HICON handle = RGFW_loadHandleImage(src, a, TRUE);
 
 		SetClassLongPtrA(win->src.window, GCLP_HICON, (LPARAM) handle);
 
@@ -8597,7 +8597,7 @@ void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
 }
 
 void RGFW_window_freeMouse(RGFW_mouse* mouse) {
-	assert(win); assert(mouse);
+	assert(mouse);
 	NSRelease((id)mouse);
 }
 

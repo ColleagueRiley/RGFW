@@ -6707,7 +6707,7 @@ $(function() {
 <div class="line"><a id="l06868" name="l06868"></a><span class="lineno"> 6868</span><span class="preprocessor">    #ifndef RGFW_WIN95</span></div>
 <div class="line"><a id="l06869" name="l06869"></a><span class="lineno"> 6869</span>        <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(channels);</div>
 <div class="line"><a id="l06870" name="l06870"></a><span class="lineno"> 6870</span> </div>
-<div class="line"><a id="l06871" name="l06871"></a><span class="lineno"> 6871</span>        HICON handle = RGFW_loadHandleImage(win, src, a, TRUE);</div>
+<div class="line"><a id="l06871" name="l06871"></a><span class="lineno"> 6871</span>        HICON handle = RGFW_loadHandleImage(src, a, TRUE);</div>
 <div class="line"><a id="l06872" name="l06872"></a><span class="lineno"> 6872</span> </div>
 <div class="line"><a id="l06873" name="l06873"></a><span class="lineno"> 6873</span>        SetClassLongPtrA(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.window, GCLP_HICON, (LPARAM) handle);</div>
 <div class="line"><a id="l06874" name="l06874"></a><span class="lineno"> 6874</span> </div>
@@ -8435,7 +8435,7 @@ $(function() {
 <div class="line"><a id="l08597" name="l08597"></a><span class="lineno"> 8597</span>}</div>
 <div class="line"><a id="l08598" name="l08598"></a><span class="lineno"> 8598</span> </div>
 <div class="line"><a id="l08599" name="l08599"></a><span class="lineno"> 8599</span><span class="keywordtype">void</span> RGFW_window_freeMouse(<a class="code hl_typedef" href="group__Window__management.html#ga7c3c77eb6844d3bb20054dc4f1f61ac5">RGFW_mouse</a>* mouse) {</div>
-<div class="line"><a id="l08600" name="l08600"></a><span class="lineno"> 8600</span>    assert(win); assert(mouse);</div>
+<div class="line"><a id="l08600" name="l08600"></a><span class="lineno"> 8600</span>    assert(mouse);</div>
 <div class="line"><a id="l08601" name="l08601"></a><span class="lineno"> 8601</span>    NSRelease((<span class="keywordtype">id</span>)mouse);</div>
 <div class="line"><a id="l08602" name="l08602"></a><span class="lineno"> 8602</span>}</div>
 <div class="line"><a id="l08603" name="l08603"></a><span class="lineno"> 8603</span> </div>
