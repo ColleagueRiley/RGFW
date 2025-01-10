@@ -572,6 +572,15 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 	RGFWDEF RGFW_monitor RGFW_getPrimaryMonitor(void);
 #endif
 
+/* RGFW mouse loading */
+typedef void RGFW_mouse;
+
+/*!< loads mouse from bitmap (similar to RGFW_window_setIcon), icon NOT resized by default*/
+RGFWDEF RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels);
+/*!< frees RGFW_mouse data */
+RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
+/* */
+
 /* NOTE: some parts of the data can represent different things based on the event (read comments in RGFW_event struct) */
 /*! Event structure for checking/getting events */
 typedef struct RGFW_event {
@@ -868,14 +877,8 @@ RGFWDEF b32 RGFW_window_setIcon(RGFW_window* win, /*!< source window */
 	i32 channels /*!< how many channels the bitmap has (rgb : 3, rgba : 4) */
 ); /*!< image resized by default */
 
-typedef void RGFW_mouse;
-
-/*!< loads mouse from bitmap (similar to RGFW_window_setIcon), icon NOT resized by default*/
-RGFWDEF RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels);
 /*!< sets mouse to RGFW_mouse icon (loaded from a bitmap struct) */
 RGFWDEF void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse);
-/*!< frees RGFW_mouse data */
-RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
 
 /*!< sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the RGFW_HEADER part of this file) */
 RGFWDEF	b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse);
@@ -6695,7 +6698,7 @@ HICON RGFW_loadHandleImage(u8* src, RGFW_area a, BOOL icon) {
 	return handle;
 }
 
-void* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
+void* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) {
 	RGFW_UNUSED(channels);
 
 	HCURSOR cursor = (HCURSOR) RGFW_loadHandleImage(icon, a, FALSE);
