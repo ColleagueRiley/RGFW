@@ -8592,12 +8592,12 @@ RGFW_mouse* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 c
 }
 
 void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
-	objc_msgSend_void(cursor, sel_registerName("set"));
+	objc_msgSend_void((id)mouse, sel_registerName("set"));
 }
 
 void RGFW_window_freeMouse(RGFW_window* win, RGFW_mouse* mouse) {
 	assert(win); assert(mouse);
-	NSRelease(cursor);
+	NSRelease((id)mouse);
 }
 
 b32 RGFW_window_setMouseDefault(RGFW_window* win) {
