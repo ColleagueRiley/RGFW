@@ -1748,6 +1748,8 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 }
 
 void RGFW_window_setBufferPtr(RGFW_window* win, u8* ptr, RGFW_area size) {
+	assert(win); assert(ptr);
+
 	#ifdef RGFW_BUFFER
 		if (win->buffer != NULL && ((win->_flags & RGFW_BUFFER_ALLOC))) {
 			win->_mem.free(win->_mem.userdata, win->buffer);
@@ -1756,6 +1758,8 @@ void RGFW_window_setBufferPtr(RGFW_window* win, u8* ptr, RGFW_area size) {
 
 		RGFW_bufferSize = size;
 		win->buffer = ptr;
+	#else
+	RGFW_UNUSED(size);
 	#endif
 }
 
