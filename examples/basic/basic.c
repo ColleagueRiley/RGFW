@@ -50,7 +50,7 @@ int main(void) {
     
     u32 fps = 0;
 
-    RGFW_mouse* mouse = RGFW_window_loadMouse(win, icon, RGFW_AREA(3, 3), 4);
+    RGFW_mouse* mouse = RGFW_loadMouse(icon, RGFW_AREA(3, 3), 4);
 
     while (running && !RGFW_isPressed(win, RGFW_keyEscape)) {   
         #ifdef __APPLE__
@@ -103,7 +103,7 @@ int main(void) {
         fps = RGFW_window_checkFPS(win, 0);
     }
 
-    RGFW_window_freeMouse(win, mouse);
+    RGFW_freeMouse(mouse);
 
     running2 = 0;
     RGFW_window_close(win);
