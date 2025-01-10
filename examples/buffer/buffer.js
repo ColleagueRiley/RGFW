@@ -965,19 +965,19 @@ function dbg(text) {
 // === Body ===
 
 var ASM_CONSTS = {
-  65960: () => { Module.canvas.focus(); },  
- 65985: () => { Module.useWebGL = true; GLImmediate.init(); },  
- 66031: () => { window.addEventListener("keydown", (event) => { Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta")); Module._RGFW_handleKeyEvent(stringToNewUTF8(event.key), stringToNewUTF8(event.code), 1); }, true); },  
- 66412: () => { window.addEventListener("keydown", (event) => { Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta")); Module._RGFW_handleKeyEvent(stringToNewUTF8(event.key), stringToNewUTF8(event.code), 1); }, true); },  
- 66793: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 67812: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 67883: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 67940: () => { return window.mouseX || 0; },  
- 67971: () => { return window.mouseY || 0; },  
- 68002: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 68149: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 68202: () => { return window.innerWidth; },  
- 68232: () => { return window.innerHeight; }
+  65976: () => { Module.canvas.focus(); },  
+ 66001: () => { Module.useWebGL = true; GLImmediate.init(); },  
+ 66047: () => { window.addEventListener("keydown", (event) => { Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta")); Module._RGFW_handleKeyEvent(stringToNewUTF8(event.key), stringToNewUTF8(event.code), 1); }, true); },  
+ 66428: () => { window.addEventListener("keydown", (event) => { Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta")); Module._RGFW_handleKeyEvent(stringToNewUTF8(event.key), stringToNewUTF8(event.code), 1); }, true); },  
+ 66809: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
+ 67828: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 67899: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 67956: () => { return window.mouseX || 0; },  
+ 67987: () => { return window.mouseY || 0; },  
+ 68018: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
+ 68165: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 68218: () => { return window.innerWidth; },  
+ 68248: () => { return window.innerHeight; }
 };
 
 

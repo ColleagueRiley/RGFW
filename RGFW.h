@@ -1085,7 +1085,7 @@ RGFWDEF void RGFW_setThreadPriority(RGFW_thread thread, u8 priority); /*!< sets 
 * @{ */
 
 typedef RGFW_ENUM(u8, RGFW_gamepadType) {
-	RGFW_gamepadMicrosoft = 0, RGFW_gamepadSony, RGFW_gamepadNintendo, RGFW_gamepadUnknown
+	RGFW_gamepadMicrosoft = 0, RGFW_gamepadSony, RGFW_gamepadNintendo, RGFW_gamepadLogitech, RGFW_gamepadUnknown
 };
 
 /*! gamepad count starts at 0*/
@@ -2425,8 +2425,8 @@ This is where OS specific stuff starts
 					break;
 				}
 
-				char evBits[(EV_CNT + 7) / 8] = {0};
-				char absBits[(ABS_CNT + 7) / 8] = {0};
+				static char evBits[(EV_CNT + 7) / 8] = {0};
+				static char absBits[(ABS_CNT + 7) / 8] = {0};
 				ioctl(js, EVIOCGBIT(0, sizeof(evBits)), evBits);
 				ioctl(js, EVIOCGBIT(EV_ABS, sizeof(absBits)), absBits);
 
@@ -2449,13 +2449,15 @@ This is where OS specific stuff starts
 				win->event.type = RGFW_gamepadConnected;
 				
 				RGFW_gamepads_type[i] = RGFW_gamepadUnknown;
-				/*if (strstr(RGFW_gamepads_name[i], "Microsoft") || strstr(RGFW_gamepads_name[i], "X-Box"))
+				if (strstr(RGFW_gamepads_name[i], "Microsoft") || strstr(RGFW_gamepads_name[i], "X-Box"))
 					RGFW_gamepads_type[i] = RGFW_gamepadMicrosoft;
 				else if (strstr(RGFW_gamepads_name[i], "PlayStation") || strstr(RGFW_gamepads_name[i], "PS3") || strstr(RGFW_gamepads_name[i], "PS4") || strstr(RGFW_gamepads_name[i], "PS5"))
 					RGFW_gamepads_type[i] = RGFW_gamepadSony;
 				else if (strstr(RGFW_gamepads_name[i], "Nintendo"))
-					RGFW_gamepads_type[i] = RGFW_gamepadNintendo;*/
-				
+					RGFW_gamepads_type[i] = RGFW_gamepadNintendo;
+				else if (strstr(RGFW_gamepads_name[i], "Logitech"))
+					RGFW_gamepads_type[i] = RGFW_gamepadLogitech;
+
 				win->event.gamepad = i;
 				RGFW_gamepadCallback(win, i, 1);
 				return 1;
@@ -7714,6 +7716,8 @@ void RGFW__osxDeviceAddedCallback(void* context, IOReturn result, void *sender, 
 			RGFW_gamepads_type[i] = RGFW_gamepadSony;
 		else if (strstr(RGFW_gamepads_name[i], "Nintendo"))
 			RGFW_gamepads_type[i] = RGFW_gamepadNintendo;
+		else if (strstr(RGFW_gamepads_name[i], "Logitech"))
+			RGFW_gamepads_type[i] = RGFW_gamepadLogitech;
 
 		RGFW_gamepads[i] = i;
 		RGFW_gamepadCount++;
@@ -9209,6 +9213,8 @@ EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamep
 			RGFW_gamepads_type[i] = RGFW_gamepadSony;
 		else if (strstr(RGFW_gamepads_name[i], "Nintendo"))
 			RGFW_gamepads_type[i] = RGFW_gamepadNintendo;
+		else if (strstr(RGFW_gamepads_name[i], "Logitech"))
+			RGFW_gamepads_type[i] = RGFW_gamepadLogitech;
 
 		RGFW_gamepadCount++;
 		RGFW_events[RGFW_eventLen].type = RGFW_gamepadConnected;
