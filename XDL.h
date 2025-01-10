@@ -203,6 +203,7 @@ typedef PFNGLXGETVISUALFROMFBCONFIGPROC PFN_glXGetVisualFromFBConfig;
 typedef PFNGLXGETFBCONFIGATTRIBPROC PFN_glXGetFBConfigAttrib;
 typedef __GLXextFuncPtr (*PFN_glXGetProcAddressARB)(const GLubyte *);
 typedef PFNGLXCHOOSEFBCONFIGPROC PFN_glXChooseFBConfig;
+typedef void (*PFN_glXDestroyContext)(Display *dpy, GLXContext ctx);
 #endif
 
 /* Src vars for reciving the functions */
@@ -329,6 +330,7 @@ PFN_glXGetVisualFromFBConfig glXGetVisualFromFBConfigSrc;
 PFN_glXGetFBConfigAttrib glXGetFBConfigAttribSrc;
 PFN_glXGetProcAddressARB glXGetProcAddressARBSrc;
 PFN_glXChooseFBConfig glXChooseFBConfigSrc;
+PFN_glXDestroyContext glXDestroyContextSrc;
 #endif
 
 /* Function to source defines */
@@ -455,6 +457,7 @@ PFN_glXChooseFBConfig glXChooseFBConfigSrc;
     #define glXGetFBConfigAttrib glXGetFBConfigAttribSrc
     #define glXGetProcAddressARB glXGetProcAddressARBSrc
     #define glXChooseFBConfig glXChooseFBConfigSrc
+    #define glXDestroyContext glXDestroyContextSrc
     #define glXSwapIntervalEXT glXSwapIntervalEXTSrc
 #endif
 
@@ -614,6 +617,7 @@ void XDL_init(void) {
         XDL_PROC_DEF(1, glXGetFBConfigAttrib);
         XDL_PROC_DEF(1, glXGetProcAddressARB);
         XDL_PROC_DEF(1, glXChooseFBConfig);
+        XDL_PROC_DEF(1, glXDestroyContext);
     #endif
 }
 

@@ -15,7 +15,8 @@ int main(void) {
         while (RGFW_window_checkEvent(win) != NULL);
 
         RGFW_window_makeCurrent(win);
-
+        
+        glViewport(0, 0, win->r.w, win->r.h);
         glClearColor(255, 255, 255, 255);
 
         glClear(GL_COLOR_BUFFER_BIT);

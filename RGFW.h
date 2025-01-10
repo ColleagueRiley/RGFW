@@ -1672,6 +1672,10 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlag
 	return RGFW_createWindowPtr(name, rect, flags, win);
 }
 
+#if defined(RGFW_USE_XDL) && defined(RGFW_X11)
+	#define XDL_IMPLEMENTATION
+	#include "XDL.h"
+#endif
 
 RGFWDEF void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags flags);
 
@@ -1975,7 +1979,8 @@ void RGFW_window_setDND(RGFW_window* win, b8 allow) {
 	OpenGL defines start here   (Normal, EGL, OSMesa)
 */
 
-#if defined(RGFW_OPENGL) || defined(RGFW_EGL) || defined(RGFW_OSMESA)
+#if defined(RGFW_OPENGL) || defined(RGFW_EGL)
+
 #ifdef RGFW_WINDOWS
 	#define WIN32_LEAN_AND_MEAN
 	#define OEMRESOURCE
@@ -1993,7 +1998,6 @@ void RGFW_window_setDND(RGFW_window* win, b8 allow) {
 #endif
 
 /* EGL, normal OpenGL only */
-#if !defined(RGFW_OSMESA)
 i32 RGFW_majorVersion = 0, RGFW_minorVersion = 0;
 b8 RGFW_profile = RGFW_glCore;
 
@@ -2002,7 +2006,6 @@ i32 RGFW_STENCIL = 8, RGFW_SAMPLES = 4, RGFW_STEREO = 0, RGFW_AUX_BUFFERS = 0, R
 #else
 i32 RGFW_STENCIL = 0, RGFW_SAMPLES = 0, RGFW_STEREO = 0, RGFW_AUX_BUFFERS = 0, RGFW_DOUBLE_BUFFER = 1;
 #endif
-
 
 void RGFW_setGLStencil(i32 stencil) { RGFW_STENCIL = stencil; }
 void RGFW_setGLSamples(i32 samples) { RGFW_SAMPLES = samples; }
@@ -2341,32 +2344,6 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 /*
 	end of RGFW_EGL defines
 */
-
-/* OPENGL Normal / EGL defines only (no OS MESA)  Ends here */
-
-#elif defined(RGFW_OSMESA) /* OSmesa only */
-RGFWDEF void RGFW_OSMesa_reorganize(RGFW_window* win);
-
-/* reorganize buffer for osmesa */
-void RGFW_OSMesa_reorganize(RGFW_window* win) {
-	u8* row = (u8*) RGFW_alloc(RGFW_bufferSize.w * 3);
-
-	i32 half_height = RGFW_bufferSize.h / 2;
-	i32 stride = RGFW_bufferSize.w * 3;
-
-	i32 y;
-	for (y = 0; y < half_height; ++y) {
-		i32 top_offset = y * stride;
-		i32 bottom_offset = (RGFW_bufferSize.h - y - 1) * stride;
-		RGFW_MEMCPY(row, win->buffer + top_offset, stride);
-		RGFW_MEMCPY(win->buffer + top_offset, win->buffer + bottom_offset, stride);
-		RGFW_MEMCPY(win->buffer + bottom_offset, row, stride);
-	}
-
-	RGFW_free(row);
-}
-#endif /* RGFW_OSMesa */
-
 #endif /* RGFW_GL (OpenGL, EGL, OSMesa )*/
 
 /*
@@ -2511,11 +2488,6 @@ Start of Linux / Unix defines
 #ifdef RGFW_X11
 #ifndef RGFW_NO_X11_CURSOR
 #include <X11/Xcursor/Xcursor.h>
-#endif
-
-#ifdef RGFW_USE_XDL
-	#define XDL_IMPLEMENTATION
-	#include "XDL.h"
 #endif
 
 #include <dlfcn.h>
@@ -2711,7 +2683,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	u64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /*!< X11 events accepted*/
 
 	#ifdef RGFW_OPENGL
-		u32* visual_attribs = RGFW_initFormatAttribs(flags & RGFW_windowOpenglSoftware);
+		u32* visual_attribs = (u32*)RGFW_initFormatAttribs(flags & RGFW_windowOpenglSoftware);
 		i32 fbcount;
 		GLXFBConfig* fbc = glXChooseFBConfig((Display*) win->src.display, DefaultScreen(win->src.display), (i32*) visual_attribs, &fbcount);
 
@@ -4167,10 +4139,6 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	if (!(win->_flags & RGFW_NO_CPU_RENDER)) {
 		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 			RGFW_area area = RGFW_bufferSize;
-			#ifdef RGFW_OSMESA
-			RGFW_OSMesa_reorganize(win);
-			#endif
-
 			win->src.bitmap->data = (char*) win->buffer;
 			#if !defined(RGFW_X11_DONT_CONVERT_BGR) && !defined(RGFW_OSMESA)
 				u32 x, y;
@@ -7003,9 +6971,6 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 
 	if (!(win->_flags & RGFW_NO_CPU_RENDER)) {
 		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-			#ifdef RGFW_OSMESA
-				RGFW_OSMesa_reorganize(win);
-			#endif
 			HGDIOBJ oldbmp = SelectObject(win->src.hdcMem, win->src.bitmap);
 			BitBlt(win->src.hdc, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
 			SelectObject(win->src.hdcMem, oldbmp);
@@ -8840,10 +8805,6 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 
 	if (!(win->_flags & RGFW_NO_CPU_RENDER)) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-		#ifdef RGFW_OSMESA
-		RGFW_OSMesa_reorganize(win);
-		#endif
-
 		id view = NSWindow_contentView((id)win->src.window);
 		id layer = objc_msgSend_id(view, sel_registerName("layer"));
 

@@ -14,7 +14,8 @@ CFLAGS =
 
 DX11_LIBS = -static -lgdi32 -ldxgi -ld3d11 -luuid -ld3dcompiler
 VULKAN_LIBS = -lgdi32 -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
-LIBS := -static -lgdi32 -lopengl32 -ggdb
+LIBS := -static -lgdi32 -ggdb
+LINK_GL1 = -lopengl32
 EXT = .exe
 LIB_EXT = .dll
 
@@ -29,12 +30,14 @@ detected_OS = windows
 
 OBJ_FILE = .o
 
+
 # not using a cross compiler
 ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-mingw32-g++ /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	detected_OS := $(shell uname 2>/dev/null || echo Unknown)
 
 	ifeq ($(detected_OS),Darwin)        # Mac OS X
 		LIBS := -framework Cocoa -framework OpenGL -framework IOKit
+		LINK_GL1 = -framework OpenGL
 		VULKAN_LIBS =
 		EXT =
 		LIB_EXT = .dylib
@@ -42,7 +45,8 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		NO_VULKAN = 1
 	endif
 	ifeq ($(detected_OS),Linux)
-    	LIBS := -lXrandr -lX11 -lGL -ldl -lpthread
+		LINK_GL1 = -lGL
+    	LIBS := -lXrandr -lX11 -ldl -lpthread
 		VULKAN_LIBS = -lX11 -lXrandr -ldl -lpthread -lvulkan
 		EXT =
 		LIB_EXT = .so
@@ -62,7 +66,6 @@ ifeq ($(RGFW_WAYLAND),1)
 	LIBS = -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lEGL -lxkbcommon -lGL -lwayland-egl
 endif
 
-LINK_GL1 =
 LINK_GL3 =
 LINK_GL2 =
 
@@ -90,13 +93,13 @@ endif
 EXAMPLE_OUTPUTS = \
     examples/basic/basic \
     examples/buffer/buffer \
-	examples/silk/silk \
 	examples/events/events \
 	examples/callbacks/callbacks
 
 
 EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/gamepad/gamepad \
+	examples/silk/silk \
 	examples/first-person-camera/camera \
 	examples/microui_demo/microui_demo \
 	examples/gl33/gl33 \
@@ -122,7 +125,7 @@ endif
 
 examples/gles2/gles2: examples/gles2/gles2.c RGFW.h
 ifneq ($(NO_GLES), 1)
-	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lEGL -o $@$(EXT)
+	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lEGL -lGL -o $@$(EXT)
 else
 	@echo gles has been disabled
 endif
@@ -133,6 +136,7 @@ ifneq ($(NO_OSMESA), 1)
 else
 	@echo osmesa has been disabled
 endif
+
 
 examples/vk10/vk10: examples/vk10/vk10.c RGFW.h
 ifneq ($(NO_VULKAN), 1)
@@ -198,10 +202,13 @@ endif
 
 examples/microui_demo/microui_demo: examples/microui_demo/microui_demo.c RGFW.h
 ifneq ($(CC), emcc)
-	$(CC) $(CFLAGS) -I. $< examples/microui_demo/microui.c  $(LIBS) -o $@$(EXT)
+	$(CC) $(CFLAGS) -I. $< examples/microui_demo/microui.c  $(LINK_GL1) $(LIBS) -o $@$(EXT)
 else
 	$(CC) $(CFLAGS) -I. $< examples/microui_demo/microui.c -s USE_WEBGL2 $(LIBS) $(LINK_GL1) -o $@$(EXT)
 endif
+
+examples/silk/silk: examples/silk/silk.c RGFW.h
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 
 examples/gamepad/gamepad: examples/gamepad/gamepad.c RGFW.h
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
@@ -230,6 +237,7 @@ debug: all
 		.$(OS_DIR)$$exe$(EXT); \
 	done
 	
+	./examples/silk/silk
 	./examples/gamepad/gamepad
 	./examples/first-person-camera/camera
 	./examples/portableGL/pgl$(EXT)
