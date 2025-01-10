@@ -2426,8 +2426,8 @@ This is where OS specific stuff starts
 				char absBits[(ABS_CNT + 7) / 8] = {0};
 				struct input_id id;
 
-				if (RGFW_gamepadCount >= 4 || ioctl(linjs.fd, EVIOCGBIT(0, sizeof(evBits)), evBits) < 0 ||
-					ioctl(linjs.fd, EVIOCGBIT(EV_ABS, sizeof(absBits)), absBits) < 0 ||
+				if (RGFW_gamepadCount >= 4 || ioctl(js, EVIOCGBIT(0, sizeof(evBits)), evBits) < 0 ||
+					ioctl(js, EVIOCGBIT(EV_ABS, sizeof(absBits)), absBits) < 0 ||
 					!(evBits[(EV_ABS) / 8] & (1 << ((EV_ABS) % 8)))) {
 						close(js);
 						break;
