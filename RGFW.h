@@ -2419,13 +2419,19 @@ This is where OS specific stuff starts
 				if (js <= 0)
 					break;
 
-			    //unsigned long ev_bits[(EV_MAX + 7) / 8] = {0};
-			    if (RGFW_gamepadCount >= 4 /*|| ioctl(js, EVIOCGBIT(0, sizeof(ev_bits)), ev_bits) < 0 || 
-					  !(ev_bits[EV_ABS / 8] & (1 << (EV_ABS % 8)) &&
-					  ev_bits[EV_KEY / 8] & (1 << (EV_KEY % 8)))*/) {
-							close(js);
-							break;
-			    }
+
+
+				char evBits[(EV_CNT + 7) / 8] = {0};
+				char keyBits[(KEY_CNT + 7) / 8] = {0};
+				char absBits[(ABS_CNT + 7) / 8] = {0};
+				struct input_id id;
+
+				if (RGFW_gamepadCount >= 4 || ioctl(linjs.fd, EVIOCGBIT(0, sizeof(evBits)), evBits) < 0 ||
+					ioctl(linjs.fd, EVIOCGBIT(EV_ABS, sizeof(absBits)), absBits) < 0 ||
+					!(evBits[(EV_ABS) / 8] & (1 << ((EV_ABS) % 8)))) {
+						close(js);
+						break;
+				}
 
 				RGFW_gamepadCount++;
 
