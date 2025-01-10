@@ -3638,7 +3638,7 @@ RGFW_mouse* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 c
 	Cursor cursor = XcursorImageLoadCursor(win->src.display, native);
 	XcursorImageDestroy(native);
 
-	return cursor;
+	return (void*)cursor;
 #else
 	RGFW_UNUSED(image); RGFW_UNUSED(a.w); RGFW_UNUSED(channels);
 	return NULL;
@@ -8569,7 +8569,7 @@ RGFW_mouse* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 c
 
 	if (icon == NULL) {
 		objc_msgSend_void(NSCursor_arrowStr("arrowCursor"), sel_registerName("set"));
-		return 0;
+		return NULL;
 	}
 
 	/* NOTE(EimaMei): Code by yours truly. */
@@ -9623,7 +9623,7 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 /* NOTE: I don't know if this is possible */
 void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v) { RGFW_UNUSED(win); RGFW_UNUSED(v); }
 /* this one might be possible but it looks iffy */
-RGFW_mouse* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(channels); RGFW_UNUSED(a); RGFW_UNUSED(icon); return 1; }
+RGFW_mouse* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(channels); RGFW_UNUSED(a); RGFW_UNUSED(icon); return NULL; }
 
 void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) { RGFW_UNUSED(win); RGFW_UNUSED(mouse); }
 void RGFW_window_freeMouse(RGFW_window* win, RGFW_mouse* mouse) { RGFW_UNUSED(win); RGFW_UNUSED(mouse); }
