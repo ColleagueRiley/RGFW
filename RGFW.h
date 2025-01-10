@@ -2416,8 +2416,16 @@ This is where OS specific stuff starts
 
 				i32 js = open(str[i], O_RDONLY);
 
-				if (js <= 0 || RGFW_gamepadCount >= 4)
+				if (js <= 0)
 					break;
+
+			    //unsigned long ev_bits[(EV_MAX + 7) / 8] = {0};
+			    if (RGFW_gamepadCount >= 4 /*|| ioctl(js, EVIOCGBIT(0, sizeof(ev_bits)), ev_bits) < 0 || 
+					  !(ev_bits[EV_ABS / 8] & (1 << (EV_ABS % 8)) &&
+					  ev_bits[EV_KEY / 8] & (1 << (EV_KEY % 8)))*/) {
+							close(js);
+							break;
+			    }
 
 				RGFW_gamepadCount++;
 
