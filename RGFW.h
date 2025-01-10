@@ -2408,26 +2408,34 @@ This is where OS specific stuff starts
 		#include <errno.h>
 
 		u32 RGFW_linux_updateGamepad(RGFW_window* win) {
-			static size_t skip = 0;
-			
 			/* check for new gamepads */
 			static const char* str[] = {"/dev/input/js0", "/dev/input/js1", "/dev/input/js2", "/dev/input/js3", "/dev/input/js4", "/dev/input/js5"};
+			static u8 RGFW_rawGamepads[6];
+			
 			for (size_t i = 0; i < 6; i++) {
 				size_t index = RGFW_gamepadCount;
-				if (RGFW_gamepads[index])
+				if (RGFW_rawGamepads[i]) {
+					struct input_id device_info;
+					if (ioctl(RGFW_rawGamepads[i], EVIOCGID, &device_info) == -1) {
+						if (errno == ENODEV) {
+							RGFW_rawGamepads[i] = 0;
+						}
+					}
 					continue;
+				}
 
 				i32 js = open(str[i], O_RDONLY);
 
 				if (js <= 0)
 					break;
-				
 
 				if (RGFW_gamepadCount >= 4) {
 					close(js);
 					break;
 				}
 
+				RGFW_rawGamepads[i] = 1;
+				
 				int axes, buttons;
 				if (ioctl(js, JSIOCGAXES, &axes) < 0 || ioctl(js, JSIOCGBUTTONS, &buttons) < 0) {
 					close(js);
@@ -2443,7 +2451,7 @@ This is where OS specific stuff starts
 
 				RGFW_gamepads[index] = js;
 
-				ioctl(js, JSIOCGNAME(sizeof(RGFW_gamepads_name[index])), RGFW_gamepads_name[i]);
+				ioctl(js, JSIOCGNAME(sizeof(RGFW_gamepads_name[index])), RGFW_gamepads_name[index]);
 				RGFW_gamepads_name[index][sizeof(RGFW_gamepads_name[index]) - 1] = 0;
 				
 				u8 j;
@@ -2453,9 +2461,9 @@ This is where OS specific stuff starts
 				win->event.type = RGFW_gamepadConnected;
 				
 				RGFW_gamepads_type[index] = RGFW_gamepadUnknown;
-				if (strstr(RGFW_gamepads_name[index], "Microsoft") || strstr(RGFW_gamepads_name[i], "X-Box"))
+				if (strstr(RGFW_gamepads_name[index], "Microsoft") || strstr(RGFW_gamepads_name[index], "X-Box"))
 					RGFW_gamepads_type[index] = RGFW_gamepadMicrosoft;
-				else if (strstr(RGFW_gamepads_name[index], "PlayStation") || strstr(RGFW_gamepads_name[i], "PS3") || strstr(RGFW_gamepads_name[i], "PS4") || strstr(RGFW_gamepads_name[i], "PS5"))
+				else if (strstr(RGFW_gamepads_name[index], "PlayStation") || strstr(RGFW_gamepads_name[index], "PS3") || strstr(RGFW_gamepads_name[index], "PS4") || strstr(RGFW_gamepads_name[index], "PS5"))
 					RGFW_gamepads_type[index] = RGFW_gamepadSony;
 				else if (strstr(RGFW_gamepads_name[index], "Nintendo"))
 					RGFW_gamepads_type[index] = RGFW_gamepadNintendo;
