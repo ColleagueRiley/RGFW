@@ -2425,12 +2425,13 @@ This is where OS specific stuff starts
 					break;
 				}
 
-				static char evBits[(EV_CNT + 7) / 8] = {0};
-				static char absBits[(ABS_CNT + 7) / 8] = {0};
-				ioctl(js, EVIOCGBIT(0, sizeof(evBits)), evBits);
-				ioctl(js, EVIOCGBIT(EV_ABS, sizeof(absBits)), absBits);
+				int axes, buttons;
+				if (ioctl(js, JSIOCGAXES, &axes) < 0 || ioctl(js, JSIOCGBUTTONS, &buttons) < 0) {
+					close(js);
+					continue;
+				}
 
-				if (!(evBits[(EV_ABS) / 8] & (1 << ((EV_ABS) % 8)))) {
+				if (buttons <= 5 || buttons >= 30) {
 					close(js);
 					continue;
 				}
