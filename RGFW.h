@@ -871,11 +871,11 @@ RGFWDEF b32 RGFW_window_setIcon(RGFW_window* win, /*!< source window */
 typedef void RGFW_mouse;
 
 /*!< loads mouse from bitmap (similar to RGFW_window_setIcon), icon NOT resized by default*/
-RGFWDEF RGFW_mouse* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels);
+RGFWDEF RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels);
 /*!< sets mouse to RGFW_mouse icon (loaded from a bitmap struct) */
 RGFWDEF void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse);
 /*!< frees RGFW_mouse data */
-RGFWDEF void RGFW_window_freeMouse(RGFW_window* win, RGFW_mouse* mouse);
+RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
 
 /*!< sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the RGFW_HEADER part of this file) */
 RGFWDEF	b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse);
@@ -1926,9 +1926,14 @@ RGFW_gamepadType RGFW_getGamepadType(RGFW_window* win, u16 controller) {
 
 #if defined(RGFW_X11) || defined(RGFW_WINDOWS)
 void RGFW_window_showMouse(RGFW_window* win, i8 show) {
-	static u8 RGFW_blk[] = { 0, 0, 0, 0 };
+	static void* mouse = NULL;
+	if (mouse == NULL) {
+		u8 RGFW_blk[] = { 0, 0, 0, 0 };
+		mouse = RGFW_loadMouse(RGFW_blk, RGFW_AREA(1, 1), 4);
+	}
+
 	if (show == 0)
-		RGFW_window_loadMouse(win, RGFW_blk, RGFW_AREA(1, 1), 4);
+		RGFW_window_setMouse(win, mouse);
 	else
 		RGFW_window_setMouseDefault(win);
 }
@@ -3613,8 +3618,8 @@ b32 RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
 	return res;
 }
 
-RGFW_mouse* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
-	RGFW_ASSERT(win != NULL); assert(icon);
+RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) {
+	assert(icon);
 	assert(channels == 3 || channels == 4);
 
 #ifndef RGFW_NO_X11_CURSOR
@@ -3635,7 +3640,7 @@ RGFW_mouse* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 c
 		}
 	}
 
-	Cursor cursor = XcursorImageLoadCursor(win->src.display, native);
+	Cursor cursor = XcursorImageLoadCursor(RGFW_root->src.display, native);
 	XcursorImageDestroy(native);
 
 	return (void*)cursor;
@@ -3650,9 +3655,9 @@ void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
 	XDefineCursor(win->src.display, win->src.window, (Cursor)mouse);
 }
 
-void RGFW_window_freeMouse(RGFW_window* win, RGFW_mouse* mouse) {
-	assert(win); assert(mouse);
-	XFreeCursor(win->src.display, (Cursor)mouse);
+void RGFW_freeMouse(RGFW_mouse* mouse) {
+	assert(mouse);
+	XFreeCursor(RGFW_root->src.display, (Cursor)mouse);
 }
 
 void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) {
@@ -5195,8 +5200,8 @@ b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	return 1;
 }
 
-void* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
-	RGFW_UNUSED(win); RGFW_UNUSED(image); RGFW_UNUSED(a); RGFW_UNUSED(channels)
+void* RGFW_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
+	RGFW_UNUSED(image); RGFW_UNUSED(a); RGFW_UNUSED(channels)
 	//struct wl_cursor* cursor = wl_cursor_theme_get_cursor(RGFW_wl_cursor_theme, iconStrings[mouse]);
 	//RGFW_cursor_image = icon;
 	struct wl_buffer* cursor_buffer	= wl_cursor_image_get_buffer(RGFW_cursor_image);
@@ -5211,8 +5216,8 @@ void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
 	RGFW_UNUSED(win); RGFW_UNUSED(mouse);
 }
 
-void RGFW_window_freeMouse(RGFW_window* win, RGFW_mouse* mouse) {
-	RGFW_UNUSED(win); RGFW_UNUSED(mouse);
+void RGFW_freeMouse(RGFW_mouse* mouse) {
+	GFW_UNUSED(mouse);
 }
 
 void RGFW_window_setName(RGFW_window* win, const char* name) {
@@ -6633,9 +6638,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 
 #endif
 
-HICON RGFW_loadHandleImage(RGFW_window* win, u8* src, RGFW_area a, BOOL icon) {
-	RGFW_ASSERT(win != NULL);
-
+HICON RGFW_loadHandleImage(u8* src, RGFW_area a, BOOL icon) {
 	u32 i;
 	HDC dc;
 	HICON handle;
@@ -6693,10 +6696,9 @@ HICON RGFW_loadHandleImage(RGFW_window* win, u8* src, RGFW_area a, BOOL icon) {
 }
 
 void* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
-	RGFW_ASSERT(win != NULL);
 	RGFW_UNUSED(channels);
 
-	HCURSOR cursor = (HCURSOR) RGFW_loadHandleImage(win, icon, a, FALSE);
+	HCURSOR cursor = (HCURSOR) RGFW_loadHandleImage(icon, a, FALSE);
 	return cursor;
 }
 
@@ -6706,8 +6708,8 @@ void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
 	SetCursor((HCURSOR)mouse);
 }
 
-void RGFW_window_freeMouse(RGFW_window* win, RGFW_mouse* mouse) {
-	assert(win && mouse);
+void RGFW_freeMouse(RGFW_mouse* mouse) {
+	assert(mouse);
 	DestroyCursor((HCURSOR)mouse);
 }
 
@@ -8564,9 +8566,7 @@ id NSCursor_arrowStr(const char* str) {
 	return (id) objc_msgSend_id(nclass, func);
 }
 
-RGFW_mouse* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
-	RGFW_ASSERT(win != NULL);
-
+RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) {
 	if (icon == NULL) {
 		objc_msgSend_void(NSCursor_arrowStr("arrowCursor"), sel_registerName("set"));
 		return NULL;
@@ -8596,7 +8596,7 @@ void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
 	objc_msgSend_void((id)mouse, sel_registerName("set"));
 }
 
-void RGFW_window_freeMouse(RGFW_window* win, RGFW_mouse* mouse) {
+void RGFW_window_freeMouse(RGFW_mouse* mouse) {
 	assert(win); assert(mouse);
 	NSRelease((id)mouse);
 }
@@ -9623,10 +9623,10 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 /* NOTE: I don't know if this is possible */
 void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v) { RGFW_UNUSED(win); RGFW_UNUSED(v); }
 /* this one might be possible but it looks iffy */
-RGFW_mouse* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(channels); RGFW_UNUSED(a); RGFW_UNUSED(icon); return NULL; }
+RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(channels); RGFW_UNUSED(a); RGFW_UNUSED(icon); return NULL; }
 
 void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) { RGFW_UNUSED(win); RGFW_UNUSED(mouse); }
-void RGFW_window_freeMouse(RGFW_window* win, RGFW_mouse* mouse) { RGFW_UNUSED(win); RGFW_UNUSED(mouse); }
+void RGFW_freeMouse(RGFW_mouse* mouse) { RGFW_UNUSED(mouse); }
 
 const char RGFW_CURSORS[11][12] = {
     "default",

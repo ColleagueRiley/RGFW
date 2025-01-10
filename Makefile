@@ -118,7 +118,7 @@ examples: $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)
 
 examples/portableGL/pgl: examples/portableGL/pgl.c RGFW.h
 ifneq ($(CC), emcc)
-	$(CC)  -w $(CFLAGS) -I. $< $(LIBS) -o $@ 
+	$(CC)  -w $(CFLAGS) -lm -I. $< $(LIBS) -o $@ 
 else
 	@echo "the portableGL example doesn't support html5"
 endif
