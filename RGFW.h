@@ -8588,10 +8588,11 @@ RGFW_mouse* RGFW_window_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 c
 	NSRelease(cursor_image);
 	NSRelease(representation);
 
-	return cursor;
+	return (void*)cursor;
 }
 
 void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
+	assert(win); assert(mouse);
 	objc_msgSend_void((id)mouse, sel_registerName("set"));
 }
 
