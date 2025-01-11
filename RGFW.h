@@ -3436,7 +3436,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			XFlush((Display*) win->src.display);
 		}
 
-		RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
+		RGFW_dndCallback(win, (char**)win->event.droppedFiles, win->event.droppedFilesCount);
 		break;
 	}
 	case FocusIn:
@@ -6224,7 +6224,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		}
 
 		DragFinish(drop);
-		RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
+		RGFW_dndCallback(win, (char**)win->event.droppedFiles, win->event.droppedFilesCount);
 
 		win->event.type = RGFW_DND;
 		return &win->event;
@@ -7589,7 +7589,7 @@ bool performDragOperation(id self, SEL sel, id sender) {
 	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
 	win->event.point = RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y));
 
-	RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
+	RGFW_dndCallback(win, (char**)win->event.droppedFiles, win->event.droppedFilesCount);
 
 	return false;
 }
@@ -9375,7 +9375,7 @@ void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(size_t count) {
 		return;
 
 	RGFW_events[RGFW_eventLen].droppedFilesCount = count;
-	RGFW_dndCallback(RGFW_root, RGFW_events[RGFW_eventLen].droppedFiles, count);
+	RGFW_dndCallback(RGFW_root, (char**)RGFW_events[RGFW_eventLen].droppedFiles, count);
 	RGFW_eventLen++;
 }
 
