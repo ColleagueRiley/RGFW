@@ -1088,7 +1088,7 @@ typedef RGFW_ENUM(u8, RGFW_gamepadType) {
 };
 
 /*! gamepad count starts at 0*/
-RGFWDEF u32 RGFW_isPressedgamepad(RGFW_window* win, u8 controller, u8 button);
+RGFWDEF u32 RGFW_isPressedGamepad(RGFW_window* win, u8 controller, u8 button);
 RGFWDEF RGFW_point RGFW_getGamepadAxis(RGFW_window* win, u16 controller, u16 whichAxis);
 RGFWDEF const char* RGFW_getGamepadName(RGFW_window* win, u16 controller);
 RGFWDEF size_t RGFW_getGamepadCount(RGFW_window* win);
@@ -1926,7 +1926,7 @@ u32 RGFW_window_checkFPS(RGFW_window* win, u32 fpsCap) {
 	return output_fps;
 }
 
-u32 RGFW_isPressedgamepad(RGFW_window* win, u8 c, u8 button) {
+u32 RGFW_isPressedGamepad(RGFW_window* win, u8 c, u8 button) {
 	RGFW_UNUSED(win);
 	return RGFW_gamepadPressed[c][button];
 }
@@ -5820,7 +5820,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			8,                             // Stencil buffer bits
 			0,                             // Auxiliary buffer bits (unused)
 			PFD_MAIN_PLANE,                // Use the main plane for rendering
-			0, 0, 0, 0                     // Reserved fields
+			0, 0, 0, 0, 0                     // Reserved fields
 		};
 
 
@@ -5933,7 +5933,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	if (flags & RGFW_windowTransparent) {
 		if (DwmEnableBlurBehindWindowSRC != NULL) {
 		#ifndef RGFW_NO_DWM
-			DWM_BLURBEHIND bb = {0};
+			DWM_BLURBEHIND bb = {0, 0, 0, 0};
 			bb.dwFlags = 0x1;
 			bb.fEnable = TRUE;
 			bb.hRgnBlur = NULL;
