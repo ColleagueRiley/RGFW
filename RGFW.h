@@ -2487,8 +2487,8 @@ This is where OS specific stuff starts
 					switch (e.type) {
 						case JS_EVENT_BUTTON: {
 							size_t typeIndex = 0;
-							if (RGFW_gamepads_type[i] == RGFW_gamepadMicrosoft)
-								typeIndex = 1;
+							if (RGFW_gamepads_type[i] == RGFW_gamepadMicrosoft) typeIndex = 1;
+							else if (RGFW_gamepads_type[i] == RGFW_gamepadLogitech) typeIndex = 2;
 
 							win->event.type = e.value ? RGFW_gamepadButtonPressed : RGFW_gamepadButtonReleased;
 							u8 RGFW_linux2RGFW[2][RGFW_gamepadR3 + 8] = {{ /* ps */
@@ -2497,7 +2497,11 @@ This is where OS specific stuff starts
 								},{ /* xbox */
 									RGFW_gamepadA, RGFW_gamepadB, RGFW_gamepadX, RGFW_gamepadY, RGFW_gamepadL1, RGFW_gamepadR1, RGFW_gamepadSelect, RGFW_gamepadStart,
 									RGFW_gamepadHome, RGFW_gamepadL3, RGFW_gamepadR3, 255, 255, RGFW_gamepadUp, RGFW_gamepadDown, RGFW_gamepadLeft, RGFW_gamepadRight
-							}};
+							    },{ /* Logitech */
+									RGFW_gamepadA, RGFW_gamepadB, RGFW_gamepadX, RGFW_gamepadY, RGFW_gamepadL1, RGFW_gamepadR1, RGFW_gamepadL2, RGFW_gamepadR2,
+									RGFW_gamepadSelect, RGFW_gamepadStart, RGFW_gamepadHome, RGFW_gamepadL3, RGFW_gamepadR3, RGFW_gamepadUp, RGFW_gamepadDown, RGFW_gamepadLeft, RGFW_gamepadRight
+								}
+							};
 
 							win->event.button = RGFW_linux2RGFW[typeIndex][e.number];
 							win->event.gamepad = i;
