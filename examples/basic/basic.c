@@ -4,6 +4,8 @@
 #define RGFW_PRINT_ERRORS
 #define RGFW_DEBUG
 
+#include <string.h>
+#include <stdlib.h>
 #include "RGFW.h"
 #include <stdio.h>
 
@@ -29,7 +31,7 @@ RGFW_window* win2;
 
 int main(void) {
 	RGFW_setClassName("RGFW Basic");
-    RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_windowAllowDND | RGFW_windowCenter);
+    RGFW_window* win = RGFW_createWindow("RGFW Example Window 刺猬", RGFW_RECT(500, 500, 500, 500), RGFW_windowAllowDND | RGFW_windowCenter);
     RGFW_window_makeCurrent(win);
     
     RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
@@ -75,7 +77,7 @@ int main(void) {
                 printf("Pasted : %s\n", str);
             }
             else if (RGFW_isPressed(win, RGFW_down))
-                RGFW_writeClipboard("DOWN", 4);
+                RGFW_writeClipboard("DOWN 刺猬", 12);
             else if (RGFW_isPressed(win, RGFW_space))
                 printf("fps : %i\n", fps);
             else if (RGFW_isPressed(win, RGFW_w))
