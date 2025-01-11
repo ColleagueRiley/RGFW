@@ -8857,7 +8857,7 @@ size_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString, &clip_len);
 	
 	if (str != NULL) {
-		if (strCapacity <= clipLen)
+		if (strCapacity <= clip_len)
 			return 0;
 		
 		if (clip != NULL)
