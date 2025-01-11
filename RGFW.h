@@ -199,7 +199,7 @@ int main() {
 	#define RGFW_MEMCPY(dist, src, len) memcpy(dist, src, len)
 	#define RGFW_STRNCMP(s1, s2, max) strncmp(s1, s2, max)
 	//required for X11
-	#define RGFW_STRTOL(str, endptr, base) strtol(str, endptr, base) 
+	#define RGFW_STRTOL(str, endptr, base) strtol(str, endptr, base)
 #else
 #undef _INC_STRING
 #endif
@@ -399,7 +399,7 @@ int main() {
 	#include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
 #endif
 
-/* 
+/*
 	RGFW_allocator (optional)
 	you can ignore this if you use standard malloc/free
 */
@@ -789,7 +789,7 @@ RGFWDEF RGFW_window* RGFW_createWindowPtr(
 RGFWDEF RGFW_area RGFW_getScreenSize(void);
 
 /*! frees win->buffer (if it was allocated by RGFW) and sets the pointer to your pointer */
-RGFWDEF void RGFW_window_setBufferPtr(RGFW_window* win, u8* ptr, RGFW_area size); 
+RGFWDEF void RGFW_window_setBufferPtr(RGFW_window* win, u8* ptr, RGFW_area size);
 /*< the new buffer is not be resized or freed (by RGFW) */
 
 
@@ -1318,7 +1318,7 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	#define RGFW_ASSERT assert
 #endif
 
-/* 
+/*
 	RGFW_allocator, (optional)
 	you can ignore this if you use standard malloc/free
 */
@@ -1341,7 +1341,7 @@ char* RGFW_clipboard_data = NULL;
 RGFW_allocator RGFW_clipboard_alloc;
 
 void RGFW_clipboard_switch(char* new) {
-	if (RGFW_clipboard_data != NULL) 
+	if (RGFW_clipboard_data != NULL)
 		RGFW_clipboard_alloc.free(RGFW_clipboard_alloc.userdata, RGFW_clipboard_data);
 	RGFW_clipboard_data =  new;
 	RGFW_clipboard_alloc = RGFW_current_allocator;
@@ -1990,10 +1990,10 @@ void RGFW_updateKeyModsPro(RGFW_window* win, b8 capital, b8 numlock, b8 control,
 
 RGFWDEF void RGFW_updateKeyMods(RGFW_window* win, b8 capital, b8 numlock);
 void RGFW_updateKeyMods(RGFW_window* win, b8 capital, b8 numlock) {
-	RGFW_updateKeyModsPro(win, capital, numlock, 
-					RGFW_isPressed(win, RGFW_keyControlL) || RGFW_isPressed(win, RGFW_keyControlR), 
-					RGFW_isPressed(win, RGFW_keyAltL) || RGFW_isPressed(win, RGFW_keyAltR), 
-					RGFW_isPressed(win, RGFW_keyShiftL) || RGFW_isPressed(win, RGFW_keyShiftR), 
+	RGFW_updateKeyModsPro(win, capital, numlock,
+					RGFW_isPressed(win, RGFW_keyControlL) || RGFW_isPressed(win, RGFW_keyControlR),
+					RGFW_isPressed(win, RGFW_keyAltL) || RGFW_isPressed(win, RGFW_keyAltR),
+					RGFW_isPressed(win, RGFW_keyShiftL) || RGFW_isPressed(win, RGFW_keyShiftR),
 					RGFW_isPressed(win, RGFW_keySuperL) || RGFW_isPressed(win, RGFW_keySuperR));
 }
 
@@ -2411,7 +2411,7 @@ This is where OS specific stuff starts
 			/* check for new gamepads */
 			static const char* str[] = {"/dev/input/js0", "/dev/input/js1", "/dev/input/js2", "/dev/input/js3", "/dev/input/js4", "/dev/input/js5"};
 			static u8 RGFW_rawGamepads[6];
-			
+
 			for (size_t i = 0; i < 6; i++) {
 				size_t index = RGFW_gamepadCount;
 				if (RGFW_rawGamepads[i]) {
@@ -2435,7 +2435,7 @@ This is where OS specific stuff starts
 				}
 
 				RGFW_rawGamepads[i] = 1;
-				
+
 				int axes, buttons;
 				if (ioctl(js, JSIOCGAXES, &axes) < 0 || ioctl(js, JSIOCGBUTTONS, &buttons) < 0) {
 					close(js);
@@ -2453,13 +2453,13 @@ This is where OS specific stuff starts
 
 				ioctl(js, JSIOCGNAME(sizeof(RGFW_gamepads_name[index])), RGFW_gamepads_name[index]);
 				RGFW_gamepads_name[index][sizeof(RGFW_gamepads_name[index]) - 1] = 0;
-				
+
 				u8 j;
 				for (j = 0; j < 16; j++)
 					RGFW_gamepadPressed[index][j] = 0;
-				
+
 				win->event.type = RGFW_gamepadConnected;
-				
+
 				RGFW_gamepads_type[index] = RGFW_gamepadUnknown;
 				if (strstr(RGFW_gamepads_name[index], "Microsoft") || strstr(RGFW_gamepads_name[index], "X-Box"))
 					RGFW_gamepads_type[index] = RGFW_gamepadMicrosoft;
@@ -2493,7 +2493,7 @@ This is where OS specific stuff starts
 							size_t typeIndex = 0;
 							if (RGFW_gamepads_type[i] == RGFW_gamepadMicrosoft)
 								typeIndex = 1;
-							
+
 							win->event.type = e.value ? RGFW_gamepadButtonPressed : RGFW_gamepadButtonReleased;
 							u8 RGFW_linux2RGFW[2][RGFW_gamepadR3 + 8] = {{ /* ps */
 									RGFW_gamepadA, RGFW_gamepadB, RGFW_gamepadY, RGFW_gamepadX, RGFW_gamepadL1, RGFW_gamepadR1, RGFW_gamepadL2, RGFW_gamepadR2,
@@ -2509,7 +2509,7 @@ This is where OS specific stuff starts
 
 							RGFW_gamepadPressed[i][win->event.button] = e.value;
 							RGFW_gamepadButtonCallback(win, i, win->event.button, e.value);
-							
+
 							return 1;
 						}
 						case JS_EVENT_AXIS: {
@@ -2541,13 +2541,13 @@ This is where OS specific stuff starts
 					RGFW_gamepadCount--;
 					close(RGFW_gamepads[i]);
 					RGFW_gamepads[i] = 0;
-				
+
 					win->event.type = RGFW_gamepadDisconnected;
 					win->event.gamepad = i;
 					RGFW_gamepadCallback(win, i, 0);
 					return 1;
 				}
-			} 
+			}
 			return 0;
 		}
 
@@ -3011,10 +3011,10 @@ RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
 
 char* RGFW_strtok(char* str, const char* delimStr) {
     static char* static_str = NULL;
-    
+
     if (str != NULL)
         static_str = str;
-	
+
     if (static_str == NULL) {
         return NULL;
     }
@@ -3034,7 +3034,7 @@ char* RGFW_strtok(char* str, const char* delimStr) {
 
     if (*static_str == '\0')
         return NULL;
-	
+
     char* token_start = static_str;
     while (*static_str != '\0') {
         int delim = 0;
@@ -3112,10 +3112,10 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		win->event.key = RGFW_apiKeyToRGFW(E.xkey.keycode);
 
 		KeySym sym = (KeySym)XkbKeycodeToKeysym((Display*) win->src.display, E.xkey.keycode, 0, E.xkey.state & ShiftMask ? 1 : 0);
-		
+
 		if ((E.xkey.state & LockMask) && sym >= XK_a && sym <= XK_z)
 			sym = (E.xkey.state & ShiftMask) ? sym + 32 : sym - 32;
-		if ((u8)sym != (u32)sym) 
+		if ((u8)sym != (u32)sym)
 			sym = 0;
 
 		win->event.keyChar = (u8)sym;
@@ -3387,7 +3387,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		const char* prefix = (const char*)"file://";
 
-		char* line;	
+		char* line;
 
 		win->event.droppedFilesCount = 0;
 
@@ -3813,7 +3813,7 @@ const char* RGFW_readClipboard(size_t* size) {
 		*size = sizeN;
 
 	RGFW_clipboard_switch(s);
-	
+
 	return s;
 }
 
@@ -4080,23 +4080,23 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 
 	#ifndef RGFW_NO_DPI
 		XRROutputInfo* info = XRRGetOutputInfo (display, sr, sr->outputs[screen]);
-		
+
 		if (info == NULL || ci == NULL) {
 			XRRFreeScreenResources(sr);
 			XCloseDisplay(display);
-			
+
 			#ifdef RGFW_DEBUG
 			printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n", monitor.name, monitor.rect.x, monitor.rect.y, monitor.rect.w, monitor.rect.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio);
 			#endif
 			return monitor;
 		}
-	
+
 
 		float physW = info->mm_width / 25.4;
 		float physH = info->mm_height / 25.4;
-	
+
 		RGFW_MEMCPY(monitor.name, info->name, 128);
-	
+
 	if (physW && physH) {
 		monitor.physW = physW;
 		monitor.physH = physH;
@@ -4107,7 +4107,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 
 	float w = ci->width;
 	float h = ci->height;
-	
+
 	if (w && h) {
 		monitor.rect.w = w;
 		monitor.rect.h = h;
@@ -4120,7 +4120,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	} else {
 		float ppi_width = RGFW_ROUND((float)monitor.rect.w/(float)monitor.physW);
 		float ppi_height = RGFW_ROUND((float)monitor.rect.h/(float)monitor.physH);
-		
+
 		monitor.scaleX = (float) (ppi_width) / (float) dpi;
 		monitor.scaleY = (float) (ppi_height) / (float) dpi;
 
@@ -4169,7 +4169,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 
 	#ifndef RGFW_NO_DPI
     XRRScreenResources* screenRes = XRRGetScreenResources(win->src.display, DefaultRootWindow(win->src.display));
-	if (screenRes == NULL) {		
+	if (screenRes == NULL) {
 		return (RGFW_monitor){};
 	}
 
@@ -4181,7 +4181,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
         int monitorY = crtcInfo->y;
         int monitorWidth = crtcInfo->width;
         int monitorHeight = crtcInfo->height;
-		
+
         if (attrs.x >= monitorX &&
             attrs.x < monitorX + monitorWidth &&
             attrs.y >= monitorY &&
@@ -4195,7 +4195,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
     }
 
     XRRFreeScreenResources(screenRes);
-	#else 
+	#else
 	size_t i;
 	for (i = 0; i < (size_t)ScreenCount(RGFW_root->src.display) && i < 6; i++) {
 		Screen* screen = ScreenOfDisplay(RGFW_root->src.display, i);
@@ -4341,7 +4341,7 @@ void RGFW_window_close(RGFW_window* win) {
 
 		u8 i;
 		for (i = 0; i < RGFW_gamepadCount; i++) {
-			if(RGFW_gamepads[i]) 
+			if(RGFW_gamepads[i])
 				close(RGFW_gamepads[i]);
 		}
 		#endif
@@ -4368,7 +4368,7 @@ void RGFW_window_close(RGFW_window* win) {
 #include <unistd.h>
 
 void RGFW_stopCheckEvents(void) {
-	
+
 	RGFW_eventWait_forceStop[2] = 1;
 	while (1) {
 		const char byte = 0;
@@ -4754,7 +4754,7 @@ static void keyboard_key (void *data, struct wl_keyboard *keyboard, uint32_t ser
 	ev.type = RGFW_keyPressed + state;
 	ev.key = RGFW_key;
 	ev.keyChar = (u8)keysym;
-	
+
 	ev.repeat = RGFW_isHeld(RGFW_key_win, RGFW_key);
 	RGFW_eventPipe_push(RGFW_key_win, ev);
 
@@ -5857,7 +5857,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 				wglChoosePixelFormatARB(win->src.hdc, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
 				if (!num_formats) {
 					#ifdef RGFW_DEBUG
-					printf("Failed to create a pixel format for WGL.\n");	
+					printf("Failed to create a pixel format for WGL.\n");
 					#endif
 				}
 
@@ -6071,7 +6071,7 @@ static i32 RGFW_checkXInput(RGFW_window* win, RGFW_event* e) {
 
 			if (keystroke.VirtualKey > VK_PAD_RTHUMB_PRESS)
 				continue;
-			
+
 			//gamepad + 1 = RGFW_gamepadButtonReleased
 			e->type = RGFW_gamepadButtonPressed + !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 			e->button = RGFW_xinput2RGFW[keystroke.VirtualKey - 0x5800];
@@ -6087,16 +6087,16 @@ static i32 RGFW_checkXInput(RGFW_window* win, RGFW_event* e) {
 		) {
 			if (RGFW_gamepads[i] == 0)
 				continue;
-			
+
 			RGFW_gamepads[i] = 0;
 			RGFW_gamepadCount--;
-			
+
 			win->event.type = RGFW_gamepadDisconnected;
 			win->event.gamepad = i;
 			RGFW_gamepadCallback(win, i, 0);
 			return 1;
 		}
-		
+
 		if (RGFW_gamepads[i] == 0) {
 			RGFW_gamepads[i] = 1;
 			RGFW_gamepadCount++;
@@ -6221,7 +6221,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			UINT length = DragQueryFileW(drop, i, NULL, 0);
 			if (length == 0)
 				continue;
-			
+
 			WCHAR buffer[RGFW_MAX_PATH * 2];
 			if (length > (RGFW_MAX_PATH * 2) - 1)
 				length = RGFW_MAX_PATH * 2;
@@ -6231,7 +6231,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			char* str = RGFW_createUTF8FromWideStringWin32(buffer);
 			if (str != NULL)
 				RGFW_MEMCPY(win->event.droppedFiles[i], str, length + 1);
-			
+
 			win->event.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
 		}
 
@@ -6968,7 +6968,7 @@ const char* RGFW_readClipboard(size_t* size) {
 
 	{
 		setlocale(LC_ALL, "en_US.UTF-8");
-		
+
 
 		size_t textLen = wcstombs(NULL, wstr, 0);
 		if (textLen == 0)
@@ -7102,9 +7102,9 @@ char* RGFW_createUTF8FromWideStringWin32(const WCHAR* source) {
 	}
 
 	static char target[RGFW_MAX_PATH * 2];
-	if (size > RGFW_MAX_PATH * 2) 
+	if (size > RGFW_MAX_PATH * 2)
 		size = RGFW_MAX_PATH * 2;
-	
+
 	target[size] = 0;
 
 	if (!WideCharToMultiByte(CP_UTF8, 0, source, -1, target, size, NULL, NULL)) {
@@ -7639,15 +7639,21 @@ void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *se
 
 	CFIndex intValue = IOHIDValueGetIntegerValue(value);
 
-	u8 RGFW_osx2RGFW[] = {
-		0,
-		RGFW_gamepadSelect,
-		RGFW_gamepadL3, RGFW_gamepadR3, RGFW_gamepadStart,
+	u8 RGFW_osx2RGFWSrc[2][RGFW_gamepadFinal] = {{
+		0, RGFW_gamepadSelect, RGFW_gamepadL3, RGFW_gamepadR3, RGFW_gamepadStart,
 		RGFW_gamepadUp, RGFW_gamepadRight, RGFW_gamepadDown, RGFW_gamepadLeft,
 		RGFW_gamepadL2, RGFW_gamepadR2, RGFW_gamepadL1, RGFW_gamepadR1,
-		RGFW_gamepadY, RGFW_gamepadB, RGFW_gamepadA, RGFW_gamepadX, RGFW_gamepadHome
+		RGFW_gamepadY, RGFW_gamepadB, RGFW_gamepadA, RGFW_gamepadX, RGFW_gamepadHome},
+		{0, RGFW_gamepadA, RGFW_gamepadB, RGFW_gamepadR3, RGFW_gamepadX,
+		RGFW_gamepadY, RGFW_gamepadRight, RGFW_gamepadL1, RGFW_gamepadR1,
+		RGFW_gamepadL2, RGFW_gamepadR2, RGFW_gamepadDown, RGFW_gamepadStart,
+		RGFW_gamepadUp, RGFW_gamepadL3, RGFW_gamepadSelect, RGFW_gamepadStart, RGFW_gamepadHome}
 	};
 
+	u8* RGFW_osx2RGFW = RGFW_osx2RGFWSrc[0];
+    	if (RGFW_gamepads_type[index] == RGFW_gamepadMicrosoft)
+        	RGFW_osx2RGFW = RGFW_osx2RGFWSrc[1];
+	
 	RGFW_event event;
 
 	switch (usagePage) {
@@ -7669,11 +7675,11 @@ void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *se
 		case kHIDPage_GenericDesktop: {
 			CFIndex logicalMin = IOHIDElementGetLogicalMin(element);
 			CFIndex logicalMax = IOHIDElementGetLogicalMax(element);
-			
+
 			if (logicalMax <= logicalMin) return;
 			if (intValue < logicalMin) intValue = logicalMin;
 			if (intValue > logicalMax) intValue = logicalMax;
-			
+
 			i8 value = (i8)(-100.0 + ((intValue - logicalMin) * 200.0) / (logicalMax - logicalMin));
 
 			switch (usage) {
@@ -7716,13 +7722,13 @@ void RGFW__osxDeviceAddedCallback(void* context, IOReturn result, void *sender, 
 		RGFW_osxControllers[i] = device;
 
 		IOHIDDeviceRegisterInputValueCallback(device, RGFW__osxInputValueChangedCallback, NULL);
-		
+
 		CFStringRef deviceName = (CFStringRef)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDProductKey));
 		if (deviceName)
 			CFStringGetCString(deviceName, RGFW_gamepads_name[i], sizeof(RGFW_gamepads_name[i]), kCFStringEncodingUTF8);
-		
+
 		RGFW_gamepads_type[i] = RGFW_gamepadUnknown;
-		if (strstr(RGFW_gamepads_name[i], "Microsoft") || strstr(RGFW_gamepads_name[i], "X-Box"))
+		if (strstr(RGFW_gamepads_name[i], "Microsoft") || strstr(RGFW_gamepads_name[i], "X-Box") || strstr(RGFW_gamepads_name[i], "Xbox"))
 			RGFW_gamepads_type[i] = RGFW_gamepadMicrosoft;
 		else if (strstr(RGFW_gamepads_name[i], "PlayStation") || strstr(RGFW_gamepads_name[i], "PS3") || strstr(RGFW_gamepads_name[i], "PS4") || strstr(RGFW_gamepads_name[i], "PS5"))
 			RGFW_gamepads_type[i] = RGFW_gamepadSony;
@@ -7733,7 +7739,7 @@ void RGFW__osxDeviceAddedCallback(void* context, IOReturn result, void *sender, 
 
 		RGFW_gamepads[i] = i;
 		RGFW_gamepadCount++;
-		
+
 		RGFW_event ev;
 		ev.type = RGFW_gamepadConnected;
 		ev.gamepad = i;
@@ -7979,10 +7985,10 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			#ifdef RGFW_DEBUG
 			printf("Failed to load pixel format for OpenGL\n");
 			#endif
-			
+
 			void* attrs = RGFW_initFormatAttribs(1);
 			format = NSOpenGLPixelFormat_initWithAttributes((uint32_t*)attrs);
-			
+
 			#ifdef RGFW_DEBUG
 			if (format == NULL)
 				printf("and loading software rendering OpenGL failed\n");
@@ -8014,7 +8020,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		if ((flags & RGFW_windowNoInitAPI) == 0)
 			objc_msgSend_void(win->src.ctx, sel_registerName("makeCurrentContext"));
 	#endif
-	
+
 	if (flags & RGFW_windowTransparent) {
 		#ifdef RGFW_OPENGL
 			if ((flags & RGFW_windowNoInitAPI) == 0) {
@@ -8084,7 +8090,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	objc_msgSend_void_bool(NSApp, sel_registerName("activateIgnoringOtherApps:"), true);
 	((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("makeKeyAndOrderFront:"), (SEL)NULL);
 	objc_msgSend_void_bool(win->src.window, sel_registerName("setIsVisible:"), true);
-	
+
 	if (!RGFW_loaded) {
 		objc_msgSend_void(win->src.window, sel_registerName("makeMainWindow"));
 
@@ -8367,7 +8373,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			break;
 		}
 
-		case NSEventTypeMouseExited: 
+		case NSEventTypeMouseExited:
 			win->event.type = RGFW_mouseLeave;
 			RGFW_mouseNotifyCallBack(win, win->event.point, 0);
 			break;
@@ -8378,7 +8384,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			u32 mappedKey = *((u32*)((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));
 			if (((u8)mappedKey) == 239)
 				mappedKey = 0;
-			
+
 			win->event.keyChar = (u8)mappedKey;
 
 			win->event.key = RGFW_apiKeyToRGFW(key);
@@ -8398,7 +8404,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			u32 mappedKey = *((u32*)((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));
 			if (((u8)mappedKey) == 239)
 				mappedKey = 0;
-			
+
 			win->event.keyChar = (u8)mappedKey;
 
 			win->event.key = RGFW_apiKeyToRGFW(key);
@@ -8793,10 +8799,10 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 	CGSize screenSizeMM = CGDisplayScreenSize(display);
 	monitor.physW = (float)screenSizeMM.width / 25.4f;
 	monitor.physH = (float)screenSizeMM.height / 25.4f;
-	
+
 	float ppi_width = (monitor.rect.w/monitor.physW);
 	float ppi_height = (monitor.rect.h/monitor.physH);
-	
+
 	monitor.pixelRatio = ((CGFloat (*)(id, SEL))abi_objc_msgSend_fpret) (screen, sel_registerName("backingScaleFactor"));
 	float dpi = 96.0f * monitor.pixelRatio;
 
@@ -8838,7 +8844,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	id screenNumber = objc_msgSend_id_id(description, sel_registerName("objectForKey:"), screenNumberKey);
 
 	CGDirectDisplayID display = (CGDirectDisplayID)objc_msgSend_uint(screenNumber, sel_registerName("unsignedIntValue"));
-	
+
 	return RGFW_NSCreateMonitor(display, screen);
 }
 
@@ -9519,21 +9525,21 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	}
 
 	EM_ASM({
-		window.addEventListener("keydown", 
+		window.addEventListener("keydown",
 			(event) => {
 				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"));
 				Module._RGFW_handleKeyEvent(stringToNewUTF8(event.key), stringToNewUTF8(event.code),  1);
-			}, 
+			},
 		true);
 	});
 
 
 	EM_ASM({
-		window.addEventListener("keydown", 
+		window.addEventListener("keydown",
 			(event) => {
 				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"));
 				Module._RGFW_handleKeyEvent(stringToNewUTF8(event.key), stringToNewUTF8(event.code),  1);
-			}, 
+			},
 		true);
 	});
 
@@ -9852,7 +9858,7 @@ void RGFW_window_close(RGFW_window* win) {
 #ifndef RGFW_WEBGPU
 	emscripten_webgl_destroy_context(win->src.ctx);
 #endif
-	
+
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	if ((win->_flags & RGFW_BUFFER_ALLOC))
 		win->_mem.free(win->_mem.userdata, win->buffer);
@@ -9955,7 +9961,7 @@ void RGFW_sleep(u64 ms) {
 	struct timespec time;
 	time.tv_sec = 0;
 	time.tv_nsec = ms * 1e+6;
-	
+
 	#ifndef RGFW_NO_UNIX_CLOCK
 	nanosleep(&time, NULL);
 	#endif
