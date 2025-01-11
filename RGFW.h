@@ -2505,7 +2505,7 @@ This is where OS specific stuff starts
 							else if (RGFW_gamepads_type[i] == RGFW_gamepadLogitech) typeIndex = 2;
 
 							win->event.type = e.value ? RGFW_gamepadButtonPressed : RGFW_gamepadButtonReleased;
-							u8 RGFW_linux2RGFW[2][RGFW_gamepadR3 + 8] = {{ /* ps */
+							u8 RGFW_linux2RGFW[3][RGFW_gamepadR3 + 8] = {{ /* ps */
 									RGFW_gamepadA, RGFW_gamepadB, RGFW_gamepadY, RGFW_gamepadX, RGFW_gamepadL1, RGFW_gamepadR1, RGFW_gamepadL2, RGFW_gamepadR2,
 									RGFW_gamepadSelect, RGFW_gamepadStart, RGFW_gamepadHome, RGFW_gamepadL3, RGFW_gamepadR3, RGFW_gamepadUp, RGFW_gamepadDown, RGFW_gamepadLeft, RGFW_gamepadRight,
 								},{ /* xbox */
@@ -3810,7 +3810,7 @@ size_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 		event.xselection.property, 0L, (~0L), 0, AnyPropertyType, &target,
 		&format, &sizeN, &N, (unsigned char**) &data);
 
-	if (sizeN >= strCapacity && str != NULL)
+	if (sizeN > strCapacity && str != NULL)
 		sizeN = 0;
 
 	if ((target == UTF8 || target == XA_STRING) && str != NULL) {

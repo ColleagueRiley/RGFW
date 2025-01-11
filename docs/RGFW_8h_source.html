@@ -2352,7 +2352,7 @@ $(function() {
 <div class="line"><a id="l02505" name="l02505"></a><span class="lineno"> 2505</span>                            <span class="keywordflow">else</span> <span class="keywordflow">if</span> (RGFW_gamepads_type[i] == RGFW_gamepadLogitech) typeIndex = 2;</div>
 <div class="line"><a id="l02506" name="l02506"></a><span class="lineno"> 2506</span> </div>
 <div class="line"><a id="l02507" name="l02507"></a><span class="lineno"> 2507</span>                            win-&gt;<a class="code hl_variable" href="structRGFW__window.html#af2effd6e3f8e3f7add8a7afd6aeb455a">event</a>.<a class="code hl_variable" href="structRGFW__event.html#ac931229825b0908a7d01c508a7104012">type</a> = e.value ? RGFW_gamepadButtonPressed : RGFW_gamepadButtonReleased;</div>
-<div class="line"><a id="l02508" name="l02508"></a><span class="lineno"> 2508</span>                            <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> RGFW_linux2RGFW[2][RGFW_gamepadR3 + 8] = {{ <span class="comment">/* ps */</span></div>
+<div class="line"><a id="l02508" name="l02508"></a><span class="lineno"> 2508</span>                            <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> RGFW_linux2RGFW[3][RGFW_gamepadR3 + 8] = {{ <span class="comment">/* ps */</span></div>
 <div class="line"><a id="l02509" name="l02509"></a><span class="lineno"> 2509</span>                                    RGFW_gamepadA, RGFW_gamepadB, RGFW_gamepadY, RGFW_gamepadX, RGFW_gamepadL1, RGFW_gamepadR1, RGFW_gamepadL2, RGFW_gamepadR2,</div>
 <div class="line"><a id="l02510" name="l02510"></a><span class="lineno"> 2510</span>                                    RGFW_gamepadSelect, RGFW_gamepadStart, RGFW_gamepadHome, RGFW_gamepadL3, RGFW_gamepadR3, RGFW_gamepadUp, RGFW_gamepadDown, RGFW_gamepadLeft, RGFW_gamepadRight,</div>
 <div class="line"><a id="l02511" name="l02511"></a><span class="lineno"> 2511</span>                                },{ <span class="comment">/* xbox */</span></div>
@@ -3651,7 +3651,7 @@ $(function() {
 <div class="line"><a id="l03810" name="l03810"></a><span class="lineno"> 3810</span>        event.xselection.property, 0L, (~0L), 0, AnyPropertyType, &amp;target,</div>
 <div class="line"><a id="l03811" name="l03811"></a><span class="lineno"> 3811</span>        &amp;format, &amp;sizeN, &amp;N, (<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>**) &amp;data);</div>
 <div class="line"><a id="l03812" name="l03812"></a><span class="lineno"> 3812</span> </div>
-<div class="line"><a id="l03813" name="l03813"></a><span class="lineno"> 3813</span>    <span class="keywordflow">if</span> (sizeN &gt;= strCapacity &amp;&amp; str != NULL)</div>
+<div class="line"><a id="l03813" name="l03813"></a><span class="lineno"> 3813</span>    <span class="keywordflow">if</span> (sizeN &gt; strCapacity &amp;&amp; str != NULL)</div>
 <div class="line"><a id="l03814" name="l03814"></a><span class="lineno"> 3814</span>        sizeN = 0;</div>
 <div class="line"><a id="l03815" name="l03815"></a><span class="lineno"> 3815</span> </div>
 <div class="line"><a id="l03816" name="l03816"></a><span class="lineno"> 3816</span>    <span class="keywordflow">if</span> ((target == UTF8 || target == XA_STRING) &amp;&amp; str != NULL) {</div>
