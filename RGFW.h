@@ -188,7 +188,6 @@ int main() {
 	#define __USE_POSIX199309
 	#endif
 
-	#include <time.h>
 	#define RGFW_ALLOC(userptr, size) (RGFW_UNUSED(userptr),malloc(size))
 	#define RGFW_FREE(userptr, ptr) (RGFW_UNUSED(userptr),free(ptr))
 #endif
@@ -1019,9 +1018,9 @@ typedef void (* RGFW_gamepadfunc)(RGFW_window* win, u16 gamepad, b8 connected);
 
 /*!  RGFW_dnd, the window that had the drop, the drop data and the amount files dropped returns previous callback function (if it was set) */
 #ifdef RGFW_ALLOC_DROPFILES
-	typedef void (* RGFW_dndfunc)(RGFW_window* win, const char** droppedFiles, u32 droppedFilesCount);
+	typedef void (* RGFW_dndfunc)(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount);
 #else
-	typedef void (* RGFW_dndfunc)(RGFW_window* win, const char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount);
+	typedef void (* RGFW_dndfunc)(RGFW_window* win, char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount);
 #endif
 /*! set callback for a window move event returns previous callback function (if it was set)  */
 RGFWDEF RGFW_windowmovefunc RGFW_setWindowMoveCallback(RGFW_windowmovefunc func);
@@ -1180,7 +1179,7 @@ typedef RGFW_ENUM(u8, RGFW_Key) {
 	RGFW_minus = '-',
 	RGFW_equals = '=',
 	RGFW_backSpace = '\b',
-	RGFW_Tab = '\t',
+	RGFW_tab = '\t',
 	RGFW_space = ' ',
 
 	RGFW_a = 'a',
@@ -1570,9 +1569,9 @@ void RGFW_gamepadAxisfuncEMPTY(RGFW_window* win, u16 gamepad, RGFW_point axis[2]
 void RGFW_gamepadfuncEMPTY(RGFW_window* win, u16 gamepad, b8 connected) {RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(connected);}
 
 #ifdef RGFW_ALLOC_DROPFILES
-void RGFW_dndfuncEMPTY(RGFW_window* win, const char** droppedFiles, u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
+void RGFW_dndfuncEMPTY(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
 #else
-void RGFW_dndfuncEMPTY(RGFW_window* win, const char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
+void RGFW_dndfuncEMPTY(RGFW_window* win, char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
 #endif
 
 RGFW_windowmovefunc RGFW_windowMoveCallback = RGFW_windowmovefuncEMPTY;
@@ -4276,10 +4275,11 @@ void RGFW_window_close(RGFW_window* win) {
 
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 		if (win->buffer != NULL) {
-			XDestroyImage((XImage*) win->src.bitmap);
-			XFreeGC(win->src.display, win->src.gc);
 			if ((win->_flags & RGFW_BUFFER_ALLOC))
 				win->_mem.free(win->_mem.userdata, win->buffer);
+			win->src.bitmap->data = NULL;
+			XDestroyImage((XImage*) win->src.bitmap);
+			XFreeGC(win->src.display, win->src.gc);
 		}
 	#endif
 
@@ -4364,6 +4364,7 @@ void RGFW_window_close(RGFW_window* win) {
 #include <fcntl.h>
 #include <poll.h>
 #include <unistd.h>
+#include <time.h>
 
 void RGFW_stopCheckEvents(void) {
 
@@ -9265,7 +9266,7 @@ u32 RGFW_webasmPhysicalToRGFW(u32 hash) {
 		case 0x92E14DD3U /* Minus              */: return RGFW_minus;                /* 0x000C */
 		case 0x92E1FBACU /* Equal              */: return RGFW_equals;                /* 0x000D */
 		case 0x36BF1CB5U /* Backspace          */: return RGFW_backSpace;            /* 0x000E */
-		case 0x7B8E51E2U /* Tab                */: return RGFW_Tab;                  /* 0x000F */
+		case 0x7B8E51E2U /* Tab                */: return RGFW_tab;                  /* 0x000F */
 		case 0x2C595B51U /* KeyQ               */: return RGFW_q;                    /* 0x0010 */
 		case 0x2C595B57U /* KeyW               */: return RGFW_w;                    /* 0x0011 */
 		case 0x2C595B45U /* KeyE               */: return RGFW_e;                    /* 0x0012 */
