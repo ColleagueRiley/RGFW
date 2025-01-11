@@ -7146,7 +7146,7 @@ $(function() {
 <div class="line"><a id="l07306" name="l07306"></a><span class="lineno"> 7306</span>    <span class="keywordtype">id</span> nsString = ((id(*)(id, SEL, id))objc_msgSend)(pasteboard, func, nsstr);</div>
 <div class="line"><a id="l07307" name="l07307"></a><span class="lineno"> 7307</span>    <span class="keyword">const</span> <span class="keywordtype">char</span>* str = NSString_to_char(nsString);</div>
 <div class="line"><a id="l07308" name="l07308"></a><span class="lineno"> 7308</span>    <span class="keywordflow">if</span> (len != NULL)</div>
-<div class="line"><a id="l07309" name="l07309"></a><span class="lineno"> 7309</span>        *len = (size_t)((NSUInteger(*)(<span class="keywordtype">id</span>, <span class="keywordtype">SEL</span>))objc_msgSend)(nsString, sel_registerName(<span class="stringliteral">&quot;length&quot;</span>));</div>
+<div class="line"><a id="l07309" name="l07309"></a><span class="lineno"> 7309</span>        *len = (size_t)((NSUInteger(*)(<span class="keywordtype">id</span>, <span class="keywordtype">SEL</span>, <span class="keywordtype">int</span>))objc_msgSend)(nsString, sel_registerName(<span class="stringliteral">&quot;maximumLengthOfBytesUsingEncoding:&quot;</span>), 4);</div>
 <div class="line"><a id="l07310" name="l07310"></a><span class="lineno"> 7310</span>    <span class="keywordflow">return</span> str;</div>
 <div class="line"><a id="l07311" name="l07311"></a><span class="lineno"> 7311</span>}</div>
 <div class="line"><a id="l07312" name="l07312"></a><span class="lineno"> 7312</span> </div>
