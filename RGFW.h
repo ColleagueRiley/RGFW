@@ -1,4 +1,3 @@
-#define RGFW_WAYLAND
 /*
 *
 *	RGFW 1.5-dev
@@ -1352,7 +1351,7 @@ void RGFW_clipboard_switch(char* newstr) {
 	if (size <= 0 && RGFW_clipboard_data != NULL) \
 		return (const char*)RGFW_clipboard_data; \
 	else if (size <= 0) \
-		return "\0"; \
+		return "\0";
 
 const char* RGFW_readClipboard(size_t* len) {
 	RGFW_ssize_t size = RGFW_readClipboardPtr(NULL, 0);
