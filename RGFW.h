@@ -774,13 +774,13 @@ RGFWDEF void RGFW_setBufferSize(RGFW_area size); /*!< the buffer cannot be resiz
 RGFWDEF RGFW_window* RGFW_createWindow(
 	const char* name, /* name of the window */
 	RGFW_rect rect, /* rect of window */
-	RGFW_windowFlags flags /* extra arguments (NULL / (u16)0 means no flags used)*/
+	RGFW_windowFlags flags /* extra arguments ((u32)0 means no flags used)*/
 ); /*!< function to create a window and struct */
 
 RGFWDEF RGFW_window* RGFW_createWindowPtr(
 	const char* name, /* name of the window */
 	RGFW_rect rect, /* rect of window */
-	RGFW_windowFlags flags, /* extra arguments (NULL / (u16)0 means no flags used)*/
+	RGFW_windowFlags flags, /* extra arguments (NULL / (u32)0 means no flags used)*/
 	RGFW_window* win /* ptr to the window struct you want to use */
 ); /*!< function to create a window (without allocating a window struct) */
 
@@ -1161,7 +1161,7 @@ RGFWDEF void RGFW_sleep(u64 milisecond); /*!< sleep for a set time */
 	key codes and mouse icon enums
 */
 
-typedef RGFW_ENUM(u8, RGFW_Key) {
+typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_keyNULL = 0,
 	RGFW_escape = '\033',
 	RGFW_backtick = '`',
@@ -1351,7 +1351,7 @@ RGFW_IMPLEMENTATION starts with generic RGFW defines
 This is the start of keycode data
 
 	Why not use macros instead of the numbers itself?
-	Windows -> Not all virtual keys are macros (VK_0 - VK_1, VK_a - VK_z)
+	Windows -> Not all scancodes keys are macros 
 	Linux -> Only symcodes are values, (XK_0 - XK_1, XK_a - XK_z) are larger than 0xFF00, I can't find any way to work with them without making the array an unreasonable size
 	MacOS -> windows and linux already don't have keycodes as macros, so there's no point
 */
@@ -1760,14 +1760,6 @@ void RGFW_window_setBufferPtr(RGFW_window* win, u8* ptr, RGFW_area size) {
 	#endif
 }
 
-#ifndef RGFW_NO_MONITOR
-void RGFW_window_scaleToMonitor(RGFW_window* win) {
-	RGFW_monitor monitor = RGFW_window_getMonitor(win);
-
-	RGFW_window_resize(win, RGFW_AREA((u32)(monitor.scaleX * (float)win->r.w), (u32)(monitor.scaleY * (float)win->r.h)));
-}
-#endif
-
 RGFW_window* RGFW_root = NULL;
 
 #ifdef RGFW_MACOS
@@ -1870,9 +1862,15 @@ b8 RGFW_window_shouldClose(RGFW_window* win) {
 void RGFW_window_setShouldClose(RGFW_window* win) { win->event.type = RGFW_quit; RGFW_windowQuitCallback(win); }
 
 #ifndef RGFW_NO_MONITOR
-	void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m) {
-		RGFW_window_move(win, RGFW_POINT(m.rect.x + win->r.x, m.rect.y + win->r.y));
-	}
+void RGFW_window_scaleToMonitor(RGFW_window* win) {
+	RGFW_monitor monitor = RGFW_window_getMonitor(win);
+
+	RGFW_window_resize(win, RGFW_AREA((u32)(monitor.scaleX * (float)win->r.w), (u32)(monitor.scaleY * (float)win->r.h)));
+}
+
+void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m) {
+	RGFW_window_move(win, RGFW_POINT(m.rect.x + win->r.x, m.rect.y + win->r.y));
+}
 #endif
 
 RGFWDEF void RGFW_captureCursor(RGFW_window* win, RGFW_rect);
@@ -3734,10 +3732,6 @@ void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) {
 		return;
 
 	XWarpPointer(win->src.display, None, win->src.window, 0, 0, 0, 0, (int) p.x - win->r.x, (int) p.y - win->r.y);
-}
-
-RGFWDEF void RGFW_window_disableMouse(RGFW_window* win) {
-	RGFW_UNUSED(win);
 }
 
 b32 RGFW_window_setMouseDefault(RGFW_window* win) {
