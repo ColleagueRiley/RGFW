@@ -7306,7 +7306,7 @@ const char* NSPasteboard_stringForType(id pasteboard, NSPasteboardType dataType,
 	id nsString = ((id(*)(id, SEL, id))objc_msgSend)(pasteboard, func, nsstr);
 	const char* str = NSString_to_char(nsString);
 	if (len != NULL)
-		*len = (size_t)((NSUInteger(*)(id, SEL))objc_msgSend)(nsString, sel_registerName("length"));
+		*len = (size_t)((NSUInteger(*)(id, SEL, int))objc_msgSend)(nsString, sel_registerName("maximumLengthOfBytesUsingEncoding:"), 4);
 	return str;
 }
 
