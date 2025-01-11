@@ -6,8 +6,8 @@ typedef struct RGFW_window_src {
 #include "RGFW.h"
 
 #ifdef RGFW_IMPLEMENTATION
-RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
-    RGFW_window* win = RGFW_window_basic_init(rect, flags);
+RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
+    RGFW_window_basic_init(win, rect, flags);
 
     /* create window here*/
 
@@ -101,23 +101,31 @@ void RGFW_window_setDND(RGFW_window* win, b8 allow) {
     }
 #endif
 
-void RGFW_window_setName(RGFW_window* win, char* name) {
+void RGFW_window_setName(RGFW_window* win, const char* name) {
 
 }
 
-void RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
+b32 RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
 
 }
 
-void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels) {
+RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) {
 
 }
 
-RGFWDEF	void RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
+void RGFW_freeMouse(RGFW_mouse* mouse) {
 
 }
 
-void RGFW_window_setMouseDefault(RGFW_window* win) {
+void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
+
+}
+
+RGFWDEF	b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
+
+}
+
+b32 RGFW_window_setMouseDefault(RGFW_window* win) {
 
 }
 
@@ -163,7 +171,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 }
 #endif
 
-char* RGFW_readClipboard(size_t* size) {
+RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 
 }
 

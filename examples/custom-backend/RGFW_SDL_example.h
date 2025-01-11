@@ -177,7 +177,7 @@ void RGFW_stopCheckEvents(void) {
 
 size_t RGFW_openWindowCount = 0;
 
-RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
+RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
     if (RGFW_root == NULL) {
         SDL_Init(SDL_INIT_VIDEO);
     }   
@@ -194,7 +194,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlag
         SDL_flags |=
     }*/
 
-    RGFW_window* win = RGFW_window_basic_init(rect, flags);
+    RGFW_window_basic_init(win, rect, flags);
 
     win->src.window = SDL_CreateWindow(name, (int)win->r.x, (int)win->r.y, win->r.w, win->r.h, SDL_flags);
 
@@ -265,23 +265,31 @@ void RGFW_window_setDND(RGFW_window* win, b8 allow) {
     }
 #endif
 
-void RGFW_window_setName(RGFW_window* win, char* name) {
+void RGFW_window_setName(RGFW_window* win, const char* name) {
 
 }
 
-void RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
+b32 RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
 
 }
 
-void RGFW_window_setMouse(RGFW_window* win, u8* image, RGFW_area a, i32 channels) {
+RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) {
 
 }
 
-RGFWDEF	void RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
+void RGFW_freeMouse(RGFW_mouse* mouse) {
 
 }
 
-void RGFW_window_setMouseDefault(RGFW_window* win) {
+void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
+
+}
+
+RGFWDEF	b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
+
+}
+
+b32 RGFW_window_setMouseDefault(RGFW_window* win) {
 
 }
 
@@ -327,7 +335,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 }
 #endif
 
-char* RGFW_readClipboard(size_t* size) {
+RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 
 }
 
@@ -404,7 +412,7 @@ u32 RGFW_apiKeyToRGFW(u32 keycode) {
         case SDL_SCANCODE_MINUS: return RGFW_minus;
         case SDL_SCANCODE_EQUALS: return RGFW_equals;
         case SDL_SCANCODE_BACKSPACE: return RGFW_backSpace;
-        case SDL_SCANCODE_TAB: return RGFW_Tab;
+        case SDL_SCANCODE_TAB: return RGFW_tab;
         case SDL_SCANCODE_SPACE: return RGFW_space;
         case SDL_SCANCODE_A: return RGFW_a;
         case SDL_SCANCODE_B: return RGFW_b;
