@@ -481,7 +481,7 @@ typedef RGFW_ENUM(u8, RGFW_eventTypes) {
 };
 
 /*! mouse button codes (RGFW_event.button) */
-enum RGFW_mouse_codes {
+RGFW_ENUM(u8, RGFW_mouse_codes) {
 	RGFW_mouseNone = 0, /*!< no mouse button is pressed*/
 	RGFW_mouseLeft, /*!< left mouse button is pressed*/
 	RGFW_mouseMiddle, /*!< mouse-wheel-button is pressed*/
@@ -975,6 +975,7 @@ RGFWDEF b8 RGFW_wasMousePressed(RGFW_window* win, u8 button /*!< mouse button co
 /** * @defgroup Clipboard
 * @{ */
 RGFWDEF const char* RGFW_readClipboard(size_t* size); /*!< read clipboard data */
+RGFWDEF size_t RGFW_readClipboardPtr(char* str, size_t strCapacity); /*!< read clipboard data */
 RGFWDEF void RGFW_writeClipboard(const char* text, u32 textLen); /*!< write text to the clipboard */
 /** @} */
 
@@ -1321,8 +1322,11 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	you can ignore this if you use standard malloc/free
 */
 
-void* RGFW_allocatorMalloc(void* userdata, size_t size) { return RGFW_ALLOC(userdata, size);  }
-void RGFW_allocatorFree(void* userdata, void* ptr) { RGFW_FREE(userdata, ptr); }
+void* RGFW_allocatorMalloc(void* userdata, size_t size) {
+	void* out = RGFW_ALLOC(userdata, size); assert(out != NULL); 
+	return out;
+}
+void RGFW_allocatorFree(void* userdata, void* ptr) { assert(ptr != NULL); RGFW_FREE(userdata, ptr); }
 RGFW_allocator RGFW_current_allocator = {RGFW_USERPTR, RGFW_allocatorMalloc, RGFW_allocatorFree};
 
 RGFW_allocator RGFW_loadAllocator(RGFW_allocator allocator) {
@@ -1343,6 +1347,16 @@ void RGFW_clipboard_switch(char* newstr) {
 		RGFW_clipboard_alloc.free(RGFW_clipboard_alloc.userdata, RGFW_clipboard_data);
 	RGFW_clipboard_data =  newstr;
 	RGFW_clipboard_alloc = RGFW_current_allocator;
+}
+
+const char* RGFW_readClipboard(size_t* len) {
+	size_t size = RGFW_readClipboardPtr(NULL, 0);
+	char* str = (char*)RGFW_alloc(size);	
+	RGFW_readClipboardPtr(str, size);
+	if (len != NULL) *len = size;
+
+	RGFW_clipboard_switch(str);
+	return (const char*)str;
 }
 
 /*
@@ -3768,7 +3782,7 @@ void RGFW_window_show(RGFW_window* win) {
 /*
 	the majority function is sourced from GLFW
 */
-const char* RGFW_readClipboard(size_t* size) {
+size_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	static Atom UTF8 = 0;
 	if (UTF8 == 0)
 		UTF8 = XInternAtom(RGFW_root->src.display, "UTF8_STRING", True);
@@ -3776,7 +3790,7 @@ const char* RGFW_readClipboard(size_t* size) {
 	XEvent event;
 	int format;
 	unsigned long N, sizeN;
-	char* data, * s = NULL;
+	char* data;
 	Atom target;
 	Atom CLIPBOARD = 0, XSEL_DATA = 0;
 
@@ -3790,27 +3804,23 @@ const char* RGFW_readClipboard(size_t* size) {
 	XNextEvent(RGFW_root->src.display, &event);
 
 	if (event.type != SelectionNotify || event.xselection.selection != CLIPBOARD || event.xselection.property == 0)
-		return NULL;
+		return 0;
 
 	XGetWindowProperty(event.xselection.display, event.xselection.requestor,
 		event.xselection.property, 0L, (~0L), 0, AnyPropertyType, &target,
 		&format, &sizeN, &N, (unsigned char**) &data);
 
-	if (target == UTF8 || target == XA_STRING) {
-		s = (char*)RGFW_alloc(sizeof(char) * sizeN);
-		RGFW_MEMCPY(s, data, sizeN);
-		s[sizeN] = '\0';
+	if (sizeN >= strCapacity && str != NULL)
+		sizeN = 0;
+
+	if ((target == UTF8 || target == XA_STRING) && str != NULL) {
+		RGFW_MEMCPY(str, data, sizeN);
+		str[sizeN] = '\0';
 		XFree(data);
 	}
 
 	XDeleteProperty(event.xselection.display, event.xselection.requestor, event.xselection.property);
-
-	if (s != NULL && size != NULL)
-		*size = sizeN;
-
-	RGFW_clipboard_switch(s);
-
-	return s;
+	return sizeN;
 }
 
 /*
@@ -5397,12 +5407,12 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	/* TODO wayland */
 }
 
-const char* RGFW_readClipboard(size_t* size) {
+size_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	RGFW_UNUSED(size);
 
 	/* TODO wayland */
 
-	return "\0";
+	return 0;
 }
 #endif /* RGFW_WAYLAND */
 
@@ -6948,44 +6958,43 @@ b32 RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
 	#endif
 }
 
-const char* RGFW_readClipboard(size_t* size) {
+size_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	/* Open the clipboard */
 	if (OpenClipboard(NULL) == 0)
-		return (char*) "";
+		return 0;
 
 	/* Get the clipboard data as a Unicode string */
 	HANDLE hData = GetClipboardData(CF_UNICODETEXT);
 	if (hData == NULL) {
 		CloseClipboard();
-		return (char*) "";
+		return 0;	
 	}
 
 	wchar_t* wstr = (wchar_t*) GlobalLock(hData);
-	char* text;
+
+	size_t textLen = 0;
 
 	{
 		setlocale(LC_ALL, "en_US.UTF-8");
 
-
-		size_t textLen = wcstombs(NULL, wstr, 0);
-		if (textLen == 0)
-			return (char*) "";
-
-		text = (char*) RGFW_alloc((textLen * sizeof(char)) + 1);
-		wcstombs(text, wstr, (textLen) +1);
-
-		if (size != NULL)
-			*size = textLen + 1;
-		text[textLen] = '\0';
-
-		RGFW_clipboard_switch(text);
+		textLen = wcstombs(NULL, wstr, 0) + 1;
+		if (str != NULL && strCapacity <= textLen - 1)
+			textLen = 0;
+		
+		if (str != NULL && textLen) {
+			
+			if (textLen > 1)
+				wcstombs(str, wstr, (textLen) );
+			
+			str[textLen] = '\0';
+		}
 	}
 
 	/* Release the clipboard data */
 	GlobalUnlock(hData);
 	CloseClipboard();
 
-	return text;
+	return textLen;
 }
 
 void RGFW_writeClipboard(const char* text, u32 textLen) {
@@ -7259,9 +7268,7 @@ unsigned char* NSBitmapImageRep_bitmapData(id imageRep) {
 	return ((unsigned char* (*)(id, SEL))objc_msgSend) ((id)imageRep, sel_registerName("bitmapData"));
 }
 
-#define NS_ENUM(type, name) type name; enum
-
-typedef NS_ENUM(NSUInteger, NSBitmapFormat) {
+typedef RGFW_ENUM(NSUInteger, NSBitmapFormat) {
 	NSBitmapFormatAlphaFirst = 1 << 0,       // 0 means is alpha last (RGBA, CMYKA, etc.)
 		NSBitmapFormatAlphaNonpremultiplied = 1 << 1,       // 0 means is premultiplied
 		NSBitmapFormatFloatingpointSamples = 1 << 2,  // 0 is integer
@@ -7305,7 +7312,7 @@ id NSImage_initWithSize(NSSize size) {
 		(NSAlloc((id)objc_getClass("NSImage")), func, size);
 }
 #define NS_OPENGL_ENUM_DEPRECATED(minVers, maxVers) API_AVAILABLE(macos(minVers))
-typedef NS_ENUM(NSInteger, NSOpenGLContextParameter) {
+typedef RGFW_ENUM(NSInteger, NSOpenGLContextParameter) {
 	NSOpenGLContextParameterSwapInterval           NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 222, /* 1 param.  0 -> Don't sync, 1 -> Sync to vertical retrace     */
 		NSOpenGLContextParametectxaceOrder           NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 235, /* 1 param.  1 -> Above Window (default), -1 -> Below Window    */
 		NSOpenGLContextParametectxaceOpacity         NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 236, /* 1 param.  1-> Surface is opaque (default), 0 -> non-opaque   */
@@ -7414,13 +7421,13 @@ typedef enum NSApplicationActivationPolicy {
 	NSApplicationActivationPolicyProhibited
 } NSApplicationActivationPolicy;
 
-typedef NS_ENUM(u32, NSBackingStoreType) {
+typedef RGFW_ENUM(u32, NSBackingStoreType) {
 	NSBackingStoreRetained = 0,
 		NSBackingStoreNonretained = 1,
 		NSBackingStoreBuffered = 2
 };
 
-typedef NS_ENUM(u32, NSWindowStyleMask) {
+typedef RGFW_ENUM(u32, NSWindowStyleMask) {
 	NSWindowStyleMaskBorderless = 0,
 		NSWindowStyleMaskTitled = 1 << 0,
 		NSWindowStyleMaskClosable = 1 << 1,
@@ -7439,7 +7446,7 @@ typedef NS_ENUM(u32, NSWindowStyleMask) {
 NSPasteboardType const NSPasteboardTypeString = "public.utf8-plain-text"; // Replaces NSStringPasteboardType
 
 
-typedef NS_ENUM(i32, NSDragOperation) {
+typedef RGFW_ENUM(i32, NSDragOperation) {
 	NSDragOperationNone = 0,
 		NSDragOperationCopy = 1,
 		NSDragOperationLink = 2,
@@ -8150,7 +8157,7 @@ RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
 }
 
 u32 RGFW_keysPressed[10]; /*10 keys at a time*/
-typedef NS_ENUM(u32, NSEventType) {        /* various types of events */
+typedef RGFW_ENUM(u32, NSEventType) {        /* various types of events */
 	NSEventTypeLeftMouseDown = 1,
 		NSEventTypeLeftMouseUp = 2,
 		NSEventTypeRightMouseDown = 3,
@@ -8191,7 +8198,7 @@ typedef NS_ENUM(u32, NSEventType) {        /* various types of events */
 		NSEventTypeChangeMode API_AVAILABLE(macos(10.15)) = 38,
 };
 
-typedef NS_ENUM(unsigned long long, NSEventMask) { /* masks for the types of events */
+typedef RGFW_ENUM(unsigned long long, NSEventMask) { /* masks for the types of events */
 	NSEventMaskLeftMouseDown = 1ULL << NSEventTypeLeftMouseDown,
 		NSEventMaskLeftMouseUp = 1ULL << NSEventTypeLeftMouseUp,
 		NSEventMaskRightMouseDown = 1ULL << NSEventTypeRightMouseDown,
@@ -8845,24 +8852,21 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	return RGFW_NSCreateMonitor(display, screen);
 }
 
-const char* RGFW_readClipboard(size_t* size) {
+size_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	size_t clip_len;
 	char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString, &clip_len);
+	
+	if (str != NULL) {
+		if (strCapacity <= clipLen)
+			return 0;
+		
+		if (clip != NULL)
+			RGFW_MEMCPY(str, clip, clip_len);
 
-	char* str = (char*)RGFW_alloc(sizeof(char) * clip_len);
-
-	if (clip != NULL) {
-		RGFW_MEMCPY(str, clip, clip_len);
+		str[clip_len] = '\0';
 	}
 
-	str[clip_len] = '\0';
-
-	if (size != NULL)
-		*size = clip_len;
-
-	RGFW_clipboard_switch(str);
-
-	return str;
+	return clip_len;
 }
 
 void RGFW_writeClipboard(const char* text, u32 textLen) {
