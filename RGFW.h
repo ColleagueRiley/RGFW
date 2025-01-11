@@ -1338,10 +1338,10 @@ void RGFW_free(void* ptr) { RGFW_current_allocator.free(RGFW_current_allocator.u
 char* RGFW_clipboard_data = NULL;
 RGFW_allocator RGFW_clipboard_alloc;
 
-void RGFW_clipboard_switch(char* new) {
+void RGFW_clipboard_switch(char* newstr) {
 	if (RGFW_clipboard_data != NULL)
 		RGFW_clipboard_alloc.free(RGFW_clipboard_alloc.userdata, RGFW_clipboard_data);
-	RGFW_clipboard_data =  new;
+	RGFW_clipboard_data =  newstr;
 	RGFW_clipboard_alloc = RGFW_current_allocator;
 }
 
@@ -1502,7 +1502,7 @@ void RGFW_init_keys(void) {
 
 u32 RGFW_apiKeyToRGFW(u32 keycode) {
 	#ifdef __cplusplus
-	if (RGFW_OS_BASED_VALUE(49, 192, 50, DOM_VK_BACK_QUOTE, KEY_GRAVE) != RGFW_Backtick) {
+	if (RGFW_OS_BASED_VALUE(49, 192, 50, DOM_VK_BACK_QUOTE, KEY_GRAVE) != RGFW_backtick) {
 		RGFW_init_keys();
 	}
 	#endif
@@ -1696,7 +1696,7 @@ void RGFW_setBufferSize(RGFW_area size) {
 }
 
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
-	RGFW_window* win = RGFW_alloc(sizeof(RGFW_window));
+	RGFW_window* win = (RGFW_window*)RGFW_alloc(sizeof(RGFW_window));
 	win->_flags |= RGFW_WINDOW_ALLOC;
 	return RGFW_createWindowPtr(name, rect, flags, win);
 }

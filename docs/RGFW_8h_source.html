@@ -1188,10 +1188,10 @@ $(function() {
 <div class="line"><a id="l01338" name="l01338"></a><span class="lineno"> 1338</span><span class="keywordtype">char</span>* RGFW_clipboard_data = NULL;</div>
 <div class="line"><a id="l01339" name="l01339"></a><span class="lineno"> 1339</span><a class="code hl_struct" href="structRGFW__allocator.html">RGFW_allocator</a> RGFW_clipboard_alloc;</div>
 <div class="line"><a id="l01340" name="l01340"></a><span class="lineno"> 1340</span> </div>
-<div class="line"><a id="l01341" name="l01341"></a><span class="lineno"> 1341</span><span class="keywordtype">void</span> RGFW_clipboard_switch(<span class="keywordtype">char</span>* <span class="keyword">new</span>) {</div>
+<div class="line"><a id="l01341" name="l01341"></a><span class="lineno"> 1341</span><span class="keywordtype">void</span> RGFW_clipboard_switch(<span class="keywordtype">char</span>* newstr) {</div>
 <div class="line"><a id="l01342" name="l01342"></a><span class="lineno"> 1342</span>    <span class="keywordflow">if</span> (RGFW_clipboard_data != NULL)</div>
 <div class="line"><a id="l01343" name="l01343"></a><span class="lineno"> 1343</span>        RGFW_clipboard_alloc.<a class="code hl_variable" href="structRGFW__allocator.html#a59a03968a10a2da2eb51e94ec3172aa7">free</a>(RGFW_clipboard_alloc.<a class="code hl_variable" href="structRGFW__allocator.html#acae051e384054a0b15b276d7870af28a">userdata</a>, RGFW_clipboard_data);</div>
-<div class="line"><a id="l01344" name="l01344"></a><span class="lineno"> 1344</span>    RGFW_clipboard_data =  <span class="keyword">new</span>;</div>
+<div class="line"><a id="l01344" name="l01344"></a><span class="lineno"> 1344</span>    RGFW_clipboard_data =  newstr;</div>
 <div class="line"><a id="l01345" name="l01345"></a><span class="lineno"> 1345</span>    RGFW_clipboard_alloc = RGFW_current_allocator;</div>
 <div class="line"><a id="l01346" name="l01346"></a><span class="lineno"> 1346</span>}</div>
 <div class="line"><a id="l01347" name="l01347"></a><span class="lineno"> 1347</span> </div>
@@ -1352,7 +1352,7 @@ $(function() {
 <div class="line"><a id="l01502" name="l01502"></a><span class="lineno"> 1502</span> </div>
 <div class="line"><a id="l01503" name="l01503"></a><span class="lineno"> 1503</span><a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> <a class="code hl_function" href="group__Supporting.html#gaf4429fa8a0dc4b06ffc1a2406a17b9ac">RGFW_apiKeyToRGFW</a>(<a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> keycode) {</div>
 <div class="line"><a id="l01504" name="l01504"></a><span class="lineno"> 1504</span><span class="preprocessor">    #ifdef __cplusplus</span></div>
-<div class="line"><a id="l01505" name="l01505"></a><span class="lineno"> 1505</span>    <span class="keywordflow">if</span> (RGFW_OS_BASED_VALUE(49, 192, 50, DOM_VK_BACK_QUOTE, KEY_GRAVE) != RGFW_Backtick) {</div>
+<div class="line"><a id="l01505" name="l01505"></a><span class="lineno"> 1505</span>    <span class="keywordflow">if</span> (RGFW_OS_BASED_VALUE(49, 192, 50, DOM_VK_BACK_QUOTE, KEY_GRAVE) != RGFW_backtick) {</div>
 <div class="line"><a id="l01506" name="l01506"></a><span class="lineno"> 1506</span>        RGFW_init_keys();</div>
 <div class="line"><a id="l01507" name="l01507"></a><span class="lineno"> 1507</span>    }</div>
 <div class="line"><a id="l01508" name="l01508"></a><span class="lineno"> 1508</span><span class="preprocessor">    #endif</span></div>
@@ -1543,7 +1543,7 @@ $(function() {
 <div class="line"><a id="l01696" name="l01696"></a><span class="lineno"> 1696</span>}</div>
 <div class="line"><a id="l01697" name="l01697"></a><span class="lineno"> 1697</span> </div>
 <div class="line"><a id="l01698" name="l01698"></a><span class="lineno"> 1698</span><a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* <a class="code hl_function" href="group__Window__management.html#gaf8a8eaf0d6031adb217117e43f161a3c">RGFW_createWindow</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, <a class="code hl_struct" href="structRGFW__rect.html">RGFW_rect</a> rect, RGFW_windowFlags flags) {</div>
-<div class="line"><a id="l01699" name="l01699"></a><span class="lineno"> 1699</span>    <a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win = <a class="code hl_function" href="RGFW_8h.html#ae19b67484ac3ef1d293b47bb82adb195">RGFW_alloc</a>(<span class="keyword">sizeof</span>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>));</div>
+<div class="line"><a id="l01699" name="l01699"></a><span class="lineno"> 1699</span>    <a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win = (<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>*)<a class="code hl_function" href="RGFW_8h.html#ae19b67484ac3ef1d293b47bb82adb195">RGFW_alloc</a>(<span class="keyword">sizeof</span>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>));</div>
 <div class="line"><a id="l01700" name="l01700"></a><span class="lineno"> 1700</span>    win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a3619dc281010b57f0810987a3be8012e">_flags</a> |= RGFW_WINDOW_ALLOC;</div>
 <div class="line"><a id="l01701" name="l01701"></a><span class="lineno"> 1701</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="group__Window__management.html#gacd2a85f50be8de9991ce67e760ee1c7a">RGFW_createWindowPtr</a>(name, rect, flags, win);</div>
 <div class="line"><a id="l01702" name="l01702"></a><span class="lineno"> 1702</span>}</div>
