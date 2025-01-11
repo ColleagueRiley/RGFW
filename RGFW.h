@@ -1338,10 +1338,10 @@ void RGFW_free(void* ptr) { RGFW_current_allocator.free(RGFW_current_allocator.u
 char* RGFW_clipboard_data = NULL;
 RGFW_allocator RGFW_clipboard_alloc;
 
-void RGFW_clipboard_switch(char* new) {
+void RGFW_clipboard_switch(char* newstr) {
 	if (RGFW_clipboard_data != NULL)
 		RGFW_clipboard_alloc.free(RGFW_clipboard_alloc.userdata, RGFW_clipboard_data);
-	RGFW_clipboard_data =  new;
+	RGFW_clipboard_data =  newstr;
 	RGFW_clipboard_alloc = RGFW_current_allocator;
 }
 
@@ -1502,7 +1502,7 @@ void RGFW_init_keys(void) {
 
 u32 RGFW_apiKeyToRGFW(u32 keycode) {
 	#ifdef __cplusplus
-	if (RGFW_OS_BASED_VALUE(49, 192, 50, DOM_VK_BACK_QUOTE, KEY_GRAVE) != RGFW_Backtick) {
+	if (RGFW_OS_BASED_VALUE(49, 192, 50, DOM_VK_BACK_QUOTE, KEY_GRAVE) != RGFW_backtick) {
 		RGFW_init_keys();
 	}
 	#endif
@@ -1696,7 +1696,7 @@ void RGFW_setBufferSize(RGFW_area size) {
 }
 
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
-	RGFW_window* win = RGFW_alloc(sizeof(RGFW_window));
+	RGFW_window* win = (RGFW_window*)RGFW_alloc(sizeof(RGFW_window));
 	win->_flags |= RGFW_WINDOW_ALLOC;
 	return RGFW_createWindowPtr(name, rect, flags, win);
 }
@@ -3448,7 +3448,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			XFlush((Display*) win->src.display);
 		}
 
-		RGFW_dndCallback(win, (char**)win->event.droppedFiles, win->event.droppedFilesCount);
+		RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
 		break;
 	}
 	case FocusIn:
@@ -6233,7 +6233,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		}
 
 		DragFinish(drop);
-		RGFW_dndCallback(win, (char**)win->event.droppedFiles, win->event.droppedFilesCount);
+		RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
 
 		win->event.type = RGFW_DND;
 		return &win->event;
@@ -7598,7 +7598,7 @@ bool performDragOperation(id self, SEL sel, id sender) {
 	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
 	win->event.point = RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y));
 
-	RGFW_dndCallback(win, (char**)win->event.droppedFiles, win->event.droppedFilesCount);
+	RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
 
 	return false;
 }
@@ -9390,7 +9390,7 @@ void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(size_t count) {
 		return;
 
 	RGFW_events[RGFW_eventLen].droppedFilesCount = count;
-	RGFW_dndCallback(RGFW_root, (char**)RGFW_events[RGFW_eventLen].droppedFiles, count);
+	RGFW_dndCallback(RGFW_root, RGFW_events[RGFW_eventLen].droppedFiles, count);
 	RGFW_eventLen++;
 }
 
