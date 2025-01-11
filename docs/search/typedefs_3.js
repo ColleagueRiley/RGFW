@@ -16,12 +16,12 @@ var searchData=
   ['rgfw_5fmousebuttonfunc_13',['RGFW_mousebuttonfunc',['../group__Callbacks.html#gac6e2dd7672895ab9f42675e968940654',1,'RGFW.h']]],
   ['rgfw_5fmousenotifyfunc_14',['RGFW_mouseNotifyfunc',['../group__Callbacks.html#ga87a42ed9a18b27c9ae8a33fac73e8487',1,'RGFW.h']]],
   ['rgfw_5fmouseposfunc_15',['RGFW_mouseposfunc',['../group__Callbacks.html#ga25051c19f1197f8b9cd68c1c5901d111',1,'RGFW.h']]],
-  ['rgfw_5fthread_16',['RGFW_thread',['../RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8',1,'RGFW.h']]],
-  ['rgfw_5fthreadfunc_5fptr_17',['RGFW_threadFunc_ptr',['../group__Threads.html#ga13d60c1d8ee57056290acdc59bfc37a0',1,'RGFW.h']]],
-  ['rgfw_5fwindow_18',['RGFW_window',['../RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6',1,'RGFW.h']]],
-  ['rgfw_5fwindowmovefunc_19',['RGFW_windowmovefunc',['../group__Callbacks.html#gaee0b1849b0a801545113b5fa76272bf4',1,'RGFW.h']]],
-  ['rgfw_5fwindowquitfunc_20',['RGFW_windowquitfunc',['../group__Callbacks.html#ga18ae56dfa334dde3f7532077093c9691',1,'RGFW.h']]],
-  ['rgfw_5fwindowrefreshfunc_21',['RGFW_windowrefreshfunc',['../group__Callbacks.html#ga549ca7f50706b597bc36152bde169a9e',1,'RGFW.h']]],
-  ['rgfw_5fwindowresizefunc_22',['RGFW_windowresizefunc',['../group__Callbacks.html#gab6a2c06bb7288d94ea3d8f053fe292f2',1,'RGFW.h']]],
-  ['rsgl_5fssize_5ft_23',['RSGL_ssize_t',['../group__Clipboard.html#ga055ba68a1c77329d7484c012e435f16e',1,'RGFW.h']]]
+  ['rgfw_5fssize_5ft_16',['RGFW_ssize_t',['../group__Clipboard.html#ga38e4eefa581916b9459f06a23da4d08e',1,'RGFW.h']]],
+  ['rgfw_5fthread_17',['RGFW_thread',['../RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8',1,'RGFW.h']]],
+  ['rgfw_5fthreadfunc_5fptr_18',['RGFW_threadFunc_ptr',['../group__Threads.html#ga13d60c1d8ee57056290acdc59bfc37a0',1,'RGFW.h']]],
+  ['rgfw_5fwindow_19',['RGFW_window',['../RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6',1,'RGFW.h']]],
+  ['rgfw_5fwindowmovefunc_20',['RGFW_windowmovefunc',['../group__Callbacks.html#gaee0b1849b0a801545113b5fa76272bf4',1,'RGFW.h']]],
+  ['rgfw_5fwindowquitfunc_21',['RGFW_windowquitfunc',['../group__Callbacks.html#ga18ae56dfa334dde3f7532077093c9691',1,'RGFW.h']]],
+  ['rgfw_5fwindowrefreshfunc_22',['RGFW_windowrefreshfunc',['../group__Callbacks.html#ga549ca7f50706b597bc36152bde169a9e',1,'RGFW.h']]],
+  ['rgfw_5fwindowresizefunc_23',['RGFW_windowresizefunc',['../group__Callbacks.html#gab6a2c06bb7288d94ea3d8f053fe292f2',1,'RGFW.h']]]
 ];
