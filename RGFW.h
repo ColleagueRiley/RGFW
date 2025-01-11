@@ -9783,17 +9783,12 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 }
 
 
-const char* RGFW_readClipboard(size_t* size) {
+size_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	/*
 		placeholder code for later
 		I'm not sure if this is possible do the the async stuff
 	*/
-
-	size_t len = 0;
-	if (size != NULL)
-		*size = len;
-
-	return "\0";
+	return 0;
 }
 
 void RGFW_window_swapBuffers(RGFW_window* win) {
