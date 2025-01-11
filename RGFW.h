@@ -1995,6 +1995,7 @@ void RGFW_updateKeyMods(RGFW_window* win, b8 capital, b8 numlock) {
 }
 
 #if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM) || defined(RGFW_WAYLAND)
+#include <time.h>
 struct timespec;
 
 #ifndef RGFW_NO_UNIX_CLOCK
@@ -4364,7 +4365,6 @@ void RGFW_window_close(RGFW_window* win) {
 #include <fcntl.h>
 #include <poll.h>
 #include <unistd.h>
-#include <time.h>
 
 void RGFW_stopCheckEvents(void) {
 
