@@ -6,6 +6,13 @@ Clipboard \- Clipboard
 .SH SYNOPSIS
 .br
 .PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef ptrdiff_t \fBRSGL_ssize_t\fP"
+.br
+.in -1c
 .SS "Functions"
 
 .in +1c
@@ -13,7 +20,7 @@ Clipboard \- Clipboard
 .RI "\fBRGFWDEF\fP const char * \fBRGFW_readClipboard\fP (size_t *size)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP size_t \fBRGFW_readClipboardPtr\fP (char *str, size_t strCapacity)"
+.RI "\fBRGFWDEF\fP \fBRSGL_ssize_t\fP \fBRGFW_readClipboardPtr\fP (char *str, size_t strCapacity)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_writeClipboard\fP (const char *text, \fBu32\fP textLen)"
@@ -26,11 +33,15 @@ Clipboard \- Clipboard
 
 .PP
 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef ptrdiff_t \fBRSGL_ssize_t\fP"
+
 .SH "Function Documentation"
 .PP 
 .SS "\fBRGFWDEF\fP const char * RGFW_readClipboard (size_t * size)"
 read clipboard data 
-.SS "\fBRGFWDEF\fP size_t RGFW_readClipboardPtr (char * str, size_t strCapacity)"
+.SS "\fBRGFWDEF\fP \fBRSGL_ssize_t\fP RGFW_readClipboardPtr (char * str, size_t strCapacity)"
 read clipboard data 
 .SS "\fBRGFWDEF\fP void RGFW_writeClipboard (const char * text, \fBu32\fP textLen)"
 write text to the clipboard 

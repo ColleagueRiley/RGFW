@@ -22,5 +22,6 @@ var searchData=
   ['rgfw_5fwindowmovefunc_19',['RGFW_windowmovefunc',['../group__Callbacks.html#gaee0b1849b0a801545113b5fa76272bf4',1,'RGFW.h']]],
   ['rgfw_5fwindowquitfunc_20',['RGFW_windowquitfunc',['../group__Callbacks.html#ga18ae56dfa334dde3f7532077093c9691',1,'RGFW.h']]],
   ['rgfw_5fwindowrefreshfunc_21',['RGFW_windowrefreshfunc',['../group__Callbacks.html#ga549ca7f50706b597bc36152bde169a9e',1,'RGFW.h']]],
-  ['rgfw_5fwindowresizefunc_22',['RGFW_windowresizefunc',['../group__Callbacks.html#gab6a2c06bb7288d94ea3d8f053fe292f2',1,'RGFW.h']]]
+  ['rgfw_5fwindowresizefunc_22',['RGFW_windowresizefunc',['../group__Callbacks.html#gab6a2c06bb7288d94ea3d8f053fe292f2',1,'RGFW.h']]],
+  ['rsgl_5fssize_5ft_23',['RSGL_ssize_t',['../group__Clipboard.html#ga055ba68a1c77329d7484c012e435f16e',1,'RGFW.h']]]
 ];

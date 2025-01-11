@@ -66,7 +66,7 @@ var searchData=
   ['rgfw_5fpoint_63',['RGFW_POINT',['../RGFW_8h.html#a4e893e75a8f37ccc1fe0dc388339bcdf',1,'RGFW.h']]],
   ['rgfw_5fpoint_64',['RGFW_point',['../structRGFW__point.html',1,'']]],
   ['rgfw_5freadclipboard_65',['RGFW_readClipboard',['../group__Clipboard.html#ga8dc0a4b9144cd7e9de02f31b2b421723',1,'RGFW.h']]],
-  ['rgfw_5freadclipboardptr_66',['RGFW_readClipboardPtr',['../group__Clipboard.html#ga95424062dad55af8b722d1329f97111e',1,'RGFW.h']]],
+  ['rgfw_5freadclipboardptr_66',['RGFW_readClipboardPtr',['../group__Clipboard.html#gaa5e068104a76670ce4b33d309665c53c',1,'RGFW.h']]],
   ['rgfw_5frect_67',['RGFW_rect',['../structRGFW__rect.html',1,'']]],
   ['rgfw_5frect_68',['RGFW_RECT',['../RGFW_8h.html#a2de5caedcb0adb5dc80d9f23758e0599',1,'RGFW.h']]],
   ['rgfw_5fround_69',['RGFW_ROUND',['../RGFW_8h.html#a11c9631a28d5243b1d48ee03ae215d79',1,'RGFW.h']]],
@@ -154,5 +154,6 @@ var searchData=
   ['rgfw_5fwindowresizefunc_151',['RGFW_windowresizefunc',['../group__Callbacks.html#gab6a2c06bb7288d94ea3d8f053fe292f2',1,'RGFW.h']]],
   ['rgfw_5fwriteclipboard_152',['RGFW_writeClipboard',['../group__Clipboard.html#ga0de2f0466a3ae4cc9986101de14dbdee',1,'RGFW.h']]],
   ['rgfwdef_153',['RGFWDEF',['../RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f',1,'RGFW.h']]],
-  ['riley_27s_20graphics_20library_20framework_154',['Riley&apos;s Graphics library FrameWork',['../md_README.html',1,'']]]
+  ['riley_27s_20graphics_20library_20framework_154',['Riley&apos;s Graphics library FrameWork',['../md_README.html',1,'']]],
+  ['rsgl_5fssize_5ft_155',['RSGL_ssize_t',['../group__Clipboard.html#ga055ba68a1c77329d7484c012e435f16e',1,'RGFW.h']]]
 ];

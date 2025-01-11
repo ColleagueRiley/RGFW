@@ -32,7 +32,7 @@ var searchData=
   ['rgfw_5floadallocator_29',['RGFW_loadAllocator',['../RGFW_8h.html#a695ba6e1fdf50e8b00c2e332ba98595b',1,'RGFW.h']]],
   ['rgfw_5floadmouse_30',['RGFW_loadMouse',['../RGFW_8h.html#a11cac9d387da64acbcaa9cb3a21e4b14',1,'RGFW.h']]],
   ['rgfw_5freadclipboard_31',['RGFW_readClipboard',['../group__Clipboard.html#ga8dc0a4b9144cd7e9de02f31b2b421723',1,'RGFW.h']]],
-  ['rgfw_5freadclipboardptr_32',['RGFW_readClipboardPtr',['../group__Clipboard.html#ga95424062dad55af8b722d1329f97111e',1,'RGFW.h']]],
+  ['rgfw_5freadclipboardptr_32',['RGFW_readClipboardPtr',['../group__Clipboard.html#gaa5e068104a76670ce4b33d309665c53c',1,'RGFW.h']]],
   ['rgfw_5fsetbuffersize_33',['RGFW_setBufferSize',['../group__Window__management.html#gadce2abfbc7f38f80e4f5490e88d05593',1,'RGFW.h']]],
   ['rgfw_5fsetclassname_34',['RGFW_setClassName',['../group__Window__management.html#gad4e025c3958a7118fd3ec5728cc7c43e',1,'RGFW.h']]],
   ['rgfw_5fsetdndcallback_35',['RGFW_setDndCallback',['../group__Callbacks.html#ga1e81369ffe03b5775a26bb01969a7649',1,'RGFW.h']]],
