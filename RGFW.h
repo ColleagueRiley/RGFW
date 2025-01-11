@@ -974,10 +974,10 @@ RGFWDEF b8 RGFW_wasMousePressed(RGFW_window* win, u8 button /*!< mouse button co
 
 /** * @defgroup Clipboard
 * @{ */
-typedef ptrdiff_t RSGL_ssize_t;
+typedef i32 RGFW_ssize_t;
 
 RGFWDEF const char* RGFW_readClipboard(size_t* size); /*!< read clipboard data */
-RGFWDEF RSGL_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity); /*!< read clipboard data */
+RGFWDEF RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity); /*!< read clipboard data */
 RGFWDEF void RGFW_writeClipboard(const char* text, u32 textLen); /*!< write text to the clipboard */
 /** @} */
 
@@ -1358,7 +1358,7 @@ void RGFW_clipboard_switch(char* newstr) {
 		return "\0"; \
 
 const char* RGFW_readClipboard(size_t* len) {
-	RSGL_ssize_t size = RGFW_readClipboardPtr(NULL, 0);
+	RGFW_ssize_t size = RGFW_readClipboardPtr(NULL, 0);
 	RGFW_CHECK_CLIPBOARD();
 	char* str = (char*)RGFW_alloc(size);	
 	size = RGFW_readClipboardPtr(str, size);
@@ -3793,7 +3793,7 @@ void RGFW_window_show(RGFW_window* win) {
 /*
 	the majority function is sourced from GLFW
 */
-RSGL_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
+RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	static Atom UTF8 = 0;
 	if (UTF8 == 0)
 		UTF8 = XInternAtom(RGFW_root->src.display, "UTF8_STRING", True);
@@ -5418,7 +5418,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	/* TODO wayland */
 }
 
-RSGL_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
+RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	RGFW_UNUSED(size);
 
 	/* TODO wayland */
@@ -6969,7 +6969,7 @@ b32 RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
 	#endif
 }
 
-RSGL_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
+RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	/* Open the clipboard */
 	if (OpenClipboard(NULL) == 0)
 		return -1;
@@ -8863,21 +8863,21 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	return RGFW_NSCreateMonitor(display, screen);
 }
 
-RSGL_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
+RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	size_t clip_len;
 	char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString, &clip_len);
-	
+	if (clip == NULL) return -1;	
+
 	if (str != NULL) {
-		if (strCapacity <= clip_len)
+		if (strCapacity < clip_len)
 			return 0;
-		
-		if (clip != NULL)
-			RGFW_MEMCPY(str, clip, clip_len);
+			
+		RGFW_MEMCPY(str, clip, clip_len);
 
 		str[clip_len] = '\0';
 	}
 
-	return clip_len;
+	return (RGFW_ssize_t)clip_len;
 }
 
 void RGFW_writeClipboard(const char* text, u32 textLen) {
