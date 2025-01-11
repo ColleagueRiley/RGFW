@@ -1,2 +1,2 @@
-- ensure support for UTF-16 
+- ensure support for UTF-16 (windows)
 - fix wayland stuff
