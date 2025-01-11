@@ -974,8 +974,10 @@ RGFWDEF b8 RGFW_wasMousePressed(RGFW_window* win, u8 button /*!< mouse button co
 
 /** * @defgroup Clipboard
 * @{ */
+typedef ptrdiff_t RSGL_ssize_t;
+
 RGFWDEF const char* RGFW_readClipboard(size_t* size); /*!< read clipboard data */
-RGFWDEF size_t RGFW_readClipboardPtr(char* str, size_t strCapacity); /*!< read clipboard data */
+RGFWDEF RSGL_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity); /*!< read clipboard data */
 RGFWDEF void RGFW_writeClipboard(const char* text, u32 textLen); /*!< write text to the clipboard */
 /** @} */
 
@@ -1349,10 +1351,19 @@ void RGFW_clipboard_switch(char* newstr) {
 	RGFW_clipboard_alloc = RGFW_current_allocator;
 }
 
+#define RGFW_CHECK_CLIPBOARD() \
+	if (size <= 0 && RGFW_clipboard_data != NULL) \
+		return (const char*)RGFW_clipboard_data; \
+	else if (size <= 0) \
+		return "\0"; \
+
 const char* RGFW_readClipboard(size_t* len) {
-	size_t size = RGFW_readClipboardPtr(NULL, 0);
+	RSGL_ssize_t size = RGFW_readClipboardPtr(NULL, 0);
+	RGFW_CHECK_CLIPBOARD();
 	char* str = (char*)RGFW_alloc(size);	
-	RGFW_readClipboardPtr(str, size);
+	size = RGFW_readClipboardPtr(str, size);
+	RGFW_CHECK_CLIPBOARD();
+
 	if (len != NULL) *len = size;
 
 	RGFW_clipboard_switch(str);
@@ -3782,7 +3793,7 @@ void RGFW_window_show(RGFW_window* win) {
 /*
 	the majority function is sourced from GLFW
 */
-size_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
+RSGL_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	static Atom UTF8 = 0;
 	if (UTF8 == 0)
 		UTF8 = XInternAtom(RGFW_root->src.display, "UTF8_STRING", True);
@@ -3804,20 +3815,20 @@ size_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	XNextEvent(RGFW_root->src.display, &event);
 
 	if (event.type != SelectionNotify || event.xselection.selection != CLIPBOARD || event.xselection.property == 0)
-		return 0;
+		return -1;
 
 	XGetWindowProperty(event.xselection.display, event.xselection.requestor,
 		event.xselection.property, 0L, (~0L), 0, AnyPropertyType, &target,
 		&format, &sizeN, &N, (unsigned char**) &data);
 
 	if (sizeN > strCapacity && str != NULL)
-		sizeN = 0;
+		sizeN = -1;
 
 	if ((target == UTF8 || target == XA_STRING) && str != NULL) {
 		RGFW_MEMCPY(str, data, sizeN);
 		str[sizeN] = '\0';
 		XFree(data);
-	}
+	} else if (str != NULL) return -1;
 
 	XDeleteProperty(event.xselection.display, event.xselection.requestor, event.xselection.property);
 	return sizeN;
@@ -5407,7 +5418,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	/* TODO wayland */
 }
 
-size_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
+RSGL_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	RGFW_UNUSED(size);
 
 	/* TODO wayland */
@@ -6958,16 +6969,16 @@ b32 RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
 	#endif
 }
 
-size_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
+RSGL_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	/* Open the clipboard */
 	if (OpenClipboard(NULL) == 0)
-		return 0;
+		return -1;
 
 	/* Get the clipboard data as a Unicode string */
 	HANDLE hData = GetClipboardData(CF_UNICODETEXT);
 	if (hData == NULL) {
 		CloseClipboard();
-		return 0;	
+		return -1;	
 	}
 
 	wchar_t* wstr = (wchar_t*) GlobalLock(hData);
@@ -8852,7 +8863,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	return RGFW_NSCreateMonitor(display, screen);
 }
 
-size_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
+RSGL_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	size_t clip_len;
 	char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString, &clip_len);
 	
@@ -9783,7 +9794,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 }
 
 
-size_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
+RSGL_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	/*
 		placeholder code for later
 		I'm not sure if this is possible do the the async stuff
