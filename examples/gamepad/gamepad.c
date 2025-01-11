@@ -34,8 +34,8 @@ int main(void) {
                 break;
                 
                 case RGFW_keyPressed:
-                    if (win->event.key == RGFW_keyLeft && gamepad > 0) gamepad--;
-                    if (win->event.key == RGFW_keyRight && (gamepad + 1) < RGFW_getGamepadCount(win)) gamepad++;
+                    if (win->event.key == RGFW_left && gamepad > 0) gamepad--;
+                    if (win->event.key == RGFW_right && (gamepad + 1) < RGFW_getGamepadCount(win)) gamepad++;
                     break;
                 default: break;
             }

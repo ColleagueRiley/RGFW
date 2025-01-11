@@ -28,7 +28,7 @@ int main(void) {
                     printf("Mouse Button Released\n");
                     break;
                 case RGFW_mousePosChanged:
-                    if (RGFW_isPressed(win, RGFW_keyControlL))
+                    if (RGFW_isPressed(win, RGFW_controlL))
                         printf("Mouse pos changed %i %i\n", win->event.point.x, win->event.point.y);
                     break;
                 case RGFW_windowMoved:

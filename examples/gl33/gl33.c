@@ -169,7 +169,7 @@ int main(void)
     // render loop
     // -----------
     bool running = true;
-    while (running && !RGFW_isPressed(window, RGFW_keyEscape))
+    while (running && !RGFW_isPressed(window, RGFW_escape))
     {
         while (RGFW_window_checkEvent(window)) {
             if (window->event.type == RGFW_quit) {
@@ -190,7 +190,7 @@ int main(void)
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         // glBindVertexArray(0); // no need to unbind it every time
 
-        if (RGFW_isPressed(window, RGFW_keySpace))
+        if (RGFW_isPressed(window, RGFW_space))
             printf("fps : %i\n", fps);
                         
         RGFW_window_swapBuffers(window);

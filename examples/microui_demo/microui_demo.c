@@ -216,14 +216,14 @@ static const char button_map[256] = {
 };
 
 static const char key_map[256] = {
-  [ RGFW_keyShiftL       & 0xff ] = MU_KEY_SHIFT,
-  [ RGFW_keyShiftR       & 0xff ] = MU_KEY_SHIFT,
-  [ RGFW_keyControlL        & 0xff ] = MU_KEY_CTRL,
-  [ RGFW_keyControlR        & 0xff ] = MU_KEY_CTRL,
-  [ RGFW_keyAltL         & 0xff ] = MU_KEY_ALT,
-  [ RGFW_keyAltR         & 0xff ] = MU_KEY_ALT,
-  [ RGFW_keyReturn       & 0xff ] = MU_KEY_RETURN,
-  [ RGFW_keyBackSpace    & 0xff ] = MU_KEY_BACKSPACE,
+  [ RGFW_shiftL       & 0xff ] = MU_KEY_SHIFT,
+  [ RGFW_shiftR       & 0xff ] = MU_KEY_SHIFT,
+  [ RGFW_controlL        & 0xff ] = MU_KEY_CTRL,
+  [ RGFW_controlR        & 0xff ] = MU_KEY_CTRL,
+  [ RGFW_altL         & 0xff ] = MU_KEY_ALT,
+  [ RGFW_altR         & 0xff ] = MU_KEY_ALT,
+  [ RGFW_return       & 0xff ] = MU_KEY_RETURN,
+  [ RGFW_backSpace    & 0xff ] = MU_KEY_BACKSPACE,
 };
 
 
