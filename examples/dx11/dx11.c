@@ -94,7 +94,7 @@ int main(void) {
     for (;;) {
         RGFW_window_checkEvent(win); // NOTE: checking events outside of a while loop may cause input lag 
 
-        if (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_keyEscape))
+        if (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape))
             break;
 
         float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };

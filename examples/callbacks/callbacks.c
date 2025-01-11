@@ -39,7 +39,7 @@ void mouseNotifyfunc(RGFW_window* win, RGFW_point point, u8 status) {
 }
 
 void mouseposfunc(RGFW_window* win, RGFW_point point) {
-    if (window != win || RGFW_isPressed(win, RGFW_keyControlL) == 0) return;
+    if (window != win || RGFW_isPressed(win, RGFW_controlL) == 0) return;
     printf("mouse moved %i %i\n", point.x, point.y);
 }
 
@@ -61,7 +61,7 @@ void windowrefreshfunc(RGFW_window* win) {
     printf("refresh\n");
 }
 
-void keyfunc(RGFW_window* win, RGFW_Key key, char keyChar, RGFW_keymod keyMod, b8 pressed) {
+void keyfunc(RGFW_window* win, RGFW_key key, char keyChar, RGFW_keymod keyMod, b8 pressed) {
     if (window != win) return;
     if (pressed)
         printf("key pressed : %i (%c) mapped : %i (%c): with modstate : %i\n", key, key, keyChar, keyChar, keyMod);

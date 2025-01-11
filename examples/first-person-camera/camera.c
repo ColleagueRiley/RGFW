@@ -59,26 +59,26 @@ int main(void) {
                 }
                 case RGFW_keyPressed:
                     switch (win->event.key) {
-                        case RGFW_keyReturn:
+                        case RGFW_return:
                             RGFW_window_showMouse(win, 0);
                             RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
                             break;
                         
-                        case RGFW_keyBackSpace:
+                        case RGFW_backSpace:
                             RGFW_window_showMouse(win, 1);
                             RGFW_window_mouseUnhold(win);    
                             break;
 
-                        case RGFW_keyLeft:
+                        case RGFW_left:
                             yaw -= 5;
                             break;
-                        case RGFW_keyRight:
+                        case RGFW_right:
                             yaw += 5;
                             break;
-                        case RGFW_keyUp:
+                        case RGFW_up:
                             pitch -= 5;
                             break;
-                        case RGFW_keyDown:
+                        case RGFW_down:
                             pitch += 5;
                             break;
 
@@ -93,21 +93,21 @@ int main(void) {
         if (win->event.type == RGFW_quit)
             break;
         
-        if (RGFW_isPressed(win, RGFW_keyW)) {
+        if (RGFW_isPressed(win, RGFW_w)) {
             camX += cos((yaw + 90) * DEG2RAD)/5.0;
             camZ -= sin((yaw + 90) * DEG2RAD)/5.0;
         }
-        if (RGFW_isPressed(win, RGFW_keyS)) {
+        if (RGFW_isPressed(win, RGFW_s)) {
             camX += cos((yaw + 270) * DEG2RAD)/5.0;
             camZ -= sin((yaw + 270) * DEG2RAD)/5.0;
         }
         
-        if (RGFW_isPressed(win, RGFW_keyA)) {
+        if (RGFW_isPressed(win, RGFW_a)) {
             camX += cos(yaw * DEG2RAD)/5.0;
             camZ -= sin(yaw * DEG2RAD)/5.0;
         }
         
-        if (RGFW_isPressed(win, RGFW_keyD)) {
+        if (RGFW_isPressed(win, RGFW_d)) {
             camX += cos((yaw + 180) * DEG2RAD)/5.0;
             camZ -= sin((yaw + 180) * DEG2RAD)/5.0;
         }

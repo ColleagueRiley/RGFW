@@ -35,10 +35,11 @@ int main(void) {
     RGFW_window_vulkanInfo vulkWin;
 
     vulkan_info = RGFW_initVulkan(win, &vulkWin);    
-    createGraphicsPipeline();
+    if (vulkan_info != NULL)
+        createGraphicsPipeline();
 
     u8 running = 1;
-    while (running && !RGFW_isPressed(win, RGFW_keyEscape)) {
+    while (running && !RGFW_isPressed(win, RGFW_escape)) {
         while (RGFW_window_checkEvent(win)) {
             if (win->event.type == RGFW_quit) {
                 running = 0;
@@ -46,11 +47,14 @@ int main(void) {
             }
         }
 
-        draw_frame(&vulkWin);
-        commandBuffers(&vulkWin);
+        if (vulkan_info != NULL) {
+            draw_frame(&vulkWin);
+            commandBuffers(&vulkWin);
+        }
     }
     
-    RGFW_freeVulkan(&vulkWin);
+    if (vulkan_info != NULL)
+        RGFW_freeVulkan(&vulkWin);
 
     RGFW_window_close(win);
     return 0;
