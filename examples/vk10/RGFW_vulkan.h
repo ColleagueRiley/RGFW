@@ -30,7 +30,7 @@ typedef struct RGFW_window_vulkanInfo {
     u32 image_count;
     VkImage* swapchain_images;
     VkImageView* swapchain_image_views;
-} RGFW_window_vulkanInfo;
+} RGFW_window_vulkanInfo;   
 
 typedef struct RGFW_vulkanInfo {
     VkInstance instance;
@@ -189,9 +189,13 @@ int RGFW_deviceInitialization(RGFW_window* win, RGFW_window_vulkanInfo* vulkWin)
     RGFW_vulkan_info.physical_device = devices[0];
 
     u32 queue_family_count = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(RGFW_vulkan_info.physical_device, &queue_family_count, NULL);
-    VkQueueFamilyProperties* queueFamilies = (VkQueueFamilyProperties*) RGFW_alloc(sizeof(VkQueueFamilyProperties) * queue_family_count);
-    vkGetPhysicalDeviceQueueFamilyProperties(RGFW_vulkan_info.physical_device, &queue_family_count, queueFamilies);
+    
+    if (RGFW_vulkan_info.physical_device != NULL && deviceCount) {
+        vkGetPhysicalDeviceQueueFamilyProperties(RGFW_vulkan_info.physical_device, &queue_family_count, NULL);
+        VkQueueFamilyProperties* queueFamilies = (VkQueueFamilyProperties*) RGFW_alloc(sizeof(VkQueueFamilyProperties) * queue_family_count);
+
+        vkGetPhysicalDeviceQueueFamilyProperties(RGFW_vulkan_info.physical_device, &queue_family_count, queueFamilies);
+    }
 
     float queuePriority = 1.0f;
 
@@ -220,8 +224,8 @@ int RGFW_deviceInitialization(RGFW_window* win, RGFW_window_vulkanInfo* vulkWin)
 
     device_create_info.ppEnabledExtensionNames = device_extensions;
     device_create_info.pEnabledFeatures = &device_features;
-
-    if (vkCreateDevice(RGFW_vulkan_info.physical_device, &device_create_info, NULL, &RGFW_vulkan_info.device) != VK_SUCCESS) {
+    if ((RGFW_vulkan_info.physical_device == NULL || deviceCount == 0) || 
+        vkCreateDevice(RGFW_vulkan_info.physical_device, &device_create_info, NULL, &RGFW_vulkan_info.device) != VK_SUCCESS) {
         fprintf(stderr, "failed to create logical device!\n");
         return -1;
     }
@@ -424,7 +428,7 @@ int RGFW_createFramebuffers(RGFW_window* win, RGFW_window_vulkanInfo* vulkWin) {
     return 0;
 }
 
-void RGFW_freeVulkan(RGFW_window_vulkanInfo* vulkWin) {
+void RGFW_freeVulkan(RGFW_window_vulkanInfo* vulkWin) {    
     for (u32 i = 0; i < vulkWin->image_count; i++) {
         vkDestroyImageView(RGFW_vulkan_info.device, vulkWin->swapchain_image_views[i], NULL);
     }
@@ -477,7 +481,7 @@ VkShaderModule RGFW_createShaderModule(const u32* code, size_t code_size) {
     create_info.pCode = code;
 
     VkShaderModule shaderModule;
-    if (vkCreateShaderModule(RGFW_vulkan_info.device, &create_info, NULL, &shaderModule) != VK_SUCCESS) {
+    if (RGFW_vulkan_info.device == NULL || vkCreateShaderModule(RGFW_vulkan_info.device, &create_info, NULL, &shaderModule) != VK_SUCCESS) {
         return VK_NULL_HANDLE;
     }
 
