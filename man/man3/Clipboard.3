@@ -13,6 +13,9 @@ Clipboard \- Clipboard
 .RI "\fBRGFWDEF\fP const char * \fBRGFW_readClipboard\fP (size_t *size)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP size_t \fBRGFW_readClipboardPtr\fP (char *str, size_t strCapacity)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_writeClipboard\fP (const char *text, \fBu32\fP textLen)"
 .br
 .in -1c
@@ -26,6 +29,8 @@ Clipboard \- Clipboard
 .SH "Function Documentation"
 .PP 
 .SS "\fBRGFWDEF\fP const char * RGFW_readClipboard (size_t * size)"
+read clipboard data 
+.SS "\fBRGFWDEF\fP size_t RGFW_readClipboardPtr (char * str, size_t strCapacity)"
 read clipboard data 
 .SS "\fBRGFWDEF\fP void RGFW_writeClipboard (const char * text, \fBu32\fP textLen)"
 write text to the clipboard 

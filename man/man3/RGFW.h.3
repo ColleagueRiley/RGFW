@@ -217,13 +217,6 @@ RGFW.h
 .RI "typedef DWORD(__stdcall * \fBRGFW_threadFunc_ptr\fP) (LPVOID lpThreadParameter)"
 .br
 .in -1c
-.SS "Enumerations"
-
-.in +1c
-.ti -1c
-.RI "enum \fBRGFW_mouse_codes\fP { \fBRGFW_mouseNone\fP = 0, \fBRGFW_mouseLeft\fP, \fBRGFW_mouseMiddle\fP, \fBRGFW_mouseRight\fP, \fBRGFW_mouseScrollUp\fP, \fBRGFW_mouseScrollDown\fP }"
-.br
-.in -1c
 .SS "Functions"
 
 .in +1c
@@ -238,6 +231,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_eventTypes)"
+.br
+.ti -1c
+.RI "\fBRGFW_ENUM\fP (\fBu8\fP, RGFW_mouse_codes)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_keymod)"
@@ -421,6 +417,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP const char * \fBRGFW_readClipboard\fP (size_t *size)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP size_t \fBRGFW_readClipboardPtr\fP (char *str, size_t strCapacity)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_writeClipboard\fP (const char *text, \fBu32\fP textLen)"
@@ -649,31 +648,6 @@ Window structure for managing the window
 
 .SS "typedef uint8_t \fBu8\fP"
 
-.SH "Enumeration Type Documentation"
-.PP 
-.SS "enum \fBRGFW_mouse_codes\fP"
-mouse button codes (\fBRGFW_event\&.button\fP) 
-.PP
-\fBEnumerator\fP
-.in +1c
-.TP
-\fB\fIRGFW_mouseNone \fP\fP
-no mouse button is pressed 
-.TP
-\fB\fIRGFW_mouseLeft \fP\fP
-left mouse button is pressed 
-.TP
-\fB\fIRGFW_mouseMiddle \fP\fP
-mouse-wheel-button is pressed 
-.TP
-\fB\fIRGFW_mouseRight \fP\fP
-right mouse button is pressed 
-.TP
-\fB\fIRGFW_mouseScrollUp \fP\fP
-mouse wheel is scrolling up 
-.TP
-\fB\fIRGFW_mouseScrollDown \fP\fP
-mouse wheel is scrolling down 
 .SH "Function Documentation"
 .PP 
 .SS "\fBRGFWDEF\fP void * RGFW_alloc (size_t len)"
@@ -780,6 +754,18 @@ gamepad button codes (based on xbox/playstation), you may need to change these v
 < right thumb stick
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_keymod)"
 
+.SS "RGFW_ENUM (\fBu8\fP, RGFW_mouse_codes)"
+mouse button codes (\fBRGFW_event\&.button\fP) < no mouse button is pressed
+.PP
+< left mouse button is pressed
+.PP
+< mouse-wheel-button is pressed
+.PP
+< right mouse button is pressed
+.PP
+< mouse wheel is scrolling up
+.PP
+< mouse wheel is scrolling down
 .SS "\fBRGFWDEF\fP void RGFW_free (void * ptr)"
 
 .SS "\fBRGFWDEF\fP void RGFW_freeMouse (\fBRGFW_mouse\fP * mouse)"
