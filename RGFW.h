@@ -263,7 +263,7 @@ int main() {
 		typedef signed long long		i64;
 	#else /* use stdint standard types instead of c ""standard"" types */
 		#include <stdint.h>
-		#include <stdint.h>
+		#include <stddef.h>
 
 		typedef uint8_t     u8;
 		typedef int8_t      i8;
