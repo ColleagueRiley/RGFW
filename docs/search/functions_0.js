@@ -26,7 +26,7 @@ var searchData=
   ['rgfw_5fismousepressed_23',['RGFW_isMousePressed',['../group__Input.html#ga59cbd47381667fdd17b2eeaad9383a4b',1,'RGFW.h']]],
   ['rgfw_5fismousereleased_24',['RGFW_isMouseReleased',['../group__Input.html#ga23668b9f3110da11c338d8f1feefb2c0',1,'RGFW.h']]],
   ['rgfw_5fispressed_25',['RGFW_isPressed',['../group__Input.html#ga97e8beeddfe37ec0eab69f61af5c1d4c',1,'RGFW.h']]],
-  ['rgfw_5fispressedgamepad_26',['RGFW_isPressedgamepad',['../group__gamepad.html#ga2eb973f1587de95d7d8399f380631a0a',1,'RGFW.h']]],
+  ['rgfw_5fispressedgamepad_26',['RGFW_isPressedGamepad',['../group__gamepad.html#gabcbc8b3c27bd4c143c2a5af4b6eb3a0d',1,'RGFW.h']]],
   ['rgfw_5fisreleased_27',['RGFW_isReleased',['../group__Input.html#ga2dec2f818a5e5ae8db36a6bb7cf8fb79',1,'RGFW.h']]],
   ['rgfw_5fjointhread_28',['RGFW_joinThread',['../group__Threads.html#ga43401d0d164edea95f9c6cd2df093473',1,'RGFW.h']]],
   ['rgfw_5floadallocator_29',['RGFW_loadAllocator',['../RGFW_8h.html#a695ba6e1fdf50e8b00c2e332ba98595b',1,'RGFW.h']]],
