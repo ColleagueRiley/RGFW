@@ -63,6 +63,7 @@ else
 endif
 
 ifeq ($(RGFW_WAYLAND),1)
+	NO_VULKAN = 1
 	LIBS = -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lEGL -lxkbcommon -lGL -lwayland-egl
 endif
 
@@ -173,7 +174,9 @@ else
 endif
 
 examples/minimal_links/minimal_links: examples/minimal_links/minimal_links.c RGFW.h
-ifeq ($(CC),emcc)
+ifeq ($(RGFW_WAYLAND), 1)
+	@echo nostl is not supported on this platform
+else ifeq ($(CC),emcc)
 	@echo nostl is not supported on this platform
 else ifeq ($(detected_OS),Linux)
 	$(CC) $(CFLAGS) -I. $<  -o $@$(EXT)
@@ -187,7 +190,9 @@ endif
 
 
 examples/nostl/nostl: examples/nostl/nostl.c RGFW.h
-ifeq ($(CC),emcc)
+ifeq ($(RGFW_WAYLAND), 1)
+	@echo nostl is not supported on this platform
+else ifeq ($(CC),emcc)
 	@echo nostl is not supported on this platform
 else ifeq ($(detected_OS),Linux)
 	$(CC) $(CFLAGS) -fno-stack-protector -lX11 -lXcursor -lGL -lXi -lXrandr -I. $<  -o $@$(EXT)
@@ -218,7 +223,9 @@ examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.
 
 
 examples/gl33/gl33: examples/gl33/gl33.c RGFW.h
-ifeq ($(detected_OS),Linux)
+ifeq ($(RGFW_WAYLAND), 1)
+	$(CC) $(CFLAGS) $(LIBS) -I. $<  -o $@$(EXT)
+else ifeq ($(detected_OS),Linux)
 	$(CC) $(CFLAGS) -I. $<  -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lgdi32 -o $@$(EXT)

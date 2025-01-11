@@ -1,3 +1,4 @@
+#define RGFW_WAYLAND
 /*
 *
 *	RGFW 1.5-dev
@@ -347,7 +348,7 @@ int main() {
 	#endif
 
 #elif defined(RGFW_WAYLAND)
-    #if !defined(RGFW_NO_API) && (!defined(RGFW_BUFFER) || defined(RGFW_OPENGL))
+    #if !defined(RGFW_NO_API) && (!defined(RGFW_BUFFER) || defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA)
 		#define RGFW_EGL
 		#define RGFW_OPENGL
 		#include <wayland-egl.h>
@@ -4698,8 +4699,6 @@ static void keyboard_key (void *data, struct wl_keyboard *keyboard, uint32_t ser
 	RGFW_ASSERT(RGFW_key_win != NULL);
 
 	xkb_keysym_t keysym = xkb_state_key_get_one_sym (xkb_state, key+8);
-	char name[16];
-	xkb_keysym_get_name(keysym, name, 16);
 
 	u32 RGFW_key = RGFW_apiKeyToRGFW(key);
 	RGFW_keyboard[RGFW_key].prev = RGFW_keyboard[RGFW_key].current;
@@ -4714,7 +4713,7 @@ static void keyboard_key (void *data, struct wl_keyboard *keyboard, uint32_t ser
 
 	RGFW_updateKeyMods(RGFW_key_win, xkb_keymap_mod_get_index(keymap, "Lock"), xkb_keymap_mod_get_index(keymap, "Mod2"));
 
-	RGFW_keyCallback(RGFW_key_win, RGFW_key, (u8)keysym, name, RGFW_key_win->event.keyMod, state);
+	RGFW_keyCallback(RGFW_key_win, RGFW_key, (u8)keysym, RGFW_key_win->event.keyMod, state);
 }
 static void keyboard_modifiers (void *data, struct wl_keyboard *keyboard, uint32_t serial, uint32_t mods_depressed, uint32_t mods_latched, uint32_t mods_locked, uint32_t group) {
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(time);
@@ -4748,7 +4747,7 @@ static void wl_global_registry_handler(void *data,
 	} else if (RGFW_STRNCMP(interface, "xdg_wm_base", 12) == 0) {
 	xdg_wm_base = wl_registry_bind(registry,
 		id, &xdg_wm_base_interface, 1);
-	} else if (RGFW_STRNCMP(interface, zxdg_decoration_manager_v1_interface.name) == 0) {
+	} else if (RGFW_STRNCMP(interface, zxdg_decoration_manager_v1_interface.name, 255) == 0) {
 		decoration_manager = wl_registry_bind(registry, id, &zxdg_decoration_manager_v1_interface, 1);
     } else if (RGFW_STRNCMP(interface, "wl_shm", 7) == 0) {
         shm = wl_registry_bind(registry,
@@ -5066,8 +5065,12 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
-	if (win->_flags & RGFW_windowWindowHide)
+	if (win->_flags & RGFW_windowHide)
 		return NULL;
+
+	#if defined(__linux__)
+		if (RGFW_linux_updateGamepad(win)) { return &win->event; }
+	#endif
 
 	if (win->src.eventIndex == 0) {
 		if (wl_display_roundtrip(win->src.display) == -1) {
@@ -5075,10 +5078,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		}
 		RGFW_resetKey();
 	}
-
-	#if defined(__linux__)
-		if (RGFW_linux_updateGamepad(win)) return &win->event;
-	#endif
 
 	if (win->src.eventLen == 0) {
 			return NULL;
@@ -5110,21 +5109,21 @@ void RGFW_window_move(RGFW_window* win, RGFW_point v) {
 
 	/* TODO wayland */
 	RGFW_ASSERT(win != NULL);
-	struct wl_pointer *pointer = wl_seat_get_pointer(win->seat);
+	struct wl_pointer *pointer = wl_seat_get_pointer(seat);
 	if (!pointer) {
 		return;
 	}
 
 	// Initiate the move operation
-	wl_shell_surface_move(win->shell_surface, pointer, win->serial);
+	//wl_shell_surface_move(win->src.surface, seat, 0);
 	win->r.x = v.x;
 	win->r.y = v.y;
 
-	wl_display_flush(win->display);
+	wl_display_flush(win->src.display);
 }
 
 b32 RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
-	RGFW_UNUSED(win); RGFW_UNUSED(src); RGFW_UNUSED(a); RGFW_UNUSED(channels)
+	RGFW_UNUSED(win); RGFW_UNUSED(src); RGFW_UNUSED(a); RGFW_UNUSED(channels);
 	/* TODO wayland */
 	return 0;
 }
@@ -5219,8 +5218,8 @@ b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	return 1;
 }
 
-void* RGFW_loadMouse(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
-	RGFW_UNUSED(image); RGFW_UNUSED(a); RGFW_UNUSED(channels)
+void* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) {
+	RGFW_UNUSED(icon); RGFW_UNUSED(a); RGFW_UNUSED(channels);
 	//struct wl_cursor* cursor = wl_cursor_theme_get_cursor(RGFW_wl_cursor_theme, iconStrings[mouse]);
 	//RGFW_cursor_image = icon;
 	struct wl_buffer* cursor_buffer	= wl_cursor_image_get_buffer(RGFW_cursor_image);
@@ -5236,7 +5235,7 @@ void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
 }
 
 void RGFW_freeMouse(RGFW_mouse* mouse) {
-	GFW_UNUSED(mouse);
+	RGFW_UNUSED(mouse);
 }
 
 void RGFW_window_setName(RGFW_window* win, const char* name) {
