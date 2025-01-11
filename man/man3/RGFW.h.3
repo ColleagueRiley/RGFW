@@ -8,8 +8,6 @@ RGFW.h
 .PP
 \fC#include <stdlib\&.h>\fP
 .br
-\fC#include <time\&.h>\fP
-.br
 \fC#include <string\&.h>\fP
 .br
 \fC#include <stdint\&.h>\fP
@@ -213,7 +211,7 @@ RGFW.h
 .RI "typedef void(* \fBRGFW_gamepadfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBb8\fP connected)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, const char droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP], \fBu32\fP droppedFilesCount)"
+.RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, char droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP], \fBu32\fP droppedFilesCount)"
 .br
 .ti -1c
 .RI "typedef DWORD(__stdcall * \fBRGFW_threadFunc_ptr\fP) (LPVOID lpThreadParameter)"

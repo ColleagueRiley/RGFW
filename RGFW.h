@@ -88,7 +88,7 @@ int main() {
 
 	for (;;) {
 		RGFW_window_checkEvent(win); // NOTE: checking events outside of a while loop may cause input lag
-		if (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_keyEscape))
+		if (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape))
 			break;
 
 		RGFW_window_swapBuffers(win);
@@ -188,7 +188,6 @@ int main() {
 	#define __USE_POSIX199309
 	#endif
 
-	#include <time.h>
 	#define RGFW_ALLOC(userptr, size) (RGFW_UNUSED(userptr),malloc(size))
 	#define RGFW_FREE(userptr, ptr) (RGFW_UNUSED(userptr),free(ptr))
 #endif
@@ -1019,9 +1018,9 @@ typedef void (* RGFW_gamepadfunc)(RGFW_window* win, u16 gamepad, b8 connected);
 
 /*!  RGFW_dnd, the window that had the drop, the drop data and the amount files dropped returns previous callback function (if it was set) */
 #ifdef RGFW_ALLOC_DROPFILES
-	typedef void (* RGFW_dndfunc)(RGFW_window* win, const char** droppedFiles, u32 droppedFilesCount);
+	typedef void (* RGFW_dndfunc)(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount);
 #else
-	typedef void (* RGFW_dndfunc)(RGFW_window* win, const char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount);
+	typedef void (* RGFW_dndfunc)(RGFW_window* win, char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount);
 #endif
 /*! set callback for a window move event returns previous callback function (if it was set)  */
 RGFWDEF RGFW_windowmovefunc RGFW_setWindowMoveCallback(RGFW_windowmovefunc func);
@@ -1164,114 +1163,113 @@ RGFWDEF void RGFW_sleep(u64 milisecond); /*!< sleep for a set time */
 
 typedef RGFW_ENUM(u8, RGFW_Key) {
 	RGFW_keyNULL = 0,
-	RGFW_keyEscape = '\033',
-	RGFW_keyBacktick = '`',
-	RGFW_key0 = '0',
-	RGFW_key1 = '1',
-	RGFW_key2 = '2',
-	RGFW_key3 = '3',
-	RGFW_key4 = '4',
-	RGFW_key5 = '5',
-	RGFW_key6 = '6',
-	RGFW_key7 = '7',
-	RGFW_key8 = '8',
-	RGFW_key9 = '9',
+	RGFW_escape = '\033',
+	RGFW_backtick = '`',
+	RGFW_0 = '0',
+	RGFW_1 = '1',
+	RGFW_2 = '2',
+	RGFW_3 = '3',
+	RGFW_4 = '4',
+	RGFW_5 = '5',
+	RGFW_6 = '6',
+	RGFW_7 = '7',
+	RGFW_8 = '8',
+	RGFW_9 = '9',
 
-	RGFW_keyMinus = '-',
-	RGFW_keyEquals = '=',
-	RGFW_keyBackSpace = '\b',
-	RGFW_keyTab = '\t',
-	RGFW_keySpace = ' ',
+	RGFW_minus = '-',
+	RGFW_equals = '=',
+	RGFW_backSpace = '\b',
+	RGFW_tab = '\t',
+	RGFW_space = ' ',
 
-	RGFW_keyA = 'a',
-	RGFW_keyB = 'b',
-	RGFW_keyC = 'c',
-	RGFW_keyD = 'd',
-	RGFW_keyE = 'e',
-	RGFW_keyF = 'f',
-	RGFW_keyG = 'g',
-	RGFW_keyH = 'h',
-	RGFW_keyI = 'i',
-	RGFW_keyJ = 'j',
-	RGFW_keyK = 'k',
-	RGFW_keyL = 'l',
-	RGFW_keyM = 'm',
-	RGFW_keyN = 'n',
-	RGFW_keyO = 'o',
-	RGFW_keyP = 'p',
-	RGFW_keyQ = 'q',
-	RGFW_keyR = 'r',
-	RGFW_keyS = 's',
-	RGFW_keyT = 't',
-	RGFW_keyU = 'u',
-	RGFW_keyV = 'v',
-	RGFW_keyW = 'w',
-	RGFW_keyX = 'x',
-	RGFW_keyY = 'y',
-	RGFW_keyZ = 'z',
+	RGFW_a = 'a',
+	RGFW_b = 'b',
+	RGFW_c = 'c',
+	RGFW_d = 'd',
+	RGFW_e = 'e',
+	RGFW_f = 'f',
+	RGFW_g = 'g',
+	RGFW_h = 'h',
+	RGFW_i = 'i',
+	RGFW_j = 'j',
+	RGFW_k = 'k',
+	RGFW_l = 'l',
+	RGFW_m = 'm',
+	RGFW_n = 'n',
+	RGFW_o = 'o',
+	RGFW_p = 'p',
+	RGFW_q = 'q',
+	RGFW_r = 'r',
+	RGFW_s = 's',
+	RGFW_t = 't',
+	RGFW_u = 'u',
+	RGFW_v = 'v',
+	RGFW_w = 'w',
+	RGFW_x = 'x',
+	RGFW_y = 'y',
+	RGFW_z = 'z',
 
-	RGFW_keyPeriod = '.',
-	RGFW_keyComma = ',',
-	RGFW_keySlash = '/',
-	RGFW_keyBracket = '{',
-	RGFW_keyCloseBracket = '}',
-	RGFW_keySemicolon = ';',
-	RGFW_keyApostrophe = '\'',
-	RGFW_keyBackSlash = '\\',
-	RGFW_keyReturn = '\n',
+	RGFW_period = '.',
+	RGFW_comma = ',',
+	RGFW_slash = '/',
+	RGFW_bracket = '{',
+	RGFW_closeBracket = '}',
+	RGFW_semicolon = ';',
+	RGFW_apostrophe = '\'',
+	RGFW_backSlash = '\\',
+	RGFW_return = '\n',
 
-	RGFW_keyDelete = '\177', /* 127 */
+	RGFW_delete = '\177', /* 127 */
 
-	RGFW_keyF1,
-	RGFW_keyF2,
-	RGFW_keyF3,
-	RGFW_keyF4,
-	RGFW_keyF5,
-	RGFW_keyF6,
-	RGFW_keyF7,
-	RGFW_keyF8,
-	RGFW_keyF9,
-	RGFW_keyF10,
-	RGFW_keyF11,
-	RGFW_keyF12,
+	RGFW_F1,
+	RGFW_F2,
+	RGFW_F3,
+	RGFW_F4,
+	RGFW_F5,
+	RGFW_F6,
+	RGFW_F7,
+	RGFW_F8,
+	RGFW_F9,
+	RGFW_F10,
+	RGFW_F11,
+	RGFW_F12,
 
-	RGFW_keyCapsLock,
-	RGFW_keyShiftL,
-	RGFW_keyControlL,
-	RGFW_keyAltL,
-	RGFW_keySuperL,
-	RGFW_keyShiftR,
-	RGFW_keyControlR,
-	RGFW_keyAltR,
-	RGFW_keySuperR,
-	RGFW_keyUp,
-	RGFW_keyDown,
-	RGFW_keyLeft,
-	RGFW_keyRight,
+	RGFW_capsLock,
+	RGFW_shiftL,
+	RGFW_controlL,
+	RGFW_altL,
+	RGFW_superL,
+	RGFW_shiftR,
+	RGFW_controlR,
+	RGFW_altR,
+	RGFW_superR,
+	RGFW_up,
+	RGFW_down,
+	RGFW_left,
+	RGFW_right,
 
-	RGFW_keyInsert,
-	RGFW_keyEnd,
-	RGFW_keyHome,
-	RGFW_keyPageUp,
-	RGFW_keyPageDown,
+	RGFW_insert,
+	RGFW_end,
+	RGFW_home,
+	RGFW_pageUp,
+	RGFW_pageDown,
 
-	RGFW_keyNumLock,
-	RGFW_keyKeypadSlash,
-	RGFW_keyMultiply,
-	RGFW_keyKeypadMinus,
-	RGFW_keyKeypad1,
-	RGFW_keyKeypad2,
-	RGFW_keyKeypad3,
-	RGFW_keyKeypad4,
-	RGFW_keyKeypad5,
-	RGFW_keyKeypad6,
-	RGFW_keyKeypad7,
-	RGFW_keyKeypad8,
-	RGFW_keyKeypad9,
-	RGFW_keyKeypad0,
-	RGFW_keyKeypadPeriod,
-	RGFW_keyKeypadReturn,
-
+	RGFW_numLock,
+	RGFW_KP_Slash,
+	RGFW_multiply,
+	RGFW_KP_Minus,
+	RGFW_KP_1,
+	RGFW_KP_2,
+	RGFW_KP_3,
+	RGFW_KP_4,
+	RGFW_KP_5,
+	RGFW_KP_6,
+	RGFW_KP_7,
+	RGFW_KP_8,
+	RGFW_KP_9,
+	RGFW_KP_0,
+	RGFW_KP_Period,
+	RGFW_KP_Return,
 	RGFW_keyLast
 };
 
@@ -1385,115 +1383,114 @@ u8 RGFW_keycodes [RGFW_OS_BASED_VALUE(136, 0x15C + 1, 128, DOM_VK_WIN_OEM_CLEAR 
 };
 void RGFW_init_keys(void) {
 #endif
-	RGFW_MAP [RGFW_OS_BASED_VALUE(49, 0x029, 50, DOM_VK_BACK_QUOTE, KEY_GRAVE)] = RGFW_keyBacktick 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(49, 0x029, 50, DOM_VK_BACK_QUOTE, KEY_GRAVE)] = RGFW_backtick 		RGFW_NEXT
 
-	RGFW_MAP [RGFW_OS_BASED_VALUE(19, 0x00B, 29, DOM_VK_0, KEY_0)] = RGFW_key0 					RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(10, 0x002, 18, DOM_VK_1, KEY_1)] = RGFW_key1						RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(11, 0x003, 19, DOM_VK_2, KEY_2)] = RGFW_key2						RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(12, 0x004, 20, DOM_VK_3, KEY_3)] = RGFW_key3						RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(13, 0x005, 21, DOM_VK_4, KEY_4)] = RGFW_key4						RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(14, 0x006, 23, DOM_VK_5, KEY_5)] = RGFW_key5                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(15, 0x007, 22, DOM_VK_6, KEY_6)] = RGFW_key6                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(16, 0x008, 26, DOM_VK_7, KEY_7)] = RGFW_key7                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(17, 0x009, 28, DOM_VK_8, KEY_8)] = RGFW_key8                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(18, 0x00A, 25, DOM_VK_9, KEY_9)] = RGFW_key9,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(19, 0x00B, 29, DOM_VK_0, KEY_0)] = RGFW_0 					RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(10, 0x002, 18, DOM_VK_1, KEY_1)] = RGFW_1						RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(11, 0x003, 19, DOM_VK_2, KEY_2)] = RGFW_2						RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(12, 0x004, 20, DOM_VK_3, KEY_3)] = RGFW_3						RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(13, 0x005, 21, DOM_VK_4, KEY_4)] = RGFW_4						RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(14, 0x006, 23, DOM_VK_5, KEY_5)] = RGFW_5                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(15, 0x007, 22, DOM_VK_6, KEY_6)] = RGFW_6                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(16, 0x008, 26, DOM_VK_7, KEY_7)] = RGFW_7                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(17, 0x009, 28, DOM_VK_8, KEY_8)] = RGFW_8                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(18, 0x00A, 25, DOM_VK_9, KEY_9)] = RGFW_9,
 
-	RGFW_MAP [RGFW_OS_BASED_VALUE(65, 0x039, 49, DOM_VK_SPACE, KEY_SPACE)] = RGFW_keySpace,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(65, 0x039, 49, DOM_VK_SPACE, KEY_SPACE)] = RGFW_space,
 
-	RGFW_MAP [RGFW_OS_BASED_VALUE(38, 0x01E, 0, DOM_VK_A, KEY_A)] = RGFW_keyA                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(56, 0x030, 11, DOM_VK_B, KEY_B)] = RGFW_keyB                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(54, 0x02E, 8, DOM_VK_C, KEY_C)] = RGFW_keyC                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(40, 0x020, 2, DOM_VK_D, KEY_D)] = RGFW_keyD                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(26, 0x012, 14, DOM_VK_E, KEY_E)] = RGFW_keyE                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(41, 0x021, 3, DOM_VK_F, KEY_F)] = RGFW_keyF                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(42, 0x022, 5, DOM_VK_G, KEY_G)] = RGFW_keyG                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(43, 0x023, 4, DOM_VK_H, KEY_H)] = RGFW_keyH                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(31, 0x017, 34, DOM_VK_I, KEY_I)] = RGFW_keyI                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(44, 0x024, 38, DOM_VK_J, KEY_J)] = RGFW_keyJ                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(45, 0x025, 40, DOM_VK_K, KEY_K)] = RGFW_keyK                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(46, 0x026, 37, DOM_VK_L, KEY_L)] = RGFW_keyL                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(58, 0x032, 46, DOM_VK_M, KEY_M)] = RGFW_keyM                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(57, 0x031, 45, DOM_VK_N, KEY_N)] = RGFW_keyN                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(32, 0x018, 31, DOM_VK_O, KEY_O)] = RGFW_keyO                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(33, 0x019, 35, DOM_VK_P, KEY_P)] = RGFW_keyP                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(24, 0x010, 12, DOM_VK_Q, KEY_Q)] = RGFW_keyQ                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(27, 0x013, 15, DOM_VK_R, KEY_R)] = RGFW_keyR                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(39, 0x01F, 1, DOM_VK_S, KEY_S)] = RGFW_keyS                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(28, 0x014, 17, DOM_VK_T, KEY_T)] = RGFW_keyT                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(30, 0x016, 32, DOM_VK_U, KEY_U)] = RGFW_keyU                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(55, 0x02F, 9, DOM_VK_V, KEY_V)] = RGFW_keyV                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(25, 0x011, 13, DOM_VK_W, KEY_W)] = RGFW_keyW                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(53, 0x02D, 7, DOM_VK_X, KEY_X)] = RGFW_keyX                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(29, 0x015, 16, DOM_VK_Y, KEY_Y)] = RGFW_keyY                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(52, 0x02C, 6, DOM_VK_Z, KEY_Z)] = RGFW_keyZ,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(38, 0x01E, 0, DOM_VK_A, KEY_A)] = RGFW_a                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(56, 0x030, 11, DOM_VK_B, KEY_B)] = RGFW_b                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(54, 0x02E, 8, DOM_VK_C, KEY_C)] = RGFW_c                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(40, 0x020, 2, DOM_VK_D, KEY_D)] = RGFW_d                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(26, 0x012, 14, DOM_VK_E, KEY_E)] = RGFW_e                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(41, 0x021, 3, DOM_VK_F, KEY_F)] = RGFW_f                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(42, 0x022, 5, DOM_VK_G, KEY_G)] = RGFW_g                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(43, 0x023, 4, DOM_VK_H, KEY_H)] = RGFW_h                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(31, 0x017, 34, DOM_VK_I, KEY_I)] = RGFW_i                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(44, 0x024, 38, DOM_VK_J, KEY_J)] = RGFW_j                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(45, 0x025, 40, DOM_VK_K, KEY_K)] = RGFW_k                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(46, 0x026, 37, DOM_VK_L, KEY_L)] = RGFW_l                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(58, 0x032, 46, DOM_VK_M, KEY_M)] = RGFW_m                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(57, 0x031, 45, DOM_VK_N, KEY_N)] = RGFW_n                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(32, 0x018, 31, DOM_VK_O, KEY_O)] = RGFW_o                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(33, 0x019, 35, DOM_VK_P, KEY_P)] = RGFW_p                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(24, 0x010, 12, DOM_VK_Q, KEY_Q)] = RGFW_q                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(27, 0x013, 15, DOM_VK_R, KEY_R)] = RGFW_r                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(39, 0x01F, 1, DOM_VK_S, KEY_S)] = RGFW_s                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(28, 0x014, 17, DOM_VK_T, KEY_T)] = RGFW_t                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(30, 0x016, 32, DOM_VK_U, KEY_U)] = RGFW_u                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(55, 0x02F, 9, DOM_VK_V, KEY_V)] = RGFW_v                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(25, 0x011, 13, DOM_VK_W, KEY_W)] = RGFW_w                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(53, 0x02D, 7, DOM_VK_X, KEY_X)] = RGFW_x                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(29, 0x015, 16, DOM_VK_Y, KEY_Y)] = RGFW_y                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(52, 0x02C, 6, DOM_VK_Z, KEY_Z)] = RGFW_z,
 
-	RGFW_MAP [RGFW_OS_BASED_VALUE(60, 0x034, 47, DOM_VK_PERIOD, KEY_DOT)] = RGFW_keyPeriod             			RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(59, 0x033, 43, DOM_VK_COMMA, KEY_COMMA)] = RGFW_keyComma               			RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(61, 0x035, 44, DOM_VK_SLASH, KEY_SLASH)] = RGFW_keySlash               			RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(34, 0x01A, 33, DOM_VK_OPEN_BRACKET, KEY_LEFTBRACE)] = RGFW_keyBracket      			RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(35, 0x01B, 30, DOM_VK_CLOSE_BRACKET, KEY_RIGHTBRACE)] = RGFW_keyCloseBracket             RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(47, 0x027, 41, DOM_VK_SEMICOLON, KEY_SEMICOLON)] = RGFW_keySemicolon                 RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(48, 0x028, 39, DOM_VK_QUOTE, KEY_APOSTROPHE)] = RGFW_keyApostrophe                 			RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(51, 0x02B, 42, DOM_VK_BACK_SLASH, KEY_BACKSLASH)] = RGFW_keyBackSlash,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(60, 0x034, 47, DOM_VK_PERIOD, KEY_DOT)] = RGFW_period             			RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(59, 0x033, 43, DOM_VK_COMMA, KEY_COMMA)] = RGFW_comma               			RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(61, 0x035, 44, DOM_VK_SLASH, KEY_SLASH)] = RGFW_slash               			RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(34, 0x01A, 33, DOM_VK_OPEN_BRACKET, KEY_LEFTBRACE)] = RGFW_bracket      			RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(35, 0x01B, 30, DOM_VK_CLOSE_BRACKET, KEY_RIGHTBRACE)] = RGFW_closeBracket             RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(47, 0x027, 41, DOM_VK_SEMICOLON, KEY_SEMICOLON)] = RGFW_semicolon                 RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(48, 0x028, 39, DOM_VK_QUOTE, KEY_APOSTROPHE)] = RGFW_apostrophe                 			RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(51, 0x02B, 42, DOM_VK_BACK_SLASH, KEY_BACKSLASH)] = RGFW_backSlash,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(36, 0x01C, 36, DOM_VK_RETURN, KEY_ENTER)] = RGFW_return              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(119, 0x153, 118, DOM_VK_DELETE, KEY_DELETE)] = RGFW_delete                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(77, 0x145, 72, DOM_VK_NUM_LOCK, KEY_NUMLOCK)] = RGFW_numLock               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(106, 0x135, 82, DOM_VK_DIVIDE, KEY_KPSLASH)] = RGFW_KP_Slash               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(63, 0x037, 76, DOM_VK_MULTIPLY, KEY_KPASTERISK)] = RGFW_multiply              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(82, 0x04A, 67, DOM_VK_SUBTRACT, KEY_KPMINUS)] = RGFW_KP_Minus              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(87, 0x04F, 84, DOM_VK_NUMPAD1, KEY_KP1)] = RGFW_KP_1               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(88, 0x050, 85, DOM_VK_NUMPAD2, KEY_KP2)] = RGFW_KP_2               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(89, 0x051, 86, DOM_VK_NUMPAD3, KEY_KP3)] = RGFW_KP_3               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(83, 0x04B, 87, DOM_VK_NUMPAD4, KEY_KP4)] = RGFW_KP_4               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(84, 0x04C, 88, DOM_VK_NUMPAD5, KEY_KP5)] = RGFW_KP_5               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(85, 0x04D, 89, DOM_VK_NUMPAD6, KEY_KP6)] = RGFW_KP_6               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(79, 0x047, 90, DOM_VK_NUMPAD7, KEY_KP7)] = RGFW_KP_7               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(80, 0x048, 92, DOM_VK_NUMPAD8, KEY_KP8)] = RGFW_KP_8               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(81, 0x049, 93, DOM_VK_NUMPAD9, KEY_KP9)] = RGFW_KP_9               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(90, 0x052, 83, DOM_VK_NUMPAD0, KEY_KP0)] = RGFW_KP_0               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(91, 0x053, 65, DOM_VK_DECIMAL, KEY_KPDOT)] = RGFW_KP_Period              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(104, 0x11C, 77, 0, KEY_KPENTER)] = RGFW_KP_Return,
 
-	RGFW_MAP [RGFW_OS_BASED_VALUE(36, 0x01C, 36, DOM_VK_RETURN, KEY_ENTER)] = RGFW_keyReturn              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(119, 0x153, 118, DOM_VK_DELETE, KEY_DELETE)] = RGFW_keyDelete                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(77, 0x145, 72, DOM_VK_NUM_LOCK, KEY_NUMLOCK)] = RGFW_keyNumLock               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(106, 0x135, 82, DOM_VK_DIVIDE, KEY_KPSLASH)] = RGFW_keyKeypadSlash               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(63, 0x037, 76, DOM_VK_MULTIPLY, KEY_KPASTERISK)] = RGFW_keyMultiply              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(82, 0x04A, 67, DOM_VK_SUBTRACT, KEY_KPMINUS)] = RGFW_keyKeypadMinus              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(87, 0x04F, 84, DOM_VK_NUMPAD1, KEY_KP1)] = RGFW_keyKeypad1               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(88, 0x050, 85, DOM_VK_NUMPAD2, KEY_KP2)] = RGFW_keyKeypad2               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(89, 0x051, 86, DOM_VK_NUMPAD3, KEY_KP3)] = RGFW_keyKeypad3               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(83, 0x04B, 87, DOM_VK_NUMPAD4, KEY_KP4)] = RGFW_keyKeypad4               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(84, 0x04C, 88, DOM_VK_NUMPAD5, KEY_KP5)] = RGFW_keyKeypad5               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(85, 0x04D, 89, DOM_VK_NUMPAD6, KEY_KP6)] = RGFW_keyKeypad6               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(79, 0x047, 90, DOM_VK_NUMPAD7, KEY_KP7)] = RGFW_keyKeypad7               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(80, 0x048, 92, DOM_VK_NUMPAD8, KEY_KP8)] = RGFW_keyKeypad8               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(81, 0x049, 93, DOM_VK_NUMPAD9, KEY_KP9)] = RGFW_keyKeypad9               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(90, 0x052, 83, DOM_VK_NUMPAD0, KEY_KP0)] = RGFW_keyKeypad0               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(91, 0x053, 65, DOM_VK_DECIMAL, KEY_KPDOT)] = RGFW_keyKeypadPeriod              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(104, 0x11C, 77, 0, KEY_KPENTER)] = RGFW_keyKeypadReturn,
-
-	RGFW_MAP [RGFW_OS_BASED_VALUE(20, 0x00C, 27, DOM_VK_HYPHEN_MINUS, KEY_MINUS)] = RGFW_keyMinus              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(21, 0x00D, 24, DOM_VK_EQUALS, KEY_EQUAL)] = RGFW_keyEquals               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(22, 0x00E, 51, DOM_VK_BACK_SPACE, KEY_BACKSPACE)] = RGFW_keyBackSpace              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(23, 0x00F, 48, DOM_VK_TAB, KEY_TAB)] = RGFW_keyTab                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(66, 0x03A, 57, DOM_VK_CAPS_LOCK, KEY_CAPSLOCK)] = RGFW_keyCapsLock               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(50, 0x02A, 56, DOM_VK_SHIFT, KEY_LEFTSHIFT)] = RGFW_keyShiftL               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(37, 0x01D, 59, DOM_VK_CONTROL, KEY_LEFTCTRL)] = RGFW_keyControlL               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(64, 0x038, 58, DOM_VK_ALT, KEY_LEFTALT)] = RGFW_keyAltL                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(133, 0x15B, 55, DOM_VK_WIN, KEY_LEFTMETA)] = RGFW_keySuperL,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(20, 0x00C, 27, DOM_VK_HYPHEN_MINUS, KEY_MINUS)] = RGFW_minus              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(21, 0x00D, 24, DOM_VK_EQUALS, KEY_EQUAL)] = RGFW_equals               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(22, 0x00E, 51, DOM_VK_BACK_SPACE, KEY_BACKSPACE)] = RGFW_backSpace              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(23, 0x00F, 48, DOM_VK_TAB, KEY_TAB)] = RGFW_tab                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(66, 0x03A, 57, DOM_VK_CAPS_LOCK, KEY_CAPSLOCK)] = RGFW_capsLock               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(50, 0x02A, 56, DOM_VK_SHIFT, KEY_LEFTSHIFT)] = RGFW_shiftL               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(37, 0x01D, 59, DOM_VK_CONTROL, KEY_LEFTCTRL)] = RGFW_controlL               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(64, 0x038, 58, DOM_VK_ALT, KEY_LEFTALT)] = RGFW_altL                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(133, 0x15B, 55, DOM_VK_WIN, KEY_LEFTMETA)] = RGFW_superL,
 
 	#if !defined(RGFW_MACOS) && !defined(RGFW_WEBASM)
-	RGFW_MAP [RGFW_OS_BASED_VALUE(105, 0x11D, 59, 0, KEY_RIGHTCTRL)] = RGFW_keyControlR               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(135, 0x15C, 55, 0, KEY_RIGHTMETA)] = RGFW_keySuperR,
-	RGFW_MAP [RGFW_OS_BASED_VALUE(62, 0x036, 56, 0, KEY_RIGHTSHIFT)] = RGFW_keyShiftR              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(108, 0x138, 58, 0, KEY_RIGHTALT)] = RGFW_keyAltR,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(105, 0x11D, 59, 0, KEY_RIGHTCTRL)] = RGFW_controlR               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(135, 0x15C, 55, 0, KEY_RIGHTMETA)] = RGFW_superR,
+	RGFW_MAP [RGFW_OS_BASED_VALUE(62, 0x036, 56, 0, KEY_RIGHTSHIFT)] = RGFW_shiftR              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(108, 0x138, 58, 0, KEY_RIGHTALT)] = RGFW_altR,
 	#endif
 
-	RGFW_MAP [RGFW_OS_BASED_VALUE(67, 0x03B, 127, DOM_VK_F1, KEY_F1)] = RGFW_keyF1                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(68, 0x03C, 121, DOM_VK_F2, KEY_F2)] = RGFW_keyF2                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(69, 0x03D, 100, DOM_VK_F3, KEY_F3)] = RGFW_keyF3                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(70, 0x03E, 119, DOM_VK_F4, KEY_F4)] = RGFW_keyF4                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(71, 0x03F, 97, DOM_VK_F5, KEY_F5)] = RGFW_keyF5              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(72, 0x040, 98, DOM_VK_F6, KEY_F6)] = RGFW_keyF6              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(73, 0x041, 99, DOM_VK_F7, KEY_F7)] = RGFW_keyF7              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(74, 0x042, 101, DOM_VK_F8, KEY_F8)] = RGFW_keyF8                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(75, 0x043, 102, DOM_VK_F9, KEY_F9)] = RGFW_keyF9                 		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(76, 0x044, 110, DOM_VK_F10, KEY_F10)] = RGFW_keyF10               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(95, 0x057, 104, DOM_VK_F11, KEY_F11)] = RGFW_keyF11               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(96, 0x058, 112, DOM_VK_F12, KEY_F12)] = RGFW_keyF12               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(111, 0x148, 126, DOM_VK_UP, KEY_UP)] = RGFW_keyUp                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(116, 0x150, 125, DOM_VK_DOWN, KEY_DOWN)] = RGFW_keyDown                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(113, 0x14B, 123, DOM_VK_LEFT, KEY_LEFT)] = RGFW_keyLeft                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(114, 0x14D, 124, DOM_VK_RIGHT, KEY_RIGHT)] = RGFW_keyRight              RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(118, 0x152, 115, DOM_VK_INSERT, KEY_INSERT)] = RGFW_keyInsert                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(115, 0x14F, 120, DOM_VK_END, KEY_END)] = RGFW_keyEnd                  		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(112, 0x149, 117, DOM_VK_PAGE_UP, KEY_PAGEUP)] = RGFW_keyPageUp                		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(117, 0x151, 122, DOM_VK_PAGE_DOWN, KEY_PAGEDOWN)] = RGFW_keyPageDown            RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(9, 0x001, 53, DOM_VK_ESCAPE, KEY_ESC)] = RGFW_keyEscape                   		RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(110, 0x147, 116, DOM_VK_HOME, KEY_HOME)] = RGFW_keyHome                    		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(67, 0x03B, 127, DOM_VK_F1, KEY_F1)] = RGFW_F1                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(68, 0x03C, 121, DOM_VK_F2, KEY_F2)] = RGFW_F2                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(69, 0x03D, 100, DOM_VK_F3, KEY_F3)] = RGFW_F3                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(70, 0x03E, 119, DOM_VK_F4, KEY_F4)] = RGFW_F4                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(71, 0x03F, 97, DOM_VK_F5, KEY_F5)] = RGFW_F5              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(72, 0x040, 98, DOM_VK_F6, KEY_F6)] = RGFW_F6              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(73, 0x041, 99, DOM_VK_F7, KEY_F7)] = RGFW_F7              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(74, 0x042, 101, DOM_VK_F8, KEY_F8)] = RGFW_F8                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(75, 0x043, 102, DOM_VK_F9, KEY_F9)] = RGFW_F9                 		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(76, 0x044, 110, DOM_VK_F10, KEY_F10)] = RGFW_F10               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(95, 0x057, 104, DOM_VK_F11, KEY_F11)] = RGFW_F11               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(96, 0x058, 112, DOM_VK_F12, KEY_F12)] = RGFW_F12               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(111, 0x148, 126, DOM_VK_UP, KEY_UP)] = RGFW_up                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(116, 0x150, 125, DOM_VK_DOWN, KEY_DOWN)] = RGFW_down                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(113, 0x14B, 123, DOM_VK_LEFT, KEY_LEFT)] = RGFW_left                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(114, 0x14D, 124, DOM_VK_RIGHT, KEY_RIGHT)] = RGFW_right              RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(118, 0x152, 115, DOM_VK_INSERT, KEY_INSERT)] = RGFW_insert                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(115, 0x14F, 120, DOM_VK_END, KEY_END)] = RGFW_end                  		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(112, 0x149, 117, DOM_VK_PAGE_UP, KEY_PAGEUP)] = RGFW_pageUp                		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(117, 0x151, 122, DOM_VK_PAGE_DOWN, KEY_PAGEDOWN)] = RGFW_pageDown            RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(9, 0x001, 53, DOM_VK_ESCAPE, KEY_ESC)] = RGFW_escape                   		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(110, 0x147, 116, DOM_VK_HOME, KEY_HOME)] = RGFW_home                    		RGFW_NEXT
 #ifndef __cplusplus
 };
 #else
@@ -1572,9 +1569,9 @@ void RGFW_gamepadAxisfuncEMPTY(RGFW_window* win, u16 gamepad, RGFW_point axis[2]
 void RGFW_gamepadfuncEMPTY(RGFW_window* win, u16 gamepad, b8 connected) {RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(connected);}
 
 #ifdef RGFW_ALLOC_DROPFILES
-void RGFW_dndfuncEMPTY(RGFW_window* win, const char** droppedFiles, u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
+void RGFW_dndfuncEMPTY(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
 #else
-void RGFW_dndfuncEMPTY(RGFW_window* win, const char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
+void RGFW_dndfuncEMPTY(RGFW_window* win, char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
 #endif
 
 RGFW_windowmovefunc RGFW_windowMoveCallback = RGFW_windowmovefuncEMPTY;
@@ -1778,9 +1775,9 @@ RGFWDEF void RGFW_window_cocoaSetLayer(RGFW_window* win, void* layer);
 RGFWDEF void* RGFW_cocoaGetLayer(void);
 #endif
 
-char* RGFW_className = NULL;
+const char* RGFW_className = NULL;
 void RGFW_setClassName(const char* name) {
-	RGFW_className = (char*)name;
+	RGFW_className = name;
 }
 
 RGFW_keyState RGFW_mouseButtons[5] = { {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0} };
@@ -1867,7 +1864,7 @@ void RGFW_window_maximize(RGFW_window* win) {
 
 b8 RGFW_window_shouldClose(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-	return (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_keyEscape));
+	return (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape));
 }
 
 void RGFW_window_setShouldClose(RGFW_window* win) { win->event.type = RGFW_quit; RGFW_windowQuitCallback(win); }
@@ -1991,10 +1988,10 @@ void RGFW_updateKeyModsPro(RGFW_window* win, b8 capital, b8 numlock, b8 control,
 RGFWDEF void RGFW_updateKeyMods(RGFW_window* win, b8 capital, b8 numlock);
 void RGFW_updateKeyMods(RGFW_window* win, b8 capital, b8 numlock) {
 	RGFW_updateKeyModsPro(win, capital, numlock,
-					RGFW_isPressed(win, RGFW_keyControlL) || RGFW_isPressed(win, RGFW_keyControlR),
-					RGFW_isPressed(win, RGFW_keyAltL) || RGFW_isPressed(win, RGFW_keyAltR),
-					RGFW_isPressed(win, RGFW_keyShiftL) || RGFW_isPressed(win, RGFW_keyShiftR),
-					RGFW_isPressed(win, RGFW_keySuperL) || RGFW_isPressed(win, RGFW_keySuperR));
+					RGFW_isPressed(win, RGFW_controlL) || RGFW_isPressed(win, RGFW_controlR),
+					RGFW_isPressed(win, RGFW_altL) || RGFW_isPressed(win, RGFW_altR),
+					RGFW_isPressed(win, RGFW_shiftL) || RGFW_isPressed(win, RGFW_shiftR),
+					RGFW_isPressed(win, RGFW_superL) || RGFW_isPressed(win, RGFW_superR));
 }
 
 #if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM) || defined(RGFW_WAYLAND)
@@ -4278,10 +4275,11 @@ void RGFW_window_close(RGFW_window* win) {
 
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 		if (win->buffer != NULL) {
-			XDestroyImage((XImage*) win->src.bitmap);
-			XFreeGC(win->src.display, win->src.gc);
 			if ((win->_flags & RGFW_BUFFER_ALLOC))
 				win->_mem.free(win->_mem.userdata, win->buffer);
+			win->src.bitmap->data = NULL;
+			XDestroyImage((XImage*) win->src.bitmap);
+			XFreeGC(win->src.display, win->src.gc);
 		}
 	#endif
 
@@ -4366,6 +4364,7 @@ void RGFW_window_close(RGFW_window* win) {
 #include <fcntl.h>
 #include <poll.h>
 #include <unistd.h>
+#include <time.h>
 
 void RGFW_stopCheckEvents(void) {
 
@@ -6308,8 +6307,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 			if (msg.wParam == VK_CONTROL) {
 				if (HIWORD(msg.lParam) & KF_EXTENDED)
-					win->event.key = RGFW_keyControlR;
-				else win->event.key = RGFW_keyControlL;
+					win->event.key = RGFW_controlR;
+				else win->event.key = RGFW_controlL;
 			}
 
 			wchar_t charBuffer;
@@ -6342,8 +6341,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 			if (msg.wParam == VK_CONTROL) {
 				if (HIWORD(msg.lParam) & KF_EXTENDED)
-					win->event.key = RGFW_keyControlR;
-				else win->event.key = RGFW_keyControlL;
+					win->event.key = RGFW_controlR;
+				else win->event.key = RGFW_controlL;
 			}
 
 			wchar_t charBuffer;
@@ -8425,16 +8424,16 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 										((flags & NSEventModifierFlagShift) % 255), ((flags & NSEventModifierFlagCommand) % 255));
 			u8 i;
 			for (i = 0; i < 9; i++)
-				RGFW_keyboard[i + RGFW_keyCapsLock].prev = 0;
+				RGFW_keyboard[i + RGFW_capsLock].prev = 0;
 
 			for (i = 0; i < 5; i++) {
 				u32 shift = (1 << (i + 16));
-				u32 key = i + RGFW_keyCapsLock;
+				u32 key = i + RGFW_capsLock;
 
 				if ((flags & shift) && !RGFW_wasPressed(win, key)) {
 					RGFW_keyboard[key].current = 1;
 
-					if (key != RGFW_keyCapsLock)
+					if (key != RGFW_capsLock)
 						RGFW_keyboard[key+ 4].current = 1;
 
 					win->event.type = RGFW_keyPressed;
@@ -8445,7 +8444,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 				if (!(flags & shift) && RGFW_wasPressed(win, key)) {
 					RGFW_keyboard[key].current = 0;
 
-					if (key != RGFW_keyCapsLock)
+					if (key != RGFW_capsLock)
 						RGFW_keyboard[key + 4].current = 0;
 
 					win->event.type = RGFW_keyReleased;
@@ -9253,102 +9252,102 @@ EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamep
 
 u32 RGFW_webasmPhysicalToRGFW(u32 hash) {
 	switch(hash) {             /* 0x0000 */
-		case 0x67243A2DU /* Escape             */: return RGFW_keyEscape;               /* 0x0001 */
-		case 0x67251058U /* Digit0             */: return RGFW_key0;                    /* 0x0002 */
-		case 0x67251059U /* Digit1             */: return RGFW_key1;                    /* 0x0003 */
-		case 0x6725105AU /* Digit2             */: return RGFW_key2;                    /* 0x0004 */
-		case 0x6725105BU /* Digit3             */: return RGFW_key3;                    /* 0x0005 */
-		case 0x6725105CU /* Digit4             */: return RGFW_key4;                    /* 0x0006 */
-		case 0x6725105DU /* Digit5             */: return RGFW_key5;                    /* 0x0007 */
-		case 0x6725105EU /* Digit6             */: return RGFW_key6;                    /* 0x0008 */
-		case 0x6725105FU /* Digit7             */: return RGFW_key7;                    /* 0x0009 */
-		case 0x67251050U /* Digit8             */: return RGFW_key8;                    /* 0x000A */
-		case 0x67251051U /* Digit9             */: return RGFW_key9;                    /* 0x000B */
-		case 0x92E14DD3U /* Minus              */: return RGFW_keyMinus;                /* 0x000C */
-		case 0x92E1FBACU /* Equal              */: return RGFW_keyEquals;                /* 0x000D */
-		case 0x36BF1CB5U /* Backspace          */: return RGFW_keyBackSpace;            /* 0x000E */
-		case 0x7B8E51E2U /* Tab                */: return RGFW_keyTab;                  /* 0x000F */
-		case 0x2C595B51U /* KeyQ               */: return RGFW_keyQ;                    /* 0x0010 */
-		case 0x2C595B57U /* KeyW               */: return RGFW_keyW;                    /* 0x0011 */
-		case 0x2C595B45U /* KeyE               */: return RGFW_keyE;                    /* 0x0012 */
-		case 0x2C595B52U /* KeyR               */: return RGFW_keyR;                    /* 0x0013 */
-		case 0x2C595B54U /* KeyT               */: return RGFW_keyT;                    /* 0x0014 */
-		case 0x2C595B59U /* KeyY               */: return RGFW_keyY;                    /* 0x0015 */
-		case 0x2C595B55U /* KeyU               */: return RGFW_keyU;                    /* 0x0016 */
-		case 0x2C595B4FU /* KeyO               */: return RGFW_keyO;                    /* 0x0018 */
-		case 0x2C595B50U /* KeyP               */: return RGFW_keyP;                    /* 0x0019 */
-		case 0x45D8158CU /* BracketLeft        */: return RGFW_keyCloseBracket;         /* 0x001A */
-		case 0xDEEABF7CU /* BracketRight       */: return RGFW_keyBracket;        /* 0x001B */
-		case 0x92E1C5D2U /* Enter              */: return RGFW_keyReturn;                /* 0x001C */
-		case 0xE058958CU /* ControlLeft        */: return RGFW_keyControlL;         /* 0x001D */
-		case 0x2C595B41U /* KeyA               */: return RGFW_keyA;                    /* 0x001E */
-		case 0x2C595B53U /* KeyS               */: return RGFW_keyS;                    /* 0x001F */
-		case 0x2C595B44U /* KeyD               */: return RGFW_keyD;                    /* 0x0020 */
-		case 0x2C595B46U /* KeyF               */: return RGFW_keyF;                    /* 0x0021 */
-		case 0x2C595B47U /* KeyG               */: return RGFW_keyG;                    /* 0x0022 */
-		case 0x2C595B48U /* KeyH               */: return RGFW_keyH;                    /* 0x0023 */
-		case 0x2C595B4AU /* KeyJ               */: return RGFW_keyJ;                    /* 0x0024 */
-		case 0x2C595B4BU /* KeyK               */: return RGFW_keyK;                    /* 0x0025 */
-		case 0x2C595B4CU /* KeyL               */: return RGFW_keyL;                    /* 0x0026 */
-		case 0x2707219EU /* Semicolon          */: return RGFW_keySemicolon;            /* 0x0027 */
-		case 0x92E0B58DU /* Quote              */: return RGFW_keyApostrophe;                /* 0x0028 */
-		case 0x36BF358DU /* Backquote          */: return RGFW_keyBacktick;            /* 0x0029 */
-		case 0x26B1958CU /* ShiftLeft          */: return RGFW_keyShiftL;           /* 0x002A */
-		case 0x36BF2438U /* Backslash          */: return RGFW_keyBackSlash;            /* 0x002B */
-		case 0x2C595B5AU /* KeyZ               */: return RGFW_keyZ;                    /* 0x002C */
-		case 0x2C595B58U /* KeyX               */: return RGFW_keyX;                    /* 0x002D */
-		case 0x2C595B43U /* KeyC               */: return RGFW_keyC;                    /* 0x002E */
-		case 0x2C595B56U /* KeyV               */: return RGFW_keyV;                    /* 0x002F */
-		case 0x2C595B42U /* KeyB               */: return RGFW_keyB;                    /* 0x0030 */
-		case 0x2C595B4EU /* KeyN               */: return RGFW_keyN;                    /* 0x0031 */
-		case 0x2C595B4DU /* KeyM               */: return RGFW_keyM;                    /* 0x0032 */
-		case 0x92E1A1C1U /* Comma              */: return RGFW_keyComma;                /* 0x0033 */
-		case 0x672FFAD4U /* Period             */: return RGFW_keyPeriod;               /* 0x0034 */
-		case 0x92E0A438U /* Slash              */: return RGFW_keySlash;                /* 0x0035 */
-		case 0xC5A6BF7CU /* ShiftRight         */: return RGFW_keyShiftR;
-		case 0x5D64DA91U /* NumpadMultiply     */: return RGFW_keyMultiply;
-		case 0xC914958CU /* AltLeft            */: return RGFW_keyAltL;             /* 0x0038 */
-		case 0x92E09CB5U /* Space              */: return RGFW_keySpace;                /* 0x0039 */
-		case 0xB8FAE73BU /* CapsLock           */: return RGFW_keyCapsLock;            /* 0x003A */
-		case 0x7174B789U /* F1                 */: return RGFW_keyF1;                   /* 0x003B */
-		case 0x7174B78AU /* F2                 */: return RGFW_keyF2;                   /* 0x003C */
-		case 0x7174B78BU /* F3                 */: return RGFW_keyF3;                   /* 0x003D */
-		case 0x7174B78CU /* F4                 */: return RGFW_keyF4;                   /* 0x003E */
-		case 0x7174B78DU /* F5                 */: return RGFW_keyF5;                   /* 0x003F */
-		case 0x7174B78EU /* F6                 */: return RGFW_keyF6;                   /* 0x0040 */
-		case 0x7174B78FU /* F7                 */: return RGFW_keyF7;                   /* 0x0041 */
-		case 0x7174B780U /* F8                 */: return RGFW_keyF8;                   /* 0x0042 */
-		case 0x7174B781U /* F9                 */: return RGFW_keyF9;                   /* 0x0043 */
-		case 0x7B8E57B0U /* F10                */: return RGFW_keyF10;                  /* 0x0044 */
-		case 0xC925FCDFU /* Numpad7            */: return RGFW_keyMultiply;             /* 0x0047 */
-		case 0xC925FCD0U /* Numpad8            */: return RGFW_keyKeypad8;             /* 0x0048 */
-		case 0xC925FCD1U /* Numpad9            */: return RGFW_keyKeypad9;             /* 0x0049 */
-		case 0x5EA3E8A4U /* NumpadSubtract     */: return RGFW_keyMinus;      /* 0x004A */
-		case 0xC925FCDCU /* Numpad4            */: return RGFW_keyKeypad4;             /* 0x004B */
-		case 0xC925FCDDU /* Numpad5            */: return RGFW_keyKeypad5;             /* 0x004C */
-		case 0xC925FCDEU /* Numpad6            */: return RGFW_keyKeypad6;             /* 0x004D */
-		case 0xC925FCD9U /* Numpad1            */: return RGFW_keyKeypad1;             /* 0x004F */
-		case 0xC925FCDAU /* Numpad2            */: return RGFW_keyKeypad2;             /* 0x0050 */
-		case 0xC925FCDBU /* Numpad3            */: return RGFW_keyKeypad3;             /* 0x0051 */
-		case 0xC925FCD8U /* Numpad0            */: return RGFW_keyKeypad0;             /* 0x0052 */
-		case 0x95852DACU /* NumpadDecimal      */: return RGFW_keyKeypadPeriod;       /* 0x0053 */
-		case 0x7B8E57B1U /* F11                */: return RGFW_keyF11;                  /* 0x0057 */
-		case 0x7B8E57B2U /* F12                */: return RGFW_keyF12;                  /* 0x0058 */
-		case 0x7393FBACU /* NumpadEqual        */: return RGFW_keyKeypadReturn;
-		case 0xB88EBF7CU /* AltRight           */: return RGFW_keyAltR;            /* 0xE038 */
-		case 0xC925873BU /* NumLock            */: return RGFW_keyNumLock;             /* 0xE045 */
-		case 0x2C595F45U /* Home               */: return RGFW_keyHome;                 /* 0xE047 */
-		case 0xC91BB690U /* ArrowUp            */: return RGFW_keyUp;             /* 0xE048 */
-		case 0x672F9210U /* PageUp             */: return RGFW_keyPageUp;              /* 0xE049 */
-		case 0x3799258CU /* ArrowLeft          */: return RGFW_keyLeft;           /* 0xE04B */
-		case 0x4CE33F7CU /* ArrowRight         */: return RGFW_keyRight;          /* 0xE04D */
-		case 0x7B8E55DCU /* End                */: return RGFW_keyEnd;                  /* 0xE04F */
-		case 0x3799379EU /* ArrowDown          */: return RGFW_keyDown;           /* 0xE050 */
-		case 0xBA90179EU /* PageDown           */: return RGFW_keyPageDown;            /* 0xE051 */
-		case 0x6723CB2CU /* Insert             */: return RGFW_keyInsert;               /* 0xE052 */
-		case 0x6725C50DU /* Delete             */: return RGFW_keyDelete;               /* 0xE053 */
-		case 0x6723658CU /* OSLeft             */: return RGFW_keySuperL;              /* 0xE05B */
-		case 0x39643F7CU /* MetaRight          */: return RGFW_keySuperR;           /* 0xE05C */
+		case 0x67243A2DU /* Escape             */: return RGFW_escape;               /* 0x0001 */
+		case 0x67251058U /* Digit0             */: return RGFW_0;                    /* 0x0002 */
+		case 0x67251059U /* Digit1             */: return RGFW_1;                    /* 0x0003 */
+		case 0x6725105AU /* Digit2             */: return RGFW_2;                    /* 0x0004 */
+		case 0x6725105BU /* Digit3             */: return RGFW_3;                    /* 0x0005 */
+		case 0x6725105CU /* Digit4             */: return RGFW_4;                    /* 0x0006 */
+		case 0x6725105DU /* Digit5             */: return RGFW_5;                    /* 0x0007 */
+		case 0x6725105EU /* Digit6             */: return RGFW_6;                    /* 0x0008 */
+		case 0x6725105FU /* Digit7             */: return RGFW_7;                    /* 0x0009 */
+		case 0x67251050U /* Digit8             */: return RGFW_8;                    /* 0x000A */
+		case 0x67251051U /* Digit9             */: return RGFW_9;                    /* 0x000B */
+		case 0x92E14DD3U /* Minus              */: return RGFW_minus;                /* 0x000C */
+		case 0x92E1FBACU /* Equal              */: return RGFW_equals;                /* 0x000D */
+		case 0x36BF1CB5U /* Backspace          */: return RGFW_backSpace;            /* 0x000E */
+		case 0x7B8E51E2U /* Tab                */: return RGFW_tab;                  /* 0x000F */
+		case 0x2C595B51U /* KeyQ               */: return RGFW_q;                    /* 0x0010 */
+		case 0x2C595B57U /* KeyW               */: return RGFW_w;                    /* 0x0011 */
+		case 0x2C595B45U /* KeyE               */: return RGFW_e;                    /* 0x0012 */
+		case 0x2C595B52U /* KeyR               */: return RGFW_r;                    /* 0x0013 */
+		case 0x2C595B54U /* KeyT               */: return RGFW_t;                    /* 0x0014 */
+		case 0x2C595B59U /* KeyY               */: return RGFW_y;                    /* 0x0015 */
+		case 0x2C595B55U /* KeyU               */: return RGFW_u;                    /* 0x0016 */
+		case 0x2C595B4FU /* KeyO               */: return RGFW_o;                    /* 0x0018 */
+		case 0x2C595B50U /* KeyP               */: return RGFW_p;                    /* 0x0019 */
+		case 0x45D8158CU /* BracketLeft        */: return RGFW_closeBracket;         /* 0x001A */
+		case 0xDEEABF7CU /* BracketRight       */: return RGFW_bracket;        /* 0x001B */
+		case 0x92E1C5D2U /* Enter              */: return RGFW_return;                /* 0x001C */
+		case 0xE058958CU /* ControlLeft        */: return RGFW_controlL;         /* 0x001D */
+		case 0x2C595B41U /* KeyA               */: return RGFW_a;                    /* 0x001E */
+		case 0x2C595B53U /* KeyS               */: return RGFW_s;                    /* 0x001F */
+		case 0x2C595B44U /* KeyD               */: return RGFW_d;                    /* 0x0020 */
+		case 0x2C595B46U /* KeyF               */: return RGFW_f;                    /* 0x0021 */
+		case 0x2C595B47U /* KeyG               */: return RGFW_g;                    /* 0x0022 */
+		case 0x2C595B48U /* KeyH               */: return RGFW_h;                    /* 0x0023 */
+		case 0x2C595B4AU /* KeyJ               */: return RGFW_j;                    /* 0x0024 */
+		case 0x2C595B4BU /* KeyK               */: return RGFW_k;                    /* 0x0025 */
+		case 0x2C595B4CU /* KeyL               */: return RGFW_l;                    /* 0x0026 */
+		case 0x2707219EU /* Semicolon          */: return RGFW_semicolon;            /* 0x0027 */
+		case 0x92E0B58DU /* Quote              */: return RGFW_apostrophe;                /* 0x0028 */
+		case 0x36BF358DU /* Backquote          */: return RGFW_backtick;            /* 0x0029 */
+		case 0x26B1958CU /* ShiftLeft          */: return RGFW_shiftL;           /* 0x002A */
+		case 0x36BF2438U /* Backslash          */: return RGFW_backSlash;            /* 0x002B */
+		case 0x2C595B5AU /* KeyZ               */: return RGFW_z;                    /* 0x002C */
+		case 0x2C595B58U /* KeyX               */: return RGFW_x;                    /* 0x002D */
+		case 0x2C595B43U /* KeyC               */: return RGFW_c;                    /* 0x002E */
+		case 0x2C595B56U /* KeyV               */: return RGFW_v;                    /* 0x002F */
+		case 0x2C595B42U /* KeyB               */: return RGFW_b;                    /* 0x0030 */
+		case 0x2C595B4EU /* KeyN               */: return RGFW_n;                    /* 0x0031 */
+		case 0x2C595B4DU /* KeyM               */: return RGFW_m;                    /* 0x0032 */
+		case 0x92E1A1C1U /* Comma              */: return RGFW_comma;                /* 0x0033 */
+		case 0x672FFAD4U /* Period             */: return RGFW_period;               /* 0x0034 */
+		case 0x92E0A438U /* Slash              */: return RGFW_slash;                /* 0x0035 */
+		case 0xC5A6BF7CU /* ShiftRight         */: return RGFW_shiftR;
+		case 0x5D64DA91U /* NumpadMultiply     */: return RGFW_multiply;
+		case 0xC914958CU /* AltLeft            */: return RGFW_altL;             /* 0x0038 */
+		case 0x92E09CB5U /* Space              */: return RGFW_space;                /* 0x0039 */
+		case 0xB8FAE73BU /* CapsLock           */: return RGFW_capsLock;            /* 0x003A */
+		case 0x7174B789U /* F1                 */: return RGFW_F1;                   /* 0x003B */
+		case 0x7174B78AU /* F2                 */: return RGFW_F2;                   /* 0x003C */
+		case 0x7174B78BU /* F3                 */: return RGFW_F3;                   /* 0x003D */
+		case 0x7174B78CU /* F4                 */: return RGFW_F4;                   /* 0x003E */
+		case 0x7174B78DU /* F5                 */: return RGFW_F5;                   /* 0x003F */
+		case 0x7174B78EU /* F6                 */: return RGFW_F6;                   /* 0x0040 */
+		case 0x7174B78FU /* F7                 */: return RGFW_F7;                   /* 0x0041 */
+		case 0x7174B780U /* F8                 */: return RGFW_F8;                   /* 0x0042 */
+		case 0x7174B781U /* F9                 */: return RGFW_F9;                   /* 0x0043 */
+		case 0x7B8E57B0U /* F10                */: return RGFW_F10;                  /* 0x0044 */
+		case 0xC925FCDFU /* Numpad7            */: return RGFW_multiply;             /* 0x0047 */
+		case 0xC925FCD0U /* Numpad8            */: return RGFW_KP_8;             /* 0x0048 */
+		case 0xC925FCD1U /* Numpad9            */: return RGFW_KP_9;             /* 0x0049 */
+		case 0x5EA3E8A4U /* NumpadSubtract     */: return RGFW_minus;      /* 0x004A */
+		case 0xC925FCDCU /* Numpad4            */: return RGFW_KP_4;             /* 0x004B */
+		case 0xC925FCDDU /* Numpad5            */: return RGFW_KP_5;             /* 0x004C */
+		case 0xC925FCDEU /* Numpad6            */: return RGFW_KP_6;             /* 0x004D */
+		case 0xC925FCD9U /* Numpad1            */: return RGFW_KP_1;             /* 0x004F */
+		case 0xC925FCDAU /* Numpad2            */: return RGFW_KP_2;             /* 0x0050 */
+		case 0xC925FCDBU /* Numpad3            */: return RGFW_KP_3;             /* 0x0051 */
+		case 0xC925FCD8U /* Numpad0            */: return RGFW_KP_0;             /* 0x0052 */
+		case 0x95852DACU /* NumpadDecimal      */: return RGFW_period;       /* 0x0053 */
+		case 0x7B8E57B1U /* F11                */: return RGFW_F11;                  /* 0x0057 */
+		case 0x7B8E57B2U /* F12                */: return RGFW_F12;                  /* 0x0058 */
+		case 0x7393FBACU /* NumpadEqual        */: return RGFW_KP_Return;
+		case 0xB88EBF7CU /* AltRight           */: return RGFW_altR;            /* 0xE038 */
+		case 0xC925873BU /* NumLock            */: return RGFW_numLock;             /* 0xE045 */
+		case 0x2C595F45U /* Home               */: return RGFW_home;                 /* 0xE047 */
+		case 0xC91BB690U /* ArrowUp            */: return RGFW_up;             /* 0xE048 */
+		case 0x672F9210U /* PageUp             */: return RGFW_pageUp;              /* 0xE049 */
+		case 0x3799258CU /* ArrowLeft          */: return RGFW_left;           /* 0xE04B */
+		case 0x4CE33F7CU /* ArrowRight         */: return RGFW_right;          /* 0xE04D */
+		case 0x7B8E55DCU /* End                */: return RGFW_end;                  /* 0xE04F */
+		case 0x3799379EU /* ArrowDown          */: return RGFW_down;           /* 0xE050 */
+		case 0xBA90179EU /* PageDown           */: return RGFW_pageDown;            /* 0xE051 */
+		case 0x6723CB2CU /* Insert             */: return RGFW_insert;               /* 0xE052 */
+		case 0x6725C50DU /* Delete             */: return RGFW_delete;               /* 0xE053 */
+		case 0x6723658CU /* OSLeft             */: return RGFW_superL;              /* 0xE05B */
+		case 0x39643F7CU /* MetaRight          */: return RGFW_superR;           /* 0xE05C */
 	}
 
 	return 0;
@@ -9366,7 +9365,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, b8 press) {
 
 	if (*((u16*)key) != mappedKey) {
 		mappedKey = 0;
-		if (*((u32*)key) == *((u32*)"Tab")) mappedKey = RGFW_keyTab;
+		if (*((u32*)key) == *((u32*)"Tab")) mappedKey = RGFW_tab;
 	}
 
 	RGFW_events[RGFW_eventLen].type = press ? RGFW_keyPressed : RGFW_keyReleased;
