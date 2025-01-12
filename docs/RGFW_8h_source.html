@@ -2766,7 +2766,7 @@ $(function() {
 <div class="line"><a id="l02922" name="l02922"></a><span class="lineno"> 2922</span>    }</div>
 <div class="line"><a id="l02923" name="l02923"></a><span class="lineno"> 2923</span> </div>
 <div class="line"><a id="l02924" name="l02924"></a><span class="lineno"> 2924</span>    <span class="keywordflow">if</span> (flags &amp; RGFW_windowNoResize) { <span class="comment">/* make it so the user can&#39;t resize the window*/</span></div>
-<div class="line"><a id="l02925" name="l02925"></a><span class="lineno"> 2925</span>        XSizeHints sh = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};</div>
+<div class="line"><a id="l02925" name="l02925"></a><span class="lineno"> 2925</span>        XSizeHints sh;</div>
 <div class="line"><a id="l02926" name="l02926"></a><span class="lineno"> 2926</span>        sh.flags = (1L &lt;&lt; 4) | (1L &lt;&lt; 5);</div>
 <div class="line"><a id="l02927" name="l02927"></a><span class="lineno"> 2927</span>        sh.min_width = sh.max_width = win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a638e63f187096f668c11438ae44d8700">r</a>.<a class="code hl_variable" href="structRGFW__rect.html#ae9b18887b7389dc05283e4e54881b801">w</a>;</div>
 <div class="line"><a id="l02928" name="l02928"></a><span class="lineno"> 2928</span>        sh.min_height = sh.max_height = win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a638e63f187096f668c11438ae44d8700">r</a>.<a class="code hl_variable" href="structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d">h</a>;</div>
@@ -3372,7 +3372,7 @@ $(function() {
 <div class="line"><a id="l03531" name="l03531"></a><span class="lineno"> 3531</span>    <span class="keywordflow">if</span> (!(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a3619dc281010b57f0810987a3be8012e">_flags</a> &amp; RGFW_windowNoResize))</div>
 <div class="line"><a id="l03532" name="l03532"></a><span class="lineno"> 3532</span>        <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l03533" name="l03533"></a><span class="lineno"> 3533</span> </div>
-<div class="line"><a id="l03534" name="l03534"></a><span class="lineno"> 3534</span>    XSizeHints sh = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};</div>
+<div class="line"><a id="l03534" name="l03534"></a><span class="lineno"> 3534</span>    XSizeHints sh;</div>
 <div class="line"><a id="l03535" name="l03535"></a><span class="lineno"> 3535</span>    sh.flags = (1L &lt;&lt; 4) | (1L &lt;&lt; 5);</div>
 <div class="line"><a id="l03536" name="l03536"></a><span class="lineno"> 3536</span>    sh.min_width = sh.max_width = a.<a class="code hl_variable" href="structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a">w</a>;</div>
 <div class="line"><a id="l03537" name="l03537"></a><span class="lineno"> 3537</span>    sh.min_height = sh.max_height = a.<a class="code hl_variable" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">h</a>;</div>
