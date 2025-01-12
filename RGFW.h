@@ -93,7 +93,7 @@ int main() {
 
 		RGFW_window_swapBuffers(win);
 
-		glClearColor(0xFF, 0XFF, 0xFF, 0xFF);
+		glClearColor(1, 1, 1, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
@@ -347,6 +347,7 @@ int main() {
 	#endif
 
 #elif defined(RGFW_WAYLAND)
+	#define RGFW_DEBUG // always in debug mode
     #if !defined(RGFW_NO_API) && (!defined(RGFW_BUFFER) || defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA)
 		#define RGFW_EGL
 		#define RGFW_OPENGL
@@ -665,9 +666,15 @@ typedef struct RGFW_window_src {
 	struct wl_buffer* wl_buffer;
 	struct wl_keyboard* keyboard;
 
+	struct wl_compositor* compositor;
 	struct xdg_surface* xdg_surface;
 	struct xdg_toplevel* xdg_toplevel;
 	struct zxdg_toplevel_decoration_v1* decoration;
+	struct xdg_wm_base* xdg_wm_base;
+	struct wl_shm* shm;
+	struct wl_seat *seat;
+	u8* buffer;
+
 	RGFW_event events[20];
 		i32 eventLen;
 		size_t eventIndex;
@@ -3134,9 +3141,9 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	win->event.type = 0;
 
 	/* xdnd data */
-	Window source;
-	long version;
-	i32 format;
+	Window source = 0;
+	long version = 0;
+	i32 format = 0;
 	
 	XEvent reply = { ClientMessage };
 
@@ -4518,11 +4525,6 @@ RGFW_event RGFW_eventPipe_pop(RGFW_window* win) {
 #include "xdg-shell.h"
 #include "xdg-decoration-unstable-v1.h"
 
-struct xdg_wm_base *xdg_wm_base;
-struct wl_compositor* RGFW_compositor = NULL;
-struct wl_shm* shm = NULL;
-struct wl_shell* RGFW_shell = NULL;
-static struct wl_seat *seat = NULL;
 static struct xkb_context *xkb_context;
 static struct xkb_keymap *keymap = NULL;
 static struct xkb_state *xkb_state = NULL;
@@ -4769,23 +4771,23 @@ static void wl_global_registry_handler(void *data,
 		struct wl_registry *registry, uint32_t id, const char *interface,
 		uint32_t version)
 {
-	RGFW_UNUSED(data); RGFW_UNUSED(version);
-
+	RGFW_window* win = (RGFW_window*)data;
+	RGFW_UNUSED(version);
     if (RGFW_STRNCMP(interface, "wl_compositor", 16) == 0) {
-		RGFW_compositor = wl_registry_bind(registry,
+		win->src.compositor = wl_registry_bind(registry,
 			id, &wl_compositor_interface, 4);
 	} else if (RGFW_STRNCMP(interface, "xdg_wm_base", 12) == 0) {
-	xdg_wm_base = wl_registry_bind(registry,
+		win->src.xdg_wm_base = wl_registry_bind(registry,
 		id, &xdg_wm_base_interface, 1);
 	} else if (RGFW_STRNCMP(interface, zxdg_decoration_manager_v1_interface.name, 255) == 0) {
 		decoration_manager = wl_registry_bind(registry, id, &zxdg_decoration_manager_v1_interface, 1);
     } else if (RGFW_STRNCMP(interface, "wl_shm", 7) == 0) {
-        shm = wl_registry_bind(registry,
+        win->src.shm = wl_registry_bind(registry,
             id, &wl_shm_interface, 1);
-        wl_shm_add_listener(shm, &shm_listener, NULL);
+        wl_shm_add_listener(win->src.shm, &shm_listener, NULL);
 	} else if (RGFW_STRNCMP(interface,"wl_seat", 8) == 0) {
-		seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
-		wl_seat_add_listener(seat, &seat_listener, NULL);
+		win->src.seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
+		wl_seat_add_listener(win->src.seat, &seat_listener, NULL);
 	}
 
 	else {
@@ -4795,9 +4797,9 @@ static void wl_global_registry_handler(void *data,
 		#endif
 	}
 
-		#ifdef RGFW_DEBUG
-		printf("registered %s\n", interface);
-		#endif
+	#ifdef RGFW_DEBUG
+	printf("registered %s\n", interface);
+	#endif
 }
 
 static void wl_global_registry_remove(void *data, struct wl_registry *registry, uint32_t name) { RGFW_UNUSED(data); RGFW_UNUSED(registry); RGFW_UNUSED(name); }
@@ -4887,21 +4889,7 @@ static void wl_surface_frame_done(void *data, struct wl_callback *cb, uint32_t t
 		RGFW_window* win = (RGFW_window*)data;
 		if ((win->_flags & RGFW_NO_CPU_RENDER))
 			return;
-
-		#ifndef RGFW_X11_DONT_CONVERT_BGR
-			u32 x, y;
-			for (y = 0; y < (u32)win->r.h; y++) {
-				for (x = 0; x < (u32)win->r.w; x++) {
-					u32 index = (y * 4 * win->r.w) + x * 4;
-
-					u8 red = win->buffer[index];
-					win->buffer[index] = win->buffer[index + 2];
-					win->buffer[index + 2] = red;
-
-				}
-			}
-		#endif
-
+		
 		wl_surface_attach(win->src.surface, win->src.wl_buffer, 0, 0);
 		wl_surface_damage_buffer(win->src.surface, 0, 0, win->r.w, win->r.h);
 		wl_surface_commit(win->src.surface);
@@ -4947,9 +4935,13 @@ void RGFW_init_buffer(RGFW_window* win) {
 			fprintf(stderr, "Failed to create a buffer. size: %ld\n", size);
 			exit(1);
 		}
+		
+		if (RGFW_bufferSize.w == 0 && RGFW_bufferSize.h == 0)
+			RGFW_bufferSize = RGFW_getScreenSize();
 
-		win->buffer = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-		if (win->buffer == MAP_FAILED) {
+		win->buffer = (u8*)RGFW_alloc(RGFW_bufferSize.w * RGFW_bufferSize.h * 4);
+		win->src.buffer = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+		if (win->src.buffer == MAP_FAILED) {
 			fprintf(stderr, "mmap failed!\n");
 			close(fd);
 			exit(1);
@@ -4957,7 +4949,7 @@ void RGFW_init_buffer(RGFW_window* win) {
 
 		win->_flags |= RGFW_BUFFER_ALLOC;
 
-		struct wl_shm_pool* pool = wl_shm_create_pool(shm, fd, size);
+		struct wl_shm_pool* pool = wl_shm_create_pool(win->src.shm, fd, size);
 		win->src.wl_buffer = wl_shm_pool_create_buffer(pool, 0, win->r.w, win->r.h, win->r.w * 4,
 			WL_SHM_FORMAT_ARGB8888);
 		wl_shm_pool_destroy(pool);
@@ -4970,13 +4962,15 @@ void RGFW_init_buffer(RGFW_window* win) {
 		u8 color[] = {0x00, 0x00, 0x00, 0xFF};
 
 		size_t i;
-		for (i = 0; i < size; i += 4) {
+		for (i = 0; i < RGFW_bufferSize.w * RGFW_bufferSize.h * 4; i += 4) {
 			RGFW_MEMCPY(&win->buffer[i], color, 4);
 		}
+		
+		RGFW_MEMCPY(win->src.buffer, win->buffer, win->r.w * win->r.h * 4);
 
 		#if defined(RGFW_OSMESA)
-				win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
-				OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
+				win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
+				OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, RGFW_bufferSize.w, RGFW_bufferSize.h);
 		#endif
 	#else
 	RGFW_UNUSED(win);
@@ -4985,6 +4979,8 @@ void RGFW_init_buffer(RGFW_window* win) {
 
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	RGFW_window_basic_init(win, rect, flags);
+
+	win->src.compositor = NULL;
 
 	fprintf(stderr, "Warning: RGFW Wayland support is experimental\n");
 
@@ -4997,12 +4993,12 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	}
 
 	struct wl_registry *registry = wl_display_get_registry(win->src.display);
-	wl_registry_add_listener(registry, &registry_listener, NULL);
+	wl_registry_add_listener(registry, &registry_listener, win);
 
-	wl_display_dispatch(win->src.display);
 	wl_display_roundtrip(win->src.display);
+	wl_display_dispatch(win->src.display);
 
-	if (RGFW_compositor == NULL) {
+	if (win->src.compositor == NULL) {
 		#ifdef RGFW_DEBUG
 			fprintf(stderr, "Can't find compositor.\n");
 		#endif
@@ -5011,8 +5007,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	}
 
 	if (RGFW_wl_cursor_theme == NULL) {
-		RGFW_wl_cursor_theme = wl_cursor_theme_load(NULL, 24, shm);
-		RGFW_cursor_surface = wl_compositor_create_surface(RGFW_compositor);
+		RGFW_wl_cursor_theme = wl_cursor_theme_load(NULL, 24, win->src.shm);
+		RGFW_cursor_surface = wl_compositor_create_surface(win->src.compositor);
 
 		struct wl_cursor* cursor = wl_cursor_theme_get_cursor(RGFW_wl_cursor_theme, "left_ptr");
 		RGFW_cursor_image = cursor->images[0];
@@ -5022,18 +5018,17 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		wl_surface_commit(RGFW_cursor_surface);
 	}
 
-	if (RGFW_root == NULL)
-		xdg_wm_base_add_listener(xdg_wm_base, &xdg_wm_base_listener, NULL);
+	xdg_wm_base_add_listener(win->src.xdg_wm_base, &xdg_wm_base_listener, NULL);
 
 	xkb_context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
 
-	win->src.surface = wl_compositor_create_surface(RGFW_compositor);
+	win->src.surface = wl_compositor_create_surface(win->src.compositor);
 	wl_surface_set_user_data(win->src.surface, win);
 
-	win->src.xdg_surface = xdg_wm_base_get_xdg_surface(xdg_wm_base, win->src.surface);
+	win->src.xdg_surface = xdg_wm_base_get_xdg_surface(win->src.xdg_wm_base, win->src.surface);
 	xdg_surface_add_listener(win->src.xdg_surface, &xdg_surface_listener, NULL);
 
-	xdg_wm_base_set_user_data(xdg_wm_base, win);
+	xdg_wm_base_set_user_data(win->src.xdg_wm_base, win);
 
 	win->src.xdg_toplevel = xdg_surface_get_toplevel(win->src.xdg_surface);
 	xdg_toplevel_set_user_data(win->src.xdg_toplevel, win);
@@ -5061,8 +5056,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	/* wait for the surface to be configured */
 	while (wl_display_dispatch(win->src.display) != -1 && !RGFW_wl_configured) { }
-
-
+	
 	#ifdef RGFW_OPENGL
 		if ((flags & RGFW_windowNoInitAPI) == 0) {
 			win->src.window = wl_egl_window_create(win->src.surface, win->r.w, win->r.h);
@@ -5102,6 +5096,10 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		if (wl_display_roundtrip(win->src.display) == -1) {
 			return NULL;
 		}
+
+		//wl_display_dispatch(win->src.display);
+		//wl_display_flush(win->src.display);
+
 		RGFW_resetKey();
 	}
 
@@ -5135,7 +5133,7 @@ void RGFW_window_move(RGFW_window* win, RGFW_point v) {
 
 	/* TODO wayland */
 	RGFW_ASSERT(win != NULL);
-	struct wl_pointer *pointer = wl_seat_get_pointer(seat);
+	struct wl_pointer *pointer = wl_seat_get_pointer(win->src.seat);
 	if (!pointer) {
 		return;
 	}
@@ -5321,7 +5319,21 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
 	/* clear the window*/
-	#ifdef RGFW_BUFFER
+	#if defined(RGFW_BUFFER) || defined(RGFW_OSMESA)
+		#if !defined(RGFW_X11_DONT_CONVERT_BGR) && !defined(RGFW_OSMESA)
+			u32 x, y;
+			for (y = 0; y < (u32)win->r.h; y++) {
+				for (x = 0; x < (u32)win->r.w; x++) {
+					u32 index = (y * 4 * win->r.w) + x * 4;
+
+					u8 red = win->buffer[index];
+					win->buffer[index] = win->buffer[index + 2];
+					win->buffer[index + 2] = red;
+
+				}
+			}
+		#endif	
+		RGFW_MEMCPY(win->src.buffer, win->buffer, win->r.w * win->r.h * 4);
 		wl_surface_frame_done(win, NULL, 0);
 		if (!(win->_flags & RGFW_NO_GPU_RENDER))
 	#endif
@@ -5331,7 +5343,8 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	#endif
 	}
 
-	wl_display_flush(win->src.display);
+	wl_surface_commit(win->src.surface);
+	
 }
 
 void RGFW_window_close(RGFW_window* win) {
@@ -5350,7 +5363,9 @@ void RGFW_window_close(RGFW_window* win) {
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 		wl_buffer_destroy(win->src.wl_buffer);
 		if ((win->_flags & RGFW_BUFFER_ALLOC))
-			munmap(win->buffer, win->r.w * win->r.h * 4);
+			win->_mem.free(win->_mem.userdata, win->buffer);
+
+		munmap(win->src.buffer, win->r.w * win->r.h * 4);
 	#endif
 
 	wl_display_disconnect(win->src.display);

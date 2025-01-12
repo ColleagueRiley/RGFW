@@ -20,7 +20,7 @@ RGFWDEF void print_timeUnit(void);
 int main(void) {
     RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_CENTER);
 
-    glClearColor(0xFF, 0XFF, 0xFF, 0xFF);
+    glClearColor(1, 1, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
 
