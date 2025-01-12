@@ -42,7 +42,7 @@ Clipboard \- Clipboard
 .SS "\fBRGFWDEF\fP const char * RGFW_readClipboard (size_t * size)"
 read clipboard data 
 .SS "\fBRGFWDEF\fP \fBRGFW_ssize_t\fP RGFW_readClipboardPtr (char * str, size_t strCapacity)"
-read clipboard data 
+read clipboard data or send a NULL str to just get the length of the clipboard data 
 .SS "\fBRGFWDEF\fP void RGFW_writeClipboard (const char * text, \fBu32\fP textLen)"
 write text to the clipboard 
 .SH "Author"
