@@ -1734,6 +1734,8 @@ RGFWDEF void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windo
 RGFW_mouse* RGFW_hiddenMouse = NULL;
 #endif
 
+RGFW_window* RGFW_root = NULL;
+
 /* do a basic initialization for RGFW_window, this is to standard it for each OS */
 void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags flags) {
 	/* clear out dnd info */
@@ -1760,6 +1762,10 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 	/* rect based the requested flags */
 	if (flags & RGFW_windowFullscreen)
 		rect = RGFW_RECT(0, 0, screenR.w, screenR.h);
+
+	if (RGFW_root == NULL) {
+		RGFW_root = win;
+	}
 
 	#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
 	if (RGFW_hiddenMouse == NULL) {
@@ -1792,8 +1798,6 @@ void RGFW_window_setBufferPtr(RGFW_window* win, u8* ptr, RGFW_area size) {
 	RGFW_UNUSED(size);
 	#endif
 }
-
-RGFW_window* RGFW_root = NULL;
 
 #ifdef RGFW_MACOS
 RGFWDEF void RGFW_window_cocoaSetLayer(RGFW_window* win, void* layer);
@@ -2905,8 +2909,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 		win->src.ctx = glXCreateContextAttribsARB((Display*) win->src.display, bestFbc, ctx, True, context_attribs);
 	#endif
-		if (RGFW_root == NULL)
-			RGFW_root = win;
 
 		RGFW_init_buffer(win, vi);
 	}
@@ -3684,7 +3686,7 @@ b32 RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
 RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) {
 	assert(icon);
 	assert(channels == 3 || channels == 4);
-
+	
 #ifndef RGFW_NO_X11_CURSOR
 	XcursorImage* native = XcursorImageCreate(a.w, a.h);
 	native->xhot = 0;
@@ -4236,6 +4238,11 @@ void RGFW_window_close(RGFW_window* win) {
 		RGFW_closeEGL(win);
 	#endif
 
+	if (RGFW_hiddenMouse != NULL && (RGFW_windowsOpen - 1) <= 0) {
+		RGFW_freeMouse(RGFW_hiddenMouse);
+		RGFW_hiddenMouse = 0;
+	}
+
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 		if (win->buffer != NULL) {
 			if ((win->_flags & RGFW_BUFFER_ALLOC))
@@ -4305,11 +4312,6 @@ void RGFW_window_close(RGFW_window* win) {
 				close(RGFW_gamepads[i]);
 		}
 		#endif
-
-		if (RGFW_hiddenMouse != NULL) {
-			RGFW_freeMouse(RGFW_hiddenMouse);
-			RGFW_hiddenMouse = 0;
-		}
 	}
 
 	RGFW_clipboard_switch(NULL);
@@ -5058,10 +5060,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	if (flags & RGFW_windowHideMouse) {
 		RGFW_window_showMouse(win, 0);
-	}
-
-	if (RGFW_root == NULL) {
-		RGFW_root = win;
 	}
 
 	win->src.eventIndex = 0;
@@ -5912,9 +5910,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	}
 
 	ShowWindow(win->src.window, SW_SHOWNORMAL);
-
-	if (RGFW_root == NULL)
-		RGFW_root = win;
 
 	#ifdef RGFW_OPENGL
 	else
@@ -8052,9 +8047,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	objc_msgSend_void(NSApp, sel_registerName("finishLaunching"));
 
-	if (RGFW_root == NULL)
-		RGFW_root = win;
-
 	NSRetain(win->src.window);
 	NSRetain(NSApp);
 
@@ -9543,8 +9535,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	RGFW_init_buffer(win);
 	glViewport(0, 0, rect.w, rect.h);
-
-	RGFW_root = win;
 
 	if (flags & RGFW_windowHideMouse) {
 		RGFW_window_showMouse(win, 0);
