@@ -1,4 +1,3 @@
-#define RGFW_WAYLAND
 /*
 *
 *	RGFW 1.5-dev
