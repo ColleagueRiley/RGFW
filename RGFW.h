@@ -6049,7 +6049,7 @@ static i32 RGFW_checkXInput(RGFW_window* win, RGFW_event* e) {
 			//gamepad + 1 = RGFW_gamepadButtonReleased
 			e->type = RGFW_gamepadButtonPressed + !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 			e->button = RGFW_xinput2RGFW[keystroke.VirtualKey - 0x5800];
-			RGFW_gamepadPressed[i][win->event.button].prev = RGFW_gamepadPressed[i][win->event.button].current;
+			RGFW_gamepadPressed[i][e->button].prev = RGFW_gamepadPressed[i][e->button].current;
 			RGFW_gamepadPressed[i][e->button].current = (keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 
 			RGFW_gamepadButtonCallback(win, i, e->button, e->type == RGFW_gamepadButtonPressed);
@@ -7627,7 +7627,7 @@ void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *se
 				button = RGFW_osx2RGFW[usage];
 
 			RGFW_gamepadButtonCallback(RGFW_root, index, button, intValue);
-			RGFW_gamepadPressed[i][win->event.button].prev = RGFW_gamepadPressed[i][win->event.button].current;
+			RGFW_gamepadPressed[index][button].prev = RGFW_gamepadPressed[index][button].current;
 			RGFW_gamepadPressed[index][button].current = intValue;
 			event.type = intValue ? RGFW_gamepadButtonPressed: RGFW_gamepadButtonReleased;
 			event.button = button;
@@ -9601,7 +9601,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			if (button == 404)
 				continue;
 
-			if (RGFW_gamepadPressed[i][button] != gamepadState.digitalButton[j]) {
+			if (RGFW_gamepadPressed[i][button].current != gamepadState.digitalButton[j]) {
 				if (gamepadState.digitalButton[j])
 					win->event.type = RGFW_gamepadButtonPressed;
 				else
@@ -9610,7 +9610,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 				win->event.gamepad = i;
 				win->event.button = map[j];
 
-				RGFW_gamepadPressed[i][win->event.button].prev = RGFW_gamepadPressed[i][win->event.button].current;
+				RGFW_gamepadPressed[i][button].prev = RGFW_gamepadPressed[i][button].current;
 				RGFW_gamepadPressed[i][button].current = gamepadState.digitalButton[j];
 
 				RGFW_gamepadButtonCallback(win, win->event.gamepad, win->event.button, gamepadState.digitalButton[j]);
