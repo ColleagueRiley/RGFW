@@ -973,7 +973,8 @@ RGFWDEF b8 RGFW_wasMousePressed(RGFW_window* win, u8 button /*!< mouse button co
 typedef ptrdiff_t RGFW_ssize_t;
 
 RGFWDEF const char* RGFW_readClipboard(size_t* size); /*!< read clipboard data */
-RGFWDEF RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity); /*!< read clipboard data */
+/*! read clipboard data or send a NULL str to just get the length of the clipboard data */
+RGFWDEF RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity)
 RGFWDEF void RGFW_writeClipboard(const char* text, u32 textLen); /*!< write text to the clipboard */
 /** @} */
 

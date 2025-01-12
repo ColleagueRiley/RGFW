@@ -1,0 +1,135 @@
+changelog
+---------
+
+Current Version: RGFW 1.5-dev
+-----------------------------------------------
+This may not include all of the changes or breaking changes made.
+This is because 1.5 is the first release where I started taking releases and release notes more seriously. 
+
+In later commits, the CHANGELOG will be updated while the release is being worked on.
+1.5 also has a lot of breaking changes, this is because these are essential changes for API consisteny and to exposes functionality in better ways. Later releases will aim to have fair less breaking commits. I wanted to get as many of these changes out of the way while the project is still relatively new.
+
+major changes:
+    - gamepad rewrite
+    - keycode rewrite
+    - macOS gamepad support
+    - RGFW_allocator, RGFW_createWindowPtr and better memory control
+    - monitor refinement
+    - A lot of bug fixes
+
+breaking changes:
+    - gamepad rewrite changes JS/Joystick -> gamepad
+    - clipboard is now freed by RGFW
+    - rewrite keymods/ledState -> modState (Control, Shift, numlock, capslock, alt)
+    - RGFW_window_setMouse -> RGFW_loadMouse, RGFW_window_setMouse, RGFW_freeMouse
+    - make enum naming more consistent, make window args enums
+        RGFW_Key -> RGFW_key
+        RGFW_Control -> RGFW_control (for example)
+        
+        RGFW_(ARG) -> RGFW_window(Arg) 
+        RGFW_CENTER -> RGFW_windowCenter
+    - RGFW_window_setMouse -> RGFW_loadMouse, RGFW_window_setMouse, RGFW_freeMouse
+
+
+all changes:
+
+new features:
+- RGFW_setClassName, allows program class (grouping) to be set 
+- start of MacOS EGL support
+- add support for loading a icon from a .rc file
+- add RGFW_allocator for runtime changes to allocator
+- add RGFW_readClipboardPtr to load clipboard data into a buffer, or send a NULL buffer to get the size
+- RGFW_createWindowPtr to create a window without allocating a window struct
+- add gamepad support for macOS (IOKit) 
+- Add XDL.h to this repo for optionally  dynamically linking X11
+- autofree clipboard (no need to free it yourself)
+- RGFW_window_setBufferPtr to set win->buffer to your own pointer
+- RGFW_window_setMouse -> RGFW_loadMouse, RGFW_window_setMouse, RGFW_freeMouse
+bugs:
+- Fix GLX runtime errors for certain GPUs 
+- Fix C++ support, mostly fixes warnings and errors
+- fix ctypes, drop support for non stdint ctypes (MSVC)
+- fix RGFW_window_resize lock (when RGFW_noResize is enabled)
+- fix xDND crash 
+- fix Multi-window bugs (macOS)
+- fix event misses when unknown event is sent
+- fix scale/center order
+- make it easier to add custom backends
+- allow for less linking to be required (eg. -lopengl32 -lwimm, optional `RGFW_USE_XDL`)
+reviews/rewrites
+- monitor review
+    - SetProcessDPIAware, effective DPI
+    - fix scaling units and math
+    - refine monitor support
+    - fix RGFW_window_getMonitor
+    - fix hiDPI support (monitor.pixelRatio)
+- fix transparency support (GLX) (WGL)
+- Windows XP Support, don't call unsupport functions, testing
+- remove weird tabbing synax (eg. extra tabbing in a #ifdef for functions)
+- gamepad (joystick) review/rewrite
+    - rename joystick to gamepad
+    - fix emscripten gamepad, update gamepad api (whichAxis)
+    - Add L3 + L2 (gamepad)
+    - add connect, disconnect events (RGFW_gamepadConnected / RGFW_gamepadDisconnected)
+    - change enums (RGFW_GP_A -> RGFW_gamepadA)
+    - support for gamepad names, types, refined axis checking, change mapping
+    - fix gamepad bugs and made gamepad support more stable overall
+    - get gamepad count
+    - RGFW_isPressedGamepad, RGFW_getGamepadAxis, RGFW_getGamepadName, RGFW_getGamepadCount, RGFW_getGamepadType
+- keycode rewrite/review
+    - rewrite keycodes to use physical keycodes (event.key) and add keyChar for scancodes
+- Ensure all functions use RGFWDEF
+- remove convert key to char function -> event.keyChar (keycode)
+- refine RGFW raw input support
+- dependency limiting
+    - get rid of CoreVideo dependency
+    - remove internal dependency on math.h
+    - allow for use of standard library to be limited
+- make enum naming more consistent, make window args enums, 
+- rewrite keymods/ledState -> modState (Control, Shift, numlock, capslock, alt)
+- Update UTF8 support
+- update wayland support 
+new examples:
+- DOOM example on website
+- MicroUI example
+- metal example
+- fix vulkan example
+- add OSMesa example
+- Add minimal linking 
+- Add custom backend example
+- Add gamepad example
+- Add no standard library example 
+
+Current Release:    RGFW 1.06 (Aug 14, 2024)
+-----------------------------------------------
+Release:    RGFW 1.06 (Aug 14, 2024)
+-----------------------------------------------
+Quality of life update:
+    more opengl options (core vs comp, disable double buffer, samples defaults to 0)
+    deleted unneeded functions
+    Experimental Wayland support
+    re-done Makefile, with
+    More MSVC support
+    c++ support
+    nuklear example
+    Metal example
+(Bug fixes)
+    raw input data shouldn't be flipped
+fix: window not at the front on macOS by @omnisci3nce in #29
+fix(msvc): cpp cast error, .rh header redefinition warnings by @lesleyrs in #30
+fix: gl33 example by @lesleyrs in #31
+fix(windows): don't show dummy window on start by @lesleyrs in #32
+-----------------------------------------------
+Release:    RGFW 1.05 (Jul 24, 2024)
+----------------------------------------------
+fixes a lot of bugs
+general quality of life/code updates
+HTML5 backend
+raw mouse input
+-----------------------------------------------
+Release:    RGFW 1.05 (Jul 5, 2024)
+----------------------------------------------
+RGFW 1.0 is Finally out, with plenty of bug fixes and features being properly implemented on all OSes.
+Plus a couple more features added for sake of completeness. Some reworking of functions and other cleaning of the RGFW codebase.
+
+All of RGFW's basic features should be mostly finished now, the next release will focus on adding things not included in base RGFW 1.0.
