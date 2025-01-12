@@ -13,7 +13,16 @@ gamepad \- Gamepad
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_gamepadType)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_isPressedGamepad\fP (\fBRGFW_window\fP *win, \fBu8\fP controller, \fBu8\fP button)"
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_isPressedGamepad\fP (\fBRGFW_window\fP *win, \fBu8\fP controller, RGFW_gamepadCodes button)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_isReleasedGamepad\fP (\fBRGFW_window\fP *win, \fBu8\fP controller, RGFW_gamepadCodes button)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_isHeldGamepad\fP (\fBRGFW_window\fP *win, \fBu8\fP controller, RGFW_gamepadCodes button)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_wasPressedGamepad\fP (\fBRGFW_window\fP *win, \fBu8\fP controller, RGFW_gamepadCodes button)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_getGamepadAxis\fP (\fBRGFW_window\fP *win, \fBu16\fP controller, \fBu16\fP whichAxis)"
@@ -47,8 +56,14 @@ gamepad \- Gamepad
 
 .SS "\fBRGFWDEF\fP RGFW_gamepadType RGFW_getGamepadType (\fBRGFW_window\fP * win, \fBu16\fP controller)"
 
-.SS "\fBRGFWDEF\fP \fBu32\fP RGFW_isPressedGamepad (\fBRGFW_window\fP * win, \fBu8\fP controller, \fBu8\fP button)"
+.SS "\fBRGFWDEF\fP \fBu32\fP RGFW_isHeldGamepad (\fBRGFW_window\fP * win, \fBu8\fP controller, RGFW_gamepadCodes button)"
+
+.SS "\fBRGFWDEF\fP \fBu32\fP RGFW_isPressedGamepad (\fBRGFW_window\fP * win, \fBu8\fP controller, RGFW_gamepadCodes button)"
 gamepad count starts at 0 
+.SS "\fBRGFWDEF\fP \fBu32\fP RGFW_isReleasedGamepad (\fBRGFW_window\fP * win, \fBu8\fP controller, RGFW_gamepadCodes button)"
+
+.SS "\fBRGFWDEF\fP \fBu32\fP RGFW_wasPressedGamepad (\fBRGFW_window\fP * win, \fBu8\fP controller, RGFW_gamepadCodes button)"
+
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.

@@ -15,16 +15,16 @@ RGFW_event
 .RI "char \fBdroppedFiles\fP [\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP]"
 .br
 .ti -1c
-.RI "\fBu32\fP \fBdroppedFilesCount\fP"
+.RI "size_t \fBdroppedFilesCount\fP"
 .br
 .ti -1c
-.RI "\fBu32\fP \fBtype\fP"
+.RI "RGFW_eventType \fBtype\fP"
 .br
 .ti -1c
 .RI "\fBRGFW_point\fP \fBpoint\fP"
 .br
 .ti -1c
-.RI "\fBu8\fP \fBkey\fP"
+.RI "\fBRGFW_key\fP \fBkey\fP"
 .br
 .ti -1c
 .RI "\fBu8\fP \fBkeyChar\fP"
@@ -76,7 +76,7 @@ which gamepad this event applies to (if applicable to any) number of axises
 
 .SS "char RGFW_event::droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP]"
 drag and drop data dropped files 
-.SS "\fBu32\fP RGFW_event::droppedFilesCount"
+.SS "size_t RGFW_event::droppedFilesCount"
 house many files were dropped 
 .SS "\fBu64\fP RGFW_event::frameTime"
 
@@ -86,7 +86,7 @@ this is used for counting the fps
 
 .SS "\fBb8\fP RGFW_event::inFocus"
 if the window is in focus or not (this is always true for MacOS windows due to the api being weird) 
-.SS "\fBu8\fP RGFW_event::key"
+.SS "\fBRGFW_key\fP RGFW_event::key"
 the physical key of the event, refers to where key is physically !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! 
 .SS "\fBu8\fP RGFW_event::keyChar"
 mapped key char of the event 
@@ -98,7 +98,7 @@ mouse x, y of event (or drop point)
 key press event repeated (the key is being held) 
 .SS "double RGFW_event::scroll"
 the raw mouse scroll value 
-.SS "\fBu32\fP RGFW_event::type"
+.SS "RGFW_eventType RGFW_event::type"
 which event has been sent? 
 .SS "\fBu8\fP RGFW_event::whichAxis"
 

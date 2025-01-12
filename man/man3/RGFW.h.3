@@ -159,6 +159,9 @@ RGFW.h
 .RI "typedef struct \fBRGFW_allocator\fP \fBRGFW_allocator\fP"
 .br
 .ti -1c
+.RI "typedef \fBu8\fP \fBRGFW_key\fP"
+.br
+.ti -1c
 .RI "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
 .br
 .ti -1c
@@ -204,7 +207,7 @@ RGFW.h
 .RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP key, char keyChar, RGFW_keymod keyMod, \fBb8\fP pressed)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_mousebuttonfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP button, double scroll, \fBb8\fP pressed)"
+.RI "typedef void(* \fBRGFW_mousebuttonfunc\fP) (\fBRGFW_window\fP *win, RGFW_mouseButton button, double scroll, \fBb8\fP pressed)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_gamepadButtonfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBu8\fP button, \fBb8\fP pressed)"
@@ -235,10 +238,10 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_free\fP (void *ptr)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_eventTypes)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_eventType)"
 .br
 .ti -1c
-.RI "\fBRGFW_ENUM\fP (\fBu8\fP, RGFW_mouse_codes)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_mouseButton)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_keymod)"
@@ -394,31 +397,31 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP \fBRGFW_window_getMonitor\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isPressed\fP (\fBRGFW_window\fP *win, \fBu8\fP key)"
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isPressed\fP (\fBRGFW_window\fP *win, \fBRGFW_key\fP key)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_wasPressed\fP (\fBRGFW_window\fP *win, \fBu8\fP key)"
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_wasPressed\fP (\fBRGFW_window\fP *win, \fBRGFW_key\fP key)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isHeld\fP (\fBRGFW_window\fP *win, \fBu8\fP key)"
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isHeld\fP (\fBRGFW_window\fP *win, \fBRGFW_key\fP key)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isReleased\fP (\fBRGFW_window\fP *win, \fBu8\fP key)"
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isReleased\fP (\fBRGFW_window\fP *win, \fBRGFW_key\fP key)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isClicked\fP (\fBRGFW_window\fP *win, \fBu8\fP key)"
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isClicked\fP (\fBRGFW_window\fP *win, \fBRGFW_key\fP key)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isMousePressed\fP (\fBRGFW_window\fP *win, \fBu8\fP button)"
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isMousePressed\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isMouseHeld\fP (\fBRGFW_window\fP *win, \fBu8\fP button)"
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isMouseHeld\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isMouseReleased\fP (\fBRGFW_window\fP *win, \fBu8\fP button)"
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_isMouseReleased\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_wasMousePressed\fP (\fBRGFW_window\fP *win, \fBu8\fP button)"
+.RI "\fBRGFWDEF\fP \fBb8\fP \fBRGFW_wasMousePressed\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP const char * \fBRGFW_readClipboard\fP (size_t *size)"
@@ -487,7 +490,16 @@ RGFW.h
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_gamepadType)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_isPressedGamepad\fP (\fBRGFW_window\fP *win, \fBu8\fP controller, \fBu8\fP button)"
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_isPressedGamepad\fP (\fBRGFW_window\fP *win, \fBu8\fP controller, RGFW_gamepadCodes button)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_isReleasedGamepad\fP (\fBRGFW_window\fP *win, \fBu8\fP controller, RGFW_gamepadCodes button)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_isHeldGamepad\fP (\fBRGFW_window\fP *win, \fBu8\fP controller, RGFW_gamepadCodes button)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_wasPressedGamepad\fP (\fBRGFW_window\fP *win, \fBu8\fP controller, RGFW_gamepadCodes button)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_getGamepadAxis\fP (\fBRGFW_window\fP *win, \fBu16\fP controller, \fBu16\fP whichAxis)"
@@ -556,7 +568,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_sleep\fP (\fBu64\fP milisecond)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_key)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, \fBRGFW_key\fP)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_apiKeyToRGFW\fP (\fBu32\fP keycode)"
@@ -637,6 +649,8 @@ RGFW.h
 
 .SS "typedef struct \fBRGFW_event\fP \fBRGFW_event\fP"
 Event structure for checking/getting events 
+.SS "typedef \fBu8\fP \fBRGFW_key\fP"
+
 .SS "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
 structure for monitor data 
 .SS "typedef void \fBRGFW_mouse\fP"
@@ -673,7 +687,7 @@ the window should hide the mouse or not (can be toggled later on) using `RGFW_wi
 center the window on the screen
 .PP
 use OpenGL software rendering
-.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_eventTypes)"
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_eventType)"
 event codes
 .PP
 < no event has been sent
@@ -759,7 +773,7 @@ gamepad button codes (based on xbox/playstation), you may need to change these v
 < right thumb stick
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_keymod)"
 
-.SS "RGFW_ENUM (\fBu8\fP, RGFW_mouse_codes)"
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_mouseButton)"
 mouse button codes (\fBRGFW_event\&.button\fP) < no mouse button is pressed
 .PP
 < left mouse button is pressed
