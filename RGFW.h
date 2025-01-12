@@ -5912,7 +5912,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	ShowWindow(win->src.window, SW_SHOWNORMAL);
 
 	#ifdef RGFW_OPENGL
-	else
+	if (RGFW_root != win)
 		wglShareLists(RGFW_root->src.ctx, win->src.ctx);
 	#endif
 

@@ -5752,7 +5752,7 @@ $(function() {
 <div class="line"><a id="l05912" name="l05912"></a><span class="lineno"> 5912</span>    ShowWindow(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.window, SW_SHOWNORMAL);</div>
 <div class="line"><a id="l05913" name="l05913"></a><span class="lineno"> 5913</span> </div>
 <div class="line"><a id="l05914" name="l05914"></a><span class="lineno"> 5914</span><span class="preprocessor">    #ifdef RGFW_OPENGL</span></div>
-<div class="line"><a id="l05915" name="l05915"></a><span class="lineno"> 5915</span>    <span class="keywordflow">else</span></div>
+<div class="line"><a id="l05915" name="l05915"></a><span class="lineno"> 5915</span>    <span class="keywordflow">if</span> (RGFW_root != win)</div>
 <div class="line"><a id="l05916" name="l05916"></a><span class="lineno"> 5916</span>        wglShareLists(RGFW_root-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx, win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx);</div>
 <div class="line"><a id="l05917" name="l05917"></a><span class="lineno"> 5917</span><span class="preprocessor">    #endif</span></div>
 <div class="line"><a id="l05918" name="l05918"></a><span class="lineno"> 5918</span> </div>
