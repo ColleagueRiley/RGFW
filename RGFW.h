@@ -5124,8 +5124,13 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 	RGFW_UNUSED(win); RGFW_UNUSED(a);
+	win->r.w = a.w;
+	win->r.h = a.h;
 
-	/* TODO wayland */
+	xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->r.w, win->r.h);
+	#ifdef RGFW_OPENGL
+	wl_egl_window_resize(win->src.window, a.w, a.h, 0, 0);
+	#endif
 }
 
 void RGFW_window_move(RGFW_window* win, RGFW_point v) {
@@ -5142,7 +5147,7 @@ void RGFW_window_move(RGFW_window* win, RGFW_point v) {
 	//wl_shell_surface_move(win->src.surface, seat, 0);
 	win->r.x = v.x;
 	win->r.y = v.y;
-
+	
 	wl_display_flush(win->src.display);
 }
 
@@ -5321,19 +5326,25 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	/* clear the window*/
 	#if defined(RGFW_BUFFER) || defined(RGFW_OSMESA)
 		#if !defined(RGFW_X11_DONT_CONVERT_BGR) && !defined(RGFW_OSMESA)
-			u32 x, y;
-			for (y = 0; y < (u32)win->r.h; y++) {
-				for (x = 0; x < (u32)win->r.w; x++) {
+			for (u32 y = 0; y < (u32)win->r.h; y++) {
+				for (u32 x = 0; x < (u32)win->r.w; x++) {
 					u32 index = (y * 4 * win->r.w) + x * 4;
+					u32 index2 = (y * 4 * RGFW_bufferSize.w) + x * 4;
 
-					u8 red = win->buffer[index];
-					win->buffer[index] = win->buffer[index + 2];
-					win->buffer[index + 2] = red;
-
+					u8 red = win->buffer[index2];
+					win->src.buffer[index] = win->buffer[index2 + 2];
+					win->src.buffer[index + 1] = win->buffer[index2 + 1];
+					win->src.buffer[index + 2] = red;
 				}
-			}
-		#endif	
-		RGFW_MEMCPY(win->src.buffer, win->buffer, win->r.w * win->r.h * 4);
+			}	
+		#else
+		for (size_t y = 0; y < win->r.h; y++) {
+			u32 index = (y * 4 * win->r.w);
+			u32 index2 = (y * 4 * RGFW_bufferSize.w);
+			RGFW_MEMCPY(&win->src.buffer[index], &win->buffer[index2], win->r.w * 4);
+		}
+		#endif
+
 		wl_surface_frame_done(win, NULL, 0);
 		if (!(win->_flags & RGFW_NO_GPU_RENDER))
 	#endif
