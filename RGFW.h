@@ -1,3 +1,4 @@
+#define RGFW_WAYLAND
 /*
 *
 *	RGFW 1.5-dev
@@ -93,7 +94,7 @@ int main() {
 
 		RGFW_window_swapBuffers(win);
 
-		glClearColor(0xFF, 0XFF, 0xFF, 0xFF);
+		glClearColor(1, 1, 1, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
@@ -4889,20 +4890,7 @@ static void wl_surface_frame_done(void *data, struct wl_callback *cb, uint32_t t
 		RGFW_window* win = (RGFW_window*)data;
 		if ((win->_flags & RGFW_NO_CPU_RENDER))
 			return;
-
-		/*#ifndef RGFW_X11_DONT_CONVERT_BGR
-			u32 x, y;
-			for (y = 0; y < (u32)win->r.h; y++) {
-				for (x = 0; x < (u32)win->r.w; x++) {
-					u32 index = (y * 4 * win->r.w) + x * 4;
-
-					u8 red = win->buffer[index];
-					win->buffer[index] = win->buffer[index + 2];
-					win->buffer[index + 2] = red;
-
-				}
-			}
-		#endif*/
+		
 		wl_surface_attach(win->src.surface, win->src.wl_buffer, 0, 0);
 		wl_surface_damage_buffer(win->src.surface, 0, 0, win->r.w, win->r.h);
 		wl_surface_commit(win->src.surface);
@@ -4975,15 +4963,15 @@ void RGFW_init_buffer(RGFW_window* win) {
 		u8 color[] = {0x00, 0x00, 0x00, 0xFF};
 
 		size_t i;
-		for (i = 0; i < size; i += 4) {
+		for (i = 0; i < RGFW_bufferSize.w * RGFW_bufferSize.h * 4; i += 4) {
 			RGFW_MEMCPY(&win->buffer[i], color, 4);
 		}
 		
-		RGFW_MEMCPY(win->src.buffer, win->buffer, RGFW_bufferSize.w * RGFW_bufferSize.h * 4);
+		RGFW_MEMCPY(win->src.buffer, win->buffer, win->r.w * win->r.h * 4);
 
 		#if defined(RGFW_OSMESA)
-				win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
-				OSMesaMakeCurrent(win->src.ctx, win->src.buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
+				win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
+				OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, RGFW_bufferSize.w, RGFW_bufferSize.h);
 		#endif
 	#else
 	RGFW_UNUSED(win);
@@ -5332,8 +5320,8 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
 	/* clear the window*/
-	#ifdef RGFW_BUFFER
-		#ifndef RGFW_X11_DONT_CONVERT_BGR
+	#if defined(RGFW_BUFFER) || defined(RGFW_OSMESA)
+		#if !defined(RGFW_X11_DONT_CONVERT_BGR) && !defined(RGFW_OSMESA)
 			u32 x, y;
 			for (y = 0; y < (u32)win->r.h; y++) {
 				for (x = 0; x < (u32)win->r.w; x++) {
@@ -5345,9 +5333,8 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 
 				}
 			}
-		#endif
-		RGFW_MEMCPY(win->src.buffer, win->buffer, RGFW_bufferSize.w * RGFW_bufferSize.h * 4);
-		
+		#endif	
+		RGFW_MEMCPY(win->src.buffer, win->buffer, win->r.w * win->r.h * 4);
 		wl_surface_frame_done(win, NULL, 0);
 		if (!(win->_flags & RGFW_NO_GPU_RENDER))
 	#endif

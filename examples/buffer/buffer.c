@@ -90,4 +90,3 @@ int main(void) {
 
     RGFW_window_close(win);
 }
-
