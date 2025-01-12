@@ -75,7 +75,7 @@ reviews/rewrites
     - support for gamepad names, types, refined axis checking, change mapping
     - fix gamepad bugs and made gamepad support more stable overall
     - get gamepad count
-    - RGFW_isPressedGamepad, RGFW_getGamepadAxis, RGFW_getGamepadName, RGFW_getGamepadCount, RGFW_getGamepadType
+    - RGFW_isPressedGamepad, RGFW_isHeldGamepad, RGFW_isReleasedGamepad, RGFW_wasPressedGamepad, RGFW_getGamepadAxis, RGFW_getGamepadName, RGFW_getGamepadCount, RGFW_getGamepadType
 - keycode rewrite/review
     - rewrite keycodes to use physical keycodes (event.key) and add keyChar for scancodes
 - Ensure all functions use RGFWDEF
