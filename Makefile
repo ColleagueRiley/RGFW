@@ -119,7 +119,7 @@ examples: $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)
 
 examples/portableGL/pgl: examples/portableGL/pgl.c RGFW.h
 ifneq ($(CC), emcc)
-	$(CC)  -w $(CFLAGS) -lm -I. $< $(LIBS) -o $@ 
+	$(CC)  -w $(CFLAGS) -I. $< -lm $(LIBS) -o $@ 
 else
 	@echo "the portableGL example doesn't support html5"
 endif
@@ -224,7 +224,7 @@ examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.
 
 examples/gl33/gl33: examples/gl33/gl33.c RGFW.h
 ifeq ($(RGFW_WAYLAND), 1)
-	$(CC) $(CFLAGS) $(LIBS) -I. $<  -o $@$(EXT)
+	$(CC) $(CFLAGS) -I. $< $(LIBS) -o $@$(EXT)
 else ifeq ($(detected_OS),Linux)
 	$(CC) $(CFLAGS) -I. $<  -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
