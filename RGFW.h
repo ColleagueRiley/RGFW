@@ -415,6 +415,8 @@ RGFWDEF void RGFW_free(void* ptr);
 	regular RGFW stuff
 */
 
+typedef u8 RGFW_key; 
+
 typedef RGFW_ENUM(u8, RGFW_eventType) {
 	/*! event codes */
 	RGFW_eventNone = 0, /*!< no event has been sent */
@@ -591,7 +593,7 @@ typedef struct RGFW_event {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_point point; /*!< mouse x, y of event (or drop point) */
 
-	u8 key; /*!< the physical key of the event, refers to where key is physically !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! */
+	RGFW_key key; /*!< the physical key of the event, refers to where key is physically !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! */
 	u8 keyChar; /*!< mapped key char of the event*/
 
 	b8 repeat; /*!< key press event repeated (the key is being held) */
