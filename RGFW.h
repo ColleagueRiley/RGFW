@@ -310,10 +310,11 @@ int main() {
 
 #if defined(RGFW_X11) && defined(__APPLE__) && !defined(RGFW_CUSTOM_BACKEND)
 	#define RGFW_MACOS_X11
+	#define RGFW_UNIX
 	#undef __APPLE__
 #endif
 
-#if defined(_WIN32) && !defined(RGFW_X11) && !defined(RGFW_WEBASM) && !defined(RGFW_CUSTOM_BACKEND) /* (if you're using X11 on windows some how) */
+#if defined(_WIN32) && !defined(RGFW_UNIX) && !defined(RGFW_WEBASM) && !defined(RGFW_CUSTOM_BACKEND) /* (if you're using X11 on windows some how) */
 	#define RGFW_WINDOWS
 	/* make sure the correct architecture is defined */
 	#if defined(_WIN64)
@@ -347,17 +348,20 @@ int main() {
 	#endif
 
 #elif defined(RGFW_WAYLAND)
-	#define RGFW_DEBUG // always in debug mode
+	#define RGFW_DEBUG // wayland will be in debug mode by default for now
     #if !defined(RGFW_NO_API) && (!defined(RGFW_BUFFER) || defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA)
 		#define RGFW_EGL
 		#define RGFW_OPENGL
+		#define RGFW_UNIX
 		#include <wayland-egl.h>
 	#endif
 
 	#include <wayland-client.h>
-#elif (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  && !defined(RGFW_WEBASM)  && !defined(RGFW_CUSTOM_BACKEND)
+#endif
+#if !defined(RGFW_NO_X11) && (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  && !defined(RGFW_WEBASM)  && !defined(RGFW_CUSTOM_BACKEND)
 	#define RGFW_MACOS_X11
 	#define RGFW_X11
+	#define RGFW_UNIX
 	#include <X11/Xlib.h>
 #elif defined(__APPLE__) && !defined(RGFW_MACOS_X11) && !defined(RGFW_X11)  && !defined(RGFW_WEBASM)  && !defined(RGFW_CUSTOM_BACKEND)
 	#define RGFW_MACOS
@@ -640,8 +644,9 @@ typedef struct RGFW_window_src {
 	#endif
 	RGFW_area maxSize, minSize; /*!< for setting max/min resize (RGFW_WINDOWS) */
 } RGFW_window_src;
-#elif defined(RGFW_X11)
+#elif defined(RGFW_UNIX)
 typedef struct RGFW_window_src {
+#if defined(RGFW_X11)
 	Display* display; /*!< source display */
 	Window window; /*!< source window */
 	#if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
@@ -654,14 +659,13 @@ typedef struct RGFW_window_src {
 		EGLContext EGL_context;
 	#endif
 
-#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-		XImage* bitmap;
-		GC gc;
-#endif
-} RGFW_window_src;
-#elif defined(RGFW_WAYLAND)
-typedef struct RGFW_window_src {
-	struct wl_display* display;
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+			XImage* bitmap;
+			GC gc;
+	#endif
+#endif /* RGFW_X11 */
+#if defined(RGFW_WAYLAND)
+	struct wl_display* wl_display;
 	struct wl_surface* surface;
 	struct wl_buffer* wl_buffer;
 	struct wl_keyboard* keyboard;
@@ -679,15 +683,19 @@ typedef struct RGFW_window_src {
 		i32 eventLen;
 		size_t eventIndex;
 	#if defined(RGFW_EGL)
-			struct wl_egl_window* window;
+		struct wl_egl_window* eglWindow;
+	#endif
+	#if defined(RGFW_EGL) && !defined(RGFW_X11)
 			EGLSurface EGL_surface;
 			EGLDisplay EGL_display;
 			EGLContext EGL_context;
-	#elif defined(RGFW_OSMESA)
+	#elif defined(RGFW_OSMESA) && !defined(RGFW_X11)
 		OSMesaContext ctx;
 	#endif
+#endif /* RGFW_WAYLAND */
 } RGFW_window_src;
-#elif defined(RGFW_MACOS)
+#endif /* RGFW_UNIX */
+#if defined(RGFW_MACOS)
 typedef struct RGFW_window_src {
 	void* window;
 	b8 dndPassed;
@@ -2689,8 +2697,8 @@ u32 RGFW_windowsOpen = 0;
 	void* RGFW_getProcAddress(const char* procname) { return (void*) glXGetProcAddress((GLubyte*) procname); }
 #endif
 
-RGFWDEF void RGFW_init_buffer(RGFW_window* win, XVisualInfo* vi);
-void RGFW_init_buffer(RGFW_window* win, XVisualInfo* vi) {
+RGFWDEF void RGFW_init_buffer(RGFW_window* win, void* vi);
+void RGFW_init_buffer(RGFW_window* win, void* vi) {
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	if (RGFW_bufferSize.w == 0 && RGFW_bufferSize.h == 0)
 		RGFW_bufferSize = RGFW_getScreenSize();
@@ -2906,7 +2914,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	XSetClassHint(win->src.display, win->src.window, &hint);
 
 	if ((flags & RGFW_windowNoInitAPI) == 0) {
-	#ifdef RGFW_OPENGL /* This is the second part of setting up opengl. This is where we ask OpenGL for a specific version. */
+	#if defined(RGFW_OPENGL) && !defined(RGFW_EGL) /* This is the second part of setting up opengl. This is where we ask OpenGL for a specific version. */
 		i32 context_attribs[7] = { 0, 0, 0, 0, 0, 0, 0 };
 		context_attribs[0] = GLX_CONTEXT_PROFILE_MASK_ARB;
 		if (RGFW_profile == RGFW_glCore)
@@ -2973,7 +2981,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	XSetWMProtocols(win->src.display, (Drawable) win->src.window, &wm_delete_window, 1);
 
 	/* connect the context to the window*/
-	#ifdef RGFW_OPENGL
+	#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
 		if ((flags & RGFW_windowNoInitAPI) == 0)
 			glXMakeCurrent(win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);
 	#endif
@@ -3793,6 +3801,7 @@ void RGFW_window_show(RGFW_window* win) {
 }
 
 RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
+	#ifdef RGFW_X11
 	XEvent event;
 	int format;
 	unsigned long N, sizeN;
@@ -3825,9 +3834,14 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	XDeleteProperty(event.xselection.display, event.xselection.requestor, event.xselection.property);
 	size = sizeN;
 	return size;
+	#endif
+	#if defined(RGFW_WAYLAND)
+	return 0;
+	#endif
 }
 
 void RGFW_writeClipboard(const char* text, u32 textLen) {
+	#ifdef RGFW_X11
 	RGFW_LOAD_ATOM(SAVE_TARGETS);
 	RGFW_LOAD_ATOM(TARGETS);
 	RGFW_LOAD_ATOM(MULTIPLE);
@@ -3918,6 +3932,10 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 		XSendEvent(RGFW_root->src.display, request->requestor, False, 0, &reply);
 		XFlush(RGFW_root->src.display);
 	}
+	#endif
+	#if defined(RGFW_WAYLAND)
+
+	#endif
 }
 
 u8 RGFW_window_isFullscreen(RGFW_window* win) {
@@ -4133,16 +4151,26 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 
 RGFW_monitor RGFW_monitors[6];
 RGFW_monitor* RGFW_getMonitors(void) {
+	#ifdef RGFW_X11
 	size_t i;
 	for (i = 0; i < (size_t)ScreenCount(RGFW_root->src.display) && i < 6; i++)
 		RGFW_monitors[i] = RGFW_XCreateMonitor(i);
 
 	return RGFW_monitors;
+	#endif
+	#ifdef RGFW_WAYLAND
+
+	#endif
 }
 
 RGFW_monitor RGFW_getPrimaryMonitor(void) {
+	#ifdef RGFW_X11
 	RGFW_ASSERT(RGFW_root != NULL);
 	return RGFW_XCreateMonitor(DefaultScreen(RGFW_root->src.display));
+	#endif
+	#ifdef RGFW_WAYLAND
+	
+	#endif
 }
 
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
@@ -4193,7 +4221,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	return (RGFW_monitor){};
 }
 
-#ifdef RGFW_OPENGL
+#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
 
 void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 	if (win == NULL)
@@ -4255,6 +4283,7 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 
 void RGFW_window_close(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
+	#ifdef RGFW_X11
 	/* ungrab pointer if it was grabbed */
 	if (win->_flags & RGFW_HOLD_MOUSE)
 		XUngrabPointer(win->src.display, CurrentTime);
@@ -4278,7 +4307,7 @@ void RGFW_window_close(RGFW_window* win) {
 	#endif
 
 	if (win->src.display) {
-	#ifdef RGFW_OPENGL
+	#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
 			glXDestroyContext(win->src.display, win->src.ctx);
 	#endif
 
@@ -4338,11 +4367,36 @@ void RGFW_window_close(RGFW_window* win) {
 		}
 		#endif
 	}
+	#endif
+
+	#ifdef RGFW_WAYLAND
+	#ifdef RGFW_EGL
+		RGFW_closeEGL(win);
+	#endif
+
+	if (RGFW_root == win) {
+		RGFW_root = NULL;
+	}
+
+	xdg_toplevel_destroy(win->src.xdg_toplevel);
+	xdg_surface_destroy(win->src.xdg_surface);
+	wl_surface_destroy(win->src.surface);
+
+	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+		wl_buffer_destroy(win->src.wl_buffer);
+		if ((win->_flags & RGFW_BUFFER_ALLOC))
+			win->_mem.free(win->_mem.userdata, win->buffer);
+
+		munmap(win->src.buffer, win->r.w * win->r.h * 4);
+	#endif
+
+	wl_display_disconnect(win->src.display);
+	#endif
 
 	RGFW_clipboard_switch(NULL);
 
 	if ((win->_flags & RGFW_WINDOW_ALLOC))
-		win->_mem.free(win->_mem.userdata, win); /*!< free collected window data */
+		win->_mem.free(win->_mem.userdata, win);
 }
 
 
@@ -4491,6 +4545,13 @@ Wayland TODO:
 #include <dirent.h>
 #include <linux/kd.h>
 #include <wayland-cursor.h>
+
+
+#ifndef RGFW_NO_WAYLAND_X11
+#include <X11/Xlib.h>
+Display* x11_display = NULL;
+Window x11_window;
+#endif
 
 RGFW_window* RGFW_key_win = NULL;
 
@@ -4908,6 +4969,16 @@ RGFW_area RGFW_getScreenSize(void) {
 	if (RGFW_root != NULL)
 		/* this isn't right but it's here for buffers */
 		area = RGFW_AREA(RGFW_root->r.w, RGFW_root->r.h);
+	
+	#ifndef RGFW_NO_WAYLAND_X11
+	#ifndef RGFW_DEBUG
+	printf("Reverting to X11 layer for RGFW_getScreenSize\n");
+	#endif
+
+	Screen* scrn = DefaultScreenOfDisplay(x11_display);
+	return RGFW_AREA(scrn->width, scrn->height);
+	#endif
+
 
 	/* TODO wayland */
 	return area;
@@ -4926,8 +4997,8 @@ void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) {
 }
 
 
-RGFWDEF void RGFW_init_buffer(RGFW_window* win);
-void RGFW_init_buffer(RGFW_window* win) {
+RGFWDEF void RGFW_init_buffer(RGFW_window* win, void* vi);
+void RGFW_init_buffer(RGFW_window* win, void* vi) {
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 		size_t size = win->r.w * win->r.h * 4;
 		int fd = create_shm_file(size);
@@ -4978,6 +5049,23 @@ void RGFW_init_buffer(RGFW_window* win) {
 }
 
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
+	#ifndef RGFW_NO_WAYLAND_X11
+	if (x11_display == NULL) {
+		x11_display = XOpenDisplay(NULL);
+
+		Window root = DefaultRootWindow(x11_display);
+
+		XSetWindowAttributes attributes;
+		attributes.background_pixel = 0;
+		attributes.override_redirect = True;
+
+		x11_window = XCreateWindow(x11_display, root, 0, 0, 1, 1, 0, CopyFromParent, InputOutput, CopyFromParent,
+									CWBackPixel | CWOverrideRedirect, &attributes);
+
+		XMapWindow(x11_display, x11_window);
+	}
+	#endif
+
 	RGFW_window_basic_init(win, rect, flags);
 
 	win->src.compositor = NULL;
@@ -5064,7 +5152,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		}
 	#endif
 
-	RGFW_init_buffer(win);
+	RGFW_init_buffer(win, NULL);
 
 	struct wl_callback* callback = wl_surface_frame(win->src.surface);
 	wl_callback_add_listener(callback, &wl_surface_frame_listener, win);
@@ -5087,6 +5175,17 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	if (win->_flags & RGFW_windowHide)
 		return NULL;
+
+	#ifndef RGFW_NO_WAYLAND_X11
+        XEvent event;
+
+		XPending(x11_display);
+
+		/* if there is no unread qued events, get a new one */
+		if ((QLength(x11_display) || XEventsQueued(x11_display, QueuedAlready) + XEventsQueued(x11_display, QueuedAfterReading))) {
+            XNextEvent(x11_display, &event);
+		}
+	#endif
 
 	#if defined(__linux__)
 		if (RGFW_linux_updateGamepad(win)) { return &win->event; }
@@ -5117,7 +5216,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	ev.frameTime2 = win->event.frameTime2;
 	ev.inFocus = win->event.inFocus;
 	win->event = ev;
-
 	return &win->event;
 }
 
@@ -5158,9 +5256,24 @@ b32 RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
 }
 
 void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) {
-	win->_lastMousePoint = RGFW_POINT(p.x - win->r.x, p.y - win->r.y);
 	#ifdef RGFW_DEBUG
 		printf("Wayland: The platform does not support moving the mouse\n");
+	#endif
+
+	#ifndef RGFW_NO_WAYLAND_X11
+		XEvent event;
+		XQueryPointer(x11_display, DefaultRootWindow(x11_display),
+			&event.xbutton.root, &event.xbutton.window,
+			&event.xbutton.x_root, &event.xbutton.y_root,
+			&event.xbutton.x, &event.xbutton.y,
+			&event.xbutton.state);
+
+		win->_lastMousePoint = RGFW_POINT(p.x - win->r.x, p.y - win->r.y);
+		if (event.xbutton.x == p.x && event.xbutton.y == p.y)
+			return;
+
+		XWarpPointer(x11_display, None, x11_window, 0, 0, 0, 0, (int) p.x - win->r.x, (int) p.y - win->r.y);
+		XFlush(x11_display);
 	#endif
 	/* TODO wayland */
 }
@@ -5358,60 +5471,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	
 }
 
-void RGFW_window_close(RGFW_window* win) {
-	#ifdef RGFW_EGL
-		RGFW_closeEGL(win);
-	#endif
 
-	if (RGFW_root == win) {
-		RGFW_root = NULL;
-	}
-
-	xdg_toplevel_destroy(win->src.xdg_toplevel);
-	xdg_surface_destroy(win->src.xdg_surface);
-	wl_surface_destroy(win->src.surface);
-
-	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-		wl_buffer_destroy(win->src.wl_buffer);
-		if ((win->_flags & RGFW_BUFFER_ALLOC))
-			win->_mem.free(win->_mem.userdata, win->buffer);
-
-		munmap(win->src.buffer, win->r.w * win->r.h * 4);
-	#endif
-
-	wl_display_disconnect(win->src.display);
-
-	RGFW_clipboard_switch(NULL);
-
-	if ((win->_flags & RGFW_WINDOW_ALLOC))
-		win->_mem.free(win->_mem.userdata, win);
-}
-
-RGFW_monitor RGFW_getPrimaryMonitor(void) {
-	/* TODO wayland */
-
-	return (RGFW_monitor){};
-}
-
-RGFW_monitor* RGFW_getMonitors(void) {
-	/* TODO wayland */
-
-	return NULL;
-}
-
-void RGFW_writeClipboard(const char* text, u32 textLen) {
-	RGFW_UNUSED(text); RGFW_UNUSED(textLen);
-
-	/* TODO wayland */
-}
-
-RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
-	RGFW_UNUSED(strCapacity); RGFW_UNUSED(str);
-
-	/* TODO wayland */
-
-	return 0;
-}
 #endif /* RGFW_WAYLAND */
 
 /*
