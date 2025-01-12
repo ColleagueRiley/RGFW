@@ -2922,7 +2922,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	}
 
 	if (flags & RGFW_windowNoResize) { /* make it so the user can't resize the window*/
-		XSizeHints sh = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		XSizeHints sh;
 		sh.flags = (1L << 4) | (1L << 5);
 		sh.min_width = sh.max_width = win->r.w;
 		sh.min_height = sh.max_height = win->r.h;
@@ -3531,7 +3531,7 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 	if (!(win->_flags & RGFW_windowNoResize))
 		return;
 
-	XSizeHints sh = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	XSizeHints sh;
 	sh.flags = (1L << 4) | (1L << 5);
 	sh.min_width = sh.max_width = a.w;
 	sh.min_height = sh.max_height = a.h;
