@@ -3067,7 +3067,7 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 #endif /* RGFW_WAYLAND */
 #if !defined(RGFW_NO_X11) && defined(RGFW_WAYLAND)
 void RGFW_useWayland(b8 wayland) { RGFW_useWaylandBool = wayland;  }
-#define RGFW_GOTO_WAYLAND(fallback) if (RGFW_useWaylandBool || fallback) goto wayland
+#define RGFW_GOTO_WAYLAND(fallback) if (RGFW_useWaylandBool && fallback == 0) goto wayland
 #else
 #define RGFW_GOTO_WAYLAND(fallback) 
 void RGFW_useWayland(b8 wayland) { RGFW_UNUSED(wayland); }
@@ -3593,6 +3593,11 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 		XMapWindow(win->src.display, win->src.window);
 		XFlush(win->src.display);
+		if (wm_delete_window == 0) {
+			wm_delete_window = XInternAtom(win->src.display, "WM_DELETE_WINDOW", False);
+			RGFW_XUTF8_STRING = XInternAtom(win->src.display, "UTF8_STRING", False);
+			RGFW_XCLIPBOARD = XInternAtom(win->src.display, "CLIPBOARD", False);
+		}
 	#endif
 
 	struct wl_registry *registry = wl_display_get_registry(win->src.wl_display);
@@ -3683,6 +3688,12 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	#ifdef RGFW_DEBUG
 		printf("RGFW INFO: a window with a rect of {%i, %i, %i, %i} \n", win->r.x, win->r.y, win->r.w, win->r.h);
 	#endif
+
+	#ifndef RGFW_NO_MONITOR
+	if (flags & RGFW_windowScaleToMonitor)
+		RGFW_window_scaleToMonitor(win);
+	#endif
+
 	RGFW_window_setMouseDefault(win);
 	RGFW_windowsOpen++;
 	return win; /*return newly created window*/
@@ -4577,7 +4588,7 @@ void RGFW_window_show(RGFW_window* win) {
 }
 
 RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
-	RGFW_GOTO_WAYLAND(0);
+	RGFW_GOTO_WAYLAND(1);
 	#ifdef RGFW_X11
 	XEvent event;
 	int format;
@@ -4590,7 +4601,7 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	XConvertSelection(RGFW_root->src.display, RGFW_XCLIPBOARD, RGFW_XUTF8_STRING, XSEL_DATA, RGFW_root->src.window, CurrentTime);
 	XSync(RGFW_root->src.display, 0);
 	XNextEvent(RGFW_root->src.display, &event);
-
+	
 	if (event.type != SelectionNotify || event.xselection.selection != RGFW_XCLIPBOARD || event.xselection.property == 0)
 		return -1;
 
@@ -4618,7 +4629,7 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 }
 
 void RGFW_writeClipboard(const char* text, u32 textLen) {
-	RGFW_GOTO_WAYLAND(0);
+	RGFW_GOTO_WAYLAND(1);
 	#ifdef RGFW_X11
 	RGFW_LOAD_ATOM(SAVE_TARGETS);
 	RGFW_LOAD_ATOM(TARGETS);
@@ -4929,7 +4940,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 
 RGFW_monitor RGFW_monitors[6];
 RGFW_monitor* RGFW_getMonitors(void) {
-	RGFW_GOTO_WAYLAND(0);
+	RGFW_GOTO_WAYLAND(1);
 	#ifdef RGFW_X11
 	size_t i;
 	for (i = 0; i < (size_t)ScreenCount(RGFW_root->src.display) && i < 6; i++)
@@ -4943,7 +4954,7 @@ RGFW_monitor* RGFW_getMonitors(void) {
 }
 
 RGFW_monitor RGFW_getPrimaryMonitor(void) {
-	RGFW_GOTO_WAYLAND(0);
+	RGFW_GOTO_WAYLAND(1);
 	#ifdef RGFW_X11
 	RGFW_ASSERT(RGFW_root != NULL);
 	return RGFW_XCreateMonitor(DefaultScreen(RGFW_root->src.display));
@@ -4955,7 +4966,8 @@ RGFW_monitor RGFW_getPrimaryMonitor(void) {
 
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-
+	RGFW_GOTO_WAYLAND(1);
+#ifdef RGFW_X11
 	XWindowAttributes attrs;
     if (!XGetWindowAttributes(win->src.display, win->src.window, &attrs)) {
         return (RGFW_monitor){};
@@ -4998,7 +5010,10 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
             	return RGFW_XCreateMonitor(i);
 	}
 	#endif
+#endif
+wayland:
 	return (RGFW_monitor){};
+
 }
 
 #if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
