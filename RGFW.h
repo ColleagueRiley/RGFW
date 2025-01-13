@@ -2315,10 +2315,10 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 	#elif defined(RGFW_MACOS)
 	win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType)0);
 	#elif defined(RGFW_WAYLAND)
-		if (RGFW_useWaylandBool)
-			win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.wl_display);
-		else
-			win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.display);
+	if (RGFW_useWaylandBool)
+		win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.wl_display);
+	else
+		win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.display);
 	#else
 	win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.display);
 	#endif
@@ -4516,6 +4516,8 @@ RGFW_GOTO_WAYLAND(0);
 }
 
 void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) {
+RGFW_GOTO_WAYLAND(1);
+#ifdef RGFW_X11
 	RGFW_ASSERT(win != NULL);
 
 	XEvent event;
@@ -4530,6 +4532,10 @@ void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) {
 		return;
 
 	XWarpPointer(win->src.display, None, win->src.window, 0, 0, 0, 0, (int) p.x - win->r.x, (int) p.y - win->r.y);
+#endif
+#ifdef RGFW_WAYLAND
+	wayland:
+#endif
 }
 
 b32 RGFW_window_setMouseDefault(RGFW_window* win) {
