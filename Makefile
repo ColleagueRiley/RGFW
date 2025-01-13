@@ -66,7 +66,7 @@ ifeq ($(RGFW_WAYLAND),1)
 	NO_VULKAN = 1
 	NO_GLES = 0
 	NO_OSMESA = 0
-	LIBS = -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon 
+	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon 
 	LINK_GL1 = -lEGL -lGL -lwayland-egl
 
 endif

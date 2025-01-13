@@ -59,7 +59,7 @@ int main(void) {
         if (win2) RGFW_window_checkEvent(win2);
         #endif
 
-        RGFW_window_eventWait(win, RGFW_eventWaitNext);
+        //RGFW_window_eventWait(win, RGFW_eventWaitNext);
 
         while (RGFW_window_checkEvent(win) != NULL) {
             if (win->event.type == RGFW_windowMoved) {
