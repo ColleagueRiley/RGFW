@@ -240,7 +240,7 @@ else
 endif
 
 $(EXAMPLE_OUTPUTS): %: %.c RGFW.h
-	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $($)  -o $@$(EXT)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LINK_GL1) $(LIBS) $($)  -o $@$(EXT)
 
 debug: all
 	@for exe in $(EXAMPLE_OUTPUTS); do \

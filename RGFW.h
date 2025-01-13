@@ -2314,8 +2314,13 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 	win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.hdc);
 	#elif defined(RGFW_MACOS)
 	win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType)0);
+	#elif defined(RGFW_WAYLAND)
+		if (RGFW_useWaylandBool)
+			win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.wl_display);
+		else
+			win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.display);
 	#else
-	win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.wl_display);
+	win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.display);
 	#endif
 
 	EGLint major, minor;
