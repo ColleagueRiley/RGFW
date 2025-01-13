@@ -6905,7 +6905,7 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 		setlocale(LC_ALL, "en_US.UTF-8");
 
 		textLen = wcstombs(NULL, wstr, 0) + 1;
-		if (str != NULL && strCapacity <= textLen - 1)
+		if (str != NULL && (RGFW_ssize_t)strCapacity <= textLen - 1)
 			textLen = 0;
 		
 		if (str != NULL && textLen) {
