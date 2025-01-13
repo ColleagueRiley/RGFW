@@ -41,7 +41,6 @@ int main(void) {
     glMatrixMode(GL_MODELVIEW);
 
     RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
-
     while (RGFW_window_shouldClose(win) == 0) {
         while (RGFW_window_checkEvent(win)) {
             if (win->event.type == RGFW_quit)

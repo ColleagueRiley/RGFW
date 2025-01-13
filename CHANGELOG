@@ -45,6 +45,10 @@ new features:
 - autofree clipboard (no need to free it yourself)
 - RGFW_window_setBufferPtr to set win->buffer to your own pointer
 - RGFW_window_setMouse -> RGFW_loadMouse, RGFW_window_setMouse, RGFW_freeMouse
+- Wayland fallback
+    - fallback to X functions when wayland function isn't yet supported (eg. clipboard)
+    - Fallback to X when wayland compositor is not found (eg. when using a X11 server)
+    - Allow the user to switch to wayland/X during runtime (you have to compile with Wayand support (RGFW_WAYLAND))
 bugs:
 - Fix GLX runtime errors for certain GPUs 
 - Fix C++ support, mostly fixes warnings and errors
@@ -57,6 +61,8 @@ bugs:
 - make it easier to add custom backends
 - allow for less linking to be required (eg. -lopengl32 -lwimm, optional `RGFW_USE_XDL`)
 reviews/rewrites
+- Wayland rewrite
+    - integrate wayland with X code, allow for callbacks 
 - monitor review
     - SetProcessDPIAware, effective DPI
     - fix scaling units and math
