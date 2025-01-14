@@ -1,7 +1,12 @@
 changelog
 ---------
 
-Current Version: RGFW 1.5-dev
+Current Version: RGFW 1.5.1-dev
+-----------------------------------------------
+- fix wasm key event bug (key release events not being processed)
+
+
+Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
 This may not include all of the changes or breaking changes made.
 This is because 1.5 is the first release and I started taking releases and release notes more seriously. 
