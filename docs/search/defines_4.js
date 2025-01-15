@@ -1,11 +1,11 @@
 var searchData=
 [
-  ['rgfw_5falloc_0',['RGFW_ALLOC',['../RGFW_8h.html#a5edf63996559cba75efd28882b6cd0ec',1,'RGFW.h']]],
+  ['rgfw_5falloc_0',['RGFW_ALLOC',['../RGFW_8h.html#a64f14d44f6a4bd65025e4886dc8f3fbf',1,'RGFW.h']]],
   ['rgfw_5farea_1',['RGFW_AREA',['../RGFW_8h.html#a5edc5249799c8eb95f2a45db37f8b36d',1,'RGFW.h']]],
   ['rgfw_5fbit_2',['RGFW_BIT',['../RGFW_8h.html#aed63feab18d94fa0145cc8fabd6fbce3',1,'RGFW.h']]],
   ['rgfw_5fenum_3',['RGFW_ENUM',['../RGFW_8h.html#a697ee20054f6874a4d65c6eba16f5d27',1,'RGFW.h']]],
   ['rgfw_5ffalse_4',['RGFW_FALSE',['../RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c',1,'RGFW.h']]],
-  ['rgfw_5ffree_5',['RGFW_FREE',['../RGFW_8h.html#a925211c3597e02bd644b1253b8e36dfe',1,'RGFW.h']]],
+  ['rgfw_5ffree_5',['RGFW_FREE',['../RGFW_8h.html#a2ac54dc00132bf4c6f760463ab5148dd',1,'RGFW.h']]],
   ['rgfw_5fheader_6',['RGFW_HEADER',['../RGFW_8h.html#ae8ceb9b5ca0a3bd4c747d97a803ab7cc',1,'RGFW.h']]],
   ['rgfw_5fmax_5fdrops_7',['RGFW_MAX_DROPS',['../RGFW_8h.html#a9711b4ffc483384dffcbaa7f98c58385',1,'RGFW.h']]],
   ['rgfw_5fmax_5fpath_8',['RGFW_MAX_PATH',['../RGFW_8h.html#af68d9cc4adea676883383a0406c176f4',1,'RGFW.h']]],

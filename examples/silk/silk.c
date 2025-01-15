@@ -20,8 +20,8 @@ typedef int64_t    i64;
 #include "RGFW.h"
 
 int main(void) {
-    RGFW_setBufferSize(RGFW_AREA(500, 500));
     RGFW_window* win = RGFW_createWindow("Basic buffer example", RGFW_RECT(0, 0, 500, 500), RGFW_windowCenter | RGFW_windowTransparent | RGFW_windowNoResize);
+    RGFW_window_initBufferSize(win, RGFW_AREA(500, 500));
 
     u32 angle = 0;
 
