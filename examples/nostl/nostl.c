@@ -6,20 +6,15 @@
 #define RGFW_NO_IOKIT
 #include <stddef.h>
 
-char arr[100000];
+#include <stdio.h>
+
 size_t len = 0;
 
-/* a really  really really bad example of memory allocation */
-void* myMalloc(size_t size) {
-    if (len + size >= sizeof(arr)) {
-        return NULL;
-    }
-    
-    char* out = &arr[len];
-    len += size;
-    return (char*)out;
-}
-
+/* 
+    this program doesn't actually allocate memory using these 
+    No functions that use `RGFW_alloc` is called
+*/
+void* myMalloc(size_t size) { (void)(size); }
 void myFree(void* ptr) { (void)(ptr); } 
 
 void* memoryCopy(void* _dist, const void* _src, size_t size) {
@@ -60,14 +55,22 @@ size_t stringCompare(char* s1, char* s2, size_t size) {
 
 #include "RGFW.h"
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("no standard library", RGFW_RECT(0, 0, 200, 100), (u16)(RGFW_windowCenter | RGFW_windowAllowDND));
+    /* to avoid allocating a window*/
+    RGFW_window winStack; 
+    RGFW_window* win = &winStack;
+    RGFW_createWindowPtr("no standard library", RGFW_RECT(0, 0, 200, 100), 
+                                (u16)(RGFW_windowCenter | RGFW_windowAllowDND), win);
+    
+    size_t winLen = len;
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win));
         RGFW_window_swapBuffers(win);
+        len = winLen; // free memory of the frame
     }
 
     RGFW_window_close(win);
+    len = 0; // free all memory 
     
     return 0;
 }
