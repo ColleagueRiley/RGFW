@@ -5440,7 +5440,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
 	OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
 	#endif
 	#else
-	RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
+	RGFW_UNUSED(win); RGFW_UNUSED(buffer); RGFW_UNUSED(area); /*!< if buffer rendering is not being used */
 	#endif
 }
 
@@ -7703,7 +7703,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 		OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
 	#endif
 	#else
-		RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
+		RGFW_UNUSED(win);  RGFW_UNUSED(buffer); RGFW_UNUSED(area); /*!< if buffer rendering is not being used */
 	#endif
 }
 
@@ -9211,7 +9211,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
 			OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
 	#endif
 	#else
-	RGFW_UNUSED(win); /*!< if buffer rendering is not being used */
+	RGFW_UNUSED(win);  RGFW_UNUSED(buffer); RGFW_UNUSED(area); /*!< if buffer rendering is not being used */
 	#endif
 }
 
