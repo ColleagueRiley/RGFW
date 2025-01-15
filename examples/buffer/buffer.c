@@ -1,6 +1,6 @@
 #define RGFW_IMPLEMENTATION
 #define RGFW_BUFFER
-//#define RGFW_OPENGL
+#define RGFW_OPENGL
 
 #include "RGFW.h"
 
@@ -66,6 +66,7 @@ void drawRect(RGFW_window* win, RGFW_rect r, u8 color[4]) {
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("Basic buffer example", RGFW_RECT(0, 0, 500, 500), RGFW_windowCenter | RGFW_windowTransparent);
+    RGFW_window_initBuffer(win);
     
     screenSize = RGFW_getScreenSize();
     
@@ -83,7 +84,7 @@ int main(void) {
 
         drawBitmap(win, icon, RGFW_RECT(100, 100, 3, 3));
         
-        //RGFW_window_setGPURender(win, 0);
+        RGFW_window_setGPURender(win, 0);
         RGFW_window_swapBuffers(win);
         RGFW_window_checkFPS(win, 0);
     }
