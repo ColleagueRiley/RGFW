@@ -625,6 +625,7 @@ typedef struct RGFW_window_src {
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 		HDC hdcMem;
 		HBITMAP bitmap;
+		u8* bitmapBits;
 	#endif
 	RGFW_area maxSize, minSize; /*!< for setting max/min resize (RGFW_WINDOWS) */
 } RGFW_window_src;
@@ -1731,7 +1732,11 @@ void RGFW_window_initBuffer(RGFW_window* win) {
 
 void RGFW_window_initBufferSize(RGFW_window* win, RGFW_area area) {
 	if (!(win->_flags & RGFW_BUFFER_ALLOC)) win->_flags |= RGFW_BUFFER_ALLOC;
+	#ifndef RGFW_WINDOWS
 	return RGFW_window_initBufferPtr(win, RGFW_ALLOC(area.w * area.h * 4), area);
+	#else /* windows's bitmap allocs memory for us */
+	return RGFW_window_initBufferPtr(win, NULL, area);
+	#endif
 }
 
 #ifdef RGFW_MACOS
@@ -5429,9 +5434,12 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
 	win->src.bitmap = CreateDIBSection(win->src.hdc,
 		(BITMAPINFO*) &bi,
 		DIB_RGB_COLORS,
-		(void**) &win->buffer,
+		(void**) &win->src.bitmapBits,
 		NULL,
 		(DWORD) 0);
+	
+	if (win->buffer == NULL)
+		win->buffer = win->src.bitmapBits;
 
 	win->src.hdcMem = CreateCompatibleDC(win->src.hdc);
 
@@ -6883,6 +6891,9 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 
 	if (!(win->_flags & RGFW_NO_CPU_RENDER)) {
 		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+			if (win->buffer != win->src.bitmapBits)
+				memcpy(win->src.bitmapBits, win->buffer, win->bufferSize.w * win->bufferSize.h * 4);
+			
 			HGDIOBJ oldbmp = SelectObject(win->src.hdcMem, win->src.bitmap);
 			BitBlt(win->src.hdc, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
 			SelectObject(win->src.hdcMem, oldbmp);
