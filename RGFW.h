@@ -3732,9 +3732,9 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	win->event.type = 0;
 
 	/* xdnd data */
-	Window source = 0;
-	long version = 0;
-	i32 format = 0;
+	static Window source = 0;
+	static long version = 0;
+	static i32 format = 0;
 	
 	XEvent reply = { ClientMessage };
 
@@ -3892,7 +3892,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			source = E.xclient.data.l[0];
 			version = E.xclient.data.l[1] >> 24;
 			format = None;
-
 			if (list) {
 				Atom actualType;
 				i32 actualFormat;
@@ -3918,7 +3917,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			}
 
 			for (size_t i = 0; i < count; i++) {
-				if (formats[i] == XtextUriList || formats[i] == XtextPlain) {
+				if (formats[i] == XtextUriList || formats[i] == XtextPlain) {	
 					format = (int)formats[i];
 					break;
 				}
@@ -3932,6 +3931,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		}
 
 		if (E.xclient.message_type == XdndPosition) {
+			printf("XdndPosition\n");
 			const i32 xabs = (E.xclient.data.l[2] >> 16) & 0xffff;
 			const i32 yabs = (E.xclient.data.l[2]) & 0xffff;
 			Window dummy;
@@ -3961,10 +3961,9 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			XFlush(win->src.display);
 			break;
 		}
-
 		if (E.xclient.message_type != XdndDrop)
 			break;
-
+		
 		if (version > 5)
 			break;
 
@@ -3974,7 +3973,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			Time time = (version >= 1)
 				? (Time)E.xclient.data.l[2]
 				: CurrentTime;
-
+		
 			XConvertSelection(
 				win->src.display, XdndSelection, (Atom)format,
 				XdndSelection, win->src.window, time
@@ -3992,7 +3991,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		/* this is only for checking for xdnd drops */
 		if (E.xselection.property != XdndSelection || !(win->_flags & RGFW_windowAllowDND))
 			break;
-
 		char* data;
 		unsigned long result;
 
@@ -4520,7 +4518,7 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	
 	if (event.type != SelectionNotify || event.xselection.selection != RGFW_XCLIPBOARD || event.xselection.property == 0)
 		return -1;
-
+	
 	XGetWindowProperty(event.xselection.display, event.xselection.requestor,
 		event.xselection.property, 0L, (~0L), 0, AnyPropertyType, &target,
 		&format, &sizeN, &N, (unsigned char**) &data);
@@ -4553,15 +4551,35 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	RGFW_LOAD_ATOM(ATOM_PAIR);
 	RGFW_LOAD_ATOM(CLIPBOARD_MANAGER);
 
+	/* request ownership of the clipboard section and request to convert it, this means its our job to convert it */
 	XSetSelectionOwner(RGFW_root->src.display, RGFW_XCLIPBOARD, RGFW_root->src.window, CurrentTime);
+	
+	if (XGetSelectionOwner(RGFW_root->src.display, RGFW_XCLIPBOARD) != RGFW_root->src.window) {
+       fprintf(stderr, "RGFW: X11 failed to become owner of clipboard selection\n");
+	   return;
+    }
 
 	XConvertSelection(RGFW_root->src.display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, RGFW_root->src.window, CurrentTime);
+
+	const Atom targets[] = { TARGETS,
+							MULTIPLE,
+							RGFW_XUTF8_STRING,
+							XA_STRING };
+
 	for (;;) {
 		XEvent event;
 
 		XNextEvent(RGFW_root->src.display, &event);
-		if (event.type != SelectionRequest) {
+		if (event.type != SelectionRequest && event.type != SelectionNotify) {
 			break;
+		}
+
+		if (event.type == SelectionNotify) {
+			if (event.xselection.target == SAVE_TARGETS) {
+				fprintf(stderr, "RGFW: X11 failed to claim ownership of clipboard or there is no clipboard manager\n");
+				break;
+			}
+			else continue;
 		}
 
 		const XSelectionRequestEvent* request = &event.xselectionrequest;
@@ -4570,11 +4588,6 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 		reply.xselection.property = 0;
 
 		if (request->target == TARGETS) {
-			const Atom targets[] = { TARGETS,
-									MULTIPLE,
-									RGFW_XUTF8_STRING,
-									XA_STRING };
-
 			XChangeProperty(RGFW_root->src.display,
 				request->requestor,
 				request->property,
@@ -4585,9 +4598,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 				sizeof(targets) / sizeof(targets[0]));
 
 			reply.xselection.property = request->property;
-		}
-
-		if (request->target == MULTIPLE) {
+		} else if (request->target == MULTIPLE) {
 			Atom* targets = NULL;
 
 			Atom actualType = 0;
@@ -4612,7 +4623,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 					targets[i + 1] = None;
 				}
 			}
-
+			
 			XChangeProperty(RGFW_root->src.display,
 				request->requestor,
 				request->property,
@@ -4627,7 +4638,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 
 			reply.xselection.property = request->property;
 		}
-
+		
 		reply.xselection.display = request->display;
 		reply.xselection.requestor = request->requestor;
 		reply.xselection.selection = request->selection;
