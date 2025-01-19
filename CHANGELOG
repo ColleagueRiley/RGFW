@@ -8,6 +8,8 @@ Current Version: RGFW 1.5.1-dev
 - Replace `RGFW_window_setBufferPtr` and `RGFW_setBufferSize` with `RGFW_window_initBuffer`, `RGFW_window_initBufferSize` and `RGFW_window_initBufferPtr`
     Also forces the user to run `RGFW_window_initBuffer` to allocate a buffer
 - Get rid of RGFW_allocator, most of the memory that needs to be allocated is optional and is allocated on init anyway.
+- fix xDND data restarts bug 
+- print errors in writeclipboard (X11)
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
