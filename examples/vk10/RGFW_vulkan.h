@@ -73,9 +73,9 @@ int RGFW_createCommandBuffers(RGFW_window_vulkanInfo* vulkWin);
 int RGFW_createSyncObjects(RGFW_window_vulkanInfo* vulkWin);
 RGFWDEF int RGFW_createFramebuffers(RGFW_window* win, RGFW_window_vulkanInfo* vulkWin);
 RGFWDEF VkShaderModule RGFW_createShaderModule(const u32* code, size_t code_size);
-void  RGFW_CreateDebugCallback();
-const char* RGFW_GetDebugSeverityStr(VkDebugUtilsMessageSeverityFlagBitsEXT Severity);
-const char* RGFW_GetDebugType(VkDebugUtilsMessageTypeFlagsEXT Type);
+void  RGFW_createDebugCallback();
+const char* RGFW_getDebugSeverityStr(VkDebugUtilsMessageSeverityFlagBitsEXT Severity);
+const char* RGFW_getDebugType(VkDebugUtilsMessageTypeFlagsEXT Type);
 
 #endif
 
@@ -111,23 +111,23 @@ RGFW_vulkanInfo* RGFW_initVulkan(RGFW_window* win, RGFW_window_vulkanInfo* vulkW
 
     return &RGFW_vulkan_info;
 }
-static VKAPI_ATTR VkBool32 VKAPI_CALL RGFW_DebugCallback(
+static VKAPI_ATTR VkBool32 VKAPI_CALL RGFW_debugCallback(
   VkDebugUtilsMessageSeverityFlagBitsEXT Severity,
   VkDebugUtilsMessageTypeFlagsEXT Type,
   const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
   void* pUserData
 ){
   printf("\nDebug callback: %s\n",pCallbackData->pMessage);
-  printf(" Severity: %s\n",RGFW_GetDebugSeverityStr(Severity));
-  printf(" Type: %s\n",RGFW_GetDebugType(Type));
+  printf(" Severity: %s\n",RGFW_getDebugSeverityStr(Severity));
+  printf(" Type: %s\n",RGFW_getDebugType(Type));
   printf(" Objects ");
 
   for (u32 i= 0; i < pCallbackData->objectCount; i++) {
-    printf("%llx ", pCallbackData->pObjects[i].objectHandle);
+    printf("%I64X", pCallbackData->pObjects[i].objectHandle);
   }
 }
 
-const char* RGFW_GetDebugSeverityStr(VkDebugUtilsMessageSeverityFlagBitsEXT Severity)
+const char* RGFW_getDebugSeverityStr(VkDebugUtilsMessageSeverityFlagBitsEXT Severity)
 {
 	switch (Severity) {
 	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
@@ -149,7 +149,7 @@ const char* RGFW_GetDebugSeverityStr(VkDebugUtilsMessageSeverityFlagBitsEXT Seve
 
 	return "NO SUCH SEVERITY!";
 }
-const char* RGFW_GetDebugType(VkDebugUtilsMessageTypeFlagsEXT Type)
+const char* RGFW_getDebugType(VkDebugUtilsMessageTypeFlagsEXT Type)
 {
 	switch (Type) {
 	case VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT:
@@ -173,7 +173,7 @@ const char* RGFW_GetDebugType(VkDebugUtilsMessageTypeFlagsEXT Type)
 
 	return "NO SUCH TYPE!";
 }
-void  RGFW_CreateDebugCallback(){
+void  RGFW_createDebugCallback(){
 printf("Creating debug callback\n");
   VkDebugUtilsMessengerCreateInfoEXT MessengerCreateInfo = {
     .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
@@ -186,7 +186,7 @@ printf("Creating debug callback\n");
     .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
     VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
     VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-    .pfnUserCallback = &RGFW_DebugCallback,
+    .pfnUserCallback = &RGFW_debugCallback,
     .pUserData = NULL
   };
 
@@ -296,7 +296,7 @@ if (debugExtension != NULL) {
 
 #ifdef RGFW_DEBUG_VULKAN
     RGFW_vulkan_info.debugMessenger= VK_NULL_HANDLE;
-    RGFW_CreateDebugCallback();
+    RGFW_createDebugCallback();
 #endif
     RGFW_createSurface(RGFW_vulkan_info.instance, win, vulkWin);
 
