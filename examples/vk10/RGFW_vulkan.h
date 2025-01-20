@@ -30,7 +30,7 @@ typedef struct RGFW_window_vulkanInfo {
     u32 image_count;
     VkImage* swapchain_images;
     VkImageView* swapchain_image_views;
-} RGFW_window_vulkanInfo;   
+} RGFW_window_vulkanInfo;
 
 typedef struct RGFW_vulkanInfo {
     VkInstance instance;
@@ -73,6 +73,10 @@ int RGFW_createCommandBuffers(RGFW_window_vulkanInfo* vulkWin);
 int RGFW_createSyncObjects(RGFW_window_vulkanInfo* vulkWin);
 RGFWDEF int RGFW_createFramebuffers(RGFW_window* win, RGFW_window_vulkanInfo* vulkWin);
 RGFWDEF VkShaderModule RGFW_createShaderModule(const u32* code, size_t code_size);
+void  RGFW_CreateDebugCallback();
+const char* RGFW_GetDebugSeverityStr(VkDebugUtilsMessageSeverityFlagBitsEXT Severity);
+const char* RGFW_GetDebugType(VkDebugUtilsMessageTypeFlagsEXT Type);
+
 #endif
 
 #ifdef RGFW_VULKAN_IMPLEMENTATION
@@ -107,7 +111,101 @@ RGFW_vulkanInfo* RGFW_initVulkan(RGFW_window* win, RGFW_window_vulkanInfo* vulkW
 
     return &RGFW_vulkan_info;
 }
+static VKAPI_ATTR VkBool32 VKAPI_CALL RGFW_DebugCallback(
+  VkDebugUtilsMessageSeverityFlagBitsEXT Severity,
+  VkDebugUtilsMessageTypeFlagsEXT Type,
+  const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+  void* pUserData
+){
+  printf("\nDebug callback: %s\n",pCallbackData->pMessage);
+  printf(" Severity: %s\n",RGFW_GetDebugSeverityStr(Severity));
+  printf(" Type: %s\n",RGFW_GetDebugType(Type));
+  printf(" Objects ");
 
+  for (u32 i= 0; i < pCallbackData->objectCount; i++) {
+    printf("%llx ", pCallbackData->pObjects[i].objectHandle);
+  }
+}
+
+const char* RGFW_GetDebugSeverityStr(VkDebugUtilsMessageSeverityFlagBitsEXT Severity)
+{
+	switch (Severity) {
+	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+		return "Verbose";
+
+	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+		return "Info";
+
+	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+		return "Warning";
+
+	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+		return "Error";
+
+	default:
+		printf("Invalid severity code %d\n", Severity);
+		exit(1);
+	}
+
+	return "NO SUCH SEVERITY!";
+}
+const char* RGFW_GetDebugType(VkDebugUtilsMessageTypeFlagsEXT Type)
+{
+	switch (Type) {
+	case VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT:
+		return "General";
+
+	case VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT:
+		return "Validation";
+
+	case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT:
+		return "Performance";
+
+#ifdef _WIN64 // doesn't work on my Linux for some reason
+	case VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT:
+		return "Device address binding";
+#endif
+
+	default:
+		printf("Invalid type code %d\n", Type);
+		exit(1);
+	}
+
+	return "NO SUCH TYPE!";
+}
+void  RGFW_CreateDebugCallback(){
+printf("Creating debug callback\n");
+  VkDebugUtilsMessengerCreateInfoEXT MessengerCreateInfo = {
+    .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+    .pNext = NULL,
+    .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+    VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+    VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+    VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+    VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+    .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+    VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+    VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+    .pfnUserCallback = &RGFW_DebugCallback,
+    .pUserData = NULL
+  };
+
+  PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessenger = VK_NULL_HANDLE;
+  vkCreateDebugUtilsMessenger=(PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(RGFW_vulkan_info.instance,"vkCreateDebugUtilsMessengerEXT");
+  if(!vkCreateDebugUtilsMessenger) {
+    printf("vkCreateDebugUtilsMessenger Failed\n");
+    exit(1);
+  }
+  VkResult debug_result = vkCreateDebugUtilsMessenger(
+    RGFW_vulkan_info.instance,
+    &MessengerCreateInfo,
+    NULL,
+    &RGFW_vulkan_info.debugMessenger
+  );
+  if (debug_result != VK_SUCCESS) {
+        printf("Failed to create debug messenger!");
+    }
+}
 int RGFW_initData(RGFW_window_vulkanInfo* vulkWin) {
     assert(vulkWin != NULL);
 
@@ -153,6 +251,9 @@ int RGFW_deviceInitialization(RGFW_window* win, RGFW_window_vulkanInfo* vulkWin)
     appInfo.pApplicationName = "RGFW app";
     appInfo.apiVersion = VK_MAKE_VERSION(1, 0, 0);
 
+const char* ppEnabledExtensionNames[] = {VK_KHR_SURFACE_EXTENSION_NAME};
+uint32_t enabledExtensionCount = 1;
+
     char* extension =
 #ifdef RGFW_WINDOWS
         "VK_KHR_win32_surface";
@@ -164,21 +265,39 @@ int RGFW_deviceInitialization(RGFW_window* win, RGFW_window_vulkanInfo* vulkWin)
         NULL;
 #endif
 
+if (extension != NULL) {
+    ppEnabledExtensionNames[enabledExtensionCount++] = extension;
+}
+
+  char* debugExtension =
+#ifdef RGFW_DEBUG_VULKAN
+    VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+#else
+    NULL;
+#endif
+
+if (debugExtension != NULL) {
+    ppEnabledExtensionNames[enabledExtensionCount++] = debugExtension;
+}
+    // Print each extension name
+    for (int i = 0; i < enabledExtensionCount; i++) {
+        printf("%s\n", ppEnabledExtensionNames[i]);
+    }
     VkInstanceCreateInfo instance_create_info = { 0 };
     instance_create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instance_create_info.pApplicationInfo = &appInfo;
-    instance_create_info.enabledExtensionCount = extension ? 2 : 0,
-        instance_create_info.ppEnabledExtensionNames = (const char* [2]){
-                VK_KHR_SURFACE_EXTENSION_NAME,
-                extension
-    };
+    instance_create_info.enabledExtensionCount = enabledExtensionCount;
+    instance_create_info.ppEnabledExtensionNames = ppEnabledExtensionNames;
 
     if (vkCreateInstance(&instance_create_info, NULL, &RGFW_vulkan_info.instance) != VK_SUCCESS) {
         fprintf(stderr, "failed to create instance!\n");
         return -1;
     }
 
-
+#ifdef RGFW_DEBUG_VULKAN
+    RGFW_vulkan_info.debugMessenger= VK_NULL_HANDLE;
+    RGFW_CreateDebugCallback();
+#endif
     RGFW_createSurface(RGFW_vulkan_info.instance, win, vulkWin);
 
     u32 deviceCount = 0;
@@ -428,7 +547,7 @@ int RGFW_createFramebuffers(RGFW_window* win, RGFW_window_vulkanInfo* vulkWin) {
     return 0;
 }
 
-void RGFW_freeVulkan(RGFW_window_vulkanInfo* vulkWin) {    
+void RGFW_freeVulkan(RGFW_window_vulkanInfo* vulkWin) {
     for (u32 i = 0; i < vulkWin->image_count; i++) {
         vkDestroyImageView(RGFW_vulkan_info.device, vulkWin->swapchain_image_views[i], NULL);
     }
@@ -456,7 +575,8 @@ void RGFW_freeVulkan(RGFW_window_vulkanInfo* vulkWin) {
     vkDestroyPipelineLayout(RGFW_vulkan_info.device, RGFW_vulkan_info.pipeline_layout, NULL);
     vkDestroyRenderPass(RGFW_vulkan_info.device, RGFW_vulkan_info.render_pass, NULL);
 
-#ifdef RGFW_DEBUG
+#ifdef RGFW_DEBUG_VULKAN
+    printf("RGFW_DEBUG_VULKAN is defined");
     PFN_vkDestroyDebugUtilsMessengerEXT func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(RGFW_vulkan_info.instance, "vkDestroyDebugUtilsMessengerEXT");
     if (func != NULL) {
         func(RGFW_vulkan_info.instance, RGFW_vulkan_info.debugMessenger, NULL);
