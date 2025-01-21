@@ -26,7 +26,7 @@
 RGFW_vulkanInfo *vulkan_info;
 
 int createGraphicsPipeline(void);
-int commandBuffers(RGFW_window *win, RGFW_window_vulkanInfo *vulkWin);
+int commandBuffers(RGFW_window_vulkanInfo *vulkWin);
 int draw_frame(RGFW_window_vulkanInfo *vulkWin);
 
 float mouse_data[2] = {0.0f, 0.0f};
@@ -60,7 +60,7 @@ int main(void) {
     }
 
     if (vulkan_info != NULL) {
-      commandBuffers(win, &vulkWin);
+      commandBuffers(&vulkWin);
       draw_frame(&vulkWin);
     }
   }
@@ -225,7 +225,7 @@ int createGraphicsPipeline(void) {
   return 0;
 }
 
-int commandBuffers(RGFW_window *win, RGFW_window_vulkanInfo *vulkWin) {
+int commandBuffers(RGFW_window_vulkanInfo *vulkWin) {
   for (size_t i = 0; i < vulkWin->image_count; i++) {
     VkCommandBufferBeginInfo begin_info = {0};
     begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
