@@ -50,8 +50,8 @@ int main(void) {
     }
 
     if (vulkan_info != NULL) {
-      draw_frame(&vulkWin);
       commandBuffers(&vulkWin);
+      draw_frame(&vulkWin);
     }
   }
 
