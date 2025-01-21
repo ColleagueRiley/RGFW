@@ -123,7 +123,11 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL RGFW_debugCallback(
   printf(" Objects ");
 
   for (u32 i= 0; i < pCallbackData->objectCount; i++) {
-    printf("%I64X ", pCallbackData->pObjects[i].objectHandle);
+    #ifdef _WIN32
+    printf("%llx ", pCallbackData->pObjects[i].objectHandle);
+    #else
+    printf("%lx ", pCallbackData->pObjects[i].objectHandle);
+    #endif
   }
 }
 
