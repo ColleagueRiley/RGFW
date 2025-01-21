@@ -50,7 +50,6 @@ int main(void) {
     }
 
     if (vulkan_info != NULL) {
-      commandBuffers(&vulkWin);
       draw_frame(&vulkWin);
     }
   }
@@ -302,6 +301,7 @@ int draw_frame(RGFW_window_vulkanInfo *vulkWin) {
   submitInfo.pWaitSemaphores = wait_semaphores;
   submitInfo.pWaitDstStageMask = wait_stages;
 
+  commandBuffers(vulkWin);
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = &vulkan_info->command_buffers[image_index];
 
