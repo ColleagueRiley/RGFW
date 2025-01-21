@@ -3651,6 +3651,87 @@ RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
 	return RGFWMouse;
 }
 
+RGFWDEF void RGFW_XHandleClipboardSelection(XEvent* event);
+const char* RGFW_clipboard_text;
+size_t RGFW_clipboard_textLen;
+
+void RGFW_XHandleClipboardSelection(XEvent* event) {
+	RGFW_LOAD_ATOM(ATOM_PAIR);
+	RGFW_LOAD_ATOM(MULTIPLE);
+	RGFW_LOAD_ATOM(TARGETS);
+
+	const Atom targets[] = { TARGETS,
+							MULTIPLE,
+							RGFW_XUTF8_STRING,
+							XA_STRING };
+	
+	const XSelectionRequestEvent* request = &event->xselectionrequest;
+
+	XEvent reply = { SelectionNotify };
+	reply.xselection.property = 0;
+	
+	if (request->target == TARGETS) {
+		XChangeProperty(RGFW_root->src.display,
+			request->requestor,
+			request->property,
+			4,
+			32,
+			PropModeReplace,
+			(u8*) targets,
+			sizeof(targets) / sizeof(targets[0]));
+
+		reply.xselection.property = request->property;
+	} else if (request->target == MULTIPLE) {
+		Atom* targets = NULL;
+
+		Atom actualType = 0;
+		int actualFormat = 0;
+		unsigned long count = 0, bytesAfter = 0;
+
+		XGetWindowProperty(RGFW_root->src.display, request->requestor, request->property, 0, LONG_MAX, False, ATOM_PAIR, &actualType, &actualFormat, &count, &bytesAfter, (u8**) &targets);
+
+		unsigned long i;
+		for (i = 0; i < (u32)count; i += 2) {
+			if (targets[i] == RGFW_XUTF8_STRING || targets[i] == XA_STRING) {
+				XChangeProperty(RGFW_root->src.display,
+					request->requestor,
+					targets[i + 1],
+					targets[i],
+					8,
+					PropModeReplace,
+					(u8*) RGFW_clipboard_text,
+					RGFW_clipboard_textLen);
+				XFlush(RGFW_root->src.display);
+			} else {
+				targets[i + 1] = None;
+			}
+		}
+		
+		XChangeProperty(RGFW_root->src.display,
+			request->requestor,
+			request->property,
+			ATOM_PAIR,
+			32,
+			PropModeReplace,
+			(u8*) targets,
+			count);
+
+		XFlush(RGFW_root->src.display);
+		XFree(targets);
+
+		reply.xselection.property = request->property;
+	}
+
+	reply.xselection.display = request->display;
+	reply.xselection.requestor = request->requestor;
+	reply.xselection.selection = request->selection;
+	reply.xselection.target = request->target;
+	reply.xselection.time = request->time;
+
+	XSendEvent(RGFW_root->src.display, request->requestor, False, 0, &reply);
+	XFlush(RGFW_root->src.display);
+}
+
 char* RGFW_strtok(char* str, const char* delimStr) {
     static char* static_str = NULL;
 
@@ -3987,6 +4068,11 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		RGFW_dndInitCallback(win, win->event.point);
 	} break;
+	case SelectionRequest:
+		RGFW_XHandleClipboardSelection(&E);
+		XFlush(win->src.display);
+		return RGFW_window_checkEvent(win);
+		break;
 	case SelectionNotify: {
 		/* this is only for checking for xdnd drops */
 		if (E.xselection.property != XdndSelection || !(win->_flags & RGFW_windowAllowDND))
@@ -4542,112 +4628,49 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	#endif
 }
 
+void RGFW_XHandleClipboardSelectionLoop(void) {
+	RGFW_LOAD_ATOM(SAVE_TARGETS);
+
+	for (;;) {
+		XEvent event;
+	  	XNextEvent(RGFW_root->src.display, &event);
+		switch (event.type) {
+			case SelectionRequest:
+				return RGFW_XHandleClipboardSelection(&event);
+			case SelectionNotify:
+				if (event.xselection.target == SAVE_TARGETS) {
+					#ifdef RGFW_DEBUG
+					fprintf(stderr, "RGFW: X11 failed to claim ownership of clipboard or there is no clipboard manager\n");
+					#endif
+					return;
+				}
+			default: break;
+		}
+	}
+}
+
 void RGFW_writeClipboard(const char* text, u32 textLen) {
 	RGFW_GOTO_WAYLAND(1);
 	#ifdef RGFW_X11
 	RGFW_LOAD_ATOM(SAVE_TARGETS);
-	RGFW_LOAD_ATOM(TARGETS);
-	RGFW_LOAD_ATOM(MULTIPLE);
-	RGFW_LOAD_ATOM(ATOM_PAIR);
-	RGFW_LOAD_ATOM(CLIPBOARD_MANAGER);
 
 	/* request ownership of the clipboard section and request to convert it, this means its our job to convert it */
 	XSetSelectionOwner(RGFW_root->src.display, RGFW_XCLIPBOARD, RGFW_root->src.window, CurrentTime);
-	
 	if (XGetSelectionOwner(RGFW_root->src.display, RGFW_XCLIPBOARD) != RGFW_root->src.window) {
-       fprintf(stderr, "RGFW: X11 failed to become owner of clipboard selection\n");
-	   return;
+		#ifdef RGFW_DEBUG
+    	fprintf(stderr, "RGFW: X11 failed to become owner of clipboard selection\n");
+	   	#endif
+		return;
     }
 
-	XConvertSelection(RGFW_root->src.display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, RGFW_root->src.window, CurrentTime);
+	RGFW_clipboard_text = text;
+	RGFW_clipboard_textLen = textLen;
 
-	const Atom targets[] = { TARGETS,
-							MULTIPLE,
-							RGFW_XUTF8_STRING,
-							XA_STRING };
+#ifdef RGFW_WAYLAND
+	if (RGFW_useWaylandBool)	
+		RGFW_XHandleClipboardSelectionLoop();
+#endif
 
-	for (;;) {
-		XEvent event;
-
-		XNextEvent(RGFW_root->src.display, &event);
-		if (event.type != SelectionRequest && event.type != SelectionNotify) {
-			break;
-		}
-
-		if (event.type == SelectionNotify) {
-			if (event.xselection.target == SAVE_TARGETS) {
-				fprintf(stderr, "RGFW: X11 failed to claim ownership of clipboard or there is no clipboard manager\n");
-				break;
-			}
-			else continue;
-		}
-
-		const XSelectionRequestEvent* request = &event.xselectionrequest;
-
-		XEvent reply = { SelectionNotify };
-		reply.xselection.property = 0;
-
-		if (request->target == TARGETS) {
-			XChangeProperty(RGFW_root->src.display,
-				request->requestor,
-				request->property,
-				4,
-				32,
-				PropModeReplace,
-				(u8*) targets,
-				sizeof(targets) / sizeof(targets[0]));
-
-			reply.xselection.property = request->property;
-		} else if (request->target == MULTIPLE) {
-			Atom* targets = NULL;
-
-			Atom actualType = 0;
-			int actualFormat = 0;
-			unsigned long count = 0, bytesAfter = 0;
-
-			XGetWindowProperty(RGFW_root->src.display, request->requestor, request->property, 0, LONG_MAX, False, ATOM_PAIR, &actualType, &actualFormat, &count, &bytesAfter, (u8**) &targets);
-
-			unsigned long i;
-			for (i = 0; i < (u32)count; i += 2) {
-				if (targets[i] == RGFW_XUTF8_STRING || targets[i] == XA_STRING) {
-					XChangeProperty(RGFW_root->src.display,
-						request->requestor,
-						targets[i + 1],
-						targets[i],
-						8,
-						PropModeReplace,
-						(u8*) text,
-						textLen);
-					XFlush(RGFW_root->src.display);
-				} else {
-					targets[i + 1] = None;
-				}
-			}
-			
-			XChangeProperty(RGFW_root->src.display,
-				request->requestor,
-				request->property,
-				ATOM_PAIR,
-				32,
-				PropModeReplace,
-				(u8*) targets,
-				count);
-
-			XFlush(RGFW_root->src.display);
-			XFree(targets);
-
-			reply.xselection.property = request->property;
-		}
-		
-		reply.xselection.display = request->display;
-		reply.xselection.requestor = request->requestor;
-		reply.xselection.selection = request->selection;
-		reply.xselection.target = request->target;
-		reply.xselection.time = request->time;
-
-		XSendEvent(RGFW_root->src.display, request->requestor, False, 0, &reply);
-		XFlush(RGFW_root->src.display);
-	}
 	#endif
 	#if defined(RGFW_WAYLAND)
 	wayland:
@@ -5044,6 +5067,15 @@ void RGFW_window_close(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_GOTO_WAYLAND(0);
 	#ifdef RGFW_X11
+	RGFW_LOAD_ATOM(CLIPBOARD_MANAGER);
+	RGFW_LOAD_ATOM(SAVE_TARGETS);
+		
+	/* to save the clipboard on the x server after the window is closed */
+	if (XGetSelectionOwner(win->src.display, RGFW_XCLIPBOARD) == win->src.window) {
+		XConvertSelection(win->src.display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, win->src.window, CurrentTime);
+		RGFW_XHandleClipboardSelectionLoop();
+	}
+
 	/* ungrab pointer if it was grabbed */
 	if (win->_flags & RGFW_HOLD_MOUSE)
 		XUngrabPointer(win->src.display, CurrentTime);
