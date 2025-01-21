@@ -5,7 +5,6 @@
 #define RGFW_PRINT_ERRORS
 #define RGFW_NO_API
 #include <RGFW.h>
-/* #include <cgltf.h> */
 /*
     This isn't included in RGFW.h itself because
     you'd want to define that stuff yourself in most usecases
