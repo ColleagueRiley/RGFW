@@ -10,6 +10,8 @@ Current Version: RGFW 1.5.1-dev
 - Get rid of RGFW_allocator, most of the memory that needs to be allocated is optional and is allocated on init anyway.
 - fix xDND data restarts bug 
 - print errors in writeclipboard (X11)
+- fix macOS titlebar bug (borderless window)
+- update Vulkan example (fix crashes with certain drivers, have triangle follow mouse)
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
