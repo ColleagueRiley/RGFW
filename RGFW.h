@@ -648,6 +648,8 @@ typedef struct RGFW_window_src {
 			XImage* bitmap;
 			GC gc;
 	#endif
+	char* clipboard; 	/* for writing to the clipboard selection */
+	size_t clipboard_len;
 #endif /* RGFW_X11 */
 #if defined(RGFW_WAYLAND)
 	struct wl_display* wl_display;
@@ -1696,6 +1698,7 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 	#ifndef RGFW_X11
 	RGFW_area screenR = RGFW_getScreenSize();
 	#else
+	win->src.clipboard = NULL;
 	win->src.display = XOpenDisplay(NULL);
 	RGFW_ASSERT(win->src.display != NULL);
 
@@ -3653,9 +3656,6 @@ RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
 
 
 RGFWDEF void RGFW_XHandleClipboardSelection(RGFW_window* win, XEvent* event);
-char* RGFW_clipboard_text = NULL;
-size_t RGFW_clipboard_textLen;
-
 
 void RGFW_XHandleClipboardSelection(RGFW_window* win, XEvent* event) {
 	RGFW_LOAD_ATOM(ATOM_PAIR);
@@ -3686,7 +3686,7 @@ void RGFW_XHandleClipboardSelection(RGFW_window* win, XEvent* event) {
 		for (i = 0; i < (u32)count; i += 2) {
 			if (targets[i] == RGFW_XUTF8_STRING || targets[i] == XA_STRING)
 				XChangeProperty(RGFW_root->src.display, request->requestor, targets[i + 1], targets[i],
-					8, PropModeReplace, RGFW_clipboard_text, RGFW_clipboard_textLen);
+					8, PropModeReplace, win->src.clipboard, win->src.clipboard_len);
 			else 
 				targets[i + 1] = None;
 		}
@@ -3704,7 +3704,7 @@ void RGFW_XHandleClipboardSelection(RGFW_window* win, XEvent* event) {
 			if (request->target != formats[i])
 				continue;
 			XChangeProperty(win->src.display, request->requestor, request->property, request->target,
-								8, PropModeReplace, (u8*) RGFW_clipboard_text, RGFW_clipboard_textLen);
+								8, PropModeReplace, (u8*) win->src.clipboard, win->src.clipboard_len);
 		}
 	}
 
@@ -4579,8 +4579,8 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	
 	if (XGetSelectionOwner(RGFW_root->src.display, RGFW_XCLIPBOARD) == RGFW_root->src.window) {
 		if (str != NULL)
-			strncpy(str, RGFW_clipboard_text, RGFW_clipboard_textLen);
-		return (RGFW_ssize_t)RGFW_clipboard_textLen;
+			strncpy(str, RGFW_root->src.clipboard, RGFW_root->src.clipboard_len);
+		return (RGFW_ssize_t)RGFW_root->src.clipboard_len;
 	}
 	
 	XEvent event;
@@ -4653,12 +4653,12 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 		return;
 	}
 
-	if (RGFW_clipboard_text)
-		RGFW_FREE(RGFW_clipboard_text);
+	if (RGFW_root->src.clipboard)
+		RGFW_FREE(RGFW_root->src.clipboard);
 
-	RGFW_clipboard_text = RGFW_ALLOC(textLen);
-	strncpy(RGFW_clipboard_text, text, textLen);
-	RGFW_clipboard_textLen = textLen;
+	RGFW_root->src.clipboard = RGFW_ALLOC(textLen);
+	strncpy(RGFW_root->src.clipboard, text, textLen);
+	RGFW_root->src.clipboard_len = textLen;
 #ifdef RGFW_WAYLAND
 	if (RGFW_useWaylandBool)	
 		RGFW_XHandleClipboardSelectionLoop(RGFW_root);
@@ -5058,7 +5058,6 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 
 void RGFW_window_close(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-	RGFW_GOTO_WAYLAND(0);
 	#ifdef RGFW_X11
 	/* to save the clipboard on the x server after the window is closed */
 	RGFW_LOAD_ATOM(CLIPBOARD_MANAGER);
@@ -5067,11 +5066,12 @@ void RGFW_window_close(RGFW_window* win) {
 		XConvertSelection(win->src.display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, win->src.window, CurrentTime);
 		RGFW_XHandleClipboardSelectionLoop(win);
 	}
-
-	if (RGFW_clipboard_text) {
-		RGFW_FREE(RGFW_clipboard_text);
-		RGFW_clipboard_text = NULL;
+	if (win->src.clipboard) {
+		RGFW_FREE(win->src.clipboard);
+		win->src.clipboard = NULL;
 	}
+
+	RGFW_GOTO_WAYLAND(0);
 
 	/* ungrab pointer if it was grabbed */
 	if (win->_flags & RGFW_HOLD_MOUSE)
