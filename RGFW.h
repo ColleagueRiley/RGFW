@@ -5363,17 +5363,25 @@ PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 RGFW_window RGFW_eventWindow;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	RECT windowRect;
+	GetWindowRect(hWnd, &windowRect);
+	
 	switch (message) {
 	case WM_MOVE:
-		RGFW_eventWindow.r.x = LOWORD(lParam);
-		RGFW_eventWindow.r.y = HIWORD(lParam);
+		RGFW_eventWindow.r.x = windowRect.left;
+		RGFW_eventWindow.r.y = windowRect.top;
 		RGFW_eventWindow.src.window = hWnd;
 		return DefWindowProcA(hWnd, message, wParam, lParam);
-	case WM_SIZE:
-		RGFW_eventWindow.r.w = LOWORD(lParam);
-		RGFW_eventWindow.r.h = HIWORD(lParam);
+	case WM_SIZE: {
+		RECT clientRect;
+		GetClientRect(hWnd, &clientRect);	
+		i32 offset = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
+
+		RGFW_eventWindow.r.w = windowRect.right - windowRect.left;
+		RGFW_eventWindow.r.h = (windowRect.bottom - windowRect.top) - offset;
 		RGFW_eventWindow.src.window = hWnd;
 		return DefWindowProcA(hWnd, message, wParam, lParam); // Call DefWindowProc after handling
+	}
 	default:
 		return DefWindowProcA(hWnd, message, wParam, lParam);
 	}
@@ -6028,8 +6036,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		return NULL;
 	}
 
-	MSG msg;
-
 	if (RGFW_eventWindow.src.window == win->src.window) {
 		if (RGFW_eventWindow.r.x != -1) {
 			win->r.x = RGFW_eventWindow.r.x;
@@ -6105,6 +6111,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		return &win->event;
 	}
 
+	MSG msg;
 	if (PeekMessageA(&msg, win->src.window, 0u, 0u, PM_REMOVE) == 0)
 		return NULL;
 
