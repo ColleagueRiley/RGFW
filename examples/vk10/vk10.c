@@ -26,9 +26,9 @@
 
 RGFW_vulkanInfo *vulkan_info;
 
-int createGraphicsPipeline(void);
-int commandBuffers(RGFW_window_vulkanInfo *vulkWin);
-int draw_frame(RGFW_window_vulkanInfo *vulkWin);
+int createGraphicsPipeline(RGFW_window* win);
+int commandBuffers(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin);
+int draw_frame(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin);
 
 int main(void) {
   RGFW_window *win =
@@ -38,7 +38,7 @@ int main(void) {
 
   vulkan_info = RGFW_initVulkan(win, &vulkWin);
   if (vulkan_info != NULL)
-    createGraphicsPipeline();
+    createGraphicsPipeline(win);
 
   u8 running = 1;
   while (running && !RGFW_isPressed(win, RGFW_escape)) {
@@ -50,7 +50,7 @@ int main(void) {
     }
 
     if (vulkan_info != NULL) {
-      draw_frame(&vulkWin);
+      draw_frame(win, &vulkWin);
     }
   }
 
@@ -61,7 +61,7 @@ int main(void) {
   return 0;
 }
 
-int createGraphicsPipeline(void) {
+int createGraphicsPipeline(RGFW_window* win) {
   VkShaderModule vert_module =
       RGFW_createShaderModule(vert_code, sizeof(vert_code));
   VkShaderModule frag_module =
@@ -209,7 +209,7 @@ int createGraphicsPipeline(void) {
   return 0;
 }
 
-int commandBuffers(RGFW_window_vulkanInfo *vulkWin) {
+int commandBuffers(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
   for (size_t i = 0; i < vulkWin->image_count; i++) {
     /* begin command buffer */
     VkCommandBufferBeginInfo begin_info = {0};
@@ -271,7 +271,7 @@ int commandBuffers(RGFW_window_vulkanInfo *vulkWin) {
   return 0;
 }
 
-int draw_frame(RGFW_window_vulkanInfo *vulkWin) {
+int draw_frame(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
   vkWaitForFences(vulkan_info->device, 1,
                   &vulkan_info->in_flight_fences[vulkan_info->current_frame],
                   VK_TRUE, UINT64_MAX);
@@ -301,7 +301,7 @@ int draw_frame(RGFW_window_vulkanInfo *vulkWin) {
   submitInfo.pWaitSemaphores = wait_semaphores;
   submitInfo.pWaitDstStageMask = wait_stages;
 
-  commandBuffers(vulkWin);
+  commandBuffers(win, vulkWin);
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = &vulkan_info->command_buffers[image_index];
 
