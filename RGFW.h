@@ -7812,7 +7812,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	}
 
 	if ((flags & RGFW_windowNoBorder))
-		RGFW_window_setBorder(win);
+		RGFW_window_setBorder(win, 0);
 
 	id str = NSString_stringWithUTF8String(name);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setTitle:"), str);
