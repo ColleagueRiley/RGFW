@@ -114,6 +114,8 @@ int createGraphicsPipeline(RGFW_window* win) {
   viewport.y = 0.0f;
   viewport.width = (float)win->r.w;
   viewport.height = (float)win->r.h;
+  viewport.width = (float)win->r.w;
+  viewport.height = (float)win->r.h;
   viewport.minDepth = 0.0f;
   viewport.maxDepth = 1.0f;
 
@@ -268,6 +270,7 @@ int commandBuffers(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
   return 0;
 }
 
+int draw_frame(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
 int draw_frame(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
   vkWaitForFences(vulkan_info->device, 1,
                   &vulkan_info->in_flight_fences[vulkan_info->current_frame],
