@@ -109,17 +109,6 @@ int createGraphicsPipeline(RGFW_window* win) {
   input_assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   input_assembly.primitiveRestartEnable = VK_FALSE;
 
-  /*RSGL_point3DF data[] = {
-      (RSGL_point3DF){-0.6, -0.75, 0.0f},
-      (RSGL_point3DF){0.6, -0.75, 0.0f},
-      (RSGL_point3DF){0, 0.75, 0.0f};
-  };
-
-  vkMapMemory(vulkan_info->device, data, 0, 3, 0, &data);
-  vkUnmapMemory(vulkan_info->device, DATA_BLOB);
-  vkBindBufferMemory(vulkan_info->device, 3, data, 0);
-  */
-
   VkViewport viewport;
   viewport.x = 0.0f;
   viewport.y = 0.0f;
