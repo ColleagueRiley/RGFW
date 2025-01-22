@@ -477,7 +477,7 @@ typedef RGFW_ENUM(u8, RGFW_mouseButton) {
 	RGFW_mouseMiddle, /*!< mouse-wheel-button is pressed*/
 	RGFW_mouseRight, /*!< right mouse button is pressed*/
 	RGFW_mouseScrollUp, /*!< mouse wheel is scrolling up*/
-	RGFW_mouseScrollDown, /*!< mouse wheel is scrolling down*/
+	RGFW_mouseScrollDown /*!< mouse wheel is scrolling down*/
 };
 
 #ifndef RGFW_MAX_PATH
@@ -3848,7 +3848,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	case ButtonRelease:
 		win->event.type = RGFW_mouseButtonPressed + (E.type == ButtonRelease); // the events match
 
-		win->event.button = E.xbutton.button;
+		win->event.button = E.xbutton.button - 1;
 		switch(win->event.button) {
 			case RGFW_mouseScrollUp:
 				win->event.scroll = 1;
