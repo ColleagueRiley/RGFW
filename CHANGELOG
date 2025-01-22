@@ -15,6 +15,7 @@ Current Version: RGFW 1.5.5-dev
 - rewrite writeclipboard, ensure the selection is properly being handled and the clipboard is properly being saved after the window is closed
 - add icon example
 - review winapi window_setIcon (fixes HICON persistance issue)
+- remove RGFW_mouseNone (fixes overflow bug, RGFW_mouseNone isn't used anyway)
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
