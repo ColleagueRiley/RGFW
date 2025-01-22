@@ -1,6 +1,6 @@
 /*
 *
-*	RGFW 1.5.1-dev
+*	RGFW 1.5.5-dev
 *
 * Copyright (C) 2022-25 ColleagueRiley
 *

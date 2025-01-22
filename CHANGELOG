@@ -1,7 +1,7 @@
 changelog
 ---------
 
-Current Version: RGFW 1.5.1-dev
+Current Version: RGFW 1.5.5-dev
 -----------------------------------------------
 - fix wasm key event bug (key release events not being processed)
 - Get rid of `RGFW_ALLOC_DROPFILES` (it's not actually useful)
@@ -10,8 +10,9 @@ Current Version: RGFW 1.5.1-dev
 - Get rid of RGFW_allocator, most of the memory that needs to be allocated is optional and is allocated on init anyway.
 - fix xDND data restarts bug 
 - print errors in writeclipboard (X11)
-- fix macOS titlebar bug (borderless window)
+- fix macOS titlebar api (borderless window)
 - update Vulkan example (fix crashes with certain drivers, have triangle follow mouse)
+- rewrite writeclipboard, ensure the selection is properly being handled and the clipboard is properly being saved after the window is closed
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
