@@ -117,10 +117,17 @@ int createGraphicsPipeline(RGFW_window* win) {
   viewport.minDepth = 0.0f;
   viewport.maxDepth = 1.0f;
 
+  VkRect2D scissor;
+  scissor.offset.x = 0;
+  scissor.offset.y = 0;
+  scissor.extent = (VkExtent2D){win->r.w, win->r.h};
+
   VkPipelineViewportStateCreateInfo viewport_state = {0};
   viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
   viewport_state.viewportCount = 1;
   viewport_state.pViewports = &viewport;
+  viewport_state.scissorCount = 1;
+  viewport_state.pScissors = &scissor;
 
   VkPipelineRasterizationStateCreateInfo rasterizer = {0};
   rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -172,7 +179,7 @@ int createGraphicsPipeline(RGFW_window* win) {
     return -1; // failed to create pipeline layout
   }
 
-  VkDynamicState dynamic_states[] = {VK_DYNAMIC_STATE_VIEWPORT};
+  VkDynamicState dynamic_states[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 
   VkPipelineDynamicStateCreateInfo dynamic_info = {0};
   dynamic_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
@@ -242,6 +249,12 @@ int commandBuffers(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
+    VkRect2D scissor;
+    scissor.offset.x = 0;
+    scissor.offset.y = 0;
+    scissor.extent = (VkExtent2D){win->r.w, win->r.h};
+    vkCmdSetScissor(vulkan_info->command_buffers[i], 0, 1, &scissor);
+
     vkCmdSetViewport(vulkan_info->command_buffers[i], 0, 1, &viewport);
 
     vkCmdBeginRenderPass(vulkan_info->command_buffers[i], &render_pass_info,
@@ -268,7 +281,6 @@ int commandBuffers(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
   return 0;
 }
 
-int draw_frame(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
 int draw_frame(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
   vkWaitForFences(vulkan_info->device, 1,
                   &vulkan_info->in_flight_fences[vulkan_info->current_frame],
@@ -298,6 +310,7 @@ int draw_frame(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
   submitInfo.waitSemaphoreCount = 1;
   submitInfo.pWaitSemaphores = wait_semaphores;
   submitInfo.pWaitDstStageMask = wait_stages;
+
   commandBuffers(win, vulkWin);
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = &vulkan_info->command_buffers[image_index];
