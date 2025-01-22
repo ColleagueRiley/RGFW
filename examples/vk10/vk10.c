@@ -4,14 +4,13 @@
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
 #define RGFW_NO_API
-#define RGFW_DEBUG_VULKAN
 #include <RGFW.h>
-
 /*
     This isn't included in RGFW.h itself because
     you'd want to define that stuff yourself in most usecases
 */
 #define RGFW_VULKAN_IMPLEMENTATION
+#define RGFW_DEBUG_VULKAN
 #include "RGFW_vulkan.h"
 
 /**
@@ -30,10 +29,23 @@ int createGraphicsPipeline(RGFW_window* win);
 int commandBuffers(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin);
 int draw_frame(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin);
 
+float mouse_data[2] = {0.0f, 0.0f};
+RGFWDEF void mousePosCallback(RGFW_window *win, RGFW_point point);
+void mousePosCallback(RGFW_window *win, RGFW_point point) {
+  printf("mouse moved %i %i\n", point.x, point.y);
+  float halfWidth = (float)(win->r.w / 2.0f);
+  float halfHeight = (float)(win->r.h / 2.0f);
+  mouse_data[0] = (float)(point.x - halfWidth) / halfWidth;
+  mouse_data[1] = (float)(point.y - halfHeight) / halfHeight;
+}
+
 int main(void) {
   RGFW_window *win =
       RGFW_createWindow("Vulkan Example", RGFW_RECT(0, 0, 500, 500),
                         RGFW_windowAllowDND | RGFW_windowCenter);
+
+  RGFW_setMousePosCallback(mousePosCallback);
+
   RGFW_window_vulkanInfo vulkWin;
 
   vulkan_info = RGFW_initVulkan(win, &vulkWin);
@@ -97,17 +109,6 @@ int createGraphicsPipeline(RGFW_window* win) {
   input_assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   input_assembly.primitiveRestartEnable = VK_FALSE;
 
-  /*RSGL_point3DF data[] = {
-      (RSGL_point3DF){-0.6, -0.75, 0.0f},
-      (RSGL_point3DF){0.6, -0.75, 0.0f},
-      (RSGL_point3DF){0, 0.75, 0.0f};
-  };
-
-  vkMapMemory(vulkan_info->device, data, 0, 3, 0, &data);
-  vkUnmapMemory(vulkan_info->device, DATA_BLOB);
-  vkBindBufferMemory(vulkan_info->device, 3, data, 0);
-  */
-
   VkViewport viewport;
   viewport.x = 0.0f;
   viewport.y = 0.0f;
@@ -162,10 +163,15 @@ int createGraphicsPipeline(RGFW_window* win) {
   color_blending.blendConstants[2] = 0.0f;
   color_blending.blendConstants[3] = 0.0f;
 
+  VkPushConstantRange range = {};
+  range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+  range.offset = 0;
+  range.size = sizeof(mouse_data);
   VkPipelineLayoutCreateInfo pipeline_layout_info = {0};
   pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
   pipeline_layout_info.setLayoutCount = 0;
-  pipeline_layout_info.pushConstantRangeCount = 0;
+  pipeline_layout_info.pushConstantRangeCount = 1;
+  pipeline_layout_info.pPushConstantRanges = &range;
 
   if (vkCreatePipelineLayout(vulkan_info->device, &pipeline_layout_info, NULL,
                              &vulkan_info->pipeline_layout) != VK_SUCCESS) {
@@ -173,8 +179,7 @@ int createGraphicsPipeline(RGFW_window* win) {
     return -1; // failed to create pipeline layout
   }
 
-  VkDynamicState dynamic_states[] = {VK_DYNAMIC_STATE_VIEWPORT,
-                                     VK_DYNAMIC_STATE_SCISSOR};
+  VkDynamicState dynamic_states[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 
   VkPipelineDynamicStateCreateInfo dynamic_info = {0};
   dynamic_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
@@ -211,13 +216,13 @@ int createGraphicsPipeline(RGFW_window* win) {
 
 int commandBuffers(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
   for (size_t i = 0; i < vulkWin->image_count; i++) {
-    /* begin command buffer */
     VkCommandBufferBeginInfo begin_info = {0};
     begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
     if (vkBeginCommandBuffer(vulkan_info->command_buffers[i], &begin_info) !=
         VK_SUCCESS) {
-      return -1; // failed to begin recording command buffer
+      printf("Failed to begin recording command buffer\n");
+      return -1;
     }
 
     VkRenderPassBeginInfo render_pass_info = {0};
@@ -235,7 +240,7 @@ int commandBuffers(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
     clearColor.color.float32[3] = 1.0f;
     render_pass_info.clearValueCount = 1;
     render_pass_info.pClearValues = &clearColor;
-
+    
     VkViewport viewport;
     viewport.x = 0.0f;
     viewport.y = 0.0f;
@@ -248,9 +253,9 @@ int commandBuffers(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
     scissor.offset.x = 0;
     scissor.offset.y = 0;
     scissor.extent = (VkExtent2D){win->r.w, win->r.h};
+    vkCmdSetScissor(vulkan_info->command_buffers[i], 0, 1, &scissor);
 
     vkCmdSetViewport(vulkan_info->command_buffers[i], 0, 1, &viewport);
-    vkCmdSetScissor(vulkan_info->command_buffers[i], 0, 1, &scissor);
 
     vkCmdBeginRenderPass(vulkan_info->command_buffers[i], &render_pass_info,
                          VK_SUBPASS_CONTENTS_INLINE);
@@ -259,11 +264,16 @@ int commandBuffers(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
                       VK_PIPELINE_BIND_POINT_GRAPHICS,
                       vulkan_info->graphics_pipeline);
 
+    // Push mouse position as a push constant
+    vkCmdPushConstants(vulkan_info->command_buffers[i],
+                       vulkan_info->pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT,
+                       0, sizeof(mouse_data), &mouse_data);
+    
     vkCmdDraw(vulkan_info->command_buffers[i], 3, 1, 0, 0);
-
     vkCmdEndRenderPass(vulkan_info->command_buffers[i]);
-
+    
     if (vkEndCommandBuffer(vulkan_info->command_buffers[i]) != VK_SUCCESS) {
+
       printf("failed to record command buffer\n");
       return -1; // failed to record command buffer!
     }
@@ -304,7 +314,7 @@ int draw_frame(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
   commandBuffers(win, vulkWin);
   submitInfo.commandBufferCount = 1;
   submitInfo.pCommandBuffers = &vulkan_info->command_buffers[image_index];
-
+  /**/
   VkSemaphore signal_semaphores[] = {
       vulkan_info->finished_semaphore[vulkan_info->current_frame]};
   submitInfo.signalSemaphoreCount = 1;
