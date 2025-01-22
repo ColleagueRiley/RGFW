@@ -473,12 +473,11 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 
 /*! mouse button codes (RGFW_event.button) */
 typedef RGFW_ENUM(u8, RGFW_mouseButton) {
-	RGFW_mouseNone = 0, /*!< no mouse button is pressed*/
-	RGFW_mouseLeft, /*!< left mouse button is pressed*/
+	RGFW_mouseLeft = 0, /*!< left mouse button is pressed*/
 	RGFW_mouseMiddle, /*!< mouse-wheel-button is pressed*/
 	RGFW_mouseRight, /*!< right mouse button is pressed*/
 	RGFW_mouseScrollUp, /*!< mouse wheel is scrolling up*/
-	RGFW_mouseScrollDown /*!< mouse wheel is scrolling down*/
+	RGFW_mouseScrollDown, /*!< mouse wheel is scrolling down*/
 };
 
 #ifndef RGFW_MAX_PATH
@@ -1753,7 +1752,7 @@ void RGFW_setClassName(const char* name) {
 	RGFW_className = name;
 }
 
-RGFW_keyState RGFW_mouseButtons[5] = { {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0} };
+RGFW_keyState RGFW_mouseButtons[5] = {  {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0} };
 
 b8 RGFW_isMousePressed(RGFW_window* win, RGFW_mouseButton button) {
 	return RGFW_mouseButtons[button].current && (win == NULL || win->event.inFocus);
@@ -3859,7 +3858,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 				break;
 			default: break;
 		}
-
+		
 		RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
 
 		if (win->event.repeat == RGFW_FALSE)
@@ -8965,7 +8964,7 @@ EM_BOOL Emscripten_on_mousedown(int eventType, const EmscriptenMouseEvent* e, vo
 
 	RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonPressed;
 	RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->targetX, e->targetY);
-	RGFW_events[RGFW_eventLen].button = e->button + 1;
+	RGFW_events[RGFW_eventLen].button = e->button;
 	RGFW_events[RGFW_eventLen].scroll = 0;
 
 	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;
@@ -8982,7 +8981,7 @@ EM_BOOL Emscripten_on_mouseup(int eventType, const EmscriptenMouseEvent* e, void
 
 	RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonReleased;
 	RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->targetX, e->targetY);
-	RGFW_events[RGFW_eventLen].button = e->button + 1;
+	RGFW_events[RGFW_eventLen].button = e->button;
 	RGFW_events[RGFW_eventLen].scroll = 0;
 
 	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;
