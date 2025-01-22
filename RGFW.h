@@ -7801,8 +7801,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		macArgs |= NSWindowStyleMaskResizable;
 	if (!(flags & RGFW_windowNoBorder))
 		macArgs |= NSWindowStyleMaskTitled;
-	else
-		macArgs = NSWindowStyleMaskBorderless;
 	{
 		void* nsclass = objc_getClass("NSWindow");
 		SEL func = sel_registerName("initWithContentRect:styleMask:backing:defer:");
@@ -7810,9 +7808,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		win->src.window = ((id(*)(id, SEL, NSRect, NSWindowStyleMask, NSBackingStoreType, bool))objc_msgSend)
 			(NSAlloc(nsclass), func, windowRect, macArgs, macArgs, false);
 	}
-
-	if ((flags & RGFW_windowNoBorder))
-		RGFW_window_setBorder(win, 0);
 
 	id str = NSString_stringWithUTF8String(name);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setTitle:"), str);
@@ -7946,6 +7941,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	objc_msgSend_void(NSApp, sel_registerName("finishLaunching"));
 
+	if ((flags & RGFW_windowNoBorder))
+		RGFW_window_setBorder(win, 0);
+
 	NSRetain(win->src.window);
 	NSRetain(NSApp);
 
@@ -7963,8 +7961,8 @@ void RGFW_window_setBorder(RGFW_window* win, u8 border) {
 	else {
 		((void (*)(id, SEL, NSBackingStoreType))objc_msgSend)((id)win->src.window, sel_registerName("setStyleMask:"), storeType);
 		id miniaturizeButton = objc_msgSend_int((id)win->src.window, sel_registerName("standardWindowButton:"),  NSWindowMiniaturizeButton);
-		
-		id titleBarView = objc_msgSend_id((id)win->src.window, sel_registerName("superview"));
+		id titleBarView = objc_msgSend_id(miniaturizeButton, sel_registerName("superview"));
+
 		objc_msgSend_void_bool(titleBarView, sel_registerName("setHidden:"), true);
 	}
 	if (!(win->_flags & RGFW_windowNoResize)) {
