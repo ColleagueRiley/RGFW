@@ -114,8 +114,6 @@ int createGraphicsPipeline(RGFW_window* win) {
   viewport.y = 0.0f;
   viewport.width = (float)win->r.w;
   viewport.height = (float)win->r.h;
-  viewport.width = (float)win->r.w;
-  viewport.height = (float)win->r.h;
   viewport.minDepth = 0.0f;
   viewport.maxDepth = 1.0f;
 
