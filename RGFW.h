@@ -473,7 +473,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 
 /*! mouse button codes (RGFW_event.button) */
 typedef RGFW_ENUM(u8, RGFW_mouseButton) {
-	RGFW_mouseNone = 0, /*!< no mouse button is pressed*/
+	RGFW_mouseNone = -1, /*!< no mouse button is pressed*/
 	RGFW_mouseLeft, /*!< left mouse button is pressed*/
 	RGFW_mouseMiddle, /*!< mouse-wheel-button is pressed*/
 	RGFW_mouseRight, /*!< right mouse button is pressed*/
@@ -1753,7 +1753,7 @@ void RGFW_setClassName(const char* name) {
 	RGFW_className = name;
 }
 
-RGFW_keyState RGFW_mouseButtons[5] = { {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0} };
+RGFW_keyState RGFW_mouseButtons[5] = {  {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0} };
 
 b8 RGFW_isMousePressed(RGFW_window* win, RGFW_mouseButton button) {
 	return RGFW_mouseButtons[button].current && (win == NULL || win->event.inFocus);
@@ -3859,7 +3859,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 				break;
 			default: break;
 		}
-
+		
 		RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
 
 		if (win->event.repeat == RGFW_FALSE)
