@@ -608,6 +608,7 @@ typedef struct RGFW_window_src {
 	HWND window; /*!< source window */
 	HDC hdc; /*!< source HDC */
 	u32 hOffset; /*!< height offset for window */
+	HICON hIcon; /*!< source window icon */
 	#if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
 		HGLRC ctx; /*!< source graphics context */
 	#elif defined(RGFW_OSMESA)
@@ -2284,7 +2285,7 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 
 		win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) layer, NULL);
 	#elif defined(RGFW_WINDOWS)
-		win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.hwnd, NULL);
+		win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
 	#elif defined(RGFW_WAYLAND)
 		if (RGFW_useWaylandBool)
 			win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.eglWindow, NULL);
@@ -5406,7 +5407,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		GetClientRect(hWnd, &clientRect);	
 		i32 offset = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
 
-		RGFW_eventWindow.r.w = windowRect.right - windowRect.left;
+		RGFW_eventWindow.r.w = windowRect.right -  windowRect.left;
 		RGFW_eventWindow.r.h = (windowRect.bottom - windowRect.top) - offset;
 		RGFW_eventWindow.src.window = hWnd;
 		return DefWindowProcA(hWnd, message, wParam, lParam); // Call DefWindowProc after handling
@@ -5571,6 +5572,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	RGFW_window_basic_init(win, rect, flags);
 
+	win->src.hIcon = NULL;
 	win->src.maxSize = RGFW_AREA(0, 0);
 	win->src.minSize = RGFW_AREA(0, 0);
 
@@ -5616,7 +5618,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	win->src.hOffset = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
 	win->src.window = CreateWindowA(Class.lpszClassName, name, window_style, win->r.x, win->r.y, win->r.w, win->r.h + win->src.hOffset, 0, 0, inh, 0);
-	
+
 	if (flags & RGFW_windowAllowDND) {
 		win->_flags |= RGFW_windowAllowDND;
 		RGFW_window_setDND(win, 1);
@@ -6586,15 +6588,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 #endif
 
 HICON RGFW_loadHandleImage(u8* src, RGFW_area a, BOOL icon) {
-	u32 i;
-	HDC dc;
-	HICON handle;
-	HBITMAP color, mask;
 	BITMAPV5HEADER bi;
-	ICONINFO ii;
-	u8* target = NULL;
-	u8* source = src;
-
 	ZeroMemory(&bi, sizeof(bi));
 	bi.bV5Size = sizeof(bi);
 	bi.bV5Width = a.w;
@@ -6602,39 +6596,35 @@ HICON RGFW_loadHandleImage(u8* src, RGFW_area a, BOOL icon) {
 	bi.bV5Planes = 1;
 	bi.bV5BitCount = 32;
 	bi.bV5Compression = BI_BITFIELDS;
-	bi.bV5RedMask = 0x00ff0000;
+	bi.bV5RedMask = 0x000000ff;
 	bi.bV5GreenMask = 0x0000ff00;
-	bi.bV5BlueMask = 0x000000ff;
+	bi.bV5BlueMask = 0x00ff0000; 
 	bi.bV5AlphaMask = 0xff000000;
 
-	dc = GetDC(NULL);
-	color = CreateDIBSection(dc,
+	HDC dc = GetDC(NULL);
+	u8* target = NULL;
+
+	HBITMAP color = CreateDIBSection(dc,
 		(BITMAPINFO*) &bi,
 		DIB_RGB_COLORS,
 		(void**) &target,
 		NULL,
 		(DWORD) 0);
+	
+	memcpy(target, src, a.w * a.h * 4);
 	ReleaseDC(NULL, dc);
 
-	mask = CreateBitmap(a.w, a.h, 1, 1, NULL);
+	HBITMAP mask = CreateBitmap(a.w, a.h, 1, 1, NULL);
 
-	for (i = 0; i < a.w * a.h; i++) {
-		target[0] = source[2];
-		target[1] = source[1];
-		target[2] = source[0];
-		target[3] = source[3];
-		target += 4;
-		source += 4;
-	}
-
+	ICONINFO ii;
 	ZeroMemory(&ii, sizeof(ii));
 	ii.fIcon = icon;
-	ii.xHotspot = 0;
-	ii.yHotspot = 0;
+	ii.xHotspot = a.w / 2;
+	ii.yHotspot = a.h / 2;
 	ii.hbmMask = mask;
 	ii.hbmColor = color;
 
-	handle = CreateIconIndirect(&ii);
+	HICON handle = CreateIconIndirect(&ii);
 
 	DeleteObject(color);
 	DeleteObject(mask);
@@ -6711,6 +6701,8 @@ void RGFW_window_close(RGFW_window* win) {
 	#endif
 		ReleaseDC(win->src.window, win->src.hdc); /*!< delete device context */
 		DestroyWindow(win->src.window); /*!< delete window */
+
+	if (win->src.hIcon) DestroyIcon(win->src.hIcon);
 
 	if (RGFW_windowsOpen <= 0) {
 		#ifdef RGFW_DIRECTX
@@ -6802,12 +6794,10 @@ b32 RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
 	RGFW_ASSERT(win != NULL);
 	#ifndef RGFW_WIN95
 		RGFW_UNUSED(channels);
-
-		HICON handle = RGFW_loadHandleImage(src, a, TRUE);
-
-		SetClassLongPtrA(win->src.window, GCLP_HICON, (LPARAM) handle);
-
-		DestroyIcon(handle);
+		if (win->src.hIcon) DestroyIcon(win->src.hIcon);
+		
+		win->src.hIcon = RGFW_loadHandleImage(src, a, TRUE);
+		SetClassLongPtrA(win->src.window, GCLP_HICON, (LPARAM) win->src.hIcon);
 		return 1;
 	#else
 		RGFW_UNUSED(src);

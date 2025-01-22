@@ -13,6 +13,8 @@ Current Version: RGFW 1.5.5-dev
 - fix macOS titlebar api (borderless window)
 - update Vulkan example (fix crashes with certain drivers, have triangle follow mouse)
 - rewrite writeclipboard, ensure the selection is properly being handled and the clipboard is properly being saved after the window is closed
+- add icon example
+- review winapi window_setIcon (fixes HICON persistance issue)
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
