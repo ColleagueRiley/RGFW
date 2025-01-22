@@ -7164,6 +7164,16 @@ typedef RGFW_ENUM(NSInteger, NSOpenGLContextParameter) {
 		NSOpenGLContextParametectxaceSurfaceVolatile API_DEPRECATED("", macos(10.0, 10.14)) = 306, /* 1 param.   Surface volatile state */
 };
 
+typedef RGFW_ENUM(NSInteger, NSWindowButton) {
+    NSWindowCloseButton            = 0,
+    NSWindowMiniaturizeButton      = 1,
+    NSWindowZoomButton             = 2,
+    NSWindowToolbarButton          = 3,
+    NSWindowDocumentIconButton     = 4,
+    NSWindowDocumentVersionsButton = 6,
+    NSWindowFullScreenButton       = 7,
+};
+
 
 void NSOpenGLContext_setValues(id context, const int* vals, NSOpenGLContextParameter param) {
 	SEL func = sel_registerName("setValues:forParameter:");
@@ -7801,6 +7811,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			(NSAlloc(nsclass), func, windowRect, macArgs, macArgs, false);
 	}
 
+	if ((flags & RGFW_windowNoBorder))
+		RGFW_window_setBorder(win);
+
 	id str = NSString_stringWithUTF8String(name);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setTitle:"), str);
 
@@ -7943,9 +7956,16 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 }
 
 void RGFW_window_setBorder(RGFW_window* win, u8 border) {
-	NSBackingStoreType storeType = NSWindowStyleMaskBorderless;
-	if (!border) {
+	NSBackingStoreType storeType = NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView;
+	if (border) {
 		storeType = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
+	}
+	else {
+		((void (*)(id, SEL, NSBackingStoreType))objc_msgSend)((id)win->src.window, sel_registerName("setStyleMask:"), storeType);
+		id miniaturizeButton = objc_msgSend_int((id)win->src.window, sel_registerName("standardWindowButton:"),  NSWindowMiniaturizeButton);
+		
+		id titleBarView = objc_msgSend_id((id)win->src.window, sel_registerName("superview"));
+		objc_msgSend_void_bool(titleBarView, sel_registerName("setHidden:"), true);
 	}
 	if (!(win->_flags & RGFW_windowNoResize)) {
 		storeType |= NSWindowStyleMaskResizable;
