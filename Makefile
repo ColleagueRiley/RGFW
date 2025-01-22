@@ -99,7 +99,8 @@ EXAMPLE_OUTPUTS = \
     examples/basic/basic \
     examples/buffer/buffer \
 	examples/events/events \
-	examples/callbacks/callbacks
+	examples/callbacks/callbacks \
+	examples/icons/icons
 
 
 EXAMPLE_OUTPUTS_CUSTOM = \
