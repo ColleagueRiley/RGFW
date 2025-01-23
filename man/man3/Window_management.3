@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Wed Jan 22 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Thu Jan 23 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -11,6 +11,9 @@ Window_management \- Window_management
 .in +1c
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setClassName\fP (const char *name)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_moveToMacOSResourceDir\fP (void)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags)"
@@ -67,6 +70,9 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_maximize\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_center\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_minimize\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
@@ -76,7 +82,13 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setBorder\fP (\fBRGFW_window\fP *win, \fBb8\fP border)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP \fBb32\fP \fBRGFW_window_borderless\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setDND\fP (\fBRGFW_window\fP *win, \fBb8\fP allow)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBb32\fP \fBRGFW_window_allowsDND\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMousePassthrough\fP (\fBRGFW_window\fP *win, \fBb8\fP passthrough)"
@@ -121,6 +133,9 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_showMouse\fP (\fBRGFW_window\fP *win, \fBi8\fP show)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP \fBb32\fP \fBRGFW_window_mouseHidden\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_moveMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_point\fP v)"
 .br
 .ti -1c
@@ -158,10 +173,18 @@ for RGFW_window_eventWait and RGFW_window_checkEvents waitMS -> Allows th e func
 where the mouse is on the screen 
 .SS "\fBRGFWDEF\fP \fBRGFW_area\fP RGFW_getScreenSize (void)"
 get the size of the screen to an area struct 
+.SS "\fBRGFWDEF\fP void RGFW_moveToMacOSResourceDir (void)"
+(cocoa only), change directory to resource folder 
 .SS "\fBRGFWDEF\fP void RGFW_setClassName (const char * name)"
 the class name for X11 and WinAPI\&. apps with the same class will be grouped by the WM by default the class name will == the root window's name 
 .SS "\fBRGFWDEF\fP void RGFW_stopCheckEvents (void)"
 Tell RGFW_window_eventWait to stop waiting, to be ran from another thread 
+.SS "\fBRGFWDEF\fP \fBb32\fP RGFW_window_allowsDND (\fBRGFW_window\fP * win)"
+check if DND is allowed 
+.SS "\fBRGFWDEF\fP \fBb32\fP RGFW_window_borderless (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP void RGFW_window_center (\fBRGFW_window\fP * win)"
+center the window 
 .SS "\fBRGFWDEF\fP \fBRGFW_event\fP * RGFW_window_checkEvent (\fBRGFW_window\fP * win)"
 this function checks an \fIindividual\fP event (and updates window structure attributes) this means, using this function without a while loop may cause event lag
 .PP
@@ -198,6 +221,8 @@ if window is minimized
 maximize the window size 
 .SS "\fBRGFWDEF\fP void RGFW_window_minimize (\fBRGFW_window\fP * win)"
 minimize the window (in taskbar (per OS)) 
+.SS "\fBRGFWDEF\fP \fBb32\fP RGFW_window_mouseHidden (\fBRGFW_window\fP * win)"
+if the mouse is hidden 
 .SS "\fBRGFWDEF\fP void RGFW_window_mouseHold (\fBRGFW_window\fP * win, \fBRGFW_area\fP area)"
 
 .SS "\fBRGFWDEF\fP void RGFW_window_mouseUnhold (\fBRGFW_window\fP * win)"

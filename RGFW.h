@@ -766,6 +766,9 @@ typedef struct RGFW_window {
 */
 RGFWDEF void RGFW_setClassName(const char* name);
 
+/*! (cocoa only), change directory to resource folder */
+RGFWDEF void RGFW_moveToMacOSResourceDir(void);
+
 /* NOTE: (windows)If the executable has an icon resource named RGFW_ICON, it will be set as the initial icon for the window.*/
 
 RGFWDEF RGFW_window* RGFW_createWindow(
@@ -853,14 +856,19 @@ RGFWDEF void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a);
 RGFWDEF void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a);
 
 RGFWDEF void RGFW_window_maximize(RGFW_window* win); /*!< maximize the window size */
+RGFWDEF void RGFW_window_center(RGFW_window* win); /*!< center the window */
 RGFWDEF void RGFW_window_minimize(RGFW_window* win); /*!< minimize the window (in taskbar (per OS))*/
 RGFWDEF void RGFW_window_restore(RGFW_window* win); /*!< restore the window from minimized (per OS)*/
 
 /*! if the window should have a border or not (borderless) based on bool value of `border` */
 RGFWDEF void RGFW_window_setBorder(RGFW_window* win, b8 border);
+RGFWDEF b32 RGFW_window_borderless(RGFW_window* win);
 
 /*! turn on / off dnd (RGFW_windowAllowDND stil must be passed to the window)*/
 RGFWDEF void RGFW_window_setDND(RGFW_window* win, b8 allow);
+/*! check if DND is allowed */
+RGFWDEF b32 RGFW_window_allowsDND(RGFW_window* win);
+
 
 #ifndef RGFW_NO_PASSTHROUGH
 	/*!! turn on / off mouse passthrough */
@@ -914,6 +922,8 @@ RGFWDEF RGFW_point RGFW_window_getMousePoint(RGFW_window* win);
 
 /*! show the mouse or hide the mouse*/
 RGFWDEF void RGFW_window_showMouse(RGFW_window* win, i8 show);
+/*! if the mouse is hidden */
+RGFWDEF b32 RGFW_window_mouseHidden(RGFW_window* win);
 /*! move the mouse to a set x, y pos*/
 RGFWDEF void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v);
 
@@ -1734,7 +1744,7 @@ void RGFW_window_initBuffer(RGFW_window* win) {
 }
 
 void RGFW_window_initBufferSize(RGFW_window* win, RGFW_area area) {
-	if (!(win->_flags & RGFW_BUFFER_ALLOC)) win->_flags |= RGFW_BUFFER_ALLOC;
+	win->_flags |= RGFW_BUFFER_ALLOC;
 	#ifndef RGFW_WINDOWS
 	return RGFW_window_initBufferPtr(win, RGFW_ALLOC(area.w * area.h * 4), area);
 	#else /* windows's bitmap allocs memory for us */
@@ -1807,20 +1817,20 @@ void RGFW_window_makeCurrent(RGFW_window* win) {
 }
 #endif
 
-void RGFW_window_setGPURender(RGFW_window* win, i8 set) {
-	if (!set && !(win->_flags & RGFW_NO_GPU_RENDER))
-		win->_flags |= RGFW_NO_GPU_RENDER;
+RGFWDEF void RGFW_setBit(u32* data, u32 bit, b8 value);
+void RGFW_setBit(u32* data, u32 bit, b8 value) {
+	if (value)
+		*data |= bit;
+	else if (!value && (*(data) & bit))
+		*data ^= bit;
+}
 
-	else if (set && win->_flags & RGFW_NO_GPU_RENDER)
-		win->_flags ^= RGFW_NO_GPU_RENDER;
+void RGFW_window_setGPURender(RGFW_window* win, i8 set) {
+	RGFW_setBit(&win->_flags, RGFW_NO_GPU_RENDER, !set);
 }
 
 void RGFW_window_setCPURender(RGFW_window* win, i8 set) {
-	if (!set && !(win->_flags & RGFW_NO_CPU_RENDER))
-		win->_flags |= RGFW_NO_CPU_RENDER;
-
-	else if (set && win->_flags & RGFW_NO_CPU_RENDER)
-		win->_flags ^= RGFW_NO_CPU_RENDER;
+	RGFW_setBit(&win->_flags, RGFW_NO_CPU_RENDER, !set);
 }
 
 void RGFW_window_maximize(RGFW_window* win) {
@@ -1830,6 +1840,12 @@ void RGFW_window_maximize(RGFW_window* win) {
 
 	RGFW_window_move(win, RGFW_POINT(0, 0));
 	RGFW_window_resize(win, screen);
+}
+
+void RGFW_window_center(RGFW_window* win) {
+	RGFW_ASSERT(win != NULL);
+	RGFW_area screenR = RGFW_getScreenSize();
+	RGFW_window_move(win, RGFW_POINT((screenR.w - win->r.w) / 2, (screenR.h - win->r.h) / 2));
 }
 
 b8 RGFW_window_shouldClose(RGFW_window* win) {
@@ -1940,21 +1956,9 @@ RGFW_gamepadType RGFW_getGamepadType(RGFW_window* win, u16 controller) {
 	return RGFW_gamepads_type[controller];
 }
 
-#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
-void RGFW_window_showMouse(RGFW_window* win, i8 show) {
-	if (show == 0)
-		RGFW_window_setMouse(win, RGFW_hiddenMouse);
-	else
-		RGFW_window_setMouseDefault(win);
-}
-#endif
-
 RGFWDEF void RGFW_updateKeyMod(RGFW_window* win, RGFW_keymod mod, b8 value);
 void RGFW_updateKeyMod(RGFW_window* win, RGFW_keymod mod, b8 value) {
-	if (value && !(win->event.keyMod & mod))
-		win->event.keyMod |= mod;
-	else if (!value && ((win->event.keyMod & mod)))
-		win->event.keyMod ^= mod;
+	RGFW_setBit((u32*)&win->event.keyMod, mod, value);
 }
 
 RGFWDEF void RGFW_updateKeyModsPro(RGFW_window* win, b8 capital, b8 numlock, b8 control, b8 alt, b8 shift, b8 super);
@@ -1976,6 +1980,31 @@ void RGFW_updateKeyMods(RGFW_window* win, b8 capital, b8 numlock) {
 					RGFW_isPressed(win, RGFW_superL) || RGFW_isPressed(win, RGFW_superR));
 }
 
+RGFWDEF void RGFW_window_showMouseFlags(RGFW_window* win, i8 show);
+void RGFW_window_showMouseFlags(RGFW_window* win, i8 show) {
+	if (show && (win->_flags & RGFW_windowHideMouse))
+		win->_flags ^= RGFW_windowHideMouse;
+	else if (!show && !(win->_flags & RGFW_windowHideMouse))
+		win->_flags |= RGFW_windowHideMouse;
+}
+
+b32 RGFW_window_mouseHidden(RGFW_window* win) {
+	return (b32)(win->_flags & RGFW_windowHideMouse);
+}
+
+b32 RGFW_window_borderless(RGFW_window* win) {
+	return (b32)(win->_flags & RGFW_windowNoBorder);
+}
+
+b32 RGFW_window_allowsDND(RGFW_window* win) { return (b32)(win->_flags & RGFW_windowAllowDND); }
+void RGFW_window_setDND(RGFW_window* win, b8 allow) {
+	RGFW_setBit(&win->_flags, RGFW_windowAllowDND, allow);
+
+	#ifdef RGFW_WINDOWS
+		DragAcceptFiles(win->src.window, allow);
+	#endif
+}
+
 #if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM) || defined(RGFW_WAYLAND)
 #include <time.h>
 struct timespec;
@@ -1986,15 +2015,19 @@ int clock_gettime(clockid_t clk_id, struct timespec* tp);
 #endif
 
 int setenv(const char *name, const char *value, int overwrite);
+#endif
 
-void RGFW_window_setDND(RGFW_window* win, b8 allow) {
-	if (allow && !(win->_flags & RGFW_windowAllowDND))
-		win->_flags |= RGFW_windowAllowDND;
-
-	else if (!allow && (win->_flags & RGFW_windowAllowDND))
-		win->_flags ^= RGFW_windowAllowDND;
+#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
+void RGFW_window_showMouse(RGFW_window* win, i8 show) {
+	RGFW_window_showMouseFlags(win, show);
+	if (show == 0)
+		RGFW_window_setMouse(win, RGFW_hiddenMouse);
+	else
+		RGFW_window_setMouseDefault(win);
 }
 #endif
+
+void RGFW_moveToMacOSResourceDir(void) { }
 
 /*
 	graphics API specific code (end of generic code)
@@ -3166,6 +3199,8 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 	if (name == 0) name = XInternAtom(RGFW_root->src.display, #name, False);
 
 void RGFW_window_setBorder(RGFW_window* win, u8 border) {
+	RGFW_setBit(&win->_flags, RGFW_windowNoBorder, !border);
+
 	RGFW_GOTO_WAYLAND(0);
 	#ifdef RGFW_X11
 	RGFW_LOAD_ATOM(_MOTIF_WM_HINTS);
@@ -3401,10 +3436,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		RGFW_window_scaleToMonitor(win);
 	#endif
 
-	if (flags & RGFW_windowCenter) {
-		RGFW_area screenR = RGFW_getScreenSize();
-		RGFW_window_move(win, RGFW_POINT((screenR.w - win->r.w) / 2, (screenR.h - win->r.h) / 2));
-	}
+	if (flags & RGFW_windowCenter)
+		RGFW_window_center(win);
 
 	if (flags & RGFW_windowNoResize) { /* make it so the user can't resize the window*/
 		XSizeHints sh;
@@ -3417,9 +3450,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		win->_flags |= RGFW_windowNoResize;
 	}
 
-	if (flags & RGFW_windowNoBorder) {
+	if (flags & RGFW_windowNoBorder)
 		RGFW_window_setBorder(win, 0);
-	}
 
 	XSelectInput(win->src.display, (Drawable) win->src.window, event_mask); /*!< tell X11 what events we want*/
 
@@ -3568,10 +3600,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 					decoration_manager, win->src.xdg_toplevel);
 	}
 
-	if (flags & RGFW_windowCenter) {
-		RGFW_area screenR = RGFW_getScreenSize();
-		RGFW_window_move(win, RGFW_POINT((screenR.w - win->r.w) / 2, (screenR.h - win->r.h) / 2));
-	}
+	if (flags & RGFW_windowCenter)
+		RGFW_window_center(win);
 
 	if (flags & RGFW_windowOpenglSoftware)
 		setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
@@ -3999,7 +4029,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		}
 
 		if (E.xclient.message_type == XdndPosition) {
-			printf("XdndPosition\n");
 			const i32 xabs = (E.xclient.data.l[2] >> 16) & 0xffff;
 			const i32 yabs = (E.xclient.data.l[2]) & 0xffff;
 			Window dummy;
@@ -5500,10 +5529,6 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
 	#endif
 }
 
-void RGFW_window_setDND(RGFW_window* win, b8 allow) {
-	DragAcceptFiles(win->src.window, allow);
-}
-
 void RGFW_releaseCursor(RGFW_window* win) {
 	RGFW_UNUSED(win);
 	ClipCursor(NULL);
@@ -5808,10 +5833,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		RGFW_window_scaleToMonitor(win);
 	#endif
 
-	if (flags & RGFW_windowCenter) {
-		RGFW_area screenR = RGFW_getScreenSize();
-		RGFW_window_move(win, RGFW_POINT((screenR.w - win->r.w) / 2, (screenR.h - win->r.h) / 2));
-	}
+	if (flags & RGFW_windowCenter)
+		RGFW_window_center(win);
 
 	#ifdef RGFW_EGL
 		if ((flags & RGFW_windowNoInitAPI) == 0)
@@ -5853,6 +5876,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 }
 
 void RGFW_window_setBorder(RGFW_window* win, u8 border) {
+	RGFW_setBit(&win->_flags, RGFW_windowNoBorder, !border);
 	DWORD style = GetWindowLong(win->src.window, GWL_STYLE);
 
 	if (border == 0) {
@@ -7681,7 +7705,7 @@ void RGFW_osxInitIOKit(void) {
 }
 #endif
 
-void NSMoveToResourceDir(void) {
+void RGFW_moveToMacOSResourceDir(void) {
 	char resourcesPath[255];
 
 	CFBundleRef bundle = CFBundleGetMainBundle();
@@ -7890,10 +7914,10 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			}
 		#endif
 
-	objc_msgSend_void_bool(win->src.window, sel_registerName("setOpaque:"), false);
+		objc_msgSend_void_bool(win->src.window, sel_registerName("setOpaque:"), false);
 
-	objc_msgSend_void_id((id)win->src.window, sel_registerName("setBackgroundColor:"),
-		NSColor_colorWithSRGB(0, 0, 0, 0));
+		objc_msgSend_void_id((id)win->src.window, sel_registerName("setBackgroundColor:"),
+			NSColor_colorWithSRGB(0, 0, 0, 0));
 	}
 
 	#ifndef RGFW_NO_MONITOR
@@ -7901,16 +7925,14 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		RGFW_window_scaleToMonitor(win);
 	#endif
 
-	if (flags & RGFW_windowCenter) {
-		RGFW_area screenR = RGFW_getScreenSize();
-		RGFW_window_move(win, RGFW_POINT((screenR.w - win->r.w) / 2, (screenR.h - win->r.h) / 2));
-	}
+	if (flags & RGFW_windowCenter)
+		RGFW_window_center(win);
 
 	if (flags & RGFW_windowHideMouse)
 		RGFW_window_showMouse(win, 0);
 
 	if (flags & RGFW_windowCocoaCHDirToRes)
-		NSMoveToResourceDir();
+		RGFW_moveToMacOSResourceDir();
 
 	Class delegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "WindowDelegate", 0);
 
@@ -7972,6 +7994,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 }
 
 void RGFW_window_setBorder(RGFW_window* win, u8 border) {
+	RGFW_setBit(&win->_flags, RGFW_windowNoBorder, !border);
 	NSBackingStoreType storeType = NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView;
 	if (border) {
 		storeType = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
@@ -8549,14 +8572,9 @@ b32 RGFW_window_setMouseDefault(RGFW_window* win) {
 }
 
 void RGFW_window_showMouse(RGFW_window* win, i8 show) {
-	RGFW_UNUSED(win);
-
-	if (show) {
-		CGDisplayShowCursor(kCGDirectMainDisplay);
-	}
-	else {
-		CGDisplayHideCursor(kCGDirectMainDisplay);
-	}
+	RGFW_window_showMouseFlags(win, show);
+	if (show)   CGDisplayShowCursor(kCGDirectMainDisplay);
+	else        CGDisplayHideCursor(kCGDirectMainDisplay);
 }
 
 b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 stdMouses) {
@@ -9581,6 +9599,7 @@ b32 RGFW_window_setMouseDefault(RGFW_window* win) {
 }
 
 void RGFW_window_showMouse(RGFW_window* win, i8 show) {
+	RGFW_window_showMouseFlags(win, show);
 	if (show)
 		RGFW_window_setMouseDefault(win);
 	else
