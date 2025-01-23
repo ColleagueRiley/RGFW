@@ -16,6 +16,10 @@ Current Version: RGFW 1.5.5-dev
 - add icon example
 - review winapi window_setIcon (fixes HICON persistance issue)
 - remove RGFW_mouseNone (fixes overflow bug, RGFW_mouseNone isn't used anyway)
+- expose RGFW_moveToMacOSResourceDir to the public API
+- add `RGFW_window_center`
+- add `RGFW_window_borderless`, `RGFW_window_allowsDND` and `RGFW_window_mouseHidden` for checking for args
+- add flags example
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------

@@ -100,6 +100,7 @@ EXAMPLE_OUTPUTS = \
     examples/buffer/buffer \
 	examples/events/events \
 	examples/callbacks/callbacks \
+	examples/flags/flags \
 	examples/icons/icons
 
 
