@@ -1958,7 +1958,7 @@ RGFW_gamepadType RGFW_getGamepadType(RGFW_window* win, u16 controller) {
 
 RGFWDEF void RGFW_updateKeyMod(RGFW_window* win, RGFW_keymod mod, b8 value);
 void RGFW_updateKeyMod(RGFW_window* win, RGFW_keymod mod, b8 value) {
-	RGFW_setBit(&win->event.keyMod, mod, value);
+	RGFW_setBit((u32*)&win->event.keyMod, mod, value);
 }
 
 RGFWDEF void RGFW_updateKeyModsPro(RGFW_window* win, b8 capital, b8 numlock, b8 control, b8 alt, b8 shift, b8 super);
@@ -1982,13 +1982,10 @@ void RGFW_updateKeyMods(RGFW_window* win, b8 capital, b8 numlock) {
 
 RGFWDEF void RGFW_window_showMouseFlags(RGFW_window* win, i8 show);
 void RGFW_window_showMouseFlags(RGFW_window* win, i8 show) {
-	if (show && (win->_flags & RGFW_windowHideMouse)) {
-		RGFW_window_setMouse(win, RGFW_hiddenMouse);
+	if (show && (win->_flags & RGFW_windowHideMouse))
 		win->_flags ^= RGFW_windowHideMouse;
-	} else if (!show && !(win->_flags & RGFW_windowHideMouse)) {
-		RGFW_window_setMouseDefault(win);
+	else if (!show && !(win->_flags & RGFW_windowHideMouse))
 		win->_flags |= RGFW_windowHideMouse;
-	}
 }
 
 b32 RGFW_window_mouseHidden(RGFW_window* win) {
