@@ -1740,15 +1740,15 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 }
 
 void RGFW_window_initBuffer(RGFW_window* win) {
-	return RGFW_window_initBufferSize(win, RGFW_getScreenSize());
+	RGFW_window_initBufferSize(win, RGFW_getScreenSize());
 }
 
 void RGFW_window_initBufferSize(RGFW_window* win, RGFW_area area) {
 	win->_flags |= RGFW_BUFFER_ALLOC;
 	#ifndef RGFW_WINDOWS
-	return RGFW_window_initBufferPtr(win, RGFW_ALLOC(area.w * area.h * 4), area);
+	RGFW_window_initBufferPtr(win, RGFW_ALLOC(area.w * area.h * 4), area);
 	#else /* windows's bitmap allocs memory for us */
-	return RGFW_window_initBufferPtr(win, NULL, area);
+	RGFW_window_initBufferPtr(win, NULL, area);
 	#endif
 }
 
@@ -1997,13 +1997,11 @@ b32 RGFW_window_borderless(RGFW_window* win) {
 }
 
 b32 RGFW_window_allowsDND(RGFW_window* win) { return (b32)(win->_flags & RGFW_windowAllowDND); }
+#ifndef RGFW_WINDOWS
 void RGFW_window_setDND(RGFW_window* win, b8 allow) {
 	RGFW_setBit(&win->_flags, RGFW_windowAllowDND, allow);
-
-	#ifdef RGFW_WINDOWS
-		DragAcceptFiles(win->src.window, allow);
-	#endif
 }
+#endif
 
 #if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM) || defined(RGFW_WAYLAND)
 #include <time.h>
@@ -5897,6 +5895,10 @@ void RGFW_window_setBorder(RGFW_window* win, u8 border) {
 	}
 }
 
+void RGFW_window_setDND(RGFW_window* win, b8 allow) {
+	RGFW_setBit(&win->_flags, RGFW_windowAllowDND, allow);
+	DragAcceptFiles(win->src.window, allow);
+}
 
 RGFW_area RGFW_getScreenSize(void) {
 	HDC dc = GetDC(NULL);
