@@ -2027,7 +2027,9 @@ void RGFW_window_showMouse(RGFW_window* win, i8 show) {
 }
 #endif
 
+#ifndef RGFW_MACOS
 void RGFW_moveToMacOSResourceDir(void) { }
+#endif
 
 /*
 	graphics API specific code (end of generic code)
