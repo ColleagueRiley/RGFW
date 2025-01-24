@@ -74,7 +74,7 @@ $(function() {
   <div class="headertitle"><div class="title">important conventions </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p >These first conventions are the most important to follow as they are here to prevent undefined behavior, API inconsistency and bugs.</p>
+<div class="textblock"><p >These first conventions are the most important to follow as they are here to prevent undefined behavior, API inconsistency, and bugs.</p>
 <ul>
 <li>All functions that return a boolean value must either\ 1) return RGFW_TRUE or RGFW_FALSE (the <a class="el" href="RGFW_8h.html#ad6f97f977c808bdf6512334af06aeee9">RGFW_BOOL()</a> can be used to reduce an int to RGFW_TRUE or RGFW_FALSE )\ 2) a boolean statement e.g. <code>((a == b) || (a == c))</code>\ 3) a boolean value from the API that's guarantee 1.0 e.g.\ <div class="fragment"><div class="line">BOOL winbool = EnumPageFilesA(pCallBackRoutine, pContext);</div>
 <div class="line"><span class="keywordflow">return</span> winbool</div>
@@ -82,9 +82,9 @@ $(function() {
 </ul>
 <h1><a class="anchor" id="autotoc_md1"></a>
 style conventions</h1>
-<p >Style conventions are less important and I will make changes manually if they are not followed, so contributers don't have to worry about these as much.</p>
+<p >Style conventions are less important because I will make changes manually if I need to. This means contributors don't have to worry about these as much.</p>
 <ul>
-<li>Brackets are always used inline if functions definitions and statements e.g.\ <div class="fragment"><div class="line"><span class="keywordflow">if</span> (<span class="keywordtype">boolean</span>) {</div>
+<li>Brackets are always used inline if functions definitions and statements e.g. <div class="fragment"><div class="line"><span class="keywordflow">if</span> (<span class="keywordtype">boolean</span>) {</div>
 <div class="line"> </div>
 <div class="line">}</div>
 <div class="line"> </div>

@@ -1,5 +1,5 @@
 # important conventions
-These first conventions are the most important to follow as they are here to prevent undefined behavior, API inconsistency and bugs.
+These first conventions are the most important to follow as they are here to prevent undefined behavior, API inconsistency, and bugs.
 
 * All functions that return a boolean value must either\
 1) return RGFW_TRUE or RGFW_FALSE (the RGFW_BOOL() can be used to reduce an int to RGFW_TRUE or RGFW_FALSE )\
@@ -11,9 +11,9 @@ return winbool
 ```
 
 # style conventions
-Style conventions are less important and I will make changes manually if they are not followed, so contributers don't have to worry about these as much.
+Style conventions are less important because I will make changes manually if I need to. This means contributors don't have to worry about these as much.
 
-* Brackets are always used inline if functions definitions and statements e.g.\
+* Brackets are always used inline if functions definitions and statements e.g.
 ```c
 if (boolean) {
 

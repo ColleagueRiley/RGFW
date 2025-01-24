@@ -4,7 +4,7 @@
 .SH NAME
 md_CONVENTIONS \- important conventions 
 .PP
-These first conventions are the most important to follow as they are here to prevent undefined behavior, API inconsistency and bugs\&.
+These first conventions are the most important to follow as they are here to prevent undefined behavior, API inconsistency, and bugs\&.
 .PP
 .IP "\(bu" 2
 All functions that return a boolean value must either\\ 1) return RGFW_TRUE or RGFW_FALSE (the \fBRGFW_BOOL()\fP can be used to reduce an int to RGFW_TRUE or RGFW_FALSE )\\ 2) a boolean statement e\&.g\&. \fC((a == b) || (a == c))\fP\\ 3) a boolean value from the API that's guarantee 1\&.0 e\&.g\&.\\ 
@@ -19,10 +19,10 @@ return winbool
 .PP
 .SH "style conventions"
 .PP
-Style conventions are less important and I will make changes manually if they are not followed, so contributers don't have to worry about these as much\&.
+Style conventions are less important because I will make changes manually if I need to\&. This means contributors don't have to worry about these as much\&.
 .PP
 .IP "\(bu" 2
-Brackets are always used inline if functions definitions and statements e\&.g\&.\\ 
+Brackets are always used inline if functions definitions and statements e\&.g\&. 
 .PP
 .nf
 if (boolean) {
