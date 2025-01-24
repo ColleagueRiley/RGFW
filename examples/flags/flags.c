@@ -4,7 +4,7 @@
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW icons", RGFW_RECT(0, 0, 600, 400), RGFW_windowAllowDND);
-
+    
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win)) {
             if (win->event.type != RGFW_keyPressed) continue;
@@ -14,7 +14,8 @@ int main(void) {
                         RGFW_window_setBorder(win, RGFW_window_borderless(win));
                         break;
                     case RGFW_r:
-                        static b32 res = RGFW_FALSE;
+                        static b32 res = RGFW_TRUE;
+                        res = !res;
                         printf("Resizable: %s\n", !res ? "true" : "false");
                         if (res) {
                             RGFW_window_setMaxSize(win, RGFW_AREA(0, 0));
@@ -32,7 +33,7 @@ int main(void) {
                         printf("Mouse shown: %s\n", !RGFW_window_mouseHidden(win) ? "true" : "false");
                         RGFW_window_showMouse(win, RGFW_window_mouseHidden(win));
                         break;
-                    case RGFW_m:
+                    case RGFW_m: 
                         printf("Maximized: %s\n", RGFW_window_isMaximized(win) ? "true" : "false");
                         if (RGFW_window_isMaximized(win)) RGFW_window_restore(win);
                         else RGFW_window_maximize(win);
