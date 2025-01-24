@@ -1991,14 +1991,14 @@ void RGFW_window_showMouseFlags(RGFW_window* win, i8 show) {
 }
 
 RGFW_bool RGFW_window_mouseHidden(RGFW_window* win) {
-	return (RGFW_bool)(win->_flags & RGFW_windowHideMouse);
+	return (RGFW_bool)RGFW_BOOL(win->_flags & RGFW_windowHideMouse);
 }
 
 RGFW_bool RGFW_window_borderless(RGFW_window* win) {
-	return (RGFW_bool)(win->_flags & RGFW_windowNoBorder);
+	return (RGFW_bool)RGFW_BOOL(win->_flags & RGFW_windowNoBorder);
 }
 
-RGFW_bool RGFW_window_allowsDND(RGFW_window* win) { return (RGFW_bool)(win->_flags & RGFW_windowAllowDND); }
+RGFW_bool RGFW_window_allowsDND(RGFW_window* win) { return RGFW_BOOL(win->_flags & RGFW_windowAllowDND); }
 #ifndef RGFW_WINDOWS
 void RGFW_window_setDND(RGFW_window* win, RGFW_bool allow) {
 	RGFW_setBit(&win->_flags, RGFW_windowAllowDND, allow);
@@ -4481,11 +4481,11 @@ RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 chann
 	RGFW_FREE(data);
 
 	XFlush(win->src.display);
-	return res;
+	return RGFW_BOOL(res);
 #endif
 #ifdef RGFW_WAYLAND
 	wayland:
-	return 0;
+	return RGFW_FALSE;
 #endif
 }
 
@@ -4583,7 +4583,7 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	RGFW_GOTO_WAYLAND(0);
 #ifdef RGFW_X11
 	if (mouse > (sizeof(RGFW_mouseIconSrc) / sizeof(u8)))
-		return 0;
+		return RGFW_FALSE;
 
 	mouse = RGFW_mouseIconSrc[mouse];
 
@@ -4591,7 +4591,7 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	XDefineCursor(win->src.display, win->src.window, (Cursor) cursor);
 
 	XFreeCursor(win->src.display, (Cursor) cursor);
-	return 1;
+	return RGFW_TRUE;
 #endif
 #ifdef RGFW_WAYLAND
 	wayland:
@@ -4603,7 +4603,7 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 
 	wl_surface_attach(RGFW_cursor_surface, cursor_buffer, 0, 0);
 	wl_surface_commit(RGFW_cursor_surface);
-	return 1;
+	return RGFW_TRUE;
 #endif
 }
 
@@ -4739,7 +4739,7 @@ RGFW_bool RGFW_window_isFullscreen(RGFW_window* win) {
 
 	/* check if the window is visable */
 	if (windowAttributes.map_state != IsViewable)
-		return 0;
+		return RGFW_FALSE;
 
 	/* check if the window covers the full screen */
 	return (windowAttributes.x == 0 && windowAttributes.y == 0 &&
@@ -4772,13 +4772,13 @@ RGFW_bool RGFW_window_isMinimized(RGFW_window* win) {
 
 	if (status == Success && nitems >= 1 && *((int*) prop_data) == IconicState) {
 		XFree(prop_data);
-		return 1;
+		return RGFW_TRUE;
 	}
 
 	if (prop_data != NULL)
 		XFree(prop_data);
 
-	return 0;
+	return RGFW_FALSE;
 }
 
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
@@ -4800,7 +4800,7 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 		if (prop_data != NULL)
 			XFree(prop_data);
 
-		return 0;
+		return RGFW_FALSE;
 	}
 
 	Atom* atoms = (Atom*) prop_data;
@@ -4809,11 +4809,11 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 		if (atoms[i] == _NET_WM_STATE_MAXIMIZED_VERT ||
 			atoms[i] == _NET_WM_STATE_MAXIMIZED_HORZ) {
 			XFree(prop_data);
-			return 1;
+			return RGFW_TRUE;
 		}
 	}
 
-	return 0;
+	return RGFW_FALSE;
 }
 
 static float XGetSystemContentDPI(Display* display, i32 screen) {
@@ -5727,7 +5727,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		swapChainDesc.BufferCount = 1;
 		swapChainDesc.BufferDesc.Width = win->r.w;
 		swapChainDesc.BufferDesc.Height = win->r.h;
-		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8RGFW_boolA8_UNORM;
+		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDesc.OutputWindow = win->src.window;
 		swapChainDesc.SampleDesc.Count = 1;
@@ -6544,10 +6544,10 @@ BOOL CALLBACK GetMonitorByHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcM
 
 	RGFW_mInfo* info = (RGFW_mInfo*) dwData;
 	if (info->hMonitor == hMonitor)
-		return FALSE;
+		return RGFW_FALSE;
 
 	info->iIndex++;
-	return TRUE;
+	return RGFW_TRUE;
 }
 
 #ifndef RGFW_NO_MONITOR
@@ -6726,13 +6726,13 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	RGFW_ASSERT(win != NULL);
 
 	if (mouse > (sizeof(RGFW_mouseIconSrc) / sizeof(u32)))
-		return 0;
+		return RGFW_FALSE;
 
 	char* icon = MAKEINTRESOURCEA(RGFW_mouseIconSrc[mouse]);
 
 	SetClassLongPtrA(win->src.window, GCLP_HCURSOR, (LPARAM) LoadCursorA(NULL, icon));
 	SetCursor(LoadCursorA(NULL, icon));
-	return 1;
+	return RGFW_TRUE;
 }
 
 void RGFW_window_hide(RGFW_window* win) {
@@ -6866,12 +6866,12 @@ RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channe
 		
 		win->src.hIcon = RGFW_loadHandleImage(src, a, TRUE);
 		SetClassLongPtrA(win->src.window, GCLP_HICON, (LPARAM) win->src.hIcon);
-		return 1;
+		return RGFW_TRUE;
 	#else
 		RGFW_UNUSED(src);
 		RGFW_UNUSED(a);
 		RGFW_UNUSED(channels);
-		return 0;
+		return RGFW_FALSE;
 	#endif
 }
 
@@ -8568,7 +8568,7 @@ RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* data, RGFW_area area, i32 ch
 	NSRelease(dock_image);
 	NSRelease(representation);
 
-	return 1;
+	return RGFW_TRUE;
 }
 
 id NSCursor_arrowStr(const char* str) {
@@ -8624,19 +8624,19 @@ void RGFW_window_showMouse(RGFW_window* win, i8 show) {
 
 RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 stdMouses) {
 	if (stdMouses > ((sizeof(RGFW_mouseIconSrc)) / (sizeof(char*))))
-		return 0;
+		return RGFW_FALSE;
 
 	const char* mouseStr = RGFW_mouseIconSrc[stdMouses];
 	id mouse = NSCursor_arrowStr(mouseStr);
 
 	if (mouse == NULL)
-		return 0;
+		return RGFW_FALSE;
 
 	RGFW_UNUSED(win);
 	CGDisplayShowCursor(kCGDirectMainDisplay);
 	objc_msgSend_void(mouse, sel_registerName("set"));
 
-	return 1;
+	return RGFW_TRUE;
 }
 
 void RGFW_releaseCursor(RGFW_window* win) {
@@ -9636,7 +9636,7 @@ const char RGFW_CURSORS[11][12] = {
 RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	RGFW_UNUSED(win);
 	EM_ASM( { document.getElementById("canvas").style.cursor = UTF8ToString($0); }, RGFW_CURSORS[mouse]);
-	return 1;
+	return RGFW_TRUE;
 }
 
 RGFW_bool RGFW_window_setMouseDefault(RGFW_window* win) {
@@ -9822,12 +9822,12 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) { RGFW_UNUSED(win); R
 void RGFW_window_minimize(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_restore(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) { RGFW_UNUSED(win); RGFW_UNUSED(border);  }
-RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(icon); RGFW_UNUSED(a); RGFW_UNUSED(channels); return 0;  }
+RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(icon); RGFW_UNUSED(a); RGFW_UNUSED(channels); return RGFW_FALSE;  }
 void RGFW_window_hide(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_show(RGFW_window* win) {RGFW_UNUSED(win); }
-RGFW_bool RGFW_window_isHidden(RGFW_window* win) { RGFW_UNUSED(win); return 0; }
-RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { RGFW_UNUSED(win); return 0; }
-RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { RGFW_UNUSED(win); return 0; }
+RGFW_bool RGFW_window_isHidden(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
+RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
+RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win); return (RGFW_monitor){}; }
 #endif
 
