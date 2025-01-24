@@ -30,10 +30,10 @@ RGFW_event
 .RI "\fBu8\fP \fBkeyChar\fP"
 .br
 .ti -1c
-.RI "\fBb8\fP \fBrepeat\fP"
+.RI "\fBRGFW_bool\fP \fBrepeat\fP"
 .br
 .ti -1c
-.RI "\fBb8\fP \fBinFocus\fP"
+.RI "\fBRGFW_bool\fP \fBinFocus\fP"
 .br
 .ti -1c
 .RI "RGFW_keymod \fBkeyMod\fP"
@@ -84,7 +84,7 @@ house many files were dropped
 this is used for counting the fps 
 .SS "\fBu16\fP RGFW_event::gamepad"
 
-.SS "\fBb8\fP RGFW_event::inFocus"
+.SS "\fBRGFW_bool\fP RGFW_event::inFocus"
 if the window is in focus or not (this is always true for MacOS windows due to the api being weird) 
 .SS "\fBRGFW_key\fP RGFW_event::key"
 the physical key of the event, refers to where key is physically !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! 
@@ -94,7 +94,7 @@ mapped key char of the event
 
 .SS "\fBRGFW_point\fP RGFW_event::point"
 mouse x, y of event (or drop point) 
-.SS "\fBb8\fP RGFW_event::repeat"
+.SS "\fBRGFW_bool\fP RGFW_event::repeat"
 key press event repeated (the key is being held) 
 .SS "double RGFW_event::scroll"
 the raw mouse scroll value 

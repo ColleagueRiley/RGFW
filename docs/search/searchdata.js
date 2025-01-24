@@ -5,8 +5,8 @@ var indexSectionsWithContent =
   2: "rx",
   3: "rx",
   4: "_abdefghiknprstuwxy",
-  5: "bipru",
-  6: "_bgirux",
+  5: "ipru",
+  6: "_girux",
   7: "cgimstw",
   8: "r"
 };
