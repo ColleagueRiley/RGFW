@@ -922,7 +922,7 @@ RGFWDEF RGFW_point RGFW_getGlobalMousePoint(void);
 RGFWDEF RGFW_point RGFW_window_getMousePoint(RGFW_window* win);
 
 /*! show the mouse or hide the mouse*/
-RGFWDEF void RGFW_window_showMouse(RGFW_window* win, i8 show);
+RGFWDEF void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show);
 /*! if the mouse is hidden */
 RGFWDEF RGFW_bool RGFW_window_mouseHidden(RGFW_window* win);
 /*! move the mouse to a set x, y pos*/
@@ -1127,8 +1127,8 @@ RGFWDEF u32 RGFW_window_checkFPS(RGFW_window* win, u32 fpsCap);
 RGFWDEF void RGFW_window_swapBuffers(RGFW_window* win); /*!< swap the rendering buffer */
 RGFWDEF void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval);
 
-RGFWDEF void RGFW_window_setGPURender(RGFW_window* win, i8 set);
-RGFWDEF void RGFW_window_setCPURender(RGFW_window* win, i8 set);
+RGFWDEF void RGFW_window_setGPURender(RGFW_window* win, RGFW_bool set);
+RGFWDEF void RGFW_window_setCPURender(RGFW_window* win, RGFW_bool set);
 
 /*! native API functions */
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL)
@@ -1826,11 +1826,11 @@ void RGFW_setBit(u32* data, u32 bit, RGFW_bool value) {
 		*data ^= bit;
 }
 
-void RGFW_window_setGPURender(RGFW_window* win, i8 set) {
+void RGFW_window_setGPURender(RGFW_window* win, RGFW_bool set) {
 	RGFW_setBit(&win->_flags, RGFW_NO_GPU_RENDER, !set);
 }
 
-void RGFW_window_setCPURender(RGFW_window* win, i8 set) {
+void RGFW_window_setCPURender(RGFW_window* win, RGFW_bool set) {
 	RGFW_setBit(&win->_flags, RGFW_NO_CPU_RENDER, !set);
 }
 
@@ -1982,8 +1982,8 @@ void RGFW_updateKeyMods(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock) 
 					RGFW_isPressed(win, RGFW_superL) || RGFW_isPressed(win, RGFW_superR));
 }
 
-RGFWDEF void RGFW_window_showMouseFlags(RGFW_window* win, i8 show);
-void RGFW_window_showMouseFlags(RGFW_window* win, i8 show) {
+RGFWDEF void RGFW_window_showMouseFlags(RGFW_window* win, RGFW_bool show);
+void RGFW_window_showMouseFlags(RGFW_window* win, RGFW_bool show) {
 	if (show && (win->_flags & RGFW_windowHideMouse))
 		win->_flags ^= RGFW_windowHideMouse;
 	else if (!show && !(win->_flags & RGFW_windowHideMouse))
@@ -2018,7 +2018,7 @@ int setenv(const char *name, const char *value, int overwrite);
 #endif
 
 #if defined(RGFW_X11) || defined(RGFW_WINDOWS)
-void RGFW_window_showMouse(RGFW_window* win, i8 show) {
+void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show) {
 	RGFW_window_showMouseFlags(win, show);
 	if (show == 0)
 		RGFW_window_setMouse(win, RGFW_hiddenMouse);
@@ -5556,11 +5556,9 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
 	bi.bV5AlphaMask = 0xff000000;
 
 	win->src.bitmap = CreateDIBSection(win->src.hdc,
-		(BITMAPINFO*) &bi,
-		DIB_RGB_COLORS,
+		(BITMAPINFO*) &bi, DIB_RGB_COLORS,
 		(void**) &win->src.bitmapBits,
-		NULL,
-		(DWORD) 0);
+		NULL, (DWORD) 0);
 	
 	if (win->buffer == NULL)
 		win->buffer = win->src.bitmapBits;
@@ -6345,17 +6343,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 				RGFW_mouseNotifyCallBack(win, win->event.point, 1);
 			}
 
-			/*if ((win->_flags & RGFW_HOLD_MOUSE)) {
-				RGFW_point p = RGFW_getGlobalMousePoint();
-				//p = RGFW_POINT(p.x + win->r.x, p.y + win->r.y);
-
-				win->event.point.x = x - win->_lastMousePoint.x;
-				win->event.point.y = y - win->_lastMousePoint.y;
-
-				win->_lastMousePoint = RGFW_POINT(x, y);
-				break;
-			}*/
-
 			win->event.point.x = x;
 			win->event.point.y = y;
 			win->_lastMousePoint = RGFW_POINT(x, y);
@@ -6673,11 +6660,8 @@ HICON RGFW_loadHandleImage(u8* src, RGFW_area a, BOOL icon) {
 	u8* target = NULL;
 
 	HBITMAP color = CreateDIBSection(dc,
-		(BITMAPINFO*) &bi,
-		DIB_RGB_COLORS,
-		(void**) &target,
-		NULL,
-		(DWORD) 0);
+		(BITMAPINFO*) &bi, DIB_RGB_COLORS, (void**) &target,
+		NULL, (DWORD) 0);
 	
 	memcpy(target, src, a.w * a.h * 4);
 	ReleaseDC(NULL, dc);
@@ -8616,7 +8600,7 @@ RGFW_bool RGFW_window_setMouseDefault(RGFW_window* win) {
 	return RGFW_window_setMouseStandard(win, RGFW_mouseArrow);
 }
 
-void RGFW_window_showMouse(RGFW_window* win, i8 show) {
+void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show) {
 	RGFW_window_showMouseFlags(win, show);
 	if (show)   CGDisplayShowCursor(kCGDirectMainDisplay);
 	else        CGDisplayHideCursor(kCGDirectMainDisplay);
@@ -9619,23 +9603,15 @@ RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(ch
 void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) { RGFW_UNUSED(win); RGFW_UNUSED(mouse); }
 void RGFW_freeMouse(RGFW_mouse* mouse) { RGFW_UNUSED(mouse); }
 
-const char RGFW_CURSORS[11][12] = {
-    "default",
-    "default",
-    "text",
-    "crosshair",
-    "pointer",
-    "ew-resize",
-    "ns-resize",
-    "nwse-resize",
-    "nesw-resize",
-    "move",
-    "not-allowed"
-};
-
 RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
+	static const char cursors[11][12] = {
+		"default", "default", "text", "crosshair",
+		"pointer", "ew-resize", "ns-resize", "nwse-resize", "nesw-resize",
+		"move", "not-allowed"
+	};
+
 	RGFW_UNUSED(win);
-	EM_ASM( { document.getElementById("canvas").style.cursor = UTF8ToString($0); }, RGFW_CURSORS[mouse]);
+	EM_ASM( { document.getElementById("canvas").style.cursor = UTF8ToString($0); }, cursors[mouse]);
 	return RGFW_TRUE;
 }
 
@@ -9643,7 +9619,7 @@ RGFW_bool RGFW_window_setMouseDefault(RGFW_window* win) {
 	return RGFW_window_setMouseStandard(win, RGFW_mouseNormal);
 }
 
-void RGFW_window_showMouse(RGFW_window* win, i8 show) {
+void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show) {
 	RGFW_window_showMouseFlags(win, show);
 	if (show)
 		RGFW_window_setMouseDefault(win);

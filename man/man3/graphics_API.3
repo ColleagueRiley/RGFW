@@ -22,10 +22,10 @@ graphics_API \- Graphics_API
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_swapInterval\fP (\fBRGFW_window\fP *win, \fBi32\fP swapInterval)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_setGPURender\fP (\fBRGFW_window\fP *win, \fBi8\fP set)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setGPURender\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP set)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_setCPURender\fP (\fBRGFW_window\fP *win, \fBi8\fP set)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setCPURender\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP set)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setGLStencil\fP (\fBi32\fP stencil)"
@@ -90,9 +90,9 @@ Set OpenGL version hint (core or compatibility profile)
 NOTE: if you want to switch the graphics context's thread, you have to run RGFW_window_makeCurrent(NULL); on the old thread then RGFW_window_makeCurrent(valid_window) on the new thread 
 .SS "\fBRGFWDEF\fP void RGFW_window_makeCurrent_OpenGL (\fBRGFW_window\fP * win)"
 to be called by RGFW_window_makeCurrent 
-.SS "\fBRGFWDEF\fP void RGFW_window_setCPURender (\fBRGFW_window\fP * win, \fBi8\fP set)"
+.SS "\fBRGFWDEF\fP void RGFW_window_setCPURender (\fBRGFW_window\fP * win, \fBRGFW_bool\fP set)"
 
-.SS "\fBRGFWDEF\fP void RGFW_window_setGPURender (\fBRGFW_window\fP * win, \fBi8\fP set)"
+.SS "\fBRGFWDEF\fP void RGFW_window_setGPURender (\fBRGFW_window\fP * win, \fBRGFW_bool\fP set)"
 
 .SS "\fBRGFWDEF\fP void RGFW_window_swapBuffers (\fBRGFW_window\fP * win)"
 swap the rendering buffer 
