@@ -1833,14 +1833,15 @@ void RGFW_window_setCPURender(RGFW_window* win, i8 set) {
 	RGFW_setBit(&win->_flags, RGFW_NO_CPU_RENDER, !set);
 }
 
+#if !defined(RGFW_WINDOWS) && !defined(RGFW_X11)
 void RGFW_window_maximize(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
 	RGFW_area screen = RGFW_getScreenSize();
-
 	RGFW_window_move(win, RGFW_POINT(0, 0));
 	RGFW_window_resize(win, screen);
 }
+#endif
 
 void RGFW_window_center(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
@@ -4343,6 +4344,31 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 	XSetWMNormalHints(win->src.display, win->src.window, &hints);
 }
 
+void RGFW_toggleXMaximized(RGFW_window* win, b8 maximized) {
+	RGFW_ASSERT(win != NULL);
+
+	Atom _NET_WM_STATE = XInternAtom(win->src.display, "_NET_WM_STATE", False);
+	Atom _NET_WM_STATE_MAXIMIZED_VERT = XInternAtom(win->src.display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
+	Atom _NET_WM_STATE_MAXIMIZED_HORZ = XInternAtom(win->src.display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+	
+	XEvent xev = {0};
+	xev.type = ClientMessage;
+	xev.xclient.window = win->src.window;
+	xev.xclient.message_type = _NET_WM_STATE;
+	xev.xclient.format = 32;
+	xev.xclient.data.l[0] = maximized;
+	xev.xclient.data.l[1] = _NET_WM_STATE_MAXIMIZED_HORZ;
+	xev.xclient.data.l[2] = _NET_WM_STATE_MAXIMIZED_VERT;
+	xev.xclient.data.l[3] = 0;
+	xev.xclient.data.l[4] = 0;
+
+	XSendEvent(win->src.display, DefaultRootWindow(win->src.display), False,
+			   SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+}
+
+void RGFW_window_maximize(RGFW_window* win) {
+	RGFW_toggleXMaximized(win, 1);
+}
 
 void RGFW_window_minimize(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
@@ -4353,6 +4379,7 @@ void RGFW_window_minimize(RGFW_window* win) {
 
 void RGFW_window_restore(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
+	RGFW_toggleXMaximized(win, 0);
 
 	XMapWindow(win->src.display, win->src.window);
 	XFlush(win->src.display);
@@ -4578,7 +4605,7 @@ b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 void RGFW_window_hide(RGFW_window* win) {
 	RGFW_GOTO_WAYLAND(0);
 #ifdef RGFW_X11
-	XMapWindow(win->src.display, win->src.window);
+	XUnmapWindow(win->src.display, win->src.window);
 #endif
 #ifdef RGFW_WAYLAND
 	wayland:
@@ -4593,7 +4620,7 @@ void RGFW_window_show(RGFW_window* win) {
 		win->_flags ^= RGFW_windowHide;
 	RGFW_GOTO_WAYLAND(0);
 #ifdef RGFW_X11
-	XUnmapWindow(win->src.display, win->src.window);
+	XMapWindow(win->src.display, win->src.window);
 #endif
 #ifdef RGFW_WAYLAND
 	wayland:
@@ -5421,6 +5448,8 @@ PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 RGFW_window RGFW_eventWindow;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+    RGFW_window* win = GetPropA(hWnd, "RGFW");
+
 	RECT windowRect;
 	GetWindowRect(hWnd, &windowRect);
 	
@@ -5440,9 +5469,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		RGFW_eventWindow.src.window = hWnd;
 		return DefWindowProcA(hWnd, message, wParam, lParam); // Call DefWindowProc after handling
 	}
-	default:
+	case WM_GETMINMAXINFO:
+		if (win == NULL)
+			return DefWindowProcA(hWnd, message, wParam, lParam);
+		
+		MINMAXINFO* mmi = (MINMAXINFO*) lParam;
+		mmi->ptMinTrackSize.x = win->src.minSize.w;
+		mmi->ptMinTrackSize.y = win->src.minSize.h;
+		if (win->src.maxSize.w == 0 && win->src.maxSize.h == 0)
+			return DefWindowProcA(hWnd, message, wParam, lParam);
+		
+		mmi->ptMaxTrackSize.x = win->src.maxSize.w;
+		mmi->ptMaxTrackSize.y = win->src.maxSize.h;
 		return DefWindowProcA(hWnd, message, wParam, lParam);
+	default: break;
 	}
+	return DefWindowProcA(hWnd, message, wParam, lParam);
 }
 
 #ifndef RGFW_NO_DPI
@@ -5616,6 +5658,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	Class.hInstance = inh;
 	Class.hCursor = LoadCursor(NULL, IDC_ARROW);
 	Class.lpfnWndProc = WndProc;
+	Class.cbClsExtra = sizeof(RGFW_window*);
 
 	Class.hIcon = (HICON)LoadImageA(GetModuleHandleW(NULL), "RGFW_ICON", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
 	if (Class.hIcon == NULL) {
@@ -5637,11 +5680,14 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		window_style |= WS_POPUP | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX;
 
 	HWND dummyWin = CreateWindowA(Class.lpszClassName, name, window_style, win->r.x, win->r.y, win->r.w, win->r.h, 0, 0, inh, 0);
+	
 	GetWindowRect(dummyWin, &windowRect);
 	GetClientRect(dummyWin, &clientRect);
 
 	win->src.hOffset = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
 	win->src.window = CreateWindowA(Class.lpszClassName, name, window_style, win->r.x, win->r.y, win->r.w, win->r.h + win->src.hOffset, 0, 0, inh, 0);
+
+	SetPropA(win->src.window, "RGFW", win);
 
 	if (flags & RGFW_windowAllowDND) {
 		win->_flags |= RGFW_windowAllowDND;
@@ -5932,6 +5978,10 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 	win->src.maxSize = a;
 }
 
+void RGFW_window_maximize(RGFW_window* win) {
+	RGFW_ASSERT(win != NULL);
+	ShowWindow(win->src.window, SW_MAXIMIZE);
+}
 
 void RGFW_window_minimize(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
@@ -6193,7 +6243,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			}
 
 			break;
-
 		case WM_PAINT:
 			win->event.type = RGFW_windowRefresh;
 			RGFW_windowRefreshCallback(win);
@@ -6429,19 +6478,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			RGFW_dndInitCallback(win, win->event.point);
 		}
 			break;
-		case WM_GETMINMAXINFO:
-		{
-			MINMAXINFO* mmi = (MINMAXINFO*) msg.lParam;
-			mmi->ptMinTrackSize.x = win->src.minSize.w;
-			mmi->ptMinTrackSize.y = win->src.minSize.h;
-
-			if (win->src.maxSize.w == 0 && win->src.maxSize.h == 0)
-				return RGFW_window_checkEvent(win);
-
-			mmi->ptMaxTrackSize.x = win->src.maxSize.w;
-			mmi->ptMaxTrackSize.y = win->src.maxSize.h;
-			return RGFW_window_checkEvent(win);
-		}
 		default:
 			TranslateMessage(&msg);
 			DispatchMessageA(&msg);
