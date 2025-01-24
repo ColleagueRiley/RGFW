@@ -68,6 +68,7 @@
     #define RGFW_IMPORT - Use when linking with RGFW (not as a single-header)
 
 	#define RGFW_USE_INT - force the use c-types rather than stdint.h (for systems that might not have stdint.h (msvc))
+	#define RGFW_bool x - choose what type to use for bool, by default u32 is used
 */
 
 /*
@@ -9180,7 +9181,7 @@ u32 RGFW_webasmPhysicalToRGFW(u32 hash) {
 		case 0x92E14DD3U /* Minus              */: return RGFW_minus;                /* 0x000C */
 		case 0x92E1FBACU /* Equal              */: return RGFW_equals;                /* 0x000D */
 		case 0x36BF1CB5U /* Backspace          */: return RGFW_backSpace;            /* 0x000E */
-		case 0x7RGFW_boolE51E2U /* Tab                */: return RGFW_tab;                  /* 0x000F */
+		case 0x7B8E51E2U  /* Tab                */: return RGFW_tab;                  /* 0x000F */
 		case 0x2C595B51U /* KeyQ               */: return RGFW_q;                    /* 0x0010 */
 		case 0x2C595B57U /* KeyW               */: return RGFW_w;                    /* 0x0011 */
 		case 0x2C595B45U /* KeyE               */: return RGFW_e;                    /* 0x0012 */
@@ -9222,7 +9223,7 @@ u32 RGFW_webasmPhysicalToRGFW(u32 hash) {
 		case 0x5D64DA91U /* NumpadMultiply     */: return RGFW_multiply;
 		case 0xC914958CU /* AltLeft            */: return RGFW_altL;             /* 0x0038 */
 		case 0x92E09CB5U /* Space              */: return RGFW_space;                /* 0x0039 */
-		case 0xRGFW_boolFAE73BU /* CapsLock           */: return RGFW_capsLock;            /* 0x003A */
+		case 0xB8FAE73BU  /* CapsLock           */: return RGFW_capsLock;            /* 0x003A */
 		case 0x7174B789U /* F1                 */: return RGFW_F1;                   /* 0x003B */
 		case 0x7174B78AU /* F2                 */: return RGFW_F2;                   /* 0x003C */
 		case 0x7174B78BU /* F3                 */: return RGFW_F3;                   /* 0x003D */
@@ -9232,7 +9233,7 @@ u32 RGFW_webasmPhysicalToRGFW(u32 hash) {
 		case 0x7174B78FU /* F7                 */: return RGFW_F7;                   /* 0x0041 */
 		case 0x7174B780U /* F8                 */: return RGFW_F8;                   /* 0x0042 */
 		case 0x7174B781U /* F9                 */: return RGFW_F9;                   /* 0x0043 */
-		case 0x7RGFW_boolE57B0U /* F10                */: return RGFW_F10;                  /* 0x0044 */
+		case 0x7B8E57B0U  /* F10                */: return RGFW_F10;                  /* 0x0044 */
 		case 0xC925FCDFU /* Numpad7            */: return RGFW_multiply;             /* 0x0047 */
 		case 0xC925FCD0U /* Numpad8            */: return RGFW_KP_8;             /* 0x0048 */
 		case 0xC925FCD1U /* Numpad9            */: return RGFW_KP_9;             /* 0x0049 */
@@ -9245,17 +9246,17 @@ u32 RGFW_webasmPhysicalToRGFW(u32 hash) {
 		case 0xC925FCDBU /* Numpad3            */: return RGFW_KP_3;             /* 0x0051 */
 		case 0xC925FCD8U /* Numpad0            */: return RGFW_KP_0;             /* 0x0052 */
 		case 0x95852DACU /* NumpadDecimal      */: return RGFW_period;       /* 0x0053 */
-		case 0x7RGFW_boolE57B1U /* F11                */: return RGFW_F11;                  /* 0x0057 */
-		case 0x7RGFW_boolE57B2U /* F12                */: return RGFW_F12;                  /* 0x0058 */
+		case 0x7B8E57B1U  /* F11                */: return RGFW_F11;                  /* 0x0057 */
+		case 0x7B8E57B2U  /* F12                */: return RGFW_F12;                  /* 0x0058 */
 		case 0x7393FBACU /* NumpadEqual        */: return RGFW_KP_Return;
-		case 0xRGFW_bool8EBF7CU /* AltRight           */: return RGFW_altR;            /* 0xE038 */
+		case 0xB88EBF7CU  /* AltRight           */: return RGFW_altR;            /* 0xE038 */
 		case 0xC925873BU /* NumLock            */: return RGFW_numLock;             /* 0xE045 */
 		case 0x2C595F45U /* Home               */: return RGFW_home;                 /* 0xE047 */
 		case 0xC91BB690U /* ArrowUp            */: return RGFW_up;             /* 0xE048 */
 		case 0x672F9210U /* PageUp             */: return RGFW_pageUp;              /* 0xE049 */
 		case 0x3799258CU /* ArrowLeft          */: return RGFW_left;           /* 0xE04B */
 		case 0x4CE33F7CU /* ArrowRight         */: return RGFW_right;          /* 0xE04D */
-		case 0x7RGFW_boolE55DCU /* End                */: return RGFW_end;                  /* 0xE04F */
+		case 0x7B8E55DCU  /* End                */: return RGFW_end;                  /* 0xE04F */
 		case 0x3799379EU /* ArrowDown          */: return RGFW_down;           /* 0xE050 */
 		case 0xBA90179EU /* PageDown           */: return RGFW_pageDown;            /* 0xE051 */
 		case 0x6723CB2CU /* Insert             */: return RGFW_insert;               /* 0xE052 */
