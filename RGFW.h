@@ -1833,7 +1833,7 @@ void RGFW_window_setCPURender(RGFW_window* win, i8 set) {
 	RGFW_setBit(&win->_flags, RGFW_NO_CPU_RENDER, !set);
 }
 
-#if !defined(RGFW_WINDOWS)
+#if !defined(RGFW_WINDOWS) && !defined(RGFW_X11)
 void RGFW_window_maximize(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
@@ -4344,6 +4344,31 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 	XSetWMNormalHints(win->src.display, win->src.window, &hints);
 }
 
+void RGFW_toggleXMaximized(RGFW_window* win, b8 maximized) {
+	RGFW_ASSERT(win != NULL);
+
+	Atom _NET_WM_STATE = XInternAtom(win->src.display, "_NET_WM_STATE", False);
+	Atom _NET_WM_STATE_MAXIMIZED_VERT = XInternAtom(win->src.display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
+	Atom _NET_WM_STATE_MAXIMIZED_HORZ = XInternAtom(win->src.display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+	
+	XEvent xev = {0};
+	xev.type = ClientMessage;
+	xev.xclient.window = win->src.window;
+	xev.xclient.message_type = _NET_WM_STATE;
+	xev.xclient.format = 32;
+	xev.xclient.data.l[0] = maximized;
+	xev.xclient.data.l[1] = _NET_WM_STATE_MAXIMIZED_HORZ;
+	xev.xclient.data.l[2] = _NET_WM_STATE_MAXIMIZED_VERT;
+	xev.xclient.data.l[3] = 0;
+	xev.xclient.data.l[4] = 0;
+
+	XSendEvent(win->src.display, DefaultRootWindow(win->src.display), False,
+			   SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+}
+
+void RGFW_window_maximize(RGFW_window* win) {
+	RGFW_toggleXMaximized(win, 1);
+}
 
 void RGFW_window_minimize(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
@@ -4354,6 +4379,7 @@ void RGFW_window_minimize(RGFW_window* win) {
 
 void RGFW_window_restore(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
+	RGFW_toggleXMaximized(win, 0);
 
 	XMapWindow(win->src.display, win->src.window);
 	XFlush(win->src.display);
@@ -4579,7 +4605,7 @@ b32 RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 void RGFW_window_hide(RGFW_window* win) {
 	RGFW_GOTO_WAYLAND(0);
 #ifdef RGFW_X11
-	XMapWindow(win->src.display, win->src.window);
+	XUnmapWindow(win->src.display, win->src.window);
 #endif
 #ifdef RGFW_WAYLAND
 	wayland:
@@ -4594,7 +4620,7 @@ void RGFW_window_show(RGFW_window* win) {
 		win->_flags ^= RGFW_windowHide;
 	RGFW_GOTO_WAYLAND(0);
 #ifdef RGFW_X11
-	XUnmapWindow(win->src.display, win->src.window);
+	XMapWindow(win->src.display, win->src.window);
 #endif
 #ifdef RGFW_WAYLAND
 	wayland:
