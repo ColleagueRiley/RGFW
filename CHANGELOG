@@ -24,6 +24,7 @@ Current Version: RGFW 1.5.5-dev
 - make RGFW_window_isMaximized actually maximize the window width the API (X11/Windows)
 - fix RGFW_window_setBorder not working after window creation (X11)
 - change b8/b32 to single changeable bool type `RGFW_bool`, add `RGFW_BOOL` macro for forcing an int to be bool
+- add `CONVENTIONS.md`
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
