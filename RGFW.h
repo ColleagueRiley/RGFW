@@ -3210,14 +3210,18 @@ void RGFW_window_setBorder(RGFW_window* win, u8 border) {
 		unsigned long flags, functions, decorations, status;
 		long input_mode;
 	} hints;
-	hints.flags = (1L << 1);
+	hints.flags = 2;
 	hints.decorations = border;
 
-	XChangeProperty(
-		win->src.display, win->src.window,
-		_MOTIF_WM_HINTS, _MOTIF_WM_HINTS,
-		32, PropModeReplace, (u8*)&hints, 5
+	XChangeProperty(win->src.display, win->src.window, _MOTIF_WM_HINTS, _MOTIF_WM_HINTS, 32, 
+				PropModeReplace, (u8*)&hints, 5
 	);
+
+	if (RGFW_window_isHidden(win) == 0) {
+		RGFW_window_hide(win);
+		RGFW_window_show(win);
+	}
+
 	#endif
 	#ifdef RGFW_WAYLAND
 	wayland:
