@@ -20,6 +20,7 @@ Current Version: RGFW 1.5.5-dev
 - add `RGFW_window_center`
 - add `RGFW_window_borderless`, `RGFW_window_allowsDND` and `RGFW_window_mouseHidden` for checking for args
 - add flags example
+- fix `RGFW_window_setMaxSize` / `RGFW_window_setMinSize` winapi, use `SetPropA` `GetPropA` to get the window in `WndProc`
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
