@@ -14,7 +14,7 @@ int main(void) {
                         RGFW_window_setBorder(win, RGFW_window_borderless(win));
                         break;
                     case RGFW_r:
-                        static b32 res = RGFW_TRUE;
+                        static RGFW_bool res = RGFW_TRUE;
                         res = !res;
                         printf("Resizable: %s\n", !res ? "true" : "false");
                         if (res) {
