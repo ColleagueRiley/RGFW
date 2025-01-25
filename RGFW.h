@@ -8013,11 +8013,15 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 }
 
 	void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
-		if (!border && RGFW_window_isMaximized(win)) {
-			objc_msgSend_void_SEL(win->src.window, sel_registerName("toggleFullScreen:"), NULL);
+		/* weird hack thing */
+		RGFW_window winSrc = *win;
+		{
+			if (!border && RGFW_window_isMaximized(win)) {
+				objc_msgSend_void_SEL(win->src.window, sel_registerName("toggleFullScreen:"), NULL);
+			}
 		}
+		*win = winSrc;
 		
-
 		NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
 		NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
 		float offset = 0;
@@ -8040,8 +8044,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			offset = frame.size.height - content.size.height;
 		}
 		
-		// RGFW_window_resize(win, RGFW_AREA(win->r.w, win->r.h + offset));
-		// win->r.h -= offset;
+		RGFW_window_resize(win, RGFW_AREA(win->r.w, win->r.h + offset));
+		win->r.h -= offset;
 	}
 
 	RGFW_area RGFW_getScreenSize(void) {
