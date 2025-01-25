@@ -8381,7 +8381,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 				RGFW_mousePosCallback(win, win->event.point);
 				break;
 			}
-			case NSEventTypeLeftMouseDown: case NSEventTypeRightMouseDown: case NSEventTypeOtherMouseDown:
+			case NSEventTypeLeftMouseDown: case NSEventTypeRightMouseDown: case NSEventTypeOtherMouseDown: {
 				u32 buttonNumber = objc_msgSend_uint(e, sel_registerName("buttonNumber"));
 				switch (buttonNumber) {
 					case 0: win->event.button = RGFW_mouseLeft; break;
@@ -8395,7 +8395,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 				RGFW_mouseButtons[win->event.button].current = 1;
 				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
 				break;
-			case NSEventTypeLeftMouseUp: case NSEventTypeRightMouseUp: case NSEventTypeOtherMouseUp:
+			}
+			case NSEventTypeLeftMouseUp: case NSEventTypeRightMouseUp: case NSEventTypeOtherMouseUp: {
 				u32 buttonNumber = objc_msgSend_uint(e, sel_registerName("buttonNumber"));
 				switch (buttonNumber) {
 					case 0: win->event.button = RGFW_mouseLeft; break;
@@ -8408,7 +8409,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 				win->event.type = RGFW_mouseButtonReleased;
 				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
 				break;
-			
+			}
 			case NSEventTypeScrollWheel: {
 				double deltaY = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaY"));
 
