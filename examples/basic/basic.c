@@ -58,9 +58,7 @@ int main(void) {
         #ifdef __APPLE__
         if (win2) RGFW_window_checkEvent(win2);
         #endif
-
-        //RGFW_window_eventWait(win, RGFW_eventWaitNext);
-
+        
         while (RGFW_window_checkEvent(win) != NULL) {
             if (win->event.type == RGFW_windowMoved) {
                 printf("window moved\n");
