@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Fri Jan 24 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Sat Jan 25 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -98,6 +98,9 @@ RGFW.h
 .RI "#define \fBRGFW_OPENGL\fP"
 .br
 .ti -1c
+.RI "#define \fBRGFW_key\fP   \fBu8\fP"
+.br
+.ti -1c
 .RI "#define \fBRGFW_MAX_PATH\fP   260 /* max length of a path (for dnd) */"
 .br
 .ti -1c
@@ -145,9 +148,6 @@ RGFW.h
 .br
 .ti -1c
 .RI "typedef \fBu32\fP \fBRGFW_bool\fP"
-.br
-.ti -1c
-.RI "typedef \fBu8\fP \fBRGFW_key\fP"
 .br
 .ti -1c
 .RI "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
@@ -601,6 +601,8 @@ RGFW.h
 
 .SS "#define RGFW_HEADER"
 
+.SS "#define RGFW_key   \fBu8\fP"
+
 .SS "#define RGFW_MAX_DROPS   260 /* max items you can drop at once */"
 
 .SS "#define RGFW_MAX_PATH   260 /* max length of a path (for dnd) */"
@@ -643,8 +645,6 @@ RGFW.h
 
 .SS "typedef struct \fBRGFW_event\fP \fBRGFW_event\fP"
 Event structure for checking/getting events 
-.SS "typedef \fBu8\fP \fBRGFW_key\fP"
-
 .SS "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
 structure for monitor data 
 .SS "typedef void \fBRGFW_mouse\fP"

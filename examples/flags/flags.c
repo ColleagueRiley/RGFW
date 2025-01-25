@@ -13,7 +13,7 @@ int main(void) {
                         printf("Borderless: %s\n", !RGFW_window_borderless(win) ? "true" : "false");
                         RGFW_window_setBorder(win, RGFW_window_borderless(win));
                         break;
-                    case RGFW_r:
+                    case RGFW_r: { 
                         static RGFW_bool res = RGFW_TRUE;
                         res = !res;
                         printf("Resizable: %s\n", !res ? "true" : "false");
@@ -25,6 +25,7 @@ int main(void) {
                             RGFW_window_setMinSize(win, RGFW_AREA(win->r.w, win->r.h));
                         }
                         break;
+		    }
                     case RGFW_d: 
                         printf("Allow Drops: %s\n", RGFW_window_allowsDND(win) ? "true" : "false");
                         RGFW_window_setDND(win, !RGFW_window_allowsDND(win));
