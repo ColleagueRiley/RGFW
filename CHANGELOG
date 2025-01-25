@@ -27,6 +27,7 @@ Current Version: RGFW 1.5.5-dev
 - add `CONVENTIONS.md`
 - fix window flag bugs (macOS)
 - RGFW_window_maximize uses `toggleFullScreen` if the window has no border (macOS)
+- skip x11 mouse button events if the mouse button > 5
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
