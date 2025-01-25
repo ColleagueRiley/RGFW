@@ -479,7 +479,7 @@ typedef RGFW_ENUM(u8, RGFW_mouseButton) {
 	RGFW_mouseRight, /*!< right mouse button is pressed*/
 	RGFW_mouseScrollUp, /*!< mouse wheel is scrolling up*/
 	RGFW_mouseScrollDown, /*!< mouse wheel is scrolling down*/
-	RGFW_mouseMisc1, RGFW_mouseMisc, RGFW_mouseMisc3, RGFW_mouseMisc4, RGFW_mouseMisc5,
+	RGFW_mouseMisc1, RGFW_mouseMisc2, RGFW_mouseMisc3, RGFW_mouseMisc4, RGFW_mouseMisc5,
 	RGFW_mouseFinal
 };
 
