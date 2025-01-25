@@ -3872,8 +3872,12 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	}
 	case ButtonPress:
 	case ButtonRelease:
+		if (E.xbutton.button > 5) { /* skip this event */
+			XFlush(win->src.display);
+			return RGFW_window_checkEvent(win);
+		}
+		
 		win->event.type = RGFW_mouseButtonPressed + (E.type == ButtonRelease); // the events match
-
 		win->event.button = E.xbutton.button - 1;
 		switch(win->event.button) {
 			case RGFW_mouseScrollUp:
@@ -9027,7 +9031,7 @@ EM_BOOL Emscripten_on_mousedown(int eventType, const EmscriptenMouseEvent* e, vo
 
 	RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonPressed;
 	RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->targetX, e->targetY);
-	RGFW_events[RGFW_eventLen].button = e->button;
+	RGFW_events[RGFW_eventLen].button = e->button % 2;
 	RGFW_events[RGFW_eventLen].scroll = 0;
 
 	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;
