@@ -6130,8 +6130,8 @@ void RGFW_stopCheckEvents(void) {
 
 void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 	RGFW_UNUSED(win);
-
-	MsgWaitForMultipleObjects(0, NULL, FALSE, (DWORD) (waitMS * 1e3), QS_ALLINPUT);
+	if (waitMS == RGFW_eventWaitNext) waitMS = INFINITE;
+	MsgWaitForMultipleObjects(0, NULL, FALSE, (DWORD)waitMS, QS_ALLINPUT);
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
@@ -8191,6 +8191,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 		eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
+
+		if (waitMS == RGFW_eventWaitNext) waitMS = 0xfffffff;
 
 		void* date = (void*) ((id(*)(Class, SEL, double))objc_msgSend)
 					(objc_getClass("NSDate"), sel_registerName("dateWithTimeIntervalSinceNow:"), waitMS);
