@@ -814,21 +814,21 @@ RGFWDEF RGFW_event* RGFW_window_checkEvent(RGFW_window* win); /*!< check current
 	waitMS -> Allows th	e function to keep checking for events even after `RGFW_window_checkEvent == NULL`
 			  if waitMS == 0, the loop will not wait for events
 			  if waitMS == a positive integer, the loop will wait that many miliseconds after there are no more events until it returns
-			  if waitMS == a negative integer, the loop will not return until it gets another event
+			  if waitMS == a the max size of a 32-bit int (or -1), the loop will not return until it gets another event
 */
-typedef RGFW_ENUM(i32, RGFW_eventWait) {
-	RGFW_eventWaitNext = -1,
-	RGFW_eventNoWait = 0
+typedef RGFW_ENUM(u32, RGFW_eventWait) {
+	RGFW_eventNoWait = 0,
+	RGFW_eventWaitNext = 0xFFFFFFFF
 };
 
 /*! sleep until RGFW gets an event or the timer ends (defined by OS) */
-RGFWDEF void RGFW_window_eventWait(RGFW_window* win, i32 waitMS);
+RGFWDEF void RGFW_window_eventWait(RGFW_window* win, u32 waitMS);
 
 /*!
 	check all the events until there are none left,
 	this should only be used if you're using callbacks only
 */
-RGFWDEF void RGFW_window_checkEvents(RGFW_window* win, i32 waitMS);
+RGFWDEF void RGFW_window_checkEvents(RGFW_window* win, u32 waitMS);
 
 /*!
 	Tell RGFW_window_eventWait to stop waiting, to be ran from another thread
@@ -1584,7 +1584,7 @@ RGFW_gamepadButtonfunc RGFW_gamepadButtonCallback = RGFW_gamepadButtonfuncEMPTY;
 RGFW_gamepadAxisfunc RGFW_gamepadAxisCallback = RGFW_gamepadAxisfuncEMPTY;
 RGFW_gamepadfunc RGFW_gamepadCallback = RGFW_gamepadfuncEMPTY;
 
-void RGFW_window_checkEvents(RGFW_window* win, i32 waitMS) {
+void RGFW_window_checkEvents(RGFW_window* win, u32 waitMS) {
 	RGFW_window_eventWait(win, waitMS);
 
 	while (RGFW_window_checkEvent(win) != NULL && RGFW_window_shouldClose(win) == 0) {
@@ -5263,9 +5263,8 @@ void RGFW_stopCheckEvents(void) {
 	}
 }
 
-void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
-	if (waitMS == 0)
-		return;
+void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
+	if (waitMS == 0) return;
 
 	u8 i;
 	if (RGFW_eventWait_forceStop[0] == 0 || RGFW_eventWait_forceStop[1] == 0) {
@@ -5306,14 +5305,14 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 
 
 	#ifdef RGFW_WAYLAND
-		while (wl_display_dispatch(win->src.wl_display) <= 0 && waitMS >= -1) {
+		while (wl_display_dispatch(win->src.wl_display) <= 0 && waitMS != RGFW_eventWaitNext) {
 	#else
-		while (XPending(win->src.display) == 0 && waitMS >= -1) {
+		while (XPending(win->src.display) == 0 && waitMS != RGFW_eventWaitNext) {
 	#endif
-		if (poll(fds, index, waitMS) <= 0)
+		if (poll(fds, index, (int)waitMS) <= 0)
 			break;
 
-		if (waitMS > 0) {
+		if (waitMS != RGFW_eventWaitNext) {
 			waitMS -= (RGFW_getTimeNS() - start) / 1e+6;
 		}
 	}
@@ -6130,9 +6129,8 @@ void RGFW_stopCheckEvents(void) {
 	PostMessageW(RGFW_root->src.window, WM_NULL, 0, 0);
 }
 
-void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
+void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
 	RGFW_UNUSED(win);
-	if (waitMS == RGFW_eventWaitNext) waitMS = INFINITE;
 	MsgWaitForMultipleObjects(0, NULL, FALSE, (DWORD)waitMS, QS_ALLINPUT);
 }
 
@@ -8160,13 +8158,11 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 	}
 
-	void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
+	void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
 		RGFW_UNUSED(win);
 
 		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 		eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
-
-		if (waitMS == RGFW_eventWaitNext) waitMS = 0xfffffff;
 
 		void* date = (void*) ((id(*)(Class, SEL, double))objc_msgSend)
 					(objc_getClass("NSDate"), sel_registerName("dateWithTimeIntervalSinceNow:"), waitMS);
@@ -9279,16 +9275,14 @@ void RGFW_stopCheckEvents(void) {
 	RGFW_stopCheckEvents_bool = RGFW_TRUE;
 }
 
-void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
+void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
 	RGFW_UNUSED(win);
-
-	if (waitMS == 0)
-		return;
+	if (waitMS == 0) return;
 
 	u32 start = (u32)(((u64)RGFW_getTimeNS()) / 1e+6);
 
 	while ((RGFW_eventLen == 0) && RGFW_stopCheckEvents_bool == RGFW_FALSE &&
-		(waitMS < 0 || (RGFW_getTimeNS() / 1e+6) - start < waitMS)
+		(waitMS != RGFW_eventWaitNext || (RGFW_getTimeNS() / 1e+6) - start < waitMS)
 	) {
 		emscripten_sleep(0);
 	}
