@@ -274,13 +274,13 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_event\fP * \fBRGFW_window_checkEvent\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_eventWait)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBu32\fP, RGFW_eventWait)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_eventWait\fP (\fBRGFW_window\fP *win, \fBi32\fP waitMS)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_eventWait\fP (\fBRGFW_window\fP *win, \fBu32\fP waitMS)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_checkEvents\fP (\fBRGFW_window\fP *win, \fBi32\fP waitMS)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_checkEvents\fP (\fBRGFW_window\fP *win, \fBu32\fP waitMS)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_stopCheckEvents\fP (void)"
@@ -767,6 +767,8 @@ gamepad button codes (based on xbox/playstation), you may need to change these v
 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_mouseButton)"
 mouse button codes (\fBRGFW_event\&.button\fP) < left mouse button is pressed
+.PP
+< mouse-wheel-button is pressed
 .PP
 < right mouse button is pressed
 .PP
