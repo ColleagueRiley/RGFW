@@ -8989,12 +8989,13 @@ EM_BOOL Emscripten_on_mousemove(int eventType, const EmscriptenMouseEvent* e, vo
 
 EM_BOOL Emscripten_on_mousedown(int eventType, const EmscriptenMouseEvent* e, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
-	if (e->button > 2) e->button += 2; /* skip scroll values */
-
+	
 	RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonPressed;
 	RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->targetX, e->targetY);
 	RGFW_events[RGFW_eventLen].button = e->button;
 	RGFW_events[RGFW_eventLen].scroll = 0;
+	if (RGFW_events[RGFW_eventLen].button > 2)
+		RGFW_events[RGFW_eventLen].button += 2;
 
 	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;
 	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current = 1;
@@ -9007,12 +9008,13 @@ EM_BOOL Emscripten_on_mousedown(int eventType, const EmscriptenMouseEvent* e, vo
 
 EM_BOOL Emscripten_on_mouseup(int eventType, const EmscriptenMouseEvent* e, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
-	if (e->button > 2) e->button += 2; /* skip scroll values */
-
+	
 	RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonReleased;
 	RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->targetX, e->targetY);	
-	RGFW_events[RGFW_eventLen].button = e->button;
+	RGFW_events[RGFW_eventLen].button = button;
 	RGFW_events[RGFW_eventLen].scroll = 0;
+	if (RGFW_events[RGFW_eventLen].button > 2)
+		RGFW_events[RGFW_eventLen].button += 2;
 
 	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;
 	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current = 0;
