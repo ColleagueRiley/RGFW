@@ -475,10 +475,12 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 /*! mouse button codes (RGFW_event.button) */
 typedef RGFW_ENUM(u8, RGFW_mouseButton) {
 	RGFW_mouseLeft = 0, /*!< left mouse button is pressed*/
-	RGFW_mouseMiddle, /*!< mouse-wheel-button is pressed*/
+	RGFW_mouseMiddle, /*	!< mouse-wheel-button is pressed*/
 	RGFW_mouseRight, /*!< right mouse button is pressed*/
 	RGFW_mouseScrollUp, /*!< mouse wheel is scrolling up*/
-	RGFW_mouseScrollDown /*!< mouse wheel is scrolling down*/
+	RGFW_mouseScrollDown, /*!< mouse wheel is scrolling down*/
+	RGFW_mouseMisc1, RGFW_mouseMisc, RGFW_mouseMisc3, RGFW_mouseMisc4, RGFW_mouseMisc5,
+	RGFW_mouseFinal
 };
 
 #ifndef RGFW_MAX_PATH
@@ -1763,7 +1765,7 @@ void RGFW_setClassName(const char* name) {
 	RGFW_className = name;
 }
 
-RGFW_keyState RGFW_mouseButtons[5] = {  {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0} };
+RGFW_keyState RGFW_mouseButtons[RGFW_mouseFinal] = {  {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0} };
 
 RGFW_bool RGFW_isMousePressed(RGFW_window* win, RGFW_mouseButton button) {
 	return RGFW_mouseButtons[button].current && (win == NULL || win->event.inFocus);
@@ -3872,7 +3874,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	}
 	case ButtonPress:
 	case ButtonRelease:
-		if (E.xbutton.button > 5) { /* skip this event */
+		if (E.xbutton.button > RGFW_mouseFinal) { /* skip this event */
 			XFlush(win->src.display);
 			return RGFW_window_checkEvent(win);
 		}
@@ -6386,29 +6388,30 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			win->_lastMousePoint.y += win->event.point.y;
 			break;
 		}
+		case WM_LBUTTONDOWN: win->event.button = RGFW_mouseLeft; [[fallthrough]];
+		case WM_RBUTTONDOWN: win->event.button = RGFW_mouseRight; [[fallthrough]];
+		case WM_MBUTTONDOWN: win->event.button = RGFW_mouseMiddle; [[fallthrough]];
+		case WM_XBUTTONDOWN:
+			if (msg.message == WM_XBUTTONDOWN)
+				win->event.button = RGFW_mouseMisc1 + (GET_XBUTTON_WPARAM(msg.wParam) == XBUTTON2);
 
-		case WM_LBUTTONDOWN:
-			win->event.button = RGFW_mouseLeft;
-			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
-			RGFW_mouseButtons[win->event.button].current = 1;
-			win->event.type = RGFW_mouseButtonPressed;
-			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
-			break;
-		case WM_RBUTTONDOWN:
-			win->event.button = RGFW_mouseRight;
-			win->event.type = RGFW_mouseButtonPressed;
+			win->event.type = RGFW_mouseButtonPressed;			
 			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
 			RGFW_mouseButtons[win->event.button].current = 1;
 			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
 			break;
-		case WM_MBUTTONDOWN:
-			win->event.button = RGFW_mouseMiddle;
-			win->event.type = RGFW_mouseButtonPressed;
-			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
-			RGFW_mouseButtons[win->event.button].current = 1;
-			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
-			break;
+		case WM_LBUTTONUP: win->event.button = RGFW_mouseLeft; [[fallthrough]];
+		case WM_RBUTTONUP: win->event.button = RGFW_mouseRight; [[fallthrough]];
+		case WM_MBUTTONUP: win->event.button = RGFW_mouseMiddle; [[fallthrough]];
+		case WM_XBUTTONUP:
+			if (msg.message == WM_XBUTTONUP)
+				win->event.button = RGFW_mouseMisc1 + (GET_XBUTTON_WPARAM(msg.wParam) == XBUTTON2);
 
+			win->event.type = RGFW_mouseButtonReleased;			
+			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+			RGFW_mouseButtons[win->event.button].current = 0;
+			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
+			break;
 		case WM_MOUSEWHEEL:
 			if (msg.wParam > 0)
 				win->event.button = RGFW_mouseScrollUp;
@@ -6422,32 +6425,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 			win->event.type = RGFW_mouseButtonPressed;
 			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
-			break;
-
-		case WM_LBUTTONUP:
-
-			win->event.button = RGFW_mouseLeft;
-			win->event.type = RGFW_mouseButtonReleased;
-
-			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
-			RGFW_mouseButtons[win->event.button].current = 0;
-			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
-			break;
-		case WM_RBUTTONUP:
-			win->event.button = RGFW_mouseRight;
-			win->event.type = RGFW_mouseButtonReleased;
-
-			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
-			RGFW_mouseButtons[win->event.button].current = 0;
-			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
-			break;
-		case WM_MBUTTONUP:
-			win->event.button = RGFW_mouseMiddle;
-			win->event.type = RGFW_mouseButtonReleased;
-
-			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
-			RGFW_mouseButtons[win->event.button].current = 0;
-			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
 			break;
 		case WM_DROPFILES: {
 			win->event.type = RGFW_DNDInit;
@@ -8290,7 +8267,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		win->event.droppedFilesCount = 0;
 		win->event.type = 0;
 
-		switch (objc_msgSend_uint(e, sel_registerName("type"))) {
+		u32 type = objc_msgSend_uint(e, sel_registerName("type"));
+		switch (type) {
 			case NSEventTypeMouseEntered: {
 				win->event.type = RGFW_mouseEnter;
 				NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(e, sel_registerName("locationInWindow"));
@@ -8403,54 +8381,35 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 				RGFW_mousePosCallback(win, win->event.point);
 				break;
 			}
-			case NSEventTypeLeftMouseDown:
-				win->event.button = RGFW_mouseLeft;
+			case NSEventTypeLeftMouseDown: case NSEventTypeRightMouseDown: case NSEventTypeOtherMouseDown: {
+				u32 buttonNumber = objc_msgSend_uint(e, sel_registerName("buttonNumber"));
+				switch (buttonNumber) {
+					case 0: win->event.button = RGFW_mouseLeft; break;
+					case 1: win->event.button = RGFW_mouseRight; break;
+					case 2: win->event.button = RGFW_mouseMiddle; break;
+					default: win->event.button = buttonNumber;
+				}
+
 				win->event.type = RGFW_mouseButtonPressed;
 				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
 				RGFW_mouseButtons[win->event.button].current = 1;
 				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
 				break;
-
-			case NSEventTypeOtherMouseDown:
-				win->event.button = RGFW_mouseMiddle;
-				win->event.type = RGFW_mouseButtonPressed;
-				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
-				RGFW_mouseButtons[win->event.button].current = 1;
-				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
-				break;
-
-			case NSEventTypeRightMouseDown:
-				win->event.button = RGFW_mouseRight;
-				win->event.type = RGFW_mouseButtonPressed;
-				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
-				RGFW_mouseButtons[win->event.button].current = 1;
-				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
-				break;
-
-			case NSEventTypeLeftMouseUp:
-				win->event.button = RGFW_mouseLeft;
-				win->event.type = RGFW_mouseButtonReleased;
-				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
-				RGFW_mouseButtons[win->event.button].current = 0;
-				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
-				break;
-
-			case NSEventTypeOtherMouseUp:
-				win->event.button = RGFW_mouseMiddle;
+			}
+			case NSEventTypeLeftMouseUp: case NSEventTypeRightMouseUp: case NSEventTypeOtherMouseUp: {
+				u32 buttonNumber = objc_msgSend_uint(e, sel_registerName("buttonNumber"));
+				switch (buttonNumber) {
+					case 0: win->event.button = RGFW_mouseLeft; break;
+					case 1: win->event.button = RGFW_mouseRight; break;
+					case 2: win->event.button = RGFW_mouseMiddle; break;
+					default: win->event.button = buttonNumber;
+				}
 				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
 				RGFW_mouseButtons[win->event.button].current = 0;
 				win->event.type = RGFW_mouseButtonReleased;
 				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
 				break;
-
-			case NSEventTypeRightMouseUp:
-				win->event.button = RGFW_mouseRight;
-				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
-				RGFW_mouseButtons[win->event.button].current = 0;
-				win->event.type = RGFW_mouseButtonReleased;
-				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
-				break;
-
+			}
 			case NSEventTypeScrollWheel: {
 				double deltaY = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaY"));
 
@@ -9033,8 +8992,10 @@ EM_BOOL Emscripten_on_mousedown(int eventType, const EmscriptenMouseEvent* e, vo
 
 	RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonPressed;
 	RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->targetX, e->targetY);
-	RGFW_events[RGFW_eventLen].button = e->button % 2;
+	RGFW_events[RGFW_eventLen].button = e->button;
 	RGFW_events[RGFW_eventLen].scroll = 0;
+	if (RGFW_events[RGFW_eventLen].button > 2)
+		RGFW_events[RGFW_eventLen].button += 2;
 
 	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;
 	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current = 1;
@@ -9047,11 +9008,13 @@ EM_BOOL Emscripten_on_mousedown(int eventType, const EmscriptenMouseEvent* e, vo
 
 EM_BOOL Emscripten_on_mouseup(int eventType, const EmscriptenMouseEvent* e, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
-
+	
 	RGFW_events[RGFW_eventLen].type = RGFW_mouseButtonReleased;
-	RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->targetX, e->targetY);
+	RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->targetX, e->targetY);	
 	RGFW_events[RGFW_eventLen].button = e->button;
 	RGFW_events[RGFW_eventLen].scroll = 0;
+	if (RGFW_events[RGFW_eventLen].button > 2)
+		RGFW_events[RGFW_eventLen].button += 2;
 
 	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;
 	RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current = 0;
