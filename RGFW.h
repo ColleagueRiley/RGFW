@@ -6388,25 +6388,22 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			win->_lastMousePoint.y += win->event.point.y;
 			break;
 		}
-		case WM_LBUTTONDOWN: win->event.button = RGFW_mouseLeft; [[fallthrough]];
-		case WM_RBUTTONDOWN: win->event.button = RGFW_mouseRight; [[fallthrough]];
-		case WM_MBUTTONDOWN: win->event.button = RGFW_mouseMiddle; [[fallthrough]];
-		case WM_XBUTTONDOWN:
+		case WM_LBUTTONDOWN: case WM_RBUTTONDOWN: case WM_MBUTTONDOWN: case WM_XBUTTONDOWN:
 			if (msg.message == WM_XBUTTONDOWN)
 				win->event.button = RGFW_mouseMisc1 + (GET_XBUTTON_WPARAM(msg.wParam) == XBUTTON2);
-
+			else win->event.button = (msg.message == WM_LBUTTONDOWN) ? RGFW_mouseLeft : 
+									 (msg.message == WM_RBUTTONDOWN) ? RGFW_mouseRight : RGFW_mouseMiddle;
+			
 			win->event.type = RGFW_mouseButtonPressed;			
 			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
 			RGFW_mouseButtons[win->event.button].current = 1;
 			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
 			break;
-		case WM_LBUTTONUP: win->event.button = RGFW_mouseLeft; [[fallthrough]];
-		case WM_RBUTTONUP: win->event.button = RGFW_mouseRight; [[fallthrough]];
-		case WM_MBUTTONUP: win->event.button = RGFW_mouseMiddle; [[fallthrough]];
-		case WM_XBUTTONUP:
+		case WM_LBUTTONUP: case WM_RBUTTONUP: case WM_MBUTTONUP: case WM_XBUTTONUP:
 			if (msg.message == WM_XBUTTONUP)
 				win->event.button = RGFW_mouseMisc1 + (GET_XBUTTON_WPARAM(msg.wParam) == XBUTTON2);
-
+			else win->event.button = (msg.message == WM_LBUTTONUP) ? RGFW_mouseLeft : 
+									 (msg.message == WM_RBUTTONUP) ? RGFW_mouseRight : RGFW_mouseMiddle;
 			win->event.type = RGFW_mouseButtonReleased;			
 			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
 			RGFW_mouseButtons[win->event.button].current = 0;
