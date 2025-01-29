@@ -6,7 +6,9 @@
 ![workflow windows](https://github.com/ColleagueRiley/RGFW/actions/workflows/windows.yml/badge.svg)
 ![workflow macOS](https://github.com/ColleagueRiley/RGFW/actions/workflows/macos.yml/badge.svg)
 
-[![Discord Members](https://img.shields.io/discord/829003376532258816.svg?label=Discord&logo=discord)](https://discord.gg/pXVNgVVbvh)
+[![Discord Members](https://img.shields.io/discord/829003376532258816.svg?label=Discord&logo=discord)](https://discord.gg/pXVNgVVbvh) 
+
+matrix: [![Matrix](https://img.shields.io/matrix/rsgl-is-sili%3Amatrix.org)](https://matrix.to/#/#rsgl-is-sili:matrix.org)
 
 A cross-platform lightweight single-header very simple-to-use window abstraction library for creating graphics Libraries or simple graphical programs. Written in pure C99.
 
@@ -141,6 +143,7 @@ A list of projects that use RGFW can be found on the RGFW wiki [here](https://gi
 - email : ColleagueRiley@gmail.com 
 - discord : ColleagueRiley
 - discord server : https://discord.gg/pXVNgVVbvh
+- matrix space: https://matrix.to/#/#rsgl-is-sili:matrix.org
 - BlueSky https://bsky.app/profile/colleagueriley.bsky.social
 - Twitter/X : https://x.com/ColleagueRiley
 
