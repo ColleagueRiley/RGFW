@@ -30,6 +30,9 @@ Current Version: RGFW 1.5.5-dev
 - skip x11 mouse button events if the mouse button > 5
 - fix RGFW_window_eventWait, make sure RGFW_eventWaitNext is converted if it needs to be, ensure the correct time is used, (winapi, cocoa), make waitMS unsigned
 - add support for extra mouse buttons RGFW_mouseMisc1 - RGFW_mouseMisc5
+- separate maximize and fullscreen functions
+- add RGFW_window_setAspectRatio
+- add RGFW_window_scaleToMonitor AND RGFW_monitor_scale
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
