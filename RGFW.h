@@ -3336,7 +3336,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	RGFW_GOTO_WAYLAND(0);
 #ifdef RGFW_X11
 	u64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /*!< X11 events accepted*/
-
+	
 	#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
 		u32* visual_attribs = (u32*)RGFW_initFormatAttribs(flags & RGFW_windowOpenglSoftware);
 		i32 fbcount;
@@ -3451,7 +3451,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 		GLXContext ctx = NULL;
 
-		if (RGFW_root != NULL)
+		if (RGFW_root != NULL && RGFW_root != win)
 			ctx = RGFW_root->src.ctx;
 
 		win->src.ctx = glXCreateContextAttribsARB(win->src.display, bestFbc, ctx, True, context_attribs);

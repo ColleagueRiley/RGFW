@@ -30,9 +30,12 @@ void clear(RGFW_window* win, u8 color[4]) {
 
 int main(void) {
 	RGFW_setClassName("RGFW Basic");
+
     RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_windowAllowDND | RGFW_windowCenter);
+    RGFW_window_initBuffer(win);
+    
     RGFW_window_makeCurrent(win);
-  screenSize = RGFW_getScreenSize();
+    screenSize = RGFW_getScreenSize();
   
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {   
         while (RGFW_window_checkEvent(win) != NULL);
