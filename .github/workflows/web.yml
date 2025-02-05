@@ -32,7 +32,7 @@ jobs:
         make CC=emcc
         mv html docs
 
-    - name: get nuklear webasm
+    - name: get nuklear wasm
       run: |
         cd webasm 
         wget https://github.com/ColleagueRiley/nuklear_rgfw/raw/main/rgfw_opengl2/rgfw-nuklear.wasm
