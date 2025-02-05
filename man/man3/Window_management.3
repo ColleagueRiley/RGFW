@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Wed Jan 29 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Wed Feb 5 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -61,6 +61,9 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_resize\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP a)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setAspectRatio\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP a)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMinSize\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP a)"
 .br
 .ti -1c
@@ -68,6 +71,9 @@ Window_management \- Window_management
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_maximize\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_fullscreen\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_center\fP (\fBRGFW_window\fP *win)"
@@ -199,6 +205,8 @@ check all the events until there are none left, this should only be used if you'
 window managment functions close the window and free leftover data 
 .SS "\fBRGFWDEF\fP void RGFW_window_eventWait (\fBRGFW_window\fP * win, \fBu32\fP waitMS)"
 sleep until RGFW gets an event or the timer ends (defined by OS) 
+.SS "\fBRGFWDEF\fP void RGFW_window_fullscreen (\fBRGFW_window\fP * win)"
+fullscreen the window size 
 .SS "\fBRGFWDEF\fP \fBRGFW_point\fP RGFW_window_getMousePoint (\fBRGFW_window\fP * win)"
 where the mouse is on the window 
 .SS "\fBRGFWDEF\fP void RGFW_window_hide (\fBRGFW_window\fP * win)"
@@ -253,6 +261,8 @@ resize window to a current size/area
 
 .SS "\fBRGFWDEF\fP void RGFW_window_restore (\fBRGFW_window\fP * win)"
 restore the window from minimized (per OS) 
+.SS "\fBRGFWDEF\fP void RGFW_window_setAspectRatio (\fBRGFW_window\fP * win, \fBRGFW_area\fP a)"
+set window aspect ratio 
 .SS "\fBRGFWDEF\fP void RGFW_window_setBorder (\fBRGFW_window\fP * win, \fBRGFW_bool\fP border)"
 if the window should have a border or not (borderless) based on bool value of \fCborder\fP 
 .SS "\fBRGFWDEF\fP void RGFW_window_setDND (\fBRGFW_window\fP * win, \fBRGFW_bool\fP allow)"
