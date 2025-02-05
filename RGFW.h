@@ -9939,10 +9939,18 @@ void RGFW_window_maximize(RGFW_window* win) {
 	RGFW_window_resize(win, screen);
 }
 
+void RGFW_window_fullscreen(RGFW_window* win) {
+	RGFW_ASSERT(win != NULL);
+
+	EM_ASM( Module.requestFullscreen(false, true); );
+}
+
 /* unsupported functions */
+RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area) { RGFW_UNUSED(mon); RGFW_UNUSED(area); return RGFW_FALSE; }
 RGFW_monitor* RGFW_getMonitors(void) { return NULL; }
 RGFW_monitor RGFW_getPrimaryMonitor(void) { return (RGFW_monitor){}; }
 void RGFW_window_move(RGFW_window* win, RGFW_point v) { RGFW_UNUSED(win); RGFW_UNUSED(v); }
+void RGFW_window_setAspectRatio(RGFW_window* win, RGFW_area a) { RGFW_UNUSED(win); RGFW_UNUSED(a); }
 void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) { RGFW_UNUSED(win); RGFW_UNUSED(a);  }
 void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) { RGFW_UNUSED(win); RGFW_UNUSED(a);  }
 void RGFW_window_minimize(RGFW_window* win) { RGFW_UNUSED(win); }
