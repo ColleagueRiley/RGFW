@@ -253,6 +253,7 @@ int main() {
 
 #define RGFW_HEADER
 
+#include <stddef.h>
 #if !defined(u8)
 	#ifdef RGFW_USE_INT /* optional for any system that might not have stdint.h */
 		typedef unsigned char 	u8;
@@ -265,7 +266,6 @@ int main() {
 		typedef signed long long		i64;
 	#else /* use stdint standard types instead of c ""standard"" types */
 		#include <stdint.h>
-		#include <stddef.h>
 
 		typedef uint8_t     u8;
 		typedef int8_t      i8;
@@ -8157,15 +8157,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 }
 
 	void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
-		/* weird hack thing */
-		RGFW_window winSrc = *win;
-		{
-			if (!border && RGFW_window_isMaximized(win)) {
-				objc_msgSend_void_SEL(win->src.window, sel_registerName("toggleFullScreen:"), NULL);
-			}
-		}
-		*win = winSrc;
-		
 		NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
 		NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
 		float offset = 0;

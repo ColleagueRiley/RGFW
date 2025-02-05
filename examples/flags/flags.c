@@ -3,7 +3,7 @@
 #include "RGFW.h"
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("RGFW icons", RGFW_RECT(0, 0, 600, 400), RGFW_windowAllowDND);
+    RGFW_window* win = RGFW_createWindow("RGFW flags", RGFW_RECT(0, 0, 600, 400), RGFW_windowAllowDND);
     
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win)) {
@@ -30,7 +30,7 @@ int main(void) {
                         printf("Allow Drops: %s\n", RGFW_window_allowsDND(win) ? "true" : "false");
                         RGFW_window_setDND(win, !RGFW_window_allowsDND(win));
                         break;
-                    case RGFW_f:
+                    case RGFW_t:
                         printf("Mouse shown: %s\n", !RGFW_window_mouseHidden(win) ? "true" : "false");
                         RGFW_window_showMouse(win, RGFW_window_mouseHidden(win));
                         break;
@@ -39,6 +39,9 @@ int main(void) {
                         if (RGFW_window_isMaximized(win)) RGFW_window_restore(win);
                         else RGFW_window_maximize(win);
                         break;
+                    case RGFW_f: 
+                        RGFW_window_fullscreen(win);
+			break; 
                     case RGFW_h:
                         printf("Hidden: %s\n", RGFW_window_isHidden(win) ? "true" : "false");
                         if (RGFW_window_isHidden(win)) RGFW_window_show(win);

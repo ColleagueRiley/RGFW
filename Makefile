@@ -240,7 +240,7 @@ else ifeq ($(detected_OS),Linux)
 else ifeq ($(detected_OS),windows)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lgdi32 -o $@$(EXT)
 else ifeq ($(detected_OS),Darwin)
-	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -framework Cocoa  -o $@$(EXT)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -framework IOKit -framework Cocoa  -o $@$(EXT)
 else
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL3) -o $@$(EXT)
 endif
@@ -254,6 +254,7 @@ debug: all
 		.$(OS_DIR)$$exe$(EXT); \
 	done
 	
+	./examples/icons/icons
 	./examples/silk/silk
 	./examples/gamepad/gamepad
 	./examples/first-person-camera/camera
