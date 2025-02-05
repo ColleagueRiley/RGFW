@@ -1881,6 +1881,8 @@ void RGFW_window_setShouldClose(RGFW_window* win) { win->event.type = RGFW_quit;
 #ifndef RGFW_NO_MONITOR
 void RGFW_window_scaleToMonitor(RGFW_window* win) {
 	RGFW_monitor monitor = RGFW_window_getMonitor(win);
+	if (monitor.scaleX == 0 && monitor.scaleY == 0)
+		return;
 
 	RGFW_window_resize(win, RGFW_AREA((u32)(monitor.scaleX * (float)win->r.w), (u32)(monitor.scaleY * (float)win->r.h)));
 }
@@ -9603,7 +9605,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"));
 				Module._RGFW_handleKeyEvent(key, code, 0);
 				_free(key); _free(code);
-},
+			},
 		true);
 	});
 
