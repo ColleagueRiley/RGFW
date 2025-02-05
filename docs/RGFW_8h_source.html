@@ -368,7 +368,7 @@ $(function() {
 <div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span><span class="comment">/* plus it helps with cross-compiling */</span></div>
 <div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span> </div>
 <div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span><span class="preprocessor">#ifdef __EMSCRIPTEN__</span></div>
-<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span><span class="preprocessor">    #define RGFW_WEBASM</span></div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span><span class="preprocessor">    #define RGFW_WASM</span></div>
 <div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span> </div>
 <div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span><span class="preprocessor">    #if !defined(RGFW_NO_API) &amp;&amp; !defined(RGFW_WEBGPU)</span></div>
 <div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span><span class="preprocessor">        #define RGFW_OPENGL</span></div>
@@ -392,7 +392,7 @@ $(function() {
 <div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span><span class="preprocessor">    #undef __APPLE__</span></div>
 <div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span> </div>
-<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span><span class="preprocessor">#if defined(_WIN32) &amp;&amp; !defined(RGFW_UNIX) &amp;&amp; !defined(RGFW_WEBASM) &amp;&amp; !defined(RGFW_CUSTOM_BACKEND) </span><span class="comment">/* (if you&#39;re using X11 on windows some how) */</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span><span class="preprocessor">#if defined(_WIN32) &amp;&amp; !defined(RGFW_UNIX) &amp;&amp; !defined(RGFW_WASM) &amp;&amp; !defined(RGFW_CUSTOM_BACKEND) </span><span class="comment">/* (if you&#39;re using X11 on windows some how) */</span><span class="preprocessor"></span></div>
 <div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span><span class="preprocessor">    #define RGFW_WINDOWS</span></div>
 <div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>    <span class="comment">/* make sure the correct architecture is defined */</span></div>
 <div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span><span class="preprocessor">    #if defined(_WIN64)</span></div>
@@ -436,12 +436,12 @@ $(function() {
 <div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span> </div>
 <div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span><span class="preprocessor">    #include &lt;wayland-client.h&gt;</span></div>
 <div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span><span class="preprocessor">#if !defined(RGFW_NO_X11) &amp;&amp; !defined(RGFW_NO_X11) &amp;&amp; (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  &amp;&amp; !defined(RGFW_WEBASM)  &amp;&amp; !defined(RGFW_CUSTOM_BACKEND)</span></div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span><span class="preprocessor">#if !defined(RGFW_NO_X11) &amp;&amp; !defined(RGFW_NO_X11) &amp;&amp; (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  &amp;&amp; !defined(RGFW_WASM)  &amp;&amp; !defined(RGFW_CUSTOM_BACKEND)</span></div>
 <div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span><span class="preprocessor">    #define RGFW_MACOS_X11</span></div>
 <div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span><span class="preprocessor">    #define RGFW_X11</span></div>
 <div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span><span class="preprocessor">    #define RGFW_UNIX</span></div>
 <div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span><span class="preprocessor">    #include &lt;X11/Xlib.h&gt;</span></div>
-<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span><span class="preprocessor">#elif defined(__APPLE__) &amp;&amp; !defined(RGFW_MACOS_X11) &amp;&amp; !defined(RGFW_X11)  &amp;&amp; !defined(RGFW_WEBASM)  &amp;&amp; !defined(RGFW_CUSTOM_BACKEND)</span></div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span><span class="preprocessor">#elif defined(__APPLE__) &amp;&amp; !defined(RGFW_MACOS_X11) &amp;&amp; !defined(RGFW_X11)  &amp;&amp; !defined(RGFW_WASM)  &amp;&amp; !defined(RGFW_CUSTOM_BACKEND)</span></div>
 <div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span><span class="preprocessor">    #define RGFW_MACOS</span></div>
 <div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span> </div>
@@ -736,7 +736,7 @@ $(function() {
 <div class="line"><a id="l00708" name="l00708"></a><span class="lineno">  708</span>        <span class="keywordtype">void</span>* image;</div>
 <div class="line"><a id="l00709" name="l00709"></a><span class="lineno">  709</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00710" name="l00710"></a><span class="lineno">  710</span>} RGFW_window_src;</div>
-<div class="line"><a id="l00711" name="l00711"></a><span class="lineno">  711</span><span class="preprocessor">#elif defined(RGFW_WEBASM)</span></div>
+<div class="line"><a id="l00711" name="l00711"></a><span class="lineno">  711</span><span class="preprocessor">#elif defined(RGFW_WASM)</span></div>
 <div class="line"><a id="l00712" name="l00712"></a><span class="lineno">  712</span><span class="keyword">typedef</span> <span class="keyword">struct </span>RGFW_window_src {</div>
 <div class="line"><a id="l00713" name="l00713"></a><span class="lineno">  713</span><span class="preprocessor">    #ifdef RGFW_WEBGPU</span></div>
 <div class="line"><a id="l00714" name="l00714"></a><span class="lineno">  714</span>        WGPUInstance ctx;</div>
@@ -966,7 +966,7 @@ $(function() {
 <div class="line"><a id="l01088" name="l01088"></a><span class="lineno"> 1088</span><span class="comment">    which is a good idea generally</span></div>
 <div class="line"><a id="l01089" name="l01089"></a><span class="lineno"> 1089</span><span class="comment">*/</span></div>
 <div class="line"><a id="l01090" name="l01090"></a><span class="lineno"> 1090</span> </div>
-<div class="line"><a id="l01091" name="l01091"></a><span class="lineno"> 1091</span><span class="preprocessor">#if defined(__unix__) || defined(__APPLE__) || defined(RGFW_WEBASM) || defined(RGFW_CUSTOM_BACKEND)</span></div>
+<div class="line"><a id="l01091" name="l01091"></a><span class="lineno"> 1091</span><span class="preprocessor">#if defined(__unix__) || defined(__APPLE__) || defined(RGFW_WASM) || defined(RGFW_CUSTOM_BACKEND)</span></div>
 <div class="line"><a id="l01092" name="l01092"></a><span class="lineno"> 1092</span>    <span class="keyword">typedef</span> <span class="keywordtype">void</span>* (* RGFW_threadFunc_ptr)(<span class="keywordtype">void</span>*);</div>
 <div class="line"><a id="l01093" name="l01093"></a><span class="lineno"> 1093</span><span class="preprocessor">#else</span></div>
 <div class="line"><a id="l01094" name="l01094"></a><span class="lineno"><a class="line" href="group__Threads.html#ga13d60c1d8ee57056290acdc59bfc37a0"> 1094</a></span>    <span class="keyword">typedef</span> DWORD (__stdcall *<a class="code hl_typedef" href="group__Threads.html#ga13d60c1d8ee57056290acdc59bfc37a0">RGFW_threadFunc_ptr</a>) (LPVOID lpThreadParameter);</div>
@@ -1167,7 +1167,7 @@ $(function() {
 <div class="line"><a id="l01323" name="l01323"></a><span class="lineno"> 1323</span><span class="preprocessor">    #define RGFW_OS_BASED_VALUE(l, w, m, h) w</span></div>
 <div class="line"><a id="l01324" name="l01324"></a><span class="lineno"> 1324</span><span class="preprocessor">#elif defined(RGFW_MACOS)</span></div>
 <div class="line"><a id="l01325" name="l01325"></a><span class="lineno"> 1325</span><span class="preprocessor">    #define RGFW_OS_BASED_VALUE(l, w, m, h) m</span></div>
-<div class="line"><a id="l01326" name="l01326"></a><span class="lineno"> 1326</span><span class="preprocessor">#elif defined(RGFW_WEBASM)</span></div>
+<div class="line"><a id="l01326" name="l01326"></a><span class="lineno"> 1326</span><span class="preprocessor">#elif defined(RGFW_WASM)</span></div>
 <div class="line"><a id="l01327" name="l01327"></a><span class="lineno"> 1327</span><span class="preprocessor">    #define RGFW_OS_BASED_VALUE(l, w, m, h) h</span></div>
 <div class="line"><a id="l01328" name="l01328"></a><span class="lineno"> 1328</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l01329" name="l01329"></a><span class="lineno"> 1329</span> </div>
@@ -1318,7 +1318,7 @@ $(function() {
 <div class="line"><a id="l01474" name="l01474"></a><span class="lineno"> 1474</span>    RGFW_MAP [RGFW_OS_BASED_VALUE(37, 0x01D, 59, DOM_VK_CONTROL)] = RGFW_controlL               RGFW_NEXT</div>
 <div class="line"><a id="l01475" name="l01475"></a><span class="lineno"> 1475</span>    RGFW_MAP [RGFW_OS_BASED_VALUE(64, 0x038, 58, DOM_VK_ALT)] = RGFW_altL                       RGFW_NEXT</div>
 <div class="line"><a id="l01476" name="l01476"></a><span class="lineno"> 1476</span>    RGFW_MAP [RGFW_OS_BASED_VALUE(133, 0x15B, 55, DOM_VK_WIN)] = RGFW_superL,</div>
-<div class="line"><a id="l01477" name="l01477"></a><span class="lineno"> 1477</span><span class="preprocessor">    #if !defined(RGFW_MACOS) &amp;&amp; !defined(RGFW_WEBASM)</span></div>
+<div class="line"><a id="l01477" name="l01477"></a><span class="lineno"> 1477</span><span class="preprocessor">    #if !defined(RGFW_MACOS) &amp;&amp; !defined(RGFW_WASM)</span></div>
 <div class="line"><a id="l01478" name="l01478"></a><span class="lineno"> 1478</span>    RGFW_MAP [RGFW_OS_BASED_VALUE(105, 0x11D, 59, 0)] = RGFW_controlR               RGFW_NEXT</div>
 <div class="line"><a id="l01479" name="l01479"></a><span class="lineno"> 1479</span>    RGFW_MAP [RGFW_OS_BASED_VALUE(135, 0x15C, 55, 0)] = RGFW_superR,</div>
 <div class="line"><a id="l01480" name="l01480"></a><span class="lineno"> 1480</span>    RGFW_MAP [RGFW_OS_BASED_VALUE(62, 0x036, 56, 0)] = RGFW_shiftR              RGFW_NEXT</div>
@@ -1443,7 +1443,7 @@ $(function() {
 <div class="line"><a id="l01602" name="l01602"></a><span class="lineno"> 1602</span>        <span class="keywordflow">if</span> (win-&gt;<a class="code hl_variable" href="structRGFW__window.html#af2effd6e3f8e3f7add8a7afd6aeb455a">event</a>.<a class="code hl_variable" href="structRGFW__event.html#ab309d573101fed3b9137b3e42f408ce0">type</a> == RGFW_quit) <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l01603" name="l01603"></a><span class="lineno"> 1603</span>    }</div>
 <div class="line"><a id="l01604" name="l01604"></a><span class="lineno"> 1604</span> </div>
-<div class="line"><a id="l01605" name="l01605"></a><span class="lineno"> 1605</span><span class="preprocessor">    #ifdef RGFW_WEBASM </span><span class="comment">/* webasm needs to run the sleep function for asyncify */</span><span class="preprocessor"></span></div>
+<div class="line"><a id="l01605" name="l01605"></a><span class="lineno"> 1605</span><span class="preprocessor">    #ifdef RGFW_WASM </span><span class="comment">/* WASM needs to run the sleep function for asyncify */</span><span class="preprocessor"></span></div>
 <div class="line"><a id="l01606" name="l01606"></a><span class="lineno"> 1606</span>        <a class="code hl_function" href="group__Supporting.html#ga89d25fafe12c27addf2cab9c67be8e6e">RGFW_sleep</a>(0);</div>
 <div class="line"><a id="l01607" name="l01607"></a><span class="lineno"> 1607</span><span class="preprocessor">    #endif</span></div>
 <div class="line"><a id="l01608" name="l01608"></a><span class="lineno"> 1608</span>}</div>
@@ -1867,7 +1867,7 @@ $(function() {
 <div class="line"><a id="l02026" name="l02026"></a><span class="lineno"> 2026</span>}</div>
 <div class="line"><a id="l02027" name="l02027"></a><span class="lineno"> 2027</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l02028" name="l02028"></a><span class="lineno"> 2028</span> </div>
-<div class="line"><a id="l02029" name="l02029"></a><span class="lineno"> 2029</span><span class="preprocessor">#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM) || defined(RGFW_WAYLAND)</span></div>
+<div class="line"><a id="l02029" name="l02029"></a><span class="lineno"> 2029</span><span class="preprocessor">#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WASM) || defined(RGFW_WAYLAND)</span></div>
 <div class="line"><a id="l02030" name="l02030"></a><span class="lineno"> 2030</span><span class="preprocessor">#include &lt;time.h&gt;</span></div>
 <div class="line"><a id="l02031" name="l02031"></a><span class="lineno"> 2031</span><span class="keyword">struct </span>timespec;</div>
 <div class="line"><a id="l02032" name="l02032"></a><span class="lineno"> 2032</span> </div>
@@ -2463,7 +2463,7 @@ $(function() {
 <div class="line"><a id="l02622" name="l02622"></a><span class="lineno"> 2622</span><span class="comment">- fix RGFW_keyPressed lock state</span></div>
 <div class="line"><a id="l02623" name="l02623"></a><span class="lineno"> 2623</span><span class="comment"></span> </div>
 <div class="line"><a id="l02624" name="l02624"></a><span class="lineno"> 2624</span><span class="comment">    RGFW_windowMoved,       the window was moved (by the user)</span></div>
-<div class="line"><a id="l02625" name="l02625"></a><span class="lineno"> 2625</span><span class="comment">    RGFW_windowResized      the window was resized (by the user), [on webASM this means the browser was resized]</span></div>
+<div class="line"><a id="l02625" name="l02625"></a><span class="lineno"> 2625</span><span class="comment">    RGFW_windowResized      the window was resized (by the user), [on WASM this means the browser was resized]</span></div>
 <div class="line"><a id="l02626" name="l02626"></a><span class="lineno"> 2626</span><span class="comment">    RGFW_windowRefresh      The window content needs to be refreshed</span></div>
 <div class="line"><a id="l02627" name="l02627"></a><span class="lineno"> 2627</span><span class="comment"></span> </div>
 <div class="line"><a id="l02628" name="l02628"></a><span class="lineno"> 2628</span><span class="comment">    RGFW_DND                a file has been dropped into the window</span></div>
@@ -8912,10 +8912,10 @@ $(function() {
 <div class="line"><a id="l09079" name="l09079"></a><span class="lineno"> 9079</span><span class="comment">*/</span></div>
 <div class="line"><a id="l09080" name="l09080"></a><span class="lineno"> 9080</span> </div>
 <div class="line"><a id="l09081" name="l09081"></a><span class="lineno"> 9081</span><span class="comment">/*</span></div>
-<div class="line"><a id="l09082" name="l09082"></a><span class="lineno"> 9082</span><span class="comment">    WEBASM defines</span></div>
+<div class="line"><a id="l09082" name="l09082"></a><span class="lineno"> 9082</span><span class="comment">    WASM defines</span></div>
 <div class="line"><a id="l09083" name="l09083"></a><span class="lineno"> 9083</span><span class="comment">*/</span></div>
 <div class="line"><a id="l09084" name="l09084"></a><span class="lineno"> 9084</span> </div>
-<div class="line"><a id="l09085" name="l09085"></a><span class="lineno"> 9085</span><span class="preprocessor">#ifdef RGFW_WEBASM</span></div>
+<div class="line"><a id="l09085" name="l09085"></a><span class="lineno"> 9085</span><span class="preprocessor">#ifdef RGFW_WASM</span></div>
 <div class="line"><a id="l09086" name="l09086"></a><span class="lineno"> 9086</span><a class="code hl_struct" href="structRGFW__event.html">RGFW_event</a> RGFW_events[20];</div>
 <div class="line"><a id="l09087" name="l09087"></a><span class="lineno"> 9087</span><span class="keywordtype">size_t</span> RGFW_eventLen = 0;</div>
 <div class="line"><a id="l09088" name="l09088"></a><span class="lineno"> 9088</span> </div>
@@ -9157,7 +9157,7 @@ $(function() {
 <div class="line"><a id="l09324" name="l09324"></a><span class="lineno"> 9324</span>    <span class="keywordflow">return</span> 1; <span class="comment">// The event was consumed by the callback handler</span></div>
 <div class="line"><a id="l09325" name="l09325"></a><span class="lineno"> 9325</span>}</div>
 <div class="line"><a id="l09326" name="l09326"></a><span class="lineno"> 9326</span> </div>
-<div class="line"><a id="l09327" name="l09327"></a><span class="lineno"> 9327</span><a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> RGFW_webasmPhysicalToRGFW(<a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> hash) {</div>
+<div class="line"><a id="l09327" name="l09327"></a><span class="lineno"> 9327</span><a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> RGFW_wASMPhysicalToRGFW(<a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> hash) {</div>
 <div class="line"><a id="l09328" name="l09328"></a><span class="lineno"> 9328</span>    <span class="keywordflow">switch</span>(hash) {             <span class="comment">/* 0x0000 */</span></div>
 <div class="line"><a id="l09329" name="l09329"></a><span class="lineno"> 9329</span>        <span class="keywordflow">case</span> 0x67243A2DU <span class="comment">/* Escape             */</span>: <span class="keywordflow">return</span> RGFW_escape;               <span class="comment">/* 0x0001 */</span></div>
 <div class="line"><a id="l09330" name="l09330"></a><span class="lineno"> 9330</span>        <span class="keywordflow">case</span> 0x67251058U <span class="comment">/* Digit0             */</span>: <span class="keywordflow">return</span> RGFW_0;                    <span class="comment">/* 0x0002 */</span></div>
@@ -9266,7 +9266,7 @@ $(function() {
 <div class="line"><a id="l09433" name="l09433"></a><span class="lineno"> 9433</span>    <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> hash = 0;</div>
 <div class="line"><a id="l09434" name="l09434"></a><span class="lineno"> 9434</span>    <span class="keywordflow">while</span>(*iCode) hash = ((hash ^ 0x7E057D79U) &lt;&lt; 3) ^ (<span class="keywordtype">unsigned</span> int)*iCode++;</div>
 <div class="line"><a id="l09435" name="l09435"></a><span class="lineno"> 9435</span> </div>
-<div class="line"><a id="l09436" name="l09436"></a><span class="lineno"> 9436</span>    <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> physicalKey = RGFW_webasmPhysicalToRGFW(hash);</div>
+<div class="line"><a id="l09436" name="l09436"></a><span class="lineno"> 9436</span>    <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> physicalKey = RGFW_wASMPhysicalToRGFW(hash);</div>
 <div class="line"><a id="l09437" name="l09437"></a><span class="lineno"> 9437</span> </div>
 <div class="line"><a id="l09438" name="l09438"></a><span class="lineno"> 9438</span>    <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> mappedKey = (<a class="code hl_define" href="RGFW_8h.html#af3b86d961da0a3575b4f99c9ffaf01fd">u8</a>)(*((<a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>*)key));</div>
 <div class="line"><a id="l09439" name="l09439"></a><span class="lineno"> 9439</span> </div>
@@ -9433,7 +9433,7 @@ $(function() {
 <div class="line"><a id="l09600" name="l09600"></a><span class="lineno"> 9600</span>        window.addEventListener(<span class="stringliteral">&quot;keyup&quot;</span>,</div>
 <div class="line"><a id="l09601" name="l09601"></a><span class="lineno"> 9601</span>            (event) =&gt; {</div>
 <div class="line"><a id="l09602" name="l09602"></a><span class="lineno"> 9602</span>                var key = stringToNewUTF8(event.<a class="code hl_variable" href="structRGFW__event.html#a2eabcbe140b369d57a4a63d879436e44">key</a>); var code = stringToNewUTF8(event.code);</div>
-<div class="line"><a id="l09603" name="l09603"></a><span class="lineno"> 9603</span>                Module._RGFW_handoleKeyMods(event.getModifierState(<span class="stringliteral">&quot;CapsLock&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;NumLock&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Control&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Alt&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Shift&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Meta&quot;</span>));</div>
+<div class="line"><a id="l09603" name="l09603"></a><span class="lineno"> 9603</span>                Module._RGFW_handleKeyMods(event.getModifierState(<span class="stringliteral">&quot;CapsLock&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;NumLock&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Control&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Alt&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Shift&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Meta&quot;</span>));</div>
 <div class="line"><a id="l09604" name="l09604"></a><span class="lineno"> 9604</span>                Module._RGFW_handleKeyEvent(key, code, 0);</div>
 <div class="line"><a id="l09605" name="l09605"></a><span class="lineno"> 9605</span>                _free(key); _free(code);</div>
 <div class="line"><a id="l09606" name="l09606"></a><span class="lineno"> 9606</span>ode         },</div>
@@ -9830,7 +9830,7 @@ $(function() {
 <div class="line"><a id="l09997" name="l09997"></a><span class="lineno"> 9997</span><span class="comment">/* end of web asm defines */</span></div>
 <div class="line"><a id="l09998" name="l09998"></a><span class="lineno"> 9998</span> </div>
 <div class="line"><a id="l09999" name="l09999"></a><span class="lineno"> 9999</span><span class="comment">/* unix (macOS, linux, web asm) only stuff */</span></div>
-<div class="line"><a id="l10000" name="l10000"></a><span class="lineno">10000</span><span class="preprocessor">#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM)  || defined(RGFW_WAYLAND)</span></div>
+<div class="line"><a id="l10000" name="l10000"></a><span class="lineno">10000</span><span class="preprocessor">#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WASM)  || defined(RGFW_WAYLAND)</span></div>
 <div class="line"><a id="l10001" name="l10001"></a><span class="lineno">10001</span> </div>
 <div class="line"><a id="l10002" name="l10002"></a><span class="lineno">10002</span><span class="comment">/* unix threading */</span></div>
 <div class="line"><a id="l10003" name="l10003"></a><span class="lineno">10003</span><span class="preprocessor">#ifndef RGFW_NO_THREADS</span></div>
@@ -9853,7 +9853,7 @@ $(function() {
 <div class="line"><a id="l10020" name="l10020"></a><span class="lineno">10020</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l10021" name="l10021"></a><span class="lineno">10021</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l10022" name="l10022"></a><span class="lineno">10022</span> </div>
-<div class="line"><a id="l10023" name="l10023"></a><span class="lineno">10023</span><span class="preprocessor">#ifndef RGFW_WEBASM</span></div>
+<div class="line"><a id="l10023" name="l10023"></a><span class="lineno">10023</span><span class="preprocessor">#ifndef RGFW_WASM</span></div>
 <div class="line"><a id="l10024" name="l10024"></a><span class="lineno">10024</span> </div>
 <div class="line"><a id="l10025" name="l10025"></a><span class="lineno">10025</span><span class="comment">/* unix sleep */</span></div>
 <div class="line"><a id="l10026" name="l10026"></a><span class="lineno">10026</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Supporting.html#ga89d25fafe12c27addf2cab9c67be8e6e">RGFW_sleep</a>(<a class="code hl_typedef" href="RGFW_8h.html#a3f7e2bcbb0b4c338f3c4f6c937cd4234">u64</a> ms) {</div>
