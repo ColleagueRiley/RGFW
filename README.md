@@ -15,7 +15,7 @@ A cross-platform lightweight single-header very simple-to-use window abstraction
 # About
 RGFW is a free multi-platform single-header very simple-to-use window abstraction framework for creating graphics Libraries or simple graphical programs. It is meant to be used as a very small and flexible alternative library to GLFW. 
 
-The window backend supports XLib (UNIX), Cocoas (MacOS), webASM (emscripten) and WinAPI (tested on windows *XP*, 10 and 11, and reactOS)\
+The window backend supports XLib (UNIX), Cocoas (MacOS), wasm (emscripten) and WinAPI (tested on windows *XP*, 10 and 11, and reactOS)\
 Windows 95 & 98 have also been tested with RGFW, although results are iffy  
 
 Wayland: to compile wayland add (RGFW_WAYLAND=1). Wayland support is very experimental and broken.
@@ -123,7 +123,7 @@ You can find more examples [here](examples) or [run it in your browser](https://
 - Windows (ReactOS, XP, Windows 10, 11)
 - Linux
 - MacOS (10.13, 10.14, 10.15) (x86_64)
-- HTML5 (webasm / Emscripten)
+- HTML5 (wasm / Emscripten)
 - Raspberry PI OS
 
 # Supported GUI libraries

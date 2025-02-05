@@ -448,7 +448,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 		RGFW_event.axisesCount says how many axis there are
 	*/
 	RGFW_windowMoved, /*!< the window was moved (b the user) */
-	RGFW_windowResized, /*!< the window was resized (by the user), [on webASM this means the browser was resized] */
+	RGFW_windowResized, /*!< the window was resized (by the user), [on WASM this means the browser was resized] */
 	RGFW_focusIn, /*!< window is in focus now */
 	RGFW_focusOut, /*!< window is out of focus now */
 	RGFW_mouseEnter, /* mouse entered the window */
@@ -1602,7 +1602,7 @@ void RGFW_window_checkEvents(RGFW_window* win, u32 waitMS) {
 		if (win->event.type == RGFW_quit) return;
 	}
 
-	#ifdef RGFW_WASM /* webasm needs to run the sleep function for asyncify */
+	#ifdef RGFW_WASM /* WASM needs to run the sleep function for asyncify */
 		RGFW_sleep(0);
 	#endif
 }
@@ -2622,7 +2622,7 @@ Wayland TODO:
 - fix RGFW_keyPressed lock state
 
 	RGFW_windowMoved, 		the window was moved (by the user)
-	RGFW_windowResized  	the window was resized (by the user), [on webASM this means the browser was resized]
+	RGFW_windowResized  	the window was resized (by the user), [on WASM this means the browser was resized]
 	RGFW_windowRefresh	 	The window content needs to be refreshed
 
 	RGFW_DND 				a file has been dropped into the window
@@ -9079,7 +9079,7 @@ u64 RGFW_getTime(void) {
 */
 
 /*
-	WEBASM defines
+	WASM defines
 */
 
 #ifdef RGFW_WASM
