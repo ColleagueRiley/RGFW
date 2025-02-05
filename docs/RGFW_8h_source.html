@@ -7781,7 +7781,7 @@ $(function() {
 <div class="line"><a id="l07948" name="l07948"></a><span class="lineno"> 7948</span> </div>
 <div class="line"><a id="l07949" name="l07949"></a><span class="lineno"> 7949</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#gaff53f08bc36bca0231dcf054b9c2da37">RGFW_window_initBufferPtr</a>(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>* buffer, <a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a> area) {</div>
 <div class="line"><a id="l07950" name="l07950"></a><span class="lineno"> 7950</span><span class="preprocessor">    #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)</span></div>
-<div class="line"><a id="l07951" name="l07951"></a><span class="lineno"> 7951</span>        win-&gt;buffer = buffer</div>
+<div class="line"><a id="l07951" name="l07951"></a><span class="lineno"> 7951</span>        win-&gt;buffer = buffer;</div>
 <div class="line"><a id="l07952" name="l07952"></a><span class="lineno"> 7952</span>        win-&gt;bufferSize = area;</div>
 <div class="line"><a id="l07953" name="l07953"></a><span class="lineno"> 7953</span>        win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a3619dc281010b57f0810987a3be8012e">_flags</a> |= RGFW_BUFFER_ALLOC;</div>
 <div class="line"><a id="l07954" name="l07954"></a><span class="lineno"> 7954</span><span class="preprocessor">    #ifdef RGFW_OSMESA</span></div>
