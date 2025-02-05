@@ -3290,7 +3290,7 @@ $(function() {
 <div class="line"><a id="l03451" name="l03451"></a><span class="lineno"> 3451</span> </div>
 <div class="line"><a id="l03452" name="l03452"></a><span class="lineno"> 3452</span>        GLXContext ctx = NULL;</div>
 <div class="line"><a id="l03453" name="l03453"></a><span class="lineno"> 3453</span> </div>
-<div class="line"><a id="l03454" name="l03454"></a><span class="lineno"> 3454</span>        <span class="keywordflow">if</span> (RGFW_root != NULL)</div>
+<div class="line"><a id="l03454" name="l03454"></a><span class="lineno"> 3454</span>        <span class="keywordflow">if</span> (RGFW_root != NULL &amp;&amp; RGFW_root != win)</div>
 <div class="line"><a id="l03455" name="l03455"></a><span class="lineno"> 3455</span>            ctx = RGFW_root-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx;</div>
 <div class="line"><a id="l03456" name="l03456"></a><span class="lineno"> 3456</span> </div>
 <div class="line"><a id="l03457" name="l03457"></a><span class="lineno"> 3457</span>        win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx = glXCreateContextAttribsARB(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.display, bestFbc, ctx, True, context_attribs);</div>
