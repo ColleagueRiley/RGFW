@@ -7,6 +7,7 @@
 static GLfloat   tex_buf[BUFFER_SIZE * 8];
 static GLfloat  vert_buf[BUFFER_SIZE * 8];
 static GLubyte color_buf[BUFFER_SIZE * 16];
+static GLuint  index_buf[BUFFER_SIZE *  6];
 
 static int width  = 800;
 static int height = 600;
@@ -51,7 +52,8 @@ static void flush(void) {
   glTexCoordPointer(2, GL_FLOAT, 0, tex_buf);
   glVertexPointer(2, GL_FLOAT, 0, vert_buf);
   glColorPointer(4, GL_UNSIGNED_BYTE, 0, color_buf);
-  glDrawArrays(GL_TRIANGLES, 0, buf_idx * 6);
+  glDrawElements(GL_TRIANGLES, buf_idx * 6, GL_UNSIGNED_INT, index_buf);
+  // glDrawArrays(GL_TRIANGLES, 0, buf_idx * 6);
 
   glMatrixMode(GL_MODELVIEW);
   glPopMatrix();
@@ -61,11 +63,14 @@ static void flush(void) {
   buf_idx = 0;
 }
 
-static void push_quad(mu_Rect dst, mu_Rect src, mu_Color color) {
-  if (buf_idx >= BUFFER_SIZE / 6) { flush(); }
 
-  int texvert_idx = buf_idx * 8;
+static void push_quad(mu_Rect dst, mu_Rect src, mu_Color color) {
+  if (buf_idx == BUFFER_SIZE) { flush(); }
+
+  int texvert_idx = buf_idx *  8;
   int   color_idx = buf_idx * 16;
+  int element_idx = buf_idx *  4;
+  int   index_idx = buf_idx *  6;
   buf_idx++;
 
   /* update texture buffer */
@@ -97,11 +102,21 @@ static void push_quad(mu_Rect dst, mu_Rect src, mu_Color color) {
   memcpy(color_buf + color_idx +  4, &color, 4);
   memcpy(color_buf + color_idx +  8, &color, 4);
   memcpy(color_buf + color_idx + 12, &color, 4);
+
+  /* update index buffer */
+  index_buf[index_idx + 0] = element_idx + 0;
+  index_buf[index_idx + 1] = element_idx + 1;
+  index_buf[index_idx + 2] = element_idx + 2;
+  index_buf[index_idx + 3] = element_idx + 2;
+  index_buf[index_idx + 4] = element_idx + 3;
+  index_buf[index_idx + 5] = element_idx + 1;
 }
+
 
 void r_draw_rect(mu_Rect rect, mu_Color color) {
   push_quad(rect, atlas[ATLAS_WHITE], color);
 }
+
 
 void r_draw_text(const char *text, mu_Vec2 pos, mu_Color color) {
   mu_Rect dst = { pos.x, pos.y, 0, 0 };
@@ -116,12 +131,14 @@ void r_draw_text(const char *text, mu_Vec2 pos, mu_Color color) {
   }
 }
 
+
 void r_draw_icon(int id, mu_Rect rect, mu_Color color) {
   mu_Rect src = atlas[id];
   int x = rect.x + (rect.w - src.w) / 2;
   int y = rect.y + (rect.h - src.h) / 2;
   push_quad(mu_rect(x, y, src.w, src.h), src, color);
 }
+
 
 int r_get_text_width(const char *text, int len) {
   int res = 0;
@@ -133,14 +150,17 @@ int r_get_text_width(const char *text, int len) {
   return res;
 }
 
+
 int r_get_text_height(void) {
   return 18;
 }
+
 
 void r_set_clip_rect(mu_Rect rect) {
   flush();
   glScissor(rect.x, height - (rect.y + rect.h), rect.w, rect.h);
 }
+
 
 void r_clear(mu_Color clr) {
   flush();
