@@ -177,10 +177,9 @@ int main(void)
                 break;
             }
         }
-
+        
         // render
         // ------
-        glViewport(0, 0, window->r.w, window->r.h);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
