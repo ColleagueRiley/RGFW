@@ -292,7 +292,7 @@ int main() {
 /* plus it helps with cross-compiling */
 
 #ifdef __EMSCRIPTEN__
-	#define RGFW_WEBASM
+	#define RGFW_WASM
 
 	#if !defined(RGFW_NO_API) && !defined(RGFW_WEBGPU)
 		#define RGFW_OPENGL
@@ -316,7 +316,7 @@ int main() {
 	#undef __APPLE__
 #endif
 
-#if defined(_WIN32) && !defined(RGFW_UNIX) && !defined(RGFW_WEBASM) && !defined(RGFW_CUSTOM_BACKEND) /* (if you're using X11 on windows some how) */
+#if defined(_WIN32) && !defined(RGFW_UNIX) && !defined(RGFW_WASM) && !defined(RGFW_CUSTOM_BACKEND) /* (if you're using X11 on windows some how) */
 	#define RGFW_WINDOWS
 	/* make sure the correct architecture is defined */
 	#if defined(_WIN64)
@@ -360,12 +360,12 @@ int main() {
 
 	#include <wayland-client.h>
 #endif
-#if !defined(RGFW_NO_X11) && !defined(RGFW_NO_X11) && (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  && !defined(RGFW_WEBASM)  && !defined(RGFW_CUSTOM_BACKEND)
+#if !defined(RGFW_NO_X11) && !defined(RGFW_NO_X11) && (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  && !defined(RGFW_WASM)  && !defined(RGFW_CUSTOM_BACKEND)
 	#define RGFW_MACOS_X11
 	#define RGFW_X11
 	#define RGFW_UNIX
 	#include <X11/Xlib.h>
-#elif defined(__APPLE__) && !defined(RGFW_MACOS_X11) && !defined(RGFW_X11)  && !defined(RGFW_WEBASM)  && !defined(RGFW_CUSTOM_BACKEND)
+#elif defined(__APPLE__) && !defined(RGFW_MACOS_X11) && !defined(RGFW_X11)  && !defined(RGFW_WASM)  && !defined(RGFW_CUSTOM_BACKEND)
 	#define RGFW_MACOS
 #endif
 
@@ -708,7 +708,7 @@ typedef struct RGFW_window_src {
 		void* image;
 #endif
 } RGFW_window_src;
-#elif defined(RGFW_WEBASM)
+#elif defined(RGFW_WASM)
 typedef struct RGFW_window_src {
 	#ifdef RGFW_WEBGPU
 		WGPUInstance ctx;
@@ -1088,7 +1088,7 @@ RGFWDEF RGFW_gamepadfunc RGFW_setGamepadCallback(RGFW_gamepadfunc func);
 	which is a good idea generally
 */
 
-#if defined(__unix__) || defined(__APPLE__) || defined(RGFW_WEBASM) || defined(RGFW_CUSTOM_BACKEND)
+#if defined(__unix__) || defined(__APPLE__) || defined(RGFW_WASM) || defined(RGFW_CUSTOM_BACKEND)
 	typedef void* (* RGFW_threadFunc_ptr)(void*);
 #else
 	typedef DWORD (__stdcall *RGFW_threadFunc_ptr) (LPVOID lpThreadParameter);
@@ -1323,7 +1323,7 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	#define RGFW_OS_BASED_VALUE(l, w, m, h) w
 #elif defined(RGFW_MACOS)
 	#define RGFW_OS_BASED_VALUE(l, w, m, h) m
-#elif defined(RGFW_WEBASM)
+#elif defined(RGFW_WASM)
 	#define RGFW_OS_BASED_VALUE(l, w, m, h) h
 #endif
 
@@ -1474,7 +1474,7 @@ void RGFW_init_keys(void) {
 	RGFW_MAP [RGFW_OS_BASED_VALUE(37, 0x01D, 59, DOM_VK_CONTROL)] = RGFW_controlL               RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(64, 0x038, 58, DOM_VK_ALT)] = RGFW_altL                		RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(133, 0x15B, 55, DOM_VK_WIN)] = RGFW_superL,
-	#if !defined(RGFW_MACOS) && !defined(RGFW_WEBASM)
+	#if !defined(RGFW_MACOS) && !defined(RGFW_WASM)
 	RGFW_MAP [RGFW_OS_BASED_VALUE(105, 0x11D, 59, 0)] = RGFW_controlR               RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(135, 0x15C, 55, 0)] = RGFW_superR,
 	RGFW_MAP [RGFW_OS_BASED_VALUE(62, 0x036, 56, 0)] = RGFW_shiftR              RGFW_NEXT
@@ -1602,7 +1602,7 @@ void RGFW_window_checkEvents(RGFW_window* win, u32 waitMS) {
 		if (win->event.type == RGFW_quit) return;
 	}
 
-	#ifdef RGFW_WEBASM /* webasm needs to run the sleep function for asyncify */
+	#ifdef RGFW_WASM /* webasm needs to run the sleep function for asyncify */
 		RGFW_sleep(0);
 	#endif
 }
@@ -2026,7 +2026,7 @@ void RGFW_window_setDND(RGFW_window* win, RGFW_bool allow) {
 }
 #endif
 
-#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM) || defined(RGFW_WAYLAND)
+#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WASM) || defined(RGFW_WAYLAND)
 #include <time.h>
 struct timespec;
 
@@ -9082,7 +9082,7 @@ u64 RGFW_getTime(void) {
 	WEBASM defines
 */
 
-#ifdef RGFW_WEBASM
+#ifdef RGFW_WASM
 RGFW_event RGFW_events[20];
 size_t RGFW_eventLen = 0;
 
@@ -9324,7 +9324,7 @@ EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamep
     return 1; // The event was consumed by the callback handler
 }
 
-u32 RGFW_webasmPhysicalToRGFW(u32 hash) {
+u32 RGFW_wASMPhysicalToRGFW(u32 hash) {
 	switch(hash) {             /* 0x0000 */
 		case 0x67243A2DU /* Escape             */: return RGFW_escape;               /* 0x0001 */
 		case 0x67251058U /* Digit0             */: return RGFW_0;                    /* 0x0002 */
@@ -9433,7 +9433,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool p
 	u32 hash = 0;
 	while(*iCode) hash = ((hash ^ 0x7E057D79U) << 3) ^ (unsigned int)*iCode++;
 
-	u32 physicalKey = RGFW_webasmPhysicalToRGFW(hash);
+	u32 physicalKey = RGFW_wASMPhysicalToRGFW(hash);
 
 	u8 mappedKey = (u8)(*((u32*)key));
 
@@ -9600,7 +9600,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		window.addEventListener("keyup",
 			(event) => {
 				var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code);
-				Module._RGFW_handoleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"));
+				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"));
 				Module._RGFW_handleKeyEvent(key, code, 0);
 				_free(key); _free(code);
 ode			},
@@ -9997,7 +9997,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win); return
 /* end of web asm defines */
 
 /* unix (macOS, linux, web asm) only stuff */
-#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WEBASM)  || defined(RGFW_WAYLAND)
+#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WASM)  || defined(RGFW_WAYLAND)
 
 /* unix threading */
 #ifndef RGFW_NO_THREADS
@@ -10020,7 +10020,7 @@ void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { RGFW_UNUSED(threa
 #endif
 #endif
 
-#ifndef RGFW_WEBASM
+#ifndef RGFW_WASM
 
 /* unix sleep */
 void RGFW_sleep(u64 ms) {
