@@ -562,6 +562,8 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 	RGFWDEF RGFW_monitor* RGFW_getMonitors(void);
 	/*! get the primary monitor */
 	RGFWDEF RGFW_monitor RGFW_getPrimaryMonitor(void);
+	/*! scale monitor to area */
+	RGFWDEF RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area);
 #endif
 
 /* RGFW mouse loading */
@@ -630,7 +632,7 @@ typedef struct RGFW_window_src {
 		HBITMAP bitmap;
 		u8* bitmapBits;
 	#endif
-	RGFW_area maxSize, minSize; /*!< for setting max/min resize (RGFW_WINDOWS) */
+	RGFW_area maxSize, minSize, aspectRatio; /*!< for setting max/min resize (RGFW_WINDOWS) */
 } RGFW_window_src;
 #elif defined(RGFW_UNIX)
 typedef struct RGFW_window_src {
@@ -731,7 +733,10 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowOpenglSoftware = RGFW_BIT(8), /*! use OpenGL software rendering */
 	RGFW_windowCocoaCHDirToRes = RGFW_BIT(9), /* (cocoa only), change directory to resource folder */
 	RGFW_windowScaleToMonitor = RGFW_BIT(10), /* scale the window to the screen */
-	RGFW_windowHide = RGFW_BIT(11)/* the window is hidden */
+	RGFW_windowHide = RGFW_BIT(11), /* the window is hidden */
+	RGFW_windowMaximize = RGFW_BIT(12),
+	RGFW_windowCenterCursor = RGFW_BIT(13),
+	RGFW_pseudoFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize,
 };
 
 typedef struct RGFW_window {
@@ -758,6 +763,9 @@ typedef struct RGFW_window {
 #else
 	typedef void* RGFW_thread; /*!< thread type for window */
 #endif
+
+/*! scale monitor to window size */
+RGFWDEF RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, RGFW_window* win);
 
 /** * @defgroup Window_management
 * @{ */
@@ -853,12 +861,15 @@ RGFWDEF void RGFW_window_resize(RGFW_window* win, /*!< source window */
 	RGFW_area a/*!< new size*/
 );
 
+/*! set window aspect ratio */
+RGFWDEF void RGFW_window_setAspectRatio(RGFW_window* win, RGFW_area a);
 /*! set the minimum size a user can shrink a window to a given size/area */
 RGFWDEF void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a);
 /*! set the minimum size a user can extend a window to a given size/area */
 RGFWDEF void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a);
 
 RGFWDEF void RGFW_window_maximize(RGFW_window* win); /*!< maximize the window size */
+RGFWDEF void RGFW_window_fullscreen(RGFW_window* win); /*!< fullscreen the window size */
 RGFWDEF void RGFW_window_center(RGFW_window* win); /*!< center the window */
 RGFWDEF void RGFW_window_minimize(RGFW_window* win); /*!< minimize the window (in taskbar (per OS))*/
 RGFWDEF void RGFW_window_restore(RGFW_window* win); /*!< restore the window from minimized (per OS)*/
@@ -1678,12 +1689,12 @@ no more event call back defines
     attribs[index++] = v; \
 }
 
-#define RGFW_NO_GPU_RENDER 		RGFW_BIT(20) /* don't render (using the GPU based API)*/
-#define RGFW_NO_CPU_RENDER 		RGFW_BIT(21) /* don't render (using the CPU based buffer rendering)*/
-#define RGFW_HOLD_MOUSE			RGFW_BIT(22) /*!< hold the moues still */
-#define RGFW_MOUSE_LEFT 		RGFW_BIT(23) /* if mouse left the window */
-#define RGFW_WINDOW_ALLOC 		RGFW_BIT(24) /* if window was allocated by RGFW */
-#define RGFW_BUFFER_ALLOC 		RGFW_BIT(25) /* if window.buffer was allocated by RGFW */
+#define RGFW_NO_GPU_RENDER 		RGFW_BIT(25) /* don't render (using the GPU based API)*/
+#define RGFW_NO_CPU_RENDER 		RGFW_BIT(26) /* don't render (using the CPU based buffer rendering)*/
+#define RGFW_HOLD_MOUSE			RGFW_BIT(27) /*!< hold the moues still */
+#define RGFW_MOUSE_LEFT 		RGFW_BIT(28) /* if mouse left the window */
+#define RGFW_WINDOW_ALLOC 		RGFW_BIT(29) /* if window was allocated by RGFW */
+#define RGFW_BUFFER_ALLOC 		RGFW_BIT(30) /* if window.buffer was allocated by RGFW */
 
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
 	RGFW_window* win = (RGFW_window*)RGFW_ALLOC(sizeof(RGFW_window));
@@ -1698,7 +1709,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlag
 #endif
 
 RGFWDEF void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags flags);
-
+RGFWDEF void RGFW_window_basic_flags(RGFW_window* win, RGFW_windowFlags);
 #if defined(RGFW_X11) || defined(RGFW_WINDOWS)
 RGFW_mouse* RGFW_hiddenMouse = NULL;
 #endif
@@ -1707,25 +1718,20 @@ RGFW_window* RGFW_root = NULL;
 
 /* do a basic initialization for RGFW_window, this is to standard it for each OS */
 void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags flags) {
-	/* X11 requires us to have a display to get the screen size */
-	#ifndef RGFW_X11
-	RGFW_area screenR = RGFW_getScreenSize();
-	#else
-	win->src.clipboard = NULL;
-	win->src.display = XOpenDisplay(NULL);
-	RGFW_ASSERT(win->src.display != NULL);
-
-	Screen* scrn = DefaultScreenOfDisplay(win->src.display);
-	RGFW_area screenR = RGFW_AREA((u32)scrn->width, (u32)scrn->height);
-	#endif
-
+	RGFW_UNUSED(flags);
 	/* rect based the requested flags */
-	if (flags & RGFW_windowFullscreen)
-		rect = RGFW_RECT(0, 0, screenR.w, screenR.h);
-
 	if (RGFW_root == NULL) {
 		RGFW_root = win;
+		#ifdef RGFW_X11
+		RGFW_root->src.display = XOpenDisplay(NULL);
+		#endif
 	}
+
+	#ifdef RGFW_X11
+	win->src.clipboard = NULL;
+	win->src.display = RGFW_root->src.display;
+	RGFW_ASSERT(win->src.display != NULL);
+	#endif
 
 	#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
 	if (RGFW_hiddenMouse == NULL) {
@@ -1738,8 +1744,26 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 	win->r = rect;
 	win->event.inFocus = 1;
 	win->event.droppedFilesCount = 0;
-	win->_flags = 0;
+	win->_flags = flags;
 	win->event.keyMod = 0;
+}
+
+void RGFW_window_basic_flags(RGFW_window* win, RGFW_windowFlags flags) {
+	#ifndef RGFW_NO_MONITOR
+	if (flags & RGFW_windowScaleToMonitor)
+		RGFW_window_scaleToMonitor(win);
+	#endif
+
+	if (flags & RGFW_windowCenter)
+		RGFW_window_center(win);
+	if (flags & RGFW_windowCenterCursor)
+		RGFW_window_moveMouse(win, RGFW_POINT(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
+	if (flags & RGFW_windowNoBorder)
+		RGFW_window_setBorder(win, 0);
+	if (flags & RGFW_windowFullscreen)
+		RGFW_window_fullscreen(win);
+	if (flags & RGFW_windowMaximize)
+		RGFW_window_maximize(win);
 }
 
 void RGFW_window_initBuffer(RGFW_window* win) {
@@ -1840,6 +1864,11 @@ void RGFW_window_center(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_area screenR = RGFW_getScreenSize();
 	RGFW_window_move(win, RGFW_POINT((screenR.w - win->r.w) / 2, (screenR.h - win->r.h) / 2));
+}
+
+RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, RGFW_window* win) {
+	RGFW_ASSERT(win);
+	return RGFW_monitor_scale(mon, RGFW_AREA(win->r.w, win->r.h));
 }
 
 RGFW_bool RGFW_window_shouldClose(RGFW_window* win) {
@@ -3434,9 +3463,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		RGFW_window_scaleToMonitor(win);
 	#endif
 
-	if (flags & RGFW_windowCenter)
-		RGFW_window_center(win);
-
 	if (flags & RGFW_windowNoResize) { /* make it so the user can't resize the window*/
 		XSizeHints sh;
 		sh.flags = (1L << 4) | (1L << 5);
@@ -3447,9 +3473,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 		win->_flags |= RGFW_windowNoResize;
 	}
-
-	if (flags & RGFW_windowNoBorder)
-		RGFW_window_setBorder(win, 0);
 
 	XSelectInput(win->src.display, (Drawable) win->src.window, event_mask); /*!< tell X11 what events we want*/
 
@@ -3511,6 +3534,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	#endif
 	RGFW_window_setMouseDefault(win);
 	RGFW_windowsOpen++;
+	RGFW_window_basic_flags(win, flags);
+
 	return win; /*return newly created window*/
 #endif
 #ifdef RGFW_WAYLAND
@@ -3598,9 +3623,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 					decoration_manager, win->src.xdg_toplevel);
 	}
 
-	if (flags & RGFW_windowCenter)
-		RGFW_window_center(win);
-
 	if (flags & RGFW_windowOpenglSoftware)
 		setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
 
@@ -3638,6 +3660,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	#endif
 
 	RGFW_window_setMouseDefault(win);
+	RGFW_window_basic_flags(win, flags);
+
 	RGFW_windowsOpen++;
 	return win; /*return newly created window*/
 #endif
@@ -4307,6 +4331,25 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 #endif
 }
 
+void RGFW_window_setAspectRatio(RGFW_window* win, RGFW_area a) {
+	RGFW_ASSERT(win != NULL);
+
+	if (a.w == 0 && a.h == 0)
+		return;
+
+	XSizeHints hints;
+	long flags;
+
+	XGetWMNormalHints(win->src.display, win->src.window, &hints, &flags);
+
+	hints.flags |= PAspect;
+
+	hints.min_aspect.x = hints.max_aspect.x = a.w;
+	hints.min_aspect.y = hints.max_aspect.y = a.h;
+
+	XSetWMNormalHints(win->src.display, win->src.window, &hints);
+}
+
 void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
 	RGFW_ASSERT(win != NULL);
 
@@ -4347,11 +4390,10 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 
 void RGFW_toggleXMaximized(RGFW_window* win, RGFW_bool maximized) {
 	RGFW_ASSERT(win != NULL);
+	RGFW_LOAD_ATOM(_NET_WM_STATE);
+	RGFW_LOAD_ATOM(_NET_WM_STATE_MAXIMIZED_VERT);
+	RGFW_LOAD_ATOM(_NET_WM_STATE_MAXIMIZED_HORZ);
 
-	Atom _NET_WM_STATE = XInternAtom(win->src.display, "_NET_WM_STATE", False);
-	Atom _NET_WM_STATE_MAXIMIZED_VERT = XInternAtom(win->src.display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
-	Atom _NET_WM_STATE_MAXIMIZED_HORZ = XInternAtom(win->src.display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-	
 	XEvent xev = {0};
 	xev.type = ClientMessage;
 	xev.xclient.window = win->src.window;
@@ -4363,13 +4405,31 @@ void RGFW_toggleXMaximized(RGFW_window* win, RGFW_bool maximized) {
 	xev.xclient.data.l[3] = 0;
 	xev.xclient.data.l[4] = 0;
 
-	XSendEvent(win->src.display, DefaultRootWindow(win->src.display), False,
-			   SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+	XSendEvent(win->src.display, DefaultRootWindow(win->src.display), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 }
 
-void RGFW_window_maximize(RGFW_window* win) {
-	RGFW_toggleXMaximized(win, 1);
+void RGFW_toggleXFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
+	RGFW_ASSERT(win != NULL);
+	RGFW_LOAD_ATOM(_NET_WM_STATE);
+	RGFW_LOAD_ATOM(_NET_WM_STATE_FULLSCREEN);
+	
+	XEvent xev = {0};
+    xev.xclient.type = ClientMessage;
+    xev.xclient.serial = 0;
+    xev.xclient.send_event = True;
+    xev.xclient.message_type = _NET_WM_STATE;
+    xev.xclient.window = win->src.window;
+    xev.xclient.format = 32;
+    xev.xclient.data.l[0] = fullscreen;
+    xev.xclient.data.l[1] = _NET_WM_STATE_FULLSCREEN;
+    xev.xclient.data.l[2] = 0;
+
+    XSendEvent(win->src.display, DefaultRootWindow(win->src.display), False, SubstructureNotifyMask | SubstructureRedirectMask, &xev);
+	XRaiseWindow(win->src.display, win->src.window);
 }
+
+void RGFW_window_maximize(RGFW_window* win) { RGFW_toggleXMaximized(win, 1); }
+void RGFW_window_fullscreen(RGFW_window* win) { RGFW_toggleXFullscreen(win, 1); }
 
 void RGFW_window_minimize(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
@@ -4964,6 +5024,55 @@ RGFW_monitor RGFW_getPrimaryMonitor(void) {
 	#endif
 }
 
+RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area) {
+	RGFW_GOTO_WAYLAND(1);
+#ifdef RGFW_X11
+	#ifndef RGFW_NO_DPI
+    XRRScreenResources* screenRes = XRRGetScreenResources(RGFW_root->src.display, DefaultRootWindow(RGFW_root->src.display));
+	if (screenRes == NULL) return RGFW_FALSE;
+	for (int i = 0; i < screenRes->ncrtc; i++) {
+		XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(RGFW_root->src.display, screenRes, screenRes->crtcs[i]);
+		if (!crtcInfo) continue;
+
+		if (mon.rect.x == crtcInfo->x && mon.rect.y == crtcInfo->y && (u32)mon.rect.w == crtcInfo->width && (u32)mon.rect.h == crtcInfo->height) {
+			RRMode mode = None;
+			for (int index = 0; index < screenRes->nmode; index++) {
+				if (screenRes->modes[index].width == area.w &&
+					screenRes->modes[index].height == area.h) {
+					mode = screenRes->modes[index].id;
+					break;
+				}
+			}
+
+			if (mode != None) {
+				RROutput output = screenRes->outputs[i];
+				XRROutputInfo* info = XRRGetOutputInfo(RGFW_root->src.display, screenRes, output);
+				if (info) {
+					XRRSetCrtcConfig(RGFW_root->src.display, screenRes, screenRes->crtcs[i],
+									CurrentTime, 0, 0, mode, RR_Rotate_0, &output, 1);
+					XRRFreeOutputInfo(info);
+					XRRFreeCrtcInfo(crtcInfo);
+					XRRFreeScreenResources(screenRes);
+					return RGFW_TRUE;
+				}
+			}
+
+			XRRFreeCrtcInfo(crtcInfo);
+			XRRFreeScreenResources(screenRes);
+			return RGFW_FALSE;
+		}
+
+		XRRFreeCrtcInfo(crtcInfo);
+	}
+
+    XRRFreeScreenResources(screenRes);
+	return RGFW_FALSE;
+	#endif
+#endif
+wayland:
+	return RGFW_FALSE;
+}
+
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_GOTO_WAYLAND(1);
@@ -5151,19 +5260,18 @@ void RGFW_window_close(RGFW_window* win) {
 			XFreeGC(win->src.display, win->src.gc);
 		}
 	#endif
-
+	
 	if (win->src.display) {
 	#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
 			glXDestroyContext(win->src.display, win->src.ctx);
 	#endif
-
-		if (win == RGFW_root)
-			RGFW_root = NULL;
-
 		if ((Drawable) win->src.window)
 			XDestroyWindow(win->src.display, (Drawable) win->src.window); /*!< close the window*/
 
-		XCloseDisplay(win->src.display); /*!< kill the display*/
+		if (win == RGFW_root) {
+			XCloseDisplay(win->src.display); /*!< kill the x server connection */
+			RGFW_root = NULL;
+		}
 	}
 
 	/* set cleared display / window to NULL for error checking */
@@ -5213,7 +5321,6 @@ void RGFW_window_close(RGFW_window* win) {
 
 		#ifdef RGFW_X11
 			XDestroyWindow(win->src.display, (Drawable) win->src.window);
-			XCloseDisplay(win->src.display); /*!< kill the display*/
 		#endif
 
 		#ifdef RGFW_EGL
@@ -5221,6 +5328,9 @@ void RGFW_window_close(RGFW_window* win) {
 		#endif
 
 		if (RGFW_root == win) {
+			#ifdef RGFW_X11
+			XCloseDisplay(win->src.display); /*!< kill connection to the x server */
+			#endif
 			RGFW_root = NULL;
 		}
 
@@ -5463,7 +5573,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		RECT clientRect;
 		GetClientRect(hWnd, &clientRect);	
 		i32 offset = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
+			
+		if (win->src.aspectRatio.w != 0 && win->src.aspectRatio.h != 0) {
+			double aspectRatio = (double)win->src.aspectRatio.w / win->src.aspectRatio.h;
 
+			int width = windowRect.right - windowRect.left;
+			int height = windowRect.bottom - windowRect.top;
+			int newHeight = (int)(width / aspectRatio);
+			int newWidth = (int)(height * aspectRatio);
+
+			if (win->r.w > windowRect.right - windowRect.left || 
+				win->r.h > (windowRect.bottom - windowRect.top) - offset) 
+			{
+				if (newHeight > height) windowRect.right = windowRect.left + newWidth;
+				else windowRect.bottom = windowRect.top + newHeight;
+			} else {
+				if (newHeight < height) windowRect.right = windowRect.left + newWidth;
+				else windowRect.bottom = windowRect.top + newHeight;
+			}
+
+			RGFW_window_resize(win, RGFW_AREA((windowRect.right - windowRect.left), 
+											(windowRect.bottom - windowRect.top) - offset));
+		}
 		RGFW_eventWindow.r.w = windowRect.right -  windowRect.left;
 		RGFW_eventWindow.r.h = (windowRect.bottom - windowRect.top) - offset;
 		RGFW_eventWindow.src.window = hWnd;
@@ -5639,7 +5770,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	win->src.hIcon = NULL;
 	win->src.maxSize = RGFW_AREA(0, 0);
 	win->src.minSize = RGFW_AREA(0, 0);
-
+	win->src.aspectRatio = RGFW_AREA(0, 0);
 
 	HINSTANCE inh = GetModuleHandleA(NULL);
 
@@ -5871,15 +6002,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	DestroyWindow(dummyWin);
 
-
-	#ifndef RGFW_NO_MONITOR
-	if (flags & RGFW_windowScaleToMonitor)
-		RGFW_window_scaleToMonitor(win);
-	#endif
-
-	if (flags & RGFW_windowCenter)
-		RGFW_window_center(win);
-
 	#ifdef RGFW_EGL
 		if ((flags & RGFW_windowNoInitAPI) == 0)
 			RGFW_createOpenGLContext(win);
@@ -5904,6 +6026,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	}
 
 	ShowWindow(win->src.window, SW_SHOWNORMAL);
+	RGFW_window_basic_flags(win, flags);
 
 	#ifdef RGFW_OPENGL
 	if (RGFW_root != win)
@@ -5966,6 +6089,12 @@ RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
 	return RGFW_POINT(p.x, p.y);
 }
 
+
+void RGFW_window_setAspectRatio(RGFW_window* win, RGFW_area a) {
+	RGFW_ASSERT(win != NULL);
+	win->src.aspectRatio = a;
+}
+
 void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
 	RGFW_ASSERT(win != NULL);
 	win->src.minSize = a;
@@ -5976,8 +6105,21 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 	win->src.maxSize = a;
 }
 
+void RGFW_window_fullscreen(RGFW_window* win) {
+	RGFW_ASSERT(win != NULL);
+	RGFW_window_hide(win);
+	RGFW_monitor mon = RGFW_window_getMonitor(win);
+	RGFW_window_setBorder(win, 0);
+	SetWindowPos(win->src.window, HWND_TOP, mon.rect.x, mon.rect.y, mon.rect.w, mon.rect.h,
+					SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+	win->r.w = mon.rect.w;
+	win->r.h = mon.rect.h;
+	RGFW_window_show(win);
+}
+
 void RGFW_window_maximize(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
+	RGFW_window_hide(win);
 	ShowWindow(win->src.window, SW_MAXIMIZE);
 }
 
@@ -6604,6 +6746,41 @@ RGFW_monitor* RGFW_getMonitors(void) {
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	HMONITOR src = MonitorFromWindow(win->src.window, MONITOR_DEFAULTTOPRIMARY);
 	return win32CreateMonitor(src);
+}
+
+RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area) {
+	HMONITOR src = MonitorFromPoint((POINT) { mon.rect.x, mon.rect.y }, MONITOR_DEFAULTTOPRIMARY);
+
+	MONITORINFOEX  monitorInfo;
+	monitorInfo.cbSize = sizeof(MONITORINFOEX);
+	GetMonitorInfoA(src, (LPMONITORINFO)&monitorInfo);
+
+    DISPLAY_DEVICE dd;
+    dd.cb = sizeof(dd);
+
+    // Enumerate display devices
+    for (DWORD deviceNum = 0; EnumDisplayDevices(NULL, deviceNum, &dd, 0); deviceNum++) {
+        if (!(dd.StateFlags & DISPLAY_DEVICE_ACTIVE))
+			continue;
+		
+		DEVMODE dm;
+		ZeroMemory(&dm, sizeof(dm));
+		dm.dmSize = sizeof(dm);
+
+		if (EnumDisplaySettings(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm)) {
+			dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
+			dm.dmPelsWidth = area.w;
+			dm.dmPelsHeight = area.h;
+
+			if (ChangeDisplaySettingsEx(dd.DeviceName, &dm, NULL, CDS_TEST, NULL) == DISP_CHANGE_SUCCESSFUL) {
+				if (ChangeDisplaySettingsEx(dd.DeviceName, &dm, NULL, CDS_UPDATEREGISTRY, NULL) == DISP_CHANGE_SUCCESSFUL)
+					return RGFW_TRUE;
+				return RGFW_FALSE;
+			} else return RGFW_FALSE;
+		}
+	}
+
+	return RGFW_FALSE;
 }
 
 #endif
@@ -7915,14 +8092,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			NSColor_colorWithSRGB(0, 0, 0, 0));
 	}
 
-	#ifndef RGFW_NO_MONITOR
-	if (flags & RGFW_windowScaleToMonitor)
-		RGFW_window_scaleToMonitor(win);
-	#endif
-
-	if (flags & RGFW_windowCenter)
-		RGFW_window_center(win);
-
 	if (flags & RGFW_windowHideMouse)
 		RGFW_window_showMouse(win, 0);
 
@@ -7975,9 +8144,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	objc_msgSend_void(win->src.window, sel_registerName("makeKeyWindow"));
 
 	objc_msgSend_void(NSApp, sel_registerName("finishLaunching"));
-
-	if ((flags & RGFW_windowNoBorder))
-		RGFW_window_setBorder(win, 0);
+	
+	RGFW_window_basic_flags(win, flags);
 
 	NSRetain(win->src.window);
 	NSRetain(NSApp);
@@ -8460,14 +8628,14 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{win->r.x, win->r.y}, {win->r.w, win->r.h + offset}}, true, true);
 }
 
+void RGFW_window_fullscreen(RGFW_window* win) {
+	RGFW_ASSERT(win != NULL);
+	objc_msgSend_void_SEL(win->src.window, sel_registerName("toggleFullScreen:"), NULL);
+}
+
 void RGFW_window_maximize(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-	if (RGFW_window_borderless(win)) {
-		RGFW_window_setBorder(win, 1);
-		objc_msgSend_void_SEL(win->src.window, sel_registerName("toggleFullScreen:"), NULL);
-	}
-	else	
-		objc_msgSend_void_SEL(win->src.window, sel_registerName("zoom:"), NULL);
+	objc_msgSend_void_SEL(win->src.window, sel_registerName("zoom:"), NULL);
 }
 
 void RGFW_window_minimize(RGFW_window* win) {
@@ -8493,6 +8661,13 @@ void RGFW_window_setMousePassthrough(RGFW_window* win, RGFW_bool passthrough) {
 	objc_msgSend_void_bool(win->src.window, sel_registerName("setIgnoresMouseEvents:"), passthrough);
 }
 #endif
+
+void RGFW_window_setAspectRatio(RGFW_window* win, RGFW_area a) {
+	if (a.w == 0 && a.h == 0) a = RGFW_AREA(1, 1);
+	
+	((void (*)(id, SEL, NSSize))objc_msgSend)
+		((id)win->src.window, sel_registerName("setContentAspectRatio:"), (NSSize){a.w, a.h});
+}
 
 void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
 	((void (*)(id, SEL, NSSize))objc_msgSend)
@@ -8716,6 +8891,37 @@ RGFW_monitor* RGFW_getMonitors(void) {
 		RGFW_monitors[i] = RGFW_NSCreateMonitor(displays[i], RGFW_getNSScreenForDisplayID(displays[i]));
 
 	return RGFW_monitors;
+}
+
+RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area) {
+    CGPoint point = { mon.rect.x, mon.rect.y };
+
+    CGDirectDisplayID display;
+    uint32_t displayCount = 0;
+    CGError err = CGGetDisplaysWithPoint(point, 1, &display, &displayCount);
+    if (err != kCGErrorSuccess || displayCount != 1)
+		return RGFW_FALSE;
+
+    CFArrayRef allModes = CGDisplayCopyAllDisplayModes(display, NULL);
+
+    if (allModes == NULL)
+        return RGFW_FALSE;
+
+    for (CFIndex i = 0; i < CFArrayGetCount(allModes); i++) {
+        CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(allModes, i);
+        if (CGDisplayModeGetWidth(mode) == area.w && CGDisplayModeGetHeight(mode) == area.h) {
+            CGError err = CGDisplaySetDisplayMode(display, mode, NULL);
+            if (err == kCGErrorSuccess)	{     
+				CFRelease(allModes);
+				return RGFW_TRUE;
+			}
+            break;
+        }
+    }
+
+    CFRelease(allModes);
+
+	return RGFW_FALSE;	
 }
 
 RGFW_monitor RGFW_getPrimaryMonitor(void) {
@@ -9466,9 +9672,7 @@ ode			},
 		RGFW_window_showMouse(win, 0);
 	}
 
-	if (flags & RGFW_windowFullscreen) {
-		RGFW_window_resize(win, RGFW_getScreenSize());
-	}
+	RGFW_window_basic_flags(win, flags);
 
 	#ifdef RGFW_DEBUG
 	printf("RGFW INFO: a window with a rect of {%i, %i, %i, %i} \n", win->r.x, win->r.y, win->r.w, win->r.h);
@@ -9773,10 +9977,18 @@ void RGFW_window_maximize(RGFW_window* win) {
 	RGFW_window_resize(win, screen);
 }
 
+void RGFW_window_fullscreen(RGFW_window* win) {
+	RGFW_ASSERT(win != NULL);
+
+	EM_ASM( Module.requestFullscreen(false, true); );
+}
+
 /* unsupported functions */
+RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area) { RGFW_UNUSED(mon); RGFW_UNUSED(area); return RGFW_FALSE; }
 RGFW_monitor* RGFW_getMonitors(void) { return NULL; }
 RGFW_monitor RGFW_getPrimaryMonitor(void) { return (RGFW_monitor){}; }
 void RGFW_window_move(RGFW_window* win, RGFW_point v) { RGFW_UNUSED(win); RGFW_UNUSED(v); }
+void RGFW_window_setAspectRatio(RGFW_window* win, RGFW_area a) { RGFW_UNUSED(win); RGFW_UNUSED(a); }
 void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) { RGFW_UNUSED(win); RGFW_UNUSED(a);  }
 void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) { RGFW_UNUSED(win); RGFW_UNUSED(a);  }
 void RGFW_window_minimize(RGFW_window* win) { RGFW_UNUSED(win); }

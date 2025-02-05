@@ -101,10 +101,11 @@ EXAMPLE_OUTPUTS = \
 	examples/events/events \
 	examples/callbacks/callbacks \
 	examples/flags/flags \
-	examples/icons/icons
+	examples/monitor/monitor
 
 
 EXAMPLE_OUTPUTS_CUSTOM = \
+	examples/icons/icons \
 	examples/gamepad/gamepad \
 	examples/silk/silk \
 	examples/first-person-camera/camera \
@@ -221,6 +222,9 @@ endif
 examples/silk/silk: examples/silk/silk.c RGFW.h
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 
+
+examples/icons/icons: examples/icons/icons.c RGFW.h
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 examples/gamepad/gamepad: examples/gamepad/gamepad.c RGFW.h
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 
