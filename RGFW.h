@@ -7948,7 +7948,7 @@ void RGFW__osxUpdateLayer(id self, SEL sel) {
 
 void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-		win->buffer = buffer
+		win->buffer = buffer;
 		win->bufferSize = area;
 		win->_flags |= RGFW_BUFFER_ALLOC;
 	#ifdef RGFW_OSMESA
