@@ -33,6 +33,7 @@ Current Version: RGFW 1.5.5-dev
 - separate maximize and fullscreen functions
 - add RGFW_window_setAspectRatio
 - add RGFW_window_scaleToMonitor AND RGFW_monitor_scale
+- add monitor/monitor.c example to show monitor scaling.
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
