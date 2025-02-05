@@ -9603,7 +9603,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"));
 				Module._RGFW_handleKeyEvent(key, code, 0);
 				_free(key); _free(code);
-ode			},
+},
 		true);
 	});
 
