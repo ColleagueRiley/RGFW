@@ -8628,14 +8628,14 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{win->r.x, win->r.y}, {win->r.w, win->r.h + offset}}, true, true);
 }
 
+void RGFW_window_fullscreen(RGFW_window* win) {
+	RGFW_ASSERT(win != NULL);
+	objc_msgSend_void_SEL(win->src.window, sel_registerName("toggleFullScreen:"), NULL);
+}
+
 void RGFW_window_maximize(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-	if (RGFW_window_borderless(win)) {
-		RGFW_window_setBorder(win, 1);
-		objc_msgSend_void_SEL(win->src.window, sel_registerName("toggleFullScreen:"), NULL);
-	}
-	else	
-		objc_msgSend_void_SEL(win->src.window, sel_registerName("zoom:"), NULL);
+	objc_msgSend_void_SEL(win->src.window, sel_registerName("zoom:"), NULL);
 }
 
 void RGFW_window_minimize(RGFW_window* win) {
@@ -8661,6 +8661,13 @@ void RGFW_window_setMousePassthrough(RGFW_window* win, RGFW_bool passthrough) {
 	objc_msgSend_void_bool(win->src.window, sel_registerName("setIgnoresMouseEvents:"), passthrough);
 }
 #endif
+
+void RGFW_window_setAspectRatio(RGFW_window* win, RGFW_area a) {
+	if (a.w == 0 && a.h == 0) a = RGFW_AREA(1, 1);
+	
+	((void (*)(id, SEL, NSSize))objc_msgSend)
+		((id)win->src.window, sel_registerName("setContentAspectRatio:"), (NSSize){a.w, a.h});
+}
 
 void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
 	((void (*)(id, SEL, NSSize))objc_msgSend)
@@ -8884,6 +8891,37 @@ RGFW_monitor* RGFW_getMonitors(void) {
 		RGFW_monitors[i] = RGFW_NSCreateMonitor(displays[i], RGFW_getNSScreenForDisplayID(displays[i]));
 
 	return RGFW_monitors;
+}
+
+RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area) {
+    CGPoint point = { mon.rect.x, mon.rect.y };
+
+    CGDirectDisplayID display;
+    uint32_t displayCount = 0;
+    CGError err = CGGetDisplaysWithPoint(point, 1, &display, &displayCount);
+    if (err != kCGErrorSuccess || displayCount != 1)
+		return RGFW_FALSE;
+
+    CFArrayRef allModes = CGDisplayCopyAllDisplayModes(display, NULL);
+
+    if (allModes == NULL)
+        return RGFW_FALSE;
+
+    for (CFIndex i = 0; i < CFArrayGetCount(allModes); i++) {
+        CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(allModes, i);
+        if (CGDisplayModeGetWidth(mode) == area.w && CGDisplayModeGetHeight(mode) == area.h) {
+            CGError err = CGDisplaySetDisplayMode(display, mode, NULL);
+            if (err == kCGErrorSuccess)	{     
+				CFRelease(allModes);
+				return RGFW_TRUE;
+			}
+            break;
+        }
+    }
+
+    CFRelease(allModes);
+
+	return RGFW_FALSE;	
 }
 
 RGFW_monitor RGFW_getPrimaryMonitor(void) {
