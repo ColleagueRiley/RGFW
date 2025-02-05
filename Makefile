@@ -259,6 +259,7 @@ debug: all
 	./examples/gamepad/gamepad
 	./examples/first-person-camera/camera
 	./examples/portableGL/pgl$(EXT)
+	./examples/microui_demo/microui_demo
 	./examples/gl33/gl33$(EXT)
 ifneq ($(NO_GLES), 1)
 		./examples/gles2/gles2$(EXT)
