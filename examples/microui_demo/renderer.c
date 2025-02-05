@@ -54,7 +54,9 @@ static void flush(void) {
   glColorPointer(4, GL_UNSIGNED_BYTE, 0, color_buf);
   #ifndef RGFW_WASM
   glDrawElements(GL_TRIANGLES, buf_idx * 6, GL_UNSIGNED_INT, index_buf);
-  // glDrawArrays(GL_TRIANGLES, 0, buf_idx * 6);
+  #else
+  glDrawArrays(GL_TRIANGLES, 0, buf_idx * 6);
+  #endif
 
   glMatrixMode(GL_MODELVIEW);
   glPopMatrix();
