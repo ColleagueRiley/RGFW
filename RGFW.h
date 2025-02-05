@@ -1721,10 +1721,10 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 	RGFW_UNUSED(flags);
 	/* rect based the requested flags */
 	if (RGFW_root == NULL) {
+		RGFW_root = win;
 		#ifdef RGFW_X11
 		RGFW_root->src.display = XOpenDisplay(NULL);
 		#endif
-		RGFW_root = win;
 	}
 
 	#ifdef RGFW_X11
@@ -5260,19 +5260,18 @@ void RGFW_window_close(RGFW_window* win) {
 			XFreeGC(win->src.display, win->src.gc);
 		}
 	#endif
-
+	
 	if (win->src.display) {
 	#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
 			glXDestroyContext(win->src.display, win->src.ctx);
 	#endif
+		if ((Drawable) win->src.window)
+			XDestroyWindow(win->src.display, (Drawable) win->src.window); /*!< close the window*/
 
 		if (win == RGFW_root) {
 			XCloseDisplay(win->src.display); /*!< kill the x server connection */
 			RGFW_root = NULL;
 		}
-		
-		if ((Drawable) win->src.window)
-			XDestroyWindow(win->src.display, (Drawable) win->src.window); /*!< close the window*/
 	}
 
 	/* set cleared display / window to NULL for error checking */
