@@ -585,6 +585,7 @@ typedef struct RGFW_event {
 
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_point point; /*!< mouse x, y of event (or drop point) */
+	RGFW_point vector; /*!< raw mouse movement */
 
 	RGFW_key key; /*!< the physical key of the event, refers to where key is physically !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! */
 	u8 keyChar; /*!< mapped key char of the event*/
@@ -1025,7 +1026,7 @@ typedef void (* RGFW_focusfunc)(RGFW_window* win, RGFW_bool inFocus);
 /*! RGFW_mouseEnter / RGFW_mouseLeave, the window that changed, the point of the mouse (enter only) and if the mouse has entered */
 typedef void (* RGFW_mouseNotifyfunc)(RGFW_window* win, RGFW_point point, RGFW_bool status);
 /*! RGFW_mousePosChanged, the window that the move happened on and the new point of the mouse  */
-typedef void (* RGFW_mouseposfunc)(RGFW_window* win, RGFW_point point);
+typedef void (* RGFW_mouseposfunc)(RGFW_window* win, RGFW_point point, RGFW_point vector);
 /*! RGFW_DNDInit, the window, the point of the drop on the windows */
 typedef void (* RGFW_dndInitfunc)(RGFW_window* win, RGFW_point point);
 /*! RGFW_windowRefresh, the window that needs to be refreshed */
@@ -1570,7 +1571,7 @@ void RGFW_windowresizefuncEMPTY(RGFW_window* win, RGFW_rect r) { RGFW_UNUSED(win
 void RGFW_windowquitfuncEMPTY(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_focusfuncEMPTY(RGFW_window* win, RGFW_bool inFocus) {RGFW_UNUSED(win); RGFW_UNUSED(inFocus);}
 void RGFW_mouseNotifyfuncEMPTY(RGFW_window* win, RGFW_point point, RGFW_bool status) {RGFW_UNUSED(win); RGFW_UNUSED(point); RGFW_UNUSED(status);}
-void RGFW_mouseposfuncEMPTY(RGFW_window* win, RGFW_point point) {RGFW_UNUSED(win); RGFW_UNUSED(point);}
+void RGFW_mouseposfuncEMPTY(RGFW_window* win, RGFW_point point, RGFW_point vector) {RGFW_UNUSED(win); RGFW_UNUSED(point); RGFW_UNUSED(vector);}
 void RGFW_dndInitfuncEMPTY(RGFW_window* win, RGFW_point point) {RGFW_UNUSED(win); RGFW_UNUSED(point);}
 void RGFW_windowrefreshfuncEMPTY(RGFW_window* win) {RGFW_UNUSED(win); }
 void RGFW_keyfuncEMPTY(RGFW_window* win, RGFW_key key, char keyChar, RGFW_keymod keyMod, RGFW_bool pressed) {RGFW_UNUSED(win); RGFW_UNUSED(key); RGFW_UNUSED(keyChar); RGFW_UNUSED(keyMod); RGFW_UNUSED(pressed);}
@@ -1804,6 +1805,11 @@ RGFW_bool RGFW_isMouseReleased(RGFW_window* win, RGFW_mouseButton button) {
 	return (!RGFW_isMousePressed(win, button) && RGFW_wasMousePressed(win, button));
 }
 
+RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
+	RGFW_ASSERT(win != NULL);
+	return win->_lastMousePoint;
+}
+
 RGFW_bool RGFW_isPressed(RGFW_window* win, RGFW_key key) {
 	return RGFW_keyboard[key].current && (win == NULL || win->event.inFocus);
 }
@@ -1867,7 +1873,7 @@ void RGFW_window_center(RGFW_window* win) {
 }
 
 RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, RGFW_window* win) {
-	RGFW_ASSERT(win);
+	RGFW_ASSERT(win != NULL);
 	return RGFW_monitor_scale(mon, RGFW_AREA(win->r.w, win->r.h));
 }
 
@@ -2800,7 +2806,7 @@ static void pointer_motion(void *data, struct wl_pointer *pointer, uint32_t time
 	ev.point = RGFW_POINT(wl_fixed_to_double(x), wl_fixed_to_double(y));
 	RGFW_eventPipe_push(RGFW_mouse_win, ev);
 
-	RGFW_mousePosCallback(RGFW_mouse_win, RGFW_POINT(wl_fixed_to_double(x), wl_fixed_to_double(y)));
+	RGFW_mousePosCallback(RGFW_mouse_win, RGFW_POINT(wl_fixed_to_double(x), wl_fixed_to_double(y)), ev.vector);
 }
 static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t serial, uint32_t time, uint32_t button, uint32_t state) {
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(serial);
@@ -3695,20 +3701,6 @@ RGFW_point RGFW_getGlobalMousePoint(void) {
 	return RGFWMouse;
 }
 
-RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
-	RGFW_ASSERT(win != NULL);
-
-	RGFW_point RGFWMouse;
-
-	i32 x, y;
-	u32 z;
-	Window window1, window2;
-	XQueryPointer(win->src.display, win->src.window, &window1, &window2, &x, &y, &RGFWMouse.x, &RGFWMouse.y, &z);
-
-	return RGFWMouse;
-}
-
-
 RGFWDEF void RGFW_XHandleClipboardSelection(RGFW_window* win, XEvent* event);
 
 void RGFW_XHandleClipboardSelection(RGFW_window* win, XEvent* event) {
@@ -3930,17 +3922,12 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		win->event.point.x = E.xmotion.x;
 		win->event.point.y = E.xmotion.y;
 
-		if ((win->_flags & RGFW_HOLD_MOUSE)) {
-			win->event.point.y = E.xmotion.y;
-
-			win->event.point.x = win->event.point.x - win->_lastMousePoint.x;
-			win->event.point.y = win->event.point.y - win->_lastMousePoint.y;
-		}
-
-		win->_lastMousePoint = RGFW_POINT(E.xmotion.x, E.xmotion.y);
+		win->event.vector.x = win->event.point.x - win->_lastMousePoint.x;
+		win->event.vector.y = win->event.point.y - win->_lastMousePoint.y;
+		win->_lastMousePoint = win->event.point;
 
 		win->event.type = RGFW_mousePosChanged;
-		RGFW_mousePosCallback(win, win->event.point);
+		RGFW_mousePosCallback(win, win->event.point, win->event.vector);
 		break;
 
 	case GenericEvent: {
@@ -3967,12 +3954,15 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			if (XIMaskIsSet(raw->valuators.mask, 1) != 0)
 				deltaY += raw->raw_values[1];
 
-			win->event.point = RGFW_POINT((i32)deltaX, (i32)deltaY);
-
+			win->event.vector = RGFW_POINT((i32)deltaX, (i32)deltaY);
+			win->event.point.x = win->_lastMousePoint.x + win->event.vector.x;
+			win->event.point.y = win->_lastMousePoint.y + win->event.vector.y;
+			win->_lastMousePoint = win->event.point;
+			
 			RGFW_window_moveMouse(win, RGFW_POINT(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
 
 			win->event.type = RGFW_mousePosChanged;
-			RGFW_mousePosCallback(win, win->event.point);
+			RGFW_mousePosCallback(win, win->event.point, win->event.vector);
 		}
 
 		XFreeEventData(win->src.display, &E.xcookie);
@@ -4449,7 +4439,7 @@ void RGFW_window_restore(RGFW_window* win) {
 }
 
 void RGFW_window_setName(RGFW_window* win, const char* name) {
-	RGFW_ASSERT(win);
+	RGFW_ASSERT(win != NULL);
 	RGFW_GOTO_WAYLAND(0);
 	#ifdef RGFW_X11
 	XStoreName(win->src.display, win->src.window, name);
@@ -6083,15 +6073,6 @@ RGFW_point RGFW_getGlobalMousePoint(void) {
 	return RGFW_POINT(p.x, p.y);
 }
 
-RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
-	POINT p;
-	GetCursorPos(&p);
-	ScreenToClient(win->src.window, &p);
-
-	return RGFW_POINT(p.x, p.y);
-}
-
-
 void RGFW_window_setAspectRatio(RGFW_window* win, RGFW_area a) {
 	RGFW_ASSERT(win != NULL);
 	win->src.aspectRatio = a;
@@ -6474,7 +6455,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			i32 x = GET_X_LPARAM(msg.lParam);
 			i32 y = GET_Y_LPARAM(msg.lParam);
 
-			RGFW_mousePosCallback(win, win->event.point);
+			RGFW_mousePosCallback(win, win->event.point, win->event.vector);
 
 			if (win->_flags & RGFW_MOUSE_LEFT) {
 				win->_flags ^= RGFW_MOUSE_LEFT;
@@ -6519,17 +6500,18 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 				pos.y += (int) ((raw.data.mouse.lLastY / 65535.f) * height);
 				ScreenToClient(win->src.window, &pos);
 
-				win->event.point.x = pos.x - win->_lastMousePoint.x;
-				win->event.point.y = pos.y - win->_lastMousePoint.y;
+				win->event.vector.x = pos.x - win->_lastMousePoint.x;
+				win->event.vector.y = pos.y - win->_lastMousePoint.y;
 			} else {
-				win->event.point.x = raw.data.mouse.lLastX;
-				win->event.point.y = raw.data.mouse.lLastY;
+				win->event.vector.x = raw.data.mouse.lLastX;
+				win->event.vector.y = raw.data.mouse.lLastY;
 			}
 
 			win->event.type = RGFW_mousePosChanged;
-			win->_lastMousePoint.x += win->event.point.x;
-			win->_lastMousePoint.y += win->event.point.y;
-			RGFW_mousePosCallback(win, win->event.point);
+			win->_lastMousePoint.x += win->event.vector.x;
+			win->_lastMousePoint.y += win->event.vector.y;
+			win->event.point = win->_lastMousePoint;
+			RGFW_mousePosCallback(win, win->event.point, win->event.vector);
 			break;
 		}
 		case WM_LBUTTONDOWN: case WM_RBUTTONDOWN: case WM_MBUTTONDOWN: case WM_XBUTTONDOWN:
@@ -8206,12 +8188,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		return RGFW_POINT((u32) point.x, (u32) point.y); /*!< the point is loaded during event checks */
 	}
 
-	RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
-		NSPoint p =  ((NSPoint(*)(id, SEL)) objc_msgSend)((id)win->src.window, sel_registerName("mouseLocationOutsideOfEventStream"));
-
-		return RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y));
-	}
-
 	u32 RGFW_keysPressed[10]; /*10 keys at a time*/
 	typedef RGFW_ENUM(u32, NSEventType) {        /* various types of events */
 		NSEventTypeLeftMouseDown = 1,
@@ -8527,14 +8503,12 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 				NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(e, sel_registerName("locationInWindow"));
 				win->event.point = RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y));
 
-				if ((win->_flags & RGFW_HOLD_MOUSE)) {
-					p.x = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaX"));
-					p.y = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaY"));
-
-					win->event.point = RGFW_POINT((i32)p.x, (i32)p.y);
-				}
-
-				RGFW_mousePosCallback(win, win->event.point);
+				p.x = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaX"));
+				p.y = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaY"));
+				win->event.vector = RGFW_POINT((i32)p.x, (i32)p.y);
+				
+				win->_lastMousePoint = win->event.point;
+				RGFW_mousePosCallback(win, win->event.point, win->event.vector);
 				break;
 			}
 			case NSEventTypeLeftMouseDown: case NSEventTypeRightMouseDown: case NSEventTypeOtherMouseDown: {
@@ -8731,7 +8705,7 @@ RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) {
 }
 
 void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
-	RGFW_ASSERT(win); RGFW_ASSERT(mouse);
+	RGFW_ASSERT(win != NULL); RGFW_ASSERT(mouse);
 	objc_msgSend_void((id)mouse, sel_registerName("set"));
 }
 
@@ -9169,15 +9143,13 @@ EM_BOOL Emscripten_on_mousemove(int eventType, const EmscriptenMouseEvent* e, vo
 
 	RGFW_events[RGFW_eventLen].type = RGFW_mousePosChanged;
 
-	if ((RGFW_root->_flags & RGFW_HOLD_MOUSE)) {
-		RGFW_point p = RGFW_POINT(e->movementX, e->movementY);
-		RGFW_events[RGFW_eventLen].point = p;
-	}
-	else
-		RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->targetX, e->targetY);
+	RGFW_point p = RGFW_POINT(e->movementX, e->movementY);
+	RGFW_events[RGFW_eventLen].vector = p;
+	RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->targetX, e->targetY);
 	RGFW_eventLen++;
 
-	RGFW_mousePosCallback(RGFW_root, RGFW_events[RGFW_eventLen].point);
+	win->_lastMousePoint = win->event.point;
+	RGFW_mousePosCallback(RGFW_root, RGFW_events[RGFW_eventLen].point, RGFW_events[RGFW_eventLen].vector);
     return EM_TRUE;
 }
 
@@ -9249,6 +9221,7 @@ EM_BOOL Emscripten_on_touchstart(int eventType, const EmscriptenTouchEvent* e, v
 	    RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;
 	    RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current = 1;
 
+		win->_lastMousePoint = win->event.point;
         RGFW_mousePosCallback(RGFW_root, RGFW_events[RGFW_eventLen].point);
 
 	    RGFW_mouseButtonCallback(RGFW_root, RGFW_events[RGFW_eventLen].button, RGFW_events[RGFW_eventLen].scroll, 1);
@@ -9265,6 +9238,7 @@ EM_BOOL Emscripten_on_touchmove(int eventType, const EmscriptenTouchEvent* e, vo
    	    RGFW_events[RGFW_eventLen].type = RGFW_mousePosChanged;
 	    RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY);
 
+		win->_lastMousePoint = win->event.point;
         RGFW_mousePosCallback(RGFW_root, RGFW_events[RGFW_eventLen].point);
 	    RGFW_eventLen++;
     }
@@ -9811,14 +9785,6 @@ RGFW_point RGFW_getGlobalMousePoint(void) {
         return window.mouseY || 0;
     });
     return point;
-}
-
-RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
-	RGFW_UNUSED(win);
-
-	EmscriptenMouseEvent mouseEvent;
-    emscripten_get_mouse_status(&mouseEvent);
-	return RGFW_POINT( mouseEvent.targetX,  mouseEvent.targetY);
 }
 
 void RGFW_window_setMousePassthrough(RGFW_window* win, RGFW_bool passthrough) {

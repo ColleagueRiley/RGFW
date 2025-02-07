@@ -34,6 +34,12 @@ Current Version: RGFW 1.5.5-dev
 - add RGFW_window_setAspectRatio
 - add RGFW_window_scaleToMonitor AND RGFW_monitor_scale
 - add monitor/monitor.c example to show monitor scaling.
+- fix issues with examples compiling (macOS, wasm, X11)
+- remove microui_demo on wasm site
+- make the default bool type u8
+- make sure RGFW_mousePosCallback is called even for raw input events (winapi)
+- add `vector` for raw mouse data
+- replace API calls in RGFW_window_getMousePoint with `win->_lastMousePoint`
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------

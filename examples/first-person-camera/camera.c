@@ -48,8 +48,8 @@ int main(void) {
 
             switch (win->event.type) {
                 case RGFW_mousePosChanged: {      
-                    int dev_x = win->event.point.x;
-                    int dev_y = win->event.point.y;
+                    int dev_x = win->event.vector.x;
+                    int dev_y = win->event.vector.y;
                     
 					/* apply the changes to pitch and yaw*/
                     yaw += (float)dev_x / 15.0;
