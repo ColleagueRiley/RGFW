@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Wed Feb 5 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Fri Feb 7 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -83,7 +83,7 @@ RGFW.h
 .RI "#define \fBu8\fP   \fBu8\fP"
 .br
 .ti -1c
-.RI "#define \fBRGFW_bool\fP   \fBu32\fP"
+.RI "#define \fBRGFW_bool\fP   \fBu8\fP"
 .br
 .ti -1c
 .RI "#define \fBRGFW_BOOL\fP(x)   ((x) ? \fBRGFW_TRUE\fP : \fBRGFW_FALSE\fP) /* force an value to be 0 or 1 */"
@@ -601,7 +601,7 @@ RGFW.h
 
 .SS "#define RGFW_BIT(x)   (1L << x)"
 
-.SS "#define \fBRGFW_bool\fP   \fBu32\fP"
+.SS "#define \fBRGFW_bool\fP   \fBu8\fP"
 
 .SS "#define RGFW_BOOL(x)   ((x) ? \fBRGFW_TRUE\fP : \fBRGFW_FALSE\fP) /* force an value to be 0 or 1 */"
 

@@ -281,7 +281,7 @@ int main() {
 
 #if !defined(RGFW_bool) /* RGFW bool type */
 	typedef u32 RGFW_bool;
-	#define RGFW_bool u32
+	#define RGFW_bool u8
 #endif
 
 #define RGFW_BOOL(x) ((x) ? RGFW_TRUE : RGFW_FALSE) /* force an value to be 0 or 1 */
@@ -6116,6 +6116,7 @@ void RGFW_window_fullscreen(RGFW_window* win) {
 					SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 	win->r.w = mon.rect.w;
 	win->r.h = mon.rect.h;
+
 	RGFW_window_show(win);
 }
 
@@ -6528,6 +6529,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			win->event.type = RGFW_mousePosChanged;
 			win->_lastMousePoint.x += win->event.point.x;
 			win->_lastMousePoint.y += win->event.point.y;
+			RGFW_mousePosCallback(win, win->event.point);
 			break;
 		}
 		case WM_LBUTTONDOWN: case WM_RBUTTONDOWN: case WM_MBUTTONDOWN: case WM_XBUTTONDOWN:
