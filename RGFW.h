@@ -9148,7 +9148,7 @@ EM_BOOL Emscripten_on_mousemove(int eventType, const EmscriptenMouseEvent* e, vo
 	RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->targetX, e->targetY);
 	RGFW_eventLen++;
 
-	win->_lastMousePoint = win->event.point;
+	RGFW_root->_lastMousePoint = RGFW_events[RGFW_eventLen].point;
 	RGFW_mousePosCallback(RGFW_root, RGFW_events[RGFW_eventLen].point, RGFW_events[RGFW_eventLen].vector);
     return EM_TRUE;
 }
@@ -9221,8 +9221,8 @@ EM_BOOL Emscripten_on_touchstart(int eventType, const EmscriptenTouchEvent* e, v
 	    RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].prev = RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current;
 	    RGFW_mouseButtons[RGFW_events[RGFW_eventLen].button].current = 1;
 
-		win->_lastMousePoint = win->event.point;
-        RGFW_mousePosCallback(RGFW_root, RGFW_events[RGFW_eventLen].point);
+		RGFW_root->_lastMousePoint = RGFW_events[RGFW_eventLen].point;
+        RGFW_mousePosCallback(RGFW_root, RGFW_events[RGFW_eventLen].point, RGFW_events[RGFW_eventLen].vector);
 
 	    RGFW_mouseButtonCallback(RGFW_root, RGFW_events[RGFW_eventLen].button, RGFW_events[RGFW_eventLen].scroll, 1);
     	RGFW_eventLen++;
@@ -9238,8 +9238,8 @@ EM_BOOL Emscripten_on_touchmove(int eventType, const EmscriptenTouchEvent* e, vo
    	    RGFW_events[RGFW_eventLen].type = RGFW_mousePosChanged;
 	    RGFW_events[RGFW_eventLen].point = RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY);
 
-		win->_lastMousePoint = win->event.point;
-        RGFW_mousePosCallback(RGFW_root, RGFW_events[RGFW_eventLen].point);
+		RGFW_root->_lastMousePoint = RGFW_events[RGFW_eventLen].point;
+        RGFW_mousePosCallback(RGFW_root, RGFW_events[RGFW_eventLen].point, RGFW_events[RGFW_eventLen].vector);
 	    RGFW_eventLen++;
     }
     return EM_TRUE;
