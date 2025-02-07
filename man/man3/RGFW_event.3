@@ -24,6 +24,9 @@ RGFW_event
 .RI "\fBRGFW_point\fP \fBpoint\fP"
 .br
 .ti -1c
+.RI "\fBRGFW_point\fP \fBvector\fP"
+.br
+.ti -1c
 .RI "\fBRGFW_key\fP \fBkey\fP"
 .br
 .ti -1c
@@ -100,6 +103,8 @@ key press event repeated (the key is being held)
 the raw mouse scroll value 
 .SS "RGFW_eventType RGFW_event::type"
 which event has been sent? 
+.SS "\fBRGFW_point\fP RGFW_event::vector"
+raw mouse movement 
 .SS "\fBu8\fP RGFW_event::whichAxis"
 
 
