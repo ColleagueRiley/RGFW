@@ -41,7 +41,7 @@ Current Version: RGFW 1.5.5-dev
 - add `vector` for raw mouse data (so `point` can be used to get the regular mouse point)
 - replace API calls in RGFW_window_getMousePoint with `win->_lastMousePoint`
 - handle `WM_SYSKEYDOWN` and `WM_SYSKEYUP` events (winapi)
-- add RGFW_scrollLock keycode
+- add RGFW_scrollLock keycode and RGFW_modScrollLock mod key
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
