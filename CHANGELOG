@@ -38,8 +38,10 @@ Current Version: RGFW 1.5.5-dev
 - remove microui_demo on wasm site
 - make the default bool type u8
 - make sure RGFW_mousePosCallback is called even for raw input events (winapi)
-- add `vector` for raw mouse data
+- add `vector` for raw mouse data (so `point` can be used to get the regular mouse point)
 - replace API calls in RGFW_window_getMousePoint with `win->_lastMousePoint`
+- handle `WM_SYSKEYDOWN` and `WM_SYSKEYUP` events (winapi)
+- add RGFW_scrollLock keycode
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
