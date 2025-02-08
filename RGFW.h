@@ -499,7 +499,8 @@ typedef RGFW_ENUM(u8, RGFW_keymod) {
 	RGFW_modControl  = RGFW_BIT(2),
 	RGFW_modAlt = RGFW_BIT(3),
 	RGFW_modShift  = RGFW_BIT(4),
-	RGFW_modSuper = RGFW_BIT(5)
+	RGFW_modSuper = RGFW_BIT(5),
+	RGFW_modScrollLock = RGFW_BIT(6)
 };
 
 /*! gamepad button codes (based on xbox/playstation), you may need to change these values per controller */
@@ -1994,23 +1995,25 @@ void RGFW_updateKeyMod(RGFW_window* win, RGFW_keymod mod, RGFW_bool value) {
 	RGFW_setBit((u32*)&win->event.keyMod, mod, value);
 }
 
-RGFWDEF void RGFW_updateKeyModsPro(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super);
-void RGFW_updateKeyModsPro(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super) {
+RGFWDEF void RGFW_updateKeyModsPro(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super, RGFW_bool scroll);
+void RGFW_updateKeyModsPro(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super, RGFW_bool scroll) {
 	RGFW_updateKeyMod(win, RGFW_modCapsLock, capital);
 	RGFW_updateKeyMod(win, RGFW_modNumLock, numlock);
 	RGFW_updateKeyMod(win, RGFW_modControl, control);
 	RGFW_updateKeyMod(win, RGFW_modAlt, alt);
 	RGFW_updateKeyMod(win, RGFW_modShift, shift);
 	RGFW_updateKeyMod(win, RGFW_modSuper, super);
+	RGFW_updateKeyMod(win, RGFW_modScrollLock, scroll);
 }
 
-RGFWDEF void RGFW_updateKeyMods(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock);
-void RGFW_updateKeyMods(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock) {
+RGFWDEF void RGFW_updateKeyMods(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, RGFW_bool scroll);
+void RGFW_updateKeyMods(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, RGFW_bool scroll) {
 	RGFW_updateKeyModsPro(win, capital, numlock,
 					RGFW_isPressed(win, RGFW_controlL) || RGFW_isPressed(win, RGFW_controlR),
 					RGFW_isPressed(win, RGFW_altL) || RGFW_isPressed(win, RGFW_altR),
 					RGFW_isPressed(win, RGFW_shiftL) || RGFW_isPressed(win, RGFW_shiftR),
-					RGFW_isPressed(win, RGFW_superL) || RGFW_isPressed(win, RGFW_superR));
+					RGFW_isPressed(win, RGFW_superL) || RGFW_isPressed(win, RGFW_superR),
+					scroll);
 }
 
 RGFWDEF void RGFW_window_showMouseFlags(RGFW_window* win, RGFW_bool show);
@@ -2906,7 +2909,7 @@ static void keyboard_key (void *data, struct wl_keyboard *keyboard, uint32_t ser
 	ev.repeat = RGFW_isHeld(RGFW_key_win, RGFW_key);
 	RGFW_eventPipe_push(RGFW_key_win, ev);
 
-	RGFW_updateKeyMods(RGFW_key_win, xkb_keymap_mod_get_index(keymap, "Lock"), xkb_keymap_mod_get_index(keymap, "Mod2"));
+	RGFW_updateKeyMods(RGFW_key_win, xkb_keymap_mod_get_index(keymap, "Lock"), xkb_keymap_mod_get_index(keymap, "Mod2"), , xkb_keymap_mod_get_index(keymap, "ScrollLock"));
 
 	RGFW_keyCallback(RGFW_key_win, RGFW_key, (u8)keysym, RGFW_key_win->event.keyMod, state);
 }
@@ -3887,7 +3890,11 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		XGetKeyboardControl(win->src.display, &keystate);
 
 		RGFW_keyboard[win->event.key].current = (E.type == KeyPress);
-		RGFW_updateKeyMods(win, (keystate.led_mask & 1), (keystate.led_mask & 2));
+		
+		XkbStateRec state;
+		XkbGetState(win->src.display, XkbUseCoreKbd, &state);
+		RGFW_updateKeyMods(win, (state.locked_mods & LockMask), (state.locked_mods & Mod2Mask), (state.locked_mods & Mod3Mask));
+
 		RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyMod, (E.type == KeyPress));
 		break;
 	}
@@ -6425,7 +6432,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			win->event.type = RGFW_keyReleased;
 			RGFW_keyboard[win->event.key].current = 0;
 
-			RGFW_updateKeyMods(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001));
+			RGFW_updateKeyMods(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001), (GetKeyState(VK_SCROLL) & 0x0001));
 
 			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyMod, 0);
 			break;
@@ -6459,7 +6466,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			win->event.type = RGFW_keyPressed;
 			win->event.repeat = RGFW_isPressed(win, win->event.key);
 			RGFW_keyboard[win->event.key].current = 1;
-			RGFW_updateKeyMods(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001));
+			RGFW_updateKeyMods(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001), (GetKeyState(VK_SCROLL) & 0x0001));
 
 			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyMod, 1);
 			break;
@@ -8478,7 +8485,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 				u32 flags = objc_msgSend_uint(e, sel_registerName("modifierFlags"));
 				RGFW_updateKeyModsPro(win, ((u32)(flags & NSEventModifierFlagCapsLock) % 255), ((flags & NSEventModifierFlagNumericPad) % 255),
 											((flags & NSEventModifierFlagControl) % 255), ((flags & NSEventModifierFlagOption) % 255),
-											((flags & NSEventModifierFlagShift) % 255), ((flags & NSEventModifierFlagCommand) % 255));
+											((flags & NSEventModifierFlagShift) % 255), ((flags & NSEventModifierFlagCommand) % 255), 0);
 				u8 i;
 				for (i = 0; i < 9; i++)
 					RGFW_keyboard[i + RGFW_capsLock].prev = 0;
@@ -9451,8 +9458,8 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool p
 	RGFW_keyCallback(RGFW_root, physicalKey, mappedKey, RGFW_root->event.keyMod, press);
 }
 
-void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyMods(RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super) {
-	RGFW_updateKeyModsPro(RGFW_root, capital, numlock, control, alt, shift, super);
+void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyMods(RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super, RGFW_bool scroll) {
+	RGFW_updateKeyModsPro(RGFW_root, capital, numlock, control, alt, shift, super, scroll);
 }
 
 void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(size_t count) {
@@ -9589,7 +9596,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		window.addEventListener("keydown",
 			(event) => {
 				var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code);
-				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"));
+				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock"));
 				Module._RGFW_handleKeyEvent(key, code, 1);
 				_free(key); _free(code);
 			},
@@ -9597,7 +9604,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		window.addEventListener("keyup",
 			(event) => {
 				var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code);
-				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"));
+				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock"));
 				Module._RGFW_handleKeyEvent(key, code, 0);
 				_free(key); _free(code);
 			},
