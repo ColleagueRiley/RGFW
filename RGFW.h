@@ -1296,6 +1296,7 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_KP_0,
 	RGFW_KP_Period,
 	RGFW_KP_Return,
+	RGFW_scrollLock,
 	RGFW_keyLast
 };
 
@@ -1503,6 +1504,7 @@ void RGFW_init_keys(void) {
 	RGFW_MAP [RGFW_OS_BASED_VALUE(117, 0x151, 122, DOM_VK_PAGE_DOWN)] = RGFW_pageDown            RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(9, 0x001, 53, DOM_VK_ESCAPE)] = RGFW_escape                   		RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(110, 0x147, 116, DOM_VK_HOME)] = RGFW_home                    		RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(78, 0x046, 107, DOM_VK_SCROLL_LOCK)] = RGFW_scrollLock               RGFW_NEXT
 #ifndef __cplusplus
 };
 #else
@@ -3867,7 +3869,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		/* set event key data */
 		win->event.key = RGFW_apiKeyToRGFW(E.xkey.keycode);
-
 		KeySym sym = (KeySym)XkbKeycodeToKeysym(win->src.display, E.xkey.keycode, 0, E.xkey.state & ShiftMask ? 1 : 0);
 
 		if ((E.xkey.state & LockMask) && sym >= XK_a && sym <= XK_z)
@@ -6092,13 +6093,32 @@ void RGFW_window_fullscreen(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_window_hide(win);
 	RGFW_monitor mon = RGFW_window_getMonitor(win);
-	RGFW_window_setBorder(win, 0);
-	SetWindowPos(win->src.window, HWND_TOP, mon.rect.x, mon.rect.y, mon.rect.w, mon.rect.h,
-					SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+	
+	
+	//RGFW_window_setBorder(win, 0);
+	//SetWindowPos(win->src.window, HWND_TOP, mon.rect.x, mon.rect.y, mon.rect.w, mon.rect.h,
+	//				SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+	
+	
+    DEVMODE dmScreenSettings = { 0 };
+    dmScreenSettings.dmSize = sizeof(dmScreenSettings);
+    dmScreenSettings.dmPelsWidth = mon.rect.w;
+    dmScreenSettings.dmPelsHeight = mon.rect.h;
+    dmScreenSettings.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
+
+    if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL) {
+        MessageBox(NULL, "Failed to switch to fullscreen mode", "Error", MB_OK);
+    }
+
+    SetWindowLong(win->src.window, GWL_STYLE, WS_POPUP | WS_VISIBLE);
+    SetWindowPos(win->src.window, NULL, 0, 0, mon.rect.w, mon.rect.h, SWP_FRAMECHANGED);
+    ShowWindow(win->src.window, SW_SHOW);	
+	
 	win->r.w = mon.rect.w;
 	win->r.h = mon.rect.h;
-
-	RGFW_window_show(win);
+	ShowWindow(win->src.window, SW_SHOW);
+//	RGFW_window_show(win);
+	
 }
 
 void RGFW_window_maximize(RGFW_window* win) {
@@ -6376,8 +6396,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			win->_flags |= RGFW_MOUSE_LEFT;
 			RGFW_mouseNotifyCallBack(win, win->event.point, 0);
 			break;
-
-		case WM_KEYUP: {
+		case WM_SYSKEYUP: case WM_KEYUP: {
 			i32 scancode = (HIWORD(msg.lParam) & (KF_EXTENDED | 0xff));
 			if (scancode == 0)
 				scancode = MapVirtualKeyW((u32)msg.wParam, MAPVK_VK_TO_VSC);
@@ -6411,7 +6430,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyMod, 0);
 			break;
 		}
-		case WM_KEYDOWN: {
+		case WM_SYSKEYDOWN: case WM_KEYDOWN: {
 			i32 scancode = (HIWORD(msg.lParam) & (KF_EXTENDED | 0xff));
 			if (scancode == 0)
 				scancode = MapVirtualKeyW((u32)msg.wParam, MAPVK_VK_TO_VSC);
