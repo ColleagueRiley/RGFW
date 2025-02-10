@@ -42,6 +42,9 @@ Current Version: RGFW 1.5.5-dev
 - replace API calls in RGFW_window_getMousePoint with `win->_lastMousePoint`
 - handle `WM_SYSKEYDOWN` and `WM_SYSKEYUP` events (winapi)
 - add RGFW_scrollLock keycode and RGFW_modScrollLock mod key
+- change RGFW_window_fullscreen to  RGFW_window_setFullscreen
+- make RGFW_window_setFullscreen use exclusive fullscreen
+- add RGFW_window_isFullscreen
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
