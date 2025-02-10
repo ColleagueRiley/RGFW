@@ -8,7 +8,7 @@ int main(void) {
     RGFW_window_makeCurrent(win);
     RGFW_monitor mon = RGFW_window_getMonitor(win);
     RGFW_monitor_scaleToWindow(mon, win);
-    RGFW_window_fullscreen(win);
+    RGFW_window_setFullscreen(win, 1);
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win));        
