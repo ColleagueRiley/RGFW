@@ -39,7 +39,7 @@ int main(void) {
                         if (RGFW_window_isMaximized(win)) RGFW_window_restore(win);
                         else RGFW_window_maximize(win);
                         break;
-                    case RGFW_f: 
+                    case RGFW_f:
                         printf("fullscreen: %s\n", RGFW_window_isFullscreen(win) ? "true" : "false");
                         RGFW_window_setFullscreen(win, !RGFW_window_isFullscreen(win));
 			            break; 

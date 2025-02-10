@@ -8617,14 +8617,33 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 	RGFW_ASSERT(win != NULL);
-	if ((win->_flags & RGFW_windowFullscreen)) win->_flags &= ~RGFW_windowFullscreen;
-	else									win->_flags |= RGFW_windowFullscreen;
+	if (fullscreen && (win->_flags & RGFW_windowFullscreen)) return; 
+	if (!fullscreen && !(win->_flags & RGFW_windowFullscreen)) return; 	
 
+	if (fullscreen) {	
+		win->_oldRect = win->r;
+		RGFW_monitor mon = RGFW_window_getMonitor(win);
+		win->r = RGFW_RECT(0, 0, mon.rect.x, mon.rect.y);
+		win->_flags |= RGFW_windowFullscreen;
+		RGFW_window_resize(win, RGFW_AREA(mon.rect.w, mon.rect.h));
+		RGFW_window_move(win, RGFW_POINT(0, 0));
+	}
 	objc_msgSend_void_SEL(win->src.window, sel_registerName("toggleFullScreen:"), NULL);
+	
+	if (!fullscreen) {
+		win->r = win->_oldRect;
+		win->_flags &= ~RGFW_windowFullscreen;
+	
+		RGFW_window_resize(win, RGFW_AREA(win->r.w, win->r.h));
+		RGFW_window_move(win, RGFW_POINT(win->r.x, win->r.y));
+	}
 }
 
 void RGFW_window_maximize(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
+	if (RGFW_window_isMaximized(win)) return;
+	
+	win->_flags |= RGFW_windowMaximize;
 	objc_msgSend_void_SEL(win->src.window, sel_registerName("zoom:"), NULL);
 }
 
@@ -8635,6 +8654,8 @@ void RGFW_window_minimize(RGFW_window* win) {
 
 void RGFW_window_restore(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
+	if (RGFW_window_isMaximized(win))
+		objc_msgSend_void_SEL(win->src.window, sel_registerName("zoom:"), NULL);
 
 	objc_msgSend_void_SEL(win->src.window, sel_registerName("deminiaturize:"), NULL);
 }
