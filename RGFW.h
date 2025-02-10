@@ -3822,7 +3822,6 @@ int xAxis = 0, yAxis = 0;
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-
 	if (win->event.type == 0)
 		RGFW_resetKey();
 
@@ -4199,11 +4198,17 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		break;
 	}
 	case FocusIn:
+		if ((win->_flags & RGFW_windowFullscreen))
+			XMapRaised(win->src.display, win->src.window);
+		
 		win->event.inFocus = 1;
 		win->event.type = RGFW_focusIn;
 		RGFW_focusCallback(win, 1);
 		break;
 	case FocusOut:
+		if ((win->_flags & RGFW_windowFullscreen))
+			RGFW_window_minimize(win);
+		
 		win->event.inFocus = 0;
 		win->event.type = RGFW_focusOut;
 		RGFW_focusCallback(win, 0);
@@ -4410,11 +4415,18 @@ void RGFW_toggleXMaximized(RGFW_window* win, RGFW_bool maximized) {
 	XSendEvent(win->src.display, DefaultRootWindow(win->src.display), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 }
 
-void RGFW_window_maximize(RGFW_window* win) { RGFW_toggleXMaximized(win, 1); }
-void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) { 
-	if (fullscreen) win->_flags |= RGFW_windowFullscreen;
-	else win->_flags &= ~RGFW_windowFullscreen;
+void RGFW_window_maximize(RGFW_window* win) { 
+	win->_oldRect = win->r;
+	RGFW_toggleXMaximized(win, 1); 
+}
 
+void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) { 
+	if (fullscreen) {
+		win->_flags |= RGFW_windowFullscreen;
+		win->_oldRect = win->r;
+	}
+	else win->_flags &= ~RGFW_windowFullscreen;
+	
 	RGFW_ASSERT(win != NULL);
 	RGFW_LOAD_ATOM(_NET_WM_STATE);
 	RGFW_LOAD_ATOM(_NET_WM_STATE_FULLSCREEN);
@@ -4432,11 +4444,14 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 
     XSendEvent(win->src.display, DefaultRootWindow(win->src.display), False, SubstructureNotifyMask | SubstructureRedirectMask, &xev);
 	XRaiseWindow(win->src.display, win->src.window);
+	XMapRaised(win->src.display, win->src.window);
 }
 
 void RGFW_window_minimize(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
+	if (RGFW_window_isMaximized(win)) return;
 
+	win->_oldRect = win->r;
 	XIconifyWindow(win->src.display, win->src.window, DefaultScreen(win->src.display));
 	XFlush(win->src.display);
 }
@@ -4444,6 +4459,10 @@ void RGFW_window_minimize(RGFW_window* win) {
 void RGFW_window_restore(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_toggleXMaximized(win, 0);
+
+	win->r = win->_oldRect;
+	RGFW_window_move(win, RGFW_POINT(win->r.x, win->r.y));
+	RGFW_window_resize(win, RGFW_AREA(win->r.w, win->r.h));
 
 	XMapWindow(win->src.display, win->src.window);
 	XFlush(win->src.display);
