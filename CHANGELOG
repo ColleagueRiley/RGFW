@@ -1,7 +1,7 @@
 changelog
 ---------
 
-Current Version: RGFW 1.5.5-dev
+Current Version: RGFW 1.6-dev
 -----------------------------------------------
 - fix wasm key event bug (key release events not being processed)
 - Get rid of `RGFW_ALLOC_DROPFILES` (it's not actually useful)
