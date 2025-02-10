@@ -738,7 +738,7 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowHide = RGFW_BIT(11), /* the window is hidden */
 	RGFW_windowMaximize = RGFW_BIT(12),
 	RGFW_windowCenterCursor = RGFW_BIT(13),
-	RGFW_pseudoFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize,
+	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize,
 };
 
 typedef struct RGFW_window {
@@ -758,6 +758,7 @@ typedef struct RGFW_window {
 	RGFW_point _lastMousePoint; /*!< last cusor point (for raw mouse data) */
 
 	u32 _flags; /*!< windows flags (for RGFW to check) */
+	RGFW_rect _oldRect; /*!< rect before fullscreen */
 } RGFW_window; /*!< Window structure for managing the window */
 
 #if defined(RGFW_X11) || defined(RGFW_MACOS)
@@ -871,7 +872,7 @@ RGFWDEF void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a);
 RGFWDEF void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a);
 
 RGFWDEF void RGFW_window_maximize(RGFW_window* win); /*!< maximize the window size */
-RGFWDEF void RGFW_window_fullscreen(RGFW_window* win); /*!< fullscreen the window size */
+RGFWDEF void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen); /*!< fullscreen the window size */
 RGFWDEF void RGFW_window_center(RGFW_window* win); /*!< center the window */
 RGFWDEF void RGFW_window_minimize(RGFW_window* win); /*!< minimize the window (in taskbar (per OS))*/
 RGFWDEF void RGFW_window_restore(RGFW_window* win); /*!< restore the window from minimized (per OS)*/
@@ -1765,7 +1766,7 @@ void RGFW_window_basic_flags(RGFW_window* win, RGFW_windowFlags flags) {
 	if (flags & RGFW_windowNoBorder)
 		RGFW_window_setBorder(win, 0);
 	if (flags & RGFW_windowFullscreen)
-		RGFW_window_fullscreen(win);
+		RGFW_window_setFullscreen(win, RGFW_TRUE);
 	if (flags & RGFW_windowMaximize)
 		RGFW_window_maximize(win);
 }
@@ -2032,6 +2033,7 @@ RGFW_bool RGFW_window_borderless(RGFW_window* win) {
 	return (RGFW_bool)RGFW_BOOL(win->_flags & RGFW_windowNoBorder);
 }
 
+RGFW_bool RGFW_window_isFullscreen(RGFW_window* win){ return RGFW_BOOL(win->_flags & RGFW_windowFullscreen); }
 RGFW_bool RGFW_window_allowsDND(RGFW_window* win) { return RGFW_BOOL(win->_flags & RGFW_windowAllowDND); }
 #ifndef RGFW_WINDOWS
 void RGFW_window_setDND(RGFW_window* win, RGFW_bool allow) {
@@ -3820,7 +3822,6 @@ int xAxis = 0, yAxis = 0;
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-
 	if (win->event.type == 0)
 		RGFW_resetKey();
 
@@ -4197,11 +4198,17 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		break;
 	}
 	case FocusIn:
+		if ((win->_flags & RGFW_windowFullscreen))
+			XMapRaised(win->src.display, win->src.window);
+		
 		win->event.inFocus = 1;
 		win->event.type = RGFW_focusIn;
 		RGFW_focusCallback(win, 1);
 		break;
 	case FocusOut:
+		if ((win->_flags & RGFW_windowFullscreen))
+			RGFW_window_minimize(win);
+		
 		win->event.inFocus = 0;
 		win->event.type = RGFW_focusOut;
 		RGFW_focusCallback(win, 0);
@@ -4408,7 +4415,18 @@ void RGFW_toggleXMaximized(RGFW_window* win, RGFW_bool maximized) {
 	XSendEvent(win->src.display, DefaultRootWindow(win->src.display), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 }
 
-void RGFW_toggleXFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
+void RGFW_window_maximize(RGFW_window* win) { 
+	win->_oldRect = win->r;
+	RGFW_toggleXMaximized(win, 1); 
+}
+
+void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) { 
+	if (fullscreen) {
+		win->_flags |= RGFW_windowFullscreen;
+		win->_oldRect = win->r;
+	}
+	else win->_flags &= ~RGFW_windowFullscreen;
+	
 	RGFW_ASSERT(win != NULL);
 	RGFW_LOAD_ATOM(_NET_WM_STATE);
 	RGFW_LOAD_ATOM(_NET_WM_STATE_FULLSCREEN);
@@ -4426,14 +4444,14 @@ void RGFW_toggleXFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 
     XSendEvent(win->src.display, DefaultRootWindow(win->src.display), False, SubstructureNotifyMask | SubstructureRedirectMask, &xev);
 	XRaiseWindow(win->src.display, win->src.window);
+	XMapRaised(win->src.display, win->src.window);
 }
-
-void RGFW_window_maximize(RGFW_window* win) { RGFW_toggleXMaximized(win, 1); }
-void RGFW_window_fullscreen(RGFW_window* win) { RGFW_toggleXFullscreen(win, 1); }
 
 void RGFW_window_minimize(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
+	if (RGFW_window_isMaximized(win)) return;
 
+	win->_oldRect = win->r;
 	XIconifyWindow(win->src.display, win->src.window, DefaultScreen(win->src.display));
 	XFlush(win->src.display);
 }
@@ -4441,6 +4459,10 @@ void RGFW_window_minimize(RGFW_window* win) {
 void RGFW_window_restore(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_toggleXMaximized(win, 0);
+
+	win->r = win->_oldRect;
+	RGFW_window_move(win, RGFW_POINT(win->r.x, win->r.y));
+	RGFW_window_resize(win, RGFW_AREA(win->r.w, win->r.h));
 
 	XMapWindow(win->src.display, win->src.window);
 	XFlush(win->src.display);
@@ -4785,22 +4807,6 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	#if defined(RGFW_WAYLAND)
 	wayland:
 	#endif
-}
-
-RGFW_bool RGFW_window_isFullscreen(RGFW_window* win) {
-	RGFW_ASSERT(win != NULL);
-
-	XWindowAttributes windowAttributes;
-	XGetWindowAttributes(win->src.display, win->src.window, &windowAttributes);
-
-	/* check if the window is visable */
-	if (windowAttributes.map_state != IsViewable)
-		return RGFW_FALSE;
-
-	/* check if the window covers the full screen */
-	return (windowAttributes.x == 0 && windowAttributes.y == 0 &&
-		windowAttributes.width == XDisplayWidth(win->src.display, DefaultScreen(win->src.display)) &&
-		windowAttributes.height == XDisplayHeight(win->src.display, DefaultScreen(win->src.display)));
 }
 
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) {
@@ -5564,56 +5570,64 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	GetWindowRect(hWnd, &windowRect);
 	
 	switch (message) {
-	case WM_MOVE:
-		RGFW_eventWindow.r.x = windowRect.left;
-		RGFW_eventWindow.r.y = windowRect.top;
-		RGFW_eventWindow.src.window = hWnd;
-		return DefWindowProcA(hWnd, message, wParam, lParam);
-	case WM_SIZE: {
-		RECT clientRect;
-		GetClientRect(hWnd, &clientRect);	
-		i32 offset = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
+		case WM_ACTIVATE:
+			if ((win->_flags & RGFW_windowFullscreen) == 0)
+				break;
 			
-		if (win->src.aspectRatio.w != 0 && win->src.aspectRatio.h != 0) {
-			double aspectRatio = (double)win->src.aspectRatio.w / win->src.aspectRatio.h;
+			if (LOWORD(wParam) == WA_INACTIVE)
+				RGFW_window_minimize(win);
+			else RGFW_window_setFullscreen(win, 1);
+			break;
+		case WM_MOVE:
+			RGFW_eventWindow.r.x = windowRect.left;
+			RGFW_eventWindow.r.y = windowRect.top;
+			RGFW_eventWindow.src.window = hWnd;
+			return DefWindowProcA(hWnd, message, wParam, lParam);
+		case WM_SIZE: {
+			RECT clientRect;
+			GetClientRect(hWnd, &clientRect);	
+			i32 offset = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
+				
+			if (win->src.aspectRatio.w != 0 && win->src.aspectRatio.h != 0) {
+				double aspectRatio = (double)win->src.aspectRatio.w / win->src.aspectRatio.h;
 
-			int width = windowRect.right - windowRect.left;
-			int height = windowRect.bottom - windowRect.top;
-			int newHeight = (int)(width / aspectRatio);
-			int newWidth = (int)(height * aspectRatio);
+				int width = windowRect.right - windowRect.left;
+				int height = windowRect.bottom - windowRect.top;
+				int newHeight = (int)(width / aspectRatio);
+				int newWidth = (int)(height * aspectRatio);
 
-			if (win->r.w > windowRect.right - windowRect.left || 
-				win->r.h > (windowRect.bottom - windowRect.top) - offset) 
-			{
-				if (newHeight > height) windowRect.right = windowRect.left + newWidth;
-				else windowRect.bottom = windowRect.top + newHeight;
-			} else {
-				if (newHeight < height) windowRect.right = windowRect.left + newWidth;
-				else windowRect.bottom = windowRect.top + newHeight;
+				if (win->r.w > windowRect.right - windowRect.left || 
+					win->r.h > (windowRect.bottom - windowRect.top) - offset) 
+				{
+					if (newHeight > height) windowRect.right = windowRect.left + newWidth;
+					else windowRect.bottom = windowRect.top + newHeight;
+				} else {
+					if (newHeight < height) windowRect.right = windowRect.left + newWidth;
+					else windowRect.bottom = windowRect.top + newHeight;
+				}
+
+				RGFW_window_resize(win, RGFW_AREA((windowRect.right - windowRect.left), 
+												(windowRect.bottom - windowRect.top) - offset));
 			}
-
-			RGFW_window_resize(win, RGFW_AREA((windowRect.right - windowRect.left), 
-											(windowRect.bottom - windowRect.top) - offset));
+			RGFW_eventWindow.r.w = windowRect.right -  windowRect.left;
+			RGFW_eventWindow.r.h = (windowRect.bottom - windowRect.top) - offset;
+			RGFW_eventWindow.src.window = hWnd;
+			return DefWindowProcA(hWnd, message, wParam, lParam); // Call DefWindowProc after handling
 		}
-		RGFW_eventWindow.r.w = windowRect.right -  windowRect.left;
-		RGFW_eventWindow.r.h = (windowRect.bottom - windowRect.top) - offset;
-		RGFW_eventWindow.src.window = hWnd;
-		return DefWindowProcA(hWnd, message, wParam, lParam); // Call DefWindowProc after handling
-	}
-	case WM_GETMINMAXINFO:
-		if (win == NULL)
+		case WM_GETMINMAXINFO:
+			if (win == NULL)
+				return DefWindowProcA(hWnd, message, wParam, lParam);
+			
+			MINMAXINFO* mmi = (MINMAXINFO*) lParam;
+			mmi->ptMinTrackSize.x = win->src.minSize.w;
+			mmi->ptMinTrackSize.y = win->src.minSize.h;
+			if (win->src.maxSize.w == 0 && win->src.maxSize.h == 0)
+				return DefWindowProcA(hWnd, message, wParam, lParam);
+			
+			mmi->ptMaxTrackSize.x = win->src.maxSize.w;
+			mmi->ptMaxTrackSize.y = win->src.maxSize.h;
 			return DefWindowProcA(hWnd, message, wParam, lParam);
-		
-		MINMAXINFO* mmi = (MINMAXINFO*) lParam;
-		mmi->ptMinTrackSize.x = win->src.minSize.w;
-		mmi->ptMinTrackSize.y = win->src.minSize.h;
-		if (win->src.maxSize.w == 0 && win->src.maxSize.h == 0)
-			return DefWindowProcA(hWnd, message, wParam, lParam);
-		
-		mmi->ptMaxTrackSize.x = win->src.maxSize.w;
-		mmi->ptMaxTrackSize.y = win->src.maxSize.h;
-		return DefWindowProcA(hWnd, message, wParam, lParam);
-	default: break;
+		default: break;
 	}
 	return DefWindowProcA(hWnd, message, wParam, lParam);
 }
@@ -6096,36 +6110,27 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 	win->src.maxSize = a;
 }
 
-void RGFW_window_fullscreen(RGFW_window* win) {
+void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 	RGFW_ASSERT(win != NULL);
-	RGFW_window_hide(win);
-	RGFW_monitor mon = RGFW_window_getMonitor(win);
 	
-	
-	//RGFW_window_setBorder(win, 0);
-	//SetWindowPos(win->src.window, HWND_TOP, mon.rect.x, mon.rect.y, mon.rect.w, mon.rect.h,
-	//				SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-	
-	
-    DEVMODE dmScreenSettings = { 0 };
-    dmScreenSettings.dmSize = sizeof(dmScreenSettings);
-    dmScreenSettings.dmPelsWidth = mon.rect.w;
-    dmScreenSettings.dmPelsHeight = mon.rect.h;
-    dmScreenSettings.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
+	if (fullscreen == RGFW_FALSE) {
+		RGFW_window_setBorder(win, 1);
+		SetWindowPos(win->src.window, HWND_NOTOPMOST, win->_oldRect.x, win->_oldRect.y, win->_oldRect.w, win->_oldRect.h + win->src.hOffset,
+			 SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+		
+		win->_flags &= ~RGFW_windowFullscreen;
+		win->r = win->_oldRect;
+		return;
+	}
 
-    if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL) {
-        MessageBox(NULL, "Failed to switch to fullscreen mode", "Error", MB_OK);
-    }
+	win->_flags |= RGFW_windowFullscreen;
 
-    SetWindowLong(win->src.window, GWL_STYLE, WS_POPUP | WS_VISIBLE);
-    SetWindowPos(win->src.window, NULL, 0, 0, mon.rect.w, mon.rect.h, SWP_FRAMECHANGED);
-    ShowWindow(win->src.window, SW_SHOW);	
-	
-	win->r.w = mon.rect.w;
-	win->r.h = mon.rect.h;
-	ShowWindow(win->src.window, SW_SHOW);
-//	RGFW_window_show(win);
-	
+	RGFW_monitor mon  = RGFW_window_getMonitor(win);
+	RGFW_window_setBorder(win, 0);
+	SetWindowPos(win->src.window, HWND_TOPMOST, 0, 0, mon.rect.w, mon.rect.h, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+
+	win->_oldRect = win->r;
+	win->r = RGFW_RECT(0, 0, mon.rect.w, mon.rect.h);
 }
 
 void RGFW_window_maximize(RGFW_window* win) {
@@ -6142,7 +6147,6 @@ void RGFW_window_minimize(RGFW_window* win) {
 
 void RGFW_window_restore(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-
 	ShowWindow(win->src.window, SW_RESTORE);
 }
 
@@ -6600,18 +6604,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	DispatchMessageA(&msg);
 
 	return &win->event;
-}
-
-RGFW_bool RGFW_window_isFullscreen(RGFW_window* win) {
-	RGFW_ASSERT(win != NULL);
-
-	#ifndef __cplusplus
-	WINDOWPLACEMENT placement = { 0 };
-	#else
-	WINDOWPLACEMENT placement = {  };
-	#endif
-	GetWindowPlacement(win->src.window, &placement);
-	return placement.showCmd == SW_SHOWMAXIMIZED;
 }
 
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) {
@@ -8623,8 +8615,11 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{win->r.x, win->r.y}, {win->r.w, win->r.h + offset}}, true, true);
 }
 
-void RGFW_window_fullscreen(RGFW_window* win) {
+void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 	RGFW_ASSERT(win != NULL);
+	if ((win->_flags & RGFW_windowFullscreen)) win->_flags &= ~RGFW_windowFullscreen;
+	else									win->_flags |= RGFW_windowFullscreen;
+
 	objc_msgSend_void_SEL(win->src.window, sel_registerName("toggleFullScreen:"), NULL);
 }
 
@@ -8794,13 +8789,6 @@ void RGFW_window_hide(RGFW_window* win) {
 void RGFW_window_show(RGFW_window* win) {
 	((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("makeKeyAndOrderFront:"), NULL);
 	objc_msgSend_void_bool(win->src.window, sel_registerName("setIsVisible:"), true);
-}
-
-RGFW_bool RGFW_window_isFullscreen(RGFW_window* win) {
-	RGFW_ASSERT(win != NULL);
-
-	NSWindowStyleMask mask = (NSWindowStyleMask) objc_msgSend_uint(win->src.window, sel_registerName("styleMask"));
-	return (mask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen;
 }
 
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) {
@@ -9964,10 +9952,15 @@ void RGFW_window_maximize(RGFW_window* win) {
 	RGFW_window_resize(win, screen);
 }
 
-void RGFW_window_fullscreen(RGFW_window* win) {
+void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 	RGFW_ASSERT(win != NULL);
-
-	EM_ASM( Module.requestFullscreen(false, true); );
+	if (fullscreen) {
+		win->_flags |= RGFW_windowFullscreen;
+		EM_ASM( Module.requestFullscreen(false, true); );
+		return;
+	}
+	win->_flags &= ~RGFW_windowFullscreen;
+	EM_ASM( Module.exitFullscreen(false, true); );
 }
 
 /* unsupported functions */

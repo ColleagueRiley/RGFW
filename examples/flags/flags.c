@@ -25,7 +25,7 @@ int main(void) {
                             RGFW_window_setMinSize(win, RGFW_AREA(win->r.w, win->r.h));
                         }
                         break;
-		    }
+		            }
                     case RGFW_d: 
                         printf("Allow Drops: %s\n", RGFW_window_allowsDND(win) ? "true" : "false");
                         RGFW_window_setDND(win, !RGFW_window_allowsDND(win));
@@ -40,8 +40,9 @@ int main(void) {
                         else RGFW_window_maximize(win);
                         break;
                     case RGFW_f: 
-                        RGFW_window_fullscreen(win);
-			break; 
+                        printf("fullscreen: %s\n", RGFW_window_isFullscreen(win) ? "true" : "false");
+                        RGFW_window_setFullscreen(win, !RGFW_window_isFullscreen(win));
+			            break; 
                     case RGFW_h:
                         printf("Hidden: %s\n", RGFW_window_isHidden(win) ? "true" : "false");
                         if (RGFW_window_isHidden(win)) RGFW_window_show(win);

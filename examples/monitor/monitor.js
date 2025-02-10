@@ -977,7 +977,8 @@ var ASM_CONSTS = {
  68397: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
  68450: () => { return window.innerWidth; },  
  68480: () => { return window.innerHeight; },  
- 68511: () => { Module.requestFullscreen(false, true); }
+ 68511: () => { Module.requestFullscreen(false, true); },  
+ 68550: () => { Module.exitFullscreen(false, true); }
 };
 
 
