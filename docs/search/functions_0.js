@@ -30,7 +30,7 @@ var searchData=
   ['rgfw_5fisreleasedgamepad_27',['RGFW_isReleasedGamepad',['../group__gamepad.html#gaf32f5c9e0a53423b618596edc61e7396',1,'RGFW.h']]],
   ['rgfw_5fjointhread_28',['RGFW_joinThread',['../group__Threads.html#ga43401d0d164edea95f9c6cd2df093473',1,'RGFW.h']]],
   ['rgfw_5floadmouse_29',['RGFW_loadMouse',['../RGFW_8h.html#a11cac9d387da64acbcaa9cb3a21e4b14',1,'RGFW.h']]],
-  ['rgfw_5fmonitor_5fscale_30',['RGFW_monitor_scale',['../RGFW_8h.html#a761e9bcb79ef32b7925be2b5b51ea880',1,'RGFW.h']]],
+  ['rgfw_5fmonitor_5fscale_30',['RGFW_monitor_scale',['../RGFW_8h.html#aeea7896d1550934c5dad1daf45daa25b',1,'RGFW.h']]],
   ['rgfw_5fmonitor_5fscaletowindow_31',['RGFW_monitor_scaleToWindow',['../RGFW_8h.html#aabffc5f1d0d2f17474ca59f62a5f2a39',1,'RGFW.h']]],
   ['rgfw_5fmovetomacosresourcedir_32',['RGFW_moveToMacOSResourceDir',['../group__Window__management.html#gac67121a641fb36365fa5dc06004307c2',1,'RGFW.h']]],
   ['rgfw_5freadclipboard_33',['RGFW_readClipboard',['../group__Clipboard.html#ga8dc0a4b9144cd7e9de02f31b2b421723',1,'RGFW.h']]],

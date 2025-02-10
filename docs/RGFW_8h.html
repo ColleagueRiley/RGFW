@@ -235,8 +235,8 @@ Functions</h2></td></tr>
 <tr class="separator:acdce84b508a6d3eca700357d33027965"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b687e5aac56d2c3af094ebb3caf1fc5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="structRGFW__monitor.html">RGFW_monitor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a9b687e5aac56d2c3af094ebb3caf1fc5">RGFW_getPrimaryMonitor</a> (void)</td></tr>
 <tr class="separator:a9b687e5aac56d2c3af094ebb3caf1fc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a761e9bcb79ef32b7925be2b5b51ea880"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#ab4e06f1c11ba6fa767fc88e2383dd479">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a761e9bcb79ef32b7925be2b5b51ea880">RGFW_monitor_scale</a> (<a class="el" href="structRGFW__monitor.html">RGFW_monitor</a> mon, <a class="el" href="structRGFW__area.html">RGFW_area</a> area)</td></tr>
-<tr class="separator:a761e9bcb79ef32b7925be2b5b51ea880"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeea7896d1550934c5dad1daf45daa25b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#ab4e06f1c11ba6fa767fc88e2383dd479">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#aeea7896d1550934c5dad1daf45daa25b">RGFW_monitor_scale</a> (<a class="el" href="structRGFW__monitor.html">RGFW_monitor</a> mon, <a class="el" href="structRGFW__area.html">RGFW_area</a> area, <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> refreshRate)</td></tr>
+<tr class="separator:aeea7896d1550934c5dad1daf45daa25b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a11cac9d387da64acbcaa9cb3a21e4b14"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a7c3c77eb6844d3bb20054dc4f1f61ac5">RGFW_mouse</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a11cac9d387da64acbcaa9cb3a21e4b14">RGFW_loadMouse</a> (<a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> *icon, <a class="el" href="structRGFW__area.html">RGFW_area</a> a, <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> channels)</td></tr>
 <tr class="separator:a11cac9d387da64acbcaa9cb3a21e4b14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc013c735ca517d58623dc4a46e1cc60"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#abc013c735ca517d58623dc4a46e1cc60">RGFW_freeMouse</a> (<a class="el" href="RGFW_8h.html#a7c3c77eb6844d3bb20054dc4f1f61ac5">RGFW_mouse</a> *mouse)</td></tr>
@@ -1470,8 +1470,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a761e9bcb79ef32b7925be2b5b51ea880" name="a761e9bcb79ef32b7925be2b5b51ea880"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a761e9bcb79ef32b7925be2b5b51ea880">&#9670;&#160;</a></span>RGFW_monitor_scale()</h2>
+<a id="aeea7896d1550934c5dad1daf45daa25b" name="aeea7896d1550934c5dad1daf45daa25b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeea7896d1550934c5dad1daf45daa25b">&#9670;&#160;</a></span>RGFW_monitor_scale()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1486,7 +1486,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="structRGFW__area.html">RGFW_area</a>&#160;</td>
-          <td class="paramname"><em>area</em>&#160;</td>
+          <td class="paramname"><em>area</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>&#160;</td>
+          <td class="paramname"><em>refreshRate</em>&#160;</td>
         </tr>
         <tr>
           <td></td>

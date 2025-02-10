@@ -57,7 +57,7 @@ var searchData=
   ['rgfw_5fmax_5fpath_54',['RGFW_MAX_PATH',['../RGFW_8h.html#af68d9cc4adea676883383a0406c176f4',1,'RGFW.h']]],
   ['rgfw_5fmemcpy_55',['RGFW_MEMCPY',['../RGFW_8h.html#aef87ec6dcdfa590cf3ccc9a7a2dd25eb',1,'RGFW.h']]],
   ['rgfw_5fmonitor_56',['RGFW_monitor',['../structRGFW__monitor.html',1,'RGFW_monitor'],['../RGFW_8h.html#ae4f53c7d78c7c435bb81a99bd314df82',1,'RGFW_monitor():&#160;RGFW.h']]],
-  ['rgfw_5fmonitor_5fscale_57',['RGFW_monitor_scale',['../RGFW_8h.html#a761e9bcb79ef32b7925be2b5b51ea880',1,'RGFW.h']]],
+  ['rgfw_5fmonitor_5fscale_57',['RGFW_monitor_scale',['../RGFW_8h.html#aeea7896d1550934c5dad1daf45daa25b',1,'RGFW.h']]],
   ['rgfw_5fmonitor_5fscaletowindow_58',['RGFW_monitor_scaleToWindow',['../RGFW_8h.html#aabffc5f1d0d2f17474ca59f62a5f2a39',1,'RGFW.h']]],
   ['rgfw_5fmouse_59',['RGFW_mouse',['../RGFW_8h.html#a7c3c77eb6844d3bb20054dc4f1f61ac5',1,'RGFW.h']]],
   ['rgfw_5fmousebuttonfunc_60',['RGFW_mousebuttonfunc',['../group__Callbacks.html#ga917e6f8679dc635c26aeff6e2b2f24e3',1,'RGFW.h']]],

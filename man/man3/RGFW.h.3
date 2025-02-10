@@ -238,7 +238,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP \fBRGFW_getPrimaryMonitor\fP (void)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_scale\fP (\fBRGFW_monitor\fP mon, \fBRGFW_area\fP area)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_scale\fP (\fBRGFW_monitor\fP mon, \fBRGFW_area\fP area, \fBu32\fP refreshRate)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_mouse\fP * \fBRGFW_loadMouse\fP (\fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
@@ -793,7 +793,7 @@ get an array of all the monitors (max 6)
 get the primary monitor 
 .SS "\fBRGFWDEF\fP \fBRGFW_mouse\fP * RGFW_loadMouse (\fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
 frees RGFW_mouse data 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_scale (\fBRGFW_monitor\fP mon, \fBRGFW_area\fP area)"
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_scale (\fBRGFW_monitor\fP mon, \fBRGFW_area\fP area, \fBu32\fP refreshRate)"
 scale monitor to area 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_scaleToWindow (\fBRGFW_monitor\fP mon, \fBRGFW_window\fP * win)"
 scale monitor to window size 

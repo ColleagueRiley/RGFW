@@ -1,6 +1,6 @@
 /*
 *
-*	RGFW 1.5.5-dev
+*	RGFW 1.6-dev
 *
 * Copyright (C) 2022-25 ColleagueRiley
 *
@@ -564,7 +564,7 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 	/*! get the primary monitor */
 	RGFWDEF RGFW_monitor RGFW_getPrimaryMonitor(void);
 	/*! scale monitor to area */
-	RGFWDEF RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area);
+	RGFWDEF RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area, u32 refreshRate);
 #endif
 
 /* RGFW mouse loading */
@@ -1878,7 +1878,7 @@ void RGFW_window_center(RGFW_window* win) {
 
 RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-	return RGFW_monitor_scale(mon, RGFW_AREA(win->r.w, win->r.h));
+	return RGFW_monitor_scale(mon, RGFW_AREA(win->r.w, win->r.h), 0);
 }
 
 RGFW_bool RGFW_window_shouldClose(RGFW_window* win) {
@@ -5030,7 +5030,13 @@ RGFW_monitor RGFW_getPrimaryMonitor(void) {
 	#endif
 }
 
-RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area) {
+static u32 RGFW_XCalculateRefreshRate(XRRModeInfo mi) {
+    if (mi.hTotal == 0 || mi.vTotal == 0) return 0;
+	
+	return (u32) RGFW_ROUND((double) mi.dotClock / ((double) mi.hTotal * (double) mi.vTotal));
+}
+
+RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area, u32 refreshRate) {
 	RGFW_GOTO_WAYLAND(1);
 #ifdef RGFW_X11
 	#ifndef RGFW_NO_DPI
@@ -5044,7 +5050,8 @@ RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area) {
 			RRMode mode = None;
 			for (int index = 0; index < screenRes->nmode; index++) {
 				if (screenRes->modes[index].width == area.w &&
-					screenRes->modes[index].height == area.h) {
+					screenRes->modes[index].height == area.h &&
+					(refreshRate == 0 || refreshRate == RGFW_XCalculateRefreshRate(screenRes->modes[index]))) {
 					mode = screenRes->modes[index].id;
 					break;
 				}
@@ -6752,7 +6759,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	return win32CreateMonitor(src);
 }
 
-RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area) {
+RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area, u32 refreshRate) {
 	HMONITOR src = MonitorFromPoint((POINT) { mon.rect.x, mon.rect.y }, MONITOR_DEFAULTTOPRIMARY);
 
 	MONITORINFOEX  monitorInfo;
@@ -6775,6 +6782,11 @@ RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area) {
 			dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
 			dm.dmPelsWidth = area.w;
 			dm.dmPelsHeight = area.h;
+
+			if (refreshRate) {
+				dm.dmFields |= DM_DISPLAYFREQUENCY;
+				dm.dmDisplayFrequency = refreshRate;
+			}
 
 			if (ChangeDisplaySettingsEx(dd.DeviceName, &dm, NULL, CDS_TEST, NULL) == DISP_CHANGE_SUCCESSFUL) {
 				if (ChangeDisplaySettingsEx(dd.DeviceName, &dm, NULL, CDS_UPDATEREGISTRY, NULL) == DISP_CHANGE_SUCCESSFUL)
@@ -8897,7 +8909,7 @@ RGFW_monitor* RGFW_getMonitors(void) {
 	return RGFW_monitors;
 }
 
-RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area) {
+RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area, u32 refreshRate) {
     CGPoint point = { mon.rect.x, mon.rect.y };
 
     CGDirectDisplayID display;
@@ -8913,7 +8925,8 @@ RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area) {
 
     for (CFIndex i = 0; i < CFArrayGetCount(allModes); i++) {
         CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(allModes, i);
-        if (CGDisplayModeGetWidth(mode) == area.w && CGDisplayModeGetHeight(mode) == area.h) {
+        if (CGDisplayModeGetWidth(mode) == area.w && CGDisplayModeGetHeight(mode) == area.h && 
+			(refreshRate == 0 || CGDisplayModeGetRefreshRate(mode) == refreshRate) {
             CGError err = CGDisplaySetDisplayMode(display, mode, NULL);
             if (err == kCGErrorSuccess)	{     
 				CFRelease(allModes);
@@ -9985,7 +9998,7 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 }
 
 /* unsupported functions */
-RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area) { RGFW_UNUSED(mon); RGFW_UNUSED(area); return RGFW_FALSE; }
+RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area, u32 refreshRate) { RGFW_UNUSED(mon); RGFW_UNUSED(area); RGFW_UNUSED(refreshRate); return RGFW_FALSE; }
 RGFW_monitor* RGFW_getMonitors(void) { return NULL; }
 RGFW_monitor RGFW_getPrimaryMonitor(void) { return (RGFW_monitor){}; }
 void RGFW_window_move(RGFW_window* win, RGFW_point v) { RGFW_UNUSED(win); RGFW_UNUSED(v); }

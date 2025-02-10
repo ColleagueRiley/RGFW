@@ -25,7 +25,7 @@ int main(void) {
         RGFW_window_swapBuffers(win);
     }
     
-    RGFW_monitor_scale(RGFW_window_getMonitor(win), RGFW_AREA(mon.rect.w, mon.rect.h));
+    RGFW_monitor_scale(RGFW_window_getMonitor(win), RGFW_AREA(mon.rect.w, mon.rect.h), 0);
 
     RGFW_window_close(win);
     return 0;
