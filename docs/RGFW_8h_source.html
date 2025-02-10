@@ -8759,7 +8759,7 @@ $(function() {
 <div class="line"><a id="l08926" name="l08926"></a><span class="lineno"> 8926</span>    <span class="keywordflow">for</span> (CFIndex i = 0; i &lt; CFArrayGetCount(allModes); i++) {</div>
 <div class="line"><a id="l08927" name="l08927"></a><span class="lineno"> 8927</span>        CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(allModes, i);</div>
 <div class="line"><a id="l08928" name="l08928"></a><span class="lineno"> 8928</span>        <span class="keywordflow">if</span> (CGDisplayModeGetWidth(mode) == area.<a class="code hl_variable" href="structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a">w</a> &amp;&amp; CGDisplayModeGetHeight(mode) == area.<a class="code hl_variable" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">h</a> &amp;&amp; </div>
-<div class="line"><a id="l08929" name="l08929"></a><span class="lineno"> 8929</span>            (refreshRate == 0 || CGDisplayModeGetRefreshRate(mode) == refreshRate) {</div>
+<div class="line"><a id="l08929" name="l08929"></a><span class="lineno"> 8929</span>            (refreshRate == 0 || CGDisplayModeGetRefreshRate(mode) == refreshRate)) {</div>
 <div class="line"><a id="l08930" name="l08930"></a><span class="lineno"> 8930</span>            CGError err = CGDisplaySetDisplayMode(display, mode, NULL);</div>
 <div class="line"><a id="l08931" name="l08931"></a><span class="lineno"> 8931</span>            <span class="keywordflow">if</span> (err == kCGErrorSuccess) {     </div>
 <div class="line"><a id="l08932" name="l08932"></a><span class="lineno"> 8932</span>                CFRelease(allModes);</div>
