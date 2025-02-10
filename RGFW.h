@@ -9938,7 +9938,7 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 	if (fullscreen) {
 		win->_flags |= RGFW_windowFullscreen;
 		EM_ASM( Module.requestFullscreen(false, true); );
-		return
+		return;
 	}
 	win->_flags &= ~RGFW_windowFullscreen;
 	EM_ASM( Module.exitFullscreen(false, true); );
