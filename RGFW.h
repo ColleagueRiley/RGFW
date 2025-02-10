@@ -8926,7 +8926,7 @@ RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area, u32 refreshRate) 
     for (CFIndex i = 0; i < CFArrayGetCount(allModes); i++) {
         CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(allModes, i);
         if (CGDisplayModeGetWidth(mode) == area.w && CGDisplayModeGetHeight(mode) == area.h && 
-			(refreshRate == 0 || CGDisplayModeGetRefreshRate(mode) == refreshRate) {
+			(refreshRate == 0 || CGDisplayModeGetRefreshRate(mode) == refreshRate)) {
             CGError err = CGDisplaySetDisplayMode(display, mode, NULL);
             if (err == kCGErrorSuccess)	{     
 				CFRelease(allModes);
