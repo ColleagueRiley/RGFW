@@ -45,19 +45,24 @@ typedef struct vulkanInfo {
     size_t current_frame;
 } vulkanInfo;
 
-RGFWDEF int initVulkanDevice(RGFW_window* win, vulkanContext* ctx);
-RGFWDEF vulkanInfo* initVulkan(vulkanContext* ctx);
-RGFWDEF void freeVulkan(vulkanContext* ctx);
 
-RGFWDEF vulkanInfo* getVulkanInfo(void);
+#ifndef VKDEF
+	#define VKDEF inline
+#endif
+
+VKDEF int initVulkanDevice(RGFW_window* win, vulkanContext* ctx);
+VKDEF vulkanInfo* initVulkan(vulkanContext* ctx);
+VKDEF void freeVulkan(vulkanContext* ctx);
+
+VKDEF vulkanInfo* getVulkanInfo(void);
 
 int createSwapchain(vulkanContext* ctx);
-RGFWDEF int createRenderPass(void);
+VKDEF int createRenderPass(void);
 int createCommandPool(void);
 int createCommandBuffers(vulkanContext* ctx);
 int createSyncObjects(vulkanContext* ctx);
-RGFWDEF int createFramebuffers(vulkanContext* ctx);
-RGFWDEF VkShaderModule createShaderModule(const u32* code, size_t code_size);
+VKDEF int createFramebuffers(vulkanContext* ctx);
+VKDEF VkShaderModule createShaderModule(const u32* code, size_t code_size);
 void  createDebugCallback();
 const char* getDebugSeverityStr(VkDebugUtilsMessageSeverityFlagBitsEXT Severity);
 const char* getDebugType(VkDebugUtilsMessageTypeFlagsEXT Type);
@@ -206,7 +211,7 @@ int initVulkanDevice(RGFW_window* win, vulkanContext* ctx) {
 
     VkApplicationInfo appInfo = { 0 };
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "RGFW app";
+    appInfo.pApplicationName = "vkapp";
     appInfo.apiVersion = VK_MAKE_VERSION(1, 0, 0);
 
     const char* ppEnabledExtensionNames[] = {VK_KHR_SURFACE_EXTENSION_NAME, RGFW_VK_SURFACE};
