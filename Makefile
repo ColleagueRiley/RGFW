@@ -146,7 +146,7 @@ else
 endif
 
 
-examples/vk10/vk10: examples/vk10/vk10.c RGFW.h
+examples/vk10/vk10: examples/vk10/vk10.c examples/vk10/vkinit.h RGFW.h
 ifneq ($(NO_VULKAN), 1)
 	glslangValidator -V examples/vk10/shaders/vert.vert -o examples/vk10/shaders/vert.h --vn vert_code
 	glslangValidator -V examples/vk10/shaders/frag.frag -o examples/vk10/shaders/frag.h --vn frag_code

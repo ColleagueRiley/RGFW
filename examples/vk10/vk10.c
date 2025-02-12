@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define RGFW_VULKAN
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
 #define RGFW_NO_API
@@ -9,9 +10,11 @@
     This isn't included in RGFW.h itself because
     you'd want to define that stuff yourself in most usecases
 */
-#define RGFW_VULKAN_IMPLEMENTATION
-#define RGFW_DEBUG_VULKAN
-#include "RGFW_vulkan.h"
+
+#define MAX_FRAMES_IN_FLIGHT 2
+#define VKINIT_IMPLEMENTATION
+//#define VKINIT_DEBUG_VULKAN
+#include "vkinit.h"
 
 /**
  * ```bash
@@ -23,15 +26,16 @@
 #include "shaders/frag.h"
 #include "shaders/vert.h"
 
-RGFW_vulkanInfo *vulkan_info;
+vulkanInfo* vkinit_vulkan_info;
 
-int createGraphicsPipeline(RGFW_window* win);
-int commandBuffers(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin);
-int draw_frame(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin);
+int createGraphicsPipeline(vulkanContext* ctx);
+int commandBuffers(vulkanContext *ctx);
+int draw_frame(vulkanContext *ctx);
 
 float mouse_data[2] = {0.0f, 0.0f};
-RGFWDEF void mousePosCallback(RGFW_window *win, RGFW_point point);
-void mousePosCallback(RGFW_window *win, RGFW_point point) {
+RGFWDEF void mousePosCallback(RGFW_window *win, RGFW_point point, RGFW_point vector);
+void mousePosCallback(RGFW_window *win, RGFW_point point, RGFW_point vector) {
+  RGFW_UNUSED(vector);
   printf("mouse moved %i %i\n", point.x, point.y);
   float halfWidth = (float)(win->r.w / 2.0f);
   float halfHeight = (float)(win->r.h / 2.0f);
@@ -46,11 +50,16 @@ int main(void) {
 
   RGFW_setMousePosCallback(mousePosCallback);
 
-  RGFW_window_vulkanInfo vulkWin;
+  vulkanContext ctx;
+  
+  int res = initVulkanDevice(win, &ctx);
+  if (res == 0) {
+    vkinit_vulkan_info = initVulkan(&ctx);
 
-  vulkan_info = RGFW_initVulkan(win, &vulkWin);
-  if (vulkan_info != NULL)
-    createGraphicsPipeline(win);
+    if (vkinit_vulkan_info != NULL)
+      createGraphicsPipeline(&ctx);
+    else return 0;
+  }
 
   u8 running = 1;
   while (running && !RGFW_isPressed(win, RGFW_escape)) {
@@ -61,23 +70,23 @@ int main(void) {
       }
     }
 
-    if (vulkan_info != NULL) {
-      draw_frame(win, &vulkWin);
+    if (vkinit_vulkan_info != NULL) {
+      draw_frame(&ctx);
     }
   }
 
-  if (vulkan_info != NULL)
-    RGFW_freeVulkan(&vulkWin);
+  if (vkinit_vulkan_info != NULL)
+    freeVulkan(&ctx);
 
   RGFW_window_close(win);
   return 0;
 }
 
-int createGraphicsPipeline(RGFW_window* win) {
+int createGraphicsPipeline(vulkanContext* ctx) {
   VkShaderModule vert_module =
-      RGFW_createShaderModule(vert_code, sizeof(vert_code));
+      createShaderModule(vert_code, sizeof(vert_code));
   VkShaderModule frag_module =
-      RGFW_createShaderModule(frag_code, sizeof(frag_code));
+      createShaderModule(frag_code, sizeof(frag_code));
 
   if (vert_module == VK_NULL_HANDLE || frag_module == VK_NULL_HANDLE) {
     printf("failed to create shader module\n");
@@ -112,15 +121,15 @@ int createGraphicsPipeline(RGFW_window* win) {
   VkViewport viewport;
   viewport.x = 0.0f;
   viewport.y = 0.0f;
-  viewport.width = (float)win->r.w;
-  viewport.height = (float)win->r.h;
+  viewport.width = (float)ctx->width;
+  viewport.height = (float)ctx->height;
   viewport.minDepth = 0.0f;
   viewport.maxDepth = 1.0f;
 
   VkRect2D scissor;
   scissor.offset.x = 0;
   scissor.offset.y = 0;
-  scissor.extent = (VkExtent2D){win->r.w, win->r.h};
+  scissor.extent = (VkExtent2D){ctx->width, ctx->height};
 
   VkPipelineViewportStateCreateInfo viewport_state = {0};
   viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -173,8 +182,8 @@ int createGraphicsPipeline(RGFW_window* win) {
   pipeline_layout_info.pushConstantRangeCount = 1;
   pipeline_layout_info.pPushConstantRanges = &range;
 
-  if (vkCreatePipelineLayout(vulkan_info->device, &pipeline_layout_info, NULL,
-                             &vulkan_info->pipeline_layout) != VK_SUCCESS) {
+  if (vkCreatePipelineLayout(vkinit_vulkan_info->device, &pipeline_layout_info, NULL,
+                             &vkinit_vulkan_info->pipeline_layout) != VK_SUCCESS) {
     printf("failed to create pipeline layout\n");
     return -1; // failed to create pipeline layout
   }
@@ -197,29 +206,29 @@ int createGraphicsPipeline(RGFW_window* win) {
   pipeline_info.pMultisampleState = &multisampling;
   pipeline_info.pColorBlendState = &color_blending;
   pipeline_info.pDynamicState = &dynamic_info;
-  pipeline_info.layout = vulkan_info->pipeline_layout;
-  pipeline_info.renderPass = vulkan_info->render_pass;
+  pipeline_info.layout = vkinit_vulkan_info->pipeline_layout;
+  pipeline_info.renderPass = vkinit_vulkan_info->render_pass;
   pipeline_info.subpass = 0;
   pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
 
   if (vkCreateGraphicsPipelines(
-          vulkan_info->device, VK_NULL_HANDLE, 1, &pipeline_info, NULL,
-          &vulkan_info->graphics_pipeline) != VK_SUCCESS) {
+          vkinit_vulkan_info->device, VK_NULL_HANDLE, 1, &pipeline_info, NULL,
+          &vkinit_vulkan_info->graphics_pipeline) != VK_SUCCESS) {
     printf("failed to create pipline\n");
     return -1; // failed to create graphics pipeline
   }
 
-  vkDestroyShaderModule(vulkan_info->device, frag_module, NULL);
-  vkDestroyShaderModule(vulkan_info->device, vert_module, NULL);
+  vkDestroyShaderModule(vkinit_vulkan_info->device, frag_module, NULL);
+  vkDestroyShaderModule(vkinit_vulkan_info->device, vert_module, NULL);
   return 0;
 }
 
-int commandBuffers(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
-  for (size_t i = 0; i < vulkWin->image_count; i++) {
+int commandBuffers(vulkanContext* ctx) {
+  for (size_t i = 0; i < ctx->image_count; i++) {
     VkCommandBufferBeginInfo begin_info = {0};
     begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-    if (vkBeginCommandBuffer(vulkan_info->command_buffers[i], &begin_info) !=
+    if (vkBeginCommandBuffer(vkinit_vulkan_info->command_buffers[i], &begin_info) !=
         VK_SUCCESS) {
       printf("Failed to begin recording command buffer\n");
       return -1;
@@ -227,11 +236,11 @@ int commandBuffers(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
 
     VkRenderPassBeginInfo render_pass_info = {0};
     render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    render_pass_info.renderPass = vulkan_info->render_pass;
-    render_pass_info.framebuffer = vulkan_info->framebuffers[i];
+    render_pass_info.renderPass = vkinit_vulkan_info->render_pass;
+    render_pass_info.framebuffer = vkinit_vulkan_info->framebuffers[i];
     render_pass_info.renderArea.offset.x = 0;
     render_pass_info.renderArea.offset.y = 0;
-    render_pass_info.renderArea.extent = (VkExtent2D){win->r.w, win->r.h};
+    render_pass_info.renderArea.extent = (VkExtent2D){ctx->width, ctx->height};
 
     VkClearValue clearColor;
     clearColor.color.float32[0] = 1.0f;
@@ -244,35 +253,35 @@ int commandBuffers(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
     VkViewport viewport;
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = (float)win->r.w;
-    viewport.height = (float)win->r.h;
+    viewport.width = (float)ctx->width;
+    viewport.height = (float)ctx->height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor;
     scissor.offset.x = 0;
     scissor.offset.y = 0;
-    scissor.extent = (VkExtent2D){win->r.w, win->r.h};
-    vkCmdSetScissor(vulkan_info->command_buffers[i], 0, 1, &scissor);
+    scissor.extent = (VkExtent2D){ctx->width, ctx->height};
+    vkCmdSetScissor(vkinit_vulkan_info->command_buffers[i], 0, 1, &scissor);
 
-    vkCmdSetViewport(vulkan_info->command_buffers[i], 0, 1, &viewport);
+    vkCmdSetViewport(vkinit_vulkan_info->command_buffers[i], 0, 1, &viewport);
 
-    vkCmdBeginRenderPass(vulkan_info->command_buffers[i], &render_pass_info,
+    vkCmdBeginRenderPass(vkinit_vulkan_info->command_buffers[i], &render_pass_info,
                          VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindPipeline(vulkan_info->command_buffers[i],
+    vkCmdBindPipeline(vkinit_vulkan_info->command_buffers[i],
                       VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      vulkan_info->graphics_pipeline);
+                      vkinit_vulkan_info->graphics_pipeline);
 
     // Push mouse position as a push constant
-    vkCmdPushConstants(vulkan_info->command_buffers[i],
-                       vulkan_info->pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT,
+    vkCmdPushConstants(vkinit_vulkan_info->command_buffers[i],
+                       vkinit_vulkan_info->pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT,
                        0, sizeof(mouse_data), &mouse_data);
     
-    vkCmdDraw(vulkan_info->command_buffers[i], 3, 1, 0, 0);
-    vkCmdEndRenderPass(vulkan_info->command_buffers[i]);
+    vkCmdDraw(vkinit_vulkan_info->command_buffers[i], 3, 1, 0, 0);
+    vkCmdEndRenderPass(vkinit_vulkan_info->command_buffers[i]);
     
-    if (vkEndCommandBuffer(vulkan_info->command_buffers[i]) != VK_SUCCESS) {
+    if (vkEndCommandBuffer(vkinit_vulkan_info->command_buffers[i]) != VK_SUCCESS) {
 
       printf("failed to record command buffer\n");
       return -1; // failed to record command buffer!
@@ -281,51 +290,51 @@ int commandBuffers(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
   return 0;
 }
 
-int draw_frame(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
-  vkWaitForFences(vulkan_info->device, 1,
-                  &vulkan_info->in_flight_fences[vulkan_info->current_frame],
+int draw_frame(vulkanContext *ctx) {
+  vkWaitForFences(vkinit_vulkan_info->device, 1,
+                  &vkinit_vulkan_info->in_flight_fences[vkinit_vulkan_info->current_frame],
                   VK_TRUE, UINT64_MAX);
 
   u32 image_index = 0;
   vkAcquireNextImageKHR(
-      vulkan_info->device, vulkWin->swapchain, UINT64_MAX,
-      vulkan_info->available_semaphores[vulkan_info->current_frame],
+      vkinit_vulkan_info->device, ctx->swapchain, UINT64_MAX,
+      vkinit_vulkan_info->available_semaphores[vkinit_vulkan_info->current_frame],
       VK_NULL_HANDLE, &image_index);
 
-  if (vulkan_info->image_in_flight[image_index] != VK_NULL_HANDLE) {
-    vkWaitForFences(vulkan_info->device, 1,
-                    &vulkan_info->image_in_flight[image_index], VK_TRUE,
+  if (vkinit_vulkan_info->image_in_flight[image_index] != VK_NULL_HANDLE) {
+    vkWaitForFences(vkinit_vulkan_info->device, 1,
+                    &vkinit_vulkan_info->image_in_flight[image_index], VK_TRUE,
                     UINT64_MAX);
   }
-  vulkan_info->image_in_flight[image_index] =
-      vulkan_info->in_flight_fences[vulkan_info->current_frame];
+  vkinit_vulkan_info->image_in_flight[image_index] =
+      vkinit_vulkan_info->in_flight_fences[vkinit_vulkan_info->current_frame];
 
   VkSubmitInfo submitInfo = {0};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
   VkSemaphore wait_semaphores[] = {
-      vulkan_info->available_semaphores[vulkan_info->current_frame]};
+      vkinit_vulkan_info->available_semaphores[vkinit_vulkan_info->current_frame]};
   VkPipelineStageFlags wait_stages[] = {
       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
   submitInfo.waitSemaphoreCount = 1;
   submitInfo.pWaitSemaphores = wait_semaphores;
   submitInfo.pWaitDstStageMask = wait_stages;
 
-  commandBuffers(win, vulkWin);
+  commandBuffers(ctx);
   submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = &vulkan_info->command_buffers[image_index];
+  submitInfo.pCommandBuffers = &vkinit_vulkan_info->command_buffers[image_index];
   /**/
   VkSemaphore signal_semaphores[] = {
-      vulkan_info->finished_semaphore[vulkan_info->current_frame]};
+      vkinit_vulkan_info->finished_semaphore[vkinit_vulkan_info->current_frame]};
   submitInfo.signalSemaphoreCount = 1;
   submitInfo.pSignalSemaphores = signal_semaphores;
 
-  vkResetFences(vulkan_info->device, 1,
-                &vulkan_info->in_flight_fences[vulkan_info->current_frame]);
+  vkResetFences(vkinit_vulkan_info->device, 1,
+                &vkinit_vulkan_info->in_flight_fences[vkinit_vulkan_info->current_frame]);
 
   if (vkQueueSubmit(
-          vulkan_info->graphics_queue, 1, &submitInfo,
-          vulkan_info->in_flight_fences[vulkan_info->current_frame]) !=
+          vkinit_vulkan_info->graphics_queue, 1, &submitInfo,
+          vkinit_vulkan_info->in_flight_fences[vkinit_vulkan_info->current_frame]) !=
       VK_SUCCESS) {
     printf("failed to submit draw command buffer\n");
     return -1; //"failed to submit draw command buffer
@@ -337,15 +346,15 @@ int draw_frame(RGFW_window* win, RGFW_window_vulkanInfo *vulkWin) {
   present_info.waitSemaphoreCount = 1;
   present_info.pWaitSemaphores = signal_semaphores;
 
-  VkSwapchainKHR swapChains[] = {vulkWin->swapchain};
+  VkSwapchainKHR swapChains[] = {ctx->swapchain};
   present_info.swapchainCount = 1;
   present_info.pSwapchains = swapChains;
 
   present_info.pImageIndices = &image_index;
 
-  vkQueuePresentKHR(vulkan_info->present_queue, &present_info);
+  vkQueuePresentKHR(vkinit_vulkan_info->present_queue, &present_info);
 
-  vulkan_info->current_frame =
-      (vulkan_info->current_frame + 1) % RGFW_MAX_FRAMES_IN_FLIGHT;
+  vkinit_vulkan_info->current_frame =
+      (vkinit_vulkan_info->current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
   return 0;
 }

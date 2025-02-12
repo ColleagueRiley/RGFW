@@ -45,6 +45,7 @@ Current Version: RGFW 1.6-dev
 - change RGFW_window_fullscreen to  RGFW_window_setFullscreen
 - make RGFW_window_setFullscreen use exclusive fullscreen
 - add RGFW_window_isFullscreen
+- add refreshRate to RGFW_monitor_scale
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
@@ -277,6 +278,7 @@ new examples:
 - Add custom backend example
 - Add gamepad example
 - Add no standard library example 
+- add RGFW_VK_SURFACE and RGFW_window_createVKSurface directly to RGFW
 
 Current Release:    RGFW 1.06 (Aug 14, 2024)
 -----------------------------------------------

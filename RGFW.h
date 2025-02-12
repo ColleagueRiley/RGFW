@@ -563,7 +563,7 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 	RGFWDEF RGFW_monitor* RGFW_getMonitors(void);
 	/*! get the primary monitor */
 	RGFWDEF RGFW_monitor RGFW_getPrimaryMonitor(void);
-	/*! scale monitor to area */
+	/*! scale monitor to area and refreshRate, if refreshRate == 0, it's ignored */
 	RGFWDEF RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area, u32 refreshRate);
 #endif
 
@@ -1175,6 +1175,27 @@ typedef struct {
 	you can use this function to get a pointer the instance
 */
 RGFWDEF RGFW_directXinfo* RGFW_getDirectXInfo(void);
+#elif defined(RGFW_VULKAN)
+	#if defined(RGFW_X11)
+		#define VK_USE_PLATFORM_XLIB_KHR
+		#define RGFW_VK_SURFACE "VK_KHR_xlib_surface"
+	#elif defined(RGFW_WINDOWS)
+		#define VK_USE_PLATFORM_WIN32_KHR
+		#define OEMRESOURCE
+		#define RGFW_VK_SURFACE "VK_KHR_win32_surface"
+	#elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
+		#define VK_USE_PLATFORM_MACOS_MVK
+		#define RGFW_VK_SURFACE "VK_MVK_macos_surface"
+	#elif defined(RGFW_WAYLAND)
+		#define VK_USE_PLATFORM_WAYLAND_KHR
+		#define RGFW_VK_SURFACE "VK_KHR_wayland_surface"
+	#else
+		#define RGFW_VK_SURFACE NULL
+	#endif
+
+#include <vulkan/vulkan.h>
+
+RGFWDEF VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface);
 #endif
 
 /** @} */
@@ -2454,7 +2475,33 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 /*
 	end of RGFW_EGL defines
 */
-#endif /* RGFW_GL (OpenGL, EGL, OSMesa )*/
+/* end of RGFW_GL (OpenGL, EGL, OSMesa )*/
+
+/*
+	RGFW_VULKAN defines
+*/
+#elif defined(RGFW_VULKAN)
+
+VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface) {
+    assert(win != NULL); assert(instance);
+	assert(surface != NULL);
+
+    *surface = VK_NULL_HANDLE;
+
+#ifdef RGFW_X11
+    VkXlibSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, 0, 0, (Display*) win->src.display, (Window) win->src.window };
+    return vkCreateXlibSurfaceKHR(instance, &x11, NULL, surface);
+#elif defined(RGFW_WINDOWS)
+    VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, GetModuleHandle(NULL), (HWND)win->src.window };
+
+    return vkCreateWin32SurfaceKHR(instance, &win32, NULL, surface);
+#elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
+    VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, vulkWin->display, (void *)win->src.window };
+
+    return vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface);
+#endif
+}
+#endif /* end of RGFW_vulkan */
 
 /*
 This is where OS specific stuff starts
