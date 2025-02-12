@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Mon Feb 10 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Wed Feb 12 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -794,7 +794,7 @@ get the primary monitor
 .SS "\fBRGFWDEF\fP \fBRGFW_mouse\fP * RGFW_loadMouse (\fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
 frees RGFW_mouse data 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_scale (\fBRGFW_monitor\fP mon, \fBRGFW_area\fP area, \fBu32\fP refreshRate)"
-scale monitor to area 
+scale monitor to area and refreshRate, if refreshRate == 0, it's ignored 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_scaleToWindow (\fBRGFW_monitor\fP mon, \fBRGFW_window\fP * win)"
 scale monitor to window size 
 .SS "\fBRGFWDEF\fP void RGFW_useWayland (\fBRGFW_bool\fP wayland)"
