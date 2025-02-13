@@ -8850,7 +8850,7 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 
 	CGDisplayModeRef mode = CGDisplayCopyDisplayMode(display);
 	if (mode) {
-		moitor.refreshRate = CGDisplayModeGetRefreshRate(mode);
+		monitor.refreshRate = CGDisplayModeGetRefreshRate(mode);
 		CFRelease(mode);
 	}
 
