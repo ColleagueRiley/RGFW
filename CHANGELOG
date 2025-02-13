@@ -46,6 +46,7 @@ Current Version: RGFW 1.6-dev
 - make RGFW_window_setFullscreen use exclusive fullscreen
 - add RGFW_window_isFullscreen
 - add refreshRate to RGFW_monitor_scale
+- limit directX support to RGFW_window_createDXSwapChain, most of it should/can be handled by the user
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
