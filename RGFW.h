@@ -336,19 +336,6 @@ int main() {
 			#include <XInput.h>
 		#endif
 	#endif
-
-	#if defined(RGFW_DIRECTX)
-		#define OEMRESOURCE
-		#include <d3d11.h>
-		#include <dxgi.h>
-		#include <dxgi.h>
-		#include <d3dcompiler.h>
-
-		#ifndef __cplusplus
-			#define __uuidof(T) IID_##T
-		#endif
-	#endif
-
 #elif defined(RGFW_WAYLAND)
 	#define RGFW_DEBUG // wayland will be in debug mode by default for now
     #if !defined(RGFW_NO_API) && (!defined(RGFW_BUFFER) || defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA)
@@ -619,10 +606,6 @@ typedef struct RGFW_window_src {
 		HGLRC ctx; /*!< source graphics context */
 	#elif defined(RGFW_OSMESA)
 		OSMesaContext ctx;
-	#elif defined(RGFW_DIRECTX)
-		IDXGISwapChain* swapchain;
-		ID3D11RenderTargetView* renderTargetView;
-		ID3D11DepthStencilView* pDepthStencilView;
 	#elif defined(RGFW_EGL)
 		EGLSurface EGL_surface;
 		EGLDisplay EGL_display;
@@ -1161,20 +1144,6 @@ RGFWDEF void RGFW_setGLVersion(RGFW_glProfile profile, i32 major, i32 minor);
 RGFWDEF void RGFW_setDoubleBuffer(RGFW_bool useDoubleBuffer);
 RGFWDEF void* RGFW_getProcAddress(const char* procname); /*!< get native opengl proc address */
 RGFWDEF void RGFW_window_makeCurrent_OpenGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
-
-#elif defined(RGFW_DIRECTX)
-typedef struct {
-	IDXGIFactory* pFactory;
-	IDXGIAdapter* pAdapter;
-	ID3D11Device* pDevice;
-	ID3D11DeviceContext* pDeviceContext;
-} RGFW_directXinfo;
-
-/*
-	RGFW stores a global instance of RGFW_directXinfo,
-	you can use this function to get a pointer the instance
-*/
-RGFWDEF RGFW_directXinfo* RGFW_getDirectXInfo(void);
 #elif defined(RGFW_VULKAN)
 	#if defined(RGFW_X11)
 		#define VK_USE_PLATFORM_XLIB_KHR
@@ -1855,19 +1824,9 @@ RGFW_bool RGFW_isReleased(RGFW_window* win, RGFW_key key) {
 	return (!RGFW_isPressed(win, key) && RGFW_wasPressed(win, key));
 }
 
-#if defined(RGFW_WINDOWS)  && defined(RGFW_DIRECTX) /* defines for directX context*/
-	RGFW_directXinfo RGFW_dxInfo;
-	RGFW_directXinfo* RGFW_getDirectXInfo(void) { return &RGFW_dxInfo; }
-#endif
-
 #ifndef RGFW_CUSTOM_BACKEND
 void RGFW_window_makeCurrent(RGFW_window* win) {
-#if defined(RGFW_WINDOWS) && defined(RGFW_DIRECTX)
-	if (win == NULL)
-		RGFW_dxInfo.pDeviceContext->lpVtbl->OMSetRenderTargets(RGFW_dxInfo.pDeviceContext, 1, NULL, NULL);
-	else
-		RGFW_dxInfo.pDeviceContext->lpVtbl->OMSetRenderTargets(RGFW_dxInfo.pDeviceContext, 1, &win->src.renderTargetView, NULL);
-#elif defined(RGFW_OPENGL)
+#if defined(RGFW_OPENGL)
 	RGFW_window_makeCurrent_OpenGL(win);
 #else
 	RGFW_UNUSED(win);
@@ -5790,6 +5749,43 @@ void RGFW_captureCursor(RGFW_window* win, RGFW_rect rect) {
 
 #define RGFW_LOAD_LIBRARY(x, lib) if (x == NULL) x = LoadLibraryA(lib)
 
+#ifdef RGFW_DIRECTX
+
+#define OEMRESOURCE
+#include <dxgi.h>
+
+#ifndef __cplusplus
+	#define __uuidof(T) IID_##T
+#endif
+
+int RGFW_window_createDXSwapChain(RGFW_window* win, IDXGIFactory* pFactory, IUnknown* pDevice, IDXGISwapChain** swapchain) {
+    if (!win || !pFactory || !pDevice || !swapchain) {
+        printf("Error: Null argument passed to RGFW_window_createDXSwapChain\n");
+        return -1;
+    }
+
+    static DXGI_SWAP_CHAIN_DESC swapChainDesc = { 0 };
+    swapChainDesc.BufferCount = 2; 
+    swapChainDesc.BufferDesc.Width = win->r.w;
+    swapChainDesc.BufferDesc.Height = win->r.h;
+    swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapChainDesc.OutputWindow = (HWND)win->src.window;
+    swapChainDesc.SampleDesc.Count = 1;
+    swapChainDesc.SampleDesc.Quality = 0;
+    swapChainDesc.Windowed = TRUE;
+    swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+    HRESULT hr = pFactory->lpVtbl->CreateSwapChain(pFactory, (IUnknown*)pDevice, &swapChainDesc, swapchain);
+    if (FAILED(hr)) {
+        printf("Error: Failed to create DirectX swap chain! HRESULT: 0x%X\n", hr);
+        return -2;
+    }
+
+    return 0;
+}
+#endif
+
 u32 RGFW_windowsOpen = 0;
 
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
@@ -5893,71 +5889,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	win->src.hdc = GetDC(win->src.window);
 
 	if ((flags & RGFW_windowNoInitAPI) == 0) {
-	#ifdef RGFW_DIRECTX
-		RGFW_ASSERT(FAILED(CreateDXGIFactory(&__uuidof(IDXGIFactory), (void**) &RGFW_dxInfo.pFactory)) == 0);
-
-		if (FAILED(RGFW_dxInfo.pFactory->lpVtbl->EnumAdapters(RGFW_dxInfo.pFactory, 0, &RGFW_dxInfo.pAdapter))) {
-			#ifdef RGFW_DEBUG
-				fprintf(stderr, "Failed to enumerate DXGI adapters\n");
-			#endif
-			RGFW_dxInfo.pFactory->lpVtbl->Release(RGFW_dxInfo.pFactory);
-			return NULL;
-		}
-
-		D3D_FEATURE_LEVEL featureLevels[] = { D3D_FEATURE_LEVEL_11_0 };
-
-		if (FAILED(D3D11CreateDevice(RGFW_dxInfo.pAdapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, 0, featureLevels, 1, D3D11_SDK_VERSION, &RGFW_dxInfo.pDevice, NULL, &RGFW_dxInfo.pDeviceContext))) {
-			#ifdef RGFW_DEBUG
-				fprintf(stderr, "Failed to create Direct3D device\n");
-			#endif
-			RGFW_dxInfo.pAdapter->lpVtbl->Release(RGFW_dxInfo.pAdapter);
-			RGFW_dxInfo.pFactory->lpVtbl->Release(RGFW_dxInfo.pFactory);
-			return NULL;
-		}
-
-		DXGI_SWAP_CHAIN_DESC swapChainDesc = { 0 };
-		swapChainDesc.BufferCount = 1;
-		swapChainDesc.BufferDesc.Width = win->r.w;
-		swapChainDesc.BufferDesc.Height = win->r.h;
-		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapChainDesc.OutputWindow = win->src.window;
-		swapChainDesc.SampleDesc.Count = 1;
-		swapChainDesc.SampleDesc.Quality = 0;
-		swapChainDesc.Windowed = TRUE;
-		RGFW_dxInfo.pFactory->lpVtbl->CreateSwapChain(RGFW_dxInfo.pFactory, (IUnknown*) RGFW_dxInfo.pDevice, &swapChainDesc, &win->src.swapchain);
-
-		ID3D11Texture2D* pBackBuffer;
-		win->src.swapchain->lpVtbl->GetBuffer(win->src.swapchain, 0, &__uuidof(ID3D11Texture2D), (LPVOID*) &pBackBuffer);
-		RGFW_dxInfo.pDevice->lpVtbl->CreateRenderTargetView(RGFW_dxInfo.pDevice, (ID3D11Resource*) pBackBuffer, NULL, &win->src.renderTargetView);
-		pBackBuffer->lpVtbl->Release(pBackBuffer);
-
-		D3D11_TEXTURE2D_DESC depthStencilDesc = { 0 };
-		depthStencilDesc.Width = win->r.w;
-		depthStencilDesc.Height = win->r.h;
-		depthStencilDesc.MipLevels = 1;
-		depthStencilDesc.ArraySize = 1;
-		depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		depthStencilDesc.SampleDesc.Count = 1;
-		depthStencilDesc.SampleDesc.Quality = 0;
-		depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
-		depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-
-		ID3D11Texture2D* pDepthStencilTexture = NULL;
-		RGFW_dxInfo.pDevice->lpVtbl->CreateTexture2D(RGFW_dxInfo.pDevice, &depthStencilDesc, NULL, &pDepthStencilTexture);
-
-		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = { 0 };
-		depthStencilViewDesc.Format = depthStencilDesc.Format;
-		depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-		depthStencilViewDesc.Texture2D.MipSlice = 0;
-
-		RGFW_dxInfo.pDevice->lpVtbl->CreateDepthStencilView(RGFW_dxInfo.pDevice, (ID3D11Resource*) pDepthStencilTexture, &depthStencilViewDesc, &win->src.pDepthStencilView);
-
-		pDepthStencilTexture->lpVtbl->Release(pDepthStencilTexture);
-
-		RGFW_dxInfo.pDeviceContext->lpVtbl->OMSetRenderTargets(RGFW_dxInfo.pDeviceContext, 1, &win->src.renderTargetView, win->src.pDepthStencilView);
-	#endif
-
 	#ifdef RGFW_OPENGL
 		HDC dummy_dc = GetDC(dummyWin);
 
@@ -6943,12 +6874,6 @@ void RGFW_window_close(RGFW_window* win) {
 		RGFW_closeEGL(win);
 	#endif
 
-	#ifdef RGFW_DIRECTX
-		win->src.swapchain->lpVtbl->Release(win->src.swapchain);
-		win->src.renderTargetView->lpVtbl->Release(win->src.renderTargetView);
-		win->src.pDepthStencilView->lpVtbl->Release(win->src.pDepthStencilView);
-	#endif
-
 	#ifdef RGFW_BUFFER
 		DeleteDC(win->src.hdcMem);
 		DeleteObject(win->src.bitmap);
@@ -6963,13 +6888,6 @@ void RGFW_window_close(RGFW_window* win) {
 	if (win->src.hIcon) DestroyIcon(win->src.hIcon);
 
 	if (RGFW_windowsOpen <= 0) {
-		#ifdef RGFW_DIRECTX
-			RGFW_dxInfo.pDeviceContext->lpVtbl->Release(RGFW_dxInfo.pDeviceContext);
-			RGFW_dxInfo.pDevice->lpVtbl->Release(RGFW_dxInfo.pDevice);
-			RGFW_dxInfo.pAdapter->lpVtbl->Release(RGFW_dxInfo.pAdapter);
-			RGFW_dxInfo.pFactory->lpVtbl->Release(RGFW_dxInfo.pFactory);
-		#endif
-
 		#ifndef RGFW_NO_XINPUT
 		RGFW_FREE_LIBRARY(RGFW_XInput_dll);
 		#endif
@@ -7200,10 +7118,6 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 			eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
 		#elif defined(RGFW_OPENGL)
 			SwapBuffers(win->src.hdc);
-		#endif
-
-		#if defined(RGFW_WINDOWS) && defined(RGFW_DIRECTX)
-			win->src.swapchain->lpVtbl->Present(win->src.swapchain, 0, 0);
 		#endif
 	}
 }
