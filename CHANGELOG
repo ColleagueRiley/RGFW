@@ -152,6 +152,7 @@ new examples:
 - Add custom backend example
 - Add gamepad example
 - Add no standard library example 
+- Add refreshRate to RGFW_monitor
 
 Current Release:    RGFW 1.06 (Aug 14, 2024)
 -----------------------------------------------
