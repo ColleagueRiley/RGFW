@@ -179,6 +179,7 @@ typedef XrmDatabase (*PFN_XrmGetStringDatabase)(const char *data);
 typedef Bool (*PFN_XrmGetResource)(XrmDatabase database, const char *resource_name, const char *resource_class, char **type, XrmValue *value);
 typedef void (*PFN_XrmDestroyDatabase)(XrmDatabase database);
 typedef char *(*PFN_XDisplayName)(const char *string);
+typedef Bool (*PFN_XkbGetState)(Display*, unsigned int, XkbStatePtr);
 
 #ifndef XDL_NO_XRANDR
 #include <X11/extensions/Xrandr.h>
@@ -310,6 +311,7 @@ PFN_XrmGetStringDatabase XrmGetStringDatabaseSrc;
 PFN_XrmGetResource XrmGetResourceSrc;
 PFN_XrmDestroyDatabase XrmDestroyDatabaseSrc;
 PFN_XDisplayName XDisplayNameSrc;
+PFN_XkbGetState XkbGetStateSrc;
 #ifndef XDL_NO_XRANDR
 PFN_XRRGetScreenResourcesCurrent XRRGetScreenResourcesCurrentSrc;
 PFN_XRRGetCrtcInfo XRRGetCrtcInfoSrc;
@@ -356,6 +358,7 @@ PFN_glXDestroyContext glXDestroyContextSrc;
 #define XDestroyRegion XDestroyRegionSrc
 #define XDestroyWindow XDestroyWindowSrc
 #define XDisplayKeycodes XDisplayKeycodesSrc
+#define XkbGetState XkbGetStateSrc
 #define XEventsQueued XEventsQueuedSrc
 #define XFilterEvent XFilterEventSrc
 #define XFindContext XFindContextSrc
@@ -596,6 +599,7 @@ void XDL_init(void) {
     XDL_PROC_DEF(0, XrmGetResource);
     XDL_PROC_DEF(0, XrmDestroyDatabase);
     XDL_PROC_DEF(0, XDisplayName);
+    XDL_PROC_DEF(0, XkbGetState);
     #ifndef XDL_NO_XRANDR
         XDL_PROC_DEF(2, XRRGetScreenResourcesCurrent);
         XDL_PROC_DEF(2, XRRGetCrtcInfo);
