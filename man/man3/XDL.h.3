@@ -92,6 +92,9 @@ XDL.h
 .RI "#define \fBXDisplayKeycodes\fP   \fBXDisplayKeycodesSrc\fP"
 .br
 .ti -1c
+.RI "#define \fBXkbGetState\fP   \fBXkbGetStateSrc\fP"
+.br
+.ti -1c
 .RI "#define \fBXEventsQueued\fP   \fBXEventsQueuedSrc\fP"
 .br
 .ti -1c
@@ -1100,6 +1103,9 @@ XDL.h
 .RI "\fBPFN_XDisplayName\fP \fBXDisplayNameSrc\fP"
 .br
 .ti -1c
+.RI "\fBPFN_XkbGetState\fP \fBXkbGetStateSrc\fP"
+.br
+.ti -1c
 .RI "\fBPFN_XRRGetScreenResourcesCurrent\fP \fBXRRGetScreenResourcesCurrentSrc\fP"
 .br
 .ti -1c
@@ -1284,6 +1290,8 @@ XDL.h
 .SS "#define XInitThreads   \fBXInitThreadsSrc\fP"
 
 .SS "#define XInternAtom   \fBXInternAtomSrc\fP"
+
+.SS "#define XkbGetState   \fBXkbGetStateSrc\fP"
 
 .SS "#define XkbKeycodeToKeysym   \fBXkbKeycodeToKeysymSrc\fP"
 
@@ -1537,7 +1545,7 @@ XDL.h
 
 .SS "typedef Status(* PFN_XkbGetNames) (Display *, unsigned int, XkbDescPtr)"
 
-.SS "typedef Status(* PFN_XkbGetState) (Display *, unsigned int, XkbStatePtr)"
+.SS "typedef Bool(* PFN_XkbGetState)(Display *, unsigned int, XkbStatePtr)"
 
 .SS "typedef KeySym(* PFN_XkbKeycodeToKeysym) (Display *, KeyCode, int, int)"
 
@@ -1792,6 +1800,8 @@ XDL.h
 .SS "\fBPFN_XInitThreads\fP XInitThreadsSrc"
 
 .SS "\fBPFN_XInternAtom\fP XInternAtomSrc"
+
+.SS "\fBPFN_XkbGetState\fP XkbGetStateSrc"
 
 .SS "\fBPFN_XkbKeycodeToKeysym\fP XkbKeycodeToKeysymSrc"
 

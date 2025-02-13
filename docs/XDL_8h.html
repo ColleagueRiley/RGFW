@@ -136,6 +136,8 @@ Macros</h2></td></tr>
 <tr class="separator:a8ede0965d44919da97dc465113a8e318"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f7a14adad8bf68d71c3d415789c3be3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a0f7a14adad8bf68d71c3d415789c3be3">XDisplayKeycodes</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#aa886fbbd798f84c241d60e60450c9b19">XDisplayKeycodesSrc</a></td></tr>
 <tr class="separator:a0f7a14adad8bf68d71c3d415789c3be3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab8121efab0d92a87ebce0616721507ff"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#ab8121efab0d92a87ebce0616721507ff">XkbGetState</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a87fd2719cee6ed46e0e7513c7168fed1">XkbGetStateSrc</a></td></tr>
+<tr class="separator:ab8121efab0d92a87ebce0616721507ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad039a3bcfdc08a2179b834e7f92d8cab"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#ad039a3bcfdc08a2179b834e7f92d8cab">XEventsQueued</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a19049059b14a189e1084871e0943d8fb">XEventsQueuedSrc</a></td></tr>
 <tr class="separator:ad039a3bcfdc08a2179b834e7f92d8cab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0cc1976720c5b678e95ab46bd84f113e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a0cc1976720c5b678e95ab46bd84f113e">XFilterEvent</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#afd3adbe32f967aae7ae218be582c56ec">XFilterEventSrc</a></td></tr>
@@ -511,8 +513,8 @@ Typedefs</h2></td></tr>
 <tr class="separator:a0b38e5aacba7d93beb554a0b74e7f540"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d32a6d5a4abb2cf0382233b2f8cf6d3"><td class="memItemLeft" align="right" valign="top">typedef Status(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a0d32a6d5a4abb2cf0382233b2f8cf6d3">PFN_XkbGetNames</a>) (Display *, unsigned int, XkbDescPtr)</td></tr>
 <tr class="separator:a0d32a6d5a4abb2cf0382233b2f8cf6d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abe1cb057c7431163531255e1fe0e04ef"><td class="memItemLeft" align="right" valign="top">typedef Status(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#abe1cb057c7431163531255e1fe0e04ef">PFN_XkbGetState</a>) (Display *, unsigned int, XkbStatePtr)</td></tr>
-<tr class="separator:abe1cb057c7431163531255e1fe0e04ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe6c31ce28660e6721f34cd7b188aaef"><td class="memItemLeft" align="right" valign="top">typedef Status(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#abe6c31ce28660e6721f34cd7b188aaef">PFN_XkbGetState</a>) (Display *, unsigned int, XkbStatePtr)</td></tr>
+<tr class="separator:abe6c31ce28660e6721f34cd7b188aaef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad695fa3ff8a745ca5c0a6279f9159ce5"><td class="memItemLeft" align="right" valign="top">typedef KeySym(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#ad695fa3ff8a745ca5c0a6279f9159ce5">PFN_XkbKeycodeToKeysym</a>) (Display *, KeyCode, int, int)</td></tr>
 <tr class="separator:ad695fa3ff8a745ca5c0a6279f9159ce5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac8bddb934c219b68a0d3c8d6113884a9"><td class="memItemLeft" align="right" valign="top">typedef Bool(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#ac8bddb934c219b68a0d3c8d6113884a9">PFN_XkbQueryExtension</a>) (Display *, int *, int *, int *, int *, int *)</td></tr>
@@ -809,6 +811,8 @@ Variables</h2></td></tr>
 <tr class="separator:adfda50b2582179e40306b9bd88dceebe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d63cb90c3cfe874ce56c02487f4724c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#a124ce0f4e390cfc2d90939171c404f47">PFN_XDisplayName</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a7d63cb90c3cfe874ce56c02487f4724c">XDisplayNameSrc</a></td></tr>
 <tr class="separator:a7d63cb90c3cfe874ce56c02487f4724c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a87fd2719cee6ed46e0e7513c7168fed1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#abe6c31ce28660e6721f34cd7b188aaef">PFN_XkbGetState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a87fd2719cee6ed46e0e7513c7168fed1">XkbGetStateSrc</a></td></tr>
+<tr class="separator:a87fd2719cee6ed46e0e7513c7168fed1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e899f15c78da4411dc0477dc5aa1839"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#add9adfc2dc97e2bd318c09927216807e">PFN_XRRGetScreenResourcesCurrent</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a8e899f15c78da4411dc0477dc5aa1839">XRRGetScreenResourcesCurrentSrc</a></td></tr>
 <tr class="separator:a8e899f15c78da4411dc0477dc5aa1839"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a84aa173b206bf634ab99fdc5ec14e0e3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#a86c9ba892cf7fb886265b80b835ad161">PFN_XRRGetCrtcInfo</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a84aa173b206bf634ab99fdc5ec14e0e3">XRRGetCrtcInfoSrc</a></td></tr>
@@ -1763,6 +1767,20 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define XInternAtom&#160;&#160;&#160;<a class="el" href="XDL_8h.html#affc4ba1ddc60107fd5008dbce4b49fee">XInternAtomSrc</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab8121efab0d92a87ebce0616721507ff" name="ab8121efab0d92a87ebce0616721507ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab8121efab0d92a87ebce0616721507ff">&#9670;&#160;</a></span>XkbGetState</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define XkbGetState&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a87fd2719cee6ed46e0e7513c7168fed1">XkbGetStateSrc</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3520,14 +3538,14 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="abe1cb057c7431163531255e1fe0e04ef" name="abe1cb057c7431163531255e1fe0e04ef"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abe1cb057c7431163531255e1fe0e04ef">&#9670;&#160;</a></span>PFN_XkbGetState</h2>
+<a id="abe6c31ce28660e6721f34cd7b188aaef" name="abe6c31ce28660e6721f34cd7b188aaef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe6c31ce28660e6721f34cd7b188aaef">&#9670;&#160;</a></span>PFN_XkbGetState</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef Status(* PFN_XkbGetState) (Display *, unsigned int, XkbStatePtr)</td>
+          <td class="memname">typedef Bool(* PFN_XkbGetState)(Display *, unsigned int, XkbStatePtr)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -5288,6 +5306,20 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="XDL_8h.html#af6df07066fcf0a5b5f2a8c1c9823f911">PFN_XInternAtom</a> XInternAtomSrc</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a87fd2719cee6ed46e0e7513c7168fed1" name="a87fd2719cee6ed46e0e7513c7168fed1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a87fd2719cee6ed46e0e7513c7168fed1">&#9670;&#160;</a></span>XkbGetStateSrc</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="XDL_8h.html#abe6c31ce28660e6721f34cd7b188aaef">PFN_XkbGetState</a> XkbGetStateSrc</td>
         </tr>
       </table>
 </div><div class="memdoc">

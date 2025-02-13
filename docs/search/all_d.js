@@ -70,7 +70,7 @@ var searchData=
   ['pfn_5fxkbfreenames_67',['PFN_XkbFreeNames',['../XDL_8h.html#a76667c9464a48ffa20c62052f35ca702',1,'XDL.h']]],
   ['pfn_5fxkbgetmap_68',['PFN_XkbGetMap',['../XDL_8h.html#a0b38e5aacba7d93beb554a0b74e7f540',1,'XDL.h']]],
   ['pfn_5fxkbgetnames_69',['PFN_XkbGetNames',['../XDL_8h.html#a0d32a6d5a4abb2cf0382233b2f8cf6d3',1,'XDL.h']]],
-  ['pfn_5fxkbgetstate_70',['PFN_XkbGetState',['../XDL_8h.html#abe1cb057c7431163531255e1fe0e04ef',1,'XDL.h']]],
+  ['pfn_5fxkbgetstate_70',['PFN_XkbGetState',['../XDL_8h.html#abe6c31ce28660e6721f34cd7b188aaef',1,'XDL.h']]],
   ['pfn_5fxkbkeycodetokeysym_71',['PFN_XkbKeycodeToKeysym',['../XDL_8h.html#ad695fa3ff8a745ca5c0a6279f9159ce5',1,'XDL.h']]],
   ['pfn_5fxkbqueryextension_72',['PFN_XkbQueryExtension',['../XDL_8h.html#ac8bddb934c219b68a0d3c8d6113884a9',1,'XDL.h']]],
   ['pfn_5fxkbselecteventdetails_73',['PFN_XkbSelectEventDetails',['../XDL_8h.html#aafa80b5c494c6042cac1c9c7a0761035',1,'XDL.h']]],
