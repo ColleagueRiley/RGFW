@@ -1,2 +1,15 @@
 - ensure support for UTF-16 (windows)
 - fix wayland stuff
+
+- RGFW_window_setFocus(win, bool)
+- RGFW_window_setTopMost(win, bool)
+
+- FLAG_INTERLACED_HINT (post)
+- RGFW_windowHIDPI (flags)
+
+- FLAG_WINDOW_ALWAYS_RUN (by raylib)
+
+Look into:
+- GLFWvidmode.redBits 	GLFW_RED_BITS hint
+- GLFWvidmode.greenBits 	GLFW_GREEN_BITS hint
+- GLFWvidmode.blueBits 	GLFW_BLUE_BITS hint  
