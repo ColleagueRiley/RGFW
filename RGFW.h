@@ -855,8 +855,6 @@ RGFWDEF void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a);
 /*! set the minimum size a user can extend a window to a given size/area */
 RGFWDEF void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a);
 
-RGFWDEF void RGFW_window_focus(RGFW_window* win); /*!< sets the focus to this window */
-RGFWDEF void RGFW_window_raise(RGFW_window* win); /*!< raise the window (to the top) */
 RGFWDEF void RGFW_window_maximize(RGFW_window* win); /*!< maximize the window size */
 RGFWDEF void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen); /*!< fullscreen the window size */
 RGFWDEF void RGFW_window_center(RGFW_window* win); /*!< center the window */
@@ -4429,17 +4427,6 @@ void RGFW_window_maximize(RGFW_window* win) {
 	RGFW_toggleXMaximized(win, 1); 
 }
 
-void RGFW_window_focus(RGFW_window* win) {
-	RGFW_ASSERT(win);
-	XSetInputFocus(win->src.display, win->src.window, RevertToNone, CurrentTime);
-}
-
-void RGFW_window_raise(RGFW_window* win) {
-	RGFW_ASSERT(win);
-	XRaiseWindow(win->src.display, win->src.window);
-	XMapRaised(win->src.display, win->src.window);
-}
-
 void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) { 
 	if (fullscreen) {
 		win->_flags |= RGFW_windowFullscreen;
@@ -5601,14 +5588,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	GetWindowRect(hWnd, &windowRect);
 	
 	switch (message) {
-		case WM_CLOSE:
-			RGFW_windowQuitCallback(win);
-			win->event.type = RGFW_quit;
-			return 0;
 		case WM_ACTIVATE:
-			win->event.type = RGFW_focusIn + RGFW_BOOL(LOWORD(wParam) == WA_INACTIVE);
-			RGFW_focusCallback(win, RGFW_BOOL(LOWORD(wParam) != WA_INACTIVE));
-
 			if ((win->_flags & RGFW_windowFullscreen) == 0)
 				break;
 			
@@ -6118,18 +6098,6 @@ void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
 void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 	RGFW_ASSERT(win != NULL);
 	win->src.maxSize = a;
-}
-
-void RGFW_window_focus(RGFW_window* win) {
-	RGFW_ASSERT(win);
-	SetForegroundWindow(win->src.window);
-}
-
-void RGFW_window_raise(RGFW_window* win) {
-	RGFW_ASSERT(win);
-	BringWindowToTop(win->src.window);
-	SetWindowPos(win->src.window, HWND_TOPMOST, win->r.x, win->r.y, win->r.w, win->r.h, SWP_NOSIZE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-	SetWindowPos(win->src.window, HWND_NOTOPMOST, win->r.x, win->r.y, win->r.w, win->r.h, SWP_NOSIZE | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 }
 
 void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
@@ -8634,16 +8602,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{win->r.x, win->r.y}, {win->r.w, win->r.h + offset}}, true, true);
 }
 
-void RGFW_window_focus(RGFW_window* win) {
-	RGFW_ASSERT(win);
-	((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("makeKey:"), (SEL)NULL);
-}
-
-void RGFW_window_raise(RGFW_window* win) {
-	RGFW_ASSERT(win != NULL);
-	((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("orderFront:"), (SEL)NULL);
-}
-
 void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 	RGFW_ASSERT(win != NULL);
 	if (fullscreen && (win->_flags & RGFW_windowFullscreen)) return; 
@@ -10021,9 +9979,6 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 }
 
 /* unsupported functions */
-
-void RGFW_window_focus(RGFW_window* win) { RGFW_UNUSED(win); }
-void RGFW_window_raise(RGFW_window* win) { RGFW_UNUSED(win); }
 RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area, u32 refreshRate) { RGFW_UNUSED(mon); RGFW_UNUSED(area); RGFW_UNUSED(refreshRate); return RGFW_FALSE; }
 RGFW_monitor* RGFW_getMonitors(void) { return NULL; }
 RGFW_monitor RGFW_getPrimaryMonitor(void) { return (RGFW_monitor){}; }

@@ -1,13 +1,10 @@
 - ensure support for UTF-16 (windows)
 - fix wayland stuff
 
-- RGFW_window_setFocus(win, bool)
-- RGFW_window_setTopMost(win, bool)
-
-- FLAG_INTERLACED_HINT (post)
-- RGFW_windowHIDPI (flags)
-
-- FLAG_WINDOW_ALWAYS_RUN (by raylib)
+- monitor 
+- check monitor.scaleX/scaleY/pixelRatio on each platform 
+- look into including source object to the struct
+- look into getting monitor data prior to window creation
 
 Look into:
 - GLFWvidmode.redBits 	GLFW_RED_BITS hint
