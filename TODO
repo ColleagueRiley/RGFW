@@ -1,2 +1,12 @@
 - ensure support for UTF-16 (windows)
 - fix wayland stuff
+
+- monitor 
+- check monitor.scaleX/scaleY/pixelRatio on each platform 
+- look into including source object to the struct
+- look into getting monitor data prior to window creation
+
+Look into:
+- GLFWvidmode.redBits 	GLFW_RED_BITS hint
+- GLFWvidmode.greenBits 	GLFW_GREEN_BITS hint
+- GLFWvidmode.blueBits 	GLFW_BLUE_BITS hint  
