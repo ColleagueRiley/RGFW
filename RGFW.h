@@ -720,11 +720,12 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowTransparent = RGFW_BIT(6), /*!< the window is transparent (only properly works on X11 and MacOS, although it's although for windows) */
 	RGFW_windowCenter = RGFW_BIT(7), /*! center the window on the screen */
 	RGFW_windowOpenglSoftware = RGFW_BIT(8), /*! use OpenGL software rendering */
-	RGFW_windowCocoaCHDirToRes = RGFW_BIT(9), /* (cocoa only), change directory to resource folder */
-	RGFW_windowScaleToMonitor = RGFW_BIT(10), /* scale the window to the screen */
-	RGFW_windowHide = RGFW_BIT(11), /* the window is hidden */
+	RGFW_windowCocoaCHDirToRes = RGFW_BIT(9), /*! (cocoa only), change directory to resource folder */
+	RGFW_windowScaleToMonitor = RGFW_BIT(10), /*! scale the window to the screen */
+	RGFW_windowHide = RGFW_BIT(11), /*! the window is hidden */
 	RGFW_windowMaximize = RGFW_BIT(12),
 	RGFW_windowCenterCursor = RGFW_BIT(13),
+	RGFW_windowFloating = RGFW_BIT(14), /*!< creat a floating window */
 	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize,
 };
 
@@ -1776,6 +1777,8 @@ void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	if (flags & RGFW_windowHideMouse)				RGFW_window_showMouse(win, 0);
 	else if (win->_flags & RGFW_windowHideMouse)  	RGFW_window_showMouse(win, 1);
 	if (flags & RGFW_windowCocoaCHDirToRes)			RGFW_moveToMacOSResourceDir();
+	if (flags & RGFW_windowFloating)				RGFW_window_setFloating(win, 1);
+	else if (win->_flags & RGFW_windowFloating)		RGFW_window_setFloating(win, 0);
 
 	win->_flags = flags;
 }
@@ -2658,7 +2661,7 @@ This is where OS specific stuff starts
 
 #ifdef RGFW_WAYLAND
 /*
-Wayland TODO:
+Wayland TODO: (out of date)
 - fix RGFW_keyPressed lock state
 
 	RGFW_windowMoved, 		the window was moved (by the user)
@@ -4449,7 +4452,14 @@ void RGFW_window_maximize(RGFW_window* win) {
 
 void RGFW_window_focus(RGFW_window* win) {
 	RGFW_ASSERT(win);
-	XSetInputFocus(win->src.display, win->src.window, RevertToNone, CurrentTime);
+	
+    XWindowAttributes attr;
+    XGetWindowAttributes(win->src.display, win->src.window, &attr);
+    if (attr.map_state != IsViewable)
+        return;
+
+	int status = XSetInputFocus(win->src.display, win->src.window, RevertToPointerRoot, CurrentTime);
+	XFlush(win->src.display);
 }
 
 void RGFW_window_raise(RGFW_window* win) {

@@ -56,6 +56,8 @@ Current Version: RGFW 1.6-dev
 - add `RGFW_window_setOpacity`
 - add `RGFW_getTimerFreq` and `RGFW_getTimerValue`
 - framework CoreVideo is needed to get the monitor's refresh rate (macOS)
+- add RGFW_window_setFlags
+- add RGFW_windowFloating flag
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------

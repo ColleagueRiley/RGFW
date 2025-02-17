@@ -79,15 +79,15 @@ int main(void) {
             }   
         } 
 	
-        clear(win, (u8[4]){0, 0, 255, 100});
+        clear(win, (u8[4]){0, 0, 255, 125});
         drawRect(win, RGFW_RECT(200, 200, 200, 200), (u8[4]){255, 0, 0, 255});
 
         drawBitmap(win, icon, RGFW_RECT(100, 100, 3, 3));
         
         RGFW_window_setGPURender(win, 0);
         RGFW_window_swapBuffers(win);
-        RGFW_window_checkFPS(win, 0);
-    }
+		RGFW_window_checkFPS(win, 0);
+	}
 
     RGFW_window_close(win);
 }
