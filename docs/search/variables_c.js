@@ -1,7 +1,8 @@
 var searchData=
 [
-  ['r_0',['r',['../structRGFW__window.html#a638e63f187096f668c11438ae44d8700',1,'RGFW_window']]],
-  ['rect_1',['rect',['../structRGFW__monitor.html#afad80514eed14d9349a5bb9c05f13d04',1,'RGFW_monitor']]],
-  ['refreshrate_2',['refreshRate',['../structRGFW__monitor.html#af51ed0654e4ce3148f45d4cdd83f631d',1,'RGFW_monitor']]],
-  ['repeat_3',['repeat',['../structRGFW__event.html#a600894dfa6229cceee18f96a6552da4e',1,'RGFW_event']]]
+  ['pad_0',['pad',['../structRGFW__monitorMode.html#a4fc68a677840ccf536f444886eec0ed4',1,'RGFW_monitorMode']]],
+  ['physh_1',['physH',['../structRGFW__monitor.html#a9c3025aaf5b5f383d80a3516fca2a399',1,'RGFW_monitor']]],
+  ['physw_2',['physW',['../structRGFW__monitor.html#af4ba34d59dd83ca44148d44e82d75d35',1,'RGFW_monitor']]],
+  ['pixelratio_3',['pixelRatio',['../structRGFW__monitor.html#a6a1679c6f3fff5aa884603ae401a4437',1,'RGFW_monitor']]],
+  ['point_4',['point',['../structRGFW__event.html#aba9e0d0df62210352604aedbb5829c11',1,'RGFW_event']]]
 ];

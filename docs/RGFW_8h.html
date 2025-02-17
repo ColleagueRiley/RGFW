@@ -94,6 +94,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__area.html">RGFW_area</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__monitorMode.html">RGFW_monitorMode</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__monitor.html">RGFW_monitor</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__event.html">RGFW_event</a></td></tr>
@@ -178,6 +180,8 @@ Typedefs</h2></td></tr>
 <tr class="separator:a85cb35fbe5bf2961d7ad5f26814a91a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab4e06f1c11ba6fa767fc88e2383dd479"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#ab4e06f1c11ba6fa767fc88e2383dd479">RGFW_bool</a></td></tr>
 <tr class="separator:ab4e06f1c11ba6fa767fc88e2383dd479"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43dd63380df26ed664e2cfea0eeb1d7e"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structRGFW__monitorMode.html">RGFW_monitorMode</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a43dd63380df26ed664e2cfea0eeb1d7e">RGFW_monitorMode</a></td></tr>
+<tr class="separator:a43dd63380df26ed664e2cfea0eeb1d7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae4f53c7d78c7c435bb81a99bd314df82"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structRGFW__monitor.html">RGFW_monitor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#ae4f53c7d78c7c435bb81a99bd314df82">RGFW_monitor</a></td></tr>
 <tr class="separator:ae4f53c7d78c7c435bb81a99bd314df82"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7c3c77eb6844d3bb20054dc4f1f61ac5"><td class="memItemLeft" align="right" valign="top">typedef void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a7c3c77eb6844d3bb20054dc4f1f61ac5">RGFW_mouse</a></td></tr>
@@ -237,8 +241,12 @@ Functions</h2></td></tr>
 <tr class="separator:acdce84b508a6d3eca700357d33027965"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b687e5aac56d2c3af094ebb3caf1fc5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="structRGFW__monitor.html">RGFW_monitor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a9b687e5aac56d2c3af094ebb3caf1fc5">RGFW_getPrimaryMonitor</a> (void)</td></tr>
 <tr class="separator:a9b687e5aac56d2c3af094ebb3caf1fc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeea7896d1550934c5dad1daf45daa25b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#ab4e06f1c11ba6fa767fc88e2383dd479">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#aeea7896d1550934c5dad1daf45daa25b">RGFW_monitor_scale</a> (<a class="el" href="structRGFW__monitor.html">RGFW_monitor</a> mon, <a class="el" href="structRGFW__area.html">RGFW_area</a> area, <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> refreshRate)</td></tr>
-<tr class="separator:aeea7896d1550934c5dad1daf45daa25b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb0f2affd4be9dc70c72715ef6b6e2b8"><td class="memItemLeft" align="right" valign="top">typedef&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#aeb0f2affd4be9dc70c72715ef6b6e2b8">RGFW_ENUM</a> (<a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>, RGFW_modeRequest)</td></tr>
+<tr class="separator:aeb0f2affd4be9dc70c72715ef6b6e2b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a958e3987c5e8d3895a7b4c3cc3400e23"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#ab4e06f1c11ba6fa767fc88e2383dd479">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a958e3987c5e8d3895a7b4c3cc3400e23">RGFW_monitor_requestMode</a> (<a class="el" href="structRGFW__monitor.html">RGFW_monitor</a> mon, <a class="el" href="structRGFW__monitorMode.html">RGFW_monitorMode</a> mode, RGFW_modeRequest request)</td></tr>
+<tr class="separator:a958e3987c5e8d3895a7b4c3cc3400e23"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a45d43f5f060c80f6987278dc26903c57"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#ab4e06f1c11ba6fa767fc88e2383dd479">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a45d43f5f060c80f6987278dc26903c57">RGFW_monitorModeCompare</a> (<a class="el" href="structRGFW__monitorMode.html">RGFW_monitorMode</a> mon, <a class="el" href="structRGFW__monitorMode.html">RGFW_monitorMode</a> mon2, RGFW_modeRequest request)</td></tr>
+<tr class="separator:a45d43f5f060c80f6987278dc26903c57"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a11cac9d387da64acbcaa9cb3a21e4b14"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a7c3c77eb6844d3bb20054dc4f1f61ac5">RGFW_mouse</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a11cac9d387da64acbcaa9cb3a21e4b14">RGFW_loadMouse</a> (<a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> *icon, <a class="el" href="structRGFW__area.html">RGFW_area</a> a, <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> channels)</td></tr>
 <tr class="separator:a11cac9d387da64acbcaa9cb3a21e4b14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc013c735ca517d58623dc4a46e1cc60"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#abc013c735ca517d58623dc4a46e1cc60">RGFW_freeMouse</a> (<a class="el" href="RGFW_8h.html#a7c3c77eb6844d3bb20054dc4f1f61ac5">RGFW_mouse</a> *mouse)</td></tr>
@@ -1116,6 +1124,20 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a43dd63380df26ed664e2cfea0eeb1d7e" name="a43dd63380df26ed664e2cfea0eeb1d7e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a43dd63380df26ed664e2cfea0eeb1d7e">&#9670;&#160;</a></span>RGFW_monitorMode</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="structRGFW__monitorMode.html">RGFW_monitorMode</a> <a class="el" href="structRGFW__monitorMode.html">RGFW_monitorMode</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a7c3c77eb6844d3bb20054dc4f1f61ac5" name="a7c3c77eb6844d3bb20054dc4f1f61ac5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7c3c77eb6844d3bb20054dc4f1f61ac5">&#9670;&#160;</a></span>RGFW_mouse</h2>
 
@@ -1219,7 +1241,7 @@ Functions</h2></td></tr>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="af0b04ace94c7d3824f3fab107d6368ce" name="af0b04ace94c7d3824f3fab107d6368ce"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af0b04ace94c7d3824f3fab107d6368ce">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[1/5]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#af0b04ace94c7d3824f3fab107d6368ce">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[1/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1260,7 +1282,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="a0193df4fbcfcda20ea542a96777a58bd" name="a0193df4fbcfcda20ea542a96777a58bd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0193df4fbcfcda20ea542a96777a58bd">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[2/5]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a0193df4fbcfcda20ea542a96777a58bd">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[2/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1313,7 +1335,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="ae9c6e644f943e66e5e916b16c8b81d27" name="ae9c6e644f943e66e5e916b16c8b81d27"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae9c6e644f943e66e5e916b16c8b81d27">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[3/5]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ae9c6e644f943e66e5e916b16c8b81d27">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[3/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1359,7 +1381,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="adb2d6f25bf1ee1fbe2d021af31ebac43" name="adb2d6f25bf1ee1fbe2d021af31ebac43"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adb2d6f25bf1ee1fbe2d021af31ebac43">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[4/5]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#adb2d6f25bf1ee1fbe2d021af31ebac43">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[4/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1386,8 +1408,39 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="aeb0f2affd4be9dc70c72715ef6b6e2b8" name="aeb0f2affd4be9dc70c72715ef6b6e2b8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb0f2affd4be9dc70c72715ef6b6e2b8">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[5/6]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef RGFW_ENUM </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">RGFW_modeRequest&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >&lt; scale the monitor size</p>
+<p >&lt; change the refresh rate</p>
+<p >&lt; change the monitor RGB bits size</p>
+
+</div>
+</div>
 <a id="ad13802da9864badf7c16c3a3ba69e47f" name="ad13802da9864badf7c16c3a3ba69e47f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad13802da9864badf7c16c3a3ba69e47f">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[5/5]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ad13802da9864badf7c16c3a3ba69e47f">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[6/6]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1510,14 +1563,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="aeea7896d1550934c5dad1daf45daa25b" name="aeea7896d1550934c5dad1daf45daa25b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeea7896d1550934c5dad1daf45daa25b">&#9670;&#160;</a></span>RGFW_monitor_scale()</h2>
+<a id="a958e3987c5e8d3895a7b4c3cc3400e23" name="a958e3987c5e8d3895a7b4c3cc3400e23"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a958e3987c5e8d3895a7b4c3cc3400e23">&#9670;&#160;</a></span>RGFW_monitor_requestMode()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#ab4e06f1c11ba6fa767fc88e2383dd479">RGFW_bool</a> RGFW_monitor_scale </td>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#ab4e06f1c11ba6fa767fc88e2383dd479">RGFW_bool</a> RGFW_monitor_requestMode </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structRGFW__monitor.html">RGFW_monitor</a>&#160;</td>
           <td class="paramname"><em>mon</em>, </td>
@@ -1525,14 +1578,14 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structRGFW__area.html">RGFW_area</a>&#160;</td>
-          <td class="paramname"><em>area</em>, </td>
+          <td class="paramtype"><a class="el" href="structRGFW__monitorMode.html">RGFW_monitorMode</a>&#160;</td>
+          <td class="paramname"><em>mode</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>&#160;</td>
-          <td class="paramname"><em>refreshRate</em>&#160;</td>
+          <td class="paramtype">RGFW_modeRequest&#160;</td>
+          <td class="paramname"><em>request</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1541,7 +1594,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >scale monitor to area and refreshRate, if refreshRate == 0, it's ignored </p>
+<p >request a specific mode </p>
 
 </div>
 </div>
@@ -1571,6 +1624,40 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p >scale monitor to window size </p>
+
+</div>
+</div>
+<a id="a45d43f5f060c80f6987278dc26903c57" name="a45d43f5f060c80f6987278dc26903c57"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a45d43f5f060c80f6987278dc26903c57">&#9670;&#160;</a></span>RGFW_monitorModeCompare()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#ab4e06f1c11ba6fa767fc88e2383dd479">RGFW_bool</a> RGFW_monitorModeCompare </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structRGFW__monitorMode.html">RGFW_monitorMode</a>&#160;</td>
+          <td class="paramname"><em>mon</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structRGFW__monitorMode.html">RGFW_monitorMode</a>&#160;</td>
+          <td class="paramname"><em>mon2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">RGFW_modeRequest&#160;</td>
+          <td class="paramname"><em>request</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>

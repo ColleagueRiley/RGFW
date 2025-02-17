@@ -24,5 +24,6 @@ var searchData=
   ['glxswapbufferssrc_21',['glXSwapBuffersSrc',['../XDL_8h.html#a3b55aceb660c5acc59755ab80ec6fbc6',1,'XDL.h']]],
   ['glxswapintervalext_22',['glXSwapIntervalEXT',['../XDL_8h.html#a44370466816fdf575153176149d87b7d',1,'XDL.h']]],
   ['glxswapintervalextsrc_23',['glXSwapIntervalEXTSrc',['../XDL_8h.html#ab023a41941bb195e4ba0ee229432ef0c',1,'XDL.h']]],
-  ['graphics_5fapi_24',['Graphics_API',['../group__graphics__API.html',1,'']]]
+  ['graphics_5fapi_24',['Graphics_API',['../group__graphics__API.html',1,'']]],
+  ['green_25',['green',['../structRGFW__monitorMode.html#ab384a00223b6cc9838a186b060553415',1,'RGFW_monitorMode']]]
 ];

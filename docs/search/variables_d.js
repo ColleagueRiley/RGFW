@@ -1,7 +1,8 @@
 var searchData=
 [
-  ['scalex_0',['scaleX',['../structRGFW__monitor.html#ac991866248d4babbd78fe1a7fd8ee145',1,'RGFW_monitor']]],
-  ['scaley_1',['scaleY',['../structRGFW__monitor.html#a906b121ba6fb271b108da0d063bb303e',1,'RGFW_monitor']]],
-  ['scroll_2',['scroll',['../structRGFW__event.html#a4ccee6f625be64b6a84868258fbc83f9',1,'RGFW_event']]],
-  ['src_3',['src',['../structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03',1,'RGFW_window']]]
+  ['r_0',['r',['../structRGFW__window.html#a638e63f187096f668c11438ae44d8700',1,'RGFW_window']]],
+  ['red_1',['red',['../structRGFW__monitorMode.html#aae07949f07855342f173b25965d78026',1,'RGFW_monitorMode']]],
+  ['refreshrate_2',['refreshRate',['../structRGFW__monitorMode.html#ae9253164c12d4a6e0c92be0e1d5c551e',1,'RGFW_monitorMode']]],
+  ['repeat_3',['repeat',['../structRGFW__event.html#a600894dfa6229cceee18f96a6552da4e',1,'RGFW_event']]],
+  ['rgb_4',['RGB',['../structRGFW__monitorMode.html#a9531caae353d9fa7f7cec9d0744b5002',1,'RGFW_monitorMode']]]
 ];
