@@ -8741,7 +8741,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 void RGFW_window_focus(RGFW_window* win) {
 	RGFW_ASSERT(win);
-	((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("makeKey:"), (SEL)NULL);
+	((void (*)(id, SEL, BOOL))objc_msgSend)((id)win->src.window, sel_registerName("makeKeyWindow"), NULL);
 }
 
 void RGFW_window_raise(RGFW_window* win) {
@@ -8793,7 +8793,12 @@ void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating) {
 }
 
 void RGFW_window_setOpacity(RGFW_window* win, u8 opacity) {
-	objc_msgSend_int(win->src.window, sel_registerName("setOpacity:"), opacity);
+	objc_msgSend_int(win->src.window, sel_registerName("setAlphaValue:"), opacity);
+	objc_msgSend_void_bool(win->src.window, sel_registerName("setOpaque:"), (opacity < (u8)255));
+	
+	if (opacity)
+		objc_msgSend_void_id((id)win->src.window, sel_registerName("setBackgroundColor:"), NSColor_colorWithSRGB(0, 0, 0, opacity));
+	
 }
 
 void RGFW_window_restore(RGFW_window* win) {
@@ -9133,7 +9138,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 		objc_msgSend_void(win->src.ctx, sel_registerName("makeCurrentContext"));
 	}
 	void* RGFW_getCurrent_OpenGL(void) {
-		return CGLGetCurrentContext();
+		objc_msgSend_id(objc_getClass("NSOpenGLContext"), sel_registerName("currentContext"));
 	}
 	#endif
 
