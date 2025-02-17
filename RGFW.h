@@ -1158,7 +1158,7 @@ RGFWDEF void RGFW_setGLVersion(RGFW_glProfile profile, i32 major, i32 minor);
 RGFWDEF void RGFW_setDoubleBuffer(RGFW_bool useDoubleBuffer);
 RGFWDEF void* RGFW_getProcAddress(const char* procname); /*!< get native opengl proc address */
 RGFWDEF void RGFW_window_makeCurrent_OpenGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
-void* RGFW_getCurrent_OpenGL(RGFW_window* win); /*!< get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl))*/
+void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl))*/
 #elif defined(RGFW_VULKAN)
 	#if defined(RGFW_X11)
 		#define VK_USE_PLATFORM_XLIB_KHR
@@ -1800,7 +1800,10 @@ RGFWDEF void* RGFW_cocoaGetLayer(void);
 
 const char* RGFW_className = NULL;
 void RGFW_setClassName(const char* name) { RGFW_className = name; }
+
+#ifndef RGFW_X11
 void RGFW_setXInstName(const char* name) {}
+#endif
 
 RGFW_keyState RGFW_mouseButtons[RGFW_mouseFinal] = {  {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0} };
 
@@ -2412,7 +2415,7 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 	eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.EGL_context);
 }
 
-void* RGFW_getCurrent_OpenGL(RGFW_window* win) { return eglGetCurrentContext(); }
+void* RGFW_getCurrent_OpenGL(void) { return eglGetCurrentContext(); }
 
 #ifdef RGFW_APPLE
 void* RGFWnsglFramework = NULL;
@@ -3469,7 +3472,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	XClassHint hint;
 	hint.res_class = (char*)RGFW_className;
 	if (RGFW_instName == NULL)	hint.res_name = (char*)name;
-	else 						hint.res_name = (char*)RGFW_instName
+	else 						hint.res_name = (char*)RGFW_instName;
 	XSetClassHint(win->src.display, win->src.window, &hint);
 
 	if ((flags & RGFW_windowNoInitAPI) == 0) {
@@ -4498,7 +4501,7 @@ void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating) {
 
 void RGFW_window_setOpacity(RGFW_window* win, u8 opacity) {
 	RGFW_ASSERT(win != NULL);
-    const CARD32 value = (CARD32) (0xffffffffu * (double) opacity);
+    const u32 value = (u32) (0xffffffffu * (double) opacity);
 	RGFW_LOAD_ATOM(NET_WM_WINDOW_OPACITY);
     XChangeProperty(win->src.display, win->src.window,
 					NET_WM_WINDOW_OPACITY, XA_CARDINAL, 32, PropModeReplace, (unsigned char*) &value, 1);
@@ -5230,7 +5233,7 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 	else
 		glXMakeCurrent(win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);
 }
-void* RGFW_getCurrent_OpenGL(RGFW_window* win) { return glXGetCurrentContext(); }
+void* RGFW_getCurrent_OpenGL(void) { return glXGetCurrentContext(); }
 #endif
 
 
@@ -7202,7 +7205,7 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 	else
 		wglMakeCurrent(win->src.hdc, (HGLRC) win->src.ctx);
 }
-void* RGFW_getCurrent_OpenGL(RGFW_window* win) { return wglGetCurrentContext(); }
+void* RGFW_getCurrent_OpenGL(void) { return wglGetCurrentContext(); }
 #endif
 
 #ifndef RGFW_EGL
@@ -8804,7 +8807,7 @@ void RGFW_window_restore(RGFW_window* win) {
 RGFW_bool RGFW_window_isFloating(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	id level = objc_msgSend_id(win->src.window, sel_registerName("level"));
-	return level > NSNormalWindowLevel;
+	return level > kCGNormalWindowLevelKey;
 }
 
 void RGFW_window_setName(RGFW_window* win, const char* name) {
@@ -9129,7 +9132,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 		RGFW_ASSERT(win != NULL);
 		objc_msgSend_void(win->src.ctx, sel_registerName("makeCurrentContext"));
 	}
-	void* RGFW_getCurrent_OpenGL(RGFW_window* win) { 
+	void* RGFW_getCurrent_OpenGL(void) { 
 		RGFW_ASSERT(win != NULL);
 		return CGLGetCurrentContext();
 	}
@@ -9238,7 +9241,7 @@ u64 RGFW_getTimeNS(void) {
 
 u64 RGFW_osx_initTimer(void) {
 	static u64 freq;
-	if (info.denom == 0) {
+	if (freq == 0) {
 		mach_timebase_info_data_t mach_timebase_info(&info);
 		freq = (info.denom * 1e9) / info.numer;
 	}
@@ -10067,7 +10070,7 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 }
 
 #ifndef RGFW_WEBGPU
-void* RGFW_getCurrent_OpenGL(RGFW_window* win) { return emscripten_webgl_get_context_current(); }
+void* RGFW_getCurrent_OpenGL() { return emscripten_webgl_get_context_current(); }
 #endif
 
 #ifndef RGFW_EGL
@@ -10151,6 +10154,7 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 }
 
 void RGFW_window_setOpacity(RGFW_window* win, u8 opacity) {
+	RGFW_UNUSED(win);
 	EM_ASM({
 		var element = document.getElementById("canvas");
 		if (element)
