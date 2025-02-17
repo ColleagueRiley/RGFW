@@ -47,6 +47,17 @@ Current Version: RGFW 1.6-dev
 - add RGFW_window_isFullscreen
 - add refreshRate to RGFW_monitor_scale
 - limit directX support to RGFW_window_createDXSwapChain, most of it should/can be handled by the user
+- Add refreshRate to RGFW_monitor
+- do not close the window until the user closes it
+- add `RGFW_window_focus` and `RGFW_window_raise`
+- add `RGFW_window_isFloating`and `RGFW_window_setFloating`
+- add `RGFW_getCurrent_OpenGL`
+- add `RGFW_setXInstName`
+- add `RGFW_window_setOpacity`
+- add `RGFW_getTimerFreq` and `RGFW_getTimerValue`
+- framework CoreVideo is needed to get the monitor's refresh rate (macOS)
+- add RGFW_window_setFlags
+- add RGFW_windowFloating flag
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
@@ -152,7 +163,6 @@ new examples:
 - Add custom backend example
 - Add gamepad example
 - Add no standard library example 
-- Add refreshRate to RGFW_monitor
 
 Current Release:    RGFW 1.06 (Aug 14, 2024)
 -----------------------------------------------
