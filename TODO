@@ -1,12 +1,16 @@
 - ensure support for UTF-16 (windows)
-- fix wayland stuff
 
 - monitor 
 - check monitor.scaleX/scaleY/pixelRatio on each platform 
 - look into including source object to the struct
 - look into getting monitor data prior to window creation
-
+- look into window gamma
+- look into window gammaramp
+- RGFW_SCALE_TO_MONITOR Window content area scaling window window hint
+- RGFW_COCOA_RETINA_FRAMEBUFFER macOS specific window hint
 Look into:
 - GLFWvidmode.redBits 	GLFW_RED_BITS hint
 - GLFWvidmode.greenBits 	GLFW_GREEN_BITS hint
 - GLFWvidmode.blueBits 	GLFW_BLUE_BITS hint  
+
+- fix wayland stuff
