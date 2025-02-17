@@ -165,7 +165,7 @@ a very simple example</h2>
 <div class="ttc" id="astructRGFW__window_html_af2effd6e3f8e3f7add8a7afd6aeb455a"><div class="ttname"><a href="structRGFW__window.html#af2effd6e3f8e3f7add8a7afd6aeb455a">RGFW_window::event</a></div><div class="ttdeci">RGFW_event event</div><div class="ttdef"><b>Definition:</b> RGFW.h:741</div></div>
 </div><!-- fragment --><div class="fragment"><div class="line">linux : gcc main.c -lX11 -lGL -lXrandr</div>
 <div class="line">windows : gcc main.c -lopengl32 -lgdi32</div>
-<div class="line">macos : gcc main.c -framework Cocoa -framework OpenGL -framework IOKit</div>
+<div class="line">macos : gcc main.c -framework CoreVideo -framework Cocoa -framework OpenGL -framework IOKit</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md7"></a>
 Dynamic Linking with XDL.h</h2>
 <p >XDL can be used to dynamically link X11 functions to RGFW using <code>dl</code>. It allows X11 functions to loaded at runtime.</p>
