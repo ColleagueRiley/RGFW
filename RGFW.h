@@ -8806,7 +8806,7 @@ void RGFW_window_restore(RGFW_window* win) {
 
 RGFW_bool RGFW_window_isFloating(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-	int level = objc_msgSend_int(win->src.window, sel_registerName("level"));
+	int level = ((int (*)(id, SEL))objc_msgSend) ((id)(win->src.window), (SEL)sel_registerName("level"));
 	return level > kCGNormalWindowLevelKey;
 }
 
