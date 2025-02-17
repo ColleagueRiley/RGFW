@@ -55,6 +55,10 @@ int main(void) {
                     case RGFW_c:
                         printf("Centering window\n");
                         RGFW_window_center(win); break;
+                    case RGFW_i:
+                        printf("floating: %s\n", !RGFW_window_isFloating(win) ? "true" : "false");
+                        RGFW_window_setFloating(win, !RGFW_window_isFloating(win));
+                        break;
                     default: break;
             }
         }

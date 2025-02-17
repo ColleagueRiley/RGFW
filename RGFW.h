@@ -6209,7 +6209,8 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 
 void RGFW_window_focus(RGFW_window* win) {
 	RGFW_ASSERT(win);
-	SetForegroundWindow(win->src.window);
+    SetForegroundWindow(win->src.window);
+    SetFocus(win->src.window);
 }
 
 void RGFW_window_raise(RGFW_window* win) {
