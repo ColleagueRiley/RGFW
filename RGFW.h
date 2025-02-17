@@ -77,7 +77,7 @@ Example to get you started :
 
 linux : gcc main.c -lX11 -lXrandr -lGL
 windows : gcc main.c -lopengl32 -lgdi32
-macos : gcc main.c -framework Cocoa -framework OpenGL -framework IOKit
+macos : gcc main.c -framework Cocoa -framework CoreVideo -framework OpenGL -framework IOKit
 
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
@@ -131,7 +131,7 @@ int main() {
 		linux:
 			gcc -shared RGFW.o -lX11 -lGL -lXrandr -o RGFW.so
 		macos:
-			gcc -shared RGFW.o -framework Cocoa -framework OpenGL -framework IOKit
+			gcc -shared RGFW.o -framework CoreVideo -framework Cocoa -framework OpenGL -framework IOKit
 */
 
 
@@ -7365,6 +7365,7 @@ void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { SetThreadPriority
 #include <objc/runtime.h>
 #include <objc/message.h>
 #include <mach/mach_time.h>
+#include <CoreVideo/CoreVideo.h>
 
 typedef CGRect NSRect;
 typedef CGPoint NSPoint;
@@ -7690,11 +7691,11 @@ u32 RGFW_OnClose(id self) {
 	object_getInstanceVariable(self, (const char*)"RGFW_window", (void**)&win);
 	if (win == NULL)
 		return true;
-
+	
 	win->event.type = RGFW_quit;
 	RGFW_windowQuitCallback(win);
 
-	return true;
+	return false;
 }
 
 /* NOTE(EimaMei): Fixes the constant clicking when the app is running under a terminal. */
@@ -8741,12 +8742,14 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 void RGFW_window_focus(RGFW_window* win) {
 	RGFW_ASSERT(win);
-	((void (*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("makeKeyWindow"), (SEL)NULL);
+	objc_msgSend_void_bool(NSApp, sel_registerName("activateIgnoringOtherApps:"), true);
+	((void (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_registerName("makeKeyWindow"));
 }
 
 void RGFW_window_raise(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("orderFront:"), (SEL)NULL);
+    	objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), kCGNormalWindowLevelKey);
 }
 
 void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
@@ -8788,8 +8791,8 @@ void RGFW_window_minimize(RGFW_window* win) {
 
 void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating) {
     RGFW_ASSERT(win != NULL);
-    if (floating) objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), 0);
-    else 		  objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), 3);
+    if (floating) objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), kCGFloatingWindowLevelKey);
+    else 		  objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), kCGNormalWindowLevelKey);
 }
 
 void RGFW_window_setOpacity(RGFW_window* win, u8 opacity) {
@@ -9007,6 +9010,22 @@ id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
 	return NULL;
 }
 
+
+u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) {
+	if (mode) {
+		u32 refreshRate = (int)CGDisplayModeGetRefreshRate(mode);
+		if (refreshRate != 0)  return refreshRate;
+	}
+
+	CVDisplayLinkRef link;
+	CVDisplayLinkCreateWithCGDisplay(display, &link);
+	const CVTime time = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(link);
+	if (!(time.flags & kCVTimeIsIndefinite))
+		return (int) (time.timeScale / (double) time.timeValue);	
+
+	return 0;
+}
+
 RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 	RGFW_monitor monitor;
 
@@ -9016,11 +9035,10 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 	CGRect bounds = CGDisplayBounds(display);
 	monitor.rect = RGFW_RECT((int) bounds.origin.x, (int) bounds.origin.y, (int) bounds.size.width, (int) bounds.size.height);
 
+
 	CGDisplayModeRef mode = CGDisplayCopyDisplayMode(display);
-	if (mode) {
-		monitor.refreshRate = CGDisplayModeGetRefreshRate(mode);
-		CFRelease(mode);
-	}
+	monitor.refreshRate = RGFW_osx_getRefreshRate(display, mode);	
+	CFRelease(mode);
 
 	CGSize screenSizeMM = CGDisplayScreenSize(display);
 	monitor.physW = (float)screenSizeMM.width / 25.4f;
@@ -9074,8 +9092,8 @@ RGFW_bool RGFW_monitor_scale(RGFW_monitor mon, RGFW_area area, u32 refreshRate) 
 
     for (CFIndex i = 0; i < CFArrayGetCount(allModes); i++) {
         CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(allModes, i);
-        if (CGDisplayModeGetWidth(mode) == area.w && CGDisplayModeGetHeight(mode) == area.h && 
-			(refreshRate == 0 || CGDisplayModeGetRefreshRate(mode) == refreshRate)) {
+	if (CGDisplayModeGetWidth(mode) == area.w && CGDisplayModeGetHeight(mode) == area.h && 
+			(refreshRate == 0 || RGFW_osx_getRefreshRate(display, mode)  == refreshRate)) {
             CGError err = CGDisplaySetDisplayMode(display, mode, NULL);
             if (err == kCGErrorSuccess)	{     
 				CFRelease(allModes);
