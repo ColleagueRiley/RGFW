@@ -8741,7 +8741,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 void RGFW_window_focus(RGFW_window* win) {
 	RGFW_ASSERT(win);
-	((void (*)(id, SEL, BOOL))objc_msgSend)((id)win->src.window, sel_registerName("makeKeyWindow"), NULL);
+	((void (*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("makeKeyWindow"), (SEL)NULL);
 }
 
 void RGFW_window_raise(RGFW_window* win) {
