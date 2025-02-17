@@ -1,15 +1,28 @@
-- ensure support for UTF-16 (windows)
-- fix wayland stuff
+- review global vars
+- ensure support for UTF-8 (windows)
 
-- RGFW_window_setFocus(win, bool)
-- RGFW_window_setTopMost(win, bool)
+monitor
 
-- FLAG_INTERLACED_HINT (post)
-- RGFW_windowHIDPI (flags)
+opengl
+- RGFW_TRANSPARENT_FRAMEBUFFER 
+- RGFW_RED_BITS Framebuffer bit depth hint
+- RGFW_GREEN_BITS Framebuffer bit depth hint
+- RGFW_BLUE_BITS Framebuffer bit depth hint
+- RGFW_ALPHA_BITS Framebuffer bit depth hint
+- RGFW_DEPTH_BITS Framebuffer bit depth hint
+- RGFW_ACCUM_RED_BITS Framebuffer bit depth hint
+- RGFW_ACCUM_GREEN_BITS Framebuffer bit depth hint
+- RGFW_ACCUM_BLUE_BITS Framebuffer bit depth hint
+- RGFW_ACCUM_ALPHA_BITS Framebuffer bit depth hint
+- RGFW_SRGB_CAPABLE Framebuffer sRGB hint
+- RGFW_CONTEXT_REVISION Context client API revision number attribute
+- RGFW_CONTEXT_ROBUSTNESS Context robustness hint and attribute
+- RGFW_OPENGL_DEBUG_CONTEXT Debug mode context hint and attribute
+- RGFW_CONTEXT_RELEASE_BEHAVIOR Context flush-on-release hint and attribute
+- RGFW_CONTEXT_NO_ERROR Context error suppression hint and attribute
+- RGFW_CONTEXT_CREATION_API Context creation API hint and attribute
+- RGFW_COCOA_GRAPHICS_SWITCHING macOS specific window hint
 
-- FLAG_WINDOW_ALWAYS_RUN (by raylib)
-
-Look into:
-- GLFWvidmode.redBits 	GLFW_RED_BITS hint
-- GLFWvidmode.greenBits 	GLFW_GREEN_BITS hint
-- GLFWvidmode.blueBits 	GLFW_BLUE_BITS hint  
+- get key string
+- error handling
+- update wayland support

@@ -50,6 +50,11 @@ Current Version: RGFW 1.6-dev
 - Add refreshRate to RGFW_monitor
 - do not close the window until the user closes it
 - add `RGFW_window_focus` and `RGFW_window_raise`
+- add `RGFW_window_isFloating`and `RGFW_window_setFloating`
+- add `RGFW_getCurrent_OpenGL`
+- add `RGFW_setXInstName`
+- add RGFW_window_setOpacity
+
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
