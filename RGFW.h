@@ -308,6 +308,8 @@ int main() {
 
 	#ifdef RGFW_WEBGPU
 		#include <emscripten/html5_webgpu.h>
+	#else
+		#include <emscripten/html5_webgl.h>
 	#endif
 #endif
 
@@ -8789,7 +8791,7 @@ void RGFW_window_minimize(RGFW_window* win) {
 void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating) {
     RGFW_ASSERT(win != NULL);
     if (floating) objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), NSFloatingWindowLevel);
-    else 			bjc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), NSNormalWindowLevel);
+    else 		  objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), NSNormalWindowLevel);
 }
 
 void RGFW_window_setOpacity(RGFW_window* win, u8 opacity) {
