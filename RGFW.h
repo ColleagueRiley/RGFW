@@ -1802,7 +1802,7 @@ const char* RGFW_className = NULL;
 void RGFW_setClassName(const char* name) { RGFW_className = name; }
 
 #ifndef RGFW_X11
-void RGFW_setXInstName(const char* name) {}
+void RGFW_setXInstName(const char* name) { RGFW_UNUSED(name); }
 #endif
 
 RGFW_keyState RGFW_mouseButtons[RGFW_mouseFinal] = {  {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0} };
@@ -8806,7 +8806,7 @@ void RGFW_window_restore(RGFW_window* win) {
 
 RGFW_bool RGFW_window_isFloating(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-	id level = objc_msgSend_id(win->src.window, sel_registerName("level"));
+	int level = objc_msgSend_int(win->src.window, sel_registerName("level"));
 	return level > kCGNormalWindowLevelKey;
 }
 
@@ -9132,8 +9132,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 		RGFW_ASSERT(win != NULL);
 		objc_msgSend_void(win->src.ctx, sel_registerName("makeCurrentContext"));
 	}
-	void* RGFW_getCurrent_OpenGL(void) { 
-		RGFW_ASSERT(win != NULL);
+	void* RGFW_getCurrent_OpenGL(void) {
 		return CGLGetCurrentContext();
 	}
 	#endif
@@ -10071,7 +10070,7 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 }
 
 #ifndef RGFW_WEBGPU
-void* RGFW_getCurrent_OpenGL() { return emscripten_webgl_get_context_current(); }
+void* RGFW_getCurrent_OpenGL(void) { return (void*)emscripten_webgl_get_context_current(); }
 #endif
 
 #ifndef RGFW_EGL
