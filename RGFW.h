@@ -9240,9 +9240,10 @@ u64 RGFW_getTimeNS(void) {
 }
 
 u64 RGFW_osx_initTimer(void) {
-	static u64 freq;
+	static u64 freq = 0;
 	if (freq == 0) {
-		mach_timebase_info_data_t mach_timebase_info(&info);
+		mach_timebase_info_data_t info;
+		mach_timebase_info(&info);
 		freq = (info.denom * 1e9) / info.numer;
 	}
 
