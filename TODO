@@ -1,2 +1,5 @@
-- ensure support for UTF-16 (windows)
-- fix wayland stuff
+- review global vars
+- ensure support for UTF-8 (windows)
+- get key string
+- error handling
+- update wayland support
