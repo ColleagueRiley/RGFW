@@ -308,8 +308,6 @@ int main() {
 
 	#ifdef RGFW_WEBGPU
 		#include <emscripten/html5_webgpu.h>
-	#else
-		#include <emscripten/html5_webgl.h>
 	#endif
 #endif
 
@@ -10072,7 +10070,7 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 }
 
 #ifndef RGFW_WEBGPU
-void* RGFW_getCurrent_OpenGL(void) { return (void*)emscripten_webgl_get_context_current(); }
+void* RGFW_getCurrent_OpenGL(void) { return (void*)emscripten_webgl_get_current_context(); }
 #endif
 
 #ifndef RGFW_EGL

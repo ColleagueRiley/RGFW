@@ -54,6 +54,7 @@ Current Version: RGFW 1.6-dev
 - add `RGFW_getCurrent_OpenGL`
 - add `RGFW_setXInstName`
 - add `RGFW_window_setOpacity`
+- add `RGFW_getTimerFreq` and `RGFW_getTimerValue`
 
 
 Release:    RGFW 1.5 (Jan 14, 2024)
