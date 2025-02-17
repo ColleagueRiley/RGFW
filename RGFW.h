@@ -8790,8 +8790,8 @@ void RGFW_window_minimize(RGFW_window* win) {
 
 void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating) {
     RGFW_ASSERT(win != NULL);
-    if (floating) objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), NSFloatingWindowLevel);
-    else 		  objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), NSNormalWindowLevel);
+    if (floating) objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), 0);
+    else 		  objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), 3);
 }
 
 void RGFW_window_setOpacity(RGFW_window* win, u8 opacity) {
