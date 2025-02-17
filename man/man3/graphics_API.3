@@ -54,6 +54,9 @@ graphics_API \- Graphics_API
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent_OpenGL\fP (\fBRGFW_window\fP *win)"
 .br
+.ti -1c
+.RI "void * \fBRGFW_getCurrent_OpenGL\fP (void)"
+.br
 .in -1c
 .SH "Detailed Description"
 .PP 
@@ -66,6 +69,8 @@ graphics_API \- Graphics_API
 .PP 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_glProfile)"
 which profile to use for the opengl verion 
+.SS "void * RGFW_getCurrent_OpenGL (void)"
+get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl)) 
 .SS "\fBRGFWDEF\fP void * RGFW_getProcAddress (const char * procname)"
 get native opengl proc address 
 .SS "\fBRGFWDEF\fP void RGFW_setDoubleBuffer (\fBRGFW_bool\fP useDoubleBuffer)"

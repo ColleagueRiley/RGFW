@@ -978,7 +978,8 @@ var ASM_CONSTS = {
  69378: () => { return window.innerWidth; },  
  69408: () => { return window.innerHeight; },  
  69439: () => { Module.requestFullscreen(false, true); },  
- 69478: () => { Module.exitFullscreen(false, true); }
+ 69478: () => { Module.exitFullscreen(false, true); },  
+ 69514: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
 };
 
 

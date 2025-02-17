@@ -98,6 +98,9 @@ RGFW.h
 .RI "#define \fBRGFW_OPENGL\fP"
 .br
 .ti -1c
+.RI "#define \fBRGFW_COCOA_FRAME_NAME\fP   NULL"
+.br
+.ti -1c
 .RI "#define \fBRGFW_key\fP   \fBu8\fP"
 .br
 .ti -1c
@@ -256,6 +259,9 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_setClassName\fP (const char *name)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setXInstName\fP (const char *name)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_moveToMacOSResourceDir\fP (void)"
 .br
 .ti -1c
@@ -272,6 +278,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_initBufferPtr\fP (\fBRGFW_window\fP *win, \fBu8\fP *buffer, \fBRGFW_area\fP area)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setFlags\fP (\fBRGFW_window\fP *win, RGFW_windowFlags)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_area\fP \fBRGFW_getScreenSize\fP (void)"
@@ -313,6 +322,12 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMaxSize\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP a)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_focus\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_raise\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_maximize\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
@@ -326,6 +341,12 @@ RGFW.h
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_restore\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setFloating\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP floating)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setOpacity\fP (\fBRGFW_window\fP *win, \fBu8\fP opacity)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setBorder\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP border)"
@@ -401,6 +422,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMaximized\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isFloating\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_scaleToMonitor\fP (\fBRGFW_window\fP *win)"
@@ -571,6 +595,9 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent_OpenGL\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
+.RI "void * \fBRGFW_getCurrent_OpenGL\fP (void)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTime\fP (void)"
 .br
 .ti -1c
@@ -578,6 +605,12 @@ RGFW.h
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_sleep\fP (\fBu64\fP milisecond)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimerValue\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimerFreq\fP (void)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, \fBRGFW_key\fP)"
@@ -604,6 +637,8 @@ RGFW.h
 .SS "#define \fBRGFW_bool\fP   \fBu8\fP"
 
 .SS "#define RGFW_BOOL(x)   ((x) ? \fBRGFW_TRUE\fP : \fBRGFW_FALSE\fP) /* force an value to be 0 or 1 */"
+
+.SS "#define RGFW_COCOA_FRAME_NAME   NULL"
 
 .SS "#define RGFW_ENUM(type, name)   type name; enum"
 
