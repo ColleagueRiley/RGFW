@@ -1,6 +1,5 @@
 - review global vars
 - ensure support for UTF-16 (windows)
-- RGFW_TRANSPARENT_FRAMEBUFFER 
 
 - RGFW_RED_BITS Framebuffer bit depth hint
 - RGFW_GREEN_BITS Framebuffer bit depth hint
@@ -12,13 +11,10 @@
 - RGFW_ACCUM_BLUE_BITS Framebuffer bit depth hint
 - RGFW_ACCUM_ALPHA_BITS Framebuffer bit depth hint
 - RGFW_SRGB_CAPABLE Framebuffer sRGB hint
-- RGFW_CONTEXT_REVISION Context client API revision number attribute
 - RGFW_CONTEXT_ROBUSTNESS Context robustness hint and attribute
-- RGFW_OPENGL_DEBUG_CONTEXT Debug mode context hint and attribute
+- RGFW_CONTEXT_DEBUG Debug mode context hint and attribute
 - RGFW_CONTEXT_RELEASE_BEHAVIOR Context flush-on-release hint and attribute
 - RGFW_CONTEXT_NO_ERROR Context error suppression hint and attribute
-- RGFW_CONTEXT_CREATION_API Context creation API hint and attribute
-- RGFW_COCOA_GRAPHICS_SWITCHING macOS specific window hint
 
 - get key string
 - error handling
