@@ -40,13 +40,37 @@ graphics_API \- Graphics_API
 .RI "\fBRGFWDEF\fP void \fBRGFW_setGLAuxBuffers\fP (\fBi32\fP auxBuffers)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLRGBA\fP (\fBu8\fP red, \fBu8\fP green, \fBu8\fP blue, \fBu8\fP alpha, \fBu8\fP depth)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLAccumRGBA\fP (\fBu8\fP red, \fBu8\fP green, \fBu8\fP blue, \fBu8\fP alpha)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLSRGB\fP (\fBRGFW_bool\fP sRGB)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLRobustness\fP (\fBRGFW_bool\fP robust)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLDebug\fP (\fBRGFW_bool\fP debug)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLNoError\fP (\fBRGFW_bool\fP noError)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setDoubleBuffer\fP (\fBRGFW_bool\fP useDoubleBuffer)"
+.br
+.ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glProfile)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setGLVersion\fP (RGFW_glProfile profile, \fBi32\fP major, \fBi32\fP minor)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setDoubleBuffer\fP (\fBRGFW_bool\fP useDoubleBuffer)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glRelease)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLReleaseBehavior\fP (RGFW_glRelease behavior)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void * \fBRGFW_getProcAddress\fP (const char *procname)"
@@ -69,16 +93,32 @@ graphics_API \- Graphics_API
 .PP 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_glProfile)"
 which profile to use for the opengl verion 
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_glRelease)"
+set OpenGL release behavior 
 .SS "void * RGFW_getCurrent_OpenGL (void)"
 get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl)) 
 .SS "\fBRGFWDEF\fP void * RGFW_getProcAddress (const char * procname)"
 get native opengl proc address 
 .SS "\fBRGFWDEF\fP void RGFW_setDoubleBuffer (\fBRGFW_bool\fP useDoubleBuffer)"
-
+request double buffering 
+.SS "\fBRGFWDEF\fP void RGFW_setGLAccumRGBA (\fBu8\fP red, \fBu8\fP green, \fBu8\fP blue, \fBu8\fP alpha)"
+set accumulated RGBA bit sizes 
 .SS "\fBRGFWDEF\fP void RGFW_setGLAuxBuffers (\fBi32\fP auxBuffers)"
 number of aux buffers (0 by default) 
+.SS "\fBRGFWDEF\fP void RGFW_setGLDebug (\fBRGFW_bool\fP debug)"
+request opengl debugging 
+.SS "\fBRGFWDEF\fP void RGFW_setGLNoError (\fBRGFW_bool\fP noError)"
+request no opengl errors 
+.SS "\fBRGFWDEF\fP void RGFW_setGLReleaseBehavior (RGFW_glRelease behavior)"
+
+.SS "\fBRGFWDEF\fP void RGFW_setGLRGBA (\fBu8\fP red, \fBu8\fP green, \fBu8\fP blue, \fBu8\fP alpha, \fBu8\fP depth)"
+set RGBA bit sizes 
+.SS "\fBRGFWDEF\fP void RGFW_setGLRobustness (\fBRGFW_bool\fP robust)"
+request a robust context 
 .SS "\fBRGFWDEF\fP void RGFW_setGLSamples (\fBi32\fP samples)"
 set number of sampiling buffers (4 by default) 
+.SS "\fBRGFWDEF\fP void RGFW_setGLSRGB (\fBRGFW_bool\fP sRGB)"
+request sRGA 
 .SS "\fBRGFWDEF\fP void RGFW_setGLStencil (\fBi32\fP stencil)"
 native API functions
 .PP
