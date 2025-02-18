@@ -4487,10 +4487,9 @@ void RGFW_window_focus(RGFW_window* win) {
 	
     XWindowAttributes attr;
     XGetWindowAttributes(win->src.display, win->src.window, &attr);
-    if (attr.map_state != IsViewable)
-        return;
+    if (attr.map_state != IsViewable) return;
 
-	int status = XSetInputFocus(win->src.display, win->src.window, RevertToPointerRoot, CurrentTime);
+	XSetInputFocus(win->src.display, win->src.window, RevertToPointerRoot, CurrentTime);
 	XFlush(win->src.display);
 }
 
@@ -5051,7 +5050,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	monitor.physW = DisplayWidthMM(display, screen) / 25.4;
 	monitor.physH = DisplayHeightMM(display, screen) / 25.4;
 
-	RGFW_splitBPP(DefaultDepth(RGFW_root->src.display, DefaultScreen(RGFW_root->src.display)), &monitor.mode)
+	RGFW_splitBPP(DefaultDepth(RGFW_root->src.display, DefaultScreen(RGFW_root->src.display)), &monitor.mode);
 
 	char* name = XDisplayName((const char*)display);
 	RGFW_MEMCPY(monitor.name, name, 128);
@@ -5186,7 +5185,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 				RGFW_monitorMode foundMode;
 				foundMode.area = RGFW_AREA(screenRes->modes[index].width, screenRes->modes[index].height);
 				foundMode.refreshRate =  RGFW_XCalculateRefreshRate(screenRes->modes[index]);
-				RGFW_splitBPP(DefaultDepth(RGFW_root->src.display, DefaultScreen(RGFW_root->src.display)), &foundMode)
+				RGFW_splitBPP(DefaultDepth(RGFW_root->src.display, DefaultScreen(RGFW_root->src.display)), &foundMode);
 
 				if (RGFW_monitorModeCompare(mode, foundMode, request)) {
 					rmode = screenRes->modes[index].id;
@@ -9150,22 +9149,20 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
         return RGFW_FALSE;
 
     for (CFIndex i = 0; i < CFArrayGetCount(allModes); i++) {
-        CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(allModes, i);
-	
+        CGDisplayModeRef cmode = (CGDisplayModeRef)CFArrayGetValueAtIndex(allModes, i);
 
+		RGFW_monitorMode foundMode;
+		foundMode.area = RGFW_AREA(CGDisplayModeGetWidth(cmode), CGDisplayModeGetHeight(cmode));
+		foundMode.refreshRate =  RGFW_osx_getRefreshRate(display, cmode);
+		foundMode.red = 8; foundMode.green = 8; foundMode.blue = 8;
 
-	RGFW_monitorMode foundMode;
-	foundMode.area = RGFW_AREA(CGDisplayModeGetWidth(mode), CGDisplayModeGetHeight(mode));
-	foundMode.refreshRate =  RGFW_osx_getRefreshRate(display, mode);
-	foundMode.red = 8; foundMode.green = 8; foundMode.blue = 8;
-
-	if (RGFW_monitorModeCompare(mode, foundMode, request)) {
-            CGError err = CGDisplaySetDisplayMode(display, mode, NULL);
-            if (err == kCGErrorSuccess)	{     
-				CFRelease(allModes);
-				return RGFW_TRUE;
-			}
-            break;
+		if (RGFW_monitorModeCompare(mode, foundMode, request)) {
+				CGError err = CGDisplaySetDisplayMode(display, cmode, NULL);
+				if (err == kCGErrorSuccess)	{     
+					CFRelease(allModes);
+					return RGFW_TRUE;
+				}
+				break;
         }
     }
 
