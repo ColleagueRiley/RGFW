@@ -1139,7 +1139,7 @@ RGFWDEF void RGFW_setGLSamples(i32 samples); /*!< set number of sampiling buffer
 RGFWDEF void RGFW_setGLStereo(i32 stereo); /*!< use GL_STEREO (GL_FALSE by default) */
 RGFWDEF void RGFW_setGLAuxBuffers(i32 auxBuffers); /*!< number of aux buffers (0 by default) */
 RGFWDEF void RGFW_setGLRGBA(u8 red, u8 green, u8 blue, u8 alpha, u8 depth); /*!< set RGBA bit sizes */
-RGFWDEF void RGFW_setGLAccumRGBA(u8 red, u8 green, u8 alpha); /*!< set accumulated RGBA bit sizes*/
+RGFWDEF void RGFW_setGLAccumRGBA(u8 red, u8 green, u8 blue, u8 alpha); /*!< set accumulated RGBA bit sizes*/
 RGFWDEF void RGFW_setGLSRGB(RGFW_bool sRGB); /*!< request sRGA */
 RGFWDEF void RGFW_setGLRobustness(RGFW_bool robust); /*!< request a robust context */
 RGFWDEF void RGFW_setGLDebug(RGFW_bool debug); /*!< request opengl debugging */
@@ -2138,10 +2138,10 @@ void RGFW_setGLVersion(RGFW_glProfile profile, i32 major, i32 minor) {
 	#define RGFW_GL_GREEN_SIZE		RGFW_OS_BASED_VALUE(GLX_GREEN_SIZE,       	0x2017,						0, 0)
 	#define RGFW_GL_BLUE_SIZE		RGFW_OS_BASED_VALUE(GLX_BLUE_SIZE, 	 		0x2019,						0, 0)
 	#define RGFW_GL_USE_RGBA		RGFW_OS_BASED_VALUE(GLX_RGBA_BIT,   	 	0x202B,						0, 0)
-	#define RGFW_GL_ACCUM_RED_SIZE 	RGFW_OS_BASED_VALUE(GLX_ACCUM_RED_BIT,   	 	0x201E,						0, 0)
-	#define RGFW_GL_ACCUM_GREEN_SIZE RGFW_OS_BASED_VALUE(GLX_ACCUM_GREEN_BIT,   	 	0x201F,						0, 0)
-	#define RGFW_GL_ACCUM_BLUE_SIZE	 RGFW_OS_BASED_VALUE(GLX_ACCUM_BLUE_BIT,   	 	0x2020,						0, 0)
-	#define RGFW_GL_ACCUM_ALPHA_SIZE	 RGFW_OS_BASED_VALUE(GLX_ACCUM_ALPHA_BIT,   	 	0x2021,						0, 0)
+	#define RGFW_GL_ACCUM_RED_SIZE 	RGFW_OS_BASED_VALUE(14,   	 	0x201E,						0, 0)
+	#define RGFW_GL_ACCUM_GREEN_SIZE RGFW_OS_BASED_VALUE(15,   	 	0x201F,						0, 0)
+	#define RGFW_GL_ACCUM_BLUE_SIZE	 RGFW_OS_BASED_VALUE(16,   	 	0x2020,						0, 0)
+	#define RGFW_GL_ACCUM_ALPHA_SIZE	 RGFW_OS_BASED_VALUE(17,   	 	0x2021,						0, 0)
 	#define RGFW_GL_SRGB	 RGFW_OS_BASED_VALUE(0x20b2,   	 	0x3089,						0, 0)
 	#define RGFW_GL_NOERROR	 RGFW_OS_BASED_VALUE(0x31b3,   	 	0x31b3,						0, 0)
 #endif

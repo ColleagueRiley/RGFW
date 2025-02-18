@@ -48,6 +48,8 @@ Current Version: RGFW 1.6-dev
 - add refreshRate to RGFW_monitor_scale
 - limit directX support to RGFW_window_createDXSwapChain, most of it should/can be handled by the user
 - add RGFW_COCOA_GRAPHICS_SWITCHING option
+- add RGFW_setGLRGBA, RGFW_setGLAccumRGBA RGFW_setGLSRGB, RGFW_setGLRobustness, RGFW_setGLDebug, RGFW_setGLNoError
+- add RGFW_setGLReleaseBehavior and RGFW_glRelease enum
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
