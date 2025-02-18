@@ -58,6 +58,9 @@ Current Version: RGFW 1.6-dev
 - framework CoreVideo is needed to get the monitor's refresh rate (macOS)
 - add RGFW_window_setFlags
 - add RGFW_windowFloating flag
+- add RGFW_monitorMode AND mode.red, mode.green, mode.blue
+- add `RGFW_monitorModeCompare`
+- change `RGFW_monitor_scale` to `RGFW_monitor_requestMode`
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
