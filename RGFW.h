@@ -2091,6 +2091,7 @@ void RGFW_moveToMacOSResourceDir(void) { }
 /* EGL, normal OpenGL only */
 i32 RGFW_majorVersion = 0, RGFW_minorVersion = 0;
 RGFW_glProfile RGFW_profile = RGFW_glCore;
+RGFW_glRelease RGFW_behavior = 0;
 
 #ifndef RGFW_EGL
 i32 RGFW_STENCIL = 8, RGFW_SAMPLES = 4, RGFW_STEREO = 0, RGFW_AUX_BUFFERS = 0, RGFW_DOUBLE_BUFFER = 1,
@@ -2112,6 +2113,7 @@ void RGFW_setGLRobustness(RGFW_bool robust) { RGFW_CONTEXT_ROBUSTNESS = robust; 
 void RGFW_setGLDebug(RGFW_bool debug) { RGFW_CONTEXT_DEBUG = debug; }
 void RGFW_setGLNoError(RGFW_bool noError) { RGFW_CONTEXT_NO_ERROR = noError; }
 void RGFW_setDoubleBuffer(RGFW_bool useDoubleBuffer) { RGFW_DOUBLE_BUFFER = useDoubleBuffer; }
+void RGFW_setGLReleaseBehavior(RGFW_glRelease behavior) { RGFW_behavior = behavior; }
 
 void RGFW_setGLVersion(RGFW_glProfile profile, i32 major, i32 minor) {
 	RGFW_profile = profile;
