@@ -3888,7 +3888,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		RGFW_resetKey();
 
 	if (win->event.type == RGFW_quit) {
-		return NULL;
+		return &win->event;
 	}
 
 	win->event.type = 0;
@@ -4334,9 +4334,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	RGFW_event ev = RGFW_eventPipe_pop(win);
 
-	if (ev.type ==  0 || win->event.type == RGFW_quit) {
-		return NULL;
-	}
+	if (ev.type ==  0)				  return NULL;
+	if (win->event.type == RGFW_quit) return &win->event;
 
 	ev.frameTime = win->event.frameTime;
 	ev.frameTime2 = win->event.frameTime2;
@@ -5040,9 +5039,16 @@ static float XGetSystemContentDPI(Display* display, i32 screen) {
 RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	RGFW_monitor monitor;
 
-	Display* display = XOpenDisplay(NULL);
+	Display* display;
+	if (RGFW_root == NULL)
+		display = XOpenDisplay(NULL);
+	else
+		display = RGFW_root->src.display;
 
-	RGFW_area size = RGFW_getScreenSize();
+	if (screen == -1) screen = DefaultScreen(display);
+	
+	Screen* scrn = DefaultScreenOfDisplay(display);
+	RGFW_area size = RGFW_AREA(scrn->width, scrn->height);
 
 	monitor.x = 0;
 	monitor.y = 0;
@@ -5050,7 +5056,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	monitor.physW = DisplayWidthMM(display, screen) / 25.4;
 	monitor.physH = DisplayHeightMM(display, screen) / 25.4;
 
-	RGFW_splitBPP(DefaultDepth(RGFW_root->src.display, DefaultScreen(RGFW_root->src.display)), &monitor.mode);
+	RGFW_splitBPP(DefaultDepth(display, DefaultScreen(display)), &monitor.mode);
 
 	char* name = XDisplayName((const char*)display);
 	RGFW_MEMCPY(monitor.name, name, 128);
@@ -5084,7 +5090,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 			XCloseDisplay(display);
 
 			#ifdef RGFW_DEBUG
-			printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n\n   depth: %i\n", monitor.name, monitor.x, monitor.y, monitor.mode.area.w, monitor.mode.area.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio, monitor.mode.refreshRate, monitor.mode.red + monitor.mode.green + monitor.mode.blue);
+			printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n   depth: %i\n", monitor.name, monitor.x, monitor.y, monitor.mode.area.w, monitor.mode.area.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio, monitor.mode.refreshRate, monitor.mode.red + monitor.mode.green + monitor.mode.blue);
 			#endif
 			return monitor;
 		}
@@ -5134,10 +5140,10 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 		XRRFreeScreenResources(sr);
 	#endif
 
-	XCloseDisplay(display);
+	if (RGFW_root == NULL) XCloseDisplay(display);
 
 	#ifdef RGFW_DEBUG
-	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n\n   depth: %i\n", monitor.name, monitor.x, monitor.y, monitor.mode.area.w, monitor.mode.area.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio, monitor.mode.refreshRate, monitor.mode.red + monitor.mode.green + monitor.mode.blue);
+	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n   depth: %i\n", monitor.name, monitor.x, monitor.y, monitor.mode.area.w, monitor.mode.area.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio, monitor.mode.refreshRate, monitor.mode.red + monitor.mode.green + monitor.mode.blue);
 	#endif
 
 	return monitor;
@@ -5147,9 +5153,16 @@ RGFW_monitor RGFW_monitors[6];
 RGFW_monitor* RGFW_getMonitors(void) {
 	RGFW_GOTO_WAYLAND(1);
 	#ifdef RGFW_X11
+
+	Display* display;
+	if (RGFW_root == NULL)	display = XOpenDisplay(NULL);
+	else					display = RGFW_root->src.display;
+
 	size_t i;
-	for (i = 0; i < (size_t)ScreenCount(RGFW_root->src.display) && i < 6; i++)
+	for (i = 0; i < (size_t)ScreenCount(display) && i < 6; i++)
 		RGFW_monitors[i] = RGFW_XCreateMonitor(i);
+
+	if (RGFW_root == NULL) XCloseDisplay(display);
 
 	return RGFW_monitors;
 	#endif
@@ -5161,8 +5174,7 @@ RGFW_monitor* RGFW_getMonitors(void) {
 RGFW_monitor RGFW_getPrimaryMonitor(void) {
 	RGFW_GOTO_WAYLAND(1);
 	#ifdef RGFW_X11
-	RGFW_ASSERT(RGFW_root != NULL);
-	return RGFW_XCreateMonitor(DefaultScreen(RGFW_root->src.display));
+	return RGFW_XCreateMonitor(-1);
 	#endif
 	#ifdef RGFW_WAYLAND
 	wayland: return (RGFW_monitor){ }; // TODO WAYLAND 
@@ -6452,9 +6464,7 @@ void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
-	if (win->event.type == RGFW_quit) {
-		return NULL;
-	}
+	if (win->event.type == RGFW_quit) return &win->event;
 
 	if (RGFW_eventWindow.src.window == win->src.window) {
 		if (RGFW_eventWindow.r.x != -1) {
@@ -6882,7 +6892,7 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 	#endif
 
 	#ifdef RGFW_DEBUG
-	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n\n   depth: %i\n", monitor.name, monitor.x, monitor.y, monitor.mode.area.w, monitor.mode.area.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio, monitor.mode.refreshRate, monitor.mode.red + monitor.mode.green + monitor.mode.blue);
+	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n   depth: %i\n", monitor.name, monitor.x, monitor.y, monitor.mode.area.w, monitor.mode.area.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio, monitor.mode.refreshRate, monitor.mode.red + monitor.mode.green + monitor.mode.blue);
 	#endif
 
 	return monitor;
@@ -8520,8 +8530,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		RGFW_ASSERT(win != NULL);
 
-		if (win->event.type == RGFW_quit)
-			return NULL;
+		if (win->event.type == RGFW_quit) return &win->event;
 
 		if ((win->event.type == RGFW_DND || win->event.type == RGFW_DNDInit) && win->src.dndPassed == 0) {
 			win->src.dndPassed = 1;
@@ -9112,7 +9121,7 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 	monitor.scaleY = ((i32)(((float) (ppi_height) / dpi) * 10.0f)) / 10.0f;
 
 	#ifdef RGFW_DEBUG
-	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n\n   depth: %i\n", monitor.name, monitor.x, monitor.y, monitor.mode.area.w, monitor.mode.area.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio, monitor.mode.refreshRate, monitor.mode.red + monitor.mode.green + monitor.mode.blue);
+	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n   depth: %i\n", monitor.name, monitor.x, monitor.y, monitor.mode.area.w, monitor.mode.area.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio, monitor.mode.refreshRate, monitor.mode.red + monitor.mode.green + monitor.mode.blue);
 	#endif
 
 	return monitor;
