@@ -93,7 +93,7 @@ int main() {
 ```sh
 linux : gcc main.c -lX11 -lGL -lXrandr
 windows : gcc main.c -lopengl32 -lgdi32
-macos : gcc main.c -framework Cocoa -framework OpenGL -framework IOKit
+macos : gcc main.c -framework CoreVideo -framework Cocoa -framework OpenGL -framework IOKit
 ```
 
 ## Dynamic Linking with XDL.h

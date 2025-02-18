@@ -36,7 +36,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 	detected_OS := $(shell uname 2>/dev/null || echo Unknown)
 
 	ifeq ($(detected_OS),Darwin)        # Mac OS X
-		LIBS := -framework Cocoa -framework OpenGL -framework IOKit
+		LIBS := -framework CoreVideo -framework Cocoa -framework OpenGL -framework IOKit
 		LINK_GL1 = -framework OpenGL
 		VULKAN_LIBS =
 		EXT =
@@ -168,7 +168,7 @@ endif
 examples/metal/metal: examples/metal/metal.m RGFW.h
 ifeq ($(detected_OS),Darwin)        # Mac OS X
 	gcc $(CUSTOM_CFLAGS) -x c -c RGFW.h -D RGFW_NO_API -D RGFW_EXPORT -D RGFW_IMPLEMENTATION -o RGFW.o
-	gcc $(CUSTOM_CFLAGS) examples/metal/metal.m RGFW.o -I. -framework Metal -framework Cocoa -framework IOKit -framework QuartzCore -o $@
+	gcc $(CUSTOM_CFLAGS) examples/metal/metal.m RGFW.o -I. -framework CoreVideo -framework Metal -framework Cocoa -framework IOKit -framework QuartzCore -o $@
 else
 	@echo metal is not supported on $(detected_OS)
 endif
@@ -190,7 +190,7 @@ else ifeq ($(detected_OS),Linux)
 else ifeq ($(detected_OS),windows)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lgdi32 -o $@$(EXT)
 else ifeq ($(detected_OS),Darwin)
-	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -framework Cocoa  -o $@$(EXT)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -framework CoreVideo -framework Cocoa  -o $@$(EXT)
 else
 	@echo minimal_links is not supported on this platform
 endif
@@ -206,7 +206,7 @@ else ifeq ($(detected_OS),Linux)
 else ifeq ($(detected_OS),windows)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $<  -lkernel32 -lgdi32 -lshell32 -lUser32 -o $@$(EXT)
 else ifeq ($(detected_OS),Darwin)
-	$(CC) $(CFLAGS) -fno-stack-protector  $(WARNINGS) -I. $< -framework Cocoa -o $@$(EXT)
+	$(CC) $(CFLAGS) -fno-stack-protector  $(WARNINGS) -I. $< -framework CoreVideo -framework Cocoa -o $@$(EXT)
 else
 	@echo nostl is not supported on this platform
 endif
@@ -240,7 +240,7 @@ else ifeq ($(detected_OS),Linux)
 else ifeq ($(detected_OS),windows)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lgdi32 -o $@$(EXT)
 else ifeq ($(detected_OS),Darwin)
-	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -framework IOKit -framework Cocoa  -o $@$(EXT)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -framework CoreVideo -framework IOKit -framework Cocoa  -o $@$(EXT)
 else
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL3) -o $@$(EXT)
 endif
