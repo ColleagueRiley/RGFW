@@ -1,4 +1,4 @@
-.TH "RGFW_monitorMode" 3 "Mon Feb 17 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_monitorMode" 3 "Tue Feb 18 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -18,51 +18,27 @@ RGFW_monitorMode
 .RI "\fBu32\fP \fBrefreshRate\fP"
 .br
 .ti -1c
-.RI "union {"
+.RI "\fBu8\fP \fBred\fP"
 .br
 .ti -1c
-.RI "   struct {"
+.RI "\fBu8\fP \fBblue\fP"
 .br
 .ti -1c
-.RI "      \fBu8\fP \fBred\fP"
-.br
-.ti -1c
-.RI "      \fBu8\fP \fBblue\fP"
-.br
-.ti -1c
-.RI "      \fBu8\fP \fBgreen\fP"
-.br
-.ti -1c
-.RI "      \fBu8\fP \fBpad\fP"
-.br
-.ti -1c
-.RI "   } "
-.br
-.ti -1c
-.RI "   \fBu32\fP \fBRGB\fP"
-.br
-.ti -1c
-.RI "}; "
+.RI "\fBu8\fP \fBgreen\fP"
 .br
 .in -1c
 .SH "Member Data Documentation"
 .PP 
-.SS "union  { \&.\&.\&. }  RGFW_monitorMode::@1"
-size of rgb channels 
 .SS "\fBRGFW_area\fP RGFW_monitorMode::area"
 monitor workarea size 
 .SS "\fBu8\fP RGFW_monitorMode::blue"
 
 .SS "\fBu8\fP RGFW_monitorMode::green"
 
-.SS "\fBu8\fP RGFW_monitorMode::pad"
-
 .SS "\fBu8\fP RGFW_monitorMode::red"
 
 .SS "\fBu32\fP RGFW_monitorMode::refreshRate"
 monitor refresh rate 
-.SS "\fBu32\fP RGFW_monitorMode::RGB"
-
 
 .SH "Author"
 .PP 

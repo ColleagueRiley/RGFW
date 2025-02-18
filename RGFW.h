@@ -540,10 +540,7 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 	typedef struct RGFW_monitorMode {
 		RGFW_area area; /*!< monitor workarea size */
 		u32 refreshRate; /*!< monitor refresh rate */
-		union { 
-			struct { u8 red, blue, green, pad; }; 
-			u32 RGB; /* full RGB version of the previous data */
-		}; /*!< size of rgb channels */
+		u8 red, blue, green; 
 	} RGFW_monitorMode;
 
 	/*! structure for monitor data */
@@ -1904,10 +1901,20 @@ RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, RGFW_window* win) {
 	return RGFW_monitor_requestMode(mon, mode, RGFW_monitorScale);
 }
 
+
+void RGFW_splitBPP(u32 bpp, RGFW_monitorMode* mode) {
+    if (bpp == 32) bpp = 24;
+    mode->red = mode->green = mode->blue = bpp / 3;
+
+    u32 delta = bpp - (mode->red * 3); // handle leftovers
+    if (delta >= 1) mode->green = mode->green + 1;
+    if (delta == 2) mode->red = mode->red + 1;
+}
+
 RGFW_bool RGFW_monitorModeCompare(RGFW_monitorMode mon, RGFW_monitorMode mon2, RGFW_modeRequest request) {
 	return (((mon.area.w == mon2.area.w && mon.area.h == mon2.area.h) || !(request & RGFW_monitorScale)) &&
 			((mon.refreshRate == mon2.refreshRate) || !(request & RGFW_monitorRefresh)) &&
-			((mon.RGB == mon2.RGB) || !(request & RGFW_monitorRGB)));
+			((mon.red == mon2.red && mon.green == mon2.green && mon.blue == mon2.blue) || !(request & RGFW_monitorRGB)));
 }
 
 RGFW_bool RGFW_window_shouldClose(RGFW_window* win) {
@@ -5044,6 +5051,8 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	monitor.physW = DisplayWidthMM(display, screen) / 25.4;
 	monitor.physH = DisplayHeightMM(display, screen) / 25.4;
 
+	RGFW_splitBPP(DefaultDepth(RGFW_root->src.display, DefaultScreen(RGFW_root->src.display)), &monitor.mode)
+
 	char* name = XDisplayName((const char*)display);
 	RGFW_MEMCPY(monitor.name, name, 128);
 
@@ -5076,7 +5085,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 			XCloseDisplay(display);
 
 			#ifdef RGFW_DEBUG
-			printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n    refreshRate: %i\n", monitor.name, monitor.x, monitor.y, monitor.mode.area.w, monitor.mode.area.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio, monitor.mode.refreshRate);
+			printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n\n   depth: %i\n", monitor.name, monitor.x, monitor.y, monitor.mode.area.w, monitor.mode.area.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio, monitor.mode.refreshRate, monitor.mode.red + monitor.mode.green + monitor.mode.blue);
 			#endif
 			return monitor;
 		}
@@ -5129,7 +5138,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	XCloseDisplay(display);
 
 	#ifdef RGFW_DEBUG
-	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n    refreshRate: %i\n", monitor.name, monitor.x, monitor.y, monitor.mode.area.w, monitor.mode.area.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio, monitor.mode.refreshRate);
+	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n\n   depth: %i\n", monitor.name, monitor.x, monitor.y, monitor.mode.area.w, monitor.mode.area.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio, monitor.mode.refreshRate, monitor.mode.red + monitor.mode.green + monitor.mode.blue);
 	#endif
 
 	return monitor;
@@ -5177,8 +5186,8 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 				RGFW_monitorMode foundMode;
 				foundMode.area = RGFW_AREA(screenRes->modes[index].width, screenRes->modes[index].height);
 				foundMode.refreshRate =  RGFW_XCalculateRefreshRate(screenRes->modes[index]);
-				foundMode.RGB = DefaultDepth(RGFW_root->src.display, DefaultScreen(RGFW_root->src.display));
-				
+				RGFW_splitBPP(DefaultDepth(RGFW_root->src.display, DefaultScreen(RGFW_root->src.display)), &foundMode)
+
 				if (RGFW_monitorModeCompare(mode, foundMode, request)) {
 					rmode = screenRes->modes[index].id;
 
@@ -6831,9 +6840,11 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 		ZeroMemory(&dm, sizeof(dm));
 		dm.dmSize = sizeof(dm);
 
-		if (EnumDisplaySettingsA(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm))
+		if (EnumDisplaySettingsA(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm)) {
 			monitor.mode.refreshRate = dm.dmDisplayFrequency;
-
+			RGFW_splitBPP(dm.dmBitsPerPel, &monitor.mode);
+		}
+		
 		DISPLAY_DEVICEA mdd;
 		mdd.cb = sizeof(mdd);
 
@@ -6872,7 +6883,7 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 	#endif
 
 	#ifdef RGFW_DEBUG
-	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n    refreshRate: %i\n", monitor.name, monitor.x, monitor.y, monitor.mode.area.w, monitor.mode.area.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio, monitor.mode.refreshRate);
+	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n\n   depth: %i\n", monitor.name, monitor.x, monitor.y, monitor.mode.area.w, monitor.mode.area.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio, monitor.mode.refreshRate, monitor.mode.red + monitor.mode.green + monitor.mode.blue);
 	#endif
 
 	return monitor;
@@ -6938,13 +6949,20 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 		dm.dmSize = sizeof(dm);
 
 		if (EnumDisplaySettingsA(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm)) {
-			dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
-			dm.dmPelsWidth = area.w;
-			dm.dmPelsHeight = area.h;
+			if (request & RGFW_monitorScale) {
+				dm.dmFields |= DM_PELSWIDTH | DM_PELSHEIGHT;
+				dm.dmPelsWidth = mode.area.w;
+				dm.dmPelsHeight = mode.area.h;
+			}
 
-			if (refreshRate) {
+			if (request & RGFW_monitorRefresh) {
 				dm.dmFields |= DM_DISPLAYFREQUENCY;
-				dm.dmDisplayFrequency = refreshRate;
+				dm.dmDisplayFrequency = mode.refreshRate;
+			}
+
+			if (request & RGFW_monitorRGB) {
+				dm.dmFields |= DM_BITSPERPEL;
+				dm.dmBitsPerPel = mode.red + mode.green + mode.blue;
 			}
 
 			if (ChangeDisplaySettingsEx(dd.DeviceName, &dm, NULL, CDS_TEST, NULL) == DISP_CHANGE_SUCCESSFUL) {
@@ -9071,8 +9089,11 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 	RGFW_MEMCPY(monitor.name, name, 6);
 
 	CGRect bounds = CGDisplayBounds(display);
-	monitor.rect = RGFW_RECT((int) bounds.origin.x, (int) bounds.origin.y, (int) bounds.size.width, (int) bounds.size.height);
+	monitor.x = bounds.origin.x;
+	monitor.y = bounds.origin.y;
+	monitor.mode.area = RGFW_AREA((int) bounds.size.width, (int) bounds.size.height);
 
+	monitor.mode.red = 8; monitor.mode.green = 8; monitor.mode.blue = 8;
 
 	CGDisplayModeRef mode = CGDisplayCopyDisplayMode(display);
 	monitor.mode.refreshRate = RGFW_osx_getRefreshRate(display, mode);	
@@ -9092,7 +9113,7 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 	monitor.scaleY = ((i32)(((float) (ppi_height) / dpi) * 10.0f)) / 10.0f;
 
 	#ifdef RGFW_DEBUG
-	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n    refreshRate: %i\n", monitor.name, monitor.x, monitor.y, monitor.mode.area.w, monitor.mode.area.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio, monitor.mode.refreshRate);
+	printf("RGFW INFO: monitor found: scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n\n   depth: %i\n", monitor.name, monitor.x, monitor.y, monitor.mode.area.w, monitor.mode.area.h, monitor.physW, monitor.physH, monitor.scaleX, monitor.scaleY, monitor.pixelRatio, monitor.mode.refreshRate, monitor.mode.red + monitor.mode.green + monitor.mode.blue);
 	#endif
 
 	return monitor;
@@ -9130,8 +9151,15 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 
     for (CFIndex i = 0; i < CFArrayGetCount(allModes); i++) {
         CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(allModes, i);
-	if (CGDisplayModeGetWidth(mode) == area.w && CGDisplayModeGetHeight(mode) == area.h && 
-			(refreshRate == 0 || RGFW_osx_getRefreshRate(display, mode)  == refreshRate)) {
+	
+
+
+	RGFW_monitorMode foundMode;
+	foundMode.area = RGFW_AREA(CGDisplayModeGetWidth(mode), CGDisplayModeGetHeight(mode));
+	foundMode.refreshRate =  RGFW_osx_getRefreshRate(display, mode);
+	foundMode.red = 8; foundMode.green = 8; foundMode.blue = 8;
+
+	if (RGFW_monitorModeCompare(mode, foundMode, request)) {
             CGError err = CGDisplaySetDisplayMode(display, mode, NULL);
             if (err == kCGErrorSuccess)	{     
 				CFRelease(allModes);
