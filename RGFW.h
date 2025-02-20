@@ -5129,6 +5129,8 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 
 	float dpi = XGetSystemContentDPI(display, screen);
 	monitor.pixelRatio = dpi / 96.0f;
+	monitor.scaleX = (float) (dpi) / 96.0f;
+	monitor.scaleY = (float) (dpi) / 96.0f;
 
 	#ifndef RGFW_NO_DPI
 		XRRScreenResources* sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
@@ -5141,12 +5143,6 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 			ci = XRRGetCrtcInfo(display, sr, sr->crtcs[crtc]);
 		}
 	#endif
-
-	float ppi_width = RGFW_ROUND((float)monitor.mode.area.w/(float)monitor.physW);
-	float ppi_height = RGFW_ROUND((float)monitor.mode.area.h/(float)monitor.physH);
-
-	monitor.scaleX = (float) (ppi_width) / dpi;
-	monitor.scaleY = (float) (ppi_height) / dpi;
 
 	#ifndef RGFW_NO_DPI
 		XRROutputInfo* info = XRRGetOutputInfo (display, sr, sr->outputs[screen]);
@@ -5183,23 +5179,6 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 		monitor.mode.area.h = h;
 	}
 	#endif
-
-	if (monitor.physW == 0 || monitor.physH == 0) {
-		monitor.scaleX = 0;
-		monitor.scaleY = 0;
-	} else {
-		float ppi_width = RGFW_ROUND((float)monitor.mode.area.w/(float)monitor.physW);
-		float ppi_height = RGFW_ROUND((float)monitor.mode.area.h/(float)monitor.physH);
-
-		monitor.scaleX = (float) (ppi_width) / (float) dpi;
-		monitor.scaleY = (float) (ppi_height) / (float) dpi;
-
-		if ((monitor.scaleX > 1 && monitor.scaleX < 1.1))
-			monitor.scaleX = 1;
-
-		if ((monitor.scaleY > 1 && monitor.scaleY < 1.1))
-			monitor.scaleY = 1;
-	}
 
 	#ifndef RGFW_NO_DPI
 		XRRFreeCrtcInfo(ci);
@@ -5306,43 +5285,13 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
         return (RGFW_monitor){};
     }
 
-	#ifndef RGFW_NO_DPI
-    XRRScreenResources* screenRes = XRRGetScreenResources(win->src.display, DefaultRootWindow(win->src.display));
-	if (screenRes == NULL) {
-		return (RGFW_monitor){};
-	}
-
-    for (int i = 0; i < screenRes->ncrtc; i++) {
-        XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(win->src.display, screenRes, screenRes->crtcs[i]);
-        if (!crtcInfo) continue;
-
-        int monitorX = crtcInfo->x;
-        int monitorY = crtcInfo->y;
-        int monitorWidth = crtcInfo->width;
-        int monitorHeight = crtcInfo->height;
-
-        if (attrs.x >= monitorX &&
-            attrs.x < monitorX + monitorWidth &&
-            attrs.y >= monitorY &&
-            attrs.y < monitorY + monitorHeight) {
-            XRRFreeCrtcInfo(crtcInfo);
-            XRRFreeScreenResources(screenRes);
-            return RGFW_XCreateMonitor(i);
-        }
-
-        XRRFreeCrtcInfo(crtcInfo);
-    }
-
-    XRRFreeScreenResources(screenRes);
-	#else
 	size_t i;
 	for (i = 0; i < (size_t)ScreenCount(RGFW_root->src.display) && i < 6; i++) {
 		Screen* screen = ScreenOfDisplay(RGFW_root->src.display, i);
-        if (attrs.x >= 0 && attrs.x < 0 + XWidthOfScreen(screen) &&
-            attrs.y >= 0 && attrs.y < 0 + XHeightOfScreen(screen))
+        if (attrs.x >= 0 && attrs.x < XWidthOfScreen(screen) &&
+            attrs.y >= 0 && attrs.y < XHeightOfScreen(screen))
             	return RGFW_XCreateMonitor(i);
 	}
-	#endif
 #endif
 wayland:
 	return (RGFW_monitor){};
