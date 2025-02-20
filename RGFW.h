@@ -5970,8 +5970,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	#endif
 
 	#ifndef RGFW_NO_DPI
-		RGFW_LOAD_LIBRARY(RGFW_Shcore_dll, "shcore.dll");
-		RGFW_PROC_DEF(RGFW_Shcore_dll, GetDpiForMonitor);
 		#if (_WIN32_WINNT >= 0x0600)
 			SetProcessDPIAware();
 		#endif
@@ -6882,10 +6880,16 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 	DeleteDC(hdc);
 
 	#ifndef RGFW_NO_DPI
+		RGFW_LOAD_LIBRARY(RGFW_Shcore_dll, "shcore.dll");
+		RGFW_PROC_DEF(RGFW_Shcore_dll, GetDpiForMonitor);
+
 		if (GetDpiForMonitor != NULL) {
 			u32 x, y;
 			GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &x, &y);
+			//monitor.scaleX = x / 96.0f;
+			//monitor.scaleY = y / 96.0f;		
 
+			GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &x, &y);
 			monitor.pixelRatio = (float) (x) / (float) dpiX;
 			monitor.pixelRatio = (float) (y) / (float) dpiY;
 		}
