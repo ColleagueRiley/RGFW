@@ -12,13 +12,10 @@ RGFW_monitor
 
 .in +1c
 .ti -1c
-.RI "\fBi32\fP \fBx\fP"
-.br
-.ti -1c
-.RI "\fBi32\fP \fBy\fP"
-.br
-.ti -1c
 .RI "char \fBname\fP [128]"
+.br
+.ti -1c
+.RI "\fBRGFW_rect\fP \fBrect\fP"
 .br
 .ti -1c
 .RI "float \fBscaleX\fP"
@@ -36,7 +33,7 @@ RGFW_monitor
 .RI "float \fBphysH\fP"
 .br
 .ti -1c
-.RI "\fBRGFW_monitorMode\fP \fBmode\fP"
+.RI "\fBu32\fP \fBrefreshRate\fP"
 .br
 .in -1c
 .SH "Detailed Description"
@@ -44,8 +41,6 @@ RGFW_monitor
 structure for monitor data 
 .SH "Member Data Documentation"
 .PP 
-.SS "\fBRGFW_monitorMode\fP RGFW_monitor::mode"
-
 .SS "char RGFW_monitor::name[128]"
 monitor name 
 .SS "float RGFW_monitor::physH"
@@ -56,14 +51,14 @@ monitor physical size in inches
 pixel ratio for monitor (1\&.0 for regular, 2\&.0 for hiDPI) 
 .br
  
+.SS "\fBRGFW_rect\fP RGFW_monitor::rect"
+monitor Workarea 
+.SS "\fBu32\fP RGFW_monitor::refreshRate"
+monitor refresh rate 
 .SS "float RGFW_monitor::scaleX"
 
 .SS "float RGFW_monitor::scaleY"
 monitor content scale 
-.SS "\fBi32\fP RGFW_monitor::x"
-
-.SS "\fBi32\fP RGFW_monitor::y"
-x - y of the monitor workarea 
 
 .SH "Author"
 .PP 

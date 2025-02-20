@@ -71,11 +71,6 @@ Current Version: RGFW 1.6-dev
 	RGFW_glDebug
 	RGFW_glNoError
 	RGFW_glReleaseBehavior
-- add RGFW_monitorMode AND mode.red, mode.green, mode.blue
-- add `RGFW_monitorModeCompare`
-- change `RGFW_monitor_scale` to `RGFW_monitor_requestMode`
-- RGFW stalls on RGFW_quit
-- ensure monitor functions can be used prior to window creation
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------

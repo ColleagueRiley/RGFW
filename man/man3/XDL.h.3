@@ -365,6 +365,9 @@ XDL.h
 .RI "#define \fBglXMakeCurrent\fP   \fBglXMakeCurrentSrc\fP"
 .br
 .ti -1c
+.RI "#define \fBglXGetCurrentContext\fP   \fBglXGetCurrentContextSrc\fP"
+.br
+.ti -1c
 .RI "#define \fBglXSwapBuffers\fP   \fBglXSwapBuffersSrc\fP"
 .br
 .ti -1c
@@ -756,6 +759,9 @@ XDL.h
 .RI "typedef Bool(* \fBPFN_glXMakeCurrent\fP) (Display *, GLXDrawable, GLXContext)"
 .br
 .ti -1c
+.RI "typedef GLXContext(* \fBPFN_glXGetCurrentContext\fP) (void)"
+.br
+.ti -1c
 .RI "typedef void(* \fBPFN_glXSwapBuffers\fP) (Display *, GLXDrawable)"
 .br
 .ti -1c
@@ -1133,6 +1139,9 @@ XDL.h
 .RI "\fBPFN_glXMakeCurrent\fP \fBglXMakeCurrentSrc\fP"
 .br
 .ti -1c
+.RI "\fBPFN_glXGetCurrentContext\fP \fBglXGetCurrentContextSrc\fP"
+.br
+.ti -1c
 .RI "\fBPFN_glXSwapBuffers\fP \fBglXSwapBuffersSrc\fP"
 .br
 .ti -1c
@@ -1166,6 +1175,8 @@ XDL.h
 .SS "#define glXCreateContext   \fBglXCreateContextSrc\fP"
 
 .SS "#define glXDestroyContext   \fBglXDestroyContextSrc\fP"
+
+.SS "#define glXGetCurrentContext   \fBglXGetCurrentContextSrc\fP"
 
 .SS "#define glXGetFBConfigAttrib   \fBglXGetFBConfigAttribSrc\fP"
 
@@ -1412,6 +1423,8 @@ XDL.h
 .SS "typedef GLXContext(* PFN_glXCreateContext) (Display *, XVisualInfo *, GLXContext, Bool)"
 
 .SS "typedef void(* PFN_glXDestroyContext) (Display *dpy, GLXContext ctx)"
+
+.SS "typedef GLXContext(* PFN_glXGetCurrentContext) (void)"
 
 .SS "typedef PFNGLXGETFBCONFIGATTRIBPROC \fBPFN_glXGetFBConfigAttrib\fP"
 
@@ -1678,6 +1691,8 @@ XDL.h
 .SS "\fBPFN_glXCreateContext\fP glXCreateContextSrc"
 
 .SS "\fBPFN_glXDestroyContext\fP glXDestroyContextSrc"
+
+.SS "\fBPFN_glXGetCurrentContext\fP glXGetCurrentContextSrc"
 
 .SS "\fBPFN_glXGetFBConfigAttrib\fP glXGetFBConfigAttribSrc"
 
