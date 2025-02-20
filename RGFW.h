@@ -1147,26 +1147,27 @@ RGFWDEF void RGFW_window_setCPURender(RGFW_window* win, RGFW_bool set);
 /*! native API functions */
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL)
 /*! OpenGL init hints */
-RGFWDEF void RGFW_setGLStencil(i32 stencil); /*!< set stencil buffer bit size (8 by default) */
-RGFWDEF void RGFW_setGLSamples(i32 samples); /*!< set number of sampiling buffers (4 by default) */
-RGFWDEF void RGFW_setGLStereo(i32 stereo); /*!< use GL_STEREO (GL_FALSE by default) */
-RGFWDEF void RGFW_setGLAuxBuffers(i32 auxBuffers); /*!< number of aux buffers (0 by default) */
-RGFWDEF void RGFW_setGLRGBA(u8 red, u8 green, u8 blue, u8 alpha, u8 depth); /*!< set RGBA bit sizes */
-RGFWDEF void RGFW_setGLAccumRGBA(u8 red, u8 green, u8 blue, u8 alpha); /*!< set accumulated RGBA bit sizes*/
-RGFWDEF void RGFW_setGLSRGB(RGFW_bool sRGB); /*!< request sRGA */
-RGFWDEF void RGFW_setGLRobustness(RGFW_bool robust); /*!< request a robust context */
-RGFWDEF void RGFW_setGLDebug(RGFW_bool debug); /*!< request opengl debugging */
-RGFWDEF void RGFW_setGLNoError(RGFW_bool noError); /*!< request no opengl errors */
-RGFWDEF void RGFW_setDoubleBuffer(RGFW_bool useDoubleBuffer); /*!< request double buffering */
-
-/*! which profile to use for the opengl verion */
-typedef RGFW_ENUM(u8, RGFW_glProfile)  { RGFW_glCore = 0,  RGFW_glCompatibility  };
-/*! Set OpenGL version hint (core or compatibility profile)*/
-RGFWDEF void RGFW_setGLVersion(RGFW_glProfile profile, i32 major, i32 minor);
-/*! set OpenGL release behavior */
-typedef RGFW_ENUM(u8, RGFW_glRelease)  { RGFW_releaseFlush = 0,  RGFW_glReleaseNone  };
-RGFWDEF void RGFW_setGLReleaseBehavior(RGFW_glRelease behavior);
-
+typedef RGFW_ENUM(u8, RGFW_glHints)  {
+	RGFW_glStencil = 0,  /*!< set stencil buffer bit size (8 by default) */
+	RGFW_glSamples, /*!< set number of sampiling buffers (4 by default) */
+	RGFW_glStereo, /*!< use GL_STEREO (GL_FALSE by default) */
+	RGFW_glAuxBuffers, /*!< number of aux buffers (0 by default) */
+	RGFW_glDoubleBuffer, /*!< request double buffering */
+	RGFW_glRed, RGFW_glGreen, RGFW_glBlue, RGFW_glAlpha, /*!< set RGBA bit sizes */
+	RGFW_glDepth, 
+	RGFW_glAccumRed, RGFW_glAccumGreen, RGFW_glAccumBlue,RGFW_glAccumAlpha, /*!< set accumulated RGBA bit sizes*/
+	RGFW_glSRGB, /*!< request sRGA */
+	RGFW_glRobustness, /*!< request a robust context */
+	RGFW_glDebug, /*!< request opengl debugging */
+	RGFW_glNoError, /*!< request no opengl errors */
+	RGFW_glReleaseBehavior,
+	RGFW_glProfile,
+	RGFW_glMajor, RGFW_glMinor,
+	RGFW_glFinalHint, /*!< the final hint (not for setting) */
+	RGFW_releaseFlush = 0,  RGFW_glReleaseNone, /* RGFW_glReleaseBehavior options */
+	RGFW_glCore = 0,  RGFW_glCompatibility /*!< RGFW_glProfile options */
+};
+RGFWDEF void RGFW_setGLHint(RGFW_glHints hint, i32 value);
 RGFWDEF void* RGFW_getProcAddress(const char* procname); /*!< get native opengl proc address */
 
 RGFWDEF void RGFW_window_makeCurrent_OpenGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
@@ -2107,36 +2108,16 @@ void RGFW_moveToMacOSResourceDir(void) { }
 #endif
 
 /* EGL, normal OpenGL only */
-i32 RGFW_majorVersion = 0, RGFW_minorVersion = 0;
-RGFW_glProfile RGFW_profile = RGFW_glCore;
-RGFW_glRelease RGFW_behavior = 0;
-
 #ifndef RGFW_EGL
-i32 RGFW_STENCIL = 8, RGFW_SAMPLES = 4, RGFW_STEREO = 0, RGFW_AUX_BUFFERS = 0, RGFW_DOUBLE_BUFFER = 1,
+i32 RGFW_GL_HINTS[RGFW_glFinalHint] = {8, 4, 
 #else
-i32 RGFW_STENCIL = 0, RGFW_SAMPLES = 0, RGFW_STEREO = 0, RGFW_AUX_BUFFERS = 0, RGFW_DOUBLE_BUFFER = 1,
+i32 RGFW_GL_HINTS[RGFW_glFinalHint] = {0, 0, 
 #endif
-	RGFW_RED_SIZE = 8, RGFW_GREEN_SIZE = 8, RGFW_BLUE_SIZE = 8, RGFW_ALPHA_SIZE = 8, RGFW_DEPTH = 24,
-	RGFW_ACCUM_RED_SIZE = 0, RGFW_ACCUM_GREEN_SIZE = 0, RGFW_ACCUM_BLUE_SIZE = 0, RGFW_ACCUM_ALPHA_SIZE = 0,
-	RGFW_SRGB_CAPABLE = RGFW_FALSE, RGFW_CONTEXT_ROBUSTNESS = RGFW_FALSE, RGFW_CONTEXT_DEBUG = RGFW_FALSE, RGFW_CONTEXT_NO_ERROR = RGFW_FALSE;
+	0, 0, 1, 8, 8, 8, 8, 24, 0, 0, 0, 0, 0, 0, 0, 0, RGFW_glReleaseNone, RGFW_glCore, 0, 0
+};
 
-void RGFW_setGLStencil(i32 stencil) { RGFW_STENCIL = stencil; }
-void RGFW_setGLSamples(i32 samples) { RGFW_SAMPLES = samples; }
-void RGFW_setGLStereo(i32 stereo) { RGFW_STEREO = stereo; }
-void RGFW_setGLAuxBuffers(i32 auxBuffers) { RGFW_AUX_BUFFERS = auxBuffers; }
-void RGFW_setGLRGBA(u8 red, u8 green, u8 blue, u8 alpha, u8 depth) { RGFW_RED_SIZE = red; RGFW_GREEN_SIZE = green; RGFW_BLUE_SIZE = blue; RGFW_ALPHA_SIZE = alpha; RGFW_DEPTH = depth; }
-void RGFW_setGLAccumRGBA(u8 red, u8 green, u8 blue, u8 alpha) { RGFW_ACCUM_RED_SIZE = red; RGFW_ACCUM_GREEN_SIZE = green; RGFW_ACCUM_BLUE_SIZE = blue; RGFW_ACCUM_ALPHA_SIZE = alpha; }
-void RGFW_setGLSRGB(RGFW_bool sRGB) { RGFW_SRGB_CAPABLE = sRGB; }
-void RGFW_setGLRobustness(RGFW_bool robust) { RGFW_CONTEXT_ROBUSTNESS = robust; }
-void RGFW_setGLDebug(RGFW_bool debug) { RGFW_CONTEXT_DEBUG = debug; }
-void RGFW_setGLNoError(RGFW_bool noError) { RGFW_CONTEXT_NO_ERROR = noError; }
-void RGFW_setDoubleBuffer(RGFW_bool useDoubleBuffer) { RGFW_DOUBLE_BUFFER = useDoubleBuffer; }
-void RGFW_setGLReleaseBehavior(RGFW_glRelease behavior) { RGFW_behavior = behavior; }
-
-void RGFW_setGLVersion(RGFW_glProfile profile, i32 major, i32 minor) {
-	RGFW_profile = profile;
-	RGFW_majorVersion = major;
-	RGFW_minorVersion = minor;
+void RGFW_setGLHint(RGFW_glHints hint, i32 value) {
+	if (hint < RGFW_glFinalHint && hint) RGFW_GL_HINTS[hint] = value;
 }
 
 /* OPENGL normal only (no EGL / OSMesa) */
@@ -2164,6 +2145,13 @@ void RGFW_setGLVersion(RGFW_glProfile profile, i32 major, i32 minor) {
 	#define RGFW_GL_ACCUM_ALPHA_SIZE	 RGFW_OS_BASED_VALUE(17,   	 	0x2021,						0, 0)
 	#define RGFW_GL_SRGB	 RGFW_OS_BASED_VALUE(0x20b2,   	 	0x3089,						0, 0)
 	#define RGFW_GL_NOERROR	 RGFW_OS_BASED_VALUE(0x31b3,   	 	0x31b3,						0, 0)
+	#define RGFW_GL_FLAGS	 RGFW_OS_BASED_VALUE(GLX_CONTEXT_FLAGS_ARB,   	 	0x2094,						0, 0)
+	#define RGFW_GL_RELEASE_BEHAVIOR	 RGFW_OS_BASED_VALUE(GLX_CONTEXT_RELEASE_BEHAVIOR_ARB,   	 	0x2097 ,						0, 0)
+	#define RGFW_GL_CONTEXT_RELEASE	 RGFW_OS_BASED_VALUE(GLX_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB,   	 	0x2098,						0, 0)
+	#define RGFW_GL_CONTEXT_NONE	 RGFW_OS_BASED_VALUE(GLX_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB,   	 	0x0000,						0, 0)	
+	#define RGFW_GL_FLAGS	 RGFW_OS_BASED_VALUE(GLX_CONTEXT_FLAGS_ARB,   	 	0x2094,						0, 0)
+	#define RGFW_GL_DEBUG_BIT	 RGFW_OS_BASED_VALUE(GLX_CONTEXT_FLAGS_ARB,   	 	0x2094,						0, 0)
+	#define RGFW_GL_ROBUST_BIT	 RGFW_OS_BASED_VALUE(GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB,   	 	0x00000004,						0, 0)
 #endif
 
 #ifdef RGFW_WINDOWS
@@ -2232,33 +2220,44 @@ u32* RGFW_initFormatAttribs(u32 useSoftware) {
 
         RGFW_GL_ADD_ATTRIB(RGFW_GL_DOUBLEBUFFER, 1);
 
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_ALPHA_SIZE, RGFW_ALPHA_SIZE);
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_ALPHA_SIZE, RGFW_GL_HINTS[RGFW_glAlpha]);
 
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_DEPTH_SIZE, RGFW_DEPTH);
-        RGFW_GL_ADD_ATTRIB(RGFW_GL_STENCIL_SIZE, RGFW_STENCIL);
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_STEREO, RGFW_STEREO);
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_AUX_BUFFERS, RGFW_AUX_BUFFERS);
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_DEPTH_SIZE, RGFW_GL_HINTS[RGFW_glDepth]);
+        RGFW_GL_ADD_ATTRIB(RGFW_GL_STENCIL_SIZE, RGFW_GL_HINTS[RGFW_glStencil]);
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_STEREO, RGFW_GL_HINTS[RGFW_glStereo]);
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_AUX_BUFFERS, RGFW_GL_HINTS[RGFW_glAuxBuffers]);
 
 	#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_RED_SIZE, RGFW_RED_SIZE);
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_GREEN_SIZE, RGFW_BLUE_SIZE);
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_BLUE_SIZE, RGFW_GREEN_SIZE);
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_RED_SIZE, RGFW_GL_HINTS[RGFW_glRed]);
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_GREEN_SIZE, RGFW_GL_HINTS[RGFW_glBlue]);
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_BLUE_SIZE, RGFW_GL_HINTS[RGFW_glGreen]);
 	#endif
 
 	#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_ACCUM_RED_SIZE, RGFW_ACCUM_RED_SIZE);
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_ACCUM_GREEN_SIZE, RGFW_ACCUM_BLUE_SIZE);
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_ACCUM_BLUE_SIZE, RGFW_ACCUM_GREEN_SIZE);
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_ACCUM_ALPHA_SIZE, RGFW_ACCUM_ALPHA_SIZE);
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_SRGB, RGFW_SRGB_CAPABLE);
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_NOERROR, RGFW_CONTEXT_NO_ERROR);
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_ACCUM_RED_SIZE, RGFW_GL_HINTS[RGFW_glAccumRed]);
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_ACCUM_GREEN_SIZE, RGFW_GL_HINTS[RGFW_glAccumBlue]);
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_ACCUM_BLUE_SIZE, RGFW_GL_HINTS[RGFW_glAccumGreen]);
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_ACCUM_ALPHA_SIZE, RGFW_GL_HINTS[RGFW_glAccumAlpha]);
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_SRGB, RGFW_GL_HINTS[RGFW_glSRGB]);
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_NOERROR, RGFW_GL_HINTS[RGFW_glNoError]);
+	
+		if (RGFW_GL_HINTS[RGFW_glReleaseBehavior] == RGFW_releaseFlush) {
+			RGFW_GL_ADD_ATTRIB(RGFW_GL_RELEASE_BEHAVIOR, RGFW_GL_CONTEXT_RELEASE);
+		} else if (RGFW_GL_HINTS[RGFW_glReleaseBehavior] == RGFW_glReleaseNone) {
+			RGFW_GL_ADD_ATTRIB(RGFW_GL_RELEASE_BEHAVIOR, RGFW_GL_CONTEXT_NONE);
+		}
+
+		u32 flags = 0;
+		if (RGFW_GL_HINTS[RGFW_glDebug]) flags |= RGFW_GL_DEBUG_BIT;
+		if (RGFW_GL_HINTS[RGFW_glRobustness]) flags |= RGFW_GL_ROBUST_BIT;
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_FLAGS, flags);
 	#else
-		u32 accumSize = (RGFW_ACCUM_RED_SIZE + RGFW_ACCUM_GREEN_SIZE +  RGFW_ACCUM_BLUE_SIZE + RGFW_ACCUM_ALPHA_SIZE) / 4;
+		u32 accumSize = (RGFW_GL_HINTS[RGFW_glAccumRed] + RGFW_GL_HINTS[RGFW_glAccumGreen] +  RGFW_GL_HINTS[RGFW_glAccumBlue] + RGFW_GL_HINTS[RGFW_glAccumAlpha]) / 4;
 		RGFW_GL_ADD_ATTRIB(14, accumSize);
 	#endif
 	
 	#ifndef RGFW_X11
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_SAMPLES, RGFW_SAMPLES);
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_SAMPLES, RGFW_GL_HINTS[RGFW_glSamples]);
 	#endif
 
 	#ifdef RGFW_MACOS
@@ -2277,8 +2276,8 @@ u32* RGFW_initFormatAttribs(u32 useSoftware) {
 		attribs[index] = 99;
 		attribs[index + 1] = 0x1000;
 
-		if (RGFW_majorVersion >= 4 || RGFW_majorVersion >= 3) {
-			attribs[index + 1] = (u32) ((RGFW_majorVersion >= 4) ? 0x4100 : 0x3200);
+		if (RGFW_GL_HINTS[RGFW_glMinor] >= 4 || RGFW_GL_HINTS[RGFW_glMinor] >= 3) {
+			attribs[index + 1] = (u32) ((RGFW_GL_HINTS[RGFW_glMinor] >= 4) ? 0x4100 : 0x3200);
 		}
 	#endif
 
@@ -2391,6 +2390,23 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 		EGL_NONE, EGL_NONE
 	};
 
+
+	{
+		size_t index = 7;
+		EGLint* attribs = egl_config;
+		
+		RGFW_GL_ADD_ATTRIB(EGL_RED_SIZE, RGFW_GL_HINTS[RGFW_glRed]);
+		RGFW_GL_ADD_ATTRIB(EGL_GREEN_SIZE, RGFW_GL_HINTS[RGFW_glBlue]);
+		RGFW_GL_ADD_ATTRIB(EGL_BLUE_SIZE, RGFW_GL_HINTS[RGFW_glGreen]);
+		RGFW_GL_ADD_ATTRIB(EGL_ALPHA_SIZE, RGFW_GL_HINTS[RGFW_glAlpha]);
+		RGFW_GL_ADD_ATTRIB(EGL_DEPTH_SIZE, RGFW_GL_HINTS[RGFW_glDepth]);
+	
+		if (RGFW_GL_HINTS[RGFW_glSRGB])
+			RGFW_GL_ADD_ATTRIB(0x3089, RGFW_GL_HINTS[RGFW_glSRGB]);
+		
+		RGFW_GL_ADD_ATTRIB(EGL_NONE, EGL_NONE);
+	}
+
 	EGLConfig config;
 	EGLint numConfigs;
 	eglChooseConfig(win->src.EGL_display, egl_config, &config, 1, &numConfigs);
@@ -2423,25 +2439,33 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 	};
 
 	size_t index = 4;
-	RGFW_GL_ADD_ATTRIB(EGL_STENCIL_SIZE, RGFW_STENCIL);
-	RGFW_GL_ADD_ATTRIB(EGL_SAMPLES, RGFW_SAMPLES);
+	RGFW_GL_ADD_ATTRIB(EGL_STENCIL_SIZE, RGFW_GL_HINTS[RGFW_glStencil]);
+	RGFW_GL_ADD_ATTRIB(EGL_SAMPLES, RGFW_GL_HINTS[RGFW_glSamples]);
 
-	if (RGFW_DOUBLE_BUFFER)
+	if (RGFW_GL_HINTS[RGFW_glDoubleBuffer])
 		RGFW_GL_ADD_ATTRIB(EGL_RENDER_BUFFER, EGL_BACK_BUFFER);
 
-	if (RGFW_majorVersion) {
-		attribs[1] = RGFW_majorVersion;
+	if (RGFW_GL_HINTS[RGFW_glMinor]) {
+		attribs[1] = RGFW_GL_HINTS[RGFW_glMinor];
 
-		RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MAJOR_VERSION, RGFW_majorVersion);
-		RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MINOR_VERSION, RGFW_minorVersion);
+		RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MAJOR_VERSION, RGFW_GL_HINTS[RGFW_glMinor]);
+		RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MINOR_VERSION, RGFW_GL_HINTS[RGFW_glMajor]);
 
-		if (RGFW_profile == RGFW_glCore) {
+		if (RGFW_GL_HINTS[RGFW_glProfile] == RGFW_glCore) {
 			RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT);
 		}
 		else {
 			RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT);
 		}
 
+	}
+
+	RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_OPENGL_ROBUST_ACCESS, RGFW_GL_HINTS[RGFW_glRobustness]);
+	RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_OPENGL_DEBUG, RGFW_GL_HINTS[RGFW_glDebug]);
+	if (RGFW_GL_HINTS[RGFW_glReleaseBehavior] == RGFW_releaseFlush) {
+		RGFW_GL_ADD_ATTRIB(0x2097, 0x2098);
+	} else {
+		RGFW_GL_ADD_ATTRIB(0x2097, 0x0000);
 	}
 
 	#if defined(RGFW_OPENGL_ES1) || defined(RGFW_OPENGL_ES2) || defined(RGFW_OPENGL_ES3)
@@ -3459,7 +3483,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			glXGetFBConfigAttrib(win->src.display, fbc[i], GLX_SAMPLES, &samples);
 
 			if ((!(flags & RGFW_windowTransparent) || vi->depth == 32) &&
-				(best_fbc < 0 || samp_buf) && (samples == RGFW_SAMPLES || best_fbc == -1)) {
+				(best_fbc < 0 || samp_buf) && (samples == RGFW_GL_HINTS[RGFW_glSamples] || best_fbc == -1)) {
 				best_fbc = i;
 			}
 		}
@@ -3529,16 +3553,16 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	#if defined(RGFW_OPENGL) && !defined(RGFW_EGL) /* This is the second part of setting up opengl. This is where we ask OpenGL for a specific version. */
 		i32 context_attribs[7] = { 0, 0, 0, 0, 0, 0, 0 };
 		context_attribs[0] = GLX_CONTEXT_PROFILE_MASK_ARB;
-		if (RGFW_profile == RGFW_glCore)
+		if (RGFW_GL_HINTS[RGFW_glProfile] == RGFW_glCore)
 			context_attribs[1] = GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
 		else
 			context_attribs[1] = GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
 
-		if (RGFW_majorVersion || RGFW_minorVersion) {
+		if (RGFW_GL_HINTS[RGFW_glMinor] || RGFW_GL_HINTS[RGFW_glMajor]) {
 			context_attribs[2] = GLX_CONTEXT_MAJOR_VERSION_ARB;
-			context_attribs[3] = RGFW_majorVersion;
+			context_attribs[3] = RGFW_GL_HINTS[RGFW_glMinor];
 			context_attribs[4] = GLX_CONTEXT_MINOR_VERSION_ARB;
-			context_attribs[5] = RGFW_minorVersion;
+			context_attribs[5] = RGFW_GL_HINTS[RGFW_glMajor];
 		}
 
 		glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
@@ -6069,7 +6093,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
         u32 pfd_flags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
 
-        //if (RGFW_DOUBLE_BUFFER)
+        //if (RGFW_GL_HINTS[RGFW_glDoubleBuffer])
              pfd_flags |= PFD_DOUBLEBUFFER;
 
 		PIXELFORMATDESCRIPTOR pfd = {
@@ -6136,16 +6160,16 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			u32 index = 0;
 			i32 attribs[40];
 
-			if (RGFW_profile == RGFW_glCore) {
+			if (RGFW_GL_HINTS[RGFW_glProfile] == RGFW_glCore) {
 				SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB);
 			}
 			else {
 				SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
 			}
 
-			if (RGFW_majorVersion || RGFW_minorVersion) {
-				SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_majorVersion);
-				SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_minorVersion);
+			if (RGFW_GL_HINTS[RGFW_glMinor] || RGFW_GL_HINTS[RGFW_glMajor]) {
+				SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_GL_HINTS[RGFW_glMinor]);
+				SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_GL_HINTS[RGFW_glMajor]);
 			}
 
 			SET_ATTRIB(0, 0);
@@ -9794,22 +9818,21 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	#ifndef RGFW_WEBGPU
 		EmscriptenWebGLContextAttributes attrs;
-		attrs.alpha = EM_TRUE;
+		attrs.alpha = RGFW_GL_HINTS[RGFW_glAlpha];
 		attrs.depth = EM_TRUE;
-		attrs.alpha = EM_TRUE;
-		attrs.stencil = RGFW_STENCIL;
-		attrs.antialias = RGFW_SAMPLES;
+		attrs.stencil = RGFW_GL_HINTS[RGFW_glStencil];
+		attrs.antialias = RGFW_GL_HINTS[RGFW_glSamples];
 		attrs.premultipliedAlpha = EM_TRUE;
 		attrs.preserveDrawingBuffer = EM_FALSE;
 
-		if (RGFW_DOUBLE_BUFFER == 0)
+		if (RGFW_GL_HINTS[RGFW_glDoubleBuffer] == 0)
 			attrs.renderViaOffscreenBackBuffer = 0;
 		else
-			attrs.renderViaOffscreenBackBuffer = RGFW_AUX_BUFFERS;
+			attrs.renderViaOffscreenBackBuffer = RGFW_GL_HINTS[RGFW_glAuxBuffers];
 
 		attrs.failIfMajorPerformanceCaveat = EM_FALSE;
-		attrs.majorVersion = (RGFW_majorVersion == 0) ? 1 : RGFW_majorVersion;
-		attrs.minorVersion = RGFW_minorVersion;
+		attrs.majorVersion = (RGFW_GL_HINTS[RGFW_glMinor] == 0) ? 1 : RGFW_GL_HINTS[RGFW_glMinor];
+		attrs.minorVersion = RGFW_GL_HINTS[RGFW_glMajor];
 
 		attrs.enableExtensionsByDefault = EM_TRUE;
 		attrs.explicitSwapControl = EM_TRUE;

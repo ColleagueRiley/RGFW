@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Tue Feb 18 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Thu Feb 20 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -568,49 +568,10 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setCPURender\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP set)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLStencil\fP (\fBi32\fP stencil)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glHints)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLSamples\fP (\fBi32\fP samples)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLStereo\fP (\fBi32\fP stereo)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLAuxBuffers\fP (\fBi32\fP auxBuffers)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLRGBA\fP (\fBu8\fP red, \fBu8\fP green, \fBu8\fP blue, \fBu8\fP alpha, \fBu8\fP depth)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLAccumRGBA\fP (\fBu8\fP red, \fBu8\fP green, \fBu8\fP blue, \fBu8\fP alpha)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLSRGB\fP (\fBRGFW_bool\fP sRGB)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLRobustness\fP (\fBRGFW_bool\fP robust)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLDebug\fP (\fBRGFW_bool\fP debug)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLNoError\fP (\fBRGFW_bool\fP noError)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setDoubleBuffer\fP (\fBRGFW_bool\fP useDoubleBuffer)"
-.br
-.ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glProfile)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLVersion\fP (RGFW_glProfile profile, \fBi32\fP major, \fBi32\fP minor)"
-.br
-.ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glRelease)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLReleaseBehavior\fP (RGFW_glRelease behavior)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLHint\fP (RGFW_glHints hint, \fBi32\fP value)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void * \fBRGFW_getProcAddress\fP (const char *procname)"

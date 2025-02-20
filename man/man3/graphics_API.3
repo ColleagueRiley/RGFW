@@ -1,4 +1,4 @@
-.TH "graphics_API" 3 "Tue Feb 18 2025" "RGFW" \" -*- nroff -*-
+.TH "graphics_API" 3 "Thu Feb 20 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -28,49 +28,10 @@ graphics_API \- Graphics_API
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setCPURender\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP set)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLStencil\fP (\fBi32\fP stencil)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glHints)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLSamples\fP (\fBi32\fP samples)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLStereo\fP (\fBi32\fP stereo)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLAuxBuffers\fP (\fBi32\fP auxBuffers)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLRGBA\fP (\fBu8\fP red, \fBu8\fP green, \fBu8\fP blue, \fBu8\fP alpha, \fBu8\fP depth)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLAccumRGBA\fP (\fBu8\fP red, \fBu8\fP green, \fBu8\fP blue, \fBu8\fP alpha)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLSRGB\fP (\fBRGFW_bool\fP sRGB)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLRobustness\fP (\fBRGFW_bool\fP robust)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLDebug\fP (\fBRGFW_bool\fP debug)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLNoError\fP (\fBRGFW_bool\fP noError)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setDoubleBuffer\fP (\fBRGFW_bool\fP useDoubleBuffer)"
-.br
-.ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glProfile)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLVersion\fP (RGFW_glProfile profile, \fBi32\fP major, \fBi32\fP minor)"
-.br
-.ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glRelease)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setGLReleaseBehavior\fP (RGFW_glRelease behavior)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_setGLHint\fP (RGFW_glHints hint, \fBi32\fP value)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void * \fBRGFW_getProcAddress\fP (const char *procname)"
@@ -91,42 +52,40 @@ graphics_API \- Graphics_API
 
 .SH "Function Documentation"
 .PP 
-.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_glProfile)"
-which profile to use for the opengl verion 
-.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_glRelease)"
-set OpenGL release behavior 
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_glHints)"
+native API functions
+.PP
+OpenGL init hints < set stencil buffer bit size (8 by default)
+.PP
+< set number of sampiling buffers (4 by default)
+.PP
+< use GL_STEREO (GL_FALSE by default)
+.PP
+< number of aux buffers (0 by default)
+.PP
+< request double buffering
+.PP
+< set RGBA bit sizes
+.PP
+< set accumulated RGBA bit sizes
+.PP
+< request sRGA
+.PP
+< request a robust context
+.PP
+< request opengl debugging
+.PP
+< request no opengl errors
+.PP
+< the final hint (not for setting)
+.PP
+< RGFW_glProfile options
 .SS "void * RGFW_getCurrent_OpenGL (void)"
 get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl)) 
 .SS "\fBRGFWDEF\fP void * RGFW_getProcAddress (const char * procname)"
 get native opengl proc address 
-.SS "\fBRGFWDEF\fP void RGFW_setDoubleBuffer (\fBRGFW_bool\fP useDoubleBuffer)"
-request double buffering 
-.SS "\fBRGFWDEF\fP void RGFW_setGLAccumRGBA (\fBu8\fP red, \fBu8\fP green, \fBu8\fP blue, \fBu8\fP alpha)"
-set accumulated RGBA bit sizes 
-.SS "\fBRGFWDEF\fP void RGFW_setGLAuxBuffers (\fBi32\fP auxBuffers)"
-number of aux buffers (0 by default) 
-.SS "\fBRGFWDEF\fP void RGFW_setGLDebug (\fBRGFW_bool\fP debug)"
-request opengl debugging 
-.SS "\fBRGFWDEF\fP void RGFW_setGLNoError (\fBRGFW_bool\fP noError)"
-request no opengl errors 
-.SS "\fBRGFWDEF\fP void RGFW_setGLReleaseBehavior (RGFW_glRelease behavior)"
+.SS "\fBRGFWDEF\fP void RGFW_setGLHint (RGFW_glHints hint, \fBi32\fP value)"
 
-.SS "\fBRGFWDEF\fP void RGFW_setGLRGBA (\fBu8\fP red, \fBu8\fP green, \fBu8\fP blue, \fBu8\fP alpha, \fBu8\fP depth)"
-set RGBA bit sizes 
-.SS "\fBRGFWDEF\fP void RGFW_setGLRobustness (\fBRGFW_bool\fP robust)"
-request a robust context 
-.SS "\fBRGFWDEF\fP void RGFW_setGLSamples (\fBi32\fP samples)"
-set number of sampiling buffers (4 by default) 
-.SS "\fBRGFWDEF\fP void RGFW_setGLSRGB (\fBRGFW_bool\fP sRGB)"
-request sRGA 
-.SS "\fBRGFWDEF\fP void RGFW_setGLStencil (\fBi32\fP stencil)"
-native API functions
-.PP
-OpenGL init hints set stencil buffer bit size (8 by default) 
-.SS "\fBRGFWDEF\fP void RGFW_setGLStereo (\fBi32\fP stereo)"
-use GL_STEREO (GL_FALSE by default) 
-.SS "\fBRGFWDEF\fP void RGFW_setGLVersion (RGFW_glProfile profile, \fBi32\fP major, \fBi32\fP minor)"
-Set OpenGL version hint (core or compatibility profile) 
 .SS "\fBRGFWDEF\fP \fBu32\fP RGFW_window_checkFPS (\fBRGFW_window\fP * win, \fBu32\fP fpsCap)"
 
 .SS "\fBRGFWDEF\fP void RGFW_window_makeCurrent (\fBRGFW_window\fP * win)"
