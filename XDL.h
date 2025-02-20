@@ -197,6 +197,7 @@ typedef void (*PFN_XRRFreeScreenResources)(XRRScreenResources *resources);
 typedef XVisualInfo* (*PFN_glXChooseVisual)(Display*, int, int*);
 typedef GLXContext (*PFN_glXCreateContext)(Display*, XVisualInfo*, GLXContext, Bool);
 typedef Bool (*PFN_glXMakeCurrent)(Display*, GLXDrawable, GLXContext);
+typedef GLXContext (*PFN_glXGetCurrentContext)(void);
 typedef void (*PFN_glXSwapBuffers)(Display*, GLXDrawable);
 typedef PFNGLXSWAPINTERVALEXTPROC PFN_glXSwapIntervalEXT;
 typedef void* (*PFN_glXGetProcAddress)(const GLubyte *procname);
@@ -325,6 +326,7 @@ PFN_XRRFreeScreenResources XRRFreeScreenResourcesSrc;
 PFN_glXChooseVisual glXChooseVisualSrc;
 PFN_glXCreateContext glXCreateContextSrc;
 PFN_glXMakeCurrent glXMakeCurrentSrc;
+PFN_glXGetCurrentContext glXGetCurrentContextSrc;
 PFN_glXSwapBuffers glXSwapBuffersSrc;
 PFN_glXSwapIntervalEXT glXSwapIntervalEXTSrc; 
 PFN_glXGetProcAddress glXGetProcAddressSrc;
@@ -454,7 +456,8 @@ PFN_glXDestroyContext glXDestroyContextSrc;
     #define glXChooseVisual glXChooseVisualSrc
     #define glXCreateContext glXCreateContextSrc
     #define glXMakeCurrent glXMakeCurrentSrc
-    #define glXSwapBuffers glXSwapBuffersSrc
+    #define glXGetCurrentContext glXGetCurrentContextSrc
+	#define glXSwapBuffers glXSwapBuffersSrc
     #define glXGetProcAddress glXGetProcAddressSrc
     #define glXGetVisualFromFBConfig glXGetVisualFromFBConfigSrc
     #define glXGetFBConfigAttrib glXGetFBConfigAttribSrc
@@ -614,7 +617,8 @@ void XDL_init(void) {
         XDL_PROC_DEF(1, glXChooseVisual);
         XDL_PROC_DEF(1, glXCreateContext);
         XDL_PROC_DEF(1, glXMakeCurrent);
-        XDL_PROC_DEF(1, glXSwapBuffers);
+        XDL_PROC_DEF(1, glXGetCurrentContext);
+		XDL_PROC_DEF(1, glXSwapBuffers);
         XDL_PROC_DEF(1, glXSwapIntervalEXT); 
         XDL_PROC_DEF(1, glXGetProcAddress); 
         XDL_PROC_DEF(1, glXGetVisualFromFBConfig);

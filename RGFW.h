@@ -9232,7 +9232,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 		objc_msgSend_void(win->src.ctx, sel_registerName("makeCurrentContext"));
 	}
 	void* RGFW_getCurrent_OpenGL(void) {
-		objc_msgSend_id(objc_getClass("NSOpenGLContext"), sel_registerName("currentContext"));
+		return objc_msgSend_id(objc_getClass("NSOpenGLContext"), sel_registerName("currentContext"));
 	}
 	#endif
 
