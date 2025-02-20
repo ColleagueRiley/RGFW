@@ -5084,15 +5084,14 @@ static float XGetSystemContentDPI(Display* display, i32 screen) {
 		RGFW_UNUSED(screen);
 		char* rms = XResourceManagerString(display);
 		XrmDatabase db = NULL;
-
+		if (rms) db = XrmGetStringDatabase(rms);
+		
 		if (rms && db) {
-			db = XrmGetStringDatabase(rms);
 			XrmValue value;
 			char* type = NULL;
 
-			if (XrmGetResource(db, "Xft.dpi", "Xft.Dpi", &type, &value) && type && RGFW_STRNCMP(type, "String", 7) == 0) {
+			if (XrmGetResource(db, "Xft.dpi", "Xft.Dpi", &type, &value) && type && RGFW_STRNCMP(type, "String", 7) == 0)
 				dpi = (float)atof(value.addr);
-			}
 			XrmDestroyDatabase(db);
 		}
 	#else
@@ -5128,7 +5127,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	RGFW_MEMCPY(monitor.name, name, 128);
 
 	float dpi = XGetSystemContentDPI(display, screen);
-	monitor.pixelRatio = dpi > 96.0f ? 2 : 1;
+	monitor.pixelRatio = dpi >= 192.0f ? 2 : 1;
 	monitor.scaleX = (float) (dpi) / 96.0f;
 	monitor.scaleY = (float) (dpi) / 96.0f;
 
@@ -6889,8 +6888,7 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 
 	monitor.scaleX = dpiX / 96.0f;
 	monitor.scaleY = dpiY / 96.0f;
-	printf("%f\n",dpiX);
-	monitor.pixelRatio = dpiX > 96.0f ? 2 : 1;
+	monitor.pixelRatio = dpiX >= 192.0f ? 2 : 1;
 
 	monitor.physW = GetDeviceCaps(hdc, HORZSIZE) / 25.4;
 	monitor.physH = GetDeviceCaps(hdc, VERTSIZE) / 25.4;
@@ -6905,7 +6903,7 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 			GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &x, &y);
 			monitor.scaleX = (float) (x) / (float) 96.0f;
 			monitor.scaleY = (float) (y) / (float) 96.0f;
-			monitor.pixelRatio = dpiX > 96.0f ? 2 : 1;
+			monitor.pixelRatio = dpiX >= 192.0f ? 2 : 1;
 		}
 	#endif
 
