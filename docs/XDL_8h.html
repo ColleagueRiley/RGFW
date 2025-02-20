@@ -138,6 +138,10 @@ Macros</h2></td></tr>
 <tr class="separator:a0f7a14adad8bf68d71c3d415789c3be3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab8121efab0d92a87ebce0616721507ff"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#ab8121efab0d92a87ebce0616721507ff">XkbGetState</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a87fd2719cee6ed46e0e7513c7168fed1">XkbGetStateSrc</a></td></tr>
 <tr class="separator:ab8121efab0d92a87ebce0616721507ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a98df9ec892ff18460868caa5eecdcd27"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a98df9ec892ff18460868caa5eecdcd27">XWidthOfScreen</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a822a2466a0e93718be631c3c22d694bd">XWidthOfScreenSrc</a></td></tr>
+<tr class="separator:a98df9ec892ff18460868caa5eecdcd27"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3e12175a8f5804710a6bbd9a6a0c555"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#ad3e12175a8f5804710a6bbd9a6a0c555">XHeightOfScreen</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a418cab9ec4febcd3101d0346581674ca">XHeightOfScreenSrc</a></td></tr>
+<tr class="separator:ad3e12175a8f5804710a6bbd9a6a0c555"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad039a3bcfdc08a2179b834e7f92d8cab"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#ad039a3bcfdc08a2179b834e7f92d8cab">XEventsQueued</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a19049059b14a189e1084871e0943d8fb">XEventsQueuedSrc</a></td></tr>
 <tr class="separator:ad039a3bcfdc08a2179b834e7f92d8cab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0cc1976720c5b678e95ab46bd84f113e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a0cc1976720c5b678e95ab46bd84f113e">XFilterEvent</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#afd3adbe32f967aae7ae218be582c56ec">XFilterEventSrc</a></td></tr>
@@ -563,6 +567,10 @@ Typedefs</h2></td></tr>
 <tr class="separator:a886d37edd418bc16771bdf5c15edf48c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a124ce0f4e390cfc2d90939171c404f47"><td class="memItemLeft" align="right" valign="top">typedef char *(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a124ce0f4e390cfc2d90939171c404f47">PFN_XDisplayName</a>) (const char *string)</td></tr>
 <tr class="separator:a124ce0f4e390cfc2d90939171c404f47"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31eb118069f4a6790eb8ada0410c8e4b"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a31eb118069f4a6790eb8ada0410c8e4b">PFN_XWidthOfScreen</a>) (Screen *screen)</td></tr>
+<tr class="separator:a31eb118069f4a6790eb8ada0410c8e4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff87519f3e595c0204898a846b5deed8"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#aff87519f3e595c0204898a846b5deed8">PFN_XHeightOfScreen</a>) (Screen *screen)</td></tr>
+<tr class="separator:aff87519f3e595c0204898a846b5deed8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:add9adfc2dc97e2bd318c09927216807e"><td class="memItemLeft" align="right" valign="top">typedef XRRScreenResources *(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#add9adfc2dc97e2bd318c09927216807e">PFN_XRRGetScreenResourcesCurrent</a>) (Display *display, Window window)</td></tr>
 <tr class="separator:add9adfc2dc97e2bd318c09927216807e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a86c9ba892cf7fb886265b80b835ad161"><td class="memItemLeft" align="right" valign="top">typedef XRRCrtcInfo *(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a86c9ba892cf7fb886265b80b835ad161">PFN_XRRGetCrtcInfo</a>) (Display *display, XRRScreenResources *resources, RRCrtc crtc)</td></tr>
@@ -817,6 +825,10 @@ Variables</h2></td></tr>
 <tr class="separator:a7d63cb90c3cfe874ce56c02487f4724c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a87fd2719cee6ed46e0e7513c7168fed1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#abe6c31ce28660e6721f34cd7b188aaef">PFN_XkbGetState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a87fd2719cee6ed46e0e7513c7168fed1">XkbGetStateSrc</a></td></tr>
 <tr class="separator:a87fd2719cee6ed46e0e7513c7168fed1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a822a2466a0e93718be631c3c22d694bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#a31eb118069f4a6790eb8ada0410c8e4b">PFN_XWidthOfScreen</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a822a2466a0e93718be631c3c22d694bd">XWidthOfScreenSrc</a></td></tr>
+<tr class="separator:a822a2466a0e93718be631c3c22d694bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a418cab9ec4febcd3101d0346581674ca"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#a31eb118069f4a6790eb8ada0410c8e4b">PFN_XWidthOfScreen</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a418cab9ec4febcd3101d0346581674ca">XHeightOfScreenSrc</a></td></tr>
+<tr class="separator:a418cab9ec4febcd3101d0346581674ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e899f15c78da4411dc0477dc5aa1839"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#add9adfc2dc97e2bd318c09927216807e">PFN_XRRGetScreenResourcesCurrent</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a8e899f15c78da4411dc0477dc5aa1839">XRRGetScreenResourcesCurrentSrc</a></td></tr>
 <tr class="separator:a8e899f15c78da4411dc0477dc5aa1839"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a84aa173b206bf634ab99fdc5ec14e0e3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#a86c9ba892cf7fb886265b80b835ad161">PFN_XRRGetCrtcInfo</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a84aa173b206bf634ab99fdc5ec14e0e3">XRRGetCrtcInfoSrc</a></td></tr>
@@ -1751,6 +1763,20 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="ad3e12175a8f5804710a6bbd9a6a0c555" name="ad3e12175a8f5804710a6bbd9a6a0c555"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad3e12175a8f5804710a6bbd9a6a0c555">&#9670;&#160;</a></span>XHeightOfScreen</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define XHeightOfScreen&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a418cab9ec4febcd3101d0346581674ca">XHeightOfScreenSrc</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a510d8763c59b594d64f109b31a435d86" name="a510d8763c59b594d64f109b31a435d86"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a510d8763c59b594d64f109b31a435d86">&#9670;&#160;</a></span>XIconifyWindow</h2>
 
@@ -2571,6 +2597,20 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define XWarpPointer&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a0b33ba3918f125eea5081688edd00dbe">XWarpPointerSrc</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a98df9ec892ff18460868caa5eecdcd27" name="a98df9ec892ff18460868caa5eecdcd27"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a98df9ec892ff18460868caa5eecdcd27">&#9670;&#160;</a></span>XWidthOfScreen</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define XWidthOfScreen&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a822a2466a0e93718be631c3c22d694bd">XWidthOfScreenSrc</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3468,6 +3508,20 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">typedef int(* PFN_XGrabPointer) (Display *, Window, Bool, unsigned int, int, int, Window, Cursor, Time)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aff87519f3e595c0204898a846b5deed8" name="aff87519f3e595c0204898a846b5deed8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aff87519f3e595c0204898a846b5deed8">&#9670;&#160;</a></span>PFN_XHeightOfScreen</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef int(* PFN_XHeightOfScreen) (Screen *screen)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4398,6 +4452,20 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a31eb118069f4a6790eb8ada0410c8e4b" name="a31eb118069f4a6790eb8ada0410c8e4b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a31eb118069f4a6790eb8ada0410c8e4b">&#9670;&#160;</a></span>PFN_XWidthOfScreen</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef int(* PFN_XWidthOfScreen) (Screen *screen)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a8676b86d35882c481cdb8cae7cfaea1e" name="a8676b86d35882c481cdb8cae7cfaea1e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8676b86d35882c481cdb8cae7cfaea1e">&#9670;&#160;</a></span>XDL_close()</h2>
@@ -5318,6 +5386,20 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a418cab9ec4febcd3101d0346581674ca" name="a418cab9ec4febcd3101d0346581674ca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a418cab9ec4febcd3101d0346581674ca">&#9670;&#160;</a></span>XHeightOfScreenSrc</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="XDL_8h.html#a31eb118069f4a6790eb8ada0410c8e4b">PFN_XWidthOfScreen</a> XHeightOfScreenSrc</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a4b1c6297c4a02df528fe3063087b3b3c" name="a4b1c6297c4a02df528fe3063087b3b3c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4b1c6297c4a02df528fe3063087b3b3c">&#9670;&#160;</a></span>XIconifyWindowSrc</h2>
 
@@ -6138,6 +6220,20 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="XDL_8h.html#a5acc98db88da5da275de8aec5f8cfdf5">PFN_XWarpPointer</a> XWarpPointerSrc</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a822a2466a0e93718be631c3c22d694bd" name="a822a2466a0e93718be631c3c22d694bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a822a2466a0e93718be631c3c22d694bd">&#9670;&#160;</a></span>XWidthOfScreenSrc</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="XDL_8h.html#a31eb118069f4a6790eb8ada0410c8e4b">PFN_XWidthOfScreen</a> XWidthOfScreenSrc</td>
         </tr>
       </table>
 </div><div class="memdoc">

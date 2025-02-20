@@ -95,6 +95,12 @@ XDL.h
 .RI "#define \fBXkbGetState\fP   \fBXkbGetStateSrc\fP"
 .br
 .ti -1c
+.RI "#define \fBXWidthOfScreen\fP   \fBXWidthOfScreenSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXHeightOfScreen\fP   \fBXHeightOfScreenSrc\fP"
+.br
+.ti -1c
 .RI "#define \fBXEventsQueued\fP   \fBXEventsQueuedSrc\fP"
 .br
 .ti -1c
@@ -732,6 +738,12 @@ XDL.h
 .RI "typedef char *(* \fBPFN_XDisplayName\fP) (const char *string)"
 .br
 .ti -1c
+.RI "typedef int(* \fBPFN_XWidthOfScreen\fP) (Screen *screen)"
+.br
+.ti -1c
+.RI "typedef int(* \fBPFN_XHeightOfScreen\fP) (Screen *screen)"
+.br
+.ti -1c
 .RI "typedef XRRScreenResources *(* \fBPFN_XRRGetScreenResourcesCurrent\fP) (Display *display, Window window)"
 .br
 .ti -1c
@@ -1112,6 +1124,12 @@ XDL.h
 .RI "\fBPFN_XkbGetState\fP \fBXkbGetStateSrc\fP"
 .br
 .ti -1c
+.RI "\fBPFN_XWidthOfScreen\fP \fBXWidthOfScreenSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XWidthOfScreen\fP \fBXHeightOfScreenSrc\fP"
+.br
+.ti -1c
 .RI "\fBPFN_XRRGetScreenResourcesCurrent\fP \fBXRRGetScreenResourcesCurrentSrc\fP"
 .br
 .ti -1c
@@ -1296,6 +1314,8 @@ XDL.h
 
 .SS "#define XGrabPointer   \fBXGrabPointerSrc\fP"
 
+.SS "#define XHeightOfScreen   \fBXHeightOfScreenSrc\fP"
+
 .SS "#define XIconifyWindow   \fBXIconifyWindowSrc\fP"
 
 .SS "#define XInitThreads   \fBXInitThreadsSrc\fP"
@@ -1413,6 +1433,8 @@ XDL.h
 .SS "#define XVisualIDFromVisual   \fBXVisualIDFromVisualSrc\fP"
 
 .SS "#define XWarpPointer   \fBXWarpPointerSrc\fP"
+
+.SS "#define XWidthOfScreen   \fBXWidthOfScreenSrc\fP"
 
 .SH "Typedef Documentation"
 .PP 
@@ -1543,6 +1565,8 @@ XDL.h
 .SS "typedef Status(* PFN_XGetWMNormalHints) (Display *, Window, XSizeHints *, long *)"
 
 .SS "typedef int(* PFN_XGrabPointer) (Display *, Window, Bool, unsigned int, int, int, Window, Cursor, Time)"
+
+.SS "typedef int(* PFN_XHeightOfScreen) (Screen *screen)"
 
 .SS "typedef Status(* PFN_XIconifyWindow) (Display *, Window, int)"
 
@@ -1675,6 +1699,8 @@ XDL.h
 .SS "typedef VisualID(* PFN_XVisualIDFromVisual) (Visual *)"
 
 .SS "typedef int(* PFN_XWarpPointer) (Display *, Window, Window, int, int, unsigned int, unsigned int, int, int)"
+
+.SS "typedef int(* PFN_XWidthOfScreen) (Screen *screen)"
 
 .SH "Function Documentation"
 .PP 
@@ -1810,6 +1836,8 @@ XDL.h
 
 .SS "\fBPFN_XGrabPointer\fP XGrabPointerSrc"
 
+.SS "\fBPFN_XWidthOfScreen\fP XHeightOfScreenSrc"
+
 .SS "\fBPFN_XIconifyWindow\fP XIconifyWindowSrc"
 
 .SS "\fBPFN_XInitThreads\fP XInitThreadsSrc"
@@ -1927,6 +1955,8 @@ XDL.h
 .SS "\fBPFN_XVisualIDFromVisual\fP XVisualIDFromVisualSrc"
 
 .SS "\fBPFN_XWarpPointer\fP XWarpPointerSrc"
+
+.SS "\fBPFN_XWidthOfScreen\fP XWidthOfScreenSrc"
 
 .SH "Author"
 .PP 
