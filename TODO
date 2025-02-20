@@ -3,4 +3,3 @@
 - get key string
 - error handling
 - update wayland support
-- review global vars
