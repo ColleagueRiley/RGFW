@@ -180,6 +180,8 @@ typedef Bool (*PFN_XrmGetResource)(XrmDatabase database, const char *resource_na
 typedef void (*PFN_XrmDestroyDatabase)(XrmDatabase database);
 typedef char *(*PFN_XDisplayName)(const char *string);
 typedef Bool (*PFN_XkbGetState)(Display*, unsigned int, XkbStatePtr);
+typedef int (*PFN_XWidthOfScreen)(Screen* screen);
+typedef int (*PFN_XHeightOfScreen)(Screen* screen);
 
 #ifndef XDL_NO_XRANDR
 #include <X11/extensions/Xrandr.h>
@@ -313,6 +315,8 @@ PFN_XrmGetResource XrmGetResourceSrc;
 PFN_XrmDestroyDatabase XrmDestroyDatabaseSrc;
 PFN_XDisplayName XDisplayNameSrc;
 PFN_XkbGetState XkbGetStateSrc;
+PFN_XWidthOfScreen XWidthOfScreenSrc;
+PFN_XWidthOfScreen XHeightOfScreenSrc;
 #ifndef XDL_NO_XRANDR
 PFN_XRRGetScreenResourcesCurrent XRRGetScreenResourcesCurrentSrc;
 PFN_XRRGetCrtcInfo XRRGetCrtcInfoSrc;
@@ -361,6 +365,8 @@ PFN_glXDestroyContext glXDestroyContextSrc;
 #define XDestroyWindow XDestroyWindowSrc
 #define XDisplayKeycodes XDisplayKeycodesSrc
 #define XkbGetState XkbGetStateSrc
+#define XWidthOfScreen XWidthOfScreenSrc
+#define XHeightOfScreen XHeightOfScreenSrc
 #define XEventsQueued XEventsQueuedSrc
 #define XFilterEvent XFilterEventSrc
 #define XFindContext XFindContextSrc
@@ -603,6 +609,8 @@ void XDL_init(void) {
     XDL_PROC_DEF(0, XrmDestroyDatabase);
     XDL_PROC_DEF(0, XDisplayName);
     XDL_PROC_DEF(0, XkbGetState);
+    XDL_PROC_DEF(0, XWidthOfScreen);
+    XDL_PROC_DEF(0, XHeightOfScreen);
     #ifndef XDL_NO_XRANDR
         XDL_PROC_DEF(2, XRRGetScreenResourcesCurrent);
         XDL_PROC_DEF(2, XRRGetCrtcInfo);
