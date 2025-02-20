@@ -28,6 +28,9 @@ RGFW.h
 .RI "struct \fBRGFW_area\fP"
 .br
 .ti -1c
+.RI "struct \fBRGFW_monitorMode\fP"
+.br
+.ti -1c
 .RI "struct \fBRGFW_monitor\fP"
 .br
 .ti -1c
@@ -153,6 +156,9 @@ RGFW.h
 .RI "typedef \fBu32\fP \fBRGFW_bool\fP"
 .br
 .ti -1c
+.RI "typedef struct \fBRGFW_monitorMode\fP \fBRGFW_monitorMode\fP"
+.br
+.ti -1c
 .RI "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
 .br
 .ti -1c
@@ -241,7 +247,13 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP \fBRGFW_getPrimaryMonitor\fP (void)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_scale\fP (\fBRGFW_monitor\fP mon, \fBRGFW_area\fP area, \fBu32\fP refreshRate)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_modeRequest)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_requestMode\fP (\fBRGFW_monitor\fP mon, \fBRGFW_monitorMode\fP mode, RGFW_modeRequest request)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitorModeCompare\fP (\fBRGFW_monitorMode\fP mon, \fBRGFW_monitorMode\fP mon2, RGFW_modeRequest request)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_mouse\fP * \fBRGFW_loadMouse\fP (\fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
@@ -679,6 +691,8 @@ RGFW.h
 Event structure for checking/getting events 
 .SS "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
 structure for monitor data 
+.SS "typedef struct \fBRGFW_monitorMode\fP \fBRGFW_monitorMode\fP"
+
 .SS "typedef void \fBRGFW_mouse\fP"
 loads mouse from bitmap (similar to RGFW_window_setIcon), icon NOT resized by default 
 .SS "typedef void* \fBRGFW_thread\fP"
@@ -805,6 +819,12 @@ gamepad button codes (based on xbox/playstation), you may need to change these v
 < right thumb stick
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_keymod)"
 
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_modeRequest)"
+< scale the monitor size
+.PP
+< change the refresh rate
+.PP
+< change the monitor RGB bits size
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_mouseButton)"
 mouse button codes (\fBRGFW_event\&.button\fP) < left mouse button is pressed
 .PP
@@ -821,10 +841,12 @@ get an array of all the monitors (max 6)
 get the primary monitor 
 .SS "\fBRGFWDEF\fP \fBRGFW_mouse\fP * RGFW_loadMouse (\fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
 frees RGFW_mouse data 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_scale (\fBRGFW_monitor\fP mon, \fBRGFW_area\fP area, \fBu32\fP refreshRate)"
-scale monitor to area and refreshRate, if refreshRate == 0, it's ignored 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_requestMode (\fBRGFW_monitor\fP mon, \fBRGFW_monitorMode\fP mode, RGFW_modeRequest request)"
+request a specific mode 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_scaleToWindow (\fBRGFW_monitor\fP mon, \fBRGFW_window\fP * win)"
 scale monitor to window size 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitorModeCompare (\fBRGFW_monitorMode\fP mon, \fBRGFW_monitorMode\fP mon2, RGFW_modeRequest request)"
+
 .SS "\fBRGFWDEF\fP void RGFW_useWayland (\fBRGFW_bool\fP wayland)"
 (unix) Toggle use of wayland, this will be on by default if you use \fCRGFW_WAYLAND\fP (if you don't use RGFW_WAYLAND, you dont' expose WAYLAND functions) this is mostly used to allow you to force the use of XWayland 
 .SH "Author"
