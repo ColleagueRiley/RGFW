@@ -9885,7 +9885,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		attrs.premultipliedAlpha = EM_TRUE;
 		attrs.preserveDrawingBuffer = EM_FALSE;
 
-		if (RGFW_DOUBLE_BUFFER == 0)
+		if (RGFW_GL_HINTS[RGFW_glDoubleBuffer] == 0)
 			attrs.renderViaOffscreenBackBuffer = 0;
 		else
 			attrs.renderViaOffscreenBackBuffer = RGFW_GL_HINTS[RGFW_glAuxBuffers];
