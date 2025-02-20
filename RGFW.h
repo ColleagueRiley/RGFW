@@ -9818,7 +9818,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	#ifndef RGFW_WEBGPU
 		EmscriptenWebGLContextAttributes attrs;
-		attrs.alpha = RGFW_ALPHA;
+		attrs.alpha = RGFW_GL_HINTS[RGFW_glAlpha];
 		attrs.depth = EM_TRUE;
 		attrs.stencil = RGFW_GL_HINTS[RGFW_glStencil];
 		attrs.antialias = RGFW_GL_HINTS[RGFW_glSamples];
