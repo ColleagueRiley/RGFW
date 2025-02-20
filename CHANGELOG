@@ -61,6 +61,16 @@ Current Version: RGFW 1.6-dev
 - add RGFW_COCOA_GRAPHICS_SWITCHING option
 - add RGFW_setGLRGBA, RGFW_setGLAccumRGBA RGFW_setGLSRGB, RGFW_setGLRobustness, RGFW_setGLDebug, RGFW_setGLNoError
 - add RGFW_setGLReleaseBehavior and RGFW_glRelease enum
+- RGFW_setGLHint and RGFW_glHints enum
+- new opengl hint options: 
+    RGFW_glRed, RGFW_glGreen, RGFW_glBlue, RGFW_glAlpha
+    RGFW_glDepth, 
+	RGFW_glAccumRed, RGFW_glAccumGreen, RGFW_glAccumBlue, RGFW_glAccumAlpha
+	RGFW_glSRGB
+	RGFW_glRobustness
+	RGFW_glDebug
+	RGFW_glNoError
+	RGFW_glReleaseBehavior
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
