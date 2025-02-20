@@ -66,9 +66,9 @@ void main()
 #endif
 
 
-int main(void)
-{
-	RGFW_setGLVersion(RGFW_glCore, 3, 3);
+int main(void) {
+    RGFW_setGLHint(RGFW_glMinor, 3);
+    RGFW_setGLHint(RGFW_glMajor, 3);
 
 	RGFW_window* window = RGFW_createWindow("LearnOpenGL", RGFW_RECT(SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT), RGFW_windowAllowDND | RGFW_windowCenter | RGFW_windowScaleToMonitor);
     if (window == NULL)
