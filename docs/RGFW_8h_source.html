@@ -9070,7 +9070,7 @@ $(function() {
 <div class="line"><a id="l09237" name="l09237"></a><span class="lineno"> 9237</span>        objc_msgSend_void(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx, sel_registerName(<span class="stringliteral">&quot;makeCurrentContext&quot;</span>));</div>
 <div class="line"><a id="l09238" name="l09238"></a><span class="lineno"> 9238</span>    }</div>
 <div class="line"><a id="l09239" name="l09239"></a><span class="lineno"> 9239</span>    <span class="keywordtype">void</span>* <a class="code hl_function" href="group__graphics__API.html#ga2e2ed21e1adf587c618798fd01c09d36">RGFW_getCurrent_OpenGL</a>(<span class="keywordtype">void</span>) {</div>
-<div class="line"><a id="l09240" name="l09240"></a><span class="lineno"> 9240</span>        objc_msgSend_id(objc_getClass(<span class="stringliteral">&quot;NSOpenGLContext&quot;</span>), sel_registerName(<span class="stringliteral">&quot;currentContext&quot;</span>));</div>
+<div class="line"><a id="l09240" name="l09240"></a><span class="lineno"> 9240</span>        <span class="keywordflow">return</span> objc_msgSend_id(objc_getClass(<span class="stringliteral">&quot;NSOpenGLContext&quot;</span>), sel_registerName(<span class="stringliteral">&quot;currentContext&quot;</span>));</div>
 <div class="line"><a id="l09241" name="l09241"></a><span class="lineno"> 9241</span>    }</div>
 <div class="line"><a id="l09242" name="l09242"></a><span class="lineno"> 9242</span><span class="preprocessor">    #endif</span></div>
 <div class="line"><a id="l09243" name="l09243"></a><span class="lineno"> 9243</span> </div>
