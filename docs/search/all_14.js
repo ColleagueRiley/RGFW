@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['x_0',['x',['../structRGFW__point.html#a1e4ef1395966022c65b8b69db9e8e592',1,'RGFW_point::x()'],['../structRGFW__rect.html#ae1678a152978fb1f00cb6b42341d0707',1,'RGFW_rect::x()']]],
+  ['x_0',['x',['../structRGFW__point.html#a1e4ef1395966022c65b8b69db9e8e592',1,'RGFW_point::x()'],['../structRGFW__rect.html#ae1678a152978fb1f00cb6b42341d0707',1,'RGFW_rect::x()'],['../structRGFW__monitor.html#a0a5bd14893ebb7c790a12d31a4a23f18',1,'RGFW_monitor::x()']]],
   ['xallocclasshint_1',['XAllocClassHint',['../XDL_8h.html#a904407c42691c7c8259a169e9284a344',1,'XDL.h']]],
   ['xallocclasshintsrc_2',['XAllocClassHintSrc',['../XDL_8h.html#a503e30838e0a7faf425a178463ee3d6a',1,'XDL.h']]],
   ['xallocsizehints_3',['XAllocSizeHints',['../XDL_8h.html#af266dee10e30fa9c539af48cbe13d888',1,'XDL.h']]],
