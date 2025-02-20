@@ -4526,10 +4526,9 @@ void RGFW_window_focus(RGFW_window* win) {
 	
     XWindowAttributes attr;
     XGetWindowAttributes(win->src.display, win->src.window, &attr);
-    if (attr.map_state != IsViewable)
-        return;
+    if (attr.map_state != IsViewable) return;
 
-	int status = XSetInputFocus(win->src.display, win->src.window, RevertToPointerRoot, CurrentTime);
+	XSetInputFocus(win->src.display, win->src.window, RevertToPointerRoot, CurrentTime);
 	XFlush(win->src.display);
 }
 
