@@ -8,9 +8,8 @@
 int main(void) {
     int w, h, c;
     unsigned char* icon = stbi_load("logo.png", &w, &h, &c, 0);
-printf("hewwo\n");
     RGFW_window* win = RGFW_createWindow("RGFW icons", RGFW_RECT(0, 0, 600, 400), RGFW_windowCenter | RGFW_windowNoResize);
-printf("hewwo\n");
+
     RGFW_mouse* mouse = RGFW_loadMouse(icon, RGFW_AREA(w, h), c);
     RGFW_window_setIcon(win, icon, RGFW_AREA(w, h), c);
     RGFW_window_setMouse(win, mouse);
