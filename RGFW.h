@@ -5750,7 +5750,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_MOVE:
 			win->r.x = windowRect.left;
 			win->r.y = windowRect.top;
-			win->_flags ^= RGFW_EVENT_PASSED;
+			win->_flags &= ~RGFW_EVENT_PASSED;
 			win->event.type = RGFW_windowMoved;
 			RGFW_windowMoveCallback(win, win->r);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
@@ -5782,7 +5782,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 			win->r.w = windowRect.right -  windowRect.left;
 			win->r.h = (windowRect.bottom - windowRect.top) - offset;
-			win->_flags ^= RGFW_EVENT_PASSED;
+			win->_flags &= ~RGFW_EVENT_PASSED;
 			win->event.type = RGFW_windowResized;
 			RGFW_windowResizeCallback(win, win->r);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
@@ -7776,7 +7776,7 @@ NSDragOperation draggingUpdated(id self, SEL sel, id sender) {
 	}
 
 	win->event.type = RGFW_DNDInit;
-	win->_flags ^= RGFW_EVENT_PASSED;
+	win->_flags &= ~RGFW_EVENT_PASSED;
 
 	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
 
@@ -7845,7 +7845,7 @@ bool performDragOperation(id self, SEL sel, id sender) {
 	win->event.droppedFilesCount = count;
 
 	win->event.type = RGFW_DND;
-	win->_flags ^= RGFW_EVENT_PASSED;
+	win->_flags &= ~RGFW_EVENT_PASSED;
 
 	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
 	win->event.point = RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y));
