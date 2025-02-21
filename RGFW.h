@@ -654,8 +654,8 @@ typedef struct RGFW_window_src {
 
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 			XImage* bitmap;
-			GC gc;
 	#endif
+	GC gc;
 	char* clipboard; 	/* for writing to the clipboard selection */
 	size_t clipboard_len;
 #endif /* RGFW_X11 */
@@ -910,7 +910,14 @@ RGFWDEF RGFW_bool RGFW_window_setIcon(RGFW_window* win, /*!< source window */
 	u8* icon /*!< icon bitmap */,
 	RGFW_area a /*!< width and height of the bitmap*/,
 	i32 channels /*!< how many channels the bitmap has (rgb : 3, rgba : 4) */
-); /*!< image MAY be resized by default */
+); /*!< image MAY be resized by default, set both the taskbar and window icon */
+
+typedef RGFW_ENUM(u8, RGFW_icon) {
+	RGFW_iconTaskbar = RGFW_BIT(0),
+	RGFW_iconWindow = RGFW_BIT(1),
+	RGFW_iconBoth = RGFW_iconTaskbar | RGFW_iconWindow
+};
+RGFWDEF RGFW_bool RGFW_window_setIconPro(RGFW_window* win, u8* icon, RGFW_area a, i32 channels, u8 type);
 
 /*!< sets mouse to RGFW_mouse icon (loaded from a bitmap struct) */
 RGFWDEF void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse);
@@ -1949,6 +1956,10 @@ void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m) {
 	RGFW_window_move(win, RGFW_POINT(m.x + win->r.x, m.y + win->r.y));
 }
 #endif
+
+RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
+	return RGFW_window_setIconPro(win, icon, a, channels, RGFW_iconBoth);	
+}
 
 RGFWDEF void RGFW_captureCursor(RGFW_window* win, RGFW_rect);
 RGFWDEF void RGFW_releaseCursor(RGFW_window* win);
@@ -3310,8 +3321,6 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 			32, ZPixmap, 0, NULL, area.w, area.h,
 			32, 0
 		);
-
-		win->src.gc = XCreateGC(win->src.display, win->src.window, 0, NULL);
 	#endif
 	#ifdef RGFW_WAYLAND
 		wayland:
@@ -3555,6 +3564,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		CWColormap | CWBorderPixel | CWBackPixel | CWEventMask, &swa);
 
 	XFreeColors(win->src.display, cmap, NULL, 0, 0);
+
+	win->src.gc = XCreateGC(win->src.display, win->src.window, 0, NULL);
 
 	#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
 	XFree(vi);
@@ -4704,7 +4715,7 @@ void RGFW_window_setMousePassthrough(RGFW_window* win, RGFW_bool passthrough) {
 
 #endif /* RGFW_NO_PASSTHROUGH */
 
-RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
+RGFW_bool RGFW_window_setIconPro(RGFW_window* win, u8* icon, RGFW_area a, i32 channels, u8 type) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_GOTO_WAYLAND(0);
 #ifdef RGFW_X11	
@@ -4738,13 +4749,31 @@ RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 chann
 		}
 	}
 
-	RGFW_bool res = (RGFW_bool)XChangeProperty(
-		win->src.display, win->src.window, _NET_WM_ICON, XA_CARDINAL, 32,
-		PropModeReplace, (u8*)data, count
-	);
+	RGFW_bool res = RGFW_TRUE;
+	if (type & RGFW_iconTaskbar) {
+		res = (RGFW_bool)XChangeProperty(
+			win->src.display, win->src.window, _NET_WM_ICON, XA_CARDINAL, 32,
+			PropModeReplace, (u8*)data, count
+		);
+	}
+
+	if (type & RGFW_iconWindow) {
+		XWMHints wm_hints;
+		wm_hints.flags = IconPixmapHint;
+		
+		int depth = DefaultDepth(win->src.display, DefaultScreen(win->src.display));
+		XImage *image = XCreateImage(win->src.display, DefaultVisual(win->src.display, DefaultScreen(win->src.display)), 
+									depth, ZPixmap, 0, (char *)target, a.w, a.h, 32, 0);
+
+		wm_hints.icon_pixmap = XCreatePixmap(win->src.display, win->src.window, a.w, a.h, depth);
+		XPutImage(win->src.display, wm_hints.icon_pixmap, win->src.gc, image, 0, 0, 0, 0, a.w, a.h);
+		image->data = NULL;
+		XDestroyImage(image);
+
+		XSetWMHints(win->src.display, win->src.window, &wm_hints);
+	}
 
 	RGFW_FREE(data);
-
 	XFlush(win->src.display);
 	return RGFW_BOOL(res);
 #endif
@@ -5428,11 +5457,11 @@ void RGFW_window_close(RGFW_window* win) {
 			if ((win->_flags & RGFW_BUFFER_ALLOC))
 				RGFW_FREE(win->buffer);
 			XDestroyImage((XImage*) win->src.bitmap);
-			XFreeGC(win->src.display, win->src.gc);
 		}
 	#endif
 	
 	if (win->src.display) {
+		XFreeGC(win->src.display, win->src.gc);
 	#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
 			glXDestroyContext(win->src.display, win->src.ctx);
 	#endif
@@ -7174,21 +7203,26 @@ void RGFW_window_setMousePassthrough(RGFW_window* win, RGFW_bool passthrough) {
 }
 #endif
 
-RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channels) {
+RGFW_bool RGFW_window_setIconPro(RGFW_window* win, u8* src, RGFW_area a, i32 channels, u8 type) {
 	RGFW_ASSERT(win != NULL);
 	#ifndef RGFW_WIN95
 		RGFW_UNUSED(channels);
 		if (src == NULL) {
 			HICON defaultIcon = LoadIcon(NULL, IDI_APPLICATION);
-			SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)defaultIcon);
-			SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)defaultIcon);
+			if (type & RGFW_iconTaskbar)
+				SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)defaultIcon);
+			if (type & RGFW_iconWindow)
+				SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)defaultIcon);
 			return RGFW_TRUE;
 		}
 
 		if (win->src.hIcon) DestroyIcon(win->src.hIcon);
 		
 		win->src.hIcon = RGFW_loadHandleImage(src, a, TRUE);
-		SetClassLongPtrA(win->src.window, GCLP_HICON, (LPARAM) win->src.hIcon);	
+		if (type & RGFW_iconTaskbar)
+			SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)win->src.hIcon);
+		if (type & RGFW_iconWindow)
+			SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)win->src.hIcon);
 		return RGFW_TRUE;
 	#else
 		RGFW_UNUSED(src);
@@ -8920,8 +8954,9 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 		((id)win->src.window, sel_registerName("setMaxSize:"), (NSSize){a.w, a.h});
 }
 
-RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* data, RGFW_area area, i32 channels) {
+RGFW_bool RGFW_window_setIconPro(RGFW_window* win, u8* data, RGFW_area area, i32 channels, u8 type) {
 	RGFW_ASSERT(win != NULL);
+	RGFW_UNUSED(type);
 
 	if (data == NULL) {
 		objc_msgSend_void_id(NSApp, sel_registerName("setApplicationIconImage:"), NULL);
@@ -10280,7 +10315,7 @@ void RGFW_window_minimize(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_restore(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating) { RGFW_UNUSED(win); RGFW_UNUSED(floating); }
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) { RGFW_UNUSED(win); RGFW_UNUSED(border);  }
-RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) { RGFW_UNUSED(win); RGFW_UNUSED(icon); RGFW_UNUSED(a); RGFW_UNUSED(channels); return RGFW_FALSE;  }
+RGFW_bool RGFW_window_setIconPro(RGFW_window* win, u8* icon, RGFW_area a, i32 channels, u8 type) { RGFW_UNUSED(win); RGFW_UNUSED(icon); RGFW_UNUSED(a); RGFW_UNUSED(channels); RGFW_UNUSED(type); return RGFW_FALSE;  }
 void RGFW_window_hide(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_show(RGFW_window* win) {RGFW_UNUSED(win); }
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }

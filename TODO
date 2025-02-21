@@ -1,6 +1,5 @@
 - error handling
 - update wayland support
 - look into monitor gamma
-- set window ICONS (not just setting all of the icons to one bitmap)
 - set gamepad mappings
 - set gamepad rumble
