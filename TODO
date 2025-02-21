@@ -1,4 +1,3 @@
-- ensure support for UTF-8 (windows)
 - error handling
 - update wayland support
 - look into monitor gamma

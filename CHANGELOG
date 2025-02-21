@@ -76,6 +76,7 @@ Current Version: RGFW 1.6-dev
 - change `RGFW_monitor_scale` to `RGFW_monitor_requestMode`
 - RGFW stalls on RGFW_quit
 - ensure monitor functions can be used prior to window creation
+- ensure UTF8 support (winapi)
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
