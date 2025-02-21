@@ -8514,7 +8514,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 		if (win->event.type == RGFW_quit) return &win->event;
 
-		if ((win->event.type == RGFW_DND || win->event.type == RGFW_DNDInit) && !(win->_flags & RGFW_EVENT_PASSED;)) {
+		if ((win->event.type == RGFW_DND || win->event.type == RGFW_DNDInit) && !(win->_flags & RGFW_EVENT_PASSED)) {
 			win->_flags |= RGFW_EVENT_PASSED;
 			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
 			return &win->event;
@@ -9118,7 +9118,7 @@ RGFW_monitor* RGFW_getMonitors(void) {
 	if (CGGetActiveDisplayList(6, displays, &count) != kCGErrorSuccess)
 		return NULL;
 
-	RGFW_monitor monitors[7];
+	static RGFW_monitor monitors[7];
 
 	for (u32 i = 0; i < count; i++)
 		monitors[i] = RGFW_NSCreateMonitor(displays[i], RGFW_getNSScreenForDisplayID(displays[i]));
