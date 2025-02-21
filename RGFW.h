@@ -5725,7 +5725,7 @@ PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 	static PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = NULL;
 #endif
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     RGFW_window* win = GetPropA(hWnd, "RGFW");
 
 	RECT windowRect;
@@ -5753,7 +5753,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			win->_flags ^= RGFW_EVENT_PASSED;
 			win->event.type = RGFW_windowMoved;
 			RGFW_windowMoveCallback(win, win->r);
-			return DefWindowProcA(hWnd, message, wParam, lParam);
+			return DefWindowProcW(hWnd, message, wParam, lParam);
 		case WM_SIZE: {
 			RECT clientRect;
 			GetClientRect(hWnd, &clientRect);	
@@ -5785,24 +5785,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			win->_flags ^= RGFW_EVENT_PASSED;
 			win->event.type = RGFW_windowResized;
 			RGFW_windowResizeCallback(win, win->r);
-			return DefWindowProcA(hWnd, message, wParam, lParam);
+			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		case WM_GETMINMAXINFO:
 			if (win == NULL)
-				return DefWindowProcA(hWnd, message, wParam, lParam);
+				return DefWindowProcW(hWnd, message, wParam, lParam);
 			
 			MINMAXINFO* mmi = (MINMAXINFO*) lParam;
 			mmi->ptMinTrackSize.x = win->src.minSize.w;
 			mmi->ptMinTrackSize.y = win->src.minSize.h;
 			if (win->src.maxSize.w == 0 && win->src.maxSize.h == 0)
-				return DefWindowProcA(hWnd, message, wParam, lParam);
+				return DefWindowProcW(hWnd, message, wParam, lParam);
 			
 			mmi->ptMaxTrackSize.x = win->src.maxSize.w;
 			mmi->ptMaxTrackSize.y = win->src.maxSize.h;
-			return DefWindowProcA(hWnd, message, wParam, lParam);
+			return DefWindowProcW(hWnd, message, wParam, lParam);
 		default: break;
 	}
-	return DefWindowProcA(hWnd, message, wParam, lParam);
+	return DefWindowProcW(hWnd, message, wParam, lParam);
 }
 
 #ifndef RGFW_NO_DPI
@@ -6011,18 +6011,21 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	HINSTANCE inh = GetModuleHandleA(NULL);
 
 	#ifndef __cplusplus
-	WNDCLASSA Class = { 0 }; /*!< Setup the Window class. */
+	WNDCLASSW Class = { 0 }; /*!< Setup the Window class. */
 	#else
-	WNDCLASSA Class = { };
+	WNDCLASSW Class = { };
 	#endif
 
 	if (RGFW_className == NULL)
 		RGFW_className = (char*)name;
 
-	Class.lpszClassName = RGFW_className;
+	wchar_t wide_class[255];
+	MultiByteToWideChar(CP_UTF8, 0, RGFW_className, -1, wide_class, 255);
+
+	Class.lpszClassName = wide_class;
 	Class.hInstance = inh;
 	Class.hCursor = LoadCursor(NULL, IDC_ARROW);
-	Class.lpfnWndProc = WndProc;
+	Class.lpfnWndProc = WndProcW;
 	Class.cbClsExtra = sizeof(RGFW_window*);
 
 	Class.hIcon = (HICON)LoadImageA(GetModuleHandleW(NULL), "RGFW_ICON", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
@@ -6030,7 +6033,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		Class.hIcon = (HICON)LoadImageA(NULL, (LPCSTR)IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
 	}
 
-	RegisterClassA(&Class);
+	RegisterClassW(&Class);
 
 	DWORD window_style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
 
@@ -6044,13 +6047,16 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	} else
 		window_style |= WS_POPUP | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX;
 
-	HWND dummyWin = CreateWindowA(Class.lpszClassName, name, window_style, win->r.x, win->r.y, win->r.w, win->r.h, 0, 0, inh, 0);
+	wchar_t wide_name[255];
+	MultiByteToWideChar(CP_UTF8, 0, name, -1, wide_name, 255);
+
+	HWND dummyWin = CreateWindowW(Class.lpszClassName, (wchar_t*)wide_name, window_style, win->r.x, win->r.y, win->r.w, win->r.h, 0, 0, inh, 0);
 	
 	GetWindowRect(dummyWin, &windowRect);
 	GetClientRect(dummyWin, &clientRect);
 
 	win->src.hOffset = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
-	win->src.window = CreateWindowA(Class.lpszClassName, name, window_style, win->r.x, win->r.y, win->r.w, win->r.h + win->src.hOffset, 0, 0, inh, 0);
+	win->src.window = CreateWindowW(Class.lpszClassName, (wchar_t*)wide_name, window_style, win->r.x, win->r.y, win->r.w, win->r.h + win->src.hOffset, 0, 0, inh, 0);
 
 	SetPropA(win->src.window, "RGFW", win);
 
@@ -7128,7 +7134,9 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 void RGFW_window_setName(RGFW_window* win, const char* name) {
 	RGFW_ASSERT(win != NULL);
 
-	SetWindowTextA(win->src.window, name);
+	wchar_t wide_name[255];
+	MultiByteToWideChar(CP_UTF8, 0, name, -1, wide_name, 255);
+	SetWindowTextW(win->src.window, wide_name);
 }
 
 #ifndef RGFW_NO_PASSTHROUGH
@@ -9183,7 +9191,7 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	size_t clip_len;
 	char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString, &clip_len);
 	if (clip == NULL) return -1;	
-
+	
 	if (str != NULL) {
 		if (strCapacity < clip_len)
 			return 0;

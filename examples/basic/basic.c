@@ -27,13 +27,25 @@ void refreshCallback(RGFW_window* win) {
 }
 
 
+void UTF8ToUTF16(const char* utf8, wchar_t* utf16, int utf16Size) {
+    MultiByteToWideChar(CP_UTF8, 0, utf8, -1, utf16, utf16Size);
+}
+
+
 RGFW_window* win2;
 
 int main(void) {
+    #ifdef RGFW_WINDOWS
+    SetConsoleOutputCP(CP_UTF8);
+	#endif
+
+    SetThreadLocale(LOCALE_USER_DEFAULT);
+
 	RGFW_setClassName("RGFW Basic");
     RGFW_window* win = RGFW_createWindow("RGFW Example Window 刺猬", RGFW_RECT(500, 500, 500, 500), RGFW_windowAllowDND | RGFW_windowCenter);
     RGFW_window_makeCurrent(win);
-    
+
+
     RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
 
     RGFW_setWindowRefreshCallback(refreshCallback);
@@ -41,7 +53,7 @@ int main(void) {
     #ifdef RGFW_MACOS
     win2 = RGFW_createWindow("subwindow", RGFW_RECT(200, 200, 200, 200), 0);
     #endif
-    RGFW_createThread((RGFW_threadFunc_ptr)loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
+    //RGFW_createThread((RGFW_threadFunc_ptr)loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
 
     unsigned char i;
 
