@@ -77,6 +77,8 @@ Current Version: RGFW 1.6-dev
 - RGFW stalls on RGFW_quit
 - ensure monitor functions can be used prior to window creation
 - ensure UTF8 support (winapi)
+- allow seticon to be undone
+- add `RGFW_window_setIconPro` (allows you to set titleBar icon, window icon or both)
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
