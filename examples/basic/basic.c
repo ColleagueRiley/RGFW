@@ -26,21 +26,13 @@ void refreshCallback(RGFW_window* win) {
     drawLoop(win);
 }
 
-
-void UTF8ToUTF16(const char* utf8, wchar_t* utf16, int utf16Size) {
-    MultiByteToWideChar(CP_UTF8, 0, utf8, -1, utf16, utf16Size);
-}
-
-
 RGFW_window* win2;
 
 int main(void) {
     #ifdef RGFW_WINDOWS
     SetConsoleOutputCP(CP_UTF8);
 	#endif
-
-    SetThreadLocale(LOCALE_USER_DEFAULT);
-
+    
 	RGFW_setClassName("RGFW Basic");
     RGFW_window* win = RGFW_createWindow("RGFW Example Window 刺猬", RGFW_RECT(500, 500, 500, 500), RGFW_windowAllowDND | RGFW_windowCenter);
     RGFW_window_makeCurrent(win);
