@@ -4705,11 +4705,18 @@ void RGFW_window_setMousePassthrough(RGFW_window* win, RGFW_bool passthrough) {
 #endif /* RGFW_NO_PASSTHROUGH */
 
 RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
-	RGFW_ASSERT(win != NULL); RGFW_ASSERT(icon != NULL);
-	RGFW_ASSERT(channels == 3 || channels == 4);
+	RGFW_ASSERT(win != NULL);
 	RGFW_GOTO_WAYLAND(0);
-#ifdef RGFW_X11
+#ifdef RGFW_X11	
 	RGFW_LOAD_ATOM(_NET_WM_ICON);
+	if (icon == NULL || (channels != 3 && channels != 4)) {
+		RGFW_bool res = (RGFW_bool)XChangeProperty(
+			win->src.display, win->src.window, _NET_WM_ICON, XA_CARDINAL, 32,
+			PropModeReplace, (u8*)NULL, 0
+		);
+		return res;
+	}
+
 	i32 count = 2 + (a.w * a.h);
 
 	unsigned long* data = (unsigned long*) RGFW_ALLOC(count * sizeof(unsigned long));
@@ -5185,7 +5192,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 }
 
 RGFW_monitor* RGFW_getMonitors(void) {
-	RGFW_monitor monitors[7];
+	static RGFW_monitor monitors[7];
 
 	RGFW_GOTO_WAYLAND(1);
 	#ifdef RGFW_X11
@@ -7171,10 +7178,17 @@ RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* src, RGFW_area a, i32 channe
 	RGFW_ASSERT(win != NULL);
 	#ifndef RGFW_WIN95
 		RGFW_UNUSED(channels);
+		if (src == NULL) {
+			HICON defaultIcon = LoadIcon(NULL, IDI_APPLICATION);
+			SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)defaultIcon);
+			SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)defaultIcon);
+			return RGFW_TRUE;
+		}
+
 		if (win->src.hIcon) DestroyIcon(win->src.hIcon);
 		
 		win->src.hIcon = RGFW_loadHandleImage(src, a, TRUE);
-		SetClassLongPtrA(win->src.window, GCLP_HICON, (LPARAM) win->src.hIcon);
+		SetClassLongPtrA(win->src.window, GCLP_HICON, (LPARAM) win->src.hIcon);	
 		return RGFW_TRUE;
 	#else
 		RGFW_UNUSED(src);
@@ -8908,6 +8922,11 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 
 RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* data, RGFW_area area, i32 channels) {
 	RGFW_ASSERT(win != NULL);
+
+	if (data == NULL) {
+		objc_msgSend_void_id(NSApp, sel_registerName("setApplicationIconImage:"), NULL);
+		return RGFW_TRUE;
+	}
 
 	/* code by EimaMei  */
 	// Make a bitmap representation, then copy the loaded image into it.
