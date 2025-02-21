@@ -13,7 +13,7 @@ int main(void) {
         RGFW_window_swapBuffers(win);
 
 		RGFW_window_eventWait(win, RGFW_eventWaitNext);
-        while (RGFW_window_checkEvent(win)) {
+        while (RGFW_window_checkEvent(win) && RGFW_window_shouldClose(win) == 0) {
             switch (win->event.type) {
                 case RGFW_keyPressed:
                     printf("Key pressed\n");

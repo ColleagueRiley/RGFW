@@ -1,6 +1,4 @@
-- review global vars
 - ensure support for UTF-8 (windows)
-- get key string
 - error handling
 - update wayland support
 - look into monitor gamma
