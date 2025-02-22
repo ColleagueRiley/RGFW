@@ -80,6 +80,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;stdlib.h&gt;</code><br />
+<code>#include &lt;assert.h&gt;</code><br />
 <code>#include &lt;string.h&gt;</code><br />
 <code>#include &lt;stddef.h&gt;</code><br />
 <code>#include &lt;stdint.h&gt;</code><br />
@@ -105,10 +106,10 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:aac2c5e611731b038c9377999b4b2af64"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(x)&#160;&#160;&#160;(void)(x)</td></tr>
-<tr class="separator:aac2c5e611731b038c9377999b4b2af64"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad8f1fa862ab1c9cc61db226b7fce5693"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#ad8f1fa862ab1c9cc61db226b7fce5693">RGFW_USERPTR</a>&#160;&#160;&#160;NULL</td></tr>
 <tr class="separator:ad8f1fa862ab1c9cc61db226b7fce5693"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac2c5e611731b038c9377999b4b2af64"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(x)&#160;&#160;&#160;(void)(x)</td></tr>
+<tr class="separator:aac2c5e611731b038c9377999b4b2af64"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a11c9631a28d5243b1d48ee03ae215d79"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a11c9631a28d5243b1d48ee03ae215d79">RGFW_ROUND</a>(x)&#160;&#160;&#160;(int)((x) &gt;= 0 ? (x) + 0.5f : (x) - 0.5f)</td></tr>
 <tr class="separator:a11c9631a28d5243b1d48ee03ae215d79"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4ad9e77eef1d695b1a5cca6a76116bcf"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a4ad9e77eef1d695b1a5cca6a76116bcf">__USE_POSIX199309</a></td></tr>
@@ -117,6 +118,8 @@ Macros</h2></td></tr>
 <tr class="separator:a64f14d44f6a4bd65025e4886dc8f3fbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2ac54dc00132bf4c6f760463ab5148dd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a2ac54dc00132bf4c6f760463ab5148dd">RGFW_FREE</a>&#160;&#160;&#160;free</td></tr>
 <tr class="separator:a2ac54dc00132bf4c6f760463ab5148dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abaefc14a066ffd85ac8db9426f890665"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#abaefc14a066ffd85ac8db9426f890665">RGFW_ASSERT</a>&#160;&#160;&#160;assert</td></tr>
+<tr class="separator:abaefc14a066ffd85ac8db9426f890665"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aef87ec6dcdfa590cf3ccc9a7a2dd25eb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#aef87ec6dcdfa590cf3ccc9a7a2dd25eb">RGFW_MEMCPY</a>(dist,  src,  len)&#160;&#160;&#160;memcpy(dist, src, len)</td></tr>
 <tr class="separator:aef87ec6dcdfa590cf3ccc9a7a2dd25eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a040a460126bbe1cce5765c33cf90b700"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a040a460126bbe1cce5765c33cf90b700">RGFW_STRNCMP</a>(s1,  s2,  max)&#160;&#160;&#160;strncmp(s1, s2, max)</td></tr>
@@ -559,6 +562,20 @@ Functions</h2></td></tr>
           <td></td>
           <td>)</td>
           <td></td><td>&#160;&#160;&#160;(<a class="el" href="structRGFW__area.html">RGFW_area</a>){(<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>)(w), (<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>)(h)}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abaefc14a066ffd85ac8db9426f890665" name="abaefc14a066ffd85ac8db9426f890665"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abaefc14a066ffd85ac8db9426f890665">&#9670;&#160;</a></span>RGFW_ASSERT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define RGFW_ASSERT&#160;&#160;&#160;assert</td>
         </tr>
       </table>
 </div><div class="memdoc">

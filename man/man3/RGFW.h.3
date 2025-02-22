@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Fri Feb 21 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Sat Feb 22 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -7,6 +7,8 @@ RGFW.h
 .br
 .PP
 \fC#include <stdlib\&.h>\fP
+.br
+\fC#include <assert\&.h>\fP
 .br
 \fC#include <string\&.h>\fP
 .br
@@ -44,10 +46,10 @@ RGFW.h
 
 .in +1c
 .ti -1c
-.RI "#define \fBRGFW_UNUSED\fP(x)   (void)(x)"
+.RI "#define \fBRGFW_USERPTR\fP   NULL"
 .br
 .ti -1c
-.RI "#define \fBRGFW_USERPTR\fP   NULL"
+.RI "#define \fBRGFW_UNUSED\fP(x)   (void)(x)"
 .br
 .ti -1c
 .RI "#define \fBRGFW_ROUND\fP(x)   (int)((x) >= 0 ? (x) + 0\&.5f : (x) \- 0\&.5f)"
@@ -60,6 +62,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "#define \fBRGFW_FREE\fP   free"
+.br
+.ti -1c
+.RI "#define \fBRGFW_ASSERT\fP   assert"
 .br
 .ti -1c
 .RI "#define \fBRGFW_MEMCPY\fP(dist,  src,  len)   memcpy(dist, src, len)"
@@ -634,6 +639,8 @@ RGFW.h
 .SS "#define RGFW_ALLOC   malloc"
 
 .SS "#define RGFW_AREA(w, h)   (\fBRGFW_area\fP){(\fBu32\fP)(w), (\fBu32\fP)(h)}"
+
+.SS "#define RGFW_ASSERT   assert"
 
 .SS "#define RGFW_BIT(x)   (1L << x)"
 
