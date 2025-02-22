@@ -16,6 +16,7 @@ int main(void) {
     
     RGFW_window_setIconPro(win, base_icon, RGFW_AREA(3, 3), c, RGFW_iconWindow);
     RGFW_window_setIconPro(win, icon, RGFW_AREA(w, h), c, RGFW_iconTaskbar);
+    
     RGFW_window_setMouse(win, mouse);
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {

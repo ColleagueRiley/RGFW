@@ -168,16 +168,16 @@ int main() {
 	#pragma comment(lib, "user32")
 #endif
 
-#ifndef RGFW_UNUSED
-	#define RGFW_UNUSED(x) (void)(x)
-#endif
-
 #ifndef RGFW_USERPTR
 	#define RGFW_USERPTR NULL
 #endif
 
+#ifndef RGFW_UNUSED
+	#define RGFW_UNUSED(x) (void)(x)
+#endif
+
 #ifndef RGFW_ROUND
-#define RGFW_ROUND(x) (int)((x) >= 0 ? (x) + 0.5f : (x) - 0.5f)
+	#define RGFW_ROUND(x) (int)((x) >= 0 ? (x) + 0.5f : (x) - 0.5f)
 #endif
 
 #ifndef RGFW_ALLOC
@@ -189,6 +189,11 @@ int main() {
 
 	#define RGFW_ALLOC malloc
 	#define RGFW_FREE free
+#endif
+
+#ifndef RGFW_ASSERT
+	#include <assert.h>
+	#define RGFW_ASSERT assert
 #endif
 
 #ifndef RGFW_MEMCPY
@@ -619,7 +624,7 @@ typedef struct RGFW_window_src {
 	HWND window; /*!< source window */
 	HDC hdc; /*!< source HDC */
 	u32 hOffset; /*!< height offset for window */
-	HICON hIcon; /*!< source window icon */
+	HICON hIconSmall, hIconBig; /*!< source window icons */
 	#if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
 		HGLRC ctx; /*!< source graphics context */
 	#elif defined(RGFW_OSMESA)
@@ -1376,11 +1381,6 @@ RGFW_bool RGFW_useWaylandBool = 1;
 
 #ifdef RGFW_DEBUG
 #include <stdio.h>
-#endif
-
-#ifndef RGFW_ASSERT
-	#include <assert.h>
-	#define RGFW_ASSERT assert
 #endif
 
 char* RGFW_clipboard_data;
@@ -6039,7 +6039,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	RGFW_window_basic_init(win, rect, flags);
 
-	win->src.hIcon = NULL;
+	win->src.hIconSmall = win->src.hIconBig = NULL;
 	win->src.maxSize = RGFW_AREA(0, 0);
 	win->src.minSize = RGFW_AREA(0, 0);
 	win->src.aspectRatio = RGFW_AREA(0, 0);
@@ -6065,9 +6065,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	Class.cbClsExtra = sizeof(RGFW_window*);
 
 	Class.hIcon = (HICON)LoadImageA(GetModuleHandleW(NULL), "RGFW_ICON", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
-	if (Class.hIcon == NULL) {
+	if (Class.hIcon == NULL)
 		Class.hIcon = (HICON)LoadImageA(NULL, (LPCSTR)IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
-	}
 
 	RegisterClassW(&Class);
 
@@ -7013,7 +7012,6 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 }
 
 #endif
-
 HICON RGFW_loadHandleImage(u8* src, RGFW_area a, BOOL icon) {
 	BITMAPV5HEADER bi;
 	ZeroMemory(&bi, sizeof(bi));
@@ -7120,7 +7118,8 @@ void RGFW_window_close(RGFW_window* win) {
 		ReleaseDC(win->src.window, win->src.hdc); /*!< delete device context */
 		DestroyWindow(win->src.window); /*!< delete window */
 
-	if (win->src.hIcon) DestroyIcon(win->src.hIcon);
+	if (win->src.hIconSmall) DestroyIcon(win->src.hIconSmall);
+	if (win->src.hIconBig) DestroyIcon(win->src.hIconBig);
 
 	if (win == RGFW_root) {
 		#ifndef RGFW_NO_XINPUT
@@ -7207,22 +7206,27 @@ RGFW_bool RGFW_window_setIconPro(RGFW_window* win, u8* src, RGFW_area a, i32 cha
 	RGFW_ASSERT(win != NULL);
 	#ifndef RGFW_WIN95
 		RGFW_UNUSED(channels);
+
+		if (win->src.hIconSmall && (type & RGFW_iconWindow)) DestroyIcon(win->src.hIconSmall);
+		if (win->src.hIconBig && (type & RGFW_iconTaskbar)) DestroyIcon(win->src.hIconBig);
+		
 		if (src == NULL) {
 			HICON defaultIcon = LoadIcon(NULL, IDI_APPLICATION);
-			if (type & RGFW_iconTaskbar)
-				SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)defaultIcon);
 			if (type & RGFW_iconWindow)
+				SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)defaultIcon);
+			if (type & RGFW_iconTaskbar)
 				SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)defaultIcon);
 			return RGFW_TRUE;
 		}
 
-		if (win->src.hIcon) DestroyIcon(win->src.hIcon);
-		
-		win->src.hIcon = RGFW_loadHandleImage(src, a, TRUE);
-		if (type & RGFW_iconTaskbar)
-			SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)win->src.hIcon);
-		if (type & RGFW_iconWindow)
-			SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)win->src.hIcon);
+		if (type & RGFW_iconWindow) {
+			win->src.hIconSmall = RGFW_loadHandleImage(src, a, TRUE);
+			SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)win->src.hIconSmall);
+		}
+		if (type & RGFW_iconTaskbar) {
+			win->src.hIconBig = RGFW_loadHandleImage(src, a, TRUE);
+			SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)win->src.hIconBig);
+		}
 		return RGFW_TRUE;
 	#else
 		RGFW_UNUSED(src);
@@ -7256,7 +7260,6 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 			textLen = 0;
 		
 		if (str != NULL && textLen) {
-			
 			if (textLen > 1)
 				wcstombs(str, wstr, (textLen) );
 			
