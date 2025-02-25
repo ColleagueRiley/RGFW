@@ -156,7 +156,7 @@ var searchData=
   ['rgfw_5fwindow_5fsetfullscreen_153',['RGFW_window_setFullscreen',['../group__Window__management.html#ga594d554fefbb56363c7b613dd44e7ee5',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fsetgpurender_154',['RGFW_window_setGPURender',['../group__graphics__API.html#ga54a7f54f22b8c4bfd8448f8f140db0b2',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fseticon_155',['RGFW_window_setIcon',['../group__Window__management.html#gaca5383e752ee7fe0d42e569997db4059',1,'RGFW.h']]],
-  ['rgfw_5fwindow_5fseticonpro_156',['RGFW_window_setIconPro',['../group__Window__management.html#gac494430972699b1ad0eb0785f37bfa91',1,'RGFW.h']]],
+  ['rgfw_5fwindow_5fseticonex_156',['RGFW_window_setIconEx',['../group__Window__management.html#gaead0db8ed85a96afe69d448b47a9c25b',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fsetmaxsize_157',['RGFW_window_setMaxSize',['../group__Window__management.html#gacd5210fddb2ff8e834c25923070ee9f7',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fsetminsize_158',['RGFW_window_setMinSize',['../group__Window__management.html#ga62a242f890c1def944d0b4771b6c79d4',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fsetmouse_159',['RGFW_window_setMouse',['../group__Window__management.html#gac9c75b705eebbee5e2c86cbaf144a4e0',1,'RGFW.h']]],

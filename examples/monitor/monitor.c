@@ -11,7 +11,7 @@ int main(void) {
     RGFW_window_setFullscreen(win, 1);
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
-        while (RGFW_window_checkEvent(win));        
+        while (RGFW_window_checkEvent(win) && win->event.type != RGFW_quit);        
         glViewport(0, 0, win->r.w, win->r.h);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);

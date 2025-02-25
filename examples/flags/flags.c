@@ -7,6 +7,7 @@ int main(void) {
     
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win)) {
+            if (win->event.type == RGFW_quit) break;
             if (win->event.type != RGFW_keyPressed) continue;
             switch (win->event.key) {
                     case RGFW_b:

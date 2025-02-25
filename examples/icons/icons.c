@@ -14,8 +14,8 @@ int main(void) {
 
     RGFW_mouse* mouse = RGFW_loadMouse(icon, RGFW_AREA(w, h), c);
     
-    RGFW_window_setIconPro(win, base_icon, RGFW_AREA(3, 3), c, RGFW_iconWindow);
-    RGFW_window_setIconPro(win, icon, RGFW_AREA(w, h), c, RGFW_iconTaskbar);
+    RGFW_window_setIconEx(win, base_icon, RGFW_AREA(3, 3), c, RGFW_iconWindow);
+    RGFW_window_setIconEx(win, icon, RGFW_AREA(w, h), c, RGFW_iconTaskbar);
     
     RGFW_window_setMouse(win, mouse);
 

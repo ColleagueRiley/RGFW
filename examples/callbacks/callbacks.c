@@ -41,7 +41,7 @@ void mouseNotifyfunc(RGFW_window* win, RGFW_point point, u8 status) {
 void mouseposfunc(RGFW_window* win, RGFW_point point, RGFW_point vector) {
     RGFW_UNUSED(vector);
     if (window != win || RGFW_isPressed(win, RGFW_controlL) == 0) return;
-    printf("mouse moved %i %i\n", point.x, point.y);
+   printf("mouse moved %i %i\n", point.x, point.y);
 }
 
 void dndfunc(RGFW_window* win, char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH], u32 droppedFilesCount) {

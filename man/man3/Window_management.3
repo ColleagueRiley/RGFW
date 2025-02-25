@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Sat Feb 22 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Tue Feb 25 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -127,7 +127,7 @@ Window_management \- Window_management
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_icon)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setIconPro\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels, \fBu8\fP type)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setIconEx\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels, \fBu8\fP type)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_mouse\fP *mouse)"
@@ -323,7 +323,7 @@ image MAY be resized by default, set both the taskbar and window icon
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setIconPro (\fBRGFW_window\fP * win, \fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels, \fBu8\fP type)"
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setIconEx (\fBRGFW_window\fP * win, \fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels, \fBu8\fP type)"
 sets mouse to RGFW_mouse icon (loaded from a bitmap struct) 
 .SS "\fBRGFWDEF\fP void RGFW_window_setMaxSize (\fBRGFW_window\fP * win, \fBRGFW_area\fP a)"
 set the minimum size a user can extend a window to a given size/area 

@@ -38,7 +38,7 @@ int main(void) {
     screenSize = RGFW_getScreenSize();
   
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {   
-        while (RGFW_window_checkEvent(win) != NULL);
+        while (RGFW_window_checkEvent(win) != NULL && win->event.type != RGFW_quit);
 
         RGFW_window_makeCurrent(win);
         

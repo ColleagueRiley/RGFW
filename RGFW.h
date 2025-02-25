@@ -922,7 +922,7 @@ typedef RGFW_ENUM(u8, RGFW_icon) {
 	RGFW_iconWindow = RGFW_BIT(1),
 	RGFW_iconBoth = RGFW_iconTaskbar | RGFW_iconWindow
 };
-RGFWDEF RGFW_bool RGFW_window_setIconPro(RGFW_window* win, u8* icon, RGFW_area a, i32 channels, u8 type);
+RGFWDEF RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* icon, RGFW_area a, i32 channels, u8 type);
 
 /*!< sets mouse to RGFW_mouse icon (loaded from a bitmap struct) */
 RGFWDEF void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse);
@@ -1958,7 +1958,7 @@ void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m) {
 #endif
 
 RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 channels) {
-	return RGFW_window_setIconPro(win, icon, a, channels, RGFW_iconBoth);	
+	return RGFW_window_setIconEx(win, icon, a, channels, RGFW_iconBoth);	
 }
 
 RGFWDEF void RGFW_captureCursor(RGFW_window* win, RGFW_rect);
@@ -4715,7 +4715,7 @@ void RGFW_window_setMousePassthrough(RGFW_window* win, RGFW_bool passthrough) {
 
 #endif /* RGFW_NO_PASSTHROUGH */
 
-RGFW_bool RGFW_window_setIconPro(RGFW_window* win, u8* icon, RGFW_area a, i32 channels, u8 type) {
+RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* icon, RGFW_area a, i32 channels, u8 type) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_GOTO_WAYLAND(0);
 #ifdef RGFW_X11	
@@ -7202,7 +7202,7 @@ void RGFW_window_setMousePassthrough(RGFW_window* win, RGFW_bool passthrough) {
 }
 #endif
 
-RGFW_bool RGFW_window_setIconPro(RGFW_window* win, u8* src, RGFW_area a, i32 channels, u8 type) {
+RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* src, RGFW_area a, i32 channels, u8 type) {
 	RGFW_ASSERT(win != NULL);
 	#ifndef RGFW_WIN95
 		RGFW_UNUSED(channels);
@@ -8957,7 +8957,7 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 		((id)win->src.window, sel_registerName("setMaxSize:"), (NSSize){a.w, a.h});
 }
 
-RGFW_bool RGFW_window_setIconPro(RGFW_window* win, u8* data, RGFW_area area, i32 channels, u8 type) {
+RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, RGFW_area area, i32 channels, u8 type) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_UNUSED(type);
 
@@ -10318,7 +10318,7 @@ void RGFW_window_minimize(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_restore(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating) { RGFW_UNUSED(win); RGFW_UNUSED(floating); }
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) { RGFW_UNUSED(win); RGFW_UNUSED(border);  }
-RGFW_bool RGFW_window_setIconPro(RGFW_window* win, u8* icon, RGFW_area a, i32 channels, u8 type) { RGFW_UNUSED(win); RGFW_UNUSED(icon); RGFW_UNUSED(a); RGFW_UNUSED(channels); RGFW_UNUSED(type); return RGFW_FALSE;  }
+RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* icon, RGFW_area a, i32 channels, u8 type) { RGFW_UNUSED(win); RGFW_UNUSED(icon); RGFW_UNUSED(a); RGFW_UNUSED(channels); RGFW_UNUSED(type); return RGFW_FALSE;  }
 void RGFW_window_hide(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_show(RGFW_window* win) {RGFW_UNUSED(win); }
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
