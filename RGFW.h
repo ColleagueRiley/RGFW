@@ -5833,6 +5833,11 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			mmi->ptMaxTrackSize.x = win->src.maxSize.w;
 			mmi->ptMaxTrackSize.y = win->src.maxSize.h;
 			return DefWindowProcW(hWnd, message, wParam, lParam);
+		case WM_PAINT: {
+			win->event.type = RGFW_windowRefresh;
+			RGFW_windowRefreshCallback(win);
+			return DefWindowProcW(hWnd, message, wParam, lParam);
+		}
 		default: break;
 	}
 	return DefWindowProcW(hWnd, message, wParam, lParam);
@@ -6584,11 +6589,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			}
 
 			break;
-		case WM_PAINT:
-			win->event.type = RGFW_windowRefresh;
-			RGFW_windowRefreshCallback(win);
-			break;
-
 		#if(_WIN32_WINNT >= 0x0600)
 		case WM_DWMCOMPOSITIONCHANGED:
 		case WM_DWMCOLORIZATIONCOLORCHANGED:

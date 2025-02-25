@@ -79,6 +79,7 @@ Current Version: RGFW 1.6-dev
 - ensure UTF8 support (winapi)
 - allow seticon to be undone
 - add `RGFW_window_setIconEx` (allows you to set titleBar icon, window icon or both)
+- add smooth-resize example
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
