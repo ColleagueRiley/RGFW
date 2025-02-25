@@ -64,7 +64,7 @@ int main(void) {
     size_t winLen = len;
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
-        while (RGFW_window_checkEvent(win));
+        while (RGFW_window_checkEvent(win) && win->event.type != RGFW_quit);
         RGFW_window_swapBuffers(win);
         len = winLen; // free memory of the frame
     }

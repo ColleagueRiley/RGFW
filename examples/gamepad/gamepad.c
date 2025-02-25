@@ -16,6 +16,7 @@ int main(void) {
     
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win) != NULL) {
+            if (win->event.type == RGFW_quit) break;
             switch (win->event.type) {
                 case RGFW_gamepadButtonPressed:
                     printf("Gamepad (%i) button pressed %i\n", win->event.gamepad, win->event.button);

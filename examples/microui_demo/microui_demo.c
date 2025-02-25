@@ -255,6 +255,8 @@ int main(int argc, char **argv) {
   while (RGFW_window_shouldClose(window) == RGFW_FALSE) {
     /* handle RGFW events */
     while (RGFW_window_checkEvent(window)) {
+      if (window->event.type == RGFW_quit) break;
+
       switch (window->event.type) {
         case RGFW_quit: break;
         case RGFW_mousePosChanged: mu_input_mousemove(ctx, window->event.point.x,  window->event.point.y); break;
