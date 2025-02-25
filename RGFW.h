@@ -5800,7 +5800,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				int newWidth = (int)(height * aspectRatio);
 
 				if (win->r.w > windowRect.right - windowRect.left || 
-					win->r.h > (windowRect.bottom - windowRect.top) - offset) 
+					win->r.h > (i32)((windowRect.bottom - windowRect.top) - win->src.hOffset)) 
 				{
 					if (newHeight > height) windowRect.right = windowRect.left + newWidth;
 					else windowRect.bottom = windowRect.top + newHeight;
