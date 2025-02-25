@@ -5791,10 +5791,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_windowMoveCallback(win, win->r);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		case WM_SIZE: {
-			RECT clientRect;
-			GetClientRect(hWnd, &clientRect);	
-			i32 offset = (windowRect.bottom - windowRect.top) - (clientRect.bottom - clientRect.top);
-				
 			if (win->src.aspectRatio.w != 0 && win->src.aspectRatio.h != 0) {
 				double aspectRatio = (double)win->src.aspectRatio.w / win->src.aspectRatio.h;
 
@@ -5814,10 +5810,11 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 
 				RGFW_window_resize(win, RGFW_AREA((windowRect.right - windowRect.left), 
-												(windowRect.bottom - windowRect.top) - offset));
+												(windowRect.bottom - windowRect.top) - win->src.hOffset));
 			}
+			
 			win->r.w = windowRect.right -  windowRect.left;
-			win->r.h = (windowRect.bottom - windowRect.top) - offset;
+			win->r.h = (windowRect.bottom - windowRect.top) - win->src.hOffset;
 			win->_flags &= ~RGFW_EVENT_PASSED;
 			win->event.type = RGFW_windowResized;
 			RGFW_windowResizeCallback(win, win->r);
