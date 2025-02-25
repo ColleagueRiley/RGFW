@@ -101,7 +101,8 @@ EXAMPLE_OUTPUTS = \
 	examples/events/events \
 	examples/callbacks/callbacks \
 	examples/flags/flags \
-	examples/monitor/monitor
+	examples/monitor/monitor \
+	examples/smooth-resize/smooth-resize
 
 
 EXAMPLE_OUTPUTS_CUSTOM = \
