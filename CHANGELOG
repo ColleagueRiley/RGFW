@@ -1,67 +1,74 @@
 changelog
 ---------
 
-Current Version: RGFW 1.6-dev
+Current Version: RGFW 1.6
 -----------------------------------------------
-- fix wasm key event bug (key release events not being processed)
-- Get rid of `RGFW_ALLOC_DROPFILES` (it's not actually useful)
+
+Release:    RGFW 1.6 (Feb 25, 2025)
+-----------------------------------------------
+This release has been focused on ensuring feature parity with GLFW, reviewing included features and fixing bugs. 
+
+breaking changes:
 - Replace `RGFW_window_setBufferPtr` and `RGFW_setBufferSize` with `RGFW_window_initBuffer`, `RGFW_window_initBufferSize` and `RGFW_window_initBufferPtr`
     Also forces the user to run `RGFW_window_initBuffer` to allocate a buffer
-- Get rid of RGFW_allocator, most of the memory that needs to be allocated is optional and is allocated on init anyway.
+- add `vector` for raw mouse data (so `point` can be used to get the regular mouse point)
+- RGFW_setGLHint and RGFW_glHints enum
+- change RGFW_window_fullscreen to  RGFW_window_setFullscreen
+- make RGFW_window_setFullscreen use exclusive fullscreen
+- limit directX support to RGFW_window_createDXSwapChain, most of it should/can be handled by the user
+- do not close the window until the (library) user closes it
+- add RGFW_monitorMode, move monitor.rect to mode.area and x, y to monitor
+- RGFW stalls on RGFW_quit
+
+major changes:
+- RGFW_monitorMode, allows gives the user more control the monitor's mode (size, refreshRate, RGB)
+- lots of bug fixes
+- more windowing functions and checking functions (floating, focus, aspectRatio, etc)
+- RGFW_glHints and more OpenGL hint options (RGB, depth, robustness, release behavior, etc)
+- more examples
+
+all changes:
+fixes:
+- fix wasm key event bug (key release events not being processed)
 - fix xDND data restarts bug 
-- print errors in writeclipboard (X11)
-- fix macOS titlebar api (borderless window)
-- update Vulkan example (fix crashes with certain drivers, have triangle follow mouse)
 - rewrite writeclipboard, ensure the selection is properly being handled and the clipboard is properly being saved after the window is closed
-- add icon example
 - review winapi window_setIcon (fixes HICON persistance issue)
-- remove RGFW_mouseNone (fixes overflow bug, RGFW_mouseNone isn't used anyway)
-- expose RGFW_moveToMacOSResourceDir to the public API
+- make sure RGFW_mousePosCallback is called even for raw input events (winapi)
+- handle `WM_SYSKEYDOWN` and `WM_SYSKEYUP` events (winapi)
+- skip x11 mouse button events if the mouse button > 5
+- framework CoreVideo is needed to get the monitor's refresh rate (macOS)
+- move WM_PAINT to WndProc callback
+- ensure setFlag won't cause bugs when it's used to create a window
+- update Vulkan example (fix crashes with certain drivers, have triangle follow mouse)
+- ensure UTF8 support (winapi)
+- make RGFW_window_setFullscreen use exclusive fullscreen
+
+new features:
+- add icon example
 - add `RGFW_window_center`
 - add `RGFW_window_borderless`, `RGFW_window_allowsDND` and `RGFW_window_mouseHidden` for checking for args
 - add flags example
 - fix `RGFW_window_setMaxSize` / `RGFW_window_setMinSize` winapi, use `SetPropA` `GetPropA` to get the window in `WndProc`
 - make RGFW_window_isMaximized actually maximize the window width the API
 - fix RGFW_window_setBorder not working after window creation (X11)
-- change b8/b32 to single changeable bool type `RGFW_bool`, add `RGFW_BOOL` macro for forcing an int to be bool
-- add `CONVENTIONS.md`
 - fix window flag bugs (macOS)
 - RGFW_window_maximize uses `toggleFullScreen` if the window has no border (macOS)
-- skip x11 mouse button events if the mouse button > 5
-- fix RGFW_window_eventWait, make sure RGFW_eventWaitNext is converted if it needs to be, ensure the correct time is used, (winapi, cocoa), make waitMS unsigned
 - add support for extra mouse buttons RGFW_mouseMisc1 - RGFW_mouseMisc5
 - separate maximize and fullscreen functions
 - add RGFW_window_setAspectRatio
-- add RGFW_window_scaleToMonitor AND RGFW_monitor_scale
-- add monitor/monitor.c example to show monitor scaling.
-- fix issues with examples compiling (macOS, wasm, X11)
-- remove microui_demo on wasm site
-- make the default bool type u8
-- make sure RGFW_mousePosCallback is called even for raw input events (winapi)
-- add `vector` for raw mouse data (so `point` can be used to get the regular mouse point)
-- replace API calls in RGFW_window_getMousePoint with `win->_lastMousePoint`
-- handle `WM_SYSKEYDOWN` and `WM_SYSKEYUP` events (winapi)
-- add RGFW_scrollLock keycode and RGFW_modScrollLock mod key
-- change RGFW_window_fullscreen to  RGFW_window_setFullscreen
-- make RGFW_window_setFullscreen use exclusive fullscreen
-- add RGFW_window_isFullscreen
-- add refreshRate to RGFW_monitor_scale
-- limit directX support to RGFW_window_createDXSwapChain, most of it should/can be handled by the user
-- Add refreshRate to RGFW_monitor
-- do not close the window until the user closes it
 - add `RGFW_window_focus` and `RGFW_window_raise`
 - add `RGFW_window_isFloating`and `RGFW_window_setFloating`
 - add `RGFW_getCurrent_OpenGL`
 - add `RGFW_setXInstName`
 - add `RGFW_window_setOpacity`
 - add `RGFW_getTimerFreq` and `RGFW_getTimerValue`
-- framework CoreVideo is needed to get the monitor's refresh rate (macOS)
+- add RGFW_window_scaleToMonitor AND RGFW_monitor_requestMode
+- add monitor/monitor.c example to show monitor scaling.
 - add RGFW_window_setFlags
 - add RGFW_windowFloating flag
 - add RGFW_COCOA_GRAPHICS_SWITCHING option
 - add RGFW_setGLRGBA, RGFW_setGLAccumRGBA RGFW_setGLSRGB, RGFW_setGLRobustness, RGFW_setGLDebug, RGFW_setGLNoError
 - add RGFW_setGLReleaseBehavior and RGFW_glRelease enum
-- RGFW_setGLHint and RGFW_glHints enum
 - new opengl hint options: 
     RGFW_glRed, RGFW_glGreen, RGFW_glBlue, RGFW_glAlpha
     RGFW_glDepth, 
@@ -71,15 +78,38 @@ Current Version: RGFW 1.6-dev
 	RGFW_glDebug
 	RGFW_glNoError
 	RGFW_glReleaseBehavior
-- add RGFW_monitorMode AND mode.red, mode.green, mode.blue
+- add RGFW_scrollLock keycode and RGFW_modScrollLock mod key
 - add `RGFW_monitorModeCompare`
-- change `RGFW_monitor_scale` to `RGFW_monitor_requestMode`
-- RGFW stalls on RGFW_quit
-- ensure monitor functions can be used prior to window creation
-- ensure UTF8 support (winapi)
+- Add refreshRate to RGFW_monitor
 - allow seticon to be undone
 - add `RGFW_window_setIconEx` (allows you to set titleBar icon, window icon or both)
+- add mode.red, mode.green, mode.blue
 - add smooth-resize example
+- Replace `RGFW_window_setBufferPtr` and `RGFW_setBufferSize` with `RGFW_window_initBuffer`, `RGFW_window_initBufferSize` and `RGFW_window_initBufferPtr`
+    Also forces the user to run `RGFW_window_initBuffer` to allocate a buffer
+- add `vector` for raw mouse data (so `point` can be used to get the regular mouse point)
+- RGFW_setGLHint and RGFW_glHints enum
+- add RGFW_monitorMode, move monitor.rect to mode.area and x, y to monitor
+
+miscellaneous changes:
+- Get rid of `RGFW_ALLOC_DROPFILES` (it's not actually useful)
+- Get rid of RGFW_allocator, most of the memory that needs to be allocated is optional and is allocated on init anyway.
+- print errors in writeclipboard (X11)
+- fix macOS titlebar api (borderless window)
+- remove RGFW_mouseNone (fixes overflow bug, RGFW_mouseNone isn't used anyway)
+- expose RGFW_moveToMacOSResourceDir to the public API
+- change b8/b32 to single changeable bool type `RGFW_bool`, add `RGFW_BOOL` macro for forcing an int to be bool
+- add `CONVENTIONS.md`
+- fix RGFW_window_eventWait, make sure RGFW_eventWaitNext is converted if it needs to be, ensure the correct time is used, (winapi, cocoa), make waitMS unsigned
+- fix issues with examples compiling (macOS, wasm, X11)
+- remove microui_demo on wasm site
+- make the default bool type u8
+- replace API calls in RGFW_window_getMousePoint with `win->_lastMousePoint`
+- ensure monitor functions can be used prior to window creation
+- change RGFW_window_fullscreen to  RGFW_window_setFullscreen
+- limit directX support to RGFW_window_createDXSwapChain, most of it should/can be handled by the user
+- do not close the window until the (library) user closes it
+- RGFW stalls on RGFW_quit
 
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------

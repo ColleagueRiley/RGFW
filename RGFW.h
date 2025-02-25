@@ -1,6 +1,6 @@
 /*
 *
-*	RGFW 1.6-dev
+*	RGFW 1.6
 *
 * Copyright (C) 2022-25 ColleagueRiley
 *
@@ -1740,6 +1740,8 @@ no more event call back defines
 #define RGFW_MOUSE_LEFT 		RGFW_BIT(28) /* if mouse left the window */
 #define RGFW_WINDOW_ALLOC 		RGFW_BIT(29) /* if window was allocated by RGFW */
 #define RGFW_BUFFER_ALLOC 		RGFW_BIT(30) /* if window.buffer was allocated by RGFW */
+#define RGFW_WINDOW_INIT 		RGFW_BIT(31) /* if window.buffer was allocated by RGFW */
+
 
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
 	RGFW_window* win = (RGFW_window*)RGFW_ALLOC(sizeof(RGFW_window));
@@ -1784,15 +1786,20 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 	}
 	#endif
 
+	if (!(win->_flags & RGFW_WINDOW_ALLOC)) win->_flags = 0;
+
 	/* set and init the new window's data */
 	win->r = rect;
 	win->event.inFocus = 1;
 	win->event.droppedFilesCount = 0;
-	win->_flags = flags;
+	win->_flags |= flags;
 	win->event.keyMod = 0;
 }
 
 void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
+	RGFW_windowFlags cmpFlags = win->_flags; 
+	if (win->_flags & RGFW_WINDOW_INIT) cmpFlags = win->_flags;
+
 	#ifndef RGFW_NO_MONITOR
 	if (flags & RGFW_windowScaleToMonitor)			RGFW_window_scaleToMonitor(win);
 	#endif
@@ -1803,15 +1810,16 @@ void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	if (flags & RGFW_windowNoBorder)				RGFW_window_setBorder(win, 0);
 	else RGFW_window_setBorder(win, 1);
 	if (flags & RGFW_windowFullscreen)				RGFW_window_setFullscreen(win, RGFW_TRUE);
-	else if (win->_flags & RGFW_windowFullscreen) 	RGFW_window_setFullscreen(win, 0);
+	else if (cmpFlags & RGFW_windowFullscreen) 	RGFW_window_setFullscreen(win, 0);
 	if (flags & RGFW_windowMaximize)				RGFW_window_maximize(win);
-	else if (win->_flags & RGFW_windowMaximize) 	RGFW_window_restore(win);
+	else if (cmpFlags & RGFW_windowMaximize) 	RGFW_window_restore(win);
 	if (flags & RGFW_windowHideMouse)				RGFW_window_showMouse(win, 0);
-	else if (win->_flags & RGFW_windowHideMouse)  	RGFW_window_showMouse(win, 1);
+	else if (cmpFlags & RGFW_windowHideMouse)  	RGFW_window_showMouse(win, 1);
 	if (flags & RGFW_windowCocoaCHDirToRes)			RGFW_moveToMacOSResourceDir();
 	if (flags & RGFW_windowFloating)				RGFW_window_setFloating(win, 1);
-	else if (win->_flags & RGFW_windowFloating)		RGFW_window_setFloating(win, 0);
+	else if (cmpFlags & RGFW_windowFloating)		RGFW_window_setFloating(win, 0);
 
+	if (!(win->_flags & RGFW_WINDOW_INIT)) win->_flags |= RGFW_WINDOW_INIT;
 	win->_flags = flags;
 }
 
@@ -6504,7 +6512,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	if (win->event.type == RGFW_quit) return &win->event;
 
-	if ((win->event.type == RGFW_windowMoved || win->event.type == RGFW_windowResized) 
+	if ((win->event.type == RGFW_windowMoved || win->event.type == RGFW_windowResized || win->event.type == RGFW_windowRefresh) 
 		&& !(win->_flags & RGFW_EVENT_PASSED)) 
 	{
 		win->_flags |= RGFW_EVENT_PASSED;
