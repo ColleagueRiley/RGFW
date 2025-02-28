@@ -1741,6 +1741,7 @@ no more event call back defines
 #define RGFW_WINDOW_ALLOC 		RGFW_BIT(29) /* if window was allocated by RGFW */
 #define RGFW_BUFFER_ALLOC 		RGFW_BIT(30) /* if window.buffer was allocated by RGFW */
 #define RGFW_WINDOW_INIT 		RGFW_BIT(31) /* if window.buffer was allocated by RGFW */
+#define RGFW_INTERNAL_FLAGS RGFW_EVENT_PASSED | RGFW_NO_GPU_RENDER | RGFW_NO_CPU_RENDER | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_BUFFER_ALLOC
 
 
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
@@ -1820,8 +1821,7 @@ void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	else if (cmpFlags & RGFW_windowFloating)		RGFW_window_setFloating(win, 0);
 
         if (win->_flags & RGFW_WINDOW_INIT) cmpFlags = 0;
-	if ((win->_flags & RGFW_WINDOW_ALLOC)) flags |= RGFW_WINDOW_ALLOC;
-	win->_flags = flags;
+        win->_flags = flags | (win->_flags & RGFW_INTERNAL_FLAGS);
 }
 
 void RGFW_window_initBuffer(RGFW_window* win) {
