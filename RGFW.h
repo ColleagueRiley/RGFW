@@ -1799,7 +1799,7 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 
 void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	RGFW_windowFlags cmpFlags = win->_flags; 
-	if (win->_flags & RGFW_WINDOW_INIT) cmpFlags = win->_flags;
+	if (win->_flags & RGFW_WINDOW_INIT) cmpFlags = 0;
 
 	#ifndef RGFW_NO_MONITOR
 	if (flags & RGFW_windowScaleToMonitor)			RGFW_window_scaleToMonitor(win);
