@@ -1819,7 +1819,8 @@ void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	if (flags & RGFW_windowFloating)				RGFW_window_setFloating(win, 1);
 	else if (cmpFlags & RGFW_windowFloating)		RGFW_window_setFloating(win, 0);
 
-	if (!(win->_flags & RGFW_WINDOW_INIT)) win->_flags |= RGFW_WINDOW_INIT;
+        if (win->_flags & RGFW_WINDOW_INIT) cmpFlags = 0;
+	if ((win->_flags & RGFW_WINDOW_ALLOC)) flags |= RGFW_WINDOW_ALLOC;
 	win->_flags = flags;
 }
 
