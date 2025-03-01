@@ -201,6 +201,8 @@ int main() {
 
 	#define RGFW_MEMCPY(dist, src, len) memcpy(dist, src, len)
 	#define RGFW_STRNCMP(s1, s2, max) strncmp(s1, s2, max)
+	#define RGFW_STRNCPY(dist, src, len) strncpy(dist, src, len)
+        #define RGFW_STRSTR(str, substr) strstr(str, substr)
 	//required for X11
 	#define RGFW_STRTOL(str, endptr, base) strtol(str, endptr, base)
 #else
@@ -1741,13 +1743,12 @@ no more event call back defines
 #define RGFW_WINDOW_ALLOC 		RGFW_BIT(29) /* if window was allocated by RGFW */
 #define RGFW_BUFFER_ALLOC 		RGFW_BIT(30) /* if window.buffer was allocated by RGFW */
 #define RGFW_WINDOW_INIT 		RGFW_BIT(31) /* if window.buffer was allocated by RGFW */
-#define RGFW_INTERNAL_FLAGS (RGFW_EVENT_PASSED | RGFW_NO_GPU_RENDER | RGFW_NO_CPU_RENDER | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_BUFFER_ALLOC)
+#define RGFW_INTERNAL_FLAGS (RGFW_EVENT_PASSED | RGFW_NO_GPU_RENDER | RGFW_NO_CPU_RENDER | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_WINDOW_ALLOC | RGFW_BUFFER_ALLOC)
 
 
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
 	RGFW_window* win = (RGFW_window*)RGFW_ALLOC(sizeof(RGFW_window));
-	win->_flags = 0;
-	win->_flags |= RGFW_WINDOW_ALLOC;
+	win->_flags = RGFW_WINDOW_ALLOC;
 	return RGFW_createWindowPtr(name, rect, flags, win);
 }
 
@@ -2669,13 +2670,13 @@ This is where OS specific stuff starts
 				win->event.type = RGFW_gamepadConnected;
 
 				RGFW_gamepads_type[index] = RGFW_gamepadUnknown;
-				if (strstr(RGFW_gamepads_name[index], "Microsoft") || strstr(RGFW_gamepads_name[index], "X-Box"))
+				if (RGFW_STRSTR(RGFW_gamepads_name[index], "Microsoft") || RGFW_STRSTR(RGFW_gamepads_name[index], "X-Box"))
 					RGFW_gamepads_type[index] = RGFW_gamepadMicrosoft;
-				else if (strstr(RGFW_gamepads_name[index], "PlayStation") || strstr(RGFW_gamepads_name[index], "PS3") || strstr(RGFW_gamepads_name[index], "PS4") || strstr(RGFW_gamepads_name[index], "PS5"))
+				else if (RGFW_STRSTR(RGFW_gamepads_name[index], "PlayStation") || RGFW_STRSTR(RGFW_gamepads_name[index], "PS3") || RGFW_STRSTR(RGFW_gamepads_name[index], "PS4") || RGFW_STRSTR(RGFW_gamepads_name[index], "PS5"))
 					RGFW_gamepads_type[index] = RGFW_gamepadSony;
-				else if (strstr(RGFW_gamepads_name[index], "Nintendo"))
+				else if (RGFW_STRSTR(RGFW_gamepads_name[index], "Nintendo"))
 					RGFW_gamepads_type[index] = RGFW_gamepadNintendo;
-				else if (strstr(RGFW_gamepads_name[index], "Logitech"))
+				else if (RGFW_STRSTR(RGFW_gamepads_name[index], "Logitech"))
 					RGFW_gamepads_type[index] = RGFW_gamepadLogitech;
 
 				win->event.gamepad = index;
@@ -3372,7 +3373,10 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 		#endif
 	#endif
 	#else
+	#ifdef RGFW_WAYLAND
 	wayland:
+	#endif
+
 	RGFW_UNUSED(win); RGFW_UNUSED(buffer); RGFW_UNUSED(area);
 	#endif
 }
@@ -3866,7 +3870,7 @@ void RGFW_XHandleClipboardSelection(RGFW_window* win, XEvent* event) {
 		for (i = 0; i < (u32)count; i += 2) {
 			if (targets[i] == RGFW_XUTF8_STRING || targets[i] == XA_STRING)
 				XChangeProperty(RGFW_root->src.display, request->requestor, targets[i + 1], targets[i],
-					8, PropModeReplace, win->src.clipboard, win->src.clipboard_len);
+					8, PropModeReplace, (const unsigned char *)win->src.clipboard, win->src.clipboard_len);
 			else 
 				targets[i + 1] = None;
 		}
@@ -4943,7 +4947,7 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	
 	if (XGetSelectionOwner(RGFW_root->src.display, RGFW_XCLIPBOARD) == RGFW_root->src.window) {
 		if (str != NULL)
-			strncpy(str, RGFW_root->src.clipboard, RGFW_root->src.clipboard_len);
+			RGFW_STRNCPY(str, RGFW_root->src.clipboard, RGFW_root->src.clipboard_len);
 		return (RGFW_ssize_t)RGFW_root->src.clipboard_len;
 	}
 	
@@ -5021,7 +5025,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 		RGFW_FREE(RGFW_root->src.clipboard);
 
 	RGFW_root->src.clipboard = RGFW_ALLOC(textLen);
-	strncpy(RGFW_root->src.clipboard, text, textLen);
+	RGFW_STRNCPY(RGFW_root->src.clipboard, text, textLen);
 	RGFW_root->src.clipboard_len = textLen;
 #ifdef RGFW_WAYLAND
 	if (RGFW_useWaylandBool)	
@@ -5307,7 +5311,9 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 	return RGFW_FALSE;
 	#endif
 #endif
+#ifdef RGFW_WAYLAND
 wayland:
+#endif
 	return RGFW_FALSE;
 }
 
@@ -5328,7 +5334,9 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
             	return RGFW_XCreateMonitor(i);
 	}
 #endif
+#ifdef RGFW_WAYLAND
 wayland:
+#endif
 	return (RGFW_monitor){};
 
 }
@@ -8035,13 +8043,13 @@ void RGFW__osxDeviceAddedCallback(void* context, IOReturn result, void *sender, 
 			CFStringGetCString(deviceName, RGFW_gamepads_name[i], sizeof(RGFW_gamepads_name[i]), kCFStringEncodingUTF8);
 
 		RGFW_gamepads_type[i] = RGFW_gamepadUnknown;
-		if (strstr(RGFW_gamepads_name[i], "Microsoft") || strstr(RGFW_gamepads_name[i], "X-Box") || strstr(RGFW_gamepads_name[i], "Xbox"))
+		if (RGFW_STRSTR(RGFW_gamepads_name[i], "Microsoft") || RGFW_STRSTR(RGFW_gamepads_name[i], "X-Box") || RGFW_STRSTR(RGFW_gamepads_name[i], "Xbox"))
 			RGFW_gamepads_type[i] = RGFW_gamepadMicrosoft;
-		else if (strstr(RGFW_gamepads_name[i], "PlayStation") || strstr(RGFW_gamepads_name[i], "PS3") || strstr(RGFW_gamepads_name[i], "PS4") || strstr(RGFW_gamepads_name[i], "PS5"))
+		else if (RGFW_STRSTR(RGFW_gamepads_name[i], "PlayStation") || RGFW_STRSTR(RGFW_gamepads_name[i], "PS3") || RGFW_STRSTR(RGFW_gamepads_name[i], "PS4") || RGFW_STRSTR(RGFW_gamepads_name[i], "PS5"))
 			RGFW_gamepads_type[i] = RGFW_gamepadSony;
-		else if (strstr(RGFW_gamepads_name[i], "Nintendo"))
+		else if (RGFW_STRSTR(RGFW_gamepads_name[i], "Nintendo"))
 			RGFW_gamepads_type[i] = RGFW_gamepadNintendo;
-		else if (strstr(RGFW_gamepads_name[i], "Logitech"))
+		else if (RGFW_STRSTR(RGFW_gamepads_name[i], "Logitech"))
 			RGFW_gamepads_type[i] = RGFW_gamepadLogitech;
 
 		RGFW_gamepads[i] = i;
@@ -9628,13 +9636,13 @@ EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamep
 	if (gamepadEvent->connected) {
 		RGFW_MEMCPY(RGFW_gamepads_name[gamepadEvent->index], gamepadEvent->id, sizeof(RGFW_gamepads_name[gamepadEvent->index]));
 		RGFW_gamepads_type[i] = RGFW_gamepadUnknown;
-		if (strstr(RGFW_gamepads_name[i], "Microsoft") || strstr(RGFW_gamepads_name[i], "X-Box"))
+		if (RGFW_STRSTR(RGFW_gamepads_name[i], "Microsoft") || RGFW_STRSTR(RGFW_gamepads_name[i], "X-Box"))
 			RGFW_gamepads_type[i] = RGFW_gamepadMicrosoft;
-		else if (strstr(RGFW_gamepads_name[i], "PlayStation") || strstr(RGFW_gamepads_name[i], "PS3") || strstr(RGFW_gamepads_name[i], "PS4") || strstr(RGFW_gamepads_name[i], "PS5"))
+		else if (RGFW_STRSTR(RGFW_gamepads_name[i], "PlayStation") || RGFW_STRSTR(RGFW_gamepads_name[i], "PS3") || RGFW_STRSTR(RGFW_gamepads_name[i], "PS4") || RGFW_STRSTR(RGFW_gamepads_name[i], "PS5"))
 			RGFW_gamepads_type[i] = RGFW_gamepadSony;
-		else if (strstr(RGFW_gamepads_name[i], "Nintendo"))
+		else if (RGFW_STRSTR(RGFW_gamepads_name[i], "Nintendo"))
 			RGFW_gamepads_type[i] = RGFW_gamepadNintendo;
-		else if (strstr(RGFW_gamepads_name[i], "Logitech"))
+		else if (RGFW_STRSTR(RGFW_gamepads_name[i], "Logitech"))
 			RGFW_gamepads_type[i] = RGFW_gamepadLogitech;
 
 		RGFW_gamepadCount++;
