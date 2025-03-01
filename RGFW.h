@@ -3866,7 +3866,7 @@ void RGFW_XHandleClipboardSelection(RGFW_window* win, XEvent* event) {
 		for (i = 0; i < (u32)count; i += 2) {
 			if (targets[i] == RGFW_XUTF8_STRING || targets[i] == XA_STRING)
 				XChangeProperty(RGFW_root->src.display, request->requestor, targets[i + 1], targets[i],
-					8, PropModeReplace, win->src.clipboard, win->src.clipboard_len);
+					8, PropModeReplace, (const unsigned char *)win->src.clipboard, win->src.clipboard_len);
 			else 
 				targets[i + 1] = None;
 		}
