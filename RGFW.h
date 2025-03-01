@@ -1748,8 +1748,7 @@ no more event call back defines
 
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
 	RGFW_window* win = (RGFW_window*)RGFW_ALLOC(sizeof(RGFW_window));
-	win->_flags = 0;
-	win->_flags |= RGFW_WINDOW_ALLOC;
+	win->_flags = RGFW_WINDOW_ALLOC;
 	return RGFW_createWindowPtr(name, rect, flags, win);
 }
 
@@ -3372,9 +3371,12 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 				win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
 				OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
 		#endif
-	wayland:
 	#endif
 	#else
+	#ifdef RGFW_WAYLAND
+	wayland:
+	#endif
+
 	RGFW_UNUSED(win); RGFW_UNUSED(buffer); RGFW_UNUSED(area);
 	#endif
 }
