@@ -3370,9 +3370,9 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 				win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
 				OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
 		#endif
+	wayland:
 	#endif
 	#else
-	wayland:
 	RGFW_UNUSED(win); RGFW_UNUSED(buffer); RGFW_UNUSED(area);
 	#endif
 }
@@ -5307,7 +5307,9 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 	return RGFW_FALSE;
 	#endif
 #endif
+#ifdef RGFW_WAYLAND
 wayland:
+#endif
 	return RGFW_FALSE;
 }
 
@@ -5328,7 +5330,9 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
             	return RGFW_XCreateMonitor(i);
 	}
 #endif
+#ifdef RGFW_WAYLAND
 wayland:
+#endif
 	return (RGFW_monitor){};
 
 }
