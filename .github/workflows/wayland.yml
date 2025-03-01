@@ -67,26 +67,3 @@ jobs:
         make libRGFW.so RGFW_WAYLAND=1
         cp -v ./libRGFW.so ./build/${{ env.RELEASE_NAME }}/lib
       if: matrix.bits == 64
-    
-    - name: Generate Artifacts
-      run: |
-        cp -v ./RGFW.h ./build/${{ env.RELEASE_NAME }}/include
-        cp -v ./libRGFW.a ./build/${{ env.RELEASE_NAME }}/lib
-        cp -v ./README.md ./build/${{ env.RELEASE_NAME }}/README.md
-        cp -v ./LICENSE ./build/${{ env.RELEASE_NAME }}/LICENSE
-        cd build
-        tar -czvf ${{ env.RELEASE_NAME }}.tar.gz ${{ env.RELEASE_NAME }}
-        
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ env.RELEASE_NAME }}.tar.gz
-        path: ./build/${{ env.RELEASE_NAME }}.tar.gz
-        
-    - name: Upload Artifact to Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: ./build/${{ env.RELEASE_NAME }}.tar.gz
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      if: github.event_name == 'release' && github.event.action == 'published'
