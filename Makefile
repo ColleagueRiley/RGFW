@@ -102,7 +102,8 @@ EXAMPLE_OUTPUTS = \
 	examples/callbacks/callbacks \
 	examples/flags/flags \
 	examples/monitor/monitor \
-	examples/smooth-resize/smooth-resize
+	examples/smooth-resize/smooth-resize \
+	examples/internal/internal
 
 
 EXAMPLE_OUTPUTS_CUSTOM = \

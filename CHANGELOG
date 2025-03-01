@@ -1,8 +1,9 @@
 changelog
 ---------
 
-Current Version: RGFW 1.6
+Current Version: RGFW 1.6.5-dev
 -----------------------------------------------
+- fix `RGFW_window_setFlags` overwrite bugs (@DiarrheaMcgee)
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------

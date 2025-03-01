@@ -11,7 +11,21 @@ int main(void) {
     RGFW_window_setFullscreen(win, 1);
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
-        while (RGFW_window_checkEvent(win) && win->event.type != RGFW_quit);        
+        while (RGFW_window_checkEvent(win) && win->event.type != RGFW_quit) {
+            printf("my %i\n", win->event.type);
+            switch (win->event.type) {
+                case RGFW_focusOut:
+                    printf("focusout\n");
+                    RGFW_window_minimize(win);
+                    RGFW_monitor_requestMode(RGFW_window_getMonitor(win), mon.mode, RGFW_monitorScale);
+                    break;
+                case RGFW_focusIn:
+                    RGFW_monitor_scaleToWindow(mon, win);
+                    break;
+                default: break;
+            }
+        }
+
         glViewport(0, 0, win->r.w, win->r.h);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);

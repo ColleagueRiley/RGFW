@@ -1,6 +1,6 @@
 /*
 *
-*	RGFW 1.6
+*	RGFW 1.6.5-dev
 *
 * Copyright (C) 2022-25 ColleagueRiley
 *
@@ -616,6 +616,7 @@ typedef struct RGFW_event {
 	RGFW_point axis[4]; /*!< x, y of axises (-100 to 100) */
 
 	u64 frameTime, frameTime2; /*!< this is used for counting the fps */
+	void* _win; /*!< the window this event applies too (for event queue events) */
 } RGFW_event;
 
 /*! source data for the window (used by the APIs) */
@@ -744,6 +745,7 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowMaximize = RGFW_BIT(12),
 	RGFW_windowCenterCursor = RGFW_BIT(13),
 	RGFW_windowFloating = RGFW_BIT(14), /*!< creat a floating window */
+	RGFW_windowFreeOnClose = RGFW_BIT(15), /*!< free (RGFW_window_close) the RGFW_window struct when the window is closed (by the end user) */
 	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize,
 };
 
@@ -1228,6 +1230,15 @@ RGFWDEF u64 RGFW_getTimeNS(void); /*!< get time in nanoseconds */
 RGFWDEF void RGFW_sleep(u64 milisecond); /*!< sleep for a set time */
 RGFWDEF u64 RGFW_getTimerValue(void); /*!< get API timer value */
 RGFWDEF u64 RGFW_getTimerFreq(void); /*!< get API time freq */
+
+/*!< change which window is the root window */
+RGFWDEF void RGFW_setRootWindow(RGFW_window* win);
+RGFWDEF RGFW_window* RGFW_getRootWindow(void);
+
+/*! standard event queue, used for injecting events and returning source API callback events like any other queue check */
+/* these are all used internally by RGFW */
+void RGFW_eventQueuePush(RGFW_event event);
+RGFW_event RGFW_eventQueuePop(void);
 
 /*!
 	key codes and mouse icon enums
@@ -1742,7 +1753,6 @@ no more event call back defines
 #define RGFW_BUFFER_ALLOC 		RGFW_BIT(30) /* if window.buffer was allocated by RGFW */
 #define RGFW_WINDOW_INIT 		RGFW_BIT(31) /* if window.buffer was allocated by RGFW */
 
-
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
 	RGFW_window* win = (RGFW_window*)RGFW_ALLOC(sizeof(RGFW_window));
 	win->_flags = 0;
@@ -1761,13 +1771,15 @@ RGFW_mouse* RGFW_hiddenMouse = NULL;
 #endif
 
 RGFW_window* RGFW_root = NULL;
+void RGFW_setRootWindow(RGFW_window* win) { RGFW_root = win; }
+RGFW_window* RGFW_getRootWindow(void) { return RGFW_root; }
 
 /* do a basic initialization for RGFW_window, this is to standard it for each OS */
 void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags flags) {
 	RGFW_UNUSED(flags);
 	/* rect based the requested flags */
 	if (RGFW_root == NULL) {
-		RGFW_root = win;
+		RGFW_setRootWindow(win);
 		#ifdef RGFW_X11
 		RGFW_root->src.display = XOpenDisplay(NULL);
 		#endif
@@ -1945,8 +1957,7 @@ RGFW_bool RGFW_monitorModeCompare(RGFW_monitorMode mon, RGFW_monitorMode mon2, R
 }
 
 RGFW_bool RGFW_window_shouldClose(RGFW_window* win) {
-	RGFW_ASSERT(win != NULL);
-	return (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape));
+	return (win == NULL || win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape));
 }
 
 void RGFW_window_setShouldClose(RGFW_window* win) { win->event.type = RGFW_quit; RGFW_windowQuitCallback(win); }
@@ -3952,6 +3963,11 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		RGFW_resetKey();
 
 	if (win->event.type == RGFW_quit) {
+		if (win->_flags & RGFW_windowFreeOnClose) {
+			RGFW_window_close(win);
+			return NULL;
+		}
+
 		return &win->event;
 	}
 
@@ -4409,7 +4425,14 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	RGFW_event ev = RGFW_eventPipe_pop(win);
 
 	if (ev.type ==  0)				  return NULL;
-	if (win->event.type == RGFW_quit) return &win->event;
+	if (win->event.type == RGFW_quit) { 
+		if (win->_flags & RGFW_windowFreeOnClose) {
+			RGFW_window_close(win);
+			return NULL;
+		}
+
+		return &win->event;
+	}
 
 	ev.frameTime = win->event.frameTime;
 	ev.frameTime2 = win->event.frameTime2;
@@ -5781,17 +5804,22 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			win->event.type = RGFW_quit;
 			return 0;
 		case WM_ACTIVATE:
-			win->event.type = RGFW_focusIn + RGFW_BOOL(LOWORD(wParam) == WA_INACTIVE);
-			RGFW_focusCallback(win, RGFW_BOOL(LOWORD(wParam) != WA_INACTIVE));
+			if (win == NULL) return DefWindowProcW(hWnd, message, wParam, lParam);
+			win->event.inFocus = RGFW_BOOL(LOWORD(wParam) != WA_INACTIVE);
+			win->event.type = RGFW_focusOut - win->event.inFocus;
+			RGFW_focusCallback(win, win->event.inFocus);
 
 			if ((win->_flags & RGFW_windowFullscreen) == 0)
-				break;
+				return DefWindowProcW(hWnd, message, wParam, lParam);
 			
+			win->_flags &= ~RGFW_EVENT_PASSED;
 			if (LOWORD(wParam) == WA_INACTIVE)
 				RGFW_window_minimize(win);
 			else RGFW_window_setFullscreen(win, 1);
-			break;
+			return DefWindowProcW(hWnd, message, wParam, lParam);
 		case WM_MOVE:
+			if (win == NULL) return DefWindowProcW(hWnd, message, wParam, lParam);
+			
 			win->r.x = windowRect.left;
 			win->r.y = windowRect.top;
 			win->_flags &= ~RGFW_EVENT_PASSED;
@@ -5799,6 +5827,8 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_windowMoveCallback(win, win->r);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		case WM_SIZE: {
+			if (win == NULL) return DefWindowProcW(hWnd, message, wParam, lParam);
+			
 			if (win->src.aspectRatio.w != 0 && win->src.aspectRatio.h != 0) {
 				double aspectRatio = (double)win->src.aspectRatio.w / win->src.aspectRatio.h;
 
@@ -5844,6 +5874,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_PAINT: {
 			win->event.type = RGFW_windowRefresh;
 			RGFW_windowRefreshCallback(win);
+			win->_flags &= ~RGFW_EVENT_PASSED;
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		default: break;
@@ -6510,9 +6541,17 @@ void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
-	if (win->event.type == RGFW_quit) return &win->event;
+	if (win->event.type == RGFW_quit) { 
+		if (win->_flags & RGFW_windowFreeOnClose) {
+			RGFW_window_close(win);
+			return NULL;
+		}
+	
+		return &win->event;
+	}
 
-	if ((win->event.type == RGFW_windowMoved || win->event.type == RGFW_windowResized || win->event.type == RGFW_windowRefresh) 
+	if ((win->event.type == RGFW_windowMoved || win->event.type == RGFW_windowResized || 
+		win->event.type == RGFW_windowRefresh || win->event.type == RGFW_focusOut || win->event.type == RGFW_focusIn) 
 		&& !(win->_flags & RGFW_EVENT_PASSED)) 
 	{
 		win->_flags |= RGFW_EVENT_PASSED;
@@ -6582,20 +6621,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		case WM_QUIT:
 			RGFW_windowQuitCallback(win);
 			win->event.type = RGFW_quit;
-			break;
-
-		case WM_ACTIVATE:
-			win->event.inFocus = (LOWORD(msg.wParam) == WA_INACTIVE);
-
-			if (win->event.inFocus) {
-				win->event.type = RGFW_focusIn;
-				RGFW_focusCallback(win, 1);
-			}
-			else {
-				win->event.type = RGFW_focusOut;
-				RGFW_focusCallback(win, 0);
-			}
-
 			break;
 		#if(_WIN32_WINNT >= 0x0600)
 		case WM_DWMCOMPOSITIONCHANGED:
@@ -7402,43 +7427,34 @@ char* RGFW_createUTF8FromWideStringWin32(const WCHAR* source) {
 	return target;
 }
 
-static inline LARGE_INTEGER RGFW_win32_initTimer(void) {
-	static LARGE_INTEGER frequency = {{0, 0}};
-	if (frequency.QuadPart == 0) {
+static inline u64 RGFW_win32_initTimer(void) {
+	static u64 frequency = 0;
+	if (frequency == 0) {
 		#if !defined(RGFW_NO_WINMM)
 		timeBeginPeriod(1);
 		#endif
-		QueryPerformanceFrequency(&frequency);
+		QueryPerformanceFrequency((LARGE_INTEGER*)&frequency);
 	}
 
 	return frequency;
 }
 
 u64 RGFW_getTimeNS(void) {
-	LARGE_INTEGER frequency = RGFW_win32_initTimer();
-
-	LARGE_INTEGER counter;
-	QueryPerformanceCounter(&counter);
-
-	return (u64) ((counter.QuadPart * 1e9) / frequency.QuadPart);
+	return (u64)((RGFW_getTimerValue() * 1e9) / RGFW_win32_initTimer());
 }
 
 u64 RGFW_getTime(void) {
-	LARGE_INTEGER frequency = RGFW_win32_initTimer();
-
-	LARGE_INTEGER counter;
-	QueryPerformanceCounter(&counter);
-	return (u64) (counter.QuadPart / (double) frequency.QuadPart);
+	return (u64) (RGFW_getTimerValue() / (double) RGFW_win32_initTimer());
 }
 
 u64 RGFW_getTimerFreq(void) {
-	return (u64)RGFW_win32_initTimer().QuadPart;
+	return (u64)RGFW_win32_initTimer();
 }
 
 u64 RGFW_getTimerValue(void) {
-	LARGE_INTEGER counter;
-	QueryPerformanceCounter(&counter);
-	return counter.QuadPart;
+	u64 value;
+	QueryPerformanceCounter((LARGE_INTEGER*)&value);
+	return value;
 }
 
 void RGFW_sleep(u64 ms) {
@@ -8576,7 +8592,14 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		RGFW_ASSERT(win != NULL);
 
-		if (win->event.type == RGFW_quit) return &win->event;
+		if (win->event.type == RGFW_quit) {
+			if (win->_flags & RGFW_windowFreeOnClose) {
+				RGFW_window_close(win);
+				return NULL;
+			}
+
+			return &win->event;
+		}
 
 		if ((win->event.type == RGFW_DND || win->event.type == RGFW_DNDInit) && !(win->_flags & RGFW_EVENT_PASSED)) {
 			win->_flags |= RGFW_EVENT_PASSED;
