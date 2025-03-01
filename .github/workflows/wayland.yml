@@ -1,0 +1,92 @@
+name: Wayland
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '**'
+      - 'examples/**'
+      - '.github/workflows/linux.yml'
+  pull_request:
+    paths:
+      - '**'
+      - 'examples/**'
+      - '.github/workflows/linux.yml'
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    permissions:
+      contents: write  # for actions/upload-release-asset to upload release asset
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        bits: [64]
+        include:
+        - bits: 64
+          ARCH: "x86_64"
+          ARCH_NAME: "amd64"
+          COMPILER_PATH: "/user/bin"
+          
+    env:
+      RELEASE_NAME: RGFW-dev_linux_${{ matrix.ARCH_NAME }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@master
+    
+    - name: Setup Release Version
+      run: |
+        echo "RELEASE_NAME=RGFW-${{ github.event.release.tag_name }}_linux_${{ matrix.ARCH_NAME }}" >> $GITHUB_ENV
+      shell: bash
+      if: github.event_name == 'release' && github.event.action == 'published'
+      
+    - name: Setup Environment
+      run: | 
+        sudo apt-get update -qq
+        sudo apt-get install gcc-multilib
+        sudo apt-get install -y --no-install-recommends libx11-dev mesa-common-dev libglx-dev libxcursor-dev mesa-vulkan-drivers libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libxkbcommon-dev libgles2-mesa-dev
+        mkdir build
+        cd build
+        mkdir ${{ env.RELEASE_NAME }}
+        cd ${{ env.RELEASE_NAME }}
+        mkdir include
+        mkdir lib
+        cd ../../../RGFW
+        # ${{ matrix.ARCH }}-linux-gnu-gcc -v
+      
+    - name: Build Library
+      run: |
+        make libRGFW.a RGFW_WAYLAND=1
+        make libRGFW.so RGFW_WAYLAND=1
+        cp -v ./libRGFW.so ./build/${{ env.RELEASE_NAME }}/lib
+      if: matrix.bits == 64
+    
+    - name: Generate Artifacts
+      run: |
+        cp -v ./RGFW.h ./build/${{ env.RELEASE_NAME }}/include
+        cp -v ./libRGFW.a ./build/${{ env.RELEASE_NAME }}/lib
+        cp -v ./README.md ./build/${{ env.RELEASE_NAME }}/README.md
+        cp -v ./LICENSE ./build/${{ env.RELEASE_NAME }}/LICENSE
+        cd build
+        tar -czvf ${{ env.RELEASE_NAME }}.tar.gz ${{ env.RELEASE_NAME }}
+        
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.RELEASE_NAME }}.tar.gz
+        path: ./build/${{ env.RELEASE_NAME }}.tar.gz
+        
+    - name: Upload Artifact to Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./build/${{ env.RELEASE_NAME }}.tar.gz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: github.event_name == 'release' && github.event.action == 'published'
