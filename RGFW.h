@@ -1557,7 +1557,7 @@ void RGFW_init_keys(void) {
 
 u32 RGFW_apiKeyToRGFW(u32 keycode) {
 	#ifdef __cplusplus
-	if (RGFW_OS_BASED_VALUE(49, 192, 50, DOM_VK_BACK_QUOTE, KEY_GRAVE) != RGFW_backtick) {
+	if (RGFW_keycodes[RGFW_OS_BASED_VALUE(49, 0x029, 50, DOM_VK_BACK_QUOTE)] != RGFW_backtick) {
 		RGFW_init_keys();
 	}
 	#endif
@@ -5770,7 +5770,7 @@ PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 #endif
 
 LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-    RGFW_window* win = GetPropA(hWnd, "RGFW");
+    RGFW_window* win = (RGFW_window*)GetPropA(hWnd, "RGFW");
 
 	RECT windowRect;
 	GetWindowRect(hWnd, &windowRect);
@@ -5828,7 +5828,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_windowResizeCallback(win, win->r);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
-		case WM_GETMINMAXINFO:
+		case WM_GETMINMAXINFO: {
 			if (win == NULL)
 				return DefWindowProcW(hWnd, message, wParam, lParam);
 			
@@ -5841,6 +5841,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			mmi->ptMaxTrackSize.x = win->src.maxSize.w;
 			mmi->ptMaxTrackSize.y = win->src.maxSize.h;
 			return DefWindowProcW(hWnd, message, wParam, lParam);
+		} 
 		case WM_PAINT: {
 			win->event.type = RGFW_windowRefresh;
 			RGFW_windowRefreshCallback(win);
