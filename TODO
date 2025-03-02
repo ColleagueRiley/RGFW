@@ -3,7 +3,7 @@
 - (look into content scale callback?)
 
 - c++ testing (in )
-- RGFW_event union
+- RGFW_event unions
 - error handling
 - update wayland support
 - look into monitor gamma
