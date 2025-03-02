@@ -296,7 +296,7 @@ int main() {
 #define RGFW_TRUE 1
 #define RGFW_FALSE 0
 
-/* thse OS macros looks better & are standardized */
+/* these OS macros look better & are standardized */
 /* plus it helps with cross-compiling */
 
 #ifdef __EMSCRIPTEN__
@@ -398,7 +398,7 @@ int main() {
 
 #define RGFW_COCOA_FRAME_NAME NULL
 
-/*! (unix) Toggle use of wayland, this will be on by default if you use `RGFW_WAYLAND` (if you don't use RGFW_WAYLAND, you dont' expose WAYLAND functions)
+/*! (unix) Toggle use of wayland. This will be on by default if you use `RGFW_WAYLAND` (if you don't use RGFW_WAYLAND, you don't expose WAYLAND functions)
 	this is mostly used to allow you to force the use of XWayland
 */
 RGFWDEF void RGFW_useWayland(RGFW_bool wayland);
@@ -412,7 +412,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 	/*! event codes */
 	RGFW_eventNone = 0, /*!< no event has been sent */
  	RGFW_keyPressed, /* a key has been pressed */
-	RGFW_keyReleased, /*!< a key has been released*/
+	RGFW_keyReleased, /*!< a key has been released */
 	/*! key event note
 		the code of the key pressed is stored in
 		RGFW_event.key
@@ -424,9 +424,9 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 		RGFW_event.keyMod holds the current keyMod
 		this means if CapsLock, NumLock are active or not
 	*/
-	RGFW_mouseButtonPressed, /*!< a mouse button has been pressed (left,middle,right)*/
-	RGFW_mouseButtonReleased, /*!< a mouse button has been released (left,middle,right)*/
-	RGFW_mousePosChanged, /*!< the position of the mouse has been changed*/
+	RGFW_mouseButtonPressed, /*!< a mouse button has been pressed (left,middle,right) */
+	RGFW_mouseButtonReleased, /*!< a mouse button has been released (left,middle,right) */
+	RGFW_mousePosChanged, /*!< the position of the mouse has been changed */
 	/*! mouse event note
 		the x and y of the mouse can be found in the vector, RGFW_event.point
 
@@ -441,10 +441,10 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 		RGFW_event.gamepad holds which gamepad was altered, if any
 		RGFW_event.button holds which gamepad button was pressed
 
-		RGFW_event.axis holds the data of all the axis
-		RGFW_event.axisesCount says how many axis there are
+		RGFW_event.axis holds the data of all the axises
+		RGFW_event.axisesCount says how many axises there are
 	*/
-	RGFW_windowMoved, /*!< the window was moved (b the user) */
+	RGFW_windowMoved, /*!< the window was moved (by the user) */
 	RGFW_windowResized, /*!< the window was resized (by the user), [on WASM this means the browser was resized] */
 	RGFW_focusIn, /*!< window is in focus now */
 	RGFW_focusOut, /*!< window is out of focus now */
@@ -456,8 +456,8 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 		The event data is sent straight to the window structure
 		with win->r.x, win->r.y, win->r.w and win->r.h
 	*/
-	RGFW_quit, /*!< the user clicked the quit button*/
-	RGFW_DND, /*!< a file has been dropped into the window*/
+	RGFW_quit, /*!< the user clicked the quit button */
+	RGFW_DND, /*!< a file has been dropped into the window */
 	RGFW_DNDInit /*!< the start of a dnd event, when the place where the file drop is known */
 	/* dnd data note
 		The x and y coords of the drop are stored in the vector RGFW_event.point
@@ -471,11 +471,11 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 
 /*! mouse button codes (RGFW_event.button) */
 typedef RGFW_ENUM(u8, RGFW_mouseButton) {
-	RGFW_mouseLeft = 0, /*!< left mouse button is pressed*/
-	RGFW_mouseMiddle, /*	!< mouse-wheel-button is pressed*/
-	RGFW_mouseRight, /*!< right mouse button is pressed*/
-	RGFW_mouseScrollUp, /*!< mouse wheel is scrolling up*/
-	RGFW_mouseScrollDown, /*!< mouse wheel is scrolling down*/
+	RGFW_mouseLeft = 0, /*!< left mouse button is pressed */
+	RGFW_mouseMiddle, /*!< mouse-wheel-button is pressed */
+	RGFW_mouseRight, /*!< right mouse button is pressed */
+	RGFW_mouseScrollUp, /*!< mouse wheel is scrolling up */
+	RGFW_mouseScrollDown, /*!< mouse wheel is scrolling down */
 	RGFW_mouseMisc1, RGFW_mouseMisc2, RGFW_mouseMisc3, RGFW_mouseMisc4, RGFW_mouseMisc5,
 	RGFW_mouseFinal
 };
@@ -575,17 +575,17 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 
 	/*! request a specific mode */
 	RGFWDEF RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request);
+	/*! check if 2 monitor modes are the same */
 	RGFWDEF RGFW_bool RGFW_monitorModeCompare(RGFW_monitorMode mon, RGFW_monitorMode mon2, RGFW_modeRequest request);
 #endif
 
 /* RGFW mouse loading */
 typedef void RGFW_mouse;
 
-/*!< loads mouse from bitmap (similar to RGFW_window_setIcon), icon NOT resized by default*/
+/*!< loads mouse icon from bitmap (similar to RGFW_window_setIcon). icon NOT resized by default */
 RGFWDEF RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels);
 /*!< frees RGFW_mouse data */
 RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
-/* */
 
 /* NOTE: some parts of the data can represent different things based on the event (read comments in RGFW_event struct) */
 /*! Event structure for checking/getting events */
