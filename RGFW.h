@@ -32,7 +32,7 @@
 
 /*
 	#define RGFW_IMPLEMENTATION - (required) makes it so the source code is included
-	#define RGFW_DEBUG - (optional) makes it so RGFW prints debug messages anderrors when they're found
+	#define RGFW_DEBUG - (optional) makes it so RGFW prints debug messages and errors when they're found
 	#define RGFW_OSMESA - (optional) use OSmesa as backend (instead of system's opengl api + regular opengl)
 	#define RGFW_BUFFER - (optional) just draw directly to (RGFW) window pixel buffer that is drawn to screen (the buffer is in the RGBA format)
 	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
@@ -46,28 +46,27 @@
 
 	#define RGFW_LINK_EGL (optional) (windows only) if EGL is being used, if EGL functions should be defined dymanically (using GetProcAddress)
 	#define RGFW_X11 (optional) (unix only) if X11 should be used. This option is turned on by default by unix systems except for MacOS
-	#define RGFW_WAYLAND (optional) (unix only) if Wayland should be used. (This can be used with X11)
-	#define RGFW_NO_X11 (optional) (unix only) if X11 should be used (with Wayland). 
+	#define RGFW_WAYLAND (optional) (unix only) use Wayland. (This can be used with X11)
+	#define RGFW_NO_X11 (optional) (unix only) dont use X11 (use with Wayland)
 	#define RGFW_NO_LOAD_WGL (optional) (windows only) if WGL should be loaded dynamically during runtime
 	#define RGFW_NO_X11_CURSOR (optional) (unix only) don't use XCursor
-	#define RGFW_NO_X11_CURSOR_PRELOAD (optional) (unix only) Use XCursor, but don't link it in code, (you'll have to link it with -lXcursor)
-	#define RGFW_NO_LOAD_WINMM (optional) (windows only) Use winmm (timeBeginPeriod), but don't link it in code, (you'll have to link it with -lwinmm)
+	#define RGFW_NO_X11_CURSOR_PRELOAD (optional) (unix only) use XCursor, but don't link it in code, (you'll have to link it with -lXcursor)
+	#define RGFW_NO_LOAD_WINMM (optional) (windows only) use winmm (timeBeginPeriod), but don't link it in code, (you'll have to link it with -lwinmm)
 	#define RGFW_NO_WINMM (optional) (windows only) don't use winmm
 	#define RGFW_NO_IOKIT (optional) (macOS) don't use IOKit
-	#define RGFW_NO_UNIX_CLOCK (optional) (unux) don't link unix clock functions
-	#define RGFW_NO_DWM (windows only) - Do not use or linj dwmapi
-	#define RGFW_USE_XDL (optional) (X11) use X11 in RGFW (must include XDL.h along with RGFW) (XLib Dynamic Loader)
+	#define RGFW_NO_UNIX_CLOCK (optional) (unix) don't link unix clock functions
+	#define RGFW_NO_DWM (windows only) - do not use or link dwmapi
+	#define RGFW_USE_XDL (optional) (X11) if XDL (XLib Dynamic Loader) should be used to load X11 dynamically during runtime (must include XDL.h along with RGFW)
 	#define RGFW_COCOA_GRAPHICS_SWITCHING - (optional) (cocoa) use automatic graphics switching (allow the system to choose to use GPU or iGPU)
-	#define RGFW_COCOA_FRAME_NAME (optional) (cocoa) set frame name (cocoa)
+	#define RGFW_COCOA_FRAME_NAME (optional) (cocoa) set frame name
+	#define RGFW_NO_DPI - do not calculate DPI (no XRM nor libShcore included)
 
-	#define RGFW_NO_DPI - Do not include calculate DPI (no XRM nor libShcore included)
-
-	#define RGFW_ALLOC x  - choose what default function to use to allocate, by default the standard malloc is used
-	#define RGFW_FREE x - choose what default function to use to allocated memory, by default the standard free is used
+	#define RGFW_ALLOC x  - choose the default allocation function (defaults to standard malloc)
+	#define RGFW_FREE x  - choose the default deallocation function (defaults to standard free)
 	#define RGFW_USERPTR x - choose the default userptr sent to the malloc call, (NULL by default)
 
- 	#define RGFW_EXPORT - Use when building RGFW
-    #define RGFW_IMPORT - Use when linking with RGFW (not as a single-header)
+	#define RGFW_EXPORT - use when building RGFW
+	#define RGFW_IMPORT - use when linking with RGFW (not as a single-header)
 
 	#define RGFW_USE_INT - force the use c-types rather than stdint.h (for systems that might not have stdint.h (msvc))
 	#define RGFW_bool x - choose what type to use for bool, by default u32 is used
@@ -289,7 +288,7 @@ int main() {
 #endif
 
 #if !defined(RGFW_bool) /* RGFW bool type */
-	typedef u32 RGFW_bool;
+	typedef u8 RGFW_bool;
 	#define RGFW_bool u8
 #endif
 
@@ -733,8 +732,8 @@ typedef struct RGFW_window_src {
 typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowNoInitAPI = RGFW_BIT(0), /* DO not init an API (mostly for bindings, you should use `#define RGFW_NO_API` in C */
 	RGFW_windowNoBorder = RGFW_BIT(1), /*!< the window doesn't have border */
-	RGFW_windowNoResize = RGFW_BIT(2), /*!< the window cannot be resized  by the user */
-	RGFW_windowAllowDND = RGFW_BIT(3), /*!< the window supports drag and drop*/
+	RGFW_windowNoResize = RGFW_BIT(2), /*!< the window cannot be resized by the user */
+	RGFW_windowAllowDND = RGFW_BIT(3), /*!< the window supports drag and drop */
 	RGFW_windowHideMouse = RGFW_BIT(4), /*! the window should hide the mouse or not (can be toggled later on) using `RGFW_window_mouseShow*/
 	RGFW_windowFullscreen = RGFW_BIT(5), /* the window is fullscreen by default or not */
 	RGFW_windowTransparent = RGFW_BIT(6), /*!< the window is transparent (only properly works on X11 and MacOS, although it's although for windows) */
@@ -745,7 +744,7 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowHide = RGFW_BIT(11), /*! the window is hidden */
 	RGFW_windowMaximize = RGFW_BIT(12),
 	RGFW_windowCenterCursor = RGFW_BIT(13),
-	RGFW_windowFloating = RGFW_BIT(14), /*!< creat a floating window */
+	RGFW_windowFloating = RGFW_BIT(14), /*!< create a floating window */
 	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize,
 };
 
@@ -772,7 +771,7 @@ typedef struct RGFW_window {
 #if defined(RGFW_X11) || defined(RGFW_MACOS)
 	typedef u64 RGFW_thread; /*!< thread type unix */
 #else
-	typedef void* RGFW_thread; /*!< thread type for window */
+	typedef void* RGFW_thread; /*!< thread type for windows */
 #endif
 
 /*! scale monitor to window size */
