@@ -7952,7 +7952,7 @@ void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *se
 			RGFW_eventQueuePush((RGFW_event){.type = intValue ? RGFW_gamepadButtonPressed: RGFW_gamepadButtonReleased,
 											.button = button,
 											.gamepad = index,
-											.window = RGFW_root});
+											._win = RGFW_root});
 			break;
 		}
 		case kHIDPage_GenericDesktop: {
@@ -7978,7 +7978,7 @@ void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *se
 				.gamepad = index,
 				.axi = RGFW_gamepadAxes[index],
 				.whichAxis = whichAxis,
-				.window = RGFW_root});
+				._win = RGFW_root});
 
 			RGFW_gamepadAxisCallback(RGFW_root, index, event.axis, 2, event.whichAxis);
 		}
@@ -8023,7 +8023,7 @@ void RGFW__osxDeviceAddedCallback(void* context, IOReturn result, void *sender, 
 
 		RGFW_eventQueuePush((RGFW_event){.type = RGFW_gamepadConnected,
 										.gamepad = i,
-										.window = RGFW_root});
+										._win = RGFW_root});
 
 		RGFW_gamepadCallback(RGFW_root, i, 1);
 		break;
@@ -8047,7 +8047,7 @@ void RGFW__osxDeviceRemovedCallback(void *context, IOReturn result, void *sender
 
 	RGFW_eventQueuePush((RGFW_event){.type = RGFW_gamepadDisconnected,
 									.gamepad = index,
-									.window = RGFW_root});
+									._win = RGFW_root});
 	RGFW_gamepadCallback(RGFW_root, index, 0);
 
 	RGFW_gamepadCount--;
@@ -8130,7 +8130,7 @@ NSSize RGFW__osxWindowResize(id self, SEL sel, NSSize frameSize) {
 	win->r.w = frameSize.width;
 	win->r.h = frameSize.height;
 
-	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowResized, .window = win});
+	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowResized, ._win = win});
 	RGFW_windowResizeCallback(win, win->r);
 	return frameSize;
 }
@@ -8147,7 +8147,7 @@ void RGFW__osxWindowMove(id self, SEL sel) {
 	win->r.x = (i32) frame.origin.x;
 	win->r.y = (i32) frame.origin.y;
 
-	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMoved, .window = win});
+	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMoved, ._win = win});
 	RGFW_windowMoveCallback(win, win->r);
 }
 
@@ -8159,7 +8159,7 @@ void RGFW__osxUpdateLayer(id self, SEL sel) {
 	if (win == NULL)
 		return;
 
-	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowRefresh, .window = win});
+	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowRefresh, ._win = win});
 	RGFW_windowRefreshCallback(win);
 }
 
