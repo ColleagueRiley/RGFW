@@ -12,7 +12,7 @@ RGFW_event
 
 .in +1c
 .ti -1c
-.RI "char \fBdroppedFiles\fP [\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP]"
+.RI "char ** \fBdroppedFiles\fP"
 .br
 .ti -1c
 .RI "size_t \fBdroppedFilesCount\fP"
@@ -65,19 +65,24 @@ RGFW_event
 .ti -1c
 .RI "\fBu64\fP \fBframeTime2\fP"
 .br
+.ti -1c
+.RI "void * \fB_win\fP"
+.br
 .in -1c
 .SH "Detailed Description"
 .PP 
 Event structure for checking/getting events 
 .SH "Member Data Documentation"
 .PP 
+.SS "void* RGFW_event::_win"
+the window this event applies too (for event queue events) 
 .SS "\fBRGFW_point\fP RGFW_event::axis[4]"
 x, y of axises (-100 to 100) 
 .SS "\fBu8\fP RGFW_event::axisesCount"
 which gamepad this event applies to (if applicable to any) number of axises 
 .SS "\fBu8\fP RGFW_event::button"
 
-.SS "char RGFW_event::droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP]"
+.SS "char** RGFW_event::droppedFiles"
 drag and drop data dropped files 
 .SS "size_t RGFW_event::droppedFilesCount"
 house many files were dropped 

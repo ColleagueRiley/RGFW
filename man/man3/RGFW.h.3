@@ -227,7 +227,7 @@ RGFW.h
 .RI "typedef void(* \fBRGFW_gamepadfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_bool\fP connected)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, char droppedFiles[\fBRGFW_MAX_DROPS\fP][\fBRGFW_MAX_PATH\fP], \fBu32\fP droppedFilesCount)"
+.RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, char **droppedFiles, \fBu32\fP droppedFilesCount)"
 .br
 .ti -1c
 .RI "typedef DWORD(__stdcall * \fBRGFW_threadFunc_ptr\fP) (LPVOID lpThreadParameter)"
@@ -612,7 +612,7 @@ RGFW.h
 .RI "void * \fBRGFW_getCurrent_OpenGL\fP (void)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTime\fP (void)"
+.RI "\fBRGFWDEF\fP double \fBRGFW_getTime\fP (void)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimeNS\fP (void)"
@@ -621,10 +621,25 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_sleep\fP (\fBu64\fP milisecond)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setTime\fP (double time)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimerValue\fP (void)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimerFreq\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setRootWindow\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_getRootWindow\fP (void)"
+.br
+.ti -1c
+.RI "void \fBRGFW_eventQueuePush\fP (\fBRGFW_event\fP event)"
+.br
+.ti -1c
+.RI "\fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, \fBRGFW_key\fP)"
@@ -756,6 +771,10 @@ scale the window to the screen
 the window is hidden
 .PP
 < create a floating window
+.PP
+< free (RGFW_window_close) the \fBRGFW_window\fP struct when the window is closed (by the end user)
+.PP
+< focus the window when it's shown
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_eventType)"
 event codes
 .PP

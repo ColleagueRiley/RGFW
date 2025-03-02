@@ -10,7 +10,7 @@ Supporting \- Supporting
 
 .in +1c
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTime\fP (void)"
+.RI "\fBRGFWDEF\fP double \fBRGFW_getTime\fP (void)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimeNS\fP (void)"
@@ -19,10 +19,25 @@ Supporting \- Supporting
 .RI "\fBRGFWDEF\fP void \fBRGFW_sleep\fP (\fBu64\fP milisecond)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setTime\fP (double time)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimerValue\fP (void)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimerFreq\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setRootWindow\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_getRootWindow\fP (void)"
+.br
+.ti -1c
+.RI "void \fBRGFW_eventQueuePush\fP (\fBRGFW_event\fP event)"
+.br
+.ti -1c
+.RI "\fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, \fBRGFW_key\fP)"
@@ -49,14 +64,26 @@ Supporting \- Supporting
 key codes and mouse icon enums 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_mouseIcons)"
 
-.SS "\fBRGFWDEF\fP \fBu64\fP RGFW_getTime (void)"
-get time in seconds 
+.SS "\fBRGFW_event\fP * RGFW_eventQueuePop (\fBRGFW_window\fP * win)"
+
+.SS "void RGFW_eventQueuePush (\fBRGFW_event\fP event)"
+standard event queue, used for injecting events and returning source API callback events like any other queue check 
+.SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_getRootWindow (void)"
+
+.SS "\fBRGFWDEF\fP double RGFW_getTime (void)"
+get time in seconds since RGFW_setTime, which ran when the first window is open 
+.br
+ 
 .SS "\fBRGFWDEF\fP \fBu64\fP RGFW_getTimeNS (void)"
-get time in nanoseconds 
+get time in nanoseconds RGFW_setTime, which ran when the first window is open 
 .SS "\fBRGFWDEF\fP \fBu64\fP RGFW_getTimerFreq (void)"
-get API time freq 
+get API time freq change which window is the root window 
 .SS "\fBRGFWDEF\fP \fBu64\fP RGFW_getTimerValue (void)"
 get API timer value 
+.SS "\fBRGFWDEF\fP void RGFW_setRootWindow (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP void RGFW_setTime (double time)"
+set timer in seconds 
 .SS "\fBRGFWDEF\fP void RGFW_sleep (\fBu64\fP milisecond)"
 sleep for a set time 
 .SH "Author"
