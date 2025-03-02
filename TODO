@@ -1,12 +1,9 @@
-- RGFW_windowFreeOnClose
-- event queue
-
 - maximize event
 - minimize event
 - (look into content scale callback?)
-- RGFW_windowFocusOnShow
-- timeEndPeriod
 
+- c++ testing (in )
+- RGFW_event union
 - error handling
 - update wayland support
 - look into monitor gamma

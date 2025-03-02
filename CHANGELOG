@@ -4,6 +4,15 @@ changelog
 Current Version: RGFW 1.6.5-dev
 -----------------------------------------------
 - fix `RGFW_window_setFlags` overwrite bugs (@DiarrheaMcgee)
+- add missing string override functions, casting warnings, ensure `wayland:` (@DiarrheaMcgee)
+- fix C++ compiling
+- add RGFW_windowFreeOnClose
+- add RGFW_windowFocusOnShow
+- use timeEndPeriod
+- make RGFW_getTime and RGFW_getTimeNS platform independent
+- use `CLOCK_MONOTONIC` if possible
+- add RGFW_setTime and run `RGFW_setTime(0)` when the window is first initialized
+- add `RGFW_eventQueuePush` and `RGFW_eventQueuePop`
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------
