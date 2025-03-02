@@ -7976,7 +7976,7 @@ void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *se
 
 			RGFW_eventQueuePush((RGFW_event){.type = RGFW_gamepadAxisMove,
 				.gamepad = index,
-				.axis = RGFW_gamepadAxes[index],
+				.axis = (RGFW_point[4])RGFW_gamepadAxes[index],
 				.whichAxis = whichAxis,
 				._win = RGFW_root});
 
