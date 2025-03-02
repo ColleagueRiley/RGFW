@@ -7976,11 +7976,11 @@ void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *se
 
 			RGFW_eventQueuePush((RGFW_event){.type = RGFW_gamepadAxisMove,
 				.gamepad = index,
-				.axi = RGFW_gamepadAxes[index],
+				.axis = RGFW_gamepadAxes[index],
 				.whichAxis = whichAxis,
 				._win = RGFW_root});
 
-			RGFW_gamepadAxisCallback(RGFW_root, index, event.axis, 2, event.whichAxis);
+			RGFW_gamepadAxisCallback(RGFW_root, index, RGFW_gamepadAxes[index], 2, event.whichAxis);
 		}
 	}
 }
