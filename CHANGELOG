@@ -13,6 +13,10 @@ Current Version: RGFW 1.6.5-dev
 - use `CLOCK_MONOTONIC` if possible
 - add RGFW_setTime and run `RGFW_setTime(0)` when the window is first initialized
 - add `RGFW_eventQueuePush` and `RGFW_eventQueuePop`
+- replace WASM event queue with RGFW standard event queue
+- replace macOS callback events (that use `RGFW_EVENT_PASSED`) AND IOKit gamepad queue with RGFW standard event queue
+- replace winapi RGFW_EVENT_PASSED events (WndProc) with standardized event queue
+- allocate only win->event's event.droppedFiles, change droppedFiles to char**
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------

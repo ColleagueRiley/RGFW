@@ -7895,21 +7895,15 @@ NSDragOperation draggingUpdated(id self, SEL sel, id sender) {
 
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
-	if (win == NULL)
+	if (win == NULL || (!(win->_flags & RGFW_windowAllowDND)))
 		return 0;
-
-	if (!(win->_flags & RGFW_windowAllowDND)) {
-		return 0;
-	}
-
-	win->event.type = RGFW_DNDInit;
-	win->_flags &= ~RGFW_EVENT_PASSED;
-
+	
 	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
-
-	win->event.point = RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y));
+	RGFW_eventQueuePush((RGFW_event){.type = RGFW_DNDInit, 
+									.point = RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y)),
+									._win = win});
+	
 	RGFW_dndInitCallback(win, win->event.point);
-
 	return NSDragOperationCopy;
 }
 bool prepareForDragOperation(id self) {
@@ -7969,13 +7963,11 @@ bool performDragOperation(id self, SEL sel, id sender) {
 		RGFW_MEMCPY(win->event.droppedFiles[i], filePath, RGFW_MAX_PATH);
 		win->event.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
 	}
-	win->event.droppedFilesCount = count;
-
-	win->event.type = RGFW_DND;
-	win->_flags &= ~RGFW_EVENT_PASSED;
-
 	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
-	win->event.point = RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y));
+	RGFW_eventQueuePush((RGFW_event){.type = RGFW_DND, 
+									.point = RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y)),
+									.droppedFilesCount = count,
+									._win = win});
 
 	RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
 
@@ -7995,16 +7987,8 @@ int findControllerIndex(IOHIDDeviceRef device) {
 	return -1;
 }
 
-#define RGFW_gamepadEventQueueMAX 11
-RGFW_event RGFW_gamepadEventQueue[RGFW_gamepadEventQueueMAX];
-size_t RGFW_gamepadEventQueueCount = 0;
-
 void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *sender, IOHIDValueRef value) {
 	RGFW_UNUSED(context); RGFW_UNUSED(result); RGFW_UNUSED(sender);
-
-	if (RGFW_gamepadEventQueueCount >= RGFW_gamepadEventQueueMAX - 1)
-		return;
-
 	IOHIDElementRef element = IOHIDValueGetElement(value);
 
 	IOHIDDeviceRef device = IOHIDElementGetDevice(element);
@@ -8027,10 +8011,8 @@ void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *se
 	};
 
 	u8* RGFW_osx2RGFW = RGFW_osx2RGFWSrc[0];
-    	if (RGFW_gamepads_type[index] == RGFW_gamepadMicrosoft)
-        	RGFW_osx2RGFW = RGFW_osx2RGFWSrc[1];
-	
-	RGFW_event event;
+	if (RGFW_gamepads_type[index] == RGFW_gamepadMicrosoft)
+		RGFW_osx2RGFW = RGFW_osx2RGFWSrc[1];
 
 	switch (usagePage) {
 		case kHIDPage_Button: {
@@ -8041,12 +8023,10 @@ void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *se
 			RGFW_gamepadButtonCallback(RGFW_root, index, button, intValue);
 			RGFW_gamepadPressed[index][button].prev = RGFW_gamepadPressed[index][button].current;
 			RGFW_gamepadPressed[index][button].current = intValue;
-			event.type = intValue ? RGFW_gamepadButtonPressed: RGFW_gamepadButtonReleased;
-			event.button = button;
-			event.gamepad = index;
-
-			RGFW_gamepadEventQueue[RGFW_gamepadEventQueueCount] = event;
-			RGFW_gamepadEventQueueCount++;
+			RGFW_eventQueuePush((RGFW_event){.type = intValue ? RGFW_gamepadButtonPressed: RGFW_gamepadButtonReleased,
+											.button = button,
+											.gamepad = index,
+											.window = RGFW_root});
 			break;
 		}
 		case kHIDPage_GenericDesktop: {
@@ -8058,23 +8038,21 @@ void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *se
 			if (intValue > logicalMax) intValue = logicalMax;
 
 			i8 value = (i8)(-100.0 + ((intValue - logicalMin) * 200.0) / (logicalMax - logicalMin));
-
+			
+			u8 whichAxis = 0;
 			switch (usage) {
-				case kHIDUsage_GD_X: RGFW_gamepadAxes[index][0].x = value; event.whichAxis = 0; break;
-				case kHIDUsage_GD_Y: RGFW_gamepadAxes[index][0].y = value; event.whichAxis = 0; break;
-				case kHIDUsage_GD_Z: RGFW_gamepadAxes[index][1].x = value; event.whichAxis = 1; break;
-				case kHIDUsage_GD_Rz: RGFW_gamepadAxes[index][1].y = value; event.whichAxis = 1; break;
+				case kHIDUsage_GD_X: RGFW_gamepadAxes[index][0].x = value; whichAxis = 0; break;
+				case kHIDUsage_GD_Y: RGFW_gamepadAxes[index][0].y = value; whichAxis = 0; break;
+				case kHIDUsage_GD_Z: RGFW_gamepadAxes[index][1].x = value; whichAxis = 1; break;
+				case kHIDUsage_GD_Rz: RGFW_gamepadAxes[index][1].y = value; whichAxis = 1; break;
 				default: return;
 			}
 
-			event.type = RGFW_gamepadAxisMove;
-			event.gamepad = index;
-
-			event.axis[0] = RGFW_gamepadAxes[index][0];
-			event.axis[1] = RGFW_gamepadAxes[index][1];
-
-			RGFW_gamepadEventQueue[RGFW_gamepadEventQueueCount] = event;
-			RGFW_gamepadEventQueueCount++;
+			RGFW_eventQueuePush((RGFW_event){.type = RGFW_gamepadAxisMove,
+				.gamepad = index,
+				.axes = RGFW_gamepadAxes[index],
+				.whichAxis = whichAxis,
+				.window = RGFW_root});
 
 			RGFW_gamepadAxisCallback(RGFW_root, index, event.axis, 2, event.whichAxis);
 		}
@@ -8117,11 +8095,10 @@ void RGFW__osxDeviceAddedCallback(void* context, IOReturn result, void *sender, 
 		RGFW_gamepads[i] = i;
 		RGFW_gamepadCount++;
 
-		RGFW_event ev;
-		ev.type = RGFW_gamepadConnected;
-		ev.gamepad = i;
-		RGFW_gamepadEventQueue[RGFW_gamepadEventQueueCount] = ev;
-		RGFW_gamepadEventQueueCount++;
+		RGFW_eventQueuePush((RGFW_event){.type = RGFW_gamepadConnected,
+										.gamepad = i,
+										.window = RGFW_root});
+
 		RGFW_gamepadCallback(RGFW_root, i, 1);
 		break;
 	}
@@ -8142,11 +8119,9 @@ void RGFW__osxDeviceRemovedCallback(void *context, IOReturn result, void *sender
 	if (index != -1)
 		RGFW_osxControllers[index] = NULL;
 
-	RGFW_event ev;
-	ev.type = RGFW_gamepadDisconnected;
-	ev.gamepad = index;
-	RGFW_gamepadEventQueue[RGFW_gamepadEventQueueCount] = ev;
-	RGFW_gamepadEventQueueCount++;
+	RGFW_eventQueuePush((RGFW_window) {.type = RGFW_gamepadDisconnected,
+										.gamepad = index,
+										.window = RGFW_root});
 	RGFW_gamepadCallback(RGFW_root, index, 0);
 
 	RGFW_gamepadCount--;
@@ -8228,7 +8203,8 @@ NSSize RGFW__osxWindowResize(id self, SEL sel, NSSize frameSize) {
 
 	win->r.w = frameSize.width;
 	win->r.h = frameSize.height;
-	win->event.type = RGFW_windowResized;
+
+	RGFW_eventQueuePush((RGFW_window) {.type = RGFW_windowResize, .window = win});
 	RGFW_windowResizeCallback(win, win->r);
 	return frameSize;
 }
@@ -8245,7 +8221,7 @@ void RGFW__osxWindowMove(id self, SEL sel) {
 	win->r.x = (i32) frame.origin.x;
 	win->r.y = (i32) frame.origin.y;
 
-	win->event.type = RGFW_windowMoved;
+	RGFW_eventQueuePush((RGFW_window) {.type = RGFW_windowMoved, .window = win});
 	RGFW_windowMoveCallback(win, win->r);
 }
 
@@ -8257,7 +8233,7 @@ void RGFW__osxUpdateLayer(id self, SEL sel) {
 	if (win == NULL)
 		return;
 
-	win->event.type = RGFW_windowRefresh;
+	RGFW_eventQueuePush((RGFW_window) {.type = RGFW_windowRefresh, .window = win});
 	RGFW_windowRefreshCallback(win);
 }
 
@@ -8648,37 +8624,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		RGFW_event* ev =  RGFW_window_checkEventCore(win);
 		if (ev) {
 			if (ev == (RGFW_event*)-1) return NULL;
+			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
 			return ev;
 		}
-
-		if ((win->event.type == RGFW_DND || win->event.type == RGFW_DNDInit) && !(win->_flags & RGFW_EVENT_PASSED)) {
-			win->_flags |= RGFW_EVENT_PASSED;
-			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
-			return &win->event;
-		}
-
-		#ifndef RGFW_NO_IOKIT
-		if (RGFW_gamepadEventQueueCount && win == RGFW_root) {
-			static u8 index = 0;
-
-			/* check queued events */
-			RGFW_gamepadEventQueueCount--;
-
-			RGFW_event ev = RGFW_gamepadEventQueue[index];
-			win->event.type = ev.type;
-			win->event.gamepad = ev.gamepad;
-			win->event.button = ev.button;
-			win->event.whichAxis = ev.whichAxis;
-			for (size_t i = 0; i < 4; i++)
-				win->event.axis[i] = ev.axis[i];
-
-			if (RGFW_gamepadEventQueueCount) index++;
-			else index = 0;
-
-			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
-			return &win->event;
-		}
-		#endif
 
 		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 		eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
@@ -8686,13 +8634,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		static SEL eventFunc = (SEL)NULL;
 		if (eventFunc == NULL)
 			eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
-
-		if ((win->event.type == RGFW_windowMoved || win->event.type == RGFW_windowResized || win->event.type == RGFW_windowRefresh) && win->event.key != 120) {
-			win->event.key = 120;
-			objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
-			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
-			return &win->event;
-		}
 
 		void* date = NULL;
 
