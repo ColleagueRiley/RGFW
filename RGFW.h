@@ -60,9 +60,7 @@
 	#define RGFW_COCOA_GRAPHICS_SWITCHING - (optional) (cocoa) use automatic graphics switching (allow the system to choose to use GPU or iGPU)
 	#define RGFW_COCOA_FRAME_NAME (optional) (cocoa) set frame name (cocoa)
 
-	#define RGFW_ALLOC_DROPFILES - allocate dropfiles on the heap
 	#define RGFW_NO_DPI - Do not include calculate DPI (no XRM nor libShcore included)
-
 
 	#define RGFW_ALLOC x  - choose what default function to use to allocate, by default the standard malloc is used
 	#define RGFW_FREE x - choose what default function to use to allocated memory, by default the standard free is used
