@@ -18,7 +18,7 @@ void draw(RGFW_window* win) {
     RGFW_window_swapBuffers(win);
 }
 
-void resize(RGFW_window* win, RGFW_rect rect) { glViewport(0, 0, rect.w, rect.h); }
+void resize(RGFW_window* win, RGFW_rect rect) { RGFW_UNUSED(win); glViewport(0, 0, rect.w, rect.h); }
 void refresh(RGFW_window* win) { printf("refresh\n"); draw(win); }
 
 int main(void) {

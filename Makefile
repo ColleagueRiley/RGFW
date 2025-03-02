@@ -104,7 +104,6 @@ EXAMPLE_OUTPUTS = \
 	examples/monitor/monitor \
 	examples/smooth-resize/smooth-resize
 
-
 EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/icons/icons \
 	examples/gamepad/gamepad \
