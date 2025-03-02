@@ -47,7 +47,7 @@
 	#define RGFW_LINK_EGL (optional) (windows only) if EGL is being used, if EGL functions should be defined dymanically (using GetProcAddress)
 	#define RGFW_X11 (optional) (unix only) if X11 should be used. This option is turned on by default by unix systems except for MacOS
 	#define RGFW_WAYLAND (optional) (unix only) use Wayland. (This can be used with X11)
-	#define RGFW_NO_X11 (optional) (unix only) dont use X11 (use with Wayland)
+	#define RGFW_NO_X11 (optional) (unix only) don't fallback to X11 when using Wayland
 	#define RGFW_NO_LOAD_WGL (optional) (windows only) if WGL should be loaded dynamically during runtime
 	#define RGFW_NO_X11_CURSOR (optional) (unix only) don't use XCursor
 	#define RGFW_NO_X11_CURSOR_PRELOAD (optional) (unix only) use XCursor, but don't link it in code, (you'll have to link it with -lXcursor)
@@ -582,7 +582,7 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 /* RGFW mouse loading */
 typedef void RGFW_mouse;
 
-/*!< loads mouse icon from bitmap (similar to RGFW_window_setIcon). icon NOT resized by default */
+/*!< loads mouse icon from bitmap (similar to RGFW_window_setIcon). Icon NOT resized by default */
 RGFWDEF RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels);
 /*!< frees RGFW_mouse data */
 RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
@@ -730,13 +730,13 @@ typedef struct RGFW_window_src {
 
 /*! Optional arguments for making a windows */
 typedef RGFW_ENUM(u32, RGFW_windowFlags) {
-	RGFW_windowNoInitAPI = RGFW_BIT(0), /* DO not init an API (mostly for bindings, you should use `#define RGFW_NO_API` in C */
+	RGFW_windowNoInitAPI = RGFW_BIT(0), /* do NOT init an API (mostly for bindings. you should use `#define RGFW_NO_API` in C) */
 	RGFW_windowNoBorder = RGFW_BIT(1), /*!< the window doesn't have border */
 	RGFW_windowNoResize = RGFW_BIT(2), /*!< the window cannot be resized by the user */
 	RGFW_windowAllowDND = RGFW_BIT(3), /*!< the window supports drag and drop */
-	RGFW_windowHideMouse = RGFW_BIT(4), /*! the window should hide the mouse or not (can be toggled later on) using `RGFW_window_mouseShow */
-	RGFW_windowFullscreen = RGFW_BIT(5), /* the window is fullscreen by default or not */
-	RGFW_windowTransparent = RGFW_BIT(6), /*!< the window is transparent (only properly works on X11 and MacOS, although it's although for windows) */
+	RGFW_windowHideMouse = RGFW_BIT(4), /*! the window should hide the mouse (can be toggled later on using `RGFW_window_mouseShow`) */
+	RGFW_windowFullscreen = RGFW_BIT(5), /* the window is fullscreen by default */
+	RGFW_windowTransparent = RGFW_BIT(6), /*!< the window is transparent (only properly works on X11 and MacOS, although it's meant for for windows) */
 	RGFW_windowCenter = RGFW_BIT(7), /*! center the window on the screen */
 	RGFW_windowOpenglSoftware = RGFW_BIT(8), /*! use OpenGL software rendering */
 	RGFW_windowCocoaCHDirToRes = RGFW_BIT(9), /*! (cocoa only), change directory to resource folder */
@@ -766,7 +766,7 @@ typedef struct RGFW_window {
 
 	u32 _flags; /*!< windows flags (for RGFW to check) */
 	RGFW_rect _oldRect; /*!< rect before fullscreen */
-} RGFW_window; /*!< Window structure for managing the window */
+} RGFW_window; /*!< window structure for managing the window */
 
 #if defined(RGFW_X11) || defined(RGFW_MACOS)
 	typedef u64 RGFW_thread; /*!< thread type unix */
@@ -791,7 +791,7 @@ RGFWDEF void RGFW_setXInstName(const char* name); /*!< X11 instance name (window
 /*! (cocoa only), change directory to resource folder */
 RGFWDEF void RGFW_moveToMacOSResourceDir(void);
 
-/* NOTE: (windows)If the executable has an icon resource named RGFW_ICON, it will be set as the initial icon for the window.*/
+/* NOTE: (windows) if the executable has an icon resource named RGFW_ICON, it will be set as the initial icon for the window */
 
 RGFWDEF RGFW_window* RGFW_createWindow(
 	const char* name, /* name of the window */
@@ -802,7 +802,7 @@ RGFWDEF RGFW_window* RGFW_createWindow(
 RGFWDEF RGFW_window* RGFW_createWindowPtr(
 	const char* name, /* name of the window */
 	RGFW_rect rect, /* rect of window */
-	RGFW_windowFlags flags, /* extra arguments (NULL / (u32)0 means no flags used)*/
+	RGFW_windowFlags flags, /* extra arguments (NULL / (u32)0 means no flags used) */
 	RGFW_window* win /* ptr to the window struct you want to use */
 ); /*!< function to create a window (without allocating a window struct) */
 
@@ -810,7 +810,7 @@ RGFWDEF void RGFW_window_initBuffer(RGFW_window* win);
 RGFWDEF void RGFW_window_initBufferSize(RGFW_window* win, RGFW_area area);
 RGFWDEF void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area);
 
-/*! set the window flags (will undo flags if they don't match the old ones)*/
+/*! set the window flags (will undo flags if they don't match the old ones) */
 RGFWDEF void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags);
 
 /*! get the size of the screen to an area struct */
@@ -833,7 +833,7 @@ RGFWDEF RGFW_event* RGFW_window_checkEvent(RGFW_window* win); /*!< check current
 
 /*!
 	for RGFW_window_eventWait and RGFW_window_checkEvents
-	waitMS -> Allows th	e function to keep checking for events even after `RGFW_window_checkEvent == NULL`
+	waitMS -> Allows the function to keep checking for events even after `RGFW_window_checkEvent == NULL`
 			  if waitMS == 0, the loop will not wait for events
 			  if waitMS == a positive integer, the loop will wait that many miliseconds after there are no more events until it returns
 			  if waitMS == a the max size of a 32-bit int (or -1), the loop will not return until it gets another event
@@ -853,7 +853,7 @@ RGFWDEF void RGFW_window_eventWait(RGFW_window* win, u32 waitMS);
 RGFWDEF void RGFW_window_checkEvents(RGFW_window* win, u32 waitMS);
 
 /*!
-	Tell RGFW_window_eventWait to stop waiting, to be ran from another thread
+	tell RGFW_window_eventWait to stop waiting (to be ran from another thread)
 */
 RGFWDEF void RGFW_stopCheckEvents(void);
 
@@ -862,7 +862,7 @@ RGFWDEF void RGFW_window_close(RGFW_window* win); /*!< close the window and free
 
 /*! moves window to a given point */
 RGFWDEF void RGFW_window_move(RGFW_window* win,
-	RGFW_point v/*!< new pos */
+	RGFW_point v /*!< new pos */
 );
 
 #ifndef RGFW_NO_MONITOR
@@ -872,7 +872,7 @@ RGFWDEF void RGFW_window_move(RGFW_window* win,
 
 /*! resize window to a current size/area */
 RGFWDEF void RGFW_window_resize(RGFW_window* win, /*!< source window */
-	RGFW_area a/*!< new size */
+	RGFW_area a /*!< new size */
 );
 
 /*! set window aspect ratio */
