@@ -593,7 +593,7 @@ RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
 typedef struct RGFW_event {
 	/*! drag and drop data */
 	/* 260 max paths with a max length of 260 */
-	char** droppedFiles; /*!< dropped files*/
+	char** droppedFiles; /*!< dropped files */
 	size_t droppedFilesCount; /*!< house many files were dropped */
 
 	RGFW_eventType type; /*!< which event has been sent?*/
@@ -742,7 +742,7 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowHide = RGFW_BIT(11), /*! the window is hidden */
 	RGFW_windowMaximize = RGFW_BIT(12),
 	RGFW_windowCenterCursor = RGFW_BIT(13),
-	RGFW_windowFloating = RGFW_BIT(14), /*!< creat a floating window */
+	RGFW_windowFloating = RGFW_BIT(14), /*!< create a floating window */
 	RGFW_windowFreeOnClose = RGFW_BIT(15), /*!< free (RGFW_window_close) the RGFW_window struct when the window is closed (by the end user) */
 	RGFW_windowFocusOnShow = RGFW_BIT(16), /*!< focus the window when it's shown */
 	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize,
