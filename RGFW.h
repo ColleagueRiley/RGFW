@@ -7976,7 +7976,7 @@ void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *se
 
 			RGFW_eventQueuePush((RGFW_event){.type = RGFW_gamepadAxisMove,
 				.gamepad = index,
-				.axes = RGFW_gamepadAxes[index],
+				.axi = RGFW_gamepadAxes[index],
 				.whichAxis = whichAxis,
 				.window = RGFW_root});
 
@@ -8045,9 +8045,9 @@ void RGFW__osxDeviceRemovedCallback(void *context, IOReturn result, void *sender
 	if (index != -1)
 		RGFW_osxControllers[index] = NULL;
 
-	RGFW_eventQueuePush((RGFW_window) {.type = RGFW_gamepadDisconnected,
-										.gamepad = index,
-										.window = RGFW_root});
+	RGFW_eventQueuePush((RGFW_event){.type = RGFW_gamepadDisconnected,
+									.gamepad = index,
+									.window = RGFW_root});
 	RGFW_gamepadCallback(RGFW_root, index, 0);
 
 	RGFW_gamepadCount--;
@@ -8130,7 +8130,7 @@ NSSize RGFW__osxWindowResize(id self, SEL sel, NSSize frameSize) {
 	win->r.w = frameSize.width;
 	win->r.h = frameSize.height;
 
-	RGFW_eventQueuePush((RGFW_window) {.type = RGFW_windowResize, .window = win});
+	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowResized, .window = win});
 	RGFW_windowResizeCallback(win, win->r);
 	return frameSize;
 }
@@ -8147,7 +8147,7 @@ void RGFW__osxWindowMove(id self, SEL sel) {
 	win->r.x = (i32) frame.origin.x;
 	win->r.y = (i32) frame.origin.y;
 
-	RGFW_eventQueuePush((RGFW_window) {.type = RGFW_windowMoved, .window = win});
+	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMoved, .window = win});
 	RGFW_windowMoveCallback(win, win->r);
 }
 
@@ -8159,7 +8159,7 @@ void RGFW__osxUpdateLayer(id self, SEL sel) {
 	if (win == NULL)
 		return;
 
-	RGFW_eventQueuePush((RGFW_window) {.type = RGFW_windowRefresh, .window = win});
+	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowRefresh, .window = win});
 	RGFW_windowRefreshCallback(win);
 }
 
