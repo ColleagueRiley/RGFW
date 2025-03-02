@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Sat Mar 1 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Sun Mar 2 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -201,7 +201,7 @@ function to create a window and struct
 .SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_createWindowPtr (const char * name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window\fP * win)"
 function to create a window (without allocating a window struct) 
 .SS "typedef RGFW_ENUM (\fBu32\fP, RGFW_eventWait)"
-for RGFW_window_eventWait and RGFW_window_checkEvents waitMS -> Allows th e function to keep checking for events even after \fCRGFW_window_checkEvent == NULL\fP if waitMS == 0, the loop will not wait for events if waitMS == a positive integer, the loop will wait that many miliseconds after there are no more events until it returns if waitMS == a the max size of a 32-bit int (or -1), the loop will not return until it gets another event 
+for RGFW_window_eventWait and RGFW_window_checkEvents waitMS -> Allows the function to keep checking for events even after \fCRGFW_window_checkEvent == NULL\fP if waitMS == 0, the loop will not wait for events if waitMS == a positive integer, the loop will wait that many miliseconds after there are no more events until it returns if waitMS == a the max size of a 32-bit int (or -1), the loop will not return until it gets another event 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_icon)"
 
 .SS "\fBRGFWDEF\fP \fBRGFW_point\fP RGFW_getGlobalMousePoint (void)"
@@ -215,7 +215,7 @@ the class name for X11 and WinAPI\&. apps with the same class will be grouped by
 .SS "\fBRGFWDEF\fP void RGFW_setXInstName (const char * name)"
 X11 instance name (window name will by used by default) 
 .SS "\fBRGFWDEF\fP void RGFW_stopCheckEvents (void)"
-Tell RGFW_window_eventWait to stop waiting, to be ran from another thread 
+tell RGFW_window_eventWait to stop waiting (to be ran from another thread) 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_allowsDND (\fBRGFW_window\fP * win)"
 check if DND is allowed 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_borderless (\fBRGFW_window\fP * win)"

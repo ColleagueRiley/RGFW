@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['rgfw_5fbool_0',['RGFW_bool',['../RGFW_8h.html#ab4e06f1c11ba6fa767fc88e2383dd479',1,'RGFW.h']]],
+  ['rgfw_5fbool_0',['RGFW_bool',['../RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b',1,'RGFW.h']]],
   ['rgfw_5fdndfunc_1',['RGFW_dndfunc',['../group__Callbacks.html#ga88b96a9a919baf0787bb4ba0dae9afcf',1,'RGFW.h']]],
   ['rgfw_5fdndinitfunc_2',['RGFW_dndInitfunc',['../group__Callbacks.html#ga0f23d16fc1842746e340f74ce5297238',1,'RGFW.h']]],
   ['rgfw_5fevent_3',['RGFW_event',['../RGFW_8h.html#aea63f79e85fe16723edb7cfc0caf0a12',1,'RGFW.h']]],

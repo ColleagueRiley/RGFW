@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Sat Mar 1 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Sun Mar 2 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -164,7 +164,7 @@ RGFW.h
 .RI "typedef int64_t \fBi64\fP"
 .br
 .ti -1c
-.RI "typedef \fBu32\fP \fBRGFW_bool\fP"
+.RI "typedef \fBu8\fP \fBRGFW_bool\fP"
 .br
 .ti -1c
 .RI "typedef struct \fBRGFW_monitorMode\fP \fBRGFW_monitorMode\fP"
@@ -708,7 +708,7 @@ RGFW.h
 
 .SS "typedef int8_t \fBi8\fP"
 
-.SS "typedef \fBu32\fP \fBRGFW_bool\fP"
+.SS "typedef \fBu8\fP \fBRGFW_bool\fP"
 
 .SS "typedef struct \fBRGFW_event\fP \fBRGFW_event\fP"
 Event structure for checking/getting events 
@@ -717,11 +717,11 @@ structure for monitor data
 .SS "typedef struct \fBRGFW_monitorMode\fP \fBRGFW_monitorMode\fP"
 
 .SS "typedef void \fBRGFW_mouse\fP"
-loads mouse from bitmap (similar to RGFW_window_setIcon), icon NOT resized by default 
+loads mouse icon from bitmap (similar to RGFW_window_setIcon)\&. Icon NOT resized by default 
 .SS "typedef void* \fBRGFW_thread\fP"
-thread type for window 
+thread type for windows 
 .SS "typedef struct \fBRGFW_window\fP \fBRGFW_window\fP"
-Window structure for managing the window 
+window structure for managing the window 
 .SS "typedef uint16_t \fBu16\fP"
 
 .SS "typedef uint32_t \fBu32\fP"
@@ -741,9 +741,9 @@ Optional arguments for making a windows < the window doesn't have border
 .PP
 < the window supports drag and drop
 .PP
-the window should hide the mouse or not (can be toggled later on) using `RGFW_window_mouseShow
+the window should hide the mouse (can be toggled later on using \fCRGFW_window_mouseShow\fP)
 .PP
-< the window is transparent (only properly works on X11 and MacOS, although it's although for windows)
+< the window is transparent (only properly works on X11 and MacOS, although it's meant for for windows)
 .PP
 center the window on the screen
 .PP
@@ -755,7 +755,7 @@ scale the window to the screen
 .PP
 the window is hidden
 .PP
-< creat a floating window
+< create a floating window
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_eventType)"
 event codes
 .PP
@@ -791,9 +791,9 @@ mouse event note the x and y of the mouse can be found in the vector, \fBRGFW_ev
 .PP
 gamepad event note \fBRGFW_event\&.gamepad\fP holds which gamepad was altered, if any \fBRGFW_event\&.button\fP holds which gamepad button was pressed
 .PP
-\fBRGFW_event\&.axis\fP holds the data of all the axis \fBRGFW_event\&.axisesCount\fP says how many axis there are
+\fBRGFW_event\&.axis\fP holds the data of all the axises \fBRGFW_event\&.axisesCount\fP says how many axises there are
 .PP
-< the window was moved (b the user)
+< the window was moved (by the user)
 .PP
 < the window was resized (by the user), [on WASM this means the browser was resized]
 .PP
@@ -851,6 +851,8 @@ gamepad button codes (based on xbox/playstation), you may need to change these v
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_mouseButton)"
 mouse button codes (\fBRGFW_event\&.button\fP) < left mouse button is pressed
 .PP
+< mouse-wheel-button is pressed
+.PP
 < right mouse button is pressed
 .PP
 < mouse wheel is scrolling up
@@ -869,9 +871,9 @@ request a specific mode
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_scaleToWindow (\fBRGFW_monitor\fP mon, \fBRGFW_window\fP * win)"
 scale monitor to window size 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitorModeCompare (\fBRGFW_monitorMode\fP mon, \fBRGFW_monitorMode\fP mon2, RGFW_modeRequest request)"
-
+check if 2 monitor modes are the same 
 .SS "\fBRGFWDEF\fP void RGFW_useWayland (\fBRGFW_bool\fP wayland)"
-(unix) Toggle use of wayland, this will be on by default if you use \fCRGFW_WAYLAND\fP (if you don't use RGFW_WAYLAND, you dont' expose WAYLAND functions) this is mostly used to allow you to force the use of XWayland 
+(unix) Toggle use of wayland\&. This will be on by default if you use \fCRGFW_WAYLAND\fP (if you don't use RGFW_WAYLAND, you don't expose WAYLAND functions) this is mostly used to allow you to force the use of XWayland 
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.
