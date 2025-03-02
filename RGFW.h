@@ -1672,7 +1672,7 @@ RGFW_event* RGFW_window_checkEventCore(RGFW_window* win) {
 		return &win->event;
 	}
 
-	if (win->event.type == RGFW_DNDInit) win->event.type = 0;
+	if (win->event.type != RGFW_DNDInit) win->event.type = 0;
 
 	/* check queued events */
 	RGFW_event* ev = RGFW_eventQueuePop(win);
