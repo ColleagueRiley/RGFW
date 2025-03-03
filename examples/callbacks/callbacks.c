@@ -15,6 +15,21 @@ void windowresizefunc(RGFW_window* win, RGFW_rect r) {
     printf("window resized %i %i\n", r.w, r.h);
 }
 
+void windowminimizefunc(RGFW_window* win, RGFW_rect r) {
+    if (window != win) return;
+    printf("window minimize %i %i\n", r.w, r.h);
+}
+
+void windowmaximizefunc(RGFW_window* win, RGFW_rect r) {
+    if (window != win) return;
+    printf("window maximize %i %i\n", r.w, r.h);
+}
+
+void windowrestorefunc(RGFW_window* win, RGFW_rect r) {
+    if (window != win) return;
+    printf("window restore %i %i\n", r.w, r.h);
+}
+
 void windowquitfunc(RGFW_window* win) {
     if (window != win) return;
     printf("window quit\n");
@@ -89,6 +104,9 @@ int main(void) {
 
 	RGFW_setWindowMoveCallback(windowmovefunc);
 	RGFW_setWindowResizeCallback(windowresizefunc);
+    RGFW_setWindowResizeCallback(windowminimizefunc);
+    RGFW_setWindowResizeCallback(windowrestorefunc);
+    RGFW_setWindowResizeCallback(windowmaximizefunc);
 	RGFW_setWindowQuitCallback(windowquitfunc);
 	RGFW_setMousePosCallback(mouseposfunc);
 	RGFW_setWindowRefreshCallback(windowrefreshfunc);

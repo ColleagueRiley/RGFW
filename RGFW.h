@@ -458,7 +458,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 	*/
 	RGFW_quit, /*!< the user clicked the quit button */
 	RGFW_DND, /*!< a file has been dropped into the window */
-	RGFW_DNDInit /*!< the start of a dnd event, when the place where the file drop is known */
+	RGFW_DNDInit, /*!< the start of a dnd event, when the place where the file drop is known */
 	/* dnd data note
 		The x and y coords of the drop are stored in the vector RGFW_event.point
 
@@ -467,6 +467,9 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 		This is also the size of the array which stores all the dropped file string,
 		RGFW_event.droppedFiles
 	*/
+	RGFW_windowMaximized, /*!< the window was maximized */
+	RGFW_windowMinimized, /*!< the window was minimized */
+	RGFW_windowRestored, /*!< the window was restored */
 };
 
 /*! mouse button codes (RGFW_event.button) */
@@ -744,6 +747,7 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowFloating = RGFW_BIT(14), /*!< create a floating window */
 	RGFW_windowFreeOnClose = RGFW_BIT(15), /*!< free (RGFW_window_close) the RGFW_window struct when the window is closed (by the end user) */
 	RGFW_windowFocusOnShow = RGFW_BIT(16), /*!< focus the window when it's shown */
+	RGFW_windowMinimize = RGFW_BIT(17), /*!< focus the window when it's shown */
 	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize,
 };
 
@@ -1098,6 +1102,12 @@ RGFWDEF RGFW_gamepadButtonfunc RGFW_setgamepadButtonCallback(RGFW_gamepadButtonf
 RGFWDEF RGFW_gamepadAxisfunc RGFW_setgamepadAxisCallback(RGFW_gamepadAxisfunc func);
 /*! set callback for when a controller is connected or disconnected */
 RGFWDEF RGFW_gamepadfunc RGFW_setGamepadCallback(RGFW_gamepadfunc func);
+/*!< set call back for when window is maximized */
+RGFWDEF RGFW_windowresizefunc RGFW_setWindowMaximizedCallback(RGFW_windowresizefunc func);
+/*!< set call back for when window is minimized */
+RGFWDEF RGFW_windowresizefunc RGFW_setWindowMinimizedCallback(RGFW_windowresizefunc func);
+/*!< set call back for when window is restored */
+RGFWDEF RGFW_windowresizefunc RGFW_setWindowRestoredCallback(RGFW_windowresizefunc func);
 
 /** @} */
 
@@ -1707,6 +1717,9 @@ void RGFW_dndfuncEMPTY(RGFW_window* win, char** droppedFiles, u32 droppedFilesCo
 
 RGFW_windowmovefunc RGFW_windowMoveCallback = RGFW_windowmovefuncEMPTY;
 RGFW_windowresizefunc RGFW_windowResizeCallback = RGFW_windowresizefuncEMPTY;
+RGFW_windowresizefunc RGFW_windowMaximizedCallback = RGFW_windowresizefuncEMPTY;
+RGFW_windowresizefunc RGFW_windowMinimizedCallback = RGFW_windowresizefuncEMPTY;
+RGFW_windowresizefunc RGFW_windowRestoredCallback = RGFW_windowresizefuncEMPTY;
 RGFW_windowquitfunc RGFW_windowQuitCallback = RGFW_windowquitfuncEMPTY;
 RGFW_mouseposfunc RGFW_mousePosCallback = RGFW_mouseposfuncEMPTY;
 RGFW_windowrefreshfunc RGFW_windowRefreshCallback = RGFW_windowrefreshfuncEMPTY;
@@ -1740,6 +1753,21 @@ RGFW_windowmovefunc RGFW_setWindowMoveCallback(RGFW_windowmovefunc func) {
 RGFW_windowresizefunc RGFW_setWindowResizeCallback(RGFW_windowresizefunc func) {
     RGFW_windowresizefunc prev = (RGFW_windowResizeCallback == RGFW_windowresizefuncEMPTY) ? NULL : RGFW_windowResizeCallback;
     RGFW_windowResizeCallback = func;
+    return prev;
+}
+RGFW_windowresizefunc RGFW_setWindowMaximizedCallback(RGFW_windowresizefunc func) {
+    RGFW_windowresizefunc prev = (RGFW_windowMaximizedCallback == RGFW_windowresizefuncEMPTY) ? NULL : RGFW_windowMaximizedCallback;
+    RGFW_windowMaximizedCallback = func;
+    return prev;
+}
+RGFW_windowresizefunc RGFW_setWindowMinimizedCallback(RGFW_windowresizefunc func) {
+    RGFW_windowresizefunc prev = (RGFW_windowMinimizedCallback == RGFW_windowresizefuncEMPTY) ? NULL : RGFW_windowMinimizedCallback;
+    RGFW_windowMinimizedCallback = func;
+    return prev;
+}
+RGFW_windowresizefunc RGFW_setWindowRestoredCallback(RGFW_windowresizefunc func) {
+    RGFW_windowresizefunc prev = (RGFW_windowRestoredCallback == RGFW_windowresizefuncEMPTY) ? NULL : RGFW_windowRestoredCallback;
+    RGFW_windowRestoredCallback = func;
     return prev;
 }
 RGFW_windowquitfunc RGFW_setWindowQuitCallback(RGFW_windowquitfunc func) {
@@ -1804,6 +1832,25 @@ RGFW_gamepadfunc RGFW_setGamepadCallback(RGFW_gamepadfunc func) {
     RGFW_gamepadCallback = func;
     return prev;
 }
+
+void RGFW_window_checkMode(RGFW_window* win) {
+	if (RGFW_window_isMinimized(win)) {
+		win->_flags |= RGFW_windowMinimize;
+		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMinimized, ._win = win});
+		RGFW_windowMinimizedCallback(win, win->r);
+	} else if (RGFW_window_isMaximized(win)) {
+		win->_flags |= RGFW_windowMaximize;
+		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMaximized, ._win = win});
+		RGFW_windowMaximizedCallback(win, win->r);
+	} else if (((win->_flags & RGFW_windowMinimize) && !RGFW_window_isMaximized(win)) || 
+				(win->_flags & RGFW_windowMaximize && !RGFW_window_isMaximized(win))) {
+		win->_flags &= ~RGFW_windowMinimize;
+		if (RGFW_window_isMaximized(win) == RGFW_FALSE) win->_flags &= ~RGFW_windowMaximize;
+		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowRestored, ._win = win});
+		RGFW_windowRestoredCallback(win, win->r);
+	}
+}
+
 /*
 no more event call back defines
 */
@@ -4152,7 +4199,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		win->event.type = RGFW_windowRefresh;
 		RGFW_windowRefreshCallback(win);
 		break;
-
+	case UnmapNotify: 		RGFW_window_checkMode(win); break;
 	case ClientMessage: {
 		/* if the client closed the window */
 		if (E.xclient.data.l[0] == (long)wm_delete_window) {
@@ -4383,6 +4430,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		win->event.type = RGFW_focusOut;
 		RGFW_focusCallback(win, 0);
 		break;
+	case PropertyNotify: RGFW_window_checkMode(win); break;
 	case EnterNotify: {
 		win->event.type = RGFW_mouseEnter;
 		win->event.point.x = E.xcrossing.x;
@@ -4399,6 +4447,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	case ConfigureNotify: {
 		/* detect resize */
+		RGFW_window_checkMode(win);
 		if (E.xconfigure.width != win->r.w || E.xconfigure.height != win->r.h) {
 			win->event.type = RGFW_windowResized;
 			win->r = RGFW_RECT(win->r.x, win->r.y, E.xconfigure.width, E.xconfigure.height);
@@ -5062,7 +5111,6 @@ RGFW_bool RGFW_window_isHidden(RGFW_window* win) {
 
 RGFW_bool RGFW_window_isMinimized(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-
 	RGFW_LOAD_ATOM(WM_STATE);
 
 	Atom actual_type;
@@ -5082,7 +5130,9 @@ RGFW_bool RGFW_window_isMinimized(RGFW_window* win) {
 	if (prop_data != NULL)
 		XFree(prop_data);
 
-	return RGFW_FALSE;
+	XWindowAttributes windowAttributes;
+	XGetWindowAttributes(win->src.display, win->src.window, &windowAttributes);
+	return windowAttributes.map_state != IsViewable;
 }
 
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
@@ -5843,11 +5893,12 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				RGFW_window_resize(win, RGFW_AREA((windowRect.right - windowRect.left), 
 												(windowRect.bottom - windowRect.top) - win->src.hOffset));
 			}
-			
+		
 			win->r.w = windowRect.right -  windowRect.left;
 			win->r.h = (windowRect.bottom - windowRect.top) - win->src.hOffset;
 			RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowResized, ._win = win});
 			RGFW_windowResizeCallback(win, win->r);
+			RGFW_window_checkMode(win);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		case WM_GETMINMAXINFO: {
@@ -6840,7 +6891,7 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 	WINDOWPLACEMENT placement = {  };
 	#endif
 	GetWindowPlacement(win->src.window, &placement);
-	return placement.showCmd == SW_SHOWMAXIMIZED;
+	return placement.showCmd == SW_SHOWMAXIMIZED || IsZoomed(win->src.window);
 }
 
 typedef struct { int iIndex; HMONITOR hMonitor; } RGFW_mInfo;
@@ -8117,9 +8168,10 @@ NSSize RGFW__osxWindowResize(id self, SEL sel, NSSize frameSize) {
 
 	win->r.w = frameSize.width;
 	win->r.h = frameSize.height;
-
+	
 	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowResized, ._win = win});
 	RGFW_windowResizeCallback(win, win->r);
+	RGFW_window_checkMode(win);
 	return frameSize;
 }
 

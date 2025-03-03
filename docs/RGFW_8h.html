@@ -436,6 +436,12 @@ Functions</h2></td></tr>
 <tr class="separator:ga7b39a2db76ce3782f31d673698c4d53a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9029c047eda4df00906fe406e379c219"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Callbacks.html#gaec930946481b1a8c71788c19b6bf3674">RGFW_gamepadfunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#ga9029c047eda4df00906fe406e379c219">RGFW_setGamepadCallback</a> (<a class="el" href="group__Callbacks.html#gaec930946481b1a8c71788c19b6bf3674">RGFW_gamepadfunc</a> func)</td></tr>
 <tr class="separator:ga9029c047eda4df00906fe406e379c219"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab5cc2a183f3cd057b5c7e6b8d86e2b40"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Callbacks.html#gab6a2c06bb7288d94ea3d8f053fe292f2">RGFW_windowresizefunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#gab5cc2a183f3cd057b5c7e6b8d86e2b40">RGFW_setWindowMaximizedCallback</a> (<a class="el" href="group__Callbacks.html#gab6a2c06bb7288d94ea3d8f053fe292f2">RGFW_windowresizefunc</a> func)</td></tr>
+<tr class="separator:gab5cc2a183f3cd057b5c7e6b8d86e2b40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9aa6ebd4b24fc85bfbb8776902904413"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Callbacks.html#gab6a2c06bb7288d94ea3d8f053fe292f2">RGFW_windowresizefunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#ga9aa6ebd4b24fc85bfbb8776902904413">RGFW_setWindowMinimizedCallback</a> (<a class="el" href="group__Callbacks.html#gab6a2c06bb7288d94ea3d8f053fe292f2">RGFW_windowresizefunc</a> func)</td></tr>
+<tr class="separator:ga9aa6ebd4b24fc85bfbb8776902904413"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga63550130742d2ca7e4fa4a28d61fcc2b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Callbacks.html#gab6a2c06bb7288d94ea3d8f053fe292f2">RGFW_windowresizefunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#ga63550130742d2ca7e4fa4a28d61fcc2b">RGFW_setWindowRestoredCallback</a> (<a class="el" href="group__Callbacks.html#gab6a2c06bb7288d94ea3d8f053fe292f2">RGFW_windowresizefunc</a> func)</td></tr>
+<tr class="separator:ga63550130742d2ca7e4fa4a28d61fcc2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gabb829fbe339184bf68a558526db8fa8e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8">RGFW_thread</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Threads.html#gabb829fbe339184bf68a558526db8fa8e">RGFW_createThread</a> (<a class="el" href="group__Threads.html#ga13d60c1d8ee57056290acdc59bfc37a0">RGFW_threadFunc_ptr</a> ptr, void *args)</td></tr>
 <tr class="separator:gabb829fbe339184bf68a558526db8fa8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga86aab7e48c958b8985d261dce599fbd2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Threads.html#ga86aab7e48c958b8985d261dce599fbd2">RGFW_cancelThread</a> (<a class="el" href="RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8">RGFW_thread</a> thread)</td></tr>
@@ -1367,6 +1373,7 @@ Functions</h2></td></tr>
 <p >&lt; create a floating window</p>
 <p >&lt; free (RGFW_window_close) the <a class="el" href="structRGFW__window.html">RGFW_window</a> struct when the window is closed (by the end user)</p>
 <p >&lt; focus the window when it's shown</p>
+<p >&lt; focus the window when it's shown</p>
 
 </div>
 </div>
@@ -1420,6 +1427,9 @@ Functions</h2></td></tr>
 <p >&lt; the user clicked the quit button</p>
 <p >&lt; a file has been dropped into the window</p>
 <p >&lt; the start of a dnd event, when the place where the file drop is known</p>
+<p >&lt; the window was maximized</p>
+<p >&lt; the window was minimized</p>
+<p >&lt; the window was restored</p>
 
 </div>
 </div>

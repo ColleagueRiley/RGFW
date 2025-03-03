@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Sun Mar 2 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Mon Mar 3 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -540,6 +540,15 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_gamepadfunc\fP \fBRGFW_setGamepadCallback\fP (\fBRGFW_gamepadfunc\fP func)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_windowresizefunc\fP \fBRGFW_setWindowMaximizedCallback\fP (\fBRGFW_windowresizefunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_windowresizefunc\fP \fBRGFW_setWindowMinimizedCallback\fP (\fBRGFW_windowresizefunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_windowresizefunc\fP \fBRGFW_setWindowRestoredCallback\fP (\fBRGFW_windowresizefunc\fP func)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_thread\fP \fBRGFW_createThread\fP (\fBRGFW_threadFunc_ptr\fP ptr, void *args)"
 .br
 .ti -1c
@@ -775,6 +784,8 @@ the window is hidden
 < free (RGFW_window_close) the \fBRGFW_window\fP struct when the window is closed (by the end user)
 .PP
 < focus the window when it's shown
+.PP
+< focus the window when it's shown
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_eventType)"
 event codes
 .PP
@@ -825,6 +836,12 @@ gamepad event note \fBRGFW_event\&.gamepad\fP holds which gamepad was altered, i
 < a file has been dropped into the window
 .PP
 < the start of a dnd event, when the place where the file drop is known
+.PP
+< the window was maximized
+.PP
+< the window was minimized
+.PP
+< the window was restored
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_gamepadCodes)"
 gamepad button codes (based on xbox/playstation), you may need to change these values per controller < or PS X button
 .PP

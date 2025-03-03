@@ -1,4 +1,4 @@
-.TH "Callbacks" 3 "Sun Mar 2 2025" "RGFW" \" -*- nroff -*-
+.TH "Callbacks" 3 "Mon Mar 3 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -97,6 +97,15 @@ Callbacks \- Callbacks
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_gamepadfunc\fP \fBRGFW_setGamepadCallback\fP (\fBRGFW_gamepadfunc\fP func)"
 .br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_windowresizefunc\fP \fBRGFW_setWindowMaximizedCallback\fP (\fBRGFW_windowresizefunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_windowresizefunc\fP \fBRGFW_setWindowMinimizedCallback\fP (\fBRGFW_windowresizefunc\fP func)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_windowresizefunc\fP \fBRGFW_setWindowRestoredCallback\fP (\fBRGFW_windowresizefunc\fP func)"
+.br
 .in -1c
 .SH "Detailed Description"
 .PP 
@@ -162,7 +171,7 @@ set callback for a controller button (press / release ) event returns previous c
 .br
  
 .SS "\fBRGFWDEF\fP \fBRGFW_gamepadfunc\fP RGFW_setGamepadCallback (\fBRGFW_gamepadfunc\fP func)"
-set callback for when a controller is connected or disconnected 
+set callback for when a controller is connected or disconnected set call back for when window is maximized 
 .SS "\fBRGFWDEF\fP \fBRGFW_keyfunc\fP RGFW_setKeyCallback (\fBRGFW_keyfunc\fP func)"
 set callback for a key (press / release ) event returns previous callback function (if it was set) 
 .br
@@ -179,6 +188,10 @@ set callback for a mouse notify event returns previous callback function (if it 
 set callback for a mouse move event returns previous callback function (if it was set) 
 .br
  
+.SS "\fBRGFWDEF\fP \fBRGFW_windowresizefunc\fP RGFW_setWindowMaximizedCallback (\fBRGFW_windowresizefunc\fP func)"
+set call back for when window is minimized 
+.SS "\fBRGFWDEF\fP \fBRGFW_windowresizefunc\fP RGFW_setWindowMinimizedCallback (\fBRGFW_windowresizefunc\fP func)"
+set call back for when window is restored 
 .SS "\fBRGFWDEF\fP \fBRGFW_windowmovefunc\fP RGFW_setWindowMoveCallback (\fBRGFW_windowmovefunc\fP func)"
 set callback for a window move event returns previous callback function (if it was set) 
 .br
@@ -195,6 +208,8 @@ set callback for a window refresh event returns previous callback function (if i
 set callback for a window resize event returns previous callback function (if it was set) 
 .br
  
+.SS "\fBRGFWDEF\fP \fBRGFW_windowresizefunc\fP RGFW_setWindowRestoredCallback (\fBRGFW_windowresizefunc\fP func)"
+
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.
