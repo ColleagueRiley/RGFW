@@ -1948,6 +1948,8 @@ void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	else if (cmpFlags & RGFW_windowFullscreen) 	RGFW_window_setFullscreen(win, 0);
 	if (flags & RGFW_windowMaximize)				RGFW_window_maximize(win);
 	else if (cmpFlags & RGFW_windowMaximize) 	RGFW_window_restore(win);
+	if (flags & RGFW_windowMinimize)				RGFW_window_minimize(win);
+	else if (cmpFlags & RGFW_windowMinimize) 	RGFW_window_restore(win);	
 	if (flags & RGFW_windowHideMouse)				RGFW_window_showMouse(win, 0);
 	else if (cmpFlags & RGFW_windowHideMouse)  	RGFW_window_showMouse(win, 1);
 	if (flags & RGFW_windowCocoaCHDirToRes)			RGFW_moveToMacOSResourceDir();
