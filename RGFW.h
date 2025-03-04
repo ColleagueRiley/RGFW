@@ -8166,6 +8166,7 @@ void RGFW__osxWindowDeminiaturize(id self, SEL sel) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
+	win->_flags |= RGFW_windowMinimize;
 	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowRestored, ._win = win});
 	RGFW_windowRestoredCallback(win, win->r);
 
@@ -8176,6 +8177,7 @@ void RGFW__osxWindowMiniaturize(id self, SEL sel) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
+	win->_flags &= ~RGFW_windowMinimize;
 	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMinimized, ._win = win});
 	RGFW_windowMinimizedCallback(win, win->r);
 
@@ -8214,9 +8216,15 @@ NSSize RGFW__osxWindowResize(id self, SEL sel, NSSize frameSize) {
 	win->r.h = frameSize.height;
 	
 	RGFW_monitor mon = RGFW_window_getMonitor(win);
-	if (mon.mode.area.w == win->r.w && mon.mode.area.h - 102 <= win->r.h) {
+	if ((i32)mon.mode.area.w == win->r.w && (i32)mon.mode.area.h - 102 <= win->r.h) {
+		win->_flags |= RGFW_windowMaximize;
 		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMaximized, ._win = win});
 		RGFW_windowMaximizedCallback(win, win->r);
+	} else if (win->_flags & RGFW_windowMaximize) {
+		win->_flags &= ~RGFW_windowMaximize;
+		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowRestored, ._win = win});
+		RGFW_windowRestoredCallback(win, win->r);
+
 	}
 
 	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowResized, ._win = win});
