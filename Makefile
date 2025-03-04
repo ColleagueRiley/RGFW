@@ -91,7 +91,7 @@ else ifeq ($(CC),emcc)
 	NO_VULKAN = 1
 	detected_OS = web
 	NO_OSMESA = 1
-else ifneq ($(CC),g++)
+else ifeq (,$(filter $(CC),g++ clang++ em++))
 	LIBS += -std=c99
 endif
 
@@ -215,6 +215,8 @@ endif
 examples/microui_demo/microui_demo: examples/microui_demo/microui_demo.c RGFW.h
 ifneq ($(CC), emcc)
 	$(CC) $(CFLAGS) -I. $< examples/microui_demo/microui.c  $(LINK_GL1) $(LIBS) -o $@$(EXT)
+else ifneq ($(CC), g++)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 else
 	$(CC) $(CFLAGS) -I. $< examples/microui_demo/microui.c -s USE_WEBGL2 $(LIBS) $(LINK_GL1) -o $@$(EXT)
 endif
