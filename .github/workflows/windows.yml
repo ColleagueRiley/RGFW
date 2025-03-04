@@ -64,6 +64,11 @@ jobs:
         mkdir lib
         cd ../../../RGFW
 
+    - name: test C++
+      run: |
+        make CC=g++
+      if: matrix.bits == 64
+
     # Setup MSBuild.exe path if required
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2

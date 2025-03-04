@@ -61,6 +61,11 @@ jobs:
         cd ../../../RGFW
         # ${{ matrix.ARCH }}-linux-gnu-gcc -v
       
+    - name: test C++
+      run: |
+        make CC=g++
+      if: matrix.bits == 64
+
     - name: Build Library
       run: |
         make libRGFW.a
