@@ -220,8 +220,11 @@ else
 endif
 
 examples/silk/silk: examples/silk/silk.c RGFW.h
+ifneq ($(CC), g++)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
-
+else
+	@echo silk example is not supported with C++
+endif
 
 examples/icons/icons: examples/icons/icons.c RGFW.h
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
