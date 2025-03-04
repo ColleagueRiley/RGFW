@@ -1838,7 +1838,7 @@ void RGFW_window_checkMode(RGFW_window* win) {
 		win->_flags |= RGFW_windowMinimize;
 		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMinimized, ._win = win});
 		RGFW_windowMinimizedCallback(win, win->r);
-	} /*else if (RGFW_window_isMaximized(win)) {
+	} else if (RGFW_window_isMaximized(win)) {
 		win->_flags |= RGFW_windowMaximize;
 		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMaximized, ._win = win});
 		RGFW_windowMaximizedCallback(win, win->r);
@@ -1848,7 +1848,7 @@ void RGFW_window_checkMode(RGFW_window* win) {
 		if (RGFW_window_isMaximized(win) == RGFW_FALSE) win->_flags &= ~RGFW_windowMaximize;
 		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowRestored, ._win = win});
 		RGFW_windowRestoredCallback(win, win->r);
-	} */
+	}
 }
 
 /*
@@ -4201,7 +4201,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		win->event.type = RGFW_windowRefresh;
 		RGFW_windowRefreshCallback(win);
 		break;
-	case UnmapNotify: 		RGFW_window_checkMode(win); break;
+	case MapNotify: case UnmapNotify: 		RGFW_window_checkMode(win); break;
 	case ClientMessage: {
 		/* if the client closed the window */
 		if (E.xclient.data.l[0] == (long)wm_delete_window) {
