@@ -5088,7 +5088,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	if (RGFW_root->src.clipboard)
 		RGFW_FREE(RGFW_root->src.clipboard);
 
-	RGFW_root->src.clipboard = RGFW_ALLOC(textLen);
+	RGFW_root->src.clipboard = (char*)RGFW_ALLOC(textLen);
 	RGFW_STRNCPY(RGFW_root->src.clipboard, text, textLen);
 	RGFW_root->src.clipboard_len = textLen;
 #ifdef RGFW_WAYLAND
@@ -5850,7 +5850,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_ACTIVATE:
 			if (win == NULL) return DefWindowProcW(hWnd, message, wParam, lParam);
 			win->event.inFocus = RGFW_BOOL(LOWORD(wParam) != WA_INACTIVE);
-			RGFW_eventQueuePush((RGFW_event){.type = (RGFW_focusOut - win->event.inFocus), 
+			RGFW_eventQueuePush((RGFW_event){.type = ((u8)RGFW_focusOut - win->event.inFocus), 
 												.inFocus = win->event.inFocus, ._win = win});
 
 			RGFW_focusCallback(win, win->event.inFocus);
