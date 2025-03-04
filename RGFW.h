@@ -1966,9 +1966,9 @@ void RGFW_window_initBuffer(RGFW_window* win) {
 void RGFW_window_initBufferSize(RGFW_window* win, RGFW_area area) {
 	win->_flags |= RGFW_BUFFER_ALLOC;
 	#ifndef RGFW_WINDOWS
-	RGFW_window_initBufferPtr(win, RGFW_ALLOC(area.w * area.h * 4), area);
+	RGFW_window_initBufferPtr(win, (u8*)RGFW_ALLOC(area.w * area.h * 4), area);
 	#else /* windows's bitmap allocs memory for us */
-	RGFW_window_initBufferPtr(win, NULL, area);
+	RGFW_window_initBufferPtr(win, (u8*)NULL, area);
 	#endif
 }
 
@@ -5850,7 +5850,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_ACTIVATE:
 			if (win == NULL) return DefWindowProcW(hWnd, message, wParam, lParam);
 			win->event.inFocus = RGFW_BOOL(LOWORD(wParam) != WA_INACTIVE);
-			RGFW_eventQueuePush((RGFW_event){.type = ((u8)RGFW_focusOut - win->event.inFocus), 
+			RGFW_eventQueuePush((RGFW_event){.type = (RGFW_eventType)((u8)RGFW_focusOut - win->event.inFocus), 
 												.inFocus = win->event.inFocus, ._win = win});
 
 			RGFW_focusCallback(win, win->event.inFocus);
