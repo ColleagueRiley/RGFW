@@ -80,7 +80,7 @@ ifneq (,$(filter $(CC),cl /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	DX11_LIBS =
 	VULKAN_LIBS = 
 	OBJ_FILE = .obj
-else ifeq ($(CC),emcc)
+else ifneq (,$(filter $(CC),emcc em++))
 	LINK_GL1 = -s LEGACY_GL_EMULATION -D LEGACY_GL_EMULATION -sGL_UNSAFE_OPTS=0
 	LINK_GL3 = -s FULL_ES3 -s USE_WEBGL2 
 	LINK_GL2 = -s FULL_ES2 -s USE_WEBGL2 
@@ -93,6 +93,8 @@ else ifeq ($(CC),emcc)
 	NO_OSMESA = 1
 else ifeq (,$(filter $(CC),g++ clang++ em++))
 	LIBS += -std=c99
+else 
+	NO_VULKAN = 1
 endif
 
 EXAMPLE_OUTPUTS = \
@@ -125,7 +127,7 @@ all: xdg-shell.c $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) 
 examples: $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)
 
 examples/portableGL/pgl: examples/portableGL/pgl.c RGFW.h
-ifneq ($(CC), emcc)
+ifeq (,$(filter $(CC),emcc em++))
 	$(CC)  -w $(CFLAGS) -I. $< -lm $(LIBS) -o $@ 
 else
 	@echo "the portableGL example doesn't support html5"
@@ -158,7 +160,9 @@ endif
 
 
 examples/dx11/dx11: examples/dx11/dx11.c RGFW.h
-ifneq (,$(filter $(detected_OS), windows Windows_NT))
+ifneq (,$(filter $(CC),g++ clang++))
+	@echo directX is not supported with C++
+else ifneq (,$(filter $(detected_OS), windows Windows_NT))
 	$(CC) $(CFLAGS) -I. $<  $(DX11_LIBS) -o $@
 else
 	@echo directX is not supported on $(detected_OS)
@@ -174,8 +178,8 @@ else
 endif
 
 examples/webgpu/webgpu: examples/webgpu/webgpu.c RGFW.h
-ifeq ($(CC),emcc)        # web ASM
-	emcc $< -I. -s USE_WEBGPU=1 -o $@$(EXT)
+ifneq (,$(filter $(CC),emcc em++))      # web ASM
+	$(CC) $< -I. -s USE_WEBGPU=1 -o $@$(EXT)
 else
 	@echo webgpu is not supported on $(detected_OS)
 endif
@@ -183,7 +187,7 @@ endif
 examples/minimal_links/minimal_links: examples/minimal_links/minimal_links.c RGFW.h
 ifeq ($(RGFW_WAYLAND), 1)
 	@echo nostl is not supported on this platform
-else ifeq ($(CC),emcc)
+else ifneq (,$(filter $(CC),emcc em++))
 	@echo nostl is not supported on this platform
 else ifeq ($(detected_OS),Linux)
 	$(CC) $(CFLAGS) -I. -lXrandr $<  -o $@$(EXT)
@@ -199,7 +203,7 @@ endif
 examples/nostl/nostl: examples/nostl/nostl.c RGFW.h
 ifeq ($(RGFW_WAYLAND), 1)
 	@echo nostl is not supported on this platform
-else ifeq ($(CC),emcc)
+else ifneq (,$(filter $(CC),emcc em++))
 	@echo nostl is not supported on this platform
 else ifeq ($(detected_OS),Linux)
 	$(CC) $(CFLAGS) -fno-stack-protector -lX11 -lXcursor -lGL -lXi -lXrandr -I. $<  -o $@$(EXT)
@@ -213,16 +217,16 @@ endif
 
 
 examples/microui_demo/microui_demo: examples/microui_demo/microui_demo.c RGFW.h
-ifneq ($(CC), emcc)
+ifeq (,$(filter $(CC),emcc em++ g++ clang++))
 	$(CC) $(CFLAGS) -I. $< examples/microui_demo/microui.c  $(LINK_GL1) $(LIBS) -o $@$(EXT)
-else ifneq ($(CC), g++)
-	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
+else ifneq (,$(filter $(CC),em++ g++ clang++))
+	@echo microui demo not supported with C++
 else
 	$(CC) $(CFLAGS) -I. $< examples/microui_demo/microui.c -s USE_WEBGL2 $(LIBS) $(LINK_GL1) -o $@$(EXT)
 endif
 
 examples/silk/silk: examples/silk/silk.c RGFW.h
-ifneq ($(CC), g++)
+ifeq (,$(filter $(CC),em++ g++ clang++))
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 else
 	@echo silk example is not supported with C++

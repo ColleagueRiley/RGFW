@@ -29,6 +29,8 @@ jobs:
       
     - name: Compile to WebAssembly
       run: |
+        make CC=em++
+        make clean
         make CC=emcc
         mv html docs
 

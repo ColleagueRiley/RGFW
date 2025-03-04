@@ -46,18 +46,13 @@ jobs:
         mkdir include
         mkdir lib
         cd ../..
-   
-    - name: test C++
-      run: |
-        make CC=g++
-      if: matrix.bits == 64
-
     # Generating static + shared library, note that i386 architecture is deprecated
     # Defining GL_SILENCE_DEPRECATION because OpenGL is deprecated on macOS
     - name: Build Library
       run: |
         clang --version
         
+        make CC=g++
         # Extract version numbers from Makefile
         brew install grep
         
