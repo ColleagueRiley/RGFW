@@ -17,6 +17,9 @@ Current Version: RGFW 1.6.5-dev
 - replace macOS callback events (that use `RGFW_EVENT_PASSED`) AND IOKit gamepad queue with RGFW standard event queue
 - replace winapi RGFW_EVENT_PASSED events (WndProc) with standardized event queue
 - allocate only win->event's event.droppedFiles, change droppedFiles to char**
+- add RGFW_windowMaximized, RGFW_windowMinimized and RGFW_windowRestored events
+- add RGFW_windowMinimize flag
+- ensure macOS focusIn/focusOut events are collected
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------

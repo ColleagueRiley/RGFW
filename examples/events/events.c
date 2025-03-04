@@ -38,6 +38,15 @@ int main(void) {
                 case RGFW_windowResized:
                     printf("window resize %i %i\n", win->r.w, win->r.h);
                     break;
+                case RGFW_windowMaximized:
+                  printf("window maximized %i %i\n", win->r.w, win->r.h);
+                    break;
+                case RGFW_windowMinimized:
+                    printf("window minimized\n");
+                    break;
+                case RGFW_windowRestored:
+                    printf("window restored %i %i\n", win->r.w, win->r.h);
+                    break;
                 case RGFW_focusIn:
                     printf("Focused\n");
                     break;

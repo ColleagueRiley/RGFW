@@ -458,7 +458,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 	*/
 	RGFW_quit, /*!< the user clicked the quit button */
 	RGFW_DND, /*!< a file has been dropped into the window */
-	RGFW_DNDInit /*!< the start of a dnd event, when the place where the file drop is known */
+	RGFW_DNDInit, /*!< the start of a dnd event, when the place where the file drop is known */
 	/* dnd data note
 		The x and y coords of the drop are stored in the vector RGFW_event.point
 
@@ -467,6 +467,9 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 		This is also the size of the array which stores all the dropped file string,
 		RGFW_event.droppedFiles
 	*/
+	RGFW_windowMaximized, /*!< the window was maximized */
+	RGFW_windowMinimized, /*!< the window was minimized */
+	RGFW_windowRestored, /*!< the window was restored */
 };
 
 /*! mouse button codes (RGFW_event.button) */
@@ -744,6 +747,7 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowFloating = RGFW_BIT(14), /*!< create a floating window */
 	RGFW_windowFreeOnClose = RGFW_BIT(15), /*!< free (RGFW_window_close) the RGFW_window struct when the window is closed (by the end user) */
 	RGFW_windowFocusOnShow = RGFW_BIT(16), /*!< focus the window when it's shown */
+	RGFW_windowMinimize = RGFW_BIT(17), /*!< focus the window when it's shown */
 	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize,
 };
 
@@ -1098,6 +1102,12 @@ RGFWDEF RGFW_gamepadButtonfunc RGFW_setgamepadButtonCallback(RGFW_gamepadButtonf
 RGFWDEF RGFW_gamepadAxisfunc RGFW_setgamepadAxisCallback(RGFW_gamepadAxisfunc func);
 /*! set callback for when a controller is connected or disconnected */
 RGFWDEF RGFW_gamepadfunc RGFW_setGamepadCallback(RGFW_gamepadfunc func);
+/*!< set call back for when window is maximized */
+RGFWDEF RGFW_windowresizefunc RGFW_setWindowMaximizedCallback(RGFW_windowresizefunc func);
+/*!< set call back for when window is minimized */
+RGFWDEF RGFW_windowresizefunc RGFW_setWindowMinimizedCallback(RGFW_windowresizefunc func);
+/*!< set call back for when window is restored */
+RGFWDEF RGFW_windowresizefunc RGFW_setWindowRestoredCallback(RGFW_windowresizefunc func);
 
 /** @} */
 
@@ -1707,6 +1717,9 @@ void RGFW_dndfuncEMPTY(RGFW_window* win, char** droppedFiles, u32 droppedFilesCo
 
 RGFW_windowmovefunc RGFW_windowMoveCallback = RGFW_windowmovefuncEMPTY;
 RGFW_windowresizefunc RGFW_windowResizeCallback = RGFW_windowresizefuncEMPTY;
+RGFW_windowresizefunc RGFW_windowMaximizedCallback = RGFW_windowresizefuncEMPTY;
+RGFW_windowresizefunc RGFW_windowMinimizedCallback = RGFW_windowresizefuncEMPTY;
+RGFW_windowresizefunc RGFW_windowRestoredCallback = RGFW_windowresizefuncEMPTY;
 RGFW_windowquitfunc RGFW_windowQuitCallback = RGFW_windowquitfuncEMPTY;
 RGFW_mouseposfunc RGFW_mousePosCallback = RGFW_mouseposfuncEMPTY;
 RGFW_windowrefreshfunc RGFW_windowRefreshCallback = RGFW_windowrefreshfuncEMPTY;
@@ -1740,6 +1753,21 @@ RGFW_windowmovefunc RGFW_setWindowMoveCallback(RGFW_windowmovefunc func) {
 RGFW_windowresizefunc RGFW_setWindowResizeCallback(RGFW_windowresizefunc func) {
     RGFW_windowresizefunc prev = (RGFW_windowResizeCallback == RGFW_windowresizefuncEMPTY) ? NULL : RGFW_windowResizeCallback;
     RGFW_windowResizeCallback = func;
+    return prev;
+}
+RGFW_windowresizefunc RGFW_setWindowMaximizedCallback(RGFW_windowresizefunc func) {
+    RGFW_windowresizefunc prev = (RGFW_windowMaximizedCallback == RGFW_windowresizefuncEMPTY) ? NULL : RGFW_windowMaximizedCallback;
+    RGFW_windowMaximizedCallback = func;
+    return prev;
+}
+RGFW_windowresizefunc RGFW_setWindowMinimizedCallback(RGFW_windowresizefunc func) {
+    RGFW_windowresizefunc prev = (RGFW_windowMinimizedCallback == RGFW_windowresizefuncEMPTY) ? NULL : RGFW_windowMinimizedCallback;
+    RGFW_windowMinimizedCallback = func;
+    return prev;
+}
+RGFW_windowresizefunc RGFW_setWindowRestoredCallback(RGFW_windowresizefunc func) {
+    RGFW_windowresizefunc prev = (RGFW_windowRestoredCallback == RGFW_windowresizefuncEMPTY) ? NULL : RGFW_windowRestoredCallback;
+    RGFW_windowRestoredCallback = func;
     return prev;
 }
 RGFW_windowquitfunc RGFW_setWindowQuitCallback(RGFW_windowquitfunc func) {
@@ -1804,6 +1832,25 @@ RGFW_gamepadfunc RGFW_setGamepadCallback(RGFW_gamepadfunc func) {
     RGFW_gamepadCallback = func;
     return prev;
 }
+
+void RGFW_window_checkMode(RGFW_window* win) {
+	if (RGFW_window_isMinimized(win)) {
+		win->_flags |= RGFW_windowMinimize;
+		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMinimized, ._win = win});
+		RGFW_windowMinimizedCallback(win, win->r);
+	} else if (RGFW_window_isMaximized(win)) {
+		win->_flags |= RGFW_windowMaximize;
+		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMaximized, ._win = win});
+		RGFW_windowMaximizedCallback(win, win->r);
+	} else if (((win->_flags & RGFW_windowMinimize) && !RGFW_window_isMaximized(win)) || 
+				(win->_flags & RGFW_windowMaximize && !RGFW_window_isMaximized(win))) {
+		win->_flags &= ~RGFW_windowMinimize;
+		if (RGFW_window_isMaximized(win) == RGFW_FALSE) win->_flags &= ~RGFW_windowMaximize;
+		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowRestored, ._win = win});
+		RGFW_windowRestoredCallback(win, win->r);
+	}
+}
+
 /*
 no more event call back defines
 */
@@ -1901,6 +1948,8 @@ void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	else if (cmpFlags & RGFW_windowFullscreen) 	RGFW_window_setFullscreen(win, 0);
 	if (flags & RGFW_windowMaximize)				RGFW_window_maximize(win);
 	else if (cmpFlags & RGFW_windowMaximize) 	RGFW_window_restore(win);
+	if (flags & RGFW_windowMinimize)				RGFW_window_minimize(win);
+	else if (cmpFlags & RGFW_windowMinimize) 	RGFW_window_restore(win);	
 	if (flags & RGFW_windowHideMouse)				RGFW_window_showMouse(win, 0);
 	else if (cmpFlags & RGFW_windowHideMouse)  	RGFW_window_showMouse(win, 1);
 	if (flags & RGFW_windowCocoaCHDirToRes)			RGFW_moveToMacOSResourceDir();
@@ -4152,7 +4201,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		win->event.type = RGFW_windowRefresh;
 		RGFW_windowRefreshCallback(win);
 		break;
-
+	case MapNotify: case UnmapNotify: 		RGFW_window_checkMode(win); break;
 	case ClientMessage: {
 		/* if the client closed the window */
 		if (E.xclient.data.l[0] == (long)wm_delete_window) {
@@ -4383,6 +4432,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		win->event.type = RGFW_focusOut;
 		RGFW_focusCallback(win, 0);
 		break;
+	case PropertyNotify: RGFW_window_checkMode(win); break;
 	case EnterNotify: {
 		win->event.type = RGFW_mouseEnter;
 		win->event.point.x = E.xcrossing.x;
@@ -4399,6 +4449,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 	case ConfigureNotify: {
 		/* detect resize */
+		RGFW_window_checkMode(win);
 		if (E.xconfigure.width != win->r.w || E.xconfigure.height != win->r.h) {
 			win->event.type = RGFW_windowResized;
 			win->r = RGFW_RECT(win->r.x, win->r.y, E.xconfigure.width, E.xconfigure.height);
@@ -5062,7 +5113,6 @@ RGFW_bool RGFW_window_isHidden(RGFW_window* win) {
 
 RGFW_bool RGFW_window_isMinimized(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-
 	RGFW_LOAD_ATOM(WM_STATE);
 
 	Atom actual_type;
@@ -5082,7 +5132,9 @@ RGFW_bool RGFW_window_isMinimized(RGFW_window* win) {
 	if (prop_data != NULL)
 		XFree(prop_data);
 
-	return RGFW_FALSE;
+	XWindowAttributes windowAttributes;
+	XGetWindowAttributes(win->src.display, win->src.window, &windowAttributes);
+	return windowAttributes.map_state != IsViewable;
 }
 
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
@@ -5843,11 +5895,12 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				RGFW_window_resize(win, RGFW_AREA((windowRect.right - windowRect.left), 
 												(windowRect.bottom - windowRect.top) - win->src.hOffset));
 			}
-			
+		
 			win->r.w = windowRect.right -  windowRect.left;
 			win->r.h = (windowRect.bottom - windowRect.top) - win->src.hOffset;
 			RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowResized, ._win = win});
 			RGFW_windowResizeCallback(win, win->r);
+			RGFW_window_checkMode(win);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		case WM_GETMINMAXINFO: {
@@ -6840,7 +6893,7 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 	WINDOWPLACEMENT placement = {  };
 	#endif
 	GetWindowPlacement(win->src.window, &placement);
-	return placement.showCmd == SW_SHOWMAXIMIZED;
+	return placement.showCmd == SW_SHOWMAXIMIZED || IsZoomed(win->src.window);
 }
 
 typedef struct { int iIndex; HMONITOR hMonitor; } RGFW_mInfo;
@@ -8107,16 +8160,72 @@ void RGFW_moveToMacOSResourceDir(void) {
 }
 
 
+void RGFW__osxWindowDeminiaturize(id self, SEL sel) {
+	RGFW_UNUSED(sel);
+	RGFW_window* win = NULL;
+	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+	if (win == NULL) return;
+
+	win->_flags |= RGFW_windowMinimize;
+	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowRestored, ._win = win});
+	RGFW_windowRestoredCallback(win, win->r);
+
+}
+void RGFW__osxWindowMiniaturize(id self, SEL sel) {
+	RGFW_UNUSED(sel);
+	RGFW_window* win = NULL;
+	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+	if (win == NULL) return;
+
+	win->_flags &= ~RGFW_windowMinimize;
+	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMinimized, ._win = win});
+	RGFW_windowMinimizedCallback(win, win->r);
+
+}
+
+void RGFW__osxWindowBecameKey(id self, SEL sel) {
+	RGFW_UNUSED(sel);
+	RGFW_window* win = NULL;
+	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+	if (win == NULL) return;
+
+	win->event.inFocus = RGFW_TRUE;
+	RGFW_eventQueuePush((RGFW_event){.type = RGFW_focusIn, ._win = win});
+	RGFW_focusCallback(win, RGFW_TRUE);
+}
+
+void RGFW__osxWindowResignKey(id self, SEL sel) {
+	RGFW_UNUSED(sel);
+	RGFW_window* win = NULL;
+	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+	if (win == NULL) return;
+	
+	win->event.inFocus = RGFW_FALSE;
+	RGFW_eventQueuePush((RGFW_event){.type = RGFW_focusOut, ._win = win});
+	RGFW_focusCallback(win, RGFW_FALSE);
+}
+
 NSSize RGFW__osxWindowResize(id self, SEL sel, NSSize frameSize) {
 	RGFW_UNUSED(sel);
 
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
-	if (win == NULL)
-		return frameSize;
+	if (win == NULL) return frameSize;
 
 	win->r.w = frameSize.width;
 	win->r.h = frameSize.height;
+	
+	RGFW_monitor mon = RGFW_window_getMonitor(win);
+	if ((i32)mon.mode.area.w == win->r.w && (i32)mon.mode.area.h - 102 <= win->r.h) {
+		win->_flags |= RGFW_windowMaximize;
+		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMaximized, ._win = win});
+		RGFW_windowMaximizedCallback(win, win->r);
+	} else if (win->_flags & RGFW_windowMaximize) {
+		win->_flags &= ~RGFW_windowMaximize;
+		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowRestored, ._win = win});
+		RGFW_windowRestoredCallback(win, win->r);
+
+	}
 
 	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowResized, ._win = win});
 	RGFW_windowResizeCallback(win, win->r);
@@ -8128,8 +8237,7 @@ void RGFW__osxWindowMove(id self, SEL sel) {
 
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
-	if (win == NULL)
-		return;
+	if (win == NULL) return;
 
 	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
 	win->r.x = (i32) frame.origin.x;
@@ -8184,7 +8292,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	Imagine a universe, where MacOS had a proper system API (we would probably have like 20% better performance).
 	*/
 	si_func_to_SEL_with_name("NSObject", "windowShouldClose", (void*)RGFW_OnClose);
-
+	
 	/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
 	si_func_to_SEL("NSWindow", acceptsFirstResponder);
 	si_func_to_SEL("NSWindow", performKeyEquivalent);
@@ -8305,10 +8413,15 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		"L"
 	);
 
+
 	class_addMethod(delegateClass, sel_registerName("windowWillResize:toSize:"), (IMP) RGFW__osxWindowResize, "{NSSize=ff}@:{NSSize=ff}");
 	class_addMethod(delegateClass, sel_registerName("updateLayer:"), (IMP) RGFW__osxUpdateLayer, "");
 	class_addMethod(delegateClass, sel_registerName("windowWillMove:"), (IMP) RGFW__osxWindowMove, "");
 	class_addMethod(delegateClass, sel_registerName("windowDidMove:"), (IMP) RGFW__osxWindowMove, "");
+	class_addMethod(delegateClass, sel_registerName("windowDidMiniaturize:"), (IMP) RGFW__osxWindowMiniaturize, "");
+	class_addMethod(delegateClass, sel_registerName("windowDidDeminiaturize:"), (IMP) RGFW__osxWindowDeminiaturize, "");
+	class_addMethod(delegateClass, sel_registerName("windowDidBecomeKey:"), (IMP) RGFW__osxWindowBecameKey, "");
+	class_addMethod(delegateClass, sel_registerName("windowDidResignKey:"), (IMP) RGFW__osxWindowResignKey, "");
 	class_addMethod(delegateClass, sel_registerName("draggingEntered:"), (IMP)draggingEntered, "l@:@");
 	class_addMethod(delegateClass, sel_registerName("draggingUpdated:"), (IMP)draggingUpdated, "l@:@");
 	class_addMethod(delegateClass, sel_registerName("draggingExited:"), (IMP)RGFW__osxDraggingEnded, "v@:@");
@@ -8358,416 +8471,415 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	return win;
 }
 
-	void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
-		NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
-		NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
-		float offset = 0;
-		
-		RGFW_setBit(&win->_flags, RGFW_windowNoBorder, !border);
-		NSBackingStoreType storeType = NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView;
-		if (border)
-			storeType = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
-		if (!(win->_flags & RGFW_windowNoResize)) {
-			storeType |= NSWindowStyleMaskResizable;
-		}
-
-		((void (*)(id, SEL, NSBackingStoreType))objc_msgSend)((id)win->src.window, sel_registerName("setStyleMask:"), storeType);	
-		
-		if (!border) {
-			id miniaturizeButton = objc_msgSend_int((id)win->src.window, sel_registerName("standardWindowButton:"),  NSWindowMiniaturizeButton);
-			id titleBarView = objc_msgSend_id(miniaturizeButton, sel_registerName("superview"));
-			objc_msgSend_void_bool(titleBarView, sel_registerName("setHidden:"), true);
-		
-			offset = frame.size.height - content.size.height;
-		}
-		
-		RGFW_window_resize(win, RGFW_AREA(win->r.w, win->r.h + offset));
-		win->r.h -= offset;
+void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
+	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
+	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
+	float offset = 0;
+	
+	RGFW_setBit(&win->_flags, RGFW_windowNoBorder, !border);
+	NSBackingStoreType storeType = NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView;
+	if (border)
+		storeType = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
+	if (!(win->_flags & RGFW_windowNoResize)) {
+		storeType |= NSWindowStyleMaskResizable;
 	}
 
-	RGFW_area RGFW_getScreenSize(void) {
-		static CGDirectDisplayID display = 0;
-
-		if (display == 0)
-			display = CGMainDisplayID();
-
-		return RGFW_AREA(CGDisplayPixelsWide(display), CGDisplayPixelsHigh(display));
+	((void (*)(id, SEL, NSBackingStoreType))objc_msgSend)((id)win->src.window, sel_registerName("setStyleMask:"), storeType);	
+	
+	if (!border) {
+		id miniaturizeButton = objc_msgSend_int((id)win->src.window, sel_registerName("standardWindowButton:"),  NSWindowMiniaturizeButton);
+		id titleBarView = objc_msgSend_id(miniaturizeButton, sel_registerName("superview"));
+		objc_msgSend_void_bool(titleBarView, sel_registerName("setHidden:"), true);
+	
+		offset = frame.size.height - content.size.height;
 	}
+	
+	RGFW_window_resize(win, RGFW_AREA(win->r.w, win->r.h + offset));
+	win->r.h -= offset;
+}
 
-	RGFW_point RGFW_getGlobalMousePoint(void) {
-		RGFW_ASSERT(RGFW_root != NULL);
+RGFW_area RGFW_getScreenSize(void) {
+	static CGDirectDisplayID display = 0;
 
-		CGEventRef e = CGEventCreate(NULL);
-		CGPoint point = CGEventGetLocation(e);
-		CFRelease(e);
+	if (display == 0)
+		display = CGMainDisplayID();
 
-		return RGFW_POINT((u32) point.x, (u32) point.y); /*!< the point is loaded during event checks */
-	}
+	return RGFW_AREA(CGDisplayPixelsWide(display), CGDisplayPixelsHigh(display));
+}
 
-	typedef RGFW_ENUM(u32, NSEventType) {        /* various types of events */
-		NSEventTypeLeftMouseDown = 1,
-			NSEventTypeLeftMouseUp = 2,
-			NSEventTypeRightMouseDown = 3,
-			NSEventTypeRightMouseUp = 4,
-			NSEventTypeMouseMoved = 5,
-			NSEventTypeLeftMouseDragged = 6,
-			NSEventTypeRightMouseDragged = 7,
-			NSEventTypeMouseEntered = 8,
-			NSEventTypeMouseExited = 9,
-			NSEventTypeKeyDown = 10,
-			NSEventTypeKeyUp = 11,
-			NSEventTypeFlagsChanged = 12,
-			NSEventTypeAppKitDefined = 13,
-			NSEventTypeSystemDefined = 14,
-			NSEventTypeApplicationDefined = 15,
-			NSEventTypePeriodic = 16,
-			NSEventTypeCursorUpdate = 17,
-			NSEventTypeScrollWheel = 22,
-			NSEventTypeTabletPoint = 23,
-			NSEventTypeTabletProximity = 24,
-			NSEventTypeOtherMouseDown = 25,
-			NSEventTypeOtherMouseUp = 26,
-			NSEventTypeOtherMouseDragged = 27,
-			/* The following event types are available on some hardware on 10.5.2 and later */
-			NSEventTypeGesture API_AVAILABLE(macos(10.5)) = 29,
-			NSEventTypeMagnify API_AVAILABLE(macos(10.5)) = 30,
-			NSEventTypeSwipe   API_AVAILABLE(macos(10.5)) = 31,
-			NSEventTypeRotate  API_AVAILABLE(macos(10.5)) = 18,
-			NSEventTypeBeginGesture API_AVAILABLE(macos(10.5)) = 19,
-			NSEventTypeEndGesture API_AVAILABLE(macos(10.5)) = 20,
+RGFW_point RGFW_getGlobalMousePoint(void) {
+	RGFW_ASSERT(RGFW_root != NULL);
 
-			NSEventTypeSmartMagnify API_AVAILABLE(macos(10.8)) = 32,
-			NSEventTypeQuickLook API_AVAILABLE(macos(10.8)) = 33,
+	CGEventRef e = CGEventCreate(NULL);
+	CGPoint point = CGEventGetLocation(e);
+	CFRelease(e);
 
-			NSEventTypePressure API_AVAILABLE(macos(10.10.3)) = 34,
-			NSEventTypeDirectTouch API_AVAILABLE(macos(10.10)) = 37,
+	return RGFW_POINT((u32) point.x, (u32) point.y); /*!< the point is loaded during event checks */
+}
 
-			NSEventTypeChangeMode API_AVAILABLE(macos(10.15)) = 38,
-	};
+typedef RGFW_ENUM(u32, NSEventType) {        /* various types of events */
+	NSEventTypeLeftMouseDown = 1,
+		NSEventTypeLeftMouseUp = 2,
+		NSEventTypeRightMouseDown = 3,
+		NSEventTypeRightMouseUp = 4,
+		NSEventTypeMouseMoved = 5,
+		NSEventTypeLeftMouseDragged = 6,
+		NSEventTypeRightMouseDragged = 7,
+		NSEventTypeMouseEntered = 8,
+		NSEventTypeMouseExited = 9,
+		NSEventTypeKeyDown = 10,
+		NSEventTypeKeyUp = 11,
+		NSEventTypeFlagsChanged = 12,
+		NSEventTypeAppKitDefined = 13,
+		NSEventTypeSystemDefined = 14,
+		NSEventTypeApplicationDefined = 15,
+		NSEventTypePeriodic = 16,
+		NSEventTypeCursorUpdate = 17,
+		NSEventTypeScrollWheel = 22,
+		NSEventTypeTabletPoint = 23,
+		NSEventTypeTabletProximity = 24,
+		NSEventTypeOtherMouseDown = 25,
+		NSEventTypeOtherMouseUp = 26,
+		NSEventTypeOtherMouseDragged = 27,
+		/* The following event types are available on some hardware on 10.5.2 and later */
+		NSEventTypeGesture API_AVAILABLE(macos(10.5)) = 29,
+		NSEventTypeMagnify API_AVAILABLE(macos(10.5)) = 30,
+		NSEventTypeSwipe   API_AVAILABLE(macos(10.5)) = 31,
+		NSEventTypeRotate  API_AVAILABLE(macos(10.5)) = 18,
+		NSEventTypeBeginGesture API_AVAILABLE(macos(10.5)) = 19,
+		NSEventTypeEndGesture API_AVAILABLE(macos(10.5)) = 20,
 
-	typedef RGFW_ENUM(unsigned long long, NSEventMask) { /* masks for the types of events */
-		NSEventMaskLeftMouseDown = 1ULL << NSEventTypeLeftMouseDown,
-			NSEventMaskLeftMouseUp = 1ULL << NSEventTypeLeftMouseUp,
-			NSEventMaskRightMouseDown = 1ULL << NSEventTypeRightMouseDown,
-			NSEventMaskRightMouseUp = 1ULL << NSEventTypeRightMouseUp,
-			NSEventMaskMouseMoved = 1ULL << NSEventTypeMouseMoved,
-			NSEventMaskLeftMouseDragged = 1ULL << NSEventTypeLeftMouseDragged,
-			NSEventMaskRightMouseDragged = 1ULL << NSEventTypeRightMouseDragged,
-			NSEventMaskMouseEntered = 1ULL << NSEventTypeMouseEntered,
-			NSEventMaskMouseExited = 1ULL << NSEventTypeMouseExited,
-			NSEventMaskKeyDown = 1ULL << NSEventTypeKeyDown,
-			NSEventMaskKeyUp = 1ULL << NSEventTypeKeyUp,
-			NSEventMaskFlagsChanged = 1ULL << NSEventTypeFlagsChanged,
-			NSEventMaskAppKitDefined = 1ULL << NSEventTypeAppKitDefined,
-			NSEventMaskSystemDefined = 1ULL << NSEventTypeSystemDefined,
-			NSEventMaskApplicationDefined = 1ULL << NSEventTypeApplicationDefined,
-			NSEventMaskPeriodic = 1ULL << NSEventTypePeriodic,
-			NSEventMaskCursorUpdate = 1ULL << NSEventTypeCursorUpdate,
-			NSEventMaskScrollWheel = 1ULL << NSEventTypeScrollWheel,
-			NSEventMaskTabletPoint = 1ULL << NSEventTypeTabletPoint,
-			NSEventMaskTabletProximity = 1ULL << NSEventTypeTabletProximity,
-			NSEventMaskOtherMouseDown = 1ULL << NSEventTypeOtherMouseDown,
-			NSEventMaskOtherMouseUp = 1ULL << NSEventTypeOtherMouseUp,
-			NSEventMaskOtherMouseDragged = 1ULL << NSEventTypeOtherMouseDragged,
-			/* The following event masks are available on some hardware on 10.5.2 and later */
-			NSEventMaskGesture API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeGesture,
-			NSEventMaskMagnify API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeMagnify,
-			NSEventMaskSwipe API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeSwipe,
-			NSEventMaskRotate API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeRotate,
-			NSEventMaskBeginGesture API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeBeginGesture,
-			NSEventMaskEndGesture API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeEndGesture,
+		NSEventTypeSmartMagnify API_AVAILABLE(macos(10.8)) = 32,
+		NSEventTypeQuickLook API_AVAILABLE(macos(10.8)) = 33,
 
-			/* Note: You can only use these event masks on 64 bit. In other words, you cannot setup a local, nor global, event monitor for these event types on 32 bit. Also, you cannot search the event queue for them (nextEventMatchingMask:...) on 32 bit.
-				*/
-			NSEventMaskSmartMagnify API_AVAILABLE(macos(10.8)) = 1ULL << NSEventTypeSmartMagnify,
-			NSEventMaskPressure API_AVAILABLE(macos(10.10.3)) = 1ULL << NSEventTypePressure,
-			NSEventMaskDirectTouch API_AVAILABLE(macos(10.12.2)) = 1ULL << NSEventTypeDirectTouch,
+		NSEventTypePressure API_AVAILABLE(macos(10.10.3)) = 34,
+		NSEventTypeDirectTouch API_AVAILABLE(macos(10.10)) = 37,
 
-			NSEventMaskChangeMode API_AVAILABLE(macos(10.15)) = 1ULL << NSEventTypeChangeMode,
+		NSEventTypeChangeMode API_AVAILABLE(macos(10.15)) = 38,
+};
 
-			NSEventMaskAny = ULONG_MAX,
+typedef RGFW_ENUM(unsigned long long, NSEventMask) { /* masks for the types of events */
+	NSEventMaskLeftMouseDown = 1ULL << NSEventTypeLeftMouseDown,
+		NSEventMaskLeftMouseUp = 1ULL << NSEventTypeLeftMouseUp,
+		NSEventMaskRightMouseDown = 1ULL << NSEventTypeRightMouseDown,
+		NSEventMaskRightMouseUp = 1ULL << NSEventTypeRightMouseUp,
+		NSEventMaskMouseMoved = 1ULL << NSEventTypeMouseMoved,
+		NSEventMaskLeftMouseDragged = 1ULL << NSEventTypeLeftMouseDragged,
+		NSEventMaskRightMouseDragged = 1ULL << NSEventTypeRightMouseDragged,
+		NSEventMaskMouseEntered = 1ULL << NSEventTypeMouseEntered,
+		NSEventMaskMouseExited = 1ULL << NSEventTypeMouseExited,
+		NSEventMaskKeyDown = 1ULL << NSEventTypeKeyDown,
+		NSEventMaskKeyUp = 1ULL << NSEventTypeKeyUp,
+		NSEventMaskFlagsChanged = 1ULL << NSEventTypeFlagsChanged,
+		NSEventMaskAppKitDefined = 1ULL << NSEventTypeAppKitDefined,
+		NSEventMaskSystemDefined = 1ULL << NSEventTypeSystemDefined,
+		NSEventMaskApplicationDefined = 1ULL << NSEventTypeApplicationDefined,
+		NSEventMaskPeriodic = 1ULL << NSEventTypePeriodic,
+		NSEventMaskCursorUpdate = 1ULL << NSEventTypeCursorUpdate,
+		NSEventMaskScrollWheel = 1ULL << NSEventTypeScrollWheel,
+		NSEventMaskTabletPoint = 1ULL << NSEventTypeTabletPoint,
+		NSEventMaskTabletProximity = 1ULL << NSEventTypeTabletProximity,
+		NSEventMaskOtherMouseDown = 1ULL << NSEventTypeOtherMouseDown,
+		NSEventMaskOtherMouseUp = 1ULL << NSEventTypeOtherMouseUp,
+		NSEventMaskOtherMouseDragged = 1ULL << NSEventTypeOtherMouseDragged,
+		/* The following event masks are available on some hardware on 10.5.2 and later */
+		NSEventMaskGesture API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeGesture,
+		NSEventMaskMagnify API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeMagnify,
+		NSEventMaskSwipe API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeSwipe,
+		NSEventMaskRotate API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeRotate,
+		NSEventMaskBeginGesture API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeBeginGesture,
+		NSEventMaskEndGesture API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeEndGesture,
 
-	};
+		/* Note: You can only use these event masks on 64 bit. In other words, you cannot setup a local, nor global, event monitor for these event types on 32 bit. Also, you cannot search the event queue for them (nextEventMatchingMask:...) on 32 bit.
+			*/
+		NSEventMaskSmartMagnify API_AVAILABLE(macos(10.8)) = 1ULL << NSEventTypeSmartMagnify,
+		NSEventMaskPressure API_AVAILABLE(macos(10.10.3)) = 1ULL << NSEventTypePressure,
+		NSEventMaskDirectTouch API_AVAILABLE(macos(10.12.2)) = 1ULL << NSEventTypeDirectTouch,
 
-	typedef enum NSEventModifierFlags {
-		NSEventModifierFlagCapsLock = 1 << 16,
-		NSEventModifierFlagShift = 1 << 17,
-		NSEventModifierFlagControl = 1 << 18,
-		NSEventModifierFlagOption = 1 << 19,
-		NSEventModifierFlagCommand = 1 << 20,
-		NSEventModifierFlagNumericPad = 1 << 21
-	} NSEventModifierFlags;
+		NSEventMaskChangeMode API_AVAILABLE(macos(10.15)) = 1ULL << NSEventTypeChangeMode,
 
-	void RGFW_stopCheckEvents(void) {
-		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-		eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
+		NSEventMaskAny = ULONG_MAX,
 
-		id e = (id) ((id(*)(id, SEL, NSEventType, NSPoint, NSEventModifierFlags, void*, NSInteger, void**, short, NSInteger, NSInteger))objc_msgSend)
-			(NSApp, sel_registerName("otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:"),
-				NSEventTypeApplicationDefined, (NSPoint){0, 0}, (NSEventModifierFlags)0, NULL, (NSInteger)0, NULL, 0, 0, 0);
+};
 
+typedef enum NSEventModifierFlags {
+	NSEventModifierFlagCapsLock = 1 << 16,
+	NSEventModifierFlagShift = 1 << 17,
+	NSEventModifierFlagControl = 1 << 18,
+	NSEventModifierFlagOption = 1 << 19,
+	NSEventModifierFlagCommand = 1 << 20,
+	NSEventModifierFlagNumericPad = 1 << 21
+} NSEventModifierFlags;
+
+void RGFW_stopCheckEvents(void) {
+	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
+
+	id e = (id) ((id(*)(id, SEL, NSEventType, NSPoint, NSEventModifierFlags, void*, NSInteger, void**, short, NSInteger, NSInteger))objc_msgSend)
+		(NSApp, sel_registerName("otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:"),
+			NSEventTypeApplicationDefined, (NSPoint){0, 0}, (NSEventModifierFlags)0, NULL, (NSInteger)0, NULL, 0, 0, 0);
+
+	((void (*)(id, SEL, id, bool))objc_msgSend)
+		(NSApp, sel_registerName("postEvent:atStart:"), e, 1);
+
+	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
+}
+
+void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
+	RGFW_UNUSED(win);
+
+	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
+
+	void* date = (void*) ((id(*)(Class, SEL, double))objc_msgSend)
+				(objc_getClass("NSDate"), sel_registerName("dateWithTimeIntervalSinceNow:"), waitMS);
+
+	id e = (id) ((id(*)(id, SEL, NSEventMask, void*, id, bool))objc_msgSend)
+		(NSApp, sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:"),
+			ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
+
+
+	if (e) {
 		((void (*)(id, SEL, id, bool))objc_msgSend)
 			(NSApp, sel_registerName("postEvent:atStart:"), e, 1);
-
-		objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 	}
 
-	void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
-		RGFW_UNUSED(win);
+	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
+}
 
-		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-		eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
-
-		void* date = (void*) ((id(*)(Class, SEL, double))objc_msgSend)
-					(objc_getClass("NSDate"), sel_registerName("dateWithTimeIntervalSinceNow:"), waitMS);
-
-		id e = (id) ((id(*)(id, SEL, NSEventMask, void*, id, bool))objc_msgSend)
-			(NSApp, sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:"),
-				ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
-
-
-		if (e) {
-			((void (*)(id, SEL, id, bool))objc_msgSend)
-				(NSApp, sel_registerName("postEvent:atStart:"), e, 1);
-		}
-
-		objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
+RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
+	RGFW_event* ev =  RGFW_window_checkEventCore(win);
+	if (ev) {
+		if (ev == (RGFW_event*)-1) return NULL;
+		((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
+		return ev;
 	}
 
-	RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
-		RGFW_event* ev =  RGFW_window_checkEventCore(win);
-		if (ev) {
-			if (ev == (RGFW_event*)-1) return NULL;
-			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
-			return ev;
-		}
+	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
 
-		id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-		eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
+	static SEL eventFunc = (SEL)NULL;
+	if (eventFunc == NULL)
+		eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
 
-		static SEL eventFunc = (SEL)NULL;
-		if (eventFunc == NULL)
-			eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
+	void* date = NULL;
 
-		void* date = NULL;
+	id e = (id) ((id(*)(id, SEL, NSEventMask, void*, id, bool))objc_msgSend)
+		(NSApp, eventFunc, ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
 
-		id e = (id) ((id(*)(id, SEL, NSEventMask, void*, id, bool))objc_msgSend)
-			(NSApp, eventFunc, ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
-
-		if (e == NULL) {
-			objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
-			objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
-			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
-			return NULL;
-		}
-
-		if (objc_msgSend_id(e, sel_registerName("window")) != win->src.window) {
-			((void (*)(id, SEL, id, bool))objc_msgSend)
-				(NSApp, sel_registerName("postEvent:atStart:"), e, 0);
-
-			objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
-			objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
-			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
-			return NULL;
-		}
-
-		if (win->event.droppedFilesCount) {
-			u32 i;
-			for (i = 0; i < win->event.droppedFilesCount; i++)
-				win->event.droppedFiles[i][0] = '\0';
-		}
-
-		win->event.droppedFilesCount = 0;
-		win->event.type = 0;
-
-		u32 type = objc_msgSend_uint(e, sel_registerName("type"));
-		switch (type) {
-			case NSEventTypeMouseEntered: {
-				win->event.type = RGFW_mouseEnter;
-				NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(e, sel_registerName("locationInWindow"));
-
-				win->event.point = RGFW_POINT((i32) p.x, (i32) (win->r.h - p.y));
-				RGFW_mouseNotifyCallBack(win, win->event.point, 1);
-				break;
-			}
-
-			case NSEventTypeMouseExited:
-				win->event.type = RGFW_mouseLeave;
-				RGFW_mouseNotifyCallBack(win, win->event.point, 0);
-				break;
-
-			case NSEventTypeKeyDown: {
-				u32 key = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
-
-				u32 mappedKey = *((u32*)((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));
-				if (((u8)mappedKey) == 239)
-					mappedKey = 0;
-
-				win->event.keyChar = (u8)mappedKey;
-
-				win->event.key = RGFW_apiKeyToRGFW(key);
-				RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
-
-				win->event.type = RGFW_keyPressed;
-				win->event.repeat = RGFW_isPressed(win, win->event.key);
-				RGFW_keyboard[win->event.key].current = 1;
-
-				RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyMod, 1);
-				break;
-			}
-
-			case NSEventTypeKeyUp: {
-				u32 key = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
-
-				u32 mappedKey = *((u32*)((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));
-				if (((u8)mappedKey) == 239)
-					mappedKey = 0;
-
-				win->event.keyChar = (u8)mappedKey;
-
-				win->event.key = RGFW_apiKeyToRGFW(key);
-
-				RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
-
-				win->event.type = RGFW_keyReleased;
-
-				RGFW_keyboard[win->event.key].current = 0;
-				RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyMod, 0);
-				break;
-			}
-
-			case NSEventTypeFlagsChanged: {
-				u32 flags = objc_msgSend_uint(e, sel_registerName("modifierFlags"));
-				RGFW_updateKeyModsPro(win, ((u32)(flags & NSEventModifierFlagCapsLock) % 255), ((flags & NSEventModifierFlagNumericPad) % 255),
-											((flags & NSEventModifierFlagControl) % 255), ((flags & NSEventModifierFlagOption) % 255),
-											((flags & NSEventModifierFlagShift) % 255), ((flags & NSEventModifierFlagCommand) % 255), 0);
-				u8 i;
-				for (i = 0; i < 9; i++)
-					RGFW_keyboard[i + RGFW_capsLock].prev = 0;
-
-				for (i = 0; i < 5; i++) {
-					u32 shift = (1 << (i + 16));
-					u32 key = i + RGFW_capsLock;
-
-					if ((flags & shift) && !RGFW_wasPressed(win, key)) {
-						RGFW_keyboard[key].current = 1;
-
-						if (key != RGFW_capsLock)
-							RGFW_keyboard[key+ 4].current = 1;
-
-						win->event.type = RGFW_keyPressed;
-						win->event.key = key;
-						break;
-					}
-
-					if (!(flags & shift) && RGFW_wasPressed(win, key)) {
-						RGFW_keyboard[key].current = 0;
-
-						if (key != RGFW_capsLock)
-							RGFW_keyboard[key + 4].current = 0;
-
-						win->event.type = RGFW_keyReleased;
-						win->event.key = key;
-						break;
-					}
-				}
-
-				RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyMod, win->event.type == RGFW_keyPressed);
-
-				break;
-			}
-			case NSEventTypeLeftMouseDragged:
-			case NSEventTypeOtherMouseDragged:
-			case NSEventTypeRightMouseDragged:
-			case NSEventTypeMouseMoved: {
-				win->event.type = RGFW_mousePosChanged;
-				NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(e, sel_registerName("locationInWindow"));
-				win->event.point = RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y));
-
-				p.x = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaX"));
-				p.y = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaY"));
-				win->event.vector = RGFW_POINT((i32)p.x, (i32)p.y);
-				
-				win->_lastMousePoint = win->event.point;
-				RGFW_mousePosCallback(win, win->event.point, win->event.vector);
-				break;
-			}
-			case NSEventTypeLeftMouseDown: case NSEventTypeRightMouseDown: case NSEventTypeOtherMouseDown: {
-				u32 buttonNumber = objc_msgSend_uint(e, sel_registerName("buttonNumber"));
-				switch (buttonNumber) {
-					case 0: win->event.button = RGFW_mouseLeft; break;
-					case 1: win->event.button = RGFW_mouseRight; break;
-					case 2: win->event.button = RGFW_mouseMiddle; break;
-					default: win->event.button = buttonNumber;
-				}
-
-				win->event.type = RGFW_mouseButtonPressed;
-				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
-				RGFW_mouseButtons[win->event.button].current = 1;
-				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
-				break;
-			}
-			case NSEventTypeLeftMouseUp: case NSEventTypeRightMouseUp: case NSEventTypeOtherMouseUp: {
-				u32 buttonNumber = objc_msgSend_uint(e, sel_registerName("buttonNumber"));
-				switch (buttonNumber) {
-					case 0: win->event.button = RGFW_mouseLeft; break;
-					case 1: win->event.button = RGFW_mouseRight; break;
-					case 2: win->event.button = RGFW_mouseMiddle; break;
-					default: win->event.button = buttonNumber;
-				}
-				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
-				RGFW_mouseButtons[win->event.button].current = 0;
-				win->event.type = RGFW_mouseButtonReleased;
-				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
-				break;
-			}
-			case NSEventTypeScrollWheel: {
-				double deltaY = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaY"));
-
-				if (deltaY > 0) {
-					win->event.button = RGFW_mouseScrollUp;
-				}
-				else if (deltaY < 0) {
-					win->event.button = RGFW_mouseScrollDown;
-				}
-
-				RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
-				RGFW_mouseButtons[win->event.button].current = 1;
-
-				win->event.scroll = deltaY;
-
-				win->event.type = RGFW_mouseButtonPressed;
-				RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
-				break;
-			}
-
-			default:
-				objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
-				((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
-				return RGFW_window_checkEvent(win);
-		}
-
+	if (e == NULL) {
+		objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 		objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
 		((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
+		return NULL;
+	}
 
+	if (objc_msgSend_id(e, sel_registerName("window")) != win->src.window) {
+		((void (*)(id, SEL, id, bool))objc_msgSend)
+			(NSApp, sel_registerName("postEvent:atStart:"), e, 0);
+
+		objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
 		objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
-		return &win->event;
+		((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
+		return NULL;
 	}
 
-
-	void RGFW_window_move(RGFW_window* win, RGFW_point v) {
-		RGFW_ASSERT(win != NULL);
-
-		win->r.x = v.x;
-		win->r.y = v.y;
-		((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
-			((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{win->r.x, win->r.y}, {win->r.w, win->r.h}}, true, true);
+	if (win->event.droppedFilesCount) {
+		u32 i;
+		for (i = 0; i < win->event.droppedFilesCount; i++)
+			win->event.droppedFiles[i][0] = '\0';
 	}
 
-	void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
-		RGFW_ASSERT(win != NULL);
+	win->event.droppedFilesCount = 0;
+	win->event.type = 0;
+
+	u32 type = objc_msgSend_uint(e, sel_registerName("type"));
+	switch (type) {
+		case NSEventTypeMouseEntered: {
+			win->event.type = RGFW_mouseEnter;
+			NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(e, sel_registerName("locationInWindow"));
+
+			win->event.point = RGFW_POINT((i32) p.x, (i32) (win->r.h - p.y));
+			RGFW_mouseNotifyCallBack(win, win->event.point, 1);
+			break;
+		}
+
+		case NSEventTypeMouseExited:
+			win->event.type = RGFW_mouseLeave;
+			RGFW_mouseNotifyCallBack(win, win->event.point, 0);
+			break;
+
+		case NSEventTypeKeyDown: {
+			u32 key = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
+
+			u32 mappedKey = *((u32*)((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));
+			if (((u8)mappedKey) == 239)
+				mappedKey = 0;
+
+			win->event.keyChar = (u8)mappedKey;
+
+			win->event.key = RGFW_apiKeyToRGFW(key);
+			RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
+
+			win->event.type = RGFW_keyPressed;
+			win->event.repeat = RGFW_isPressed(win, win->event.key);
+			RGFW_keyboard[win->event.key].current = 1;
+
+			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyMod, 1);
+			break;
+		}
+
+		case NSEventTypeKeyUp: {
+			u32 key = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
+
+			u32 mappedKey = *((u32*)((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));
+			if (((u8)mappedKey) == 239)
+				mappedKey = 0;
+
+			win->event.keyChar = (u8)mappedKey;
+
+			win->event.key = RGFW_apiKeyToRGFW(key);
+
+			RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
+
+			win->event.type = RGFW_keyReleased;
+
+			RGFW_keyboard[win->event.key].current = 0;
+			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyMod, 0);
+			break;
+		}
+
+		case NSEventTypeFlagsChanged: {
+			u32 flags = objc_msgSend_uint(e, sel_registerName("modifierFlags"));
+			RGFW_updateKeyModsPro(win, ((u32)(flags & NSEventModifierFlagCapsLock) % 255), ((flags & NSEventModifierFlagNumericPad) % 255),
+										((flags & NSEventModifierFlagControl) % 255), ((flags & NSEventModifierFlagOption) % 255),
+										((flags & NSEventModifierFlagShift) % 255), ((flags & NSEventModifierFlagCommand) % 255), 0);
+			u8 i;
+			for (i = 0; i < 9; i++)
+				RGFW_keyboard[i + RGFW_capsLock].prev = 0;
+
+			for (i = 0; i < 5; i++) {
+				u32 shift = (1 << (i + 16));
+				u32 key = i + RGFW_capsLock;
+
+				if ((flags & shift) && !RGFW_wasPressed(win, key)) {
+					RGFW_keyboard[key].current = 1;
+
+					if (key != RGFW_capsLock)
+						RGFW_keyboard[key+ 4].current = 1;
+
+					win->event.type = RGFW_keyPressed;
+					win->event.key = key;
+					break;
+				}
+
+				if (!(flags & shift) && RGFW_wasPressed(win, key)) {
+					RGFW_keyboard[key].current = 0;
+
+					if (key != RGFW_capsLock)
+						RGFW_keyboard[key + 4].current = 0;
+
+					win->event.type = RGFW_keyReleased;
+					win->event.key = key;
+					break;
+				}
+			}
+
+			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyMod, win->event.type == RGFW_keyPressed);
+
+			break;
+		}
+		case NSEventTypeLeftMouseDragged:
+		case NSEventTypeOtherMouseDragged:
+		case NSEventTypeRightMouseDragged:
+		case NSEventTypeMouseMoved: {
+			win->event.type = RGFW_mousePosChanged;
+			NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(e, sel_registerName("locationInWindow"));
+			win->event.point = RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y));
+
+			p.x = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaX"));
+			p.y = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaY"));
+			win->event.vector = RGFW_POINT((i32)p.x, (i32)p.y);
+			
+			win->_lastMousePoint = win->event.point;
+			RGFW_mousePosCallback(win, win->event.point, win->event.vector);
+			break;
+		}
+		case NSEventTypeLeftMouseDown: case NSEventTypeRightMouseDown: case NSEventTypeOtherMouseDown: {
+			u32 buttonNumber = objc_msgSend_uint(e, sel_registerName("buttonNumber"));
+			switch (buttonNumber) {
+				case 0: win->event.button = RGFW_mouseLeft; break;
+				case 1: win->event.button = RGFW_mouseRight; break;
+				case 2: win->event.button = RGFW_mouseMiddle; break;
+				default: win->event.button = buttonNumber;
+			}
+
+			win->event.type = RGFW_mouseButtonPressed;
+			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+			RGFW_mouseButtons[win->event.button].current = 1;
+			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
+			break;
+		}
+		case NSEventTypeLeftMouseUp: case NSEventTypeRightMouseUp: case NSEventTypeOtherMouseUp: {
+			u32 buttonNumber = objc_msgSend_uint(e, sel_registerName("buttonNumber"));
+			switch (buttonNumber) {
+				case 0: win->event.button = RGFW_mouseLeft; break;
+				case 1: win->event.button = RGFW_mouseRight; break;
+				case 2: win->event.button = RGFW_mouseMiddle; break;
+				default: win->event.button = buttonNumber;
+			}
+			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+			RGFW_mouseButtons[win->event.button].current = 0;
+			win->event.type = RGFW_mouseButtonReleased;
+			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
+			break;
+		}
+		case NSEventTypeScrollWheel: {
+			double deltaY = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(e, sel_registerName("deltaY"));
+
+			if (deltaY > 0) {
+				win->event.button = RGFW_mouseScrollUp;
+			}
+			else if (deltaY < 0) {
+				win->event.button = RGFW_mouseScrollDown;
+			}
+
+			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+			RGFW_mouseButtons[win->event.button].current = 1;
+
+			win->event.scroll = deltaY;
+
+			win->event.type = RGFW_mouseButtonPressed;
+			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
+			break;
+		}
+
+		default:
+			objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
+			((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
+			return RGFW_window_checkEvent(win);
+	}
+
+	objc_msgSend_void_id(NSApp, sel_registerName("sendEvent:"), e);
+	((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
+	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
+	return &win->event;
+}
+
+
+void RGFW_window_move(RGFW_window* win, RGFW_point v) {
+	RGFW_ASSERT(win != NULL);
+
+	win->r.x = v.x;
+	win->r.y = v.y;
+	((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
+		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{win->r.x, win->r.y}, {win->r.w, win->r.h}}, true, true);
+}
+
+void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
+	RGFW_ASSERT(win != NULL);
 		
-		NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
+	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
 	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
 	float offset = frame.size.height - content.size.height;
 
