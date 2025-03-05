@@ -1,9 +1,19 @@
 #define RGFW_IMPLEMENTATION
-#define RGFW_DEBUG
 #include "RGFW.h"
 
+#include <stdio.h>
 
 RGFW_window* window;
+
+void error(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const char* msg) {
+    if (type != RGFW_typeError || err == RGFW_noError) return; /* disregard non-errors */
+    /* only care about errors for this window 
+        If there were two windows and the error uses the root window it will also be ignored,
+            this may ignore important errors
+    */
+    if (window != ctx.win) return; 
+    printf("RGFW ERROR: %s\n", msg);
+}
 
 void windowmovefunc(RGFW_window* win, RGFW_rect r) {
     if (window != win) return;
