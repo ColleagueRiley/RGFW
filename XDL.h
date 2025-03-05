@@ -182,6 +182,8 @@ typedef char *(*PFN_XDisplayName)(const char *string);
 typedef Bool (*PFN_XkbGetState)(Display*, unsigned int, XkbStatePtr);
 typedef int (*PFN_XWidthOfScreen)(Screen* screen);
 typedef int (*PFN_XHeightOfScreen)(Screen* screen);
+typedef GC (*PFN_XCreateGC)(Display* display, Drawable d, unsigned long valuemask, XGCValues* values);
+typedef int (*PFN_XFreeGC)(Display *display, GC gc);
 
 #ifndef XDL_NO_XRANDR
 #include <X11/extensions/Xrandr.h>
@@ -317,6 +319,8 @@ PFN_XDisplayName XDisplayNameSrc;
 PFN_XkbGetState XkbGetStateSrc;
 PFN_XWidthOfScreen XWidthOfScreenSrc;
 PFN_XWidthOfScreen XHeightOfScreenSrc;
+PFN_XCreateGC XCreateGCSrc;
+PFN_XFreeGC XFreeGCSrc;
 #ifndef XDL_NO_XRANDR
 PFN_XRRGetScreenResourcesCurrent XRRGetScreenResourcesCurrentSrc;
 PFN_XRRGetCrtcInfo XRRGetCrtcInfoSrc;
@@ -367,6 +371,8 @@ PFN_glXDestroyContext glXDestroyContextSrc;
 #define XkbGetState XkbGetStateSrc
 #define XWidthOfScreen XWidthOfScreenSrc
 #define XHeightOfScreen XHeightOfScreenSrc
+#define XCreateGC XCreateGCSrc
+#define XFreeGC XFreeGCSrc
 #define XEventsQueued XEventsQueuedSrc
 #define XFilterEvent XFilterEventSrc
 #define XFindContext XFindContextSrc
@@ -611,6 +617,9 @@ void XDL_init(void) {
     XDL_PROC_DEF(0, XkbGetState);
     XDL_PROC_DEF(0, XWidthOfScreen);
     XDL_PROC_DEF(0, XHeightOfScreen);
+    XDL_PROC_DEF(0, XCreateGC);
+    XDL_PROC_DEF(0, XFreeGC);
+
     #ifndef XDL_NO_XRANDR
         XDL_PROC_DEF(2, XRRGetScreenResourcesCurrent);
         XDL_PROC_DEF(2, XRRGetCrtcInfo);

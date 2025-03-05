@@ -178,7 +178,7 @@ else
 endif
 
 examples/webgpu/webgpu: examples/webgpu/webgpu.c RGFW.h
-ifneq (,$(filter $(CC),emcc em++))      # web ASM
+ifeq ($(CC),emcc)      # web ASM
 	$(CC) $< -I. -s USE_WEBGPU=1 -o $@$(EXT)
 else
 	@echo webgpu is not supported on $(detected_OS)
