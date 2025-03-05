@@ -786,13 +786,15 @@ window structure for managing the window
 .SS "typedef RGFW_ENUM (\fBu32\fP, RGFW_windowFlags)"
 source data for the window (used by the APIs)
 .PP
-Optional arguments for making a windows < the window doesn't have border
+Optional arguments for making a windows < the window doesn't have a border
 .PP
 < the window cannot be resized by the user
 .PP
 < the window supports drag and drop
 .PP
 the window should hide the mouse (can be toggled later on using \fCRGFW_window_mouseShow\fP)
+.PP
+< the window is fullscreen by default
 .PP
 < the window is transparent (only properly works on X11 and MacOS, although it's meant for for windows)
 .PP

@@ -304,7 +304,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >for RGFW_window_eventWait and RGFW_window_checkEvents waitMS -&gt; Allows the function to keep checking for events even after <code>RGFW_window_checkEvent == NULL</code> if waitMS == 0, the loop will not wait for events if waitMS == a positive integer, the loop will wait that many miliseconds after there are no more events until it returns if waitMS == a the max size of a 32-bit int (or -1), the loop will not return until it gets another event </p>
+<p >for RGFW_window_eventWait and RGFW_window_checkEvents waitMS -&gt; Allows the function to keep checking for events even after <code>RGFW_window_checkEvent == NULL</code> if waitMS == 0, the loop will not wait for events if waitMS &gt; 0, the loop will wait that many miliseconds after there are no more events until it returns if waitMS == -1 or waitMS == the max size of an unsigned 32-bit int, the loop will not return until it gets another event </p>
 
 </div>
 </div>
@@ -389,7 +389,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >(cocoa only), change directory to resource folder </p>
+<p >(cocoa only) change directory to resource folder </p>
 
 </div>
 </div>
@@ -553,7 +553,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >check all the events until there are none left, this should only be used if you're using callbacks only </p>
+<p >check all the events until there are none left. This should only be used if you're using callbacks only </p>
 
 </div>
 </div>
@@ -757,7 +757,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >if window is floating </p>
+<p >if the window is floating </p>
 
 </div>
 </div>
@@ -776,7 +776,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >if window is fullscreen'd </p>
+<p >if the window is fullscreen </p>
 
 </div>
 </div>
@@ -795,7 +795,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >if window is hidden </p>
+<p >if the window is hidden </p>
 
 </div>
 </div>
@@ -814,7 +814,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >if window is maximized </p>
+<p >if the window is maximized </p>
 
 </div>
 </div>
@@ -833,7 +833,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >if window is minimized </p>
+<p >if the window is minimized </p>
 
 </div>
 </div>
@@ -852,7 +852,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >maximize the window size </p>
+<p >maximize the window </p>
 
 </div>
 </div>
@@ -966,7 +966,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >moves window to a given point </p>
+<p >move a window to a given point </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">v</td><td>new pos </td></tr>
@@ -1001,7 +1001,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >move the mouse to a set x, y pos </p>
+<p >move the mouse to a given point </p>
 
 </div>
 </div>
@@ -1030,7 +1030,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >move to a specific monitor </p>
+<p >move window to a specific monitor </p>
 
 </div>
 </div>
@@ -1278,7 +1278,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >fullscreen the window size </p>
+<p >turn fullscreen on / off for a window </p>
 
 </div>
 </div>
@@ -1404,7 +1404,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set the minimum size a user can extend a window to a given size/area </p>
+<p >set the maximum dimensions of a window </p>
 
 </div>
 </div>
@@ -1433,7 +1433,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set the minimum size a user can shrink a window to a given size/area </p>
+<p >set the minimum dimensions of a window </p>
 
 </div>
 </div>
@@ -1510,7 +1510,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >! turn on / off mouse passthrough </p>
+<p >turn on / off mouse passthrough </p>
 
 </div>
 </div>
@@ -1596,7 +1596,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >sets the opacity of the whole window </p>
+<p >sets the opacity of a window </p>
 
 </div>
 </div>

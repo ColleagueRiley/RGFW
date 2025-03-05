@@ -147,7 +147,7 @@ Functions</h2></td></tr>
 <tr class="separator:ga63550130742d2ca7e4fa4a28d61fcc2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p >Event callbacks, these are completely optional, you can use the normal RGFW_checkEvent() method if you prefer that </p>
+<p >event callbacks. These are completely optional, so you can use the normal RGFW_checkEvent() method if you prefer that </p>
 <h2 class="groupheader">Typedef Documentation</h2>
 <a id="ga434cff4c15dd2839a1e65f55c1d21188" name="ga434cff4c15dd2839a1e65f55c1d21188"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga434cff4c15dd2839a1e65f55c1d21188">&#9670;&#160;</a></span>RGFW_dndfunc</h2>
@@ -160,7 +160,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >RGFW_dnd, the window that had the drop, the drop data and the amount files dropped returns previous callback function (if it was set) </p>
+<p >RGFW_dnd, the window that had the drop, the drop data and the number of files dropped </p>
 
 </div>
 </div>
@@ -190,7 +190,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its inFocus </p>
+<p >RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its in focus </p>
 
 </div>
 </div>
@@ -205,7 +205,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >RGFW_gamepadAxisMove, the window that got the event, the gamepad in question, the axis values and the amount of axises </p>
+<p >RGFW_gamepadAxisMove, the window that got the event, the gamepad in question, the axis values and the axis count </p>
 
 </div>
 </div>
@@ -220,7 +220,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >gamepad /gamepad, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) </p>
+<p >RGFW_gamepadButtonPressed, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) </p>
 
 </div>
 </div>
@@ -235,7 +235,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >RGFW_gamepadConnected/RGFW_gamepadDisconnected, the window that got the event, the gamepad in question, if the controller was connected (or disconnected if false) </p>
+<p >RGFW_gamepadConnected / RGFW_gamepadDisconnected, the window that got the event, the gamepad in question, if the controller was connected (else it was disconnected) </p>
 
 </div>
 </div>
@@ -250,7 +250,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of mod keys, if it was a press (else it's a release) </p>
+<p >RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of the mod keys, if it was a press (else it's a release) </p>
 
 </div>
 </div>
@@ -296,7 +296,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >RGFW_mousePosChanged, the window that the move happened on and the new point of the mouse <br  />
+<p >RGFW_mousePosChanged, the window that the move happened on, and the new point of the mouse <br  />
  </p>
 
 </div>
@@ -379,7 +379,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set callback for a drop event event returns previous callback function (if it was set) <br  />
+<p >set callback for a drop event event. Returns previous callback function (if it was set) <br  />
  </p>
 
 </div>
@@ -399,7 +399,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set callback for a start of a drop event returns previous callback function (if it was set) <br  />
+<p >set callback for a start of a drop event. Returns previous callback function (if it was set) <br  />
  </p>
 
 </div>
@@ -419,7 +419,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set callback for a window focus change event returns previous callback function (if it was set) <br  />
+<p >set callback for a window focus change event. Returns previous callback function (if it was set) <br  />
  </p>
 
 </div>
@@ -439,7 +439,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set callback for a gamepad axis mov event returns previous callback function (if it was set) <br  />
+<p >set callback for a gamepad axis move event. Returns previous callback function (if it was set) <br  />
  </p>
 
 </div>
@@ -459,7 +459,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set callback for a controller button (press / release ) event returns previous callback function (if it was set) <br  />
+<p >set callback for a controller button (press / release) event. Returns previous callback function (if it was set) <br  />
  </p>
 
 </div>
@@ -479,7 +479,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set callback for when a controller is connected or disconnected set call back for when window is maximized </p>
+<p >set callback for when a controller is connected or disconnected. Returns the previous callback function (if it was set) </p>
 
 </div>
 </div>
@@ -498,7 +498,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set callback for a key (press / release ) event returns previous callback function (if it was set) <br  />
+<p >set callback for a key (press / release) event. Returns previous callback function (if it was set) <br  />
  </p>
 
 </div>
@@ -518,7 +518,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set callback for a mouse button (press / release ) event returns previous callback function (if it was set) <br  />
+<p >set callback for a mouse button (press / release) event. Returns previous callback function (if it was set) <br  />
  </p>
 
 </div>
@@ -538,7 +538,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set callback for a mouse notify event returns previous callback function (if it was set) <br  />
+<p >set callback for a mouse notify event. Returns previous callback function (if it was set) <br  />
  </p>
 
 </div>
@@ -558,7 +558,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set callback for a mouse move event returns previous callback function (if it was set) <br  />
+<p >set callback for a mouse move event. Returns previous callback function (if it was set) <br  />
  </p>
 
 </div>
@@ -578,7 +578,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set call back for when window is minimized </p>
+<p >set call back for when window is maximized. Returns the previous callback function (if it was set) </p>
 
 </div>
 </div>
@@ -597,7 +597,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set call back for when window is restored </p>
+<p >set call back for when window is minimized. Returns the previous callback function (if it was set) </p>
 
 </div>
 </div>
@@ -616,7 +616,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set callback for a window move event returns previous callback function (if it was set) <br  />
+<p >set callback for a window move event. Returns previous callback function (if it was set) <br  />
  </p>
 
 </div>
@@ -636,7 +636,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set callback for a window quit event returns previous callback function (if it was set) <br  />
+<p >set callback for a window quit event. Returns previous callback function (if it was set) <br  />
  </p>
 
 </div>
@@ -656,7 +656,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set callback for a window refresh event returns previous callback function (if it was set) <br  />
+<p >set callback for a window refresh event. Returns previous callback function (if it was set) <br  />
  </p>
 
 </div>
@@ -676,7 +676,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >set callback for a window resize event returns previous callback function (if it was set) <br  />
+<p >set callback for a window resize event. Returns previous callback function (if it was set) <br  />
  </p>
 
 </div>
@@ -696,6 +696,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >set call back for when window is restored. Returns the previous callback function (if it was set) </p>
 
 </div>
 </div>

@@ -109,23 +109,23 @@ Callbacks \- Callbacks
 .in -1c
 .SH "Detailed Description"
 .PP 
-Event callbacks, these are completely optional, you can use the normal RGFW_checkEvent() method if you prefer that 
+event callbacks\&. These are completely optional, so you can use the normal RGFW_checkEvent() method if you prefer that 
 .SH "Typedef Documentation"
 .PP 
 .SS "typedef void(* RGFW_dndfunc) (\fBRGFW_window\fP *win, char **droppedFiles, \fBu32\fP droppedFilesCount)"
-RGFW_dnd, the window that had the drop, the drop data and the amount files dropped returns previous callback function (if it was set) 
+RGFW_dnd, the window that had the drop, the drop data and the number of files dropped 
 .SS "typedef void(* RGFW_dndInitfunc) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point)"
 RGFW_DNDInit, the window, the point of the drop on the windows 
 .SS "typedef void(* RGFW_focusfunc) (\fBRGFW_window\fP *win, \fBRGFW_bool\fP inFocus)"
-RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its inFocus 
+RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its in focus 
 .SS "typedef void(* RGFW_gamepadAxisfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount, \fBu8\fP whichAxis)"
-RGFW_gamepadAxisMove, the window that got the event, the gamepad in question, the axis values and the amount of axises 
+RGFW_gamepadAxisMove, the window that got the event, the gamepad in question, the axis values and the axis count 
 .SS "typedef void(* RGFW_gamepadButtonfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBu8\fP button, \fBRGFW_bool\fP pressed)"
-gamepad /gamepad, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
+RGFW_gamepadButtonPressed, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
 .SS "typedef void(* RGFW_gamepadfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_bool\fP connected)"
-RGFW_gamepadConnected/RGFW_gamepadDisconnected, the window that got the event, the gamepad in question, if the controller was connected (or disconnected if false) 
+RGFW_gamepadConnected / RGFW_gamepadDisconnected, the window that got the event, the gamepad in question, if the controller was connected (else it was disconnected) 
 .SS "typedef void(* RGFW_keyfunc) (\fBRGFW_window\fP *win, \fBu8\fP key, char keyChar, RGFW_keymod keyMod, \fBRGFW_bool\fP pressed)"
-RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of mod keys, if it was a press (else it's a release) 
+RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of the mod keys, if it was a press (else it's a release) 
 .SS "typedef void(* RGFW_mousebuttonfunc) (\fBRGFW_window\fP *win, RGFW_mouseButton button, double scroll, \fBRGFW_bool\fP pressed)"
 RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
 .br
@@ -133,7 +133,7 @@ RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the even
 .SS "typedef void(* RGFW_mouseNotifyfunc) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point, \fBRGFW_bool\fP status)"
 RGFW_mouseEnter / RGFW_mouseLeave, the window that changed, the point of the mouse (enter only) and if the mouse has entered 
 .SS "typedef void(* RGFW_mouseposfunc) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point, \fBRGFW_point\fP vector)"
-RGFW_mousePosChanged, the window that the move happened on and the new point of the mouse 
+RGFW_mousePosChanged, the window that the move happened on, and the new point of the mouse 
 .br
  
 .SS "typedef void(* RGFW_windowmovefunc) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
@@ -151,65 +151,65 @@ RGFW_windowResized, the window and its new rect value
 .SH "Function Documentation"
 .PP 
 .SS "\fBRGFWDEF\fP \fBRGFW_dndfunc\fP RGFW_setDndCallback (\fBRGFW_dndfunc\fP func)"
-set callback for a drop event event returns previous callback function (if it was set) 
+set callback for a drop event event\&. Returns previous callback function (if it was set) 
 .br
  
 .SS "\fBRGFWDEF\fP \fBRGFW_dndInitfunc\fP RGFW_setDndInitCallback (\fBRGFW_dndInitfunc\fP func)"
-set callback for a start of a drop event returns previous callback function (if it was set) 
+set callback for a start of a drop event\&. Returns previous callback function (if it was set) 
 .br
  
 .SS "\fBRGFWDEF\fP \fBRGFW_focusfunc\fP RGFW_setFocusCallback (\fBRGFW_focusfunc\fP func)"
-set callback for a window focus change event returns previous callback function (if it was set) 
+set callback for a window focus change event\&. Returns previous callback function (if it was set) 
 .br
  
 .SS "\fBRGFWDEF\fP \fBRGFW_gamepadAxisfunc\fP RGFW_setgamepadAxisCallback (\fBRGFW_gamepadAxisfunc\fP func)"
-set callback for a gamepad axis mov event returns previous callback function (if it was set) 
+set callback for a gamepad axis move event\&. Returns previous callback function (if it was set) 
 .br
  
 .SS "\fBRGFWDEF\fP \fBRGFW_gamepadButtonfunc\fP RGFW_setgamepadButtonCallback (\fBRGFW_gamepadButtonfunc\fP func)"
-set callback for a controller button (press / release ) event returns previous callback function (if it was set) 
+set callback for a controller button (press / release) event\&. Returns previous callback function (if it was set) 
 .br
  
 .SS "\fBRGFWDEF\fP \fBRGFW_gamepadfunc\fP RGFW_setGamepadCallback (\fBRGFW_gamepadfunc\fP func)"
-set callback for when a controller is connected or disconnected set call back for when window is maximized 
+set callback for when a controller is connected or disconnected\&. Returns the previous callback function (if it was set) 
 .SS "\fBRGFWDEF\fP \fBRGFW_keyfunc\fP RGFW_setKeyCallback (\fBRGFW_keyfunc\fP func)"
-set callback for a key (press / release ) event returns previous callback function (if it was set) 
+set callback for a key (press / release) event\&. Returns previous callback function (if it was set) 
 .br
  
 .SS "\fBRGFWDEF\fP \fBRGFW_mousebuttonfunc\fP RGFW_setMouseButtonCallback (\fBRGFW_mousebuttonfunc\fP func)"
-set callback for a mouse button (press / release ) event returns previous callback function (if it was set) 
+set callback for a mouse button (press / release) event\&. Returns previous callback function (if it was set) 
 .br
  
 .SS "\fBRGFWDEF\fP \fBRGFW_mouseNotifyfunc\fP RGFW_setMouseNotifyCallBack (\fBRGFW_mouseNotifyfunc\fP func)"
-set callback for a mouse notify event returns previous callback function (if it was set) 
+set callback for a mouse notify event\&. Returns previous callback function (if it was set) 
 .br
  
 .SS "\fBRGFWDEF\fP \fBRGFW_mouseposfunc\fP RGFW_setMousePosCallback (\fBRGFW_mouseposfunc\fP func)"
-set callback for a mouse move event returns previous callback function (if it was set) 
+set callback for a mouse move event\&. Returns previous callback function (if it was set) 
 .br
  
 .SS "\fBRGFWDEF\fP \fBRGFW_windowresizefunc\fP RGFW_setWindowMaximizedCallback (\fBRGFW_windowresizefunc\fP func)"
-set call back for when window is minimized 
+set call back for when window is maximized\&. Returns the previous callback function (if it was set) 
 .SS "\fBRGFWDEF\fP \fBRGFW_windowresizefunc\fP RGFW_setWindowMinimizedCallback (\fBRGFW_windowresizefunc\fP func)"
-set call back for when window is restored 
+set call back for when window is minimized\&. Returns the previous callback function (if it was set) 
 .SS "\fBRGFWDEF\fP \fBRGFW_windowmovefunc\fP RGFW_setWindowMoveCallback (\fBRGFW_windowmovefunc\fP func)"
-set callback for a window move event returns previous callback function (if it was set) 
+set callback for a window move event\&. Returns previous callback function (if it was set) 
 .br
  
 .SS "\fBRGFWDEF\fP \fBRGFW_windowquitfunc\fP RGFW_setWindowQuitCallback (\fBRGFW_windowquitfunc\fP func)"
-set callback for a window quit event returns previous callback function (if it was set) 
+set callback for a window quit event\&. Returns previous callback function (if it was set) 
 .br
  
 .SS "\fBRGFWDEF\fP \fBRGFW_windowrefreshfunc\fP RGFW_setWindowRefreshCallback (\fBRGFW_windowrefreshfunc\fP func)"
-set callback for a window refresh event returns previous callback function (if it was set) 
+set callback for a window refresh event\&. Returns previous callback function (if it was set) 
 .br
  
 .SS "\fBRGFWDEF\fP \fBRGFW_windowresizefunc\fP RGFW_setWindowResizeCallback (\fBRGFW_windowresizefunc\fP func)"
-set callback for a window resize event returns previous callback function (if it was set) 
+set callback for a window resize event\&. Returns previous callback function (if it was set) 
 .br
  
 .SS "\fBRGFWDEF\fP \fBRGFW_windowresizefunc\fP RGFW_setWindowRestoredCallback (\fBRGFW_windowresizefunc\fP func)"
-
+set call back for when window is restored\&. Returns the previous callback function (if it was set) 
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.
