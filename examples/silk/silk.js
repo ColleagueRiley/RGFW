@@ -965,21 +965,21 @@ function dbg(text) {
 // === Body ===
 
 var ASM_CONSTS = {
-  71392: () => { Module.canvas.focus(); },  
- 71417: () => { Module.useWebGL = true; GLImmediate.init(); },  
- 71463: () => { window.addEventListener("keydown", (event) => { var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(key, code, 1); _free(key); _free(code); }, true); window.addEventListener("keyup", (event) => { var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(key, code, 0); _free(key); _free(code); }, true); },  
- 72409: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 73428: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 73499: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 73556: () => { return window.mouseX || 0; },  
- 73587: () => { return window.mouseY || 0; },  
- 73618: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 73765: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 73818: () => { return window.innerWidth; },  
- 73848: () => { return window.innerHeight; },  
- 73879: () => { Module.requestFullscreen(false, true); },  
- 73918: () => { Module.exitFullscreen(false, true); },  
- 73954: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
+  71408: () => { Module.canvas.focus(); },  
+ 71433: () => { Module.useWebGL = true; GLImmediate.init(); },  
+ 71479: () => { window.addEventListener("keydown", (event) => { var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(key, code, 1); _free(key); _free(code); }, true); window.addEventListener("keyup", (event) => { var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(key, code, 0); _free(key); _free(code); }, true); },  
+ 72425: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
+ 73444: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 73515: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 73572: () => { return window.mouseX || 0; },  
+ 73603: () => { return window.mouseY || 0; },  
+ 73634: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
+ 73781: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 73834: () => { return window.innerWidth; },  
+ 73864: () => { return window.innerHeight; },  
+ 73895: () => { Module.requestFullscreen(false, true); },  
+ 73934: () => { Module.exitFullscreen(false, true); },  
+ 73970: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
 };
 
 
