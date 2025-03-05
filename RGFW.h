@@ -7517,6 +7517,7 @@ void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { SetThreadPriority
 #include <objc/message.h>
 #include <mach/mach_time.h>
 #include <CoreVideo/CoreVideo.h>
+#include <CoreGraphics/CoreGraphics.h>
 
 typedef CGRect NSRect;
 typedef CGPoint NSPoint;
