@@ -7517,7 +7517,6 @@ void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { SetThreadPriority
 #include <objc/message.h>
 #include <mach/mach_time.h>
 #include <CoreVideo/CoreVideo.h>
-#include <CoreGraphics/CoreGraphics.h>
 
 typedef CGRect NSRect;
 typedef CGPoint NSPoint;
@@ -9387,7 +9386,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 		id cgContext = objc_msgSend_id(graphicsContext, sel_registerName("graphicsPort"));
 		// Draw the image in the context
 		NSRect bounds = (NSRect){{0,0}, {win->r.w, win->r.h}};
-		CGContextDrawImage((void*)cgContext, *(CGRect*)&bounds, image);
+		CGContextDrawImage((CGContextRef*)cgContext, *(CGRect*)&bounds, image);
 		// Flush the graphics context to ensure the drawing is displayed
 		objc_msgSend_id(graphicsContext, sel_registerName("flushGraphics"));
 
