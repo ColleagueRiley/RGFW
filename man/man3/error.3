@@ -13,6 +13,16 @@ error \- handling
 .RI "struct \fBRGFW_debugContext\fP"
 .br
 .in -1c
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBRGFW_DEBUG_CTX\fP(win,  err)   (\fBRGFW_debugContext\fP){win, (\fBRGFW_monitor\fP){}, err}"
+.br
+.ti -1c
+.RI "#define \fBRGFW_DEBUG_CTX_MON\fP(monitor)   (\fBRGFW_debugContext\fP){RGFW_root, monitor, 0}"
+.br
+.in -1c
 .SS "Typedefs"
 
 .in +1c
@@ -45,6 +55,12 @@ error \- handling
 .IP "\(bu" 2
 
 .PP
+
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define RGFW_DEBUG_CTX(win, err)   (\fBRGFW_debugContext\fP){win, (\fBRGFW_monitor\fP){}, err}"
+
+.SS "#define RGFW_DEBUG_CTX_MON(monitor)   (\fBRGFW_debugContext\fP){RGFW_root, monitor, 0}"
 
 .SH "Typedef Documentation"
 .PP 
