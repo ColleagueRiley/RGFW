@@ -3266,7 +3266,7 @@ $(function() {
 <div class="line"><a id="l03437" name="l03437"></a><span class="lineno"> 3437</span>    win-&gt;buffer = (<a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>*)buffer;</div>
 <div class="line"><a id="l03438" name="l03438"></a><span class="lineno"> 3438</span>    win-&gt;bufferSize = area;</div>
 <div class="line"><a id="l03439" name="l03439"></a><span class="lineno"> 3439</span> </div>
-<div class="line"><a id="l03440" name="l03440"></a><span class="lineno"> 3440</span>    <a class="code hl_function" href="group__error.html#ga9c153f132324795ebaa54be38ca5b4b8">RGFW_sendDebugInfo</a>(RGFW_typeInfo, RGFW_infoBuffer, <a class="code hl_define" href="group__error.html#gaecf4f2afb81862fd562a5d7bf47247e4">RGFW_DEBUG_CTX</a>((win, 0), <span class="stringliteral">&quot;createing a 4 channel buffer&quot;</span>);</div>
+<div class="line"><a id="l03440" name="l03440"></a><span class="lineno"> 3440</span>    <a class="code hl_function" href="group__error.html#ga9c153f132324795ebaa54be38ca5b4b8">RGFW_sendDebugInfo</a>(RGFW_typeInfo, RGFW_infoBuffer, <a class="code hl_define" href="group__error.html#gaecf4f2afb81862fd562a5d7bf47247e4">RGFW_DEBUG_CTX</a>(win, 0), <span class="stringliteral">&quot;createing a 4 channel buffer&quot;</span>);</div>
 <div class="line"><a id="l03441" name="l03441"></a><span class="lineno"> 3441</span><span class="preprocessor">    #ifdef RGFW_X11</span></div>
 <div class="line"><a id="l03442" name="l03442"></a><span class="lineno"> 3442</span><span class="preprocessor">        #ifdef RGFW_OSMESA</span></div>
 <div class="line"><a id="l03443" name="l03443"></a><span class="lineno"> 3443</span>                win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);</div>
@@ -7903,7 +7903,7 @@ $(function() {
 <div class="line"><a id="l08082" name="l08082"></a><span class="lineno"> 8082</span><span class="keywordtype">void</span> RGFW_osxInitIOKit(<span class="keywordtype">void</span>) {</div>
 <div class="line"><a id="l08083" name="l08083"></a><span class="lineno"> 8083</span>    IOHIDManagerRef hidManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);</div>
 <div class="line"><a id="l08084" name="l08084"></a><span class="lineno"> 8084</span>    <span class="keywordflow">if</span> (!hidManager) {</div>
-<div class="line"><a id="l08085" name="l08085"></a><span class="lineno"> 8085</span>        <a class="code hl_function" href="group__error.html#ga9c153f132324795ebaa54be38ca5b4b8">RGFW_sendDebugInfo</a>(RGFW_typeError, RGFW_errIOKit, <a class="code hl_define" href="group__error.html#gaecf4f2afb81862fd562a5d7bf47247e4">RGFW_DEBUG_CTX</a>(win, 0), <span class="stringliteral">&quot;Failed to create IOHIDManager.&quot;</span>);</div>
+<div class="line"><a id="l08085" name="l08085"></a><span class="lineno"> 8085</span>        <a class="code hl_function" href="group__error.html#ga9c153f132324795ebaa54be38ca5b4b8">RGFW_sendDebugInfo</a>(RGFW_typeError, RGFW_errIOKit, <a class="code hl_define" href="group__error.html#gaecf4f2afb81862fd562a5d7bf47247e4">RGFW_DEBUG_CTX</a>(RGFW_root, 0), <span class="stringliteral">&quot;Failed to create IOHIDManager.&quot;</span>);</div>
 <div class="line"><a id="l08086" name="l08086"></a><span class="lineno"> 8086</span>        <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l08087" name="l08087"></a><span class="lineno"> 8087</span>    }</div>
 <div class="line"><a id="l08088" name="l08088"></a><span class="lineno"> 8088</span> </div>
@@ -7914,7 +7914,7 @@ $(function() {
 <div class="line"><a id="l08093" name="l08093"></a><span class="lineno"> 8093</span>        &amp;kCFTypeDictionaryValueCallBacks</div>
 <div class="line"><a id="l08094" name="l08094"></a><span class="lineno"> 8094</span>    );</div>
 <div class="line"><a id="l08095" name="l08095"></a><span class="lineno"> 8095</span>    <span class="keywordflow">if</span> (!matchingDictionary) {</div>
-<div class="line"><a id="l08096" name="l08096"></a><span class="lineno"> 8096</span>        <a class="code hl_function" href="group__error.html#ga9c153f132324795ebaa54be38ca5b4b8">RGFW_sendDebugInfo</a>(RGFW_typeError, RGFW_errIOKit, <a class="code hl_define" href="group__error.html#gaecf4f2afb81862fd562a5d7bf47247e4">RGFW_DEBUG_CTX</a>(win, 0), <span class="stringliteral">&quot;Failed to create matching dictionary for IOKit.&quot;</span>);</div>
+<div class="line"><a id="l08096" name="l08096"></a><span class="lineno"> 8096</span>        <a class="code hl_function" href="group__error.html#ga9c153f132324795ebaa54be38ca5b4b8">RGFW_sendDebugInfo</a>(RGFW_typeError, RGFW_errIOKit, <a class="code hl_define" href="group__error.html#gaecf4f2afb81862fd562a5d7bf47247e4">RGFW_DEBUG_CTX</a>(RGFW_root, 0), <span class="stringliteral">&quot;Failed to create matching dictionary for IOKit.&quot;</span>);</div>
 <div class="line"><a id="l08097" name="l08097"></a><span class="lineno"> 8097</span>        CFRelease(hidManager);</div>
 <div class="line"><a id="l08098" name="l08098"></a><span class="lineno"> 8098</span>        <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l08099" name="l08099"></a><span class="lineno"> 8099</span>    }</div>

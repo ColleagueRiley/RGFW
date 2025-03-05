@@ -3437,7 +3437,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 	win->buffer = (u8*)buffer;
 	win->bufferSize = area;
 
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoBuffer, RGFW_DEBUG_CTX((win, 0), "createing a 4 channel buffer");
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoBuffer, RGFW_DEBUG_CTX(win, 0), "createing a 4 channel buffer");
 	#ifdef RGFW_X11
 		#ifdef RGFW_OSMESA
 				win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
@@ -8082,7 +8082,7 @@ RGFWDEF void RGFW_osxInitIOKit(void);
 void RGFW_osxInitIOKit(void) {
 	IOHIDManagerRef hidManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
 	if (!hidManager) {
-		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errIOKit, RGFW_DEBUG_CTX(win, 0), "Failed to create IOHIDManager.");
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errIOKit, RGFW_DEBUG_CTX(RGFW_root, 0), "Failed to create IOHIDManager.");
 		return;
 	}
 
@@ -8093,7 +8093,7 @@ void RGFW_osxInitIOKit(void) {
 		&kCFTypeDictionaryValueCallBacks
 	);
 	if (!matchingDictionary) {
-		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errIOKit, RGFW_DEBUG_CTX(win, 0), "Failed to create matching dictionary for IOKit.");
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errIOKit, RGFW_DEBUG_CTX(RGFW_root, 0), "Failed to create matching dictionary for IOKit.");
 		CFRelease(hidManager);
 		return;
 	}
