@@ -53,6 +53,7 @@ jobs:
         clang --version
         
         make CC=g++
+        make clean
         # Extract version numbers from Makefile
         brew install grep
         
