@@ -731,11 +731,11 @@ typedef struct RGFW_window_src {
 /*! Optional arguments for making a windows */
 typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowNoInitAPI = RGFW_BIT(0), /* do NOT init an API (mostly for bindings. you should use `#define RGFW_NO_API` in C) */
-	RGFW_windowNoBorder = RGFW_BIT(1), /*!< the window doesn't have a border () */
+	RGFW_windowNoBorder = RGFW_BIT(1), /*!< the window doesn't have a border */
 	RGFW_windowNoResize = RGFW_BIT(2), /*!< the window cannot be resized by the user */
 	RGFW_windowAllowDND = RGFW_BIT(3), /*!< the window supports drag and drop */
 	RGFW_windowHideMouse = RGFW_BIT(4), /*! the window should hide the mouse (can be toggled later on using `RGFW_window_mouseShow`) */
-	RGFW_windowFullscreen = RGFW_BIT(5), /* the window is fullscreen by default */
+	RGFW_windowFullscreen = RGFW_BIT(5), /*!< the window is fullscreen by default */
 	RGFW_windowTransparent = RGFW_BIT(6), /*!< the window is transparent (only properly works on X11 and MacOS, although it's meant for for windows) */
 	RGFW_windowCenter = RGFW_BIT(7), /*! center the window on the screen */
 	RGFW_windowOpenglSoftware = RGFW_BIT(8), /*! use OpenGL software rendering */
@@ -863,7 +863,7 @@ RGFWDEF void RGFW_stopCheckEvents(void);
 /*! window managment functions */
 RGFWDEF void RGFW_window_close(RGFW_window* win); /*!< close the window and free leftover data */
 
-/*! move window to a given point */
+/*! move a window to a given point */
 RGFWDEF void RGFW_window_move(RGFW_window* win,
 	RGFW_point v /*!< new pos */
 );
@@ -1037,7 +1037,7 @@ RGFWDEF void RGFW_writeClipboard(const char* text, u32 textLen); /*!< write text
 
 
 	event callbacks.
-	these are completely optional, you can use the normal
+	These are completely optional, so you can use the normal
 	RGFW_checkEvent() method if you prefer that
 
 * @defgroup Callbacks
@@ -1050,63 +1050,62 @@ typedef void (* RGFW_windowmovefunc)(RGFW_window* win, RGFW_rect r);
 typedef void (* RGFW_windowresizefunc)(RGFW_window* win, RGFW_rect r);
 /*! RGFW_quit, the window that was closed */
 typedef void (* RGFW_windowquitfunc)(RGFW_window* win);
-/*! RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its inFocus */
+/*! RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its in focus */
 typedef void (* RGFW_focusfunc)(RGFW_window* win, RGFW_bool inFocus);
 /*! RGFW_mouseEnter / RGFW_mouseLeave, the window that changed, the point of the mouse (enter only) and if the mouse has entered */
 typedef void (* RGFW_mouseNotifyfunc)(RGFW_window* win, RGFW_point point, RGFW_bool status);
-/*! RGFW_mousePosChanged, the window that the move happened on and the new point of the mouse  */
+/*! RGFW_mousePosChanged, the window that the move happened on, and the new point of the mouse  */
 typedef void (* RGFW_mouseposfunc)(RGFW_window* win, RGFW_point point, RGFW_point vector);
 /*! RGFW_DNDInit, the window, the point of the drop on the windows */
 typedef void (* RGFW_dndInitfunc)(RGFW_window* win, RGFW_point point);
 /*! RGFW_windowRefresh, the window that needs to be refreshed */
 typedef void (* RGFW_windowrefreshfunc)(RGFW_window* win);
-/*! RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of mod keys, if it was a press (else it's a release) */
+/*! RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of the mod keys, if it was a press (else it's a release) */
 typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, char keyChar, RGFW_keymod keyMod, RGFW_bool pressed);
 /*! RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release)  */
 typedef void (* RGFW_mousebuttonfunc)(RGFW_window* win, RGFW_mouseButton button, double scroll, RGFW_bool pressed);
-/*!gamepad /gamepad, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) */
+/*! RGFW_gamepadButtonPressed, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) */
 typedef void (* RGFW_gamepadButtonfunc)(RGFW_window* win, u16 gamepad, u8 button, RGFW_bool pressed);
-/*! RGFW_gamepadAxisMove, the window that got the event, the gamepad in question, the axis values and the amount of axises */
+/*! RGFW_gamepadAxisMove, the window that got the event, the gamepad in question, the axis values and the axis count */
 typedef void (* RGFW_gamepadAxisfunc)(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount, u8 whichAxis);
-/*! RGFW_gamepadConnected/RGFW_gamepadDisconnected, the window that got the event, the gamepad in question, if the controller was connected (or disconnected if false) */
+/*! RGFW_gamepadConnected / RGFW_gamepadDisconnected, the window that got the event, the gamepad in question, if the controller was connected (else it was disconnected) */
 typedef void (* RGFW_gamepadfunc)(RGFW_window* win, u16 gamepad, RGFW_bool connected);
-
-/*!  RGFW_dnd, the window that had the drop, the drop data and the amount files dropped returns previous callback function (if it was set) */
+/*! RGFW_dnd, the window that had the drop, the drop data and the number of files dropped */
 typedef void (* RGFW_dndfunc)(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount);
 
-/*! set callback for a window move event returns previous callback function (if it was set)  */
+/*! set callback for a window move event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_windowmovefunc RGFW_setWindowMoveCallback(RGFW_windowmovefunc func);
-/*! set callback for a window resize event returns previous callback function (if it was set)  */
+/*! set callback for a window resize event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_windowresizefunc RGFW_setWindowResizeCallback(RGFW_windowresizefunc func);
-/*! set callback for a window quit event returns previous callback function (if it was set)  */
+/*! set callback for a window quit event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_windowquitfunc RGFW_setWindowQuitCallback(RGFW_windowquitfunc func);
-/*! set callback for a mouse move event returns previous callback function (if it was set)  */
+/*! set callback for a mouse move event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_mouseposfunc RGFW_setMousePosCallback(RGFW_mouseposfunc func);
-/*! set callback for a window refresh event returns previous callback function (if it was set)  */
+/*! set callback for a window refresh event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_windowrefreshfunc RGFW_setWindowRefreshCallback(RGFW_windowrefreshfunc func);
-/*! set callback for a window focus change event returns previous callback function (if it was set)  */
+/*! set callback for a window focus change event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_focusfunc RGFW_setFocusCallback(RGFW_focusfunc func);
-/*! set callback for a mouse notify event returns previous callback function (if it was set)  */
+/*! set callback for a mouse notify event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_mouseNotifyfunc RGFW_setMouseNotifyCallBack(RGFW_mouseNotifyfunc func);
-/*! set callback for a drop event event returns previous callback function (if it was set)  */
+/*! set callback for a drop event event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_dndfunc RGFW_setDndCallback(RGFW_dndfunc func);
-/*! set callback for a start of a drop event returns previous callback function (if it was set)  */
+/*! set callback for a start of a drop event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_dndInitfunc RGFW_setDndInitCallback(RGFW_dndInitfunc func);
-/*! set callback for a key (press / release ) event returns previous callback function (if it was set)  */
+/*! set callback for a key (press / release) event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_keyfunc RGFW_setKeyCallback(RGFW_keyfunc func);
-/*! set callback for a mouse button (press / release ) event returns previous callback function (if it was set)  */
+/*! set callback for a mouse button (press / release) event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_mousebuttonfunc RGFW_setMouseButtonCallback(RGFW_mousebuttonfunc func);
-/*! set callback for a controller button (press / release ) event returns previous callback function (if it was set)  */
+/*! set callback for a controller button (press / release) event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_gamepadButtonfunc RGFW_setgamepadButtonCallback(RGFW_gamepadButtonfunc func);
-/*! set callback for a gamepad axis mov event returns previous callback function (if it was set)  */
+/*! set callback for a gamepad axis move event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_gamepadAxisfunc RGFW_setgamepadAxisCallback(RGFW_gamepadAxisfunc func);
-/*! set callback for when a controller is connected or disconnected */
+/*! set callback for when a controller is connected or disconnected. Returns the previous callback function (if it was set) */
 RGFWDEF RGFW_gamepadfunc RGFW_setGamepadCallback(RGFW_gamepadfunc func);
-/*!< set call back for when window is maximized */
+/*! set call back for when window is maximized. Returns the previous callback function (if it was set) */
 RGFWDEF RGFW_windowresizefunc RGFW_setWindowMaximizedCallback(RGFW_windowresizefunc func);
-/*!< set call back for when window is minimized */
+/*! set call back for when window is minimized. Returns the previous callback function (if it was set) */
 RGFWDEF RGFW_windowresizefunc RGFW_setWindowMinimizedCallback(RGFW_windowresizefunc func);
-/*!< set call back for when window is restored */
+/*! set call back for when window is restored. Returns the previous callback function (if it was set) */
 RGFWDEF RGFW_windowresizefunc RGFW_setWindowRestoredCallback(RGFW_windowresizefunc func);
 
 /** @} */
