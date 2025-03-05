@@ -1,6 +1,5 @@
 - (look into content scale callback?)
 - RGFW_event unions
-- error handling
 - update wayland support
 - look into monitor gamma
 - set gamepad mappings
