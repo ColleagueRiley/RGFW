@@ -3435,7 +3435,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 	win->buffer = (u8*)buffer;
 	win->bufferSize = area;
 
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_errBuffer, (RGFW_debugContext){.win = win}, "createing a 4 channel buffer");
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoBuffer, (RGFW_debugContext){.win = win}, "createing a 4 channel buffer");
 	#ifdef RGFW_X11
 		#ifdef RGFW_OSMESA
 				win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
@@ -6067,7 +6067,7 @@ int RGFW_window_createDXSwapChain(RGFW_window* win, IDXGIFactory* pFactory, IUnk
 
     HRESULT hr = pFactory->lpVtbl->CreateSwapChain(pFactory, (IUnknown*)pDevice, &swapChainDesc, swapchain);
     if (FAILED(hr)) {
-        RGFW_sendDebugInfo(RGFW_typeError, RGFW_errDirectXContext, (RGFW_debugContext){.src = hr}, "Failed to create DirectX swap chain!");
+        RGFW_sendDebugInfo(RGFW_typeError, RGFW_errDirectXContext, (RGFW_debugContext){.srcError = hr}, "Failed to create DirectX swap chain!");
         return -2;
     }
 
