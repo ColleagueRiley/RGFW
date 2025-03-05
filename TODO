@@ -1,6 +1,4 @@
 - (look into content scale callback?)
-
-- c++ testing (in )
 - RGFW_event unions
 - error handling
 - update wayland support
