@@ -1,4 +1,4 @@
-.TH "XDL.h" 3 "Tue Mar 4 2025" "RGFW" \" -*- nroff -*-
+.TH "XDL.h" 3 "Wed Mar 5 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -99,6 +99,12 @@ XDL.h
 .br
 .ti -1c
 .RI "#define \fBXHeightOfScreen\fP   \fBXHeightOfScreenSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXCreateGC\fP   \fBXCreateGCSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXFreeGC\fP   \fBXFreeGCSrc\fP"
 .br
 .ti -1c
 .RI "#define \fBXEventsQueued\fP   \fBXEventsQueuedSrc\fP"
@@ -744,6 +750,12 @@ XDL.h
 .RI "typedef int(* \fBPFN_XHeightOfScreen\fP) (Screen *screen)"
 .br
 .ti -1c
+.RI "typedef GC(* \fBPFN_XCreateGC\fP) (Display *display, Drawable d, unsigned long valuemask, XGCValues *values)"
+.br
+.ti -1c
+.RI "typedef int(* \fBPFN_XFreeGC\fP) (Display *display, GC gc)"
+.br
+.ti -1c
 .RI "typedef XRRScreenResources *(* \fBPFN_XRRGetScreenResourcesCurrent\fP) (Display *display, Window window)"
 .br
 .ti -1c
@@ -1130,6 +1142,12 @@ XDL.h
 .RI "\fBPFN_XWidthOfScreen\fP \fBXHeightOfScreenSrc\fP"
 .br
 .ti -1c
+.RI "\fBPFN_XCreateGC\fP \fBXCreateGCSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XFreeGC\fP \fBXFreeGCSrc\fP"
+.br
+.ti -1c
 .RI "\fBPFN_XRRGetScreenResourcesCurrent\fP \fBXRRGetScreenResourcesCurrentSrc\fP"
 .br
 .ti -1c
@@ -1236,6 +1254,8 @@ XDL.h
 
 .SS "#define XCreateFontCursor   \fBXCreateFontCursorSrc\fP"
 
+.SS "#define XCreateGC   \fBXCreateGCSrc\fP"
+
 .SS "#define XCreateIC   \fBXCreateICSrc\fP"
 
 .SS "#define XCreateRegion   \fBXCreateRegionSrc\fP"
@@ -1283,6 +1303,8 @@ XDL.h
 .SS "#define XFreeCursor   \fBXFreeCursorSrc\fP"
 
 .SS "#define XFreeEventData   \fBXFreeEventDataSrc\fP"
+
+.SS "#define XFreeGC   \fBXFreeGCSrc\fP"
 
 .SS "#define XGetAtomName   \fBXGetAtomNameSrc\fP"
 
@@ -1488,6 +1510,8 @@ XDL.h
 
 .SS "typedef Cursor(* PFN_XCreateFontCursor) (Display *, unsigned int)"
 
+.SS "typedef GC(* PFN_XCreateGC) (Display *display, Drawable d, unsigned long valuemask, XGCValues *values)"
+
 .SS "typedef XIC(* PFN_XCreateIC) (XIM,\&.\&.\&.)"
 
 .SS "typedef Region(* PFN_XCreateRegion) (void)"
@@ -1533,6 +1557,8 @@ XDL.h
 .SS "typedef int(* PFN_XFreeCursor) (Display *, Cursor)"
 
 .SS "typedef void(* PFN_XFreeEventData) (Display *, XGenericEventCookie *)"
+
+.SS "typedef int(* PFN_XFreeGC) (Display *display, GC gc)"
 
 .SS "typedef char *(* PFN_XGetAtomName) (Display *, Atom)"
 
@@ -1760,6 +1786,8 @@ XDL.h
 
 .SS "\fBPFN_XCreateFontCursor\fP XCreateFontCursorSrc"
 
+.SS "\fBPFN_XCreateGC\fP XCreateGCSrc"
+
 .SS "\fBPFN_XCreateIC\fP XCreateICSrc"
 
 .SS "\fBPFN_XCreateRegion\fP XCreateRegionSrc"
@@ -1803,6 +1831,8 @@ XDL.h
 .SS "\fBPFN_XFreeCursor\fP XFreeCursorSrc"
 
 .SS "\fBPFN_XFreeEventData\fP XFreeEventDataSrc"
+
+.SS "\fBPFN_XFreeGC\fP XFreeGCSrc"
 
 .SS "\fBPFN_XFree\fP XFreeSrc"
 

@@ -220,7 +220,7 @@ void mu_set_focus(mu_Context *ctx, mu_Id id) {
 #define HASH_INITIAL 2166136261
 
 static void hash(mu_Id *hash, const void *data, int size) {
-  const unsigned char *p = data;
+  const unsigned char* p = (const unsigned char*)data;
   while (size--) {
     *hash = (*hash ^ *p++) * 16777619;
   }

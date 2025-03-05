@@ -209,7 +209,7 @@ int initVulkanDevice(RGFW_window* win, vulkanContext* ctx) {
     ctx->width = win->r.w;
     ctx->height = win->r.h;
 
-    VkApplicationInfo appInfo = { 0 };
+    VkApplicationInfo appInfo = (VkApplicationInfo){ 0 };
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "vkapp";
     appInfo.apiVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -231,7 +231,7 @@ int initVulkanDevice(RGFW_window* win, vulkanContext* ctx) {
     for (int i = 0; i < enabledExtensionCount; i++) {
         printf("%s\n", ppEnabledExtensionNames[i]);
     }
-    VkInstanceCreateInfo instance_create_info = { 0 };
+    VkInstanceCreateInfo instance_create_info = (VkInstanceCreateInfo){ 0 };
     instance_create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instance_create_info.pApplicationInfo = &appInfo;
     instance_create_info.enabledExtensionCount = enabledExtensionCount;
@@ -266,13 +266,13 @@ int initVulkanDevice(RGFW_window* win, vulkanContext* ctx) {
 
     float queuePriority = 1.0f;
 
-    VkPhysicalDeviceFeatures device_features = { 0 };
+    VkPhysicalDeviceFeatures device_features = (VkPhysicalDeviceFeatures){ 0 };
 
-    VkDeviceCreateInfo device_create_info = { 0 };
+    VkDeviceCreateInfo device_create_info = (VkDeviceCreateInfo){ 0 };
     device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     VkDeviceQueueCreateInfo queue_create_infos[2] = {
-        {0},
-        {0},
+        (VkDeviceQueueCreateInfo){0},
+        (VkDeviceQueueCreateInfo){0},
     };
     queue_create_infos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queue_create_infos[0].queueCount = 1;

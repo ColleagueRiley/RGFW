@@ -246,7 +246,7 @@ int main(int argc, char **argv) {
   r_init();
 
   /* init microui */
-  mu_Context *ctx = malloc(sizeof(mu_Context));
+  mu_Context *ctx = (mu_Context*)malloc(sizeof(mu_Context));
   mu_init(ctx);
   ctx->text_width = text_width;
   ctx->text_height = text_height;
@@ -271,7 +271,7 @@ int main(int argc, char **argv) {
         }
 		
         case RGFW_keyPressed: {
-		  char str[2] = {window->event.keyChar, '\0'};
+		  char str[2] = {(char)window->event.keyChar, '\0'};
 		  mu_input_text(ctx, str);
 	    }
 		case RGFW_keyReleased: {

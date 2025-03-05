@@ -593,11 +593,6 @@ RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
 /* NOTE: some parts of the data can represent different things based on the event (read comments in RGFW_event struct) */
 /*! Event structure for checking/getting events */
 typedef struct RGFW_event {
-	/*! drag and drop data */
-	/* 260 max paths with a max length of 260 */
-	char** droppedFiles; /*!< dropped files */
-	size_t droppedFilesCount; /*!< house many files were dropped */
-
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_point point; /*!< mouse x, y of event (or drop point) */
 	RGFW_point vector; /*!< raw mouse movement */
@@ -618,6 +613,11 @@ typedef struct RGFW_event {
 
 	u8 whichAxis; /* which axis was effected */
 	RGFW_point axis[4]; /*!< x, y of axises (-100 to 100) */
+
+	/*! drag and drop data */
+	/* 260 max paths with a max length of 260 */
+	char** droppedFiles; /*!< dropped files */
+	size_t droppedFilesCount; /*!< house many files were dropped */
 
 	u64 frameTime, frameTime2; /*!< this is used for counting the fps */
 	void* _win; /*!< the window this event applies too (for event queue events) */
@@ -9534,7 +9534,7 @@ EM_BOOL Emscripten_on_mousedown(int eventType, const EmscriptenMouseEvent* e, vo
 	RGFW_eventQueuePush((RGFW_event){.type = RGFW_mouseButtonPressed,
 									.point = RGFW_POINT(e->targetX, e->targetY),
 									.vector = RGFW_POINT(e->movementX, e->movementY),
-									.button = button,
+									.button = (u8)button,
 									.scroll = 0,
 									._win = RGFW_root});
 	RGFW_mouseButtons[button].prev = RGFW_mouseButtons[button].current;
@@ -9554,7 +9554,7 @@ EM_BOOL Emscripten_on_mouseup(int eventType, const EmscriptenMouseEvent* e, void
 	RGFW_eventQueuePush((RGFW_event){.type = RGFW_mouseButtonReleased,
 									.point = RGFW_POINT(e->targetX, e->targetY),
 									.vector = RGFW_POINT(e->movementX, e->movementY),
-									.button = button,
+									.button = (u8)button,
 									.scroll = 0,
 									._win = RGFW_root});
 	RGFW_mouseButtons[button].prev = RGFW_mouseButtons[button].current;
@@ -9569,8 +9569,8 @@ EM_BOOL Emscripten_on_wheel(int eventType, const EmscriptenWheelEvent* e, void* 
 
 	int button =  RGFW_mouseScrollUp + (e->deltaY < 0);
 	RGFW_eventQueuePush((RGFW_event){.type = RGFW_mouseButtonPressed,
-									.button = button,
-									.scroll = e->deltaY < 0 ? 1 : -1,
+									.button = (u8)button,
+									.scroll = (double)(e->deltaY < 0 ? 1 : -1),
 									._win = RGFW_root});
 	RGFW_mouseButtons[button].prev = RGFW_mouseButtons[button].current;
 	RGFW_mouseButtons[button].current = 1;
@@ -9660,8 +9660,8 @@ EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamep
 		RGFW_gamepadCount--;
 	}
 
-	RGFW_eventQueuePush((RGFW_event){.type = gamepadEvent->connected ? RGFW_gamepadConnected : RGFW_gamepadConnected,
-									.gamepad = gamepadEvent->index,
+	RGFW_eventQueuePush((RGFW_event){.type = (RGFW_eventType)(gamepadEvent->connected ? RGFW_gamepadConnected : RGFW_gamepadConnected),
+									.gamepad = (u16)gamepadEvent->index,
 									._win = RGFW_root});
 
 	RGFW_gamepadCallback(RGFW_root, gamepadEvent->index, gamepadEvent->connected);
@@ -9788,9 +9788,9 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool p
 		if (*((u32*)key) == *((u32*)"Tab")) mappedKey = RGFW_tab;
 	}
 
-	RGFW_eventQueuePush((RGFW_event){.type = press ? RGFW_keyPressed : RGFW_keyReleased,
-										.key = physicalKey,
-										.keyChar = mappedKey,
+	RGFW_eventQueuePush((RGFW_event){.type = (RGFW_eventType)(press ? RGFW_keyPressed : RGFW_keyReleased),
+										.key = (u8)physicalKey,
+										.keyChar = (u8)mappedKey,
 										.keyMod = RGFW_root->event.keyMod, 
 										._win = RGFW_root});
 

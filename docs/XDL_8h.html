@@ -142,6 +142,10 @@ Macros</h2></td></tr>
 <tr class="separator:a98df9ec892ff18460868caa5eecdcd27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad3e12175a8f5804710a6bbd9a6a0c555"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#ad3e12175a8f5804710a6bbd9a6a0c555">XHeightOfScreen</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a418cab9ec4febcd3101d0346581674ca">XHeightOfScreenSrc</a></td></tr>
 <tr class="separator:ad3e12175a8f5804710a6bbd9a6a0c555"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99181b11f494a43cdfd0d3707c7a12e8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a99181b11f494a43cdfd0d3707c7a12e8">XCreateGC</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a290a49c46855e08ccba3533b155455e3">XCreateGCSrc</a></td></tr>
+<tr class="separator:a99181b11f494a43cdfd0d3707c7a12e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24f6c4de6a3fda04c042c5b53f7e0855"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a24f6c4de6a3fda04c042c5b53f7e0855">XFreeGC</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#aac8a49246a54a2b61f2387fc93449905">XFreeGCSrc</a></td></tr>
+<tr class="separator:a24f6c4de6a3fda04c042c5b53f7e0855"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad039a3bcfdc08a2179b834e7f92d8cab"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#ad039a3bcfdc08a2179b834e7f92d8cab">XEventsQueued</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a19049059b14a189e1084871e0943d8fb">XEventsQueuedSrc</a></td></tr>
 <tr class="separator:ad039a3bcfdc08a2179b834e7f92d8cab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0cc1976720c5b678e95ab46bd84f113e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a0cc1976720c5b678e95ab46bd84f113e">XFilterEvent</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#afd3adbe32f967aae7ae218be582c56ec">XFilterEventSrc</a></td></tr>
@@ -571,6 +575,10 @@ Typedefs</h2></td></tr>
 <tr class="separator:a31eb118069f4a6790eb8ada0410c8e4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aff87519f3e595c0204898a846b5deed8"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#aff87519f3e595c0204898a846b5deed8">PFN_XHeightOfScreen</a>) (Screen *screen)</td></tr>
 <tr class="separator:aff87519f3e595c0204898a846b5deed8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac927f205528e7dc3c1d882524e94ed1"><td class="memItemLeft" align="right" valign="top">typedef GC(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#aac927f205528e7dc3c1d882524e94ed1">PFN_XCreateGC</a>) (Display *display, Drawable d, unsigned long valuemask, XGCValues *values)</td></tr>
+<tr class="separator:aac927f205528e7dc3c1d882524e94ed1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12b6938e00322dac171e9562295b302c"><td class="memItemLeft" align="right" valign="top">typedef int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a12b6938e00322dac171e9562295b302c">PFN_XFreeGC</a>) (Display *display, GC gc)</td></tr>
+<tr class="separator:a12b6938e00322dac171e9562295b302c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:add9adfc2dc97e2bd318c09927216807e"><td class="memItemLeft" align="right" valign="top">typedef XRRScreenResources *(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#add9adfc2dc97e2bd318c09927216807e">PFN_XRRGetScreenResourcesCurrent</a>) (Display *display, Window window)</td></tr>
 <tr class="separator:add9adfc2dc97e2bd318c09927216807e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a86c9ba892cf7fb886265b80b835ad161"><td class="memItemLeft" align="right" valign="top">typedef XRRCrtcInfo *(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a86c9ba892cf7fb886265b80b835ad161">PFN_XRRGetCrtcInfo</a>) (Display *display, XRRScreenResources *resources, RRCrtc crtc)</td></tr>
@@ -829,6 +837,10 @@ Variables</h2></td></tr>
 <tr class="separator:a822a2466a0e93718be631c3c22d694bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a418cab9ec4febcd3101d0346581674ca"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#a31eb118069f4a6790eb8ada0410c8e4b">PFN_XWidthOfScreen</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a418cab9ec4febcd3101d0346581674ca">XHeightOfScreenSrc</a></td></tr>
 <tr class="separator:a418cab9ec4febcd3101d0346581674ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a290a49c46855e08ccba3533b155455e3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#aac927f205528e7dc3c1d882524e94ed1">PFN_XCreateGC</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a290a49c46855e08ccba3533b155455e3">XCreateGCSrc</a></td></tr>
+<tr class="separator:a290a49c46855e08ccba3533b155455e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac8a49246a54a2b61f2387fc93449905"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#a12b6938e00322dac171e9562295b302c">PFN_XFreeGC</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#aac8a49246a54a2b61f2387fc93449905">XFreeGCSrc</a></td></tr>
+<tr class="separator:aac8a49246a54a2b61f2387fc93449905"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e899f15c78da4411dc0477dc5aa1839"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#add9adfc2dc97e2bd318c09927216807e">PFN_XRRGetScreenResourcesCurrent</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a8e899f15c78da4411dc0477dc5aa1839">XRRGetScreenResourcesCurrentSrc</a></td></tr>
 <tr class="separator:a8e899f15c78da4411dc0477dc5aa1839"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a84aa173b206bf634ab99fdc5ec14e0e3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#a86c9ba892cf7fb886265b80b835ad161">PFN_XRRGetCrtcInfo</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a84aa173b206bf634ab99fdc5ec14e0e3">XRRGetCrtcInfoSrc</a></td></tr>
@@ -1217,6 +1229,20 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a99181b11f494a43cdfd0d3707c7a12e8" name="a99181b11f494a43cdfd0d3707c7a12e8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99181b11f494a43cdfd0d3707c7a12e8">&#9670;&#160;</a></span>XCreateGC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define XCreateGC&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a290a49c46855e08ccba3533b155455e3">XCreateGCSrc</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a891f8379cad862260813b6e2414c0323" name="a891f8379cad862260813b6e2414c0323"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a891f8379cad862260813b6e2414c0323">&#9670;&#160;</a></span>XCreateIC</h2>
 
@@ -1547,6 +1573,20 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define XFreeEventData&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a3e9fd3fd50def13f63e5b3ef1de177e0">XFreeEventDataSrc</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a24f6c4de6a3fda04c042c5b53f7e0855" name="a24f6c4de6a3fda04c042c5b53f7e0855"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a24f6c4de6a3fda04c042c5b53f7e0855">&#9670;&#160;</a></span>XFreeGC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define XFreeGC&#160;&#160;&#160;<a class="el" href="XDL_8h.html#aac8a49246a54a2b61f2387fc93449905">XFreeGCSrc</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -2968,6 +3008,20 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="aac927f205528e7dc3c1d882524e94ed1" name="aac927f205528e7dc3c1d882524e94ed1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac927f205528e7dc3c1d882524e94ed1">&#9670;&#160;</a></span>PFN_XCreateGC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef GC(* PFN_XCreateGC) (Display *display, Drawable d, unsigned long valuemask, XGCValues *values)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ad3cc1c310a7b27da4cc16c92a518b344" name="ad3cc1c310a7b27da4cc16c92a518b344"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad3cc1c310a7b27da4cc16c92a518b344">&#9670;&#160;</a></span>PFN_XCreateIC</h2>
 
@@ -3284,6 +3338,20 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">typedef void(* PFN_XFreeEventData) (Display *, XGenericEventCookie *)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a12b6938e00322dac171e9562295b302c" name="a12b6938e00322dac171e9562295b302c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12b6938e00322dac171e9562295b302c">&#9670;&#160;</a></span>PFN_XFreeGC</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef int(* PFN_XFreeGC) (Display *display, GC gc)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4854,6 +4922,20 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a290a49c46855e08ccba3533b155455e3" name="a290a49c46855e08ccba3533b155455e3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a290a49c46855e08ccba3533b155455e3">&#9670;&#160;</a></span>XCreateGCSrc</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="XDL_8h.html#aac927f205528e7dc3c1d882524e94ed1">PFN_XCreateGC</a> XCreateGCSrc</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ab974b365b9da7b900d3106e55778780c" name="ab974b365b9da7b900d3106e55778780c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab974b365b9da7b900d3106e55778780c">&#9670;&#160;</a></span>XCreateICSrc</h2>
 
@@ -5156,6 +5238,20 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="XDL_8h.html#ad7e37bc858e00b063102844e81903451">PFN_XFreeEventData</a> XFreeEventDataSrc</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aac8a49246a54a2b61f2387fc93449905" name="aac8a49246a54a2b61f2387fc93449905"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac8a49246a54a2b61f2387fc93449905">&#9670;&#160;</a></span>XFreeGCSrc</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="XDL_8h.html#a12b6938e00322dac171e9562295b302c">PFN_XFreeGC</a> XFreeGCSrc</td>
         </tr>
       </table>
 </div><div class="memdoc">
