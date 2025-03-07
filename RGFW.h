@@ -2194,6 +2194,7 @@ u32 RGFW_checkFPS(double startTime, u32 frameCount, u32 fpsCap) {
 	return (u32) fps;
 }
 
+#ifdef RGFW_BUFFER
 void RGFW_RGB_to_BGR(RGFW_window* win, u8* data) {
 	#if !defined(RGFW_BUFFER_BGR) && !defined(RGFW_OSMESA)
 	u32 x, y;
@@ -2208,6 +2209,7 @@ void RGFW_RGB_to_BGR(RGFW_window* win, u8* data) {
 	}
 	#endif
 }
+#endif
 	
 u32 RGFW_isPressedGamepad(RGFW_window* win, u8 c, RGFW_gamepadCodes button) {
 	RGFW_UNUSED(win);
@@ -5432,7 +5434,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	/* clear the window */
 	if (!(win->_flags & RGFW_NO_CPU_RENDER)) {
 		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-			RGFW_area area = win->bufferSize;
+			RGFW_area area = win->buffeize;
 			win->src.bitmap->data = (char*) win->buffer;
 			RGFW_RGB_to_BGR(win, win->src.bitmap->data);
 			XPutImage(win->src.display, win->src.window, win->src.gc, win->src.bitmap, 0, 0, 0, 0, win->bufferSize.w, win->bufferSize.h);
