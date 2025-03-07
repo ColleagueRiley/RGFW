@@ -2024,7 +2024,7 @@ $(function() {
 <div class="line"><a id="l02194" name="l02194"></a><span class="lineno"> 2194</span>    <span class="keywordflow">return</span> (<a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>) fps;</div>
 <div class="line"><a id="l02195" name="l02195"></a><span class="lineno"> 2195</span>}</div>
 <div class="line"><a id="l02196" name="l02196"></a><span class="lineno"> 2196</span> </div>
-<div class="line"><a id="l02197" name="l02197"></a><span class="lineno"> 2197</span><span class="preprocessor">#ifdef RGFW_BUFFER</span></div>
+<div class="line"><a id="l02197" name="l02197"></a><span class="lineno"> 2197</span><span class="preprocessor">#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)</span></div>
 <div class="line"><a id="l02198" name="l02198"></a><span class="lineno"> 2198</span><span class="keywordtype">void</span> RGFW_RGB_to_BGR(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>* data) {</div>
 <div class="line"><a id="l02199" name="l02199"></a><span class="lineno"> 2199</span><span class="preprocessor">    #if !defined(RGFW_BUFFER_BGR) &amp;&amp; !defined(RGFW_OSMESA)</span></div>
 <div class="line"><a id="l02200" name="l02200"></a><span class="lineno"> 2200</span>    <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> x, y;</div>
