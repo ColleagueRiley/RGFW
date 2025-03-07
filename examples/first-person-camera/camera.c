@@ -142,7 +142,7 @@ int main(void) {
 
         RGFW_window_swapBuffers(win);
 		RGFW_checkFPS(frameStartTime, frames, 60);
-        frames++
+        frames++;
     }
 
     glDeleteTextures(1, &texture);

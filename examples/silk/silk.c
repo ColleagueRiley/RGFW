@@ -25,6 +25,8 @@ int main(void) {
     RGFW_window_initBufferSize(win, RGFW_AREA(500, 500));
 
     u32 angle = 0;
+    u32 frames = 0;
+    double frameStartTime = RGFW_getTime();
 
     i8 running = 1;
     while (running) {
@@ -69,7 +71,8 @@ int main(void) {
         angle++;
 
         RGFW_window_swapBuffers(win);
-        RGFW_window_checkFPS(win, 60);
+		RGFW_checkFPS(frameStartTime, frames, 60);
+        frames++;
     }
 
     RGFW_window_close(win);
