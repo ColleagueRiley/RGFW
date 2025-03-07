@@ -1,4 +1,4 @@
-.TH "graphics_API" 3 "Wed Mar 5 2025" "RGFW" \" -*- nroff -*-
+.TH "graphics_API" 3 "Fri Mar 7 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -11,9 +11,6 @@ graphics_API \- Graphics_API
 .in +1c
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent\fP (\fBRGFW_window\fP *win)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_window_checkFPS\fP (\fBRGFW_window\fP *win, \fBu32\fP fpsCap)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_swapBuffers\fP (\fBRGFW_window\fP *win)"
@@ -85,8 +82,6 @@ get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl))
 .SS "\fBRGFWDEF\fP void * RGFW_getProcAddress (const char * procname)"
 get native opengl proc address 
 .SS "\fBRGFWDEF\fP void RGFW_setGLHint (RGFW_glHints hint, \fBi32\fP value)"
-
-.SS "\fBRGFWDEF\fP \fBu32\fP RGFW_window_checkFPS (\fBRGFW_window\fP * win, \fBu32\fP fpsCap)"
 
 .SS "\fBRGFWDEF\fP void RGFW_window_makeCurrent (\fBRGFW_window\fP * win)"
 < make the window the current opengl drawing context

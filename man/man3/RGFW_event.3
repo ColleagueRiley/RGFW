@@ -1,4 +1,4 @@
-.TH "RGFW_event" 3 "Wed Mar 5 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_event" 3 "Fri Mar 7 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -30,9 +30,6 @@ RGFW_event
 .RI "\fBRGFW_bool\fP \fBrepeat\fP"
 .br
 .ti -1c
-.RI "\fBRGFW_bool\fP \fBinFocus\fP"
-.br
-.ti -1c
 .RI "RGFW_keymod \fBkeyMod\fP"
 .br
 .ti -1c
@@ -60,12 +57,6 @@ RGFW_event
 .RI "size_t \fBdroppedFilesCount\fP"
 .br
 .ti -1c
-.RI "\fBu64\fP \fBframeTime\fP"
-.br
-.ti -1c
-.RI "\fBu64\fP \fBframeTime2\fP"
-.br
-.ti -1c
 .RI "void * \fB_win\fP"
 .br
 .in -1c
@@ -86,14 +77,8 @@ which gamepad this event applies to (if applicable to any) number of axises
 drag and drop data dropped files 
 .SS "size_t RGFW_event::droppedFilesCount"
 house many files were dropped 
-.SS "\fBu64\fP RGFW_event::frameTime"
-
-.SS "\fBu64\fP RGFW_event::frameTime2"
-this is used for counting the fps 
 .SS "\fBu16\fP RGFW_event::gamepad"
 
-.SS "\fBRGFW_bool\fP RGFW_event::inFocus"
-if the window is in focus or not (this is always true for MacOS windows due to the api being weird) 
 .SS "\fBRGFW_key\fP RGFW_event::key"
 the physical key of the event, refers to where key is physically !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! 
 .SS "\fBu8\fP RGFW_event::keyChar"

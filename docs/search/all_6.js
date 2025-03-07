@@ -1,5 +1,31 @@
 var searchData=
 [
-  ['frametime_0',['frameTime',['../structRGFW__event.html#a44dc09fa56457cc7e77f4d9da3f45a51',1,'RGFW_event']]],
-  ['frametime2_1',['frameTime2',['../structRGFW__event.html#a4a46fa08e68facc222c30ea600724bee',1,'RGFW_event']]]
+  ['gamepad_0',['gamepad',['../structRGFW__event.html#ac3ccc0f1827eeca2563dfdaba0f3630f',1,'RGFW_event']]],
+  ['gamepad_1',['Gamepad',['../group__gamepad.html',1,'']]],
+  ['glxchoosefbconfig_2',['glXChooseFBConfig',['../XDL_8h.html#a53bea768c8f19fd587e2284c9fbd8df4',1,'XDL.h']]],
+  ['glxchoosefbconfigsrc_3',['glXChooseFBConfigSrc',['../XDL_8h.html#ac241f385d48e99f4575d5f61acb2af2c',1,'XDL.h']]],
+  ['glxchoosevisual_4',['glXChooseVisual',['../XDL_8h.html#ae37815594444d2e066de10726ee66e97',1,'XDL.h']]],
+  ['glxchoosevisualsrc_5',['glXChooseVisualSrc',['../XDL_8h.html#a69d218fd9264c0bd83a585534d814baf',1,'XDL.h']]],
+  ['glxcreatecontext_6',['glXCreateContext',['../XDL_8h.html#a1c2727ca70c1c37da2deb6d1b6d616ff',1,'XDL.h']]],
+  ['glxcreatecontextsrc_7',['glXCreateContextSrc',['../XDL_8h.html#aee8e7f497028a6ce24118d219d4423bd',1,'XDL.h']]],
+  ['glxdestroycontext_8',['glXDestroyContext',['../XDL_8h.html#af8622c2d72d25e0bbd90c21e9cec9d0f',1,'XDL.h']]],
+  ['glxdestroycontextsrc_9',['glXDestroyContextSrc',['../XDL_8h.html#abf01e685e182208b67776d17dff3c938',1,'XDL.h']]],
+  ['glxgetcurrentcontext_10',['glXGetCurrentContext',['../XDL_8h.html#a3fb5625b7e5a484c3a84e5b0c1d29bff',1,'XDL.h']]],
+  ['glxgetcurrentcontextsrc_11',['glXGetCurrentContextSrc',['../XDL_8h.html#a81a8454d47fc134cdf57cfc675f1f3bb',1,'XDL.h']]],
+  ['glxgetfbconfigattrib_12',['glXGetFBConfigAttrib',['../XDL_8h.html#af2743a7cf1822e5374a1d66c381ae2c9',1,'XDL.h']]],
+  ['glxgetfbconfigattribsrc_13',['glXGetFBConfigAttribSrc',['../XDL_8h.html#a6bf961c737f33b9884ba68d368570389',1,'XDL.h']]],
+  ['glxgetprocaddress_14',['glXGetProcAddress',['../XDL_8h.html#a2cb834cfc7a1c3991eb8cb5af047eb69',1,'XDL.h']]],
+  ['glxgetprocaddressarb_15',['glXGetProcAddressARB',['../XDL_8h.html#a42eb159d4ca4773abdf215f31917b1a1',1,'XDL.h']]],
+  ['glxgetprocaddressarbsrc_16',['glXGetProcAddressARBSrc',['../XDL_8h.html#ad1dcb2908d10add478182b717cc6446d',1,'XDL.h']]],
+  ['glxgetprocaddresssrc_17',['glXGetProcAddressSrc',['../XDL_8h.html#a2c8dbf9a3c0326b1d58a792adcb46982',1,'XDL.h']]],
+  ['glxgetvisualfromfbconfig_18',['glXGetVisualFromFBConfig',['../XDL_8h.html#a88941f4492eacfc24b886eea8afb413f',1,'XDL.h']]],
+  ['glxgetvisualfromfbconfigsrc_19',['glXGetVisualFromFBConfigSrc',['../XDL_8h.html#a53d8436fcee69ef104f861c9c6a65d0e',1,'XDL.h']]],
+  ['glxmakecurrent_20',['glXMakeCurrent',['../XDL_8h.html#ad096243cbff124274549a71f73e1ff4a',1,'XDL.h']]],
+  ['glxmakecurrentsrc_21',['glXMakeCurrentSrc',['../XDL_8h.html#adee9530d29d856e457d3e38411d6989c',1,'XDL.h']]],
+  ['glxswapbuffers_22',['glXSwapBuffers',['../XDL_8h.html#af4651d9edbd302e0394dd22f466708a0',1,'XDL.h']]],
+  ['glxswapbufferssrc_23',['glXSwapBuffersSrc',['../XDL_8h.html#a3b55aceb660c5acc59755ab80ec6fbc6',1,'XDL.h']]],
+  ['glxswapintervalext_24',['glXSwapIntervalEXT',['../XDL_8h.html#a44370466816fdf575153176149d87b7d',1,'XDL.h']]],
+  ['glxswapintervalextsrc_25',['glXSwapIntervalEXTSrc',['../XDL_8h.html#ab023a41941bb195e4ba0ee229432ef0c',1,'XDL.h']]],
+  ['graphics_5fapi_26',['Graphics_API',['../group__graphics__API.html',1,'']]],
+  ['green_27',['green',['../structRGFW__monitorMode.html#ab384a00223b6cc9838a186b060553415',1,'RGFW_monitorMode']]]
 ];

@@ -71,6 +71,9 @@ int main(void) {
     screenSize = RGFW_getScreenSize();
     
     i8 running = 1;
+    u32 frames = 0;
+    double frameStartTime = RGFW_getTime();
+
     while (running) {
         while (RGFW_window_checkEvent(win)) {
             if (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape)) {
@@ -88,7 +91,8 @@ int main(void) {
         
         RGFW_window_setGPURender(win, 0);
         RGFW_window_swapBuffers(win);
-		RGFW_window_checkFPS(win, 0);
+		RGFW_checkFPS(frameStartTime, frames, 60);
+        frames++;
 	}
 
     RGFW_window_close(win);

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['type_0',['type',['../structRGFW__event.html#ab309d573101fed3b9137b3e42f408ce0',1,'RGFW_event']]]
+  ['vector_0',['vector',['../structRGFW__event.html#a0227fb6184ef6c40f905f835e4d46422',1,'RGFW_event']]]
 ];

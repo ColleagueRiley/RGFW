@@ -165,6 +165,8 @@ int main(void) {
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     u32 fps = 0;
+    u32 frames = 0;
+    double frameStartTime = RGFW_getTime();
 
     // render loop
     // -----------
@@ -194,7 +196,8 @@ int main(void) {
             printf("fps : %i\n", fps);
                         
         RGFW_window_swapBuffers(window);
-        fps = RGFW_window_checkFPS(window, 60);
+		fps = RGFW_checkFPS(frameStartTime, frames, 60);
+        frames++;
     }
 
     glDeleteVertexArrays(1, &VAO);

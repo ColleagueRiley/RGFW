@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Wed Mar 5 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Fri Mar 7 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -363,6 +363,9 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_focus\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isInFocus\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_raise\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
@@ -618,9 +621,6 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_window_checkFPS\fP (\fBRGFW_window\fP *win, \fBu32\fP fpsCap)"
-.br
-.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_swapBuffers\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
@@ -664,6 +664,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimerFreq\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_checkFPS\fP (double startTime, \fBu32\fP frameCount, \fBu32\fP fpsCap)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setRootWindow\fP (\fBRGFW_window\fP *win)"
@@ -815,6 +818,8 @@ the window is hidden
 < focus the window when it's shown
 .PP
 < focus the window when it's shown
+.PP
+< if the window is in focus
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_eventType)"
 event codes
 .PP
