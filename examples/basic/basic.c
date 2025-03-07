@@ -180,7 +180,7 @@ void* loop2(void* args) {
 
         else if (win->event.type == RGFW_gamepadAxisMove && !win->event.button)
             printf("Gamepad (%i) axis (%i) {%i, %i}\n", win->event.gamepad, win->event.whichAxis, win->event.axis[win->event.whichAxis].x, win->event.axis[win->event.whichAxis].y);
-        drawLoop(wins);
+        drawLoop(win);
     }
 
     running = 0;
