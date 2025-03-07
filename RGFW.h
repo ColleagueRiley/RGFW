@@ -2194,7 +2194,7 @@ u32 RGFW_checkFPS(double startTime, u32 frameCount, u32 fpsCap) {
 	return (u32) fps;
 }
 
-#ifdef RGFW_BUFFER
+#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 void RGFW_RGB_to_BGR(RGFW_window* win, u8* data) {
 	#if !defined(RGFW_BUFFER_BGR) && !defined(RGFW_OSMESA)
 	u32 x, y;
