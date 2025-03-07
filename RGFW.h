@@ -5434,9 +5434,8 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	/* clear the window */
 	if (!(win->_flags & RGFW_NO_CPU_RENDER)) {
 		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-			RGFW_area area = win->buffeize;
 			win->src.bitmap->data = (char*) win->buffer;
-			RGFW_RGB_to_BGR(win, win->src.bitmap->data);
+			RGFW_RGB_to_BGR(win, (u8*)win->src.bitmap->data);
 			XPutImage(win->src.display, win->src.window, win->src.gc, win->src.bitmap, 0, 0, 0, 0, win->bufferSize.w, win->bufferSize.h);
 			win->src.bitmap->data = NULL;
 		#endif
@@ -5835,7 +5834,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_windowQuitCallback(win);
 			win->event.type = RGFW_quit;
 			return 0;
-		case WM_ACTIVATE:
+		case WM_ACTIVATE: {
 			if (win == NULL) return DefWindowProcW(hWnd, message, wParam, lParam);
 			
 			RGFW_bool inFocus = RGFW_BOOL(LOWORD(wParam) != WA_INACTIVE);
@@ -5849,10 +5848,10 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				return DefWindowProcW(hWnd, message, wParam, lParam);
 			
 			win->_flags &= ~RGFW_EVENT_PASSED;
-			if (LOWORD(wParam) == WA_INACTIVE)
-				RGFW_window_minimize(win);
+			if (inFocus == RGFW_FALSE) RGFW_window_minimize(win);
 			else RGFW_window_setFullscreen(win, 1);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
+		}
 		case WM_MOVE:
 			if (win == NULL) return DefWindowProcW(hWnd, message, wParam, lParam);
 			
