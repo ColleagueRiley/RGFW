@@ -726,7 +726,7 @@ typedef struct RGFW_window_src {
 } RGFW_window_src;
 #endif
 
-/*! Optional arguments for making a windows */
+/*! optional arguments for making a window */
 typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowNoInitAPI = RGFW_BIT(0), /* do NOT init an API (mostly for bindings. you should use `#define RGFW_NO_API` in C) */
 	RGFW_windowNoBorder = RGFW_BIT(1), /*!< the window doesn't have a border */
@@ -895,8 +895,9 @@ RGFWDEF void RGFW_window_restore(RGFW_window* win); /*!< restore the window from
 RGFWDEF void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating); /*!< make the window a floating window */
 RGFWDEF void RGFW_window_setOpacity(RGFW_window* win, u8 opacity); /*!< sets the opacity of a window */
 
-/*! if the window should have a border or not (borderless) based on bool value of `border` */
+/*! enable or disable bordered mode for a window */
 RGFWDEF void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border);
+/*! check if a window is borderless */
 RGFWDEF RGFW_bool RGFW_window_borderless(RGFW_window* win);
 
 /*! turn on / off dnd (RGFW_windowAllowDND stil must be passed to the window)*/
@@ -928,10 +929,10 @@ typedef RGFW_ENUM(u8, RGFW_icon) {
 };
 RGFWDEF RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* icon, RGFW_area a, i32 channels, u8 type);
 
-/*!< sets mouse to RGFW_mouse icon (loaded from a bitmap struct) */
+/*! sets mouse to RGFW_mouse icon (loaded from a bitmap struct) */
 RGFWDEF void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse);
 
-/*!< sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the RGFW_HEADER part of this file) */
+/*! sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the RGFW_HEADER part of this file) */
 RGFWDEF	RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse);
 
 RGFWDEF RGFW_bool RGFW_window_setMouseDefault(RGFW_window* win); /*!< sets the mouse to the default mouse icon */
@@ -956,30 +957,30 @@ RGFWDEF void RGFW_window_show(RGFW_window* win);
 */
 RGFWDEF void RGFW_window_setShouldClose(RGFW_window* win);
 
-/*! where the mouse is on the screen */
+/*! get the mouse position on the entire screen */
 RGFWDEF RGFW_point RGFW_getGlobalMousePoint(void);
 
-/*! where the mouse is on the window */
+/*! get the mouse position on the window */
 RGFWDEF RGFW_point RGFW_window_getMousePoint(RGFW_window* win);
 
-/*! show the mouse or hide the mouse */
+/*! show or hide the mouse */
 RGFWDEF void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show);
-/*! if the mouse is hidden */
+/*! checks if the mouse is hidden */
 RGFWDEF RGFW_bool RGFW_window_mouseHidden(RGFW_window* win);
 /*! move the mouse to a given point */
 RGFWDEF void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v);
 
-/*! if the window should close (RGFW_close was sent or escape was pressed) */
+/*! checks if the window should close (RGFW_close was sent or escape was pressed) */
 RGFWDEF RGFW_bool RGFW_window_shouldClose(RGFW_window* win);
-/*! if the window is fullscreen */
+/*! checks if the window is fullscreen */
 RGFWDEF RGFW_bool RGFW_window_isFullscreen(RGFW_window* win);
-/*! if the window is hidden */
+/*! checks if the window is hidden */
 RGFWDEF RGFW_bool RGFW_window_isHidden(RGFW_window* win);
-/*! if the window is minimized */
+/*! checks if the window is minimized */
 RGFWDEF RGFW_bool RGFW_window_isMinimized(RGFW_window* win);
-/*! if the window is maximized */
+/*! checks if the window is maximized */
 RGFWDEF RGFW_bool RGFW_window_isMaximized(RGFW_window* win);
-/*! if the window is floating */
+/*! checks if the window is floating */
 RGFWDEF RGFW_bool RGFW_window_isFloating(RGFW_window* win);
 
 /** @} */
@@ -1002,24 +1003,24 @@ RGFWDEF RGFW_monitor RGFW_window_getMonitor(RGFW_window* win);
 /** * @defgroup Input
 * @{ */
 
-/*! if window == NULL, it checks if the key is pressed globally. Otherwise, it checks only if the key is pressed while the window in focus. */
-RGFWDEF RGFW_bool RGFW_isPressed(RGFW_window* win, RGFW_key key); /*!< if key is pressed (key code)*/
+/*! if window == NULL, it checks if the key is pressed globally. Otherwise, it checks only if the key is pressed while the window in focus */
+RGFWDEF RGFW_bool RGFW_isPressed(RGFW_window* win, RGFW_key key); /*!< check if a key is pressed (key code) */
 
-RGFWDEF RGFW_bool RGFW_wasPressed(RGFW_window* win, RGFW_key key); /*!< if key was pressed (checks previous state only) (key code) */
+RGFWDEF RGFW_bool RGFW_wasPressed(RGFW_window* win, RGFW_key key); /*!< check if a key was pressed (checks previous state only) (key code) */
 
-RGFWDEF RGFW_bool RGFW_isHeld(RGFW_window* win, RGFW_key key); /*!< if key is held (key code) */
-RGFWDEF RGFW_bool RGFW_isReleased(RGFW_window* win, RGFW_key key); /*!< if key is released (key code) */
+RGFWDEF RGFW_bool RGFW_isHeld(RGFW_window* win, RGFW_key key); /*!< check if a key is held (key code) */
+RGFWDEF RGFW_bool RGFW_isReleased(RGFW_window* win, RGFW_key key); /*!< check if a key is released (key code) */
 
-/* if a key is pressed and then released, pretty much the same as RGFW_isReleased */
-RGFWDEF RGFW_bool RGFW_isClicked(RGFW_window* win, RGFW_key key /*!< key code */);
+/* check if a key is pressed, and then released (pretty much the same as RGFW_isReleased) (key code) */
+RGFWDEF RGFW_bool RGFW_isClicked(RGFW_window* win, RGFW_key key);
 
-/*! if a mouse button is pressed */
+/*! check if a mouse button is pressed */
 RGFWDEF RGFW_bool RGFW_isMousePressed(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
-/*! if a mouse button is held */
+/*! check if a mouse button is held */
 RGFWDEF RGFW_bool RGFW_isMouseHeld(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
-/*! if a mouse button was released */
+/*! check if a mouse button was released */
 RGFWDEF RGFW_bool RGFW_isMouseReleased(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
-/*! if a mouse button was pressed (checks previous state only) */
+/*! check if a mouse button was pressed (checks previous state only) */
 RGFWDEF RGFW_bool RGFW_wasMousePressed(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
 /** @} */
 
@@ -1035,12 +1036,13 @@ RGFWDEF void RGFW_writeClipboard(const char* text, u32 textLen); /*!< write text
 
 
 
-/** * @defgroup error handling
+/** * @defgroup error handling and debugging
 * @{ */
 typedef RGFW_ENUM(u8, RGFW_debugType) {
 	RGFW_typeError = 0, RGFW_typeWarning, RGFW_typeInfo
 };
 
+/*! error codes */
 typedef RGFW_ENUM(u8, RGFW_errorCode) {
 	RGFW_noError = 0, /*!< no error */
 	RGFW_errOpenglContext, RGFW_errEGLContext, /*!< error with the OpenGL context */
@@ -1159,10 +1161,10 @@ RGFWDEF RGFW_windowresizefunc RGFW_setWindowRestoredCallback(RGFW_windowresizefu
 	typedef DWORD (__stdcall *RGFW_threadFunc_ptr) (LPVOID lpThreadParameter);
 #endif
 
-RGFWDEF RGFW_thread RGFW_createThread(RGFW_threadFunc_ptr ptr, void* args); /*!< create a thread */
+RGFWDEF RGFW_thread RGFW_createThread(RGFW_threadFunc_ptr ptr, void* args); /*!< creates a thread */
 RGFWDEF void RGFW_cancelThread(RGFW_thread thread); /*!< cancels a thread */
 RGFWDEF void RGFW_joinThread(RGFW_thread thread); /*!< join thread to current thread */
-RGFWDEF void RGFW_setThreadPriority(RGFW_thread thread, u8 priority); /*!< sets the priority priority  */
+RGFWDEF void RGFW_setThreadPriority(RGFW_thread thread, u8 priority); /*!< sets the thread priority  */
 #endif
 
 /** @} */
@@ -1174,15 +1176,15 @@ typedef RGFW_ENUM(u8, RGFW_gamepadType) {
 	RGFW_gamepadMicrosoft = 0, RGFW_gamepadSony, RGFW_gamepadNintendo, RGFW_gamepadLogitech, RGFW_gamepadUnknown
 };
 
-/*! gamepad count starts at 0*/
-RGFWDEF u32 RGFW_isPressedGamepad(RGFW_window* win, u8 controller, RGFW_gamepadCodes button);
-RGFWDEF u32 RGFW_isReleasedGamepad(RGFW_window* win, u8 controller, RGFW_gamepadCodes button);
-RGFWDEF u32 RGFW_isHeldGamepad(RGFW_window* win, u8 controller, RGFW_gamepadCodes button);
-RGFWDEF u32 RGFW_wasPressedGamepad(RGFW_window* win, u8 controller, RGFW_gamepadCodes button);
-RGFWDEF RGFW_point RGFW_getGamepadAxis(RGFW_window* win, u16 controller, u16 whichAxis);
-RGFWDEF const char* RGFW_getGamepadName(RGFW_window* win, u16 controller);
-RGFWDEF size_t RGFW_getGamepadCount(RGFW_window* win);
-RGFWDEF RGFW_gamepadType RGFW_getGamepadType(RGFW_window* win, u16 controller);
+/*! gamepad count starts at 0 */
+RGFWDEF u32 RGFW_isPressedGamepad(RGFW_window* win, u8 controller, RGFW_gamepadCodes button); /*!< checks if a gamepad button is pressed */
+RGFWDEF u32 RGFW_isReleasedGamepad(RGFW_window* win, u8 controller, RGFW_gamepadCodes button); /*!< checks if a gamepad button was released */
+RGFWDEF u32 RGFW_isHeldGamepad(RGFW_window* win, u8 controller, RGFW_gamepadCodes button); /*!< checks if a gamepad button is held */
+RGFWDEF u32 RGFW_wasPressedGamepad(RGFW_window* win, u8 controller, RGFW_gamepadCodes button); /*!< checks if a gamepad button was pressed (checks previous state only) */
+RGFWDEF RGFW_point RGFW_getGamepadAxis(RGFW_window* win, u16 controller, u16 whichAxis); /*!< gets the position of a gamepad axis */
+RGFWDEF const char* RGFW_getGamepadName(RGFW_window* win, u16 controller); /*!< gets the name of a gamepad */
+RGFWDEF size_t RGFW_getGamepadCount(RGFW_window* win); /*!< gets the number of available gamepads */
+RGFWDEF RGFW_gamepadType RGFW_getGamepadType(RGFW_window* win, u16 controller); /*!< gets the type of a gamepad */
 
 /** @} */
 
