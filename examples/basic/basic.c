@@ -55,6 +55,8 @@ int main(void) {
     RGFW_window_setMouseStandard(win, RGFW_mouseResizeNESW);
     
     u32 fps = 0;
+    u32 frames = 0;
+    double frameStartTime = RGFW_getTime();
 
     RGFW_mouse* mouse = RGFW_loadMouse(icon, RGFW_AREA(3, 3), 4);
 
@@ -103,7 +105,8 @@ int main(void) {
         }
 
         drawLoop(win);
-        fps = RGFW_window_checkFPS(win, 0);
+		fps = RGFW_checkFPS(frameStartTime, frames, 60);
+        frames++;
     }
 
     RGFW_freeMouse(mouse);
@@ -177,7 +180,7 @@ void* loop2(void* args) {
 
         else if (win->event.type == RGFW_gamepadAxisMove && !win->event.button)
             printf("Gamepad (%i) axis (%i) {%i, %i}\n", win->event.gamepad, win->event.whichAxis, win->event.axis[win->event.whichAxis].x, win->event.axis[win->event.whichAxis].y);
-        drawLoop(win);
+        drawLoop(wins);
     }
 
     running = 0;

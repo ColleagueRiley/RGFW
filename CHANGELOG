@@ -20,6 +20,13 @@ Current Version: RGFW 1.6.5-dev
 - add RGFW_windowMaximized, RGFW_windowMinimized and RGFW_windowRestored events
 - add RGFW_windowMinimize flag
 - ensure macOS focusIn/focusOut events are collected
+- remove `event.inFocus`
+- add `RGFW_window_isInFocus` and `RGFW_windowFocus` flag
+- windows manually convert RGB and BGR
+- add `RGFW_BUFFER_BGR`/ rename `RGFW_X11_DONT_CONVERT_BGR`
+- fix bugs with unix timers 
+- rename `RGFW_window_checkFPS` to `RGFW_checkFPS`, 
+- change checkFps to `u32 RGFW_window_checkFPS(double startTime, u32 frameCount, u32 fpsCap)`
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------

@@ -41,6 +41,10 @@ int main(void) {
     glMatrixMode(GL_MODELVIEW);
 
     RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
+
+    u32 frames = 0;
+    double frameStartTime = RGFW_getTime();
+
     while (RGFW_window_shouldClose(win) == 0) {
         while (RGFW_window_checkEvent(win)) {
             if (win->event.type == RGFW_quit)
@@ -137,7 +141,8 @@ int main(void) {
         glEnd();
 
         RGFW_window_swapBuffers(win);
-        RGFW_window_checkFPS(win, 60);
+		RGFW_checkFPS(frameStartTime, frames, 60);
+        frames++
     }
 
     glDeleteTextures(1, &texture);
