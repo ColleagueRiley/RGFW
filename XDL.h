@@ -184,6 +184,10 @@ typedef int (*PFN_XWidthOfScreen)(Screen* screen);
 typedef int (*PFN_XHeightOfScreen)(Screen* screen);
 typedef GC (*PFN_XCreateGC)(Display* display, Drawable d, unsigned long valuemask, XGCValues* values);
 typedef int (*PFN_XFreeGC)(Display *display, GC gc);
+typedef XImage* (*PFN_XCreateImage)(Display*, Visual*, unsigned int, int, int, char*, unsigned int, unsigned int, int, int);
+typedef Status (*PFN_XDestroyImage)(XImage* image);
+typedef Pixmap (*PFN_XCreatePixmap)(Display* display, Drawable d, unsigned int width, unsigned int height, unsigned int depth);
+typedef int (*PFN_XPutImage)(Display *display, Drawable d, GC gc, XImage *image, int src_x, int src_y, int dest_x, int dest_y, unsigned int width, unsigned int height);
 
 #ifndef XDL_NO_XRANDR
 #include <X11/extensions/Xrandr.h>
@@ -321,6 +325,10 @@ PFN_XWidthOfScreen XWidthOfScreenSrc;
 PFN_XWidthOfScreen XHeightOfScreenSrc;
 PFN_XCreateGC XCreateGCSrc;
 PFN_XFreeGC XFreeGCSrc;
+PFN_XCreateImage XCreateImageSrc;
+PFN_XDestroyImage XDestroyImageSrc;
+PFN_XCreatePixmap XCreatePixmapSrc;
+PFN_XPutImage XPutImageSrc;
 #ifndef XDL_NO_XRANDR
 PFN_XRRGetScreenResourcesCurrent XRRGetScreenResourcesCurrentSrc;
 PFN_XRRGetCrtcInfo XRRGetCrtcInfoSrc;
@@ -373,6 +381,7 @@ PFN_glXDestroyContext glXDestroyContextSrc;
 #define XHeightOfScreen XHeightOfScreenSrc
 #define XCreateGC XCreateGCSrc
 #define XFreeGC XFreeGCSrc
+#define XCreateImage  XCreateImageSrc
 #define XEventsQueued XEventsQueuedSrc
 #define XFilterEvent XFilterEventSrc
 #define XFindContext XFindContextSrc
@@ -454,6 +463,10 @@ PFN_glXDestroyContext glXDestroyContextSrc;
 #define XrmGetResource XrmGetResourceSrc
 #define XrmDestroyDatabase XrmDestroyDatabaseSrc
 #define XDisplayName XDisplayNameSrc
+#define XCreateImage XCreateImageSrc
+#define XDestroyImage XDestroyImageSrc
+#define XCreatePixmap XCreatePixmapSrc
+#define XPutImage XPutImageSrc
 
 #ifndef XDL_NO_XRANDR
     #define XRRGetScreenResourcesCurrent XRRGetScreenResourcesCurrentSrc
@@ -619,6 +632,10 @@ void XDL_init(void) {
     XDL_PROC_DEF(0, XHeightOfScreen);
     XDL_PROC_DEF(0, XCreateGC);
     XDL_PROC_DEF(0, XFreeGC);
+    XDL_PROC_DEF(0, XCreateImage);
+    XDL_PROC_DEF(0, XDestroyImage);
+    XDL_PROC_DEF(0, XCreatePixmap);
+    XDL_PROC_DEF(0, XPutImage);
 
     #ifndef XDL_NO_XRANDR
         XDL_PROC_DEF(2, XRRGetScreenResourcesCurrent);
