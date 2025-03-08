@@ -1450,11 +1450,11 @@ void RGFW_clipboard_switch(char* newstr) {
 const char* RGFW_readClipboard(size_t* len) {
 	RGFW_ssize_t size = RGFW_readClipboardPtr(NULL, 0);
 	RGFW_CHECK_CLIPBOARD();
-	char* str = (char*)RGFW_ALLOC(size);	
-	size = RGFW_readClipboardPtr(str, size);
+	char* str = (char*)RGFW_ALLOC((size_t)size);	
+	size = RGFW_readClipboardPtr(str, (size_t)size);
 	RGFW_CHECK_CLIPBOARD();
 
-	if (len != NULL) *len = size;
+	if (len != NULL) *len = (size_t)size;
 
 	RGFW_clipboard_switch(str);
 	return (const char*)str;
@@ -2425,6 +2425,7 @@ void RGFW_setGLHint(RGFW_glHints hint, i32 value) {
 	MacOS and Windows do this using a structure called a "pixel format"
 	X11 calls it a "Visual"
 	This function returns the attributes for the format we want */
+RGFWDEF i32* RGFW_initFormatAttribs(i32 useSoftware);
 i32* RGFW_initFormatAttribs(i32 useSoftware) {
 	RGFW_UNUSED(useSoftware);
 	static i32 attribs[] = {
@@ -2814,6 +2815,7 @@ This is where OS specific stuff starts
 		#include <unistd.h>
 		#include <errno.h>
 
+		RGFWDEF u32 RGFW_linux_updateGamepad(RGFW_window* win);
 		u32 RGFW_linux_updateGamepad(RGFW_window* win) {
 			/* check for new gamepads */
 			static const char* str[] = {"/dev/input/js0", "/dev/input/js1", "/dev/input/js2", "/dev/input/js3", "/dev/input/js4", "/dev/input/js5"};
@@ -4622,6 +4624,7 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 	XSetWMNormalHints(win->src.display, win->src.window, &hints);
 }
 
+RGFWDEF void RGFW_toggleXMaximized(RGFW_window* win, RGFW_bool maximized);
 void RGFW_toggleXMaximized(RGFW_window* win, RGFW_bool maximized) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_LOAD_ATOM(_NET_WM_STATE);
@@ -4634,8 +4637,8 @@ void RGFW_toggleXMaximized(RGFW_window* win, RGFW_bool maximized) {
 	xev.xclient.message_type = _NET_WM_STATE;
 	xev.xclient.format = 32;
 	xev.xclient.data.l[0] = maximized;
-	xev.xclient.data.l[1] = (i64)_NET_WM_STATE_MAXIMIZED_HORZ;
-	xev.xclient.data.l[2] = (i64)_NET_WM_STATE_MAXIMIZED_VERT;
+	xev.xclient.data.l[1] = (long)_NET_WM_STATE_MAXIMIZED_HORZ;
+	xev.xclient.data.l[2] = (long)_NET_WM_STATE_MAXIMIZED_VERT;
 	xev.xclient.data.l[3] = 0;
 	xev.xclient.data.l[4] = 0;
 
@@ -4664,6 +4667,7 @@ void RGFW_window_raise(RGFW_window* win) {
 	XMapRaised(win->src.display, win->src.window);
 }
 
+RGFWDEF void RGFW_window_setXAtom(RGFW_window* win, Atom netAtom, RGFW_bool fullscreen);
 void RGFW_window_setXAtom(RGFW_window* win, Atom netAtom, RGFW_bool fullscreen) { 
 	RGFW_ASSERT(win != NULL);
 	RGFW_LOAD_ATOM(_NET_WM_STATE);
@@ -5078,6 +5082,7 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	#endif
 }
 
+RGFWDEF void RGFW_XHandleClipboardSelectionLoop(RGFW_window* win);
 void RGFW_XHandleClipboardSelectionLoop(RGFW_window* win) {
 	RGFW_LOAD_ATOM(SAVE_TARGETS);
 
@@ -5198,6 +5203,7 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 }
 
 #ifndef RGFW_NO_DPI
+RGFWDEF u32 RGFW_XCalculateRefreshRate(XRRModeInfo mi);
 u32 RGFW_XCalculateRefreshRate(XRRModeInfo mi) {
     if (mi.hTotal == 0 || mi.vTotal == 0) return 0;
 	
@@ -5206,7 +5212,8 @@ u32 RGFW_XCalculateRefreshRate(XRRModeInfo mi) {
 #endif
 
 
-static float XGetSystemContentDPI(Display* display, i32 screen) {
+RGFWDEF float XGetSystemContentDPI(Display* display, i32 screen);
+float XGetSystemContentDPI(Display* display, i32 screen) {
 	float dpi = 96.0f;
 
 	#ifndef RGFW_NO_DPI
@@ -5230,6 +5237,7 @@ static float XGetSystemContentDPI(Display* display, i32 screen) {
 	return dpi;
 }
 
+RGFWDEF RGFW_monitor RGFW_XCreateMonitor(i32 screen);
 RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	RGFW_monitor monitor;
 
