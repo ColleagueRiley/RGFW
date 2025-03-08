@@ -77,6 +77,9 @@ int main(void) {
                 case RGFW_DNDInit:
                     printf("DND Init : %i %i\n", win->event.point.x, win->event.point.y);
                     break;
+                case RGFW_dpiUpdated:
+                    printf("DPI Updated : %f %f\n", win->event.scaleX, win->event.scaleY);
+                    break;
                 default:
                     break;
             }
