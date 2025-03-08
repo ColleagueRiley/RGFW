@@ -1543,6 +1543,7 @@ u8 RGFW_keycodes [RGFW_OS_BASED_VALUE(136, 0x15C + 1, 128, DOM_VK_WIN_OEM_CLEAR 
 #ifdef __cplusplus
 	0
 };
+void RGFW_init_keys(void);
 void RGFW_init_keys(void) {
 #endif
 	RGFW_MAP [RGFW_OS_BASED_VALUE(49, 0x029, 50, DOM_VK_BACK_QUOTE)] = RGFW_backtick 		RGFW_NEXT
@@ -7486,16 +7487,18 @@ typedef NSInteger NSModalResponse;
 id NSApp = NULL;
 
 #define NSRelease(obj) objc_msgSend_void((id)obj, sel_registerName("release"))
-
+id NSString_stringWithUTF8String(const char* str);
 id NSString_stringWithUTF8String(const char* str) {
 	return ((id(*)(id, SEL, const char*))objc_msgSend)
 		((id)objc_getClass("NSString"), sel_registerName("stringWithUTF8String:"), str);
 }
 
+const char* NSString_to_char(id str);
 const char* NSString_to_char(id str) {
 	return ((const char* (*)(id, SEL)) objc_msgSend) ((id)(id)str, sel_registerName("UTF8String"));
 }
 
+void si_impl_func_to_SEL_with_name(const char* class_name, const char* register_name, void* function);
 void si_impl_func_to_SEL_with_name(const char* class_name, const char* register_name, void* function) {
 	Class selected_class;
 
@@ -7523,6 +7526,7 @@ typedef struct siArrayHeader {
 /* Creates an Objective-C method (SEL) from a regular C function with the option to set the register name.*/
 #define si_func_to_SEL_with_name(class_name, register_name, function) si_impl_func_to_SEL_with_name(class_name, register_name":", (void*)function)
 
+unsigned char* NSBitmapImageRep_bitmapData(id imageRep);
 unsigned char* NSBitmapImageRep_bitmapData(id imageRep) {
 	return ((unsigned char* (*)(id, SEL))objc_msgSend) ((id)imageRep, sel_registerName("bitmapData"));
 }
@@ -7538,6 +7542,7 @@ typedef RGFW_ENUM(NSUInteger, NSBitmapFormat) {
 		NSBitmapFormatThirtyTwoBitBigEndian API_AVAILABLE(macos(10.10)) = (1 << 11)
 };
 
+id NSBitmapImageRep_initWithBitmapData(unsigned char** planes, NSInteger width, NSInteger height, NSInteger bps, NSInteger spp, bool alpha, bool isPlanar, const char* colorSpaceName, NSBitmapFormat bitmapFormat, NSInteger rowBytes, NSInteger pixelBits);
 id NSBitmapImageRep_initWithBitmapData(unsigned char** planes, NSInteger width, NSInteger height, NSInteger bps, NSInteger spp, bool alpha, bool isPlanar, const char* colorSpaceName, NSBitmapFormat bitmapFormat, NSInteger rowBytes, NSInteger pixelBits) {
 	SEL func = sel_registerName("initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:");
 
@@ -7545,6 +7550,7 @@ id NSBitmapImageRep_initWithBitmapData(unsigned char** planes, NSInteger width, 
 		(NSAlloc((id)objc_getClass("NSBitmapImageRep")), func, planes, width, height, bps, spp, alpha, isPlanar, NSString_stringWithUTF8String(colorSpaceName), bitmapFormat, rowBytes, pixelBits);
 }
 
+id NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha);
 id NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha) {
 	void* nsclass = objc_getClass("NSColor");
 	SEL func = sel_registerName("colorWithSRGBRed:green:blue:alpha:");
@@ -7552,24 +7558,6 @@ id NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha
 		((id)nsclass, func, red, green, blue, alpha);
 }
 
-id NSCursor_initWithImage(id newImage, NSPoint aPoint) {
-	SEL func = sel_registerName("initWithImage:hotSpot:");
-	void* nsclass = objc_getClass("NSCursor");
-
-	return (id) ((id(*)(id, SEL, id, NSPoint))objc_msgSend)
-		(NSAlloc(nsclass), func, newImage, aPoint);
-}
-
-void NSImage_addRepresentation(id image, id imageRep) {
-	SEL func = sel_registerName("addRepresentation:");
-	objc_msgSend_void_id(image, func, (id)imageRep);
-}
-
-id NSImage_initWithSize(NSSize size) {
-	SEL func = sel_registerName("initWithSize:");
-	return ((id(*)(id, SEL, NSSize))objc_msgSend)
-		(NSAlloc((id)objc_getClass("NSImage")), func, size);
-}
 #define NS_OPENGL_ENUM_DEPRECATED(minVers, maxVers) API_AVAILABLE(macos(minVers))
 typedef RGFW_ENUM(NSInteger, NSOpenGLContextParameter) {
 	NSOpenGLContextParameterSwapInterval           NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 222, /* 1 param.  0 -> Don't sync, 1 -> Sync to vertical retrace     */
@@ -7599,35 +7587,23 @@ typedef RGFW_ENUM(NSInteger, NSWindowButton) {
     NSWindowDocumentVersionsButton = 6,
     NSWindowFullScreenButton       = 7,
 };
-
-
+void NSOpenGLContext_setValues(id context, const int* vals, NSOpenGLContextParameter param);
 void NSOpenGLContext_setValues(id context, const int* vals, NSOpenGLContextParameter param) {
-	SEL func = sel_registerName("setValues:forParameter:");
 	((void (*)(id, SEL, const int*, NSOpenGLContextParameter))objc_msgSend)
-		(context, func, vals, param);
+		(context, sel_registerName("setValues:forParameter:"), vals, param);
 }
-
+void* NSOpenGLPixelFormat_initWithAttributes(const uint32_t* attribs);
 void* NSOpenGLPixelFormat_initWithAttributes(const uint32_t* attribs) {
-	SEL func = sel_registerName("initWithAttributes:");
 	return (void*) ((id(*)(id, SEL, const uint32_t*))objc_msgSend)
-		(NSAlloc((id)objc_getClass("NSOpenGLPixelFormat")), func, attribs);
+		(NSAlloc((id)objc_getClass("NSOpenGLPixelFormat")), sel_registerName("initWithAttributes:"), attribs);
 }
 
-id NSOpenGLView_initWithFrame(NSRect frameRect, uint32_t* format) {
-	SEL func = sel_registerName("initWithFrame:pixelFormat:");
-	return (id) ((id(*)(id, SEL, NSRect, uint32_t*))objc_msgSend)
-		(NSAlloc((id)objc_getClass("NSOpenGLView")), func, frameRect, format);
-}
-
-void NSCursor_performSelector(id cursor, SEL selector) {
-	SEL func = sel_registerName("performSelector:");
-	objc_msgSend_void_SEL(cursor, func, selector);
-}
-
+id NSPasteboard_generalPasteboard(void);
 id NSPasteboard_generalPasteboard(void) {
 	return (id) objc_msgSend_id((id)objc_getClass("NSPasteboard"), sel_registerName("generalPasteboard"));
 }
 
+id* cstrToNSStringArray(char** strs, size_t len);
 id* cstrToNSStringArray(char** strs, size_t len) {
 	static id nstrs[6];
 	size_t i;
@@ -7637,6 +7613,7 @@ id* cstrToNSStringArray(char** strs, size_t len) {
 	return nstrs;
 }
 
+const char* NSPasteboard_stringForType(id pasteboard, NSPasteboardType dataType, size_t* len);
 const char* NSPasteboard_stringForType(id pasteboard, NSPasteboardType dataType, size_t* len) {
 	SEL func = sel_registerName("stringForType:");
 	id nsstr = NSString_stringWithUTF8String(dataType);
@@ -7647,6 +7624,7 @@ const char* NSPasteboard_stringForType(id pasteboard, NSPasteboardType dataType,
 	return str;
 }
 
+id c_array_to_NSArray(void* array, size_t len);
 id c_array_to_NSArray(void* array, size_t len) {
 	SEL func = sel_registerName("initWithObjects:count:");
 	void* nsclass = objc_getClass("NSArray");
@@ -7654,6 +7632,7 @@ id c_array_to_NSArray(void* array, size_t len) {
 				(NSAlloc(nsclass), func, array, len);
 }
 
+void NSregisterForDraggedTypes(id view, NSPasteboardType* newTypes, size_t len);
 void NSregisterForDraggedTypes(id view, NSPasteboardType* newTypes, size_t len) {
 	id* ntypes = cstrToNSStringArray((char**)newTypes, len);
 
@@ -7662,6 +7641,7 @@ void NSregisterForDraggedTypes(id view, NSPasteboardType* newTypes, size_t len) 
 	NSRelease(array);
 }
 
+NSInteger NSPasteBoard_declareTypes(id pasteboard, NSPasteboardType* newTypes, size_t len, void* owner);
 NSInteger NSPasteBoard_declareTypes(id pasteboard, NSPasteboardType* newTypes, size_t len, void* owner) {
 	id* ntypes = cstrToNSStringArray((char**)newTypes, len);
 
@@ -7674,12 +7654,6 @@ NSInteger NSPasteBoard_declareTypes(id pasteboard, NSPasteboardType* newTypes, s
 	NSRelease(array);
 
 	return output;
-}
-
-bool NSPasteBoard_setString(id pasteboard, const char* stringToWrite, NSPasteboardType dataType) {
-	SEL func = sel_registerName("setString:forType:");
-	return ((bool (*)(id, SEL, id, id))objc_msgSend)
-		(pasteboard, func, NSString_stringWithUTF8String(stringToWrite), NSString_stringWithUTF8String(dataType));
 }
 
 #define NSRetain(obj) objc_msgSend_void((id)obj, sel_registerName("retain"))
@@ -8289,7 +8263,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 		/* the pixel format can be passed directly to opengl context creation to create a context
 			this is because the format also includes information about the opengl version (which may be a bad thing) */
-		win->src.view = NSOpenGLView_initWithFrame((NSRect){{0, 0}, {win->r.w, win->r.h}}, (uint32_t*)format);
+		win->src.view = (id) ((id(*)(id, SEL, NSRect, uint32_t*))objc_msgSend) (NSAlloc((id)objc_getClass("NSOpenGLView")),  
+								sel_registerName("initWithFrame:pixelFormat:"), (NSRect){{0, 0}, {win->r.w, win->r.h}}, (uint32_t*)format);
+	
 		objc_msgSend_void(win->src.view, sel_registerName("prepareOpenGL"));
 		win->src.ctx = objc_msgSend_id(win->src.view, sel_registerName("openGLContext"));
 	} else
@@ -8938,8 +8914,10 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, RGFW_area area, i32 
 	RGFW_MEMCPY(NSBitmapImageRep_bitmapData(representation), data, area.w * area.h * channels);
 
 	// Add ze representation.
-	id dock_image = NSImage_initWithSize((NSSize){area.w, area.h});
-	NSImage_addRepresentation(dock_image, representation);
+	id dock_image = ((id(*)(id, SEL, NSSize))objc_msgSend)
+						(NSAlloc((id)objc_getClass("NSImage")), sel_registerName("initWithSize:"), ((NSSize){area.w, area.h}));
+
+	objc_msgSend_void_id(dock_image, sel_registerName("addRepresentation:"), representation);
 
 	// Finally, set the dock image to it.
 	objc_msgSend_void_id(NSApp, sel_registerName("setApplicationIconImage:"), dock_image);
@@ -8972,7 +8950,8 @@ RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) {
 	NSImage_addRepresentation(cursor_image, representation);
 
 	// Finally, set the cursor image.
-	id cursor = NSCursor_initWithImage(cursor_image, (NSPoint){0.0, 0.0});
+	return (id) ((id(*)(id, SEL, id, NSPoint))objc_msgSend)
+		(NSAlloc(objc_getClass("NSCursor")),  sel_registerName("initWithImage:hotSpot:"), cursor_image, (NSPoint){0.0, 0.0});
 
 	// Free the garbage.
 	NSRelease(cursor_image);
@@ -9233,7 +9212,9 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	NSPasteboardType array[] = { NSPasteboardTypeString, NULL };
 	NSPasteBoard_declareTypes(NSPasteboard_generalPasteboard(), array, 1, NULL);
 
-	NSPasteBoard_setString(NSPasteboard_generalPasteboard(), text, NSPasteboardTypeString);
+	SEL func = sel_registerName("setString:forType:");
+	((bool (*)(id, SEL, id, id))objc_msgSend)
+		(NSPasteboard_generalPasteboard(), func, NSString_stringWithUTF8String(text), NSString_stringWithUTF8String(NSPasteboardTypeString));
 }
 
 	#ifdef RGFW_OPENGL
