@@ -8914,8 +8914,7 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, RGFW_area area, i32 
 	RGFW_MEMCPY(NSBitmapImageRep_bitmapData(representation), data, area.w * area.h * channels);
 
 	// Add ze representation.
-	id dock_image = ((id(*)(id, SEL, NSSize))objc_msgSend)
-						(NSAlloc((id)objc_getClass("NSImage")), sel_registerName("initWithSize:"), ((NSSize){area.w, area.h}));
+	id dock_image = ((id(*)(id, SEL, NSSize))objc_msgSend) (NSAlloc((id)objc_getClass("NSImage")), sel_registerName("initWithSize:"), ((NSSize){area.w, area.h}));
 
 	objc_msgSend_void_id(dock_image, sel_registerName("addRepresentation:"), representation);
 
@@ -8946,11 +8945,12 @@ RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) {
 	RGFW_MEMCPY(NSBitmapImageRep_bitmapData(representation), icon, a.w * a.h * channels);
 
 	// Add ze representation.
-	id cursor_image = NSImage_initWithSize((NSSize){a.w, a.h});
-	NSImage_addRepresentation(cursor_image, representation);
+	id cursor_image = ((id(*)(id, SEL, NSSize))objc_msgSend) (NSAlloc((id)objc_getClass("NSImage")), sel_registerName("initWithSize:"), ((NSSize){a.w, a.h}));
+
+	objc_msgSend_void_id(cursor_image, sel_registerName("addRepresentation:"), representation);
 
 	// Finally, set the cursor image.
-	return (id) ((id(*)(id, SEL, id, NSPoint))objc_msgSend)
+	id cursor = (id) ((id(*)(id, SEL, id, NSPoint))objc_msgSend)
 		(NSAlloc(objc_getClass("NSCursor")),  sel_registerName("initWithImage:hotSpot:"), cursor_image, (NSPoint){0.0, 0.0});
 
 	// Free the garbage.
