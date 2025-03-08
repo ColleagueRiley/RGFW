@@ -27,6 +27,9 @@ Current Version: RGFW 1.6.5-dev
 - fix bugs with unix timers 
 - rename `RGFW_window_checkFPS` to `RGFW_checkFPS`, 
 - change checkFps to `u32 RGFW_window_checkFPS(double startTime, u32 frameCount, u32 fpsCap)`
+- ensure callback naming capitalization is consistent
+- rename RGFW_setMouseNotifyCallBack to RGFW_setMouseNotifyCallback
+- rename windowResizeCallback to windowResizedCallback and   windowMoveCallback to windowMovedCallback
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------

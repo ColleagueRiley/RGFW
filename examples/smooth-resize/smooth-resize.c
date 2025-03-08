@@ -25,7 +25,7 @@ int main(void) {
     RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 300, 100), RGFW_windowCenter | RGFW_windowNoResize);
 
     RGFW_setWindowRefreshCallback(refresh);
-    RGFW_setWindowResizeCallback(resize);
+    RGFW_setWindowResizedCallback(resize);
     
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win)) {

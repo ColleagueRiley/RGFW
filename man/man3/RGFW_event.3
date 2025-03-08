@@ -1,4 +1,4 @@
-.TH "RGFW_event" 3 "Fri Mar 7 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_event" 3 "Sat Mar 8 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -19,6 +19,12 @@ RGFW_event
 .br
 .ti -1c
 .RI "\fBRGFW_point\fP \fBvector\fP"
+.br
+.ti -1c
+.RI "float \fBscaleX\fP"
+.br
+.ti -1c
+.RI "float \fBscaleY\fP"
 .br
 .ti -1c
 .RI "\fBRGFW_key\fP \fBkey\fP"
@@ -89,6 +95,10 @@ mapped key char of the event
 mouse x, y of event (or drop point) 
 .SS "\fBRGFW_bool\fP RGFW_event::repeat"
 key press event repeated (the key is being held) 
+.SS "float RGFW_event::scaleX"
+
+.SS "float RGFW_event::scaleY"
+DPI scaling 
 .SS "double RGFW_event::scroll"
 the raw mouse scroll value 
 .SS "RGFW_eventType RGFW_event::type"
