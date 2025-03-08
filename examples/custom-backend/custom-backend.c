@@ -3,13 +3,13 @@
 #include "RGFW_SDL_example.h"
 #include <stdio.h>
 
-void keyfunc(RGFW_window* win, RGFW_key key, char keyChar, RGFW_keymod keyMod, b8 pressed) {
+void keyfunc(RGFW_window* win, RGFW_key key, char keyChar, RGFW_keymod keyMod, u8 pressed) {
     if (key == RGFW_escape && pressed) {
         RGFW_window_setShouldClose(win);
     }
 }
 
-int main() {
+int main(void) {
     RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(20, 20, 300, 300), RGFW_windowCenter | RGFW_windowNoResize);
 
     RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want
@@ -35,9 +35,9 @@ int main() {
 
         // You can use modern OpenGL techniques, but this method is more straightforward for drawing just one triangle.
         glBegin(GL_TRIANGLES);
-        glColor3f(1, 0, 0); glVertex2f(-0.6, -0.75);
-        glColor3f(0, 1, 0); glVertex2f(0.6, -0.75);
-        glColor3f(0, 0, 1); glVertex2f(0, 0.75);
+        glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.6f, -0.75f);
+        glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.6f, -0.75f);
+        glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
         glEnd();
 
         RGFW_window_swapBuffers(win);

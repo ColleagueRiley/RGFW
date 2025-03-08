@@ -10,7 +10,7 @@ int main(void) {
     printf("%li\n", sizeof(RGFW_event));
 
     while (RGFW_window_shouldClose(win) == 0) {
-        glClearColor(0.25, 0, 0.15, 0.25);
+        glClearColor(0.25f, 0.0f, 0.15f, 0.25f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         RGFW_window_swapBuffers(win);

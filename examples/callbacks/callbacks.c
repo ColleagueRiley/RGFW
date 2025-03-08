@@ -128,7 +128,7 @@ int main(void) {
 	RGFW_setMouseButtonCallback(mousebuttonfunc);
 
     while (RGFW_window_shouldClose(window) == 0) {
-        glClearColor(0.15, 0, 0.25, 0xFF);
+        glClearColor(0.15f, 0.0f, 0.25f, 0xFF);
         glClear(GL_COLOR_BUFFER_BIT);
         
         RGFW_window_swapBuffers(window);
