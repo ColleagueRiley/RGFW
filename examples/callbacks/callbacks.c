@@ -16,10 +16,10 @@ void error(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const
     printf("RGFW ERROR: %s\n", msg);
 }
 
-void dpiUpdatedfunc(RGFW_window* win, float scaleX, float scaleY);
-void dpiUpdatedfunc(RGFW_window* win, float scaleX, float scaleY) {
+void scaleUpdatedfunc(RGFW_window* win, float scaleX, float scaleY);
+void scaleUpdatedfunc(RGFW_window* win, float scaleX, float scaleY) {
     if (window != win) return;
-    printf("DPI updated %f %f\n", scaleX, scaleY);
+    printf("scale updated %f %f\n", scaleX, scaleY);
 }
 
 void windowmovefunc(RGFW_window* win, RGFW_rect r);
