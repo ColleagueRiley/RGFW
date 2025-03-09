@@ -471,7 +471,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 	RGFW_windowMaximized, /*!< the window was maximized */
 	RGFW_windowMinimized, /*!< the window was minimized */
 	RGFW_windowRestored, /*!< the window was restored */
-	RGFW_dpiUpdated, /*!< DPI scale factor changed */
+	RGFW_scaleUpdated, /*!< content scale factor changed */
 };
 
 /*! mouse button codes (RGFW_event.button) */
@@ -1109,8 +1109,8 @@ typedef void (* RGFW_gamepadAxisfunc)(RGFW_window* win, u16 gamepad, RGFW_point 
 typedef void (* RGFW_gamepadfunc)(RGFW_window* win, u16 gamepad, RGFW_bool connected);
 /*! RGFW_dnd, the window that had the drop, the drop data and the number of files dropped */
 typedef void (* RGFW_dndfunc)(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount);
-/*! RGFW_dpiUpdated, the window the event was sent to, dpi scaleX, dpi scaleY */
-typedef void (* RGFW_dpiUpdatedfunc)(RGFW_window* win, float scaleX, float scaleY);
+/*! RGFW_scaleUpdated, the window the event was sent to, content scaleX, content scaleY */
+typedef void (* RGFW_scaleUpdatedfunc)(RGFW_window* win, float scaleX, float scaleY);
 
 /*! set callback for a window move event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_windowMovedfunc RGFW_setWindowMovedCallback(RGFW_windowMovedfunc func);
@@ -1147,7 +1147,7 @@ RGFWDEF RGFW_windowResizedfunc RGFW_setWindowMinimizedCallback(RGFW_windowResize
 /*! set call back for when window is restored. Returns the previous callback function (if it was set) */
 RGFWDEF RGFW_windowResizedfunc RGFW_setWindowRestoredCallback(RGFW_windowResizedfunc func);
 /*! set callback for when the DPI changes. Returns previous callback function (if it was set)  */
-RGFWDEF RGFW_dpiUpdatedfunc RGFW_setDpiUpdatedCallback(RGFW_dpiUpdatedfunc func);
+RGFWDEF RGFW_scaleUpdatedfunc RGFW_setScaleUpdatedCallback(RGFW_scaleUpdatedfunc func);
 /** @} */
 
 /** * @defgroup Threads
@@ -1787,7 +1787,7 @@ RGFW_EMPTY_DEF(void RGFW_gamepadButtonfuncEMPTY(RGFW_window* win, u16 gamepad, u
 RGFW_EMPTY_DEF(void RGFW_gamepadAxisfuncEMPTY(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount, u8 whichAxis)) {RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(axis); RGFW_UNUSED(axisesCount); RGFW_UNUSED(whichAxis); }
 RGFW_EMPTY_DEF(void RGFW_gamepadfuncEMPTY(RGFW_window* win, u16 gamepad, RGFW_bool connected)) {RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(connected);}
 RGFW_EMPTY_DEF(void RGFW_dndfuncEMPTY(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount)) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
-RGFW_EMPTY_DEF(void RGFW_dpiUpdatedfuncEMPTY(RGFW_window* win, float scaleX, float scaleY)) {RGFW_UNUSED(win); RGFW_UNUSED(scaleX); RGFW_UNUSED(scaleY); }
+RGFW_EMPTY_DEF(void RGFW_scaleUpdatedfuncEMPTY(RGFW_window* win, float scaleX, float scaleY)) {RGFW_UNUSED(win); RGFW_UNUSED(scaleX); RGFW_UNUSED(scaleY); }
 #undef RGFW_EMPTY_DEF
 
 #define RGFW_CALLBACK_DEFINE(x, x2) \
@@ -1814,7 +1814,7 @@ RGFW_CALLBACK_DEFINE(mouseButton, MouseButton);
 RGFW_CALLBACK_DEFINE(gamepadButton, GamepadButton);
 RGFW_CALLBACK_DEFINE(gamepadAxis, GamepadAxis);
 RGFW_CALLBACK_DEFINE(gamepad, Gamepad);
-RGFW_CALLBACK_DEFINE(dpiUpdated, DpiUpdated);
+RGFW_CALLBACK_DEFINE(scaleUpdated, ScaleUpdated);
 #undef RGFW_CALLBACK_DEFINE
 
 void RGFW_window_checkEvents(RGFW_window* win, u32 waitMS) {
@@ -5854,8 +5854,8 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             
 			const float scaleX = HIWORD(wParam) / (float) 96;
             const float scaleY = LOWORD(wParam) / (float) 96;
-			RGFW_dpiUpdatedCallback(win, scaleX, scaleY);
-			RGFW_eventQueuePush((RGFW_event){.type = RGFW_dpiUpdated, .scaleX = scaleX, .scaleY = scaleY , ._win = win});
+			RGFW_scaleUpdatedCallback(win, scaleX, scaleY);
+			RGFW_eventQueuePush((RGFW_event){.type = RGFW_scaleUpdated, .scaleX = scaleX, .scaleY = scaleY , ._win = win});
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		#endif
