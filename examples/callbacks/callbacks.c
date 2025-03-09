@@ -85,8 +85,8 @@ void mouseposfunc(RGFW_window* win, RGFW_point point, RGFW_point vector) {
    printf("mouse moved %i %i\n", point.x, point.y);
 }
 
-void dndfunc(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount);
-void dndfunc(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount) {
+void scalefunc(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount);
+void scalefunc(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount) {
     if (window != win) return;
     
     u32 i;
@@ -133,7 +133,7 @@ void mousebuttonfunc(RGFW_window* win, u8 button, double scroll, u8 pressed) {
 int main(void) {
     window = RGFW_createWindow("RGFW Callbacks", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND);
 
-    RGFW_setDpiUpdatedCallback(dpiUpdatedfunc);
+    RGFW_setScaleUpdatedCallback(scaleUpdatedfunc);
 	RGFW_setWindowMovedCallback(windowmovefunc);
 	RGFW_setWindowResizedCallback(windowresizefunc);
     RGFW_setWindowMinimizedCallback(windowminimizefunc);
