@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Sat Mar 8 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Sun Mar 9 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -254,7 +254,7 @@ RGFW.h
 .RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, char **droppedFiles, \fBu32\fP droppedFilesCount)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_dpiUpdatedfunc\fP) (\fBRGFW_window\fP *win, float scaleX, float scaleY)"
+.RI "typedef void(* \fBRGFW_scaleUpdatedfunc\fP) (\fBRGFW_window\fP *win, float scaleX, float scaleY)"
 .br
 .ti -1c
 .RI "typedef DWORD(__stdcall * \fBRGFW_threadFunc_ptr\fP) (LPVOID lpThreadParameter)"
@@ -591,7 +591,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_windowResizedfunc\fP \fBRGFW_setWindowRestoredCallback\fP (\fBRGFW_windowResizedfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_dpiUpdatedfunc\fP \fBRGFW_setDpiUpdatedCallback\fP (\fBRGFW_dpiUpdatedfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_scaleUpdatedfunc\fP \fBRGFW_setScaleUpdatedCallback\fP (\fBRGFW_scaleUpdatedfunc\fP func)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_thread\fP \fBRGFW_createThread\fP (\fBRGFW_threadFunc_ptr\fP ptr, void *args)"
@@ -892,7 +892,7 @@ gamepad event note \fBRGFW_event\&.gamepad\fP holds which gamepad was altered, i
 .PP
 < the window was restored
 .PP
-< DPI scale factor changed
+< content scale factor changed
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_gamepadCodes)"
 gamepad button codes (based on xbox/playstation), you may need to change these values per controller < or PS X button
 .PP

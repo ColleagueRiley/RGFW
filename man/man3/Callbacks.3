@@ -1,4 +1,4 @@
-.TH "Callbacks" 3 "Sat Mar 8 2025" "RGFW" \" -*- nroff -*-
+.TH "Callbacks" 3 "Sun Mar 9 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -61,7 +61,7 @@ Callbacks \- Callbacks
 .RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, char **droppedFiles, \fBu32\fP droppedFilesCount)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_dpiUpdatedfunc\fP) (\fBRGFW_window\fP *win, float scaleX, float scaleY)"
+.RI "typedef void(* \fBRGFW_scaleUpdatedfunc\fP) (\fBRGFW_window\fP *win, float scaleX, float scaleY)"
 .br
 .in -1c
 .SS "Functions"
@@ -119,7 +119,7 @@ Callbacks \- Callbacks
 .RI "\fBRGFWDEF\fP \fBRGFW_windowResizedfunc\fP \fBRGFW_setWindowRestoredCallback\fP (\fBRGFW_windowResizedfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_dpiUpdatedfunc\fP \fBRGFW_setDpiUpdatedCallback\fP (\fBRGFW_dpiUpdatedfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_scaleUpdatedfunc\fP \fBRGFW_setScaleUpdatedCallback\fP (\fBRGFW_scaleUpdatedfunc\fP func)"
 .br
 .in -1c
 .SH "Detailed Description"
@@ -131,8 +131,6 @@ event callbacks\&. These are completely optional, so you can use the normal RGFW
 RGFW_dnd, the window that had the drop, the drop data and the number of files dropped 
 .SS "typedef void(* RGFW_dndInitfunc) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point)"
 RGFW_DNDInit, the window, the point of the drop on the windows 
-.SS "typedef void(* RGFW_dpiUpdatedfunc) (\fBRGFW_window\fP *win, float scaleX, float scaleY)"
-RGFW_dpiUpdated, the window the event was sent to, dpi scaleX, dpi scaleY 
 .SS "typedef void(* RGFW_focusfunc) (\fBRGFW_window\fP *win, \fBRGFW_bool\fP inFocus)"
 RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its in focus 
 .SS "typedef void(* RGFW_gamepadAxisfunc) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_point\fP axis[2], \fBu8\fP axisesCount, \fBu8\fP whichAxis)"
@@ -153,6 +151,8 @@ RGFW_mouseEnter / RGFW_mouseLeave, the window that changed, the point of the mou
 RGFW_mousePosChanged, the window that the move happened on, and the new point of the mouse 
 .br
  
+.SS "typedef void(* RGFW_scaleUpdatedfunc) (\fBRGFW_window\fP *win, float scaleX, float scaleY)"
+RGFW_scaleUpdated, the window the event was sent to, content scaleX, content scaleY 
 .SS "typedef void(* RGFW_windowMaximizedfunc) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
 RGFW_windowMaximized, the window and its new rect value 
 .br
@@ -187,10 +187,6 @@ set callback for a drop event event\&. Returns previous callback function (if it
 set callback for a start of a drop event\&. Returns previous callback function (if it was set) 
 .br
  
-.SS "\fBRGFWDEF\fP \fBRGFW_dpiUpdatedfunc\fP RGFW_setDpiUpdatedCallback (\fBRGFW_dpiUpdatedfunc\fP func)"
-set callback for when the DPI changes\&. Returns previous callback function (if it was set) 
-.br
- 
 .SS "\fBRGFWDEF\fP \fBRGFW_focusfunc\fP RGFW_setFocusCallback (\fBRGFW_focusfunc\fP func)"
 set callback for a window focus change event\&. Returns previous callback function (if it was set) 
 .br
@@ -219,6 +215,10 @@ set callback for a mouse notify event\&. Returns previous callback function (if 
  
 .SS "\fBRGFWDEF\fP \fBRGFW_mousePosfunc\fP RGFW_setMousePosCallback (\fBRGFW_mousePosfunc\fP func)"
 set callback for a mouse move event\&. Returns previous callback function (if it was set) 
+.br
+ 
+.SS "\fBRGFWDEF\fP \fBRGFW_scaleUpdatedfunc\fP RGFW_setScaleUpdatedCallback (\fBRGFW_scaleUpdatedfunc\fP func)"
+set callback for when the DPI changes\&. Returns previous callback function (if it was set) 
 .br
  
 .SS "\fBRGFWDEF\fP \fBRGFW_windowResizedfunc\fP RGFW_setWindowMaximizedCallback (\fBRGFW_windowResizedfunc\fP func)"

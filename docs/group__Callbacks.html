@@ -114,8 +114,8 @@ Typedefs</h2></td></tr>
 <tr class="separator:gaec930946481b1a8c71788c19b6bf3674"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga434cff4c15dd2839a1e65f55c1d21188"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#ga434cff4c15dd2839a1e65f55c1d21188">RGFW_dndfunc</a>) (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, char **droppedFiles, <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> droppedFilesCount)</td></tr>
 <tr class="separator:ga434cff4c15dd2839a1e65f55c1d21188"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad30b72d57b853952e9ae27ff71fcbfda"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#gad30b72d57b853952e9ae27ff71fcbfda">RGFW_dpiUpdatedfunc</a>) (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, float scaleX, float scaleY)</td></tr>
-<tr class="separator:gad30b72d57b853952e9ae27ff71fcbfda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf634d85df6ec566fdd9a0a02cb5a87b1"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#gaf634d85df6ec566fdd9a0a02cb5a87b1">RGFW_scaleUpdatedfunc</a>) (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, float scaleX, float scaleY)</td></tr>
+<tr class="separator:gaf634d85df6ec566fdd9a0a02cb5a87b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -153,8 +153,8 @@ Functions</h2></td></tr>
 <tr class="separator:gaf10f2ce2d71454adcaad2ad0a95c2da9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5ab05d69da16ada6257d818b5ed32767"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Callbacks.html#gac3a6007e7ac6c7e7f897cb67a37fb350">RGFW_windowResizedfunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#ga5ab05d69da16ada6257d818b5ed32767">RGFW_setWindowRestoredCallback</a> (<a class="el" href="group__Callbacks.html#gac3a6007e7ac6c7e7f897cb67a37fb350">RGFW_windowResizedfunc</a> func)</td></tr>
 <tr class="separator:ga5ab05d69da16ada6257d818b5ed32767"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga68b2275a32fa2915fd8420e66701d9d6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Callbacks.html#gad30b72d57b853952e9ae27ff71fcbfda">RGFW_dpiUpdatedfunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#ga68b2275a32fa2915fd8420e66701d9d6">RGFW_setDpiUpdatedCallback</a> (<a class="el" href="group__Callbacks.html#gad30b72d57b853952e9ae27ff71fcbfda">RGFW_dpiUpdatedfunc</a> func)</td></tr>
-<tr class="separator:ga68b2275a32fa2915fd8420e66701d9d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4bdd2954e97d4d78199a980b65502e93"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Callbacks.html#gaf634d85df6ec566fdd9a0a02cb5a87b1">RGFW_scaleUpdatedfunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#ga4bdd2954e97d4d78199a980b65502e93">RGFW_setScaleUpdatedCallback</a> (<a class="el" href="group__Callbacks.html#gaf634d85df6ec566fdd9a0a02cb5a87b1">RGFW_scaleUpdatedfunc</a> func)</td></tr>
+<tr class="separator:ga4bdd2954e97d4d78199a980b65502e93"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p >event callbacks. These are completely optional, so you can use the normal RGFW_checkEvent() method if you prefer that </p>
@@ -186,21 +186,6 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p >RGFW_DNDInit, the window, the point of the drop on the windows </p>
-
-</div>
-</div>
-<a id="gad30b72d57b853952e9ae27ff71fcbfda" name="gad30b72d57b853952e9ae27ff71fcbfda"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gad30b72d57b853952e9ae27ff71fcbfda">&#9670;&#160;</a></span>RGFW_dpiUpdatedfunc</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef void(* RGFW_dpiUpdatedfunc) (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, float scaleX, float scaleY)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >RGFW_dpiUpdated, the window the event was sent to, dpi scaleX, dpi scaleY </p>
 
 </div>
 </div>
@@ -323,6 +308,21 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <p >RGFW_mousePosChanged, the window that the move happened on, and the new point of the mouse <br  />
  </p>
+
+</div>
+</div>
+<a id="gaf634d85df6ec566fdd9a0a02cb5a87b1" name="gaf634d85df6ec566fdd9a0a02cb5a87b1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf634d85df6ec566fdd9a0a02cb5a87b1">&#9670;&#160;</a></span>RGFW_scaleUpdatedfunc</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* RGFW_scaleUpdatedfunc) (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, float scaleX, float scaleY)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >RGFW_scaleUpdated, the window the event was sent to, content scaleX, content scaleY </p>
 
 </div>
 </div>
@@ -473,26 +473,6 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p >set callback for a start of a drop event. Returns previous callback function (if it was set) <br  />
- </p>
-
-</div>
-</div>
-<a id="ga68b2275a32fa2915fd8420e66701d9d6" name="ga68b2275a32fa2915fd8420e66701d9d6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga68b2275a32fa2915fd8420e66701d9d6">&#9670;&#160;</a></span>RGFW_setDpiUpdatedCallback()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Callbacks.html#gad30b72d57b853952e9ae27ff71fcbfda">RGFW_dpiUpdatedfunc</a> RGFW_setDpiUpdatedCallback </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group__Callbacks.html#gad30b72d57b853952e9ae27ff71fcbfda">RGFW_dpiUpdatedfunc</a>&#160;</td>
-          <td class="paramname"><em>func</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >set callback for when the DPI changes. Returns previous callback function (if it was set) <br  />
  </p>
 
 </div>
@@ -652,6 +632,26 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p >set callback for a mouse move event. Returns previous callback function (if it was set) <br  />
+ </p>
+
+</div>
+</div>
+<a id="ga4bdd2954e97d4d78199a980b65502e93" name="ga4bdd2954e97d4d78199a980b65502e93"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga4bdd2954e97d4d78199a980b65502e93">&#9670;&#160;</a></span>RGFW_setScaleUpdatedCallback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Callbacks.html#gaf634d85df6ec566fdd9a0a02cb5a87b1">RGFW_scaleUpdatedfunc</a> RGFW_setScaleUpdatedCallback </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__Callbacks.html#gaf634d85df6ec566fdd9a0a02cb5a87b1">RGFW_scaleUpdatedfunc</a>&#160;</td>
+          <td class="paramname"><em>func</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >set callback for when the DPI changes. Returns previous callback function (if it was set) <br  />
  </p>
 
 </div>

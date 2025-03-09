@@ -245,8 +245,8 @@ Typedefs</h2></td></tr>
 <tr class="separator:gaec930946481b1a8c71788c19b6bf3674"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga434cff4c15dd2839a1e65f55c1d21188"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#ga434cff4c15dd2839a1e65f55c1d21188">RGFW_dndfunc</a>) (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, char **droppedFiles, <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> droppedFilesCount)</td></tr>
 <tr class="separator:ga434cff4c15dd2839a1e65f55c1d21188"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad30b72d57b853952e9ae27ff71fcbfda"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#gad30b72d57b853952e9ae27ff71fcbfda">RGFW_dpiUpdatedfunc</a>) (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, float scaleX, float scaleY)</td></tr>
-<tr class="separator:gad30b72d57b853952e9ae27ff71fcbfda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf634d85df6ec566fdd9a0a02cb5a87b1"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#gaf634d85df6ec566fdd9a0a02cb5a87b1">RGFW_scaleUpdatedfunc</a>) (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, float scaleX, float scaleY)</td></tr>
+<tr class="separator:gaf634d85df6ec566fdd9a0a02cb5a87b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga13d60c1d8ee57056290acdc59bfc37a0"><td class="memItemLeft" align="right" valign="top">typedef DWORD(__stdcall *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Threads.html#ga13d60c1d8ee57056290acdc59bfc37a0">RGFW_threadFunc_ptr</a>) (LPVOID lpThreadParameter)</td></tr>
 <tr class="separator:ga13d60c1d8ee57056290acdc59bfc37a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -470,8 +470,8 @@ Functions</h2></td></tr>
 <tr class="separator:gaf10f2ce2d71454adcaad2ad0a95c2da9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5ab05d69da16ada6257d818b5ed32767"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Callbacks.html#gac3a6007e7ac6c7e7f897cb67a37fb350">RGFW_windowResizedfunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#ga5ab05d69da16ada6257d818b5ed32767">RGFW_setWindowRestoredCallback</a> (<a class="el" href="group__Callbacks.html#gac3a6007e7ac6c7e7f897cb67a37fb350">RGFW_windowResizedfunc</a> func)</td></tr>
 <tr class="separator:ga5ab05d69da16ada6257d818b5ed32767"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga68b2275a32fa2915fd8420e66701d9d6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Callbacks.html#gad30b72d57b853952e9ae27ff71fcbfda">RGFW_dpiUpdatedfunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#ga68b2275a32fa2915fd8420e66701d9d6">RGFW_setDpiUpdatedCallback</a> (<a class="el" href="group__Callbacks.html#gad30b72d57b853952e9ae27ff71fcbfda">RGFW_dpiUpdatedfunc</a> func)</td></tr>
-<tr class="separator:ga68b2275a32fa2915fd8420e66701d9d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4bdd2954e97d4d78199a980b65502e93"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Callbacks.html#gaf634d85df6ec566fdd9a0a02cb5a87b1">RGFW_scaleUpdatedfunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#ga4bdd2954e97d4d78199a980b65502e93">RGFW_setScaleUpdatedCallback</a> (<a class="el" href="group__Callbacks.html#gaf634d85df6ec566fdd9a0a02cb5a87b1">RGFW_scaleUpdatedfunc</a> func)</td></tr>
+<tr class="separator:ga4bdd2954e97d4d78199a980b65502e93"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gabb829fbe339184bf68a558526db8fa8e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8">RGFW_thread</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Threads.html#gabb829fbe339184bf68a558526db8fa8e">RGFW_createThread</a> (<a class="el" href="group__Threads.html#ga13d60c1d8ee57056290acdc59bfc37a0">RGFW_threadFunc_ptr</a> ptr, void *args)</td></tr>
 <tr class="separator:gabb829fbe339184bf68a558526db8fa8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga86aab7e48c958b8985d261dce599fbd2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Threads.html#ga86aab7e48c958b8985d261dce599fbd2">RGFW_cancelThread</a> (<a class="el" href="RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8">RGFW_thread</a> thread)</td></tr>
@@ -1462,7 +1462,7 @@ Functions</h2></td></tr>
 <p >&lt; the window was maximized</p>
 <p >&lt; the window was minimized</p>
 <p >&lt; the window was restored</p>
-<p >&lt; DPI scale factor changed</p>
+<p >&lt; content scale factor changed</p>
 
 </div>
 </div>

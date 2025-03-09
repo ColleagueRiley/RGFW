@@ -16,10 +16,10 @@ void error(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const
     printf("RGFW ERROR: %s\n", msg);
 }
 
-void dpiUpdatedfunc(RGFW_window* win, float scaleX, float scaleY);
-void dpiUpdatedfunc(RGFW_window* win, float scaleX, float scaleY) {
+void scaleUpdatedfunc(RGFW_window* win, float scaleX, float scaleY);
+void scaleUpdatedfunc(RGFW_window* win, float scaleX, float scaleY) {
     if (window != win) return;
-    printf("DPI updated %f %f\n", scaleX, scaleY);
+    printf("scale updated %f %f\n", scaleX, scaleY);
 }
 
 void windowmovefunc(RGFW_window* win, RGFW_rect r);
@@ -133,7 +133,7 @@ void mousebuttonfunc(RGFW_window* win, u8 button, double scroll, u8 pressed) {
 int main(void) {
     window = RGFW_createWindow("RGFW Callbacks", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND);
 
-    RGFW_setDpiUpdatedCallback(dpiUpdatedfunc);
+    RGFW_setScaleUpdatedCallback(scaleUpdatedfunc);
 	RGFW_setWindowMovedCallback(windowmovefunc);
 	RGFW_setWindowResizedCallback(windowresizefunc);
     RGFW_setWindowMinimizedCallback(windowminimizefunc);
