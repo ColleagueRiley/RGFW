@@ -3667,9 +3667,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 		if (RGFW_GL_HINTS[RGFW_glMinor] || RGFW_GL_HINTS[RGFW_glMajor]) {
 			context_attribs[2] = GLX_CONTEXT_MAJOR_VERSION_ARB;
-			context_attribs[3] = RGFW_GL_HINTS[RGFW_glMinor];
+			context_attribs[3] = RGFW_GL_HINTS[RGFW_glMajor];
 			context_attribs[4] = GLX_CONTEXT_MINOR_VERSION_ARB;
-			context_attribs[5] = RGFW_GL_HINTS[RGFW_glMajor];
+			context_attribs[5] = RGFW_GL_HINTS[RGFW_glMinor];
 		}
 
 		glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
