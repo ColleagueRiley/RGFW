@@ -2287,8 +2287,8 @@ $(function() {
 <div class="line"><a id="l02462" name="l02462"></a><span class="lineno"> 2462</span>        attribs[index + 1] = 0x1000;</div>
 <div class="line"><a id="l02463" name="l02463"></a><span class="lineno"> 2463</span> </div>
 <div class="line"><a id="l02464" name="l02464"></a><span class="lineno"> 2464</span> </div>
-<div class="line"><a id="l02465" name="l02465"></a><span class="lineno"> 2465</span>        <span class="keywordflow">if</span> (RGFW_GL_HINTS[RGFW_glMinor] &gt;= 4 || RGFW_GL_HINTS[RGFW_glMinor] &gt;= 3) {</div>
-<div class="line"><a id="l02466" name="l02466"></a><span class="lineno"> 2466</span>            attribs[index + 1] = (<a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>) ((RGFW_GL_HINTS[RGFW_glMinor] &gt;= 4) ? 0x4100 : 0x3200);</div>
+<div class="line"><a id="l02465" name="l02465"></a><span class="lineno"> 2465</span>        <span class="keywordflow">if</span> (RGFW_GL_HINTS[RGFW_glMajor] &gt;= 4 || RGFW_GL_HINTS[RGFW_glMajor] &gt;= 3) {</div>
+<div class="line"><a id="l02466" name="l02466"></a><span class="lineno"> 2466</span>            attribs[index + 1] = (<a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>) ((RGFW_GL_HINTS[RGFW_glMajor] &gt;= 4) ? 0x4100 : 0x3200);</div>
 <div class="line"><a id="l02467" name="l02467"></a><span class="lineno"> 2467</span>        }</div>
 <div class="line"><a id="l02468" name="l02468"></a><span class="lineno"> 2468</span><span class="preprocessor">    #endif</span></div>
 <div class="line"><a id="l02469" name="l02469"></a><span class="lineno"> 2469</span> </div>
@@ -2455,11 +2455,11 @@ $(function() {
 <div class="line"><a id="l02630" name="l02630"></a><span class="lineno"> 2630</span>    <span class="keywordflow">if</span> (RGFW_GL_HINTS[RGFW_glDoubleBuffer])</div>
 <div class="line"><a id="l02631" name="l02631"></a><span class="lineno"> 2631</span>        RGFW_GL_ADD_ATTRIB(EGL_RENDER_BUFFER, EGL_BACK_BUFFER);</div>
 <div class="line"><a id="l02632" name="l02632"></a><span class="lineno"> 2632</span> </div>
-<div class="line"><a id="l02633" name="l02633"></a><span class="lineno"> 2633</span>    <span class="keywordflow">if</span> (RGFW_GL_HINTS[RGFW_glMinor]) {</div>
-<div class="line"><a id="l02634" name="l02634"></a><span class="lineno"> 2634</span>        attribs[1] = RGFW_GL_HINTS[RGFW_glMinor];</div>
+<div class="line"><a id="l02633" name="l02633"></a><span class="lineno"> 2633</span>    <span class="keywordflow">if</span> (RGFW_GL_HINTS[RGFW_glMajor]) {</div>
+<div class="line"><a id="l02634" name="l02634"></a><span class="lineno"> 2634</span>        attribs[1] = RGFW_GL_HINTS[RGFW_glMajor];</div>
 <div class="line"><a id="l02635" name="l02635"></a><span class="lineno"> 2635</span> </div>
-<div class="line"><a id="l02636" name="l02636"></a><span class="lineno"> 2636</span>        RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MAJOR_VERSION, RGFW_GL_HINTS[RGFW_glMinor]);</div>
-<div class="line"><a id="l02637" name="l02637"></a><span class="lineno"> 2637</span>        RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MINOR_VERSION, RGFW_GL_HINTS[RGFW_glMajor]);</div>
+<div class="line"><a id="l02636" name="l02636"></a><span class="lineno"> 2636</span>        RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MAJOR_VERSION, RGFW_GL_HINTS[RGFW_glMajor]);</div>
+<div class="line"><a id="l02637" name="l02637"></a><span class="lineno"> 2637</span>        RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MINOR_VERSION, RGFW_GL_HINTS[RGFW_glMinor]);</div>
 <div class="line"><a id="l02638" name="l02638"></a><span class="lineno"> 2638</span> </div>
 <div class="line"><a id="l02639" name="l02639"></a><span class="lineno"> 2639</span>        <span class="keywordflow">if</span> (RGFW_GL_HINTS[RGFW_glProfile] == RGFW_glCore) {</div>
 <div class="line"><a id="l02640" name="l02640"></a><span class="lineno"> 2640</span>            RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT);</div>
@@ -3490,9 +3490,9 @@ $(function() {
 <div class="line"><a id="l03667" name="l03667"></a><span class="lineno"> 3667</span> </div>
 <div class="line"><a id="l03668" name="l03668"></a><span class="lineno"> 3668</span>        <span class="keywordflow">if</span> (RGFW_GL_HINTS[RGFW_glMinor] || RGFW_GL_HINTS[RGFW_glMajor]) {</div>
 <div class="line"><a id="l03669" name="l03669"></a><span class="lineno"> 3669</span>            context_attribs[2] = GLX_CONTEXT_MAJOR_VERSION_ARB;</div>
-<div class="line"><a id="l03670" name="l03670"></a><span class="lineno"> 3670</span>            context_attribs[3] = RGFW_GL_HINTS[RGFW_glMinor];</div>
+<div class="line"><a id="l03670" name="l03670"></a><span class="lineno"> 3670</span>            context_attribs[3] = RGFW_GL_HINTS[RGFW_glMajor];</div>
 <div class="line"><a id="l03671" name="l03671"></a><span class="lineno"> 3671</span>            context_attribs[4] = GLX_CONTEXT_MINOR_VERSION_ARB;</div>
-<div class="line"><a id="l03672" name="l03672"></a><span class="lineno"> 3672</span>            context_attribs[5] = RGFW_GL_HINTS[RGFW_glMajor];</div>
+<div class="line"><a id="l03672" name="l03672"></a><span class="lineno"> 3672</span>            context_attribs[5] = RGFW_GL_HINTS[RGFW_glMinor];</div>
 <div class="line"><a id="l03673" name="l03673"></a><span class="lineno"> 3673</span>        }</div>
 <div class="line"><a id="l03674" name="l03674"></a><span class="lineno"> 3674</span> </div>
 <div class="line"><a id="l03675" name="l03675"></a><span class="lineno"> 3675</span>        glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;</div>
@@ -6037,8 +6037,8 @@ $(function() {
 <div class="line"><a id="l06218" name="l06218"></a><span class="lineno"> 6218</span>            }</div>
 <div class="line"><a id="l06219" name="l06219"></a><span class="lineno"> 6219</span> </div>
 <div class="line"><a id="l06220" name="l06220"></a><span class="lineno"> 6220</span>            <span class="keywordflow">if</span> (RGFW_GL_HINTS[RGFW_glMinor] || RGFW_GL_HINTS[RGFW_glMajor]) {</div>
-<div class="line"><a id="l06221" name="l06221"></a><span class="lineno"> 6221</span>                SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_GL_HINTS[RGFW_glMinor]);</div>
-<div class="line"><a id="l06222" name="l06222"></a><span class="lineno"> 6222</span>                SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_GL_HINTS[RGFW_glMajor]);</div>
+<div class="line"><a id="l06221" name="l06221"></a><span class="lineno"> 6221</span>                SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_GL_HINTS[RGFW_glMajor]);</div>
+<div class="line"><a id="l06222" name="l06222"></a><span class="lineno"> 6222</span>                SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_GL_HINTS[RGFW_glMinor]);</div>
 <div class="line"><a id="l06223" name="l06223"></a><span class="lineno"> 6223</span>            }</div>
 <div class="line"><a id="l06224" name="l06224"></a><span class="lineno"> 6224</span> </div>
 <div class="line"><a id="l06225" name="l06225"></a><span class="lineno"> 6225</span>            SET_ATTRIB(0, 0);</div>
@@ -9604,8 +9604,8 @@ $(function() {
 <div class="line"><a id="l09787" name="l09787"></a><span class="lineno"> 9787</span>            attrs.renderViaOffscreenBackBuffer = RGFW_GL_HINTS[RGFW_glAuxBuffers];</div>
 <div class="line"><a id="l09788" name="l09788"></a><span class="lineno"> 9788</span> </div>
 <div class="line"><a id="l09789" name="l09789"></a><span class="lineno"> 9789</span>        attrs.failIfMajorPerformanceCaveat = EM_FALSE;</div>
-<div class="line"><a id="l09790" name="l09790"></a><span class="lineno"> 9790</span>        attrs.majorVersion = (RGFW_GL_HINTS[RGFW_glMinor] == 0) ? 1 : RGFW_GL_HINTS[RGFW_glMinor];</div>
-<div class="line"><a id="l09791" name="l09791"></a><span class="lineno"> 9791</span>        attrs.minorVersion = RGFW_GL_HINTS[RGFW_glMajor];</div>
+<div class="line"><a id="l09790" name="l09790"></a><span class="lineno"> 9790</span>        attrs.majorVersion = (RGFW_GL_HINTS[RGFW_glMajor] == 0) ? 1 : RGFW_GL_HINTS[RGFW_glMajor];</div>
+<div class="line"><a id="l09791" name="l09791"></a><span class="lineno"> 9791</span>        attrs.minorVersion = RGFW_GL_HINTS[RGFW_glMinor];</div>
 <div class="line"><a id="l09792" name="l09792"></a><span class="lineno"> 9792</span> </div>
 <div class="line"><a id="l09793" name="l09793"></a><span class="lineno"> 9793</span>        attrs.enableExtensionsByDefault = EM_TRUE;</div>
 <div class="line"><a id="l09794" name="l09794"></a><span class="lineno"> 9794</span>        attrs.explicitSwapControl = EM_TRUE;</div>
