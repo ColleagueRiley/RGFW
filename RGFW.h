@@ -2458,8 +2458,8 @@ static i32* RGFW_initFormatAttribs(u32 useSoftware) {
 		attribs[index + 1] = 0x1000;
 
 
-		if (RGFW_GL_HINTS[RGFW_glMinor] >= 4 || RGFW_GL_HINTS[RGFW_glMinor] >= 3) {
-			attribs[index + 1] = (u32) ((RGFW_GL_HINTS[RGFW_glMinor] >= 4) ? 0x4100 : 0x3200);
+		if (RGFW_GL_HINTS[RGFW_glMajor] >= 4 || RGFW_GL_HINTS[RGFW_glMajor] >= 3) {
+			attribs[index + 1] = (u32) ((RGFW_GL_HINTS[RGFW_glMajor] >= 4) ? 0x4100 : 0x3200);
 		}
 	#endif
 
@@ -2626,11 +2626,11 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 	if (RGFW_GL_HINTS[RGFW_glDoubleBuffer])
 		RGFW_GL_ADD_ATTRIB(EGL_RENDER_BUFFER, EGL_BACK_BUFFER);
 
-	if (RGFW_GL_HINTS[RGFW_glMinor]) {
-		attribs[1] = RGFW_GL_HINTS[RGFW_glMinor];
+	if (RGFW_GL_HINTS[RGFW_glMajor]) {
+		attribs[1] = RGFW_GL_HINTS[RGFW_glMajor];
 
-		RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MAJOR_VERSION, RGFW_GL_HINTS[RGFW_glMinor]);
-		RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MINOR_VERSION, RGFW_GL_HINTS[RGFW_glMajor]);
+		RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MAJOR_VERSION, RGFW_GL_HINTS[RGFW_glMajor]);
+		RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MINOR_VERSION, RGFW_GL_HINTS[RGFW_glMinor]);
 
 		if (RGFW_GL_HINTS[RGFW_glProfile] == RGFW_glCore) {
 			RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT);
@@ -3663,9 +3663,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 		if (RGFW_GL_HINTS[RGFW_glMinor] || RGFW_GL_HINTS[RGFW_glMajor]) {
 			context_attribs[2] = GLX_CONTEXT_MAJOR_VERSION_ARB;
-			context_attribs[3] = RGFW_GL_HINTS[RGFW_glMinor];
+			context_attribs[3] = RGFW_GL_HINTS[RGFW_glMajor];
 			context_attribs[4] = GLX_CONTEXT_MINOR_VERSION_ARB;
-			context_attribs[5] = RGFW_GL_HINTS[RGFW_glMajor];
+			context_attribs[5] = RGFW_GL_HINTS[RGFW_glMinor];
 		}
 
 		glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
@@ -6214,8 +6214,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			}
 
 			if (RGFW_GL_HINTS[RGFW_glMinor] || RGFW_GL_HINTS[RGFW_glMajor]) {
-				SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_GL_HINTS[RGFW_glMinor]);
-				SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_GL_HINTS[RGFW_glMajor]);
+				SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_GL_HINTS[RGFW_glMajor]);
+				SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_GL_HINTS[RGFW_glMinor]);
 			}
 
 			SET_ATTRIB(0, 0);
@@ -9766,8 +9766,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			attrs.renderViaOffscreenBackBuffer = RGFW_GL_HINTS[RGFW_glAuxBuffers];
 
 		attrs.failIfMajorPerformanceCaveat = EM_FALSE;
-		attrs.majorVersion = (RGFW_GL_HINTS[RGFW_glMinor] == 0) ? 1 : RGFW_GL_HINTS[RGFW_glMinor];
-		attrs.minorVersion = RGFW_GL_HINTS[RGFW_glMajor];
+		attrs.majorVersion = (RGFW_GL_HINTS[RGFW_glMajor] == 0) ? 1 : RGFW_GL_HINTS[RGFW_glMajor];
+		attrs.minorVersion = RGFW_GL_HINTS[RGFW_glMinor];
 
 		attrs.enableExtensionsByDefault = EM_TRUE;
 		attrs.explicitSwapControl = EM_TRUE;
