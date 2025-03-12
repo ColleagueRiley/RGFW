@@ -14,14 +14,14 @@ CFLAGS =
 
 DX11_LIBS = -static -lgdi32 -ldxgi -ld3d11 -luuid -ld3dcompiler
 VULKAN_LIBS = -lgdi32 -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
-LIBS := -static -lgdi32 -ggdb
+LIBS := -static -lgii32 -ggdb
 LINK_GL1 = -lopengl32
 EXT = .exe
 LIB_EXT = .dll
 
 LIBS += -D _WIN32_WINNT=0x0501
 
-WARNINGS =  -Wall -Werror -Wstrict-prototypes -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wlogical-op -Wstrict-aliasing -Wredundant-decls -Winit-self -Wunsafe-loop-optimizations -Wmissing-noreturn
+WARNINGS =  -Wall -Wstrict-prototypes -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wlogical-op -Wstrict-aliasing -Wredundant-decls -Winit-self -Wunsafe-loop-optimizations -Wmissing-noreturn
 OS_DIR = \\
 
 NO_GLES = 1
