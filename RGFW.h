@@ -567,7 +567,7 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 	} RGFW_monitor;
 
 	/*! get an array of all the monitors (max 6) */
-	RGFWDEF RGFW_monitor* RGFW_getMonitors(void);
+	RGFWDEF RGFW_monitor* RGFW_getMonitors(size_t* len);
 	/*! get the primary monitor */
 	RGFWDEF RGFW_monitor RGFW_getPrimaryMonitor(void);
 
@@ -5254,7 +5254,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	return monitor;
 }
 
-RGFW_monitor* RGFW_getMonitors(void) {
+RGFW_monitor* RGFW_getMonitors(size_t* len) {
 	static RGFW_monitor monitors[7];
 
 	RGFW_GOTO_WAYLAND(1);
@@ -5264,9 +5264,13 @@ RGFW_monitor* RGFW_getMonitors(void) {
 	if (RGFW_root == NULL)	display = XOpenDisplay(NULL);
 	else					display = RGFW_root->src.display;
 
+	size_t max = ScreenCount(display);
+
 	size_t i;
-	for (i = 0; i < (size_t)ScreenCount(display) && i < 6; i++)
+	for (i = 0; i < (size_t)max && i < 6; i++)
 		monitors[i] = RGFW_XCreateMonitor(i);
+
+	if (len == NULL) len = max <= 6 ? max : 6; 
 
 	if (RGFW_root == NULL) XCloseDisplay(display);
 
@@ -6929,13 +6933,15 @@ RGFW_monitor RGFW_getPrimaryMonitor(void) {
 	#endif
 }
 
-RGFW_monitor* RGFW_getMonitors(void) {
+RGFW_monitor* RGFW_getMonitors(size_t* len) {
 	static RGFW_monitor monitors[6];
 	RGFW_mInfo info;
 	info.iIndex = 0;
 	info.monitors = monitors;
 
 	EnumDisplayMonitors(NULL, NULL, GetMonitorHandle, (LPARAM) &info);
+
+	if (len != NULL) *len = (size_t)info.iIndex;
 	return monitors;
 }
 
@@ -9102,18 +9108,21 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 }
 
 
-RGFW_monitor* RGFW_getMonitors(void) {
+RGFW_monitor* RGFW_getMonitors(size_t* len) {
 	static CGDirectDisplayID displays[7];
 	u32 count;
 
 	if (CGGetActiveDisplayList(6, displays, &count) != kCGErrorSuccess)
 		return NULL;
 
+	if (count > 6) count = 6;
+
 	static RGFW_monitor monitors[7];
 
 	for (u32 i = 0; i < count; i++)
 		monitors[i] = RGFW_NSCreateMonitor(displays[i], RGFW_getNSScreenForDisplayID(displays[i]));
 
+	if (len != NULL) *len = count;
 	return monitors;
 }
 
@@ -10186,7 +10195,7 @@ void RGFW_window_setOpacity(RGFW_window* win, u8 opacity) {
 void RGFW_window_focus(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_raise(RGFW_window* win) { RGFW_UNUSED(win); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
-RGFW_monitor* RGFW_getMonitors(void) { return NULL; }
+RGFW_monitor* RGFW_getMonitors(size_t* len) { RGFW_UNUSED(len); return NULL; }
 RGFW_monitor RGFW_getPrimaryMonitor(void) { return (RGFW_monitor){}; }
 void RGFW_window_move(RGFW_window* win, RGFW_point v) { RGFW_UNUSED(win); RGFW_UNUSED(v); }
 void RGFW_window_setAspectRatio(RGFW_window* win, RGFW_area a) { RGFW_UNUSED(win); RGFW_UNUSED(a); }
