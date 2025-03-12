@@ -5090,7 +5090,7 @@ $(function() {
 <div class="line"><a id="l05270" name="l05270"></a><span class="lineno"> 5270</span>    <span class="keywordflow">for</span> (i = 0; i &lt; (size_t)max &amp;&amp; i &lt; 6; i++)</div>
 <div class="line"><a id="l05271" name="l05271"></a><span class="lineno"> 5271</span>        monitors[i] = RGFW_XCreateMonitor(i);</div>
 <div class="line"><a id="l05272" name="l05272"></a><span class="lineno"> 5272</span> </div>
-<div class="line"><a id="l05273" name="l05273"></a><span class="lineno"> 5273</span>    <span class="keywordflow">if</span> (len == NULL) len = max &lt;= 6 ? max : 6; </div>
+<div class="line"><a id="l05273" name="l05273"></a><span class="lineno"> 5273</span>    <span class="keywordflow">if</span> (len == NULL) *len = max &lt;= 6 ? max : 6; </div>
 <div class="line"><a id="l05274" name="l05274"></a><span class="lineno"> 5274</span> </div>
 <div class="line"><a id="l05275" name="l05275"></a><span class="lineno"> 5275</span>    <span class="keywordflow">if</span> (RGFW_root == NULL) <a class="code hl_define" href="XDL_8h.html#a1b53c822363646cc01070ecc8c9ac8b6">XCloseDisplay</a>(display);</div>
 <div class="line"><a id="l05276" name="l05276"></a><span class="lineno"> 5276</span> </div>

@@ -5270,7 +5270,7 @@ RGFW_monitor* RGFW_getMonitors(size_t* len) {
 	for (i = 0; i < (size_t)max && i < 6; i++)
 		monitors[i] = RGFW_XCreateMonitor(i);
 
-	if (len == NULL) len = max <= 6 ? max : 6; 
+	if (len == NULL) *len = max <= 6 ? max : 6; 
 
 	if (RGFW_root == NULL) XCloseDisplay(display);
 
