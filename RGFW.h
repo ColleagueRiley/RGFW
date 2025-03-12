@@ -1785,7 +1785,7 @@ static void RGFW_gamepadButtonfuncEMPTY(RGFW_window* win, u16 gamepad, u8 button
 static void RGFW_gamepadAxisfuncEMPTY(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount, u8 whichAxis) {RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(axis); RGFW_UNUSED(axisesCount); RGFW_UNUSED(whichAxis); }
 static void RGFW_gamepadfuncEMPTY(RGFW_window* win, u16 gamepad, RGFW_bool connected) {RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(connected);}
 static void RGFW_dndfuncEMPTY(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
-static void RGFW_dpiUpdatedfuncEMPTY(RGFW_window* win, float scaleX, float scaleY) {RGFW_UNUSED(win); RGFW_UNUSED(scaleX); RGFW_UNUSED(scaleY); }
+static void RGFW_scaleUpdatedfuncEMPTY(RGFW_window* win, float scaleX, float scaleY) {RGFW_UNUSED(win); RGFW_UNUSED(scaleX); RGFW_UNUSED(scaleY); }
 
 #define RGFW_CALLBACK_DEFINE(x, x2) \
 RGFW_##x##func RGFW_##x##Callback = RGFW_##x##funcEMPTY; \
@@ -1811,7 +1811,7 @@ RGFW_CALLBACK_DEFINE(mouseButton, MouseButton)
 RGFW_CALLBACK_DEFINE(gamepadButton, GamepadButton)
 RGFW_CALLBACK_DEFINE(gamepadAxis, GamepadAxis)
 RGFW_CALLBACK_DEFINE(gamepad, Gamepad)
-RGFW_CALLBACK_DEFINE(dpiUpdated, DpiUpdated)
+RGFW_CALLBACK_DEFINE(scaleUpdated, ScaleUpdated)
 #undef RGFW_CALLBACK_DEFINE
 
 void RGFW_window_checkEvents(RGFW_window* win, u32 waitMS) {
@@ -5838,7 +5838,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 		
 			win->r.w = windowRect.right -  windowRect.left;
-			win->r.h = (windowRect.bottom - windowRect.top) - win->src.hOffset;
+			win->r.h = (windowRect.bottom - windowRect.top) - (i32)win->src.hOffset;
 			RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowResized, ._win = win});
 			RGFW_windowResizedCallback(win, win->r);
 			RGFW_window_checkMode(win);
@@ -5905,7 +5905,7 @@ PFN_DwmEnableBlurBehindWindow DwmEnableBlurBehindWindowSRC = NULL;
 	__declspec(dllimport) u32 __stdcall timeEndPeriod(u32 uPeriod);
 #endif
 
-#define RGFW_PROC_DEF(proc, name) if (name##SRC == NULL && proc != NULL) name##SRC = (PFN_##name)(void*)GetProcAddress(proc, #name)
+#define RGFW_PROC_DEF(proc, name) if (name##SRC == NULL && proc != NULL) name##SRC = (PFN_##name)GetProcAddress(proc, #name)
 
 #ifndef RGFW_NO_XINPUT
 void RGFW_loadXInput(void);
@@ -6265,7 +6265,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 	RGFW_setBit(&win->_flags, RGFW_windowNoBorder, !border);
-	DWORD style = GetWindowLong(win->src.window, GWL_STYLE);
+	LONG style = GetWindowLong(win->src.window, GWL_STYLE);
 
 	if (border == 0) {
 		SetWindowLong(win->src.window, GWL_STYLE, style & ~WS_OVERLAPPEDWINDOW);
@@ -6636,7 +6636,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		case WM_SYSKEYDOWN: case WM_KEYDOWN: {
 			i32 scancode = (HIWORD(msg.lParam) & (KF_EXTENDED | 0xff));
 			if (scancode == 0)
-				scancode = MapVirtualKeyW((u32)msg.wParam, MAPVK_VK_TO_VSC);
+				scancode = (i32)MapVirtualKeyW((u32)msg.wParam, MAPVK_VK_TO_VSC);
 
 			switch (scancode) {
 				case 0x54: scancode = 0x137; break; /*  Alt+PrtS */
@@ -6696,7 +6696,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 				break;
 
 			unsigned size = sizeof(RAWINPUT);
-			static RAWINPUT raw = {};
+			static RAWINPUT raw = {0};
 
 			GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, &raw, &size, sizeof(RAWINPUTHEADER));
 
@@ -6828,7 +6828,7 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 	return placement.showCmd == SW_SHOWMAXIMIZED || IsZoomed(win->src.window);
 }
 
-typedef struct { int iIndex; HMONITOR hMonitor; } RGFW_mInfo;
+typedef struct { int iIndex; HMONITOR hMonitor; RGFW_monitor* monitors; } RGFW_mInfo;
 #ifndef RGFW_NO_MONITOR
 static RGFW_monitor win32CreateMonitor(HMONITOR src) {
 	RGFW_monitor monitor;
@@ -6882,8 +6882,8 @@ static RGFW_monitor win32CreateMonitor(HMONITOR src) {
 	monitor.scaleY = dpiY / 96.0f;
 	monitor.pixelRatio = dpiX >= 192.0f ? 2 : 1;
 
-	monitor.physW = GetDeviceCaps(hdc, HORZSIZE) / 25.4;
-	monitor.physH = GetDeviceCaps(hdc, VERTSIZE) / 25.4;
+	monitor.physW = (float)GetDeviceCaps(hdc, HORZSIZE) / 25.4f;
+	monitor.physH = (float)GetDeviceCaps(hdc, VERTSIZE) / 25.4f;
 	DeleteDC(hdc);
 
 	#ifndef RGFW_NO_DPI
@@ -6905,17 +6905,17 @@ static RGFW_monitor win32CreateMonitor(HMONITOR src) {
 #endif /* RGFW_NO_MONITOR */
 
 #ifndef RGFW_NO_MONITOR
-RGFW_monitor RGFW_monitors[6];
 static BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
 	RGFW_UNUSED(hdcMonitor);
 	RGFW_UNUSED(lprcMonitor);
 
 	RGFW_mInfo* info = (RGFW_mInfo*) dwData;
 
+	
 	if (info->iIndex >= 6)
 		return FALSE;
-
-	RGFW_monitors[info->iIndex] = win32CreateMonitor(hMonitor);
+	
+	info->monitors[info->iIndex] = win32CreateMonitor(hMonitor);
 	info->iIndex++;
 
 	return TRUE;
@@ -6930,11 +6930,13 @@ RGFW_monitor RGFW_getPrimaryMonitor(void) {
 }
 
 RGFW_monitor* RGFW_getMonitors(void) {
+	static RGFW_monitor monitors[6];
 	RGFW_mInfo info;
 	info.iIndex = 0;
-	while (EnumDisplayMonitors(NULL, NULL, GetMonitorHandle, (LPARAM) &info));
+	info.monitors = monitors;
 
-	return RGFW_monitors;
+	EnumDisplayMonitors(NULL, NULL, GetMonitorHandle, (LPARAM) &info);
+	return monitors;
 }
 
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
@@ -6975,7 +6977,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 
 			if (request & RGFW_monitorRGB) {
 				dm.dmFields |= DM_BITSPERPEL;
-				dm.dmBitsPerPel = mode.red + mode.green + mode.blue;
+				dm.dmBitsPerPel = (DWORD)(mode.red + mode.green + mode.blue);
 			}
 
 			if (ChangeDisplaySettingsEx(dd.DeviceName, &dm, NULL, CDS_TEST, NULL) == DISP_CHANGE_SUCCESSFUL) {
@@ -6995,7 +6997,7 @@ HICON RGFW_loadHandleImage(u8* src, RGFW_area a, BOOL icon) {
 	BITMAPV5HEADER bi;
 	ZeroMemory(&bi, sizeof(bi));
 	bi.bV5Size = sizeof(bi);
-	bi.bV5Width = a.w;
+	bi.bV5Width = (i32)a.w;
 	bi.bV5Height = -((LONG) a.h);
 	bi.bV5Planes = 1;
 	bi.bV5BitCount = 32;
@@ -7015,7 +7017,7 @@ HICON RGFW_loadHandleImage(u8* src, RGFW_area a, BOOL icon) {
 	memcpy(target, src, a.w * a.h * 4);
 	ReleaseDC(NULL, dc);
 
-	HBITMAP mask = CreateBitmap(a.w, a.h, 1, 1, NULL);
+	HBITMAP mask = CreateBitmap((i32)a.w, (i32)a.h, 1, 1, NULL);
 
 	ICONINFO ii;
 	ZeroMemory(&ii, sizeof(ii));
@@ -7144,9 +7146,9 @@ void RGFW_window_move(RGFW_window* win, RGFW_point v) {
 void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 	RGFW_ASSERT(win != NULL);
 
-	win->r.w = a.w;
-	win->r.h = a.h;
-	SetWindowPos(win->src.window, HWND_TOP, 0, 0, win->r.w, win->r.h + win->src.hOffset, SWP_NOMOVE);
+	win->r.w = (i32)a.w;
+	win->r.h = (i32)a.h;
+	SetWindowPos(win->src.window, HWND_TOP, 0, 0, win->r.w, win->r.h + (i32)win->src.hOffset, SWP_NOMOVE);
 }
 
 
@@ -7237,13 +7239,13 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	{
 		setlocale(LC_ALL, "en_US.UTF-8");
 
-		textLen = wcstombs(NULL, wstr, 0) + 1;
+		textLen = (ssize_t)wcstombs(NULL, wstr, 0) + 1;
 		if (str != NULL && (RGFW_ssize_t)strCapacity <= textLen - 1)
 			textLen = 0;
 		
 		if (str != NULL && textLen) {
 			if (textLen > 1)
-				wcstombs(str, wstr, (textLen));
+				wcstombs(str, wstr, (size_t)(textLen));
 			
 			str[textLen] = '\0';
 		}

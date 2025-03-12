@@ -30,6 +30,7 @@ Current Version: RGFW 1.6.5-dev
 - ensure callback naming capitalization is consistent
 - rename RGFW_setMouseNotifyCallBack to RGFW_setMouseNotifyCallback
 - rename windowResizeCallback to windowResizedCallback and   windowMoveCallback to windowMovedCallback
+- fix getMonitors bug (winapi)
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------
