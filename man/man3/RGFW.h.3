@@ -279,7 +279,7 @@ RGFW.h
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_gamepadCodes)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP * \fBRGFW_getMonitors\fP (void)"
+.RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP * \fBRGFW_getMonitors\fP (size_t *len)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP \fBRGFW_getPrimaryMonitor\fP (void)"
@@ -947,7 +947,7 @@ mouse button codes (\fBRGFW_event\&.button\fP) < left mouse button is pressed
 < mouse wheel is scrolling down
 .SS "\fBRGFWDEF\fP void RGFW_freeMouse (\fBRGFW_mouse\fP * mouse)"
 
-.SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP * RGFW_getMonitors (void)"
+.SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP * RGFW_getMonitors (size_t * len)"
 get an array of all the monitors (max 6) 
 .SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP RGFW_getPrimaryMonitor (void)"
 get the primary monitor 
