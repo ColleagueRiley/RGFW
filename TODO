@@ -1,6 +1,8 @@
-- (look into content scale callback?)
-- RGFW_event unions
+- look into content scale callback (macos) (X11)
+ - BGR buffer macOS
+- RGFW_event unions (to save memory ?)
 - update wayland support
+
 - look into monitor gamma
 - set gamepad mappings
 - set gamepad rumble
