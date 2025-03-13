@@ -7063,7 +7063,7 @@ $(function() {
 <div class="line"><a id="l07245" name="l07245"></a><span class="lineno"> 7245</span>    {</div>
 <div class="line"><a id="l07246" name="l07246"></a><span class="lineno"> 7246</span>        setlocale(LC_ALL, <span class="stringliteral">&quot;en_US.UTF-8&quot;</span>);</div>
 <div class="line"><a id="l07247" name="l07247"></a><span class="lineno"> 7247</span> </div>
-<div class="line"><a id="l07248" name="l07248"></a><span class="lineno"> 7248</span>        textLen = (ssize_t)wcstombs(NULL, wstr, 0) + 1;</div>
+<div class="line"><a id="l07248" name="l07248"></a><span class="lineno"> 7248</span>        textLen = (<a class="code hl_typedef" href="group__Clipboard.html#ga38e4eefa581916b9459f06a23da4d08e">RGFW_ssize_t</a>)wcstombs(NULL, wstr, 0) + 1;</div>
 <div class="line"><a id="l07249" name="l07249"></a><span class="lineno"> 7249</span>        <span class="keywordflow">if</span> (str != NULL &amp;&amp; (<a class="code hl_typedef" href="group__Clipboard.html#ga38e4eefa581916b9459f06a23da4d08e">RGFW_ssize_t</a>)strCapacity &lt;= textLen - 1)</div>
 <div class="line"><a id="l07250" name="l07250"></a><span class="lineno"> 7250</span>            textLen = 0;</div>
 <div class="line"><a id="l07251" name="l07251"></a><span class="lineno"> 7251</span>        </div>
