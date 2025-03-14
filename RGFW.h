@@ -6116,12 +6116,12 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	RECT windowRect, clientRect;
 
 	if (!(flags & RGFW_windowNoBorder)) {
-		window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER;
+		window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER | WS_MINIMIZEBOX;
 
 		if (!(flags & RGFW_windowNoResize))
 			window_style |= WS_SIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME;
 	} else
-		window_style |= WS_POPUP | WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX;
+		window_style |= WS_POPUP | WS_VISIBLE | WS_SYSMENU;
 
 	wchar_t wide_name[255];
 	MultiByteToWideChar(CP_UTF8, 0, name, -1, wide_name, 255);
@@ -6268,6 +6268,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 	RGFW_setBit(&win->_flags, RGFW_windowNoBorder, !border);
 	LONG style = GetWindowLong(win->src.window, GWL_STYLE);
+	
 
 	if (border == 0) {
 		SetWindowLong(win->src.window, GWL_STYLE, style & ~WS_OVERLAPPEDWINDOW);
@@ -6279,8 +6280,6 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 	else {
 		style |= WS_OVERLAPPEDWINDOW;
 		if (win->_flags & RGFW_windowNoResize) style &= ~WS_MAXIMIZEBOX;
-
-		SetWindowLong(win->src.window, GWL_STYLE, style);
 		SetWindowPos(
 			win->src.window, HWND_TOP, 0, 0, 0, 0,
 			SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE
