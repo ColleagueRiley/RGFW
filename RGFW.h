@@ -1868,6 +1868,7 @@ no more event call back defines
 
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
 	RGFW_window* win = (RGFW_window*)RGFW_ALLOC(sizeof(RGFW_window));
+	RGFW_ASSERT(win != NULL);
 	win->_flags = RGFW_WINDOW_ALLOC;
 	return RGFW_createWindowPtr(name, rect, flags, win);
 }
@@ -3694,17 +3695,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	if (flags & RGFW_windowScaleToMonitor)
 		RGFW_window_scaleToMonitor(win);
 	#endif
-
-	if (flags & RGFW_windowNoResize) { /* make it so the user can't resize the window */
-		XSizeHints sh;
-		sh.flags = (1L << 4) | (1L << 5);
-		sh.min_width = sh.max_width = win->r.w;
-		sh.min_height = sh.max_height = win->r.h;
-
-		XSetWMSizeHints(win->src.display, (Drawable) win->src.window, &sh, XA_WM_NORMAL_HINTS);
-		win->_flags |= RGFW_windowNoResize;
-	}
-
 	XSelectInput(win->src.display, (Drawable) win->src.window, event_mask); /*!< tell X11 what events we want */
 
 	/* make it so the user can't close the window until the program does */
@@ -3725,7 +3715,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	/* set the background */
 	RGFW_window_setName(win, name);
 
-	XMapWindow(win->src.display, (Drawable) win->src.window);						  /* draw the window */
+	RGFW_window_show(win);
 	XMoveWindow(win->src.display, (Drawable) win->src.window, win->r.x, win->r.y); /*!< move the window to it's proper cords */
 
 	if (flags & RGFW_windowAllowDND) { /* init drag and drop atoms and turn on drag and drop for this window */
@@ -3775,7 +3765,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 		win->src.window = XCreateWindow(win->src.display, DefaultRootWindow(win->src.display), 0, 0, 1, 1, 0, CopyFromParent, InputOutput, CopyFromParent,
 									CWBackPixel | CWOverrideRedirect, &attributes);
-
 		XMapWindow(win->src.display, win->src.window);
 		XFlush(win->src.display);
 		if (wm_delete_window == 0) {
@@ -3838,6 +3827,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	wl_display_roundtrip(win->src.wl_display);
 
 	wl_surface_commit(win->src.surface);
+	RGFW_window_show(win);
 
 	/* wait for the surface to be configured */
 	while (wl_display_dispatch(win->src.wl_display) != -1 && !RGFW_wl_configured) { }
@@ -4550,7 +4540,7 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 	RGFW_ASSERT(win != NULL);
 
 	if (a.w == 0 && a.h == 0)
-		return;
+		a = RGFW_getScreenSize();
 
 	XSizeHints hints;
 	long flags;
@@ -5277,7 +5267,7 @@ RGFW_monitor* RGFW_getMonitors(size_t* len) {
 	for (i = 0; i < (size_t)max && i < 6; i++)
 		monitors[i] = RGFW_XCreateMonitor(i);
 
-	if (len == NULL) *len = max <= 6 ? max : 6; 
+	if (len != NULL) *len = max <= 6 ? max : 6; 
 
 	if (RGFW_root == NULL) XCloseDisplay(display);
 
@@ -6126,7 +6116,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	RECT windowRect, clientRect;
 
 	if (!(flags & RGFW_windowNoBorder)) {
-		window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER | WS_MINIMIZEBOX;
+		window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER;
 
 		if (!(flags & RGFW_windowNoResize))
 			window_style |= WS_SIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME;
@@ -6261,7 +6251,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			RGFW_createOpenGLContext(win);
 	#endif
 
-	ShowWindow(win->src.window, SW_SHOWNORMAL);
+	RGFW_window_show(win);
 	RGFW_window_setFlags(win, flags);
 
 	RGFW_win32_makeWindowTransparent(win);
@@ -6287,7 +6277,10 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 		);
 	}
 	else {
-		SetWindowLong(win->src.window, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
+		style |= WS_OVERLAPPEDWINDOW;
+		if (win->_flags & RGFW_windowNoResize) style &= ~WS_MAXIMIZEBOX;
+
+		SetWindowLong(win->src.window, GWL_STYLE, style);
 		SetWindowPos(
 			win->src.window, HWND_TOP, 0, 0, 0, 0,
 			SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE
@@ -8340,8 +8333,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	// Show the window
 	objc_msgSend_void_bool(NSApp, sel_registerName("activateIgnoringOtherApps:"), true);
-	((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("makeKeyAndOrderFront:"), (SEL)NULL);
-	objc_msgSend_void_bool(win->src.window, sel_registerName("setIsVisible:"), true);
+	((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("makeKeyAndOrderFront:"), NULL);
+	RGFW_window_show(win);
 
 	if (!RGFW_loaded) {
 		objc_msgSend_void(win->src.window, sel_registerName("makeMainWindow"));
