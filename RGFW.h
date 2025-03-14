@@ -1949,6 +1949,15 @@ void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	if (flags & RGFW_windowFloating)				RGFW_window_setFloating(win, 1);
 	else if (cmpFlags & RGFW_windowFloating)		RGFW_window_setFloating(win, 0);
 	if (flags & RGFW_windowFocus)					RGFW_window_focus(win);
+	
+	if (flags & RGFW_windowNoResize) {
+		RGFW_window_setMaxSize(win, RGFW_AREA(win->r.w, win->r.h));
+		RGFW_window_setMinSize(win, RGFW_AREA(win->r.w, win->r.h));
+	} else if (cmpFlags & RGFW_windowNoResize) {
+		RGFW_window_setMaxSize(win, RGFW_AREA(0, 0));
+		RGFW_window_setMinSize(win, RGFW_AREA(0, 0));
+	}
+
 	win->_flags = flags | (win->_flags & RGFW_INTERNAL_FLAGS);
 }
 
@@ -5858,18 +5867,17 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		#endif
 		case WM_GETMINMAXINFO: {
-			printf("requesting max size\n");
 			if (win == NULL)
 				return DefWindowProcW(hWnd, message, wParam, lParam);
 			
 			MINMAXINFO* mmi = (MINMAXINFO*) lParam;
 			mmi->ptMinTrackSize.x = win->src.minSize.w;
-			mmi->ptMinTrackSize.y = win->src.minSize.h;
+			mmi->ptMinTrackSize.y = win->src.minSize.h + win->src.hOffset;
 			if (win->src.maxSize.w == 0 && win->src.maxSize.h == 0)
 				return DefWindowProcW(hWnd, message, wParam, lParam);
 			
 			mmi->ptMaxTrackSize.x = win->src.maxSize.w;
-			mmi->ptMaxTrackSize.y = win->src.maxSize.h;
+			mmi->ptMaxTrackSize.y = win->src.maxSize.h + win->src.hOffset;
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		} 
 		case WM_PAINT: {
@@ -6257,12 +6265,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	RGFW_window_setFlags(win, flags);
 
 	RGFW_win32_makeWindowTransparent(win);
-	if (!(flags & RGFW_windowNoResize)) {
-		RGFW_window_setMaxSize(win, RGFW_AREA(win->r.w, win->r.h));
-		RGFW_window_setMinSize(win, RGFW_AREA(win->r.w, win->r.h));
-	}
 	
-
 	#ifdef RGFW_OPENGL
 	if (RGFW_root != win)
 		wglShareLists(RGFW_root->src.ctx, win->src.ctx);
