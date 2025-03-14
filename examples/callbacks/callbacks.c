@@ -106,8 +106,8 @@ void windowrefreshfunc(RGFW_window* win) {
     printf("refresh\n");
 }
 
-void keyfunc(RGFW_window* win, RGFW_key key, char keyChar, RGFW_keymod keyMod, RGFW_bool pressed);
-void keyfunc(RGFW_window* win, RGFW_key key, char keyChar, RGFW_keymod keyMod, RGFW_bool pressed) {
+void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool pressed);
+void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool pressed) {
     if (window != win) return;
     if (pressed)
         printf("key pressed : %i (%c) mapped : %i (%c): with modstate : %i\n", key, key, keyChar, keyChar, keyMod);
@@ -150,7 +150,7 @@ int main(void) {
 	RGFW_setMouseButtonCallback(mousebuttonfunc);
 
     while (RGFW_window_shouldClose(window) == 0) {
-        glClearColor(0.15, 0, 0.25, 0xFF);
+        glClearColor(0.15f, 0.0f, 0.25f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         
         RGFW_window_swapBuffers(window);

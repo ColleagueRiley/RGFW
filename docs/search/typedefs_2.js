@@ -10,7 +10,7 @@ var searchData=
   ['rgfw_5fgamepadaxisfunc_7',['RGFW_gamepadAxisfunc',['../group__Callbacks.html#gac41270036ec7e6a1fe13f5195ffac620',1,'RGFW.h']]],
   ['rgfw_5fgamepadbuttonfunc_8',['RGFW_gamepadButtonfunc',['../group__Callbacks.html#ga6e9294f6b00a721fb629e0b19c7dd1dc',1,'RGFW.h']]],
   ['rgfw_5fgamepadfunc_9',['RGFW_gamepadfunc',['../group__Callbacks.html#gaec930946481b1a8c71788c19b6bf3674',1,'RGFW.h']]],
-  ['rgfw_5fkeyfunc_10',['RGFW_keyfunc',['../group__Callbacks.html#gac106d1af2e82c4c01892f73d6a5a3822',1,'RGFW.h']]],
+  ['rgfw_5fkeyfunc_10',['RGFW_keyfunc',['../group__Callbacks.html#ga88258d081dbf13fa8899339ad0ebc0ec',1,'RGFW.h']]],
   ['rgfw_5fmonitor_11',['RGFW_monitor',['../RGFW_8h.html#ae4f53c7d78c7c435bb81a99bd314df82',1,'RGFW.h']]],
   ['rgfw_5fmonitormode_12',['RGFW_monitorMode',['../RGFW_8h.html#a43dd63380df26ed664e2cfea0eeb1d7e',1,'RGFW.h']]],
   ['rgfw_5fmouse_13',['RGFW_mouse',['../RGFW_8h.html#a7c3c77eb6844d3bb20054dc4f1f61ac5',1,'RGFW.h']]],

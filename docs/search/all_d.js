@@ -65,7 +65,7 @@ var searchData=
   ['rgfw_5fisreleasedgamepad_62',['RGFW_isReleasedGamepad',['../group__gamepad.html#gaf32f5c9e0a53423b618596edc61e7396',1,'RGFW.h']]],
   ['rgfw_5fjointhread_63',['RGFW_joinThread',['../group__Threads.html#ga43401d0d164edea95f9c6cd2df093473',1,'RGFW.h']]],
   ['rgfw_5fkey_64',['RGFW_key',['../RGFW_8h.html#a1cbe04bf82e1c9996c1eda21b7ac498f',1,'RGFW.h']]],
-  ['rgfw_5fkeyfunc_65',['RGFW_keyfunc',['../group__Callbacks.html#gac106d1af2e82c4c01892f73d6a5a3822',1,'RGFW.h']]],
+  ['rgfw_5fkeyfunc_65',['RGFW_keyfunc',['../group__Callbacks.html#ga88258d081dbf13fa8899339ad0ebc0ec',1,'RGFW.h']]],
   ['rgfw_5floadmouse_66',['RGFW_loadMouse',['../RGFW_8h.html#a11cac9d387da64acbcaa9cb3a21e4b14',1,'RGFW.h']]],
   ['rgfw_5fmax_5fdrops_67',['RGFW_MAX_DROPS',['../RGFW_8h.html#a9711b4ffc483384dffcbaa7f98c58385',1,'RGFW.h']]],
   ['rgfw_5fmax_5fpath_68',['RGFW_MAX_PATH',['../RGFW_8h.html#af68d9cc4adea676883383a0406c176f4',1,'RGFW.h']]],
