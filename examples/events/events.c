@@ -11,11 +11,10 @@ int main(void) {
         glClear(GL_COLOR_BUFFER_BIT);
 
         RGFW_window_swapBuffers(win);
-
 		RGFW_window_eventWait(win, RGFW_eventWaitNext);
         while (RGFW_window_checkEvent(win)) {
             switch (win->event.type) {
-                case RGFW_quit: win->event.type = RGFW_quitRegistered; break;
+                case RGFW_quit: printf("window closed\n"); break;
                 case RGFW_keyPressed:
                     printf("Key pressed\n");
                     break;

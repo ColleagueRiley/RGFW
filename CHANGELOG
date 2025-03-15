@@ -32,6 +32,8 @@ Current Version: RGFW 1.6.5-dev
 - rename windowResizeCallback to windowResizedCallback and   windowMoveCallback to windowMovedCallback
 - fix getMonitors bug (winapi)
 - add size_t* len to `RGFW_getMonitors`
+- don't freeze on RGFW_quit events anymore
+- change `RGFW_window_setShouldClose(RGFW_window)` to `RGFW_window_setShouldClose(RGFW_window, RGFW_BOOL)`
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------

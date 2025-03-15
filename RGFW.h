@@ -472,7 +472,6 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 	RGFW_windowMinimized, /*!< the window was minimized */
 	RGFW_windowRestored, /*!< the window was restored */
 	RGFW_scaleUpdated, /*!< content scale factor changed */
-	RGFW_quitRegistered, /*!< for the user to tell RGFW that the quit event was registered */
 };
 
 /*! mouse button codes (RGFW_event.button) */
@@ -954,10 +953,10 @@ RGFWDEF void RGFW_window_hide(RGFW_window* win);
 RGFWDEF void RGFW_window_show(RGFW_window* win);
 
 /*
-	makes it so `RGFW_window_shouldClose` returns true
-	by setting the window event.type to RGFW_quit
+	makes it so `RGFW_window_shouldClose` returns true or overrides a window close 
+	by modifying window flags
 */
-RGFWDEF void RGFW_window_setShouldClose(RGFW_window* win);
+RGFWDEF void RGFW_window_setShouldClose(RGFW_window* win, RGFW_bool shouldClose);
 
 /*! where the mouse is on the screen */
 RGFWDEF RGFW_point RGFW_getGlobalMousePoint(void);
@@ -1738,15 +1737,8 @@ RGFW_event* RGFW_window_checkEventCore(RGFW_window* win) {
 	if (win->event.type == 0 && RGFW_eventLen == 0)
 		RGFW_resetKey();
 	
-	if (win->event.type == RGFW_quit) {
-		if (win->_flags & RGFW_windowFreeOnClose) {
-			RGFW_window_close(win);
-			return (RGFW_event*)-1;
-		}
-
-		return &win->event;
-	} else if (win->event.type == RGFW_quitRegistered) {
-		win->event.type = RGFW_quit;
+	if (win->event.type == RGFW_quit && win->_flags & RGFW_windowFreeOnClose) {
+		RGFW_window_close(win);
 		return (RGFW_event*)-1;
 	}
 
@@ -1754,7 +1746,10 @@ RGFW_event* RGFW_window_checkEventCore(RGFW_window* win) {
 
 	/* check queued events */
 	RGFW_event* ev = RGFW_eventQueuePop(win);
-	if (ev != NULL) win->event = *ev;
+	if (ev != NULL) { 
+		if (ev->type == RGFW_quit) RGFW_window_setShouldClose(win, RGFW_TRUE);
+		win->event = *ev;
+	}
 	else return NULL;
 	
 	return &win->event;
@@ -1859,6 +1854,7 @@ no more event call back defines
     attribs[index++] = v; \
 }
 
+#define RGFW_EVENT_QUIT 		RGFW_BIT(23) /* the window close button was pressed */
 #define RGFW_EVENT_PASSED 		RGFW_BIT(24) /* if a queued event was passed */
 #define RGFW_NO_GPU_RENDER 		RGFW_BIT(25) /* don't render (using the GPU based API) */
 #define RGFW_NO_CPU_RENDER 		RGFW_BIT(26) /* don't render (using the CPU based buffer rendering) */
@@ -2090,10 +2086,17 @@ RGFW_bool RGFW_monitorModeCompare(RGFW_monitorMode mon, RGFW_monitorMode mon2, R
 }
 
 RGFW_bool RGFW_window_shouldClose(RGFW_window* win) {
-	return (win == NULL || win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape));
+	return (win == NULL || (win->_flags & RGFW_EVENT_QUIT)|| RGFW_isPressed(win, RGFW_escape));
 }
 
-void RGFW_window_setShouldClose(RGFW_window* win) { win->event.type = RGFW_quit; RGFW_windowQuitCallback(win); }
+void RGFW_window_setShouldClose(RGFW_window* win, RGFW_bool shouldClose) { 
+	if (shouldClose)  {
+		win->_flags |= RGFW_EVENT_QUIT;
+		RGFW_windowQuitCallback(win); 
+	} else {
+		win->_flags &= ~RGFW_EVENT_QUIT;
+	}
+}
 
 #ifndef RGFW_NO_MONITOR
 void RGFW_window_scaleToMonitor(RGFW_window* win) {
@@ -4170,6 +4173,7 @@ printf("h\n");
 		/* if the client closed the window */
 		if (E.xclient.data.l[0] == (long)wm_delete_window) {
 			win->event.type = RGFW_quit;
+			RGFW_window_setShouldClose(win, RGFW_TRUE);
 			RGFW_windowQuitCallback(win);
 			break;
 		}
@@ -5783,18 +5787,18 @@ PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     RGFW_window* win = (RGFW_window*)GetPropW(hWnd, L"RGFW");
+	if (win == NULL) return DefWindowProcW(hWnd, message, wParam, lParam);
 
 	RECT windowRect;
 	GetWindowRect(hWnd, &windowRect);
 
 	switch (message) {
 		case WM_CLOSE:
+		case WM_QUIT:
+			RGFW_eventQueuePush((RGFW_event){.type = RGFW_quit, ._win = win});
 			RGFW_windowQuitCallback(win);
-			win->event.type = RGFW_quit;
 			return 0;
 		case WM_ACTIVATE: {
-			if (win == NULL) return DefWindowProcW(hWnd, message, wParam, lParam);
-			
 			RGFW_bool inFocus = RGFW_BOOL(LOWORD(wParam) != WA_INACTIVE);
 			if (inFocus) win->_flags |= RGFW_windowFocus;
 			else 										  win->_flags &= ~RGFW_windowFocus;
@@ -5811,16 +5815,12 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		case WM_MOVE:
-			if (win == NULL) return DefWindowProcW(hWnd, message, wParam, lParam);
-			
 			win->r.x = windowRect.left;
 			win->r.y = windowRect.top;
 			RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMoved, ._win = win});
 			RGFW_windowMovedCallback(win, win->r);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		case WM_SIZE: {
-			if (win == NULL) return DefWindowProcW(hWnd, message, wParam, lParam);
-			
 			if (win->src.aspectRatio.w != 0 && win->src.aspectRatio.h != 0) {
 				double aspectRatio = (double)win->src.aspectRatio.w / win->src.aspectRatio.h;
 
@@ -5861,10 +5861,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		#endif
-		case WM_GETMINMAXINFO: {
-			if (win == NULL)
-				return DefWindowProcW(hWnd, message, wParam, lParam);
-			
+		case WM_GETMINMAXINFO: {			
 			MINMAXINFO* mmi = (MINMAXINFO*) lParam;
 			mmi->ptMinTrackSize.x = win->src.minSize.w;
 			mmi->ptMinTrackSize.y = win->src.minSize.h + win->src.hOffset;
@@ -5880,6 +5877,12 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_windowRefreshCallback(win);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
+		#if(_WIN32_WINNT >= 0x0600)
+		case WM_DWMCOMPOSITIONCHANGED:
+		case WM_DWMCOLORIZATIONCOLORCHANGED:
+			RGFW_win32_makeWindowTransparent(win);
+			break;
+		#endif
 		default: break;
 	}
 	return DefWindowProcW(hWnd, message, wParam, lParam);
@@ -6582,29 +6585,11 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	static BYTE keyboardState[256];
 	GetKeyboardState(keyboardState);
 
-	if (!IsWindow(win->src.window)) {
-		win->event.type = RGFW_quit;
-		RGFW_windowQuitCallback(win);
-		return &win->event;
-	}
-
 	MSG msg;
 	if (PeekMessageA(&msg, win->src.window, 0u, 0u, PM_REMOVE) == 0)
 		return NULL;
 	
 	switch (msg.message) {
-		case WM_CLOSE:
-		case WM_QUIT:
-			RGFW_windowQuitCallback(win);
-			win->event.type = RGFW_quit;
-			break;
-		#if(_WIN32_WINNT >= 0x0600)
-		case WM_DWMCOMPOSITIONCHANGED:
-		case WM_DWMCOLORIZATIONCOLORCHANGED:
-			RGFW_win32_makeWindowTransparent(win);
-			break;
-		#endif
-
 		case WM_MOUSELEAVE:
 			win->event.type = RGFW_mouseLeave;
 			win->_flags |= RGFW_MOUSE_LEFT;
@@ -7733,7 +7718,7 @@ u32 RGFW_OnClose(id self) {
 	if (win == NULL)
 		return true;
 	
-	win->event.type = RGFW_quit;
+	RGFW_eventQueuePush((RGFW_event){.type = RGFW_quit, ._win = win});
 	RGFW_windowQuitCallback(win);
 
 	return false;
