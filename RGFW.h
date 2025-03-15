@@ -543,9 +543,15 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 	typedef struct { u32 w, h; } RGFW_area;
 #endif
 
+#ifdef __cplusplus
+#define RGFW_POINT(x, y) {(i32)(x), (i32)(y)}
+#define RGFW_RECT(x, y, w, h) {(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
+#define RGFW_AREA(w, h) {(u32)(w), (u32)(h)}
+#else
 #define RGFW_POINT(x, y) (RGFW_point){(i32)(x), (i32)(y)}
 #define RGFW_RECT(x, y, w, h) (RGFW_rect){(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
 #define RGFW_AREA(w, h) (RGFW_area){(u32)(w), (u32)(h)}
+#endif
 
 #ifndef RGFW_NO_MONITOR
 	/* monitor mode data | can be changed by the user (with functions)*/
@@ -1056,8 +1062,14 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 };
 
 typedef struct RGFW_debugContext { RGFW_window* win; RGFW_monitor monitor; u32 srcError; } RGFW_debugContext;
-#define RGFW_DEBUG_CTX(win, err) (RGFW_debugContext){win, (RGFW_monitor){0}, err}
+
+#ifdef __cplusplus
+#define RGFW_DEBUG_CTX(win, err) {win, { 0 }, err}
+#define RGFW_DEBUG_CTX_MON(monitor) {RGFW_root, monitor, 0}
+#else
+#define RGFW_DEBUG_CTX(win, err) (RGFW_debugContext){win, (RGFW_monitor){ 0 }, err}
 #define RGFW_DEBUG_CTX_MON(monitor) (RGFW_debugContext){RGFW_root, monitor, 0}
+#endif
 
 typedef void (* RGFW_debugfunc)(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const char* msg);
 RGFWDEF RGFW_debugfunc RGFW_setDebugCallback(RGFW_debugfunc func);
@@ -1831,11 +1843,11 @@ void RGFW_window_checkMode(RGFW_window* win);
 void RGFW_window_checkMode(RGFW_window* win) {
 	if (RGFW_window_isMinimized(win)) {
 		win->_flags |= RGFW_windowMinimize;
-		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMinimized, ._win = win});
+		RGFW_eventQueuePush((RGFW_event){RGFW_windowMinimized, ._win = win});
 		RGFW_windowMinimizedCallback(win, win->r);
 	} else if (RGFW_window_isMaximized(win)) {
 		win->_flags |= RGFW_windowMaximize;
-		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMaximized, ._win = win});
+		RGFW_eventQueuePush((RGFW_event){RGFW_windowMaximized, ._win = win});
 		RGFW_windowMaximizedCallback(win, win->r);
 	} else if (((win->_flags & RGFW_windowMinimize) && !RGFW_window_isMaximized(win)) || 
 				(win->_flags & RGFW_windowMaximize && !RGFW_window_isMaximized(win))) {
@@ -6151,8 +6163,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		wglMakeCurrent(dummy_dc, dummy_context);
 
 		if (wglChoosePixelFormatARB == NULL) {
-			wglCreateContextAttribsARB = ((PFNWGLCREATECONTEXTATTRIBSARBPROC(*)(char*)) wglGetProcAddress)("wglCreateContextAttribsARB");
-			wglChoosePixelFormatARB = ((PFNWGLCHOOSEPIXELFORMATARBPROC(*)(char*)) wglGetProcAddress)("wglChoosePixelFormatARB");
+			wglCreateContextAttribsARB = ((PFNWGLCREATECONTEXTATTRIBSARBPROC(*)(const char*)) wglGetProcAddress)("wglCreateContextAttribsARB");
+			wglChoosePixelFormatARB = ((PFNWGLCHOOSEPIXELFORMATARBPROC(*)(const char*)) wglGetProcAddress)("wglChoosePixelFormatARB");
 		}
 
 		wglMakeCurrent(dummy_dc, 0);
@@ -7277,7 +7289,7 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	}
 
 	if (wglSwapIntervalEXT == NULL) {
-		loadSwapFunc = ((PFNWGLSWAPINTERVALEXTPROC (*)(char*)) wglGetProcAddress) ("wgSwapIntervalEXT");
+		loadSwapFunc = ((PFNWGLSWAPINTERVALEXTPROC (*)(const char*)) wglGetProcAddress) ("wgSwapIntervalEXT");
 		wglSwapIntervalEXT = loadSwapFunc;
 	}
 
