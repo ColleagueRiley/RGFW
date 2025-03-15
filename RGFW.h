@@ -548,9 +548,9 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 #define RGFW_RECT(x, y, w, h) {(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
 #define RGFW_AREA(w, h) {(u32)(w), (u32)(h)}
 #else
-#define RGFW_POINT(x, y) (RGFW_point){(i32)(x), (i32)(y)}
-#define RGFW_RECT(x, y, w, h) (RGFW_rect){(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
-#define RGFW_AREA(w, h) (RGFW_area){(u32)(w), (u32)(h)}
+#define RGFW_POINT(x, y) (RGFW_point){(i32)(x), (i32)y}
+#define RGFW_RECT(x, y, w, h) (RGFW_rect){(i32)x, (i32)y, (i32)w, (i32)(h)}
+#define RGFW_AREA(w, h) (RGFW_area){(u32)w, (u32)h}
 #endif
 
 #ifndef RGFW_NO_MONITOR
