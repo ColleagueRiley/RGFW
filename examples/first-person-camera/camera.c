@@ -2,13 +2,13 @@
 #include "RGFW.h"
 
 #include <math.h>
-#define DEG2RAD 3.14f/180.0f
+#define DEG2RAD 3.14/180.0
 
 float pitch = 0.0, yaw= 0.0;
 float camX = 0, camZ = 0;
 
 RGFWDEF void update_camera(void);
-RGFWDEF void glPerspective(float fovY, float aspect, float zNear, float zFar);
+RGFWDEF void glPerspective(double fovY, double aspect, double zNear, double zFar);
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("First person camera", RGFW_RECT(0, 0, 800, 450), RGFW_windowCenter | RGFW_windowNoResize );
@@ -37,7 +37,7 @@ int main(void) {
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glPerspective(60.0f, 16.0f / 9.0f, 1.0f, 75.0f);
+    glPerspective(60, 16.0 / 9.0, 1, 75);
     glMatrixMode(GL_MODELVIEW);
 
     RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
@@ -56,8 +56,8 @@ int main(void) {
                     int dev_y = win->event.vector.y;
                     
 					/* apply the changes to pitch and yaw*/
-                    yaw += (float)dev_x / 15.0f;
-                    pitch += (float)dev_y / 15.0f;
+                    yaw += (float)dev_x / 15.0;
+                    pitch += (float)dev_y / 15.0;
                     break;
                 }
                 case RGFW_keyPressed:
@@ -97,22 +97,22 @@ int main(void) {
             break;
         
         if (RGFW_isPressed(win, RGFW_w)) {
-            camX += cosf((yaw + 90.0f) * DEG2RAD)/5.0f;
-            camZ -= sinf((yaw + 90.0f) * DEG2RAD)/5.0f;
+            camX += cos((yaw + 90) * DEG2RAD)/5.0;
+            camZ -= sin((yaw + 90) * DEG2RAD)/5.0;
         }
         if (RGFW_isPressed(win, RGFW_s)) {
-            camX += cosf((yaw + 270) * DEG2RAD)/5.0f;
-            camZ -= sinf((yaw + 270) * DEG2RAD)/5.0f;
+            camX += cos((yaw + 270) * DEG2RAD)/5.0;
+            camZ -= sin((yaw + 270) * DEG2RAD)/5.0;
         }
         
         if (RGFW_isPressed(win, RGFW_a)) {
-            camX += cosf(yaw * DEG2RAD)/5.0f;
-            camZ -= sinf(yaw * DEG2RAD)/5.0f;
+            camX += cos(yaw * DEG2RAD)/5.0;
+            camZ -= sin(yaw * DEG2RAD)/5.0;
         }
         
         if (RGFW_isPressed(win, RGFW_d)) {
-            camX += cosf((yaw + 180) * DEG2RAD)/5.0f;
-            camZ -= sinf((yaw + 180) * DEG2RAD)/5.0f;
+            camX += cos((yaw + 180) * DEG2RAD)/5.0;
+            camZ -= sin((yaw + 180) * DEG2RAD)/5.0;
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -163,15 +163,15 @@ void update_camera(void) {
     glTranslatef(camX, 0.0, -camZ);
 }
 
-void glPerspective(float fovY, float aspect, float zNear, float zFar) {
-    const float f = 1 / (cosf(fovY) * sinf(fovY));
+void glPerspective(double fovY, double aspect, double zNear, double zFar) {
+    const double f = 1 / (cos(fovY) * sin(fovY));
     float projectionMatrix[16] = {0};
     
     projectionMatrix[0] = f / aspect;
     projectionMatrix[5] = f;
     projectionMatrix[10] = (zFar + zNear) / (zNear - zFar);
-    projectionMatrix[11] = -1.0f;
-    projectionMatrix[14] = (2.0f * zFar * zNear) / (zNear - zFar);
+    projectionMatrix[11] = -1.0;
+    projectionMatrix[14] = (2.0 * zFar * zNear) / (zNear - zFar);
     
     glMultMatrixf(projectionMatrix);
 }

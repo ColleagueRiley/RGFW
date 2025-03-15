@@ -6,18 +6,15 @@
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW Events", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND | RGFW_windowTransparent);
-
-    printf("%li\n", sizeof(RGFW_event));
-
     while (RGFW_window_shouldClose(win) == 0) {
         glClearColor(0.25f, 0.0f, 0.15f, 0.25f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         RGFW_window_swapBuffers(win);
-
-		RGFW_window_eventWait(win, RGFW_eventWaitNext);
-        while (RGFW_window_checkEvent(win) && RGFW_window_shouldClose(win) == 0) {
+		RGFW_window_eventWait(win, (u32)RGFW_eventWaitNext);
+        while (RGFW_window_checkEvent(win)) {
             switch (win->event.type) {
+                case RGFW_quit: printf("window closed\n"); break;
                 case RGFW_keyPressed:
                     printf("Key pressed\n");
                     break;
@@ -64,9 +61,9 @@ int main(void) {
                 case RGFW_windowRefresh:
                     printf("Refresh\n");
                     break;
-                case RGFW_quit:
+                /*case RGFW_quit:
                     printf("Quit\n");
-                    break;
+                    break;*/
                 case RGFW_DND: {
                     printf("DND Drop : %i %i\n", win->event.point.x, win->event.point.y);
                     u32 i;
@@ -76,6 +73,9 @@ int main(void) {
                 }
                 case RGFW_DNDInit:
                     printf("DND Init : %i %i\n", win->event.point.x, win->event.point.y);
+                    break;
+                case RGFW_scaleUpdated:
+                    printf("Scale Updated : %f %f\n", win->event.scaleX, win->event.scaleY);
                     break;
                 default:
                     break;
