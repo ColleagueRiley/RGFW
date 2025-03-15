@@ -13,7 +13,7 @@ void clear(RGFW_window* win, u8 color[4]) {
     /* if all the values are the same */
     if (color[0] == color[1] && color[0] == color[2] && color[0] == color[3]) {
         /* set it all in one function */
-        memset(win->buffer, 0, screenSize.w * win->r.h * 4 * sizeof(u8));  
+        memset(win->buffer, 0, (u32)screenSize.w * (u32)win->r.h * 4 * sizeof(u8));  
         return;
     }
 
@@ -49,15 +49,15 @@ void bitmap_rgbToBgr(u8* bitmap, RGFW_area a) {
 void drawBitmap(RGFW_window* win, u8* bitmap, RGFW_rect rect) {
     u32 y;
     for (y = 0; y < (u32)rect.h; y++) {
-        u32 index = (rect.y + y) * (4 * screenSize.w) + rect.x * 4;
-        memcpy(win->buffer + index, bitmap + (4 * rect.w * y), rect.w * 4 * sizeof(u8));
+        u32 index = ((u32)rect.y + y) * (4 * screenSize.w) + (u32)rect.x * 4;
+        memcpy(win->buffer + index, bitmap + (4 * (u32)rect.w * y), (u32)rect.w * 4 * sizeof(u8));
     }
 }
 
 void drawRect(RGFW_window* win, RGFW_rect r, u8 color[4]) {
     for(int x = r.x; x < (r.x + r.w); x++) {
         for(int y = r.y; y < (r.y + r.h); y++) {
-            int index = y * (4 * screenSize.w) + x * 4;
+            u32 index = (u32)y * (4 * screenSize.w) + (u32)x * 4;
             
             memcpy(win->buffer + index, color, 4 * sizeof(u8));
         }

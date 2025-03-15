@@ -103,13 +103,13 @@ RGFW.h
 .RI "#define \fBRGFW_bool\fP   \fBu8\fP"
 .br
 .ti -1c
-.RI "#define \fBRGFW_BOOL\fP(x)   ((x) ? \fBRGFW_TRUE\fP : \fBRGFW_FALSE\fP) /* force an value to be 0 or 1 */"
+.RI "#define \fBRGFW_BOOL\fP(x)   (\fBRGFW_bool\fP)((x) ? \fBRGFW_TRUE\fP : \fBRGFW_FALSE\fP) /* force an value to be 0 or 1 */"
 .br
 .ti -1c
-.RI "#define \fBRGFW_TRUE\fP   1"
+.RI "#define \fBRGFW_TRUE\fP   (\fBRGFW_bool\fP)1"
 .br
 .ti -1c
-.RI "#define \fBRGFW_FALSE\fP   0"
+.RI "#define \fBRGFW_FALSE\fP   (\fBRGFW_bool\fP)0"
 .br
 .ti -1c
 .RI "#define \fBRGFW_OPENGL\fP"
@@ -139,7 +139,7 @@ RGFW.h
 .RI "#define \fBRGFW_AREA\fP(w,  h)   (\fBRGFW_area\fP){(\fBu32\fP)(w), (\fBu32\fP)(h)}"
 .br
 .ti -1c
-.RI "#define \fBRGFW_DEBUG_CTX\fP(win,  err)   (\fBRGFW_debugContext\fP){win, (\fBRGFW_monitor\fP){0}, err}"
+.RI "#define \fBRGFW_DEBUG_CTX\fP(win,  err)   (\fBRGFW_debugContext\fP){win, (\fBRGFW_monitor\fP){ 0 }, err}"
 .br
 .ti -1c
 .RI "#define \fBRGFW_DEBUG_CTX_MON\fP(monitor)   (\fBRGFW_debugContext\fP){RGFW_root, monitor, 0}"
@@ -251,13 +251,16 @@ RGFW.h
 .RI "typedef void(* \fBRGFW_gamepadfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_bool\fP connected)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, char **droppedFiles, \fBu32\fP droppedFilesCount)"
+.RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, char **droppedFiles, size_t droppedFilesCount)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_scaleUpdatedfunc\fP) (\fBRGFW_window\fP *win, float scaleX, float scaleY)"
 .br
 .ti -1c
 .RI "typedef DWORD(__stdcall * \fBRGFW_threadFunc_ptr\fP) (LPVOID lpThreadParameter)"
+.br
+.ti -1c
+.RI "typedef void(* \fBRGFW_proc\fP) (void)"
 .br
 .in -1c
 .SS "Functions"
@@ -651,7 +654,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_setGLHint\fP (RGFW_glHints hint, \fBi32\fP value)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void * \fBRGFW_getProcAddress\fP (const char *procname)"
+.RI "\fBRGFWDEF\fP \fBRGFW_proc\fP \fBRGFW_getProcAddress\fP (const char *procname)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent_OpenGL\fP (\fBRGFW_window\fP *win)"
@@ -721,13 +724,13 @@ RGFW.h
 
 .SS "#define \fBRGFW_bool\fP   \fBu8\fP"
 
-.SS "#define RGFW_BOOL(x)   ((x) ? \fBRGFW_TRUE\fP : \fBRGFW_FALSE\fP) /* force an value to be 0 or 1 */"
+.SS "#define RGFW_BOOL(x)   (\fBRGFW_bool\fP)((x) ? \fBRGFW_TRUE\fP : \fBRGFW_FALSE\fP) /* force an value to be 0 or 1 */"
 
 .SS "#define RGFW_COCOA_FRAME_NAME   NULL"
 
 .SS "#define RGFW_ENUM(type, name)   type name; enum"
 
-.SS "#define RGFW_FALSE   0"
+.SS "#define RGFW_FALSE   (\fBRGFW_bool\fP)0"
 
 .SS "#define RGFW_FREE   free"
 
@@ -757,7 +760,7 @@ RGFW.h
 
 .SS "#define RGFW_STRTOL(str, endptr, base)   strtol(str, endptr, base)"
 
-.SS "#define RGFW_TRUE   1"
+.SS "#define RGFW_TRUE   (\fBRGFW_bool\fP)1"
 
 .SS "#define RGFW_UNUSED(x)   (void)(x)"
 

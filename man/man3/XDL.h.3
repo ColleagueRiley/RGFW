@@ -356,9 +356,6 @@ XDL.h
 .RI "#define \fBXCreateImage\fP   \fBXCreateImageSrc\fP"
 .br
 .ti -1c
-.RI "#define \fBXDestroyImage\fP   \fBXDestroyImageSrc\fP"
-.br
-.ti -1c
 .RI "#define \fBXCreatePixmap\fP   \fBXCreatePixmapSrc\fP"
 .br
 .ti -1c
@@ -774,9 +771,6 @@ XDL.h
 .RI "typedef XImage *(* \fBPFN_XCreateImage\fP) (Display *, Visual *, unsigned int, int, int, char *, unsigned int, unsigned int, int, int)"
 .br
 .ti -1c
-.RI "typedef Status(* \fBPFN_XDestroyImage\fP) (XImage *image)"
-.br
-.ti -1c
 .RI "typedef Pixmap(* \fBPFN_XCreatePixmap\fP) (Display *display, Drawable d, unsigned int width, unsigned int height, unsigned int depth)"
 .br
 .ti -1c
@@ -1178,9 +1172,6 @@ XDL.h
 .RI "\fBPFN_XCreateImage\fP \fBXCreateImageSrc\fP"
 .br
 .ti -1c
-.RI "\fBPFN_XDestroyImage\fP \fBXDestroyImageSrc\fP"
-.br
-.ti -1c
 .RI "\fBPFN_XCreatePixmap\fP \fBXCreatePixmapSrc\fP"
 .br
 .ti -1c
@@ -1316,8 +1307,6 @@ XDL.h
 .SS "#define XDeleteProperty   \fBXDeletePropertySrc\fP"
 
 .SS "#define XDestroyIC   \fBXDestroyICSrc\fP"
-
-.SS "#define XDestroyImage   \fBXDestroyImageSrc\fP"
 
 .SS "#define XDestroyRegion   \fBXDestroyRegionSrc\fP"
 
@@ -1580,8 +1569,6 @@ XDL.h
 .SS "typedef int(* PFN_XDeleteProperty) (Display *, Window, Atom)"
 
 .SS "typedef void(* PFN_XDestroyIC) (XIC)"
-
-.SS "typedef Status(* PFN_XDestroyImage) (XImage *image)"
 
 .SS "typedef int(* PFN_XDestroyRegion) (Region)"
 
@@ -1864,8 +1851,6 @@ XDL.h
 .SS "\fBPFN_XDeleteProperty\fP XDeletePropertySrc"
 
 .SS "\fBPFN_XDestroyIC\fP XDestroyICSrc"
-
-.SS "\fBPFN_XDestroyImage\fP XDestroyImageSrc"
 
 .SS "\fBPFN_XDestroyRegion\fP XDestroyRegionSrc"
 

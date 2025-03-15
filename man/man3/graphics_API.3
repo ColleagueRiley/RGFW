@@ -6,6 +6,13 @@ graphics_API \- Graphics_API
 .SH SYNOPSIS
 .br
 .PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef void(* \fBRGFW_proc\fP) (void)"
+.br
+.in -1c
 .SS "Functions"
 
 .in +1c
@@ -28,7 +35,7 @@ graphics_API \- Graphics_API
 .RI "\fBRGFWDEF\fP void \fBRGFW_setGLHint\fP (RGFW_glHints hint, \fBi32\fP value)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void * \fBRGFW_getProcAddress\fP (const char *procname)"
+.RI "\fBRGFWDEF\fP \fBRGFW_proc\fP \fBRGFW_getProcAddress\fP (const char *procname)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent_OpenGL\fP (\fBRGFW_window\fP *win)"
@@ -46,6 +53,10 @@ graphics_API \- Graphics_API
 .IP "\(bu" 2
 
 .PP
+
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef void(* RGFW_proc) (void)"
 
 .SH "Function Documentation"
 .PP 
@@ -79,7 +90,7 @@ OpenGL init hints < set stencil buffer bit size (8 by default)
 < RGFW_glProfile options
 .SS "void * RGFW_getCurrent_OpenGL (void)"
 get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl)) 
-.SS "\fBRGFWDEF\fP void * RGFW_getProcAddress (const char * procname)"
+.SS "\fBRGFWDEF\fP \fBRGFW_proc\fP RGFW_getProcAddress (const char * procname)"
 get native opengl proc address 
 .SS "\fBRGFWDEF\fP void RGFW_setGLHint (RGFW_glHints hint, \fBi32\fP value)"
 

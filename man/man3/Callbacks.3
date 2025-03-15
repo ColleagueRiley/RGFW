@@ -58,7 +58,7 @@ Callbacks \- Callbacks
 .RI "typedef void(* \fBRGFW_gamepadfunc\fP) (\fBRGFW_window\fP *win, \fBu16\fP gamepad, \fBRGFW_bool\fP connected)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, char **droppedFiles, \fBu32\fP droppedFilesCount)"
+.RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, char **droppedFiles, size_t droppedFilesCount)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_scaleUpdatedfunc\fP) (\fBRGFW_window\fP *win, float scaleX, float scaleY)"
@@ -127,7 +127,7 @@ Callbacks \- Callbacks
 event callbacks\&. These are completely optional, so you can use the normal RGFW_checkEvent() method if you prefer that 
 .SH "Typedef Documentation"
 .PP 
-.SS "typedef void(* RGFW_dndfunc) (\fBRGFW_window\fP *win, char **droppedFiles, \fBu32\fP droppedFilesCount)"
+.SS "typedef void(* RGFW_dndfunc) (\fBRGFW_window\fP *win, char **droppedFiles, size_t droppedFilesCount)"
 RGFW_dnd, the window that had the drop, the drop data and the number of files dropped 
 .SS "typedef void(* RGFW_dndInitfunc) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point)"
 RGFW_DNDInit, the window, the point of the drop on the windows 

@@ -18,7 +18,7 @@ var searchData=
   ['rgfw_5fgetglobalmousepoint_15',['RGFW_getGlobalMousePoint',['../group__Window__management.html#ga4ad826ac2c2514025697e8ad64e4e1c9',1,'RGFW.h']]],
   ['rgfw_5fgetmonitors_16',['RGFW_getMonitors',['../RGFW_8h.html#aa3400dd1d0aa6292f1ea614b88934ea9',1,'RGFW.h']]],
   ['rgfw_5fgetprimarymonitor_17',['RGFW_getPrimaryMonitor',['../RGFW_8h.html#a9b687e5aac56d2c3af094ebb3caf1fc5',1,'RGFW.h']]],
-  ['rgfw_5fgetprocaddress_18',['RGFW_getProcAddress',['../group__graphics__API.html#ga0c232c2ac5e6f95f9bf07a0abcaef0c2',1,'RGFW.h']]],
+  ['rgfw_5fgetprocaddress_18',['RGFW_getProcAddress',['../group__graphics__API.html#gaa9dc60fc188d964d9e4ba0763f9a701a',1,'RGFW.h']]],
   ['rgfw_5fgetrootwindow_19',['RGFW_getRootWindow',['../group__Supporting.html#ga9938b52ee354a81f049e67ae6e99fc94',1,'RGFW.h']]],
   ['rgfw_5fgetscreensize_20',['RGFW_getScreenSize',['../group__Window__management.html#ga2952eee39f36b85b6829976656043f97',1,'RGFW.h']]],
   ['rgfw_5fgettime_21',['RGFW_getTime',['../group__Supporting.html#ga187d665d68d7808c2924334a993c7ccc',1,'RGFW.h']]],

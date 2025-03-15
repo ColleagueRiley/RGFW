@@ -7,11 +7,11 @@
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW Events", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND | RGFW_windowTransparent);
     while (RGFW_window_shouldClose(win) == 0) {
-        glClearColor(0.25, 0, 0.15, 0.25);
+        glClearColor(0.25f, 0.0f, 0.15f, 0.25f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         RGFW_window_swapBuffers(win);
-		RGFW_window_eventWait(win, RGFW_eventWaitNext);
+		RGFW_window_eventWait(win, (u32)RGFW_eventWaitNext);
         while (RGFW_window_checkEvent(win)) {
             switch (win->event.type) {
                 case RGFW_quit: printf("window closed\n"); break;

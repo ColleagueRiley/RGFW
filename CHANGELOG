@@ -34,6 +34,9 @@ Current Version: RGFW 1.6.5-dev
 - add size_t* len to `RGFW_getMonitors`
 - don't freeze on RGFW_quit events anymore
 - change `RGFW_window_setShouldClose(RGFW_window)` to `RGFW_window_setShouldClose(RGFW_window, RGFW_BOOL)`
+- add `RGFW_window_swapBuffers_software` and `RGFW_window_swapBuffers_OpenGL`
+- add RGFW_proc
+- change `void* RGFW_getProcAddress(const char*)` to `RGFW_proc RGFW_getProcAddress(const char*)`
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------
