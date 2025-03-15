@@ -166,6 +166,8 @@ int main() {
 	#pragma comment(lib, "opengl32")
 	#pragma comment(lib, "winmm")
 	#pragma comment(lib, "user32")
+	#pragma warning( push )
+	#pragma warning( disable : 4996 4191 4127)
 #endif
 
 #ifndef RGFW_USERPTR
@@ -327,7 +329,6 @@ int main() {
 
 #if defined(_WIN32) && !defined(RGFW_UNIX) && !defined(RGFW_WASM) && !defined(RGFW_CUSTOM_BACKEND) /* (if you're using X11 on windows some how) */
 	#define RGFW_WINDOWS
-	#define CRT_SECURE_NO_WARNINGS
 	/* make sure the correct architecture is defined */
 	#if defined(_WIN64)
 		#define _AMD64_
@@ -6165,8 +6166,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		wglMakeCurrent(dummy_dc, dummy_context);
 
 		if (wglChoosePixelFormatARB == NULL) {
-			wglCreateContextAttribsARB = ((PFNWGLCREATECONTEXTATTRIBSARBPROC(*)(const char*)) wglGetProcAddress)("wglCreateContextAttribsARB");
-			wglChoosePixelFormatARB = ((PFNWGLCHOOSEPIXELFORMATARBPROC(*)(const char*)) wglGetProcAddress)("wglChoosePixelFormatARB");
+			wglCreateContextAttribsARB = ((PFNWGLCREATECONTEXTATTRIBSARBPROC(WINAPI *)(const char*)) wglGetProcAddress)("wglCreateContextAttribsARB");
+			wglChoosePixelFormatARB = ((PFNWGLCHOOSEPIXELFORMATARBPROC(WINAPI *)(const char*)) wglGetProcAddress)("wglChoosePixelFormatARB");
 		}
 
 		wglMakeCurrent(dummy_dc, 0);
@@ -6850,7 +6851,7 @@ static RGFW_monitor win32CreateMonitor(HMONITOR src) {
 
 	monitor.scaleX = dpiX / 96.0f;
 	monitor.scaleY = dpiY / 96.0f;
-	monitor.pixelRatio = dpiX >= 192.0f ? 2 : 1;
+	monitor.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
 
 	monitor.physW = (float)GetDeviceCaps(hdc, HORZSIZE) / 25.4f;
 	monitor.physH = (float)GetDeviceCaps(hdc, VERTSIZE) / 25.4f;
@@ -6865,7 +6866,7 @@ static RGFW_monitor win32CreateMonitor(HMONITOR src) {
 			GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &x, &y);
 			monitor.scaleX = (float) (x) / (float) 96.0f;
 			monitor.scaleY = (float) (y) / (float) 96.0f;
-			monitor.pixelRatio = dpiX >= 192.0f ? 2 : 1;
+			monitor.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
 		}
 	#endif
 
@@ -7291,7 +7292,7 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	}
 
 	if (wglSwapIntervalEXT == NULL) {
-		loadSwapFunc = ((PFNWGLSWAPINTERVALEXTPROC (*)(const char*)) wglGetProcAddress) ("wgSwapIntervalEXT");
+		loadSwapFunc = ((PFNWGLSWAPINTERVALEXTPROC (APIENTRY *)(const char*)) wglGetProcAddress) ("wgSwapIntervalEXT");
 		wglSwapIntervalEXT = loadSwapFunc;
 	}
 
@@ -10210,4 +10211,8 @@ void RGFW_sleep(u64 ms) {
 	#ifdef __clang__
 		#pragma clang diagnostic pop
 	#endif
+#endif
+
+#if _MSC_VER
+	#pragma warning( pop )
 #endif
