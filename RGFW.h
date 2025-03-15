@@ -2270,7 +2270,6 @@ void RGFW_window_setDND(RGFW_window* win, RGFW_bool allow) {
 #if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WASM) || defined(RGFW_WAYLAND)
 #include <time.h>
 struct timespec;
-int setenv(const char *name, const char *value, int overwrite);
 #endif
 
 #if defined(RGFW_X11) || defined(RGFW_WINDOWS)
