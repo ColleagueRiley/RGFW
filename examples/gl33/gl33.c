@@ -41,7 +41,6 @@ void main()
 }
 );
 
-    ;
 const char *fragmentShaderSource = MULTILINE_STR(
 \x23version 330 core\n
 out vec4 FragColor;
