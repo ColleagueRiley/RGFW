@@ -10085,7 +10085,7 @@ RGFW_area RGFW_getScreenSize(void) {
 }
 
 RGFW_proc RGFW_getProcAddress(const char* procname) {
-	return emscripten_webgl_get_proc_address(procname);
+	return (RGFW_proc)emscripten_webgl_get_proc_address(procname);
 }
 
 void RGFW_sleep(u64 milisecond) {
