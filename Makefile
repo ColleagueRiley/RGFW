@@ -42,9 +42,6 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		LIB_EXT = .dylib
 		OS_DIR = /
 		NO_VULKAN = 1
-		ifneq (,$(filter $(CC),clang++ g++))
-		WARNINGS =
-		endif
 	endif
 	ifeq ($(detected_OS),Linux)
 		LINK_GL1 = -lGL
@@ -100,6 +97,9 @@ else
 	WARNINGS = -Werror -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
 	WARNINGS += -Wno-missing-field-initializers -Wno-c++20-extensions -Wno-pedantic  # C++ warnings I don't care about right now
 	NO_VULKAN = 1
+	ifeq ($(detected_OS),Darwin) 
+		WARNINGS =
+	endif
 endif
 
 ifeq (,$(filter $(CC),emcc em++))
