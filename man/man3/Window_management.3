@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Fri Mar 14 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Sat Mar 15 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -154,7 +154,7 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_show\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_setShouldClose\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setShouldClose\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP shouldClose)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_getGlobalMousePoint\fP (void)"
@@ -346,7 +346,7 @@ turn on / off mouse passthrough
 rename window to a given string 
 .SS "\fBRGFWDEF\fP void RGFW_window_setOpacity (\fBRGFW_window\fP * win, \fBu8\fP opacity)"
 sets the opacity of a window 
-.SS "\fBRGFWDEF\fP void RGFW_window_setShouldClose (\fBRGFW_window\fP * win)"
+.SS "\fBRGFWDEF\fP void RGFW_window_setShouldClose (\fBRGFW_window\fP * win, \fBRGFW_bool\fP shouldClose)"
 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_shouldClose (\fBRGFW_window\fP * win)"
 if the window should close (RGFW_close was sent or escape was pressed) 

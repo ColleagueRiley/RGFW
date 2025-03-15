@@ -184,7 +184,7 @@ var searchData=
   ['rgfw_5fwindow_5fsetmousestandard_181',['RGFW_window_setMouseStandard',['../group__Window__management.html#gaf64e00ada410505300e05e5320217dde',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fsetname_182',['RGFW_window_setName',['../group__Window__management.html#ga9f908f5871fe2b172fbaabccab2256bf',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fsetopacity_183',['RGFW_window_setOpacity',['../group__Window__management.html#ga54a2347c554cf916668c873cbce48d54',1,'RGFW.h']]],
-  ['rgfw_5fwindow_5fsetshouldclose_184',['RGFW_window_setShouldClose',['../group__Window__management.html#gaf0292ade1017afd3d9df17e806bcb41b',1,'RGFW.h']]],
+  ['rgfw_5fwindow_5fsetshouldclose_184',['RGFW_window_setShouldClose',['../group__Window__management.html#ga98edf96a90a0f218afeb01908be28fbb',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fshouldclose_185',['RGFW_window_shouldClose',['../group__Window__management.html#gae40de5fbdc9e850c1ff7e2e8dac46624',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fshow_186',['RGFW_window_show',['../group__Window__management.html#gaf8ea66870c99917ef07acd09ad6d7746',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fshowmouse_187',['RGFW_window_showMouse',['../group__Window__management.html#gaccfc463b60b5d664a7a6b53e342945dc',1,'RGFW.h']]],
