@@ -587,7 +587,7 @@ $(function() {
 <div class="line"><a id="l00543" name="l00543"></a><span class="lineno"><a class="line" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">  543</a></span>    <span class="keyword">typedef</span> <span class="keyword">struct </span>{ <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> w, <a class="code hl_variable" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">h</a>; } <a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a>;</div>
 <div class="line"><a id="l00544" name="l00544"></a><span class="lineno">  544</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00545" name="l00545"></a><span class="lineno">  545</span> </div>
-<div class="line"><a id="l00546" name="l00546"></a><span class="lineno">  546</span><span class="preprocessor">#if defined(__cplusplus) || defined(__APPLE__)</span></div>
+<div class="line"><a id="l00546" name="l00546"></a><span class="lineno">  546</span><span class="preprocessor">#if defined(__cplusplus) &amp;&amp; !defined(__APPLE__)</span></div>
 <div class="line"><a id="l00547" name="l00547"></a><span class="lineno">  547</span><span class="preprocessor">#define RGFW_POINT(x, y) {(i32)x, (i32)y}</span></div>
 <div class="line"><a id="l00548" name="l00548"></a><span class="lineno">  548</span><span class="preprocessor">#define RGFW_RECT(x, y, w, h) {(i32)x, (i32)y, (i32)w, (i32)h}</span></div>
 <div class="line"><a id="l00549" name="l00549"></a><span class="lineno">  549</span><span class="preprocessor">#define RGFW_AREA(w, h) {(u32)w, (u32)h}</span></div>
