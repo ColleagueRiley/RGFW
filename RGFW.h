@@ -5784,6 +5784,31 @@ PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 	PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = NULL;
 #endif
 
+#ifndef RGFW_NO_DWM
+HMODULE RGFW_dwm_dll = NULL;
+typedef struct { DWORD dwFlags; int fEnable; HRGN hRgnBlur; int fTransitionOnMaximized;} DWM_BLURBEHIND;
+typedef HRESULT (WINAPI * PFN_DwmEnableBlurBehindWindow)(HWND, const DWM_BLURBEHIND*);
+PFN_DwmEnableBlurBehindWindow DwmEnableBlurBehindWindowSRC = NULL;
+#endif
+static void RGFW_win32_makeWindowTransparent(RGFW_window* win) {
+	if (!(win->_flags & RGFW_windowTransparent)) return;
+
+	#ifndef RGFW_NO_DWM
+	if (DwmEnableBlurBehindWindowSRC != NULL) {
+			DWM_BLURBEHIND bb = {0, 0, 0, 0};
+			bb.dwFlags = 0x1;
+			bb.fEnable = TRUE;
+			bb.hRgnBlur = NULL;
+			DwmEnableBlurBehindWindowSRC(win->src.window, &bb);
+		
+	} else 
+	#endif
+	{
+		SetWindowLong(win->src.window, GWL_EXSTYLE, WS_EX_LAYERED);
+		SetLayeredWindowAttributes(win->src.window, 0, 128,  LWA_ALPHA);
+	}
+}
+
 LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     RGFW_window* win = (RGFW_window*)GetPropW(hWnd, L"RGFW");
@@ -5893,13 +5918,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	typedef HRESULT (WINAPI *PFN_GetDpiForMonitor)(HMONITOR,MONITOR_DPI_TYPE,UINT*,UINT*);
 	PFN_GetDpiForMonitor GetDpiForMonitorSRC = NULL;
 	#define GetDpiForMonitor GetDpiForMonitorSRC
-#endif
-
-#ifndef RGFW_NO_DWM
-HMODULE RGFW_dwm_dll = NULL;
-typedef struct { DWORD dwFlags; int fEnable; HRGN hRgnBlur; int fTransitionOnMaximized;} DWM_BLURBEHIND;
-typedef HRESULT (WINAPI * PFN_DwmEnableBlurBehindWindow)(HWND, const DWM_BLURBEHIND*);
-PFN_DwmEnableBlurBehindWindow DwmEnableBlurBehindWindowSRC = NULL;
 #endif
 
 #if !defined(RGFW_NO_LOAD_WINMM) && !defined(RGFW_NO_WINMM)
@@ -6026,25 +6044,6 @@ int RGFW_window_createDXSwapChain(RGFW_window* win, IDXGIFactory* pFactory, IUnk
     return 0;
 }
 #endif
-void RGFW_win32_makeWindowTransparent(RGFW_window* win);
-void RGFW_win32_makeWindowTransparent(RGFW_window* win) {
-	if (!(win->_flags & RGFW_windowTransparent)) return;
-
-	#ifndef RGFW_NO_DWM
-	if (DwmEnableBlurBehindWindowSRC != NULL) {
-			DWM_BLURBEHIND bb = {0, 0, 0, 0};
-			bb.dwFlags = 0x1;
-			bb.fEnable = TRUE;
-			bb.hRgnBlur = NULL;
-			DwmEnableBlurBehindWindowSRC(win->src.window, &bb);
-		
-	} else 
-	#endif
-	{
-		SetWindowLong(win->src.window, GWL_EXSTYLE, WS_EX_LAYERED);
-		SetLayeredWindowAttributes(win->src.window, 0, 128,  LWA_ALPHA);
-	}
-}
 
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	#ifndef RGFW_NO_XINPUT
