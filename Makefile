@@ -77,7 +77,7 @@ LINK_GL3 =
 LINK_GL2 =
 
 ifneq (,$(filter $(CC),cl /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
-	WARNINGS =
+	WARNINGS = -Wall -wd4668 -wd4820 -wd5045
 	LIBS = /static
 	DX11_LIBS =
 	VULKAN_LIBS = 
@@ -247,7 +247,7 @@ examples/gamepad/gamepad: examples/gamepad/gamepad.c RGFW.h
 	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 
 examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.h
-	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
+	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 
 
 examples/gl33/gl33: examples/gl33/gl33.c RGFW.h
