@@ -327,6 +327,7 @@ int main() {
 
 #if defined(_WIN32) && !defined(RGFW_UNIX) && !defined(RGFW_WASM) && !defined(RGFW_CUSTOM_BACKEND) /* (if you're using X11 on windows some how) */
 	#define RGFW_WINDOWS
+	#define CRT_SECURE_NO_WARNINGS
 	/* make sure the correct architecture is defined */
 	#if defined(_WIN64)
 		#define _AMD64_
@@ -1958,6 +1959,8 @@ void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	else if (cmpFlags & RGFW_windowMinimize) 	RGFW_window_restore(win);	
 	if (flags & RGFW_windowHideMouse)				RGFW_window_showMouse(win, 0);
 	else if (cmpFlags & RGFW_windowHideMouse)  	RGFW_window_showMouse(win, 1);
+	if (flags & RGFW_windowHide)				RGFW_window_hide(win);
+	else if (cmpFlags & RGFW_windowHide)  		RGFW_window_show(win);
 	if (flags & RGFW_windowCocoaCHDirToRes)			RGFW_moveToMacOSResourceDir();
 	if (flags & RGFW_windowFloating)				RGFW_window_setFloating(win, 1);
 	else if (cmpFlags & RGFW_windowFloating)		RGFW_window_setFloating(win, 0);
