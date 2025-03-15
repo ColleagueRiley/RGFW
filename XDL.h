@@ -185,7 +185,6 @@ typedef int (*PFN_XHeightOfScreen)(Screen* screen);
 typedef GC (*PFN_XCreateGC)(Display* display, Drawable d, unsigned long valuemask, XGCValues* values);
 typedef int (*PFN_XFreeGC)(Display *display, GC gc);
 typedef XImage* (*PFN_XCreateImage)(Display*, Visual*, unsigned int, int, int, char*, unsigned int, unsigned int, int, int);
-typedef Status (*PFN_XDestroyImage)(XImage* image);
 typedef Pixmap (*PFN_XCreatePixmap)(Display* display, Drawable d, unsigned int width, unsigned int height, unsigned int depth);
 typedef int (*PFN_XPutImage)(Display *display, Drawable d, GC gc, XImage *image, int src_x, int src_y, int dest_x, int dest_y, unsigned int width, unsigned int height);
 
@@ -326,7 +325,6 @@ PFN_XWidthOfScreen XHeightOfScreenSrc;
 PFN_XCreateGC XCreateGCSrc;
 PFN_XFreeGC XFreeGCSrc;
 PFN_XCreateImage XCreateImageSrc;
-PFN_XDestroyImage XDestroyImageSrc;
 PFN_XCreatePixmap XCreatePixmapSrc;
 PFN_XPutImage XPutImageSrc;
 #ifndef XDL_NO_XRANDR
@@ -464,7 +462,6 @@ PFN_glXDestroyContext glXDestroyContextSrc;
 #define XrmDestroyDatabase XrmDestroyDatabaseSrc
 #define XDisplayName XDisplayNameSrc
 #define XCreateImage XCreateImageSrc
-#define XDestroyImage XDestroyImageSrc
 #define XCreatePixmap XCreatePixmapSrc
 #define XPutImage XPutImageSrc
 
@@ -633,7 +630,6 @@ void XDL_init(void) {
     XDL_PROC_DEF(0, XCreateGC);
     XDL_PROC_DEF(0, XFreeGC);
     XDL_PROC_DEF(0, XCreateImage);
-    XDL_PROC_DEF(0, XDestroyImage);
     XDL_PROC_DEF(0, XCreatePixmap);
     XDL_PROC_DEF(0, XPutImage);
 
