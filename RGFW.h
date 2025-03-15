@@ -9169,7 +9169,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 		return objc_msgSend_id(objc_getClass("NSOpenGLContext"), sel_registerName("currentContext"));
 	}
 	
-	void RGFW_window_swapBuffers_OpenGL(void) {
+	void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
 		objc_msgSend_void(win->src.ctx, sel_registerName("flushBuffer"));
 	}
 	#endif
@@ -10039,7 +10039,7 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 }
 
 	
-void RGFW_window_swapBuffers_OpenGL(void) {
+void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
 #ifndef RGFW_WEBGPU
 	emscripten_webgl_commit_frame();
 	emscripten_sleep(0);
