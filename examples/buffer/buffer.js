@@ -6199,23 +6199,6 @@ var ASM_CONSTS = {
       },
   };
   
-  /** @suppress {duplicate } */
-  var _emscripten_webgl_do_commit_frame = () => {
-      if (!GL.currentContext || !GL.currentContext.GLctx) {
-        return -3;
-      }
-  
-      if (!GL.currentContext.attributes.explicitSwapControl) {
-        return -3;
-      }
-      // We would do GL.currentContext.GLctx.commit(); here, but the current implementation
-      // in browsers has removed it - swap is implicit, so this function is a no-op for now
-      // (until/unless the spec changes).
-      return 0;
-    };
-  var _emscripten_webgl_commit_frame = _emscripten_webgl_do_commit_frame;
-
-  
   
   var emscripten_webgl_power_preferences = ['default', 'low-power', 'high-performance'];
   
@@ -11945,8 +11928,6 @@ var wasmImports = {
   emscripten_set_window_title: _emscripten_set_window_title,
   /** @export */
   emscripten_sleep: _emscripten_sleep,
-  /** @export */
-  emscripten_webgl_commit_frame: _emscripten_webgl_commit_frame,
   /** @export */
   emscripten_webgl_create_context: _emscripten_webgl_create_context,
   /** @export */

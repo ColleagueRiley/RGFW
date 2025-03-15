@@ -642,10 +642,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_swapInterval\fP (\fBRGFW_window\fP *win, \fBi32\fP swapInterval)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_setGPURender\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP set)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_setCPURender\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP set)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_swapBuffers_software\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glHints)"
@@ -658,6 +655,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent_OpenGL\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_swapBuffers_OpenGL\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "void * \fBRGFW_getCurrent_OpenGL\fP (void)"

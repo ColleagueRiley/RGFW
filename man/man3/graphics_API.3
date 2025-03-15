@@ -19,10 +19,7 @@ graphics_API \- Graphics_API
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_swapInterval\fP (\fBRGFW_window\fP *win, \fBi32\fP swapInterval)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_setGPURender\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP set)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_setCPURender\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP set)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_swapBuffers_software\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glHints)"
@@ -35,6 +32,9 @@ graphics_API \- Graphics_API
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent_OpenGL\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_swapBuffers_OpenGL\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "void * \fBRGFW_getCurrent_OpenGL\fP (void)"
@@ -89,14 +89,18 @@ get native opengl proc address
 NOTE: if you want to switch the graphics context's thread, you have to run RGFW_window_makeCurrent(NULL); on the old thread then RGFW_window_makeCurrent(valid_window) on the new thread 
 .SS "\fBRGFWDEF\fP void RGFW_window_makeCurrent_OpenGL (\fBRGFW_window\fP * win)"
 to be called by RGFW_window_makeCurrent 
-.SS "\fBRGFWDEF\fP void RGFW_window_setCPURender (\fBRGFW_window\fP * win, \fBRGFW_bool\fP set)"
-
-.SS "\fBRGFWDEF\fP void RGFW_window_setGPURender (\fBRGFW_window\fP * win, \fBRGFW_bool\fP set)"
-
 .SS "\fBRGFWDEF\fP void RGFW_window_swapBuffers (\fBRGFW_window\fP * win)"
 swap the rendering buffer 
-.SS "\fBRGFWDEF\fP void RGFW_window_swapInterval (\fBRGFW_window\fP * win, \fBi32\fP swapInterval)"
+.SS "\fBRGFWDEF\fP void RGFW_window_swapBuffers_OpenGL (\fBRGFW_window\fP * win)"
+swap opengl buffer (only) called by RGFW_window_swapInterval 
+.br
+ 
+.SS "\fBRGFWDEF\fP void RGFW_window_swapBuffers_software (\fBRGFW_window\fP * win)"
 
+.SS "\fBRGFWDEF\fP void RGFW_window_swapInterval (\fBRGFW_window\fP * win, \fBi32\fP swapInterval)"
+render the software rendering buffer (this is called by RGFW_window_swapInterval) 
+.br
+ 
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.

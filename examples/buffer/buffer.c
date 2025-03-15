@@ -89,8 +89,8 @@ int main(void) {
 
         drawBitmap(win, icon, RGFW_RECT(100, 100, 3, 3));
         
-        RGFW_window_setGPURender(win, 0);
-        RGFW_window_swapBuffers(win);
+        // RGFW_window_swapBuffers could work here too, but I want to ensure only the CPU buffer is being swapped
+        RGFW_window_swapBuffers_software(win);
 		RGFW_checkFPS(frameStartTime, frames, 60);
         frames++;
 	}
