@@ -13,8 +13,9 @@ int main(void) {
         RGFW_window_swapBuffers(win);
 
 		RGFW_window_eventWait(win, RGFW_eventWaitNext);
-        while (RGFW_window_checkEvent(win) && RGFW_window_shouldClose(win) == 0) {
+        while (RGFW_window_checkEvent(win)) {
             switch (win->event.type) {
+                case RGFW_quit: win->event.type = RGFW_quitRegistered; break;
                 case RGFW_keyPressed:
                     printf("Key pressed\n");
                     break;
@@ -61,9 +62,9 @@ int main(void) {
                 case RGFW_windowRefresh:
                     printf("Refresh\n");
                     break;
-                case RGFW_quit:
+                /*case RGFW_quit:
                     printf("Quit\n");
-                    break;
+                    break;*/
                 case RGFW_DND: {
                     printf("DND Drop : %i %i\n", win->event.point.x, win->event.point.y);
                     u32 i;

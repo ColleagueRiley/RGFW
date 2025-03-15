@@ -472,6 +472,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 	RGFW_windowMinimized, /*!< the window was minimized */
 	RGFW_windowRestored, /*!< the window was restored */
 	RGFW_scaleUpdated, /*!< content scale factor changed */
+	RGFW_quitRegistered, /*!< for the user to tell RGFW that the quit event was registered */
 };
 
 /*! mouse button codes (RGFW_event.button) */
@@ -1497,9 +1498,9 @@ void RGFW_sendDebugInfo(RGFW_debugType type, RGFW_errorCode err, RGFW_debugConte
 	#endif
 }
 
-u32 RGFW_timerOffset = 0;
+u64 RGFW_timerOffset = 0;
 void RGFW_setTime(double time) {
-    RGFW_timerOffset = RGFW_getTimerValue() - (u64)(time * RGFW_getTimerFreq());
+    RGFW_timerOffset = RGFW_getTimerValue() - (u64)(time * (double)RGFW_getTimerFreq());
 }
 
 double RGFW_getTime(void) {
@@ -1744,6 +1745,9 @@ RGFW_event* RGFW_window_checkEventCore(RGFW_window* win) {
 		}
 
 		return &win->event;
+	} else if (win->event.type == RGFW_quitRegistered) {
+		win->event.type = RGFW_quit;
+		return (RGFW_event*)-1;
 	}
 
 	if (win->event.type != RGFW_DNDInit) win->event.type = 0;
@@ -1752,7 +1756,7 @@ RGFW_event* RGFW_window_checkEventCore(RGFW_window* win) {
 	RGFW_event* ev = RGFW_eventQueuePop(win);
 	if (ev != NULL) win->event = *ev;
 	else return NULL;
-
+	
 	return &win->event;
 }
 
@@ -2058,7 +2062,7 @@ void RGFW_window_setCPURender(RGFW_window* win, RGFW_bool set) {
 void RGFW_window_center(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_area screenR = RGFW_getScreenSize();
-	RGFW_window_move(win, RGFW_POINT((screenR.w - win->r.w) / 2, (screenR.h - win->r.h) / 2));
+	RGFW_window_move(win, RGFW_POINT((screenR.w - win->r.w) / 2, (screenR.h - (u32)win->r.h) / 2));
 }
 
 RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, RGFW_window* win) {
@@ -2072,7 +2076,7 @@ RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, RGFW_window* win) {
 void RGFW_splitBPP(u32 bpp, RGFW_monitorMode* mode);
 void RGFW_splitBPP(u32 bpp, RGFW_monitorMode* mode) {
     if (bpp == 32) bpp = 24;
-    mode->red = mode->green = mode->blue = bpp / 3;
+    mode->red = mode->green = mode->blue = (u8)(bpp / 3);
 
     u32 delta = bpp - (mode->red * 3); // handle leftovers
     if (delta >= 1) mode->green = mode->green + 1;
@@ -4014,6 +4018,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	RGFW_LOAD_ATOM(XdndFinished);
 	RGFW_LOAD_ATOM(XdndActionCopy);
 
+printf("h\n");
 	XPending(win->src.display);
 
 	XEvent E; /*!< raw X11 event */
@@ -6528,10 +6533,12 @@ void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	RGFW_event* ev = RGFW_window_checkEventCore(win);
 	if (ev) {
-		if (ev == (RGFW_event*)-1) return NULL;
+		if (ev == (RGFW_event*)-1) { 
+			return NULL;
+		}
 		return ev;
 	}
-
+	
 	static HDROP drop;
 	if (win->event.type == RGFW_DNDInit) {
 		if (win->event.droppedFilesCount) {
@@ -6584,7 +6591,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	MSG msg;
 	if (PeekMessageA(&msg, win->src.window, 0u, 0u, PM_REMOVE) == 0)
 		return NULL;
-
+	
 	switch (msg.message) {
 		case WM_CLOSE:
 		case WM_QUIT:
@@ -6795,11 +6802,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			DispatchMessageA(&msg);
 			return RGFW_window_checkEvent(win);
 	}
-
-	TranslateMessage(&msg);
-	DispatchMessageA(&msg);
-
-	return &win->event;
 }
 
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) {
