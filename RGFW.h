@@ -5944,7 +5944,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
 	BITMAPV5HEADER bi = { 0 };
 	ZeroMemory(&bi, sizeof(bi));
 	bi.bV5Size = sizeof(bi);
-	bi.bV5Width = area.w;
+	bi.bV5Width = (i32)area.w;
 	bi.bV5Height = -((LONG) area.h);
 	bi.bV5Planes = 1;
 	bi.bV5BitCount = 32;

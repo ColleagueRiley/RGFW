@@ -85,8 +85,8 @@ void mouseposfunc(RGFW_window* win, RGFW_point point, RGFW_point vector) {
    printf("mouse moved %i %i\n", point.x, point.y);
 }
 
-void dndfunc(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount);
-void dndfunc(RGFW_window* win, char** droppedFiles, u32 droppedFilesCount) {
+void dndfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount);
+void dndfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount) {
     if (window != win) return;
     
     u32 i;
