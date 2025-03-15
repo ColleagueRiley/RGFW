@@ -1211,9 +1211,8 @@ RGFWDEF void RGFW_window_makeCurrent(RGFW_window* win);
 /* supports openGL, directX, OSMesa, EGL and software rendering */
 RGFWDEF void RGFW_window_swapBuffers(RGFW_window* win); /*!< swap the rendering buffer */
 RGFWDEF void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval);
-
-RGFWDEF void RGFW_window_setGPURender(RGFW_window* win, RGFW_bool set);
-RGFWDEF void RGFW_window_setCPURender(RGFW_window* win, RGFW_bool set);
+/*!< render the software rendering buffer (this is called by RGFW_window_swapInterval)  */
+RGFWDEF void RGFW_window_swapBuffers_software(RGFW_window* win);
 
 /*! native API functions */
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL)
@@ -1241,6 +1240,7 @@ typedef RGFW_ENUM(u8, RGFW_glHints)  {
 RGFWDEF void RGFW_setGLHint(RGFW_glHints hint, i32 value);
 RGFWDEF void* RGFW_getProcAddress(const char* procname); /*!< get native opengl proc address */
 RGFWDEF void RGFW_window_makeCurrent_OpenGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
+RGFWDEF void RGFW_window_swapBuffers_OpenGL(RGFW_window* win); /*!< swap opengl buffer (only) called by RGFW_window_swapInterval  */
 void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl))*/
 #elif defined(RGFW_VULKAN)
 	#if defined(RGFW_X11)
@@ -1854,16 +1854,14 @@ no more event call back defines
     attribs[index++] = v; \
 }
 
-#define RGFW_EVENT_QUIT 		RGFW_BIT(23) /* the window close button was pressed */
 #define RGFW_EVENT_PASSED 		RGFW_BIT(24) /* if a queued event was passed */
-#define RGFW_NO_GPU_RENDER 		RGFW_BIT(25) /* don't render (using the GPU based API) */
-#define RGFW_NO_CPU_RENDER 		RGFW_BIT(26) /* don't render (using the CPU based buffer rendering) */
+#define RGFW_EVENT_QUIT 		RGFW_BIT(25) /* the window close button was pressed */
 #define RGFW_HOLD_MOUSE			RGFW_BIT(27) /*!< hold the moues still */
 #define RGFW_MOUSE_LEFT 		RGFW_BIT(28) /* if mouse left the window */
 #define RGFW_WINDOW_ALLOC 		RGFW_BIT(29) /* if window was allocated by RGFW */
 #define RGFW_BUFFER_ALLOC 		RGFW_BIT(30) /* if window.buffer was allocated by RGFW */
 #define RGFW_WINDOW_INIT 		RGFW_BIT(31) /* if window.buffer was allocated by RGFW */
-#define RGFW_INTERNAL_FLAGS (RGFW_EVENT_QUIT | RGFW_EVENT_PASSED | RGFW_NO_GPU_RENDER | RGFW_NO_CPU_RENDER | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_WINDOW_ALLOC | RGFW_BUFFER_ALLOC | RGFW_windowFocus)
+#define RGFW_INTERNAL_FLAGS (RGFW_EVENT_QUIT | RGFW_EVENT_PASSED | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_WINDOW_ALLOC | RGFW_BUFFER_ALLOC | RGFW_windowFocus)
 
 
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
@@ -2039,20 +2037,20 @@ void RGFW_window_makeCurrent(RGFW_window* win) {
 }
 #endif
 
+void RGFW_window_swapBuffers(RGFW_window* win) {
+	RGFW_ASSERT(win != NULL);
+	RGFW_window_swapBuffers_software(win);
+#if defined(RGFW_OPENGL)
+	RGFW_window_swapBuffers_OpenGL(win);
+#endif
+}
+
 RGFWDEF void RGFW_setBit(u32* data, u32 bit, RGFW_bool value);
 void RGFW_setBit(u32* data, u32 bit, RGFW_bool value) {
 	if (value)
 		*data |= bit;
 	else if (!value && (*(data) & bit))
 		*data ^= bit;
-}
-
-void RGFW_window_setGPURender(RGFW_window* win, RGFW_bool set) {
-	RGFW_setBit(&win->_flags, RGFW_NO_GPU_RENDER, !set);
-}
-
-void RGFW_window_setCPURender(RGFW_window* win, RGFW_bool set) {
-	RGFW_setBit(&win->_flags, RGFW_NO_CPU_RENDER, !set);
 }
 
 void RGFW_window_center(RGFW_window* win) {
@@ -2685,6 +2683,8 @@ void RGFW_createOpenGLContext(RGFW_window* win) {
 void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 	eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.EGL_context);
 }
+
+void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) { eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface); }
 
 void* RGFW_getCurrent_OpenGL(void) { return eglGetCurrentContext(); }
 
@@ -4020,8 +4020,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	RGFW_LOAD_ATOM(XdndDrop);
 	RGFW_LOAD_ATOM(XdndFinished);
 	RGFW_LOAD_ATOM(XdndActionCopy);
-
-printf("h\n");
 	XPending(win->src.display);
 
 	XEvent E; /*!< raw X11 event */
@@ -5380,35 +5378,22 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 	else
 		glXMakeCurrent(win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);
 }
-void* RGFW_getCurrent_OpenGL(void) { return glXGetCurrentContext(); }
+void* RGFW_getCurrent_OpenGL(void) { return glXGetCurrentContext();  }
+void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) { glXSwapBuffers(win->src.display, win->src.window); }
 #endif
 
-void RGFW_window_swapBuffers(RGFW_window* win) {
+void RGFW_window_swapBuffers_software(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_GOTO_WAYLAND(0);
-#ifdef RGFW_X11
-	/* clear the window */
-	if (!(win->_flags & RGFW_NO_CPU_RENDER)) {
-		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-			win->src.bitmap->data = (char*) win->buffer;
-			RGFW_RGB_to_BGR(win, (u8*)win->src.bitmap->data);
-			XPutImage(win->src.display, win->src.window, win->src.gc, win->src.bitmap, 0, 0, 0, 0, win->bufferSize.w, win->bufferSize.h);
-			win->src.bitmap->data = NULL;
-		#endif
-	}
-
-	if (!(win->_flags & RGFW_NO_GPU_RENDER)) {
-		#ifdef RGFW_EGL
-				eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
-		#elif defined(RGFW_OPENGL)
-				glXSwapBuffers(win->src.display, win->src.window);
-		#endif
-	}
-	return;
-#endif
-#ifdef RGFW_WAYLAND
-	wayland:
-	#if defined(RGFW_BUFFER) || defined(RGFW_OSMESA)
+#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+	#ifdef RGFW_X11
+		win->src.bitmap->data = (char*) win->buffer;
+		RGFW_RGB_to_BGR(win, (u8*)win->src.bitmap->data);
+		XPutImage(win->src.display, win->src.window, win->src.gc, win->src.bitmap, 0, 0, 0, 0, win->bufferSize.w, win->bufferSize.h);
+		win->src.bitmap->data = NULL;
+		return;
+	#endif
+	#ifdef RGFW_WAYLAND
 		#if !defined(RGFW_BUFFER_BGR) && !defined(RGFW_OSMESA)
 		RGFW_RGB_to_BGR(win, win->src.buffer);
 		#else
@@ -5420,15 +5405,8 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 		#endif
 
 		wl_surface_frame_done(win, NULL, 0);
-		if (!(win->_flags & RGFW_NO_GPU_RENDER))
+		wl_surface_commit(win->src.surface);
 	#endif
-	{
-	#ifdef RGFW_OPENGL
-		eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
-	#endif
-	}
-
-	wl_surface_commit(win->src.surface);
 #endif
 }
 
@@ -7292,6 +7270,7 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 		wglMakeCurrent(win->src.hdc, (HGLRC) win->src.ctx);
 }
 void* RGFW_getCurrent_OpenGL(void) { return wglGetCurrentContext(); }
+void RGFW_window_swapBuffers_OpenGL(RGFW_window* win){ SwapBuffers(win->src.hdc); }
 #endif
 
 #ifndef RGFW_EGL
@@ -7323,27 +7302,14 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 
 #endif
 
-void RGFW_window_swapBuffers(RGFW_window* win) {
-	RGFW_ASSERT(win != NULL);
-	/* clear the window */
+void RGFW_window_swapBuffers_software(RGFW_window* win) {
+#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+	if (win->buffer != win->src.bitmapBits)
+	memcpy(win->src.bitmapBits, win->buffer, win->bufferSize.w * win->bufferSize.h * 4);
 
-	if (!(win->_flags & RGFW_NO_CPU_RENDER)) {
-		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-			if (win->buffer != win->src.bitmapBits)
-				memcpy(win->src.bitmapBits, win->buffer, win->bufferSize.w * win->bufferSize.h * 4);
-	
-			RGFW_RGB_to_BGR(win, win->src.bitmapBits);
-			BitBlt(win->src.hdc, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
-		#endif
-	}
-
-	if (!(win->_flags & RGFW_NO_GPU_RENDER)) {
-		#ifdef RGFW_EGL
-			eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
-		#elif defined(RGFW_OPENGL)
-			SwapBuffers(win->src.hdc);
-		#endif
-	}
+	RGFW_RGB_to_BGR(win, win->src.bitmapBits);
+	BitBlt(win->src.hdc, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
+#endif
 }
 
 char* RGFW_createUTF8FromWideStringWin32(const WCHAR* source) {
@@ -9202,6 +9168,10 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	void* RGFW_getCurrent_OpenGL(void) {
 		return objc_msgSend_id(objc_getClass("NSOpenGLContext"), sel_registerName("currentContext"));
 	}
+	
+	void RGFW_window_swapBuffers_OpenGL(void) {
+		objc_msgSend_void(win->src.ctx, sel_registerName("flushBuffer"));
+	}
 	#endif
 
 	#if !defined(RGFW_EGL)
@@ -9240,44 +9210,31 @@ CGImageRef createImageFromBytes(unsigned char *buffer, int width, int height)
 	return image;
 }
 
-void RGFW_window_swapBuffers(RGFW_window* win) {
-	RGFW_ASSERT(win != NULL);
-	/* clear the window */
-
-	if (!(win->_flags & RGFW_NO_CPU_RENDER)) {
+void RGFW_window_swapBuffers_software(RGFW_window* win) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-		id view = NSWindow_contentView((id)win->src.window);
-		id layer = objc_msgSend_id(view, sel_registerName("layer"));
+	id view = NSWindow_contentView((id)win->src.window);
+	id layer = objc_msgSend_id(view, sel_registerName("layer"));
 
-		((void(*)(id, SEL, NSRect))objc_msgSend)(layer,
-			sel_registerName("setFrame:"),
-			(NSRect){{0, 0}, {win->r.w, win->r.h}});
+	((void(*)(id, SEL, NSRect))objc_msgSend)(layer,
+		sel_registerName("setFrame:"),
+		(NSRect){{0, 0}, {win->r.w, win->r.h}});
 
-		CGImageRef image = createImageFromBytes(win->buffer, win->r.w, win->r.h);
-		// Get the current graphics context
-		id graphicsContext = objc_msgSend_class(objc_getClass("NSGraphicsContext"), sel_registerName("currentContext"));
-		// Get the CGContext from the current NSGraphicsContext
-		id cgContext = objc_msgSend_id(graphicsContext, sel_registerName("graphicsPort"));
-		// Draw the image in the context
-		NSRect bounds = (NSRect){{0,0}, {win->r.w, win->r.h}};
-		CGContextDrawImage((CGContextRef)cgContext, *(CGRect*)&bounds, image);
-		// Flush the graphics context to ensure the drawing is displayed
-		objc_msgSend_id(graphicsContext, sel_registerName("flushGraphics"));
+	CGImageRef image = createImageFromBytes(win->buffer, win->r.w, win->r.h);
+	// Get the current graphics context
+	id graphicsContext = objc_msgSend_class(objc_getClass("NSGraphicsContext"), sel_registerName("currentContext"));
+	// Get the CGContext from the current NSGraphicsContext
+	id cgContext = objc_msgSend_id(graphicsContext, sel_registerName("graphicsPort"));
+	// Draw the image in the context
+	NSRect bounds = (NSRect){{0,0}, {win->r.w, win->r.h}};
+	CGContextDrawImage((CGContextRef)cgContext, *(CGRect*)&bounds, image);
+	// Flush the graphics context to ensure the drawing is displayed
+	objc_msgSend_id(graphicsContext, sel_registerName("flushGraphics"));
 
-		objc_msgSend_void_id(layer, sel_registerName("setContents:"), (id)image);
-		objc_msgSend_id(layer, sel_registerName("setNeedsDisplay"));
+	objc_msgSend_void_id(layer, sel_registerName("setContents:"), (id)image);
+	objc_msgSend_id(layer, sel_registerName("setNeedsDisplay"));
 
-		CGImageRelease(image);
+	CGImageRelease(image);
 #endif
-	}
-
-	if (!(win->_flags & RGFW_NO_GPU_RENDER)) {
-		#ifdef RGFW_EGL
-				eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
-		#elif defined(RGFW_OPENGL)
-				objc_msgSend_void(win->src.ctx, sel_registerName("flushBuffer"));
-		#endif
-	}
 }
 
 void RGFW_window_close(RGFW_window* win) {
@@ -10031,55 +9988,46 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	return 0;
 }
 
-void RGFW_window_swapBuffers(RGFW_window* win) {
-	RGFW_UNUSED(win);
+void RGFW_window_swapBuffers_software(RGFW_window* win) {
+#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+	glEnable(GL_TEXTURE_2D);
 
-	#ifdef RGFW_BUFFER
-	if (!(win->_flags & RGFW_NO_CPU_RENDER)) {
-		glEnable(GL_TEXTURE_2D);
+	GLuint texture;
+	glGenTextures(1,&texture);
 
-		GLuint texture;
-		glGenTextures(1,&texture);
+	glBindTexture(GL_TEXTURE_2D,texture);
 
-		glBindTexture(GL_TEXTURE_2D,texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		#ifdef RGFW_BUFFER_BGR
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA, win->bufferSize.w, win->bufferSize.h, 0, GL_BGRA, GL_UNSIGNED_BYTE, win->buffer);
-		#else
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, win->bufferSize.w, win->bufferSize.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, win->buffer);
-		#endif
-
-		float ratioX = ((float)win->r.w / (float)win->bufferSize.w);
-		float ratioY = ((float)win->r.h / (float)win->bufferSize.h);
-
-		// Set up the viewport
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		glBegin(GL_TRIANGLES);
-			glTexCoord2f(0, ratioY); glColor3f(1, 1, 1); glVertex2f(-1, -1);
-			glTexCoord2f(0, 0); glColor3f(1, 1, 1); glVertex2f(-1, 1);
-			glTexCoord2f(ratioX, ratioY); glColor3f(1, 1, 1); glVertex2f(1, -1);
-
-			glTexCoord2f(ratioX, 0); glColor3f(1, 1, 1); glVertex2f(1, 1);
-			glTexCoord2f(ratioX, ratioY); glColor3f(1, 1, 1); glVertex2f(1, -1);
-			glTexCoord2f(0, 0); glColor3f(1, 1, 1); glVertex2f(-1, 1);
-		glEnd();
-
-		glDeleteTextures(1, &texture);
-	}
+	#ifdef RGFW_BUFFER_BGR
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA, win->bufferSize.w, win->bufferSize.h, 0, GL_BGRA, GL_UNSIGNED_BYTE, win->buffer);
+	#else
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, win->bufferSize.w, win->bufferSize.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, win->buffer);
 	#endif
 
-#ifndef RGFW_WEBGPU
-	emscripten_webgl_commit_frame();
-#endif
-	emscripten_sleep(0);
-}
+	float ratioX = ((float)win->r.w / (float)win->bufferSize.w);
+	float ratioY = ((float)win->r.h / (float)win->bufferSize.h);
 
+	// Set up the viewport
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glBegin(GL_TRIANGLES);
+		glTexCoord2f(0, ratioY); glColor3f(1, 1, 1); glVertex2f(-1, -1);
+		glTexCoord2f(0, 0); glColor3f(1, 1, 1); glVertex2f(-1, 1);
+		glTexCoord2f(ratioX, ratioY); glColor3f(1, 1, 1); glVertex2f(1, -1);
+
+		glTexCoord2f(ratioX, 0); glColor3f(1, 1, 1); glVertex2f(1, 1);
+		glTexCoord2f(ratioX, ratioY); glColor3f(1, 1, 1); glVertex2f(1, -1);
+		glTexCoord2f(0, 0); glColor3f(1, 1, 1); glVertex2f(-1, 1);
+	glEnd();
+
+	glDeleteTextures(1, &texture);
+	emscripten_sleep(0);
+#endif
+}
 
 void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 #ifndef RGFW_WEBGPU
@@ -10087,6 +10035,14 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 	    emscripten_webgl_make_context_current(0);
 	else
 	    emscripten_webgl_make_context_current(win->src.ctx);
+#endif
+}
+
+	
+void RGFW_window_swapBuffers_OpenGL(void) {
+#ifndef RGFW_WEBGPU
+	emscripten_webgl_commit_frame();
+	emscripten_sleep(0);
 #endif
 }
 
