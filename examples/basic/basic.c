@@ -45,7 +45,7 @@ int main(void) {
     #ifdef RGFW_MACOS
     win2 = RGFW_createWindow("subwindow", RGFW_RECT(200, 200, 200, 200), 0);
     #endif
-    //RGFW_createThread((RGFW_threadFunc_ptr)loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
+    RGFW_createThread((RGFW_threadFunc_ptr)loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
 
     unsigned char i;
 
@@ -124,9 +124,9 @@ void drawLoop(RGFW_window *w) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     
     glBegin(GL_TRIANGLES);
-        glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.6f, -0.75f);
-        glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.6f, -0.75f);
-        glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
+        glColor3f(1, 0, 0); glVertex2f(-0.6f, -0.75f);
+        glColor3f(0, 1, 0); glVertex2f(0.6f, -0.75f);
+        glColor3f(0, 0, 1); glVertex2f(0.0f, 0.75f);
     glEnd();
     
     #else
