@@ -1226,6 +1226,8 @@ RGFWDEF void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval);
 /*!< render the software rendering buffer (this is called by RGFW_window_swapInterval)  */
 RGFWDEF void RGFW_window_swapBuffers_software(RGFW_window* win);
 
+typedef void (*RGFW_proc)(void); // function pointer equivalent of void*
+
 /*! native API functions */
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL)
 /*! OpenGL init hints */
@@ -1250,8 +1252,6 @@ typedef RGFW_ENUM(u8, RGFW_glHints)  {
 	RGFW_glCore = 0,  RGFW_glCompatibility /*!< RGFW_glProfile options */
 };
 RGFWDEF void RGFW_setGLHint(RGFW_glHints hint, i32 value);
-
-typedef void (*RGFW_proc)(void); // function pointer equivalent of void*
 RGFWDEF RGFW_proc RGFW_getProcAddress(const char* procname); /*!< get native opengl proc address */
 RGFWDEF void RGFW_window_makeCurrent_OpenGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
 RGFWDEF void RGFW_window_swapBuffers_OpenGL(RGFW_window* win); /*!< swap opengl buffer (only) called by RGFW_window_swapInterval  */
