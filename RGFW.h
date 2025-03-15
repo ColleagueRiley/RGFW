@@ -166,6 +166,8 @@ int main() {
 	#pragma comment(lib, "opengl32")
 	#pragma comment(lib, "winmm")
 	#pragma comment(lib, "user32")
+	#pragma warning( push )
+	#pragma warning( disable : 4996 4191 4127)
 #endif
 
 #ifndef RGFW_USERPTR
@@ -1958,6 +1960,8 @@ void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	else if (cmpFlags & RGFW_windowMinimize) 	RGFW_window_restore(win);	
 	if (flags & RGFW_windowHideMouse)				RGFW_window_showMouse(win, 0);
 	else if (cmpFlags & RGFW_windowHideMouse)  	RGFW_window_showMouse(win, 1);
+	if (flags & RGFW_windowHide)				RGFW_window_hide(win);
+	else if (cmpFlags & RGFW_windowHide)  		RGFW_window_show(win);
 	if (flags & RGFW_windowCocoaCHDirToRes)			RGFW_moveToMacOSResourceDir();
 	if (flags & RGFW_windowFloating)				RGFW_window_setFloating(win, 1);
 	else if (cmpFlags & RGFW_windowFloating)		RGFW_window_setFloating(win, 0);
@@ -6162,8 +6166,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		wglMakeCurrent(dummy_dc, dummy_context);
 
 		if (wglChoosePixelFormatARB == NULL) {
-			wglCreateContextAttribsARB = ((PFNWGLCREATECONTEXTATTRIBSARBPROC(*)(const char*)) wglGetProcAddress)("wglCreateContextAttribsARB");
-			wglChoosePixelFormatARB = ((PFNWGLCHOOSEPIXELFORMATARBPROC(*)(const char*)) wglGetProcAddress)("wglChoosePixelFormatARB");
+			wglCreateContextAttribsARB = ((PFNWGLCREATECONTEXTATTRIBSARBPROC(WINAPI *)(const char*)) wglGetProcAddress)("wglCreateContextAttribsARB");
+			wglChoosePixelFormatARB = ((PFNWGLCHOOSEPIXELFORMATARBPROC(WINAPI *)(const char*)) wglGetProcAddress)("wglChoosePixelFormatARB");
 		}
 
 		wglMakeCurrent(dummy_dc, 0);
@@ -6847,7 +6851,7 @@ static RGFW_monitor win32CreateMonitor(HMONITOR src) {
 
 	monitor.scaleX = dpiX / 96.0f;
 	monitor.scaleY = dpiY / 96.0f;
-	monitor.pixelRatio = dpiX >= 192.0f ? 2 : 1;
+	monitor.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
 
 	monitor.physW = (float)GetDeviceCaps(hdc, HORZSIZE) / 25.4f;
 	monitor.physH = (float)GetDeviceCaps(hdc, VERTSIZE) / 25.4f;
@@ -6862,7 +6866,7 @@ static RGFW_monitor win32CreateMonitor(HMONITOR src) {
 			GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &x, &y);
 			monitor.scaleX = (float) (x) / (float) 96.0f;
 			monitor.scaleY = (float) (y) / (float) 96.0f;
-			monitor.pixelRatio = dpiX >= 192.0f ? 2 : 1;
+			monitor.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
 		}
 	#endif
 
@@ -7288,7 +7292,7 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	}
 
 	if (wglSwapIntervalEXT == NULL) {
-		loadSwapFunc = ((PFNWGLSWAPINTERVALEXTPROC (*)(const char*)) wglGetProcAddress) ("wgSwapIntervalEXT");
+		loadSwapFunc = ((PFNWGLSWAPINTERVALEXTPROC (APIENTRY *)(const char*)) wglGetProcAddress) ("wgSwapIntervalEXT");
 		wglSwapIntervalEXT = loadSwapFunc;
 	}
 
@@ -10207,4 +10211,8 @@ void RGFW_sleep(u64 ms) {
 	#ifdef __clang__
 		#pragma clang diagnostic pop
 	#endif
+#endif
+
+#if _MSC_VER
+	#pragma warning( pop )
 #endif
