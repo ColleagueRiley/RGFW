@@ -3591,12 +3591,6 @@ void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
 		}
 
 		GLXFBConfig bestFbc = fbc[best_fbc];
-
-		/* Get a visual */
-		//XVisualInfo* vi = glXGetVisualFromFBConfig(win->src.display, bestFbc);
-		
-		//win->src.ctx = glXCreateContext(win->src.display, vi, NULL, GL_TRUE);
-		//XFree(vi);
 		XFree(fbc);
 
 		i32 context_attribs[7] = { 0, 0, 0, 0, 0, 0, 0 };
