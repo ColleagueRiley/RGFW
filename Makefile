@@ -93,17 +93,20 @@ else ifneq (,$(filter $(CC),emcc em++))
 else ifeq (,$(filter $(CC),g++ clang++ em++))
 	LIBS += -std=c99
 	WARNINGS = -Werror -Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
+
+	ifeq ($(detected_OS),Darwin) 
+		WARNINGS = -Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn -Wno-gnu-zero-variadic-macro-arguments
+	else
+		WARNINGS = -Wall -Werror -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn 
+	endif
+
 else
-	WARNINGS = -Werror -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
+	WARNINGS = -Wall l -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
 	WARNINGS += -Wno-missing-field-initializers -Wno-c++20-extensions -Wno-pedantic  # C++ warnings I don't care about right now
 	NO_VULKAN = 1
 	ifeq ($(detected_OS),Darwin) 
 		WARNINGS =
 	endif
-endif
-
-ifeq (,$(filter $(CC),emcc em++))
-	WARNINGS += -Wunsafe-loop-optimizations -Wlogical-op
 endif
 
 EXAMPLE_OUTPUTS = \
