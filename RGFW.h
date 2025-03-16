@@ -1232,6 +1232,9 @@ typedef void (*RGFW_proc)(void); // function pointer equivalent of void*
 
 /*! native API functions */
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL)
+/*!< create an opengl context for the RGFW window, run by createWindow by default (unless the RGFW_windowNoInitAPI is included) */
+RGFWDEF void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software);
+
 /*! OpenGL init hints */
 typedef RGFW_ENUM(u8, RGFW_glHints)  {
 	RGFW_glStencil = 0,  /*!< set stencil buffer bit size (8 by default) */
@@ -3553,7 +3556,7 @@ RGFW_GOTO_WAYLAND(0);
 
 
 #ifndef RGFW_EGL
-static void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
+void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
 #ifdef RGFW_OPENGL
 		u32* visual_attribs = (u32*)RGFW_initFormatAttribs(software);
 		i32 fbcount;
@@ -6049,7 +6052,7 @@ static void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 }
 
 #ifndef RGFW_EGL
-static void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
+void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
 #ifdef RGFW_OPENGL
 	u32 pfd_flags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
 	//if (RGFW_DOUBLE_BUFFER)
@@ -8121,6 +8124,42 @@ void* RGFW_cocoaGetLayer(void) {
 NSPasteboardType const NSPasteboardTypeURL = "public.url";
 NSPasteboardType const NSPasteboardTypeFileURL  = "public.file-url";
 
+#ifndef RGFW_EGL
+void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
+#ifdef RGFW_OPENGL
+	void* attrs = RGFW_initFormatAttribs(software);
+	void* format = NSOpenGLPixelFormat_initWithAttributes((uint32_t*)attrs);
+
+	if (format == NULL) {
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to load pixel format for OpenGL");
+		void* attrs = RGFW_initFormatAttribs(1);
+		format = NSOpenGLPixelFormat_initWithAttributes((uint32_t*)attrs);
+
+		if (format == NULL)
+			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "and loading software rendering OpenGL failed");
+		else
+			RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Switching to software rendering");
+	}
+
+	/* the pixel format can be passed directly to opengl context creation to create a context
+		this is because the format also includes information about the opengl version (which may be a bad thing) */
+	win->src.view = (id) ((id(*)(id, SEL, NSRect, uint32_t*))objc_msgSend) (NSAlloc((id)objc_getClass("NSOpenGLView")),  
+							sel_registerName("initWithFrame:pixelFormat:"), (NSRect){{0, 0}, {win->r.w, win->r.h}}, (uint32_t*)format);
+
+	objc_msgSend_void(win->src.view, sel_registerName("prepareOpenGL"));
+	win->src.ctx = objc_msgSend_id(win->src.view, sel_registerName("openGLContext"));
+
+	if (win->_flags & RGFW_windowTransparent) {
+		i32 opacity = 0;
+		#define NSOpenGLCPSurfaceOpacity 236
+		NSOpenGLContext_setValues((id)win->src.ctx, &opacity, NSOpenGLCPSurfaceOpacity);
+	}
+
+	objc_msgSend_void(win->src.ctx, sel_registerName("makeCurrentContext"));
+#endif
+}
+#endif
+
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	static u8 RGFW_loaded = 0;
 
@@ -8175,36 +8214,11 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	id str = NSString_stringWithUTF8String(name);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setTitle:"), str);
 
-	#ifdef RGFW_EGL
-		if ((flags & RGFW_windowNoInitAPI) == 0)
-			RGFW_createOpenGLContext(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
-	#endif
-
-	#ifdef RGFW_OPENGL
-
-	if ((flags & RGFW_windowNoInitAPI) == 0) {
-		void* attrs = RGFW_initFormatAttribs(flags & RGFW_windowOpenglSoftware);
-		void* format = NSOpenGLPixelFormat_initWithAttributes((uint32_t*)attrs);
-
-		if (format == NULL) {
-			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to load pixel format for OpenGL");
-			void* attrs = RGFW_initFormatAttribs(1);
-			format = NSOpenGLPixelFormat_initWithAttributes((uint32_t*)attrs);
-
-			if (format == NULL)
-				RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "and loading software rendering OpenGL failed");
-			else
-				RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Switching to software rendering");
-		}
-
-		/* the pixel format can be passed directly to opengl context creation to create a context
-			this is because the format also includes information about the opengl version (which may be a bad thing) */
-		win->src.view = (id) ((id(*)(id, SEL, NSRect, uint32_t*))objc_msgSend) (NSAlloc((id)objc_getClass("NSOpenGLView")),  
-								sel_registerName("initWithFrame:pixelFormat:"), (NSRect){{0, 0}, {win->r.w, win->r.h}}, (uint32_t*)format);
+	if ((flags & RGFW_windowNoInitAPI) == 0)
+		RGFW_createOpenGLContext(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
 	
-		objc_msgSend_void(win->src.view, sel_registerName("prepareOpenGL"));
-		win->src.ctx = objc_msgSend_id(win->src.view, sel_registerName("openGLContext"));
-	} else
+	#ifdef RGFW_OPENGL
+	else 
 	#endif
 	{
 		NSRect contentRect = (NSRect){{0, 0}, {win->r.w, win->r.h}};
@@ -8218,20 +8232,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
 
-	#ifdef RGFW_OPENGL
-		if ((flags & RGFW_windowNoInitAPI) == 0)
-			objc_msgSend_void(win->src.ctx, sel_registerName("makeCurrentContext"));
-	#endif
-
 	if (flags & RGFW_windowTransparent) {
-		#ifdef RGFW_OPENGL
-			if ((flags & RGFW_windowNoInitAPI) == 0) {
-				i32 opacity = 0;
-				#define NSOpenGLCPSurfaceOpacity 236
-				NSOpenGLContext_setValues((id)win->src.ctx, &opacity, NSOpenGLCPSurfaceOpacity);
-			}
-		#endif
-
 		objc_msgSend_void_bool(win->src.window, sel_registerName("setOpaque:"), false);
 
 		objc_msgSend_void_id((id)win->src.window, sel_registerName("setBackgroundColor:"),
@@ -9699,40 +9700,43 @@ void EMSCRIPTEN_KEEPALIVE RGFW_writeFile(const char *path, const char *data, siz
     fclose(file);
 }
 
+void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
+#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU)
+	EmscriptenWebGLContextAttributes attrs;
+	attrs.alpha = RGFW_GL_HINTS[RGFW_glDepth];
+	attrs.depth = RGFW_GL_HINTS[RGFW_glAlpha];
+	attrs.stencil = RGFW_GL_HINTS[RGFW_glStencil];
+	attrs.antialias = RGFW_GL_HINTS[RGFW_glSamples];
+	attrs.premultipliedAlpha = EM_TRUE;
+	attrs.preserveDrawingBuffer = EM_FALSE;
+
+	if (RGFW_GL_HINTS[RGFW_glDoubleBuffer] == 0)
+		attrs.renderViaOffscreenBackBuffer = 0;
+	else
+		attrs.renderViaOffscreenBackBuffer = RGFW_GL_HINTS[RGFW_glAuxBuffers];
+
+	attrs.failIfMajorPerformanceCaveat = EM_FALSE;
+	attrs.majorVersion = (RGFW_GL_HINTS[RGFW_glMajor] == 0) ? 1 : RGFW_GL_HINTS[RGFW_glMajor];
+	attrs.minorVersion = RGFW_GL_HINTS[RGFW_glMinor];
+
+	attrs.enableExtensionsByDefault = EM_TRUE;
+	attrs.explicitSwapControl = EM_TRUE;
+
+	emscripten_webgl_init_context_attributes(&attrs);
+	win->src.ctx = emscripten_webgl_create_context("#canvas", &attrs);
+	emscripten_webgl_make_context_current(win->src.ctx);
+
+	#ifdef LEGACY_GL_EMULATION
+	EM_ASM("Module.useWebGL = true; GLImmediate.init();");
+	#endif
+#endif
+}
+
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
-	RGFW_UNUSED(name);
-
     RGFW_window_basic_init(win, rect, flags);
+	RGFW_createOpenGLContext(win, 0);
 
-	#ifndef RGFW_WEBGPU
-		EmscriptenWebGLContextAttributes attrs;
-		attrs.alpha = RGFW_GL_HINTS[RGFW_glDepth];
-		attrs.depth = RGFW_GL_HINTS[RGFW_glAlpha];
-		attrs.stencil = RGFW_GL_HINTS[RGFW_glStencil];
-		attrs.antialias = RGFW_GL_HINTS[RGFW_glSamples];
-		attrs.premultipliedAlpha = EM_TRUE;
-		attrs.preserveDrawingBuffer = EM_FALSE;
-
-		if (RGFW_GL_HINTS[RGFW_glDoubleBuffer] == 0)
-			attrs.renderViaOffscreenBackBuffer = 0;
-		else
-			attrs.renderViaOffscreenBackBuffer = RGFW_GL_HINTS[RGFW_glAuxBuffers];
-
-		attrs.failIfMajorPerformanceCaveat = EM_FALSE;
-		attrs.majorVersion = (RGFW_GL_HINTS[RGFW_glMajor] == 0) ? 1 : RGFW_GL_HINTS[RGFW_glMajor];
-		attrs.minorVersion = RGFW_GL_HINTS[RGFW_glMinor];
-
-		attrs.enableExtensionsByDefault = EM_TRUE;
-		attrs.explicitSwapControl = EM_TRUE;
-
-		emscripten_webgl_init_context_attributes(&attrs);
-		win->src.ctx = emscripten_webgl_create_context("#canvas", &attrs);
-		emscripten_webgl_make_context_current(win->src.ctx);
-
-		#ifdef LEGACY_GL_EMULATION
-		EM_ASM("Module.useWebGL = true; GLImmediate.init();");
-		#endif
-	#else
+	#ifdef RGFW_WEBGPU
 		win->src.ctx = wgpuCreateInstance(NULL);
 		win->src.device = emscripten_webgpu_get_device();
 		win->src.queue = wgpuDeviceGetQueue(win->src.device);
