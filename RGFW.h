@@ -8127,7 +8127,7 @@ NSPasteboardType const NSPasteboardTypeFileURL  = "public.file-url";
 #ifndef RGFW_EGL
 void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
 #ifdef RGFW_OPENGL
-	void* attrs = RGFW_initFormatAttribs(flags & RGFW_windowOpenglSoftware);
+	void* attrs = RGFW_initFormatAttribs(software);
 	void* format = NSOpenGLPixelFormat_initWithAttributes((uint32_t*)attrs);
 
 	if (format == NULL) {
@@ -9736,7 +9736,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
     RGFW_window_basic_init(win, rect, flags);
 	RGFW_createOpenGLContext(win, 0);
 
-	#ifndef RGFW_WEBGPU
+	#ifdef RGFW_WEBGPU
 		win->src.ctx = wgpuCreateInstance(NULL);
 		win->src.device = emscripten_webgpu_get_device();
 		win->src.queue = wgpuDeviceGetQueue(win->src.device);
