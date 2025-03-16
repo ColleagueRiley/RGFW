@@ -2222,7 +2222,8 @@ RGFW_gamepadType RGFW_getGamepadType(RGFW_window* win, u16 controller) {
 
 RGFWDEF void RGFW_updateKeyMod(RGFW_window* win, RGFW_keymod mod, RGFW_bool value);
 void RGFW_updateKeyMod(RGFW_window* win, RGFW_keymod mod, RGFW_bool value) {
-	RGFW_setBit((u32*)&win->event.keyMod, mod, value);
+	if (value) win->event.keyMod |= mod;
+	else win->event.keyMod &= ~mod;
 }
 
 RGFWDEF void RGFW_updateKeyModsPro(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super, RGFW_bool scroll);
@@ -2459,7 +2460,7 @@ static i32* RGFW_initFormatAttribs(u32 useSoftware) {
 		if (RGFW_GL_HINTS[RGFW_glRobustness]) flags |= RGFW_GL_ROBUST_BIT;
 		RGFW_GL_ADD_ATTRIB(RGFW_GL_FLAGS, flags);
 	#else
-		u32 accumSize = (RGFW_GL_HINTS[RGFW_glAccumRed] + RGFW_GL_HINTS[RGFW_glAccumGreen] +  RGFW_GL_HINTS[RGFW_glAccumBlue] + RGFW_GL_HINTS[RGFW_glAccumAlpha]) / 4;
+		i32 accumSize = (i32)(RGFW_GL_HINTS[RGFW_glAccumRed] + RGFW_GL_HINTS[RGFW_glAccumGreen] +  RGFW_GL_HINTS[RGFW_glAccumBlue] + RGFW_GL_HINTS[RGFW_glAccumAlpha]) / 4;
 		RGFW_GL_ADD_ATTRIB(14, accumSize);
 	#endif
 
@@ -2485,7 +2486,7 @@ static i32* RGFW_initFormatAttribs(u32 useSoftware) {
 
 
 		if (RGFW_GL_HINTS[RGFW_glMajor] >= 4 || RGFW_GL_HINTS[RGFW_glMajor] >= 3) {
-			attribs[index + 1] = (u32) ((RGFW_GL_HINTS[RGFW_glMajor] >= 4) ? 0x4100 : 0x3200);
+			attribs[index + 1] = (i32) ((RGFW_GL_HINTS[RGFW_glMajor] >= 4) ? 0x4100 : 0x3200);
 		}
 	#endif
 
