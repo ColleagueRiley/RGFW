@@ -6995,9 +6995,9 @@ HICON RGFW_loadHandleImage(u8* src, RGFW_area a, BOOL icon) {
 	HDC maskDC = CreateCompatibleDC(dc);
 	SelectObject(maskDC, mask);
 
-	for (i32 y = 0; y < a.h; y++) {
-		for (i32 x = 0; x < a.w; x++) {
-			i32 index = (y * a.w + x) * 4;
+	for (u32 y = 0; y < a.h; y++) {
+		for (u32 x = 0; x < a.w; x++) {
+			u32 index = (y * a.w + x) * 4;
 			u8 alpha = src[index + 3];
 			if (alpha < 128) {
 				SetPixel(maskDC, x, y, RGB(255, 255, 255));
