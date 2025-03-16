@@ -1233,7 +1233,7 @@ typedef void (*RGFW_proc)(void); // function pointer equivalent of void*
 /*! native API functions */
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL)
 /*!< create an opengl context for the RGFW window, run by createWindow by default (unless the RGFW_windowNoInitAPI is included) */
-void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software);
+RGFWDEF void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software);
 
 /*! OpenGL init hints */
 typedef RGFW_ENUM(u8, RGFW_glHints)  {
@@ -3556,7 +3556,7 @@ RGFW_GOTO_WAYLAND(0);
 
 
 #ifndef RGFW_EGL
-static void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
+void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
 #ifdef RGFW_OPENGL
 		u32* visual_attribs = (u32*)RGFW_initFormatAttribs(software);
 		i32 fbcount;
@@ -6052,7 +6052,7 @@ static void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 }
 
 #ifndef RGFW_EGL
-static void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
+void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
 #ifdef RGFW_OPENGL
 	u32 pfd_flags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
 	//if (RGFW_DOUBLE_BUFFER)
@@ -8125,7 +8125,7 @@ NSPasteboardType const NSPasteboardTypeURL = "public.url";
 NSPasteboardType const NSPasteboardTypeFileURL  = "public.file-url";
 
 #ifndef RGFW_EGL
-static void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
+void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
 #ifdef RGFW_OPENGL
 	void* attrs = RGFW_initFormatAttribs(flags & RGFW_windowOpenglSoftware);
 	void* format = NSOpenGLPixelFormat_initWithAttributes((uint32_t*)attrs);
@@ -9699,7 +9699,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_writeFile(const char *path, const char *data, siz
     fclose(file);
 }
 
-static void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
+void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
 #ifdef RGFW_OPENGL
 	EmscriptenWebGLContextAttributes attrs;
 	attrs.alpha = RGFW_GL_HINTS[RGFW_glDepth];
