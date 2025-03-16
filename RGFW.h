@@ -8158,6 +8158,7 @@ void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
 	objc_msgSend_void(win->src.ctx, sel_registerName("makeCurrentContext"));
 #endif
 }
+#endif
 
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	static u8 RGFW_loaded = 0;
