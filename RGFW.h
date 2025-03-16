@@ -179,7 +179,7 @@ int main() {
 #endif
 
 #ifndef RGFW_ROUND
-	#define RGFW_ROUND(x) (int)((x) >= 0 ? (x) + 0.5f : (x) - 0.5f)
+	#define RGFW_ROUND(x) (i32)((x) >= 0 ? (x) + 0.5f : (x) - 0.5f)
 #endif
 
 #ifndef RGFW_ALLOC
@@ -2547,7 +2547,7 @@ static i32* RGFW_initFormatAttribs(u32 useSoftware) {
 #endif
 
 
-void RGFW_createOpenGLContext(RGFW_window* win) {
+void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
 #if defined(RGFW_LINK_EGL)
 	eglInitializeSource = (PFNEGLINITIALIZEPROC) eglGetProcAddress("eglInitialize");
 	eglGetConfigsSource = (PFNEGLGETCONFIGSPROC) eglGetProcAddress("eglGetConfigs");
@@ -3416,7 +3416,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 		#endif
 
 		win->src.bitmap = XCreateImage(
-			win->src.display, XDefaultVisual(win->src.display, XDefaultScreen(win->src.display)),
+			win->src.display, DefaultVisual(win->src.display, XDefaultScreen(win->src.display)),
 			32, ZPixmap, 0, NULL, area.w, area.h,
 			32, 0
 		);
@@ -3551,6 +3551,81 @@ RGFW_GOTO_WAYLAND(0);
 	if (ptr != NULL) memcpy(&name##SRC, &ptr, sizeof(PFN_##name)); \
 }
 
+
+#ifndef RGFW_EGL
+static void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
+#ifdef RGFW_OPENGL
+		u32* visual_attribs = (u32*)RGFW_initFormatAttribs(software);
+		i32 fbcount;
+		GLXFBConfig* fbc = glXChooseFBConfig(win->src.display, DefaultScreen(win->src.display), (i32*) visual_attribs, &fbcount);
+
+		i32 best_fbc = -1;
+
+		if (fbcount == 0) {
+			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to find any valid GLX visual configs");
+			return;
+		}
+
+		for (i32 i = 0; i < fbcount; i++) {
+			XVisualInfo* vi = glXGetVisualFromFBConfig(win->src.display, fbc[i]);
+			if (vi == NULL)
+				continue;
+			XFree(vi);
+
+			i32 samp_buf, samples;
+			glXGetFBConfigAttrib(win->src.display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
+			glXGetFBConfigAttrib(win->src.display, fbc[i], GLX_SAMPLES, &samples);
+
+			if ((!(win->_flags & RGFW_windowTransparent) || vi->depth == 32) &&
+				(best_fbc < 0 || samp_buf) && (samples == RGFW_GL_HINTS[RGFW_glSamples] || best_fbc == -1)) {
+				best_fbc = i;
+			}
+		}
+
+		if (best_fbc == -1) {
+			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to get a valid GLX visual");
+			return;
+		}
+
+		GLXFBConfig bestFbc = fbc[best_fbc];
+
+		/* Get a visual */
+		//XVisualInfo* vi = glXGetVisualFromFBConfig(win->src.display, bestFbc);
+		
+		//win->src.ctx = glXCreateContext(win->src.display, vi, NULL, GL_TRUE);
+		//XFree(vi);
+		XFree(fbc);
+
+		i32 context_attribs[7] = { 0, 0, 0, 0, 0, 0, 0 };
+		context_attribs[0] = GLX_CONTEXT_PROFILE_MASK_ARB;
+		if (RGFW_GL_HINTS[RGFW_glProfile] == RGFW_glCore)
+			context_attribs[1] = GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+		else
+			context_attribs[1] = GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+
+		if (RGFW_GL_HINTS[RGFW_glMinor] || RGFW_GL_HINTS[RGFW_glMajor]) {
+			context_attribs[2] = GLX_CONTEXT_MAJOR_VERSION_ARB;
+			context_attribs[3] = RGFW_GL_HINTS[RGFW_glMajor];
+			context_attribs[4] = GLX_CONTEXT_MINOR_VERSION_ARB;
+			context_attribs[5] = RGFW_GL_HINTS[RGFW_glMinor];
+		}
+
+		glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
+		glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
+			glXGetProcAddressARB((GLubyte*) "glXCreateContextAttribsARB");
+
+		GLXContext ctx = NULL;
+
+		if (RGFW_root != NULL && RGFW_root != win)
+			ctx = RGFW_root->src.ctx;
+
+		win->src.ctx = glXCreateContextAttribsARB(win->src.display, bestFbc, ctx, True, context_attribs);
+		glXMakeCurrent(win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);
+	#endif
+}
+#endif
+
+
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	#ifdef RGFW_USE_XDL
 		XDL_init();
@@ -3581,10 +3656,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	#endif
 
 	XInitThreads(); /*!< init X11 threading */
-
-	if (flags & RGFW_windowOpenglSoftware)
-		setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
-
 	RGFW_window_basic_init(win, rect, flags);
 
 #ifdef RGFW_WAYLAND
@@ -3594,63 +3665,21 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 #ifdef RGFW_X11
 	i64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /*!< X11 events accepted */
 	
-	#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
-		u32* visual_attribs = (u32*)RGFW_initFormatAttribs(flags & RGFW_windowOpenglSoftware);
-		i32 fbcount;
-		GLXFBConfig* fbc = glXChooseFBConfig(win->src.display, DefaultScreen(win->src.display), (i32*) visual_attribs, &fbcount);
+	XVisualInfo viNorm;
+	viNorm.visual = DefaultVisual(win->src.display, DefaultScreen(win->src.display));
 
-		i32 best_fbc = -1;
+	viNorm.depth = 0;
+	XVisualInfo* vi = &viNorm;
 
-		if (fbcount == 0) {
-			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to find any valid GLX visual configs");
-			return NULL;
-		}
-
-		for (i32 i = 0; i < fbcount; i++) {
-			XVisualInfo* vi = glXGetVisualFromFBConfig(win->src.display, fbc[i]);
-                        if (vi == NULL)
-				continue;
-
-			XFree(vi);
-
-			i32 samp_buf, samples;
-			glXGetFBConfigAttrib(win->src.display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
-			glXGetFBConfigAttrib(win->src.display, fbc[i], GLX_SAMPLES, &samples);
-
-			if ((!(flags & RGFW_windowTransparent) || vi->depth == 32) &&
-				(best_fbc < 0 || samp_buf) && (samples == RGFW_GL_HINTS[RGFW_glSamples] || best_fbc == -1)) {
-				best_fbc = i;
-			}
-		}
-
-		if (best_fbc == -1) {
-			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to get a valid GLX visual");
-			return NULL;
-		}
-
-		GLXFBConfig bestFbc = fbc[best_fbc];
-
-		/* Get a visual */
-		XVisualInfo* vi = glXGetVisualFromFBConfig(win->src.display, bestFbc);
-
-		XFree(fbc);
-	#else
-		XVisualInfo viNorm;
-
-		viNorm.visual = DefaultVisual(win->src.display, DefaultScreen(win->src.display));
-
-		viNorm.depth = 0;
-		XVisualInfo* vi = &viNorm;
-
-		XMatchVisualInfo(win->src.display, DefaultScreen(win->src.display), 32, TrueColor, vi); /*!< for RGBA backgrounds */
-	#endif
+	XMatchVisualInfo(win->src.display, DefaultScreen(win->src.display), 32, TrueColor, vi); /*!< for RGBA backgrounds */
+	
 	/* make X window attrubutes */
+	i32 screen = DefaultScreen(win->src.display);
 	XSetWindowAttributes swa;
 	Colormap cmap;
-
 	swa.colormap = cmap = XCreateColormap(win->src.display,
 		DefaultRootWindow(win->src.display),
-		vi->visual, AllocNone);
+		DefaultVisual(win->src.display, screen), AllocNone);
 
 	swa.background_pixmap = None;
 	swa.border_pixel = 0;
@@ -3660,21 +3689,16 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	/* create the window */
 	win->src.window = XCreateWindow(win->src.display, DefaultRootWindow(win->src.display), win->r.x, win->r.y, (u32)win->r.w, (u32)win->r.h,
-		0, vi->depth, InputOutput, vi->visual,
+		0, DefaultDepth(win->src.display, screen), InputOutput, DefaultVisual(win->src.display, screen),//vi->visual,
 		CWColormap | CWBorderPixel | CWBackPixel | CWEventMask, &swa);
 
 	XFreeColors(win->src.display, cmap, NULL, 0, 0);
 
 	win->src.gc = XCreateGC(win->src.display, win->src.window, 0, NULL);
 
-	#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
-	XFree(vi);
-	#endif
-	
 	// In your .desktop app, if you set the property
 	// StartupWMClass=RGFW that will assoicate the launcher icon
 	// with your application - robrohan
-
 	if (RGFW_className == NULL)
 		RGFW_className = (char*)name;
 	
@@ -3683,35 +3707,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	if (RGFW_instName == NULL)	hint.res_name = (char*)name;
 	else 						hint.res_name = (char*)RGFW_instName;
 	XSetClassHint(win->src.display, win->src.window, &hint);
-
-	if ((flags & RGFW_windowNoInitAPI) == 0) {
-	#if defined(RGFW_OPENGL) && !defined(RGFW_EGL) /* This is the second part of setting up opengl. This is where we ask OpenGL for a specific version. */
-		i32 context_attribs[7] = { 0, 0, 0, 0, 0, 0, 0 };
-		context_attribs[0] = GLX_CONTEXT_PROFILE_MASK_ARB;
-		if (RGFW_GL_HINTS[RGFW_glProfile] == RGFW_glCore)
-			context_attribs[1] = GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
-		else
-			context_attribs[1] = GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
-
-		if (RGFW_GL_HINTS[RGFW_glMinor] || RGFW_GL_HINTS[RGFW_glMajor]) {
-			context_attribs[2] = GLX_CONTEXT_MAJOR_VERSION_ARB;
-			context_attribs[3] = RGFW_GL_HINTS[RGFW_glMajor];
-			context_attribs[4] = GLX_CONTEXT_MINOR_VERSION_ARB;
-			context_attribs[5] = RGFW_GL_HINTS[RGFW_glMinor];
-		}
-
-		glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
-		glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
-			glXGetProcAddressARB((GLubyte*) "glXCreateContextAttribsARB");
-
-		GLXContext ctx = NULL;
-
-		if (RGFW_root != NULL && RGFW_root != win)
-			ctx = RGFW_root->src.ctx;
-
-		win->src.ctx = glXCreateContextAttribsARB(win->src.display, bestFbc, ctx, True, context_attribs);
-	#endif
-	}
 
 	#ifndef RGFW_NO_MONITOR
 	if (flags & RGFW_windowScaleToMonitor)
@@ -3727,13 +3722,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	}
 
 	XSetWMProtocols(win->src.display, (Drawable) win->src.window, &wm_delete_window, 1);
-
-	/* connect the context to the window */
-	#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
-		if ((flags & RGFW_windowNoInitAPI) == 0)
-			glXMakeCurrent(win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);
-	#endif
-
 	/* set the background */
 	RGFW_window_setName(win, name);
 
@@ -3754,10 +3742,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			PropModeReplace, &version, 1); /*!< turns on drag and drop */
 	}
 
-	#ifdef RGFW_EGL
-		if ((flags & RGFW_windowNoInitAPI) == 0)
-			RGFW_createOpenGLContext(win);
-	#endif
+	if ((flags & RGFW_windowNoInitAPI) == 0)
+		RGFW_createOpenGLContext(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new window was created");
 	RGFW_window_setMouseDefault(win);
 	RGFW_window_setFlags(win, flags);
@@ -3857,7 +3843,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	#ifdef RGFW_OPENGL
 		if ((flags & RGFW_windowNoInitAPI) == 0) {
 			win->src.eglWindow = wl_egl_window_create(win->src.surface, win->r.w, win->r.h);
-			RGFW_createOpenGLContext(win);
+			RGFW_createOpenGLContext(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
 		}
 	#endif
 	struct wl_callback* callback = wl_surface_frame(win->src.surface);
@@ -6031,6 +6017,113 @@ int RGFW_window_createDXSwapChain(RGFW_window* win, IDXGIFactory* pFactory, IUnk
 }
 #endif
 
+static void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
+#ifdef RGFW_OPENGL
+	if (wglChoosePixelFormatARB != NULL && wglChoosePixelFormatARB != NULL)
+		return;
+	
+	HDC dummy_dc = GetDC(dummyWin);
+	u32 pfd_flags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
+	//if (RGFW_DOUBLE_BUFFER)
+			pfd_flags |= PFD_DOUBLEBUFFER;
+
+	PIXELFORMATDESCRIPTOR pfd = {sizeof(pfd), 1, pfd_flags, PFD_TYPE_RGBA, 32, 8, PFD_MAIN_PLANE, 32, 8, 8, 8, 8, 8, 0, 0, 0, 0, 0, 32, 8, 0, PFD_MAIN_PLANE, 0, 0, 0, 0};
+
+	int dummy_pixel_format = ChoosePixelFormat(dummy_dc, &pfd);
+	SetPixelFormat(dummy_dc, dummy_pixel_format, &pfd);
+
+	HGLRC dummy_context = wglCreateContext(dummy_dc);
+	wglMakeCurrent(dummy_dc, dummy_context);
+	
+	wglCreateContextAttribsARB = ((PFNWGLCREATECONTEXTATTRIBSARBPROC(WINAPI *)(const char*)) wglGetProcAddress)("wglCreateContextAttribsARB");
+	wglChoosePixelFormatARB = ((PFNWGLCHOOSEPIXELFORMATARBPROC(WINAPI *)(const char*)) wglGetProcAddress)("wglChoosePixelFormatARB");
+
+	wglMakeCurrent(dummy_dc, 0);
+	wglDeleteContext(dummy_context);
+	ReleaseDC(dummyWin, dummy_dc);
+#endif
+}
+
+#ifndef RGFW_EGL
+static void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
+#ifdef RGFW_OPENGL
+	u32 pfd_flags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
+	//if (RGFW_DOUBLE_BUFFER)
+		pfd_flags |= PFD_DOUBLEBUFFER;
+	PIXELFORMATDESCRIPTOR pfd = {
+		sizeof(PIXELFORMATDESCRIPTOR), // Size of the descriptor
+		1,                             // Version
+		pfd_flags,                    // Flags to specify what the pixel format supports (e.g., PFD_SUPPORT_OPENGL)
+		PFD_TYPE_RGBA,                 // Pixel type is RGBA
+		32,                            // Color bits (red, green, blue channels)
+		0, 0, 0, 0, 0, 0,             // No color bits for unused channels
+		8,                             // Alpha bits (important for transparency)
+		0,                             // No accumulation buffer bits needed
+		0, 0, 0, 0,                   // No accumulation bits
+		32,                            // Depth buffer bits
+		8,                             // Stencil buffer bits
+		0,                             // Auxiliary buffer bits (unused)
+		PFD_MAIN_PLANE,                // Use the main plane for rendering
+		0, 0, 0, 0, 0                     // Reserved fields
+	};
+
+	/* try to create the pixel format we want for opengl and then try to create an opengl context for the specified version */
+	if (wglCreateContextAttribsARB != NULL) {
+		if (software)
+			pfd.dwFlags |= PFD_GENERIC_FORMAT | PFD_GENERIC_ACCELERATED;
+
+		if (wglChoosePixelFormatARB != NULL) {
+			i32* pixel_format_attribs = (i32*)RGFW_initFormatAttribs(software);
+
+			int pixel_format;
+			UINT num_formats;
+			wglChoosePixelFormatARB(win->src.hdc, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
+			if (!num_formats)
+				RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to create a pixel format for WGL");
+
+			DescribePixelFormat(win->src.hdc, pixel_format, sizeof(pfd), &pfd);
+			if (!SetPixelFormat(win->src.hdc, pixel_format, &pfd))
+				RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to set the WGL pixel format");
+		}
+
+		/* create opengl/WGL context for the specified version */
+		u32 index = 0;
+		i32 attribs[40];
+
+		if (RGFW_GL_HINTS[RGFW_glProfile]== RGFW_glCore) {
+			SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB);
+		}
+		else {
+			SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
+		}
+
+		if (RGFW_GL_HINTS[RGFW_glMinor] || RGFW_GL_HINTS[RGFW_glMajor]) {
+			SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_GL_HINTS[RGFW_glMajor]);
+			SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_GL_HINTS[RGFW_glMinor]);
+		}
+
+		SET_ATTRIB(0, 0);
+
+		win->src.ctx = (HGLRC)wglCreateContextAttribsARB(win->src.hdc, NULL, attribs);
+	} else { /* fall back to a default context (probably opengl 2 or something) */
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to create an accelerated OpenGL Context");
+
+		int pixel_format = ChoosePixelFormat(win->src.hdc, &pfd);
+		SetPixelFormat(win->src.hdc, pixel_format, &pfd);
+
+		win->src.ctx = wglCreateContext(win->src.hdc);
+	}
+
+	ReleaseDC(win->src.window, win->src.hdc);
+	win->src.hdc = GetDC(win->src.window);
+	wglMakeCurrent(win->src.hdc, win->src.ctx);
+
+	if (RGFW_root != win)
+		wglShareLists(RGFW_root->src.ctx, win->src.ctx);
+#endif
+}
+#endif
+
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	#ifndef RGFW_NO_XINPUT
 		if (RGFW_XInput_dll == NULL)
@@ -6122,6 +6215,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	
 	GetWindowRect(dummyWin, &windowRect);
 	GetClientRect(dummyWin, &clientRect);
+	
+	RGFW_win32_loadOpenGLFuncs(dummyWin);
+	DestroyWindow(dummyWin);
 
 	win->src.hOffset = (u32)(windowRect.bottom - windowRect.top) - (u32)(clientRect.bottom - clientRect.top);
 	win->src.window = CreateWindowW(Class.lpszClassName, (wchar_t*)wide_name, window_style, win->r.x, win->r.y, win->r.w, win->r.h + (i32)win->src.hOffset, 0, 0, inh, 0);
@@ -6134,126 +6230,13 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	}
 	win->src.hdc = GetDC(win->src.window);
 
-	if ((flags & RGFW_windowNoInitAPI) == 0) {
-	#ifdef RGFW_OPENGL
-		HDC dummy_dc = GetDC(dummyWin);
-
-        u32 pfd_flags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
-
-        //if (RGFW_DOUBLE_BUFFER)
-             pfd_flags |= PFD_DOUBLEBUFFER;
-
-		PIXELFORMATDESCRIPTOR dummy_pfd = {
-			sizeof(PIXELFORMATDESCRIPTOR), // Size of the descriptor
-			1,                             // Version
-			pfd_flags,                    // Flags to specify what the pixel format supports (e.g., PFD_SUPPORT_OPENGL)
-			PFD_TYPE_RGBA,                 // Pixel type is RGBA
-			32,                            // Color bits (red, green, blue channels)
-			0, 0, 0, 0, 0, 0,             // No color bits for unused channels
-			8,                             // Alpha bits (important for transparency)
-			0,                             // No accumulation buffer bits needed
-			0, 0, 0, 0,                   // No accumulation bits
-			32,                            // Depth buffer bits
-			8,                             // Stencil buffer bits
-			0,                             // Auxiliary buffer bits (unused)
-			PFD_MAIN_PLANE,                // Use the main plane for rendering
-			0, 0, 0, 0, 0                     // Reserved fields
-		};
-
-
-		int dummy_pixel_format = ChoosePixelFormat(dummy_dc, &dummy_pfd);
-		SetPixelFormat(dummy_dc, dummy_pixel_format, &dummy_pfd);
-
-		HGLRC dummy_context = wglCreateContext(dummy_dc);
-		wglMakeCurrent(dummy_dc, dummy_context);
-
-		if (wglChoosePixelFormatARB == NULL) {
-			wglCreateContextAttribsARB = ((PFNWGLCREATECONTEXTATTRIBSARBPROC(WINAPI *)(const char*)) wglGetProcAddress)("wglCreateContextAttribsARB");
-			wglChoosePixelFormatARB = ((PFNWGLCHOOSEPIXELFORMATARBPROC(WINAPI *)(const char*)) wglGetProcAddress)("wglChoosePixelFormatARB");
-		}
-
-		wglMakeCurrent(dummy_dc, 0);
-		wglDeleteContext(dummy_context);
-		ReleaseDC(dummyWin, dummy_dc);
-
-		/* try to create the pixel format we want for opengl and then try to create an opengl context for the specified version */
-		if (wglCreateContextAttribsARB != NULL) {
-			PIXELFORMATDESCRIPTOR pfd = {sizeof(pfd), 1, pfd_flags, PFD_TYPE_RGBA, 32, 8, PFD_MAIN_PLANE, 24, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-			if (flags & RGFW_windowOpenglSoftware)
-				pfd.dwFlags |= PFD_GENERIC_FORMAT | PFD_GENERIC_ACCELERATED;
-
-			if (wglChoosePixelFormatARB != NULL) {
-				i32* pixel_format_attribs = (i32*)RGFW_initFormatAttribs(flags & RGFW_windowOpenglSoftware);
-
-				int pixel_format;
-				UINT num_formats;
-				wglChoosePixelFormatARB(win->src.hdc, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
-				if (!num_formats)
-					RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to create a pixel format for WGL");
-
-				DescribePixelFormat(win->src.hdc, pixel_format, sizeof(pfd), &pfd);
-				if (!SetPixelFormat(win->src.hdc, pixel_format, &pfd))
-					RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to set the WGL pixel format");
-			}
-
-			/* create opengl/WGL context for the specified version */
-			u32 index = 0;
-			i32 attribs[40];
-
-			if (RGFW_GL_HINTS[RGFW_glProfile]== RGFW_glCore) {
-				SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB);
-			}
-			else {
-				SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
-			}
-
-			if (RGFW_GL_HINTS[RGFW_glMinor] || RGFW_GL_HINTS[RGFW_glMajor]) {
-				SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, RGFW_GL_HINTS[RGFW_glMajor]);
-				SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, RGFW_GL_HINTS[RGFW_glMinor]);
-			}
-
-			SET_ATTRIB(0, 0);
-
-			win->src.ctx = (HGLRC)wglCreateContextAttribsARB(win->src.hdc, NULL, attribs);
-		} else { /* fall back to a default context (probably opengl 2 or something) */
-			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to create an accelerated OpenGL Context");
+	if ((flags & RGFW_windowNoInitAPI) == 0)
+		RGFW_createOpenGLContext(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
 	
-			int pixel_format = ChoosePixelFormat(win->src.hdc, &dummy_pfd);
-			SetPixelFormat(win->src.hdc, pixel_format, &dummy_pfd);
-
-			win->src.ctx = wglCreateContext(win->src.hdc);
-		}
-
-		wglMakeCurrent(win->src.hdc, win->src.ctx);
-		#endif
-	}
-
-	#ifdef RGFW_OPENGL
-		if ((flags & RGFW_windowNoInitAPI) == 0) {
-			ReleaseDC(win->src.window, win->src.hdc);
-			win->src.hdc = GetDC(win->src.window);
-			wglMakeCurrent(win->src.hdc, win->src.ctx);
-		}
-	#endif
-
-	DestroyWindow(dummyWin);
-
-	#ifdef RGFW_EGL
-		if ((flags & RGFW_windowNoInitAPI) == 0)
-			RGFW_createOpenGLContext(win);
-	#endif
-
 	RGFW_window_show(win);
 	RGFW_window_setFlags(win, flags);
 
 	RGFW_win32_makeWindowTransparent(win);
-	
-	#ifdef RGFW_OPENGL
-	if (RGFW_root != win)
-		wglShareLists(RGFW_root->src.ctx, win->src.ctx);
-	#endif
-
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new window was created");
 	return win;
 }
@@ -8188,7 +8171,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	#ifdef RGFW_EGL
 		if ((flags & RGFW_windowNoInitAPI) == 0)
-			RGFW_createOpenGLContext(win);
+			RGFW_createOpenGLContext(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
 	#endif
 
 	#ifdef RGFW_OPENGL
@@ -10215,6 +10198,6 @@ void RGFW_sleep(u64 ms) {
 	#endif
 #endif
 
-#if _MSC_VER
+#if _MSC_VERs
 	#pragma warning( pop )
 #endif
