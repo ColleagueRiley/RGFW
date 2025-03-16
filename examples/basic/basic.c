@@ -41,13 +41,6 @@ int main(void) {
     const GLubyte *version = glGetString(GL_VERSION);
     printf("OpenGL Version: %s\n", version);
 
-    GLint major, minor;
-    glGetIntegerv(GL_MAJOR_VERSION, &major);
-    glGetIntegerv(GL_MINOR_VERSION, &minor);
-    printf("OpenGL Major Version: %d\n", major);
-    printf("OpenGL Minor Version: %d\n", minor);
-
-
     RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
 
     RGFW_setWindowRefreshCallback(refreshCallback);
