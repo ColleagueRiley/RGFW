@@ -9701,7 +9701,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_writeFile(const char *path, const char *data, siz
 }
 
 void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
-#ifdef RGFW_OPENGL
+#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU)
 	EmscriptenWebGLContextAttributes attrs;
 	attrs.alpha = RGFW_GL_HINTS[RGFW_glDepth];
 	attrs.depth = RGFW_GL_HINTS[RGFW_glAlpha];
