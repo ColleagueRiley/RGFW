@@ -1232,6 +1232,9 @@ typedef void (*RGFW_proc)(void); // function pointer equivalent of void*
 
 /*! native API functions */
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL)
+/*!< create an opengl context for the RGFW window, run by createWindow by default (unless the RGFW_windowNoInitAPI is included) */
+void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software);
+
 /*! OpenGL init hints */
 typedef RGFW_ENUM(u8, RGFW_glHints)  {
 	RGFW_glStencil = 0,  /*!< set stencil buffer bit size (8 by default) */
@@ -9732,7 +9735,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
     RGFW_window_basic_init(win, rect, flags);
 	RGFW_createOpenGLContext(win, 0);
 
-	#ifnef RGFW_WEBGPU
+	#ifndef RGFW_WEBGPU
 		win->src.ctx = wgpuCreateInstance(NULL);
 		win->src.device = emscripten_webgpu_get_device();
 		win->src.queue = wgpuDeviceGetQueue(win->src.device);
