@@ -3621,7 +3621,9 @@ static void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
 
 		win->src.ctx = glXCreateContextAttribsARB(win->src.display, bestFbc, ctx, True, context_attribs);
 		glXMakeCurrent(win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);
-	#endif
+#else
+	RGFW_UNUSED(win); RGFW_UNUSED(software);	
+#endif
 }
 #endif
 
@@ -6041,6 +6043,8 @@ static void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 	wglMakeCurrent(dummy_dc, 0);
 	wglDeleteContext(dummy_context);
 	ReleaseDC(dummyWin, dummy_dc);
+#else
+	RGFW_UNUSED(dummyWin);
 #endif
 }
 
@@ -6120,6 +6124,8 @@ static void RGFW_createOpenGLContext(RGFW_window* win, RGFW_bool software) {
 
 	if (RGFW_root != win)
 		wglShareLists(RGFW_root->src.ctx, win->src.ctx);
+#else
+	RGFW_UNUSED(win); RGFW_UNUSED(software);
 #endif
 }
 #endif
