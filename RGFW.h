@@ -1459,7 +1459,8 @@ RGFW_bool RGFW_useWaylandBool = 1;
 #endif
 
 char* RGFW_clipboard_data;
-static void RGFW_clipboard_switch(char* newstr) {
+void RGFW_clipboard_switch(char* newstr);
+void RGFW_clipboard_switch(char* newstr) {
 	if (RGFW_clipboard_data != NULL)
 		RGFW_FREE(RGFW_clipboard_data);
 	RGFW_clipboard_data =  newstr;
@@ -7642,7 +7643,7 @@ typedef RGFW_ENUM(i32, NSDragOperation) {
 		NSDragOperationPrivate = 8,
 		NSDragOperationMove = 16,
 		NSDragOperationDelete = 32,
-		NSDragOperationEvery = ULONG_MAX,
+		NSDragOperationEvery = (int)ULONG_MAX,
 
 		//NSDragOperationAll_Obsolete	API_DEPRECATED("", macos(10.0,10.10)) = 15, // Use NSDragOperationEvery
 		//NSDragOperationAll API_DEPRECATED("", macos(10.0,10.10)) = NSDragOperationAll_Obsolete, // Use NSDragOperationEvery
@@ -7778,7 +7779,7 @@ bool performDragOperation(id self, SEL sel, id sender) {
 	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
 	RGFW_eventQueuePush((RGFW_event){.type = RGFW_DND, 
 									.point = RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y)),
-									.droppedFilesCount = count,
+									.droppedFilesCount = (size_t)count,
 									._win = win});
 
 	RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
@@ -7792,8 +7793,8 @@ bool performDragOperation(id self, SEL sel, id sender) {
 
 IOHIDDeviceRef RGFW_osxControllers[4] = {NULL};
 
-int findControllerIndex(IOHIDDeviceRef device) {
-	for (int i = 0; i < 4; i++)
+size_t findControllerIndex(IOHIDDeviceRef device) {
+	for (size_t i = 0; i < 4; i++)
 		if (RGFW_osxControllers[i] == device)
 			return i;
 	return -1;
@@ -7837,7 +7838,7 @@ void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *se
 			RGFW_gamepadPressed[index][button].current = intValue;
 			RGFW_eventQueuePush((RGFW_event){.type = intValue ? RGFW_gamepadButtonPressed: RGFW_gamepadButtonReleased,
 											.button = button,
-											.gamepad = index,
+											.gamepad = (u16)index,
 											._win = RGFW_root});
 			break;
 		}
