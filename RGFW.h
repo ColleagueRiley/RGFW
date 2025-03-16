@@ -6990,9 +6990,25 @@ HICON RGFW_loadHandleImage(u8* src, RGFW_area a, BOOL icon) {
 		NULL, (DWORD) 0);
 	
 	memcpy(target, src, a.w * a.h * 4);
-	ReleaseDC(NULL, dc);
-
+	
 	HBITMAP mask = CreateBitmap((i32)a.w, (i32)a.h, 1, 1, NULL);
+	HDC maskDC = CreateCompatibleDC(dc);
+	SelectObject(maskDC, mask);
+
+	for (i32 y = 0; y < a.h; y++) {
+		for (i32 x = 0; x < a.w; x++) {
+			i32 index = (y * a.w + x) * 4;
+			u8 alpha = src[index + 3];
+			if (alpha < 128) {
+				SetPixel(maskDC, x, y, RGB(255, 255, 255));
+			} else {
+				SetPixel(maskDC, x, y, RGB(0, 0, 0));
+			}
+		}
+	}
+	
+	DeleteDC(maskDC);
+	ReleaseDC(NULL, dc);
 
 	ICONINFO ii;
 	ZeroMemory(&ii, sizeof(ii));
