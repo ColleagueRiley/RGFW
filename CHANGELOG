@@ -37,6 +37,7 @@ Current Version: RGFW 1.6.5-dev
 - add `RGFW_window_swapBuffers_software` and `RGFW_window_swapBuffers_OpenGL`
 - add RGFW_proc
 - change `void* RGFW_getProcAddress(const char*)` to `RGFW_proc RGFW_getProcAddress(const char*)`
+- add `RGFW_window_initOpenGL` and `RGFW_window_freeOpenGL`
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------
