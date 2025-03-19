@@ -38,6 +38,8 @@ Current Version: RGFW 1.6.5-dev
 - add RGFW_proc
 - change `void* RGFW_getProcAddress(const char*)` to `RGFW_proc RGFW_getProcAddress(const char*)`
 - add `RGFW_window_initOpenGL` and `RGFW_window_freeOpenGL`
+- X11 depth defaults to 24 instead of 32 (based on RGFW_windowTransparent) (32-bit depth doesn't seem to play nice with multi-samples)
+- set default multi-sampling to 0, better matches GLFW, allow user to pick sampling
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------
