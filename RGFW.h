@@ -2344,11 +2344,11 @@ void RGFW_moveToMacOSResourceDir(void) { }
 
 /* EGL, normal OpenGL only */
 #ifndef RGFW_EGL
-i32 RGFW_GL_HINTS[RGFW_glFinalHint] = {8, 4, 
+i32 RGFW_GL_HINTS[RGFW_glFinalHint] = {8, 
 #else
-i32 RGFW_GL_HINTS[RGFW_glFinalHint] = {0, 0, 
+i32 RGFW_GL_HINTS[RGFW_glFinalHint] = {0, 
 #endif
-	0, 0, 1, 8, 8, 8, 8, 24, 0, 0, 0, 0, 0, 0, 0, 0, RGFW_glReleaseNone, RGFW_glCore, 0, 0};
+	0, 0, 0, 1, 8, 8, 8, 8, 24, 0, 0, 0, 0, 0, 0, 0, 0, RGFW_glReleaseNone, RGFW_glCore, 0, 0};
 
 void RGFW_setGLHint(RGFW_glHints hint, i32 value) {
 	if (hint < RGFW_glFinalHint && hint) RGFW_GL_HINTS[hint] = value;
@@ -3600,11 +3600,11 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 			glXGetFBConfigAttrib(win->src.display, fbc[i], GLX_SAMPLES, &samples);
 
 			if (best_fbc == -1) best_fbc = i;
-			if (vi->depth == 32 && best_depth == 0) {
+			if ((!(win->_flags & RGFW_windowTransparent) || vi->depth == 32)  && best_depth == 0) {
 				best_fbc = i;
 				best_depth = vi->depth;
 			}
-			if (vi->depth == 32 && samples <= RGFW_GL_HINTS[RGFW_glSamples] && samples > best_samples) {
+			if ((!(win->_flags & RGFW_windowTransparent) || vi->depth == 32) && samples <= RGFW_GL_HINTS[RGFW_glSamples] && samples > best_samples) {
 				best_fbc = i;
 				best_depth = vi->depth;
 				best_samples = samples;
@@ -3622,7 +3622,7 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 		win->src.visual.visual = vi->visual;
 		win->src.visual.depth = vi->depth;
 
-		if (vi->depth != 32)
+		if (vi->depth != 32 && (win->_flags & RGFW_windowTransparent)) 
 			RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Failed to to find a matching visual with a 32-bit depth");
 		
 		if (best_samples < RGFW_GL_HINTS[RGFW_glSamples])
@@ -3713,10 +3713,12 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	i64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /*!< X11 events accepted */
 
 	win->src.visual.visual = DefaultVisual(win->src.display, DefaultScreen(win->src.display));
-	XMatchVisualInfo(win->src.display, DefaultScreen(win->src.display), 32, TrueColor, &win->src.visual); /*!< for RGBA backgrounds */
-	if (win->src.visual.depth != 32)
+	if (flags & RGFW_windowTransparent) {
+		XMatchVisualInfo(win->src.display, DefaultScreen(win->src.display), 32, TrueColor, &win->src.visual); /*!< for RGBA backgrounds */
+		if (win->src.visual.depth != 32)
 		RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Failed to load a 32-bit depth");
 
+	}
 	/* make X window attrubutes */
 	XSetWindowAttributes swa;
 	Colormap cmap;
