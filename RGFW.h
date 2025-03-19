@@ -1526,7 +1526,7 @@ void RGFW_sendDebugInfo(RGFW_debugType type, RGFW_errorCode err, RGFW_debugConte
 
 	switch (err) {
 		#ifdef RGFW_BUFFER
-		case RGFW_errBuffer: case RGFW_infoBuffer: printf(" buffer size: %i %i\n", ctx.win->bufferSize.w, ctx.win->bufferSize.h);
+		case RGFW_errBuffer: case RGFW_infoBuffer: printf(" buffer size: %i %i\n", ctx.win->bufferSize.w, ctx.win->bufferSize.h); break;
 		#endif
 		case RGFW_infoMonitor: printf(": scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n   depth: %i\n", ctx.monitor.name, ctx.monitor.x, ctx.monitor.y, ctx.monitor.mode.area.w, ctx.monitor.mode.area.h, ctx.monitor.physW, ctx.monitor.physH, ctx.monitor.scaleX, ctx.monitor.scaleY, ctx.monitor.pixelRatio, ctx.monitor.mode.refreshRate, ctx.monitor.mode.red + ctx.monitor.mode.green + ctx.monitor.mode.blue); break;
 		case RGFW_infoWindow: printf(" with rect of {%i, %i, %i, %i} \n", ctx.win->r.x, ctx.win->r.y,ctx. win->r.w, ctx.win->r.h); break;
@@ -3583,6 +3583,7 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 
 		i32 best_fbc = -1;
 		i32 best_depth = 0;
+		i32 best_samples = 0;
 
 		if (fbcount == 0) {
 			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to find any valid GLX visual configs");
@@ -3601,11 +3602,12 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 			if (best_fbc == -1) best_fbc = i;
 			if (vi->depth == 32 && best_depth == 0) {
 				best_fbc = i;
-				best_depth = samples;
+				best_depth = vi->depth;
 			}
-			if (vi->depth == 32 && samples == RGFW_GL_HINTS[RGFW_glSamples]) {
+			if (vi->depth == 32 && samples <= RGFW_GL_HINTS[RGFW_glSamples] && samples > best_samples) {
 				best_fbc = i;
-				best_depth = samples;
+				best_depth = vi->depth;
+				best_samples = samples;
 			}
 			XFree(vi);
 		}
@@ -3619,6 +3621,12 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 		XVisualInfo* vi = glXGetVisualFromFBConfig(win->src.display, bestFbc);
 		win->src.visual.visual = vi->visual;
 		win->src.visual.depth = vi->depth;
+
+		if (vi->depth != 32)
+			RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Failed to to find a matching visual with a 32-bit depth");
+		
+		if (best_samples < RGFW_GL_HINTS[RGFW_glSamples])
+			RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Failed to load matching sampiling");
 
 		XFree(vi);
 		XFree(fbc);
@@ -3706,7 +3714,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	win->src.visual.visual = DefaultVisual(win->src.display, DefaultScreen(win->src.display));
 	XMatchVisualInfo(win->src.display, DefaultScreen(win->src.display), 32, TrueColor, &win->src.visual); /*!< for RGBA backgrounds */
-	
+	if (win->src.visual.depth != 32)
+		RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Failed to load a 32-bit depth");
+
 	/* make X window attrubutes */
 	XSetWindowAttributes swa;
 	Colormap cmap;
