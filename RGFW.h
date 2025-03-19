@@ -3582,6 +3582,7 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 		GLXFBConfig* fbc = glXChooseFBConfig(win->src.display, DefaultScreen(win->src.display), (i32*) visual_attribs, &fbcount);
 
 		i32 best_fbc = -1;
+		i32 best_depth = 0;
 
 		if (fbcount == 0) {
 			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to find any valid GLX visual configs");
@@ -3597,11 +3598,15 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 			glXGetFBConfigAttrib(win->src.display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
 			glXGetFBConfigAttrib(win->src.display, fbc[i], GLX_SAMPLES, &samples);
 
-			if ((!(win->_flags & RGFW_windowTransparent) || vi->depth == 32) &&
-				(best_fbc < 0 || samp_buf) && (samples == RGFW_GL_HINTS[RGFW_glSamples] || best_fbc == -1)) {
+			if (best_fbc == -1) best_fbc = i;
+			if (vi->depth == 32 && best_depth == 0) {
 				best_fbc = i;
+				best_depth = samples;
 			}
-
+			if (vi->depth == 32 && samples == RGFW_GL_HINTS[RGFW_glSamples]) {
+				best_fbc = i;
+				best_depth = samples;
+			}
 			XFree(vi);
 		}
 
