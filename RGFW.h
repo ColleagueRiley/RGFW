@@ -6133,6 +6133,8 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 	if (win->src.ctx == NULL) return;
 	wglDeleteContext((HGLRC) win->src.ctx); /*!< delete opengl context */
 	win->src.ctx = NULL;
+#else
+	RGFW_UNUSED(win);
 #endif
 }
 #endif
@@ -8158,6 +8160,8 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 	if (win->src.ctx == NULL) return;
 	objc_msgSend_void(win->src.ctx, sel_registerName("release"));
 	win->src.ctx = NULL;
+#else
+	RGFW_UNUSED(win);
 #endif
 }
 #endif
@@ -9740,6 +9744,8 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 	if (win->src.ctx == NULL) return;
 	emscripten_webgl_destroy_context(win->src.ctx);
 	win->src.ctx = NULL;
+#else
+	RGFW_UNUSED(win);
 #endif
 }
 
