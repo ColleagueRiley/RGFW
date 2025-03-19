@@ -364,6 +364,7 @@ int main() {
 	#define RGFW_X11
 	#define RGFW_UNIX
 	#include <X11/Xlib.h>
+	#include <X11/Xutil.h>
 #elif defined(__APPLE__) && !defined(RGFW_MACOS_X11) && !defined(RGFW_X11)  && !defined(RGFW_WASM)  && !defined(RGFW_CUSTOM_BACKEND)
 	#define RGFW_MACOS
 #endif
@@ -661,7 +662,6 @@ typedef struct RGFW_window_src {
 #if defined(RGFW_X11)
 	Display* display; /*!< source display */
 	Window window; /*!< source window */
-	Visual* visual;
 	#if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
 		GLXContext ctx; /*!< source graphics context */
 	#elif defined(RGFW_OSMESA)
@@ -676,6 +676,7 @@ typedef struct RGFW_window_src {
 			XImage* bitmap;
 	#endif
 	GC gc;
+	XVisualInfo visual;
 	char* clipboard; /* for writing to the clipboard selection */
 	size_t clipboard_len;
 #endif /* RGFW_X11 */
@@ -3361,7 +3362,6 @@ Start of Linux / Unix defines
 #include <X11/Xresource.h>
 #endif
 
-#include <X11/Xutil.h>
 #include <X11/Xatom.h>
 #include <X11/keysymdef.h>
 #include <unistd.h>
@@ -3439,9 +3439,8 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 		#endif
 		
 		win->src.bitmap = XCreateImage(
-			win->src.display, win->src.visual,
-			(u32)DefaultDepth(win->src.display, DefaultScreen(win->src.display)), ZPixmap, 0, NULL, area.w, area.h,
-			32, 0
+			win->src.display, win->src.visual.visual, (u32)win->src.visual.depth, 
+			ZPixmap, 0, NULL, area.w, area.h, 32, 0
 		);
 	#endif
 	#ifdef RGFW_WAYLAND
@@ -3600,7 +3599,6 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 
 			if ((!(win->_flags & RGFW_windowTransparent) || vi->depth == 32) &&
 				(best_fbc < 0 || samp_buf) && (samples == RGFW_GL_HINTS[RGFW_glSamples] || best_fbc == -1)) {
-				win->src.visual = vi->visual;
 				best_fbc = i;
 			}
 
@@ -3613,6 +3611,11 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 		}
 
 		GLXFBConfig bestFbc = fbc[best_fbc];
+		XVisualInfo* vi = glXGetVisualFromFBConfig(win->src.display, bestFbc);
+		win->src.visual.visual = vi->visual;
+		win->src.visual.depth = vi->depth;
+
+		XFree(vi);
 		XFree(fbc);
 
 		i32 context_attribs[7] = { 0, 0, 0, 0, 0, 0, 0 };
@@ -3650,6 +3653,8 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 	if (win->src.ctx == NULL) return;
 	glXDestroyContext(win->src.display, win->src.ctx);
 	win->src.ctx = NULL;
+#else
+RGFW_UNUSED(win);
 #endif
 }
 #endif
@@ -3693,15 +3698,16 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	RGFW_GOTO_WAYLAND(0);
 #ifdef RGFW_X11
 	i64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /*!< X11 events accepted */
-	win->src.visual = DefaultVisual(win->src.display, DefaultScreen(win->src.display));
+
+	win->src.visual.visual = DefaultVisual(win->src.display, DefaultScreen(win->src.display));
+	XMatchVisualInfo(win->src.display, DefaultScreen(win->src.display), 32, TrueColor, &win->src.visual); /*!< for RGBA backgrounds */
 	
 	/* make X window attrubutes */
-	i32 screen = DefaultScreen(win->src.display);
 	XSetWindowAttributes swa;
 	Colormap cmap;
 	swa.colormap = cmap = XCreateColormap(win->src.display,
 		DefaultRootWindow(win->src.display),
-		DefaultVisual(win->src.display, screen), AllocNone);
+		win->src.visual.visual, AllocNone);
 
 	swa.background_pixmap = None;
 	swa.border_pixel = 0;
@@ -3711,7 +3717,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	/* create the window */
 	win->src.window = XCreateWindow(win->src.display, DefaultRootWindow(win->src.display), win->r.x, win->r.y, (u32)win->r.w, (u32)win->r.h,
-		0, DefaultDepth(win->src.display, screen), InputOutput, DefaultVisual(win->src.display, screen),//vi->visual,
+		0, win->src.visual.depth, InputOutput, win->src.visual.visual,
 		CWColormap | CWBorderPixel | CWBackPixel | CWEventMask, &swa);
 
 	XFreeColors(win->src.display, cmap, NULL, 0, 0);
@@ -4824,12 +4830,12 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* icon, RGFW_area a, i32 cha
 		XWMHints wm_hints;
 		wm_hints.flags = IconPixmapHint;
 		
-		u32 depth = (u32)DefaultDepth(win->src.display, DefaultScreen(win->src.display));
+		i32 depth = DefaultDepth(win->src.display, DefaultScreen(win->src.display));
 		XImage *image = XCreateImage(win->src.display, DefaultVisual(win->src.display, DefaultScreen(win->src.display)), 
-									depth, ZPixmap, 0, (char *)target, a.w, a.h, 32, 0);
+									(u32)depth, ZPixmap, 0, (char *)target, a.w, a.h, 32, 0);
 
-		wm_hints.icon_pixmap = XCreatePixmap(win->src.display, win->src.window, a.w, a.h, depth);
-		XPutImage(win->src.display, wm_hints.icon_pixmap, win->src.gc, image, 0, 0, 0, 0, a.w, a.h);
+		wm_hints.icon_pixmap = XCreatePixmap(win->src.display, win->src.window, a.w, a.h, (u32)depth);
+		XPutImage(win->src.display, wm_hints.icon_pixmap, DefaultGC(win->src.display, DefaultScreen(win->src.display)), image, 0, 0, 0, 0, a.w, a.h);
 		image->data = NULL;
 		XDestroyImage(image);
 
@@ -5447,6 +5453,8 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 
 void RGFW_window_close(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
+	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_freeOpenGL(win);
+	
 	#ifdef RGFW_X11
 	/* to save the clipboard on the x server after the window is closed */
 	RGFW_LOAD_ATOM(CLIPBOARD_MANAGER);
@@ -5461,7 +5469,6 @@ void RGFW_window_close(RGFW_window* win) {
 	}
 
 	RGFW_GOTO_WAYLAND(0);
-
 	/* ungrab pointer if it was grabbed */
 	if (win->_flags & RGFW_HOLD_MOUSE)
 		XUngrabPointer(win->src.display, CurrentTime);
@@ -5537,8 +5544,6 @@ void RGFW_window_close(RGFW_window* win) {
 		#ifdef RGFW_X11
 			XDestroyWindow(win->src.display, (Drawable) win->src.window);
 		#endif
-
-		if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_freeOpenGL(win);
 
 		if (RGFW_root == win) {
 			#ifdef RGFW_X11
