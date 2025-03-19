@@ -134,7 +134,6 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/gles2/gles2 \
 	examples/osmesa/osmesa \
 	examples/vk10/vk10 \
-	examples/every_api/every 
 	examples/dx11/dx11 \
 	examples/metal/metal \
 	examples/webgpu/webgpu \
