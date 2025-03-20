@@ -3581,10 +3581,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	#endif
 
 	XInitThreads(); /*!< init X11 threading */
-
-	if (flags & RGFW_windowOpenglSoftware)
-		setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
-
 	RGFW_window_basic_init(win, rect, flags);
 
 #ifdef RGFW_WAYLAND

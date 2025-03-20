@@ -116,6 +116,7 @@ EXAMPLE_OUTPUTS = \
 	examples/callbacks/callbacks \
 	examples/flags/flags \
 	examples/monitor/monitor \
+	examples/gl33_ctx/gl33_ctx \
 	examples/smooth-resize/smooth-resize
 
 EXAMPLE_OUTPUTS_CUSTOM = \
