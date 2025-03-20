@@ -2,7 +2,6 @@
  - BGR buffer macOS
 - RGFW_event unions (to save memory ?)
 - update wayland support
-- add `RGFW_window_initOpenGL(RGFW_area)` (or something like it), allowing optional seperation of createWindow and context creation
 - win32 transparancy for software rendering 
 - fix MacOS warnings
 
