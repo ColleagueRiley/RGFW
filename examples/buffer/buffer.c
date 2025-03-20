@@ -1,7 +1,6 @@
 #define RGFW_IMPLEMENTATION
 #define RGFW_BUFFER
 #define RGFW_OPENGL
-
 #include "RGFW.h"
 
 u8 icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
@@ -13,7 +12,7 @@ void clear(RGFW_window* win, u8 color[4]) {
     /* if all the values are the same */
     if (color[0] == color[1] && color[0] == color[2] && color[0] == color[3]) {
         /* set it all in one function */
-        memset(win->buffer, 0, (u32)screenSize.w * (u32)win->r.h * 4 * sizeof(u8));  
+        memset(win->buffer, color[0], (u32)screenSize.w * (u32)win->r.h * 4 * sizeof(u8));  
         return;
     }
 
