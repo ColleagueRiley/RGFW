@@ -35,6 +35,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 	detected_OS := $(shell uname 2>/dev/null || echo Unknown)
 
 	ifeq ($(detected_OS),Darwin)        # Mac OS X
+		DX11_LIBS =
 		LIBS := -framework CoreVideo -framework Cocoa -framework OpenGL -framework IOKit
 		LINK_GL1 = -framework OpenGL
 		VULKAN_LIBS =
@@ -44,6 +45,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		NO_VULKAN = 1
 	endif
 	ifeq ($(detected_OS),Linux)
+		DX11_LIBS =
 		LINK_GL1 = -lGL
     	LIBS := -lXrandr -lX11 -ldl -lpthread
 		VULKAN_LIBS = -lX11 -lXrandr -ldl -lpthread -lvulkan
@@ -80,6 +82,7 @@ ifneq (,$(filter $(CC),cl /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	VULKAN_LIBS = 
 	OBJ_FILE = .obj
 else ifneq (,$(filter $(CC),emcc em++))
+	DX11_LIBS =
 	LINK_GL1 = -s LEGACY_GL_EMULATION -D LEGACY_GL_EMULATION -sGL_UNSAFE_OPTS=0
 	LINK_GL3 = -s FULL_ES3 -s USE_WEBGL2 
 	LINK_GL2 = -s FULL_ES2 -s USE_WEBGL2 
@@ -90,6 +93,7 @@ else ifneq (,$(filter $(CC),emcc em++))
 	NO_VULKAN = 1
 	detected_OS = web
 	NO_OSMESA = 1
+	DX11_LIBS =
 else ifeq (,$(filter $(CC),g++ clang++ em++))
 	LIBS += -std=c99
 	WARNINGS = -Werror -Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
@@ -171,6 +175,12 @@ else
 	@echo vulkan has been disabled
 endif
 
+examples/every_api/every:
+ifneq ($(NO_VULKAN), 1)
+	$(CC)  $(CFLAGS) -I. $< $(LINK_GL1) $(VULKAN_LIBS) $(DX11_LIBS) -o $@
+else
+	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL1) $(DX11_LIBS) -D RGFW_NO_VULKAN -o $@
+endif
 
 examples/dx11/dx11: examples/dx11/dx11.c RGFW.h
 ifneq (,$(filter $(CC),g++ clang++))
