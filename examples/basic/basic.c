@@ -38,6 +38,9 @@ int main(void) {
     RGFW_window_makeCurrent(win);
 
 
+    const GLubyte *version = glGetString(GL_VERSION);
+    printf("OpenGL Version: %s\n", version);
+
     RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
 
     RGFW_setWindowRefreshCallback(refreshCallback);
