@@ -62,6 +62,7 @@
 	#define RGFW_COCOA_FRAME_NAME (optional) (cocoa) set frame name
 	#define RGFW_NO_DPI - do not calculate DPI (no XRM nor libShcore included)
 	#define RGFW_BUFFER_BGR - use the BGR format for bufffers instead of RGB, saves processing time 
+    #define RGFW_WIN23_SMOOTH_RESIZE - use WM_TIMER for smooth resizing (may result in a spike in memory usage)
 
 	#define RGFW_ALLOC x  - choose the default allocation function (defaults to standard malloc)
 	#define RGFW_FREE x  - choose the default deallocation function (defaults to standard free)
@@ -328,7 +329,7 @@ int main() {
 	#undef __APPLE__
 #endif
 
-#if defined(_WIN32) && !defined(RGFW_UNIX) && !defined(RGFW_WASM) && !defined(RGFW_CUSTOM_BACKEND) /* (if you're using X11 on windows some how) */
+#if defined(_WIN32) && !defined(RGFW_X11) && !defined(RGFW_UNIX) && !defined(RGFW_WASM) && !defined(RGFW_CUSTOM_BACKEND) /* (if you're using X11 on windows some how) */
 	#define RGFW_WINDOWS
 	/* make sure the correct architecture is defined */
 	#if defined(_WIN64)
@@ -675,10 +676,12 @@ typedef struct RGFW_window_src {
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 			XImage* bitmap;
 	#endif
+    XID counter;
 	GC gc;
 	XVisualInfo visual;
 	char* clipboard; /* for writing to the clipboard selection */
-	size_t clipboard_len;
+	size_t clipboard_len; 
+    i64 counter_value;
 #endif /* RGFW_X11 */
 #if defined(RGFW_WAYLAND)
 	struct wl_display* wl_display;
@@ -2355,7 +2358,7 @@ void RGFW_setGLHint(RGFW_glHints hint, i32 value) {
 }
 
 /* OPENGL normal only (no EGL / OSMesa) */
-#if defined(RGFW_OPENGL) && !defined(RGFW_EGL) && !defined(RGFW_CUSTOM_BACKEND)
+#if defined(RGFW_OPENGL) && !defined(RGFW_EGL) && !defined(RGFW_CUSTOM_BACKEND) && !defined(RGFW_WASM)
 
 #define RGFW_GL_RENDER_TYPE 		RGFW_OS_BASED_VALUE(GLX_X_VISUAL_TYPE,    	0x2003,		73, 0)
 	#define RGFW_GL_ALPHA_SIZE 		RGFW_OS_BASED_VALUE(GLX_ALPHA_SIZE,       	0x201b,		11,     0)
@@ -3364,6 +3367,7 @@ Start of Linux / Unix defines
 
 #include <X11/Xatom.h>
 #include <X11/keysymdef.h>
+#include <X11/extensions/sync.h>
 #include <unistd.h>
 
 #include <X11/XKBlib.h> /* for converting keycode to string */
@@ -3787,6 +3791,16 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			PropModeReplace, &version, 1); /*!< turns on drag and drop */
 	}
 
+    RGFW_LOAD_ATOM(_NET_WM_SYNC_REQUEST_COUNTER)
+    RGFW_LOAD_ATOM(_NET_WM_SYNC_REQUEST)
+    XSetWMProtocols(win->src.display, win->src.window, &_NET_WM_SYNC_REQUEST, 1);
+
+    XSyncValue initial_value;
+    XSyncIntToValue(&initial_value, 0);
+    win->src.counter = XSyncCreateCounter(win->src.display, initial_value);
+
+    XChangeProperty(win->src.display, win->src.window, _NET_WM_SYNC_REQUEST_COUNTER, XA_CARDINAL, 32, PropModeReplace, (uint8_t*)&win->src.counter, 1);
+
 	if ((flags & RGFW_windowNoInitAPI) == 0)
 		RGFW_window_initOpenGL(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new window was created");
@@ -4065,6 +4079,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	RGFW_LOAD_ATOM(XdndDrop);
 	RGFW_LOAD_ATOM(XdndFinished);
 	RGFW_LOAD_ATOM(XdndActionCopy);
+    RGFW_LOAD_ATOM(_NET_WM_SYNC_REQUEST);
+    RGFW_LOAD_ATOM(WM_PROTOCOLS);
 	XPending(win->src.display);
 
 	XEvent E; /*!< raw X11 event */
@@ -4207,10 +4223,15 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		break;
 	}
 
-	case Expose:
+	case Expose: {
 		win->event.type = RGFW_windowRefresh;
 		RGFW_windowRefreshCallback(win);
-		break;
+            
+        XSyncValue value;
+        XSyncIntToValue(&value, (i32)win->src.counter_value);
+        XSyncSetCounter(win->src.display, win->src.counter, value);
+        break;
+    }
 	case MapNotify: case UnmapNotify: 		RGFW_window_checkMode(win); break;
 	case ClientMessage: {
 		/* if the client closed the window */
@@ -4220,6 +4241,16 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			RGFW_windowQuitCallback(win);
 			break;
 		}
+        if (E.xclient.message_type == WM_PROTOCOLS && (Atom)E.xclient.data.l[0] == _NET_WM_SYNC_REQUEST) {
+		    RGFW_windowRefreshCallback(win);
+            win->src.counter_value = 0;
+            win->src.counter_value |= E.xclient.data.l[2];
+            win->src.counter_value |= (E.xclient.data.l[3] << 32);
+            
+            XSyncValue value;
+            XSyncIntToValue(&value, (i32)win->src.counter_value);
+            XSyncSetCounter(win->src.display, win->src.counter, value);
+        }
 
 		for (size_t i = 0; i < win->event.droppedFilesCount; i++) {
 			win->event.droppedFiles[i][0] = '\0';
@@ -5918,6 +5949,24 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_win32_makeWindowTransparent(win);
 			break;
 		#endif
+/* based on sokol_app.h */
+#ifdef RGFW_WIN32_SMOOTH_RESIZE
+        case WM_ENTERSIZEMOVE: SetTimer(win->src.window, 1, USER_TIMER_MINIMUM, NULL); break;
+        case WM_EXITSIZEMOVE: KillTimer(win->src.window, 1); break;
+        case WM_TIMER: RGFW_windowRefreshCallback(win); break;
+#endif
+        case WM_NCLBUTTONDOWN: {
+            /* workaround for half-second pause when starting to move window
+                see: https://gamedev.net/forums/topic/672094-keeping-things-moving-during-win32-moveresize-events/5254386/
+            */
+            POINT point = { 0, 0 };
+            if (SendMessage(win->src.window, WM_NCHITTEST, wParam, lParam) != HTCAPTION || GetCursorPos(&point) == FALSE) 
+                break;
+            
+            ScreenToClient(win->src.window, &point);
+            PostMessage(win->src.window, WM_MOUSEMOVE, 0, ((uint32_t)point.x)|(((uint32_t)point.y) << 16));
+            break;
+        }
 		default: break;
 	}
 	return DefWindowProcW(hWnd, message, wParam, lParam);
