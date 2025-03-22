@@ -3838,7 +3838,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 #ifdef RGFW_ADVANCED_SMOOTH_RESIZE
     RGFW_LOAD_ATOM(_NET_WM_SYNC_REQUEST_COUNTER)
     RGFW_LOAD_ATOM(_NET_WM_SYNC_REQUEST)
-    XSetWMProtocols(win->src.display, win->src.window, &_NET_WM_SYNC_REQUEST, 1);
+    Atom protcols[2] = {_NET_WM_SYNC_REQUEST, wm_delete_window};
+    XSetWMProtocols(win->src.display, win->src.window, protcols, 2);
 
     XSyncValue initial_value;
     XSyncIntToValue(&initial_value, 0);
