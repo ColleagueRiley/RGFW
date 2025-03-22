@@ -1,4 +1,4 @@
-#define RGFW_WIN32_SMOOTH_RESIZE
+#define RGFW_ADVANCED_SMOOTH_RESIZE
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
@@ -25,8 +25,8 @@ void refresh(RGFW_window* win) { printf("refresh\n"); RGFW_UNUSED(win); draw(win
 int main(void) {
     RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 300, 100), RGFW_windowCenter);
 
-    RGFW_setWindowRefreshCallback(refresh);
-    RGFW_setWindowResizedCallback(resize);
+   RGFW_setWindowRefreshCallback(refresh);
+    //RGFW_setWindowResizedCallback(resize);
     
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win)) {
