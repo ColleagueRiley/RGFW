@@ -8159,7 +8159,6 @@ NSSize RGFW__osxWindowResize(id self, SEL sel, NSSize frameSize) {
 	}
 
 
-	RGFW_windowRefreshCallback(win);
 	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowResized, ._win = win});
 	RGFW_windowResizedCallback(win, win->r);
 	return frameSize;
@@ -8180,15 +8179,14 @@ void RGFW__osxWindowMove(id self, SEL sel) {
 	RGFW_windowMovedCallback(win, win->r);
 }
 
-void RGFW__osxUpdateLayer(id self, SEL sel) {
-	RGFW_UNUSED(sel);
-
-	RGFW_window* win = NULL;
-	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
-	if (win == NULL)
-		return;
-	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowRefresh, ._win = win});
-	RGFW_windowRefreshCallback(win);
+void RGFW__osxDrawRect(id self, SEL _cmd, CGRect rect) {
+	RGFW_UNUSED(rect); RGFW_UNUSED(_cmd);
+        RGFW_window* win = NULL;
+        object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+	if (win == NULL) return;
+  	         
+        RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowRefresh, ._win = win});
+        RGFW_windowRefreshCallback(win);
 }
 
 void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
@@ -8216,6 +8214,19 @@ void* RGFW_cocoaGetLayer(void) {
 NSPasteboardType const NSPasteboardTypeURL = "public.url";
 NSPasteboardType const NSPasteboardTypeFileURL  = "public.file-url";
 
+id RGFW__osx_generateViewClass(char* subclass, RGFW_window* win) {
+	Class customViewClass; 
+	customViewClass = objc_allocateClassPair(objc_getClass(subclass), "RGFWCustomView", 0);
+
+	class_addIvar( customViewClass, "RGFW_window", sizeof(RGFW_window*), rint(log2(sizeof(RGFW_window*))), "L");
+	class_addMethod(customViewClass, sel_registerName("drawRect:"), (IMP)RGFW__osxDrawRect, "v@:{CGRect=ffff}");
+
+	id customView  = objc_msgSend_id(NSAlloc(customViewClass), sel_registerName("init"));
+	object_setInstanceVariable(customView, "RGFW_window", win);
+	
+	return customView;
+}
+
 #ifndef RGFW_EGL
 void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 #ifdef RGFW_OPENGL
@@ -8235,7 +8246,8 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 
 	/* the pixel format can be passed directly to opengl context creation to create a context
 		this is because the format also includes information about the opengl version (which may be a bad thing) */
-	win->src.view = (id) ((id(*)(id, SEL, NSRect, uint32_t*))objc_msgSend) (NSAlloc((id)objc_getClass("NSOpenGLView")),  
+
+	win->src.view = (id) ((id(*)(id, SEL, NSRect, uint32_t*))objc_msgSend) (RGFW__osx_generateViewClass("NSOpenGLView", win),  
 							sel_registerName("initWithFrame:pixelFormat:"), (NSRect){{0, 0}, {win->r.w, win->r.h}}, (uint32_t*)format);
 
 	objc_msgSend_void(win->src.view, sel_registerName("prepareOpenGL"));
@@ -8264,7 +8276,6 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	static u8 RGFW_loaded = 0;
-
 	/* NOTE(EimaMei): Why does Apple hate good code? Like wtf, who thought of methods being a great idea???
 	Imagine a universe, where MacOS had a proper system API (we would probably have like 20% better performance).
 	*/
@@ -8323,15 +8334,15 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	else 
 	#endif
 	{
+	
 		NSRect contentRect = (NSRect){{0, 0}, {win->r.w, win->r.h}};
 		win->src.view = ((id(*)(id, SEL, NSRect))objc_msgSend)
-			(NSAlloc((id)objc_getClass("NSView")), sel_registerName("initWithFrame:"),
+			(RGFW__osx_generateViewClass("NSView", win), sel_registerName("initWithFrame:"),
 				contentRect);
 	}
 
 	void* contentView = NSWindow_contentView((id)win->src.window);
 	objc_msgSend_void_bool(contentView, sel_registerName("setWantsLayer:"), true);
-
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
 
 	if (flags & RGFW_windowTransparent) {
@@ -8349,9 +8360,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		"L"
 	);
 
-
 	class_addMethod(delegateClass, sel_registerName("windowWillResize:toSize:"), (IMP) RGFW__osxWindowResize, "{NSSize=ff}@:{NSSize=ff}");
-	class_addMethod(delegateClass, sel_registerName("updateLayer:"), (IMP) RGFW__osxUpdateLayer, "");
 	class_addMethod(delegateClass, sel_registerName("windowWillMove:"), (IMP) RGFW__osxWindowMove, "");
 	class_addMethod(delegateClass, sel_registerName("windowDidMove:"), (IMP) RGFW__osxWindowMove, "");
 	class_addMethod(delegateClass, sel_registerName("windowDidMiniaturize:"), (IMP) RGFW__osxWindowMiniaturize, "");
@@ -8397,7 +8406,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	objc_msgSend_void(NSApp, sel_registerName("finishLaunching"));
 	
 	RGFW_window_setFlags(win, flags);
-
 	NSRetain(win->src.window);
 	NSRetain(NSApp);
 
