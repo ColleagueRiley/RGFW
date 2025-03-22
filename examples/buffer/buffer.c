@@ -81,7 +81,7 @@ int main(void) {
             }   
         } 
         
-        u8 color[4] = {0, 0, 255, 200};
+        u8 color[4] = {0, 0, 255, 125};
         u8 color2[4] = {255, 0, 0, 255};
         clear(win, color);
         drawRect(win, RGFW_RECT(200, 200, 200, 200), color2);
