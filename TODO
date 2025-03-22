@@ -1,8 +1,7 @@
 - look into content scale callback (macos) (X11)
- - BGR buffer macOS
+- BGR buffer macOS
 - RGFW_event unions (to save memory ?)
 - update wayland support
-- win32 transparancy for software rendering 
 - fix MacOS warnings
 
 - look into monitor gamma

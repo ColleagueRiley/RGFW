@@ -52,7 +52,8 @@
 	#define RGFW_NO_LOAD_WGL (optional) (windows only) if WGL should be loaded dynamically during runtime
 	#define RGFW_NO_X11_CURSOR (optional) (unix only) don't use XCursor
 	#define RGFW_NO_X11_CURSOR_PRELOAD (optional) (unix only) use XCursor, but don't link it in code, (you'll have to link it with -lXcursor)
-	#define RGFW_NO_LOAD_WINMM (optional) (windows only) use winmm (timeBeginPeriod), but don't link it in code, (you'll have to link it with -lwinmm)
+	#define RGFW_NO_X11_EXT_PRELOAD (optional) (unix only) use Xext, but don't link it in code, (you'll have to link it with -lXext)
+    #define RGFW_NO_LOAD_WINMM (optional) (windows only) use winmm (timeBeginPeriod), but don't link it in code, (you'll have to link it with -lwinmm)
 	#define RGFW_NO_WINMM (optional) (windows only) don't use winmm
 	#define RGFW_NO_IOKIT (optional) (macOS) don't use IOKit
 	#define RGFW_NO_UNIX_CLOCK (optional) (unix) don't link unix clock functions
@@ -62,6 +63,7 @@
 	#define RGFW_COCOA_FRAME_NAME (optional) (cocoa) set frame name
 	#define RGFW_NO_DPI - do not calculate DPI (no XRM nor libShcore included)
 	#define RGFW_BUFFER_BGR - use the BGR format for bufffers instead of RGB, saves processing time 
+    #define RGFW_ADVANCED_SMOOTH_RESIZE - use advanced methods for smooth resizing (may result in a spike in memory usage or worse performance) (eg. WM_TIMER and XSyncValue)
 
 	#define RGFW_ALLOC x  - choose the default allocation function (defaults to standard malloc)
 	#define RGFW_FREE x  - choose the default deallocation function (defaults to standard free)
@@ -328,7 +330,7 @@ int main() {
 	#undef __APPLE__
 #endif
 
-#if defined(_WIN32) && !defined(RGFW_UNIX) && !defined(RGFW_WASM) && !defined(RGFW_CUSTOM_BACKEND) /* (if you're using X11 on windows some how) */
+#if defined(_WIN32) && !defined(RGFW_X11) && !defined(RGFW_UNIX) && !defined(RGFW_WASM) && !defined(RGFW_CUSTOM_BACKEND) /* (if you're using X11 on windows some how) */
 	#define RGFW_WINDOWS
 	/* make sure the correct architecture is defined */
 	#if defined(_WIN64)
@@ -678,7 +680,12 @@ typedef struct RGFW_window_src {
 	GC gc;
 	XVisualInfo visual;
 	char* clipboard; /* for writing to the clipboard selection */
-	size_t clipboard_len;
+	size_t clipboard_len; 
+    
+    #ifdef RGFW_ADVANCED_SMOOTH_RESIZE
+        i64 counter_value;
+        XID counter;
+    #endif
 #endif /* RGFW_X11 */
 #if defined(RGFW_WAYLAND)
 	struct wl_display* wl_display;
@@ -2355,7 +2362,7 @@ void RGFW_setGLHint(RGFW_glHints hint, i32 value) {
 }
 
 /* OPENGL normal only (no EGL / OSMesa) */
-#if defined(RGFW_OPENGL) && !defined(RGFW_EGL) && !defined(RGFW_CUSTOM_BACKEND)
+#if defined(RGFW_OPENGL) && !defined(RGFW_EGL) && !defined(RGFW_CUSTOM_BACKEND) && !defined(RGFW_WASM)
 
 #define RGFW_GL_RENDER_TYPE 		RGFW_OS_BASED_VALUE(GLX_X_VISUAL_TYPE,    	0x2003,		73, 0)
 	#define RGFW_GL_ALPHA_SIZE 		RGFW_OS_BASED_VALUE(GLX_ALPHA_SIZE,       	0x201b,		11,     0)
@@ -3364,6 +3371,7 @@ Start of Linux / Unix defines
 
 #include <X11/Xatom.h>
 #include <X11/keysymdef.h>
+#include <X11/extensions/sync.h>
 #include <unistd.h>
 
 #include <X11/XKBlib.h> /* for converting keycode to string */
@@ -3401,6 +3409,29 @@ Atom wm_delete_window = 0, RGFW_XCLIPBOARD = 0;
 	#define XISelectEvents XISelectEventsSRC
 
 	void* X11Xihandle = NULL;
+#endif
+
+#if !defined(RGFW_NO_X11_EXT_PRELOAD)
+	typedef void (* PFN_XSyncIntToValue)(XSyncValue*, int);
+	PFN_XSyncIntToValue XSyncIntToValueSRC = NULL;
+    #define XSyncIntToValue XSyncIntToValueSRC
+
+	typedef Status (* PFN_XSyncSetCounter)(Display*, XSyncCounter, XSyncValue);
+	PFN_XSyncSetCounter XSyncSetCounterSRC = NULL;
+    #define XSyncSetCounter XSyncSetCounterSRC
+
+	typedef XSyncCounter (* PFN_XSyncCreateCounter)(Display*, XSyncValue);
+	PFN_XSyncCreateCounter XSyncCreateCounterSRC = NULL;
+    #define XSyncCreateCounter XSyncCreateCounterSRC
+
+	typedef void (* PFN_XShapeCombineMask)(Display*,Window,int,int,int,Pixmap,int);
+	static PFN_XShapeCombineMask XShapeCombineMaskSRC;
+    #define XShapeCombineMask XShapeCombineMaskSRC
+
+	typedef void (* PFN_XShapeCombineRegion)(Display*,Window,int,int,int,Region,int);
+	static PFN_XShapeCombineRegion XShapeCombineRegionSRC;
+    #define XShapeCombineRegion XShapeCombineRegionSRC
+	void* X11XEXThandle = NULL;
 #endif
 
 #if !defined(RGFW_NO_X11_CURSOR) && !defined(RGFW_NO_X11_CURSOR_PRELOAD)
@@ -3702,6 +3733,23 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			RGFW_PROC_DEF(X11Xihandle, XISelectEvents);
 	#endif
 
+	#if !defined(RGFW_NO_X11_EXT_PRELOAD)
+	#if defined(__CYGWIN__)
+			RGFW_LOAD_LIBRARY(X11Xihandle, "libXext-6.so");
+	#elif defined(__OpenBSD__) || defined(__NetBSD__)
+	        RGFW_LOAD_LIBRARY(X11Xihandle, "libXext.so");
+	#else
+			RGFW_LOAD_LIBRARY(X11XEXThandle, "libXext.so.6");
+	#endif
+			RGFW_PROC_DEF(X11XEXThandle, XSyncCreateCounter);
+			RGFW_PROC_DEF(X11XEXThandle, XSyncIntToValue);
+			RGFW_PROC_DEF(X11XEXThandle, XSyncSetCounter);
+    	    RGFW_PROC_DEF(X11XEXThandle, XShapeCombineRegion);
+	        RGFW_PROC_DEF(X11XEXThandle, XShapeCombineMask);
+    #endif
+
+
+
 	XInitThreads(); /*!< init X11 threading */
 	RGFW_window_basic_init(win, rect, flags);
 
@@ -3786,6 +3834,19 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			XdndAware, 4, 32,
 			PropModeReplace, &version, 1); /*!< turns on drag and drop */
 	}
+    
+#ifdef RGFW_ADVANCED_SMOOTH_RESIZE
+    RGFW_LOAD_ATOM(_NET_WM_SYNC_REQUEST_COUNTER)
+    RGFW_LOAD_ATOM(_NET_WM_SYNC_REQUEST)
+    Atom protcols[2] = {_NET_WM_SYNC_REQUEST, wm_delete_window};
+    XSetWMProtocols(win->src.display, win->src.window, protcols, 2);
+
+    XSyncValue initial_value;
+    XSyncIntToValue(&initial_value, 0);
+    win->src.counter = XSyncCreateCounter(win->src.display, initial_value);
+
+    XChangeProperty(win->src.display, win->src.window, _NET_WM_SYNC_REQUEST_COUNTER, XA_CARDINAL, 32, PropModeReplace, (uint8_t*)&win->src.counter, 1);
+#endif
 
 	if ((flags & RGFW_windowNoInitAPI) == 0)
 		RGFW_window_initOpenGL(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
@@ -4065,6 +4126,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	RGFW_LOAD_ATOM(XdndDrop);
 	RGFW_LOAD_ATOM(XdndFinished);
 	RGFW_LOAD_ATOM(XdndActionCopy);
+    RGFW_LOAD_ATOM(_NET_WM_SYNC_REQUEST);
+    RGFW_LOAD_ATOM(WM_PROTOCOLS);
 	XPending(win->src.display);
 
 	XEvent E; /*!< raw X11 event */
@@ -4207,10 +4270,17 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		break;
 	}
 
-	case Expose:
+	case Expose: {
 		win->event.type = RGFW_windowRefresh;
 		RGFW_windowRefreshCallback(win);
-		break;
+
+#ifdef RGFW_ADVANCED_SMOOTH_RESIZE
+        XSyncValue value;
+        XSyncIntToValue(&value, (i32)win->src.counter_value);
+        XSyncSetCounter(win->src.display, win->src.counter, value);
+#endif
+        break;
+    }
 	case MapNotify: case UnmapNotify: 		RGFW_window_checkMode(win); break;
 	case ClientMessage: {
 		/* if the client closed the window */
@@ -4220,7 +4290,19 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			RGFW_windowQuitCallback(win);
 			break;
 		}
-
+#ifdef RGFW_ADVANCED_SMOOTH_RESIZE
+        if (E.xclient.message_type == WM_PROTOCOLS && (Atom)E.xclient.data.l[0] == _NET_WM_SYNC_REQUEST) {
+		    RGFW_windowRefreshCallback(win);
+            win->src.counter_value = 0;
+            win->src.counter_value |= E.xclient.data.l[2];
+            win->src.counter_value |= (E.xclient.data.l[3] << 32);
+            
+            XSyncValue value;
+            XSyncIntToValue(&value, (i32)win->src.counter_value);
+            XSyncSetCounter(win->src.display, win->src.counter, value);
+            break;
+        }
+#endif
 		for (size_t i = 0; i < win->event.droppedFilesCount; i++) {
 			win->event.droppedFiles[i][0] = '\0';
 		}
@@ -4764,41 +4846,19 @@ void RGFW_window_setName(RGFW_window* win, const char* name) {
 	#endif
 }
 
-void* RGFW_libxshape = NULL;
-
 #ifndef RGFW_NO_PASSTHROUGH
-
 void RGFW_window_setMousePassthrough(RGFW_window* win, RGFW_bool passthrough) {
 	RGFW_ASSERT(win != NULL);
-
-	#if defined(__CYGWIN__)
-		RGFW_LOAD_LIBRARY(RGFW_libxshape, "libXext-6.so");
-	#elif defined(__OpenBSD__) || defined(__NetBSD__)
-		RGFW_LOAD_LIBRARY(RGFW_libxshape, "libXext.so");
-	#else
-		RGFW_LOAD_LIBRARY(RGFW_libxshape, "libXext.so.6");
-	#endif
-
-	typedef void (* PFN_XShapeCombineMask)(Display*,Window,int,int,int,Pixmap,int);
-	static PFN_XShapeCombineMask XShapeCombineMaskSRC;
-
-	typedef void (* PFN_XShapeCombineRegion)(Display*,Window,int,int,int,Region,int);
-	static PFN_XShapeCombineRegion XShapeCombineRegionSRC;
-
-	RGFW_PROC_DEF(RGFW_libxshape, XShapeCombineRegion);
-	RGFW_PROC_DEF(RGFW_libxshape, XShapeCombineMask);
-
 	if (passthrough) {
 		Region region = XCreateRegion();
-		XShapeCombineRegionSRC(win->src.display, win->src.window, ShapeInput, 0, 0, region, ShapeSet);
+		XShapeCombineRegion(win->src.display, win->src.window, ShapeInput, 0, 0, region, ShapeSet);
 		XDestroyRegion(region);
 
 		return;
 	}
 
-	XShapeCombineMaskSRC(win->src.display, win->src.window, ShapeInput, 0, 0, None, ShapeSet);
+	XShapeCombineMask(win->src.display, win->src.window, ShapeInput, 0, 0, None, ShapeSet);
 }
-
 #endif /* RGFW_NO_PASSTHROUGH */
 
 RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* icon, RGFW_area a, i32 channels, u8 type) {
@@ -5531,8 +5591,8 @@ void RGFW_window_close(RGFW_window* win) {
 			XDL_close();
 		#endif
 
-		#ifndef RGFW_NO_PASSTHROUGH
-			RGFW_FREE_LIBRARY(RGFW_libxshape);
+		#if !defined(RGFW_NO_X11_EXT_PRELOAD)
+			RGFW_FREE_LIBRARY(X11XEXThandle);
 		#endif
 
 		#ifndef RGFW_NO_LINUX
@@ -5918,6 +5978,24 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_win32_makeWindowTransparent(win);
 			break;
 		#endif
+/* based on sokol_app.h */
+#ifdef RGFW_ADVANCED_SMOOTH_RESIZE
+        case WM_ENTERSIZEMOVE: SetTimer(win->src.window, 1, USER_TIMER_MINIMUM, NULL); break;
+        case WM_EXITSIZEMOVE: KillTimer(win->src.window, 1); break;
+        case WM_TIMER: RGFW_windowRefreshCallback(win); break;
+#endif
+        case WM_NCLBUTTONDOWN: {
+            /* workaround for half-second pause when starting to move window
+                see: https://gamedev.net/forums/topic/672094-keeping-things-moving-during-win32-moveresize-events/5254386/
+            */
+            POINT point = { 0, 0 };
+            if (SendMessage(win->src.window, WM_NCHITTEST, wParam, lParam) != HTCAPTION || GetCursorPos(&point) == FALSE) 
+                break;
+            
+            ScreenToClient(win->src.window, &point);
+            PostMessage(win->src.window, WM_MOUSEMOVE, 0, ((uint32_t)point.x)|(((uint32_t)point.y) << 16));
+            break;
+        }
 		default: break;
 	}
 	return DefWindowProcW(hWnd, message, wParam, lParam);
