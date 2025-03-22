@@ -8158,6 +8158,8 @@ NSSize RGFW__osxWindowResize(id self, SEL sel, NSSize frameSize) {
 
 	}
 
+
+	RGFW_windowRefreshCallback(win);
 	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowResized, ._win = win});
 	RGFW_windowResizedCallback(win, win->r);
 	return frameSize;
@@ -8185,7 +8187,6 @@ void RGFW__osxUpdateLayer(id self, SEL sel) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL)
 		return;
-
 	RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowRefresh, ._win = win});
 	RGFW_windowRefreshCallback(win);
 }
