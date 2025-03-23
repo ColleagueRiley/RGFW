@@ -255,10 +255,6 @@ int main() {
 
 
 #if defined(__cplusplus) && !defined(__EMSCRIPTEN__)
-	#ifdef __clang__
-		#pragma clang diagnostic push
-		#pragma clang diagnostic ignored "-Wnullability-completeness"
-	#endif
 	extern "C" {
 #endif
 
@@ -7881,7 +7877,7 @@ size_t findControllerIndex(IOHIDDeviceRef device) {
 	for (size_t i = 0; i < 4; i++)
 		if (RGFW_osxControllers[i] == device)
 			return i;
-	return -1;
+	return (size_t)-1;
 }
 
 void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *sender, IOHIDValueRef value) {
@@ -7890,6 +7886,7 @@ void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *se
 
 	IOHIDDeviceRef device = IOHIDElementGetDevice(element);
 	size_t index = findControllerIndex(device);
+	if (index == (size_t)-1) return;
 
 	uint32_t usagePage = IOHIDElementGetUsagePage(element);
 	uint32_t usage = IOHIDElementGetUsage(element);
@@ -7917,9 +7914,9 @@ void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *se
 			if (usage < sizeof(RGFW_osx2RGFW))
 				button = RGFW_osx2RGFW[usage];
 
-			RGFW_gamepadButtonCallback(RGFW_root, index, button, intValue);
+			RGFW_gamepadButtonCallback(RGFW_root, (u16)index, button, (u8)intValue);
 			RGFW_gamepadPressed[index][button].prev = RGFW_gamepadPressed[index][button].current;
-			RGFW_gamepadPressed[index][button].current = intValue;
+			RGFW_gamepadPressed[index][button].current = RGFW_BOOL(intValue);
 			RGFW_eventQueuePush((RGFW_event){.type = intValue ? RGFW_gamepadButtonPressed: RGFW_gamepadButtonReleased,
 											.button = button,
 											.gamepad = (u16)index,
@@ -7934,25 +7931,25 @@ void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *se
 			if (intValue < logicalMin) intValue = logicalMin;
 			if (intValue > logicalMax) intValue = logicalMax;
 
-			i8 value = (i8)(-100.0 + ((intValue - logicalMin) * 200.0) / (logicalMax - logicalMin));
+			i8 axisValue = (i8)(-100.0 + ((intValue - logicalMin) * 200.0) / (logicalMax - logicalMin));
 			
 			u8 whichAxis = 0;
 			switch (usage) {
-				case kHIDUsage_GD_X: RGFW_gamepadAxes[index][0].x = value; whichAxis = 0; break;
-				case kHIDUsage_GD_Y: RGFW_gamepadAxes[index][0].y = value; whichAxis = 0; break;
-				case kHIDUsage_GD_Z: RGFW_gamepadAxes[index][1].x = value; whichAxis = 1; break;
-				case kHIDUsage_GD_Rz: RGFW_gamepadAxes[index][1].y = value; whichAxis = 1; break;
+				case kHIDUsage_GD_X: RGFW_gamepadAxes[index][0].x = axisValue; whichAxis = 0; break;
+				case kHIDUsage_GD_Y: RGFW_gamepadAxes[index][0].y = axisValue; whichAxis = 0; break;
+				case kHIDUsage_GD_Z: RGFW_gamepadAxes[index][1].x = axisValue; whichAxis = 1; break;
+				case kHIDUsage_GD_Rz: RGFW_gamepadAxes[index][1].y = axisValue; whichAxis = 1; break;
 				default: return;
 			}
 
 			RGFW_eventQueuePush((RGFW_event){.type = RGFW_gamepadAxisMove,
-				.gamepad = index,
+				.gamepad = (u16)index,
 				.axis = {RGFW_gamepadAxes[index][0], RGFW_gamepadAxes[index][1], 
 						RGFW_gamepadAxes[index][2], RGFW_gamepadAxes[index][3]},
 				.whichAxis = whichAxis,
 				._win = RGFW_root});
 
-			RGFW_gamepadAxisCallback(RGFW_root, index, RGFW_gamepadAxes[index], 2, whichAxis);
+			RGFW_gamepadAxisCallback(RGFW_root, (u16)index, RGFW_gamepadAxes[index], 2, whichAxis);
 		}
 	}
 }
@@ -7990,14 +7987,14 @@ void RGFW__osxDeviceAddedCallback(void* context, IOReturn result, void *sender, 
 		else if (RGFW_STRSTR(RGFW_gamepads_name[i], "Logitech"))
 			RGFW_gamepads_type[i] = RGFW_gamepadLogitech;
 
-		RGFW_gamepads[i] = i;
+		RGFW_gamepads[i] = (u16)i;
 		RGFW_gamepadCount++;
 
 		RGFW_eventQueuePush((RGFW_event){.type = RGFW_gamepadConnected,
-										.gamepad = i,
+										.gamepad = (u16)i,
 										._win = RGFW_root});
 
-		RGFW_gamepadCallback(RGFW_root, i, 1);
+		RGFW_gamepadCallback(RGFW_root, (u16)i, 1);
 		break;
 	}
 }
@@ -8013,14 +8010,14 @@ void RGFW__osxDeviceRemovedCallback(void *context, IOReturn result, void *sender
 		return;
 	}
 
-	i32 index = findControllerIndex(device);
-	if (index != -1)
+	size_t index = findControllerIndex(device);
+	if (index != (size_t)-1)
 		RGFW_osxControllers[index] = NULL;
 
 	RGFW_eventQueuePush((RGFW_event){.type = RGFW_gamepadDisconnected,
-									.gamepad = index,
+									.gamepad = (u16)index,
 									._win = RGFW_root});
-	RGFW_gamepadCallback(RGFW_root, index, 0);
+	RGFW_gamepadCallback(RGFW_root, (u16)index, 0);
 
 	RGFW_gamepadCount--;
 }
@@ -8143,8 +8140,8 @@ NSSize RGFW__osxWindowResize(id self, SEL sel, NSSize frameSize) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return frameSize;
 
-	win->r.w = frameSize.width;
-	win->r.h = frameSize.height;
+	win->r.w = (i32)frameSize.width;
+	win->r.h = (i32)frameSize.height;
 	
 	RGFW_monitor mon = RGFW_window_getMonitor(win);
 	if ((i32)mon.mode.area.w == win->r.w && (i32)mon.mode.area.h - 102 <= win->r.h) {
@@ -8214,11 +8211,11 @@ void* RGFW_cocoaGetLayer(void) {
 NSPasteboardType const NSPasteboardTypeURL = "public.url";
 NSPasteboardType const NSPasteboardTypeFileURL  = "public.file-url";
 
-id RGFW__osx_generateViewClass(char* subclass, RGFW_window* win) {
+id RGFW__osx_generateViewClass(const char* subclass, RGFW_window* win) {
 	Class customViewClass; 
 	customViewClass = objc_allocateClassPair(objc_getClass(subclass), "RGFWCustomView", 0);
 
-	class_addIvar( customViewClass, "RGFW_window", sizeof(RGFW_window*), rint(log2(sizeof(RGFW_window*))), "L");
+	class_addIvar( customViewClass, "RGFW_window", sizeof(RGFW_window*), (u8)rint(log2(sizeof(RGFW_window*))), "L");
 	class_addMethod(customViewClass, sel_registerName("drawRect:"), (IMP)RGFW__osxDrawRect, "v@:{CGRect=ffff}");
 
 	id customView  = objc_msgSend_id(NSAlloc(customViewClass), sel_registerName("init"));
@@ -8235,8 +8232,8 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 
 	if (format == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to load pixel format for OpenGL");
-		void* attrs = RGFW_initFormatAttribs(1);
-		format = NSOpenGLPixelFormat_initWithAttributes((uint32_t*)attrs);
+		void* subAttrs = RGFW_initFormatAttribs(1);
+		format = NSOpenGLPixelFormat_initWithAttributes((uint32_t*)subAttrs);
 
 		if (format == NULL)
 			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "and loading software rendering OpenGL failed");
@@ -8356,7 +8353,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	class_addIvar(
 		delegateClass, "RGFW_window",
-		sizeof(RGFW_window*), rint(log2(sizeof(RGFW_window*))),
+		sizeof(RGFW_window*), (u8)rint(log2(sizeof(RGFW_window*))),
 		"L"
 	);
 
@@ -8433,7 +8430,7 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 		id titleBarView = objc_msgSend_id(miniaturizeButton, sel_registerName("superview"));
 		objc_msgSend_void_bool(titleBarView, sel_registerName("setHidden:"), true);
 	
-		offset = frame.size.height - content.size.height;
+		offset = (float)(frame.size.height - content.size.height);
 	}
 	
 	RGFW_window_resize(win, RGFW_AREA(win->r.w, win->r.h + offset));
@@ -8500,49 +8497,7 @@ typedef RGFW_ENUM(u32, NSEventType) {        /* various types of events */
 		NSEventTypeChangeMode API_AVAILABLE(macos(10.15)) = 38,
 };
 
-typedef RGFW_ENUM(unsigned long long, NSEventMask) { /* masks for the types of events */
-	NSEventMaskLeftMouseDown = 1ULL << NSEventTypeLeftMouseDown,
-		NSEventMaskLeftMouseUp = 1ULL << NSEventTypeLeftMouseUp,
-		NSEventMaskRightMouseDown = 1ULL << NSEventTypeRightMouseDown,
-		NSEventMaskRightMouseUp = 1ULL << NSEventTypeRightMouseUp,
-		NSEventMaskMouseMoved = 1ULL << NSEventTypeMouseMoved,
-		NSEventMaskLeftMouseDragged = 1ULL << NSEventTypeLeftMouseDragged,
-		NSEventMaskRightMouseDragged = 1ULL << NSEventTypeRightMouseDragged,
-		NSEventMaskMouseEntered = 1ULL << NSEventTypeMouseEntered,
-		NSEventMaskMouseExited = 1ULL << NSEventTypeMouseExited,
-		NSEventMaskKeyDown = 1ULL << NSEventTypeKeyDown,
-		NSEventMaskKeyUp = 1ULL << NSEventTypeKeyUp,
-		NSEventMaskFlagsChanged = 1ULL << NSEventTypeFlagsChanged,
-		NSEventMaskAppKitDefined = 1ULL << NSEventTypeAppKitDefined,
-		NSEventMaskSystemDefined = 1ULL << NSEventTypeSystemDefined,
-		NSEventMaskApplicationDefined = 1ULL << NSEventTypeApplicationDefined,
-		NSEventMaskPeriodic = 1ULL << NSEventTypePeriodic,
-		NSEventMaskCursorUpdate = 1ULL << NSEventTypeCursorUpdate,
-		NSEventMaskScrollWheel = 1ULL << NSEventTypeScrollWheel,
-		NSEventMaskTabletPoint = 1ULL << NSEventTypeTabletPoint,
-		NSEventMaskTabletProximity = 1ULL << NSEventTypeTabletProximity,
-		NSEventMaskOtherMouseDown = 1ULL << NSEventTypeOtherMouseDown,
-		NSEventMaskOtherMouseUp = 1ULL << NSEventTypeOtherMouseUp,
-		NSEventMaskOtherMouseDragged = 1ULL << NSEventTypeOtherMouseDragged,
-		/* The following event masks are available on some hardware on 10.5.2 and later */
-		NSEventMaskGesture API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeGesture,
-		NSEventMaskMagnify API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeMagnify,
-		NSEventMaskSwipe API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeSwipe,
-		NSEventMaskRotate API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeRotate,
-		NSEventMaskBeginGesture API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeBeginGesture,
-		NSEventMaskEndGesture API_AVAILABLE(macos(10.5)) = 1ULL << NSEventTypeEndGesture,
-
-		/* Note: You can only use these event masks on 64 bit. In other words, you cannot setup a local, nor global, event monitor for these event types on 32 bit. Also, you cannot search the event queue for them (nextEventMatchingMask:...) on 32 bit.
-			*/
-		NSEventMaskSmartMagnify API_AVAILABLE(macos(10.8)) = 1ULL << NSEventTypeSmartMagnify,
-		NSEventMaskPressure API_AVAILABLE(macos(10.10.3)) = 1ULL << NSEventTypePressure,
-		NSEventMaskDirectTouch API_AVAILABLE(macos(10.12.2)) = 1ULL << NSEventTypeDirectTouch,
-
-		NSEventMaskChangeMode API_AVAILABLE(macos(10.15)) = 1ULL << NSEventTypeChangeMode,
-
-		NSEventMaskAny = ULONG_MAX,
-
-};
+typedef unsigned long long NSEventMask;
 
 typedef enum NSEventModifierFlags {
 	NSEventModifierFlagCapsLock = 1 << 16,
@@ -8635,7 +8590,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	win->event.droppedFilesCount = 0;
 	win->event.type = 0;
 
-	u32 type = objc_msgSend_uint(e, sel_registerName("type"));
+	u32 type = (u32)objc_msgSend_uint(e, sel_registerName("type"));
 	switch (type) {
 		case NSEventTypeMouseEntered: {
 			win->event.type = RGFW_mouseEnter;
@@ -8654,13 +8609,13 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		case NSEventTypeKeyDown: {
 			u32 key = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
 
-			u32 mappedKey = *((u32*)((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));
+			u32 mappedKey = (u32)*(((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));
 			if (((u8)mappedKey) == 239)
 				mappedKey = 0;
 
 			win->event.keyChar = (u8)mappedKey;
 
-			win->event.key = RGFW_apiKeyToRGFW(key);
+			win->event.key = (u8)RGFW_apiKeyToRGFW(key);
 			RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
 
 			win->event.type = RGFW_keyPressed;
@@ -8674,13 +8629,14 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		case NSEventTypeKeyUp: {
 			u32 key = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
 
-			u32 mappedKey = *((u32*)((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));
+
+			u32 mappedKey = (u32)*(((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));
 			if (((u8)mappedKey) == 239)
 				mappedKey = 0;
 
 			win->event.keyChar = (u8)mappedKey;
 
-			win->event.key = RGFW_apiKeyToRGFW(key);
+			win->event.key = (u8)RGFW_apiKeyToRGFW(key);
 
 			RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
 
@@ -8692,7 +8648,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		}
 
 		case NSEventTypeFlagsChanged: {
-			u32 flags = objc_msgSend_uint(e, sel_registerName("modifierFlags"));
+			u32 flags = (u32)objc_msgSend_uint(e, sel_registerName("modifierFlags"));
 			RGFW_updateKeyModsPro(win, ((u32)(flags & NSEventModifierFlagCapsLock) % 255), ((flags & NSEventModifierFlagNumericPad) % 255),
 										((flags & NSEventModifierFlagControl) % 255), ((flags & NSEventModifierFlagOption) % 255),
 										((flags & NSEventModifierFlagShift) % 255), ((flags & NSEventModifierFlagCommand) % 255), 0);
@@ -8704,25 +8660,25 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 				u32 shift = (1 << (i + 16));
 				u32 key = i + RGFW_capsLock;
 
-				if ((flags & shift) && !RGFW_wasPressed(win, key)) {
+				if ((flags & shift) && !RGFW_wasPressed(win, (u8)key)) {
 					RGFW_keyboard[key].current = 1;
 
 					if (key != RGFW_capsLock)
 						RGFW_keyboard[key+ 4].current = 1;
 
 					win->event.type = RGFW_keyPressed;
-					win->event.key = key;
+					win->event.key = (u8)key;
 					break;
 				}
 
-				if (!(flags & shift) && RGFW_wasPressed(win, key)) {
+				if (!(flags & shift) && RGFW_wasPressed(win, (u8)key)) {
 					RGFW_keyboard[key].current = 0;
 
 					if (key != RGFW_capsLock)
 						RGFW_keyboard[key + 4].current = 0;
 
 					win->event.type = RGFW_keyReleased;
-					win->event.key = key;
+					win->event.key = (u8)key;
 					break;
 				}
 			}
@@ -8748,12 +8704,12 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			break;
 		}
 		case NSEventTypeLeftMouseDown: case NSEventTypeRightMouseDown: case NSEventTypeOtherMouseDown: {
-			u32 buttonNumber = objc_msgSend_uint(e, sel_registerName("buttonNumber"));
+			u32 buttonNumber = (u32)objc_msgSend_uint(e, sel_registerName("buttonNumber"));
 			switch (buttonNumber) {
 				case 0: win->event.button = RGFW_mouseLeft; break;
 				case 1: win->event.button = RGFW_mouseRight; break;
 				case 2: win->event.button = RGFW_mouseMiddle; break;
-				default: win->event.button = buttonNumber;
+				default: win->event.button = (u8)buttonNumber;
 			}
 
 			win->event.type = RGFW_mouseButtonPressed;
@@ -8763,12 +8719,12 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			break;
 		}
 		case NSEventTypeLeftMouseUp: case NSEventTypeRightMouseUp: case NSEventTypeOtherMouseUp: {
-			u32 buttonNumber = objc_msgSend_uint(e, sel_registerName("buttonNumber"));
+			u32 buttonNumber = (u32)objc_msgSend_uint(e, sel_registerName("buttonNumber"));
 			switch (buttonNumber) {
 				case 0: win->event.button = RGFW_mouseLeft; break;
 				case 1: win->event.button = RGFW_mouseRight; break;
 				case 2: win->event.button = RGFW_mouseMiddle; break;
-				default: win->event.button = buttonNumber;
+				default: win->event.button = (u8)buttonNumber;
 			}
 			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
 			RGFW_mouseButtons[win->event.button].current = 0;
@@ -8823,7 +8779,7 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 		
 	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
 	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
-	float offset = frame.size.height - content.size.height;
+	float offset = (float)(frame.size.height - content.size.height);
 
 	win->r.w = (i32)a.w;
 	win->r.h = (i32)a.h;
@@ -8957,8 +8913,8 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, RGFW_area area, i32 
 
 	/* code by EimaMei  */
 	// Make a bitmap representation, then copy the loaded image into it.
-	id representation = NSBitmapImageRep_initWithBitmapData(NULL, area.w, area.h, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, area.w * channels, 8 * channels);
-	RGFW_MEMCPY(NSBitmapImageRep_bitmapData(representation), data, area.w * area.h * channels);
+	id representation = NSBitmapImageRep_initWithBitmapData(NULL, area.w, area.h, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, area.w * (u32)channels, 8 * (u32)channels);
+	RGFW_MEMCPY(NSBitmapImageRep_bitmapData(representation), data, area.w * area.h * (u32)channels);
 
 	// Add ze representation.
 	id dock_image = ((id(*)(id, SEL, NSSize))objc_msgSend) (NSAlloc((id)objc_getClass("NSImage")), sel_registerName("initWithSize:"), ((NSSize){area.w, area.h}));
@@ -8988,8 +8944,8 @@ RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) {
 
 	/* NOTE(EimaMei): Code by yours truly. */
 	// Make a bitmap representation, then copy the loaded image into it.
-	id representation = NSBitmapImageRep_initWithBitmapData(NULL, a.w, a.h, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, a.w * channels, 8 * channels);
-	RGFW_MEMCPY(NSBitmapImageRep_bitmapData(representation), icon, a.w * a.h * channels);
+	id representation = (id)NSBitmapImageRep_initWithBitmapData(NULL, a.w, a.h, 8, channels, (channels == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, a.w * (u32)channels, 8 * (u32)channels);
+	RGFW_MEMCPY(NSBitmapImageRep_bitmapData(representation), icon, a.w * a.h * (u32)channels);
 
 	// Add ze representation.
 	id cursor_image = ((id(*)(id, SEL, NSSize))objc_msgSend) (NSAlloc((id)objc_getClass("NSImage")), sel_registerName("initWithSize:"), ((NSSize){a.w, a.h}));
@@ -9092,7 +9048,7 @@ RGFW_bool RGFW_window_isMinimized(RGFW_window* win) {
 
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-	RGFW_bool b = objc_msgSend_bool(win->src.window, sel_registerName("isZoomed"));
+	RGFW_bool b = (RGFW_bool)objc_msgSend_bool(win->src.window, sel_registerName("isZoomed"));
 	return b;
 }
 
@@ -9120,7 +9076,7 @@ id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
 
 u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) {
 	if (mode) {
-		u32 refreshRate = (int)CGDisplayModeGetRefreshRate(mode);
+		u32 refreshRate = (u32)CGDisplayModeGetRefreshRate(mode);
 		if (refreshRate != 0)  return refreshRate;
 	}
 
@@ -9128,7 +9084,7 @@ u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) {
 	CVDisplayLinkCreateWithCGDisplay(display, &link);
 	const CVTime time = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(link);
 	if (!(time.flags & kCVTimeIsIndefinite))
-		return (int) (time.timeScale / (double) time.timeValue);	
+		return (u32) (time.timeScale / (double) time.timeValue);	
 
 	return 0;
 }
@@ -9140,8 +9096,8 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 	RGFW_MEMCPY(monitor.name, name, 6);
 
 	CGRect bounds = CGDisplayBounds(display);
-	monitor.x = bounds.origin.x;
-	monitor.y = bounds.origin.y;
+	monitor.x = (i32)bounds.origin.x;
+	monitor.y = (i32)bounds.origin.y;
 	monitor.mode.area = RGFW_AREA((int) bounds.size.width, (int) bounds.size.height);
 
 	monitor.mode.red = 8; monitor.mode.green = 8; monitor.mode.blue = 8;
@@ -9157,7 +9113,7 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 	float ppi_width = (monitor.mode.area.w/monitor.physW);
 	float ppi_height = (monitor.mode.area.h/monitor.physH);
 
-	monitor.pixelRatio = ((CGFloat (*)(id, SEL))abi_objc_msgSend_fpret) (screen, sel_registerName("backingScaleFactor"));
+	monitor.pixelRatio = (float)((CGFloat (*)(id, SEL))abi_objc_msgSend_fpret) (screen, sel_registerName("backingScaleFactor"));
 	float dpi = 96.0f * monitor.pixelRatio;
 
 	monitor.scaleX = ((i32)(((float) (ppi_width) / dpi) * 10.0f)) / 10.0f;
@@ -9209,8 +9165,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 		foundMode.red = 8; foundMode.green = 8; foundMode.blue = 8;
 
 		if (RGFW_monitorModeCompare(mode, foundMode, request)) {
-				CGError err = CGDisplaySetDisplayMode(display, cmode, NULL);
-				if (err == kCGErrorSuccess)	{     
+				if (CGDisplaySetDisplayMode(display, cmode, NULL) == kCGErrorSuccess) {     
 					CFRelease(allModes);
 					return RGFW_TRUE;
 				}
@@ -9303,9 +9258,9 @@ CGImageRef createImageFromBytes(unsigned char *buffer, int width, int height)
 	// Create bitmap context
 	CGContextRef context = CGBitmapContextCreate(
 			buffer,
-			width, height,
+			(size_t)width, (size_t)height,
 			8,
-			width * 4,
+			(size_t)(width * 4),
 			colorSpace,
 			kCGImageAlphaPremultipliedLast);
 	// Create image from bitmap context
@@ -9370,7 +9325,7 @@ u64 RGFW_getTimerFreq(void) {
 	if (freq == 0) {
 		mach_timebase_info_data_t info;
 		mach_timebase_info(&info);
-		freq = (info.denom * 1e9) / info.numer;
+		freq = (u64)((info.denom * 1e9) / info.numer);
 	}
 
 	return freq;
@@ -10322,9 +10277,6 @@ void RGFW_sleep(u64 ms) {
 
 #if defined(__cplusplus) && !defined(__EMSCRIPTEN__)
 }
-	#ifdef __clang__
-		#pragma clang diagnostic pop
-	#endif
 #endif
 
 #if _MSC_VERs
