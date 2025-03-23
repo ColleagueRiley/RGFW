@@ -410,6 +410,7 @@ int main() {
 	this is mostly used to allow you to force the use of XWayland
 */
 RGFWDEF void RGFW_useWayland(RGFW_bool wayland);
+RGFWDEF RGFW_bool RGFW_usingWayland(void);
 /*
 	regular RGFW stuff
 */
@@ -1274,7 +1275,11 @@ RGFWDEF void RGFW_window_swapBuffers_OpenGL(RGFW_window* win); /*!< swap opengl 
 void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl))*/
 #endif
 #ifdef RGFW_VULKAN
-	#if defined(RGFW_WAYLAND)
+	#if defined(RGFW_WAYLAND) && defined(RGFW_X11)
+    	#define VK_USE_PLATFORM_WAYLAND_KHR
+		#define VK_USE_PLATFORM_XLIB_KHR
+        #define RGFW_VK_SURFACE ((RGFW_usingWayland()) ? ("VK_KHR_wayland_surface") : ("VK_KHR_xlib_surface"))
+    #elif defined(RGFW_WAYLAND)
 		#define VK_USE_PLATFORM_WAYLAND_KHR
 		#define VK_USE_PLATFORM_XLIB_KHR
         #define RGFW_VK_SURFACE "VK_KHR_wayland_surface"
@@ -1490,6 +1495,7 @@ void RGFW_useWayland(RGFW_bool wayland) { RGFW_useWaylandBool = wayland;  }
 #define RGFW_GOTO_WAYLAND(fallback) 
 void RGFW_useWayland(RGFW_bool wayland) { RGFW_UNUSED(wayland); }
 #endif
+RGFW_bool RGFW_usingWayland(void) { return RGFW_useWaylandBool; }
 
 char* RGFW_clipboard_data;
 void RGFW_clipboard_switch(char* newstr);
