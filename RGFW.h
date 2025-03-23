@@ -5552,7 +5552,9 @@ wayland:
 		wl_surface_commit(win->src.surface);
 	#endif
 #else
+#ifdef RGFW_WAYLAND
 wayland:
+#endif
     RGFW_UNUSED(win);
 #endif
 }
