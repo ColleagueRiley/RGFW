@@ -1294,6 +1294,7 @@ void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend
 #include <vulkan/vulkan.h>
 
 RGFWDEF VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface);
+RGFWDEF RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex);
 #endif
 #ifdef RGFW_DIRECTX
 #ifndef RGFW_WINDOWS
@@ -1481,6 +1482,13 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 
 #ifdef RGFW_IMPLEMENTATION
 RGFW_bool RGFW_useWaylandBool = 1;
+#if !defined(RGFW_NO_X11) && defined(RGFW_WAYLAND)
+void RGFW_useWayland(RGFW_bool wayland) { RGFW_useWaylandBool = wayland;  }
+#define RGFW_GOTO_WAYLAND(fallback) if (RGFW_useWaylandBool && fallback == 0) goto wayland
+#else
+#define RGFW_GOTO_WAYLAND(fallback) 
+void RGFW_useWayland(RGFW_bool wayland) { RGFW_UNUSED(wayland); }
+#endif
 
 char* RGFW_clipboard_data;
 void RGFW_clipboard_switch(char* newstr);
@@ -2321,7 +2329,6 @@ void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show) {
 #ifndef RGFW_MACOS
 void RGFW_moveToMacOSResourceDir(void) { }
 #endif
-
 /*
 	graphics API specific code (end of generic code)
 	starts here
@@ -2784,8 +2791,12 @@ VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSu
     *surface = VK_NULL_HANDLE;
 
 #ifdef RGFW_X11
+    RGFW_GOTO_WAYLAND(0);
     VkXlibSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, 0, 0, (Display*) win->src.display, (Window) win->src.window };
     return vkCreateXlibSurfaceKHR(instance, &x11, NULL, surface);
+#elif defined(RGFW_WAYLAND)
+    VkWaylandSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR, 0, 0, (Display*) win->src.wl_display, (Window) win->src.surface };
+    return vkCreateWaylandSurfaceKHR(instance, &wayland, NULL, surface);
 #elif defined(RGFW_WINDOWS)
     VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, GetModuleHandle(NULL), (HWND)win->src.window };
 
@@ -2794,6 +2805,41 @@ VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSu
     VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, vulkWin->display, (void *)win->src.window };
 
     return vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface);
+#endif
+}
+
+
+RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex) {
+    assert(instance);
+#ifdef RGFW_X11
+    RGFW_GOTO_WAYLAND(0);
+    Display* display = NULL;
+    Visual* visual = NULL;
+
+    if (RGFW_root == NULL) {
+        display = XOpenDisplay(0);
+        visual = DefaultVisual(display, DefaultScreen(display));
+    }
+    else {
+        visual = RGFW_root->src.visual.visual;
+        display = RGFW_root->src.display;
+    }
+
+    RGFW_bool out = vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIndex, display, XVisualIDFromVisual(visual));
+    if (RGFW_root == NULL) XCloseDisplay(display);
+    return out;
+#endif
+#if defined(RGFW_WAYLAND)
+    struct wl_display* wl_display = NULL;
+	if (RGFW_root == NULL) wl_display = wl_display_connect(NULL);
+    else wl_display = RGFW_root->src.display;
+    RGFW_bool out = vkGetPhysicalDeviceWaylandPresentationSupportKHR(physicalDevice, queueFamilyIndex, wl_display);
+    if (RGFW_root == NULL) wl_display_disconnect(wl_display);
+    return out;
+#elif defined(RGFW_WINDOWS)
+    return vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, queueFamilyIndex);
+#elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
+    return RGFW_FALSE; // TODO
 #endif
 }
 #endif /* end of RGFW_vulkan */
@@ -3339,14 +3385,6 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 	.done = wl_surface_frame_done,
 };
 #endif /* RGFW_WAYLAND */
-#if !defined(RGFW_NO_X11) && defined(RGFW_WAYLAND)
-void RGFW_useWayland(RGFW_bool wayland) { RGFW_useWaylandBool = wayland;  }
-#define RGFW_GOTO_WAYLAND(fallback) if (RGFW_useWaylandBool && fallback == 0) goto wayland
-#else
-#define RGFW_GOTO_WAYLAND(fallback) 
-void RGFW_useWayland(RGFW_bool wayland) { RGFW_UNUSED(wayland); }
-#endif
-
 /*
 	End of Wayland defines
 */
