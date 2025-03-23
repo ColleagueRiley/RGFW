@@ -9288,7 +9288,7 @@ CGImageRef createImageFromBytes(unsigned char *buffer, int width, int height)
 void RGFW_window_swapBuffers_software(RGFW_window* win) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	i32 channels = 3;
-	id rep  = NSBitmapImageRep_initWithBitmapData(NULL, win->r.w, win->r.h, 8, channels, (channels == 4), false, 
+	id rep  = NSBitmapImageRep_initWithBitmapData(&win->buffer, win->r.w, win->r.h, 8, channels, (channels == 4), false, 
 							"NSDeviceRGBColorSpace", 1 << 1, (u32)win->r.w * (u32)channels, 8 * (u32)channels);
 
 	id image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSImage"), sel_getUid("alloc"));
