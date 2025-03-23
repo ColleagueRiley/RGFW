@@ -2413,7 +2413,8 @@ void RGFW_setGLHint(RGFW_glHints hint, i32 value) {
 	MacOS and Windows do this using a structure called a "pixel format"
 	X11 calls it a "Visual"
 	This function returns the attributes for the format we want */
-static i32* RGFW_initFormatAttribs(u32 useSoftware) {
+i32* RGFW_initFormatAttribs(u32 useSoftware);
+i32* RGFW_initFormatAttribs(u32 useSoftware) {
 	RGFW_UNUSED(useSoftware);
 	static i32 attribs[] = {
 							#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
@@ -8257,6 +8258,8 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 	}
 
 	objc_msgSend_void(win->src.ctx, sel_registerName("makeCurrentContext"));
+#else
+	RGFW_UNUSED(win); RGFW_UNUSED(software);
 #endif
 }
 
@@ -9009,7 +9012,7 @@ void RGFW_releaseCursor(RGFW_window* win) {
 void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) {
 	RGFW_UNUSED(win);
 
-	CGWarpMouseCursorPosition(CGPointMake(r.x + (r.w / 2), r.y + (r.h / 2)));
+	CGWarpMouseCursorPosition((CGPoint){r.x + (r.w / 2), r.y + (r.h / 2)});
 	CGAssociateMouseAndMouseCursorPosition(0);
 }
 
@@ -9017,7 +9020,7 @@ void RGFW_window_moveMouse(RGFW_window* win, RGFW_point v) {
 	RGFW_UNUSED(win);
 
 	win->_lastMousePoint = RGFW_POINT(v.x - win->r.x, v.y - win->r.y);
-	CGWarpMouseCursorPosition(CGPointMake(v.x, v.y));
+	CGWarpMouseCursorPosition((CGPoint){v.x, v.y});
 }
 
 
