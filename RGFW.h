@@ -1274,7 +1274,11 @@ RGFWDEF void RGFW_window_swapBuffers_OpenGL(RGFW_window* win); /*!< swap opengl 
 void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl))*/
 #endif
 #ifdef RGFW_VULKAN
-	#if defined(RGFW_X11)
+	#if defined(RGFW_WAYLAND)
+		#define VK_USE_PLATFORM_WAYLAND_KHR
+		#define VK_USE_PLATFORM_XLIB_KHR
+        #define RGFW_VK_SURFACE "VK_KHR_wayland_surface"
+    #elif defined(RGFW_X11)
 		#define VK_USE_PLATFORM_XLIB_KHR
 		#define RGFW_VK_SURFACE "VK_KHR_xlib_surface"
 	#elif defined(RGFW_WINDOWS)
@@ -1284,9 +1288,6 @@ void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend
 	#elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
 		#define VK_USE_PLATFORM_MACOS_MVK
 		#define RGFW_VK_SURFACE "VK_MVK_macos_surface"
-	#elif defined(RGFW_WAYLAND)
-		#define VK_USE_PLATFORM_WAYLAND_KHR
-		#define RGFW_VK_SURFACE "VK_KHR_wayland_surface"
 	#else
 		#define RGFW_VK_SURFACE NULL
 	#endif
@@ -2794,8 +2795,10 @@ VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSu
     RGFW_GOTO_WAYLAND(0);
     VkXlibSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, 0, 0, (Display*) win->src.display, (Window) win->src.window };
     return vkCreateXlibSurfaceKHR(instance, &x11, NULL, surface);
-#elif defined(RGFW_WAYLAND)
-    VkWaylandSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR, 0, 0, (Display*) win->src.wl_display, (Window) win->src.surface };
+#endif
+#if defined(RGFW_WAYLAND)
+wayland:
+    VkWaylandSurfaceCreateInfoKHR wayland = { VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR, 0, 0, (struct wl_display*) win->src.wl_display, (struct wl_surface*) win->src.surface };
     return vkCreateWaylandSurfaceKHR(instance, &wayland, NULL, surface);
 #elif defined(RGFW_WINDOWS)
     VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, GetModuleHandle(NULL), (HWND)win->src.window };
@@ -2830,12 +2833,13 @@ RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice ph
     return out;
 #endif
 #if defined(RGFW_WAYLAND)
+wayland:
     struct wl_display* wl_display = NULL;
 	if (RGFW_root == NULL) wl_display = wl_display_connect(NULL);
-    else wl_display = RGFW_root->src.display;
-    RGFW_bool out = vkGetPhysicalDeviceWaylandPresentationSupportKHR(physicalDevice, queueFamilyIndex, wl_display);
+    else wl_display = RGFW_root->src.wl_display;
+    RGFW_bool wlout = vkGetPhysicalDeviceWaylandPresentationSupportKHR(physicalDevice, queueFamilyIndex, wl_display);
     if (RGFW_root == NULL) wl_display_disconnect(wl_display);
-    return out;
+    return wlout;
 #elif defined(RGFW_WINDOWS)
     return vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, queueFamilyIndex);
 #elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
@@ -3974,9 +3978,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		win->src.decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
 					decoration_manager, win->src.xdg_toplevel);
 	}
-
-	if (flags & RGFW_windowOpenglSoftware)
-		setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
 
 	wl_display_roundtrip(win->src.wl_display);
 
@@ -5536,7 +5537,8 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 		return;
 	#endif
 	#ifdef RGFW_WAYLAND
-		#if !defined(RGFW_BUFFER_BGR) && !defined(RGFW_OSMESA)
+wayland:
+        #if !defined(RGFW_BUFFER_BGR) && !defined(RGFW_OSMESA)
 		RGFW_RGB_to_BGR(win, win->src.buffer);
 		#else
 		for (size_t y = 0; y < win->r.h; y++) {
@@ -5550,7 +5552,8 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 		wl_surface_commit(win->src.surface);
 	#endif
 #else
-	RGFW_UNUSED(win);
+wayland:
+    RGFW_UNUSED(win);
 #endif
 }
 
