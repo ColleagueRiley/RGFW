@@ -2,7 +2,6 @@
 - BGR buffer macOS
 - RGFW_event unions (to save memory ?)
 - update wayland support
-- fix MacOS warnings
 
 - look into monitor gamma
 - set gamepad mappings

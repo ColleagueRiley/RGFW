@@ -40,6 +40,10 @@ Current Version: RGFW 1.6.5-dev
 - add `RGFW_window_initOpenGL` and `RGFW_window_freeOpenGL`
 - X11 depth defaults to 24 instead of 32 (based on RGFW_windowTransparent) (32-bit depth doesn't seem to play nice with multi-samples)
 - set default multi-sampling to 0, better matches GLFW, allow user to pick sampling
+- fix macOS warnings
+- fix windowRefresh (macOS)
+- add RGFW_ADVANCED_SMOOTH_RESIZE for X11 and winapi (allows for smoother resizing)
+- make it so the window can only be transparent if RGFW_windowTransparent is enabled (GLX) (depth == 24 by default), allowing only opengl settings (like multi-sampiling)
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------
