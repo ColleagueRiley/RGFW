@@ -726,8 +726,6 @@ typedef struct RGFW_window_src {
 	void* view; /* apple viewpoint thingy */
 
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-		void* bitmap; /*!< API's bitmap for storing or managing */
-		void* image;
 #endif
 } RGFW_window_src;
 #elif defined(RGFW_WASM)
@@ -9289,28 +9287,22 @@ CGImageRef createImageFromBytes(unsigned char *buffer, int width, int height)
 
 void RGFW_window_swapBuffers_software(RGFW_window* win) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-	id view = NSWindow_contentView((id)win->src.window);
-	id layer = objc_msgSend_id(view, sel_registerName("layer"));
+	i32 channels = 3;
+	id rep  = NSBitmapImageRep_initWithBitmapData(NULL, win->r.w, win->r.h, 8, channels, (channels == 4), false, 
+							"NSDeviceRGBColorSpace", 1 << 1, (u32)win->r.w * (u32)channels, 8 * (u32)channels);
 
-	((void(*)(id, SEL, NSRect))objc_msgSend)(layer,
-		sel_registerName("setFrame:"),
-		(NSRect){{0, 0}, {win->r.w, win->r.h}});
+	id image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSImage"), sel_getUid("alloc"));
+	image = ((id (*)(id, SEL))objc_msgSend)(image, sel_getUid("init"));
 
-	CGImageRef image = createImageFromBytes(win->buffer, win->r.w, win->r.h);
-	// Get the current graphics context
-	id graphicsContext = objc_msgSend_class(objc_getClass("NSGraphicsContext"), sel_registerName("currentContext"));
-	// Get the CGContext from the current NSGraphicsContext
-	id cgContext = objc_msgSend_id(graphicsContext, sel_registerName("graphicsPort"));
-	// Draw the image in the context
-	NSRect bounds = (NSRect){{0,0}, {win->r.w, win->r.h}};
-	CGContextDrawImage((CGContextRef)cgContext, *(CGRect*)&bounds, image);
-	// Flush the graphics context to ensure the drawing is displayed
-	objc_msgSend_id(graphicsContext, sel_registerName("flushGraphics"));
+	((void (*)(id, SEL, id))objc_msgSend)(image, sel_getUid("addRepresentation:"), rep);
 
-	objc_msgSend_void_id(layer, sel_registerName("setContents:"), (id)image);
-	objc_msgSend_id(layer, sel_registerName("setNeedsDisplay"));
+	id contentView = ((id (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_getUid("contentView"));
+	id layer = ((id (*)(id, SEL))objc_msgSend)(contentView, sel_getUid("layer"));
 
-	CGImageRelease(image);
+	((void (*)(id, SEL, id))objc_msgSend)(layer, sel_getUid("setContents:"), image);
+	
+	NSRelease(image);
+	NSRelease(rep);
 #else
 	RGFW_UNUSED(win);
 #endif
@@ -9322,8 +9314,6 @@ void RGFW_window_close(RGFW_window* win) {
 	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_freeOpenGL(win);
 
 	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-		NSRelease(win->src.bitmap);
-		NSRelease(win->src.image);
 		if ((win->_flags & RGFW_BUFFER_ALLOC))
 			RGFW_FREE(win->buffer);
 	#endif
