@@ -8177,6 +8177,17 @@ void RGFW__osxWindowMove(id self, SEL sel) {
 	RGFW_windowMovedCallback(win, win->r);
 }
 
+void RGFW__osxViewDidChangeBackingProperties(id self, SEL _cmd) {
+	RGFW_UNUSED(_cmd);
+        RGFW_window* win = NULL;
+        object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+	if (win == NULL) return;
+
+	RGFW_monitor mon = RGFW_window_getMonitor(win);	
+	RGFW_scaleUpdatedCallback(win, mon.scaleX, mon.scaleY);
+	RGFW_eventQueuePush((RGFW_event){.type = RGFW_scaleUpdated, .scaleX = mon.scaleX, .scaleY = mon.scaleY , ._win = win});
+}
+
 void RGFW__osxDrawRect(id self, SEL _cmd, CGRect rect) {
 	RGFW_UNUSED(rect); RGFW_UNUSED(_cmd);
         RGFW_window* win = NULL;
@@ -8218,6 +8229,7 @@ id RGFW__osx_generateViewClass(const char* subclass, RGFW_window* win) {
 
 	class_addIvar( customViewClass, "RGFW_window", sizeof(RGFW_window*), (u8)rint(log2(sizeof(RGFW_window*))), "L");
 	class_addMethod(customViewClass, sel_registerName("drawRect:"), (IMP)RGFW__osxDrawRect, "v@:{CGRect=ffff}");
+	class_addMethod(customViewClass, sel_registerName("viewDidChangeBackingProperties"), (IMP)RGFW__osxViewDidChangeBackingProperties, "");
 
 	id customView  = objc_msgSend_id(NSAlloc(customViewClass), sel_registerName("init"));
 	object_setInstanceVariable(customView, "RGFW_window", win);

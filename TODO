@@ -1,4 +1,3 @@
-- look into content scale callback (macos) (X11)
 - BGR buffer macOS
 - RGFW_event unions (to save memory ?)
 - update wayland support
