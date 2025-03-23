@@ -8437,7 +8437,7 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 	}
 	
 	RGFW_window_resize(win, RGFW_AREA(win->r.w, win->r.h + offset));
-	win->r.h -= offset;
+	win->r.h -= (i32)offset;
 }
 
 RGFW_area RGFW_getScreenSize(void) {
