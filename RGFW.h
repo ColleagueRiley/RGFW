@@ -6867,7 +6867,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			return RGFW_window_checkEvent(win);
 	}
 
-	return NULL;
+	return &win->event;
 }
 
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) {
