@@ -8360,6 +8360,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	void* contentView = NSWindow_contentView((id)win->src.window);
 	objc_msgSend_void_bool(contentView, sel_registerName("setWantsLayer:"), true);
+	objc_msgSend_int((id)win->src.view, sel_registerName("setLayerContentsPlacement:"),  4);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
 
 	if (flags & RGFW_windowTransparent) {
@@ -9276,7 +9277,6 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 	i32 channels = 4;
 	id rep  = NSBitmapImageRep_initWithBitmapData(&win->buffer, win->r.w, win->r.h , 8, channels, (channels == 4), false, 
 							"NSDeviceRGBColorSpace", 1 << 1, (u32)win->bufferSize.w  * (u32)channels, 8 * (u32)channels);
-
 	id image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSImage"), sel_getUid("alloc"));
 	NSSize size = (NSSize){win->r.w, win->r.h};
 	image = ((id (*)(id, SEL, NSSize))objc_msgSend)(image, sel_getUid("initWithSize:"), size);
