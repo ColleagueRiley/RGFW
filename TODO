@@ -1,4 +1,4 @@
-- BGR buffer macOS
+- fix macOS software rendering and include a BGR option 
 - RGFW_event unions (to save memory ?)
 - update wayland support
 
