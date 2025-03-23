@@ -365,6 +365,11 @@ int main() {
 	#include <X11/Xutil.h>
 #elif defined(__APPLE__) && !defined(RGFW_MACOS_X11) && !defined(RGFW_X11)  && !defined(RGFW_WASM)  && !defined(RGFW_CUSTOM_BACKEND)
 	#define RGFW_MACOS
+	#if !defined(RGFW_BUFFER_BGR)
+		#define RGFW_BUFFER_BGR
+	#else
+		#undef RGFW_BUFFER_BGR
+	#endif
 #endif
 
 #if (defined(RGFW_OPENGL_ES1) || defined(RGFW_OPENGL_ES2) || defined(RGFW_OPENGL_ES3)) && !defined(RGFW_EGL)
@@ -2204,6 +2209,8 @@ void RGFW_RGB_to_BGR(RGFW_window* win, u8* data) {
 			data[index + 2] = red;
 		}
 	}
+	#else
+	RGFW_UNUSED(win); RGFW_UNUSED(data);
 	#endif
 }
 #endif
@@ -9263,43 +9270,26 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 
 	#endif
 
-// Function to create a CGImageRef from an array of bytes
-CGImageRef createImageFromBytes(unsigned char *buffer, int width, int height)
-{
-	// Define color space
-	CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-	// Create bitmap context
-	CGContextRef context = CGBitmapContextCreate(
-			buffer,
-			(size_t)width, (size_t)height,
-			8,
-			(size_t)(width * 4),
-			colorSpace,
-			kCGImageAlphaPremultipliedLast);
-	// Create image from bitmap context
-	CGImageRef image = CGBitmapContextCreateImage(context);
-	// Release the color space and context
-	CGColorSpaceRelease(colorSpace);
-	CGContextRelease(context);
-
-	return image;
-}
-
 void RGFW_window_swapBuffers_software(RGFW_window* win) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-	i32 channels = 3;
-	id rep  = NSBitmapImageRep_initWithBitmapData(&win->buffer, win->r.w, win->r.h, 8, channels, (channels == 4), false, 
-							"NSDeviceRGBColorSpace", 1 << 1, (u32)win->r.w * (u32)channels, 8 * (u32)channels);
+	RGFW_RGB_to_BGR(win, win->buffer);
+	i32 channels = 4;
+	id rep  = NSBitmapImageRep_initWithBitmapData(&win->buffer, win->r.w, win->r.h , 8, channels, (channels == 4), false, 
+							"NSDeviceRGBColorSpace", 1 << 1, (u32)win->bufferSize.w  * (u32)channels, 8 * (u32)channels);
 
 	id image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSImage"), sel_getUid("alloc"));
-	image = ((id (*)(id, SEL))objc_msgSend)(image, sel_getUid("init"));
+	NSSize size = (NSSize){win->r.w, win->r.h};
+	image = ((id (*)(id, SEL, NSSize))objc_msgSend)(image, sel_getUid("initWithSize:"), size);
 
 	((void (*)(id, SEL, id))objc_msgSend)(image, sel_getUid("addRepresentation:"), rep);
 
 	id contentView = ((id (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_getUid("contentView"));
+	((void (*)(id, SEL, BOOL))objc_msgSend)(contentView, sel_getUid("setWantsLayer:"), YES);
 	id layer = ((id (*)(id, SEL))objc_msgSend)(contentView, sel_getUid("layer"));
 
 	((void (*)(id, SEL, id))objc_msgSend)(layer, sel_getUid("setContents:"), image);
+	((void (*)(id, SEL, BOOL))objc_msgSend)(contentView, sel_getUid("setNeedsDisplay:"), YES);
+
 	
 	NSRelease(image);
 	NSRelease(rep);
