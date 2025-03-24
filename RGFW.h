@@ -5844,16 +5844,20 @@ PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 #endif
 
 #ifdef RGFW_OPENGL
-	RGFW_proc RGFW_getProcAddress(const char* procname) {
-		RGFW_proc proc = (RGFW_proc)wglGetProcAddress(procname);
-		if (proc)
-			return proc;
 
-		return (RGFW_proc) GetProcAddress(RGFW_wgl_dll, procname);
-	}
+RGFW_proc RGFW_getProcAddress(const char* procname) {
+    RGFW_proc proc = (RGFW_proc)wglGetProcAddress(procname);
+    if (proc)
+        return proc;
 
-	typedef HRESULT (APIENTRY* PFNWGLCHOOSEPIXELFORMATARBPROC)(HDC hdc, const int* piAttribIList, const FLOAT* pfAttribFList, UINT nMaxFormats, int* piFormats, UINT* nNumFormats);
-	PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = NULL;
+    return (RGFW_proc) GetProcAddress(RGFW_wgl_dll, procname);
+}
+
+typedef HRESULT (APIENTRY* PFNWGLCHOOSEPIXELFORMATARBPROC)(HDC hdc, const int* piAttribIList, const FLOAT* pfAttribFList, UINT nMaxFormats, int* piFormats, UINT* nNumFormats);
+PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = NULL;
+
+typedef BOOL(APIENTRY* PFNWGLSWAPINTERVALEXTPROC)(int interval);
+static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
 #endif
 
 #ifndef RGFW_NO_DWM
@@ -6126,7 +6130,7 @@ int RGFW_window_createDXSwapChain(RGFW_window* win, IDXGIFactory* pFactory, IUnk
 
 static void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 #ifdef RGFW_OPENGL
-	if (wglChoosePixelFormatARB != NULL && wglChoosePixelFormatARB != NULL)
+     if (wglSwapIntervalEXT != NULL && wglChoosePixelFormatARB != NULL && wglChoosePixelFormatARB != NULL)
 		return;
 	
 	HDC dummy_dc = GetDC(dummyWin);
@@ -6142,6 +6146,11 @@ static void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 	
 	wglCreateContextAttribsARB = ((PFNWGLCREATECONTEXTATTRIBSARBPROC(WINAPI *)(const char*)) wglGetProcAddress)("wglCreateContextAttribsARB");
 	wglChoosePixelFormatARB = ((PFNWGLCHOOSEPIXELFORMATARBPROC(WINAPI *)(const char*)) wglGetProcAddress)("wglChoosePixelFormatARB");
+
+    wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)(RGFW_proc)wglGetProcAddress("wglSwapIntervalEXT");
+    if (wglSwapIntervalEXT == NULL) {
+        RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(RGFW_root, 0), "Failed to load swap interval function");
+    }
 
 	wglMakeCurrent(dummy_dc, 0);
 	wglDeleteContext(dummy_context);
@@ -6273,6 +6282,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		RGFW_PROC_DEF(RGFW_wgl_dll, wglGetCurrentContext);
 		RGFW_PROC_DEF(RGFW_wgl_dll, wglShareLists);
 	#endif
+    
 
 	if (name[0] == 0) name = (char*) " ";
 
@@ -7370,21 +7380,7 @@ void RGFW_window_swapBuffers_OpenGL(RGFW_window* win){ SwapBuffers(win->src.hdc)
 void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	RGFW_ASSERT(win != NULL);
 #if defined(RGFW_OPENGL)
-	typedef BOOL(APIENTRY* PFNWGLSWAPINTERVALEXTPROC)(int interval);
-	static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
-	static PFNWGLSWAPINTERVALEXTPROC loadSwapFunc = (PFNWGLSWAPINTERVALEXTPROC)1;
-
-	if (loadSwapFunc == NULL) {
-		RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "wglSwapIntervalEXT not supported");
-		return;
-	}
-
-	if (wglSwapIntervalEXT == NULL) {
-		loadSwapFunc = ((PFNWGLSWAPINTERVALEXTPROC (APIENTRY *)(const char*)) wglGetProcAddress) ("wgSwapIntervalEXT");
-		wglSwapIntervalEXT = loadSwapFunc;
-	}
-
-	if (wglSwapIntervalEXT(swapInterval) == FALSE)
+    if (wglSwapIntervalEXT == NULL || wglSwapIntervalEXT(swapInterval) == FALSE)
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to set swap interval");
 #else
 	RGFW_UNUSED(swapInterval);
