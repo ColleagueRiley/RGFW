@@ -410,7 +410,6 @@ int main() {
 	this is mostly used to allow you to force the use of XWayland
 */
 RGFWDEF void RGFW_useWayland(RGFW_bool wayland);
-RGFWDEF RGFW_bool RGFW_usingWayland(void);
 /*
 	regular RGFW stuff
 */
@@ -1275,15 +1274,7 @@ RGFWDEF void RGFW_window_swapBuffers_OpenGL(RGFW_window* win); /*!< swap opengl 
 void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl))*/
 #endif
 #ifdef RGFW_VULKAN
-	#if defined(RGFW_WAYLAND) && defined(RGFW_X11)
-    	#define VK_USE_PLATFORM_WAYLAND_KHR
-		#define VK_USE_PLATFORM_XLIB_KHR
-        #define RGFW_VK_SURFACE ((RGFW_usingWayland()) ? ("VK_KHR_wayland_surface") : ("VK_KHR_xlib_surface"))
-    #elif defined(RGFW_WAYLAND)
-		#define VK_USE_PLATFORM_WAYLAND_KHR
-		#define VK_USE_PLATFORM_XLIB_KHR
-        #define RGFW_VK_SURFACE "VK_KHR_wayland_surface"
-    #elif defined(RGFW_X11)
+	#if defined(RGFW_X11)
 		#define VK_USE_PLATFORM_XLIB_KHR
 		#define RGFW_VK_SURFACE "VK_KHR_xlib_surface"
 	#elif defined(RGFW_WINDOWS)
@@ -1293,6 +1284,9 @@ void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend
 	#elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
 		#define VK_USE_PLATFORM_MACOS_MVK
 		#define RGFW_VK_SURFACE "VK_MVK_macos_surface"
+	#elif defined(RGFW_WAYLAND)
+		#define VK_USE_PLATFORM_WAYLAND_KHR
+		#define RGFW_VK_SURFACE "VK_KHR_wayland_surface"
 	#else
 		#define RGFW_VK_SURFACE NULL
 	#endif
@@ -1300,7 +1294,6 @@ void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend
 #include <vulkan/vulkan.h>
 
 RGFWDEF VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface);
-RGFWDEF RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex);
 #endif
 #ifdef RGFW_DIRECTX
 #ifndef RGFW_WINDOWS
@@ -1488,14 +1481,6 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 
 #ifdef RGFW_IMPLEMENTATION
 RGFW_bool RGFW_useWaylandBool = 1;
-#if !defined(RGFW_NO_X11) && defined(RGFW_WAYLAND)
-void RGFW_useWayland(RGFW_bool wayland) { RGFW_useWaylandBool = wayland;  }
-#define RGFW_GOTO_WAYLAND(fallback) if (RGFW_useWaylandBool && fallback == 0) goto wayland
-#else
-#define RGFW_GOTO_WAYLAND(fallback) 
-void RGFW_useWayland(RGFW_bool wayland) { RGFW_UNUSED(wayland); }
-#endif
-RGFW_bool RGFW_usingWayland(void) { return RGFW_useWaylandBool; }
 
 char* RGFW_clipboard_data;
 void RGFW_clipboard_switch(char* newstr);
@@ -2336,6 +2321,7 @@ void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show) {
 #ifndef RGFW_MACOS
 void RGFW_moveToMacOSResourceDir(void) { }
 #endif
+
 /*
 	graphics API specific code (end of generic code)
 	starts here
@@ -2798,14 +2784,8 @@ VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSu
     *surface = VK_NULL_HANDLE;
 
 #ifdef RGFW_X11
-    RGFW_GOTO_WAYLAND(0);
     VkXlibSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, 0, 0, (Display*) win->src.display, (Window) win->src.window };
     return vkCreateXlibSurfaceKHR(instance, &x11, NULL, surface);
-#endif
-#if defined(RGFW_WAYLAND)
-wayland:
-    VkWaylandSurfaceCreateInfoKHR wayland = { VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR, 0, 0, (struct wl_display*) win->src.wl_display, (struct wl_surface*) win->src.surface };
-    return vkCreateWaylandSurfaceKHR(instance, &wayland, NULL, surface);
 #elif defined(RGFW_WINDOWS)
     VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, GetModuleHandle(NULL), (HWND)win->src.window };
 
@@ -2814,42 +2794,6 @@ wayland:
     VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, vulkWin->display, (void *)win->src.window };
 
     return vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface);
-#endif
-}
-
-
-RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex) {
-    assert(instance);
-#ifdef RGFW_X11
-    RGFW_GOTO_WAYLAND(0);
-    Display* display = NULL;
-    Visual* visual = NULL;
-
-    if (RGFW_root == NULL) {
-        display = XOpenDisplay(0);
-        visual = DefaultVisual(display, DefaultScreen(display));
-    }
-    else {
-        visual = RGFW_root->src.visual.visual;
-        display = RGFW_root->src.display;
-    }
-
-    RGFW_bool out = vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIndex, display, XVisualIDFromVisual(visual));
-    if (RGFW_root == NULL) XCloseDisplay(display);
-    return out;
-#endif
-#if defined(RGFW_WAYLAND)
-wayland:
-    struct wl_display* wl_display = NULL;
-	if (RGFW_root == NULL) wl_display = wl_display_connect(NULL);
-    else wl_display = RGFW_root->src.wl_display;
-    RGFW_bool wlout = vkGetPhysicalDeviceWaylandPresentationSupportKHR(physicalDevice, queueFamilyIndex, wl_display);
-    if (RGFW_root == NULL) wl_display_disconnect(wl_display);
-    return wlout;
-#elif defined(RGFW_WINDOWS)
-    return vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, queueFamilyIndex);
-#elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
-    return RGFW_FALSE; // TODO
 #endif
 }
 #endif /* end of RGFW_vulkan */
@@ -3395,6 +3339,14 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 	.done = wl_surface_frame_done,
 };
 #endif /* RGFW_WAYLAND */
+#if !defined(RGFW_NO_X11) && defined(RGFW_WAYLAND)
+void RGFW_useWayland(RGFW_bool wayland) { RGFW_useWaylandBool = wayland;  }
+#define RGFW_GOTO_WAYLAND(fallback) if (RGFW_useWaylandBool && fallback == 0) goto wayland
+#else
+#define RGFW_GOTO_WAYLAND(fallback) 
+void RGFW_useWayland(RGFW_bool wayland) { RGFW_UNUSED(wayland); }
+#endif
+
 /*
 	End of Wayland defines
 */
@@ -3984,6 +3936,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		win->src.decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
 					decoration_manager, win->src.xdg_toplevel);
 	}
+
+	if (flags & RGFW_windowOpenglSoftware)
+		setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
 
 	wl_display_roundtrip(win->src.wl_display);
 
@@ -5543,8 +5498,7 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 		return;
 	#endif
 	#ifdef RGFW_WAYLAND
-wayland:
-        #if !defined(RGFW_BUFFER_BGR) && !defined(RGFW_OSMESA)
+		#if !defined(RGFW_BUFFER_BGR) && !defined(RGFW_OSMESA)
 		RGFW_RGB_to_BGR(win, win->src.buffer);
 		#else
 		for (size_t y = 0; y < win->r.h; y++) {
@@ -5558,10 +5512,7 @@ wayland:
 		wl_surface_commit(win->src.surface);
 	#endif
 #else
-#ifdef RGFW_WAYLAND
-wayland:
-#endif
-    RGFW_UNUSED(win);
+	RGFW_UNUSED(win);
 #endif
 }
 
@@ -5893,16 +5844,20 @@ PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 #endif
 
 #ifdef RGFW_OPENGL
-	RGFW_proc RGFW_getProcAddress(const char* procname) {
-		RGFW_proc proc = (RGFW_proc)wglGetProcAddress(procname);
-		if (proc)
-			return proc;
 
-		return (RGFW_proc) GetProcAddress(RGFW_wgl_dll, procname);
-	}
+RGFW_proc RGFW_getProcAddress(const char* procname) {
+    RGFW_proc proc = (RGFW_proc)wglGetProcAddress(procname);
+    if (proc)
+        return proc;
 
-	typedef HRESULT (APIENTRY* PFNWGLCHOOSEPIXELFORMATARBPROC)(HDC hdc, const int* piAttribIList, const FLOAT* pfAttribFList, UINT nMaxFormats, int* piFormats, UINT* nNumFormats);
-	PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = NULL;
+    return (RGFW_proc) GetProcAddress(RGFW_wgl_dll, procname);
+}
+
+typedef HRESULT (APIENTRY* PFNWGLCHOOSEPIXELFORMATARBPROC)(HDC hdc, const int* piAttribIList, const FLOAT* pfAttribFList, UINT nMaxFormats, int* piFormats, UINT* nNumFormats);
+PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = NULL;
+
+typedef BOOL(APIENTRY* PFNWGLSWAPINTERVALEXTPROC)(int interval);
+static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
 #endif
 
 #ifndef RGFW_NO_DWM
@@ -6175,7 +6130,7 @@ int RGFW_window_createDXSwapChain(RGFW_window* win, IDXGIFactory* pFactory, IUnk
 
 static void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 #ifdef RGFW_OPENGL
-	if (wglChoosePixelFormatARB != NULL && wglChoosePixelFormatARB != NULL)
+     if (wglSwapIntervalEXT != NULL && wglChoosePixelFormatARB != NULL && wglChoosePixelFormatARB != NULL)
 		return;
 	
 	HDC dummy_dc = GetDC(dummyWin);
@@ -6191,6 +6146,11 @@ static void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 	
 	wglCreateContextAttribsARB = ((PFNWGLCREATECONTEXTATTRIBSARBPROC(WINAPI *)(const char*)) wglGetProcAddress)("wglCreateContextAttribsARB");
 	wglChoosePixelFormatARB = ((PFNWGLCHOOSEPIXELFORMATARBPROC(WINAPI *)(const char*)) wglGetProcAddress)("wglChoosePixelFormatARB");
+
+    wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)(RGFW_proc)wglGetProcAddress("wglSwapIntervalEXT");
+    if (wglSwapIntervalEXT == NULL) {
+        RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(RGFW_root, 0), "Failed to load swap interval function");
+    }
 
 	wglMakeCurrent(dummy_dc, 0);
 	wglDeleteContext(dummy_context);
@@ -6322,6 +6282,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		RGFW_PROC_DEF(RGFW_wgl_dll, wglGetCurrentContext);
 		RGFW_PROC_DEF(RGFW_wgl_dll, wglShareLists);
 	#endif
+    
 
 	if (name[0] == 0) name = (char*) " ";
 
@@ -7419,21 +7380,7 @@ void RGFW_window_swapBuffers_OpenGL(RGFW_window* win){ SwapBuffers(win->src.hdc)
 void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	RGFW_ASSERT(win != NULL);
 #if defined(RGFW_OPENGL)
-	typedef BOOL(APIENTRY* PFNWGLSWAPINTERVALEXTPROC)(int interval);
-	static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
-	static PFNWGLSWAPINTERVALEXTPROC loadSwapFunc = (PFNWGLSWAPINTERVALEXTPROC)1;
-
-	if (loadSwapFunc == NULL) {
-		RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "wglSwapIntervalEXT not supported");
-		return;
-	}
-
-	if (wglSwapIntervalEXT == NULL) {
-		loadSwapFunc = ((PFNWGLSWAPINTERVALEXTPROC (APIENTRY *)(const char*)) wglGetProcAddress) ("wgSwapIntervalEXT");
-		wglSwapIntervalEXT = loadSwapFunc;
-	}
-
-	if (wglSwapIntervalEXT(swapInterval) == FALSE)
+    if (wglSwapIntervalEXT == NULL || wglSwapIntervalEXT(swapInterval) == FALSE)
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to set swap interval");
 #else
 	RGFW_UNUSED(swapInterval);

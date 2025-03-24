@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Sun Mar 23 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Mon Mar 24 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -268,9 +268,6 @@ RGFW.h
 .in +1c
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_useWayland\fP (\fBRGFW_bool\fP wayland)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_usingWayland\fP (void)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_eventType)"
@@ -973,8 +970,6 @@ scale monitor to window size
 check if 2 monitor modes are the same 
 .SS "\fBRGFWDEF\fP void RGFW_useWayland (\fBRGFW_bool\fP wayland)"
 (unix) Toggle use of wayland\&. This will be on by default if you use \fCRGFW_WAYLAND\fP (if you don't use RGFW_WAYLAND, you don't expose WAYLAND functions) this is mostly used to allow you to force the use of XWayland 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_usingWayland (void)"
-
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.
