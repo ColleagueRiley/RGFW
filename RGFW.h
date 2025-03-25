@@ -499,7 +499,7 @@ typedef RGFW_ENUM(u8, RGFW_mouseButton) {
 #define RGFW_MAX_DROPS 260 /* max items you can drop at once */
 #endif
 
-#define RGFW_BIT(x) (1L << x)
+#define RGFW_BIT(x) (1 << x)
 
 /* for RGFW_event.lockstate */
 typedef RGFW_ENUM(u8, RGFW_keymod) {
@@ -1901,11 +1901,11 @@ no more event call back defines
 
 #define RGFW_EVENT_PASSED 		RGFW_BIT(24) /* if a queued event was passed */
 #define RGFW_EVENT_QUIT 		RGFW_BIT(25) /* the window close button was pressed */
-#define RGFW_HOLD_MOUSE			RGFW_BIT(27) /*!< hold the moues still */
-#define RGFW_MOUSE_LEFT 		RGFW_BIT(28) /* if mouse left the window */
-#define RGFW_WINDOW_ALLOC 		RGFW_BIT(29) /* if window was allocated by RGFW */
-#define RGFW_BUFFER_ALLOC 		RGFW_BIT(30) /* if window.buffer was allocated by RGFW */
-#define RGFW_WINDOW_INIT 		RGFW_BIT(31) /* if window.buffer was allocated by RGFW */
+#define RGFW_HOLD_MOUSE			RGFW_BIT(26) /*!< hold the moues still */
+#define RGFW_MOUSE_LEFT 		RGFW_BIT(27) /* if mouse left the window */
+#define RGFW_WINDOW_ALLOC 		RGFW_BIT(28) /* if window was allocated by RGFW */
+#define RGFW_BUFFER_ALLOC 		RGFW_BIT(29) /* if window.buffer was allocated by RGFW */
+#define RGFW_WINDOW_INIT 		RGFW_BIT(30) /* if window.buffer was allocated by RGFW */
 #define RGFW_INTERNAL_FLAGS (RGFW_EVENT_QUIT | RGFW_EVENT_PASSED | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_WINDOW_ALLOC | RGFW_BUFFER_ALLOC | RGFW_windowFocus)
 
 
@@ -1970,7 +1970,7 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 
 void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	RGFW_windowFlags cmpFlags = win->_flags; 
-	if (win->_flags & (u32)RGFW_WINDOW_INIT) cmpFlags = 0;
+	if (win->_flags & RGFW_WINDOW_INIT) cmpFlags = 0;
 
 	#ifndef RGFW_NO_MONITOR
 	if (flags & RGFW_windowScaleToMonitor)			RGFW_window_scaleToMonitor(win);
