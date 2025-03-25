@@ -10270,6 +10270,6 @@ void RGFW_sleep(u64 ms) {
 }
 #endif
 
-#if _MSC_VERs
+#if _MSC_VER
 	#pragma warning( pop )
 #endif
