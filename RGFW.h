@@ -2772,7 +2772,7 @@ void* RGFW_getCurrent_OpenGL(void) { return eglGetCurrentContext(); }
 #ifdef RGFW_APPLE
 void* RGFWnsglFramework = NULL;
 #elif defined(RGFW_WINDOWS)
-static HMODULE RGFW_wgl_dll = NULL;
+HMODULE RGFW_wgl_dll = NULL;
 #endif
 
 RGFW_proc RGFW_getProcAddress(const char* procname) {
@@ -4597,11 +4597,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 #endif
 #ifdef RGFW_WAYLAND
 	wayland:
-	if (win->_flags & RGFW_windowHide)
-		return NULL;
-
-	if (wl_display_roundtrip(win->src.wl_display) == -1)
-		return NULL;
+	if ((win->_flags & RGFW_windowHide) == 0)
+        wl_display_roundtrip(win->src.wl_display);
 	return NULL;
 #endif
 }
@@ -5816,7 +5813,7 @@ u64 RGFW_getTimerValue(void) {
 	PFN_XInputGetKeystroke XInputGetKeystrokeSRC = NULL;
 	#define XInputGetKeystroke XInputGetKeystrokeSRC
 
-	static HMODULE RGFW_XInput_dll = NULL;
+	HMODULE RGFW_XInput_dll = NULL;
 #endif
 
 char* RGFW_createUTF8FromWideStringWin32(const WCHAR* source);
@@ -5838,7 +5835,7 @@ typedef HGLRC (WINAPI *PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC hdc, HGLRC hglrc, 
 PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 
 #ifndef RGFW_EGL
-	static HMODULE RGFW_wgl_dll = NULL;
+	HMODULE RGFW_wgl_dll = NULL;
 #endif
 
 #ifndef RGFW_NO_LOAD_WGL
@@ -5881,7 +5878,7 @@ typedef HRESULT (APIENTRY* PFNWGLCHOOSEPIXELFORMATARBPROC)(HDC hdc, const int* p
 PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = NULL;
 
 typedef BOOL(APIENTRY* PFNWGLSWAPINTERVALEXTPROC)(int interval);
-static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
+PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
 #endif
 
 #ifndef RGFW_NO_DWM
@@ -5890,7 +5887,8 @@ typedef struct { DWORD dwFlags; int fEnable; HRGN hRgnBlur; int fTransitionOnMax
 typedef HRESULT (WINAPI * PFN_DwmEnableBlurBehindWindow)(HWND, const DWM_BLURBEHIND*);
 PFN_DwmEnableBlurBehindWindow DwmEnableBlurBehindWindowSRC = NULL;
 #endif
-static void RGFW_win32_makeWindowTransparent(RGFW_window* win) {
+void RGFW_win32_makeWindowTransparent(RGFW_window* win);
+void RGFW_win32_makeWindowTransparent(RGFW_window* win) {
 	if (!(win->_flags & RGFW_windowTransparent)) return;
 
 	#ifndef RGFW_NO_DWM
@@ -6039,7 +6037,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #endif
 
 #if !defined(RGFW_NO_LOAD_WINMM) && !defined(RGFW_NO_WINMM)
-	static HMODULE RGFW_winmm_dll = NULL;
+	HMODULE RGFW_winmm_dll = NULL;
 	typedef u32 (WINAPI * PFN_timeBeginPeriod)(u32); 
 	typedef PFN_timeBeginPeriod PFN_timeEndPeriod;
 	PFN_timeBeginPeriod timeBeginPeriodSRC, timeEndPeriodSRC;
@@ -6152,7 +6150,8 @@ int RGFW_window_createDXSwapChain(RGFW_window* win, IDXGIFactory* pFactory, IUnk
 }
 #endif
 
-static void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
+void RGFW_win32_loadOpenGLFuncs(HWND dummyWin);
+void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 #ifdef RGFW_OPENGL
      if (wglSwapIntervalEXT != NULL && wglChoosePixelFormatARB != NULL && wglChoosePixelFormatARB != NULL)
 		return;
@@ -6525,8 +6524,8 @@ u8 RGFW_xinput2RGFW[] = {
 	RGFW_gamepadL3,
 	RGFW_gamepadR3,
 };
-
-static i32 RGFW_checkXInput(RGFW_window* win, RGFW_event* e) {
+i32 RGFW_checkXInput(RGFW_window* win, RGFW_event* e);
+i32 RGFW_checkXInput(RGFW_window* win, RGFW_event* e) {
 	#ifndef RGFW_NO_XINPUT
 
 	RGFW_UNUSED(win);
@@ -6936,7 +6935,8 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 
 typedef struct { int iIndex; HMONITOR hMonitor; RGFW_monitor* monitors; } RGFW_mInfo;
 #ifndef RGFW_NO_MONITOR
-static RGFW_monitor win32CreateMonitor(HMONITOR src) {
+RGFW_monitor win32CreateMonitor(HMONITOR src);
+RGFW_monitor win32CreateMonitor(HMONITOR src) {
 	RGFW_monitor monitor;
 	MONITORINFOEX  monitorInfo;
 
@@ -7007,7 +7007,8 @@ static RGFW_monitor win32CreateMonitor(HMONITOR src) {
 #endif /* RGFW_NO_MONITOR */
 
 #ifndef RGFW_NO_MONITOR
-static BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
+BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData);
+BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
 	RGFW_UNUSED(hdcMonitor);
 	RGFW_UNUSED(lprcMonitor);
 
