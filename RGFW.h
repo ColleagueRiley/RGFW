@@ -203,16 +203,44 @@ int main() {
 
 #ifndef RGFW_MEMCPY
 	#include <string.h>
-
 	#define RGFW_MEMCPY(dist, src, len) memcpy(dist, src, len)
+	#define _RGFW_INC_STRING
+#endif
+
+#ifndef RGFW_STRNCPY
+#ifndef _RGFW_INC_STRING
+	#include <string.h>
+	#define _RGFW_INC_STRING
+#endif
 	#define RGFW_STRNCMP(s1, s2, max) strncmp(s1, s2, max)
+#endif
+
+#ifndef RGFW_STRNCPY
+#ifndef _RGFW_INC_STRING
+	#include <string.h>
+	#define _RGFW_INC_STRING
+#endif
 	#define RGFW_STRNCPY(dist, src, len) strncpy(dist, src, len)
-    #define RGFW_STRSTR(str, substr) strstr(str, substr)
+#endif
+
+#ifndef RGFW_STRSTR
+#ifndef _RGFW_INC_STRING
+	#include <string.h>
+	#define _RGFW_INC_STRING
+#endif
+	#define RGFW_STRSTR(str, substr) strstr(str, substr)
+#endif
+
+#ifndef RGFW_STRTOL
+#ifndef _RGFW_INC_STRING
+	#include <string.h>
+	#define _RGFW_INC_STRING
+#endif
 	//required for X11 XDnD
 	#define RGFW_STRTOL(str, endptr, base) strtol(str, endptr, base)
-#else
-#undef _INC_STRING
 #endif
+
+#undef _RGFW_INC_STRING
 
 #if !_MSC_VER
 	#ifndef inline
@@ -2778,8 +2806,8 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 #ifdef RGFW_VULKAN
 
 VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface) {
-    assert(win != NULL); assert(instance);
-	assert(surface != NULL);
+    RGFW_ASSERT(win != NULL); RGFW_ASSERT(instance);
+	RGFW_ASSERT(surface != NULL);
 
     *surface = VK_NULL_HANDLE;
 
