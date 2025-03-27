@@ -1325,6 +1325,7 @@ RGFWDEF int RGFW_window_createDXSwapChain(RGFW_window* win, IDXGIFactory* pFacto
 
 /** * @defgroup Supporting
 * @{ */
+
 RGFWDEF double RGFW_getTime(void); /*!< get time in seconds since RGFW_setTime, which ran when the first window is open  */
 RGFWDEF u64 RGFW_getTimeNS(void); /*!< get time in nanoseconds RGFW_setTime, which ran when the first window is open */
 RGFWDEF void RGFW_sleep(u64 milisecond); /*!< sleep for a set time */
@@ -1974,7 +1975,8 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 	win->event.droppedFilesCount = 0;
 	win->_flags |= flags;
 	win->event.keyMod = 0;
-
+	win->_lastMousePoint = RGFW_POINT(0, 0);
+	
 	win->event.droppedFiles = (char**)RGFW_ALLOC(RGFW_MAX_PATH * RGFW_MAX_DROPS);
 	for (u32 i = 0; i < RGFW_MAX_DROPS; i++)
 		win->event.droppedFiles[i] = (char*)(win->event.droppedFiles + RGFW_MAX_DROPS + (i * RGFW_MAX_PATH));
