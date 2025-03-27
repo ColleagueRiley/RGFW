@@ -4569,11 +4569,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 #endif
 #ifdef RGFW_WAYLAND
 	wayland:
-	if (win->_flags & RGFW_windowHide)
-		return NULL;
-
-	if (wl_display_roundtrip(win->src.wl_display) == -1)
-		return NULL;
+	if ((win->_flags & RGFW_windowHide) == 0)
+        wl_display_roundtrip(win->src.wl_display);
 	return NULL;
 #endif
 }
