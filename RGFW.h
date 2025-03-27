@@ -3763,6 +3763,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	i64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /*!< X11 events accepted */
 
 	win->src.visual.visual = DefaultVisual(win->src.display, DefaultScreen(win->src.display));
+	win->src.visual.depth = DefaultDepth(win->src.display, DefaultScreen(win->src.display));
 	if (flags & RGFW_windowTransparent) {
 		XMatchVisualInfo(win->src.display, DefaultScreen(win->src.display), 32, TrueColor, &win->src.visual); /*!< for RGBA backgrounds */
 		if (win->src.visual.depth != 32)
