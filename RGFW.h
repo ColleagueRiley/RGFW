@@ -201,46 +201,30 @@ int main() {
 	#define RGFW_ASSERT assert
 #endif
 
-#ifndef RGFW_MEMCPY
+#if !defined(RGFW_MEMCPY) || !defined(RGFW_STRNCMP) || !defined(RGFW_STRNCPY) || !defined(RGFW_STRSTR) || !defined(RGFW_STRTOL)
 	#include <string.h>
-	#define RGFW_MEMCPY(dist, src, len) memcpy(dist, src, len)
-	#define _RGFW_INC_STRING
 #endif
 
-#ifndef RGFW_STRNCPY
-#ifndef _RGFW_INC_STRING
-	#include <string.h>
-	#define _RGFW_INC_STRING
+#ifndef RGFW_MEMCPY
+	#define RGFW_MEMCPY(dist, src, len) memcpy(dist, src, len)
 #endif
+
+#ifndef _RGFW_INC_STRING
 	#define RGFW_STRNCMP(s1, s2, max) strncmp(s1, s2, max)
 #endif
 
 #ifndef RGFW_STRNCPY
-#ifndef _RGFW_INC_STRING
-	#include <string.h>
-	#define _RGFW_INC_STRING
-#endif
 	#define RGFW_STRNCPY(dist, src, len) strncpy(dist, src, len)
 #endif
 
 #ifndef RGFW_STRSTR
-#ifndef _RGFW_INC_STRING
-	#include <string.h>
-	#define _RGFW_INC_STRING
-#endif
 	#define RGFW_STRSTR(str, substr) strstr(str, substr)
 #endif
 
 #ifndef RGFW_STRTOL
-#ifndef _RGFW_INC_STRING
-	#include <string.h>
-	#define _RGFW_INC_STRING
-#endif
 	//required for X11 XDnD
 	#define RGFW_STRTOL(str, endptr, base) strtol(str, endptr, base)
 #endif
-
-#undef _RGFW_INC_STRING
 
 #if !_MSC_VER
 	#ifndef inline
