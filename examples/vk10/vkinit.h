@@ -101,18 +101,19 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
   const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
   void* pUserData
 ){
-  printf("\nDebug callback: %s\n",pCallbackData->pMessage);
-  printf(" Severity: %s\n",getDebugSeverityStr(Severity));
-  printf(" Type: %s\n",getDebugType(Type));
-  printf(" Objects ");
+    printf("\nDebug callback: %s\n",pCallbackData->pMessage);
+    printf(" Severity: %s\n",getDebugSeverityStr(Severity));
+    printf(" Type: %s\n",getDebugType(Type));
+    printf(" Objects ");
 
-  for (u32 i= 0; i < pCallbackData->objectCount; i++) {
-    #ifdef _WIN32
+    for (u32 i= 0; i < pCallbackData->objectCount; i++) {
+#ifdef _WIN32
     printf("%llx ", pCallbackData->pObjects[i].objectHandle);
-    #else
+#else
     printf("%lx ", pCallbackData->pObjects[i].objectHandle);
-    #endif
-  }
+#endif
+    }
+    return 1;
 }
 
 const char* getDebugSeverityStr(VkDebugUtilsMessageSeverityFlagBitsEXT Severity)
