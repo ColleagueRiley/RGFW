@@ -3427,11 +3427,11 @@ Atom wm_delete_window = 0, RGFW_XCLIPBOARD = 0;
     #define XSyncCreateCounter XSyncCreateCounterSRC
 
 	typedef void (* PFN_XShapeCombineMask)(Display*,Window,int,int,int,Pixmap,int);
-	static PFN_XShapeCombineMask XShapeCombineMaskSRC;
+	PFN_XShapeCombineMask XShapeCombineMaskSRC;
     #define XShapeCombineMask XShapeCombineMaskSRC
 
 	typedef void (* PFN_XShapeCombineRegion)(Display*,Window,int,int,int,Region,int);
-	static PFN_XShapeCombineRegion XShapeCombineRegionSRC;
+    PFN_XShapeCombineRegion XShapeCombineRegionSRC;
     #define XShapeCombineRegion XShapeCombineRegionSRC
 	void* X11XEXThandle = NULL;
 #endif
@@ -4305,22 +4305,17 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
             break;
         }
 #endif
-		for (size_t i = 0; i < win->event.droppedFilesCount; i++) {
-			win->event.droppedFiles[i][0] = '\0';
-		}
-		win->event.droppedFilesCount = 0;
-
-		if ((win->_flags & RGFW_windowAllowDND) == 0)
+        if ((win->_flags & RGFW_windowAllowDND) == 0)
 			break;
 
-		reply.xclient.window = source;
+        reply.xclient.window = source;
 		reply.xclient.format = 32;
 		reply.xclient.data.l[0] = (long)win->src.window;
 		reply.xclient.data.l[1] = 0;
 		reply.xclient.data.l[2] = None;
 
 		if (E.xclient.message_type == XdndEnter) {
-			if (version > 5)
+            if (version > 5)
 				break;
 
 			unsigned long count;
@@ -4369,7 +4364,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		}
 
 		if (E.xclient.message_type == XdndPosition) {
-			const i32 xabs = (E.xclient.data.l[2] >> 16) & 0xffff;
+            const i32 xabs = (E.xclient.data.l[2] >> 16) & 0xffff;
 			const i32 yabs = (E.xclient.data.l[2]) & 0xffff;
 			Window dummy;
 			i32 xpos, ypos;
@@ -4404,6 +4399,12 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		if (version > 5)
 			break;
 
+		for (size_t i = 0; i < win->event.droppedFilesCount; i++)
+			win->event.droppedFiles[i][0] = '\0';
+
+		win->event.droppedFilesCount = 0;
+		
+    
 		win->event.type = RGFW_DNDInit;
 
 		if (format) {
@@ -4430,7 +4431,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		return RGFW_window_checkEvent(win);
 	case SelectionNotify: {
 		/* this is only for checking for xdnd drops */
-		if (E.xselection.property != XdndSelection || !(win->_flags & RGFW_windowAllowDND))
+        if (E.xselection.property != XdndSelection || !(win->_flags & RGFW_windowAllowDND))
 			break;
 		char* data;
 		unsigned long result;
@@ -4449,7 +4450,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		char* line;
 
 		win->event.droppedFilesCount = 0;
-
 		win->event.type = RGFW_DND;
 
 		while ((line = (char*)RGFW_strtok(data, "\r\n"))) {
@@ -4493,21 +4493,19 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			RGFW_MEMCPY(win->event.droppedFiles[win->event.droppedFilesCount - 1], path, index + 1);
 		}
 
+		RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
 		if (data)
 			XFree(data);
 
 		if (version >= 2) {
 			XEvent new_reply = { ClientMessage };
-			reply.xclient.format = 32;
-			reply.xclient.message_type = XdndFinished;
-			reply.xclient.data.l[1] = (long int)result;
-			reply.xclient.data.l[2] = (long int)XdndActionCopy;
-
-			XSendEvent(win->src.display, source, False, NoEventMask, &new_reply);
+			new_reply.xclient.format = 32;
+			new_reply.xclient.message_type = XdndFinished;
+			new_reply.xclient.data.l[1] = (long int)result;
+			new_reply.xclient.data.l[2] = (long int)XdndActionCopy;
+    		XSendEvent(win->src.display, source, False, NoEventMask, &new_reply);
 			XFlush(win->src.display);
 		}
-
-		RGFW_dndCallback(win, win->event.droppedFiles, win->event.droppedFilesCount);
 		break;
 	}
 	case FocusIn:
@@ -4565,7 +4563,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		XFlush(win->src.display);
 		return RGFW_window_checkEvent(win);
 	}
-
 	XFlush(win->src.display);
 	if (win->event.type) return &win->event;
 	else return NULL;
@@ -5197,7 +5194,7 @@ RGFW_bool RGFW_window_isMinimized(RGFW_window* win) {
 		AnyPropertyType, &actual_type, &actual_format,
 		&nitems, &bytes_after, &prop_data);
 
-	if (status == Success && nitems >= 1 && *((int*) prop_data) == IconicState) {
+	if (status == Success && nitems >= 1 && prop_data == (unsigned char*)IconicState) {
 		XFree(prop_data);
 		return RGFW_TRUE;
 	}
@@ -5232,11 +5229,10 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 		return RGFW_FALSE;
 	}
 
-	Atom* atoms = (Atom*) prop_data;
 	u64 i;
 	for (i = 0; i < nitems; ++i) {
-		if (atoms[i] == _NET_WM_STATE_MAXIMIZED_VERT ||
-			atoms[i] == _NET_WM_STATE_MAXIMIZED_HORZ) {
+		if (prop_data[i] == _NET_WM_STATE_MAXIMIZED_VERT ||
+			prop_data[i] == _NET_WM_STATE_MAXIMIZED_HORZ) {
 			XFree(prop_data);
 			return RGFW_TRUE;
 		}
@@ -5246,9 +5242,9 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 }
 
 #ifndef RGFW_NO_DPI
-static u32 RGFW_XCalculateRefreshRate(XRRModeInfo mi) {
-    if (mi.hTotal == 0 || mi.vTotal == 0) return 0;
-	
+u32 RGFW_XCalculateRefreshRate(XRRModeInfo mi);
+u32 RGFW_XCalculateRefreshRate(XRRModeInfo mi) {
+    if (mi.hTotal == 0 || mi.vTotal == 0) return 0;	
 	return (u32) RGFW_ROUND((double) mi.dotClock / ((double) mi.hTotal * (double) mi.vTotal));
 }
 #endif
@@ -5337,7 +5333,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 
 		RGFW_MEMCPY(monitor.name, info->name, 128);
 
-	if (physW && physH) {
+	if ((u8)physW && (u8)physH) {
 		monitor.physW = physW;
 		monitor.physH = physH;
 	}
