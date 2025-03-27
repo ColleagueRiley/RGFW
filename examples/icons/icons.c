@@ -9,9 +9,9 @@ u8 base_icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF,
 
 int main(void) {
     int w, h, c;
-    unsigned char* icon = stbi_load("logo.png", &w, &h, &c, 0);
     RGFW_window* win = RGFW_createWindow("RGFW icons", RGFW_RECT(0, 0, 600, 400), RGFW_windowCenter | RGFW_windowNoResize);
 
+    unsigned char* icon = stbi_load("logo.png", &w, &h, &c, 0);
     RGFW_mouse* mouse = RGFW_loadMouse(icon, RGFW_AREA(w, h), c);
     
     RGFW_window_setIconEx(win, base_icon, RGFW_AREA(3, 3), c, RGFW_iconWindow);

@@ -19,7 +19,9 @@ LINK_GL1 = -lopengl32
 EXT = .exe
 LIB_EXT = .dll
 
-LIBS += -D _WIN32_WINNT=0x0501
+ifneq ($(CC),zig cc)
+	LIBS += -D _WIN32_WINNT=0x0501
+endif
 
 OS_DIR = \\
 

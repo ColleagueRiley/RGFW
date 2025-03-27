@@ -44,6 +44,7 @@ Current Version: RGFW 1.6.5-dev
 - fix windowRefresh (macOS)
 - add RGFW_ADVANCED_SMOOTH_RESIZE for X11 and winapi (allows for smoother resizing)
 - make it so the window can only be transparent if RGFW_windowTransparent is enabled (GLX) (depth == 24 by default), allowing only opengl settings (like multi-sampiling)
+- add swapInterval to wgl opengl function loading function
 - add vulkan RGFW_getVKPresentationSupport
 
 Release:    RGFW 1.6 (Feb 25, 2025)
