@@ -9374,10 +9374,8 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 #endif
 }
 
-void RGFW_deinit(void) {
-}
-
 void RGFW_deinit(void) {  
+    _RGFW.root = NULL;
     _RGFW.windowCount = -1; 
 }
 
