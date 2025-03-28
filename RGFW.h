@@ -3786,6 +3786,7 @@ wayland:
     _RGFW.wl_display = wl_display_connect(NULL);
 #endif
 
+    _RGFW.init = RGFW_TRUE;
     return 0;
 }
 
@@ -6305,6 +6306,8 @@ i32 RGFW_init(void) {
 
     u8 RGFW_blk[] = { 0, 0, 0, 0 };
 	_RGFW.hiddenMouse = RGFW_loadMouse(RGFW_blk, RGFW_AREA(1, 1), 4);
+
+    _RGFW.init = RGFW_TRUE;
     return 1;
 }
 
@@ -7205,6 +7208,7 @@ void RGFW_deinit(void) {
     _RGFW.root = NULL;
 
     RGFW_freeMouse(_RGFW.hiddenMouse);
+    _RGFW.init = RGFW_FALSE;
 }
 
 
@@ -8332,6 +8336,7 @@ i32 RGFW_init(void) {
 		#endif
 	}
 
+    _RGFW.init = RGFW_TRUE;
     return 0;
 }
 
@@ -9322,7 +9327,8 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 #endif
 }
 
-void RGFW_deinit(void) {
+void RGFW_deinit(void) {  
+    _RGFW.init = RGFW_FALSE; 
 }
 
 void RGFW_window_close(RGFW_window* win) {
@@ -9831,7 +9837,7 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 #endif
 }
 
-i32 RGFW_init(void) { }
+i32 RGFW_init(void) {  _RGFW.init = RGFW_TRUE; }
 
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
     RGFW_window_basic_init(win, rect, flags);
@@ -10157,7 +10163,7 @@ void* RGFW_getCurrent_OpenGL(void) { return (void*)emscripten_webgl_get_current_
 void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) { RGFW_UNUSED(win); RGFW_UNUSED(swapInterval); }
 #endif
 
-void RGFW_deinit(void) { }
+void RGFW_deinit(void) { _RGFW.init = RGFW_FALSE; }
 
 void RGFW_window_close(RGFW_window* win) {
 	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_freeOpenGL(win);
