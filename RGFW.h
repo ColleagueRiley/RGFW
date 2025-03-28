@@ -2851,11 +2851,10 @@ RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice ph
 #ifdef RGFW_X11
     RGFW_GOTO_WAYLAND(0);
 	Visual* visual = DefaultVisual(_RGFW.display, DefaultScreen(_RGFW.display));
-    if (RGFW_root)
-        visual = RGFW_root->src.visual.visual;
+    if (_RGFW.root)
+        visual = _RGFW.root->src.visual.visual;
 
     RGFW_bool out = vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIndex, _RGFW.display, XVisualIDFromVisual(visual));
-    if (RGFW_root == NULL) XCloseDisplay(display);
     return out;
 #endif
 #if defined(RGFW_WAYLAND)
@@ -3756,11 +3755,14 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 
 		GLXContext ctx = NULL;
 
-		if (_RGFW.root != NULL && _RGFW.root != win)
+		if (_RGFW.root != NULL && _RGFW.root != win) {
 			ctx = _RGFW.root->src.ctx;
+            RGFW_window_makeCurrent_OpenGL(_RGFW.root);  
+        }
 
 		win->src.ctx = glXCreateContextAttribsARB(win->src.display, bestFbc, ctx, True, context_attribs);
 		glXMakeCurrent(win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);
+        RGFW_window_makeCurrent_OpenGL(_RGFW.root);  
 #else
 	RGFW_UNUSED(win); RGFW_UNUSED(software);	
 #endif
