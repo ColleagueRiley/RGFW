@@ -9,17 +9,23 @@ int main(void) {
     RGFW_monitor mon = RGFW_window_getMonitor(win);
     RGFW_monitor_scaleToWindow(mon, win);
     RGFW_window_setFullscreen(win, 1);
+    
+    RGFW_bool scaled = RGFW_TRUE;
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win) && win->event.type != RGFW_quit) {
-            printf("my %i\n", win->event.type);
             switch (win->event.type) {
                 case RGFW_focusOut:
-                    printf("focusout\n");
+                    if (scaled == RGFW_FALSE) break;
+                    scaled = RGFW_FALSE;
                     RGFW_window_minimize(win);
+#ifndef RGFW_X11
                     RGFW_monitor_requestMode(RGFW_window_getMonitor(win), mon.mode, RGFW_monitorScale);
+#endif
                     break;
                 case RGFW_focusIn:
+                    if (scaled == RGFW_TRUE) break;
+                    scaled = RGFW_TRUE;
                     RGFW_monitor_scaleToWindow(mon, win);
                     break;
                 default: break;
