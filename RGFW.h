@@ -5680,11 +5680,10 @@ void RGFW_window_close(RGFW_window* win) {
     XFreeGC(win->src.display, win->src.gc);
     XDestroyWindow(win->src.display, (Drawable) win->src.window); /*!< close the window */
     win->src.window = 0;
-    
+    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
     _RGFW.windowCount--;
     if (_RGFW.windowCount == 0) RGFW_deinit();
 
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
 	RGFW_clipboard_switch(NULL);
 	RGFW_FREE(win->event.droppedFiles);
     if ((win->_flags & RGFW_WINDOW_ALLOC)) {
@@ -5700,7 +5699,7 @@ void RGFW_window_close(RGFW_window* win) {
 		#ifdef RGFW_X11
 			XDestroyWindow(win->src.display, (Drawable) win->src.window);
 		#endif
-
+	    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
         _RGFW.windowCount--;
         if (_RGFW.windowCount == 0) RGFW_deinit();
 
@@ -5718,7 +5717,6 @@ void RGFW_window_close(RGFW_window* win) {
 
 		RGFW_clipboard_switch(NULL);
 		RGFW_FREE(win->event.droppedFiles);
-	    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
         if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 			RGFW_FREE(win);
             win = NULL;
@@ -7287,6 +7285,7 @@ void RGFW_window_close(RGFW_window* win) {
 	if (win->src.hIconSmall) DestroyIcon(win->src.hIconSmall);
 	if (win->src.hIconBig) DestroyIcon(win->src.hIconBig);
 
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
     _RGFW.windowCount--;
 	if (_RGFW.windowCount == 0) RGFW_deinit();
 
@@ -7297,7 +7296,6 @@ void RGFW_window_close(RGFW_window* win) {
 		RGFW_FREE(win);
         win = NULL;        
     }
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal, (RGFW_debugContext){0}, "global context deinitialized");
 }
 
 void RGFW_window_move(RGFW_window* win, RGFW_point v) {
@@ -9409,12 +9407,12 @@ void RGFW_window_close(RGFW_window* win) {
 			RGFW_FREE(win->buffer);
 	#endif
     
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal, (RGFW_debugContext){0}, "global context deinitialized");
     _RGFW.windowCount--;
     if (_RGFW.windowCount == 0) RGFW_deinit();
 
     RGFW_clipboard_switch(NULL);
 	RGFW_FREE(win->event.droppedFiles);
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
         win = NULL;
@@ -10247,12 +10245,12 @@ void RGFW_window_close(RGFW_window* win) {
 		RGFW_FREE(win->buffer);
 	#endif
     
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
     _RGFW.windowCount--;
     if (_RGFW.windowCount == 0) RGFW_deinit();
 
     RGFW_clipboard_switch(NULL);
 	RGFW_FREE(win->event.droppedFiles);
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 	    RGFW_FREE(win);
         win = NULL;    
