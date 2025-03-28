@@ -142,7 +142,7 @@ RGFW.h
 .RI "#define \fBRGFW_DEBUG_CTX\fP(win,  err)   (\fBRGFW_debugContext\fP){win, (\fBRGFW_monitor\fP){ 0 }, err}"
 .br
 .ti -1c
-.RI "#define \fBRGFW_DEBUG_CTX_MON\fP(monitor)   (\fBRGFW_debugContext\fP){RGFW_root, monitor, 0}"
+.RI "#define \fBRGFW_DEBUG_CTX_MON\fP(monitor)   (\fBRGFW_debugContext\fP){_RGFW\&.root, monitor, 0}"
 .br
 .in -1c
 .SS "Typedefs"
@@ -670,6 +670,12 @@ RGFW.h
 .br
 .ti -1c
 .RI "void * \fBRGFW_getCurrent_OpenGL\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_init\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_deinit\fP (void)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP double \fBRGFW_getTime\fP (void)"
