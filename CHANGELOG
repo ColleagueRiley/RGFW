@@ -46,6 +46,7 @@ Current Version: RGFW 1.6.5-dev
 - make it so the window can only be transparent if RGFW_windowTransparent is enabled (GLX) (depth == 24 by default), allowing only opengl settings (like multi-sampiling)
 - add swapInterval to wgl opengl function loading function
 - add vulkan RGFW_getVKPresentationSupport and RGFW_getVKRequiredInstanceExtensions
+- add RGFW_init and RGFW_deinit
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------
