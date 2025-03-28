@@ -5558,8 +5558,8 @@ void RGFW_deinit(void) {
 #ifdef RGFW_X11
     RGFW_freeMouse(_RGFW.hiddenMouse);
     XCloseDisplay(_RGFW.display); /*!< kill connection to the x server */
-
-#if !defined(RGFW_NO_X11_CURSOR_PRELOAD) && !defined(RGFW_NO_X11_CURSOR)
+    
+    #if !defined(RGFW_NO_X11_CURSOR_PRELOAD) && !defined(RGFW_NO_X11_CURSOR)
         RGFW_FREE_LIBRARY(X11Cursorhandle);
     #endif
     #if !defined(RGFW_NO_X11_XI_PRELOAD)
@@ -5572,7 +5572,7 @@ void RGFW_deinit(void) {
 
     #if !defined(RGFW_NO_X11_EXT_PRELOAD)
         RGFW_FREE_LIBRARY(X11XEXThandle);
-    #endif
+    #endif 
 #endif
 #ifdef RGFW_WAYLAND
 	wl_display_disconnect(_RGFW.wl_display);
