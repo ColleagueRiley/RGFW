@@ -1,8 +1,6 @@
 - fix macOS software rendering and include a BGR option 
 - RGFW_event unions (to save memory ?)
 - update wayland support
-- optional RGFW_init() and RGFW_free()
-- fix bug wherein drop events are lost when there are multiple threaded windows (X11) (examples/basics/basics)
 
 - look into monitor gamma
 - set gamepad mappings
