@@ -209,7 +209,7 @@ int main() {
 	#define RGFW_MEMCPY(dist, src, len) memcpy(dist, src, len)
 #endif
 
-#ifndef _RGFW_INC_STRING
+#ifndef RGFW_STRNCMP
 	#define RGFW_STRNCMP(s1, s2, max) strncmp(s1, s2, max)
 #endif
 
