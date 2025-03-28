@@ -422,7 +422,6 @@ int main() {
 	this is mostly used to allow you to force the use of XWayland
 */
 RGFWDEF void RGFW_useWayland(RGFW_bool wayland);
-RGFWDEF RGFW_bool RGFW_usingWayland(void);
 /*
 	regular RGFW stuff
 */
@@ -1508,14 +1507,6 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 
 #ifdef RGFW_IMPLEMENTATION
 RGFW_bool RGFW_useWaylandBool = 1;
-#if !defined(RGFW_NO_X11) && defined(RGFW_WAYLAND)
-void RGFW_useWayland(RGFW_bool wayland) { RGFW_useWaylandBool = wayland;  }
-#define RGFW_GOTO_WAYLAND(fallback) if (RGFW_useWaylandBool && fallback == 0) goto wayland
-#else
-#define RGFW_GOTO_WAYLAND(fallback) 
-void RGFW_useWayland(RGFW_bool wayland) { RGFW_UNUSED(wayland); }
-#endif
-RGFW_bool RGFW_usingWayland(void) { return RGFW_useWaylandBool; }
 
 char* RGFW_clipboard_data;
 void RGFW_clipboard_switch(char* newstr);
@@ -2364,6 +2355,7 @@ void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show) {
 #ifndef RGFW_MACOS
 void RGFW_moveToMacOSResourceDir(void) { }
 #endif
+
 /*
 	graphics API specific code (end of generic code)
 	starts here
@@ -3419,6 +3411,14 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 	.done = wl_surface_frame_done,
 };
 #endif /* RGFW_WAYLAND */
+#if !defined(RGFW_NO_X11) && defined(RGFW_WAYLAND)
+void RGFW_useWayland(RGFW_bool wayland) { RGFW_useWaylandBool = wayland;  }
+#define RGFW_GOTO_WAYLAND(fallback) if (RGFW_useWaylandBool && fallback == 0) goto wayland
+#else
+#define RGFW_GOTO_WAYLAND(fallback) 
+void RGFW_useWayland(RGFW_bool wayland) { RGFW_UNUSED(wayland); }
+#endif
+
 /*
 	End of Wayland defines
 */
@@ -4024,6 +4024,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		win->src.decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
 					decoration_manager, win->src.xdg_toplevel);
 	}
+
+	if (flags & RGFW_windowOpenglSoftware)
+		setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
 
 	wl_display_roundtrip(win->src.wl_display);
 
@@ -5565,8 +5568,7 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 		return;
 	#endif
 	#ifdef RGFW_WAYLAND
-wayland:
-        #if !defined(RGFW_BUFFER_BGR) && !defined(RGFW_OSMESA)
+		#if !defined(RGFW_BUFFER_BGR) && !defined(RGFW_OSMESA)
 		RGFW_RGB_to_BGR(win, win->src.buffer);
 		#else
 		for (size_t y = 0; y < win->r.h; y++) {
@@ -5580,10 +5582,7 @@ wayland:
 		wl_surface_commit(win->src.surface);
 	#endif
 #else
-#ifdef RGFW_WAYLAND
-wayland:
-#endif
-    RGFW_UNUSED(win);
+	RGFW_UNUSED(win);
 #endif
 }
 
@@ -9375,7 +9374,6 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 }
 
 void RGFW_deinit(void) {  
-    _RGFW.root = NULL;
     _RGFW.windowCount = -1; 
 }
 
