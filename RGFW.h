@@ -5684,6 +5684,7 @@ void RGFW_window_close(RGFW_window* win) {
     _RGFW.windowCount--;
     if (_RGFW.windowCount == 0) RGFW_deinit();
 
+    XCloseDisplay(win->src.display);
 	RGFW_clipboard_switch(NULL);
 	RGFW_FREE(win->event.droppedFiles);
     if ((win->_flags & RGFW_WINDOW_ALLOC)) {
