@@ -210,7 +210,6 @@ int main() {
 #endif
 
 #ifndef RGFW_STRNCMP
-#ifndef RGFW_STRNCMP
 	#define RGFW_STRNCMP(s1, s2, max) strncmp(s1, s2, max)
 #endif
 
