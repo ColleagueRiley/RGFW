@@ -114,9 +114,9 @@ int main(void) {
     }
 
     RGFW_freeMouse(mouse);
-
     running2 = 0;
     RGFW_window_close(win);
+    while (win2); // wait for second window to close
 }
 
 void drawLoop(RGFW_window *w) {
@@ -184,11 +184,8 @@ void* loop2(void* args) {
 
     running = 0;
     RGFW_window_close(win);
-	
-	#ifdef __APPLE__
-	win2 = NULL;
-	#endif
 
+    win2 = NULL;
     #ifdef RGFW_WINDOWS
     return 0;
     #else
