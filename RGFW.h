@@ -9329,7 +9329,7 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 #endif
 }
 
-i32 RGFW_deinit(void) {
+void RGFW_deinit(void) {
 }
 
 void RGFW_window_close(RGFW_window* win) {
