@@ -1796,9 +1796,11 @@ RGFW_event* RGFW_window_checkEventCore(RGFW_window* win) {
 		RGFW_resetKey();
 	
 	if (win->event.type == RGFW_quit && win->_flags & RGFW_windowFreeOnClose) {
-		RGFW_window_close(win);
-		return (RGFW_event*)-1;
-	}
+        static RGFW_event ev; 
+        ev = win->event;
+        RGFW_window_close(win);
+	    return &ev;
+    }
 
 	if (win->event.type != RGFW_DNDInit) win->event.type = 0;
 
@@ -1973,7 +1975,9 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 	/* set and init the new window's data */
 	win->r = rect;
 	win->event.droppedFilesCount = 0;
-	win->_flags |= flags;
+
+	win->_flags = 0 | (win->_flags & RGFW_WINDOW_ALLOC);
+    win->_flags |= flags;
 	win->event.keyMod = 0;
 	win->_lastMousePoint = RGFW_POINT(0, 0);
 	
@@ -4123,11 +4127,9 @@ char* RGFW_strtok(char* str, const char* delimStr) {
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
-	RGFW_event* ev = RGFW_window_checkEventCore(win);
-	if (ev) {
-		if (ev == (RGFW_event*)-1) return NULL;
-		return ev;
-	}
+    if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
+    RGFW_event* ev = RGFW_window_checkEventCore(win);
+	if (ev) return ev;
 
 	#if defined(__linux__) && !defined(RGFW_NO_LINUX)
 		if (RGFW_linux_updateGamepad(win)) return &win->event;
@@ -6633,13 +6635,9 @@ void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
-	RGFW_event* ev = RGFW_window_checkEventCore(win);
-	if (ev) {
-		if (ev == (RGFW_event*)-1) { 
-			return NULL;
-		}
-		return ev;
-	}
+    if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
+    RGFW_event* ev = RGFW_window_checkEventCore(win);
+	if (ev) return ev;
 	
 	static HDROP drop;
 	if (win->event.type == RGFW_DNDInit) {
@@ -8574,9 +8572,9 @@ void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
-	RGFW_event* ev =  RGFW_window_checkEventCore(win);
+    if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
+    RGFW_event* ev =  RGFW_window_checkEventCore(win);
 	if (ev) {
-		if (ev == (RGFW_event*)-1) return NULL;
 		((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
 		return ev;
 	}
@@ -9922,11 +9920,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
-	RGFW_event* ev =  RGFW_window_checkEventCore(win);
-	if (ev) {
-		if (ev == (RGFW_event*)-1) return NULL;
-		return ev;
-	}
+    if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
+    RGFW_event* ev =  RGFW_window_checkEventCore(win);
+	if (ev) return ev;
 	
 	emscripten_sample_gamepad_data();
 	/* check gamepads */
