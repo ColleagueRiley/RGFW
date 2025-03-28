@@ -422,7 +422,6 @@ int main() {
 	this is mostly used to allow you to force the use of XWayland
 */
 RGFWDEF void RGFW_useWayland(RGFW_bool wayland);
-RGFWDEF RGFW_bool RGFW_usingWayland(void);
 /*
 	regular RGFW stuff
 */
@@ -1287,15 +1286,7 @@ RGFWDEF void RGFW_window_swapBuffers_OpenGL(RGFW_window* win); /*!< swap opengl 
 void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl))*/
 #endif
 #ifdef RGFW_VULKAN
-	#if defined(RGFW_WAYLAND) && defined(RGFW_X11)
-    	#define VK_USE_PLATFORM_WAYLAND_KHR
-		#define VK_USE_PLATFORM_XLIB_KHR
-        #define RGFW_VK_SURFACE ((RGFW_usingWayland()) ? ("VK_KHR_wayland_surface") : ("VK_KHR_xlib_surface"))
-    #elif defined(RGFW_WAYLAND)
-		#define VK_USE_PLATFORM_WAYLAND_KHR
-		#define VK_USE_PLATFORM_XLIB_KHR
-        #define RGFW_VK_SURFACE "VK_KHR_wayland_surface"
-    #elif defined(RGFW_X11)
+	#if defined(RGFW_X11)
 		#define VK_USE_PLATFORM_XLIB_KHR
 		#define RGFW_VK_SURFACE "VK_KHR_xlib_surface"
 	#elif defined(RGFW_WINDOWS)
@@ -1305,6 +1296,9 @@ void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend
 	#elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
 		#define VK_USE_PLATFORM_MACOS_MVK
 		#define RGFW_VK_SURFACE "VK_MVK_macos_surface"
+	#elif defined(RGFW_WAYLAND)
+		#define VK_USE_PLATFORM_WAYLAND_KHR
+		#define RGFW_VK_SURFACE "VK_KHR_wayland_surface"
 	#else
 		#define RGFW_VK_SURFACE NULL
 	#endif
@@ -1312,7 +1306,6 @@ void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend
 #include <vulkan/vulkan.h>
 
 RGFWDEF VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface);
-RGFWDEF RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex);
 #endif
 #ifdef RGFW_DIRECTX
 #ifndef RGFW_WINDOWS
@@ -1501,14 +1494,6 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 
 #ifdef RGFW_IMPLEMENTATION
 RGFW_bool RGFW_useWaylandBool = 1;
-#if !defined(RGFW_NO_X11) && defined(RGFW_WAYLAND)
-void RGFW_useWayland(RGFW_bool wayland) { RGFW_useWaylandBool = wayland;  }
-#define RGFW_GOTO_WAYLAND(fallback) if (RGFW_useWaylandBool && fallback == 0) goto wayland
-#else
-#define RGFW_GOTO_WAYLAND(fallback) 
-void RGFW_useWayland(RGFW_bool wayland) { RGFW_UNUSED(wayland); }
-#endif
-RGFW_bool RGFW_usingWayland(void) { return RGFW_useWaylandBool; }
 
 char* RGFW_clipboard_data;
 void RGFW_clipboard_switch(char* newstr);
@@ -1811,9 +1796,11 @@ RGFW_event* RGFW_window_checkEventCore(RGFW_window* win) {
 		RGFW_resetKey();
 	
 	if (win->event.type == RGFW_quit && win->_flags & RGFW_windowFreeOnClose) {
-		RGFW_window_close(win);
-		return (RGFW_event*)-1;
-	}
+        static RGFW_event ev; 
+        ev = win->event;
+        RGFW_window_close(win);
+	    return &ev;
+    }
 
 	if (win->event.type != RGFW_DNDInit) win->event.type = 0;
 
@@ -1988,7 +1975,9 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 	/* set and init the new window's data */
 	win->r = rect;
 	win->event.droppedFilesCount = 0;
-	win->_flags |= flags;
+
+	win->_flags = 0 | (win->_flags & RGFW_WINDOW_ALLOC);
+    win->_flags |= flags;
 	win->event.keyMod = 0;
 	win->_lastMousePoint = RGFW_POINT(0, 0);
 	
@@ -2350,6 +2339,7 @@ void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show) {
 #ifndef RGFW_MACOS
 void RGFW_moveToMacOSResourceDir(void) { }
 #endif
+
 /*
 	graphics API specific code (end of generic code)
 	starts here
@@ -2812,14 +2802,8 @@ VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSu
     *surface = VK_NULL_HANDLE;
 
 #ifdef RGFW_X11
-    RGFW_GOTO_WAYLAND(0);
     VkXlibSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, 0, 0, (Display*) win->src.display, (Window) win->src.window };
     return vkCreateXlibSurfaceKHR(instance, &x11, NULL, surface);
-#endif
-#if defined(RGFW_WAYLAND)
-wayland:
-    VkWaylandSurfaceCreateInfoKHR wayland = { VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR, 0, 0, (struct wl_display*) win->src.wl_display, (struct wl_surface*) win->src.surface };
-    return vkCreateWaylandSurfaceKHR(instance, &wayland, NULL, surface);
 #elif defined(RGFW_WINDOWS)
     VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, GetModuleHandle(NULL), (HWND)win->src.window };
 
@@ -2828,42 +2812,6 @@ wayland:
     VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, vulkWin->display, (void *)win->src.window };
 
     return vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface);
-#endif
-}
-
-
-RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex) {
-    assert(instance);
-#ifdef RGFW_X11
-    RGFW_GOTO_WAYLAND(0);
-    Display* display = NULL;
-    Visual* visual = NULL;
-
-    if (RGFW_root == NULL) {
-        display = XOpenDisplay(0);
-        visual = DefaultVisual(display, DefaultScreen(display));
-    }
-    else {
-        visual = RGFW_root->src.visual.visual;
-        display = RGFW_root->src.display;
-    }
-
-    RGFW_bool out = vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIndex, display, XVisualIDFromVisual(visual));
-    if (RGFW_root == NULL) XCloseDisplay(display);
-    return out;
-#endif
-#if defined(RGFW_WAYLAND)
-wayland:
-    struct wl_display* wl_display = NULL;
-	if (RGFW_root == NULL) wl_display = wl_display_connect(NULL);
-    else wl_display = RGFW_root->src.wl_display;
-    RGFW_bool wlout = vkGetPhysicalDeviceWaylandPresentationSupportKHR(physicalDevice, queueFamilyIndex, wl_display);
-    if (RGFW_root == NULL) wl_display_disconnect(wl_display);
-    return wlout;
-#elif defined(RGFW_WINDOWS)
-    return vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, queueFamilyIndex);
-#elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
-    return RGFW_FALSE; // TODO
 #endif
 }
 #endif /* end of RGFW_vulkan */
@@ -3409,6 +3357,14 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 	.done = wl_surface_frame_done,
 };
 #endif /* RGFW_WAYLAND */
+#if !defined(RGFW_NO_X11) && defined(RGFW_WAYLAND)
+void RGFW_useWayland(RGFW_bool wayland) { RGFW_useWaylandBool = wayland;  }
+#define RGFW_GOTO_WAYLAND(fallback) if (RGFW_useWaylandBool && fallback == 0) goto wayland
+#else
+#define RGFW_GOTO_WAYLAND(fallback) 
+void RGFW_useWayland(RGFW_bool wayland) { RGFW_UNUSED(wayland); }
+#endif
+
 /*
 	End of Wayland defines
 */
@@ -4000,6 +3956,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 					decoration_manager, win->src.xdg_toplevel);
 	}
 
+	if (flags & RGFW_windowOpenglSoftware)
+		setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
+
 	wl_display_roundtrip(win->src.wl_display);
 
 	wl_surface_commit(win->src.surface);
@@ -4168,11 +4127,9 @@ char* RGFW_strtok(char* str, const char* delimStr) {
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
-	RGFW_event* ev = RGFW_window_checkEventCore(win);
-	if (ev) {
-		if (ev == (RGFW_event*)-1) return NULL;
-		return ev;
-	}
+    if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
+    RGFW_event* ev = RGFW_window_checkEventCore(win);
+	if (ev) return ev;
 
 	#if defined(__linux__) && !defined(RGFW_NO_LINUX)
 		if (RGFW_linux_updateGamepad(win)) return &win->event;
@@ -5551,8 +5508,7 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 		return;
 	#endif
 	#ifdef RGFW_WAYLAND
-wayland:
-        #if !defined(RGFW_BUFFER_BGR) && !defined(RGFW_OSMESA)
+		#if !defined(RGFW_BUFFER_BGR) && !defined(RGFW_OSMESA)
 		RGFW_RGB_to_BGR(win, win->src.buffer);
 		#else
 		for (size_t y = 0; y < win->r.h; y++) {
@@ -5566,10 +5522,7 @@ wayland:
 		wl_surface_commit(win->src.surface);
 	#endif
 #else
-#ifdef RGFW_WAYLAND
-wayland:
-#endif
-    RGFW_UNUSED(win);
+	RGFW_UNUSED(win);
 #endif
 }
 
@@ -6682,13 +6635,9 @@ void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
-	RGFW_event* ev = RGFW_window_checkEventCore(win);
-	if (ev) {
-		if (ev == (RGFW_event*)-1) { 
-			return NULL;
-		}
-		return ev;
-	}
+    if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
+    RGFW_event* ev = RGFW_window_checkEventCore(win);
+	if (ev) return ev;
 	
 	static HDROP drop;
 	if (win->event.type == RGFW_DNDInit) {
@@ -8623,9 +8572,9 @@ void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
-	RGFW_event* ev =  RGFW_window_checkEventCore(win);
+    if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
+    RGFW_event* ev =  RGFW_window_checkEventCore(win);
 	if (ev) {
-		if (ev == (RGFW_event*)-1) return NULL;
 		((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
 		return ev;
 	}
@@ -9971,11 +9920,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
-	RGFW_event* ev =  RGFW_window_checkEventCore(win);
-	if (ev) {
-		if (ev == (RGFW_event*)-1) return NULL;
-		return ev;
-	}
+    if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
+    RGFW_event* ev =  RGFW_window_checkEventCore(win);
+	if (ev) return ev;
 	
 	emscripten_sample_gamepad_data();
 	/* check gamepads */
