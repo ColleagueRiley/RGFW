@@ -1286,7 +1286,15 @@ RGFWDEF void RGFW_window_swapBuffers_OpenGL(RGFW_window* win); /*!< swap opengl 
 void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl))*/
 #endif
 #ifdef RGFW_VULKAN
-	#if defined(RGFW_X11)
+	#if defined(RGFW_WAYLAND) && defined(RGFW_X11)
+    	#define VK_USE_PLATFORM_WAYLAND_KHR
+		#define VK_USE_PLATFORM_XLIB_KHR
+        #define RGFW_VK_SURFACE ((RGFW_usingWayland()) ? ("VK_KHR_wayland_surface") : ("VK_KHR_xlib_surface"))
+    #elif defined(RGFW_WAYLAND)
+		#define VK_USE_PLATFORM_WAYLAND_KHR
+		#define VK_USE_PLATFORM_XLIB_KHR
+        #define RGFW_VK_SURFACE "VK_KHR_wayland_surface"
+    #elif defined(RGFW_X11)
 		#define VK_USE_PLATFORM_XLIB_KHR
 		#define RGFW_VK_SURFACE "VK_KHR_xlib_surface"
 	#elif defined(RGFW_WINDOWS)
@@ -1296,16 +1304,17 @@ void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend
 	#elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
 		#define VK_USE_PLATFORM_MACOS_MVK
 		#define RGFW_VK_SURFACE "VK_MVK_macos_surface"
-	#elif defined(RGFW_WAYLAND)
-		#define VK_USE_PLATFORM_WAYLAND_KHR
-		#define RGFW_VK_SURFACE "VK_KHR_wayland_surface"
 	#else
 		#define RGFW_VK_SURFACE NULL
 	#endif
 
+/* if you don't want to use the above macros */
+RGFWDEF const char** RGFW_getVKRequiredInstanceExtensions(size_t* count); /*!< gets (static) extension array (and size (which will be 2)) */
+
 #include <vulkan/vulkan.h>
 
 RGFWDEF VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface);
+RGFWDEF RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex);
 #endif
 #ifdef RGFW_DIRECTX
 #ifndef RGFW_WINDOWS
@@ -2801,6 +2810,13 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	RGFW_VULKAN defines
 */
 #ifdef RGFW_VULKAN
+const char** RGFW_getVKRequiredInstanceExtensions(size_t* count) {
+    static const char* arr[2] = {VK_KHR_SURFACE_EXTENSION_NAME};
+    arr[1] = RGFW_VK_SURFACE; 
+    if (count != NULL) *count = 2;
+    
+    return (const char**)arr;
+}
 
 VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface) {
     RGFW_ASSERT(win != NULL); RGFW_ASSERT(instance);
@@ -2809,8 +2825,14 @@ VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSu
     *surface = VK_NULL_HANDLE;
 
 #ifdef RGFW_X11
+    RGFW_GOTO_WAYLAND(0);
     VkXlibSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, 0, 0, (Display*) win->src.display, (Window) win->src.window };
     return vkCreateXlibSurfaceKHR(instance, &x11, NULL, surface);
+#endif
+#if defined(RGFW_WAYLAND)
+wayland:
+    VkWaylandSurfaceCreateInfoKHR wayland = { VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR, 0, 0, (struct wl_display*) win->src.wl_display, (struct wl_surface*) win->src.surface };
+    return vkCreateWaylandSurfaceKHR(instance, &wayland, NULL, surface);
 #elif defined(RGFW_WINDOWS)
     VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, GetModuleHandle(NULL), (HWND)win->src.window };
 
@@ -2819,6 +2841,31 @@ VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSu
     VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, vulkWin->display, (void *)win->src.window };
 
     return vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface);
+#endif
+}
+
+
+RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex) {
+    assert(instance);
+	if (_RGFW.init == RGFW_FALSE) RGFW_init();
+#ifdef RGFW_X11
+    RGFW_GOTO_WAYLAND(0);
+	Visual* visual = DefaultVisual(_RGFW.display, DefaultScreen(_RGFW.display));
+    if (RGFW_root)
+        visual = RGFW_root->src.visual.visual;
+
+    RGFW_bool out = vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIndex, _RGFW.display, XVisualIDFromVisual(visual));
+    if (RGFW_root == NULL) XCloseDisplay(display);
+    return out;
+#endif
+#if defined(RGFW_WAYLAND)
+wayland:   
+    RGFW_bool wlout = vkGetPhysicalDeviceWaylandPresentationSupportKHR(physicalDevice, queueFamilyIndex, _RGFW.wl_display);
+    return wlout;
+#elif defined(RGFW_WINDOWS)
+    return vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, queueFamilyIndex);
+#elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
+    return RGFW_FALSE; // TODO
 #endif
 }
 #endif /* end of RGFW_vulkan */
