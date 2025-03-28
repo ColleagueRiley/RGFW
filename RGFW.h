@@ -1309,6 +1309,9 @@ void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend
 		#define RGFW_VK_SURFACE NULL
 	#endif
 
+/* if you don't want to use the above macros */
+RGFWDEF const char** RGFW_getVKRequiredInstanceExtensions(size_t* count); /*!< gets (static) extension array (and size (which will be 2)) */
+
 #include <vulkan/vulkan.h>
 
 RGFWDEF VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface);
@@ -2804,6 +2807,13 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	RGFW_VULKAN defines
 */
 #ifdef RGFW_VULKAN
+const char** RGFW_getVKRequiredInstanceExtensions(size_t* count) {
+    static const char* arr[2] = {VK_KHR_SURFACE_EXTENSION_NAME};
+    arr[1] = RGFW_VK_SURFACE; 
+    if (count != NULL) *count = 2;
+    
+    return (const char**)arr;
+}
 
 VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface) {
     RGFW_ASSERT(win != NULL); RGFW_ASSERT(instance);
