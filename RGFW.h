@@ -209,7 +209,7 @@ int main() {
 	#define RGFW_MEMCPY(dist, src, len) memcpy(dist, src, len)
 #endif
 
-#ifndef _RGFW_INC_STRING
+#ifndef RGFW_STRNCMP
 	#define RGFW_STRNCMP(s1, s2, max) strncmp(s1, s2, max)
 #endif
 
@@ -1326,10 +1326,6 @@ RGFWDEF int RGFW_window_createDXSwapChain(RGFW_window* win, IDXGIFactory* pFacto
 /** * @defgroup Supporting
 * @{ */
 
-/*! optional init/deinit function */
-RGFWDEF i32 RGFW_init(void); /*!< is called by default when the first window is created by default */
-RGFWDEF void RGFW_deinit(void); /*!< is called by default when the last open window is closed */
-
 RGFWDEF double RGFW_getTime(void); /*!< get time in seconds since RGFW_setTime, which ran when the first window is open  */
 RGFWDEF u64 RGFW_getTimeNS(void); /*!< get time in nanoseconds RGFW_setTime, which ran when the first window is open */
 RGFWDEF void RGFW_sleep(u64 milisecond); /*!< sleep for a set time */
@@ -1927,6 +1923,7 @@ no more event call back defines
 #define RGFW_WINDOW_INIT 		RGFW_BIT(30) /* if window.buffer was allocated by RGFW */
 #define RGFW_INTERNAL_FLAGS (RGFW_EVENT_QUIT | RGFW_EVENT_PASSED | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_WINDOW_ALLOC | RGFW_BUFFER_ALLOC | RGFW_windowFocus)
 
+
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
 	RGFW_window* win = (RGFW_window*)RGFW_ALLOC(sizeof(RGFW_window));
 	RGFW_ASSERT(win != NULL);
@@ -1938,17 +1935,6 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlag
 	#define XDL_IMPLEMENTATION
 	#include "XDL.h"
 #endif
-
-typedef struct RGFW_globalStruct {
-    RGFW_bool init;
-    #ifdef RGFW_X11
-        Display* display;
-    #endif
-    #ifdef RGFW_WAYLAND
-	    struct wl_display* wl_display;
-    #endif
-} RGFW_globalStruct;
-RGFW_globalStruct RGFW_global = {.init = 0};
 
 RGFWDEF void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags flags);
 #if defined(RGFW_X11) || defined(RGFW_WINDOWS)
@@ -1962,17 +1948,18 @@ RGFW_window* RGFW_getRootWindow(void) { return RGFW_root; }
 /* do a basic initialization for RGFW_window, this is to standard it for each OS */
 void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags flags) {
 	RGFW_UNUSED(flags);
-	if (RGFW_global.init == RGFW_FALSE) RGFW_init();
-
-    /* rect based the requested flags */
+	/* rect based the requested flags */
 	if (RGFW_root == NULL) {
 		RGFW_setRootWindow(win);
 		RGFW_setTime(0);
+		#ifdef RGFW_X11
+		RGFW_root->src.display = XOpenDisplay(NULL);
+		#endif
 	}
 
 	#ifdef RGFW_X11
 	win->src.clipboard = NULL;
-	win->src.display = RGFW_global.display;
+	win->src.display = RGFW_root->src.display;
 	RGFW_ASSERT(win->src.display != NULL);
 	#endif
 
@@ -3737,9 +3724,8 @@ RGFW_UNUSED(win);
 #endif
 
 
-i32 RGFW_init(void) {
-#ifdef RGFW_X11
-    #ifdef RGFW_USE_XDL
+RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
+	#ifdef RGFW_USE_XDL
 		XDL_init();
 	#endif
 
@@ -3782,19 +3768,9 @@ i32 RGFW_init(void) {
 	        RGFW_PROC_DEF(X11XEXThandle, XShapeCombineMask);
     #endif
 
+
+
 	XInitThreads(); /*!< init X11 threading */
-    RGFW_global.display = XOpenDisplay(0);
-#endif
-#ifdef RGFW_WAYLAND
-wayland:
-    RGFW_global.wl_display = wl_display_connect(NULL);
-#endif
-
-    return 0;
-}
-
-
-RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	RGFW_window_basic_init(win, rect, flags);
 
 #ifdef RGFW_WAYLAND
@@ -3905,7 +3881,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	wayland:
 	RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningWayland, RGFW_DEBUG_CTX(win, 0), "RGFW Wayland support is experimental");
 
-	win->src.wl_display = RGFW_global.display;
+	win->src.wl_display = wl_display_connect(NULL);
 	if (win->src.wl_display == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errWayland, RGFW_DEBUG_CTX(win, 0), "Failed to load Wayland display");
 		#ifdef RGFW_X11
@@ -5316,8 +5292,11 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen);
 RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	RGFW_monitor monitor;
 
-    if (RGFW_global.init == RGFW_FALSE) RGFW_init();
-    Display* display = RGFW_global.display;
+	Display* display;
+	if (RGFW_root == NULL)
+		display = XOpenDisplay(NULL);
+	else
+		display = RGFW_root->src.display;
 
 	if (screen == -1) screen = DefaultScreen(display);
 	
@@ -5357,6 +5336,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 
 		if (info == NULL || ci == NULL) {
 			XRRFreeScreenResources(sr);
+			XCloseDisplay(display);
 			RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor, RGFW_DEBUG_CTX_MON(monitor), "monitor found");
 			return monitor;
 		}
@@ -5386,6 +5366,8 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 		XRRFreeScreenResources(sr);
 	#endif
 
+	if (RGFW_root == NULL) XCloseDisplay(display);
+
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor, RGFW_DEBUG_CTX_MON(monitor), "monitor found");
 	return monitor;
 }
@@ -5395,10 +5377,11 @@ RGFW_monitor* RGFW_getMonitors(size_t* len) {
 
 	RGFW_GOTO_WAYLAND(1);
 	#ifdef RGFW_X11
-    
-    if (RGFW_global.init == RGFW_FALSE) RGFW_init();
 
-	Display* display = RGFW_global.display;
+	Display* display;
+	if (RGFW_root == NULL)	display = XOpenDisplay(NULL);
+	else					display = RGFW_root->src.display;
+
 	i32 max = ScreenCount(display);
 
 	i32 i;
@@ -5406,6 +5389,8 @@ RGFW_monitor* RGFW_getMonitors(size_t* len) {
 		monitors[i] = RGFW_XCreateMonitor(i);
 
 	if (len != NULL) *len = (size_t)((max <= 6) ? (max) : (6)); 
+
+	if (RGFW_root == NULL) XCloseDisplay(display);
 
 	return monitors;
 	#endif
@@ -5554,52 +5539,11 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 }
 #endif
 
-void RGFW_deinit(void) {
-    if (RGFW_global.init == RGFW_FALSE) return;
-    #define RGFW_FREE_LIBRARY(x) if (x != NULL) dlclose(x); x = NULL;
-
-#ifdef RGFW_X11
-    #if !defined(RGFW_NO_X11_CURSOR_PRELOAD) && !defined(RGFW_NO_X11_CURSOR)
-        RGFW_FREE_LIBRARY(X11Cursorhandle);
-    #endif
-    #if !defined(RGFW_NO_X11_XI_PRELOAD)
-        RGFW_FREE_LIBRARY(X11Xihandle);
-    #endif
-
-    #ifdef RGFW_USE_XDL
-        XDL_close();
-    #endif
-
-    #if !defined(RGFW_NO_X11_EXT_PRELOAD)
-        RGFW_FREE_LIBRARY(X11XEXThandle);
-    #endif
- 
-    XCloseDisplay(RGFW_global.display); /*!< kill connection to the x server */
-#endif
-#ifdef RGFW_WAYLAND
-	wl_display_disconnect(RGFW_global.wl_display);
-#endif
-    #ifndef RGFW_NO_LINUX
-    if (RGFW_eventWait_forceStop[0] || RGFW_eventWait_forceStop[1]){
-        close(RGFW_eventWait_forceStop[0]);
-        close(RGFW_eventWait_forceStop[1]);
-    }
-
-    u8 i;
-    for (i = 0; i < RGFW_gamepadCount; i++) {
-        if(RGFW_gamepads[i])
-            close(RGFW_gamepads[i]);
-    }
-    #endif
-
-    RGFW_root = NULL;
-    RGFW_global.init = RGFW_FALSE;
-}
 
 void RGFW_window_close(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_freeOpenGL(win);
-
+	
 	#ifdef RGFW_X11
 	/* to save the clipboard on the x server after the window is closed */
 	RGFW_LOAD_ATOM(CLIPBOARD_MANAGER);
@@ -5631,14 +5575,51 @@ void RGFW_window_close(RGFW_window* win) {
 		}
 	#endif
 	
-    XFreeGC(win->src.display, win->src.gc);
-    if (win->src.window) {
-        XDestroyWindow(win->src.display, (Drawable) win->src.window); /*!< close the window */
-        win->src.window = 0;
-    }
-    
-    if (win == RGFW_root) RGFW_deinit();
+	if (win->src.display) {
+		XFreeGC(win->src.display, win->src.gc);
+		if ((Drawable) win->src.window)
+			XDestroyWindow(win->src.display, (Drawable) win->src.window); /*!< close the window */
 
+		if (win == RGFW_root) {
+			XCloseDisplay(win->src.display); /*!< kill the x server connection */
+			RGFW_root = NULL;
+		}
+	}
+
+	/* set cleared display / window to NULL for error checking */
+	win->src.display = 0;
+	win->src.window = 0;
+
+	#define RGFW_FREE_LIBRARY(x) if (x != NULL) dlclose(x); x = NULL;
+	if (win == RGFW_root) {
+		#if !defined(RGFW_NO_X11_CURSOR_PRELOAD) && !defined(RGFW_NO_X11_CURSOR)
+			RGFW_FREE_LIBRARY(X11Cursorhandle);
+		#endif
+		#if !defined(RGFW_NO_X11_XI_PRELOAD)
+			RGFW_FREE_LIBRARY(X11Xihandle);
+		#endif
+
+		#ifdef RGFW_USE_XDL
+			XDL_close();
+		#endif
+
+		#if !defined(RGFW_NO_X11_EXT_PRELOAD)
+			RGFW_FREE_LIBRARY(X11XEXThandle);
+		#endif
+
+		#ifndef RGFW_NO_LINUX
+		if (RGFW_eventWait_forceStop[0] || RGFW_eventWait_forceStop[1]){
+			close(RGFW_eventWait_forceStop[0]);
+			close(RGFW_eventWait_forceStop[1]);
+		}
+
+		u8 i;
+		for (i = 0; i < RGFW_gamepadCount; i++) {
+			if(RGFW_gamepads[i])
+				close(RGFW_gamepads[i]);
+		}
+		#endif
+	}
 	RGFW_clipboard_switch(NULL);
 	RGFW_FREE(win->event.droppedFiles);
 	if ((win->_flags & RGFW_WINDOW_ALLOC))
@@ -5653,8 +5634,12 @@ void RGFW_window_close(RGFW_window* win) {
 			XDestroyWindow(win->src.display, (Drawable) win->src.window);
 		#endif
 
-
-        if (win == RGFW_root) RGFW_deinit();	
+		if (RGFW_root == win) {
+			#ifdef RGFW_X11
+			XCloseDisplay(win->src.display); /*!< kill connection to the x server */
+			#endif
+			RGFW_root = NULL;
+		}
 
 		xdg_toplevel_destroy(win->src.xdg_toplevel);
 		xdg_surface_destroy(win->src.xdg_surface);
@@ -5668,6 +5653,7 @@ void RGFW_window_close(RGFW_window* win) {
 			munmap(win->src.buffer, win->r.w * win->r.h * 4);
 		#endif
 
+		wl_display_disconnect(win->src.wl_display);
 		RGFW_clipboard_switch(NULL);
 		RGFW_FREE(win->event.droppedFiles);
 		if ((win->_flags & RGFW_WINDOW_ALLOC))
@@ -6271,18 +6257,17 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 }
 #endif
 
-
-i32 RGFW_init(void) {
+RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	#ifndef RGFW_NO_XINPUT
 		if (RGFW_XInput_dll == NULL)
 			RGFW_loadXInput();
 	#endif
 
-#ifndef RGFW_NO_DPI
-	#if (_WIN32_WINNT >= 0x0600)
-		SetProcessDPIAware();
+	#ifndef RGFW_NO_DPI
+		#if (_WIN32_WINNT >= 0x0600)
+			SetProcessDPIAware();
+		#endif
 	#endif
-#endif
 
 	#ifndef RGFW_NO_WINMM
 		#ifndef RGFW_NO_LOAD_WINMM
@@ -6309,11 +6294,8 @@ i32 RGFW_init(void) {
 		RGFW_PROC_DEF(RGFW_wgl_dll, wglGetCurrentContext);
 		RGFW_PROC_DEF(RGFW_wgl_dll, wglShareLists);
 	#endif
-    return 1    ;
-}
+    
 
-
-RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	if (name[0] == 0) name = (char*) " ";
 
 	RGFW_window_basic_init(win, rect, flags);
@@ -7189,31 +7171,6 @@ void RGFW_window_show(RGFW_window* win) {
 }
 
 #define RGFW_FREE_LIBRARY(x) if (x != NULL) FreeLibrary(x); x = NULL;
-void RGFW_deinit(void) {
-    #ifndef RGFW_NO_XINPUT
-    RGFW_FREE_LIBRARY(RGFW_XInput_dll);
-    #endif
-
-    #ifndef RGFW_NO_DPI
-        RGFW_FREE_LIBRARY(RGFW_Shcore_dll);
-    #endif
-
-    #ifndef RGFW_NO_WINMM
-        timeEndPeriod(1);
-        #ifndef RGFW_NO_LOAD_WINMM
-            RGFW_FREE_LIBRARY(RGFW_winmm_dll);
-        #endif
-    #endif
-
-    RGFW_FREE_LIBRARY(RGFW_wgl_dll);
-    RGFW_root = NULL;
-
-    if (RGFW_hiddenMouse != NULL) {
-        RGFW_freeMouse(RGFW_hiddenMouse);
-        RGFW_hiddenMouse = 0;
-    }
-}
-
 
 void RGFW_window_close(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
@@ -7230,7 +7187,30 @@ void RGFW_window_close(RGFW_window* win) {
 	if (win->src.hIconSmall) DestroyIcon(win->src.hIconSmall);
 	if (win->src.hIconBig) DestroyIcon(win->src.hIconBig);
 
-	if (win == RGFW_root) RGFW_deinit();
+	if (win == RGFW_root) {
+		#ifndef RGFW_NO_XINPUT
+		RGFW_FREE_LIBRARY(RGFW_XInput_dll);
+		#endif
+
+		#ifndef RGFW_NO_DPI
+			RGFW_FREE_LIBRARY(RGFW_Shcore_dll);
+		#endif
+
+		#ifndef RGFW_NO_WINMM
+			timeEndPeriod(1);
+			#ifndef RGFW_NO_LOAD_WINMM
+				RGFW_FREE_LIBRARY(RGFW_winmm_dll);
+			#endif
+		#endif
+
+		RGFW_FREE_LIBRARY(RGFW_wgl_dll);
+		RGFW_root = NULL;
+
+		if (RGFW_hiddenMouse != NULL) {
+			RGFW_freeMouse(RGFW_hiddenMouse);
+			RGFW_hiddenMouse = 0;
+		}
+	}
 
 	RGFW_clipboard_switch(NULL);
 	RGFW_FREE(win->event.droppedFiles);
@@ -8317,9 +8297,9 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 }
 #endif
 
-
-i32 RGFW_init(void) {
-    /* NOTE(EimaMei): Why does Apple hate good code? Like wtf, who thought of methods being a great idea???
+RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
+	static u8 RGFW_loaded = 0;
+	/* NOTE(EimaMei): Why does Apple hate good code? Like wtf, who thought of methods being a great idea???
 	Imagine a universe, where MacOS had a proper system API (we would probably have like 20% better performance).
 	*/
 	si_func_to_SEL_with_name("NSObject", "windowShouldClose", (void*)RGFW_OnClose);
@@ -8328,7 +8308,11 @@ i32 RGFW_init(void) {
 	si_func_to_SEL("NSWindow", acceptsFirstResponder);
 	si_func_to_SEL("NSWindow", performKeyEquivalent);
 
-    if (NSApp == NULL) {
+	// RR Create an autorelease pool
+	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+	pool = objc_msgSend_id(pool, sel_registerName("init"));
+
+	if (NSApp == NULL) {
 		NSApp = objc_msgSend_id((id)objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
 
 		((void (*)(id, SEL, NSUInteger))objc_msgSend)
@@ -8339,16 +8323,7 @@ i32 RGFW_init(void) {
 		#endif
 	}
 
-    return 0;
-}
-
-RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
-	static u8 RGFW_loaded = 0;
 	RGFW_window_basic_init(win, rect, flags);
-
-    // RR Create an autorelease pool
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
 
 	RGFW_window_setMouseDefault(win);
 
@@ -9329,9 +9304,6 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 #endif
 }
 
-void RGFW_deinit(void) {
-}
-
 void RGFW_window_close(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	NSRelease(win->src.view);
@@ -9342,7 +9314,6 @@ void RGFW_window_close(RGFW_window* win) {
 			RGFW_FREE(win->buffer);
 	#endif
 
-    if (win == RGFW_root) RGFW_deinit();
 	RGFW_clipboard_switch(NULL);
 	RGFW_FREE(win->event.droppedFiles);
 	
@@ -9838,8 +9809,6 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 #endif
 }
 
-i32 RGFW_init(void) { }
-
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
     RGFW_window_basic_init(win, rect, flags);
 	RGFW_window_initOpenGL(win, 0);
@@ -10163,8 +10132,6 @@ void* RGFW_getCurrent_OpenGL(void) { return (void*)emscripten_webgl_get_current_
 #ifndef RGFW_EGL
 void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) { RGFW_UNUSED(win); RGFW_UNUSED(swapInterval); }
 #endif
-
-void RGFW_deinit(void) { }
 
 void RGFW_window_close(RGFW_window* win) {
 	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_freeOpenGL(win);
