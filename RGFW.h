@@ -7268,6 +7268,7 @@ void RGFW_deinit(void) {
 
     RGFW_freeMouse(_RGFW.hiddenMouse);
     _RGFW.windowCount = -1;
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal, (RGFW_debugContext){0}, "global context deinitialized");
 }
 
 
@@ -7292,7 +7293,6 @@ void RGFW_window_close(RGFW_window* win) {
 
     RGFW_clipboard_switch(NULL);
 	RGFW_FREE(win->event.droppedFiles);
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
         win = NULL;        
