@@ -2618,6 +2618,7 @@ i32* RGFW_initFormatAttribs(u32 useSoftware) {
 
 
 void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
+    RGFW_UNUSED(software);
 #if defined(RGFW_LINK_EGL)
 	eglInitializeSource = (PFNEGLINITIALIZEPROC) eglGetProcAddress("eglInitialize");
 	eglGetConfigsSource = (PFNEGLGETCONFIGSPROC) eglGetProcAddress("eglGetConfigs");
@@ -2655,7 +2656,7 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 	#define EGL_OPENGL_ES1_BIT 0x1
 	#endif
 
-	EGLint egl_config[] = {
+	EGLint egl_config[24] = {
 		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
 		EGL_RENDERABLE_TYPE,
 		#ifdef RGFW_OPENGL_ES1
@@ -2853,7 +2854,7 @@ wayland:
 
 
 RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex) {
-    assert(instance);
+    RGFW_ASSERT(instance);
 	if (_RGFW.windowCount == -1) RGFW_init();
 #ifdef RGFW_X11
     RGFW_GOTO_WAYLAND(0);
