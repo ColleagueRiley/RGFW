@@ -47,6 +47,8 @@ Current Version: RGFW 1.7-dev
 - add swapInterval to wgl opengl function loading function
 - add RGFW_init and RGFW_deinit
 - fix macOS software rendering support
+- fix RGFW memory alignment
+- fix window open before flags set     
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------
