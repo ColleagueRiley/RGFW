@@ -1,4 +1,3 @@
-- fix macOS software rendering (default view doesn't work (RGFW_BUFFER)) 
 - RGFW_event unions (to save memory ?)
 - update wayland support
 
