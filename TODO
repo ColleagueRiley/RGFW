@@ -1,6 +1,7 @@
-- RGFW_event unions (to save memory ?)
-- update wayland support
+- RGFW_event unions (to save memory ?) (might require breaking changes in RGFW_event, and might make it harder to access event data, so might not be worth it )
+- update wayland support (wayland is sus)
 
+(extra stuff)
 - look into monitor gamma
 - set gamepad mappings
 - set gamepad rumble
