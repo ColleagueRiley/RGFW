@@ -422,6 +422,7 @@ int main() {
 	this is mostly used to allow you to force the use of XWayland
 */
 RGFWDEF void RGFW_useWayland(RGFW_bool wayland);
+RGFWDEF RGFW_bool RGFW_usingWayland(void);
 /*
 	regular RGFW stuff
 */
@@ -1273,7 +1274,7 @@ typedef RGFW_ENUM(u8, RGFW_glHints)  {
 	RGFW_glReleaseBehavior,
 	RGFW_glProfile,
 	RGFW_glMajor, RGFW_glMinor,
-	RGFW_glFinalHint, /*!< the final hint (not for setting) */
+	RGFW_glFinalHint = 32, /*!< the final hint (not for setting) */
 	RGFW_releaseFlush = 0,  RGFW_glReleaseNone, /* RGFW_glReleaseBehavior options */
 	RGFW_glCore = 0,  RGFW_glCompatibility /*!< RGFW_glProfile options */
 };
@@ -1470,8 +1471,8 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_KP_Period,
 	RGFW_KP_Return,
 	RGFW_scrollLock,
-	RGFW_keyLast
-};
+	RGFW_keyLast = 256 /* padding for alignment ~(175 by default) */
+ };
 
 RGFWDEF u32 RGFW_apiKeyToRGFW(u32 keycode);
 
@@ -1487,6 +1488,7 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	RGFW_mouseResizeNESW,
 	RGFW_mouseResizeAll,
 	RGFW_mouseNotAllowed,
+    RGFW_mouseIconFinal = 16 /* padding for alignment */
 };
 
 /** @} */
@@ -1615,7 +1617,7 @@ This is the start of keycode data
 #define RGFW_MAP RGFW_keycodes
 #endif
 
-u8 RGFW_keycodes [RGFW_OS_BASED_VALUE(136, 0x15C + 1, 128, DOM_VK_WIN_OEM_CLEAR + 1)] = {
+u8 RGFW_keycodes [RGFW_OS_BASED_VALUE(256, 512, 128, 256)] = {
 #ifdef __cplusplus
 	0
 };
@@ -1770,7 +1772,7 @@ void RGFW_resetKey(void) {
 */
 
 /* gamepad data */
-RGFW_keyState RGFW_gamepadPressed[4][18]; /*!< if a key is currently pressed or not (per gamepad) */
+RGFW_keyState RGFW_gamepadPressed[4][32]; /*!< if a key is currently pressed or not (per gamepad) */
 RGFW_point RGFW_gamepadAxes[4][4]; /*!< if a key is currently pressed or not (per gamepad) */
 
 RGFW_gamepadType RGFW_gamepads_type[4]; /*!< if a key is currently pressed or not (per gamepad) */
@@ -1898,7 +1900,7 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlag
 	#include "XDL.h"
 #endif
 
-#define RGFW_MAX_EVENTS 20
+#define RGFW_MAX_EVENTS 32
 typedef struct RGFW_globalStruct {
     i32 windowCount;
     RGFW_window* root;
@@ -5108,7 +5110,7 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_GOTO_WAYLAND(0);
 #ifdef RGFW_X11
-	static const u8 mouseIconSrc[] = { XC_arrow, XC_left_ptr, XC_xterm, XC_crosshair, XC_hand2, XC_sb_h_double_arrow, XC_sb_v_double_arrow, XC_bottom_left_corner, XC_bottom_right_corner, XC_fleur, XC_X_cursor};
+	static const u8 mouseIconSrc[16] = { XC_arrow, XC_left_ptr, XC_xterm, XC_crosshair, XC_hand2, XC_sb_h_double_arrow, XC_sb_v_double_arrow, XC_bottom_left_corner, XC_bottom_right_corner, XC_fleur, XC_X_cursor};
 
 	if (mouse > (sizeof(mouseIconSrc) / sizeof(u8)))
 		return RGFW_FALSE;
@@ -5123,7 +5125,7 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 #endif
 #ifdef RGFW_WAYLAND
 	wayland:
-	static const char* iconStrings[] = { "left_ptr", "left_ptr", "text", "cross", "pointer", "e-resize", "n-resize", "nw-resize", "ne-resize", "all-resize", "not-allowed" };
+	static const char* iconStrings[16] = { "left_ptr", "left_ptr", "text", "cross", "pointer", "e-resize", "n-resize", "nw-resize", "ne-resize", "all-resize", "not-allowed" };
 
 	struct wl_cursor* wlcursor = wl_cursor_theme_get_cursor(RGFW_wl_cursor_theme, iconStrings[mouse]);
 	RGFW_cursor_image = wlcursor->images[0];
@@ -7226,7 +7228,7 @@ RGFW_bool RGFW_window_setMouseDefault(RGFW_window* win) {
 RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	RGFW_ASSERT(win != NULL);
 
-	static const u32 mouseIconSrc[] = {OCR_NORMAL, OCR_NORMAL, OCR_IBEAM, OCR_CROSS, OCR_HAND, OCR_SIZEWE, OCR_SIZENS, OCR_SIZENWSE, OCR_SIZENESW, OCR_SIZEALL, OCR_NO};
+	static const u32 mouseIconSrc[16] = {OCR_NORMAL, OCR_NORMAL, OCR_IBEAM, OCR_CROSS, OCR_HAND, OCR_SIZEWE, OCR_SIZENS, OCR_SIZENWSE, OCR_SIZENESW, OCR_SIZEALL, OCR_NO};
 	if (mouse > (sizeof(mouseIconSrc) / sizeof(u32)))
 		return RGFW_FALSE;
 
@@ -9101,7 +9103,7 @@ void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show) {
 }
 
 RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 stdMouses) {
-	static const char* mouseIconSrc[] = {"arrowCursor", "arrowCursor", "IBeamCursor", "crosshairCursor", "pointingHandCursor", "resizeLeftRightCursor", "resizeUpDownCursor", "_windowResizeNorthWestSouthEastCursor", "_windowResizeNorthEastSouthWestCursor", "closedHandCursor", "operationNotAllowedCursor"};
+	static const char* mouseIconSrc[16] = {"arrowCursor", "arrowCursor", "IBeamCursor", "crosshairCursor", "pointingHandCursor", "resizeLeftRightCursor", "resizeUpDownCursor", "_windowResizeNorthWestSouthEastCursor", "_windowResizeNorthEastSouthWestCursor", "closedHandCursor", "operationNotAllowedCursor"};
 	if (stdMouses > ((sizeof(mouseIconSrc)) / (sizeof(char*))))
 		return RGFW_FALSE;
 
@@ -10102,7 +10104,7 @@ void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) { RGFW_UNUSED(win
 void RGFW_freeMouse(RGFW_mouse* mouse) { RGFW_UNUSED(mouse); }
 
 RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
-	static const char cursors[11][12] = {
+	static const char cursors[16][16] = {
 		"default", "default", "text", "crosshair",
 		"pointer", "ew-resize", "ns-resize", "nwse-resize", "nesw-resize",
 		"move", "not-allowed"
