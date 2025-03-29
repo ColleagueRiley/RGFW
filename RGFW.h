@@ -9379,7 +9379,7 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 	((void (*)(id, SEL, BOOL))objc_msgSend)(contentView, sel_getUid("setWantsLayer:"), YES);
 	id layer = ((id (*)(id, SEL))objc_msgSend)(contentView, sel_getUid("layer"));
 
-	((void (*)(id, SEL, id))objc_msgSend)(layer, sel_getUid("setContents:"), win->src.image);
+	((void (*)(id, SEL, id))objc_msgSend)(layer, sel_getUid("setContents:"), (id)win->src.image);
 	((void (*)(id, SEL, BOOL))objc_msgSend)(contentView, sel_getUid("setNeedsDisplay:"), YES);
 	
 	NSRelease(rep);
