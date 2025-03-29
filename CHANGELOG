@@ -1,7 +1,7 @@
 changelog
 ---------
 
-Current Version: RGFW 1.6.5-dev
+Current Version: RGFW 1.7-dev
 -----------------------------------------------
 - fix `RGFW_window_setFlags` overwrite bugs (@DiarrheaMcgee)
 - add missing string override functions, casting warnings, ensure `wayland:` (@DiarrheaMcgee)
