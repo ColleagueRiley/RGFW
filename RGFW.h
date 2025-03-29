@@ -3919,7 +3919,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	/* set the background */
 	RGFW_window_setName(win, name);
 
-	RGFW_window_show(win);
 	XMoveWindow(win->src.display, (Drawable) win->src.window, win->r.x, win->r.y); /*!< move the window to it's proper cords */
 
 	if (flags & RGFW_windowAllowDND) { /* init drag and drop atoms and turn on drag and drop for this window */
@@ -3955,6 +3954,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	RGFW_window_setMouseDefault(win);
 	RGFW_window_setFlags(win, flags);
 
+	RGFW_window_show(win);
 	return win; /*return newly created window */
 #endif
 #ifdef RGFW_WAYLAND
@@ -6445,12 +6445,12 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	if ((flags & RGFW_windowNoInitAPI) == 0)
 		RGFW_window_initOpenGL(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
 	
-	RGFW_window_show(win);
 	RGFW_window_setFlags(win, flags);
-
 	RGFW_win32_makeWindowTransparent(win);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new window was created");
-	return win;
+    RGFW_window_show(win);
+    
+    return win;
 }
 
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
@@ -8506,7 +8506,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		NSregisterForDraggedTypes((id)win->src.window, types, 3);
 	}
 
-	// Show the window
+	RGFW_window_setFlags(win, flags);
+	
+    // Show the window
 	objc_msgSend_void_bool(NSApp, sel_registerName("activateIgnoringOtherApps:"), true);
 	((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("makeKeyAndOrderFront:"), NULL);
 	RGFW_window_show(win);
@@ -8520,8 +8522,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	objc_msgSend_void(win->src.window, sel_registerName("makeKeyWindow"));
 
 	objc_msgSend_void(NSApp, sel_registerName("finishLaunching"));
-	
-	RGFW_window_setFlags(win, flags);
 	NSRetain(win->src.window);
 	NSRetain(NSApp);
 
