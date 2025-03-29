@@ -9190,7 +9190,7 @@ $(function() {
 <div class="line"><a id="l09379" name="l09379"></a><span class="lineno"> 9379</span>    ((void (*)(id, SEL, BOOL))objc_msgSend)(contentView, sel_getUid(<span class="stringliteral">&quot;setWantsLayer:&quot;</span>), YES);</div>
 <div class="line"><a id="l09380" name="l09380"></a><span class="lineno"> 9380</span>    <span class="keywordtype">id</span> layer = ((id (*)(id, SEL))objc_msgSend)(contentView, sel_getUid(<span class="stringliteral">&quot;layer&quot;</span>));</div>
 <div class="line"><a id="l09381" name="l09381"></a><span class="lineno"> 9381</span> </div>
-<div class="line"><a id="l09382" name="l09382"></a><span class="lineno"> 9382</span>    ((void (*)(id, SEL, id))objc_msgSend)(layer, sel_getUid(<span class="stringliteral">&quot;setContents:&quot;</span>), win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.image);</div>
+<div class="line"><a id="l09382" name="l09382"></a><span class="lineno"> 9382</span>    ((void (*)(id, SEL, id))objc_msgSend)(layer, sel_getUid(<span class="stringliteral">&quot;setContents:&quot;</span>), (id)win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.image);</div>
 <div class="line"><a id="l09383" name="l09383"></a><span class="lineno"> 9383</span>    ((void (*)(id, SEL, BOOL))objc_msgSend)(contentView, sel_getUid(<span class="stringliteral">&quot;setNeedsDisplay:&quot;</span>), YES);</div>
 <div class="line"><a id="l09384" name="l09384"></a><span class="lineno"> 9384</span>    </div>
 <div class="line"><a id="l09385" name="l09385"></a><span class="lineno"> 9385</span>    NSRelease(rep);</div>
