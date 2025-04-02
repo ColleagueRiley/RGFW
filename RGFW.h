@@ -5328,6 +5328,9 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 		}
 	}
 
+	if (prop_data != NULL)
+		XFree(prop_data);
+
 	return RGFW_FALSE;
 }
 
