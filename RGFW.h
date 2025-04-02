@@ -10354,10 +10354,8 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win); return
 #include <pthread.h>
 
 RGFW_thread RGFW_createThread(RGFW_threadFunc_ptr ptr, void* args) {
-	RGFW_UNUSED(args);
-
 	RGFW_thread t;
-	pthread_create((pthread_t*) &t, NULL, *ptr, NULL);
+	pthread_create((pthread_t*) &t, NULL, *ptr, args);
 	return t;
 }
 void RGFW_cancelThread(RGFW_thread thread) { pthread_cancel((pthread_t) thread); }
