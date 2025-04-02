@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
