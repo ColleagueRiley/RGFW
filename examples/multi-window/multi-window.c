@@ -18,9 +18,6 @@ void* loop(void* _win) {
 		RGFW_window_eventWait(win, RGFW_eventWaitNext);
 		RGFW_event* event = NULL;
 		while ((event = RGFW_window_checkEvent(win)) != NULL) {
-			if (event->type == RGFW_eventNone)
-				break;
-
 			switch (event->type) {
 				case RGFW_quit:
 					RGFW_window_setShouldClose(win, 1);
