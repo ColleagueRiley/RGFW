@@ -1531,10 +1531,13 @@ void RGFW_clipboard_switch(char* newstr) {
 
 const char* RGFW_readClipboard(size_t* len) {
 	RGFW_ssize_t size = RGFW_readClipboardPtr(NULL, 0);
-	RGFW_CHECK_CLIPBOARD();
-	char* str = (char*)RGFW_ALLOC((size_t)size);
-	size = RGFW_readClipboardPtr(str, (size_t)size);
-	RGFW_CHECK_CLIPBOARD();
+    RGFW_CHECK_CLIPBOARD();
+    char* str = (char*)RGFW_ALLOC((size_t)size);
+    str[0] = '\0';
+
+    size = RGFW_readClipboardPtr(str, (size_t)size);
+    
+    RGFW_CHECK_CLIPBOARD();
 
 	if (len != NULL) *len = (size_t)size;
 
@@ -3882,7 +3885,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	swa.background_pixel = 0;
 
 	/* create the window */
-	win->src.window = XCreateWindow(win->src.display, DefaultRootWindow(win->src.display), win->r.x, win->r.y, (u32)win->r.w, (u32)win->r.h,
+    win->src.window = XCreateWindow(win->src.display, DefaultRootWindow(win->src.display), win->r.x, win->r.y, (u32)win->r.w, (u32)win->r.h,
 		0, win->src.visual.depth, InputOutput, win->src.visual.visual,
 		CWColormap | CWBorderPixel | CWBackPixel | CWEventMask, &swa);
 
@@ -3953,7 +3956,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new window was created");
 	RGFW_window_setMouseDefault(win);
 	RGFW_window_setFlags(win, flags);
-
+    
 	RGFW_window_show(win);
 	return win; /*return newly created window */
 #endif
@@ -5169,7 +5172,7 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	#ifdef RGFW_X11
 	RGFW_init();
     if (XGetSelectionOwner(_RGFW.display, RGFW_XCLIPBOARD) == _RGFW.helperWindow) {
-		if (str != NULL)
+        if (str != NULL)
 			RGFW_STRNCPY(str, _RGFW.clipboard, _RGFW.clipboard_len);
 		return (RGFW_ssize_t)_RGFW.clipboard_len;
 	}
@@ -5184,11 +5187,15 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 
 	XConvertSelection(_RGFW.display, RGFW_XCLIPBOARD, RGFW_XUTF8_STRING, XSEL_DATA, _RGFW.helperWindow, CurrentTime);
 	XSync(_RGFW.display, 0);
-	XNextEvent(_RGFW.display, &event);
-	
-	if (event.type != SelectionNotify || event.xselection.selection != RGFW_XCLIPBOARD || event.xselection.property == 0)
-		return -1;
-	
+    while (1) {
+        XNextEvent(_RGFW.display, &event); 
+        if (event.type != SelectionNotify) continue;
+        
+        if (event.xselection.selection != RGFW_XCLIPBOARD || event.xselection.property == 0)
+	    	return -1;    
+        break;
+	}
+
 	XGetWindowProperty(event.xselection.display, event.xselection.requestor,
 		event.xselection.property, 0L, (~0L), 0, AnyPropertyType, &target,
 		&format, &sizeN, &N, (u8**) &data);
@@ -5198,14 +5205,15 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 		size = -1;
 
 	if ((target == RGFW_XUTF8_STRING || target == XA_STRING) && str != NULL) {
-		RGFW_MEMCPY(str, data, sizeN);
+        RGFW_MEMCPY(str, data, sizeN);
 		str[sizeN] = '\0';
 		XFree(data);
 	} else if (str != NULL) size = -1;
 
 	XDeleteProperty(event.xselection.display, event.xselection.requestor, event.xselection.property);
 	size = (RGFW_ssize_t)sizeN;
-	return size;
+
+    return size;
 	#endif
 	#if defined(RGFW_WAYLAND)
 	wayland: return 0;

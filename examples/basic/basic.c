@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
@@ -30,13 +31,7 @@ int main(void) {
 					if (event->point.x != 0 && event->point.y != 0)
 						printf("resize: %dx%d\n", event->point.x, event->point.y);
 					break;
-				case RGFW_keyPressed:
-					printf("key pressed: '%c'\n", event->keyChar);
-					break;
-				case RGFW_keyReleased:
-					printf("key released: '%c'\n", event->keyChar);
-					break;
-				case RGFW_mouseButtonPressed:
+    			case RGFW_mouseButtonPressed:
 					printf("button pressed: %u {%d, %d}\n", event->button, event->point.x, event->point.y);
 					break;
 				case RGFW_mouseButtonReleased:

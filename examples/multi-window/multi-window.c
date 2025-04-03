@@ -9,7 +9,6 @@ DWORD loop(void* _win) {
 void* loop(void* _win) {
 #endif
 	RGFW_window*win = (RGFW_window*) _win;
-	RGFW_setClassName("RGFW Example");
 	RGFW_window_makeCurrent(win);
 
 	int blue = 0;
@@ -45,7 +44,7 @@ void* loop(void* _win) {
 			char str[32] = {0};
 			int size = snprintf(str, 32, "window %p: 刺猬", (void*)win);
 			if (size > 0)
-				RGFW_writeClipboard(str, (u32)strlen(str));
+				RGFW_writeClipboard(str, (u32)size);
 		}
 		else if (RGFW_isPressed(win, RGFW_v)) {
 			size_t len = 0;
@@ -82,9 +81,11 @@ void* loop(void* _win) {
 }
 
 int main(void) {
-	RGFW_window* win1 = RGFW_createWindow("RGFW Example Window 1", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter);
-	RGFW_window* win2 = RGFW_createWindow("RGFW Example Window 2", RGFW_RECT(500, 400, 200, 200), RGFW_windowNoResize);
-	RGFW_window* win3 = RGFW_createWindow("RGFW Example Window 3", RGFW_RECT(300, 500, 500, 500), RGFW_windowNoResize);
+    RGFW_setClassName("RGFW Example");
+	
+    RGFW_window* win1 = RGFW_createWindow("RGFW Example Window 1", RGFW_RECT(500, 500, 500, 500), 0);
+	RGFW_window* win2 = RGFW_createWindow("RGFW Example Window 2", RGFW_RECT(100, 100, 200, 200), RGFW_windowNoResize);
+	RGFW_window* win3 = RGFW_createWindow("RGFW Example Window 3", RGFW_RECT(20, 500, 400, 300), RGFW_windowNoResize);
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 	RGFW_window_makeCurrent(NULL); /* this is really important (this releases the opengl context on this thread) */
 	RGFW_thread thread1 = RGFW_createThread(loop, win1);
