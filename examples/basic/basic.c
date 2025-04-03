@@ -64,17 +64,17 @@ int main(void) {
 			}
 		}
 
-		if (RGFW_isPressed(win, RGFW_space))
+		if (RGFW_isReleased(win, RGFW_space))
 			printf("fps: %d\n", fps);
-		else if (RGFW_isPressed(win, RGFW_w))
+		else if (RGFW_isReleased(win, RGFW_w))
 			RGFW_window_setMouseDefault(win);
-		else if (RGFW_isPressed(win, RGFW_e))
+		else if (RGFW_isReleased(win, RGFW_e))
 			RGFW_window_setMouse(win, mouse);
-		else if (RGFW_isPressed(win, RGFW_q))
+		else if (RGFW_isReleased(win, RGFW_q))
 			RGFW_window_showMouse(win, 0);
-		else if (RGFW_isPressed(win, RGFW_t))
+		else if (RGFW_isReleased(win, RGFW_t))
 			RGFW_window_showMouse(win, 1);
-		else if (RGFW_isPressed(win, RGFW_down))
+		else if (RGFW_isReleased(win, RGFW_down))
 				RGFW_writeClipboard("DOWN 刺猬", 12);
 
 
