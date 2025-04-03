@@ -9821,7 +9821,7 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 
 	u32 start = (u32)(((u64)RGFW_getTimeNS()) / 1e+6);
 
-	while ((_RGFW.eventLen == 0) && RGFW_stopCheckEvents_bool == RGFW_FALSE && (RGFW_getTimeNS() / 1e+6) - start < waitMS))
+	while ((_RGFW.eventLen == 0) && RGFW_stopCheckEvents_bool == RGFW_FALSE && (RGFW_getTimeNS() / 1e+6) - start < waitMS)
 		emscripten_sleep(0);
 
 	RGFW_stopCheckEvents_bool = RGFW_FALSE;
