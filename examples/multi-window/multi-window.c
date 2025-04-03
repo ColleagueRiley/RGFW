@@ -3,19 +3,6 @@
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
-void draw(RGFW_window* win, float blue) {
-	glClearColor(0.0, 0.0, blue, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-	glBegin(GL_TRIANGLES);
-	glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.6f, -0.75f);
-	glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.6f, -0.75f);
-	glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
-	glEnd();
-
-	RGFW_window_swapBuffers(win);
-}
-
 #ifdef RGFW_WINDOWS
 DWORD loop(void* _win) {
 #else
@@ -26,7 +13,6 @@ void* loop(void* _win) {
 	RGFW_window_makeCurrent(win);
 
 	int blue = 0;
-
 	u32 frames = 0;
 
 	while (!RGFW_window_shouldClose(win)) {
@@ -63,7 +49,7 @@ void* loop(void* _win) {
 		}
 		else if (RGFW_isPressed(win, RGFW_v)) {
 			size_t len = 0;
-			const char *str = RGFW_readClipboard(&len);
+			const char* str = RGFW_readClipboard(&len);
 			printf("window %p: clipboard paste %d: '", (void*)win, (i32)len);
 			fwrite(str, 1, len, stdout);
 			printf("'\n");
@@ -72,7 +58,16 @@ void* loop(void* _win) {
 			blue = (blue + 1) % 100;
 		}
 
-		draw(win, (float)blue * 0.01f);
+		glClearColor(0.0, 0.0, (float)blue * 0.01f, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+		glBegin(GL_TRIANGLES);
+		glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.6f, -0.75f);
+		glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.6f, -0.75f);
+		glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
+		glEnd();
+
+		RGFW_window_swapBuffers(win);
 		frames++;
 	}
 
