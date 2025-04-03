@@ -72,7 +72,7 @@ void* loop(void* _win) {
 	}
 
 	printf("window %p: total frames %u\n", (void*)win, frames);
-	RGFW_window_makeCurrent(win);
+	RGFW_window_makeCurrent(NULL);
 	
 #ifdef RGFW_WINDOWS
 	return 0;
