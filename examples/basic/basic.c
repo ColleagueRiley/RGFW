@@ -15,20 +15,16 @@ int main(void) {
 
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 
-	glEnable(GL_BLEND);             
-	glClearColor(0, 0, 0, 0);
-
-	int running = 1;
-	uint32_t frames = 0;
-	uint32_t fps = 0;
+	u32 frames = 0;
+	u32 fps = 0;
 	const double startTime = RGFW_getTime();
 
-	while (running && !RGFW_window_shouldClose(win)) {
+	while (!RGFW_window_shouldClose(win)) {
 		RGFW_event *event = NULL;
 		while ((event = RGFW_window_checkEvent(win)) != NULL) {
 			switch (event->type) {
 				case RGFW_quit:
-					running = 0;
+					RGFW_window_setShouldClose(win, 1);
 					break;
 				case RGFW_windowResized:
 					if (event->point.x != 0 && event->point.y != 0)
@@ -47,18 +43,23 @@ int main(void) {
 					printf("button released: %u {%d, %d}\n", event->button, event->point.x, event->point.y);
 					break;
 				case RGFW_gamepadButtonPressed:
-					printf("pressed %d\n", win->event.button);
+					printf("pressed %d\n", event->button);
 					break;
 				case RGFW_gamepadButtonReleased:
-					printf("released %d\n", win->event.button);
+					printf("released %d\n", event->button);
 					break;
 				case RGFW_gamepadAxisMove:
-					printf("gamepad (%d) axis (%d) {%d, %d}\n", win->event.gamepad, win->event.whichAxis, win->event.axis[win->event.whichAxis].x, win->event.axis[win->event.whichAxis].y);
+					printf("gamepad (%d) axis (%d) {%d, %d}\n", event->gamepad, event->whichAxis, event->axis[event->whichAxis].x, event->axis[event->whichAxis].y);
 					break;
 				case RGFW_DND:
 					printf("drag and drop: %dx%d:\n", event->point.x, event->point.y);
-					for (size_t i = 0; i < event->droppedFilesCount; i++)
+					for (size_t i = 0; i < event->droppedFilesCount; i++) {
+#ifdef RGFW_WINDOWS
+						printf("\t%lld: '%s'\n", i, event->droppedFiles[i]);
+#else
 						printf("\t%zu: '%s'\n", i, event->droppedFiles[i]);
+#endif
+					}
 					break;
 			}
 		}
@@ -73,6 +74,9 @@ int main(void) {
 			RGFW_window_showMouse(win, 0);
 		else if (RGFW_isPressed(win, RGFW_t))
 			RGFW_window_showMouse(win, 1);
+		else if (RGFW_isPressed(win, RGFW_down))
+				RGFW_writeClipboard("DOWN 刺猬", 12);
+
 
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
