@@ -76,6 +76,8 @@ int main(void) {
 			RGFW_window_showMouse(win, 1);
 		else if (RGFW_isReleased(win, RGFW_down))
 				RGFW_writeClipboard("DOWN 刺猬", 12);
+		else if (RGFW_isReleased(win, RGFW_up))
+			printf("pasted '%s'\n", RGFW_readClipboard(NULL));
 
 
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
