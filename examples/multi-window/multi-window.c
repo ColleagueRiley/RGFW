@@ -46,7 +46,7 @@ void* loop(void* win) {
 				case RGFW_DND:
 					printf("window %p: drag and drop: %dx%d:\n", win, event->point.x, event->point.y);
 					for (size_t i = 0; i < event->droppedFilesCount; i++)
-						printf("\t%zu: '%s'\n", i, event->droppedFiles[i]);
+						printf("\t%u: '%s'\n", (u32)i, event->droppedFiles[i]);
 					break;
 			}
 

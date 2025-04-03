@@ -54,11 +54,7 @@ int main(void) {
 				case RGFW_DND:
 					printf("drag and drop: %dx%d:\n", event->point.x, event->point.y);
 					for (size_t i = 0; i < event->droppedFilesCount; i++) {
-#ifdef RGFW_WINDOWS
-						printf("\t%lld: '%s'\n", i, event->droppedFiles[i]);
-#else
-						printf("\t%zu: '%s'\n", i, event->droppedFiles[i]);
-#endif
+						printf("\t%u: '%s'\n", (u32)i, event->droppedFiles[i]);
 					}
 					break;
 			}
