@@ -8637,8 +8637,8 @@ void RGFW_stopCheckEvents(void) {
 	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
 
-	id e = (id) ((id(*)(id, SEL, NSEventType, NSPoint, NSEventModifierFlags, void*, NSInteger, void**, short, NSInteger, NSInteger))objc_msgSend)
-		(NSApp, sel_registerName("otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:"),
+	id e = (id) ((id(*)(Class, SEL, NSEventType, NSPoint, NSEventModifierFlags, void*, NSInteger, void**, short, NSInteger, NSInteger))objc_msgSend)
+		(objc_getClass("NSEvent"), sel_registerName("otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:"),
 			NSEventTypeApplicationDefined, (NSPoint){0, 0}, (NSEventModifierFlags)0, NULL, (NSInteger)0, NULL, 0, 0, 0);
 
 	((void (*)(id, SEL, id, bool))objc_msgSend)
@@ -8656,8 +8656,9 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 	void* date = (void*) ((id(*)(Class, SEL, double))objc_msgSend)
 				(objc_getClass("NSDate"), sel_registerName("dateWithTimeIntervalSinceNow:"), waitMS);
 
+	SEL eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
 	id e = (id) ((id(*)(id, SEL, NSEventMask, void*, id, bool))objc_msgSend)
-		(NSApp, sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:"),
+		(NSApp, eventFunc,
 			ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
 
 
@@ -8680,9 +8681,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
 
-	static SEL eventFunc = (SEL)NULL;
-	if (eventFunc == NULL)
-		eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
+	SEL eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
 
 	void* date = NULL;
 
@@ -9349,8 +9348,10 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 
 	#ifdef RGFW_OPENGL
 	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
-		RGFW_ASSERT(win != NULL);
-		objc_msgSend_void(win->src.ctx, sel_registerName("makeCurrentContext"));
+		if (win != NULL)
+			objc_msgSend_void(win->src.ctx, sel_registerName("makeCurrentContext"));
+		else	
+			objc_msgSend_id(objc_getClass("NSOpenGLContext"), sel_registerName("clearCurrentContext"));
 	}
 	void* RGFW_getCurrent_OpenGL(void) {
 		return objc_msgSend_id(objc_getClass("NSOpenGLContext"), sel_registerName("currentContext"));

@@ -3,6 +3,44 @@
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
+
+void checkEvents(RGFW_window* win) {
+	RGFW_window_eventWait(win, RGFW_eventWaitNext);
+	RGFW_event* event = NULL;
+
+	while ((event = RGFW_window_checkEvent(win)) != NULL) {
+		switch (event->type) {
+			case RGFW_quit:
+				RGFW_window_setShouldClose(win, 1);
+				break;
+			case RGFW_windowResized:
+				if (event->point.x != 0 && event->point.y != 0)
+					printf("window %p: resize: %dx%d\n", (void*)win, event->point.x, event->point.y);
+				break;
+			case RGFW_DND:
+				printf("window %p: drag and drop: %dx%d:\n", (void*)win, event->point.x, event->point.y);
+				for (size_t i = 0; i < event->droppedFilesCount; i++)
+					printf("\t%u: '%s'\n", (u32)i, event->droppedFiles[i]);
+				break;
+		}
+	}
+
+	if (RGFW_isPressed(win, RGFW_c)) {
+		char str[32] = {0};
+		int size = snprintf(str, 32, "window %p: 刺猬", (void*)win);
+		if (size > 0)
+			RGFW_writeClipboard(str, (u32)size);
+	}
+	else if (RGFW_isPressed(win, RGFW_v)) {
+		size_t len = 0;
+		const char* str = RGFW_readClipboard(&len);
+		printf("window %p: clipboard paste %d: '", (void*)win, (i32)len);
+		fwrite(str, 1, len, stdout);
+		printf("'\n");
+	}	
+}		
+	
+
 #ifdef RGFW_WINDOWS
 DWORD loop(void* _win) {
 #else
@@ -15,45 +53,14 @@ void* loop(void* _win) {
 	u32 frames = 0;
 
 	while (!RGFW_window_shouldClose(win)) {
-		RGFW_window_eventWait(win, RGFW_eventWaitNext);
-		RGFW_event* event = NULL;
-		while ((event = RGFW_window_checkEvent(win)) != NULL) {
-			switch (event->type) {
-				case RGFW_quit:
-					RGFW_window_setShouldClose(win, 1);
-					break;
-				case RGFW_windowResized:
-					if (event->point.x != 0 && event->point.y != 0)
-						printf("window %p: resize: %dx%d\n", (void*)win, event->point.x, event->point.y);
-					break;
-				case RGFW_DND:
-					printf("window %p: drag and drop: %dx%d:\n", (void*)win, event->point.x, event->point.y);
-					for (size_t i = 0; i < event->droppedFilesCount; i++)
-						printf("\t%u: '%s'\n", (u32)i, event->droppedFiles[i]);
-					break;
-			}
+#ifndef RGFW_MACOS
+		checkEvents(win);		
+#endif
 
-			if (RGFW_window_shouldClose(win))
-				break;
-		}
-
-		if (RGFW_isPressed(win, RGFW_c)) {
-			char str[32] = {0};
-			int size = snprintf(str, 32, "window %p: 刺猬", (void*)win);
-			if (size > 0)
-				RGFW_writeClipboard(str, (u32)size);
-		}
-		else if (RGFW_isPressed(win, RGFW_v)) {
-			size_t len = 0;
-			const char* str = RGFW_readClipboard(&len);
-			printf("window %p: clipboard paste %d: '", (void*)win, (i32)len);
-			fwrite(str, 1, len, stdout);
-			printf("'\n");
-		}
-		else if (RGFW_isPressed(win, RGFW_space)) {
+		if (RGFW_isPressed(win, RGFW_space)) {
 			blue = (blue + 1) % 100;
 		}
-
+		
 		glClearColor(0.0, 0.0, (float)blue * 0.01f, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
@@ -93,10 +100,15 @@ int main(void) {
 	u32 frames = 0;
 
 	while (1) {
+
 		if (win1 == NULL && win2 == NULL && win3 == NULL)
 			break;
 
 		if (win1 != NULL) {
+#ifdef RGFW_MACOS
+			checkEvents(win1);
+			if (RGFW_window_shouldClose(win1)) goto leave;
+#endif
 			if (RGFW_window_shouldClose(win1)) {
 				RGFW_window_close(win1);
 				RGFW_joinThread(thread1);
@@ -104,6 +116,11 @@ int main(void) {
 			}
 		}
 		if (win2 != NULL) {
+#ifdef RGFW_MACOS
+			checkEvents(win2);
+			if (RGFW_window_shouldClose(win2)) goto leave;
+#endif
+
 			if (RGFW_window_shouldClose(win2)) {
 				RGFW_window_close(win2);
 				RGFW_joinThread(thread2);
@@ -111,6 +128,11 @@ int main(void) {
 			}
 		}
 		if (win3 != NULL) {
+#ifdef RGFW_MACOS
+			checkEvents(win3);
+			if (RGFW_window_shouldClose(win3)) goto leave;
+#endif
+
 			if (RGFW_window_shouldClose(win3)) {
 				RGFW_window_close(win3);
 				RGFW_joinThread(thread3);
@@ -122,5 +144,13 @@ int main(void) {
 		RGFW_checkFPS(startTime, frames, 60);
 		frames++;
 	}
+
+#ifdef RGFW_MACOS
+	leave:
+		RGFW_window_close(win1);
+		RGFW_window_close(win2);
+		RGFW_window_close(win3);
+		return 0;
+#endif
 }
 
