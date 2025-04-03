@@ -4203,7 +4203,11 @@ char* RGFW_strtok(char* str, const char* delimStr) {
     return token_start;
 }
 
+i32 RGFW_XHandleClipboardSelectionHelper(void);
+
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
+    RGFW_XHandleClipboardSelectionHelper();
+    
     if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
     RGFW_event* ev = RGFW_window_checkEventCore(win);
 	if (ev) return ev;
@@ -4227,8 +4231,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	XPending(win->src.display);
 
 	XEvent E; /*!< raw X11 event */
-
-	/* if there is no unread qued events, get a new one */
+	
+    /* if there is no unread qued events, get a new one */
 	if ((QLength(win->src.display) || XEventsQueued(win->src.display, QueuedAlready) + XEventsQueued(win->src.display, QueuedAfterReading))
 		&& win->event.type != RGFW_quit
 	)
@@ -5220,24 +5224,33 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	#endif
 }
 
-void RGFW_XHandleClipboardSelectionLoop(void);
-void RGFW_XHandleClipboardSelectionLoop(void) {
-	RGFW_LOAD_ATOM(SAVE_TARGETS);
+i32 RGFW_XHandleClipboardSelectionHelper(void) {
+#ifdef RGFW_X11
+    RGFW_LOAD_ATOM(SAVE_TARGETS);
 
-	for (;;) {
-		XEvent event;
-	  	XNextEvent(_RGFW.display, &event);
-		switch (event.type) {
-			case SelectionRequest:
-				RGFW_XHandleClipboardSelection(&event);
-				return;
-			case SelectionNotify:
-				if (event.xselection.target == SAVE_TARGETS)
-					return;
-				break;
-			default: break;
-		}
-	}
+    XEvent event;
+    XPending(_RGFW.display);
+    
+    if (QLength(_RGFW.display) || XEventsQueued(_RGFW.display, QueuedAlready) + XEventsQueued(_RGFW.display, QueuedAfterReading))
+        XNextEvent(_RGFW.display, &event);
+    else
+        return 0;
+
+    switch (event.type) {
+        case SelectionRequest:
+            RGFW_XHandleClipboardSelection(&event);
+            return 0;
+        case SelectionNotify:
+            if (event.xselection.target == SAVE_TARGETS)
+                return 0;
+            break;
+        default: break;
+    }
+
+    return 0;
+#else
+    return 1;
+#endif
 }
 
 void RGFW_writeClipboard(const char* text, u32 textLen) {
@@ -5259,11 +5272,6 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	_RGFW.clipboard = (char*)RGFW_ALLOC(textLen);
 	RGFW_STRNCPY(_RGFW.clipboard, text, textLen);
 	_RGFW.clipboard_len = textLen;
-#ifdef RGFW_WAYLAND
-	if (RGFW_useWaylandBool)	
-		RGFW_XHandleClipboardSelectionLoop();
-#endif
-
 	#endif
 	#if defined(RGFW_WAYLAND)
 	wayland:
@@ -5625,7 +5633,7 @@ void RGFW_deinit(void) {
 	RGFW_LOAD_ATOM(SAVE_TARGETS);
 	if (XGetSelectionOwner(_RGFW.display, RGFW_XCLIPBOARD) == _RGFW.helperWindow) {
 		XConvertSelection(_RGFW.display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, _RGFW.helperWindow, CurrentTime);
-		RGFW_XHandleClipboardSelectionLoop();
+        while (RGFW_XHandleClipboardSelectionHelper());
 	}
 	if (_RGFW.clipboard) {
 		RGFW_FREE(_RGFW.clipboard);
@@ -5776,14 +5784,20 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 		{ wl_display_get_fd(win->src.wl_display), POLLIN, 0 },
 		#else
 		{ ConnectionNumber(win->src.display), POLLIN, 0 },
-		#endif
-		{ RGFW_eventWait_forceStop[0], POLLIN, 0 },
+        #endif
+        #ifdef RGFW_X11
+		{ ConnectionNumber(_RGFW.display), POLLIN, 0 },
+        #endif
+        { RGFW_eventWait_forceStop[0], POLLIN, 0 },
 		#if defined(__linux__)
 		{ -1, POLLIN, 0 }, {-1, POLLIN, 0 }, {-1, POLLIN, 0 },  {-1, POLLIN, 0}
 		#endif
 	};
 
 	u8 index = 2;
+#ifdef RGFW_X11
+    index++;
+#endif
 
 	#if defined(__linux__)
 		for (i = 0; i < RGFW_gamepadCount; i++) {
@@ -5800,10 +5814,14 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 
 
 	#ifdef RGFW_WAYLAND
-		while (wl_display_dispatch(win->src.wl_display) <= 0) {
+		while (wl_display_dispatch(win->src.wl_display) <= 0
 	#else
-		while (XPending(win->src.display) == 0) {
+		while (XPending(win->src.display) == 0
 	#endif
+    #ifdef RGFW_X11
+        && XPending(_RGFW.display) == 0
+    #endif
+    ) {
 		if (poll(fds, index, waitMS) <= 0)
 			break;
 
@@ -5843,6 +5861,7 @@ u64 RGFW_getTimerValue(void) {
     return (u64)ts.tv_sec * RGFW_getTimerFreq() + (u64)ts.tv_nsec;
 }
 #endif /* end of wayland or X11 defines */
+
 
 
 /*
