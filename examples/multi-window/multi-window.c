@@ -3,7 +3,6 @@
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
-
 void checkEvents(RGFW_window* win) {
 	RGFW_window_eventWait(win, RGFW_eventWaitNext);
 	RGFW_event* event = NULL;
@@ -25,7 +24,7 @@ void checkEvents(RGFW_window* win) {
 		}
 	}
 
-	if (RGFW_isPressed(win, RGFW_c)) {
+    if (RGFW_isPressed(win, RGFW_c)) {
 		char str[32] = {0};
 		int size = snprintf(str, 32, "window %p: 刺猬", (void*)win);
 		if (size > 0)
@@ -53,13 +52,12 @@ void* loop(void* _win) {
 	u32 frames = 0;
 
 	while (!RGFW_window_shouldClose(win)) {
-#ifndef RGFW_MACOS
-		checkEvents(win);		
-#endif
-
 		if (RGFW_isPressed(win, RGFW_space)) {
 			blue = (blue + 1) % 100;
 		}
+
+        if (RGFW_isPressed(NULL, RGFW_e))
+		    RGFW_stopCheckEvents();
 		
 		glClearColor(0.0, 0.0, (float)blue * 0.01f, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -85,6 +83,10 @@ void* loop(void* _win) {
 }
 
 int main(void) {
+    #ifdef RGFW_WINDOWS
+    SetConsoleOutputCP(CP_UTF8);
+	#endif
+    
     RGFW_setClassName("RGFW Example");
 	
     RGFW_window* win1 = RGFW_createWindow("RGFW Example Window 1", RGFW_RECT(500, 500, 500, 500), 0);
@@ -92,65 +94,27 @@ int main(void) {
 	RGFW_window* win3 = RGFW_createWindow("RGFW Example Window 3", RGFW_RECT(20, 500, 400, 300), RGFW_windowNoResize);
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 	RGFW_window_makeCurrent(NULL); /* this is really important (this releases the opengl context on this thread) */
-	RGFW_thread thread1 = RGFW_createThread(loop, win1);
-	RGFW_thread thread2 = RGFW_createThread(loop, win2);
-	RGFW_thread thread3 = RGFW_createThread(loop, win3);
+
+    RGFW_createThread(loop, win1);
+	RGFW_createThread(loop, win2);
+	RGFW_createThread(loop, win3);
 
 	const double startTime = RGFW_getTime();
 	u32 frames = 0;
-
-	while (1) {
-
-		if (win1 == NULL && win2 == NULL && win3 == NULL)
-			break;
-
-		if (win1 != NULL) {
-#ifdef RGFW_MACOS
-			checkEvents(win1);
-			if (RGFW_window_shouldClose(win1)) goto leave;
-#endif
-			if (RGFW_window_shouldClose(win1)) {
-				RGFW_window_close(win1);
-				RGFW_joinThread(thread1);
-				win1 = NULL;
-			}
-		}
-		if (win2 != NULL) {
-#ifdef RGFW_MACOS
-			checkEvents(win2);
-			if (RGFW_window_shouldClose(win2)) goto leave;
-#endif
-
-			if (RGFW_window_shouldClose(win2)) {
-				RGFW_window_close(win2);
-				RGFW_joinThread(thread2);
-				win2 = NULL;
-			}
-		}
-		if (win3 != NULL) {
-#ifdef RGFW_MACOS
-			checkEvents(win3);
-			if (RGFW_window_shouldClose(win3)) goto leave;
-#endif
-
-			if (RGFW_window_shouldClose(win3)) {
-				RGFW_window_close(win3);
-				RGFW_joinThread(thread3);
-				win3 = NULL;
-			}
-		}
-
-		RGFW_stopCheckEvents();
+    
+	while (!RGFW_window_shouldClose(win1) && !RGFW_window_shouldClose(win2) && !RGFW_window_shouldClose(win3)) {
+		checkEvents(win1);
+        checkEvents(win2);
+		checkEvents(win3);
+        
+        printf("new event frame\n");
 		RGFW_checkFPS(startTime, frames, 60);
 		frames++;
 	}
 
-#ifdef RGFW_MACOS
-	leave:
-		RGFW_window_close(win1);
-		RGFW_window_close(win2);
-		RGFW_window_close(win3);
-		return 0;
-#endif
+    RGFW_window_close(win1);
+    RGFW_window_close(win2);
+    RGFW_window_close(win3);
+    return 0;
 }
 
