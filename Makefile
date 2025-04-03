@@ -4,8 +4,12 @@
 # NO_GLES=1 -> do not compile the gles example (on by default for non-linux OSes)
 # NO_OSMESA=1 -> do not compile the osmesa example (on by default for non-linux OSes)
 
-CC = gcc
-AR = ar
+ifndef CC
+	CC = cc
+endif
+ifndef AR
+	AR = ar
+endif
 
 # used for compiling RGFW.o
 CUSTOM_CFLAGS =
