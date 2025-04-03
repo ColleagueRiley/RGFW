@@ -77,7 +77,6 @@ int main(void) {
 
 
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 		glBegin(GL_TRIANGLES);
@@ -85,6 +84,7 @@ int main(void) {
 			glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.6f, -0.75f);
 			glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
 		glEnd();
+
 		RGFW_window_swapBuffers(win); /* NOTE(EimaMei): Rendering should always go: 1. Clear everything 2. Render 3. Swap buffers. Based on https://www.khronos.org/opengl/wiki/Common_Mistakes#Swap_Buffers */
 
 		fps = RGFW_checkFPS(startTime, frames, 60);
