@@ -17,10 +17,11 @@ void draw(RGFW_window* win, float blue) {
 }
 
 #ifdef RGFW_WINDOWS
-DWORD loop(void* win) {
+DWORD loop(void* _win) {
 #else
-void* loop(void* win) {
+void* loop(void* _win) {
 #endif
+	RGFW_window*win = (RGFW_window*) _win;
 	RGFW_setClassName("RGFW Example");
 	RGFW_window_makeCurrent(win);
 
@@ -41,10 +42,10 @@ void* loop(void* win) {
 					break;
 				case RGFW_windowResized:
 					if (event->point.x != 0 && event->point.y != 0)
-						printf("window %p: resize: %dx%d\n", win, event->point.x, event->point.y);
+						printf("window %p: resize: %dx%d\n", (void*)win, event->point.x, event->point.y);
 					break;
 				case RGFW_DND:
-					printf("window %p: drag and drop: %dx%d:\n", win, event->point.x, event->point.y);
+					printf("window %p: drag and drop: %dx%d:\n", (void*)win, event->point.x, event->point.y);
 					for (size_t i = 0; i < event->droppedFilesCount; i++)
 						printf("\t%u: '%s'\n", (u32)i, event->droppedFiles[i]);
 					break;
@@ -56,14 +57,14 @@ void* loop(void* win) {
 
 		if (RGFW_isPressed(win, RGFW_c)) {
 			char str[32] = {0};
-			int size = snprintf(str, 32, "window %p: 刺猬", win);
+			int size = snprintf(str, 32, "window %p: 刺猬", (void*)win);
 			if (size > 0)
 				RGFW_writeClipboard(str, (u32)strlen(str));
 		}
 		else if (RGFW_isPressed(win, RGFW_v)) {
 			size_t len = 0;
 			const char *str = RGFW_readClipboard(&len);
-			printf("window %p: clipboard paste %d: '", win, (i32)len);
+			printf("window %p: clipboard paste %d: '", (void*)win, (i32)len);
 			fwrite(str, 1, len, stdout);
 			printf("'\n");
 		}
@@ -75,7 +76,7 @@ void* loop(void* win) {
 		frames++;
 	}
 
-	printf("window %p: total frames %u\n", win, frames);
+	printf("window %p: total frames %u\n", (void*)win, frames);
 	RGFW_window_makeCurrent(win);
 	
 #ifdef RGFW_WINDOWS
