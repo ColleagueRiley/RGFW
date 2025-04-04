@@ -4,9 +4,7 @@
 #include "RGFW.h"
 
 void checkEvents(RGFW_window* win) {
-	RGFW_window_eventWait(win, RGFW_eventWaitNext);
-printf("end\n");
-    RGFW_event* event = NULL;
+	RGFW_event* event = NULL;
 
 	while ((event = RGFW_window_checkEvent(win)) != NULL) {
 		switch (event->type) {
@@ -25,21 +23,21 @@ printf("end\n");
         }
 	}
 
-    if (RGFW_isPressed(win, RGFW_c)) {
+	if (RGFW_isPressed(win, RGFW_c) && (RGFW_isPressed(win, RGFW_controlL) || RGFW_isPressed(win, RGFW_controlR))) {
 		char str[32] = {0};
 		int size = snprintf(str, 32, "window %p: 刺猬", (void*)win);
 		if (size > 0)
 			RGFW_writeClipboard(str, (u32)size);
 	}
-	else if (RGFW_isPressed(win, RGFW_v)) {
+	else if (RGFW_isPressed(win, RGFW_v) && (RGFW_isPressed(win, RGFW_controlL) || RGFW_isPressed(win, RGFW_controlR))) {
 		size_t len = 0;
 		const char* str = RGFW_readClipboard(&len);
 		printf("window %p: clipboard paste %d: '", (void*)win, (i32)len);
 		fwrite(str, 1, len, stdout);
 		printf("'\n");
 	}	
-}		
-	
+}
+
 
 #ifdef RGFW_WINDOWS
 DWORD loop(void* _win) {
@@ -57,9 +55,9 @@ void* loop(void* _win) {
 			blue = (blue + 1) % 100;
 		}
 
-        if (RGFW_isPressed(NULL, RGFW_e))
-		    RGFW_stopCheckEvents();
-		
+		if (RGFW_isPressed(NULL, RGFW_e))
+			RGFW_stopCheckEvents();
+
 		glClearColor(0.0, 0.0, (float)blue * 0.01f, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
@@ -75,7 +73,7 @@ void* loop(void* _win) {
 
 	printf("window %p: total frames %u\n", (void*)win, frames);
 	RGFW_window_makeCurrent(NULL);
-	
+
 #ifdef RGFW_WINDOWS
 	return 0;
 #else
@@ -84,38 +82,38 @@ void* loop(void* _win) {
 }
 
 int main(void) {
-    #ifdef RGFW_WINDOWS
-    SetConsoleOutputCP(CP_UTF8);
-	#endif
-    
-    RGFW_setClassName("RGFW Example");
-	
-    RGFW_window* win1 = RGFW_createWindow("RGFW Example Window 1", RGFW_RECT(500, 500, 500, 500), 0);
+#ifdef RGFW_WINDOWS
+	SetConsoleOutputCP(CP_UTF8);
+#endif
+
+	RGFW_setClassName("RGFW Example");
+
+	RGFW_window* win1 = RGFW_createWindow("RGFW Example Window 1", RGFW_RECT(500, 500, 500, 500), 0);
 	RGFW_window* win2 = RGFW_createWindow("RGFW Example Window 2", RGFW_RECT(100, 100, 200, 200), RGFW_windowNoResize);
 	RGFW_window* win3 = RGFW_createWindow("RGFW Example Window 3", RGFW_RECT(20, 500, 400, 300), RGFW_windowNoResize);
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 	RGFW_window_makeCurrent(NULL); /* this is really important (this releases the opengl context on this thread) */
 
-    RGFW_createThread(loop, win1);
+	RGFW_createThread(loop, win1);
 	RGFW_createThread(loop, win2);
 	RGFW_createThread(loop, win3);
 
 	const double startTime = RGFW_getTime();
 	u32 frames = 0;
-    
+
 	while (!RGFW_window_shouldClose(win1) && !RGFW_window_shouldClose(win2) && !RGFW_window_shouldClose(win3)) {
 		checkEvents(win1);
-        checkEvents(win2);
+		checkEvents(win2);
 		checkEvents(win3);
-        
-        printf("new event frame\n");
+
+		printf("new event frame %u\n", frames);
 		RGFW_checkFPS(startTime, frames, 60);
 		frames++;
 	}
 
-    RGFW_window_close(win1);
-    RGFW_window_close(win2);
-    RGFW_window_close(win3);
-    return 0;
+	RGFW_window_close(win1);
+	RGFW_window_close(win2);
+	RGFW_window_close(win3);
+	return 0;
 }
 
