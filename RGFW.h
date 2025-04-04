@@ -1856,11 +1856,11 @@ void RGFW_window_checkMode(RGFW_window* win);
 void RGFW_window_checkMode(RGFW_window* win) {
 	if (RGFW_window_isMinimized(win)) {
 		win->_flags |= RGFW_windowMinimize;
-		RGFW_eventQueuePush((RGFW_event){RGFW_windowMinimized, ._win = win});
+		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMinimized, ._win = win});
 		RGFW_windowMinimizedCallback(win, win->r);
 	} else if (RGFW_window_isMaximized(win)) {
 		win->_flags |= RGFW_windowMaximize;
-		RGFW_eventQueuePush((RGFW_event){RGFW_windowMaximized, ._win = win});
+		RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowMaximized, ._win = win});
 		RGFW_windowMaximizedCallback(win, win->r);
 	} else if (((win->_flags & RGFW_windowMinimize) && !RGFW_window_isMaximized(win)) || 
 				(win->_flags & RGFW_windowMaximize && !RGFW_window_isMaximized(win))) {
