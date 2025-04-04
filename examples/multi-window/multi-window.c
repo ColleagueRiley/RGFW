@@ -5,7 +5,8 @@
 
 void checkEvents(RGFW_window* win) {
 	RGFW_window_eventWait(win, RGFW_eventWaitNext);
-	RGFW_event* event = NULL;
+printf("end\n");
+    RGFW_event* event = NULL;
 
 	while ((event = RGFW_window_checkEvent(win)) != NULL) {
 		switch (event->type) {
@@ -21,7 +22,7 @@ void checkEvents(RGFW_window* win) {
 				for (size_t i = 0; i < event->droppedFilesCount; i++)
 					printf("\t%u: '%s'\n", (u32)i, event->droppedFiles[i]);
 				break;
-		}
+        }
 	}
 
     if (RGFW_isPressed(win, RGFW_c)) {
