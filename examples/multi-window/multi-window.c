@@ -103,7 +103,6 @@ int main(void) {
 		checkEvents(win2);
 		checkEvents(win3);
 
-		printf("new event frame %u\n", frames);
 		RGFW_checkFPS(startTime, frames, 60);
 		frames++;
 	}
