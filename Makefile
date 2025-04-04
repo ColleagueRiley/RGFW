@@ -4,8 +4,8 @@
 # NO_GLES=1 -> do not compile the gles example (on by default for non-linux OSes)
 # NO_OSMESA=1 -> do not compile the osmesa example (on by default for non-linux OSes)
 
-CC = gcc
-AR = ar
+CC ?= gcc
+AR ?= ar
 
 # used for compiling RGFW.o
 CUSTOM_CFLAGS =
@@ -114,14 +114,15 @@ else
 endif
 
 EXAMPLE_OUTPUTS = \
-    examples/basic/basic \
-    examples/buffer/buffer \
+	examples/basic/basic \
+	examples/buffer/buffer \
 	examples/events/events \
 	examples/callbacks/callbacks \
 	examples/flags/flags \
 	examples/monitor/monitor \
 	examples/gl33_ctx/gl33_ctx \
-	examples/smooth-resize/smooth-resize
+	examples/smooth-resize/smooth-resize\
+	examples/multi-window/multi-window
 
 EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/icons/icons \

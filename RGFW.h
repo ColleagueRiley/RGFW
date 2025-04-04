@@ -869,19 +869,19 @@ RGFWDEF RGFW_event* RGFW_window_checkEvent(RGFW_window* win); /*!< check current
 			  if waitMS > 0, the loop will wait that many miliseconds after there are no more events until it returns
 			  if waitMS == -1 or waitMS == the max size of an unsigned 32-bit int, the loop will not return until it gets another event
 */
-typedef RGFW_ENUM(u32, RGFW_eventWait) {
+typedef RGFW_ENUM(i32, RGFW_eventWait) {
 	RGFW_eventNoWait = 0,
 	RGFW_eventWaitNext = -1
 };
 
 /*! sleep until RGFW gets an event or the timer ends (defined by OS) */
-RGFWDEF void RGFW_window_eventWait(RGFW_window* win, u32 waitMS);
+RGFWDEF void RGFW_window_eventWait(RGFW_window* win, i32 waitMS);
 
 /*!
 	check all the events until there are none left.
 	This should only be used if you're using callbacks only
 */
-RGFWDEF void RGFW_window_checkEvents(RGFW_window* win, u32 waitMS);
+RGFWDEF void RGFW_window_checkEvents(RGFW_window* win, i32 waitMS);
 
 /*!
 	tell RGFW_window_eventWait to stop waiting (to be ran from another thread)
@@ -1531,10 +1531,13 @@ void RGFW_clipboard_switch(char* newstr) {
 
 const char* RGFW_readClipboard(size_t* len) {
 	RGFW_ssize_t size = RGFW_readClipboardPtr(NULL, 0);
-	RGFW_CHECK_CLIPBOARD();
-	char* str = (char*)RGFW_ALLOC((size_t)size);
-	size = RGFW_readClipboardPtr(str, (size_t)size);
-	RGFW_CHECK_CLIPBOARD();
+    RGFW_CHECK_CLIPBOARD();
+    char* str = (char*)RGFW_ALLOC((size_t)size);
+    str[0] = '\0';
+
+    size = RGFW_readClipboardPtr(str, (size_t)size);
+    
+    RGFW_CHECK_CLIPBOARD();
 
 	if (len != NULL) *len = (size_t)size;
 
@@ -1837,7 +1840,7 @@ RGFW_CALLBACK_DEFINE(gamepad, Gamepad)
 RGFW_CALLBACK_DEFINE(scaleUpdated, ScaleUpdated)
 #undef RGFW_CALLBACK_DEFINE
 
-void RGFW_window_checkEvents(RGFW_window* win, u32 waitMS) {
+void RGFW_window_checkEvents(RGFW_window* win, i32 waitMS) {
 	RGFW_window_eventWait(win, waitMS);
 
 	while (RGFW_window_checkEvent(win) != NULL && RGFW_window_shouldClose(win) == 0) {
@@ -3882,7 +3885,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	swa.background_pixel = 0;
 
 	/* create the window */
-	win->src.window = XCreateWindow(win->src.display, DefaultRootWindow(win->src.display), win->r.x, win->r.y, (u32)win->r.w, (u32)win->r.h,
+    win->src.window = XCreateWindow(win->src.display, DefaultRootWindow(win->src.display), win->r.x, win->r.y, (u32)win->r.w, (u32)win->r.h,
 		0, win->src.visual.depth, InputOutput, win->src.visual.visual,
 		CWColormap | CWBorderPixel | CWBackPixel | CWEventMask, &swa);
 
@@ -3953,7 +3956,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new window was created");
 	RGFW_window_setMouseDefault(win);
 	RGFW_window_setFlags(win, flags);
-
+    
 	RGFW_window_show(win);
 	return win; /*return newly created window */
 #endif
@@ -4200,7 +4203,11 @@ char* RGFW_strtok(char* str, const char* delimStr) {
     return token_start;
 }
 
+i32 RGFW_XHandleClipboardSelectionHelper(void);
+
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
+    RGFW_XHandleClipboardSelectionHelper();
+    
     if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
     RGFW_event* ev = RGFW_window_checkEventCore(win);
 	if (ev) return ev;
@@ -4224,8 +4231,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	XPending(win->src.display);
 
 	XEvent E; /*!< raw X11 event */
-
-	/* if there is no unread qued events, get a new one */
+	
+    /* if there is no unread qued events, get a new one */
 	if ((QLength(win->src.display) || XEventsQueued(win->src.display, QueuedAlready) + XEventsQueued(win->src.display, QueuedAfterReading))
 		&& win->event.type != RGFW_quit
 	)
@@ -5169,7 +5176,7 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	#ifdef RGFW_X11
 	RGFW_init();
     if (XGetSelectionOwner(_RGFW.display, RGFW_XCLIPBOARD) == _RGFW.helperWindow) {
-		if (str != NULL)
+        if (str != NULL)
 			RGFW_STRNCPY(str, _RGFW.clipboard, _RGFW.clipboard_len);
 		return (RGFW_ssize_t)_RGFW.clipboard_len;
 	}
@@ -5184,11 +5191,15 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 
 	XConvertSelection(_RGFW.display, RGFW_XCLIPBOARD, RGFW_XUTF8_STRING, XSEL_DATA, _RGFW.helperWindow, CurrentTime);
 	XSync(_RGFW.display, 0);
-	XNextEvent(_RGFW.display, &event);
-	
-	if (event.type != SelectionNotify || event.xselection.selection != RGFW_XCLIPBOARD || event.xselection.property == 0)
-		return -1;
-	
+    while (1) {
+        XNextEvent(_RGFW.display, &event); 
+        if (event.type != SelectionNotify) continue;
+        
+        if (event.xselection.selection != RGFW_XCLIPBOARD || event.xselection.property == 0)
+	    	return -1;    
+        break;
+	}
+
 	XGetWindowProperty(event.xselection.display, event.xselection.requestor,
 		event.xselection.property, 0L, (~0L), 0, AnyPropertyType, &target,
 		&format, &sizeN, &N, (u8**) &data);
@@ -5198,38 +5209,48 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 		size = -1;
 
 	if ((target == RGFW_XUTF8_STRING || target == XA_STRING) && str != NULL) {
-		RGFW_MEMCPY(str, data, sizeN);
+        RGFW_MEMCPY(str, data, sizeN);
 		str[sizeN] = '\0';
 		XFree(data);
 	} else if (str != NULL) size = -1;
 
 	XDeleteProperty(event.xselection.display, event.xselection.requestor, event.xselection.property);
 	size = (RGFW_ssize_t)sizeN;
-	return size;
+
+    return size;
 	#endif
 	#if defined(RGFW_WAYLAND)
 	wayland: return 0;
 	#endif
 }
 
-void RGFW_XHandleClipboardSelectionLoop(void);
-void RGFW_XHandleClipboardSelectionLoop(void) {
-	RGFW_LOAD_ATOM(SAVE_TARGETS);
+i32 RGFW_XHandleClipboardSelectionHelper(void) {
+#ifdef RGFW_X11
+    RGFW_LOAD_ATOM(SAVE_TARGETS);
 
-	for (;;) {
-		XEvent event;
-	  	XNextEvent(_RGFW.display, &event);
-		switch (event.type) {
-			case SelectionRequest:
-				RGFW_XHandleClipboardSelection(&event);
-				return;
-			case SelectionNotify:
-				if (event.xselection.target == SAVE_TARGETS)
-					return;
-				break;
-			default: break;
-		}
-	}
+    XEvent event;
+    XPending(_RGFW.display);
+    
+    if (QLength(_RGFW.display) || XEventsQueued(_RGFW.display, QueuedAlready) + XEventsQueued(_RGFW.display, QueuedAfterReading))
+        XNextEvent(_RGFW.display, &event);
+    else
+        return 0;
+
+    switch (event.type) {
+        case SelectionRequest:
+            RGFW_XHandleClipboardSelection(&event);
+            return 0;
+        case SelectionNotify:
+            if (event.xselection.target == SAVE_TARGETS)
+                return 0;
+            break;
+        default: break;
+    }
+
+    return 0;
+#else
+    return 1;
+#endif
 }
 
 void RGFW_writeClipboard(const char* text, u32 textLen) {
@@ -5251,11 +5272,6 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	_RGFW.clipboard = (char*)RGFW_ALLOC(textLen);
 	RGFW_STRNCPY(_RGFW.clipboard, text, textLen);
 	_RGFW.clipboard_len = textLen;
-#ifdef RGFW_WAYLAND
-	if (RGFW_useWaylandBool)	
-		RGFW_XHandleClipboardSelectionLoop();
-#endif
-
 	#endif
 	#if defined(RGFW_WAYLAND)
 	wayland:
@@ -5617,7 +5633,7 @@ void RGFW_deinit(void) {
 	RGFW_LOAD_ATOM(SAVE_TARGETS);
 	if (XGetSelectionOwner(_RGFW.display, RGFW_XCLIPBOARD) == _RGFW.helperWindow) {
 		XConvertSelection(_RGFW.display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, _RGFW.helperWindow, CurrentTime);
-		RGFW_XHandleClipboardSelectionLoop();
+        while (RGFW_XHandleClipboardSelectionHelper());
 	}
 	if (_RGFW.clipboard) {
 		RGFW_FREE(_RGFW.clipboard);
@@ -5750,7 +5766,7 @@ void RGFW_stopCheckEvents(void) {
 	}
 }
 
-void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
+void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 	if (waitMS == 0) return;
 
 	u8 i;
@@ -5768,14 +5784,20 @@ void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
 		{ wl_display_get_fd(win->src.wl_display), POLLIN, 0 },
 		#else
 		{ ConnectionNumber(win->src.display), POLLIN, 0 },
-		#endif
-		{ RGFW_eventWait_forceStop[0], POLLIN, 0 },
+        #endif
+        #ifdef RGFW_X11
+		{ ConnectionNumber(_RGFW.display), POLLIN, 0 },
+        #endif
+        { RGFW_eventWait_forceStop[0], POLLIN, 0 },
 		#if defined(__linux__)
 		{ -1, POLLIN, 0 }, {-1, POLLIN, 0 }, {-1, POLLIN, 0 },  {-1, POLLIN, 0}
 		#endif
 	};
 
 	u8 index = 2;
+#ifdef RGFW_X11
+    index++;
+#endif
 
 	#if defined(__linux__)
 		for (i = 0; i < RGFW_gamepadCount; i++) {
@@ -5792,16 +5814,19 @@ void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
 
 
 	#ifdef RGFW_WAYLAND
-		while (wl_display_dispatch(win->src.wl_display) <= 0 && waitMS != RGFW_eventWaitNext) {
+		while (wl_display_dispatch(win->src.wl_display) <= 0
 	#else
-		while (XPending(win->src.display) == 0 && waitMS != (u32)RGFW_eventWaitNext) {
+		while (XPending(win->src.display) == 0
 	#endif
-		if (poll(fds, index, (int)waitMS) <= 0)
+    #ifdef RGFW_X11
+        && XPending(_RGFW.display) == 0
+    #endif
+    ) {
+		if (poll(fds, index, waitMS) <= 0)
 			break;
 
-		if (waitMS != (u32)RGFW_eventWaitNext) {
-			waitMS -= (u32)((RGFW_getTimeNS() - start) / (u32)1e+6);
-		}
+		if (waitMS != RGFW_eventWaitNext)
+			waitMS -= (i32)(RGFW_getTimeNS() - start) / (i32)1e+6;
 	}
 
 	/* drain any data in the stop request */
@@ -5836,6 +5861,7 @@ u64 RGFW_getTimerValue(void) {
     return (u64)ts.tv_sec * RGFW_getTimerFreq() + (u64)ts.tv_nsec;
 }
 #endif /* end of wayland or X11 defines */
+
 
 
 /*
@@ -6710,7 +6736,7 @@ void RGFW_stopCheckEvents(void) {
 	PostMessageW(_RGFW.root->src.window, WM_NULL, 0, 0);
 }
 
-void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
+void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 	RGFW_UNUSED(win);
 	MsgWaitForMultipleObjects(0, NULL, FALSE, (DWORD)waitMS, QS_ALLINPUT);
 }
@@ -8630,8 +8656,8 @@ void RGFW_stopCheckEvents(void) {
 	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
 
-	id e = (id) ((id(*)(id, SEL, NSEventType, NSPoint, NSEventModifierFlags, void*, NSInteger, void**, short, NSInteger, NSInteger))objc_msgSend)
-		(NSApp, sel_registerName("otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:"),
+	id e = (id) ((id(*)(Class, SEL, NSEventType, NSPoint, NSEventModifierFlags, void*, NSInteger, void**, short, NSInteger, NSInteger))objc_msgSend)
+		(objc_getClass("NSEvent"), sel_registerName("otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:"),
 			NSEventTypeApplicationDefined, (NSPoint){0, 0}, (NSEventModifierFlags)0, NULL, (NSInteger)0, NULL, 0, 0, 0);
 
 	((void (*)(id, SEL, id, bool))objc_msgSend)
@@ -8640,7 +8666,7 @@ void RGFW_stopCheckEvents(void) {
 	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 }
 
-void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
+void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 	RGFW_UNUSED(win);
 
 	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
@@ -8649,8 +8675,9 @@ void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
 	void* date = (void*) ((id(*)(Class, SEL, double))objc_msgSend)
 				(objc_getClass("NSDate"), sel_registerName("dateWithTimeIntervalSinceNow:"), waitMS);
 
+	SEL eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
 	id e = (id) ((id(*)(id, SEL, NSEventMask, void*, id, bool))objc_msgSend)
-		(NSApp, sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:"),
+		(NSApp, eventFunc,
 			ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
 
 
@@ -8673,9 +8700,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
 
-	static SEL eventFunc = (SEL)NULL;
-	if (eventFunc == NULL)
-		eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
+	SEL eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
 
 	void* date = NULL;
 
@@ -9342,8 +9367,10 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 
 	#ifdef RGFW_OPENGL
 	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
-		RGFW_ASSERT(win != NULL);
-		objc_msgSend_void(win->src.ctx, sel_registerName("makeCurrentContext"));
+		if (win != NULL)
+			objc_msgSend_void(win->src.ctx, sel_registerName("makeCurrentContext"));
+		else	
+			objc_msgSend_id(objc_getClass("NSOpenGLContext"), sel_registerName("clearCurrentContext"));
 	}
 	void* RGFW_getCurrent_OpenGL(void) {
 		return objc_msgSend_id(objc_getClass("NSOpenGLContext"), sel_registerName("currentContext"));
@@ -9816,17 +9843,14 @@ void RGFW_stopCheckEvents(void) {
 	RGFW_stopCheckEvents_bool = RGFW_TRUE;
 }
 
-void RGFW_window_eventWait(RGFW_window* win, u32 waitMS) {
+void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 	RGFW_UNUSED(win);
 	if (waitMS == 0) return;
 
 	u32 start = (u32)(((u64)RGFW_getTimeNS()) / 1e+6);
 
-	while ((_RGFW.eventLen == 0) && RGFW_stopCheckEvents_bool == RGFW_FALSE &&
-		(waitMS != RGFW_eventWaitNext || (RGFW_getTimeNS() / 1e+6) - start < waitMS)
-	) {
+	while ((_RGFW.eventLen == 0) && RGFW_stopCheckEvents_bool == RGFW_FALSE && (RGFW_getTimeNS() / 1e+6) - start < waitMS)
 		emscripten_sleep(0);
-	}
 
 	RGFW_stopCheckEvents_bool = RGFW_FALSE;
 }
@@ -10354,10 +10378,8 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win); return
 #include <pthread.h>
 
 RGFW_thread RGFW_createThread(RGFW_threadFunc_ptr ptr, void* args) {
-	RGFW_UNUSED(args);
-
 	RGFW_thread t;
-	pthread_create((pthread_t*) &t, NULL, *ptr, NULL);
+	pthread_create((pthread_t*) &t, NULL, *ptr, args);
 	return t;
 }
 void RGFW_cancelThread(RGFW_thread thread) { pthread_cancel((pthread_t) thread); }
