@@ -1,5 +1,8 @@
 - look into using a single X11 display rather than one display per window
 - update wayland support (wayland is sus)
+- ablity to create an RGFW window form an existing window 
+- add alternative build systems (CMake, build.zig)
+- github actions test compiling add C zig compiler workflow (should spot more warnings)
 
 (extra stuff)
 - look into monitor gamma
