@@ -104,6 +104,12 @@ void windowrefreshfunc(RGFW_window* win);
 void windowrefreshfunc(RGFW_window* win) {
     if (window != win) return;
     printf("refresh\n");
+
+    glClearColor(0.15f, 0.0f, 0.25f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    RGFW_window_swapBuffers(win);
+
 }
 
 void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool pressed);
@@ -155,7 +161,7 @@ int main(void) {
         
         RGFW_window_swapBuffers(window);
  
-		RGFW_window_checkEvents(window, 1000);
+		RGFW_window_checkEvents(window, RGFW_eventNoWait);
    }
 
     RGFW_window_close(window);

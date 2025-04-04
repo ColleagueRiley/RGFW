@@ -4,6 +4,8 @@
 
 #include <stdio.h>
 
+
+void draw(RGFW_window* win);
 void draw(RGFW_window* win) {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -18,6 +20,9 @@ void draw(RGFW_window* win) {
 
     RGFW_window_swapBuffers(win);
 }
+
+void resize(RGFW_window* win, RGFW_rect rect); 
+void refresh(RGFW_window* win); 
 
 void resize(RGFW_window* win, RGFW_rect rect) { RGFW_UNUSED(win); glViewport(0, 0, rect.w, rect.h); }
 void refresh(RGFW_window* win) { printf("refresh\n"); RGFW_UNUSED(win); draw(win); }

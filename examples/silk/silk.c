@@ -14,7 +14,7 @@ typedef uint64_t   u64;
 typedef int64_t    i64;
 
 
-#define u8 u8
+#define RGFW_INT_DEFINED
 #define RGFW_IMPLEMENTATION
 #define RGFW_BUFFER
 
@@ -39,14 +39,12 @@ int main(void) {
         
         silkClearPixelBufferColor((pixel*)win->buffer, 0x11AA0033);
 
-        silkDrawStar(
+        silkDrawRect(
             (pixel*)win->buffer, 
             (vec2i) { SILK_PIXELBUFFER_WIDTH, SILK_PIXELBUFFER_HEIGHT },
             SILK_PIXELBUFFER_WIDTH,
-            (vec2i) { (win->r.w / 2), SILK_PIXELBUFFER_CENTER_Y - 60}, 
-            60,
-            angle,
-            5,
+            (vec2i) { 150, 100}, 
+            (vec2i) { 200, 200 },
             0xff0000ff
         );
 
@@ -63,7 +61,7 @@ int main(void) {
                 win->r.w / 2 - silkMeasureText(text, text_size, text_spacing).x / 2, 
                 win->r.h / 2 - silkMeasureText(text, text_size, text_spacing).y / 2 + win->r.h / 4 
             }, 
-            text_size, 
+            text_size,
             text_spacing,
             0xff000000
         );

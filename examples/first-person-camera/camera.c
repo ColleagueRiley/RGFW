@@ -8,7 +8,7 @@ float pitch = 0.0, yaw= 0.0;
 float camX = 0, camZ = 0;
 
 RGFWDEF void update_camera(void);
-RGFWDEF void glPerspective(double fovY, double aspect, double zNear, double zFar);
+RGFWDEF void glPerspective(float fovY, float aspect, float zNear, float zFar);
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("First person camera", RGFW_RECT(0, 0, 800, 450), RGFW_windowCenter | RGFW_windowNoResize );
@@ -43,7 +43,7 @@ int main(void) {
     RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
 
     u32 frames = 0;
-    double frameStartTime = RGFW_getTime();
+    float frameStartTime = RGFW_getTime();
 
     while (RGFW_window_shouldClose(win) == 0) {
         while (RGFW_window_checkEvent(win)) {
@@ -163,8 +163,10 @@ void update_camera(void) {
     glTranslatef(camX, 0.0, -camZ);
 }
 
-void glPerspective(double fovY, double aspect, double zNear, double zFar) {
-    const double f = 1 / (cos(fovY) * sin(fovY));
+void glPerspective(float fovY, float aspect, float zNear, float zFar) {
+    fovY =  (fovY * DEG2RAD) / 2.0f;
+    const float f = (cosf(fovY) / sinf(fovY));
+
     float projectionMatrix[16] = {0};
     
     projectionMatrix[0] = f / aspect;
