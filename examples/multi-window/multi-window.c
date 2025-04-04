@@ -20,7 +20,7 @@ void checkEvents(RGFW_window* win) {
 				for (size_t i = 0; i < event->droppedFilesCount; i++)
 					printf("\t%u: '%s'\n", (u32)i, event->droppedFiles[i]);
 				break;
-        }
+		}
 	}
 
 	if (RGFW_isPressed(win, RGFW_c) && (RGFW_isPressed(win, RGFW_controlL) || RGFW_isPressed(win, RGFW_controlR))) {
@@ -54,9 +54,6 @@ void* loop(void* _win) {
 		if (RGFW_isPressed(win, RGFW_space)) {
 			blue = (blue + 1) % 100;
 		}
-
-		if (RGFW_isPressed(NULL, RGFW_e))
-			RGFW_stopCheckEvents();
 
 		glClearColor(0.0, 0.0, (float)blue * 0.01f, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -94,9 +91,9 @@ int main(void) {
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 	RGFW_window_makeCurrent(NULL); /* this is really important (this releases the opengl context on this thread) */
 
-	RGFW_createThread(loop, win1);
-	RGFW_createThread(loop, win2);
-	RGFW_createThread(loop, win3);
+	RGFW_thread thread1 = RGFW_createThread(loop, win1);
+	RGFW_thread thread2 = RGFW_createThread(loop, win2);
+	RGFW_thread thread3 = RGFW_createThread(loop, win3);
 
 	const double startTime = RGFW_getTime();
 	u32 frames = 0;
@@ -110,6 +107,13 @@ int main(void) {
 		RGFW_checkFPS(startTime, frames, 60);
 		frames++;
 	}
+
+	RGFW_window_setShouldClose(win1, 1);
+	RGFW_window_setShouldClose(win2, 1);
+	RGFW_window_setShouldClose(win3, 1);
+	RGFW_joinThread(thread1);
+	RGFW_joinThread(thread2);
+	RGFW_joinThread(thread3);
 
 	RGFW_window_close(win1);
 	RGFW_window_close(win2);
