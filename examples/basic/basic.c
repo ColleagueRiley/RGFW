@@ -1,195 +1,96 @@
-#define RGFWDEF
-//#define RGFW_ALLOC_DROPFILES
-#define RGFW_IMPLEMENTATION
-#define RGFW_PRINT_ERRORS
-#define RGFW_DEBUG
-
-#include <string.h>
-#include <stdlib.h>
-#include "RGFW.h"
 #include <stdio.h>
 
-void drawLoop(RGFW_window* w); /* I seperate the draw loop only because it's run twice */
+#define RGFW_DEBUG
+#define RGFW_IMPLEMENTATION
+#include "RGFW.h"
 
-#ifdef RGFW_WINDOWS
-DWORD loop2(void* args);
-#else  
-void* loop2(void* args);
-#endif
-
-unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
-unsigned char running = 1, running2 = 1;
-
-RGFW_window* win2;
-/* callbacks are another way you can handle events in RGFW */
-void refreshCallback(RGFW_window* win) {
-   if (win != win2) // macos doesn't like the second window to render here :( 
-	   drawLoop(win);
-}
-
-
-
+static unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
 
 int main(void) {
     #ifdef RGFW_WINDOWS
     SetConsoleOutputCP(CP_UTF8);
 	#endif
-    
-	RGFW_setClassName("RGFW Basic");
-    RGFW_window* win = RGFW_createWindow("RGFW Example Window 刺猬", RGFW_RECT(500, 500, 500, 500), RGFW_windowAllowDND | RGFW_windowCenter);
-    RGFW_window_makeCurrent(win);
+ 
+	RGFW_setClassName("RGFW Example");
+	RGFW_window *win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND);
+	RGFW_window_makeCurrent(win);
+	RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
+	RGFW_window_setMouseStandard(win, RGFW_mouseResizeNESW);
+	RGFW_mouse *mouse = RGFW_loadMouse(icon, RGFW_AREA(3, 3), 4);
+
+	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
+
+	u32 frames = 0;
+	u32 fps = 0;
+	const double startTime = RGFW_getTime();
+
+	while (!RGFW_window_shouldClose(win)) {
+		RGFW_event *event = NULL;
+		while ((event = RGFW_window_checkEvent(win)) != NULL) {
+			switch (event->type) {
+				case RGFW_quit:
+					RGFW_window_setShouldClose(win, 1);
+					break;
+				case RGFW_windowResized:
+					if (event->point.x != 0 && event->point.y != 0)
+						printf("resize: %dx%d\n", event->point.x, event->point.y);
+					break;
+    			case RGFW_mouseButtonPressed:
+					printf("button pressed: %u {%d, %d}\n", event->button, event->point.x, event->point.y);
+					break;
+				case RGFW_mouseButtonReleased:
+					printf("button released: %u {%d, %d}\n", event->button, event->point.x, event->point.y);
+					break;
+				case RGFW_gamepadButtonPressed:
+					printf("pressed %d\n", event->button);
+					break;
+				case RGFW_gamepadButtonReleased:
+					printf("released %d\n", event->button);
+					break;
+				case RGFW_gamepadAxisMove:
+					printf("gamepad (%d) axis (%d) {%d, %d}\n", event->gamepad, event->whichAxis, event->axis[event->whichAxis].x, event->axis[event->whichAxis].y);
+					break;
+				case RGFW_DND:
+					printf("drag and drop: %dx%d:\n", event->point.x, event->point.y);
+					for (size_t i = 0; i < event->droppedFilesCount; i++) {
+						printf("\t%u: '%s'\n", (u32)i, event->droppedFiles[i]);
+					}
+					break;
+			}
+		}
+
+		if (RGFW_isReleased(win, RGFW_space))
+			printf("fps: %d\n", fps);
+		else if (RGFW_isReleased(win, RGFW_w))
+			RGFW_window_setMouseDefault(win);
+		else if (RGFW_isReleased(win, RGFW_e))
+			RGFW_window_setMouse(win, mouse);
+		else if (RGFW_isReleased(win, RGFW_q))
+			RGFW_window_showMouse(win, 0);
+		else if (RGFW_isReleased(win, RGFW_t))
+			RGFW_window_showMouse(win, 1);
+		else if (RGFW_isReleased(win, RGFW_down))
+				RGFW_writeClipboard("DOWN 刺猬", 12);
+		else if (RGFW_isReleased(win, RGFW_up))
+			printf("pasted '%s'\n", RGFW_readClipboard(NULL));
 
 
-    const GLubyte *version = glGetString(GL_VERSION);
-    printf("OpenGL Version: %s\n", version);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-    RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
+		glBegin(GL_TRIANGLES);
+			glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.6f, -0.75f);
+			glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.6f, -0.75f);
+			glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
+		glEnd();
 
-    RGFW_setWindowRefreshCallback(refreshCallback);
+		RGFW_window_swapBuffers(win); /* NOTE(EimaMei): Rendering should always go: 1. Clear everything 2. Render 3. Swap buffers. Based on https://www.khronos.org/opengl/wiki/Common_Mistakes#Swap_Buffers */
 
-    win2 = RGFW_createWindow("subwindow", RGFW_RECT(200, 200, 200, 200), 0);
-    RGFW_createThread((RGFW_threadFunc_ptr)loop2, NULL); /* the function must be run after the window of this thread is made for some reason (using X11) */
-    RGFW_window_makeCurrent(win);
+		fps = RGFW_checkFPS(startTime, frames, 60);
+		frames++;
+	}
 
-    unsigned char i;
-
-    glEnable(GL_BLEND);             
-    glClearColor(0, 0, 0, 0);
-
-    RGFW_window_setMouseStandard(win, RGFW_mouseResizeNESW);
-    
-    u32 fps = 0;
-    u32 frames = 0;
-    double frameStartTime = RGFW_getTime();
-
-    RGFW_mouse* mouse = RGFW_loadMouse(icon, RGFW_AREA(3, 3), 4);
-
-    while (running && !RGFW_isPressed(win, RGFW_escape)) {   
-        #ifdef __APPLE__
-        if (win2) RGFW_window_checkEvent(win2);
-        #endif
-        
-        while (RGFW_window_checkEvent(win) != NULL) {
-            if (win->event.type == RGFW_windowMoved) {
-                printf("window moved\n");
-            }
-            else if (win->event.type == RGFW_windowResized) {
-                printf("window resized\n");
-            }
-            if (win->event.type == RGFW_quit) {
-                running = 0;  
-                break;
-            }
-            if (RGFW_isPressed(win, RGFW_up)) {
-                const char* str = RGFW_readClipboard(NULL);
-                printf("Pasted : %s\n", str);
-            }
-            else if (RGFW_isPressed(win, RGFW_down))
-                RGFW_writeClipboard("DOWN 刺猬", 12);
-            else if (RGFW_isPressed(win, RGFW_space))
-                printf("fps : %i\n", fps);
-            else if (RGFW_isPressed(win, RGFW_w))
-                RGFW_window_setMouseDefault(win);
-            else if (RGFW_isPressed(win, RGFW_q))
-                RGFW_window_showMouse(win, 0);
-            else if (RGFW_isPressed(win, RGFW_t)) {
-                RGFW_window_setMouse(win, mouse);
-            }
-
-            if (win->event.type == RGFW_DND) {
-                for (i = 0; i < win->event.droppedFilesCount; i++)
-                    printf("dropped : %s\n", win->event.droppedFiles[i]);
-            }
-
-            else if (win->event.type == RGFW_gamepadButtonPressed)
-                printf("pressed %i\n", win->event.button);
-
-            else if (win->event.type == RGFW_gamepadAxisMove)
-                printf("Gamepad (%i) axis (%i) {%i, %i}\n", win->event.gamepad, win->event.whichAxis, win->event.axis[win->event.whichAxis].x, win->event.axis[win->event.whichAxis].y);
-        }
-
-        drawLoop(win);
-		fps = RGFW_checkFPS(frameStartTime, frames, 60);
-        frames++;
-    }
-
-    RGFW_freeMouse(mouse);
-    running2 = 0;
-    RGFW_window_close(win);
-    while (win2); // wait for second window to close
-}
-
-void drawLoop(RGFW_window *w) {
-    RGFW_window_makeCurrent(w);
-
-    #ifndef RGFW_VULKAN
-    glClearColor(1, 1, 1, 1);
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    
-    glBegin(GL_TRIANGLES);
-        glColor3f(1, 0, 0); glVertex2f(-0.6f, -0.75f);
-        glColor3f(0, 1, 0); glVertex2f(0.6f, -0.75f);
-        glColor3f(0, 0, 1); glVertex2f(0.0f, 0.75f);
-    glEnd();
-    
-    #else
-
-    #endif
-
-    
-    RGFW_window_swapBuffers(w); /* NOTE(EimaMei): Rendering should always go: 1. Clear everything 2. Render 3. Swap buffers. Based on https://www.khronos.org/opengl/wiki/Common_Mistakes#Swap_Buffers */
-}
-
-
-#ifdef RGFW_WINDOWS
-DWORD loop2(void* args) {
-#else
-void* loop2(void* args) {
-#endif
-    RGFW_UNUSED(args);
-    RGFW_window* win = win2;
-
-    while (running2) {
-//printf("hello\n");
-		/* 
-            not using a while loop here because there is only one event I care about 
-        */
-        #ifndef __APPLE__
-        RGFW_window_checkEvent(win);
-        #endif
-
-        /* 
-            I could've also done
-
-            if (RGFW_checkEvents(win).type == RGFW_quit)
-        */
-
-        if (win->event.type == RGFW_quit)
-            break;
-
-        if (win->event.type == RGFW_mouseButtonPressed) {
-            #ifndef __APPLE__
-            RGFW_stopCheckEvents();
-            #endif
-        }
-
-        if (win->event.type == RGFW_gamepadButtonPressed)
-            printf("pressed %i\n", win->event.button);
-
-        else if (win->event.type == RGFW_gamepadAxisMove && !win->event.button)
-            printf("Gamepad (%i) axis (%i) {%i, %i}\n", win->event.gamepad, win->event.whichAxis, win->event.axis[win->event.whichAxis].x, win->event.axis[win->event.whichAxis].y);
-        drawLoop(win);
-    }
-
-    running = 0;
-    RGFW_window_close(win);
-
-    win2 = NULL;
-    #ifdef RGFW_WINDOWS
-    return 0;
-    #else
-    return NULL;
-    #endif
+	RGFW_freeMouse(mouse);
+	RGFW_window_close(win);
 }
 
