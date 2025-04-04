@@ -1,4 +1,4 @@
-- RGFW_event unions (to save memory ?) (might require breaking changes in RGFW_event, and might make it harder to access event data, so might not be worth it )
+- look into using a single X11 display rather than one display per window
 - update wayland support (wayland is sus)
 
 (extra stuff)
