@@ -276,7 +276,7 @@ int main() {
 #define RGFW_HEADER
 
 #include <stddef.h>
-#if !defined(u8)
+#ifndef RGFW_INT_DEFINED
 	#ifdef RGFW_USE_INT /* optional for any system that might not have stdint.h */
 		typedef unsigned char 	u8;
 		typedef signed char		i8;
@@ -298,12 +298,12 @@ int main() {
 		typedef uint64_t   u64;
 		typedef int64_t    i64;
 	#endif
-	#define u8 u8
+    #define RGFW_INT_DEFINED
 #endif
 
-#if !defined(RGFW_bool) /* RGFW bool type */
-	typedef u8 RGFW_bool;
-	#define RGFW_bool u8
+#ifndef RGFW_BOOL_DEFINED
+    #define RGFW_bool defined
+    typedef u8 RGFW_bool;
 #endif
 
 #define RGFW_BOOL(x) (RGFW_bool)((x) ? RGFW_TRUE : RGFW_FALSE) /* force an value to be 0 or 1 */
@@ -6080,9 +6080,13 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		} 
 		case WM_PAINT: {
-			RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowRefresh, ._win = win});
-			RGFW_windowRefreshCallback(win);
-			return DefWindowProcW(hWnd, message, wParam, lParam);
+            PAINTSTRUCT ps;
+            BeginPaint(hWnd, &ps);
+            RGFW_eventQueuePush((RGFW_event){.type = RGFW_windowRefresh, ._win = win});
+            RGFW_windowRefreshCallback(win);
+            EndPaint(hWnd, &ps);
+
+            return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		#if(_WIN32_WINNT >= 0x0600)
 		case WM_DWMCOMPOSITIONCHANGED:
@@ -6423,7 +6427,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	if (RGFW_className == NULL)
 		RGFW_className = (char*)name;
 
-	wchar_t wide_class[255];
+	wchar_t wide_class[256];
 	MultiByteToWideChar(CP_UTF8, 0, RGFW_className, -1, wide_class, 255);
 
 	Class.lpszClassName = wide_class;
@@ -6450,7 +6454,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	} else
 		window_style |= WS_POPUP | WS_VISIBLE | WS_SYSMENU;
 
-	wchar_t wide_name[255];
+	wchar_t wide_name[256];
 	MultiByteToWideChar(CP_UTF8, 0, name, -1, wide_name, 255);
 	HWND dummyWin = CreateWindowW(Class.lpszClassName, (wchar_t*)wide_name, window_style, win->r.x, win->r.y, win->r.w, win->r.h, 0, 0, inh, 0);
 	
@@ -7350,8 +7354,8 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 void RGFW_window_setName(RGFW_window* win, const char* name) {
 	RGFW_ASSERT(win != NULL);
 
-	wchar_t wide_name[255];
-	MultiByteToWideChar(CP_UTF8, 0, name, -1, wide_name, 255);
+	wchar_t wide_name[256];
+	MultiByteToWideChar(CP_UTF8, 0, name, -1, wide_name, 256);
 	SetWindowTextW(win->src.window, wide_name);
 }
 
@@ -8186,7 +8190,7 @@ void RGFW_osxInitIOKit(void) {
 #endif
 
 void RGFW_moveToMacOSResourceDir(void) {
-	char resourcesPath[255];
+	char resourcesPath[256];
 
 	CFBundleRef bundle = CFBundleGetMainBundle();
 	if (!bundle)

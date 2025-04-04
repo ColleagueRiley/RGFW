@@ -3,6 +3,8 @@
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
+
+void checkEvents(RGFW_window* win);
 void checkEvents(RGFW_window* win) {
 	RGFW_event* event = NULL;
 
@@ -40,8 +42,10 @@ void checkEvents(RGFW_window* win) {
 
 
 #ifdef RGFW_WINDOWS
+DWORD loop(void* _win);
 DWORD loop(void* _win) {
 #else
+void* loop(void* _win);
 void* loop(void* _win) {
 #endif
 	RGFW_window*win = (RGFW_window*) _win;

@@ -92,5 +92,6 @@ int main(void) {
 
 	RGFW_freeMouse(mouse);
 	RGFW_window_close(win);
+    return 0;
 }
 
