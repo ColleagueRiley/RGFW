@@ -7199,8 +7199,10 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 }
 
 #endif
-HICON RGFW_loadHandleImage(u8* src, i32 channels, RGFW_area a, BOOL icon);
-HICON RGFW_loadHandleImage(u8* src, i32 channels, RGFW_area a, BOOL icon) {
+HICON RGFW_loadHandleImage(u8* src, i32 c, RGFW_area a, BOOL icon);
+HICON RGFW_loadHandleImage(u8* src, i32 c, RGFW_area a, BOOL icon) {
+    u32 channels = (u32)c;
+
 	BITMAPV5HEADER bi;
 	ZeroMemory(&bi, sizeof(bi));
 	bi.bV5Size = sizeof(bi);
