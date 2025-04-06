@@ -7033,7 +7033,7 @@ $(function() {
 <div class="line"><a id="l07220" name="l07220"></a><span class="lineno"> 7220</span>    </div>
 <div class="line"><a id="l07221" name="l07221"></a><span class="lineno"> 7221</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> y = 0; y &lt; a.<a class="code hl_variable" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">h</a>; y++) {</div>
 <div class="line"><a id="l07222" name="l07222"></a><span class="lineno"> 7222</span>        <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> x = 0; x &lt; a.<a class="code hl_variable" href="structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a">w</a>; x++) {</div>
-<div class="line"><a id="l07223" name="l07223"></a><span class="lineno"> 7223</span>            <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> index = (y * 4 * a.<a class="code hl_variable" href="structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a">w</a>) + x * channels;</div>
+<div class="line"><a id="l07223" name="l07223"></a><span class="lineno"> 7223</span>            <span class="keywordtype">size_t</span> index = (y * 4 * (size_t)a.<a class="code hl_variable" href="structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a">w</a>) + x * channels;</div>
 <div class="line"><a id="l07224" name="l07224"></a><span class="lineno"> 7224</span>            target[index] = src[index + 2];</div>
 <div class="line"><a id="l07225" name="l07225"></a><span class="lineno"> 7225</span>            target[index + 1] = src[index + 1];</div>
 <div class="line"><a id="l07226" name="l07226"></a><span class="lineno"> 7226</span>            target[index + 2] = src[index];</div>

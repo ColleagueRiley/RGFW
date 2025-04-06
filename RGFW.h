@@ -7220,7 +7220,7 @@ HICON RGFW_loadHandleImage(u8* src, i32 c, RGFW_area a, BOOL icon) {
     
     for (size_t y = 0; y < a.h; y++) {
         for (size_t x = 0; x < a.w; x++) {
-			u32 index = (y * 4 * a.w) + x * channels;
+			size_t index = (y * 4 * (size_t)a.w) + x * channels;
             target[index] = src[index + 2];
             target[index + 1] = src[index + 1];
             target[index + 2] = src[index];
