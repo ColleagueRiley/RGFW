@@ -7201,7 +7201,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 #endif
 HICON RGFW_loadHandleImage(u8* src, i32 c, RGFW_area a, BOOL icon);
 HICON RGFW_loadHandleImage(u8* src, i32 c, RGFW_area a, BOOL icon) {
-    u32 channels = (u32)c;
+    size_t channels = (size_t)c;
 
 	BITMAPV5HEADER bi;
 	ZeroMemory(&bi, sizeof(bi));
@@ -7209,7 +7209,7 @@ HICON RGFW_loadHandleImage(u8* src, i32 c, RGFW_area a, BOOL icon) {
 	bi.bV5Width = (i32)a.w;
 	bi.bV5Height = -((LONG) a.h);
 	bi.bV5Planes = 1;
-	bi.bV5BitCount = channels * 8;
+	bi.bV5BitCount = (WORD)(channels * 8);
 	bi.bV5Compression = BI_RGB;
 	HDC dc = GetDC(NULL);
 	u8* target = NULL;

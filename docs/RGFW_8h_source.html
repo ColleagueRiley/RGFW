@@ -7014,7 +7014,7 @@ $(function() {
 <div class="line"><a id="l07201" name="l07201"></a><span class="lineno"> 7201</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l07202" name="l07202"></a><span class="lineno"> 7202</span>HICON RGFW_loadHandleImage(<a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>* src, <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> c, <a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a> a, BOOL icon);</div>
 <div class="line"><a id="l07203" name="l07203"></a><span class="lineno"> 7203</span>HICON RGFW_loadHandleImage(<a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>* src, <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> c, <a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a> a, BOOL icon) {</div>
-<div class="line"><a id="l07204" name="l07204"></a><span class="lineno"> 7204</span>    <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> channels = (<a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>)c;</div>
+<div class="line"><a id="l07204" name="l07204"></a><span class="lineno"> 7204</span>    <span class="keywordtype">size_t</span> channels = (size_t)c;</div>
 <div class="line"><a id="l07205" name="l07205"></a><span class="lineno"> 7205</span> </div>
 <div class="line"><a id="l07206" name="l07206"></a><span class="lineno"> 7206</span>    BITMAPV5HEADER bi;</div>
 <div class="line"><a id="l07207" name="l07207"></a><span class="lineno"> 7207</span>    ZeroMemory(&amp;bi, <span class="keyword">sizeof</span>(bi));</div>
@@ -7022,7 +7022,7 @@ $(function() {
 <div class="line"><a id="l07209" name="l07209"></a><span class="lineno"> 7209</span>    bi.bV5Width = (<a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>)a.<a class="code hl_variable" href="structRGFW__area.html#ad28ec4f8e78910b9ae7354aeb0a5bc9a">w</a>;</div>
 <div class="line"><a id="l07210" name="l07210"></a><span class="lineno"> 7210</span>    bi.bV5Height = -((LONG) a.<a class="code hl_variable" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">h</a>);</div>
 <div class="line"><a id="l07211" name="l07211"></a><span class="lineno"> 7211</span>    bi.bV5Planes = 1;</div>
-<div class="line"><a id="l07212" name="l07212"></a><span class="lineno"> 7212</span>    bi.bV5BitCount = channels * 8;</div>
+<div class="line"><a id="l07212" name="l07212"></a><span class="lineno"> 7212</span>    bi.bV5BitCount = (WORD)(channels * 8);</div>
 <div class="line"><a id="l07213" name="l07213"></a><span class="lineno"> 7213</span>    bi.bV5Compression = BI_RGB;</div>
 <div class="line"><a id="l07214" name="l07214"></a><span class="lineno"> 7214</span>    HDC dc = GetDC(NULL);</div>
 <div class="line"><a id="l07215" name="l07215"></a><span class="lineno"> 7215</span>    <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>* target = NULL;</div>
