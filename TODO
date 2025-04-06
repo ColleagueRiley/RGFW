@@ -3,6 +3,7 @@
 - ablity to create an RGFW window form an existing window 
 - add alternative build systems (CMake, build.zig)
 - github actions test compiling add C zig compiler workflow (should spot more warnings)
+- ensure icon RGBA support (macos)
 
 (extra stuff)
 - look into monitor gamma

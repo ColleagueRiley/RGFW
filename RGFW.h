@@ -7199,30 +7199,34 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 }
 
 #endif
-HICON RGFW_loadHandleImage(u8* src, RGFW_area a, BOOL icon);
-HICON RGFW_loadHandleImage(u8* src, RGFW_area a, BOOL icon) {
+HICON RGFW_loadHandleImage(u8* src, i32 channels, RGFW_area a, BOOL icon);
+HICON RGFW_loadHandleImage(u8* src, i32 channels, RGFW_area a, BOOL icon) {
 	BITMAPV5HEADER bi;
 	ZeroMemory(&bi, sizeof(bi));
 	bi.bV5Size = sizeof(bi);
 	bi.bV5Width = (i32)a.w;
 	bi.bV5Height = -((LONG) a.h);
 	bi.bV5Planes = 1;
-	bi.bV5BitCount = 32;
-	bi.bV5Compression = BI_BITFIELDS;
-	bi.bV5RedMask = 0x000000ff;
-	bi.bV5GreenMask = 0x0000ff00;
-	bi.bV5BlueMask = 0x00ff0000; 
-	bi.bV5AlphaMask = 0xff000000;
-
+	bi.bV5BitCount = channels * 8;
+	bi.bV5Compression = BI_RGB;
 	HDC dc = GetDC(NULL);
 	u8* target = NULL;
 
 	HBITMAP color = CreateDIBSection(dc,
 		(BITMAPINFO*) &bi, DIB_RGB_COLORS, (void**) &target,
 		NULL, (DWORD) 0);
-	
-	memcpy(target, src, a.w * a.h * 4);
-	ReleaseDC(NULL, dc);
+    
+    for (size_t y = 0; y < a.h; y++) {
+        for (size_t x = 0; x < a.w; x++) {
+			u32 index = (y * 4 * a.w) + x * channels;
+            target[index] = src[index + 2];
+            target[index + 1] = src[index + 1];
+            target[index + 2] = src[index];
+            target[index + 3] = src[index + 3];
+        }
+    }
+
+    ReleaseDC(NULL, dc);
 
 	HBITMAP mask = CreateBitmap((i32)a.w, (i32)a.h, 1, 1, NULL);
 
@@ -7243,9 +7247,7 @@ HICON RGFW_loadHandleImage(u8* src, RGFW_area a, BOOL icon) {
 }
 
 void* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) {
-	RGFW_UNUSED(channels);
-
-	HCURSOR cursor = (HCURSOR) RGFW_loadHandleImage(icon, a, FALSE);
+	HCURSOR cursor = (HCURSOR) RGFW_loadHandleImage(icon, channels, a, FALSE);
 	return cursor;
 }
 
@@ -7409,11 +7411,11 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* src, RGFW_area a, i32 chan
 		}
 
 		if (type & RGFW_iconWindow) {
-			win->src.hIconSmall = RGFW_loadHandleImage(src, a, TRUE);
+			win->src.hIconSmall = RGFW_loadHandleImage(src, channels, a, TRUE);
 			SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)win->src.hIconSmall);
 		}
 		if (type & RGFW_iconTaskbar) {
-			win->src.hIconBig = RGFW_loadHandleImage(src, a, TRUE);
+			win->src.hIconBig = RGFW_loadHandleImage(src, channels, a, TRUE);
 			SendMessage(win->src.window, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)win->src.hIconBig);
 		}
 		return RGFW_TRUE;
