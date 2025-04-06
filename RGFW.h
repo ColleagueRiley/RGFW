@@ -2049,7 +2049,13 @@ void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	win->_flags = flags | (win->_flags & RGFW_INTERNAL_FLAGS);
 }
 
-RGFW_bool RGFW_window_isInFocus(RGFW_window* win) { return RGFW_BOOL(win->_flags & RGFW_windowFocus); }
+RGFW_bool RGFW_window_isInFocus(RGFW_window* win) { 
+#ifdef RGFW_WASM
+    return RGFW_TRUE;
+#else
+    return RGFW_BOOL(win->_flags & RGFW_windowFocus); 
+#endif
+}
 
 void RGFW_window_initBuffer(RGFW_window* win) {
 	RGFW_window_initBufferSize(win, RGFW_getScreenSize());
