@@ -53,6 +53,11 @@ Current Version: RGFW 1.7-dev
 - add `example/multi-window/multi-window` as an example of multiple windows 
 - fix X11 clipboard bugs 
 - fix X11 and Cocoa waitEvent bugs
+- make sure icons support transparency (windows)
+- update macOS icons to reload every checkEvent (prevents macOS being
+overwritten)
+- add RGFW_INT_DEFINED and RGFW_BOOL_DEFINED rather than using `#define u8` and `#define RGFW_bool`
+- make sure `BeginPaint` and `EndPaint` is called to confirm window is validated 
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------
