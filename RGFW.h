@@ -739,7 +739,7 @@ typedef struct RGFW_window_src {
 #endif
 
 	void* view; /* apple viewpoint thingy */
-
+	void* mouse;
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 #endif
 } RGFW_window_src;
@@ -8256,6 +8256,7 @@ void RGFW__osxWindowBecameKey(id self, SEL sel) {
 
 	win->_flags |= RGFW_windowFocus;
 	RGFW_eventQueuePush((RGFW_event){.type = RGFW_focusIn, ._win = win});
+
 	RGFW_focusCallback(win, RGFW_TRUE);
 }
 
@@ -8705,6 +8706,8 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
     if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
+
+    objc_msgSend_void((id)win->src.mouse, sel_registerName("set"));
     RGFW_event* ev =  RGFW_window_checkEventCore(win);
 	if (ev) {
 		((void(*)(id, SEL))objc_msgSend)(NSApp, sel_registerName("updateWindows"));
@@ -9122,7 +9125,9 @@ RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) {
 
 void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) {
 	RGFW_ASSERT(win != NULL); RGFW_ASSERT(mouse);
+	CGDisplayShowCursor(kCGDirectMainDisplay);
 	objc_msgSend_void((id)mouse, sel_registerName("set"));
+	win->src.mouse = mouse;
 }
 
 void RGFW_freeMouse(RGFW_mouse* mouse) {
@@ -9154,6 +9159,7 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 stdMouses) {
 	RGFW_UNUSED(win);
 	CGDisplayShowCursor(kCGDirectMainDisplay);
 	objc_msgSend_void(mouse, sel_registerName("set"));
+	win->src.mouse = mouse;
 
 	return RGFW_TRUE;
 }
