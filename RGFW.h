@@ -302,7 +302,7 @@ int main() {
 #endif
 
 #ifndef RGFW_BOOL_DEFINED
-    #define RGFW_bool defined
+    #define RGFW_BOOL_DEFINED
     typedef u8 RGFW_bool;
 #endif
 
