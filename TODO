@@ -3,7 +3,7 @@
 - ablity to create an RGFW window form an existing window 
 - add alternative build systems (CMake, build.zig)
 - github actions test compiling add C zig compiler workflow (should spot more warnings)
-- ensure icon RGBA support (macos)
+- unfocusing unholds the mouse, make it so refocusing grabs the mouse again (if it's supposed to be held) (may only be a windows issue)
 
 (extra stuff)
 - look into monitor gamma
