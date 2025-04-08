@@ -185,13 +185,12 @@ int main() {
 	#define RGFW_ROUND(x) (i32)((x) >= 0 ? (x) + 0.5f : (x) - 0.5f)
 #endif
 
+#ifndef __USE_POSIX199309
+    #define __USE_POSIX199309
+#endif
+
 #ifndef RGFW_ALLOC
 	#include <stdlib.h>
-
-	#ifndef __USE_POSIX199309
-	#define __USE_POSIX199309
-	#endif
-
 	#define RGFW_ALLOC malloc
 	#define RGFW_FREE free
 #endif
@@ -2064,12 +2063,16 @@ void RGFW_window_initBuffer(RGFW_window* win) {
 }
 
 void RGFW_window_initBufferSize(RGFW_window* win, RGFW_area area) {
-	win->_flags |= RGFW_BUFFER_ALLOC;
+#if defined(RGFW_BUFFER) || defined(RGFW_OSMESA)
+    win->_flags |= RGFW_BUFFER_ALLOC;
 	#ifndef RGFW_WINDOWS
-	RGFW_window_initBufferPtr(win, (u8*)RGFW_ALLOC(area.w * area.h * 4), area);
+    RGFW_window_initBufferPtr(win, (u8*)RGFW_ALLOC(area.w * area.h * 4), area);
 	#else /* windows's bitmap allocs memory for us */
 	RGFW_window_initBufferPtr(win, (u8*)NULL, area);
 	#endif
+#else
+    RGFW_UNUSED(win); RGFW_UNUSED(area);
+#endif
 }
 
 #ifdef RGFW_MACOS
@@ -3547,7 +3550,7 @@ RGFW_proc RGFW_getProcAddress(const char* procname) { return (RGFW_proc) glXGetP
 void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 	RGFW_GOTO_WAYLAND(0);
 
-	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	win->buffer = (u8*)buffer;
 	win->bufferSize = area;
 
@@ -3604,13 +3607,13 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 				OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
 		#endif
 	#endif
-	#else
+#else
 	#ifdef RGFW_WAYLAND
 	wayland:
 	#endif
 
 	RGFW_UNUSED(win); RGFW_UNUSED(buffer); RGFW_UNUSED(area);
-	#endif
+#endif
 }
 
 #define RGFW_LOAD_ATOM(name) \
