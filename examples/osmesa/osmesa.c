@@ -32,7 +32,6 @@ int main(void) {
 	RGFW_setClassName("RGFW Basic");
 
     RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_windowAllowDND | RGFW_windowCenter);
-    RGFW_window_initBuffer(win);
     
     RGFW_window_makeCurrent(win);
     screenSize = RGFW_getScreenSize();

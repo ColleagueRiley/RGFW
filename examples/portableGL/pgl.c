@@ -28,7 +28,7 @@ void uniform_color_fs(float* fs_input, Shader_Builtins* builtins, void* uniforms
 int main() {
 	RGFW_area area = RGFW_AREA(500, 500);
 
-	RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_windowCenter | RGFW_windowNoResize);
+	RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowNoInitAPI);
 	RGFW_window_initBufferSize(win, area);
 
 	glContext context;
