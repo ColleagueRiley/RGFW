@@ -51,7 +51,11 @@ int main(void) {
                 break;
 
             switch (win->event.type) {
-                case RGFW_mousePosChanged: {      
+                case RGFW_focusIn:
+                    RGFW_window_mouseUnhold(win);
+                    RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
+                    break;
+               case RGFW_mousePosChanged: {      
                     int dev_x = win->event.vector.x;
                     int dev_y = win->event.vector.y;
                     
@@ -152,10 +156,10 @@ int main(void) {
 }
 
 void update_camera(void) {
-    if (pitch >= 70)
-        pitch = 70;
-    else if (pitch <= -60)
-        pitch = -60;
+    if (pitch >= 90)
+        pitch = 90;
+    else if (pitch <= -90)
+        pitch = -90;
 
     glRotatef(pitch, 1.0, 0.0, 0.0);
     glRotatef(yaw, 0.0, 1.0, 0.0);
