@@ -58,6 +58,8 @@ Current Version: RGFW 1.7-dev
 overwritten)
 - add RGFW_INT_DEFINED and RGFW_BOOL_DEFINED rather than using `#define u8` and `#define RGFW_bool`
 - make sure `BeginPaint` and `EndPaint` is called to confirm window is validated 
+- `RGFW_BUFFER`` init buffer unless the RGFW_windowNoInitAPI flagis added
+- add `RGFW_ATOF`
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------

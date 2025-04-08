@@ -37,7 +37,7 @@ int main(void) {
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glPerspective(60, 16.0 / 9.0, 1, 75);
+    glPerspective(60, 16.0 / 9.0, 1.0, 1000);
     glMatrixMode(GL_MODELVIEW);
 
     RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
@@ -141,7 +141,7 @@ int main(void) {
         glEnd();
 
         RGFW_window_swapBuffers(win);
-		RGFW_checkFPS(frameStartTime, frames, 60);
+	RGFW_checkFPS(frameStartTime, frames, 60);
         frames++;
     }
 

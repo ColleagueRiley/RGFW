@@ -201,8 +201,8 @@ int main() {
 	#define RGFW_ASSERT assert
 #endif
 
-#if !defined(RGFW_MEMCPY) || !defined(RGFW_STRNCMP) || !defined(RGFW_STRNCPY) || !defined(RGFW_STRSTR) || !defined(RGFW_STRTOL)
-	#include <string.h>
+#if !defined(RGFW_MEMCPY) || !defined(RGFW_STRNCMP) || !defined(RGFW_STRNCPY)
+    #include <string.h>
 #endif
 
 #ifndef RGFW_MEMCPY
@@ -222,8 +222,10 @@ int main() {
 #endif
 
 #ifndef RGFW_STRTOL
-	//required for X11 XDnD
-	#define RGFW_STRTOL(str, endptr, base) strtol(str, endptr, base)
+	//required for X11 XDnD and X11 Monitor DPI
+	#include <stdlib.h>
+    #define RGFW_STRTOL(str, endptr, base) strtol(str, endptr, base)
+	#define RGFW_ATOF(num) atof(num)
 #endif
 
 #if !_MSC_VER
@@ -757,7 +759,7 @@ typedef struct RGFW_window_src {
 
 /*! Optional arguments for making a windows */
 typedef RGFW_ENUM(u32, RGFW_windowFlags) {
-	RGFW_windowNoInitAPI = RGFW_BIT(0), /* do NOT init an API (mostly for bindings. you should use `#define RGFW_NO_API` in C) */
+	RGFW_windowNoInitAPI = RGFW_BIT(0), /* do NOT init an API (including the software rendering buffer) (mostly for bindings. you can also use `#define RGFW_NO_API`) */
 	RGFW_windowNoBorder = RGFW_BIT(1), /*!< the window doesn't have a border */
 	RGFW_windowNoResize = RGFW_BIT(2), /*!< the window cannot be resized by the user */
 	RGFW_windowAllowDND = RGFW_BIT(3), /*!< the window supports drag and drop */
@@ -2644,6 +2646,11 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 	eglDestroySurfaceSource = (PFNEGLDESTROYSURFACEPROC) eglGetProcAddress("eglDestroySurface");
 #endif /* RGFW_LINK_EGL */
 
+#ifdef RGFW_WAYLAND
+    if (RGFW_useWaylandBool)
+        win->src.eglWindow = wl_egl_window_create(win->src.surface, win->r.w, win->r.h);
+#endif
+
 	#ifdef RGFW_WINDOWS
 	win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.hdc);
 	#elif defined(RGFW_MACOS)
@@ -3957,9 +3964,12 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
     XChangeProperty(win->src.display, win->src.window, _NET_WM_SYNC_REQUEST_COUNTER, XA_CARDINAL, 32, PropModeReplace, (uint8_t*)&win->src.counter, 1);
 #endif
 
-	if ((flags & RGFW_windowNoInitAPI) == 0)
+	if ((flags & RGFW_windowNoInitAPI) == 0) {
 		RGFW_window_initOpenGL(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new window was created");
+        RGFW_window_initBuffer(win);
+    }
+
+    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new window was created");
 	RGFW_window_setMouseDefault(win);
 	RGFW_window_setFlags(win, flags);
     
@@ -4051,12 +4061,10 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	/* wait for the surface to be configured */
 	while (wl_display_dispatch(win->src.wl_display) != -1 && !RGFW_wl_configured) { }
 	
-	#ifdef RGFW_OPENGL
-		if ((flags & RGFW_windowNoInitAPI) == 0) {
-			win->src.eglWindow = wl_egl_window_create(win->src.surface, win->r.w, win->r.h);
-			RGFW_window_initOpenGL(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
-		}
-	#endif
+    if ((flags & RGFW_windowNoInitAPI) == 0) {
+        RGFW_window_initOpenGL(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
+        RGFW_window_initBuffer(win);
+    }
 	struct wl_callback* callback = wl_surface_frame(win->src.surface);
 	wl_callback_add_listener(callback, &wl_surface_frame_listener, win);
 	wl_surface_commit(win->src.surface);
@@ -5379,7 +5387,7 @@ static float XGetSystemContentDPI(Display* display, i32 screen) {
 			char* type = NULL;
 
 			if (XrmGetResource(db, "Xft.dpi", "Xft.Dpi", &type, &value) && type && RGFW_STRNCMP(type, "String", 7) == 0)
-				dpi = (float)atof(value.addr);
+				dpi = (float)RGFW_ATOF(value.addr);
 			XrmDestroyDatabase(db);
 		}
 	#else
@@ -6481,9 +6489,11 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	}
 	win->src.hdc = GetDC(win->src.window);
 
-	if ((flags & RGFW_windowNoInitAPI) == 0)
-		RGFW_window_initOpenGL(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
-	
+	if ((flags & RGFW_windowNoInitAPI) == 0) {
+        RGFW_window_initOpenGL(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
+        RGFW_window_initBuffer(win);
+    }
+
 	RGFW_window_setFlags(win, flags);
 	RGFW_win32_makeWindowTransparent(win);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new window was created");
@@ -8485,9 +8495,11 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	id str = NSString_stringWithUTF8String(name);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setTitle:"), str);
 
-	if ((flags & RGFW_windowNoInitAPI) == 0)
+	if ((flags & RGFW_windowNoInitAPI) == 0) {
 		RGFW_window_initOpenGL(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
-	
+        RGFW_window_initBuffer(win);
+    }
+
 	#ifdef RGFW_OPENGL
 	else 
 	#endif
@@ -10062,6 +10074,10 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	glViewport(0, 0, rect.w, rect.h);
 
 	RGFW_window_setFlags(win, flags);
+
+	if ((flags & RGFW_windowNoInitAPI) == 0) {
+        RGFW_window_initBuffer(win);
+    } 
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new  window was created");
     return win;
