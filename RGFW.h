@@ -2055,7 +2055,11 @@ RGFW_bool RGFW_window_isInFocus(RGFW_window* win) {
 }
 
 void RGFW_window_initBuffer(RGFW_window* win) {
-	RGFW_window_initBufferSize(win, RGFW_getScreenSize());
+    RGFW_area area = RGFW_getScreenSize();
+    if ((win->_flags & RGFW_windowNoResize))
+        area = RGFW_AREA(win->r.w, win->r.h);
+
+    RGFW_window_initBufferSize(win, area);
 }
 
 void RGFW_window_initBufferSize(RGFW_window* win, RGFW_area area) {
@@ -3967,7 +3971,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 #endif
 
 	if ((flags & RGFW_windowNoInitAPI) == 0) {
-		RGFW_window_initOpenGL(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
+		RGFW_window_initOpenGL(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware)); 
         RGFW_window_initBuffer(win);
     }
 

@@ -60,6 +60,7 @@ overwritten)
 - make sure `BeginPaint` and `EndPaint` is called to confirm window is validated 
 - `RGFW_BUFFER`` init buffer unless the RGFW_windowNoInitAPI flagis added
 - add `RGFW_ATOF`
+- make default buffer size to window size if window can't resize
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------
