@@ -3756,7 +3756,6 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 		if (best_samples < RGFW_GL_HINTS[RGFW_glSamples])
 			RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Failed to load matching sampiling");
 
-		XFree(vi);
 		XFree(fbc);
 
 		i32 context_attribs[7] = { 0, 0, 0, 0, 0, 0, 0 };
@@ -3778,14 +3777,21 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 			glXGetProcAddressARB((GLubyte*) "glXCreateContextAttribsARB");
 
 		GLXContext ctx = NULL;
-
 		if (_RGFW.root != NULL && _RGFW.root != win) {
 			ctx = _RGFW.root->src.ctx;
             RGFW_window_makeCurrent_OpenGL(_RGFW.root);  
         }
 
 		win->src.ctx = glXCreateContextAttribsARB(win->src.display, bestFbc, ctx, True, context_attribs);
-		glXMakeCurrent(win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);
+        XSync(win->src.display, False);
+        if (win->src.ctx == NULL) {
+	        RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "failed to create opengl, loading a generic opengl context");
+            win->src.ctx = glXCreateContext(win->src.display, vi, ctx, True); 
+        }
+        
+		XFree(vi);
+        
+        glXMakeCurrent(win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);
 	    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "opengl context initalized");
 #else
 	RGFW_UNUSED(win); RGFW_UNUSED(software);	
