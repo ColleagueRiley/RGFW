@@ -62,6 +62,7 @@ overwritten)
 - add `RGFW_ATOF`
 - make default buffer size to window size if window can't resize
 - (msvc) don't link opengl.dll unless it's used in RGFW (`RGFW_OPENGL`)
+- (glx) add a fallback if glXCreateContextAttribsARB falls 
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------
