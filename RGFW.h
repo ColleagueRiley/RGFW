@@ -3785,7 +3785,7 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 		win->src.ctx = glXCreateContextAttribsARB(win->src.display, bestFbc, ctx, True, context_attribs);
         XSync(win->src.display, False);
         if (win->src.ctx == NULL) {
-	        RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "failed to create opengl, loading a generic opengl context");
+	        RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "failed to create an opengl context with AttribsARB, loading a generic opengl context");
             win->src.ctx = glXCreateContext(win->src.display, vi, ctx, True); 
         }
         
