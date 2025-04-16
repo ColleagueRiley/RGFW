@@ -166,10 +166,8 @@ int main() {
 #if _MSC_VER
 	#pragma comment(lib, "gdi32")
 	#pragma comment(lib, "shell32")
-	#pragma comment(lib, "opengl32")
-	#pragma comment(lib, "winmm")
-	#pragma comment(lib, "user32")
-	#pragma warning( push )
+	#pragma comment(lib, "User32")
+    #pragma warning( push )
 	#pragma warning( disable : 4996 4191 4127)
 #endif
 
@@ -404,6 +402,10 @@ int main() {
 	#else
 		#include <OpenGL/osmesa.h>
 	#endif
+#endif
+
+#if (defined(RGFW_OPENGL) || defined(RGFW_WEGL)) && defined(_MSC_VER)
+    #pragma comment(lib, "opengl32")
 #endif
 
 #if defined(RGFW_OPENGL) && defined(RGFW_X11)
