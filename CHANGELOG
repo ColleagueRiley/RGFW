@@ -61,6 +61,7 @@ overwritten)
 - `RGFW_BUFFER`` init buffer unless the RGFW_windowNoInitAPI flagis added
 - add `RGFW_ATOF`
 - make default buffer size to window size if window can't resize
+- (msvc) don't link opengl.dll unless it's used in RGFW (`RGFW_OPENGL`)
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------

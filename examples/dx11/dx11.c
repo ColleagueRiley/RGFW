@@ -6,6 +6,15 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 
+#if _MSC_VER
+#pragma comment(lib, "uuid")
+#pragma comment(lib, "dxguid")
+#pragma comment(lib, "d3dcompiler")
+#pragma comment(lib, "dxgi")
+#pragma comment(lib, "d3d11")
+#pragma comment(lib, "windowscodecs.lib")
+#endif
+
 typedef struct {
 	IDXGIFactory* pFactory;
 	IDXGIAdapter* pAdapter;
