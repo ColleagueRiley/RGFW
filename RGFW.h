@@ -2842,6 +2842,10 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	RGFW_VULKAN defines
 */
 #ifdef RGFW_VULKAN
+#ifdef RGFW_MACOS
+#include <objc/message.h>
+#endif
+
 const char** RGFW_getVKRequiredInstanceExtensions(size_t* count) {
     static const char* arr[2] = {VK_KHR_SURFACE_EXTENSION_NAME};
     arr[1] = RGFW_VK_SURFACE; 
@@ -2869,8 +2873,9 @@ wayland:
     VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, GetModuleHandle(NULL), (HWND)win->src.window };
 
     return vkCreateWin32SurfaceKHR(instance, &win32, NULL, surface);
-#elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
-    VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, vulkWin->display, (void *)win->src.window };
+#elif defined(RGFW_MACOS) _glfwCreateWindowSurfaceCocoa&& !defined(RGFW_MACOS_X11)
+    void* contentView = ((void* (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_getUid("contentView"));
+    VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, win->src.display, (void*)contentView };
 
     return vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface);
 #endif
@@ -2894,7 +2899,6 @@ wayland:
     RGFW_bool wlout = vkGetPhysicalDeviceWaylandPresentationSupportKHR(physicalDevice, queueFamilyIndex, _RGFW.wl_display);
     return wlout;
 #elif defined(RGFW_WINDOWS)
-    return vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, queueFamilyIndex);
 #elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
     return RGFW_FALSE; // TODO
 #endif
