@@ -62,7 +62,8 @@ overwritten)
 - add `RGFW_ATOF`
 - make default buffer size to window size if window can't resize
 - (msvc) don't link opengl.dll unless it's used in RGFW (`RGFW_OPENGL`)
-- (glx) add a fallback if glXCreateContextAttribsARB falls 
+- (glx) add a fallback if glXCreateContextAttribsARB fails 
+- fix issue for non-latin keyboards (key input not being processed) 
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------

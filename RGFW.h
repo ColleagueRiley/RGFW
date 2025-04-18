@@ -6827,11 +6827,20 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	static BYTE keyboardState[256];
 	GetKeyboardState(keyboardState);
 
-	MSG msg;
-	if (PeekMessageA(&msg, win->src.window, 0u, 0u, PM_REMOVE) == 0)
-		return NULL;
-	
-	switch (msg.message) {
+    MSG msg;
+    while (PeekMessageA(&msg, NULL, 0u, 0u, PM_REMOVE)) {
+        if (msg.hwnd == win->src.window || msg.hwnd == NULL) {
+            break;
+        } else {
+            TranslateMessage(&msg);
+            DispatchMessageA(&msg);
+        }
+    }
+
+    if (msg.hwnd != win->src.window && msg.hwnd != NULL)
+        return NULL;
+
+    switch (msg.message) {
 		case WM_MOUSELEAVE:
 			win->event.type = RGFW_mouseLeave;
 			win->_flags |= RGFW_MOUSE_LEFT;
@@ -6872,7 +6881,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			break;
 		}
 		case WM_SYSKEYDOWN: case WM_KEYDOWN: {
-			i32 scancode = (HIWORD(msg.lParam) & (KF_EXTENDED | 0xff));
+            i32 scancode = (HIWORD(msg.lParam) & (KF_EXTENDED | 0xff));
 			if (scancode == 0)
 				scancode = (i32)MapVirtualKeyW((u32)msg.wParam, MAPVK_VK_TO_VSC);
 
@@ -6884,7 +6893,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			}
 
 			win->event.key = (u8)RGFW_apiKeyToRGFW((u32) scancode);
-
 			if (msg.wParam == VK_CONTROL) {
 				if (HIWORD(msg.lParam) & KF_EXTENDED)
 					win->event.key = RGFW_controlR;
@@ -6905,7 +6913,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyMod, 1);
 			break;
 		}
-
 		case WM_MOUSEMOVE: {
 			if ((win->_flags & RGFW_HOLD_MOUSE))
 				break;
@@ -7029,6 +7036,9 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			DispatchMessageA(&msg);
 			return RGFW_window_checkEvent(win);
 	}
+    
+    TranslateMessage(&msg);
+	DispatchMessageA(&msg);
 
 	return &win->event;
 }
