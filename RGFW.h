@@ -3484,11 +3484,6 @@ Start of Linux / Unix defines
 #include <limits.h> /* for data limits (mainly used in drag and drop functions) */
 #include <poll.h>
 
-
-#if defined(__linux__) && !defined(RGFW_NO_LINUX)
-#include <linux/joystick.h>
-#endif
-
 /* atoms needed for drag and drop */
 Atom XdndAware, XtextPlain, XtextUriList;
 Atom RGFW_XUTF8_STRING = 0;
