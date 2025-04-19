@@ -2038,8 +2038,8 @@ void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	if (flags & RGFW_windowFocus)					RGFW_window_focus(win);
 	
 	if (flags & RGFW_windowNoResize) {
-		RGFW_window_setMaxSize(win, RGFW_AREA(win->r.w, win->r.h));
-		RGFW_window_setMinSize(win, RGFW_AREA(win->r.w, win->r.h));
+	    RGFW_window_setMaxSize(win, RGFW_AREA(win->r.w, win->r.h));
+	    RGFW_window_setMinSize(win, RGFW_AREA(win->r.w, win->r.h));
 	} else if (cmpFlags & RGFW_windowNoResize) {
 		RGFW_window_setMaxSize(win, RGFW_AREA(0, 0));
 		RGFW_window_setMinSize(win, RGFW_AREA(0, 0));
@@ -6479,10 +6479,10 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	RECT windowRect, clientRect;
 
 	if (!(flags & RGFW_windowNoBorder)) {
-		window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER | WS_MINIMIZEBOX;
+		window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER | WS_MINIMIZEBOX | WS_THICKFRAME;
 
 		if (!(flags & RGFW_windowNoResize))
-			window_style |= WS_SIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME;
+			window_style |= WS_SIZEBOX | WS_MAXIMIZEBOX;
 	} else
 		window_style |= WS_POPUP | WS_VISIBLE | WS_SYSMENU;
 

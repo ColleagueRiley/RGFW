@@ -64,6 +64,7 @@ overwritten)
 - (msvc) don't link opengl.dll unless it's used in RGFW (`RGFW_OPENGL`)
 - (glx) add a fallback if glXCreateContextAttribsARB fails 
 - fix issue for non-latin keyboards (key input not being processed) 
+- (Windows) fix client area extending beyond titlebar (scaled displays)
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------

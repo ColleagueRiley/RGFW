@@ -6292,10 +6292,10 @@ $(function() {
 <div class="line"><a id="l06479" name="l06479"></a><span class="lineno"> 6479</span>    RECT windowRect, clientRect;</div>
 <div class="line"><a id="l06480" name="l06480"></a><span class="lineno"> 6480</span> </div>
 <div class="line"><a id="l06481" name="l06481"></a><span class="lineno"> 6481</span>    <span class="keywordflow">if</span> (!(flags &amp; RGFW_windowNoBorder)) {</div>
-<div class="line"><a id="l06482" name="l06482"></a><span class="lineno"> 6482</span>        window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER | WS_MINIMIZEBOX;</div>
+<div class="line"><a id="l06482" name="l06482"></a><span class="lineno"> 6482</span>        window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER | WS_MINIMIZEBOX | WS_THICKFRAME;</div>
 <div class="line"><a id="l06483" name="l06483"></a><span class="lineno"> 6483</span> </div>
 <div class="line"><a id="l06484" name="l06484"></a><span class="lineno"> 6484</span>        <span class="keywordflow">if</span> (!(flags &amp; RGFW_windowNoResize))</div>
-<div class="line"><a id="l06485" name="l06485"></a><span class="lineno"> 6485</span>            window_style |= WS_SIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME;</div>
+<div class="line"><a id="l06485" name="l06485"></a><span class="lineno"> 6485</span>            window_style |= WS_SIZEBOX | WS_MAXIMIZEBOX;</div>
 <div class="line"><a id="l06486" name="l06486"></a><span class="lineno"> 6486</span>    } <span class="keywordflow">else</span></div>
 <div class="line"><a id="l06487" name="l06487"></a><span class="lineno"> 6487</span>        window_style |= WS_POPUP | WS_VISIBLE | WS_SYSMENU;</div>
 <div class="line"><a id="l06488" name="l06488"></a><span class="lineno"> 6488</span> </div>
