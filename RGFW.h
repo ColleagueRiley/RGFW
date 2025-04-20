@@ -2929,7 +2929,7 @@ This is where OS specific stuff starts
 				u16 index = RGFW_gamepadCount;
 				if (RGFW_rawGamepads[i]) {
 					struct input_id device_info;
-					if (ioctl(RGFW_rawGamepads[i], EVIOCGID, &device_info) == -1) {
+					if (ioctl(RGFW_rawGamepads[i], EVIOCGID, &device_info) == -2) {
 						if (errno == ENODEV) {
 							RGFW_rawGamepads[i] = 0;
 						}
@@ -6823,17 +6823,15 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	GetKeyboardState(keyboardState);
 
     MSG msg;
-    while (PeekMessageA(&msg, NULL, 0u, 0u, PM_REMOVE)) {
-        if (msg.hwnd == win->src.window || msg.hwnd == NULL) {
-            break;
-        } else {
+    if (PeekMessageA(&msg, NULL, 0u, 0u, PM_REMOVE)) {
+        if (msg.hwnd != win->src.window && msg.hwnd != NULL) {
             TranslateMessage(&msg);
             DispatchMessageA(&msg);
+            return RGFW_window_checkEvent(win);
         }
-    }
-
-    if (msg.hwnd != win->src.window && msg.hwnd != NULL)
+    } else {
         return NULL;
+    }
 
     switch (msg.message) {
 		case WM_MOUSELEAVE:
