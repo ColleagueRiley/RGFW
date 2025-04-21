@@ -3076,7 +3076,7 @@ RGFW_event* RGFW_updateGamepad(void) {
                     event.type = RGFW_gamepadAxisMove;
                     event.gamepad = i;
                     event.whichAxis = (u8)axis;
-                    RGFW_gamepadAxisCallback(_RGFW.root, i, win->event.axis, win->event.axisesCount, win->event.whichAxis);
+                    RGFW_gamepadAxisCallback(_RGFW.root, i, event.axis, event.axisesCount, event.whichAxis);
                     return &event;
                 }
                 default: break;
@@ -3087,10 +3087,10 @@ RGFW_event* RGFW_updateGamepad(void) {
             close(RGFW_gamepads[i]);
             RGFW_gamepads[i] = 0;
 
-            win->event.type = RGFW_gamepadDisconnected;
-            win->event.gamepad = i;
+            event.type = RGFW_gamepadDisconnected;
+            event.gamepad = i;
             RGFW_gamepadCallback(win, i, 0);
-            return &win->event;
+            return &event;
         }
     }
 	#endif
