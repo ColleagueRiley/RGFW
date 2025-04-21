@@ -2054,7 +2054,7 @@ void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 
 RGFW_bool RGFW_window_updateGamepad(RGFW_window* win);
 RGFW_bool RGFW_window_updateGamepad(RGFW_window* win) {
-    if (win->_flags |= RGFW_windowNoGamepad) return RGFW_FALSE;
+    if (win->_flags & RGFW_windowNoGamepad) return RGFW_FALSE;
     
     RGFW_event* ev = RGFW_updateGamepad();
 	if (ev != NULL) {	
@@ -2945,6 +2945,8 @@ This is where OS specific stuff starts
 
 RGFW_event* RGFW_updateGamepad(void) {
 #if defined(__linux__) && !defined(RGFW_NO_LINUX)
+    static RGFW_event event;
+
     /* check for new gamepads */
     static const char* str[] = {"/dev/input/js0", "/dev/input/js1", "/dev/input/js2", "/dev/input/js3", "/dev/input/js4", "/dev/input/js5"};
     static u8 RGFW_rawGamepads[6];
@@ -3054,6 +3056,7 @@ RGFW_event* RGFW_updateGamepad(void) {
 
                     return &event;
                 }
+                    break;
                 case JS_EVENT_AXIS: {
                     size_t axis = e.number / 2;
                     if (axis == 2) axis = 1;
