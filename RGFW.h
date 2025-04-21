@@ -775,7 +775,8 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowFocusOnShow = RGFW_BIT(16), /*!< focus the window when it's shown */
 	RGFW_windowMinimize = RGFW_BIT(17), /*!< focus the window when it's shown */
 	RGFW_windowFocus = RGFW_BIT(18), /*!< if the window is in focus */
-	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize,
+    RGFW_windowNoGamepad = RGFW_BIT(19), /*!< don't handle gamepad events (can be handled by user) */ 
+    RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize,
 };
 
 typedef struct RGFW_window {
@@ -1211,6 +1212,8 @@ RGFWDEF void RGFW_setThreadPriority(RGFW_thread thread, u8 priority); /*!< sets 
 
 /** * @defgroup gamepad
 * @{ */
+
+RGFWDEF RGFW_event* RGFW_updateGamepad(void);
 
 typedef RGFW_ENUM(u8, RGFW_gamepadType) {
 	RGFW_gamepadMicrosoft = 0, RGFW_gamepadSony, RGFW_gamepadNintendo, RGFW_gamepadLogitech, RGFW_gamepadUnknown
@@ -1887,7 +1890,7 @@ no more event call back defines
 #define RGFW_WINDOW_ALLOC 		RGFW_BIT(28) /* if window was allocated by RGFW */
 #define RGFW_BUFFER_ALLOC 		RGFW_BIT(29) /* if window.buffer was allocated by RGFW */
 #define RGFW_WINDOW_INIT 		RGFW_BIT(30) /* if window.buffer was allocated by RGFW */
-#define RGFW_INTERNAL_FLAGS (RGFW_EVENT_QUIT | RGFW_EVENT_PASSED | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_WINDOW_ALLOC | RGFW_BUFFER_ALLOC | RGFW_windowFocus)
+#define RGFW_INTERNAL_FLAGS (RGFW_EVENT_QUIT | RGFW_EVENT_PASSED | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_WINDOW_ALLOC | RGFW_BUFFER_ALLOC | RGFW_windowFocus | RGFW_windowNoGamepad)
 
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
 	RGFW_window* win = (RGFW_window*)RGFW_ALLOC(sizeof(RGFW_window));
@@ -2049,10 +2052,11 @@ void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	win->_flags = flags | (win->_flags & RGFW_INTERNAL_FLAGS);
 }
 
-RGFW_event* RGFW_updateGamepad(void);
 RGFW_bool RGFW_window_updateGamepad(RGFW_window* win);
 RGFW_bool RGFW_window_updateGamepad(RGFW_window* win) {
-	RGFW_event* ev = RGFW_updateGamepad();
+    if (win->_flags |= RGFW_windowNoGamepad) return RGFW_FALSE;
+    
+    RGFW_event* ev = RGFW_updateGamepad();
 	if (ev != NULL) {	
         win->event.type = ev->type;
         win->event.button = ev->button;
@@ -6673,7 +6677,6 @@ u8 RGFW_xinput2RGFW[] = {
 	RGFW_gamepadR3,
 };
 
-RGFW_event* RGFW_updateGamepad(void);
 RGFW_event* RGFW_updateGamepad(void) {
 	#ifndef RGFW_NO_XINPUT
     static RGFW_event e = {0};
@@ -8055,7 +8058,7 @@ bool performDragOperation(id self, SEL sel, id sender) {
 	return false;
 }
 
-RGFW_event* RGFW_gamepadUpdate(RGFW_window* win) {
+RGFW_event* RGFW_updateGamepad(void) {
 	return RGFW_eventQueuePop(NULL);
 }
 
@@ -10128,7 +10131,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
     return win;
 }
 
-RGFW_event* RGFW_gamepadUpdate(void) {
+RGFW_event* RGFW_updateGamepad(void) {
 	RGFW_event* ev = RGFW_eventQueuePop(NULL);
     if (ev != NULL) return ev;
 
@@ -10203,7 +10206,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
     RGFW_event* ev =  RGFW_window_checkEventCore(win);
 	if (ev) return ev;
 	
-    RGFW_window_gamepadUpdate(win);
+    RGFW_window_updateGamepad(win);
 	return NULL;
 }
 
