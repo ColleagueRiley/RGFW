@@ -1754,9 +1754,9 @@ $(function() {
 <div class="line"><a id="l01936" name="l01936"></a><span class="lineno"> 1936</span>    <a class="code hl_struct" href="structRGFW__event.html">RGFW_event</a>* ev = &amp;_RGFW.events[_RGFW.eventIndex];</div>
 <div class="line"><a id="l01937" name="l01937"></a><span class="lineno"> 1937</span> </div>
 <div class="line"><a id="l01938" name="l01938"></a><span class="lineno"> 1938</span>    _RGFW.eventLen--;</div>
-<div class="line"><a id="l01939" name="l01939"></a><span class="lineno"> 1939</span>    <span class="keywordflow">if</span> (_RGFW.eventLen)</div>
+<div class="line"><a id="l01939" name="l01939"></a><span class="lineno"> 1939</span>    <span class="keywordflow">if</span> (_RGFW.eventLen &amp;&amp; _RGFW.eventIndex &lt; (_RGFW.eventLen - 1))</div>
 <div class="line"><a id="l01940" name="l01940"></a><span class="lineno"> 1940</span>        _RGFW.eventIndex++;</div>
-<div class="line"><a id="l01941" name="l01941"></a><span class="lineno"> 1941</span>    <span class="keywordflow">else</span></div>
+<div class="line"><a id="l01941" name="l01941"></a><span class="lineno"> 1941</span>    <span class="keywordflow">else</span> <span class="keywordflow">if</span> (_RGFW.eventLen == 0)</div>
 <div class="line"><a id="l01942" name="l01942"></a><span class="lineno"> 1942</span>        _RGFW.eventIndex = 0;</div>
 <div class="line"><a id="l01943" name="l01943"></a><span class="lineno"> 1943</span> </div>
 <div class="line"><a id="l01944" name="l01944"></a><span class="lineno"> 1944</span>    <span class="keywordflow">if</span> (ev-&gt;<a class="code hl_variable" href="structRGFW__event.html#a89fe817c101d890a13806709d1891c75">_win</a> != win &amp;&amp; ev-&gt;<a class="code hl_variable" href="structRGFW__event.html#a89fe817c101d890a13806709d1891c75">_win</a> != NULL) {</div>
