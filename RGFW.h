@@ -3090,7 +3090,7 @@ RGFW_event* RGFW_updateGamepad(void) {
 
             event.type = RGFW_gamepadDisconnected;
             event.gamepad = i;
-            RGFW_gamepadCallback(_RGFW_root, i, 0);
+            RGFW_gamepadCallback(_RGFW.root, i, 0);
             return &event;
         }
     }
