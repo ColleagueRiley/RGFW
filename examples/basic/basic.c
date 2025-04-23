@@ -5,7 +5,7 @@ size_t counter = 0;
 
 void* myAlloc(size_t size, unsigned int line, const char* file) {
     void* ptr = malloc(size);
-    printf("%s:%i allocated %zu bytes at %p\n",  file, line, size, ptr);
+    printf("%s:%i allocated %u bytes at %p\n",  file, line, (unsigned int)size, ptr);
     counter++;
 
     return ptr;
