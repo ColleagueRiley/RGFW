@@ -1936,9 +1936,9 @@ RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
 	RGFW_event* ev = &_RGFW.events[_RGFW.eventIndex];
 
 	_RGFW.eventLen--;
-	if (_RGFW.eventLen)
+	if (_RGFW.eventLen && _RGFW.eventIndex < (_RGFW.eventLen - 1))
 		_RGFW.eventIndex++;
-	else
+	else if (_RGFW.eventLen == 0)
 		_RGFW.eventIndex = 0;
 
 	if (ev->_win != win && ev->_win != NULL) {
