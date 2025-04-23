@@ -3,7 +3,7 @@
 
 size_t counter = 0;
 
-void* myAlloc(size_t size, unsigned int line, char* file) {
+void* myAlloc(size_t size, unsigned int line, const char* file) {
     void* ptr = malloc(size);
     printf("%s:%i allocated %zu bytes at %p\n",  file, line, size, ptr);
     counter++;
@@ -11,7 +11,7 @@ void* myAlloc(size_t size, unsigned int line, char* file) {
     return ptr;
 }
 
-void myFree(void* ptr, unsigned int line, char* file) {
+void myFree(void* ptr, unsigned int line, const char* file) {
     counter--;
     printf("%s:%i freed address %p\n", file, line, ptr); 
     free(ptr);
