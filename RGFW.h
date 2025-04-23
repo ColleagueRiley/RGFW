@@ -1918,7 +1918,7 @@ typedef struct RGFW_globalStruct {
         RGFW_mouse* hiddenMouse;
     #endif
     RGFW_event events[RGFW_MAX_EVENTS];
-    size_t eventLen;
+    i32 eventLen;
     i32 eventIndex;
 
 } RGFW_globalStruct;
