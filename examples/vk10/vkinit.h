@@ -255,14 +255,26 @@ int initVulkanDevice(RGFW_window* win, vulkanContext* ctx) {
     vkEnumeratePhysicalDevices(vkInit_vulkan_info.instance, &deviceCount, devices);
 
     vkInit_vulkan_info.physical_device = devices[0];
+    free(devices);
 
-    u32 queue_family_count = 0;
-    
+    u32 graphics_queue_family = 0;
+
     if (vkInit_vulkan_info.physical_device != NULL && deviceCount) {
-        vkGetPhysicalDeviceQueueFamilyProperties(vkInit_vulkan_info.physical_device, &queue_family_count, NULL);
-        VkQueueFamilyProperties* queueFamilies = (VkQueueFamilyProperties*) malloc(sizeof(VkQueueFamilyProperties) * queue_family_count);
+        u32 queue_family_count = 0;
+        VkQueueFamilyProperties* queueFamilies;
 
-        vkGetPhysicalDeviceQueueFamilyProperties(vkInit_vulkan_info.physical_device, &queue_family_count, queueFamilies);
+        vkGetPhysicalDeviceQueueFamilyProperties(vkInit_vulkan_info.physical_device, &queue_family_count, NULL);
+        queueFamilies = (VkQueueFamilyProperties*) malloc(sizeof(VkQueueFamilyProperties) * queue_family_count);
+
+        vkGetPhysicalDeviceQueueFamilyProperties(vkInit_vulkan_info.physical_device, &queue_family_count, queueFamilies);    
+   
+        for(u32 i = 0; i < queue_family_count; i++) {
+            if(queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                graphics_queue_family = i;
+            }
+        }
+
+        free(queueFamilies);
     }
 
     float queuePriority = 1.0f;
@@ -271,18 +283,16 @@ int initVulkanDevice(RGFW_window* win, vulkanContext* ctx) {
 
     VkDeviceCreateInfo device_create_info = (VkDeviceCreateInfo){ 0 };
     device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    VkDeviceQueueCreateInfo queue_create_infos[2] = {
-        (VkDeviceQueueCreateInfo){0},
-        (VkDeviceQueueCreateInfo){0},
+    VkDeviceQueueCreateInfo queue_create_info = {
+            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            .queueCount = 1,
+            .pQueuePriorities = &queuePriority,
+            .queueFamilyIndex = graphics_queue_family,
+            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO
     };
-    queue_create_infos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queue_create_infos[0].queueCount = 1;
-    queue_create_infos[0].pQueuePriorities = &queuePriority;
-    queue_create_infos[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queue_create_infos[1].queueCount = 1;
-    queue_create_infos[1].pQueuePriorities = &queuePriority;
-    device_create_info.queueCreateInfoCount = 2;
-    device_create_info.pQueueCreateInfos = queue_create_infos;
+
+    device_create_info.queueCreateInfoCount = 1;
+    device_create_info.pQueueCreateInfos = &queue_create_info;
 
     device_create_info.enabledExtensionCount = 1;
 
@@ -291,13 +301,14 @@ int initVulkanDevice(RGFW_window* win, vulkanContext* ctx) {
     };
 
     device_create_info.ppEnabledExtensionNames = device_extensions;
-    device_create_info.pEnabledFeatures = &device_features;
+    device_create_info.pEnabledFeatures = &device_features; 
+
     if ((vkInit_vulkan_info.physical_device == NULL || deviceCount == 0) || 
         vkCreateDevice(vkInit_vulkan_info.physical_device, &device_create_info, NULL, &vkInit_vulkan_info.device) != VK_SUCCESS) {
         fprintf(stderr, "failed to create logical device!\n");
         return -1;
     }
-
+    
     return 0;
 }
 
