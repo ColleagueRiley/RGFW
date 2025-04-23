@@ -328,6 +328,12 @@ Macros</h2></td></tr>
 <tr class="separator:a5b14d1535ddc28358e39d63467f71952"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a227499ad2e417195e18e86d6e4c9684d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a227499ad2e417195e18e86d6e4c9684d">XRRFreeScreenResources</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a89180bd5a1c9685ba7b85effcc6dfbff">XRRFreeScreenResourcesSrc</a></td></tr>
 <tr class="separator:a227499ad2e417195e18e86d6e4c9684d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7039567d4292985380e5a21462df00a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#af7039567d4292985380e5a21462df00a">XRRFreeOutputInfo</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a712344c8f80af5b1eab616f7e6d6beaf">XRRFreeOutputInfoSrc</a></td></tr>
+<tr class="separator:af7039567d4292985380e5a21462df00a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d2cc50447d6c1e049d4dabfd3826f58"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a4d2cc50447d6c1e049d4dabfd3826f58">XRRSetScreenConfig</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a50632e84fa5d507e296de51b792810c2">XRRSetScreenConfigSrc</a></td></tr>
+<tr class="separator:a4d2cc50447d6c1e049d4dabfd3826f58"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a18de031c310e1e981b09cebb89970f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a8a18de031c310e1e981b09cebb89970f">XRRSetCrtcConfig</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a17a7550a87ea26f616c9814dbd20925e">XRRSetCrtcConfigSrc</a></td></tr>
+<tr class="separator:a8a18de031c310e1e981b09cebb89970f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae37815594444d2e066de10726ee66e97"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#ae37815594444d2e066de10726ee66e97">glXChooseVisual</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a69d218fd9264c0bd83a585534d814baf">glXChooseVisualSrc</a></td></tr>
 <tr class="separator:ae37815594444d2e066de10726ee66e97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c2727ca70c1c37da2deb6d1b6d616ff"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a1c2727ca70c1c37da2deb6d1b6d616ff">glXCreateContext</a>&#160;&#160;&#160;<a class="el" href="XDL_8h.html#aee8e7f497028a6ce24118d219d4423bd">glXCreateContextSrc</a></td></tr>
@@ -605,6 +611,12 @@ Typedefs</h2></td></tr>
 <tr class="separator:af4f99309e1599fe7ca4d5e0d8c3a25c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abfb0d02450fb358f1d2f360c3129ac13"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#abfb0d02450fb358f1d2f360c3129ac13">PFN_XRRFreeScreenResources</a>) (XRRScreenResources *resources)</td></tr>
 <tr class="separator:abfb0d02450fb358f1d2f360c3129ac13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49a492e9ff561e9e71ee8fb2ab304176"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a49a492e9ff561e9e71ee8fb2ab304176">PFN_XRRFreeOutputInfo</a>) (XRROutputInfo *)</td></tr>
+<tr class="separator:a49a492e9ff561e9e71ee8fb2ab304176"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18ce7313bed9762a8b336cb1506d9bd5"><td class="memItemLeft" align="right" valign="top">typedef Status(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a18ce7313bed9762a8b336cb1506d9bd5">PFN_XRRSetScreenConfig</a>) (Display *dpy, XRRScreenConfiguration *config, Drawable draw, int size_index, Rotation rotation, Time timestamp)</td></tr>
+<tr class="separator:a18ce7313bed9762a8b336cb1506d9bd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8da6db5156cb2e11e5de6d096512b2b0"><td class="memItemLeft" align="right" valign="top">typedef Status(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a8da6db5156cb2e11e5de6d096512b2b0">PFN_XRRSetCrtcConfig</a>) (Display *, XRRScreenResources *, RRCrtc, Time, int, int, RRMode, Rotation, RROutput *, int)</td></tr>
+<tr class="separator:a8da6db5156cb2e11e5de6d096512b2b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d0f632e3af60978cc7cafd0ab6776de"><td class="memItemLeft" align="right" valign="top">typedef XVisualInfo *(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a7d0f632e3af60978cc7cafd0ab6776de">PFN_glXChooseVisual</a>) (Display *, int, int *)</td></tr>
 <tr class="separator:a7d0f632e3af60978cc7cafd0ab6776de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae6805c47d0f9c9ce2e82533e0bf8dfd9"><td class="memItemLeft" align="right" valign="top">typedef GLXContext(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#ae6805c47d0f9c9ce2e82533e0bf8dfd9">PFN_glXCreateContext</a>) (Display *, XVisualInfo *, GLXContext, Bool)</td></tr>
@@ -873,6 +885,12 @@ Variables</h2></td></tr>
 <tr class="separator:a94fab24a4105c7b68524215e4f3f9f7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a89180bd5a1c9685ba7b85effcc6dfbff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#abfb0d02450fb358f1d2f360c3129ac13">PFN_XRRFreeScreenResources</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a89180bd5a1c9685ba7b85effcc6dfbff">XRRFreeScreenResourcesSrc</a></td></tr>
 <tr class="separator:a89180bd5a1c9685ba7b85effcc6dfbff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a712344c8f80af5b1eab616f7e6d6beaf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#a49a492e9ff561e9e71ee8fb2ab304176">PFN_XRRFreeOutputInfo</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a712344c8f80af5b1eab616f7e6d6beaf">XRRFreeOutputInfoSrc</a></td></tr>
+<tr class="separator:a712344c8f80af5b1eab616f7e6d6beaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50632e84fa5d507e296de51b792810c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#a18ce7313bed9762a8b336cb1506d9bd5">PFN_XRRSetScreenConfig</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a50632e84fa5d507e296de51b792810c2">XRRSetScreenConfigSrc</a></td></tr>
+<tr class="separator:a50632e84fa5d507e296de51b792810c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17a7550a87ea26f616c9814dbd20925e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#a8da6db5156cb2e11e5de6d096512b2b0">PFN_XRRSetCrtcConfig</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a17a7550a87ea26f616c9814dbd20925e">XRRSetCrtcConfigSrc</a></td></tr>
+<tr class="separator:a17a7550a87ea26f616c9814dbd20925e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a69d218fd9264c0bd83a585534d814baf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#a7d0f632e3af60978cc7cafd0ab6776de">PFN_glXChooseVisual</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#a69d218fd9264c0bd83a585534d814baf">glXChooseVisualSrc</a></td></tr>
 <tr class="separator:a69d218fd9264c0bd83a585534d814baf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aee8e7f497028a6ce24118d219d4423bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="XDL_8h.html#ae6805c47d0f9c9ce2e82533e0bf8dfd9">PFN_glXCreateContext</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="XDL_8h.html#aee8e7f497028a6ce24118d219d4423bd">glXCreateContextSrc</a></td></tr>
@@ -2285,6 +2303,20 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="af7039567d4292985380e5a21462df00a" name="af7039567d4292985380e5a21462df00a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7039567d4292985380e5a21462df00a">&#9670;&#160;</a></span>XRRFreeOutputInfo</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define XRRFreeOutputInfo&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a712344c8f80af5b1eab616f7e6d6beaf">XRRFreeOutputInfoSrc</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a227499ad2e417195e18e86d6e4c9684d" name="a227499ad2e417195e18e86d6e4c9684d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a227499ad2e417195e18e86d6e4c9684d">&#9670;&#160;</a></span>XRRFreeScreenResources</h2>
 
@@ -2349,6 +2381,34 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define XRRGetScreenResourcesCurrent&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a8e899f15c78da4411dc0477dc5aa1839">XRRGetScreenResourcesCurrentSrc</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8a18de031c310e1e981b09cebb89970f" name="a8a18de031c310e1e981b09cebb89970f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a18de031c310e1e981b09cebb89970f">&#9670;&#160;</a></span>XRRSetCrtcConfig</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define XRRSetCrtcConfig&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a17a7550a87ea26f616c9814dbd20925e">XRRSetCrtcConfigSrc</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4d2cc50447d6c1e049d4dabfd3826f58" name="a4d2cc50447d6c1e049d4dabfd3826f58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4d2cc50447d6c1e049d4dabfd3826f58">&#9670;&#160;</a></span>XRRSetScreenConfig</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define XRRSetScreenConfig&#160;&#160;&#160;<a class="el" href="XDL_8h.html#a50632e84fa5d507e296de51b792810c2">XRRSetScreenConfigSrc</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4204,6 +4264,20 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a49a492e9ff561e9e71ee8fb2ab304176" name="a49a492e9ff561e9e71ee8fb2ab304176"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a49a492e9ff561e9e71ee8fb2ab304176">&#9670;&#160;</a></span>PFN_XRRFreeOutputInfo</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* PFN_XRRFreeOutputInfo) (XRROutputInfo *)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="abfb0d02450fb358f1d2f360c3129ac13" name="abfb0d02450fb358f1d2f360c3129ac13"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abfb0d02450fb358f1d2f360c3129ac13">&#9670;&#160;</a></span>PFN_XRRFreeScreenResources</h2>
 
@@ -4268,6 +4342,34 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">typedef XRRScreenResources *(* PFN_XRRGetScreenResourcesCurrent) (Display *display, Window window)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8da6db5156cb2e11e5de6d096512b2b0" name="a8da6db5156cb2e11e5de6d096512b2b0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8da6db5156cb2e11e5de6d096512b2b0">&#9670;&#160;</a></span>PFN_XRRSetCrtcConfig</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef Status(* PFN_XRRSetCrtcConfig) (Display *, XRRScreenResources *, RRCrtc, Time, int, int, RRMode, Rotation, RROutput *, int)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a18ce7313bed9762a8b336cb1506d9bd5" name="a18ce7313bed9762a8b336cb1506d9bd5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a18ce7313bed9762a8b336cb1506d9bd5">&#9670;&#160;</a></span>PFN_XRRSetScreenConfig</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef Status(* PFN_XRRSetScreenConfig) (Display *dpy, XRRScreenConfiguration *config, Drawable draw, int size_index, Rotation rotation, Time timestamp)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -6048,6 +6150,20 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a id="a712344c8f80af5b1eab616f7e6d6beaf" name="a712344c8f80af5b1eab616f7e6d6beaf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a712344c8f80af5b1eab616f7e6d6beaf">&#9670;&#160;</a></span>XRRFreeOutputInfoSrc</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="XDL_8h.html#a49a492e9ff561e9e71ee8fb2ab304176">PFN_XRRFreeOutputInfo</a> XRRFreeOutputInfoSrc</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a89180bd5a1c9685ba7b85effcc6dfbff" name="a89180bd5a1c9685ba7b85effcc6dfbff"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a89180bd5a1c9685ba7b85effcc6dfbff">&#9670;&#160;</a></span>XRRFreeScreenResourcesSrc</h2>
 
@@ -6112,6 +6228,34 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="XDL_8h.html#af4f99309e1599fe7ca4d5e0d8c3a25c3">PFN_XRRGetScreenResources</a> XRRGetScreenResourcesSrc</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a17a7550a87ea26f616c9814dbd20925e" name="a17a7550a87ea26f616c9814dbd20925e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17a7550a87ea26f616c9814dbd20925e">&#9670;&#160;</a></span>XRRSetCrtcConfigSrc</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="XDL_8h.html#a8da6db5156cb2e11e5de6d096512b2b0">PFN_XRRSetCrtcConfig</a> XRRSetCrtcConfigSrc</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a50632e84fa5d507e296de51b792810c2" name="a50632e84fa5d507e296de51b792810c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50632e84fa5d507e296de51b792810c2">&#9670;&#160;</a></span>XRRSetScreenConfigSrc</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="XDL_8h.html#a18ce7313bed9762a8b336cb1506d9bd5">PFN_XRRSetScreenConfig</a> XRRSetScreenConfigSrc</td>
         </tr>
       </table>
 </div><div class="memdoc">

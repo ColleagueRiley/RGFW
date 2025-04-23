@@ -1,4 +1,24 @@
 #include <stdio.h>
+#include <stdlib.h>
+
+size_t counter = 0;
+
+void* myAlloc(size_t size, unsigned int line, char* file) {
+    void* ptr = malloc(size);
+    printf("%s:%i allocated %zu bytes at %p\n",  file, line, size, ptr);
+    counter++;
+
+    return ptr;
+}
+
+void myFree(void* ptr, unsigned int line, char* file) {
+    counter--;
+    printf("%s:%i freed address %p\n", file, line, ptr); 
+    free(ptr);
+}
+
+#define RGFW_ALLOC(size) myAlloc(size, __LINE__, __FILE__)
+#define RGFW_FREE(size) myFree(size, __LINE__, __FILE__)
 
 #define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
@@ -92,6 +112,8 @@ int main(void) {
 
 	RGFW_freeMouse(mouse);
 	RGFW_window_close(win);
+
+    if (counter > 0) printf("MEMORY LEAK!\n");
     return 0;
 }
 

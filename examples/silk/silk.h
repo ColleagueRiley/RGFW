@@ -1893,7 +1893,7 @@ SILK_API i32 silkDrawPolygon(pixel* buffer, vec2i buf_size, i32 buf_stride, vec2
     }
 
     i32 theta = 360 / n;
-    vec2i points[n];
+    vec2i points[512];
 
     // Calculating the positions of each point of our polygon
     for(i32 i = 0; i < n; i++) {

@@ -1,4 +1,4 @@
-.TH "XDL.h" 3 "Sun Apr 20 2025" "RGFW" \" -*- nroff -*-
+.TH "XDL.h" 3 "Wed Apr 23 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -378,6 +378,15 @@ XDL.h
 .br
 .ti -1c
 .RI "#define \fBXRRFreeScreenResources\fP   \fBXRRFreeScreenResourcesSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXRRFreeOutputInfo\fP   \fBXRRFreeOutputInfoSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXRRSetScreenConfig\fP   \fBXRRSetScreenConfigSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXRRSetCrtcConfig\fP   \fBXRRSetCrtcConfigSrc\fP"
 .br
 .ti -1c
 .RI "#define \fBglXChooseVisual\fP   \fBglXChooseVisualSrc\fP"
@@ -795,6 +804,15 @@ XDL.h
 .RI "typedef void(* \fBPFN_XRRFreeScreenResources\fP) (XRRScreenResources *resources)"
 .br
 .ti -1c
+.RI "typedef void(* \fBPFN_XRRFreeOutputInfo\fP) (XRROutputInfo *)"
+.br
+.ti -1c
+.RI "typedef Status(* \fBPFN_XRRSetScreenConfig\fP) (Display *dpy, XRRScreenConfiguration *config, Drawable draw, int size_index, Rotation rotation, Time timestamp)"
+.br
+.ti -1c
+.RI "typedef Status(* \fBPFN_XRRSetCrtcConfig\fP) (Display *, XRRScreenResources *, RRCrtc, Time, int, int, RRMode, Rotation, RROutput *, int)"
+.br
+.ti -1c
 .RI "typedef XVisualInfo *(* \fBPFN_glXChooseVisual\fP) (Display *, int, int *)"
 .br
 .ti -1c
@@ -1196,6 +1214,15 @@ XDL.h
 .RI "\fBPFN_XRRFreeScreenResources\fP \fBXRRFreeScreenResourcesSrc\fP"
 .br
 .ti -1c
+.RI "\fBPFN_XRRFreeOutputInfo\fP \fBXRRFreeOutputInfoSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XRRSetScreenConfig\fP \fBXRRSetScreenConfigSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XRRSetCrtcConfig\fP \fBXRRSetCrtcConfigSrc\fP"
+.br
+.ti -1c
 .RI "\fBPFN_glXChooseVisual\fP \fBglXChooseVisualSrc\fP"
 .br
 .ti -1c
@@ -1432,6 +1459,8 @@ XDL.h
 
 .SS "#define XRRFreeCrtcInfo   \fBXRRFreeCrtcInfoSrc\fP"
 
+.SS "#define XRRFreeOutputInfo   \fBXRRFreeOutputInfoSrc\fP"
+
 .SS "#define XRRFreeScreenResources   \fBXRRFreeScreenResourcesSrc\fP"
 
 .SS "#define XRRGetCrtcInfo   \fBXRRGetCrtcInfoSrc\fP"
@@ -1441,6 +1470,10 @@ XDL.h
 .SS "#define XRRGetScreenResources   \fBXRRGetScreenResourcesSrc\fP"
 
 .SS "#define XRRGetScreenResourcesCurrent   \fBXRRGetScreenResourcesCurrentSrc\fP"
+
+.SS "#define XRRSetCrtcConfig   \fBXRRSetCrtcConfigSrc\fP"
+
+.SS "#define XRRSetScreenConfig   \fBXRRSetScreenConfigSrc\fP"
 
 .SS "#define XSaveContext   \fBXSaveContextSrc\fP"
 
@@ -1708,6 +1741,8 @@ XDL.h
 
 .SS "typedef void(* PFN_XRRFreeCrtcInfo) (XRRCrtcInfo *crtc_info)"
 
+.SS "typedef void(* PFN_XRRFreeOutputInfo) (XRROutputInfo *)"
+
 .SS "typedef void(* PFN_XRRFreeScreenResources) (XRRScreenResources *resources)"
 
 .SS "typedef XRRCrtcInfo *(* PFN_XRRGetCrtcInfo) (Display *display, XRRScreenResources *resources, RRCrtc crtc)"
@@ -1717,6 +1752,10 @@ XDL.h
 .SS "typedef XRRScreenResources *(* PFN_XRRGetScreenResources) (Display *display, Window window)"
 
 .SS "typedef XRRScreenResources *(* PFN_XRRGetScreenResourcesCurrent) (Display *display, Window window)"
+
+.SS "typedef Status(* PFN_XRRSetCrtcConfig) (Display *, XRRScreenResources *, RRCrtc, Time, int, int, RRMode, Rotation, RROutput *, int)"
+
+.SS "typedef Status(* PFN_XRRSetScreenConfig) (Display *dpy, XRRScreenConfiguration *config, Drawable draw, int size_index, Rotation rotation, Time timestamp)"
 
 .SS "typedef int(* PFN_XSaveContext) (Display *, XID, XContext, const char *)"
 
@@ -1974,6 +2013,8 @@ XDL.h
 
 .SS "\fBPFN_XRRFreeCrtcInfo\fP XRRFreeCrtcInfoSrc"
 
+.SS "\fBPFN_XRRFreeOutputInfo\fP XRRFreeOutputInfoSrc"
+
 .SS "\fBPFN_XRRFreeScreenResources\fP XRRFreeScreenResourcesSrc"
 
 .SS "\fBPFN_XRRGetCrtcInfo\fP XRRGetCrtcInfoSrc"
@@ -1983,6 +2024,10 @@ XDL.h
 .SS "\fBPFN_XRRGetScreenResourcesCurrent\fP XRRGetScreenResourcesCurrentSrc"
 
 .SS "\fBPFN_XRRGetScreenResources\fP XRRGetScreenResourcesSrc"
+
+.SS "\fBPFN_XRRSetCrtcConfig\fP XRRSetCrtcConfigSrc"
+
+.SS "\fBPFN_XRRSetScreenConfig\fP XRRSetScreenConfigSrc"
 
 .SS "\fBPFN_XSaveContext\fP XSaveContextSrc"
 
