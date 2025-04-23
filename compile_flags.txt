@@ -1,10 +1,12 @@
 -D RGFW_IMPLEMENTATION
 -I./
+-D RGFW_X11
+-D __linux__
+-D RGFW_WASM
 
 # you can define all of these at once if you want, by default the native one will be defined by RGFW.h
 # -D RGFW_WINDOWS
 #  -D RGFW_MACOS
 # -D RGFW_WASM
 # -D RGFW_UNIX
-# -D RGFW_X11
 # -D RGFW_WAYLAND

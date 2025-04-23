@@ -196,6 +196,9 @@ typedef XRROutputInfo *(*PFN_XRRGetOutputInfo)(Display *display, XRRScreenResour
 typedef void (*PFN_XRRFreeCrtcInfo)(XRRCrtcInfo *crtc_info);
 typedef XRRScreenResources *(*PFN_XRRGetScreenResources)(Display *display, Window window);
 typedef void (*PFN_XRRFreeScreenResources)(XRRScreenResources *resources);
+typedef void (*PFN_XRRFreeOutputInfo)(XRROutputInfo*);
+typedef Status (*PFN_XRRSetScreenConfig) (Display *dpy, XRRScreenConfiguration *config, Drawable draw, int size_index, Rotation rotation, Time timestamp);
+typedef Status (*PFN_XRRSetCrtcConfig)(Display*, XRRScreenResources*, RRCrtc, Time, int, int, RRMode, Rotation, RROutput*, int);
 #endif
 
 #ifndef XDL_NO_GLX
@@ -334,6 +337,9 @@ PFN_XRRGetOutputInfo XRRGetOutputInfoSrc;
 PFN_XRRFreeCrtcInfo XRRFreeCrtcInfoSrc;
 PFN_XRRGetScreenResources XRRGetScreenResourcesSrc;
 PFN_XRRFreeScreenResources XRRFreeScreenResourcesSrc;
+PFN_XRRFreeOutputInfo XRRFreeOutputInfoSrc;
+PFN_XRRSetScreenConfig XRRSetScreenConfigSrc;
+PFN_XRRSetCrtcConfig XRRSetCrtcConfigSrc;
 #endif
 
 #ifndef XDL_NO_GLX
@@ -472,6 +478,9 @@ PFN_glXDestroyContext glXDestroyContextSrc;
     #define XRRFreeCrtcInfo XRRFreeCrtcInfoSrc
     #define XRRGetScreenResources XRRGetScreenResourcesSrc
     #define XRRFreeScreenResources XRRFreeScreenResourcesSrc
+    #define XRRFreeOutputInfo XRRFreeOutputInfoSrc
+    #define XRRSetScreenConfig XRRSetScreenConfigSrc
+    #define XRRSetCrtcConfig XRRSetCrtcConfigSrc
 #endif
 
 #ifndef XDL_NO_GLX
@@ -640,8 +649,10 @@ void XDL_init(void) {
         XDL_PROC_DEF(2, XRRFreeCrtcInfo);
         XDL_PROC_DEF(2, XRRGetScreenResources);
         XDL_PROC_DEF(2, XRRFreeScreenResources);
+        XDL_PROC_DEF(2, XRRFreeOutputInfo);
+        XDL_PROC_DEF(2, XRRSetScreenConfig);
+        XDL_PROC_DEF(2, XRRSetCrtcConfig);
     #endif
-
 
     #ifndef XDL_NO_GLX
         XDL_PROC_DEF(1, glXChooseVisual);

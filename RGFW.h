@@ -1892,8 +1892,8 @@ no more event call back defines
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
 	RGFW_window* win = (RGFW_window*)RGFW_ALLOC(sizeof(RGFW_window));
 	RGFW_ASSERT(win != NULL);
-	win->_flags = RGFW_WINDOW_ALLOC;
-	return RGFW_createWindowPtr(name, rect, flags, win);
+    win->_flags = RGFW_WINDOW_ALLOC;
+    return RGFW_createWindowPtr(name, rect, flags, win);
 }
 
 #if defined(RGFW_USE_XDL) && defined(RGFW_X11)
@@ -2873,7 +2873,7 @@ wayland:
     VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, GetModuleHandle(NULL), (HWND)win->src.window };
 
     return vkCreateWin32SurfaceKHR(instance, &win32, NULL, surface);
-#elif defined(RGFW_MACOS) _glfwCreateWindowSurfaceCocoa&& !defined(RGFW_MACOS_X11)
+#elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
     void* contentView = ((void* (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_getUid("contentView"));
     VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, win->src.display, (void*)contentView };
 
@@ -6431,7 +6431,6 @@ i32 RGFW_init(void) {
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal, (RGFW_debugContext){0}, "global context initialized");
     return 1;
 }
-
 
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	if (name[0] == 0) name = (char*) " ";
@@ -10306,8 +10305,9 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
 #ifndef RGFW_WEBGPU
 	emscripten_webgl_commit_frame();
-	emscripten_sleep(0);
+
 #endif
+    emscripten_sleep(0);
 }
 
 #ifndef RGFW_WEBGPU

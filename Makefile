@@ -214,7 +214,7 @@ ifeq ($(RGFW_WAYLAND), 1)
 else ifneq (,$(filter $(CC),emcc em++))
 	@echo nostl is not supported on this platform
 else ifeq ($(detected_OS),Linux)
-	$(CC) $(CFLAGS) -I. $< -lXrandr  -o $@$(EXT)
+	$(CC) $(CFLAGS) -I. $<  -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lgdi32 -o $@$(EXT)
 else ifeq ($(detected_OS),Darwin)
