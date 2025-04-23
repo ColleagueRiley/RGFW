@@ -4,9 +4,12 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - '**'
+      - 'RGFW.h'
+      - 'Makefile'
       - 'examples/**'
       - '.github/workflows/windows.yml'
+    branches:
+      - main
   pull_request:
     paths:
       - '**'
