@@ -20,6 +20,7 @@
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
 #define RGFW_DEBUG
+#define RGFW_NO_GAMEPAD
 #include <RGFW.h>
 
 #define MULTILINE_STR(...) #__VA_ARGS__

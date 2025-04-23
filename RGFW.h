@@ -64,8 +64,9 @@
 	#define RGFW_NO_DPI - do not calculate DPI (no XRM nor libShcore included)
 	#define RGFW_BUFFER_BGR - use the BGR format for bufffers instead of RGB, saves processing time 
     #define RGFW_ADVANCED_SMOOTH_RESIZE - use advanced methods for smooth resizing (may result in a spike in memory usage or worse performance) (eg. WM_TIMER and XSyncValue)
+    #define RGFW_NO_GAMEPAD - do not include gamepad features
 
-	#define RGFW_ALLOC x  - choose the default allocation function (defaults to standard malloc)
+    #define RGFW_ALLOC x  - choose the default allocation function (defaults to standard malloc)
 	#define RGFW_FREE x  - choose the default deallocation function (defaults to standard free)
 	#define RGFW_USERPTR x - choose the default userptr sent to the malloc call, (NULL by default)
 
@@ -2944,7 +2945,7 @@ This is where OS specific stuff starts
 #endif
 
 RGFW_event* RGFW_updateGamepad(void) {
-#if defined(__linux__) && !defined(RGFW_NO_LINUX)
+#if defined(__linux__) && !defined(RGFW_NO_LINUX) && !defined(RGFW_NO_GAMEPAD)
     static RGFW_event event;
 
     /* check for new gamepads */
@@ -3089,7 +3090,7 @@ RGFW_event* RGFW_updateGamepad(void) {
 
             event.type = RGFW_gamepadDisconnected;
             event.gamepad = i;
-            RGFW_gamepadCallback(_RGFW.root, i, 0);
+            RGFW_gamepadCallback(_RGFW_root, i, 0);
             return &event;
         }
     }
@@ -5937,6 +5938,10 @@ u64 RGFW_getTimerValue(void) {
 #include <locale.h>
 #include <winuser.h>
 
+#ifdef RGFW_NO_XINPUT
+    #define RGFW_NO_GAMEPAD
+#endif
+
 #ifndef WM_DPICHANGED
 #define WM_DPICHANGED       0x02E0
 #endif
@@ -7666,6 +7671,10 @@ void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { SetThreadPriority
 #include <objc/message.h>
 #include <mach/mach_time.h>
 #include <CoreVideo/CoreVideo.h>
+
+#ifdef RGFW_NO_GAMEPAD
+#define RGFW_NO_IOKIT
+#endif
 
 typedef CGRect NSRect;
 typedef CGPoint NSPoint;
@@ -9747,6 +9756,7 @@ EM_BOOL Emscripten_on_touchcancel(int eventType, const EmscriptenTouchEvent* e, 
 EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamepadEvent, void *userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
+#ifndef RGFW_NO_GAMEPAD
 	if (gamepadEvent->index >= 4)
 		return 0;
 
@@ -9773,7 +9783,9 @@ EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamep
 
 	RGFW_gamepadCallback(_RGFW.root, gamepadEvent->index, gamepadEvent->connected);
 	RGFW_gamepads[gamepadEvent->index] = gamepadEvent->connected;
-
+#else
+    RGFW_UNUSED(gamepadEvent);
+#endif
     return 1; // The event was consumed by the callback handler
 }
 
@@ -10137,9 +10149,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 RGFW_event* RGFW_updateGamepad(void) {
 	RGFW_event* ev = RGFW_eventQueuePop(NULL);
     if (ev != NULL) return ev;
-
-    /// REMEMBER TO GO BACK AND MAKE SURE null IS PASSED FOR THE WINDOW ARG
-
+#ifndef RGFW_NO_GAMEPAD
     emscripten_sample_gamepad_data();
 	/* check gamepads */
     for (int i = 0; (i < emscripten_get_num_gamepads()) && (i < 4); i++) {
@@ -10201,6 +10211,7 @@ RGFW_event* RGFW_updateGamepad(void) {
 			}
 		}
     }
+#endif
     return NULL;
 }
 
