@@ -41,6 +41,7 @@ jobs:
         wget https://raw.githubusercontent.com/ColleagueRiley/nuklear_rgfw/main/rgfw_opengl2/rgfw-nuklear.js
         
     - name: Deploy Pages
+      if: github.event_name != 'pull_request' 
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
