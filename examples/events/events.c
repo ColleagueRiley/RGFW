@@ -10,8 +10,8 @@ int main(void) {
         glClearColor(0.25f, 0.0f, 0.15f, 0.25f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        RGFW_window_swapBuffers(win);
-//		RGFW_window_eventWait(win, RGFW_eventWaitNext);
+        RGFW_window_swapBuffers(win);	
+        RGFW_window_eventWait(win, RGFW_eventWaitNext);
         while (RGFW_window_checkEvent(win)) {
             switch (win->event.type) {
                 case RGFW_quit: printf("window closed\n"); break;
