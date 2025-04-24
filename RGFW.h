@@ -2071,7 +2071,7 @@ void RGFW_window_initBufferSize(RGFW_window* win, RGFW_area area) {
 #if defined(RGFW_BUFFER) || defined(RGFW_OSMESA)
     win->_flags |= RGFW_BUFFER_ALLOC;
 	#ifndef RGFW_WINDOWS
-        u8* buffer = (u8*)RGFW_ALLOC(area.w * area.h * 4),
+        u8* buffer = (u8*)RGFW_ALLOC(area.w * area.h * 4);
         RGFW_ASSERT(buffer != NULL);    
 
         RGFW_window_initBufferPtr(win, buffer, area);
