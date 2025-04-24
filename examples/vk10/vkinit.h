@@ -271,6 +271,7 @@ int initVulkanDevice(RGFW_window* win, vulkanContext* ctx) {
         for(u32 i = 0; i < queue_family_count; i++) {
             if(queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
                 graphics_queue_family = i;
+                break;
             }
         }
 
