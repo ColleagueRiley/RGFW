@@ -9,7 +9,7 @@
 * This software is provided 'as-is', without any express or implied
 * warranty.  In no event will the authors be held liable for any damages
 * arising from the use of this software.
-*
+
 * Permission is granted to anyone to use this software for any purpose,
 * including commercial applications, and to alter it and redistribute it
 * freely, subject to the following restrictions:
@@ -1532,6 +1532,7 @@ const char* RGFW_readClipboard(size_t* len) {
 	RGFW_ssize_t size = RGFW_readClipboardPtr(NULL, 0);
     RGFW_CHECK_CLIPBOARD();
     char* str = (char*)RGFW_ALLOC((size_t)size);
+    RGFW_ASSERT(str != NULL);
     str[0] = '\0';
 
     size = RGFW_readClipboardPtr(str, (size_t)size);
@@ -2005,7 +2006,9 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 	win->_lastMousePoint = RGFW_POINT(0, 0);
 	
 	win->event.droppedFiles = (char**)RGFW_ALLOC(RGFW_MAX_PATH * RGFW_MAX_DROPS);
-	for (u32 i = 0; i < RGFW_MAX_DROPS; i++)
+    RGFW_ASSERT(win->event.droppedFiles != NULL);
+    
+    for (u32 i = 0; i < RGFW_MAX_DROPS; i++)
 		win->event.droppedFiles[i] = (char*)(win->event.droppedFiles + RGFW_MAX_DROPS + (i * RGFW_MAX_PATH));
 }
 
@@ -2068,8 +2071,11 @@ void RGFW_window_initBufferSize(RGFW_window* win, RGFW_area area) {
 #if defined(RGFW_BUFFER) || defined(RGFW_OSMESA)
     win->_flags |= RGFW_BUFFER_ALLOC;
 	#ifndef RGFW_WINDOWS
-    RGFW_window_initBufferPtr(win, (u8*)RGFW_ALLOC(area.w * area.h * 4), area);
-	#else /* windows's bitmap allocs memory for us */
+        u8*buffer = (u8*)RGFW_ALLOC(area.w * area.h * 4),
+        RGFW_ASSERT(buffer != NULL);    
+
+        RGFW_window_initBufferPtr(win, buffer, area);
+    #else /* windows's bitmap allocs memory for us */
 	RGFW_window_initBufferPtr(win, (u8*)NULL, area);
 	#endif
 #else
@@ -4998,7 +5004,9 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* icon, RGFW_area a, i32 cha
 	i32 count = (i32)(2 + (a.w * a.h));
 
 	unsigned long* data = (unsigned long*) RGFW_ALLOC((u32)count * sizeof(unsigned long));
-	data[0] = (unsigned long)a.w;
+    RGFW_ASSERT(data != NULL);
+
+    data[0] = (unsigned long)a.w;
 	data[1] = (unsigned long)a.h;
 
 	unsigned long* target = &data[2];
@@ -5297,7 +5305,9 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 		RGFW_FREE(_RGFW.clipboard);
 
 	_RGFW.clipboard = (char*)RGFW_ALLOC(textLen);
-	RGFW_STRNCPY(_RGFW.clipboard, text, textLen);
+    RGFW_ASSERT(_RGFW.clipboard != NULL);
+
+    RGFW_STRNCPY(_RGFW.clipboard, text, textLen);
 	_RGFW.clipboard_len = textLen;
 	#endif
 	#if defined(RGFW_WAYLAND)
