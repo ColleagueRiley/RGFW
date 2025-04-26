@@ -2135,20 +2135,18 @@ RGFW_bool RGFW_isReleased(RGFW_window* win, RGFW_key key) {
 	return (!RGFW_isPressed(win, key) && RGFW_wasPressed(win, key));
 }
 
-#ifndef RGFW_CUSTOM_BACKEND
 void RGFW_window_makeCurrent(RGFW_window* win) {
-#if defined(RGFW_OPENGL)
+#if defined(RGFW_OPENGL) || defined(RGFW_EGL)
 	RGFW_window_makeCurrent_OpenGL(win);
 #else
 	RGFW_UNUSED(win);
 #endif
 }
-#endif
 
 void RGFW_window_swapBuffers(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_window_swapBuffers_software(win);
-#if defined(RGFW_OPENGL)
+#if defined(RGFW_OPENGL) || defined(RGFW_EGL)
 	RGFW_window_swapBuffers_OpenGL(win);
 #endif
 }
@@ -2792,7 +2790,7 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 
 	eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.EGL_context);
 	eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "opengl context initalized");
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "EGL opengl context initalized");
 }
 
 void RGFW_window_freeOpenGL(RGFW_window* win) {
@@ -2802,11 +2800,15 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 	eglDestroyContext(win->src.EGL_display, win->src.EGL_context);
 	eglTerminate(win->src.EGL_display);
     win->src.EGL_display = NULL;
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "opengl context freed");
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "EGL opengl context freed");
 }
 
 void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
-	eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.EGL_context);
+    if (win == NULL)
+        eglMakeCurrent(_RGFW.root->src.EGL_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    else { 
+        eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.EGL_context);
+    }
 }
 
 void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) { eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface); }
