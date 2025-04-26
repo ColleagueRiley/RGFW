@@ -10,4 +10,5 @@
 - set gamepad mappings
 - set gamepad rumble
 - clipboard images
-- IME support  
+- IME support 
+- webGL support (x11) (winapi) (macos ?) web (review))
