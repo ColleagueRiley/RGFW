@@ -67,6 +67,7 @@ overwritten)
 - (Windows) fix client area extending beyond titlebar (scaled displays)
 - fix EGL support
 - fix OSMesa support (image is flipped)
+- add premake file
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------
