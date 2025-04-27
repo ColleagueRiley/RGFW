@@ -134,7 +134,7 @@ group "examples"
                     links {"EGL"}
                 end
                 
-                if e.name == "osmesa/osmesa" then
+                if e.name == "osmesa_demo/osmesa_demo" then
                     links { "OSMesa" }
                 end
                 
