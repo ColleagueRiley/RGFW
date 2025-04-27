@@ -2416,7 +2416,7 @@ void RGFW_moveToMacOSResourceDir(void) { }
 #ifndef RGFW_EGL
 i32 RGFW_GL_HINTS[RGFW_glFinalHint] = {8, 
 #else
-i32 RGFW_GL_HINTS[RGFW_glFinalHint] = {0, 
+i32 RGFW_GL_HINTS[RGFW_glFinalHint] = {8, 
 #endif
 	0, 0, 0, 1, 8, 8, 8, 8, 24, 0, 0, 0, 0, 0, 0, 0, 0, RGFW_glReleaseNone, RGFW_glCore, 0, 0};
 
@@ -3712,9 +3712,9 @@ RGFW_GOTO_WAYLAND(0);
 #ifndef RGFW_EGL
 void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 #ifdef RGFW_OPENGL
-		u32* visual_attribs = (u32*)RGFW_initFormatAttribs(software);
+		i32* visual_attribs = RGFW_initFormatAttribs(software);
 		i32 fbcount;
-		GLXFBConfig* fbc = glXChooseFBConfig(win->src.display, DefaultScreen(win->src.display), (i32*) visual_attribs, &fbcount);
+		GLXFBConfig* fbc = glXChooseFBConfig(win->src.display, DefaultScreen(win->src.display), visual_attribs, &fbcount);
 
 		i32 best_fbc = -1;
 		i32 best_depth = 0;
@@ -3851,9 +3851,9 @@ i32 RGFW_init(void) {
 
 	#if !defined(RGFW_NO_X11_EXT_PRELOAD)
 	#if defined(__CYGWIN__)
-			RGFW_LOAD_LIBRARY(X11Xihandle, "libXext-6.so");
+			RGFW_LOAD_LIBRARY(X11XEXThandle, "libXext-6.so");
 	#elif defined(__OpenBSD__) || defined(__NetBSD__)
-	        RGFW_LOAD_LIBRARY(X11Xihandle, "libXext.so");
+	        RGFW_LOAD_LIBRARY(X11XEXThandle, "libXext.so");
 	#else
 			RGFW_LOAD_LIBRARY(X11XEXThandle, "libXext.so.6");
 	#endif
