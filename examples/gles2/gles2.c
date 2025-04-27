@@ -111,7 +111,7 @@ int main(void) {
     GLuint position_loc = glGetAttribLocation(shaderProgram, "a_position");
     GLuint color_loc = glGetAttribLocation(shaderProgram, "a_color");
     glVertexAttribPointer(position_loc, 2, GL_FLOAT, GL_FALSE, attribute_stride, (void*) (attribute_array));
-    glVertexAttribPointer(color_loc, 3, GL_FLOAT, GL_FALSE, attribute_stride, (void*) (attribute_array + 2));
+    glVertexAttribPointer(color_loc, 3, GL_FLOAT, GL_FALSE, attribute_stride, (void*) (&attribute_array[2]));
     
     glEnableVertexAttribArray(position_loc);
     glEnableVertexAttribArray(color_loc);
