@@ -94,7 +94,7 @@ group "examples"
                 if use_wayland then
                     links { "EGL", "GL" }
                 else
-                    links { "GL" }
+                    links { "GL", "X11", "Xrandr", "dl", "pthread" }
                 end
 
             filter "system:macosx"
@@ -111,12 +111,12 @@ group "examples"
         { name = "gl33/gl33" },
         { name = "portableGL/pgl", condition = not (os.target() == "emscripten") },
         { name = "gles2/gles2", condition = not no_gles },
-        { name = "osmesa/osmesa", condition = not no_osmesa },
+        { name = "dx11/dx11", system = "windows", condition = isWindows },
+        { name = "metal/metal", system = "macosx", condition = isMac },
+        { name = "webgpu/webgpu", system = "emscripten", condition = (os.target() == "emscripten") },
+        { name = "minimal_links/minimal_links" },
+        { name = "osmesa_demo/osmesa_demo", condition = not no_osmesa },
         { name = "vk10/vk10", condition = not no_vulkan },
-        { name = "dx11/dx11", system = "windows" },
-        { name = "metal/metal", system = "macosx" },
-        { name = "webgpu/webgpu", system = "emscripten" },
-        { name = "minimal_links/minimal_links" }
     }
 
     for _, e in ipairs(exampleCustomOutputs) do
@@ -130,9 +130,18 @@ group "examples"
                 files { "examples/" .. e.name .. ".c", "RGFW.h" }
                 includedirs { "." }
 
+                if e.name == "gles2/gles2" then
+                    links {"EGL"}
+                end
+                
+                if e.name == "osmesa_demo/osmesa_demo" then
+                    links { "OSMesa" }
+                end
+                
                 if e.name == "microui_demo/microui_demo" then
                     files { "examples/microui_demo/microui.c" }
                 end
+ 
 
                 filter "system:windows"
                     if e.name == "dx11/dx11" then
@@ -144,10 +153,9 @@ group "examples"
                 filter "system:linux"
                     if use_wayland then
                         links { "EGL", "GL" }
-                    else
-                        links { "GL", "X11", "Xrandr", "dl", "pthread" }
+                    else    
+                        links { "GL", "X11", "Xrandr", "dl", "pthread", "m" }
                     end
-
                 filter "system:macosx"
                     if e.name == "metal/metal" then
                         files { "RGFW.c" }
