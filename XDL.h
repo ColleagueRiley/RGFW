@@ -517,9 +517,27 @@ void XDL_init(void) {
         XDL_module[0] =  dlopen("libX11.so.6", RTLD_LAZY | RTLD_LOCAL);
     #endif
 
-    #ifndef XDL_NO_GLX
-    XDL_module[1] =  dlopen("libGLX.so", RTLD_LAZY | RTLD_LOCAL);
-    #endif 
+#ifndef XDL_NO_GLX
+    const char* glxSonames[] = {
+#if defined(_GLFW_GLX_LIBRARY)
+        _GLFW_GLX_LIBRARY,
+#elif defined(__CYGWIN__)
+        "libGL-1.so",
+#elif defined(__OpenBSD__) || defined(__NetBSD__)
+        "libGL.so",
+#else
+        "libGLX.so.0",
+        "libGL.so.1",
+        "libGL.so",
+#endif
+    };
+
+    for (int i = 0; sizeof(glxSonames) / sizeof(char*);  i++) {
+        XDL_module[i] = dlopen(glxSonames[i], RTLD_LAZY | RTLD_LOCAL);
+        if (XDL_module[1])
+            break;
+    }
+#endif 
 
     #if defined(__CYGWIN__)
         XDL_module[2] = dlopen("libXrandr-2.so", RTLD_LAZY | RTLD_LOCAL);
