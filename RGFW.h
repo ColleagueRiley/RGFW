@@ -5625,6 +5625,9 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 	RGFW_GOTO_WAYLAND(0);
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	#ifdef RGFW_X11
+		win->src.bitmap->data = (char*) win->buffer;
+		RGFW_RGB_to_BGR(win, (u8*)win->src.bitmap->data);
+		#ifdef RGFW_OSMESA
 		/**
 		 * Why is OSMesa missing this procedure
 		 * This code simply flips the image
@@ -5633,8 +5636,6 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 		i32 ww = win->r.w;
 		i32 wh = win->r.h;
 		i32 bw = (i32)win->bufferSize.w;
-		win->src.bitmap->data = (char*) win->buffer;
-		RGFW_RGB_to_BGR(win, (u8*)win->src.bitmap->data);
 		for(i32 i = 0; i < wh / 2; i++){
 			for(i32 j = 0; j < ww; j++){
 				for(i32 d = 0; d < col; d++){
@@ -5644,6 +5645,7 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 				}
 			}
 		}
+		#endif
 		XPutImage(win->src.display, win->src.window, win->src.gc, win->src.bitmap, 0, 0, 0, 0, win->bufferSize.w, win->bufferSize.h);
 		win->src.bitmap->data = NULL;
 		return;
