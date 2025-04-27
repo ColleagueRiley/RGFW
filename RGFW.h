@@ -2268,7 +2268,25 @@ void RGFW_RGB_to_BGR(RGFW_window* win, u8* data) {
 			data[index + 2] = red;
 		}
 	}
-	#else
+	#elif defined(RGFW_OSMESA)
+    /**
+         * Why is OSMesa missing this procedure
+         * This code simply flips the image
+    */
+    const i32 col = 4;
+    i32 ww = win->r.w;
+    i32 wh = win->r.h;
+    i32 bw = (i32)win->bufferSize.w;
+    for(i32 i = 0; i < wh / 2; i++){
+        for(i32 j = 0; j < ww; j++){
+            for(i32 d = 0; d < col; d++){
+                u8 tmp = data[i * bw * col + j * col + d];
+                data[i * bw * col + j * col + d] = ((u8*)win->src.bitmap->data)[(wh - i - 1) * bw * col + j * col + d];
+                data[(wh - i - 1) * bw * col + j * col + d] = tmp;
+            }
+        }
+    }
+    #else
 	RGFW_UNUSED(win); RGFW_UNUSED(data);
 	#endif
 }
@@ -6221,8 +6239,8 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
 	SelectObject(win->src.hdcMem, win->src.bitmap);
 
 	#if defined(RGFW_OSMESA)
-	win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
-	OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
+	win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
+	OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
 	#endif
 	#else
 	RGFW_UNUSED(win); RGFW_UNUSED(buffer); RGFW_UNUSED(area); /*!< if buffer rendering is not being used */
@@ -8384,7 +8402,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 		win->_flags |= RGFW_BUFFER_ALLOC;
 	#ifdef RGFW_OSMESA
 		win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
-		OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
+		OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
 	#endif
 	#else
 		RGFW_UNUSED(win);  RGFW_UNUSED(buffer); RGFW_UNUSED(area); /*!< if buffer rendering is not being used */
@@ -9925,7 +9943,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
 		win->bufferSize = area;
 	#ifdef RGFW_OSMESA
 			win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
-			OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
+			OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
 	#endif
 	#else
 	RGFW_UNUSED(win);  RGFW_UNUSED(buffer); RGFW_UNUSED(area); /*!< if buffer rendering is not being used */
