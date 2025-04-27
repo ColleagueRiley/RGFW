@@ -519,9 +519,7 @@ void XDL_init(void) {
 
 #ifndef XDL_NO_GLX
     const char* glxSonames[] = {
-#if defined(_GLFW_GLX_LIBRARY)
-        _GLFW_GLX_LIBRARY,
-#elif defined(__CYGWIN__)
+#if defined(__CYGWIN__)
         "libGL-1.so",
 #elif defined(__OpenBSD__) || defined(__NetBSD__)
         "libGL.so",
@@ -533,7 +531,7 @@ void XDL_init(void) {
     };
 
     for (int i = 0; sizeof(glxSonames) / sizeof(char*);  i++) {
-        XDL_module[i] = dlopen(glxSonames[i], RTLD_LAZY | RTLD_LOCAL);
+        XDL_module[1] = dlopen(glxSonames[i], RTLD_LAZY | RTLD_LOCAL);
         if (XDL_module[1])
             break;
     }
