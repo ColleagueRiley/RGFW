@@ -2416,7 +2416,7 @@ void RGFW_moveToMacOSResourceDir(void) { }
 #ifndef RGFW_EGL
 i32 RGFW_GL_HINTS[RGFW_glFinalHint] = {8, 
 #else
-i32 RGFW_GL_HINTS[RGFW_glFinalHint] = {8, 
+i32 RGFW_GL_HINTS[RGFW_glFinalHint] = {0, 
 #endif
 	0, 0, 0, 1, 8, 8, 8, 8, 24, 0, 0, 0, 0, 0, 0, 0, 0, RGFW_glReleaseNone, RGFW_glCore, 0, 0};
 
