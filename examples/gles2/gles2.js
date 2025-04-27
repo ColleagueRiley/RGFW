@@ -965,20 +965,20 @@ function dbg(text) {
 // === Body ===
 
 var ASM_CONSTS = {
-  70228: () => { Module.canvas.focus(); },  
- 70253: () => { window.addEventListener("keydown", (event) => { var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(key, code, 1); _free(key); _free(code); }, true); window.addEventListener("keyup", (event) => { var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(key, code, 0); _free(key); _free(code); }, true); },  
- 71199: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 72218: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 72289: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 72346: () => { return window.mouseX || 0; },  
- 72377: () => { return window.mouseY || 0; },  
- 72408: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 72555: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 72608: () => { return window.innerWidth; },  
- 72638: () => { return window.innerHeight; },  
- 72669: () => { Module.requestFullscreen(false, true); },  
- 72708: () => { Module.exitFullscreen(false, true); },  
- 72744: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
+  70968: () => { Module.canvas.focus(); },  
+ 70993: () => { window.addEventListener("keydown", (event) => { var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(key, code, 1); _free(key); _free(code); }, true); window.addEventListener("keyup", (event) => { var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(key, code, 0); _free(key); _free(code); }, true); },  
+ 71939: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; _RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
+ 72958: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 73029: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 73086: () => { return window.mouseX || 0; },  
+ 73117: () => { return window.mouseY || 0; },  
+ 73148: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
+ 73295: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 73348: () => { return window.innerWidth; },  
+ 73378: () => { return window.innerHeight; },  
+ 73409: () => { Module.requestFullscreen(false, true); },  
+ 73448: () => { Module.exitFullscreen(false, true); },  
+ 73484: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
 };
 
 
@@ -6514,6 +6514,95 @@ var ASM_CONSTS = {
       return GLctx.getAttribLocation(GL.programs[program], UTF8ToString(name));
     };
 
+  var _glGetProgramInfoLog = (program, maxLength, length, infoLog) => {
+      var log = GLctx.getProgramInfoLog(GL.programs[program]);
+      if (log === null) log = '(unknown error)';
+      var numBytesWrittenExclNull = (maxLength > 0 && infoLog) ? stringToUTF8(log, infoLog, maxLength) : 0;
+      if (length) HEAP32[((length)>>2)] = numBytesWrittenExclNull;
+    };
+
+  var _glGetProgramiv = (program, pname, p) => {
+      if (!p) {
+        // GLES2 specification does not specify how to behave if p is a null
+        // pointer. Since calling this function does not make sense if p == null,
+        // issue a GL error to notify user about it.
+        GL.recordError(0x501 /* GL_INVALID_VALUE */);
+        return;
+      }
+  
+      if (program >= GL.counter) {
+        GL.recordError(0x501 /* GL_INVALID_VALUE */);
+        return;
+      }
+  
+      program = GL.programs[program];
+  
+      if (pname == 0x8B84) { // GL_INFO_LOG_LENGTH
+        var log = GLctx.getProgramInfoLog(program);
+        if (log === null) log = '(unknown error)';
+        HEAP32[((p)>>2)] = log.length + 1;
+      } else if (pname == 0x8B87 /* GL_ACTIVE_UNIFORM_MAX_LENGTH */) {
+        if (!program.maxUniformLength) {
+          for (var i = 0; i < GLctx.getProgramParameter(program, 0x8B86/*GL_ACTIVE_UNIFORMS*/); ++i) {
+            program.maxUniformLength = Math.max(program.maxUniformLength, GLctx.getActiveUniform(program, i).name.length+1);
+          }
+        }
+        HEAP32[((p)>>2)] = program.maxUniformLength;
+      } else if (pname == 0x8B8A /* GL_ACTIVE_ATTRIBUTE_MAX_LENGTH */) {
+        if (!program.maxAttributeLength) {
+          for (var i = 0; i < GLctx.getProgramParameter(program, 0x8B89/*GL_ACTIVE_ATTRIBUTES*/); ++i) {
+            program.maxAttributeLength = Math.max(program.maxAttributeLength, GLctx.getActiveAttrib(program, i).name.length+1);
+          }
+        }
+        HEAP32[((p)>>2)] = program.maxAttributeLength;
+      } else if (pname == 0x8A35 /* GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH */) {
+        if (!program.maxUniformBlockNameLength) {
+          for (var i = 0; i < GLctx.getProgramParameter(program, 0x8A36/*GL_ACTIVE_UNIFORM_BLOCKS*/); ++i) {
+            program.maxUniformBlockNameLength = Math.max(program.maxUniformBlockNameLength, GLctx.getActiveUniformBlockName(program, i).length+1);
+          }
+        }
+        HEAP32[((p)>>2)] = program.maxUniformBlockNameLength;
+      } else {
+        HEAP32[((p)>>2)] = GLctx.getProgramParameter(program, pname);
+      }
+    };
+
+  
+  var _glGetShaderInfoLog = (shader, maxLength, length, infoLog) => {
+      var log = GLctx.getShaderInfoLog(GL.shaders[shader]);
+      if (log === null) log = '(unknown error)';
+      var numBytesWrittenExclNull = (maxLength > 0 && infoLog) ? stringToUTF8(log, infoLog, maxLength) : 0;
+      if (length) HEAP32[((length)>>2)] = numBytesWrittenExclNull;
+    };
+
+  var _glGetShaderiv = (shader, pname, p) => {
+      if (!p) {
+        // GLES2 specification does not specify how to behave if p is a null
+        // pointer. Since calling this function does not make sense if p == null,
+        // issue a GL error to notify user about it.
+        GL.recordError(0x501 /* GL_INVALID_VALUE */);
+        return;
+      }
+      if (pname == 0x8B84) { // GL_INFO_LOG_LENGTH
+        var log = GLctx.getShaderInfoLog(GL.shaders[shader]);
+        if (log === null) log = '(unknown error)';
+        // The GLES2 specification says that if the shader has an empty info log,
+        // a value of 0 is returned. Otherwise the log has a null char appended.
+        // (An empty string is falsey, so we can just check that instead of
+        // looking at log.length.)
+        var logLength = log ? log.length + 1 : 0;
+        HEAP32[((p)>>2)] = logLength;
+      } else if (pname == 0x8B88) { // GL_SHADER_SOURCE_LENGTH
+        var source = GLctx.getShaderSource(GL.shaders[shader]);
+        // source may be a null, or the empty string, both of which are falsey
+        // values that we report a 0 length for.
+        var sourceLength = source ? source.length + 1 : 0;
+        HEAP32[((p)>>2)] = sourceLength;
+      } else {
+        HEAP32[((p)>>2)] = GLctx.getShaderParameter(GL.shaders[shader], pname);
+      }
+    };
+
   /** @suppress {checkTypes} */
   var jstoi_q = (str) => parseInt(str);
   
@@ -7180,6 +7269,14 @@ var wasmImports = {
   /** @export */
   glGetAttribLocation: _glGetAttribLocation,
   /** @export */
+  glGetProgramInfoLog: _glGetProgramInfoLog,
+  /** @export */
+  glGetProgramiv: _glGetProgramiv,
+  /** @export */
+  glGetShaderInfoLog: _glGetShaderInfoLog,
+  /** @export */
+  glGetShaderiv: _glGetShaderiv,
+  /** @export */
   glGetUniformLocation: _glGetUniformLocation,
   /** @export */
   glLinkProgram: _glLinkProgram,
@@ -7224,6 +7321,7 @@ var dynCall_viidi = Module['dynCall_viidi'] = createExportWrapper('dynCall_viidi
 var dynCall_viiii = Module['dynCall_viiii'] = createExportWrapper('dynCall_viiii');
 var dynCall_jiji = Module['dynCall_jiji'] = createExportWrapper('dynCall_jiji');
 var dynCall_ii = Module['dynCall_ii'] = createExportWrapper('dynCall_ii');
+var dynCall_iidiiii = Module['dynCall_iidiiii'] = createExportWrapper('dynCall_iidiiii');
 var _asyncify_start_unwind = createExportWrapper('asyncify_start_unwind');
 var _asyncify_stop_unwind = createExportWrapper('asyncify_stop_unwind');
 var _asyncify_start_rewind = createExportWrapper('asyncify_start_rewind');
