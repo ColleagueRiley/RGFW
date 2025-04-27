@@ -146,7 +146,7 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/gl33/gl33 \
 	examples/portableGL/pgl \
 	examples/gles2/gles2 \
-	examples/osmesa/osmesa \
+	examples/osmesa_demo/osmesa_demo \
 	examples/vk10/vk10 \
 	examples/dx11/dx11 \
 	examples/metal/metal \
@@ -171,7 +171,7 @@ else
 	@echo gles has been disabled
 endif
 
-examples/osmesa/osmesa: examples/osmesa/osmesa.c RGFW.h
+examples/osmesa_demo/osmesa_demo: examples/osmesa_demo/osmesa_demo.c RGFW.h
 ifneq ($(NO_OSMESA), 1)
 	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lOSMesa -o $@$(EXT)
 else
