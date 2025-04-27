@@ -65,6 +65,8 @@ overwritten)
 - (glx) add a fallback if glXCreateContextAttribsARB fails 
 - fix issue for non-latin keyboards (key input not being processed) 
 - (Windows) fix client area extending beyond titlebar (scaled displays)
+- fix EGL support
+- fix OSMesa support (image is flipped)
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------
