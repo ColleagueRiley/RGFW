@@ -5640,8 +5640,8 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 			for(i32 j = 0; j < ww; j++){
 				for(i32 d = 0; d < col; d++){
 					u8 tmp = ((u8*)win->src.bitmap->data)[i * bw * col + j * col + d];
-					((u8*)win->src.bitmap->data)[i * bw * col + j * col + d] = ((u8*)win->src.bitmap->data)[(wh - i) * bw * col + j * col + d];
-					((u8*)win->src.bitmap->data)[(wh - i) * bw * col + j * col + d] = tmp;
+					((u8*)win->src.bitmap->data)[i * bw * col + j * col + d] = ((u8*)win->src.bitmap->data)[(wh - i - 1) * bw * col + j * col + d];
+					((u8*)win->src.bitmap->data)[(wh - i - 1) * bw * col + j * col + d] = tmp;
 				}
 			}
 		}
