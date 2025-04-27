@@ -5838,7 +5838,7 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
     index++;
 #endif
 
-	#if defined(__linux__)
+	#if defined(__linux__) || defined(__NetBSD__)
 		for (i = 0; i < RGFW_gamepadCount; i++) {
 			if (RGFW_gamepads[i] == 0)
 				continue;

@@ -57,8 +57,21 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		NO_GLES = 0
 		NO_OSMESA = 0
 	endif
+	ifeq ($(detected_OS),NetBSD)
+		DX11_LIBS =
+		LINK_GL1 = -lGL
+		CUSTOM_CFLAGS += -I/usr/pkg/include -I/usr/X11R7/include -Wl,-R/usr/pkg/lib -Wl,-R/usr/X11R7/lib -L/usr/pkg/lib -L/usr/X11R7/lib
+    	LIBS := $(CUSTOM_CFLAGS) -lXrandr -lX11 -lpthread
+		VULKAN_LIBS = -lX11 -lXrandr -lpthread
+		EXT =
+		LIB_EXT = .so
+		OS_DIR = /
+		NO_GLES = 0
+		NO_OSMESA = 0
+		NO_VULKAN = 1
+	endif
 
-	ifeq (,$(filter $(detected_OS),Linux Darwin))
+	ifeq (,$(filter $(detected_OS),Linux Darwin NetBSD))
 		detected_OS := windows
 	endif
 else
@@ -268,6 +281,8 @@ examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.
 examples/gl33/gl33: examples/gl33/gl33.c RGFW.h
 ifeq ($(RGFW_WAYLAND), 1)
 	$(CC) $(CFLAGS) -I. $< $(LIBS) $(LINK_GL1) -lwayland-egl -o $@$(EXT)
+else ifeq ($(detected_OS),NetBSD)
+	$(CC) $(CFLAGS) $(CUSTOM_CFLAGS) -I. $<  -lXrandr -lpthread -o $@$(EXT)
 else ifeq ($(detected_OS),Linux)
 	$(CC) $(CFLAGS) -I. $<  -lXrandr -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
@@ -306,18 +321,18 @@ endif
 ifeq ($(detected_OS), windows)
 		./examples/dx11/dx11.exe
 endif
-	make clean
+	$(MAKE) clean
 
 
 RGFW$(OBJ_FILE): RGFW.h
-	make initwayland
+	$(MAKE) initwayland
 	#$(CC) -x c $(CUSTOM_CFLAGS) -c RGFW.h -D RGFW_IMPLEMENTATION -fPIC -D RGFW_EXPORT
 	cp RGFW.h RGFW.c
 	$(CC) $(CUSTOM_CFLAGS) -c RGFW.c -D RGFW_IMPLEMENTATION -fPIC -D RGFW_EXPORT
 	rm RGFW.c
 
 libRGFW$(LIB_EXT): RGFW.h RGFW$(OBJ_FILE)
-	make RGFW$(OBJ_FILE)
+	$(MAKE) RGFW$(OBJ_FILE)
 ifeq ($(CC), cl)
 	link /DLL /OUT:libRGFW.dll RGFW.obj
 else
@@ -325,11 +340,11 @@ else
 endif
 
 libRGFW.a: RGFW.h RGFW$(OBJ_FILE)
-	make RGFW$(OBJ_FILE)
+	$(MAKE) RGFW$(OBJ_FILE)
 	$(AR) rcs libRGFW.a RGFW$(OBJ_FILE)
 
 xdg-shell.c:
-	make initwayland
+	$(MAKE) initwayland
 
 initwayland:
 ifeq ($(RGFW_WAYLAND),1)
