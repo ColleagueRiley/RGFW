@@ -2268,7 +2268,25 @@ void RGFW_RGB_to_BGR(RGFW_window* win, u8* data) {
 			data[index + 2] = red;
 		}
 	}
-	#else
+	#elif defined(RGFW_OSMESA)
+    /**
+         * Why is OSMesa missing this procedure
+         * This code simply flips the image
+    */
+    const i32 col = 4;
+    i32 ww = win->r.w;
+    i32 wh = win->r.h;
+    i32 bw = (i32)win->bufferSize.w;
+    for(i32 i = 0; i < wh / 2; i++){
+        for(i32 j = 0; j < ww; j++){
+            for(i32 d = 0; d < col; d++){
+                u8 tmp = data[i * bw * col + j * col + d];
+                data[i * bw * col + j * col + d] = ((u8*)win->src.bitmap->data)[(wh - i - 1) * bw * col + j * col + d];
+                data[(wh - i - 1) * bw * col + j * col + d] = tmp;
+            }
+        }
+    }
+    #else
 	RGFW_UNUSED(win); RGFW_UNUSED(data);
 	#endif
 }
@@ -5627,25 +5645,6 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 	#ifdef RGFW_X11
 		win->src.bitmap->data = (char*) win->buffer;
 		RGFW_RGB_to_BGR(win, (u8*)win->src.bitmap->data);
-		#ifdef RGFW_OSMESA
-		/**
-		 * Why is OSMesa missing this procedure
-		 * This code simply flips the image
-		 */
-		const i32 col = 4;
-		i32 ww = win->r.w;
-		i32 wh = win->r.h;
-		i32 bw = (i32)win->bufferSize.w;
-		for(i32 i = 0; i < wh / 2; i++){
-			for(i32 j = 0; j < ww; j++){
-				for(i32 d = 0; d < col; d++){
-					u8 tmp = ((u8*)win->src.bitmap->data)[i * bw * col + j * col + d];
-					((u8*)win->src.bitmap->data)[i * bw * col + j * col + d] = ((u8*)win->src.bitmap->data)[(wh - i - 1) * bw * col + j * col + d];
-					((u8*)win->src.bitmap->data)[(wh - i - 1) * bw * col + j * col + d] = tmp;
-				}
-			}
-		}
-		#endif
 		XPutImage(win->src.display, win->src.window, win->src.gc, win->src.bitmap, 0, 0, 0, 0, win->bufferSize.w, win->bufferSize.h);
 		win->src.bitmap->data = NULL;
 		return;
