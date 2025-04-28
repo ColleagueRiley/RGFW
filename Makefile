@@ -197,7 +197,7 @@ else
 endif
 
 examples/dx11/dx11: examples/dx11/dx11.c RGFW.h
-ifneq (,$(filter $(CC),g++ clang++))
+ifneq (,$(filter $(CC),g++ clang++ "zig cc"))
 	@echo directX is not supported with C++
 else ifneq (,$(filter $(detected_OS), windows Windows_NT))
 	$(CC) $(CFLAGS) -I. $<  $(DX11_LIBS) -o $@
