@@ -33,7 +33,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@master
-    
+
+    - uses: actions/checkout@v3
+    - uses: mlugg/setup-zig@v1
+
     - name: Setup Release Version
       run: |
         echo "RELEASE_NAME=RGFW-${{ github.event.release.tag_name }}_macos" >> $GITHUB_ENV
@@ -56,6 +59,7 @@ jobs:
         clang --version
         
         make CC=g++
+        make CC="cc zig"
         make clean
         # Extract version numbers from Makefile
         brew install grep
