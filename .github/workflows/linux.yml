@@ -70,6 +70,11 @@ jobs:
         make CC=g++
       if: matrix.bits == 64
 
+    - name: test Zig
+      run: |
+        make CC="zig cc"
+      if: matrix.bits == 64
+
     - name: Build Library
       run: |
         make libRGFW.a
