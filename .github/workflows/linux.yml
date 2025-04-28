@@ -75,7 +75,7 @@ jobs:
 
     - name: test Zig
       run: |
-        make CC="zig cc"
+        make CC="zig cc" NO_VULKAN=1
       if: matrix.bits == 64
 
     - name: Build Library
