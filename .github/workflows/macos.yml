@@ -59,7 +59,7 @@ jobs:
         clang --version
         
         make CC=g++
-        make CC="cc zig"
+        make CC="zig cc"
         make clean
         # Extract version numbers from Makefile
         brew install grep
