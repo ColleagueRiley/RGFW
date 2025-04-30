@@ -50,6 +50,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@master
     
+    - uses: actions/checkout@v3
+    - uses: mlugg/setup-zig@v1
+
     - name: Setup Release Version
       run: |
         echo "RELEASE_NAME=RGFW-${{ github.event.release.tag_name }}_win${{ matrix.bits }}_${{ matrix.compiler }}" >> $GITHUB_ENV
@@ -72,6 +75,11 @@ jobs:
         make CC=g++
       if: matrix.bits == 64
 
+    - name: test Zig
+      run: |
+        make CC="zig cc" NO_VULKAN=1
+      if: matrix.bits == 64
+ 
     # Setup MSBuild.exe path if required
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
