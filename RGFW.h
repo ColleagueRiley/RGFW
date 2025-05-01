@@ -1751,9 +1751,9 @@ void RGFW_init_keys(void) {
 	RGFW_MAP [RGFW_OS_BASED_VALUE(110, 0x147, 116, DOM_VK_HOME)] = RGFW_home                    		RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(78, 0x046, 107, DOM_VK_SCROLL_LOCK)] = RGFW_scrollLock               RGFW_NEXT
 #if defined(__cplusplus) || defined(RGFW_C89)
-};
-#else
 }
+#else
+};
 #endif
 
 #undef RGFW_NEXT
@@ -7959,11 +7959,7 @@ typedef RGFW_ENUM(i32, NSDragOperation) {
 		NSDragOperationPrivate = 8,
 		NSDragOperationMove = 16,
 		NSDragOperationDelete = 32,
-		NSDragOperationEvery = (int)ULONG_MAX,
-/*
-		NSDragOperationAll_Obsolete	API_DEPRECATED("", macos(10.0,10.10)) = 15, 
-		NSDragOperationAll API_DEPRECATED("", macos(10.0,10.10)) = NSDragOperationAll_Obsolete,
-*/
+		NSDragOperationEvery = (int)ULONG_MAX
 };
 
 void* NSArray_objectAtIndex(id array, NSUInteger index) {
