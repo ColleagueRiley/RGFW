@@ -2166,7 +2166,7 @@ void RGFW_window_makeCurrent(RGFW_window* win) {
 #endif
 }
 
-RGFW_window* RGFW_getCurrent() {
+RGFW_window* RGFW_getCurrent(void) {
     return _RGFW.current;
 }
 
