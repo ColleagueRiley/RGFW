@@ -6302,8 +6302,6 @@ var ASM_CONSTS = {
   }
   }
 
-  function _glViewport(x0, x1, x2, x3) { GLctx.viewport(x0, x1, x2, x3) }
-
 
 
   var runAndAbortIfError = (func) => {
@@ -11686,9 +11684,7 @@ var wasmImports = {
   /** @export */
   fd_seek: _fd_seek,
   /** @export */
-  fd_write: _fd_write,
-  /** @export */
-  glViewport: _glViewport
+  fd_write: _fd_write
 };
 Asyncify.instrumentWasmImports(wasmImports);
 var wasmExports = createWasm();
