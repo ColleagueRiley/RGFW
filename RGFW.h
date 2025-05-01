@@ -1259,7 +1259,7 @@ RGFWDEF RGFW_gamepadType RGFW_getGamepadType(RGFW_window* win, u16 controller);
 RGFWDEF void RGFW_window_makeCurrent(RGFW_window* win);
 
 /*! get current RGFW window graphics context */
-RGFWDEF RGFW_window* RGFW_getCurrent(RGFW_window* win);
+RGFWDEF RGFW_window* RGFW_getCurrent(void);
 
 /* supports openGL, directX, OSMesa, EGL and software rendering */
 RGFWDEF void RGFW_window_swapBuffers(RGFW_window* win); /*!< swap the rendering buffer */
@@ -2166,7 +2166,7 @@ void RGFW_window_makeCurrent(RGFW_window* win) {
 #endif
 }
 
-RGFW_window* RGFW_getCurrent_OpenGL() {
+RGFW_window* RGFW_getCurrent() {
     return _RGFW.current;
 }
 
@@ -5596,7 +5596,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 		if (mon.x == crtcInfo->x && mon.y == crtcInfo->y && (u32)mon.mode.area.w == crtcInfo->width && (u32)mon.mode.area.h == crtcInfo->height) {
 			RRMode rmode = None;
             int index;
-            for (int index = 0; index < screenRes->nmode; index++) {
+            for (index = 0; index < screenRes->nmode; index++) {
 				RGFW_monitorMode foundMode;
 				foundMode.area = RGFW_AREA(screenRes->modes[index].width, screenRes->modes[index].height);
 				foundMode.refreshRate =  RGFW_XCalculateRefreshRate(screenRes->modes[index]);
