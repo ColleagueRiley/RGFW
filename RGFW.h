@@ -10330,13 +10330,21 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 }
 
 void RGFW_window_swapBuffers_software(RGFW_window* win) {
-#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+#if defined(RGFW_OSMESA)
 	EM_ASM_({
 		var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4);
-        let context = Module.canvas.getContext("2d");
+		let context = document.getElementById("canvas").getContext("2d");
 		let image = context.getImageData(0, 0, $1, $2);
 		image.data.set(data);
 		context.putImageData(image, 0, $4 - $2);
+	}, win->buffer, win->bufferSize.w, win->bufferSize.h, win->r.w, win->r.h);
+#elif defined(RGFW_BUFFER)
+	EM_ASM_({
+		var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4);
+		let context = document.getElementById("canvas").getContext("2d");
+		let image = context.getImageData(0, 0, $1, $2);
+		image.data.set(data);
+		context.putImageData(image, 0, 0);
 	}, win->buffer, win->bufferSize.w, win->bufferSize.h, win->r.w, win->r.h);
 	emscripten_sleep(0);
 #else
