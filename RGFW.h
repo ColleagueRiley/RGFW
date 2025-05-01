@@ -7961,8 +7961,8 @@ typedef RGFW_ENUM(i32, NSDragOperation) {
 		NSDragOperationDelete = 32,
 		NSDragOperationEvery = (int)ULONG_MAX,
 /*
-		NSDragOperationAll_Obsolete	API_DEPRECATED("", macos(10.0,10.10)) = 15, /* Use NSDragOperationEvery */
-		NSDragOperationAll API_DEPRECATED("", macos(10.0,10.10)) = NSDragOperationAll_Obsolete, /* Use NSDragOperationEvery */
+		NSDragOperationAll_Obsolete	API_DEPRECATED("", macos(10.0,10.10)) = 15, 
+		NSDragOperationAll API_DEPRECATED("", macos(10.0,10.10)) = NSDragOperationAll_Obsolete,
 */
 };
 
