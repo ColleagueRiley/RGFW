@@ -11420,6 +11420,8 @@ var ASM_CONSTS = {
       GLImmediate.addRendererComponent(GLImmediate.VERTEX, 4, GLctx.FLOAT);
     };
 
+  function _glViewport(x0, x1, x2, x3) { GLctx.viewport(x0, x1, x2, x3) }
+
 
 
   var runAndAbortIfError = (func) => {
@@ -11865,7 +11867,9 @@ var wasmImports = {
   /** @export */
   glGetString: _glGetString,
   /** @export */
-  glVertex2f: _glVertex2f
+  glVertex2f: _glVertex2f,
+  /** @export */
+  glViewport: _glViewport
 };
 Asyncify.instrumentWasmImports(wasmImports);
 var wasmExports = createWasm();
