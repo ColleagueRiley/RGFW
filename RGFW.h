@@ -1946,7 +1946,11 @@ typedef struct RGFW_globalStruct {
     RGFW_event events[RGFW_MAX_EVENTS];
 
 } RGFW_globalStruct;
+#ifndef RGFW_C89 
+RGFW_globalStruct _RGFW = {.root = NULL, .current = NULL, .windowCount = -1, .eventLen = 0, .eventIndex = 0};
+#else
 RGFW_globalStruct _RGFW = {NULL, NULL, -1, 0, 0};
+#endif
 
 void RGFW_eventQueuePush(RGFW_event event) {
 	if (_RGFW.eventLen >= RGFW_MAX_EVENTS) return;
