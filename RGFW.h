@@ -393,8 +393,12 @@ int main() {
 	#ifdef RGFW_WINDOWS
 	#define OEMRESOURCE
 	#include <GL/gl.h>
+    	#ifndef GLAPIENTRY
 	#define GLAPIENTRY APIENTRY
+	#endif
+    	#ifndef GLAPI
 	#define GLAPI WINGDIAPI
+    	#endif
 	#endif
 
 	#ifndef __APPLE__
@@ -2268,24 +2272,13 @@ void RGFW_RGB_to_BGR(RGFW_window* win, u8* data) {
 			data[index + 2] = red;
 		}
 	}
-	#elif defined(RGFW_OSMESA)
-    /**
-         * Why is OSMesa missing this procedure
-         * This code simply flips the image
-    */
-    const i32 col = 4;
-    i32 ww = win->r.w;
-    i32 wh = win->r.h;
-    i32 bw = (i32)win->bufferSize.w;
-    for(i32 i = 0; i < wh / 2; i++){
-        for(i32 j = 0; j < ww; j++){
-            for(i32 d = 0; d < col; d++){
-                u8 tmp = data[i * bw * col + j * col + d];
-                data[i * bw * col + j * col + d] = ((u8*)win->src.bitmap->data)[(wh - i - 1) * bw * col + j * col + d];
-                data[(wh - i - 1) * bw * col + j * col + d] = tmp;
-            }
-        }
-    }
+    #elif defined(RGFW_OSMESA)
+	u32 y;
+	for(y = 0; y < (u32)win->r.h; y++){
+		u32 index_from = (y + (win->bufferSize.h - win->r.h)) * 4 * win->bufferSize.w;
+		u32 index_to = y * 4 * win->bufferSize.w;
+		memcpy(&data[index_to], &data[index_from], 4 * win->bufferSize.w);
+	}
     #else
 	RGFW_UNUSED(win); RGFW_UNUSED(data);
 	#endif
@@ -3589,6 +3582,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 		#ifdef RGFW_OSMESA
 				win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
 				OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
+				OSMesaPixelStore(OSMESA_Y_UP, 0);
 		#endif
 		
 		win->src.bitmap = XCreateImage(
@@ -3635,6 +3629,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 		#if defined(RGFW_OSMESA)
 				win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
 				OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
+				OSMesaPixelStore(OSMESA_Y_UP, 0);
 		#endif
 	#endif
 #else
@@ -6241,6 +6236,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
 	#if defined(RGFW_OSMESA)
 	win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
 	OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
+	OSMesaPixelStore(OSMESA_Y_UP, 0);
 	#endif
 	#else
 	RGFW_UNUSED(win); RGFW_UNUSED(buffer); RGFW_UNUSED(area); /*!< if buffer rendering is not being used */
@@ -8403,6 +8399,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 	#ifdef RGFW_OSMESA
 		win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
 		OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
+		OSMesaPixelStore(OSMESA_Y_UP, 0);
 	#endif
 	#else
 		RGFW_UNUSED(win);  RGFW_UNUSED(buffer); RGFW_UNUSED(area); /*!< if buffer rendering is not being used */
@@ -9944,6 +9941,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
 	#ifdef RGFW_OSMESA
 			win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
 			OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
+			OSMesaPixelStore(OSMESA_Y_UP, 0);
 	#endif
 	#else
 	RGFW_UNUSED(win);  RGFW_UNUSED(buffer); RGFW_UNUSED(area); /*!< if buffer rendering is not being used */
