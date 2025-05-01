@@ -405,8 +405,12 @@ int main() {
 	#ifdef RGFW_WINDOWS
 	#define OEMRESOURCE
 	#include <GL/gl.h>
+    	#ifndef GLAPIENTRY
 	#define GLAPIENTRY APIENTRY
+	#endif
+    	#ifndef GLAPI
 	#define GLAPI WINGDIAPI
+    	#endif
 	#endif
 
 	#ifndef __APPLE__
@@ -756,10 +760,12 @@ typedef struct RGFW_window_src {
 } RGFW_window_src;
 #elif defined(RGFW_WASM)
 typedef struct RGFW_window_src {
-	#ifdef RGFW_WEBGPU
+	#if defined(RGFW_WEBGPU)
 		WGPUInstance ctx;
         WGPUDevice device;
         WGPUQueue queue;
+	#elif defined(RGFW_OSMESA)
+		OSMesaContext ctx;
 	#else
 		EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
 	#endif
@@ -2289,24 +2295,13 @@ void RGFW_RGB_to_BGR(RGFW_window* win, u8* data) {
 			data[index + 2] = red;
 		}
 	}
-	#elif defined(RGFW_OSMESA)
-    /**
-         * Why is OSMesa missing this procedure
-         * This code simply flips the image
-    */
-    const i32 col = 4;
-    i32 ww = win->r.w;
-    i32 wh = win->r.h;
-    i32 bw = (i32)win->bufferSize.w;
-    for(i32 i = 0; i < wh / 2; i++){
-        for(i32 j = 0; j < ww; j++){
-            for(i32 d = 0; d < col; d++){
-                u8 tmp = data[i * bw * col + j * col + d];
-                data[i * bw * col + j * col + d] = ((u8*)win->src.bitmap->data)[(wh - i - 1) * bw * col + j * col + d];
-                data[(wh - i - 1) * bw * col + j * col + d] = tmp;
-            }
-        }
-    }
+    #elif defined(RGFW_OSMESA)
+	u32 y;
+	for(y = 0; y < (u32)win->r.h; y++){
+		u32 index_from = (y + (win->bufferSize.h - win->r.h)) * 4 * win->bufferSize.w;
+		u32 index_to = y * 4 * win->bufferSize.w;
+		memcpy(&data[index_to], &data[index_from], 4 * win->bufferSize.w);
+	}
     #else
 	RGFW_UNUSED(win); RGFW_UNUSED(data);
 	#endif
@@ -3613,6 +3608,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 		#ifdef RGFW_OSMESA
 				win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
 				OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
+				OSMesaPixelStore(OSMESA_Y_UP, 0);
 		#endif
 		
 		win->src.bitmap = XCreateImage(
@@ -3659,6 +3655,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 		#if defined(RGFW_OSMESA)
 				win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
 				OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
+				OSMesaPixelStore(OSMESA_Y_UP, 0);
 		#endif
 	#endif
 #else
@@ -6278,6 +6275,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
 	#if defined(RGFW_OSMESA)
 	win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
 	OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
+	OSMesaPixelStore(OSMESA_Y_UP, 0);
 	#endif
 	#else
 	RGFW_UNUSED(win); RGFW_UNUSED(buffer); RGFW_UNUSED(area); /*!< if buffer rendering is not being used */
@@ -8447,6 +8445,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 	#ifdef RGFW_OSMESA
 		win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
 		OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
+		OSMesaPixelStore(OSMESA_Y_UP, 0);
 	#endif
 	#else
 		RGFW_UNUSED(win);  RGFW_UNUSED(buffer); RGFW_UNUSED(area); /*!< if buffer rendering is not being used */
@@ -9989,6 +9988,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
 	#ifdef RGFW_OSMESA
 			win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
 			OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
+			OSMesaPixelStore(OSMESA_Y_UP, 0);
 	#endif
 	#else
 	RGFW_UNUSED(win);  RGFW_UNUSED(buffer); RGFW_UNUSED(area); /*!< if buffer rendering is not being used */
@@ -10019,7 +10019,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_writeFile(const char *path, const char *data, siz
 }
 
 void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
-#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU)
+#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU) && !defined(RGFW_OSMESA) && !defined(RGFW_BUFFER)
 	EmscriptenWebGLContextAttributes attrs;
 	attrs.alpha = RGFW_GL_HINTS[RGFW_glDepth];
 	attrs.depth = RGFW_GL_HINTS[RGFW_glAlpha];
@@ -10052,11 +10052,15 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 }
 
 void RGFW_window_freeOpenGL(RGFW_window* win) {
-#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU)
+#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU) && !defined(RGFW_OSMESA) && !defined(RGFW_OSMESA)
 	if (win->src.ctx == 0) return;
 	emscripten_webgl_destroy_context(win->src.ctx);
 	win->src.ctx = 0;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "opengl context freed");
+#elif defined(RGFW_OPENGL) && defined(RGFW_OSMESA)
+	if(win->src.ctx == 0) return;
+	OSMesaDestroyContext(win->src.ctx);
+	win->src.ctx = 0;
 #else
 	RGFW_UNUSED(win);
 #endif
@@ -10068,7 +10072,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
     RGFW_window_basic_init(win, rect, flags);
 	RGFW_window_initOpenGL(win, 0);
 
-	#ifdef RGFW_WEBGPU
+	#if defined(RGFW_WEBGPU)
 		win->src.ctx = wgpuCreateInstance(NULL);
 		win->src.device = emscripten_webgpu_get_device();
 		win->src.queue = wgpuDeviceGetQueue(win->src.device);
@@ -10328,41 +10332,13 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 
 void RGFW_window_swapBuffers_software(RGFW_window* win) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-	glEnable(GL_TEXTURE_2D);
-
-	GLuint texture;
-	glGenTextures(1,&texture);
-
-	glBindTexture(GL_TEXTURE_2D,texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	#ifdef RGFW_BUFFER_BGR
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA, win->bufferSize.w, win->bufferSize.h, 0, GL_BGRA, GL_UNSIGNED_BYTE, win->buffer);
-	#else
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, win->bufferSize.w, win->bufferSize.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, win->buffer);
-	#endif
-
-	float ratioX = ((float)win->r.w / (float)win->bufferSize.w);
-	float ratioY = ((float)win->r.h / (float)win->bufferSize.h);
-
-	/* Set up the viewport */
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	glBegin(GL_TRIANGLES);
-		glTexCoord2f(0, ratioY); glColor3f(1, 1, 1); glVertex2f(-1, -1);
-		glTexCoord2f(0, 0); glColor3f(1, 1, 1); glVertex2f(-1, 1);
-		glTexCoord2f(ratioX, ratioY); glColor3f(1, 1, 1); glVertex2f(1, -1);
-
-		glTexCoord2f(ratioX, 0); glColor3f(1, 1, 1); glVertex2f(1, 1);
-		glTexCoord2f(ratioX, ratioY); glColor3f(1, 1, 1); glVertex2f(1, -1);
-		glTexCoord2f(0, 0); glColor3f(1, 1, 1); glVertex2f(-1, 1);
-	glEnd();
-
-	glDeleteTextures(1, &texture);
+	EM_ASM_({
+		var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4);
+		let context = Module.canvas.getContext("2d");
+		let image = context.getImageData(0, 0, $1, $2);
+		image.data.set(data);
+		context.putImageData(image, 0, $4 - $2);
+	}, win->buffer, win->bufferSize.w, win->bufferSize.h, win->r.w, win->r.h);
 	emscripten_sleep(0);
 #else
 	RGFW_UNUSED(win);
@@ -10370,7 +10346,7 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 }
 
 void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
-#ifndef RGFW_WEBGPU
+#if !defined(RGFW_WEBGPU) && !(defined(RGFW_OSMESA) || defined(RGFW_BUFFER))
 	if (win == NULL)
 	    emscripten_webgl_make_context_current(0);
 	else
