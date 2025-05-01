@@ -10048,6 +10048,7 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 	EM_ASM("Module.useWebGL = true; GLImmediate.init();");
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "opengl context initalized");
     #endif
+    glViewport(0, 0, win->r.w, win->r.h);
 #endif
 }
 
@@ -10332,7 +10333,7 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 	EM_ASM_({
 		var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4);
-		let context = Module.canvas.getContext("2d");
+        let context = Module.canvas.getContext("2d");
 		let image = context.getImageData(0, 0, $1, $2);
 		image.data.set(data);
 		context.putImageData(image, 0, $4 - $2);
