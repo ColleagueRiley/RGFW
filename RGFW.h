@@ -10285,43 +10285,6 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 
 void RGFW_window_swapBuffers_software(RGFW_window* win) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-#if 0
-	glEnable(GL_TEXTURE_2D);
-
-	GLuint texture;
-	glGenTextures(1,&texture);
-
-	glBindTexture(GL_TEXTURE_2D,texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	#ifdef RGFW_BUFFER_BGR
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA, win->bufferSize.w, win->bufferSize.h, 0, GL_BGRA, GL_UNSIGNED_BYTE, win->buffer);
-	#else
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, win->bufferSize.w, win->bufferSize.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, win->buffer);
-	#endif
-
-	float ratioX = ((float)win->r.w / (float)win->bufferSize.w);
-	float ratioY = ((float)win->r.h / (float)win->bufferSize.h);
-
-	// Set up the viewport
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	glBegin(GL_TRIANGLES);
-		glTexCoord2f(0, ratioY); glColor3f(1, 1, 1); glVertex2f(-1, -1);
-		glTexCoord2f(0, 0); glColor3f(1, 1, 1); glVertex2f(-1, 1);
-		glTexCoord2f(ratioX, ratioY); glColor3f(1, 1, 1); glVertex2f(1, -1);
-
-		glTexCoord2f(ratioX, 0); glColor3f(1, 1, 1); glVertex2f(1, 1);
-		glTexCoord2f(ratioX, ratioY); glColor3f(1, 1, 1); glVertex2f(1, -1);
-		glTexCoord2f(0, 0); glColor3f(1, 1, 1); glVertex2f(-1, 1);
-	glEnd();
-
-	glDeleteTextures(1, &texture);
-#else
 	EM_ASM_({
 		var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4);
 		let context = Module.canvas.getContext("2d");
@@ -10329,7 +10292,6 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 		image.data.set(data);
 		context.putImageData(image, 0, $4 - $2);
 	}, win->buffer, win->bufferSize.w, win->bufferSize.h, win->r.w, win->r.h);
-#endif
 	emscripten_sleep(0);
 #else
 	RGFW_UNUSED(win);
