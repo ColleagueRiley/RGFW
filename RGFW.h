@@ -748,10 +748,12 @@ typedef struct RGFW_window_src {
 } RGFW_window_src;
 #elif defined(RGFW_WASM)
 typedef struct RGFW_window_src {
-	#ifdef RGFW_WEBGPU
+	#if defined(RGFW_WEBGPU)
 		WGPUInstance ctx;
         WGPUDevice device;
         WGPUQueue queue;
+	#elif defined(RGFW_OSMESA)
+		OSMesaContext ctx;
 	#else
 		EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
 	#endif
@@ -9972,7 +9974,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_writeFile(const char *path, const char *data, siz
 }
 
 void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
-#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU)
+#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU) && !defined(RGFW_OSMESA) && !defined(RGFW_BUFFER)
 	EmscriptenWebGLContextAttributes attrs;
 	attrs.alpha = RGFW_GL_HINTS[RGFW_glDepth];
 	attrs.depth = RGFW_GL_HINTS[RGFW_glAlpha];
@@ -10005,11 +10007,15 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 }
 
 void RGFW_window_freeOpenGL(RGFW_window* win) {
-#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU)
+#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU) && !defined(RGFW_OSMESA) && !defined(RGFW_OSMESA)
 	if (win->src.ctx == 0) return;
 	emscripten_webgl_destroy_context(win->src.ctx);
 	win->src.ctx = 0;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "opengl context freed");
+#elif defined(RGFW_OPENGL) && defined(RGFW_OSMESA)
+	if(win->src.ctx == 0) return;
+	OSMesaDestroyContext(win->src.ctx);
+	win->src.ctx = 0;
 #else
 	RGFW_UNUSED(win);
 #endif
@@ -10021,7 +10027,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
     RGFW_window_basic_init(win, rect, flags);
 	RGFW_window_initOpenGL(win, 0);
 
-	#ifdef RGFW_WEBGPU
+	#if defined(RGFW_WEBGPU)
 		win->src.ctx = wgpuCreateInstance(NULL);
 		win->src.device = emscripten_webgpu_get_device();
 		win->src.queue = wgpuDeviceGetQueue(win->src.device);
@@ -10279,41 +10285,13 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 
 void RGFW_window_swapBuffers_software(RGFW_window* win) {
 #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
-	glEnable(GL_TEXTURE_2D);
-
-	GLuint texture;
-	glGenTextures(1,&texture);
-
-	glBindTexture(GL_TEXTURE_2D,texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	#ifdef RGFW_BUFFER_BGR
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA, win->bufferSize.w, win->bufferSize.h, 0, GL_BGRA, GL_UNSIGNED_BYTE, win->buffer);
-	#else
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, win->bufferSize.w, win->bufferSize.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, win->buffer);
-	#endif
-
-	float ratioX = ((float)win->r.w / (float)win->bufferSize.w);
-	float ratioY = ((float)win->r.h / (float)win->bufferSize.h);
-
-	// Set up the viewport
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	glBegin(GL_TRIANGLES);
-		glTexCoord2f(0, ratioY); glColor3f(1, 1, 1); glVertex2f(-1, -1);
-		glTexCoord2f(0, 0); glColor3f(1, 1, 1); glVertex2f(-1, 1);
-		glTexCoord2f(ratioX, ratioY); glColor3f(1, 1, 1); glVertex2f(1, -1);
-
-		glTexCoord2f(ratioX, 0); glColor3f(1, 1, 1); glVertex2f(1, 1);
-		glTexCoord2f(ratioX, ratioY); glColor3f(1, 1, 1); glVertex2f(1, -1);
-		glTexCoord2f(0, 0); glColor3f(1, 1, 1); glVertex2f(-1, 1);
-	glEnd();
-
-	glDeleteTextures(1, &texture);
+	EM_ASM_({
+		var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4);
+		let context = Module.canvas.getContext("2d");
+		let image = context.getImageData(0, 0, $1, $2);
+		image.data.set(data);
+		context.putImageData(image, 0, $4 - $2);
+	}, win->buffer, win->bufferSize.w, win->bufferSize.h, win->r.w, win->r.h);
 	emscripten_sleep(0);
 #else
 	RGFW_UNUSED(win);
@@ -10321,7 +10299,7 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 }
 
 void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
-#ifndef RGFW_WEBGPU
+#if !defined(RGFW_WEBGPU) && !(defined(RGFW_OSMESA) || defined(RGFW_BUFFER))
 	if (win == NULL)
 	    emscripten_webgl_make_context_current(0);
 	else
