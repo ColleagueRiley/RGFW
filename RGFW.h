@@ -10170,8 +10170,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
         canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true);
     });
 
-	glViewport(0, 0, rect.w, rect.h);
-
 	RGFW_window_setFlags(win, flags);
 
 	if ((flags & RGFW_windowNoInitAPI) == 0) {
