@@ -159,7 +159,11 @@ all: xdg-shell.c $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) 
 examples: $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)
 
 examples/gears/gears: examples/gears/gears.c RGFW.h
+ifneq (,$(filter $(CC),emcc em++))
+	@echo gears is not supported on this platform
+else
 	$(CC) $(CFLAGS) -I. $< $(LINK_GL1) $(LIBS) $($)  -o $@$(EXT)
+endif
 
 examples/portableGL/pgl: examples/portableGL/pgl.c RGFW.h
 ifeq (,$(filter $(CC),emcc em++))
@@ -232,6 +236,8 @@ ifeq ($(RGFW_WAYLAND), 1)
 	@echo nostl is not supported on this platform
 else ifneq (,$(filter $(CC),emcc em++))
 	@echo nostl is not supported on this platform
+else ifeq ($(detected_OS),NetBSD)
+	$(CC) $(CFLAGS) $(CUSTOM_CFLAGS) -pthread -I. $<  -o $@$(EXT)
 else ifeq ($(detected_OS),Linux)
 	$(CC) $(CFLAGS) -I. $<  -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
