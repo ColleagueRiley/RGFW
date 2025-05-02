@@ -3919,6 +3919,34 @@ i32 RGFW_init(void) {
     u8 RGFW_blk[] = { 0, 0, 0, 0 };
 	_RGFW.hiddenMouse = RGFW_loadMouse(RGFW_blk, RGFW_AREA(1, 1), 4);
 	_RGFW.clipboard = NULL;
+
+    XkbComponentNamesRec rec;
+    XkbDescPtr desc = XkbGetMap(_RGFW.display, 0, XkbUseCoreKbd);
+    XkbDescPtr evdesc;
+    u8 old[sizeof(RGFW_keycodes) / sizeof(RGFW_keycodes[0])];
+
+    XkbGetNames(_RGFW.display, XkbKeyNamesMask, desc);
+
+    memset(&rec, 0, sizeof(rec));
+    rec.keycodes = "evdev";
+    evdesc = XkbGetKeyboardByName(_RGFW.display, XkbUseCoreKbd, &rec, XkbGBN_KeyNamesMask, XkbGBN_KeyNamesMask, False);
+    /* memo: RGFW_keycodes[x11 keycode] = rgfw keycode */
+    if(evdesc != NULL && desc != NULL){
+        for(int i = 0; i < (int)sizeof(RGFW_keycodes) / (int)sizeof(RGFW_keycodes[0]); i++){
+    	    old[i] = RGFW_keycodes[i];
+    	    RGFW_keycodes[i] = 0;
+        }
+        for(int i = evdesc->min_key_code; i <= evdesc->max_key_code; i++){
+    	    for(int j = desc->min_key_code; j <= desc->max_key_code; j++){
+    		if(strncmp(evdesc->names->keys[i].name, desc->names->keys[j].name, XkbKeyNameLength) == 0){
+    			RGFW_keycodes[j] = old[i];
+    			break;
+    		}
+    	    }
+        }
+	XkbFreeKeyboard(desc, 0, True);
+	XkbFreeKeyboard(evdesc, 0, True);
+    }
 #endif
 #ifdef RGFW_WAYLAND
 wayland:

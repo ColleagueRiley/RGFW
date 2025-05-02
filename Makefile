@@ -134,7 +134,7 @@ EXAMPLE_OUTPUTS = \
 	examples/flags/flags \
 	examples/monitor/monitor \
 	examples/gl33_ctx/gl33_ctx \
-	examples/smooth-resize/smooth-resize\
+	examples/smooth-resize/smooth-resize \
 	examples/multi-window/multi-window
 
 EXAMPLE_OUTPUTS_CUSTOM = \
@@ -151,11 +151,15 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/dx11/dx11 \
 	examples/metal/metal \
 	examples/webgpu/webgpu \
-	examples/minimal_links/minimal_links
+	examples/minimal_links/minimal_links \
+	examples/gears/gears
 
 all: xdg-shell.c $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) libRGFW.a
 
 examples: $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)
+
+examples/gears/gears: examples/gears/gears.c RGFW.h
+	$(CC) $(CFLAGS) -I. $< $(LINK_GL1) $(LIBS) $($)  -o $@$(EXT)
 
 examples/portableGL/pgl: examples/portableGL/pgl.c RGFW.h
 ifeq (,$(filter $(CC),emcc em++))
