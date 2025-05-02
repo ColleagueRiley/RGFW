@@ -43,6 +43,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		LIB_EXT = .dylib
 		OS_DIR = /
 		NO_VULKAN ?= 1
+		NO_OSMESA ?= 0
 	endif
 	ifeq ($(detected_OS),Linux)
 		DX11_LIBS =
@@ -95,6 +96,7 @@ ifneq (,$(filter $(CC),cl /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	DX11_LIBS =
 	VULKAN_LIBS = 
 	OBJ_FILE = .obj
+	NO_OSMESA ?= 0
 else ifneq (,$(filter $(CC),emcc em++))
 	DX11_LIBS =
 	LINK_GL1 = -s LEGACY_GL_EMULATION -D LEGACY_GL_EMULATION -sGL_UNSAFE_OPTS=0
@@ -124,6 +126,10 @@ else
 	ifeq ($(detected_OS),Darwin) 
 		WARNINGS += -Wno-deprecated -Wno-unknown-warning-option 
 	endif
+endif
+
+ifneq (,$(filter $(detected_OS), windows Windows_NT))
+	NO_OSMESA ?= 0
 endif
 
 EXAMPLE_OUTPUTS = \
