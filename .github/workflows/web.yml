@@ -39,9 +39,9 @@ jobs:
         make CC=emcc examples/osmesa_demo/osmesa_demo NO_OSMESA=0 CFLAGS="-Iosmesa/include -Losmesa"
         make clean        
 
-        make CC=em++ 
+        make CC=em++ NO_OSMESA=1 
         make clean
-        make CC=emcc
+        make CC=emcc NO_OSMESA=1
         mv html docs
 
     - name: get nuklear wasm
