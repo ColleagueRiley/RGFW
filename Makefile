@@ -26,7 +26,6 @@ endif
 OS_DIR = \\
 
 NO_GLES = 1
-NO_OSMESA = 1
 detected_OS = windows
 
 OBJ_FILE = .o
@@ -44,9 +43,8 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		EXT =
 		LIB_EXT = .dylib
 		OS_DIR = /
-		NO_VULKAN = 1
-	endif
-	ifeq ($(detected_OS),Linux)
+		NO_VULKAN = 1		
+	else ifeq ($(detected_OS),Linux)
 		DX11_LIBS =
 		LINK_GL1 = -lGL
     	LIBS := -lXrandr -lX11 -ldl -lpthread
@@ -55,9 +53,8 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		LIB_EXT = .so
 		OS_DIR = /
 		NO_GLES = 0
-		NO_OSMESA = 0
-	endif
-	ifeq ($(detected_OS),NetBSD)
+		NO_OSMESA ?= 0
+	else ifeq ($(detected_OS),NetBSD)
 		DX11_LIBS =
 		LINK_GL1 = -lGL
 		CUSTOM_CFLAGS += -I/usr/pkg/include -I/usr/X11R7/include -Wl,-R/usr/pkg/lib -Wl,-R/usr/X11R7/lib -L/usr/pkg/lib -L/usr/X11R7/lib
@@ -67,8 +64,10 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		LIB_EXT = .so
 		OS_DIR = /
 		NO_GLES = 0
-		NO_OSMESA = 0
+		NO_OSMESA ?= 0
 		NO_VULKAN = 1
+	else 
+		NO_OSMESA ?= 1
 	endif
 
 	ifeq (,$(filter $(detected_OS),Linux Darwin NetBSD))
@@ -81,7 +80,7 @@ endif
 ifeq ($(RGFW_WAYLAND),1)
 	NO_VULKAN = 1
 	NO_GLES = 0
-	NO_OSMESA = 0
+	NO_OSMESA ?= 0
 	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl
 	LINK_GL1 = -lEGL -lGL 
 
@@ -107,7 +106,7 @@ else ifneq (,$(filter $(CC),emcc em++))
 	NO_GLES = 0
 	NO_VULKAN = 1
 	detected_OS = web
-	NO_OSMESA = 1
+	NO_OSMESA ?= 1
 	DX11_LIBS =
 else ifeq (,$(filter $(CC),g++ clang++ em++))
 	LIBS += -std=c99
@@ -165,7 +164,9 @@ else
 endif
 
 examples/gles2/gles2: examples/gles2/gles2.c RGFW.h
-ifneq ($(NO_GLES), 1)
+ifeq (,$(filter $(CC),emcc em++))
+	$(CC) $(CFLAGS) -I. $< 
+else ifneq ($(NO_GLES), 1)
 	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lEGL -lGL -o $@$(EXT)
 else
 	@echo gles has been disabled

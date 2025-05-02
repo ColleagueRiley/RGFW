@@ -29,9 +29,14 @@ jobs:
       
     - name: Compile to WebAssembly
       run: |
-        make CC=em++
-        make clean
-        make CC=emcc
+        git clone https://github.com/NishiOwO/osmesa     
+        cd osmesa
+        make TARGET=emscripten CC=emcc AR=emar
+        cd .. 
+
+        make CC=em++ NO_OSMESA=0 CFLAGS="-Iosmesa/include -Losmesa"
+        make clean NO_OSMESA=0 CFLAGS="-Iosmesa/include -Losmesa"
+        make CC=emcc NO_OSMESA=0 CFLAGS="-Iosmesa/include -Losmesa"
         mv html docs
 
     - name: get nuklear wasm
