@@ -48,12 +48,7 @@ static double
 current_time(void)
 {
    struct timeval tv;
-#ifdef __VMS
-   (void) gettimeofday(&tv, NULL );
-#else
-   struct timezone tz;
-   (void) gettimeofday(&tv, &tz);
-#endif
+   (void) gettimeofday(&tv, NULL);
    return (double) tv.tv_sec + tv.tv_usec / 1000000.0;
 }
 
