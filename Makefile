@@ -30,7 +30,6 @@ detected_OS = windows
 
 OBJ_FILE = .o
 
-
 # not using a cross compiler
 ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-mingw32-g++ /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	detected_OS := $(shell uname 2>/dev/null || echo Unknown)
@@ -43,8 +42,9 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		EXT =
 		LIB_EXT = .dylib
 		OS_DIR = /
-		NO_VULKAN = 1		
-	else ifeq ($(detected_OS),Linux)
+		NO_VULKAN ?= 1
+	endif
+	ifeq ($(detected_OS),Linux)
 		DX11_LIBS =
 		LINK_GL1 = -lGL
     	LIBS := -lXrandr -lX11 -ldl -lpthread
@@ -54,7 +54,8 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		OS_DIR = /
 		NO_GLES = 0
 		NO_OSMESA ?= 0
-	else ifeq ($(detected_OS),NetBSD)
+	endif
+	ifeq ($(detected_OS),NetBSD)
 		DX11_LIBS =
 		LINK_GL1 = -lGL
 		CUSTOM_CFLAGS += -I/usr/pkg/include -I/usr/X11R7/include -Wl,-R/usr/pkg/lib -Wl,-R/usr/X11R7/lib -L/usr/pkg/lib -L/usr/X11R7/lib
@@ -66,8 +67,6 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		NO_GLES = 0
 		NO_OSMESA ?= 0
 		NO_VULKAN = 1
-	else 
-		NO_OSMESA ?= 1
 	endif
 
 	ifeq (,$(filter $(detected_OS),Linux Darwin NetBSD))
@@ -166,7 +165,9 @@ else
 endif
 
 examples/gles2/gles2: examples/gles2/gles2.c RGFW.h
-ifneq ($(NO_GLES), 1)
+ifeq (,$(filter $(CC),emcc em++))
+	$(CC) $(CFLAGS) -I. $< 
+else ifneq ($(NO_GLES), 1)
 	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lEGL -lGL -o $@$(EXT)
 else
 	@echo gles has been disabled
@@ -174,7 +175,7 @@ endif
 
 examples/osmesa_demo/osmesa_demo: examples/osmesa_demo/osmesa_demo.c RGFW.h
 ifneq ($(NO_OSMESA), 1)
-	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_OSMESA) -lOSMesa -o $@$(EXT) 
+	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_OSMESA) -lOSMesa -o $@$(EXT)
 else
 	@echo osmesa has been disabled
 endif
