@@ -140,7 +140,7 @@ EXAMPLE_OUTPUTS = \
 	examples/flags/flags \
 	examples/monitor/monitor \
 	examples/gl33_ctx/gl33_ctx \
-	examples/smooth-resize/smooth-resize\
+	examples/smooth-resize/smooth-resize \
 	examples/multi-window/multi-window
 
 EXAMPLE_OUTPUTS_CUSTOM = \
@@ -157,11 +157,19 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/dx11/dx11 \
 	examples/metal/metal \
 	examples/webgpu/webgpu \
-	examples/minimal_links/minimal_links
+	examples/minimal_links/minimal_links \
+	examples/gears/gears
 
 all: xdg-shell.c $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) libRGFW.a
 
 examples: $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)
+
+examples/gears/gears: examples/gears/gears.c RGFW.h
+ifneq (,$(filter $(CC),emcc em++))
+	@echo gears is not supported on this platform
+else
+	$(CC) $(CFLAGS) -I. $< $(LINK_GL1) $(LIBS) $($)  -o $@$(EXT)
+endif
 
 examples/portableGL/pgl: examples/portableGL/pgl.c RGFW.h
 ifeq (,$(filter $(CC),emcc em++))
@@ -234,6 +242,8 @@ ifeq ($(RGFW_WAYLAND), 1)
 	@echo nostl is not supported on this platform
 else ifneq (,$(filter $(CC),emcc em++))
 	@echo nostl is not supported on this platform
+else ifeq ($(detected_OS),NetBSD)
+	$(CC) $(CFLAGS) $(CUSTOM_CFLAGS) -pthread -I. $<  -o $@$(EXT)
 else ifeq ($(detected_OS),Linux)
 	$(CC) $(CFLAGS) -I. $<  -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
@@ -292,7 +302,7 @@ ifeq ($(RGFW_WAYLAND), 1)
 else ifeq ($(detected_OS),NetBSD)
 	$(CC) $(CFLAGS) $(CUSTOM_CFLAGS) -I. $<  -lXrandr -lpthread -o $@$(EXT)
 else ifeq ($(detected_OS),Linux)
-	$(CC) $(CFLAGS) -I. $<  -lXrandr -o $@$(EXT)
+	$(CC) $(CFLAGS) -I. $<  -lX11 -lXrandr -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lgdi32 -o $@$(EXT)
 else ifeq ($(detected_OS),Darwin)
