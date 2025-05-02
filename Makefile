@@ -129,7 +129,7 @@ else
 endif
 
 ifneq (,$(filter $(detected_OS), windows Windows_NT))
-	NO_OSMESA ?= 0
+	NO_OSMESA ?= 1
 endif
 
 EXAMPLE_OUTPUTS = \
