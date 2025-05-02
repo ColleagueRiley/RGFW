@@ -3928,7 +3928,7 @@ i32 RGFW_init(void) {
     XkbGetNames(_RGFW.display, XkbKeyNamesMask, desc);
 
     memset(&rec, 0, sizeof(rec));
-    rec.keycodes = "evdev";
+    rec.keycodes = (char*)"evdev";
     evdesc = XkbGetKeyboardByName(_RGFW.display, XkbUseCoreKbd, &rec, XkbGBN_KeyNamesMask, XkbGBN_KeyNamesMask, False);
     /* memo: RGFW_keycodes[x11 keycode] = rgfw keycode */
     if(evdesc != NULL && desc != NULL){
