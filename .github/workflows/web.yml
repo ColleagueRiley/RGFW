@@ -30,6 +30,7 @@ jobs:
     - name: Compile to WebAssembly
       run: |
         git clone https://github.com/NishiOwO/osmesa     
+        rm -r -f osmesa/.git
         cd osmesa
         make TARGET=emscripten CC=emcc AR=emar
         cd .. 
