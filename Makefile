@@ -88,6 +88,7 @@ endif
 
 LINK_GL3 =
 LINK_GL2 =
+LINK_OSMESA
 
 ifneq (,$(filter $(CC),cl /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	WARNINGS = -Wall -wd4668 -wd4820 -wd5045
@@ -99,7 +100,8 @@ else ifneq (,$(filter $(CC),emcc em++))
 	DX11_LIBS =
 	LINK_GL1 = -s LEGACY_GL_EMULATION -D LEGACY_GL_EMULATION -sGL_UNSAFE_OPTS=0
 	LINK_GL3 = -s FULL_ES3 -s USE_WEBGL2 
-	LINK_GL2 = -s FULL_ES2 -s USE_WEBGL2 
+	LINK_GL2 = -s FULL_ES2 -s USE_WEBGL2
+	LINK_OSMESA = -sALLOW_MEMORY_GROWTH
 	EXPORTED_JS = -s EXPORTED_RUNTIME_METHODS="['stringToNewUTF8']"
 	LIBS = -s WASM=1 -s ASYNCIFY -s GL_SUPPORT_EXPLICIT_SWAP_CONTROL=1 $(EXPORTED_JS)
 	EXT = .js
@@ -164,9 +166,7 @@ else
 endif
 
 examples/gles2/gles2: examples/gles2/gles2.c RGFW.h
-ifeq (,$(filter $(CC),emcc em++))
-	$(CC) $(CFLAGS) -I. $< 
-else ifneq ($(NO_GLES), 1)
+ifneq ($(NO_GLES), 1)
 	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lEGL -lGL -o $@$(EXT)
 else
 	@echo gles has been disabled
@@ -174,7 +174,7 @@ endif
 
 examples/osmesa_demo/osmesa_demo: examples/osmesa_demo/osmesa_demo.c RGFW.h
 ifneq ($(NO_OSMESA), 1)
-	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lOSMesa -o $@$(EXT)
+	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_OSMESA) -lOSMesa -o $@$(EXT) 
 else
 	@echo osmesa has been disabled
 endif
