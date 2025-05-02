@@ -26,11 +26,9 @@ endif
 OS_DIR = \\
 
 NO_GLES = 1
-NO_OSMESA = 1
 detected_OS = windows
 
 OBJ_FILE = .o
-
 
 # not using a cross compiler
 ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-mingw32-g++ /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
@@ -44,7 +42,8 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		EXT =
 		LIB_EXT = .dylib
 		OS_DIR = /
-		NO_VULKAN = 1
+		NO_VULKAN ?= 1
+		NO_OSMESA ?= 1
 	endif
 	ifeq ($(detected_OS),Linux)
 		DX11_LIBS =
@@ -55,7 +54,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		LIB_EXT = .so
 		OS_DIR = /
 		NO_GLES = 0
-		NO_OSMESA = 0
+		NO_OSMESA ?= 0
 	endif
 	ifeq ($(detected_OS),NetBSD)
 		DX11_LIBS =
@@ -67,7 +66,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		LIB_EXT = .so
 		OS_DIR = /
 		NO_GLES = 0
-		NO_OSMESA = 0
+		NO_OSMESA ?= 0
 		NO_VULKAN = 1
 	endif
 
@@ -81,7 +80,7 @@ endif
 ifeq ($(RGFW_WAYLAND),1)
 	NO_VULKAN = 1
 	NO_GLES = 0
-	NO_OSMESA = 0
+	NO_OSMESA ?= 0
 	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl
 	LINK_GL1 = -lEGL -lGL 
 
@@ -89,6 +88,7 @@ endif
 
 LINK_GL3 =
 LINK_GL2 =
+LINK_OSMESA = 
 
 ifneq (,$(filter $(CC),cl /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	WARNINGS = -Wall -wd4668 -wd4820 -wd5045
@@ -96,18 +96,20 @@ ifneq (,$(filter $(CC),cl /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	DX11_LIBS =
 	VULKAN_LIBS = 
 	OBJ_FILE = .obj
+	NO_OSMESA ?= 0
 else ifneq (,$(filter $(CC),emcc em++))
 	DX11_LIBS =
 	LINK_GL1 = -s LEGACY_GL_EMULATION -D LEGACY_GL_EMULATION -sGL_UNSAFE_OPTS=0
 	LINK_GL3 = -s FULL_ES3 -s USE_WEBGL2 
-	LINK_GL2 = -s FULL_ES2 -s USE_WEBGL2 
+	LINK_GL2 = -s FULL_ES2 -s USE_WEBGL2
+	LINK_OSMESA = -sALLOW_MEMORY_GROWTH
 	EXPORTED_JS = -s EXPORTED_RUNTIME_METHODS="['stringToNewUTF8']"
 	LIBS = -s WASM=1 -s ASYNCIFY -s GL_SUPPORT_EXPLICIT_SWAP_CONTROL=1 $(EXPORTED_JS)
 	EXT = .js
 	NO_GLES = 0
 	NO_VULKAN = 1
 	detected_OS = web
-	NO_OSMESA = 1
+	NO_OSMESA ?= 1
 	DX11_LIBS =
 else ifeq (,$(filter $(CC),g++ clang++ em++))
 	LIBS += -std=c99
@@ -124,6 +126,10 @@ else
 	ifeq ($(detected_OS),Darwin) 
 		WARNINGS += -Wno-deprecated -Wno-unknown-warning-option 
 	endif
+endif
+
+ifneq (,$(filter $(detected_OS), windows Windows_NT))
+	NO_OSMESA ?= 1
 endif
 
 EXAMPLE_OUTPUTS = \
@@ -173,7 +179,7 @@ endif
 
 examples/osmesa_demo/osmesa_demo: examples/osmesa_demo/osmesa_demo.c RGFW.h
 ifneq ($(NO_OSMESA), 1)
-	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lOSMesa -o $@$(EXT)
+	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_OSMESA) -lOSMesa -o $@$(EXT)
 else
 	@echo osmesa has been disabled
 endif
