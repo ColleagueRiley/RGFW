@@ -154,6 +154,7 @@ typedef int (* PFN_XWarpPointer)(Display*,Window,Window,int,int,unsigned int,uns
 typedef void (* PFN_XkbFreeKeyboard)(XkbDescPtr,unsigned int,Bool);
 typedef void (* PFN_XkbFreeNames)(XkbDescPtr,unsigned int,Bool);
 typedef XkbDescPtr (* PFN_XkbGetMap)(Display*,unsigned int,unsigned int);
+typedef XkbDescPtr (* PFN_XkbGetKeyboardByName)(Display*,unsigned int,XkbComponentNamesPtr,unsigned int,unsigned int,Bool);
 typedef Status (* PFN_XkbGetNames)(Display*,unsigned int,XkbDescPtr);
 typedef Status (* PFN_XkbGetState)(Display*,unsigned int,XkbStatePtr);
 typedef KeySym (* PFN_XkbKeycodeToKeysym)(Display*,KeyCode,int,int);
@@ -179,7 +180,6 @@ typedef XrmDatabase (*PFN_XrmGetStringDatabase)(const char *data);
 typedef Bool (*PFN_XrmGetResource)(XrmDatabase database, const char *resource_name, const char *resource_class, char **type, XrmValue *value);
 typedef void (*PFN_XrmDestroyDatabase)(XrmDatabase database);
 typedef char *(*PFN_XDisplayName)(const char *string);
-typedef Bool (*PFN_XkbGetState)(Display*, unsigned int, XkbStatePtr);
 typedef int (*PFN_XWidthOfScreen)(Screen* screen);
 typedef int (*PFN_XHeightOfScreen)(Screen* screen);
 typedef GC (*PFN_XCreateGC)(Display* display, Drawable d, unsigned long valuemask, XGCValues* values);
@@ -304,6 +304,10 @@ PFN_XWarpPointer XWarpPointerSrc;
 PFN_XOpenDisplay XOpenDisplaySrc;
 PFN_XInitThreads XInitThreadsSrc;
 PFN_XkbKeycodeToKeysym XkbKeycodeToKeysymSrc;
+PFN_XkbGetMap XkbGetMapSrc;
+PFN_XkbGetNames XkbGetNamesSrc;
+PFN_XkbGetKeyboardByName XkbGetKeyboardByNameSrc;
+PFN_XkbFreeKeyboard XkbFreeKeyboardSrc;
 PFN_XStringToKeysym XStringToKeysymSrc;
 PFN_XConnectionNumber XConnectionNumberSrc;
 PFN_XMatchVisualInfo XMatchVisualInfoSrc;
@@ -454,6 +458,10 @@ PFN_glXDestroyContext glXDestroyContextSrc;
 #define XKeysymToString XKeysymToStringSrc
 #define XInitThreads XInitThreadsSrc
 #define XkbKeycodeToKeysym XkbKeycodeToKeysymSrc
+#define XkbGetMap XkbGetMapSrc
+#define XkbGetNames XkbGetNamesSrc
+#define XkbGetKeyboardByName XkbGetKeyboardByNameSrc
+#define XkbFreeKeyboard XkbFreeKeyboardSrc
 #define XGetAtomName XGetAtomNameSrc
 #define XDefaultRootWindow XDefaultRootWindowSrc
 #define XMatchVisualInfo XMatchVisualInfoSrc
@@ -636,6 +644,10 @@ void XDL_init(void) {
     XDL_PROC_DEF(0, XKeysymToString);
     XDL_PROC_DEF(0, XInitThreads);
     XDL_PROC_DEF(0, XkbKeycodeToKeysym);
+    XDL_PROC_DEF(0, XkbGetMap);
+    XDL_PROC_DEF(0, XkbGetNames);
+    XDL_PROC_DEF(0, XkbGetKeyboardByName);
+    XDL_PROC_DEF(0, XkbFreeKeyboard);
     XDL_PROC_DEF(0, XGetAtomName);
     XDL_PROC_DEF(0, XDefaultRootWindow);
     XDL_PROC_DEF(0, XMatchVisualInfo);

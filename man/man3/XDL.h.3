@@ -314,6 +314,18 @@ XDL.h
 .RI "#define \fBXkbKeycodeToKeysym\fP   \fBXkbKeycodeToKeysymSrc\fP"
 .br
 .ti -1c
+.RI "#define \fBXkbGetMap\fP   \fBXkbGetMapSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXkbGetNames\fP   \fBXkbGetNamesSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXkbGetKeyboardByName\fP   \fBXkbGetKeyboardByNameSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXkbFreeKeyboard\fP   \fBXkbFreeKeyboardSrc\fP"
+.br
+.ti -1c
 .RI "#define \fBXGetAtomName\fP   \fBXGetAtomNameSrc\fP"
 .br
 .ti -1c
@@ -688,6 +700,9 @@ XDL.h
 .br
 .ti -1c
 .RI "typedef XkbDescPtr(* \fBPFN_XkbGetMap\fP) (Display *, unsigned int, unsigned int)"
+.br
+.ti -1c
+.RI "typedef XkbDescPtr(* \fBPFN_XkbGetKeyboardByName\fP) (Display *, unsigned int, XkbComponentNamesPtr, unsigned int, unsigned int, Bool)"
 .br
 .ti -1c
 .RI "typedef Status(* \fBPFN_XkbGetNames\fP) (Display *, unsigned int, XkbDescPtr)"
@@ -1118,6 +1133,18 @@ XDL.h
 .RI "\fBPFN_XkbKeycodeToKeysym\fP \fBXkbKeycodeToKeysymSrc\fP"
 .br
 .ti -1c
+.RI "\fBPFN_XkbGetMap\fP \fBXkbGetMapSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XkbGetNames\fP \fBXkbGetNamesSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XkbGetKeyboardByName\fP \fBXkbGetKeyboardByNameSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XkbFreeKeyboard\fP \fBXkbFreeKeyboardSrc\fP"
+.br
+.ti -1c
 .RI "\fBPFN_XStringToKeysym\fP \fBXStringToKeysymSrc\fP"
 .br
 .ti -1c
@@ -1407,6 +1434,14 @@ XDL.h
 
 .SS "#define XInternAtom   \fBXInternAtomSrc\fP"
 
+.SS "#define XkbFreeKeyboard   \fBXkbFreeKeyboardSrc\fP"
+
+.SS "#define XkbGetKeyboardByName   \fBXkbGetKeyboardByNameSrc\fP"
+
+.SS "#define XkbGetMap   \fBXkbGetMapSrc\fP"
+
+.SS "#define XkbGetNames   \fBXkbGetNamesSrc\fP"
+
 .SS "#define XkbGetState   \fBXkbGetStateSrc\fP"
 
 .SS "#define XkbKeycodeToKeysym   \fBXkbKeycodeToKeysymSrc\fP"
@@ -1679,11 +1714,13 @@ XDL.h
 
 .SS "typedef void(* PFN_XkbFreeNames) (XkbDescPtr, unsigned int, Bool)"
 
+.SS "typedef XkbDescPtr(* PFN_XkbGetKeyboardByName) (Display *, unsigned int, XkbComponentNamesPtr, unsigned int, unsigned int, Bool)"
+
 .SS "typedef XkbDescPtr(* PFN_XkbGetMap) (Display *, unsigned int, unsigned int)"
 
 .SS "typedef Status(* PFN_XkbGetNames) (Display *, unsigned int, XkbDescPtr)"
 
-.SS "typedef Bool(* PFN_XkbGetState)(Display *, unsigned int, XkbStatePtr)"
+.SS "typedef Status(* PFN_XkbGetState) (Display *, unsigned int, XkbStatePtr)"
 
 .SS "typedef KeySym(* PFN_XkbKeycodeToKeysym) (Display *, KeyCode, int, int)"
 
@@ -1960,6 +1997,14 @@ XDL.h
 .SS "\fBPFN_XInitThreads\fP XInitThreadsSrc"
 
 .SS "\fBPFN_XInternAtom\fP XInternAtomSrc"
+
+.SS "\fBPFN_XkbFreeKeyboard\fP XkbFreeKeyboardSrc"
+
+.SS "\fBPFN_XkbGetKeyboardByName\fP XkbGetKeyboardByNameSrc"
+
+.SS "\fBPFN_XkbGetMap\fP XkbGetMapSrc"
+
+.SS "\fBPFN_XkbGetNames\fP XkbGetNamesSrc"
 
 .SS "\fBPFN_XkbGetState\fP XkbGetStateSrc"
 

@@ -1,4 +1,4 @@
-/* #define DO_SVGA */
+#define DO_SVGA
 
 #include <stdio.h>
 #include <i86.h>
@@ -60,6 +60,21 @@ void draw(void){
 	glMatrixMode(GL_MODELVIEW);
 }
 
+#ifdef DO_SVGA
+typedef struct {
+    unsigned long edi;
+    unsigned long esi;
+    unsigned long ebp;
+    unsigned long reserved;
+    unsigned long ebx;
+    unsigned long edx;
+    unsigned long ecx;
+    unsigned long eax;
+    unsigned short flags;
+    unsigned short es,ds,fs,gs,ip,cs,sp,ss;
+} RMREGS;
+#endif
+
 int main(){
 	unsigned char* buf;
 	int i;
@@ -69,9 +84,29 @@ int main(){
 	unsigned char* base = (unsigned char*)0xa0000;
 	long depth;
 #ifdef DO_SVGA
-	unsigned char svga[256];
+	struct SREGS sregs;
+	RMREGS rmregs;
+	unsigned char __far* svga;
+	unsigned char* psvga;
 	unsigned short wgr;
 	unsigned short wseg;
+	unsigned short slct;
+
+	regs.w.ax = 0x100;
+	regs.w.bx = 256 / 16;
+	int386(0x31, &regs, &regs);
+
+	svga = MK_FP(regs.w.ax, 0);
+	printf("SVGA buffer      (real-mode)  segment: %04x\n", regs.w.ax);
+	printf("SVGA buffer (protected-mode) selector: %04x\n", regs.w.dx);
+
+	slct = regs.w.dx;
+
+	regs.w.ax = 6;
+	regs.w.bx = regs.w.dx;
+	int386(0x31, &regs, &regs);
+
+	psvga = (unsigned char*)(((unsigned long)regs.w.cx * 0x10000) + regs.w.dx);
 #endif
 
 	printf("OSMesa DOS Demo\n");
@@ -90,6 +125,7 @@ int main(){
 	OSMesaMakeCurrent(ctx, (unsigned char*)buf, GL_UNSIGNED_BYTE, WIDTH, HEIGHT);
 #endif
 	OSMesaPixelStore(OSMESA_Y_UP, 0);
+	memset(buf, 0, buffer_size);
 
 	old = _dos_getvect(0x09);
 	_dos_setvect(0x09, key);
@@ -107,21 +143,40 @@ int main(){
 	mode = regs.h.al;
 
 #ifdef DO_SVGA
-	regs.w.ax = 0x4f01;
-	regs.w.cx = 0x112;
-	regs.x.edi = (unsigned int)&svga[0];
-	int386(0x10, &regs, &regs);
+	memset(psvga, 0, 256);
 
-	if(svga[0] & (1 << 1)){
-		if(svga[0x19] == 15){
+	rmregs.eax = 0x4f01;
+	rmregs.ecx = 0x112;
+	rmregs.edi = 0;
+	rmregs.es = FP_SEG(svga);
+
+	regs.w.ax = 0x300;
+	regs.h.bl = 0x10;
+	regs.h.bh = 0;
+	regs.w.cx = 0;
+
+	sregs.es = FP_SEG(&rmregs);
+	regs.x.edi = FP_OFF(&rmregs);
+
+	int386x(0x31, &regs, &regs, &sregs);
+
+	if(psvga[0] & (1 << 1)){
+		if(psvga[0x19] == 15){
 			depth = 2;
 		}else{
-			depth = svga[0x19] / 8;
+			depth = psvga[0x19] / 8;
 		}
 	}
 
-	memcpy(&wgr, &svga[4], 2);
-	memcpy(&wseg, &svga[8], 2);
+	for(i = 0; i < 2; i++){
+		((unsigned char*)&wgr)[i] = psvga[4 + i];
+		((unsigned char*)&wseg)[i] = psvga[8 + i];
+	}
+
+	regs.w.ax = 0x101;
+	regs.w.dx = slct;
+	
+	int386(0x31, &regs, &regs);
 
 	base = (unsigned char*)(wseg * 0x10);
 
