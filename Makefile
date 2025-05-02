@@ -43,7 +43,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		LIB_EXT = .dylib
 		OS_DIR = /
 		NO_VULKAN ?= 1
-		NO_OSMESA ?= 0
+		NO_OSMESA ?= 1
 	endif
 	ifeq ($(detected_OS),Linux)
 		DX11_LIBS =
