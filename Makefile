@@ -165,9 +165,7 @@ else
 endif
 
 examples/gles2/gles2: examples/gles2/gles2.c RGFW.h
-ifeq (,$(filter $(CC),emcc em++))
-	$(CC) $(CFLAGS) -I. $< 
-else ifneq ($(NO_GLES), 1)
+ifneq ($(NO_GLES), 1)
 	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lEGL -lGL -o $@$(EXT)
 else
 	@echo gles has been disabled
