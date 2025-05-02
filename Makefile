@@ -168,7 +168,7 @@ examples/gears/gears: examples/gears/gears.c RGFW.h
 ifneq (,$(filter $(CC),emcc em++))
 	@echo gears is not supported on this platform
 else
-	$(CC) $(CFLAGS) -I. $< $(LINK_GL1) $(LIBS) $($)  -o $@$(EXT)
+	$(CC) $(CFLAGS) -I. $< $(LINK_GL1) $(LIBS) -lm $($)  -o $@$(EXT)
 endif
 
 examples/portableGL/pgl: examples/portableGL/pgl.c RGFW.h
