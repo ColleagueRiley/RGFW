@@ -68,6 +68,12 @@ overwritten)
 - fix EGL support
 - fix OSMesa support (image is flipped)
 - add premake file
+- test with zig
+- fix osmesa on wasm
+- fix keycodes for non-evdev X11 users
+- prevent crash if GLX functions fail to load, plus add more optional functions for swapInterval to use 
+- add gears example
+- use direct software rendering (wasm) (no opengl) 
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------
