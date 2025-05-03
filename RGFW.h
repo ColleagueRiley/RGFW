@@ -695,6 +695,7 @@ typedef struct RGFW_window_src {
 	Window window; /*!< source window */
 	#if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
 		GLXContext ctx; /*!< source graphics context */
+        GLXFBConfig bestFbc; 
 	#elif defined(RGFW_OSMESA)
 		OSMesaContext ctx;
 	#elif defined(RGFW_EGL)
@@ -3766,9 +3767,9 @@ RGFW_GOTO_WAYLAND(0);
 }
 
 
-#ifndef RGFW_EGL
-void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
-#ifdef RGFW_OPENGL
+
+void RGFW_window_getVisual(RGFW_window* win, RGFW_bool software) {
+#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
 		i32* visual_attribs = RGFW_initFormatAttribs(software);
 		i32 fbcount;
 		GLXFBConfig* fbc = glXChooseFBConfig(win->src.display, DefaultScreen(win->src.display), visual_attribs, &fbcount);
@@ -3810,11 +3811,8 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 			return;
 		}
 
-		GLXFBConfig bestFbc = fbc[best_fbc];
-		XVisualInfo* vi = glXGetVisualFromFBConfig(win->src.display, bestFbc);
-		win->src.visual.visual = vi->visual;
-		win->src.visual.depth = vi->depth;
-
+		win->src.bestFbc = fbc[best_fbc];
+		XVisualInfo* vi = glXGetVisualFromFBConfig(win->src.display, win->src.bestFbc);
 		if (vi->depth != 32 && (win->_flags & RGFW_windowTransparent))
 			RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Failed to to find a matching visual with a 32-bit depth");
 
@@ -3822,8 +3820,25 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 			RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Failed to load matching sampiling");
 
 		XFree(fbc);
+        win->src.visual = *vi;
+#else
+	win->src.visual.visual = DefaultVisual(win->src.display, DefaultScreen(win->src.display));
+	win->src.visual.depth = DefaultDepth(win->src.display, DefaultScreen(win->src.display));
+	if (win->_flags & RGFW_windowTransparent) {
+		XMatchVisualInfo(win->src.display, DefaultScreen(win->src.display), 32, TrueColor, &win->src.visual); /*!< for RGBA backgrounds */
+		if (win->src.visual.depth != 32)
+		RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Failed to load a 32-bit depth");
 
-		i32 context_attribs[7] = { 0, 0, 0, 0, 0, 0, 0 };
+	}
+
+#endif
+}
+
+#ifndef RGFW_EGL
+void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
+#ifdef RGFW_OPENGL
+        RGFW_UNUSED(software);
+        i32 context_attribs[7] = { 0, 0, 0, 0, 0, 0, 0 };
 		context_attribs[0] = GLX_CONTEXT_PROFILE_MASK_ARB;
 		if (RGFW_GL_HINTS[RGFW_glProfile] == RGFW_glCore)
 			context_attribs[1] = GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
@@ -3849,18 +3864,16 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 
 		if (glXCreateContextAttribsARB == NULL) {
 			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "failed to load proc address 'glXCreateContextAttribsARB', loading a generic opengl context");
-			win->src.ctx = glXCreateContext(win->src.display, vi, ctx, True);
+			win->src.ctx = glXCreateContext(win->src.display, &win->src.visual, ctx, True);
 		}
 		else {
-				win->src.ctx = glXCreateContextAttribsARB(win->src.display, bestFbc, ctx, True, context_attribs);
+				win->src.ctx = glXCreateContextAttribsARB(win->src.display, win->src.bestFbc, ctx, True, context_attribs);
 				XSync(win->src.display, False);
 				if (win->src.ctx == NULL) {
 					RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "failed to create an opengl context with AttribsARB, loading a generic opengl context");
-					win->src.ctx = glXCreateContext(win->src.display, vi, ctx, True);
-				}
+					win->src.ctx = glXCreateContext(win->src.display, &win->src.visual, ctx, True);
+            }
 		}
-
-		XFree(vi);
 
         glXMakeCurrent(win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);
 	    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "opengl context initalized");
@@ -3989,15 +4002,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	i64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /*!< X11 events accepted */
 
     win->src.display = XOpenDisplay(NULL);
-	win->src.visual.visual = DefaultVisual(win->src.display, DefaultScreen(win->src.display));
-	win->src.visual.depth = DefaultDepth(win->src.display, DefaultScreen(win->src.display));
-	if (flags & RGFW_windowTransparent) {
-		XMatchVisualInfo(win->src.display, DefaultScreen(win->src.display), 32, TrueColor, &win->src.visual); /*!< for RGBA backgrounds */
-		if (win->src.visual.depth != 32)
-		RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Failed to load a 32-bit depth");
+    RGFW_window_getVisual(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
 
-	}
-	/* make X window attrubutes */
+    /* make X window attrubutes */
 	XSetWindowAttributes swa;
 	Colormap cmap;
 	swa.colormap = cmap = XCreateColormap(win->src.display,
@@ -5851,7 +5858,8 @@ void RGFW_window_close(RGFW_window* win) {
 
 	#ifdef RGFW_X11
 	RGFW_GOTO_WAYLAND(0);
-	/* ungrab pointer if it was grabbed */
+
+    /* ungrab pointer if it was grabbed */
 	if (win->_flags & RGFW_HOLD_MOUSE)
 		XUngrabPointer(win->src.display, CurrentTime);
 
