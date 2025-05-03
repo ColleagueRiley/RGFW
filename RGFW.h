@@ -5762,14 +5762,14 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	#if defined(RGFW_OPENGL)
 	// cached pfn to avoid calling glXGetProcAddress more than once
 	static PFNGLXSWAPINTERVALEXTPROC pfn = (PFNGLXSWAPINTERVALEXTPROC)123;
-    static int (*pfn2)(int);
+    static int (*pfn2)(int) = NULL;
 
 	if (pfn == (PFNGLXSWAPINTERVALEXTPROC)123) {
 		pfn = ((PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress((GLubyte*) "glXSwapIntervalEXT"));
-		if (pfn == NULL) {
+		if (pfn == NULL)  {
             const char* array[] = {"GLX_MESA_swap_control", "GLX_SGI_swap_control"};
             u32 i;
-            for (i = 0; i < sizeof(array) / sizeof(char*); i++)
+            for (i = 0; i < sizeof(array) / sizeof(char*) && pfn2 == NULL; i++)
     		    pfn2 = ((int(*)(int))glXGetProcAddress((GLubyte*) array[i]));
 
             if (pfn2 != NULL) {
