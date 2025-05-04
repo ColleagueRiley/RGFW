@@ -2789,26 +2789,24 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 		win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
 	#endif
 
-	EGLint attribs[] = {
-		EGL_CONTEXT_CLIENT_VERSION,
-		#ifdef RGFW_OPENGL_ES1
-		1,
-		#else
-		2,
-		#endif
-		EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE, EGL_NONE
-	};
+	EGLint attribs[12];
+	size_t index = 0;
 
-	size_t index = 4;
-	RGFW_GL_ADD_ATTRIB(EGL_STENCIL_SIZE, RGFW_GL_HINTS[RGFW_glStencil]);
+#ifdef RGFW_OPENGL_ES1
+    RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_CLIENT_VERSION, 1);
+#elif defined(RGFW_OPENGL_ES2)
+    RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_CLIENT_VERSION, 2);
+#elif defined(RGFW_OPENGL_ES3)
+    RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_CLIENT_VERSION, 3);
+#endif
+
+    RGFW_GL_ADD_ATTRIB(EGL_STENCIL_SIZE, RGFW_GL_HINTS[RGFW_glStencil]);
 	RGFW_GL_ADD_ATTRIB(EGL_SAMPLES, RGFW_GL_HINTS[RGFW_glSamples]);
 
-	if (RGFW_GL_HINTS[RGFW_glDoubleBuffer])
-		RGFW_GL_ADD_ATTRIB(EGL_RENDER_BUFFER, EGL_BACK_BUFFER);
+    if (RGFW_GL_HINTS[RGFW_glDoubleBuffer] == 0)
+		RGFW_GL_ADD_ATTRIB(EGL_RENDER_BUFFER, EGL_SINGLE_BUFFER);
 
 	if (RGFW_GL_HINTS[RGFW_glMajor]) {
-		attribs[1] = RGFW_GL_HINTS[RGFW_glMajor];
-
 		RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MAJOR_VERSION, RGFW_GL_HINTS[RGFW_glMajor]);
 		RGFW_GL_ADD_ATTRIB(EGL_CONTEXT_MINOR_VERSION, RGFW_GL_HINTS[RGFW_glMinor]);
 
@@ -2827,6 +2825,8 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 	} else {
 		RGFW_GL_ADD_ATTRIB(0x2097, 0x0000);
 	}
+
+	RGFW_GL_ADD_ATTRIB(EGL_NONE, EGL_NONE);
 
 	#if defined(RGFW_OPENGL_ES1) || defined(RGFW_OPENGL_ES2) || defined(RGFW_OPENGL_ES3)
 	eglBindAPI(EGL_OPENGL_ES_API);
@@ -3828,9 +3828,7 @@ void RGFW_window_getVisual(RGFW_window* win, RGFW_bool software) {
 		XMatchVisualInfo(win->src.display, DefaultScreen(win->src.display), 32, TrueColor, &win->src.visual); /*!< for RGBA backgrounds */
 		if (win->src.visual.depth != 32)
 		RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Failed to load a 32-bit depth");
-
 	}
-
 #endif
 }
 
