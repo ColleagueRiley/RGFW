@@ -37,6 +37,8 @@
  * \author Brian Paul <brian@precisioninsight.com>
  */
 
+#include <OSMesa/gl.h>
+
 #include "glheader.h"
 #include "glapi.h"
 #include "glapitable.h"
