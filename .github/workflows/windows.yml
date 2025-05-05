@@ -93,11 +93,13 @@ jobs:
 
     - name: Add msvc
       uses: ilammy/msvc-dev-cmd@v1
+      if: matrix.compiler == 'msvc16'
 
     - name: Build app for release
       run: |
         set "vs_path=%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
-      
+      if: matrix.compiler == 'msvc16'
+
     - name: Build Library (MSVC16 64bit)
       run: |
         windres.exe --version
