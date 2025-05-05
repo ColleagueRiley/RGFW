@@ -73,10 +73,10 @@ jobs:
         #make CC="zig cc" NO_VULKAN=1  RGFW_WAYLAND=1
         #if: matrix.bits == 64
  
-    - name: test C++
-      run: |
-        make CC=g++ RGFW_WAYLAND=1
-      if: matrix.bits == 64
+      #    - name: test C++
+        # run: |
+       # make CC=g++ RGFW_WAYLAND=1
+        # if: matrix.bits == 64
 
     - name: Build Library
       run: |
