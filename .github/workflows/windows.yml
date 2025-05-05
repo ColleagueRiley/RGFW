@@ -41,7 +41,9 @@ jobs:
           bits: 64
           ARCH: "x86_64"
           WINDRES_ARCH: pe-x86-64
-
+        - compiler: zig
+          bits: 64
+          ARCH: "x86_64"
     env:
       RELEASE_NAME: RGFW-dev_win${{ matrix.bits }}_${{ matrix.compiler }}
       GNUTARGET: default
@@ -51,7 +53,6 @@ jobs:
       uses: actions/checkout@master
     
     - uses: actions/checkout@v3
-    - uses: mlugg/setup-zig@v1
 
     - name: Setup Release Version
       run: |
@@ -78,7 +79,8 @@ jobs:
     - name: test Zig
       run: |
         make CC="zig cc" NO_VULKAN=1
-      if: matrix.bits == 64 && matrix.compiler == 'mingw-w64'
+      uses: mlugg/setup-zig@v1
+      if: matrix.bits == 64 && matrix.compiler == 'zig'
 
     # Setup MSBuild.exe path if required
     - name: Setup MSBuild
