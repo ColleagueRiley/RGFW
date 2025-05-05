@@ -1107,7 +1107,7 @@ typedef struct RGFW_debugContext { RGFW_window* win; RGFW_monitor monitor; u32 s
 #define RGFW_DEBUG_CTX(win, err) {win, { 0 }, err}
 #define RGFW_DEBUG_CTX_MON(monitor) {_RGFW.root, monitor, 0}
 #else
-#define RGFW_DEBUG_CTX(win, err) (RGFW_debugContext){win, (RGFW_monitor){ 0 }, (u32)err}
+#define RGFW_DEBUG_CTX(win, err) (RGFW_debugContext){win, (RGFW_monitor){ 0 }, err}
 #define RGFW_DEBUG_CTX_MON(monitor) (RGFW_debugContext){_RGFW.root, monitor, 0}
 #endif
 
