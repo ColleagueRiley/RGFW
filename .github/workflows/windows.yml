@@ -95,6 +95,7 @@ jobs:
     - name: Build Library (MSVC16 64bit)
       run: |
         windres.exe --version
+        make CC=cl
         rm -f RGFW.o 
         make libRGFW.a CC=cl
         make libRGFW.dll CC=cl
