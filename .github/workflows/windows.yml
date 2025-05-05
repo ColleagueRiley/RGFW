@@ -83,7 +83,7 @@ jobs:
 
     - name: test Zig
       run: |
-        make CC="zig cc" NO_VULKAN=1
+        make CC="zig cc" NO_VULKAN=1 OBJ_FILE=.obj
       if: matrix.bits == 64 && matrix.compiler == 'zig'
 
     # Setup MSBuild.exe path if required
