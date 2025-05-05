@@ -73,13 +73,13 @@ jobs:
     - name: test C++
       run: |
         make CC=g++
-      if: matrix.bits == 64
+      if: matrix.bits == 64 && matrix.compiler == 'mingw-w64'
 
     - name: test Zig
       run: |
         make CC="zig cc" NO_VULKAN=1
-      if: matrix.bits == 64
- 
+      if: matrix.bits == 64 && matrix.compiler == 'mingw-w64'
+
     # Setup MSBuild.exe path if required
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
