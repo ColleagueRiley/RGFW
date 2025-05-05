@@ -3830,7 +3830,6 @@ void RGFW_window_getVisual(RGFW_window* win, RGFW_bool software) {
 		RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Failed to load a 32-bit depth");
 
 	}
-
 #endif
 }
 
