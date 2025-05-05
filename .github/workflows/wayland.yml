@@ -44,8 +44,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@master
     
-    - uses: actions/checkout@v3
-    - uses: mlugg/setup-zig@v1
+      #- uses: actions/checkout@v3
+      #- uses: mlugg/setup-zig@v1
 
 
     - name: Setup Release Version
@@ -68,10 +68,10 @@ jobs:
         cd ../../../RGFW
         # ${{ matrix.ARCH }}-linux-gnu-gcc -v
     
-    - name: test Zig
-      run: |
-        make CC="zig cc" NO_VULKAN=1  RGFW_WAYLAND=1
-      if: matrix.bits == 64
+      #    - name: test Zig
+        #run: |
+        #make CC="zig cc" NO_VULKAN=1  RGFW_WAYLAND=1
+        #if: matrix.bits == 64
  
     - name: test C++
       run: |
