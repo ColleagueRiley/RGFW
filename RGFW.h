@@ -4153,7 +4153,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	win->src.xdg_toplevel = xdg_surface_get_toplevel(win->src.xdg_surface);
 	xdg_toplevel_set_user_data(win->src.xdg_toplevel, win);
-	xdg_toplevel_set_title(win->src.xdg_toplevel, name);
 	xdg_toplevel_add_listener(win->src.xdg_toplevel, &xdg_toplevel_listener, NULL);
 
 	xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->r.w, win->r.h);
@@ -6747,7 +6746,9 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 
 	RGFW_monitor mon  = RGFW_window_getMonitor(win);
 	RGFW_window_setBorder(win, 0);
-	SetWindowPos(win->src.window, HWND_TOPMOST, 0, 0, (i32)mon.mode.area.w, (i32)mon.mode.area.h, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+
+    SetWindowPos(win->src.window, HWND_TOPMOST, 0, 0, (i32)mon.mode.area.w, (i32)mon.mode.area.h, SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+    RGFW_monitor_scaleToWindow(mon, win);
 
 	win->r = RGFW_RECT(0, 0, mon.mode.area.w, mon.mode.area.h);
 }
@@ -7251,10 +7252,12 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 	}
 
 
+
+
 	monitor.x = monitorInfo.rcWork.left;
 	monitor.y = monitorInfo.rcWork.top;
-	monitor.mode.area.w = (u32)(monitorInfo.rcWork.right - monitorInfo.rcWork.left);
-	monitor.mode.area.h = (u32)(monitorInfo.rcWork.bottom - monitorInfo.rcWork.top);
+	monitor.mode.area.w = (u32)(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left);
+	monitor.mode.area.h = (u32)(monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top);
 
 	HDC hdc = CreateDC(monitorInfo.szDevice, NULL, NULL, NULL);
 	/* get pixels per inch */
@@ -7346,7 +7349,10 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
         if (!(dd.StateFlags & DISPLAY_DEVICE_ACTIVE))
 			continue;
 
-		DEVMODE dm;
+        if (strcmp(dd.DeviceName, monitorInfo.szDevice) != 0)
+            continue;
+		
+        DEVMODE dm;
 		ZeroMemory(&dm, sizeof(dm));
 		dm.dmSize = sizeof(dm);
 
@@ -7355,7 +7361,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 				dm.dmFields |= DM_PELSWIDTH | DM_PELSHEIGHT;
 				dm.dmPelsWidth = mode.area.w;
 				dm.dmPelsHeight = mode.area.h;
-			}
+            }
 
 			if (request & RGFW_monitorRefresh) {
 				dm.dmFields |= DM_DISPLAYFREQUENCY;
