@@ -1,82 +1,111 @@
 changelog
 ---------
 
-Current Version: RGFW 1.7-dev
+Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
-- fix `RGFW_window_setFlags` overwrite bugs (@DiarrheaMcgee)
-- add missing string override functions, casting warnings, ensure `wayland:` (@DiarrheaMcgee)
-- fix C++ compiling
-- add RGFW_windowFreeOnClose
-- add RGFW_windowFocusOnShow
-- use timeEndPeriod
-- make RGFW_getTime and RGFW_getTimeNS platform independent
-- use `CLOCK_MONOTONIC` if possible
-- add RGFW_setTime and run `RGFW_setTime(0)` when the window is first initialized
-- add `RGFW_eventQueuePush` and `RGFW_eventQueuePop`
-- replace WASM event queue with RGFW standard event queue
-- replace macOS callback events (that use `RGFW_EVENT_PASSED`) AND IOKit gamepad queue with RGFW standard event queue
-- replace winapi RGFW_EVENT_PASSED events (WndProc) with standardized event queue
-- allocate only win->event's event.droppedFiles, change droppedFiles to char**
-- add RGFW_windowMaximized, RGFW_windowMinimized and RGFW_windowRestored events
-- add RGFW_windowMinimize flag
-- ensure macOS focusIn/focusOut events are collected
-- remove `event.inFocus`
-- add `RGFW_window_isInFocus` and `RGFW_windowFocus` flag
-- windows manually convert RGB and BGR
-- add `RGFW_BUFFER_BGR`/ rename `RGFW_X11_DONT_CONVERT_BGR`
-- fix bugs with unix timers 
-- rename `RGFW_window_checkFPS` to `RGFW_checkFPS`, 
-- change checkFps to `u32 RGFW_window_checkFPS(double startTime, u32 frameCount, u32 fpsCap)`
-- ensure callback naming capitalization is consistent
-- rename RGFW_setMouseNotifyCallBack to RGFW_setMouseNotifyCallback
-- rename windowResizeCallback to windowResizedCallback and   windowMoveCallback to windowMovedCallback
-- fix getMonitors bug (winapi)
-- add size_t* len to `RGFW_getMonitors`
-- don't freeze on RGFW_quit events anymore
-- change `RGFW_window_setShouldClose(RGFW_window)` to `RGFW_window_setShouldClose(RGFW_window, RGFW_BOOL)`
-- add `RGFW_window_swapBuffers_software` and `RGFW_window_swapBuffers_OpenGL`
-- add RGFW_proc
-- change `void* RGFW_getProcAddress(const char*)` to `RGFW_proc RGFW_getProcAddress(const char*)`
-- add `RGFW_window_initOpenGL` and `RGFW_window_freeOpenGL`
-- X11 depth defaults to 24 instead of 32 (based on RGFW_windowTransparent) (32-bit depth doesn't seem to play nice with multi-samples)
-- set default multi-sampling to 0, better matches GLFW, allow user to pick sampling
-- fix macOS warnings
-- fix windowRefresh (macOS)
-- add RGFW_ADVANCED_SMOOTH_RESIZE for X11 and winapi (allows for smoother resizing)
-- make it so the window can only be transparent if RGFW_windowTransparent is enabled (GLX) (depth == 24 by default), allowing only opengl settings (like multi-sampiling)
-- add swapInterval to wgl opengl function loading function
-- add RGFW_init and RGFW_deinit
-- fix macOS software rendering support
-- fix RGFW memory alignment
-- fix window open before flags set    
-- simply basic example `examples/basic/basic` 
-- add `example/multi-window/multi-window` as an example of multiple windows 
-- fix X11 clipboard bugs 
-- fix X11 and Cocoa waitEvent bugs
-- make sure icons support transparency (windows)
-- update macOS icons to reload every checkEvent (prevents macOS being
-overwritten)
-- add RGFW_INT_DEFINED and RGFW_BOOL_DEFINED rather than using `#define u8` and `#define RGFW_bool`
-- make sure `BeginPaint` and `EndPaint` is called to confirm window is validated 
-- `RGFW_BUFFER`` init buffer unless the RGFW_windowNoInitAPI flagis added
-- add `RGFW_ATOF`
-- make default buffer size to window size if window can't resize
-- (msvc) don't link opengl.dll unless it's used in RGFW (`RGFW_OPENGL`)
-- (glx) add a fallback if glXCreateContextAttribsARB fails 
-- fix issue for non-latin keyboards (key input not being processed) 
-- (Windows) fix client area extending beyond titlebar (scaled displays)
-- fix EGL support
-- fix OSMesa support (image is flipped)
-- add premake file
-- test with zig
-- fix osmesa on wasm
-- fix keycodes for non-evdev X11 users
-- prevent crash if GLX functions fail to load, plus add more optional functions for swapInterval to use 
-- add gears example
-- use direct software rendering (wasm) (no opengl)
-- fix GLX on Nvidia Drivers (By splitting Visual/Context creation again)
-- simplfy EGL context creation
-- fix bugs with detecting the monitor resolution (window)
+This release focuses on improving bug fixes and supporting more edge-cases. It also continues to work towards feature parity with GLFW.
+-----------------------------------------------
+
+breaking changes:
+- Rename `RGFW_window_checkFPS` to `RGFW_checkFPS`
+- Change `RGFW_window_setShouldClose(RGFW_window)` to `RGFW_window_setShouldClose(RGFW_window, RGFW_BOOL)`
+- Rename `RGFW_setMouseNotifyCallBack` → `RGFW_setMouseNotifyCallback`
+- Rename `windowResizeCallback` → `windowResizedCallback`
+- Rename `windowMoveCallback` → `windowMovedCallback`
+- Change return type of `RGFW_getProcAddress` to `RGFW_proc`
+- `event.inFocus` removed — use `RGFW_window_isInFocus()` instead
+
+-----------------------------------------------
+
+major changes:
+- **Event Queue Rewrite**
+  - Replace internal event passing system (WASM, WinAPI, macOS) with `RGFW_eventQueuePush` / `RGFW_eventQueuePop`
+- **Platform-Independent Timing**
+  - `RGFW_getTime` and `RGFW_getTimeNS` now platform-independent
+  - Add `RGFW_setTime` (called with `0` at window init)
+- **New OpenGL and Buffer Management**
+  - Add `RGFW_window_swapBuffers_software` and `RGFW_window_swapBuffers_OpenGL`
+  - Add `RGFW_window_initOpenGL` and `RGFW_window_freeOpenGL`
+  - Add `RGFW_proc` typedef and update `RGFW_getProcAddress`
+  - Default multisampling is now 0 (more consistent with GLFW)
+- **Improved Software Rendering Support**
+  - Better macOS and wasm software rendering
+  - Use direct software rendering in wasm (no OpenGL required)
+- **Flags and Focus Enhancements**
+  - Add `RGFW_windowFreeOnClose`, `RGFW_windowFocusOnShow`
+  - Add `RGFW_windowFocus` and `RGFW_windowFocus` flag
+- **New Events**
+  - `RGFW_windowMaximized`
+  - `RGFW_windowMinimized`
+  - `RGFW_windowRestored`
+- **Cross-Platform Improvements**
+  - Add `RGFW_init` and `RGFW_deinit`
+  - Make `CLOCK_MONOTONIC` default where supported
+  - `BeginPaint`/`EndPaint` now called properly (Windows)
+  - Fix client area scaling issues (Windows)
+- **Monitor and Window Enhancements**
+  - `RGFW_getMonitors` now takes a `size_t* len` argument
+  - Better monitor resolution detection
+  - Fix X11 clipboard and waitEvent bugs
+  - Add `RGFW_ADVANCED_SMOOTH_RESIZE` (WinAPI, X11)
+
+-----------------------------------------------
+
+all changes:
+
+fixes:
+- Fix `RGFW_window_setFlags` overwrite bugs
+- Fix C++ compilation issues
+- Fix bugs with Unix timers and macOS warnings
+- Fix X11 and Cocoa waitEvent behavior
+- Fix OpenGL fallback and function loading (GLX, EGL, WGL)
+- Fix software rendering support (macOS, OSMesa, wasm)
+- Fix key input for non-latin and non-evdev X11 users
+- Fix monitor resolution detection
+- Fix gear and multi-window examples
+- Fix icons and transparency (macOS, Windows)
+- Fix memory alignment and window flags initialization
+- Ensure `BeginPaint` / `EndPaint` used correctly (Windows)
+
+new features:
+- Add `RGFW_eventQueuePush` / `RGFW_eventQueuePop`
+- Add `RGFW_windowFreeOnClose`
+- Add `RGFW_windowFocusOnShow`
+- Add `RGFW_window_isInFocus`
+- Add `RGFW_windowFocus` flag
+- Add `RGFW_windowMaximized`, `RGFW_windowMinimized`, `RGFW_windowRestored` events
+- Add `RGFW_ATOF` macro
+- Add `RGFW_proc` and update function loading
+- Add `RGFW_window_swapBuffers_software`, `RGFW_window_swapBuffers_OpenGL`
+- Add `RGFW_init`, `RGFW_deinit`
+- Add premake build file
+- Add `examples/gears/gears`, `examples/multi-window/multi-window`
+- Add `RGFW_BUFFER_BGR`, rename `RGFW_X11_DONT_CONVERT_BGR`
+- Add fallback for `glXCreateContextAttribsARB`
+- Add swapInterval to WGL loading
+
+miscellaneous:
+- Only allow transparency if `RGFW_windowTransparent` is enabled
+- Make depth default to 24 if transparency is off
+- Use `timeEndPeriod` for better Windows timing
+- Default buffer size to window size if not resizable
+- Refactor default bool types (`RGFW_INT_DEFINED`, `RGFW_BOOL_DEFINED`)
+- (MSVC) Avoid linking `opengl32.dll` unless `RGFW_OPENGL` is used
+- Simplify EGL context creation
+- Update OpenGL context fallback for Nvidia/GLX
+- Fix flipped image in OSMesa (wasm)
+
+
+-----------------------------------------------
+
+compatibility:
+- Tested with Zig
+- Improved MSVC, macOS, wasm, X11, and EGL/OSMesa support
+
+-----------------------------------------------
+
+notes:
+This version continues the work from 1.6 to refine the API while introducing more robust internal systems for events, rendering, and timing.
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------
