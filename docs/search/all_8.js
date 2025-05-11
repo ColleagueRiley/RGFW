@@ -5,6 +5,5 @@ var searchData=
   ['i64_2',['i64',['../RGFW_8h.html#a85cb35fbe5bf2961d7ad5f26814a91a2',1,'RGFW.h']]],
   ['i8_3',['i8',['../RGFW_8h.html#ae3702327b5f47e83b431e22b33da7b58',1,'RGFW.h']]],
   ['important_20conventions_4',['important conventions',['../md_CONVENTIONS.html',1,'']]],
-  ['inline_5',['inline',['../RGFW_8h.html#a00d24c7231be28dbaf71f5408f30e44c',1,'RGFW.h']]],
-  ['input_6',['Input',['../group__Input.html',1,'']]]
+  ['input_5',['Input',['../group__Input.html',1,'']]]
 ];

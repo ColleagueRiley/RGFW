@@ -1,4 +1,4 @@
-.TH "RGFW_window" 3 "Tue May 6 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_window" 3 "Sun May 11 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -24,6 +24,9 @@ RGFW_window
 .RI "\fBRGFW_rect\fP \fBr\fP"
 .br
 .ti -1c
+.RI "\fBRGFW_key\fP \fBexitKey\fP"
+.br
+.ti -1c
 .RI "\fBRGFW_point\fP \fB_lastMousePoint\fP"
 .br
 .ti -1c
@@ -43,6 +46,8 @@ last cusor point (for raw mouse data)
 rect before fullscreen 
 .SS "\fBRGFW_event\fP RGFW_window::event"
 current event 
+.SS "\fBRGFW_key\fP RGFW_window::exitKey"
+which key RGFW_window_shouldClose checks\&. Settting this to RGFW_keyNULL disables the feature\&. 
 .SS "\fBRGFW_rect\fP RGFW_window::r"
 the x, y, w and h of the struct 
 .SS "RGFW_window_src RGFW_window::src"
