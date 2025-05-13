@@ -571,7 +571,7 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 	typedef struct { u32 w, h; } RGFW_area;
 #endif
 
-#if defined(__cplusplus) && !defined(__APPLE__)
+#if defined(__cplusplus)
 #define RGFW_POINT(x, y) {(i32)x, (i32)y}
 #define RGFW_RECT(x, y, w, h) {(i32)x, (i32)y, (i32)w, (i32)h}
 #define RGFW_AREA(w, h) {(u32)w, (u32)h}
