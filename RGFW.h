@@ -1102,7 +1102,7 @@ typedef struct RGFW_debugContext { RGFW_window* win; RGFW_monitor* monitor; u32 
 #define RGFW_DEBUG_CTX_MON(monitor) {_RGFW.root, &monitor, 0}
 #else
 #define RGFW_DEBUG_CTX(win, err) (RGFW_debugContext){win, NULL, err}
-#define RGFW_DEBUG_CTX_MON(monitor) (RGFW_debugContext){_RGFW.root, &monitor, -1}
+#define RGFW_DEBUG_CTX_MON(monitor) (RGFW_debugContext){_RGFW.root, &monitor, 0}
 #endif
 
 typedef void (* RGFW_debugfunc)(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const char* msg);
@@ -3035,8 +3035,10 @@ This is where OS specific stuff starts
                     RGFW_gamepads_name[index][sizeof(RGFW_gamepads_name[index]) - 1] = 0;
 
                     u8 j;
-                    for (j = 0; j < 16; j++)
-                        RGFW_gamepadPressed[index][j] = (RGFW_keyState){0, 0};
+                    for (j = 0; j < 16; j++) {
+                        RGFW_gamepadPressed[index][j].prev = 0;
+                        RGFW_gamepadPressed[index][j].current = 0;
+                    }
 
                     win->event.type = RGFW_gamepadConnected;
 
@@ -5699,12 +5701,14 @@ wayland:
 }
 
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
-	RGFW_ASSERT(win != NULL);
+    RGFW_monitor mon;
+
+    RGFW_ASSERT(win != NULL);
 	RGFW_GOTO_WAYLAND(1);
 #ifdef RGFW_X11
 	XWindowAttributes attrs;
     if (!XGetWindowAttributes(win->src.display, win->src.window, &attrs)) {
-        return (RGFW_monitor){0};
+        return mon;
     }
 
 	i32 i;
@@ -5718,7 +5722,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 #ifdef RGFW_WAYLAND
 wayland:
 #endif
-	return (RGFW_monitor){0};
+    return mon;
 
 }
 
