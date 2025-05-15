@@ -298,7 +298,7 @@ examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.
 
 examples/gl33/gl33: examples/gl33/gl33.c RGFW.h
 ifeq ($(RGFW_WAYLAND), 1)
-	$(CC) $(CFLAGS) -I. $< $(LIBS) $(LINK_GL1) -lwayland-egl -o $@$(EXT)
+	$(CC) $(CFLAGS) -I. $< $(LIBS) $(LINK_GL1) -lEGL -lwayland-egl -o $@$(EXT)
 else ifeq ($(detected_OS),NetBSD)
 	$(CC) $(CFLAGS) $(CUSTOM_CFLAGS) -I. $<  -lXrandr -lpthread -o $@$(EXT)
 else ifeq ($(detected_OS),Linux)
