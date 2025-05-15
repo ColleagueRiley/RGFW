@@ -160,7 +160,8 @@ int main() {
 		@Easymode -> support, testing/debugging, bug fixes and reviews
 		Joshua Rowe (omnisci3nce) - bug fix, review (macOS)
 		@lesleyrs -> bug fix, review (OpenGL)
-		Nick Porcino (meshula) - testing, organization, review (MacOS, examples)
+		Necho $XDG_CONFIG_HOME
+echo $NVIM_INITick Porcino (meshula) - testing, organization, review (MacOS, examples)
 		@DarekParodia -> code review (X11) (C++)
 */
 
@@ -7907,10 +7908,10 @@ typedef RGFW_ENUM(NSUInteger, NSBitmapFormat) {
 		NSBitmapFormatAlphaNonpremultiplied = 1 << 1,       /* 0 means is premultiplied */
 		NSBitmapFormatFloatingpointSamples = 1 << 2,  /* 0 is integer */
 
-		NSBitmapFormatSixteenBitLittleEndian API_AVAILABLE(macos(10.10)) = (1 << 8),
-		NSBitmapFormatThirtyTwoBitLittleEndian API_AVAILABLE(macos(10.10)) = (1 << 9),
-		NSBitmapFormatSixteenBitBigEndian API_AVAILABLE(macos(10.10)) = (1 << 10),
-		NSBitmapFormatThirtyTwoBitBigEndian API_AVAILABLE(macos(10.10)) = (1 << 11)
+		NSBitmapFormatSixteenBitLittleEndian = (1 << 8),
+		NSBitmapFormatThirtyTwoBitLittleEndian = (1 << 9),
+		NSBitmapFormatSixteenBitBigEndian = (1 << 10),
+		NSBitmapFormatThirtyTwoBitBigEndian = (1 << 11)
 };
 
 id NSBitmapImageRep_initWithBitmapData(unsigned char** planes, NSInteger width, NSInteger height, NSInteger bps, NSInteger spp, bool alpha, bool isPlanar, const char* colorSpaceName, NSBitmapFormat bitmapFormat, NSInteger rowBytes, NSInteger pixelBits);
@@ -7929,18 +7930,17 @@ id NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha
 		((id)nsclass, func, red, green, blue, alpha);
 }
 
-#define NS_OPENGL_ENUM_DEPRECATED(minVers, maxVers) API_AVAILABLE(macos(minVers))
 typedef RGFW_ENUM(NSInteger, NSOpenGLContextParameter) {
-	NSOpenGLContextParameterSwapInterval           NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 222, /* 1 param.  0 -> Don't sync, 1 -> Sync to vertical retrace     */
-		NSOpenGLContextParametectxaceOrder           NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 235, /* 1 param.  1 -> Above Window (default), -1 -> Below Window    */
-		NSOpenGLContextParametectxaceOpacity         NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 236, /* 1 param.  1-> Surface is opaque (default), 0 -> non-opaque   */
-		NSOpenGLContextParametectxaceBackingSize     NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 304, /* 2 params.  Width/height of surface backing size              */
-		NSOpenGLContextParameterReclaimResources       NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 308, /* 0 params.                                                    */
-		NSOpenGLContextParameterCurrentRendererID      NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 309, /* 1 param.   Retrieves the current renderer ID                 */
-		NSOpenGLContextParameterGPUVertexProcessing    NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 310, /* 1 param.   Currently processing vertices with GPU (get)      */
-		NSOpenGLContextParameterGPUFragmentProcessing  NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 311, /* 1 param.   Currently processing fragments with GPU (get)     */
-		NSOpenGLContextParameterHasDrawable            NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 314, /* 1 param.   Boolean returned if drawable is attached          */
-		NSOpenGLContextParameterMPSwapsInFlight        NS_OPENGL_ENUM_DEPRECATED(10.0, 10.14) = 315, /* 1 param.   Max number of swaps queued by the MP GL engine    */
+	NSOpenGLContextParameterSwapInterval            = 222, /* 1 param.  0 -> Don't sync, 1 -> Sync to vertical retrace     */
+		NSOpenGLContextParametectxaceOrder            = 235, /* 1 param.  1 -> Above Window (default), -1 -> Below Window    */
+		NSOpenGLContextParametectxaceOpacity          = 236, /* 1 param.  1-> Surface is opaque (default), 0 -> non-opaque   */
+		NSOpenGLContextParametectxaceBackingSize      = 304, /* 2 params.  Width/height of surface backing size              */
+		NSOpenGLContextParameterReclaimResources        = 308, /* 0 params.                                                    */
+		NSOpenGLContextParameterCurrentRendererID       = 309, /* 1 param.   Retrieves the current renderer ID                 */
+		NSOpenGLContextParameterGPUVertexProcessing     = 310, /* 1 param.   Currently processing vertices with GPU (get)      */
+		NSOpenGLContextParameterGPUFragmentProcessing   = 311, /* 1 param.   Currently processing fragments with GPU (get)     */
+		NSOpenGLContextParameterHasDrawable             = 314, /* 1 param.   Boolean returned if drawable is attached          */
+		NSOpenGLContextParameterMPSwapsInFlight         = 315, /* 1 param.   Max number of swaps queued by the MP GL engine    */
 
 		NSOpenGLContextParameterSwapRectangle API_DEPRECATED("", macos(10.0, 10.14)) = 200, /* 4 params.  Set or get the swap rectangle {x, y, w, h} */
 		NSOpenGLContextParameterSwapRectangleEnable API_DEPRECATED("", macos(10.0, 10.14)) = 201, /* Enable or disable the swap rectangle */
@@ -8859,20 +8859,20 @@ typedef RGFW_ENUM(u32, NSEventType) {        /* various types of events */
 		NSEventTypeOtherMouseUp = 26,
 		NSEventTypeOtherMouseDragged = 27,
 		/* The following event types are available on some hardware on 10.5.2 and later */
-		NSEventTypeGesture API_AVAILABLE(macos(10.5)) = 29,
-		NSEventTypeMagnify API_AVAILABLE(macos(10.5)) = 30,
-		NSEventTypeSwipe   API_AVAILABLE(macos(10.5)) = 31,
-		NSEventTypeRotate  API_AVAILABLE(macos(10.5)) = 18,
-		NSEventTypeBeginGesture API_AVAILABLE(macos(10.5)) = 19,
-		NSEventTypeEndGesture API_AVAILABLE(macos(10.5)) = 20,
+		NSEventTypeGesture  = 29,
+		NSEventTypeMagnify  = 30,
+		NSEventTypeSwipe    = 31,
+		NSEventTypeRotate   = 18,
+		NSEventTypeBeginGesture  = 19,
+		NSEventTypeEndGesture  = 20,
 
-		NSEventTypeSmartMagnify API_AVAILABLE(macos(10.8)) = 32,
-		NSEventTypeQuickLook API_AVAILABLE(macos(10.8)) = 33,
+		NSEventTypeSmartMagnify  = 32,
+		NSEventTypeQuickLook  = 33,
 
-		NSEventTypePressure API_AVAILABLE(macos(10.10.3)) = 34,
-		NSEventTypeDirectTouch API_AVAILABLE(macos(10.10)) = 37,
+		NSEventTypePressure  = 34,
+		NSEventTypeDirectTouch  = 37,
 
-		NSEventTypeChangeMode API_AVAILABLE(macos(10.15)) = 38,
+		NSEventTypeChangeMode  = 38,
 };
 
 typedef unsigned long long NSEventMask;
