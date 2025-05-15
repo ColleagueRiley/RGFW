@@ -3807,7 +3807,7 @@ void RGFW_window_getVisual(RGFW_window* win, RGFW_bool software) {
 		if (best_fbc == -1) {
 			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to get a valid GLX visual");
 			return;
-		}
+		
 
 		win->src.bestFbc = fbc[best_fbc];
 		XVisualInfo* vi = glXGetVisualFromFBConfig(win->src.display, win->src.bestFbc);
@@ -3819,6 +3819,7 @@ void RGFW_window_getVisual(RGFW_window* win, RGFW_bool software) {
 
 		XFree(fbc);
         win->src.visual = *vi;
+		XFree(vi);
 #else
     RGFW_UNUSED(software);
 	win->src.visual.visual = DefaultVisual(win->src.display, DefaultScreen(win->src.display));
