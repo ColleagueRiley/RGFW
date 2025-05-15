@@ -1,6 +1,13 @@
 changelog
 ---------
 
+Current:
+
+Release:    RGFW 1.7-dev
+-----------------------------------------------
+- add win->exitKey to control which key is checked by `RGFW_window_shouldClose` 
+
+
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
 This release focuses on improving bug fixes and supporting more edge-cases. It also continues to work towards feature parity with GLFW.
