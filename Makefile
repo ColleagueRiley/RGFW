@@ -113,18 +113,15 @@ else ifneq (,$(filter $(CC),emcc em++))
 	DX11_LIBS =
 else ifeq (,$(filter $(CC),g++ clang++ em++))
 	LIBS += -std=c99
-	WARNINGS = -Werror -Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
+	WARNINGS = -Werror -Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn 
 
 	WARNINGS = -Wall -Werror -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn 
-	ifeq ($(detected_OS),Darwin) 
-		WARNINGS += -Wno-gnu-zero-variadic-macro-arguments
-	endif
 else
 	WARNINGS = -Wall -Werror -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
-	WARNINGS += -Wno-missing-field-initializers -Wno-c++20-extensions -Wno-pedantic  # C++ warnings I don't care about right now
+
 	NO_VULKAN = 1
-	ifeq ($(detected_OS),Darwin) 
-		WARNINGS += -Wno-deprecated -Wno-unknown-warning-option 
+	ifeq ($(detected_OS),Darwin)  
+		WARNINGS += -Wno-deprecated -Wno-unknown-warning-option -Wno-pedantic
 	endif
 endif
 
@@ -298,7 +295,7 @@ examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.
 
 examples/gl33/gl33: examples/gl33/gl33.c RGFW.h
 ifeq ($(RGFW_WAYLAND), 1)
-	$(CC) $(CFLAGS) -I. $< $(LIBS) $(LINK_GL1) -lwayland-egl -o $@$(EXT)
+	$(CC) $(CFLAGS) -I. $< $(LIBS) $(LINK_GL1) -lEGL -lwayland-egl -o $@$(EXT)
 else ifeq ($(detected_OS),NetBSD)
 	$(CC) $(CFLAGS) $(CUSTOM_CFLAGS) -I. $<  -lXrandr -lpthread -o $@$(EXT)
 else ifeq ($(detected_OS),Linux)
