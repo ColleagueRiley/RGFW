@@ -2828,7 +2828,7 @@ void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software) {
 	if (RGFW_GL_HINTS[RGFW_glReleaseBehavior] == RGFW_releaseFlush) {
 		RGFW_GL_ADD_ATTRIB(0x2097, 0x2098);
 	} else {
-		RGFW_GL_ADD_ATTRIB(0x2097, 0x0000);
+		RGFW_GL_ADD_ATTRIB(0x2096, 0x0000);
 	}
 
 	RGFW_GL_ADD_ATTRIB(EGL_NONE, EGL_NONE);
@@ -3808,7 +3808,7 @@ void RGFW_window_getVisual(RGFW_window* win, RGFW_bool software) {
 		if (best_fbc == -1) {
 			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to get a valid GLX visual");
 			return;
-		
+        }		
 
 		win->src.bestFbc = fbc[best_fbc];
 		XVisualInfo* vi = glXGetVisualFromFBConfig(win->src.display, win->src.bestFbc);
@@ -5707,6 +5707,7 @@ wayland:
 
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
     RGFW_monitor mon;
+    memset(&mon, 0, sizeof(mon));
 
     RGFW_ASSERT(win != NULL);
 	RGFW_GOTO_WAYLAND(1);
@@ -6850,7 +6851,7 @@ i32 RGFW_checkXInput(RGFW_window* win, RGFW_event* e) {
 			RGFW_gamepadPressed[i][e->button].prev = RGFW_gamepadPressed[i][e->button].current;
 			RGFW_gamepadPressed[i][e->button].current = RGFW_BOOL(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 
-			RGFW_gamepadButtonCallback(win, i, e->button, e->type == RGFW_gamepadButtonPressed);
+			RGFW_gamepadButtonCallback(win, i, E->button, E->type == RGFW_gamepadButtonPressed);
 			return 1;
 		}
 
@@ -6909,24 +6910,24 @@ i32 RGFW_checkXInput(RGFW_window* win, RGFW_event* e) {
 		RGFW_point axis1 = RGFW_POINT(((float)state.Gamepad.sThumbLX / 32768.0f) * 100, ((float)state.Gamepad.sThumbLY / -32768.0f) * 100);
 		RGFW_point axis2 = RGFW_POINT(((float)state.Gamepad.sThumbRX / 32768.0f) * 100, ((float)state.Gamepad.sThumbRY / -32768.0f) * 100);
 
-		if (axis1.x != e->axis[0].x || axis1.y != e->axis[0].y){
+		if (axis1.x != E->axis[0].x || axis1.y != E->axis[0].y){
 			win->event.whichAxis = 0;
 
 			e->type = RGFW_gamepadAxisMove;
 			e->axis[0] = axis1;
-			RGFW_gamepadAxes[i][0] = e->axis[0];
+			RGFW_gamepadAxes[i][0] = E->axis[0];
 
-			RGFW_gamepadAxisCallback(win, e->gamepad, e->axis, e->axisesCount, e->whichAxis);
+			RGFW_gamepadAxisCallback(win, E->gamepad, E->axis, E->axisesCount, E->whichAxis);
 			return 1;
 		}
 
-		if (axis2.x != e->axis[1].x || axis2.y != e->axis[1].y) {
+		if (axis2.x != E->axis[1].x || axis2.y != E->axis[1].y) {
 			win->event.whichAxis = 1;
 			e->type = RGFW_gamepadAxisMove;
 			e->axis[1] = axis2;
-			RGFW_gamepadAxes[i][1] = e->axis[1];
+			RGFW_gamepadAxes[i][1] = E->axis[1];
 
-			RGFW_gamepadAxisCallback(win, e->gamepad, e->axis, e->axisesCount, e->whichAxis);
+			RGFW_gamepadAxisCallback(win, E->gamepad, E->axis, E->axisesCount, E->whichAxis);
 			return 1;
 		}
 	}
@@ -9713,15 +9714,15 @@ u64 RGFW_getTimerValue(void) { return (u64)mach_absolute_time(); }
 */
 
 #ifdef RGFW_WASM
-EM_BOOL Emscripten_on_resize(int eventType, const EmscriptenUiEvent* e, void* userData) {
+EM_BOOL Emscripten_on_resize(int eventType, const EmscriptenUiEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
 	RGFW_eventQueuePushEx(e.type = RGFW_windowResized; e._win = _RGFW.root);
-	RGFW_windowResizedCallback(_RGFW.root, RGFW_RECT(0, 0, e->windowInnerWidth, e->windowInnerHeight));
+	RGFW_windowResizedCallback(_RGFW.root, RGFW_RECT(0, 0, E->windowInnerWidth, E->windowInnerHeight));
     return EM_TRUE;
 }
 
-EM_BOOL Emscripten_on_fullscreenchange(int eventType, const EmscriptenFullscreenChangeEvent* e, void* userData) {
+EM_BOOL Emscripten_on_fullscreenchange(int eventType, const EmscriptenFullscreenChangeEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 	static u8 fullscreen = RGFW_FALSE;
 	static RGFW_rect ogRect;
@@ -9732,7 +9733,7 @@ EM_BOOL Emscripten_on_fullscreenchange(int eventType, const EmscriptenFullscreen
 
 	fullscreen = !fullscreen;
 	RGFW_eventQueuePushEx(e.type = RGFW_windowResized; e._win = _RGFW.root);
-	_RGFW.root->r = RGFW_RECT(0, 0, e->screenWidth, e->screenHeight);
+	_RGFW.root->r = RGFW_RECT(0, 0, E->screenWidth, E->screenHeight);
 
 	EM_ASM("Module.canvas.focus();");
 
@@ -9759,8 +9760,8 @@ EM_BOOL Emscripten_on_fullscreenchange(int eventType, const EmscriptenFullscreen
 
 
 
-EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* e, void* userData) {
-	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(e);
+EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void* userData) {
+	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(E);
 
 	RGFW_eventQueuePushEx(e.type = RGFW_focusIn; e._win = _RGFW.root);
 	_RGFW.root->_flags |= RGFW_windowFocus;
@@ -9768,37 +9769,37 @@ EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* e, void
     return EM_TRUE;
 }
 
-EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* e, void* userData) {
-	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(e);
+EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* E, void* userData) {
+	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(E);
 
-	RGFW_eventQueuePushEx(e.type = RGFW_focusOut; ._win = _RGFW.root);
+	RGFW_eventQueuePushEx(e.type = RGFW_focusOut; e._win = _RGFW.root);
 	_RGFW.root->_flags &= ~(u32)RGFW_windowFocus;
 	RGFW_focusCallback(_RGFW.root, 0);
     return EM_TRUE;
 }
 
-EM_BOOL Emscripten_on_mousemove(int eventType, const EmscriptenMouseEvent* e, void* userData) {
+EM_BOOL Emscripten_on_mousemove(int eventType, const EmscriptenMouseEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 	RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
-									e.point = RGFW_POINT(e->targetX, e->targetY);
-									e.vector = RGFW_POINT(e->movementX, e->movementY);
+									e.point = RGFW_POINT(E->targetX, E->targetY);
+									e.vector = RGFW_POINT(E->movementX, E->movementY);
 									e._win = _RGFW.root);
 
-	_RGFW.root->_lastMousePoint = RGFW_POINT(e->targetX, e->targetY);
-	RGFW_mousePosCallback(_RGFW.root, RGFW_POINT(e->targetX, e->targetY), RGFW_POINT(e->movementX, e->movementY));
+	_RGFW.root->_lastMousePoint = RGFW_POINT(E->targetX, E->targetY);
+	RGFW_mousePosCallback(_RGFW.root, RGFW_POINT(E->targetX, E->targetY), RGFW_POINT(E->movementX, E->movementY));
     return EM_TRUE;
 }
 
-EM_BOOL Emscripten_on_mousedown(int eventType, const EmscriptenMouseEvent* e, void* userData) {
+EM_BOOL Emscripten_on_mousedown(int eventType, const EmscriptenMouseEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
-	int button = e->button;
+	int button = E->button;
 	if (button > 2)
 		button += 2;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonPressed;
-									e.point = RGFW_POINT(e->targetX, e->targetY);
-									e.vector = RGFW_POINT(e->movementX, e->movementY);
+									e.point = RGFW_POINT(E->targetX, E->targetY);
+									e.vector = RGFW_POINT(E->movementX, E->movementY);
 									e.button = (u8)button;
 									e.scroll = 0;
 									e._win = _RGFW.root);
@@ -9809,16 +9810,16 @@ EM_BOOL Emscripten_on_mousedown(int eventType, const EmscriptenMouseEvent* e, vo
     return EM_TRUE;
 }
 
-EM_BOOL Emscripten_on_mouseup(int eventType, const EmscriptenMouseEvent* e, void* userData) {
+EM_BOOL Emscripten_on_mouseup(int eventType, const EmscriptenMouseEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
-	int button = e->button;
+	int button = E->button;
 	if (button > 2)
 		button += 2;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonReleased;
-									e.point = RGFW_POINT(e->targetX, e->targetY);
-									e.vector = RGFW_POINT(e->movementX, e->movementY);
+									e.point = RGFW_POINT(E->targetX, E->targetY);
+									e.vector = RGFW_POINT(E->movementX, E->movementY);
 									e.button = (u8)button;
 									e.scroll = 0;
 									e._win = _RGFW.root);
@@ -9829,78 +9830,78 @@ EM_BOOL Emscripten_on_mouseup(int eventType, const EmscriptenMouseEvent* e, void
     return EM_TRUE;
 }
 
-EM_BOOL Emscripten_on_wheel(int eventType, const EmscriptenWheelEvent* e, void* userData) {
+EM_BOOL Emscripten_on_wheel(int eventType, const EmscriptenWheelEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
-	int button =  RGFW_mouseScrollUp + (e->deltaY < 0);
+	int button =  RGFW_mouseScrollUp + (E->deltaY < 0);
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonPressed;
 									e.button = (u8)button;
-									e.scroll = (double)(e->deltaY < 0 ? 1 : -1);
+									e.scroll = (double)(E->deltaY < 0 ? 1 : -1);
 									e._win = _RGFW.root);
 	RGFW_mouseButtons[button].prev = RGFW_mouseButtons[button].current;
 	RGFW_mouseButtons[button].current = 1;
-	RGFW_mouseButtonCallback(_RGFW.root, button, e->deltaY < 0 ? 1 : -1, 1);
+	RGFW_mouseButtonCallback(_RGFW.root, button, E->deltaY < 0 ? 1 : -1, 1);
 
     return EM_TRUE;
 }
 
-EM_BOOL Emscripten_on_touchstart(int eventType, const EmscriptenTouchEvent* e, void* userData) {
+EM_BOOL Emscripten_on_touchstart(int eventType, const EmscriptenTouchEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
     size_t i;
-    for (i = 0; i < (size_t)e->numTouches; i++) {
+    for (i = 0; i < (size_t)E->numTouches; i++) {
 		RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonPressed;
-										e.point = RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY);
+										e.point = RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY);
 										e.button = RGFW_mouseLeft;
 										e._win = _RGFW.root);
 
 	    RGFW_mouseButtons[RGFW_mouseLeft].prev = RGFW_mouseButtons[RGFW_mouseLeft].current;
 	    RGFW_mouseButtons[RGFW_mouseLeft].current = 1;
 
-		_RGFW.root->_lastMousePoint = RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY);
-        RGFW_mousePosCallback(_RGFW.root, RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY), _RGFW.root->event.vector);
+		_RGFW.root->_lastMousePoint = RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY);
+        RGFW_mousePosCallback(_RGFW.root, RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY), _RGFW.root->event.vector);
 	    RGFW_mouseButtonCallback(_RGFW.root, RGFW_mouseLeft, 0, 1);
     }
 
 	return EM_TRUE;
 }
-EM_BOOL Emscripten_on_touchmove(int eventType, const EmscriptenTouchEvent* e, void* userData) {
+EM_BOOL Emscripten_on_touchmove(int eventType, const EmscriptenTouchEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
     size_t i;
-    for (i = 0; i < (size_t)e->numTouches; i++) {
+    for (i = 0; i < (size_t)E->numTouches; i++) {
 		RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
-			e.point = RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY);
+			e.point = RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY);
 			e.button = RGFW_mouseLeft;
 			e._win = _RGFW.root);
 
-		_RGFW.root->_lastMousePoint = RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY);
-        RGFW_mousePosCallback(_RGFW.root, RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY), _RGFW.root->event.vector);
+		_RGFW.root->_lastMousePoint = RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY);
+        RGFW_mousePosCallback(_RGFW.root, RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY), _RGFW.root->event.vector);
     }
     return EM_TRUE;
 }
 
-EM_BOOL Emscripten_on_touchend(int eventType, const EmscriptenTouchEvent* e, void* userData) {
+EM_BOOL Emscripten_on_touchend(int eventType, const EmscriptenTouchEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
     size_t i;
-    for (i = 0; i < (size_t)e->numTouches; i++) {
+    for (i = 0; i < (size_t)E->numTouches; i++) {
 		RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonReleased;
-										e.point = RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY);
+										e.point = RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY);
 										e.button = RGFW_mouseLeft;
 										e._win = _RGFW.root);
 
 		RGFW_mouseButtons[RGFW_mouseLeft].prev = RGFW_mouseButtons[RGFW_mouseLeft].current;
 		RGFW_mouseButtons[RGFW_mouseLeft].current = 0;
 
-		_RGFW.root->_lastMousePoint = RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY);
-		RGFW_mousePosCallback(_RGFW.root, RGFW_POINT(e->touches[i].targetX, e->touches[i].targetY), _RGFW.root->event.vector);
+		_RGFW.root->_lastMousePoint = RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY);
+		RGFW_mousePosCallback(_RGFW.root, RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY), _RGFW.root->event.vector);
 		RGFW_mouseButtonCallback(_RGFW.root, RGFW_mouseLeft, 0, 0);
     }
 	return EM_TRUE;
 }
 
-EM_BOOL Emscripten_on_touchcancel(int eventType, const EmscriptenTouchEvent* e, void* userData) { RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(e); return EM_TRUE; }
+EM_BOOL Emscripten_on_touchcancel(int eventType, const EmscriptenTouchEvent* E, void* userData) { RGFW_UNUSED(eventType); RGFW_UNUSED(userData); return EM_TRUE; }
 
 EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamepadEvent, void *userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
