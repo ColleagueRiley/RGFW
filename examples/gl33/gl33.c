@@ -15,7 +15,6 @@
 #include <GLES3/gl3.h>
 #endif
 
-#define RGFW_EGL
 #define RGFW_USE_XDL // feel free to remove this line if you don't want to use XDL (-lX11 -lXrandr -lGLX will be required)
 #define RGFW_ALLOC_DROPFILES
 #define RGFW_IMPLEMENTATION
