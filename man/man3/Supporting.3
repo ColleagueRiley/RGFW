@@ -1,4 +1,4 @@
-.TH "Supporting" 3 "Sun May 11 2025" "RGFW" \" -*- nroff -*-
+.TH "Supporting" 3 "Fri May 16 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -6,6 +6,13 @@ Supporting \- Supporting
 .SH SYNOPSIS
 .br
 .PP
+.SS "Macros"
+
+.in +1c
+.ti -1c
+.RI "#define \fBRGFW_eventQueuePushEx\fP(eventInit)   { \fBRGFW_event\fP e; eventInit; \fBRGFW_eventQueuePush\fP(e); }"
+.br
+.in -1c
 .SS "Functions"
 
 .in +1c
@@ -64,6 +71,10 @@ Supporting \- Supporting
 .IP "\(bu" 2
 
 .PP
+
+.SH "Macro Definition Documentation"
+.PP 
+.SS "#define RGFW_eventQueuePushEx(eventInit)   { \fBRGFW_event\fP e; eventInit; \fBRGFW_eventQueuePush\fP(e); }"
 
 .SH "Function Documentation"
 .PP 

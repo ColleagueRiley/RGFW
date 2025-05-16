@@ -1,4 +1,4 @@
-.TH "error" 3 "Sun May 11 2025" "RGFW" \" -*- nroff -*-
+.TH "error" 3 "Fri May 16 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -17,10 +17,10 @@ error \- handling
 
 .in +1c
 .ti -1c
-.RI "#define \fBRGFW_DEBUG_CTX\fP(win,  err)   (\fBRGFW_debugContext\fP){win, (\fBRGFW_monitor\fP){ 0 }, err}"
+.RI "#define \fBRGFW_DEBUG_CTX\fP(win,  err)   (\fBRGFW_debugContext\fP){win, NULL, err}"
 .br
 .ti -1c
-.RI "#define \fBRGFW_DEBUG_CTX_MON\fP(monitor)   (\fBRGFW_debugContext\fP){_RGFW\&.root, monitor, 0}"
+.RI "#define \fBRGFW_DEBUG_CTX_MON\fP(monitor)   (\fBRGFW_debugContext\fP){_RGFW\&.root, &monitor, 0}"
 .br
 .in -1c
 .SS "Typedefs"
@@ -58,9 +58,9 @@ error \- handling
 
 .SH "Macro Definition Documentation"
 .PP 
-.SS "#define RGFW_DEBUG_CTX(win, err)   (\fBRGFW_debugContext\fP){win, (\fBRGFW_monitor\fP){ 0 }, err}"
+.SS "#define RGFW_DEBUG_CTX(win, err)   (\fBRGFW_debugContext\fP){win, NULL, err}"
 
-.SS "#define RGFW_DEBUG_CTX_MON(monitor)   (\fBRGFW_debugContext\fP){_RGFW\&.root, monitor, 0}"
+.SS "#define RGFW_DEBUG_CTX_MON(monitor)   (\fBRGFW_debugContext\fP){_RGFW\&.root, &monitor, 0}"
 
 .SH "Typedef Documentation"
 .PP 

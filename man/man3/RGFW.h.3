@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Sun May 11 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Fri May 16 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -136,10 +136,13 @@ RGFW.h
 .RI "#define \fBRGFW_AREA\fP(w,  h)   (\fBRGFW_area\fP){(\fBu32\fP)(w), (\fBu32\fP)(h)}"
 .br
 .ti -1c
-.RI "#define \fBRGFW_DEBUG_CTX\fP(win,  err)   (\fBRGFW_debugContext\fP){win, (\fBRGFW_monitor\fP){ 0 }, err}"
+.RI "#define \fBRGFW_DEBUG_CTX\fP(win,  err)   (\fBRGFW_debugContext\fP){win, NULL, err}"
 .br
 .ti -1c
-.RI "#define \fBRGFW_DEBUG_CTX_MON\fP(monitor)   (\fBRGFW_debugContext\fP){_RGFW\&.root, monitor, 0}"
+.RI "#define \fBRGFW_DEBUG_CTX_MON\fP(monitor)   (\fBRGFW_debugContext\fP){_RGFW\&.root, &monitor, 0}"
+.br
+.ti -1c
+.RI "#define \fBRGFW_eventQueuePushEx\fP(eventInit)   { \fBRGFW_event\fP e; eventInit; \fBRGFW_eventQueuePush\fP(e); }"
 .br
 .in -1c
 .SS "Typedefs"
@@ -171,6 +174,15 @@ RGFW.h
 .br
 .ti -1c
 .RI "typedef \fBu8\fP \fBRGFW_bool\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_point\fP \fBRGFW_point\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_rect\fP \fBRGFW_rect\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_area\fP \fBRGFW_area\fP"
 .br
 .ti -1c
 .RI "typedef struct \fBRGFW_monitorMode\fP \fBRGFW_monitorMode\fP"
@@ -793,6 +805,8 @@ RGFW.h
 
 .SS "typedef int8_t \fBi8\fP"
 
+.SS "typedef struct \fBRGFW_area\fP \fBRGFW_area\fP"
+basic area type, if there's not already a area type of choice 
 .SS "typedef \fBu8\fP \fBRGFW_bool\fP"
 
 .SS "typedef struct \fBRGFW_event\fP \fBRGFW_event\fP"
@@ -803,6 +817,10 @@ structure for monitor data
 
 .SS "typedef void \fBRGFW_mouse\fP"
 loads mouse icon from bitmap (similar to RGFW_window_setIcon)\&. Icon NOT resized by default 
+.SS "typedef struct \fBRGFW_point\fP \fBRGFW_point\fP"
+basic vector type, if there's not already a point/vector type of choice 
+.SS "typedef struct \fBRGFW_rect\fP \fBRGFW_rect\fP"
+basic rect type, if there's not already a rect type of choice 
 .SS "typedef void* \fBRGFW_thread\fP"
 thread type for windows 
 .SS "typedef struct \fBRGFW_window\fP \fBRGFW_window\fP"
