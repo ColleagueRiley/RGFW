@@ -6851,7 +6851,7 @@ i32 RGFW_checkXInput(RGFW_window* win, RGFW_event* e) {
 			RGFW_gamepadPressed[i][e->button].prev = RGFW_gamepadPressed[i][e->button].current;
 			RGFW_gamepadPressed[i][e->button].current = RGFW_BOOL(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 
-			RGFW_gamepadButtonCallback(win, i, E->button, E->type == RGFW_gamepadButtonPressed);
+			RGFW_gamepadButtonCallback(win, i, e->button, e->type == RGFW_gamepadButtonPressed);
 			return 1;
 		}
 
@@ -6910,24 +6910,24 @@ i32 RGFW_checkXInput(RGFW_window* win, RGFW_event* e) {
 		RGFW_point axis1 = RGFW_POINT(((float)state.Gamepad.sThumbLX / 32768.0f) * 100, ((float)state.Gamepad.sThumbLY / -32768.0f) * 100);
 		RGFW_point axis2 = RGFW_POINT(((float)state.Gamepad.sThumbRX / 32768.0f) * 100, ((float)state.Gamepad.sThumbRY / -32768.0f) * 100);
 
-		if (axis1.x != E->axis[0].x || axis1.y != E->axis[0].y){
+		if (axis1.x != e->axis[0].x || axis1.y != e->axis[0].y){
 			win->event.whichAxis = 0;
 
 			e->type = RGFW_gamepadAxisMove;
 			e->axis[0] = axis1;
-			RGFW_gamepadAxes[i][0] = E->axis[0];
+			RGFW_gamepadAxes[i][0] = e->axis[0];
 
-			RGFW_gamepadAxisCallback(win, E->gamepad, E->axis, E->axisesCount, E->whichAxis);
+			RGFW_gamepadAxisCallback(win, e->gamepad, e->axis, e->axisesCount, e->whichAxis);
 			return 1;
 		}
 
-		if (axis2.x != E->axis[1].x || axis2.y != E->axis[1].y) {
+		if (axis2.x != e->axis[1].x || axis2.y != e->axis[1].y) {
 			win->event.whichAxis = 1;
 			e->type = RGFW_gamepadAxisMove;
 			e->axis[1] = axis2;
-			RGFW_gamepadAxes[i][1] = E->axis[1];
+			RGFW_gamepadAxes[i][1] = e->axis[1];
 
-			RGFW_gamepadAxisCallback(win, E->gamepad, E->axis, E->axisesCount, E->whichAxis);
+			RGFW_gamepadAxisCallback(win, e->gamepad, e->axis, e->axisesCount, e->whichAxis);
 			return 1;
 		}
 	}
