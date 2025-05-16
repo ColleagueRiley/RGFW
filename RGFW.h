@@ -160,8 +160,7 @@ int main() {
 		@Easymode -> support, testing/debugging, bug fixes and reviews
 		Joshua Rowe (omnisci3nce) - bug fix, review (macOS)
 		@lesleyrs -> bug fix, review (OpenGL)
-		Necho $XDG_CONFIG_HOME
-echo $NVIM_INITick Porcino (meshula) - testing, organization, review (MacOS, examples)
+        Nick Porcino (meshula) - testing, organization, review (MacOS, examples)
 		@DarekParodia -> code review (X11) (C++)
 */
 
