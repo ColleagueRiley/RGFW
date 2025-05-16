@@ -111,7 +111,6 @@ else ifneq (,$(filter $(CC),emcc em++))
 	detected_OS = web
 	NO_OSMESA ?= 1
 	DX11_LIBS =
-#	WARNINGS += -Wno-pedantic
 else ifeq (,$(filter $(CC),g++ clang++ em++))
 	LIBS += -std=c99
 	WARNINGS = -Werror -Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn 
@@ -121,9 +120,8 @@ else
 	WARNINGS = -Wall -Werror -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
 
 	NO_VULKAN = 1
-	ifeq ($(detected_OS),Darwin) 
-		WARNINGS += -Wno-deprecated -Wno-unknown-warning-option 
-		#-Wno-pedantic
+	ifeq ($(detected_OS),Darwin)  
+		WARNINGS += -Wno-deprecated -Wno-unknown-warning-option -Wno-pedantic
 	endif
 endif
 
