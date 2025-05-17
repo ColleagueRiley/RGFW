@@ -2494,13 +2494,14 @@ RGFW_bool RGFW_extensionSupported(const char* extension, size_t len) {
     #ifdef GL_NUM_EXTENSIONS
     if (RGFW_GL_HINTS[RGFW_glMajor] >= 3) {
         i32 i;
-        GLint count;
-
-        glGetIntegerv(GL_NUM_EXTENSIONS, &count);
+        GLint count = 0;
 
         RGFW_proc RGFW_glGetStringi = RGFW_getProcAddress("glGetStringi");
+        RGFW_proc RGFW_glGetIntegerv = RGFW_getProcAddress("RGFW_glGetIntegerv");
+        if (RGFW_glGetIntegerv) 
+            ((void(*)(GLenum, GLint*))RGFW_glGetIntegerv)(GL_NUM_EXTENSIONS, &count);
 
-        for (i = 0;  i < count;  i++) {
+        for (i = 0; RGFW_glGetStringi && i < count;  i++) {
             const char* en = ((const char* (*)(u32, u32))RGFW_glGetStringi)(GL_EXTENSIONS, (u32)i);
             if (en && RGFW_STRNCMP(en, extension, len) == 0)
                 return RGFW_TRUE;
@@ -2509,9 +2510,12 @@ RGFW_bool RGFW_extensionSupported(const char* extension, size_t len) {
 #endif
     {
         RGFW_proc RGFW_glGetString = RGFW_getProcAddress("glGetString");
-        const char* extensions = ((const char*(*)(u32))RGFW_glGetString)(GL_EXTENSIONS);
-        if ((extensions != NULL) && RGFW_extensionSupportedStr(extensions, extension, len))
-            return RGFW_TRUE;
+            
+        if (RGFW_glGetString) {
+            const char* extensions = ((const char*(*)(u32))RGFW_glGetString)(GL_EXTENSIONS);
+            if ((extensions != NULL) && RGFW_extensionSupportedStr(extensions, extension, len))
+                return RGFW_TRUE;
+        }
     }
 
     return RGFW_extensionSupportedPlatform(extension, len);
