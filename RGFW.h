@@ -164,7 +164,6 @@ int main() {
 		@DarekParodia -> code review (X11) (C++)
 */
 
-#include <X11/Xutil.h>
 #if _MSC_VER
 	#pragma comment(lib, "gdi32")
 	#pragma comment(lib, "shell32")
