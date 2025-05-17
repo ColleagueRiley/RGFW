@@ -4,8 +4,6 @@
 - unfocusing unholds the mouse, make it so refocusing grabs the mouse again (if it's supposed to be held) (may only be a windows issue)
 - Xrandr reporting unused monitor as the window's monitor 
 
-- RGFW_extensionSupported 
-
 (extra stuff)
 - look into monitor gamma
 - set gamepad mappings
