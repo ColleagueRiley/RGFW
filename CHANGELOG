@@ -6,7 +6,8 @@ Current:
 Release:    RGFW 1.7-dev
 -----------------------------------------------
 - add win->exitKey to control which key is checked by `RGFW_window_shouldClose` 
-
+- fix set max/min window size (X11)
+- fix C++11 support
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
