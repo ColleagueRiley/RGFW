@@ -2491,6 +2491,7 @@ RGFW_bool RGFW_extensionSupportedStr(const char* extensions, const char* ext, si
 }
 
 RGFW_bool RGFW_extensionSupported(const char* extension, size_t len) {
+    #ifdef GL_NUM_EXTENSIONS
     if (RGFW_GL_HINTS[RGFW_glMajor] >= 3) {
         i32 i;
         GLint count;
@@ -2504,7 +2505,9 @@ RGFW_bool RGFW_extensionSupported(const char* extension, size_t len) {
             if (en && RGFW_STRNCMP(en, extension, len) == 0)
                 return RGFW_TRUE;
         }
-    } else {
+    } else 
+#endif
+    {
         const char* extensions = (const char*) glGetString(GL_EXTENSIONS);
         if ((extensions != NULL) && RGFW_extensionSupportedStr(extensions, extension, len))
             return RGFW_TRUE;
@@ -6194,12 +6197,12 @@ RGFW_bool RGFW_extensionSupportedPlatform(const char * extension, size_t len) {
     const char* extensions = NULL;
 
     RGFW_proc proc = RGFW_getProcAddress("wglGetExtensionsStringARB");
-    RGFW_proc proc2 = wglGetExtensionsStringEXT("wglGetExtensionsStringEXT");
+    RGFW_proc proc2 = RGFW_getProcAddress("wglGetExtensionsStringEXT");
 
     if (proc)
         extensions = ((const char* (*)(HDC))proc)(wglGetCurrentDC());
     else if (proc2)
-        extensions = (((const char*(*)(void)))proc2)();
+        extensions = ((const char*(*)(void))proc2)();
 
     return extensions != NULL && RGFW_extensionSupportedStr(extensions, extension, len); 
 }
@@ -8155,7 +8158,7 @@ id NSWindow_contentView(id window) {
 
 #ifdef RGFW_OPENGL
 /* MacOS opengl API spares us yet again (there are no extensions) */
-RGFW_bool RGFW_extensionSupportedPlatform(const char * extension, size_t len) { return RGFW_FALSE; }
+RGFW_bool RGFW_extensionSupportedPlatform(const char * extension, size_t len) { RGFW_UNUSED(extension); RGFW_UNUSED(len); return RGFW_FALSE; }
 CFBundleRef RGFWnsglFramework = NULL;
 
 RGFW_proc RGFW_getProcAddress(const char* procname) {
