@@ -1294,10 +1294,13 @@ typedef RGFW_ENUM(u8, RGFW_glHints)  {
 	RGFW_glCore = 0,  RGFW_glCompatibility /*!< RGFW_glProfile options */
 };
 RGFWDEF void RGFW_setGLHint(RGFW_glHints hint, i32 value);
+RGFWDEF RGFW_bool RGFW_extensionSupported(const char* extension, size_t len);	/*!< check if whether the specified API extension is supported by the current OpenGL or OpenGL ES context */
 RGFWDEF RGFW_proc RGFW_getProcAddress(const char* procname); /*!< get native opengl proc address */
 RGFWDEF void RGFW_window_makeCurrent_OpenGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
 RGFWDEF void RGFW_window_swapBuffers_OpenGL(RGFW_window* win); /*!< swap opengl buffer (only) called by RGFW_window_swapInterval  */
 void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl))*/
+
+RGFWDEF RGFW_bool RGFW_extensionSupportedPlatform(const char* extension, size_t len);	/*!< check if whether the specified platform-specific API extension is supported by the current OpenGL or OpenGL ES context */
 #endif
 #ifdef RGFW_VULKAN
 	#if defined(RGFW_WAYLAND) && defined(RGFW_X11)
@@ -1507,7 +1510,6 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	RGFW_mouseNotAllowed,
     RGFW_mouseIconFinal = 16 /* padding for alignment */
 };
-
 /** @} */
 
 #endif /* RGFW_HEADER */
@@ -2467,6 +2469,50 @@ void RGFW_setGLHint(RGFW_glHints hint, i32 value) {
 	if (hint < RGFW_glFinalHint && hint) RGFW_GL_HINTS[hint] = value;
 }
 
+RGFW_bool RGFW_extensionSupportedStr(const char* extensions, const char* ext, size_t len) {
+    const char *start = extensions;
+    const char *where; 
+    const char* terminator;
+
+    if (extensions == NULL || ext == NULL)
+        return RGFW_FALSE;
+
+    where = strstr(extensions, ext);
+    while (where) {
+        terminator = where + len;
+        if ((where == start || *(where - 1) == ' ') &&
+            (*terminator == ' ' || *terminator == '\0')) {
+            return RGFW_TRUE;
+        }
+        where = RGFW_STRSTR(terminator, ext);
+    }
+
+    return RGFW_FALSE;
+}
+
+RGFW_bool RGFW_extensionSupported(const char* extension, size_t len) {
+    if (RGFW_GL_HINTS[RGFW_glMajor] >= 3) {
+        i32 i;
+        GLint count;
+
+        glGetIntegerv(GL_NUM_EXTENSIONS, &count);
+
+        RGFW_proc RGFW_glGetStringi = RGFW_getProcAddress("glGetStringi");
+
+        for (i = 0;  i < count;  i++) {
+            const char* en = ((const char* (*)(u32, u32))RGFW_glGetStringi)(GL_EXTENSIONS, (u32)i);
+            if (en && RGFW_STRNCMP(en, extension, len) == 0)
+                return RGFW_TRUE;
+        }
+    } else {
+        const char* extensions = (const char*) glGetString(GL_EXTENSIONS);
+        if ((extensions != NULL) && RGFW_extensionSupportedStr(extensions, extension, len))
+            return RGFW_TRUE;
+    }
+
+    return RGFW_extensionSupportedPlatform(extension, len);
+}
+
 /* OPENGL normal only (no EGL / OSMesa) */
 #if defined(RGFW_OPENGL) && !defined(RGFW_EGL) && !defined(RGFW_CUSTOM_BACKEND) && !defined(RGFW_WASM)
 
@@ -2887,6 +2933,11 @@ RGFW_proc RGFW_getProcAddress(const char* procname) {
 	#endif
 
 	return (RGFW_proc) eglGetProcAddress(procname);
+}
+
+RGFW_bool RGFW_extensionSupportedPlatform(const char* extension, size_t len) {
+    const char* extensions = eglQueryString(_RGFW.root->src.EGL_display, EGL_EXTENSIONS);
+    return extensions != NULL && RGFW_extensionSupportedStr(extensions, extension, len); 
 }
 
 void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
@@ -3606,6 +3657,10 @@ void RGFW_setXInstName(const char* name) {
 }
 
 #if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
+RGFW_bool RGFW_extensionSupportedPlatform(const char * extension, size_t len) {
+    const char* extensions = glXQueryExtensionsString(_RGFW.display, XDefaultScreen(_RGFW.display));
+    return (extensions != NULL) && RGFW_extensionSupportedStr(extensions, extension, len); 
+}
 RGFW_proc RGFW_getProcAddress(const char* procname) { return (RGFW_proc) glXGetProcAddress((GLubyte*) procname); }
 #endif
 
@@ -6134,7 +6189,20 @@ PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 	#define wglShareLists wglShareListsSRC
 #endif
 
-#ifdef RGFW_OPENGL
+#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
+RGFW_bool RGFW_extensionSupportedPlatform(const char * extension, size_t len) {
+    const char* extensions = NULL;
+
+    RGFW_proc proc = RGFW_getProcAddress("wglGetExtensionsStringARB");
+    RGFW_proc proc2 = wglGetExtensionsStringEXT("wglGetExtensionsStringEXT");
+
+    if (proc)
+        extensions = ((const char* (*)(HDC))proc)(wglGetCurrentDC());
+    else if (proc2)
+        extensions = (((const char*(*)(void)))proc2)();
+
+    return extensions != NULL && RGFW_extensionSupportedStr(extensions, extension, len); 
+}
 
 RGFW_proc RGFW_getProcAddress(const char* procname) {
     RGFW_proc proc = (RGFW_proc)wglGetProcAddress(procname);
@@ -8086,6 +8154,8 @@ id NSWindow_contentView(id window) {
 */
 
 #ifdef RGFW_OPENGL
+/* MacOS opengl API spares us yet again (there are no extensions) */
+RGFW_bool RGFW_extensionSupportedPlatform(const char * extension, size_t len) { return RGFW_FALSE; }
 CFBundleRef RGFWnsglFramework = NULL;
 
 RGFW_proc RGFW_getProcAddress(const char* procname) {
@@ -10529,8 +10599,28 @@ RGFW_area RGFW_getScreenSize(void) {
 	return RGFW_AREA(RGFW_innerWidth(), RGFW_innerHeight());
 }
 
+RGFW_bool RGFW_extensionSupportedPlatform(const char* extension, size_t len) {
+#ifdef RGFW_OPENGL
+    return EM_ASM_INT({
+        var ext = UTF8ToString($0, $1);
+        var canvas = document.querySelector('canvas');
+        var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (!gl) return 0;
+
+        var supported = gl.getSupportedExtensions();
+        return supported && supported.includes(ext) ? 1 : 0;
+    }, extension, len);
+#else
+    return RGFW_FALSE;
+#endif
+}
+
 RGFW_proc RGFW_getProcAddress(const char* procname) {
-	return (RGFW_proc)emscripten_webgl_get_proc_address(procname);
+#ifdef RGFW_OPENGL
+    return (RGFW_proc)emscripten_webgl_get_proc_address(procname);
+#else
+    return NULL
+#endif
 }
 
 void RGFW_sleep(u64 milisecond) {
