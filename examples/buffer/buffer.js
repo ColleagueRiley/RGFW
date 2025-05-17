@@ -977,9 +977,10 @@ var ASM_CONSTS = {
  71908: ($0, $1, $2) => { var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4); let context = document.getElementById("canvas").getContext("2d"); let image = context.getImageData(0, 0, $1, $2); image.data.set(data); context.putImageData(image, 0, 0); },  
  72137: () => { return window.innerWidth; },  
  72167: () => { return window.innerHeight; },  
- 72198: () => { Module.requestFullscreen(false, true); },  
- 72237: () => { Module.exitFullscreen(false, true); },  
- 72273: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
+ 72198: ($0, $1) => { var ext = UTF8ToString($0, $1); var canvas = document.querySelector('canvas'); var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl'); if (!gl) return 0; var supported = gl.getSupportedExtensions(); return supported && supported.includes(ext) ? 1 : 0; },  
+ 72478: () => { Module.requestFullscreen(false, true); },  
+ 72517: () => { Module.exitFullscreen(false, true); },  
+ 72553: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
 };
 
 

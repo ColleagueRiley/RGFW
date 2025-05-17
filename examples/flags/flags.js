@@ -977,9 +977,10 @@ var ASM_CONSTS = {
  73077: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
  73130: () => { return window.innerWidth; },  
  73160: () => { return window.innerHeight; },  
- 73191: () => { Module.requestFullscreen(false, true); },  
- 73230: () => { Module.exitFullscreen(false, true); },  
- 73266: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
+ 73191: ($0, $1) => { var ext = UTF8ToString($0, $1); var canvas = document.querySelector('canvas'); var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl'); if (!gl) return 0; var supported = gl.getSupportedExtensions(); return supported && supported.includes(ext) ? 1 : 0; },  
+ 73471: () => { Module.requestFullscreen(false, true); },  
+ 73510: () => { Module.exitFullscreen(false, true); },  
+ 73546: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
 };
 
 

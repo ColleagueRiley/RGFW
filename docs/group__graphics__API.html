@@ -103,6 +103,8 @@ Functions</h2></td></tr>
 <tr class="separator:gab0a1d421501d2826817e521621e6d6ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0f6b35ce3b4e980d9ba86efaad90c2d6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics__API.html#ga0f6b35ce3b4e980d9ba86efaad90c2d6">RGFW_setGLHint</a> (RGFW_glHints hint, <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> value)</td></tr>
 <tr class="separator:ga0f6b35ce3b4e980d9ba86efaad90c2d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga50be9804a354244354d91ddfa08d9f01"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics__API.html#ga50be9804a354244354d91ddfa08d9f01">RGFW_extensionSupported</a> (const char *extension, size_t len)</td></tr>
+<tr class="separator:ga50be9804a354244354d91ddfa08d9f01"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa9dc60fc188d964d9e4ba0763f9a701a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__graphics__API.html#ga17baf5cc4a2b992fb3ce119e6f580659">RGFW_proc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics__API.html#gaa9dc60fc188d964d9e4ba0763f9a701a">RGFW_getProcAddress</a> (const char *procname)</td></tr>
 <tr class="separator:gaa9dc60fc188d964d9e4ba0763f9a701a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gadadcc358f0746221759449d50871cdd6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics__API.html#gadadcc358f0746221759449d50871cdd6">RGFW_window_makeCurrent_OpenGL</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win)</td></tr>
@@ -111,6 +113,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga5b2ec2910a1fa8352cdd33c792b4413f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2e2ed21e1adf587c618798fd01c09d36"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics__API.html#ga2e2ed21e1adf587c618798fd01c09d36">RGFW_getCurrent_OpenGL</a> (void)</td></tr>
 <tr class="separator:ga2e2ed21e1adf587c618798fd01c09d36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7da2414dedd4edd82b8ed2b8551891d1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics__API.html#ga7da2414dedd4edd82b8ed2b8551891d1">RGFW_extensionSupportedPlatform</a> (const char *extension, size_t len)</td></tr>
+<tr class="separator:ga7da2414dedd4edd82b8ed2b8551891d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <ul>
@@ -171,6 +175,64 @@ Functions</h2></td></tr>
 <p >&lt; request no opengl errors</p>
 <p >&lt; the final hint (not for setting)</p>
 <p >&lt; RGFW_glProfile options</p>
+
+</div>
+</div>
+<a id="ga50be9804a354244354d91ddfa08d9f01" name="ga50be9804a354244354d91ddfa08d9f01"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga50be9804a354244354d91ddfa08d9f01">&#9670;&#160;</a></span>RGFW_extensionSupported()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> RGFW_extensionSupported </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>extension</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >check if whether the specified API extension is supported by the current OpenGL or OpenGL ES context </p>
+
+</div>
+</div>
+<a id="ga7da2414dedd4edd82b8ed2b8551891d1" name="ga7da2414dedd4edd82b8ed2b8551891d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga7da2414dedd4edd82b8ed2b8551891d1">&#9670;&#160;</a></span>RGFW_extensionSupportedPlatform()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> RGFW_extensionSupportedPlatform </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>extension</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >check if whether the specified platform-specific API extension is supported by the current OpenGL or OpenGL ES context </p>
 
 </div>
 </div>
