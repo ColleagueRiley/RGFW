@@ -6321,7 +6321,10 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	__declspec(dllimport) u32 __stdcall timeBeginPeriod(u32 uPeriod);
 	__declspec(dllimport) u32 __stdcall timeEndPeriod(u32 uPeriod);
 #endif
-#define RGFW_PROC_DEF(proc, name) if (name##SRC == NULL && proc != NULL) name##SRC = (PFN_##name)(RGFW_proc)GetProcAddress((proc), (#name));
+#define RGFW_PROC_DEF(proc, name) if (name##SRC == NULL && proc != NULL) { \
+                                        name##SRC = (PFN_##name)(RGFW_proc)GetProcAddress((proc), (#name)); \
+                                        RGFW_ASSERT(name##SRC != NULL); \
+                                    }
 
 #ifndef RGFW_NO_XINPUT
 void RGFW_loadXInput(void);
@@ -6397,7 +6400,7 @@ void RGFW_captureCursor(RGFW_window* win, RGFW_rect rect) {
 	RegisterRawInputDevices(&id, 1, sizeof(id));
 }
 
-#define RGFW_LOAD_LIBRARY(x, lib) if (x == NULL) x = LoadLibraryA(lib)
+#define RGFW_LOAD_LIBRARY(x, lib) if (x == NULL) { x = LoadLibraryA(lib); RGFW_ASSERT(x != NULL); }
 
 #ifdef RGFW_DIRECTX
 int RGFW_window_createDXSwapChain(RGFW_window* win, IDXGIFactory* pFactory, IUnknown* pDevice, IDXGISwapChain** swapchain) {
@@ -6580,7 +6583,6 @@ i32 RGFW_init(void) {
 	RGFW_LOAD_LIBRARY(RGFW_wgl_dll, "opengl32.dll");
 	#ifndef RGFW_NO_LOAD_WGL
 		RGFW_PROC_DEF(RGFW_wgl_dll, wglCreateContext);
-		RGFW_PROC_DEF(RGFW_wgl_dll, wglDeleteContext);
 		RGFW_PROC_DEF(RGFW_wgl_dll, wglDeleteContext);
 		RGFW_PROC_DEF(RGFW_wgl_dll, wglGetProcAddress);
 		RGFW_PROC_DEF(RGFW_wgl_dll, wglMakeCurrent);
