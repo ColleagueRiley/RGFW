@@ -2508,7 +2508,8 @@ RGFW_bool RGFW_extensionSupported(const char* extension, size_t len) {
     } else 
 #endif
     {
-        const char* extensions = (const char*) glGetString(GL_EXTENSIONS);
+        RGFW_proc RGFW_glGetString = RGFW_getProcAddress("glGetString");
+        const char* extensions = ((const char*(*)(u32))RGFW_glGetString)(GL_EXTENSIONS);
         if ((extensions != NULL) && RGFW_extensionSupportedStr(extensions, extension, len))
             return RGFW_TRUE;
     }
