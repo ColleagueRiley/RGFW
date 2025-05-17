@@ -164,6 +164,7 @@ int main() {
 		@DarekParodia -> code review (X11) (C++)
 */
 
+#include <X11/Xutil.h>
 #if _MSC_VER
 	#pragma comment(lib, "gdi32")
 	#pragma comment(lib, "shell32")
@@ -4887,11 +4888,9 @@ void RGFW_window_setAspectRatio(RGFW_window* win, RGFW_area a) {
 void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
 	RGFW_ASSERT(win != NULL);
 
-	if (a.w == 0 && a.h == 0)
-		return;
-
+    long flags;
 	XSizeHints hints;
-	long flags;
+    memset(&hints, 0, sizeof(XSizeHints));
 
 	XGetWMNormalHints(win->src.display, win->src.window, &hints, &flags);
 
@@ -4906,11 +4905,9 @@ void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
 void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 	RGFW_ASSERT(win != NULL);
 
-	if (a.w == 0 && a.h == 0)
-		a = RGFW_getScreenSize();
-
+    long flags;
 	XSizeHints hints;
-	long flags;
+    memset(&hints, 0, sizeof(XSizeHints));
 
 	XGetWMNormalHints(win->src.display, win->src.window, &hints, &flags);
 
