@@ -9615,6 +9615,8 @@ u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) {
     double res = 0;
     if (RGFW_osx_getFallbackRefreshRate(display, &res))
         return (u32)RGFW_ROUND(res);
+#else
+    RGFW_UNUSED(display);
 #endif
     return 60;
 }
