@@ -9,6 +9,7 @@ Release:    RGFW 1.7-dev
 - fix set max/min window size (X11)
 - fix C++11 support
 - add RGFW_extensionSupported
+- replace the CVDisplayLink fallback with IOKit (macOS 15.4 deprecation)
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
