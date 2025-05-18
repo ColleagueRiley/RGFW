@@ -8319,7 +8319,7 @@ u32 RGFW_osx_getFallbackRefreshRate(CGDirectDisplayID displayID) {
         if (clockRef) {
             if (CFNumberGetValue(clockRef, kCFNumberIntType, &clock) && clock) {
                 countRef = (CFNumberRef)IORegistryEntryCreateCFProperty(service, CFSTR("IOFBCurrentPixelCount"), kCFAllocatorDefault, kNilOptions);
-                if (countRef && CFNumberGetValue(countRef, kCFNumberIntType, &count) || count) {
+                if (countRef && CFNumberGetValue(countRef, kCFNumberIntType, &count) && count) {
                     refreshRate = (u32)RGFW_ROUND(clock / (double) count);
                     CFRelease(countRef);
                 }
