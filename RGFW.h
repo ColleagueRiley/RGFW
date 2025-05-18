@@ -8298,7 +8298,7 @@ bool RGFW_osx_getFallbackRefreshRate(CGDirectDisplayID displayID, double* p_rate
     CFNumberRef indexRef, clockRef, countRef;
     uint32_t clock, count;
 
-    if (IOServiceGetMatchingServices(kIOMasterPortDefault,
+    if (IOServiceGetMatchingServices(kIOMainPortDefault,
                                      IOServiceMatching("IOFramebuffer"),
                                      &it) != 0) {
         return RGFW_FALSE;
