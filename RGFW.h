@@ -8298,29 +8298,20 @@ u32 RGFW_osx_getFallbackRefreshRate(CGDirectDisplayID displayID) {
     CFNumberRef indexRef, clockRef, countRef;
     uint32_t clock, count;
 
-    if (IOServiceGetMatchingServices(kIOMainPortDefault,
-                                     IOServiceMatching("IOFramebuffer"),
-                                     &it) != 0) {
+    if (IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching("IOFramebuffer"), &it) != 0)
         return RGFW_FALSE;
-    }
 
     while ((service = IOIteratorNext(it)) != 0) {
         uint32_t index;
-        RGFW_bool found_display_id;
-        indexRef = (CFNumberRef)IORegistryEntryCreateCFProperty(service,
-                                                   CFSTR("IOFramebufferOpenGLIndex"),
-                                                   kCFAllocatorDefault,
-                                                   kNilOptions);
-        if (!indexRef) {
-            continue;
-        }
-        found_display_id =
-            CFNumberGetValue(indexRef, kCFNumberIntType, &index) &&
-            CGOpenGLDisplayMaskToDisplayID(1 << index) == displayID;
-        CFRelease(indexRef);
-        if (found_display_id) {
+        indexRef = (CFNumberRef)IORegistryEntryCreateCFProperty(service, CFSTR("IOFramebufferOpenGLIndex"), kCFAllocatorDefault, kNilOptions);
+        if (indexRef == 0) continue;
+        
+        if (CFNumberGetValue(indexRef, kCFNumberIntType, &index) && CGOpenGLDisplayMaskToDisplayID(1 << index) == displayID)
+            CFRelease(indexRef);
             break;
         }
+
+        CFRelease(indexRef);
     }
 
     if (service) {
@@ -8340,8 +8331,6 @@ u32 RGFW_osx_getFallbackRefreshRate(CGDirectDisplayID displayID) {
     IOObjectRelease(it);
     return refreshRate;
 }
-
-
 
 IOHIDDeviceRef RGFW_osxControllers[4] = {NULL};
 
