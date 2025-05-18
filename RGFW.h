@@ -9535,6 +9535,7 @@ id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
 #ifndef RGFW_NO_IOKIT
 #include <IOKit/IOKitLib.h>
 #include <IOKit/hid/IOHIDManager.h>
+CFDictionaryRef IODisplayCreateInfoDictionary(io_service_t framebuffer, IOOptionBits options);
 #endif
 
 u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) {
