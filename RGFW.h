@@ -9538,12 +9538,22 @@ u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) {
 		if (refreshRate != 0)  return refreshRate;
 	}
 
-	CVDisplayLinkRef link;
-	CVDisplayLinkCreateWithCGDisplay(display, &link);
-	const CVTime time = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(link);
-	if (!(time.flags & kCVTimeIsIndefinite))
-		return (u32) (time.timeScale / (double) time.timeValue);
+    io_service_t service = CGDisplayIOServicePort(display);
+    CFDictionaryRef displayInfo = IODisplayCreateInfoDictionary(service, kIODisplayOnlyPreferredName);
+    CFNumberRef refreshRateNum = CFDictionaryGetValue(displayInfo, CFSTR("RefreshRate"));
 
+    if (refreshRateNum) {
+        double rate;
+        CFNumberGetValue(refreshRateNum, kCFNumberDoubleType, &rate);
+        CFRelease(displayInfo);
+        if (mode != CGDisplayCopyDisplayMode(display))
+            CFRelease(mode);
+        return (u32)rate;
+    }
+
+    CFRelease(displayInfo);
+    if (mode != CGDisplayCopyDisplayMode(display))
+        CFRelease(mode);
 	return 0;
 }
 
