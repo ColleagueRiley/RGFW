@@ -9532,12 +9532,18 @@ id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
 }
 
 
+#ifndef RGFW_NO_IOKIT
+#include <IOKit/IOKitLib.h>
+#include <IOKit/hid/IOHIDManager.h>
+#endif
+
 u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) {
 	if (mode) {
 		u32 refreshRate = (u32)CGDisplayModeGetRefreshRate(mode);
 		if (refreshRate != 0)  return refreshRate;
 	}
 
+#ifndef RGFW_NO_IOKIT
     io_service_t service = CGDisplayIOServicePort(display);
     CFDictionaryRef displayInfo = IODisplayCreateInfoDictionary(service, 0x00000200); // kIODisplayOnlyPreferredName 
     CFNumberRef refreshRateNum = (CFNumberRef)CFDictionaryGetValue(displayInfo, CFSTR("RefreshRate"));
@@ -9554,7 +9560,8 @@ u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) {
     CFRelease(displayInfo);
     if (mode != CGDisplayCopyDisplayMode(display))
         CFRelease(mode);
-	return 0;
+#endif
+    return 60;
 }
 
 RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
