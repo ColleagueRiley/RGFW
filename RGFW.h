@@ -10198,7 +10198,7 @@ void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(size_t count) {
 	if (!(_RGFW.root->_flags & RGFW_windowAllowDND))
 		return;
 
-	win->event.droppedFilesCount = count; 
+	_RGFW.root->event.droppedFilesCount = count; 
 	RGFW_eventQueuePushEx(e.type = RGFW_DND;
 									e.droppedFilesCount = count;
 									e._win = _RGFW.root);
