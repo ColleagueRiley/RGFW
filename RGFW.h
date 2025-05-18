@@ -8291,6 +8291,78 @@ bool performDragOperation(id self, SEL sel, id sender) {
 #include <IOKit/IOKitLib.h>
 #include <IOKit/hid/IOHIDManager.h>
 
+bool RGFW_osx_getFallbackRefreshRate(CGDirectDisplayID displayID, double* p_rate) {
+    RGFW_bool found = false;
+    io_iterator_t it;
+    io_service_t service;
+    CFNumberRef indexRef, clockRef, countRef;
+    uint32_t clock, count;
+
+    if (IOServiceGetMatchingServices(kIOMasterPortDefault,
+                                     IOServiceMatching("IOFramebuffer"),
+                                     &it) != 0) {
+        return RGFW_FALSE;
+    }
+
+    while ((service = IOIteratorNext(it)) != 0) {
+        uint32_t index;
+        RGFW_bool found_display_id;
+        indexRef = IORegistryEntryCreateCFProperty(service,
+                                                   CFSTR("IOFramebufferOpenGLIndex"),
+                                                   kCFAllocatorDefault,
+                                                   kNilOptions);
+        if (!indexRef) {
+            continue;
+        }
+        found_display_id =
+            CFNumberGetValue(indexRef, kCFNumberIntType, &index) &&
+            CGOpenGLDisplayMaskToDisplayID(1 << index) == displayID;
+        CFRelease(indexRef);
+        if (found_display_id) {
+            break;
+        }
+    }
+
+    if (!service) {
+        goto out;
+    }
+
+    clockRef = IORegistryEntryCreateCFProperty(service,
+                                               CFSTR("IOFBCurrentPixelClock"),
+                                               kCFAllocatorDefault,
+                                               kNilOptions);
+    if (!clockRef) {
+        goto out;
+    }
+    if (!CFNumberGetValue(clockRef, kCFNumberIntType, &clock) || !clock) {
+        goto out_clock_ref;
+    }
+
+    countRef = IORegistryEntryCreateCFProperty(service,
+                                               CFSTR("IOFBCurrentPixelCount"),
+                                               kCFAllocatorDefault,
+                                               kNilOptions);
+    if (!countRef) {
+        goto out_clock_ref;
+    }
+    if (!CFNumberGetValue(countRef, kCFNumberIntType, &count) || !count) {
+        goto out_count_ref;
+    }
+
+    *p_rate = clock / (double) count;
+    found = true;
+
+out_count_ref:
+    CFRelease(countRef);
+out_clock_ref:
+    CFRelease(clockRef);
+out:
+    IOObjectRelease(it);
+    return found;
+}
+
+
+
 IOHIDDeviceRef RGFW_osxControllers[4] = {NULL};
 
 size_t findControllerIndex(IOHIDDeviceRef device) {
@@ -9535,8 +9607,10 @@ id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
 #ifndef RGFW_NO_IOKIT
 #include <IOKit/IOKitLib.h>
 #include <IOKit/hid/IOHIDManager.h>
-CFDictionaryRef IODisplayCreateInfoDictionary(io_service_t framebuffer, IOOptionBits options);
 #endif
+
+
+bool RGFW_osx_getFallbackRefreshRate(CGDirectDisplayID displayID, double* p_rate) {
 
 u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) {
 	if (mode) {
@@ -9545,22 +9619,9 @@ u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) {
 	}
 
 #ifndef RGFW_NO_IOKIT
-    io_service_t service = CGDisplayIOServicePort(display);
-    CFDictionaryRef displayInfo = IODisplayCreateInfoDictionary(service, 0x00000200); // kIODisplayOnlyPreferredName 
-    CFNumberRef refreshRateNum = (CFNumberRef)CFDictionaryGetValue(displayInfo, CFSTR("RefreshRate"));
-
-    if (refreshRateNum) {
-        double rate;
-        CFNumberGetValue(refreshRateNum, kCFNumberDoubleType, &rate);
-        CFRelease(displayInfo);
-        if (mode != CGDisplayCopyDisplayMode(display))
-            CFRelease(mode);
-        return (u32)rate;
-    }
-
-    CFRelease(displayInfo);
-    if (mode != CGDisplayCopyDisplayMode(display))
-        CFRelease(mode);
+    double res = 0;
+    if (RGFW_osx_getFallbackRefreshRate(display, &res))
+        return RGFW_ROUND(res);
 #endif
     return 60;
 }
