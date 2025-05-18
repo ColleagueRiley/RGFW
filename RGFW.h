@@ -9539,8 +9539,8 @@ u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) {
 	}
 
     io_service_t service = CGDisplayIOServicePort(display);
-    CFDictionaryRef displayInfo = IODisplayCreateInfoDictionary(service, kIODisplayOnlyPreferredName);
-    CFNumberRef refreshRateNum = CFDictionaryGetValue(displayInfo, CFSTR("RefreshRate"));
+    CFDictionaryRef displayInfo = IODisplayCreateInfoDictionary(service, 0x00000200); // kIODisplayOnlyPreferredName 
+    CFNumberRef refreshRateNum = (CFNumberRef)CFDictionaryGetValue(displayInfo, CFSTR("RefreshRate"));
 
     if (refreshRateNum) {
         double rate;
