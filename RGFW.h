@@ -8306,7 +8306,7 @@ u32 RGFW_osx_getFallbackRefreshRate(CGDirectDisplayID displayID) {
         indexRef = (CFNumberRef)IORegistryEntryCreateCFProperty(service, CFSTR("IOFramebufferOpenGLIndex"), kCFAllocatorDefault, kNilOptions);
         if (indexRef == 0) continue;
         
-        if (CFNumberGetValue(indexRef, kCFNumberIntType, &index) && CGOpenGLDisplayMaskToDisplayID(1 << index) == displayID)
+        if (CFNumberGetValue(indexRef, kCFNumberIntType, &index) && CGOpenGLDisplayMaskToDisplayID(1 << index) == displayID) {
             CFRelease(indexRef);
             break;
         }
