@@ -8291,8 +8291,8 @@ bool performDragOperation(id self, SEL sel, id sender) {
 #include <IOKit/IOKitLib.h>
 #include <IOKit/hid/IOHIDManager.h>
 
-bool RGFW_osx_getFallbackRefreshRate(CGDirectDisplayID displayID, double* p_rate) {
-    RGFW_bool found = false;
+u32 RGFW_osx_getFallbackRefreshRate(CGDirectDisplayID displayID) {
+    u32 refreshRate = 0;
     io_iterator_t it;
     io_service_t service;
     CFNumberRef indexRef, clockRef, countRef;
@@ -8323,42 +8323,22 @@ bool RGFW_osx_getFallbackRefreshRate(CGDirectDisplayID displayID, double* p_rate
         }
     }
 
-    if (!service) {
-        goto out;
+    if (service) {
+        clockRef = (CFNumberRef)IORegistryEntryCreateCFProperty(service, CFSTR("IOFBCurrentPixelClock"), kCFAllocatorDefault, kNilOptions);
+        if (clockRef) {
+            if (CFNumberGetValue(clockRef, kCFNumberIntType, &clock) && clock) {
+                countRef = (CFNumberRef)IORegistryEntryCreateCFProperty(service, CFSTR("IOFBCurrentPixelCount"), kCFAllocatorDefault, kNilOptions);
+                if (countRef && CFNumberGetValue(countRef, kCFNumberIntType, &count) || count) {
+                    refreshRate = (u32)RGFW_ROUND(clock / (double) count);
+                    CFRelease(countRef);
+                }
+            }
+            CFRelease(clockRef);
+        }
     }
 
-    clockRef = (CFNumberRef)IORegistryEntryCreateCFProperty(service,
-                                               CFSTR("IOFBCurrentPixelClock"),
-                                               kCFAllocatorDefault,
-                                               kNilOptions);
-    if (!clockRef) {
-        goto out;
-    }
-    if (!CFNumberGetValue(clockRef, kCFNumberIntType, &clock) || !clock) {
-        goto out_clock_ref;
-    }
-
-    countRef = (CFNumberRef)IORegistryEntryCreateCFProperty(service,
-                                               CFSTR("IOFBCurrentPixelCount"),
-                                               kCFAllocatorDefault,
-                                               kNilOptions);
-    if (!countRef) {
-        goto out_clock_ref;
-    }
-    if (!CFNumberGetValue(countRef, kCFNumberIntType, &count) || !count) {
-        goto out_count_ref;
-    }
-
-    *p_rate = clock / (double) count;
-    found = true;
-
-out_count_ref:
-    CFRelease(countRef);
-out_clock_ref:
-    CFRelease(clockRef);
-out:
     IOObjectRelease(it);
-    return found;
+    return refreshRate;
 }
 
 
@@ -9612,9 +9592,8 @@ u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) {
 	}
 
 #ifndef RGFW_NO_IOKIT
-    double res = 0;
-    if (RGFW_osx_getFallbackRefreshRate(display, &res))
-        return (u32)RGFW_ROUND(res);
+    u32 res = RGFW_osx_getFallbackRefreshRate(display);
+    if (res != 0) return res;
 #else
     RGFW_UNUSED(display);
 #endif
