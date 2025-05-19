@@ -1781,15 +1781,13 @@ typedef struct {
 
 RGFW_keyState RGFW_keyboard[RGFW_keyLast] = { {0, 0} };
 
-RGFWDEF void RGFW_resetKey(void);
-void RGFW_resetKey(void) {
-	size_t len = RGFW_keyLast; /*!< last_key == length */
-
+RGFWDEF void RGFW_resetKeyPrev(void);
+void RGFW_resetKeyPrev(void) {
 	size_t i; /*!< reset each previous state  */
-	for (i = 0; i < len; i++)
-		RGFW_keyboard[i].prev = 0;
+    for (i = 0; i < RGFW_keyLast; i++) RGFW_keyboard[i].prev = 0;
 }
-
+RGFWDEF void RGFW_resetKey(void);
+void RGFW_resetKey(void) { memset(RGFW_keyboard, 0, sizeof(RGFW_keyboard)); }
 /*
 	this is the end of keycode data
 */
@@ -1984,7 +1982,7 @@ RGFW_event* RGFW_window_checkEventCore(RGFW_window* win) {
 	RGFW_event* ev;
     RGFW_ASSERT(win != NULL);
     if (win->event.type == 0 && _RGFW.eventLen == 0)
-		RGFW_resetKey();
+		RGFW_resetKeyPrev();
 
 	if (win->event.type == RGFW_quit && win->_flags & RGFW_windowFreeOnClose) {
         static RGFW_event event;
@@ -2262,14 +2260,11 @@ RGFWDEF void RGFW_captureCursor(RGFW_window* win, RGFW_rect);
 RGFWDEF void RGFW_releaseCursor(RGFW_window* win);
 
 void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area) {
-	if ((win->_flags & RGFW_HOLD_MOUSE))
-		return;
-
 	if (!area.w && !area.h)
 		area = RGFW_AREA(win->r.w / 2, win->r.h / 2);
 
 	win->_flags |= RGFW_HOLD_MOUSE;
-	RGFW_captureCursor(win, win->r);
+    RGFW_captureCursor(win, win->r);
 	RGFW_window_moveMouse(win, RGFW_POINT(win->r.x + (win->r.w / 2), win->r.y + (win->r.h / 2)));
 }
 
@@ -3402,6 +3397,9 @@ void keyboard_enter (void *data, struct wl_keyboard *keyboard, uint32_t serial, 
 	RGFW_key_win->_flags |= RGFW_windowFocus;
 	RGFW_eventQueuePushEx(e.type = RGFW_focusIn, e._win = RGFW_key_win);
 	RGFW_focusCallback(RGFW_key_win, RGFW_TRUE);
+
+	RGFW_resetKey();
+	if ((win->_flags & RGFW_HOLD_MOUSE)) RGFW_window_mouseHold(win, RGFW_AREA(win->r.w, win->r.h));
 }
 void keyboard_leave (void *data, struct wl_keyboard *keyboard, uint32_t serial, struct wl_surface *surface) {
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial);
@@ -4816,7 +4814,11 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		win->_flags |= RGFW_windowFocus;
 		win->event.type = RGFW_focusIn;
 		RGFW_focusCallback(win, 1);
-		break;
+
+
+	    RGFW_resetKey();
+	    if ((win->_flags & RGFW_HOLD_MOUSE)) RGFW_window_mouseHold(win, RGFW_AREA(win->r.w, win->r.h));
+        break;
 	case FocusOut:
 		if ((win->_flags & RGFW_windowFullscreen))
 			RGFW_window_minimize(win);
@@ -8587,6 +8589,9 @@ void RGFW__osxWindowBecameKey(id self, SEL sel) {
 	RGFW_eventQueuePushEx(e.type = RGFW_focusIn; e._win = win);
 
 	RGFW_focusCallback(win, RGFW_TRUE);
+
+	RGFW_resetKey();
+	if ((win->_flags & RGFW_HOLD_MOUSE)) RGFW_window_mouseHold(win, RGFW_AREA(win->r.w, win->r.h));
 }
 
 void RGFW__osxWindowResignKey(id self, SEL sel) {
@@ -9883,6 +9888,9 @@ EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void
 	RGFW_eventQueuePushEx(e.type = RGFW_focusIn; e._win = _RGFW.root);
 	_RGFW.root->_flags |= RGFW_windowFocus;
 	RGFW_focusCallback(_RGFW.root, 1);
+
+	RGFW_resetKey();
+	if ((win->_flags & RGFW_HOLD_MOUSE)) RGFW_window_mouseHold(win, RGFW_AREA(win->r.w, win->r.h));
     return EM_TRUE;
 }
 
