@@ -3,7 +3,7 @@ changelog
 
 Current:
 
-Release:    RGFW 1.7-dev
+Release:    RGFW 1.7.5-dev
 -----------------------------------------------
 - add win->exitKey to control which key is checked by `RGFW_window_shouldClose` 
 - fix set max/min window size (X11)
@@ -12,6 +12,8 @@ Release:    RGFW 1.7-dev
 - replace the CVDisplayLink fallback with IOKit (macOS 15.4 deprecation)
 - reset keypress data on refocus 
 - make sure mouse is regrabbed on refocus 
+- try to fix black flashing issue, zero out XSetWindowAttributes object 
+- fix msvc warnings (wchar, explicitly request an "A" function)
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
