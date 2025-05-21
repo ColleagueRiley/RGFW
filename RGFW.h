@@ -7448,7 +7448,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
         if (!(dd.StateFlags & DISPLAY_DEVICE_ACTIVE))
 			continue;
 
-        if (wcscmp(dd.DeviceName, monitorInfo.szDevice) != 0)
+        if (strcmp(dd.DeviceName, (const char*)monitorInfo.szDevice) != 0)
             continue;
 		
         DEVMODEA dm;
