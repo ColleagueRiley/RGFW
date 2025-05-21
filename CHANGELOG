@@ -13,6 +13,7 @@ Release:    RGFW 1.7.5-dev
 - reset keypress data on refocus 
 - make sure mouse is regrabbed on refocus 
 - try to fix black flashing issue, zero out XSetWindowAttributes object 
+- fix msvc warnings (wchar, explicitly request an "A" function)
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
