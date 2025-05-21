@@ -4010,6 +4010,7 @@ i32 RGFW_init(void) {
 	XInitThreads(); /*!< init X11 threading */
     _RGFW.display = XOpenDisplay(0);
     XSetWindowAttributes wa;
+    memset(&wa, 0, sizeof(wa));
     wa.event_mask = PropertyChangeMask;
     _RGFW.helperWindow = XCreateWindow(_RGFW.display, XDefaultRootWindow(_RGFW.display), 0, 0, 1, 1, 0, 0,
                                         InputOnly, DefaultVisual(_RGFW.display, DefaultScreen(_RGFW.display)), CWEventMask, &wa);
@@ -4072,21 +4073,18 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
     /* make X window attrubutes */
 	XSetWindowAttributes swa;
+    memset(&swa, 0, sizeof(swa));
+
 	Colormap cmap;
 	swa.colormap = cmap = XCreateColormap(win->src.display,
 		DefaultRootWindow(win->src.display),
 		win->src.visual.visual, AllocNone);
-
-	swa.background_pixmap = None;
-	swa.border_pixel = 0;
 	swa.event_mask = event_mask;
-
-	swa.background_pixel = 0;
 
 	/* create the window */
     win->src.window = XCreateWindow(win->src.display, DefaultRootWindow(win->src.display), win->r.x, win->r.y, (u32)win->r.w, (u32)win->r.h,
 		0, win->src.visual.depth, InputOutput, win->src.visual.visual,
-		CWColormap | CWBorderPixel | CWBackPixel | CWEventMask, &swa);
+		CWColormap | CWBorderPixel | CWEventMask, &swa);
 
 	XFreeColors(win->src.display, cmap, NULL, 0, 0);
 
