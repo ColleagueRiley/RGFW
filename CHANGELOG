@@ -12,6 +12,7 @@ Release:    RGFW 1.7.5-dev
 - replace the CVDisplayLink fallback with IOKit (macOS 15.4 deprecation)
 - reset keypress data on refocus 
 - make sure mouse is regrabbed on refocus 
+- try to fix black flashing issue, zero out XSetWindowAttributes object 
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
