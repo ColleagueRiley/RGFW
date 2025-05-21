@@ -7331,7 +7331,7 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 		if (!(dd.StateFlags & DISPLAY_DEVICE_ACTIVE))
 			continue;
 
-		DEVMODE dm;
+		DEVMODEA dm;
 		ZeroMemory(&dm, sizeof(dm));
 		dm.dmSize = sizeof(dm);
 
@@ -7439,7 +7439,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 	monitorInfo.cbSize = sizeof(MONITORINFOEX);
 	GetMonitorInfoA(src, (LPMONITORINFO)&monitorInfo);
 
-    DISPLAY_DEVICE dd;
+    DISPLAY_DEVICEA dd;
     dd.cb = sizeof(dd);
 
     /* Enumerate display devices */
@@ -7448,10 +7448,10 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
         if (!(dd.StateFlags & DISPLAY_DEVICE_ACTIVE))
 			continue;
 
-        if (strcmp(dd.DeviceName, monitorInfo.szDevice) != 0)
+        if (wcscmp(dd.DeviceName, monitorInfo.szDevice) != 0)
             continue;
 		
-        DEVMODE dm;
+        DEVMODEA dm;
 		ZeroMemory(&dm, sizeof(dm));
 		dm.dmSize = sizeof(dm);
 
