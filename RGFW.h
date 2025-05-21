@@ -1943,8 +1943,9 @@ typedef struct RGFW_globalStruct {
     RGFW_event events[RGFW_MAX_EVENTS];
 
 } RGFW_globalStruct;
-#ifndef RGFW_C89
+#if !defined(RGFW_C89) && !defined(__cplusplus)
 RGFW_globalStruct _RGFW = {.root = NULL, .current = NULL, .windowCount = -1, .eventLen = 0, .eventIndex = 0};
+#define _RGFW_init RGFW_TRUE
 #else
 RGFW_bool _RGFW_init = RGFW_FALSE;
 RGFW_globalStruct _RGFW;
@@ -2013,7 +2014,7 @@ RGFW_window* RGFW_getRootWindow(void) { return _RGFW.root; }
 /* do a basic initialization for RGFW_window, this is to standard it for each OS */
 void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags flags) {
 	RGFW_UNUSED(flags);
-	if (_RGFW.windowCount == -1) RGFW_init();
+    if (_RGFW.windowCount == -1 || _RGFW_init == RGFW_FALSE) RGFW_init();
     _RGFW.windowCount++;
 
     /* rect based the requested flags */
@@ -3004,7 +3005,7 @@ wayland:
 
 RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex) {
     RGFW_ASSERT(instance);
-	if (_RGFW.windowCount == -1) RGFW_init();
+	if (_RGFW.windowCount == -1 || _RGFW_init == RGFW_FALSE) RGFW_init();
 #ifdef RGFW_X11
     RGFW_GOTO_WAYLAND(0);
 	Visual* visual = DefaultVisual(_RGFW.display, DefaultScreen(_RGFW.display));
@@ -3956,7 +3957,7 @@ RGFW_UNUSED(win);
 
 
 i32 RGFW_init(void) {
-#ifdef RGFW_C89
+#if defined(RGFW_C89) || defined(__cplusplus)
     _RGFW_init = RGFW_TRUE;    
     _RGFW.root = NULL; _RGFW.current = NULL; _RGFW.windowCount = -1; _RGFW.eventLen = 0; _RGFW.eventIndex = 0;
 #endif
@@ -5874,7 +5875,7 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 #endif
 
 void RGFW_deinit(void) {
-    if (_RGFW.windowCount == -1) return;
+    if (_RGFW.windowCount == -1 || _RGFW_init == RGFW_FALSE) return;
     #define RGFW_FREE_LIBRARY(x) if (x != NULL) dlclose(x); x = NULL;
 #ifdef RGFW_X11
 	/* to save the clipboard on the x server after the window is closed */
@@ -6627,7 +6628,7 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 
 
 i32 RGFW_init(void) {
-#ifdef RGFW_C89
+#if defined(RGFW_C89) || defined(__cplusplus)
     _RGFW_init = RGFW_TRUE;
     _RGFW.root = NULL; _RGFW.current = NULL; _RGFW.windowCount = -1; _RGFW.eventLen = 0; _RGFW.eventIndex = 0;
 #endif
@@ -8767,7 +8768,7 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 
 
 i32 RGFW_init(void) {
-#ifdef RGFW_C89
+#if defined(RGFW_C89) || defined(__cplusplus)
     _RGFW_init = RGFW_TRUE;
     _RGFW.root = NULL; _RGFW.current = NULL; _RGFW.windowCount = -1; _RGFW.eventLen = 0; _RGFW.eventIndex = 0;
 #endif
@@ -10315,7 +10316,7 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 }
 
 i32 RGFW_init(void) {  
-#ifdef RGFW_C89
+#if defined(RGFW_C89) || defined(__cplusplus)
     _RGFW_init = RGFW_TRUE;
     _RGFW.root = NULL; _RGFW.current = NULL; _RGFW.windowCount = -2; _RGFW.eventLen = 0; _RGFW.eventIndex = 0;
 #endif
