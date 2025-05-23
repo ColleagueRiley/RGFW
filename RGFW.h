@@ -984,6 +984,8 @@ RGFWDEF RGFW_bool RGFW_window_setMouseDefault(RGFW_window* win); /*!< sets the m
 	this is useful for a 3D camera
 */
 RGFWDEF void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area);
+/*! if the mouse is held by RGFW */
+RGFWDEF RGFW_bool RGFW_window_mouseHeld(RGFW_window* win);
 /*! stop holding the mouse and let it move freely */
 RGFWDEF void RGFW_window_mouseUnhold(RGFW_window* win);
 
@@ -2260,6 +2262,9 @@ RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* icon, RGFW_area a, i32 chann
 
 RGFWDEF void RGFW_captureCursor(RGFW_window* win, RGFW_rect);
 RGFWDEF void RGFW_releaseCursor(RGFW_window* win);
+
+
+RGFW_bool RGFW_window_mouseHeld(RGFW_window* win) { return RGFW_BOOL(win->_flags & RGFW_HOLD_MOUSE); }
 
 void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area) {
 	if (!area.w && !area.h)
