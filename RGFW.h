@@ -3962,12 +3962,13 @@ RGFW_UNUSED(win);
 
 
 i32 RGFW_init(void) {
+    RGFW_GOTO_WAYLAND(1);
 #if defined(RGFW_C89) || defined(__cplusplus)
+    if (_RGFW_init) return 0; 
     _RGFW_init = RGFW_TRUE;    
     _RGFW.root = NULL; _RGFW.current = NULL; _RGFW.windowCount = -1; _RGFW.eventLen = 0; _RGFW.eventIndex = 0;
 #endif
 
-    RGFW_GOTO_WAYLAND(1);
 #ifdef RGFW_X11
     if (_RGFW.windowCount != -1) return 0;
     #ifdef RGFW_USE_XDL
@@ -6634,6 +6635,7 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 
 i32 RGFW_init(void) {
 #if defined(RGFW_C89) || defined(__cplusplus)
+    if (_RGFW_init) return 0; 
     _RGFW_init = RGFW_TRUE;
     _RGFW.root = NULL; _RGFW.current = NULL; _RGFW.windowCount = -1; _RGFW.eventLen = 0; _RGFW.eventIndex = 0;
 #endif
@@ -8774,6 +8776,7 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 
 i32 RGFW_init(void) {
 #if defined(RGFW_C89) || defined(__cplusplus)
+    if (_RGFW_init) return 0; 
     _RGFW_init = RGFW_TRUE;
     _RGFW.root = NULL; _RGFW.current = NULL; _RGFW.windowCount = -1; _RGFW.eventLen = 0; _RGFW.eventIndex = 0;
 #endif
@@ -10322,6 +10325,7 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 
 i32 RGFW_init(void) {  
 #if defined(RGFW_C89) || defined(__cplusplus)
+    if (_RGFW_init) return 0; 
     _RGFW_init = RGFW_TRUE;
     _RGFW.root = NULL; _RGFW.current = NULL; _RGFW.windowCount = -2; _RGFW.eventLen = 0; _RGFW.eventIndex = 0;
 #endif
