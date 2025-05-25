@@ -1,4 +1,4 @@
-.TH "XDL.h" 3 "Fri May 23 2025" "RGFW" \" -*- nroff -*-
+.TH "XDL.h" 3 "Sun May 25 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -330,6 +330,9 @@ XDL.h
 .br
 .ti -1c
 .RI "#define \fBXDefaultRootWindow\fP   \fBXDefaultRootWindowSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXDefaultScreen\fP   \fBXDefaultScreenSrc\fP"
 .br
 .ti -1c
 .RI "#define \fBXMatchVisualInfo\fP   \fBXMatchVisualInfoSrc\fP"
@@ -748,6 +751,9 @@ XDL.h
 .br
 .ti -1c
 .RI "typedef Window(* \fBPFN_XDefaultRootWindow\fP) (Display *)"
+.br
+.ti -1c
+.RI "typedef int(* \fBPFN_XDefaultScreen\fP) (Display *)"
 .br
 .ti -1c
 .RI "typedef int(* \fBPFN_XQueryKeymap\fP) (Display *, char[32])"
@@ -1172,6 +1178,9 @@ XDL.h
 .RI "\fBPFN_XDefaultRootWindow\fP \fBXDefaultRootWindowSrc\fP"
 .br
 .ti -1c
+.RI "\fBPFN_XDefaultScreen\fP \fBXDefaultScreenSrc\fP"
+.br
+.ti -1c
 .RI "\fBPFN_XQueryKeymap\fP \fBXQueryKeymapSrc\fP"
 .br
 .ti -1c
@@ -1353,6 +1362,8 @@ XDL.h
 .SS "#define XCreateWindow   \fBXCreateWindowSrc\fP"
 
 .SS "#define XDefaultRootWindow   \fBXDefaultRootWindowSrc\fP"
+
+.SS "#define XDefaultScreen   \fBXDefaultScreenSrc\fP"
 
 .SS "#define XDefineCursor   \fBXDefineCursorSrc\fP"
 
@@ -1629,6 +1640,8 @@ XDL.h
 .SS "typedef Window(* PFN_XCreateWindow) (Display *, Window, int, int, unsigned int, unsigned int, unsigned int, int, unsigned int, Visual *, unsigned long, XSetWindowAttributes *)"
 
 .SS "typedef Window(* PFN_XDefaultRootWindow) (Display *)"
+
+.SS "typedef int(* PFN_XDefaultScreen) (Display *)"
 
 .SS "typedef int(* PFN_XDefineCursor) (Display *, Window, Cursor)"
 
@@ -1919,6 +1932,8 @@ XDL.h
 .SS "\fBPFN_XCreateWindow\fP XCreateWindowSrc"
 
 .SS "\fBPFN_XDefaultRootWindow\fP XDefaultRootWindowSrc"
+
+.SS "\fBPFN_XDefaultScreen\fP XDefaultScreenSrc"
 
 .SS "\fBPFN_XDefineCursor\fP XDefineCursorSrc"
 
