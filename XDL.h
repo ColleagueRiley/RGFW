@@ -170,6 +170,7 @@ typedef char* (*PFN_XKeysymToString)(KeySym);
 typedef int (*PFN_XGetKeyboardControl)(Display*, XKeyboardState*);
 typedef char* (*PFN_XGetAtomName)(Display*, Atom);
 typedef Window (*PFN_XDefaultRootWindow)(Display*); 
+typedef int (*PFN_XDefaultScreen)(Display*); 
 typedef int (*PFN_XQueryKeymap)(Display*, char[32]); 
 typedef KeyCode (*PFN_XKeysymToKeycode)(Display*, KeySym);
 typedef void (*PFN_XFreeColors)(Display *display, Colormap colormap, unsigned long *pixels, int npixels, unsigned long planes);
@@ -317,6 +318,7 @@ PFN_XKeysymToString XKeysymToStringSrc;
 PFN_XGetKeyboardControl XGetKeyboardControlSrc;
 PFN_XGetAtomName XGetAtomNameSrc;
 PFN_XDefaultRootWindow XDefaultRootWindowSrc;
+PFN_XDefaultScreen XDefaultScreenSrc;
 PFN_XQueryKeymap XQueryKeymapSrc;
 PFN_XKeysymToKeycode XKeysymToKeycodeSrc;
 PFN_XFreeColors XFreeColorsSrc;
@@ -464,6 +466,7 @@ PFN_glXDestroyContext glXDestroyContextSrc;
 #define XkbFreeKeyboard XkbFreeKeyboardSrc
 #define XGetAtomName XGetAtomNameSrc
 #define XDefaultRootWindow XDefaultRootWindowSrc
+#define XDefaultScreen XDefaultScreenSrc
 #define XMatchVisualInfo XMatchVisualInfoSrc
 #define XGetKeyboardControl XGetKeyboardControlSrc
 #define XKeysymToKeycode XKeysymToKeycodeSrc
@@ -650,6 +653,7 @@ void XDL_init(void) {
     XDL_PROC_DEF(0, XkbFreeKeyboard);
     XDL_PROC_DEF(0, XGetAtomName);
     XDL_PROC_DEF(0, XDefaultRootWindow);
+    XDL_PROC_DEF(0, XDefaultScreen);
     XDL_PROC_DEF(0, XMatchVisualInfo);
     XDL_PROC_DEF(0, XGetKeyboardControl);
     XDL_PROC_DEF(0, XKeysymToKeycode);

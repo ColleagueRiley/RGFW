@@ -78,7 +78,7 @@ jobs:
       if: matrix.bits == 64 && matrix.compiler == 'mingw-w64'
 
     - name: setup Zig
-      uses: mlugg/setup-zig@v1
+      uses: mlugg/setup-zig@v2
       if: matrix.bits == 64 && matrix.compiler == 'zig'
 
     - name: test Zig
