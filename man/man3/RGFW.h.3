@@ -67,6 +67,9 @@ RGFW.h
 .RI "#define \fBRGFW_ASSERT\fP   assert"
 .br
 .ti -1c
+.RI "#define \fBRGFW_MEMSET\fP(ptr,  value,  num)   memset(ptr, value, num)"
+.br
+.ti -1c
 .RI "#define \fBRGFW_MEMCPY\fP(dist,  src,  len)   memcpy(dist, src, len)"
 .br
 .ti -1c
@@ -779,6 +782,8 @@ RGFW.h
 .SS "#define RGFW_MAX_PATH   260 /* max length of a path (for dnd) */"
 
 .SS "#define RGFW_MEMCPY(dist, src, len)   memcpy(dist, src, len)"
+
+.SS "#define RGFW_MEMSET(ptr, value, num)   memset(ptr, value, num)"
 
 .SS "#define RGFW_OPENGL"
 
