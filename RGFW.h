@@ -5143,13 +5143,14 @@ void RGFW_window_setName(RGFW_window* win, const char* name) {
 	XStoreName(win->src.display, win->src.window, name);
 
 	RGFW_LOAD_ATOM(_NET_WM_NAME);
-    
-    int len;
-    for (len = 0; name[len]; len++);
+
+    char buf[256];
+    RGFW_MEMSET(buf, 0, sizeof(buf));
+    RGFW_STRNCPY(buf, name, sizeof(buf));
 
     XChangeProperty(
 		win->src.display, win->src.window, _NET_WM_NAME, RGFW_XUTF8_STRING,
-		8, PropModeReplace, (u8*)name, len
+		8, PropModeReplace, (u8*)buf, sizeof(buf)
 	);
 	#endif
 	#ifdef RGFW_WAYLAND
@@ -5632,7 +5633,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	RGFW_splitBPP((u32)DefaultDepth(display, DefaultScreen(display)), &monitor.mode);
 
 	char* name = XDisplayName((const char*)display);
-	RGFW_MEMCPY(monitor.name, name, 128);
+	RGFW_STRNCPY(monitor.name, name, 128);
 
 	float dpi = XGetSystemContentDPI(display, screen);
 	monitor.pixelRatio = dpi >= 192.0f ? 2 : 1;
@@ -5664,7 +5665,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 		float physW = (float)info->mm_width / 25.4f;
 		float physH = (float)info->mm_height / 25.4f;
 
-		RGFW_MEMCPY(monitor.name, info->name, 128);
+		RGFW_STRNCPY(monitor.name, info->name, 128);
 
 	if ((u8)physW && (u8)physH) {
 		monitor.physW = physW;
@@ -7359,7 +7360,7 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 		mdd.cb = sizeof(mdd);
 
 		if (EnumDisplayDevicesA(dd.DeviceName, (DWORD)deviceNum, &mdd, 0)) {
-			RGFW_MEMCPY(monitor.name, mdd.DeviceString, 128);
+			RGFW_STRNCPY(monitor.name, mdd.DeviceString, 128);
 			break;
 		}
 	}
@@ -8289,7 +8290,7 @@ bool performDragOperation(id self, SEL sel, id sender) {
     for (i = 0; i < count; i++) {
 		id fileURL = objc_msgSend_arr(fileURLs, sel_registerName("objectAtIndex:"), i);
 		const char *filePath = ((const char* (*)(id, SEL))objc_msgSend)(fileURL, sel_registerName("UTF8String"));
-		RGFW_MEMCPY(win->event.droppedFiles[i], filePath, RGFW_MAX_PATH);
+		RGFW_STRNCPY(win->event.droppedFiles[i], filePath, RGFW_MAX_PATH);
 		win->event.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
 	}
 	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
@@ -10057,7 +10058,7 @@ EM_BOOL Emscripten_on_gamepad(int eventType, const EmscriptenGamepadEvent *gamep
 
 	size_t i = gamepadEvent->index;
 	if (gamepadEvent->connected) {
-		RGFW_MEMCPY(RGFW_gamepads_name[gamepadEvent->index], gamepadEvent->id, sizeof(RGFW_gamepads_name[gamepadEvent->index]));
+		RGFW_STRNCPY(RGFW_gamepads_name[gamepadEvent->index], gamepadEvent->id, sizeof(RGFW_gamepads_name[gamepadEvent->index]));
 		RGFW_gamepads_type[i] = RGFW_gamepadUnknown;
 		if (RGFW_STRSTR(RGFW_gamepads_name[i], "Microsoft") || RGFW_STRSTR(RGFW_gamepads_name[i], "X-Box"))
 			RGFW_gamepads_type[i] = RGFW_gamepadMicrosoft;
@@ -10262,7 +10263,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_makeSetValue(size_t index, char* file) {
 	/* This seems like a terrible idea, don't replicate this unless you hate yourself or the OS */
 	/* TODO: find a better way to do this
 	*/
-	RGFW_MEMCPY((char*)_RGFW.root->event.droppedFiles[index], file, RGFW_MAX_PATH);
+	RGFW_STRNCPY((char*)_RGFW.root->event.droppedFiles[index], file, RGFW_MAX_PATH);
 }
 
 #include <sys/stat.h>

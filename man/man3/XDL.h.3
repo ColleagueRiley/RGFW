@@ -1,4 +1,4 @@
-.TH "XDL.h" 3 "Sun May 25 2025" "RGFW" \" -*- nroff -*-
+.TH "XDL.h" 3 "Mon May 26 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -439,6 +439,9 @@ XDL.h
 .ti -1c
 .RI "#define \fBglXSwapIntervalEXT\fP   \fBglXSwapIntervalEXTSrc\fP"
 .br
+.ti -1c
+.RI "#define \fBglXQueryExtensionsString\fP   \fBglXQueryExtensionsStringSrc\fP"
+.br
 .in -1c
 .SS "Typedefs"
 
@@ -869,6 +872,9 @@ XDL.h
 .ti -1c
 .RI "typedef void(* \fBPFN_glXDestroyContext\fP) (Display *dpy, GLXContext ctx)"
 .br
+.ti -1c
+.RI "typedef const char *(* \fBPFN_glXQueryExtensionsString\fP) (Display *dpy, int screen)"
+.br
 .in -1c
 .SS "Functions"
 
@@ -1294,6 +1300,9 @@ XDL.h
 .ti -1c
 .RI "\fBPFN_glXDestroyContext\fP \fBglXDestroyContextSrc\fP"
 .br
+.ti -1c
+.RI "\fBPFN_glXQueryExtensionsString\fP \fBglXQueryExtensionsStringSrc\fP"
+.br
 .in -1c
 .SH "Macro Definition Documentation"
 .PP 
@@ -1316,6 +1325,8 @@ XDL.h
 .SS "#define glXGetVisualFromFBConfig   \fBglXGetVisualFromFBConfigSrc\fP"
 
 .SS "#define glXMakeCurrent   \fBglXMakeCurrentSrc\fP"
+
+.SS "#define glXQueryExtensionsString   \fBglXQueryExtensionsStringSrc\fP"
 
 .SS "#define glXSwapBuffers   \fBglXSwapBuffersSrc\fP"
 
@@ -1596,6 +1607,8 @@ XDL.h
 .SS "typedef PFNGLXGETVISUALFROMFBCONFIGPROC \fBPFN_glXGetVisualFromFBConfig\fP"
 
 .SS "typedef Bool(* PFN_glXMakeCurrent) (Display *, GLXDrawable, GLXContext)"
+
+.SS "typedef const char *(* PFN_glXQueryExtensionsString) (Display *dpy, int screen)"
 
 .SS "typedef void(* PFN_glXSwapBuffers) (Display *, GLXDrawable)"
 
@@ -1888,6 +1901,8 @@ XDL.h
 .SS "\fBPFN_glXGetVisualFromFBConfig\fP glXGetVisualFromFBConfigSrc"
 
 .SS "\fBPFN_glXMakeCurrent\fP glXMakeCurrentSrc"
+
+.SS "\fBPFN_glXQueryExtensionsString\fP glXQueryExtensionsStringSrc"
 
 .SS "\fBPFN_glXSwapBuffers\fP glXSwapBuffersSrc"
 

@@ -10,6 +10,7 @@ var searchData=
   ['glxgetprocaddressarb_7',['glXGetProcAddressARB',['../XDL_8h.html#a42eb159d4ca4773abdf215f31917b1a1',1,'XDL.h']]],
   ['glxgetvisualfromfbconfig_8',['glXGetVisualFromFBConfig',['../XDL_8h.html#a88941f4492eacfc24b886eea8afb413f',1,'XDL.h']]],
   ['glxmakecurrent_9',['glXMakeCurrent',['../XDL_8h.html#ad096243cbff124274549a71f73e1ff4a',1,'XDL.h']]],
-  ['glxswapbuffers_10',['glXSwapBuffers',['../XDL_8h.html#af4651d9edbd302e0394dd22f466708a0',1,'XDL.h']]],
-  ['glxswapintervalext_11',['glXSwapIntervalEXT',['../XDL_8h.html#a44370466816fdf575153176149d87b7d',1,'XDL.h']]]
+  ['glxqueryextensionsstring_10',['glXQueryExtensionsString',['../XDL_8h.html#ad1d6f34f49d7e11a80fd3a6fb280080f',1,'XDL.h']]],
+  ['glxswapbuffers_11',['glXSwapBuffers',['../XDL_8h.html#af4651d9edbd302e0394dd22f466708a0',1,'XDL.h']]],
+  ['glxswapintervalext_12',['glXSwapIntervalEXT',['../XDL_8h.html#a44370466816fdf575153176149d87b7d',1,'XDL.h']]]
 ];

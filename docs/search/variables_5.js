@@ -11,7 +11,8 @@ var searchData=
   ['glxgetprocaddresssrc_8',['glXGetProcAddressSrc',['../XDL_8h.html#a2c8dbf9a3c0326b1d58a792adcb46982',1,'XDL.h']]],
   ['glxgetvisualfromfbconfigsrc_9',['glXGetVisualFromFBConfigSrc',['../XDL_8h.html#a53d8436fcee69ef104f861c9c6a65d0e',1,'XDL.h']]],
   ['glxmakecurrentsrc_10',['glXMakeCurrentSrc',['../XDL_8h.html#adee9530d29d856e457d3e38411d6989c',1,'XDL.h']]],
-  ['glxswapbufferssrc_11',['glXSwapBuffersSrc',['../XDL_8h.html#a3b55aceb660c5acc59755ab80ec6fbc6',1,'XDL.h']]],
-  ['glxswapintervalextsrc_12',['glXSwapIntervalEXTSrc',['../XDL_8h.html#ab023a41941bb195e4ba0ee229432ef0c',1,'XDL.h']]],
-  ['green_13',['green',['../structRGFW__monitorMode.html#ab384a00223b6cc9838a186b060553415',1,'RGFW_monitorMode']]]
+  ['glxqueryextensionsstringsrc_11',['glXQueryExtensionsStringSrc',['../XDL_8h.html#a3f22f505646be3140c06708e3909fee8',1,'XDL.h']]],
+  ['glxswapbufferssrc_12',['glXSwapBuffersSrc',['../XDL_8h.html#a3b55aceb660c5acc59755ab80ec6fbc6',1,'XDL.h']]],
+  ['glxswapintervalextsrc_13',['glXSwapIntervalEXTSrc',['../XDL_8h.html#ab023a41941bb195e4ba0ee229432ef0c',1,'XDL.h']]],
+  ['green_14',['green',['../structRGFW__monitorMode.html#ab384a00223b6cc9838a186b060553415',1,'RGFW_monitorMode']]]
 ];
