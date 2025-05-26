@@ -17,6 +17,7 @@ Release:    RGFW 1.7.5-dev
 - add RGFW_window_mouseHeld
 - add RGFW_MEMSET
 - if `RGFW_EXPORT` or `RGFW_IMPORT` is defined, default to a blank RGFWDEF if RGFWDEF is not set
+- replace incorrect usage of `RGFW_MEMCPY` with `RGFW_STRNCPY`
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
