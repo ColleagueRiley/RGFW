@@ -5145,11 +5145,12 @@ void RGFW_window_setName(RGFW_window* win, const char* name) {
 	RGFW_LOAD_ATOM(_NET_WM_NAME);
 
     char buf[256];
+    RGFW_MEMSET(buf, 0, sizeof(buf));
     RGFW_STRNCPY(buf, name, sizeof(buf));
 
     XChangeProperty(
 		win->src.display, win->src.window, _NET_WM_NAME, RGFW_XUTF8_STRING,
-		8, PropModeReplace, (u8*)name, buf
+		8, PropModeReplace, (u8*)buf, sizeof(buf)
 	);
 	#endif
 	#ifdef RGFW_WAYLAND
