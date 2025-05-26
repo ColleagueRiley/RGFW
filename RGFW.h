@@ -202,8 +202,12 @@ int main() {
 	#define RGFW_ASSERT assert
 #endif
 
-#if !defined(RGFW_MEMCPY) || !defined(RGFW_STRNCMP) || !defined(RGFW_STRNCPY)
+#if !defined(RGFW_MEMCPY) || !defined(RGFW_STRNCMP) || !defined(RGFW_STRNCPY) || !defined(RGFW_MEMSET)
     #include <string.h>
+#endif
+
+#ifndef RGFW_MEMSET
+    #define RGFW_MEMSET(ptr, value, num) memset(ptr, value, num)
 #endif
 
 #ifndef RGFW_MEMCPY
@@ -250,6 +254,9 @@ int main() {
 			#define RGFWDEF __attribute__((visibility("default")))
 		#endif
 	#endif
+    #ifndef RGFWDEF
+        #define RGFWDEF
+    #endif
 #endif
 
 #ifndef RGFWDEF
@@ -1789,7 +1796,7 @@ void RGFW_resetKeyPrev(void) {
     for (i = 0; i < RGFW_keyLast; i++) RGFW_keyboard[i].prev = 0;
 }
 RGFWDEF void RGFW_resetKey(void);
-void RGFW_resetKey(void) { memset(RGFW_keyboard, 0, sizeof(RGFW_keyboard)); }
+void RGFW_resetKey(void) { RGFW_MEMSET(RGFW_keyboard, 0, sizeof(RGFW_keyboard)); }
 /*
 	this is the end of keycode data
 */
@@ -4017,7 +4024,7 @@ i32 RGFW_init(void) {
 	XInitThreads(); /*!< init X11 threading */
     _RGFW.display = XOpenDisplay(0);
     XSetWindowAttributes wa;
-    memset(&wa, 0, sizeof(wa));
+    RGFW_MEMSET(&wa, 0, sizeof(wa));
     wa.event_mask = PropertyChangeMask;
     _RGFW.helperWindow = XCreateWindow(_RGFW.display, XDefaultRootWindow(_RGFW.display), 0, 0, 1, 1, 0, 0,
                                         InputOnly, DefaultVisual(_RGFW.display, DefaultScreen(_RGFW.display)), CWEventMask, &wa);
@@ -4034,7 +4041,7 @@ i32 RGFW_init(void) {
 
     XkbGetNames(_RGFW.display, XkbKeyNamesMask, desc);
 
-    memset(&rec, 0, sizeof(rec));
+    RGFW_MEMSET(&rec, 0, sizeof(rec));
     rec.keycodes = (char*)"evdev";
     evdesc = XkbGetKeyboardByName(_RGFW.display, XkbUseCoreKbd, &rec, XkbGBN_KeyNamesMask, XkbGBN_KeyNamesMask, False);
     /* memo: RGFW_keycodes[x11 keycode] = rgfw keycode */
@@ -4080,7 +4087,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
     /* make X window attrubutes */
 	XSetWindowAttributes swa;
-    memset(&swa, 0, sizeof(swa));
+    RGFW_MEMSET(&swa, 0, sizeof(swa));
 
 	Colormap cmap;
 	swa.colormap = cmap = XCreateColormap(win->src.display,
@@ -4960,7 +4967,7 @@ void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
 
     long flags;
 	XSizeHints hints;
-    memset(&hints, 0, sizeof(XSizeHints));
+    RGFW_MEMSET(&hints, 0, sizeof(XSizeHints));
 
 	XGetWMNormalHints(win->src.display, win->src.window, &hints, &flags);
 
@@ -4977,7 +4984,7 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 
     long flags;
 	XSizeHints hints;
-    memset(&hints, 0, sizeof(XSizeHints));
+    RGFW_MEMSET(&hints, 0, sizeof(XSizeHints));
 
 	XGetWMNormalHints(win->src.display, win->src.window, &hints, &flags);
 
@@ -5773,7 +5780,7 @@ wayland:
 
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
     RGFW_monitor mon;
-    memset(&mon, 0, sizeof(mon));
+    RGFW_MEMSET(&mon, 0, sizeof(mon));
 
     RGFW_ASSERT(win != NULL);
 	RGFW_GOTO_WAYLAND(1);
