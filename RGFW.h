@@ -4861,7 +4861,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	case ConfigureNotify: {
 		/* detect resize */
 		RGFW_window_checkMode(win);
-		if (E.xconfigure.width != win.->src.r.w || E.xconfigure.height != win->src.r.h) {
+		if (E.xconfigure.width != win->src.r.w || E.xconfigure.height != win->src.r.h) {
 			win->event.type = RGFW_windowResized;
 			win->src.r = win->r = RGFW_RECT(win->src.r.x, win->src.r.y, E.xconfigure.width, E.xconfigure.height);
 			RGFW_windowResizedCallback(win, win->r);
