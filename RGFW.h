@@ -229,7 +229,7 @@ int main() {
 #ifndef RGFW_STRTOL
 	/* required for X11 XDnD and X11 Monitor DPI */
 	#include <stdlib.h>
-    #define RGFW_STRTOL(str, endptr, base) strtol(str, endptr, base)
+	#define RGFW_STRTOL(str, endptr, base) strtol(str, endptr, base)
 	#define RGFW_ATOF(num) atof(num)
 #endif
 
@@ -260,11 +260,11 @@ int main() {
 #endif
 
 #ifndef RGFWDEF
-    #ifdef RGFW_C89
-        #define RGFWDEF __inline
-    #else
-    	#define RGFWDEF inline
-    #endif
+	#ifdef RGFW_C89
+		#define RGFWDEF __inline
+	#else
+		#define RGFWDEF inline
+	#endif
 #endif
 
 #ifndef RGFW_ENUM
@@ -284,15 +284,15 @@ int main() {
 #include <stddef.h>
 #ifndef RGFW_INT_DEFINED
 	#ifdef RGFW_USE_INT /* optional for any system that might not have stdint.h */
-		typedef unsigned char 	u8;
-		typedef signed char		i8;
-		typedef unsigned short  u16;
-		typedef signed short 	i16;
-		typedef unsigned long int 	u32;
-		typedef signed long int		i32;
-		typedef unsigned long long	u64;
-		typedef signed long long		i64;
-	#else /* use stdint standard types instead of c ""standard"" types */
+		typedef unsigned char       u8;
+		typedef signed char         i8;
+		typedef unsigned short     u16;
+		typedef signed short 	   i16;
+		typedef unsigned long int  u32;
+		typedef signed long int    i32;
+		typedef unsigned long long u64;
+		typedef signed long long   i64;
+	#else /* use stdint standard types instead of c "standard" types */
 		#include <stdint.h>
 
 		typedef uint8_t     u8;
@@ -304,7 +304,7 @@ int main() {
 		typedef uint64_t   u64;
 		typedef int64_t    i64;
 	#endif
-    #define RGFW_INT_DEFINED
+	#define RGFW_INT_DEFINED
 #endif
 
 #ifndef RGFW_BOOL_DEFINED
@@ -5146,7 +5146,7 @@ void RGFW_window_setName(RGFW_window* win, const char* name) {
 
     char buf[256];
     RGFW_MEMSET(buf, 0, sizeof(buf));
-    RGFW_STRNCPY(buf, name, sizeof(buf));
+    RGFW_STRNCPY(buf, name, sizeof(buf) - 1);
 
     XChangeProperty(
 		win->src.display, win->src.window, _NET_WM_NAME, RGFW_XUTF8_STRING,
@@ -5633,7 +5633,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	RGFW_splitBPP((u32)DefaultDepth(display, DefaultScreen(display)), &monitor.mode);
 
 	char* name = XDisplayName((const char*)display);
-	RGFW_STRNCPY(monitor.name, name, 128);
+	RGFW_STRNCPY(monitor.name, name, sizeof(monitor.name) - 1);
 
 	float dpi = XGetSystemContentDPI(display, screen);
 	monitor.pixelRatio = dpi >= 192.0f ? 2 : 1;
@@ -5665,7 +5665,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 		float physW = (float)info->mm_width / 25.4f;
 		float physH = (float)info->mm_height / 25.4f;
 
-		RGFW_STRNCPY(monitor.name, info->name, 128);
+		RGFW_STRNCPY(monitor.name, info->name, sizeof(monitor.name) - 1);
 
 	if ((u8)physW && (u8)physH) {
 		monitor.physW = physW;
