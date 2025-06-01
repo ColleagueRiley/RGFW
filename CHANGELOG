@@ -18,6 +18,9 @@ Release:    RGFW 1.7.5-dev
 - add RGFW_MEMSET
 - if `RGFW_EXPORT` or `RGFW_IMPORT` is defined, default to a blank RGFWDEF if RGFWDEF is not set
 - replace incorrect usage of `RGFW_MEMCPY` with `RGFW_STRNCPY`
+- have x11 resize events check an internal rect (fixes ignored resize event bug)
+- Fix keycode for Right Super key on Linux
+- fix issues with -Werror=stringop-truncation and alignment
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
