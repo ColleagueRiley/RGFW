@@ -4813,12 +4813,13 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			XFree(data);
 
 		if (version >= 2) {
-			XEvent new_reply = { ClientMessage };
-			new_reply.xclient.format = 32;
-			new_reply.xclient.message_type = XdndFinished;
+            XEvent new_reply = { ClientMessage };
+            new_reply.xclient.window = source;
+            new_reply.xclient.message_type = XdndFinished;
+            new_reply.xclient.format = 32;
 			new_reply.xclient.data.l[1] = (long int)result;
 			new_reply.xclient.data.l[2] = (long int)XdndActionCopy;
-    		XSendEvent(win->src.display, source, False, NoEventMask, &new_reply);
+            XSendEvent(win->src.display, source, False, NoEventMask, &new_reply);
 			XFlush(win->src.display);
 		}
 		break;
