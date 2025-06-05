@@ -1504,7 +1504,13 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_keyLast = 256 /* padding for alignment ~(175 by default) */
  };
 
+
+/*! converts api keycode to the RGFW unmapped/physical key */
 RGFWDEF u32 RGFW_apiKeyToRGFW(u32 keycode);
+/*! converts RGFW keycode to the unmapped/physical api key */
+RGFWDEF u32 RGFW_rgfwToApiKey(u32 keycode);
+/*! converts RGFW keycode to the mapped keychar */
+RGFWDEF u8 RGFW_rgfwToKeyChar(u32 keycode);
 
 typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	RGFW_mouseNormal = 0,
@@ -1626,11 +1632,6 @@ u64 RGFW_getTimeNS(void) {
 RGFW_IMPLEMENTATION starts with generic RGFW defines
 
 This is the start of keycode data
-
-	Why not use macros instead of the numbers itself?
-	Windows -> Not all scancodes keys are macros
-	Linux -> Only symcodes are values, (XK_0 - XK_1, XK_a - XK_z) are larger than 0xFF00, I can't find any way to work with them without making the array an unreasonable size
-	MacOS -> windows and linux already don't have keycodes as macros, so there's no point
 */
 
 
@@ -1649,6 +1650,8 @@ This is the start of keycode data
 #define RGFW_NEXT ;
 #define RGFW_MAP RGFW_keycodes
 #endif
+
+u32 RGFW_apiKeycodes[RGFW_keyLast] = { 0 };
 
 u8 RGFW_keycodes [RGFW_OS_BASED_VALUE(256, 512, 128, 256)] = {
 #if defined(__cplusplus) || defined(RGFW_C89)
@@ -1781,6 +1784,20 @@ u32 RGFW_apiKeyToRGFW(u32 keycode) {
 		return 0;
 
 	return RGFW_keycodes[keycode];
+}
+
+u32 RGFW_rgfwToApiKey(u32 keycode) {
+	if (RGFW_apiKeycodes[RGFW_backtick] != RGFW_OS_BASED_VALUE(49, 0x029, 50, DOM_VK_BACK_QUOTE)) {
+        for (size_t i = 0; i < RGFW_keyLast; i++) {
+            RGFW_apiKeycodes[RGFW_apiKeyToRGFW(i)] = i; 
+        }
+    }
+
+	/* make sure the key isn't out of bounds */
+	if (keycode > sizeof(RGFW_apiKeycodes) / sizeof(u32))
+		return 0;
+
+	return RGFW_apiKeycodes[keycode];
 }
 #endif /* RGFW_CUSTOM_BACKEND */
 
@@ -2421,11 +2438,11 @@ void RGFW_window_focusLost(RGFW_window* win) {
         if (RGFW_isPressed(NULL, (u8)key) == RGFW_FALSE) continue;
 	    RGFW_keyboard[key].current = RGFW_FALSE; 
 
-        u8 keysym = (u8)key; /* TODO: make this the actual keysym */
-        RGFW_keyCallback(win, (u8)key, keysym, win->event.keyMod, RGFW_FALSE);
+        u8 keyChar = RGFW_rgfwToKeyChar(key);
+        RGFW_keyCallback(win, (u8)key, keyChar, win->event.keyMod, RGFW_FALSE);
         RGFW_eventQueuePushEx(e.type = RGFW_keyReleased;
                             e.key = (u8)key;
-                            e.keyChar = (u8)key;
+                            e.keyChar = keyChar;
                             e.repeat = RGFW_FALSE;
                             e.keyMod = win->event.keyMod;
                             e._win = win);
@@ -4440,6 +4457,18 @@ char* RGFW_strtok(char* str, const char* delimStr) {
 
 i32 RGFW_XHandleClipboardSelectionHelper(void);
 
+
+u8 RGFW_rgfwToKeyChar(u32 keycode) {
+    KeySym sym = (KeySym)XkbKeycodeToKeysym(_RGFW.display, keycode, 0, (KeyCode)E.xkey.state & ShiftMask ? 1 : 0);
+
+    if ((E.xkey.state & LockMask) && sym >= XK_a && sym <= XK_z)
+        sym = (E.xkey.state & ShiftMask) ? sym + 32 : sym - 32;
+    if ((u8)sym != (u32)sym)
+        sym = 0;
+
+    return sym;
+}
+
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
     RGFW_XHandleClipboardSelectionHelper();
 
@@ -4500,13 +4529,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		/* set event key data */
 		win->event.key = (u8)RGFW_apiKeyToRGFW(E.xkey.keycode);
-		KeySym sym = (KeySym)XkbKeycodeToKeysym(win->src.display, (KeyCode)E.xkey.keycode, 0, (KeyCode)E.xkey.state & ShiftMask ? 1 : 0);
-
-		if ((E.xkey.state & LockMask) && sym >= XK_a && sym <= XK_z)
-			sym = (E.xkey.state & ShiftMask) ? sym + 32 : sym - 32;
-		if ((u8)sym != (u32)sym)
-			sym = 0;
-
 		win->event.keyChar = (u8)sym;
 
 		RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
@@ -7059,6 +7081,26 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 	MsgWaitForMultipleObjects(0, NULL, FALSE, (DWORD)waitMS, QS_ALLINPUT);
 }
 
+
+u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
+    u32 keycode = RGFW_apiKeyToRGFW(rgfw_keycode);
+
+    BYTE keyboardState[256];
+    wchar_t charBuffer[2] = {0};
+    int result;
+    
+    if (GetKeyboardState(keyboardState) == 0)
+        return 0;
+
+    UINT scanCode = MapVirtualKeyW(keycode, MAPVK_VK_TO_VSC);
+    HKL layout = GetKeyboardLayout(0);
+
+    if (ToUnicodeEx(keycode, scanCode, keyboardState,charBuffer, 2, 0, layout) <= 0)
+        return 0;
+
+    return (u8)charBuffer[0];
+}
+
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
     if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
     RGFW_event* ev = RGFW_window_checkEventCore(win);
@@ -9091,6 +9133,9 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 }
 
+u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
+}
+
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
     if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
 
@@ -10476,6 +10521,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new  window was created");
     return win;
+}
+
+u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
