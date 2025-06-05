@@ -21,6 +21,7 @@ Release:    RGFW 1.7.5-dev
 - have x11 resize events check an internal rect (fixes ignored resize event bug)
 - Fix keycode for Right Super key on Linux
 - fix issues with -Werror=stringop-truncation and alignment
+- fix xdnd ghost bug
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
