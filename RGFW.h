@@ -2411,6 +2411,27 @@ RGFW_bool RGFW_window_borderless(RGFW_window* win) {
 RGFW_bool RGFW_window_isFullscreen(RGFW_window* win){ return RGFW_BOOL(win->_flags & RGFW_windowFullscreen); }
 RGFW_bool RGFW_window_allowsDND(RGFW_window* win) { return RGFW_BOOL(win->_flags & RGFW_windowAllowDND); }
 
+void RGFW_window_focusLost(RGFW_window* win) {
+    /* standard routines for when a window looses focus */
+	_RGFW.root->_flags &= ~(u32)RGFW_windowFocus;
+	if ((win->_flags & RGFW_windowFullscreen))
+			RGFW_window_minimize(win);
+    
+    for (size_t key = 0; key < RGFW_keyLast; key++) {
+        if (RGFW_isPressed(NULL, (u8)key) == RGFW_FALSE) continue;
+	    RGFW_keyboard[key].current = RGFW_FALSE; 
+
+        u8 keysym = (u8)key; /* TODO: make this the actual keysym */
+        RGFW_keyCallback(win, (u8)key, keysym, win->event.keyMod, RGFW_FALSE);
+        RGFW_eventQueuePushEx(e.type = RGFW_keyReleased;
+                            e.key = (u8)key;
+                            e.keyChar = (u8)key;
+                            e.repeat = RGFW_FALSE;
+                            e.keyMod = win->event.keyMod;
+                            e._win = win);
+    }
+}
+
 #ifndef RGFW_WINDOWS
 void RGFW_window_setDND(RGFW_window* win, RGFW_bool allow) {
 	RGFW_setBit(&win->_flags, RGFW_windowAllowDND, allow);
@@ -3424,8 +3445,8 @@ void keyboard_leave (void *data, struct wl_keyboard *keyboard, uint32_t serial, 
 		RGFW_key_win = NULL;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_focusOut; e._win = win);
-	win->_flags &= ~(u32)RGFW_windowFocus;
 	RGFW_focusCallback(win, RGFW_FALSE);
+    RGFW_window_focusLost(0;)
 }
 void keyboard_key (void *data, struct wl_keyboard *keyboard, uint32_t serial, uint32_t time, uint32_t key, uint32_t state) {
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(time);
@@ -4837,12 +4858,9 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	    if ((win->_flags & RGFW_HOLD_MOUSE)) RGFW_window_mouseHold(win, RGFW_AREA(win->r.w, win->r.h));
         break;
 	case FocusOut:
-		if ((win->_flags & RGFW_windowFullscreen))
-			RGFW_window_minimize(win);
-
-		win->_flags &= ~(u32)RGFW_windowFocus;
-		win->event.type = RGFW_focusOut;
+        win->event.type = RGFW_focusOut;
 		RGFW_focusCallback(win, 0);
+        RGFW_window_focusLost(win);
 		break;
 	case PropertyNotify: RGFW_window_checkMode(win); break;
 	case EnterNotify: {
@@ -6294,6 +6312,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_eventQueuePushEx(e.type = (RGFW_eventType)((u8)RGFW_focusOut - inFocus); e._win = win);
 
 			RGFW_focusCallback(win, inFocus);
+            RGFW_window_focusLost(win);
 
 			if ((win->_flags & RGFW_windowFullscreen) == 0)
 				return DefWindowProcW(hWnd, message, wParam, lParam);
@@ -8625,8 +8644,8 @@ void RGFW__osxWindowResignKey(id self, SEL sel) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
-	win->_flags &= ~(u32)RGFW_windowFocus;
-	RGFW_eventQueuePushEx(e.type = RGFW_focusOut; e._win = win);
+    RGFW_window_focusLost();
+    RGFW_eventQueuePushEx(e.type = RGFW_focusOut; e._win = win);
 	RGFW_focusCallback(win, RGFW_FALSE);
 }
 
@@ -9924,8 +9943,8 @@ EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* E, voi
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(E);
 
 	RGFW_eventQueuePushEx(e.type = RGFW_focusOut; e._win = _RGFW.root);
-	_RGFW.root->_flags &= ~(u32)RGFW_windowFocus;
-	RGFW_focusCallback(_RGFW.root, 0);
+    RGFW_window_focusLost(window);
+    RGFW_focusCallback(_RGFW.root, 0);
     return EM_TRUE;
 }
 
