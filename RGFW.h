@@ -4116,6 +4116,10 @@ RGFW_WAYLAND_LABEL
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	RGFW_window_basic_init(win, rect, flags);
 
+#ifdef RGFW_X11
+    win->src.display = XOpenDisplay(NULL);
+#endif
+
 #ifdef RGFW_WAYLAND
 	win->src.compositor = NULL;
 #endif
@@ -4123,7 +4127,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 #ifdef RGFW_X11
 	i64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /*!< X11 events accepted */
 
-    win->src.display = XOpenDisplay(NULL);
     RGFW_window_getVisual(win, RGFW_BOOL(flags & RGFW_windowOpenglSoftware));
 
     /* make X window attrubutes */
@@ -4319,23 +4322,26 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 }
 
 RGFW_area RGFW_getScreenSize(void) {
-	RGFW_GOTO_WAYLAND(1);
+	RGFW_GOTO_WAYLAND(0);
 	RGFW_init();
 
 	#ifdef RGFW_X11
 	Screen* scrn = DefaultScreenOfDisplay(_RGFW.display);
 	return RGFW_AREA(scrn->width, scrn->height);
 	#endif
+
 	#ifdef RGFW_WAYLAND
 	RGFW_WAYLAND_LABEL return RGFW_AREA(_RGFW.root->r.w, _RGFW.root->r.h); /* TODO */
 	#endif
 }
 
 RGFW_point RGFW_getGlobalMousePoint(void) {
+	RGFW_GOTO_WAYLAND(0);
 	RGFW_init();
-	RGFW_point RGFWMouse;
 
 	#ifdef RGFW_X11
+	RGFW_point RGFWMouse;
+
 	i32 x, y;
 	u32 z;
 	Window window1, window2;
@@ -4344,7 +4350,11 @@ RGFW_point RGFW_getGlobalMousePoint(void) {
 
 	return RGFWMouse;
 	#endif
-	return RGFW_POINT(-1, -1);
+	
+	#ifdef RGFW_WAYLAND
+		RGFW_WAYLAND_LABEL
+		return RGFW_mouse_win->event.point;
+	#endif
 }
 
 
@@ -6066,9 +6076,9 @@ void RGFW_deinit(void) {
 void RGFW_window_close(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_freeOpenGL(win);
+	RGFW_GOTO_WAYLAND(0);
 
 	#ifdef RGFW_X11
-	RGFW_GOTO_WAYLAND(0);
 
     /* ungrab pointer if it was grabbed */
 	if (win->_flags & RGFW_HOLD_MOUSE)
