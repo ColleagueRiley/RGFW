@@ -10532,6 +10532,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 }
 
 u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
+    return (u8)rgfw_keycode; /* TODO */
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
