@@ -9996,7 +9996,7 @@ EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* E, voi
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(E);
 
 	RGFW_eventQueuePushEx(e.type = RGFW_focusOut; e._win = _RGFW.root);
-    RGFW_window_focusLost(window);
+    RGFW_window_focusLost(_RGFW.root);
     RGFW_focusCallback(_RGFW.root, 0);
     return EM_TRUE;
 }
