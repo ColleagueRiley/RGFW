@@ -3337,8 +3337,6 @@ void pointer_enter(void *data, struct wl_pointer *pointer, uint32_t serial, stru
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 	RGFW_mouse_win = win;
 
-	RGFW_mouse_win->_lastMousePoint = RGFW_POINT(wl_fixed_to_double(surface_x), wl_fixed_to_double(surface_y));
-
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseEnter;
 									e.point = RGFW_POINT(wl_fixed_to_double(surface_x), wl_fixed_to_double(surface_y));
 									e._win = win);
@@ -3361,8 +3359,6 @@ void pointer_leave(void *data, struct wl_pointer *pointer, uint32_t serial, stru
 void pointer_motion(void *data, struct wl_pointer *pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y) {
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(x); RGFW_UNUSED(y);
 
-	RGFW_mouse_win->_lastMousePoint = RGFW_POINT(wl_fixed_to_double(x), wl_fixed_to_double(y));
-
 	RGFW_ASSERT(RGFW_mouse_win != NULL);
 	RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
 									e.point = RGFW_POINT(wl_fixed_to_double(x), wl_fixed_to_double(y));
@@ -3384,7 +3380,7 @@ void pointer_button(void *data, struct wl_pointer *pointer, uint32_t serial, uin
 	RGFW_mouseButtons[b].current = RGFW_BOOL(state);
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonReleased - RGFW_BOOL(state);
-									e.point = RGFW_mouse_win->_lastMousePoint;
+									e.point = RGFW_mouse_win->event.point;
 									e.button = (u8)b;
 									e._win = RGFW_mouse_win);
 	RGFW_mouseButtonCallback(RGFW_mouse_win, (u8)b, 0, RGFW_BOOL(state));
@@ -3397,7 +3393,7 @@ void pointer_axis(void *data, struct wl_pointer *pointer, uint32_t time, uint32_
 	double scroll = - wl_fixed_to_double(value);
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonPressed;
-									e.point = RGFW_mouse_win->_lastMousePoint;
+									e.point = RGFW_mouse_win->event.point;
 									e.button = RGFW_mouseScrollUp + (scroll < 0);
 									e.scroll = scroll;
 									e._win = RGFW_mouse_win);
@@ -3466,21 +3462,27 @@ void keyboard_modifiers (void *data, struct wl_keyboard *keyboard, uint32_t seri
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(time);
 	xkb_state_update_mask (xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
 }
-struct wl_keyboard_listener keyboard_listener = {&keyboard_keymap, &keyboard_enter, &keyboard_leave, &keyboard_key, &keyboard_modifiers, (void (*)(void *, struct wl_keyboard *, 
-int,  int))&RGFW_doNothing};
+struct wl_keyboard_listener keyboard_listener = {
+	&keyboard_keymap,
+	&keyboard_enter,
+	&keyboard_leave,
+	&keyboard_key,
+	&keyboard_modifiers,
+	/* repeat_info */ (void (*)(void *, struct wl_keyboard *, int,  int))&RGFW_doNothing
+};
 
-struct wl_pointer_listener pointer_listener = (struct wl_pointer_listener){
+struct wl_pointer_listener pointer_listener = {
 	&pointer_enter,
 	&pointer_leave,
 	&pointer_motion,
 	&pointer_button,
 	&pointer_axis,
-	(void (*)(void *, struct wl_pointer *))&RGFW_doNothing,
-	(void (*)(void *, struct wl_pointer *, uint32_t))&RGFW_doNothing,
-	(void (*)(void *, struct wl_pointer *, uint32_t, uint32_t))&RGFW_doNothing,
-	(void (*)(void *, struct wl_pointer *, uint32_t, int32_t))&RGFW_doNothing,
-	(void (*)(void *, struct wl_pointer *, uint32_t, int32_t))&RGFW_doNothing,
-	(void (*)(void *, struct wl_pointer *, uint32_t, uint32_t))&RGFW_doNothing
+	/* frame */ (void (*)(void *, struct wl_pointer *))&RGFW_doNothing,
+	/* axis_source */ (void (*)(void *, struct wl_pointer *, uint32_t))&RGFW_doNothing,
+	/* axis_stop */ (void (*)(void *, struct wl_pointer *, uint32_t, uint32_t))&RGFW_doNothing,
+	/* axis_discrete */ (void (*)(void *, struct wl_pointer *, uint32_t, int32_t))&RGFW_doNothing,
+	/* axis_value120 */ (void (*)(void *, struct wl_pointer *, uint32_t, int32_t))&RGFW_doNothing,
+	/* axis_relative_direction */ (void (*)(void *, struct wl_pointer *, uint32_t, uint32_t))&RGFW_doNothing
 };
 
 void seat_capabilities (void *data, struct wl_seat *seat, uint32_t capabilities) {
@@ -5054,10 +5056,10 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 	#endif
 }
 
+#ifdef RGFW_X11
 void RGFW_toggleXMaximized(RGFW_window* win, RGFW_bool maximized);
 void RGFW_toggleXMaximized(RGFW_window* win, RGFW_bool maximized) {
 	RGFW_ASSERT(win != NULL);
-	#ifdef RGFW_X11
 	RGFW_LOAD_ATOM(_NET_WM_STATE);
 	RGFW_LOAD_ATOM(_NET_WM_STATE_MAXIMIZED_VERT);
 	RGFW_LOAD_ATOM(_NET_WM_STATE_MAXIMIZED_HORZ);
@@ -5074,16 +5076,13 @@ void RGFW_toggleXMaximized(RGFW_window* win, RGFW_bool maximized) {
 	xev.xclient.data.l[4] = 0;
 
 	XSendEvent(win->src.display, DefaultRootWindow(win->src.display), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
-	#endif
 
-	#ifdef RGFW_WAYLAND
-	abort(); // TODO: NYI
-	#endif
 }
+#endif
 
 void RGFW_window_maximize(RGFW_window* win) {
 	win->_oldRect = win->r;
-	#ifdef RGFW_WAYLAND
+	#ifndef RGFW_WAYLAND
 	RGFW_toggleXMaximized(win, 1);
 	#endif
 
@@ -5192,7 +5191,9 @@ void RGFW_window_minimize(RGFW_window* win) {
 
 void RGFW_window_restore(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
+	#ifndef RGFW_WAYLAND
 	RGFW_toggleXMaximized(win, 0);
+	#endif
 
 	win->r = win->_oldRect;
 	RGFW_window_move(win, RGFW_POINT(win->r.x, win->r.y));
