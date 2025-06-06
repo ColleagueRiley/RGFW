@@ -48,7 +48,7 @@ This library does not
 
 void keyfunc(RGFW_window* win, RGFW_key key, char keyChar, RGFW_keymod keyMod, RGFW_bool pressed) {
     if (key == RGFW_escape && pressed) {
-        RGFW_window_setShouldClose(win);
+        RGFW_window_setShouldClose(win, 1);
     }
 }
 
