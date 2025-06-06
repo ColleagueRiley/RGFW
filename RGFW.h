@@ -3337,6 +3337,8 @@ void pointer_enter(void *data, struct wl_pointer *pointer, uint32_t serial, stru
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 	RGFW_mouse_win = win;
 
+	RGFW_mouse_win->_lastMousePoint = RGFW_POINT(wl_fixed_to_double(surface_x), wl_fixed_to_double(surface_y));
+
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseEnter;
 									e.point = RGFW_POINT(wl_fixed_to_double(surface_x), wl_fixed_to_double(surface_y));
 									e._win = win);
@@ -3348,15 +3350,18 @@ void pointer_leave(void *data, struct wl_pointer *pointer, uint32_t serial, stru
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 	if (RGFW_mouse_win == win)
 		RGFW_mouse_win = NULL;
-
+	
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseLeave;
 									e.point = win->event.point;
 									e._win = win);
 
 	RGFW_mouseNotifyCallback(win,  win->event.point, RGFW_FALSE);
 }
+
 void pointer_motion(void *data, struct wl_pointer *pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y) {
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(x); RGFW_UNUSED(y);
+
+	RGFW_mouse_win->_lastMousePoint = RGFW_POINT(wl_fixed_to_double(x), wl_fixed_to_double(y));
 
 	RGFW_ASSERT(RGFW_mouse_win != NULL);
 	RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
@@ -3369,27 +3374,30 @@ void pointer_button(void *data, struct wl_pointer *pointer, uint32_t serial, uin
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(serial);
 	RGFW_ASSERT(RGFW_mouse_win != NULL);
 
-	u32 b = (button - 0x110) + 1;
+	u32 b = (button - 0x110);
 
 	/* flip right and middle button codes */
-	if (b == 2) b = 3;
-	else if (b == 3) b = 2;
+	if (b == 1) b = 2;
+	else if (b == 2) b = 1;
 
 	RGFW_mouseButtons[b].prev = RGFW_mouseButtons[b].current;
 	RGFW_mouseButtons[b].current = RGFW_BOOL(state);
 
-	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonPressed + RGFW_BOOL(state);
+	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonReleased - RGFW_BOOL(state);
+									e.point = RGFW_mouse_win->_lastMousePoint;
 									e.button = (u8)b;
 									e._win = RGFW_mouse_win);
 	RGFW_mouseButtonCallback(RGFW_mouse_win, (u8)b, 0, RGFW_BOOL(state));
 }
+
 void pointer_axis(void *data, struct wl_pointer *pointer, uint32_t time, uint32_t axis, wl_fixed_t value) {
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time);  RGFW_UNUSED(axis);
 	RGFW_ASSERT(RGFW_mouse_win != NULL);
 
-	double scroll = wl_fixed_to_double(value);
+	double scroll = - wl_fixed_to_double(value);
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonPressed;
+									e.point = RGFW_mouse_win->_lastMousePoint;
 									e.button = RGFW_mouseScrollUp + (scroll < 0);
 									e.scroll = scroll;
 									e._win = RGFW_mouse_win);
