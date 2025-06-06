@@ -1,4 +1,4 @@
-.TH "md_README" 3 "Thu Jun 5 2025" "RGFW" \" -*- nroff -*-
+.TH "md_README" 3 "Fri Jun 6 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -45,7 +45,7 @@ This library does not
 
 void keyfunc(RGFW_window* win, RGFW_key key, char keyChar, RGFW_keymod keyMod, RGFW_bool pressed) {
     if (key == RGFW_escape && pressed) {
-        RGFW_window_setShouldClose(win);
+        RGFW_window_setShouldClose(win, 1);
     }
 }
 
