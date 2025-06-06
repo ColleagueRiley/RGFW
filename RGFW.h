@@ -1788,8 +1788,8 @@ u32 RGFW_apiKeyToRGFW(u32 keycode) {
 
 u32 RGFW_rgfwToApiKey(u32 keycode) {
 	if (RGFW_apiKeycodes[RGFW_backtick] != RGFW_OS_BASED_VALUE(49, 0x029, 50, DOM_VK_BACK_QUOTE)) {
-        for (size_t i = 0; i < RGFW_keyLast; i++) {
-            RGFW_apiKeycodes[RGFW_apiKeyToRGFW(i)] = i; 
+        for (u32 i = 0; i < RGFW_keyLast; i++) {
+            RGFW_apiKeycodes[i] = RGFW_rgfwToApiKey(i); 
         }
     }
 
@@ -2438,7 +2438,7 @@ void RGFW_window_focusLost(RGFW_window* win) {
         if (RGFW_isPressed(NULL, (u8)key) == RGFW_FALSE) continue;
 	    RGFW_keyboard[key].current = RGFW_FALSE; 
 
-        u8 keyChar = RGFW_rgfwToKeyChar(key);
+        u8 keyChar = RGFW_rgfwToKeyChar((u32)key);
         RGFW_keyCallback(win, (u8)key, keyChar, win->event.keyMod, RGFW_FALSE);
         RGFW_eventQueuePushEx(e.type = RGFW_keyReleased;
                             e.key = (u8)key;
@@ -4458,15 +4458,23 @@ char* RGFW_strtok(char* str, const char* delimStr) {
 i32 RGFW_XHandleClipboardSelectionHelper(void);
 
 
-u8 RGFW_rgfwToKeyChar(u32 keycode) {
-    KeySym sym = (KeySym)XkbKeycodeToKeysym(_RGFW.display, keycode, 0, (KeyCode)E.xkey.state & ShiftMask ? 1 : 0);
+u8 RGFW_rgfwToKeyChar(u32 key) {
+    u32 keycode = RGFW_rgfwToApiKey(key);
 
-    if ((E.xkey.state & LockMask) && sym >= XK_a && sym <= XK_z)
-        sym = (E.xkey.state & ShiftMask) ? sym + 32 : sym - 32;
+    Window root = DefaultRootWindow(_RGFW.display);
+    Window ret_root, ret_child;
+    int root_x, root_y, win_x, win_y;
+    unsigned int mask;
+
+    XQueryPointer(_RGFW.display, root, &ret_root, &ret_child, &root_x, &root_y, &win_x, &win_y, &mask);
+    KeySym sym = (KeySym)XkbKeycodeToKeysym(_RGFW.display, (KeyCode)keycode, 0, (KeyCode)mask & ShiftMask ? 1 : 0);
+
+    if ((mask & LockMask) && sym >= XK_a && sym <= XK_z)
+        sym = (mask & ShiftMask) ? sym + 32 : sym - 32;
     if ((u8)sym != (u32)sym)
         sym = 0;
 
-    return sym;
+    return (u8)sym;
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
@@ -4529,7 +4537,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		/* set event key data */
 		win->event.key = (u8)RGFW_apiKeyToRGFW(E.xkey.keycode);
-		win->event.keyChar = (u8)sym;
+		win->event.keyChar = (u8)RGFW_rgfwToKeyChar(win->event.key);
 
 		RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
 
@@ -7087,7 +7095,6 @@ u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
 
     BYTE keyboardState[256];
     wchar_t charBuffer[2] = {0};
-    int result;
     
     if (GetKeyboardState(keyboardState) == 0)
         return 0;
