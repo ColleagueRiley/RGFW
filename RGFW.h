@@ -8693,7 +8693,7 @@ void RGFW__osxWindowResignKey(id self, SEL sel) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
-    RGFW_window_focusLost();
+    RGFW_window_focusLost(win);
     RGFW_eventQueuePushEx(e.type = RGFW_focusOut; e._win = win);
 	RGFW_focusCallback(win, RGFW_FALSE);
 }
@@ -9141,6 +9141,7 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 }
 
 u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
+    return (u8)rgfw_keycode; /* TODO */
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
