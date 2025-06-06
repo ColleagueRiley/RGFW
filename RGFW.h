@@ -3461,21 +3461,22 @@ void keyboard_modifiers (void *data, struct wl_keyboard *keyboard, uint32_t seri
 struct wl_keyboard_listener keyboard_listener = {&keyboard_keymap, &keyboard_enter, &keyboard_leave, &keyboard_key, &keyboard_modifiers, (void (*)(void *, struct wl_keyboard *, 
 int,  int))&RGFW_doNothing};
 
+struct wl_pointer_listener pointer_listener = (struct wl_pointer_listener){
+	&pointer_enter,
+	&pointer_leave,
+	&pointer_motion,
+	&pointer_button,
+	&pointer_axis,
+	(void (*)(void *, struct wl_pointer *))&RGFW_doNothing,
+	(void (*)(void *, struct wl_pointer *, uint32_t))&RGFW_doNothing,
+	(void (*)(void *, struct wl_pointer *, uint32_t, uint32_t))&RGFW_doNothing,
+	(void (*)(void *, struct wl_pointer *, uint32_t, int32_t))&RGFW_doNothing,
+	(void (*)(void *, struct wl_pointer *, uint32_t, int32_t))&RGFW_doNothing,
+	(void (*)(void *, struct wl_pointer *, uint32_t, uint32_t))&RGFW_doNothing
+};
+
 void seat_capabilities (void *data, struct wl_seat *seat, uint32_t capabilities) {
 	RGFW_UNUSED(data);
-    struct wl_pointer_listener pointer_listener = (struct wl_pointer_listener){
-		&pointer_enter,
-		&pointer_leave,
-		&pointer_motion,
-		&pointer_button,
-		&pointer_axis,
-		(void (*)(void *, struct wl_pointer *))&RGFW_doNothing,
-		(void (*)(void *, struct wl_pointer *, uint32_t))&RGFW_doNothing,
-		(void (*)(void *, struct wl_pointer *, uint32_t, uint32_t))&RGFW_doNothing,
-		(void (*)(void *, struct wl_pointer *, uint32_t, int32_t))&RGFW_doNothing,
-		(void (*)(void *, struct wl_pointer *, uint32_t, int32_t))&RGFW_doNothing,
-		(void (*)(void *, struct wl_pointer *, uint32_t, uint32_t))&RGFW_doNothing
-	};
 
 	if (capabilities & WL_SEAT_CAPABILITY_POINTER) {
 		struct wl_pointer *pointer = wl_seat_get_pointer (seat);
