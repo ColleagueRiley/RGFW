@@ -1,13 +1,11 @@
 - look into using a single X11 display rather than one display per window
 - update wayland support (wayland is sus)
 - ablity to create an RGFW window from an existing window 
-- unfocusing unholds the mouse, make it so refocusing grabs the mouse again (if it's supposed to be held) (may only be a windows issue)
 - Xrandr reporting unused monitor as the window's monitor 
+- look into a function like `RGFW_isGLSoftware` to check if WGL/GLX/EGL/etc is using a software rendering driver 
 
 (extra stuff)
 - look into monitor gamma
-- set gamepad mappings
-- set gamepad rumble
 - clipboard images
 - IME support 
 - webGL support (x11) (winapi) (macos ?) web (review))

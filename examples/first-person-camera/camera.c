@@ -11,7 +11,7 @@ RGFWDEF void update_camera(void);
 RGFWDEF void glPerspective(float fovY, float aspect, float zNear, float zFar);
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("First person camera", RGFW_RECT(0, 0, 800, 450), RGFW_windowCenter | RGFW_windowNoResize );
+    RGFW_window* win = RGFW_createWindow("First person camera", RGFW_RECT(0, 0, 800, 450), RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowFocusOnShow);
 
     RGFW_window_showMouse(win, 0);
     glEnable(GL_DEPTH_TEST);
@@ -44,7 +44,7 @@ int main(void) {
 
     u32 frames = 0;
     float frameStartTime = RGFW_getTime();
-
+    
     while (RGFW_window_shouldClose(win) == 0) {
         while (RGFW_window_checkEvent(win)) {
             if (win->event.type == RGFW_quit)
@@ -52,7 +52,6 @@ int main(void) {
 
             switch (win->event.type) {
                 case RGFW_focusIn:
-                    RGFW_window_mouseUnhold(win);
                     RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
                     break;
                case RGFW_mousePosChanged: {      

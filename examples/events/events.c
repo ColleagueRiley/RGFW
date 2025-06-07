@@ -12,14 +12,15 @@ int main(void) {
 
         RGFW_window_swapBuffers(win);	
         RGFW_window_eventWait(win, RGFW_eventWaitNext);
+
         while (RGFW_window_checkEvent(win)) {
             switch (win->event.type) {
                 case RGFW_quit: printf("window closed\n"); break;
                 case RGFW_keyPressed:
-                    printf("Key pressed\n");
+                    printf("Key pressed %c\n", win->event.keyChar);
                     break;
                 case RGFW_keyReleased:
-                    printf("Key released\n");
+                    printf("Key released %c\n", RGFW_rgfwToKeyChar(win->event.key));
                     break;
                 case RGFW_mouseButtonPressed:
                     printf("mouse button pressed\n");
