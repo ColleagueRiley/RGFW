@@ -102,7 +102,7 @@ a very simple example</h2>
 <div class="line"> </div>
 <div class="line"><span class="preprocessor">#include &lt;stdio.h&gt;</span></div>
 <div class="line"> </div>
-<div class="line"><span class="keywordtype">void</span> keyfunc(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_define" href="RGFW_8h.html#a1cbe04bf82e1c9996c1eda21b7ac498f">RGFW_key</a> key, <span class="keywordtype">char</span> keyChar, RGFW_keymod keyMod, <a class="code hl_typedef" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> pressed) {</div>
+<div class="line"><span class="keywordtype">void</span> keyfunc(<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win, <a class="code hl_define" href="RGFW_8h.html#a1cbe04bf82e1c9996c1eda21b7ac498f">RGFW_key</a> key, <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> keyChar, RGFW_keymod keyMod, <a class="code hl_typedef" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> pressed) {</div>
 <div class="line">    <span class="keywordflow">if</span> (key == RGFW_escape &amp;&amp; pressed) {</div>
 <div class="line">        <a class="code hl_function" href="group__Window__management.html#ga98edf96a90a0f218afeb01908be28fbb">RGFW_window_setShouldClose</a>(win, 1);</div>
 <div class="line">    }</div>
@@ -133,9 +133,9 @@ a very simple example</h2>
 <div class="line"> </div>
 <div class="line">        <span class="comment">// You can use modern OpenGL techniques, but this method is more straightforward for drawing just one triangle.</span></div>
 <div class="line">        glBegin(GL_TRIANGLES);</div>
-<div class="line">        glColor3f(1, 0, 0); glVertex2f(-0.6, -0.75);</div>
-<div class="line">        glColor3f(0, 1, 0); glVertex2f(0.6, -0.75);</div>
-<div class="line">        glColor3f(0, 0, 1); glVertex2f(0, 0.75);</div>
+<div class="line">        glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.6f, -0.75f);</div>
+<div class="line">        glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.6f, -0.75f);</div>
+<div class="line">        glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);</div>
 <div class="line">        glEnd();</div>
 <div class="line"> </div>
 <div class="line">        <a class="code hl_function" href="group__graphics__API.html#ga986713977b14a729d11b228cfe7a1776">RGFW_window_swapBuffers</a>(win);</div>
@@ -149,6 +149,7 @@ a very simple example</h2>
 <div class="ttc" id="aRGFW_8h_html_a2de5caedcb0adb5dc80d9f23758e0599"><div class="ttname"><a href="RGFW_8h.html#a2de5caedcb0adb5dc80d9f23758e0599">RGFW_RECT</a></div><div class="ttdeci">#define RGFW_RECT(x, y, w, h)</div><div class="ttdef"><b>Definition:</b> RGFW.h:587</div></div>
 <div class="ttc" id="aRGFW_8h_html_a505be7338d9652fbd907b56aa9673c0c"><div class="ttname"><a href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a></div><div class="ttdeci">#define RGFW_FALSE</div><div class="ttdef"><b>Definition:</b> RGFW.h:317</div></div>
 <div class="ttc" id="aRGFW_8h_html_a5875a02d0e0e933b07afbe7b20941c0b"><div class="ttname"><a href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a></div><div class="ttdeci">u8 RGFW_bool</div><div class="ttdef"><b>Definition:</b> RGFW.h:312</div></div>
+<div class="ttc" id="aRGFW_8h_html_a92c50087ca0e64fa93fc59402c55f8ca"><div class="ttname"><a href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a></div><div class="ttdeci">uint8_t u8</div><div class="ttdef"><b>Definition:</b> RGFW.h:298</div></div>
 <div class="ttc" id="agroup__Callbacks_html_gaade2b5b8ca4d3e0d3e3fe219ff9e2795"><div class="ttname"><a href="group__Callbacks.html#gaade2b5b8ca4d3e0d3e3fe219ff9e2795">RGFW_setKeyCallback</a></div><div class="ttdeci">RGFWDEF RGFW_keyfunc RGFW_setKeyCallback(RGFW_keyfunc func)</div></div>
 <div class="ttc" id="agroup__Input_html_ga730c6f8a9a8815c2f02288ccf51d41ad"><div class="ttname"><a href="group__Input.html#ga730c6f8a9a8815c2f02288ccf51d41ad">RGFW_isMousePressed</a></div><div class="ttdeci">RGFWDEF RGFW_bool RGFW_isMousePressed(RGFW_window *win, RGFW_mouseButton button)</div></div>
 <div class="ttc" id="agroup__Window__management_html_ga98edf96a90a0f218afeb01908be28fbb"><div class="ttname"><a href="group__Window__management.html#ga98edf96a90a0f218afeb01908be28fbb">RGFW_window_setShouldClose</a></div><div class="ttdeci">RGFWDEF void RGFW_window_setShouldClose(RGFW_window *win, RGFW_bool shouldClose)</div></div>
