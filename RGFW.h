@@ -1789,7 +1789,12 @@ u32 RGFW_apiKeyToRGFW(u32 keycode) {
 u32 RGFW_rgfwToApiKey(u32 keycode) {
 	if (RGFW_apiKeycodes[RGFW_backtick] != RGFW_OS_BASED_VALUE(49, 0x029, 50, DOM_VK_BACK_QUOTE)) {
         for (u32 i = 0; i < RGFW_keyLast; i++) {
-            RGFW_apiKeycodes[i] = RGFW_rgfwToApiKey(i); 
+            for (u32 y = 0; y < sizeof(RGFW_keycodes); y++) {
+                if (RGFW_keycodes[y] == i) {
+                    RGFW_apiKeycodes[i] = y;
+                    break;
+                }
+            }
         }
     }
 
@@ -2437,7 +2442,7 @@ void RGFW_window_focusLost(RGFW_window* win) {
     for (size_t key = 0; key < RGFW_keyLast; key++) {
         if (RGFW_isPressed(NULL, (u8)key) == RGFW_FALSE) continue;
 	    RGFW_keyboard[key].current = RGFW_FALSE; 
-
+        
         u8 keyChar = RGFW_rgfwToKeyChar((u32)key);
         RGFW_keyCallback(win, (u8)key, keyChar, win->event.keyMod, RGFW_FALSE);
         RGFW_eventQueuePushEx(e.type = RGFW_keyReleased;
@@ -2447,6 +2452,8 @@ void RGFW_window_focusLost(RGFW_window* win) {
                             e.keyMod = win->event.keyMod;
                             e._win = win);
     }
+    
+    RGFW_resetKey();
 }
 
 #ifndef RGFW_WINDOWS
@@ -3451,7 +3458,6 @@ void keyboard_enter (void *data, struct wl_keyboard *keyboard, uint32_t serial, 
 	RGFW_eventQueuePushEx(e.type = RGFW_focusIn, e._win = RGFW_key_win);
 	RGFW_focusCallback(RGFW_key_win, RGFW_TRUE);
 
-	RGFW_resetKey();
 	if ((win->_flags & RGFW_HOLD_MOUSE)) RGFW_window_mouseHold(win, RGFW_AREA(win->r.w, win->r.h));
 }
 void keyboard_leave (void *data, struct wl_keyboard *keyboard, uint32_t serial, struct wl_surface *surface) {
@@ -4465,7 +4471,6 @@ u8 RGFW_rgfwToKeyChar(u32 key) {
     Window ret_root, ret_child;
     int root_x, root_y, win_x, win_y;
     unsigned int mask;
-
     XQueryPointer(_RGFW.display, root, &ret_root, &ret_child, &root_x, &root_y, &win_x, &win_y, &mask);
     KeySym sym = (KeySym)XkbKeycodeToKeysym(_RGFW.display, (KeyCode)keycode, 0, (KeyCode)mask & ShiftMask ? 1 : 0);
 
@@ -4884,7 +4889,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		RGFW_focusCallback(win, 1);
 
 
-	    RGFW_resetKey();
 	    if ((win->_flags & RGFW_HOLD_MOUSE)) RGFW_window_mouseHold(win, RGFW_AREA(win->r.w, win->r.h));
         break;
 	case FocusOut:
@@ -7091,21 +7095,27 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 
 
 u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
-    u32 keycode = RGFW_apiKeyToRGFW(rgfw_keycode);
-
+    u32 lParam = RGFW_rgfwToApiKey(rgfw_keycode);
+    u32 wParam = RGFW_rgfwToApiKey(rgfw_keycode);
+	
     BYTE keyboardState[256];
-    wchar_t charBuffer[2] = {0};
+	GetKeyboardState(keyboardState);
     
-    if (GetKeyboardState(keyboardState) == 0)
-        return 0;
+    i32 scancode = (HIWORD(lParam) & (KF_EXTENDED | 0xff));
+    if (scancode == 0)
+        scancode = (i32)MapVirtualKeyW((UINT)wParam, MAPVK_VK_TO_VSC);
 
-    UINT scanCode = MapVirtualKeyW(keycode, MAPVK_VK_TO_VSC);
-    HKL layout = GetKeyboardLayout(0);
+    switch (scancode) {
+        case 0x54: scancode = 0x137; break; /*  Alt+PrtS */
+        case 0x146: scancode = 0x45; break; /* Ctrl+Pause */
+        case 0x136: scancode = 0x36; break; /*  CJK IME sets the extended bit for right Shift */
+        default: break;
+    }
 
-    if (ToUnicodeEx(keycode, scanCode, keyboardState,charBuffer, 2, 0, layout) <= 0)
-        return 0;
+    wchar_t charBuffer;
+    ToUnicodeEx((UINT)wParam, (UINT)scancode, keyboardState, (wchar_t*)&charBuffer, 1, 0, NULL);
 
-    return (u8)charBuffer[0];
+    return (u8)charBuffer;
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
@@ -8683,7 +8693,6 @@ void RGFW__osxWindowBecameKey(id self, SEL sel) {
 
 	RGFW_focusCallback(win, RGFW_TRUE);
 
-	RGFW_resetKey();
 	if ((win->_flags & RGFW_HOLD_MOUSE)) RGFW_window_mouseHold(win, RGFW_AREA(win->r.w, win->r.h));
 }
 
@@ -9987,7 +9996,6 @@ EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void
 	_RGFW.root->_flags |= RGFW_windowFocus;
 	RGFW_focusCallback(_RGFW.root, 1);
 
-	RGFW_resetKey();
 	if ((_RGFW.root->_flags & RGFW_HOLD_MOUSE)) RGFW_window_mouseHold(_RGFW.root, RGFW_AREA(_RGFW.root->r.w, _RGFW.root->r.h));
     return EM_TRUE;
 }
