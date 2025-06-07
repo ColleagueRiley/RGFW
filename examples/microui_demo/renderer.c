@@ -167,7 +167,7 @@ void r_set_clip_rect(mu_Rect rect) {
 
 void r_clear(mu_Color clr) {
   flush();
-  glClearColor(clr.r / 255., clr.g / 255., clr.b / 255., clr.a / 255.);
+  glClearColor(clr.r / 255.0f, clr.g / 255.0f, clr.b / 255.0f, clr.a / 255.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
