@@ -79,7 +79,7 @@ void drawRect(int cx, int cy, int width, int height, RGFW_window* w) {
         glVertex2f(RFONT_GET_WORLD(cx + width, cy + height));
         glVertex2f(RFONT_GET_WORLD(cx + width, cy));
     glEnd();
-    glColor3f(0.3, 0.3, 0.3);
+    glColor3f(0.3f, 0.3f, 0.3f);
 }
 
 
@@ -107,16 +107,16 @@ void drawLine(int cx, int cy, int x2, int y2, RGFW_window* w) {
 
 void colorIfPressed(RGFW_window* win, size_t gamepad, u32 button) {
     if (RGFW_isPressedGamepad(win, gamepad, button))
-        glColor3f(0.8, 0, 0);
+        glColor3f(0.8f, 0.0f, 0.0f);
     else 
-        glColor3f(0.3, 0.3, 0.3);
+        glColor3f(0.3f, 0.3f, 0.3f);
 }
 
 void drawGamepad(RGFW_window* w, size_t gamepad) {
     glClear(GL_COLOR_BUFFER_BIT);
-    glClearColor(0.8, 0.8, 0.8, 1.0);  
+    glClearColor(0.8f, 0.8f, 0.8f, 1.0f);  
 
-    glColor3f(0.00, 0.00, 0.00);
+    glColor3f(0.0f, 0.0f, 0.0f);
     if (gamepad == 3) {
         RGFW_rect r = {w->r.w - 100 + 20, w->r.h - 100, 50, 80};
         drawRect(r.x - 20, r.y, 2, r.h, w);
@@ -128,7 +128,7 @@ void drawGamepad(RGFW_window* w, size_t gamepad) {
             drawRect(w->r.w - 100 + (i * 20), w->r.h - 100, 2, 80, w);
     }
 
-    glColor3f(0.05, 0.05, 0.05);
+    glColor3f(0.05f, 0.05f, 0.05f);
 
     #ifndef __EMSCRIPTEN__
     glBegin(GL_POLYGON);
@@ -145,7 +145,7 @@ void drawGamepad(RGFW_window* w, size_t gamepad) {
     drawRect(200, 45, 400, 300, w);
     #endif
 
-    glColor3f(0.3, 0.3, 0.3);
+    glColor3f(0.3f, 0.3f, 0.3f);
 
     colorIfPressed(w, gamepad, RGFW_gamepadStart);
     drawCircle(436, 150, 9, w);
@@ -184,26 +184,26 @@ void drawGamepad(RGFW_window* w, size_t gamepad) {
     RGFW_point rightStick = RGFW_getGamepadAxis(w, gamepad, 1);
 
     // Draw axis: left joystick
-    glColor3f(0.3, 0.3, 0.3);
+    glColor3f(0.3f, 0.3f, 0.3f);
     drawCircle(259, 152, 33, w);
-    glColor3f(0.2, 0.2, 0.2);
+    glColor3f(0.2f, 0.2f, 0.2f);
 
-    if (RGFW_isPressedGamepad(w, gamepad, RGFW_gamepadL3))  glColor3f(0.3, 0, 0);
-    else  glColor3f(0.2, 0.2, 0.2);
+    if (RGFW_isPressedGamepad(w, gamepad, RGFW_gamepadL3))  glColor3f(0.3f, 0.0f, 0.0f);
+    else  glColor3f(0.2f, 0.2f, 0.2f);
     drawCircle(259 + (int)(((float)leftStick.x / 100.0f) * 20),
                 152 + (int)(((float)leftStick.y / 100.0f) * 20), 25, w);
 
     // Draw axis: right joystick
-    glColor3f(0.3, 0.3, 0.3);
+    glColor3f(0.3f, 0.3f, 0.3f);
     drawCircle(461, 237, 33, w);
 
-    if (RGFW_isPressedGamepad(w, gamepad, RGFW_gamepadR3))  glColor3f(0.3, 0, 0);
-    else  glColor3f(0.2, 0.2, 0.2);
+    if (RGFW_isPressedGamepad(w, gamepad, RGFW_gamepadR3))  glColor3f(0.3f, 0.0f, 0.0f);
+    else  glColor3f(0.2f, 0.2f, 0.2f);
 
     drawCircle(461 + (int)(((float)rightStick.x / 100.0f) * 20),
                 237 + (int)(((float)rightStick.y / 100.0f) * 20), 25, w);
 
-    glColor3f(0.3, 0.3, 0.3);
+    glColor3f(0.3f, 0.3f, 0.3f);
 
     // Draw axis: left-right triggers
     colorIfPressed(w, gamepad, RGFW_gamepadL2);

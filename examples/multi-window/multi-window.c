@@ -59,7 +59,7 @@ void* loop(void* _win) {
 			blue = (blue + 1) % 100;
 		}
 
-		glClearColor(0.0, 0.0, (float)blue * 0.01f, 1.0);
+		glClearColor(0.0f, 0.0f, (float)blue * 0.01f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 		glBegin(GL_TRIANGLES);
