@@ -1443,9 +1443,9 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_period = '.',
 	RGFW_comma = ',',
 	RGFW_slash = '/',
-	RGFW_bracket = '{',
-	RGFW_closeBracket = '}',
-	RGFW_semicolon = ';',
+	RGFW_bracket = '[',
+    RGFW_closeBracket = ']',   
+    RGFW_semicolon = ';',
 	RGFW_apostrophe = '\'',
 	RGFW_backSlash = '\\',
 	RGFW_return = '\n',
@@ -7093,29 +7093,23 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 	MsgWaitForMultipleObjects(0, NULL, FALSE, (DWORD)waitMS, QS_ALLINPUT);
 }
 
-
 u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
-    u32 lParam = RGFW_rgfwToApiKey(rgfw_keycode);
-    u32 wParam = RGFW_rgfwToApiKey(rgfw_keycode);
-	
-    BYTE keyboardState[256];
-	GetKeyboardState(keyboardState);
-    
-    i32 scancode = (HIWORD(lParam) & (KF_EXTENDED | 0xff));
-    if (scancode == 0)
-        scancode = (i32)MapVirtualKeyW((UINT)wParam, MAPVK_VK_TO_VSC);
+    UINT vk = RGFW_rgfwToApiKey(rgfw_keycode);  // Should return a Windows VK_* code
+    BYTE keyboardState[256] = {0};
 
-    switch (scancode) {
-        case 0x54: scancode = 0x137; break; /*  Alt+PrtS */
-        case 0x146: scancode = 0x45; break; /* Ctrl+Pause */
-        case 0x136: scancode = 0x36; break; /*  CJK IME sets the extended bit for right Shift */
-        default: break;
-    }
+    if (!GetKeyboardState(keyboardState))
+        return 0;
 
-    wchar_t charBuffer;
-    ToUnicodeEx((UINT)wParam, (UINT)scancode, keyboardState, (wchar_t*)&charBuffer, 1, 0, NULL);
+    UINT scancode = MapVirtualKeyW(vk, MAPVK_VSC_TO_VK);
+    HKL layout = GetKeyboardLayout(0);
 
-    return (u8)charBuffer;
+    wchar_t charBuffer[2] = {0};
+    int result = ToUnicodeEx(scancode, vk, keyboardState, charBuffer, 1, 0, layout);
+
+    if (result <= 0)
+        return 0;
+
+    return (u8)charBuffer[0];
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
