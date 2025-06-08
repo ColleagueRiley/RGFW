@@ -1443,9 +1443,9 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_period = '.',
 	RGFW_comma = ',',
 	RGFW_slash = '/',
-	RGFW_bracket = '{',
-	RGFW_closeBracket = '}',
-	RGFW_semicolon = ';',
+	RGFW_bracket = '[',
+    RGFW_closeBracket = ']',   
+    RGFW_semicolon = ';',
 	RGFW_apostrophe = '\'',
 	RGFW_backSlash = '\\',
 	RGFW_return = '\n',
@@ -1788,8 +1788,13 @@ u32 RGFW_apiKeyToRGFW(u32 keycode) {
 
 u32 RGFW_rgfwToApiKey(u32 keycode) {
 	if (RGFW_apiKeycodes[RGFW_backtick] != RGFW_OS_BASED_VALUE(49, 0x029, 50, DOM_VK_BACK_QUOTE)) {
-        for (size_t i = 0; i < RGFW_keyLast; i++) {
-            RGFW_apiKeycodes[RGFW_apiKeyToRGFW(i)] = i; 
+        for (u32 i = 0; i < RGFW_keyLast; i++) {
+            for (u32 y = 0; y < sizeof(RGFW_keycodes); y++) {
+                if (RGFW_keycodes[y] == i) {
+                    RGFW_apiKeycodes[i] = y;
+                    break;
+                }
+            }
         }
     }
 
@@ -1981,7 +1986,7 @@ RGFW_globalStruct _RGFW;
 void RGFW_eventQueuePush(RGFW_event event) {
 	if (_RGFW.eventLen >= RGFW_MAX_EVENTS) return;
 	_RGFW.events[_RGFW.eventLen] = event;
-	_RGFW.eventLen++;
+    _RGFW.eventLen++;
 }
 
 RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
@@ -1990,18 +1995,19 @@ RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
 
 	ev = (RGFW_event*)&_RGFW.events[_RGFW.eventIndex];
 
-	_RGFW.eventLen--;
-	if (_RGFW.eventLen && _RGFW.eventIndex < (_RGFW.eventLen - 1))
+    _RGFW.eventLen--;
+    if (_RGFW.eventLen >= 0 && _RGFW.eventIndex < _RGFW.eventLen) {
 		_RGFW.eventIndex++;
-	else if (_RGFW.eventLen == 0)
-		_RGFW.eventIndex = 0;
+    } else if (_RGFW.eventLen == 0) {
+        _RGFW.eventIndex = 0;
+    }
 
 	if (ev->_win != win && ev->_win != NULL) {
-		RGFW_eventQueuePush(*ev);
-		return NULL;
+        RGFW_eventQueuePush(*ev);
+        return NULL;
 	}
 
-	ev->droppedFilesCount = win->event.droppedFilesCount;
+    ev->droppedFilesCount = win->event.droppedFilesCount;
 	ev->droppedFiles = win->event.droppedFiles;
 	return ev;
 }
@@ -2027,7 +2033,7 @@ RGFW_event* RGFW_window_checkEventCore(RGFW_window* win) {
 	if (ev != NULL) {
 		if (ev->type == RGFW_quit) RGFW_window_setShouldClose(win, RGFW_TRUE);
 		win->event = *ev;
-	}
+    }
 	else return NULL;
 
 	return &win->event;
@@ -2433,20 +2439,21 @@ void RGFW_window_focusLost(RGFW_window* win) {
 	_RGFW.root->_flags &= ~(u32)RGFW_windowFocus;
 	if ((win->_flags & RGFW_windowFullscreen))
 			RGFW_window_minimize(win);
-    
+
     for (size_t key = 0; key < RGFW_keyLast; key++) {
         if (RGFW_isPressed(NULL, (u8)key) == RGFW_FALSE) continue;
 	    RGFW_keyboard[key].current = RGFW_FALSE; 
-
-        u8 keyChar = RGFW_rgfwToKeyChar(key);
+        u8 keyChar = RGFW_rgfwToKeyChar((u32)key);
         RGFW_keyCallback(win, (u8)key, keyChar, win->event.keyMod, RGFW_FALSE);
         RGFW_eventQueuePushEx(e.type = RGFW_keyReleased;
-                            e.key = (u8)key;
-                            e.keyChar = keyChar;
-                            e.repeat = RGFW_FALSE;
-                            e.keyMod = win->event.keyMod;
-                            e._win = win);
+                                e.key = (u8)key;
+                                e.keyChar = keyChar;
+                                e.repeat = RGFW_FALSE;
+                                e.keyMod = win->event.keyMod;
+                                e._win = win);
     }
+    
+    RGFW_resetKey();
 }
 
 #ifndef RGFW_WINDOWS
@@ -3451,7 +3458,6 @@ void keyboard_enter (void *data, struct wl_keyboard *keyboard, uint32_t serial, 
 	RGFW_eventQueuePushEx(e.type = RGFW_focusIn, e._win = RGFW_key_win);
 	RGFW_focusCallback(RGFW_key_win, RGFW_TRUE);
 
-	RGFW_resetKey();
 	if ((win->_flags & RGFW_HOLD_MOUSE)) RGFW_window_mouseHold(win, RGFW_AREA(win->r.w, win->r.h));
 }
 void keyboard_leave (void *data, struct wl_keyboard *keyboard, uint32_t serial, struct wl_surface *surface) {
@@ -4458,15 +4464,22 @@ char* RGFW_strtok(char* str, const char* delimStr) {
 i32 RGFW_XHandleClipboardSelectionHelper(void);
 
 
-u8 RGFW_rgfwToKeyChar(u32 keycode) {
-    KeySym sym = (KeySym)XkbKeycodeToKeysym(_RGFW.display, keycode, 0, (KeyCode)E.xkey.state & ShiftMask ? 1 : 0);
+u8 RGFW_rgfwToKeyChar(u32 key) {
+    u32 keycode = RGFW_rgfwToApiKey(key);
 
-    if ((E.xkey.state & LockMask) && sym >= XK_a && sym <= XK_z)
-        sym = (E.xkey.state & ShiftMask) ? sym + 32 : sym - 32;
+    Window root = DefaultRootWindow(_RGFW.display);
+    Window ret_root, ret_child;
+    int root_x, root_y, win_x, win_y;
+    unsigned int mask;
+    XQueryPointer(_RGFW.display, root, &ret_root, &ret_child, &root_x, &root_y, &win_x, &win_y, &mask);
+    KeySym sym = (KeySym)XkbKeycodeToKeysym(_RGFW.display, (KeyCode)keycode, 0, (KeyCode)mask & ShiftMask ? 1 : 0);
+
+    if ((mask & LockMask) && sym >= XK_a && sym <= XK_z)
+        sym = (mask & ShiftMask) ? sym + 32 : sym - 32;
     if ((u8)sym != (u32)sym)
         sym = 0;
 
-    return sym;
+    return (u8)sym;
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
@@ -4529,7 +4542,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		/* set event key data */
 		win->event.key = (u8)RGFW_apiKeyToRGFW(E.xkey.keycode);
-		win->event.keyChar = (u8)sym;
+		win->event.keyChar = (u8)RGFW_rgfwToKeyChar(win->event.key);
 
 		RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
 
@@ -4876,7 +4889,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		RGFW_focusCallback(win, 1);
 
 
-	    RGFW_resetKey();
 	    if ((win->_flags & RGFW_HOLD_MOUSE)) RGFW_window_mouseHold(win, RGFW_AREA(win->r.w, win->r.h));
         break;
 	case FocusOut:
@@ -7081,22 +7093,21 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 	MsgWaitForMultipleObjects(0, NULL, FALSE, (DWORD)waitMS, QS_ALLINPUT);
 }
 
-
 u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
-    u32 keycode = RGFW_apiKeyToRGFW(rgfw_keycode);
+    UINT vsc = RGFW_rgfwToApiKey(rgfw_keycode);  // Should return a Windows VK_* code
+    BYTE keyboardState[256] = {0};
 
-    BYTE keyboardState[256];
-    wchar_t charBuffer[2] = {0};
-    int result;
-    
-    if (GetKeyboardState(keyboardState) == 0)
-        return 0;
+    if (!GetKeyboardState(keyboardState))
+        return (u8)rgfw_keycode;
 
-    UINT scanCode = MapVirtualKeyW(keycode, MAPVK_VK_TO_VSC);
+    UINT vk = MapVirtualKeyW(vsc, MAPVK_VSC_TO_VK);
     HKL layout = GetKeyboardLayout(0);
 
-    if (ToUnicodeEx(keycode, scanCode, keyboardState,charBuffer, 2, 0, layout) <= 0)
-        return 0;
+    wchar_t charBuffer[2] = {0};
+    int result = ToUnicodeEx(vk, vsc, keyboardState, charBuffer, 1, 0, layout);
+
+    if (result <= 0)
+        return (u8)rgfw_keycode;
 
     return (u8)charBuffer[0];
 }
@@ -7104,9 +7115,11 @@ u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
     if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
     RGFW_event* ev = RGFW_window_checkEventCore(win);
-	if (ev) return ev;
+	if (ev) {
+        return ev;
+    }
 
-	static HDROP drop;
+    static HDROP drop;
 	if (win->event.type == RGFW_DNDInit) {
 		if (win->event.droppedFilesCount) {
 			u32 i;
@@ -8676,7 +8689,6 @@ void RGFW__osxWindowBecameKey(id self, SEL sel) {
 
 	RGFW_focusCallback(win, RGFW_TRUE);
 
-	RGFW_resetKey();
 	if ((win->_flags & RGFW_HOLD_MOUSE)) RGFW_window_mouseHold(win, RGFW_AREA(win->r.w, win->r.h));
 }
 
@@ -8686,7 +8698,7 @@ void RGFW__osxWindowResignKey(id self, SEL sel) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
-    RGFW_window_focusLost();
+    RGFW_window_focusLost(win);
     RGFW_eventQueuePushEx(e.type = RGFW_focusOut; e._win = win);
 	RGFW_focusCallback(win, RGFW_FALSE);
 }
@@ -9124,7 +9136,6 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 		(NSApp, eventFunc,
 			ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
 
-
 	if (e) {
 		((void (*)(id, SEL, id, bool))objc_msgSend)
 			(NSApp, sel_registerName("postEvent:atStart:"), e, 1);
@@ -9134,6 +9145,7 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 }
 
 u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
+    return (u8)rgfw_keycode; /* TODO */
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
@@ -9979,7 +9991,6 @@ EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void
 	_RGFW.root->_flags |= RGFW_windowFocus;
 	RGFW_focusCallback(_RGFW.root, 1);
 
-	RGFW_resetKey();
 	if ((_RGFW.root->_flags & RGFW_HOLD_MOUSE)) RGFW_window_mouseHold(_RGFW.root, RGFW_AREA(_RGFW.root->r.w, _RGFW.root->r.h));
     return EM_TRUE;
 }
@@ -9988,7 +9999,7 @@ EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* E, voi
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(E);
 
 	RGFW_eventQueuePushEx(e.type = RGFW_focusOut; e._win = _RGFW.root);
-    RGFW_window_focusLost(window);
+    RGFW_window_focusLost(_RGFW.root);
     RGFW_focusCallback(_RGFW.root, 0);
     return EM_TRUE;
 }
@@ -10524,6 +10535,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 }
 
 u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
+    return (u8)rgfw_keycode; /* TODO */
 }
 
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
