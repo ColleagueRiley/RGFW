@@ -9382,9 +9382,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		case NSEventTypeKeyUp: {
 			u32 key = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
-
-
-            printf("%i\n", key);
 			u32 mappedKey = (u32)*(((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));
 			if (((u8)mappedKey) == 239)
 				mappedKey = 0;
