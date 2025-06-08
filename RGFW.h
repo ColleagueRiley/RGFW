@@ -370,10 +370,10 @@ int main() {
     #if !defined(RGFW_NO_API) && (!defined(RGFW_BUFFER) || defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA)
 		#define RGFW_EGL
 		#define RGFW_OPENGL
-		#define RGFW_UNIX
 		#include <wayland-egl.h>
 	#endif
 
+	#define RGFW_UNIX
 	#include <wayland-client.h>
 #endif
 #if !defined(RGFW_NO_X11) && (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  && !defined(RGFW_WASM)  && !defined(RGFW_CUSTOM_BACKEND)
