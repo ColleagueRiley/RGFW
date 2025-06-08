@@ -1547,10 +1547,10 @@ RGFW_bool RGFW_usingWayland(void) { return RGFW_useWaylandBool; }
 
 #if !defined(RGFW_NO_X11) && defined(RGFW_WAYLAND)
 #define RGFW_GOTO_WAYLAND(fallback) if (RGFW_useWaylandBool && fallback == 0) goto wayland
-#define RGFW_WAYLAND_LABLE wayland:; 
+#define RGFW_WAYLAND_LABEL wayland:; 
 #else
 #define RGFW_GOTO_WAYLAND(fallback)
-#define RGFW_WAYLAND_LABLE 
+#define RGFW_WAYLAND_LABEL 
 #endif
 
 char* RGFW_clipboard_data;
@@ -3057,7 +3057,7 @@ VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSu
     return vkCreateXlibSurfaceKHR(instance, &x11, NULL, surface);
 #endif
 #if defined(RGFW_WAYLAND)
-RGFW_WAYLAND_LABLE
+RGFW_WAYLAND_LABEL
     VkWaylandSurfaceCreateInfoKHR wayland = { VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR, 0, 0, (struct wl_display*) win->src.wl_display, (struct wl_surface*) win->src.surface };
     return vkCreateWaylandSurfaceKHR(instance, &wayland, NULL, surface);
 #elif defined(RGFW_WINDOWS)
@@ -3086,7 +3086,7 @@ RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice ph
     return out;
 #endif
 #if defined(RGFW_WAYLAND)
-RGFW_WAYLAND_LABLE
+RGFW_WAYLAND_LABEL
     RGFW_bool wlout = vkGetPhysicalDeviceWaylandPresentationSupportKHR(physicalDevice, queueFamilyIndex, _RGFW.wl_display);
     return wlout;
 #elif defined(RGFW_WINDOWS)
@@ -3764,7 +3764,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 		);
 	#endif
 	#ifdef RGFW_WAYLAND
-		RGFW_WAYLAND_LABLE {}
+		RGFW_WAYLAND_LABEL {}
 		u32 size = (u32)(win->r.w * win->r.h * 4);
 		int fd = create_shm_file(size);
 		if (fd < 0) {
@@ -3808,7 +3808,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 	#endif
 #else
 	#ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE{}
+	RGFW_WAYLAND_LABEL{}
 	#endif
 
 	RGFW_UNUSED(win); RGFW_UNUSED(buffer); RGFW_UNUSED(area);
@@ -3844,7 +3844,7 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 
 	#endif
 	#ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE
+	RGFW_WAYLAND_LABEL
     RGFW_UNUSED(win); RGFW_UNUSED(border);
 	#endif
 }
@@ -3864,7 +3864,7 @@ RGFW_GOTO_WAYLAND(0);
 	XISelectEvents(win->src.display, XDefaultRootWindow(win->src.display), &em, 1);
 #endif
 #ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE
+	RGFW_WAYLAND_LABEL
     RGFW_UNUSED(win);
 #endif
 }
@@ -3887,7 +3887,7 @@ RGFW_GOTO_WAYLAND(0);
 	RGFW_window_moveMouse(win, RGFW_POINT(win->r.x + (i32)(r.w / 2), win->r.y + (i32)(r.h / 2)));
 #endif
 #ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE
+	RGFW_WAYLAND_LABEL
     RGFW_UNUSED(win); RGFW_UNUSED(r);
 #endif
 }
@@ -4121,7 +4121,7 @@ i32 RGFW_init(void) {
     }
 #endif
 #ifdef RGFW_WAYLAND
-RGFW_WAYLAND_LABLE
+RGFW_WAYLAND_LABEL
     _RGFW.wl_display = wl_display_connect(NULL);
 #endif
     _RGFW.windowCount = 0;
@@ -4235,7 +4235,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
     return win; /*return newly created window */
 #endif
 #ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE
+	RGFW_WAYLAND_LABEL
 	RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningWayland, RGFW_DEBUG_CTX(win, 0), "RGFW Wayland support is experimental");
 
 	win->src.wl_display = _RGFW.wl_display;
@@ -4346,7 +4346,7 @@ RGFW_area RGFW_getScreenSize(void) {
 	return RGFW_AREA(scrn->width, scrn->height);
 	#endif
 	#ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE return RGFW_AREA(_RGFW.root->r.w, _RGFW.root->r.h); /* TODO */
+	RGFW_WAYLAND_LABEL return RGFW_AREA(_RGFW.root->r.w, _RGFW.root->r.h); /* TODO */
 	#endif
 }
 
@@ -4362,7 +4362,7 @@ RGFW_point RGFW_getGlobalMousePoint(void) {
 	return RGFWMouse;
 #endif
 #ifdef RGFW_WAYLAND
-    RGFW_WAYLAND_LABLE
+    RGFW_WAYLAND_LABEL
     return RGFWMouse;
 #endif
 }
@@ -4505,7 +4505,7 @@ u8 RGFW_rgfwToKeyChar(u32 key) {
     return (u8)sym;
 #endif
 #ifdef RGFW_WAYLAND
-    RGFW_WAYLAND_LABLE RGFW_UNUSED(keycode);
+    RGFW_WAYLAND_LABEL RGFW_UNUSED(keycode);
     return (u8)key;
 #endif
 }
@@ -4968,7 +4968,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	else return NULL;
 #endif
 #ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE
+	RGFW_WAYLAND_LABEL
 	if ((win->_flags & RGFW_windowHide) == 0)
         wl_display_roundtrip(win->src.wl_display);
 	return NULL;
@@ -4984,7 +4984,7 @@ void RGFW_window_move(RGFW_window* win, RGFW_point v) {
 	XMoveWindow(win->src.display, win->src.window, v.x, v.y);
 #endif
 #ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE
+	RGFW_WAYLAND_LABEL
 	RGFW_ASSERT(win != NULL);
 
 	if (win->src.compositor) {
@@ -5017,7 +5017,7 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 	}
 #endif
 #ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE
+	RGFW_WAYLAND_LABEL
 	if (win->src.compositor) {
 		xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->r.w, win->r.h);
 		#ifdef RGFW_OPENGL
@@ -5048,7 +5048,7 @@ void RGFW_window_setAspectRatio(RGFW_window* win, RGFW_area a) {
     return;
 #endif
 #ifdef RGFW_WAYLAND
-    RGFW_WAYLAND_LABLE 
+    RGFW_WAYLAND_LABEL 
 #endif
 }
 
@@ -5071,7 +5071,7 @@ void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
     return;
 #endif
 #ifdef RGFW_WAYLAND
-RGFW_WAYLAND_LABLE RGFW_UNUSED(a);
+RGFW_WAYLAND_LABEL RGFW_UNUSED(a);
 #endif
 }
 
@@ -5093,7 +5093,7 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 	XSetWMNormalHints(win->src.display, win->src.window, &hints);
 #endif
 #ifdef RGFW_WAYLAND
-    RGFW_WAYLAND_LABLE RGFW_UNUSED(a);
+    RGFW_WAYLAND_LABEL RGFW_UNUSED(a);
 #endif
 }
 
@@ -5128,7 +5128,7 @@ void RGFW_window_maximize(RGFW_window* win) {
     return;
 #endif
 #ifdef RGFW_WAYLAND
-    RGFW_WAYLAND_LABLE
+    RGFW_WAYLAND_LABEL
     return;
 #endif
 }
@@ -5145,7 +5145,7 @@ void RGFW_window_focus(RGFW_window* win) {
 	XFlush(win->src.display);
 #endif
 #ifdef RGFW_WAYLAND
-RGFW_WAYLAND_LABLE;
+RGFW_WAYLAND_LABEL;
 #endif
 }
 
@@ -5157,7 +5157,7 @@ void RGFW_window_raise(RGFW_window* win) {
 	XMapRaised(win->src.display, win->src.window);
 #endif
 #ifdef RGFW_WAYLAND
-RGFW_WAYLAND_LABLE;
+RGFW_WAYLAND_LABEL;
 #endif
 }
 
@@ -5199,7 +5199,7 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 	XMapRaised(win->src.display, win->src.window);
 #endif
 #ifdef RGFW_WAYLAND
-    RGFW_WAYLAND_LABLE;
+    RGFW_WAYLAND_LABEL;
 #endif
 }
 
@@ -5211,7 +5211,7 @@ void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating) {
 	RGFW_window_setXAtom(win, _NET_WM_STATE_ABOVE, floating);
 #endif
 #ifdef RGFW_WAYLAND
-RGFW_WAYLAND_LABLE RGFW_UNUSED(floating);
+RGFW_WAYLAND_LABEL RGFW_UNUSED(floating);
 #endif
 }
 
@@ -5225,7 +5225,7 @@ void RGFW_window_setOpacity(RGFW_window* win, u8 opacity) {
 					NET_WM_WINDOW_OPACITY, XA_CARDINAL, 32, PropModeReplace, (unsigned char*) &value, 1);
 #endif
 #ifdef RGFW_WAYLAND
-RGFW_WAYLAND_LABLE RGFW_UNUSED(opacity);
+RGFW_WAYLAND_LABEL RGFW_UNUSED(opacity);
 #endif
 }
 
@@ -5240,7 +5240,7 @@ void RGFW_window_minimize(RGFW_window* win) {
 	XFlush(win->src.display);
 #endif
 #ifdef RGFW_WAYLAND
-    RGFW_WAYLAND_LABLE;
+    RGFW_WAYLAND_LABEL;
 #endif
 }
 
@@ -5251,7 +5251,7 @@ void RGFW_window_restore(RGFW_window* win) {
     RGFW_toggleXMaximized(win, 0);
 #endif
 #ifdef RGFW_WAYLAND
-    RGFW_WAYLAND_LABLE
+    RGFW_WAYLAND_LABEL
 #endif
 	win->r = win->_oldRect;
 	RGFW_window_move(win, RGFW_POINT(win->r.x, win->r.y));
@@ -5289,7 +5289,7 @@ RGFW_bool RGFW_window_isFloating(RGFW_window* win) {
 		XFree(prop_return);
 #endif
 #ifdef RGFW_WAYLAND
-    RGFW_WAYLAND_LABLE RGFW_UNUSED(win);
+    RGFW_WAYLAND_LABEL RGFW_UNUSED(win);
 #endif
 	return RGFW_FALSE;
 }
@@ -5312,7 +5312,7 @@ void RGFW_window_setName(RGFW_window* win, const char* name) {
 	);
 	#endif
 	#ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE
+	RGFW_WAYLAND_LABEL
 	if (win->src.compositor)
 		xdg_toplevel_set_title(win->src.xdg_toplevel, name);
 	#endif
@@ -5334,7 +5334,7 @@ void RGFW_window_setMousePassthrough(RGFW_window* win, RGFW_bool passthrough) {
 	XShapeCombineMask(win->src.display, win->src.window, ShapeInput, 0, 0, None, ShapeSet);
 #endif
 #ifdef RGFW_WAYLAND
-    RGFW_WAYLAND_LABLE RGFW_UNUSED(passthrough);
+    RGFW_WAYLAND_LABEL RGFW_UNUSED(passthrough);
 #endif
 }
 #endif /* RGFW_NO_PASSTHROUGH */
@@ -5404,7 +5404,7 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* icon, RGFW_area a, i32 cha
 	return RGFW_BOOL(res);
 #endif
 #ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE  RGFW_UNUSED(icon); RGFW_UNUSED(a); RGFW_UNUSED(channels); RGFW_UNUSED(type);
+	RGFW_WAYLAND_LABEL  RGFW_UNUSED(icon); RGFW_UNUSED(a); RGFW_UNUSED(channels); RGFW_UNUSED(type);
 	return RGFW_FALSE;
 #endif
 }
@@ -5445,7 +5445,7 @@ RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) {
 #endif
 #endif
 #ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE
+	RGFW_WAYLAND_LABEL
 	RGFW_UNUSED(icon); RGFW_UNUSED(a); RGFW_UNUSED(channels);
 	return NULL; /* TODO */
 #endif
@@ -5458,7 +5458,7 @@ RGFW_GOTO_WAYLAND(0);
 	XDefineCursor(win->src.display, win->src.window, (Cursor)mouse);
 #endif
 #ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE
+	RGFW_WAYLAND_LABEL
     RGFW_UNUSED(win); RGFW_UNUSED(mouse);
 #endif
 }
@@ -5470,7 +5470,7 @@ RGFW_GOTO_WAYLAND(0);
 	XFreeCursor(_RGFW.display, (Cursor)mouse);
 #endif
 #ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE
+	RGFW_WAYLAND_LABEL
     RGFW_UNUSED(mouse);
 #endif
 }
@@ -5494,7 +5494,7 @@ RGFW_GOTO_WAYLAND(1);
 	XWarpPointer(win->src.display, None, win->src.window, 0, 0, 0, 0, (int) p.x - win->r.x, (int) p.y - win->r.y);
 #endif
 #ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE
+	RGFW_WAYLAND_LABEL
     RGFW_UNUSED(win); RGFW_UNUSED(p);
 #endif
 }
@@ -5521,7 +5521,7 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	return RGFW_TRUE;
 #endif
 #ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE { }
+	RGFW_WAYLAND_LABEL { }
 	static const char* iconStrings[16] = { "left_ptr", "left_ptr", "text", "cross", "pointer", "e-resize", "n-resize", "nw-resize", "ne-resize", "all-resize", "not-allowed" };
 
 	struct wl_cursor* wlcursor = wl_cursor_theme_get_cursor(RGFW_wl_cursor_theme, iconStrings[mouse]);
@@ -5541,7 +5541,7 @@ void RGFW_window_hide(RGFW_window* win) {
 	XUnmapWindow(win->src.display, win->src.window);
 #endif
 #ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE
+	RGFW_WAYLAND_LABEL
 	wl_surface_attach(win->src.surface, NULL, 0, 0);
 	wl_surface_commit(win->src.surface);
 	win->_flags |= RGFW_windowHide;
@@ -5556,7 +5556,7 @@ void RGFW_window_show(RGFW_window* win) {
 	XMapWindow(win->src.display, win->src.window);
 #endif
 #ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE
+	RGFW_WAYLAND_LABEL
 	/* wl_surface_attach(win->src.surface, win->rc., 0, 0); */
 	wl_surface_commit(win->src.surface);
 #endif
@@ -5611,7 +5611,7 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
     return size;
 	#endif
 	#if defined(RGFW_WAYLAND) 
-	RGFW_WAYLAND_LABLE RGFW_UNUSED(str); RGFW_UNUSED(strCapacity); 
+	RGFW_WAYLAND_LABEL RGFW_UNUSED(str); RGFW_UNUSED(strCapacity); 
     return 0;
 	#endif
 }
@@ -5668,7 +5668,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	_RGFW.clipboard_len = textLen;
 	#endif
 	#ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE
+	RGFW_WAYLAND_LABEL
     RGFW_UNUSED(text); RGFW_UNUSED(textLen);
 	#endif
 }
@@ -5684,7 +5684,7 @@ RGFW_bool RGFW_window_isHidden(RGFW_window* win) {
 	return (windowAttributes.map_state == IsUnmapped && !RGFW_window_isMinimized(win));
 #endif
 #ifdef RGFW_WAYLAND
-    RGFW_WAYLAND_LABLE
+    RGFW_WAYLAND_LABEL
     return RGFW_FALSE;
 #endif
 }
@@ -5717,7 +5717,7 @@ RGFW_bool RGFW_window_isMinimized(RGFW_window* win) {
     return windowAttributes.map_state != IsViewable;
 #endif
 #ifdef RGFW_WAYLAND
-    RGFW_WAYLAND_LABLE
+    RGFW_WAYLAND_LABEL
     return RGFW_FALSE;
 #endif
 }
@@ -5759,7 +5759,7 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 		XFree(prop_data);
 #endif
 #ifdef RGFW_WAYLAND
-RGFW_WAYLAND_LABLE;
+RGFW_WAYLAND_LABEL;
 #endif
 	return RGFW_FALSE;
 }
@@ -5879,7 +5879,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
     return monitor;
 #endif
 #ifdef RGFW_WAYLAND
-RGFW_WAYLAND_LABLE  RGFW_UNUSED(screen);
+RGFW_WAYLAND_LABEL  RGFW_UNUSED(screen);
     RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor, RGFW_DEBUG_CTX_MON(monitor), "monitor found");
     return monitor;
 #endif
@@ -5904,7 +5904,7 @@ RGFW_monitor* RGFW_getMonitors(size_t* len) {
 	return monitors;
 	#endif
 	#ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE RGFW_UNUSED(len);
+	RGFW_WAYLAND_LABEL RGFW_UNUSED(len);
     return monitors; /* TODO WAYLAND */
 	#endif
 }
@@ -5915,7 +5915,7 @@ RGFW_monitor RGFW_getPrimaryMonitor(void) {
 	return RGFW_XCreateMonitor(-1);
 	#endif
 	#ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE return (RGFW_monitor){ 0 }; /* TODO WAYLAND */
+	RGFW_WAYLAND_LABEL return (RGFW_monitor){ 0 }; /* TODO WAYLAND */
 	#endif
 }
 
@@ -5970,7 +5970,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 	#endif
 #endif
 #ifdef RGFW_WAYLAND
-RGFW_WAYLAND_LABLE RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request);
+RGFW_WAYLAND_LABEL RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request);
 #endif
 	return RGFW_FALSE;
 }
@@ -5996,7 +5996,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	}
 #endif
 #ifdef RGFW_WAYLAND
-RGFW_WAYLAND_LABLE
+RGFW_WAYLAND_LABEL
 #endif
     return mon;
 
@@ -6025,7 +6025,7 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 		return;
 	#endif
 	#ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABLE
+	RGFW_WAYLAND_LABEL
         #if !defined(RGFW_BUFFER_BGR) && !defined(RGFW_OSMESA)
 		RGFW_RGB_to_BGR(win, win->src.buffer);
 		#else
@@ -6042,7 +6042,7 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 	#endif
 #else
 #ifdef RGFW_WAYLAND
-    RGFW_WAYLAND_LABLE
+    RGFW_WAYLAND_LABEL
 #endif
     RGFW_UNUSED(win);
 #endif
@@ -6176,7 +6176,7 @@ void RGFW_window_close(RGFW_window* win) {
 	#endif
 
 	#ifdef RGFW_WAYLAND
-		RGFW_WAYLAND_LABLE
+		RGFW_WAYLAND_LABEL
 
 		#ifdef RGFW_X11
 			XDestroyWindow(win->src.display, (Drawable) win->src.window);
