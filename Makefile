@@ -30,6 +30,10 @@ detected_OS = windows
 
 OBJ_FILE = .o
 
+ifeq ($(WAYLAND_ONLY), 1)
+	RGFW_WAYLAND = 1
+endif
+
 # not using a cross compiler
 ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-mingw32-g++ /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	detected_OS := $(shell uname 2>/dev/null || echo Unknown)
@@ -48,7 +52,13 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 	ifeq ($(detected_OS),Linux)
 		DX11_LIBS =
 		LINK_GL1 = -lGL
-    	LIBS := -lXrandr -lX11 -ldl -lpthread
+
+		ifneq ($(WAYLAND_ONLY), 1)
+			LIBS = -lXrandr -lX11 -ldl -lpthread
+		else
+			LIBS = 
+		endif
+
 		VULKAN_LIBS = -lX11 -lXrandr -ldl -lpthread -lvulkan
 		EXT =
 		LIB_EXT = .so
@@ -84,6 +94,9 @@ ifeq ($(RGFW_WAYLAND),1)
 	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl
 	LINK_GL1 = -lEGL -lGL 
 
+	ifeq ($(WAYLAND_ONLY), 1)
+		LIBS += -D RGFW_NO_X11 
+	endif
 endif
 
 LINK_GL3 =
