@@ -1986,7 +1986,7 @@ RGFW_globalStruct _RGFW;
 void RGFW_eventQueuePush(RGFW_event event) {
 	if (_RGFW.eventLen >= RGFW_MAX_EVENTS) return;
 	_RGFW.events[_RGFW.eventLen] = event;
-	_RGFW.eventLen++;
+    _RGFW.eventLen++;
 }
 
 RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
@@ -1995,11 +1995,12 @@ RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
 
 	ev = (RGFW_event*)&_RGFW.events[_RGFW.eventIndex];
 
-	_RGFW.eventLen--;
-	if (_RGFW.eventLen && _RGFW.eventIndex < (_RGFW.eventLen - 1))
+    _RGFW.eventLen--;
+    if (_RGFW.eventLen >= 0 && _RGFW.eventIndex < _RGFW.eventLen) {
 		_RGFW.eventIndex++;
-	else if (_RGFW.eventLen == 0)
-		_RGFW.eventIndex = 0;
+    } else if (_RGFW.eventLen == 0) {
+        _RGFW.eventIndex = 0;
+    }
 
 	if (ev->_win != win && ev->_win != NULL) {
         RGFW_eventQueuePush(*ev);
@@ -2445,11 +2446,11 @@ void RGFW_window_focusLost(RGFW_window* win) {
         u8 keyChar = RGFW_rgfwToKeyChar((u32)key);
         RGFW_keyCallback(win, (u8)key, keyChar, win->event.keyMod, RGFW_FALSE);
         RGFW_eventQueuePushEx(e.type = RGFW_keyReleased;
-                            e.key = (u8)key;
-                            e.keyChar = keyChar;
-                            e.repeat = RGFW_FALSE;
-                            e.keyMod = win->event.keyMod;
-                            e._win = win);
+                                e.key = (u8)key;
+                                e.keyChar = keyChar;
+                                e.repeat = RGFW_FALSE;
+                                e.keyMod = win->event.keyMod;
+                                e._win = win);
     }
     
     RGFW_resetKey();
