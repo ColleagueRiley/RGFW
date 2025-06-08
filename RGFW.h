@@ -1756,7 +1756,7 @@ void RGFW_init_keys(void) {
 	RGFW_MAP [RGFW_OS_BASED_VALUE(75, 0x043, 102, DOM_VK_F9)] = RGFW_F9                 		RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(76, 0x044, 110, DOM_VK_F10)] = RGFW_F10               RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(95, 0x057, 104, DOM_VK_F11)] = RGFW_F11               RGFW_NEXT
-	RGFW_MAP [RGFW_OS_BASED_VALUE(96, 0x058, 112, DOM_VK_F12)] = RGFW_F12               RGFW_NEXT
+	RGFW_MAP [RGFW_OS_BASED_VALUE(96, 0x058, 111, DOM_VK_F12)] = RGFW_F12               RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(111, 0x148, 126, DOM_VK_UP)] = RGFW_up                		RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(116, 0x150, 125, DOM_VK_DOWN)] = RGFW_down                		RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(113, 0x14B, 123, DOM_VK_LEFT)] = RGFW_left                		RGFW_NEXT
@@ -1768,8 +1768,8 @@ void RGFW_init_keys(void) {
 	RGFW_MAP [RGFW_OS_BASED_VALUE(9, 0x001, 53, DOM_VK_ESCAPE)] = RGFW_escape                   		RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(110, 0x147, 116, DOM_VK_HOME)] = RGFW_home                    		RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(78, 0x046, 107, DOM_VK_SCROLL_LOCK)] = RGFW_scrollLock               RGFW_NEXT
-    RGFW_MAP [RGFW_OS_BASED_VALUE(107, 0x137, 107, DOM_PRINT_SCREEN)] = RGFW_printScreen              RGFW_NEXT
-    RGFW_MAP [RGFW_OS_BASED_VALUE(128, 0x146, 107, DOM_VK_PAUSE)] = RGFW_pause               RGFW_NEXT
+    RGFW_MAP [RGFW_OS_BASED_VALUE(107, 0x137, 105, DOM_PRINT_SCREEN)] = RGFW_printScreen              RGFW_NEXT
+    RGFW_MAP [RGFW_OS_BASED_VALUE(128, 0x146, 113, DOM_VK_PAUSE)] = RGFW_pause               RGFW_NEXT
 
 #if defined(__cplusplus) || defined(RGFW_C89)
 }
@@ -4582,8 +4582,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		/* get keystate data */
 		win->event.type = (E.type == KeyPress) ? RGFW_keyPressed : RGFW_keyReleased;
-printf("%i\n", E.xkey.keycode);
-		XKeyboardState keystate;
+
+        XKeyboardState keystate;
 		XGetKeyboardControl(win->src.display, &keystate);
 
 		RGFW_keyboard[win->event.key].current = (E.type == KeyPress);
@@ -9384,6 +9384,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			u32 key = (u16) objc_msgSend_uint(e, sel_registerName("keyCode"));
 
 
+            printf("%i\n", key);
 			u32 mappedKey = (u32)*(((char*)(const char*) NSString_to_char(objc_msgSend_id(e, sel_registerName("charactersIgnoringModifiers")))));
 			if (((u8)mappedKey) == 239)
 				mappedKey = 0;
