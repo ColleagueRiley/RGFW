@@ -3419,16 +3419,17 @@ void pointer_button(void *data, struct wl_pointer *pointer, uint32_t serial, uin
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(serial);
 	RGFW_ASSERT(RGFW_mouse_win != NULL);
 
-	u32 b = (button - 0x110) + 1;
+	u32 b = (button - 0x110);
 
 	/* flip right and middle button codes */
-	if (b == 2) b = 3;
-	else if (b == 3) b = 2;
+	if (b == 1) b = 2;
+	else if (b == 2) b = 1;
 
 	RGFW_mouseButtons[b].prev = RGFW_mouseButtons[b].current;
 	RGFW_mouseButtons[b].current = RGFW_BOOL(state);
 
-	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonPressed + RGFW_BOOL(state);
+	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonReleased - RGFW_BOOL(state);
+									e.point = RGFW_mouse_win->event.point;
 									e.button = (u8)b;
 									e._win = RGFW_mouse_win);
 	RGFW_mouseButtonCallback(RGFW_mouse_win, (u8)b, 0, RGFW_BOOL(state));
@@ -3437,9 +3438,10 @@ void pointer_axis(void *data, struct wl_pointer *pointer, uint32_t time, uint32_
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time);  RGFW_UNUSED(axis);
 	RGFW_ASSERT(RGFW_mouse_win != NULL);
 
-	double scroll = wl_fixed_to_double(value);
+	double scroll = - wl_fixed_to_double(value);
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonPressed;
+									e.point = RGFW_mouse_win->event.point;
 									e.button = RGFW_mouseScrollUp + (scroll < 0);
 									e.scroll = scroll;
 									e._win = RGFW_mouse_win);
