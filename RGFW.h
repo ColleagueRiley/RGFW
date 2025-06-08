@@ -1995,7 +1995,6 @@ RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
 
 	ev = (RGFW_event*)&_RGFW.events[_RGFW.eventIndex];
 
-    if (ev->type == RGFW_keyReleased) printf("key check release\n");
 	_RGFW.eventLen--;
 	if (_RGFW.eventLen && _RGFW.eventIndex < (_RGFW.eventLen - 1))
 		_RGFW.eventIndex++;
@@ -2033,7 +2032,6 @@ RGFW_event* RGFW_window_checkEventCore(RGFW_window* win) {
 	if (ev != NULL) {
 		if (ev->type == RGFW_quit) RGFW_window_setShouldClose(win, RGFW_TRUE);
 		win->event = *ev;
-        printf("%i\n", ev->type);
     }
 	else return NULL;
 
@@ -2444,7 +2442,6 @@ void RGFW_window_focusLost(RGFW_window* win) {
     for (size_t key = 0; key < RGFW_keyLast; key++) {
         if (RGFW_isPressed(NULL, (u8)key) == RGFW_FALSE) continue;
 	    RGFW_keyboard[key].current = RGFW_FALSE; 
-printf("key check\n");
         u8 keyChar = RGFW_rgfwToKeyChar((u32)key);
         RGFW_keyCallback(win, (u8)key, keyChar, win->event.keyMod, RGFW_FALSE);
         RGFW_eventQueuePushEx(e.type = RGFW_keyReleased;
@@ -7118,7 +7115,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
     if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
     RGFW_event* ev = RGFW_window_checkEventCore(win);
 	if (ev) {
-        printf("type %i released %c\n", win->event.type, win->event.keyChar);
         return ev;
     }
 
