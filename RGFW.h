@@ -1769,7 +1769,7 @@ void RGFW_init_keys(void) {
 	RGFW_MAP [RGFW_OS_BASED_VALUE(110, 0x147, 116, DOM_VK_HOME)] = RGFW_home                    		RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(78, 0x046, 107, DOM_VK_SCROLL_LOCK)] = RGFW_scrollLock               RGFW_NEXT
     RGFW_MAP [RGFW_OS_BASED_VALUE(107, 0x137, 105, DOM_PRINT_SCREEN)] = RGFW_printScreen              RGFW_NEXT
-    RGFW_MAP [RGFW_OS_BASED_VALUE(128, 0x146, 113, DOM_VK_PAUSE)] = RGFW_pause               RGFW_NEXT
+    RGFW_MAP [RGFW_OS_BASED_VALUE(128, 0x045, 113, DOM_VK_PAUSE)] = RGFW_pause               RGFW_NEXT
 
 #if defined(__cplusplus) || defined(RGFW_C89)
 }
