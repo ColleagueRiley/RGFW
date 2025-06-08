@@ -1995,6 +1995,7 @@ RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
 
 	ev = (RGFW_event*)&_RGFW.events[_RGFW.eventIndex];
 
+    if (ev->type == RGFW_keyReleased) printf("key check release\n");
 	_RGFW.eventLen--;
 	if (_RGFW.eventLen && _RGFW.eventIndex < (_RGFW.eventLen - 1))
 		_RGFW.eventIndex++;
@@ -2002,11 +2003,11 @@ RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
 		_RGFW.eventIndex = 0;
 
 	if (ev->_win != win && ev->_win != NULL) {
-		RGFW_eventQueuePush(*ev);
-		return NULL;
+        RGFW_eventQueuePush(*ev);
+        return NULL;
 	}
 
-	ev->droppedFilesCount = win->event.droppedFilesCount;
+    ev->droppedFilesCount = win->event.droppedFilesCount;
 	ev->droppedFiles = win->event.droppedFiles;
 	return ev;
 }
@@ -2032,7 +2033,8 @@ RGFW_event* RGFW_window_checkEventCore(RGFW_window* win) {
 	if (ev != NULL) {
 		if (ev->type == RGFW_quit) RGFW_window_setShouldClose(win, RGFW_TRUE);
 		win->event = *ev;
-	}
+        printf("%i\n", ev->type);
+    }
 	else return NULL;
 
 	return &win->event;
@@ -2438,11 +2440,11 @@ void RGFW_window_focusLost(RGFW_window* win) {
 	_RGFW.root->_flags &= ~(u32)RGFW_windowFocus;
 	if ((win->_flags & RGFW_windowFullscreen))
 			RGFW_window_minimize(win);
-    
+
     for (size_t key = 0; key < RGFW_keyLast; key++) {
         if (RGFW_isPressed(NULL, (u8)key) == RGFW_FALSE) continue;
 	    RGFW_keyboard[key].current = RGFW_FALSE; 
-        
+printf("key check\n");
         u8 keyChar = RGFW_rgfwToKeyChar((u32)key);
         RGFW_keyCallback(win, (u8)key, keyChar, win->event.keyMod, RGFW_FALSE);
         RGFW_eventQueuePushEx(e.type = RGFW_keyReleased;
@@ -7094,20 +7096,20 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 }
 
 u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
-    UINT vk = RGFW_rgfwToApiKey(rgfw_keycode);  // Should return a Windows VK_* code
+    UINT vsc = RGFW_rgfwToApiKey(rgfw_keycode);  // Should return a Windows VK_* code
     BYTE keyboardState[256] = {0};
 
     if (!GetKeyboardState(keyboardState))
-        return 0;
+        return (u8)rgfw_keycode;
 
-    UINT scancode = MapVirtualKeyW(vk, MAPVK_VSC_TO_VK);
+    UINT vk = MapVirtualKeyW(vsc, MAPVK_VSC_TO_VK);
     HKL layout = GetKeyboardLayout(0);
 
     wchar_t charBuffer[2] = {0};
-    int result = ToUnicodeEx(scancode, vk, keyboardState, charBuffer, 1, 0, layout);
+    int result = ToUnicodeEx(vk, vsc, keyboardState, charBuffer, 1, 0, layout);
 
     if (result <= 0)
-        return 0;
+        return (u8)rgfw_keycode;
 
     return (u8)charBuffer[0];
 }
@@ -7115,9 +7117,12 @@ u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
 RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
     if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
     RGFW_event* ev = RGFW_window_checkEventCore(win);
-	if (ev) return ev;
+	if (ev) {
+        printf("type %i released %c\n", win->event.type, win->event.keyChar);
+        return ev;
+    }
 
-	static HDROP drop;
+    static HDROP drop;
 	if (win->event.type == RGFW_DNDInit) {
 		if (win->event.droppedFilesCount) {
 			u32 i;
@@ -9133,7 +9138,6 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 	id e = (id) ((id(*)(id, SEL, NSEventMask, void*, id, bool))objc_msgSend)
 		(NSApp, eventFunc,
 			ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
-
 
 	if (e) {
 		((void (*)(id, SEL, id, bool))objc_msgSend)

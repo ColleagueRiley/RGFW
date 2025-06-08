@@ -11,7 +11,7 @@ int main(void) {
         glClear(GL_COLOR_BUFFER_BIT);
 
         RGFW_window_swapBuffers(win);	
-        RGFW_window_eventWait(win, RGFW_eventWaitNext);
+//        RGFW_window_eventWait(win, RGFW_eventWaitNext);
 
         while (RGFW_window_checkEvent(win)) {
             switch (win->event.type) {
@@ -20,7 +20,7 @@ int main(void) {
                     printf("Key pressed %c\n", win->event.keyChar);
                     break;
                 case RGFW_keyReleased:
-                    printf("Key released %c\n", RGFW_rgfwToKeyChar(win->event.key));
+                    printf("Key released %i %c\n", win->event.key, RGFW_rgfwToKeyChar(win->event.key));
                     break;
                 case RGFW_mouseButtonPressed:
                     printf("mouse button pressed\n");
