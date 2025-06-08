@@ -46,9 +46,9 @@ This library does not
 
 #include <stdio.h>
 
-void keyfunc(RGFW_window* win, RGFW_key key, char keyChar, RGFW_keymod keyMod, RGFW_bool pressed) {
+void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool pressed) {
     if (key == RGFW_escape && pressed) {
-        RGFW_window_setShouldClose(win);
+        RGFW_window_setShouldClose(win, 1);
     }
 }
 
@@ -77,9 +77,9 @@ int main() {
 
         // You can use modern OpenGL techniques, but this method is more straightforward for drawing just one triangle.
         glBegin(GL_TRIANGLES);
-        glColor3f(1, 0, 0); glVertex2f(-0.6, -0.75);
-        glColor3f(0, 1, 0); glVertex2f(0.6, -0.75);
-        glColor3f(0, 0, 1); glVertex2f(0, 0.75);
+        glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.6f, -0.75f);
+        glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.6f, -0.75f);
+        glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
         glEnd();
 
         RGFW_window_swapBuffers(win);

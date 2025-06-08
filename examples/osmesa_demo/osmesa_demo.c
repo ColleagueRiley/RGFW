@@ -42,14 +42,14 @@ int main(void) {
         RGFW_window_makeCurrent(win);
         
         glViewport(0, 0, win->r.w, win->r.h);
-        glClearColor(1, 1, 1, 1);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         glClear(GL_COLOR_BUFFER_BIT);
         
         glBegin(GL_TRIANGLES);
-            glColor3f(1, 0, 0); glVertex2f(-0.6, -0.75);
-            glColor3f(0, 1, 0); glVertex2f(0.6, -0.75);
-            glColor3f(0, 0, 1); glVertex2f(0, 0.75);
+            glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.6f, -0.75f);
+            glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.6f, -0.75f);
+            glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
         glEnd();
 
         glFlush();

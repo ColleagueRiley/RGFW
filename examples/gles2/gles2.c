@@ -83,7 +83,7 @@ int main(void) {
     glBlendFunc(GL_ONE, GL_ONE);
 
     glViewport(0, 0, 500, 500);
-    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     float attribute_array[] =
         //  x     y  r  g  b
