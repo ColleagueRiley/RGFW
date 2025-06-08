@@ -1,4 +1,4 @@
-.TH "Supporting" 3 "Sat Jun 7 2025" "RGFW" \" -*- nroff -*-
+.TH "Supporting" 3 "Sun Jun 8 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -62,6 +62,12 @@ Supporting \- Supporting
 .RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_apiKeyToRGFW\fP (\fBu32\fP keycode)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_rgfwToApiKey\fP (\fBu32\fP keycode)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu8\fP \fBRGFW_rgfwToKeyChar\fP (\fBu32\fP keycode)"
+.br
+.ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_mouseIcons)"
 .br
 .in -1c
@@ -79,7 +85,7 @@ Supporting \- Supporting
 .SH "Function Documentation"
 .PP 
 .SS "\fBRGFWDEF\fP \fBu32\fP RGFW_apiKeyToRGFW (\fBu32\fP keycode)"
-
+converts api keycode to the RGFW unmapped/physical key 
 .SS "\fBRGFWDEF\fP \fBu32\fP RGFW_checkFPS (double startTime, \fBu32\fP frameCount, \fBu32\fP fpsCap)"
 change which window is the root window 
 .SS "\fBRGFWDEF\fP void RGFW_deinit (void)"
@@ -106,6 +112,10 @@ get API time freq
 get API timer value 
 .SS "\fBRGFWDEF\fP \fBi32\fP RGFW_init (void)"
 optional init/deinit function is called by default when the first window is created by default 
+.SS "\fBRGFWDEF\fP \fBu32\fP RGFW_rgfwToApiKey (\fBu32\fP keycode)"
+converts RGFW keycode to the unmapped/physical api key 
+.SS "\fBRGFWDEF\fP \fBu8\fP RGFW_rgfwToKeyChar (\fBu32\fP keycode)"
+converts RGFW keycode to the mapped keychar 
 .SS "\fBRGFWDEF\fP void RGFW_setRootWindow (\fBRGFW_window\fP * win)"
 
 .SS "\fBRGFWDEF\fP void RGFW_setTime (double time)"

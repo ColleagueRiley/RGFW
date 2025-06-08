@@ -115,6 +115,10 @@ Functions</h2></td></tr>
 <tr class="separator:gafa4b496a0ce0efa4b3d5c4f9a0a0304b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf4429fa8a0dc4b06ffc1a2406a17b9ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#gaf4429fa8a0dc4b06ffc1a2406a17b9ac">RGFW_apiKeyToRGFW</a> (<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> keycode)</td></tr>
 <tr class="separator:gaf4429fa8a0dc4b06ffc1a2406a17b9ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6025f8aa67cdeb4d4ecc2a36a2eceaa4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga6025f8aa67cdeb4d4ecc2a36a2eceaa4">RGFW_rgfwToApiKey</a> (<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> keycode)</td></tr>
+<tr class="separator:ga6025f8aa67cdeb4d4ecc2a36a2eceaa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga874ed6be98f99df190e70c4c324d2b69"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga874ed6be98f99df190e70c4c324d2b69">RGFW_rgfwToKeyChar</a> (<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> keycode)</td></tr>
+<tr class="separator:ga874ed6be98f99df190e70c4c324d2b69"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3824ba4f7824072fac0588db1a3c4cb7"><td class="memItemLeft" align="right" valign="top">typedef&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga3824ba4f7824072fac0588db1a3c4cb7">RGFW_ENUM</a> (<a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>, RGFW_mouseIcons)</td></tr>
 <tr class="separator:ga3824ba4f7824072fac0588db1a3c4cb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -157,6 +161,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p >converts api keycode to the RGFW unmapped/physical key </p>
 
 </div>
 </div>
@@ -419,6 +424,44 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p >optional init/deinit function is called by default when the first window is created by default </p>
+
+</div>
+</div>
+<a id="ga6025f8aa67cdeb4d4ecc2a36a2eceaa4" name="ga6025f8aa67cdeb4d4ecc2a36a2eceaa4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga6025f8aa67cdeb4d4ecc2a36a2eceaa4">&#9670;&#160;</a></span>RGFW_rgfwToApiKey()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> RGFW_rgfwToApiKey </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>&#160;</td>
+          <td class="paramname"><em>keycode</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >converts RGFW keycode to the unmapped/physical api key </p>
+
+</div>
+</div>
+<a id="ga874ed6be98f99df190e70c4c324d2b69" name="ga874ed6be98f99df190e70c4c324d2b69"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga874ed6be98f99df190e70c4c324d2b69">&#9670;&#160;</a></span>RGFW_rgfwToKeyChar()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> RGFW_rgfwToKeyChar </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>&#160;</td>
+          <td class="paramname"><em>keycode</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >converts RGFW keycode to the mapped keychar </p>
 
 </div>
 </div>
