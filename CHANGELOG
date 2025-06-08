@@ -22,6 +22,7 @@ Release:    RGFW 1.7.5-dev
 - Fix keycode for Right Super key on Linux
 - fix issues with -Werror=stringop-truncation and alignment
 - fix xdnd ghost bug
+- Update Wayland | fix some bugs and compile errors
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
