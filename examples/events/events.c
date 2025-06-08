@@ -6,7 +6,8 @@
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW Events", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND | RGFW_windowTransparent);
-    while (RGFW_window_shouldClose(win) == 0) {
+	RGFW_window_resize(win, RGFW_AREA(200, 200));
+	while (RGFW_window_shouldClose(win) == 0) {
         glClearColor(0.25f, 0.0f, 0.15f, 0.25f);
         glClear(GL_COLOR_BUFFER_BIT);
 
