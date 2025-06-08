@@ -1449,6 +1449,7 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_apostrophe = '\'',
 	RGFW_backSlash = '\\',
 	RGFW_return = '\n',
+	RGFW_enter = RGFW_return,
 
 	RGFW_delete = '\177', /* 127 */
 
@@ -1501,7 +1502,9 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_KP_Period,
 	RGFW_KP_Return,
 	RGFW_scrollLock,
-	RGFW_keyLast = 256 /* padding for alignment ~(175 by default) */
+    RGFW_printScreen,
+    RGFW_pause,
+    RGFW_keyLast = 256 /* padding for alignment ~(175 by default) */
  };
 
 
@@ -1765,6 +1768,9 @@ void RGFW_init_keys(void) {
 	RGFW_MAP [RGFW_OS_BASED_VALUE(9, 0x001, 53, DOM_VK_ESCAPE)] = RGFW_escape                   		RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(110, 0x147, 116, DOM_VK_HOME)] = RGFW_home                    		RGFW_NEXT
 	RGFW_MAP [RGFW_OS_BASED_VALUE(78, 0x046, 107, DOM_VK_SCROLL_LOCK)] = RGFW_scrollLock               RGFW_NEXT
+    RGFW_MAP [RGFW_OS_BASED_VALUE(107, 0x137, 107, DOM_PRINT_SCREEN)] = RGFW_printScreen              RGFW_NEXT
+    RGFW_MAP [RGFW_OS_BASED_VALUE(128, 0x146, 107, DOM_VK_PAUSE)] = RGFW_pause               RGFW_NEXT
+
 #if defined(__cplusplus) || defined(RGFW_C89)
 }
 #else
@@ -4576,7 +4582,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 		/* get keystate data */
 		win->event.type = (E.type == KeyPress) ? RGFW_keyPressed : RGFW_keyReleased;
-
+printf("%i\n", E.xkey.keycode);
 		XKeyboardState keystate;
 		XGetKeyboardControl(win->src.display, &keystate);
 
