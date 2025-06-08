@@ -6099,6 +6099,8 @@ void RGFW_deinit(void) {
 	}
 
     RGFW_freeMouse(_RGFW.hiddenMouse);
+
+    XDestroyWindow(_RGFW.display, (Drawable) _RGFW.helperWindow); /*!< close the window */
     XCloseDisplay(_RGFW.display); /*!< kill connection to the x server */
 
     #if !defined(RGFW_NO_X11_CURSOR_PRELOAD) && !defined(RGFW_NO_X11_CURSOR)
@@ -6176,15 +6178,12 @@ void RGFW_window_close(RGFW_window* win) {
 	#ifdef RGFW_WAYLAND
 		RGFW_WAYLAND_LABLE
 
-		#ifdef RGFW_X11
-			XDestroyWindow(win->src.display, (Drawable) win->src.window);
-		#endif
 	    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
         _RGFW.windowCount--;
         if (_RGFW.windowCount == 0) RGFW_deinit();
 
-		xdg_toplevel_destroy(win->src.xdg_toplevel);
-		xdg_surface_destroy(win->src.xdg_surface);
+        xdg_toplevel_destroy(win->src.xdg_toplevel);
+        xdg_surface_destroy(win->src.xdg_surface);
 		wl_surface_destroy(win->src.surface);
 
 		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
