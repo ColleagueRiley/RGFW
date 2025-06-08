@@ -5611,8 +5611,8 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
     return size;
 	#endif
 	#if defined(RGFW_WAYLAND) 
-	RGFW_WAYLAND_LABEL RGFW_UNUSED(str); RGFW_UNUSED(strCapacity); 
-    return 0;
+	RGFW_UNUSED(str); RGFW_UNUSED(strCapacity); 
+	RGFW_WAYLAND_LABEL return 0;
 	#endif
 }
 
