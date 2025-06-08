@@ -6180,12 +6180,13 @@ void RGFW_window_close(RGFW_window* win) {
 			XDestroyWindow(win->src.display, (Drawable) win->src.window);
 		#endif
 	    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
-        _RGFW.windowCount--;
-        if (_RGFW.windowCount == 0) RGFW_deinit();
 
 		xdg_toplevel_destroy(win->src.xdg_toplevel);
 		xdg_surface_destroy(win->src.xdg_surface);
 		wl_surface_destroy(win->src.surface);
+
+		_RGFW.windowCount--;
+        if (_RGFW.windowCount == 0) RGFW_deinit();
 
 		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
 			wl_buffer_destroy(win->src.wl_buffer);
