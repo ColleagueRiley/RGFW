@@ -1584,19 +1584,24 @@ typedef struct RGFW_infoStruct {
     RGFW_keyState mouseButtons[RGFW_mouseFinal];
     RGFW_keyState keyboard[RGFW_keyLast]; 
 
+
+    RGFW_bool useWaylandBool;
     RGFW_bool stopCheckEvents_bool;
+    u64 timerOffset;
 } RGFW_infoStruct;
 
 RGFWDEF i32 RGFW_init(RGFW_infoStruct* info); /*!< is called by default when the first window is created by default */
 RGFWDEF void RGFW_deinit(RGFW_infoStruct* info); /*!< is called by default when the last open window is closed */
 
 #ifdef RGFW_IMPLEMENTATION
-RGFW_bool RGFW_useWaylandBool = 1;
-void RGFW_useWayland(RGFW_bool wayland) { RGFW_useWaylandBool = wayland;  }
-RGFW_bool RGFW_usingWayland(void) { return RGFW_useWaylandBool; }
+RGFW_infoStruct* _RGFW = NULL;
+void RGFW_setInfo(RGFW_infoStruct* info) { _RGFW = info; }
+
+void RGFW_useWayland(RGFW_bool wayland) { _RGFW->useWaylandBool = wayland;  }
+RGFW_bool RGFW_usingWayland(void) { return _RGFW->useWaylandBool; }
 
 #if !defined(RGFW_NO_X11) && defined(RGFW_WAYLAND)
-#define RGFW_GOTO_WAYLAND(fallback) if (RGFW_useWaylandBool && fallback == 0) goto wayland
+#define RGFW_GOTO_WAYLAND(fallback) if (_RGFW->useWaylandBool && fallback == 0) goto wayland
 #define RGFW_WAYLAND_LABEL wayland:; 
 #else
 #define RGFW_GOTO_WAYLAND(fallback)
@@ -1667,17 +1672,16 @@ void RGFW_sendDebugInfo(RGFW_debugType type, RGFW_errorCode err, RGFW_debugConte
 	#endif
 }
 
-u64 RGFW_timerOffset = 0;
 void RGFW_setTime(double time) {
-    RGFW_timerOffset = RGFW_getTimerValue() - (u64)(time * (double)RGFW_getTimerFreq());
+    _RGFW->timerOffset = RGFW_getTimerValue() - (u64)(time * (double)RGFW_getTimerFreq());
 }
 
 double RGFW_getTime(void) {
-	return (double) ((double)(RGFW_getTimerValue() - RGFW_timerOffset) / (double)RGFW_getTimerFreq());
+	return (double) ((double)(RGFW_getTimerValue() - _RGFW->timerOffset) / (double)RGFW_getTimerFreq());
 }
 
 u64 RGFW_getTimeNS(void) {
-	return (u64)(((double)((RGFW_getTimerValue() - RGFW_timerOffset)) * 1e9) / (double)RGFW_getTimerFreq());
+	return (u64)(((double)((RGFW_getTimerValue() - _RGFW->timerOffset)) * 1e9) / (double)RGFW_getTimerFreq());
 }
 
 /*
@@ -1694,9 +1698,6 @@ This is the start of keycode data
 */
 
 #ifndef RGFW_CUSTOM_BACKEND
-RGFW_infoStruct* _RGFW = NULL;
-void RGFW_setInfo(RGFW_infoStruct* info) { _RGFW = info; }
-
 RGFWDEF void RGFW_resetKeyPrev(void);
 RGFWDEF void RGFW_resetKey(void);
 RGFWDEF void RGFW_init_keys(void);
@@ -1990,6 +1991,8 @@ i32 RGFW_init(RGFW_infoStruct* info) {
     _RGFW->windowCount = 0;
     
     RGFW_MEMSET(_RGFW, 0, sizeof(RGFW_infoStruct));
+    _RGFW->useWaylandBool = RGFW_TRUE;
+
     RGFW_init_keys();
     i32 out = RGFW_initPlatform();
     RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal, RGFW_DEBUG_CTX(NULL, 0), "global context initialized"); 
@@ -2188,7 +2191,7 @@ RGFWDEF void RGFW_window_cocoaSetLayer(RGFW_window* win, void* layer);
 RGFWDEF void* RGFW_cocoaGetLayer(void);
 #endif
 
-void RGFW_setClassName(const char* name) { _RGFW->className = name; }
+void RGFW_setClassName(const char* name) { RGFW_init(NULL); _RGFW->className = name; }
 
 #ifndef RGFW_X11
 void RGFW_setXInstName(const char* name) { RGFW_UNUSED(name); }
@@ -2853,7 +2856,7 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 #endif /* RGFW_LINK_EGL */
 
 #ifdef RGFW_WAYLAND
-    if (RGFW_useWaylandBool)
+    if (_RGFW->useWaylandBool)
         win->src.eglWindow = wl_egl_window_create(win->src.surface, win->r.w, win->r.h);
 #endif
 
@@ -2862,7 +2865,7 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 	#elif defined(RGFW_MACOS)
 	win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType)0);
 	#elif defined(RGFW_WAYLAND)
-	if (RGFW_useWaylandBool)
+	if (_RGFW->useWaylandBool)
 		win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.wl_display);
     else
     #endif
@@ -2927,7 +2930,7 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 	#elif defined(RGFW_WINDOWS)
 		win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
 	#elif defined(RGFW_WAYLAND)
-		if (RGFW_useWaylandBool)
+		if (_RGFW->useWaylandBool)
 			win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.eglWindow, NULL);
 		else
     #endif
@@ -6390,9 +6393,6 @@ char* RGFW_createUTF8FromWideStringWin32(const WCHAR* source);
 typedef int (*PFN_wglGetSwapIntervalEXT)(void);
 PFN_wglGetSwapIntervalEXT wglGetSwapIntervalEXTSrc = NULL;
 #define wglGetSwapIntervalEXT wglGetSwapIntervalEXTSrc
-
-
-void* RGFWgamepadApi = NULL;
 
 /* these two wgl functions need to be preloaded */
 typedef HGLRC (WINAPI *PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC hdc, HGLRC hglrc, const int *attribList);
