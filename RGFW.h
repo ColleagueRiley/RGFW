@@ -3959,6 +3959,12 @@ void RGFW_window_getVisual(RGFW_window* win) {
 		if (best_samples < RGFW_GL_HINTS[RGFW_glSamples])
 			RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Failed to load matching sampiling");
 
+        int configCaveat;
+        if (glXGetFBConfigAttrib(win->src.display, win->src.bestFbc, GLX_CONFIG_CAVEAT, &configCaveat) == Success &&
+            configCaveat == GLX_SLOW_CONFIG) {
+                win->_flags |= RGFW_windowOpenglSoftware;
+        }
+
 		XFree(fbc);
         win->src.visual = *vi;
 		XFree(vi);
@@ -4012,12 +4018,9 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 					win->src.ctx = glXCreateContext(win->src.display, &win->src.visual, ctx, True);
             }
 		}
-
-        if (glXIsDirect(win->src.display, win->src.ctx) == False)
-            win->_flags |= RGFW_windowOpenglSoftware;
-
-        glXMakeCurrent(win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);
-	    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "opengl context initalized");
+        
+        glXMakeCurrent(win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);    
+        RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "opengl context initalized");
 #else
 	RGFW_UNUSED(win);
 #endif
@@ -6838,7 +6841,7 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 		wglShareLists(_RGFW.root->src.ctx, win->src.ctx);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "opengl context initalized");
 #else
-	RGFW_UNUSED(win); RGFW_UNUSED();
+	RGFW_UNUSED(win);
 #endif
 }
 
@@ -10583,7 +10586,7 @@ i32 RGFW_init(void) {
 
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
     RGFW_window_basic_init(win, rect, flags);
-	RGFW_window_initOpenGL(win, 0);
+	RGFW_window_initOpenGL(win);
 
 	#if defined(RGFW_WEBGPU)
 		win->src.ctx = wgpuCreateInstance(NULL);
