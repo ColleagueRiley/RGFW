@@ -1607,10 +1607,8 @@ typedef struct RGFW_infoStruct {
     
     #ifdef RGFW_MACOS
     void* NSApp;
-    IOHIDDeviceRef RGFW_osxControllers[4] = {NULL};
+    IOHIDDeviceRef _RGFW->osxControllers[4] = {NULL};
     #endif
-
-
 } RGFW_infoStruct;
 
 RGFWDEF i32 RGFW_init(RGFW_infoStruct* info); /*!< is called by default when the first window is created by default */
@@ -4179,9 +4177,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	/* make it so the user can't close the window until the program does */
 
     RGFW_LOAD_ATOM(WM_DELETE_WINDOW);
-	Atom wm_delete_window = XInternAtom(win->src.display, "WM_DELETE_WINDOW", False);
 
-	XSetWMProtocols(win->src.display, (Drawable) win->src.window, &wm_delete_window, 1);
+	XSetWMProtocols(win->src.display, (Drawable) win->src.window, &WM_DELETE_WINDOW, 1);
 	/* set the background */
 	RGFW_window_setName(win, name);
 
@@ -4202,7 +4199,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 #ifdef RGFW_ADVANCED_SMOOTH_RESIZE
     RGFW_LOAD_ATOM(_NET_WM_SYNC_REQUEST_COUNTER)
     RGFW_LOAD_ATOM(_NET_WM_SYNC_REQUEST)
-    RGFW_LOAD_ATOM(WM_DELETE_WINDOW);
 
     Atom protcols[2] = {_NET_WM_SYNC_REQUEST, WM_DELETE_WINDOW};
     XSetWMProtocols(win->src.display, win->src.window, protcols, 2);
@@ -8584,7 +8580,7 @@ u32 RGFW_osx_getFallbackRefreshRate(CGDirectDisplayID displayID) {
 size_t findControllerIndex(IOHIDDeviceRef device) {
     size_t i;
     for (i = 0; i < 4; i++)
-		if (RGFW_osxControllers[i] == device)
+		if (_RGFW->osxControllers[i] == device)
 			return i;
 	return (size_t)-1;
 }
@@ -8679,10 +8675,10 @@ void RGFW__osxDeviceAddedCallback(void* context, IOReturn result, void *sender, 
 
     size_t i;
     for (i = 0; i < 4; i++) {
-		if (RGFW_osxControllers[i] != NULL)
+		if (_RGFW->osxControllers[i] != NULL)
 			continue;
 
-		RGFW_osxControllers[i] = device;
+		_RGFW->osxControllers[i] = device;
 
 		IOHIDDeviceRegisterInputValueCallback(device, RGFW__osxInputValueChangedCallback, NULL);
 
@@ -8725,7 +8721,7 @@ void RGFW__osxDeviceRemovedCallback(void *context, IOReturn result, void *sender
 
 	size_t index = findControllerIndex(device);
 	if (index != (size_t)-1)
-		RGFW_osxControllers[index] = NULL;
+		_RGFW->osxControllers[index] = NULL;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_gamepadDisconnected;
 									e.gamepad = (u16)index;
@@ -9016,11 +9012,11 @@ i32 RGFW_initPlatform(void) {
 	si_func_to_SEL("NSWindow", acceptsFirstResponder);
 	si_func_to_SEL("NSWindow", performKeyEquivalent);
 
-    if (_RGFW->NSApp == NULL) {
+    if ((id)_RGFW->NSApp == NULL) {
 		NSApp = objc_msgSend_id((id)objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
 
 		((void (*)(id, SEL, NSUInteger))objc_msgSend)
-			(_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
+			((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
 
 		#ifndef RGFW_NO_IOKIT
 			RGFW_osxInitIOKit();
@@ -9128,7 +9124,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	RGFW_window_setFlags(win, flags);
 
     /* Show the window */
-	objc_msgSend_void_bool(_RGFW->NSApp, sel_registerName("activateIgnoringOtherApps:"), true);
+	objc_msgSend_void_bool((id)_RGFW->NSApp, sel_registerName("activateIgnoringOtherApps:"), true);
 	((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("makeKeyAndOrderFront:"), NULL);
 	RGFW_window_show(win);
 
@@ -9140,7 +9136,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	objc_msgSend_void(win->src.window, sel_registerName("makeKeyWindow"));
 
-	objc_msgSend_void(_RGFW->NSApp, sel_registerName("finishLaunching"));
+	objc_msgSend_void((id)_RGFW->NSApp, sel_registerName("finishLaunching"));
 	NSRetain(win->src.window);
 	NSRetain(NSApp);
 
@@ -9255,7 +9251,7 @@ void RGFW_stopCheckEvents(void) {
 			NSEventTypeApplicationDefined, (NSPoint){0, 0}, (NSEventModifierFlags)0, NULL, (NSInteger)0, NULL, 0, 0, 0);
 
 	((void (*)(id, SEL, id, bool))objc_msgSend)
-		(_RGFW->NSApp, sel_registerName("postEvent:atStart:"), e, 1);
+		((id)_RGFW->NSApp, sel_registerName("postEvent:atStart:"), e, 1);
 
 	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 }
@@ -9271,12 +9267,12 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 
 	SEL eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
 	id e = (id) ((id(*)(id, SEL, NSEventMask, void*, id, bool))objc_msgSend)
-		(_RGFW->NSApp, eventFunc,
+		((id)_RGFW->NSApp, eventFunc,
 			ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
 
 	if (e) {
 		((void (*)(id, SEL, id, bool))objc_msgSend)
-			(_RGFW->NSApp, sel_registerName("postEvent:atStart:"), e, 1);
+			((id)_RGFW->NSApp, sel_registerName("postEvent:atStart:"), e, 1);
 	}
 
 	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
@@ -9292,7 +9288,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
     objc_msgSend_void((id)win->src.mouse, sel_registerName("set"));
     RGFW_event* ev =  RGFW_window_checkEventCore(win);
 	if (ev) {
-		((void(*)(id, SEL))objc_msgSend)(_RGFW->NSApp, sel_registerName("updateWindows"));
+		((void(*)(id, SEL))objc_msgSend)((id)_RGFW->NSApp, sel_registerName("updateWindows"));
 		return ev;
 	}
 
@@ -9304,22 +9300,22 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 	void* date = NULL;
 
 	id e = (id) ((id(*)(id, SEL, NSEventMask, void*, id, bool))objc_msgSend)
-		(_RGFW->NSApp, eventFunc, ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
+		((id)_RGFW->NSApp, eventFunc, ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
 
 	if (e == NULL) {
 		objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
-		objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("sendEvent:"), e);
-		((void(*)(id, SEL))objc_msgSend)(_RGFW->NSApp, sel_registerName("updateWindows"));
+		objc_msgSend_void_id((id)_RGFW->NSApp, sel_registerName("sendEvent:"), e);
+		((void(*)(id, SEL))objc_msgSend)((id)_RGFW->NSApp, sel_registerName("updateWindows"));
 		return NULL;
 	}
 
 	if (objc_msgSend_id(e, sel_registerName("window")) != win->src.window) {
 		((void (*)(id, SEL, id, bool))objc_msgSend)
-			(_RGFW->NSApp, sel_registerName("postEvent:atStart:"), e, 0);
+			((id)_RGFW->NSApp, sel_registerName("postEvent:atStart:"), e, 0);
 
-		objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("sendEvent:"), e);
+		objc_msgSend_void_id((id)_RGFW->NSApp, sel_registerName("sendEvent:"), e);
 		objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
-		((void(*)(id, SEL))objc_msgSend)(_RGFW->NSApp, sel_registerName("updateWindows"));
+		((void(*)(id, SEL))objc_msgSend)((id)_RGFW->NSApp, sel_registerName("updateWindows"));
 		return NULL;
 	}
 
@@ -9493,13 +9489,13 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		}
 
 		default:
-			objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("sendEvent:"), e);
-			((void(*)(id, SEL))objc_msgSend)(_RGFW->NSApp, sel_registerName("updateWindows"));
+			objc_msgSend_void_id((id)_RGFW->NSApp, sel_registerName("sendEvent:"), e);
+			((void(*)(id, SEL))objc_msgSend)((id)_RGFW->NSApp, sel_registerName("updateWindows"));
 			return RGFW_window_checkEvent(win);
 	}
 
-	objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("sendEvent:"), e);
-	((void(*)(id, SEL))objc_msgSend)(_RGFW->NSApp, sel_registerName("updateWindows"));
+	objc_msgSend_void_id((id)_RGFW->NSApp, sel_registerName("sendEvent:"), e);
+	((void(*)(id, SEL))objc_msgSend)((id)_RGFW->NSApp, sel_registerName("updateWindows"));
 	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 	return &win->event;
 }
@@ -9530,7 +9526,7 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 
 void RGFW_window_focus(RGFW_window* win) {
 	RGFW_ASSERT(win);
-	objc_msgSend_void_bool(_RGFW->NSApp, sel_registerName("activateIgnoringOtherApps:"), true);
+	objc_msgSend_void_bool((id)_RGFW->NSApp, sel_registerName("activateIgnoringOtherApps:"), true);
 	((void (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_registerName("makeKeyWindow"));
 }
 
@@ -9647,7 +9643,7 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, RGFW_area area, i32 
 	RGFW_UNUSED(type);
 
 	if (data == NULL) {
-		objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("setApplicationIconImage:"), NULL);
+		objc_msgSend_void_id((id)_RGFW->NSApp, sel_registerName("setApplicationIconImage:"), NULL);
 		return RGFW_TRUE;
 	}
 
@@ -9661,7 +9657,7 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, RGFW_area area, i32 
 	objc_msgSend_void_id(dock_image, sel_registerName("addRepresentation:"), representation);
 
 	/* Finally, set the dock image to it. */
-	objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("setApplicationIconImage:"), dock_image);
+	objc_msgSend_void_id((id)_RGFW->NSApp, sel_registerName("setApplicationIconImage:"), dock_image);
 	/* Free the garbage. */
 	NSRelease(dock_image);
 	NSRelease(representation);
