@@ -2645,9 +2645,8 @@ RGFW_bool RGFW_extensionSupported(const char* extension, size_t len) {
 	MacOS and Windows do this using a structure called a "pixel format"
 	X11 calls it a "Visual"
 	This function returns the attributes for the format we want */
-i32* RGFW_initFormatAttribs(u32 useSoftware);
-i32* RGFW_initFormatAttribs(u32 useSoftware) {
-	RGFW_UNUSED(useSoftware);
+i32* RGFW_initFormatAttribs(void);
+i32* RGFW_initFormatAttribs(void) {
 	static i32 attribs[] = {
 							#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
 							RGFW_GL_RENDER_TYPE,
