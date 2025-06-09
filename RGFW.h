@@ -2727,7 +2727,7 @@ i32* RGFW_initFormatAttribs(void) {
 	#endif
 
 	#ifdef RGFW_MACOS
-		if (win->_flags & RGFW_windowOpenglSoftware) {
+		if (_RGFW.root->_flags & RGFW_windowOpenglSoftware) {
 			RGFW_GL_ADD_ATTRIB(70, kCGLRendererGenericFloatID);
 		} else {
 			attribs[index] = RGFW_GL_RENDER_TYPE;
