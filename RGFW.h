@@ -1610,7 +1610,7 @@ typedef struct RGFW_infoStruct {
     
     #ifdef RGFW_MACOS
     void* NSApp;
-    IOHIDDeviceRef _RGFW->osxControllers[4] = {NULL};
+    IOHIDDeviceRef osxControllers[4] = {NULL};
     #endif
 } RGFW_infoStruct;
 
