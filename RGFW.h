@@ -1549,7 +1549,7 @@ typedef struct {
 } RGFW_keyState;
 
 struct __IOHIDDevice; 
-typedef struct __IOHIDDevice IOHIDDeviceRef;
+typedef struct __IOHIDDevice* IOHIDDeviceRef;
 
 typedef struct RGFW_infoStruct {
     RGFW_window* root;
