@@ -1280,7 +1280,7 @@ typedef void (*RGFW_proc)(void); /* function pointer equivalent of void* */
 /*! native API functions */
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL)
 /*!< create an opengl context for the RGFW window, run by createWindow by default (unless the RGFW_windowNoInitAPI is included) */
-RGFWDEF void RGFW_window_initOpenGL(RGFW_window* win, RGFW_bool software);
+RGFWDEF void RGFW_window_initOpenGL(RGFW_window* win);
 /*!< called by `RGFW_window_close` by default (unless the RGFW_windowNoInitAPI is set) */
 RGFWDEF void RGFW_window_freeOpenGL(RGFW_window* win);
 
