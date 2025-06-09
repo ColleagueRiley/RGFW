@@ -1,4 +1,4 @@
-.TH "graphics_API" 3 "Sun Jun 8 2025" "RGFW" \" -*- nroff -*-
+.TH "graphics_API" 3 "Mon Jun 9 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -32,7 +32,7 @@ graphics_API \- Graphics_API
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_swapBuffers_software\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_initOpenGL\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP software)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_initOpenGL\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_freeOpenGL\fP (\fBRGFW_window\fP *win)"
@@ -115,7 +115,7 @@ get native opengl proc address
 
 .SS "\fBRGFWDEF\fP void RGFW_window_freeOpenGL (\fBRGFW_window\fP * win)"
 
-.SS "\fBRGFWDEF\fP void RGFW_window_initOpenGL (\fBRGFW_window\fP * win, \fBRGFW_bool\fP software)"
+.SS "\fBRGFWDEF\fP void RGFW_window_initOpenGL (\fBRGFW_window\fP * win)"
 native API functions
 .PP
 < create an opengl context for the RGFW window, run by createWindow by default (unless the RGFW_windowNoInitAPI is included) called by \fCRGFW_window_close\fP by default (unless the RGFW_windowNoInitAPI is set) 
