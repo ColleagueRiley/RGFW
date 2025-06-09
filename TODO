@@ -2,7 +2,6 @@
 - update wayland support (wayland is sus)
 - ablity to create an RGFW window from an existing window 
 - Xrandr reporting unused monitor as the window's monitor 
-- look into a function like `RGFW_isGLSoftware` to check if WGL/GLX/EGL/etc is using a software rendering driver 
 
 (extra stuff)
 - look into monitor gamma
