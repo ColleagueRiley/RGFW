@@ -1548,6 +1548,9 @@ typedef struct {
 	RGFW_bool prev  : 1;
 } RGFW_keyState;
 
+struct __IOHIDDevice; 
+typedef struct __IOHIDDevice IOHIDDeviceRef;
+
 typedef struct RGFW_infoStruct {
     RGFW_window* root;
     RGFW_window* current;
@@ -9013,7 +9016,7 @@ i32 RGFW_initPlatform(void) {
 	si_func_to_SEL("NSWindow", performKeyEquivalent);
 
     if ((id)_RGFW->NSApp == NULL) {
-		NSApp = objc_msgSend_id((id)objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
+		_RGFW->NSApp = objc_msgSend_id((id)objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
 
 		((void (*)(id, SEL, NSUInteger))objc_msgSend)
 			((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
@@ -9138,7 +9141,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	objc_msgSend_void((id)_RGFW->NSApp, sel_registerName("finishLaunching"));
 	NSRetain(win->src.window);
-	NSRetain(NSApp);
+	NSRetain(_RGFW->NSApp);
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new  window was created");
 	return win;
@@ -10438,7 +10441,7 @@ void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(size_t count) {
 }
 
 void RGFW_stopCheckEvents(void) {
-	_RGFW.stopCheckEvents_bool = RGFW_TRUE;
+	_RGFW->stopCheckEvents_bool = RGFW_TRUE;
 }
 
 void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
@@ -10447,10 +10450,10 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 
 	u32 start = (u32)(((u64)RGFW_getTimeNS()) / 1e+6);
 
-	while ((_RGFW->eventLen == 0) && _RGFW.stopCheckEvents_bool == RGFW_FALSE && (RGFW_getTimeNS() / 1e+6) - start < waitMS)
+	while ((_RGFW->eventLen == 0) && _RGFW->stopCheckEvents_bool == RGFW_FALSE && (RGFW_getTimeNS() / 1e+6) - start < waitMS)
 		emscripten_sleep(0);
 
-	_RGFW.stopCheckEvents_bool = RGFW_FALSE;
+	_RGFW->stopCheckEvents_bool = RGFW_FALSE;
 }
 
 void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
