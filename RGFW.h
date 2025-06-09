@@ -8974,7 +8974,7 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 	if (format == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "Failed to load pixel format for OpenGL");
         win->_flags |= RGFW_windowOpenglSoftware;
-        void* subAttrs = RGFW_initFormatAttribs;
+        void* subAttrs = RGFW_initFormatAttribs();
 		format = NSOpenGLPixelFormat_initWithAttributes((uint32_t*)subAttrs);
 
 		if (format == NULL)
