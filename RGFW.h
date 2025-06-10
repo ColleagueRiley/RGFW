@@ -10453,8 +10453,8 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 #endif
 }
 
-void RGFW_window_freeOpenGL(RGFW_window* win) {
-#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU) 
+void RGFW_window_freeOpenGL(RGFW_window* win) {?
+#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU) && !defined(RGFW_BUFFER) 
 	if (win->src.ctx == 0) return;
 	emscripten_webgl_destroy_context(win->src.ctx);
 	win->src.ctx = 0;
