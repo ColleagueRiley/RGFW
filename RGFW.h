@@ -1581,7 +1581,7 @@ typedef struct RGFW_info {
     u64 timerOffset;
 
     char* clipboard_data;
-    char droppedFiles[RGFW_MAX_PATH * RGFW_MAX_DROPS];
+    char droppedFiles[RGFW_MAX_DROPS][RGFW_MAX_PATH];
     #ifdef RGFW_X11
         Display* display;
         Window helperWindow;
@@ -2126,14 +2126,7 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 	win->_lastMousePoint.x = 0; 
 	win->_lastMousePoint.y = 0; 
 
-	win->event.droppedFiles = _RGFW->droppedFiles;
-	RGFW_ASSERT(win->event.droppedFiles != NULL);
-     
-    { 
-        u32 i;
-        for (i = 0; i < RGFW_MAX_DROPS; i++)
-		    win->event.droppedFiles[i] = (char*)(win->event.droppedFiles + RGFW_MAX_DROPS + (i * RGFW_MAX_PATH));
-    }
+	win->event.droppedFiles = (char**)_RGFW->droppedFiles;
 }
 
 void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
