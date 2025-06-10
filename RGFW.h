@@ -1551,7 +1551,7 @@ typedef struct {
 struct __IOHIDDevice; 
 typedef struct __IOHIDDevice* IOHIDDeviceRef;
 
-typedef struct RGFW_infoStruct {
+typedef struct RGFW_info {
     RGFW_window* root;
     RGFW_window* current;
     i32 windowCount;
@@ -1574,7 +1574,6 @@ typedef struct RGFW_infoStruct {
     u16 gamepadCount; /*!< the actual amount of gamepads */
 
     const char* className;
-    const char* instName;
     RGFW_keyState mouseButtons[RGFW_mouseFinal];
     RGFW_keyState keyboard[RGFW_keyLast]; 
 
@@ -1590,7 +1589,8 @@ typedef struct RGFW_infoStruct {
         Window helperWindow;
     	char* clipboard; /* for writing to the clipboard selection */
 	    size_t clipboard_len;
-	    int eventWait_forceStop[3];    
+	    int eventWait_forceStop[3];   
+        const char* instName;
     #endif
     #ifdef RGFW_WAYLAND
 	    int eventWait_forceStop[3];
@@ -1612,16 +1612,20 @@ typedef struct RGFW_infoStruct {
     void* NSApp;
     IOHIDDeviceRef osxControllers[4];
     #endif
-} RGFW_infoStruct;
+} RGFW_info;
 
-RGFWDEF i32 RGFW_init(RGFW_infoStruct* info); /*!< is called by default when the first window is created by default */
-RGFWDEF void RGFW_deinit(RGFW_infoStruct* info); /*!< is called by default when the last open window is closed */
+RGFWDEF i32 RGFW_init(RGFW_info* info); /*!< is called by default when the first window is created by default */
+RGFWDEF void RGFW_deinit(RGFW_info* info); /*!< is called by default when the last open window is closed */
+
+RGFWDEF void RGFW_setInfo(RGFW_info* info);
+RGFWDEF RGFW_info* RGFW_getInfo(void);
 
 #ifdef RGFW_IMPLEMENTATION
-RGFW_infoStruct* _RGFW = NULL;
-void RGFW_setInfo(RGFW_infoStruct* info) { _RGFW = info; }
+RGFW_info* _RGFW = NULL;
+void RGFW_setInfo(RGFW_info* info) { _RGFW = info; }
+RGFW_info* RGFW_getInfo(void) { return _RGFW; }
 
-void RGFW_useWayland(RGFW_bool wayland) { _RGFW->useWaylandBool = wayland;  }
+void RGFW_useWayland(RGFW_bool wayland) { RGFW_init(NULL); _RGFW->useWaylandBool = wayland;  }
 RGFW_bool RGFW_usingWayland(void) { return _RGFW->useWaylandBool; }
 
 #if !defined(RGFW_NO_X11) && defined(RGFW_WAYLAND)
@@ -1992,9 +1996,9 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlag
 i32 RGFW_initPlatform(void);
 void RGFW_deinitPlatform(void);
 
-i32 RGFW_init(RGFW_infoStruct* info) {
+i32 RGFW_init(RGFW_info* info) {
 #ifndef RGFW_FORCE_INIT
-    static RGFW_infoStruct rgfwStatic;
+    static RGFW_info rgfwStatic;
    
     if (info == NULL) {
         info = &rgfwStatic;   
@@ -2013,7 +2017,7 @@ i32 RGFW_init(RGFW_infoStruct* info) {
     _RGFW->eventIndex = 0;
     _RGFW->windowCount = 0;
     
-    RGFW_MEMSET(_RGFW, 0, sizeof(RGFW_infoStruct));
+    RGFW_MEMSET(_RGFW, 0, sizeof(RGFW_info));
     _RGFW->useWaylandBool = RGFW_TRUE;
 
     RGFW_init_keys();
@@ -2022,7 +2026,7 @@ i32 RGFW_init(RGFW_infoStruct* info) {
     return out;
 }
 
-void RGFW_deinit(RGFW_infoStruct* info) {
+void RGFW_deinit(RGFW_info* info) {
     if (info == NULL) {
         info = _RGFW;
         if (info == NULL) return;
@@ -6497,9 +6501,8 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			RGFW_focusCallback(win, inFocus);
             if (inFocus == RGFW_FALSE) RGFW_window_focusLost(win);
-			if ((win->_flags & RGFW_windowFullscreen) == 0 && inFocus == RGFW_TRUE)	
+			if ((win->_flags & RGFW_windowFullscreen) && inFocus == RGFW_TRUE)	
                 RGFW_window_setFullscreen(win, 1);
-
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		case WM_MOVE:
