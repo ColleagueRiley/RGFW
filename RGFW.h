@@ -740,7 +740,6 @@ typedef struct RGFW_window_src {
 		WGPUInstance ctx;
         WGPUDevice device;
         WGPUQueue queue;
-		EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
 	#else
 		EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
 	#endif
