@@ -1968,14 +1968,14 @@ no more event call back defines
     attribs[index++] = v; \
 }
 
-#define RGFW_EVENT_PASSED 		RGFW_BIT(24) /* if a queued event was passed */
+// RGFW_BIT(24)
 #define RGFW_EVENT_QUIT 		RGFW_BIT(25) /* the window close button was pressed */
 #define RGFW_HOLD_MOUSE			RGFW_BIT(26) /*!< hold the moues still */
 #define RGFW_MOUSE_LEFT 		RGFW_BIT(27) /* if mouse left the window */
 #define RGFW_WINDOW_ALLOC 		RGFW_BIT(28) /* if window was allocated by RGFW */
 #define RGFW_BUFFER_ALLOC 		RGFW_BIT(29) /* if window.buffer was allocated by RGFW */
 #define RGFW_WINDOW_INIT 		RGFW_BIT(30) /* if window.buffer was allocated by RGFW */
-#define RGFW_INTERNAL_FLAGS (RGFW_EVENT_QUIT | RGFW_EVENT_PASSED | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_WINDOW_ALLOC | RGFW_BUFFER_ALLOC | RGFW_windowFocus)
+#define RGFW_INTERNAL_FLAGS (RGFW_EVENT_QUIT | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_WINDOW_ALLOC | RGFW_BUFFER_ALLOC | RGFW_windowFocus)
 
 RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
 	RGFW_window* win = (RGFW_window*)RGFW_ALLOC(sizeof(RGFW_window));
@@ -2239,7 +2239,7 @@ RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
 }
 
 RGFW_bool RGFW_isPressed(RGFW_window* win, RGFW_key key) {
-	return _RGFW->keyboard[key].current && (win == NULL || RGFW_window_isInFocus(win));
+    return _RGFW != NULL && _RGFW->keyboard[key].current && (win == NULL || RGFW_window_isInFocus(win));
 }
 
 RGFW_bool RGFW_wasPressed(RGFW_window* win, RGFW_key key) {
@@ -2492,7 +2492,7 @@ RGFW_bool RGFW_window_allowsDND(RGFW_window* win) { return RGFW_BOOL(win->_flags
 
 void RGFW_window_focusLost(RGFW_window* win) {
     /* standard routines for when a window looses focus */
-	_RGFW->root->_flags &= ~(u32)RGFW_windowFocus;
+	win->_flags &= ~(u32)RGFW_windowFocus;
 	if ((win->_flags & RGFW_windowFullscreen))
 			RGFW_window_minimize(win);
 
@@ -3125,7 +3125,7 @@ RGFW_WAYLAND_LABEL
 
 RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex) {
     RGFW_ASSERT(instance);
-	if (_RGFW->windowCount == -1 || _RGFW->init == RGFW_FALSE) RGFW_init(NULL);
+	if (_RGFW == NULL) RGFW_init(NULL);
 #ifdef RGFW_X11
     RGFW_GOTO_WAYLAND(0);
 	Visual* visual = DefaultVisual(_RGFW->display, DefaultScreen(_RGFW->display));
@@ -4035,7 +4035,6 @@ i32 RGFW_initPlatform(void) {
     RGFW_GOTO_WAYLAND(1);
 
 #ifdef RGFW_X11
-    if (_RGFW->windowCount != -1) return 0;
     #ifdef RGFW_USE_XDL
 		XDL_init();
 	#endif
@@ -4079,7 +4078,7 @@ i32 RGFW_initPlatform(void) {
 	        RGFW_PROC_DEF(X11XEXThandle, XShapeCombineMask);
     #endif
 
-	XInitThreads(); /*!< init X11 threading */
+    XInitThreads(); /*!< init X11 threading */
     _RGFW->display = XOpenDisplay(0);
     XSetWindowAttributes wa;
     RGFW_MEMSET(&wa, 0, sizeof(wa));
@@ -4178,9 +4177,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	XSelectInput(win->src.display, (Drawable) win->src.window, event_mask); /*!< tell X11 what events we want */
 
 	/* make it so the user can't close the window until the program does */
-
     RGFW_LOAD_ATOM(WM_DELETE_WINDOW);
-
 	XSetWMProtocols(win->src.display, (Drawable) win->src.window, &WM_DELETE_WINDOW, 1);
 	/* set the background */
 	RGFW_window_setName(win, name);
@@ -4936,7 +4933,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		win->_flags |= RGFW_windowFocus;
 		win->event.type = RGFW_focusIn;
 		RGFW_focusCallback(win, 1);
-
 
 	    if ((win->_flags & RGFW_HOLD_MOUSE)) RGFW_window_mouseHold(win, RGFW_AREA(win->r.w, win->r.h));
         break;
@@ -6184,10 +6180,9 @@ void RGFW_window_close(RGFW_window* win) {
     XCloseDisplay(win->src.display);
 
     RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
+	RGFW_clipboard_switch(NULL);
     _RGFW->windowCount--;
     if (_RGFW->windowCount == 0) RGFW_deinit(_RGFW);
-
-	RGFW_clipboard_switch(NULL);
 	RGFW_FREE(win->event.droppedFiles);
     if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
@@ -6205,6 +6200,7 @@ void RGFW_window_close(RGFW_window* win) {
         xdg_surface_destroy(win->src.xdg_surface);
 		wl_surface_destroy(win->src.surface);
 
+		RGFW_clipboard_switch(NULL);
 		_RGFW->windowCount--;
         if (_RGFW->windowCount == 0) RGFW_deinit(_RGFW);
 
@@ -6216,7 +6212,6 @@ void RGFW_window_close(RGFW_window* win) {
 			munmap(win->src.buffer, (size_t)(win->r.w * win->r.h * 4));
 		#endif
 
-		RGFW_clipboard_switch(NULL);
 		RGFW_FREE(win->event.droppedFiles);
         if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 			RGFW_FREE(win);
@@ -6501,14 +6496,10 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_eventQueuePushEx(e.type = (RGFW_eventType)((u8)RGFW_focusOut - inFocus); e._win = win);
 
 			RGFW_focusCallback(win, inFocus);
-            RGFW_window_focusLost(win);
+            if (inFocus == RGFW_FALSE) RGFW_window_focusLost(win);
+			if ((win->_flags & RGFW_windowFullscreen) == 0 && inFocus == RGFW_TRUE)	
+                RGFW_window_setFullscreen(win, 1);
 
-			if ((win->_flags & RGFW_windowFullscreen) == 0)
-				return DefWindowProcW(hWnd, message, wParam, lParam);
-
-			win->_flags &= ~(u32)RGFW_EVENT_PASSED;
-			if (inFocus == RGFW_FALSE) RGFW_window_minimize(win);
-			else RGFW_window_setFullscreen(win, 1);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		case WM_MOVE:
@@ -7388,7 +7379,6 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			win->event.keyChar = (u8)charBuffer;
 
 			_RGFW->keyboard[win->event.key].prev = _RGFW->keyboard[win->event.key].current;
-
 			win->event.type = RGFW_keyPressed;
 			win->event.repeat = RGFW_isPressed(win, win->event.key);
 			_RGFW->keyboard[win->event.key].current = 1;
@@ -7863,10 +7853,10 @@ void RGFW_window_close(RGFW_window* win) {
 	if (win->src.hIconBig) DestroyIcon(win->src.hIconBig);
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
+    RGFW_clipboard_switch(NULL);
     _RGFW->windowCount--;
 	if (_RGFW->windowCount == 0) RGFW_deinit(_RGFW);
 
-    RGFW_clipboard_switch(NULL);
 	RGFW_FREE(win->event.droppedFiles);
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
@@ -10035,10 +10025,10 @@ void RGFW_window_close(RGFW_window* win) {
 	#endif
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal, RGFW_DEBUG_CTX(NULL, 0), "global context deinitialized");
+    RGFW_clipboard_switch(NULL);
     _RGFW->windowCount--;
     if (_RGFW->windowCount == 0) RGFW_deinit(_RGFW);
 
-    RGFW_clipboard_switch(NULL);
 	RGFW_FREE(win->event.droppedFiles);
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
@@ -10869,10 +10859,10 @@ void RGFW_window_close(RGFW_window* win) {
 	#endif
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
+    RGFW_clipboard_switch(NULL);
     _RGFW->windowCount--;
     if (_RGFW->windowCount == 0) RGFW_deinit(_RGFW);
 
-    RGFW_clipboard_switch(NULL);
 	RGFW_FREE(win->event.droppedFiles);
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 	    RGFW_FREE(win);
