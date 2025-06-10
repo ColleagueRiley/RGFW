@@ -33,7 +33,6 @@
 /*
 	#define RGFW_IMPLEMENTATION - (required) makes it so the source code is included
 	#define RGFW_DEBUG - (optional) makes it so RGFW prints debug messages and errors when they're found
-	#define RGFW_OSMESA - (optional) use OSmesa as backend (instead of system's opengl api + regular opengl)
 	#define RGFW_BUFFER - (optional) draw directly to (RGFW) window pixel buffer that is drawn to screen (the buffer is in the RGBA format)
 	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's opengl api)
 	#define RGFW_OPENGL_ES1 - (optional) use EGL to load and use Opengl ES (version 1) for backend rendering (instead of the system's opengl api)
@@ -367,7 +366,7 @@ int main() {
 #endif
 #if defined(RGFW_WAYLAND)
 	#define RGFW_DEBUG /* wayland will be in debug mode by default for now */
-    #if !defined(RGFW_NO_API) && (!defined(RGFW_BUFFER) || defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA)
+    #if !defined(RGFW_NO_API) && (!defined(RGFW_BUFFER) || defined(RGFW_OPENGL)) 
 		#define RGFW_EGL
 		#define RGFW_OPENGL
 		#include <wayland-egl.h>
@@ -395,29 +394,12 @@ int main() {
 	#define RGFW_EGL
 #endif
 
-#if !defined(RGFW_OSMESA) && !defined(RGFW_EGL) && !defined(RGFW_OPENGL) && !defined(RGFW_DIRECTX) && !defined(RGFW_BUFFER) && !defined(RGFW_NO_API)
+#if !defined(RGFW_EGL) && !defined(RGFW_OPENGL) && !defined(RGFW_DIRECTX) && !defined(RGFW_BUFFER) && !defined(RGFW_NO_API)
 	#define RGFW_OPENGL
 #endif
 
 #ifdef RGFW_EGL
 	#include <EGL/egl.h>
-#elif defined(RGFW_OSMESA)
-	#ifdef RGFW_WINDOWS
-	#define OEMRESOURCE
-	#include <GL/gl.h>
-    	#ifndef GLAPIENTRY
-	#define GLAPIENTRY APIENTRY
-	#endif
-    	#ifndef GLAPI
-	#define GLAPI WINGDIAPI
-    	#endif
-	#endif
-
-	#ifndef __APPLE__
-		#include <GL/osmesa.h>
-	#else
-		#include <OpenGL/osmesa.h>
-	#endif
 #endif
 
 #if (defined(RGFW_OPENGL) || defined(RGFW_WEGL)) && defined(_MSC_VER)
@@ -671,17 +653,15 @@ typedef struct RGFW_window_src {
 	HDC hdc; /*!< source HDC */
 	u32 hOffset; /*!< height offset for window */
 	HICON hIconSmall, hIconBig; /*!< source window icons */
-	#if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
+	#if (defined(RGFW_OPENGL)) && !defined(RGFW_EGL)
 		HGLRC ctx; /*!< source graphics context */
-	#elif defined(RGFW_OSMESA)
-		OSMesaContext ctx;
 	#elif defined(RGFW_EGL)
 		EGLSurface EGL_surface;
 		EGLDisplay EGL_display;
 		EGLContext EGL_context;
 	#endif
 
-	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+	#if defined(RGFW_BUFFER)
 		HDC hdcMem;
 		HBITMAP bitmap;
 		u8* bitmapBits;
@@ -693,18 +673,16 @@ typedef struct RGFW_window_src {
 #if defined(RGFW_X11)
 	Display* display; /*!< source display */
 	Window window; /*!< source window */
-	#if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
+	#if (defined(RGFW_OPENGL)) && !defined(RGFW_EGL)
 		GLXContext ctx; /*!< source graphics context */
         GLXFBConfig bestFbc; 
-	#elif defined(RGFW_OSMESA)
-		OSMesaContext ctx;
 	#elif defined(RGFW_EGL)
 		EGLSurface EGL_surface;
 		EGLDisplay EGL_display;
 		EGLContext EGL_context;
 	#endif
 
-	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+	#if defined(RGFW_BUFFER)
 			XImage* bitmap;
 	#endif
 	GC gc;
@@ -736,19 +714,15 @@ typedef struct RGFW_window_src {
 			EGLSurface EGL_surface;
 			EGLDisplay EGL_display;
 			EGLContext EGL_context;
-	#elif defined(RGFW_OSMESA) && !defined(RGFW_X11)
-		OSMesaContext ctx;
-	#endif
+    #endif
 #endif /* RGFW_WAYLAND */
 } RGFW_window_src;
 #endif /* RGFW_UNIX */
 #if defined(RGFW_MACOS)
 typedef struct RGFW_window_src {
 	void* window;
-#if (defined(RGFW_OPENGL)) && !defined(RGFW_OSMESA) && !defined(RGFW_EGL)
+#if (defined(RGFW_OPENGL)) && !defined(RGFW_EGL)
 		void* ctx; /*!< source graphics context */
-#elif defined(RGFW_OSMESA)
-		OSMesaContext ctx;
 #elif defined(RGFW_EGL)
 		EGLSurface EGL_surface;
 		EGLDisplay EGL_display;
@@ -757,7 +731,7 @@ typedef struct RGFW_window_src {
 
 	void* view; /* apple viewpoint thingy */
 	void* mouse;
-#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+#if defined(RGFW_BUFFER)
 #endif
 } RGFW_window_src;
 #elif defined(RGFW_WASM)
@@ -766,9 +740,6 @@ typedef struct RGFW_window_src {
 		WGPUInstance ctx;
         WGPUDevice device;
         WGPUQueue queue;
-	#elif defined(RGFW_OSMESA)
-		OSMesaContext ctx;
-	#else
 		EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
 	#endif
 } RGFW_window_src;
@@ -801,7 +772,7 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 typedef struct RGFW_window {
 	RGFW_window_src src; /*!< src window data */
 
-#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+#if defined(RGFW_BUFFER)
 	u8* buffer; /*!< buffer for non-GPU systems (OSMesa, basic software rendering) */
 	/* when rendering using RGFW_BUFFER, the buffer is in the RGBA format */
 	RGFW_area bufferSize;
@@ -1608,7 +1579,7 @@ typedef struct RGFW_info {
     
     #ifdef RGFW_MACOS
     void* NSApp;
-    __IOHIDDevice* osxControllers[4];
+    struct __IOHIDDevice* osxControllers[4];
     #endif
 } RGFW_info;
 
@@ -2195,7 +2166,7 @@ void RGFW_window_initBuffer(RGFW_window* win) {
 }
 
 void RGFW_window_initBufferSize(RGFW_window* win, RGFW_area area) {
-#if defined(RGFW_BUFFER) || defined(RGFW_OSMESA)
+#if defined(RGFW_BUFFER)
     win->_flags |= RGFW_BUFFER_ALLOC;
 	#ifndef RGFW_WINDOWS
         u8* buffer = (u8*)RGFW_ALLOC(area.w * area.h * 4);
@@ -2383,9 +2354,9 @@ u32 RGFW_checkFPS(double startTime, u32 frameCount, u32 fpsCap) {
 	return (u32) fps;
 }
 
-#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+#if defined(RGFW_BUFFER)
 void RGFW_RGB_to_BGR(RGFW_window* win, u8* data) {
-	#if !defined(RGFW_BUFFER_BGR) && !defined(RGFW_OSMESA)
+	#if !defined(RGFW_BUFFER_BGR)
 	u32 x, y;
 	for (y = 0; y < (u32)win->r.h; y++) {
 		for (x = 0; x < (u32)win->r.w; x++) {
@@ -2395,13 +2366,6 @@ void RGFW_RGB_to_BGR(RGFW_window* win, u8* data) {
 			data[index] = win->buffer[index + 2];
 			data[index + 2] = red;
 		}
-	}
-    #elif defined(RGFW_OSMESA)
-	u32 y;
-	for(y = 0; y < (u32)win->r.h; y++){
-		u32 index_from = (y + (win->bufferSize.h - win->r.h)) * 4 * win->bufferSize.w;
-		u32 index_to = y * 4 * win->bufferSize.w;
-		memcpy(&data[index_to], &data[index_from], 4 * win->bufferSize.w);
 	}
     #else
 	RGFW_UNUSED(win); RGFW_UNUSED(data);
@@ -3749,18 +3713,12 @@ RGFW_proc RGFW_getProcAddress(const char* procname) { return (RGFW_proc) glXGetP
 void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 	RGFW_GOTO_WAYLAND(0);
 
-#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+#if defined(RGFW_BUFFER)
 	win->buffer = (u8*)buffer;
 	win->bufferSize = area;
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoBuffer, RGFW_DEBUG_CTX(win, 0), "createing a 4 channel buffer");
 	#ifdef RGFW_X11
-		#ifdef RGFW_OSMESA
-				win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
-				OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
-				OSMesaPixelStore(OSMESA_Y_UP, 0);
-		#endif
-
 		win->src.bitmap = XCreateImage(
 			win->src.display, win->src.visual.visual, (u32)win->src.visual.depth,
 			ZPixmap, 0, NULL, area.w, area.h, 32, 0
@@ -3802,12 +3760,6 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 		}
 
 		RGFW_MEMCPY(win->src.buffer, win->buffer, (size_t)(win->r.w * win->r.h * 4));
-
-		#if defined(RGFW_OSMESA)
-				win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
-				OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
-				OSMesaPixelStore(OSMESA_Y_UP, 0);
-		#endif
 	#endif
 #else
 	#ifdef RGFW_WAYLAND
@@ -6037,7 +5989,7 @@ void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) { glXSwapBuffers(win->src.
 void RGFW_window_swapBuffers_software(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_GOTO_WAYLAND(0);
-#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+#if defined(RGFW_BUFFER)
 	#ifdef RGFW_X11
 		win->src.bitmap->data = (char*) win->buffer;
 		RGFW_RGB_to_BGR(win, (u8*)win->src.bitmap->data);
@@ -6047,7 +5999,7 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 	#endif
 	#ifdef RGFW_WAYLAND
 	RGFW_WAYLAND_LABEL
-        #if !defined(RGFW_BUFFER_BGR) && !defined(RGFW_OSMESA)
+        #if !defined(RGFW_BUFFER_BGR) 
 		RGFW_RGB_to_BGR(win, win->src.buffer);
 		#else
         size_t y;
@@ -6167,7 +6119,7 @@ void RGFW_window_close(RGFW_window* win) {
 	if (win->_flags & RGFW_HOLD_MOUSE)
 		XUngrabPointer(win->src.display, CurrentTime);
 
-    #if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+    #if defined(RGFW_BUFFER)
 		if (win->buffer != NULL) {
 			if ((win->_flags & RGFW_BUFFER_ALLOC))
 				RGFW_FREE(win->buffer);
@@ -6184,7 +6136,6 @@ void RGFW_window_close(RGFW_window* win) {
 	RGFW_clipboard_switch(NULL);
     _RGFW->windowCount--;
     if (_RGFW->windowCount == 0) RGFW_deinit(_RGFW);
-	RGFW_FREE(win->event.droppedFiles);
     if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
         win = NULL;
@@ -6205,7 +6156,7 @@ void RGFW_window_close(RGFW_window* win) {
 		_RGFW->windowCount--;
         if (_RGFW->windowCount == 0) RGFW_deinit(_RGFW);
 
-		#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+		#if defined(RGFW_BUFFER)
 			wl_buffer_destroy(win->src.wl_buffer);
 			if ((win->_flags & RGFW_BUFFER_ALLOC))
 				RGFW_FREE(win->buffer);
@@ -6641,7 +6592,7 @@ void RGFW_loadXInput(void) {
 #endif
 
 void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
-#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+#if defined(RGFW_BUFFER)
 	win->buffer = buffer;
 	win->bufferSize = area;
 
@@ -6664,12 +6615,6 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
 
 	win->src.hdcMem = CreateCompatibleDC(win->src.hdc);
 	SelectObject(win->src.hdcMem, win->src.bitmap);
-
-	#if defined(RGFW_OSMESA)
-	win->src.ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
-	OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
-	OSMesaPixelStore(OSMESA_Y_UP, 0);
-	#endif
 	#else
 	RGFW_UNUSED(win); RGFW_UNUSED(buffer); RGFW_UNUSED(area); /*!< if buffer rendering is not being used */
 	#endif
@@ -8044,7 +7989,7 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 #endif
 
 void RGFW_window_swapBuffers_software(RGFW_window* win) {
-#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+#if defined(RGFW_BUFFER)
 	if (win->buffer != win->src.bitmapBits)
 	memcpy(win->src.bitmapBits, win->buffer, win->bufferSize.w * win->bufferSize.h * 4);
 
@@ -8903,15 +8848,10 @@ void RGFW__osxDrawRect(id self, SEL _cmd, CGRect rect) {
 }
 
 void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
-	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+	#if defined(RGFW_BUFFER)
 		win->buffer = buffer;
 		win->bufferSize = area;
 		win->_flags |= RGFW_BUFFER_ALLOC;
-	#ifdef RGFW_OSMESA
-		win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
-		OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
-		OSMesaPixelStore(OSMESA_Y_UP, 0);
-	#endif
 	#else
 		RGFW_UNUSED(win);  RGFW_UNUSED(buffer); RGFW_UNUSED(area); /*!< if buffer rendering is not being used */
 	#endif
@@ -9987,7 +9927,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	#endif
 
 void RGFW_window_swapBuffers_software(RGFW_window* win) {
-#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+#if defined(RGFW_BUFFER)
 	RGFW_RGB_to_BGR(win, win->buffer);
 	i32 channels = 4;
 	id image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSImage"), sel_getUid("alloc"));
@@ -10019,7 +9959,7 @@ void RGFW_window_close(RGFW_window* win) {
 	NSRelease(win->src.view);
 	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_freeOpenGL(win);
 
-	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+	#if defined(RGFW_BUFFER)
 		if ((win->_flags & RGFW_BUFFER_ALLOC))
 			RGFW_FREE(win->buffer);
 	#endif
@@ -10447,14 +10387,9 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 }
 
 void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
-	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+	#if defined(RGFW_BUFFER)
 		win->buffer = buffer;
 		win->bufferSize = area;
-	#ifdef RGFW_OSMESA
-			win->src.ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
-			OSMesaMakeCurrent(win->src.ctx, win->buffer, GL_UNSIGNED_BYTE, area.w, area.h);
-			OSMesaPixelStore(OSMESA_Y_UP, 0);
-	#endif
 	#else
 	RGFW_UNUSED(win);  RGFW_UNUSED(buffer); RGFW_UNUSED(area); /*!< if buffer rendering is not being used */
 	#endif
@@ -10485,7 +10420,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_writeFile(const char *path, const char *data, siz
 }
 
 void RGFW_window_initOpenGL(RGFW_window* win) {
-#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU) && !defined(RGFW_OSMESA) && !defined(RGFW_BUFFER)
+#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU) && !defined(RGFW_BUFFER)
 	EmscriptenWebGLContextAttributes attrs;
 	attrs.alpha = RGFW_GL_HINTS[RGFW_glDepth];
 	attrs.depth = RGFW_GL_HINTS[RGFW_glAlpha];
@@ -10519,15 +10454,11 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 }
 
 void RGFW_window_freeOpenGL(RGFW_window* win) {
-#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU) && !defined(RGFW_OSMESA) && !defined(RGFW_OSMESA)
+#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU) 
 	if (win->src.ctx == 0) return;
 	emscripten_webgl_destroy_context(win->src.ctx);
 	win->src.ctx = 0;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "opengl context freed");
-#elif defined(RGFW_OPENGL) && defined(RGFW_OSMESA)
-	if(win->src.ctx == 0) return;
-	OSMesaDestroyContext(win->src.ctx);
-	win->src.ctx = 0;
 #else
 	RGFW_UNUSED(win);
 #endif
@@ -10800,7 +10731,7 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 }
 
 void RGFW_window_swapBuffers_software(RGFW_window* win) {
-#if defined(RGFW_OSMESA)
+#if defined(RGFW_BUFFER)
 	EM_ASM_({
 		var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4);
 		let context = document.getElementById("canvas").getContext("2d");
@@ -10823,7 +10754,7 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 }
 
 void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
-#if !defined(RGFW_WEBGPU) && !(defined(RGFW_OSMESA) || defined(RGFW_BUFFER))
+#if !defined(RGFW_WEBGPU) && !defined(RGFW_BUFFER)
 	if (win == NULL)
 	    emscripten_webgl_make_context_current(0);
 	else
@@ -10853,7 +10784,7 @@ void RGFW_deinitPlatform(void) { }
 void RGFW_window_close(RGFW_window* win) {
 	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_freeOpenGL(win);
 
-	#if defined(RGFW_OSMESA) || defined(RGFW_BUFFER)
+	#if defined(RGFW_BUFFER)
 	if ((win->_flags & RGFW_BUFFER_ALLOC))
 		RGFW_FREE(win->buffer);
 	#endif
