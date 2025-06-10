@@ -2126,7 +2126,7 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 	win->_lastMousePoint.x = 0; 
 	win->_lastMousePoint.y = 0; 
 
-	win->event.droppedFiles = (char**)_RGFW->droppedFiles;
+	win->event.droppedFiles = (char**)(void*)_RGFW->droppedFiles;
      
     { 
         u32 i;
