@@ -1549,7 +1549,6 @@ typedef struct {
 } RGFW_keyState;
 
 struct __IOHIDDevice; 
-typedef struct __IOHIDDevice* IOHIDDeviceRef;
 
 typedef struct RGFW_info {
     RGFW_window* root;
@@ -1577,13 +1576,12 @@ typedef struct RGFW_info {
     RGFW_keyState mouseButtons[RGFW_mouseFinal];
     RGFW_keyState keyboard[RGFW_keyLast]; 
 
-
     RGFW_bool useWaylandBool;
     RGFW_bool stopCheckEvents_bool;
     u64 timerOffset;
 
     char* clipboard_data;
-
+    char droppedFiles[RGFW_MAX_PATH * RGFW_MAX_DROPS];
     #ifdef RGFW_X11
         Display* display;
         Window helperWindow;
@@ -1610,7 +1608,7 @@ typedef struct RGFW_info {
     
     #ifdef RGFW_MACOS
     void* NSApp;
-    IOHIDDeviceRef osxControllers[4];
+    __IOHIDDevice* osxControllers[4];
     #endif
 } RGFW_info;
 
@@ -2128,7 +2126,7 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 	win->_lastMousePoint.x = 0; 
 	win->_lastMousePoint.y = 0; 
 
-	win->event.droppedFiles = (char**)RGFW_ALLOC(RGFW_MAX_PATH * RGFW_MAX_DROPS);
+	win->event.droppedFiles = _RGFW->droppedFiles;
 	RGFW_ASSERT(win->event.droppedFiles != NULL);
      
     { 
