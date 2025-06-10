@@ -736,10 +736,12 @@ typedef struct RGFW_window_src {
 } RGFW_window_src;
 #elif defined(RGFW_WASM)
 typedef struct RGFW_window_src {
-	#if defined(RGFW_WEBGPU)
+    #if defined(RGFW_WEBGPU)
 		WGPUInstance ctx;
         WGPUDevice device;
         WGPUQueue queue;
+		EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
+	#else
 		EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
 	#endif
 } RGFW_window_src;
@@ -10453,7 +10455,7 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 #endif
 }
 
-void RGFW_window_freeOpenGL(RGFW_window* win) {
+void RGFW_window_freeOpenGL(RGFW_window* win) ?{
 #if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU) && !defined(RGFW_BUFFER) 
 	if (win->src.ctx == 0) return;
 	emscripten_webgl_destroy_context(win->src.ctx);
