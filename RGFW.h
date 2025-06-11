@@ -7803,7 +7803,6 @@ void RGFW_window_close(RGFW_window* win) {
     _RGFW->windowCount--;
 	if (_RGFW->windowCount == 0) RGFW_deinit(_RGFW);
 
-	RGFW_FREE(win->event.droppedFiles);
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
         win = NULL;
@@ -9969,8 +9968,6 @@ void RGFW_window_close(RGFW_window* win) {
     RGFW_clipboard_switch(NULL);
     _RGFW->windowCount--;
     if (_RGFW->windowCount == 0) RGFW_deinit(_RGFW);
-
-	RGFW_FREE(win->event.droppedFiles);
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
         win = NULL;
@@ -10795,7 +10792,6 @@ void RGFW_window_close(RGFW_window* win) {
     _RGFW->windowCount--;
     if (_RGFW->windowCount == 0) RGFW_deinit(_RGFW);
 
-	RGFW_FREE(win->event.droppedFiles);
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 	    RGFW_FREE(win);
         win = NULL;
