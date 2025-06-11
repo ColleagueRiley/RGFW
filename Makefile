@@ -341,7 +341,7 @@ ifneq ($(NO_GLES), 1)
 		./examples/gles2/gles2$(EXT)
 endif
 ifneq ($(NO_OSMESA), 1)
-		./examples/osmesa/osmesa$(EXT)
+		./examples/osmesa_demo/osmesa_demo$(EXT)
 endif
 ifneq ($(NO_VULKAN), 1)
 		./examples/vk10/vk10$(EXT)
