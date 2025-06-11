@@ -63,6 +63,7 @@
 	#define RGFW_NO_DPI - do not calculate DPI (no XRM nor libShcore included)
 	#define RGFW_BUFFER_BGR - use the BGR format for bufffers instead of RGB, saves processing time
     #define RGFW_ADVANCED_SMOOTH_RESIZE - use advanced methods for smooth resizing (may result in a spike in memory usage or worse performance) (eg. WM_TIMER and XSyncValue)
+    #define RGFW_NO_INFO - do not define the RGFW_info struct (without RGFW_IMPLEMENTATION)
 
 	#define RGFW_ALLOC x  - choose the default allocation function (defaults to standard malloc)
 	#define RGFW_FREE x  - choose the default deallocation function (defaults to standard free)
@@ -1520,8 +1521,15 @@ typedef struct {
 	RGFW_bool prev  : 1;
 } RGFW_keyState;
 
+RGFWDEF i32 RGFW_init(void); /*!< is called by default when the first window is created by default */
+RGFWDEF void RGFW_deinit(void); /*!< is called by default when the last open window is closed */
+
+RGFWDEF void* RGFW_init_heap(void); /*!< inits RGFW on the heap instead of in a global var */
+RGFWDEF void RGFW_deinit_heap(void); /*!< deinits the heap instance */
+
 struct __IOHIDDevice; 
 
+#if !defined(RGFW_NO_INFO) || defined(RGFW_IMPLEMENTATION)
 typedef struct RGFW_info {
     RGFW_window* root;
     RGFW_window* current;
@@ -1584,18 +1592,19 @@ typedef struct RGFW_info {
     #endif
 } RGFW_info;
 
-RGFWDEF i32 RGFW_init(RGFW_info* info); /*!< is called by default when the first window is created by default */
-RGFWDEF void RGFW_deinit(RGFW_info* info); /*!< is called by default when the last open window is closed */
+RGFWDEF i32 RGFW_init_ptr(RGFW_info* info); /*!< init RGFW, storing the data at the pointer */
+RGFWDEF void RGFW_deinit_ptr(RGFW_info* info); /*!< deinits RGFW instance at pointer */
 
 RGFWDEF void RGFW_setInfo(RGFW_info* info);
 RGFWDEF RGFW_info* RGFW_getInfo(void);
+#endif
 
 #ifdef RGFW_IMPLEMENTATION
 RGFW_info* _RGFW = NULL;
 void RGFW_setInfo(RGFW_info* info) { _RGFW = info; }
 RGFW_info* RGFW_getInfo(void) { return _RGFW; }
 
-void RGFW_useWayland(RGFW_bool wayland) { RGFW_init(NULL); _RGFW->useWaylandBool = wayland;  }
+void RGFW_useWayland(RGFW_bool wayland) { RGFW_init(); _RGFW->useWaylandBool = wayland;  }
 RGFW_bool RGFW_usingWayland(void) { return _RGFW->useWaylandBool; }
 
 #if !defined(RGFW_NO_X11) && defined(RGFW_WAYLAND)
@@ -1963,21 +1972,31 @@ RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlag
 	#include "XDL.h"
 #endif
 
+#ifndef RGFW_FORCE_INIT
+RGFW_info _rgfwGlobal;   
+#endif
+
+i32 RGFW_init(void) { return RGFW_init_ptr(&_rgfwGlobal); }
+void RGFW_deinit(void) { RGFW_deinit_ptr(&_rgfwGlobal); }
+
+void* RGFW_init_heap(void) {
+    RGFW_info* info = (RGFW_info*)RGFW_ALLOC(sizeof(RGFW_info));
+    RGFW_init_ptr(info);
+    return (void*)info;
+} 
+
+void RGFW_deinit_heap(void) {
+    RGFW_deinit_ptr(_RGFW);
+    RGFW_FREE(_RGFW);
+    _RGFW = NULL;
+}
+
 i32 RGFW_initPlatform(void);
 void RGFW_deinitPlatform(void);
 
-i32 RGFW_init(RGFW_info* info) {
-#ifndef RGFW_FORCE_INIT
-    static RGFW_info rgfwStatic;
-   
-    if (info == NULL) {
-        info = &rgfwStatic;   
-    }
-#endif
-    if (info == _RGFW || info == NULL) {
-        return 0;
-    }
- 
+i32 RGFW_init_ptr(RGFW_info* info) {
+    if (info == _RGFW || info == NULL) return 1;
+
     RGFW_setInfo(info);
 
     _RGFW->root = NULL; 
@@ -1996,11 +2015,8 @@ i32 RGFW_init(RGFW_info* info) {
     return out;
 }
 
-void RGFW_deinit(RGFW_info* info) {
-    if (info == NULL) {
-        info = _RGFW;
-        if (info == NULL) return;
-    }
+void RGFW_deinit_ptr(RGFW_info* info) {
+    if (info == NULL) return;
 
     RGFW_setInfo(info);
     RGFW_deinitPlatform();
@@ -2076,7 +2092,7 @@ RGFW_window* RGFW_getRootWindow(void) { return _RGFW->root; }
 /* do a basic initialization for RGFW_window, this is to standard it for each OS */
 void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags flags) {
 	RGFW_UNUSED(flags);
-    if (_RGFW == NULL) RGFW_init(NULL);
+    if (_RGFW == NULL) RGFW_init();
     _RGFW->windowCount++;
 
     /* rect based the requested flags */
@@ -2187,7 +2203,7 @@ RGFWDEF void RGFW_window_cocoaSetLayer(RGFW_window* win, void* layer);
 RGFWDEF void* RGFW_cocoaGetLayer(void);
 #endif
 
-void RGFW_setClassName(const char* name) { RGFW_init(NULL); _RGFW->className = name; }
+void RGFW_setClassName(const char* name) { RGFW_init(); _RGFW->className = name; }
 
 #ifndef RGFW_X11
 void RGFW_setXInstName(const char* name) { RGFW_UNUSED(name); }
@@ -3091,7 +3107,7 @@ RGFW_WAYLAND_LABEL
 
 RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex) {
     RGFW_ASSERT(instance);
-	if (_RGFW == NULL) RGFW_init(NULL);
+	if (_RGFW == NULL) RGFW_init();
 #ifdef RGFW_X11
     RGFW_GOTO_WAYLAND(0);
 	Visual* visual = DefaultVisual(_RGFW->display, DefaultScreen(_RGFW->display));
@@ -4306,7 +4322,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 RGFW_area RGFW_getScreenSize(void) {
 	RGFW_GOTO_WAYLAND(1);
-	RGFW_init(NULL);
+	RGFW_init();
 
 	#ifdef RGFW_X11
 	Screen* scrn = DefaultScreenOfDisplay(_RGFW->display);
@@ -4318,7 +4334,7 @@ RGFW_area RGFW_getScreenSize(void) {
 }
 
 RGFW_point RGFW_getGlobalMousePoint(void) {
-	RGFW_init(NULL);
+	RGFW_init();
 	RGFW_point RGFWMouse = RGFW_POINT(0, 0);
     RGFW_GOTO_WAYLAND(1);
 #ifdef RGFW_X11
@@ -5387,7 +5403,7 @@ RGFW_mouse* RGFW_loadMouse(u8* icon, RGFW_area a, i32 channels) {
 
 #ifdef RGFW_X11
 #ifndef RGFW_NO_X11_CURSOR
-	RGFW_init(NULL);
+	RGFW_init();
     XcursorImage* native = XcursorImageCreate((i32)a.w, (i32)a.h);
 	native->xhot = 0;
 	native->yhot = 0;
@@ -5536,7 +5552,7 @@ void RGFW_window_show(RGFW_window* win) {
 RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	RGFW_GOTO_WAYLAND(1);
 #ifdef RGFW_X11
-	RGFW_init(NULL);
+	RGFW_init();
 	RGFW_LOAD_ATOM(XSEL_DATA); RGFW_LOAD_ATOM(UTF8_STRING); RGFW_LOAD_ATOM(CLIPBOARD);
 	if (XGetSelectionOwner(_RGFW->display, CLIPBOARD) == _RGFW->helperWindow) {
 		if (str != NULL)
@@ -5620,7 +5636,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	RGFW_GOTO_WAYLAND(1);
 	#ifdef RGFW_X11
 	RGFW_LOAD_ATOM(SAVE_TARGETS); RGFW_LOAD_ATOM(CLIPBOARD);
-    RGFW_init(NULL);
+    RGFW_init();
 
     /* request ownership of the clipboard section and request to convert it, this means its our job to convert it */
 	XSetSelectionOwner(_RGFW->display, CLIPBOARD, _RGFW->helperWindow, CurrentTime);
@@ -5774,7 +5790,7 @@ static float XGetSystemContentDPI(Display* display, i32 screen) {
 RGFW_monitor RGFW_XCreateMonitor(i32 screen);
 RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	RGFW_monitor monitor;
-    RGFW_init(NULL);
+    RGFW_init();
 
 	RGFW_GOTO_WAYLAND(1);
 #ifdef RGFW_X11
@@ -5864,7 +5880,7 @@ RGFW_monitor* RGFW_getMonitors(size_t* len) {
 
 	RGFW_GOTO_WAYLAND(1);
 	#ifdef RGFW_X11
-    RGFW_init(NULL);
+    RGFW_init();
 
 	Display* display = _RGFW->display;
 	i32 max = ScreenCount(display);
@@ -5897,7 +5913,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 	RGFW_GOTO_WAYLAND(1);
 #ifdef RGFW_X11
 	#ifndef RGFW_NO_DPI
-    RGFW_init(NULL);
+    RGFW_init();
     XRRScreenResources* screenRes = XRRGetScreenResources(_RGFW->display, DefaultRootWindow(_RGFW->display));
 	if (screenRes == NULL) return RGFW_FALSE;
 
@@ -6136,7 +6152,7 @@ void RGFW_window_close(RGFW_window* win) {
     RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
 	RGFW_clipboard_switch(NULL);
     _RGFW->windowCount--;
-    if (_RGFW->windowCount == 0) RGFW_deinit(_RGFW);
+    if (_RGFW->windowCount == 0) RGFW_deinit();
     if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
         win = NULL;
@@ -6155,7 +6171,7 @@ void RGFW_window_close(RGFW_window* win) {
 
 		RGFW_clipboard_switch(NULL);
 		_RGFW->windowCount--;
-        if (_RGFW->windowCount == 0) RGFW_deinit(_RGFW);
+        if (_RGFW->windowCount == 0) RGFW_deinit();
 
 		#if defined(RGFW_BUFFER)
 			wl_buffer_destroy(win->src.wl_buffer);
@@ -7801,7 +7817,7 @@ void RGFW_window_close(RGFW_window* win) {
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
     RGFW_clipboard_switch(NULL);
     _RGFW->windowCount--;
-	if (_RGFW->windowCount == 0) RGFW_deinit(_RGFW);
+	if (_RGFW->windowCount == 0) RGFW_deinit();
 
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
@@ -9967,7 +9983,7 @@ void RGFW_window_close(RGFW_window* win) {
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal, RGFW_DEBUG_CTX(NULL, 0), "global context deinitialized");
     RGFW_clipboard_switch(NULL);
     _RGFW->windowCount--;
-    if (_RGFW->windowCount == 0) RGFW_deinit(_RGFW);
+    if (_RGFW->windowCount == 0) RGFW_deinit();
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
         win = NULL;
@@ -10790,7 +10806,7 @@ void RGFW_window_close(RGFW_window* win) {
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
     RGFW_clipboard_switch(NULL);
     _RGFW->windowCount--;
-    if (_RGFW->windowCount == 0) RGFW_deinit(_RGFW);
+    if (_RGFW->windowCount == 0) RGFW_deinit();
 
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 	    RGFW_FREE(win);
