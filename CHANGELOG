@@ -27,6 +27,9 @@ Release:    RGFW 1.7.5-dev
 - add RGFW_window_opengl_isSoftware
 - add OPTIONAL advanced `RGFW_init` functions and give the user more OPTIONAL control of global vars 
 - remove internal OS Mesa support
+- handle X11 events manually (with a callback
+- remove software arg from `RGFW_window_initOpenGL`
+- add `RGFW_window_opengl_isSoftware` for checking if software is supported
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
