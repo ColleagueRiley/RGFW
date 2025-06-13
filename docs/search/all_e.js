@@ -5,5 +5,6 @@ var searchData=
   ['scroll_2',['scroll',['../structRGFW__event.html#a4ccee6f625be64b6a84868258fbc83f9',1,'RGFW_event']]],
   ['src_3',['src',['../structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03',1,'RGFW_window']]],
   ['srcerror_4',['srcError',['../structRGFW__debugContext.html#aa83acb43a35a418f1264a2c9faade5bd',1,'RGFW_debugContext']]],
-  ['supporting_5',['Supporting',['../group__Supporting.html',1,'']]]
+  ['stopcheckevents_5fbool_5',['stopCheckEvents_bool',['../structRGFW__info.html#a2b955496f298cd2045dd40a9b5a88e08',1,'RGFW_info']]],
+  ['supporting_6',['Supporting',['../group__Supporting.html',1,'']]]
 ];

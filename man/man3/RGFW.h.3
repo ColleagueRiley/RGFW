@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Mon Jun 9 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Fri Jun 13 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -43,6 +43,12 @@ RGFW.h
 .br
 .ti -1c
 .RI "struct \fBRGFW_debugContext\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_keyState\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_info\fP"
 .br
 .in -1c
 .SS "Macros"
@@ -142,7 +148,10 @@ RGFW.h
 .RI "#define \fBRGFW_DEBUG_CTX\fP(win,  err)   (\fBRGFW_debugContext\fP){win, NULL, err}"
 .br
 .ti -1c
-.RI "#define \fBRGFW_DEBUG_CTX_MON\fP(monitor)   (\fBRGFW_debugContext\fP){_RGFW\&.root, &monitor, 0}"
+.RI "#define \fBRGFW_DEBUG_CTX_MON\fP(monitor)   (\fBRGFW_debugContext\fP){_RGFW\->root, &monitor, 0}"
+.br
+.ti -1c
+.RI "#define \fBRGFW_MAX_EVENTS\fP   32"
 .br
 .ti -1c
 .RI "#define \fBRGFW_eventQueuePushEx\fP(eventInit)   { \fBRGFW_event\fP e; eventInit; \fBRGFW_eventQueuePush\fP(e); }"
@@ -273,6 +282,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_proc\fP) (void)"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_info\fP \fBRGFW_info\fP"
 .br
 .in -1c
 .SS "Functions"
@@ -702,12 +714,6 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_extensionSupportedPlatform\fP (const char *extension, size_t len)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_init\fP (void)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_deinit\fP (void)"
-.br
-.ti -1c
 .RI "\fBRGFWDEF\fP double \fBRGFW_getTime\fP (void)"
 .br
 .ti -1c
@@ -754,6 +760,30 @@ RGFW.h
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_mouseIcons)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_init\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_deinit\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void * \fBRGFW_init_heap\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_deinit_heap\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_init_ptr\fP (\fBRGFW_info\fP *info)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_deinit_ptr\fP (\fBRGFW_info\fP *info)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setInfo\fP (\fBRGFW_info\fP *info)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_info\fP * \fBRGFW_getInfo\fP (void)"
 .br
 .in -1c
 .SH "Macro Definition Documentation"
@@ -834,6 +864,8 @@ basic area type, if there's not already a area type of choice
 
 .SS "typedef struct \fBRGFW_event\fP \fBRGFW_event\fP"
 Event structure for checking/getting events 
+.SS "typedef struct \fBRGFW_info\fP \fBRGFW_info\fP"
+
 .SS "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
 structure for monitor data 
 .SS "typedef struct \fBRGFW_monitorMode\fP \fBRGFW_monitorMode\fP"
@@ -858,6 +890,12 @@ window structure for managing the window
 
 .SH "Function Documentation"
 .PP 
+.SS "\fBRGFWDEF\fP void RGFW_deinit (void)"
+is called by default when the last open window is closed 
+.SS "\fBRGFWDEF\fP void RGFW_deinit_heap (void)"
+deinits the heap instance 
+.SS "\fBRGFWDEF\fP void RGFW_deinit_ptr (\fBRGFW_info\fP * info)"
+deinits RGFW instance at pointer 
 .SS "typedef RGFW_ENUM (\fBu32\fP, RGFW_windowFlags)"
 source data for the window (used by the APIs)
 .PP
@@ -1004,10 +1042,18 @@ mouse button codes (\fBRGFW_event\&.button\fP) < left mouse button is pressed
 < mouse wheel is scrolling down
 .SS "\fBRGFWDEF\fP void RGFW_freeMouse (\fBRGFW_mouse\fP * mouse)"
 
+.SS "\fBRGFWDEF\fP \fBRGFW_info\fP * RGFW_getInfo (void)"
+
 .SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP * RGFW_getMonitors (size_t * len)"
 get an array of all the monitors (max 6) 
 .SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP RGFW_getPrimaryMonitor (void)"
 get the primary monitor 
+.SS "\fBRGFWDEF\fP \fBi32\fP RGFW_init (void)"
+is called by default when the first window is created by default 
+.SS "\fBRGFWDEF\fP void * RGFW_init_heap (void)"
+inits RGFW on the heap instead of in a global var 
+.SS "\fBRGFWDEF\fP \fBi32\fP RGFW_init_ptr (\fBRGFW_info\fP * info)"
+init RGFW, storing the data at the pointer 
 .SS "\fBRGFWDEF\fP \fBRGFW_mouse\fP * RGFW_loadMouse (\fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
 frees RGFW_mouse data 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_requestMode (\fBRGFW_monitor\fP mon, \fBRGFW_monitorMode\fP mode, RGFW_modeRequest request)"
@@ -1016,6 +1062,8 @@ request a specific mode
 scale monitor to window size 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitorModeCompare (\fBRGFW_monitorMode\fP mon, \fBRGFW_monitorMode\fP mon2, RGFW_modeRequest request)"
 check if 2 monitor modes are the same 
+.SS "\fBRGFWDEF\fP void RGFW_setInfo (\fBRGFW_info\fP * info)"
+
 .SS "\fBRGFWDEF\fP void RGFW_useWayland (\fBRGFW_bool\fP wayland)"
 (unix) Toggle use of wayland\&. This will be on by default if you use \fCRGFW_WAYLAND\fP (if you don't use RGFW_WAYLAND, you don't expose WAYLAND functions) this is mostly used to allow you to force the use of XWayland 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_usingWayland (void)"

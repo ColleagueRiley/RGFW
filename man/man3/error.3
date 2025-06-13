@@ -1,4 +1,4 @@
-.TH "error" 3 "Mon Jun 9 2025" "RGFW" \" -*- nroff -*-
+.TH "error" 3 "Fri Jun 13 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -20,7 +20,7 @@ error \- handling
 .RI "#define \fBRGFW_DEBUG_CTX\fP(win,  err)   (\fBRGFW_debugContext\fP){win, NULL, err}"
 .br
 .ti -1c
-.RI "#define \fBRGFW_DEBUG_CTX_MON\fP(monitor)   (\fBRGFW_debugContext\fP){_RGFW\&.root, &monitor, 0}"
+.RI "#define \fBRGFW_DEBUG_CTX_MON\fP(monitor)   (\fBRGFW_debugContext\fP){_RGFW\->root, &monitor, 0}"
 .br
 .in -1c
 .SS "Typedefs"
@@ -60,7 +60,7 @@ error \- handling
 .PP 
 .SS "#define RGFW_DEBUG_CTX(win, err)   (\fBRGFW_debugContext\fP){win, NULL, err}"
 
-.SS "#define RGFW_DEBUG_CTX_MON(monitor)   (\fBRGFW_debugContext\fP){_RGFW\&.root, &monitor, 0}"
+.SS "#define RGFW_DEBUG_CTX_MON(monitor)   (\fBRGFW_debugContext\fP){_RGFW\->root, &monitor, 0}"
 
 .SH "Typedef Documentation"
 .PP 
