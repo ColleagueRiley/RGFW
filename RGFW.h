@@ -4018,7 +4018,7 @@ static int RGFW_XErrorHandler(Display* display, XErrorEvent* ev) {
 
 
     RGFW_sendDebugInfo(RGFW_typeError, RGFW_errX11, RGFW_DEBUG_CTX(NULL, ev->error_code), buf);
-    _RGFW->x10Error = ev; 
+    _RGFW->x11Error = ev; 
     return 0; 
 }
 
