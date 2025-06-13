@@ -1,8 +1,17 @@
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
 #define RGFW_DEBUG
-#define RGFW_OSMESA
+#define RGFW_BUFFER
+
 #include "RGFW.h"
+
+#ifndef __APPLE__
+    #include <GL/osmesa.h>
+#else
+    #include <OpenGL/osmesa.h>
+#endif
+
+
 #include <stdio.h>
 
 RGFW_area screenSize;
@@ -31,8 +40,12 @@ void clear(RGFW_window* win, u8 color[4]) {
 int main(void) {
 	RGFW_setClassName("RGFW Basic");
 
-    RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_windowAllowDND | RGFW_windowCenter);
+    RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_windowAllowDND | RGFW_windowCenter | RGFW_windowNoResize);
     
+	OSMesaContext ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
+    OSMesaMakeCurrent(ctx, win->buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
+    OSMesaPixelStore(OSMESA_Y_UP, 0);
+
     RGFW_window_makeCurrent(win);
     screenSize = RGFW_getScreenSize();
   
