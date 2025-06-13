@@ -4012,11 +4012,7 @@ static int RGFW_XErrorHandler(Display* display, XErrorEvent* ev) {
     char buf[1024];
     snprintf(buf, sizeof(buf),  "[X Error] %s\n  Error code: %d\n  Request code: %d\n  Minor code: %d\n  Serial: %lu\n",
              errorText,
-             ev->error_code,
-             ev->request_code,
-             ev->minor_code,
-             ev->serial);
-
+             ev->error_code, ev->request_code, ev->minor_code, ev->serial);
 
     RGFW_sendDebugInfo(RGFW_typeError, RGFW_errX11, RGFW_DEBUG_CTX(NULL, ev->error_code), buf);
     _RGFW->x11Error = ev; 
@@ -10543,16 +10539,16 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		window.addEventListener("keydown",
 			(event) => {
 				var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code);
-				Module._RGFW->handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock"));
-				Module._RGFW->handleKeyEvent(key, code, 1);
+				Module._RGFW.handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock"));
+				Module._RGFW.handleKeyEvent(key, code, 1);
 				_free(key); _free(code);
 			},
 		true);
 		window.addEventListener("keyup",
 			(event) => {
 				var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code);
-				Module._RGFW->handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock"));
-				Module._RGFW->handleKeyEvent(key, code, 0);
+				Module._RGFW.handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock"));
+				Module._RGFW.handleKeyEvent(key, code, 0);
 				_free(key); _free(code);
 			},
 		true);
@@ -10570,7 +10566,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 			/* Read and save the files to emscripten's files */
 			var drop_dir = '.rgfw_dropped_files';
-			Module._RGFW->mkdir(drop_dir);
+			Module._RGFW.mkdir(drop_dir);
 
 			for (var i = 0; i < count; i++) {
 				var file = e.dataTransfer.files[i];
@@ -10595,7 +10591,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 				filenamesArray.push(filename);
 
-				Module._RGFW->makeSetValue(i, filename);
+				Module._RGFW.makeSetValue(i, filename);
 			}
 
 			Module._Emscripten_onDrop(count);
