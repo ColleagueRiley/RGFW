@@ -10581,7 +10581,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 					else {
 						var data = e.target.result;
 
-						_RGFW->writeFile(path, new Uint8Array(data), file.size);
+						Module._RGFW.writeFile(path, new Uint8Array(data), file.size);
 					}
 				};
 
