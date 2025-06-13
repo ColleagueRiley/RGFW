@@ -10343,16 +10343,16 @@ $(function() {
 <div class="line"><a id="l10539" name="l10539"></a><span class="lineno">10539</span>        window.addEventListener(<span class="stringliteral">&quot;keydown&quot;</span>,</div>
 <div class="line"><a id="l10540" name="l10540"></a><span class="lineno">10540</span>            (event) =&gt; {</div>
 <div class="line"><a id="l10541" name="l10541"></a><span class="lineno">10541</span>                var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code);</div>
-<div class="line"><a id="l10542" name="l10542"></a><span class="lineno">10542</span>                Module._RGFW.handleKeyMods(event.getModifierState(<span class="stringliteral">&quot;CapsLock&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;NumLock&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Control&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Alt&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Shift&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Meta&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;ScrollLock&quot;</span>));</div>
-<div class="line"><a id="l10543" name="l10543"></a><span class="lineno">10543</span>                Module._RGFW.handleKeyEvent(key, code, 1);</div>
+<div class="line"><a id="l10542" name="l10542"></a><span class="lineno">10542</span>                Module._RGFW_handleKeyMods(event.getModifierState(<span class="stringliteral">&quot;CapsLock&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;NumLock&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Control&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Alt&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Shift&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Meta&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;ScrollLock&quot;</span>));</div>
+<div class="line"><a id="l10543" name="l10543"></a><span class="lineno">10543</span>                Module._RGFW_handleKeyEvent(key, code, 1);</div>
 <div class="line"><a id="l10544" name="l10544"></a><span class="lineno">10544</span>                _free(key); _free(code);</div>
 <div class="line"><a id="l10545" name="l10545"></a><span class="lineno">10545</span>            },</div>
 <div class="line"><a id="l10546" name="l10546"></a><span class="lineno">10546</span>        <span class="keyword">true</span>);</div>
 <div class="line"><a id="l10547" name="l10547"></a><span class="lineno">10547</span>        window.addEventListener(<span class="stringliteral">&quot;keyup&quot;</span>,</div>
 <div class="line"><a id="l10548" name="l10548"></a><span class="lineno">10548</span>            (event) =&gt; {</div>
 <div class="line"><a id="l10549" name="l10549"></a><span class="lineno">10549</span>                var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code);</div>
-<div class="line"><a id="l10550" name="l10550"></a><span class="lineno">10550</span>                Module._RGFW.handleKeyMods(event.getModifierState(<span class="stringliteral">&quot;CapsLock&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;NumLock&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Control&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Alt&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Shift&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Meta&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;ScrollLock&quot;</span>));</div>
-<div class="line"><a id="l10551" name="l10551"></a><span class="lineno">10551</span>                Module._RGFW.handleKeyEvent(key, code, 0);</div>
+<div class="line"><a id="l10550" name="l10550"></a><span class="lineno">10550</span>                Module._RGFW_handleKeyMods(event.getModifierState(<span class="stringliteral">&quot;CapsLock&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;NumLock&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Control&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Alt&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Shift&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;Meta&quot;</span>), event.getModifierState(<span class="stringliteral">&quot;ScrollLock&quot;</span>));</div>
+<div class="line"><a id="l10551" name="l10551"></a><span class="lineno">10551</span>                Module._RGFW_handleKeyEvent(key, code, 0);</div>
 <div class="line"><a id="l10552" name="l10552"></a><span class="lineno">10552</span>                _free(key); _free(code);</div>
 <div class="line"><a id="l10553" name="l10553"></a><span class="lineno">10553</span>            },</div>
 <div class="line"><a id="l10554" name="l10554"></a><span class="lineno">10554</span>        <span class="keyword">true</span>);</div>
@@ -10370,7 +10370,7 @@ $(function() {
 <div class="line"><a id="l10566" name="l10566"></a><span class="lineno">10566</span> </div>
 <div class="line"><a id="l10567" name="l10567"></a><span class="lineno">10567</span>            <span class="comment">/* Read and save the files to emscripten&#39;s files */</span></div>
 <div class="line"><a id="l10568" name="l10568"></a><span class="lineno">10568</span>            var drop_dir = <span class="stringliteral">&#39;.rgfw_dropped_files&#39;</span>;</div>
-<div class="line"><a id="l10569" name="l10569"></a><span class="lineno">10569</span>            Module._RGFW.mkdir(drop_dir);</div>
+<div class="line"><a id="l10569" name="l10569"></a><span class="lineno">10569</span>            Module._RGFW_mkdir(drop_dir);</div>
 <div class="line"><a id="l10570" name="l10570"></a><span class="lineno">10570</span> </div>
 <div class="line"><a id="l10571" name="l10571"></a><span class="lineno">10571</span>            for (var i = 0; i &lt; count; i++) {</div>
 <div class="line"><a id="l10572" name="l10572"></a><span class="lineno">10572</span>                var file = e.dataTransfer.files[i];</div>
@@ -10385,7 +10385,7 @@ $(function() {
 <div class="line"><a id="l10581" name="l10581"></a><span class="lineno">10581</span>                    <span class="keywordflow">else</span> {</div>
 <div class="line"><a id="l10582" name="l10582"></a><span class="lineno">10582</span>                        var data = e.target.result;</div>
 <div class="line"><a id="l10583" name="l10583"></a><span class="lineno">10583</span> </div>
-<div class="line"><a id="l10584" name="l10584"></a><span class="lineno">10584</span>                        Module._RGFW.writeFile(path, <span class="keyword">new</span> Uint8Array(data), file.size);</div>
+<div class="line"><a id="l10584" name="l10584"></a><span class="lineno">10584</span>                        Module._RGFW_writeFile(path, <span class="keyword">new</span> Uint8Array(data), file.size);</div>
 <div class="line"><a id="l10585" name="l10585"></a><span class="lineno">10585</span>                    }</div>
 <div class="line"><a id="l10586" name="l10586"></a><span class="lineno">10586</span>                };</div>
 <div class="line"><a id="l10587" name="l10587"></a><span class="lineno">10587</span> </div>
@@ -10395,7 +10395,7 @@ $(function() {
 <div class="line"><a id="l10591" name="l10591"></a><span class="lineno">10591</span> </div>
 <div class="line"><a id="l10592" name="l10592"></a><span class="lineno">10592</span>                filenamesArray.push(filename);</div>
 <div class="line"><a id="l10593" name="l10593"></a><span class="lineno">10593</span> </div>
-<div class="line"><a id="l10594" name="l10594"></a><span class="lineno">10594</span>                Module._RGFW.makeSetValue(i, filename);</div>
+<div class="line"><a id="l10594" name="l10594"></a><span class="lineno">10594</span>                Module._RGFW_makeSetValue(i, filename);</div>
 <div class="line"><a id="l10595" name="l10595"></a><span class="lineno">10595</span>            }</div>
 <div class="line"><a id="l10596" name="l10596"></a><span class="lineno">10596</span> </div>
 <div class="line"><a id="l10597" name="l10597"></a><span class="lineno">10597</span>            Module._Emscripten_onDrop(count);</div>
