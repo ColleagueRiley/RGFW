@@ -1659,7 +1659,8 @@ RGFW_debugfunc RGFW_setDebugCallback(RGFW_debugfunc func) {
 
 void RGFW_sendDebugInfo(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const char* msg) {
 	if (RGFW_debugCallback) RGFW_debugCallback(type, err, ctx, msg);
-	#ifdef RGFW_DEBUG
+        
+    #ifdef RGFW_DEBUG
 	switch (type) {
 		case RGFW_typeInfo: printf("RGFW INFO (%i %i): %s", type, err, msg); break;
 		case RGFW_typeError: printf("RGFW DEBUG (%i %i): %s", type, err, msg); break;
@@ -4008,7 +4009,7 @@ static int RGFW_XErrorHandler(Display* display, XErrorEvent* ev) {
     char errorText[512];
     XGetErrorText(display, ev->error_code, errorText, sizeof(errorText));
     
-    char buf[512];
+    char buf[1024];
     snprintf(buf, sizeof(buf),  "[X Error] %s\n  Error code: %d\n  Request code: %d\n  Minor code: %d\n  Serial: %lu\n",
              errorText,
              ev->error_code,
