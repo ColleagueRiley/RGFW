@@ -1070,13 +1070,13 @@ typedef RGFW_ENUM(u8, RGFW_debugType) {
 typedef RGFW_ENUM(u8, RGFW_errorCode) {
 	RGFW_noError = 0, /*!< no error */
 	RGFW_errOpenglContext, RGFW_errEGLContext, /*!< error with the OpenGL context */
-	RGFW_errWayland,
+	RGFW_errWayland, RGFW_errX11,
 	RGFW_errDirectXContext,
 	RGFW_errIOKit,
 	RGFW_errClipboard,
 	RGFW_errFailedFuncLoad,
-	RGFW_errBuffer,
-	RGFW_infoMonitor, RGFW_infoWindow, RGFW_infoBuffer, RGFW_infoGlobal, RGFW_infoOpenGL,
+	RGFW_errBuffer, 
+	RGFW_infoMonitor, RGFW_infoWindow, RGFW_infoBuffer, RGFW_infoGlobal, RGFW_infoOpenGL, 
 	RGFW_warningWayland, RGFW_warningOpenGL
 };
 
@@ -1569,6 +1569,7 @@ typedef struct RGFW_info {
 	    size_t clipboard_len;
 	    int eventWait_forceStop[3];   
         const char* instName;
+        XErrorEvent* x11Error; 
     #endif
     #ifdef RGFW_WAYLAND
 	    int eventWait_forceStop[3];
@@ -1813,9 +1814,10 @@ void RGFW_init_keys(void) {
 	_RGFW->keycodes[RGFW_OS_BASED_VALUE(78, 0x046, 107, DOM_VK_SCROLL_LOCK)] = RGFW_scrollLock; 
     _RGFW->keycodes[RGFW_OS_BASED_VALUE(107, 0x137, 105, DOM_VK_PRINTSCREEN)] = RGFW_printScreen;
     _RGFW->keycodes[RGFW_OS_BASED_VALUE(128, 0x045, 113, DOM_VK_PAUSE)] = RGFW_pause;
-
-    for (u32 i = 0; i < RGFW_keyLast; i++) {
-        for (u32 y = 0; y < sizeof(_RGFW->keycodes); y++) {
+    
+    u32 i, y;
+    for (i = 0; i < RGFW_keyLast; i++) {
+        for (y = 0; y < sizeof(_RGFW->keycodes); y++) {
             if (_RGFW->keycodes[y] == i) {
                 _RGFW->apiKeycodes[i] = y;
                 break;
@@ -1951,7 +1953,7 @@ no more event call back defines
     attribs[index++] = v; \
 }
 
-// RGFW_BIT(24)
+/* RGFW_BIT(24) */
 #define RGFW_EVENT_QUIT 		RGFW_BIT(25) /* the window close button was pressed */
 #define RGFW_HOLD_MOUSE			RGFW_BIT(26) /*!< hold the moues still */
 #define RGFW_MOUSE_LEFT 		RGFW_BIT(27) /* if mouse left the window */
@@ -2478,7 +2480,8 @@ void RGFW_window_focusLost(RGFW_window* win) {
 	if ((win->_flags & RGFW_windowFullscreen))
 			RGFW_window_minimize(win);
 
-    for (size_t key = 0; key < RGFW_keyLast; key++) {
+    size_t key;
+    for (key = 0; key < RGFW_keyLast; key++) {
         if (RGFW_isPressed(NULL, (u8)key) == RGFW_FALSE) continue;
 	    _RGFW->keyboard[key].current = RGFW_FALSE; 
         u8 keyChar = RGFW_rgfwToKeyChar((u32)key);
@@ -2570,7 +2573,7 @@ RGFW_bool RGFW_extensionSupportedStr(const char* extensions, const char* ext, si
     if (extensions == NULL || ext == NULL)
         return RGFW_FALSE;
 
-    where = strstr(extensions, ext);
+    where = RGFW_STRSTR(extensions, ext);
     while (where) {
         terminator = where + len;
         if ((where == start || *(where - 1) == ' ') &&
@@ -3914,7 +3917,7 @@ void RGFW_window_getVisual(RGFW_window* win) {
 			return;
         }		
 
-		win->src.bestFbc = fbc[best_fbc];
+        win->src.bestFbc = fbc[best_fbc];
 		XVisualInfo* vi = glXGetVisualFromFBConfig(win->src.display, win->src.bestFbc);
 		if (vi->depth != 32 && (win->_flags & RGFW_windowTransparent))
 			RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Failed to to find a matching visual with a 32-bit depth");
@@ -3969,14 +3972,14 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
             RGFW_window_makeCurrent_OpenGL(_RGFW->root);
         }
 
-		if (glXCreateContextAttribsARB == NULL) {
+    if (glXCreateContextAttribsARB == NULL) {
 			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "failed to load proc address 'glXCreateContextAttribsARB', loading a generic opengl context");
 			win->src.ctx = glXCreateContext(win->src.display, &win->src.visual, ctx, True);
 		}
 		else {
-				win->src.ctx = glXCreateContextAttribsARB(win->src.display, win->src.bestFbc, ctx, True, context_attribs);
-				XSync(win->src.display, False);
-				if (win->src.ctx == NULL) {
+                _RGFW->x11Error = NULL;
+                win->src.ctx = glXCreateContextAttribsARB(win->src.display, win->src.bestFbc, ctx, True, context_attribs);
+				if (_RGFW->x11Error || win->src.ctx == NULL) {
 					RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenglContext, RGFW_DEBUG_CTX(win, 0), "failed to create an opengl context with AttribsARB, loading a generic opengl context");
 					win->src.ctx = glXCreateContext(win->src.display, &win->src.visual, ctx, True);
             }
@@ -4000,6 +4003,25 @@ RGFW_UNUSED(win);
 #endif
 }
 #endif
+
+static int RGFW_XErrorHandler(Display* display, XErrorEvent* ev) {
+    char errorText[512];
+    XGetErrorText(display, ev->error_code, errorText, sizeof(errorText));
+    
+    char buf[512];
+    snprintf(buf, sizeof(buf),  "[X Error] %s\n  Error code: %d\n  Request code: %d\n  Minor code: %d\n  Serial: %lu\n",
+             errorText,
+             ev->error_code,
+             ev->request_code,
+             ev->minor_code,
+             ev->serial);
+
+
+    RGFW_sendDebugInfo(RGFW_typeError, RGFW_errX11, RGFW_DEBUG_CTX(NULL, ev->error_code), buf);
+    _RGFW->x10Error = ev; 
+    return 0; 
+}
+
 
 i32 RGFW_initPlatform(void) {
     RGFW_GOTO_WAYLAND(1);
@@ -4087,6 +4109,9 @@ i32 RGFW_initPlatform(void) {
 	XkbFreeKeyboard(desc, 0, True);
 	XkbFreeKeyboard(evdesc, 0, True);
     }
+
+    XSetErrorHandler(RGFW_XErrorHandler);
+
 #endif
 #ifdef RGFW_WAYLAND
 RGFW_WAYLAND_LABEL
@@ -4094,7 +4119,6 @@ RGFW_WAYLAND_LABEL
 #endif
     return 0;
 }
-
 
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	RGFW_window_basic_init(win, rect, flags);
@@ -6044,7 +6068,7 @@ void RGFW_window_swapInterval(RGFW_window* win, i32 swapInterval) {
 	RGFW_ASSERT(win != NULL);
 
 	#if defined(RGFW_OPENGL)
-	// cached pfn to avoid calling glXGetProcAddress more than once
+	/* cached pfn to avoid calling glXGetProcAddress more than once */
 	static PFNGLXSWAPINTERVALEXTPROC pfn = (PFNGLXSWAPINTERVALEXTPROC)123;
     static int (*pfn2)(int) = NULL;
 
@@ -7198,7 +7222,7 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 }
 
 u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
-    UINT vsc = RGFW_rgfwToApiKey(rgfw_keycode);  // Should return a Windows VK_* code
+    UINT vsc = RGFW_rgfwToApiKey(rgfw_keycode);  /* Should return a Windows VK_* code */
     BYTE keyboardState[256] = {0};
 
     if (!GetKeyboardState(keyboardState))
@@ -8017,15 +8041,16 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 }
 
 char* RGFW_createUTF8FromWideStringWin32(const WCHAR* source) {
-	if (source == NULL) {
-		return NULL;
+	static char target[RGFW_MAX_PATH * 2];
+    i32 size = 0;
+    if (source == NULL) {
+        return NULL;
 	}
-	i32 size = WideCharToMultiByte(CP_UTF8, 0, source, -1, NULL, 0, NULL, NULL);
+	size = WideCharToMultiByte(CP_UTF8, 0, source, -1, NULL, 0, NULL, NULL);
 	if (!size) {
 		return NULL;
 	}
 
-	static char target[RGFW_MAX_PATH * 2];
 	if (size > RGFW_MAX_PATH * 2)
 		size = RGFW_MAX_PATH * 2;
 
