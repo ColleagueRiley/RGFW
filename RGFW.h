@@ -3220,14 +3220,14 @@ This is where OS specific stuff starts
 			u8 i;
 
 			for (i = 0; i < _RGFW->gamepadCount; i++) {
-				struct js_event e;
+				struct js_event e = {0};
 				if (_RGFW->gamepads[i] == 0)
 					continue;
 
 				i32 flags = fcntl(_RGFW->gamepads[i], F_GETFL, 0);
 				fcntl(_RGFW->gamepads[i], F_SETFL, flags | O_NONBLOCK);
 
-				ssize_t bytes;
+				ssize_t bytes = 0;
 				while ((bytes = read(_RGFW->gamepads[i], &e, sizeof(e))) > 0) {
 					switch (e.type) {
 						case JS_EVENT_BUTTON: {
@@ -6296,7 +6296,8 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 	/* drain any data in the stop request */
 	if (_RGFW->eventWait_forceStop[2]) {
 		char data[64];
-		(void)!read(_RGFW->eventWait_forceStop[0], data, sizeof(data));
+        RGFW_MEMSET(data, 0, sizeof(data));
+        (void)!read(_RGFW->eventWait_forceStop[0], data, sizeof(data));
 
 		_RGFW->eventWait_forceStop[2] = 0;
 	}
