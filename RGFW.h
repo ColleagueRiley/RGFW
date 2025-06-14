@@ -3220,7 +3220,8 @@ This is where OS specific stuff starts
 			u8 i;
 
 			for (i = 0; i < _RGFW->gamepadCount; i++) {
-				struct js_event e = {0};
+				struct js_event e;
+                RGFW_MEMSET(&e, 0, sizeof(e));
 				if (_RGFW->gamepads[i] == 0)
 					continue;
 
