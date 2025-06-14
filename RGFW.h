@@ -3871,7 +3871,7 @@ RGFW_GOTO_WAYLAND(0);
 #define RGFW_LOAD_LIBRARY(x, lib) if (x == NULL) x = dlopen(lib, RTLD_LAZY | RTLD_LOCAL)
 #define RGFW_PROC_DEF(proc, name) if (name##SRC == NULL && proc != NULL) { \
 	void* ptr = dlsym(proc, #name); \
-	if (ptr != NULL) memcpy(&name##SRC, &ptr, sizeof(PFN_##name)); \
+	if (ptr != NULL) RGFW_MEMCPY(&name##SRC, &ptr, sizeof(PFN_##name)); \
 }
 
 #ifdef RGFW_X11
@@ -4097,7 +4097,7 @@ i32 RGFW_initPlatform(void) {
         }
         for(int i = evdesc->min_key_code; i <= evdesc->max_key_code; i++){
     	    for(int j = desc->min_key_code; j <= desc->max_key_code; j++){
-                if(strncmp(evdesc->names->keys[i].name, desc->names->keys[j].name, XkbKeyNameLength) == 0){
+                if(RGFW_STRNCMP(evdesc->names->keys[i].name, desc->names->keys[j].name, XkbKeyNameLength) == 0){
                     _RGFW->keycodes[j] = old[i];
                     break;
                 }

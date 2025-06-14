@@ -3681,7 +3681,7 @@ $(function() {
 <div class="line"><a id="l03871" name="l03871"></a><span class="lineno"> 3871</span><span class="preprocessor">#define RGFW_LOAD_LIBRARY(x, lib) if (x == NULL) x = dlopen(lib, RTLD_LAZY | RTLD_LOCAL)</span></div>
 <div class="line"><a id="l03872" name="l03872"></a><span class="lineno"> 3872</span><span class="preprocessor">#define RGFW_PROC_DEF(proc, name) if (name##SRC == NULL &amp;&amp; proc != NULL) { \</span></div>
 <div class="line"><a id="l03873" name="l03873"></a><span class="lineno"> 3873</span><span class="preprocessor">    void* ptr = dlsym(proc, #name); \</span></div>
-<div class="line"><a id="l03874" name="l03874"></a><span class="lineno"> 3874</span><span class="preprocessor">    if (ptr != NULL) memcpy(&amp;name##SRC, &amp;ptr, sizeof(PFN_##name)); \</span></div>
+<div class="line"><a id="l03874" name="l03874"></a><span class="lineno"> 3874</span><span class="preprocessor">    if (ptr != NULL) RGFW_MEMCPY(&amp;name##SRC, &amp;ptr, sizeof(PFN_##name)); \</span></div>
 <div class="line"><a id="l03875" name="l03875"></a><span class="lineno"> 3875</span><span class="preprocessor">}</span></div>
 <div class="line"><a id="l03876" name="l03876"></a><span class="lineno"> 3876</span> </div>
 <div class="line"><a id="l03877" name="l03877"></a><span class="lineno"> 3877</span><span class="preprocessor">#ifdef RGFW_X11</span></div>
@@ -3907,7 +3907,7 @@ $(function() {
 <div class="line"><a id="l04097" name="l04097"></a><span class="lineno"> 4097</span>        }</div>
 <div class="line"><a id="l04098" name="l04098"></a><span class="lineno"> 4098</span>        <span class="keywordflow">for</span>(<span class="keywordtype">int</span> i = evdesc-&gt;min_key_code; i &lt;= evdesc-&gt;max_key_code; i++){</div>
 <div class="line"><a id="l04099" name="l04099"></a><span class="lineno"> 4099</span>            <span class="keywordflow">for</span>(<span class="keywordtype">int</span> j = desc-&gt;min_key_code; j &lt;= desc-&gt;max_key_code; j++){</div>
-<div class="line"><a id="l04100" name="l04100"></a><span class="lineno"> 4100</span>                <span class="keywordflow">if</span>(strncmp(evdesc-&gt;names-&gt;keys[i].name, desc-&gt;names-&gt;keys[j].name, XkbKeyNameLength) == 0){</div>
+<div class="line"><a id="l04100" name="l04100"></a><span class="lineno"> 4100</span>                <span class="keywordflow">if</span>(<a class="code hl_define" href="RGFW_8h.html#a040a460126bbe1cce5765c33cf90b700">RGFW_STRNCMP</a>(evdesc-&gt;names-&gt;keys[i].name, desc-&gt;names-&gt;keys[j].name, XkbKeyNameLength) == 0){</div>
 <div class="line"><a id="l04101" name="l04101"></a><span class="lineno"> 4101</span>                    _RGFW-&gt;<a class="code hl_variable" href="structRGFW__info.html#a3def7f448491ca25ee96f1b9034e7b5c">keycodes</a>[j] = old[i];</div>
 <div class="line"><a id="l04102" name="l04102"></a><span class="lineno"> 4102</span>                    <span class="keywordflow">break</span>;</div>
 <div class="line"><a id="l04103" name="l04103"></a><span class="lineno"> 4103</span>                }</div>
