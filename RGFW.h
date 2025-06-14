@@ -692,8 +692,8 @@ typedef struct RGFW_window_src {
         i64 counter_value;
         XID counter;
     #endif
-    RGFW_rect r;
 #endif /* RGFW_X11 */
+        RGFW_rect r;
 #if defined(RGFW_WAYLAND)
 	struct wl_display* wl_display;
 	struct wl_surface* surface;
@@ -3362,8 +3362,29 @@ void xdg_toplevel_configure_handler(void *data,
         struct xdg_toplevel *toplevel, int32_t width, int32_t height,
         struct wl_array *states)
 {
-	RGFW_UNUSED(data); RGFW_UNUSED(toplevel); RGFW_UNUSED(states);
-    RGFW_UNUSED(width); RGFW_UNUSED(height);
+    if (!RGFW_wl_configured) return;
+
+    RGFW_window* win = (RGFW_window*)xdg_toplevel_get_user_data(toplevel);
+    if (win == NULL) {
+        win = RGFW_key_win;
+    }
+    // first configure
+    if (width <= 0 || height <= 0) {
+        width = win->src.r.w;
+        height = win->src.r.h;
+    }
+
+    RGFW_window_checkMode(win);
+   	if (width != win->src.r.w || height != win->src.r.h) {
+			win->src.r = win->r = RGFW_RECT(win->src.r.x, win->src.r.y, width, height);
+
+			RGFW_eventQueuePushEx(e.type = RGFW_windowResized; e.point = RGFW_POINT(width, height); e._win = win);
+			RGFW_windowResizedCallback(win, win->r);
+
+			RGFW_window_resize(win, RGFW_AREA(width, height));
+	}
+
+	RGFW_UNUSED(data); RGFW_UNUSED(states);
 }
 
 void xdg_toplevel_close_handler(void *data,
@@ -5080,7 +5101,7 @@ void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) {
     return;
 #endif
 #ifdef RGFW_WAYLAND
-RGFW_WAYLAND_LABEL RGFW_UNUSED(a);
+    xdg_toplevel_set_min_size(win->src.xdg_toplevel, (i32)a.w, (i32)a.h);
 #endif
 }
 
@@ -5102,7 +5123,7 @@ void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) {
 	XSetWMNormalHints(win->src.display, win->src.window, &hints);
 #endif
 #ifdef RGFW_WAYLAND
-    RGFW_WAYLAND_LABEL RGFW_UNUSED(a);
+    xdg_toplevel_set_max_size(win->src.xdg_toplevel, (i32)a.w, (i32)a.h);
 #endif
 }
 
@@ -5129,6 +5150,13 @@ void RGFW_toggleXMaximized(RGFW_window* win, RGFW_bool maximized) {
 }
 #endif
 
+#ifdef RGFW_WAYLAND
+void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized);
+void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized){
+    RGFW_UNUSED(maximized);
+    xdg_toplevel_set_maximized(win->src.xdg_toplevel);
+}
+#endif
 void RGFW_window_maximize(RGFW_window* win) {
 	win->_oldRect = win->r;
     RGFW_GOTO_WAYLAND(0);
@@ -5137,7 +5165,7 @@ void RGFW_window_maximize(RGFW_window* win) {
     return;
 #endif
 #ifdef RGFW_WAYLAND
-    RGFW_WAYLAND_LABEL
+    RGFW_toggleWaylandMaximized(win, 1);
     return;
 #endif
 }
