@@ -233,11 +233,9 @@ int main() {
 	#define RGFW_ATOF(num) atof(num)
 #endif
 
-#ifndef RGFW_SNPRINTF
-    /* required for X11 errors */
-    #include <stdio.h>
-    #define RGFW_SNPRINTF snprintf
+#if !defined(RGFW_SNPRINTF) && defined(RGFW_DEBUG)
     /* required when using RGFW_DEBUG */
+    #include <stdio.h>
     #define RGFW_PRINTF printf
 #endif
 
@@ -421,6 +419,13 @@ int main() {
 	#endif
 	#include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
 #endif
+
+#if !defined(RGFW_SNPRINTF) && defined(RGFW_X11)
+    /* required for X11 errors */
+    #include <stdio.h>
+    #define RGFW_SNPRINTF snprintf
+#endif
+
 
 #define RGFW_COCOA_FRAME_NAME NULL
 
