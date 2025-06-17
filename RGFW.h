@@ -7471,7 +7471,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		case WM_LBUTTONDOWN: case WM_RBUTTONDOWN: case WM_MBUTTONDOWN: case WM_XBUTTONDOWN:
 			if (msg.message == WM_XBUTTONDOWN)
 				win->event.button = RGFW_mouseMisc1 + (GET_XBUTTON_WPARAM(msg.wParam) == XBUTTON2);
-			else win->event.button = (msg.message == WM_LBUTTONDOWN) ? RGFW_mouseLeft :
+			else win->event.button = (msg.message == WM_LBUTTONDOWN) ? (u8)RGFW_mouseLeft :
 									 (msg.message == WM_RBUTTONDOWN) ? (u8)RGFW_mouseRight : (u8)RGFW_mouseMiddle;
 
 			win->event.type = RGFW_mouseButtonPressed;
@@ -7482,7 +7482,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		case WM_LBUTTONUP: case WM_RBUTTONUP: case WM_MBUTTONUP: case WM_XBUTTONUP:
 			if (msg.message == WM_XBUTTONUP)
 				win->event.button = RGFW_mouseMisc1 + (GET_XBUTTON_WPARAM(msg.wParam) == XBUTTON2);
-			else win->event.button = (msg.message == WM_LBUTTONUP) ? RGFW_mouseLeft :
+			else win->event.button = (msg.message == WM_LBUTTONUP) ? (u8)RGFW_mouseLeft :
 									 (msg.message == WM_RBUTTONUP) ? (u8)RGFW_mouseRight : (u8)RGFW_mouseMiddle;
 			win->event.type = RGFW_mouseButtonReleased;
 			_RGFW->mouseButtons[win->event.button].prev = _RGFW->mouseButtons[win->event.button].current;
