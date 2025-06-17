@@ -233,6 +233,12 @@ int main() {
 	#define RGFW_ATOF(num) atof(num)
 #endif
 
+#if !defined(RGFW_SNPRINTF) && defined(RGFW_DEBUG)
+    /* required when using RGFW_DEBUG */
+    #include <stdio.h>
+    #define RGFW_PRINTF printf
+#endif
+
 #ifdef RGFW_WIN95 /* for windows 95 testing (not that it really works) */
 	#define RGFW_NO_MONITOR
 	#define RGFW_NO_PASSTHROUGH
@@ -413,6 +419,13 @@ int main() {
 	#endif
 	#include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
 #endif
+
+#if !defined(RGFW_SNPRINTF) && defined(RGFW_X11)
+    /* required for X11 errors */
+    #include <stdio.h>
+    #define RGFW_SNPRINTF snprintf
+#endif
+
 
 #define RGFW_COCOA_FRAME_NAME NULL
 
@@ -1662,20 +1675,20 @@ void RGFW_sendDebugInfo(RGFW_debugType type, RGFW_errorCode err, RGFW_debugConte
         
     #ifdef RGFW_DEBUG
 	switch (type) {
-		case RGFW_typeInfo: printf("RGFW INFO (%i %i): %s", type, err, msg); break;
-		case RGFW_typeError: printf("RGFW DEBUG (%i %i): %s", type, err, msg); break;
-		case RGFW_typeWarning: printf("RGFW WARNING (%i %i): %s", type, err, msg); break;
+		case RGFW_typeInfo: RGFW_PRINTF("RGFW INFO (%i %i): %s", type, err, msg); break;
+		case RGFW_typeError: RGFW_PRINTF("RGFW DEBUG (%i %i): %s", type, err, msg); break;
+		case RGFW_typeWarning: RGFW_PRINTF("RGFW WARNING (%i %i): %s", type, err, msg); break;
 		default: break;
 	}
 
 	switch (err) {
 		#ifdef RGFW_BUFFER
-		case RGFW_errBuffer: case RGFW_infoBuffer: printf(" buffer size: %i %i\n", ctx.win->bufferSize.w, ctx.win->bufferSize.h); break;
+		case RGFW_errBuffer: case RGFW_infoBuffer: RGFW_PRINTF(" buffer size: %i %i\n", ctx.win->bufferSize.w, ctx.win->bufferSize.h); break;
 		#endif
-		case RGFW_infoMonitor: printf(": scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n   depth: %i\n", ctx.monitor->name, ctx.monitor->x, ctx.monitor->y, ctx.monitor->mode.area.w, ctx.monitor->mode.area.h, ctx.monitor->physW, ctx.monitor->physH, ctx.monitor->scaleX, ctx.monitor->scaleY, ctx.monitor->pixelRatio, ctx.monitor->mode.refreshRate, ctx.monitor->mode.red + ctx.monitor->mode.green + ctx.monitor->mode.blue); break;
-		case RGFW_infoWindow: printf("  with rect of {%i, %i, %i, %i} \n", ctx.win->r.x, ctx.win->r.y,ctx. win->r.w, ctx.win->r.h); break;
-		case RGFW_errDirectXContext: printf(" srcError %i\n", ctx.srcError); break;
-		default: printf("\n");
+		case RGFW_infoMonitor: RGFW_PRINTF(": scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n   depth: %i\n", ctx.monitor->name, ctx.monitor->x, ctx.monitor->y, ctx.monitor->mode.area.w, ctx.monitor->mode.area.h, ctx.monitor->physW, ctx.monitor->physH, ctx.monitor->scaleX, ctx.monitor->scaleY, ctx.monitor->pixelRatio, ctx.monitor->mode.refreshRate, ctx.monitor->mode.red + ctx.monitor->mode.green + ctx.monitor->mode.blue); break;
+		case RGFW_infoWindow: RGFW_PRINTF("  with rect of {%i, %i, %i, %i} \n", ctx.win->r.x, ctx.win->r.y,ctx. win->r.w, ctx.win->r.h); break;
+		case RGFW_errDirectXContext: RGFW_PRINTF(" srcError %i\n", ctx.srcError); break;
+		default: RGFW_PRINTF("\n");
 	}
 	#endif
 }
@@ -4032,7 +4045,7 @@ static int RGFW_XErrorHandler(Display* display, XErrorEvent* ev) {
     XGetErrorText(display, ev->error_code, errorText, sizeof(errorText));
     
     char buf[1024];
-    snprintf(buf, sizeof(buf),  "[X Error] %s\n  Error code: %d\n  Request code: %d\n  Minor code: %d\n  Serial: %lu\n",
+    RGFW_SNPRINTF(buf, sizeof(buf),  "[X Error] %s\n  Error code: %d\n  Request code: %d\n  Minor code: %d\n  Serial: %lu\n",
              errorText,
              ev->error_code, ev->request_code, ev->minor_code, ev->serial);
 
