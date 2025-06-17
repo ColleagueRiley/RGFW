@@ -3166,14 +3166,14 @@ $(function() {
 <div class="line"><a id="l03356" name="l03356"></a><span class="lineno"> 3356</span><span class="preprocessor">#include &quot;xdg-shell.h&quot;</span></div>
 <div class="line"><a id="l03357" name="l03357"></a><span class="lineno"> 3357</span><span class="preprocessor">#include &quot;xdg-decoration-unstable-v1.h&quot;</span></div>
 <div class="line"><a id="l03358" name="l03358"></a><span class="lineno"> 3358</span> </div>
-<div class="line"><a id="l03359" name="l03359"></a><span class="lineno"> 3359</span><span class="keywordtype">void</span> xdg_wm_base_ping_handler(<span class="keywordtype">void</span> *data,</div>
+<div class="line"><a id="l03359" name="l03359"></a><span class="lineno"> 3359</span><span class="keywordtype">void</span> RGFW_wl_xdg_wm_base_ping_handler(<span class="keywordtype">void</span> *data,</div>
 <div class="line"><a id="l03360" name="l03360"></a><span class="lineno"> 3360</span>        <span class="keyword">struct</span> xdg_wm_base *wm_base, uint32_t serial)</div>
 <div class="line"><a id="l03361" name="l03361"></a><span class="lineno"> 3361</span>{</div>
 <div class="line"><a id="l03362" name="l03362"></a><span class="lineno"> 3362</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data);</div>
 <div class="line"><a id="l03363" name="l03363"></a><span class="lineno"> 3363</span>    xdg_wm_base_pong(wm_base, serial);</div>
 <div class="line"><a id="l03364" name="l03364"></a><span class="lineno"> 3364</span>}</div>
 <div class="line"><a id="l03365" name="l03365"></a><span class="lineno"> 3365</span> </div>
-<div class="line"><a id="l03366" name="l03366"></a><span class="lineno"> 3366</span><span class="keywordtype">void</span> xdg_surface_configure_handler(<span class="keywordtype">void</span> *data,</div>
+<div class="line"><a id="l03366" name="l03366"></a><span class="lineno"> 3366</span><span class="keywordtype">void</span> RGFW_wl_xdg_surface_configure_handler(<span class="keywordtype">void</span> *data,</div>
 <div class="line"><a id="l03367" name="l03367"></a><span class="lineno"> 3367</span>        <span class="keyword">struct</span> xdg_surface *xdg_surface, uint32_t serial)</div>
 <div class="line"><a id="l03368" name="l03368"></a><span class="lineno"> 3368</span>{</div>
 <div class="line"><a id="l03369" name="l03369"></a><span class="lineno"> 3369</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data);</div>
@@ -3181,7 +3181,7 @@ $(function() {
 <div class="line"><a id="l03371" name="l03371"></a><span class="lineno"> 3371</span>    RGFW_wl_configured = 1;</div>
 <div class="line"><a id="l03372" name="l03372"></a><span class="lineno"> 3372</span>}</div>
 <div class="line"><a id="l03373" name="l03373"></a><span class="lineno"> 3373</span> </div>
-<div class="line"><a id="l03374" name="l03374"></a><span class="lineno"> 3374</span><span class="keywordtype">void</span> xdg_toplevel_configure_handler(<span class="keywordtype">void</span> *data,</div>
+<div class="line"><a id="l03374" name="l03374"></a><span class="lineno"> 3374</span><span class="keywordtype">void</span> RGFW_wl_xdg_toplevel_configure_handler(<span class="keywordtype">void</span> *data,</div>
 <div class="line"><a id="l03375" name="l03375"></a><span class="lineno"> 3375</span>        <span class="keyword">struct</span> xdg_toplevel *toplevel, int32_t width, int32_t height,</div>
 <div class="line"><a id="l03376" name="l03376"></a><span class="lineno"> 3376</span>        <span class="keyword">struct</span> wl_array *states)</div>
 <div class="line"><a id="l03377" name="l03377"></a><span class="lineno"> 3377</span>{</div>
@@ -3210,7 +3210,7 @@ $(function() {
 <div class="line"><a id="l03400" name="l03400"></a><span class="lineno"> 3400</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(states);</div>
 <div class="line"><a id="l03401" name="l03401"></a><span class="lineno"> 3401</span>}</div>
 <div class="line"><a id="l03402" name="l03402"></a><span class="lineno"> 3402</span> </div>
-<div class="line"><a id="l03403" name="l03403"></a><span class="lineno"> 3403</span><span class="keywordtype">void</span> xdg_toplevel_close_handler(<span class="keywordtype">void</span> *data,</div>
+<div class="line"><a id="l03403" name="l03403"></a><span class="lineno"> 3403</span><span class="keywordtype">void</span> RGFW_wl_xdg_toplevel_close_handler(<span class="keywordtype">void</span> *data,</div>
 <div class="line"><a id="l03404" name="l03404"></a><span class="lineno"> 3404</span>        <span class="keyword">struct</span> xdg_toplevel *toplevel)</div>
 <div class="line"><a id="l03405" name="l03405"></a><span class="lineno"> 3405</span>{</div>
 <div class="line"><a id="l03406" name="l03406"></a><span class="lineno"> 3406</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data);</div>
@@ -3222,7 +3222,7 @@ $(function() {
 <div class="line"><a id="l03412" name="l03412"></a><span class="lineno"> 3412</span>    RGFW_windowQuitCallback(win);</div>
 <div class="line"><a id="l03413" name="l03413"></a><span class="lineno"> 3413</span>}</div>
 <div class="line"><a id="l03414" name="l03414"></a><span class="lineno"> 3414</span> </div>
-<div class="line"><a id="l03415" name="l03415"></a><span class="lineno"> 3415</span><span class="keywordtype">void</span> shm_format_handler(<span class="keywordtype">void</span> *data,</div>
+<div class="line"><a id="l03415" name="l03415"></a><span class="lineno"> 3415</span><span class="keywordtype">void</span> RGFW_wl_shm_format_handler(<span class="keywordtype">void</span> *data,</div>
 <div class="line"><a id="l03416" name="l03416"></a><span class="lineno"> 3416</span>        <span class="keyword">struct</span> wl_shm *shm, uint32_t format)</div>
 <div class="line"><a id="l03417" name="l03417"></a><span class="lineno"> 3417</span>{</div>
 <div class="line"><a id="l03418" name="l03418"></a><span class="lineno"> 3418</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(shm); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(format);</div>
@@ -3230,7 +3230,7 @@ $(function() {
 <div class="line"><a id="l03420" name="l03420"></a><span class="lineno"> 3420</span> </div>
 <div class="line"><a id="l03421" name="l03421"></a><span class="lineno"> 3421</span><a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* RGFW_mouse_win = NULL;</div>
 <div class="line"><a id="l03422" name="l03422"></a><span class="lineno"> 3422</span> </div>
-<div class="line"><a id="l03423" name="l03423"></a><span class="lineno"> 3423</span><span class="keywordtype">void</span> pointer_enter(<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_pointer *pointer, uint32_t serial, <span class="keyword">struct</span> wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y) {</div>
+<div class="line"><a id="l03423" name="l03423"></a><span class="lineno"> 3423</span><span class="keywordtype">void</span> RGFW_wl_pointer_enter(<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_pointer *pointer, uint32_t serial, <span class="keyword">struct</span> wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y) {</div>
 <div class="line"><a id="l03424" name="l03424"></a><span class="lineno"> 3424</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(pointer); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(serial); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(surface_x); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(surface_y);</div>
 <div class="line"><a id="l03425" name="l03425"></a><span class="lineno"> 3425</span>    <a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win = (<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>*)wl_surface_get_user_data(surface);</div>
 <div class="line"><a id="l03426" name="l03426"></a><span class="lineno"> 3426</span>    RGFW_mouse_win = win;</div>
@@ -3241,7 +3241,7 @@ $(function() {
 <div class="line"><a id="l03431" name="l03431"></a><span class="lineno"> 3431</span> </div>
 <div class="line"><a id="l03432" name="l03432"></a><span class="lineno"> 3432</span>    RGFW_mouseNotifyCallback(win, win-&gt;<a class="code hl_variable" href="structRGFW__window.html#af2effd6e3f8e3f7add8a7afd6aeb455a">event</a>.<a class="code hl_variable" href="structRGFW__event.html#aba9e0d0df62210352604aedbb5829c11">point</a>, <a class="code hl_define" href="RGFW_8h.html#a4d7bc6cacdc3a02ad39672017d4d506e">RGFW_TRUE</a>);</div>
 <div class="line"><a id="l03433" name="l03433"></a><span class="lineno"> 3433</span>}</div>
-<div class="line"><a id="l03434" name="l03434"></a><span class="lineno"> 3434</span><span class="keywordtype">void</span> pointer_leave(<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_pointer *pointer, uint32_t serial, <span class="keyword">struct</span> wl_surface *surface) {</div>
+<div class="line"><a id="l03434" name="l03434"></a><span class="lineno"> 3434</span><span class="keywordtype">void</span> RGFW_wl_pointer_leave(<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_pointer *pointer, uint32_t serial, <span class="keyword">struct</span> wl_surface *surface) {</div>
 <div class="line"><a id="l03435" name="l03435"></a><span class="lineno"> 3435</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(pointer); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(serial); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(surface);</div>
 <div class="line"><a id="l03436" name="l03436"></a><span class="lineno"> 3436</span>    <a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win = (<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>*)wl_surface_get_user_data(surface);</div>
 <div class="line"><a id="l03437" name="l03437"></a><span class="lineno"> 3437</span>    <span class="keywordflow">if</span> (RGFW_mouse_win == win)</div>
@@ -3253,7 +3253,7 @@ $(function() {
 <div class="line"><a id="l03443" name="l03443"></a><span class="lineno"> 3443</span> </div>
 <div class="line"><a id="l03444" name="l03444"></a><span class="lineno"> 3444</span>    RGFW_mouseNotifyCallback(win,  win-&gt;<a class="code hl_variable" href="structRGFW__window.html#af2effd6e3f8e3f7add8a7afd6aeb455a">event</a>.<a class="code hl_variable" href="structRGFW__event.html#aba9e0d0df62210352604aedbb5829c11">point</a>, <a class="code hl_define" href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a>);</div>
 <div class="line"><a id="l03445" name="l03445"></a><span class="lineno"> 3445</span>}</div>
-<div class="line"><a id="l03446" name="l03446"></a><span class="lineno"> 3446</span><span class="keywordtype">void</span> pointer_motion(<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_pointer *pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y) {</div>
+<div class="line"><a id="l03446" name="l03446"></a><span class="lineno"> 3446</span><span class="keywordtype">void</span> RGFW_wl_pointer_motion(<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_pointer *pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y) {</div>
 <div class="line"><a id="l03447" name="l03447"></a><span class="lineno"> 3447</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(pointer); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(time); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(x); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(y);</div>
 <div class="line"><a id="l03448" name="l03448"></a><span class="lineno"> 3448</span> </div>
 <div class="line"><a id="l03449" name="l03449"></a><span class="lineno"> 3449</span>    <a class="code hl_define" href="RGFW_8h.html#abaefc14a066ffd85ac8db9426f890665">RGFW_ASSERT</a>(RGFW_mouse_win != NULL);</div>
@@ -3263,7 +3263,7 @@ $(function() {
 <div class="line"><a id="l03453" name="l03453"></a><span class="lineno"> 3453</span> </div>
 <div class="line"><a id="l03454" name="l03454"></a><span class="lineno"> 3454</span>    RGFW_mousePosCallback(RGFW_mouse_win, <a class="code hl_define" href="RGFW_8h.html#a4e893e75a8f37ccc1fe0dc388339bcdf">RGFW_POINT</a>(wl_fixed_to_double(x), wl_fixed_to_double(y)), RGFW_mouse_win-&gt;<a class="code hl_variable" href="structRGFW__window.html#af2effd6e3f8e3f7add8a7afd6aeb455a">event</a>.<a class="code hl_variable" href="structRGFW__event.html#a0227fb6184ef6c40f905f835e4d46422">vector</a>);</div>
 <div class="line"><a id="l03455" name="l03455"></a><span class="lineno"> 3455</span>}</div>
-<div class="line"><a id="l03456" name="l03456"></a><span class="lineno"> 3456</span><span class="keywordtype">void</span> pointer_button(<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_pointer *pointer, uint32_t serial, uint32_t time, uint32_t button, uint32_t state) {</div>
+<div class="line"><a id="l03456" name="l03456"></a><span class="lineno"> 3456</span><span class="keywordtype">void</span> RGFW_wl_pointer_button(<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_pointer *pointer, uint32_t serial, uint32_t time, uint32_t button, uint32_t state) {</div>
 <div class="line"><a id="l03457" name="l03457"></a><span class="lineno"> 3457</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(pointer); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(time); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(serial);</div>
 <div class="line"><a id="l03458" name="l03458"></a><span class="lineno"> 3458</span>    <a class="code hl_define" href="RGFW_8h.html#abaefc14a066ffd85ac8db9426f890665">RGFW_ASSERT</a>(RGFW_mouse_win != NULL);</div>
 <div class="line"><a id="l03459" name="l03459"></a><span class="lineno"> 3459</span> </div>
@@ -3282,7 +3282,7 @@ $(function() {
 <div class="line"><a id="l03472" name="l03472"></a><span class="lineno"> 3472</span>                                    e._win = RGFW_mouse_win);</div>
 <div class="line"><a id="l03473" name="l03473"></a><span class="lineno"> 3473</span>    RGFW_mouseButtonCallback(RGFW_mouse_win, (<a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>)b, 0, <a class="code hl_define" href="RGFW_8h.html#ad6f97f977c808bdf6512334af06aeee9">RGFW_BOOL</a>(state));</div>
 <div class="line"><a id="l03474" name="l03474"></a><span class="lineno"> 3474</span>}</div>
-<div class="line"><a id="l03475" name="l03475"></a><span class="lineno"> 3475</span><span class="keywordtype">void</span> pointer_axis(<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_pointer *pointer, uint32_t time, uint32_t axis, wl_fixed_t value) {</div>
+<div class="line"><a id="l03475" name="l03475"></a><span class="lineno"> 3475</span><span class="keywordtype">void</span> RGFW_wl_pointer_axis(<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_pointer *pointer, uint32_t time, uint32_t axis, wl_fixed_t value) {</div>
 <div class="line"><a id="l03476" name="l03476"></a><span class="lineno"> 3476</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(pointer); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(time);  <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(axis);</div>
 <div class="line"><a id="l03477" name="l03477"></a><span class="lineno"> 3477</span>    <a class="code hl_define" href="RGFW_8h.html#abaefc14a066ffd85ac8db9426f890665">RGFW_ASSERT</a>(RGFW_mouse_win != NULL);</div>
 <div class="line"><a id="l03478" name="l03478"></a><span class="lineno"> 3478</span> </div>
@@ -3299,7 +3299,7 @@ $(function() {
 <div class="line"><a id="l03489" name="l03489"></a><span class="lineno"> 3489</span> </div>
 <div class="line"><a id="l03490" name="l03490"></a><span class="lineno"> 3490</span><span class="keywordtype">void</span> RGFW_doNothing(<span class="keywordtype">void</span>) { }</div>
 <div class="line"><a id="l03491" name="l03491"></a><span class="lineno"> 3491</span> </div>
-<div class="line"><a id="l03492" name="l03492"></a><span class="lineno"> 3492</span><span class="keywordtype">void</span> keyboard_keymap (<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_keyboard *keyboard, uint32_t format, int32_t fd, uint32_t size) {</div>
+<div class="line"><a id="l03492" name="l03492"></a><span class="lineno"> 3492</span><span class="keywordtype">void</span> RGFW_wl_keyboard_keymap (<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_keyboard *keyboard, uint32_t format, int32_t fd, uint32_t size) {</div>
 <div class="line"><a id="l03493" name="l03493"></a><span class="lineno"> 3493</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(keyboard); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(format);</div>
 <div class="line"><a id="l03494" name="l03494"></a><span class="lineno"> 3494</span> </div>
 <div class="line"><a id="l03495" name="l03495"></a><span class="lineno"> 3495</span>    <span class="keywordtype">char</span> *keymap_string = mmap (NULL, size, PROT_READ, MAP_SHARED, fd, 0);</div>
@@ -3311,7 +3311,7 @@ $(function() {
 <div class="line"><a id="l03501" name="l03501"></a><span class="lineno"> 3501</span>    xkb_state_unref (xkb_state);</div>
 <div class="line"><a id="l03502" name="l03502"></a><span class="lineno"> 3502</span>    xkb_state = xkb_state_new (keymap);</div>
 <div class="line"><a id="l03503" name="l03503"></a><span class="lineno"> 3503</span>}</div>
-<div class="line"><a id="l03504" name="l03504"></a><span class="lineno"> 3504</span><span class="keywordtype">void</span> keyboard_enter (<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_keyboard *keyboard, uint32_t serial, <span class="keyword">struct</span> wl_surface *surface, <span class="keyword">struct</span> wl_array *keys) {</div>
+<div class="line"><a id="l03504" name="l03504"></a><span class="lineno"> 3504</span><span class="keywordtype">void</span> RGFW_wl_keyboard_enter (<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_keyboard *keyboard, uint32_t serial, <span class="keyword">struct</span> wl_surface *surface, <span class="keyword">struct</span> wl_array *keys) {</div>
 <div class="line"><a id="l03505" name="l03505"></a><span class="lineno"> 3505</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(keyboard); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(serial); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(keys);</div>
 <div class="line"><a id="l03506" name="l03506"></a><span class="lineno"> 3506</span> </div>
 <div class="line"><a id="l03507" name="l03507"></a><span class="lineno"> 3507</span>    RGFW_key_win = (<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>*)wl_surface_get_user_data(surface);</div>
@@ -3322,7 +3322,7 @@ $(function() {
 <div class="line"><a id="l03512" name="l03512"></a><span class="lineno"> 3512</span> </div>
 <div class="line"><a id="l03513" name="l03513"></a><span class="lineno"> 3513</span>    <span class="keywordflow">if</span> ((RGFW_key_win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a3619dc281010b57f0810987a3be8012e">_flags</a> &amp; RGFW_HOLD_MOUSE)) <a class="code hl_function" href="group__Window__management.html#ga628b14b6a829b040b3b0d78d482770a3">RGFW_window_mouseHold</a>(RGFW_key_win, <a class="code hl_define" href="RGFW_8h.html#a5edc5249799c8eb95f2a45db37f8b36d">RGFW_AREA</a>(RGFW_key_win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a638e63f187096f668c11438ae44d8700">r</a>.<a class="code hl_variable" href="structRGFW__rect.html#ae9b18887b7389dc05283e4e54881b801">w</a>, RGFW_key_win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a638e63f187096f668c11438ae44d8700">r</a>.<a class="code hl_variable" href="structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d">h</a>));</div>
 <div class="line"><a id="l03514" name="l03514"></a><span class="lineno"> 3514</span>}</div>
-<div class="line"><a id="l03515" name="l03515"></a><span class="lineno"> 3515</span><span class="keywordtype">void</span> keyboard_leave (<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_keyboard *keyboard, uint32_t serial, <span class="keyword">struct</span> wl_surface *surface) {</div>
+<div class="line"><a id="l03515" name="l03515"></a><span class="lineno"> 3515</span><span class="keywordtype">void</span> RGFW_wl_keyboard_leave (<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_keyboard *keyboard, uint32_t serial, <span class="keyword">struct</span> wl_surface *surface) {</div>
 <div class="line"><a id="l03516" name="l03516"></a><span class="lineno"> 3516</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(keyboard); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(serial);</div>
 <div class="line"><a id="l03517" name="l03517"></a><span class="lineno"> 3517</span> </div>
 <div class="line"><a id="l03518" name="l03518"></a><span class="lineno"> 3518</span>    <a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win = (<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>*)wl_surface_get_user_data(surface);</div>
@@ -3333,7 +3333,7 @@ $(function() {
 <div class="line"><a id="l03523" name="l03523"></a><span class="lineno"> 3523</span>    RGFW_focusCallback(win, <a class="code hl_define" href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a>);</div>
 <div class="line"><a id="l03524" name="l03524"></a><span class="lineno"> 3524</span>    RGFW_window_focusLost(win);</div>
 <div class="line"><a id="l03525" name="l03525"></a><span class="lineno"> 3525</span>}</div>
-<div class="line"><a id="l03526" name="l03526"></a><span class="lineno"> 3526</span><span class="keywordtype">void</span> keyboard_key (<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_keyboard *keyboard, uint32_t serial, uint32_t time, uint32_t key, uint32_t state) {</div>
+<div class="line"><a id="l03526" name="l03526"></a><span class="lineno"> 3526</span><span class="keywordtype">void</span> RGFW_wl_keyboard_key (<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_keyboard *keyboard, uint32_t serial, uint32_t time, uint32_t key, uint32_t state) {</div>
 <div class="line"><a id="l03527" name="l03527"></a><span class="lineno"> 3527</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(keyboard); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(serial); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(time);</div>
 <div class="line"><a id="l03528" name="l03528"></a><span class="lineno"> 3528</span> </div>
 <div class="line"><a id="l03529" name="l03529"></a><span class="lineno"> 3529</span>    <span class="keywordflow">if</span> (RGFW_key_win == NULL) <span class="keywordflow">return</span>;</div>
@@ -3353,15 +3353,15 @@ $(function() {
 <div class="line"><a id="l03543" name="l03543"></a><span class="lineno"> 3543</span>    RGFW_updateKeyMods(RGFW_key_win, <a class="code hl_define" href="RGFW_8h.html#ad6f97f977c808bdf6512334af06aeee9">RGFW_BOOL</a>(xkb_keymap_mod_get_index(keymap, <span class="stringliteral">&quot;Lock&quot;</span>)), <a class="code hl_define" href="RGFW_8h.html#ad6f97f977c808bdf6512334af06aeee9">RGFW_BOOL</a>(xkb_keymap_mod_get_index(keymap, <span class="stringliteral">&quot;Mod2&quot;</span>)), <a class="code hl_define" href="RGFW_8h.html#ad6f97f977c808bdf6512334af06aeee9">RGFW_BOOL</a>(xkb_keymap_mod_get_index(keymap, <span class="stringliteral">&quot;ScrollLock&quot;</span>)));</div>
 <div class="line"><a id="l03544" name="l03544"></a><span class="lineno"> 3544</span>    RGFW_keyCallback(RGFW_key_win, (<a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>)RGFWkey, (<a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>)keysym, RGFW_key_win-&gt;<a class="code hl_variable" href="structRGFW__window.html#af2effd6e3f8e3f7add8a7afd6aeb455a">event</a>.<a class="code hl_variable" href="structRGFW__event.html#ab6900d12b4d0d24f0ba28c1bfa131db8">keyMod</a>, <a class="code hl_define" href="RGFW_8h.html#ad6f97f977c808bdf6512334af06aeee9">RGFW_BOOL</a>(state));</div>
 <div class="line"><a id="l03545" name="l03545"></a><span class="lineno"> 3545</span>}</div>
-<div class="line"><a id="l03546" name="l03546"></a><span class="lineno"> 3546</span><span class="keywordtype">void</span> keyboard_modifiers (<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_keyboard *keyboard, uint32_t serial, uint32_t mods_depressed, uint32_t mods_latched, uint32_t mods_locked, uint32_t group) {</div>
+<div class="line"><a id="l03546" name="l03546"></a><span class="lineno"> 3546</span><span class="keywordtype">void</span> RGFW_wl_keyboard_modifiers (<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_keyboard *keyboard, uint32_t serial, uint32_t mods_depressed, uint32_t mods_latched, uint32_t mods_locked, uint32_t group) {</div>
 <div class="line"><a id="l03547" name="l03547"></a><span class="lineno"> 3547</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(keyboard); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(serial); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(time);</div>
 <div class="line"><a id="l03548" name="l03548"></a><span class="lineno"> 3548</span>    xkb_state_update_mask (xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);</div>
 <div class="line"><a id="l03549" name="l03549"></a><span class="lineno"> 3549</span>}</div>
-<div class="line"><a id="l03550" name="l03550"></a><span class="lineno"> 3550</span><span class="keywordtype">void</span> seat_capabilities (<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_seat *seat, uint32_t capabilities) {</div>
+<div class="line"><a id="l03550" name="l03550"></a><span class="lineno"> 3550</span><span class="keywordtype">void</span> RGFW_wl_seat_capabilities (<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_seat *seat, uint32_t capabilities) {</div>
 <div class="line"><a id="l03551" name="l03551"></a><span class="lineno"> 3551</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data);</div>
-<div class="line"><a id="l03552" name="l03552"></a><span class="lineno"> 3552</span>    <span class="keyword">static</span> <span class="keyword">struct </span>wl_pointer_listener pointer_listener = {&amp;pointer_enter, &amp;pointer_leave, &amp;pointer_motion, &amp;pointer_button, &amp;pointer_axis, (void (*)(<span class="keywordtype">void</span> *, <span class="keyword">struct </span>wl_pointer *))&amp;RGFW_doNothing, (void (*)(<span class="keywordtype">void</span> *, <span class="keyword">struct </span>wl_pointer *, uint32_t))&amp;RGFW_doNothing, (void (*)(<span class="keywordtype">void</span> *, <span class="keyword">struct </span>wl_pointer *, uint32_t, uint32_t))&amp;RGFW_doNothing, (void (*)(<span class="keywordtype">void</span> *, <span class="keyword">struct </span>wl_pointer *, uint32_t, int32_t))&amp;RGFW_doNothing, (void (*)(<span class="keywordtype">void</span> *, <span class="keyword">struct </span>wl_pointer *, uint32_t, int32_t))&amp;RGFW_doNothing, (void (*)(<span class="keywordtype">void</span>*, <span class="keyword">struct </span>wl_pointer*, uint32_t, uint32_t))&amp;RGFW_doNothing};</div>
+<div class="line"><a id="l03552" name="l03552"></a><span class="lineno"> 3552</span>    <span class="keyword">static</span> <span class="keyword">struct </span>wl_pointer_listener pointer_listener = {&amp;RGFW_wl_pointer_enter, &amp;RGFW_wl_pointer_leave, &amp;RGFW_wl_pointer_motion, &amp;RGFW_wl_pointer_button, &amp;RGFW_wl_pointer_axis, (void (*)(<span class="keywordtype">void</span> *, <span class="keyword">struct </span>wl_pointer *))&amp;RGFW_doNothing, (void (*)(<span class="keywordtype">void</span> *, <span class="keyword">struct </span>wl_pointer *, uint32_t))&amp;RGFW_doNothing, (void (*)(<span class="keywordtype">void</span> *, <span class="keyword">struct </span>wl_pointer *, uint32_t, uint32_t))&amp;RGFW_doNothing, (void (*)(<span class="keywordtype">void</span> *, <span class="keyword">struct </span>wl_pointer *, uint32_t, int32_t))&amp;RGFW_doNothing, (void (*)(<span class="keywordtype">void</span> *, <span class="keyword">struct </span>wl_pointer *, uint32_t, int32_t))&amp;RGFW_doNothing, (void (*)(<span class="keywordtype">void</span>*, <span class="keyword">struct </span>wl_pointer*, uint32_t, uint32_t))&amp;RGFW_doNothing};</div>
 <div class="line"><a id="l03553" name="l03553"></a><span class="lineno"> 3553</span> </div>
-<div class="line"><a id="l03554" name="l03554"></a><span class="lineno"> 3554</span>    <span class="keyword">static</span> <span class="keyword">struct </span>wl_keyboard_listener keyboard_listener = {&amp;keyboard_keymap, &amp;keyboard_enter, &amp;keyboard_leave, &amp;keyboard_key, &amp;keyboard_modifiers, (void (*)(<span class="keywordtype">void</span> *, <span class="keyword">struct </span>wl_keyboard *, </div>
+<div class="line"><a id="l03554" name="l03554"></a><span class="lineno"> 3554</span>    <span class="keyword">static</span> <span class="keyword">struct </span>wl_keyboard_listener keyboard_listener = {&amp;RGFW_wl_keyboard_keymap, &amp;RGFW_wl_keyboard_enter, &amp;RGFW_wl_keyboard_leave, &amp;RGFW_wl_keyboard_key, &amp;RGFW_wl_keyboard_modifiers, (void (*)(<span class="keywordtype">void</span> *, <span class="keyword">struct </span>wl_keyboard *, </div>
 <div class="line"><a id="l03555" name="l03555"></a><span class="lineno"> 3555</span>                                                                                                                                                       int,  int))&amp;RGFW_doNothing};</div>
 <div class="line"><a id="l03556" name="l03556"></a><span class="lineno"> 3556</span> </div>
 <div class="line"><a id="l03557" name="l03557"></a><span class="lineno"> 3557</span>    <span class="keywordflow">if</span> (capabilities &amp; WL_SEAT_CAPABILITY_POINTER) {</div>
@@ -3374,12 +3374,12 @@ $(function() {
 <div class="line"><a id="l03564" name="l03564"></a><span class="lineno"> 3564</span>    }</div>
 <div class="line"><a id="l03565" name="l03565"></a><span class="lineno"> 3565</span>}</div>
 <div class="line"><a id="l03566" name="l03566"></a><span class="lineno"> 3566</span> </div>
-<div class="line"><a id="l03567" name="l03567"></a><span class="lineno"> 3567</span><span class="keywordtype">void</span> wl_global_registry_handler(<span class="keywordtype">void</span> *data,</div>
+<div class="line"><a id="l03567" name="l03567"></a><span class="lineno"> 3567</span><span class="keywordtype">void</span> RGFW_wl_wl_global_registry_handler(<span class="keywordtype">void</span> *data,</div>
 <div class="line"><a id="l03568" name="l03568"></a><span class="lineno"> 3568</span>        <span class="keyword">struct</span> wl_registry *registry, uint32_t <span class="keywordtype">id</span>, <span class="keyword">const</span> <span class="keywordtype">char</span> *interface,</div>
 <div class="line"><a id="l03569" name="l03569"></a><span class="lineno"> 3569</span>        uint32_t version) {</div>
 <div class="line"><a id="l03570" name="l03570"></a><span class="lineno"> 3570</span> </div>
-<div class="line"><a id="l03571" name="l03571"></a><span class="lineno"> 3571</span>    <span class="keyword">static</span> <span class="keyword">struct </span>wl_seat_listener seat_listener = {&amp;seat_capabilities, (void (*)(<span class="keywordtype">void</span> *, <span class="keyword">struct </span>wl_seat *, <span class="keyword">const</span> <span class="keywordtype">char</span> *))&amp;RGFW_doNothing};</div>
-<div class="line"><a id="l03572" name="l03572"></a><span class="lineno"> 3572</span>    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">struct </span>wl_shm_listener shm_listener = { .format = shm_format_handler };</div>
+<div class="line"><a id="l03571" name="l03571"></a><span class="lineno"> 3571</span>    <span class="keyword">static</span> <span class="keyword">struct </span>wl_seat_listener seat_listener = {&amp;RGFW_wl_seat_capabilities, (void (*)(<span class="keywordtype">void</span> *, <span class="keyword">struct </span>wl_seat *, <span class="keyword">const</span> <span class="keywordtype">char</span> *))&amp;RGFW_doNothing};</div>
+<div class="line"><a id="l03572" name="l03572"></a><span class="lineno"> 3572</span>    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">struct </span>wl_shm_listener shm_listener = { .format = RGFW_wl_shm_format_handler };</div>
 <div class="line"><a id="l03573" name="l03573"></a><span class="lineno"> 3573</span> </div>
 <div class="line"><a id="l03574" name="l03574"></a><span class="lineno"> 3574</span> </div>
 <div class="line"><a id="l03575" name="l03575"></a><span class="lineno"> 3575</span>    <a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>* win = (<a class="code hl_struct" href="structRGFW__window.html">RGFW_window</a>*)data;</div>
@@ -3402,16 +3402,16 @@ $(function() {
 <div class="line"><a id="l03592" name="l03592"></a><span class="lineno"> 3592</span>    }</div>
 <div class="line"><a id="l03593" name="l03593"></a><span class="lineno"> 3593</span>}</div>
 <div class="line"><a id="l03594" name="l03594"></a><span class="lineno"> 3594</span> </div>
-<div class="line"><a id="l03595" name="l03595"></a><span class="lineno"> 3595</span><span class="keywordtype">void</span> wl_global_registry_remove(<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_registry *registry, uint32_t name) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(registry); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(name); }</div>
+<div class="line"><a id="l03595" name="l03595"></a><span class="lineno"> 3595</span><span class="keywordtype">void</span> RGFW_wl_wl_global_registry_remove(<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_registry *registry, uint32_t name) { <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(registry); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(name); }</div>
 <div class="line"><a id="l03596" name="l03596"></a><span class="lineno"> 3596</span> </div>
-<div class="line"><a id="l03597" name="l03597"></a><span class="lineno"> 3597</span><span class="keywordtype">void</span> decoration_handle_configure(<span class="keywordtype">void</span> *data,</div>
+<div class="line"><a id="l03597" name="l03597"></a><span class="lineno"> 3597</span><span class="keywordtype">void</span> RGFW_wl_decoration_handle_configure(<span class="keywordtype">void</span> *data,</div>
 <div class="line"><a id="l03598" name="l03598"></a><span class="lineno"> 3598</span>        <span class="keyword">struct</span> zxdg_toplevel_decoration_v1 *decoration,</div>
 <div class="line"><a id="l03599" name="l03599"></a><span class="lineno"> 3599</span>        <span class="keyword">enum</span> zxdg_toplevel_decoration_v1_mode mode) {</div>
 <div class="line"><a id="l03600" name="l03600"></a><span class="lineno"> 3600</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(decoration);</div>
 <div class="line"><a id="l03601" name="l03601"></a><span class="lineno"> 3601</span>    RGFW_current_mode = mode;</div>
 <div class="line"><a id="l03602" name="l03602"></a><span class="lineno"> 3602</span>}</div>
 <div class="line"><a id="l03603" name="l03603"></a><span class="lineno"> 3603</span> </div>
-<div class="line"><a id="l03604" name="l03604"></a><span class="lineno"> 3604</span><span class="keywordtype">void</span> randname(<span class="keywordtype">char</span> *buf) {</div>
+<div class="line"><a id="l03604" name="l03604"></a><span class="lineno"> 3604</span><span class="keywordtype">void</span> RGFW_wl_randname(<span class="keywordtype">char</span> *buf) {</div>
 <div class="line"><a id="l03605" name="l03605"></a><span class="lineno"> 3605</span>    <span class="keyword">struct </span>timespec ts;</div>
 <div class="line"><a id="l03606" name="l03606"></a><span class="lineno"> 3606</span>    clock_gettime(CLOCK_REALTIME, &amp;ts);</div>
 <div class="line"><a id="l03607" name="l03607"></a><span class="lineno"> 3607</span>    <span class="keywordtype">long</span> r = ts.tv_nsec;</div>
@@ -3423,18 +3423,18 @@ $(function() {
 <div class="line"><a id="l03613" name="l03613"></a><span class="lineno"> 3613</span>    }</div>
 <div class="line"><a id="l03614" name="l03614"></a><span class="lineno"> 3614</span>}</div>
 <div class="line"><a id="l03615" name="l03615"></a><span class="lineno"> 3615</span> </div>
-<div class="line"><a id="l03616" name="l03616"></a><span class="lineno"> 3616</span><span class="keywordtype">size_t</span> wl_stringlen(<span class="keywordtype">char</span>* name) {</div>
+<div class="line"><a id="l03616" name="l03616"></a><span class="lineno"> 3616</span><span class="keywordtype">size_t</span> RGFW_wl_wl_stringlen(<span class="keywordtype">char</span>* name) {</div>
 <div class="line"><a id="l03617" name="l03617"></a><span class="lineno"> 3617</span>    <span class="keywordtype">size_t</span> i = 0;</div>
 <div class="line"><a id="l03618" name="l03618"></a><span class="lineno"> 3618</span>    <span class="keywordflow">while</span> (name[i]) { i++; }</div>
 <div class="line"><a id="l03619" name="l03619"></a><span class="lineno"> 3619</span>    <span class="keywordflow">return</span> i;</div>
 <div class="line"><a id="l03620" name="l03620"></a><span class="lineno"> 3620</span>}</div>
 <div class="line"><a id="l03621" name="l03621"></a><span class="lineno"> 3621</span> </div>
-<div class="line"><a id="l03622" name="l03622"></a><span class="lineno"> 3622</span><span class="keywordtype">int</span> anonymous_shm_open(<span class="keywordtype">void</span>) {</div>
+<div class="line"><a id="l03622" name="l03622"></a><span class="lineno"> 3622</span><span class="keywordtype">int</span> RGFW_wl_anonymous_shm_open(<span class="keywordtype">void</span>) {</div>
 <div class="line"><a id="l03623" name="l03623"></a><span class="lineno"> 3623</span>    <span class="keywordtype">char</span> name[] = <span class="stringliteral">&quot;/RGFW-wayland-XXXXXX&quot;</span>;</div>
 <div class="line"><a id="l03624" name="l03624"></a><span class="lineno"> 3624</span>    <span class="keywordtype">int</span> retries = 100;</div>
 <div class="line"><a id="l03625" name="l03625"></a><span class="lineno"> 3625</span> </div>
 <div class="line"><a id="l03626" name="l03626"></a><span class="lineno"> 3626</span>    <span class="keywordflow">do</span> {</div>
-<div class="line"><a id="l03627" name="l03627"></a><span class="lineno"> 3627</span>        randname(name + wl_stringlen(name) - 6);</div>
+<div class="line"><a id="l03627" name="l03627"></a><span class="lineno"> 3627</span>        RGFW_wl_randname(name + RGFW_wl_wl_stringlen(name) - 6);</div>
 <div class="line"><a id="l03628" name="l03628"></a><span class="lineno"> 3628</span> </div>
 <div class="line"><a id="l03629" name="l03629"></a><span class="lineno"> 3629</span>        --retries;</div>
 <div class="line"><a id="l03630" name="l03630"></a><span class="lineno"> 3630</span>        <span class="comment">/* shm_open guarantees that O_CLOEXEC is set */</span></div>
@@ -3448,8 +3448,8 @@ $(function() {
 <div class="line"><a id="l03638" name="l03638"></a><span class="lineno"> 3638</span>    <span class="keywordflow">return</span> -1;</div>
 <div class="line"><a id="l03639" name="l03639"></a><span class="lineno"> 3639</span>}</div>
 <div class="line"><a id="l03640" name="l03640"></a><span class="lineno"> 3640</span> </div>
-<div class="line"><a id="l03641" name="l03641"></a><span class="lineno"> 3641</span><span class="keywordtype">int</span> create_shm_file(off_t size) {</div>
-<div class="line"><a id="l03642" name="l03642"></a><span class="lineno"> 3642</span>    <span class="keywordtype">int</span> fd = anonymous_shm_open();</div>
+<div class="line"><a id="l03641" name="l03641"></a><span class="lineno"> 3641</span><span class="keywordtype">int</span> RGFW_wl_create_shm_file(off_t size) {</div>
+<div class="line"><a id="l03642" name="l03642"></a><span class="lineno"> 3642</span>    <span class="keywordtype">int</span> fd = RGFW_wl_anonymous_shm_open();</div>
 <div class="line"><a id="l03643" name="l03643"></a><span class="lineno"> 3643</span>    <span class="keywordflow">if</span> (fd &lt; 0) {</div>
 <div class="line"><a id="l03644" name="l03644"></a><span class="lineno"> 3644</span>        <span class="keywordflow">return</span> fd;</div>
 <div class="line"><a id="l03645" name="l03645"></a><span class="lineno"> 3645</span>    }</div>
@@ -3462,7 +3462,7 @@ $(function() {
 <div class="line"><a id="l03652" name="l03652"></a><span class="lineno"> 3652</span>    <span class="keywordflow">return</span> fd;</div>
 <div class="line"><a id="l03653" name="l03653"></a><span class="lineno"> 3653</span>}</div>
 <div class="line"><a id="l03654" name="l03654"></a><span class="lineno"> 3654</span> </div>
-<div class="line"><a id="l03655" name="l03655"></a><span class="lineno"> 3655</span><span class="keywordtype">void</span> wl_surface_frame_done(<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_callback *cb, uint32_t time) {</div>
+<div class="line"><a id="l03655" name="l03655"></a><span class="lineno"> 3655</span><span class="keywordtype">void</span> RGFW_wl_wl_surface_frame_done(<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_callback *cb, uint32_t time) {</div>
 <div class="line"><a id="l03656" name="l03656"></a><span class="lineno"> 3656</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(data); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(cb); <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(time);</div>
 <div class="line"><a id="l03657" name="l03657"></a><span class="lineno"> 3657</span> </div>
 <div class="line"><a id="l03658" name="l03658"></a><span class="lineno"> 3658</span><span class="preprocessor">    #ifdef RGFW_BUFFER</span></div>
@@ -4081,8 +4081,8 @@ $(function() {
 <div class="line"><a id="l04274" name="l04274"></a><span class="lineno"> 4274</span><span class="preprocessor">    #endif</span></div>
 <div class="line"><a id="l04275" name="l04275"></a><span class="lineno"> 4275</span> </div>
 <div class="line"><a id="l04276" name="l04276"></a><span class="lineno"> 4276</span>    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">struct </span>wl_registry_listener registry_listener = {</div>
-<div class="line"><a id="l04277" name="l04277"></a><span class="lineno"> 4277</span>        .global = wl_global_registry_handler,</div>
-<div class="line"><a id="l04278" name="l04278"></a><span class="lineno"> 4278</span>        .global_remove = wl_global_registry_remove,</div>
+<div class="line"><a id="l04277" name="l04277"></a><span class="lineno"> 4277</span>        .global = RGFW_wl_wl_global_registry_handler,</div>
+<div class="line"><a id="l04278" name="l04278"></a><span class="lineno"> 4278</span>        .global_remove = RGFW_wl_wl_global_registry_remove,</div>
 <div class="line"><a id="l04279" name="l04279"></a><span class="lineno"> 4279</span>    };</div>
 <div class="line"><a id="l04280" name="l04280"></a><span class="lineno"> 4280</span> </div>
 <div class="line"><a id="l04281" name="l04281"></a><span class="lineno"> 4281</span> </div>
@@ -4110,15 +4110,15 @@ $(function() {
 <div class="line"><a id="l04303" name="l04303"></a><span class="lineno"> 4303</span>    }</div>
 <div class="line"><a id="l04304" name="l04304"></a><span class="lineno"> 4304</span> </div>
 <div class="line"><a id="l04305" name="l04305"></a><span class="lineno"> 4305</span>    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">struct </span>xdg_wm_base_listener xdg_wm_base_listener = {</div>
-<div class="line"><a id="l04306" name="l04306"></a><span class="lineno"> 4306</span>        .ping = xdg_wm_base_ping_handler,</div>
+<div class="line"><a id="l04306" name="l04306"></a><span class="lineno"> 4306</span>        .ping = RGFW_wl_xdg_wm_base_ping_handler,</div>
 <div class="line"><a id="l04307" name="l04307"></a><span class="lineno"> 4307</span>    };</div>
 <div class="line"><a id="l04308" name="l04308"></a><span class="lineno"> 4308</span> </div>
 <div class="line"><a id="l04309" name="l04309"></a><span class="lineno"> 4309</span>    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">struct </span>xdg_surface_listener xdg_surface_listener = {</div>
-<div class="line"><a id="l04310" name="l04310"></a><span class="lineno"> 4310</span>        .configure = xdg_surface_configure_handler,</div>
+<div class="line"><a id="l04310" name="l04310"></a><span class="lineno"> 4310</span>        .configure = RGFW_wl_xdg_surface_configure_handler,</div>
 <div class="line"><a id="l04311" name="l04311"></a><span class="lineno"> 4311</span>    };</div>
 <div class="line"><a id="l04312" name="l04312"></a><span class="lineno"> 4312</span> </div>
 <div class="line"><a id="l04313" name="l04313"></a><span class="lineno"> 4313</span>    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">struct </span>wl_callback_listener wl_surface_frame_listener = {</div>
-<div class="line"><a id="l04314" name="l04314"></a><span class="lineno"> 4314</span>        .done = wl_surface_frame_done,</div>
+<div class="line"><a id="l04314" name="l04314"></a><span class="lineno"> 4314</span>        .done = RGFW_wl_wl_surface_frame_done,</div>
 <div class="line"><a id="l04315" name="l04315"></a><span class="lineno"> 4315</span>    };</div>
 <div class="line"><a id="l04316" name="l04316"></a><span class="lineno"> 4316</span> </div>
 <div class="line"><a id="l04317" name="l04317"></a><span class="lineno"> 4317</span> </div>
@@ -4138,11 +4138,11 @@ $(function() {
 <div class="line"><a id="l04331" name="l04331"></a><span class="lineno"> 4331</span>    xdg_toplevel_set_user_data(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.xdg_toplevel, win);</div>
 <div class="line"><a id="l04332" name="l04332"></a><span class="lineno"> 4332</span> </div>
 <div class="line"><a id="l04333" name="l04333"></a><span class="lineno"> 4333</span>    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">struct </span>zxdg_toplevel_decoration_v1_listener decoration_listener = {</div>
-<div class="line"><a id="l04334" name="l04334"></a><span class="lineno"> 4334</span>        .configure = decoration_handle_configure,</div>
+<div class="line"><a id="l04334" name="l04334"></a><span class="lineno"> 4334</span>        .configure = RGFW_wl_decoration_handle_configure,</div>
 <div class="line"><a id="l04335" name="l04335"></a><span class="lineno"> 4335</span>    };</div>
 <div class="line"><a id="l04336" name="l04336"></a><span class="lineno"> 4336</span>    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">struct </span>xdg_toplevel_listener xdg_toplevel_listener = {</div>
-<div class="line"><a id="l04337" name="l04337"></a><span class="lineno"> 4337</span>        .configure = xdg_toplevel_configure_handler,</div>
-<div class="line"><a id="l04338" name="l04338"></a><span class="lineno"> 4338</span>        .close = xdg_toplevel_close_handler,</div>
+<div class="line"><a id="l04337" name="l04337"></a><span class="lineno"> 4337</span>        .configure = RGFW_wl_xdg_toplevel_configure_handler,</div>
+<div class="line"><a id="l04338" name="l04338"></a><span class="lineno"> 4338</span>        .close = RGFW_wl_xdg_toplevel_close_handler,</div>
 <div class="line"><a id="l04339" name="l04339"></a><span class="lineno"> 4339</span>    };</div>
 <div class="line"><a id="l04340" name="l04340"></a><span class="lineno"> 4340</span> </div>
 <div class="line"><a id="l04341" name="l04341"></a><span class="lineno"> 4341</span>    xdg_toplevel_add_listener(win-&gt;<a class="code hl_variable" href="structRGFW__window.html#a79482efdadb27e0c82626ec0d49fed03">src</a>.xdg_toplevel, &amp;xdg_toplevel_listener, NULL);</div>
