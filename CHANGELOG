@@ -30,6 +30,9 @@ Release:    RGFW 1.7.5-dev
 - handle X11 events manually (with a callback
 - remove software arg from `RGFW_window_initOpenGL`
 - add `RGFW_window_opengl_isSoftware` for checking if software is supported
+- add `RGFW_PRINTF` and `RGFW_SNPRINTF`
+- fix usage of libc functions without RGFW_macro
+- handle window resizing (wayland) 
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
