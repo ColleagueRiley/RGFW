@@ -233,7 +233,7 @@ int main() {
 	#define RGFW_ATOF(num) atof(num)
 #endif
 
-#if !defined(RGFW_SNPRINTF) && defined(RGFW_DEBUG)
+#if !defined(RGFW_PRINTF) && defined(RGFW_DEBUG)
     /* required when using RGFW_DEBUG */
     #include <stdio.h>
     #define RGFW_PRINTF printf
@@ -1529,11 +1529,6 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 #endif
 
 /*! optional init/deinit function */
-typedef struct {
-	RGFW_bool current  : 1;
-	RGFW_bool prev  : 1;
-} RGFW_keyState;
-
 RGFWDEF i32 RGFW_init(void); /*!< is called by default when the first window is created by default */
 RGFWDEF void RGFW_deinit(void); /*!< is called by default when the last open window is closed */
 
@@ -1557,7 +1552,6 @@ typedef struct RGFW_info {
     u8 keycodes[RGFW_OS_BASED_VALUE(256, 512, 128, 256)];
 
     /* gamepad data */
-    RGFW_keyState gamepadPressed[4][32]; /*!< if a key is currently pressed or not (per gamepad) */
     RGFW_point gamepadAxes[4][4]; /*!< if a key is currently pressed or not (per gamepad) */
 
     RGFW_gamepadType gamepads_type[4]; /*!< if a key is currently pressed or not (per gamepad) */
@@ -1566,9 +1560,6 @@ typedef struct RGFW_info {
     u16 gamepadCount; /*!< the actual amount of gamepads */
 
     const char* className;
-    RGFW_keyState mouseButtons[RGFW_mouseFinal];
-    RGFW_keyState keyboard[RGFW_keyLast]; 
-
     RGFW_bool useWaylandBool;
     RGFW_bool stopCheckEvents_bool;
     u64 timerOffset;
@@ -1718,9 +1709,19 @@ This is the start of keycode data
 	we'll have to do it during runtime using a function & this messy setup
 */
 
-#ifndef RGFW_CUSTOM_BACKEND
+typedef struct {
+	RGFW_bool current  : 1;
+	RGFW_bool prev  : 1;
+} RGFW_keyState;
+
+RGFW_keyState RGFW_gamepadPressed[3][32]; /*!< if a key is currently pressed or not (per gamepad) */
+RGFW_keyState RGFW_mouseButtons[RGFW_mouseFinal];
+RGFW_keyState RGFW_keyboard[RGFW_keyLast]; 
+
 RGFWDEF void RGFW_resetKeyPrev(void);
 RGFWDEF void RGFW_resetKey(void);
+
+#ifndef RGFW_CUSTOM_BACKEND
 RGFWDEF void RGFW_init_keys(void);
 
 void RGFW_init_keys(void) {
@@ -1862,9 +1863,9 @@ u32 RGFW_rgfwToApiKey(u32 keycode) {
 
 void RGFW_resetKeyPrev(void) {
 	size_t i; /*!< reset each previous state  */
-    for (i = 0; i < RGFW_keyLast; i++) _RGFW->keyboard[i].prev = 0;
+    for (i = 0; i < RGFW_keyLast; i++) RGFW_keyboard[i].prev = 0;
 }
-void RGFW_resetKey(void) { RGFW_MEMSET(_RGFW->keyboard, 0, sizeof(_RGFW->keyboard)); }
+void RGFW_resetKey(void) { RGFW_MEMSET(RGFW_keyboard, 0, sizeof(RGFW_keyboard)); }
 /*
 	this is the end of keycode data
 */
@@ -2226,10 +2227,10 @@ void RGFW_setXInstName(const char* name) { RGFW_UNUSED(name); }
 #endif
 
 RGFW_bool RGFW_isMousePressed(RGFW_window* win, RGFW_mouseButton button) {
-	return _RGFW->mouseButtons[button].current && (win == NULL || RGFW_window_isInFocus(win));
+	return RGFW_mouseButtons[button].current && (win == NULL || RGFW_window_isInFocus(win));
 }
 RGFW_bool RGFW_wasMousePressed(RGFW_window* win, RGFW_mouseButton button) {
-	return _RGFW->mouseButtons[button].prev && (win != NULL || RGFW_window_isInFocus(win));
+	return RGFW_mouseButtons[button].prev && (win != NULL || RGFW_window_isInFocus(win));
 }
 RGFW_bool RGFW_isMouseHeld(RGFW_window* win, RGFW_mouseButton button) {
 	return (RGFW_isMousePressed(win, button) && RGFW_wasMousePressed(win, button));
@@ -2244,11 +2245,11 @@ RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
 }
 
 RGFW_bool RGFW_isPressed(RGFW_window* win, RGFW_key key) {
-    return _RGFW != NULL && _RGFW->keyboard[key].current && (win == NULL || RGFW_window_isInFocus(win));
+    return _RGFW != NULL && RGFW_keyboard[key].current && (win == NULL || RGFW_window_isInFocus(win));
 }
 
 RGFW_bool RGFW_wasPressed(RGFW_window* win, RGFW_key key) {
-	return _RGFW->keyboard[key].prev && (win == NULL || RGFW_window_isInFocus(win));
+	return RGFW_keyboard[key].prev && (win == NULL || RGFW_window_isInFocus(win));
 }
 
 RGFW_bool RGFW_isHeld(RGFW_window* win, RGFW_key key) {
@@ -2408,11 +2409,11 @@ void RGFW_RGB_to_BGR(RGFW_window* win, u8* data) {
 
 u32 RGFW_isPressedGamepad(RGFW_window* win, u8 c, RGFW_gamepadCodes button) {
 	RGFW_UNUSED(win);
-	return _RGFW->gamepadPressed[c][button].current;
+	return RGFW_gamepadPressed[c][button].current;
 }
 u32 RGFW_wasPressedGamepad(RGFW_window* win, u8 c, RGFW_gamepadCodes button) {
 	RGFW_UNUSED(win);
-	return _RGFW->gamepadPressed[c][button].prev;
+	return RGFW_gamepadPressed[c][button].prev;
 }
 u32 RGFW_isReleasedGamepad(RGFW_window* win, u8 controller, RGFW_gamepadCodes button) {
 	RGFW_UNUSED(win);
@@ -2497,7 +2498,7 @@ void RGFW_window_focusLost(RGFW_window* win) {
     size_t key;
     for (key = 0; key < RGFW_keyLast; key++) {
         if (RGFW_isPressed(NULL, (u8)key) == RGFW_FALSE) continue;
-	    _RGFW->keyboard[key].current = RGFW_FALSE; 
+	    RGFW_keyboard[key].current = RGFW_FALSE; 
         u8 keyChar = RGFW_rgfwToKeyChar((u32)key);
         RGFW_keyCallback(win, (u8)key, keyChar, win->event.keyMod, RGFW_FALSE);
         RGFW_eventQueuePushEx(e.type = RGFW_keyReleased;
@@ -3208,8 +3209,8 @@ This is where OS specific stuff starts
 
                     u8 j;
                     for (j = 0; j < 16; j++) {
-                        _RGFW->gamepadPressed[index][j].prev = 0;
-                        _RGFW->gamepadPressed[index][j].current = 0;
+                        RGFW_gamepadPressed[index][j].prev = 0;
+                        RGFW_gamepadPressed[index][j].current = 0;
                     }
 
                     win->event.type = RGFW_gamepadConnected;
@@ -3266,8 +3267,8 @@ This is where OS specific stuff starts
 							win->event.gamepad = i;
 							if (win->event.button == 255) break;
 
-							_RGFW->gamepadPressed[i][win->event.button].prev = _RGFW->gamepadPressed[i][win->event.button].current;
-							_RGFW->gamepadPressed[i][win->event.button].current = RGFW_BOOL(e.value);
+							RGFW_gamepadPressed[i][win->event.button].prev = RGFW_gamepadPressed[i][win->event.button].current;
+							RGFW_gamepadPressed[i][win->event.button].current = RGFW_BOOL(e.value);
 							RGFW_gamepadButtonCallback(win, i, win->event.button, RGFW_BOOL(e.value));
 
 							return 1;
@@ -3442,8 +3443,8 @@ void pointer_button(void *data, struct wl_pointer *pointer, uint32_t serial, uin
 	if (b == 1) b = 2;
 	else if (b == 2) b = 1;
 
-	_RGFW->mouseButtons[b].prev = _RGFW->mouseButtons[b].current;
-	_RGFW->mouseButtons[b].current = RGFW_BOOL(state);
+	RGFW_mouseButtons[b].prev = RGFW_mouseButtons[b].current;
+	RGFW_mouseButtons[b].current = RGFW_BOOL(state);
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonReleased - RGFW_BOOL(state);
 									e.point = RGFW_mouse_win->event.point;
@@ -3510,8 +3511,8 @@ void keyboard_key (void *data, struct wl_keyboard *keyboard, uint32_t serial, ui
 	xkb_keysym_t keysym = xkb_state_key_get_one_sym(xkb_state, key + 8);
 
 	u32 RGFWkey = RGFW_apiKeyToRGFW(key + 8);
-	_RGFW->keyboard[RGFWkey].prev = _RGFW->keyboard[RGFWkey].current;
-	_RGFW->keyboard[RGFWkey].current = RGFW_BOOL(state);
+	RGFW_keyboard[RGFWkey].prev = RGFW_keyboard[RGFWkey].current;
+	RGFW_keyboard[RGFWkey].current = RGFW_BOOL(state);
 
 	RGFW_eventQueuePushEx(e.type = (u8)(RGFW_keyPressed + state);
 									e.key = (u8)RGFWkey;
@@ -4105,12 +4106,13 @@ i32 RGFW_initPlatform(void) {
     evdesc = XkbGetKeyboardByName(_RGFW->display, XkbUseCoreKbd, &rec, XkbGBN_KeyNamesMask, XkbGBN_KeyNamesMask, False);
     /* memo: RGFW_keycodes[x11 keycode] = rgfw keycode */
     if(evdesc != NULL && desc != NULL){
-        for(int i = 0; i < (int)sizeof(old); i++){
+        int i, j;
+        for(i = 0; i < (int)sizeof(old); i++){
     	    old[i] = _RGFW->keycodes[i];
     	    _RGFW->keycodes[i] = 0;
         }
-        for(int i = evdesc->min_key_code; i <= evdesc->max_key_code; i++){
-    	    for(int j = desc->min_key_code; j <= desc->max_key_code; j++){
+        for(i = evdesc->min_key_code; i <= evdesc->max_key_code; i++){
+    	    for(j = desc->min_key_code; j <= desc->max_key_code; j++){
                 if(RGFW_STRNCMP(evdesc->names->keys[i].name, desc->names->keys[j].name, XkbKeyNameLength) == 0){
                     _RGFW->keycodes[j] = old[i];
                     break;
@@ -4591,7 +4593,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 		win->event.key = (u8)RGFW_apiKeyToRGFW(E.xkey.keycode);
 		win->event.keyChar = (u8)RGFW_rgfwToKeyChar(win->event.key);
 
-		_RGFW->keyboard[win->event.key].prev = _RGFW->keyboard[win->event.key].current;
+		RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
 
 		/* get keystate data */
 		win->event.type = (E.type == KeyPress) ? RGFW_keyPressed : RGFW_keyReleased;
@@ -4599,7 +4601,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
         XKeyboardState keystate;
 		XGetKeyboardControl(win->src.display, &keystate);
 
-		_RGFW->keyboard[win->event.key].current = (E.type == KeyPress);
+		RGFW_keyboard[win->event.key].current = (E.type == KeyPress);
 
 		XkbStateRec state;
 		XkbGetState(win->src.display, XkbUseCoreKbd, &state);
@@ -4627,12 +4629,12 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			default: break;
 		}
 
-		_RGFW->mouseButtons[win->event.button].prev = _RGFW->mouseButtons[win->event.button].current;
+		RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
 
 		if (win->event.repeat == RGFW_FALSE)
 			win->event.repeat = RGFW_isPressed(win, win->event.key);
 
-		_RGFW->mouseButtons[win->event.button].current = (E.type == ButtonPress);
+		RGFW_mouseButtons[win->event.button].current = (E.type == ButtonPress);
 		RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, (E.type == ButtonPress));
 		break;
 
@@ -6333,7 +6335,7 @@ i32 RGFW_getClock(void) {
 	return clock;
 }
 
-u64 RGFW_getTimerFreq(void) { return 1000000000LLU; }
+u64 RGFW_getTimerFreq(void) { return 1000000000; }
 u64 RGFW_getTimerValue(void) {
 	struct timespec ts;
 	clock_gettime(CLOCK_REALTIME, &ts);
@@ -7135,8 +7137,8 @@ i32 RGFW_checkXInput(RGFW_window* win, RGFW_event* e) {
 			/* gamepad + 1 = RGFW_gamepadButtonReleased */
 			e->type = RGFW_gamepadButtonPressed + !(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 			e->button = xinput2RGFW[keystroke.VirtualKey - 0x5800];
-			_RGFW->gamepadPressed[i][e->button].prev = _RGFW->gamepadPressed[i][e->button].current;
-			_RGFW->gamepadPressed[i][e->button].current = RGFW_BOOL(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
+			RGFW_gamepadPressed[i][e->button].prev = RGFW_gamepadPressed[i][e->button].current;
+			RGFW_gamepadPressed[i][e->button].current = RGFW_BOOL(keystroke.Flags & XINPUT_KEYSTROKE_KEYDOWN);
 
 			RGFW_gamepadButtonCallback(win, i, e->button, e->type == RGFW_gamepadButtonPressed);
 			return 1;
@@ -7344,9 +7346,9 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 			win->event.keyChar = (u8)charBuffer;
 
-			_RGFW->keyboard[win->event.key].prev = _RGFW->keyboard[win->event.key].current;
+			RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
 			win->event.type = RGFW_keyReleased;
-			_RGFW->keyboard[win->event.key].current = 0;
+			RGFW_keyboard[win->event.key].current = 0;
 
 			RGFW_updateKeyMods(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001), (GetKeyState(VK_SCROLL) & 0x0001));
 
@@ -7376,10 +7378,10 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			ToUnicodeEx((UINT)msg.wParam, (UINT)scancode, keyboardState, &charBuffer, 1, 0, NULL);
 			win->event.keyChar = (u8)charBuffer;
 
-			_RGFW->keyboard[win->event.key].prev = _RGFW->keyboard[win->event.key].current;
+			RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
 			win->event.type = RGFW_keyPressed;
 			win->event.repeat = RGFW_isPressed(win, win->event.key);
-			_RGFW->keyboard[win->event.key].current = 1;
+			RGFW_keyboard[win->event.key].current = 1;
 			RGFW_updateKeyMods(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001), (GetKeyState(VK_SCROLL) & 0x0001));
 
 			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyMod, 1);
@@ -7460,8 +7462,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 									 (msg.message == WM_RBUTTONDOWN) ? RGFW_mouseRight : RGFW_mouseMiddle;
 
 			win->event.type = RGFW_mouseButtonPressed;
-			_RGFW->mouseButtons[win->event.button].prev = _RGFW->mouseButtons[win->event.button].current;
-			_RGFW->mouseButtons[win->event.button].current = 1;
+			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+			RGFW_mouseButtons[win->event.button].current = 1;
 			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
 			break;
 		case WM_LBUTTONUP: case WM_RBUTTONUP: case WM_MBUTTONUP: case WM_XBUTTONUP:
@@ -7470,8 +7472,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			else win->event.button = (msg.message == WM_LBUTTONUP) ? RGFW_mouseLeft :
 									 (msg.message == WM_RBUTTONUP) ? RGFW_mouseRight : RGFW_mouseMiddle;
 			win->event.type = RGFW_mouseButtonReleased;
-			_RGFW->mouseButtons[win->event.button].prev = _RGFW->mouseButtons[win->event.button].current;
-			_RGFW->mouseButtons[win->event.button].current = 0;
+			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+			RGFW_mouseButtons[win->event.button].current = 0;
 			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
 			break;
 		case WM_MOUSEWHEEL:
@@ -7480,8 +7482,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			else
 				win->event.button = RGFW_mouseScrollDown;
 
-			_RGFW->mouseButtons[win->event.button].prev = _RGFW->mouseButtons[win->event.button].current;
-			_RGFW->mouseButtons[win->event.button].current = 1;
+			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+			RGFW_mouseButtons[win->event.button].current = 1;
 
 			win->event.scroll = (SHORT) HIWORD(msg.wParam) / (double) WHEEL_DELTA;
 
@@ -8611,8 +8613,8 @@ void RGFW__osxInputValueChangedCallback(void *context, IOReturn result, void *se
 				button = RGFW_osx2RGFW[usage];
 
 			RGFW_gamepadButtonCallback(_RGFW->root, (u16)index, button, (u8)intValue);
-			_RGFW->gamepadPressed[index][button].prev = _RGFW->gamepadPressed[index][button].current;
-			_RGFW->gamepadPressed[index][button].current = RGFW_BOOL(intValue);
+			RGFW_gamepadPressed[index][button].prev = RGFW_gamepadPressed[index][button].current;
+			RGFW_gamepadPressed[index][button].current = RGFW_BOOL(intValue);
 			RGFW_eventQueuePushEx(e.type = intValue ? RGFW_gamepadButtonPressed: RGFW_gamepadButtonReleased;
 											e.button = button;
 											e.gamepad = (u16)index;
@@ -9340,11 +9342,11 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			win->event.keyChar = (u8)mappedKey;
 
 			win->event.key = (u8)RGFW_apiKeyToRGFW(key);
-			_RGFW->keyboard[win->event.key].prev = _RGFW->keyboard[win->event.key].current;
+			RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
 
 			win->event.type = RGFW_keyPressed;
 			win->event.repeat = RGFW_isPressed(win, win->event.key);
-			_RGFW->keyboard[win->event.key].current = 1;
+			RGFW_keyboard[win->event.key].current = 1;
 
 			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyMod, 1);
 			break;
@@ -9360,11 +9362,11 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 
 			win->event.key = (u8)RGFW_apiKeyToRGFW(key);
 
-			_RGFW->keyboard[win->event.key].prev = _RGFW->keyboard[win->event.key].current;
+			RGFW_keyboard[win->event.key].prev = RGFW_keyboard[win->event.key].current;
 
 			win->event.type = RGFW_keyReleased;
 
-			_RGFW->keyboard[win->event.key].current = 0;
+			RGFW_keyboard[win->event.key].current = 0;
 			RGFW_keyCallback(win, win->event.key, win->event.keyChar, win->event.keyMod, 0);
 			break;
 		}
@@ -9376,17 +9378,17 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 										((flags & NSEventModifierFlagShift) % 255), ((flags & NSEventModifierFlagCommand) % 255), 0);
 			u8 i;
 			for (i = 0; i < 9; i++)
-				_RGFW->keyboard[i + RGFW_capsLock].prev = 0;
+				RGFW_keyboard[i + RGFW_capsLock].prev = 0;
 
 			for (i = 0; i < 5; i++) {
 				u32 shift = (1 << (i + 16));
 				u32 key = i + RGFW_capsLock;
 
 				if ((flags & shift) && !RGFW_wasPressed(win, (u8)key)) {
-					_RGFW->keyboard[key].current = 1;
+					RGFW_keyboard[key].current = 1;
 
 					if (key != RGFW_capsLock)
-						_RGFW->keyboard[key+ 4].current = 1;
+						RGFW_keyboard[key+ 4].current = 1;
 
 					win->event.type = RGFW_keyPressed;
 					win->event.key = (u8)key;
@@ -9394,10 +9396,10 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 				}
 
 				if (!(flags & shift) && RGFW_wasPressed(win, (u8)key)) {
-					_RGFW->keyboard[key].current = 0;
+					RGFW_keyboard[key].current = 0;
 
 					if (key != RGFW_capsLock)
-						_RGFW->keyboard[key + 4].current = 0;
+						RGFW_keyboard[key + 4].current = 0;
 
 					win->event.type = RGFW_keyReleased;
 					win->event.key = (u8)key;
@@ -9435,8 +9437,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			}
 
 			win->event.type = RGFW_mouseButtonPressed;
-			_RGFW->mouseButtons[win->event.button].prev = _RGFW->mouseButtons[win->event.button].current;
-			_RGFW->mouseButtons[win->event.button].current = 1;
+			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+			RGFW_mouseButtons[win->event.button].current = 1;
 			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 1);
 			break;
 		}
@@ -9448,8 +9450,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 				case 2: win->event.button = RGFW_mouseMiddle; break;
 				default: win->event.button = (u8)buttonNumber;
 			}
-			_RGFW->mouseButtons[win->event.button].prev = _RGFW->mouseButtons[win->event.button].current;
-			_RGFW->mouseButtons[win->event.button].current = 0;
+			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+			RGFW_mouseButtons[win->event.button].current = 0;
 			win->event.type = RGFW_mouseButtonReleased;
 			RGFW_mouseButtonCallback(win, win->event.button, win->event.scroll, 0);
 			break;
@@ -9464,8 +9466,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 				win->event.button = RGFW_mouseScrollDown;
 			}
 
-			_RGFW->mouseButtons[win->event.button].prev = _RGFW->mouseButtons[win->event.button].current;
-			_RGFW->mouseButtons[win->event.button].current = 1;
+			RGFW_mouseButtons[win->event.button].prev = RGFW_mouseButtons[win->event.button].current;
+			RGFW_mouseButtons[win->event.button].current = 1;
 
 			win->event.scroll = deltaY;
 
@@ -10142,8 +10144,8 @@ EM_BOOL Emscripten_on_mousedown(int eventType, const EmscriptenMouseEvent* E, vo
 									e.button = (u8)button;
 									e.scroll = 0;
 									e._win = _RGFW->root);
-	_RGFW->mouseButtons[button].prev = _RGFW->mouseButtons[button].current;
-	_RGFW->mouseButtons[button].current = 1;
+	RGFW_mouseButtons[button].prev = RGFW_mouseButtons[button].current;
+	RGFW_mouseButtons[button].current = 1;
 
 	RGFW_mouseButtonCallback(_RGFW->root, button, 0, 1);
     return EM_TRUE;
@@ -10162,8 +10164,8 @@ EM_BOOL Emscripten_on_mouseup(int eventType, const EmscriptenMouseEvent* E, void
 									e.button = (u8)button;
 									e.scroll = 0;
 									e._win = _RGFW->root);
-	_RGFW->mouseButtons[button].prev = _RGFW->mouseButtons[button].current;
-	_RGFW->mouseButtons[button].current = 0;
+	RGFW_mouseButtons[button].prev = RGFW_mouseButtons[button].current;
+	RGFW_mouseButtons[button].current = 0;
 
 	RGFW_mouseButtonCallback(_RGFW->root, button, 0, 0);
     return EM_TRUE;
@@ -10177,8 +10179,8 @@ EM_BOOL Emscripten_on_wheel(int eventType, const EmscriptenWheelEvent* E, void* 
 									e.button = (u8)button;
 									e.scroll = (double)(E->deltaY < 0 ? 1 : -1);
 									e._win = _RGFW->root);
-	_RGFW->mouseButtons[button].prev = _RGFW->mouseButtons[button].current;
-	_RGFW->mouseButtons[button].current = 1;
+	RGFW_mouseButtons[button].prev = RGFW_mouseButtons[button].current;
+	RGFW_mouseButtons[button].current = 1;
 	RGFW_mouseButtonCallback(_RGFW->root, button, E->deltaY < 0 ? 1 : -1, 1);
 
     return EM_TRUE;
@@ -10194,8 +10196,8 @@ EM_BOOL Emscripten_on_touchstart(int eventType, const EmscriptenTouchEvent* E, v
 										e.button = RGFW_mouseLeft;
 										e._win = _RGFW->root);
 
-	    _RGFW->mouseButtons[RGFW_mouseLeft].prev = _RGFW->mouseButtons[RGFW_mouseLeft].current;
-	    _RGFW->mouseButtons[RGFW_mouseLeft].current = 1;
+	    RGFW_mouseButtons[RGFW_mouseLeft].prev = RGFW_mouseButtons[RGFW_mouseLeft].current;
+	    RGFW_mouseButtons[RGFW_mouseLeft].current = 1;
 
 		_RGFW->root->_lastMousePoint = RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY);
         RGFW_mousePosCallback(_RGFW->root, RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY), _RGFW->root->event.vector);
@@ -10230,8 +10232,8 @@ EM_BOOL Emscripten_on_touchend(int eventType, const EmscriptenTouchEvent* E, voi
 										e.button = RGFW_mouseLeft;
 										e._win = _RGFW->root);
 
-		_RGFW->mouseButtons[RGFW_mouseLeft].prev = _RGFW->mouseButtons[RGFW_mouseLeft].current;
-		_RGFW->mouseButtons[RGFW_mouseLeft].current = 0;
+		RGFW_mouseButtons[RGFW_mouseLeft].prev = RGFW_mouseButtons[RGFW_mouseLeft].current;
+		RGFW_mouseButtons[RGFW_mouseLeft].current = 0;
 
 		_RGFW->root->_lastMousePoint = RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY);
 		RGFW_mousePosCallback(_RGFW->root, RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY), _RGFW->root->event.vector);
@@ -10400,8 +10402,8 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool p
 										e.keyMod = _RGFW->root->event.keyMod;
 										e._win = _RGFW->root);
 
-	_RGFW->keyboard[physicalKey].prev = _RGFW->keyboard[physicalKey].current;
-	_RGFW->keyboard[physicalKey].current = press;
+	RGFW_keyboard[physicalKey].prev = RGFW_keyboard[physicalKey].current;
+	RGFW_keyboard[physicalKey].current = press;
 
 	RGFW_keyCallback(_RGFW->root, physicalKey, mappedKey, _RGFW->root->event.keyMod, press);
 }
@@ -10665,7 +10667,7 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			if (button == 404)
 				continue;
 
-			if (_RGFW->gamepadPressed[i][button].current != gamepadState.digitalButton[j]) {
+			if (RGFW_gamepadPressed[i][button].current != gamepadState.digitalButton[j]) {
 				if (gamepadState.digitalButton[j])
 					win->event.type = RGFW_gamepadButtonPressed;
 				else
@@ -10674,8 +10676,8 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 				win->event.gamepad = i;
 				win->event.button = map[j];
 
-				_RGFW->gamepadPressed[i][button].prev = _RGFW->gamepadPressed[i][button].current;
-				_RGFW->gamepadPressed[i][button].current = gamepadState.digitalButton[j];
+				RGFW_gamepadPressed[i][button].prev = RGFW_gamepadPressed[i][button].current;
+				RGFW_gamepadPressed[i][button].current = gamepadState.digitalButton[j];
 
 				RGFW_gamepadButtonCallback(win, win->event.gamepad, win->event.button, gamepadState.digitalButton[j]);
 				return &win->event;
