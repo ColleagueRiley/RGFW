@@ -806,12 +806,6 @@ typedef struct RGFW_window {
 	RGFW_rect _oldRect; /*!< rect before fullscreen */
 } RGFW_window; /*!< window structure for managing the window */
 
-#if defined(RGFW_X11) || defined(RGFW_MACOS)
-	typedef u64 RGFW_thread; /*!< thread type unix */
-#else
-	typedef void* RGFW_thread; /*!< thread type for windows */
-#endif
-
 /*! scale monitor to window size */
 RGFWDEF RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, RGFW_window* win);
 
@@ -1192,33 +1186,6 @@ RGFWDEF RGFW_windowResizedfunc RGFW_setWindowMinimizedCallback(RGFW_windowResize
 RGFWDEF RGFW_windowResizedfunc RGFW_setWindowRestoredCallback(RGFW_windowResizedfunc func);
 /*! set callback for when the DPI changes. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_scaleUpdatedfunc RGFW_setScaleUpdatedCallback(RGFW_scaleUpdatedfunc func);
-/** @} */
-
-/** * @defgroup Threads
-* @{ */
-
-#ifndef RGFW_NO_THREADS
-/*! threading functions */
-
-/*! NOTE! (for X11/linux) : if you define a window in a thread, it must be run after the original thread's window is created or else there will be a memory error */
-/*
-	I'd suggest you use sili's threading functions instead
-	if you're going to use sili
-	which is a good idea generally
-*/
-
-#if defined(__unix__) || defined(__APPLE__) || defined(RGFW_WASM) || defined(RGFW_CUSTOM_BACKEND)
-	typedef void* (* RGFW_threadFunc_ptr)(void*);
-#else
-	typedef DWORD (__stdcall *RGFW_threadFunc_ptr) (LPVOID lpThreadParameter);
-#endif
-
-RGFWDEF RGFW_thread RGFW_createThread(RGFW_threadFunc_ptr ptr, void* args); /*!< create a thread */
-RGFWDEF void RGFW_cancelThread(RGFW_thread thread); /*!< cancels a thread */
-RGFWDEF void RGFW_joinThread(RGFW_thread thread); /*!< join thread to current thread */
-RGFWDEF void RGFW_setThreadPriority(RGFW_thread thread, u8 priority); /*!< sets the priority priority  */
-#endif
-
 /** @} */
 
 /** * @defgroup gamepad
@@ -6357,7 +6324,6 @@ u64 RGFW_getTimerValue(void) {
 #define OEMRESOURCE
 #include <windows.h>
 
-#include <processthreadsapi.h>
 #include <windowsx.h>
 #include <shellapi.h>
 #include <shellscalingapi.h>
@@ -8093,15 +8059,6 @@ u64 RGFW_getTimerValue(void) {
 void RGFW_sleep(u64 ms) {
 	Sleep((u32)ms);
 }
-
-#ifndef RGFW_NO_THREADS
-
-RGFW_thread RGFW_createThread(RGFW_threadFunc_ptr ptr, void* args) { return CreateThread(NULL, 0, ptr, args, 0, NULL); }
-void RGFW_cancelThread(RGFW_thread thread) { CloseHandle((HANDLE) thread); }
-void RGFW_joinThread(RGFW_thread thread) { WaitForSingleObject((HANDLE) thread, INFINITE); }
-void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { SetThreadPriority((HANDLE) thread, priority); }
-
-#endif
 #endif /* RGFW_WINDOWS */
 
 /*
@@ -10964,24 +10921,6 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win); return
 
 /* unix (macOS, linux, web asm) only stuff */
 #if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WASM)  || defined(RGFW_WAYLAND)
-#ifndef RGFW_NO_THREADS
-#include <pthread.h>
-
-RGFW_thread RGFW_createThread(RGFW_threadFunc_ptr ptr, void* args) {
-	RGFW_thread t;
-	pthread_create((pthread_t*) &t, NULL, *ptr, args);
-	return t;
-}
-void RGFW_cancelThread(RGFW_thread thread) { pthread_cancel((pthread_t) thread); }
-void RGFW_joinThread(RGFW_thread thread) { pthread_join((pthread_t) thread, NULL); }
-
-#if defined(__linux__)
-void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { pthread_setschedprio((pthread_t)thread, priority); }
-#else
-void RGFW_setThreadPriority(RGFW_thread thread, u8 priority) { RGFW_UNUSED(thread); RGFW_UNUSED(priority); }
-#endif
-#endif
-
 #ifndef RGFW_WASM
 void RGFW_sleep(u64 ms) {
 	struct timespec time;
