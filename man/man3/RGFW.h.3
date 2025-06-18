@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Tue Jun 17 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Wed Jun 18 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -43,9 +43,6 @@ RGFW.h
 .br
 .ti -1c
 .RI "struct \fBRGFW_debugContext\fP"
-.br
-.ti -1c
-.RI "struct \fBRGFW_keyState\fP"
 .br
 .ti -1c
 .RI "struct \fBRGFW_info\fP"
@@ -1049,7 +1046,7 @@ get an array of all the monitors (max 6)
 .SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP RGFW_getPrimaryMonitor (void)"
 get the primary monitor 
 .SS "\fBRGFWDEF\fP \fBi32\fP RGFW_init (void)"
-is called by default when the first window is created by default 
+optional init/deinit function is called by default when the first window is created by default 
 .SS "\fBRGFWDEF\fP void * RGFW_init_heap (void)"
 inits RGFW on the heap instead of in a global var 
 .SS "\fBRGFWDEF\fP \fBi32\fP RGFW_init_ptr (\fBRGFW_info\fP * info)"

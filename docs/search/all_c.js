@@ -146,6 +146,5 @@ var searchData=
   ['physh_143',['physH',['../structRGFW__monitor.html#a9c3025aaf5b5f383d80a3516fca2a399',1,'RGFW_monitor']]],
   ['physw_144',['physW',['../structRGFW__monitor.html#af4ba34d59dd83ca44148d44e82d75d35',1,'RGFW_monitor']]],
   ['pixelratio_145',['pixelRatio',['../structRGFW__monitor.html#a6a1679c6f3fff5aa884603ae401a4437',1,'RGFW_monitor']]],
-  ['point_146',['point',['../structRGFW__event.html#aba9e0d0df62210352604aedbb5829c11',1,'RGFW_event']]],
-  ['prev_147',['prev',['../structRGFW__keyState.html#a7465fd3791742c6f901b2565692bfcc6',1,'RGFW_keyState']]]
+  ['point_146',['point',['../structRGFW__event.html#aba9e0d0df62210352604aedbb5829c11',1,'RGFW_event']]]
 ];
