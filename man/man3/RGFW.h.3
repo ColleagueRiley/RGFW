@@ -209,9 +209,6 @@ RGFW.h
 .RI "typedef struct \fBRGFW_window\fP \fBRGFW_window\fP"
 .br
 .ti -1c
-.RI "typedef void * \fBRGFW_thread\fP"
-.br
-.ti -1c
 .RI "typedef ptrdiff_t \fBRGFW_ssize_t\fP"
 .br
 .ti -1c
@@ -273,9 +270,6 @@ RGFW.h
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_scaleUpdatedfunc\fP) (\fBRGFW_window\fP *win, float scaleX, float scaleY)"
-.br
-.ti -1c
-.RI "typedef DWORD(__stdcall * \fBRGFW_threadFunc_ptr\fP) (LPVOID lpThreadParameter)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_proc\fP) (void)"
@@ -627,18 +621,6 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_scaleUpdatedfunc\fP \fBRGFW_setScaleUpdatedCallback\fP (\fBRGFW_scaleUpdatedfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_thread\fP \fBRGFW_createThread\fP (\fBRGFW_threadFunc_ptr\fP ptr, void *args)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_cancelThread\fP (\fBRGFW_thread\fP thread)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_joinThread\fP (\fBRGFW_thread\fP thread)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setThreadPriority\fP (\fBRGFW_thread\fP thread, \fBu8\fP priority)"
-.br
-.ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_gamepadType)"
 .br
 .ti -1c
@@ -873,8 +855,6 @@ loads mouse icon from bitmap (similar to RGFW_window_setIcon)\&. Icon NOT resize
 basic vector type, if there's not already a point/vector type of choice 
 .SS "typedef struct \fBRGFW_rect\fP \fBRGFW_rect\fP"
 basic rect type, if there's not already a rect type of choice 
-.SS "typedef void* \fBRGFW_thread\fP"
-thread type for windows 
 .SS "typedef struct \fBRGFW_window\fP \fBRGFW_window\fP"
 window structure for managing the window 
 .SS "typedef uint16_t \fBu16\fP"

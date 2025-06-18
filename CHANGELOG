@@ -33,6 +33,9 @@ Release:    RGFW 1.7.5-dev
 - add `RGFW_PRINTF` and `RGFW_SNPRINTF`
 - fix usage of libc functions without RGFW_macro
 - handle window resizing (wayland) 
+- remove multi-threading functions 
+- move keyboard map into private api as a global (helpful for a public API c89 and bindings)
+- Added prefix to wayland functions
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------

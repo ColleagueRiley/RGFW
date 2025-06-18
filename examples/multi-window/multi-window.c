@@ -4,6 +4,28 @@
 #include "RGFW.h"
 
 
+#ifdef RGFW_WINDOWS
+#include <processthreadsapi.h>
+
+typedef DWORD (__stdcall * threadFunc_ptr) (LPVOID lpThreadParameter);
+typedef void* my_thread;
+
+my_thread createThread(threadFunc_ptr ptr, void* args) { return CreateThread(NULL, 0, ptr, args, 0, NULL); }
+void joinThread(my_thread thread) { WaitForSingleObject((HANDLE) thread, INFINITE); }
+#else 
+#include <pthread.h>
+
+typedef pthread_t my_thread;
+typedef void* (* threadFunc_ptr)(void*);
+
+my_thread createThread(threadFunc_ptr ptr, void* args) {
+	my_thread t;
+	pthread_create((pthread_t*) &t, NULL, *ptr, args);
+	return t;
+}
+void joinThread(my_thread thread) { pthread_join((pthread_t) thread, NULL); }
+#endif
+
 void checkEvents(RGFW_window* win);
 void checkEvents(RGFW_window* win) {
 	RGFW_event* event = NULL;
@@ -95,9 +117,9 @@ int main(void) {
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 	RGFW_window_makeCurrent(NULL); /* this is really important (this releases the opengl context on this thread) */
 
-	RGFW_thread thread1 = RGFW_createThread(loop, win1);
-	RGFW_thread thread2 = RGFW_createThread(loop, win2);
-	RGFW_thread thread3 = RGFW_createThread(loop, win3);
+	my_thread thread1 = createThread(loop, win1);
+	my_thread thread2 = createThread(loop, win2);
+	my_thread thread3 = createThread(loop, win3);
 
 	const double startTime = RGFW_getTime();
 	u32 frames = 0;
@@ -114,9 +136,9 @@ int main(void) {
 	RGFW_window_setShouldClose(win1, 1);
 	RGFW_window_setShouldClose(win2, 1);
 	RGFW_window_setShouldClose(win3, 1);
-	RGFW_joinThread(thread1);
-	RGFW_joinThread(thread2);
-	RGFW_joinThread(thread3);
+	joinThread(thread1);
+	joinThread(thread2);
+	joinThread(thread3);
 
 	RGFW_window_close(win1);
 	RGFW_window_close(win2);

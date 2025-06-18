@@ -24,14 +24,12 @@ var searchData=
   ['rgfw_5frect_21',['RGFW_rect',['../RGFW_8h.html#ae9c20a9e54c7c1ee089fb9531e92b3b4',1,'RGFW.h']]],
   ['rgfw_5fscaleupdatedfunc_22',['RGFW_scaleUpdatedfunc',['../group__Callbacks.html#gaf634d85df6ec566fdd9a0a02cb5a87b1',1,'RGFW.h']]],
   ['rgfw_5fssize_5ft_23',['RGFW_ssize_t',['../group__Clipboard.html#ga38e4eefa581916b9459f06a23da4d08e',1,'RGFW.h']]],
-  ['rgfw_5fthread_24',['RGFW_thread',['../RGFW_8h.html#a321d383e47d4f8261ddfb9d82ff444f8',1,'RGFW.h']]],
-  ['rgfw_5fthreadfunc_5fptr_25',['RGFW_threadFunc_ptr',['../group__Threads.html#ga13d60c1d8ee57056290acdc59bfc37a0',1,'RGFW.h']]],
-  ['rgfw_5fwindow_26',['RGFW_window',['../RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6',1,'RGFW.h']]],
-  ['rgfw_5fwindowmaximizedfunc_27',['RGFW_windowMaximizedfunc',['../group__Callbacks.html#ga894dac8cb42ba6792d28aa3795814a9f',1,'RGFW.h']]],
-  ['rgfw_5fwindowminimizedfunc_28',['RGFW_windowMinimizedfunc',['../group__Callbacks.html#gad3e2eca451ad0326cf1750e6c088dd5e',1,'RGFW.h']]],
-  ['rgfw_5fwindowmovedfunc_29',['RGFW_windowMovedfunc',['../group__Callbacks.html#ga028734ac1b53f2b4f01540c3f07ed794',1,'RGFW.h']]],
-  ['rgfw_5fwindowquitfunc_30',['RGFW_windowQuitfunc',['../group__Callbacks.html#ga5627cd1db91b560bb072e507be2bbca9',1,'RGFW.h']]],
-  ['rgfw_5fwindowrefreshfunc_31',['RGFW_windowRefreshfunc',['../group__Callbacks.html#ga0389e807acc47a384231a561f9aab1f8',1,'RGFW.h']]],
-  ['rgfw_5fwindowresizedfunc_32',['RGFW_windowResizedfunc',['../group__Callbacks.html#gac3a6007e7ac6c7e7f897cb67a37fb350',1,'RGFW.h']]],
-  ['rgfw_5fwindowrestoredfunc_33',['RGFW_windowRestoredfunc',['../group__Callbacks.html#gaa85e6508771661a4b961bc6a327ed533',1,'RGFW.h']]]
+  ['rgfw_5fwindow_24',['RGFW_window',['../RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6',1,'RGFW.h']]],
+  ['rgfw_5fwindowmaximizedfunc_25',['RGFW_windowMaximizedfunc',['../group__Callbacks.html#ga894dac8cb42ba6792d28aa3795814a9f',1,'RGFW.h']]],
+  ['rgfw_5fwindowminimizedfunc_26',['RGFW_windowMinimizedfunc',['../group__Callbacks.html#gad3e2eca451ad0326cf1750e6c088dd5e',1,'RGFW.h']]],
+  ['rgfw_5fwindowmovedfunc_27',['RGFW_windowMovedfunc',['../group__Callbacks.html#ga028734ac1b53f2b4f01540c3f07ed794',1,'RGFW.h']]],
+  ['rgfw_5fwindowquitfunc_28',['RGFW_windowQuitfunc',['../group__Callbacks.html#ga5627cd1db91b560bb072e507be2bbca9',1,'RGFW.h']]],
+  ['rgfw_5fwindowrefreshfunc_29',['RGFW_windowRefreshfunc',['../group__Callbacks.html#ga0389e807acc47a384231a561f9aab1f8',1,'RGFW.h']]],
+  ['rgfw_5fwindowresizedfunc_30',['RGFW_windowResizedfunc',['../group__Callbacks.html#gac3a6007e7ac6c7e7f897cb67a37fb350',1,'RGFW.h']]],
+  ['rgfw_5fwindowrestoredfunc_31',['RGFW_windowRestoredfunc',['../group__Callbacks.html#gaa85e6508771661a4b961bc6a327ed533',1,'RGFW.h']]]
 ];
