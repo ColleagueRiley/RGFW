@@ -14,7 +14,7 @@ on:
     paths:
       - '**'
       - 'examples/**'
-      - '.github/workflows/linux.yml'
+      - '.github/workflows/wayland.yml'
   release:
     types: [published]
 
@@ -66,18 +66,9 @@ jobs:
         mkdir include
         mkdir lib
         cd ../../../RGFW
-        # ${{ matrix.ARCH }}-linux-gnu-gcc -v
-    
-      #    - name: test Zig
-        #run: |
-        #make CC="zig cc" NO_VULKAN=1  RGFW_WAYLAND=1
-        #if: matrix.bits == 64
- 
-      #    - name: test C++
-        # run: |
-       # make CC=g++ RGFW_WAYLAND=1
-        # if: matrix.bits == 64
 
+    - name: test wayland
+        make RGFW_WAYLAND=1
     - name: Build Library
       run: |
         make libRGFW.a RGFW_WAYLAND=1
