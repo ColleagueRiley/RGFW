@@ -44,10 +44,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@master
     
-      #- uses: actions/checkout@v3
-      #- uses: mlugg/setup-zig@v1
-
-
     - name: Setup Release Version
       run: |
         echo "RELEASE_NAME=RGFW-${{ github.event.release.tag_name }}_linux_${{ matrix.ARCH_NAME }}" >> $GITHUB_ENV
@@ -66,18 +62,7 @@ jobs:
         mkdir include
         mkdir lib
         cd ../../../RGFW
-        # ${{ matrix.ARCH }}-linux-gnu-gcc -v
-    
-      #    - name: test Zig
-        #run: |
-        #make CC="zig cc" NO_VULKAN=1  RGFW_WAYLAND=1
-        #if: matrix.bits == 64
- 
-      #    - name: test C++
-        # run: |
-       # make CC=g++ RGFW_WAYLAND=1
-        # if: matrix.bits == 64
-
+        make RGFW_WAYLAND=1
     - name: Build Library
       run: |
         make libRGFW.a RGFW_WAYLAND=1
