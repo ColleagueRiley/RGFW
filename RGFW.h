@@ -3770,7 +3770,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 
 		close(fd);
 
-		l_surface_attach(win->src.surface, win->src.wl_buffer, 0, 0);
+		wl_surface_attach(win->src.surface, win->src.wl_buffer, 0, 0);
 		wl_surface_commit(win->src.surface);
 
 		u8 color[] = {0x00, 0x00, 0x00, 0xFF};
