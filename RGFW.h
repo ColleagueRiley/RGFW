@@ -6040,10 +6040,6 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 	#endif
 	#ifdef RGFW_WAYLAND
 	RGFW_WAYLAND_LABEL
-        #if !defined(RGFW_BUFFER_BGR) 
-//        RGFW_RGB_to_BGR(win, win->src.buffer);
-        #endif
-
         u32 y, x;
 		for (y = 0; y < (u32)win->r.h; y++) {
             for (x = 0; x < (u32)win->r.w; x++) {
