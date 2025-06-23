@@ -3747,7 +3747,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 	#endif
 	#ifdef RGFW_WAYLAND
 		RGFW_WAYLAND_LABEL {}
-		u32 size = (u32)(win->r.w * win->r.h * 4);
+		u32 size = (u32)(area.w * area.h * 4);
 		int fd = RGFW_wl_create_shm_file(size);
 		if (fd < 0) {
 			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, RGFW_DEBUG_CTX(win, (u32)fd),"Failed to create a buffer.");
@@ -3779,9 +3779,8 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 		for (i = 0; i < area.w * area.h * 4; i += 4) {
 			RGFW_MEMCPY(&win->buffer[i], color, 4);
 		}
-
-        RGFW_MEMCPY(win->src.buffer, win->buffer, (size_t)(win->r.w * win->r.h * 4));
-    #endif
+		RGFW_MEMCPY(win->src.buffer, win->buffer, (size_t)(win->r.w * win->r.h * 4));
+	#endif
 #else
 	RGFW_UNUSED(win); RGFW_UNUSED(buffer); RGFW_UNUSED(area);
 #endif
@@ -6042,15 +6041,24 @@ void RGFW_window_swapBuffers_software(RGFW_window* win) {
 	#ifdef RGFW_WAYLAND
 	RGFW_WAYLAND_LABEL
         #if !defined(RGFW_BUFFER_BGR) 
-		RGFW_RGB_to_BGR(win, win->src.buffer);
-		#else
-        size_t y;
-		for (y = 0; y < win->r.h; y++) {
-			u32 index = (y * 4 * win->r.w);
-			u32 index2 = (y * 4 * win->bufferSize.w);
-			RGFW_MEMCPY(&win->src.buffer[index], &win->buffer[index2], win->r.w * 4);
-		}
-		#endif
+//        RGFW_RGB_to_BGR(win, win->src.buffer);
+        #endif
+
+        u32 y, x;
+		for (y = 0; y < (u32)win->r.h; y++) {
+            for (x = 0; x < (u32)win->r.w; x++) {
+                u32 index = (y * 4 * (u32)win->r.w) + x * 4;
+                u32 index2 = (y * 4 * win->bufferSize.w) + x * 4;
+                
+                u8 r = win->buffer[index2];
+                win->buffer[index2] =  win->buffer[index2 + 2];
+                win->buffer[index2 + 1] =  win->buffer[index2 + 1];
+                win->buffer[index2 + 2] =  r;
+                win->buffer[index2 + 3] =  win->buffer[index + 3];
+
+                RGFW_MEMCPY(&win->src.buffer[index], &win->buffer[index2], 4);
+		    }
+        }
 
 		RGFW_wl_surface_frame_done(win, NULL, 0);
 		wl_surface_commit(win->src.surface);
@@ -6190,6 +6198,14 @@ void RGFW_window_close(RGFW_window* win) {
 
 	    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
 
+        #if defined(RGFW_BUFFER)
+			wl_buffer_destroy(win->src.wl_buffer);
+			if ((win->_flags & RGFW_BUFFER_ALLOC))
+				RGFW_FREE(win->buffer);
+
+			munmap(win->src.buffer, (size_t)(win->r.w * win->r.h * 4));
+    	#endif
+
         xdg_toplevel_destroy(win->src.xdg_toplevel);
         xdg_surface_destroy(win->src.xdg_surface);
 		wl_surface_destroy(win->src.surface);
@@ -6197,14 +6213,6 @@ void RGFW_window_close(RGFW_window* win) {
 		RGFW_clipboard_switch(NULL);
 		_RGFW->windowCount--;
         if (_RGFW->windowCount == 0) RGFW_deinit();
-
-		#if defined(RGFW_BUFFER)
-			wl_buffer_destroy(win->src.wl_buffer);
-			if ((win->_flags & RGFW_BUFFER_ALLOC))
-				RGFW_FREE(win->buffer);
-
-			munmap(win->src.buffer, (size_t)(win->r.w * win->r.h * 4));
-		#endif
 
         if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 			RGFW_FREE(win);
