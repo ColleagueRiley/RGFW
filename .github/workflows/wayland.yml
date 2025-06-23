@@ -70,6 +70,7 @@ jobs:
     - name: test wayland
       run: |
         make RGFW_WAYLAND=1
+        make WAYLAND_ONLY=1
     - name: Build Library
       run: |
         make libRGFW.a RGFW_WAYLAND=1
