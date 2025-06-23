@@ -4000,6 +4000,7 @@ RGFW_UNUSED(win);
 }
 #endif
 
+#ifdef RGFW_X11
 static int RGFW_XErrorHandler(Display* display, XErrorEvent* ev) {
     char errorText[512];
     XGetErrorText(display, ev->error_code, errorText, sizeof(errorText));
@@ -4013,7 +4014,7 @@ static int RGFW_XErrorHandler(Display* display, XErrorEvent* ev) {
     _RGFW->x11Error = ev; 
     return 0; 
 }
-
+#endif
 
 i32 RGFW_initPlatform(void) {
     RGFW_GOTO_WAYLAND(1);
