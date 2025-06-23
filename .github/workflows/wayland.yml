@@ -68,6 +68,7 @@ jobs:
         cd ../../../RGFW
 
     - name: test wayland
+      run: |
         make RGFW_WAYLAND=1
     - name: Build Library
       run: |
