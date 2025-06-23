@@ -3770,7 +3770,7 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 
 		close(fd);
 
-		wl_surface_attach(win->src.surface, win->src.wl_buffer, 0, 0);
+		l_surface_attach(win->src.surface, win->src.wl_buffer, 0, 0);
 		wl_surface_commit(win->src.surface);
 
 		u8 color[] = {0x00, 0x00, 0x00, 0xFF};
@@ -3780,8 +3780,8 @@ void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 			RGFW_MEMCPY(&win->buffer[i], color, 4);
 		}
 
-		RGFW_MEMCPY(win->src.buffer, win->buffer, (size_t)(win->r.w * win->r.h * 4));
-	#endif
+        RGFW_MEMCPY(win->src.buffer, win->buffer, (size_t)(win->r.w * win->r.h * 4));
+    #endif
 #else
 	RGFW_UNUSED(win); RGFW_UNUSED(buffer); RGFW_UNUSED(area);
 #endif
