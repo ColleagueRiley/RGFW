@@ -2997,7 +2997,11 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 	eglDestroySurface(win->src.EGL_display, win->src.EGL_surface);
 	eglDestroyContext(win->src.EGL_display, win->src.EGL_context);
 	eglTerminate(win->src.EGL_display);
-    win->src.EGL_display = NULL;
+  win->src.EGL_display = NULL;
+  #ifdef RGFW_WAYLAND
+		wl_egl_window_destroy(win->src.eglWindow);
+		RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "EGL window context freed");
+  #endif
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "EGL opengl context freed");
 }
 
@@ -4331,6 +4335,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
     RGFW_window_setName(win, name);
 	RGFW_window_setMouseDefault(win);
 	RGFW_window_setFlags(win, flags);
+	wl_registry_destroy(registry);
+
 	return win; /* return newly created window */
 #endif
 }
@@ -6195,26 +6201,27 @@ void RGFW_window_close(RGFW_window* win) {
 
 	    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
 
-        #if defined(RGFW_BUFFER)
-			wl_buffer_destroy(win->src.wl_buffer);
-			if ((win->_flags & RGFW_BUFFER_ALLOC))
-				RGFW_FREE(win->buffer);
-
-			munmap(win->src.buffer, (size_t)(win->r.w * win->r.h * 4));
+      #if defined(RGFW_BUFFER)
+					wl_buffer_destroy(win->src.wl_buffer);
+					if ((win->_flags & RGFW_BUFFER_ALLOC))
+								RGFW_FREE(win->buffer);
+					munmap(win->src.buffer, (size_t)(win->r.w * win->r.h * 4));
     	#endif
-
+			
         xdg_toplevel_destroy(win->src.xdg_toplevel);
         xdg_surface_destroy(win->src.xdg_surface);
-		wl_surface_destroy(win->src.surface);
-
+				wl_surface_destroy(win->src.surface);
+				wl_compositor_destroy(win->src.compositor);
+				xdg_wm_base_destroy(win->src.xdg_wm_base);
+			
 		RGFW_clipboard_switch(NULL);
 		_RGFW->windowCount--;
-        if (_RGFW->windowCount == 0) RGFW_deinit();
+    if (_RGFW->windowCount == 0) RGFW_deinit();
 
-        if ((win->_flags & RGFW_WINDOW_ALLOC)) {
-			RGFW_FREE(win);
+    if ((win->_flags & RGFW_WINDOW_ALLOC)) {
+						RGFW_FREE(win);
             win = NULL;
-        }
+    }
 	#endif
 }
 
