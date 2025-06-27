@@ -1,66 +1,25 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-  <title> RGFW test </title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      color: rgb(200, 200, 200)
-    }
-
-    canvas {
-      border: 1px solid black;
-    }
-  </style>
-
-  <style>
-    #log {
-      white-space: pre-wrap;
-      /* To preserve whitespace and line breaks */
-      background-color: #000000;
-      color: #f1f1f1;
-      padding: 10px;
-      border: 1px solid #120808;
-      max-height: 100px;
-      overflow-y: auto;
-      font-family: monospace;
-    }
-  </style>
-
-  <style>
-    .header img {
-      float: left;
-      width: 80px;
-      height: 80px;
-      background: #555;
-    }
-
-    .header h1 {
-      position: relative;
-      top: 18px;
-      left: 10px;
-    }
-  </style>
+    <link rel="stylesheet" href="https://colleagueriley.github.io/style.css">  
+    <title>RGFW wasm Examples</title>
 </head>
+<body> 
+    <header>
+        <a href="../index.html"> <img src="../logo.png" alt="RGFW logo"/> </a>
+        <h2>RGFW wasm Examples</h2> 
+        <nav>
+            <a href="./docs/index.html"> Doxygen Docs </a>
+            <a href="./wasm/downloads.html"> Download </a>
+            <a href="https://github.com/ColleagueRiley/RGFW/blob/main/examples/gl33/gl33.c">Source Code </a>
+        </nav>
+        <br/>  <br/>
+    </header>
 
-
-<body style="background-color:rgb(15, 25, 45);">
-  <div class="header">
-    <a href="../index.html"> <img src="../logo.png" alt="RGFW logo"> </a>
-    <h1>RGFW WebASM Example &nbsp;&nbsp;&nbsp;&nbsp;
-  
-    <a href="https://github.com/ColleagueRiley/RGFW/blob/main/examples/gl33/gl33.c">Source Code</h4> </a>
-
-    </h1>
-  </div>
-
-  <div style="text-align:center;">
-    <canvas id="canvas">
-    </canvas>
-  </div>
+    <div class="canvas"> <canvas id="canvas"> </canvas> </div>
 
 
   <script async src="../examples/gl33/gl33.js"> </script>
