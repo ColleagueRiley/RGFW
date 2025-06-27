@@ -152,16 +152,33 @@ int main() {
 			GLFW's source code was referenced and used throughout the project.
 
 		contributors : (feel free to put yourself here if you contribute)
-		krisvers -> code review
-		EimaMei (SaCode) -> code review
-		Code-Nycticebus -> bug fixes
-		Rob Rohan -> X11 bugs and missing features, MacOS/Cocoa fixing memory issues/bugs
+		krisvers (@krisvers) -> code review
+		EimaMei (@SaCode) -> code review
+		Nycticebus (@Code-Nycticebus) -> bug fixes
+		Rob Rohan (@robrohan) -> X11 bugs and missing features, MacOS/Cocoa fixing memory issues/bugs
 		AICDG (@THISISAGOODNAME) -> vulkan support (example)
 		@Easymode -> support, testing/debugging, bug fixes and reviews
 		Joshua Rowe (omnisci3nce) - bug fix, review (macOS)
 		@lesleyrs -> bug fix, review (OpenGL)
-        Nick Porcino (meshula) - testing, organization, review (MacOS, examples)
-		@DarekParodia -> code review (X11) (C++)
+        Nick Porcino (@meshula) - testing, organization, review (MacOS, examples)
+        @therealmarrakesh -> documentation
+        @DarekParodia -> code review (X11) (C++)
+        @NishiOwO -> fix BSD support, fix OSMesa example
+        @BaynariKattu -> code review and documentation
+        Miguel Pinto (@konopimi) -> code review, fix vulkan example
+        @m-doescode -> code review (wayland)
+        Robert Gonzalez (@uni-dos) -> code review (wayland)
+        @TheLastVoyager -> code review
+        @yehoravramenko -> code review (winapi)
+        @halocupcake -> code review (opengl)
+        @GideonSerf -> documentation
+        Alexandre Almeida (@M374LX) -> code review (keycodes)
+        Vũ Xuân Trường (@wanwanvxt) -> code review (winapi)
+        Lucas (@lightspeedlucas) -> code review (msvc++)
+        Jeffery Myers (@JeffM2501) -> code review (msvc)
+        Zeni (@zenitsuyo) -> documentation
+        TheYahton (@TheYahton) -> documentation
+        nonexistant_object (@DiarrheaMcgee) -> code review, bug fixes
 */
 
 #if _MSC_VER
