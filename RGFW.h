@@ -2,7 +2,7 @@
 *
 *	RGFW 1.7.5-dev
 
-* Copyright (C) 2022-25 ColleagueRiley
+* Copyright (C) 2022-25 Riley Mabb (@ColleagueRiley)
 *
 * libpng license
 *
@@ -178,7 +178,7 @@ int main() {
         Jeffery Myers (@JeffM2501) -> code review (msvc)
         Zeni (@zenitsuyo) -> documentation
         TheYahton (@TheYahton) -> documentation
-        nonexistant_object (@DiarrheaMcgee) -> code review, bug fixes
+        nonexistant_object (@DiarrheaMcgee
 */
 
 #if _MSC_VER
