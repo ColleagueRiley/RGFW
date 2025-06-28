@@ -1635,40 +1635,6 @@ const char* RGFW_readClipboard(size_t* len) {
 	return (const char*)str;
 }
 
-RGFW_debugfunc RGFW_debugCallback = NULL;
-RGFW_debugfunc RGFW_setDebugCallback(RGFW_debugfunc func) {
-	RGFW_debugfunc RGFW_debugCallbackPrev = RGFW_debugCallback;
-	RGFW_debugCallback = func;
-	return RGFW_debugCallbackPrev;
-}
-
-#ifdef RGFW_DEBUG
-#include <stdio.h>
-#endif
-
-void RGFW_sendDebugInfo(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const char* msg) {
-	if (RGFW_debugCallback) RGFW_debugCallback(type, err, ctx, msg);
-        
-    #ifdef RGFW_DEBUG
-	switch (type) {
-		case RGFW_typeInfo: RGFW_PRINTF("RGFW INFO (%i %i): %s", type, err, msg); break;
-		case RGFW_typeError: RGFW_PRINTF("RGFW DEBUG (%i %i): %s", type, err, msg); break;
-		case RGFW_typeWarning: RGFW_PRINTF("RGFW WARNING (%i %i): %s", type, err, msg); break;
-		default: break;
-	}
-
-	switch (err) {
-		#ifdef RGFW_BUFFER
-		case RGFW_errBuffer: case RGFW_infoBuffer: RGFW_PRINTF(" buffer size: %i %i\n", ctx.win->bufferSize.w, ctx.win->bufferSize.h); break;
-		#endif
-		case RGFW_infoMonitor: RGFW_PRINTF(": scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n   depth: %i\n", ctx.monitor->name, ctx.monitor->x, ctx.monitor->y, ctx.monitor->mode.area.w, ctx.monitor->mode.area.h, ctx.monitor->physW, ctx.monitor->physH, ctx.monitor->scaleX, ctx.monitor->scaleY, ctx.monitor->pixelRatio, ctx.monitor->mode.refreshRate, ctx.monitor->mode.red + ctx.monitor->mode.green + ctx.monitor->mode.blue); break;
-		case RGFW_infoWindow: RGFW_PRINTF("  with rect of {%i, %i, %i, %i} \n", ctx.win->r.x, ctx.win->r.y,ctx. win->r.w, ctx.win->r.h); break;
-		case RGFW_errDirectXContext: RGFW_PRINTF(" srcError %i\n", ctx.srcError); break;
-		default: RGFW_PRINTF("\n");
-	}
-	#endif
-}
-
 void RGFW_setTime(double time) {
     _RGFW->timerOffset = RGFW_getTimerValue() - (u64)(time * (double)RGFW_getTimerFreq());
 }
@@ -1867,51 +1833,98 @@ void RGFW_resetKey(void) { RGFW_MEMSET(RGFW_keyboard, 0, sizeof(RGFW_keyboard));
 
 	RGFW_EMPTY_DEF exists to prevent the missing-prototypes warning
 */
-static void RGFW_windowMovedfuncEMPTY(RGFW_window* win, RGFW_rect r) { RGFW_UNUSED(win); RGFW_UNUSED(r); }
-static void RGFW_windowResizedfuncEMPTY(RGFW_window* win, RGFW_rect r) { RGFW_UNUSED(win); RGFW_UNUSED(r); }
-static void RGFW_windowRestoredfuncEMPTY(RGFW_window* win, RGFW_rect r) { RGFW_UNUSED(win); RGFW_UNUSED(r); }
-static void RGFW_windowMinimizedfuncEMPTY(RGFW_window* win, RGFW_rect r) { RGFW_UNUSED(win); RGFW_UNUSED(r); }
-static void RGFW_windowMaximizedfuncEMPTY(RGFW_window* win, RGFW_rect r) { RGFW_UNUSED(win); RGFW_UNUSED(r); }
-static void RGFW_windowQuitfuncEMPTY(RGFW_window* win) { RGFW_UNUSED(win); }
-static void RGFW_focusfuncEMPTY(RGFW_window* win, RGFW_bool inFocus) {RGFW_UNUSED(win); RGFW_UNUSED(inFocus);}
-static void RGFW_mouseNotifyfuncEMPTY(RGFW_window* win, RGFW_point point, RGFW_bool status) {RGFW_UNUSED(win); RGFW_UNUSED(point); RGFW_UNUSED(status);}
-static void RGFW_mousePosfuncEMPTY(RGFW_window* win, RGFW_point point, RGFW_point vector) {RGFW_UNUSED(win); RGFW_UNUSED(point); RGFW_UNUSED(vector);}
-static void RGFW_dndInitfuncEMPTY(RGFW_window* win, RGFW_point point) {RGFW_UNUSED(win); RGFW_UNUSED(point);}
-static void RGFW_windowRefreshfuncEMPTY(RGFW_window* win) {RGFW_UNUSED(win); }
-static void RGFW_keyfuncEMPTY(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool pressed) {RGFW_UNUSED(win); RGFW_UNUSED(key); RGFW_UNUSED(keyChar); RGFW_UNUSED(keyMod); RGFW_UNUSED(pressed);}
-static void RGFW_mouseButtonfuncEMPTY(RGFW_window* win, RGFW_mouseButton button, double scroll, RGFW_bool pressed) {RGFW_UNUSED(win); RGFW_UNUSED(button); RGFW_UNUSED(scroll); RGFW_UNUSED(pressed);}
-static void RGFW_gamepadButtonfuncEMPTY(RGFW_window* win, u16 gamepad, u8 button, RGFW_bool pressed) {RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(button); RGFW_UNUSED(pressed); }
-static void RGFW_gamepadAxisfuncEMPTY(RGFW_window* win, u16 gamepad, RGFW_point axis[2], u8 axisesCount, u8 whichAxis) {RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(axis); RGFW_UNUSED(axisesCount); RGFW_UNUSED(whichAxis); }
-static void RGFW_gamepadfuncEMPTY(RGFW_window* win, u16 gamepad, RGFW_bool connected) {RGFW_UNUSED(win); RGFW_UNUSED(gamepad); RGFW_UNUSED(connected);}
-static void RGFW_dndfuncEMPTY(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount) {RGFW_UNUSED(win); RGFW_UNUSED(droppedFiles); RGFW_UNUSED(droppedFilesCount);}
-static void RGFW_scaleUpdatedfuncEMPTY(RGFW_window* win, float scaleX, float scaleY) {RGFW_UNUSED(win); RGFW_UNUSED(scaleX); RGFW_UNUSED(scaleY); }
-
 #define RGFW_CALLBACK_DEFINE(x, x2) \
-RGFW_##x##func RGFW_##x##Callback = RGFW_##x##funcEMPTY; \
+RGFW_##x##func RGFW_##x##CallbackSrc = NULL; \
 RGFW_##x##func RGFW_set##x2##Callback(RGFW_##x##func func) { \
-    RGFW_##x##func prev = RGFW_##x##Callback; \
-    RGFW_##x##Callback = func; \
+    RGFW_##x##func prev = RGFW_##x##CallbackSrc; \
+    RGFW_##x##CallbackSrc = func; \
     return prev; \
 }
+
 RGFW_CALLBACK_DEFINE(windowMaximized, WindowMaximized)
+#define RGFW_windowMaximizedCallback(w, r) if (RGFW_windowMaximizedCallbackSrc) RGFW_windowMaximizedCallbackSrc(w, r); 
+
 RGFW_CALLBACK_DEFINE(windowMinimized, WindowMinimized)
+#define RGFW_windowMinimizedCallback(w, r) if (RGFW_windowMinimizedCallbackSrc) RGFW_windowMinimizedCallbackSrc(w, r); 
+
 RGFW_CALLBACK_DEFINE(windowRestored, WindowRestored)
+#define RGFW_windowRestoredCallback(w, r) if (RGFW_windowRestoredCallbackSrc) RGFW_windowRestoredCallbackSrc(w, r); 
+
 RGFW_CALLBACK_DEFINE(windowMoved, WindowMoved)
+#define RGFW_windowMovedCallback(w, p) if (RGFW_windowMovedCallbackSrc) RGFW_windowMovedCallbackSrc(w, p); 
+
 RGFW_CALLBACK_DEFINE(windowResized, WindowResized)
+#define RGFW_windowResizedCallback(w, r) if (RGFW_windowResizedCallbackSrc) RGFW_windowResizedCallbackSrc(w, r); 
+
 RGFW_CALLBACK_DEFINE(windowQuit, WindowQuit)
+#define RGFW_windowQuitCallback(w) if (RGFW_windowQuitCallbackSrc) RGFW_windowQuitCallbackSrc(w); 
+
 RGFW_CALLBACK_DEFINE(mousePos, MousePos)
+#define RGFW_mousePosCallback(w, p, v) if (RGFW_mousePosCallbackSrc) RGFW_mousePosCallbackSrc(w, p, v); 
+
 RGFW_CALLBACK_DEFINE(windowRefresh, WindowRefresh)
+#define RGFW_windowRefreshCallback(w) if (RGFW_windowRefreshCallbackSrc) RGFW_windowRefreshCallbackSrc(w); 
+
 RGFW_CALLBACK_DEFINE(focus, Focus)
+#define RGFW_focusCallback(w, inFocus) if (RGFW_focusCallbackSrc) RGFW_focusCallbackSrc(w, inFocus); 
+
 RGFW_CALLBACK_DEFINE(mouseNotify, MouseNotify)
+#define RGFW_mouseNotifyCallback(w, p, status) if (RGFW_mouseNotifyCallbackSrc) RGFW_mouseNotifyCallbackSrc(w, p, status); 
+
 RGFW_CALLBACK_DEFINE(dnd, Dnd)
+#define RGFW_dndCallback(w, droppedFiles, count) if (RGFW_dndCallbackSrc) RGFW_dndCallbackSrc(w, droppedFiles, count); 
+
 RGFW_CALLBACK_DEFINE(dndInit, DndInit)
+#define RGFW_dndInitCallback(w, p) if (RGFW_dndInitCallbackSrc) RGFW_dndInitCallbackSrc(w, p); 
+
 RGFW_CALLBACK_DEFINE(key, Key)
+#define RGFW_keyCallback(w, key, keyChar, keyMod, press) if (RGFW_keyCallbackSrc) RGFW_keyCallbackSrc(w, key, keyChar, keyMod, press); 
+
 RGFW_CALLBACK_DEFINE(mouseButton, MouseButton)
+#define RGFW_mouseButtonCallback(w, button, scroll, press) if (RGFW_mouseButtonCallbackSrc) RGFW_mouseButtonCallbackSrc(w, button, scroll, press); 
+
 RGFW_CALLBACK_DEFINE(gamepadButton, GamepadButton)
+#define RGFW_gamepadButtonCallback(w, gamepad, button, press) if (RGFW_gamepadButtonCallbackSrc) RGFW_gamepadButtonCallbackSrc(w, gamepad, button, press); 
+
 RGFW_CALLBACK_DEFINE(gamepadAxis, GamepadAxis)
+#define RGFW_gamepadAxisCallback(w, gamepad, axis, axisCount, whichAxis) if (RGFW_gamepadAxisCallbackSrc) RGFW_gamepadAxisCallbackSrc(w, gamepad, axis, axisCount, whichAxis); 
+
 RGFW_CALLBACK_DEFINE(gamepad, Gamepad)
+#define RGFW_gamepadCallback(w, gamepad, connected) if (RGFW_gamepadCallbackSrc) RGFW_gamepadCallbackSrc(w, gamepad, connected);
+
 RGFW_CALLBACK_DEFINE(scaleUpdated, ScaleUpdated)
+#define RGFW_scaleUpdatedCallback(w, scaleX, scaleY) if (RGFW_scaleUpdatedCallbackSrc) RGFW_scaleUpdatedCallbackSrc(w, scaleX, scaleY); 
+
+RGFW_CALLBACK_DEFINE(debug, Debug)
+#define RGFW_debugCallback(type, err, ctx, msg) if (RGFW_debugCallbackSrc) RGFW_debugCallbackSrc(type, err, ctx, msg); 
 #undef RGFW_CALLBACK_DEFINE
+
+#ifdef RGFW_DEBUG
+#include <stdio.h>
+#endif
+
+void RGFW_sendDebugInfo(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const char* msg) {
+	RGFW_debugCallback(type, err, ctx, msg);
+        
+    #ifdef RGFW_DEBUG
+	switch (type) {
+		case RGFW_typeInfo: RGFW_PRINTF("RGFW INFO (%i %i): %s", type, err, msg); break;
+		case RGFW_typeError: RGFW_PRINTF("RGFW DEBUG (%i %i): %s", type, err, msg); break;
+		case RGFW_typeWarning: RGFW_PRINTF("RGFW WARNING (%i %i): %s", type, err, msg); break;
+		default: break;
+	}
+
+	switch (err) {
+		#ifdef RGFW_BUFFER
+		case RGFW_errBuffer: case RGFW_infoBuffer: RGFW_PRINTF(" buffer size: %i %i\n", ctx.win->bufferSize.w, ctx.win->bufferSize.h); break;
+		#endif
+		case RGFW_infoMonitor: RGFW_PRINTF(": scale (%s):\n   rect: {%i, %i, %i, %i}\n   physical size:%f %f\n   scale: %f %f\n   pixelRatio: %f\n   refreshRate: %i\n   depth: %i\n", ctx.monitor->name, ctx.monitor->x, ctx.monitor->y, ctx.monitor->mode.area.w, ctx.monitor->mode.area.h, ctx.monitor->physW, ctx.monitor->physH, ctx.monitor->scaleX, ctx.monitor->scaleY, ctx.monitor->pixelRatio, ctx.monitor->mode.refreshRate, ctx.monitor->mode.red + ctx.monitor->mode.green + ctx.monitor->mode.blue); break;
+		case RGFW_infoWindow: RGFW_PRINTF("  with rect of {%i, %i, %i, %i} \n", ctx.win->r.x, ctx.win->r.y,ctx. win->r.w, ctx.win->r.h); break;
+		case RGFW_errDirectXContext: RGFW_PRINTF(" srcError %i\n", ctx.srcError); break;
+		default: RGFW_PRINTF("\n");
+	}
+	#endif
+}
 
 void RGFW_window_checkEvents(RGFW_window* win, i32 waitMS) {
 	RGFW_window_eventWait(win, waitMS);
