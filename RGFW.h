@@ -2043,7 +2043,7 @@ void RGFW_deinit_ptr(RGFW_info* info) {
 
 
 void RGFW_eventQueuePush(RGFW_event event) {
-	assert(_RGFW->eventLen >= 0);
+	RGFW_ASSERT(_RGFW->eventLen >= 0);
 
 	if (_RGFW->eventLen >= RGFW_MAX_EVENTS) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errEventQueue, RGFW_DEBUG_CTX(NULL, 0), "Event queue limit 'RGFW_MAX_EVENTS' has been reaeched.");
@@ -2055,7 +2055,7 @@ void RGFW_eventQueuePush(RGFW_event event) {
 }
 
 RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
-	assert(_RGFW->eventLen >= 0 && _RGFW->eventLen <= RGFW_MAX_EVENTS);
+	RGFW_ASSERT(_RGFW->eventLen >= 0 && _RGFW->eventLen <= RGFW_MAX_EVENTS);
 
     if (_RGFW->eventLen == 0) {
 		return NULL;
