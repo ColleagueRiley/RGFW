@@ -3419,6 +3419,13 @@ void RGFW_wl_xdg_toplevel_close_handler(void *data,
 	RGFW_windowQuitCallback(win);
 }
 
+void RGFW_wl_xdg_decoration_configure_handler(void *data,
+			  struct zxdg_toplevel_decoration_v1 *zxdg_toplevel_decoration_v1,
+			  uint32_t mode) {
+	RGFW_UNUSED(data);
+	zxdg_toplevel_decoration_v1_set_mode(zxdg_toplevel_decoration_v1, mode);
+}
+
 void RGFW_wl_shm_format_handler(void *data,
         struct wl_shm *shm, uint32_t format)
 {
@@ -4342,6 +4349,11 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 					_RGFW->decoration_manager, win->src.xdg_toplevel);
 	}
 
+	static const struct zxdg_toplevel_decoration_v1_listener xdg_decoration_listener = {
+			.configure = RGFW_wl_xdg_decoration_configure_handler
+	};
+
+	zxdg_toplevel_decoration_v1_add_listener(win->src.decoration, &xdg_decoration_listener, NULL);
 	wl_display_roundtrip(win->src.wl_display);
 
 	wl_surface_commit(win->src.surface);
@@ -4368,6 +4380,10 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	RGFW_window_setMouseDefault(win);
 	RGFW_window_setFlags(win, flags);
 	wl_registry_destroy(registry);
+	if (_RGFW->decoration_manager != NULL)
+		zxdg_decoration_manager_v1_destroy(_RGFW->decoration_manager);
+
+		
 
 	return win; /* return newly created window */
 #endif
@@ -6239,12 +6255,18 @@ void RGFW_window_close(RGFW_window* win) {
 								RGFW_FREE(win->buffer);
 					munmap(win->src.buffer, (size_t)(win->r.w * win->r.h * 4));
     	#endif
-			
+    	
+				wl_shm_destroy(win->src.shm);
+				
+				// wl_keyboard_release(win->src.keyboard); // keryboard is never set
+				wl_seat_release(win->src.seat);
+				zxdg_toplevel_decoration_v1_destroy(win->src.decoration);
         xdg_toplevel_destroy(win->src.xdg_toplevel);
         xdg_surface_destroy(win->src.xdg_surface);
 				wl_surface_destroy(win->src.surface);
 				wl_compositor_destroy(win->src.compositor);
 				xdg_wm_base_destroy(win->src.xdg_wm_base);
+
 			
 		RGFW_clipboard_switch(NULL);
 		_RGFW->windowCount--;
