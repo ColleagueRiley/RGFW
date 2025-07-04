@@ -6253,7 +6253,9 @@ void RGFW_window_close(RGFW_window* win) {
 								RGFW_FREE(win->buffer);
 					munmap(win->src.buffer, (size_t)(win->r.w * win->r.h * 4));
     	#endif
-				// wl_shm_release(win->src.shm); // linking error?
+    	
+				wl_shm_destroy(win->src.shm);
+				
 				// wl_keyboard_release(win->src.keyboard); // keryboard is never set
 				wl_seat_release(win->src.seat);
 				zxdg_toplevel_decoration_v1_destroy(win->src.decoration);
