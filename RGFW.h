@@ -1109,7 +1109,7 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 typedef struct RGFW_debugContext { RGFW_window* win; RGFW_monitor* monitor; u32 srcError; } RGFW_debugContext;
 
 #if defined(__cplusplus) && !defined(__APPLE__)
-inline RGFW_debugContext RGFW_DEBUG_CTX(RGFW_windowRGFW_window* win, u32 err) { return {win, NULL, err}; }
+inline RGFW_debugContext RGFW_DEBUG_CTX(RGFW_window* win, u32 err) { return {win, NULL, err}; }
 inline RGFW_debugContext RGFW_DEBUG_CTX_MON(RGFW_monitor* monitor_ptr) { return {_RGFW->root, monitor_ptr, 0}; }
 #else
 #define RGFW_DEBUG_CTX(win, err) (RGFW_debugContext){win, NULL, err}
