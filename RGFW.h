@@ -578,17 +578,17 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 
 /*! basic vector type, if there's not already a point/vector type of choice */
 #ifndef RGFW_point
-	typedef struct RGFW_point { i32 x, y; } RGFW_point;
+	typedef struct { i32 x, y; } RGFW_point;
 #endif
 
 /*! basic rect type, if there's not already a rect type of choice */
 #ifndef RGFW_rect
-	typedef struct RGFW_rect { i32 x, y, w, h; } RGFW_rect;
+	typedef struct { i32 x, y, w, h; } RGFW_rect;
 #endif
 
 /*! basic area type, if there's not already a area type of choice */
 #ifndef RGFW_area
-	typedef struct RGFW_area { u32 w, h; } RGFW_area;
+	typedef struct { u32 w, h; } RGFW_area;
 #endif
 
 #if defined(__cplusplus)
@@ -1106,7 +1106,7 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 	RGFW_warningWayland, RGFW_warningOpenGL
 };
 
-typedef struct RGFW_debugContext { RGFW_window* win; RGFW_monitor* monitor; u32 srcError; } RGFW_debugContext;
+typedef struct { RGFW_window* win; RGFW_monitor* monitor; u32 srcError; } RGFW_debugContext;
 
 #if defined(__cplusplus)
 #define RGFW_DEBUG_CTX(win, err) (RGFW_debugContext{win, NULL, err})
