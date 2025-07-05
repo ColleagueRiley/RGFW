@@ -592,9 +592,9 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 #endif
 
 #if defined(__cplusplus)
-#define RGFW_POINT(x, y)  RGFW_point{(i32)x, (i32)y}
-#define RGFW_RECT(x, y, w, h) RGFW_rect{(i32)x, (i32)y, (i32)w, (i32)h}
-#define RGFW_AREA(w, h) RGFW_area{(u32)w, (u32)h}
+#define RGFW_POINT(x, y) (RGFW_point{(i32)x, (i32)y})
+#define RGFW_RECT(x, y, w, h) (RGFW_rect{(i32)x, (i32)y, (i32)w, (i32)h})
+#define RGFW_AREA(w, h) (RGFW_area{(u32)w, (u32)h})
 #else
 #define RGFW_POINT(x, y) (RGFW_point){(i32)(x), (i32)(y)}
 #define RGFW_RECT(x, y, w, h) (RGFW_rect){(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
@@ -1109,8 +1109,8 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 typedef struct RGFW_debugContext { RGFW_window* win; RGFW_monitor* monitor; u32 srcError; } RGFW_debugContext;
 
 #if defined(__cplusplus)
-#define RGFW_DEBUG_CTX(win, err) RGFW_debugContext{win, NULL, err}
-#define RGFW_DEBUG_CTX_MON(monitor) RGFW_debugContext{_RGFW->root, &monitor, 0}
+#define RGFW_DEBUG_CTX(win, err) (RGFW_debugContext{win, NULL, err})
+#define RGFW_DEBUG_CTX_MON(monitor) (RGFW_debugContext{_RGFW->root, &monitor, 0})
 #else
 #define RGFW_DEBUG_CTX(win, err) (RGFW_debugContext){win, NULL, err}
 #define RGFW_DEBUG_CTX_MON(monitor) (RGFW_debugContext){_RGFW->root, &monitor, 0}
@@ -6219,11 +6219,11 @@ void RGFW_window_close(RGFW_window* win) {
 
 	RGFW_GOTO_WAYLAND(0);
 	#ifdef RGFW_X11
-    /* ungrab pointer if it was grabbed */
+	/* ungrab pointer if it was grabbed */
 	if (win->_flags & RGFW_HOLD_MOUSE)
 		XUngrabPointer(win->src.display, CurrentTime);
 
-    #if defined(RGFW_BUFFER)
+	#if defined(RGFW_BUFFER)
 		if (win->buffer != NULL) {
 			if ((win->_flags & RGFW_BUFFER_ALLOC))
 				RGFW_FREE(win->buffer);
@@ -6231,54 +6231,53 @@ void RGFW_window_close(RGFW_window* win) {
 		}
 	#endif
 
-    XFreeGC(win->src.display, win->src.gc);
-    XDestroyWindow(win->src.display, (Drawable) win->src.window); /*!< close the window */
-    win->src.window = 0;
-    XCloseDisplay(win->src.display);
+	XFreeGC(win->src.display, win->src.gc);
+	XDestroyWindow(win->src.display, (Drawable) win->src.window); /*!< close the window */
+	win->src.window = 0;
+	XCloseDisplay(win->src.display);
 
-    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
 	RGFW_clipboard_switch(NULL);
     _RGFW->windowCount--;
-    if (_RGFW->windowCount == 0) RGFW_deinit();
-    if ((win->_flags & RGFW_WINDOW_ALLOC)) {
+	if (_RGFW->windowCount == 0) RGFW_deinit();
+	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
-        win = NULL;
-    }
+	}
 	return;
 	#endif
 
 	#ifdef RGFW_WAYLAND
-		RGFW_WAYLAND_LABEL
+	RGFW_WAYLAND_LABEL
 
-	    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
 
-      #if defined(RGFW_BUFFER)
-					wl_buffer_destroy(win->src.wl_buffer);
-					if ((win->_flags & RGFW_BUFFER_ALLOC))
-								RGFW_FREE(win->buffer);
-					munmap(win->src.buffer, (size_t)(win->r.w * win->r.h * 4));
-    	#endif
+	#if defined(RGFW_BUFFER)
+	wl_buffer_destroy(win->src.wl_buffer);
+	if ((win->_flags & RGFW_BUFFER_ALLOC))
+		RGFW_FREE(win->buffer);
+	munmap(win->src.buffer, (size_t)(win->r.w * win->r.h * 4));
+    #endif
     	
-				wl_shm_destroy(win->src.shm);
+	wl_shm_destroy(win->src.shm);
 				
-				// wl_keyboard_release(win->src.keyboard); // keryboard is never set
-				wl_seat_release(win->src.seat);
-				zxdg_toplevel_decoration_v1_destroy(win->src.decoration);
-        xdg_toplevel_destroy(win->src.xdg_toplevel);
-        xdg_surface_destroy(win->src.xdg_surface);
-				wl_surface_destroy(win->src.surface);
-				wl_compositor_destroy(win->src.compositor);
-				xdg_wm_base_destroy(win->src.xdg_wm_base);
+	// wl_keyboard_release(win->src.keyboard); // keryboard is never set
+	wl_seat_release(win->src.seat);
+	zxdg_toplevel_decoration_v1_destroy(win->src.decoration);
+	xdg_toplevel_destroy(win->src.xdg_toplevel);
+	xdg_surface_destroy(win->src.xdg_surface);
+	wl_surface_destroy(win->src.surface);
+	wl_compositor_destroy(win->src.compositor);
+	xdg_wm_base_destroy(win->src.xdg_wm_base);
 
 			
-		RGFW_clipboard_switch(NULL);
-		_RGFW->windowCount--;
-    if (_RGFW->windowCount == 0) RGFW_deinit();
+	RGFW_clipboard_switch(NULL);
+	_RGFW->windowCount--;
+	if (_RGFW->windowCount == 0) RGFW_deinit();
 
-    if ((win->_flags & RGFW_WINDOW_ALLOC)) {
-						RGFW_FREE(win);
-            win = NULL;
-    }
+	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
+	RGFW_FREE(win);
+	win = NULL;
+	}
 	#endif
 }
 
@@ -7914,7 +7913,6 @@ void RGFW_window_close(RGFW_window* win) {
 
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
-        win = NULL;
     }
 }
 
@@ -10071,7 +10069,6 @@ void RGFW_window_close(RGFW_window* win) {
     if (_RGFW->windowCount == 0) RGFW_deinit();
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
-        win = NULL;
     }
 }
 
@@ -10895,7 +10892,6 @@ void RGFW_window_close(RGFW_window* win) {
 
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 	    RGFW_FREE(win);
-        win = NULL;
     }
 }
 
