@@ -591,10 +591,10 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 	typedef struct RGFW_area { u32 w, h; } RGFW_area;
 #endif
 
-#if defined(__cplusplus) && !defined(__APPLE__)
-#define RGFW_POINT(x, y) {(i32)x, (i32)y}
-#define RGFW_RECT(x, y, w, h) {(i32)x, (i32)y, (i32)w, (i32)h}
-#define RGFW_AREA(w, h) {(u32)w, (u32)h}
+#if defined(__cplusplus)
+#define RGFW_POINT(x, y)  RGFW_point{(i32)x, (i32)y}
+#define RGFW_RECT(x, y, w, h) RGFW_rect{(i32)x, (i32)y, (i32)w, (i32)h}
+#define RGFW_AREA(w, h) RGFW_area{(u32)w, (u32)h}
 #else
 #define RGFW_POINT(x, y) (RGFW_point){(i32)(x), (i32)(y)}
 #define RGFW_RECT(x, y, w, h) (RGFW_rect){(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
@@ -1108,9 +1108,9 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 
 typedef struct RGFW_debugContext { RGFW_window* win; RGFW_monitor* monitor; u32 srcError; } RGFW_debugContext;
 
-#if defined(__cplusplus) && !defined(__APPLE__)
-#define RGFW_DEBUG_CTX(win, err) {win, NULL, err}
-#define RGFW_DEBUG_CTX_MON(monitor) {_RGFW->root, &monitor, 0}
+#if defined(__cplusplus)
+#define RGFW_DEBUG_CTX(win, err) RGFW_debugContext{win, NULL, err}
+#define RGFW_DEBUG_CTX_MON(monitor) RGFW_debugContext{_RGFW->root, &monitor, 0}
 #else
 #define RGFW_DEBUG_CTX(win, err) (RGFW_debugContext){win, NULL, err}
 #define RGFW_DEBUG_CTX_MON(monitor) (RGFW_debugContext){_RGFW->root, &monitor, 0}
@@ -6958,9 +6958,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	HINSTANCE inh = GetModuleHandleA(NULL);
 
 	#ifndef __cplusplus
-	WNDCLASSW Class = { 0 }; /*!< Setup the Window class. */
+	WNDCLASSW Class = {0}; /*!< Setup the Window class. */
 	#else
-	WNDCLASSW Class = { };
+	WNDCLASSW Class = {};
 	#endif
 
 	if (_RGFW->className == NULL)
@@ -7582,9 +7582,9 @@ RGFW_bool RGFW_window_isMinimized(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
 	#ifndef __cplusplus
-	WINDOWPLACEMENT placement = { 0 };
+	WINDOWPLACEMENT placement = {0};
 	#else
-	WINDOWPLACEMENT placement = {  };
+	WINDOWPLACEMENT placement = {};
 	#endif
 	GetWindowPlacement(win->src.window, &placement);
 	return placement.showCmd == SW_SHOWMINIMIZED;
@@ -7594,9 +7594,9 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
 	#ifndef __cplusplus
-	WINDOWPLACEMENT placement = { 0 };
+	WINDOWPLACEMENT placement = {0};
 	#else
-	WINDOWPLACEMENT placement = {  };
+	WINDOWPLACEMENT placement = {};
 	#endif
 	GetWindowPlacement(win->src.window, &placement);
 	return placement.showCmd == SW_SHOWMAXIMIZED || IsZoomed(win->src.window);
@@ -7699,9 +7699,9 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 
 RGFW_monitor RGFW_getPrimaryMonitor(void) {
 	#ifdef __cplusplus
-	return win32CreateMonitor(MonitorFromPoint({ 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
+	return win32CreateMonitor(MonitorFromPoint({0, 0}, MONITOR_DEFAULTTOPRIMARY));
 	#else
-	return win32CreateMonitor(MonitorFromPoint((POINT) { 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
+	return win32CreateMonitor(MonitorFromPoint((POINT){0, 0}, MONITOR_DEFAULTTOPRIMARY));
 	#endif
 }
 
