@@ -576,44 +576,26 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 	RGFW_gamepadFinal
 };
 
-#if defined(__cplusplus)
-
 /*! basic vector type, if there's not already a point/vector type of choice */
 #ifndef RGFW_point
-	struct RGFW_point { i32 x, y; };
+	typedef struct RGFW_point { i32 x, y; } RGFW_point;
 #endif
 
 /*! basic rect type, if there's not already a rect type of choice */
 #ifndef RGFW_rect
-	struct RGFW_rect { i32 x, y, w, h; };
+	typedef struct RGFW_rect { i32 x, y, w, h; } RGFW_rect;
 #endif
 
 /*! basic area type, if there's not already a area type of choice */
 #ifndef RGFW_area
-	 struct RGFW_area { u32 w, h; };
+	typedef struct RGFW_area { u32 w, h; } RGFW_area;
 #endif
 
-#define RGFW_POINT(x, y) RGFW_point{(i32)x, (i32)y}
-#define RGFW_RECT(x, y, w, h) RGFW_rect{(i32)x, (i32)y, (i32)w, (i32)h}
-#define RGFW_AREA(w, h) RGFW_area{(u32)w, (u32)h}
-
+#if defined(__cplusplus) && !defined(__APPLE__)
+inline RGFW_point RGFW_POINT(i32 x, i32 y) { return {x, y}; }
+inline RGFW_rect RGFW_RECT(i32 x, i32 y, i32 w, i32 h) { return {x, y, w, h}; }
+inline RGFW_area RGFW_AREA(u32 w, u32 h) { return {w, h}; }
 #else
-
-/*! basic vector type, if there's not already a point/vector type of choice */
-#ifndef RGFW_point
-	typedef struct { i32 x, y; } RGFW_point;
-#endif
-
-/*! basic rect type, if there's not already a rect type of choice */
-#ifndef RGFW_rect
-	typedef struct { i32 x, y, w, h; } RGFW_rect;
-#endif
-
-/*! basic area type, if there's not already a area type of choice */
-#ifndef RGFW_area
-	typedef struct { u32 w, h; } RGFW_area;
-#endif
-
 #define RGFW_POINT(x, y) (RGFW_point){(i32)(x), (i32)(y)}
 #define RGFW_RECT(x, y, w, h) (RGFW_rect){(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
 #define RGFW_AREA(w, h) (RGFW_area){(u32)(w), (u32)(h)}
@@ -1124,18 +1106,14 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 	RGFW_warningWayland, RGFW_warningOpenGL
 };
 
-#if defined(__cplusplus)
-
-struct RGFW_debugContext{ RGFW_window* win; RGFW_monitor* monitor; u32 srcError; };
-
-#define RGFW_DEBUG_CTX(win, err) RGFW_debugContext{win, NULL, err}
-#define RGFW_DEBUG_CTX_MON(monitor) RGFW_debugContext{_RGFW->root, &monitor, 0}
-#else
-
 typedef struct RGFW_debugContext { RGFW_window* win; RGFW_monitor* monitor; u32 srcError; } RGFW_debugContext;
 
+#if defined(__cplusplus) && !defined(__APPLE__)
+inline RGFW_debugContext RGFW_DEBUG_CTX(RGFW_windowRGFW_window* win, u32 err) { return {win, NULL, err}; }
+inline RGFW_debugContext RGFW_DEBUG_CTX_MON(RGFW_monitor* monitor_ptr) { return {_RGFW->root, monitor_ptr, 0}; }
+#else
 #define RGFW_DEBUG_CTX(win, err) (RGFW_debugContext){win, NULL, err}
-#define RGFW_DEBUG_CTX_MON(monitor) (RGFW_debugContext){_RGFW->root, &monitor, 0}
+#define RGFW_DEBUG_CTX_MON(monitor_ptr) (RGFW_debugContext){_RGFW->root, monitor_ptr, 0}
 #endif
 
 typedef void (* RGFW_debugfunc)(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const char* msg);
@@ -5939,7 +5917,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 
 		if (info == NULL || ci == NULL) {
 			XRRFreeScreenResources(sr);
-			RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor, RGFW_DEBUG_CTX_MON(monitor), "monitor found");
+			RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor, RGFW_DEBUG_CTX_MON(&monitor), "monitor found");
 			return monitor;
 		}
 
@@ -5969,12 +5947,12 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 		XRRFreeScreenResources(sr);
 	#endif
 
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor, RGFW_DEBUG_CTX_MON(monitor), "monitor found");
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor, RGFW_DEBUG_CTX_MON(&monitor), "monitor found");
     return monitor;
 #endif
 #ifdef RGFW_WAYLAND
 RGFW_WAYLAND_LABEL  RGFW_UNUSED(screen);
-    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor, RGFW_DEBUG_CTX_MON(monitor), "monitor found");
+    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor, RGFW_DEBUG_CTX_MON(&monitor), "monitor found");
     return monitor;
 #endif
 }
@@ -7695,7 +7673,7 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 		}
 	#endif
 
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor, RGFW_DEBUG_CTX_MON(monitor), "monitor found");
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor, RGFW_DEBUG_CTX_MON(&monitor), "monitor found");
 	return monitor;
 }
 #endif /* RGFW_NO_MONITOR */
@@ -9912,7 +9890,7 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 	monitor.scaleX = ((i32)(((float) (ppi_width) / dpi) * 10.0f)) / 10.0f;
 	monitor.scaleY = ((i32)(((float) (ppi_height) / dpi) * 10.0f)) / 10.0f;
 
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor, RGFW_DEBUG_CTX_MON(monitor), "monitor found");
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor, RGFW_DEBUG_CTX_MON(&monitor), "monitor found");
 	return monitor;
 }
 
