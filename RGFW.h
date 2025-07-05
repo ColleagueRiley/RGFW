@@ -593,9 +593,9 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 	 struct RGFW_area { u32 w, h; };
 #endif
 
-#define RGFW_POINT(x, y) (RGFW_point{(i32)x, (i32)y})
-#define RGFW_RECT(x, y, w, h) (RGFW_rect{(i32)x, (i32)y, (i32)w, (i32)h})
-#define RGFW_AREA(w, h) (RGFW_area{(u32)w, (u32)h})
+#define RGFW_POINT(x, y) RGFW_point{(i32)x, (i32)y}
+#define RGFW_RECT(x, y, w, h) RGFW_rect{(i32)x, (i32)y, (i32)w, (i32)h}
+#define RGFW_AREA(w, h) RGFW_area{(u32)w, (u32)h}
 
 #else
 
@@ -1128,8 +1128,8 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 
 struct RGFW_debugContext{ RGFW_window* win; RGFW_monitor* monitor; u32 srcError; };
 
-#define RGFW_DEBUG_CTX(win, err) (RGFW_debugContext{win, NULL, err})
-#define RGFW_DEBUG_CTX_MON(monitor) (RGFW_debugContext{_RGFW->root, &monitor, 0})
+#define RGFW_DEBUG_CTX(win, err) RGFW_debugContext{win, NULL, err}
+#define RGFW_DEBUG_CTX_MON(monitor) RGFW_debugContext{_RGFW->root, &monitor, 0}
 #else
 
 typedef struct RGFW_debugContext { RGFW_window* win; RGFW_monitor* monitor; u32 srcError; } RGFW_debugContext;
