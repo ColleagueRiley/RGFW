@@ -576,6 +576,29 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 	RGFW_gamepadFinal
 };
 
+#if defined(__cplusplus)
+
+/*! basic vector type, if there's not already a point/vector type of choice */
+#ifndef RGFW_point
+	struct RGFW_point { i32 x, y; };
+#endif
+
+/*! basic rect type, if there's not already a rect type of choice */
+#ifndef RGFW_rect
+	struct RGFW_rect { i32 x, y, w, h; };
+#endif
+
+/*! basic area type, if there's not already a area type of choice */
+#ifndef RGFW_area
+	 struct RGFW_area { u32 w, h; };
+#endif
+
+#define RGFW_POINT(x, y) (RGFW_point{(i32)x, (i32)y})
+#define RGFW_RECT(x, y, w, h) (RGFW_rect{(i32)x, (i32)y, (i32)w, (i32)h})
+#define RGFW_AREA(w, h) (RGFW_area{(u32)w, (u32)h})
+
+#else
+
 /*! basic vector type, if there's not already a point/vector type of choice */
 #ifndef RGFW_point
 	typedef struct { i32 x, y; } RGFW_point;
@@ -591,11 +614,6 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 	typedef struct { u32 w, h; } RGFW_area;
 #endif
 
-#if defined(__cplusplus)
-#define RGFW_POINT(x, y) (RGFW_point{(i32)x, (i32)y})
-#define RGFW_RECT(x, y, w, h) (RGFW_rect{(i32)x, (i32)y, (i32)w, (i32)h})
-#define RGFW_AREA(w, h) (RGFW_area{(u32)w, (u32)h})
-#else
 #define RGFW_POINT(x, y) (RGFW_point){(i32)(x), (i32)(y)}
 #define RGFW_RECT(x, y, w, h) (RGFW_rect){(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
 #define RGFW_AREA(w, h) (RGFW_area){(u32)(w), (u32)(h)}
@@ -1106,12 +1124,16 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 	RGFW_warningWayland, RGFW_warningOpenGL
 };
 
-typedef struct { RGFW_window* win; RGFW_monitor* monitor; u32 srcError; } RGFW_debugContext;
-
 #if defined(__cplusplus)
+
+struct RGFW_debugContext{ RGFW_window* win; RGFW_monitor* monitor; u32 srcError; };
+
 #define RGFW_DEBUG_CTX(win, err) (RGFW_debugContext{win, NULL, err})
 #define RGFW_DEBUG_CTX_MON(monitor) (RGFW_debugContext{_RGFW->root, &monitor, 0})
 #else
+
+typedef struct RGFW_debugContext { RGFW_window* win; RGFW_monitor* monitor; u32 srcError; } RGFW_debugContext;
+
 #define RGFW_DEBUG_CTX(win, err) (RGFW_debugContext){win, NULL, err}
 #define RGFW_DEBUG_CTX_MON(monitor) (RGFW_debugContext){_RGFW->root, &monitor, 0}
 #endif
