@@ -335,7 +335,7 @@ int main() {
     typedef u8 RGFW_bool;
 #endif
 
-#define RGFW_BOOL(x) (RGFW_bool)((x) ? RGFW_TRUE : RGFW_FALSE) /* force an value to be 0 or 1 */
+#define RGFW_BOOL(x) (RGFW_bool)((x) != 0) /* force a value to be 0 or 1 */
 #define RGFW_TRUE (RGFW_bool)1
 #define RGFW_FALSE (RGFW_bool)0
 
@@ -1093,6 +1093,7 @@ typedef RGFW_ENUM(u8, RGFW_debugType) {
 
 typedef RGFW_ENUM(u8, RGFW_errorCode) {
 	RGFW_noError = 0, /*!< no error */
+	RGFW_errNoMem,
 	RGFW_errOpenglContext, RGFW_errEGLContext, /*!< error with the OpenGL context */
 	RGFW_errWayland, RGFW_errX11,
 	RGFW_errDirectXContext,
@@ -2015,8 +2016,7 @@ i32 RGFW_init_ptr(RGFW_info* info) {
     RGFW_setInfo(info);
 
     _RGFW->root = NULL; 
-    _RGFW->current = NULL; 
-    _RGFW->windowCount = -1; 
+    _RGFW->current = NULL;
     _RGFW->eventLen = 0;
     _RGFW->windowCount = 0;
     
@@ -2046,7 +2046,7 @@ void RGFW_eventQueuePush(RGFW_event event) {
 	RGFW_ASSERT(_RGFW->eventLen >= 0);
 
 	if (_RGFW->eventLen >= RGFW_MAX_EVENTS) {
-		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errEventQueue, RGFW_DEBUG_CTX(NULL, 0), "Event queue limit 'RGFW_MAX_EVENTS' has been reaeched.");
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errEventQueue, RGFW_DEBUG_CTX(NULL, 0), "Event queue limit 'RGFW_MAX_EVENTS' has been reached.");
 		return;
 	}
 
@@ -2057,7 +2057,7 @@ void RGFW_eventQueuePush(RGFW_event event) {
 RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
 	RGFW_ASSERT(_RGFW->eventLen >= 0 && _RGFW->eventLen <= RGFW_MAX_EVENTS);
 
-    if (_RGFW->eventLen == 0) {
+	if (_RGFW->eventLen == 0) {
 		return NULL;
 	}
 
@@ -2065,11 +2065,11 @@ RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
 	_RGFW->eventLen -= 1;
 
 	if (ev->_win != win && ev->_win != NULL) {
-        RGFW_eventQueuePush(*ev);
-        return NULL;
+		RGFW_eventQueuePush(*ev);
+		return NULL;
 	}
 
-    ev->droppedFilesCount = win->event.droppedFilesCount;
+	ev->droppedFilesCount = win->event.droppedFilesCount;
 	ev->droppedFiles = win->event.droppedFiles;
 	return ev;
 }
@@ -2125,11 +2125,9 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 	win->exitKey = RGFW_escape;
 	win->event.droppedFilesCount = 0;
 
-	win->_flags = 0 | (win->_flags & RGFW_WINDOW_ALLOC);
-    win->_flags |= flags;
+	win->_flags = flags | (win->_flags & RGFW_WINDOW_ALLOC);
 	win->event.keyMod = 0;
-	win->_lastMousePoint.x = 0; 
-	win->_lastMousePoint.y = 0; 
+	win->_lastMousePoint = RGFW_POINT(0, 0); 
 
 	win->event.droppedFiles = (char**)(void*)_RGFW->droppedFiles;
      
@@ -2192,27 +2190,38 @@ RGFW_bool RGFW_window_isInFocus(RGFW_window* win) {
 }
 
 void RGFW_window_initBuffer(RGFW_window* win) {
-    RGFW_area area = RGFW_getScreenSize();
-    if ((win->_flags & RGFW_windowNoResize))
-        area = RGFW_AREA(win->r.w, win->r.h);
+	RGFW_ASSERT(win != NULL);
+
+	/* NOTE(EimaMei): C++ forced me to revert earlier changes. great. */
+	RGFW_area area;
+	if ((win->_flags & RGFW_windowNoResize) == 0) {
+		area = RGFW_getScreenSize();
+	}
+	else {
+		area = RGFW_AREA(win->r.w, win->r.h);
+	}
 
     RGFW_window_initBufferSize(win, area);
 }
 
 void RGFW_window_initBufferSize(RGFW_window* win, RGFW_area area) {
-#if defined(RGFW_BUFFER)
-    win->_flags |= RGFW_BUFFER_ALLOC;
-	#ifndef RGFW_WINDOWS
-        u8* buffer = (u8*)RGFW_ALLOC(area.w * area.h * 4);
-        RGFW_ASSERT(buffer != NULL);
+	RGFW_ASSERT(win != NULL);
 
-        RGFW_window_initBufferPtr(win, buffer, area);
-    #else /* windows's bitmap allocs memory for us */
-	RGFW_window_initBufferPtr(win, (u8*)NULL, area);
-	#endif
+#ifndef RGFW_WINDOWS
+	u8* buffer = (u8*)RGFW_ALLOC(area.w * area.h * 4);
+	if (buffer != NULL) {		
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errNoMem, RGFW_DEBUG_CTX(NULL, 0), "Ran out of memory when allocating a buffer.");
+		return;
+	}
 #else
-    RGFW_UNUSED(win); RGFW_UNUSED(area);
+	u8* buffer = NULL; /* windows's bitmap allocs memory for us */
 #endif
+
+#ifdef RGFW_BUFFER
+	win->_flags |= RGFW_BUFFER_ALLOC;
+#endif
+
+	RGFW_window_initBufferPtr(win, buffer, area);
 }
 
 #ifdef RGFW_MACOS
@@ -2283,12 +2292,10 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 #endif
 }
 
-RGFWDEF void RGFW_setBit(u32* data, u32 bit, RGFW_bool value);
-void RGFW_setBit(u32* data, u32 bit, RGFW_bool value) {
-	if (value)
-		*data |= bit;
-	else if (!value && (*(data) & bit))
-		*data ^= bit;
+RGFWDEF void RGFW_setBit(u32* var, u32 mask, RGFW_bool set);
+void RGFW_setBit(u32* var, u32 mask, RGFW_bool set) {
+	if (set) *var |=  mask;
+	else     *var &= ~mask;
 }
 
 void RGFW_window_center(RGFW_window* win) {
@@ -3776,10 +3783,10 @@ RGFW_proc RGFW_getProcAddress(const char* procname) { return (RGFW_proc) glXGetP
 void RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 
 #if defined(RGFW_BUFFER)
-	win->buffer = (u8*)buffer;
+	win->buffer = buffer;
 	win->bufferSize = area;
 
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoBuffer, RGFW_DEBUG_CTX(win, 0), "createing a 4 channel buffer");
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoBuffer, RGFW_DEBUG_CTX(win, 0), "creating a 4 channel buffer");
 
 	RGFW_GOTO_WAYLAND(0);
     #ifdef RGFW_X11
@@ -6216,11 +6223,11 @@ void RGFW_window_close(RGFW_window* win) {
 
 	RGFW_GOTO_WAYLAND(0);
 	#ifdef RGFW_X11
-    /* ungrab pointer if it was grabbed */
+	/* ungrab pointer if it was grabbed */
 	if (win->_flags & RGFW_HOLD_MOUSE)
 		XUngrabPointer(win->src.display, CurrentTime);
 
-    #if defined(RGFW_BUFFER)
+	#if defined(RGFW_BUFFER)
 		if (win->buffer != NULL) {
 			if ((win->_flags & RGFW_BUFFER_ALLOC))
 				RGFW_FREE(win->buffer);
@@ -6228,54 +6235,53 @@ void RGFW_window_close(RGFW_window* win) {
 		}
 	#endif
 
-    XFreeGC(win->src.display, win->src.gc);
-    XDestroyWindow(win->src.display, (Drawable) win->src.window); /*!< close the window */
-    win->src.window = 0;
-    XCloseDisplay(win->src.display);
+	XFreeGC(win->src.display, win->src.gc);
+	XDestroyWindow(win->src.display, (Drawable) win->src.window); /*!< close the window */
+	win->src.window = 0;
+	XCloseDisplay(win->src.display);
 
-    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
 	RGFW_clipboard_switch(NULL);
     _RGFW->windowCount--;
-    if (_RGFW->windowCount == 0) RGFW_deinit();
-    if ((win->_flags & RGFW_WINDOW_ALLOC)) {
+	if (_RGFW->windowCount == 0) RGFW_deinit();
+	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
-        win = NULL;
-    }
+	}
 	return;
 	#endif
 
 	#ifdef RGFW_WAYLAND
-		RGFW_WAYLAND_LABEL
+	RGFW_WAYLAND_LABEL
 
-	    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
 
-      #if defined(RGFW_BUFFER)
-					wl_buffer_destroy(win->src.wl_buffer);
-					if ((win->_flags & RGFW_BUFFER_ALLOC))
-								RGFW_FREE(win->buffer);
-					munmap(win->src.buffer, (size_t)(win->r.w * win->r.h * 4));
-    	#endif
+	#if defined(RGFW_BUFFER)
+	wl_buffer_destroy(win->src.wl_buffer);
+	if ((win->_flags & RGFW_BUFFER_ALLOC))
+		RGFW_FREE(win->buffer);
+	munmap(win->src.buffer, (size_t)(win->r.w * win->r.h * 4));
+    #endif
     	
-				wl_shm_destroy(win->src.shm);
+	wl_shm_destroy(win->src.shm);
 				
-				// wl_keyboard_release(win->src.keyboard); // keryboard is never set
-				wl_seat_release(win->src.seat);
-				zxdg_toplevel_decoration_v1_destroy(win->src.decoration);
-        xdg_toplevel_destroy(win->src.xdg_toplevel);
-        xdg_surface_destroy(win->src.xdg_surface);
-				wl_surface_destroy(win->src.surface);
-				wl_compositor_destroy(win->src.compositor);
-				xdg_wm_base_destroy(win->src.xdg_wm_base);
+	// wl_keyboard_release(win->src.keyboard); // keryboard is never set
+	wl_seat_release(win->src.seat);
+	zxdg_toplevel_decoration_v1_destroy(win->src.decoration);
+	xdg_toplevel_destroy(win->src.xdg_toplevel);
+	xdg_surface_destroy(win->src.xdg_surface);
+	wl_surface_destroy(win->src.surface);
+	wl_compositor_destroy(win->src.compositor);
+	xdg_wm_base_destroy(win->src.xdg_wm_base);
 
 			
-		RGFW_clipboard_switch(NULL);
-		_RGFW->windowCount--;
-    if (_RGFW->windowCount == 0) RGFW_deinit();
+	RGFW_clipboard_switch(NULL);
+	_RGFW->windowCount--;
+	if (_RGFW->windowCount == 0) RGFW_deinit();
 
-    if ((win->_flags & RGFW_WINDOW_ALLOC)) {
-						RGFW_FREE(win);
-            win = NULL;
-    }
+	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
+	RGFW_FREE(win);
+	win = NULL;
+	}
 	#endif
 }
 
@@ -6955,9 +6961,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	HINSTANCE inh = GetModuleHandleA(NULL);
 
 	#ifndef __cplusplus
-	WNDCLASSW Class = { 0 }; /*!< Setup the Window class. */
+	WNDCLASSW Class = {0}; /*!< Setup the Window class. */
 	#else
-	WNDCLASSW Class = { };
+	WNDCLASSW Class = {};
 	#endif
 
 	if (_RGFW->className == NULL)
@@ -7579,9 +7585,9 @@ RGFW_bool RGFW_window_isMinimized(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
 	#ifndef __cplusplus
-	WINDOWPLACEMENT placement = { 0 };
+	WINDOWPLACEMENT placement = {0};
 	#else
-	WINDOWPLACEMENT placement = {  };
+	WINDOWPLACEMENT placement = {};
 	#endif
 	GetWindowPlacement(win->src.window, &placement);
 	return placement.showCmd == SW_SHOWMINIMIZED;
@@ -7591,9 +7597,9 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
 	#ifndef __cplusplus
-	WINDOWPLACEMENT placement = { 0 };
+	WINDOWPLACEMENT placement = {0};
 	#else
-	WINDOWPLACEMENT placement = {  };
+	WINDOWPLACEMENT placement = {};
 	#endif
 	GetWindowPlacement(win->src.window, &placement);
 	return placement.showCmd == SW_SHOWMAXIMIZED || IsZoomed(win->src.window);
@@ -7696,9 +7702,9 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 
 RGFW_monitor RGFW_getPrimaryMonitor(void) {
 	#ifdef __cplusplus
-	return win32CreateMonitor(MonitorFromPoint({ 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
+	return win32CreateMonitor(MonitorFromPoint({0, 0}, MONITOR_DEFAULTTOPRIMARY));
 	#else
-	return win32CreateMonitor(MonitorFromPoint((POINT) { 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
+	return win32CreateMonitor(MonitorFromPoint((POINT){0, 0}, MONITOR_DEFAULTTOPRIMARY));
 	#endif
 }
 
@@ -7911,7 +7917,6 @@ void RGFW_window_close(RGFW_window* win) {
 
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
-        win = NULL;
     }
 }
 
@@ -10068,7 +10073,6 @@ void RGFW_window_close(RGFW_window* win) {
     if (_RGFW->windowCount == 0) RGFW_deinit();
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 		RGFW_FREE(win);
-        win = NULL;
     }
 }
 
@@ -10892,7 +10896,6 @@ void RGFW_window_close(RGFW_window* win) {
 
 	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
 	    RGFW_FREE(win);
-        win = NULL;
     }
 }
 
