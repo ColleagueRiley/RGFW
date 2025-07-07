@@ -369,6 +369,10 @@ int main() {
 #if defined(_WIN32) && !defined(RGFW_X11) && !defined(RGFW_UNIX) && !defined(RGFW_WASM) && !defined(RGFW_CUSTOM_BACKEND) /* (if you're using X11 on windows some how) */
 	#define RGFW_WINDOWS
 
+	#define WIN32_LEAN_AND_MEAN
+	#define OEMRESOURCE
+	#include <windows.h>
+
 	#ifndef RGFW_NO_XINPUT
 		#ifdef __MINGW32__ /* try to find the right header */
 			#include <xinput.h>
@@ -2547,12 +2551,6 @@ void RGFW_moveToMacOSResourceDir(void) { }
 */
 
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL)
-
-#ifdef RGFW_WINDOWS
-	#define WIN32_LEAN_AND_MEAN
-	#define OEMRESOURCE
-	#include <windows.h>
-#endif
 
 #if !defined(__APPLE__) && !defined(RGFW_NO_GL_HEADER)
 	#include <GL/gl.h>
