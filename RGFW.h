@@ -364,21 +364,10 @@ int main() {
 #if defined(RGFW_X11) && defined(__APPLE__) && !defined(RGFW_CUSTOM_BACKEND)
 	#define RGFW_MACOS_X11
 	#define RGFW_UNIX
-	#undef __APPLE__
 #endif
 
 #if defined(_WIN32) && !defined(RGFW_X11) && !defined(RGFW_UNIX) && !defined(RGFW_WASM) && !defined(RGFW_CUSTOM_BACKEND) /* (if you're using X11 on windows some how) */
 	#define RGFW_WINDOWS
-	/* make sure the correct architecture is defined */
-	#if defined(_WIN64)
-		#define _AMD64_
-		#undef _X86_
-	#else
-		#undef _AMD64_
-		#ifndef _X86_
-			#define _X86_
-		#endif
-	#endif
 
 	#ifndef RGFW_NO_XINPUT
 		#ifdef __MINGW32__ /* try to find the right header */
