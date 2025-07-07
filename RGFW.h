@@ -5925,6 +5925,9 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 		RGFW_STRNCPY(monitor.name, info->name, sizeof(monitor.name) - 1);
 		monitor.name[sizeof(monitor.name) - 1] = '\0';
 
+		XRRFreeOutputInfo(info);
+		info = NULL;
+
 	if ((u8)physW && (u8)physH) {
 		monitor.physW = physW;
 		monitor.physH = physH;
