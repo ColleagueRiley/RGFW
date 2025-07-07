@@ -5898,9 +5898,10 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	monitor.scaleY = (float) (dpi) / 96.0f;
 
 	#ifndef RGFW_NO_DPI
-		XRRScreenResources* sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
-		monitor.mode.refreshRate = RGFW_XCalculateRefreshRate(sr->modes[screen]);
+		XRRScreenConfiguration *conf = XRRGetScreenInfo(display, RootWindow(display, screen));
+		monitor.mode.refreshRate = XRRConfigCurrentRate(conf);
 
+		XRRScreenResources* sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
 		XRRCrtcInfo* ci = NULL;
 		int crtc = screen;
 
