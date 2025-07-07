@@ -1055,10 +1055,13 @@ RGFWDEF RGFW_monitor RGFW_window_getMonitor(RGFW_window* win);
 /*! if window == NULL, it checks if the key is pressed globally. Otherwise, it checks only if the key is pressed while the window in focus. */
 RGFWDEF RGFW_bool RGFW_isPressed(RGFW_window* win, RGFW_key key); /*!< if key is pressed (key code)*/
 
-RGFWDEF RGFW_bool RGFW_wasPressed(RGFW_window* win, RGFW_key key); /*!< if key was pressed (checks previous state only) (key code) */
+RGFWDEF RGFW_bool RGFW_isReleased(RGFW_window* win, RGFW_key key); /*!< if key is released (key code) */
 
 RGFWDEF RGFW_bool RGFW_isHeld(RGFW_window* win, RGFW_key key); /*!< if key is held (key code) */
-RGFWDEF RGFW_bool RGFW_isReleased(RGFW_window* win, RGFW_key key); /*!< if key is released (key code) */
+
+RGFWDEF RGFW_bool RGFW_isNotPressed(RGFW_window* win, RGFW_key key); /*!< if key is NOT pressed (key code)*/
+
+RGFWDEF RGFW_bool RGFW_isRepeat(RGFW_window* win, RGFW_key key); /*!< if key is held and firing repeat codes (key code)*/
 
 /* if a key is pressed and then released, pretty much the same as RGFW_isReleased */
 RGFWDEF RGFW_bool RGFW_isClicked(RGFW_window* win, RGFW_key key /*!< key code */);
@@ -1670,6 +1673,7 @@ RGFW_keyState RGFW_mouseButtons[RGFW_mouseFinal];
 RGFW_keyState RGFW_keyboard[RGFW_keyLast]; 
 
 RGFWDEF void RGFW_resetKeyPrev(void);
+RGFWDEF void RGFW_setKeyPrevToCurrent(void);
 RGFWDEF void RGFW_resetKey(void);
 
 #ifndef RGFW_CUSTOM_BACKEND
@@ -1815,6 +1819,10 @@ u32 RGFW_rgfwToApiKey(u32 keycode) {
 void RGFW_resetKeyPrev(void) {
 	size_t i; /*!< reset each previous state  */
     for (i = 0; i < RGFW_keyLast; i++) RGFW_keyboard[i].prev = 0;
+}
+void RGFW_setKeyPrevToCurrent(void) {
+	size_t i; /*!< set each previous state to current */
+    for (i = 0; i < RGFW_keyLast; i++) RGFW_keyboard[i].prev = RGFW_keyboard[i].current;
 }
 void RGFW_resetKey(void) { RGFW_MEMSET(RGFW_keyboard, 0, sizeof(RGFW_keyboard)); }
 /*
@@ -2079,7 +2087,7 @@ RGFW_event* RGFW_window_checkEventCore(RGFW_window* win) {
 	RGFW_event* ev;
     RGFW_ASSERT(win != NULL);
     if (win->event.type == 0 && _RGFW->eventLen == 0)
-		RGFW_resetKeyPrev();
+		RGFW_setKeyPrevToCurrent();
 
 	if (win->event.type == RGFW_quit && win->_flags & RGFW_windowFreeOnClose) {
         static RGFW_event event;
@@ -2245,23 +2253,23 @@ RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
 }
 
 RGFW_bool RGFW_isPressed(RGFW_window* win, RGFW_key key) {
-    return _RGFW != NULL && RGFW_keyboard[key].current && (win == NULL || RGFW_window_isInFocus(win));
-}
-
-RGFW_bool RGFW_wasPressed(RGFW_window* win, RGFW_key key) {
-	return RGFW_keyboard[key].prev && (win == NULL || RGFW_window_isInFocus(win));
-}
-
-RGFW_bool RGFW_isHeld(RGFW_window* win, RGFW_key key) {
-	return (RGFW_isPressed(win, key) && RGFW_wasPressed(win, key));
-}
-
-RGFW_bool RGFW_isClicked(RGFW_window* win, RGFW_key key) {
-	return (RGFW_wasPressed(win, key) && !RGFW_isPressed(win, key));
+    return _RGFW != NULL && (win == NULL || RGFW_window_isInFocus(win)) && RGFW_keyboard[key].current && !RGFW_keyboard[key].prev && !win->event.repeat;
 }
 
 RGFW_bool RGFW_isReleased(RGFW_window* win, RGFW_key key) {
-	return (!RGFW_isPressed(win, key) && RGFW_wasPressed(win, key));
+	return _RGFW != NULL && (win == NULL || RGFW_window_isInFocus(win)) && RGFW_keyboard[key].prev && !RGFW_keyboard[key].current && !win->event.repeat;
+}
+
+RGFW_bool RGFW_isHeld(RGFW_window* win, RGFW_key key) {
+	return _RGFW != NULL && (win == NULL || RGFW_window_isInFocus(win)) && RGFW_keyboard[key].current;
+}
+
+RGFW_bool RGFW_isNotPressed(RGFW_window* win, RGFW_key key) {
+	return _RGFW != NULL && (win == NULL || RGFW_window_isInFocus(win)) && !RGFW_keyboard[key].current;
+}
+
+RGFW_bool RGFW_isRepeat(RGFW_window* win, RGFW_key key) {
+	return _RGFW != NULL && (win == NULL || RGFW_window_isInFocus(win)) && RGFW_keyboard[key].current && win->event.repeat;
 }
 
 void RGFW_window_makeCurrent(RGFW_window* win) {
@@ -4617,8 +4625,10 @@ RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
 			XEvent NE;
 			XPeekEvent(win->src.display, &NE);
 
-			if (E.xkey.time == NE.xkey.time && E.xkey.keycode == NE.xkey.keycode) /* check if the current and next are both the same */
+			if (E.xkey.time == NE.xkey.time && E.xkey.keycode == NE.xkey.keycode) {/* check if the current and next are both the same */
 				win->event.repeat = RGFW_TRUE;
+				break; /* exit early to not affect keystates. just set repeat flag */
+			}
 		}
 
 		/* set event key data */
