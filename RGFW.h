@@ -3604,7 +3604,8 @@ void RGFW_wl_global_registry_handler(void *data,
 	} else if (RGFW_STRNCMP(interface,"wl_seat", 8) == 0) {
 		win->src.seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
 		wl_seat_add_listener(win->src.seat, &seat_listener, NULL);
-	} else if (RGFW_STRNCMP(interface, "wl_ouput", 9) == 0) {
+	} else if (RGFW_STRNCMP(interface, "wl_output", 10) == 0) {
+		RGFW_PRINTF("Output set\n");
 		_RGFW->wl_output = wl_registry_bind(registry, id, &wl_output_interface, 4);
 	}
 }
@@ -5878,13 +5879,12 @@ static float XGetSystemContentDPI(Display* display, i32 screen) {
 }
 #endif
 
+#ifdef RGFW_X11
 RGFW_monitor RGFW_XCreateMonitor(i32 screen);
 RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	RGFW_monitor monitor;
     RGFW_init();
 
-	RGFW_GOTO_WAYLAND(1);
-#ifdef RGFW_X11
     Display* display = _RGFW->display;
 
 	if (screen == -1) screen = DefaultScreen(display);
@@ -5958,14 +5958,8 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor, RGFW_DEBUG_CTX_MON(monitor), "monitor found");
     return monitor;
-#endif
-#ifdef RGFW_WAYLAND
-RGFW_WAYLAND_LABEL  RGFW_UNUSED(screen);
-    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor, RGFW_DEBUG_CTX_MON(monitor), "monitor found");
-    return monitor;
-#endif
 }
-
+#endif
 RGFW_monitor* RGFW_getMonitors(size_t* len) {
 	static RGFW_monitor monitors[7];
 
