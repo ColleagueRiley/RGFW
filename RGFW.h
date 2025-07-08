@@ -1564,7 +1564,8 @@ typedef struct RGFW_info {
         struct xkb_keymap *keymap;
         struct xkb_state *xkb_state;
         struct zxdg_decoration_manager_v1 *decoration_manager;
-
+		struct wl_output* wl_output;
+		
         struct wl_cursor_theme* wl_cursor_theme;
         struct wl_surface* cursor_surface;
         struct wl_cursor_image* cursor_image;
@@ -3603,6 +3604,8 @@ void RGFW_wl_global_registry_handler(void *data,
 	} else if (RGFW_STRNCMP(interface,"wl_seat", 8) == 0) {
 		win->src.seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
 		wl_seat_add_listener(win->src.seat, &seat_listener, NULL);
+	} else if (RGFW_STRNCMP(interface, "wl_ouput", 9) == 0) {
+		_RGFW->wl_output = wl_registry_bind(registry, id, &wl_output_interface, 4);
 	}
 }
 
@@ -4355,6 +4358,15 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	zxdg_toplevel_decoration_v1_add_listener(win->src.decoration, &xdg_decoration_listener, NULL);
 	wl_display_roundtrip(win->src.wl_display);
+
+	// static const struct wl_output_listener wl_ouput_listener = {
+	// 		.geometry = ,
+	// 		.mode = ,
+	// 		.done = ,
+	// 		.scale = ,
+	// 		.name = ,
+	// 		.description = 
+	// };
 
 	wl_surface_commit(win->src.surface);
 	RGFW_window_show(win);
@@ -6266,7 +6278,7 @@ void RGFW_window_close(RGFW_window* win) {
 				wl_surface_destroy(win->src.surface);
 				wl_compositor_destroy(win->src.compositor);
 				xdg_wm_base_destroy(win->src.xdg_wm_base);
-
+				wl_output_release(_RGFW->wl_output);
 			
 		RGFW_clipboard_switch(NULL);
 		_RGFW->windowCount--;
