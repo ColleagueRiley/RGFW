@@ -3400,6 +3400,7 @@ void RGFW_wl_xdg_toplevel_configure_handler(void *data,
 				RGFW_windowResizedCallback(win, win->r);
 
 				RGFW_window_resize(win, RGFW_AREA(width, height));
+				break;
 			default:
 				break;
 		}
