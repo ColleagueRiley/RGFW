@@ -617,6 +617,10 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 		float pixelRatio; /*!< pixel ratio for monitor (1.0 for regular, 2.0 for hiDPI)  */
 		float physW, physH; /*!< monitor physical size in inches */
 
+	#ifdef RGFW_WAYLAND
+		u32 id; /* Add id so wl_ouptuts can be removed */
+		struct wl_output *output;
+	#endif
 		RGFW_monitorMode mode;
 	} RGFW_monitor;
 
@@ -1564,12 +1568,11 @@ typedef struct RGFW_info {
         struct xkb_keymap *keymap;
         struct xkb_state *xkb_state;
         struct zxdg_decoration_manager_v1 *decoration_manager;
-		struct wl_output* wl_output;
-		
+		const char *tag;
         struct wl_cursor_theme* wl_cursor_theme;
         struct wl_surface* cursor_surface;
         struct wl_cursor_image* cursor_image;
-
+		RGFW_monitor* monitors[5]; /* have 6 monitors as a limit */
         RGFW_bool wl_configured;
     #endif
     
@@ -3579,13 +3582,89 @@ void RGFW_wl_seat_capabilities (void *data, struct wl_seat *seat, uint32_t capab
 	}
 }
 
+void RGFW_wl_output_set_geometry(void *data, struct wl_output *wl_output,
+			 int32_t x, int32_t y, int32_t physical_width, int32_t physical_height,
+			 int32_t subpixel, const char *make, const char *model, int32_t transform) {
+
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+	monitor->x = x;
+	monitor->y = y;
+
+	monitor->physW = (float)physical_width / 25.4f;
+	monitor->physH = (float)physical_height / 25.4f;
+
+	RGFW_UNUSED(wl_output);
+	RGFW_UNUSED(subpixel);
+	RGFW_UNUSED(make);
+	RGFW_UNUSED(model);
+	RGFW_UNUSED(transform);	
+}
+
+void RGFW_wl_output_set_mode(void *data, struct wl_output *wl_output, uint32_t flags,
+		     int32_t width, int32_t height, int32_t refresh) {
+		     
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+	monitor->mode.area = RGFW_AREA(width, height);
+	monitor->mode.refreshRate = (u32)(refresh / 1000);
+
+	RGFW_UNUSED(wl_output);
+	RGFW_UNUSED(flags);
+}
+void RGFW_wl_output_set_scale(void *data, struct wl_output *wl_output, int32_t factor) {
+	// this is for pixelRatio
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+	monitor->pixelRatio = (float)factor; 
+	RGFW_UNUSED(wl_output);
+}
+
+void RGFW_wl_output_set_name(void *data, struct wl_output *wl_output, const char *name) {
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+	RGFW_STRNCPY(monitor->name, name, sizeof(monitor->name) - 1);
+	monitor->name[sizeof(monitor->name) - 1] = '\0';
+
+	RGFW_UNUSED(wl_output);
+
+}
+
+void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id, u32 monitor_counter) {
+	struct wl_output *output = wl_registry_bind(registry, id, &wl_output_interface, 4);
+	
+	if (!output) return;
+
+	if (monitor_counter >= 6) return; // too many monitors
+	RGFW_monitor* mon = RGFW_ALLOC(sizeof(RGFW_monitor));
+	_RGFW->monitors[monitor_counter] = mon;
+
+	mon->output = output;
+	mon->pixelRatio = 1.0f; // set in case compositor does not send one
+	wl_proxy_set_tag((struct wl_proxy*) output, &_RGFW->tag);
+	
+	static const struct wl_output_listener wl_output_listener = {
+			.geometry = RGFW_wl_output_set_geometry,
+			.mode = RGFW_wl_output_set_mode,
+			.done = (void (*)(void *,struct wl_output *))&RGFW_doNothing,
+			.scale = RGFW_wl_output_set_scale,
+			.name = (void (*)(void *, struct wl_output *, const char *))&RGFW_doNothing,
+			.description = (void (*)(void *, struct wl_output *, const char *))&RGFW_doNothing
+	};
+
+	// pass the monitor so we can access it in the callback functions
+	wl_output_add_listener(output, &wl_output_listener, mon);
+	
+	
+}
+
 void RGFW_wl_global_registry_handler(void *data,
 		struct wl_registry *registry, uint32_t id, const char *interface,
 		uint32_t version) {
 
     static struct wl_seat_listener seat_listener = {&RGFW_wl_seat_capabilities, (void (*)(void *, struct wl_seat *, const char *))&RGFW_doNothing};
     static const struct wl_shm_listener shm_listener = { .format = RGFW_wl_shm_format_handler };
-
+	static u32 monitor_counter = 0;
 
 	RGFW_window* win = (RGFW_window*)data;
 	RGFW_UNUSED(version);
@@ -3605,8 +3684,8 @@ void RGFW_wl_global_registry_handler(void *data,
 		win->src.seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
 		wl_seat_add_listener(win->src.seat, &seat_listener, NULL);
 	} else if (RGFW_STRNCMP(interface, "wl_output", 10) == 0) {
-		RGFW_PRINTF("Output set\n");
-		_RGFW->wl_output = wl_registry_bind(registry, id, &wl_output_interface, 4);
+		RGFW_wl_create_outputs(registry, id, monitor_counter);
+		++monitor_counter;
 	}
 }
 
@@ -4359,15 +4438,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	zxdg_toplevel_decoration_v1_add_listener(win->src.decoration, &xdg_decoration_listener, NULL);
 	wl_display_roundtrip(win->src.wl_display);
-
-	// static const struct wl_output_listener wl_ouput_listener = {
-	// 		.geometry = ,
-	// 		.mode = ,
-	// 		.done = ,
-	// 		.scale = ,
-	// 		.name = ,
-	// 		.description = 
-	// };
 
 	wl_surface_commit(win->src.surface);
 	RGFW_window_show(win);
@@ -5961,10 +6031,11 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 }
 #endif
 RGFW_monitor* RGFW_getMonitors(size_t* len) {
-	static RGFW_monitor monitors[7];
+	
 
 	RGFW_GOTO_WAYLAND(1);
 	#ifdef RGFW_X11
+	static RGFW_monitor monitors[7];
     RGFW_init();
 
 	Display* display = _RGFW->display;
@@ -5979,8 +6050,9 @@ RGFW_monitor* RGFW_getMonitors(size_t* len) {
 	return monitors;
 	#endif
 	#ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABEL RGFW_UNUSED(len);
-    return monitors; /* TODO WAYLAND */
+	RGFW_WAYLAND_LABEL 
+	RGFW_UNUSED(len);
+    return *(_RGFW->monitors); /* TODO WAYLAND */
 	#endif
 }
 
@@ -6262,17 +6334,16 @@ void RGFW_window_close(RGFW_window* win) {
 					munmap(win->src.buffer, (size_t)(win->r.w * win->r.h * 4));
     	#endif
     	
-				wl_shm_destroy(win->src.shm);
-				
-				// wl_keyboard_release(win->src.keyboard); // keryboard is never set
-				wl_seat_release(win->src.seat);
-				zxdg_toplevel_decoration_v1_destroy(win->src.decoration);
-        xdg_toplevel_destroy(win->src.xdg_toplevel);
-        xdg_surface_destroy(win->src.xdg_surface);
-				wl_surface_destroy(win->src.surface);
-				wl_compositor_destroy(win->src.compositor);
-				xdg_wm_base_destroy(win->src.xdg_wm_base);
-				wl_output_release(_RGFW->wl_output);
+		wl_shm_destroy(win->src.shm);
+		// wl_keyboard_release(win->src.keyboard); // keryboard is never set
+		wl_seat_release(win->src.seat);
+		zxdg_toplevel_decoration_v1_destroy(win->src.decoration);
+		xdg_toplevel_destroy(win->src.xdg_toplevel);
+		xdg_surface_destroy(win->src.xdg_surface);
+		wl_surface_destroy(win->src.surface);
+		wl_compositor_destroy(win->src.compositor);
+		xdg_wm_base_destroy(win->src.xdg_wm_base);
+		// wl_output_release(_RGFW->wl_output);
 			
 		RGFW_clipboard_switch(NULL);
 		_RGFW->windowCount--;
