@@ -6045,11 +6045,10 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 #endif
 RGFW_monitor* RGFW_getMonitors(size_t* len) {
 	
-
+	RGFW_init();
 	RGFW_GOTO_WAYLAND(1);
 	#ifdef RGFW_X11
 	static RGFW_monitor monitors[7];
-    RGFW_init();
 
 	Display* display = _RGFW->display;
 	i32 max = ScreenCount(display);
