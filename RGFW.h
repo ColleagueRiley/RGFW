@@ -3392,20 +3392,23 @@ void RGFW_wl_xdg_toplevel_configure_handler(void *data,
         if (win == NULL)
             return;
     }
-    // first configure
-    if (width <= 0 || height <= 0) {
-        width = win->src.r.w;
-        height = win->src.r.h;
-    }
 
-    RGFW_window_checkMode(win);
-   	if (width != win->src.r.w || height != win->src.r.h) {
-			win->src.r = win->r = RGFW_RECT(win->src.r.x, win->src.r.y, width, height);
+	enum xdg_toplevel_state* state;
+	wl_array_for_each(state, states) {
+		switch (*state) {
+			case XDG_TOPLEVEL_STATE_RESIZING:
+				RGFW_window_checkMode(win);
+				win->src.r = win->r = RGFW_RECT(win->src.r.x, win->src.r.y, width, height);
 
-			RGFW_eventQueuePushEx(e.type = RGFW_windowResized; e.point = RGFW_POINT(width, height); e._win = win);
-			RGFW_windowResizedCallback(win, win->r);
+				RGFW_eventQueuePushEx(e.type = RGFW_windowResized; e.point = RGFW_POINT(width, height); e._win = win);
+				RGFW_windowResizedCallback(win, win->r);
 
-			RGFW_window_resize(win, RGFW_AREA(width, height));
+				RGFW_window_resize(win, RGFW_AREA(width, height));
+				break;
+			default:
+				break;
+		}
+
 	}
 
 	RGFW_UNUSED(data); RGFW_UNUSED(states);
@@ -6006,6 +6009,9 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 
 		RGFW_STRNCPY(monitor.name, info->name, sizeof(monitor.name) - 1);
 		monitor.name[sizeof(monitor.name) - 1] = '\0';
+
+		XRRFreeOutputInfo(info);
+		info = NULL;
 
 	if ((u8)physW && (u8)physH) {
 		monitor.physW = physW;
