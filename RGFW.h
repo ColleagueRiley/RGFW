@@ -618,7 +618,7 @@ typedef RGFW_ENUM(u8, RGFW_gamepadCodes) {
 		float physW, physH; /*!< monitor physical size in inches */
 
 	#ifdef RGFW_WAYLAND
-		u32 id; /* Add id so wl_ouptuts can be removed */
+		u32 id; /* Add id so wl_outputs can be removed */
 		struct wl_output *output;
 	#endif
 		RGFW_monitorMode mode;
@@ -1573,6 +1573,7 @@ typedef struct RGFW_info {
         struct wl_surface* cursor_surface;
         struct wl_cursor_image* cursor_image;
 		RGFW_monitor* monitors[5]; /* have 6 monitors as a limit */
+		u32 num_monitors;
         RGFW_bool wl_configured;
     #endif
     
@@ -3639,11 +3640,17 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id, u32
 	if (!output) return;
 
 	if (monitor_counter >= 6) return; // too many monitors
+	
 	RGFW_monitor* mon = RGFW_ALLOC(sizeof(RGFW_monitor));
+	
+	RGFW_MEMSET(mon, 0, sizeof(RGFW_monitor));
+	
 	_RGFW->monitors[monitor_counter] = mon;
-
+	++_RGFW->num_monitors;
+	mon->id = id;
 	mon->output = output;
 	mon->pixelRatio = 1.0f; // set in case compositor does not send one
+	
 	wl_proxy_set_tag((struct wl_proxy*) output, &_RGFW->tag);
 	
 	static const struct wl_output_listener wl_output_listener = {
@@ -6057,8 +6064,9 @@ RGFW_monitor* RGFW_getMonitors(size_t* len) {
 	#endif
 	#ifdef RGFW_WAYLAND
 	RGFW_WAYLAND_LABEL 
-	RGFW_UNUSED(len);
-    return *(_RGFW->monitors); /* TODO WAYLAND */
+	
+	if (len != NULL) *len = (size_t)((_RGFW->num_monitors <= 6) ? (_RGFW->num_monitors) : (6));
+    return *(_RGFW->monitors);
 	#endif
 }
 
