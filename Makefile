@@ -26,6 +26,7 @@ endif
 OS_DIR = \\
 
 NO_GLES = 1
+NO_EGL = 1
 detected_OS = windows
 
 OBJ_FILE = .o
@@ -64,6 +65,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		LIB_EXT = .so
 		OS_DIR = /
 		NO_GLES = 0
+		NO_EGL = 0
 		NO_OSMESA ?= 0
 	endif
 	ifeq ($(detected_OS),NetBSD)
@@ -76,6 +78,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		LIB_EXT = .so
 		OS_DIR = /
 		NO_GLES = 0
+		NO_EGL = 0
 		NO_OSMESA ?= 0
 		NO_VULKAN = 1
 	endif
@@ -90,6 +93,7 @@ endif
 ifeq ($(RGFW_WAYLAND),1)
 	NO_VULKAN = 1
 	NO_GLES = 0
+	NO_EGL = 0
 	NO_OSMESA ?= 0
 	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl
 	LINK_GL1 = -lEGL -lGL
@@ -120,6 +124,7 @@ else ifneq (,$(filter $(CC),emcc em++))
 	LIBS = -s WASM=1 -s ASYNCIFY -s GL_SUPPORT_EXPLICIT_SWAP_CONTROL=1 $(EXPORTED_JS)
 	EXT = .js
 	NO_GLES = 0
+	NO_EGL = 0
 	NO_VULKAN = 1
 	detected_OS = web
 	NO_OSMESA ?= 1
