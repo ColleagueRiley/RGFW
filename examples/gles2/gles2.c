@@ -1,12 +1,7 @@
 /*
-    based on 
+    based on
     https://gist.github.com/jfuerth/82b816510bb2cc063c9945baf1093fd9
 */
-
-#ifndef __EMSCRIPTEN__
-#define RGFW_EGL
-#define RGFW_OPENGL_ES2
-#endif
 
 #include <GLES2/gl2.h>
 
@@ -32,7 +27,11 @@ GLuint load_shader(const char *shaderSource, GLenum type) {
 }
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(0, 0, 500, 500), RGFW_windowCenter | RGFW_windowTransparent);
+	RGFW_setGLHint(RGFW_glMajor, 2);
+	RGFW_setGLHint(RGFW_glMinor, 0);
+	RGFW_setGLHint(RGFW_glProfile, RGFW_glES);
+
+	RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(0, 0, 500, 500), RGFW_windowCenter | RGFW_windowTransparent);
 
     ///////  the openGL part  ///////////////////////////////////////////////////////////////
 
@@ -112,7 +111,7 @@ int main(void) {
     GLuint color_loc = glGetAttribLocation(shaderProgram, "a_color");
     glVertexAttribPointer(position_loc, 2, GL_FLOAT, GL_FALSE, attribute_stride, (void*) (attribute_array));
     glVertexAttribPointer(color_loc, 3, GL_FLOAT, GL_FALSE, attribute_stride, (void*) (&attribute_array[2]));
-    
+
     glEnableVertexAttribArray(position_loc);
     glEnableVertexAttribArray(color_loc);
 
@@ -121,7 +120,9 @@ int main(void) {
         RGFW_window_checkEvent(win);
 
         glClear(GL_COLOR_BUFFER_BIT);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         RGFW_window_swapBuffers(win);
     }
 
