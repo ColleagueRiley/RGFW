@@ -1239,14 +1239,10 @@ mg_axis mg_get_gamepad_axis_platform(u32 axis) {
 #if defined(MG_WINDOWS)
 
 #ifdef __cplusplus
-#define MG_WINDOWS_REF(g) *(g)
+	#define MG_WINDOWS_REF(g) *(g)
 #else
-#define MG_WINDOWS_REF(g) (g)
-#endif
-	extern "C" {
-#endif
-
-
+	#define MG_WINDOWS_REF(g) (g)
+endif
 
 #include <xinput.h>
 #include <dinput.h>
