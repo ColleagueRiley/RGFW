@@ -2021,7 +2021,7 @@ void mg_osx_device_removed_callback(void *context, IOReturn result, void *sender
     CFNumberRef usageRef = (CFNumberRef)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDPrimaryUsageKey));
 	int usage = 0;
 	if (usageRef)
-		CFNumberGetValue((CFNumberRef)uusageRef, (CFNumberType)kCFNumberIntType, (void*)&usage);
+		CFNumberGetValue((CFNumberRef)usageRef, (CFNumberType)kCFNumberIntType, (void*)&usage);
 
 	MG_UNUSED(context); MG_UNUSED(result); MG_UNUSED(sender); MG_UNUSED(device);
 	if (usage != kHIDUsage_GD_Joystick && usage != kHIDUsage_GD_GamePad && usage != kHIDUsage_GD_MultiAxisController) {
