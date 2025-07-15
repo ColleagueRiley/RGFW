@@ -109,7 +109,7 @@ LINK_OSMESA =
 
 ifneq (,$(filter $(CC),cl /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	WARNINGS = -Wall -wd4668 -wd4820 -wd5045
-	LIBS = /static
+	LIBS =
 	DX11_LIBS =
 	VULKAN_LIBS =
 	OBJ_FILE = .obj
