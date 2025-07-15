@@ -1237,6 +1237,13 @@ mg_axis mg_get_gamepad_axis_platform(u32 axis) {
  */
 
 #if defined(MG_WINDOWS)
+
+#ifdef __cplusplus
+#define MG_REF_GUID(g) *(g)
+#else
+#define MG_REF_GUID(g) (g)
+#endif
+
 #include <xinput.h>
 #include <dinput.h>
 
@@ -1401,7 +1408,7 @@ BOOL CALLBACK DirectInputEnumDevicesCallback(LPCDIDEVICEINSTANCE inst, LPVOID us
     gamepad = mg_gamepad_find(gamepads);
     gamepad->src.device = NULL;
 
-    if (FAILED(IDirectInput8_CreateDevice((IDirectInput8*)gamepads->src.dinput, &inst->guidInstance, (IDirectInputDevice8**)&gamepad->src.device, NULL))) {
+    if (FAILED(IDirectInput8_CreateDevice((IDirectInput8*)gamepads->src.dinput, MG_REF_GUID(&inst->guidInstance), (IDirectInputDevice8**)&gamepad->src.device, NULL))) {
         mg_gamepad_release(gamepads, gamepad);
         return DIENUM_CONTINUE;
     }
@@ -1428,7 +1435,7 @@ BOOL CALLBACK DirectInputEnumDevicesCallback(LPCDIDEVICEINSTANCE inst, LPVOID us
         return DIENUM_CONTINUE;
     }
 
-   if (!WideCharToMultiByte(CP_UTF8, 0, (const unsigned short*)inst->tszInstanceName, -1, gamepad->name, sizeof(gamepad->name), NULL, NULL)) {
+   if (!WideCharToMultiByte(CP_UTF8, 0, (const wchar_t*)inst->tszInstanceName, -1, gamepad->name, sizeof(gamepad->name), NULL, NULL)) {
         mg_gamepad_release(gamepads, gamepad);
         return DIENUM_STOP;
     }
@@ -1545,7 +1552,7 @@ void mg_gamepads_init_platform(mg_gamepads* gamepads) {
 	if (DInput8CreateSrc) {
 		if (FAILED(DInput8CreateSrc(hInstance,
 									  DIRECTINPUT_VERSION,
-									  &MG_IID_IDirectInput8W,
+									  MG_REF_GUID(&MG_IID_IDirectInput8W),
 									  (void**) &gamepads->src.dinput,
 									  NULL)) ||
 			FAILED(IDirectInput8_EnumDevices((IDirectInput8*)gamepads->src.dinput,
@@ -1909,7 +1916,7 @@ void mg_osx_device_added_callback(void* context, IOReturn result, void *sender, 
     CFTypeRef usageRef = (CFTypeRef)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDPrimaryUsageKey));
 	int usage = 0;
     if (usageRef)
-		CFNumberGetValue((CFNumberRef)usageRef, kCFNumberIntType, (void*)&usage);
+		CFNumberGetValue((CFNumberRef)usageRef, (CFNumberType)kCFNumberIntType, (void*)&usage);
 
     MG_UNUSED(context); MG_UNUSED(result); MG_UNUSED(sender);
 	if (usage != kHIDUsage_GD_Joystick && usage != kHIDUsage_GD_GamePad && usage != kHIDUsage_GD_MultiAxisController) {
@@ -1935,15 +1942,15 @@ void mg_osx_device_added_callback(void* context, IOReturn result, void *sender, 
 
     property = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDVendorIDKey));
     if (property)
-        CFNumberGetValue(property, kCFNumberSInt32Type, &vendor);
+        CFNumberGetValue((CFNumberRef)property, (CFNumberType)kCFNumberSInt32Type, (void*)&vendor);
 
     property = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDProductIDKey));
     if (property)
-        CFNumberGetValue(property, kCFNumberSInt32Type, &product);
+        CFNumberGetValue((CFNumberRef)property, kCFNumberSInt32Type, (void*)&product);
 
     property = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDVersionNumberKey));
     if (property)
-        CFNumberGetValue(property, kCFNumberSInt32Type, &version);
+        CFNumberGetValue((CFNumberRef)property, (CFNumberType)kCFNumberSInt32Type, (void*)&version);
 
     if (vendor && product) {
         MG_SPRINTF(gamepad->guid, "03000000%02x%02x0000%02x%02x0000%02x%02x0000",
@@ -2021,7 +2028,7 @@ void mg_osx_device_removed_callback(void *context, IOReturn result, void *sender
     CFNumberRef usageRef = (CFNumberRef)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDPrimaryUsageKey));
 	int usage = 0;
 	if (usageRef)
-		CFNumberGetValue(usageRef, kCFNumberIntType, &usage);
+		CFNumberGetValue((CFNumberRef)usageRef, (CFNumberType)kCFNumberIntType, (void*)&usage);
 
 	MG_UNUSED(context); MG_UNUSED(result); MG_UNUSED(sender); MG_UNUSED(device);
 	if (usage != kHIDUsage_GD_Joystick && usage != kHIDUsage_GD_GamePad && usage != kHIDUsage_GD_MultiAxisController) {

@@ -210,11 +210,11 @@ void drawGamepad(RGFW_window* w, mg_gamepad* gamepad) {
     colorIfPressed(w, gamepad, MG_BUTTON_RIGHT_TRIGGER);
     drawRect(480, 30, 26, 19, w);
 
-    const RGFW_point leftStick = RGFW_POINT(gamepad->axes[MG_AXIS_LEFT_X].value * 100.0f,
-                                      gamepad->axes[MG_AXIS_LEFT_Y].value * 100.0f);
+    const RGFW_point leftStick = RGFW_POINT((i32)(gamepad->axes[MG_AXIS_LEFT_X].value * 100.0f),
+                                      (i32)(gamepad->axes[MG_AXIS_LEFT_Y].value * 100.0f));
 
-    const RGFW_point rightStick = RGFW_POINT(gamepad->axes[MG_AXIS_RIGHT_X].value * 100.0f,
-                                       gamepad->axes[MG_AXIS_RIGHT_Y].value * 100.0f);
+    const RGFW_point rightStick = RGFW_POINT((i32)(gamepad->axes[MG_AXIS_RIGHT_X].value * 100.0f),
+                                       (i32)(gamepad->axes[MG_AXIS_RIGHT_Y].value * 100.0f));
 
     // Draw axis: left joystick
     glColor3f(0.3f, 0.3f, 0.3f);
@@ -243,8 +243,8 @@ void drawGamepad(RGFW_window* w, mg_gamepad* gamepad) {
 
     glColor3f(0.8f, 0.0f, 0.0f);
 
-    const RGFW_point trigger = RGFW_POINT(((((gamepad->axes[MG_AXIS_LEFT_TRIGGER].value) + 1)) / 2.0f) * 100.0f,
-                                                    ((((gamepad->axes[MG_AXIS_RIGHT_TRIGGER].value) + 1)) / 2.0f) * 100.0f);
+    const RGFW_point trigger = RGFW_POINT((i32)(((((gamepad->axes[MG_AXIS_LEFT_TRIGGER].value) + 1.0f)) / 2.0f) * 100.0f),
+                                                    (i32)(((((gamepad->axes[MG_AXIS_RIGHT_TRIGGER].value) + 1.0f)) / 2.0f) * 100.0f));
     drawRect(170, 30, 15, trigger.x, w);
 
     glColor3f(0.8f, 0.0f, 0.0f);
