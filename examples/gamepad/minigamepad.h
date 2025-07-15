@@ -1237,6 +1237,17 @@ mg_axis mg_get_gamepad_axis_platform(u32 axis) {
  */
 
 #if defined(MG_WINDOWS)
+
+#ifdef __cplusplus
+#define MG_WINDOWS_REF(g) *(g)
+#else
+#define MG_WINDOWS_REF(g) (g)
+#endif
+	extern "C" {
+#endif
+
+
+
 #include <xinput.h>
 #include <dinput.h>
 
@@ -1401,7 +1412,7 @@ BOOL CALLBACK DirectInputEnumDevicesCallback(LPCDIDEVICEINSTANCE inst, LPVOID us
     gamepad = mg_gamepad_find(gamepads);
     gamepad->src.device = NULL;
 
-    if (FAILED(IDirectInput8_CreateDevice((IDirectInput8*)gamepads->src.dinput, &inst->guidInstance, (IDirectInputDevice8**)&gamepad->src.device, NULL))) {
+    if (FAILED(IDirectInput8_CreateDevice((IDirectInput8*)gamepads->src.dinput, MG_WINDOWS_REF(&inst->guidInstance), (IDirectInputDevice8**)&gamepad->src.device, NULL))) {
         mg_gamepad_release(gamepads, gamepad);
         return DIENUM_CONTINUE;
     }
@@ -1428,7 +1439,7 @@ BOOL CALLBACK DirectInputEnumDevicesCallback(LPCDIDEVICEINSTANCE inst, LPVOID us
         return DIENUM_CONTINUE;
     }
 
-   if (!WideCharToMultiByte(CP_UTF8, 0, (const unsigned short*)inst->tszInstanceName, -1, gamepad->name, sizeof(gamepad->name), NULL, NULL)) {
+   if (!WideCharToMultiByte(CP_UTF8, 0, (const wchar_t*)inst->tszInstanceName, -1, gamepad->name, sizeof(gamepad->name), NULL, NULL)) {
         mg_gamepad_release(gamepads, gamepad);
         return DIENUM_STOP;
     }
@@ -1545,7 +1556,7 @@ void mg_gamepads_init_platform(mg_gamepads* gamepads) {
 	if (DInput8CreateSrc) {
 		if (FAILED(DInput8CreateSrc(hInstance,
 									  DIRECTINPUT_VERSION,
-									  &MG_IID_IDirectInput8W,
+									  MG_WINDOWS_REF(&MG_IID_IDirectInput8W),
 									  (void**) &gamepads->src.dinput,
 									  NULL)) ||
 			FAILED(IDirectInput8_EnumDevices((IDirectInput8*)gamepads->src.dinput,
