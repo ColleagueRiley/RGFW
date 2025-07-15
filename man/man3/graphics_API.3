@@ -41,6 +41,9 @@ graphics_API \- Graphics_API
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glHints)"
 .br
 .ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glValue)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setGLHint\fP (RGFW_glHints hint, \fBi32\fP value)"
 .br
 .ti -1c
@@ -99,7 +102,7 @@ OpenGL init hints < set stencil buffer bit size (8 by default)
 < request no opengl errors
 .PP
 < the final hint (not for setting)
-.PP
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_glValue)"
 < RGFW_glProfile options
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_extensionSupported (const char * extension, size_t len)"
 check if whether the specified API extension is supported by the current OpenGL or OpenGL ES context 
