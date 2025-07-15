@@ -1042,7 +1042,7 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 	RGFW_errFailedFuncLoad,
 	RGFW_errBuffer,
 	RGFW_errEventQueue,
-	RGFW_infoMonitor, RGFW_infoWindow, RGFW_infoBuffer, RGFW_infoGlobal, RGFW_infoOpenGL,
+	RGFW_infoMonitor, RGFW_infoWindow, RGFW_infoBuffer, RGFW_infoGlobal, RGFW_infoOpenGL, 
 	RGFW_warningWayland, RGFW_warningOpenGL
 };
 
@@ -1436,7 +1436,6 @@ typedef struct RGFW_info {
     RGFW_window* current;
     i32 windowCount;
     i32 eventLen;
-    i32 eventIndex;
 
     RGFW_mouse* hiddenMouse;
     RGFW_event events[RGFW_MAX_EVENTS];
@@ -1908,7 +1907,6 @@ i32 RGFW_init_ptr(RGFW_info* info) {
     _RGFW->current = NULL;
     _RGFW->windowCount = -1;
     _RGFW->eventLen = 0;
-    _RGFW->eventIndex = 0;
     _RGFW->windowCount = 0;
 
     RGFW_MEMSET(_RGFW, 0, sizeof(RGFW_info));
@@ -1934,23 +1932,27 @@ void RGFW_deinit_ptr(RGFW_info* info) {
 
 
 void RGFW_eventQueuePush(RGFW_event event) {
-	if (_RGFW->eventLen >= RGFW_MAX_EVENTS) return;
-	_RGFW->events[_RGFW->eventLen] = event;
-    _RGFW->eventLen++;
+	RGFW_ASSERT(_RGFW->eventLen >= 0);
+
+	if (_RGFW->eventLen >= RGFW_MAX_EVENTS) {
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errEventQueue, RGFW_DEBUG_CTX(NULL, 0), "Event queue limit 'RGFW_MAX_EVENTS' has been reaeched.");
+		return;
+	}
+
+	_RGFW->eventLen += 1;
+	_RGFW->events[RGFW_MAX_EVENTS - _RGFW->eventLen] = event;
 }
 
 RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
+	RGFW_ASSERT(_RGFW->eventLen >= 0 && _RGFW->eventLen <= RGFW_MAX_EVENTS);
 	RGFW_event* ev;
-    if (_RGFW->eventLen == 0) return NULL;
 
-	ev = (RGFW_event*)&_RGFW->events[_RGFW->eventIndex];
+  if (_RGFW->eventLen == 0) {
+		return NULL;
+	}
 
-    _RGFW->eventLen--;
-    if (_RGFW->eventLen >= 0 && _RGFW->eventIndex < _RGFW->eventLen) {
-		_RGFW->eventIndex++;
-    } else if (_RGFW->eventLen == 0) {
-        _RGFW->eventIndex = 0;
-    }
+	ev = &_RGFW->events[RGFW_MAX_EVENTS - _RGFW->eventLen];
+	_RGFW->eventLen -= 1;
 
 	if (ev->_win != win && ev->_win != NULL) {
         RGFW_eventQueuePush(*ev);
@@ -3068,20 +3070,23 @@ void RGFW_wl_xdg_toplevel_configure_handler(void *data,
         if (win == NULL)
             return;
     }
-    // first configure
-    if (width <= 0 || height <= 0) {
-        width = win->src.r.w;
-        height = win->src.r.h;
-    }
 
-    RGFW_window_checkMode(win);
-   	if (width != win->src.r.w || height != win->src.r.h) {
-			win->src.r = win->r = RGFW_RECT(win->src.r.x, win->src.r.y, width, height);
+	enum xdg_toplevel_state* state;
+	wl_array_for_each(state, states) {
+		switch (*state) {
+			case XDG_TOPLEVEL_STATE_RESIZING:
+				RGFW_window_checkMode(win);
+				win->src.r = win->r = RGFW_RECT(win->src.r.x, win->src.r.y, width, height);
 
-			RGFW_eventQueuePushEx(e.type = RGFW_windowResized; e.point = RGFW_POINT(width, height); e._win = win);
-			RGFW_windowResizedCallback(win, win->r);
+				RGFW_eventQueuePushEx(e.type = RGFW_windowResized; e.point = RGFW_POINT(width, height); e._win = win);
+				RGFW_windowResizedCallback(win, win->r);
 
-			RGFW_window_resize(win, RGFW_AREA(width, height));
+				RGFW_window_resize(win, RGFW_AREA(width, height));
+				break;
+			default:
+				break;
+		}
+
 	}
 
 	RGFW_UNUSED(data); RGFW_UNUSED(states);
@@ -3097,6 +3102,13 @@ void RGFW_wl_xdg_toplevel_close_handler(void *data,
 
 	RGFW_eventQueuePushEx(e.type = RGFW_quit; e._win = win);
 	RGFW_windowQuitCallback(win);
+}
+
+void RGFW_wl_xdg_decoration_configure_handler(void *data,
+			  struct zxdg_toplevel_decoration_v1 *zxdg_toplevel_decoration_v1,
+			  uint32_t mode) {
+	RGFW_UNUSED(data);
+	zxdg_toplevel_decoration_v1_set_mode(zxdg_toplevel_decoration_v1, mode);
 }
 
 void RGFW_wl_shm_format_handler(void *data,
@@ -4022,6 +4034,11 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 					_RGFW->decoration_manager, win->src.xdg_toplevel);
 	}
 
+	static const struct zxdg_toplevel_decoration_v1_listener xdg_decoration_listener = {
+			.configure = RGFW_wl_xdg_decoration_configure_handler
+	};
+
+	zxdg_toplevel_decoration_v1_add_listener(win->src.decoration, &xdg_decoration_listener, NULL);
 	wl_display_roundtrip(win->src.wl_display);
 
 	wl_surface_commit(win->src.surface);
@@ -4048,6 +4065,10 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	RGFW_window_setMouseDefault(win);
 	RGFW_window_setFlags(win, flags);
 	wl_registry_destroy(registry);
+	if (_RGFW->decoration_manager != NULL)
+		zxdg_decoration_manager_v1_destroy(_RGFW->decoration_manager);
+
+		
 
 	return win; /* return newly created window */
 #endif
@@ -5586,6 +5607,9 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 		RGFW_STRNCPY(monitor.name, info->name, sizeof(monitor.name) - 1);
 		monitor.name[sizeof(monitor.name) - 1] = '\0';
 
+		XRRFreeOutputInfo(info);
+		info = NULL;
+
 	if ((u8)physW && (u8)physH) {
 		monitor.physW = physW;
 		monitor.physH = physH;
@@ -5910,6 +5934,13 @@ void RGFW_window_close(RGFW_window* win) {
 								RGFW_FREE(win->buffer);
 					munmap(win->src.buffer, (size_t)(win->r.w * win->r.h * 4));
     	#endif
+
+    	
+				wl_shm_destroy(win->src.shm);
+				
+				// wl_keyboard_release(win->src.keyboard); // keryboard is never set
+				wl_seat_release(win->src.seat);
+				zxdg_toplevel_decoration_v1_destroy(win->src.decoration);
 
         xdg_toplevel_destroy(win->src.xdg_toplevel);
         xdg_surface_destroy(win->src.xdg_surface);
