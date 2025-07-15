@@ -1041,6 +1041,7 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 	RGFW_errClipboard,
 	RGFW_errFailedFuncLoad,
 	RGFW_errBuffer,
+	RGFW_errEventQueue,
 	RGFW_infoMonitor, RGFW_infoWindow, RGFW_infoBuffer, RGFW_infoGlobal, RGFW_infoOpenGL,
 	RGFW_warningWayland, RGFW_warningOpenGL
 };
