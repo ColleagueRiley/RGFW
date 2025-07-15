@@ -965,22 +965,22 @@ function dbg(text) {
 // === Body ===
 
 var ASM_CONSTS = {
-  418384: () => { Module.canvas.focus(); },  
- 418409: () => { window.addEventListener("keydown", (event) => { var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(key, code, 1); _free(key); _free(code); }, true); window.addEventListener("keyup", (event) => { var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(key, code, 0); _free(key); _free(code); }, true); },  
- 419355: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; Module._RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 420381: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 420452: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 420509: () => { return window.mouseX || 0; },  
- 420540: () => { return window.mouseY || 0; },  
- 420571: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 420718: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 420771: ($0, $1, $2, $3, $4) => { var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4); let context = document.getElementById("canvas").getContext("2d"); let image = context.getImageData(0, 0, $1, $2); image.data.set(data); context.putImageData(image, 0, $4 - $2); },  
- 421006: () => { return window.innerWidth; },  
- 421036: () => { return window.innerHeight; },  
- 421067: ($0, $1) => { var ext = UTF8ToString($0, $1); var canvas = document.querySelector('canvas'); var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl'); if (!gl) return 0; var supported = gl.getSupportedExtensions(); return supported && supported.includes(ext) ? 1 : 0; },  
- 421347: () => { Module.requestFullscreen(false, true); },  
- 421386: () => { Module.exitFullscreen(false, true); },  
- 421422: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
+  418240: () => { Module.canvas.focus(); },  
+ 418265: () => { window.addEventListener("keydown", (event) => { var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(key, code, 1); _free(key); _free(code); }, true); window.addEventListener("keyup", (event) => { var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(key, code, 0); _free(key); _free(code); }, true); },  
+ 419211: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; Module._RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; ++i) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
+ 420237: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 420308: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 420365: () => { return window.mouseX || 0; },  
+ 420396: () => { return window.mouseY || 0; },  
+ 420427: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
+ 420574: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 420627: ($0, $1, $2, $3, $4) => { var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4); let context = document.getElementById("canvas").getContext("2d"); let image = context.getImageData(0, 0, $1, $2); image.data.set(data); context.putImageData(image, 0, $4 - $2); },  
+ 420862: () => { return window.innerWidth; },  
+ 420892: () => { return window.innerHeight; },  
+ 420923: ($0, $1) => { var ext = UTF8ToString($0, $1); var canvas = document.querySelector('canvas'); var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl'); if (!gl) return 0; var supported = gl.getSupportedExtensions(); return supported && supported.includes(ext) ? 1 : 0; },  
+ 421203: () => { Module.requestFullscreen(false, true); },  
+ 421242: () => { Module.exitFullscreen(false, true); },  
+ 421278: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
 };
 
 
@@ -4146,6 +4146,15 @@ var ASM_CONSTS = {
       return runEmAsmFunction(code, sigPtr, argbuf);
     };
 
+  var _emscripten_get_now;
+      // Modern environment where performance.now() is supported:
+      // N.B. a shorter form "_emscripten_get_now = performance.now;" is
+      // unfortunately not allowed even in current browsers (e.g. FF Nightly 75).
+      _emscripten_get_now = () => performance.now();
+  ;
+
+  var _emscripten_memcpy_js = (dest, src, num) => HEAPU8.copyWithin(dest, src, src + num);
+
   
   var withStackSave = (f) => {
       var stack = stackSave();
@@ -4281,70 +4290,6 @@ var ASM_CONSTS = {
       },
   };
   
-  var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
-      assert(typeof maxBytesToWrite == 'number', 'stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
-      return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
-    };
-  var fillGamepadEventData = (eventStruct, e) => {
-      HEAPF64[((eventStruct)>>3)] = e.timestamp;
-      for (var i = 0; i < e.axes.length; ++i) {
-        HEAPF64[(((eventStruct+i*8)+(16))>>3)] = e.axes[i];
-      }
-      for (var i = 0; i < e.buttons.length; ++i) {
-        if (typeof e.buttons[i] == 'object') {
-          HEAPF64[(((eventStruct+i*8)+(528))>>3)] = e.buttons[i].value;
-        } else {
-          HEAPF64[(((eventStruct+i*8)+(528))>>3)] = e.buttons[i];
-        }
-      }
-      for (var i = 0; i < e.buttons.length; ++i) {
-        if (typeof e.buttons[i] == 'object') {
-          HEAP32[(((eventStruct+i*4)+(1040))>>2)] = e.buttons[i].pressed;
-        } else {
-          // Assigning a boolean to HEAP32, that's ok, but Closure would like to warn about it:
-          /** @suppress {checkTypes} */
-          HEAP32[(((eventStruct+i*4)+(1040))>>2)] = e.buttons[i] == 1;
-        }
-      }
-      HEAP32[(((eventStruct)+(1296))>>2)] = e.connected;
-      HEAP32[(((eventStruct)+(1300))>>2)] = e.index;
-      HEAP32[(((eventStruct)+(8))>>2)] = e.axes.length;
-      HEAP32[(((eventStruct)+(12))>>2)] = e.buttons.length;
-      stringToUTF8(e.id, eventStruct + 1304, 64);
-      stringToUTF8(e.mapping, eventStruct + 1368, 64);
-    };
-  var _emscripten_get_gamepad_status = (index, gamepadState) => {
-      if (!JSEvents.lastGamepadState) throw 'emscripten_get_gamepad_status() can only be called after having first called emscripten_sample_gamepad_data() and that function has returned EMSCRIPTEN_RESULT_SUCCESS!';
-      // INVALID_PARAM is returned on a Gamepad index that never was there.
-      if (index < 0 || index >= JSEvents.lastGamepadState.length) return -5;
-  
-      // NO_DATA is returned on a Gamepad index that was removed.
-      // For previously disconnected gamepads there should be an empty slot (null/undefined/false) at the index.
-      // This is because gamepads must keep their original position in the array.
-      // For example, removing the first of two gamepads produces [null/undefined/false, gamepad].
-      if (!JSEvents.lastGamepadState[index]) return -7;
-  
-      fillGamepadEventData(gamepadState, JSEvents.lastGamepadState[index]);
-      return 0;
-    };
-
-  var _emscripten_get_now;
-      // Modern environment where performance.now() is supported:
-      // N.B. a shorter form "_emscripten_get_now = performance.now;" is
-      // unfortunately not allowed even in current browsers (e.g. FF Nightly 75).
-      _emscripten_get_now = () => performance.now();
-  ;
-
-  var _emscripten_get_num_gamepads = () => {
-      if (!JSEvents.lastGamepadState) throw 'emscripten_get_num_gamepads() can only be called after having first called emscripten_sample_gamepad_data() and that function has returned EMSCRIPTEN_RESULT_SUCCESS!';
-      // N.B. Do not call emscripten_get_num_gamepads() unless having first called emscripten_sample_gamepad_data(), and that has returned EMSCRIPTEN_RESULT_SUCCESS.
-      // Otherwise the following line will throw an exception.
-      return JSEvents.lastGamepadState.length;
-    };
-
-  var _emscripten_memcpy_js = (dest, src, num) => HEAPU8.copyWithin(dest, src, src + num);
-
-  
   var setLetterbox = (element, topBottom, leftRight) => {
       // Cannot use margin to specify letterboxes in FF or Chrome, since those ignore margins in fullscreen mode.
       element.style.paddingLeft = element.style.paddingRight = leftRight + 'px';
@@ -4387,6 +4332,10 @@ var ASM_CONSTS = {
   
   
   
+  var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
+      assert(typeof maxBytesToWrite == 'number', 'stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
+      return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
+    };
   var stringToUTF8OnStack = (str) => {
       var size = lengthBytesUTF8(str) + 1;
       var ret = stackAlloc(size);
@@ -4724,18 +4673,6 @@ var ASM_CONSTS = {
       return false;
     };
 
-  /** @suppress {checkTypes} */
-  var _emscripten_sample_gamepad_data = () => {
-      try {
-        if (navigator.getGamepads) return (JSEvents.lastGamepadState = navigator.getGamepads())
-          ? 0 : -1;
-      } catch(e) {
-        err(`navigator.getGamepads() exists, but failed to execute with exception ${e}. Disabling Gamepad access.`);
-        navigator.getGamepads = null; // Disable getGamepads() so that it won't be attempted to be used again.
-      }
-      return -1;
-    };
-
 
   
   
@@ -4828,41 +4765,6 @@ var ASM_CONSTS = {
       registerFullscreenChangeEventCallback(target, userData, useCapture, callbackfunc, 19, "webkitfullscreenchange", targetThread);
   
       return registerFullscreenChangeEventCallback(target, userData, useCapture, callbackfunc, 19, "fullscreenchange", targetThread);
-    };
-
-  
-  
-  
-  var registerGamepadEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
-      if (!JSEvents.gamepadEvent) JSEvents.gamepadEvent = _malloc(1432);
-  
-      var gamepadEventHandlerFunc = (e = event) => {
-        var gamepadEvent = JSEvents.gamepadEvent;
-        fillGamepadEventData(gamepadEvent, e["gamepad"]);
-  
-        if (((a1, a2, a3) => dynCall_iiii.apply(null, [callbackfunc, a1, a2, a3]))(eventTypeId, gamepadEvent, userData)) e.preventDefault();
-      };
-  
-      var eventHandler = {
-        target: findEventTarget(target),
-        allowsDeferredCalls: true,
-        eventTypeString,
-        callbackfunc,
-        handlerFunc: gamepadEventHandlerFunc,
-        useCapture
-      };
-      return JSEvents.registerOrRemoveHandler(eventHandler);
-    };
-  
-  var _emscripten_set_gamepadconnected_callback_on_thread = (userData, useCapture, callbackfunc, targetThread) => {
-      if (_emscripten_sample_gamepad_data()) return -1;
-      return registerGamepadEventCallback(2, userData, useCapture, callbackfunc, 26, "gamepadconnected", targetThread);
-    };
-
-  
-  var _emscripten_set_gamepaddisconnected_callback_on_thread = (userData, useCapture, callbackfunc, targetThread) => {
-      if (_emscripten_sample_gamepad_data()) return -1;
-      return registerGamepadEventCallback(2, userData, useCapture, callbackfunc, 27, "gamepaddisconnected", targetThread);
     };
 
   
@@ -6750,11 +6652,7 @@ var wasmImports = {
   /** @export */
   emscripten_asm_const_int: _emscripten_asm_const_int,
   /** @export */
-  emscripten_get_gamepad_status: _emscripten_get_gamepad_status,
-  /** @export */
   emscripten_get_now: _emscripten_get_now,
-  /** @export */
-  emscripten_get_num_gamepads: _emscripten_get_num_gamepads,
   /** @export */
   emscripten_memcpy_js: _emscripten_memcpy_js,
   /** @export */
@@ -6764,8 +6662,6 @@ var wasmImports = {
   /** @export */
   emscripten_resize_heap: _emscripten_resize_heap,
   /** @export */
-  emscripten_sample_gamepad_data: _emscripten_sample_gamepad_data,
-  /** @export */
   emscripten_set_canvas_element_size: _emscripten_set_canvas_element_size,
   /** @export */
   emscripten_set_focusin_callback_on_thread: _emscripten_set_focusin_callback_on_thread,
@@ -6773,10 +6669,6 @@ var wasmImports = {
   emscripten_set_focusout_callback_on_thread: _emscripten_set_focusout_callback_on_thread,
   /** @export */
   emscripten_set_fullscreenchange_callback_on_thread: _emscripten_set_fullscreenchange_callback_on_thread,
-  /** @export */
-  emscripten_set_gamepadconnected_callback_on_thread: _emscripten_set_gamepadconnected_callback_on_thread,
-  /** @export */
-  emscripten_set_gamepaddisconnected_callback_on_thread: _emscripten_set_gamepaddisconnected_callback_on_thread,
   /** @export */
   emscripten_set_mousedown_callback_on_thread: _emscripten_set_mousedown_callback_on_thread,
   /** @export */
@@ -6986,6 +6878,8 @@ var missingLibrarySymbols = [
   'registerPointerlockErrorEventCallback',
   'fillVisibilityChangeEventData',
   'registerVisibilityChangeEventCallback',
+  'fillGamepadEventData',
+  'registerGamepadEventCallback',
   'registerBeforeUnloadEventCallback',
   'fillBatteryEventData',
   'battery',
@@ -7142,8 +7036,6 @@ var unexportedSymbols = [
   'doRequestFullscreen',
   'requestPointerLock',
   'registerTouchEventCallback',
-  'fillGamepadEventData',
-  'registerGamepadEventCallback',
   'setCanvasElementSize',
   'getCanvasElementSize',
   'demangle',

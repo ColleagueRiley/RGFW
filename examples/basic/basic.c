@@ -13,7 +13,7 @@ void* myAlloc(size_t size, unsigned int line, const char* file) {
 
 void myFree(void* ptr, unsigned int line, const char* file) {
     counter--;
-    printf("%s:%i freed address %p\n", file, line, ptr); 
+    printf("%s:%i freed address %p\n", file, line, ptr);
     free(ptr);
 }
 
@@ -30,7 +30,7 @@ int main(void) {
     #ifdef RGFW_WINDOWS
     SetConsoleOutputCP(CP_UTF8);
 	#endif
- 
+
 	RGFW_setClassName("RGFW Example");
 	RGFW_window *win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND);
 	RGFW_window_makeCurrent(win);
@@ -60,15 +60,6 @@ int main(void) {
 					break;
 				case RGFW_mouseButtonReleased:
 					printf("button released: %u {%d, %d}\n", event->button, event->point.x, event->point.y);
-					break;
-				case RGFW_gamepadButtonPressed:
-					printf("pressed %d\n", event->button);
-					break;
-				case RGFW_gamepadButtonReleased:
-					printf("released %d\n", event->button);
-					break;
-				case RGFW_gamepadAxisMove:
-					printf("gamepad (%d) axis (%d) {%d, %d}\n", event->gamepad, event->whichAxis, event->axis[event->whichAxis].x, event->axis[event->whichAxis].y);
 					break;
 				case RGFW_DND:
 					printf("drag and drop: %dx%d:\n", event->point.x, event->point.y);

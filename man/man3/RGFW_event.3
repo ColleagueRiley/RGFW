@@ -1,4 +1,4 @@
-.TH "RGFW_event" 3 "Fri Jul 11 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_event" 3 "Tue Jul 15 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -45,18 +45,6 @@ RGFW_event
 .RI "double \fBscroll\fP"
 .br
 .ti -1c
-.RI "\fBu16\fP \fBgamepad\fP"
-.br
-.ti -1c
-.RI "\fBu8\fP \fBaxisesCount\fP"
-.br
-.ti -1c
-.RI "\fBu8\fP \fBwhichAxis\fP"
-.br
-.ti -1c
-.RI "\fBRGFW_point\fP \fBaxis\fP [4]"
-.br
-.ti -1c
 .RI "char ** \fBdroppedFiles\fP"
 .br
 .ti -1c
@@ -73,18 +61,12 @@ Event structure for checking/getting events
 .PP 
 .SS "void* RGFW_event::_win"
 the window this event applies too (for event queue events) 
-.SS "\fBRGFW_point\fP RGFW_event::axis[4]"
-x, y of axises (-100 to 100) 
-.SS "\fBu8\fP RGFW_event::axisesCount"
-which gamepad this event applies to (if applicable to any) number of axises 
 .SS "\fBu8\fP RGFW_event::button"
 
 .SS "char** RGFW_event::droppedFiles"
 drag and drop data dropped files 
 .SS "size_t RGFW_event::droppedFilesCount"
 house many files were dropped 
-.SS "\fBu16\fP RGFW_event::gamepad"
-
 .SS "\fBRGFW_key\fP RGFW_event::key"
 the physical key of the event, refers to where key is physically !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! 
 .SS "\fBu8\fP RGFW_event::keyChar"
@@ -105,8 +87,6 @@ the raw mouse scroll value
 which event has been sent? 
 .SS "\fBRGFW_point\fP RGFW_event::vector"
 raw mouse movement 
-.SS "\fBu8\fP RGFW_event::whichAxis"
-
 
 .SH "Author"
 .PP 

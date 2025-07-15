@@ -1,4 +1,4 @@
-.TH "RGFW_info" 3 "Fri Jul 11 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_info" 3 "Tue Jul 15 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -36,21 +36,6 @@ RGFW_info
 .RI "\fBu8\fP \fBkeycodes\fP [RGFW_OS_BASED_VALUE(256, 512, 128, 256)]"
 .br
 .ti -1c
-.RI "\fBRGFW_point\fP \fBgamepadAxes\fP [4][4]"
-.br
-.ti -1c
-.RI "RGFW_gamepadType \fBgamepads_type\fP [4]"
-.br
-.ti -1c
-.RI "\fBi32\fP \fBgamepads\fP [4]"
-.br
-.ti -1c
-.RI "char \fBgamepads_name\fP [4][128]"
-.br
-.ti -1c
-.RI "\fBu16\fP \fBgamepadCount\fP"
-.br
-.ti -1c
 .RI "const char * \fBclassName\fP"
 .br
 .ti -1c
@@ -85,16 +70,6 @@ RGFW_info
 
 .SS "\fBRGFW_event\fP RGFW_info::events[\fBRGFW_MAX_EVENTS\fP]"
 
-.SS "\fBRGFW_point\fP RGFW_info::gamepadAxes[4][4]"
-if a key is currently pressed or not (per gamepad) 
-.SS "\fBu16\fP RGFW_info::gamepadCount"
-the actual amount of gamepads 
-.SS "\fBi32\fP RGFW_info::gamepads[4]"
-limit of 4 gamepads at a time 
-.SS "char RGFW_info::gamepads_name[4][128]"
-gamepad names 
-.SS "RGFW_gamepadType RGFW_info::gamepads_type[4]"
-if a key is currently pressed or not (per gamepad) 
 .SS "\fBRGFW_mouse\fP* RGFW_info::hiddenMouse"
 
 .SS "\fBu8\fP RGFW_info::keycodes[RGFW_OS_BASED_VALUE(256, 512, 128, 256)]"
