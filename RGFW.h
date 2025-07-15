@@ -369,6 +369,9 @@ int main() {
 
 #if defined(_WIN32) && !defined(RGFW_X11) && !defined(RGFW_UNIX) && !defined(RGFW_WASM) && !defined(RGFW_CUSTOM_BACKEND) /* (if you're using X11 on windows some how) */
 	#define RGFW_WINDOWS
+	#define WIN32_LEAN_AND_MEAN
+	#define OEMRESOURCE
+	#include <windows.h>
 #endif
 #if defined(RGFW_WAYLAND)
 	#define RGFW_DEBUG /* wayland will be in debug mode by default for now */
@@ -1042,7 +1045,7 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 	RGFW_errFailedFuncLoad,
 	RGFW_errBuffer,
 	RGFW_errEventQueue,
-	RGFW_infoMonitor, RGFW_infoWindow, RGFW_infoBuffer, RGFW_infoGlobal, RGFW_infoOpenGL, 
+	RGFW_infoMonitor, RGFW_infoWindow, RGFW_infoBuffer, RGFW_infoGlobal, RGFW_infoOpenGL,
 	RGFW_warningWayland, RGFW_warningOpenGL
 };
 
@@ -3036,6 +3039,7 @@ Wayland TODO: (out of date)
 #include <dirent.h>
 #include <linux/kd.h>
 #include <wayland-cursor.h>
+#include <fcntl.h>
 
 RGFW_window* RGFW_key_win = NULL;
 
@@ -4068,7 +4072,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	if (_RGFW->decoration_manager != NULL)
 		zxdg_decoration_manager_v1_destroy(_RGFW->decoration_manager);
 
-		
+
 
 	return win; /* return newly created window */
 #endif
@@ -5935,9 +5939,9 @@ void RGFW_window_close(RGFW_window* win) {
 					munmap(win->src.buffer, (size_t)(win->r.w * win->r.h * 4));
     	#endif
 
-    	
+
 				wl_shm_destroy(win->src.shm);
-				
+
 				// wl_keyboard_release(win->src.keyboard); // keryboard is never set
 				wl_seat_release(win->src.seat);
 				zxdg_toplevel_decoration_v1_destroy(win->src.decoration);
@@ -5982,7 +5986,6 @@ void RGFW_stopCheckEvents(void) {
 void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 	if (waitMS == 0) return;
 
-	u8 i;
 	if (_RGFW->eventWait_forceStop[0] == 0 || _RGFW->eventWait_forceStop[1] == 0) {
 		if (pipe(_RGFW->eventWait_forceStop) != -1) {
 			fcntl(_RGFW->eventWait_forceStop[0], F_GETFL, 0);
