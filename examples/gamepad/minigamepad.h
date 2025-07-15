@@ -1239,10 +1239,10 @@ mg_axis mg_get_gamepad_axis_platform(u32 axis) {
 #if defined(MG_WINDOWS)
 
 #ifdef __cplusplus
-	#define MG_WINDOWS_REF(g) *(g)
+#define MG_REF_GUID(g) *(g)
 #else
-	#define MG_WINDOWS_REF(g) (g)
-endif
+#define MG_REF_GUID(g) (g)
+#endif
 
 #include <xinput.h>
 #include <dinput.h>
@@ -1408,7 +1408,7 @@ BOOL CALLBACK DirectInputEnumDevicesCallback(LPCDIDEVICEINSTANCE inst, LPVOID us
     gamepad = mg_gamepad_find(gamepads);
     gamepad->src.device = NULL;
 
-    if (FAILED(IDirectInput8_CreateDevice((IDirectInput8*)gamepads->src.dinput, MG_WINDOWS_REF(&inst->guidInstance), (IDirectInputDevice8**)&gamepad->src.device, NULL))) {
+    if (FAILED(IDirectInput8_CreateDevice((IDirectInput8*)gamepads->src.dinput, MG_REF_GUID(&inst->guidInstance), (IDirectInputDevice8**)&gamepad->src.device, NULL))) {
         mg_gamepad_release(gamepads, gamepad);
         return DIENUM_CONTINUE;
     }
@@ -1552,7 +1552,7 @@ void mg_gamepads_init_platform(mg_gamepads* gamepads) {
 	if (DInput8CreateSrc) {
 		if (FAILED(DInput8CreateSrc(hInstance,
 									  DIRECTINPUT_VERSION,
-									  MG_WINDOWS_REF(&MG_IID_IDirectInput8W),
+									  MG_REF_GUID(&MG_IID_IDirectInput8W),
 									  (void**) &gamepads->src.dinput,
 									  NULL)) ||
 			FAILED(IDirectInput8_EnumDevices((IDirectInput8*)gamepads->src.dinput,
