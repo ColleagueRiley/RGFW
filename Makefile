@@ -1,5 +1,5 @@
 # CUSTOM ARGS :
-# RGFW_WAYLAND=1 -> use wayland 
+# RGFW_WAYLAND=1 -> use wayland
 # NO_VULKAN=1 -> do not compile the vulkan example
 # NO_GLES=1 -> do not compile the gles example (on by default for non-linux OSes)
 # NO_OSMESA=1 -> do not compile the osmesa example (on by default for non-linux OSes)
@@ -10,7 +10,7 @@ AR ?= ar
 # used for compiling RGFW.o
 CUSTOM_CFLAGS =
 # used for the examples
-CFLAGS = 
+CFLAGS =
 
 DX11_LIBS = -static -lgdi32 -ldxgi -ld3d11 -luuid -ld3dcompiler
 VULKAN_LIBS = -lgdi32 -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
@@ -26,6 +26,7 @@ endif
 OS_DIR = \\
 
 NO_GLES = 1
+NO_EGL = 1
 detected_OS = windows
 
 OBJ_FILE = .o
@@ -56,7 +57,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		ifneq ($(WAYLAND_ONLY), 1)
 			LIBS = -lXrandr -lX11 -ldl -lpthread
 		else
-			LIBS = 
+			LIBS =
 		endif
 
 		VULKAN_LIBS = -lX11 -lXrandr -ldl -lpthread -lvulkan
@@ -64,6 +65,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		LIB_EXT = .so
 		OS_DIR = /
 		NO_GLES = 0
+		NO_EGL = 0
 		NO_OSMESA ?= 0
 	endif
 	ifeq ($(detected_OS),NetBSD)
@@ -76,6 +78,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		LIB_EXT = .so
 		OS_DIR = /
 		NO_GLES = 0
+		NO_EGL = 0
 		NO_OSMESA ?= 0
 		NO_VULKAN = 1
 	endif
@@ -90,50 +93,52 @@ endif
 ifeq ($(RGFW_WAYLAND),1)
 	NO_VULKAN = 1
 	NO_GLES = 0
+	NO_EGL = 0
 	NO_OSMESA ?= 0
-	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl
-	LINK_GL1 = -lEGL -lGL 
+	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL
+	LINK_GL1 = -lEGL -lGL
 
 	ifeq ($(WAYLAND_ONLY), 1)
-		LIBS += -D RGFW_NO_X11 
+		LIBS += -D RGFW_NO_X11
 	endif
 endif
 
 LINK_GL3 =
 LINK_GL2 =
-LINK_OSMESA = 
+LINK_OSMESA =
 
 ifneq (,$(filter $(CC),cl /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	WARNINGS = -Wall -wd4668 -wd4820 -wd5045
-	LIBS = /static
+	LIBS =
 	DX11_LIBS =
-	VULKAN_LIBS = 
+	VULKAN_LIBS =
 	OBJ_FILE = .obj
 	NO_OSMESA ?= 0
 else ifneq (,$(filter $(CC),emcc em++))
 	DX11_LIBS =
 	LINK_GL1 = -s LEGACY_GL_EMULATION -D LEGACY_GL_EMULATION -sGL_UNSAFE_OPTS=0
-	LINK_GL3 = -s FULL_ES3 -s USE_WEBGL2 
+	LINK_GL3 = -s FULL_ES3 -s USE_WEBGL2
 	LINK_GL2 = -s FULL_ES2 -s USE_WEBGL2
 	LINK_OSMESA = -sALLOW_MEMORY_GROWTH
 	EXPORTED_JS = -s EXPORTED_RUNTIME_METHODS="['stringToNewUTF8']"
 	LIBS = -s WASM=1 -s ASYNCIFY -s GL_SUPPORT_EXPLICIT_SWAP_CONTROL=1 $(EXPORTED_JS)
 	EXT = .js
 	NO_GLES = 0
+	NO_EGL = 0
 	NO_VULKAN = 1
 	detected_OS = web
 	NO_OSMESA ?= 1
 	DX11_LIBS =
 else ifeq (,$(filter $(CC),g++ clang++ em++))
 	LIBS += -std=c99
-	WARNINGS = -Werror -Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn 
+	WARNINGS = -Werror -Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
 
-	WARNINGS = -Wall -Werror -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn 
+	WARNINGS = -Wall -Werror -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
 else
 	WARNINGS = -Wall -Werror -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
 
 	NO_VULKAN = 1
-	ifeq ($(detected_OS),Darwin)  
+	ifeq ($(detected_OS),Darwin)
 		WARNINGS += -Wno-deprecated -Wno-unknown-warning-option -Wno-pedantic
 	endif
 endif
@@ -162,6 +167,7 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/gl33/gl33 \
 	examples/portableGL/pgl \
 	examples/gles2/gles2 \
+	examples/egl/egl \
 	examples/osmesa_demo/osmesa_demo \
 	examples/vk10/vk10 \
 	examples/dx11/dx11 \
@@ -183,17 +189,26 @@ endif
 
 examples/portableGL/pgl: examples/portableGL/pgl.c RGFW.h
 ifeq (,$(filter $(CC),emcc em++))
-	$(CC)  -w $(CFLAGS) -I. $< -lm $(LIBS) -o $@ 
+	$(CC)  -w $(CFLAGS) -I. $< -lm $(LIBS) -o $@
 else
 	@echo "the portableGL example doesn't support html5"
 endif
 
 examples/gles2/gles2: examples/gles2/gles2.c RGFW.h
 ifneq ($(NO_GLES), 1)
-	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lEGL -lGL -o $@$(EXT)
+	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lGL -o $@$(EXT)
 else
 	@echo gles has been disabled
 endif
+
+examples/egl/egl: examples/egl/egl.c RGFW.h
+ifneq ($(NO_EGL), 1)
+	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL1) -lGL -lEGL -o $@$(EXT)
+else
+	@echo egl has been disabled
+endif
+
+
 
 examples/osmesa_demo/osmesa_demo: examples/osmesa_demo/osmesa_demo.c RGFW.h
 ifneq ($(NO_OSMESA), 1)
@@ -329,7 +344,7 @@ debug: all
 		echo "Running $$exe..."; \
 		.$(OS_DIR)$$exe$(EXT); \
 	done
-	
+
 	./examples/icons/icons
 	./examples/silk/silk
 	./examples/gamepad/gamepad
@@ -379,16 +394,16 @@ ifeq ($(RGFW_WAYLAND),1)
 	wayland-scanner client-header /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml xdg-shell.h
 	wayland-scanner public-code /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml xdg-shell.c
 	wayland-scanner client-header /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.h
-	wayland-scanner public-code /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.c	
-	wayland-scanner client-header /usr/share/wayland-protocols/unstable/relative-pointer/relative-pointer-unstable-v1.xml relative-pointer-unstable-v1-client-protocol.h 
+	wayland-scanner public-code /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.c
+	wayland-scanner client-header /usr/share/wayland-protocols/unstable/relative-pointer/relative-pointer-unstable-v1.xml relative-pointer-unstable-v1-client-protocol.h
 	wayland-scanner client-header /usr/share/wayland-protocols/unstable/relative-pointer/relative-pointer-unstable-v1.xml relative-pointer-unstable-v1-client-protocol.c
 else
-		
+
 endif
 
 clean:
-	rm -f *.o *.obj *.dll .dylib *.a *.so $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)  .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.exe .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.js .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.wasm 
-	
+	rm -f *.o *.obj *.dll .dylib *.a *.so $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)  .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.exe .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.js .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.wasm
+
 
 .PHONY: all examples clean
 
