@@ -95,7 +95,7 @@ ifeq ($(RGFW_WAYLAND),1)
 	NO_GLES = 0
 	NO_EGL = 0
 	NO_OSMESA ?= 0
-	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl
+	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL
 	LINK_GL1 = -lEGL -lGL
 
 	ifeq ($(WAYLAND_ONLY), 1)
@@ -203,7 +203,7 @@ endif
 
 examples/egl/egl: examples/egl/egl.c RGFW.h
 ifneq ($(NO_EGL), 1)
-	$(CC)  $(CFLAGS) -I. $< $(LIBS) -lGL -lEGL -o $@$(EXT)
+	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL1) -lGL -lEGL -o $@$(EXT)
 else
 	@echo egl has been disabled
 endif
