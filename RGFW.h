@@ -2521,6 +2521,9 @@ RGFW_bool RGFW_extensionSupported(const char* extension, size_t len) {
 	#define WGL_TYPE_RGBA_ARB                         0x202B
 
 	#define WGL_TRANSPARENT_ARB   					  0x200A
+	#ifndef WGL_CONTEXT_ES_PROFILE_BIT_EXT
+		#define WGL_CONTEXT_ES_PROFILE_BIT_EXT		0x00000004
+	#endif
 #endif
 
 /*  The window'ing api needs to know how to render the data we (or opengl) give it
