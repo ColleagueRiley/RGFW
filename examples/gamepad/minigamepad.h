@@ -1935,15 +1935,15 @@ void mg_osx_device_added_callback(void* context, IOReturn result, void *sender, 
 
     property = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDVendorIDKey));
     if (property)
-        CFNumberGetValue(property, kCFNumberSInt32Type, &vendor);
+        CFNumberGetValue((CFNumberRef)property, (CFNumberType)kCFNumberSInt32Type, (void*)&vendor);
 
     property = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDProductIDKey));
     if (property)
-        CFNumberGetValue(property, kCFNumberSInt32Type, &product);
+        CFNumberGetValue((CFNumberRef)property, kCFNumberSInt32Type, (void*)&product);
 
     property = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDVersionNumberKey));
     if (property)
-        CFNumberGetValue(property, kCFNumberSInt32Type, &version);
+        CFNumberGetValue((CFNumberRef)property, (CFNumberType)kCFNumberSInt32Type, (void*)&version);
 
     if (vendor && product) {
         MG_SPRINTF(gamepad->guid, "03000000%02x%02x0000%02x%02x0000%02x%02x0000",
@@ -2021,7 +2021,7 @@ void mg_osx_device_removed_callback(void *context, IOReturn result, void *sender
     CFNumberRef usageRef = (CFNumberRef)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDPrimaryUsageKey));
 	int usage = 0;
 	if (usageRef)
-		CFNumberGetValue(usageRef, kCFNumberIntType, &usage);
+		CFNumberGetValue((CFNumberRef)uusageRef, (CFNumberType)kCFNumberIntType, (void*)&usage);
 
 	MG_UNUSED(context); MG_UNUSED(result); MG_UNUSED(sender); MG_UNUSED(device);
 	if (usage != kHIDUsage_GD_Joystick && usage != kHIDUsage_GD_GamePad && usage != kHIDUsage_GD_MultiAxisController) {
