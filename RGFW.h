@@ -2428,8 +2428,8 @@ void RGFW_moveToMacOSResourceDir(void) { }
 
 /* EGL, OpenGL */
 i32 RGFW_GL_HINTS[RGFW_glHintsCount] = {
-	/* RGFW_glStencil         */ 8,
-	/* RGFW_glSamples         */ 4,
+	/* RGFW_glStencil         */ 0,
+	/* RGFW_glSamples         */ 0,
 	/* RGFW_glStereo          */ RGFW_FALSE,
 	/* RGFW_glAuxBuffers      */ 0,
 	/* RGFW_glDoubleBuffer    */ RGFW_TRUE,
