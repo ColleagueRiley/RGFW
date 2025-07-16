@@ -2449,6 +2449,7 @@ i32 RGFW_GL_HINTS[RGFW_glHintsCount] = {
 	/* RGFW_glReleaseBehavior */ RGFW_glReleaseNone,
 	/* RGFW_glProfile         */ RGFW_glCore,
 	/* RGFW_glMajor           */ 1,
+	/* RGFW_glMinor           */ 0,
 };
 
 
