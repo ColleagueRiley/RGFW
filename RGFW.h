@@ -1163,8 +1163,8 @@ RGFWDEF void RGFW_window_freeOpenGL(RGFW_window* win);
 
 /*! OpenGL init hints */
 typedef RGFW_ENUM(i32, RGFW_glHints)  {
-	RGFW_glStencil = 0,  /*!< set stencil buffer bit size (8 by default) */
-	RGFW_glSamples, /*!< set number of sample buffers (4 by default) */
+	RGFW_glStencil = 0,  /*!< set stencil buffer bit size (0 by default) */
+	RGFW_glSamples, /*!< set number of sample buffers (0 by default) */
 	RGFW_glStereo, /*!< hint the context to use stereoscopic frame buffers for 3D (false by default) */
 	RGFW_glAuxBuffers, /*!< number of aux buffers (0 by default) */
 	RGFW_glDoubleBuffer, /*!< request double buffering (true by default) */
@@ -2428,8 +2428,8 @@ void RGFW_moveToMacOSResourceDir(void) { }
 
 /* EGL, OpenGL */
 i32 RGFW_GL_HINTS[RGFW_glHintsCount] = {
-	/* RGFW_glStencil         */ 8,
-	/* RGFW_glSamples         */ 4,
+	/* RGFW_glStencil         */ 0,
+	/* RGFW_glSamples         */ 0,
 	/* RGFW_glStereo          */ RGFW_FALSE,
 	/* RGFW_glAuxBuffers      */ 0,
 	/* RGFW_glDoubleBuffer    */ RGFW_TRUE,
