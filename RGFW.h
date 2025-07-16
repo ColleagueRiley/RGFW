@@ -1190,15 +1190,15 @@ typedef RGFW_ENUM(i32, RGFW_glValue)  {
 RGFWDEF void RGFW_setGLHint(RGFW_glHints hint, i32 value);
 RGFWDEF i32 RGFW_getGLHint(RGFW_glHints hint);
 
-RGFWDEF RGFW_bool RGFW_extensionSupported(const char* extension, size_t len);	/*!< check if whether the specified API extension is supported by the current OpenGL or OpenGL ES context */
-RGFWDEF RGFW_proc RGFW_getProcAddress(const char* procname); /*!< get native OpenGL proc address */
-
 RGFWDEF void RGFW_window_makeCurrent_OpenGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
 RGFWDEF void RGFW_window_swapBuffers_OpenGL(RGFW_window* win); /*!< swap OpenGL buffer (only) called by RGFW_window_swapInterval  */
 
-void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl))*/
+RGFWDEF void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl))*/
 
+RGFWDEF RGFW_proc RGFW_getProcAddress(const char* procname); /*!< get native OpenGL proc address */
+RGFWDEF RGFW_bool RGFW_extensionSupported(const char* extension, size_t len);	/*!< check if whether the specified API extension is supported by the current OpenGL or OpenGL ES context */
 RGFWDEF RGFW_bool RGFW_extensionSupportedPlatform(const char* extension, size_t len);	/*!< check if whether the specified platform-specific API extension is supported by the current OpenGL or OpenGL ES context */
+
 #endif
 #ifdef RGFW_VULKAN
 	#if defined(RGFW_WAYLAND) && defined(RGFW_X11)
