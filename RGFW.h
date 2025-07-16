@@ -2095,7 +2095,7 @@ void RGFW_window_initBuffer(RGFW_window* win) {
 void RGFW_window_initBufferSize(RGFW_window* win, RGFW_area area) {
 	RGFW_ASSERT(win != NULL);
 
-#ifndef RGFW_WINDOWS
+#if !defined RGFW_WINDOWS && defined RGFW_BUFFER
 	u8* buffer = (u8*)RGFW_ALLOC(area.w * area.h * 4);
 	if (buffer != NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOutOfMemory, RGFW_DEBUG_CTX(NULL, 0), "Ran out of memory when allocating a buffer.");
