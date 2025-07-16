@@ -38,19 +38,16 @@ graphics_API \- Graphics_API
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_freeOpenGL\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glHints)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_glHints)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glValue)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_glValue)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setGLHint\fP (RGFW_glHints hint, \fBi32\fP value)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_extensionSupported\fP (const char *extension, size_t len)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_proc\fP \fBRGFW_getProcAddress\fP (const char *procname)"
+.RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_getGLHint\fP (RGFW_glHints hint)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent_OpenGL\fP (\fBRGFW_window\fP *win)"
@@ -59,7 +56,13 @@ graphics_API \- Graphics_API
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_swapBuffers_OpenGL\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "void * \fBRGFW_getCurrent_OpenGL\fP (void)"
+.RI "\fBRGFWDEF\fP void * \fBRGFW_getCurrent_OpenGL\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_proc\fP \fBRGFW_getProcAddress\fP (const char *procname)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_extensionSupported\fP (const char *extension, size_t len)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_extensionSupportedPlatform\fP (const char *extension, size_t len)"
@@ -78,31 +81,37 @@ graphics_API \- Graphics_API
 
 .SH "Function Documentation"
 .PP 
-.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_glHints)"
+.SS "typedef RGFW_ENUM (\fBi32\fP, RGFW_glHints)"
 OpenGL init hints < set stencil buffer bit size (8 by default)
 .PP
-< set number of sampiling buffers (4 by default)
+< set number of sample buffers (4 by default)
 .PP
-< use GL_STEREO (GL_FALSE by default)
+< hint the context to use stereoscopic frame buffers for 3D (false by default)
 .PP
 < number of aux buffers (0 by default)
 .PP
-< request double buffering
+< request double buffering (true by default)
 .PP
-< set RGBA bit sizes
+< set color bit sizes (all 8 by default)
 .PP
-< set accumulated RGBA bit sizes
+< set depth buffer bit size (24 by default)
 .PP
-< request sRGA
+< set accumulated RGBA bit sizes (all 0 by default)
 .PP
-< request a robust context
+< request sRGA format (false by default)
 .PP
-< request opengl debugging
+< request a 'robust' (as in memory-safe) context (false by default)\&. For more information check the overview section: https://registry.khronos.org/OpenGL/extensions/EXT/EXT_robustness.txt
 .PP
-< request no opengl errors
+< request OpenGL debugging (false by default)\&.
 .PP
-< the final hint (not for setting)
-.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_glValue)"
+< request no OpenGL errors (false by default)\&. This causes OpenGL errors to be undefined behavior\&. For more information check the overview section: https://registry.khronos.org/OpenGL/extensions/KHR/KHR_no_error.txt
+.PP
+< hint how the OpenGL driver should behave when changing contexts (RGFW_glReleaseNone by default)\&. For more information check the overview section: https://registry.khronos.org/OpenGL/extensions/KHR/KHR_context_flush_control.txt
+.PP
+< set OpenGL API profile (RGFW_glCore by default)
+.PP
+< set the OpenGL API profile version (by default RGFW_glMajor is 1, RGFW_glMinor is 0)
+.SS "typedef RGFW_ENUM (\fBi32\fP, RGFW_glValue)"
 < RGFW_glProfile options
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_extensionSupported (const char * extension, size_t len)"
 check if whether the specified API extension is supported by the current OpenGL or OpenGL ES context 
@@ -110,10 +119,12 @@ check if whether the specified API extension is supported by the current OpenGL 
 check if whether the specified platform-specific API extension is supported by the current OpenGL or OpenGL ES context 
 .SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_getCurrent (void)"
 get current RGFW window graphics context 
-.SS "void * RGFW_getCurrent_OpenGL (void)"
+.SS "\fBRGFWDEF\fP void * RGFW_getCurrent_OpenGL (void)"
 get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl)) 
+.SS "\fBRGFWDEF\fP \fBi32\fP RGFW_getGLHint (RGFW_glHints hint)"
+
 .SS "\fBRGFWDEF\fP \fBRGFW_proc\fP RGFW_getProcAddress (const char * procname)"
-get native opengl proc address 
+get native OpenGL proc address 
 .SS "\fBRGFWDEF\fP void RGFW_setGLHint (RGFW_glHints hint, \fBi32\fP value)"
 
 .SS "\fBRGFWDEF\fP void RGFW_window_freeOpenGL (\fBRGFW_window\fP * win)"
@@ -121,9 +132,9 @@ get native opengl proc address
 .SS "\fBRGFWDEF\fP void RGFW_window_initOpenGL (\fBRGFW_window\fP * win)"
 native API functions
 .PP
-< create an opengl context for the RGFW window, run by createWindow by default (unless the RGFW_windowNoInitAPI is included) called by \fCRGFW_window_close\fP by default (unless the RGFW_windowNoInitAPI is set) 
+< create an OpenGL context for the RGFW window, run by createWindow by default (unless the RGFW_windowNoInitAPI is included) called by \fCRGFW_window_close\fP by default (unless the RGFW_windowNoInitAPI is set) 
 .SS "\fBRGFWDEF\fP void RGFW_window_makeCurrent (\fBRGFW_window\fP * win)"
-< make the window the current opengl drawing context
+< make the window the current OpenGL drawing context
 .PP
 NOTE: if you want to switch the graphics context's thread, you have to run RGFW_window_makeCurrent(NULL); on the old thread then RGFW_window_makeCurrent(valid_window) on the new thread 
 .SS "\fBRGFWDEF\fP void RGFW_window_makeCurrent_OpenGL (\fBRGFW_window\fP * win)"
@@ -131,7 +142,7 @@ to be called by RGFW_window_makeCurrent
 .SS "\fBRGFWDEF\fP void RGFW_window_swapBuffers (\fBRGFW_window\fP * win)"
 swap the rendering buffer 
 .SS "\fBRGFWDEF\fP void RGFW_window_swapBuffers_OpenGL (\fBRGFW_window\fP * win)"
-swap opengl buffer (only) called by RGFW_window_swapInterval 
+swap OpenGL buffer (only) called by RGFW_window_swapInterval 
 .br
  
 .SS "\fBRGFWDEF\fP void RGFW_window_swapBuffers_software (\fBRGFW_window\fP * win)"

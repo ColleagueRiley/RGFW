@@ -411,7 +411,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setOpacity\fP (\fBRGFW_window\fP *win, \fBu8\fP opacity)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_opengl_isSoftware\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_OpenGL_isSoftware\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setBorder\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP border)"
@@ -621,19 +621,16 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_freeOpenGL\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glHints)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_glHints)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_glValue)"
+.RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_glValue)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setGLHint\fP (RGFW_glHints hint, \fBi32\fP value)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_extensionSupported\fP (const char *extension, size_t len)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_proc\fP \fBRGFW_getProcAddress\fP (const char *procname)"
+.RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_getGLHint\fP (RGFW_glHints hint)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent_OpenGL\fP (\fBRGFW_window\fP *win)"
@@ -642,7 +639,13 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_swapBuffers_OpenGL\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "void * \fBRGFW_getCurrent_OpenGL\fP (void)"
+.RI "\fBRGFWDEF\fP void * \fBRGFW_getCurrent_OpenGL\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_proc\fP \fBRGFW_getProcAddress\fP (const char *procname)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_extensionSupported\fP (const char *extension, size_t len)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_extensionSupportedPlatform\fP (const char *extension, size_t len)"

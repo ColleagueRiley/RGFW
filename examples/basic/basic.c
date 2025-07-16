@@ -52,8 +52,7 @@ int main(void) {
 					RGFW_window_setShouldClose(win, 1);
 					break;
 				case RGFW_windowResized:
-					if (event->point.x != 0 && event->point.y != 0)
-						printf("resize: %dx%d\n", event->point.x, event->point.y);
+					printf("resize: %dx%d\n", win->r.h, win->r.w);
 					break;
     			case RGFW_mouseButtonPressed:
 					printf("button pressed: %u {%d, %d}\n", event->button, event->point.x, event->point.y);

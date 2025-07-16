@@ -5,8 +5,8 @@
 
 RGFW_window* window;
 
-void error(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const char* msg);
-void error(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const char* msg) {
+static
+void errorfunc(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const char* msg) {
     if (type != RGFW_typeError || err == RGFW_noError) return; /* disregard non-errors */
     /* only care about errors for this window 
         If there were two windows and the error uses the root window it will also be ignored,
@@ -16,49 +16,49 @@ void error(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const
     printf("RGFW ERROR: %s\n", msg);
 }
 
-void scaleUpdatedfunc(RGFW_window* win, float scaleX, float scaleY);
+static
 void scaleUpdatedfunc(RGFW_window* win, float scaleX, float scaleY) {
     if (window != win) return;
     printf("scale updated %f %f\n", scaleX, scaleY);
 }
 
-void windowmovefunc(RGFW_window* win, RGFW_rect r);
+static
 void windowmovefunc(RGFW_window* win, RGFW_rect r) {
     if (window != win) return;
     printf("window moved %i %i\n", r.x, r.y);
 }
 
-void windowresizefunc(RGFW_window* win, RGFW_rect r);
+static
 void windowresizefunc(RGFW_window* win, RGFW_rect r) {
     if (window != win) return;
     printf("window resized %i %i\n", r.w, r.h);
 }
 
-void windowminimizefunc(RGFW_window* win, RGFW_rect r);
+static
 void windowminimizefunc(RGFW_window* win, RGFW_rect r) {
     if (window != win) return;
     printf("window minimize %i %i\n", r.w, r.h);
 }
 
-void windowmaximizefunc(RGFW_window* win, RGFW_rect r);
+static
 void windowmaximizefunc(RGFW_window* win, RGFW_rect r) {
     if (window != win) return;
     printf("window maximize %i %i\n", r.w, r.h);
 }
 
-void windowrestorefunc(RGFW_window* win, RGFW_rect r);
+static
 void windowrestorefunc(RGFW_window* win, RGFW_rect r) {
     if (window != win) return;
     printf("window restore %i %i\n", r.w, r.h);
 }
 
-void windowquitfunc(RGFW_window* win);
+static
 void windowquitfunc(RGFW_window* win) {
     if (window != win) return;
     printf("window quit\n");
 }
 
-void focusfunc(RGFW_window* win, u8 inFocus);
+static
 void focusfunc(RGFW_window* win, u8 inFocus) {
     if (window != win) return;
     
@@ -68,7 +68,7 @@ void focusfunc(RGFW_window* win, u8 inFocus) {
         printf("window out of focus\n");
 }
 
-void mouseNotifyfunc(RGFW_window* win, RGFW_point point, u8 status);
+static
 void mouseNotifyfunc(RGFW_window* win, RGFW_point point, u8 status) {
     if (window != win) return;
     
@@ -78,14 +78,14 @@ void mouseNotifyfunc(RGFW_window* win, RGFW_point point, u8 status) {
         printf("mouse leave\n");
 }
 
-void mouseposfunc(RGFW_window* win, RGFW_point point, RGFW_point vector);
+static
 void mouseposfunc(RGFW_window* win, RGFW_point point, RGFW_point vector) {
     RGFW_UNUSED(vector);
     if (window != win || RGFW_isPressed(win, RGFW_controlL) == 0) return;
    printf("mouse moved %i %i\n", point.x, point.y);
 }
 
-void dndfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount);
+static
 void dndfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount) {
     if (window != win) return;
     
@@ -94,13 +94,13 @@ void dndfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount) {
         printf("dropped : %s\n", droppedFiles[i]);
 }
 
-void dndInitfunc(RGFW_window* win, RGFW_point point);
+static
 void dndInitfunc(RGFW_window* win, RGFW_point point) {
     if (window != win) return;
     printf("dnd init at %i %i\n", point.x, point.y);
 }
 
-void windowrefreshfunc(RGFW_window* win);
+static
 void windowrefreshfunc(RGFW_window* win) {
     if (window != win) return;
     printf("refresh\n");
@@ -112,7 +112,7 @@ void windowrefreshfunc(RGFW_window* win) {
 
 }
 
-void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool pressed);
+static
 void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool pressed) {
     if (window != win) return;
     if (pressed)
@@ -121,7 +121,7 @@ void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGF
         printf("key released : %i (%c) mapped: %i (%c): with modstate : %i\n", key, key, keyChar, keyChar, keyMod);
 }
 
-void mousebuttonfunc(RGFW_window* win, u8 button, double scroll, u8 pressed);
+static
 void mousebuttonfunc(RGFW_window* win, u8 button, double scroll, u8 pressed) {
     if (window != win) return;
     
@@ -139,6 +139,7 @@ void mousebuttonfunc(RGFW_window* win, u8 button, double scroll, u8 pressed) {
 int main(void) {
     window = RGFW_createWindow("RGFW Callbacks", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND);
 
+    RGFW_setDebugCallback(errorfunc);
     RGFW_setScaleUpdatedCallback(scaleUpdatedfunc);
 	RGFW_setWindowMovedCallback(windowmovefunc);
 	RGFW_setWindowResizedCallback(windowresizefunc);
