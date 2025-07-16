@@ -6,7 +6,7 @@
 RGFW_window* window;
 
 static
-void error(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const char* msg) {
+void errorFunc(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const char* msg) {
     if (type != RGFW_typeError || err == RGFW_noError) return; /* disregard non-errors */
     /* only care about errors for this window 
         If there were two windows and the error uses the root window it will also be ignored,
@@ -139,6 +139,7 @@ void mousebuttonfunc(RGFW_window* win, u8 button, double scroll, u8 pressed) {
 int main(void) {
     window = RGFW_createWindow("RGFW Callbacks", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND);
 
+    RGFW_setDebugCallback(errorFunc);
     RGFW_setScaleUpdatedCallback(scaleUpdatedfunc);
 	RGFW_setWindowMovedCallback(windowmovefunc);
 	RGFW_setWindowResizedCallback(windowresizefunc);
