@@ -3405,7 +3405,20 @@ void RGFW_wl_global_registry_handler(void *data,
 	}
 }
 
-void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u32 name) { RGFW_UNUSED(data); RGFW_UNUSED(registry); RGFW_UNUSED(name); }
+void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u32 name) { 
+	RGFW_UNUSED(data); RGFW_UNUSED(registry);
+	
+	RGFW_monitor* mon, *temp_mon;
+
+	wl_list_for_each_safe(mon, temp_mon, &_RGFW->monitors, link) {
+		if (mon->id != name) continue;
+		if (mon->output) {
+			wl_output_destroy(mon->output);
+		}
+		wl_list_remove(&mon->link);
+		RGFW_FREE(mon);
+	}
+}
 
 void RGFW_wl_randname(char *buf) {
 	struct timespec ts;
@@ -6073,7 +6086,7 @@ void RGFW_window_close(RGFW_window* win) {
 	RGFW_monitor* mon, *temp_mon;
 	wl_list_for_each_safe(mon, temp_mon, &_RGFW->monitors, link) {
 		if (mon->output) {
-			wl_output_destroy(mon->output);
+			wl_output_release(mon->output);
 		}
 		wl_list_remove(&mon->link);
 		RGFW_FREE(mon);
