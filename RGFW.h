@@ -3333,7 +3333,7 @@ void RGFW_wl_output_set_scale(void *data, struct wl_output *wl_output, int32_t f
 
 void RGFW_wl_output_set_name(void *data, struct wl_output *wl_output, const char *name) {
 	RGFW_monitor *monitor = (RGFW_monitor*)data;
-
+	
 	RGFW_STRNCPY(monitor->name, name, sizeof(monitor->name) - 1);
 	monitor->name[sizeof(monitor->name) - 1] = '\0';
 
@@ -3365,7 +3365,7 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id, u32
 			.mode = RGFW_wl_output_set_mode,
 			.done = (void (*)(void *,struct wl_output *))&RGFW_doNothing,
 			.scale = RGFW_wl_output_set_scale,
-			.name = (void (*)(void *, struct wl_output *, const char *))&RGFW_doNothing,
+			.name = RGFW_wl_output_set_name,
 			.description = (void (*)(void *, struct wl_output *, const char *))&RGFW_doNothing
 	};
 
