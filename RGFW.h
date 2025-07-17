@@ -562,6 +562,7 @@ typedef RGFW_ENUM(u8, RGFW_keymod) {
 	#ifdef RGFW_WAYLAND
 		u32 id; /* Add id so wl_outputs can be removed */
 		struct wl_output *output;
+		struct wl_list link;
 	#endif
 		RGFW_monitorMode mode;
 	} RGFW_monitor;
@@ -1473,12 +1474,12 @@ typedef struct RGFW_info {
         struct xkb_keymap *keymap;
         struct xkb_state *xkb_state;
         struct zxdg_decoration_manager_v1 *decoration_manager;
-		const char *tag;
+        const char *tag;
         struct wl_cursor_theme* wl_cursor_theme;
         struct wl_surface* cursor_surface;
         struct wl_cursor_image* cursor_image;
-		RGFW_monitor* monitors[5]; /* have 6 monitors as a limit */
-		u32 num_monitors;
+        struct wl_list monitors;
+        u32 num_monitors;
         RGFW_bool wl_configured;
     #endif
 
@@ -3344,18 +3345,18 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id, u32
 	struct wl_output *output = wl_registry_bind(registry, id, &wl_output_interface, 4);
 	
 	if (!output) return;
-
-	if (monitor_counter >= 6) return; // too many monitors
+	
+	if (monitor_counter >= 5) return; // too many monitors
 	
 	RGFW_monitor* mon = RGFW_ALLOC(sizeof(RGFW_monitor));
 	
 	RGFW_MEMSET(mon, 0, sizeof(RGFW_monitor));
 	
-	_RGFW->monitors[monitor_counter] = mon;
 	++_RGFW->num_monitors;
 	mon->id = id;
 	mon->output = output;
 	mon->pixelRatio = 1.0f; // set in case compositor does not send one
+	wl_list_insert(&_RGFW->monitors, &mon->link);
 	
 	wl_proxy_set_tag((struct wl_proxy*) output, &_RGFW->tag);
 	
@@ -3370,8 +3371,6 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id, u32
 
 	// pass the monitor so we can access it in the callback functions
 	wl_output_add_listener(output, &wl_output_listener, mon);
-	
-	
 }
 
 void RGFW_wl_global_registry_handler(void *data,
@@ -4089,7 +4088,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
         .global_remove = RGFW_wl_global_registry_remove,
     };
 
-
+	wl_list_init(&_RGFW->monitors);
 	struct wl_registry *registry = wl_display_get_registry(win->src.wl_display);
 	wl_registry_add_listener(registry, &registry_listener, win);
 
@@ -5753,12 +5752,12 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
     return monitor;
 }
 #endif
+
 RGFW_monitor* RGFW_getMonitors(size_t* len) {
-	
+	static RGFW_monitor monitors[5];
 	RGFW_init();
 	RGFW_GOTO_WAYLAND(1);
 	#ifdef RGFW_X11
-	static RGFW_monitor monitors[7];
 
 	Display* display = _RGFW->display;
 	i32 max = ScreenCount(display);
@@ -5769,14 +5768,20 @@ RGFW_monitor* RGFW_getMonitors(size_t* len) {
 
 	if (len != NULL) *len = (size_t)((max <= 6) ? (max) : (6));
 
-	return monitors;
 	#endif
 	#ifdef RGFW_WAYLAND
 	RGFW_WAYLAND_LABEL 
 	
-	if (len != NULL) *len = (size_t)((_RGFW->num_monitors <= 6) ? (_RGFW->num_monitors) : (6));
-    return *(_RGFW->monitors);
+	RGFW_monitor* mon;
+	size_t mon_counter = 0;
+	wl_list_for_each(mon, &_RGFW->monitors, link) {
+		monitors[mon_counter] = *mon;
+		++mon_counter;
+	}
+	if (len != NULL) *len = (size_t)((mon_counter <= 6) ? (mon_counter) : (6));
 	#endif
+	
+	return monitors;
 }
 
 RGFW_monitor RGFW_getPrimaryMonitor(void) {
@@ -6064,6 +6069,15 @@ void RGFW_window_close(RGFW_window* win) {
 	wl_surface_destroy(win->src.surface);
 	wl_compositor_destroy(win->src.compositor);
 	xdg_wm_base_destroy(win->src.xdg_wm_base);
+
+	RGFW_monitor* mon, *temp_mon;
+	wl_list_for_each_safe(mon, temp_mon, &_RGFW->monitors, link) {
+		if (mon->output) {
+			wl_output_destroy(mon->output);
+		}
+		wl_list_remove(&mon->link);
+		RGFW_FREE(mon);
+	}
 
 
 	RGFW_clipboard_switch(NULL);
