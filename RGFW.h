@@ -4043,7 +4043,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	if ((flags & RGFW_windowNoInitAPI) == 0) {
 		RGFW_window_initOpenGL(win);
 		#ifdef RGFW_BUFFER
-        RGFW_window_initBuffer(win);
+		RGFW_window_initBuffer(win);
 		#endif
     }
 
@@ -10053,11 +10053,13 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	RGFW_window_setFlags(win, flags);
 
 	if ((flags & RGFW_windowNoInitAPI) == 0) {
-        RGFW_window_initBuffer(win);
-    }
+		#ifdef RGFW_BUFFER
+		RGFW_window_initBuffer(win);
+		#endif
+	}
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new  window was created");
-    return win;
+	return win;
 }
 
 u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
