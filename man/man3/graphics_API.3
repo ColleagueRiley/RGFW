@@ -1,4 +1,4 @@
-.TH "graphics_API" 3 "Wed Jul 16 2025" "RGFW" \" -*- nroff -*-
+.TH "graphics_API" 3 "Fri Jul 18 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -27,9 +27,6 @@ graphics_API \- Graphics_API
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_swapInterval\fP (\fBRGFW_window\fP *win, \fBi32\fP swapInterval)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_swapBuffers_software\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_initOpenGL\fP (\fBRGFW_window\fP *win)"
@@ -145,12 +142,8 @@ swap the rendering buffer
 swap OpenGL buffer (only) called by RGFW_window_swapInterval 
 .br
  
-.SS "\fBRGFWDEF\fP void RGFW_window_swapBuffers_software (\fBRGFW_window\fP * win)"
-
 .SS "\fBRGFWDEF\fP void RGFW_window_swapInterval (\fBRGFW_window\fP * win, \fBi32\fP swapInterval)"
-render the software rendering buffer (this is called by RGFW_window_swapInterval) 
-.br
- 
+
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.

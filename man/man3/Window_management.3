@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Wed Jul 16 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Fri Jul 18 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -23,15 +23,6 @@ Window_management \- Window_management
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindowPtr\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window\fP *win)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_initBuffer\fP (\fBRGFW_window\fP *win)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_initBufferSize\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP area)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_initBufferPtr\fP (\fBRGFW_window\fP *win, \fBu8\fP *buffer, \fBRGFW_area\fP area)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setFlags\fP (\fBRGFW_window\fP *win, RGFW_windowFlags)"
@@ -251,12 +242,6 @@ sets the focus to this window
 where the mouse is on the window 
 .SS "\fBRGFWDEF\fP void RGFW_window_hide (\fBRGFW_window\fP * win)"
 hide the window 
-.SS "\fBRGFWDEF\fP void RGFW_window_initBuffer (\fBRGFW_window\fP * win)"
-
-.SS "\fBRGFWDEF\fP void RGFW_window_initBufferPtr (\fBRGFW_window\fP * win, \fBu8\fP * buffer, \fBRGFW_area\fP area)"
-
-.SS "\fBRGFWDEF\fP void RGFW_window_initBufferSize (\fBRGFW_window\fP * win, \fBRGFW_area\fP area)"
-
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isFloating (\fBRGFW_window\fP * win)"
 if the window is floating 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isFullscreen (\fBRGFW_window\fP * win)"
