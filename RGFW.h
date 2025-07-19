@@ -5629,14 +5629,6 @@ RGFW_WAYLAND_LABEL;
 	return RGFW_FALSE;
 }
 
-#ifndef RGFW_NO_DPI
-u32 RGFW_XCalculateRefreshRate(XRRModeInfo mi);
-u32 RGFW_XCalculateRefreshRate(XRRModeInfo mi) {
-    if (mi.hTotal == 0 || mi.vTotal == 0) return 0;
-	return (u32) RGFW_ROUND((double) mi.dotClock / ((double) mi.hTotal * (double) mi.vTotal));
-}
-#endif
-
 
 #ifdef RGFW_X11
 static float XGetSystemContentDPI(Display* display, i32 screen) {
@@ -5684,7 +5676,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	monitor.physW = (float)DisplayWidthMM(display, screen) / 25.4f;
 	monitor.physH = (float)DisplayHeightMM(display, screen) / 25.4f;
 
-	RGFW_splitBPP((u32)DefaultDepth(display, DefaultScreen(display)), &monitor.mode);
+	RGFW_splitBPP((u32)DefaultDepth(display, screen), &monitor.mode);
 
 	char* name = XDisplayName((const char*)display);
 	RGFW_STRNCPY(monitor.name, name, sizeof(monitor.name) - 1);
@@ -5696,9 +5688,10 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	monitor.scaleY = (float) (dpi) / 96.0f;
 
 	#ifndef RGFW_NO_DPI
-		XRRScreenResources* sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
-		monitor.mode.refreshRate = RGFW_XCalculateRefreshRate(sr->modes[screen]);
+		XRRScreenConfiguration *conf = XRRGetScreenInfo(display, RootWindow(display, screen));
+		monitor.mode.refreshRate = (u32)XRRConfigCurrentRate(conf);
 
+		XRRScreenResources* sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
 		XRRCrtcInfo* ci = NULL;
 		int crtc = screen;
 
@@ -5794,6 +5787,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 #ifdef RGFW_X11
 	#ifndef RGFW_NO_DPI
     RGFW_init();
+    XRRScreenConfiguration *conf = XRRGetScreenInfo(_RGFW->display, DefaultRootWindow(_RGFW->display));
     XRRScreenResources* screenRes = XRRGetScreenResources(_RGFW->display, DefaultRootWindow(_RGFW->display));
 	if (screenRes == NULL) return RGFW_FALSE;
 
@@ -5808,7 +5802,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
             for (index = 0; index < screenRes->nmode; index++) {
 				RGFW_monitorMode foundMode;
 				foundMode.area = RGFW_AREA(screenRes->modes[index].width, screenRes->modes[index].height);
-				foundMode.refreshRate =  RGFW_XCalculateRefreshRate(screenRes->modes[index]);
+				foundMode.refreshRate = (u32)XRRConfigCurrentRate(conf);
 				RGFW_splitBPP((u32)DefaultDepth(_RGFW->display, DefaultScreen(_RGFW->display)), &foundMode);
 
 				if (RGFW_monitorModeCompare(mode, foundMode, request)) {
