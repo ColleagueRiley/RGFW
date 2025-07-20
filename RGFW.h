@@ -224,7 +224,7 @@ int main() {
 		#define RGFW_UNIX
 		#ifdef RGFW_OPENGL
 			#define RGFW_EGL
-			#undef RGFW_OPENGL
+			#define RGFW_OPENGL
 		#endif
 #endif
 #if !defined(RGFW_NO_X11) && (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  && !defined(RGFW_WASM)  && !defined(RGFW_CUSTOM_BACKEND)
@@ -1312,13 +1312,6 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 		#pragma comment(lib, "opengl32")
 	#endif
 
-	#if defined(RGFW_OPENGL) && defined(RGFW_X11)
-		#ifndef GLX_MESA_swap_control
-			#define  GLX_MESA_swap_control
-		#endif
-		#include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
-	#endif
-
 	/*! source data for the window (used by the APIs) */
 	#ifdef RGFW_WINDOWS
 
@@ -1352,12 +1345,16 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	#ifdef RGFW_X11
 		#include <X11/Xlib.h>
 		#include <X11/Xutil.h>
+		#ifdef RGFW_OPENGL
+			#include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
+			#ifndef GLX_MESA_swap_control
+				#define  GLX_MESA_swap_control
+			#endif
+		#endif
 	#endif
 
 	#ifdef RGFW_WAYLAND
-		#if !defined(RGFW_NO_API) && (!defined(RGFW_BUFFER) || defined(RGFW_OPENGL))
-			#define RGFW_EGL
-			#define RGFW_OPENGL
+		#ifdef RGFW_EGL
 			#include <wayland-egl.h>
 		#endif
 
@@ -3329,7 +3326,7 @@ void RGFW_wl_keyboard_modifiers (void* data, struct wl_keyboard *keyboard, u32 s
 }
 void RGFW_wl_seat_capabilities (void* data, struct wl_seat *seat, u32 capabilities) {
 	RGFW_UNUSED(data);
-    static struct wl_pointer_listener pointer_listener = {&RGFW_wl_pointer_enter, &RGFW_wl_pointer_leave, &RGFW_wl_pointer_motion, &RGFW_wl_pointer_button, &RGFW_wl_pointer_axis, (void (*)(void *, struct wl_pointer *))&RGFW_doNothing, (void (*)(void *, struct wl_pointer *, u32))&RGFW_doNothing, (void (*)(void *, struct wl_pointer *, u32, u32))&RGFW_doNothing, (void (*)(void *, struct wl_pointer *, u32, i32))&RGFW_doNothing, (void (*)(void *, struct wl_pointer *, u32, i32))&RGFW_doNothing, (void (*)(void*, struct wl_pointer*, u32, u32))&RGFW_doNothing};
+    static struct wl_pointer_listener pointer_listener = {&RGFW_wl_pointer_enter, &RGFW_wl_pointer_leave, &RGFW_wl_pointer_motion, &RGFW_wl_pointer_button, &RGFW_wl_pointer_axis, (void (*)(void *, struct wl_pointer *))&RGFW_doNothing, (void (*)(void *, struct wl_pointer *, u32))&RGFW_doNothing, (void (*)(void *, struct wl_pointer *, u32, u32))&RGFW_doNothing, (void (*)(void *, struct wl_pointer *, u32, i32))&RGFW_doNothing, (void (*)(void *, struct wl_pointer *, u32, i32))&RGFW_doNothing};
 
     static struct wl_keyboard_listener keyboard_listener = {&RGFW_wl_keyboard_keymap, &RGFW_wl_keyboard_enter, &RGFW_wl_keyboard_leave, &RGFW_wl_keyboard_key, &RGFW_wl_keyboard_modifiers, (void (*)(void *, struct wl_keyboard *,
                                                                                                                                                        int,  int))&RGFW_doNothing};
@@ -3450,85 +3447,85 @@ Start of Linux / Unix defines
 */
 
 #ifdef RGFW_UNIX
-#if !defined(RGFW_NO_X11_CURSOR) && defined(RGFW_X11)
-#include <X11/Xcursor/Xcursor.h>
-#endif
 #include <dlfcn.h>
-
-#ifndef RGFW_NO_DPI
-#include <X11/extensions/Xrandr.h>
-#include <X11/Xresource.h>
-#endif
-
-#include <X11/Xatom.h>
-#include <X11/keysymdef.h>
-#include <X11/extensions/sync.h>
 #include <unistd.h>
-
-#include <X11/XKBlib.h> /* for converting keycode to string */
-#include <X11/cursorfont.h> /* for hiding */
-#include <X11/extensions/shapeconst.h>
-#include <X11/extensions/shape.h>
-#include <X11/extensions/XInput2.h>
 
 #include <limits.h> /* for data limits (mainly used in drag and drop functions) */
 #include <poll.h>
 
-/* atoms needed for drag and drop */
+#ifdef RGFW_X11
+	void RGFW_setXInstName(const char* name) { _RGFW->instName = name; }
+	#if !defined(RGFW_NO_X11_CURSOR) && defined(RGFW_X11)
+		#include <X11/Xcursor/Xcursor.h>
+	#endif
+
+	#ifndef RGFW_NO_DPI
+		#include <X11/extensions/Xrandr.h>
+		#include <X11/Xresource.h>
+	#endif
+
+	#include <X11/Xatom.h>
+	#include <X11/keysymdef.h>
+	#include <X11/extensions/sync.h>
+
+	#include <X11/XKBlib.h> /* for converting keycode to string */
+	#include <X11/cursorfont.h> /* for hiding */
+	#include <X11/extensions/shapeconst.h>
+	#include <X11/extensions/shape.h>
+	#include <X11/extensions/XInput2.h>
+
+	/* atoms needed for drag and drop */
 #if defined(RGFW_X11) && !defined(RGFW_NO_X11_CURSOR) && !defined(RGFW_NO_X11_CURSOR_PRELOAD)
-	typedef XcursorImage* (*PFN_XcursorImageCreate)(int, int);
-	typedef void (*PFN_XcursorImageDestroy)(XcursorImage*);
-	typedef Cursor(*PFN_XcursorImageLoadCursor)(Display*, const XcursorImage*);
+		typedef XcursorImage* (*PFN_XcursorImageCreate)(int, int);
+		typedef void (*PFN_XcursorImageDestroy)(XcursorImage*);
+		typedef Cursor(*PFN_XcursorImageLoadCursor)(Display*, const XcursorImage*);
 #endif
-#if defined(RGFW_OPENGL) && defined(RGFW_X11)
-	typedef GLXContext(*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
+#if defined(RGFW_OPENGL)
+		typedef GLXContext(*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 #endif
 
 #if !defined(RGFW_NO_X11_XI_PRELOAD) && defined(RGFW_X11)
-	typedef int (* PFN_XISelectEvents)(Display*,Window,XIEventMask*,int);
-	PFN_XISelectEvents XISelectEventsSRC = NULL;
-	#define XISelectEvents XISelectEventsSRC
+		typedef int (* PFN_XISelectEvents)(Display*,Window,XIEventMask*,int);
+		PFN_XISelectEvents XISelectEventsSRC = NULL;
+		#define XISelectEvents XISelectEventsSRC
 
-	void* X11Xihandle = NULL;
+		void* X11Xihandle = NULL;
 #endif
 
 #if !defined(RGFW_NO_X11_EXT_PRELOAD) && defined(RGFW_X11)
-	typedef void (* PFN_XSyncIntToValue)(XSyncValue*, int);
-	PFN_XSyncIntToValue XSyncIntToValueSRC = NULL;
-    #define XSyncIntToValue XSyncIntToValueSRC
+		typedef void (* PFN_XSyncIntToValue)(XSyncValue*, int);
+		PFN_XSyncIntToValue XSyncIntToValueSRC = NULL;
+		#define XSyncIntToValue XSyncIntToValueSRC
 
-	typedef Status (* PFN_XSyncSetCounter)(Display*, XSyncCounter, XSyncValue);
-	PFN_XSyncSetCounter XSyncSetCounterSRC = NULL;
-    #define XSyncSetCounter XSyncSetCounterSRC
+		typedef Status (* PFN_XSyncSetCounter)(Display*, XSyncCounter, XSyncValue);
+		PFN_XSyncSetCounter XSyncSetCounterSRC = NULL;
+		#define XSyncSetCounter XSyncSetCounterSRC
 
-	typedef XSyncCounter (* PFN_XSyncCreateCounter)(Display*, XSyncValue);
-	PFN_XSyncCreateCounter XSyncCreateCounterSRC = NULL;
-    #define XSyncCreateCounter XSyncCreateCounterSRC
+		typedef XSyncCounter (* PFN_XSyncCreateCounter)(Display*, XSyncValue);
+		PFN_XSyncCreateCounter XSyncCreateCounterSRC = NULL;
+		#define XSyncCreateCounter XSyncCreateCounterSRC
 
-	typedef void (* PFN_XShapeCombineMask)(Display*,Window,int,int,int,Pixmap,int);
-	PFN_XShapeCombineMask XShapeCombineMaskSRC;
-    #define XShapeCombineMask XShapeCombineMaskSRC
+		typedef void (* PFN_XShapeCombineMask)(Display*,Window,int,int,int,Pixmap,int);
+		PFN_XShapeCombineMask XShapeCombineMaskSRC;
+		#define XShapeCombineMask XShapeCombineMaskSRC
 
-	typedef void (* PFN_XShapeCombineRegion)(Display*,Window,int,int,int,Region,int);
-    PFN_XShapeCombineRegion XShapeCombineRegionSRC;
-    #define XShapeCombineRegion XShapeCombineRegionSRC
-	void* X11XEXThandle = NULL;
+		typedef void (* PFN_XShapeCombineRegion)(Display*,Window,int,int,int,Region,int);
+		PFN_XShapeCombineRegion XShapeCombineRegionSRC;
+		#define XShapeCombineRegion XShapeCombineRegionSRC
+		void* X11XEXThandle = NULL;
 #endif
 
 #if !defined(RGFW_NO_X11_CURSOR) && !defined(RGFW_NO_X11_CURSOR_PRELOAD) && defined(RGFW_X11)
-	PFN_XcursorImageLoadCursor XcursorImageLoadCursorSRC = NULL;
-	PFN_XcursorImageCreate XcursorImageCreateSRC = NULL;
-	PFN_XcursorImageDestroy XcursorImageDestroySRC = NULL;
+		PFN_XcursorImageLoadCursor XcursorImageLoadCursorSRC = NULL;
+		PFN_XcursorImageCreate XcursorImageCreateSRC = NULL;
+		PFN_XcursorImageDestroy XcursorImageDestroySRC = NULL;
 
-	#define XcursorImageLoadCursor XcursorImageLoadCursorSRC
-	#define XcursorImageCreate XcursorImageCreateSRC
-	#define XcursorImageDestroy XcursorImageDestroySRC
+		#define XcursorImageLoadCursor XcursorImageLoadCursorSRC
+		#define XcursorImageCreate XcursorImageCreateSRC
+		#define XcursorImageDestroy XcursorImageDestroySRC
 
-	void* X11Cursorhandle = NULL;
+		void* X11Cursorhandle = NULL;
 #endif
-
-#ifdef RGFW_X11
-void RGFW_setXInstName(const char* name) { _RGFW->instName = name; }
 #endif
 
 #if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
@@ -4265,9 +4262,9 @@ RGFW_point RGFW_getGlobalMousePoint(void) {
 #endif
 }
 
+#ifdef RGFW_X11
 RGFWDEF void RGFW_XHandleClipboardSelection(XEvent* event);
 void RGFW_XHandleClipboardSelection(XEvent* event) { RGFW_UNUSED(event);
-#ifdef RGFW_X11
     RGFW_LOAD_ATOM(ATOM_PAIR);
 	RGFW_LOAD_ATOM(MULTIPLE);
 	RGFW_LOAD_ATOM(TARGETS);
@@ -4329,8 +4326,8 @@ void RGFW_XHandleClipboardSelection(XEvent* event) { RGFW_UNUSED(event);
     reply.xselection.time = request->time;
 
     XSendEvent(_RGFW->display, request->requestor, False, 0, &reply);
-#endif
 }
+#endif
 
 char* RGFW_strtok(char* str, const char* delimStr);
 char* RGFW_strtok(char* str, const char* delimStr) {
