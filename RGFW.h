@@ -1358,6 +1358,10 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 			#include <wayland-egl.h>
 		#endif
 
+		#ifdef RGFW_LIBDECOR
+			#include <libdecor-0/libdecor.h>
+		#endif
+
 		#include <wayland-client.h>
 	#endif
 
@@ -1398,6 +1402,10 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 		struct wl_shm* shm;
 		struct wl_seat *seat;
 		u8* buffer;
+
+		#ifdef RGFW_LIBDECOR
+			struct libdecor* decorContext;
+		#endif
 		#if defined(RGFW_EGL)
 			struct wl_egl_window* eglWindow;
 		#endif
@@ -3326,10 +3334,21 @@ void RGFW_wl_keyboard_modifiers (void* data, struct wl_keyboard *keyboard, u32 s
 }
 void RGFW_wl_seat_capabilities (void* data, struct wl_seat *seat, u32 capabilities) {
 	RGFW_UNUSED(data);
-    static struct wl_pointer_listener pointer_listener = {&RGFW_wl_pointer_enter, &RGFW_wl_pointer_leave, &RGFW_wl_pointer_motion, &RGFW_wl_pointer_button, &RGFW_wl_pointer_axis, (void (*)(void *, struct wl_pointer *))&RGFW_doNothing, (void (*)(void *, struct wl_pointer *, u32))&RGFW_doNothing, (void (*)(void *, struct wl_pointer *, u32, u32))&RGFW_doNothing, (void (*)(void *, struct wl_pointer *, u32, i32))&RGFW_doNothing, (void (*)(void *, struct wl_pointer *, u32, i32))&RGFW_doNothing};
+    static struct wl_pointer_listener pointer_listener;
+	RGFW_MEMSET(&pointer_listener, 0, sizeof (pointer_listener));
+	pointer_listener.enter = &RGFW_wl_pointer_enter;
+	pointer_listener.leave = &RGFW_wl_pointer_leave;
+	pointer_listener.motion = &RGFW_wl_pointer_motion;
+	pointer_listener.button = &RGFW_wl_pointer_button;
+	pointer_listener.axis = &RGFW_wl_pointer_axis;
 
-    static struct wl_keyboard_listener keyboard_listener = {&RGFW_wl_keyboard_keymap, &RGFW_wl_keyboard_enter, &RGFW_wl_keyboard_leave, &RGFW_wl_keyboard_key, &RGFW_wl_keyboard_modifiers, (void (*)(void *, struct wl_keyboard *,
-                                                                                                                                                       int,  int))&RGFW_doNothing};
+	static struct wl_keyboard_listener keyboard_listener;
+	RGFW_MEMSET(&keyboard_listener, 0, sizeof (keyboard_listener));
+	keyboard_listener.keymap = &RGFW_wl_keyboard_keymap;
+	keyboard_listener.enter = &RGFW_wl_keyboard_enter;
+	keyboard_listener.leave = &RGFW_wl_keyboard_leave;
+	keyboard_listener.key = &RGFW_wl_keyboard_key;
+	keyboard_listener.modifiers = &RGFW_wl_keyboard_modifiers;
 
     if (capabilities & WL_SEAT_CAPABILITY_POINTER) {
 		struct wl_pointer *pointer = wl_seat_get_pointer (seat);
@@ -4186,17 +4205,46 @@ RGFW_window* RGFW_createWindowPtrThin(const char* name, RGFW_rect rect, RGFW_win
 	xdg_toplevel_add_listener(RGFW_WINDOW_SRC(win).xdg_toplevel, &xdg_toplevel_listener, NULL);
 
 	xdg_surface_set_window_geometry(RGFW_WINDOW_SRC(win).xdg_surface, 0, 0, win->r.w, win->r.h);
+	if (_RGFW->decoration_manager) {
+		if (!(flags & RGFW_windowNoBorder)) {
+			RGFW_WINDOW_SRC(win).decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
+						_RGFW->decoration_manager, RGFW_WINDOW_SRC(win).xdg_toplevel);
+		}
 
-	if (!(flags & RGFW_windowNoBorder)) {
-		RGFW_WINDOW_SRC(win).decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
-					_RGFW->decoration_manager, RGFW_WINDOW_SRC(win).xdg_toplevel);
+		static const struct zxdg_toplevel_decoration_v1_listener xdg_decoration_listener = {
+				.configure = RGFW_wl_xdg_decoration_configure_handler
+		};
+
+		zxdg_toplevel_decoration_v1_add_listener(RGFW_WINDOW_SRC(win).decoration, &xdg_decoration_listener, NULL);
+	} else if (!(flags & RGFW_windowNoBorder)) {
+		/* TODO, some fallback */
+		#ifdef RGFW_LIBDECOR
+			static struct libdecor_interface interface = {
+				.error = NULL,
+			};
+
+
+			static struct libdecor_frame_interface frameInterface = {0}; /*= {
+				RGFW_wl_handle_configure,
+				RGFW_wl_handle_close,
+				RGFW_wl_handle_commit,
+				RGFW_wl_handle_dismiss_popup,
+			};*/
+
+			RGFW_WINDOW_SRC(win).decorContext = libdecor_new(RGFW_WINDOW_SRC(win).wl_display, &interface);
+			if (RGFW_WINDOW_SRC(win).decorContext) {
+				struct libdecor_frame *frame = libdecor_decorate(RGFW_WINDOW_SRC(win).decorContext, RGFW_WINDOW_SRC(win).surface, &frameInterface, win);
+				if (!frame) {
+					libdecor_unref(RGFW_WINDOW_SRC(win).decorContext);
+					RGFW_WINDOW_SRC(win).decorContext = NULL;
+				} else {
+					libdecor_frame_set_app_id(frame, "my-libdecor-app");
+					libdecor_frame_set_title(frame, "My Libdecor Window");
+				}
+			}
+		#endif
 	}
 
-	static const struct zxdg_toplevel_decoration_v1_listener xdg_decoration_listener = {
-			.configure = RGFW_wl_xdg_decoration_configure_handler
-	};
-
-	zxdg_toplevel_decoration_v1_add_listener(RGFW_WINDOW_SRC(win).decoration, &xdg_decoration_listener, NULL);
 	wl_display_roundtrip(RGFW_WINDOW_SRC(win).wl_display);
 
 	wl_surface_commit(RGFW_WINDOW_SRC(win).surface);
@@ -6041,10 +6089,22 @@ void RGFW_window_close(RGFW_window* win) {
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
 	wl_shm_destroy(RGFW_WINDOW_SRC(win).shm);
 
+	#ifdef RGFW_LIBDECOR
+		if (RGFW_WINDOW_SRC(win).decorContext)
+			libdecor_unref(RGFW_WINDOW_SRC(win).decorContext);
+	#endif
+
 	// wl_keyboard_release(RGFW_WINDOW_SRC(win).keyboard); // keryboard is never set
 	wl_seat_release(RGFW_WINDOW_SRC(win).seat);
-	zxdg_toplevel_decoration_v1_destroy(RGFW_WINDOW_SRC(win).decoration);
-	xdg_toplevel_destroy(RGFW_WINDOW_SRC(win).xdg_toplevel);
+
+	if (RGFW_WINDOW_SRC(win).decoration) {
+		zxdg_toplevel_decoration_v1_destroy(RGFW_WINDOW_SRC(win).decoration);
+	}
+
+	if (RGFW_WINDOW_SRC(win).xdg_toplevel) {
+		xdg_toplevel_destroy(RGFW_WINDOW_SRC(win).xdg_toplevel);
+	}
+
 	xdg_surface_destroy(RGFW_WINDOW_SRC(win).xdg_surface);
 	wl_surface_destroy(RGFW_WINDOW_SRC(win).surface);
 	wl_compositor_destroy(RGFW_WINDOW_SRC(win).compositor);
