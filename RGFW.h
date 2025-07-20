@@ -224,6 +224,7 @@ int main() {
 		#define RGFW_UNIX
 		#ifdef RGFW_OPENGL
 			#define RGFW_EGL
+			#undef RGFW_OPENGL
 		#endif
 #endif
 #if !defined(RGFW_NO_X11) && (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  && !defined(RGFW_WASM)  && !defined(RGFW_CUSTOM_BACKEND)
