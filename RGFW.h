@@ -341,10 +341,6 @@ int main() {
 #ifdef __EMSCRIPTEN__
 	#define RGFW_WASM
 
-	#if !defined(RGFW_NO_API) && !defined(RGFW_WEBGPU)
-		#define RGFW_OPENGL
-	#endif
-
 	#ifdef RGFW_EGL
 		#undef RGFW_EGL
 	#endif
@@ -395,7 +391,7 @@ int main() {
 	#endif
 #endif
 
-#if !defined(RGFW_EGL) && !defined(RGFW_OPENGL) && !defined(RGFW_DIRECTX) && !defined(RGFW_BUFFER) && !defined(RGFW_NO_API)
+#if !defined(RGFW_EGL) && !defined(RGFW_OPENGL) && !defined(RGFW_DIRECTX) && !defined(RGFW_BUFFER) && !defined(RGFW_NO_API) && !defined(RGFW_WEBGPU)
 	#define RGFW_OPENGL
 #endif
 
@@ -648,7 +644,7 @@ typedef struct RGFW_window_src {
 	GC gc;
 	XVisualInfo visual;
 
-	#if (defined(RGFW_OPENGL)) && !defined(RGFW_EGL)
+	#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
 		GLXContext ctx; /*!< source graphics context */
         GLXFBConfig bestFbc;
 	#endif
@@ -682,7 +678,7 @@ typedef struct RGFW_window_src {
 	#endif
 #endif /* RGFW_WAYLAND */
 
-	#if defined(RGFW_EGL) && !defined(RGFW_OPENGL)
+	#if defined(RGFW_EGL)
 		EGLSurface EGL_surface;
 		EGLDisplay EGL_display;
 		EGLContext EGL_context;
@@ -708,9 +704,9 @@ typedef struct RGFW_window_src {
 #elif defined(RGFW_WASM)
 
 typedef struct RGFW_window_src {
-	#ifndef RGFW_WEBGPU
+	#if defined(RGFW_OPENGL)
 		EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
-	#else
+	#else defined(RGFW_WEBGPU)
 		WGPUInstance ctx;
 		WGPUDevice device;
 		WGPUQueue queue;
@@ -2198,7 +2194,7 @@ void RGFW_window_swapBuffers(RGFW_window* win) {
 	}
 	#endif
 	
-	#ifdef RGFW_OPENGL
+	#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
 	if (win->src.ctx) {
 		RGFW_window_swapBuffers_OpenGL(win);
 	}
@@ -8476,7 +8472,7 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 
 
 i32 RGFW_initPlatform(void) {
-	class_addMethod(objc_getClass("NSObject"), sel_registerName("windowShouldClose:"), (IMP)onClose, 0);
+	class_addMethod(objc_getClass("NSObject"), sel_registerName("windowShouldClose:"), (IMP)RGFW_OnClose, 0);
 
 	/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
 	class_addMethod(objc_getClass("WindowClass"), (IMP)acceptsFirstResponder, 0);
