@@ -2754,7 +2754,7 @@ i32* RGFW_initFormatAttribs(void) {
 #endif
 
 
-void RGFW_window_initOpenGL(RGFW_window* win) {
+RGFW_bool RGFW_window_initOpenGL(RGFW_window* win) {
 #if defined(RGFW_LINK_EGL)
 	eglInitializeSource = (PFNEGLINITIALIZEPROC) eglGetProcAddress("eglInitialize");
 	eglGetConfigsSource = (PFNEGLGETCONFIGSPROC) eglGetProcAddress("eglGetConfigs");
@@ -2801,8 +2801,6 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
     #endif
     #ifdef RGFW_X11
 		win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.display);
-    #else
-    {}
     #endif
     #if !defined(RGFW_WAYLAND) && !defined(RGFW_WINDOWS) && !defined(RGFW_X11)
         win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.display);
@@ -2914,12 +2912,14 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 
 	if (win->src.EGL_context == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errEGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to create an EGL context.");
-		return;
+		return RGFW_FALSE;
 	}
 
 	eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.EGL_context);
 	eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "EGL context initalized.");
+
+	return RGFW_TRUE;
 }
 
 void RGFW_window_freeOpenGL(RGFW_window* win) {
