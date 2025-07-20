@@ -192,6 +192,52 @@ int main() {
     #endif
 #endif
 
+/* these OS macros look better & are standardized */
+/* plus it helps with cross-compiling */
+
+#ifdef __EMSCRIPTEN__
+	#define RGFW_WASM
+
+	#if !defined(RGFW_NO_API) && !defined(RGFW_WEBGPU)
+		#define RGFW_OPENGL
+	#endif
+
+	#ifdef RGFW_EGL
+		#undef RGFW_EGL
+	#endif
+#endif
+
+#if defined(RGFW_X11) && defined(__APPLE__) && !defined(RGFW_CUSTOM_BACKEND)
+	#define RGFW_MACOS_X11
+	#define RGFW_UNIX
+#endif
+
+#if defined(_WIN32) && !defined(RGFW_X11) && !defined(RGFW_UNIX) && !defined(RGFW_WASM) && !defined(RGFW_CUSTOM_BACKEND) /* (if you're using X11 on windows some how) */
+	#define RGFW_WINDOWS
+#endif
+#if defined(RGFW_WAYLAND)
+		#define RGFW_DEBUG /* wayland will be in debug mode by default for now */
+		#define RGFW_UNIX
+#endif
+#if !defined(RGFW_NO_X11) && (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  && !defined(RGFW_WASM)  && !defined(RGFW_CUSTOM_BACKEND)
+		#define RGFW_MACOS_X11
+		#define RGFW_X11
+		#define RGFW_UNIX
+#elif defined(__APPLE__) && !defined(RGFW_MACOS_X11) && !defined(RGFW_X11)  && !defined(RGFW_WASM)  && !defined(RGFW_CUSTOM_BACKEND)
+		#define RGFW_MACOS
+		#if !defined(RGFW_BUFFER_BGR)
+			#define RGFW_BUFFER_BGR
+		#else
+			#undef RGFW_BUFFER_BGR
+		#endif
+#endif
+
+#if !defined(RGFW_SNPRINTF) && defined(RGFW_X11)
+	/* required for X11 errors */
+	#include <stdio.h>
+	#define RGFW_SNPRINTF snprintf
+#endif
+
 #if !defined(RGFW_EGL) && !defined(RGFW_OPENGL) && !defined(RGFW_DIRECTX) && !defined(RGFW_BUFFER) && !defined(RGFW_NO_API)
 		#define RGFW_OPENGL
 #endif
@@ -1034,37 +1080,38 @@ RGFWDEF RGFW_bool RGFW_extensionSupported(const char* extension, size_t len);	/*
 RGFWDEF RGFW_bool RGFW_extensionSupportedPlatform(const char* extension, size_t len);	/*!< check if whether the specified platform-specific API extension is supported by the current OpenGL or OpenGL ES context */
 
 #endif
+
 #ifdef RGFW_VULKAN
-	#if defined(RGFW_WAYLAND) && defined(RGFW_X11)
-    	#define VK_USE_PLATFORM_WAYLAND_KHR
-		#define VK_USE_PLATFORM_XLIB_KHR
-        #define RGFW_VK_SURFACE ((RGFW_usingWayland()) ? ("VK_KHR_wayland_surface") : ("VK_KHR_xlib_surface"))
-    #elif defined(RGFW_WAYLAND)
-		#define VK_USE_PLATFORM_WAYLAND_KHR
-		#define VK_USE_PLATFORM_XLIB_KHR
-        #define RGFW_VK_SURFACE "VK_KHR_wayland_surface"
-    #elif defined(RGFW_X11)
-		#define VK_USE_PLATFORM_XLIB_KHR
-		#define RGFW_VK_SURFACE "VK_KHR_xlib_surface"
-	#elif defined(RGFW_WINDOWS)
-		#define VK_USE_PLATFORM_WIN32_KHR
-		#define OEMRESOURCE
-		#define RGFW_VK_SURFACE "VK_KHR_win32_surface"
-	#elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
-		#define VK_USE_PLATFORM_MACOS_MVK
-		#define RGFW_VK_SURFACE "VK_MVK_macos_surface"
-	#else
-		#define RGFW_VK_SURFACE NULL
-	#endif
+
+#if defined(RGFW_WAYLAND) && defined(RGFW_X11)
+	#define VK_USE_PLATFORM_WAYLAND_KHR
+	#define VK_USE_PLATFORM_XLIB_KHR
+	#define RGFW_VK_SURFACE ((RGFW_usingWayland()) ? ("VK_KHR_wayland_surface") : ("VK_KHR_xlib_surface"))
+#elif defined(RGFW_WAYLAND)
+	#define VK_USE_PLATFORM_WAYLAND_KHR
+	#define VK_USE_PLATFORM_XLIB_KHR
+	#define RGFW_VK_SURFACE "VK_KHR_wayland_surface"
+#elif defined(RGFW_X11)
+	#define VK_USE_PLATFORM_XLIB_KHR
+	#define RGFW_VK_SURFACE "VK_KHR_xlib_surface"
+#elif defined(RGFW_WINDOWS)
+	#define VK_USE_PLATFORM_WIN32_KHR
+	#define OEMRESOURCE
+	#define RGFW_VK_SURFACE "VK_KHR_win32_surface"
+#elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
+	#define VK_USE_PLATFORM_MACOS_MVK
+	#define RGFW_VK_SURFACE "VK_MVK_macos_surface"
+#else
+	#define RGFW_VK_SURFACE NULL
+#endif
+#include <vulkan/vulkan.h>
 
 /* if you don't want to use the above macros */
 RGFWDEF const char** RGFW_getVKRequiredInstanceExtensions(size_t* count); /*!< gets (static) extension array (and size (which will be 2)) */
-
-#include <vulkan/vulkan.h>
-
 RGFWDEF VkResult RGFW_window_createVKSurface(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface);
 RGFWDEF RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex);
 #endif
+
 #ifdef RGFW_DIRECTX
 #ifndef RGFW_WINDOWS
 	#undef RGFW_DIRECTX
@@ -1253,91 +1300,29 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 
 #endif /* RGFW_HEADER */
 #if !defined(RGFW_NO_WINDOW_SRC) || defined(RGFW_IMPLEMENTATION)
-	/* these OS macros look better & are standardized */
-	/* plus it helps with cross-compiling */
-
-	#ifdef __EMSCRIPTEN__
-		#define RGFW_WASM
-
-		#if !defined(RGFW_NO_API) && !defined(RGFW_WEBGPU)
-			#define RGFW_OPENGL
-		#endif
-
-		#ifdef RGFW_EGL
-			#undef RGFW_EGL
-		#endif
-
-		#include <emscripten/html5.h>
-		#include <emscripten/key_codes.h>
-
-		#ifdef RGFW_WEBGPU
-			#include <emscripten/html5_webgpu.h>
-		#endif
-	#endif
-
-	#if defined(RGFW_X11) && defined(__APPLE__) && !defined(RGFW_CUSTOM_BACKEND)
-		#define RGFW_MACOS_X11
-		#define RGFW_UNIX
-	#endif
-
-	#if defined(_WIN32) && !defined(RGFW_X11) && !defined(RGFW_UNIX) && !defined(RGFW_WASM) && !defined(RGFW_CUSTOM_BACKEND) /* (if you're using X11 on windows some how) */
-		#define RGFW_WINDOWS
-
-		#define WIN32_LEAN_AND_MEAN
-		#define OEMRESOURCE
-		#include <windows.h>
-	#endif
-	#if defined(RGFW_WAYLAND)
-			#define RGFW_DEBUG /* wayland will be in debug mode by default for now */
-			#if !defined(RGFW_NO_API) && (!defined(RGFW_BUFFER) || defined(RGFW_OPENGL))
-				#define RGFW_EGL
-				#define RGFW_OPENGL
-				#include <wayland-egl.h>
-			#endif
-
-			#define RGFW_UNIX
-			#include <wayland-client.h>
-	#endif
-	#if !defined(RGFW_NO_X11) && (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  && !defined(RGFW_WASM)  && !defined(RGFW_CUSTOM_BACKEND)
-			#define RGFW_MACOS_X11
-			#define RGFW_X11
-			#define RGFW_UNIX
-			#include <X11/Xlib.h>
-			#include <X11/Xutil.h>
-	#elif defined(__APPLE__) && !defined(RGFW_MACOS_X11) && !defined(RGFW_X11)  && !defined(RGFW_WASM)  && !defined(RGFW_CUSTOM_BACKEND)
-			#define RGFW_MACOS
-			#if !defined(RGFW_BUFFER_BGR)
-				#define RGFW_BUFFER_BGR
-			#else
-				#undef RGFW_BUFFER_BGR
-			#endif
-	#endif
-
 	#ifdef RGFW_EGL
-			#include <EGL/egl.h>
+		#include <EGL/egl.h>
 	#endif
 
 	#if (defined(RGFW_OPENGL) || defined(RGFW_WEGL)) && defined(_MSC_VER)
-			#pragma comment(lib, "opengl32")
+		#pragma comment(lib, "opengl32")
 	#endif
 
 	#if defined(RGFW_OPENGL) && defined(RGFW_X11)
-			#ifndef GLX_MESA_swap_control
-				#define  GLX_MESA_swap_control
-			#endif
-			#include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
-	#endif
-
-	#if !defined(RGFW_SNPRINTF) && defined(RGFW_X11)
-		/* required for X11 errors */
-	    #include <stdio.h>
-		#define RGFW_SNPRINTF snprintf
+		#ifndef GLX_MESA_swap_control
+			#define  GLX_MESA_swap_control
+		#endif
+		#include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
 	#endif
 
 	/*! source data for the window (used by the APIs) */
 	#ifdef RGFW_WINDOWS
 
-	typedef struct RGFW_window_src {
+	#define WIN32_LEAN_AND_MEAN
+	#define OEMRESOURCE
+	#include <windows.h>
+
+	struct RGFW_window_src {
 		HWND window; /*!< source window */
 		HDC hdc; /*!< source HDC */
 		u32 hOffset; /*!< height offset for window */
@@ -1357,11 +1342,25 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 			HBITMAP bitmap;
 			u8* bitmapBits;
 		#endif
-	} RGFW_window_src;
+	};
 
 #elif defined(RGFW_UNIX)
+	#ifdef RGFW_X11
+		#include <X11/Xlib.h>
+		#include <X11/Xutil.h>
+	#endif
 
-	typedef struct RGFW_window_src {
+	#ifdef RGFW_WAYLAND
+		#if !defined(RGFW_NO_API) && (!defined(RGFW_BUFFER) || defined(RGFW_OPENGL))
+			#define RGFW_EGL
+			#define RGFW_OPENGL
+			#include <wayland-egl.h>
+		#endif
+
+		#include <wayland-client.h>
+	#endif
+
+	struct RGFW_window_src {
 		RGFW_rect r;
 #ifdef RGFW_X11
 		Display* display; /*!< source display */
@@ -1408,11 +1407,11 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 			EGLDisplay EGL_display;
 			EGLContext EGL_context;
 		#endif
-	} RGFW_window_src;
+	};
 
 #elif defined(RGFW_MACOS)
 
-	typedef struct RGFW_window_src {
+	struct RGFW_window_src {
 		void* window;
 		void* view; /* apple viewpoint thingy */
 		void* mouse;
@@ -1424,11 +1423,18 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 			EGLDisplay EGL_display;
 			EGLContext EGL_context;
 		#endif
-	} RGFW_window_src;
+	};
 
 #elif defined(RGFW_WASM)
 
-	typedef struct RGFW_window_src {
+	#include <emscripten/html5.h>
+	#include <emscripten/key_codes.h>
+
+	#ifdef RGFW_WEBGPU
+		#include <emscripten/html5_webgpu.h>
+	#endif
+
+	struct RGFW_window_src {
 		#ifndef RGFW_WEBGPU
 			EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
 		#else
@@ -1436,7 +1442,7 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 			WGPUDevice device;
 			WGPUQueue queue;
 		#endif
-	} RGFW_window_src;
+	};
 
 #endif
 
@@ -2964,7 +2970,7 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 
 void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
     if (win == NULL)
-        eglMakeCurrent(_RGFW->RGFW_WINDOW_SRC(win).EGL_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        eglMakeCurrent(RGFW_WINDOW_SRC(_RGFW->root).EGL_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     else {
         eglMakeCurrent(RGFW_WINDOW_SRC(win).EGL_display, RGFW_WINDOW_SRC(win).EGL_surface, RGFW_WINDOW_SRC(win).EGL_surface, RGFW_WINDOW_SRC(win).EGL_context);
     }
@@ -2990,7 +2996,7 @@ RGFW_proc RGFW_getProcAddress(const char* procname) {
 }
 
 RGFW_bool RGFW_extensionSupportedPlatform(const char* extension, size_t len) {
-    const char* extensions = eglQueryString(_RGFW->RGFW_WINDOW_SRC(win).EGL_display, EGL_EXTENSIONS);
+    const char* extensions = eglQueryString(RGFW_WINDOW_SRC(_RGFW->root).EGL_display, EGL_EXTENSIONS);
     return extensions != NULL && RGFW_extensionSupportedStr(extensions, extension, len);
 }
 
@@ -3059,7 +3065,7 @@ RGFW_bool RGFW_getVKPresentationSupport(VkInstance instance, VkPhysicalDevice ph
     RGFW_GOTO_WAYLAND(0);
 	Visual* visual = DefaultVisual(_RGFW->display, DefaultScreen(_RGFW->display));
     if (_RGFW->root)
-        visual = _RGFW->RGFW_WINDOW_SRC(win).visual.visual;
+        visual = RGFW_WINDOW_SRC(_RGFW->root).visual.visual;
 
     RGFW_bool out = vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIndex, _RGFW->display, XVisualIDFromVisual(visual));
     return out;
