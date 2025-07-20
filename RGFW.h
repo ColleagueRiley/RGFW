@@ -1210,6 +1210,7 @@ RGFWDEF RGFW_bool RGFW_extensionSupported(const char* extension, size_t len);	/*
 RGFWDEF RGFW_bool RGFW_extensionSupportedPlatform(const char* extension, size_t len);	/*!< check if whether the specified platform-specific API extension is supported by the current OpenGL or OpenGL ES context */
 
 #endif
+
 #ifdef RGFW_VULKAN
 	#if defined(RGFW_WAYLAND) && defined(RGFW_X11)
     	#define VK_USE_PLATFORM_WAYLAND_KHR
@@ -2951,14 +2952,13 @@ HMODULE RGFW_wgl_dll = NULL;
 #endif
 
 RGFW_proc RGFW_getProcAddress(const char* procname) {
-	#if defined(RGFW_WINDOWS)
-	RGFW_proc proc = (RGFW_proc) GetProcAddress(RGFW_wgl_dll, procname);
-
-		if (proc)
-			return proc;
+	#ifdef RGFW_WINDOWS
+	RGFW_proc proc = (RGFW_proc)GetProcAddress(RGFW_wgl_dll, procname);
+	if (proc)
+		return proc;
 	#endif
 
-	return (RGFW_proc) eglGetProcAddress(procname);
+	return (RGFW_proc)eglGetProcAddress(procname);
 }
 
 RGFW_bool RGFW_extensionSupportedPlatform(const char* extension, size_t len) {
@@ -10218,8 +10218,10 @@ RGFW_area RGFW_getScreenSize(void) {
 	return RGFW_AREA(RGFW_innerWidth(), RGFW_innerHeight());
 }
 
-RGFW_bool RGFW_extensionSupportedPlatform(const char* extension, size_t len) {
 #ifdef RGFW_OPENGL
+
+RGFW_bool RGFW_extensionSupportedPlatform(const char* extension, size_t len) {
+
     return EM_ASM_INT({
         var ext = UTF8ToString($0, $1);
         var canvas = document.querySelector('canvas');
@@ -10229,18 +10231,14 @@ RGFW_bool RGFW_extensionSupportedPlatform(const char* extension, size_t len) {
         var supported = gl.getSupportedExtensions();
         return supported && supported.includes(ext) ? 1 : 0;
     }, extension, len);
-#else
-    return RGFW_FALSE;
-#endif
 }
 
 RGFW_proc RGFW_getProcAddress(const char* procname) {
-#ifdef RGFW_OPENGL
     return (RGFW_proc)emscripten_webgl_get_proc_address(procname);
-#else
-    return NULL
-#endif
+
 }
+
+#endif
 
 void RGFW_sleep(u64 milisecond) {
 	emscripten_sleep(milisecond);
