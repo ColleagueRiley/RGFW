@@ -192,6 +192,10 @@ int main() {
     #endif
 #endif
 
+#if !defined(RGFW_EGL) && !defined(RGFW_OPENGL) && !defined(RGFW_DIRECTX) && !defined(RGFW_BUFFER) && !defined(RGFW_NO_API)
+		#define RGFW_OPENGL
+#endif
+
 /* these OS macros look better & are standardized */
 /* plus it helps with cross-compiling */
 
@@ -239,10 +243,6 @@ int main() {
 	/* required for X11 errors */
 	#include <stdio.h>
 	#define RGFW_SNPRINTF snprintf
-#endif
-
-#if !defined(RGFW_EGL) && !defined(RGFW_OPENGL) && !defined(RGFW_DIRECTX) && !defined(RGFW_BUFFER) && !defined(RGFW_NO_API)
-		#define RGFW_OPENGL
 #endif
 
 #ifndef RGFW_USERPTR
