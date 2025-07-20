@@ -706,7 +706,7 @@ typedef struct RGFW_window_src {
 typedef struct RGFW_window_src {
 	#if defined(RGFW_OPENGL)
 		EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
-	#else defined(RGFW_WEBGPU)
+	#elif defined(RGFW_WEBGPU)
 		WGPUInstance ctx;
 		WGPUDevice device;
 		WGPUQueue queue;
@@ -8475,8 +8475,8 @@ i32 RGFW_initPlatform(void) {
 	class_addMethod(objc_getClass("NSObject"), sel_registerName("windowShouldClose:"), (IMP)RGFW_OnClose, 0);
 
 	/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
-	class_addMethod(objc_getClass("WindowClass"), (IMP)acceptsFirstResponder, 0);
-	class_addMethod(objc_getClass("WindowClass"), (IMP)performKeyEquivalent, 0);
+	class_addMethod(objc_getClass("WindowClass"), sel_registerName("acceptsFirstResponder"), (IMP)acceptsFirstResponder, 0);
+	class_addMethod(objc_getClass("WindowClass"), sel_registerName("performKeyEquivalent"), (IMP)performKeyEquivalent, 0);
 
 	if ((id)_RGFW->NSApp == NULL) {
 		_RGFW->NSApp = objc_msgSend_id((id)objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
