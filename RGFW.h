@@ -6651,7 +6651,7 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 	wglMakeCurrent(RGFW_WINDOW_SRC(win).hdc, RGFW_WINDOW_SRC(win).ctx);
 
 	if (_RGFW->root != win)
-		wglShareLists(_RGFW->RGFW_WINDOW_SRC(win).ctx, RGFW_WINDOW_SRC(win).ctx);
+		wglShareLists(RGFW_WINDOW_SRC(_RGFW->root).ctx, RGFW_WINDOW_SRC(win).ctx);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
 #else
 	RGFW_UNUSED(win);
@@ -6914,7 +6914,7 @@ RGFW_bool RGFW_window_isFloating(RGFW_window* win) {
 }
 
 void RGFW_stopCheckEvents(void) {
-	PostMessageW(_RGFW->RGFW_WINDOW_SRC(win).window, WM_NULL, 0, 0);
+	PostMessageW(RGFW_WINDOW_SRC(_RGFW->root).window, WM_NULL, 0, 0);
 }
 
 void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
@@ -7682,7 +7682,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	MultiByteToWideChar(CP_UTF8, 0, text, -1, buffer, (i32)textLen);
 	GlobalUnlock(object);
 
-	if (!OpenClipboard(_RGFW->RGFW_WINDOW_SRC(win).window)) {
+	if (!OpenClipboard(RGFW_WINDOW_SRC(_RGFW->root).window)) {
 		GlobalFree(object);
 		return;
 	}
