@@ -5,14 +5,14 @@ Current:
 
 Release:    RGFW 1.7.5-dev
 -----------------------------------------------
-- add win->exitKey to control which key is checked by `RGFW_window_shouldClose` 
+- add win->exitKey to control which key is checked by `RGFW_window_shouldClose`
 - fix set max/min window size (X11)
 - fix C++11 support
 - add RGFW_extensionSupported
 - replace the CVDisplayLink fallback with IOKit (macOS 15.4 deprecation)
-- reset keypress data on refocus 
-- make sure mouse is regrabbed on refocus 
-- try to fix black flashing issue, zero out XSetWindowAttributes object 
+- reset keypress data on refocus
+- make sure mouse is regrabbed on refocus
+- try to fix black flashing issue, zero out XSetWindowAttributes object
 - fix msvc warnings (wchar, explicitly request an "A" function)
 - add RGFW_window_mouseHeld
 - add RGFW_MEMSET
@@ -25,23 +25,57 @@ Release:    RGFW 1.7.5-dev
 - Update Wayland | fix some bugs and compile errors
 - add `RGFW_enter`, `RGFW_printScreen` and `RGFW_pause` keycodes
 - add RGFW_window_opengl_isSoftware
-- add OPTIONAL advanced `RGFW_init` functions and give the user more OPTIONAL control of global vars 
+- add OPTIONAL advanced `RGFW_init` functions and give the user more OPTIONAL control of global vars
 - remove internal OS Mesa support
 - handle X11 events manually (with a callback
 - remove software arg from `RGFW_window_initOpenGL`
 - add `RGFW_window_opengl_isSoftware` for checking if software is supported
 - add `RGFW_PRINTF` and `RGFW_SNPRINTF`
 - fix usage of libc functions without RGFW_macro
-- handle window resizing (wayland) 
-- remove multi-threading functions and update examples that use it 
+- handle window resizing (wayland)
+- remove multi-threading functions and update examples that use it
 - move keyboard map into private api as a global (helpful for a public API c89 and bindings)
 - Added prefix to wayland functions
 - update RGFW website
-- fix wayland missing destructors 
+- fix wayland missing destructors
 - make sure RGFW_XErrorHandler is used in wayland-X11 mode
 - fix wayland compile errors
 - remove WS_THICKFRAME flag (winapi)
 - replace EMPTY callback functions with NULL
+- fix XRandr memory leak
+- use `XRRConfigCurrentRate` to get the refresh rate rather than using math
+- simplified RGFW_BOOL logic
+- added a generic error code RGFW_errNoMem
+- reworked RGFW_window_initBuffer make it less prone
+- RGFW_window_initBufferSize has been reworked to include additional errors and to look nicer
+- fix ARM errors on Windows
+- improved internal event queue system
+- fix wayland object leaks
+- initialize glstencil and glsamples to 0
+- add EGL example
+- add support for native GLES support (GLX, WGL)
+- Buffer functions are now only visible when RGFW_BUFFER is defined.
+- RGFW buffer initialization functions now return a boolean to indicate if the creation of buffers was successful.
+- new function: RGFW_window_freeBuffer.
+- RGFW_window_swapBuffers_software -> RGFW_window_swapBuffers_buffer.
+- propers errors in X11, Wayland and Windows versions of RGFW_window_initBufferPtr
+- fixed a bug with RGFW_BUFFER_ALLOC in the MacOS version of RGFW_window_initBufferPtr.
+- opengl, Opengl -> OpenGL in all comments/documentation.
+- RGFW_windowOpenglSoftware -> RGFW_windowOpenGLSoftware.
+- RGFW_window_opengl_isSoftware -> RGFW_window_OpenGL_isSoftware.
+- RGFW_errOpenglContext -> RGFW_errOpenGLContext.
+- added documentation for each RGFW_glHints value including their default values.
+- RGFW_glFinalHint -> RGFW_glHintsCount.
+- RGFW_glHintsCount is now the actual maximum count of accepted OpenGL hints, not just a static 32.
+- new function: RGFW_getGLHint.
+- fixed a bug in 'RGFW_window_initBufferSize'.
+- fixed a bug in RGFW_GL_HINTS with how the RGFW_glStencil and RGFW_glSamples values were zero instead of their default RGFW values.
+- added an assertion for RGFW_setGLHint.
+- fixed indenting in RGFW_initFormatAttribs.
+- some of the RGFW_sendDebugInfo error messages have had their first letter capitalized as well have been made to end with a punctuation dot.
+- cut gamepad support and add `minigamepad.h` to the gamepad example
+- replace `window.src` with a fat point, `RGFW_window_fat` and `RGFW_WINDOW_SRC(win)`
+- don't use xdg-decorations if it's not supported
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
@@ -151,7 +185,7 @@ This version continues the work from 1.6 to refine the API while introducing mor
 
 Release:    RGFW 1.6 (Feb 25, 2025)
 -----------------------------------------------
-This release has been focused on ensuring feature parity with GLFW, reviewing included features and fixing bugs. 
+This release has been focused on ensuring feature parity with GLFW, reviewing included features and fixing bugs.
 
 breaking changes:
 - Replace `RGFW_window_setBufferPtr` and `RGFW_setBufferSize` with `RGFW_window_initBuffer`, `RGFW_window_initBufferSize` and `RGFW_window_initBufferPtr`
@@ -175,7 +209,7 @@ major changes:
 all changes:
 fixes:
 - fix wasm key event bug (key release events not being processed)
-- fix xDND data restarts bug 
+- fix xDND data restarts bug
 - rewrite writeclipboard, ensure the selection is properly being handled and the clipboard is properly being saved after the window is closed
 - review winapi window_setIcon (fixes HICON persistance issue)
 - make sure RGFW_mousePosCallback is called even for raw input events (winapi)
@@ -214,9 +248,9 @@ new features:
 - add RGFW_COCOA_GRAPHICS_SWITCHING option
 - add RGFW_setGLRGBA, RGFW_setGLAccumRGBA RGFW_setGLSRGB, RGFW_setGLRobustness, RGFW_setGLDebug, RGFW_setGLNoError
 - add RGFW_setGLReleaseBehavior and RGFW_glRelease enum
-- new opengl hint options: 
+- new opengl hint options:
     RGFW_glRed, RGFW_glGreen, RGFW_glBlue, RGFW_glAlpha
-    RGFW_glDepth, 
+    RGFW_glDepth,
 	RGFW_glAccumRed, RGFW_glAccumGreen, RGFW_glAccumBlue, RGFW_glAccumAlpha
 	RGFW_glSRGB
 	RGFW_glRobustness
@@ -259,7 +293,7 @@ miscellaneous changes:
 Release:    RGFW 1.5 (Jan 14, 2024)
 -----------------------------------------------
 This may not include all of the changes or breaking changes made.
-This is because 1.5 is the first release and I started taking releases and release notes more seriously. 
+This is because 1.5 is the first release and I started taking releases and release notes more seriously.
 
 In later commits, the CHANGELOG will be updated while the release is being worked on.
 1.5 also has many breaking changes. These are essential changes for API consistency and to expose functionality better. Later releases will aim to have fewer breaking commits. I wanted to get as many of these changes out of the way while the project is still relatively new.
@@ -280,8 +314,8 @@ breaking changes:
     - make enum naming more consistent, make window args enums
         RGFW_Key -> RGFW_key
         RGFW_Control -> RGFW_control (for example)
-        
-        RGFW_(ARG) -> RGFW_window(Arg) 
+
+        RGFW_(ARG) -> RGFW_window(Arg)
         RGFW_CENTER -> RGFW_windowCenter
     - RGFW_window_setMouse -> RGFW_loadMouse, RGFW_window_setMouse, RGFW_freeMouse
 
@@ -289,13 +323,13 @@ breaking changes:
 all changes:
 
 new features:
-- RGFW_setClassName, allows program class (grouping) to be set 
+- RGFW_setClassName, allows program class (grouping) to be set
 - start of MacOS EGL support
 - add support for loading a icon from a .rc file
 - add RGFW_allocator for runtime changes to allocator
 - add RGFW_readClipboardPtr to load clipboard data into a buffer, or send a NULL buffer to get the size
 - RGFW_createWindowPtr to create a window without allocating a window struct
-- add gamepad support for macOS (IOKit) 
+- add gamepad support for macOS (IOKit)
 - Add XDL.h to this repo for optionally  dynamically linking X11
 - autofree clipboard (no need to free it yourself)
 - RGFW_window_setBufferPtr to set win->buffer to your own pointer
@@ -305,11 +339,11 @@ new features:
     - Fallback to X when wayland compositor is not found (eg. when using a X11 server)
     - Allow the user to switch to wayland/X during runtime (you have to compile with Wayand support (RGFW_WAYLAND))
 bugs:
-- Fix GLX runtime errors for certain GPUs 
+- Fix GLX runtime errors for certain GPUs
 - Fix C++ support, mostly fixes warnings and errors
 - fix ctypes, drop support for non stdint ctypes (MSVC)
 - fix RGFW_window_resize lock (when RGFW_noResize is enabled)
-- fix xDND crash 
+- fix xDND crash
 - fix Multi-window bugs (macOS)
 - fix event misses when unknown event is sent
 - fix scale/center order
@@ -317,7 +351,7 @@ bugs:
 - allow for less linking to be required (eg. -lopengl32 -lwimm, optional `RGFW_USE_XDL`)
 reviews/rewrites
 - Wayland rewrite
-    - integrate wayland with X code, allow for callbacks 
+    - integrate wayland with X code, allow for callbacks
 - monitor review
     - SetProcessDPIAware, effective DPI
     - fix scaling units and math
@@ -346,20 +380,20 @@ reviews/rewrites
     - get rid of CoreVideo dependency
     - remove internal dependency on math.h
     - allow for use of standard library to be limited
-- make enum naming more consistent, make window args enums, 
+- make enum naming more consistent, make window args enums,
 - rewrite keymods/ledState -> modState (Control, Shift, numlock, capslock, alt)
 - Update UTF8 support
-- update wayland support 
+- update wayland support
 new examples:
 - DOOM example on website
 - MicroUI example
 - metal example
 - fix vulkan example
 - add OSMesa example
-- Add minimal linking 
+- Add minimal linking
 - Add custom backend example
 - Add gamepad example
-- Add no standard library example 
+- Add no standard library example
 
 Current Release:    RGFW 1.06 (Aug 14, 2024)
 -----------------------------------------------
@@ -413,8 +447,8 @@ breaking changes:
     - make enum naming more consistent, make window args enums
         RGFW_Key -> RGFW_key
         RGFW_Control -> RGFW_control (for example)
-        
-        RGFW_(ARG) -> RGFW_window(Arg) 
+
+        RGFW_(ARG) -> RGFW_window(Arg)
         RGFW_CENTER -> RGFW_windowCenter
     - RGFW_window_setMouse -> RGFW_loadMouse, RGFW_window_setMouse, RGFW_freeMouse
 
@@ -422,23 +456,23 @@ breaking changes:
 all changes:
 
 new features:
-- RGFW_setClassName, allows program class (grouping) to be set 
+- RGFW_setClassName, allows program class (grouping) to be set
 - start of MacOS EGL support
 - add support for loading a icon from a .rc file
 - add RGFW_allocator for runtime changes to allocator
 - add RGFW_readClipboardPtr to load clipboard data into a buffer, or send a NULL buffer to get the size
 - RGFW_createWindowPtr to create a window without allocating a window struct
-- add gamepad support for macOS (IOKit) 
+- add gamepad support for macOS (IOKit)
 - Add XDL.h to this repo for optionally  dynamically linking X11
 - autofree clipboard (no need to free it yourself)
 - RGFW_window_setBufferPtr to set win->buffer to your own pointer
 - RGFW_window_setMouse -> RGFW_loadMouse, RGFW_window_setMouse, RGFW_freeMouse
 bugs:
-- Fix GLX runtime errors for certain GPUs 
+- Fix GLX runtime errors for certain GPUs
 - Fix C++ support, mostly fixes warnings and errors
 - fix ctypes, drop support for non stdint ctypes (MSVC)
 - fix RGFW_window_resize lock (when RGFW_noResize is enabled)
-- fix xDND crash 
+- fix xDND crash
 - fix Multi-window bugs (macOS)
 - fix event misses when unknown event is sent
 - fix scale/center order
@@ -473,20 +507,20 @@ reviews/rewrites
     - get rid of CoreVideo dependency
     - remove internal dependency on math.h
     - allow for use of standard library to be limited
-- make enum naming more consistent, make window args enums, 
+- make enum naming more consistent, make window args enums,
 - rewrite keymods/ledState -> modState (Control, Shift, numlock, capslock, alt)
 - Update UTF8 support
-- update wayland support 
+- update wayland support
 new examples:
 - DOOM example on website
 - MicroUI example
 - metal example
 - fix vulkan example
 - add OSMesa example
-- Add minimal linking 
+- Add minimal linking
 - Add custom backend example
 - Add gamepad example
-- Add no standard library example 
+- Add no standard library example
 - add RGFW_VK_SURFACE and RGFW_window_createVKSurface directly to RGFW
 
 Current Release:    RGFW 1.06 (Aug 14, 2024)

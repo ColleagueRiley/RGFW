@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Sat Jul 19 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Sun Jul 20 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -22,7 +22,7 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindowPtr\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindowPtr\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window_fat\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setFlags\fP (\fBRGFW_window\fP *win, RGFW_windowFlags)"
@@ -198,7 +198,7 @@ Window_management \- Window_management
 .PP 
 .SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_createWindow (const char * name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags)"
 function to create a window and struct 
-.SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_createWindowPtr (const char * name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window\fP * win)"
+.SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_createWindowPtr (const char * name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window_fat\fP * win)"
 function to create a window (without allocating a window struct) 
 .SS "typedef RGFW_ENUM (\fBi32\fP, RGFW_eventWait)"
 for RGFW_window_eventWait and RGFW_window_checkEvents waitMS -> Allows the function to keep checking for events even after \fCRGFW_window_checkEvent == NULL\fP if waitMS == 0, the loop will not wait for events if waitMS > 0, the loop will wait that many miliseconds after there are no more events until it returns if waitMS == -1 or waitMS == the max size of an unsigned 32-bit int, the loop will not return until it gets another event 

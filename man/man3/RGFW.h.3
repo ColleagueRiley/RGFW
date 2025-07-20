@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Sat Jul 19 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Sun Jul 20 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -45,12 +45,18 @@ RGFW.h
 .RI "struct \fBRGFW_debugContext\fP"
 .br
 .ti -1c
+.RI "struct \fBRGFW_window_fat\fP"
+.br
+.ti -1c
 .RI "struct \fBRGFW_info\fP"
 .br
 .in -1c
 .SS "Macros"
 
 .in +1c
+.ti -1c
+.RI "#define \fBRGFW_OPENGL\fP"
+.br
 .ti -1c
 .RI "#define \fBRGFW_USERPTR\fP   NULL"
 .br
@@ -115,9 +121,6 @@ RGFW.h
 .RI "#define \fBRGFW_FALSE\fP   (\fBRGFW_bool\fP)0"
 .br
 .ti -1c
-.RI "#define \fBRGFW_OPENGL\fP"
-.br
-.ti -1c
 .RI "#define \fBRGFW_COCOA_FRAME_NAME\fP   NULL"
 .br
 .ti -1c
@@ -152,6 +155,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "#define \fBRGFW_eventQueuePushEx\fP(eventInit)   { \fBRGFW_event\fP e; eventInit; \fBRGFW_eventQueuePush\fP(e); }"
+.br
+.ti -1c
+.RI "#define \fBRGFW_WINDOW_SRC\fP(win)   (((\fBRGFW_window_fat\fP*)(win))\->src)"
 .br
 .in -1c
 .SS "Typedefs"
@@ -207,6 +213,12 @@ RGFW.h
 .br
 .ti -1c
 .RI "typedef struct \fBRGFW_window\fP \fBRGFW_window\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_window_fat\fP \fBRGFW_window_fat\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_window_src\fP \fBRGFW_window_src\fP"
 .br
 .ti -1c
 .RI "typedef ptrdiff_t \fBRGFW_ssize_t\fP"
@@ -312,6 +324,18 @@ RGFW.h
 .RI "typedef \fBRGFW_ENUM\fP (\fBu32\fP, RGFW_windowFlags)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofWindowFat\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofWindowSrc\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_window_fat\fP * \fBRGFW_window_getFat\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_window_src\fP * \fBRGFW_window_getSrc\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_scaleToWindow\fP (\fBRGFW_monitor\fP mon, \fBRGFW_window\fP *win)"
 .br
 .ti -1c
@@ -327,7 +351,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindowPtr\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindowPtr\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window_fat\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setFlags\fP (\fBRGFW_window\fP *win, RGFW_windowFlags)"
@@ -771,6 +795,8 @@ RGFW.h
 
 .SS "#define RGFW_USERPTR   NULL"
 
+.SS "#define RGFW_WINDOW_SRC(win)   (((\fBRGFW_window_fat\fP*)(win))\->src)"
+
 .SS "#define RGFWDEF   inline"
 
 .SH "Typedef Documentation"
@@ -803,6 +829,10 @@ basic vector type, if there's not already a point/vector type of choice
 basic rect type, if there's not already a rect type of choice 
 .SS "typedef struct \fBRGFW_window\fP \fBRGFW_window\fP"
 window structure for managing the window 
+.SS "typedef struct \fBRGFW_window_fat\fP \fBRGFW_window_fat\fP"
+
+.SS "typedef struct \fBRGFW_window_src\fP \fBRGFW_window_src\fP"
+
 .SS "typedef uint16_t \fBu16\fP"
 
 .SS "typedef uint32_t \fBu32\fP"
@@ -820,8 +850,6 @@ deinits the heap instance
 .SS "\fBRGFWDEF\fP void RGFW_deinit_ptr (\fBRGFW_info\fP * info)"
 deinits RGFW instance at pointer 
 .SS "typedef RGFW_ENUM (\fBu32\fP, RGFW_windowFlags)"
-source data for the window (used by the APIs)
-.PP
 Optional arguments for making a windows < the window doesn't have a border
 .PP
 < the window cannot be resized by the user
@@ -939,10 +967,18 @@ scale monitor to window size
 check if 2 monitor modes are the same 
 .SS "\fBRGFWDEF\fP void RGFW_setInfo (\fBRGFW_info\fP * info)"
 
+.SS "\fBRGFWDEF\fP size_t RGFW_sizeofWindowFat (void)"
+
+.SS "\fBRGFWDEF\fP size_t RGFW_sizeofWindowSrc (void)"
+
 .SS "\fBRGFWDEF\fP void RGFW_useWayland (\fBRGFW_bool\fP wayland)"
 (unix) Toggle use of wayland\&. This will be on by default if you use \fCRGFW_WAYLAND\fP (if you don't use RGFW_WAYLAND, you don't expose WAYLAND functions) this is mostly used to allow you to force the use of XWayland 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_usingWayland (void)"
 
+.SS "\fBRGFWDEF\fP \fBRGFW_window_fat\fP * RGFW_window_getFat (\fBRGFW_window\fP * win)"
+returns fat pointer of window, which is just the window casted to the fast pointer 
+.SS "\fBRGFWDEF\fP \fBRGFW_window_src\fP * RGFW_window_getSrc (\fBRGFW_window\fP * win)"
+returns fat pointer of window, which is sourced from the window casted to the fast pointer 
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.
