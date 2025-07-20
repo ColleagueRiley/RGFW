@@ -218,6 +218,9 @@ int main() {
 #if defined(RGFW_WAYLAND)
 		#define RGFW_DEBUG /* wayland will be in debug mode by default for now */
 		#define RGFW_UNIX
+		#ifdef RGFW_OPENGL
+			#define RGFW_EGL
+		#endif
 #endif
 #if !defined(RGFW_NO_X11) && (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  && !defined(RGFW_WASM)  && !defined(RGFW_CUSTOM_BACKEND)
 		#define RGFW_MACOS_X11
