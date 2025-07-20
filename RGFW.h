@@ -1868,11 +1868,13 @@ void RGFW_window_checkMode(RGFW_window* win) {
 no more event call back defines
 */
 
-#define SET_ATTRIB(a, v) { \
+#define SET_ATTRIB(a, v) do { \
     RGFW_ASSERT(((size_t) index + 1) < sizeof(attribs) / sizeof(attribs[0])); \
-    attribs[index++] = a; \
-    attribs[index++] = v; \
-}
+    attribs[index] = a; \
+	index += 1; \
+    attribs[index] = v; \
+	index += 1; \
+} while (0)
 
 /* RGFW_BIT(24) */
 #define RGFW_EVENT_QUIT 		RGFW_BIT(25) /* the window close button was pressed */
@@ -3791,7 +3793,7 @@ void RGFW_window_getVisual(RGFW_window* win) {
 RGFW_bool RGFW_window_initOpenGL(RGFW_window* win) {
 	/* NOTE(EimaMei): I'm not sure why this array has to be 9 in particular considering 
 	 * only the profile mask and versions are set. Should be resolved before merging. */
-	i32 context_attribs[9] = {
+	i32 attribs[9] = {
 		GLX_CONTEXT_PROFILE_MASK_ARB,       0,
 		/* GLX_CONTEXT_MAJOR_VERSION_ARB */ 0, 
 		/* GLX_CONTEXT_MINOR_VERSION_ARB */ 0, 
@@ -3799,20 +3801,20 @@ RGFW_bool RGFW_window_initOpenGL(RGFW_window* win) {
 	};
 
 	switch (RGFW_GL_HINTS[RGFW_glProfile]) {
-		case RGFW_glES:            context_attribs[1] = GLX_CONTEXT_ES_PROFILE_BIT_EXT; break;
-		case RGFW_glCompatibility: context_attribs[1] = GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB; break;
-		case RGFW_glCore:          context_attribs[1] = GLX_CONTEXT_CORE_PROFILE_BIT_ARB; break;
+		case RGFW_glES:            attribs[1] = GLX_CONTEXT_ES_PROFILE_BIT_EXT; break;
+		case RGFW_glCompatibility: attribs[1] = GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB; break;
+		case RGFW_glCore:          attribs[1] = GLX_CONTEXT_CORE_PROFILE_BIT_ARB; break;
 		default: {
 			RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_errOpenGLContext, RGFW_DEBUG_CTX(win, 0), "Invalid 'RGFW_glProfile' value. Defaulting to 'RGFW_glCore'.");
-			context_attribs[1] = GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+			attribs[1] = GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
 		}
 	}
 
 	if (RGFW_GL_HINTS[RGFW_glMinor] || RGFW_GL_HINTS[RGFW_glMajor]) {
-		context_attribs[2] = GLX_CONTEXT_MAJOR_VERSION_ARB;
-		context_attribs[3] = RGFW_GL_HINTS[RGFW_glMajor];
-		context_attribs[4] = GLX_CONTEXT_MINOR_VERSION_ARB;
-		context_attribs[5] = RGFW_GL_HINTS[RGFW_glMinor];
+		attribs[2] = GLX_CONTEXT_MAJOR_VERSION_ARB;
+		attribs[3] = RGFW_GL_HINTS[RGFW_glMajor];
+		attribs[4] = GLX_CONTEXT_MINOR_VERSION_ARB;
+		attribs[5] = RGFW_GL_HINTS[RGFW_glMinor];
 	}
 
 	GLXContext ctx = NULL;
@@ -3824,7 +3826,7 @@ RGFW_bool RGFW_window_initOpenGL(RGFW_window* win) {
 	glXCreateContextAttribsARBProc glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)glXGetProcAddressARB((GLubyte*)"glXCreateContextAttribsARB");
 	if (glXCreateContextAttribsARB != NULL) {
 		_RGFW->x11Error = NULL;
-		win->src.ctx = glXCreateContextAttribsARB(win->src.display, win->src.bestFbc, ctx, True, context_attribs);
+		win->src.ctx = glXCreateContextAttribsARB(win->src.display, win->src.bestFbc, ctx, True, attribs);
 		if (_RGFW->x11Error || win->src.ctx == NULL) {
 			RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_errOpenGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to create an OpenGL context with AttribsARB, loading a generic OpenGL context.");
 			win->src.ctx = glXCreateContext(win->src.display, &win->src.visual, ctx, True);
@@ -6557,7 +6559,7 @@ void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 }
 
 #if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
-void RGFW_window_initOpenGL(RGFW_window* win) {
+RGFW_bool RGFW_window_initOpenGL(RGFW_window* win) {
 	PIXELFORMATDESCRIPTOR pfd;
 	pfd.nSize        = sizeof(PIXELFORMATDESCRIPTOR);
 	pfd.nVersion     = 1;
@@ -6612,19 +6614,19 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 	if (wglCreateContextAttribsARB != NULL) {
 		u32 index = 0;
 		/* NOTE(EimaMei): I'm also not sure why this array has to be 40. Random numbers, honestly. */
-		i32 context_attribs[40] = {
+		i32 attribs[40] = {
 			WGL_CONTEXT_PROFILE_MASK_ARB,       0,
 			/* GLX_CONTEXT_MAJOR_VERSION_ARB */ 0, 
 			/* GLX_CONTEXT_MINOR_VERSION_ARB */ 0,
 		};
 
 		switch (RGFW_GL_HINTS[RGFW_glProfile]) {
-			case RGFW_glES:            context_attribs[1] = WGL_CONTEXT_ES_PROFILE_BIT_EXT; break;
-			case RGFW_glCompatibility: context_attribs[1] = WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB; break;
-			case RGFW_glCore:          context_attribs[1] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB; break;
+			case RGFW_glES:            attribs[1] = WGL_CONTEXT_ES_PROFILE_BIT_EXT; break;
+			case RGFW_glCompatibility: attribs[1] = WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB; break;
+			case RGFW_glCore:          attribs[1] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB; break;
 			default: {
 				RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_errOpenGLContext, RGFW_DEBUG_CTX(win, 0), "Invalid 'RGFW_glProfile' value. Defaulting to 'RGFW_glCore'.");
-				context_attribs[1] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+				attribs[1] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
 			}
 		}
 
@@ -8474,11 +8476,11 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 
 
 i32 RGFW_initPlatform(void) {
-	si_func_to_SEL_with_name("NSObject", "windowShouldClose", (void*)RGFW_OnClose);
+	class_addMethod(objc_getClass("NSObject"), sel_registerName("windowShouldClose:"), (IMP)onClose, 0);
 
 	/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
-	si_func_to_SEL("NSWindow", acceptsFirstResponder);
-	si_func_to_SEL("NSWindow", performKeyEquivalent);
+	class_addMethod(objc_getClass("WindowClass"), (IMP)acceptsFirstResponder, 0);
+	class_addMethod(objc_getClass("WindowClass"), (IMP)performKeyEquivalent, 0);
 
 	if ((id)_RGFW->NSApp == NULL) {
 		_RGFW->NSApp = objc_msgSend_id((id)objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
@@ -9936,9 +9938,9 @@ RGFW_bool RGFW_window_initOpenGL(RGFW_window* win) {
 
 	emscripten_webgl_init_context_attributes(&attrs);
 	win->src.ctx = emscripten_webgl_create_context("#canvas", &attrs);
-	if (win->src.ctx == NULL) {
+	if (win->src.ctx == 0) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errEGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to create a WebGL context.");
-		return;
+		return RGFW_FALSE;
 	}
 
 	emscripten_webgl_make_context_current(win->src.ctx);
@@ -9948,6 +9950,8 @@ RGFW_bool RGFW_window_initOpenGL(RGFW_window* win) {
 	EM_ASM("Module.useWebGL = true; GLImmediate.init();");
     #endif
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
+
+	return RGFW_TRUE;
 }
 
 void RGFW_window_freeOpenGL(RGFW_window* win) {
