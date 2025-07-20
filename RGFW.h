@@ -673,12 +673,12 @@ typedef struct RGFW_window_src {
 	struct wl_shm* shm;
 	struct wl_seat *seat;
 	u8* buffer;
-	#if defined(RGFW_EGL)
+	#ifdef RGFW_EGL
 		struct wl_egl_window* eglWindow;
 	#endif
 #endif /* RGFW_WAYLAND */
 
-	#if defined(RGFW_EGL)
+	#ifdef RGFW_EGL
 		EGLSurface EGL_surface;
 		EGLDisplay EGL_display;
 		EGLContext EGL_context;
