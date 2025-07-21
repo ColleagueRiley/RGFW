@@ -9015,7 +9015,7 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, RGFW_image img, u8 type) {
     size_t depth = (img.format >= RGFW_formatRGBA8) ? 4 : 3;
 
 	/* code by EimaMei: Make a bitmap representation, then copy the loaded image into it. */
-	id representation = NSBitmapImageRep_initWithBitmapData(NULL, img.size.w, img.size.h, 8, (NSInteger)depth, (depth == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * (u32)depth, 8 * depth);
+	id representation = NSBitmapImageRep_initWithBitmapData(NULL, img.size.w, img.size.h, 8, (NSInteger)depth, (depth == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * (NSInteger)depth, 8 * (NSInteger)depth);
 	RGFW_image_copy(img, (u64*)(void*)NSBitmapImageRep_bitmapData(representation), RGFW_FALSE);
 
 	/* Add ze representation. */
