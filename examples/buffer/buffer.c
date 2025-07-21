@@ -68,7 +68,8 @@ int main(void) {
 
     bufferSize = RGFW_getScreenSize();
     u8* buffer = (u8*)RGFW_ALLOC(bufferSize.w * bufferSize.h * 4);
-    RGFW_window_initBufferPtr(win, buffer, bufferSize);
+    RGFW_image image = RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8);
+    RGFW_createNativeImage(&image);
 
     i8 running = 1;
 
@@ -89,10 +90,10 @@ int main(void) {
 
         drawBitmap(buffer, icon, RGFW_RECT(100, 100, 3, 3));
 
-        RGFW_window_copyBuffer(win, buffer, bufferSize);
+        RGFW_window_copyNativeImage(win, image);
 	}
 
-	RGFW_window_freeBuffer(win, buffer);
+    RGFW_nativeImage_free(&image);
 	RGFW_FREE(buffer);
 
     RGFW_window_close(win);
