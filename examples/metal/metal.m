@@ -59,7 +59,7 @@ int main(void)
     layer.device = device;
     layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
 
-    NSView* view = (NSView*)RGFW_WINDOW_SRC(window).view;
+    NSView* view = (NSView*)window->src.view;
     [view setLayer: layer];
     // [view setWantsLayer: YES]; (I think RGFW already sets this)
 
