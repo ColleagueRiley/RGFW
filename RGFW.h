@@ -8289,12 +8289,12 @@ void RGFW__osxDrawRect(id self, SEL _cmd, CGRect rect) {
         RGFW_windowRefreshCallback(win);
 }
 
-RGFW_createNativeImagePtr(RGFW_image* img, RGFW_nativeImage* native);
-	if (native != img.native) img.native->ownedByRGFW = RGFW_FALSE;
+RGFW_createNativeImagePtr(RGFW_image* img, RGFW_nativeImage* native) {
+	if (native != img->native) img->native->ownedByRGFW = RGFW_FALSE;
 	return RGFW_TRUE;
 }
 
-void RGFW_nativeImage_free(RGFW_image* image) {
+void RGFW_nativeImage_free(RGFW_image* img) {
 	if (img->native->ownedByRGFW) RGFW_FREE(img->native);
 }
 
