@@ -8274,7 +8274,7 @@ RGFW_bool RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area
 void RGFW_window_freeBuffer(RGFW_window* win, u8* buffer) { RGFW_UNUSED(win); RGFW_UNUSED(buffer); }
 
 void RGFW_window_copyBuffer(RGFW_window* win, u8* buffer, RGFW_area bufferSize) {
-	RGFW_image_copy(RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8), (u64*)buffer, RGFW_FALSE);
+	RGFW_image_copy(RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8), (u64*)(void*)buffer, RGFW_FALSE);
 	i32 channels = 4;
 	id image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSImage"), sel_getUid("alloc"));
 	NSSize size = (NSSize){bufferSize.w, bufferSize.h};
@@ -9015,7 +9015,7 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, RGFW_image img, u8 type) {
     size_t depth = (img.format >= RGFW_formatRGBA8) ? 4 : 3;
 
 	/* code by EimaMei: Make a bitmap representation, then copy the loaded image into it. */
-	id representation = NSBitmapImageRep_initWithBitmapData(NULL, img.size.w, img.size.h, 8, (NSInteger)depth, (depth == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * (u32)channels, 8 * depth);
+	id representation = NSBitmapImageRep_initWithBitmapData(NULL, img.size.w, img.size.h, 8, (NSInteger)depth, (depth == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * (u32)depth, 8 * depth);
 	RGFW_image_copy(img, (u64*)(void*)NSBitmapImageRep_bitmapData(representation), RGFW_FALSE);
 
 	/* Add ze representation. */
@@ -9039,7 +9039,7 @@ id NSCursor_arrowStr(const char* str) {
 }
 
 RGFW_mouse* RGFW_loadMouse(RGFW_image img) {
-	if (img.icon == NULL) {
+	if (img.data == NULL) {
 		objc_msgSend_void(NSCursor_arrowStr("arrowCursor"), sel_registerName("set"));
 		return NULL;
 	}
