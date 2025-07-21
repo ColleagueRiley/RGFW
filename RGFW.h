@@ -6388,9 +6388,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 RGFW_bool RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 	RGFW_ASSERT(win != NULL);
 
-	buffer = buffer;
-	bufferSize = area;
-
 	BITMAPV5HEADER bi;
 	ZeroMemory(&bi, sizeof(bi));
 	bi.bV5Size = sizeof(bi);
@@ -6422,6 +6419,7 @@ RGFW_bool RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area
 
 void RGFW_window_freeBuffer(RGFW_window* win, u8* buffer) {
 	RGFW_ASSERT(win != NULL);
+	RGFW_UNUSED(buffer);
 
 	DeleteDC(win->src.hdcMem);
 	DeleteObject(win->src.bitmap);
@@ -6880,11 +6878,8 @@ u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
 }
 
 RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
-    if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
-    RGFW_event* ev = RGFW_window_checkEventCore(win);
-	if (ev) {
-        return ev;
-    }
+    if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return RGFW_FALSE;
+    if (RGFW_window_checkEventCore(win, event)) return RGFW_TRUE;
 
     static HDROP drop;
 	if (event->type == RGFW_DNDInit) {
@@ -6934,7 +6929,7 @@ RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
             return RGFW_window_checkEvent(win, event);
         }
     } else {
-        return NULL;
+        return RGFW_FALSE;
     }
 
     switch (msg.message) {
@@ -7676,6 +7671,19 @@ char* RGFW_createUTF8FromWideStringWin32(const WCHAR* source) {
 	}
 
 	return target;
+}
+
+u64 RGFW_getTimerFreq(void) {
+	static u64 frequency = 0;
+	if (frequency == 0) QueryPerformanceFrequency((LARGE_INTEGER*)&frequency);
+
+	return frequency;
+}
+
+u64 RGFW_getTimerValue(void) {
+	u64 value;
+	QueryPerformanceCounter((LARGE_INTEGER*)&value);
+	return value;
 }
 
 #endif /* RGFW_WINDOWS */
