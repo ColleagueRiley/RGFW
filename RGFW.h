@@ -1486,7 +1486,8 @@ typedef struct RGFW_info {
     u64 timerOffset;
 
     char* clipboard_data;
-    char droppedFiles[RGFW_MAX_PATH * RGFW_MAX_DROPS];
+    char droppedFilesSrc[RGFW_MAX_PATH * RGFW_MAX_DROPS];
+	char** droppedFiles;
     #ifdef RGFW_X11
         Display* display;
         Window helperWindow;
@@ -1957,6 +1958,11 @@ i32 RGFW_init_ptr(RGFW_info* info) {
     RGFW_MEMSET(_RGFW, 0, sizeof(RGFW_info));
     _RGFW->useWaylandBool = RGFW_TRUE;
 
+	_RGFW->droppedFiles = (char**)(void*)_RGFW->droppedFilesSrc;
+	u32 i;
+	for (i = 0; i < RGFW_MAX_DROPS; i++)
+		_RGFW->droppedFiles[i] = (char*)(_RGFW->droppedFilesSrc + RGFW_MAX_DROPS + (i * RGFW_MAX_PATH));
+
     RGFW_init_keys();
     i32 out = RGFW_initPlatform();
     RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal, RGFW_DEBUG_CTX(NULL, 0), "global context initialized");
@@ -2016,10 +2022,7 @@ RGFW_bool RGFW_window_checkEventCore(RGFW_window* win, RGFW_event* event) {
     if (event->type == 0 && _RGFW->eventLen == 0)
 		RGFW_resetKeyPrev();
 
-	event->droppedFiles = (char**)(void*)_RGFW->droppedFiles;
-	u32 i;
-	for (i = 0; i < RGFW_MAX_DROPS; i++)
-		event->droppedFiles[i] = (char*)(_RGFW->droppedFiles + RGFW_MAX_DROPS + (i * RGFW_MAX_PATH));
+	event->droppedFiles = _RGFW->droppedFiles;
 
 	if (event->type == RGFW_quit && win->_flags & RGFW_windowFreeOnClose) {
         RGFW_window_close(win);
@@ -8085,9 +8088,6 @@ bool performDragOperation(id self, SEL sel, id sender) {
 
 	RGFW_event event;
 	event.droppedFiles = (char**)(void*)_RGFW->droppedFiles;
-	u32 i;
-	for (i = 0; i < RGFW_MAX_DROPS; i++)
-		event.droppedFiles[i] = (char*)(_RGFW->droppedFiles + RGFW_MAX_DROPS + (i * RGFW_MAX_PATH));
 
     for (i = 0; i < (u32)count; i++) {
 		id fileURL = objc_msgSend_arr(fileURLs, sel_registerName("objectAtIndex:"), i);
@@ -9575,7 +9575,7 @@ EM_BOOL Emscripten_on_touchstart(int eventType, const EmscriptenTouchEvent* E, v
 	    RGFW_mouseButtons[RGFW_mouseLeft].current = 1;
 
 		_RGFW->root->_lastMousePoint = RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY);
-        RGFW_mousePosCallback(_RGFW->root, RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY), _RGFW->root->event.vector);
+        RGFW_mousePosCallback(_RGFW->root, RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY), RGFW_POINT(0, 0));
 	    RGFW_mouseButtonCallback(_RGFW->root, RGFW_mouseLeft, 0, 1);
     }
 
@@ -9592,7 +9592,7 @@ EM_BOOL Emscripten_on_touchmove(int eventType, const EmscriptenTouchEvent* E, vo
 			e._win = _RGFW->root);
 
 		_RGFW->root->_lastMousePoint = RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY);
-        RGFW_mousePosCallback(_RGFW->root, RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY), _RGFW->root->event.vector);
+        RGFW_mousePosCallback(_RGFW->root, RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY), RGFW_POINT(0, 0));
     }
     return EM_TRUE;
 }
@@ -9611,7 +9611,7 @@ EM_BOOL Emscripten_on_touchend(int eventType, const EmscriptenTouchEvent* E, voi
 		RGFW_mouseButtons[RGFW_mouseLeft].current = 0;
 
 		_RGFW->root->_lastMousePoint = RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY);
-		RGFW_mousePosCallback(_RGFW->root, RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY), _RGFW->root->event.vector);
+		RGFW_mousePosCallback(_RGFW->root, RGFW_POINT(E->touches[i].targetX, E->touches[i].targetY), RGFW_POINT(0, 0));
 		RGFW_mouseButtonCallback(_RGFW->root, RGFW_mouseLeft, 0, 0);
     }
 	return EM_TRUE;
@@ -9740,13 +9740,13 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool p
 	RGFW_eventQueuePushEx(e.type = (RGFW_eventType)(press ? RGFW_keyPressed : RGFW_keyReleased);
 										e.key = (u8)physicalKey;
 										e.keyChar = (u8)mappedKey;
-										e.keyMod = _RGFW->root->event.keyMod;
+										e.keyMod = _RGFW->root->_keyMod;
 										e._win = _RGFW->root);
 
 	RGFW_keyboard[physicalKey].prev = RGFW_keyboard[physicalKey].current;
 	RGFW_keyboard[physicalKey].current = press;
 
-	RGFW_keyCallback(_RGFW->root, physicalKey, mappedKey, _RGFW->root->event.keyMod, press);
+	RGFW_keyCallback(_RGFW->root, physicalKey, mappedKey, _RGFW->root->_keyMod, press);
 }
 
 void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyMods(RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super, RGFW_bool scroll) {
@@ -9757,11 +9757,10 @@ void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(size_t count) {
 	if (!(_RGFW->root->_flags & RGFW_windowAllowDND))
 		return;
 
-	_RGFW->root->event.droppedFilesCount = count;
 	RGFW_eventQueuePushEx(e.type = RGFW_DND;
 									e.droppedFilesCount = count;
 									e._win = _RGFW->root);
-	RGFW_dndCallback(_RGFW->root, _RGFW->root->event.droppedFiles, count);
+	RGFW_dndCallback(_RGFW->root, _RGFW->droppedFiles, count);
 }
 
 void RGFW_stopCheckEvents(void) {
@@ -9781,12 +9780,7 @@ void RGFW_window_eventWait(RGFW_window* win, i32 waitMS) {
 }
 
 RGFW_bool RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
-	RGFW_ASSERT(win != NULL);
-	RGFW_ASSERT(buffer != NULL);
-
-	buffer = buffer;
-	bufferSize = area;
-
+	RGFW_UNUSED(win); RGFW_UNUSED(buffer); RGFW_UNUSED(area);
 	return RGFW_TRUE;
 }
 
@@ -9807,8 +9801,8 @@ void EMSCRIPTEN_KEEPALIVE RGFW_makeSetValue(size_t index, char* file) {
 	/* This seems like a terrible idea, don't replicate this unless you hate yourself or the OS */
 	/* TODO: find a better way to do this
 	*/
-	RGFW_STRNCPY((char*)_RGFW->root->event.droppedFiles[index], file, RGFW_MAX_PATH - 1);
-	_RGFW->root->event.droppedFiles[index][RGFW_MAX_PATH - 1] = '\0';
+	RGFW_STRNCPY((char*)_RGFW->droppedFiles[index], file, RGFW_MAX_PATH - 1);
+	_RGFW->droppedFiles[index][RGFW_MAX_PATH - 1] = '\0';
 }
 
 #include <sys/stat.h>
@@ -9983,12 +9977,9 @@ u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
     return (u8)rgfw_keycode; /* TODO */
 }
 
-RGFW_event* RGFW_window_checkEvent(RGFW_window* win) {
-    if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
-    RGFW_event* ev =  RGFW_window_checkEventCore(win);
-	if (ev) return ev;
-
-	return NULL;
+RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
+    if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return RGFW_FALSE;
+    return RGFW_window_checkEventCore(win, event);
 }
 
 void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
@@ -10135,7 +10126,7 @@ RGFW_proc RGFW_getProcAddress(const char* procname) {
 #ifdef RGFW_OPENGL
     return (RGFW_proc)emscripten_webgl_get_proc_address(procname);
 #else
-    return NULL
+    return NULL;
 #endif
 }
 
