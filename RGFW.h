@@ -1313,7 +1313,7 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 
 		HDC hdcMem;
 		HBITMAP bitmap;
-		u8* bitmapBits;
+		u64* bitmapBits;
 	};
 
 #elif defined(RGFW_UNIX)
@@ -6390,6 +6390,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 RGFW_bool RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
 	RGFW_ASSERT(win != NULL);
+	RGFW_UNUSED(buffer);
 
 	BITMAPV5HEADER bi;
 	ZeroMemory(&bi, sizeof(bi));
@@ -6410,10 +6411,6 @@ RGFW_bool RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area
 		return RGFW_FALSE;
 	}
 
-	if (buffer == NULL) {
-		buffer = win->src.bitmapBits;
-	}
-
 	win->src.hdcMem = CreateCompatibleDC(win->src.hdc);
 	SelectObject(win->src.hdcMem, win->src.bitmap);
 
@@ -6429,10 +6426,6 @@ void RGFW_window_freeBuffer(RGFW_window* win, u8* buffer) {
 }
 
 void RGFW_window_copyBuffer(RGFW_window* win, u8* buffer, RGFW_area bufferSize) {
-	if (buffer != win->src.bitmapBits) {
-		memcpy(win->src.bitmapBits, buffer, bufferSize.w * bufferSize.h * 4);
-	}
-
 	RGFW_image_copy(RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8), (u64*)win->src.bitmapBits, RGFW_FALSE);
 	BitBlt(win->src.hdc, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
 }
@@ -7353,7 +7346,7 @@ HICON RGFW_loadHandleImage(RGFW_image img, BOOL icon) {
 	bi.bV5BitCount = (WORD)(depth * 8);
 	bi.bV5Compression = BI_RGB;
 	HDC dc = GetDC(NULL);
-	u8* target = NULL;
+	u64* target = NULL;
 
 	HBITMAP color = CreateDIBSection(dc,
 		(BITMAPINFO*) &bi, DIB_RGB_COLORS, (void**) &target,
@@ -9014,7 +9007,7 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, RGFW_image img, u8 type) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_UNUSED(type);
 
-	if (data == NULL) {
+	if (img.data == NULL) {
 		objc_msgSend_void_id((id)_RGFW->NSApp, sel_registerName("setApplicationIconImage:"), NULL);
 		return RGFW_TRUE;
 	}
@@ -9022,8 +9015,8 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, RGFW_image img, u8 type) {
     size_t depth = (img.format >= RGFW_formatRGBA8) ? 4 : 3;
 
 	/* code by EimaMei: Make a bitmap representation, then copy the loaded image into it. */
-	id representation = NSBitmapImageRep_initWithBitmapData(NULL, img.size.w, img.size.h, 8, depth, (depth == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * (u32)channels, 8 * depth);
-	RGFW_image_copy(img, (u64*)NSBitmapImageRep_bitmapData(representation), RGFW_FALSE);
+	id representation = NSBitmapImageRep_initWithBitmapData(NULL, img.size.w, img.size.h, 8, (NSInteger)depth, (depth == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * (u32)channels, 8 * depth);
+	RGFW_image_copy(img, (u64*)(void*)NSBitmapImageRep_bitmapData(representation), RGFW_FALSE);
 
 	/* Add ze representation. */
 	id dock_image = ((id(*)(id, SEL, NSSize))objc_msgSend) (NSAlloc((id)objc_getClass("NSImage")), sel_registerName("initWithSize:"), ((NSSize){img.size.w, img.size.h}));
@@ -9046,7 +9039,7 @@ id NSCursor_arrowStr(const char* str) {
 }
 
 RGFW_mouse* RGFW_loadMouse(RGFW_image img) {
-	if (icon == NULL) {
+	if (img.icon == NULL) {
 		objc_msgSend_void(NSCursor_arrowStr("arrowCursor"), sel_registerName("set"));
 		return NULL;
 	}
@@ -9054,8 +9047,8 @@ RGFW_mouse* RGFW_loadMouse(RGFW_image img) {
     size_t depth = (img.format >= RGFW_formatRGBA8) ? 4 : 3;
 	/* NOTE(EimaMei): Code by yours truly. */
 	/* Make a bitmap representation, then copy the loaded image into it. */
-	id representation = (id)NSBitmapImageRep_initWithBitmapData(NULL, img.size.w, img.size.h, 8, depth, (depth == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * (u32)depth, 8 * (u32)depth);
-	RGFW_image_copy(img, (u64*)NSBitmapImageRep_bitmapData(representation), RGFW_FALSE);
+	id representation = (id)NSBitmapImageRep_initWithBitmapData(NULL, img.size.w, img.size.h, 8, (NSInteger)depth, (depth == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * (u32)depth, 8 * (u32)depth);
+	RGFW_image_copy(img, (u64*)(void*)NSBitmapImageRep_bitmapData(representation), RGFW_FALSE);
 
 	/* Add ze representation. */
 	id cursor_image = ((id(*)(id, SEL, NSSize))objc_msgSend) (NSAlloc((id)objc_getClass("NSImage")), sel_registerName("initWithSize:"), ((NSSize){img.size.w, img.size.h}));
