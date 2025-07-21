@@ -27,7 +27,7 @@ int main(void) {
 		}
 
         RGFW_event event;
-        while (RGFW_window_checkEvent(win, &event) != NULL) {
+        while (RGFW_window_checkEvent(win, &event)) {
             if (event.type == RGFW_quit) break;
             switch (event.type) {
                 case RGFW_keyPressed:

@@ -3149,7 +3149,7 @@ void RGFW_wl_pointer_motion(void* data, struct wl_pointer *pointer, u32 time, wl
 									e.point = RGFW_POINT(wl_fixed_to_double(x), wl_fixed_to_double(y));
 									e._win = RGFW_mouse_win);
 
-	RGFW_mousePosCallback(RGFW_mouse_win, RGFW_POINT(wl_fixed_to_double(x), wl_fixed_to_double(y)), RGFW_mouse_event->vector);
+	RGFW_mousePosCallback(RGFW_mouse_win, RGFW_POINT(wl_fixed_to_double(x), wl_fixed_to_double(y)), RGFW_POINT(0, 0));
 }
 void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 serial, u32 time, u32 button, u32 state) {
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(serial);
@@ -8089,8 +8089,7 @@ bool performDragOperation(id self, SEL sel, id sender) {
 	for (i = 0; i < RGFW_MAX_DROPS; i++)
 		event.droppedFiles[i] = (char*)(_RGFW->droppedFiles + RGFW_MAX_DROPS + (i * RGFW_MAX_PATH));
 
-    int i;
-    for (i = 0; i < count; i++) {
+    for (i = 0; i < (u32)count; i++) {
 		id fileURL = objc_msgSend_arr(fileURLs, sel_registerName("objectAtIndex:"), i);
 		const char *filePath = ((const char* (*)(id, SEL))objc_msgSend)(fileURL, sel_registerName("UTF8String"));
 		RGFW_STRNCPY(event.droppedFiles[i], filePath, RGFW_MAX_PATH - 1);
