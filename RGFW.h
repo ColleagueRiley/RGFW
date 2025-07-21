@@ -673,8 +673,18 @@ typedef struct RGFW_window_src {
 	struct xdg_wm_base* xdg_wm_base;
 	struct wl_shm* shm;
 	struct wl_seat *seat;
-	u8* buffer;
+
+	/* State flags to configure the window */
+	RGFW_bool pending_activated;
+	RGFW_bool activated;
+	RGFW_bool pending_fullscreen;
+	RGFW_bool fullscreen;
+	RGFW_bool pending_maximized;
+	RGFW_bool resizing;
 	RGFW_bool maximized;
+	
+	u8* buffer;
+	
 	#if defined(RGFW_EGL)
 		struct wl_egl_window* eglWindow;
 	#endif
@@ -3076,65 +3086,107 @@ RGFW_window* RGFW_key_win = NULL;
 #include "xdg-shell.h"
 #include "xdg-decoration-unstable-v1.h"
 
+void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized);
 void RGFW_wl_xdg_wm_base_ping_handler(void* data, struct xdg_wm_base* wm_base,
 		u32 serial) {
 	RGFW_UNUSED(data);
     xdg_wm_base_pong(wm_base, serial);
 }
-
 void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface* xdg_surface,
 		u32 serial) {
 	RGFW_UNUSED(data);
+	
     xdg_surface_ack_configure(xdg_surface, serial);
-	_RGFW->wl_configured = 1;
+    _RGFW->wl_configured = 1;
+    RGFW_window* win = (RGFW_window*)xdg_surface_get_user_data(xdg_surface);
+    
+    if (win == NULL) {
+		win = RGFW_key_win;
+		if (win == NULL)
+			return;
+	}
+
+	if (win->src.activated != win->src.pending_activated) {
+		win->src.activated = win->src.pending_activated;
+	}
+	
+	if (win->src.maximized != win->src.pending_maximized) {
+		RGFW_window_checkMode(win);
+		
+		win->src.maximized = win->src.pending_maximized;
+		RGFW_toggleWaylandMaximized(win, win->src.maximized);
+
+		// do not create a maximize event if maximize is used to 
+		// restore the old window size
+		if (win->src.maximized) {
+			win->_flags |= RGFW_windowMaximize;
+			RGFW_eventQueuePushEx(e.type = RGFW_windowMaximized; e._win = win);
+			RGFW_windowMaximizedCallback(win, win->r);
+		}
+		
+		
+	}
+	// TODO implement fullscreen; need wl_output
+	
+	i32 width = win->r.w;
+	i32 height = win->r.h;
+	if (win->src.resizing) {
+		RGFW_window_checkMode(win);
+		
+		win->_oldRect = win->src.r = win->r = RGFW_RECT(win->src.r.x, win->src.r.y, width, height);
+
+		// Do not create a resize event if the window is maximized
+		if (!win->src.maximized) {
+			RGFW_eventQueuePushEx(e.type = RGFW_windowResized; e.point = RGFW_POINT(width, height); e._win = win);
+			RGFW_windowResizedCallback(win, win->r);
+		}
+		RGFW_window_resize(win, RGFW_AREA(width, height));
+	}
+    
 }
 
 void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplevel* toplevel,
 		i32 width, i32 height, struct wl_array* states) {
-    if (!_RGFW->wl_configured) return;
-
+	
     RGFW_window* win = (RGFW_window*)xdg_toplevel_get_user_data(toplevel);
     if (win == NULL) {
         win = RGFW_key_win;
         if (win == NULL)
             return;
     }
+
+    win->src.pending_activated = RGFW_FALSE;
+    win->src.pending_fullscreen = RGFW_FALSE;
+    win->src.pending_maximized = RGFW_FALSE;
+    win->src.resizing = RGFW_FALSE;
+
     
 	enum xdg_toplevel_state* state;
 	wl_array_for_each(state, states) {
 		switch (*state) {
-			case XDG_TOPLEVEL_STATE_MAXIMIZED:
-				RGFW_window_checkMode(win);
-				if (!win->src.maximized) {
-					win->src.maximized = RGFW_TRUE;
-					win->_oldRect = win->r;
-					RGFW_window_resize(win, RGFW_AREA(width, height));
-					win->_flags |= RGFW_windowMaximize;
-					RGFW_eventQueuePushEx(e.type = RGFW_windowMaximized; e._win = win);
-					RGFW_windowMaximizedCallback(win, win->r);
-				}
-				
-				
+			case XDG_TOPLEVEL_STATE_ACTIVATED:
+				 win->src.pending_activated = RGFW_TRUE;
 				break;
-			case XDG_TOPLEVEL_STATE_RESIZING:
-				RGFW_window_checkMode(win);
-				win->src.r = win->r = RGFW_RECT(win->src.r.x, win->src.r.y, width, height);
-
-				RGFW_eventQueuePushEx(e.type = RGFW_windowResized; e.point = RGFW_POINT(width, height); e._win = win);
-				RGFW_windowResizedCallback(win, win->r);
-
-				RGFW_window_resize(win, RGFW_AREA(width, height));
-				
+			case XDG_TOPLEVEL_STATE_MAXIMIZED:
+				win->src.pending_maximized = RGFW_TRUE;
+				break;
+			case XDG_TOPLEVEL_STATE_FULLSCREEN:
+				win->src.pending_fullscreen = RGFW_TRUE;
 				break;
 			default:
-				if (win->src.maximized) {
-					win->src.maximized = RGFW_FALSE;
-				}
 				break;
 		}
 
 	}
-	RGFW_UNUSED(data); RGFW_UNUSED(states);
+	// if width and height are not zero and are not the same as the window
+	// the window is resizing so update the values
+	if ((width && height) && (win->r.w != width &&  win->r.h != height)) {
+		win->src.resizing = RGFW_TRUE;
+		win->src.r.w = win->r.w = width;
+		win->src.r.h = win->r.h = height;
+	}
+	
+	RGFW_UNUSED(data);
 }
 
 void RGFW_wl_xdg_toplevel_close_handler(void* data, struct xdg_toplevel *toplevel) {
@@ -4061,12 +4113,15 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	win->src.xdg_surface = xdg_wm_base_get_xdg_surface(win->src.xdg_wm_base, win->src.surface);
 	xdg_surface_add_listener(win->src.xdg_surface, &xdg_surface_listener, NULL);
+	xdg_surface_set_user_data(win->src.xdg_surface, win);
 
 	xdg_wm_base_set_user_data(win->src.xdg_wm_base, win);
 
 	win->src.xdg_toplevel = xdg_surface_get_toplevel(win->src.xdg_surface);
 	xdg_toplevel_set_user_data(win->src.xdg_toplevel, win);
-
+	
+	xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->r.w, win->r.h);
+	
     static const struct xdg_toplevel_listener xdg_toplevel_listener = {
         .configure = RGFW_wl_xdg_toplevel_configure_handler,
         .close = RGFW_wl_xdg_toplevel_close_handler,
@@ -4074,8 +4129,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
     xdg_toplevel_add_listener(win->src.xdg_toplevel, &xdg_toplevel_listener, NULL);
 
-	xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->r.w, win->r.h);
-
+	
 	if (!(flags & RGFW_windowNoBorder)) {
 		win->src.decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
 					_RGFW->decoration_manager, win->src.xdg_toplevel);
@@ -4908,7 +4962,6 @@ void RGFW_toggleXMaximized(RGFW_window* win, RGFW_bool maximized) {
 #endif
 
 #ifdef RGFW_WAYLAND
-void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized);
 void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized) {
     win->src.maximized = maximized;
     if (maximized) {
@@ -5052,10 +5105,12 @@ void RGFW_window_restore(RGFW_window* win) {
 #ifdef RGFW_WAYLAND
     RGFW_WAYLAND_LABEL
 	RGFW_toggleWaylandMaximized(win, 0);
+	
 	win->r = win->_oldRect;
 	RGFW_window_move(win, RGFW_POINT(win->r.x, win->r.y));
 	RGFW_window_resize(win, RGFW_AREA(win->r.w, win->r.h));
-	wl_display_flush(win->src.wl_display); // might be a hack?
+	
+	RGFW_window_show(win);
 #endif
 	win->r = win->_oldRect;
 	RGFW_window_move(win, RGFW_POINT(win->r.x, win->r.y));
