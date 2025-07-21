@@ -26,14 +26,15 @@ int main(void) {
 			gamepad = gamepads.list.head;
 		}
 
-        while (RGFW_window_checkEvent(win) != NULL) {
-            if (win->event.type == RGFW_quit) break;
-            switch (win->event.type) {
+        RGFW_event event;
+        while (RGFW_window_checkEvent(win, &event) != NULL) {
+            if (event.type == RGFW_quit) break;
+            switch (event.type) {
                 case RGFW_keyPressed:
-                    if (win->event.key == RGFW_left && gamepad && gamepad->prev) {
+                    if (event.key == RGFW_left && gamepad && gamepad->prev) {
 						gamepad = gamepad->prev;
 					}
-                    if (win->event.key == RGFW_right && gamepad && gamepad->next) {
+                    if (event.key == RGFW_right && gamepad && gamepad->next) {
 						gamepad = gamepad->next;
 					}
                     break;
@@ -43,19 +44,19 @@ int main(void) {
 
         /*
                case RGFW_gamepadButtonPressed:
-                    printf("Gamepad (%i) button pressed %i\n", win->event.gamepad, win->event.button);
+                    printf("Gamepad (%i) button pressed %i\n", event.gamepad, event.button);
                     break;
                 case RGFW_gamepadButtonReleased:
-                    printf("Gamepad (%i) button pressed %i\n", win->event.gamepad, win->event.button);
+                    printf("Gamepad (%i) button pressed %i\n", event.gamepad, event.button);
                     break;
                 case RGFW_gamepadAxisMove:
-                    printf("Gamepad (%i) axis (%i) {%i, %i}\n", win->event.gamepad, win->event.whichAxis, win->event.axis[win->event.whichAxis].x, win->event.axis[win->event.whichAxis].y);
+                    printf("Gamepad (%i) axis (%i) {%i, %i}\n", event.gamepad, event.whichAxis, event.axis[event.whichAxis].x, event.axis[event.whichAxis].y);
                     break;
                 case RGFW_gamepadConnected:
-                    printf("Gamepad (%i) connected %s\n", win->event.gamepad, RGFW_getGamepadName(win, win->event.gamepad));
+                    printf("Gamepad (%i) connected %s\n", event.gamepad, RGFW_getGamepadName(win, event.gamepad));
                     break;
                 case RGFW_gamepadDisconnected:
-                    printf("Gamepad (%i) disconnected %s\n", win->event.gamepad, RGFW_getGamepadName(win, win->event.gamepad));
+                    printf("Gamepad (%i) disconnected %s\n", event.gamepad, RGFW_getGamepadName(win, event.gamepad));
                 break;
 
         */
@@ -67,7 +68,7 @@ int main(void) {
             drawGamepad(win, gamepad);
         }
 
-		RGFW_window_swapBuffers(win);
+		RGFW_window_swapBuffers_OpenGL(win);
     }
 
     RGFW_window_close(win);

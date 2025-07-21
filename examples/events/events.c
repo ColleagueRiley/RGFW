@@ -6,21 +6,22 @@
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW Events", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND | RGFW_windowTransparent);
+    RGFW_event event;
 
     while (RGFW_window_shouldClose(win) == 0) {
         glClearColor(0.25f, 0.0f, 0.15f, 0.25f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        RGFW_window_swapBuffers(win);	
+        RGFW_window_swapBuffers_OpenGL(win);
         RGFW_window_eventWait(win, RGFW_eventWaitNext);
-        while (RGFW_window_checkEvent(win)) {
-            switch (win->event.type) {
+        while (RGFW_window_checkEvent(win, &event)) {
+            switch (event.type) {
                 case RGFW_quit: printf("window closed\n"); break;
                 case RGFW_keyPressed:
-                    printf("Key pressed %c\n", win->event.keyChar);
+                    printf("Key pressed %c\n", event.keyChar);
                     break;
                 case RGFW_keyReleased:
-                    printf("Key released %c\n", win->event.keyChar);
+                    printf("Key released %c\n", event.keyChar);
                     break;
                 case RGFW_mouseButtonPressed:
                     printf("mouse button pressed\n");
@@ -30,7 +31,7 @@ int main(void) {
                     break;
                 case RGFW_mousePosChanged:
                     if (RGFW_isPressed(win, RGFW_controlL))
-                        printf("Mouse pos changed %i %i\n", win->event.point.x, win->event.point.y);
+                        printf("Mouse pos changed %i %i\n", event.point.x, event.point.y);
                     break;
                 case RGFW_windowMoved:
                     printf("window moved %i %i\n", win->r.x, win->r.y);
@@ -54,7 +55,7 @@ int main(void) {
                     printf("Unfocused\n");
                     break;
                 case RGFW_mouseEnter:
-                    printf("Mouse Entered %i %i\n", win->event.point.x, win->event.point.y);
+                    printf("Mouse Entered %i %i\n", event.point.x, event.point.y);
                     break;
                 case RGFW_mouseLeave:
                     printf("Mouse left\n");
@@ -66,22 +67,22 @@ int main(void) {
                     printf("Quit\n");
                     break;*/
                 case RGFW_DND: {
-                    printf("DND Drop : %i %i\n", win->event.point.x, win->event.point.y);
+                    printf("DND Drop : %i %i\n", event.point.x, event.point.y);
                     u32 i;
-                    for (i = 0; i < win->event.droppedFilesCount; i++)
-                        printf("dropped : %s\n", win->event.droppedFiles[i]);
+                    for (i = 0; i < event.droppedFilesCount; i++)
+                        printf("dropped : %s\n", event.droppedFiles[i]);
                     break;
                 }
                 case RGFW_DNDInit:
-                    printf("DND Init : %i %i\n", win->event.point.x, win->event.point.y);
+                    printf("DND Init : %i %i\n", event.point.x, event.point.y);
                     break;
                 case RGFW_scaleUpdated:
-                    printf("Scale Updated : %f %f\n", win->event.scaleX, win->event.scaleY);
+                    printf("Scale Updated : %f %f\n", event.scaleX, event.scaleY);
                     break;
                 default:
                     break;
             }
-        }	
+        }
     }
     RGFW_window_close(win);
 }

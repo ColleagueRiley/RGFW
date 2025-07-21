@@ -266,8 +266,8 @@ int initVulkanDevice(RGFW_window* win, vulkanContext* ctx) {
         vkGetPhysicalDeviceQueueFamilyProperties(vkInit_vulkan_info.physical_device, &queue_family_count, NULL);
         queueFamilies = (VkQueueFamilyProperties*) malloc(sizeof(VkQueueFamilyProperties) * queue_family_count);
 
-        vkGetPhysicalDeviceQueueFamilyProperties(vkInit_vulkan_info.physical_device, &queue_family_count, queueFamilies);    
-   
+        vkGetPhysicalDeviceQueueFamilyProperties(vkInit_vulkan_info.physical_device, &queue_family_count, queueFamilies);
+
         for(u32 i = 0; i < queue_family_count; i++) {
             if(queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
                 graphics_queue_family = i;
@@ -302,14 +302,14 @@ int initVulkanDevice(RGFW_window* win, vulkanContext* ctx) {
     };
 
     device_create_info.ppEnabledExtensionNames = device_extensions;
-    device_create_info.pEnabledFeatures = &device_features; 
+    device_create_info.pEnabledFeatures = &device_features;
 
-    if ((vkInit_vulkan_info.physical_device == NULL || deviceCount == 0) || 
+    if ((vkInit_vulkan_info.physical_device == NULL || deviceCount == 0) ||
         vkCreateDevice(vkInit_vulkan_info.physical_device, &device_create_info, NULL, &vkInit_vulkan_info.device) != VK_SUCCESS) {
         fprintf(stderr, "failed to create logical device!\n");
         return -1;
     }
-    
+
     return 0;
 }
 

@@ -51,7 +51,7 @@ int main(void) {
   RGFW_setMousePosCallback(mousePosCallback);
 
   vulkanContext ctx;
-  
+
   int res = initVulkanDevice(win, &ctx);
   if (res == 0) {
     vkinit_vulkan_info = initVulkan(&ctx);
@@ -63,8 +63,9 @@ int main(void) {
 
   u8 running = 1;
   while (running && !RGFW_isPressed(win, RGFW_escape)) {
-    while (RGFW_window_checkEvent(win)) {
-      if (win->event.type == RGFW_quit) {
+    RGFW_event event;
+    while (RGFW_window_checkEvent(win, &event)) {
+      if (event.type == RGFW_quit) {
         running = 0;
         break;
       }
@@ -249,7 +250,7 @@ int commandBuffers(vulkanContext* ctx) {
     clearColor.color.float32[3] = 1.0f;
     render_pass_info.clearValueCount = 1;
     render_pass_info.pClearValues = &clearColor;
-    
+
     VkViewport viewport;
     viewport.x = 0.0f;
     viewport.y = 0.0f;
@@ -277,10 +278,10 @@ int commandBuffers(vulkanContext* ctx) {
     vkCmdPushConstants(vkinit_vulkan_info->command_buffers[i],
                        vkinit_vulkan_info->pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT,
                        0, sizeof(mouse_data), &mouse_data);
-    
+
     vkCmdDraw(vkinit_vulkan_info->command_buffers[i], 3, 1, 0, 0);
     vkCmdEndRenderPass(vkinit_vulkan_info->command_buffers[i]);
-    
+
     if (vkEndCommandBuffer(vkinit_vulkan_info->command_buffers[i]) != VK_SUCCESS) {
 
       printf("failed to record command buffer\n");

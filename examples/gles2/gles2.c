@@ -117,13 +117,14 @@ int main(void) {
 
 
     while (!RGFW_window_shouldClose(win)) {
-        RGFW_window_checkEvent(win);
+        RGFW_event event;
+        RGFW_window_checkEvent(win, &event);
 
         glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        RGFW_window_swapBuffers(win);
+        RGFW_window_swapBuffers_OpenGL(win);
     }
 
     RGFW_window_close(win);
