@@ -502,22 +502,34 @@ typedef RGFW_ENUM(u8, RGFW_format) {
     RGFW_formatBGRA8,   /*!< 8-bit BGRA (4 channels) */
 };
 
+typedef struct RGFW_nativeImage RGFW_nativeImage;
+RGFWDEF size_t RGFW_sizeofNativeImage(void);
+
 typedef struct RGFW_image {
 	u8* data; /*!< raw image data */
 	RGFW_area size; /*!< image size */
 	RGFW_format format; /*!< image format */
+	RGFW_nativeImage* native;
 } RGFW_image;
+
+RGFWDEF RGFW_bool RGFW_createNativeImage(RGFW_image* img);
+RGFWDEF RGFW_bool RGFW_createNativeImagePtr(RGFW_image* img, RGFW_nativeImage* native);
+
+/*! free buffers used for software rendering within the window */
+RGFWDEF void RGFW_nativeImage_free(RGFW_image* image);
+
+
 
 #if defined(__cplusplus) && !defined(__APPLE__)
 #define RGFW_POINT(x, y) {(i32)x, (i32)y}
 #define RGFW_RECT(x, y, w, h) {(i32)x, (i32)y, (i32)w, (i32)h}
 #define RGFW_AREA(w, h) {(u32)w, (u32)h}
-#define RGFW_IMAGE(data, size, format) {data, size, format}
+#define RGFW_IMAGE(data, size, format) {data, size, format, (RGFW_nativeImage*)NULL}
 #else
 #define RGFW_POINT(x, y) (RGFW_point){(i32)(x), (i32)(y)}
 #define RGFW_RECT(x, y, w, h) (RGFW_rect){(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
 #define RGFW_AREA(w, h) (RGFW_area){(u32)(w), (u32)(h)}
-#define RGFW_IMAGE(data, size, format) (RGFW_image){data, size, format}
+#define RGFW_IMAGE(data, size, format) (RGFW_image){data, size, format, (RGFW_nativeImage*)NULL}
 #endif
 
 #ifndef RGFW_NO_MONITOR
@@ -556,8 +568,6 @@ typedef struct RGFW_image {
 	/*! check if 2 monitor modes are the same */
 	RGFWDEF RGFW_bool RGFW_monitorModeCompare(RGFW_monitorMode mon, RGFW_monitorMode mon2, RGFW_modeRequest request);
 #endif
-
-typedef struct RGFW_nativeImage RGFW_nativeImage;
 
 /* RGFW mouse loading */
 typedef void RGFW_mouse;
@@ -621,6 +631,9 @@ typedef struct RGFW_window_src RGFW_window_src;
 
 RGFWDEF size_t RGFW_sizeofWindow(void);
 RGFWDEF size_t RGFW_sizeofWindowSrc(void);
+
+/*! render the software rendering buffer */
+RGFWDEF void RGFW_window_copyNativeImage(RGFW_window* win, RGFW_image image);
 
 RGFWDEF RGFW_rect RGFW_window_getRect(RGFW_window* win); /*!< gets the size of the window | returns RGFW_window.r */
 
@@ -1004,15 +1017,6 @@ RGFWDEF RGFW_scaleUpdatedfunc RGFW_setScaleUpdatedCallback(RGFW_scaleUpdatedfunc
 
 /*! get current RGFW window graphics context */
 RGFWDEF RGFW_window* RGFW_getCurrent(void);
-
-RGFWDEF RGFW_bool RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area);
-
-/*! render the software rendering buffer */
-RGFWDEF void RGFW_window_copyBuffer(RGFW_window* win, u8* buffer, RGFW_area bufferSize);
-
-/*! free buffers used for software rendering within the window */
-RGFWDEF void RGFW_window_freeBuffer(RGFW_window* win, u8* buffer);
-
 typedef void (*RGFW_proc)(void); /* function pointer equivalent of void* */
 
 /*! native rendering API functions */
@@ -1296,6 +1300,13 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	#define OEMRESOURCE
 	#include <windows.h>
 
+	struct RGFW_nativeImage {
+		RGFW_bool ownedByRGFW;
+		HBITMAP bitmap;
+		u64* bitmapBits;
+		HDC hdcMem;
+	};
+
 	struct RGFW_window_src {
 		HWND window; /*!< source window */
 		HDC hdc; /*!< source HDC */
@@ -1310,10 +1321,6 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 			EGLDisplay EGL_display;
 			EGLContext EGL_context;
 		#endif
-
-		HDC hdcMem;
-		HBITMAP bitmap;
-		u64* bitmapBits;
 	};
 
 #elif defined(RGFW_UNIX)
@@ -1340,6 +1347,17 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 		#include <wayland-client.h>
 	#endif
 
+	struct RGFW_nativeImage {
+		RGFW_bool ownedByRGFW;
+		#ifdef RGFW_X11
+			XImage* bitmap;
+		#endif
+		#ifdef RGFW_WAYLAND
+			struct wl_buffer* wl_buffer;
+			u8* buffer;
+		#endif
+	};
+
 	struct RGFW_window_src {
 		RGFW_rect r;
 #ifdef RGFW_X11
@@ -1353,8 +1371,6 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 			GLXFBConfig bestFbc;
 		#endif
 
-		XImage* bitmap;
-
 		#ifdef RGFW_ADVANCED_SMOOTH_RESIZE
 			i64 counter_value;
 			XID counter;
@@ -1364,7 +1380,6 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 #if defined(RGFW_WAYLAND)
 		struct wl_display* wl_display;
 		struct wl_surface* surface;
-		struct wl_buffer* wl_buffer;
 		struct wl_keyboard* keyboard;
 
 		struct wl_compositor* compositor;
@@ -1374,7 +1389,6 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 		struct xdg_wm_base* xdg_wm_base;
 		struct wl_shm* shm;
 		struct wl_seat *seat;
-		u8* buffer;
 
 		#ifdef RGFW_LIBDECOR
 			struct libdecor* decorContext;
@@ -1392,6 +1406,10 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	};
 
 #elif defined(RGFW_MACOS)
+
+	struct RGFW_nativeImage {
+		RGFW_bool ownedByRGFW;
+	};
 
 	struct RGFW_window_src {
 		void* window;
@@ -1415,6 +1433,10 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	#ifdef RGFW_WEBGPU
 		#include <emscripten/html5_webgpu.h>
 	#endif
+
+	struct RGFW_nativeImage  {
+		RGFW_bool ownedByRGFW;
+	}
 
 	struct RGFW_window_src {
 		#ifndef RGFW_WEBGPU
@@ -1887,6 +1909,7 @@ no more event call back defines
 #define RGFW_WINDOW_INIT 		RGFW_BIT(30) /* if window.buffer was allocated by RGFW */
 #define RGFW_INTERNAL_FLAGS (RGFW_EVENT_QUIT | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_WINDOW_ALLOC | RGFW_windowFocus)
 
+size_t RGFW_sizeofNativeImage(void) { return sizeof(RGFW_nativeImage); }
 size_t RGFW_sizeofWindow(void) { return sizeof(RGFW_window); }
 size_t RGFW_sizeofWindowSrc(void) { return sizeof(RGFW_window_src); }
 
@@ -2230,6 +2253,13 @@ void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m) {
 	RGFW_window_move(win, RGFW_POINT(m.x + win->r.x, m.y + win->r.y));
 }
 #endif
+
+RGFW_bool RGFW_createNativeImage(RGFW_image* img) {
+	img->native = (RGFW_nativeImage*)RGFW_ALLOC(sizeof(RGFW_nativeImage));
+	img->native->ownedByRGFW = RGFW_TRUE;
+	RGFW_createNativeImagePtr(img, img->native);
+	return RGFW_TRUE;
+}
 
 RGFWDEF void RGFW_image_copy(RGFW_image img, u64* target, RGFW_bool is64Bit);
 void RGFW_image_copy(RGFW_image img, u64* target64, RGFW_bool is64Bit) {
@@ -3499,37 +3529,36 @@ RGFW_bool RGFW_extensionSupportedPlatform(const char * extension, size_t len) {
 RGFW_proc RGFW_getProcAddress(const char* procname) { return (RGFW_proc) glXGetProcAddress((GLubyte*) procname); }
 #endif
 
-RGFW_bool RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
-	RGFW_ASSERT(win != NULL);
-	RGFW_ASSERT(buffer != NULL);
+RGFW_bool RGFW_createNativeImagePtr(RGFW_image* img, RGFW_nativeImage* native) {
+	RGFW_ASSERT(native != NULL);
+	if (native != img->native) img->native->ownedByRGFW = RGFW_FALSE;
 
-	buffer = buffer;
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoBuffer, RGFW_DEBUG_CTX(win, 0), "Creating a 4 channel buffer");
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoBuffer, RGFW_DEBUG_CTX(_RGFW->root, 0), "Creating a 4 channel buffer");
 
 	RGFW_GOTO_WAYLAND(0);
 #ifdef RGFW_X11
-	win->src.bitmap = XCreateImage(
-		win->src.display, win->src.visual.visual, (u32)win->src.visual.depth,
-		ZPixmap, 0, NULL, area.w, area.h, 32, 0
+	img->native->bitmap = XCreateImage(
+		_RGFW->display, _RGFW->root->src.visual.visual, (u32)_RGFW->root->src.visual.depth,
+		ZPixmap, 0, NULL, img->size.w, img->size.h, 32, 0
 	);
 
-	if (win->src.bitmap == NULL) {
-		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, RGFW_DEBUG_CTX(win, 0), "Failed to create XImage.");
+	if (img->native->bitmap == NULL) {
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, RGFW_DEBUG_CTX(_RGFW->root, 0), "Failed to create XImage.");
 		return RGFW_FALSE;
 	}
 #endif
 #ifdef RGFW_WAYLAND
 	RGFW_WAYLAND_LABEL {}
-	u32 size = (u32)(area.w * area.h * 4);
+	u32 size = (u32)(img->size.w * img->size.h * 4);
 	int fd = RGFW_wl_create_shm_file(size);
 	if (fd < 0) {
-		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, RGFW_DEBUG_CTX(win, (u32)fd), "Failed to create a buffer.");
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, RGFW_DEBUG_CTX(_RGFW->root, (u32)fd), "Failed to create a buffer.");
 		return RGFW_FALSE;
 	}
 
-	win->src.buffer = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-	if (win->src.buffer == MAP_FAILED) {
-		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, RGFW_DEBUG_CTX(win, (u32)errno), "mmap failed.");
+	img->native->buffer = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	if (img->native->buffer == MAP_FAILED) {
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, RGFW_DEBUG_CTX(_RGFW->root, (u32)errno), "mmap failed.");
 		return RGFW_FALSE;
 	}
 
@@ -3549,20 +3578,21 @@ RGFW_bool RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area
 	for (i = 0; i < area.w * area.h * 4; i += 4) {
 		RGFW_MEMCPY(&buffer[i], color, 4);
 	}
-	RGFW_MEMCPY(win->src.buffer, buffer, (size_t)(win->r.w * win->r.h * 4));
+	RGFW_MEMCPY(img->native->buffer, buffer, (size_t)(win->r.w * win->r.h * 4));
 #endif
 
 	return RGFW_TRUE;
 }
 
-void RGFW_window_freeBuffer(RGFW_window* win, u8* buffer) {
-	RGFW_ASSERT(win != NULL);
-	if (buffer == NULL) { return ; }
+void RGFW_nativeImage_free(RGFW_image* img) {
+	if (img->native == NULL) { return ; }
 
 	RGFW_GOTO_WAYLAND(0);
 
 #ifdef RGFW_X11
-	XDestroyImage(win->src.bitmap);
+	XDestroyImage(img->native->bitmap);
+	img->native = NULL;
+	if (img->native->ownedByRGFW) RGFW_FREE(img->native);
 	return;
 #endif
 
@@ -3570,22 +3600,22 @@ void RGFW_window_freeBuffer(RGFW_window* win, u8* buffer) {
 	RGFW_WAYLAND_LABEL
 
 	wl_buffer_destroy(win->src.wl_buffer);
-	munmap(win->src.buffer, (size_t)(win->r.w * win->r.h * 4));
+	munmap(img->native->buffer, (size_t)(img->area.w * img->area.h * 4));
 
-	buffer = NULL;
+	if (img->native->ownedByRGFW) RGFW_FREE(img->native);
 #endif
 }
 
-void RGFW_window_copyBuffer(RGFW_window* win, u8* buffer, RGFW_area bufferSize) {
-	RGFW_ASSERT(win != NULL);
+void RGFW_window_copyNativeImage(RGFW_window* win, RGFW_image img) {
+	RGFW_ASSERT(img.data != NULL);  RGFW_ASSERT(img.native != NULL);
 	RGFW_GOTO_WAYLAND(0);
 
 #ifdef RGFW_X11
-	win->src.bitmap->data = (char*) buffer;
-	RGFW_image_copy(RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8), (u64*)win->src.bitmap->data, RGFW_FALSE);
+	img.native->bitmap->data = (char*) img.data;
+	RGFW_image_copy(img, (u64*)img.native->bitmap->data, RGFW_FALSE);
 
-	XPutImage(win->src.display, win->src.window, win->src.gc, win->src.bitmap, 0, 0, 0, 0, bufferSize.w, bufferSize.h);
-	win->src.bitmap->data = NULL;
+	XPutImage(win->src.display, win->src.window, win->src.gc, img.native->bitmap, 0, 0, 0, 0, img.size.w, img.size.h);
+	img.native->bitmap->data = NULL;
 	return;
 #endif
 
@@ -3603,7 +3633,7 @@ void RGFW_window_copyBuffer(RGFW_window* win, u8* buffer, RGFW_area bufferSize) 
 			buffer[index2 + 2] =  r;
 			buffer[index2 + 3] =  buffer[index + 3];
 
-			RGFW_MEMCPY(&win->src.buffer[index], &buffer[index2], 4);
+			RGFW_MEMCPY(&img.src->buffer[index], &buffer[index2], 4);
 		}
 	}
 
@@ -6388,46 +6418,47 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                                         RGFW_ASSERT(name##SRC != NULL); \
                                     }
 
-RGFW_bool RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
-	RGFW_ASSERT(win != NULL);
-	RGFW_UNUSED(buffer);
+RGFW_bool RGFW_createNativeImagePtr(RGFW_image* img, RGFW_nativeImage* native) {
+	RGFW_ASSERT(native != NULL);
+	if (native != img->native) img->native->ownedByRGFW = RGFW_FALSE;
 
 	BITMAPV5HEADER bi;
 	ZeroMemory(&bi, sizeof(bi));
 	bi.bV5Size = sizeof(bi);
-	bi.bV5Width = (i32)area.w;
-	bi.bV5Height = -((LONG) area.h);
+	bi.bV5Width = (i32)img->size.w;
+	bi.bV5Height = -((LONG) img->size.h);
 	bi.bV5Planes = 1;
 	bi.bV5BitCount = 32;
 	bi.bV5Compression = BI_RGB;
 
-	win->src.bitmap = CreateDIBSection(win->src.hdc,
+	img->native->bitmap = CreateDIBSection(_RGFW->root->src.hdc,
 		(BITMAPINFO*) &bi, DIB_RGB_COLORS,
-		(void**) &win->src.bitmapBits,
+		(void**) &img->native->bitmapBits,
 		NULL, (DWORD) 0);
 
-	if (win->src.bitmap == NULL) {
-		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, RGFW_DEBUG_CTX(win, (u32)GetLastError()), "Failed to create DIB section.");
+	if (img->native->bitmap == NULL) {
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, RGFW_DEBUG_CTX(NULL, (u32)GetLastError()), "Failed to create DIB section.");
 		return RGFW_FALSE;
 	}
 
-	win->src.hdcMem = CreateCompatibleDC(win->src.hdc);
-	SelectObject(win->src.hdcMem, win->src.bitmap);
+	img->native->hdcMem = CreateCompatibleDC(_RGFW->root->src.hdc);
+	SelectObject(img->native->hdcMem, img->native->bitmap);
 
 	return RGFW_TRUE;
 }
 
-void RGFW_window_freeBuffer(RGFW_window* win, u8* buffer) {
-	RGFW_ASSERT(win != NULL);
-	RGFW_UNUSED(buffer);
+void RGFW_nativeImage_free(RGFW_image* img) {
+	RGFW_ASSERT(img != NULL);
 
-	DeleteDC(win->src.hdcMem);
-	DeleteObject(win->src.bitmap);
+	DeleteDC(img->native->hdcMem);
+	DeleteObject(img->native->bitmap);
+
+	if (img->native->ownedByRGFW) RGFW_FREE(img->native);
 }
 
-void RGFW_window_copyBuffer(RGFW_window* win, u8* buffer, RGFW_area bufferSize) {
-	RGFW_image_copy(RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8), (u64*)win->src.bitmapBits, RGFW_FALSE);
-	BitBlt(win->src.hdc, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
+void RGFW_window_copyNativeImage(RGFW_window* win, RGFW_image img) {
+	RGFW_image_copy(img, (u64*)img.native->bitmapBits, RGFW_FALSE);
+	BitBlt(win->src.hdc, 0, 0, win->r.w, win->r.h, img.native->hdcMem, 0, 0, SRCCOPY);
 }
 
 void RGFW_releaseCursor(RGFW_window* win) {
@@ -8266,14 +8297,16 @@ void RGFW__osxDrawRect(id self, SEL _cmd, CGRect rect) {
         RGFW_windowRefreshCallback(win);
 }
 
-RGFW_bool RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
-	RGFW_UNUSED(buffer); RGFW_UNUSED(area); RGFW_UNUSED(win);
+RGFW_createNativeImagePtr(RGFW_image* img, RGFW_nativeImage* native);
+	if (native != img.native) img.native->ownedByRGFW = RGFW_FALSE;
 	return RGFW_TRUE;
 }
 
-void RGFW_window_freeBuffer(RGFW_window* win, u8* buffer) { RGFW_UNUSED(win); RGFW_UNUSED(buffer); }
+void RGFW_nativeImage_free(RGFW_image* image) {
+	if (img->native->ownedByRGFW) RGFW_FREE(img->native);
+}
 
-void RGFW_window_copyBuffer(RGFW_window* win, u8* buffer, RGFW_area bufferSize) {
+void RGFW_window_copyNativeImage(RGFW_window* win, RGFW_image image) {
 	RGFW_image_copy(RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8), (u64*)(void*)buffer, RGFW_FALSE);
 	i32 channels = 4;
 	id image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSImage"), sel_getUid("alloc"));
@@ -9727,14 +9760,16 @@ void RGFW_stopCheckEvents(void) {
 	_RGFW->stopCheckEvents_bool = RGFW_TRUE;
 }
 
-RGFW_bool RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area){
-	RGFW_UNUSED(win); RGFW_UNUSED(buffer); RGFW_UNUSED(area);
+RGFW_createNativeImagePtr(RGFW_image* img, RGFW_nativeImage* native);
+	if (native != img.native) img.native->ownedByRGFW = RGFW_FALSE;
 	return RGFW_TRUE;
 }
 
-void RGFW_window_freeBuffer(RGFW_window* win, u8* buffer) { RGFW_UNUSED(win); RGFW_UNUSED(buffer); }
+void RGFW_nativeImage_free(RGFW_image* image) {
+	if (img->native->ownedByRGFW) RGFW_FREE(img->native);
+}
 
-void RGFW_window_copyBuffer(RGFW_window* win, u8* buffer, RGFW_area bufferSize) {
+void RGFW_window_copyNativeImage(RGFW_window* win, RGFW_image image) {
 	/* TODO: Needs fixing. */
 
 	RGFW_image_copy(RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8), (u64*)buffer, RGFW_FALSE);
