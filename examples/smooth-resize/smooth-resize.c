@@ -18,11 +18,11 @@ void draw(RGFW_window* win) {
     glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
     glEnd();
 
-    RGFW_window_swapBuffers(win);
+    RGFW_window_swapBuffers_OpenGL(win);
 }
 
-void resize(RGFW_window* win, RGFW_rect rect); 
-void refresh(RGFW_window* win); 
+void resize(RGFW_window* win, RGFW_rect rect);
+void refresh(RGFW_window* win);
 
 void resize(RGFW_window* win, RGFW_rect rect) { RGFW_UNUSED(win); glViewport(0, 0, rect.w, rect.h); }
 void refresh(RGFW_window* win) { printf("refresh\n"); RGFW_UNUSED(win); draw(win); }
@@ -32,12 +32,13 @@ int main(void) {
 
     RGFW_setWindowRefreshCallback(refresh);
     RGFW_setWindowResizedCallback(resize);
-    
+
+    RGFW_event event;
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
-        while (RGFW_window_checkEvent(win)) {
-            if (win->event.type == RGFW_quit)  break; 
+        while (RGFW_window_checkEvent(win, &event)) {
+            if (event.type == RGFW_quit)  break;
         }
-        
+
         draw(win);
     }
 

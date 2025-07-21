@@ -12,7 +12,7 @@ typedef void* my_thread;
 
 my_thread createThread(threadFunc_ptr ptr, void* args) { return CreateThread(NULL, 0, ptr, args, 0, NULL); }
 void joinThread(my_thread thread) { WaitForSingleObject((HANDLE) thread, INFINITE); }
-#else 
+#else
 #include <pthread.h>
 
 typedef pthread_t my_thread;
@@ -28,21 +28,21 @@ void joinThread(my_thread thread) { pthread_join((pthread_t) thread, NULL); }
 
 void checkEvents(RGFW_window* win);
 void checkEvents(RGFW_window* win) {
-	RGFW_event* event = NULL;
+	RGFW_event event;
 
-	while ((event = RGFW_window_checkEvent(win)) != NULL) {
-		switch (event->type) {
+	while (RGFW_window_checkEvent(win, &event)) {
+		switch (event.type) {
 			case RGFW_quit:
 				RGFW_window_setShouldClose(win, 1);
 				break;
 			case RGFW_windowResized:
-				if (event->point.x != 0 && event->point.y != 0)
-					printf("window %p: resize: %dx%d\n", (void*)win, event->point.x, event->point.y);
+				if (event.point.x != 0 && event.point.y != 0)
+					printf("window %p: resize: %dx%d\n", (void*)win, event.point.x, event.point.y);
 				break;
 			case RGFW_DND:
-				printf("window %p: drag and drop: %dx%d:\n", (void*)win, event->point.x, event->point.y);
-				for (size_t i = 0; i < event->droppedFilesCount; i++)
-					printf("\t%u: '%s'\n", (u32)i, event->droppedFiles[i]);
+				printf("window %p: drag and drop: %dx%d:\n", (void*)win, event.point.x, event.point.y);
+				for (size_t i = 0; i < event.droppedFilesCount; i++)
+					printf("\t%u: '%s'\n", (u32)i, event.droppedFiles[i]);
 				break;
 		}
 	}
@@ -59,7 +59,7 @@ void checkEvents(RGFW_window* win) {
 		printf("window %p: clipboard paste %d: '", (void*)win, (i32)len);
 		fwrite(str, 1, len, stdout);
 		printf("'\n");
-	}	
+	}
 }
 
 
@@ -90,7 +90,7 @@ void* loop(void* _win) {
 		glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
 		glEnd();
 
-		RGFW_window_swapBuffers(win);
+		RGFW_window_swapBuffers_OpenGL(win);
 		frames++;
 	}
 
@@ -121,16 +121,10 @@ int main(void) {
 	my_thread thread2 = createThread(loop, win2);
 	my_thread thread3 = createThread(loop, win3);
 
-	const double startTime = RGFW_getTime();
-	u32 frames = 0;
-
 	while (!RGFW_window_shouldClose(win1) && !RGFW_window_shouldClose(win2) && !RGFW_window_shouldClose(win3)) {
 		checkEvents(win1);
 		checkEvents(win2);
 		checkEvents(win3);
-
-		RGFW_checkFPS(startTime, frames, 60);
-		frames++;
 	}
 
 	RGFW_window_setShouldClose(win1, 1);

@@ -8,11 +8,11 @@ RGFW_window* window;
 static
 void errorfunc(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const char* msg) {
     if (type != RGFW_typeError || err == RGFW_noError) return; /* disregard non-errors */
-    /* only care about errors for this window 
+    /* only care about errors for this window
         If there were two windows and the error uses the root window it will also be ignored,
             this may ignore important errors
     */
-    if (window != ctx.win) return; 
+    if (window != ctx.win) return;
     printf("RGFW ERROR: %s\n", msg);
 }
 
@@ -61,7 +61,7 @@ void windowquitfunc(RGFW_window* win) {
 static
 void focusfunc(RGFW_window* win, u8 inFocus) {
     if (window != win) return;
-    
+
     if (inFocus)
         printf("window in focus\n");
     else
@@ -71,7 +71,7 @@ void focusfunc(RGFW_window* win, u8 inFocus) {
 static
 void mouseNotifyfunc(RGFW_window* win, RGFW_point point, u8 status) {
     if (window != win) return;
-    
+
     if (status)
         printf("mouse enter %i %i\n", point.x, point.y);
     else
@@ -88,7 +88,7 @@ void mouseposfunc(RGFW_window* win, RGFW_point point, RGFW_point vector) {
 static
 void dndfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount) {
     if (window != win) return;
-    
+
     u32 i;
     for (i = 0; i < droppedFilesCount; i++)
         printf("dropped : %s\n", droppedFiles[i]);
@@ -107,8 +107,8 @@ void windowrefreshfunc(RGFW_window* win) {
 
     glClearColor(0.15f, 0.0f, 0.25f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-    
-    RGFW_window_swapBuffers(win);
+
+    RGFW_window_swapBuffers_OpenGL(win);
 
 }
 
@@ -124,7 +124,7 @@ void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGF
 static
 void mousebuttonfunc(RGFW_window* win, u8 button, double scroll, u8 pressed) {
     if (window != win) return;
-    
+
     if (button < RGFW_mouseScrollUp) {
         if (pressed)
             printf("mouse button pressed : %i\n", button);
@@ -159,9 +159,9 @@ int main(void) {
     while (RGFW_window_shouldClose(window) == 0) {
         glClearColor(0.15f, 0.0f, 0.25f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        
-        RGFW_window_swapBuffers(window);
- 
+
+        RGFW_window_swapBuffers_OpenGL(window);
+
 		RGFW_window_checkEvents(window, RGFW_eventNoWait);
    }
 

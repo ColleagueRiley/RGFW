@@ -4,19 +4,20 @@
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW flags", RGFW_RECT(0, 0, 600, 400), RGFW_windowAllowDND);
-    
+
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
 
 //                        printf("Maximized: %s\n", RGFW_window_isMaximized(win) ? "true" : "false");
-        while (RGFW_window_checkEvent(win)) {
-            if (win->event.type == RGFW_quit) break;
-            if (win->event.type != RGFW_keyPressed) continue;
-            switch (win->event.key) {
+        RGFW_event event;
+        while (RGFW_window_checkEvent(win, &event)) {
+            if (event.type == RGFW_quit) break;
+            if (event.type != RGFW_keyPressed) continue;
+            switch (event.key) {
                     case RGFW_b:
                         printf("Borderless: %s\n", !RGFW_window_borderless(win) ? "true" : "false");
                         RGFW_window_setBorder(win, RGFW_window_borderless(win));
                         break;
-                    case RGFW_r: { 
+                    case RGFW_r: {
                         static RGFW_bool res = RGFW_TRUE;
                         res = !res;
                         printf("Resizable: %s\n", !res ? "true" : "false");
@@ -29,7 +30,7 @@ int main(void) {
                         }
                         break;
 		            }
-                    case RGFW_d: 
+                    case RGFW_d:
                         printf("Allow Drops: %s\n", RGFW_window_allowsDND(win) ? "true" : "false");
                         RGFW_window_setDND(win, !RGFW_window_allowsDND(win));
                         break;
@@ -37,7 +38,7 @@ int main(void) {
                         printf("Mouse shown: %s\n", !RGFW_window_mouseHidden(win) ? "true" : "false");
                         RGFW_window_showMouse(win, RGFW_window_mouseHidden(win));
                         break;
-                    case RGFW_m: 
+                    case RGFW_m:
                         printf("Maximized: %s\n", RGFW_window_isMaximized(win) ? "true" : "false");
                         if (RGFW_window_isMaximized(win)) RGFW_window_restore(win);
                         else RGFW_window_maximize(win);
@@ -45,7 +46,7 @@ int main(void) {
                     case RGFW_f:
                         printf("fullscreen: %s\n", RGFW_window_isFullscreen(win) ? "true" : "false");
                         RGFW_window_setFullscreen(win, !RGFW_window_isFullscreen(win));
-			            break; 
+			            break;
                     case RGFW_h:
                         printf("Hidden: %s\n", RGFW_window_isHidden(win) ? "true" : "false");
                         if (RGFW_window_isHidden(win)) RGFW_window_show(win);
@@ -68,7 +69,7 @@ int main(void) {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        RGFW_window_swapBuffers(win);
+        RGFW_window_swapBuffers_OpenGL(win);
     }
 
     RGFW_window_close(win);
