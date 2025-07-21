@@ -103,8 +103,9 @@ int main(void)
     assert(rps);
 
     while (!RGFW_window_shouldClose(window)) {
-		while (RGFW_window_checkEvent(window) != NULL) {
-			if (window->event.type == RGFW_quit)
+        RGFW_event event;
+		while (RGFW_window_checkEvent(window, &event) != NULL) {
+			if (event.type == RGFW_quit)
 				break;
 		}
 
