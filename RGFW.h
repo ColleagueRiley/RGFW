@@ -8083,22 +8083,29 @@ bool performDragOperation(id self, SEL sel, id sender) {
 	if (count == 0)
 		return 0;
 
+	RGFW_event event;
+	event.droppedFiles = (char**)(void*)_RGFW->droppedFiles;
+	u32 i;
+	for (i = 0; i < RGFW_MAX_DROPS; i++)
+		event.droppedFiles[i] = (char*)(_RGFW->droppedFiles + RGFW_MAX_DROPS + (i * RGFW_MAX_PATH));
+
     int i;
     for (i = 0; i < count; i++) {
 		id fileURL = objc_msgSend_arr(fileURLs, sel_registerName("objectAtIndex:"), i);
 		const char *filePath = ((const char* (*)(id, SEL))objc_msgSend)(fileURL, sel_registerName("UTF8String"));
-		RGFW_STRNCPY(event->droppedFiles[i], filePath, RGFW_MAX_PATH - 1);
-		event->droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
+		RGFW_STRNCPY(event.droppedFiles[i], filePath, RGFW_MAX_PATH - 1);
+		event.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
 	}
 	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
 
-	e->droppedFilesCount = (size_t)count;
+	event.droppedFilesCount = (size_t)count;
 	RGFW_eventQueuePushEx(e.type = RGFW_DND;
 									e.point = RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y));
 									e.droppedFilesCount = (size_t)count;
+									e.droppedFiles = event.droppedFiles;
 									e._win = win);
 
-	RGFW_dndCallback(win, e->droppedFiles, e->droppedFilesCount);
+	RGFW_dndCallback(win, event.droppedFiles, event.droppedFilesCount);
 
 	return false;
 }
