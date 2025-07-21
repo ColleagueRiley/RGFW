@@ -22,7 +22,7 @@ int main(void) {
 
 
     RGFW_area bufferSize = RGFW_AREA(500, 500);
-    u8* buffer = RGFW_ALLOC(bufferSize.w * bufferSize.h * 4);
+    u8* buffer = (u8*)RGFW_ALLOC(bufferSize.w * bufferSize.h * 4);
     RGFW_window_initBufferPtr(win, buffer, bufferSize);
 
 

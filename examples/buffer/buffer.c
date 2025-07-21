@@ -105,7 +105,7 @@ int main(void) {
     RGFW_window* win = RGFW_createWindow("Basic buffer example", RGFW_RECT(0, 0, 500, 500), RGFW_windowCenter | RGFW_windowTransparent);
 
     bufferSize = RGFW_getScreenSize();
-    u8* buffer = RGFW_ALLOC(bufferSize.w * bufferSize.h * 4);
+    u8* buffer = (u8*)RGFW_ALLOC(bufferSize.w * bufferSize.h * 4);
     RGFW_window_initBufferPtr(win, buffer, bufferSize);
 
     i8 running = 1;
