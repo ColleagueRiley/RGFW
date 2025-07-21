@@ -3582,7 +3582,8 @@ void RGFW_window_copyBuffer(RGFW_window* win, u8* buffer, RGFW_area bufferSize) 
 
 #ifdef RGFW_X11
 	win->src.bitmap->data = (char*) buffer;
-	RGFW_RGB_to_BGR(win, (u8*)win->src.bitmap->data, buffer, bufferSize);
+	RGFW_image_copy(RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8), (u64*)win->src.bitmap->data, RGFW_FALSE);
+
 	XPutImage(win->src.display, win->src.window, win->src.gc, win->src.bitmap, 0, 0, 0, 0, bufferSize.w, bufferSize.h);
 	win->src.bitmap->data = NULL;
 	return;
@@ -6432,7 +6433,7 @@ void RGFW_window_copyBuffer(RGFW_window* win, u8* buffer, RGFW_area bufferSize) 
 		memcpy(win->src.bitmapBits, buffer, bufferSize.w * bufferSize.h * 4);
 	}
 
-	RGFW_RGB_to_BGR(win, win->src.bitmapBits, buffer, bufferSize);
+	RGFW_image_copy(RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8), (u64*)win->src.bitmapBits, RGFW_FALSE);
 	BitBlt(win->src.hdc, 0, 0, win->r.w, win->r.h, win->src.hdcMem, 0, 0, SRCCOPY);
 }
 
@@ -8280,7 +8281,7 @@ RGFW_bool RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area
 void RGFW_window_freeBuffer(RGFW_window* win, u8* buffer) { RGFW_UNUSED(win); RGFW_UNUSED(buffer); }
 
 void RGFW_window_copyBuffer(RGFW_window* win, u8* buffer, RGFW_area bufferSize) {
-	RGFW_RGB_to_BGR(win, buffer, buffer, bufferSize);
+	RGFW_image_copy(RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8), (u64*)buffer, RGFW_FALSE);
 	i32 channels = 4;
 	id image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSImage"), sel_getUid("alloc"));
 	NSSize size = (NSSize){bufferSize.w, bufferSize.h};
@@ -9742,6 +9743,8 @@ void RGFW_window_freeBuffer(RGFW_window* win, u8* buffer) { RGFW_UNUSED(win); RG
 
 void RGFW_window_copyBuffer(RGFW_window* win, u8* buffer, RGFW_area bufferSize) {
 	/* TODO: Needs fixing. */
+
+	RGFW_image_copy(RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8), (u64*)buffer, RGFW_FALSE);
 	EM_ASM_({
 		var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4);
 		let context = document.getElementById("canvas").getContext("2d");
