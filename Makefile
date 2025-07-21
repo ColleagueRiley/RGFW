@@ -98,6 +98,8 @@ ifeq ($(RGFW_WAYLAND),1)
 	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL
 	LINK_GL1 = -lEGL -lGL
 
+	LIBS += -ldecor-0
+
 	ifeq ($(WAYLAND_ONLY), 1)
 		LIBS += -D RGFW_NO_X11
 	endif
@@ -161,7 +163,6 @@ EXAMPLE_OUTPUTS = \
 EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/icons/icons \
 	examples/gamepad/gamepad \
-	examples/silk/silk \
 	examples/first-person-camera/camera \
 	examples/microui_demo/microui_demo \
 	examples/gl33/gl33 \
@@ -305,13 +306,6 @@ else
 	$(CC) $(CFLAGS) -I. $< examples/microui_demo/microui.c -s USE_WEBGL2 $(LIBS) $(LINK_GL1) -o $@$(EXT)
 endif
 
-examples/silk/silk: examples/silk/silk.c RGFW.h
-ifeq (,$(filter $(CC),em++ g++ clang++))
-	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
-else
-	@echo silk example is not supported with C++
-endif
-
 examples/icons/icons: examples/icons/icons.c RGFW.h
 	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 examples/gamepad/gamepad: examples/gamepad/gamepad.c RGFW.h
@@ -346,7 +340,6 @@ debug: all
 	done
 
 	./examples/icons/icons
-	./examples/silk/silk
 	./examples/gamepad/gamepad
 	./examples/first-person-camera/camera
 	./examples/portableGL/pgl$(EXT)
