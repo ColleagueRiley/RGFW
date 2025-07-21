@@ -10,6 +10,42 @@ float camX = 0, camZ = 0;
 RGFWDEF void update_camera(void);
 RGFWDEF void glPerspective(float fovY, float aspect, float zNear, float zFar);
 
+#ifdef RGFW_WINDOWS
+void my_sleep(u64 ms) {
+	Sleep((u32)ms);
+}
+#elif defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WASM)  || defined(RGFW_WAYLAND)
+#ifndef RGFW_WASM
+void my_sleep(u64 ms) {
+	struct timespec time;
+	time.tv_sec = 0;
+	time.tv_nsec = (long int)((double)ms * 1e+6);
+
+	nanosleep(&time, NULL);
+}
+#else
+void my_sleep(u64 milisecond) {
+	emscripten_sleep(milisecond);
+}
+#endif
+#endif
+
+
+u32 checkFPS(double startTime, u32 frameCount, u32 fpsCap) {
+	double deltaTime = RGFW_getTime() - startTime;
+	if (deltaTime == 0) return 0;
+
+	double fps = (frameCount / deltaTime); /* the numer of frames over the time it took for them to render */
+	if (fpsCap && fps > fpsCap) {
+		double frameTime = (double)frameCount / (double)fpsCap; /* how long it should take to finish the frames */
+		double sleepTime = frameTime - deltaTime; /* subtract how long it should have taken with how long it did take */
+
+		if (sleepTime > 0) my_sleep((u32)(sleepTime * 1000));
+	}
+
+	return (u32) fps;
+}
+
 int main(void) {
     RGFW_window* win = RGFW_createWindow("First person camera", RGFW_RECT(0, 0, 800, 450), RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowFocusOnShow);
 
@@ -40,39 +76,39 @@ int main(void) {
     glPerspective(60, 16.0 / 9.0, 1.0, 1000);
     glMatrixMode(GL_MODELVIEW);
 
-    RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
+    RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));
 
     u32 frames = 0;
     float frameStartTime = RGFW_getTime();
-    
+    RGFW_event event;
     while (RGFW_window_shouldClose(win) == 0) {
-        while (RGFW_window_checkEvent(win)) {
-            if (win->event.type == RGFW_quit)
+        while (RGFW_window_checkEvent(win, &event)) {
+            if (event.type == RGFW_quit)
                 break;
 
-            switch (win->event.type) {
+            switch (event.type) {
                 case RGFW_focusIn:
-                    RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
+                    RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));
                     break;
-               case RGFW_mousePosChanged: {      
-                    int dev_x = win->event.vector.x;
-                    int dev_y = win->event.vector.y;
-                    
+               case RGFW_mousePosChanged: {
+                    int dev_x = event.vector.x;
+                    int dev_y = event.vector.y;
+
 					/* apply the changes to pitch and yaw*/
                     yaw += (float)dev_x / 15.0;
                     pitch += (float)dev_y / 15.0;
                     break;
                 }
                 case RGFW_keyPressed:
-                    switch (win->event.key) {
+                    switch (event.key) {
                         case RGFW_return:
                             RGFW_window_showMouse(win, 0);
-                            RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));    
+                            RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));
                             break;
-                        
+
                         case RGFW_backSpace:
                             RGFW_window_showMouse(win, 1);
-                            RGFW_window_mouseUnhold(win);    
+                            RGFW_window_mouseUnhold(win);
                             break;
 
                         case RGFW_left:
@@ -96,9 +132,9 @@ int main(void) {
             }
         }
 
-        if (win->event.type == RGFW_quit)
+        if (event.type == RGFW_quit)
             break;
-        
+
         if (RGFW_isPressed(win, RGFW_w)) {
             camX += cos((yaw + 90) * DEG2RAD)/5.0;
             camZ -= sin((yaw + 90) * DEG2RAD)/5.0;
@@ -107,12 +143,12 @@ int main(void) {
             camX += cos((yaw + 270) * DEG2RAD)/5.0;
             camZ -= sin((yaw + 270) * DEG2RAD)/5.0;
         }
-        
+
         if (RGFW_isPressed(win, RGFW_a)) {
             camX += cos(yaw * DEG2RAD)/5.0;
             camZ -= sin(yaw * DEG2RAD)/5.0;
         }
-        
+
         if (RGFW_isPressed(win, RGFW_d)) {
             camX += cos((yaw + 180) * DEG2RAD)/5.0;
             camZ -= sin((yaw + 180) * DEG2RAD)/5.0;
@@ -121,7 +157,7 @@ int main(void) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
         update_camera();
-        
+
         glViewport(0, 0, win->r.w, win->r.h);
 
         glBegin(GL_QUADS);
@@ -143,8 +179,7 @@ int main(void) {
 
         glEnd();
 
-        RGFW_window_swapBuffers(win);
-	RGFW_checkFPS(frameStartTime, frames, 60);
+        RGFW_window_swapBuffers_OpenGL(win);
         frames++;
     }
 
@@ -171,12 +206,12 @@ void glPerspective(float fovY, float aspect, float zNear, float zFar) {
     const float f = (cosf(fovY) / sinf(fovY));
 
     float projectionMatrix[16] = {0};
-    
+
     projectionMatrix[0] = f / aspect;
     projectionMatrix[5] = f;
     projectionMatrix[10] = (zFar + zNear) / (zNear - zFar);
     projectionMatrix[11] = -1.0;
     projectionMatrix[14] = (2.0 * zFar * zNear) / (zNear - zFar);
-    
+
     glMultMatrixf(projectionMatrix);
 }

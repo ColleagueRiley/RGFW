@@ -13,7 +13,7 @@ static  char logbuf[64000];
 static   int logbuf_updated = 0;
 static float bg[3] = { 90, 95, 100 };
 
-  
+
 static void write_log(const char *text) {
   if (logbuf[0]) { strcat(logbuf, "\n"); }
   strcat(logbuf, text);
@@ -254,35 +254,36 @@ int main(int argc, char **argv) {
   /* main loop */
   while (RGFW_window_shouldClose(window) == RGFW_FALSE) {
     /* handle RGFW events */
-    while (RGFW_window_checkEvent(window)) {
-      if (window->event.type == RGFW_quit) break;
+    RGFW_event event;
+    while (RGFW_window_checkEvent(window, &event)) {
+      if (event.type == RGFW_quit) break;
 
-      switch (window->event.type) {
+      switch (event.type) {
         case RGFW_quit: break;
-        case RGFW_mousePosChanged: mu_input_mousemove(ctx, window->event.point.x,  window->event.point.y); break;
+        case RGFW_mousePosChanged: mu_input_mousemove(ctx, event.point.x,  event.point.y); break;
 
         case RGFW_mouseButtonPressed:
-		  mu_input_scroll(ctx, 0, window->event.scroll * -30);
+		  mu_input_scroll(ctx, 0, event.scroll * -30);
 		case RGFW_mouseButtonReleased: {
-          int b = button_map[window->event.button & 0xff];
-          if (b && window->event.type == RGFW_mouseButtonPressed) { mu_input_mousedown(ctx, window->event.point.x,  window->event.point.y , b); }
-          if (b && window->event.type == RGFW_mouseButtonReleased) { mu_input_mouseup(ctx, window->event.point.x,  window->event.point.y, b);   }
+          int b = button_map[event.button & 0xff];
+          if (b && event.type == RGFW_mouseButtonPressed) { mu_input_mousedown(ctx, event.point.x,  event.point.y , b); }
+          if (b && event.type == RGFW_mouseButtonReleased) { mu_input_mouseup(ctx, event.point.x,  event.point.y, b);   }
           break;
         }
-		
+
         case RGFW_keyPressed: {
-		  char str[2] = {(char)window->event.keyChar, '\0'};
+		  char str[2] = {(char)event.keyChar, '\0'};
 		  mu_input_text(ctx, str);
 	    }
 		case RGFW_keyReleased: {
-          int c = key_map[window->event.key & 0xff];
-          if (c && window->event.type == RGFW_keyPressed) { mu_input_keydown(ctx, c); }
-          if (c && window->event.type == RGFW_keyReleased) { mu_input_keyup(ctx, c);   }
+          int c = key_map[event.key & 0xff];
+          if (c && event.type == RGFW_keyPressed) { mu_input_keydown(ctx, c); }
+          if (c && event.type == RGFW_keyReleased) { mu_input_keyup(ctx, c);   }
           break;
         }
-		
+
 		case RGFW_windowResized:
-		  width = window->r.w; 
+		  width = window->r.w;
 		  height = window->r.h;
 		  break;
 	  }
@@ -304,7 +305,7 @@ int main(int argc, char **argv) {
     }
 
     r_present();
-    RGFW_window_swapBuffers(window);
+    RGFW_window_swapBuffers_OpenGL(window);
   }
 
   return 0;

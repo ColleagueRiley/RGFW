@@ -162,7 +162,7 @@ int main(int argc, const char* argv[]) {
         .bindGroupLayoutCount = 1,
         .bindGroupLayouts = &bindgroup_layout,
     });
-    
+
     // create pipeline
     state.wgpu.pipeline = wgpuDeviceCreateRenderPipeline(win->src.device, &(WGPURenderPipelineDescriptor){
         // pipeline layout
@@ -213,7 +213,7 @@ int main(int argc, const char* argv[]) {
         },
         // depth-stencil state
         .depthStencil = NULL,
-        
+
     });
 
     wgpuBindGroupLayoutRelease(bindgroup_layout);
@@ -238,7 +238,7 @@ int main(int argc, const char* argv[]) {
     };
     state.res.vbuffer = create_buffer(vertex_data, sizeof(vertex_data), WGPUBufferUsage_Vertex);
     state.res.ibuffer = create_buffer(index_data, sizeof(index_data), WGPUBufferUsage_Index);
-    
+
     // create the uniform bind group
     state.res.ubuffer = create_buffer(&state.var.rot, sizeof(state.var.rot), WGPUBufferUsage_Uniform);
     state.res.bindgroup = wgpuDeviceCreateBindGroup(win->src.device, &(WGPUBindGroupDescriptor){
@@ -258,8 +258,9 @@ int main(int argc, const char* argv[]) {
     //-----------------
 
 	while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
-		while (RGFW_window_checkEvent(win)) {
-			if (win->event.type == RGFW_windowResized) {
+        RGFW_event event;
+        while (RGFW_window_checkEvent(win, &event)) {
+			if (event.type == RGFW_windowResized) {
 				if (state.wgpu.swapchain) {
 					wgpuSwapChainRelease(state.wgpu.swapchain);
 					state.wgpu.swapchain = NULL;
@@ -280,7 +281,7 @@ int main(int argc, const char* argv[]) {
     wgpuQueueRelease(win->src.queue);
     wgpuDeviceRelease(win->src.device);
     wgpuInstanceRelease(win->src.ctx);
-	
+
 	RGFW_window_close(win);
 
     return 0;
@@ -325,7 +326,7 @@ void draw() {
     // create command buffer
     WGPUCommandBuffer cmd_buffer = wgpuCommandEncoderFinish(cmd_encoder, NULL); // after 'end render pass'
 
-    // submit commands    
+    // submit commands
     wgpuQueueSubmit(win->src.queue, 1, &cmd_buffer);
 
     // release all

@@ -1,4 +1,4 @@
-//========================================================================
+
 // Simple RGFW+Metal example
 //
 //
@@ -30,7 +30,7 @@
 
 /* RGFW will have to be linked/compiled outside of this file
 	because this file uses objective-c and RGFW uses work arounds
-*/ 
+*/
 //#define RGFW_IMPLEMENTATION
 #define RGFW_NO_API
 #define RGFWDEF
@@ -58,11 +58,11 @@ int main(void)
     CAMetalLayer* layer = [CAMetalLayer layer];
     layer.device = device;
     layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-	
+
     NSView* view = (NSView*)window->src.view;
     [view setLayer: layer];
     // [view setWantsLayer: YES]; (I think RGFW already sets this)
-    
+
     MTLCompileOptions* compileOptions = [MTLCompileOptions new];
     compileOptions.languageVersion = MTLLanguageVersion1_1;
     NSError* compileError;
@@ -103,13 +103,14 @@ int main(void)
     assert(rps);
 
     while (!RGFW_window_shouldClose(window)) {
-		while (RGFW_window_checkEvent(window) != NULL) {
-			if (window->event.type == RGFW_quit) 
+        RGFW_event event;
+		while (RGFW_window_checkEvent(window, &event) != NULL) {
+			if (event.type == RGFW_quit)
 				break;
 		}
 
         float ratio;
-       	
+
         ratio = window->r.w / (float) window->r.h;
 
         layer.drawableSize = CGSizeMake(window->r.w, window->r.h);
@@ -139,7 +140,7 @@ int main(void)
         [cb commit];
     }
 
-   	
+
     RGFW_window_close(window);
 }
 

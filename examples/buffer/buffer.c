@@ -5,14 +5,52 @@
 
 u8 icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
 
-RGFW_area screenSize;
+RGFW_area bufferSize;
+
+#ifdef RGFW_WINDOWS
+void my_sleep(u64 ms) {
+	Sleep((u32)ms);
+}
+#elif defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WASM)  || defined(RGFW_WAYLAND)
+#ifndef RGFW_WASM
+void my_sleep(u64 ms) {
+	struct timespec time;
+	time.tv_sec = 0;
+	time.tv_nsec = (long int)((double)ms * 1e+6);
+
+	nanosleep(&time, NULL);
+}
+#else
+void my_sleep(u64 milisecond) {
+	emscripten_sleep(milisecond);
+}
+#endif
+#endif
+
+
+u32 checkFPS(double startTime, u32 frameCount, u32 fpsCap) {
+	double deltaTime = RGFW_getTime() - startTime;
+	if (deltaTime == 0) return 0;
+
+	double fps = (frameCount / deltaTime); /* the numer of frames over the time it took for them to render */
+	if (fpsCap && fps > fpsCap) {
+		double frameTime = (double)frameCount / (double)fpsCap; /* how long it should take to finish the frames */
+		double sleepTime = frameTime - deltaTime; /* subtract how long it should have taken with how long it did take */
+
+		if (sleepTime > 0) my_sleep((u32)(sleepTime * 1000));
+	}
+
+	return (u32) fps;
+}
+
+
 
 /* fill buffer with a color, clearing anything that was on it */
-void clear(RGFW_window* win, u8 color[4]) {
+void clear(u8* buffer, RGFW_rect rect, u8 color[4]) {
     /* if all the values are the same */
     if (color[0] == color[1] && color[0] == color[2] && color[0] == color[3]) {
         /* set it all in one function */
-        memset(win->buffer, color[0], (u32)screenSize.w * (u32)win->r.h * 4 * sizeof(u8));  
+        memset(buffer, color[0], (u32)bufferSize.w * (u32)rect.h * 4 * sizeof(u8));
         return;
     }
 
@@ -20,14 +58,14 @@ void clear(RGFW_window* win, u8 color[4]) {
 
     /* loop through each *pixel* (not channel) of the buffer */
     u32 x, y;
-    for (y = 0; y < (u32)win->r.h; y++) {
-        for (x = 0; x < screenSize.w; x++) {
-            u32 index = (y * 4 * screenSize.w) + x * 4;
-            
+    for (y = 0; y < (u32)rect.h; y++) {
+        for (x = 0; x < bufferSize.w; x++) {
+            u32 index = (y * 4 * bufferSize.w) + x * 4;
+
             /* copy the color to that pixel */
-            memcpy(win->buffer + index, color, 4 * sizeof(u8));
+            memcpy(buffer + index, color, 4 * sizeof(u8));
         }
-    }    
+    }
 }
 
 /* this can also be used to convert BGR to RGB */
@@ -42,55 +80,62 @@ void bitmap_rgbToBgr(u8* bitmap, RGFW_area a) {
             bitmap[index] = bitmap[index + 2];
             bitmap[index + 2] = red;
         }
-    }    
-}
-
-void drawBitmap(RGFW_window* win, u8* bitmap, RGFW_rect rect) {
-    u32 y;
-    for (y = 0; y < (u32)rect.h; y++) {
-        u32 index = ((u32)rect.y + y) * (4 * screenSize.w) + (u32)rect.x * 4;
-        memcpy(win->buffer + index, bitmap + (4 * (u32)rect.w * y), (u32)rect.w * 4 * sizeof(u8));
     }
 }
 
-void drawRect(RGFW_window* win, RGFW_rect r, u8 color[4]) {
+void drawBitmap(u8* buffer, u8* bitmap, RGFW_rect rect) {
+    u32 y;
+    for (y = 0; y < (u32)rect.h; y++) {
+        u32 index = ((u32)rect.y + y) * (4 * bufferSize.w) + (u32)rect.x * 4;
+        memcpy(buffer + index, bitmap + (4 * (u32)rect.w * y), (u32)rect.w * 4 * sizeof(u8));
+    }
+}
+
+void drawRect(u8* buffer, RGFW_rect r, u8 color[4]) {
     for(int x = r.x; x < (r.x + r.w); x++) {
         for(int y = r.y; y < (r.y + r.h); y++) {
-            u32 index = (u32)y * (4 * screenSize.w) + (u32)x * 4;
-            
-            memcpy(win->buffer + index, color, 4 * sizeof(u8));
+            u32 index = (u32)y * (4 * bufferSize.w) + (u32)x * 4;
+
+            memcpy(buffer + index, color, 4 * sizeof(u8));
         }
     }
 }
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("Basic buffer example", RGFW_RECT(0, 0, 500, 500), RGFW_windowCenter | RGFW_windowTransparent);
-    screenSize = RGFW_getScreenSize();
-    
+
+    bufferSize = RGFW_getScreenSize();
+    u8* buffer = (u8*)RGFW_ALLOC(bufferSize.w * bufferSize.h * 4);
+    RGFW_window_initBufferPtr(win, buffer, bufferSize);
+
     i8 running = 1;
     u32 frames = 0;
     double frameStartTime = RGFW_getTime();
 
+    RGFW_event event;
+
     while (running) {
-        while (RGFW_window_checkEvent(win)) {
-            if (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape)) {
+        while (RGFW_window_checkEvent(win, &event)) {
+            if (event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape)) {
                 running = 0;
                 break;
-            }   
-        } 
-        
+            }
+        }
+
         u8 color[4] = {0, 0, 255, 125};
         u8 color2[4] = {255, 0, 0, 255};
-        clear(win, color);
-        drawRect(win, RGFW_RECT(200, 200, 200, 200), color2);
+        clear(buffer, RGFW_window_getRect(win), color);
+        drawRect(buffer, RGFW_RECT(200, 200, 200, 200), color2);
 
-        drawBitmap(win, icon, RGFW_RECT(100, 100, 3, 3));
-        
-        // RGFW_window_swapBuffers could work here too, but I want to ensure only the CPU buffer is being swapped
-        RGFW_window_swapBuffers_software(win);
-		RGFW_checkFPS(frameStartTime, frames, 60);
+        drawBitmap(buffer, icon, RGFW_RECT(100, 100, 3, 3));
+
+        RGFW_window_copyBuffer(win, buffer, bufferSize);
+        checkFPS(frameStartTime, frames, 60);
         frames++;
 	}
+
+	RGFW_window_freeBuffer(win, buffer);
+	RGFW_FREE(buffer);
 
     RGFW_window_close(win);
 }

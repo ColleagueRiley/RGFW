@@ -14,11 +14,12 @@ int main(void) {
     printf("OpenGL Version: %s\n", version);
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
-        while (RGFW_window_checkEvent(win));
-        
+        RGFW_event event;
+        while (RGFW_window_checkEvent(win, &event));
+
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        RGFW_window_swapBuffers(win);
+        RGFW_window_swapBuffers_OpenGL(win);
     }
 
     RGFW_window_close(win);
