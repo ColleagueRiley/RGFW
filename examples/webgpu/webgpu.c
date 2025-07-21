@@ -146,7 +146,7 @@ int main(int argc, const char* argv[]) {
     };
 
     // describe pipeline layout
-    WGPUBindGroupLayout bindgroup_layout = wgpuDeviceCreateBindGroupLayout(RGFW_WINDOW_SRC(win).device, &(WGPUBindGroupLayoutDescriptor){
+    WGPUBindGroupLayout bindgroup_layout = wgpuDeviceCreateBindGroupLayout(win->src.device, &(WGPUBindGroupLayoutDescriptor){
         .entryCount = 1,
         // bind group layout entry
         .entries = &(WGPUBindGroupLayoutEntry){
@@ -158,13 +158,13 @@ int main(int argc, const char* argv[]) {
             }
         },
     });
-    WGPUPipelineLayout pipeline_layout = wgpuDeviceCreatePipelineLayout(RGFW_WINDOW_SRC(win).device, &(WGPUPipelineLayoutDescriptor){
+    WGPUPipelineLayout pipeline_layout = wgpuDeviceCreatePipelineLayout(win->src.device, &(WGPUPipelineLayoutDescriptor){
         .bindGroupLayoutCount = 1,
         .bindGroupLayouts = &bindgroup_layout,
     });
 
     // create pipeline
-    state.wgpu.pipeline = wgpuDeviceCreateRenderPipeline(RGFW_WINDOW_SRC(win).device, &(WGPURenderPipelineDescriptor){
+    state.wgpu.pipeline = wgpuDeviceCreateRenderPipeline(win->src.device, &(WGPURenderPipelineDescriptor){
         // pipeline layout
         .layout = pipeline_layout,
         // vertex state
@@ -241,7 +241,7 @@ int main(int argc, const char* argv[]) {
 
     // create the uniform bind group
     state.res.ubuffer = create_buffer(&state.var.rot, sizeof(state.var.rot), WGPUBufferUsage_Uniform);
-    state.res.bindgroup = wgpuDeviceCreateBindGroup(RGFW_WINDOW_SRC(win).device, &(WGPUBindGroupDescriptor){
+    state.res.bindgroup = wgpuDeviceCreateBindGroup(win->src.device, &(WGPUBindGroupDescriptor){
         .layout = wgpuRenderPipelineGetBindGroupLayout(state.wgpu.pipeline, 0),
         .entryCount = 1,
         // bind group entry
@@ -258,8 +258,9 @@ int main(int argc, const char* argv[]) {
     //-----------------
 
 	while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
-		while (RGFW_window_checkEvent(win)) {
-			if (win->event.type == RGFW_windowResized) {
+        RGFW_event event;
+        while (RGFW_window_checkEvent(win, &event)) {
+			if (event.type == RGFW_windowResized) {
 				if (state.wgpu.swapchain) {
 					wgpuSwapChainRelease(state.wgpu.swapchain);
 					state.wgpu.swapchain = NULL;
@@ -277,9 +278,9 @@ int main(int argc, const char* argv[]) {
 
     wgpuRenderPipelineRelease(state.wgpu.pipeline);
     wgpuSwapChainRelease(state.wgpu.swapchain);
-    wgpuQueueRelease(RGFW_WINDOW_SRC(win).queue);
-    wgpuDeviceRelease(RGFW_WINDOW_SRC(win).device);
-    wgpuInstanceRelease(RGFW_WINDOW_SRC(win).ctx);
+    wgpuQueueRelease(win->src.queue);
+    wgpuDeviceRelease(win->src.device);
+    wgpuInstanceRelease(win->src.ctx);
 
 	RGFW_window_close(win);
 
@@ -291,13 +292,13 @@ void draw() {
     // update rotation
     state.var.rot += 0.1f;
     state.var.rot = state.var.rot >= 360.f ? 0.0f : state.var.rot;
-    wgpuQueueWriteBuffer(RGFW_WINDOW_SRC(win).queue, state.res.ubuffer, 0, &state.var.rot, sizeof(state.var.rot));
+    wgpuQueueWriteBuffer(win->src.queue, state.res.ubuffer, 0, &state.var.rot, sizeof(state.var.rot));
 
     // create texture view
     WGPUTextureView back_buffer = wgpuSwapChainGetCurrentTextureView(state.wgpu.swapchain);
 
     // create command encoder
-    WGPUCommandEncoder cmd_encoder = wgpuDeviceCreateCommandEncoder(RGFW_WINDOW_SRC(win).device, NULL);
+    WGPUCommandEncoder cmd_encoder = wgpuDeviceCreateCommandEncoder(win->src.device, NULL);
 
     // begin render pass
     WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(cmd_encoder, &(WGPURenderPassDescriptor){
@@ -326,7 +327,7 @@ void draw() {
     WGPUCommandBuffer cmd_buffer = wgpuCommandEncoderFinish(cmd_encoder, NULL); // after 'end render pass'
 
     // submit commands
-    wgpuQueueSubmit(RGFW_WINDOW_SRC(win).queue, 1, &cmd_buffer);
+    wgpuQueueSubmit(win->src.queue, 1, &cmd_buffer);
 
     // release all
     wgpuRenderPassEncoderRelease(render_pass);
@@ -337,14 +338,14 @@ void draw() {
 
 // helper functions
 WGPUSwapChain create_swapchain() {
-    WGPUSurface surface = wgpuInstanceCreateSurface(RGFW_WINDOW_SRC(win).ctx, &(WGPUSurfaceDescriptor){
+    WGPUSurface surface = wgpuInstanceCreateSurface(win->src.ctx, &(WGPUSurfaceDescriptor){
         .nextInChain = (WGPUChainedStruct*)(&(WGPUSurfaceDescriptorFromCanvasHTMLSelector){
             .chain.sType = WGPUSType_SurfaceDescriptorFromCanvasHTMLSelector,
             .selector = "canvas",
         })
     });
 
-    return wgpuDeviceCreateSwapChain(RGFW_WINDOW_SRC(win).device, surface, &(WGPUSwapChainDescriptor){
+    return wgpuDeviceCreateSwapChain(win->src.device, surface, &(WGPUSwapChainDescriptor){
         .usage = WGPUTextureUsage_RenderAttachment,
         .format = WGPUTextureFormat_BGRA8Unorm,
         .width = win->r.w,
@@ -359,17 +360,17 @@ WGPUShaderModule create_shader(const char* code, const char* label) {
         .code = code,
     };
 
-    return wgpuDeviceCreateShaderModule(RGFW_WINDOW_SRC(win).device, &(WGPUShaderModuleDescriptor){
+    return wgpuDeviceCreateShaderModule(win->src.device, &(WGPUShaderModuleDescriptor){
         .nextInChain = (WGPUChainedStruct*)(&wgsl),
         .label = label,
     });
 }
 
 WGPUBuffer create_buffer(const void* data, size_t size, WGPUBufferUsage usage) {
-    WGPUBuffer buffer = wgpuDeviceCreateBuffer(RGFW_WINDOW_SRC(win).device, &(WGPUBufferDescriptor){
+    WGPUBuffer buffer = wgpuDeviceCreateBuffer(win->src.device, &(WGPUBufferDescriptor){
         .usage = WGPUBufferUsage_CopyDst | usage,
         .size = size,
     });
-    wgpuQueueWriteBuffer(RGFW_WINDOW_SRC(win).queue, buffer, 0, data, size);
+    wgpuQueueWriteBuffer(win->src.queue, buffer, 0, data, size);
     return buffer;
 }

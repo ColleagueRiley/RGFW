@@ -1,4 +1,4 @@
-.TH "Supporting" 3 "Sun Jul 20 2025" "RGFW" \" -*- nroff -*-
+.TH "Supporting" 3 "Mon Jul 21 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -26,9 +26,6 @@ Supporting \- Supporting
 .RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimeNS\fP (void)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_sleep\fP (\fBu64\fP milisecond)"
-.br
-.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setTime\fP (double time)"
 .br
 .ti -1c
@@ -36,9 +33,6 @@ Supporting \- Supporting
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimerFreq\fP (void)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_checkFPS\fP (double startTime, \fBu32\fP frameCount, \fBu32\fP fpsCap)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setRootWindow\fP (\fBRGFW_window\fP *win)"
@@ -50,7 +44,7 @@ Supporting \- Supporting
 .RI "void \fBRGFW_eventQueuePush\fP (\fBRGFW_event\fP event)"
 .br
 .ti -1c
-.RI "\fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win, \fBRGFW_event\fP *event)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, \fBRGFW_key\fP)"
@@ -80,18 +74,16 @@ Supporting \- Supporting
 .SS "#define RGFW_eventQueuePushEx(eventInit)   { \fBRGFW_event\fP e; eventInit; \fBRGFW_eventQueuePush\fP(e); }"
 
 .SS "#define RGFW_MAX_EVENTS   32"
-
+change which window is the root window 
 .SH "Function Documentation"
 .PP 
 .SS "\fBRGFWDEF\fP \fBu32\fP RGFW_apiKeyToRGFW (\fBu32\fP keycode)"
 converts api keycode to the RGFW unmapped/physical key 
-.SS "\fBRGFWDEF\fP \fBu32\fP RGFW_checkFPS (double startTime, \fBu32\fP frameCount, \fBu32\fP fpsCap)"
-change which window is the root window 
 .SS "typedef RGFW_ENUM (\fBu8\fP, \fBRGFW_key\fP)"
 key codes and mouse icon enums 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_mouseIcons)"
 
-.SS "\fBRGFW_event\fP * RGFW_eventQueuePop (\fBRGFW_window\fP * win)"
+.SS "\fBRGFW_event\fP * RGFW_eventQueuePop (\fBRGFW_window\fP * win, \fBRGFW_event\fP * event)"
 
 .SS "void RGFW_eventQueuePush (\fBRGFW_event\fP event)"
 standard event queue, used for injecting events and returning source API callback events like any other queue check 
@@ -115,8 +107,6 @@ converts RGFW keycode to the mapped keychar
 
 .SS "\fBRGFWDEF\fP void RGFW_setTime (double time)"
 set timer in seconds 
-.SS "\fBRGFWDEF\fP void RGFW_sleep (\fBu64\fP milisecond)"
-sleep for a set time 
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.

@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Sun Jul 20 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Mon Jul 21 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -22,7 +22,7 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindowPtr\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window_fat\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindowPtr\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setFlags\fP (\fBRGFW_window\fP *win, RGFW_windowFlags)"
@@ -31,7 +31,7 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP \fBRGFW_area\fP \fBRGFW_getScreenSize\fP (void)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_event\fP * \fBRGFW_window_checkEvent\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_checkEvent\fP (\fBRGFW_window\fP *win, \fBRGFW_event\fP *event)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_eventWait)"
@@ -198,7 +198,7 @@ Window_management \- Window_management
 .PP 
 .SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_createWindow (const char * name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags)"
 function to create a window and struct 
-.SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_createWindowPtr (const char * name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window_fat\fP * win)"
+.SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_createWindowPtr (const char * name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window\fP * win)"
 function to create a window (without allocating a window struct) 
 .SS "typedef RGFW_ENUM (\fBi32\fP, RGFW_eventWait)"
 for RGFW_window_eventWait and RGFW_window_checkEvents waitMS -> Allows the function to keep checking for events even after \fCRGFW_window_checkEvent == NULL\fP if waitMS == 0, the loop will not wait for events if waitMS > 0, the loop will wait that many miliseconds after there are no more events until it returns if waitMS == -1 or waitMS == the max size of an unsigned 32-bit int, the loop will not return until it gets another event 
@@ -222,14 +222,14 @@ check if DND is allowed
 
 .SS "\fBRGFWDEF\fP void RGFW_window_center (\fBRGFW_window\fP * win)"
 center the window 
-.SS "\fBRGFWDEF\fP \fBRGFW_event\fP * RGFW_window_checkEvent (\fBRGFW_window\fP * win)"
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_checkEvent (\fBRGFW_window\fP * win, \fBRGFW_event\fP * event)"
 this function checks an \fIindividual\fP event (and updates window structure attributes) this means, using this function without a while loop may cause event lag
 .PP
 ex\&.
 .PP
-while (RGFW_window_checkEvent(win) != NULL) [this keeps checking events until it reaches the last one]
+\fBRGFW_event\fP; while (RGFW_window_checkEvent(win, &event) != NULL) [this keeps checking events until it reaches the last one]
 .PP
-this function is optional if you choose to use event callbacks, although you still need some way to tell RGFW to process events eg\&. \fCRGFW_window_checkEvents\fP check current event (returns a pointer to win->event or NULL if there is no event) 
+this function is optional if you choose to use event callbacks, although you still need some way to tell RGFW to process events eg\&. \fCRGFW_window_checkEvents\fP check current event (returns RGFW_TRUE if there is an event or RGFW_FALSE if there is no event) 
 .SS "\fBRGFWDEF\fP void RGFW_window_checkEvents (\fBRGFW_window\fP * win, \fBi32\fP waitMS)"
 check all the events until there are none left\&. This should only be used if you're using callbacks only 
 .SS "\fBRGFWDEF\fP void RGFW_window_close (\fBRGFW_window\fP * win)"

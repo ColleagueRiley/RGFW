@@ -1,4 +1,4 @@
-.TH "RGFW_info" 3 "Sun Jul 20 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_info" 3 "Mon Jul 21 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -51,7 +51,10 @@ RGFW_info
 .RI "char * \fBclipboard_data\fP"
 .br
 .ti -1c
-.RI "char \fBdroppedFiles\fP [\fBRGFW_MAX_PATH\fP *\fBRGFW_MAX_DROPS\fP]"
+.RI "char \fBdroppedFilesSrc\fP [\fBRGFW_MAX_PATH\fP *\fBRGFW_MAX_DROPS\fP]"
+.br
+.ti -1c
+.RI "char ** \fBdroppedFiles\fP"
 .br
 .in -1c
 .SH "Member Data Documentation"
@@ -64,7 +67,9 @@ RGFW_info
 
 .SS "\fBRGFW_window\fP* RGFW_info::current"
 
-.SS "char RGFW_info::droppedFiles[\fBRGFW_MAX_PATH\fP *\fBRGFW_MAX_DROPS\fP]"
+.SS "char** RGFW_info::droppedFiles"
+
+.SS "char RGFW_info::droppedFilesSrc[\fBRGFW_MAX_PATH\fP *\fBRGFW_MAX_DROPS\fP]"
 
 .SS "\fBi32\fP RGFW_info::eventLen"
 

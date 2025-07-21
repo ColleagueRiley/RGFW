@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Sun Jul 20 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Mon Jul 21 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -39,13 +39,13 @@ RGFW.h
 .RI "struct \fBRGFW_event\fP"
 .br
 .ti -1c
-.RI "struct \fBRGFW_window\fP"
+.RI "struct \fBRGFW_image\fP"
 .br
 .ti -1c
 .RI "struct \fBRGFW_debugContext\fP"
 .br
 .ti -1c
-.RI "struct \fBRGFW_window_fat\fP"
+.RI "struct \fBRGFW_window\fP"
 .br
 .ti -1c
 .RI "struct \fBRGFW_info\fP"
@@ -156,9 +156,6 @@ RGFW.h
 .ti -1c
 .RI "#define \fBRGFW_eventQueuePushEx\fP(eventInit)   { \fBRGFW_event\fP e; eventInit; \fBRGFW_eventQueuePush\fP(e); }"
 .br
-.ti -1c
-.RI "#define \fBRGFW_WINDOW_SRC\fP(win)   (((\fBRGFW_window_fat\fP*)(win))\->src)"
-.br
 .in -1c
 .SS "Typedefs"
 
@@ -212,10 +209,10 @@ RGFW.h
 .RI "typedef struct \fBRGFW_event\fP \fBRGFW_event\fP"
 .br
 .ti -1c
-.RI "typedef struct \fBRGFW_window\fP \fBRGFW_window\fP"
+.RI "typedef struct \fBRGFW_image\fP \fBRGFW_image\fP"
 .br
 .ti -1c
-.RI "typedef struct \fBRGFW_window_fat\fP \fBRGFW_window_fat\fP"
+.RI "typedef struct \fBRGFW_window\fP \fBRGFW_window\fP"
 .br
 .ti -1c
 .RI "typedef struct \fBRGFW_window_src\fP \fBRGFW_window_src\fP"
@@ -324,13 +321,25 @@ RGFW.h
 .RI "typedef \fBRGFW_ENUM\fP (\fBu32\fP, RGFW_windowFlags)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofWindowFat\fP (void)"
+.RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofWindow\fP (void)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofWindowSrc\fP (void)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_window_fat\fP * \fBRGFW_window_getFat\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_rect\fP \fBRGFW_window_getRect\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_key\fP \fBRGFW_window_getExitKey\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setExitKey\fP (\fBRGFW_window\fP *win, \fBRGFW_key\fP key)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void * \fBRGFW_window_getUserPtr\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setUserPtr\fP (\fBRGFW_window\fP *win, void *ptr)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_window_src\fP * \fBRGFW_window_getSrc\fP (\fBRGFW_window\fP *win)"
@@ -351,7 +360,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindow\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindowPtr\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window_fat\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindowPtr\fP (const char *name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setFlags\fP (\fBRGFW_window\fP *win, RGFW_windowFlags)"
@@ -360,7 +369,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_area\fP \fBRGFW_getScreenSize\fP (void)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_event\fP * \fBRGFW_window_checkEvent\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_checkEvent\fP (\fBRGFW_window\fP *win, \fBRGFW_event\fP *event)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_eventWait)"
@@ -615,16 +624,16 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_scaleUpdatedfunc\fP \fBRGFW_setScaleUpdatedCallback\fP (\fBRGFW_scaleUpdatedfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrent\fP (\fBRGFW_window\fP *win)"
-.br
-.ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_getCurrent\fP (void)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_swapBuffers\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_initBufferPtr\fP (\fBRGFW_window\fP *win, \fBu8\fP *buffer, \fBRGFW_area\fP area)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_swapInterval\fP (\fBRGFW_window\fP *win, \fBi32\fP swapInterval)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_copyBuffer\fP (\fBRGFW_window\fP *win, \fBu8\fP *buffer, \fBRGFW_area\fP bufferSize)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_freeBuffer\fP (\fBRGFW_window\fP *win, \fBu8\fP *buffer)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_initOpenGL\fP (\fBRGFW_window\fP *win)"
@@ -654,6 +663,9 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void * \fBRGFW_getCurrent_OpenGL\fP (void)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_swapInterval_OpenGL\fP (\fBRGFW_window\fP *win, \fBi32\fP swapInterval)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_proc\fP \fBRGFW_getProcAddress\fP (const char *procname)"
 .br
 .ti -1c
@@ -669,9 +681,6 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimeNS\fP (void)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_sleep\fP (\fBu64\fP milisecond)"
-.br
-.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setTime\fP (double time)"
 .br
 .ti -1c
@@ -679,9 +688,6 @@ RGFW.h
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimerFreq\fP (void)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_checkFPS\fP (double startTime, \fBu32\fP frameCount, \fBu32\fP fpsCap)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setRootWindow\fP (\fBRGFW_window\fP *win)"
@@ -693,7 +699,7 @@ RGFW.h
 .RI "void \fBRGFW_eventQueuePush\fP (\fBRGFW_event\fP event)"
 .br
 .ti -1c
-.RI "\fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win, \fBRGFW_event\fP *event)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, \fBRGFW_key\fP)"
@@ -795,8 +801,6 @@ RGFW.h
 
 .SS "#define RGFW_USERPTR   NULL"
 
-.SS "#define RGFW_WINDOW_SRC(win)   (((\fBRGFW_window_fat\fP*)(win))\->src)"
-
 .SS "#define RGFWDEF   inline"
 
 .SH "Typedef Documentation"
@@ -815,6 +819,8 @@ basic area type, if there's not already a area type of choice
 
 .SS "typedef struct \fBRGFW_event\fP \fBRGFW_event\fP"
 Event structure for checking/getting events 
+.SS "typedef struct \fBRGFW_image\fP \fBRGFW_image\fP"
+
 .SS "typedef struct \fBRGFW_info\fP \fBRGFW_info\fP"
 
 .SS "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
@@ -828,8 +834,6 @@ basic vector type, if there's not already a point/vector type of choice
 .SS "typedef struct \fBRGFW_rect\fP \fBRGFW_rect\fP"
 basic rect type, if there's not already a rect type of choice 
 .SS "typedef struct \fBRGFW_window\fP \fBRGFW_window\fP"
-window structure for managing the window 
-.SS "typedef struct \fBRGFW_window_fat\fP \fBRGFW_window_fat\fP"
 
 .SS "typedef struct \fBRGFW_window_src\fP \fBRGFW_window_src\fP"
 
@@ -967,7 +971,7 @@ scale monitor to window size
 check if 2 monitor modes are the same 
 .SS "\fBRGFWDEF\fP void RGFW_setInfo (\fBRGFW_info\fP * info)"
 
-.SS "\fBRGFWDEF\fP size_t RGFW_sizeofWindowFat (void)"
+.SS "\fBRGFWDEF\fP size_t RGFW_sizeofWindow (void)"
 
 .SS "\fBRGFWDEF\fP size_t RGFW_sizeofWindowSrc (void)"
 
@@ -975,10 +979,18 @@ check if 2 monitor modes are the same
 (unix) Toggle use of wayland\&. This will be on by default if you use \fCRGFW_WAYLAND\fP (if you don't use RGFW_WAYLAND, you don't expose WAYLAND functions) this is mostly used to allow you to force the use of XWayland 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_usingWayland (void)"
 
-.SS "\fBRGFWDEF\fP \fBRGFW_window_fat\fP * RGFW_window_getFat (\fBRGFW_window\fP * win)"
-returns fat pointer of window, which is just the window casted to the fast pointer 
+.SS "\fBRGFWDEF\fP \fBRGFW_key\fP RGFW_window_getExitKey (\fBRGFW_window\fP * win)"
+get the exit key for the window | returns \fBRGFW_window\&.exitKey\fP 
+.SS "\fBRGFWDEF\fP \fBRGFW_rect\fP RGFW_window_getRect (\fBRGFW_window\fP * win)"
+gets the size of the window | returns \fBRGFW_window\&.r\fP 
 .SS "\fBRGFWDEF\fP \fBRGFW_window_src\fP * RGFW_window_getSrc (\fBRGFW_window\fP * win)"
 returns fat pointer of window, which is sourced from the window casted to the fast pointer 
+.SS "\fBRGFWDEF\fP void * RGFW_window_getUserPtr (\fBRGFW_window\fP * win)"
+gets the userPtr of the window | returns \fBRGFW_window\&.userPtr\fP 
+.SS "\fBRGFWDEF\fP void RGFW_window_setExitKey (\fBRGFW_window\fP * win, \fBRGFW_key\fP key)"
+set the exit key for the window |edits \fBRGFW_window\&.exitKey\fP 
+.SS "\fBRGFWDEF\fP void RGFW_window_setUserPtr (\fBRGFW_window\fP * win, void * ptr)"
+sets the userPtr of the window | writes to \fBRGFW_window\&.userPtr\fP 
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.

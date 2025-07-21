@@ -5,7 +5,7 @@
 
 
 #define __gltypes_h_
-#define RGFW_BUFFER
+#define RGFW_NO_API
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
@@ -28,8 +28,14 @@ void uniform_color_fs(float* fs_input, Shader_Builtins* builtins, void* uniforms
 int main() {
 	RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(500, 500, 500, 500), (u64)RGFW_windowCenter | RGFW_windowNoResize);
 
+    RGFW_area bufferSize = RGFW_AREA(500, 500);
+    u8* buffer = (u8*)RGFW_ALLOC(bufferSize.w * bufferSize.h * 4);
+    RGFW_window_initBufferPtr(win, buffer, bufferSize);
+
+
+
 	glContext context;
-	init_glContext(&context, (u32**)&win->buffer, win->r.w, 500, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
+	init_glContext(&context, (u32**)&buffer, win->r.w, 500, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
 
 	float points[] = { -0.5, -0.5, 0,
 						0.5, -0.5, 0,
@@ -57,8 +63,9 @@ int main() {
 	i32 running = 1;
 
 	while (running) {
-		while (RGFW_window_checkEvent(win)) {
-			if (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape)) {
+		RGFW_event event;
+		while (RGFW_window_checkEvent(win, &event)) {
+			if (event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape)) {
 				running = 0;
 				break;
 			}
@@ -67,10 +74,13 @@ int main() {
 		glClearColor(0xFF, 0xFF, 0xFF, 0xFF);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
-		RGFW_window_swapBuffers(win);
+		RGFW_window_copyBuffer(win, buffer, bufferSize);
 	}
 
 	free_glContext(&context);
+
+	RGFW_window_freeBuffer(win, buffer);
+	RGFW_FREE(buffer);
 
 	RGFW_window_close(win);
 }

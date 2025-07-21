@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-
 size_t counter = 0;
 
 void* myAlloc(size_t size, unsigned int line, const char* file) {
@@ -40,14 +39,10 @@ int main(void) {
 
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 
-	u32 frames = 0;
-	u32 fps = 0;
-	const double startTime = RGFW_getTime();
-
 	while (!RGFW_window_shouldClose(win)) {
-		RGFW_event *event = NULL;
-		while ((event = RGFW_window_checkEvent(win)) != NULL) {
-			switch (event->type) {
+		RGFW_event event;
+		while (RGFW_window_checkEvent(win, &event)) {
+			switch (event.type) {
 				case RGFW_quit:
 					RGFW_window_setShouldClose(win, 1);
 					break;
@@ -55,23 +50,21 @@ int main(void) {
 					printf("resize: %dx%d\n", win->r.h, win->r.w);
 					break;
     			case RGFW_mouseButtonPressed:
-					printf("button pressed: %u {%d, %d}\n", event->button, event->point.x, event->point.y);
+					printf("button pressed: %u {%d, %d}\n", event.button, event.point.x, event.point.y);
 					break;
 				case RGFW_mouseButtonReleased:
-					printf("button released: %u {%d, %d}\n", event->button, event->point.x, event->point.y);
+					printf("button released: %u {%d, %d}\n", event.button, event.point.x, event.point.y);
 					break;
 				case RGFW_DND:
-					printf("drag and drop: %dx%d:\n", event->point.x, event->point.y);
-					for (size_t i = 0; i < event->droppedFilesCount; i++) {
-						printf("\t%u: '%s'\n", (u32)i, event->droppedFiles[i]);
+					printf("drag and drop: %dx%d:\n", event.point.x, event.point.y);
+					for (size_t i = 0; i < event.droppedFilesCount; i++) {
+						printf("\t%u: '%s'\n", (u32)i, event.droppedFiles[i]);
 					}
 					break;
 			}
 		}
 
-		if (RGFW_isReleased(win, RGFW_space))
-			printf("fps: %d\n", fps);
-		else if (RGFW_isReleased(win, RGFW_w))
+		if (RGFW_isReleased(win, RGFW_w))
 			RGFW_window_setMouseDefault(win);
 		else if (RGFW_isReleased(win, RGFW_e))
 			RGFW_window_setMouse(win, mouse);
@@ -94,10 +87,7 @@ int main(void) {
 			glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
 		glEnd();
 
-		RGFW_window_swapBuffers(win); /* NOTE(EimaMei): Rendering should always go: 1. Clear everything 2. Render 3. Swap buffers. Based on https://www.khronos.org/opengl/wiki/Common_Mistakes#Swap_Buffers */
-
-		fps = RGFW_checkFPS(startTime, frames, 60);
-		frames++;
+		RGFW_window_swapBuffers_OpenGL(win); /* NOTE(EimaMei): Rendering should always go: 1. Clear everything 2. Render 3. Swap buffers. Based on https://www.khronos.org/opengl/wiki/Common_Mistakes#Swap_Buffers */
 	}
 
 	RGFW_freeMouse(mouse);

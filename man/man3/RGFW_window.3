@@ -1,4 +1,4 @@
-.TH "RGFW_window" 3 "Sun Jul 20 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_window" 3 "Mon Jul 21 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -12,10 +12,10 @@ RGFW_window
 
 .in +1c
 .ti -1c
-.RI "void * \fBuserPtr\fP"
+.RI "\fBRGFW_window_src\fP \fBsrc\fP"
 .br
 .ti -1c
-.RI "\fBRGFW_event\fP \fBevent\fP"
+.RI "void * \fBuserPtr\fP"
 .br
 .ti -1c
 .RI "\fBRGFW_rect\fP \fBr\fP"
@@ -27,26 +27,34 @@ RGFW_window
 .RI "\fBRGFW_point\fP \fB_lastMousePoint\fP"
 .br
 .ti -1c
+.RI "RGFW_keymod \fB_keyMod\fP"
+.br
+.ti -1c
 .RI "\fBu32\fP \fB_flags\fP"
 .br
 .ti -1c
 .RI "\fBRGFW_rect\fP \fB_oldRect\fP"
 .br
 .in -1c
+.SH "Detailed Description"
+.PP 
+source data for the window (used by the APIs) window structure for the window 
 .SH "Member Data Documentation"
 .PP 
 .SS "\fBu32\fP RGFW_window::_flags"
 windows flags (for RGFW to check) 
+.SS "RGFW_keymod RGFW_window::_keyMod"
+
 .SS "\fBRGFW_point\fP RGFW_window::_lastMousePoint"
 last cusor point (for raw mouse data) 
 .SS "\fBRGFW_rect\fP RGFW_window::_oldRect"
 rect before fullscreen 
-.SS "\fBRGFW_event\fP RGFW_window::event"
-current event 
 .SS "\fBRGFW_key\fP RGFW_window::exitKey"
 which key RGFW_window_shouldClose checks\&. Settting this to RGFW_keyNULL disables the feature\&. 
 .SS "\fBRGFW_rect\fP RGFW_window::r"
-the x, y, w and h of the struct 
+position and size of the window 
+.SS "\fBRGFW_window_src\fP RGFW_window::src"
+src window data 
 .SS "void* RGFW_window::userPtr"
 
 

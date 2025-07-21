@@ -59,7 +59,7 @@ int main(void)
     layer.device = device;
     layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
 
-    NSView* view = (NSView*)RGFW_WINDOW_SRC(window).view;
+    NSView* view = (NSView*)window->src.view;
     [view setLayer: layer];
     // [view setWantsLayer: YES]; (I think RGFW already sets this)
 
@@ -103,8 +103,9 @@ int main(void)
     assert(rps);
 
     while (!RGFW_window_shouldClose(window)) {
-		while (RGFW_window_checkEvent(window) != NULL) {
-			if (window->event.type == RGFW_quit)
+        RGFW_event event;
+		while (RGFW_window_checkEvent(window, &event) != NULL) {
+			if (event.type == RGFW_quit)
 				break;
 		}
 
