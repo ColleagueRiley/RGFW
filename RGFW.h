@@ -3180,7 +3180,7 @@ void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplevel* top
 	}
 	// if width and height are not zero and are not the same as the window
 	// the window is resizing so update the values
-	if ((width && height) && (win->r.w != width &&  win->r.h != height)) {
+	if ((width && height) && (win->r.w != width ||  win->r.h != height)) {
 		win->src.resizing = RGFW_TRUE;
 		win->src.r.w = win->r.w = width;
 		win->src.r.h = win->r.h = height;
