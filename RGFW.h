@@ -1860,6 +1860,7 @@ void RGFW_window_checkMode(RGFW_window* win);
 void RGFW_window_checkMode(RGFW_window* win) {
 	if (RGFW_window_isMinimized(win)) {
 		win->_flags |= RGFW_windowMinimize;
+		RGFW_eventQueuePushEx(e.type = RGFW_windowMinimized; e._win = win);
 		RGFW_windowMinimizedCallback(win, win->r);
 	} else if (RGFW_window_isMaximized(win)) {
 		win->_flags |= RGFW_windowMaximize;
