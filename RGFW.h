@@ -56,7 +56,6 @@
 	#define RGFW_COCOA_GRAPHICS_SWITCHING - (optional) (cocoa) use automatic graphics switching (allow the system to choose to use GPU or iGPU)
 	#define RGFW_COCOA_FRAME_NAME (optional) (cocoa) set frame name
 	#define RGFW_NO_DPI - do not calculate DPI (no XRM nor libShcore included)
-	#define RGFW_BUFFER_BGR - use the BGR format for bufffers instead of RGB, saves processing time
     #define RGFW_ADVANCED_SMOOTH_RESIZE - use advanced methods for smooth resizing (may result in a spike in memory usage or worse performance) (eg. WM_TIMER and XSyncValue)
     #define RGFW_NO_INFO - do not define the RGFW_info struct (without RGFW_IMPLEMENTATION)
 
@@ -232,12 +231,7 @@ int main() {
 		#define RGFW_X11
 		#define RGFW_UNIX
 #elif defined(__APPLE__) && !defined(RGFW_MACOS_X11) && !defined(RGFW_X11)  && !defined(RGFW_WASM)  && !defined(RGFW_CUSTOM_BACKEND)
-		#define RGFW_MACOS
-		#if !defined(RGFW_BUFFER_BGR)
-			#define RGFW_BUFFER_BGR
-		#else
-			#undef RGFW_BUFFER_BGR
-		#endif
+	#define RGFW_MACOS
 #endif
 
 #if !defined(RGFW_SNPRINTF) && defined(RGFW_X11)
@@ -501,14 +495,29 @@ typedef RGFW_ENUM(u8, RGFW_keymod) {
 	typedef struct RGFW_area { u32 w, h; } RGFW_area;
 #endif
 
+typedef RGFW_ENUM(u8, RGFW_format) {
+    RGFW_formatRGB8 = 0,    /*!< 8-bit RGB (3 channels) */
+    RGFW_formatBGR8,    /*!< 8-bit BGR (3 channels) */
+	RGFW_formatRGBA8,   /*!< 8-bit RGBA (4 channels) */
+    RGFW_formatBGRA8,   /*!< 8-bit BGRA (4 channels) */
+};
+
+typedef struct RGFW_image {
+	u8* data; /*!< raw image data */
+	RGFW_area size; /*!< image size */
+	RGFW_format format; /*!< image format */
+} RGFW_image;
+
 #if defined(__cplusplus) && !defined(__APPLE__)
 #define RGFW_POINT(x, y) {(i32)x, (i32)y}
 #define RGFW_RECT(x, y, w, h) {(i32)x, (i32)y, (i32)w, (i32)h}
 #define RGFW_AREA(w, h) {(u32)w, (u32)h}
+#define RGFW_IMAGE(data, size, format) {data, size, format}
 #else
 #define RGFW_POINT(x, y) (RGFW_point){(i32)(x), (i32)(y)}
 #define RGFW_RECT(x, y, w, h) (RGFW_rect){(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
 #define RGFW_AREA(w, h) (RGFW_area){(u32)(w), (u32)(h)}
+#define RGFW_IMAGE(data, size, format) (RGFW_image){data, size, format}
 #endif
 
 #ifndef RGFW_NO_MONITOR
@@ -547,21 +556,6 @@ typedef RGFW_ENUM(u8, RGFW_keymod) {
 	/*! check if 2 monitor modes are the same */
 	RGFWDEF RGFW_bool RGFW_monitorModeCompare(RGFW_monitorMode mon, RGFW_monitorMode mon2, RGFW_modeRequest request);
 #endif
-
-typedef RGFW_ENUM(u8, RGFW_format) {
-    RGFW_formatRGB8 = 0,    /*!< 8-bit RGB (3 channels) */
-    RGFW_formatBGR8,    /*!< 8-bit BGR (3 channels) */
-	RGFW_formatRGBA8,   /*!< 8-bit RGBA (4 channels) */
-    RGFW_formatBGRA8,   /*!< 8-bit BGRA (4 channels) */
-};
-
-typedef struct RGFW_image {
-	u8* data; /*!< raw image data */
-	RGFW_area size; /*!< image size */
-	RGFW_format format; /*!< image format */
-} RGFW_image;
-
-#define RGFW_IMAGE(data, size, format) (RGFW_image){data, size, format}
 
 typedef struct RGFW_nativeImage RGFW_nativeImage;
 
@@ -2321,23 +2315,6 @@ void RGFW_window_mouseHold(RGFW_window* win, RGFW_area area) {
 void RGFW_window_mouseUnhold(RGFW_window* win) {
 	win->_flags &= ~(u32)RGFW_HOLD_MOUSE;
 	RGFW_releaseCursor(win);
-}
-
-void RGFW_RGB_to_BGR(RGFW_window* win, u8* data, u8* buffer, RGFW_area bufferSize) {
-	#if !defined(RGFW_BUFFER_BGR)
-	u32 x, y;
-	for (y = 0; y < (u32)win->r.h; y++) {
-		for (x = 0; x < (u32)win->r.w; x++) {
-			u32 index = (y * 4 * bufferSize.w) + x * 4;
-
-			u8 red = data[index];
-			data[index] = buffer[index + 2];
-			data[index + 2] = red;
-		}
-	}
-    #else
-	RGFW_UNUSED(win); RGFW_UNUSED(data); RGFW_UNUSED(buffer); RGFW_UNUSED(bufferSize);
-	#endif
 }
 
 RGFWDEF void RGFW_updateKeyMod(RGFW_window* win, RGFW_keymod mod, RGFW_bool value);
