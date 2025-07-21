@@ -8089,6 +8089,7 @@ bool performDragOperation(id self, SEL sel, id sender) {
 	RGFW_event event;
 	event.droppedFiles = (char**)(void*)_RGFW->droppedFiles;
 
+	u32 i;
     for (i = 0; i < (u32)count; i++) {
 		id fileURL = objc_msgSend_arr(fileURLs, sel_registerName("objectAtIndex:"), i);
 		const char *filePath = ((const char* (*)(id, SEL))objc_msgSend)(fileURL, sel_registerName("UTF8String"));
