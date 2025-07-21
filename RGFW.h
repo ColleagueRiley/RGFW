@@ -1377,15 +1377,15 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 		struct wl_shm* shm;
 		struct wl_seat *seat;
 		u8* buffer;
-    
-    /* State flags to configure the window */
-    RGFW_bool pending_activated;
-    RGFW_bool activated;
-    RGFW_bool pending_fullscreen;
-    RGFW_bool fullscreen;
-    RGFW_bool pending_maximized;
-    RGFW_bool resizing;
-    RGFW_bool maximized;
+		
+		/* State flags to configure the window */
+		RGFW_bool pending_activated;
+		RGFW_bool activated;
+		RGFW_bool pending_fullscreen;
+		RGFW_bool fullscreen;
+		RGFW_bool pending_maximized;
+		RGFW_bool resizing;
+		RGFW_bool maximized;
 
 		#ifdef RGFW_LIBDECOR
 			struct libdecor* decorContext;
@@ -3073,7 +3073,8 @@ void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface* xdg_s
 	RGFW_UNUSED(data);
 	
     xdg_surface_ack_configure(xdg_surface, serial);
-    _RGFW->wl_configured = 1;
+    if (!_RGFW->wl_configured)
+		_RGFW->wl_configured = RGFW_TRUE;
     RGFW_window* win = (RGFW_window*)xdg_surface_get_user_data(xdg_surface);
     
     if (win == NULL) {
