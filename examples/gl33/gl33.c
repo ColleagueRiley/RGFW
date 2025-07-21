@@ -163,10 +163,6 @@ int main(void) {
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    u32 fps = 0;
-    u32 frames = 0;
-    double frameStartTime = RGFW_getTime();
-
     // render loop
     // -----------
     bool running = true;
@@ -191,8 +187,6 @@ int main(void) {
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         // glBindVertexArray(0); // no need to unbind it every time
 
-        if (RGFW_isPressed(window, RGFW_space))
-            printf("fps : %i\n", fps);
         RGFW_window_swapBuffers_OpenGL(window);
     }
 
