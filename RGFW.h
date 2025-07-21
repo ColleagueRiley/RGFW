@@ -2279,7 +2279,7 @@ void RGFW_RGB_to_BGR(RGFW_window* win, u8* data, u8* buffer, RGFW_area bufferSiz
 		}
 	}
     #else
-	RGFW_UNUSED(win); RGFW_UNUSED(data);
+	RGFW_UNUSED(win); RGFW_UNUSED(data); RGFW_UNUSED(buffer); RGFW_UNUSED(bufferSize);
 	#endif
 }
 
@@ -3122,12 +3122,12 @@ void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial,
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(serial); RGFW_UNUSED(surface_x); RGFW_UNUSED(surface_y);
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 	RGFW_mouse_win = win;
-
+	RGFW_point point = RGFW_POINT(wl_fixed_to_double(surface_x), wl_fixed_to_double(surface_y));
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseEnter;
-									e.point = RGFW_POINT(wl_fixed_to_double(surface_x), wl_fixed_to_double(surface_y));
+									e.point = point;
 									e._win = win);
 
-	RGFW_mouseNotifyCallback(win, event->point, RGFW_TRUE);
+	RGFW_mouseNotifyCallback(win, point, RGFW_TRUE);
 }
 void RGFW_wl_pointer_leave(void* data, struct wl_pointer *pointer, u32 serial, struct wl_surface *surface) {
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(serial); RGFW_UNUSED(surface);
@@ -3136,10 +3136,10 @@ void RGFW_wl_pointer_leave(void* data, struct wl_pointer *pointer, u32 serial, s
 		RGFW_mouse_win = NULL;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseLeave;
-									e.point = event->point;
+									e.point = win->_lastMousePoint;
 									e._win = win);
 
-	RGFW_mouseNotifyCallback(win,  event->point, RGFW_FALSE);
+	RGFW_mouseNotifyCallback(win, win->_lastMousePoint, RGFW_FALSE);
 }
 void RGFW_wl_pointer_motion(void* data, struct wl_pointer *pointer, u32 time, wl_fixed_t x, wl_fixed_t y) {
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(x); RGFW_UNUSED(y);
@@ -3165,7 +3165,6 @@ void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 serial, 
 	RGFW_mouseButtons[b].current = RGFW_BOOL(state);
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonReleased - RGFW_BOOL(state);
-									e.point = RGFW_mouse_event->point;
 									e.button = (u8)b;
 									e._win = RGFW_mouse_win);
 	RGFW_mouseButtonCallback(RGFW_mouse_win, (u8)b, 0, RGFW_BOOL(state));
@@ -3177,7 +3176,6 @@ void RGFW_wl_pointer_axis(void* data, struct wl_pointer *pointer, u32 time, u32 
 	double scroll = - wl_fixed_to_double(value);
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonPressed;
-									e.point = RGFW_mouse_event->point;
 									e.button = RGFW_mouseScrollUp + (scroll < 0);
 									e.scroll = scroll;
 									e._win = RGFW_mouse_win);
@@ -4806,7 +4804,7 @@ RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
 	RGFW_WAYLAND_LABEL
 	if ((win->_flags & RGFW_windowHide) == 0)
         wl_display_roundtrip(win->src.wl_display);
-	return NULL;
+	return RGFW_FALSE;
 #endif
 }
 
@@ -8034,7 +8032,7 @@ NSDragOperation draggingUpdated(id self, SEL sel, id sender) {
 									e.point = RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y));
 									e._win = win);
 
-	RGFW_dndInitCallback(win, event->point);
+	RGFW_dndInitCallback(win, RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y)));
 	return NSDragOperationCopy;
 }
 bool prepareForDragOperation(id self) {
@@ -8094,13 +8092,13 @@ bool performDragOperation(id self, SEL sel, id sender) {
 	}
 	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
 
-	event->droppedFilesCount = (size_t)count;
+	e->droppedFilesCount = (size_t)count;
 	RGFW_eventQueuePushEx(e.type = RGFW_DND;
 									e.point = RGFW_POINT((u32) p.x, (u32) (win->r.h - p.y));
 									e.droppedFilesCount = (size_t)count;
 									e._win = win);
 
-	RGFW_dndCallback(win, event->droppedFiles, event->droppedFilesCount);
+	RGFW_dndCallback(win, e->droppedFiles, e->droppedFilesCount);
 
 	return false;
 }
@@ -8293,12 +8291,7 @@ void RGFW__osxDrawRect(id self, SEL _cmd, CGRect rect) {
 }
 
 RGFW_bool RGFW_window_initBufferPtr(RGFW_window* win, u8* buffer, RGFW_area area) {
-	RGFW_ASSERT(win != NULL);
-	RGFW_ASSERT(buffer != NULL);
-
-	buffer = buffer;
-	bufferSize = area;
-
+	RGFW_UNUSED(buffer); RGFW_UNUSED(area); RGFW_UNUSED(win);
 	return RGFW_TRUE;
 }
 
@@ -8680,7 +8673,7 @@ u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
 }
 
 RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
-    if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return NULL;
+    if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return RGFW_FALSE;
 
     objc_msgSend_void((id)win->src.mouse, sel_registerName("set"));
 	if (RGFW_window_checkEventCore(win, event)) {
@@ -8712,7 +8705,7 @@ RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
 		objc_msgSend_void_id((id)_RGFW->NSApp, sel_registerName("sendEvent:"), e);
 		objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 		((void(*)(id, SEL))objc_msgSend)((id)_RGFW->NSApp, sel_registerName("updateWindows"));
-		return NULL;
+		return RGFW_FALSE;
 	}
 
 	if (event->droppedFilesCount) {
