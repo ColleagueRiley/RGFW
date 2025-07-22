@@ -1983,12 +1983,17 @@ i32 RGFW_init_ptr(RGFW_info* info) {
 	return out;
 }
 
+#ifdef RGFW_OPENGL
 RGFWDEF void RGFW_unloadEGL(void);
+#endif
+
 void RGFW_deinit_ptr(RGFW_info* info) {
     if (info == NULL) return;
 
     RGFW_setInfo(info);
+#ifdef RGFW_OPENGL
 	RGFW_unloadEGL();
+#endif
 	RGFW_deinitPlatform();
 
     _RGFW->root = NULL;
@@ -2061,8 +2066,10 @@ RGFWDEF void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windo
 void RGFW_setRootWindow(RGFW_window* win) { _RGFW->root = win; }
 RGFW_window* RGFW_getRootWindow(void) { return _RGFW->root; }
 
-
 RGFWDEF RGFW_bool RGFW_loadEGL(void);
+#ifndef RGFW_OPENGL
+RGFW_bool RGFW_loadEGL(void) { return RGFW_FALSE; }
+#endif
 
 /* do a basic initialization for RGFW_window, this is to standard it for each OS */
 void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags flags) {

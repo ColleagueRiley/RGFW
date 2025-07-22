@@ -79,8 +79,7 @@ int main(void) {
     // RGFW_window_swapInterval(window, 60);
 
     #ifndef RGFW_WASM
-    if (RGL_loadGL3((RGLloadfunc)RGFW_getProcAddress))
-    {
+    if (RGL_loadGL3((RGLloadfunc)RGFW_getProcAddress_OpenGL)) {
         printf("Failed to initialize GLAD\n");
         return -1;
     }
