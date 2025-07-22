@@ -1,17 +1,19 @@
-#define RGFW_EGL
+#define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
+#define RGFW_EGL
 #include "RGFW.h"
 
 #include <stdio.h>
 
 void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool pressed) {
+    RGFW_UNUSED(keyMod); RGFW_UNUSED(keyChar); RGFW_UNUSED(win);
     if (key == RGFW_escape && pressed) {
         RGFW_window_setShouldClose(win, 1);
     }
 }
 
-int main() {
-    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowTransparent);
+int main(void) {
+    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowTransparent | RGFW_windowUseEGL);
 
     RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want
 

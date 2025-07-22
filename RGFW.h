@@ -33,7 +33,7 @@
 /*
 	#define RGFW_IMPLEMENTATION - (required) makes it so the source code is included
 	#define RGFW_DEBUG - (optional) makes it so RGFW prints debug messages and errors when they're found
-	#define RGFW_EGL - (optional) use EGL for loading an OpenGL context (instead of the system's OpenGL api)
+	#define RGFW_EGL - (optional) compile with OpenGL functions, allowing you to use `RGFW_windowUseEGL` to use EGL instead of the native OpenGL functions
 	#define RGFW_DIRECTX - (optional) include integration directX functions (windows only)
 	#define RGFW_VULKAN - (optional) include helpful vulkan integration functions and macros
 	#define RGFW_WEBGPU - (optional) use webGPU for rendering (Web ONLY)
@@ -89,12 +89,12 @@ int main() {
 	RGFW_window_setIcon(win, icon, RGFW_AREA(3, 3), 4);
 
 	while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
-		while (RGFW_window_checkEvent(win, & event)) {
+		while (RGFW_window_checkEvent(win, &event)) {
 		    if (event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape))
 			    break;
         }
 
-		RGFW_window_swapBuffers(win);
+		RGFW_window_swapBuffers_OpenGL(win);
 
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -191,8 +191,12 @@ int main() {
     #endif
 #endif
 
-#if !defined(RGFW_EGL) && !defined(RGFW_OPENGL) && !defined(RGFW_DIRECTX) && !defined(RGFW_NO_API)
+#if !defined(RGFW_OPENGL) && !defined(RGFW_DIRECTX) && !defined(RGFW_NO_API)
 		#define RGFW_OPENGL
+#endif
+
+#if defined(RGFW_EGL) && !defined(RGFW_OPENGL)
+	#define RGFW_OPENGL
 #endif
 
 /* these OS macros look better & are standardized */
@@ -203,10 +207,6 @@ int main() {
 
 	#if !defined(RGFW_NO_API) && !defined(RGFW_WEBGPU)
 		#define RGFW_OPENGL
-	#endif
-
-	#ifdef RGFW_EGL
-		#undef RGFW_EGL
 	#endif
 #endif
 
@@ -623,6 +623,7 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowFocusOnShow = RGFW_BIT(16), /*!< focus the window when it's shown */
 	RGFW_windowMinimize = RGFW_BIT(17), /*!< focus the window when it's shown */
 	RGFW_windowFocus = RGFW_BIT(18), /*!< if the window is in focus */
+	RGFW_windowUseEGL = RGFW_BIT(19), /*!< use EGL instead of the native OpenGL context API */
 	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize
 };
 
@@ -1070,9 +1071,9 @@ RGFWDEF void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL
 /*! set swapInterval / enable vsync */
 RGFWDEF void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval);
 
-RGFWDEF RGFW_proc RGFW_getProcAddress(const char* procname); /*!< get native OpenGL proc address */
+RGFWDEF RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname); /*!< get native OpenGL proc address */
 RGFWDEF RGFW_bool RGFW_extensionSupported(const char* extension, size_t len);	/*!< check if whether the specified API extension is supported by the current OpenGL or OpenGL ES context */
-RGFWDEF RGFW_bool RGFW_extensionSupportedPlatform(const char* extension, size_t len);	/*!< check if whether the specified platform-specific API extension is supported by the current OpenGL or OpenGL ES context */
+RGFWDEF RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char* extension, size_t len);	/*!< check if whether the specified platform-specific API extension is supported by the current OpenGL or OpenGL ES context */
 
 #endif
 
@@ -1314,9 +1315,10 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 		HICON hIconSmall, hIconBig; /*!< source window icons */
 		RGFW_area maxSize, minSize, aspectRatio; /*!< for setting max/min resize (RGFW_WINDOWS) */
 
-		#if (defined(RGFW_OPENGL)) && !defined(RGFW_EGL)
+		#if (defined(RGFW_OPENGL))
 			HGLRC ctx; /*!< source graphics context */
-		#elif defined(RGFW_EGL)
+		#endif
+		#if defined(RGFW_EGL)
 			EGLSurface EGL_surface;
 			EGLDisplay EGL_display;
 			EGLContext EGL_context;
@@ -1366,7 +1368,7 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 		GC gc;
 		XVisualInfo visual;
 
-		#if (defined(RGFW_OPENGL)) && !defined(RGFW_EGL)
+		#ifdef RGFW_OPENGL
 			GLXContext ctx; /*!< source graphics context */
 			GLXFBConfig bestFbc;
 		#endif
@@ -1393,7 +1395,7 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 		#ifdef RGFW_LIBDECOR
 			struct libdecor* decorContext;
 		#endif
-		#if defined(RGFW_EGL)
+		#ifdef RGFW_EGL
 			struct wl_egl_window* eglWindow;
 		#endif
 #endif /* RGFW_WAYLAND */
@@ -1416,9 +1418,10 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 		void* view; /* apple viewpoint thingy */
 		void* mouse;
 
-		#if (defined(RGFW_OPENGL)) && !defined(RGFW_EGL)
+		#ifdef RGFW_OPENGL
 			void* ctx; /*!< source graphics context */
-		#elif defined(RGFW_EGL)
+		#endif
+		#ifdef RGFW_EGL
 			EGLSurface EGL_surface;
 			EGLDisplay EGL_display;
 			EGLContext EGL_context;
@@ -1907,7 +1910,7 @@ no more event call back defines
 #define RGFW_MOUSE_LEFT 		RGFW_BIT(27) /* if mouse left the window */
 #define RGFW_WINDOW_ALLOC 		RGFW_BIT(28) /* if window was allocated by RGFW */
 #define RGFW_WINDOW_INIT 		RGFW_BIT(30) /* if window.buffer was allocated by RGFW */
-#define RGFW_INTERNAL_FLAGS (RGFW_EVENT_QUIT | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_WINDOW_ALLOC | RGFW_windowFocus)
+#define RGFW_INTERNAL_FLAGS (RGFW_EVENT_QUIT | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_WINDOW_ALLOC | RGFW_windowFocus | RGFW_windowUseEGL)
 
 size_t RGFW_sizeofNativeImage(void) { return sizeof(RGFW_nativeImage); }
 size_t RGFW_sizeofWindow(void) { return sizeof(RGFW_window); }
@@ -1976,14 +1979,17 @@ i32 RGFW_init_ptr(RGFW_info* info) {
     RGFW_init_keys();
     i32 out = RGFW_initPlatform();
     RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal, RGFW_DEBUG_CTX(NULL, 0), "global context initialized");
-    return out;
+
+	return out;
 }
 
+RGFWDEF void RGFW_unloadEGL(void);
 void RGFW_deinit_ptr(RGFW_info* info) {
     if (info == NULL) return;
 
     RGFW_setInfo(info);
-    RGFW_deinitPlatform();
+	RGFW_unloadEGL();
+	RGFW_deinitPlatform();
 
     _RGFW->root = NULL;
     _RGFW->windowCount = 0;
@@ -2055,12 +2061,24 @@ RGFWDEF void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windo
 void RGFW_setRootWindow(RGFW_window* win) { _RGFW->root = win; }
 RGFW_window* RGFW_getRootWindow(void) { return _RGFW->root; }
 
+
+RGFWDEF RGFW_bool RGFW_loadEGL(void);
+
 /* do a basic initialization for RGFW_window, this is to standard it for each OS */
 void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags flags) {
 	RGFW_UNUSED(flags);
     if (_RGFW == NULL) RGFW_init();
     _RGFW->windowCount++;
 
+	#ifdef RGFW_WAYLAND
+		flags |= (u32)~RGFW_windowUseEGL;
+	#else
+		if (flags & RGFW_windowUseEGL) {
+			if (RGFW_loadEGL() == RGFW_FALSE) {
+				flags &= (u32)~RGFW_windowUseEGL;
+			}
+		}
+	#endif
     /* rect based the requested flags */
 	if (_RGFW->root == NULL) {
 		RGFW_setRootWindow(win);
@@ -2080,6 +2098,7 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	RGFW_windowFlags cmpFlags = win->_flags;
 	if (win->_flags & RGFW_WINDOW_INIT) cmpFlags = 0;
+	if (!(win->_flags & RGFW_windowUseEGL) && flags & RGFW_windowUseEGL) flags &= (u32)~RGFW_windowUseEGL;
 
 	#ifndef RGFW_NO_MONITOR
 	if (flags & RGFW_windowScaleToMonitor)			RGFW_window_scaleToMonitor(win);
@@ -2452,7 +2471,7 @@ void RGFW_moveToMacOSResourceDir(void) { }
 	OpenGL defines start here   (Normal, EGL, OSMesa)
 */
 
-#if defined(RGFW_OPENGL) || defined(RGFW_EGL)
+#if defined(RGFW_OPENGL)
 #if !defined(__APPLE__) && !defined(RGFW_NO_GL_HEADER)
 	#include <GL/gl.h>
 #elif defined(__APPLE__)
@@ -2527,8 +2546,8 @@ RGFW_bool RGFW_extensionSupported(const char* extension, size_t len) {
         i32 i;
         GLint count = 0;
 
-        RGFW_proc RGFW_glGetStringi = RGFW_getProcAddress("glGetStringi");
-        RGFW_proc RGFW_glGetIntegerv = RGFW_getProcAddress("RGFW_glGetIntegerv");
+        RGFW_proc RGFW_glGetStringi = RGFW_getProcAddress_OpenGL("glGetStringi");
+        RGFW_proc RGFW_glGetIntegerv = RGFW_getProcAddress_OpenGL("RGFW_glGetIntegerv");
         if (RGFW_glGetIntegerv)
             ((void(*)(GLenum, GLint*))RGFW_glGetIntegerv)(GL_NUM_EXTENSIONS, &count);
 
@@ -2540,7 +2559,7 @@ RGFW_bool RGFW_extensionSupported(const char* extension, size_t len) {
     } else
 #endif
     {
-        RGFW_proc RGFW_glGetString = RGFW_getProcAddress("glGetString");
+        RGFW_proc RGFW_glGetString = RGFW_getProcAddress_OpenGL("glGetString");
 
         if (RGFW_glGetString) {
             const char* extensions = ((const char*(*)(u32))RGFW_glGetString)(GL_EXTENSIONS);
@@ -2549,11 +2568,11 @@ RGFW_bool RGFW_extensionSupported(const char* extension, size_t len) {
         }
     }
 
-    return RGFW_extensionSupportedPlatform(extension, len);
+    return RGFW_extensionSupportedPlatform_OpenGL(extension, len);
 }
 
 /* OPENGL normal only (no EGL / OSMesa) */
-#if defined(RGFW_OPENGL) && !defined(RGFW_EGL) && !defined(RGFW_CUSTOM_BACKEND) && !defined(RGFW_WASM)
+#if defined(RGFW_OPENGL) && !defined(RGFW_CUSTOM_BACKEND) && !defined(RGFW_WASM)
 
 #define RGFW_GL_RENDER_TYPE 		RGFW_OS_BASED_VALUE(GLX_X_VISUAL_TYPE,    	0x2003,		73, 0)
 	#define RGFW_GL_ALPHA_SIZE 		RGFW_OS_BASED_VALUE(GLX_ALPHA_SIZE,       	0x201b,		11,     0)
@@ -2719,43 +2738,27 @@ i32* RGFW_initFormatAttribs(void) {
 	return attribs;
 }
 
-/* EGL only (no OSMesa nor normal OPENGL) */
-#elif defined(RGFW_EGL)
-
+#endif
+/* EGL */
+#ifdef RGFW_EGL
 #include <EGL/egl.h>
 
-#if defined(RGFW_LINK_EGL)
-	typedef EGLBoolean(EGLAPIENTRY* PFN_eglInitialize)(EGLDisplay, EGLint*, EGLint*);
-
-	PFNEGLINITIALIZEPROC eglInitializeSource;
-	PFNEGLGETCONFIGSPROC eglGetConfigsSource;
-	PFNEGLCHOOSECONFIGPROC eglChooseConfigSource;
-	PFNEGLCREATEWINDOWSURFACEPROC eglCreateWindowSurfaceSource;
-	PFNEGLCREATECONTEXTPROC eglCreateContextSource;
-	PFNEGLMAKECURRENTPROC eglMakeCurrentSource;
-	PFNEGLGETDISPLAYPROC eglGetDisplaySource;
-	PFNEGLSWAPBUFFERSPROC eglSwapBuffersSource;
-	PFNEGLSWAPINTERVALPROC eglSwapIntervalSource;
-	PFNEGLBINDAPIPROC eglBindAPISource;
-	PFNEGLDESTROYCONTEXTPROC eglDestroyContextSource;
-	PFNEGLTERMINATEPROC eglTerminateSource;
-	PFNEGLDESTROYSURFACEPROC eglDestroySurfaceSource;
-
-	#define eglInitialize eglInitializeSource
-	#define eglGetConfigs eglGetConfigsSource
-	#define eglChooseConfig eglChooseConfigSource
-	#define eglCreateWindowSurface eglCreateWindowSurfaceSource
-	#define eglCreateContext eglCreateContextSource
-	#define eglMakeCurrent eglMakeCurrentSource
-	#define eglGetDisplay eglGetDisplaySource
-	#define eglSwapBuffers eglSwapBuffersSource
-	#define eglSwapInterval eglSwapIntervalSource
-	#define eglBindAPI eglBindAPISource
-	#define eglDestroyContext eglDestroyContextSource
-	#define eglTerminate eglTerminateSource
-	#define eglDestroySurface eglDestroySurfaceSource;
-#endif
-
+PFNEGLINITIALIZEPROC RGFW_eglInitialize;
+PFNEGLGETCONFIGSPROC RGFW_eglGetConfigs;
+PFNEGLCHOOSECONFIGPROC RGFW_eglChooseConfig;
+PFNEGLCREATEWINDOWSURFACEPROC RGFW_eglCreateWindowSurface;
+PFNEGLCREATECONTEXTPROC RGFW_eglCreateContext;
+PFNEGLMAKECURRENTPROC RGFW_eglMakeCurrent;
+PFNEGLGETDISPLAYPROC RGFW_eglGetDisplay;
+PFNEGLSWAPBUFFERSPROC RGFW_eglSwapBuffers;
+PFNEGLSWAPINTERVALPROC RGFW_eglSwapInterval;
+PFNEGLBINDAPIPROC RGFW_eglBindAPI;
+PFNEGLDESTROYCONTEXTPROC RGFW_eglDestroyContext;
+PFNEGLTERMINATEPROC RGFW_eglTerminate;
+PFNEGLDESTROYSURFACEPROC RGFW_eglDestroySurface;
+PFNEGLGETCURRENTCONTEXTPROC RGFW_eglGetCurrentContext;
+PFNEGLGETPROCADDRESSPROC RGFW_eglGetProcAddress = NULL;
+PFNEGLQUERYSTRINGPROC RGFW_eglQueryString;
 
 #define EGL_SURFACE_MAJOR_VERSION_KHR 0x3098
 #define EGL_SURFACE_MINOR_VERSION_KHR 0x30fb
@@ -2769,64 +2772,128 @@ i32* RGFW_initFormatAttribs(void) {
 	}
 #endif
 
+#ifdef RGFW_WINDOWS
+    #include <windows.h>
+#elif defined(RGFW_MACOS) || defined(RGFW_UNIX)
+    #include <dlfcn.h>
+#endif
 
-void RGFW_window_initOpenGL(RGFW_window* win) {
-#if defined(RGFW_LINK_EGL)
-	eglInitializeSource = (PFNEGLINITIALIZEPROC) eglGetProcAddress("eglInitialize");
-	eglGetConfigsSource = (PFNEGLGETCONFIGSPROC) eglGetProcAddress("eglGetConfigs");
-	eglChooseConfigSource = (PFNEGLCHOOSECONFIGPROC) eglGetProcAddress("eglChooseConfig");
-	eglCreateWindowSurfaceSource = (PFNEGLCREATEWINDOWSURFACEPROC) eglGetProcAddress("eglCreateWindowSurface");
-	eglCreateContextSource = (PFNEGLCREATECONTEXTPROC) eglGetProcAddress("eglCreateContext");
-	eglMakeCurrentSource = (PFNEGLMAKECURRENTPROC) eglGetProcAddress("eglMakeCurrent");
-	eglGetDisplaySource = (PFNEGLGETDISPLAYPROC) eglGetProcAddress("eglGetDisplay");
-	eglSwapBuffersSource = (PFNEGLSWAPBUFFERSPROC) eglGetProcAddress("eglSwapBuffers");
-	eglSwapIntervalSource = (PFNEGLSWAPINTERVALPROC) eglGetProcAddress("eglSwapInterval");
-	eglBindAPISource = (PFNEGLBINDAPIPROC) eglGetProcAddress("eglBindAPI");
-	eglDestroyContextSource = (PFNEGLDESTROYCONTEXTPROC) eglGetProcAddress("eglDestroyContext");
-	eglTerminateSource = (PFNEGLTERMINATEPROC) eglGetProcAddress("eglTerminate");
-	eglDestroySurfaceSource = (PFNEGLDESTROYSURFACEPROC) eglGetProcAddress("eglDestroySurface");
+static void* RGFW_eglLibHandle = NULL;
+#endif
 
-	RGFW_ASSERT(eglInitializeSource != NULL &&
-	            eglGetConfigsSource != NULL &&
-	            eglChooseConfigSource != NULL &&
-	            eglCreateWindowSurfaceSource != NULL &&
-	            eglCreateContextSource != NULL &&
-	            eglMakeCurrentSource != NULL &&
-	            eglGetDisplaySource != NULL &&
-	            eglSwapBuffersSource != NULL &&
-	            eglSwapIntervalsSource != NULL &&
-	            eglBindAPISource != NULL &&
-	            eglDestroyContextSource != NULL &&
-	            eglTerminateSource != NULL &&
-	            eglDestroySurfaceSource != NULL);
-#endif /* RGFW_LINK_EGL */
+RGFW_bool RGFW_loadEGL(void) {
+#ifdef RGFW_EGL
+	if (RGFW_eglGetProcAddress  == NULL) {
+		#ifdef RGFW_WINDOWS
+			const char* libNames[] = { "libEGL.dll", "EGL.dll" };
+		#elif defined(RGFW_MACOS) || defined(RGFW_UNIX)
+			// Linux and macOS
+			const char* libNames[] = {
+				"libEGL.so.1",  // most common
+				"libEGL.so",    // fallback
+				"/System/Library/Frameworks/OpenGL.framework/OpenGL"  // fallback for older macOS EGL-like systems
+			};
+		#endif
 
+		for (size_t i = 0; i < sizeof(libNames) / sizeof(libNames[0]); ++i) {
+			#ifdef RGFW_WINDOWS
+				RGFW_eglLibHandle = (void*)LoadLibraryA(libNames[i]);
+				if (RGFW_eglLibHandle) {
+					RGFW_eglGetProcAddress = (PFNEGLGETPROCADDRESSPROC)(RGFW_proc)GetProcAddress((HMODULE)RGFW_eglLibHandle, "eglGetProcAddress");
+					break;
+				}
+			#elif defined(RGFW_MACOS) || defined(RGFW_UNIX)
+				RGFW_eglLibHandle = dlopen(libNames[i], RTLD_LAZY | RTLD_GLOBAL);
+				if (RGFW_eglLibHandle) {
+					void* lib = dlsym(RGFW_eglLibHandle, "eglGetProcAddress");
+					if (lib != NULL) RGFW_MEMCPY(&RGFW_eglGetProcAddress, &lib, sizeof(PFNEGLGETPROCADDRESSPROC));
+					break;
+				}
+			#endif
+		}
+
+		if (!RGFW_eglLibHandle || !RGFW_eglGetProcAddress) {
+			return RGFW_FALSE;
+		}
+
+		RGFW_eglInitialize = (PFNEGLINITIALIZEPROC) RGFW_eglGetProcAddress("eglInitialize");
+		RGFW_eglGetConfigs = (PFNEGLGETCONFIGSPROC) RGFW_eglGetProcAddress("eglGetConfigs");
+		RGFW_eglChooseConfig = (PFNEGLCHOOSECONFIGPROC) RGFW_eglGetProcAddress("eglChooseConfig");
+		RGFW_eglCreateWindowSurface = (PFNEGLCREATEWINDOWSURFACEPROC) RGFW_eglGetProcAddress("eglCreateWindowSurface");
+		RGFW_eglCreateContext = (PFNEGLCREATECONTEXTPROC) RGFW_eglGetProcAddress("eglCreateContext");
+		RGFW_eglMakeCurrent = (PFNEGLMAKECURRENTPROC) RGFW_eglGetProcAddress("eglMakeCurrent");
+		RGFW_eglGetDisplay = (PFNEGLGETDISPLAYPROC) RGFW_eglGetProcAddress("eglGetDisplay");
+		RGFW_eglSwapBuffers = (PFNEGLSWAPBUFFERSPROC) RGFW_eglGetProcAddress("eglSwapBuffers");
+		RGFW_eglSwapInterval = (PFNEGLSWAPINTERVALPROC) RGFW_eglGetProcAddress("eglSwapInterval");
+		RGFW_eglBindAPI = (PFNEGLBINDAPIPROC) RGFW_eglGetProcAddress("eglBindAPI");
+		RGFW_eglDestroyContext = (PFNEGLDESTROYCONTEXTPROC) RGFW_eglGetProcAddress("eglDestroyContext");
+		RGFW_eglTerminate = (PFNEGLTERMINATEPROC) RGFW_eglGetProcAddress("eglTerminate");
+		RGFW_eglDestroySurface = (PFNEGLDESTROYSURFACEPROC) RGFW_eglGetProcAddress("eglDestroySurface");
+		RGFW_eglQueryString = (PFNEGLQUERYSTRINGPROC) RGFW_eglGetProcAddress("RGFW_eglGetCurrentContext");
+		RGFW_eglGetCurrentContext = (PFNEGLGETCURRENTCONTEXTPROC) RGFW_eglGetProcAddress("RGFW_eglGetCurrentContext");
+	}
+
+	return RGFW_BOOL(RGFW_eglInitialize!= NULL &&
+	            RGFW_eglGetConfigs!= NULL &&
+	            RGFW_eglChooseConfig!= NULL &&
+	            RGFW_eglCreateWindowSurface!= NULL &&
+	            RGFW_eglCreateContext!= NULL &&
+	            RGFW_eglMakeCurrent!= NULL &&
+	            RGFW_eglGetDisplay!= NULL &&
+	            RGFW_eglSwapBuffers!= NULL &&
+	            RGFW_eglSwapInterval != NULL &&
+	            RGFW_eglBindAPI!= NULL &&
+	            RGFW_eglDestroyContext!= NULL &&
+	            RGFW_eglTerminate!= NULL &&
+	            RGFW_eglDestroySurface!= NULL);
+#else
+	return RGFW_FALSE;
+#endif
+}
+
+
+void RGFW_unloadEGL(void) {
+#ifdef RGFW_EGL
+	if (!RGFW_eglLibHandle) return;
+	#ifdef RGFW_WINDOWS
+	    FreeLibrary((HMODULE)RGFW_eglLibHandle);
+	#elif defined(RGFW_MACOS) || defined(RGFW_UNIX)
+	    dlclose(RGFW_eglLibHandle);
+	#endif
+
+    RGFW_eglLibHandle = NULL;
+    RGFW_eglGetProcAddress = NULL;
+#endif
+}
+
+void RGFW_window_initEGL(RGFW_window* win) {
+#ifdef RGFW_EGL
 #ifdef RGFW_WAYLAND
     if (_RGFW->useWaylandBool)
         win->src.eglWindow = wl_egl_window_create(win->src.surface, win->r.w, win->r.h);
 #endif
 
 	#ifdef RGFW_WINDOWS
-	win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.hdc);
+	win->src.EGL_display = RGFW_eglGetDisplay((EGLNativeDisplayType) win->src.hdc);
 	#elif defined(RGFW_MACOS)
-	win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType)0);
+	win->src.EGL_display = RGFW_eglGetDisplay((EGLNativeDisplayType)0);
 	#elif defined(RGFW_WAYLAND)
 	if (_RGFW->useWaylandBool)
-		win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.wl_display);
+		win->src.EGL_display = RGFW_eglGetDisplay((EGLNativeDisplayType) win->src.wl_display);
     else
     #endif
     #ifdef RGFW_X11
-		win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.display);
+		win->src.EGL_display = RGFW_eglGetDisplay((EGLNativeDisplayType) win->src.display);
     #else
     {}
     #endif
     #if !defined(RGFW_WAYLAND) && !defined(RGFW_WINDOWS) && !defined(RGFW_X11)
-        win->src.EGL_display = eglGetDisplay((EGLNativeDisplayType) win->src.display);
+        win->src.EGL_display = RGFW_eglGetDisplay((EGLNativeDisplayType) win->src.display);
 	#endif
 
 	EGLint major, minor;
 
-	eglInitialize(win->src.EGL_display, &major, &minor);
+	RGFW_eglInitialize(win->src.EGL_display, &major, &minor);
 
 	#ifndef EGL_OPENGL_ES1_BIT
 	#define EGL_OPENGL_ES1_BIT 0x1
@@ -2866,28 +2933,28 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 
 	EGLConfig config;
 	EGLint numConfigs;
-	eglChooseConfig(win->src.EGL_display, egl_config, &config, 1, &numConfigs);
+	RGFW_eglChooseConfig(win->src.EGL_display, egl_config, &config, 1, &numConfigs);
 
 	#if defined(RGFW_MACOS)
 		void* layer = RGFW_cocoaGetLayer();
 
 		RGFW_window_cocoaSetLayer(win, layer);
 
-		win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) layer, NULL);
+		win->src.EGL_surface = RGFW_eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) layer, NULL);
 	#elif defined(RGFW_WINDOWS)
-		win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
+		win->src.EGL_surface = RGFW_eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
 	#elif defined(RGFW_WAYLAND)
 		if (_RGFW->useWaylandBool)
-			win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.eglWindow, NULL);
+			win->src.EGL_surface = RGFW_eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.eglWindow, NULL);
 		else
     #endif
     #ifdef RGFW_X11
-            win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
+            win->src.EGL_surface = RGFW_eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
     #else
     {}
     #endif
     #if !defined(RGFW_X11) && !defined(RGFW_WAYLAND) && !defined(RGFW_MACOS)
-		win->src.EGL_surface = eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
+		win->src.EGL_surface = RGFW_eglCreateWindowSurface(win->src.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
 	#endif
 
 	EGLint attribs[12];
@@ -2922,53 +2989,77 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 	RGFW_GL_ADD_ATTRIB(EGL_NONE, EGL_NONE);
 
 	if (RGFW_GL_HINTS[RGFW_glProfile] == RGFW_glES)
-		eglBindAPI(EGL_OPENGL_ES_API);
+		RGFW_eglBindAPI(EGL_OPENGL_ES_API);
 	else
-		eglBindAPI(EGL_OPENGL_API);
+		RGFW_eglBindAPI(EGL_OPENGL_API);
 
-	win->src.EGL_context = eglCreateContext(win->src.EGL_display, config, EGL_NO_CONTEXT, attribs);
+	win->src.EGL_context = RGFW_eglCreateContext(win->src.EGL_display, config, EGL_NO_CONTEXT, attribs);
 
 	if (win->src.EGL_context == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errEGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to create an EGL context.");
 		return;
 	}
 
-	eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.EGL_context);
-	eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
+	RGFW_eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.EGL_context);
+	RGFW_eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "EGL context initalized.");
+#else
+	RGFW_UNUSED(win);
+#endif
 }
 
-void RGFW_window_freeOpenGL(RGFW_window* win) {
+void RGFW_window_freeEGL(RGFW_window* win) {
+#ifdef RGFW_EGL
 	if (win->src.EGL_display == NULL) return;
 
-	eglDestroySurface(win->src.EGL_display, win->src.EGL_surface);
-	eglDestroyContext(win->src.EGL_display, win->src.EGL_context);
-	eglTerminate(win->src.EGL_display);
-  win->src.EGL_display = NULL;
-  #ifdef RGFW_WAYLAND
+	RGFW_eglDestroySurface(win->src.EGL_display, win->src.EGL_surface);
+	RGFW_eglDestroyContext(win->src.EGL_display, win->src.EGL_context);
+	RGFW_eglTerminate(win->src.EGL_display);
+	win->src.EGL_display = NULL;
+	#ifdef RGFW_WAYLAND
 		wl_egl_window_destroy(win->src.eglWindow);
 		RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "EGL window context freed");
-  #endif
+	#endif
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "EGL context freed");
+#else
+	RGFW_UNUSED(win);
+#endif
 }
 
-void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
-    if (win == NULL)
-        eglMakeCurrent(_RGFW->root->src.EGL_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+void RGFW_window_makeCurrent_EGL(RGFW_window* win) {
+#ifdef RGFW_EGL
+	if (win == NULL)
+        RGFW_eglMakeCurrent(_RGFW->root->src.EGL_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     else {
-        eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.EGL_context);
+        RGFW_eglMakeCurrent(win->src.EGL_display, win->src.EGL_surface, win->src.EGL_surface, win->src.EGL_context);
     }
+#else
+	RGFW_UNUSED(win);
+#endif
 }
 
-void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) { eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface); }
+void RGFW_window_swapBuffers_EGL(RGFW_window* win) {
+#ifdef RGFW_EGL
+	RGFW_eglSwapBuffers(win->src.EGL_display, win->src.EGL_surface);
+#else
+	RGFW_UNUSED(win);
+#endif
+}
 
-void* RGFW_getCurrent_OpenGL(void) { return eglGetCurrentContext(); }
+void* RGFW_getCurrent_EGL(void) {
+#ifdef RGFW_EGL
+	return RGFW_eglGetCurrentContext();
+#else
+	return NULL;
+#endif
+}
 
 #if defined(RGFW_WINDOWS)
 HMODULE RGFW_wgl_dll = NULL;
 #endif
 
-RGFW_proc RGFW_getProcAddress(const char* procname) {
+RGFW_proc RGFW_getProcAddress_EGL(const char* procname) {
+#ifdef RGFW_EGL
 	#if defined(RGFW_WINDOWS)
 	RGFW_proc proc = (RGFW_proc) GetProcAddress(RGFW_wgl_dll, procname);
 
@@ -2976,22 +3067,29 @@ RGFW_proc RGFW_getProcAddress(const char* procname) {
 			return proc;
 	#endif
 
-	return (RGFW_proc) eglGetProcAddress(procname);
+	return (RGFW_proc) RGFW_eglGetProcAddress(procname);
+#else
+	RGFW_UNUSED(procname); return NULL;
+#endif
 }
 
-RGFW_bool RGFW_extensionSupportedPlatform(const char* extension, size_t len) {
-    const char* extensions = eglQueryString(_RGFW->root->src.EGL_display, EGL_EXTENSIONS);
+RGFW_bool RGFW_extensionSupportedPlatform_EGL(const char* extension, size_t len) {
+#ifdef RGFW_EGL
+	const char* extensions = RGFW_eglQueryString(_RGFW->root->src.EGL_display, EGL_EXTENSIONS);
     return extensions != NULL && RGFW_extensionSupportedStr(extensions, extension, len);
+#else
+	RGFW_UNUSED(extension); RGFW_UNUSED(len); return RGFW_FALSE;
+#endif
 }
 
-void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
+void RGFW_window_swapInterval_EGL(RGFW_window* win, i32 swapInterval) {
+#ifdef RGFW_EGL
 	RGFW_ASSERT(win != NULL);
-
-	eglSwapInterval(win->src.EGL_display, swapInterval);
-
+	RGFW_eglSwapInterval(win->src.EGL_display, swapInterval);
+#else
+	RGFW_UNUSED(win); RGFW_UNUSED(swapInterval);
+#endif
 }
-
-#endif /* RGFW_EGL */
 
 /*
 	end of RGFW_EGL defines
@@ -3519,12 +3617,12 @@ Start of Linux / Unix defines
 #endif
 #endif
 
-#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
-RGFW_bool RGFW_extensionSupportedPlatform(const char * extension, size_t len) {
+#ifdef RGFW_OPENGL
+RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char * extension, size_t len) {
     const char* extensions = glXQueryExtensionsString(_RGFW->display, XDefaultScreen(_RGFW->display));
     return (extensions != NULL) && RGFW_extensionSupportedStr(extensions, extension, len);
 }
-RGFW_proc RGFW_getProcAddress(const char* procname) { return (RGFW_proc) glXGetProcAddress((GLubyte*) procname); }
+RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) { return (RGFW_proc) glXGetProcAddress((GLubyte*) procname); }
 #endif
 
 RGFW_bool RGFW_createNativeImagePtr(RGFW_image* img, RGFW_nativeImage* native) {
@@ -3720,7 +3818,7 @@ RGFW_GOTO_WAYLAND(0);
 
 #ifdef RGFW_X11
 void RGFW_window_getVisual(RGFW_window* win) {
-#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
+#ifdef RGFW_OPENGL
 	i32* visual_attribs = RGFW_initFormatAttribs();
 	i32 fbcount;
 	GLXFBConfig* fbc = glXChooseFBConfig(win->src.display, DefaultScreen(win->src.display), visual_attribs, &fbcount);
@@ -3791,9 +3889,11 @@ void RGFW_window_getVisual(RGFW_window* win) {
 #endif
 }
 #endif
-#ifndef RGFW_EGL
+
 void RGFW_window_initOpenGL(RGFW_window* win) {
 #ifdef RGFW_OPENGL
+		if (win->_flags & RGFW_windowUseEGL) { RGFW_window_initEGL(win); return; }
+
 		i32 mask = 0;
 
 		i32 context_attribs[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -3846,6 +3946,7 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 
 void RGFW_window_freeOpenGL(RGFW_window* win) {
 #ifdef RGFW_OPENGL
+	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_freeEGL(win); return; }
 	if (win->src.ctx == NULL) return;
 	glXDestroyContext(win->src.display, win->src.ctx);
 	win->src.ctx = NULL;
@@ -3854,7 +3955,6 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 RGFW_UNUSED(win);
 #endif
 }
-#endif
 
 #ifdef RGFW_X11
 static int RGFW_XErrorHandler(Display* display, XErrorEvent* ev) {
@@ -5879,23 +5979,28 @@ RGFW_WAYLAND_LABEL
 
 }
 
-#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
+#ifdef RGFW_OPENGL
 void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
+	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_makeCurrent_EGL(win); return; }
+
 	if (win == NULL)
 		glXMakeCurrent(NULL, (Drawable)NULL, (GLXContext) NULL);
 	else
 		glXMakeCurrent(win->src.display, (Drawable) win->src.window, (GLXContext) win->src.ctx);
 }
 void* RGFW_getCurrent_OpenGL(void) { return glXGetCurrentContext();  }
-void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) { glXSwapBuffers(win->src.display, win->src.window); }
+void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
+	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_swapBuffers_EGL(win); return; }
+	glXSwapBuffers(win->src.display, win->src.window);
+}
 #endif
-
-#if !defined(RGFW_EGL)
 
 void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 	RGFW_ASSERT(win != NULL);
 
 #ifdef RGFW_OPENGL
+	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_makeCurrent_EGL(win); return; }
+
 	/* cached pfn to avoid calling glXGetProcAddress more than once */
 	static PFNGLXSWAPINTERVALEXTPROC pfn = (PFNGLXSWAPINTERVALEXTPROC)-1;
 	static int (*pfn2)(int) = NULL;
@@ -5928,7 +6033,6 @@ void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 	RGFW_UNUSED(swapInterval);
 #endif
 }
-#endif
 
 void RGFW_deinitPlatform(void) {
     #define RGFW_FREE_LIBRARY(x) if (x != NULL) dlclose(x); x = NULL;
@@ -5978,6 +6082,7 @@ void RGFW_deinitPlatform(void) {
 
 void RGFW_window_close(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
+
 	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_freeOpenGL(win);
 
 	RGFW_GOTO_WAYLAND(0);
@@ -6180,9 +6285,7 @@ PFN_wglGetSwapIntervalEXT wglGetSwapIntervalEXTSrc = NULL;
 typedef HGLRC (WINAPI *PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC hdc, HGLRC hglrc, const int *attribList);
 PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 
-#ifndef RGFW_EGL
-	HMODULE RGFW_wgl_dll = NULL;
-#endif
+HMODULE RGFW_wgl_dll = NULL;
 
 #ifndef RGFW_NO_LOAD_WGL
 	typedef HGLRC(WINAPI* PFN_wglCreateContext)(HDC);
@@ -6210,12 +6313,15 @@ PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 	#define wglShareLists wglShareListsSRC
 #endif
 
-#if defined(RGFW_OPENGL) && !defined(RGFW_EGL)
-RGFW_bool RGFW_extensionSupportedPlatform(const char * extension, size_t len) {
-    const char* extensions = NULL;
+#ifdef RGFW_OPENGL
+RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char * extension, size_t len) {
+	if (win->_flags & RGFW_windowUseEGL)
+		return RGFW_extensionSupportedPlatform_EGL(win);
 
-    RGFW_proc proc = RGFW_getProcAddress("wglGetExtensionsStringARB");
-    RGFW_proc proc2 = RGFW_getProcAddress("wglGetExtensionsStringEXT");
+	const char* extensions = NULL;
+
+    RGFW_proc proc = RGFW_getProcAddress_OpenGL("wglGetExtensionsStringARB");
+    RGFW_proc proc2 = RGFW_getProcAddress_OpenGL("wglGetExtensionsStringEXT");
 
     if (proc)
         extensions = ((const char* (*)(HDC))proc)(wglGetCurrentDC());
@@ -6225,7 +6331,8 @@ RGFW_bool RGFW_extensionSupportedPlatform(const char * extension, size_t len) {
     return extensions != NULL && RGFW_extensionSupportedStr(extensions, extension, len);
 }
 
-RGFW_proc RGFW_getProcAddress(const char* procname) {
+RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) {
+	if (win->_flags & RGFW_windowUseEGL) return RGFW_getProcAddress_EGL(procname);
     RGFW_proc proc = (RGFW_proc)wglGetProcAddress(procname);
     if (proc)
         return proc;
@@ -6535,9 +6642,9 @@ void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 #endif
 }
 
-#ifndef RGFW_EGL
 void RGFW_window_initOpenGL(RGFW_window* win) {
 #ifdef RGFW_OPENGL
+	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_initEGL(win); return; }
 	PIXELFORMATDESCRIPTOR pfd;
 	pfd.nSize        = sizeof(PIXELFORMATDESCRIPTOR);
 	pfd.nVersion     = 1;
@@ -6619,6 +6726,7 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 
 void RGFW_window_freeOpenGL(RGFW_window* win) {
 #ifdef RGFW_OPENGL
+	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_freeEGL(win); return; }
 	if (win->src.ctx == NULL) return;
 	wglDeleteContext((HGLRC) win->src.ctx); /*!< delete OpenGL context */
 	win->src.ctx = NULL;
@@ -6627,8 +6735,6 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 	RGFW_UNUSED(win);
 #endif
 }
-#endif
-
 
 i32 RGFW_initPlatform(void) {
 #ifndef RGFW_NO_DPI
@@ -7636,26 +7742,32 @@ void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) {
 
 #ifdef RGFW_OPENGL
 void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
+	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_makeCurrent_EGL(win); return; }
 	if (win == NULL)
 		wglMakeCurrent(NULL, NULL);
 	else
 		wglMakeCurrent(win->src.hdc, (HGLRC) win->src.ctx);
 }
-void* RGFW_getCurrent_OpenGL(void) { return wglGetCurrentContext(); }
-void RGFW_window_swapBuffers_OpenGL(RGFW_window* win){ SwapBuffers(win->src.hdc); }
+void* RGFW_getCurrent_OpenGL(void) {
+	if (win->_flags & RGFW_windowUseEGL) return RGFW_getCurrent_EGL();
+	return wglGetCurrentContext();
+}
+void RGFW_window_swapBuffers_OpenGL(RGFW_window* win){
+	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_swapBuffers_EGL(win); return; }
+	SwapBuffers(win->src.hdc);
+}
 #endif
 
-#ifndef RGFW_EGL
 void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 	RGFW_ASSERT(win != NULL);
 #if defined(RGFW_OPENGL)
+	if (win->_flags & RGFW_windowUseEGL) return RGFW_window_swapInterval_EGL(win, swapInterval);
     if (wglSwapIntervalEXT == NULL || wglSwapIntervalEXT(swapInterval) == FALSE)
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to set swap interval");
 #else
 	RGFW_UNUSED(swapInterval);
 #endif
 }
-#endif
 
 char* RGFW_createUTF8FromWideStringWin32(const WCHAR* source) {
 	static char target[RGFW_MAX_PATH * 2];
@@ -7973,9 +8085,9 @@ id NSWindow_contentView(id window) {
 
 #ifdef RGFW_OPENGL
 /* MacOS OpenGL API spares us yet again (there are no extensions) */
-RGFW_bool RGFW_extensionSupportedPlatform(const char * extension, size_t len) { RGFW_UNUSED(extension); RGFW_UNUSED(len); return RGFW_FALSE; }
+RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char * extension, size_t len) { RGFW_UNUSED(extension); RGFW_UNUSED(len); return RGFW_FALSE; }
 
-RGFW_proc RGFW_getProcAddress(const char* procname) {
+RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) {
     static CFBundleRef RGFWnsglFramework = NULL;
     if (RGFWnsglFramework == NULL)
 		RGFWnsglFramework = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
@@ -8347,9 +8459,9 @@ id RGFW__osx_generateViewClass(const char* subclass, RGFW_window* win) {
 	return customView;
 }
 
-#ifndef RGFW_EGL
 void RGFW_window_initOpenGL(RGFW_window* win) {
 #ifdef RGFW_OPENGL
+	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_initEGL(win); return; }
 	void* attrs = RGFW_initFormatAttribs();
 	void* format = NSOpenGLPixelFormat_initWithAttributes((u32*)attrs);
 
@@ -8389,6 +8501,7 @@ void RGFW_window_initOpenGL(RGFW_window* win) {
 
 void RGFW_window_freeOpenGL(RGFW_window* win) {
 #ifdef RGFW_OPENGL
+	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_freeEGL(win); return; }
 	if (win->src.ctx == NULL) return;
 	objc_msgSend_void(win->src.ctx, sel_registerName("release"));
 	win->src.ctx = NULL;
@@ -8397,8 +8510,6 @@ void RGFW_window_freeOpenGL(RGFW_window* win) {
 	RGFW_UNUSED(win);
 #endif
 }
-#endif
-
 
 i32 RGFW_initPlatform(void) {
 	/* NOTE(EimaMei): Why does Apple hate good code? Like wtf, who thought of methods being a great idea???
@@ -9354,6 +9465,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 
 	#ifdef RGFW_OPENGL
 	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
+		if (win->_flags & RGFW_windowUseEGL) { RGFW_window_makeCurrent_EGL(win); return; }
 		if (win != NULL)
 			objc_msgSend_void(win->src.ctx, sel_registerName("makeCurrentContext"));
 		else
@@ -9364,11 +9476,10 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	}
 
 	void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
+		if (win->_flags & RGFW_windowUseEGL) { RGFW_window_swapBuffers_EGL(win); return; }
 		objc_msgSend_void(win->src.ctx, sel_registerName("flushBuffer"));
 	}
 	#endif
-
-	#if !defined(RGFW_EGL)
 
 	void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 		RGFW_ASSERT(win != NULL);
@@ -9379,8 +9490,6 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 		RGFW_UNUSED(swapInterval);
 		#endif
 	}
-
-	#endif
 
 void RGFW_deinitPlatform(void) { }
 
@@ -10053,9 +10162,7 @@ void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
 void* RGFW_getCurrent_OpenGL(void) { return (void*)emscripten_webgl_get_current_context(); }
 #endif
 
-#ifndef RGFW_EGL
 void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) { RGFW_UNUSED(win); RGFW_UNUSED(swapInterval); }
-#endif
 
 void RGFW_deinitPlatform(void) { }
 
@@ -10079,7 +10186,7 @@ RGFW_area RGFW_getScreenSize(void) {
 	return RGFW_AREA(RGFW_innerWidth(), RGFW_innerHeight());
 }
 
-RGFW_bool RGFW_extensionSupportedPlatform(const char* extension, size_t len) {
+RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char* extension, size_t len) {
 #ifdef RGFW_OPENGL
     return EM_ASM_INT({
         var ext = UTF8ToString($0, $1);
@@ -10095,7 +10202,7 @@ RGFW_bool RGFW_extensionSupportedPlatform(const char* extension, size_t len) {
 #endif
 }
 
-RGFW_proc RGFW_getProcAddress(const char* procname) {
+RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) {
 #ifdef RGFW_OPENGL
     return (RGFW_proc)emscripten_webgl_get_proc_address(procname);
 #else
