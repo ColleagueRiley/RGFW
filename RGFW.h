@@ -208,6 +208,10 @@ int main() {
 	#if !defined(RGFW_NO_API) && !defined(RGFW_WEBGPU)
 		#define RGFW_OPENGL
 	#endif
+
+	#ifdef RGFW_EGL
+		#undef RGFW_EGL
+	#endif
 #endif
 
 #if defined(RGFW_X11) && defined(__APPLE__) && !defined(RGFW_CUSTOM_BACKEND)
@@ -3060,10 +3064,6 @@ void* RGFW_getCurrent_EGL(void) {
 	return NULL;
 #endif
 }
-
-#if defined(RGFW_WINDOWS)
-HMODULE RGFW_wgl_dll = NULL;
-#endif
 
 RGFW_proc RGFW_getProcAddress_EGL(const char* procname) {
 #ifdef RGFW_EGL
@@ -6322,9 +6322,6 @@ HMODULE RGFW_wgl_dll = NULL;
 
 #ifdef RGFW_OPENGL
 RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char * extension, size_t len) {
-	if (win->_flags & RGFW_windowUseEGL)
-		return RGFW_extensionSupportedPlatform_EGL(win);
-
 	const char* extensions = NULL;
 
     RGFW_proc proc = RGFW_getProcAddress_OpenGL("wglGetExtensionsStringARB");
@@ -6339,7 +6336,6 @@ RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char * extension, size_t 
 }
 
 RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) {
-	if (win->_flags & RGFW_windowUseEGL) return RGFW_getProcAddress_EGL(procname);
     RGFW_proc proc = (RGFW_proc)wglGetProcAddress(procname);
     if (proc)
         return proc;
@@ -7756,7 +7752,6 @@ void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
 		wglMakeCurrent(win->src.hdc, (HGLRC) win->src.ctx);
 }
 void* RGFW_getCurrent_OpenGL(void) {
-	if (win->_flags & RGFW_windowUseEGL) return RGFW_getCurrent_EGL();
 	return wglGetCurrentContext();
 }
 void RGFW_window_swapBuffers_OpenGL(RGFW_window* win){
