@@ -4856,7 +4856,7 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 	RGFW_WAYLAND_LABEL
 	if (win->src.compositor) {
 		xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->r.w, win->r.h);
-		#ifdef RGFW_OPENGL
+		#if defined(RGFW_OPENGL) || defined(RGFW_EGL)
 		wl_egl_window_resize(win->src.eglWindow, (i32)a.w, (i32)a.h, 0, 0);
 		#endif
 	}
