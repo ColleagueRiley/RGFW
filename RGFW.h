@@ -7763,7 +7763,7 @@ void RGFW_window_swapBuffers_OpenGL(RGFW_window* win){
 void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 	RGFW_ASSERT(win != NULL);
 #if defined(RGFW_OPENGL)
-	if (win->_flags & RGFW_windowUseEGL) return RGFW_window_swapInterval_EGL(win, swapInterval);
+	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_swapInterval_EGL(win, swapInterval); return; }
     if (wglSwapIntervalEXT == NULL || wglSwapIntervalEXT(swapInterval) == FALSE)
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to set swap interval");
 #else
