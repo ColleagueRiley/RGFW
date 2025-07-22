@@ -1135,7 +1135,7 @@ RGFWDEF RGFW_window* RGFW_getRootWindow(void);
 /*! standard event queue, used for injecting events and returning source API callback events like any other queue check */
 /* these are all used internally by RGFW */
 void RGFW_eventQueuePush(RGFW_event event);
-RGFW_event* RGFW_eventQueuePop(RGFW_window* win, RGFW_event* event);
+RGFW_event* RGFW_eventQueuePop(RGFW_window* win);
 
 /* for C++ / C89 */
 #define RGFW_eventQueuePushEx(eventInit) { RGFW_event e; eventInit; RGFW_eventQueuePush(e); }
@@ -2004,7 +2004,7 @@ void RGFW_eventQueuePush(RGFW_event event) {
 	_RGFW->events[RGFW_MAX_EVENTS - _RGFW->eventLen] = event;
 }
 
-RGFW_event* RGFW_eventQueuePop(RGFW_window* win, RGFW_event* event) {
+RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
 	RGFW_ASSERT(_RGFW->eventLen >= 0 && _RGFW->eventLen <= RGFW_MAX_EVENTS);
 	RGFW_event* ev;
 
@@ -2020,8 +2020,6 @@ RGFW_event* RGFW_eventQueuePop(RGFW_window* win, RGFW_event* event) {
 		return NULL;
 	}
 
-	ev->droppedFilesCount = event->droppedFilesCount;
-	ev->droppedFiles = event->droppedFiles;
 	return ev;
 }
 
@@ -2042,7 +2040,7 @@ RGFW_bool RGFW_window_checkEventCore(RGFW_window* win, RGFW_event* event) {
 	if (event->type != RGFW_DNDInit) event->type = 0;
 
 	/* check queued events */
-	ev = RGFW_eventQueuePop(win, event);
+	ev = RGFW_eventQueuePop(win);
 	if (ev != NULL) {
 		if (ev->type == RGFW_quit) RGFW_window_setShouldClose(win, RGFW_TRUE);
 		*event = *ev;
@@ -8711,12 +8709,6 @@ RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
 		objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 		((void(*)(id, SEL))objc_msgSend)((id)_RGFW->NSApp, sel_registerName("updateWindows"));
 		return RGFW_FALSE;
-	}
-
-	if (event->droppedFilesCount) {
-		u32 i;
-		for (i = 0; i < event->droppedFilesCount; i++)
-			event->droppedFiles[i][0] = '\0';
 	}
 
 	event->droppedFilesCount = 0;
