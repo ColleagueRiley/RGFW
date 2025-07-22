@@ -1,7 +1,9 @@
 var searchData=
 [
-  ['key_0',['key',['../structRGFW__event.html#a2eabcbe140b369d57a4a63d879436e44',1,'RGFW_event']]],
-  ['keychar_1',['keyChar',['../structRGFW__event.html#a5ae7c9bb8b572bef7190285ecee94dcd',1,'RGFW_event']]],
-  ['keycodes_2',['keycodes',['../structRGFW__info.html#a3def7f448491ca25ee96f1b9034e7b5c',1,'RGFW_info']]],
-  ['keymod_3',['keyMod',['../structRGFW__event.html#ab6900d12b4d0d24f0ba28c1bfa131db8',1,'RGFW_event']]]
+  ['i16_0',['i16',['../RGFW_8h.html#ad309dbcaeea13aa602d686964156ea0b',1,'RGFW.h']]],
+  ['i32_1',['i32',['../RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec',1,'RGFW.h']]],
+  ['i64_2',['i64',['../RGFW_8h.html#a85cb35fbe5bf2961d7ad5f26814a91a2',1,'RGFW.h']]],
+  ['i8_3',['i8',['../RGFW_8h.html#ae3702327b5f47e83b431e22b33da7b58',1,'RGFW.h']]],
+  ['important_20conventions_4',['important conventions',['../md_CONVENTIONS.html',1,'']]],
+  ['input_5',['Input',['../group__Input.html',1,'']]]
 ];

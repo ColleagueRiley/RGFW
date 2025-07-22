@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Mon Jul 21 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Tue Jul 22 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -118,13 +118,13 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setName\fP (\fBRGFW_window\fP *win, const char *name)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setIcon\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setIcon\fP (\fBRGFW_window\fP *win, \fBRGFW_image\fP img)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_icon)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setIconEx\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels, \fBu8\fP type)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setIconEx\fP (\fBRGFW_window\fP *win, \fBRGFW_image\fP img, \fBu8\fP type)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_mouse\fP *mouse)"
@@ -308,22 +308,18 @@ set the window flags (will undo flags if they don't match the old ones)
 make the window a floating window 
 .SS "\fBRGFWDEF\fP void RGFW_window_setFullscreen (\fBRGFW_window\fP * win, \fBRGFW_bool\fP fullscreen)"
 turn fullscreen on / off for a window 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setIcon (\fBRGFW_window\fP * win, \fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setIcon (\fBRGFW_window\fP * win, \fBRGFW_image\fP img)"
 image MAY be resized by default, set both the taskbar and window icon 
 .PP
 \fBParameters\fP
 .RS 4
 \fIwin\fP source window
 .br
-\fIicon\fP icon bitmap
-.br
-\fIa\fP width and height of the bitmap
-.br
-\fIchannels\fP how many channels the bitmap has (rgb : 3, rgba : 4) 
+\fIimg\fP source image strucutre holds data, format and size 
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setIconEx (\fBRGFW_window\fP * win, \fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels, \fBu8\fP type)"
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setIconEx (\fBRGFW_window\fP * win, \fBRGFW_image\fP img, \fBu8\fP type)"
 sets mouse to RGFW_mouse icon (loaded from a bitmap struct) 
 .SS "\fBRGFWDEF\fP void RGFW_window_setMaxSize (\fBRGFW_window\fP * win, \fBRGFW_area\fP a)"
 set the maximum dimensions of a window 

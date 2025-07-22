@@ -76,6 +76,17 @@ Release:    RGFW 1.7.5-dev
 - cut gamepad support and add `minigamepad.h` to the gamepad example
 - replace `window.src` with a fat point, `RGFW_window_fat` and `RGFW_WINDOW_SRC(win)`
 - don't use xdg-decorations if it's not supported
+- move RGFW_window to a hideable space
+- add get/set functions for the few elements of RGFW_window, (userPtr, rect and exitKey)
+- remove RGFW_sleep
+- remove RGFW_checkFPS
+- remove swapBuffers, keep swapBuffers_OpenGL
+- remove window.buffer and add `RGFW_window_initBufferPtr`,  `RGFW_window_copyBuffer` and `RGFW_window_freeBuffer`
+- remove fat pointer and add back window.src
+- add `RGFW_image`
+- replace `setMouse`/`loadIcon` args with RGFW_image
+- remove getTime/setTime
+- change RGFW_BUFFER to RGFW_nativeImage (eg. `RGFW_createNativeImagePtr`, `RGFW_nativeImage_free` and `RGFW_window_copyNativeImage`)
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------

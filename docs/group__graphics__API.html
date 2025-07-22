@@ -87,12 +87,6 @@ Typedefs</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:gad90d01444f56eee1155b1d87737a1f21"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="structRGFW__window.html">RGFW_window</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics__API.html#gad90d01444f56eee1155b1d87737a1f21">RGFW_getCurrent</a> (void)</td></tr>
 <tr class="separator:gad90d01444f56eee1155b1d87737a1f21"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf1980c91476199667455fdd31ac6db04"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics__API.html#gaf1980c91476199667455fdd31ac6db04">RGFW_window_initBufferPtr</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> *buffer, <a class="el" href="structRGFW__area.html">RGFW_area</a> area)</td></tr>
-<tr class="separator:gaf1980c91476199667455fdd31ac6db04"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf37ec717021b541ca05b395841f1df04"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics__API.html#gaf37ec717021b541ca05b395841f1df04">RGFW_window_copyBuffer</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> *buffer, <a class="el" href="structRGFW__area.html">RGFW_area</a> bufferSize)</td></tr>
-<tr class="separator:gaf37ec717021b541ca05b395841f1df04"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga862438b925d5c9b9b0c9c218f461a48f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics__API.html#ga862438b925d5c9b9b0c9c218f461a48f">RGFW_window_freeBuffer</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> *buffer)</td></tr>
-<tr class="separator:ga862438b925d5c9b9b0c9c218f461a48f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga28e142a5c3538b12a3a1958f8d5a4ad5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics__API.html#ga28e142a5c3538b12a3a1958f8d5a4ad5">RGFW_window_initOpenGL</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win)</td></tr>
 <tr class="separator:ga28e142a5c3538b12a3a1958f8d5a4ad5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga682edf8b901f01549bbe4907c21dec60"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics__API.html#ga682edf8b901f01549bbe4907c21dec60">RGFW_window_freeOpenGL</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win)</td></tr>
@@ -376,70 +370,6 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gaf37ec717021b541ca05b395841f1df04" name="gaf37ec717021b541ca05b395841f1df04"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaf37ec717021b541ca05b395841f1df04">&#9670;&#160;</a></span>RGFW_window_copyBuffer()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void RGFW_window_copyBuffer </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structRGFW__window.html">RGFW_window</a> *&#160;</td>
-          <td class="paramname"><em>win</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> *&#160;</td>
-          <td class="paramname"><em>buffer</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structRGFW__area.html">RGFW_area</a>&#160;</td>
-          <td class="paramname"><em>bufferSize</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >render the software rendering buffer </p>
-
-</div>
-</div>
-<a id="ga862438b925d5c9b9b0c9c218f461a48f" name="ga862438b925d5c9b9b0c9c218f461a48f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga862438b925d5c9b9b0c9c218f461a48f">&#9670;&#160;</a></span>RGFW_window_freeBuffer()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void RGFW_window_freeBuffer </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structRGFW__window.html">RGFW_window</a> *&#160;</td>
-          <td class="paramname"><em>win</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> *&#160;</td>
-          <td class="paramname"><em>buffer</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >free buffers used for software rendering within the window </p>
-
-</div>
-</div>
 <a id="ga682edf8b901f01549bbe4907c21dec60" name="ga682edf8b901f01549bbe4907c21dec60"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga682edf8b901f01549bbe4907c21dec60">&#9670;&#160;</a></span>RGFW_window_freeOpenGL()</h2>
 
@@ -452,40 +382,6 @@ Functions</h2></td></tr>
           <td class="paramtype"><a class="el" href="structRGFW__window.html">RGFW_window</a> *&#160;</td>
           <td class="paramname"><em>win</em></td><td>)</td>
           <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="gaf1980c91476199667455fdd31ac6db04" name="gaf1980c91476199667455fdd31ac6db04"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaf1980c91476199667455fdd31ac6db04">&#9670;&#160;</a></span>RGFW_window_initBufferPtr()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> RGFW_window_initBufferPtr </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structRGFW__window.html">RGFW_window</a> *&#160;</td>
-          <td class="paramname"><em>win</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> *&#160;</td>
-          <td class="paramname"><em>buffer</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structRGFW__area.html">RGFW_area</a>&#160;</td>
-          <td class="paramname"><em>area</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">

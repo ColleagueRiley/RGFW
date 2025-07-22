@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Mon Jul 21 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Tue Jul 22 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -30,6 +30,9 @@ RGFW.h
 .RI "struct \fBRGFW_area\fP"
 .br
 .ti -1c
+.RI "struct \fBRGFW_image\fP"
+.br
+.ti -1c
 .RI "struct \fBRGFW_monitorMode\fP"
 .br
 .ti -1c
@@ -37,9 +40,6 @@ RGFW.h
 .br
 .ti -1c
 .RI "struct \fBRGFW_event\fP"
-.br
-.ti -1c
-.RI "struct \fBRGFW_image\fP"
 .br
 .ti -1c
 .RI "struct \fBRGFW_debugContext\fP"
@@ -145,6 +145,9 @@ RGFW.h
 .RI "#define \fBRGFW_AREA\fP(w,  h)   (\fBRGFW_area\fP){(\fBu32\fP)(w), (\fBu32\fP)(h)}"
 .br
 .ti -1c
+.RI "#define \fBRGFW_IMAGE\fP(data,  size,  format)   (\fBRGFW_image\fP){data, size, format, (\fBRGFW_nativeImage\fP*)NULL}"
+.br
+.ti -1c
 .RI "#define \fBRGFW_DEBUG_CTX\fP(win,  err)   (\fBRGFW_debugContext\fP){win, NULL, err}"
 .br
 .ti -1c
@@ -197,6 +200,12 @@ RGFW.h
 .RI "typedef struct \fBRGFW_area\fP \fBRGFW_area\fP"
 .br
 .ti -1c
+.RI "typedef struct \fBRGFW_nativeImage\fP \fBRGFW_nativeImage\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_image\fP \fBRGFW_image\fP"
+.br
+.ti -1c
 .RI "typedef struct \fBRGFW_monitorMode\fP \fBRGFW_monitorMode\fP"
 .br
 .ti -1c
@@ -207,9 +216,6 @@ RGFW.h
 .br
 .ti -1c
 .RI "typedef struct \fBRGFW_event\fP \fBRGFW_event\fP"
-.br
-.ti -1c
-.RI "typedef struct \fBRGFW_image\fP \fBRGFW_image\fP"
 .br
 .ti -1c
 .RI "typedef struct \fBRGFW_window\fP \fBRGFW_window\fP"
@@ -297,6 +303,21 @@ RGFW.h
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_keymod)"
 .br
 .ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_format)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofNativeImage\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_createNativeImage\fP (\fBRGFW_image\fP *img)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_createNativeImagePtr\fP (\fBRGFW_image\fP *img, \fBRGFW_nativeImage\fP *native)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_nativeImage_free\fP (\fBRGFW_image\fP *image)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP * \fBRGFW_getMonitors\fP (size_t *len)"
 .br
 .ti -1c
@@ -312,7 +333,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitorModeCompare\fP (\fBRGFW_monitorMode\fP mon, \fBRGFW_monitorMode\fP mon2, RGFW_modeRequest request)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_mouse\fP * \fBRGFW_loadMouse\fP (\fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.RI "\fBRGFWDEF\fP \fBRGFW_mouse\fP * \fBRGFW_loadMouse\fP (\fBRGFW_image\fP img)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_freeMouse\fP (\fBRGFW_mouse\fP *mouse)"
@@ -325,6 +346,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofWindowSrc\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_copyNativeImage\fP (\fBRGFW_window\fP *win, \fBRGFW_image\fP image)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_rect\fP \fBRGFW_window_getRect\fP (\fBRGFW_window\fP *win)"
@@ -456,13 +480,13 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setName\fP (\fBRGFW_window\fP *win, const char *name)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setIcon\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setIcon\fP (\fBRGFW_window\fP *win, \fBRGFW_image\fP img)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_icon)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setIconEx\fP (\fBRGFW_window\fP *win, \fBu8\fP *icon, \fBRGFW_area\fP a, \fBi32\fP channels, \fBu8\fP type)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setIconEx\fP (\fBRGFW_window\fP *win, \fBRGFW_image\fP img, \fBu8\fP type)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_mouse\fP *mouse)"
@@ -627,15 +651,6 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_getCurrent\fP (void)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_initBufferPtr\fP (\fBRGFW_window\fP *win, \fBu8\fP *buffer, \fBRGFW_area\fP area)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_copyBuffer\fP (\fBRGFW_window\fP *win, \fBu8\fP *buffer, \fBRGFW_area\fP bufferSize)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_freeBuffer\fP (\fBRGFW_window\fP *win, \fBu8\fP *buffer)"
-.br
-.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_initOpenGL\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
@@ -675,21 +690,6 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_extensionSupportedPlatform\fP (const char *extension, size_t len)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP double \fBRGFW_getTime\fP (void)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimeNS\fP (void)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setTime\fP (double time)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimerValue\fP (void)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBu64\fP \fBRGFW_getTimerFreq\fP (void)"
-.br
-.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setRootWindow\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
@@ -699,7 +699,7 @@ RGFW.h
 .RI "void \fBRGFW_eventQueuePush\fP (\fBRGFW_event\fP event)"
 .br
 .ti -1c
-.RI "\fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win, \fBRGFW_event\fP *event)"
+.RI "\fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, \fBRGFW_key\fP)"
@@ -767,6 +767,8 @@ RGFW.h
 
 .SS "#define RGFW_HEADER"
 
+.SS "#define RGFW_IMAGE(data, size, format)   (\fBRGFW_image\fP){data, size, format, (\fBRGFW_nativeImage\fP*)NULL}"
+
 .SS "#define RGFW_INT_DEFINED"
 
 .SS "#define RGFW_key   \fBu8\fP"
@@ -829,6 +831,8 @@ structure for monitor data
 
 .SS "typedef void \fBRGFW_mouse\fP"
 loads mouse icon from bitmap (similar to RGFW_window_setIcon)\&. Icon NOT resized by default 
+.SS "typedef struct \fBRGFW_nativeImage\fP \fBRGFW_nativeImage\fP"
+
 .SS "typedef struct \fBRGFW_point\fP \fBRGFW_point\fP"
 basic vector type, if there's not already a point/vector type of choice 
 .SS "typedef struct \fBRGFW_rect\fP \fBRGFW_rect\fP"
@@ -847,6 +851,10 @@ basic rect type, if there's not already a rect type of choice
 
 .SH "Function Documentation"
 .PP 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_createNativeImage (\fBRGFW_image\fP * img)"
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_createNativeImagePtr (\fBRGFW_image\fP * img, \fBRGFW_nativeImage\fP * native)"
+
 .SS "\fBRGFWDEF\fP void RGFW_deinit (void)"
 is called by default when the last open window is closed 
 .SS "\fBRGFWDEF\fP void RGFW_deinit_heap (void)"
@@ -929,6 +937,14 @@ mouse event note the x and y of the mouse can be found in the vector, \fBRGFW_ev
 < the window was restored
 .PP
 < content scale factor changed
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_format)"
+< 8-bit RGB (3 channels)
+.PP
+< 8-bit BGR (3 channels)
+.PP
+< 8-bit RGBA (4 channels)
+.PP
+< 8-bit BGRA (4 channels)
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_keymod)"
 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_modeRequest)"
@@ -961,7 +977,7 @@ optional init/deinit function is called by default when the first window is crea
 inits RGFW on the heap instead of in a global var 
 .SS "\fBRGFWDEF\fP \fBi32\fP RGFW_init_ptr (\fBRGFW_info\fP * info)"
 init RGFW, storing the data at the pointer 
-.SS "\fBRGFWDEF\fP \fBRGFW_mouse\fP * RGFW_loadMouse (\fBu8\fP * icon, \fBRGFW_area\fP a, \fBi32\fP channels)"
+.SS "\fBRGFWDEF\fP \fBRGFW_mouse\fP * RGFW_loadMouse (\fBRGFW_image\fP img)"
 frees RGFW_mouse data 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_requestMode (\fBRGFW_monitor\fP mon, \fBRGFW_monitorMode\fP mode, RGFW_modeRequest request)"
 request a specific mode 
@@ -969,7 +985,11 @@ request a specific mode
 scale monitor to window size 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitorModeCompare (\fBRGFW_monitorMode\fP mon, \fBRGFW_monitorMode\fP mon2, RGFW_modeRequest request)"
 check if 2 monitor modes are the same 
+.SS "\fBRGFWDEF\fP void RGFW_nativeImage_free (\fBRGFW_image\fP * image)"
+free buffers used for software rendering within the window 
 .SS "\fBRGFWDEF\fP void RGFW_setInfo (\fBRGFW_info\fP * info)"
+
+.SS "\fBRGFWDEF\fP size_t RGFW_sizeofNativeImage (void)"
 
 .SS "\fBRGFWDEF\fP size_t RGFW_sizeofWindow (void)"
 
@@ -979,6 +999,8 @@ check if 2 monitor modes are the same
 (unix) Toggle use of wayland\&. This will be on by default if you use \fCRGFW_WAYLAND\fP (if you don't use RGFW_WAYLAND, you don't expose WAYLAND functions) this is mostly used to allow you to force the use of XWayland 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_usingWayland (void)"
 
+.SS "\fBRGFWDEF\fP void RGFW_window_copyNativeImage (\fBRGFW_window\fP * win, \fBRGFW_image\fP image)"
+render the software rendering buffer 
 .SS "\fBRGFWDEF\fP \fBRGFW_key\fP RGFW_window_getExitKey (\fBRGFW_window\fP * win)"
 get the exit key for the window | returns \fBRGFW_window\&.exitKey\fP 
 .SS "\fBRGFWDEF\fP \fBRGFW_rect\fP RGFW_window_getRect (\fBRGFW_window\fP * win)"

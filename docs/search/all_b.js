@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['name_0',['name',['../structRGFW__monitor.html#aaea809cea2ca3420c64b1ae3d69bb3ae',1,'RGFW_monitor']]]
+  ['mode_0',['mode',['../structRGFW__monitor.html#a0f7f7532843e9354590e8cb424fbf8dc',1,'RGFW_monitor']]],
+  ['monitor_1',['monitor',['../structRGFW__debugContext.html#a46d5a4575b82d5984a77454432b9ef00',1,'RGFW_debugContext']]],
+  ['monitor_2',['Monitor',['../group__Monitor.html',1,'']]]
 ];
