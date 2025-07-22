@@ -3549,7 +3549,8 @@ RGFW_bool RGFW_createNativeImagePtr(RGFW_image* img, RGFW_nativeImage* native) {
 #endif
 #ifdef RGFW_WAYLAND
 	RGFW_WAYLAND_LABEL {}
-	u32 size = (u32)(img->size.w * img->size.h * 4);
+    u32 depth = (img->format >= RGFW_formatRGBA8) ? 4 : 3;
+	u32 size = (u32)(img->size.w * img->size.h * depth);
 	int fd = RGFW_wl_create_shm_file(size);
 	if (fd < 0) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, RGFW_DEBUG_CTX(_RGFW->root, (u32)fd), "Failed to create a buffer.");
@@ -3563,13 +3564,13 @@ RGFW_bool RGFW_createNativeImagePtr(RGFW_image* img, RGFW_nativeImage* native) {
 	}
 
 	struct wl_shm_pool* pool = wl_shm_create_pool(_RGFW->root->src.shm, fd, (i32)size);
-	img->native->wl_buffer = wl_shm_pool_create_buffer(pool, 0, (i32)img->size.w, (i32)img->size.h, (i32)img->size.w * 4,
+	img->native->wl_buffer = wl_shm_pool_create_buffer(pool, 0, (i32)img->size.w, (i32)img->size.h, (i32)img->size.w * (i32)depth,
 		WL_SHM_FORMAT_ARGB8888);
 	wl_shm_pool_destroy(pool);
 
 	close(fd);
 
-	RGFW_MEMCPY(img->native->buffer, img->data, (size_t)(img->size.w * img->size.h * 4));
+	RGFW_MEMCPY(img->native->buffer, img->data, (size_t)(img->size.w * img->size.h * depth));
 #endif
 
 	return RGFW_TRUE;
@@ -3582,8 +3583,9 @@ void RGFW_nativeImage_free(RGFW_image* img) {
 
 #ifdef RGFW_X11
 	XDestroyImage(img->native->bitmap);
-	img->native = NULL;
 	if (img->native->ownedByRGFW) RGFW_FREE(img->native);
+
+	img->native = NULL;
 	return;
 #endif
 
@@ -3628,7 +3630,8 @@ void RGFW_window_copyNativeImage(RGFW_window* win, RGFW_image img) {
 		}
 	}
 
-	wl_surface_attach(win->src.surface, img.native->wl_buffer, -1, 0);
+	wl_surface_attach(win->src.surface, img.native->wl_buffer, 0, 0);
+	wl_surface_damage(win->src.surface, 0, 0, win->r.w, win->r.h);
 	RGFW_wl_surface_frame_done(win, NULL, 0);
 	wl_surface_commit(win->src.surface);
 #endif
