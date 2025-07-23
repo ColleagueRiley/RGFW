@@ -20,12 +20,10 @@ int main(void) {
 
     RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_windowAllowDND | RGFW_windowCenter | RGFW_windowNoResize);
 
-
     RGFW_area bufferSize = RGFW_AREA(500, 500);
     u8* buffer = (u8*)RGFW_ALLOC(bufferSize.w * bufferSize.h * 4);
-    RGFW_window_initBufferPtr(win, buffer, bufferSize);
-
-
+    RGFW_image image = RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8);
+    RGFW_createNativeImage(&image);
 
 	OSMesaContext ctx = OSMesaCreateContext(OSMESA_RGBA, NULL);
     OSMesaMakeCurrent(ctx, buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
@@ -52,10 +50,10 @@ int main(void) {
 
         glFlush();
 
-        RGFW_window_copyBuffer(win, buffer, bufferSize);
+        RGFW_window_copyNativeImage(win, image);
     }
 
-	RGFW_window_freeBuffer(win, buffer);
+    RGFW_nativeImage_free(&image);
 	RGFW_FREE(buffer);
 
     RGFW_window_close(win);

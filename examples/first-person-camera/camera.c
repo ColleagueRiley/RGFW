@@ -10,42 +10,6 @@ float camX = 0, camZ = 0;
 RGFWDEF void update_camera(void);
 RGFWDEF void glPerspective(float fovY, float aspect, float zNear, float zFar);
 
-#ifdef RGFW_WINDOWS
-void my_sleep(u64 ms) {
-	Sleep((u32)ms);
-}
-#elif defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WASM)  || defined(RGFW_WAYLAND)
-#ifndef RGFW_WASM
-void my_sleep(u64 ms) {
-	struct timespec time;
-	time.tv_sec = 0;
-	time.tv_nsec = (long int)((double)ms * 1e+6);
-
-	nanosleep(&time, NULL);
-}
-#else
-void my_sleep(u64 milisecond) {
-	emscripten_sleep(milisecond);
-}
-#endif
-#endif
-
-
-u32 checkFPS(double startTime, u32 frameCount, u32 fpsCap) {
-	double deltaTime = RGFW_getTime() - startTime;
-	if (deltaTime == 0) return 0;
-
-	double fps = (frameCount / deltaTime); /* the numer of frames over the time it took for them to render */
-	if (fpsCap && fps > fpsCap) {
-		double frameTime = (double)frameCount / (double)fpsCap; /* how long it should take to finish the frames */
-		double sleepTime = frameTime - deltaTime; /* subtract how long it should have taken with how long it did take */
-
-		if (sleepTime > 0) my_sleep((u32)(sleepTime * 1000));
-	}
-
-	return (u32) fps;
-}
-
 int main(void) {
     RGFW_window* win = RGFW_createWindow("First person camera", RGFW_RECT(0, 0, 800, 450), RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowFocusOnShow);
 
@@ -78,8 +42,6 @@ int main(void) {
 
     RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));
 
-    u32 frames = 0;
-    float frameStartTime = RGFW_getTime();
     RGFW_event event;
     while (RGFW_window_shouldClose(win) == 0) {
         while (RGFW_window_checkEvent(win, &event)) {
@@ -180,7 +142,6 @@ int main(void) {
         glEnd();
 
         RGFW_window_swapBuffers_OpenGL(win);
-        frames++;
     }
 
     glDeleteTextures(1, &texture);

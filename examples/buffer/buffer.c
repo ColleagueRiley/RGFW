@@ -7,44 +7,6 @@ u8 icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00
 
 RGFW_area bufferSize;
 
-#ifdef RGFW_WINDOWS
-void my_sleep(u64 ms) {
-	Sleep((u32)ms);
-}
-#elif defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WASM)  || defined(RGFW_WAYLAND)
-#ifndef RGFW_WASM
-void my_sleep(u64 ms) {
-	struct timespec time;
-	time.tv_sec = 0;
-	time.tv_nsec = (long int)((double)ms * 1e+6);
-
-	nanosleep(&time, NULL);
-}
-#else
-void my_sleep(u64 milisecond) {
-	emscripten_sleep(milisecond);
-}
-#endif
-#endif
-
-
-u32 checkFPS(double startTime, u32 frameCount, u32 fpsCap) {
-	double deltaTime = RGFW_getTime() - startTime;
-	if (deltaTime == 0) return 0;
-
-	double fps = (frameCount / deltaTime); /* the numer of frames over the time it took for them to render */
-	if (fpsCap && fps > fpsCap) {
-		double frameTime = (double)frameCount / (double)fpsCap; /* how long it should take to finish the frames */
-		double sleepTime = frameTime - deltaTime; /* subtract how long it should have taken with how long it did take */
-
-		if (sleepTime > 0) my_sleep((u32)(sleepTime * 1000));
-	}
-
-	return (u32) fps;
-}
-
-
-
 /* fill buffer with a color, clearing anything that was on it */
 void clear(u8* buffer, RGFW_rect rect, u8 color[4]) {
     /* if all the values are the same */
@@ -106,11 +68,10 @@ int main(void) {
 
     bufferSize = RGFW_getScreenSize();
     u8* buffer = (u8*)RGFW_ALLOC(bufferSize.w * bufferSize.h * 4);
-    RGFW_window_initBufferPtr(win, buffer, bufferSize);
+    RGFW_image image = RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8);
+    RGFW_createNativeImage(&image);
 
     i8 running = 1;
-    u32 frames = 0;
-    double frameStartTime = RGFW_getTime();
 
     RGFW_event event;
 
@@ -129,12 +90,10 @@ int main(void) {
 
         drawBitmap(buffer, icon, RGFW_RECT(100, 100, 3, 3));
 
-        RGFW_window_copyBuffer(win, buffer, bufferSize);
-        checkFPS(frameStartTime, frames, 60);
-        frames++;
+        RGFW_window_copyNativeImage(win, image);
 	}
 
-	RGFW_window_freeBuffer(win, buffer);
+    RGFW_nativeImage_free(&image);
 	RGFW_FREE(buffer);
 
     RGFW_window_close(win);
