@@ -280,7 +280,7 @@ int main(int argc, const char* argv[]) {
     wgpuSwapChainRelease(state.wgpu.swapchain);
     wgpuQueueRelease(win->src.queue);
     wgpuDeviceRelease(win->src.device);
-    wgpuInstanceRelease(win->src.ctx);
+    wgpuInstanceRelease(win->src.wgpuCtx);
 
 	RGFW_window_close(win);
 
@@ -338,7 +338,7 @@ void draw() {
 
 // helper functions
 WGPUSwapChain create_swapchain() {
-    WGPUSurface surface = wgpuInstanceCreateSurface(win->src.ctx, &(WGPUSurfaceDescriptor){
+    WGPUSurface surface = wgpuInstanceCreateSurface(win->src.wgpuCtx, &(WGPUSurfaceDescriptor){
         .nextInChain = (WGPUChainedStruct*)(&(WGPUSurfaceDescriptorFromCanvasHTMLSelector){
             .chain.sType = WGPUSType_SurfaceDescriptorFromCanvasHTMLSelector,
             .selector = "canvas",
