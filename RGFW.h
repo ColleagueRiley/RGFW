@@ -1440,7 +1440,7 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 		struct xdg_wm_base* xdg_wm_base;
 		struct wl_shm* shm;
 		struct wl_seat *seat;
-		
+
 		/* State flags to configure the window */
 		RGFW_bool pending_activated;
 		RGFW_bool activated;
@@ -3275,12 +3275,12 @@ void RGFW_wl_xdg_wm_base_ping_handler(void* data, struct xdg_wm_base* wm_base,
 void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface* xdg_surface,
 		u32 serial) {
 	RGFW_UNUSED(data);
-	
+
     xdg_surface_ack_configure(xdg_surface, serial);
     if (!_RGFW->wl_configured)
 		_RGFW->wl_configured = RGFW_TRUE;
     RGFW_window* win = (RGFW_window*)xdg_surface_get_user_data(xdg_surface);
-    
+
     if (win == NULL) {
 		win = RGFW_key_win;
 		if (win == NULL)
@@ -3290,30 +3290,30 @@ void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface* xdg_s
 	if (win->src.activated != win->src.pending_activated) {
 		win->src.activated = win->src.pending_activated;
 	}
-	
+
 	if (win->src.maximized != win->src.pending_maximized) {
 		RGFW_window_checkMode(win);
-		
+
 		win->src.maximized = win->src.pending_maximized;
 		RGFW_toggleWaylandMaximized(win, win->src.maximized);
 
-		// do not create a maximize event if maximize is used to 
+		// do not create a maximize event if maximize is used to
 		// restore the old window size
 		if (win->src.maximized) {
 			win->_flags |= RGFW_windowMaximize;
 			RGFW_eventQueuePushEx(e.type = RGFW_windowMaximized; e._win = win);
 			RGFW_windowMaximizedCallback(win, win->r);
 		}
-		
-		
+
+
 	}
 	// TODO implement fullscreen; need wl_output
-	
+
 	i32 width = win->r.w;
 	i32 height = win->r.h;
 	if (win->src.resizing) {
 		RGFW_window_checkMode(win);
-		
+
 		win->_oldRect = win->src.r = win->r = RGFW_RECT(win->src.r.x, win->src.r.y, width, height);
 
 		// Do not create a resize event if the window is maximized
@@ -3323,12 +3323,12 @@ void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface* xdg_s
 		}
 		RGFW_window_resize(win, RGFW_AREA(width, height));
 	}
-    
+
 }
 
 void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplevel* toplevel,
 		i32 width, i32 height, struct wl_array* states) {
-	
+
     RGFW_window* win = (RGFW_window*)xdg_toplevel_get_user_data(toplevel);
     if (win == NULL) {
         win = RGFW_key_win;
@@ -3341,7 +3341,7 @@ void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplevel* top
     win->src.pending_maximized = RGFW_FALSE;
     win->src.resizing = RGFW_FALSE;
 
-    
+
 	enum xdg_toplevel_state* state;
 	wl_array_for_each(state, states) {
 		switch (*state) {
@@ -3366,7 +3366,7 @@ void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplevel* top
 		win->src.r.w = win->r.w = width;
 		win->src.r.h = win->r.h = height;
 	}
-	
+
 	RGFW_UNUSED(data);
 }
 
@@ -4369,7 +4369,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	win->src.xdg_toplevel = xdg_surface_get_toplevel(win->src.xdg_surface);
 	xdg_toplevel_set_user_data(win->src.xdg_toplevel, win);
-	
+
 	xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->r.w, win->r.h);
 
 	static const struct xdg_toplevel_listener xdg_toplevel_listener = {
@@ -5384,11 +5384,11 @@ void RGFW_window_restore(RGFW_window* win) {
 #ifdef RGFW_WAYLAND
     RGFW_WAYLAND_LABEL
 	RGFW_toggleWaylandMaximized(win, 0);
-	
+
 	win->r = win->_oldRect;
 	RGFW_window_move(win, RGFW_POINT(win->r.x, win->r.y));
 	RGFW_window_resize(win, RGFW_AREA(win->r.w, win->r.h));
-	
+
 	RGFW_window_show(win);
 #endif
 	win->r = win->_oldRect;
@@ -5876,7 +5876,7 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 
 	if (prop_data != NULL)
 		XFree(prop_data);
-		
+
 	return RGFW_FALSE;
 #endif
 #ifdef RGFW_WAYLAND
@@ -6806,8 +6806,8 @@ void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 #endif
 }
 
-RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 #ifdef RGFW_OPENGL
+RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	#ifdef RGFW_EGL
 	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_createContext_EGL(win); return; }
 	#endif
@@ -6886,13 +6886,9 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 		wglShareLists((HGLRC)RGFW_getCurrent_OpenGL(), win->src.ctx.ctx);
 	}
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
-#else
-	RGFW_UNUSED(win);
-#endif
 }
 
 void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
-#ifdef RGFW_OPENGL
 	#ifdef RGFW_EGL
 	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_deleteContext_EGL(win); return; }
 	#endif
@@ -6900,10 +6896,8 @@ void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
 	wglDeleteContext((HGLRC) win->src.ctx.ctx); /*!< delete OpenGL context */
 	win->src.ctx.ctx = NULL;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context freed.");
-#else
-	RGFW_UNUSED(win);
-#endif
 }
+#endif
 
 i32 RGFW_initPlatform(void) {
 #ifndef RGFW_NO_DPI
@@ -8624,8 +8618,8 @@ id RGFW__osx_generateViewClass(const char* subclass, RGFW_window* win) {
 	return customView;
 }
 
-RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 #ifdef RGFW_OPENGL
+RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	#ifdef RGFW_EGL
 	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_createContext_EGL(win); return; }
 	#endif
@@ -8661,9 +8655,6 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 
 	objc_msgSend_void(win->src.ctx.ctx, sel_registerName("makeCurrentContext"));
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
-#else
-	RGFW_UNUSED(win);
-#endif
 }
 
 void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
@@ -8675,10 +8666,8 @@ void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
 	objc_msgSend_void(win->src.ctx.ctx, sel_registerName("release"));
 	win->src.ctx.ctx = NULL;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context freed.");
-#else
-	RGFW_UNUSED(win);
-#endif
 }
+#endif /* RGFW_OPENGL */
 
 i32 RGFW_initPlatform(void) {
 	/* NOTE(EimaMei): Why does Apple hate good code? Like wtf, who thought of methods being a great idea???
@@ -10070,8 +10059,8 @@ void EMSCRIPTEN_KEEPALIVE RGFW_writeFile(const char *path, const char *data, siz
     fclose(file);
 }
 
+#ifdef RGFW_OPENGL
 RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
-#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU)
 	EmscriptenWebGLContextAttributes attrs;
 	attrs.alpha = RGFW_GL_HINTS[RGFW_glDepth];
 	attrs.depth = RGFW_GL_HINTS[RGFW_glAlpha];
@@ -10101,7 +10090,6 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
     #endif
     glViewport(0, 0, win->r.w, win->r.h);
-#endif
 }
 
 void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
@@ -10110,10 +10098,8 @@ void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
 	emscripten_webgl_destroy_context(win->src.ctx.ctx);
 	win->src.ctx.ctx = 0;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context freed.");
-#else
-	RGFW_UNUSED(win);
-#endif
 }
+#endif /* RGFW_OPENGL */
 
 i32 RGFW_initPlatform(void) { return 0; }
 
