@@ -66,8 +66,8 @@ void main()
 
 
 int main(void) {
-    RGFW_setGLHint(RGFW_glMinor, 3);
-    RGFW_setGLHint(RGFW_glMajor, 3);
+    RGFW_setHint_OpenGL(RGFW_glMinor, 3);
+    RGFW_setHint_OpenGL(RGFW_glMajor, 3);
 
 	RGFW_window* window = RGFW_createWindow("LearnOpenGL", RGFW_RECT(SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT), RGFW_windowAllowDND | RGFW_windowCenter | RGFW_windowScaleToMonitor);
     if (window == NULL)
@@ -75,12 +75,12 @@ int main(void) {
         printf("Failed to create RGFW window\n");
         return -1;
     }
+
     RGFW_window_makeCurrent(window);
     // RGFW_window_swapInterval(window, 60);
 
     #ifndef RGFW_WASM
-    if (RGL_loadGL3((RGLloadfunc)RGFW_getProcAddress))
-    {
+    if (RGL_loadGL3((RGLloadfunc)RGFW_getProcAddress_OpenGL)) {
         printf("Failed to initialize GLAD\n");
         return -1;
     }
@@ -168,7 +168,9 @@ int main(void) {
     bool running = true;
     while (running && !RGFW_isPressed(window, RGFW_escape)) {
         RGFW_event event;
-        while (RGFW_window_checkEvent(window, &event)) {
+
+        RGFW_window_checkEvent(window, &event);
+        {
             if (event.type == RGFW_quit) {
                 running = false;
                 break;
