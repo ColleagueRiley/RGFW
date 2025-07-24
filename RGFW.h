@@ -10328,10 +10328,10 @@ void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
 	RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) { return RGFW_window_createContext_OpenGL(win); }
 	void RGFW_window_deleteContext_EGL(RGFW_window* win) { RGFW_window_deleteContext_OpenGL(win); }
 	void RGFW_window_makeCurrent_EGL(RGFW_window* win) { RGFW_window_makeCurrent_OpenGL(win); }
-	void RGFW_window_swapBuffers_EGL(RGFW_window* win) { RGFW_window_swapInterval_OpenGL(win) }
+	void RGFW_window_swapBuffers_EGL(RGFW_window* win) { RGFW_window_swapBuffers_OpenGL(win); }
 	void* RGFW_getCurrent_EGL(void) { return RGFW_getCurrent_OpenGL(); }
 	void RGFW_window_swapInterval_EGL(RGFW_window* win, i32 swapInterval) { RGFW_window_swapInterval_OpenGL(win, swapInterval); }
-	RGFW_proc RGFW_getProcAddress_EGL(const char* procname) { return RGFW_getCurrent_OpenGL(procname); }
+	RGFW_proc RGFW_getProcAddress_EGL(const char* procname) { return RGFW_getProcAddress_OpenGL(procname); }
 	RGFW_bool RGFW_extensionSupported_EGL(const char* extension, size_t len) { return RGFW_extensionSupported_OpenGL(extension, len); }
 	RGFW_bool RGFW_extensionSupportedPlatform_EGL(const char* extension, size_t len) { return RGFW_extensionSupportedPlatform_OpenGL(extension, len); }
 #endif
