@@ -7006,9 +7006,10 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	}
 	win->src.hdc = GetDC(win->src.window);
 
-	if ((flags & RGFW_windowNoInitAPI) == 0) {
+	#ifdef RGFW_OPENGL
+	if ((flags & RGFW_windowNoInitAPI) == 0)
 		RGFW_window_createContext_OpenGL(win);
-	}
+	#endif
 
 	RGFW_window_setFlags(win, flags);
 	RGFW_win32_makeWindowTransparent(win);
@@ -7732,8 +7733,10 @@ void RGFW_deinitPlatform(void) {
 
 void RGFW_window_close(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-
+	#ifdef RGFW_OPENGL
 	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_deleteContext_OpenGL(win);
+	#endif
+
 	RemovePropW(win->src.window, L"RGFW");
 	ReleaseDC(win->src.window, win->src.hdc); /*!< delete device context */
 	DestroyWindow(win->src.window); /*!< delete window */
@@ -8722,9 +8725,10 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	id str = NSString_stringWithUTF8String(name);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setTitle:"), str);
 
-	if ((flags & RGFW_windowNoInitAPI) == 0) {
+	#ifdef RGFW_OPENGL
+	if ((flags & RGFW_windowNoInitAPI) == 0)
 		RGFW_window_createContext_OpenGL(win);
-	}
+	#endif
 
 	#ifdef RGFW_OPENGL
 	else
@@ -9653,7 +9657,10 @@ void RGFW_deinitPlatform(void) { }
 void RGFW_window_close(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	NSRelease(win->src.view);
+
+	#ifdef RGFW_OPENGL
 	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_deleteContext_OpenGL(win);
+	#endif
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal, RGFW_DEBUG_CTX(NULL, 0), "global context deinitialized");
     RGFW_clipboard_switch(NULL);
@@ -10105,7 +10112,11 @@ i32 RGFW_initPlatform(void) { return 0; }
 
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
     RGFW_window_basic_init(win, rect, flags);
-	RGFW_window_createContext_OpenGL(win);
+
+#ifdef RGFW_OPENGL
+	if ((flags & RGFW_windowNoInitAPI) == 0)
+		RGFW_window_createContext_OpenGL(win);
+#endif
 
 	#if defined(RGFW_WEBGPU)
 		win->src.ctx.ctx = wgpuCreateInstance(NULL);
@@ -10320,7 +10331,9 @@ void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) { RGFW_
 void RGFW_deinitPlatform(void) { }
 
 void RGFW_window_close(RGFW_window* win) {
+#ifdef RGFW_OPENGL
 	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_deleteContext_OpenGL(win);
+#endif
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
     RGFW_clipboard_switch(NULL);
