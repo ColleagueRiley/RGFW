@@ -8658,7 +8658,6 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 }
 
 void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
-#ifdef RGFW_OPENGL
 	#ifdef RGFW_EGL
 	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_deleteContext_EGL(win); return; }
 	#endif
