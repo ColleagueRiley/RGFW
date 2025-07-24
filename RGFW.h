@@ -1063,8 +1063,8 @@ RGFWDEF i32 RGFW_getHint_OpenGL(RGFW_glHints hint);
 
 	NOTE:
  	if you want to switch the graphics context's thread,
-	you have to run RGFW_window_makeCurrentContext(NULL); on the old thread
-	then RGFW_window_makeCurrentContext(valid_window) on the new thread
+	you have to run RGFW_window_makeCurrentContext_OpenGL(NULL); on the old thread
+	then RGFW_window_makeCurrentContext_OpenGL(valid_window) on the new thread
 */
 
 /*!< create an OpenGL context for the RGFW window, run by createWindow by default (unless the RGFW_windowNoInitAPI is included) */
@@ -1099,7 +1099,7 @@ RGFWDEF void RGFW_window_swapBuffers_EGL(RGFW_window* win); /*!< swap OpenGL buf
 RGFWDEF void RGFW_window_makeCurrentWindow_EGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
 
 RGFWDEF void* RGFW_getCurrentContext_EGL(void); /*!< get the current context (EGL)*/
-RGFWDEF RGFW_window* RGFW_getCurrentWindow_GL(void); /*!< get the current window (set by RGFW_window_makeCurrentWindow) (EGL)*/
+RGFWDEF RGFW_window* RGFW_getCurrentWindow_EGL(void); /*!< get the current window (set by RGFW_window_makeCurrentWindow) (EGL)*/
 
 /*! set swapInterval / enable vsync */
 RGFWDEF void RGFW_window_swapInterval_EGL(RGFW_window* win, i32 swapInterval);
@@ -3153,7 +3153,7 @@ RGFW_bool RGFW_extensionSupported_EGL(const char* extension, size_t len) {
 
 void RGFW_window_makeCurrentWindow_EGL(RGFW_window* win) {
     _RGFW->current = win;
-    RGFW_window_makeCurrentContext_OpenGL(win);
+    RGFW_window_makeCurrentContext_EGL(win);
 }
 
 RGFW_window* RGFW_getCurrentWindow_EGL(void) { return _RGFW->current; }
@@ -10346,6 +10346,9 @@ void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
 	RGFW_proc RGFW_getProcAddress_EGL(const char* procname) { return RGFW_getProcAddress_OpenGL(procname); }
 	RGFW_bool RGFW_extensionSupported_EGL(const char* extension, size_t len) { return RGFW_extensionSupported_OpenGL(extension, len); }
 	RGFW_bool RGFW_extensionSupportedPlatform_EGL(const char* extension, size_t len) { return RGFW_extensionSupportedPlatform_OpenGL(extension, len); }
+	void RGFW_window_makeCurrentWindow_EGL(RGFW_window* win) { RGFW_window_makeCurrentWindow_EGL(); }
+	RGFW_window* RGFW_getCurrentWindow_EGL(void) { return _RGFW->current; }
+	void* RGFW_getCurrentContext_EGL(void) { RGFW_getCurrentContext_OpenGL(); }
 #endif
 
 #ifndef RGFW_WEBGPU
