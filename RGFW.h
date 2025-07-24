@@ -209,6 +209,7 @@ int main() {
 
 	#ifdef RGFW_EGL
 		#undef RGFW_EGL
+		#define RGFW_WASM_EGL
 	#endif
 #endif
 
@@ -10098,6 +10099,7 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
     #endif
     glViewport(0, 0, win->r.w, win->r.h);
+	return &win->src.ctx;
 }
 
 void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
@@ -10108,10 +10110,10 @@ void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
 }
 #endif
 
-i32 RGFW_initPlatform(void) { return 0; }
+	i32 RGFW_initPlatform(void) { return 0; }
 
-RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
-    RGFW_window_basic_init(win, rect, flags);
+	RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
+		RGFW_window_basic_init(win, rect, flags);
 
 #ifdef RGFW_OPENGL
 	if ((flags & RGFW_windowNoInitAPI) == 0)
@@ -10321,6 +10323,18 @@ void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
 #endif
     emscripten_sleep(0);
 }
+
+#ifdef RGFW_WASM_EGL
+	RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) { return RGFW_window_createContext_OpenGL(win); }
+	void RGFW_window_deleteContext_EGL(RGFW_window* win) { RGFW_window_deleteContext_OpenGL(win); }
+	void RGFW_window_makeCurrent_EGL(RGFW_window* win) { RGFW_window_makeCurrent_OpenGL(win); }
+	void RGFW_window_swapBuffers_EGL(RGFW_window* win) { RGFW_window_swapInterval_OpenGL(win) }
+	void* RGFW_getCurrent_EGL(void) { return RGFW_getCurrent_OpenGL(); }
+	void RGFW_window_swapInterval_EGL(RGFW_window* win, i32 swapInterval) { RGFW_window_swapInterval_OpenGL(win, swapInterval); }
+	RGFW_proc RGFW_getProcAddress_EGL(const char* procname) { return RGFW_getCurrent_OpenGL(procname); }
+	RGFW_bool RGFW_extensionSupported_EGL(const char* extension, size_t len) { return RGFW_extensionSupported_OpenGL(extension, len); }
+	RGFW_bool RGFW_extensionSupportedPlatform_EGL(const char* extension, size_t len) { return RGFW_extensionSupportedPlatform_OpenGL(extension, len); }
+#endif
 
 #ifndef RGFW_WEBGPU
 void* RGFW_getCurrent_OpenGL(void) { return (void*)emscripten_webgl_get_current_context(); }
