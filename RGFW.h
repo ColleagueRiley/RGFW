@@ -1507,7 +1507,7 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 			RGFW_glContext ctx;
 		#endif
 		#ifdef RGFW_WEBGPU
-			WGPUInstance ctx;
+			WGPUInstance wgpuCtx;
 			WGPUDevice device;
 			WGPUQueue queue;
 		#endif
@@ -10121,7 +10121,7 @@ void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
 #endif
 
 	#if defined(RGFW_WEBGPU)
-		win->src.ctx.ctx = wgpuCreateInstance(NULL);
+		win->src.wgpuCtx = wgpuCreateInstance(NULL);
 		win->src.device = emscripten_webgpu_get_device();
 		win->src.queue = wgpuDeviceGetQueue(win->src.device);
 	#endif
