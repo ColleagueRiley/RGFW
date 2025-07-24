@@ -10346,9 +10346,8 @@ void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
 	RGFW_proc RGFW_getProcAddress_EGL(const char* procname) { return RGFW_getProcAddress_OpenGL(procname); }
 	RGFW_bool RGFW_extensionSupported_EGL(const char* extension, size_t len) { return RGFW_extensionSupported_OpenGL(extension, len); }
 	RGFW_bool RGFW_extensionSupportedPlatform_EGL(const char* extension, size_t len) { return RGFW_extensionSupportedPlatform_OpenGL(extension, len); }
-	void RGFW_window_makeCurrentWindow_EGL(RGFW_window* win) { RGFW_window_makeCurrentWindow_EGL(); }
+	void RGFW_window_makeCurrentWindow_EGL(RGFW_window* win) { RGFW_window_makeCurrentWindow_EGL(win); }
 	RGFW_window* RGFW_getCurrentWindow_EGL(void) { return _RGFW->current; }
-	void* RGFW_getCurrentContext_EGL(void) { RGFW_getCurrentContext_OpenGL(); }
 #endif
 
 #ifndef RGFW_WEBGPU
