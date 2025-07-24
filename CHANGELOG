@@ -87,6 +87,22 @@ Release:    RGFW 1.7.5-dev
 - replace `setMouse`/`loadIcon` args with RGFW_image
 - remove getTime/setTime
 - change RGFW_BUFFER to RGFW_nativeImage (eg. `RGFW_createNativeImagePtr`, `RGFW_nativeImage_free` and `RGFW_window_copyNativeImage`)
+- all `RGFW_EGL` to be used along side native `RGFW_OPENGL`
+- add `RGFW_windowUseEGL` flag for choosing to use EGL
+- link EGL dynamically and fallback to native OpenGL if it fails to load
+- add _EGL functions for using EGL (e.g. `RGFW_window_swapBuffers_EGL`)
+- remove X11 fallbacks from the wayland backend (in a wayland environment)
+- make sure RGFW falls back to X11 if a wayland environment is not detected
+- make sure ALL OpenGL functions have _OpenGL at the end of them
+- RGFW_window_swapBuffers-> RGFW_window_swapBuffers_OpenGL
+- add `RGFW_window_getOSXView`
+- add `RGFW_glContext`, return `RGFW_glContext*` if the user chooses to manually create a context
+- add `RGFW_glShareWithCurrentContext` OpenGL hint for context sharing
+-`` RGFW_setGLHint`/`RGFW_getGLHint`` -> `RGFW_setHint_OpenGL` `RGFW_getHint_OpenGL`
+- rename `RGFW_window_initOpenGL`/`RGFW_window_freeOpenGL`  to `RGFW_window_createContext_OpenGL`/`RGFW_window_deleteContext_OpenGL`
+- `RGFW_getCurrent` -> `RGFW_window_getCurrentWindow_OpenGL`/`RGFW_window_getCurrentWindow_EGL`
+- `RGFW_window_makeCurrent` -> `RGFW_window_makeCurrentWindow_OpenGL`/`RGFW_window_makeCurrentWindow_EGL`
+- `RGFW_window_makeCurrent_OpenGL`/`RGFW_window_makeCurrent_EGL` -> `RGFW_window_makeCurrentContext_OpenGL`/`RGFW_window_makeCurrentContext_EGL`
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
@@ -101,19 +117,6 @@ breaking changes:
 - Rename `windowMoveCallback` → `windowMovedCallback`
 - Change return type of `RGFW_getProcAddress` to `RGFW_proc`
 - `event.inFocus` removed — use `RGFW_window_isInFocus()` instead
-- all `RGFW_EGL` to be used along side native `RGFW_OPENGL`
-- add `RGFW_windowUseEGL` flag for choosing to use EGL
-- link EGL dynamically and fallback to native OpenGL if it fails to load
-- add _EGL functions for using EGL (e.g. `RGFW_window_swapBuffers_EGL`)
-- remove X11 fallbacks from the wayland backend (in a wayland environment)
-- make sure RGFW falls back to X11 if a wayland environment is not detected
-- make sure ALL OpenGL functions have _OpenGL at the end of them
-- RGFW_window_swapBuffers-> RGFW_window_swapBuffers_OpenGL
-- add `RGFW_window_getOSXView`
-- add `RGFW_glContext`, return `RGFW_glContext*` if the user chooses to manually create a context
-- add `RGFW_glShareWithCurrentContext` OpenGL hint for context sharing
--`` RGFW_setGLHint`/`RGFW_getGLHint`` -> `RGFW_setHint_OpenGL` `RGFW_getHint_OpenGL`
-- rename `RGFW_window_initOpenGL`/`RGFW_window_freeOpenGL`  to `RGFW_window_createContext_OpenGL`/`RGFW_window_deleteContext_OpenGL`
 
 -----------------------------------------------
 
