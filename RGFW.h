@@ -8656,6 +8656,7 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 
 	objc_msgSend_void(win->src.ctx.ctx, sel_registerName("makeCurrentContext"));
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
+	return &win->src.ctx;
 }
 
 void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
@@ -10059,8 +10060,8 @@ void EMSCRIPTEN_KEEPALIVE RGFW_writeFile(const char *path, const char *data, siz
     fclose(file);
 }
 
+#ifdef RGFW_OPENGL
 RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
-#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU)
 	EmscriptenWebGLContextAttributes attrs;
 	attrs.alpha = RGFW_GL_HINTS[RGFW_glDepth];
 	attrs.depth = RGFW_GL_HINTS[RGFW_glAlpha];
@@ -10090,19 +10091,15 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
     #endif
     glViewport(0, 0, win->r.w, win->r.h);
-#endif
 }
 
 void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
-#if defined(RGFW_OPENGL) && !defined(RGFW_WEBGPU)
 	if (win->src.ctx.ctx == 0) return;
 	emscripten_webgl_destroy_context(win->src.ctx.ctx);
 	win->src.ctx.ctx = 0;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context freed.");
-#else
-	RGFW_UNUSED(win);
-#endif
 }
+#endif
 
 i32 RGFW_initPlatform(void) { return 0; }
 
