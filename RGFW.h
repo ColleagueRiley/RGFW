@@ -1022,8 +1022,6 @@ RGFWDEF RGFW_scaleUpdatedfunc RGFW_setScaleUpdatedCallback(RGFW_scaleUpdatedfunc
 /*!< get the macos's underlying view, for creating a metal context, returns NULL on non-MacOS platforms */
 RGFWDEF void* RGFW_window_getOSXView(RGFW_window* win);
 
-/*! get current RGFW window graphics context */
-RGFWDEF RGFW_window* RGFW_getCurrent(void);
 typedef void (*RGFW_proc)(void); /* function pointer equivalent of void* */
 
 /*! native rendering API functions */
@@ -1065,8 +1063,8 @@ RGFWDEF i32 RGFW_getHint_OpenGL(RGFW_glHints hint);
 
 	NOTE:
  	if you want to switch the graphics context's thread,
-	you have to run RGFW_window_makeCurrent(NULL); on the old thread
-	then RGFW_window_makeCurrent(valid_window) on the new thread
+	you have to run RGFW_window_makeCurrentContext(NULL); on the old thread
+	then RGFW_window_makeCurrentContext(valid_window) on the new thread
 */
 
 /*!< create an OpenGL context for the RGFW window, run by createWindow by default (unless the RGFW_windowNoInitAPI is included) */
@@ -1074,10 +1072,12 @@ RGFWDEF RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win);
 /*!< called by `RGFW_window_close` by default (unless the RGFW_windowNoInitAPI is set) */
 RGFWDEF void RGFW_window_deleteContext_OpenGL(RGFW_window* win);
 
-RGFWDEF void RGFW_window_makeCurrent_OpenGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
+RGFWDEF void RGFW_window_makeCurrentWindow_OpenGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
+RGFWDEF void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
 RGFWDEF void RGFW_window_swapBuffers_OpenGL(RGFW_window* win); /*!< swap OpenGL buffer (only) called by RGFW_window_swapInterval  */
 
-RGFWDEF void* RGFW_getCurrent_OpenGL(void); /*!< get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl))*/
+RGFWDEF void* RGFW_getCurrentContext_OpenGL(void); /*!< get the current context (OpenGL backend (GLX) (WGL) (cocoa) (webgl))*/
+RGFWDEF RGFW_window* RGFW_getCurrentWindow_OpenGL(void); /*!< get the current window (set by RGFW_window_makeCurrentWindow) */
 
 /*! set swapInterval / enable vsync */
 RGFWDEF void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval);
@@ -1096,7 +1096,10 @@ RGFWDEF void RGFW_window_deleteContext_EGL(RGFW_window* win);
 RGFWDEF void RGFW_window_makeCurrent_EGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
 RGFWDEF void RGFW_window_swapBuffers_EGL(RGFW_window* win); /*!< swap OpenGL buffer (only) called by RGFW_window_swapInterval  */
 
-RGFWDEF void* RGFW_getCurrent_EGL(void); /*!< get the current context (OpenGL backend (GLX) (WGL) (EGL) (cocoa) (webgl))*/
+RGFWDEF void RGFW_window_makeCurrentWindow_EGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
+
+RGFWDEF void* RGFW_getCurrentContext_EGL(void); /*!< get the current context (EGL)*/
+RGFWDEF RGFW_window* RGFW_getCurrentWindow_GL(void); /*!< get the current window (set by RGFW_window_makeCurrentWindow) (EGL)*/
 
 /*! set swapInterval / enable vsync */
 RGFWDEF void RGFW_window_swapInterval_EGL(RGFW_window* win, i32 swapInterval);
@@ -1555,7 +1558,6 @@ RGFWDEF void RGFW_deinit_heap(void); /*!< deinits the heap instance */
 #if !defined(RGFW_NO_INFO) || defined(RGFW_IMPLEMENTATION)
 typedef struct RGFW_info {
     RGFW_window* root;
-    RGFW_window* current;
     i32 windowCount;
     i32 eventLen;
 
@@ -1602,6 +1604,10 @@ typedef struct RGFW_info {
     #ifdef RGFW_MACOS
     void* NSApp;
     #endif
+
+	#ifdef RGFW_OPENGL
+		RGFW_window* current;
+	#endif
 } RGFW_info;
 
 RGFWDEF i32 RGFW_init_ptr(RGFW_info* info); /*!< init RGFW, storing the data at the pointer */
@@ -2026,9 +2032,12 @@ i32 RGFW_init_ptr(RGFW_info* info) {
     RGFW_setInfo(info);
 
     _RGFW->root = NULL;
-    _RGFW->current = NULL;
     _RGFW->eventLen = 0;
     _RGFW->windowCount = 0;
+
+	#ifdef RGFW_OPENGL
+	_RGFW->current = NULL;
+	#endif
 
     RGFW_MEMSET(_RGFW, 0, sizeof(RGFW_info));
     _RGFW->useWaylandBool = RGFW_TRUE;
@@ -2259,23 +2268,12 @@ RGFW_bool RGFW_isReleased(RGFW_window* win, RGFW_key key) {
 	return (!RGFW_isPressed(win, key) && RGFW_wasPressed(win, key));
 }
 
-void RGFW_window_makeCurrent(RGFW_window* win) {
-    _RGFW->current = win;
-#if defined(RGFW_OPENGL) || defined(RGFW_EGL)
-    RGFW_window_makeCurrent_OpenGL(win);
-#endif
-}
-
 void* RGFW_window_getOSXView(RGFW_window* win) {
 #ifdef RGFW_MACOS
 	return win->src.view;
 #else
 	RGFW_UNUSED(win); return NULL;
 #endif
-}
-
-RGFW_window* RGFW_getCurrent(void) {
-    return _RGFW->current;
 }
 
 RGFWDEF void RGFW_setBit(u32* var, u32 mask, RGFW_bool set);
@@ -2649,6 +2647,13 @@ RGFW_bool RGFW_extensionSupported_OpenGL(const char* extension, size_t len) {
 	if (RGFW_extensionSupported_base(extension, len))  return RGFW_TRUE;
     return RGFW_extensionSupportedPlatform_OpenGL(extension, len);
 }
+
+void RGFW_window_makeCurrentWindow_OpenGL(RGFW_window* win) {
+    _RGFW->current = win;
+    RGFW_window_makeCurrentContext_OpenGL(win);
+}
+
+RGFW_window* RGFW_getCurrentWindow_OpenGL(void) { return _RGFW->current; }
 
 /* OPENGL normal only (no EGL / OSMesa) */
 #if defined(RGFW_OPENGL) && !defined(RGFW_CUSTOM_BACKEND) && !defined(RGFW_WASM) && (!defined(RGFW_WAYLAND) || defined(RGFW_X11))
@@ -3115,7 +3120,7 @@ void RGFW_window_swapBuffers_EGL(RGFW_window* win) {
 	else RGFW_window_swapBuffers_OpenGL(win);
 }
 
-void* RGFW_getCurrent_EGL(void) {
+void* RGFW_getCurrentContext_EGL(void) {
 	return RGFW_eglGetCurrentContext();
 }
 
@@ -3145,6 +3150,13 @@ RGFW_bool RGFW_extensionSupported_EGL(const char* extension, size_t len) {
 	if (RGFW_extensionSupported_base(extension, len))  return RGFW_TRUE;
     return RGFW_extensionSupportedPlatform_EGL(extension, len);
 }
+
+void RGFW_window_makeCurrentWindow_EGL(RGFW_window* win) {
+    _RGFW->current = win;
+    RGFW_window_makeCurrentContext_OpenGL(win);
+}
+
+RGFW_window* RGFW_getCurrentWindow_EGL(void) { return _RGFW->current; }
 
 #endif /* RGFW_EGL */
 
@@ -4057,7 +4069,7 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 
 	GLXContext ctx = NULL;
 	if (RGFW_GL_HINTS[RGFW_glShareWithCurrentContext]) {
-		ctx = (GLXContext)RGFW_getCurrent_OpenGL();
+		ctx = (GLXContext)RGFW_getCurrentContext_OpenGL();
 	}
 
 	if (glXCreateContextAttribsARB == NULL) {
@@ -6124,7 +6136,7 @@ RGFW_WAYLAND_LABEL
 }
 
 #ifdef RGFW_OPENGL
-void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
+void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
 RGFW_GOTO_WAYLAND;
 #ifdef RGFW_X11
 	if (win == NULL)
@@ -6137,13 +6149,13 @@ RGFW_GOTO_WAYLAND;
 	RGFW_WAYLAND_LABEL RGFW_window_makeCurrent_EGL(win);
 #endif
 }
-void* RGFW_getCurrent_OpenGL(void) {
+void* RGFW_getCurrentContext_OpenGL(void) {
 RGFW_GOTO_WAYLAND;
 #ifdef RGFW_X11
 	return glXGetCurrentContext();
 #endif
 #ifdef RGFW_WAYLAND
- 	RGFW_WAYLAND_LABEL return RGFW_getCurrent_EGL();
+ 	RGFW_WAYLAND_LABEL return RGFW_getCurrentContext_EGL();
 #endif
 }
 void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
@@ -6884,7 +6896,7 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	wglMakeCurrent(win->src.hdc, win->src.ctx.ctx);
 
 	if (RGFW_GL_HINTS[RGFW_glShareWithCurrentContext]) {
-		wglShareLists((HGLRC)RGFW_getCurrent_OpenGL(), win->src.ctx.ctx);
+		wglShareLists((HGLRC)RGFW_getCurrentContext_OpenGL(), win->src.ctx.ctx);
 	}
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
 	return &win->src.ctx;
@@ -7909,13 +7921,13 @@ void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) {
 }
 
 #ifdef RGFW_OPENGL
-void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
+void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
 	if (win == NULL)
 		wglMakeCurrent(NULL, NULL);
 	else
 		wglMakeCurrent(win->src.hdc, (HGLRC) win->src.ctx.ctx);
 }
-void* RGFW_getCurrent_OpenGL(void) {
+void* RGFW_getCurrentContext_OpenGL(void) {
 	return wglGetCurrentContext();
 }
 void RGFW_window_swapBuffers_OpenGL(RGFW_window* win){
@@ -9628,13 +9640,13 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 }
 
 	#ifdef RGFW_OPENGL
-	void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
+	void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
 		if (win != NULL)
 			objc_msgSend_void(win->src.ctx.ctx, sel_registerName("makeCurrentContext"));
 		else
 			objc_msgSend_id(objc_getClass("NSOpenGLContext"), sel_registerName("clearCurrentContext"));
 	}
-	void* RGFW_getCurrent_OpenGL(void) {
+	void* RGFW_getCurrentContext_OpenGL(void) {
 		return objc_msgSend_id(objc_getClass("NSOpenGLContext"), sel_registerName("currentContext"));
 	}
 
@@ -10306,7 +10318,7 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	return 0;
 }
 
-void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
+void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
 #ifdef RGFW_OPENGL
 	if (win == NULL)
 	    emscripten_webgl_make_context_current(0);
@@ -10327,9 +10339,9 @@ void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
 #ifdef RGFW_WASM_EGL
 	RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) { return RGFW_window_createContext_OpenGL(win); }
 	void RGFW_window_deleteContext_EGL(RGFW_window* win) { RGFW_window_deleteContext_OpenGL(win); }
-	void RGFW_window_makeCurrent_EGL(RGFW_window* win) { RGFW_window_makeCurrent_OpenGL(win); }
+	void RGFW_window_makeCurrent_EGL(RGFW_window* win) { RGFW_window_makeCurrentContext_OpenGL(win); }
 	void RGFW_window_swapBuffers_EGL(RGFW_window* win) { RGFW_window_swapBuffers_OpenGL(win); }
-	void* RGFW_getCurrent_EGL(void) { return RGFW_getCurrent_OpenGL(); }
+	void* RGFW_getCurrentContext_EGL(void) { return RGFW_getCurrentContext_OpenGL(); }
 	void RGFW_window_swapInterval_EGL(RGFW_window* win, i32 swapInterval) { RGFW_window_swapInterval_OpenGL(win, swapInterval); }
 	RGFW_proc RGFW_getProcAddress_EGL(const char* procname) { return RGFW_getProcAddress_OpenGL(procname); }
 	RGFW_bool RGFW_extensionSupported_EGL(const char* extension, size_t len) { return RGFW_extensionSupported_OpenGL(extension, len); }
@@ -10337,7 +10349,7 @@ void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
 #endif
 
 #ifndef RGFW_WEBGPU
-void* RGFW_getCurrent_OpenGL(void) { return (void*)emscripten_webgl_get_current_context(); }
+void* RGFW_getCurrentContext_OpenGL(void) { return (void*)emscripten_webgl_get_current_context(); }
 #endif
 
 void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) { RGFW_UNUSED(win); RGFW_UNUSED(swapInterval); }
