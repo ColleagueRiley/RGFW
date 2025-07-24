@@ -1456,9 +1456,11 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	#ifdef RGFW_OPENGL
 		struct RGFW_glContext {
 			void* ctx; /*!< source graphics context */
-			EGLSurface EGL_surface;
-			EGLDisplay EGL_display;
-			EGLContext EGL_context;
+			#ifdef RGFW_EGL
+				EGLSurface EGL_surface;
+				EGLDisplay EGL_display;
+				EGLContext EGL_context;
+			#endif
 		};
 	#endif
 
@@ -3986,7 +3988,7 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 
 	GLXContext ctx = NULL;
 	if (RGFW_GL_HINTS[RGFW_glShareWithCurrentContext]) {
-		ctx = RGFW_getCurrent_OpenGL();
+		ctx = (GLXContext)RGFW_getCurrent_OpenGL();
 	}
 
 	if (glXCreateContextAttribsARB == NULL) {
@@ -6798,7 +6800,7 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	wglMakeCurrent(win->src.hdc, win->src.ctx.ctx);
 
 	if (RGFW_GL_HINTS[RGFW_glShareWithCurrentContext]) {
-		wglShareLists(RGFW_getCurrent_OpenGL(), win->src.ctx.ctx);
+		wglShareLists((HGLRC)RGFW_getCurrent_OpenGL(), win->src.ctx.ctx);
 	}
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
 #else
@@ -10223,7 +10225,7 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 }
 
 void RGFW_window_makeCurrent_OpenGL(RGFW_window* win) {
-#if !defined(RGFW_WEBGPU)
+#ifdef RGFW_OPENGL
 	if (win == NULL)
 	    emscripten_webgl_make_context_current(0);
 	else
