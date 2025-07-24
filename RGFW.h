@@ -1093,10 +1093,10 @@ RGFWDEF RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win);
 /*!< called by `RGFW_window_close` by default (unless the RGFW_windowNoInitAPI is set) */
 RGFWDEF void RGFW_window_deleteContext_EGL(RGFW_window* win);
 
-RGFWDEF void RGFW_window_makeCurrent_EGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
 RGFWDEF void RGFW_window_swapBuffers_EGL(RGFW_window* win); /*!< swap OpenGL buffer (only) called by RGFW_window_swapInterval  */
 
 RGFWDEF void RGFW_window_makeCurrentWindow_EGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
+RGFWDEF void RGFW_window_makeCurrentContext_EGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
 
 RGFWDEF void* RGFW_getCurrentContext_EGL(void); /*!< get the current context (EGL)*/
 RGFWDEF RGFW_window* RGFW_getCurrentWindow_EGL(void); /*!< get the current window (set by RGFW_window_makeCurrentWindow) (EGL)*/
@@ -3106,7 +3106,7 @@ void RGFW_window_deleteContext_EGL(RGFW_window* win) {
 	#endif
 }
 
-void RGFW_window_makeCurrent_EGL(RGFW_window* win) {
+void RGFW_window_makeCurrentContext_EGL(RGFW_window* win) {
 	if (win == NULL)
         RGFW_eglMakeCurrent(_RGFW->root->src.ctx.EGL_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     else {
@@ -6146,7 +6146,7 @@ RGFW_GOTO_WAYLAND;
 	return;
 #endif
 #ifdef RGFW_WAYLAND
-	RGFW_WAYLAND_LABEL RGFW_window_makeCurrent_EGL(win);
+	RGFW_WAYLAND_LABEL RGFW_window_makeCurrentContext_EGL(win);
 #endif
 }
 void* RGFW_getCurrentContext_OpenGL(void) {
