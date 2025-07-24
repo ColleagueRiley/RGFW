@@ -32,7 +32,7 @@ int main(void) {
 
 	RGFW_setClassName("RGFW Example");
 	RGFW_window *win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND);
-	RGFW_window_makeCurrent(win);
+	RGFW_window_makeCurrentContext_OpenGL(win);
 
 	RGFW_window_setIcon(win, RGFW_IMAGE((u8*)icon, RGFW_AREA(3, 3), RGFW_formatRGBA8));
 

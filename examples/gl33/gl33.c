@@ -76,8 +76,7 @@ int main(void) {
         return -1;
     }
 
-    RGFW_window_makeCurrent(window);
-    // RGFW_window_swapInterval(window, 60);
+    RGFW_window_makeCurrentContext_OpenGL(window);
 
     #ifndef RGFW_WASM
     if (RGL_loadGL3((RGLloadfunc)RGFW_getProcAddress_OpenGL)) {

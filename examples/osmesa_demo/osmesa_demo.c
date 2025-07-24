@@ -29,13 +29,9 @@ int main(void) {
     OSMesaMakeCurrent(ctx, buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
     OSMesaPixelStore(OSMESA_Y_UP, 0);
 
-    RGFW_window_makeCurrent(win);
-
     RGFW_event event;
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win, &event) && event.type != RGFW_quit);
-
-        RGFW_window_makeCurrent(win);
 
         glViewport(0, 0, win->r.w, win->r.h);
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);

@@ -463,7 +463,7 @@ main(int argc, char *argv[])
    }
 
    win = RGFW_createWindow("gears", RGFW_RECT(x, y, winWidth, winHeight), RGFW_windowCenter | flag);
-   RGFW_window_makeCurrent(win);
+   RGFW_window_makeCurrentContext_OpenGL(win);
    init();
 
    /* Set initial projection/viewing transformation.
