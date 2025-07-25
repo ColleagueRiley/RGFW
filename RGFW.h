@@ -769,8 +769,6 @@ RGFWDEF void RGFW_window_restore(RGFW_window* win); /*!< restore the window from
 RGFWDEF void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating); /*!< make the window a floating window */
 RGFWDEF void RGFW_window_setOpacity(RGFW_window* win, u8 opacity); /*!< sets the opacity of a window */
 
-RGFWDEF RGFW_bool RGFW_window_OpenGL_isSoftware(RGFW_window* win);
-
 /*! if the window should have a border or not (borderless) based on bool value of `border` */
 RGFWDEF void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border);
 RGFWDEF RGFW_bool RGFW_window_borderless(RGFW_window* win);
@@ -1071,6 +1069,9 @@ RGFWDEF i32 RGFW_getHint_OpenGL(RGFW_glHints hint);
 	then RGFW_window_makeCurrentContext_OpenGL(valid_window) on the new thread
 */
 
+
+RGFWDEF RGFW_bool RGFW_window_isSoftware_OpenGL(RGFW_window* win);
+
 /*!< create an OpenGL context for the RGFW window, run by createWindow by default (unless the RGFW_windowNoInitAPI is included) */
 RGFWDEF RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win);
 /*!< called by `RGFW_window_close` by default (unless the RGFW_windowNoInitAPI is set) */
@@ -1111,6 +1112,7 @@ RGFWDEF void RGFW_window_swapInterval_EGL(RGFW_window* win, i32 swapInterval);
 RGFWDEF RGFW_proc RGFW_getProcAddress_EGL(const char* procname); /*!< get native OpenGL proc address */
 RGFWDEF RGFW_bool RGFW_extensionSupported_EGL(const char* extension, size_t len);	/*!< check if whether the specified API extension is supported by the current OpenGL or OpenGL ES context */
 RGFWDEF RGFW_bool RGFW_extensionSupportedPlatform_EGL(const char* extension, size_t len);	/*!< check if whether the specified platform-specific API extension is supported by the current OpenGL or OpenGL ES context */
+RGFWDEF RGFW_bool RGFW_window_isSoftware_EGL(RGFW_window* win);
 #endif
 #endif
 
@@ -2217,10 +2219,6 @@ void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	win->_flags = flags | (win->_flags & RGFW_INTERNAL_FLAGS);
 }
 
-RGFW_bool RGFW_window_OpenGL_isSoftware(RGFW_window* win) {
-    return RGFW_BOOL(win->_flags |= RGFW_windowOpenGLSoftware);
-}
-
 RGFW_bool RGFW_window_isInFocus(RGFW_window* win) {
 #ifdef RGFW_WASM
     return RGFW_TRUE;
@@ -2670,6 +2668,8 @@ void RGFW_window_makeCurrentWindow_OpenGL(RGFW_window* win) {
 }
 
 RGFW_window* RGFW_getCurrentWindow_OpenGL(void) { return _RGFW->current; }
+
+RGFW_bool RGFW_window_isSoftware_OpenGL(RGFW_window* win) { return RGFW_BOOL(win->_flags |= RGFW_windowOpenGLSoftware); }
 
 /* OPENGL normal only (no EGL / OSMesa) */
 #if defined(RGFW_OPENGL) && !defined(RGFW_CUSTOM_BACKEND) && !defined(RGFW_WASM) && (!defined(RGFW_WAYLAND) || defined(RGFW_X11))
@@ -3173,6 +3173,7 @@ void RGFW_window_makeCurrentWindow_EGL(RGFW_window* win) {
 }
 
 RGFW_window* RGFW_getCurrentWindow_EGL(void) { return _RGFW->current; }
+RGFW_bool RGFW_window_isSoftware_EGL(RGFW_window* win) { return RGFW_window_isSoftware_OpenGL(win); }
 
 #endif /* RGFW_EGL */
 
@@ -5811,6 +5812,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	RGFW_STRNCPY(_RGFW->clipboard, text, textLen - 1);
 	_RGFW->clipboard[textLen - 1] = '\0';
 	_RGFW->clipboard_len = textLen;
+	return;
 	#endif
 	#ifdef RGFW_WAYLAND
 	RGFW_WAYLAND_LABEL
