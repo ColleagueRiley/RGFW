@@ -30,8 +30,7 @@ int main() {
 
     RGFW_area bufferSize = RGFW_AREA(500, 500);
     u8* buffer = (u8*)RGFW_ALLOC(bufferSize.w * bufferSize.h * 4);
-    RGFW_image image = RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8);
-    RGFW_createNativeImage(&image);
+	RGFW_surface* surface = RGFW_createSurface(RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8));
 
 	glContext context;
 	init_glContext(&context, (u32**)&buffer, win->r.w, 500, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
@@ -74,12 +73,12 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        RGFW_window_copyNativeImage(win, image);
+        RGFW_window_copySurface(win, surface);
 	}
 
 	free_glContext(&context);
 
-    RGFW_nativeImage_free(&image);
+    RGFW_surface_free(surface);
 	RGFW_FREE(buffer);
 
 	RGFW_window_close(win);

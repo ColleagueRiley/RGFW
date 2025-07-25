@@ -8601,15 +8601,15 @@ void RGFW_surface_free(RGFW_surface* surface) {
 }
 
 void RGFW_window_copySurface(RGFW_window* win, RGFW_surface* surface) {
-	RGFW_image_copy(img, (u64*)(void*)img.data, RGFW_FALSE);
+	RGFW_image_copy(surface->image, (u64*)(void*)surface->image.data, RGFW_FALSE);
 
-    size_t depth = (img.format >= RGFW_formatRGBA8) ? 4 : 3;
+    size_t depth = (surface->image.format >= RGFW_formatRGBA8) ? 4 : 3;
 	id image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSImage"), sel_getUid("alloc"));
-	NSSize size = (NSSize){img.size.w, img.size.h};
+	NSSize size = (NSSize){surface->image.size.w, surface->image.size.h};
 	image = ((id (*)(id, SEL, NSSize))objc_msgSend)((id)image, sel_getUid("initWithSize:"), size);
 
-	id rep  = NSBitmapImageRep_initWithBitmapData(&img.data, win->r.w, win->r.h , 8, (i32)depth, (depth == 4), false,
-							"NSDeviceRGBColorSpace", 1 << 1, (u32)img.size.w  * (u32)depth, 8 * (u32)depth);
+	id rep  = NSBitmapImageRep_initWithBitmapData(&surface->image.data, win->r.w, win->r.h , 8, (i32)depth, (depth == 4), false,
+							"NSDeviceRGBColorSpace", 1 << 1, (u32)surface->image.size.w  * (u32)depth, 8 * (u32)depth);
 	((void (*)(id, SEL, id))objc_msgSend)((id)image, sel_getUid("addRepresentation:"), rep);
 
 	id contentView = ((id (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_getUid("contentView"));
