@@ -105,6 +105,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__debugContext.html">RGFW_debugContext</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__surface.html">RGFW_surface</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__window.html">RGFW_window</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__info.html">RGFW_info</a></td></tr>
@@ -172,7 +174,7 @@ Macros</h2></td></tr>
 <tr class="separator:a2de5caedcb0adb5dc80d9f23758e0599"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5edc5249799c8eb95f2a45db37f8b36d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a5edc5249799c8eb95f2a45db37f8b36d">RGFW_AREA</a>(w,  h)&#160;&#160;&#160;(<a class="el" href="structRGFW__area.html">RGFW_area</a>){(<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>)(w), (<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>)(h)}</td></tr>
 <tr class="separator:a5edc5249799c8eb95f2a45db37f8b36d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a55c0960431580dcec0cc5463fba6194c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a55c0960431580dcec0cc5463fba6194c">RGFW_IMAGE</a>(data,  size,  format)&#160;&#160;&#160;(<a class="el" href="structRGFW__image.html">RGFW_image</a>){data, size, format, (<a class="el" href="RGFW_8h.html#af91a996714bbd6ad53dee8a31dcb2534">RGFW_nativeImage</a>*)NULL}</td></tr>
+<tr class="memitem:a55c0960431580dcec0cc5463fba6194c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a55c0960431580dcec0cc5463fba6194c">RGFW_IMAGE</a>(data,  size,  format)&#160;&#160;&#160;(<a class="el" href="structRGFW__image.html">RGFW_image</a>){data, size, format}</td></tr>
 <tr class="separator:a55c0960431580dcec0cc5463fba6194c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaecf4f2afb81862fd562a5d7bf47247e4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__error.html#gaecf4f2afb81862fd562a5d7bf47247e4">RGFW_DEBUG_CTX</a>(win,  err)&#160;&#160;&#160;(<a class="el" href="structRGFW__debugContext.html">RGFW_debugContext</a>){win, NULL, err}</td></tr>
 <tr class="separator:gaecf4f2afb81862fd562a5d7bf47247e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -209,10 +211,12 @@ Typedefs</h2></td></tr>
 <tr class="separator:ae9c20a9e54c7c1ee089fb9531e92b3b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a005171f84dedb627d453cbc8068cae9a"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structRGFW__area.html">RGFW_area</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a005171f84dedb627d453cbc8068cae9a">RGFW_area</a></td></tr>
 <tr class="separator:a005171f84dedb627d453cbc8068cae9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af91a996714bbd6ad53dee8a31dcb2534"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="RGFW_8h.html#af91a996714bbd6ad53dee8a31dcb2534">RGFW_nativeImage</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#af91a996714bbd6ad53dee8a31dcb2534">RGFW_nativeImage</a></td></tr>
-<tr class="separator:af91a996714bbd6ad53dee8a31dcb2534"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9201932ce85ab9bc2bd0d736f17ce4ea"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structRGFW__image.html">RGFW_image</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a9201932ce85ab9bc2bd0d736f17ce4ea">RGFW_image</a></td></tr>
 <tr class="separator:a9201932ce85ab9bc2bd0d736f17ce4ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af91a996714bbd6ad53dee8a31dcb2534"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="RGFW_8h.html#af91a996714bbd6ad53dee8a31dcb2534">RGFW_nativeImage</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#af91a996714bbd6ad53dee8a31dcb2534">RGFW_nativeImage</a></td></tr>
+<tr class="separator:af91a996714bbd6ad53dee8a31dcb2534"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a765f01155742064c65bdb8204abae201"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structRGFW__surface.html">RGFW_surface</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a765f01155742064c65bdb8204abae201">RGFW_surface</a></td></tr>
+<tr class="separator:a765f01155742064c65bdb8204abae201"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a43dd63380df26ed664e2cfea0eeb1d7e"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structRGFW__monitorMode.html">RGFW_monitorMode</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a43dd63380df26ed664e2cfea0eeb1d7e">RGFW_monitorMode</a></td></tr>
 <tr class="separator:a43dd63380df26ed664e2cfea0eeb1d7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae4f53c7d78c7c435bb81a99bd314df82"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structRGFW__monitor.html">RGFW_monitor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#ae4f53c7d78c7c435bb81a99bd314df82">RGFW_monitor</a></td></tr>
@@ -284,12 +288,16 @@ Functions</h2></td></tr>
 <tr class="separator:ac25ff246ea8f67caae6d520e9e96b2da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7321427a8cca4162bf943064ba5b3f55"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a7321427a8cca4162bf943064ba5b3f55">RGFW_sizeofNativeImage</a> (void)</td></tr>
 <tr class="separator:a7321427a8cca4162bf943064ba5b3f55"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0f1c6cf23aabcd353b818aad0b7de8f0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a0f1c6cf23aabcd353b818aad0b7de8f0">RGFW_createNativeImage</a> (<a class="el" href="structRGFW__image.html">RGFW_image</a> *img)</td></tr>
-<tr class="separator:a0f1c6cf23aabcd353b818aad0b7de8f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a48301a96909863e24faa9b5bef196f4f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a48301a96909863e24faa9b5bef196f4f">RGFW_createNativeImagePtr</a> (<a class="el" href="structRGFW__image.html">RGFW_image</a> *img, <a class="el" href="RGFW_8h.html#af91a996714bbd6ad53dee8a31dcb2534">RGFW_nativeImage</a> *native)</td></tr>
-<tr class="separator:a48301a96909863e24faa9b5bef196f4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a608a16719f62ef29db30d04f0be4da5a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a608a16719f62ef29db30d04f0be4da5a">RGFW_nativeImage_free</a> (<a class="el" href="structRGFW__image.html">RGFW_image</a> *image)</td></tr>
-<tr class="separator:a608a16719f62ef29db30d04f0be4da5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a63f961620b748ba04198f020192c03cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a63f961620b748ba04198f020192c03cf">RGFW_sizeofSurface</a> (void)</td></tr>
+<tr class="separator:a63f961620b748ba04198f020192c03cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4573c4196a3c436b2571a53aa5da52f0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="structRGFW__surface.html">RGFW_surface</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a4573c4196a3c436b2571a53aa5da52f0">RGFW_createSurface</a> (<a class="el" href="structRGFW__image.html">RGFW_image</a> img)</td></tr>
+<tr class="separator:a4573c4196a3c436b2571a53aa5da52f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a63a97b1402e15acd1d3b3d3cea80597b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a63a97b1402e15acd1d3b3d3cea80597b">RGFW_createSurfacePtr</a> (<a class="el" href="structRGFW__image.html">RGFW_image</a> img, <a class="el" href="structRGFW__surface.html">RGFW_surface</a> *surface)</td></tr>
+<tr class="separator:a63a97b1402e15acd1d3b3d3cea80597b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9cf4268bb04d5830b0a5f25cbb625329"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#af91a996714bbd6ad53dee8a31dcb2534">RGFW_nativeImage</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a9cf4268bb04d5830b0a5f25cbb625329">RGFW_surface_getNativeImage</a> (<a class="el" href="structRGFW__surface.html">RGFW_surface</a> *surface)</td></tr>
+<tr class="separator:a9cf4268bb04d5830b0a5f25cbb625329"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a525e199802f9c9fb1d838798025b971b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a525e199802f9c9fb1d838798025b971b">RGFW_surface_free</a> (<a class="el" href="structRGFW__surface.html">RGFW_surface</a> *surface)</td></tr>
+<tr class="separator:a525e199802f9c9fb1d838798025b971b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa3400dd1d0aa6292f1ea614b88934ea9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="structRGFW__monitor.html">RGFW_monitor</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#aa3400dd1d0aa6292f1ea614b88934ea9">RGFW_getMonitors</a> (size_t *len)</td></tr>
 <tr class="separator:aa3400dd1d0aa6292f1ea614b88934ea9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b687e5aac56d2c3af094ebb3caf1fc5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="structRGFW__monitor.html">RGFW_monitor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a9b687e5aac56d2c3af094ebb3caf1fc5">RGFW_getPrimaryMonitor</a> (void)</td></tr>
@@ -310,8 +318,8 @@ Functions</h2></td></tr>
 <tr class="separator:a661fee6f813c93a774468f88ae367696"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9ee45096db2256a13c384e8a777764ad"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a9ee45096db2256a13c384e8a777764ad">RGFW_sizeofWindowSrc</a> (void)</td></tr>
 <tr class="separator:a9ee45096db2256a13c384e8a777764ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2565ddf0709e45035eeb6105a450a3c9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a2565ddf0709e45035eeb6105a450a3c9">RGFW_window_copyNativeImage</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, <a class="el" href="structRGFW__image.html">RGFW_image</a> image)</td></tr>
-<tr class="separator:a2565ddf0709e45035eeb6105a450a3c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91dac3a45780f513f7159d2ed3a6482e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a91dac3a45780f513f7159d2ed3a6482e">RGFW_window_blitSurface</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, <a class="el" href="structRGFW__surface.html">RGFW_surface</a> *surface)</td></tr>
+<tr class="separator:a91dac3a45780f513f7159d2ed3a6482e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec4a26abc57fea68c0c69d67694b3b87"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="structRGFW__rect.html">RGFW_rect</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#aec4a26abc57fea68c0c69d67694b3b87">RGFW_window_getRect</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win)</td></tr>
 <tr class="separator:aec4a26abc57fea68c0c69d67694b3b87"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae6e398ffd20b9bbae572c2f9bda40bf6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a1cbe04bf82e1c9996c1eda21b7ac498f">RGFW_key</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#ae6e398ffd20b9bbae572c2f9bda40bf6">RGFW_window_getExitKey</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win)</td></tr>
@@ -384,8 +392,6 @@ Functions</h2></td></tr>
 <tr class="separator:ga7a692ef18ae01567c2fdf73c68c08b64"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga54a2347c554cf916668c873cbce48d54"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga54a2347c554cf916668c873cbce48d54">RGFW_window_setOpacity</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> opacity)</td></tr>
 <tr class="separator:ga54a2347c554cf916668c873cbce48d54"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga03daa626d8cefb4065bebf927baaecbe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga03daa626d8cefb4065bebf927baaecbe">RGFW_window_OpenGL_isSoftware</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win)</td></tr>
-<tr class="separator:ga03daa626d8cefb4065bebf927baaecbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga210cfa064760291d2823fb330ea50d9c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga210cfa064760291d2823fb330ea50d9c">RGFW_window_setBorder</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> border)</td></tr>
 <tr class="separator:ga210cfa064760291d2823fb330ea50d9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacbbf5186b802bd637defa9dea7c086bc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#gacbbf5186b802bd637defa9dea7c086bc">RGFW_window_borderless</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win)</td></tr>
@@ -520,6 +526,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga20a1537726edadb299710f335ca51025"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga45b7ffb94cb3012b89ea15f65a01e34f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics__API.html#ga45b7ffb94cb3012b89ea15f65a01e34f">RGFW_getHint_OpenGL</a> (RGFW_glHints hint)</td></tr>
 <tr class="separator:ga45b7ffb94cb3012b89ea15f65a01e34f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacf52457888b5fc19d0f7cdd309c3e67c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics__API.html#gacf52457888b5fc19d0f7cdd309c3e67c">RGFW_window_isSoftware_OpenGL</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win)</td></tr>
+<tr class="separator:gacf52457888b5fc19d0f7cdd309c3e67c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gabbeac1d452fd3981e8016685832b632c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__graphics__API.html#ga3b47f3f8bbecae73c2e0a9c3284d148f">RGFW_glContext</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics__API.html#gabbeac1d452fd3981e8016685832b632c">RGFW_window_createContext_OpenGL</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win)</td></tr>
 <tr class="separator:gabbeac1d452fd3981e8016685832b632c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad2d5497741329c0859e6b619e0032187"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics__API.html#gad2d5497741329c0859e6b619e0032187">RGFW_window_deleteContext_OpenGL</a> (<a class="el" href="structRGFW__window.html">RGFW_window</a> *win)</td></tr>
@@ -813,7 +821,7 @@ Functions</h2></td></tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td>&#160;&#160;&#160;(<a class="el" href="structRGFW__image.html">RGFW_image</a>){data, size, format, (<a class="el" href="RGFW_8h.html#af91a996714bbd6ad53dee8a31dcb2534">RGFW_nativeImage</a>*)NULL}</td>
+          <td></td><td>&#160;&#160;&#160;(<a class="el" href="structRGFW__image.html">RGFW_image</a>){data, size, format}</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1451,6 +1459,20 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a765f01155742064c65bdb8204abae201" name="a765f01155742064c65bdb8204abae201"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a765f01155742064c65bdb8204abae201">&#9670;&#160;</a></span>RGFW_surface</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="structRGFW__surface.html">RGFW_surface</a> <a class="el" href="structRGFW__surface.html">RGFW_surface</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a2520d2d7f43e5df60edeed92733c1de6" name="a2520d2d7f43e5df60edeed92733c1de6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2520d2d7f43e5df60edeed92733c1de6">&#9670;&#160;</a></span>RGFW_window</h2>
 
@@ -1536,16 +1558,16 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a0f1c6cf23aabcd353b818aad0b7de8f0" name="a0f1c6cf23aabcd353b818aad0b7de8f0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0f1c6cf23aabcd353b818aad0b7de8f0">&#9670;&#160;</a></span>RGFW_createNativeImage()</h2>
+<a id="a4573c4196a3c436b2571a53aa5da52f0" name="a4573c4196a3c436b2571a53aa5da52f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4573c4196a3c436b2571a53aa5da52f0">&#9670;&#160;</a></span>RGFW_createSurface()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> RGFW_createNativeImage </td>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="structRGFW__surface.html">RGFW_surface</a> * RGFW_createSurface </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structRGFW__image.html">RGFW_image</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="structRGFW__image.html">RGFW_image</a>&#160;</td>
           <td class="paramname"><em>img</em></td><td>)</td>
           <td></td>
         </tr>
@@ -1554,23 +1576,23 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a48301a96909863e24faa9b5bef196f4f" name="a48301a96909863e24faa9b5bef196f4f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a48301a96909863e24faa9b5bef196f4f">&#9670;&#160;</a></span>RGFW_createNativeImagePtr()</h2>
+<a id="a63a97b1402e15acd1d3b3d3cea80597b" name="a63a97b1402e15acd1d3b3d3cea80597b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a63a97b1402e15acd1d3b3d3cea80597b">&#9670;&#160;</a></span>RGFW_createSurfacePtr()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> RGFW_createNativeImagePtr </td>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> RGFW_createSurfacePtr </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structRGFW__image.html">RGFW_image</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="structRGFW__image.html">RGFW_image</a>&#160;</td>
           <td class="paramname"><em>img</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="RGFW_8h.html#af91a996714bbd6ad53dee8a31dcb2534">RGFW_nativeImage</a> *&#160;</td>
-          <td class="paramname"><em>native</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="structRGFW__surface.html">RGFW_surface</a> *&#160;</td>
+          <td class="paramname"><em>surface</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2109,25 +2131,6 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a608a16719f62ef29db30d04f0be4da5a" name="a608a16719f62ef29db30d04f0be4da5a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a608a16719f62ef29db30d04f0be4da5a">&#9670;&#160;</a></span>RGFW_nativeImage_free()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void RGFW_nativeImage_free </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structRGFW__image.html">RGFW_image</a> *&#160;</td>
-          <td class="paramname"><em>image</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >free buffers used for software rendering within the window </p>
-
-</div>
-</div>
 <a id="ad554920798071ac88709322e4bc88d6e" name="ad554920798071ac88709322e4bc88d6e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad554920798071ac88709322e4bc88d6e">&#9670;&#160;</a></span>RGFW_setInfo()</h2>
 
@@ -2154,6 +2157,24 @@ Functions</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> size_t RGFW_sizeofNativeImage </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a63f961620b748ba04198f020192c03cf" name="a63f961620b748ba04198f020192c03cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a63f961620b748ba04198f020192c03cf">&#9670;&#160;</a></span>RGFW_sizeofSurface()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> size_t RGFW_sizeofSurface </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -2200,6 +2221,43 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a525e199802f9c9fb1d838798025b971b" name="a525e199802f9c9fb1d838798025b971b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a525e199802f9c9fb1d838798025b971b">&#9670;&#160;</a></span>RGFW_surface_free()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void RGFW_surface_free </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structRGFW__surface.html">RGFW_surface</a> *&#160;</td>
+          <td class="paramname"><em>surface</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >free buffers used for software rendering within the window </p>
+
+</div>
+</div>
+<a id="a9cf4268bb04d5830b0a5f25cbb625329" name="a9cf4268bb04d5830b0a5f25cbb625329"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9cf4268bb04d5830b0a5f25cbb625329">&#9670;&#160;</a></span>RGFW_surface_getNativeImage()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#af91a996714bbd6ad53dee8a31dcb2534">RGFW_nativeImage</a> * RGFW_surface_getNativeImage </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structRGFW__surface.html">RGFW_surface</a> *&#160;</td>
+          <td class="paramname"><em>surface</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a3695ce685af1670b7ea4fe623c1b3d07" name="a3695ce685af1670b7ea4fe623c1b3d07"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3695ce685af1670b7ea4fe623c1b3d07">&#9670;&#160;</a></span>RGFW_useWayland()</h2>
 
@@ -2237,14 +2295,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a2565ddf0709e45035eeb6105a450a3c9" name="a2565ddf0709e45035eeb6105a450a3c9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2565ddf0709e45035eeb6105a450a3c9">&#9670;&#160;</a></span>RGFW_window_copyNativeImage()</h2>
+<a id="a91dac3a45780f513f7159d2ed3a6482e" name="a91dac3a45780f513f7159d2ed3a6482e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a91dac3a45780f513f7159d2ed3a6482e">&#9670;&#160;</a></span>RGFW_window_blitSurface()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void RGFW_window_copyNativeImage </td>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void RGFW_window_blitSurface </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structRGFW__window.html">RGFW_window</a> *&#160;</td>
           <td class="paramname"><em>win</em>, </td>
@@ -2252,8 +2310,8 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structRGFW__image.html">RGFW_image</a>&#160;</td>
-          <td class="paramname"><em>image</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="structRGFW__surface.html">RGFW_surface</a> *&#160;</td>
+          <td class="paramname"><em>surface</em>&#160;</td>
         </tr>
         <tr>
           <td></td>

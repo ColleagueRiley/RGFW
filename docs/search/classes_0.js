@@ -9,5 +9,6 @@ var searchData=
   ['rgfw_5fmonitormode_6',['RGFW_monitorMode',['../structRGFW__monitorMode.html',1,'']]],
   ['rgfw_5fpoint_7',['RGFW_point',['../structRGFW__point.html',1,'']]],
   ['rgfw_5frect_8',['RGFW_rect',['../structRGFW__rect.html',1,'']]],
-  ['rgfw_5fwindow_9',['RGFW_window',['../structRGFW__window.html',1,'']]]
+  ['rgfw_5fsurface_9',['RGFW_surface',['../structRGFW__surface.html',1,'']]],
+  ['rgfw_5fwindow_10',['RGFW_window',['../structRGFW__window.html',1,'']]]
 ];

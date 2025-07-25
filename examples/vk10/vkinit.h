@@ -247,7 +247,7 @@ int initVulkanDevice(RGFW_window* win, vulkanContext* ctx) {
     vkInit_vulkan_info.debugMessenger= VK_NULL_HANDLE;
     createDebugCallback();
 #endif
-    RGFW_window_createVKSurface(win, vkInit_vulkan_info.instance, &ctx->surface);
+    RGFW_window_createSurface_Vulkan(win, vkInit_vulkan_info.instance, &ctx->surface);
 
     u32 deviceCount = 0;
     vkEnumeratePhysicalDevices(vkInit_vulkan_info.instance, &deviceCount, NULL);

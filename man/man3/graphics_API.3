@@ -1,4 +1,4 @@
-.TH "graphics_API" 3 "Thu Jul 24 2025" "RGFW" \" -*- nroff -*-
+.TH "graphics_API" 3 "Fri Jul 25 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -33,6 +33,9 @@ graphics_API \- Graphics_API
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_getHint_OpenGL\fP (RGFW_glHints hint)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isSoftware_OpenGL\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_glContext\fP * \fBRGFW_window_createContext_OpenGL\fP (\fBRGFW_window\fP *win)"
@@ -132,15 +135,15 @@ get native OpenGL proc address
 .SS "\fBRGFWDEF\fP void RGFW_setHint_OpenGL (RGFW_glHints hint, \fBi32\fP value)"
 
 .SS "\fBRGFWDEF\fP \fBRGFW_glContext\fP * RGFW_window_createContext_OpenGL (\fBRGFW_window\fP * win)"
-< make the window the current OpenGL drawing context
-.PP
-NOTE: if you want to switch the graphics context's thread, you have to run RGFW_window_makeCurrentContext_OpenGL(NULL); on the old thread then RGFW_window_makeCurrentContext_OpenGL(valid_window) on the new thread
-.PP
-< create an OpenGL context for the RGFW window, run by createWindow by default (unless the RGFW_windowNoInitAPI is included) called by \fCRGFW_window_close\fP by default (unless the RGFW_windowNoInitAPI is set) 
+called by \fCRGFW_window_close\fP by default (unless the RGFW_windowNoInitAPI is set) 
 .SS "\fBRGFWDEF\fP void RGFW_window_deleteContext_OpenGL (\fBRGFW_window\fP * win)"
 
 .SS "\fBRGFWDEF\fP void * RGFW_window_getOSXView (\fBRGFW_window\fP * win)"
 < get the macos's underlying view, for creating a metal context, returns NULL on non-MacOS platforms 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isSoftware_OpenGL (\fBRGFW_window\fP * win)"
+< make the window the current OpenGL drawing context
+.PP
+NOTE: if you want to switch the graphics context's thread, you have to run RGFW_window_makeCurrentContext_OpenGL(NULL); on the old thread then RGFW_window_makeCurrentContext_OpenGL(valid_window) on the new thread create an OpenGL context for the RGFW window, run by createWindow by default (unless the RGFW_windowNoInitAPI is included) 
 .SS "\fBRGFWDEF\fP void RGFW_window_makeCurrentContext_OpenGL (\fBRGFW_window\fP * win)"
 to be called by RGFW_window_makeCurrent 
 .SS "\fBRGFWDEF\fP void RGFW_window_makeCurrentWindow_OpenGL (\fBRGFW_window\fP * win)"
