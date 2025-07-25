@@ -89,7 +89,7 @@ int main(void) {
 
         drawBitmap(buffer, icon, RGFW_RECT(100, 100, 3, 3));
 
-        RGFW_window_copySurface(win, surface);
+        RGFW_window_blitSurface(win, surface);
 	}
 
     RGFW_surface_free(surface);

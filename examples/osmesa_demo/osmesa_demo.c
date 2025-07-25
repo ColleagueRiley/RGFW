@@ -46,7 +46,7 @@ int main(void) {
 
         glFlush();
 
-        RGFW_window_copySurface(win, surface);
+        RGFW_window_blitSurface(win, surface);
     }
 
     RGFW_surface_free(surface);

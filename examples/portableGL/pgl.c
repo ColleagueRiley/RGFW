@@ -73,7 +73,7 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        RGFW_window_copySurface(win, surface);
+        RGFW_window_blitSurface(win, surface);
 	}
 
 	free_glContext(&context);

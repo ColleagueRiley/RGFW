@@ -641,7 +641,7 @@ RGFWDEF size_t RGFW_sizeofWindow(void);
 RGFWDEF size_t RGFW_sizeofWindowSrc(void);
 
 /*! render the software rendering buffer */
-RGFWDEF void RGFW_window_copySurface(RGFW_window* win, RGFW_surface* surface);
+RGFWDEF void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface);
 
 RGFWDEF RGFW_rect RGFW_window_getRect(RGFW_window* win); /*!< gets the size of the window | returns RGFW_window.r */
 
@@ -3855,7 +3855,7 @@ void RGFW_surface_free(RGFW_surface* surface) {
 #endif
 }
 
-void RGFW_window_copySurface(RGFW_window* win, RGFW_surface* surface) {
+void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	RGFW_ASSERT(surface != NULL);
 	RGFW_GOTO_WAYLAND;
 
@@ -6746,7 +6746,7 @@ void RGFW_surface_free(RGFW_surface* surface) {
 	if (surface->native.ownedByRGFW) RGFW_FREE(surface);
 }
 
-void RGFW_window_copySurface(RGFW_window* win, RGFW_surface* surface) {
+void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	RGFW_image_copy(surface->image, (u64*)surface->native.bitmapBits, RGFW_FALSE);
 	BitBlt(win->src.hdc, 0, 0, win->r.w, win->r.h, surface->native.hdcMem, 0, 0, SRCCOPY);
 }
@@ -8600,7 +8600,7 @@ void RGFW_surface_free(RGFW_surface* surface) {
 	if (surface->native.ownedByRGFW) RGFW_FREE(surface);
 }
 
-void RGFW_window_copySurface(RGFW_window* win, RGFW_surface* surface) {
+void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	RGFW_image_copy(surface->image, (u64*)(void*)surface->image.data, RGFW_FALSE);
 
     size_t depth = (surface->image.format >= RGFW_formatRGBA8) ? 4 : 3;
@@ -10056,7 +10056,7 @@ void RGFW_surface_free(RGFW_surface* surface) {
 	if (surface->native.ownedByRGFW) RGFW_FREE(surface);
 }
 
-void RGFW_window_copySurface(RGFW_window* win, RGFW_surface* surface) {
+void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	/* TODO: Needs fixing. */
 
 	RGFW_image_copy(surface->image, (u64*)surface->image.data, RGFW_FALSE);
