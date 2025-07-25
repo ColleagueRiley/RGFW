@@ -148,7 +148,7 @@ typedef void (*glDebugMessageCallbackPROC)(void* callback, const void*);
 typedef void (*glDrawElementsPROC)(GLenum mode, GLsizei count, GLenum type, const void * indices);
 typedef void (*glClearPROC)(GLbitfield mask);
 typedef void (*glClearColorPROC)(GLfloat, GLfloat, GLfloat, GLfloat);
- 
+
 
 glShaderSourcePROC glShaderSourceSRC = NULL;
 glCreateShaderPROC glCreateShaderSRC = NULL;
@@ -288,16 +288,16 @@ int RGL_loadGL3(RGLloadfunc proc) {
         glGenBuffersSRC == NULL ||
         glBindVertexArraySRC == NULL ||
         glGetUniformLocationSRC == NULL ||
-        glUniformMatrix4fvSRC == NULL        
+        glUniformMatrix4fvSRC == NULL
     )
         return 1;
 
     GLuint vao;
     glGenVertexArraysSRC(1, &vao);
-    
-    if (vao == 0) 
+
+    if (vao == 0)
         return 1;
-    
+
     glDeleteVertexArraysSRC(1, &vao);
     return 0;
 }

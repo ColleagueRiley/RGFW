@@ -74,13 +74,13 @@ int main(void) {
     viewport.MinDepth = 0.0f;
     viewport.MaxDepth = 1.0f;
     dxInfo.pDeviceContext->lpVtbl->RSSetViewports(dxInfo.pDeviceContext, 1, &viewport);
-    
+
     float vertices[] = {
         0.0f, 0.5f, 0.0f,
         0.5f, -0.5f, 0.0f,
         -0.5f, -0.5f, 0.0f
     };
-    
+
     ID3D11Buffer* pVertexBuffer;
     D3D11_BUFFER_DESC bd;
     ZeroMemory(&bd, sizeof(bd));
@@ -118,12 +118,12 @@ int main(void) {
     D3D11_INPUT_ELEMENT_DESC layout[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
-    
+
     dxInfo.pDevice->lpVtbl->CreateInputLayout(dxInfo.pDevice, layout, 1, pVertexShaderBlob->lpVtbl->GetBufferPointer(pVertexShaderBlob), pVertexShaderBlob->lpVtbl->GetBufferSize(pVertexShaderBlob), &pInputLayout);
     dxInfo.pDeviceContext->lpVtbl->IASetInputLayout(dxInfo.pDeviceContext, pInputLayout);
 
     for (;;) {
-        RGFW_window_checkEvent(win); // NOTE: checking events outside of a while loop may cause input lag 
+        RGFW_window_checkEvent(win); // NOTE: checking events outside of a while loop may cause input lag
 
         if (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape))
             break;
@@ -142,12 +142,12 @@ int main(void) {
         dxInfo.pDeviceContext->lpVtbl->VSSetShader(dxInfo.pDeviceContext, pVertexShader, NULL, 0);
         dxInfo.pDeviceContext->lpVtbl->PSSetShader(dxInfo.pDeviceContext, pPixelShader, NULL, 0);
         dxInfo.pDeviceContext->lpVtbl->Draw(dxInfo.pDeviceContext, 3, 0);
-       
+
         dxInfo.swapchain->lpVtbl->Present(dxInfo.swapchain, 0, 0);
     }
 
     directXClose(win, &dxInfo);
-    
+
     RGFW_window_close(win);
 }
 
@@ -172,8 +172,8 @@ int directXInit(RGFW_window* win, directXinfo* info) {
 		info->pFactory->lpVtbl->Release(info->pFactory);
 		return 0;
 	}
-	
-	RGFW_window_createDXSwapChain(win, info->pFactory, (IUnknown*)info->pDevice, &info->swapchain);
+
+	RGFW_window_createSwapChain_DirectX(win, info->pFactory, (IUnknown*)info->pDevice, &info->swapchain);
 
 	ID3D11Texture2D* pBackBuffer;
 	info->swapchain->lpVtbl->GetBuffer(info->swapchain, 0, &__uuidof(ID3D11Texture2D), (LPVOID*) &pBackBuffer);
