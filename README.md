@@ -11,7 +11,7 @@
 A cross-platform lightweight single-header very simple-to-use window abstraction library for creating graphics Libraries or simple graphical programs. Written in pure C99.
 
 # About
-RGFW is a free multi-platform single-header very simple-to-use window abstraction framework for creating graphics Libraries or simple graphical programs. It is meant to be used as a very small and flexible alternative library to GLFW.
+RGFW is a free multi-platform single-header very simple-to-use window abstraction framework for creating graphics Libraries or simple graphical programs. While RGFW is comparable to GLFW or aspects of SDL, it's focus is being a flexible and lightweight windowing library,
 
 The window backend supports XLib (UNIX), Cocoas (MacOS), wasm (emscripten) and WinAPI (tested on windows *XP*, 10 and 11, and reactOS)\
 Windows 95 & 98 have also been tested with RGFW, although results are iffy
