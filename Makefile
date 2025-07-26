@@ -173,7 +173,6 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/vk10/vk10 \
 	examples/dx11/dx11 \
 	examples/metal/metal \
-	examples/webgpu/webgpu \
 	examples/minimal_links/minimal_links \
 	examples/gears/gears
 
@@ -254,13 +253,6 @@ ifeq ($(detected_OS),Darwin)        # Mac OS X
 	gcc $(CUSTOM_CFLAGS) examples/metal/metal.m RGFW.o -I. -framework CoreVideo -framework Metal -framework Cocoa -framework IOKit -framework QuartzCore -o $@
 else
 	@echo metal is not supported on $(detected_OS)
-endif
-
-examples/webgpu/webgpu: examples/webgpu/webgpu.c RGFW.h
-ifeq ($(CC),emcc)      # web ASM
-	$(CC) $< -I. -s USE_WEBGPU=1 -o $@$(EXT)
-else
-	@echo webgpu is not supported on $(detected_OS)
 endif
 
 examples/minimal_links/minimal_links: examples/minimal_links/minimal_links.c RGFW.h
