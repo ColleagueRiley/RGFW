@@ -3018,6 +3018,11 @@ RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) {
 		RGFW_GL_ADD_ATTRIB(EGL_RED_SIZE, RGFW_GL_HINTS[RGFW_glRed]);
 		RGFW_GL_ADD_ATTRIB(EGL_GREEN_SIZE, RGFW_GL_HINTS[RGFW_glBlue]);
 		RGFW_GL_ADD_ATTRIB(EGL_BLUE_SIZE, RGFW_GL_HINTS[RGFW_glGreen]);
+		
+		if (!(win->_flags & RGFW_windowTransparent)) {
+			RGFW_setHint_OpenGL(RGFW_glAlpha, 0); // similar to what sdl does
+		}
+		
 		RGFW_GL_ADD_ATTRIB(EGL_ALPHA_SIZE, RGFW_GL_HINTS[RGFW_glAlpha]);
 		RGFW_GL_ADD_ATTRIB(EGL_DEPTH_SIZE, RGFW_GL_HINTS[RGFW_glDepth]);
 
@@ -3292,6 +3297,17 @@ RGFW_window* RGFW_key_win = NULL;
 #include "xdg-decoration-unstable-v1.h"
 
 void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized);
+void RGFW_wl_setOpaque(RGFW_window* win) {
+	struct wl_region* wl_region = wl_compositor_create_region(win->src.compositor);
+
+	if (!wl_region) return; // return if no region was created
+
+	wl_region_add(wl_region, 0, 0, win->r.w, win->r.h);
+	wl_surface_set_opaque_region(win->src.surface, wl_region);
+	wl_region_destroy(wl_region);
+
+}
+
 void RGFW_wl_xdg_wm_base_ping_handler(void* data, struct xdg_wm_base* wm_base,
 		u32 serial) {
 	RGFW_UNUSED(data);
@@ -3347,6 +3363,10 @@ void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface* xdg_s
 			RGFW_windowResizedCallback(win, win->r);
 		}
 		RGFW_window_resize(win, RGFW_AREA(width, height));
+	}
+
+	if (!(win->_flags & RGFW_windowTransparent)) {
+		RGFW_wl_setOpaque(win);
 	}
 
 }
@@ -4098,6 +4118,7 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
         RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
 		return &win->src.ctx;
 #endif
+	return NULL;
 }
 
 void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
@@ -4229,8 +4250,8 @@ i32 RGFW_initPlatform(void) {
     }
 
     XSetErrorHandler(RGFW_XErrorHandler);
-    return 0;
 #endif
+	return 0;
 }
 
 RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
@@ -4394,6 +4415,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->r.w, win->r.h);
 
+	if (!(win->_flags & RGFW_windowTransparent)) { // no transparency 
+		RGFW_wl_setOpaque(win);
+	}
 	static const struct xdg_toplevel_listener xdg_toplevel_listener = {
 		.configure = RGFW_wl_xdg_toplevel_configure_handler,
 		.close = RGFW_wl_xdg_toplevel_close_handler,
