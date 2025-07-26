@@ -36,7 +36,7 @@
 	#define RGFW_EGL - (optional) compile with OpenGL functions, allowing you to use `RGFW_windowUseEGL` to use EGL instead of the native OpenGL functions
 	#define RGFW_DIRECTX - (optional) include integration directX functions (windows only)
 	#define RGFW_VULKAN - (optional) include helpful vulkan integration functions and macros
-	#define RGFW_WEBGPU - (optional) use webGPU for rendering (Web ONLY)
+	#define RGFW_WEBGPU - (optional) use WebGPU for rendering
 	#define RGFW_NO_API - (optional) don't use any rendering API (no OpenGL, no vulkan, no directX)
 
 	#define RGFW_LINK_EGL (optional) (windows only) if EGL is being used, if EGL functions should be defined dymanically (using GetProcAddress)
@@ -189,7 +189,7 @@ int main() {
     #endif
 #endif
 
-#if !defined(RGFW_OPENGL) && !defined(RGFW_DIRECTX) && !defined(RGFW_NO_API)
+#if !defined(RGFW_OPENGL) && !defined(RGFW_DIRECTX) && !defined(RGFW_WEBGPU) && !defined(RGFW_VULKAN) && !defined(RGFW_NO_API)
 		#define RGFW_OPENGL
 #endif
 
@@ -1161,6 +1161,10 @@ RGFWDEF int RGFW_window_createSwapChain_DirectX(RGFW_window* win, IDXGIFactory* 
 #endif
 #endif
 
+#ifdef RGFW_WEBGPU
+RGFWDEF WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance instance);
+#endif
+
 /** @} */
 
 /** * @defgroup Supporting
@@ -1497,10 +1501,6 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	#include <emscripten/html5.h>
 	#include <emscripten/key_codes.h>
 
-	#ifdef RGFW_WEBGPU
-		#include <emscripten/html5_webgpu.h>
-	#endif
-
 	struct RGFW_nativeImage  {
 		RGFW_bool ownedByRGFW;
 	};
@@ -1514,11 +1514,6 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	struct RGFW_window_src {
 		#ifdef RGFW_OPENGL
 			RGFW_glContext ctx;
-		#endif
-		#ifdef RGFW_WEBGPU
-			WGPUInstance wgpuCtx;
-			WGPUDevice device;
-			WGPUQueue queue;
 		#endif
 	};
 
@@ -6305,7 +6300,6 @@ void RGFW_window_close(RGFW_window* win) {
 	#ifdef RGFW_WAYLAND
 	RGFW_WAYLAND_LABEL
 
-
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
 	wl_shm_destroy(win->src.shm);
 
@@ -6341,6 +6335,31 @@ void RGFW_window_close(RGFW_window* win) {
 	}
 	#endif
 }
+
+#ifdef RGFW_WEBGPU
+WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance instance) {
+	WGPUSurfaceDescriptor surfaceDesc = {0};
+#ifdef RGFW_X11
+	RGFW_GOTO_WAYLAND;
+	WGPUSurfaceSourceXlibWindow fromXlib = {0};
+	fromXlib.chain.sType = WGPUSType_SurfaceSourceXlibWindow;
+	fromXlib.display = window->src.display; // Get Display* from RGFW
+	fromXlib.window = window->src.window;   // Get Window from RGFW
+
+	surfaceDesc.nextInChain = (WGPUChainedStruct*)&fromXlib.chain;
+#endif
+#ifdef RGFW_WAYLAND
+	RGFW_WAYLAND_LABEL
+	WGPUSurfaceSourceWaylandSurface fromWl = {0};
+	fromWl.chain.sType = WGPUSType_SurfaceSourceWaylandSurface;
+	fromWl.display = window->src.wl_display; // Get wl_display from RGFW
+	fromWl.surface = window->src.surface;   // Get wl_surface from RGFW
+
+	surfaceDesc.nextInChain = (WGPUChainedStruct*)&fromWl.chain;
+	return wgpuInstanceCreateSurface(instance, &surfaceDesc);
+#endif
+}
+#endif
 
 
 /*
@@ -7982,6 +8001,23 @@ char* RGFW_createUTF8FromWideStringWin32(const WCHAR* source) {
 
 	return target;
 }
+
+#ifdef RGFW_WEBGPU
+WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance instance) {
+	WGPUSurfaceDescriptor surfaceDesc = {0};
+	WGPUSurfaceSourceWindowsHWND fromHwnd = {0};
+    fromHwnd.chain.sType = WGPUSType_SurfaceSourceWindowsHWND;
+    fromHwnd.hwnd = window->src.window; // Get HWND from RGFW window source
+    if (!fromHwnd.hwnd) {
+        fprintf(stderr, "RGFW Error: HWND is NULL for Windows window.\n");
+        return NULL;
+    }
+    fromHwnd.hinstance = GetModuleHandle(NULL); // Get current process HINSTANCE
+
+    surfaceDesc.nextInChain = (WGPUChainedStruct*)&fromHwnd.chain;
+    return wgpuInstanceCreateSurface(instance, &surfaceDesc);
+}
+#endif
 
 #endif /* RGFW_WINDOWS */
 
@@ -9699,6 +9735,36 @@ void RGFW_window_close(RGFW_window* win) {
     }
 }
 
+#ifdef RGFW_WEBGPU
+WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance instance) {
+	WGPUSurfaceDescriptor surfaceDesc = {0};
+    NSView* nsView = (NSView*)window->src.view;
+    if (!nsView) {
+        fprintf(stderr, "RGFW Error: NSView is NULL for macOS window.\n");
+        return NULL;
+    }
+
+    ((void (*)(id, SEL, BOOL))objc_msgSend)((id)nsView, sel_registerName("setWantsLayer:"), YES);
+    id layer = ((id (*)(id, SEL))objc_msgSend)((id)nsView, sel_registerName("layer"));
+
+    id layer = ((id (*)(id, SEL))objc_msgSend)((id)nsView, sel_registerName("layer"));
+	void* metalLayer = RGFW_cocoaGetLayer();
+	if (metalLayer == NULL) {
+		 return NULL;
+	}
+	((void (*)(id, SEL, id))objc_msgSend)((id)nsView, sel_registerName("setLayer:"), metalLayer);
+	layer = metalLayer; /* Use the newly created layer */
+
+    /* At this point, 'layer' should be a valid CAMetalLayer* */
+    WGPUSurfaceSourceMetalLayer fromMetal = {0};
+    fromMetal.chain.sType = WGPUSType_SurfaceSourceMetalLayer;
+    fromMetal.layer = (__bridge CAMetalLayer*)layer; /* Use __bridge for ARC compatibility if mixing C/Obj-C */
+
+    surfaceDesc.nextInChain = (WGPUChainedStruct*)&fromMetal.chain;
+    return wgpuInstanceCreateSurface(instance, &surfaceDesc);
+}
+#endif
+
 #endif /* RGFW_MACOS */
 
 /*
@@ -10147,12 +10213,6 @@ void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
 		RGFW_window_createContext_OpenGL(win);
 #endif
 
-	#if defined(RGFW_WEBGPU)
-		win->src.wgpuCtx = wgpuCreateInstance(NULL);
-		win->src.device = emscripten_webgpu_get_device();
-		win->src.queue = wgpuDeviceGetQueue(win->src.device);
-	#endif
-
 	emscripten_set_canvas_element_size("#canvas", rect.w, rect.h);
 	emscripten_set_window_title(name);
 
@@ -10333,22 +10393,36 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	return 0;
 }
 
-void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
 #ifdef RGFW_OPENGL
+void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
 	if (win == NULL)
 	    emscripten_webgl_make_context_current(0);
 	else
 	    emscripten_webgl_make_context_current(win->src.ctx.ctx);
-#endif
 }
 
-
 void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
-#ifndef RGFW_WEBGPU
 	emscripten_webgl_commit_frame();
-
-#endif
     emscripten_sleep(0);
+}
+void* RGFW_getCurrentContext_OpenGL(void) { return (void*)emscripten_webgl_get_current_context(); }
+
+RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char* extension, size_t len) {
+    return EM_ASM_INT({
+        var ext = UTF8ToString($0, $1);
+        var canvas = document.querySelector('canvas');
+        var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (!gl) return 0;
+
+        var supported = gl.getSupportedExtensions();
+        return supported && supported.includes(ext) ? 1 : 0;
+    }, extension, len);
+    return RGFW_FALSE;
+}
+
+RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) {
+    return (RGFW_proc)emscripten_webgl_get_proc_address(procname);
+    return NULL;
 }
 
 #ifdef RGFW_WASM_EGL
@@ -10365,8 +10439,6 @@ void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
 	RGFW_window* RGFW_getCurrentWindow_EGL(void) { return _RGFW->current; }
 #endif
 
-#ifndef RGFW_WEBGPU
-void* RGFW_getCurrentContext_OpenGL(void) { return (void*)emscripten_webgl_get_current_context(); }
 #endif
 
 void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) { RGFW_UNUSED(win); RGFW_UNUSED(swapInterval); }
@@ -10393,30 +10465,6 @@ int RGFW_innerHeight(void) {  return EM_ASM_INT({ return window.innerHeight; });
 
 RGFW_area RGFW_getScreenSize(void) {
 	return RGFW_AREA(RGFW_innerWidth(), RGFW_innerHeight());
-}
-
-RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char* extension, size_t len) {
-#ifdef RGFW_OPENGL
-    return EM_ASM_INT({
-        var ext = UTF8ToString($0, $1);
-        var canvas = document.querySelector('canvas');
-        var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-        if (!gl) return 0;
-
-        var supported = gl.getSupportedExtensions();
-        return supported && supported.includes(ext) ? 1 : 0;
-    }, extension, len);
-#else
-    return RGFW_FALSE;
-#endif
-}
-
-RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) {
-#ifdef RGFW_OPENGL
-    return (RGFW_proc)emscripten_webgl_get_proc_address(procname);
-#else
-    return NULL;
-#endif
 }
 
 void RGFW_releaseCursor(RGFW_window* win) {
@@ -10463,6 +10511,18 @@ void RGFW_window_setOpacity(RGFW_window* win, u8 opacity) {
 		  element.style.opacity = $1;
 	  }, "elementId", opacity);
 }
+
+#ifdef RGFW_WEBGPU
+WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance instance) {
+	WGPUSurfaceDescriptor surfaceDesc = {0};
+	WGPUEmscriptenSurfaceSourceCanvasHTMLSelector canvasDesc = {0};
+    canvasDesc.chain.sType = WGPUSType_EmscriptenSurfaceSourceCanvasHTMLSelector;
+    canvasDesc.selector = (WGPUStringView){.data = "#canvas", .length = 7};
+
+    surfaceDesc.nextInChain = &canvasDesc.chain;
+    return wgpuInstanceCreateSurface(instance, &surfaceDesc);
+}
+#endif
 
 /* unsupported functions */
 void RGFW_window_focus(RGFW_window* win) { RGFW_UNUSED(win); }

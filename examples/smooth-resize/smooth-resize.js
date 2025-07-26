@@ -976,9 +976,9 @@ var ASM_CONSTS = {
  69505: () => { return window.mouseY || 0; },  
  69536: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
  69683: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 69736: () => { return window.innerWidth; },  
- 69766: () => { return window.innerHeight; },  
- 69797: ($0, $1) => { var ext = UTF8ToString($0, $1); var canvas = document.querySelector('canvas'); var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl'); if (!gl) return 0; var supported = gl.getSupportedExtensions(); return supported && supported.includes(ext) ? 1 : 0; },  
+ 69736: ($0, $1) => { var ext = UTF8ToString($0, $1); var canvas = document.querySelector('canvas'); var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl'); if (!gl) return 0; var supported = gl.getSupportedExtensions(); return supported && supported.includes(ext) ? 1 : 0; },  
+ 70016: () => { return window.innerWidth; },  
+ 70046: () => { return window.innerHeight; },  
  70077: () => { Module.requestFullscreen(false, true); },  
  70116: () => { Module.exitFullscreen(false, true); },  
  70152: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }

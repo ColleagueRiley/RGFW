@@ -106,6 +106,7 @@ Release:    RGFW 1.7.5-dev
 - rename DirectX functions to _DirectX `RGFW_window_createSwapChain_DirectX`
 - rename Vulkan functions to _Vulkan eg. `RGFW_window_createSurface_Vulkan`
 - rename OpenGLIsSoftware to isSoftware_OpenGL
+- add `RGFW_WEBGPU` for Linux, MacOS, Windows AND Web
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
