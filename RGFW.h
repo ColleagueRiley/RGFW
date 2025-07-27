@@ -3719,6 +3719,7 @@ static int RGFW_XErrorHandler(Display* display, XErrorEvent* ev) {
 }
 
 RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
+printf("f\n");
 	RGFW_window_basic_init(win, rect, flags);
 
 	i64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /*!< X11 events accepted */
@@ -6531,7 +6532,7 @@ void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) { RGFW_api
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) { RGFW_api.window_setBorder(win, border); }
 void RGFW_releaseCursor(RGFW_window* win) { RGFW_api.releaseCursor(win); }
 void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) { RGFW_api.captureCursor(win, r); }
-RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) { return RGFW_api.createWindowPtr(name, rect, flags, win); }
+RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) { RGFW_init(); return RGFW_api.createWindowPtr(name, rect, flags, win); }
 RGFW_area RGFW_getScreenSize(void) { return RGFW_api.getScreenSize(); }
 RGFW_point RGFW_getGlobalMousePoint(void) { return RGFW_api.getGlobalMousePoint(); }
 u8 RGFW_rgfwToKeyChar(u32 key) { return RGFW_api.rgfwToKeyChar(key); }
@@ -6594,7 +6595,7 @@ void RGFW_load_X11(void) {
     RGFW_api.window_setBorder = RGFW_window_setBorder_X11;
     RGFW_api.releaseCursor = RGFW_releaseCursor_X11;
     RGFW_api.captureCursor = RGFW_captureCursor_X11;
-    RGFW_api.createWindowPtr = RGFW_createWindowPtr_X11;
+	RGFW_api.createWindowPtr = RGFW_createWindowPtr_X11;
     RGFW_api.getScreenSize = RGFW_getScreenSize_X11;
     RGFW_api.getGlobalMousePoint = RGFW_getGlobalMousePoint_X11;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_X11;
