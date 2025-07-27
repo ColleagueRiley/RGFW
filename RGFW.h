@@ -2692,8 +2692,8 @@ RGFW_bool RGFW_window_isSoftware_OpenGL(RGFW_window* win) { return RGFW_BOOL(win
 	MacOS and Windows do this using a structure called a "pixel format"
 	X11 calls it a "Visual"
 	This function returns the attributes for the format we want */
-i32* RGFW_initFormatAttribs(RGFW_window* win);
-i32* RGFW_initFormatAttribs(RGFW_window* win) {
+i32* RGFW_initFormatAttribs(void);
+i32* RGFW_initFormatAttribs(void) {
 	static i32 attribs[] = {
 		#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
 		RGFW_GL_RENDER_TYPE,
@@ -3609,7 +3609,7 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win, RGFW_rect r) {
 
 void RGFW_window_getVisual(RGFW_window* win) {
 #ifdef RGFW_OPENGL
-	i32* visual_attribs = RGFW_initFormatAttribs(win);
+	i32* visual_attribs = RGFW_initFormatAttribs();
 	i32 fbcount;
 	GLXFBConfig* fbc = glXChooseFBConfig(win->src.display, DefaultScreen(win->src.display), visual_attribs, &fbcount);
 
@@ -7109,7 +7109,7 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	/* get pixel format, default to a basic pixel format */
 	int pixel_format = ChoosePixelFormat(win->src.hdc, &pfd);
 	if (wglChoosePixelFormatARB != NULL) {
-		i32* pixel_format_attribs = (i32*)RGFW_initFormatAttribs(win);
+		i32* pixel_format_attribs = (i32*)RGFW_initFormatAttribs();
 
 		int new_pixel_format;
 		UINT num_formats;
@@ -8922,13 +8922,13 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	#ifdef RGFW_EGL
 	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_createContext_EGL(win); return; }
 	#endif
-	void* attrs = RGFW_initFormatAttribs(win);
+	void* attrs = RGFW_initFormatAttribs();
 	void* format = NSOpenGLPixelFormat_initWithAttributes((u32*)attrs);
 
 	if (format == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to load pixel format for OpenGL");
         win->_flags |= RGFW_windowOpenGLSoftware;
-        void* subAttrs = RGFW_initFormatAttribs(win);
+        void* subAttrs = RGFW_initFormatAttribs();
 		format = NSOpenGLPixelFormat_initWithAttributes((u32*)subAttrs);
 
 		if (format == NULL)
