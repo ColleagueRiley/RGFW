@@ -1984,7 +1984,6 @@ size_t RGFW_sizeofWindow(void) { return sizeof(RGFW_window); }
 size_t RGFW_sizeofWindowSrc(void) { return sizeof(RGFW_window_src); }
 
 RGFW_window_src* RGFW_window_getSrc(RGFW_window* win) { return &win->src; }
-
 RGFW_rect RGFW_window_getRect(RGFW_window* win) { return win->r; }
 RGFW_key RGFW_window_getExitKey(RGFW_window* win) { return win->exitKey; }
 void RGFW_window_setExitKey(RGFW_window* win, RGFW_key key) { win->exitKey = key; }
@@ -2717,8 +2716,8 @@ RGFW_bool RGFW_window_isSoftware_OpenGL(RGFW_window* win) { return RGFW_BOOL(win
 	MacOS and Windows do this using a structure called a "pixel format"
 	X11 calls it a "Visual"
 	This function returns the attributes for the format we want */
-i32* RGFW_initFormatAttribs(void);
-i32* RGFW_initFormatAttribs(void) {
+i32* RGFW_initFormatAttribs(RGFW_window* win);
+i32* RGFW_initFormatAttribs(RGFW_window* win) {
 	static i32 attribs[] = {
 		#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
 		RGFW_GL_RENDER_TYPE,
@@ -2759,7 +2758,7 @@ i32* RGFW_initFormatAttribs(void) {
 
         RGFW_GL_ADD_ATTRIB(RGFW_GL_DOUBLEBUFFER, 1);
 
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_ALPHA_SIZE, RGFW_GL_HINTS[RGFW_glAlpha]);
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_ALPHA_SIZE, (!(win->_flags & RGFW_windowTransparent)) ? 0 : RGFW_GL_HINTS[RGFW_glAlpha]);
 		RGFW_GL_ADD_ATTRIB(RGFW_GL_DEPTH_SIZE, RGFW_GL_HINTS[RGFW_glDepth]);
         RGFW_GL_ADD_ATTRIB(RGFW_GL_STENCIL_SIZE, RGFW_GL_HINTS[RGFW_glStencil]);
 		RGFW_GL_ADD_ATTRIB(RGFW_GL_STEREO, RGFW_GL_HINTS[RGFW_glStereo]);
@@ -3010,7 +3009,7 @@ RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) {
 		RGFW_GL_ADD_ATTRIB(EGL_RED_SIZE, RGFW_GL_HINTS[RGFW_glRed]);
 		RGFW_GL_ADD_ATTRIB(EGL_GREEN_SIZE, RGFW_GL_HINTS[RGFW_glBlue]);
 		RGFW_GL_ADD_ATTRIB(EGL_BLUE_SIZE, RGFW_GL_HINTS[RGFW_glGreen]);
-		RGFW_GL_ADD_ATTRIB(EGL_ALPHA_SIZE, RGFW_GL_HINTS[RGFW_glAlpha]);
+		RGFW_GL_ADD_ATTRIB(EGL_ALPHA_SIZE, (!(win->_flags & RGFW_windowTransparent)) ? 0 : RGFW_GL_HINTS[RGFW_glAlpha]);
 		RGFW_GL_ADD_ATTRIB(EGL_DEPTH_SIZE, RGFW_GL_HINTS[RGFW_glDepth]);
 
 		if (RGFW_GL_HINTS[RGFW_glSRGB])
@@ -3634,7 +3633,7 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win, RGFW_rect r) {
 
 void RGFW_window_getVisual(RGFW_window* win) {
 #ifdef RGFW_OPENGL
-	i32* visual_attribs = RGFW_initFormatAttribs();
+	i32* visual_attribs = RGFW_initFormatAttribs(win);
 	i32 fbcount;
 	GLXFBConfig* fbc = glXChooseFBConfig(win->src.display, DefaultScreen(win->src.display), visual_attribs, &fbcount);
 
@@ -7134,7 +7133,7 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	/* get pixel format, default to a basic pixel format */
 	int pixel_format = ChoosePixelFormat(win->src.hdc, &pfd);
 	if (wglChoosePixelFormatARB != NULL) {
-		i32* pixel_format_attribs = (i32*)RGFW_initFormatAttribs();
+		i32* pixel_format_attribs = (i32*)RGFW_initFormatAttribs(win);
 
 		int new_pixel_format;
 		UINT num_formats;
@@ -8947,13 +8946,13 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	#ifdef RGFW_EGL
 	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_createContext_EGL(win); return; }
 	#endif
-	void* attrs = RGFW_initFormatAttribs();
+	void* attrs = RGFW_initFormatAttribs(win);
 	void* format = NSOpenGLPixelFormat_initWithAttributes((u32*)attrs);
 
 	if (format == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to load pixel format for OpenGL");
         win->_flags |= RGFW_windowOpenGLSoftware;
-        void* subAttrs = RGFW_initFormatAttribs();
+        void* subAttrs = RGFW_initFormatAttribs(win);
 		format = NSOpenGLPixelFormat_initWithAttributes((u32*)subAttrs);
 
 		if (format == NULL)
@@ -10421,7 +10420,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_writeFile(const char *path, const char *data, siz
 RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	EmscriptenWebGLContextAttributes attrs;
 	attrs.alpha = RGFW_GL_HINTS[RGFW_glDepth];
-	attrs.depth = RGFW_GL_HINTS[RGFW_glAlpha];
+	attrs.depth = (!(win->_flags & RGFW_windowTransparent)) ? 0 : RGFW_GL_HINTS[RGFW_glAlpha];
 	attrs.stencil = RGFW_GL_HINTS[RGFW_glStencil];
 	attrs.antialias = RGFW_GL_HINTS[RGFW_glSamples];
 	attrs.premultipliedAlpha = EM_TRUE;
