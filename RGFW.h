@@ -6506,6 +6506,7 @@ typedef struct RGFW_FunctionPointers {
     RGFW_getPrimaryMonitor_ptr getPrimaryMonitor;
     RGFW_monitor_requestMode_ptr monitor_requestMode;
     RGFW_window_getMonitor_ptr window_getMonitor;
+    RGFW_window_close_ptr window_close;
 #ifdef RGFW_OPENGL
     RGFW_extensionSupportedPlatform_OpenGL_ptr extensionSupportedPlatform_OpenGL;
     RGFW_getProcAddress_OpenGL_ptr getProcAddress_OpenGL;
@@ -6515,7 +6516,6 @@ typedef struct RGFW_FunctionPointers {
     RGFW_getCurrentContext_OpenGL_ptr getCurrentContext_OpenGL;
     RGFW_window_swapBuffers_OpenGL_ptr window_swapBuffers_OpenGL;
     RGFW_window_swapInterval_OpenGL_ptr window_swapInterval_OpenGL;
-    RGFW_window_close_ptr window_close;
 #endif
 #ifdef RGFW_WEBGPU
     RGFW_window_createSurface_WebGPU_ptr window_createSurface_WebGPU;
@@ -6584,6 +6584,7 @@ void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) { RGFW_api.window_m
 void* RGFW_getCurrentContext_OpenGL(void) { return RGFW_api.getCurrentContext_OpenGL(); }
 void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) { RGFW_api.window_swapBuffers_OpenGL(win); }
 void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) { RGFW_api.window_swapInterval_OpenGL(win, swapInterval); }
+#endif
 
 void RGFW_load_X11(void) {
     RGFW_api.createSurfacePtr = RGFW_createSurfacePtr_X11;
@@ -6712,8 +6713,6 @@ void RGFW_load_Wayland(void) {
     RGFW_api.window_createSurface_WebGPU = RGFW_window_createSurface_WebGPU_Wayland;
 #endif
 }
-#endif
-
 #endif /* wayland AND x11 */
 /* end of X11 AND wayland defines */
 
