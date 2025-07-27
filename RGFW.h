@@ -1287,6 +1287,7 @@ RGFWDEF int RGFW_window_createSwapChain_DirectX(RGFW_window* win, IDXGIFactory* 
 #endif
 
 #ifdef RGFW_WEBGPU
+#include <webgpu/webgpu.h>
 RGFWDEF WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance instance);
 #endif
 
@@ -5368,6 +5369,7 @@ WGPUSurface RGFW_FUNC(RGFW_window_createSurface_WebGPU) (RGFW_window* window, WG
 	fromXlib.window = window->src.window;   // Get Window from RGFW
 
 	surfaceDesc.nextInChain = (WGPUChainedStruct*)&fromXlib.chain;
+	return wgpuInstanceCreateSurface(instance, &surfaceDesc);
 }
 #endif
 
@@ -5977,10 +5979,10 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, 
 
 	xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->r.w, win->r.h);
 
-	if (!(win->_flags & RGFW_windowTransparent)) { // no transparency 
+	if (!(win->_flags & RGFW_windowTransparent)) { // no transparency
 		RGFW_wl_setOpaque(win);
 	}
-	
+
 	static const struct xdg_toplevel_listener xdg_toplevel_listener = {
 		.configure = RGFW_wl_xdg_toplevel_configure_handler,
 		.close = RGFW_wl_xdg_toplevel_close_handler,
