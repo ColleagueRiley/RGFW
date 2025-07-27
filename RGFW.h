@@ -38,6 +38,7 @@
 	#define RGFW_VULKAN - (optional) include helpful vulkan integration functions and macros
 	#define RGFW_WEBGPU - (optional) use WebGPU for rendering
 	#define RGFW_NO_API - (optional) don't use any rendering API (no OpenGL, no vulkan, no directX)
+	#define RGFW_NATIVE - (optional) define native RGFW types that use native API structures
 
 	#define RGFW_LINK_EGL (optional) (windows only) if EGL is being used, if EGL functions should be defined dymanically (using GetProcAddress)
 	#define RGFW_X11 (optional) (unix only) if X11 should be used. This option is turned on by default by unix systems except for MacOS
@@ -397,7 +398,116 @@ RGFWDEF RGFW_bool RGFW_usingWayland(void);
 	regular RGFW stuff
 */
 
-#define RGFW_key u8
+/*!
+	key codes and mouse icon enums
+*/
+typedef RGFW_ENUM(u8, RGFW_key) {
+	RGFW_keyNULL = 0,
+	RGFW_escape = '\033',
+	RGFW_backtick = '`',
+	RGFW_0 = '0',
+	RGFW_1 = '1',
+	RGFW_2 = '2',
+	RGFW_3 = '3',
+	RGFW_4 = '4',
+	RGFW_5 = '5',
+	RGFW_6 = '6',
+	RGFW_7 = '7',
+	RGFW_8 = '8',
+	RGFW_9 = '9',
+	RGFW_minus = '-',
+	RGFW_equals = '=',
+	RGFW_backSpace = '\b',
+	RGFW_tab = '\t',
+	RGFW_space = ' ',
+	RGFW_a = 'a',
+	RGFW_b = 'b',
+	RGFW_c = 'c',
+	RGFW_d = 'd',
+	RGFW_e = 'e',
+	RGFW_f = 'f',
+	RGFW_g = 'g',
+	RGFW_h = 'h',
+	RGFW_i = 'i',
+	RGFW_j = 'j',
+	RGFW_k = 'k',
+	RGFW_l = 'l',
+	RGFW_m = 'm',
+	RGFW_n = 'n',
+	RGFW_o = 'o',
+	RGFW_p = 'p',
+	RGFW_q = 'q',
+	RGFW_r = 'r',
+	RGFW_s = 's',
+	RGFW_t = 't',
+	RGFW_u = 'u',
+	RGFW_v = 'v',
+	RGFW_w = 'w',
+	RGFW_x = 'x',
+	RGFW_y = 'y',
+	RGFW_z = 'z',
+	RGFW_period = '.',
+	RGFW_comma = ',',
+	RGFW_slash = '/',
+	RGFW_bracket = '[',
+    RGFW_closeBracket = ']',
+    RGFW_semicolon = ';',
+	RGFW_apostrophe = '\'',
+	RGFW_backSlash = '\\',
+	RGFW_return = '\n',
+	RGFW_enter = RGFW_return,
+	RGFW_delete = '\177', /* 127 */
+	RGFW_F1,
+	RGFW_F2,
+	RGFW_F3,
+	RGFW_F4,
+	RGFW_F5,
+	RGFW_F6,
+	RGFW_F7,
+	RGFW_F8,
+	RGFW_F9,
+	RGFW_F10,
+	RGFW_F11,
+	RGFW_F12,
+	RGFW_capsLock,
+	RGFW_shiftL,
+	RGFW_controlL,
+	RGFW_altL,
+	RGFW_superL,
+	RGFW_shiftR,
+	RGFW_controlR,
+	RGFW_altR,
+	RGFW_superR,
+	RGFW_up,
+	RGFW_down,
+	RGFW_left,
+	RGFW_right,
+	RGFW_insert,
+	RGFW_end,
+	RGFW_home,
+	RGFW_pageUp,
+	RGFW_pageDown,
+	RGFW_numLock,
+	RGFW_KP_Slash,
+	RGFW_multiply,
+	RGFW_KP_Minus,
+	RGFW_KP_1,
+	RGFW_KP_2,
+	RGFW_KP_3,
+	RGFW_KP_4,
+	RGFW_KP_5,
+	RGFW_KP_6,
+	RGFW_KP_7,
+	RGFW_KP_8,
+	RGFW_KP_9,
+	RGFW_KP_0,
+	RGFW_KP_Period,
+	RGFW_KP_Return,
+	RGFW_scrollLock,
+    RGFW_printScreen,
+    RGFW_pause,
+    RGFW_keyLast = 256 /* padding for alignment ~(175 by default) */
+ };
 
 typedef RGFW_ENUM(u8, RGFW_eventType) {
 	/*! event codes */
@@ -803,6 +913,21 @@ RGFWDEF RGFW_bool RGFW_window_setIconEx(RGFW_window* win, RGFW_image img, u8 typ
 /*!< sets mouse to RGFW_mouse icon (loaded from a bitmap struct) */
 RGFWDEF void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse);
 
+typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
+	RGFW_mouseNormal = 0,
+	RGFW_mouseArrow,
+	RGFW_mouseIbeam,
+	RGFW_mouseCrosshair,
+	RGFW_mousePointingHand,
+	RGFW_mouseResizeEW,
+	RGFW_mouseResizeNS,
+	RGFW_mouseResizeNWSE,
+	RGFW_mouseResizeNESW,
+	RGFW_mouseResizeAll,
+	RGFW_mouseNotAllowed,
+    RGFW_mouseIconFinal = 16 /* padding for alignment */
+};
+
 /*!< sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the RGFW_HEADER part of this file) */
 RGFWDEF	RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse);
 
@@ -1184,126 +1309,6 @@ RGFW_event* RGFW_eventQueuePop(RGFW_window* win);
 /* for C++ / C89 */
 #define RGFW_eventQueuePushEx(eventInit) { RGFW_event e; eventInit; RGFW_eventQueuePush(e); }
 
-/*!
-	key codes and mouse icon enums
-*/
-#undef RGFW_key
-typedef RGFW_ENUM(u8, RGFW_key) {
-	RGFW_keyNULL = 0,
-	RGFW_escape = '\033',
-	RGFW_backtick = '`',
-	RGFW_0 = '0',
-	RGFW_1 = '1',
-	RGFW_2 = '2',
-	RGFW_3 = '3',
-	RGFW_4 = '4',
-	RGFW_5 = '5',
-	RGFW_6 = '6',
-	RGFW_7 = '7',
-	RGFW_8 = '8',
-	RGFW_9 = '9',
-
-	RGFW_minus = '-',
-	RGFW_equals = '=',
-	RGFW_backSpace = '\b',
-	RGFW_tab = '\t',
-	RGFW_space = ' ',
-
-	RGFW_a = 'a',
-	RGFW_b = 'b',
-	RGFW_c = 'c',
-	RGFW_d = 'd',
-	RGFW_e = 'e',
-	RGFW_f = 'f',
-	RGFW_g = 'g',
-	RGFW_h = 'h',
-	RGFW_i = 'i',
-	RGFW_j = 'j',
-	RGFW_k = 'k',
-	RGFW_l = 'l',
-	RGFW_m = 'm',
-	RGFW_n = 'n',
-	RGFW_o = 'o',
-	RGFW_p = 'p',
-	RGFW_q = 'q',
-	RGFW_r = 'r',
-	RGFW_s = 's',
-	RGFW_t = 't',
-	RGFW_u = 'u',
-	RGFW_v = 'v',
-	RGFW_w = 'w',
-	RGFW_x = 'x',
-	RGFW_y = 'y',
-	RGFW_z = 'z',
-
-	RGFW_period = '.',
-	RGFW_comma = ',',
-	RGFW_slash = '/',
-	RGFW_bracket = '[',
-    RGFW_closeBracket = ']',
-    RGFW_semicolon = ';',
-	RGFW_apostrophe = '\'',
-	RGFW_backSlash = '\\',
-	RGFW_return = '\n',
-	RGFW_enter = RGFW_return,
-
-	RGFW_delete = '\177', /* 127 */
-
-	RGFW_F1,
-	RGFW_F2,
-	RGFW_F3,
-	RGFW_F4,
-	RGFW_F5,
-	RGFW_F6,
-	RGFW_F7,
-	RGFW_F8,
-	RGFW_F9,
-	RGFW_F10,
-	RGFW_F11,
-	RGFW_F12,
-
-	RGFW_capsLock,
-	RGFW_shiftL,
-	RGFW_controlL,
-	RGFW_altL,
-	RGFW_superL,
-	RGFW_shiftR,
-	RGFW_controlR,
-	RGFW_altR,
-	RGFW_superR,
-	RGFW_up,
-	RGFW_down,
-	RGFW_left,
-	RGFW_right,
-	RGFW_insert,
-	RGFW_end,
-	RGFW_home,
-	RGFW_pageUp,
-	RGFW_pageDown,
-
-	RGFW_numLock,
-	RGFW_KP_Slash,
-	RGFW_multiply,
-	RGFW_KP_Minus,
-	RGFW_KP_1,
-	RGFW_KP_2,
-	RGFW_KP_3,
-	RGFW_KP_4,
-	RGFW_KP_5,
-	RGFW_KP_6,
-	RGFW_KP_7,
-	RGFW_KP_8,
-	RGFW_KP_9,
-	RGFW_KP_0,
-	RGFW_KP_Period,
-	RGFW_KP_Return,
-	RGFW_scrollLock,
-    RGFW_printScreen,
-    RGFW_pause,
-    RGFW_keyLast = 256 /* padding for alignment ~(175 by default) */
- };
-
-
 /*! converts api keycode to the RGFW unmapped/physical key */
 RGFWDEF u32 RGFW_apiKeyToRGFW(u32 keycode);
 /*! converts RGFW keycode to the unmapped/physical api key */
@@ -1311,23 +1316,24 @@ RGFWDEF u32 RGFW_rgfwToApiKey(u32 keycode);
 /*! converts RGFW keycode to the mapped keychar */
 RGFWDEF u8 RGFW_rgfwToKeyChar(u32 keycode);
 
-typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
-	RGFW_mouseNormal = 0,
-	RGFW_mouseArrow,
-	RGFW_mouseIbeam,
-	RGFW_mouseCrosshair,
-	RGFW_mousePointingHand,
-	RGFW_mouseResizeEW,
-	RGFW_mouseResizeNS,
-	RGFW_mouseResizeNWSE,
-	RGFW_mouseResizeNESW,
-	RGFW_mouseResizeAll,
-	RGFW_mouseNotAllowed,
-    RGFW_mouseIconFinal = 16 /* padding for alignment */
-};
-/** @} */
+/*! optional init/deinit function */
+typedef struct RGFW_info RGFW_info;
+RGFWDEF size_t RGFW_sizeofInfo(void);
 
-#if !defined(RGFW_NO_WINDOW_SRC) || defined(RGFW_IMPLEMENTATION)
+RGFWDEF i32 RGFW_init(void); /*!< is called by default when the first window is created by default */
+RGFWDEF void RGFW_deinit(void); /*!< is called by default when the last open window is closed */
+
+RGFWDEF i32 RGFW_init_ptr(RGFW_info* info); /*!< init RGFW, storing the data at the pointer */
+RGFWDEF void RGFW_deinit_ptr(RGFW_info* info); /*!< deinits RGFW instance at pointer */
+
+RGFWDEF void RGFW_setInfo(RGFW_info* info);
+RGFWDEF RGFW_info* RGFW_getInfo(void);
+
+/** @} */
+#endif /* RGFW_HEADER */
+
+#if !defined(RGFW_NATIVE_HEADER) && (defined(RGFW_NATIVE) || defined(RGFW_IMPLEMENTATION))
+#define RGFW_NATIVE_HEADER
 	#ifdef RGFW_EGL
 		#include <EGL/egl.h>
 	#endif
@@ -1548,20 +1554,8 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 		u32 _flags; /*!< windows flags (for RGFW to check) */
 		RGFW_rect _oldRect; /*!< rect before fullscreen */
 	}; /*!< window structure for the window */
-#elif !defined(RGFW_NO_INFO)
-	#define RGFW_NO_INFO
-#endif
 
-
-/*! optional init/deinit function */
-RGFWDEF i32 RGFW_init(void); /*!< is called by default when the first window is created by default */
-RGFWDEF void RGFW_deinit(void); /*!< is called by default when the last open window is closed */
-
-RGFWDEF void* RGFW_init_heap(void); /*!< inits RGFW on the heap instead of in a global var */
-RGFWDEF void RGFW_deinit_heap(void); /*!< deinits the heap instance */
-
-#if !defined(RGFW_NO_INFO) || defined(RGFW_IMPLEMENTATION)
-typedef struct RGFW_info {
+struct RGFW_info {
     RGFW_window* root;
     i32 windowCount;
     i32 eventLen;
@@ -1613,15 +1607,8 @@ typedef struct RGFW_info {
 	#ifdef RGFW_OPENGL
 		RGFW_window* current;
 	#endif
-} RGFW_info;
-
-RGFWDEF i32 RGFW_init_ptr(RGFW_info* info); /*!< init RGFW, storing the data at the pointer */
-RGFWDEF void RGFW_deinit_ptr(RGFW_info* info); /*!< deinits RGFW instance at pointer */
-
-RGFWDEF void RGFW_setInfo(RGFW_info* info);
-RGFWDEF RGFW_info* RGFW_getInfo(void);
-#endif
-#endif /* RGFW_HEADER */
+};
+#endif /* RGFW_NATIVE_HEADER */
 
 #ifdef RGFW_IMPLEMENTATION
 RGFW_info* _RGFW = NULL;
@@ -1978,6 +1965,7 @@ no more event call back defines
 #define RGFW_WINDOW_INIT 		RGFW_BIT(30) /* if window.buffer was allocated by RGFW */
 #define RGFW_INTERNAL_FLAGS (RGFW_EVENT_QUIT | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_WINDOW_ALLOC | RGFW_windowFocus | RGFW_windowUseEGL)
 
+size_t RGFW_sizeofInfo(void) { return sizeof(RGFW_info); }
 size_t RGFW_sizeofNativeImage(void) { return sizeof(RGFW_nativeImage); }
 size_t RGFW_sizeofSurface(void) { return sizeof(RGFW_surface); }
 size_t RGFW_sizeofWindow(void) { return sizeof(RGFW_window); }
@@ -2008,18 +1996,6 @@ RGFW_info _rgfwGlobal;
 
 i32 RGFW_init(void) { return RGFW_init_ptr(&_rgfwGlobal); }
 void RGFW_deinit(void) { RGFW_deinit_ptr(&_rgfwGlobal); }
-
-void* RGFW_init_heap(void) {
-    RGFW_info* info = (RGFW_info*)RGFW_ALLOC(sizeof(RGFW_info));
-    RGFW_init_ptr(info);
-    return (void*)info;
-}
-
-void RGFW_deinit_heap(void) {
-    RGFW_deinit_ptr(_RGFW);
-    RGFW_FREE(_RGFW);
-    _RGFW = NULL;
-}
 
 i32 RGFW_initPlatform(void);
 void RGFW_deinitPlatform(void);
@@ -2716,8 +2692,8 @@ RGFW_bool RGFW_window_isSoftware_OpenGL(RGFW_window* win) { return RGFW_BOOL(win
 	MacOS and Windows do this using a structure called a "pixel format"
 	X11 calls it a "Visual"
 	This function returns the attributes for the format we want */
-i32* RGFW_initFormatAttribs(RGFW_window* win);
-i32* RGFW_initFormatAttribs(RGFW_window* win) {
+i32* RGFW_initFormatAttribs(void);
+i32* RGFW_initFormatAttribs(void) {
 	static i32 attribs[] = {
 		#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
 		RGFW_GL_RENDER_TYPE,
@@ -2758,7 +2734,7 @@ i32* RGFW_initFormatAttribs(RGFW_window* win) {
 
         RGFW_GL_ADD_ATTRIB(RGFW_GL_DOUBLEBUFFER, 1);
 
-		RGFW_GL_ADD_ATTRIB(RGFW_GL_ALPHA_SIZE, (!(win->_flags & RGFW_windowTransparent)) ? 0 : RGFW_GL_HINTS[RGFW_glAlpha]);
+		RGFW_GL_ADD_ATTRIB(RGFW_GL_ALPHA_SIZE, RGFW_GL_HINTS[RGFW_glAlpha]);
 		RGFW_GL_ADD_ATTRIB(RGFW_GL_DEPTH_SIZE, RGFW_GL_HINTS[RGFW_glDepth]);
         RGFW_GL_ADD_ATTRIB(RGFW_GL_STENCIL_SIZE, RGFW_GL_HINTS[RGFW_glStencil]);
 		RGFW_GL_ADD_ATTRIB(RGFW_GL_STEREO, RGFW_GL_HINTS[RGFW_glStereo]);
@@ -3009,7 +2985,7 @@ RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) {
 		RGFW_GL_ADD_ATTRIB(EGL_RED_SIZE, RGFW_GL_HINTS[RGFW_glRed]);
 		RGFW_GL_ADD_ATTRIB(EGL_GREEN_SIZE, RGFW_GL_HINTS[RGFW_glBlue]);
 		RGFW_GL_ADD_ATTRIB(EGL_BLUE_SIZE, RGFW_GL_HINTS[RGFW_glGreen]);
-		RGFW_GL_ADD_ATTRIB(EGL_ALPHA_SIZE, (!(win->_flags & RGFW_windowTransparent)) ? 0 : RGFW_GL_HINTS[RGFW_glAlpha]);
+		RGFW_GL_ADD_ATTRIB(EGL_ALPHA_SIZE, RGFW_GL_HINTS[RGFW_glAlpha]);
 		RGFW_GL_ADD_ATTRIB(EGL_DEPTH_SIZE, RGFW_GL_HINTS[RGFW_glDepth]);
 
 		if (RGFW_GL_HINTS[RGFW_glSRGB])
@@ -3633,7 +3609,7 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win, RGFW_rect r) {
 
 void RGFW_window_getVisual(RGFW_window* win) {
 #ifdef RGFW_OPENGL
-	i32* visual_attribs = RGFW_initFormatAttribs(win);
+	i32* visual_attribs = RGFW_initFormatAttribs();
 	i32 fbcount;
 	GLXFBConfig* fbc = glXChooseFBConfig(win->src.display, DefaultScreen(win->src.display), visual_attribs, &fbcount);
 
@@ -7133,7 +7109,7 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	/* get pixel format, default to a basic pixel format */
 	int pixel_format = ChoosePixelFormat(win->src.hdc, &pfd);
 	if (wglChoosePixelFormatARB != NULL) {
-		i32* pixel_format_attribs = (i32*)RGFW_initFormatAttribs(win);
+		i32* pixel_format_attribs = (i32*)RGFW_initFormatAttribs();
 
 		int new_pixel_format;
 		UINT num_formats;
@@ -8946,13 +8922,13 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	#ifdef RGFW_EGL
 	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_createContext_EGL(win); return; }
 	#endif
-	void* attrs = RGFW_initFormatAttribs(win);
+	void* attrs = RGFW_initFormatAttribs();
 	void* format = NSOpenGLPixelFormat_initWithAttributes((u32*)attrs);
 
 	if (format == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to load pixel format for OpenGL");
         win->_flags |= RGFW_windowOpenGLSoftware;
-        void* subAttrs = RGFW_initFormatAttribs(win);
+        void* subAttrs = RGFW_initFormatAttribs();
 		format = NSOpenGLPixelFormat_initWithAttributes((u32*)subAttrs);
 
 		if (format == NULL)
@@ -10420,7 +10396,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_writeFile(const char *path, const char *data, siz
 RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	EmscriptenWebGLContextAttributes attrs;
 	attrs.alpha = RGFW_GL_HINTS[RGFW_glDepth];
-	attrs.depth = (!(win->_flags & RGFW_windowTransparent)) ? 0 : RGFW_GL_HINTS[RGFW_glAlpha];
+	attrs.depth = RGFW_GL_HINTS[RGFW_glAlpha];
 	attrs.stencil = RGFW_GL_HINTS[RGFW_glStencil];
 	attrs.antialias = RGFW_GL_HINTS[RGFW_glSamples];
 	attrs.premultipliedAlpha = EM_TRUE;
