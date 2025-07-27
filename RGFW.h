@@ -3719,7 +3719,6 @@ static int RGFW_XErrorHandler(Display* display, XErrorEvent* ev) {
 }
 
 RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
-printf("f\n");
 	RGFW_window_basic_init(win, rect, flags);
 
 	i64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /*!< X11 events accepted */
