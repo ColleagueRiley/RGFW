@@ -107,6 +107,7 @@ Release:    RGFW 1.7.5-dev
 - rename Vulkan functions to _Vulkan eg. `RGFW_window_createSurface_Vulkan`
 - rename OpenGLIsSoftware to isSoftware_OpenGL
 - add `RGFW_WEBGPU` for Linux, MacOS, Windows AND Web
+- refactor wayland+x11 backend to use function points (when wayland and x11 are used toghther)
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
