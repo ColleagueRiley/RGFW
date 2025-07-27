@@ -6438,13 +6438,6 @@ typedef RGFW_monitor (*RGFW_getPrimaryMonitor_ptr)(void);
 typedef RGFW_bool (*RGFW_monitor_requestMode_ptr)(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request);
 typedef RGFW_monitor (*RGFW_window_getMonitor_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_close_ptr)(RGFW_window* win);
-#ifdef RGFW_OPENGL
-typedef void (*RGFW_window_makeCurrentContext_OpenGL_ptr)(RGFW_window* win);
-typedef void* (*RGFW_getCurrentContext_OpenGL_ptr)(void);
-typedef void (*RGFW_window_swapBuffers_OpenGL_ptr)(RGFW_window* win);
-typedef void (*RGFW_window_swapInterval_OpenGL_ptr)(RGFW_window* win, i32 swapInterval);
-typedef RGFW_bool (*RGFW_extensionSupportedPlatform_OpenGL_ptr)(const char* extension, size_t len);
-typedef RGFW_proc (*RGFW_getProcAddress_OpenGL_ptr)(const char* procname);
 typedef RGFW_bool (*RGFW_createSurfacePtr_ptr)(RGFW_image img, RGFW_surface* surface);
 typedef void (*RGFW_window_blitSurface_ptr)(RGFW_window* win, RGFW_surface* surface);
 typedef void (*RGFW_surface_free_ptr)(RGFW_surface* surface);
@@ -6452,6 +6445,13 @@ typedef void (*RGFW_freeMouse_ptr)(RGFW_mouse* mouse);
 typedef void (*RGFW_window_setBorder_ptr)(RGFW_window* win, RGFW_bool border);
 typedef void (*RGFW_releaseCursor_ptr)(RGFW_window* win);
 typedef void (*RGFW_captureCursor_ptr)(RGFW_window* win, RGFW_rect r);
+#ifdef RGFW_OPENGL
+typedef void (*RGFW_window_makeCurrentContext_OpenGL_ptr)(RGFW_window* win);
+typedef void* (*RGFW_getCurrentContext_OpenGL_ptr)(void);
+typedef void (*RGFW_window_swapBuffers_OpenGL_ptr)(RGFW_window* win);
+typedef void (*RGFW_window_swapInterval_OpenGL_ptr)(RGFW_window* win, i32 swapInterval);
+typedef RGFW_bool (*RGFW_extensionSupportedPlatform_OpenGL_ptr)(const char* extension, size_t len);
+typedef RGFW_proc (*RGFW_getProcAddress_OpenGL_ptr)(const char* procname);
 typedef RGFW_glContext* (*RGFW_window_createContext_OpenGL_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_deleteContext_OpenGL_ptr)(RGFW_window* win);
 #endif
