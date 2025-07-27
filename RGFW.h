@@ -1327,7 +1327,6 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 };
 /** @} */
 
-#endif /* RGFW_HEADER */
 #if !defined(RGFW_NO_WINDOW_SRC) || defined(RGFW_IMPLEMENTATION)
 	#ifdef RGFW_EGL
 		#include <EGL/egl.h>
@@ -1622,6 +1621,7 @@ RGFWDEF void RGFW_deinit_ptr(RGFW_info* info); /*!< deinits RGFW instance at poi
 RGFWDEF void RGFW_setInfo(RGFW_info* info);
 RGFWDEF RGFW_info* RGFW_getInfo(void);
 #endif
+#endif /* RGFW_HEADER */
 
 #ifdef RGFW_IMPLEMENTATION
 RGFW_info* _RGFW = NULL;
