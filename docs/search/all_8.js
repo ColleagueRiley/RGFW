@@ -1,6 +1,9 @@
 var searchData=
 [
-  ['h_0',['h',['../structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d',1,'RGFW_rect::h()'],['../structRGFW__area.html#acfd12a462e305d195296ce2b13f32007',1,'RGFW_area::h()']]],
-  ['handling_1',['handling',['../group__error.html',1,'']]],
-  ['hiddenmouse_2',['hiddenMouse',['../structRGFW__info.html#ad78bd0a54372302cb757bcf3505d2715',1,'RGFW_info']]]
+  ['i16_0',['i16',['../RGFW_8h.html#ad309dbcaeea13aa602d686964156ea0b',1,'RGFW.h']]],
+  ['i32_1',['i32',['../RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec',1,'RGFW.h']]],
+  ['i64_2',['i64',['../RGFW_8h.html#a85cb35fbe5bf2961d7ad5f26814a91a2',1,'RGFW.h']]],
+  ['i8_3',['i8',['../RGFW_8h.html#ae3702327b5f47e83b431e22b33da7b58',1,'RGFW.h']]],
+  ['important_20conventions_4',['important conventions',['../md_CONVENTIONS.html',1,'']]],
+  ['input_5',['Input',['../group__Input.html',1,'']]]
 ];

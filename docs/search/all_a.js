@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['key_0',['key',['../structRGFW__event.html#a2eabcbe140b369d57a4a63d879436e44',1,'RGFW_event']]],
-  ['keychar_1',['keyChar',['../structRGFW__event.html#a5ae7c9bb8b572bef7190285ecee94dcd',1,'RGFW_event']]],
-  ['keycodes_2',['keycodes',['../structRGFW__info.html#a3def7f448491ca25ee96f1b9034e7b5c',1,'RGFW_info']]],
-  ['keymod_3',['keyMod',['../structRGFW__event.html#ab6900d12b4d0d24f0ba28c1bfa131db8',1,'RGFW_event']]]
+  ['mode_0',['mode',['../structRGFW__monitor.html#a0f7f7532843e9354590e8cb424fbf8dc',1,'RGFW_monitor']]],
+  ['monitor_1',['monitor',['../structRGFW__debugContext.html#a46d5a4575b82d5984a77454432b9ef00',1,'RGFW_debugContext']]],
+  ['monitor_2',['Monitor',['../group__Monitor.html',1,'']]]
 ];

@@ -44,15 +44,6 @@ RGFW.h
 .ti -1c
 .RI "struct \fBRGFW_debugContext\fP"
 .br
-.ti -1c
-.RI "struct \fBRGFW_surface\fP"
-.br
-.ti -1c
-.RI "struct \fBRGFW_window\fP"
-.br
-.ti -1c
-.RI "struct \fBRGFW_info\fP"
-.br
 .in -1c
 .SS "Macros"
 
@@ -125,9 +116,6 @@ RGFW.h
 .br
 .ti -1c
 .RI "#define \fBRGFW_COCOA_FRAME_NAME\fP   NULL"
-.br
-.ti -1c
-.RI "#define \fBRGFW_key\fP   \fBu8\fP"
 .br
 .ti -1c
 .RI "#define \fBRGFW_MAX_PATH\fP   260 /* max length of a path (for dnd) */"
@@ -303,6 +291,9 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_usingWayland\fP (void)"
 .br
 .ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_key)"
+.br
+.ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_eventType)"
 .br
 .ti -1c
@@ -369,10 +360,10 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_rect\fP \fBRGFW_window_getRect\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_key\fP \fBRGFW_window_getExitKey\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP RGFW_key \fBRGFW_window_getExitKey\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_setExitKey\fP (\fBRGFW_window\fP *win, \fBRGFW_key\fP key)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setExitKey\fP (\fBRGFW_window\fP *win, RGFW_key key)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void * \fBRGFW_window_getUserPtr\fP (\fBRGFW_window\fP *win)"
@@ -504,6 +495,9 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_mouse\fP *mouse)"
 .br
 .ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_mouseIcons)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setMouseStandard\fP (\fBRGFW_window\fP *win, \fBu8\fP mouse)"
 .br
 .ti -1c
@@ -567,19 +561,19 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP \fBRGFW_window_getMonitor\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isPressed\fP (\fBRGFW_window\fP *win, \fBRGFW_key\fP key)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isPressed\fP (\fBRGFW_window\fP *win, RGFW_key key)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_wasPressed\fP (\fBRGFW_window\fP *win, \fBRGFW_key\fP key)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_wasPressed\fP (\fBRGFW_window\fP *win, RGFW_key key)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isHeld\fP (\fBRGFW_window\fP *win, \fBRGFW_key\fP key)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isHeld\fP (\fBRGFW_window\fP *win, RGFW_key key)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isReleased\fP (\fBRGFW_window\fP *win, \fBRGFW_key\fP key)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isReleased\fP (\fBRGFW_window\fP *win, RGFW_key key)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isClicked\fP (\fBRGFW_window\fP *win, \fBRGFW_key\fP key)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isClicked\fP (\fBRGFW_window\fP *win, RGFW_key key)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isMousePressed\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
@@ -723,9 +717,6 @@ RGFW.h
 .RI "\fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, \fBRGFW_key\fP)"
-.br
-.ti -1c
 .RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_apiKeyToRGFW\fP (\fBu32\fP keycode)"
 .br
 .ti -1c
@@ -735,19 +726,13 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBu8\fP \fBRGFW_rgfwToKeyChar\fP (\fBu32\fP keycode)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_mouseIcons)"
+.RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofInfo\fP (void)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_init\fP (void)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_deinit\fP (void)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void * \fBRGFW_init_heap\fP (void)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_deinit_heap\fP (void)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_init_ptr\fP (\fBRGFW_info\fP *info)"
@@ -791,8 +776,6 @@ RGFW.h
 .SS "#define RGFW_IMAGE(data, size, format)   (\fBRGFW_image\fP){data, size, format}"
 
 .SS "#define RGFW_INT_DEFINED"
-
-.SS "#define RGFW_key   \fBu8\fP"
 
 .SS "#define RGFW_MAX_DROPS   260 /* max items you can drop at once */"
 
@@ -844,8 +827,6 @@ basic area type, if there's not already a area type of choice
 Event structure for checking/getting events 
 .SS "typedef struct \fBRGFW_image\fP \fBRGFW_image\fP"
 
-.SS "typedef struct \fBRGFW_info\fP \fBRGFW_info\fP"
-
 .SS "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
 structure for monitor data 
 .SS "typedef struct \fBRGFW_monitorMode\fP \fBRGFW_monitorMode\fP"
@@ -878,12 +859,6 @@ basic rect type, if there's not already a rect type of choice
 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_createSurfacePtr (\fBRGFW_image\fP img, \fBRGFW_surface\fP * surface)"
 
-.SS "\fBRGFWDEF\fP void RGFW_deinit (void)"
-is called by default when the last open window is closed 
-.SS "\fBRGFWDEF\fP void RGFW_deinit_heap (void)"
-deinits the heap instance 
-.SS "\fBRGFWDEF\fP void RGFW_deinit_ptr (\fBRGFW_info\fP * info)"
-deinits RGFW instance at pointer 
 .SS "typedef RGFW_ENUM (\fBu32\fP, RGFW_windowFlags)"
 Optional arguments for making a windows < the window doesn't have a border
 .PP
@@ -909,7 +884,7 @@ the window is hidden
 .PP
 < create a floating window
 .PP
-< free (RGFW_window_close) the \fBRGFW_window\fP struct when the window is closed (by the end user)
+< free (RGFW_window_close) the RGFW_window struct when the window is closed (by the end user)
 .PP
 < focus the window when it's shown
 .PP
@@ -970,6 +945,8 @@ mouse event note the x and y of the mouse can be found in the vector, \fBRGFW_ev
 < 8-bit RGBA (4 channels)
 .PP
 < 8-bit BGRA (4 channels)
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_key)"
+key codes and mouse icon enums 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_keymod)"
 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_modeRequest)"
@@ -990,18 +967,10 @@ mouse button codes (\fBRGFW_event\&.button\fP) < left mouse button is pressed
 < mouse wheel is scrolling down
 .SS "\fBRGFWDEF\fP void RGFW_freeMouse (\fBRGFW_mouse\fP * mouse)"
 
-.SS "\fBRGFWDEF\fP \fBRGFW_info\fP * RGFW_getInfo (void)"
-
 .SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP * RGFW_getMonitors (size_t * len)"
 get an array of all the monitors (max 6) 
 .SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP RGFW_getPrimaryMonitor (void)"
 get the primary monitor 
-.SS "\fBRGFWDEF\fP \fBi32\fP RGFW_init (void)"
-optional init/deinit function is called by default when the first window is created by default 
-.SS "\fBRGFWDEF\fP void * RGFW_init_heap (void)"
-inits RGFW on the heap instead of in a global var 
-.SS "\fBRGFWDEF\fP \fBi32\fP RGFW_init_ptr (\fBRGFW_info\fP * info)"
-init RGFW, storing the data at the pointer 
 .SS "\fBRGFWDEF\fP \fBRGFW_mouse\fP * RGFW_loadMouse (\fBRGFW_image\fP img)"
 frees RGFW_mouse data 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_requestMode (\fBRGFW_monitor\fP mon, \fBRGFW_monitorMode\fP mode, RGFW_modeRequest request)"
@@ -1010,8 +979,6 @@ request a specific mode
 scale monitor to window size 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitorModeCompare (\fBRGFW_monitorMode\fP mon, \fBRGFW_monitorMode\fP mon2, RGFW_modeRequest request)"
 check if 2 monitor modes are the same 
-.SS "\fBRGFWDEF\fP void RGFW_setInfo (\fBRGFW_info\fP * info)"
-
 .SS "\fBRGFWDEF\fP size_t RGFW_sizeofNativeImage (void)"
 
 .SS "\fBRGFWDEF\fP size_t RGFW_sizeofSurface (void)"
@@ -1030,18 +997,18 @@ free buffers used for software rendering within the window
 
 .SS "\fBRGFWDEF\fP void RGFW_window_blitSurface (\fBRGFW_window\fP * win, \fBRGFW_surface\fP * surface)"
 render the software rendering buffer 
-.SS "\fBRGFWDEF\fP \fBRGFW_key\fP RGFW_window_getExitKey (\fBRGFW_window\fP * win)"
-get the exit key for the window | returns \fBRGFW_window\&.exitKey\fP 
+.SS "\fBRGFWDEF\fP RGFW_key RGFW_window_getExitKey (\fBRGFW_window\fP * win)"
+get the exit key for the window | returns RGFW_window\&.exitKey 
 .SS "\fBRGFWDEF\fP \fBRGFW_rect\fP RGFW_window_getRect (\fBRGFW_window\fP * win)"
-gets the size of the window | returns \fBRGFW_window\&.r\fP 
+gets the size of the window | returns RGFW_window\&.r 
 .SS "\fBRGFWDEF\fP \fBRGFW_window_src\fP * RGFW_window_getSrc (\fBRGFW_window\fP * win)"
 returns fat pointer of window, which is sourced from the window casted to the fast pointer 
 .SS "\fBRGFWDEF\fP void * RGFW_window_getUserPtr (\fBRGFW_window\fP * win)"
-gets the userPtr of the window | returns \fBRGFW_window\&.userPtr\fP 
-.SS "\fBRGFWDEF\fP void RGFW_window_setExitKey (\fBRGFW_window\fP * win, \fBRGFW_key\fP key)"
-set the exit key for the window |edits \fBRGFW_window\&.exitKey\fP 
+gets the userPtr of the window | returns RGFW_window\&.userPtr 
+.SS "\fBRGFWDEF\fP void RGFW_window_setExitKey (\fBRGFW_window\fP * win, RGFW_key key)"
+set the exit key for the window |edits RGFW_window\&.exitKey 
 .SS "\fBRGFWDEF\fP void RGFW_window_setUserPtr (\fBRGFW_window\fP * win, void * ptr)"
-sets the userPtr of the window | writes to \fBRGFW_window\&.userPtr\fP 
+sets the userPtr of the window | writes to RGFW_window\&.userPtr 
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.

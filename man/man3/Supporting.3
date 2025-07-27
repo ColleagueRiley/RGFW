@@ -16,6 +16,13 @@ Supporting \- Supporting
 .RI "#define \fBRGFW_eventQueuePushEx\fP(eventInit)   { \fBRGFW_event\fP e; eventInit; \fBRGFW_eventQueuePush\fP(e); }"
 .br
 .in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct \fBRGFW_info\fP \fBRGFW_info\fP"
+.br
+.in -1c
 .SS "Functions"
 
 .in +1c
@@ -32,9 +39,6 @@ Supporting \- Supporting
 .RI "\fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, \fBRGFW_key\fP)"
-.br
-.ti -1c
 .RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_apiKeyToRGFW\fP (\fBu32\fP keycode)"
 .br
 .ti -1c
@@ -44,7 +48,25 @@ Supporting \- Supporting
 .RI "\fBRGFWDEF\fP \fBu8\fP \fBRGFW_rgfwToKeyChar\fP (\fBu32\fP keycode)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_mouseIcons)"
+.RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofInfo\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_init\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_deinit\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_init_ptr\fP (\fBRGFW_info\fP *info)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_deinit_ptr\fP (\fBRGFW_info\fP *info)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setInfo\fP (\fBRGFW_info\fP *info)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_info\fP * \fBRGFW_getInfo\fP (void)"
 .br
 .in -1c
 .SH "Detailed Description"
@@ -60,25 +82,39 @@ Supporting \- Supporting
 
 .SS "#define RGFW_MAX_EVENTS   32"
 change which window is the root window 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct \fBRGFW_info\fP \fBRGFW_info\fP"
+optional init/deinit function 
 .SH "Function Documentation"
 .PP 
 .SS "\fBRGFWDEF\fP \fBu32\fP RGFW_apiKeyToRGFW (\fBu32\fP keycode)"
 converts api keycode to the RGFW unmapped/physical key 
-.SS "typedef RGFW_ENUM (\fBu8\fP, \fBRGFW_key\fP)"
-key codes and mouse icon enums 
-.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_mouseIcons)"
-
+.SS "\fBRGFWDEF\fP void RGFW_deinit (void)"
+is called by default when the last open window is closed 
+.SS "\fBRGFWDEF\fP void RGFW_deinit_ptr (\fBRGFW_info\fP * info)"
+deinits RGFW instance at pointer 
 .SS "\fBRGFW_event\fP * RGFW_eventQueuePop (\fBRGFW_window\fP * win)"
 
 .SS "void RGFW_eventQueuePush (\fBRGFW_event\fP event)"
 standard event queue, used for injecting events and returning source API callback events like any other queue check 
+.SS "\fBRGFWDEF\fP \fBRGFW_info\fP * RGFW_getInfo (void)"
+
 .SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_getRootWindow (void)"
 
+.SS "\fBRGFWDEF\fP \fBi32\fP RGFW_init (void)"
+is called by default when the first window is created by default 
+.SS "\fBRGFWDEF\fP \fBi32\fP RGFW_init_ptr (\fBRGFW_info\fP * info)"
+init RGFW, storing the data at the pointer 
 .SS "\fBRGFWDEF\fP \fBu32\fP RGFW_rgfwToApiKey (\fBu32\fP keycode)"
 converts RGFW keycode to the unmapped/physical api key 
 .SS "\fBRGFWDEF\fP \fBu8\fP RGFW_rgfwToKeyChar (\fBu32\fP keycode)"
 converts RGFW keycode to the mapped keychar 
+.SS "\fBRGFWDEF\fP void RGFW_setInfo (\fBRGFW_info\fP * info)"
+
 .SS "\fBRGFWDEF\fP void RGFW_setRootWindow (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP size_t RGFW_sizeofInfo (void)"
 
 .SH "Author"
 .PP 

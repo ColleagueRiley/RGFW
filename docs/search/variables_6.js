@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['format_0',['format',['../structRGFW__image.html#a662146868fa2e87eeb15046badaa0f9c',1,'RGFW_image']]]
+  ['h_0',['h',['../structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d',1,'RGFW_rect::h()'],['../structRGFW__area.html#acfd12a462e305d195296ce2b13f32007',1,'RGFW_area::h()']]]
 ];

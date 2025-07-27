@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['classname_0',['className',['../structRGFW__info.html#a9bde6dcf7001a3d9d87f774002f1dc48',1,'RGFW_info']]],
-  ['clipboard_5fdata_1',['clipboard_data',['../structRGFW__info.html#a233476d296a61015ef988ea2f1306245',1,'RGFW_info']]],
-  ['current_2',['current',['../structRGFW__info.html#a5d97f0858a38985cd875d165f802cc17',1,'RGFW_info']]]
+  ['data_0',['data',['../structRGFW__image.html#a16af3c17fe443b5c246bdf70f9c030eb',1,'RGFW_image']]],
+  ['droppedfiles_1',['droppedFiles',['../structRGFW__event.html#af29ce01704933b5865407225802c841f',1,'RGFW_event']]],
+  ['droppedfilescount_2',['droppedFilesCount',['../structRGFW__event.html#a5046663caad1f8af75d2cb4bc9a311fc',1,'RGFW_event']]]
 ];
