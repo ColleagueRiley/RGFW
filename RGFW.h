@@ -3018,12 +3018,10 @@ RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) {
 		RGFW_GL_ADD_ATTRIB(EGL_RED_SIZE, RGFW_GL_HINTS[RGFW_glRed]);
 		RGFW_GL_ADD_ATTRIB(EGL_GREEN_SIZE, RGFW_GL_HINTS[RGFW_glBlue]);
 		RGFW_GL_ADD_ATTRIB(EGL_BLUE_SIZE, RGFW_GL_HINTS[RGFW_glGreen]);
+
+		RGFW_GL_ADD_ATTRIB(EGL_ALPHA_SIZE, // similar to what sdl does
+			(!(win->_flags & RGFW_windowTransparent)) ? 0 : RGFW_GL_HINTS[RGFW_glAlpha]);
 		
-		if (!(win->_flags & RGFW_windowTransparent)) {
-			RGFW_setHint_OpenGL(RGFW_glAlpha, 0); // similar to what sdl does
-		}
-		
-		RGFW_GL_ADD_ATTRIB(EGL_ALPHA_SIZE, RGFW_GL_HINTS[RGFW_glAlpha]);
 		RGFW_GL_ADD_ATTRIB(EGL_DEPTH_SIZE, RGFW_GL_HINTS[RGFW_glDepth]);
 
 		if (RGFW_GL_HINTS[RGFW_glSRGB])
