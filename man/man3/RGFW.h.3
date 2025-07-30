@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Sun Jul 27 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Wed Jul 30 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -304,6 +304,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_format)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_image_copy\fP (\fBRGFW_image\fP *dest, const \fBRGFW_image\fP *src)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofNativeImage\fP (void)"
@@ -944,6 +947,10 @@ mouse event note the x and y of the mouse can be found in the vector, \fBRGFW_ev
 .PP
 < 8-bit RGBA (4 channels)
 .PP
+< 8-bit RGBA (4 channels)
+.PP
+< 8-bit BGRA (4 channels)
+.PP
 < 8-bit BGRA (4 channels)
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_key)"
 key codes and mouse icon enums 
@@ -971,6 +978,8 @@ mouse button codes (\fBRGFW_event\&.button\fP) < left mouse button is pressed
 get an array of all the monitors (max 6) 
 .SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP RGFW_getPrimaryMonitor (void)"
 get the primary monitor 
+.SS "\fBRGFWDEF\fP void RGFW_image_copy (\fBRGFW_image\fP * dest, const \fBRGFW_image\fP * src)"
+copy image two another image, respecting each image's format 
 .SS "\fBRGFWDEF\fP \fBRGFW_mouse\fP * RGFW_loadMouse (\fBRGFW_image\fP img)"
 frees RGFW_mouse data 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_requestMode (\fBRGFW_monitor\fP mon, \fBRGFW_monitorMode\fP mode, RGFW_modeRequest request)"
