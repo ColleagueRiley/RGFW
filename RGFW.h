@@ -4188,7 +4188,6 @@ RGFW_bool RGFW_FUNC(RGFW_window_checkEvent) (RGFW_window* win, RGFW_event* event
 		if (version > 5)
 			break;
 
-	        size_t i;
 		event->type = RGFW_DNDInit;
 
 		if (format) {
@@ -4636,7 +4635,6 @@ RGFW_bool RGFW_FUNC(RGFW_window_setIconEx) (RGFW_window* win, RGFW_image img, u8
 			win->src.display, win->src.window, _NET_WM_ICON, XA_CARDINAL, 32,
 			PropModeReplace, (u8*)data, count
 		);
-		return res;
 	}
 
 	RGFW_image_copy(&img2, &img);
