@@ -2352,25 +2352,28 @@ void RGFW_image_copy64(RGFW_image* dest, const RGFW_image* src, RGFW_bool is64bi
 	u32 dest_channels = (dest->format >= RGFW_formatRGBA8) ? 4 : 3;
 
     u32 pixel_count = src->size.w * src->size.h;
-    u32 data_size = pixel_count * dest_channels;
 
-    if (src->format == dest->format) {
-        RGFW_MEMCPY(dest->data, src->data, data_size);
+	if (src->format == dest->format) {
+        RGFW_MEMCPY(dest->data, src->data, pixel_count * dest_channels);
         return;
     }
 
+    const RGFW_colorLayout* src_layout  = &RGFW_layouts[src->format];
+    const RGFW_colorLayout* dest_layout = &RGFW_layouts[dest->format];
+
 	u32 i2 = 0;
 	for (u32 i = 0; i < pixel_count; i++) {
-		u8* src_px = &src->data[i * src_channels];
+		const u8* src_px = &src->data[i * src_channels];
 		u8* dst_px = &dest->data[i2 * dest_channels];
+		u8 rgba[4] = { src_px[src_layout->r], src_px[src_layout->g], src_px[src_layout->b], 255 };
+		if (src_channels == 4)
+			rgba[3] = src_px[src_layout->a];
 
-  		dst_px[RGFW_layouts[dest->format].r] = src_px[RGFW_layouts[src->format].r];
-		dst_px[RGFW_layouts[dest->format].g] = src_px[RGFW_layouts[src->format].g];
-		dst_px[RGFW_layouts[dest->format].b] = src_px[RGFW_layouts[src->format].b];
-		if (src_channels == 4 && dest_channels == 4)
-			dst_px[RGFW_layouts[dest->format].a] = src_px[RGFW_layouts[src->format].a];
-		else if (dest_channels == 4)
-			dst_px[RGFW_layouts[dest->format].a] = 255;
+        dst_px[dest_layout->r] = rgba[0];
+        dst_px[dest_layout->g] = rgba[1];
+        dst_px[dest_layout->b] = rgba[2];
+		if (dest_channels == 4)
+			dst_px[dest_layout->a] = rgba[3];
 
 		i2 += 1 + is64bit;
 	}
@@ -3540,7 +3543,6 @@ RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (RGFW_image img, RGFW_surface* surfac
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, RGFW_DEBUG_CTX(_RGFW->root, 0), "Failed to create XImage.");
 		return RGFW_FALSE;
 	}
-
 
 	surface->native.format = RGFW_formatBGRA8;
 	return RGFW_TRUE;
