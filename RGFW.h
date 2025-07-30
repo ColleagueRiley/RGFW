@@ -2565,12 +2565,16 @@ RGFW_bool RGFW_extensionSupportedStr(const char* extensions, const char* ext, si
     if (extensions == NULL || ext == NULL)
         return RGFW_FALSE;
 
+	while (ext[len - 1] == '\0' && len > 3) {
+		len--;
+	}
+
     where = RGFW_STRSTR(extensions, ext);
     while (where) {
-        terminator = where + len;
+		terminator = where + len;
         if ((where == start || *(where - 1) == ' ') &&
             (*terminator == ' ' || *terminator == '\0')) {
-            return RGFW_TRUE;
+			return RGFW_TRUE;
         }
         where = RGFW_STRSTR(terminator, ext);
     }
@@ -2881,8 +2885,8 @@ RGFW_bool RGFW_loadEGL(void) {
 		RGFW_eglDestroyContext = (PFNEGLDESTROYCONTEXTPROC) RGFW_eglGetProcAddress("eglDestroyContext");
 		RGFW_eglTerminate = (PFNEGLTERMINATEPROC) RGFW_eglGetProcAddress("eglTerminate");
 		RGFW_eglDestroySurface = (PFNEGLDESTROYSURFACEPROC) RGFW_eglGetProcAddress("eglDestroySurface");
-		RGFW_eglQueryString = (PFNEGLQUERYSTRINGPROC) RGFW_eglGetProcAddress("RGFW_eglGetCurrentContext");
-		RGFW_eglGetCurrentContext = (PFNEGLGETCURRENTCONTEXTPROC) RGFW_eglGetProcAddress("RGFW_eglGetCurrentContext");
+		RGFW_eglQueryString = (PFNEGLQUERYSTRINGPROC) RGFW_eglGetProcAddress("eglQueryString");
+		RGFW_eglGetCurrentContext = (PFNEGLGETCURRENTCONTEXTPROC) RGFW_eglGetProcAddress("eglGetCurrentContext");
 	}
 
 	return RGFW_BOOL(RGFW_eglInitialize!= NULL &&
@@ -2897,7 +2901,9 @@ RGFW_bool RGFW_loadEGL(void) {
 	            RGFW_eglBindAPI!= NULL &&
 	            RGFW_eglDestroyContext!= NULL &&
 	            RGFW_eglTerminate!= NULL &&
-	            RGFW_eglDestroySurface!= NULL);
+	            RGFW_eglDestroySurface!= NULL &&
+				RGFW_eglQueryString != NULL &&
+				RGFW_eglGetCurrentContext != NULL);
 }
 
 
@@ -3107,10 +3113,8 @@ RGFW_proc RGFW_getProcAddress_EGL(const char* procname) {
 
 RGFW_bool RGFW_extensionSupportedPlatform_EGL(const char* extension, size_t len) {
 	if (RGFW_loadEGL() == RGFW_FALSE) return RGFW_FALSE;
-
 	const char* extensions = RGFW_eglQueryString(_RGFW->root->src.ctx.EGL_display, EGL_EXTENSIONS);
-    return extensions != NULL && RGFW_extensionSupportedStr(extensions, extension, len);
-	RGFW_UNUSED(extension); RGFW_UNUSED(len); return RGFW_FALSE;
+	return extensions != NULL && RGFW_extensionSupportedStr(extensions, extension, len);
 }
 
 void RGFW_window_swapInterval_EGL(RGFW_window* win, i32 swapInterval) {

@@ -13,7 +13,7 @@ void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGF
 }
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowTransparent);
+    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), RGFW_windowUseEGL | RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowTransparent);
 
     RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want
 

@@ -22,8 +22,8 @@ int main(void) {
 
     RGFW_area bufferSize = RGFW_AREA(500, 500);
     u8* buffer = (u8*)RGFW_ALLOC(bufferSize.w * bufferSize.h * 4);
-    RGFW_image image = RGFW_IMAGE(buffer, bufferSize, RGFW_formatRGBA8);
-    RGFW_surface* surface = RGFW_createSurface(RGFW_IMAGE(buffer, bufferSize, RGFW_formatBGRA8));
+    RGFW_image image = RGFW_IMAGE(buffer, bufferSize, RGFW_formatBGRA8);
+    RGFW_surface* surface = RGFW_createSurface(image);
 
     OSMesaContext ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
     OSMesaMakeCurrent(ctx, buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
