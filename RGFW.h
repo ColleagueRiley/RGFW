@@ -8904,6 +8904,8 @@ void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 
 	id rep  = NSBitmapImageRep_initWithBitmapData(&surface->image.data, win->r.w, win->r.h , 8, (i32)depth, (depth == 4), false,
 							"NSDeviceRGBColorSpace", 1 << 1, (u32)surface->image.size.w  * (u32)depth, 8 * (u32)depth);
+	RGFW_image img2 = RGFW_IMAGE(NSBitmapImageRep_bitmapData(representation), RGFW_AREA(win->r.w, win->r.h), RGFW_formatRGBA8);
+	RGFW_image_copy(&img2, &img);
 	((void (*)(id, SEL, id))objc_msgSend)((id)image, sel_getUid("addRepresentation:"), rep);
 
 	id contentView = ((id (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_getUid("contentView"));
@@ -9660,8 +9662,8 @@ RGFW_mouse* RGFW_loadMouse(RGFW_image img) {
 
 	/* NOTE(EimaMei): Code by yours truly. */
 	/* Make a bitmap representation, then copy the loaded image into it. */
-	id representation = (id)NSBitmapImageRep_initWithBitmapData(NULL, win->r.w, win->r.h, 8, (NSInteger)4, true, false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * 4, 32);
-	RGFW_image img2 = RGFW_IMAGE(NSBitmapImageRep_bitmapData(representation), RGFW_AREA(win->r.w, win->r.h), RGFW_formatRGBA8);
+	id representation = (id)NSBitmapImageRep_initWithBitmapData(NULL, img.size.w, img.size.h, 8, (NSInteger)4, true, false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * 4, 32);
+	RGFW_image img2 = RGFW_IMAGE(NSBitmapImageRep_bitmapData(representation), img.size, RGFW_formatRGBA8);
 	RGFW_image_copy(&img2, &img);
 
 	/* Add ze representation. */
