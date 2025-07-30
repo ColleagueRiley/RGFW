@@ -9674,7 +9674,7 @@ RGFW_mouse* RGFW_loadMouse(RGFW_image img) {
 	/* NOTE(EimaMei): Code by yours truly. */
 	/* Make a bitmap representation, then copy the loaded image into it. */
 	id representation = (id)NSBitmapImageRep_initWithBitmapData(NULL, img.size.w, img.size.h, 8, (NSInteger)4, true, false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * (u32)4, 32);
-	RGFW_image img2 = RGFW_IMAGE(NSBitmapImageRep_bitmapData(representation), img->size, RGFW_formatRGBA8);
+	RGFW_image img2 = RGFW_IMAGE(NSBitmapImageRep_bitmapData(representation), img.size, RGFW_formatRGBA8);
 	RGFW_image_copy(&img2, &img);
 
 	/* Add ze representation. */
@@ -10390,7 +10390,7 @@ RGFW_bool RGFW_createSurfacePtr(RGFW_image img, RGFW_surface* surface) {
 
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	/* TODO: Needs fixing. */
-	RGFW_imag img2 = RGFW_IMAGE(surface->image.data, surface->image.size, RGFW_formatRGBA8);
+	RGFW_image img2 = RGFW_IMAGE(surface->image.data, surface->image.size, RGFW_formatRGBA8);
 	RGFW_image_copy(&img2, &surface->image);
 	EM_ASM_({
 		var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4);
