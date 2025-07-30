@@ -3037,11 +3037,15 @@ RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) {
 	#elif defined(RGFW_WINDOWS)
 		win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(win->src.ctx.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
 	#elif defined(RGFW_WAYLAND) || defined(RGFW_X11)
-
-		RGFW_bool opaque_extension_Found = RGFW_extensionSupportedPlatform_EGL("EGL_EXT_present_opaque", 23);
 		
+		const char present_opaque_str[] = "EGL_EXT_present_opaque";
+		RGFW_bool opaque_extension_Found = RGFW_extensionSupportedPlatform_EGL(present_opaque_str, sizeof(present_opaque_str));
+		
+		#ifndef EGL_PRESENT_OPAQUE_EXT
+		#define EGL_PRESENT_OPAQUE_EXT 0x31df
+		#endif
 		EGLint surf_attribs[3] = {
-			0x31df, EGL_TRUE, // EGL_PRESENT_OPAQUE_EXT
+			EGL_PRESENT_OPAQUE_EXT, EGL_TRUE,
 			EGL_NONE
 		};
 		
