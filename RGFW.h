@@ -1487,6 +1487,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 #elif defined(RGFW_MACOS)
 
 	struct RGFW_nativeImage {
+		RGFW_bool ownedByRGFW;
 		RGFW_format format;
 	};
 
@@ -1516,6 +1517,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 	#include <emscripten/key_codes.h>
 
 	struct RGFW_nativeImage  {
+		RGFW_bool ownedByRGFW;
 		RGFW_format format;
 	};
 
@@ -9638,11 +9640,10 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, RGFW_image img, u8 type) {
 		return RGFW_TRUE;
 	}
 
-    size_t depth = (img.format >= RGFW_formatRGBA8) ? 4 : 3;
-
 	/* code by EimaMei: Make a bitmap representation, then copy the loaded image into it. */
-	id representation = NSBitmapImageRep_initWithBitmapData(NULL, img.size.w, img.size.h, 8, (NSInteger)depth, (depth == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * (NSInteger)depth, 8 * (NSInteger)depth);
-	RGFW_image_copy(img, NSBitmapImageRep_bitmapData(representation));
+	id representation = NSBitmapImageRep_initWithBitmapData(NULL, img.size.w, img.size.h, 8, (NSInteger)4, true, false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * (NSInteger)4, 8 * (NSInteger)32);
+	RGFW_image img2 = RGFW_IMAGE(NSBitmapImageRep_bitmapData(representation), img->size, RGFW_formatRGBA8);
+	RGFW_image_copy(&img2, &img);
 
 	/* Add ze representation. */
 	id dock_image = ((id(*)(id, SEL, NSSize))objc_msgSend) (NSAlloc((id)objc_getClass("NSImage")), sel_registerName("initWithSize:"), ((NSSize){img.size.w, img.size.h}));
@@ -9670,11 +9671,11 @@ RGFW_mouse* RGFW_loadMouse(RGFW_image img) {
 		return NULL;
 	}
 
-    size_t depth = (img.format >= RGFW_formatRGBA8) ? 4 : 3;
 	/* NOTE(EimaMei): Code by yours truly. */
 	/* Make a bitmap representation, then copy the loaded image into it. */
-	id representation = (id)NSBitmapImageRep_initWithBitmapData(NULL, img.size.w, img.size.h, 8, (NSInteger)depth, (depth == 4), false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * (u32)depth, 8 * (u32)depth);
-	RGFW_image_copy(img, NSBitmapImageRep_bitmapData(representation));
+	id representation = (id)NSBitmapImageRep_initWithBitmapData(NULL, img.size.w, img.size.h, 8, (NSInteger)4, true, false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * (u32)4, 32);
+	RGFW_image img2 = RGFW_IMAGE(NSBitmapImageRep_bitmapData(representation), img->size, RGFW_formatRGBA8);
+	RGFW_image_copy(&img2, &img);
 
 	/* Add ze representation. */
 	id cursor_image = ((id(*)(id, SEL, NSSize))objc_msgSend) (NSAlloc((id)objc_getClass("NSImage")), sel_registerName("initWithSize:"), ((NSSize){img.size.w, img.size.h}));
@@ -10387,14 +10388,10 @@ RGFW_bool RGFW_createSurfacePtr(RGFW_image img, RGFW_surface* surface) {
 	return RGFW_TRUE;
 }
 
-void RGFW_surface_free(RGFW_surface* surface) {
-	if (surface->native.ownedByRGFW) RGFW_FREE(surface);
-}
-
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	/* TODO: Needs fixing. */
-
-	RGFW_image_copy(surface->image, surface->image.data);
+	RGFW_IMAGE(surface->image.data, surface->image.size, RGFW_formatRGBA8);
+	RGFW_image_copy(&img2, &surface->imag);
 	EM_ASM_({
 		var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4);
 		let context = document.getElementById("canvas").getContext("2d");
@@ -10402,6 +10399,10 @@ void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 		image.data.set(img.data);
 		context.putImageData(image, 0, $4 - $2);
 	}, surface->image.data, surface->image.size.w, surface->image.size.h, win->r.w, win->r.h);
+}
+
+void RGFW_surface_free(RGFW_surface* surface) {
+	if (surface->native.ownedByRGFW) RGFW_FREE(surface);
 }
 
 void EMSCRIPTEN_KEEPALIVE RGFW_makeSetValue(size_t index, char* file) {
