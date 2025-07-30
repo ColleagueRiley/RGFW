@@ -40,7 +40,7 @@ int main(void) {
     glPerspective(60, 16.0 / 9.0, 1.0, 1000);
     glMatrixMode(GL_MODELVIEW);
 
-    RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));
+    RGFW_window_holdMouse(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));
 
     RGFW_event event;
     while (RGFW_window_shouldClose(win) == 0) {
@@ -50,7 +50,7 @@ int main(void) {
 
             switch (event.type) {
                 case RGFW_focusIn:
-                    RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));
+                    RGFW_window_holdMouse(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));
                     break;
                case RGFW_mousePosChanged: {
                     int dev_x = event.vector.x;
@@ -65,12 +65,12 @@ int main(void) {
                     switch (event.key) {
                         case RGFW_return:
                             RGFW_window_showMouse(win, 0);
-                            RGFW_window_mouseHold(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));
+                            RGFW_window_holdMouse(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));
                             break;
 
                         case RGFW_backSpace:
                             RGFW_window_showMouse(win, 1);
-                            RGFW_window_mouseUnhold(win);
+                            RGFW_window_unholdMouse(win);
                             break;
 
                         case RGFW_left:
