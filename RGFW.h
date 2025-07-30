@@ -2091,10 +2091,9 @@ RGFW_bool RGFW_window_checkEventCore(RGFW_window* win, RGFW_event* event);
 RGFW_bool RGFW_window_checkEventCore(RGFW_window* win, RGFW_event* event) {
 	RGFW_event* ev;
     RGFW_ASSERT(win != NULL);
-    if (event->type == 0 && _RGFW->eventLen == 0)
+    if (event->type == 0 && _RGFW->eventLen == 0) {
 		RGFW_resetKeyPrev();
-
-	event->droppedFiles = _RGFW->droppedFiles;
+	}
 
 	if (event->type == RGFW_quit && win->_flags & RGFW_windowFreeOnClose) {
         RGFW_window_close(win);
@@ -4190,12 +4189,6 @@ RGFW_bool RGFW_FUNC(RGFW_window_checkEvent) (RGFW_window* win, RGFW_event* event
 			break;
 
 	        size_t i;
-		for (i = 0; i < event->droppedFilesCount; i++)
-			event->droppedFiles[i][0] = '\0';
-
-		event->droppedFilesCount = 0;
-
-
 		event->type = RGFW_DNDInit;
 
 		if (format) {
@@ -4240,6 +4233,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_checkEvent) (RGFW_window* win, RGFW_event* event
 
 		char* line;
 
+		event->droppedFiles = _RGFW->droppedFiles;
 		event->droppedFilesCount = 0;
 		event->type = RGFW_DND;
 
@@ -7497,43 +7491,6 @@ RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
     if (win == NULL || ((win->_flags & RGFW_windowFreeOnClose) && (win->_flags & RGFW_EVENT_QUIT))) return RGFW_FALSE;
     if (RGFW_window_checkEventCore(win, event)) return RGFW_TRUE;
 
-    static HDROP drop;
-	if (event->type == RGFW_DNDInit) {
-		if (event->droppedFilesCount) {
-			u32 i;
-			for (i = 0; i < event->droppedFilesCount; i++)
-				event->droppedFiles[i][0] = '\0';
-		}
-
-		event->droppedFilesCount = 0;
-		event->droppedFilesCount = DragQueryFileW(drop, 0xffffffff, NULL, 0);
-
-		u32 i;
-		for (i = 0; i < event->droppedFilesCount; i++) {
-			UINT length = DragQueryFileW(drop, i, NULL, 0);
-			if (length == 0)
-				continue;
-
-			WCHAR buffer[RGFW_MAX_PATH * 2];
-			if (length > (RGFW_MAX_PATH * 2) - 1)
-				length = RGFW_MAX_PATH * 2;
-
-			DragQueryFileW(drop, i, buffer, length + 1);
-
-			char* str = RGFW_createUTF8FromWideStringWin32(buffer);
-			if (str != NULL)
-				RGFW_MEMCPY(event->droppedFiles[i], str, length + 1);
-
-			event->droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
-		}
-
-		DragFinish(drop);
-		RGFW_dndCallback(win, event->droppedFiles, event->droppedFilesCount);
-
-		event->type = RGFW_DND;
-		return RGFW_TRUE;
-	}
-
 	static BYTE keyboardState[256];
 	GetKeyboardState(keyboardState);
 
@@ -7726,7 +7683,7 @@ RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
 		case WM_DROPFILES: {
 			event->type = RGFW_DNDInit;
 
-			drop = (HDROP) msg.wParam;
+			HDROP drop = (HDROP) msg.wParam;
 			POINT pt;
 
 			/* Move the mouse to the position of the drop */
@@ -7736,6 +7693,41 @@ RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
 			event->point.y = pt.y;
 
 			RGFW_dndInitCallback(win, event->point);
+
+			{
+				RGFW_event ev;
+				ev.droppedFiles = _RGFW->droppedFiles;
+				ev.droppedFilesCount = 0;
+				ev.droppedFilesCount = DragQueryFileW(drop, 0xffffffff, NULL, 0);
+
+				u32 i;
+				for (i = 0; i < ev.droppedFilesCount; i++) {
+					UINT length = DragQueryFileW(drop, i, NULL, 0);
+					if (length == 0)
+						continue;
+
+					WCHAR buffer[RGFW_MAX_PATH * 2];
+					if (length > (RGFW_MAX_PATH * 2) - 1)
+						length = RGFW_MAX_PATH * 2;
+
+					DragQueryFileW(drop, i, buffer, length + 1);
+
+					char* str = RGFW_createUTF8FromWideStringWin32(buffer);
+					if (str != NULL)
+						RGFW_MEMCPY(ev.droppedFiles[i], str, length + 1);
+
+					ev.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
+					ev._win = win;
+					RGFW_eventQueuePush(ev);
+				}
+
+				DragFinish(drop);
+				RGFW_dndCallback(win, ev.droppedFiles, ev.droppedFilesCount);
+
+				ev.type = RGFW_DND;
+				return RGFW_TRUE;
+			}
+
 		}
 			break;
 		default:
