@@ -108,6 +108,14 @@ Release:    RGFW 1.7.5-dev
 - rename OpenGLIsSoftware to isSoftware_OpenGL
 - add `RGFW_WEBGPU` for Linux, MacOS, Windows AND Web
 - refactor wayland+x11 backend to use function points (when wayland and x11 are used toghther)
+- fix drag and drop and image copy bug
+- make `RGFW_image_copy` a public function
+- add `RGFW_formatARGB8` and `RGFW_formatRGBA8`
+- fix inconsistent mouse function naming
+- `RGFW_window_mouseHold` -> `RGFW_window_holdMouse`, `RGFW_window_mouseUnhold` -> `RGFW_window_unholdMouse`
+- `RGFW_getGlobalMousePoint` -> RGFW_getMousePoint`
+- `RGFW_window_mouseHidden` -> `RGFW_window_isMouseHidden`
+- fix EGL and OpenGL extension checking
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------

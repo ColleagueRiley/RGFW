@@ -121,7 +121,7 @@ Window_management \- Window_management
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_icon)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setIconEx\fP (\fBRGFW_window\fP *win, \fBRGFW_image\fP img, \fBu8\fP type)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setIconEx\fP (\fBRGFW_window\fP *win, \fBRGFW_image\fP img, RGFW_icon type)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_mouse\fP *mouse)"
@@ -130,19 +130,19 @@ Window_management \- Window_management
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_mouseIcons)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setMouseStandard\fP (\fBRGFW_window\fP *win, \fBu8\fP mouse)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setMouseStandard\fP (\fBRGFW_window\fP *win, RGFW_mouseIcons mouse)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setMouseDefault\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_mouseHold\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP area)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_holdMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP area)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_mouseHeld\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMouseHeld\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_mouseUnhold\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_unholdMouse\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_hide\fP (\fBRGFW_window\fP *win)"
@@ -154,7 +154,7 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setShouldClose\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP shouldClose)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_getGlobalMousePoint\fP (void)"
+.RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_getMousePoint\fP (void)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_window_getMousePoint\fP (\fBRGFW_window\fP *win)"
@@ -163,7 +163,7 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_showMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP show)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_mouseHidden\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMouseHidden\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_moveMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_point\fP v)"
@@ -206,7 +206,7 @@ for RGFW_window_eventWait and RGFW_window_checkEvents waitMS -> Allows the funct
 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_mouseIcons)"
 
-.SS "\fBRGFWDEF\fP \fBRGFW_point\fP RGFW_getGlobalMousePoint (void)"
+.SS "\fBRGFWDEF\fP \fBRGFW_point\fP RGFW_getMousePoint (void)"
 where the mouse is on the screen 
 .SS "\fBRGFWDEF\fP \fBRGFW_area\fP RGFW_getScreenSize (void)"
 get the size of the screen to an area struct 
@@ -244,6 +244,8 @@ sets the focus to this window
 where the mouse is on the window 
 .SS "\fBRGFWDEF\fP void RGFW_window_hide (\fBRGFW_window\fP * win)"
 hide the window 
+.SS "\fBRGFWDEF\fP void RGFW_window_holdMouse (\fBRGFW_window\fP * win, \fBRGFW_area\fP area)"
+
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isFloating (\fBRGFW_window\fP * win)"
 if the window is floating 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isFullscreen (\fBRGFW_window\fP * win)"
@@ -256,18 +258,14 @@ checks the focus to this window
 if the window is maximized 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMinimized (\fBRGFW_window\fP * win)"
 if the window is minimized 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMouseHeld (\fBRGFW_window\fP * win)"
+if the mouse is held by RGFW 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMouseHidden (\fBRGFW_window\fP * win)"
+if the mouse is hidden 
 .SS "\fBRGFWDEF\fP void RGFW_window_maximize (\fBRGFW_window\fP * win)"
 maximize the window 
 .SS "\fBRGFWDEF\fP void RGFW_window_minimize (\fBRGFW_window\fP * win)"
 minimize the window (in taskbar (per OS)) 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_mouseHeld (\fBRGFW_window\fP * win)"
-if the mouse is held by RGFW 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_mouseHidden (\fBRGFW_window\fP * win)"
-if the mouse is hidden 
-.SS "\fBRGFWDEF\fP void RGFW_window_mouseHold (\fBRGFW_window\fP * win, \fBRGFW_area\fP area)"
-
-.SS "\fBRGFWDEF\fP void RGFW_window_mouseUnhold (\fBRGFW_window\fP * win)"
-stop holding the mouse and let it move freely 
 .SS "\fBRGFWDEF\fP void RGFW_window_move (\fBRGFW_window\fP * win, \fBRGFW_point\fP v)"
 move a window to a given point 
 .PP
@@ -319,7 +317,7 @@ image MAY be resized by default, set both the taskbar and window icon
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setIconEx (\fBRGFW_window\fP * win, \fBRGFW_image\fP img, \fBu8\fP type)"
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setIconEx (\fBRGFW_window\fP * win, \fBRGFW_image\fP img, RGFW_icon type)"
 sets mouse to RGFW_mouse icon (loaded from a bitmap struct) 
 .SS "\fBRGFWDEF\fP void RGFW_window_setMaxSize (\fBRGFW_window\fP * win, \fBRGFW_area\fP a)"
 set the maximum dimensions of a window 
@@ -331,7 +329,7 @@ set the minimum dimensions of a window
 sets the mouse to the default mouse icon 
 .SS "\fBRGFWDEF\fP void RGFW_window_setMousePassthrough (\fBRGFW_window\fP * win, \fBRGFW_bool\fP passthrough)"
 turn on / off mouse passthrough 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setMouseStandard (\fBRGFW_window\fP * win, \fBu8\fP mouse)"
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setMouseStandard (\fBRGFW_window\fP * win, RGFW_mouseIcons mouse)"
 sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the RGFW_HEADER part of this file) 
 .SS "\fBRGFWDEF\fP void RGFW_window_setName (\fBRGFW_window\fP * win, const char * name)"
 rename window to a given string 
@@ -345,6 +343,8 @@ if the window should close (RGFW_close was sent or escape was pressed)
 show the window 
 .SS "\fBRGFWDEF\fP void RGFW_window_showMouse (\fBRGFW_window\fP * win, \fBRGFW_bool\fP show)"
 show the mouse or hide the mouse 
+.SS "\fBRGFWDEF\fP void RGFW_window_unholdMouse (\fBRGFW_window\fP * win)"
+stop holding the mouse and let it move freely 
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.

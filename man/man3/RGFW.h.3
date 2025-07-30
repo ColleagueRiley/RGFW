@@ -492,7 +492,7 @@ RGFW.h
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_icon)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setIconEx\fP (\fBRGFW_window\fP *win, \fBRGFW_image\fP img, \fBu8\fP type)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setIconEx\fP (\fBRGFW_window\fP *win, \fBRGFW_image\fP img, RGFW_icon type)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_mouse\fP *mouse)"
@@ -501,19 +501,19 @@ RGFW.h
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_mouseIcons)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setMouseStandard\fP (\fBRGFW_window\fP *win, \fBu8\fP mouse)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setMouseStandard\fP (\fBRGFW_window\fP *win, RGFW_mouseIcons mouse)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setMouseDefault\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_mouseHold\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP area)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_holdMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_area\fP area)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_mouseHeld\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMouseHeld\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_mouseUnhold\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_unholdMouse\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_hide\fP (\fBRGFW_window\fP *win)"
@@ -525,7 +525,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setShouldClose\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP shouldClose)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_getGlobalMousePoint\fP (void)"
+.RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_getMousePoint\fP (void)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_point\fP \fBRGFW_window_getMousePoint\fP (\fBRGFW_window\fP *win)"
@@ -534,7 +534,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_showMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP show)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_mouseHidden\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMouseHidden\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_moveMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_point\fP v)"
@@ -869,7 +869,7 @@ Optional arguments for making a windows < the window doesn't have a border
 .PP
 < the window supports drag and drop
 .PP
-the window should hide the mouse (can be toggled later on using \fCRGFW_window_mouseShow\fP)
+the window should hide the mouse (can be toggled later on using \fCRGFW_window_showMouse\fP)
 .PP
 < the window is fullscreen by default
 .PP

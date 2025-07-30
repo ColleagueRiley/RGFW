@@ -35,8 +35,8 @@ int main(void) {
                         RGFW_window_setDND(win, !RGFW_window_allowsDND(win));
                         break;
                     case RGFW_t:
-                        printf("Mouse shown: %s\n", !RGFW_window_mouseHidden(win) ? "true" : "false");
-                        RGFW_window_showMouse(win, RGFW_window_mouseHidden(win));
+                        printf("Mouse shown: %s\n", !RGFW_window_isMouseHidden(win) ? "true" : "false");
+                        RGFW_window_showMouse(win, RGFW_window_isMouseHidden(win));
                         break;
                     case RGFW_m:
                         printf("Maximized: %s\n", RGFW_window_isMaximized(win) ? "true" : "false");
