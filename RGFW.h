@@ -2922,7 +2922,7 @@ RGFW_bool RGFW_loadEGL(void) {
 			_RGFW->EGL_display = RGFW_eglGetDisplay(EGL_DEFAULT_DISPLAY);
 		#elif defined(RGFW_WAYLAND)
 		if (_RGFW->useWaylandBool)
-			_RGFW->win->src.ctx.EGL_display = RGFW_eglGetDisplay((EGLNativeDisplayType) _RGFW->wl_display);
+			_RGFW->EGL_display = RGFW_eglGetDisplay((EGLNativeDisplayType) _RGFW->wl_display);
 		else
 		#endif
 		#ifdef RGFW_X11
