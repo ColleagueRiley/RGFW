@@ -2333,7 +2333,7 @@ RGFW_nativeImage* RGFW_surface_getNativeImage(RGFW_surface* surface) {
 	return &surface->native;
 }
 
-typedef struct RGFW_colorLayout {  size_t r, g, b, a; } RGFW_colorLayout;
+typedef struct RGFW_colorLayout {  i32 r, g, b, a; } RGFW_colorLayout;
 RGFW_colorLayout RGFW_layouts[RGFW_formatCount] = {
 	{ 0, 1, 2, 3 }, /* RGFW_formatRGB8 */
 	{ 2, 1, 0, 3 }, /* RGFW_formatBGR8 */
@@ -2355,7 +2355,7 @@ void RGFW_image_copy64(RGFW_image* dest, const RGFW_image* src, RGFW_bool is64bi
     u32 data_size = pixel_count * dest_channels;
 
     if (src->format == dest->format) {
-        memcpy(dest->data, src->data, data_size);
+        RGFW_MEMCPY(dest->data, src->data, data_size);
         return;
     }
 
@@ -3528,7 +3528,6 @@ RGFW_format RGFW_XImage_getFormat(XImage* image) {
 RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (RGFW_image img, RGFW_surface* surface) {
 	RGFW_ASSERT(surface != NULL);
 	surface->image = img;
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoBuffer, RGFW_DEBUG_CTX(_RGFW->root, 0), "Creating a 4 channel buffer");
 
 	surface->native.bitmap = XCreateImage(
 		_RGFW->display, _RGFW->root->src.visual.visual, (u32)_RGFW->root->src.visual.depth,
@@ -3541,13 +3540,16 @@ RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (RGFW_image img, RGFW_surface* surfac
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, RGFW_DEBUG_CTX(_RGFW->root, 0), "Failed to create XImage.");
 		return RGFW_FALSE;
 	}
+
+
+	surface->native.format = RGFW_formatBGRA8;
 	return RGFW_TRUE;
 }
 
 void RGFW_FUNC(RGFW_window_blitSurface) (RGFW_window* win, RGFW_surface* surface) {
 	RGFW_ASSERT(surface != NULL);
 	surface->native.bitmap->data = (char*) surface->image.data;
-	RGFW_image image = RGFW_IMAGE((u8*)surface->native.bitmap->data, surface->image.size, surface->native.format);
+	RGFW_image image = RGFW_IMAGE((u8*)surface->native.bitmap->data, RGFW_AREA(win->r.w, win->r.h), surface->native.format);
 
 	RGFW_image_copy(&image, &surface->image);
 
@@ -5850,8 +5852,7 @@ RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (RGFW_image img, RGFW_surface* surfac
 	surface->image = img;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoBuffer, RGFW_DEBUG_CTX(_RGFW->root, 0), "Creating a 4 channel buffer");
 
-    u32 depth = (surface->image.format >= RGFW_formatRGBA8) ? 4 : 3;
-	u32 size = (u32)(surface->image.size.w * surface->image.size.h * depth);
+	u32 size = (u32)(surface->image.size.w * surface->image.size.h * 4);
 	int fd = RGFW_wl_create_shm_file(size);
 	if (fd < 0) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, RGFW_DEBUG_CTX(_RGFW->root, (u32)fd), "Failed to create a buffer.");
@@ -5865,13 +5866,12 @@ RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (RGFW_image img, RGFW_surface* surfac
 	}
 
 	struct wl_shm_pool* pool = wl_shm_create_pool(_RGFW->root->src.shm, fd, (i32)size);
-	surface->native.wl_buffer = wl_shm_pool_create_buffer(pool, 0, (i32)surface->image.size.w, (i32)surface->image.size.h, (i32)surface->image.size.w * (i32)depth,
-		WL_SHM_FORMAT_ARGB8888);
+	surface->native.wl_buffer = wl_shm_pool_create_buffer(pool, 0, (i32)surface->image.size.w, (i32)surface->image.size.h, (i32)surface->image.size.w * 4, WL_SHM_FORMAT_ARGB8888);
 	wl_shm_pool_destroy(pool);
 
 	close(fd);
 
-	RGFW_MEMCPY(surface->native.buffer, surface->image.data, (size_t)(surface->image.size.w * surface->image.size.h * depth));
+	surface->native.format = RGFW_formatBGRA8;
 	return RGFW_TRUE;
 }
 
@@ -5885,21 +5885,8 @@ void RGFW_FUNC(RGFW_surface_free) (RGFW_surface* surface) {
 
 void RGFW_FUNC(RGFW_window_blitSurface) (RGFW_window* win, RGFW_surface* surface) {
 	RGFW_ASSERT(surface != NULL);
-	u32 y, x;
-	for (y = 0; y < (u32)win->r.h; y++) {
-		for (x = 0; x < (u32)win->r.w; x++) {
-			u32 index = (y * 4 * (u32)win->r.w) + x * 4;
-			u32 index2 = (y * 4 * surface->image.size.w) + x * 4;
-
-			u8 r = surface->image.data[index2];
-			surface->image.data[index2] =  surface->image.data[index2 + 2];
-			surface->image.data[index2 + 1] =  surface->image.data[index2 + 1];
-			surface->image.data[index2 + 2] =  r;
-			surface->image.data[index2 + 3] =  surface->image.data[index + 3];
-
-			RGFW_MEMCPY(&surface->native.buffer[index], &surface->image.data[index2], 4);
-		}
-	}
+	RGFW_image img2 = RGFW_IMAGE(surface->native.buffer, RGFW_AREA(win->r.w, win->r.h), surface->native.format);
+	RGFW_image_copy(&img2, &surface->image);
 
 	wl_surface_attach(win->src.surface, surface->native.wl_buffer, 0, 0);
 	wl_surface_damage(win->src.surface, 0, 0, win->r.w, win->r.h);
@@ -7039,7 +7026,7 @@ void RGFW_surface_free(RGFW_surface* surface) {
 }
 
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
-	RGFW_image img2 = RGFW_IMAGE(surface->native.bitmapBits, surface->image.size, surface->native.format);
+	RGFW_image img2 = RGFW_IMAGE(surface->native.bitmapBits, RGFW_AREA(win->r.w, win->r.h), surface->native.format);
 	RGFW_image_copy(&img2, &surface->image);
 	BitBlt(win->src.hdc, 0, 0, win->r.w, win->r.h, surface->native.hdcMem, 0, 0, SRCCOPY);
 }
@@ -9673,8 +9660,8 @@ RGFW_mouse* RGFW_loadMouse(RGFW_image img) {
 
 	/* NOTE(EimaMei): Code by yours truly. */
 	/* Make a bitmap representation, then copy the loaded image into it. */
-	id representation = (id)NSBitmapImageRep_initWithBitmapData(NULL, img.size.w, img.size.h, 8, (NSInteger)4, true, false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * 4, 32);
-	RGFW_image img2 = RGFW_IMAGE(NSBitmapImageRep_bitmapData(representation), img.size, RGFW_formatRGBA8);
+	id representation = (id)NSBitmapImageRep_initWithBitmapData(NULL, win->r.w, win->r.h, 8, (NSInteger)4, true, false, "NSCalibratedRGBColorSpace", 1 << 1, img.size.w * 4, 32);
+	RGFW_image img2 = RGFW_IMAGE(NSBitmapImageRep_bitmapData(representation), RGFW_AREA(win->r.w, win->r.h), RGFW_formatRGBA8);
 	RGFW_image_copy(&img2, &img);
 
 	/* Add ze representation. */
@@ -10390,7 +10377,7 @@ RGFW_bool RGFW_createSurfacePtr(RGFW_image img, RGFW_surface* surface) {
 
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	/* TODO: Needs fixing. */
-	RGFW_image img2 = RGFW_IMAGE(surface->image.data, surface->image.size, RGFW_formatRGBA8);
+	RGFW_image img2 = RGFW_IMAGE(surface->image.data, RGFW_AREA(win->r.w, win->r.h), RGFW_formatRGBA8);
 	RGFW_image_copy(&img2, &surface->image);
 	EM_ASM_({
 		var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4);
