@@ -2562,8 +2562,9 @@ RGFW_bool RGFW_extensionSupportedStr(const char* extensions, const char* ext, si
     const char *where;
     const char* terminator;
 
-    if (extensions == NULL || ext == NULL)
+    if (extensions == NULL || ext == NULL) {
         return RGFW_FALSE;
+	}
 
 	while (ext[len - 1] == '\0' && len > 3) {
 		len--;
