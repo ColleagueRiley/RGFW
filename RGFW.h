@@ -3036,34 +3036,27 @@ RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) {
 		win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(win->src.ctx.EGL_display, config, (EGLNativeWindowType) layer, NULL);
 	#elif defined(RGFW_WINDOWS)
 		win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(win->src.ctx.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
-	#elif defined(RGFW_WAYLAND)
-		
-		if (_RGFW->useWaylandBool) {
-		
-			RGFW_bool opaque_extension_Found = RGFW_extensionSupportedPlatform_EGL("EGL_EXT_present_opaque", 23);
-			
-			EGLint surf_attribs[3] = {
-				0x31df, EGL_TRUE, // EGL_PRESENT_OPAQUE_EXT
-				EGL_NONE
-			};
-		
-			win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(win->src.ctx.EGL_display, config, 
-				(EGLNativeWindowType) win->src.ctx.eglWindow, (!(win->_flags & RGFW_windowTransparent) && opaque_extension_Found) ? surf_attribs : NULL);
-		} else
-    #endif
-    #ifdef RGFW_X11
-    
+	#elif defined(RGFW_WAYLAND) || defined(RGFW_X11)
+
 		RGFW_bool opaque_extension_Found = RGFW_extensionSupportedPlatform_EGL("EGL_EXT_present_opaque", 23);
-			
+		
 		EGLint surf_attribs[3] = {
 			0x31df, EGL_TRUE, // EGL_PRESENT_OPAQUE_EXT
 			EGL_NONE
 		};
 		
-        win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(win->src.ctx.EGL_display, config, 
-			(EGLNativeWindowType) win->src.window, (!(win->_flags & RGFW_windowTransparent) && opaque_extension_Found) ? surf_attribs : NULL);
-    #else
-    {}
+		#if defined(RGFW_WAYLAND)
+		if (_RGFW->useWaylandBool) {
+			win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(win->src.ctx.EGL_display, config, 
+				(EGLNativeWindowType) win->src.ctx.eglWindow, (!(win->_flags & RGFW_windowTransparent) && opaque_extension_Found) ? surf_attribs : NULL);
+		} else
+		#endif
+		#ifdef RGFW_X11
+			win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(win->src.ctx.EGL_display, config, 
+				(EGLNativeWindowType) win->src.window, (!(win->_flags & RGFW_windowTransparent) && opaque_extension_Found) ? surf_attribs : NULL);
+		#else
+		{}
+		#endif
     #endif
     #if !defined(RGFW_X11) && !defined(RGFW_WAYLAND) && !defined(RGFW_MACOS)
 		win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(win->src.ctx.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
