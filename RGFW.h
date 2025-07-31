@@ -3036,31 +3036,29 @@ RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) {
 		win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(win->src.ctx.EGL_display, config, (EGLNativeWindowType) layer, NULL);
 	#elif defined(RGFW_WINDOWS)
 		win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(win->src.ctx.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
-	#elif defined(RGFW_WAYLAND) || defined(RGFW_X11)
-		
+	#elif defined(RGFW_WAYLAND)
+	
 		const char present_opaque_str[] = "EGL_EXT_present_opaque";
 		RGFW_bool opaque_extension_Found = RGFW_extensionSupportedPlatform_EGL(present_opaque_str, sizeof(present_opaque_str));
 		
 		#ifndef EGL_PRESENT_OPAQUE_EXT
 		#define EGL_PRESENT_OPAQUE_EXT 0x31df
 		#endif
+		
 		EGLint surf_attribs[3] = {
 			EGL_PRESENT_OPAQUE_EXT, EGL_TRUE,
 			EGL_NONE
 		};
 		
-		#if defined(RGFW_WAYLAND)
-		if (_RGFW->useWaylandBool) {
+		if (_RGFW->useWaylandBool)
 			win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(win->src.ctx.EGL_display, config, 
 				(EGLNativeWindowType) win->src.ctx.eglWindow, (!(win->_flags & RGFW_windowTransparent) && opaque_extension_Found) ? surf_attribs : NULL);
-		} else
-		#endif
-		#ifdef RGFW_X11
-			win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(win->src.ctx.EGL_display, config, 
-				(EGLNativeWindowType) win->src.window, (!(win->_flags & RGFW_windowTransparent) && opaque_extension_Found) ? surf_attribs : NULL);
-		#else
-		{}
-		#endif
+		else
+    #endif
+    #ifdef RGFW_X11
+            win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(win->src.ctx.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
+    #else
+    {}
     #endif
     #if !defined(RGFW_X11) && !defined(RGFW_WAYLAND) && !defined(RGFW_MACOS)
 		win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(win->src.ctx.EGL_display, config, (EGLNativeWindowType) win->src.window, NULL);
