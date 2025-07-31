@@ -1,4 +1,4 @@
-# Riley's Graphics library FrameWork
+# Riley's Gangster Framework for Windowing
 ![THE RGFW Logo](https://github.com/ColleagueRiley/RGFW/blob/main/logo.png?raw=true)
 
 ## Build statuses
