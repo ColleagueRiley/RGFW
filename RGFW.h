@@ -227,7 +227,6 @@ int main() {
 		#define RGFW_UNIX
 		#ifdef RGFW_OPENGL
 			#define RGFW_EGL
-			#define RGFW_OPENGL
 		#endif
 #endif
 #if (!defined(RGFW_WAYLAND) && !defined(RGFW_X11)) && (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  && !defined(RGFW_WASM)  && !defined(RGFW_CUSTOM_BACKEND)
@@ -7131,6 +7130,8 @@ void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 	SetPixelFormat(dummy_dc, dummy_pixel_format, &pfd);
 
 	HGLRC dummy_context = wglCreateContext(dummy_dc);
+
+	HGLRC cur = wglGetCurrentContext();
 	wglMakeCurrent(dummy_dc, dummy_context);
 
 	wglCreateContextAttribsARB = ((PFNWGLCREATECONTEXTATTRIBSARBPROC(WINAPI *)(const char*)) wglGetProcAddress)("wglCreateContextAttribsARB");
@@ -7141,7 +7142,7 @@ void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
         RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, RGFW_DEBUG_CTX(_RGFW->root, 0), "Failed to load swap interval function");
     }
 
-	wglMakeCurrent(dummy_dc, 0);
+	wglMakeCurrent(dummy_dc, cur);
 	wglDeleteContext(dummy_context);
 	ReleaseDC(dummyWin, dummy_dc);
 #else
@@ -7223,11 +7224,12 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 
 	ReleaseDC(win->src.window, win->src.hdc);
 	win->src.hdc = GetDC(win->src.window);
-	wglMakeCurrent(win->src.hdc, win->src.ctx.ctx);
 
 	if (RGFW_GL_HINTS[RGFW_glShareWithCurrentContext]) {
 		wglShareLists((HGLRC)RGFW_getCurrentContext_OpenGL(), win->src.ctx.ctx);
 	}
+
+	wglMakeCurrent(win->src.hdc, win->src.ctx.ctx);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
 	return &win->src.ctx;
 }
@@ -10422,7 +10424,7 @@ void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 		var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4);
 		let context = document.getElementById("canvas").getContext("2d");
 		let image = context.getImageData(0, 0, $1, $2);
-		image.data.set(img.data);
+		image.data.set(data);
 		context.putImageData(image, 0, $4 - $2);
 	}, surface->image.data, surface->image.size.w, surface->image.size.h, win->r.w, win->r.h);
 }
