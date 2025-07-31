@@ -7585,11 +7585,12 @@ RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
 
 			RGFW_keyboard[event->key].prev = RGFW_keyboard[event->key].current;
 			event->type = RGFW_keyReleased;
+			event->repeat = RGFW_isPressed(win, event->key);
 			RGFW_keyboard[event->key].current = 0;
 
 			RGFW_updateKeyMods(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001), (GetKeyState(VK_SCROLL) & 0x0001));
 
-			RGFW_keyCallback(win, event->key, event->keyChar, RGFW_isHeld(RGFW_key_win, (u8)RGFWkey), win->_keyMod, 0);
+			RGFW_keyCallback(win, event->key, event->keyChar, event->repeat, win->_keyMod, 0);
 			break;
 		}
 		case WM_SYSKEYDOWN: case WM_KEYDOWN: {
@@ -7621,7 +7622,7 @@ RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
 			RGFW_keyboard[event->key].current = 1;
 			RGFW_updateKeyMods(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001), (GetKeyState(VK_SCROLL) & 0x0001));
 
-			RGFW_keyCallback(win, event->key, event->keyChar, win->_keyMod,  RGFW_isHeld(RGFW_key_win, (u8)RGFWkey), 1);
+			RGFW_keyCallback(win, event->key, event->keyChar, win->_keyMod, event->repeat, 1);
 			break;
 		}
 		case WM_MOUSEMOVE: {
@@ -9402,7 +9403,7 @@ RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
 			event->repeat = RGFW_isPressed(win, event->key);
 			RGFW_keyboard[event->key].current = 1;
 
-			RGFW_keyCallback(win, event->key, event->keyChar, win->_keyMod,  RGFW_isHeld(RGFW_key_win, (u8)RGFWkey), 1);
+			RGFW_keyCallback(win, event->key, event->keyChar, win->_keyMod, event->repeat, 1);
 			break;
 		}
 
@@ -9419,9 +9420,10 @@ RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
 			RGFW_keyboard[event->key].prev = RGFW_keyboard[event->key].current;
 
 			event->type = RGFW_keyReleased;
+			event->repeat = RGFW_isHeld(win, (u8)RGFWkey);
 
 			RGFW_keyboard[event->key].current = 0;
-			RGFW_keyCallback(win, event->key, event->keyChar, win->_keyMod,  RGFW_isHeld(RGFW_key_win, (u8)RGFWkey), 0);
+			RGFW_keyCallback(win, event->key, event->keyChar, win->_keyMod,  event->repeat, 0);
 			break;
 		}
 
@@ -9460,8 +9462,8 @@ RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
 					break;
 				}
 			}
-
-			RGFW_keyCallback(win, event->key, event->keyChar, win->_keyMod,  RGFW_isHeld(RGFW_key_win, (u8)RGFWkey), event->type == RGFW_keyPressed);
+			event->repeat = RGFW_isHeld(win, (u8)RGFWkey);
+			RGFW_keyCallback(win, event->key, event->keyChar, win->_keyMod,  event->repeat, event->type == RGFW_keyPressed);
 
 			break;
 		}
@@ -10406,12 +10408,13 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool p
 										e.key = (u8)physicalKey;
 										e.keyChar = (u8)mappedKey;
 										e.keyMod = _RGFW->root->_keyMod;
+										e.repeat =  RGFW_isHeld(_RGFW->root, (u8)RGFWkey);
 										e._win = _RGFW->root);
 
 	RGFW_keyboard[physicalKey].prev = RGFW_keyboard[physicalKey].current;
 	RGFW_keyboard[physicalKey].current = press;
 
-	RGFW_keyCallback(_RGFW->root, physicalKey, mappedKey, _RGFW->root->_keyMod,  RGFW_isHeld(RGFW_key_win, (u8)RGFWkey), press);
+	RGFW_keyCallback(_RGFW->root, physicalKey, mappedKey, _RGFW->root->_keyMod,  RGFW_isHeld(_RGFW->root, (u8)RGFWkey), press);
 }
 
 void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyMods(RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super, RGFW_bool scroll) {

@@ -116,6 +116,9 @@ Release:    RGFW 1.7.5-dev
 - `RGFW_getGlobalMousePoint` -> RGFW_getMousePoint`
 - `RGFW_window_mouseHidden` -> `RGFW_window_isMouseHidden`
 - fix EGL and OpenGL extension checking
+- change typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool pressed);
+to
+typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed);
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
