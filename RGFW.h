@@ -173,6 +173,7 @@ int main() {
         Zeni (@zenitsuyo) -> documentation
         TheYahton (@TheYahton) -> documentation
         nonexistant_object (@DiarrheaMcgee
+		Jack THiess (@NerdAler1) -> Sick ass name change
 */
 
 #if _MSC_VER
