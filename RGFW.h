@@ -562,7 +562,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 };
 
 /*! mouse button codes (RGFW_event.button) */
-typedef RGFW_ENUM(u7, RGFW_mouseButton) {
+typedef RGFW_ENUM(u8, RGFW_mouseButton) {
 	RGFW_mouseLeft = 0, /*!< left mouse button is pressed */
 	RGFW_mouseMiddle, /*!< mouse-wheel-button is pressed */
 	RGFW_mouseRight, /*!< right mouse button is pressed */
@@ -4035,7 +4035,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_checkEvent) (RGFW_window* win, RGFW_event* event
 		XkbGetState(win->src.display, XkbUseCoreKbd, &state);
 		RGFW_updateKeyMods(win, (state.locked_mods & LockMask), (state.locked_mods & Mod2Mask), (state.locked_mods & Mod3Mask));
 
-		RGFW_keyCallback(win, event->key, event->keyChar, win->_keyMod, event->repeat (E.type == KeyPress));
+		RGFW_keyCallback(win, event->key, event->keyChar, win->_keyMod, event->repeat, (E.type == KeyPress));
 		break;
 	}
 	case ButtonPress:
