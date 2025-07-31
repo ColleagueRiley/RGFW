@@ -641,7 +641,9 @@ RGFWDEF RGFW_nativeImage* RGFW_surface_getNativeImage(RGFW_surface* surface);
 /*! free buffers used for software rendering within the window */
 RGFWDEF void RGFW_surface_free(RGFW_surface* surface);
 
-
+#ifdef RGFW_WAYLAND
+	#include <wayland-util.h> // hack for now to allow compilation
+#endif
 
 #if defined(__cplusplus) && !defined(__APPLE__)
 #define RGFW_POINT(x, y) {(i32)x, (i32)y}
@@ -671,6 +673,11 @@ RGFWDEF void RGFW_surface_free(RGFW_surface* surface);
 		float pixelRatio; /*!< pixel ratio for monitor (1.0 for regular, 2.0 for hiDPI)  */
 		float physW, physH; /*!< monitor physical size in inches */
 
+	#ifdef RGFW_WAYLAND
+		u32 id; /* Add id so wl_outputs can be removed */
+        struct wl_output *output;
+        struct wl_list link;
+	#endif 
 		RGFW_monitorMode mode;
 	} RGFW_monitor;
 
@@ -1603,6 +1610,10 @@ struct RGFW_info {
         struct wl_cursor_image* cursor_image;
 
         RGFW_bool wl_configured;
+
+        const char *tag;
+        struct wl_list monitors;
+        u32 num_monitors;
     #endif
 
     #ifdef __linux__
@@ -5801,6 +5812,86 @@ void RGFW_wl_seat_capabilities (void* data, struct wl_seat *seat, u32 capabiliti
 	}
 }
 
+void RGFW_wl_output_set_geometry(void *data, struct wl_output *wl_output,
+			 int32_t x, int32_t y, int32_t physical_width, int32_t physical_height,
+			 int32_t subpixel, const char *make, const char *model, int32_t transform) {
+
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+	monitor->x = x;
+	monitor->y = y;
+
+	monitor->physW = (float)physical_width / 25.4f;
+	monitor->physH = (float)physical_height / 25.4f;
+
+	RGFW_UNUSED(wl_output);
+	RGFW_UNUSED(subpixel);
+	RGFW_UNUSED(make);
+	RGFW_UNUSED(model);
+	RGFW_UNUSED(transform);	
+}
+
+void RGFW_wl_output_set_mode(void *data, struct wl_output *wl_output, uint32_t flags,
+		     int32_t width, int32_t height, int32_t refresh) {
+		     
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+	monitor->mode.area = RGFW_AREA(width, height);
+	monitor->mode.refreshRate = (u32)(refresh / 1000);
+
+	RGFW_UNUSED(wl_output);
+	RGFW_UNUSED(flags);
+}
+void RGFW_wl_output_set_scale(void *data, struct wl_output *wl_output, int32_t factor) {
+	// this is for pixelRatio
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+	monitor->pixelRatio = (float)factor; 
+	RGFW_UNUSED(wl_output);
+}
+
+void RGFW_wl_output_set_name(void *data, struct wl_output *wl_output, const char *name) {
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+	
+	RGFW_STRNCPY(monitor->name, name, sizeof(monitor->name) - 1);
+	monitor->name[sizeof(monitor->name) - 1] = '\0';
+
+	RGFW_UNUSED(wl_output);
+
+}
+
+void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id, u32 monitor_counter) {
+	struct wl_output *output = wl_registry_bind(registry, id, &wl_output_interface, 4);
+	
+	if (!output) return;
+	
+	if (monitor_counter >= 5) return; // too many monitors
+	
+	RGFW_monitor* mon = RGFW_ALLOC(sizeof(RGFW_monitor));
+	
+	RGFW_MEMSET(mon, 0, sizeof(RGFW_monitor));
+	
+	++_RGFW->num_monitors;
+	mon->id = id;
+	mon->output = output;
+	mon->pixelRatio = 1.0f; // set in case compositor does not send one
+	wl_list_insert(&_RGFW->monitors, &mon->link);
+	
+	wl_proxy_set_tag((struct wl_proxy*) output, &_RGFW->tag);
+	
+	static const struct wl_output_listener wl_output_listener = {
+			.geometry = RGFW_wl_output_set_geometry,
+			.mode = RGFW_wl_output_set_mode,
+			.done = (void (*)(void *,struct wl_output *))&RGFW_doNothing,
+			.scale = RGFW_wl_output_set_scale,
+			.name = RGFW_wl_output_set_name,
+			.description = (void (*)(void *, struct wl_output *, const char *))&RGFW_doNothing
+	};
+
+	// pass the monitor so we can access it in the callback functions
+	wl_output_add_listener(output, &wl_output_listener, mon);
+}
+
 void RGFW_wl_global_registry_handler(void* data,
 		struct wl_registry *registry, u32 id, const char *interface,
 		u32 version) {
@@ -5808,7 +5899,8 @@ void RGFW_wl_global_registry_handler(void* data,
     static struct wl_seat_listener seat_listener = {&RGFW_wl_seat_capabilities, (void (*)(void *, struct wl_seat *, const char *))&RGFW_doNothing};
     static const struct wl_shm_listener shm_listener = { .format = RGFW_wl_shm_format_handler };
 
-
+	static u32 monitor_counter = 0;
+	
 	RGFW_window* win = (RGFW_window*)data;
 	RGFW_UNUSED(version);
     if (RGFW_STRNCMP(interface, "wl_compositor", 16) == 0) {
@@ -5826,10 +5918,28 @@ void RGFW_wl_global_registry_handler(void* data,
 	} else if (RGFW_STRNCMP(interface,"wl_seat", 8) == 0) {
 		win->src.seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
 		wl_seat_add_listener(win->src.seat, &seat_listener, NULL);
+	} else if (RGFW_STRNCMP(interface, "wl_output", 10) == 0) {
+		RGFW_wl_create_outputs(registry, id, monitor_counter);
+		++monitor_counter;
 	}
 }
 
-void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u32 name) { RGFW_UNUSED(data); RGFW_UNUSED(registry); RGFW_UNUSED(name); }
+void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u32 name) { 
+	RGFW_UNUSED(data); RGFW_UNUSED(registry);
+
+	RGFW_monitor *mon, *temp_mon;
+
+	wl_list_for_each_safe(mon, temp_mon, &_RGFW->monitors, link) {
+		if (mon->id != name) continue;
+		if (mon->output) {
+			wl_output_destroy(mon->output);
+		}
+		wl_list_remove(&mon->link);
+		RGFW_FREE(mon);
+	}
+
+
+}
 
 void RGFW_wl_randname(char *buf) {
 	struct timespec ts;
@@ -5974,7 +6084,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, 
 		.global_remove = RGFW_wl_global_registry_remove,
 	};
 
-
+	wl_list_init(&_RGFW->monitors);
 	struct wl_registry *registry = wl_display_get_registry(win->src.wl_display);
 	wl_registry_add_listener(registry, &registry_listener, win);
 
@@ -6344,9 +6454,15 @@ RGFW_bool RGFW_FUNC(RGFW_window_isMaximized) (RGFW_window* win) {
 }
 
 RGFW_monitor* RGFW_FUNC(RGFW_getMonitors) (size_t* len) {
-	static RGFW_monitor monitors[7];
-	RGFW_UNUSED(len);
-    return monitors; /* TODO WAYLAND */
+	static RGFW_monitor monitors[5];
+	RGFW_monitor* mon;
+	size_t mon_counter = 0;
+	wl_list_for_each(mon, &_RGFW->monitors, link) {
+		monitors[mon_counter] = *mon;
+		++mon_counter;
+	}
+	if (len != NULL) *len = (size_t)((mon_counter <= 6) ? (mon_counter) : (6));
+    return monitors;
 }
 
 RGFW_monitor RGFW_FUNC(RGFW_getPrimaryMonitor) (void) {
@@ -6405,6 +6521,14 @@ void RGFW_FUNC(RGFW_window_close)(RGFW_window* win) {
 	wl_compositor_destroy(win->src.compositor);
 	xdg_wm_base_destroy(win->src.xdg_wm_base);
 
+	RGFW_monitor* mon, *temp_mon;
+	wl_list_for_each_safe(mon, temp_mon, &_RGFW->monitors, link) {
+		if (mon->output) {
+			wl_output_release(mon->output);
+		}
+		wl_list_remove(&mon->link);
+		RGFW_FREE(mon);
+	}
 
 	RGFW_clipboard_switch(NULL);
 	_RGFW->windowCount--;
