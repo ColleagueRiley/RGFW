@@ -9064,10 +9064,11 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			(NSAlloc(nsclass), func, windowRect, macArgs, macArgs, false);
 	}
 
+	const char window_key[] = "RGFW_WindowKey";
 	((void(*)(id, SEL, id, const char*, unsigned int))objc_msgSend)(
         (id)objc_getClass("objc_setAssociatedObject"),
         sel_registerName("setAssociatedObject:value:key:policy:"),
-        win->src.window, (id)win, (id)"RGFW_WindowKey", OBJC_ASSOCIATION_ASSIGN
+        win->src.window, (id)win, (id)window_key, OBJC_ASSOCIATION_ASSIGN
     );
 
 	id str = NSString_stringWithUTF8String(name);
@@ -9308,6 +9309,8 @@ void RGFW_pollEvents(void) {
 	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
 	SEL eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
 
+	const char window_key[] = "RGFW_WindowKey";
+
 	while (1) {
 		void* date = NULL;
 		id e = (id) ((id(*)(id, SEL, NSEventMask, void*, id, bool))objc_msgSend)
@@ -9322,15 +9325,14 @@ void RGFW_pollEvents(void) {
 		// objc_msgSend_id(e, sel_registerName("window"))
 		RGFW_event event;
 		RGFW_MEMSET(&event, 0, sizeof(event));
-		RGFW_window* win = NULL;
 
 		id nswindow = ((id(*)(id, SEL))objc_msgSend)(e, sel_registerName("window"));
-		win = (RGFW_window*)((id(*)(id, SEL, id, const char*))objc_msgSend)(
-			(id)objc_getClass("objc_getAssociatedObject"),
-			sel_registerName("getAssociatedObject:key:"),
-			nswindow, (id)"RGFW_WindowKey"
-		);
-		if (win == NULL) continue
+		RGFW_window* win = (RGFW_window*)((id(*)(id, SEL, id, const char*))objc_msgSend)(
+					(id)objc_getClass("objc_getAssociatedObject"),
+					sel_registerName("getAssociatedObject:key:"),
+					nswindow, (id)window_key);
+
+		if (win == NULL) continue;
 		event._win = win;
 
 		u32 type = (u32)objc_msgSend_uint(e, sel_registerName("type"));
@@ -9382,7 +9384,7 @@ void RGFW_pollEvents(void) {
 				RGFW_keyboard[event.key].prev = RGFW_keyboard[event.key].current;
 
 				event.type = RGFW_keyReleased;
-				event.wrepeat = RGFW_isHeld(win, (u8)event.key);
+				event.repeat = RGFW_isHeld(win, (u8)event.key);
 
 				RGFW_keyboard[event.key].current = 0;
 				RGFW_keyCallback(win, event.key, event.keyChar, win->_keyMod,  event.repeat, 0);
