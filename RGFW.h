@@ -9065,10 +9065,10 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	}
 
 	const char window_key[] = "RGFW_WindowKey";
-	((void(*)(id, SEL, id, const char*, unsigned int, objc_AssociationPolicy))objc_msgSend)(
+	((void(*)(id, SEL, id, const char*, void*, objc_AssociationPolicy))objc_msgSend)(
         (id)objc_getClass("objc_setAssociatedObject"),
         sel_registerName("setAssociatedObject:value:key:policy:"),
-        (id)win->src.window, window_key,  (id)win, OBJC_ASSOCIATION_ASSIGN
+        (id)win->src.window, window_key,  (void*)win, OBJC_ASSOCIATION_ASSIGN
     );
 
 	id str = NSString_stringWithUTF8String(name);
