@@ -3194,7 +3194,7 @@ VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance,
 #endif
 #if defined(RGFW_WAYLAND)
 
-    VkWaylandSurfaceCreateInfoKHR wayland = { VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR, 0, 0, (struct wl_display*) win->src.wl_display, (struct wl_surface*) win->src.surface };
+    VkWaylandSurfaceCreateInfoKHR wayland = { VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR, 0, 0, (struct wl_display*) _RGFW->wl_display, (struct wl_surface*) win->src.surface };
     return vkCreateWaylandSurfaceKHR(instance, &wayland, NULL, surface);
 #elif defined(RGFW_WINDOWS)
     VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, GetModuleHandle(NULL), (HWND)win->src.window };
@@ -3301,7 +3301,7 @@ void RGFW_waitForEvent(i32 waitMS) {
     u64 start = RGFW_linux_getTimeNS(clock);
 
 	#ifdef RGFW_WAYLAND
-		while (wl_display_dispatch(win->src.wl_display) <= 0
+		while (wl_display_dispatch(_RGFW->wl_display) <= 0
 	#else
 		while (XPending(_RGFW->display) == 0
 	#endif
@@ -5954,18 +5954,18 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, 
 	RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningWayland, RGFW_DEBUG_CTX(win, 0), "RGFW Wayland support is experimental");
 
 	win->src.compositor = NULL;
-	win->src.wl_display = _RGFW->wl_display;
+	_RGFW->wl_display = _RGFW->wl_display;
 	static const struct wl_registry_listener registry_listener = {
 		.global = RGFW_wl_global_registry_handler,
 		.global_remove = RGFW_wl_global_registry_remove,
 	};
 
 
-	struct wl_registry *registry = wl_display_get_registry(win->src.wl_display);
+	struct wl_registry *registry = wl_display_get_registry(_RGFW->wl_display);
 	wl_registry_add_listener(registry, &registry_listener, win);
 
-	wl_display_roundtrip(win->src.wl_display);
-	wl_display_dispatch(win->src.wl_display);
+	wl_display_roundtrip(_RGFW->wl_display);
+	wl_display_dispatch(_RGFW->wl_display);
 
 	if (win->src.compositor == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errWayland, RGFW_DEBUG_CTX(win, 0), "Can't find compositor.");
@@ -6052,7 +6052,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, 
 				RGFW_wl_handle_dismiss_popup,
 			};*/
 
-			win->src.decorContext = libdecor_new(win->src.wl_display, &interface);
+			win->src.decorContext = libdecor_new(_RGFW->wl_display, &interface);
 			if (win->src.decorContext) {
 				struct libdecor_frame *frame = libdecor_decorate(win->src.decorContext, win->src.surface, &frameInterface, win);
 				if (!frame) {
@@ -6066,13 +6066,13 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, 
 		#endif
 	}
 
-	wl_display_roundtrip(win->src.wl_display);
+	wl_display_roundtrip(_RGFW->wl_display);
 
 	wl_surface_commit(win->src.surface);
 	RGFW_window_show(win);
 
 	/* wait for the surface to be configured */
-	while (wl_display_dispatch(win->src.wl_display) != -1 && !_RGFW->wl_configured) { }
+	while (wl_display_dispatch(_RGFW->wl_display) != -1 && !_RGFW->wl_configured) { }
 
 	if ((flags & RGFW_windowNoInitAPI) == 0) {
 		#ifdef RGFW_OPENGL
@@ -6117,7 +6117,7 @@ u8 RGFW_FUNC(RGFW_rgfwToKeyChar)(u32 key) {
 void RGFW_FUNC(RGFW_pollEvents) (RGFW_window* win, RGFW_event* event) {
 	RGFW_resetKeyPrev();
 	if ((win->_flags & RGFW_windowHide) == 0)
-        wl_display_roundtrip(win->src.wl_display);
+        wl_display_roundtrip(_RGFW->wl_display);
 }
 
 void RGFW_FUNC(RGFW_window_move) (RGFW_window* win, RGFW_point v) {
@@ -6130,7 +6130,7 @@ void RGFW_FUNC(RGFW_window_move) (RGFW_window* win, RGFW_point v) {
 				return;
 			}
 
-		wl_display_flush(win->src.wl_display);
+		wl_display_flush(_RGFW->wl_display);
 	}
 }
 
@@ -7189,40 +7189,36 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			RGFW_eventQueuePush(&event);
 			event.type = 0;
-			{
-				RGFW_event ev;
-				ev.droppedFiles = _RGFW->droppedFiles;
-				ev.droppedFilesCount = 0;
-				ev.droppedFilesCount = DragQueryFileW(drop, 0xffffffff, NULL, 0);
+			event.type = RGFW_DND;
+			event.droppedFiles = _RGFW->droppedFiles;
+			event.droppedFilesCount = 0;
+			event.droppedFilesCount = DragQueryFileW(drop, 0xffffffff, NULL, 0);
 
-				u32 i;
-				for (i = 0; i < ev.droppedFilesCount; i++) {
-					UINT length = DragQueryFileW(drop, i, NULL, 0);
-					if (length == 0)
-						continue;
+			u32 i;
+			for (i = 0; i < ev.droppedFilesCount; i++) {
+				UINT length = DragQueryFileW(drop, i, NULL, 0);
+				if (length == 0)
+					continue;
 
-					WCHAR buffer[RGFW_MAX_PATH * 2];
-					if (length > (RGFW_MAX_PATH * 2) - 1)
-						length = RGFW_MAX_PATH * 2;
+				WCHAR buffer[RGFW_MAX_PATH * 2];
+				if (length > (RGFW_MAX_PATH * 2) - 1)
+					length = RGFW_MAX_PATH * 2;
 
-					DragQueryFileW(drop, i, buffer, length + 1);
+				DragQueryFileW(drop, i, buffer, length + 1);
 
-					char* str = RGFW_createUTF8FromWideStringWin32(buffer);
-					if (str != NULL)
-						RGFW_MEMCPY(ev.droppedFiles[i], str, length + 1);
+				char* str = RGFW_createUTF8FromWideStringWin32(buffer);
+				if (str != NULL)
+					RGFW_MEMCPY(event.droppedFiles[i], str, length + 1);
 
-					ev.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
-					ev._win = win;
-				}
-
-				DragFinish(drop);
-				RGFW_dndCallback(win, ev.droppedFiles, ev.droppedFilesCount);
-
-				ev.type = RGFW_DND;
-				RGFW_eventQueuePush(&ev);
-				break;
+				event.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
+				event._win = win;
 			}
-			default: break;
+
+			DragFinish(drop);
+			RGFW_dndCallback(win, event.droppedFiles, event.droppedFilesCount);
+			break;
+		}
+		default: break;
 		}
 	}
 
