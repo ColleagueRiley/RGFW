@@ -1618,6 +1618,8 @@ struct RGFW_info {
 
     #ifdef RGFW_MACOS
     void* NSApp;
+	void* customViewClass;
+	void* customWindowDelegateClass;
     #endif
 
 	#ifdef RGFW_OPENGL
@@ -8612,6 +8614,42 @@ id NSWindow_delegate(RGFW_window* win) {
 	return (id) objc_msgSend_id((id)win->src.window, sel_registerName("delegate"));
 }
 
+id RGFW__osxCustomInitWithRGFWWindow(id self, SEL _cmd, RGFW_window* win) {
+	RGFW_UNUSED(_cmd);
+    struct objc_super s = { self, class_getSuperclass(object_getClass(self)) };
+    self = ((id (*)(struct objc_super*, SEL))objc_msgSendSuper)(&s, sel_registerName("init"));
+
+    if (self != nil) {
+        object_setInstanceVariable(self, "RGFW_window", win);
+        object_setInstanceVariable(self, "trackingArea", nil);
+
+        object_setInstanceVariable(
+            self, "markedText",
+            ((id (*)(id, SEL))objc_msgSend)(
+                ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSMutableAttributedString"), sel_registerName("alloc")),
+                sel_registerName("init")
+            )
+        );
+
+        ((void (*)(id, SEL))objc_msgSend)(self, sel_registerName("updateTrackingAreas"));
+
+        ((void (*)(id, SEL, id))objc_msgSend)(
+            self, sel_registerName("registerForDraggedTypes:"),
+            ((id (*)(Class, SEL, id))objc_msgSend)(
+                objc_getClass("NSArray"),
+                sel_registerName("arrayWithObject:"),
+                ((id (*)(Class, SEL, const char*))objc_msgSend)(
+                    objc_getClass("NSString"),
+                    sel_registerName("stringWithUTF8String:"),
+                    "public.url"
+                )
+            )
+        );
+    }
+
+    return self;
+}
+
 u32 RGFW_OnClose(id self) {
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, (const char*)"RGFW_window", (void**)&win);
@@ -8908,6 +8946,223 @@ void RGFW__osxDrawRect(id self, SEL _cmd, CGRect rect) {
         RGFW_windowRefreshCallback(win);
 }
 
+void RGFW__osxMouseEntered(id self, SEL _cmd, id event) {
+	RGFW_UNUSED(_cmd);
+	RGFW_window* win = NULL;
+    object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+    if (win == NULL) return;
+
+    RGFW_event e;
+    e.type = RGFW_mouseEnter;
+    NSPoint p = ((NSPoint(*)(id, SEL))objc_msgSend)(event, sel_registerName("locationInWindow"));
+    e.point = RGFW_POINT((i32)p.x, (i32)(win->r.h - p.y));
+    e._win = win;
+
+    RGFW_eventQueuePush(&e);
+    RGFW_mouseNotifyCallback(win, e.point, 1);
+}
+
+void RGFW__osxMouseExited(id self, SEL _cmd, id event) {
+	RGFW_UNUSED(_cmd); RGFW_UNUSED(event);
+	RGFW_window* win = NULL;
+    object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+    if (win == NULL) return;
+
+    RGFW_event e;
+    e.type = RGFW_mouseLeave;
+    e.point = RGFW_POINT(0, 0); /* Point not updated as in original */
+    e._win = win;
+
+    RGFW_eventQueuePush(&e);
+    RGFW_mouseNotifyCallback(win, e.point, 0);
+}
+
+void RGFW__osxKeyDown(id self, SEL _cmd, id event) {
+	RGFW_UNUSED(_cmd);
+	RGFW_window* win = NULL;
+    object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+    if (win == NULL) return;
+
+    RGFW_event e;
+    u32 key = (u16)((u32(*)(id, SEL))objc_msgSend)(event, sel_registerName("keyCode"));
+    u32 mappedKey = (u32)*(((char*)(const char*)NSString_to_char(((id(*)(id, SEL))objc_msgSend)(event, sel_registerName("charactersIgnoringModifiers")))));
+    if ((u8)mappedKey == 239) mappedKey = 0;
+
+    e.keyChar = (u8)mappedKey;
+    e.key = (u8)RGFW_apiKeyToRGFW(key);
+    RGFW_keyboard[e.key].prev = RGFW_keyboard[e.key].current;
+    e.type = RGFW_keyPressed;
+    e.repeat = RGFW_isPressed(win, e.key);
+    RGFW_keyboard[e.key].current = 1;
+    e._win = win;
+
+    RGFW_eventQueuePush(&e);
+    RGFW_keyCallback(win, e.key, e.keyChar, win->_keyMod, e.repeat, 1);
+}
+
+void RGFW__osxKeyUp(id self, SEL _cmd, id event) {
+	RGFW_UNUSED(_cmd);
+	RGFW_window* win = NULL;
+    object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+    if (win == NULL) return;
+
+    RGFW_event e;
+    u32 key = (u16)((u32(*)(id, SEL))objc_msgSend)(event, sel_registerName("keyCode"));
+    u32 mappedKey = (u32)*(((char*)(const char*)NSString_to_char(((id(*)(id, SEL))objc_msgSend)(event, sel_registerName("charactersIgnoringModifiers")))));
+    if ((u8)mappedKey == 239) mappedKey = 0;
+
+    e.keyChar = (u8)mappedKey;
+    e.key = (u8)RGFW_apiKeyToRGFW(key);
+    RGFW_keyboard[e.key].prev = RGFW_keyboard[e.key].current;
+    e.type = RGFW_keyReleased;
+    e.repeat = RGFW_isHeld(win, (u8)e.key);
+    RGFW_keyboard[e.key].current = 0;
+    e._win = win;
+
+    RGFW_eventQueuePush(&e);
+    RGFW_keyCallback(win, e.key, e.keyChar, win->_keyMod, e.repeat, 0);
+}
+
+typedef enum NSEventModifierFlags {
+	NSEventModifierFlagCapsLock = 1 << 16,
+	NSEventModifierFlagShift = 1 << 17,
+	NSEventModifierFlagControl = 1 << 18,
+	NSEventModifierFlagOption = 1 << 19,
+	NSEventModifierFlagCommand = 1 << 20,
+	NSEventModifierFlagNumericPad = 1 << 21
+} NSEventModifierFlags;
+
+void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
+	RGFW_UNUSED(_cmd);
+    RGFW_window* win = NULL;
+    object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+    if (win == NULL) return;
+
+    RGFW_event e;
+    u32 flags = (u32)((u32(*)(id, SEL))objc_msgSend)(event, sel_registerName("modifierFlags"));
+    RGFW_updateKeyModsPro(win,
+                          ((u32)(flags & NSEventModifierFlagCapsLock) % 255),
+                          ((flags & NSEventModifierFlagNumericPad) % 255),
+                          ((flags & NSEventModifierFlagControl) % 255),
+                          ((flags & NSEventModifierFlagOption) % 255),
+                          ((flags & NSEventModifierFlagShift) % 255),
+                          ((flags & NSEventModifierFlagCommand) % 255), 0);
+    u8 i;
+    for (i = 0; i < 9; i++)
+        RGFW_keyboard[i + RGFW_capsLock].prev = 0;
+
+    for (i = 0; i < 5; i++) {
+        u32 shift = (1 << (i + 16));
+        u32 key = i + RGFW_capsLock;
+        if ((flags & shift) && !RGFW_wasPressed(win, (u8)key)) {
+            RGFW_keyboard[key].current = 1;
+            if (key != RGFW_capsLock)
+                RGFW_keyboard[key + 4].current = 1;
+            e.type = RGFW_keyPressed;
+            e.key = (u8)key;
+            break;
+        }
+        if (!(flags & shift) && RGFW_wasPressed(win, (u8)key)) {
+            RGFW_keyboard[key].current = 0;
+            if (key != RGFW_capsLock)
+                RGFW_keyboard[key + 4].current = 0;
+            e.type = RGFW_keyReleased;
+            e.key = (u8)key;
+            break;
+        }
+    }
+    e.repeat = RGFW_isHeld(win, (u8)e.key);
+    e._win = win;
+
+    RGFW_eventQueuePush(&e);
+    RGFW_keyCallback(win, e.key, e.keyChar, win->_keyMod, e.repeat, e.type == RGFW_keyPressed);
+}
+
+void RGFW__osxMouseMoved(id self, SEL _cmd, id event) {
+	RGFW_UNUSED(_cmd);
+    RGFW_window* win = NULL;
+    object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+    if (win == NULL) return;
+
+    RGFW_event e;
+    e.type = RGFW_mousePosChanged;
+    NSPoint p = ((NSPoint(*)(id, SEL))objc_msgSend)(event, sel_registerName("locationInWindow"));
+    e.point = RGFW_POINT((u32)p.x, (u32)(win->r.h - p.y));
+    p.x = ((CGFloat(*)(id, SEL))objc_msgSend_fpret)(event, sel_registerName("deltaX"));
+    p.y = ((CGFloat(*)(id, SEL))objc_msgSend_fpret)(event, sel_registerName("deltaY"));
+    e.vector = RGFW_POINT((i32)p.x, (i32)p.y);
+    win->_lastMousePoint = e.point;
+    e._win = win;
+
+    RGFW_eventQueuePush(&e);
+    RGFW_mousePosCallback(win, e.point, e.vector);
+}
+
+void RGFW__osxMouseDown(id self, SEL _cmd, id event) {
+	RGFW_UNUSED(_cmd);
+    RGFW_window* win = NULL;
+    object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+    if (win == NULL) return;
+
+    RGFW_event e;
+    u32 buttonNumber = (u32)((u32(*)(id, SEL))objc_msgSend)(event, sel_registerName("buttonNumber"));
+    switch (buttonNumber) {
+        case 0: e.button = RGFW_mouseLeft; break;
+        case 1: e.button = RGFW_mouseRight; break;
+        case 2: e.button = RGFW_mouseMiddle; break;
+        default: e.button = (u8)buttonNumber;
+    }
+    e.type = RGFW_mouseButtonPressed;
+    RGFW_mouseButtons[e.button].prev = RGFW_mouseButtons[e.button].current;
+    RGFW_mouseButtons[e.button].current = 1;
+    e._win = win;
+
+    RGFW_eventQueuePush(&e);
+    RGFW_mouseButtonCallback(win, e.button, e.scroll, 1);
+}
+
+void RGFW__osxMouseUp(id self, SEL _cmd, id event) {
+	RGFW_UNUSED(_cmd);
+    RGFW_window* win = NULL;
+    object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+    if (win == NULL) return;
+
+    RGFW_event e;
+    u32 buttonNumber = (u32)((u32(*)(id, SEL))objc_msgSend)(event, sel_registerName("buttonNumber"));
+    switch (buttonNumber) {
+        case 0: e.button = RGFW_mouseLeft; break;
+        case 1: e.button = RGFW_mouseRight; break;
+        case 2: e.button = RGFW_mouseMiddle; break;
+        default: e.button = (u8)buttonNumber;
+    }
+    e.type = RGFW_mouseButtonReleased;
+    RGFW_mouseButtons[e.button].prev = RGFW_mouseButtons[e.button].current;
+    RGFW_mouseButtons[e.button].current = 0;
+    e._win = win;
+
+    RGFW_eventQueuePush(&e);
+    RGFW_mouseButtonCallback(win, e.button, e.scroll, 0);
+}
+
+void RGFW__osxScrollWheel(id self, SEL _cmd, id event) {
+	RGFW_UNUSED(_cmd);
+    RGFW_window* win = NULL;
+    object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+    if (win == NULL) return;
+
+    RGFW_event e;
+    double deltaY = ((CGFloat(*)(id, SEL))objc_msgSend_fpret)(event, sel_registerName("deltaY"));
+    e.button = (deltaY > 0) ? RGFW_mouseScrollUp : RGFW_mouseScrollDown;
+    RGFW_mouseButtons[e.button].prev = RGFW_mouseButtons[e.button].current;
+    RGFW_mouseButtons[e.button].current = 1;
+    e.scroll = deltaY;
+    e.type = RGFW_mouseButtonPressed;
+    e._win = win;
+
+    RGFW_eventQueuePush(&e);
+    RGFW_mouseButtonCallback(win, e.button, e.scroll, 1);
+}
+
 RGFW_bool RGFW_createSurfacePtr(RGFW_image img, RGFW_surface* surface) {
 	surface->image = img;
 	return RGFW_TRUE;
@@ -8952,20 +9207,16 @@ void* RGFW_cocoaGetLayer(void) {
 
 #define NSPasteboardTypeURL "public.url"
 #define NSPasteboardTypeFileURL "public.file-url"
-
-id RGFW__osx_generateViewClass(const char* subclass, RGFW_window* win) {
-	Class customViewClass;
-	customViewClass = objc_allocateClassPair(objc_getClass(subclass), "RGFWCustomView", 0);
-
-	class_addIvar( customViewClass, "RGFW_window", sizeof(RGFW_window*), (u8)rint(log2(sizeof(RGFW_window*))), "L");
-	class_addMethod(customViewClass, sel_registerName("drawRect:"), (IMP)RGFW__osxDrawRect, "v@:{CGRect=ffff}");
-	class_addMethod(customViewClass, sel_registerName("viewDidChangeBackingProperties"), (IMP)RGFW__osxViewDidChangeBackingProperties, "");
-
-	id customView  = objc_msgSend_id(NSAlloc(customViewClass), sel_registerName("init"));
-	object_setInstanceVariable(customView, "RGFW_window", win);
-
-	return customView;
-}
+#define NSTrackingMouseEnteredAndExited   0x01
+#define NSTrackingMouseMoved              0x02
+#define NSTrackingCursorUpdate            0x04
+#define NSTrackingActiveWhenFirstResponder 0x10
+#define NSTrackingActiveInKeyWindow       0x20
+#define NSTrackingActiveInActiveApp       0x40
+#define NSTrackingActiveAlways            0x80
+#define NSTrackingAssumeInside            0x100
+#define NSTrackingInVisibleRect           0x200
+#define NSTrackingEnabledDuringMouseDrag  0x400
 
 #ifdef RGFW_OPENGL
 RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
@@ -8990,11 +9241,16 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	/* the pixel format can be passed directly to OpenGL context creation to create a context
 		this is because the format also includes information about the OpenGL version (which may be a bad thing) */
 
-	win->src.view = (id) ((id(*)(id, SEL, NSRect, u32*))objc_msgSend) (RGFW__osx_generateViewClass("NSOpenGLView", win),
-							sel_registerName("initWithFrame:pixelFormat:"), (NSRect){{0, 0}, {win->r.w, win->r.h}}, (u32*)format);
+	id share = NULL;
+	if (RGFW_GL_HINTS[RGFW_glShareWithCurrentContext]) {
+		share = RGFW_getCurrentContext_OpenGL();
+	}
 
-	objc_msgSend_void(win->src.view, sel_registerName("prepareOpenGL"));
-	win->src.ctx.ctx = objc_msgSend_id(win->src.view, sel_registerName("openGLContext"));
+	win->src.ctx.ctx = ((id (*)(id, SEL, id, id))objc_msgSend)(NSAlloc(objc_getClass("NSOpenGLContext")),
+												 sel_registerName("initWithFormat:shareContext:"),
+												 format, share);
+
+	((void (*)(id, SEL, id))objc_msgSend)(win->src.ctx.ctx, sel_registerName("setView:"), win->src.view);
 
 	if (win->_flags & RGFW_windowTransparent) {
 		i32 opacity = 0;
@@ -9028,12 +9284,52 @@ i32 RGFW_initPlatform(void) {
 	si_func_to_SEL("NSWindow", acceptsFirstResponder);
 	si_func_to_SEL("NSWindow", performKeyEquivalent);
 
-	if ((id)_RGFW->NSApp == NULL) {
-		_RGFW->NSApp = objc_msgSend_id((id)objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
+	_RGFW->NSApp = objc_msgSend_id((id)objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
 
-		((void (*)(id, SEL, NSUInteger))objc_msgSend)
-			((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
-	}
+	((void (*)(id, SEL, NSUInteger))objc_msgSend)
+		((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
+
+	_RGFW->customViewClass = objc_allocateClassPair(objc_getClass("NSView"), "RGFWCustomView", 0);
+	class_addIvar(_RGFW->customViewClass, "RGFW_window", sizeof(RGFW_window*), sizeof(RGFW_window*), "L");
+	class_addMethod(_RGFW->customViewClass, sel_registerName("drawRect:"), (IMP)RGFW__osxDrawRect, "v@:{CGRect=ffff}");
+	class_addMethod(_RGFW->customViewClass, sel_registerName("viewDidChangeBackingProperties"), (IMP)RGFW__osxViewDidChangeBackingProperties, "v@:");
+    class_addMethod(_RGFW->customViewClass, sel_registerName("mouseDown:"), (IMP)RGFW__osxMouseDown, "v@:@");
+    class_addMethod(_RGFW->customViewClass, sel_registerName("rightMouseDown:"), (IMP)RGFW__osxMouseDown, "v@:@");
+    class_addMethod(_RGFW->customViewClass, sel_registerName("otherMouseDown:"), (IMP)RGFW__osxMouseDown, "v@:@");
+    class_addMethod(_RGFW->customViewClass, sel_registerName("mouseUp:"), (IMP)RGFW__osxMouseUp, "v@:@");
+	class_addMethod(_RGFW->customViewClass, sel_registerName("rightMouseUp:"), (IMP)RGFW__osxMouseUp, "v@:@");
+    class_addMethod(_RGFW->customViewClass, sel_registerName("otherMouseUp:"), (IMP)RGFW__osxMouseUp, "v@:@");
+    class_addMethod(_RGFW->customViewClass, sel_registerName("scrollWheel:"), (IMP)RGFW__osxScrollWheel, "v@:@");
+    class_addMethod(_RGFW->customViewClass, sel_registerName("mouseDragged:"), (IMP)RGFW__osxMouseMoved, "v@:@");
+    class_addMethod(_RGFW->customViewClass, sel_registerName("rightMouseDragged:"), (IMP)RGFW__osxMouseMoved, "v@:@");
+    class_addMethod(_RGFW->customViewClass, sel_registerName("otherMouseDragged:"), (IMP)RGFW__osxMouseMoved, "v@:@");
+    class_addMethod(_RGFW->customViewClass, sel_registerName("keyDown:"), (IMP)RGFW__osxKeyDown, "v@:@");
+    class_addMethod(_RGFW->customViewClass, sel_registerName("keyUp:"), (IMP)RGFW__osxKeyUp, "v@:@");
+	class_addMethod(_RGFW->customViewClass, sel_registerName("mouseMoved:"), (IMP)RGFW__osxMouseMoved, "v@:@");
+	class_addMethod(_RGFW->customViewClass, sel_registerName("mouseEntered:"), (IMP)RGFW__osxMouseEntered, "v@:@");
+    class_addMethod(_RGFW->customViewClass, sel_registerName("mouseExited:"), (IMP)RGFW__osxMouseExited, "v@:@");
+    class_addMethod(_RGFW->customViewClass, sel_registerName("flagsChanged:"), (IMP)RGFW__osxFlagsChanged, "v@:@");
+	class_addMethod(_RGFW->customViewClass, sel_getUid("acceptsFirstResponder"), (IMP)acceptsFirstResponder, "B@:");
+	class_addMethod(_RGFW->customViewClass, sel_registerName("initWithRGFWWindow:"), (IMP)RGFW__osxCustomInitWithRGFWWindow, "@@:{CGRect={CGPoint=dd}{CGSize=dd}}");
+	objc_registerClassPair(_RGFW->customViewClass);
+
+	_RGFW->customWindowDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWWindowDelegate", 0);
+	class_addIvar(_RGFW->customWindowDelegateClass, "RGFW_window", sizeof(RGFW_window*), sizeof(RGFW_window*), "L");
+
+	class_addMethod(_RGFW->customWindowDelegateClass, sel_registerName("windowWillResize:toSize:"), (IMP) RGFW__osxWindowResize, "{NSSize=ff}@:{NSSize=ff}");
+	class_addMethod(_RGFW->customWindowDelegateClass, sel_registerName("windowWillMove:"), (IMP) RGFW__osxWindowMove, "");
+	class_addMethod(_RGFW->customWindowDelegateClass, sel_registerName("windowDidMove:"), (IMP) RGFW__osxWindowMove, "");
+	class_addMethod(_RGFW->customWindowDelegateClass, sel_registerName("windowDidMiniaturize:"), (IMP) RGFW__osxWindowMiniaturize, "");
+	class_addMethod(_RGFW->customWindowDelegateClass, sel_registerName("windowDidDeminiaturize:"), (IMP) RGFW__osxWindowDeminiaturize, "");
+	class_addMethod(_RGFW->customWindowDelegateClass, sel_registerName("windowDidBecomeKey:"), (IMP) RGFW__osxWindowBecameKey, "");
+	class_addMethod(_RGFW->customWindowDelegateClass, sel_registerName("windowDidResignKey:"), (IMP) RGFW__osxWindowResignKey, "");
+	class_addMethod(_RGFW->customWindowDelegateClass, sel_registerName("draggingEntered:"), (IMP)draggingEntered, "l@:@");
+	class_addMethod(_RGFW->customWindowDelegateClass, sel_registerName("draggingUpdated:"), (IMP)draggingUpdated, "l@:@");
+	class_addMethod(_RGFW->customWindowDelegateClass, sel_registerName("draggingExited:"), (IMP)RGFW__osxDraggingEnded, "v@:@");
+	class_addMethod(_RGFW->customWindowDelegateClass, sel_registerName("draggingEnded:"), (IMP)RGFW__osxDraggingEnded, "v@:@");
+	class_addMethod(_RGFW->customWindowDelegateClass, sel_registerName("prepareForDragOperation:"), (IMP)prepareForDragOperation, "B@:@");
+	class_addMethod(_RGFW->customWindowDelegateClass, sel_registerName("performDragOperation:"), (IMP)performDragOperation, "B@:@");
+	objc_registerClassPair(_RGFW->customWindowDelegateClass);
 	return 0;
 }
 
@@ -9044,6 +9340,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
     /* RR Create an autorelease pool */
 	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	pool = objc_msgSend_id(pool, sel_registerName("init"));
+
+	win->src.view = ((id(*)(id, SEL, RGFW_window*))objc_msgSend) (NSAlloc(_RGFW->customViewClass), sel_registerName("initWithRGFWWindow:"), win);
 
 	RGFW_window_setMouseDefault(win);
 
@@ -9067,15 +9365,14 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			(NSAlloc(nsclass), func, windowRect, macArgs, macArgs, false);
 	}
 
-	const char window_key[] = "RGFW_WindowKey";
-	((void(*)(id, SEL, id, const char*, void*, objc_AssociationPolicy))objc_msgSend)(
-        (id)objc_getClass("objc_setAssociatedObject"),
-        sel_registerName("setAssociatedObject:value:key:policy:"),
-        (id)win->src.window, window_key,  (void*)win, OBJC_ASSOCIATION_ASSIGN
-    );
-
 	id str = NSString_stringWithUTF8String(name);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setTitle:"), str);
+
+	NSRect contentRect;
+	contentRect.origin.x = 0;
+	contentRect.origin.y = 0;
+	contentRect.size.width = 0;
+	contentRect.size.height = 0;
 
 	#ifdef RGFW_OPENGL
 	if ((flags & RGFW_windowNoInitAPI) == 0)
@@ -9085,15 +9382,28 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	#ifdef RGFW_OPENGL
 	else
 	#endif
-	{
-		NSRect contentRect = (NSRect){{0, 0}, {win->r.w, win->r.h}};
-		win->src.view = ((id(*)(id, SEL, NSRect))objc_msgSend) (NSAlloc(objc_getClass("NSView")), sel_registerName("initWithFrame:"), contentRect);
-	}
+
+	object_setInstanceVariable(win->src.view, "RGFW_window", win);
+
+	id trackingArea = objc_msgSend_id(objc_getClass("NSTrackingArea"), sel_registerName("alloc"));
+	trackingArea = ((id (*)(id, SEL, NSRect, NSUInteger, id, id))objc_msgSend)(
+		trackingArea,
+		sel_registerName("initWithRect:options:owner:userInfo:"),
+		contentRect,
+		NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect,
+		win->src.view,
+		nil
+	);
+
+	((void (*)(id, SEL, id))objc_msgSend)(win->src.view, sel_registerName("addTrackingArea:"), trackingArea);
+	((void (*)(id, SEL))objc_msgSend)(trackingArea, sel_registerName("release"));
+	((void (*)(id, SEL, BOOL))objc_msgSend)(win->src.view, sel_registerName("setWantsLayer:"), YES);
 
 	void* contentView = NSWindow_contentView((id)win->src.window);
 	objc_msgSend_void_bool(contentView, sel_registerName("setWantsLayer:"), true);
 	objc_msgSend_int((id)win->src.view, sel_registerName("setLayerContentsPlacement:"),  4);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
+	objc_msgSend_void_bool((id)win->src.window, sel_registerName("setAcceptsMouseMovedEvents:"), true);
 
 	if (flags & RGFW_windowTransparent) {
 		objc_msgSend_void_bool(win->src.window, sel_registerName("setOpaque:"), false);
@@ -9102,29 +9412,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		NSColor_colorWithSRGB(0, 0, 0, 0));
 	}
 
-	Class delegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "WindowDelegate", 0);
-
-	class_addIvar(
-		delegateClass, "RGFW_window",
-		sizeof(RGFW_window*), (u8)rint(log2(sizeof(RGFW_window*))),
-		"L"
-	);
-
-	class_addMethod(delegateClass, sel_registerName("windowWillResize:toSize:"), (IMP) RGFW__osxWindowResize, "{NSSize=ff}@:{NSSize=ff}");
-	class_addMethod(delegateClass, sel_registerName("windowWillMove:"), (IMP) RGFW__osxWindowMove, "");
-	class_addMethod(delegateClass, sel_registerName("windowDidMove:"), (IMP) RGFW__osxWindowMove, "");
-	class_addMethod(delegateClass, sel_registerName("windowDidMiniaturize:"), (IMP) RGFW__osxWindowMiniaturize, "");
-	class_addMethod(delegateClass, sel_registerName("windowDidDeminiaturize:"), (IMP) RGFW__osxWindowDeminiaturize, "");
-	class_addMethod(delegateClass, sel_registerName("windowDidBecomeKey:"), (IMP) RGFW__osxWindowBecameKey, "");
-	class_addMethod(delegateClass, sel_registerName("windowDidResignKey:"), (IMP) RGFW__osxWindowResignKey, "");
-	class_addMethod(delegateClass, sel_registerName("draggingEntered:"), (IMP)draggingEntered, "l@:@");
-	class_addMethod(delegateClass, sel_registerName("draggingUpdated:"), (IMP)draggingUpdated, "l@:@");
-	class_addMethod(delegateClass, sel_registerName("draggingExited:"), (IMP)RGFW__osxDraggingEnded, "v@:@");
-	class_addMethod(delegateClass, sel_registerName("draggingEnded:"), (IMP)RGFW__osxDraggingEnded, "v@:@");
-	class_addMethod(delegateClass, sel_registerName("prepareForDragOperation:"), (IMP)prepareForDragOperation, "B@:@");
-	class_addMethod(delegateClass, sel_registerName("performDragOperation:"), (IMP)performDragOperation, "B@:@");
-
-	id delegate = objc_msgSend_id(NSAlloc(delegateClass), sel_registerName("init"));
+	id delegate = objc_msgSend_id(NSAlloc(_RGFW->customWindowDelegateClass), sel_registerName("init"));
 
 	if (RGFW_COCOA_FRAME_NAME)
 		objc_msgSend_ptr(win->src.view, sel_registerName("setFrameAutosaveName:"), RGFW_COCOA_FRAME_NAME);
@@ -9250,17 +9538,6 @@ typedef RGFW_ENUM(u32, NSEventType) {        /* various types of events */
 		NSEventTypeChangeMode  = 38,
 };
 
-typedef unsigned long long NSEventMask;
-
-typedef enum NSEventModifierFlags {
-	NSEventModifierFlagCapsLock = 1 << 16,
-	NSEventModifierFlagShift = 1 << 17,
-	NSEventModifierFlagControl = 1 << 18,
-	NSEventModifierFlagOption = 1 << 19,
-	NSEventModifierFlagCommand = 1 << 20,
-	NSEventModifierFlagNumericPad = 1 << 21
-} NSEventModifierFlags;
-
 void RGFW_stopCheckEvents(void) {
 	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
@@ -9274,6 +9551,8 @@ void RGFW_stopCheckEvents(void) {
 
 	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 }
+
+typedef unsigned long long NSEventMask;
 
 void RGFW_waitForEvent(i32 waitMS) {
 	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
@@ -9311,8 +9590,6 @@ void RGFW_pollEvents(void) {
 	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
 	SEL eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
 
-	const char window_key[] = "RGFW_WindowKey";
-
 	while (1) {
 		void* date = NULL;
 		id e = (id) ((id(*)(id, SEL, NSEventMask, void*, id, bool))objc_msgSend)
@@ -9328,17 +9605,7 @@ void RGFW_pollEvents(void) {
 		RGFW_event event;
 		RGFW_MEMSET(&event, 0, sizeof(event));
 
-		id nswindow = ((id(*)(id, SEL))objc_msgSend)(e, sel_registerName("window"));
-		RGFW_window* win = (RGFW_window*)((id(*)(id, SEL, id, const char*))objc_msgSend)(
-					(id)objc_getClass("objc_getAssociatedObject"),
-					sel_registerName("getAssociatedObject:key:"),
-					nswindow, window_key);
-
-		if (win == NULL) continue;
-		event._win = win;
-		/* TODO: look into this hacky fix*/
-		objc_msgSend_void((id)win->src.mouse, sel_registerName("set"));
-
+/*
 		u32 type = (u32)objc_msgSend_uint(e, sel_registerName("type"));
 		switch (type) {
 			case NSEventTypeMouseEntered: {
@@ -9505,7 +9772,7 @@ void RGFW_pollEvents(void) {
 		if (event.type) {
 			RGFW_eventQueuePush(&event);
 		}
-
+*/
 		objc_msgSend_void_id((id)_RGFW->NSApp, sel_registerName("sendEvent:"), e);
 		((void(*)(id, SEL))objc_msgSend)((id)_RGFW->NSApp, sel_registerName("updateWindows"));
 	}
