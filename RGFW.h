@@ -6501,7 +6501,7 @@ typedef struct RGFW_FunctionPointers {
     RGFW_getScreenSize_ptr getScreenSize;
     RGFW_getMousePoint_ptr getGlobalMousePoint;
     RGFW_rgfwToKeyChar_ptr rgfwToKeyChar;
-    RGFW_pollEvents_ptr window_poolEvent;
+    RGFW_pollEvents_ptr pollEvents;
     RGFW_window_move_ptr window_move;
     RGFW_window_resize_ptr window_resize;
     RGFW_window_setAspectRatio_ptr window_setAspectRatio;
@@ -6564,7 +6564,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 RGFW_area RGFW_getScreenSize(void) { return RGFW_api.getScreenSize(); }
 RGFW_point RGFW_getMousePoint(void) { return RGFW_api.getGlobalMousePoint(); }
 u8 RGFW_rgfwToKeyChar(u32 key) { return RGFW_api.rgfwToKeyChar(key); }
-RGFW_bool RGFW_pollEvents(void) { return RGFW_api.window_pollEvents(); }
+void RGFW_pollEvents(void) { RGFW_api.pollEvents(); }
 void RGFW_window_move(RGFW_window* win, RGFW_point v) { RGFW_api.window_move(win, v); }
 void RGFW_window_resize(RGFW_window* win, RGFW_area a) { RGFW_api.window_resize(win, a); }
 void RGFW_window_setAspectRatio(RGFW_window* win, RGFW_area a) { RGFW_api.window_setAspectRatio(win, a); }
@@ -6632,7 +6632,7 @@ void RGFW_load_X11(void) {
     RGFW_api.getScreenSize = RGFW_getScreenSize_X11;
     RGFW_api.getGlobalMousePoint = RGFW_getMousePoint_X11;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_X11;
-    RGFW_api.window_pollEvents = RGFW_pollEvents_X11;
+    RGFW_api.pollEvents = RGFW_pollEvents_X11;
     RGFW_api.window_move = RGFW_window_move_X11;
     RGFW_api.window_resize = RGFW_window_resize_X11;
     RGFW_api.window_setAspectRatio = RGFW_window_setAspectRatio_X11;
@@ -6696,7 +6696,7 @@ void RGFW_load_Wayland(void) {
     RGFW_api.getScreenSize = RGFW_getScreenSize_Wayland;
     RGFW_api.getGlobalMousePoint = RGFW_getMousePoint_Wayland;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_Wayland;
-    RGFW_api.window_pollEvent = RGFW_window_pollEvent_Wayland;
+    RGFW_api.pollEvents = RGFW_pollEvents_Wayland;
     RGFW_api.window_move = RGFW_window_move_Wayland;
     RGFW_api.window_resize = RGFW_window_resize_Wayland;
     RGFW_api.window_setAspectRatio = RGFW_window_setAspectRatio_Wayland;
@@ -7194,7 +7194,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			event.droppedFilesCount = DragQueryFileW(drop, 0xffffffff, NULL, 0);
 
 			u32 i;
-			for (i = 0; i < ev.droppedFilesCount; i++) {
+			for (i = 0; i < event.droppedFilesCount; i++) {
 				UINT length = DragQueryFileW(drop, i, NULL, 0);
 				if (length == 0)
 					continue;
@@ -7218,7 +7218,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		default: break;
-		}
 	}
 
 	if (event.type) {
@@ -10814,7 +10813,7 @@ RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { RGFW_UNUSED(win); return R
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
 RGFW_bool RGFW_window_isFloating(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win); return (RGFW_monitor){}; }
-void RGFW_waitForEvent(i32 waitMS) { RGFW_UNUSED(win); }
+void RGFW_waitForEvent(i32 waitMS) { RGFW_UNUSED(waitMS); }
 #endif
 
 /* end of web asm defines */
