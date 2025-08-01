@@ -1,6 +1,6 @@
 /*
 *
-*	RGFW 1.7.5-dev
+*	RGFW 1.8.0-dev
 
 * Copyright (C) 2022-25 Riley Mabb (@ColleagueRiley)
 *
@@ -739,6 +739,9 @@ typedef RGFW_ENUM(i32, RGFW_eventWait) {
 /*! sleep until RGFW gets an event or the timer ends (defined by OS) */
 RGFWDEF void RGFW_waitForEvent(i32 waitMS);
 
+/*! if you you want events to be queued or not, enabled by default */
+RGFWDEF void RGFW_setQueueEvents(RGFW_bool queue);
+
 /*!
 	check all the events until there are none left and updates window structure attributes
 	adds them to a queue for RGFW_window_checkEvent to check if queueEvents is true
@@ -767,12 +770,10 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowMaximize = RGFW_BIT(12),
 	RGFW_windowCenterCursor = RGFW_BIT(13),
 	RGFW_windowFloating = RGFW_BIT(14), /*!< create a floating window */
-	RGFW_windowFreeOnClose = RGFW_BIT(15), /*!< free (RGFW_window_close) the RGFW_window struct when the window is closed (by the end user) */
-	RGFW_windowFocusOnShow = RGFW_BIT(16), /*!< focus the window when it's shown */
-	RGFW_windowMinimize = RGFW_BIT(17), /*!< focus the window when it's shown */
-	RGFW_windowFocus = RGFW_BIT(18), /*!< if the window is in focus */
-	RGFW_windowUseEGL = RGFW_BIT(19), /*!< use EGL instead of the native OpenGL context API */
-	RGFW_windowNoEventQueue = RGFW_BIT(20), /*!< don't queue events, this can be toggled with RGFW_window_setQueueEvents, by not by setFlags */
+	RGFW_windowFocusOnShow = RGFW_BIT(15), /*!< focus the window when it's shown */
+	RGFW_windowMinimize = RGFW_BIT(16), /*!< focus the window when it's shown */
+	RGFW_windowFocus = RGFW_BIT(17), /*!< if the window is in focus */
+	RGFW_windowUseEGL = RGFW_BIT(18), /*!< use EGL instead of the native OpenGL context API */
 	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize
 };
 
@@ -834,12 +835,12 @@ RGFWDEF void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags);
 /*! get the size of the screen to an area struct */
 RGFWDEF RGFW_area RGFW_getScreenSize(void);
 
-/*! change if you want events to be queued or not */
-RGFWDEF void RGFW_window_setQueueEvents(RGFW_window* win, RGFW_bool queue);
-
 /*!
-	this function checks an *individual* event from the event queue
-	this means, using this function without a while loop may cause event lag
+	polls the event queue if it's empty and pops the first event for the window from the event queue
+	using this function without a while loop may cause event lag
+
+	because this function polls events, it may not work for multi-threaded systems
+	RGFW_pollEvents + RGFW_window_checkQueuedEvent should be used when using multi-threaded systems
 
 	ex.
 
@@ -849,6 +850,9 @@ RGFWDEF void RGFW_window_setQueueEvents(RGFW_window* win, RGFW_bool queue);
 	you may also use `RGFW_pollEvents` instead
 */
 RGFWDEF RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event); /*!< check current event (returns RGFW_TRUE if there is an event or RGFW_FALSE if there is no event)*/
+
+/*! pops the first event for the window from the event queue */
+RGFWDEF RGFW_bool RGFW_window_checkQueuedEvent(RGFW_window* win, RGFW_event* event);
 
 /*! window managment functions */
 RGFWDEF void RGFW_window_close(RGFW_window* win); /*!< close the window and free leftover data */
@@ -1301,7 +1305,9 @@ RGFWDEF WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUIn
 /** * @defgroup Supporting
 * @{ */
 
+#ifndef RGFW_MAX_EVENTS
 #define RGFW_MAX_EVENTS 32
+#endif
 
 /*!< change which window is the root window */
 RGFWDEF void RGFW_setRootWindow(RGFW_window* win);
@@ -1309,8 +1315,10 @@ RGFWDEF RGFW_window* RGFW_getRootWindow(void);
 
 /*! standard event queue, used for injecting events and returning source API callback events like any other queue check */
 /* these are all used internally by RGFW */
-void RGFW_eventQueuePush(const RGFW_event* event);
-RGFW_event* RGFW_eventQueuePop(RGFW_window* win);
+RGFWDEF void RGFW_eventQueuePush(const RGFW_event* event);
+/* clear out event queue, does not process any events */
+RGFWDEF void RGFW_eventQueueFlush(void);
+RGFWDEF RGFW_event* RGFW_eventQueuePop(RGFW_window* win);
 
 /* for C++ / C89 */
 #define RGFW_eventQueuePushEx(eventInit) { RGFW_event e; eventInit; RGFW_eventQueuePush(&e); }
@@ -1567,6 +1575,8 @@ struct RGFW_info {
 
     RGFW_mouse* hiddenMouse;
     RGFW_event events[RGFW_MAX_EVENTS];
+	RGFW_bool queueEvents;
+	RGFW_bool polledEvents;
 
     u32 apiKeycodes[RGFW_keyLast];
     u8 keycodes[RGFW_OS_BASED_VALUE(256, 512, 128, 256)];
@@ -1961,7 +1971,7 @@ no more event call back defines
 #define RGFW_MOUSE_LEFT 		RGFW_BIT(27) /* if mouse left the window */
 #define RGFW_WINDOW_ALLOC 		RGFW_BIT(28) /* if window was allocated by RGFW */
 #define RGFW_WINDOW_INIT 		RGFW_BIT(30) /* if window.buffer was allocated by RGFW */
-#define RGFW_INTERNAL_FLAGS (RGFW_EVENT_QUIT | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_WINDOW_ALLOC | RGFW_windowFocus | RGFW_windowUseEGL | RGFW_windowNoEventQueue)
+#define RGFW_INTERNAL_FLAGS (RGFW_EVENT_QUIT | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_WINDOW_ALLOC | RGFW_windowFocus | RGFW_windowUseEGL)
 
 size_t RGFW_sizeofInfo(void) { return sizeof(RGFW_info); }
 size_t RGFW_sizeofNativeImage(void) { return sizeof(RGFW_nativeImage); }
@@ -2003,17 +2013,10 @@ i32 RGFW_init_ptr(RGFW_info* info) {
     if (info == _RGFW || info == NULL) return 1;
 
     RGFW_setInfo(info);
-
-    _RGFW->root = NULL;
-    _RGFW->eventLen = 0;
-    _RGFW->windowCount = 0;
-
-	#ifdef RGFW_OPENGL
-	_RGFW->current = NULL;
-	#endif
-
     RGFW_MEMSET(_RGFW, 0, sizeof(RGFW_info));
-    _RGFW->useWaylandBool = RGFW_TRUE;
+	_RGFW->queueEvents = RGFW_TRUE;
+	_RGFW->polledEvents = RGFW_FALSE;
+	_RGFW->useWaylandBool = RGFW_TRUE;
 
 	_RGFW->droppedFiles = (char**)(void*)_RGFW->droppedFilesSrc;
 	u32 i;
@@ -2045,9 +2048,12 @@ void RGFW_deinit_ptr(RGFW_info* info) {
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal, RGFW_DEBUG_CTX(NULL, 0), "global context deinitialized");
 }
 
+void RGFW_setQueueEvents(RGFW_bool queue) {  _RGFW->queueEvents = queue; }
+
+void RGFW_eventQueueFlush(void) { _RGFW->eventLen = 0; }
 
 void RGFW_eventQueuePush(const RGFW_event* event) {
-	if (event->_win && (((RGFW_window*)event->_win)->_flags & RGFW_windowNoEventQueue)) return;
+	if (_RGFW->queueEvents == RGFW_FALSE) return;
 	RGFW_ASSERT(_RGFW->eventLen >= 0);
 
 	if (_RGFW->eventLen >= RGFW_MAX_EVENTS) {
@@ -2063,7 +2069,7 @@ RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
 	RGFW_ASSERT(_RGFW->eventLen >= 0 && _RGFW->eventLen <= RGFW_MAX_EVENTS);
 	RGFW_event* ev;
 
-  if (_RGFW->eventLen == 0) {
+	if (_RGFW->eventLen == 0) {
 		return NULL;
 	}
 
@@ -2079,26 +2085,31 @@ RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
 }
 
 RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
-	RGFW_event* ev;
-    RGFW_ASSERT(win != NULL);
-    if (_RGFW->eventLen == 0) {
+	if (_RGFW->eventLen == 0 && _RGFW->polledEvents == RGFW_FALSE) {
 		RGFW_pollEvents();
+		_RGFW->polledEvents = RGFW_TRUE;
 	}
 
-	if (event->type == RGFW_quit && win->_flags & RGFW_windowFreeOnClose) {
-        RGFW_window_close(win);
-	    return RGFW_TRUE;
-    }
+	if (RGFW_window_checkQueuedEvent(win, event) == RGFW_FALSE) {
+		_RGFW->polledEvents = RGFW_FALSE;
+		return RGFW_FALSE;
+	}
 
+	return RGFW_TRUE;
+}
+
+RGFW_bool RGFW_window_checkQueuedEvent(RGFW_window* win, RGFW_event* event) {
+	RGFW_event* ev;
+	RGFW_ASSERT(win != NULL);
 	/* check queued events */
 	ev = RGFW_eventQueuePop(win);
 	if (ev != NULL) {
 		if (ev->type == RGFW_quit) RGFW_window_setShouldClose(win, RGFW_TRUE);
 		*event = *ev;
+		return RGFW_TRUE;
     }
-	else return RGFW_FALSE;
 
-	return RGFW_TRUE;
+	return RGFW_FALSE;
 }
 
 
@@ -2135,11 +2146,6 @@ void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags f
 	win->_flags = flags | (win->_flags & RGFW_WINDOW_ALLOC);
 	win->_keyMod = 0;
 	win->_lastMousePoint = RGFW_POINT(0, 0);
-}
-
-void RGFW_window_setQueueEvents(RGFW_window* win, RGFW_bool queue) {
-	if (queue) win->_flags &= (u32)RGFW_windowNoEventQueue;
-	else win->_flags &= (u32)~RGFW_windowNoEventQueue;
 }
 
 void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
@@ -3279,9 +3285,6 @@ void RGFW_waitForEvent(i32 waitMS) {
 		{ ConnectionNumber(_RGFW->display), POLLIN, 0 },
         #endif
         { _RGFW->eventWait_forceStop[0], POLLIN, 0 },
-		#if defined(__linux__)
-		{ -1, POLLIN, 0 }, {-1, POLLIN, 0 }, {-1, POLLIN, 0 },  {-1, POLLIN, 0}
-		#endif
 	};
 
 	u8 index = 2;
