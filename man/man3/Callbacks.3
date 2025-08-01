@@ -1,4 +1,4 @@
-.TH "Callbacks" 3 "Thu Jul 31 2025" "RGFW" \" -*- nroff -*-
+.TH "Callbacks" 3 "Fri Aug 1 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -43,7 +43,7 @@ Callbacks \- Callbacks
 .RI "typedef void(* \fBRGFW_windowRefreshfunc\fP) (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP key, \fBu8\fP keyChar, RGFW_keymod keyMod, \fBRGFW_bool\fP pressed)"
+.RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP key, \fBu8\fP keyChar, RGFW_keymod keyMod, \fBRGFW_bool\fP repeat, \fBRGFW_bool\fP pressed)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_mouseButtonfunc\fP) (\fBRGFW_window\fP *win, RGFW_mouseButton button, double scroll, \fBRGFW_bool\fP pressed)"
@@ -115,7 +115,7 @@ RGFW_dnd, the window that had the drop, the drop data and the number of files dr
 RGFW_DNDInit, the window, the point of the drop on the windows 
 .SS "typedef void(* RGFW_focusfunc) (\fBRGFW_window\fP *win, \fBRGFW_bool\fP inFocus)"
 RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its in focus 
-.SS "typedef void(* RGFW_keyfunc) (\fBRGFW_window\fP *win, \fBu8\fP key, \fBu8\fP keyChar, RGFW_keymod keyMod, \fBRGFW_bool\fP pressed)"
+.SS "typedef void(* RGFW_keyfunc) (\fBRGFW_window\fP *win, \fBu8\fP key, \fBu8\fP keyChar, RGFW_keymod keyMod, \fBRGFW_bool\fP repeat, \fBRGFW_bool\fP pressed)"
 RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of the mod keys, if it was a press (else it's a release) 
 .SS "typedef void(* RGFW_mouseButtonfunc) (\fBRGFW_window\fP *win, RGFW_mouseButton button, double scroll, \fBRGFW_bool\fP pressed)"
 RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 

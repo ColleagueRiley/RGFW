@@ -11350,6 +11350,8 @@ var ASM_CONSTS = {
       GLImmediate.modifiedClientAttributes = true;
     };
 
+  function _glFlush() { GLctx.flush() }
+
 
   var _glVertex2f = (x, y) => {
       assert(GLImmediate.mode >= 0); // must be in begin/end
@@ -11795,6 +11797,8 @@ var wasmImports = {
   glColor3f: _glColor3f,
   /** @export */
   glEnd: _glEnd,
+  /** @export */
+  glFlush: _glFlush,
   /** @export */
   glGetString: _glGetString,
   /** @export */

@@ -65,7 +65,7 @@ var searchData=
   ['rgfw_5fismousereleased_62',['RGFW_isMouseReleased',['../group__Input.html#gac3ad11fe46449b780172cea27350b324',1,'RGFW.h']]],
   ['rgfw_5fispressed_63',['RGFW_isPressed',['../group__Input.html#ga6edb31c11775f450c7f3554771fbc252',1,'RGFW.h']]],
   ['rgfw_5fisreleased_64',['RGFW_isReleased',['../group__Input.html#ga379b35a3e3d4d5b230aa2b22fc2d5e0c',1,'RGFW.h']]],
-  ['rgfw_5fkeyfunc_65',['RGFW_keyfunc',['../group__Callbacks.html#ga88258d081dbf13fa8899339ad0ebc0ec',1,'RGFW.h']]],
+  ['rgfw_5fkeyfunc_65',['RGFW_keyfunc',['../group__Callbacks.html#ga769d95646a522d622756d60ace4e6fa0',1,'RGFW.h']]],
   ['rgfw_5floadmouse_66',['RGFW_loadMouse',['../RGFW_8h.html#a4dc28259d563a51eac07c9cb761b6300',1,'RGFW.h']]],
   ['rgfw_5fmax_5fdrops_67',['RGFW_MAX_DROPS',['../RGFW_8h.html#a9711b4ffc483384dffcbaa7f98c58385',1,'RGFW.h']]],
   ['rgfw_5fmax_5fevents_68',['RGFW_MAX_EVENTS',['../group__Supporting.html#ga49fc83ce8848e48e0895a123ab5707dd',1,'RGFW.h']]],
