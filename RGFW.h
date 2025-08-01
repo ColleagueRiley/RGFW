@@ -672,6 +672,7 @@ RGFWDEF void RGFW_surface_free(RGFW_surface* surface);
 	#ifdef RGFW_WAYLAND
 		u32 id; /* Add id so wl_outputs can be removed */
 		struct wl_output *output;
+		
 	#endif 
 		RGFW_monitorMode mode;
 	} RGFW_monitor;
@@ -5916,11 +5917,12 @@ void RGFW_wl_global_registry_handler(void* data,
 void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u32 name) { 
 	RGFW_UNUSED(data); RGFW_UNUSED(registry);
 
-	for (u32 i = 0; i < _RGFW->num_monitors; i++) { // will leave the array empty
+	for (u32 i = _RGFW->num_monitors; i >= 0; i--) { // will leave the array empty
 		RGFW_monitor* mon = _RGFW->monitors[i];
 		if (name == mon->id && mon->output) {
 			wl_output_destroy(mon->output); 
 			RGFW_FREE(mon);
+			_RGFW->num_monitors--;
 		}
 	}
 
@@ -6501,12 +6503,13 @@ void RGFW_FUNC(RGFW_window_close)(RGFW_window* win) {
 	wl_compositor_destroy(win->src.compositor);
 	xdg_wm_base_destroy(win->src.xdg_wm_base);
 
-	for (u32 i = 0; i < _RGFW->num_monitors; i++) { // will leave the array empty
+	for (u32 i = _RGFW->num_monitors; i >= 0; i--) { // will leave the array empty
 		RGFW_monitor* mon = _RGFW->monitors[i];
 		if (mon->output) {
 			wl_output_destroy(mon->output); 
 		}
 		RGFW_FREE(mon);
+		_RGFW->num_monitors--;
 	}
 
 	RGFW_clipboard_switch(NULL);
