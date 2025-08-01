@@ -138,7 +138,9 @@ void mousebuttonfunc(RGFW_window* win, u8 button, double scroll, u8 pressed) {
 
 
 int main(void) {
-    window = RGFW_createWindow("RGFW Callbacks", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND | RGFW_windowNoEventQueue);
+    window = RGFW_createWindow("RGFW Callbacks", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND);
+
+    RGFW_setQueueEvents(RGFW_FALSE);
 
     RGFW_setDebugCallback(errorfunc);
     RGFW_setScaleUpdatedCallback(scaleUpdatedfunc);
