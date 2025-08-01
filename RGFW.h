@@ -9088,8 +9088,8 @@ void RGFW__osxMouseMoved(id self, SEL _cmd, id event) {
     e.type = RGFW_mousePosChanged;
     NSPoint p = ((NSPoint(*)(id, SEL))objc_msgSend)(event, sel_registerName("locationInWindow"));
     e.point = RGFW_POINT((u32)p.x, (u32)(win->r.h - p.y));
-    p.x = ((CGFloat(*)(id, SEL)abi_objc_msgSend_fpret)(event, sel_registerName("deltaX"));
-    p.y = ((CGFloat(*)(id, SEL)abi_objc_msgSend_fpret)(event, sel_registerName("deltaY"));
+    p.x = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaX"));
+    p.y = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaY"));
     e.vector = RGFW_POINT((i32)p.x, (i32)p.y);
     win->_lastMousePoint = e.point;
     e._win = win;
@@ -9151,7 +9151,7 @@ void RGFW__osxScrollWheel(id self, SEL _cmd, id event) {
     if (win == NULL) return;
 
     RGFW_event e;
-    double deltaY = ((CGFloat(*)(id, SEL)abi_objc_msgSend_fpret)(event, sel_registerName("deltaY"));
+    double deltaY = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaY"));
     e.button = (deltaY > 0) ? RGFW_mouseScrollUp : RGFW_mouseScrollDown;
     RGFW_mouseButtons[e.button].prev = RGFW_mouseButtons[e.button].current;
     RGFW_mouseButtons[e.button].current = 1;
