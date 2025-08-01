@@ -9065,10 +9065,10 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	}
 
 	const char window_key[] = "RGFW_WindowKey";
-	((void(*)(id, SEL, id, const char*, unsigned int))objc_msgSend)(
+	((void(*)(id, SEL, id, const char*, unsigned int, objc_AssociationPolicy))objc_msgSend)(
         (id)objc_getClass("objc_setAssociatedObject"),
         sel_registerName("setAssociatedObject:value:key:policy:"),
-        win->src.window, (id)window_key,  (id)win, OBJC_ASSOCIATION_ASSIGN
+        win->src.window, window_key,  (id)win, OBJC_ASSOCIATION_ASSIGN
     );
 
 	id str = NSString_stringWithUTF8String(name);
@@ -9330,7 +9330,7 @@ void RGFW_pollEvents(void) {
 		RGFW_window* win = (RGFW_window*)((id(*)(id, SEL, id, const char*))objc_msgSend)(
 					(id)objc_getClass("objc_getAssociatedObject"),
 					sel_registerName("getAssociatedObject:key:"),
-					nswindow, (id)window_key);
+					nswindow, window_key);
 
 		if (win == NULL) continue;
 		event._win = win;
