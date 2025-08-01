@@ -6114,10 +6114,9 @@ u8 RGFW_FUNC(RGFW_rgfwToKeyChar)(u32 key) {
     return (u8)key;
 }
 
-void RGFW_FUNC(RGFW_pollEvents) (RGFW_window* win, RGFW_event* event) {
+void RGFW_FUNC(RGFW_pollEvents) (void) {
 	RGFW_resetKeyPrev();
-	if ((win->_flags & RGFW_windowHide) == 0)
-        wl_display_roundtrip(_RGFW->wl_display);
+	wl_display_roundtrip(_RGFW->wl_display);
 }
 
 void RGFW_FUNC(RGFW_window_move) (RGFW_window* win, RGFW_point v) {
