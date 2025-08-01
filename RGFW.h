@@ -9068,7 +9068,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	((void(*)(id, SEL, id, const char*, unsigned int, objc_AssociationPolicy))objc_msgSend)(
         (id)objc_getClass("objc_setAssociatedObject"),
         sel_registerName("setAssociatedObject:value:key:policy:"),
-        win->src.window, window_key,  (id)win, OBJC_ASSOCIATION_ASSIGN
+        (id)win->src.window, window_key,  (id)win, OBJC_ASSOCIATION_ASSIGN
     );
 
 	id str = NSString_stringWithUTF8String(name);
@@ -9303,7 +9303,6 @@ void RGFW_pollEvents(void) {
 	*/
 
 	RGFW_resetKeyPrev();
-    objc_msgSend_void((id)win->src.mouse, sel_registerName("set"));
 
 	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
@@ -9334,6 +9333,8 @@ void RGFW_pollEvents(void) {
 
 		if (win == NULL) continue;
 		event._win = win;
+		/* TODO: look into this hacky fix*/
+		objc_msgSend_void((id)win->src.mouse, sel_registerName("set"));
 
 		u32 type = (u32)objc_msgSend_uint(e, sel_registerName("type"));
 		switch (type) {
