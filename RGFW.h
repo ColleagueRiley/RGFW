@@ -9064,6 +9064,12 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 			(NSAlloc(nsclass), func, windowRect, macArgs, macArgs, false);
 	}
 
+	((void(*)(id, SEL, id, const char*, unsigned int))objc_msgSend)(
+        (id)objc_getClass("objc_setAssociatedObject"),
+        sel_registerName("setAssociatedObject:value:key:policy:"),
+        win->src.window, (id)win, (id)"RGFW_WindowKey", OBJC_ASSOCIATION_ASSIGN
+    );
+
 	id str = NSString_stringWithUTF8String(name);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setTitle:"), str);
 
@@ -9266,8 +9272,6 @@ void RGFW_stopCheckEvents(void) {
 }
 
 void RGFW_waitForEvent(i32 waitMS) {
-	RGFW_UNUSED(win);
-
 	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
 
@@ -9318,7 +9322,16 @@ void RGFW_pollEvents(void) {
 		// objc_msgSend_id(e, sel_registerName("window"))
 		RGFW_event event;
 		RGFW_MEMSET(&event, 0, sizeof(event));
-		event._win =
+		RGFW_window* win = NULL;
+
+		id nswindow = ((id(*)(id, SEL))objc_msgSend)(e, sel_registerName("window"));
+		win = (RGFW_window*)((id(*)(id, SEL, id, const char*))objc_msgSend)(
+			(id)objc_getClass("objc_getAssociatedObject"),
+			sel_registerName("getAssociatedObject:key:"),
+			nswindow, (id)"RGFW_WindowKey"
+		);
+		if (win == NULL) continue
+		event._win = win;
 
 		u32 type = (u32)objc_msgSend_uint(e, sel_registerName("type"));
 		switch (type) {
