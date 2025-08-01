@@ -90,6 +90,7 @@ int main(void) {
 		glEnd();
 
 		RGFW_window_swapBuffers_OpenGL(win); /* NOTE(EimaMei): Rendering should always go: 1. Clear everything 2. Render 3. Swap buffers. Based on https://www.khronos.org/opengl/wiki/Common_Mistakes#Swap_Buffers */
+		glFlush();
 	}
 
 	RGFW_freeMouse(mouse);

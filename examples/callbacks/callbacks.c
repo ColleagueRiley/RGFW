@@ -113,7 +113,8 @@ void windowrefreshfunc(RGFW_window* win) {
 }
 
 static
-void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool pressed) {
+void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed) {
+    RGFW_UNUSED(repeat);
     if (window != win) return;
     if (pressed)
         printf("key pressed : %i (%c) mapped : %i (%c): with modstate : %i\n", key, key, keyChar, keyChar, keyMod);

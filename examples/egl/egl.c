@@ -1,3 +1,4 @@
+#include <GL/gl.h>
 #define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
 #define RGFW_EGL
@@ -5,14 +6,16 @@
 
 #include <stdio.h>
 
-void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool pressed) {
-    RGFW_UNUSED(keyMod); RGFW_UNUSED(keyChar); RGFW_UNUSED(win);
+void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed) {
+    RGFW_UNUSED(keyMod); RGFW_UNUSED(keyChar); RGFW_UNUSED(win); RGFW_UNUSED(repeat);
     if (key == RGFW_escape && pressed) {
         RGFW_window_setShouldClose(win, 1);
     }
 }
 
 int main(void) {
+
+	RGFW_setHint_OpenGL(RGFW_glDoubleBuffer, RGFW_FALSE);
     RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), RGFW_windowUseEGL | RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowTransparent);
 
     RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want
@@ -31,7 +34,6 @@ int main(void) {
                 printf("The right mouse button was clicked at x: %d, y: %d\n", event.point.x, event.point.y);
             }
         }
-
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -42,6 +44,7 @@ int main(void) {
         glEnd();
 
         RGFW_window_swapBuffers_EGL(win);
+        glFlush();
     }
 
     RGFW_window_close(win);
