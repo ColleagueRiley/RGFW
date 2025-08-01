@@ -66,7 +66,7 @@ int main(void) {
 			}
 		}
 
-		if (RGFW_isReleased(win, RGFW_w))
+		if (RGFW_wasPressed(win, RGFW_w))
 			RGFW_window_setMouseDefault(win);
 		else if (RGFW_isReleased(win, RGFW_e))
 			RGFW_window_setMouse(win, mouse);
@@ -75,7 +75,7 @@ int main(void) {
 		else if (RGFW_isReleased(win, RGFW_t))
 			RGFW_window_showMouse(win, 1);
 		else if (RGFW_isReleased(win, RGFW_down))
-				RGFW_writeClipboard("DOWN 刺猬", 12);
+			RGFW_writeClipboard("DOWN 刺猬", 12);
 		else if (RGFW_isReleased(win, RGFW_up))
 			printf("pasted '%s'\n", RGFW_readClipboard(NULL));
 

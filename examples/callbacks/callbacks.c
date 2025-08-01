@@ -138,7 +138,7 @@ void mousebuttonfunc(RGFW_window* win, u8 button, double scroll, u8 pressed) {
 
 
 int main(void) {
-    window = RGFW_createWindow("RGFW Callbacks", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND);
+    window = RGFW_createWindow("RGFW Callbacks", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND | RGFW_windowNoEventQueue);
 
     RGFW_setDebugCallback(errorfunc);
     RGFW_setScaleUpdatedCallback(scaleUpdatedfunc);
@@ -163,7 +163,7 @@ int main(void) {
 
         RGFW_window_swapBuffers_OpenGL(window);
 
-		RGFW_window_checkEvents(window, RGFW_eventNoWait);
+		RGFW_pollEvents();
    }
 
     RGFW_window_close(window);
