@@ -9068,7 +9068,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	((void(*)(id, SEL, id, const char*, unsigned int))objc_msgSend)(
         (id)objc_getClass("objc_setAssociatedObject"),
         sel_registerName("setAssociatedObject:value:key:policy:"),
-        win->src.window, (id)win, (id)window_key, OBJC_ASSOCIATION_ASSIGN
+        win->src.window, (id)window_key,  (id)win, OBJC_ASSOCIATION_ASSIGN
     );
 
 	id str = NSString_stringWithUTF8String(name);
