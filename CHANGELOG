@@ -3,7 +3,7 @@ changelog
 
 Current:
 
-Release:    RGFW 1.7.5-dev
+Release:    RGFW 1.8.0-dev
 -----------------------------------------------
 - add win->exitKey to control which key is checked by `RGFW_window_shouldClose`
 - fix set max/min window size (X11)
@@ -119,6 +119,14 @@ Release:    RGFW 1.7.5-dev
 - change typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool pressed);
 to
 typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed);
+- add RGFW_window_getFlags
+- rename `RGFW_window_eventWait` to `RGFW_waitForEvent`
+- add `RGFW_window_pollEvents`, cycles through ALL of the events WITHOUT STOPPING
+- `RGFW_window_checkEvent` polls the uses `RGFW_window_pollEvents` and then uses the event queue to get an event
+- replace `RGFW_window_checkEvents` with `RGFW_window_pollEvents`
+- add RGFW_window_checkQueuedEvent
+- remove RGFW_windowFreeOnClose
+- add RGFW_eventQueueFlush
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------

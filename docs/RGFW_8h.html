@@ -174,7 +174,7 @@ Macros</h2></td></tr>
 <tr class="separator:gafe712a1adc4e4b1e019ce118c62da2db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga49fc83ce8848e48e0895a123ab5707dd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga49fc83ce8848e48e0895a123ab5707dd">RGFW_MAX_EVENTS</a>&#160;&#160;&#160;32</td></tr>
 <tr class="separator:ga49fc83ce8848e48e0895a123ab5707dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga121f88a2994d08b7c4b669e7c59eec97"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga121f88a2994d08b7c4b669e7c59eec97">RGFW_eventQueuePushEx</a>(eventInit)&#160;&#160;&#160;{ <a class="el" href="structRGFW__event.html">RGFW_event</a> e; eventInit; <a class="el" href="group__Supporting.html#ga5931a0bf25028b657a3bbf231b02af4c">RGFW_eventQueuePush</a>(e); }</td></tr>
+<tr class="memitem:ga121f88a2994d08b7c4b669e7c59eec97"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga121f88a2994d08b7c4b669e7c59eec97">RGFW_eventQueuePushEx</a>(eventInit)&#160;&#160;&#160;{ <a class="el" href="structRGFW__event.html">RGFW_event</a> e; eventInit; <a class="el" href="group__Supporting.html#ga8592623602ce3b36956d512c31f3dfac">RGFW_eventQueuePush</a>(&amp;e); }</td></tr>
 <tr class="separator:ga121f88a2994d08b7c4b669e7c59eec97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
@@ -308,6 +308,16 @@ Functions</h2></td></tr>
 <tr class="separator:a4dc28259d563a51eac07c9cb761b6300"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc013c735ca517d58623dc4a46e1cc60"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#abc013c735ca517d58623dc4a46e1cc60">RGFW_freeMouse</a> (<a class="el" href="RGFW_8h.html#a7c3c77eb6844d3bb20054dc4f1f61ac5">RGFW_mouse</a> *mouse)</td></tr>
 <tr class="separator:abc013c735ca517d58623dc4a46e1cc60"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48c372dd9aa150c1fbcc879a077034f8"><td class="memItemLeft" align="right" valign="top">typedef&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a48c372dd9aa150c1fbcc879a077034f8">RGFW_ENUM</a> (<a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>, RGFW_eventWait)</td></tr>
+<tr class="separator:a48c372dd9aa150c1fbcc879a077034f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac71bdcc8563fc079ad8a14ef2ca537c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#ac71bdcc8563fc079ad8a14ef2ca537c3">RGFW_waitForEvent</a> (<a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> waitMS)</td></tr>
+<tr class="separator:ac71bdcc8563fc079ad8a14ef2ca537c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77bdb8f5722145e778e56b8a34c94654"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a77bdb8f5722145e778e56b8a34c94654">RGFW_setQueueEvents</a> (<a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> queue)</td></tr>
+<tr class="separator:a77bdb8f5722145e778e56b8a34c94654"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a877d6904d56b6c485d56a171b8f97750"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a877d6904d56b6c485d56a171b8f97750">RGFW_pollEvents</a> (void)</td></tr>
+<tr class="separator:a877d6904d56b6c485d56a171b8f97750"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77d53bb9ffadd6f6c5149be8a46612e1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a77d53bb9ffadd6f6c5149be8a46612e1">RGFW_stopCheckEvents</a> (void)</td></tr>
+<tr class="separator:a77d53bb9ffadd6f6c5149be8a46612e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af0b04ace94c7d3824f3fab107d6368ce"><td class="memItemLeft" align="right" valign="top">typedef&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#af0b04ace94c7d3824f3fab107d6368ce">RGFW_ENUM</a> (<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>, RGFW_windowFlags)</td></tr>
 <tr class="separator:af0b04ace94c7d3824f3fab107d6368ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a661fee6f813c93a774468f88ae367696"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a661fee6f813c93a774468f88ae367696">RGFW_sizeofWindow</a> (void)</td></tr>
@@ -318,6 +328,8 @@ Functions</h2></td></tr>
 <tr class="separator:a91dac3a45780f513f7159d2ed3a6482e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec4a26abc57fea68c0c69d67694b3b87"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="structRGFW__rect.html">RGFW_rect</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#aec4a26abc57fea68c0c69d67694b3b87">RGFW_window_getRect</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win)</td></tr>
 <tr class="separator:aec4a26abc57fea68c0c69d67694b3b87"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1005e75e32126fb2881524aa58a0a68"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#ac1005e75e32126fb2881524aa58a0a68">RGFW_window_getFlags</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win)</td></tr>
+<tr class="separator:ac1005e75e32126fb2881524aa58a0a68"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae6e398ffd20b9bbae572c2f9bda40bf6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> RGFW_key&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#ae6e398ffd20b9bbae572c2f9bda40bf6">RGFW_window_getExitKey</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win)</td></tr>
 <tr class="separator:ae6e398ffd20b9bbae572c2f9bda40bf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a23d5f18beeda9b8d8a3348525b555b95"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a23d5f18beeda9b8d8a3348525b555b95">RGFW_window_setExitKey</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, RGFW_key key)</td></tr>
@@ -346,14 +358,8 @@ Functions</h2></td></tr>
 <tr class="separator:ga2952eee39f36b85b6829976656043f97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga24a216d1304d457e92b07504dda3fabb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga24a216d1304d457e92b07504dda3fabb">RGFW_window_checkEvent</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="structRGFW__event.html">RGFW_event</a> *event)</td></tr>
 <tr class="separator:ga24a216d1304d457e92b07504dda3fabb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga48c372dd9aa150c1fbcc879a077034f8"><td class="memItemLeft" align="right" valign="top">typedef&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga48c372dd9aa150c1fbcc879a077034f8">RGFW_ENUM</a> (<a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>, RGFW_eventWait)</td></tr>
-<tr class="separator:ga48c372dd9aa150c1fbcc879a077034f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4fa90ea8f1e3df26d24b02844b29e6cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga4fa90ea8f1e3df26d24b02844b29e6cf">RGFW_window_eventWait</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> waitMS)</td></tr>
-<tr class="separator:ga4fa90ea8f1e3df26d24b02844b29e6cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga0bbdc2aa27b93d4bf37ecd4709b3a87a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga0bbdc2aa27b93d4bf37ecd4709b3a87a">RGFW_window_checkEvents</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> waitMS)</td></tr>
-<tr class="separator:ga0bbdc2aa27b93d4bf37ecd4709b3a87a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga77d53bb9ffadd6f6c5149be8a46612e1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga77d53bb9ffadd6f6c5149be8a46612e1">RGFW_stopCheckEvents</a> (void)</td></tr>
-<tr class="separator:ga77d53bb9ffadd6f6c5149be8a46612e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8a75a2c74318e91e6d9b1c64ec7559d7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga8a75a2c74318e91e6d9b1c64ec7559d7">RGFW_window_checkQueuedEvent</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="structRGFW__event.html">RGFW_event</a> *event)</td></tr>
+<tr class="separator:ga8a75a2c74318e91e6d9b1c64ec7559d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab9fbaeec9a1268374ab141b6ccfc41a3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#gab9fbaeec9a1268374ab141b6ccfc41a3">RGFW_window_close</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win)</td></tr>
 <tr class="separator:gab9fbaeec9a1268374ab141b6ccfc41a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1d2a9a61b4acc071f8cc2723723a3ce5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga1d2a9a61b4acc071f8cc2723723a3ce5">RGFW_window_move</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="structRGFW__point.html">RGFW_point</a> v)</td></tr>
@@ -552,10 +558,12 @@ Functions</h2></td></tr>
 <tr class="separator:gafdab87dd54d25d3699a381e1051cb303"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9938b52ee354a81f049e67ae6e99fc94"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga9938b52ee354a81f049e67ae6e99fc94">RGFW_getRootWindow</a> (void)</td></tr>
 <tr class="separator:ga9938b52ee354a81f049e67ae6e99fc94"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5931a0bf25028b657a3bbf231b02af4c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga5931a0bf25028b657a3bbf231b02af4c">RGFW_eventQueuePush</a> (<a class="el" href="structRGFW__event.html">RGFW_event</a> event)</td></tr>
-<tr class="separator:ga5931a0bf25028b657a3bbf231b02af4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5e594acc8f65142aca3ab5eac1f13d4b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structRGFW__event.html">RGFW_event</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga5e594acc8f65142aca3ab5eac1f13d4b">RGFW_eventQueuePop</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win)</td></tr>
-<tr class="separator:ga5e594acc8f65142aca3ab5eac1f13d4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8592623602ce3b36956d512c31f3dfac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga8592623602ce3b36956d512c31f3dfac">RGFW_eventQueuePush</a> (const <a class="el" href="structRGFW__event.html">RGFW_event</a> *event)</td></tr>
+<tr class="separator:ga8592623602ce3b36956d512c31f3dfac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaaace703e5f525354422ae03465c838f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#gaaace703e5f525354422ae03465c838f5">RGFW_eventQueueFlush</a> (void)</td></tr>
+<tr class="separator:gaaace703e5f525354422ae03465c838f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga460e56a86bf3d851d833ac37089fd48f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="structRGFW__event.html">RGFW_event</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga460e56a86bf3d851d833ac37089fd48f">RGFW_eventQueuePop</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win)</td></tr>
+<tr class="separator:ga460e56a86bf3d851d833ac37089fd48f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf4429fa8a0dc4b06ffc1a2406a17b9ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#gaf4429fa8a0dc4b06ffc1a2406a17b9ac">RGFW_apiKeyToRGFW</a> (<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> keycode)</td></tr>
 <tr class="separator:gaf4429fa8a0dc4b06ffc1a2406a17b9ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6025f8aa67cdeb4d4ecc2a36a2eceaa4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga6025f8aa67cdeb4d4ecc2a36a2eceaa4">RGFW_rgfwToApiKey</a> (<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> keycode)</td></tr>
@@ -1568,8 +1576,37 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a48c372dd9aa150c1fbcc879a077034f8" name="a48c372dd9aa150c1fbcc879a077034f8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a48c372dd9aa150c1fbcc879a077034f8">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[1/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef RGFW_ENUM </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">RGFW_eventWait&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >for RGFW_the code is stupid and C++ waitForEvent waitMS -&gt; Allows the function to keep checking for events even after there are no more events if waitMS == 0, the loop will not wait for events if waitMS &gt; 0, the loop will wait that many miliseconds after there are no more events until it returns if waitMS == -1 or waitMS == the max size of an unsigned 32-bit int, the loop will not return until it gets another event </p>
+
+</div>
+</div>
 <a id="af0b04ace94c7d3824f3fab107d6368ce" name="af0b04ace94c7d3824f3fab107d6368ce"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af0b04ace94c7d3824f3fab107d6368ce">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[1/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#af0b04ace94c7d3824f3fab107d6368ce">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[2/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1606,7 +1643,6 @@ Functions</h2></td></tr>
 <p >scale the window to the screen</p>
 <p >the window is hidden</p>
 <p >&lt; create a floating window</p>
-<p >&lt; free (RGFW_window_close) the RGFW_window struct when the window is closed (by the end user)</p>
 <p >&lt; focus the window when it's shown</p>
 <p >&lt; focus the window when it's shown</p>
 <p >&lt; if the window is in focus</p>
@@ -1615,7 +1651,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="a0193df4fbcfcda20ea542a96777a58bd" name="a0193df4fbcfcda20ea542a96777a58bd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0193df4fbcfcda20ea542a96777a58bd">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[2/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a0193df4fbcfcda20ea542a96777a58bd">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[3/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1665,7 +1701,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="ac25ff246ea8f67caae6d520e9e96b2da" name="ac25ff246ea8f67caae6d520e9e96b2da"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac25ff246ea8f67caae6d520e9e96b2da">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[3/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ac25ff246ea8f67caae6d520e9e96b2da">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[4/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1699,7 +1735,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="afa4b496a0ce0efa4b3d5c4f9a0a0304b" name="afa4b496a0ce0efa4b3d5c4f9a0a0304b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afa4b496a0ce0efa4b3d5c4f9a0a0304b">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[4/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#afa4b496a0ce0efa4b3d5c4f9a0a0304b">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[5/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1728,7 +1764,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="adb2d6f25bf1ee1fbe2d021af31ebac43" name="adb2d6f25bf1ee1fbe2d021af31ebac43"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adb2d6f25bf1ee1fbe2d021af31ebac43">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[5/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#adb2d6f25bf1ee1fbe2d021af31ebac43">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[6/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1756,7 +1792,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="aeb0f2affd4be9dc70c72715ef6b6e2b8" name="aeb0f2affd4be9dc70c72715ef6b6e2b8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeb0f2affd4be9dc70c72715ef6b6e2b8">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[6/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb0f2affd4be9dc70c72715ef6b6e2b8">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[7/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1787,7 +1823,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="ad13802da9864badf7c16c3a3ba69e47f" name="ad13802da9864badf7c16c3a3ba69e47f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad13802da9864badf7c16c3a3ba69e47f">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[7/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ad13802da9864badf7c16c3a3ba69e47f">&#9670;&#160;</a></span>RGFW_ENUM() <span class="overload">[8/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2023,6 +2059,44 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a877d6904d56b6c485d56a171b8f97750" name="a877d6904d56b6c485d56a171b8f97750"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a877d6904d56b6c485d56a171b8f97750">&#9670;&#160;</a></span>RGFW_pollEvents()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void RGFW_pollEvents </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >check all the events until there are none left and updates window structure attributes adds them to a queue for RGFW_window_checkEvent to check if queueEvents is true </p>
+
+</div>
+</div>
+<a id="a77bdb8f5722145e778e56b8a34c94654" name="a77bdb8f5722145e778e56b8a34c94654"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a77bdb8f5722145e778e56b8a34c94654">&#9670;&#160;</a></span>RGFW_setQueueEvents()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void RGFW_setQueueEvents </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td>
+          <td class="paramname"><em>queue</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >if you you want events to be queued or not, enabled by default </p>
+
+</div>
+</div>
 <a id="a7321427a8cca4162bf943064ba5b3f55" name="a7321427a8cca4162bf943064ba5b3f55"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7321427a8cca4162bf943064ba5b3f55">&#9670;&#160;</a></span>RGFW_sizeofNativeImage()</h2>
 
@@ -2092,6 +2166,25 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a77d53bb9ffadd6f6c5149be8a46612e1" name="a77d53bb9ffadd6f6c5149be8a46612e1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a77d53bb9ffadd6f6c5149be8a46612e1">&#9670;&#160;</a></span>RGFW_stopCheckEvents()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void RGFW_stopCheckEvents </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >tell RGFW_waitForEvent to stop waiting (to be ran from another thread) </p>
 
 </div>
 </div>
@@ -2169,6 +2262,25 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="ac71bdcc8563fc079ad8a14ef2ca537c3" name="ac71bdcc8563fc079ad8a14ef2ca537c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac71bdcc8563fc079ad8a14ef2ca537c3">&#9670;&#160;</a></span>RGFW_waitForEvent()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void RGFW_waitForEvent </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>&#160;</td>
+          <td class="paramname"><em>waitMS</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >sleep until RGFW gets an event or the timer ends (defined by OS) </p>
+
+</div>
+</div>
 <a id="a91dac3a45780f513f7159d2ed3a6482e" name="a91dac3a45780f513f7159d2ed3a6482e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a91dac3a45780f513f7159d2ed3a6482e">&#9670;&#160;</a></span>RGFW_window_blitSurface()</h2>
 
@@ -2214,6 +2326,25 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p >get the exit key for the window | returns RGFW_window.exitKey </p>
+
+</div>
+</div>
+<a id="ac1005e75e32126fb2881524aa58a0a68" name="ac1005e75e32126fb2881524aa58a0a68"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac1005e75e32126fb2881524aa58a0a68">&#9670;&#160;</a></span>RGFW_window_getFlags()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> RGFW_window_getFlags </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *&#160;</td>
+          <td class="paramname"><em>win</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >gets the flags of the window | returns RGFW_window._flags </p>
 
 </div>
 </div>

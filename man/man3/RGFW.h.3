@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Fri Aug 1 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Sat Aug 2 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -148,7 +148,7 @@ RGFW.h
 .RI "#define \fBRGFW_MAX_EVENTS\fP   32"
 .br
 .ti -1c
-.RI "#define \fBRGFW_eventQueuePushEx\fP(eventInit)   { \fBRGFW_event\fP e; eventInit; \fBRGFW_eventQueuePush\fP(e); }"
+.RI "#define \fBRGFW_eventQueuePushEx\fP(eventInit)   { \fBRGFW_event\fP e; eventInit; \fBRGFW_eventQueuePush\fP(&e); }"
 .br
 .in -1c
 .SS "Typedefs"
@@ -348,6 +348,21 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_freeMouse\fP (\fBRGFW_mouse\fP *mouse)"
 .br
 .ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_eventWait)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_waitForEvent\fP (\fBi32\fP waitMS)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setQueueEvents\fP (\fBRGFW_bool\fP queue)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_pollEvents\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_stopCheckEvents\fP (void)"
+.br
+.ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu32\fP, RGFW_windowFlags)"
 .br
 .ti -1c
@@ -361,6 +376,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_rect\fP \fBRGFW_window_getRect\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_window_getFlags\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP RGFW_key \fBRGFW_window_getExitKey\fP (\fBRGFW_window\fP *win)"
@@ -405,16 +423,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_checkEvent\fP (\fBRGFW_window\fP *win, \fBRGFW_event\fP *event)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_eventWait)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_eventWait\fP (\fBRGFW_window\fP *win, \fBi32\fP waitMS)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_checkEvents\fP (\fBRGFW_window\fP *win, \fBi32\fP waitMS)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_stopCheckEvents\fP (void)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_checkQueuedEvent\fP (\fBRGFW_window\fP *win, \fBRGFW_event\fP *event)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_close\fP (\fBRGFW_window\fP *win)"
@@ -714,10 +723,13 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_getRootWindow\fP (void)"
 .br
 .ti -1c
-.RI "void \fBRGFW_eventQueuePush\fP (\fBRGFW_event\fP event)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_eventQueuePush\fP (const \fBRGFW_event\fP *event)"
 .br
 .ti -1c
-.RI "\fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_eventQueueFlush\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_apiKeyToRGFW\fP (\fBu32\fP keycode)"
@@ -862,6 +874,8 @@ basic rect type, if there's not already a rect type of choice
 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_createSurfacePtr (\fBRGFW_image\fP img, \fBRGFW_surface\fP * surface)"
 
+.SS "typedef RGFW_ENUM (\fBi32\fP, RGFW_eventWait)"
+for RGFW_the code is stupid and C++ waitForEvent waitMS -> Allows the function to keep checking for events even after there are no more events if waitMS == 0, the loop will not wait for events if waitMS > 0, the loop will wait that many miliseconds after there are no more events until it returns if waitMS == -1 or waitMS == the max size of an unsigned 32-bit int, the loop will not return until it gets another event 
 .SS "typedef RGFW_ENUM (\fBu32\fP, RGFW_windowFlags)"
 Optional arguments for making a windows < the window doesn't have a border
 .PP
@@ -886,8 +900,6 @@ scale the window to the screen
 the window is hidden
 .PP
 < create a floating window
-.PP
-< free (RGFW_window_close) the RGFW_window struct when the window is closed (by the end user)
 .PP
 < focus the window when it's shown
 .PP
@@ -988,6 +1000,10 @@ request a specific mode
 scale monitor to window size 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitorModeCompare (\fBRGFW_monitorMode\fP mon, \fBRGFW_monitorMode\fP mon2, RGFW_modeRequest request)"
 check if 2 monitor modes are the same 
+.SS "\fBRGFWDEF\fP void RGFW_pollEvents (void)"
+check all the events until there are none left and updates window structure attributes adds them to a queue for RGFW_window_checkEvent to check if queueEvents is true 
+.SS "\fBRGFWDEF\fP void RGFW_setQueueEvents (\fBRGFW_bool\fP queue)"
+if you you want events to be queued or not, enabled by default 
 .SS "\fBRGFWDEF\fP size_t RGFW_sizeofNativeImage (void)"
 
 .SS "\fBRGFWDEF\fP size_t RGFW_sizeofSurface (void)"
@@ -996,6 +1012,8 @@ check if 2 monitor modes are the same
 
 .SS "\fBRGFWDEF\fP size_t RGFW_sizeofWindowSrc (void)"
 
+.SS "\fBRGFWDEF\fP void RGFW_stopCheckEvents (void)"
+tell RGFW_waitForEvent to stop waiting (to be ran from another thread) 
 .SS "\fBRGFWDEF\fP void RGFW_surface_free (\fBRGFW_surface\fP * surface)"
 free buffers used for software rendering within the window 
 .SS "\fBRGFWDEF\fP \fBRGFW_nativeImage\fP * RGFW_surface_getNativeImage (\fBRGFW_surface\fP * surface)"
@@ -1004,10 +1022,14 @@ free buffers used for software rendering within the window
 (unix) Toggle use of wayland\&. This will be on by default if you use \fCRGFW_WAYLAND\fP (if you don't use RGFW_WAYLAND, you don't expose WAYLAND functions) this is mostly used to allow you to force the use of XWayland 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_usingWayland (void)"
 
+.SS "\fBRGFWDEF\fP void RGFW_waitForEvent (\fBi32\fP waitMS)"
+sleep until RGFW gets an event or the timer ends (defined by OS) 
 .SS "\fBRGFWDEF\fP void RGFW_window_blitSurface (\fBRGFW_window\fP * win, \fBRGFW_surface\fP * surface)"
 render the software rendering buffer 
 .SS "\fBRGFWDEF\fP RGFW_key RGFW_window_getExitKey (\fBRGFW_window\fP * win)"
 get the exit key for the window | returns RGFW_window\&.exitKey 
+.SS "\fBRGFWDEF\fP \fBu32\fP RGFW_window_getFlags (\fBRGFW_window\fP * win)"
+gets the flags of the window | returns RGFW_window\&._flags 
 .SS "\fBRGFWDEF\fP \fBRGFW_rect\fP RGFW_window_getRect (\fBRGFW_window\fP * win)"
 gets the size of the window | returns RGFW_window\&.r 
 .SS "\fBRGFWDEF\fP \fBRGFW_window_src\fP * RGFW_window_getSrc (\fBRGFW_window\fP * win)"

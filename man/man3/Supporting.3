@@ -1,4 +1,4 @@
-.TH "Supporting" 3 "Fri Aug 1 2025" "RGFW" \" -*- nroff -*-
+.TH "Supporting" 3 "Sat Aug 2 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -13,7 +13,7 @@ Supporting \- Supporting
 .RI "#define \fBRGFW_MAX_EVENTS\fP   32"
 .br
 .ti -1c
-.RI "#define \fBRGFW_eventQueuePushEx\fP(eventInit)   { \fBRGFW_event\fP e; eventInit; \fBRGFW_eventQueuePush\fP(e); }"
+.RI "#define \fBRGFW_eventQueuePushEx\fP(eventInit)   { \fBRGFW_event\fP e; eventInit; \fBRGFW_eventQueuePush\fP(&e); }"
 .br
 .in -1c
 .SS "Typedefs"
@@ -33,10 +33,13 @@ Supporting \- Supporting
 .RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_getRootWindow\fP (void)"
 .br
 .ti -1c
-.RI "void \fBRGFW_eventQueuePush\fP (\fBRGFW_event\fP event)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_eventQueuePush\fP (const \fBRGFW_event\fP *event)"
 .br
 .ti -1c
-.RI "\fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_eventQueueFlush\fP (void)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_apiKeyToRGFW\fP (\fBu32\fP keycode)"
@@ -78,7 +81,7 @@ Supporting \- Supporting
 
 .SH "Macro Definition Documentation"
 .PP 
-.SS "#define RGFW_eventQueuePushEx(eventInit)   { \fBRGFW_event\fP e; eventInit; \fBRGFW_eventQueuePush\fP(e); }"
+.SS "#define RGFW_eventQueuePushEx(eventInit)   { \fBRGFW_event\fP e; eventInit; \fBRGFW_eventQueuePush\fP(&e); }"
 
 .SS "#define RGFW_MAX_EVENTS   32"
 change which window is the root window 
@@ -94,9 +97,11 @@ converts api keycode to the RGFW unmapped/physical key
 is called by default when the last open window is closed 
 .SS "\fBRGFWDEF\fP void RGFW_deinit_ptr (\fBRGFW_info\fP * info)"
 deinits RGFW instance at pointer 
-.SS "\fBRGFW_event\fP * RGFW_eventQueuePop (\fBRGFW_window\fP * win)"
+.SS "\fBRGFWDEF\fP void RGFW_eventQueueFlush (void)"
 
-.SS "void RGFW_eventQueuePush (\fBRGFW_event\fP event)"
+.SS "\fBRGFWDEF\fP \fBRGFW_event\fP * RGFW_eventQueuePop (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP void RGFW_eventQueuePush (const \fBRGFW_event\fP * event)"
 standard event queue, used for injecting events and returning source API callback events like any other queue check 
 .SS "\fBRGFWDEF\fP \fBRGFW_info\fP * RGFW_getInfo (void)"
 

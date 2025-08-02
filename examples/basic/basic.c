@@ -37,7 +37,7 @@ int main(void) {
 	RGFW_window_setIcon(win, RGFW_IMAGE(icon, RGFW_AREA(3, 3), RGFW_formatRGBA8));
 
 	RGFW_window_setMouseStandard(win, RGFW_mouseResizeNESW);
-	RGFW_mouse *mouse = RGFW_loadMouse(RGFW_IMAGE(icon, RGFW_AREA(3, 3), RGFW_formatBGRA8));
+	RGFW_mouse *mouse = RGFW_loadMouse(RGFW_IMAGE(icon, RGFW_AREA(3, 3), RGFW_formatRGBA8));
 
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 

@@ -29,8 +29,7 @@ void joinThread(my_thread thread) { pthread_join((pthread_t) thread, NULL); }
 void checkEvents(RGFW_window* win);
 void checkEvents(RGFW_window* win) {
 	RGFW_event event;
-
-	while (RGFW_window_checkEvent(win, &event)) {
+	while (RGFW_window_checkQueuedEvent(win, &event)) {
 		switch (event.type) {
 			case RGFW_quit:
 				RGFW_window_setShouldClose(win, 1);
@@ -77,6 +76,7 @@ void* loop(void* _win) {
 	u32 frames = 0;
 
 	while (!RGFW_window_shouldClose(win)) {
+		checkEvents(win);
 		if (RGFW_isPressed(win, RGFW_space)) {
 			blue = (blue + 1) % 100;
 		}
@@ -122,9 +122,7 @@ int main(void) {
 	my_thread thread3 = createThread(loop, win3);
 
 	while (!RGFW_window_shouldClose(win1) && !RGFW_window_shouldClose(win2) && !RGFW_window_shouldClose(win3)) {
-		checkEvents(win1);
-		checkEvents(win2);
-		checkEvents(win3);
+		RGFW_pollEvents();
 	}
 
 	RGFW_window_setShouldClose(win1, 1);

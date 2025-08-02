@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Fri Aug 1 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Sat Aug 2 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -34,16 +34,7 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_checkEvent\fP (\fBRGFW_window\fP *win, \fBRGFW_event\fP *event)"
 .br
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_eventWait)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_eventWait\fP (\fBRGFW_window\fP *win, \fBi32\fP waitMS)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_checkEvents\fP (\fBRGFW_window\fP *win, \fBi32\fP waitMS)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_stopCheckEvents\fP (void)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_checkQueuedEvent\fP (\fBRGFW_window\fP *win, \fBRGFW_event\fP *event)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_close\fP (\fBRGFW_window\fP *win)"
@@ -200,8 +191,6 @@ Window_management \- Window_management
 function to create a window and struct 
 .SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_createWindowPtr (const char * name, \fBRGFW_rect\fP rect, RGFW_windowFlags flags, \fBRGFW_window\fP * win)"
 function to create a window (without allocating a window struct) 
-.SS "typedef RGFW_ENUM (\fBi32\fP, RGFW_eventWait)"
-for RGFW_window_eventWait and RGFW_window_checkEvents waitMS -> Allows the function to keep checking for events even after \fCRGFW_window_checkEvent == NULL\fP if waitMS == 0, the loop will not wait for events if waitMS > 0, the loop will wait that many miliseconds after there are no more events until it returns if waitMS == -1 or waitMS == the max size of an unsigned 32-bit int, the loop will not return until it gets another event 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_icon)"
 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_mouseIcons)"
@@ -216,8 +205,6 @@ get the size of the screen to an area struct
 the class name for X11 and WinAPI\&. apps with the same class will be grouped by the WM by default the class name will == the root window's name 
 .SS "\fBRGFWDEF\fP void RGFW_setXInstName (const char * name)"
 X11 instance name (window name will by used by default) 
-.SS "\fBRGFWDEF\fP void RGFW_stopCheckEvents (void)"
-tell RGFW_window_eventWait to stop waiting (to be ran from another thread) 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_allowsDND (\fBRGFW_window\fP * win)"
 check if DND is allowed 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_borderless (\fBRGFW_window\fP * win)"
@@ -225,19 +212,19 @@ check if DND is allowed
 .SS "\fBRGFWDEF\fP void RGFW_window_center (\fBRGFW_window\fP * win)"
 center the window 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_checkEvent (\fBRGFW_window\fP * win, \fBRGFW_event\fP * event)"
-this function checks an \fIindividual\fP event (and updates window structure attributes) this means, using this function without a while loop may cause event lag
+polls the event queue if it's empty and pops the first event for the window from the event queue using this function without a while loop may cause event lag
+.PP
+because this function polls events, it may not work for multi-threaded systems RGFW_pollEvents + RGFW_window_checkQueuedEvent should be used when using multi-threaded systems
 .PP
 ex\&.
 .PP
-\fBRGFW_event\fP; while (RGFW_window_checkEvent(win, &event) != NULL) [this keeps checking events until it reaches the last one]
+\fBRGFW_event\fP; while (RGFW_window_checkEvent(win, &event) != NULL) [this keeps checking events until it reaches the last queued event]
 .PP
-this function is optional if you choose to use event callbacks, although you still need some way to tell RGFW to process events eg\&. \fCRGFW_window_checkEvents\fP check current event (returns RGFW_TRUE if there is an event or RGFW_FALSE if there is no event) 
-.SS "\fBRGFWDEF\fP void RGFW_window_checkEvents (\fBRGFW_window\fP * win, \fBi32\fP waitMS)"
-check all the events until there are none left\&. This should only be used if you're using callbacks only 
+you may also use \fCRGFW_pollEvents\fP instead check current event (returns RGFW_TRUE if there is an event or RGFW_FALSE if there is no event) 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_checkQueuedEvent (\fBRGFW_window\fP * win, \fBRGFW_event\fP * event)"
+pops the first event for the window from the event queue 
 .SS "\fBRGFWDEF\fP void RGFW_window_close (\fBRGFW_window\fP * win)"
 window managment functions close the window and free leftover data 
-.SS "\fBRGFWDEF\fP void RGFW_window_eventWait (\fBRGFW_window\fP * win, \fBi32\fP waitMS)"
-sleep until RGFW gets an event or the timer ends (defined by OS) 
 .SS "\fBRGFWDEF\fP void RGFW_window_focus (\fBRGFW_window\fP * win)"
 sets the focus to this window 
 .SS "\fBRGFWDEF\fP \fBRGFW_point\fP RGFW_window_getMousePoint (\fBRGFW_window\fP * win)"
