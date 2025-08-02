@@ -9312,7 +9312,7 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	if (win->src.view)
 		NSRelease(win->src.view);
 	win->src.view = (id) ((id(*)(id, SEL, NSRect, u32*))objc_msgSend) (NSAlloc(_RGFW->customViewClasses[1]),
-							sel_registerName("initWithFrame:pixelFormat:"), (NSRect){{0, 0}, {win->r.w, win->r.h}}, format);
+							sel_registerName("initWithFrame:pixelFormat:"), (NSRect){{0, 0}, {win->r.w, win->r.h}}, (u32*)format);
 
 	id share = NULL;
 
