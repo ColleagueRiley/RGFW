@@ -148,7 +148,7 @@ typedef void (*glDebugMessageCallbackPROC)(void* callback, const void*);
 typedef void (*glDrawElementsPROC)(GLenum mode, GLsizei count, GLenum type, const void * indices);
 typedef void (*glClearPROC)(GLbitfield mask);
 typedef void (*glClearColorPROC)(GLfloat, GLfloat, GLfloat, GLfloat);
-
+typedef void (*glViewportPROC)(GLint, GLint, GLsizei, GLsizei);
 
 glShaderSourcePROC glShaderSourceSRC = NULL;
 glCreateShaderPROC glCreateShaderSRC = NULL;
@@ -183,6 +183,7 @@ glDebugMessageCallbackPROC glDebugMessageCallbackSRC = NULL;
 glDrawElementsPROC glDrawElementsSRC = NULL;
 glClearPROC glClearSRC = NULL;
 glClearColorPROC glClearColorSRC = NULL;
+glViewportPROC glViewportSRC = NULL;
 
 #define glActiveTexture glActiveTextureSRC
 #define glShaderSource glShaderSourceSRC
@@ -217,6 +218,7 @@ glClearColorPROC glClearColorSRC = NULL;
 #define glDrawElements glDrawElementsSRC
 #define glClear glClearSRC
 #define glClearColor glClearColorSRC
+#define glViewport glViewportSRC
 
 extern int RGL_loadGL3(RGLloadfunc proc);
 
@@ -259,7 +261,7 @@ int RGL_loadGL3(RGLloadfunc proc) {
     RGL_PROC_DEF(proc, glDrawElements);
     RGL_PROC_DEF(proc, glClear);
     RGL_PROC_DEF(proc, glClearColor);
-
+	RGL_PROC_DEF(proc, glViewport);
     if (
         glShaderSourceSRC == NULL ||
         glCreateShaderSRC == NULL ||
@@ -288,8 +290,11 @@ int RGL_loadGL3(RGLloadfunc proc) {
         glGenBuffersSRC == NULL ||
         glBindVertexArraySRC == NULL ||
         glGetUniformLocationSRC == NULL ||
-        glUniformMatrix4fvSRC == NULL
-    )
+        glUniformMatrix4fvSRC == NULL ||
+	    glClearSRC == NULL ||
+		glClearColorSRC == NULL ||
+		glViewportSRC == NULL
+	)
         return 1;
 
     GLuint vao;

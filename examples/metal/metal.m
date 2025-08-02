@@ -49,7 +49,7 @@ int main(void)
 {
 	id<MTLDevice> device = MTLCreateSystemDefaultDevice();
 	if (!device) {
-        printf("faield to create metal device");
+        printf("failed to create metal device");
 		exit(EXIT_FAILURE);
     }
 
