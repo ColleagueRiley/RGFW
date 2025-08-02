@@ -1479,10 +1479,10 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		/* State flags to configure the window */
 		RGFW_bool pending_activated;
 		RGFW_bool activated;
-		RGFW_bool pending_fullscreen;
-		RGFW_bool fullscreen;
-		RGFW_bool pending_maximized;
+
 		RGFW_bool resizing;
+		
+		RGFW_bool pending_maximized;
 		RGFW_bool maximized;
 
 		#ifdef RGFW_LIBDECOR
@@ -5528,7 +5528,7 @@ void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface* xdg_s
 
 	}
 	// TODO implement fullscreen; need wl_output
-
+	
 	i32 width = win->r.w;
 	i32 height = win->r.h;
 	if (win->src.resizing) {
@@ -5561,7 +5561,6 @@ void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplevel* top
     }
 
     win->src.pending_activated = RGFW_FALSE;
-    win->src.pending_fullscreen = RGFW_FALSE;
     win->src.pending_maximized = RGFW_FALSE;
     win->src.resizing = RGFW_FALSE;
 
@@ -5575,9 +5574,8 @@ void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplevel* top
 			case XDG_TOPLEVEL_STATE_MAXIMIZED:
 				win->src.pending_maximized = RGFW_TRUE;
 				break;
-			case XDG_TOPLEVEL_STATE_FULLSCREEN:
-				win->src.pending_fullscreen = RGFW_TRUE;
-				break;
+			// case XDG_TOPLEVEL_STATE_FULLSCREEN:
+			// 	break;
 			default:
 				break;
 		}
@@ -6295,11 +6293,15 @@ void RGFW_FUNC(RGFW_window_raise)(RGFW_window* win) {
 
 void RGFW_FUNC(RGFW_window_setFullscreen)(RGFW_window* win, RGFW_bool fullscreen) {
 	RGFW_ASSERT(win != NULL);
+
     if (fullscreen) {
 		win->_flags |= RGFW_windowFullscreen;
 		win->_oldRect = win->r;
+		xdg_toplevel_set_fullscreen(win->src.xdg_toplevel, NULL); // let the compositor decide
+	} else {
+		win->_flags &= ~(u32)RGFW_windowFullscreen;
+		xdg_toplevel_unset_fullscreen(win->src.xdg_toplevel);
 	}
-	else win->_flags &= ~(u32)RGFW_windowFullscreen;
 }
 
 void RGFW_FUNC(RGFW_window_setFloating) (RGFW_window* win, RGFW_bool floating) {
