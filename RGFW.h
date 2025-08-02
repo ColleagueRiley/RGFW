@@ -2692,6 +2692,7 @@ RGFW_bool RGFW_window_isSoftware_OpenGL(RGFW_window* win) { return RGFW_BOOL(win
 	MacOS and Windows do this using a structure called a "pixel format"
 	X11 calls it a "Visual"
 	This function returns the attributes for the format we want */
+/*  TODO: make GLX/WGL handle these on their own*/
 i32* RGFW_initFormatAttribs(void);
 i32* RGFW_initFormatAttribs(void) {
 	static i32 attribs[] = {
@@ -8844,15 +8845,24 @@ void RGFW__osxWindowResignKey(id self, SEL sel) {
 	RGFW_focusCallback(win, RGFW_FALSE);
 }
 
-NSSize RGFW__osxWindowResize(id self, SEL sel, NSSize frameSize) {
-	RGFW_UNUSED(sel);
-
+static void RGFW__osxDidWindowResize(id self, SEL _cmd, id notification) {
+	RGFW_UNUSED(_cmd); RGFW_UNUSED(notification);
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
-	if (win == NULL) return frameSize;
+	if (win == NULL) return;
 
-	win->r.w = (i32)frameSize.width;
-	win->r.h = (i32)frameSize.height;
+#ifdef RGFW_OPENGL
+	if (win->src.ctx.ctx) {
+		((void(*)(id, SEL))objc_msgSend)(win->src.ctx.ctx, sel_registerName("update"));
+	}
+#endif
+
+	id window = ((id(*)(id, SEL))objc_msgSend)(notification, sel_registerName("object"));
+	id contentView = ((id(*)(id, SEL))objc_msgSend)(window, sel_registerName("contentView"));
+	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)(contentView, sel_registerName("frame"));
+
+	win->r.w = (i32)frame.size.width;
+	win->r.h = (i32)frame.size.height;
 
 	RGFW_monitor mon = RGFW_window_getMonitor(win);
 	if ((i32)mon.mode.area.w == win->r.w && (i32)mon.mode.area.h - 102 <= win->r.h) {
@@ -8866,10 +8876,8 @@ NSSize RGFW__osxWindowResize(id self, SEL sel, NSSize frameSize) {
 
 	}
 
-
 	RGFW_eventQueuePushEx(e.type = RGFW_windowResized; e._win = win);
 	RGFW_windowResizedCallback(win, win->r);
-	return frameSize;
 }
 
 void RGFW__osxWindowMove(id self, SEL sel) {
@@ -8885,12 +8893,17 @@ void RGFW__osxWindowMove(id self, SEL sel) {
 
 	RGFW_eventQueuePushEx(e.type = RGFW_windowMoved; e._win = win);
 	RGFW_windowMovedCallback(win, win->r);
+#ifdef RGFW_OPENGL
+	if (win->src.ctx.ctx) {
+		objc_msgSend_void(win->src.ctx.ctx, sel_registerName("update"));
+	}
+#endif
 }
 
 void RGFW__osxViewDidChangeBackingProperties(id self, SEL _cmd) {
 	RGFW_UNUSED(_cmd);
-        RGFW_window* win = NULL;
-        object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+	RGFW_window* win = NULL;
+	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
 	RGFW_monitor mon = RGFW_window_getMonitor(win);
@@ -8898,14 +8911,29 @@ void RGFW__osxViewDidChangeBackingProperties(id self, SEL _cmd) {
 	RGFW_eventQueuePushEx(e.type = RGFW_scaleUpdated; e.scaleX = mon.scaleX; e.scaleY = mon.scaleY ; e._win = win);
 }
 
-void RGFW__osxDrawRect(id self, SEL _cmd, CGRect rect) {
-	RGFW_UNUSED(rect); RGFW_UNUSED(_cmd);
-        RGFW_window* win = NULL;
-        object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+static BOOL RGFW__osxWantsUpdateLayer(id self, SEL _cmd) { RGFW_UNUSED(self); RGFW_UNUSED(_cmd); return YES; }
+
+static void RGFW__osxUpdateLayer(id self, SEL _cmd) {
+	RGFW_UNUSED(self); RGFW_UNUSED(_cmd);
+	RGFW_window* win = NULL;
+	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
-        RGFW_eventQueuePushEx(e.type = RGFW_windowRefresh; e._win = win);
-        RGFW_windowRefreshCallback(win);
+	#ifdef RGFW_OPENGL
+	if (win->src.ctx.ctx)
+        ((void(*)(id, SEL))objc_msgSend)(win->src.ctx.ctx, sel_registerName("update"));
+	#endif
+	RGFW_windowRefreshCallback(win);
+}
+
+void RGFW__osxDrawRect(id self, SEL _cmd, CGRect rect) {
+	RGFW_UNUSED(rect); RGFW_UNUSED(_cmd);
+	RGFW_window* win = NULL;
+	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+	if (win == NULL) return;
+
+	RGFW_eventQueuePushEx(e.type = RGFW_windowRefresh; e._win = win);
+	RGFW_windowRefreshCallback(win);
 }
 
 void RGFW__osxMouseEntered(id self, SEL _cmd, id event) {
@@ -9310,9 +9338,10 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 		i32 opacity = 0;
 		#define NSOpenGLCPSurfaceOpacity 236
 		NSOpenGLContext_setValues((id)win->src.ctx.ctx, &opacity, NSOpenGLCPSurfaceOpacity);
-	}
 
-	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.ctx.ctx, sel_registerName("setView:"), (id)win->src.view);
+	}
+	((void (*)(id, SEL, id))objc_msgSend)(win->src.ctx.ctx, sel_registerName("setView:"), win->src.view);
+	objc_msgSend_void(win->src.ctx.ctx, sel_registerName("update"));
 	objc_msgSend_void(win->src.ctx.ctx, sel_registerName("makeCurrentContext"));
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
 	return &win->src.ctx;
@@ -9366,12 +9395,13 @@ i32 RGFW_initPlatform(void) {
     class_addMethod((Class)(Class)_RGFW->customViewClass, sel_registerName("flagsChanged:"), (IMP)RGFW__osxFlagsChanged, "v@:@");
 	class_addMethod((Class)(Class)_RGFW->customViewClass, sel_getUid("acceptsFirstResponder"), (IMP)acceptsFirstResponder, "B@:");
 	class_addMethod((Class)(Class)_RGFW->customViewClass, sel_registerName("initWithRGFWWindow:"), (IMP)RGFW__osxCustomInitWithRGFWWindow, "@@:{CGRect={CGPoint=dd}{CGSize=dd}}");
+	class_addMethod((Class)(Class)_RGFW->customViewClass, sel_registerName("wantsUpdateLayer"), (IMP)RGFW__osxWantsUpdateLayer, "B@:");
+	class_addMethod((Class)(Class)_RGFW->customViewClass, sel_registerName("updateLayer"), (IMP)RGFW__osxUpdateLayer, "v@:");
 	objc_registerClassPair((Class)_RGFW->customViewClass);
 
 	_RGFW->customWindowDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWWindowDelegate", 0);
 	class_addIvar((Class)_RGFW->customWindowDelegateClass, "RGFW_window", sizeof(RGFW_window*), sizeof(RGFW_window*), "L");
-	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowWillResize:toSize:"), (IMP) RGFW__osxWindowResize, "{NSSize=ff}@:{NSSize=ff}");
-	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowWillMove:"), (IMP) RGFW__osxWindowMove, "");
+	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidResize:"), (IMP)RGFW__osxDidWindowResize, "v@:@");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidMove:"), (IMP) RGFW__osxWindowMove, "");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidMiniaturize:"), (IMP) RGFW__osxWindowMiniaturize, "");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidDeminiaturize:"), (IMP) RGFW__osxWindowDeminiaturize, "");
@@ -9395,16 +9425,24 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	pool = objc_msgSend_id(pool, sel_registerName("init"));
 
+	#ifdef RGFW_OPENGL
+		win->src.ctx.ctx = NULL;
+	#endif
+
+
 	win->src.view = ((id(*)(id, SEL, RGFW_window*))objc_msgSend) (NSAlloc((Class)_RGFW->customViewClass), sel_registerName("initWithRGFWWindow:"), win);
+	NSRect contentRect;
+	contentRect.origin.x = 0;
+	contentRect.origin.y = 0;
+	contentRect.size.width = win->r.w;
+	contentRect.size.height = win->r.w;
+	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"), contentRect);
 
 	RGFW_window_setMouseDefault(win);
 
-	NSRect windowRect;
+	NSRect windowRect = contentRect;
 	windowRect.origin.x = win->r.x;
 	windowRect.origin.y = win->r.y;
-	windowRect.size.width = win->r.w;
-	windowRect.size.height = win->r.h;
-
 	NSBackingStoreType macArgs = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled;
 
 	if (!(flags & RGFW_windowNoResize))
@@ -9422,41 +9460,15 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	id str = NSString_stringWithUTF8String(name);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setTitle:"), str);
 
-	NSRect contentRect;
-	contentRect.origin.x = 0;
-	contentRect.origin.y = 0;
-	contentRect.size.width = 0;
-	contentRect.size.height = 0;
-	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"), contentRect);
-
 	#ifdef RGFW_OPENGL
 	if ((flags & RGFW_windowNoInitAPI) == 0)
 		RGFW_window_createContext_OpenGL(win);
 	#endif
 
-	#ifdef RGFW_OPENGL
-	else
-	#endif
-
 	object_setInstanceVariable((id)win->src.view, "RGFW_window", win);
-
-	id trackingArea = objc_msgSend_id(objc_getClass("NSTrackingArea"), sel_registerName("alloc"));
-	trackingArea = ((id (*)(id, SEL, NSRect, NSUInteger, id, id))objc_msgSend)(
-		trackingArea,
-		sel_registerName("initWithRect:options:owner:userInfo:"),
-		contentRect,
-		NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect,
-		(id)win->src.view,
-		nil
-	);
-
-	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.view, sel_registerName("addTrackingArea:"), trackingArea);
-	((void (*)(id, SEL))objc_msgSend)(trackingArea, sel_registerName("release"));
-
-	void* contentView = NSWindow_contentView((id)win->src.window);
-	objc_msgSend_void_bool(contentView, sel_registerName("setWantsLayer:"), true);
-	objc_msgSend_int((id)win->src.view, sel_registerName("setLayerContentsPlacement:"),  4);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
+	objc_msgSend_void_bool(win->src.view, sel_registerName("setWantsLayer:"), true);
+	objc_msgSend_int((id)win->src.view, sel_registerName("setLayerContentsPlacement:"),  4);
 	objc_msgSend_void_bool((id)win->src.window, sel_registerName("setAcceptsMouseMovedEvents:"), true);
 
 	if (flags & RGFW_windowTransparent) {
@@ -9483,6 +9495,18 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	}
 
 	RGFW_window_setFlags(win, flags);
+	id trackingArea = objc_msgSend_id(objc_getClass("NSTrackingArea"), sel_registerName("alloc"));
+	trackingArea = ((id (*)(id, SEL, NSRect, NSUInteger, id, id))objc_msgSend)(
+		trackingArea,
+		sel_registerName("initWithRect:options:owner:userInfo:"),
+		contentRect,
+		NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect,
+		(id)win->src.view,
+		nil
+	);
+
+	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.view, sel_registerName("addTrackingArea:"), trackingArea);
+	((void (*)(id, SEL))objc_msgSend)(trackingArea, sel_registerName("release"));
 
 	/* Show the window */
 	objc_msgSend_void_bool((id)_RGFW->NSApp, sel_registerName("activateIgnoringOtherApps:"), true);
@@ -9646,6 +9670,8 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 	win->r.w = (i32)a.w;
 	win->r.h = (i32)a.h;
 
+
+	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"),  (NSRect){{0, 0}, {win->r.w, win->r.h}});
 	((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
 		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{win->r.x, win->r.y}, {win->r.w, win->r.h + offset}}, true, true);
 }
