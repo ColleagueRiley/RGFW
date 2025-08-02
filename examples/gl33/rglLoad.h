@@ -288,8 +288,10 @@ int RGL_loadGL3(RGLloadfunc proc) {
         glGenBuffersSRC == NULL ||
         glBindVertexArraySRC == NULL ||
         glGetUniformLocationSRC == NULL ||
-        glUniformMatrix4fvSRC == NULL
-    )
+        glUniformMatrix4fvSRC == NULL ||
+	    glClearSRC == NULL ||
+		glClearColorSRC == NULL
+	)
         return 1;
 
     GLuint vao;
