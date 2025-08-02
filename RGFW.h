@@ -9222,7 +9222,7 @@ void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 
     size_t depth = (surface->image.format >= RGFW_formatRGBA8) ? 4 : 3;
 	id image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSImage"), sel_getUid("alloc"));
-	NSSize size = (NSSize){(float)surface->image.size.w, (float)surface->image.size.h};
+	NSSize size = (NSSize){(double)surface->image.size.w, (double)surface->image.size.h};
 	image = ((id (*)(id, SEL, NSSize))objc_msgSend)((id)image, sel_getUid("initWithSize:"), size);
 
 	id rep  = NSBitmapImageRep_initWithBitmapData(&surface->image.data, win->r.w, win->r.h , 8, (i32)depth, (depth == 4), false,
@@ -9326,7 +9326,7 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	if (win->src.view)
 		NSRelease(win->src.view);
 	win->src.view = (id) ((id(*)(id, SEL, NSRect, u32*))objc_msgSend) (NSAlloc(_RGFW->customViewClasses[1]),
-							sel_registerName("initWithFrame:pixelFormat:"), (NSRect){{0, 0}, {(float)win->r.w, (float)win->r.h}}, (u32*)format);
+							sel_registerName("initWithFrame:pixelFormat:"), (NSRect){{0, 0}, {(double)win->r.w, (double)win->r.h}}, (u32*)format);
 
 	id share = NULL;
 
@@ -9441,15 +9441,15 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	NSRect contentRect;
 	contentRect.origin.x = 0;
 	contentRect.origin.y = 0;
-	contentRect.size.width = (float)win->r.w;
-	contentRect.size.height = (float)win->r.h;
+	contentRect.size.width = (double)win->r.w;
+	contentRect.size.height = (double)win->r.h;
 	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"), contentRect);
 
 	RGFW_window_setMouseDefault(win);
 
 	NSRect windowRect = contentRect;
-	windowRect.origin.x = (float)win->r.x;
-	windowRect.origin.y = (float)win->r.y;
+	windowRect.origin.x = (double)win->r.x;
+	windowRect.origin.y = (double)win->r.y;
 	NSBackingStoreType macArgs = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled;
 
 	if (!(flags & RGFW_windowNoResize))
@@ -9540,7 +9540,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
 	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
-	float offset = 0;
+	double offset = 0;
 
 	RGFW_setBit(&win->_flags, RGFW_windowNoBorder, !border);
 	NSBackingStoreType storeType = NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView;
@@ -9557,7 +9557,7 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 		id titleBarView = objc_msgSend_id(miniaturizeButton, sel_registerName("superview"));
 		objc_msgSend_void_bool(titleBarView, sel_registerName("setHidden:"), true);
 
-		offset = (float)(frame.size.height - content.size.height);
+		offset = (double)(frame.size.height - content.size.height);
 	}
 
 	RGFW_window_resize(win, RGFW_AREA(win->r.w, win->r.h + offset));
@@ -9660,7 +9660,7 @@ void RGFW_window_move(RGFW_window* win, RGFW_point v) {
 	win->r.x = v.x;
 	win->r.y = v.y;
 	((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
-		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{(float)win->r.x, (float)win->r.y}, {(float)win->r.w, (float)win->r.h}}, true, true);
+		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{(double)win->r.x, (double)win->r.y}, {(double)win->r.w, (double)win->r.h}}, true, true);
 }
 
 void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
@@ -9674,9 +9674,9 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 	win->r.h = (i32)a.h;
 
 
-	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"),  (NSRect){{0, 0}, {(float)win->r.w, (float)win->r.h}});
+	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"),  (NSRect){{0, 0}, {(double)win->r.w, (double)win->r.h}});
 	((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
-		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{(float)win->r.x, (float)win->r.y}, {(float)win->r.w, (float)(win->r.h + offset)}}, true, true);
+		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{(double)win->r.x, (double)win->r.y}, {(double)win->r.w, (double)win->r.h + offset}}, true, true);
 }
 
 void RGFW_window_focus(RGFW_window* win) {
