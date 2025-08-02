@@ -31,9 +31,7 @@
 /* RGFW will have to be linked/compiled outside of this file
 	because this file uses objective-c and RGFW uses work arounds
 */
-//#define RGFW_IMPLEMENTATION
-#define RGFW_NO_API
-#define RGFWDEF
+#define RGFW_IMPLEMENTATION
 #import "RGFW.h"
 
 #include <Cocoa/Cocoa.h>
@@ -44,6 +42,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+//#include <iostream>
 
 int main(void)
 {
@@ -104,7 +104,7 @@ int main(void)
 
     while (!RGFW_window_shouldClose(window)) {
         RGFW_event event;
-		while (RGFW_window_checkEvent(window, &event) != NULL) {
+		while (RGFW_window_checkEvent(window, &event) != RGFW_FALSE) {
 			if (event.type == RGFW_quit)
 				break;
 		}
