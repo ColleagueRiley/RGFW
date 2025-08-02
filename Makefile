@@ -250,8 +250,7 @@ endif
 
 examples/metal/metal: examples/metal/metal.m RGFW.h
 ifeq ($(detected_OS),Darwin)        # Mac OS X
-	gcc $(CUSTOM_CFLAGS) -x c -c RGFW.h -D RGFW_NO_API -D RGFW_EXPORT -D RGFW_IMPLEMENTATION -o RGFW.o
-	gcc $(CUSTOM_CFLAGS) examples/metal/metal.m RGFW.o -I. -framework CoreVideo -framework Metal -framework Cocoa -framework IOKit -framework QuartzCore -o $@
+	$(CC) $(CUSTOM_CFLAGS) examples/metal/metal.m -I. -framework CoreVideo -framework Metal -framework Cocoa -framework IOKit -framework QuartzCore -o $@
 else
 	@echo metal is not supported on $(detected_OS)
 endif
