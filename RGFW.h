@@ -8547,7 +8547,7 @@ id NSBitmapImageRep_initWithBitmapData(unsigned char** planes, NSInteger width, 
 
 id NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha);
 id NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha) {
-	void* nsclass = objc_getClass("NSColor");
+	Class nsclass = objc_getClass("NSColor");
 	SEL func = sel_registerName("colorWithSRGBRed:green:blue:alpha:");
 	return ((id(*)(id, SEL, CGFloat, CGFloat, CGFloat, CGFloat))objc_msgSend)
 		((id)nsclass, func, red, green, blue, alpha);
@@ -9222,7 +9222,7 @@ void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 
     size_t depth = (surface->image.format >= RGFW_formatRGBA8) ? 4 : 3;
 	id image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSImage"), sel_getUid("alloc"));
-	NSSize size = (NSSize){surface->image.size.w, surface->image.size.h};
+	NSSize size = (NSSize){(float)surface->image.size.w, (float)surface->image.size.h};
 	image = ((id (*)(id, SEL, NSSize))objc_msgSend)((id)image, sel_getUid("initWithSize:"), size);
 
 	id rep  = NSBitmapImageRep_initWithBitmapData(&surface->image.data, win->r.w, win->r.h , 8, (i32)depth, (depth == 4), false,
@@ -9326,7 +9326,7 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	if (win->src.view)
 		NSRelease(win->src.view);
 	win->src.view = (id) ((id(*)(id, SEL, NSRect, u32*))objc_msgSend) (NSAlloc(_RGFW->customViewClasses[1]),
-							sel_registerName("initWithFrame:pixelFormat:"), (NSRect){{0, 0}, {win->r.w, win->r.h}}, (u32*)format);
+							sel_registerName("initWithFrame:pixelFormat:"), (NSRect){{0, 0}, {(float)win->r.w, (float)win->r.h}}, (u32*)format);
 
 	id share = NULL;
 
@@ -9441,15 +9441,15 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	NSRect contentRect;
 	contentRect.origin.x = 0;
 	contentRect.origin.y = 0;
-	contentRect.size.width = win->r.w;
-	contentRect.size.height = win->r.h;
+	contentRect.size.width = (float)win->r.w;
+	contentRect.size.height = (float)win->r.h;
 	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"), contentRect);
 
 	RGFW_window_setMouseDefault(win);
 
 	NSRect windowRect = contentRect;
-	windowRect.origin.x = win->r.x;
-	windowRect.origin.y = win->r.y;
+	windowRect.origin.x = (float)win->r.x;
+	windowRect.origin.y = (float)win->r.y;
 	NSBackingStoreType macArgs = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled;
 
 	if (!(flags & RGFW_windowNoResize))
@@ -9660,7 +9660,7 @@ void RGFW_window_move(RGFW_window* win, RGFW_point v) {
 	win->r.x = v.x;
 	win->r.y = v.y;
 	((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
-		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{win->r.x, win->r.y}, {win->r.w, win->r.h}}, true, true);
+		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{(float)win->r.x, (float)win->r.y}, {(float)win->r.w, (float)win->r.h}}, true, true);
 }
 
 void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
@@ -9674,9 +9674,9 @@ void RGFW_window_resize(RGFW_window* win, RGFW_area a) {
 	win->r.h = (i32)a.h;
 
 
-	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"),  (NSRect){{0, 0}, {win->r.w, win->r.h}});
+	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"),  (NSRect){{0, 0}, {(float)win->r.w, (float)win->r.h}});
 	((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
-		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{win->r.x, win->r.y}, {win->r.w, win->r.h + offset}}, true, true);
+		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{(float)win->r.x, (float)win->r.y}, {(float)win->r.w, (float)(win->r.h + offset)}}, true, true);
 }
 
 void RGFW_window_focus(RGFW_window* win) {

@@ -8369,7 +8369,7 @@ $(function() {
 <div class="line"><a id="l08547" name="l08547"></a><span class="lineno"> 8547</span> </div>
 <div class="line"><a id="l08548" name="l08548"></a><span class="lineno"> 8548</span><span class="keywordtype">id</span> NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha);</div>
 <div class="line"><a id="l08549" name="l08549"></a><span class="lineno"> 8549</span><span class="keywordtype">id</span> NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha) {</div>
-<div class="line"><a id="l08550" name="l08550"></a><span class="lineno"> 8550</span>    <span class="keywordtype">void</span>* nsclass = objc_getClass(<span class="stringliteral">&quot;NSColor&quot;</span>);</div>
+<div class="line"><a id="l08550" name="l08550"></a><span class="lineno"> 8550</span>    Class nsclass = objc_getClass(<span class="stringliteral">&quot;NSColor&quot;</span>);</div>
 <div class="line"><a id="l08551" name="l08551"></a><span class="lineno"> 8551</span>    <span class="keywordtype">SEL</span> func = sel_registerName(<span class="stringliteral">&quot;colorWithSRGBRed:green:blue:alpha:&quot;</span>);</div>
 <div class="line"><a id="l08552" name="l08552"></a><span class="lineno"> 8552</span>    <span class="keywordflow">return</span> ((<span class="keywordtype">id</span>(*)(<span class="keywordtype">id</span>, <span class="keywordtype">SEL</span>, CGFloat, CGFloat, CGFloat, CGFloat))objc_msgSend)</div>
 <div class="line"><a id="l08553" name="l08553"></a><span class="lineno"> 8553</span>        ((id)nsclass, func, red, green, blue, alpha);</div>
@@ -9044,7 +9044,7 @@ $(function() {
 <div class="line"><a id="l09222" name="l09222"></a><span class="lineno"> 9222</span> </div>
 <div class="line"><a id="l09223" name="l09223"></a><span class="lineno"> 9223</span>    <span class="keywordtype">size_t</span> depth = (surface-&gt;image.format &gt;= RGFW_formatRGBA8) ? 4 : 3;</div>
 <div class="line"><a id="l09224" name="l09224"></a><span class="lineno"> 9224</span>    <span class="keywordtype">id</span> image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass(<span class="stringliteral">&quot;NSImage&quot;</span>), sel_getUid(<span class="stringliteral">&quot;alloc&quot;</span>));</div>
-<div class="line"><a id="l09225" name="l09225"></a><span class="lineno"> 9225</span>    NSSize size = (NSSize){surface-&gt;image.size.w, surface-&gt;image.size.h};</div>
+<div class="line"><a id="l09225" name="l09225"></a><span class="lineno"> 9225</span>    NSSize size = (NSSize){(float)surface-&gt;image.size.w, (<span class="keywordtype">float</span>)surface-&gt;image.size.h};</div>
 <div class="line"><a id="l09226" name="l09226"></a><span class="lineno"> 9226</span>    image = ((id (*)(id, SEL, NSSize))objc_msgSend)((<span class="keywordtype">id</span>)image, sel_getUid(<span class="stringliteral">&quot;initWithSize:&quot;</span>), size);</div>
 <div class="line"><a id="l09227" name="l09227"></a><span class="lineno"> 9227</span> </div>
 <div class="line"><a id="l09228" name="l09228"></a><span class="lineno"> 9228</span>    <span class="keywordtype">id</span> rep  = NSBitmapImageRep_initWithBitmapData(&amp;surface-&gt;image.data, win-&gt;r.w, win-&gt;r.h , 8, (<a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>)depth, (depth == 4), <span class="keyword">false</span>,</div>
@@ -9148,7 +9148,7 @@ $(function() {
 <div class="line"><a id="l09326" name="l09326"></a><span class="lineno"> 9326</span>    <span class="keywordflow">if</span> (win-&gt;src.view)</div>
 <div class="line"><a id="l09327" name="l09327"></a><span class="lineno"> 9327</span>        NSRelease(win-&gt;src.view);</div>
 <div class="line"><a id="l09328" name="l09328"></a><span class="lineno"> 9328</span>    win-&gt;src.view = (id) ((<span class="keywordtype">id</span>(*)(<span class="keywordtype">id</span>, <span class="keywordtype">SEL</span>, NSRect, <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>*))objc_msgSend) (NSAlloc(_RGFW-&gt;customViewClasses[1]),</div>
-<div class="line"><a id="l09329" name="l09329"></a><span class="lineno"> 9329</span>                            sel_registerName(<span class="stringliteral">&quot;initWithFrame:pixelFormat:&quot;</span>), (NSRect){{0, 0}, {win-&gt;r.w, win-&gt;r.h}}, (<a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>*)format);</div>
+<div class="line"><a id="l09329" name="l09329"></a><span class="lineno"> 9329</span>                            sel_registerName(<span class="stringliteral">&quot;initWithFrame:pixelFormat:&quot;</span>), (NSRect){{0, 0}, {(float)win-&gt;r.w, (<span class="keywordtype">float</span>)win-&gt;r.h}}, (<a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>*)format);</div>
 <div class="line"><a id="l09330" name="l09330"></a><span class="lineno"> 9330</span> </div>
 <div class="line"><a id="l09331" name="l09331"></a><span class="lineno"> 9331</span>    <span class="keywordtype">id</span> share = NULL;</div>
 <div class="line"><a id="l09332" name="l09332"></a><span class="lineno"> 9332</span> </div>
@@ -9263,15 +9263,15 @@ $(function() {
 <div class="line"><a id="l09441" name="l09441"></a><span class="lineno"> 9441</span>    NSRect contentRect;</div>
 <div class="line"><a id="l09442" name="l09442"></a><span class="lineno"> 9442</span>    contentRect.origin.x = 0;</div>
 <div class="line"><a id="l09443" name="l09443"></a><span class="lineno"> 9443</span>    contentRect.origin.y = 0;</div>
-<div class="line"><a id="l09444" name="l09444"></a><span class="lineno"> 9444</span>    contentRect.size.width = win-&gt;r.w;</div>
-<div class="line"><a id="l09445" name="l09445"></a><span class="lineno"> 9445</span>    contentRect.size.height = win-&gt;r.h;</div>
+<div class="line"><a id="l09444" name="l09444"></a><span class="lineno"> 9444</span>    contentRect.size.width = (float)win-&gt;r.w;</div>
+<div class="line"><a id="l09445" name="l09445"></a><span class="lineno"> 9445</span>    contentRect.size.height = (<span class="keywordtype">float</span>)win-&gt;r.h;</div>
 <div class="line"><a id="l09446" name="l09446"></a><span class="lineno"> 9446</span>    ((void(*)(id, SEL, CGRect))objc_msgSend)((<span class="keywordtype">id</span>)win-&gt;src.view, sel_registerName(<span class="stringliteral">&quot;setFrame:&quot;</span>), contentRect);</div>
 <div class="line"><a id="l09447" name="l09447"></a><span class="lineno"> 9447</span> </div>
 <div class="line"><a id="l09448" name="l09448"></a><span class="lineno"> 9448</span>    <a class="code hl_function" href="group__Window__management.html#ga46e9ec7d9e23ed20b38a6046e1b93f49">RGFW_window_setMouseDefault</a>(win);</div>
 <div class="line"><a id="l09449" name="l09449"></a><span class="lineno"> 9449</span> </div>
 <div class="line"><a id="l09450" name="l09450"></a><span class="lineno"> 9450</span>    NSRect windowRect = contentRect;</div>
-<div class="line"><a id="l09451" name="l09451"></a><span class="lineno"> 9451</span>    windowRect.origin.x = win-&gt;r.x;</div>
-<div class="line"><a id="l09452" name="l09452"></a><span class="lineno"> 9452</span>    windowRect.origin.y = win-&gt;r.y;</div>
+<div class="line"><a id="l09451" name="l09451"></a><span class="lineno"> 9451</span>    windowRect.origin.x = (float)win-&gt;r.x;</div>
+<div class="line"><a id="l09452" name="l09452"></a><span class="lineno"> 9452</span>    windowRect.origin.y = (<span class="keywordtype">float</span>)win-&gt;r.y;</div>
 <div class="line"><a id="l09453" name="l09453"></a><span class="lineno"> 9453</span>    NSBackingStoreType macArgs = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled;</div>
 <div class="line"><a id="l09454" name="l09454"></a><span class="lineno"> 9454</span> </div>
 <div class="line"><a id="l09455" name="l09455"></a><span class="lineno"> 9455</span>    <span class="keywordflow">if</span> (!(flags &amp; RGFW_windowNoResize))</div>
@@ -9482,7 +9482,7 @@ $(function() {
 <div class="line"><a id="l09660" name="l09660"></a><span class="lineno"> 9660</span>    win-&gt;r.x = v.<a class="code hl_variable" href="structRGFW__point.html#a1e4ef1395966022c65b8b69db9e8e592">x</a>;</div>
 <div class="line"><a id="l09661" name="l09661"></a><span class="lineno"> 9661</span>    win-&gt;r.y = v.<a class="code hl_variable" href="structRGFW__point.html#a5f31b208f21b8cb3f65c225a07936a93">y</a>;</div>
 <div class="line"><a id="l09662" name="l09662"></a><span class="lineno"> 9662</span>    ((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)</div>
-<div class="line"><a id="l09663" name="l09663"></a><span class="lineno"> 9663</span>        ((<span class="keywordtype">id</span>)win-&gt;src.window, sel_registerName(<span class="stringliteral">&quot;setFrame:display:animate:&quot;</span>), (NSRect){{win-&gt;r.x, win-&gt;r.y}, {win-&gt;r.w, win-&gt;r.h}}, <span class="keyword">true</span>, <span class="keyword">true</span>);</div>
+<div class="line"><a id="l09663" name="l09663"></a><span class="lineno"> 9663</span>        ((<span class="keywordtype">id</span>)win-&gt;src.window, sel_registerName(<span class="stringliteral">&quot;setFrame:display:animate:&quot;</span>), (NSRect){{(float)win-&gt;r.x, (<span class="keywordtype">float</span>)win-&gt;r.y}, {(float)win-&gt;r.w, (<span class="keywordtype">float</span>)win-&gt;r.h}}, <span class="keyword">true</span>, <span class="keyword">true</span>);</div>
 <div class="line"><a id="l09664" name="l09664"></a><span class="lineno"> 9664</span>}</div>
 <div class="line"><a id="l09665" name="l09665"></a><span class="lineno"> 9665</span> </div>
 <div class="line"><a id="l09666" name="l09666"></a><span class="lineno"> 9666</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga49cb75955ec07bb68faf7f260b30e693">RGFW_window_resize</a>(<a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win, <a class="code hl_struct" href="structRGFW__area.html">RGFW_area</a> a) {</div>
@@ -9496,9 +9496,9 @@ $(function() {
 <div class="line"><a id="l09674" name="l09674"></a><span class="lineno"> 9674</span>    win-&gt;r.h = (<a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>)a.<a class="code hl_variable" href="structRGFW__area.html#acfd12a462e305d195296ce2b13f32007">h</a>;</div>
 <div class="line"><a id="l09675" name="l09675"></a><span class="lineno"> 9675</span> </div>
 <div class="line"><a id="l09676" name="l09676"></a><span class="lineno"> 9676</span> </div>
-<div class="line"><a id="l09677" name="l09677"></a><span class="lineno"> 9677</span>    ((void(*)(id, SEL, CGRect))objc_msgSend)((<span class="keywordtype">id</span>)win-&gt;src.view, sel_registerName(<span class="stringliteral">&quot;setFrame:&quot;</span>),  (NSRect){{0, 0}, {win-&gt;r.w, win-&gt;r.h}});</div>
+<div class="line"><a id="l09677" name="l09677"></a><span class="lineno"> 9677</span>    ((void(*)(id, SEL, CGRect))objc_msgSend)((<span class="keywordtype">id</span>)win-&gt;src.view, sel_registerName(<span class="stringliteral">&quot;setFrame:&quot;</span>),  (NSRect){{0, 0}, {(float)win-&gt;r.w, (<span class="keywordtype">float</span>)win-&gt;r.h}});</div>
 <div class="line"><a id="l09678" name="l09678"></a><span class="lineno"> 9678</span>    ((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)</div>
-<div class="line"><a id="l09679" name="l09679"></a><span class="lineno"> 9679</span>        ((<span class="keywordtype">id</span>)win-&gt;src.window, sel_registerName(<span class="stringliteral">&quot;setFrame:display:animate:&quot;</span>), (NSRect){{win-&gt;r.x, win-&gt;r.y}, {win-&gt;r.w, win-&gt;r.h + offset}}, <span class="keyword">true</span>, <span class="keyword">true</span>);</div>
+<div class="line"><a id="l09679" name="l09679"></a><span class="lineno"> 9679</span>        ((<span class="keywordtype">id</span>)win-&gt;src.window, sel_registerName(<span class="stringliteral">&quot;setFrame:display:animate:&quot;</span>), (NSRect){{(float)win-&gt;r.x, (<span class="keywordtype">float</span>)win-&gt;r.y}, {(float)win-&gt;r.w, (<span class="keywordtype">float</span>)(win-&gt;r.h + offset)}}, <span class="keyword">true</span>, <span class="keyword">true</span>);</div>
 <div class="line"><a id="l09680" name="l09680"></a><span class="lineno"> 9680</span>}</div>
 <div class="line"><a id="l09681" name="l09681"></a><span class="lineno"> 9681</span> </div>
 <div class="line"><a id="l09682" name="l09682"></a><span class="lineno"> 9682</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga2f4b6c35c012889e20ef9966c145134d">RGFW_window_focus</a>(<a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win) {</div>
