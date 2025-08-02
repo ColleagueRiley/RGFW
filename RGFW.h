@@ -672,6 +672,7 @@ RGFWDEF void RGFW_surface_free(RGFW_surface* surface);
 	#ifdef RGFW_WAYLAND
 		u32 id; /* Add id so wl_outputs can be removed */
 		struct wl_output *output;
+		struct zxdg_output_v1 *xdg_output;
 		
 	#endif 
 		RGFW_monitorMode mode;
@@ -1601,6 +1602,8 @@ struct RGFW_info {
         struct xkb_state *xkb_state;
         struct zxdg_decoration_manager_v1 *decoration_manager;
 
+        struct zxdg_output_manager_v1 *xdg_output_manager;
+        
         struct wl_cursor_theme* wl_cursor_theme;
         struct wl_surface* cursor_surface;
         struct wl_cursor_image* cursor_image;
@@ -5496,6 +5499,7 @@ RGFW_window* RGFW_key_win = NULL;
 /* wayland global garbage (wayland bad, X11 is fine (ish) (not really)) */
 #include "xdg-shell.h"
 #include "xdg-decoration-unstable-v1.h"
+#include "xdg-output-unstable-v1.h"
 
 i32 RGFW_initPlatform_Wayland(void) {
     _RGFW->wl_display = wl_display_connect(NULL);
@@ -5833,10 +5837,12 @@ void RGFW_wl_output_set_mode(void *data, struct wl_output *wl_output, uint32_t f
 
 	monitor->mode.area = RGFW_AREA(width, height);
 	monitor->mode.refreshRate = (u32)(refresh / 1000);
-
+	RGFW_UNUSED(width);
+	RGFW_UNUSED(height);
 	RGFW_UNUSED(wl_output);
 	RGFW_UNUSED(flags);
 }
+
 void RGFW_wl_output_set_scale(void *data, struct wl_output *wl_output, int32_t factor) {
 	// this is for pixelRatio
 	RGFW_monitor *monitor = (RGFW_monitor*)data;
@@ -5855,6 +5861,19 @@ void RGFW_wl_output_set_name(void *data, struct wl_output *wl_output, const char
 
 }
 
+void RGFW_xdg_output_logical_pos(void *data, struct zxdg_output_v1 *zxdg_output_v1, int32_t x, int32_t y) {
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+	monitor->x = x;
+	monitor->y = y;
+	RGFW_UNUSED(zxdg_output_v1);
+}
+
+void RGFW_xdg_output_logical_size(void *data, struct zxdg_output_v1 *zxdg_output_v1, int32_t width, int32_t height) {
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+	monitor->mode.area = RGFW_AREA(width, height);
+	RGFW_UNUSED(zxdg_output_v1);
+}
+
 void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
 	struct wl_output *output = wl_registry_bind(registry, id, &wl_output_interface, 4);
 	
@@ -5871,6 +5890,7 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
 	mon->output = output;
 	mon->pixelRatio = 1.0f; // set in case compositor does not send one
 	
+	
 	static const struct wl_output_listener wl_output_listener = {
 			.geometry = RGFW_wl_output_set_geometry,
 			.mode = RGFW_wl_output_set_mode,
@@ -5882,6 +5902,21 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
 
 	// pass the monitor so we can access it in the callback functions
 	wl_output_add_listener(output, &wl_output_listener, mon);
+
+	if (!_RGFW->xdg_output_manager) return; // compositor does not support it 
+	
+	static const struct zxdg_output_v1_listener xdg_output_listener = {
+		.name = (void (*)(void *,struct zxdg_output_v1 *, const char *))&RGFW_doNothing,
+		.done = (void (*)(void *,struct zxdg_output_v1 *))&RGFW_doNothing,
+		.description = (void (*)(void *,struct zxdg_output_v1 *, const char *))&RGFW_doNothing,
+		.logical_position = RGFW_xdg_output_logical_pos,
+		.logical_size = RGFW_xdg_output_logical_size
+	};
+
+	if (_RGFW->xdg_output_manager)
+	mon->xdg_output = zxdg_output_manager_v1_get_xdg_output(_RGFW->xdg_output_manager, mon->output);
+	zxdg_output_v1_add_listener(mon->xdg_output, &xdg_output_listener, mon);
+	
 }
 
 void RGFW_wl_global_registry_handler(void* data,
@@ -5893,7 +5928,7 @@ void RGFW_wl_global_registry_handler(void* data,
 
 	
 	RGFW_window* win = (RGFW_window*)data;
-	RGFW_UNUSED(version);
+	// RGFW_UNUSED(version);
     if (RGFW_STRNCMP(interface, "wl_compositor", 16) == 0) {
 		win->src.compositor = wl_registry_bind(registry,
 			id, &wl_compositor_interface, 4);
@@ -5909,6 +5944,8 @@ void RGFW_wl_global_registry_handler(void* data,
 	} else if (RGFW_STRNCMP(interface,"wl_seat", 8) == 0) {
 		win->src.seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
 		wl_seat_add_listener(win->src.seat, &seat_listener, NULL);
+	} else if (RGFW_STRNCMP(interface, zxdg_output_manager_v1_interface.name, 255) == 0) {
+		_RGFW->xdg_output_manager = wl_registry_bind(registry, id, &zxdg_output_manager_v1_interface, version);
 	} else if (RGFW_STRNCMP(interface, "wl_output", 10) == 0) {
 		RGFW_wl_create_outputs(registry, id);
 	}
@@ -6494,6 +6531,10 @@ void RGFW_FUNC(RGFW_window_close)(RGFW_window* win) {
 		zxdg_toplevel_decoration_v1_destroy(win->src.decoration);
 	}
 
+	if (_RGFW->xdg_output_manager) {
+		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
+	}
+
 	if (win->src.xdg_toplevel) {
 		xdg_toplevel_destroy(win->src.xdg_toplevel);
 	}
@@ -6508,6 +6549,11 @@ void RGFW_FUNC(RGFW_window_close)(RGFW_window* win) {
 		if (mon->output) {
 			wl_output_destroy(mon->output); 
 		}
+
+		if (mon->xdg_output) {
+			zxdg_output_v1_destroy(mon->xdg_output);
+		}
+		
 		RGFW_FREE(mon);
 		_RGFW->num_monitors--;
 	}
