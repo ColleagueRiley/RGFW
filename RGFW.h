@@ -9540,7 +9540,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
 	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
-	float offset = 0;
+	double offset = 0;
 
 	RGFW_setBit(&win->_flags, RGFW_windowNoBorder, !border);
 	NSBackingStoreType storeType = NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView;
