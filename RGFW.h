@@ -2694,7 +2694,7 @@ RGFW_bool RGFW_window_isSoftware_OpenGL(RGFW_window* win) { return RGFW_BOOL(win
 	This function returns the attributes for the format we want */
 i32* RGFW_initFormatAttribs(void);
 i32* RGFW_initFormatAttribs(void) {
-	i32 attribs[] = {
+	static i32 attribs[] = {
 		#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
 		RGFW_GL_RENDER_TYPE,
 		RGFW_GL_FULL_FORMAT,
@@ -9427,7 +9427,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	contentRect.origin.y = 0;
 	contentRect.size.width = 0;
 	contentRect.size.height = 0;
-	((void(*)(id, SEL, CGRect))objc_msgSend)(win->src.view, sel_registerName("setFrame:"), contentRect);
+	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"), contentRect);
 
 	#ifdef RGFW_OPENGL
 	if ((flags & RGFW_windowNoInitAPI) == 0)
