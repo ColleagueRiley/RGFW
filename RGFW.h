@@ -6822,7 +6822,9 @@ PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
 
 #ifndef RGFW_NO_DWM
 HMODULE RGFW_dwm_dll = NULL;
+#ifndef _DWMAPI_H_
 typedef struct { DWORD dwFlags; int fEnable; HRGN hRgnBlur; int fTransitionOnMaximized;} DWM_BLURBEHIND;
+#endif
 typedef HRESULT (WINAPI * PFN_DwmEnableBlurBehindWindow)(HWND, const DWM_BLURBEHIND*);
 PFN_DwmEnableBlurBehindWindow DwmEnableBlurBehindWindowSRC = NULL;
 #endif
