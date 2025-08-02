@@ -6338,8 +6338,7 @@ void RGFW_FUNC(RGFW_window_restore)(RGFW_window* win) {
 }
 
 RGFW_bool RGFW_FUNC(RGFW_window_isFloating)(RGFW_window* win) {
-	RGFW_UNUSED(win);
-	return RGFW_FALSE;
+	return (!RGFW_window_isFullscreen(win) && !RGFW_window_isMaximized(win));
 }
 
 void RGFW_FUNC(RGFW_window_setName) (RGFW_window* win, const char* name) {
