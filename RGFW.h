@@ -6067,7 +6067,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, 
 		.global_remove = RGFW_wl_global_registry_remove,
 	};
 
-	struct wl_registry *registry = wl_display_get_registry(_RGFW->wl_display
+	struct wl_registry *registry = wl_display_get_registry(_RGFW->wl_display);
 	wl_registry_add_listener(registry, &registry_listener, win);
 
 	wl_display_roundtrip(_RGFW->wl_display);
