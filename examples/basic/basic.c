@@ -37,7 +37,7 @@ int main(void) {
 	RGFW_window_setIcon(win, RGFW_IMAGE(icon, RGFW_AREA(3, 3), RGFW_formatRGBA8));
 
 	RGFW_window_setMouseStandard(win, RGFW_mouseResizeNESW);
-	RGFW_mouse *mouse = RGFW_loadMouse(RGFW_IMAGE(icon, RGFW_AREA(3, 3), RGFW_formatBGRA8));
+	RGFW_mouse *mouse = RGFW_loadMouse(RGFW_IMAGE(icon, RGFW_AREA(3, 3), RGFW_formatRGBA8));
 
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 
@@ -90,6 +90,7 @@ int main(void) {
 		glEnd();
 
 		RGFW_window_swapBuffers_OpenGL(win); /* NOTE(EimaMei): Rendering should always go: 1. Clear everything 2. Render 3. Swap buffers. Based on https://www.khronos.org/opengl/wiki/Common_Mistakes#Swap_Buffers */
+		glFlush();
 	}
 
 	RGFW_freeMouse(mouse);

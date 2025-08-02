@@ -1,7 +1,7 @@
 name: Linux
 
 on:
-  
+
   workflow_dispatch:
   push:
     paths:
@@ -37,14 +37,14 @@ jobs:
           ARCH: "x86_64"
           ARCH_NAME: "amd64"
           COMPILER_PATH: "/user/bin"
-         
+
     env:
       RELEASE_NAME: RGFW-dev_linux_${{ matrix.ARCH_NAME }}
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@master
-   
+
     - uses: actions/checkout@v3
     - uses: mlugg/setup-zig@v2
 
@@ -53,9 +53,9 @@ jobs:
         echo "RELEASE_NAME=RGFW-${{ github.event.release.tag_name }}_linux_${{ matrix.ARCH_NAME }}" >> $GITHUB_ENV
       shell: bash
       if: github.event_name == 'release' && github.event.action == 'published'
-      
+
     - name: Setup Environment
-      run: | 
+      run: |
         sudo apt-get update -qq
         sudo apt-get install gcc-multilib
         sudo apt-get install -y --no-install-recommends libx11-dev mesa-common-dev libglx-dev libxcursor-dev mesa-vulkan-drivers libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libxkbcommon-dev libgles2-mesa-dev libosmesa6-dev
@@ -67,7 +67,7 @@ jobs:
         mkdir lib
         cd ../../../RGFW
         # ${{ matrix.ARCH }}-linux-gnu-gcc -v
-      
+
     - name: test C++
       run: |
         make CC=g++
@@ -84,7 +84,7 @@ jobs:
         make libRGFW.so
         cp -v ./libRGFW.so ./build/${{ env.RELEASE_NAME }}/lib
       if: matrix.bits == 64
-    
+
     - name: Generate Artifacts
       run: |
         cp -v ./RGFW.h ./build/${{ env.RELEASE_NAME }}/include
@@ -93,13 +93,13 @@ jobs:
         cp -v ./LICENSE ./build/${{ env.RELEASE_NAME }}/LICENSE
         cd build
         tar -czvf ${{ env.RELEASE_NAME }}.tar.gz ${{ env.RELEASE_NAME }}
-        
+
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.RELEASE_NAME }}.tar.gz
         path: ./build/${{ env.RELEASE_NAME }}.tar.gz
-        
+
     - name: Upload Artifact to Release
       uses: softprops/action-gh-release@v1
       with:

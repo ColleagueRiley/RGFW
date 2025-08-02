@@ -13,7 +13,7 @@ int main(void) {
         glClear(GL_COLOR_BUFFER_BIT);
 
         RGFW_window_swapBuffers_OpenGL(win);
-        RGFW_window_eventWait(win, RGFW_eventWaitNext);
+        RGFW_waitForEvent(RGFW_eventWaitNext);
         while (RGFW_window_checkEvent(win, &event)) {
             switch (event.type) {
                 case RGFW_quit: printf("window closed\n"); break;
