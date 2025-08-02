@@ -1,5 +1,6 @@
 # CUSTOM ARGS :
-# RGFW_WAYLAND=1 -> use wayland
+# WAYLAND=1 -> use wayland
+# WAYLAND_X11=1 -> use wayland AND X11
 # NO_VULKAN=1 -> do not compile the vulkan example
 # NO_GLES=1 -> do not compile the gles example (on by default for non-linux OSes)
 # NO_OSMESA=1 -> do not compile the osmesa example (on by default for non-linux OSes)
@@ -31,8 +32,8 @@ detected_OS = windows
 
 OBJ_FILE = .o
 
-ifeq ($(WAYLAND_ONLY), 1)
-	RGFW_WAYLAND = 1
+ifeq ($(WAYLAND_X11), 1)
+	WAYLAND = 1
 endif
 
 # not using a cross compiler
@@ -90,7 +91,7 @@ else
 	OS_DIR = /
 endif
 
-ifeq ($(RGFW_WAYLAND),1)
+ifeq ($(WAYLAND),1)
 	NO_VULKAN = 1
 	NO_GLES = 0
 	NO_EGL = 0
@@ -100,8 +101,8 @@ ifeq ($(RGFW_WAYLAND),1)
 
 	# LIBS += -ldecor-0
 
-	ifeq ($(WAYLAND_ONLY), 1)
-		LIBS += -D RGFW_NO_X11
+	ifeq ($(WAYLAND_X11), 1)
+		LIBS += -D RGFW_X11
 	endif
 endif
 
@@ -256,7 +257,7 @@ else
 endif
 
 examples/minimal_links/minimal_links: examples/minimal_links/minimal_links.c RGFW.h
-ifeq ($(RGFW_WAYLAND), 1)
+ifeq ($(WAYLAND), 1)
 	@echo nostl is not supported on this platform
 else ifneq (,$(filter $(CC),emcc em++))
 	@echo nostl is not supported on this platform
@@ -274,7 +275,7 @@ endif
 
 
 examples/nostl/nostl: examples/nostl/nostl.c RGFW.h
-ifeq ($(RGFW_WAYLAND), 1)
+ifeq ($(WAYLAND), 1)
 	@echo nostl is not supported on this platform
 else ifneq (,$(filter $(CC),emcc em++))
 	@echo nostl is not supported on this platform
@@ -308,7 +309,7 @@ examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.
 
 
 examples/gl33/gl33: examples/gl33/gl33.c RGFW.h
-ifeq ($(RGFW_WAYLAND), 1)
+ifeq ($(WAYLAND), 1)
 	$(CC) $(CFLAGS) -I. $< $(LIBS) $(LINK_GL1) -lEGL -lwayland-egl -o $@$(EXT)
 else ifeq ($(detected_OS),NetBSD)
 	$(CC) $(CFLAGS) $(CUSTOM_CFLAGS) -I. $<  -lXrandr -lpthread -o $@$(EXT)
@@ -375,7 +376,7 @@ xdg-shell.c:
 	$(MAKE) initwayland
 
 initwayland:
-ifeq ($(RGFW_WAYLAND),1)
+ifeq ($(WAYLAND),1)
 	wayland-scanner client-header /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml xdg-shell.h
 	wayland-scanner public-code /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml xdg-shell.c
 	wayland-scanner client-header /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.h
