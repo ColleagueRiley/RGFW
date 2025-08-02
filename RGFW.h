@@ -2635,9 +2635,8 @@ RGFW_window* RGFW_getCurrentWindow_OpenGL(void) { return _RGFW->current; }
 RGFW_bool RGFW_window_isSoftware_OpenGL(RGFW_window* win) { return RGFW_BOOL(win->_flags |= RGFW_windowOpenGLSoftware); }
 
 /* OPENGL normal only (no EGL / OSMesa) */
-#if defined(RGFW_OPENGL) && !defined(RGFW_CUSTOM_BACKEND) && !defined(RGFW_WASM) && (!defined(RGFW_WAYLAND) || defined(RGFW_X11))
-
-#define RGFW_GL_RENDER_TYPE 		RGFW_OS_BASED_VALUE(GLX_X_VISUAL_TYPE,    	0x2003,		73, 0)
+#if defined(RGFW_OPENGL) && !defined(RGFW_CUSTOM_BACKEND) && !defined(RGFW_WASM) && (!defined(RGFW_WAYLAND) || defined(RGFW_X11)) && !defined(RGFW_MACOS)
+	#define RGFW_GL_RENDER_TYPE 		RGFW_OS_BASED_VALUE(GLX_X_VISUAL_TYPE,    	0x2003,		73, 0)
 	#define RGFW_GL_ALPHA_SIZE 		RGFW_OS_BASED_VALUE(GLX_ALPHA_SIZE,       	0x201b,		11,     0)
 	#define RGFW_GL_DEPTH_SIZE 		RGFW_OS_BASED_VALUE(GLX_DEPTH_SIZE,       	0x2022,		12,     0)
 	#define RGFW_GL_DOUBLEBUFFER 		RGFW_OS_BASED_VALUE(GLX_DOUBLEBUFFER,     	0x2011, 	5,  0)
@@ -2695,7 +2694,7 @@ RGFW_bool RGFW_window_isSoftware_OpenGL(RGFW_window* win) { return RGFW_BOOL(win
 	This function returns the attributes for the format we want */
 i32* RGFW_initFormatAttribs(void);
 i32* RGFW_initFormatAttribs(void) {
-	static i32 attribs[] = {
+	i32 attribs[] = {
 		#if defined(RGFW_X11) || defined(RGFW_WINDOWS)
 		RGFW_GL_RENDER_TYPE,
 		RGFW_GL_FULL_FORMAT,
@@ -2706,12 +2705,6 @@ i32* RGFW_initFormatAttribs(void) {
 		#ifdef RGFW_X11
 		GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
 		#endif
-
-		#ifdef RGFW_MACOS
-		72,
-		8, 24,
-		#endif
-
 		#ifdef RGFW_WINDOWS
 		WGL_SUPPORT_OPENGL_ARB, 1,
 		WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
@@ -2728,10 +2721,6 @@ i32* RGFW_initFormatAttribs(void) {
 			attribs[index + 1] = attVal;\
 			index += 2;\
 		}
-
-		#if defined(RGFW_MACOS) && defined(RGFW_COCOA_GRAPHICS_SWITCHING)
-		RGFW_GL_ADD_ATTRIB(96, kCGLPFASupportsAutomaticGraphicsSwitching);
-		#endif
 
         RGFW_GL_ADD_ATTRIB(RGFW_GL_DOUBLEBUFFER, 1);
 
@@ -2772,28 +2761,6 @@ i32* RGFW_initFormatAttribs(void) {
 
 	#ifndef RGFW_X11
 		RGFW_GL_ADD_ATTRIB(RGFW_GL_SAMPLES, RGFW_GL_HINTS[RGFW_glSamples]);
-	#endif
-
-	#ifdef RGFW_MACOS
-		if (_RGFW->root->_flags & RGFW_windowOpenGLSoftware) {
-			RGFW_GL_ADD_ATTRIB(70, kCGLRendererGenericFloatID);
-		} else {
-			attribs[index] = RGFW_GL_RENDER_TYPE;
-			index += 1;
-		}
-	#endif
-
-	#ifdef RGFW_MACOS
-		/* macOS has the surface attribs and the OpenGL attribs connected for some reason
-			maybe this is to give macOS more control to limit openGL/the OpenGL version? */
-
-		attribs[index] = 99;
-		attribs[index + 1] = 0x1000;
-
-
-		if (RGFW_GL_HINTS[RGFW_glMajor] >= 4 || RGFW_GL_HINTS[RGFW_glMajor] >= 3) {
-			attribs[index + 1] = (i32) ((RGFW_GL_HINTS[RGFW_glMajor] >= 4) ? 0x4100 : 0x3200);
-		}
 	#endif
 
 	RGFW_GL_ADD_ATTRIB(0, 0);
@@ -8469,11 +8436,6 @@ void NSOpenGLContext_setValues(id context, const int* vals, NSOpenGLContextParam
 	((void (*)(id, SEL, const int*, NSOpenGLContextParameter))objc_msgSend)
 		(context, sel_registerName("setValues:forParameter:"), vals, param);
 }
-void* NSOpenGLPixelFormat_initWithAttributes(const u32* attribs);
-void* NSOpenGLPixelFormat_initWithAttributes(const u32* attribs) {
-	return (void*) ((id(*)(id, SEL, const u32*))objc_msgSend)
-		(NSAlloc((id)objc_getClass("NSOpenGLPixelFormat")), sel_registerName("initWithAttributes:"), attribs);
-}
 
 id NSPasteboard_generalPasteboard(void);
 id NSPasteboard_generalPasteboard(void) {
@@ -9219,19 +9181,113 @@ void* RGFW_cocoaGetLayer(void) {
 #define NSTrackingEnabledDuringMouseDrag  0x400
 
 #ifdef RGFW_OPENGL
+enum {
+	NSOpenGLPFAAllRenderers =   1,	/* choose from all available renderers          */
+	NSOpenGLPFATripleBuffer =   3,	/* choose a triple buffered pixel format        */
+	NSOpenGLPFADoubleBuffer      =   5,	/* choose a double buffered pixel format        */
+	NSOpenGLPFAAuxBuffers   =   7,	/* number of aux buffers                        */
+	NSOpenGLPFAColorSize       =   8,	/* number of color buffer bits                  */
+	NSOpenGLPFAAlphaSize  =  11,	/* number of alpha component bits               */
+	NSOpenGLPFADepthSize   =  12,	/* number of depth buffer bits                  */
+	NSOpenGLPFAStencilSize   =  13,	/* number of stencil buffer bits                */
+	NSOpenGLPFAAccumSize       =  14,	/* number of accum buffer bits                  */
+	NSOpenGLPFAMinimumPolicy   =  51,	/* never choose smaller buffers than requested  */
+	NSOpenGLPFAMaximumPolicy =  52,	/* choose largest buffers of type requested     */
+	NSOpenGLPFASampleBuffers     =  55,	/* number of multi sample buffers               */
+	NSOpenGLPFASamples            =  56,	/* number of samples per multi sample buffer    */
+	NSOpenGLPFAAuxDepthStencil     =  57,	/* each aux buffer has its own depth stencil    */
+	NSOpenGLPFAColorFloat   =  58,	/* color buffers store floating point pixels    */
+	NSOpenGLPFAMultisample   =  59,    /* choose multisampling                         */
+	NSOpenGLPFASupersample    =  60,    /* choose supersampling                         */
+	NSOpenGLPFASampleAlpha     =  61,    /* request alpha filtering                      */
+	NSOpenGLPFARendererID       =  70,	/* request renderer by ID                       */
+	NSOpenGLPFANoRecovery   =  72,	/* disable all failure recovery systems         */
+	NSOpenGLPFAAccelerated      =  73,	/* choose a hardware accelerated renderer       */
+	NSOpenGLPFAClosestPolicy   =  74,	/* choose the closest color buffer to request   */
+	NSOpenGLPFABackingStore     =  76,	/* back buffer contents are valid after swap    */
+	NSOpenGLPFAScreenMask     =  84,	/* bit mask of supported physical screens       */
+	NSOpenGLPFAAllowOfflineRenderers  =  96,  /* allow use of offline renderers               */
+	NSOpenGLPFAAcceleratedCompute   =  97,	/* choose a hardware accelerated compute device */
+	NSOpenGLPFAOpenGLProfile      =  99,    /* specify an OpenGL Profile to use             */
+	NSOpenGLProfileVersionLegacy     = 0x1000, /* The requested profile is a legacy (pre-OpenGL 3.0) profile. */
+	NSOpenGLProfileVersion3_2Core    = 0x3200, /* The 3.2 Profile of OpenGL */
+	NSOpenGLProfileVersion4_1Core  = 0x3200, /* The 4.1 profile of OpenGL */
+	NSOpenGLPFAVirtualScreenCount      = 128,	/* number of virtual screens in this format     */
+	NSOpenGLPFAStereo                 =   6,
+	NSOpenGLPFAOffScreen             =  53,
+	NSOpenGLPFAFullScreen           =  54,
+	NSOpenGLPFASingleRenderer      =  71,
+	NSOpenGLPFARobust                 =  75,
+	NSOpenGLPFAMPSafe           =  78,
+	NSOpenGLPFAWindow                 =  80,
+	NSOpenGLPFAMultiScreen =    81,
+	NSOpenGLPFACompliant   =   83,
+	NSOpenGLPFAPixelBuffer            =  90,
+	NSOpenGLPFARemotePixelBuffer =  91,
+};
+
 RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	#ifdef RGFW_EGL
-	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_createContext_EGL(win); return; }
+	if (win->_flags & RGFW_windowUseEGL) return RGFW_window_createContext_EGL(win);
 	#endif
-	void* attrs = RGFW_initFormatAttribs();
-	void* format = NSOpenGLPixelFormat_initWithAttributes((u32*)attrs);
 
+	i32 attribs[40];
+	size_t index = 0;
+	#define RGFW_PUSH_ATTRIB(a) { RGFW_ASSERT(index < sizeof(attribs) / sizeof(attribs[0])); attribs[index] = a; index += 1;  }
+	#define RGFW_PUSH_ATTRIBS(a, v) { RGFW_PUSH_ATTRIB(a); RGFW_PUSH_ATTRIB(v); }
+
+	i32 colorBits = (i32)(RGFW_GL_HINTS[RGFW_glRed] + RGFW_GL_HINTS[RGFW_glGreen] +  RGFW_GL_HINTS[RGFW_glBlue] + RGFW_GL_HINTS[RGFW_glAlpha]) / 4;
+	RGFW_PUSH_ATTRIBS(NSOpenGLPFAColorSize, colorBits);
+
+	RGFW_PUSH_ATTRIBS(NSOpenGLPFAAlphaSize, RGFW_GL_HINTS[RGFW_glAlpha]);
+	RGFW_PUSH_ATTRIBS(NSOpenGLPFADepthSize, RGFW_GL_HINTS[RGFW_glDepth]);
+	RGFW_PUSH_ATTRIBS(NSOpenGLPFAStencilSize, RGFW_GL_HINTS[RGFW_glStencil]);
+	RGFW_PUSH_ATTRIBS(NSOpenGLPFAAuxBuffers, RGFW_GL_HINTS[RGFW_glAuxBuffers]);
+	RGFW_PUSH_ATTRIB(NSOpenGLPFAClosestPolicy);
+
+	if (RGFW_GL_HINTS[RGFW_glStereo])
+		RGFW_PUSH_ATTRIB(NSOpenGLPFAStereo);
+	if (RGFW_GL_HINTS[RGFW_glSamples]) {
+		RGFW_PUSH_ATTRIBS(NSOpenGLPFASampleBuffers, 1);
+		RGFW_PUSH_ATTRIBS(NSOpenGLPFASamples, RGFW_GL_HINTS[RGFW_glSamples]);
+	} else RGFW_PUSH_ATTRIBS(NSOpenGLPFASampleBuffers, 0);
+
+	if (RGFW_GL_HINTS[RGFW_glDoubleBuffer])
+		RGFW_PUSH_ATTRIB(NSOpenGLPFADoubleBuffer);
+
+	#ifdef RGFW_COCOA_GRAPHICS_SWITCHING
+	RGFW_PUSH_ATTRIBS(NSOpenGLPFAAllowOfflineRenderers, kCGLPFASupportsAutomaticGraphicsSwitching)
+	#endif
+
+	/* macOS has the surface attribs and the OpenGL attribs connected for some reason maybe this is to give macOS more control to limit openGL/the OpenGL version? */
+	RGFW_PUSH_ATTRIBS(NSOpenGLPFAOpenGLProfile,
+					(RGFW_GL_HINTS[RGFW_glMajor] >= 4) ? NSOpenGLProfileVersion4_1Core  : (RGFW_GL_HINTS[RGFW_glMajor] >= 3) ?
+														NSOpenGLProfileVersion3_2Core : NSOpenGLProfileVersionLegacy);
+
+	if (RGFW_GL_HINTS[RGFW_glMajor] <= 2) {
+		i32 accumSize = (i32)(RGFW_GL_HINTS[RGFW_glAccumRed] + RGFW_GL_HINTS[RGFW_glAccumGreen] +  RGFW_GL_HINTS[RGFW_glAccumBlue] + RGFW_GL_HINTS[RGFW_glAccumAlpha]) / 4;
+		RGFW_PUSH_ATTRIBS(NSOpenGLPFAAccumSize, accumSize);
+	}
+
+	/* this must be the last attrib */
+	if (_RGFW->root->_flags & RGFW_windowOpenGLSoftware) {
+		RGFW_PUSH_ATTRIBS(NSOpenGLPFARendererID, kCGLRendererGenericFloatID);
+	} else {
+		RGFW_PUSH_ATTRIBS(NSOpenGLPFARendererID, NSOpenGLPFAAccelerated);
+	}
+
+	RGFW_PUSH_ATTRIBS(0, 0);
+	#undef RGFW_PUSH_ATTRIB
+	#undef RGFW_PUSH_ATTRIBS
+
+	void* format = (void*) ((id(*)(id, SEL, const u32*))objc_msgSend) (NSAlloc((id)objc_getClass("NSOpenGLPixelFormat")), sel_registerName("initWithAttributes:"), (u32*)attribs);
 	if (format == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to load pixel format for OpenGL");
-        win->_flags |= RGFW_windowOpenGLSoftware;
-        void* subAttrs = RGFW_initFormatAttribs();
-		format = NSOpenGLPixelFormat_initWithAttributes((u32*)subAttrs);
 
+		win->_flags |= RGFW_windowOpenGLSoftware;
+		attribs[index - 3] = kCGLRendererGenericFloatID;
+
+		format = (void*) ((id(*)(id, SEL, const u32*))objc_msgSend) (NSAlloc((id)objc_getClass("NSOpenGLPixelFormat")), sel_registerName("initWithAttributes:"), (u32*)attribs);
 		if (format == NULL)
 			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, RGFW_DEBUG_CTX(win, 0), "and loading software rendering OpenGL failed");
 		else
@@ -9250,14 +9306,13 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 												 sel_registerName("initWithFormat:shareContext:"),
 												 (id)format, share);
 
-	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.ctx.ctx, sel_registerName("setView:"), (id)win->src.view);
-
 	if (win->_flags & RGFW_windowTransparent) {
 		i32 opacity = 0;
 		#define NSOpenGLCPSurfaceOpacity 236
 		NSOpenGLContext_setValues((id)win->src.ctx.ctx, &opacity, NSOpenGLCPSurfaceOpacity);
 	}
 
+	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.ctx.ctx, sel_registerName("setView:"), (id)win->src.view);
 	objc_msgSend_void(win->src.ctx.ctx, sel_registerName("makeCurrentContext"));
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
 	return &win->src.ctx;
@@ -9372,6 +9427,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	contentRect.origin.y = 0;
 	contentRect.size.width = 0;
 	contentRect.size.height = 0;
+	((void(*)(id, SEL, CGRect))objc_msgSend)(win->src.view, sel_registerName("setFrame:"), contentRect);
 
 	#ifdef RGFW_OPENGL
 	if ((flags & RGFW_windowNoInitAPI) == 0)
@@ -9396,7 +9452,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 
 	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.view, sel_registerName("addTrackingArea:"), trackingArea);
 	((void (*)(id, SEL))objc_msgSend)(trackingArea, sel_registerName("release"));
-	((void (*)(id, SEL, BOOL))objc_msgSend)((id)win->src.view, sel_registerName("setWantsLayer:"), YES);
 
 	void* contentView = NSWindow_contentView((id)win->src.window);
 	objc_msgSend_void_bool(contentView, sel_registerName("setWantsLayer:"), true);
