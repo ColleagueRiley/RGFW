@@ -5793,7 +5793,7 @@ void RGFW_wl_output_set_mode(void *data, struct wl_output *wl_output, uint32_t f
 	RGFW_monitor *monitor = (RGFW_monitor*)data;
 
 	monitor->mode.area = RGFW_AREA(width, height);
-	monitor->mode.refreshRate = (u32)(refresh / 1000);
+	monitor->mode.refreshRate = (u32)(refresh / 1000) + 1;
 	RGFW_UNUSED(width);
 	RGFW_UNUSED(height);
 	RGFW_UNUSED(wl_output);
