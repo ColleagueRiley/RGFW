@@ -5835,7 +5835,9 @@ void RGFW_xdg_output_logical_size(void *data, struct zxdg_output_v1 *zxdg_output
 	monitor->scaleX = (mon_float_width / (float) width);
 	monitor->scaleY = (mon_float_height / (float) height);
 
-	// should monitors width and height be this as well?
+	// under xwayland the monitor changes w & h when compositor scales it
+	monitor->mode.area.w = (u32) width;
+	monitor->mode.area.h = (u32) height;
 	RGFW_UNUSED(zxdg_output_v1);
 }
 
