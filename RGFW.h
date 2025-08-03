@@ -9253,52 +9253,52 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	#endif
 
 	i32 attribs_data[40];
-	RGFW_attribStack* attribs;
-	void RGFW_attribStack_init(&attribs, attribs_data, sizeof(attribs_data) / sizeof(i32));
+	{
+		RGFW_attribStack* attribs;
+		RGFW_attribStack_init(&attribs, attribs_data, 40;
 
-	i32 colorBits = (i32)(RGFW_GL_HINTS[RGFW_glRed] + RGFW_GL_HINTS[RGFW_glGreen] +  RGFW_GL_HINTS[RGFW_glBlue] + RGFW_GL_HINTS[RGFW_glAlpha]) / 4;
-	RGFW_attribStack_PushAttribs(&attribs, NSOpenGLPFAColorSize, colorBits);
+		i32 colorBits = (i32)(RGFW_GL_HINTS[RGFW_glRed] + RGFW_GL_HINTS[RGFW_glGreen] +  RGFW_GL_HINTS[RGFW_glBlue] + RGFW_GL_HINTS[RGFW_glAlpha]) / 4;
+		RGFW_attribStack_pushAttribs(&attribs, NSOpenGLPFAColorSize, colorBits);
 
-	RGFW_attribStack_PushAttribs(&attribs, NSOpenGLPFAAlphaSize, RGFW_GL_HINTS[RGFW_glAlpha]);
-	RGFW_attribStack_PushAttribs(&attribs, NSOpenGLPFADepthSize, RGFW_GL_HINTS[RGFW_glDepth]);
-	RGFW_attribStack_PushAttribs(&attribs, NSOpenGLPFAStencilSize, RGFW_GL_HINTS[RGFW_glStencil]);
-	RGFW_attribStack_PushAttribs(&attribs, NSOpenGLPFAAuxBuffers, RGFW_GL_HINTS[RGFW_glAuxBuffers]);
-	RGFW_attribStack_PushAttrib(&attribs, NSOpenGLPFAClosestPolicy);
-	if (RGFW_GL_HINTS[RGFW_glSamples]) {
-		RGFW_attribStack_PushAttribs(&attribs, NSOpenGLPFASampleBuffers, 1);
-		RGFW_attribStack_PushAttribs(&attribs, NSOpenGLPFASamples, RGFW_GL_HINTS[RGFW_glSamples]);
-	} else RGFW_attribStack_PushAttribs(&attribs, NSOpenGLPFASampleBuffers, 0);
+		RGFW_attribStack_pushAttribs(&attribs, NSOpenGLPFAAlphaSize, RGFW_GL_HINTS[RGFW_glAlpha]);
+		RGFW_attribStack_pushAttribs(&attribs, NSOpenGLPFADepthSize, RGFW_GL_HINTS[RGFW_glDepth]);
+		RGFW_attribStack_pushAttribs(&attribs, NSOpenGLPFAStencilSize, RGFW_GL_HINTS[RGFW_glStencil]);
+		RGFW_attribStack_pushAttribs(&attribs, NSOpenGLPFAAuxBuffers, RGFW_GL_HINTS[RGFW_glAuxBuffers]);
+		RGFW_attribStack_pushAttrib(&attribs, NSOpenGLPFAClosestPolicy);
+		if (RGFW_GL_HINTS[RGFW_glSamples]) {
+			RGFW_attribStack_pushAttribs(&attribs, NSOpenGLPFASampleBuffers, 1);
+			RGFW_attribStack_pushAttribs(&attribs, NSOpenGLPFASamples, RGFW_GL_HINTS[RGFW_glSamples]);
+		} else RGFW_attribStack_pushAttribs(&attribs, NSOpenGLPFASampleBuffers, 0);
 
-	if (RGFW_GL_HINTS[RGFW_glDoubleBuffer])
-		RGFW_attribStack_PushAttrib(&attribs, NSOpenGLPFADoubleBuffer);
+		if (RGFW_GL_HINTS[RGFW_glDoubleBuffer])
+			RGFW_attribStack_pushAttrib(&attribs, NSOpenGLPFADoubleBuffer);
 
-	#ifdef RGFW_COCOA_GRAPHICS_SWITCHING
-	RGFW_attribStack_PushAttribs(&attribs, NSOpenGLPFAAllowOfflineRenderers, kCGLPFASupportsAutomaticGraphicsSwitching)
-	#endif
-	#if MAC_OS_X_VERSION_MAX_ALLOWED < 101200
-	if (RGFW_GL_HINTS[RGFW_glStereo]) RGFW_attribStack_PushAttrib(&attribs, NSOpenGLPFAStereo);
-	#endif
+		#ifdef RGFW_COCOA_GRAPHICS_SWITCHING
+		RGFW_attribStack_pushAttribs(&attribs, NSOpenGLPFAAllowOfflineRenderers, kCGLPFASupportsAutomaticGraphicsSwitching)
+		#endif
+		#if MAC_OS_X_VERSION_MAX_ALLOWED < 101200
+		if (RGFW_GL_HINTS[RGFW_glStereo]) RGFW_attribStack_pushAttrib(&attribs, NSOpenGLPFAStereo);
+		#endif
 
-	/* macOS has the surface attribs and the OpenGL attribs connected for some reason maybe this is to give macOS more control to limit openGL/the OpenGL version? */
-	RGFW_attribStack_PushAttribs(&attribs, NSOpenGLPFAOpenGLProfile,
-					(RGFW_GL_HINTS[RGFW_glMajor] >= 4) ? NSOpenGLProfileVersion4_1Core  : (RGFW_GL_HINTS[RGFW_glMajor] >= 3) ?
-														NSOpenGLProfileVersion3_2Core : NSOpenGLProfileVersionLegacy);
+		/* macOS has the surface attribs and the OpenGL attribs connected for some reason maybe this is to give macOS more control to limit openGL/the OpenGL version? */
+		RGFW_attribStack_pushAttribs(&attribs, NSOpenGLPFAOpenGLProfile,
+						(RGFW_GL_HINTS[RGFW_glMajor] >= 4) ? NSOpenGLProfileVersion4_1Core  : (RGFW_GL_HINTS[RGFW_glMajor] >= 3) ?
+															NSOpenGLProfileVersion3_2Core : NSOpenGLProfileVersionLegacy);
 
-	if (RGFW_GL_HINTS[RGFW_glMajor] <= 2) {
-		i32 accumSize = (i32)(RGFW_GL_HINTS[RGFW_glAccumRed] + RGFW_GL_HINTS[RGFW_glAccumGreen] +  RGFW_GL_HINTS[RGFW_glAccumBlue] + RGFW_GL_HINTS[RGFW_glAccumAlpha]) / 4;
-		RGFW_attribStack_PushAttribs(&attribs, NSOpenGLPFAAccumSize, accumSize);
+		if (RGFW_GL_HINTS[RGFW_glMajor] <= 2) {
+			i32 accumSize = (i32)(RGFW_GL_HINTS[RGFW_glAccumRed] + RGFW_GL_HINTS[RGFW_glAccumGreen] +  RGFW_GL_HINTS[RGFW_glAccumBlue] + RGFW_GL_HINTS[RGFW_glAccumAlpha]) / 4;
+			RGFW_attribStack_pushAttribs(&attribs, NSOpenGLPFAAccumSize, accumSize);
+		}
+
+		/* this must be the last attrib */
+		if (_RGFW->root->_flags & RGFW_windowOpenGLSoftware) {
+			RGFW_attribStack_pushAttribs(&attribs, NSOpenGLPFARendererID, kCGLRendererGenericFloatID);
+		} else {
+			RGFW_attribStack_pushAttribs(&attribs, NSOpenGLPFARendererID, NSOpenGLPFAAccelerated);
+		}
+
+		RGFW_attribStack_pushAttribs(&attribs, 0, 0);
 	}
-
-	/* this must be the last attrib */
-	if (_RGFW->root->_flags & RGFW_windowOpenGLSoftware) {
-		RGFW_attribStack_PushAttribs(&attribs, NSOpenGLPFARendererID, kCGLRendererGenericFloatID);
-	} else {
-		RGFW_attribStack_PushAttribs(&attribs, NSOpenGLPFARendererID, NSOpenGLPFAAccelerated);
-	}
-
-	RGFW_attribStack_PushAttribs(&attribs, 0, 0);
-	#undef RGFW_PUSH_ATTRIB
-	#undef RGFW_PUSH_ATTRIBS
 
 	void* format = (void*) ((id(*)(id, SEL, const u32*))objc_msgSend) (NSAlloc((id)objc_getClass("NSOpenGLPixelFormat")), sel_registerName("initWithAttributes:"), (u32*)attribs.attribs);
 	if (format == NULL) {
