@@ -1837,7 +1837,7 @@ u32 RGFW_rgfwToApiKey(u32 keycode) {
 
 void RGFW_resetKeyPrev(void) {
 	size_t i; /*!< reset each previous state  */
-    for (i = 0; i < RGFW_keyLast; i++) RGFW_keyboard[i].prev = 0;
+    for (i = 0; i < RGFW_keyLast; i++) RGFW_keyboard[i].prev = RGFW_keyboard[i].current;
 }
 void RGFW_resetKey(void) { RGFW_MEMSET(RGFW_keyboard, 0, sizeof(RGFW_keyboard)); }
 /*
@@ -2228,7 +2228,7 @@ RGFW_point RGFW_window_getMousePoint(RGFW_window* win) {
 }
 
 RGFW_bool RGFW_isPressed(RGFW_window* win, RGFW_key key) {
-    return _RGFW != NULL && RGFW_keyboard[key].current && (win == NULL || RGFW_window_isInFocus(win));
+    return _RGFW != NULL && RGFW_keyboard[key].current && !RGFW_keyboard[key].prev && (win == NULL || RGFW_window_isInFocus(win));
 }
 
 RGFW_bool RGFW_wasPressed(RGFW_window* win, RGFW_key key) {
@@ -2236,15 +2236,15 @@ RGFW_bool RGFW_wasPressed(RGFW_window* win, RGFW_key key) {
 }
 
 RGFW_bool RGFW_isHeld(RGFW_window* win, RGFW_key key) {
-	return (RGFW_isPressed(win, key) && RGFW_wasPressed(win, key));
+	return (RGFW_wasPressed(win, key) && RGFW_keyboard[key].current);
 }
 
 RGFW_bool RGFW_isClicked(RGFW_window* win, RGFW_key key) {
-	return (RGFW_wasPressed(win, key) && !RGFW_isPressed(win, key));
+	return RGFW_isReleased(win, key); // alias
 }
 
 RGFW_bool RGFW_isReleased(RGFW_window* win, RGFW_key key) {
-	return (!RGFW_isPressed(win, key) && RGFW_wasPressed(win, key));
+	return (RGFW_wasPressed(win, key) && !RGFW_keyboard[key].current);
 }
 
 void* RGFW_window_getOSXView(RGFW_window* win) {
@@ -4005,8 +4005,10 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 					XEvent NE;
 					XPeekEvent(_RGFW->display, &NE);
 
-					if (E.xkey.time == NE.xkey.time && E.xkey.keycode == NE.xkey.keycode) /* check if the current and next are both the same */
+					if (E.xkey.time == NE.xkey.time && E.xkey.keycode == NE.xkey.keycode) { /* check if the current and next are both the same */
 						event.repeat = RGFW_TRUE;
+						break;
+					}
 				}
 
 				/* set event key data */
