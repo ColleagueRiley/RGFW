@@ -5827,7 +5827,15 @@ void RGFW_xdg_output_logical_pos(void *data, struct zxdg_output_v1 *zxdg_output_
 
 void RGFW_xdg_output_logical_size(void *data, struct zxdg_output_v1 *zxdg_output_v1, int32_t width, int32_t height) {
 	RGFW_monitor *monitor = (RGFW_monitor*)data;
-	monitor->mode.area = RGFW_AREA(width, height);
+
+	
+	float mon_float_width = (float) monitor->mode.area.w;
+	float mon_float_height = (float) monitor->mode.area.h;
+	
+	monitor->scaleX = (mon_float_width / (float) width);
+	monitor->scaleY = (mon_float_height / (float) height);
+
+	// should monitors width and height be this as well?
 	RGFW_UNUSED(zxdg_output_v1);
 }
 
@@ -5845,8 +5853,10 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
 	++_RGFW->num_monitors;
 	mon->id = id;
 	mon->output = output;
-	mon->pixelRatio = 1.0f; // set in case compositor does not send one
-	
+
+	// set in case compositor does not send one
+	// or no xdg_output support
+	mon->scaleY = mon->scaleX = mon->pixelRatio = 1.0f;
 	
 	static const struct wl_output_listener wl_output_listener = {
 			.geometry = RGFW_wl_output_set_geometry,
@@ -5870,7 +5880,6 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
 		.logical_size = RGFW_xdg_output_logical_size
 	};
 
-	if (_RGFW->xdg_output_manager)
 	mon->xdg_output = zxdg_output_manager_v1_get_xdg_output(_RGFW->xdg_output_manager, mon->output);
 	zxdg_output_v1_add_listener(mon->xdg_output, &xdg_output_listener, mon);
 	
