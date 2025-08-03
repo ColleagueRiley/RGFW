@@ -9256,7 +9256,7 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	size_t render_type_index = 0;
 	{
 		RGFW_attribStack* stack;
-		RGFW_attribStack_init(&stack, attribs_data, 40;
+		RGFW_attribStack_init(&stack, attribs_data, 40);
 
 		i32 colorBits = (i32)(RGFW_GL_HINTS[RGFW_glRed] + RGFW_GL_HINTS[RGFW_glGreen] +  RGFW_GL_HINTS[RGFW_glBlue] + RGFW_GL_HINTS[RGFW_glAlpha]) / 4;
 		RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFAColorSize, colorBits);
