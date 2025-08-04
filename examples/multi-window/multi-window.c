@@ -3,6 +3,7 @@
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
+#include <GL/gl.h>
 
 #ifdef RGFW_WINDOWS
 #include <processthreadsapi.h>

@@ -3,6 +3,7 @@
 #include "RGFW.h"
 
 #include <stdio.h>
+#include <GL/gl.h>
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW Events", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND | RGFW_windowTransparent);

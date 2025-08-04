@@ -2,6 +2,7 @@
 #include "RGFW.h"
 
 #include <stdio.h>
+#include <GL/gl.h>
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), RGFW_windowCenter);

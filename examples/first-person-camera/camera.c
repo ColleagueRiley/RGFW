@@ -1,6 +1,8 @@
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
+#include <GL/gl.h>
+
 #include <math.h>
 #define DEG2RAD 3.14/180.0
 

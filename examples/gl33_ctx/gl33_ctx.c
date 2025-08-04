@@ -2,6 +2,7 @@
 #include "RGFW.h"
 
 #include <stdio.h>
+#include <GL/gl.h>
 
 int main(void) {
     RGFW_setHint_OpenGL(RGFW_glMinor, 3);

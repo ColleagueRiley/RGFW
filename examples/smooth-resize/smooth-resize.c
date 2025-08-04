@@ -3,7 +3,7 @@
 #include "RGFW.h"
 
 #include <stdio.h>
-
+#include <GL/gl.h>
 
 void draw(RGFW_window* win);
 void draw(RGFW_window* win) {

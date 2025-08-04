@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <math.h>
 
+#include <GL/gl.h>
+
 #define MG_IMPLEMENTATION
 #include "minigamepad.h"
 

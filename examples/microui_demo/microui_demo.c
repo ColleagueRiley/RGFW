@@ -3,6 +3,9 @@
 
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
+
+#include <GL/gl.h>
+
 #include "renderer.h"
 #include "microui.h"
 

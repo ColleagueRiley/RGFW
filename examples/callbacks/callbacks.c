@@ -2,6 +2,7 @@
 #include "RGFW.h"
 
 #include <stdio.h>
+#include <GL/gl.h>
 
 RGFW_window* window;
 
