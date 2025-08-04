@@ -127,6 +127,9 @@ typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, u8 keyChar, RGFW_keymod 
 - add RGFW_window_checkQueuedEvent
 - remove RGFW_windowFreeOnClose
 - add RGFW_eventQueueFlush
+- allow RGFW.h to be used with Objective C
+- rework OpenGL format attrib array creation
+- make it so `gl.h` isn't included in RGFW, meaning you have to include it on your own
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
