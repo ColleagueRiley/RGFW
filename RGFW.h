@@ -3755,6 +3755,9 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, 
     XChangeProperty(_RGFW->display, win->src.window, _NET_WM_SYNC_REQUEST_COUNTER, XA_CARDINAL, 32, PropModeReplace, (uint8_t*)&win->src.counter, 1);
 #endif
 
+	RGFW_window_setMouseDefault(win);
+	RGFW_window_setFlags(win, flags);
+
 	if ((flags & RGFW_windowNoInitAPI) == 0) {
 		#ifdef RGFW_OPENGL
 			RGFW_window_createContext_OpenGL(win);
@@ -3762,10 +3765,8 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, 
 	}
 
     RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new window was created");
-	RGFW_window_setMouseDefault(win);
-	RGFW_window_setFlags(win, flags);
 
-    win->src.r = win->r;
+	win->src.r = win->r;
 
 	RGFW_window_show(win);
     return win; /*return newly created window */
@@ -6009,11 +6010,6 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, 
 	/* wait for the surface to be configured */
 	while (wl_display_dispatch(_RGFW->wl_display) != -1 && !_RGFW->wl_configured) { }
 
-	if ((flags & RGFW_windowNoInitAPI) == 0) {
-		#ifdef RGFW_OPENGL
-			RGFW_window_createContext_EGL(win);
-		#endif
-	}
 	struct wl_callback* callback = wl_surface_frame(win->src.surface);
 	wl_callback_add_listener(callback, &wl_surface_frame_listener, win);
 	wl_surface_commit(win->src.surface);
@@ -6028,6 +6024,13 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, 
 	RGFW_window_setMouseDefault(win);
 	RGFW_window_setFlags(win, flags);
 	wl_registry_destroy(registry);
+
+	if ((flags & RGFW_windowNoInitAPI) == 0) {
+		#ifdef RGFW_OPENGL
+			RGFW_window_createContext_EGL(win);
+		#endif
+	}
+
 	if (_RGFW->decoration_manager != NULL)
 		zxdg_decoration_manager_v1_destroy(_RGFW->decoration_manager);
 
@@ -7258,12 +7261,13 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	}
 	win->src.hdc = GetDC(win->src.window);
 
+	RGFW_window_setFlags(win, flags);
+
 	#ifdef RGFW_OPENGL
 	if ((flags & RGFW_windowNoInitAPI) == 0)
 		RGFW_window_createContext_OpenGL(win);
 	#endif
 
-	RGFW_window_setFlags(win, flags);
 	RGFW_win32_makeWindowTransparent(win);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new window was created");
     RGFW_window_show(win);
@@ -10336,15 +10340,10 @@ void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
 }
 #endif
 
-	i32 RGFW_initPlatform(void) { return 0; }
+i32 RGFW_initPlatform(void) { return 0; }
 
-	RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
-		RGFW_window_basic_init(win, rect, flags);
-
-#ifdef RGFW_OPENGL
-	if ((flags & RGFW_windowNoInitAPI) == 0)
-		RGFW_window_createContext_OpenGL(win);
-#endif
+RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
+	RGFW_window_basic_init(win, rect, flags);
 
 	emscripten_set_canvas_element_size("#canvas", rect.w, rect.h);
 	emscripten_set_window_title(name);
@@ -10437,6 +10436,12 @@ void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
     });
 
 	RGFW_window_setFlags(win, flags);
+
+#ifdef RGFW_OPENGL
+	if ((flags & RGFW_windowNoInitAPI) == 0)
+		RGFW_window_createContext_OpenGL(win);
+#endif
+
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new  window was created");
 	return win;
 }
