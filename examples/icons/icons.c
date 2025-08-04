@@ -2,6 +2,12 @@
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
+#ifdef RGFW_MACOS
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 

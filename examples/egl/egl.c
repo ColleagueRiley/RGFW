@@ -1,10 +1,15 @@
-#include <GL/gl.h>
 #define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
 #define RGFW_EGL
 #include "RGFW.h"
 
 #include <stdio.h>
+
+#ifdef RGFW_MACOS
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
 
 void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed) {
     RGFW_UNUSED(keyMod); RGFW_UNUSED(keyChar); RGFW_UNUSED(win); RGFW_UNUSED(repeat);
@@ -14,8 +19,6 @@ void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGF
 }
 
 int main(void) {
-
-	RGFW_setHint_OpenGL(RGFW_glDoubleBuffer, RGFW_FALSE);
     RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), RGFW_windowUseEGL | RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowTransparent);
 
     RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want

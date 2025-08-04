@@ -3,6 +3,12 @@
 #include "RGFW.h"
 
 #include <stdio.h>
+#ifdef RGFW_MACOS
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
+
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW Events", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND | RGFW_windowTransparent);

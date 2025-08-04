@@ -3,6 +3,13 @@
 
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
+
+#ifdef RGFW_MACOS
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
+
 #include "renderer.h"
 #include "microui.h"
 
