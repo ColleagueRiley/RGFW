@@ -6,7 +6,13 @@
 #include <stdio.h>
 #include <math.h>
 
+#ifdef RGFW_MACOS
+#include <OpenGL/gl.h>
+#else
 #include <GL/gl.h>
+#endif
+
+
 
 #define MG_IMPLEMENTATION
 #include "minigamepad.h"

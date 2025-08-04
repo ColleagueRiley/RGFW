@@ -32,6 +32,12 @@
 #include <string.h>
 #include <RGFW.h>
 
+#ifdef RGFW_MACOS
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
+
 RGFW_window* win;
 
 #define BENCHMARK
