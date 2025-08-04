@@ -40,7 +40,6 @@
 	#define RGFW_NO_API - (optional) don't use any rendering API (no OpenGL, no vulkan, no directX)
 	#define RGFW_NATIVE - (optional) define native RGFW types that use native API structures
 
-	#define RGFW_LINK_EGL (optional) (windows only) if EGL is being used, if EGL functions should be defined dymanically (using GetProcAddress)
 	#define RGFW_X11 (optional) (unix only) if X11 should be used. This option is turned on by default by unix systems except for MacOS
 	#define RGFW_WAYLAND (optional) (unix only) use Wayland. (This can be used with X11)
 	#define RGFW_NO_X11 (optional) (unix only) don't fallback to X11 when using Wayland
@@ -223,11 +222,14 @@ int main() {
 	#define RGFW_WINDOWS
 #endif
 #if defined(RGFW_WAYLAND)
-		#define RGFW_DEBUG /* wayland will be in debug mode by default for now */
-		#define RGFW_UNIX
-		#ifdef RGFW_OPENGL
-			#define RGFW_EGL
-		#endif
+	#define RGFW_DEBUG /* wayland will be in debug mode by default for now */
+	#define RGFW_UNIX
+	#ifdef RGFW_OPENGL
+		#define RGFW_EGL
+	#endif
+	#ifdef RGFW_X11
+		#define RGFW_DYNAMIC
+	#endif
 #endif
 #if (!defined(RGFW_WAYLAND) && !defined(RGFW_X11)) && (defined(__unix__) || defined(RGFW_MACOS_X11) || defined(RGFW_X11))  && !defined(RGFW_WASM)  && !defined(RGFW_CUSTOM_BACKEND)
 		#define RGFW_MACOS_X11
@@ -1348,10 +1350,6 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 
 #if !defined(RGFW_NATIVE_HEADER) && (defined(RGFW_NATIVE) || defined(RGFW_IMPLEMENTATION))
 #define RGFW_NATIVE_HEADER
-	#ifdef RGFW_EGL
-		#include <EGL/egl.h>
-	#endif
-
 	#if (defined(RGFW_OPENGL) || defined(RGFW_WEGL)) && defined(_MSC_VER)
 		#pragma comment(lib, "opengl32")
 	#endif
@@ -1375,8 +1373,8 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		struct RGFW_glContext {
 			HGLRC ctx; /*!< source graphics context */
 			#ifdef RGFW_EGL
-				EGLSurface EGL_surface;
-				EGLContext EGL_context;
+				void* EGL_surface;
+				void* EGL_context;
 			#endif
 		};
 	#endif
@@ -1438,8 +1436,8 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 				struct wl_egl_window* eglWindow;
 			#endif
 			#ifdef RGFW_EGL
-				EGLSurface EGL_surface;
-				EGLContext EGL_context;
+				void* EGL_surface;
+				void* EGL_context;
 			#endif
 		};
 	#endif
@@ -1498,8 +1496,8 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		struct RGFW_glContext {
 			void* ctx; /*!< source graphics context */
 			#ifdef RGFW_EGL
-				EGLSurface EGL_surface;
-				EGLContext EGL_context;
+				void* EGL_surface;
+				void* EGL_context;
 			#endif
 		};
 	#endif
@@ -1626,7 +1624,7 @@ struct RGFW_info {
 		RGFW_window* current;
 	#endif
 	#ifdef RGFW_EGL
-		EGLDisplay EGL_display;
+		void* EGL_display;
 	#endif
 
 	RGFW_window* mouseOwner;
@@ -2512,16 +2510,6 @@ void RGFW_moveToMacOSResourceDir(void) { }
 */
 
 #if defined(RGFW_OPENGL)
-#if !defined(__APPLE__) && !defined(RGFW_NO_GL_HEADER)
-	#include <GL/gl.h>
-#elif defined(__APPLE__)
-	#ifndef GL_SILENCE_DEPRECATION
-		#define GL_SILENCE_DEPRECATION
-	#endif
-	#include <OpenGL/gl.h>
-	#include <OpenGL/OpenGL.h>
-#endif
-
 /* EGL, OpenGL */
 i32 RGFW_GL_HINTS[RGFW_glHintsCount] = {
 	/* RGFW_glStencil         */ 0,
@@ -2837,13 +2825,19 @@ RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) {
 		}
 
 		RGFW_attribStack_pushAttribs(&stack, EGL_RED_SIZE, RGFW_GL_HINTS[RGFW_glRed]);
-		RGFW_attribStack_pushAttribs(&stack, EGL_GREEN_SIZE, RGFW_GL_HINTS[RGFW_glBlue]);
-		RGFW_attribStack_pushAttribs(&stack, EGL_BLUE_SIZE, RGFW_GL_HINTS[RGFW_glGreen]);
+		RGFW_attribStack_pushAttribs(&stack, EGL_GREEN_SIZE, RGFW_GL_HINTS[RGFW_glGreen]);
+		RGFW_attribStack_pushAttribs(&stack, EGL_BLUE_SIZE, RGFW_GL_HINTS[RGFW_glBlue]);
 		RGFW_attribStack_pushAttribs(&stack, EGL_ALPHA_SIZE, RGFW_GL_HINTS[RGFW_glAlpha]);
 		RGFW_attribStack_pushAttribs(&stack, EGL_DEPTH_SIZE, RGFW_GL_HINTS[RGFW_glDepth]);
 
 		if (RGFW_GL_HINTS[RGFW_glSRGB])
 			RGFW_attribStack_pushAttribs(&stack, 0x3089, RGFW_GL_HINTS[RGFW_glSRGB]);
+
+		RGFW_attribStack_pushAttribs(&stack, EGL_STENCIL_SIZE, RGFW_GL_HINTS[RGFW_glStencil]);
+		if (RGFW_GL_HINTS[RGFW_glSamples]) {
+			RGFW_attribStack_pushAttribs(&stack, EGL_SAMPLE_BUFFERS, 1);
+			RGFW_attribStack_pushAttribs(&stack, EGL_SAMPLES, RGFW_GL_HINTS[RGFW_glSamples]);
+		}
 
 		RGFW_attribStack_pushAttribs(&stack, EGL_NONE, EGL_NONE);
 	}
@@ -2889,7 +2883,7 @@ RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) {
 		else
     #endif
     #ifdef RGFW_X11
-            win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) win->src.window, surf_attribs);
+        win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) win->src.window, surf_attribs);
     #else
     {}
     #endif
@@ -2897,15 +2891,17 @@ RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) {
 		win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) win->src.window, surf_attribs);
 	#endif
 
+	if (win->src.ctx.EGL_surface == NULL) {
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errEGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to create an EGL surface.");
+		return NULL;
+	}
+
 	EGLint attribs[20];
 	{
 		RGFW_attribStack stack;
 		RGFW_attribStack_init(&stack, attribs, 20);
 
-		RGFW_attribStack_pushAttribs(&stack, EGL_STENCIL_SIZE, RGFW_GL_HINTS[RGFW_glStencil]);
-		RGFW_attribStack_pushAttribs(&stack, EGL_SAMPLES, RGFW_GL_HINTS[RGFW_glSamples]);
-
-		if (RGFW_GL_HINTS[RGFW_glMajor]) {
+		if (RGFW_GL_HINTS[RGFW_glMajor] || RGFW_GL_HINTS[RGFW_glMinor]) {
 			RGFW_attribStack_pushAttribs(&stack, EGL_CONTEXT_MAJOR_VERSION, RGFW_GL_HINTS[RGFW_glMajor]);
 			RGFW_attribStack_pushAttribs(&stack, EGL_CONTEXT_MINOR_VERSION, RGFW_GL_HINTS[RGFW_glMinor]);
 		}
@@ -2918,10 +2914,19 @@ RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) {
 
 		RGFW_attribStack_pushAttribs(&stack, EGL_CONTEXT_OPENGL_ROBUST_ACCESS, RGFW_GL_HINTS[RGFW_glRobustness]);
 		RGFW_attribStack_pushAttribs(&stack, EGL_CONTEXT_OPENGL_DEBUG, RGFW_GL_HINTS[RGFW_glDebug]);
+
+		#ifndef EGL_CONTEXT_RELEASE_BEHAVIOR_KHR
+			#define EGL_CONTEXT_RELEASE_BEHAVIOR_KHR 0x2097
+		#endif
+
+		#ifndef EGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_KHR
+			#define EGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_KHR 0x2098
+		#endif
+
 		if (RGFW_GL_HINTS[RGFW_glReleaseBehavior] == RGFW_releaseFlush) {
-			RGFW_attribStack_pushAttribs(&stack, 0x2097, 0x2098);
+			RGFW_attribStack_pushAttribs(&stack, EGL_CONTEXT_RELEASE_BEHAVIOR_KHR, EGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_KHR);
 		} else {
-			RGFW_attribStack_pushAttribs(&stack, 0x2096, 0x0000);
+			RGFW_attribStack_pushAttribs(&stack, EGL_CONTEXT_RELEASE_BEHAVIOR_KHR, 0x0000);
 		}
 
 		RGFW_attribStack_pushAttribs(&stack, EGL_NONE, EGL_NONE);
@@ -2936,6 +2941,9 @@ RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) {
 
 	if (win->src.ctx.EGL_context == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errEGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to create an EGL context.");
+
+EGLint err = eglGetError();
+fprintf(stderr, "EGL error: 0x%x\n", err);
 		return NULL;
 	}
 
@@ -3084,6 +3092,10 @@ RGFW_bool RGFW_getPresentationSupport_Vulkan(VkInstance instance, VkPhysicalDevi
 #endif
 }
 #endif /* end of RGFW_vulkan */
+
+/*
+This is where OS specific stuff starts
+*/
 
 /* start of unix (wayland or X11 (unix) ) defines */
 
@@ -3286,7 +3298,6 @@ void RGFW_deinitPlatform(void) {
 }
 
 #endif /* end of wayland or X11 defines */
-
 
 
 /*
@@ -6311,340 +6322,6 @@ WGPUSurface RGFW_FUNC(RGFW_window_createSurface_WebGPU) (RGFW_window* window, WG
 /*
 	End of Wayland defines
 */
-
-/*
-This is where OS specific stuff starts
-*/
-
-/*
- * start of X11 AND wayland defines
- * this allows a single executable to support x11 AND wayland
- * falling back to x11 if wayland fails to initalize
-*/
-#if defined(RGFW_WAYLAND) && defined(RGFW_X11)
-typedef RGFW_window* (*RGFW_createWindowPtr_ptr)(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win);
-typedef RGFW_area (*RGFW_getScreenSize_ptr)(void);
-typedef RGFW_point (*RGFW_getMousePoint_ptr)(void);
-typedef u8 (*RGFW_rgfwToKeyChar_ptr)(u32 key);
-typedef void (*RGFW_pollEvents_ptr)(void);
-typedef void (*RGFW_window_move_ptr)(RGFW_window* win, RGFW_point v);
-typedef void (*RGFW_window_resize_ptr)(RGFW_window* win, RGFW_area a);
-typedef void (*RGFW_window_setAspectRatio_ptr)(RGFW_window* win, RGFW_area a);
-typedef void (*RGFW_window_setMinSize_ptr)(RGFW_window* win, RGFW_area a);
-typedef void (*RGFW_window_setMaxSize_ptr)(RGFW_window* win, RGFW_area a);
-typedef void (*RGFW_window_maximize_ptr)(RGFW_window* win);
-typedef void (*RGFW_window_focus_ptr)(RGFW_window* win);
-typedef void (*RGFW_window_raise_ptr)(RGFW_window* win);
-typedef void (*RGFW_window_setFullscreen_ptr)(RGFW_window* win, RGFW_bool fullscreen);
-typedef void (*RGFW_window_setFloating_ptr)(RGFW_window* win, RGFW_bool floating);
-typedef void (*RGFW_window_setOpacity_ptr)(RGFW_window* win, u8 opacity);
-typedef void (*RGFW_window_minimize_ptr)(RGFW_window* win);
-typedef void (*RGFW_window_restore_ptr)(RGFW_window* win);
-typedef RGFW_bool (*RGFW_window_isFloating_ptr)(RGFW_window* win);
-typedef void (*RGFW_window_setName_ptr)(RGFW_window* win, const char* name);
-typedef void (*RGFW_window_setMousePassthrough_ptr)(RGFW_window* win, RGFW_bool passthrough);
-typedef RGFW_bool (*RGFW_window_setIconEx_ptr)(RGFW_window* win, RGFW_image img, u8 type);
-typedef RGFW_mouse* (*RGFW_loadMouse_ptr)(RGFW_image img);
-typedef void (*RGFW_window_setMouse_ptr)(RGFW_window* win, RGFW_mouse* mouse);
-typedef void (*RGFW_window_moveMouse_ptr)(RGFW_window* win, RGFW_point p);
-typedef RGFW_bool (*RGFW_window_setMouseDefault_ptr)(RGFW_window* win);
-typedef RGFW_bool (*RGFW_window_setMouseStandard_ptr)(RGFW_window* win, u8 mouse);
-typedef void (*RGFW_window_hide_ptr)(RGFW_window* win);
-typedef void (*RGFW_window_show_ptr)(RGFW_window* win);
-typedef RGFW_ssize_t (*RGFW_readClipboardPtr_ptr)(char* str, size_t strCapacity);
-typedef void (*RGFW_writeClipboard_ptr)(const char* text, u32 textLen);
-typedef RGFW_bool (*RGFW_window_isHidden_ptr)(RGFW_window* win);
-typedef RGFW_bool (*RGFW_window_isMinimized_ptr)(RGFW_window* win);
-typedef RGFW_bool (*RGFW_window_isMaximized_ptr)(RGFW_window* win);
-typedef RGFW_monitor* (*RGFW_getMonitors_ptr)(size_t* len);
-typedef RGFW_monitor (*RGFW_getPrimaryMonitor_ptr)(void);
-typedef RGFW_bool (*RGFW_monitor_requestMode_ptr)(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request);
-typedef RGFW_monitor (*RGFW_window_getMonitor_ptr)(RGFW_window* win);
-typedef void (*RGFW_window_close_ptr)(RGFW_window* win);
-typedef RGFW_bool (*RGFW_createSurfacePtr_ptr)(RGFW_image img, RGFW_surface* surface);
-typedef void (*RGFW_window_blitSurface_ptr)(RGFW_window* win, RGFW_surface* surface);
-typedef void (*RGFW_surface_free_ptr)(RGFW_surface* surface);
-typedef void (*RGFW_freeMouse_ptr)(RGFW_mouse* mouse);
-typedef void (*RGFW_window_setBorder_ptr)(RGFW_window* win, RGFW_bool border);
-typedef void (*RGFW_releaseCursor_ptr)(RGFW_window* win);
-typedef void (*RGFW_captureCursor_ptr)(RGFW_window* win, RGFW_rect r);
-#ifdef RGFW_OPENGL
-typedef void (*RGFW_window_makeCurrentContext_OpenGL_ptr)(RGFW_window* win);
-typedef void* (*RGFW_getCurrentContext_OpenGL_ptr)(void);
-typedef void (*RGFW_window_swapBuffers_OpenGL_ptr)(RGFW_window* win);
-typedef void (*RGFW_window_swapInterval_OpenGL_ptr)(RGFW_window* win, i32 swapInterval);
-typedef RGFW_bool (*RGFW_extensionSupportedPlatform_OpenGL_ptr)(const char* extension, size_t len);
-typedef RGFW_proc (*RGFW_getProcAddress_OpenGL_ptr)(const char* procname);
-typedef RGFW_glContext* (*RGFW_window_createContext_OpenGL_ptr)(RGFW_window* win);
-typedef void (*RGFW_window_deleteContext_OpenGL_ptr)(RGFW_window* win);
-#endif
-#ifdef RGFW_WEBGPU
-typedef WGPUSurface (*RGFW_window_createSurface_WebGPU_ptr)(RGFW_window* window, WGPUInstance instance);
-#endif
-
-/* Structure to hold all function pointers */
-typedef struct RGFW_FunctionPointers {
-   RGFW_createSurfacePtr_ptr createSurfacePtr;
-    RGFW_window_blitSurface_ptr window_blitSurface;
-	RGFW_surface_free_ptr surface_free;
-	RGFW_freeMouse_ptr freeMouse;
-    RGFW_window_setBorder_ptr window_setBorder;
-    RGFW_releaseCursor_ptr releaseCursor;
-    RGFW_captureCursor_ptr captureCursor;
-    RGFW_createWindowPtr_ptr createWindowPtr;
-    RGFW_getScreenSize_ptr getScreenSize;
-    RGFW_getMousePoint_ptr getGlobalMousePoint;
-    RGFW_rgfwToKeyChar_ptr rgfwToKeyChar;
-    RGFW_pollEvents_ptr pollEvents;
-    RGFW_window_move_ptr window_move;
-    RGFW_window_resize_ptr window_resize;
-    RGFW_window_setAspectRatio_ptr window_setAspectRatio;
-    RGFW_window_setMinSize_ptr window_setMinSize;
-    RGFW_window_setMaxSize_ptr window_setMaxSize;
-    RGFW_window_maximize_ptr window_maximize;
-    RGFW_window_focus_ptr window_focus;
-    RGFW_window_raise_ptr window_raise;
-    RGFW_window_setFullscreen_ptr window_setFullscreen;
-    RGFW_window_setFloating_ptr window_setFloating;
-    RGFW_window_setOpacity_ptr window_setOpacity;
-    RGFW_window_minimize_ptr window_minimize;
-    RGFW_window_restore_ptr window_restore;
-    RGFW_window_isFloating_ptr window_isFloating;
-    RGFW_window_setName_ptr window_setName;
-    RGFW_window_setMousePassthrough_ptr window_setMousePassthrough;
-    RGFW_window_setIconEx_ptr window_setIconEx;
-    RGFW_loadMouse_ptr loadMouse;
-    RGFW_window_setMouse_ptr window_setMouse;
-    RGFW_window_moveMouse_ptr window_moveMouse;
-    RGFW_window_setMouseDefault_ptr window_setMouseDefault;
-    RGFW_window_setMouseStandard_ptr window_setMouseStandard;
-    RGFW_window_hide_ptr window_hide;
-    RGFW_window_show_ptr window_show;
-    RGFW_readClipboardPtr_ptr readClipboardPtr;
-    RGFW_writeClipboard_ptr writeClipboard;
-    RGFW_window_isHidden_ptr window_isHidden;
-    RGFW_window_isMinimized_ptr window_isMinimized;
-    RGFW_window_isMaximized_ptr window_isMaximized;
-    RGFW_getMonitors_ptr getMonitors;
-    RGFW_getPrimaryMonitor_ptr getPrimaryMonitor;
-    RGFW_monitor_requestMode_ptr monitor_requestMode;
-    RGFW_window_getMonitor_ptr window_getMonitor;
-    RGFW_window_close_ptr window_close;
-#ifdef RGFW_OPENGL
-    RGFW_extensionSupportedPlatform_OpenGL_ptr extensionSupportedPlatform_OpenGL;
-    RGFW_getProcAddress_OpenGL_ptr getProcAddress_OpenGL;
-    RGFW_window_createContext_OpenGL_ptr window_createContext_OpenGL;
-    RGFW_window_deleteContext_OpenGL_ptr window_deleteContext_OpenGL;
-    RGFW_window_makeCurrentContext_OpenGL_ptr window_makeCurrentContext_OpenGL;
-    RGFW_getCurrentContext_OpenGL_ptr getCurrentContext_OpenGL;
-    RGFW_window_swapBuffers_OpenGL_ptr window_swapBuffers_OpenGL;
-    RGFW_window_swapInterval_OpenGL_ptr window_swapInterval_OpenGL;
-#endif
-#ifdef RGFW_WEBGPU
-    RGFW_window_createSurface_WebGPU_ptr window_createSurface_WebGPU;
-#endif
-} RGFW_functionPointers;
-
-RGFW_functionPointers RGFW_api;
-
-RGFW_bool RGFW_createSurfacePtr(RGFW_image img, RGFW_surface* surface) { return RGFW_api.createSurfacePtr(img, surface); }
-void RGFW_surface_free(RGFW_surface* surface) { RGFW_api.surface_free(surface); }
-void RGFW_freeMouse(RGFW_mouse* mouse) { RGFW_api.freeMouse(mouse); }
-void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) { RGFW_api.window_blitSurface(win, surface); }
-void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) { RGFW_api.window_setBorder(win, border); }
-void RGFW_releaseCursor(RGFW_window* win) { RGFW_api.releaseCursor(win); }
-void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) { RGFW_api.captureCursor(win, r); }
-RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) { RGFW_init(); return RGFW_api.createWindowPtr(name, rect, flags, win); }
-RGFW_area RGFW_getScreenSize(void) { return RGFW_api.getScreenSize(); }
-RGFW_point RGFW_getMousePoint(void) { return RGFW_api.getGlobalMousePoint(); }
-u8 RGFW_rgfwToKeyChar(u32 key) { return RGFW_api.rgfwToKeyChar(key); }
-void RGFW_pollEvents(void) { RGFW_api.pollEvents(); }
-void RGFW_window_move(RGFW_window* win, RGFW_point v) { RGFW_api.window_move(win, v); }
-void RGFW_window_resize(RGFW_window* win, RGFW_area a) { RGFW_api.window_resize(win, a); }
-void RGFW_window_setAspectRatio(RGFW_window* win, RGFW_area a) { RGFW_api.window_setAspectRatio(win, a); }
-void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) { RGFW_api.window_setMinSize(win, a); }
-void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) { RGFW_api.window_setMaxSize(win, a); }
-void RGFW_window_maximize(RGFW_window* win) { RGFW_api.window_maximize(win); }
-void RGFW_window_focus(RGFW_window* win) { RGFW_api.window_focus(win); }
-void RGFW_window_raise(RGFW_window* win) { RGFW_api.window_raise(win); }
-void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) { RGFW_api.window_setFullscreen(win, fullscreen); }
-void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating) { RGFW_api.window_setFloating(win, floating); }
-void RGFW_window_setOpacity(RGFW_window* win, u8 opacity) { RGFW_api.window_setOpacity(win, opacity); }
-void RGFW_window_minimize(RGFW_window* win) { RGFW_api.window_minimize(win); }
-void RGFW_window_restore(RGFW_window* win) { RGFW_api.window_restore(win); }
-RGFW_bool RGFW_window_isFloating(RGFW_window* win) { return RGFW_api.window_isFloating(win); }
-void RGFW_window_setName(RGFW_window* win, const char* name) { RGFW_api.window_setName(win, name); }
-
-#ifndef RGFW_NO_PASSTHROUGH
-void RGFW_window_setMousePassthrough(RGFW_window* win, RGFW_bool passthrough) { RGFW_api.window_setMousePassthrough(win, passthrough); }
-#endif
-
-RGFW_bool RGFW_window_setIconEx(RGFW_window* win, RGFW_image img, u8 type) { return RGFW_api.window_setIconEx(win, img, type); }
-RGFW_mouse* RGFW_loadMouse(RGFW_image img) { return RGFW_api.loadMouse(img); }
-void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) { RGFW_api.window_setMouse(win, mouse); }
-void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) { RGFW_api.window_moveMouse(win, p); }
-RGFW_bool RGFW_window_setMouseDefault(RGFW_window* win) { return RGFW_api.window_setMouseDefault(win); }
-RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) { return RGFW_api.window_setMouseStandard(win, mouse); }
-void RGFW_window_hide(RGFW_window* win) { RGFW_api.window_hide(win); }
-void RGFW_window_show(RGFW_window* win) { RGFW_api.window_show(win); }
-RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) { return RGFW_api.readClipboardPtr(str, strCapacity); }
-void RGFW_writeClipboard(const char* text, u32 textLen) { RGFW_api.writeClipboard(text, textLen); }
-RGFW_bool RGFW_window_isHidden(RGFW_window* win) { return RGFW_api.window_isHidden(win); }
-RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { return RGFW_api.window_isMinimized(win); }
-RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { return RGFW_api.window_isMaximized(win); }
-RGFW_monitor* RGFW_getMonitors(size_t* len) { return RGFW_api.getMonitors(len); }
-RGFW_monitor RGFW_getPrimaryMonitor(void) { return RGFW_api.getPrimaryMonitor(); }
-RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) { return RGFW_api.monitor_requestMode(mon, mode, request); }
-RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { return RGFW_api.window_getMonitor(win); }
-void RGFW_window_close(RGFW_window* win) { RGFW_api.window_close(win); }
-
-#ifdef RGFW_OPENGL
-RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char* extension, size_t len) { return RGFW_api.extensionSupportedPlatform_OpenGL(extension, len); }
-RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) { return RGFW_api.getProcAddress_OpenGL(procname); }
-RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) { return RGFW_api.window_createContext_OpenGL(win); }
-void RGFW_window_deleteContext_OpenGL(RGFW_window* win) { RGFW_api.window_deleteContext_OpenGL(win); }
-void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) { RGFW_api.window_makeCurrentContext_OpenGL(win); }
-void* RGFW_getCurrentContext_OpenGL(void) { return RGFW_api.getCurrentContext_OpenGL(); }
-void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) { RGFW_api.window_swapBuffers_OpenGL(win); }
-void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) { RGFW_api.window_swapInterval_OpenGL(win, swapInterval); }
-#endif
-
-#ifdef RGFW_WEBGPU
-WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance instance) { return RGFW_api.window_createSurface_WebGPU(window, instance); }
-#endif
-
-
-void RGFW_load_X11(void) {
-    RGFW_api.createSurfacePtr = RGFW_createSurfacePtr_X11;
-    RGFW_api.window_blitSurface = RGFW_window_blitSurface_X11;
-	RGFW_api.surface_free = RGFW_surface_free_X11;
-	RGFW_api.freeMouse = RGFW_freeMouse_X11;
-    RGFW_api.window_setBorder = RGFW_window_setBorder_X11;
-    RGFW_api.releaseCursor = RGFW_releaseCursor_X11;
-    RGFW_api.captureCursor = RGFW_captureCursor_X11;
-	RGFW_api.createWindowPtr = RGFW_createWindowPtr_X11;
-    RGFW_api.getScreenSize = RGFW_getScreenSize_X11;
-    RGFW_api.getGlobalMousePoint = RGFW_getMousePoint_X11;
-    RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_X11;
-    RGFW_api.pollEvents = RGFW_pollEvents_X11;
-    RGFW_api.window_move = RGFW_window_move_X11;
-    RGFW_api.window_resize = RGFW_window_resize_X11;
-    RGFW_api.window_setAspectRatio = RGFW_window_setAspectRatio_X11;
-    RGFW_api.window_setMinSize = RGFW_window_setMinSize_X11;
-    RGFW_api.window_setMaxSize = RGFW_window_setMaxSize_X11;
-    RGFW_api.window_maximize = RGFW_window_maximize_X11;
-    RGFW_api.window_focus = RGFW_window_focus_X11;
-    RGFW_api.window_raise = RGFW_window_raise_X11;
-    RGFW_api.window_setFullscreen = RGFW_window_setFullscreen_X11;
-    RGFW_api.window_setFloating = RGFW_window_setFloating_X11;
-    RGFW_api.window_setOpacity = RGFW_window_setOpacity_X11;
-    RGFW_api.window_minimize = RGFW_window_minimize_X11;
-    RGFW_api.window_restore = RGFW_window_restore_X11;
-    RGFW_api.window_isFloating = RGFW_window_isFloating_X11;
-    RGFW_api.window_setName = RGFW_window_setName_X11;
-#ifndef RGFW_NO_PASSTHROUGH
-    RGFW_api.window_setMousePassthrough = RGFW_window_setMousePassthrough_X11;
-#endif
-    RGFW_api.window_setIconEx = RGFW_window_setIconEx_X11;
-    RGFW_api.loadMouse = RGFW_loadMouse_X11;
-    RGFW_api.window_setMouse = RGFW_window_setMouse_X11;
-    RGFW_api.window_moveMouse = RGFW_window_moveMouse_X11;
-    RGFW_api.window_setMouseDefault = RGFW_window_setMouseDefault_X11;
-    RGFW_api.window_setMouseStandard = RGFW_window_setMouseStandard_X11;
-    RGFW_api.window_hide = RGFW_window_hide_X11;
-    RGFW_api.window_show = RGFW_window_show_X11;
-    RGFW_api.readClipboardPtr = RGFW_readClipboardPtr_X11;
-    RGFW_api.writeClipboard = RGFW_writeClipboard_X11;
-    RGFW_api.window_isHidden = RGFW_window_isHidden_X11;
-    RGFW_api.window_isMinimized = RGFW_window_isMinimized_X11;
-    RGFW_api.window_isMaximized = RGFW_window_isMaximized_X11;
-    RGFW_api.getMonitors = RGFW_getMonitors_X11;
-    RGFW_api.getPrimaryMonitor = RGFW_getPrimaryMonitor_X11;
-    RGFW_api.monitor_requestMode = RGFW_monitor_requestMode_X11;
-    RGFW_api.window_getMonitor = RGFW_window_getMonitor_X11;
-    RGFW_api.window_close = RGFW_window_close_X11;
-#ifdef RGFW_OPENGL
-    RGFW_api.extensionSupportedPlatform_OpenGL = RGFW_extensionSupportedPlatform_OpenGL_X11;
-    RGFW_api.getProcAddress_OpenGL = RGFW_getProcAddress_OpenGL_X11;
-	RGFW_api.window_createContext_OpenGL = RGFW_window_createContext_OpenGL_X11;
-    RGFW_api.window_deleteContext_OpenGL = RGFW_window_deleteContext_OpenGL_X11;
-	RGFW_api.window_makeCurrentContext_OpenGL = RGFW_window_makeCurrentContext_OpenGL_X11;
-    RGFW_api.getCurrentContext_OpenGL = RGFW_getCurrentContext_OpenGL_X11;
-    RGFW_api.window_swapBuffers_OpenGL = RGFW_window_swapBuffers_OpenGL_X11;
-    RGFW_api.window_swapInterval_OpenGL = RGFW_window_swapInterval_OpenGL_X11;
-#endif
-#ifdef RGFW_WEBGPU
-    RGFW_api.window_createSurface_WebGPU = RGFW_window_createSurface_WebGPU_X11;
-#endif
-}
-
-void RGFW_load_Wayland(void) {
-	RGFW_api.createSurfacePtr = RGFW_createSurfacePtr_Wayland;
-	RGFW_api.window_blitSurface = RGFW_window_blitSurface_Wayland;
-    RGFW_api.surface_free = RGFW_surface_free_Wayland;
-	RGFW_api.freeMouse = RGFW_freeMouse_Wayland;
-	RGFW_api.window_setBorder = RGFW_window_setBorder_Wayland;
-    RGFW_api.releaseCursor = RGFW_releaseCursor_Wayland;
-    RGFW_api.captureCursor = RGFW_captureCursor_Wayland;
-    RGFW_api.createWindowPtr = RGFW_createWindowPtr_Wayland;
-    RGFW_api.getScreenSize = RGFW_getScreenSize_Wayland;
-    RGFW_api.getGlobalMousePoint = RGFW_getMousePoint_Wayland;
-    RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_Wayland;
-    RGFW_api.pollEvents = RGFW_pollEvents_Wayland;
-    RGFW_api.window_move = RGFW_window_move_Wayland;
-    RGFW_api.window_resize = RGFW_window_resize_Wayland;
-    RGFW_api.window_setAspectRatio = RGFW_window_setAspectRatio_Wayland;
-    RGFW_api.window_setMinSize = RGFW_window_setMinSize_Wayland;
-    RGFW_api.window_setMaxSize = RGFW_window_setMaxSize_Wayland;
-    RGFW_api.window_maximize = RGFW_window_maximize_Wayland;
-    RGFW_api.window_focus = RGFW_window_focus_Wayland;
-    RGFW_api.window_raise = RGFW_window_raise_Wayland;
-    RGFW_api.window_setFullscreen = RGFW_window_setFullscreen_Wayland;
-    RGFW_api.window_setFloating = RGFW_window_setFloating_Wayland;
-    RGFW_api.window_setOpacity = RGFW_window_setOpacity_Wayland;
-    RGFW_api.window_minimize = RGFW_window_minimize_Wayland;
-    RGFW_api.window_restore = RGFW_window_restore_Wayland;
-    RGFW_api.window_isFloating = RGFW_window_isFloating_Wayland;
-    RGFW_api.window_setName = RGFW_window_setName_Wayland;
-#ifndef RGFW_NO_PASSTHROUGH
-    RGFW_api.window_setMousePassthrough = RGFW_window_setMousePassthrough_Wayland;
-#endif
-    RGFW_api.window_setIconEx = RGFW_window_setIconEx_Wayland;
-    RGFW_api.loadMouse = RGFW_loadMouse_Wayland;
-    RGFW_api.window_setMouse = RGFW_window_setMouse_Wayland;
-    RGFW_api.window_moveMouse = RGFW_window_moveMouse_Wayland;
-    RGFW_api.window_setMouseDefault = RGFW_window_setMouseDefault_Wayland;
-    RGFW_api.window_setMouseStandard = RGFW_window_setMouseStandard_Wayland;
-    RGFW_api.window_hide = RGFW_window_hide_Wayland;
-    RGFW_api.window_show = RGFW_window_show_Wayland;
-    RGFW_api.readClipboardPtr = RGFW_readClipboardPtr_Wayland;
-    RGFW_api.writeClipboard = RGFW_writeClipboard_Wayland;
-    RGFW_api.window_isHidden = RGFW_window_isHidden_Wayland;
-    RGFW_api.window_isMinimized = RGFW_window_isMinimized_Wayland;
-    RGFW_api.window_isMaximized = RGFW_window_isMaximized_Wayland;
-    RGFW_api.getMonitors = RGFW_getMonitors_Wayland;
-    RGFW_api.getPrimaryMonitor = RGFW_getPrimaryMonitor_Wayland;
-    RGFW_api.monitor_requestMode = RGFW_monitor_requestMode_Wayland;
-    RGFW_api.window_getMonitor = RGFW_window_getMonitor_Wayland;
-    RGFW_api.window_close = RGFW_window_close_Wayland;
-#ifdef RGFW_OPENGL
-    RGFW_api.extensionSupportedPlatform_OpenGL = RGFW_extensionSupportedPlatform_OpenGL_Wayland;
-    RGFW_api.getProcAddress_OpenGL = RGFW_getProcAddress_OpenGL_Wayland;
-	RGFW_api.window_createContext_OpenGL = RGFW_window_createContext_OpenGL_Wayland;
-    RGFW_api.window_deleteContext_OpenGL = RGFW_window_deleteContext_OpenGL_Wayland;
-	RGFW_api.window_makeCurrentContext_OpenGL = RGFW_window_makeCurrentContext_OpenGL_Wayland;
-    RGFW_api.getCurrentContext_OpenGL = RGFW_getCurrentContext_OpenGL_Wayland;
-    RGFW_api.window_swapBuffers_OpenGL = RGFW_window_swapBuffers_OpenGL_Wayland;
-    RGFW_api.window_swapInterval_OpenGL = RGFW_window_swapInterval_OpenGL_Wayland;
-#endif
-#ifdef RGFW_WEBGPU
-    RGFW_api.window_createSurface_WebGPU = RGFW_window_createSurface_WebGPU_Wayland;
-#endif
-}
-#endif /* wayland AND x11 */
-/* end of X11 AND wayland defines */
-
-
 
 /*
 
@@ -10973,6 +10650,339 @@ void RGFW_waitForEvent(i32 waitMS) { RGFW_UNUSED(waitMS); }
 #endif
 
 /* end of web asm defines */
+
+/*
+	* RGFW function pointer backend, made to allow you to compile for Wayland but fallback to X11
+*/
+#ifdef RGFW_DYNAMIC
+typedef RGFW_window* (*RGFW_createWindowPtr_ptr)(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win);
+typedef RGFW_area (*RGFW_getScreenSize_ptr)(void);
+typedef RGFW_point (*RGFW_getMousePoint_ptr)(void);
+typedef u8 (*RGFW_rgfwToKeyChar_ptr)(u32 key);
+typedef void (*RGFW_pollEvents_ptr)(void);
+typedef void (*RGFW_window_move_ptr)(RGFW_window* win, RGFW_point v);
+typedef void (*RGFW_window_resize_ptr)(RGFW_window* win, RGFW_area a);
+typedef void (*RGFW_window_setAspectRatio_ptr)(RGFW_window* win, RGFW_area a);
+typedef void (*RGFW_window_setMinSize_ptr)(RGFW_window* win, RGFW_area a);
+typedef void (*RGFW_window_setMaxSize_ptr)(RGFW_window* win, RGFW_area a);
+typedef void (*RGFW_window_maximize_ptr)(RGFW_window* win);
+typedef void (*RGFW_window_focus_ptr)(RGFW_window* win);
+typedef void (*RGFW_window_raise_ptr)(RGFW_window* win);
+typedef void (*RGFW_window_setFullscreen_ptr)(RGFW_window* win, RGFW_bool fullscreen);
+typedef void (*RGFW_window_setFloating_ptr)(RGFW_window* win, RGFW_bool floating);
+typedef void (*RGFW_window_setOpacity_ptr)(RGFW_window* win, u8 opacity);
+typedef void (*RGFW_window_minimize_ptr)(RGFW_window* win);
+typedef void (*RGFW_window_restore_ptr)(RGFW_window* win);
+typedef RGFW_bool (*RGFW_window_isFloating_ptr)(RGFW_window* win);
+typedef void (*RGFW_window_setName_ptr)(RGFW_window* win, const char* name);
+typedef void (*RGFW_window_setMousePassthrough_ptr)(RGFW_window* win, RGFW_bool passthrough);
+typedef RGFW_bool (*RGFW_window_setIconEx_ptr)(RGFW_window* win, RGFW_image img, u8 type);
+typedef RGFW_mouse* (*RGFW_loadMouse_ptr)(RGFW_image img);
+typedef void (*RGFW_window_setMouse_ptr)(RGFW_window* win, RGFW_mouse* mouse);
+typedef void (*RGFW_window_moveMouse_ptr)(RGFW_window* win, RGFW_point p);
+typedef RGFW_bool (*RGFW_window_setMouseDefault_ptr)(RGFW_window* win);
+typedef RGFW_bool (*RGFW_window_setMouseStandard_ptr)(RGFW_window* win, u8 mouse);
+typedef void (*RGFW_window_hide_ptr)(RGFW_window* win);
+typedef void (*RGFW_window_show_ptr)(RGFW_window* win);
+typedef RGFW_ssize_t (*RGFW_readClipboardPtr_ptr)(char* str, size_t strCapacity);
+typedef void (*RGFW_writeClipboard_ptr)(const char* text, u32 textLen);
+typedef RGFW_bool (*RGFW_window_isHidden_ptr)(RGFW_window* win);
+typedef RGFW_bool (*RGFW_window_isMinimized_ptr)(RGFW_window* win);
+typedef RGFW_bool (*RGFW_window_isMaximized_ptr)(RGFW_window* win);
+typedef RGFW_monitor* (*RGFW_getMonitors_ptr)(size_t* len);
+typedef RGFW_monitor (*RGFW_getPrimaryMonitor_ptr)(void);
+typedef RGFW_bool (*RGFW_monitor_requestMode_ptr)(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request);
+typedef RGFW_monitor (*RGFW_window_getMonitor_ptr)(RGFW_window* win);
+typedef void (*RGFW_window_close_ptr)(RGFW_window* win);
+typedef RGFW_bool (*RGFW_createSurfacePtr_ptr)(RGFW_image img, RGFW_surface* surface);
+typedef void (*RGFW_window_blitSurface_ptr)(RGFW_window* win, RGFW_surface* surface);
+typedef void (*RGFW_surface_free_ptr)(RGFW_surface* surface);
+typedef void (*RGFW_freeMouse_ptr)(RGFW_mouse* mouse);
+typedef void (*RGFW_window_setBorder_ptr)(RGFW_window* win, RGFW_bool border);
+typedef void (*RGFW_releaseCursor_ptr)(RGFW_window* win);
+typedef void (*RGFW_captureCursor_ptr)(RGFW_window* win, RGFW_rect r);
+#ifdef RGFW_OPENGL
+typedef void (*RGFW_window_makeCurrentContext_OpenGL_ptr)(RGFW_window* win);
+typedef void* (*RGFW_getCurrentContext_OpenGL_ptr)(void);
+typedef void (*RGFW_window_swapBuffers_OpenGL_ptr)(RGFW_window* win);
+typedef void (*RGFW_window_swapInterval_OpenGL_ptr)(RGFW_window* win, i32 swapInterval);
+typedef RGFW_bool (*RGFW_extensionSupportedPlatform_OpenGL_ptr)(const char* extension, size_t len);
+typedef RGFW_proc (*RGFW_getProcAddress_OpenGL_ptr)(const char* procname);
+typedef RGFW_glContext* (*RGFW_window_createContext_OpenGL_ptr)(RGFW_window* win);
+typedef void (*RGFW_window_deleteContext_OpenGL_ptr)(RGFW_window* win);
+#endif
+#ifdef RGFW_WEBGPU
+typedef WGPUSurface (*RGFW_window_createSurface_WebGPU_ptr)(RGFW_window* window, WGPUInstance instance);
+#endif
+
+/* Structure to hold all function pointers */
+typedef struct RGFW_FunctionPointers {
+   RGFW_createSurfacePtr_ptr createSurfacePtr;
+    RGFW_window_blitSurface_ptr window_blitSurface;
+	RGFW_surface_free_ptr surface_free;
+	RGFW_freeMouse_ptr freeMouse;
+    RGFW_window_setBorder_ptr window_setBorder;
+    RGFW_releaseCursor_ptr releaseCursor;
+    RGFW_captureCursor_ptr captureCursor;
+    RGFW_createWindowPtr_ptr createWindowPtr;
+    RGFW_getScreenSize_ptr getScreenSize;
+    RGFW_getMousePoint_ptr getGlobalMousePoint;
+    RGFW_rgfwToKeyChar_ptr rgfwToKeyChar;
+    RGFW_pollEvents_ptr pollEvents;
+    RGFW_window_move_ptr window_move;
+    RGFW_window_resize_ptr window_resize;
+    RGFW_window_setAspectRatio_ptr window_setAspectRatio;
+    RGFW_window_setMinSize_ptr window_setMinSize;
+    RGFW_window_setMaxSize_ptr window_setMaxSize;
+    RGFW_window_maximize_ptr window_maximize;
+    RGFW_window_focus_ptr window_focus;
+    RGFW_window_raise_ptr window_raise;
+    RGFW_window_setFullscreen_ptr window_setFullscreen;
+    RGFW_window_setFloating_ptr window_setFloating;
+    RGFW_window_setOpacity_ptr window_setOpacity;
+    RGFW_window_minimize_ptr window_minimize;
+    RGFW_window_restore_ptr window_restore;
+    RGFW_window_isFloating_ptr window_isFloating;
+    RGFW_window_setName_ptr window_setName;
+    RGFW_window_setMousePassthrough_ptr window_setMousePassthrough;
+    RGFW_window_setIconEx_ptr window_setIconEx;
+    RGFW_loadMouse_ptr loadMouse;
+    RGFW_window_setMouse_ptr window_setMouse;
+    RGFW_window_moveMouse_ptr window_moveMouse;
+    RGFW_window_setMouseDefault_ptr window_setMouseDefault;
+    RGFW_window_setMouseStandard_ptr window_setMouseStandard;
+    RGFW_window_hide_ptr window_hide;
+    RGFW_window_show_ptr window_show;
+    RGFW_readClipboardPtr_ptr readClipboardPtr;
+    RGFW_writeClipboard_ptr writeClipboard;
+    RGFW_window_isHidden_ptr window_isHidden;
+    RGFW_window_isMinimized_ptr window_isMinimized;
+    RGFW_window_isMaximized_ptr window_isMaximized;
+    RGFW_getMonitors_ptr getMonitors;
+    RGFW_getPrimaryMonitor_ptr getPrimaryMonitor;
+    RGFW_monitor_requestMode_ptr monitor_requestMode;
+    RGFW_window_getMonitor_ptr window_getMonitor;
+    RGFW_window_close_ptr window_close;
+#ifdef RGFW_OPENGL
+    RGFW_extensionSupportedPlatform_OpenGL_ptr extensionSupportedPlatform_OpenGL;
+    RGFW_getProcAddress_OpenGL_ptr getProcAddress_OpenGL;
+    RGFW_window_createContext_OpenGL_ptr window_createContext_OpenGL;
+    RGFW_window_deleteContext_OpenGL_ptr window_deleteContext_OpenGL;
+    RGFW_window_makeCurrentContext_OpenGL_ptr window_makeCurrentContext_OpenGL;
+    RGFW_getCurrentContext_OpenGL_ptr getCurrentContext_OpenGL;
+    RGFW_window_swapBuffers_OpenGL_ptr window_swapBuffers_OpenGL;
+    RGFW_window_swapInterval_OpenGL_ptr window_swapInterval_OpenGL;
+#endif
+#ifdef RGFW_WEBGPU
+    RGFW_window_createSurface_WebGPU_ptr window_createSurface_WebGPU;
+#endif
+} RGFW_functionPointers;
+
+RGFW_functionPointers RGFW_api;
+
+RGFW_bool RGFW_createSurfacePtr(RGFW_image img, RGFW_surface* surface) { return RGFW_api.createSurfacePtr(img, surface); }
+void RGFW_surface_free(RGFW_surface* surface) { RGFW_api.surface_free(surface); }
+void RGFW_freeMouse(RGFW_mouse* mouse) { RGFW_api.freeMouse(mouse); }
+void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) { RGFW_api.window_blitSurface(win, surface); }
+void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) { RGFW_api.window_setBorder(win, border); }
+void RGFW_releaseCursor(RGFW_window* win) { RGFW_api.releaseCursor(win); }
+void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) { RGFW_api.captureCursor(win, r); }
+RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) { RGFW_init(); return RGFW_api.createWindowPtr(name, rect, flags, win); }
+RGFW_area RGFW_getScreenSize(void) { return RGFW_api.getScreenSize(); }
+RGFW_point RGFW_getMousePoint(void) { return RGFW_api.getGlobalMousePoint(); }
+u8 RGFW_rgfwToKeyChar(u32 key) { return RGFW_api.rgfwToKeyChar(key); }
+void RGFW_pollEvents(void) { RGFW_api.pollEvents(); }
+void RGFW_window_move(RGFW_window* win, RGFW_point v) { RGFW_api.window_move(win, v); }
+void RGFW_window_resize(RGFW_window* win, RGFW_area a) { RGFW_api.window_resize(win, a); }
+void RGFW_window_setAspectRatio(RGFW_window* win, RGFW_area a) { RGFW_api.window_setAspectRatio(win, a); }
+void RGFW_window_setMinSize(RGFW_window* win, RGFW_area a) { RGFW_api.window_setMinSize(win, a); }
+void RGFW_window_setMaxSize(RGFW_window* win, RGFW_area a) { RGFW_api.window_setMaxSize(win, a); }
+void RGFW_window_maximize(RGFW_window* win) { RGFW_api.window_maximize(win); }
+void RGFW_window_focus(RGFW_window* win) { RGFW_api.window_focus(win); }
+void RGFW_window_raise(RGFW_window* win) { RGFW_api.window_raise(win); }
+void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) { RGFW_api.window_setFullscreen(win, fullscreen); }
+void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating) { RGFW_api.window_setFloating(win, floating); }
+void RGFW_window_setOpacity(RGFW_window* win, u8 opacity) { RGFW_api.window_setOpacity(win, opacity); }
+void RGFW_window_minimize(RGFW_window* win) { RGFW_api.window_minimize(win); }
+void RGFW_window_restore(RGFW_window* win) { RGFW_api.window_restore(win); }
+RGFW_bool RGFW_window_isFloating(RGFW_window* win) { return RGFW_api.window_isFloating(win); }
+void RGFW_window_setName(RGFW_window* win, const char* name) { RGFW_api.window_setName(win, name); }
+
+#ifndef RGFW_NO_PASSTHROUGH
+void RGFW_window_setMousePassthrough(RGFW_window* win, RGFW_bool passthrough) { RGFW_api.window_setMousePassthrough(win, passthrough); }
+#endif
+
+RGFW_bool RGFW_window_setIconEx(RGFW_window* win, RGFW_image img, u8 type) { return RGFW_api.window_setIconEx(win, img, type); }
+RGFW_mouse* RGFW_loadMouse(RGFW_image img) { return RGFW_api.loadMouse(img); }
+void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) { RGFW_api.window_setMouse(win, mouse); }
+void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) { RGFW_api.window_moveMouse(win, p); }
+RGFW_bool RGFW_window_setMouseDefault(RGFW_window* win) { return RGFW_api.window_setMouseDefault(win); }
+RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) { return RGFW_api.window_setMouseStandard(win, mouse); }
+void RGFW_window_hide(RGFW_window* win) { RGFW_api.window_hide(win); }
+void RGFW_window_show(RGFW_window* win) { RGFW_api.window_show(win); }
+RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) { return RGFW_api.readClipboardPtr(str, strCapacity); }
+void RGFW_writeClipboard(const char* text, u32 textLen) { RGFW_api.writeClipboard(text, textLen); }
+RGFW_bool RGFW_window_isHidden(RGFW_window* win) { return RGFW_api.window_isHidden(win); }
+RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { return RGFW_api.window_isMinimized(win); }
+RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { return RGFW_api.window_isMaximized(win); }
+RGFW_monitor* RGFW_getMonitors(size_t* len) { return RGFW_api.getMonitors(len); }
+RGFW_monitor RGFW_getPrimaryMonitor(void) { return RGFW_api.getPrimaryMonitor(); }
+RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) { return RGFW_api.monitor_requestMode(mon, mode, request); }
+RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { return RGFW_api.window_getMonitor(win); }
+void RGFW_window_close(RGFW_window* win) { RGFW_api.window_close(win); }
+
+#ifdef RGFW_OPENGL
+RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char* extension, size_t len) { return RGFW_api.extensionSupportedPlatform_OpenGL(extension, len); }
+RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) { return RGFW_api.getProcAddress_OpenGL(procname); }
+RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) { return RGFW_api.window_createContext_OpenGL(win); }
+void RGFW_window_deleteContext_OpenGL(RGFW_window* win) { RGFW_api.window_deleteContext_OpenGL(win); }
+void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) { RGFW_api.window_makeCurrentContext_OpenGL(win); }
+void* RGFW_getCurrentContext_OpenGL(void) { return RGFW_api.getCurrentContext_OpenGL(); }
+void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) { RGFW_api.window_swapBuffers_OpenGL(win); }
+void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) { RGFW_api.window_swapInterval_OpenGL(win, swapInterval); }
+#endif
+
+#ifdef RGFW_WEBGPU
+WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance instance) { return RGFW_api.window_createSurface_WebGPU(window, instance); }
+#endif
+#endif  /* RGFW_DYNAMIC */
+
+/*
+ * start of X11 AND wayland defines
+ * this allows a single executable to support x11 AND wayland
+ * falling back to x11 if wayland fails to initalize
+*/
+#if defined(RGFW_WAYLAND) && defined(RGFW_X11)
+void RGFW_load_X11(void) {
+    RGFW_api.createSurfacePtr = RGFW_createSurfacePtr_X11;
+    RGFW_api.window_blitSurface = RGFW_window_blitSurface_X11;
+	RGFW_api.surface_free = RGFW_surface_free_X11;
+	RGFW_api.freeMouse = RGFW_freeMouse_X11;
+    RGFW_api.window_setBorder = RGFW_window_setBorder_X11;
+    RGFW_api.releaseCursor = RGFW_releaseCursor_X11;
+    RGFW_api.captureCursor = RGFW_captureCursor_X11;
+	RGFW_api.createWindowPtr = RGFW_createWindowPtr_X11;
+    RGFW_api.getScreenSize = RGFW_getScreenSize_X11;
+    RGFW_api.getGlobalMousePoint = RGFW_getMousePoint_X11;
+    RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_X11;
+    RGFW_api.pollEvents = RGFW_pollEvents_X11;
+    RGFW_api.window_move = RGFW_window_move_X11;
+    RGFW_api.window_resize = RGFW_window_resize_X11;
+    RGFW_api.window_setAspectRatio = RGFW_window_setAspectRatio_X11;
+    RGFW_api.window_setMinSize = RGFW_window_setMinSize_X11;
+    RGFW_api.window_setMaxSize = RGFW_window_setMaxSize_X11;
+    RGFW_api.window_maximize = RGFW_window_maximize_X11;
+    RGFW_api.window_focus = RGFW_window_focus_X11;
+    RGFW_api.window_raise = RGFW_window_raise_X11;
+    RGFW_api.window_setFullscreen = RGFW_window_setFullscreen_X11;
+    RGFW_api.window_setFloating = RGFW_window_setFloating_X11;
+    RGFW_api.window_setOpacity = RGFW_window_setOpacity_X11;
+    RGFW_api.window_minimize = RGFW_window_minimize_X11;
+    RGFW_api.window_restore = RGFW_window_restore_X11;
+    RGFW_api.window_isFloating = RGFW_window_isFloating_X11;
+    RGFW_api.window_setName = RGFW_window_setName_X11;
+#ifndef RGFW_NO_PASSTHROUGH
+    RGFW_api.window_setMousePassthrough = RGFW_window_setMousePassthrough_X11;
+#endif
+    RGFW_api.window_setIconEx = RGFW_window_setIconEx_X11;
+    RGFW_api.loadMouse = RGFW_loadMouse_X11;
+    RGFW_api.window_setMouse = RGFW_window_setMouse_X11;
+    RGFW_api.window_moveMouse = RGFW_window_moveMouse_X11;
+    RGFW_api.window_setMouseDefault = RGFW_window_setMouseDefault_X11;
+    RGFW_api.window_setMouseStandard = RGFW_window_setMouseStandard_X11;
+    RGFW_api.window_hide = RGFW_window_hide_X11;
+    RGFW_api.window_show = RGFW_window_show_X11;
+    RGFW_api.readClipboardPtr = RGFW_readClipboardPtr_X11;
+    RGFW_api.writeClipboard = RGFW_writeClipboard_X11;
+    RGFW_api.window_isHidden = RGFW_window_isHidden_X11;
+    RGFW_api.window_isMinimized = RGFW_window_isMinimized_X11;
+    RGFW_api.window_isMaximized = RGFW_window_isMaximized_X11;
+    RGFW_api.getMonitors = RGFW_getMonitors_X11;
+    RGFW_api.getPrimaryMonitor = RGFW_getPrimaryMonitor_X11;
+    RGFW_api.monitor_requestMode = RGFW_monitor_requestMode_X11;
+    RGFW_api.window_getMonitor = RGFW_window_getMonitor_X11;
+    RGFW_api.window_close = RGFW_window_close_X11;
+#ifdef RGFW_OPENGL
+    RGFW_api.extensionSupportedPlatform_OpenGL = RGFW_extensionSupportedPlatform_OpenGL_X11;
+    RGFW_api.getProcAddress_OpenGL = RGFW_getProcAddress_OpenGL_X11;
+	RGFW_api.window_createContext_OpenGL = RGFW_window_createContext_OpenGL_X11;
+    RGFW_api.window_deleteContext_OpenGL = RGFW_window_deleteContext_OpenGL_X11;
+	RGFW_api.window_makeCurrentContext_OpenGL = RGFW_window_makeCurrentContext_OpenGL_X11;
+    RGFW_api.getCurrentContext_OpenGL = RGFW_getCurrentContext_OpenGL_X11;
+    RGFW_api.window_swapBuffers_OpenGL = RGFW_window_swapBuffers_OpenGL_X11;
+    RGFW_api.window_swapInterval_OpenGL = RGFW_window_swapInterval_OpenGL_X11;
+#endif
+#ifdef RGFW_WEBGPU
+    RGFW_api.window_createSurface_WebGPU = RGFW_window_createSurface_WebGPU_X11;
+#endif
+}
+
+void RGFW_load_Wayland(void) {
+	RGFW_api.createSurfacePtr = RGFW_createSurfacePtr_Wayland;
+	RGFW_api.window_blitSurface = RGFW_window_blitSurface_Wayland;
+    RGFW_api.surface_free = RGFW_surface_free_Wayland;
+	RGFW_api.freeMouse = RGFW_freeMouse_Wayland;
+	RGFW_api.window_setBorder = RGFW_window_setBorder_Wayland;
+    RGFW_api.releaseCursor = RGFW_releaseCursor_Wayland;
+    RGFW_api.captureCursor = RGFW_captureCursor_Wayland;
+    RGFW_api.createWindowPtr = RGFW_createWindowPtr_Wayland;
+    RGFW_api.getScreenSize = RGFW_getScreenSize_Wayland;
+    RGFW_api.getGlobalMousePoint = RGFW_getMousePoint_Wayland;
+    RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_Wayland;
+    RGFW_api.pollEvents = RGFW_pollEvents_Wayland;
+    RGFW_api.window_move = RGFW_window_move_Wayland;
+    RGFW_api.window_resize = RGFW_window_resize_Wayland;
+    RGFW_api.window_setAspectRatio = RGFW_window_setAspectRatio_Wayland;
+    RGFW_api.window_setMinSize = RGFW_window_setMinSize_Wayland;
+    RGFW_api.window_setMaxSize = RGFW_window_setMaxSize_Wayland;
+    RGFW_api.window_maximize = RGFW_window_maximize_Wayland;
+    RGFW_api.window_focus = RGFW_window_focus_Wayland;
+    RGFW_api.window_raise = RGFW_window_raise_Wayland;
+    RGFW_api.window_setFullscreen = RGFW_window_setFullscreen_Wayland;
+    RGFW_api.window_setFloating = RGFW_window_setFloating_Wayland;
+    RGFW_api.window_setOpacity = RGFW_window_setOpacity_Wayland;
+    RGFW_api.window_minimize = RGFW_window_minimize_Wayland;
+    RGFW_api.window_restore = RGFW_window_restore_Wayland;
+    RGFW_api.window_isFloating = RGFW_window_isFloating_Wayland;
+    RGFW_api.window_setName = RGFW_window_setName_Wayland;
+#ifndef RGFW_NO_PASSTHROUGH
+    RGFW_api.window_setMousePassthrough = RGFW_window_setMousePassthrough_Wayland;
+#endif
+    RGFW_api.window_setIconEx = RGFW_window_setIconEx_Wayland;
+    RGFW_api.loadMouse = RGFW_loadMouse_Wayland;
+    RGFW_api.window_setMouse = RGFW_window_setMouse_Wayland;
+    RGFW_api.window_moveMouse = RGFW_window_moveMouse_Wayland;
+    RGFW_api.window_setMouseDefault = RGFW_window_setMouseDefault_Wayland;
+    RGFW_api.window_setMouseStandard = RGFW_window_setMouseStandard_Wayland;
+    RGFW_api.window_hide = RGFW_window_hide_Wayland;
+    RGFW_api.window_show = RGFW_window_show_Wayland;
+    RGFW_api.readClipboardPtr = RGFW_readClipboardPtr_Wayland;
+    RGFW_api.writeClipboard = RGFW_writeClipboard_Wayland;
+    RGFW_api.window_isHidden = RGFW_window_isHidden_Wayland;
+    RGFW_api.window_isMinimized = RGFW_window_isMinimized_Wayland;
+    RGFW_api.window_isMaximized = RGFW_window_isMaximized_Wayland;
+    RGFW_api.getMonitors = RGFW_getMonitors_Wayland;
+    RGFW_api.getPrimaryMonitor = RGFW_getPrimaryMonitor_Wayland;
+    RGFW_api.monitor_requestMode = RGFW_monitor_requestMode_Wayland;
+    RGFW_api.window_getMonitor = RGFW_window_getMonitor_Wayland;
+    RGFW_api.window_close = RGFW_window_close_Wayland;
+#ifdef RGFW_OPENGL
+    RGFW_api.extensionSupportedPlatform_OpenGL = RGFW_extensionSupportedPlatform_OpenGL_Wayland;
+    RGFW_api.getProcAddress_OpenGL = RGFW_getProcAddress_OpenGL_Wayland;
+	RGFW_api.window_createContext_OpenGL = RGFW_window_createContext_OpenGL_Wayland;
+    RGFW_api.window_deleteContext_OpenGL = RGFW_window_deleteContext_OpenGL_Wayland;
+	RGFW_api.window_makeCurrentContext_OpenGL = RGFW_window_makeCurrentContext_OpenGL_Wayland;
+    RGFW_api.getCurrentContext_OpenGL = RGFW_getCurrentContext_OpenGL_Wayland;
+    RGFW_api.window_swapBuffers_OpenGL = RGFW_window_swapBuffers_OpenGL_Wayland;
+    RGFW_api.window_swapInterval_OpenGL = RGFW_window_swapInterval_OpenGL_Wayland;
+#endif
+#ifdef RGFW_WEBGPU
+    RGFW_api.window_createSurface_WebGPU = RGFW_window_createSurface_WebGPU_Wayland;
+#endif
+}
+#endif /* wayland AND x11 */
+/* end of X11 AND wayland defines */
+
 #endif /* RGFW_IMPLEMENTATION */
 
 #if defined(__cplusplus) && !defined(__EMSCRIPTEN__)
