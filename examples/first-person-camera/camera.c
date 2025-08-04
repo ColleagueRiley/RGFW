@@ -1,6 +1,12 @@
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
+#ifdef RGFW_MACOS
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
+
 #include <math.h>
 #define DEG2RAD 3.14/180.0
 

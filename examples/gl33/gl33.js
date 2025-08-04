@@ -6729,8 +6729,6 @@ var ASM_CONSTS = {
       GLctx.vertexAttribPointer(index, size, type, !!normalized, stride, ptr);
     };
 
-  function _glViewport(x0, x1, x2, x3) { GLctx.viewport(x0, x1, x2, x3) }
-
 
 
   var runAndAbortIfError = (func) => {
@@ -7207,9 +7205,7 @@ var wasmImports = {
   /** @export */
   glUseProgram: _glUseProgram,
   /** @export */
-  glVertexAttribPointer: _glVertexAttribPointer,
-  /** @export */
-  glViewport: _glViewport
+  glVertexAttribPointer: _glVertexAttribPointer
 };
 Asyncify.instrumentWasmImports(wasmImports);
 var wasmExports = createWasm();

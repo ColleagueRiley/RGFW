@@ -1,12 +1,9 @@
-#ifdef __APPLE__
-#define GL_SILENCE_DEPRECATION
-#endif
-
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#define OEMRESOURCE
-#include <windows.h>
-#endif
+#define RGFW_USE_XDL // feel free to remove this line if you don't want to use XDL (-lX11 -lXrandr -lGLX will be required)
+#define RGFW_ALLOC_DROPFILES
+#define RGFW_IMPLEMENTATION
+#define RGFW_PRINT_ERRORS
+#define RGFW_DEBUG
+#include <RGFW.h>
 
 #ifndef __EMSCRIPTEN__
 #define RGL_LOAD_IMPLEMENTATION
@@ -14,13 +11,6 @@
 #else
 #include <GLES3/gl3.h>
 #endif
-
-#define RGFW_USE_XDL // feel free to remove this line if you don't want to use XDL (-lX11 -lXrandr -lGLX will be required)
-#define RGFW_ALLOC_DROPFILES
-#define RGFW_IMPLEMENTATION
-#define RGFW_PRINT_ERRORS
-#define RGFW_DEBUG
-#include <RGFW.h>
 
 #define MULTILINE_STR(...) #__VA_ARGS__
 

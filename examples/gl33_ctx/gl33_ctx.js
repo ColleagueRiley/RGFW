@@ -6391,8 +6391,6 @@ var ASM_CONSTS = {
       return ret;
     };
 
-  function _glViewport(x0, x1, x2, x3) { GLctx.viewport(x0, x1, x2, x3) }
-
 
 
   var runAndAbortIfError = (func) => {
@@ -11718,9 +11716,7 @@ var wasmImports = {
   /** @export */
   glClearColor: _glClearColor,
   /** @export */
-  glGetString: _glGetString,
-  /** @export */
-  glViewport: _glViewport
+  glGetString: _glGetString
 };
 Asyncify.instrumentWasmImports(wasmImports);
 var wasmExports = createWasm();
