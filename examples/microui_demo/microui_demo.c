@@ -1,6 +1,7 @@
 #undef _WIN32_WINNT
 #include <stdio.h>
 
+#define RGFW_OPENGL
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 

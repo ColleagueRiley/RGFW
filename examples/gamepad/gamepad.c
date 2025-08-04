@@ -1,3 +1,4 @@
+#define RGFW_OPENGL
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
 #define RGFW_DEBUG

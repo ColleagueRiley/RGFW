@@ -33,11 +33,10 @@
 /*
 	#define RGFW_IMPLEMENTATION - (required) makes it so the source code is included
 	#define RGFW_DEBUG - (optional) makes it so RGFW prints debug messages and errors when they're found
-	#define RGFW_EGL - (optional) compile with OpenGL functions, allowing you to use `RGFW_windowUseEGL` to use EGL instead of the native OpenGL functions
+	#define RGFW_EGL - (optional) compile with OpenGL functions, allowing you to use to use EGL instead of the native OpenGL functions
 	#define RGFW_DIRECTX - (optional) include integration directX functions (windows only)
 	#define RGFW_VULKAN - (optional) include helpful vulkan integration functions and macros
 	#define RGFW_WEBGPU - (optional) use WebGPU for rendering
-	#define RGFW_NO_API - (optional) don't use any rendering API (no OpenGL, no vulkan, no directX)
 	#define RGFW_NATIVE - (optional) define native RGFW types that use native API structures
 
 	#define RGFW_X11 (optional) (unix only) if X11 should be used. This option is turned on by default by unix systems except for MacOS
@@ -189,10 +188,6 @@ int main() {
     #endif
 #endif
 
-#if !defined(RGFW_OPENGL) && !defined(RGFW_DIRECTX) && !defined(RGFW_WEBGPU) && !defined(RGFW_VULKAN) && !defined(RGFW_NO_API)
-		#define RGFW_OPENGL
-#endif
-
 #if defined(RGFW_EGL) && !defined(RGFW_OPENGL)
 	#define RGFW_OPENGL
 #endif
@@ -202,11 +197,6 @@ int main() {
 
 #ifdef __EMSCRIPTEN__
 	#define RGFW_WASM
-
-	#if !defined(RGFW_NO_API) && !defined(RGFW_WEBGPU)
-		#define RGFW_OPENGL
-	#endif
-
 	#ifdef RGFW_EGL
 		#undef RGFW_EGL
 		#define RGFW_WASM_EGL
@@ -639,9 +629,10 @@ RGFWDEF RGFW_bool RGFW_createSurfacePtr(RGFW_image img, RGFW_surface* surface);
 
 RGFWDEF RGFW_nativeImage* RGFW_surface_getNativeImage(RGFW_surface* surface);
 
-/*! free buffers used for software rendering within the window */
+/*! free the surface pointer and buffers used for software rendering within the window */
 RGFWDEF void RGFW_surface_free(RGFW_surface* surface);
-
+/*! free only the buffers used for software rendering within the window */
+RGFWDEF void RGFW_surface_freePtr(RGFW_surface* surface);
 
 
 #if defined(__cplusplus) && !defined(__APPLE__)
@@ -755,35 +746,49 @@ RGFWDEF void RGFW_pollEvents(void);
 */
 RGFWDEF void RGFW_stopCheckEvents(void);
 
-/*! Optional arguments for making a windows */
-typedef RGFW_ENUM(u32, RGFW_windowFlags) {
-	RGFW_windowNoInitAPI = RGFW_BIT(0), /* do NOT init an API (including the software rendering buffer) (mostly for bindings. you can also use `#define RGFW_NO_API`) */
-	RGFW_windowNoBorder = RGFW_BIT(1), /*!< the window doesn't have a border */
-	RGFW_windowNoResize = RGFW_BIT(2), /*!< the window cannot be resized by the user */
-	RGFW_windowAllowDND = RGFW_BIT(3), /*!< the window supports drag and drop */
-	RGFW_windowHideMouse = RGFW_BIT(4), /*! the window should hide the mouse (can be toggled later on using `RGFW_window_showMouse`) */
-	RGFW_windowFullscreen = RGFW_BIT(5), /*!< the window is fullscreen by default */
-	RGFW_windowTransparent = RGFW_BIT(6), /*!< the window is transparent (only properly works on X11 and MacOS, although it's meant for for windows) */
-	RGFW_windowCenter = RGFW_BIT(7), /*! center the window on the screen */
-	RGFW_windowOpenGLSoftware = RGFW_BIT(8), /*! use OpenGL software rendering */
-	RGFW_windowCocoaCHDirToRes = RGFW_BIT(9), /*! (cocoa only), change directory to resource folder */
-	RGFW_windowScaleToMonitor = RGFW_BIT(10), /*! scale the window to the screen */
-	RGFW_windowHide = RGFW_BIT(11), /*! the window is hidden */
-	RGFW_windowMaximize = RGFW_BIT(12),
-	RGFW_windowCenterCursor = RGFW_BIT(13),
-	RGFW_windowFloating = RGFW_BIT(14), /*!< create a floating window */
-	RGFW_windowFocusOnShow = RGFW_BIT(15), /*!< focus the window when it's shown */
-	RGFW_windowMinimize = RGFW_BIT(16), /*!< focus the window when it's shown */
-	RGFW_windowFocus = RGFW_BIT(17), /*!< if the window is in focus */
-	RGFW_windowUseEGL = RGFW_BIT(18), /*!< use EGL instead of the native OpenGL context API */
-	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize
-};
-
 typedef struct RGFW_window RGFW_window;
 typedef struct RGFW_window_src RGFW_window_src;
 
 RGFWDEF size_t RGFW_sizeofWindow(void);
 RGFWDEF size_t RGFW_sizeofWindowSrc(void);
+
+/*! Optional arguments for making a windows */
+typedef RGFW_ENUM(u32, RGFW_windowFlags) {
+	RGFW_windowNoBorder = RGFW_BIT(0), /*!< the window doesn't have a border */
+	RGFW_windowNoResize = RGFW_BIT(1), /*!< the window cannot be resized by the user */
+	RGFW_windowAllowDND = RGFW_BIT(2), /*!< the window supports drag and drop */
+	RGFW_windowHideMouse = RGFW_BIT(3), /*! the window should hide the mouse (can be toggled later on using `RGFW_window_showMouse`) */
+	RGFW_windowFullscreen = RGFW_BIT(4), /*!< the window is fullscreen by default */
+	RGFW_windowTransparent = RGFW_BIT(5), /*!< the window is transparent (only properly works on X11 and MacOS, although it's meant for for windows) */
+	RGFW_windowCenter = RGFW_BIT(6), /*! center the window on the screen */
+	RGFW_windowCocoaCHDirToRes = RGFW_BIT(7), /*! (cocoa only), change directory to resource folder */
+	RGFW_windowScaleToMonitor = RGFW_BIT(8), /*! scale the window to the screen */
+	RGFW_windowHide = RGFW_BIT(9), /*! the window is hidden */
+	RGFW_windowMaximize = RGFW_BIT(10),
+	RGFW_windowCenterCursor = RGFW_BIT(11),
+	RGFW_windowFloating = RGFW_BIT(12), /*!< create a floating window */
+	RGFW_windowFocusOnShow = RGFW_BIT(13), /*!< focus the window when it's shown */
+	RGFW_windowMinimize = RGFW_BIT(14), /*!< focus the window when it's shown */
+	RGFW_windowFocus = RGFW_BIT(15), /*!< if the window is in focus */
+	RGFW_windowOpenGL = RGFW_BIT(17), /*!< create an OpenGL context (you can also do this manually with RGFW_window_createContext_OpenGL) */
+	RGFW_windowEGL = RGFW_BIT(18), /*!< create an EGL context (you can also do this manually with RGFW_window_createContext_EGL) */
+	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize
+};
+
+/* NOTE: (windows) if the executable has an icon resource named RGFW_ICON, it will be set as the initial icon for the window */
+
+RGFWDEF RGFW_window* RGFW_createWindow(
+	const char* name, /* name of the window */
+	RGFW_rect rect, /* rect of window */
+	RGFW_windowFlags flags /* extra arguments ((u32)0 means no flags used)*/
+); /*!< function to create a window and struct */
+
+RGFWDEF RGFW_window* RGFW_createWindowPtr(
+	const char* name, /* name of the window */
+	RGFW_rect rect, /* rect of window */
+	RGFW_windowFlags flags, /* extra arguments (NULL / (u32)0 means no flags used) */
+	RGFW_window* win/* ptr to the fat window struct you want to use */
+); /*!< function to create a window (without allocating a window struct) */
 
 /*! render the software rendering buffer */
 RGFWDEF void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface);
@@ -816,21 +821,6 @@ RGFWDEF void RGFW_setXInstName(const char* name); /*!< X11 instance name (window
 /*! (cocoa only) change directory to resource folder */
 RGFWDEF void RGFW_moveToMacOSResourceDir(void);
 
-/* NOTE: (windows) if the executable has an icon resource named RGFW_ICON, it will be set as the initial icon for the window */
-
-RGFWDEF RGFW_window* RGFW_createWindow(
-	const char* name, /* name of the window */
-	RGFW_rect rect, /* rect of window */
-	RGFW_windowFlags flags /* extra arguments ((u32)0 means no flags used)*/
-); /*!< function to create a window and struct */
-
-RGFWDEF RGFW_window* RGFW_createWindowPtr(
-	const char* name, /* name of the window */
-	RGFW_rect rect, /* rect of window */
-	RGFW_windowFlags flags, /* extra arguments (NULL / (u32)0 means no flags used) */
-	RGFW_window* win/* ptr to the fat window struct you want to use */
-); /*!< function to create a window (without allocating a window struct) */
-
 /*! set the window flags (will undo flags if they don't match the old ones) */
 RGFWDEF void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags);
 
@@ -857,7 +847,8 @@ RGFWDEF RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event); /
 RGFWDEF RGFW_bool RGFW_window_checkQueuedEvent(RGFW_window* win, RGFW_event* event);
 
 /*! window managment functions */
-RGFWDEF void RGFW_window_close(RGFW_window* win); /*!< close the window and free leftover data */
+RGFWDEF void RGFW_window_close(RGFW_window* win); /*!< close the window and free the window struct */
+RGFWDEF void RGFW_window_closePtr(RGFW_window* win); /*!< close the window, don't free the window struct */
 
 /*! move a window to a given point */
 RGFWDEF void RGFW_window_move(RGFW_window* win,
@@ -1165,6 +1156,7 @@ typedef void (*RGFW_proc)(void); /* function pointer equivalent of void* */
 /*! native rendering API functions */
 #if defined(RGFW_OPENGL)
 typedef struct RGFW_glContext RGFW_glContext;
+typedef struct RGFW_eglContext RGFW_eglContext;
 
 /*! OpenGL init hints */
 typedef RGFW_ENUM(i32, RGFW_glHints)  {
@@ -1184,12 +1176,14 @@ typedef RGFW_ENUM(i32, RGFW_glHints)  {
 	RGFW_glProfile, /*!< set OpenGL API profile (RGFW_glCore by default) */
 	RGFW_glMajor, RGFW_glMinor,  /*!< set the OpenGL API profile version (by default RGFW_glMajor is 1, RGFW_glMinor is 0) */
 	RGFW_glShareWithCurrentContext, /*!< Share current OpenGL context with newly created OpenGL contexts; defaults to 0. */
+	RGFW_glRenderer, /*!< renderer to use e.g. accelerated or software defaults to accelerated */
 	RGFW_glHintsCount,
 };
 
 typedef RGFW_ENUM(i32, RGFW_glValue)  {
 	RGFW_releaseFlush = 0, RGFW_glReleaseNone, /* RGFW_glReleaseBehavior options */
-	RGFW_glCore = 0, RGFW_glCompatibility, RGFW_glES /*!< RGFW_glProfile options */
+	RGFW_glCore = 0, RGFW_glCompatibility, RGFW_glES, /*!< RGFW_glProfile options */
+	RGFW_glAccelerated = 0, RGFW_glSoftware  /*! render type */
 };
 
 RGFWDEF void RGFW_setHint_OpenGL(RGFW_glHints hint, i32 value);
@@ -1206,12 +1200,14 @@ RGFWDEF i32 RGFW_getHint_OpenGL(RGFW_glHints hint);
 */
 
 
-RGFWDEF RGFW_bool RGFW_window_isSoftware_OpenGL(RGFW_window* win);
-
-/*!< create an OpenGL context for the RGFW window, run by createWindow by default (unless the RGFW_windowNoInitAPI is included) */
+/*!< creates and allocates an OpenGL context for the RGFW window */
 RGFWDEF RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win);
-/*!< called by `RGFW_window_close` by default (unless the RGFW_windowNoInitAPI is set) */
-RGFWDEF void RGFW_window_deleteContext_OpenGL(RGFW_window* win);
+/*!< create an OpenGL context for the RGFW window using the user supplied context struct */
+RGFWDEF RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx);
+/*!< deletes and frees the opengl context | this will be automatically called by `RGFW_window_close` if the window's context is not NULL */
+RGFWDEF void RGFW_window_deleteContext_OpenGL(RGFW_glContext* ctx);
+/*!< deletes the opengl context | this will be automatically called by `RGFW_window_close` if the window's context is not NULL */
+RGFWDEF void RGFW_window_deleteContextPtr_OpenGL(RGFW_glContext* ctx);
 
 RGFWDEF void RGFW_window_makeCurrentWindow_OpenGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
 RGFWDEF void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win); /*!< to be called by RGFW_window_makeCurrent */
@@ -1229,10 +1225,14 @@ RGFWDEF RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char* extension, 
 
 /* these are EGL specific functions, they may fallback to OpenGL */
 #ifdef RGFW_EGL
-/*!< create an OpenGL context for the RGFW window, run by createWindow by default (unless the RGFW_windowNoInitAPI is included) */
-RGFWDEF RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win);
-/*!< called by `RGFW_window_close` by default (unless the RGFW_windowNoInitAPI is set) */
+/*!< creates and allocates an OpenGL/EGL context for the RGFW window */
+RGFWDEF RGFW_eglContext* RGFW_window_createContext_EGL(RGFW_window* win);
+/*!< creates an OpenGL/EGL context for the RGFW window using the user supplied context struct */
+RGFWDEF RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ctx);
+/*!< frees and deletes an OpenGL/EGL context | called by `RGFW_window_close` if RGFW owns the context */
 RGFWDEF void RGFW_window_deleteContext_EGL(RGFW_window* win);
+/*!< deletes an OpenGL/EGL context | called by `RGFW_window_close` if RGFW owns the context */
+RGFWDEF void RGFW_window_deleteContextPtr_EGL(RGFW_eglContext* ctx);
 
 RGFWDEF void RGFW_window_swapBuffers_EGL(RGFW_window* win); /*!< swap OpenGL buffer (only) called by RGFW_window_swapInterval  */
 
@@ -1248,7 +1248,6 @@ RGFWDEF void RGFW_window_swapInterval_EGL(RGFW_window* win, i32 swapInterval);
 RGFWDEF RGFW_proc RGFW_getProcAddress_EGL(const char* procname); /*!< get native OpenGL proc address */
 RGFWDEF RGFW_bool RGFW_extensionSupported_EGL(const char* extension, size_t len);	/*!< check if whether the specified API extension is supported by the current OpenGL or OpenGL ES context */
 RGFWDEF RGFW_bool RGFW_extensionSupportedPlatform_EGL(const char* extension, size_t len);	/*!< check if whether the specified platform-specific API extension is supported by the current OpenGL or OpenGL ES context */
-RGFWDEF RGFW_bool RGFW_window_isSoftware_EGL(RGFW_window* win);
 #endif
 #endif
 
@@ -1354,6 +1353,13 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		#pragma comment(lib, "opengl32")
 	#endif
 
+	#ifdef RGFW_EGL
+	struct RGFW_eglContext {
+		void* ctx;
+		void* surface;
+	};
+	#endif
+
 	/*! source data for the window (used by the APIs) */
 	#ifdef RGFW_WINDOWS
 
@@ -1362,7 +1368,6 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 	#include <windows.h>
 
 	struct RGFW_nativeImage {
-		RGFW_bool ownedByRGFW;
 		HBITMAP bitmap;
 		u8* bitmapBits;
 		RGFW_format format;
@@ -1372,10 +1377,6 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 	#ifdef RGFW_OPENGL
 		struct RGFW_glContext {
 			HGLRC ctx; /*!< source graphics context */
-			#ifdef RGFW_EGL
-				void* EGL_surface;
-				void* EGL_context;
-			#endif
 		};
 	#endif
 
@@ -1385,9 +1386,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		RGFW_area offset; /*!< width and height offset for window */
 		HICON hIconSmall, hIconBig; /*!< source window icons */
 		RGFW_area maxSize, minSize, aspectRatio; /*!< for setting max/min resize (RGFW_WINDOWS) */
-		#ifdef RGFW_OPENGL
-			RGFW_glContext ctx;
-		#endif
+		void* ctx;
 	};
 
 #elif defined(RGFW_UNIX)
@@ -1405,7 +1404,6 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 	#endif
 
 	struct RGFW_nativeImage {
-		RGFW_bool ownedByRGFW;
 		#ifdef RGFW_X11
 			XImage* bitmap;
 		#endif
@@ -1420,23 +1418,17 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		struct RGFW_glContext {
 			#ifdef RGFW_X11
 					struct __GLXcontextRec* ctx; /*!< source graphics context */
-					struct __GLXFBConfigRec* bestFbc;
 			#endif
 			#ifdef RGFW_WAYLAND
 				struct wl_egl_window* eglWindow;
-			#endif
-			#ifdef RGFW_EGL
-				void* EGL_surface;
-				void* EGL_context;
 			#endif
 		};
 	#endif
 
 	struct RGFW_window_src {
 		RGFW_rect r;
-		#ifdef RGFW_OPENGL
-			RGFW_glContext ctx;
-		#endif
+		void* ctx;
+		struct __GLXFBConfigRec* bestFbc;
 #ifdef RGFW_X11
 		Window window; /*!< source window */
 		GC gc;
@@ -1478,17 +1470,12 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 #elif defined(RGFW_MACOS)
 
 	struct RGFW_nativeImage {
-		RGFW_bool ownedByRGFW;
 		RGFW_format format;
 	};
 
 	#ifdef RGFW_OPENGL
 		struct RGFW_glContext {
 			void* ctx; /*!< source graphics context */
-			#ifdef RGFW_EGL
-				void* EGL_surface;
-				void* EGL_context;
-			#endif
 		};
 	#endif
 
@@ -1496,9 +1483,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		void* window;
 		void* view; /* apple viewpoint thingy */
 		void* mouse;
-		#ifdef RGFW_OPENGL
-			RGFW_glContext ctx;
-		#endif
+		void* ctx;
 	};
 
 #elif defined(RGFW_WASM)
@@ -1507,7 +1492,6 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 	#include <emscripten/key_codes.h>
 
 	struct RGFW_nativeImage  {
-		RGFW_bool ownedByRGFW;
 		RGFW_format format;
 	};
 
@@ -1518,9 +1502,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 	#endif
 
 	struct RGFW_window_src {
-		#ifdef RGFW_OPENGL
-			RGFW_glContext ctx;
-		#endif
+		void* ctx;
 	};
 
 #endif
@@ -1622,6 +1604,32 @@ struct RGFW_info {
 #endif /* RGFW_NATIVE_HEADER */
 
 #ifdef RGFW_IMPLEMENTATION
+
+/* global private API */
+RGFWDEF RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win);
+RGFWDEF void RGFW_window_closePlatform(RGFW_window* win);
+
+RGFWDEF void RGFW_resetKeyPrev(void);
+RGFWDEF void RGFW_resetKey(void);
+RGFWDEF void RGFW_unloadEGL(void);
+
+RGFWDEF void RGFW_updateKeyModsPro(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super, RGFW_bool scroll);
+RGFWDEF void RGFW_updateKeyMods(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, RGFW_bool scroll);
+RGFWDEF void RGFW_window_showMouseFlags(RGFW_window* win, RGFW_bool show);
+RGFWDEF void RGFW_updateKeyMod(RGFW_window* win, RGFW_keymod mod, RGFW_bool value);
+RGFWDEF void RGFW_setBit(u32* var, u32 mask, RGFW_bool set);
+RGFWDEF void RGFW_splitBPP(u32 bpp, RGFW_monitorMode* mode);
+
+RGFWDEF void RGFW_captureCursor(RGFW_window* win, RGFW_rect);
+RGFWDEF void RGFW_releaseCursor(RGFW_window* win);
+
+
+RGFWDEF void RGFW_image_copy64(RGFW_image* dest, const RGFW_image* src, RGFW_bool is64bit);
+
+RGFWDEF RGFW_bool RGFW_loadEGL(void);
+
+/* end of global private API defs */
+
 RGFW_info* _RGFW = NULL;
 void RGFW_setInfo(RGFW_info* info) { _RGFW = info; }
 RGFW_info* RGFW_getInfo(void) { return _RGFW; }
@@ -1679,9 +1687,6 @@ typedef struct {
 
 RGFW_keyState RGFW_mouseButtons[RGFW_mouseFinal];
 RGFW_keyState RGFW_keyboard[RGFW_keyLast];
-
-RGFWDEF void RGFW_resetKeyPrev(void);
-RGFWDEF void RGFW_resetKey(void);
 
 #ifndef RGFW_CUSTOM_BACKEND
 RGFWDEF void RGFW_init_keys(void);
@@ -1959,9 +1964,8 @@ no more event call back defines
 #define RGFW_EVENT_QUIT 		RGFW_BIT(25) /* the window close button was pressed */
 #define RGFW_HOLD_MOUSE			RGFW_BIT(26) /*!< hold the moues still */
 #define RGFW_MOUSE_LEFT 		RGFW_BIT(27) /* if mouse left the window */
-#define RGFW_WINDOW_ALLOC 		RGFW_BIT(28) /* if window was allocated by RGFW */
 #define RGFW_WINDOW_INIT 		RGFW_BIT(30) /* if window.buffer was allocated by RGFW */
-#define RGFW_INTERNAL_FLAGS (RGFW_EVENT_QUIT | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_WINDOW_ALLOC | RGFW_windowFocus | RGFW_windowUseEGL)
+#define RGFW_INTERNAL_FLAGS (RGFW_EVENT_QUIT | RGFW_HOLD_MOUSE |  RGFW_MOUSE_LEFT | RGFW_windowFocus | RGFW_windowEGL)
 
 size_t RGFW_sizeofInfo(void) { return sizeof(RGFW_info); }
 size_t RGFW_sizeofNativeImage(void) { return sizeof(RGFW_nativeImage); }
@@ -1976,13 +1980,6 @@ RGFW_key RGFW_window_getExitKey(RGFW_window* win) { return win->exitKey; }
 void RGFW_window_setExitKey(RGFW_window* win, RGFW_key key) { win->exitKey = key; }
 void* RGFW_window_getUserPtr(RGFW_window* win) { return win->userPtr; }
 void RGFW_window_setUserPtr(RGFW_window* win, void* ptr) { win->userPtr = ptr; }
-
-RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
-	RGFW_window* win = (RGFW_window*)RGFW_ALLOC(sizeof(RGFW_window));
-	RGFW_ASSERT(win != NULL);
-    win->_flags = RGFW_WINDOW_ALLOC;
-    return RGFW_createWindowPtr(name, rect, flags, win);
-}
 
 #if defined(RGFW_USE_XDL) && defined(RGFW_X11)
 	#define XDL_IMPLEMENTATION
@@ -2020,7 +2017,6 @@ i32 RGFW_init_ptr(RGFW_info* info) {
 	return out;
 }
 
-RGFWDEF void RGFW_unloadEGL(void);
 #ifndef RGFW_EGL
 void RGFW_unloadEGL(void) { }
 #endif
@@ -2036,6 +2032,79 @@ void RGFW_deinit_ptr(RGFW_info* info) {
     _RGFW->windowCount = 0;
     RGFW_setInfo(NULL);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal, RGFW_DEBUG_CTX(NULL, 0), "global context deinitialized");
+}
+
+RGFW_window* RGFW_createWindow(const char* name, RGFW_rect rect, RGFW_windowFlags flags) {
+	RGFW_window* win = (RGFW_window*)RGFW_ALLOC(sizeof(RGFW_window));
+	RGFW_ASSERT(win != NULL);
+    return RGFW_createWindowPtr(name, rect, flags, win);
+}
+
+void RGFW_window_close(RGFW_window* win) {
+	RGFW_ASSERT(win != NULL);
+	RGFW_window_closePtr(win);
+	RGFW_FREE(win);
+}
+
+RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
+	RGFW_ASSERT(win != NULL);
+    if (_RGFW == NULL) RGFW_init();
+    _RGFW->windowCount++;
+
+	/* rect based the requested flags */
+	if (_RGFW->root == NULL) {
+		RGFW_setRootWindow(win);
+	}
+
+	/* set and init the new window's data */
+	win->r = rect;
+	win->exitKey = RGFW_escape;
+
+	win->_flags = flags;
+	win->_keyMod = 0;
+	win->_lastMousePoint = RGFW_POINT(0, 0);
+
+	RGFW_window* ret = RGFW_createWindowPlatform(name, rect, flags, win);
+
+	RGFW_window_setMouseDefault(win);
+	RGFW_window_setFlags(win, flags);
+	if (!(flags & RGFW_windowHide)) RGFW_window_show(win);
+
+	#ifdef RGFW_OPENGL
+	if (flags & RGFW_windowOpenGL)
+		RGFW_window_createContext_OpenGL(win);
+	#endif
+
+	#ifdef RGFW_EGL
+	if (flag & RGFW_windowEGL)
+		RGFW_window_createContext_EGL(win);
+	#endif
+
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new  window was created");
+	return ret;
+}
+
+void RGFW_window_closePtr(RGFW_window* win) {
+	RGFW_ASSERT(win != NULL);
+	if (win->src.ctx) {
+		#ifdef RGFW_EGL
+		if (win->_flags & RGFW_windowEGL)
+			RGFW_window_createContext_EGL(win);
+		else
+		#endif
+		#ifdef RGFW_OPENGL
+			RGFW_window_createContext_OpenGL(win);
+		#endif
+		win->src.ctx = NULL;
+	}
+
+	RGFW_window_closePlatform(win);
+
+	RGFW_clipboard_switch(NULL);
+	_RGFW->windowCount--;
+	if (_RGFW->windowCount == 0) RGFW_deinit();
+
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
 }
 
 void RGFW_setQueueEvents(RGFW_bool queue) {  _RGFW->queueEvents = queue; }
@@ -2102,47 +2171,16 @@ RGFW_bool RGFW_window_checkQueuedEvent(RGFW_window* win, RGFW_event* event) {
 	return RGFW_FALSE;
 }
 
-
-RGFWDEF void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags flags);
 void RGFW_setRootWindow(RGFW_window* win) { _RGFW->root = win; }
 RGFW_window* RGFW_getRootWindow(void) { return _RGFW->root; }
 
-RGFWDEF RGFW_bool RGFW_loadEGL(void);
 #ifndef RGFW_EGL
 RGFW_bool RGFW_loadEGL(void) { return RGFW_FALSE; }
 #endif
 
-/* do a basic initialization for RGFW_window, this is to standard it for each OS */
-void RGFW_window_basic_init(RGFW_window* win, RGFW_rect rect, RGFW_windowFlags flags) {
-	RGFW_UNUSED(flags);
-    if (_RGFW == NULL) RGFW_init();
-    _RGFW->windowCount++;
-
-	#ifdef RGFW_WAYLAND
-	if (RGFW_usingWayland()) flags |= (u32)RGFW_windowUseEGL;
-	#endif
-
-	/* rect based the requested flags */
-	if (_RGFW->root == NULL) {
-		RGFW_setRootWindow(win);
-	}
-
-	if (!(win->_flags & RGFW_WINDOW_ALLOC)) win->_flags = 0;
-
-	/* set and init the new window's data */
-	win->r = rect;
-	win->exitKey = RGFW_escape;
-
-	win->_flags = flags | (win->_flags & RGFW_WINDOW_ALLOC);
-	win->_keyMod = 0;
-	win->_lastMousePoint = RGFW_POINT(0, 0);
-}
-
 void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	RGFW_windowFlags cmpFlags = win->_flags;
 	if (win->_flags & RGFW_WINDOW_INIT) cmpFlags = 0;
-	if (!(win->_flags & RGFW_windowUseEGL) && flags & RGFW_windowUseEGL) flags &= (u32)~RGFW_windowUseEGL;
-
 	#ifndef RGFW_NO_MONITOR
 	if (flags & RGFW_windowScaleToMonitor)			RGFW_window_scaleToMonitor(win);
 	#endif
@@ -2243,7 +2281,6 @@ void* RGFW_window_getOSXView(RGFW_window* win) {
 #endif
 }
 
-RGFWDEF void RGFW_setBit(u32* var, u32 mask, RGFW_bool set);
 void RGFW_setBit(u32* var, u32 mask, RGFW_bool set) {
 	if (set) *var |=  mask;
 	else     *var &= ~mask;
@@ -2264,7 +2301,6 @@ RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, RGFW_window* win) {
 	return RGFW_monitor_requestMode(mon, mode, RGFW_monitorScale);
 }
 
-void RGFW_splitBPP(u32 bpp, RGFW_monitorMode* mode);
 void RGFW_splitBPP(u32 bpp, RGFW_monitorMode* mode) {
     if (bpp == 32) bpp = 24;
     mode->red = mode->green = mode->blue = (u8)(bpp / 3);
@@ -2311,9 +2347,13 @@ RGFW_surface* RGFW_createSurface(RGFW_image img) {
 	RGFW_surface* surface = (RGFW_surface*)RGFW_ALLOC(sizeof(RGFW_surface));
 	RGFW_MEMSET(surface, 0, sizeof(RGFW_surface));
 	surface->image = img;
-	surface->native.ownedByRGFW = RGFW_TRUE;
 	RGFW_createSurfacePtr(img, surface);
 	return surface;
+}
+
+void RGFW_surface_free(RGFW_surface* surface) {
+	RGFW_surface_freePtr(surface);
+	RGFW_FREE(surface);
 }
 
 RGFW_nativeImage* RGFW_surface_getNativeImage(RGFW_surface* surface) {
@@ -2330,7 +2370,6 @@ RGFW_colorLayout RGFW_layouts[RGFW_formatCount] = {
 	{ 3, 2, 1, 0 }, /* RGFW_formatABGR8 */
 };
 
-RGFWDEF void RGFW_image_copy64(RGFW_image* dest, const RGFW_image* src, RGFW_bool is64bit);
 void RGFW_image_copy(RGFW_image* dest, const RGFW_image* src) { RGFW_image_copy64(dest, src, RGFW_FALSE); }
 void RGFW_image_copy64(RGFW_image* dest, const RGFW_image* src, RGFW_bool is64bit) {
 	RGFW_ASSERT(dest && src);
@@ -2370,10 +2409,6 @@ RGFW_bool RGFW_window_setIcon(RGFW_window* win, RGFW_image img) {
 	return RGFW_window_setIconEx(win, img, RGFW_iconBoth);
 }
 
-RGFWDEF void RGFW_captureCursor(RGFW_window* win, RGFW_rect);
-RGFWDEF void RGFW_releaseCursor(RGFW_window* win);
-
-
 RGFW_bool RGFW_window_isMouseHeld(RGFW_window* win) { return RGFW_BOOL(win->_flags & RGFW_HOLD_MOUSE); }
 
 void RGFW_window_holdMouse(RGFW_window* win, RGFW_area area) {
@@ -2392,13 +2427,11 @@ void RGFW_window_unholdMouse(RGFW_window* win) {
 	RGFW_releaseCursor(win);
 }
 
-RGFWDEF void RGFW_updateKeyMod(RGFW_window* win, RGFW_keymod mod, RGFW_bool value);
 void RGFW_updateKeyMod(RGFW_window* win, RGFW_keymod mod, RGFW_bool value) {
 	if (value) win->_keyMod |= mod;
 	else win->_keyMod &= ~mod;
 }
 
-RGFWDEF void RGFW_updateKeyModsPro(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super, RGFW_bool scroll);
 void RGFW_updateKeyModsPro(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super, RGFW_bool scroll) {
 	RGFW_updateKeyMod(win, RGFW_modCapsLock, capital);
 	RGFW_updateKeyMod(win, RGFW_modNumLock, numlock);
@@ -2409,7 +2442,6 @@ void RGFW_updateKeyModsPro(RGFW_window* win, RGFW_bool capital, RGFW_bool numloc
 	RGFW_updateKeyMod(win, RGFW_modScrollLock, scroll);
 }
 
-RGFWDEF void RGFW_updateKeyMods(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, RGFW_bool scroll);
 void RGFW_updateKeyMods(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, RGFW_bool scroll) {
 	RGFW_updateKeyModsPro(win, capital, numlock,
 					RGFW_isPressed(win, RGFW_controlL) || RGFW_isPressed(win, RGFW_controlR),
@@ -2419,7 +2451,6 @@ void RGFW_updateKeyMods(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, 
 					scroll);
 }
 
-RGFWDEF void RGFW_window_showMouseFlags(RGFW_window* win, RGFW_bool show);
 void RGFW_window_showMouseFlags(RGFW_window* win, RGFW_bool show) {
 	if (show && (win->_flags & RGFW_windowHideMouse))
 		win->_flags ^= RGFW_windowHideMouse;
@@ -2538,6 +2569,18 @@ i32 RGFW_getHint_OpenGL(RGFW_glHints hint) {
 	return RGFW_GL_HINTS[hint];
 }
 
+RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
+	RGFW_glContext* ctx = RGFW_ALLOC(sizeof(RGFW_glContext));
+	if (RGFW_window_createContextPtr_OpenGL(win, ctx) == RGFW_FALSE)
+		return NULL;
+	return ctx;
+}
+
+void RGFW_window_deleteContext_OpenGL(RGFW_glContext* ctx) {
+	RGFW_window_deleteContextPtr_OpenGL(ctx);
+	RGFW_FREE(ctx);
+}
+
 RGFW_bool RGFW_extensionSupportedStr(const char* extensions, const char* ext, size_t len) {
     const char *start = extensions;
     const char *where;
@@ -2610,8 +2653,6 @@ void RGFW_window_makeCurrentWindow_OpenGL(RGFW_window* win) {
 }
 
 RGFW_window* RGFW_getCurrentWindow_OpenGL(void) { return _RGFW->current; }
-
-RGFW_bool RGFW_window_isSoftware_OpenGL(RGFW_window* win) { return RGFW_BOOL(win->_flags |= RGFW_windowOpenGLSoftware); }
 
 typedef struct RGFW_attribStack {
 	i32* attribs;
@@ -2780,19 +2821,11 @@ void RGFW_unloadEGL(void) {
     RGFW_eglGetProcAddress = NULL;
 }
 
-RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) {
-	if (RGFW_loadEGL() == RGFW_FALSE) {
-		win->_flags &= (u32)~RGFW_windowUseEGL;
-	#ifndef RGFW_WAYLAND
-		return RGFW_window_createContext_OpenGL(win);
-	#endif
-	}
-
-	win->_flags |= (u32)RGFW_windowUseEGL;
-
+RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_glContext* ctx) {
+	if (RGFW_loadEGL() == RGFW_FALSE) return RGFW_FALSE;
 #ifdef RGFW_WAYLAND
     if (_RGFW->useWaylandBool)
-        win->src.ctx.eglWindow = wl_egl_window_create(win->src.surface, win->r.w, win->r.h);
+        ((RGFW_glContext*)win->src.ctx)->eglWindow = wl_egl_window_create(win->src.surface, win->r.w, win->r.h);
 #endif
 
 	#ifndef EGL_OPENGL_ES1_BIT
@@ -2869,24 +2902,24 @@ RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) {
 
 		RGFW_window_cocoaSetLayer(win, layer);
 
-		win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) layer, surf_attribs);
+		((RGFW_glContext*)win->src.ctx)->EGL_surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) layer, surf_attribs);
 	#elif defined(RGFW_WINDOWS)
-		win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) win->src.window, surf_attribs);
+		((RGFW_glContext*)win->src.ctx)->EGL_surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) win->src.window, surf_attribs);
 	#elif defined(RGFW_WAYLAND)
 		if (_RGFW->useWaylandBool)
-			win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) win->src.ctx.eglWindow, surf_attribs);
+			((RGFW_glContext*)win->src.ctx)->EGL_surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) ((RGFW_glContext*)win->src.ctx)->eglWindow, surf_attribs);
 		else
     #endif
     #ifdef RGFW_X11
-        win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) win->src.window, surf_attribs);
+        ((RGFW_glContext*)win->src.ctx)->EGL_surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) win->src.window, surf_attribs);
     #else
     {}
     #endif
     #if !defined(RGFW_X11) && !defined(RGFW_WAYLAND) && !defined(RGFW_MACOS)
-		win->src.ctx.EGL_surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) win->src.window, surf_attribs);
+		((RGFW_glContext*)win->src.ctx)->EGL_surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) win->src.window, surf_attribs);
 	#endif
 
-	if (win->src.ctx.EGL_surface == NULL) {
+	if (((RGFW_glContext*)win->src.ctx)->EGL_surface == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errEGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to create an EGL surface.");
 		return NULL;
 	}
@@ -2932,28 +2965,28 @@ RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) {
 	else
 		RGFW_eglBindAPI(EGL_OPENGL_API);
 
-	win->src.ctx.EGL_context = RGFW_eglCreateContext(_RGFW->EGL_display, config, EGL_NO_CONTEXT, attribs);
+	((RGFW_glContext*)win->src.ctx)->EGL_context = RGFW_eglCreateContext(_RGFW->EGL_display, config, EGL_NO_CONTEXT, attribs);
 
-	if (win->src.ctx.EGL_context == NULL) {
+	if (((RGFW_glContext*)win->src.ctx)->EGL_context == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errEGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to create an EGL context.");
 		return NULL;
 	}
 
-	RGFW_eglMakeCurrent(_RGFW->EGL_display, win->src.ctx.EGL_surface, win->src.ctx.EGL_surface, win->src.ctx.EGL_context);
-	RGFW_eglSwapBuffers(_RGFW->EGL_display, win->src.ctx.EGL_surface);
+	RGFW_eglMakeCurrent(_RGFW->EGL_display, ((RGFW_glContext*)win->src.ctx)->EGL_surface, ((RGFW_glContext*)win->src.ctx)->EGL_surface, ((RGFW_glContext*)win->src.ctx)->EGL_context);
+	RGFW_eglSwapBuffers(_RGFW->EGL_display, ((RGFW_glContext*)win->src.ctx)->EGL_surface);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "EGL context initalized.");
-	return &win->src.ctx;
+	return &((RGFW_glContext*)win->src.ctx)->
 }
 
 void RGFW_window_deleteContext_EGL(RGFW_window* win) {
 	if (_RGFW->EGL_display == NULL) return;
 
-	RGFW_eglDestroySurface(_RGFW->EGL_display, win->src.ctx.EGL_surface);
-	RGFW_eglDestroyContext(_RGFW->EGL_display, win->src.ctx.EGL_context);
+	RGFW_eglDestroySurface(_RGFW->EGL_display, ((RGFW_glContext*)win->src.ctx)->EGL_surface);
+	RGFW_eglDestroyContext(_RGFW->EGL_display, ((RGFW_glContext*)win->src.ctx)->EGL_context);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "EGL context freed");
 	#ifdef RGFW_WAYLAND
 		if (_RGFW->useWaylandBool == RGFW_FALSE) return;
-		wl_egl_window_destroy(win->src.ctx.eglWindow);
+		wl_egl_window_destroy(((RGFW_glContext*)win->src.ctx)->eglWindow);
 		RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "EGL window context freed");
 	#endif
 }
@@ -2962,13 +2995,13 @@ void RGFW_window_makeCurrentContext_EGL(RGFW_window* win) {
 	if (win == NULL)
         RGFW_eglMakeCurrent(_RGFW->EGL_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     else {
-        RGFW_eglMakeCurrent(_RGFW->EGL_display, win->src.ctx.EGL_surface, win->src.ctx.EGL_surface, win->src.ctx.EGL_context);
+        RGFW_eglMakeCurrent(_RGFW->EGL_display, ((RGFW_glContext*)win->src.ctx)->EGL_surface, ((RGFW_glContext*)win->src.ctx)->EGL_surface, ((RGFW_glContext*)win->src.ctx)->EGL_context);
     }
 }
 
 void RGFW_window_swapBuffers_EGL(RGFW_window* win) {
 	if (RGFW_eglSwapBuffers)
-		RGFW_eglSwapBuffers(_RGFW->EGL_display, win->src.ctx.EGL_surface);
+		RGFW_eglSwapBuffers(_RGFW->EGL_display, ((RGFW_glContext*)win->src.ctx)->EGL_surface);
 	else RGFW_window_swapBuffers_OpenGL(win);
 }
 
@@ -3009,7 +3042,18 @@ void RGFW_window_makeCurrentWindow_EGL(RGFW_window* win) {
 }
 
 RGFW_window* RGFW_getCurrentWindow_EGL(void) { return _RGFW->current; }
-RGFW_bool RGFW_window_isSoftware_EGL(RGFW_window* win) { return RGFW_window_isSoftware_OpenGL(win); }
+
+RGFW_eglContext* RGFW_window_createContext_EGL(RGFW_window* win) {
+	RGFW_eglContext* ctx = RGFW_ALLOC(sizeof(RGFW_eglContext));
+	if (RGFW_window_createContextPtr_EGL(win, ctx) == RGFW_FALSE)
+		return NULL;
+	return ctx;
+}
+
+void RGFW_window_deleteContext_EGL(RGFW_glContext* ctx) {
+	RGFW_window_deleteContextPtr_EGL(ctx);
+	RGFW_FREE(ctx);
+}
 
 #endif /* RGFW_EGL */
 
@@ -3478,10 +3522,9 @@ void RGFW_FUNC(RGFW_window_blitSurface) (RGFW_window* win, RGFW_surface* surface
 	return;
 }
 
-void RGFW_FUNC(RGFW_surface_free) (RGFW_surface* surface) {
+void RGFW_FUNC(RGFW_surface_freePtr) (RGFW_surface* surface) {
 	RGFW_ASSERT(surface != NULL);
 	XDestroyImage(surface->native.bitmap);
-	if (surface->native.ownedByRGFW) RGFW_FREE(surface);
 	return;
 }
 
@@ -3633,19 +3676,13 @@ void RGFW_window_getVisual(RGFW_window* win) {
 		return;
 	}
 
-	win->src.ctx.bestFbc = fbc[best_fbc];
-	XVisualInfo* vi = glXGetVisualFromFBConfig(_RGFW->display, win->src.ctx.bestFbc);
+	win->src.bestFbc = fbc[best_fbc];
+	XVisualInfo* vi = glXGetVisualFromFBConfig(_RGFW->display, win->src.bestFbc);
 	if (vi->depth != 32 && (win->_flags & RGFW_windowTransparent))
 		RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Failed to to find a matching visual with a 32-bit depth.");
 
 	if (best_samples < RGFW_GL_HINTS[RGFW_glSamples])
 		RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, RGFW_DEBUG_CTX(win, 0), "Failed to load a matching sample count.");
-
-	int configCaveat;
-	if (glXGetFBConfigAttrib(_RGFW->display, win->src.ctx.bestFbc, GLX_CONFIG_CAVEAT, &configCaveat) == Success &&
-		configCaveat == GLX_SLOW_CONFIG) {
-		win->_flags |= RGFW_windowOpenGLSoftware;
-	}
 
 	XFree(fbc);
 	win->src.visual = *vi;
@@ -3676,8 +3713,8 @@ static int RGFW_XErrorHandler(Display* display, XErrorEvent* ev) {
     return 0;
 }
 
-RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
-	RGFW_window_basic_init(win, rect, flags);
+RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
+	RGFW_UNUSED(rect);
 
 	i64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /*!< X11 events accepted */
     RGFW_window_getVisual(win);
@@ -3755,18 +3792,10 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, 
     XChangeProperty(_RGFW->display, win->src.window, _NET_WM_SYNC_REQUEST_COUNTER, XA_CARDINAL, 32, PropModeReplace, (uint8_t*)&win->src.counter, 1);
 #endif
 
-	RGFW_window_setMouseDefault(win);
-	RGFW_window_setFlags(win, flags);
-
-	if ((flags & RGFW_windowNoInitAPI) == 0) {
-		#ifdef RGFW_OPENGL
-			RGFW_window_createContext_OpenGL(win);
-		#endif
-	}
-
-    RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new window was created");
-
 	win->src.r = win->r;
+
+	XSetWindowBackground(_RGFW->display, win->src.window, 0);
+    XClearWindow(_RGFW->display, win->src.window);
 
 	RGFW_window_show(win);
     return win; /*return newly created window */
@@ -5083,10 +5112,8 @@ RGFW_monitor RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
 }
 
 #ifdef RGFW_OPENGL
-RGFW_glContext* RGFW_FUNC(RGFW_window_createContext_OpenGL) (RGFW_window* win) {
-#ifdef RGFW_EGL
-	if (win->_flags & RGFW_windowUseEGL) return RGFW_window_createContext_EGL(win);
-#endif
+RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW_glContext* context) {
+	win->src.ctx = (void*)context;
 	i32 mask = 0;
 
 	i32 context_attribs[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -5118,30 +5145,25 @@ RGFW_glContext* RGFW_FUNC(RGFW_window_createContext_OpenGL) (RGFW_window* win) {
 
 	if (glXCreateContextAttribsARB == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to load proc address 'glXCreateContextAttribsARB', loading a generic OpenGL context.");
-			win->src.ctx.ctx = glXCreateContext(_RGFW->display, &win->src.visual, ctx, True);
-		}
-		else {
+			((RGFW_glContext*)win->src.ctx)->ctx = glXCreateContext(_RGFW->display, &win->src.visual, ctx, True);
+	} else {
                 _RGFW->x11Error = NULL;
-                win->src.ctx.ctx = glXCreateContextAttribsARB(_RGFW->display, win->src.ctx.bestFbc, ctx, True, context_attribs);
-				if (_RGFW->x11Error || win->src.ctx.ctx == NULL) {
+                ((RGFW_glContext*)win->src.ctx)->ctx = glXCreateContextAttribsARB(_RGFW->display, win->src.bestFbc, ctx, True, context_attribs);
+				if (_RGFW->x11Error || ((RGFW_glContext*)win->src.ctx)->ctx == NULL) {
 					RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to create an OpenGL context with AttribsARB, loading a generic OpenGL context.");
-					win->src.ctx.ctx = glXCreateContext(_RGFW->display, &win->src.visual, ctx, True);
+					((RGFW_glContext*)win->src.ctx)->ctx = glXCreateContext(_RGFW->display, &win->src.visual, ctx, True);
             }
-		}
+	}
 
-        glXMakeCurrent(_RGFW->display, (Drawable)win->src.window, (GLXContext)win->src.ctx.ctx);
-        RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
-		return &win->src.ctx;
+	glXMakeCurrent(_RGFW->display, (Drawable)win->src.window, (GLXContext)((RGFW_glContext*)win->src.ctx)->ctx);
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
+
+	return RGFW_TRUE;
 }
 
-void RGFW_FUNC(RGFW_window_deleteContext_OpenGL) (RGFW_window* win) {
-#ifdef RGFW_EGL
-	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_deleteContext_EGL(win); return; }
-#endif
-	if (win->src.ctx.ctx == NULL) return;
-	glXDestroyContext(_RGFW->display, win->src.ctx.ctx);
-	win->src.ctx.ctx = NULL;
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context freed.");
+void RGFW_FUNC(RGFW_window_deleteContextPtr_OpenGL) (RGFW_glContext* ctx) {
+	glXDestroyContext(_RGFW->display, ctx->ctx);
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(NULL, 0), "OpenGL context freed.");
 }
 
 RGFW_bool RGFW_FUNC(RGFW_extensionSupportedPlatform_OpenGL)(const char * extension, size_t len) {
@@ -5156,7 +5178,7 @@ void RGFW_FUNC(RGFW_window_makeCurrentContext_OpenGL) (RGFW_window* win) {
 	if (win == NULL)
 		glXMakeCurrent(NULL, (Drawable)NULL, (GLXContext) NULL);
 	else
-		glXMakeCurrent(_RGFW->display, (Drawable) win->src.window, (GLXContext) win->src.ctx.ctx);
+		glXMakeCurrent(_RGFW->display, (Drawable) win->src.window, (GLXContext) ((RGFW_glContext*)win->src.ctx)->ctx);
 	return;
 }
 void* RGFW_FUNC(RGFW_getCurrentContext_OpenGL) (void) { return glXGetCurrentContext(); }
@@ -5321,29 +5343,13 @@ void RGFW_deinitPlatform_X11(void) {
     #endif
 }
 
-void RGFW_FUNC(RGFW_window_close)(RGFW_window* win) {
-	RGFW_ASSERT(win != NULL);
-
-	#ifdef RGFW_OPENGL
-	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_deleteContext_OpenGL(win);
-	#endif
-
-	/* ungrab pointer if it was grabbed */
+void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 	if (win->_flags & RGFW_HOLD_MOUSE)
 		XUngrabPointer(_RGFW->display, CurrentTime);
 
 	XFreeGC(_RGFW->display, win->src.gc);
 	XDeleteContext(_RGFW->display, win->src.window, _RGFW->context);
 	XDestroyWindow(_RGFW->display, (Drawable) win->src.window); /*!< close the window */
-	win->src.window = 0;
-
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
-	RGFW_clipboard_switch(NULL);
-	_RGFW->windowCount--;
-	if (_RGFW->windowCount == 0) RGFW_deinit();
-	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
-		RGFW_FREE(win);
-	}
 	return;
 }
 
@@ -5849,12 +5855,10 @@ RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (RGFW_image img, RGFW_surface* surfac
 	return RGFW_TRUE;
 }
 
-void RGFW_FUNC(RGFW_surface_free) (RGFW_surface* surface) {
+void RGFW_FUNC(RGFW_surface_freePtr) (RGFW_surface* surface) {
 	RGFW_ASSERT(surface != NULL);
 	wl_buffer_destroy(surface->native.wl_buffer);
 	munmap(surface->native.buffer, (size_t)(surface->image.size.w * surface->image.size.h * 4));
-
-	if (surface->native.ownedByRGFW) RGFW_FREE(surface);
 }
 
 void RGFW_FUNC(RGFW_window_blitSurface) (RGFW_window* win, RGFW_surface* surface) {
@@ -5882,11 +5886,10 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win, RGFW_rect r) {
 
 #ifdef RGFW_OPENGL
 RGFW_glContext* RGFW_FUNC(RGFW_window_createContext_OpenGL)(RGFW_window* win) { return RGFW_window_createContext_EGL(win); }
-void RGFW_FUNC(RGFW_window_deleteContext_OpenGL) (RGFW_window* win) { RGFW_window_deleteContext_EGL(win); }
+void RGFW_FUNC(RGFW_window_deleteContextPtr_OpenGL) (RGFW_window* win) { RGFW_window_deleteContextPtr_EGL(win); }
 #endif /* RGFW_OPENGL */
 
-RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
-	RGFW_window_basic_init(win, rect, flags);
+RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningWayland, RGFW_DEBUG_CTX(win, 0), "RGFW Wayland support is experimental");
 
 	win->src.compositor = NULL;
@@ -6013,7 +6016,6 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, 
 	struct wl_callback* callback = wl_surface_frame(win->src.surface);
 	wl_callback_add_listener(callback, &wl_surface_frame_listener, win);
 	wl_surface_commit(win->src.surface);
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new window was created");
 
 	#ifndef RGFW_NO_MONITOR
 	if (flags & RGFW_windowScaleToMonitor)
@@ -6021,15 +6023,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPtr) (const char* name, RGFW_rect rect, 
 	#endif
 
 	RGFW_window_setName(win, name);
-	RGFW_window_setMouseDefault(win);
-	RGFW_window_setFlags(win, flags);
 	wl_registry_destroy(registry);
-
-	if ((flags & RGFW_windowNoInitAPI) == 0) {
-		#ifdef RGFW_OPENGL
-			RGFW_window_createContext_EGL(win);
-		#endif
-	}
 
 	if (_RGFW->decoration_manager != NULL)
 		zxdg_decoration_manager_v1_destroy(_RGFW->decoration_manager);
@@ -6079,7 +6073,7 @@ void RGFW_FUNC(RGFW_window_resize) (RGFW_window* win, RGFW_area a) {
 	if (win->src.compositor) {
 		xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->r.w, win->r.h);
 		#ifdef RGFW_OPENGL
-		wl_egl_window_resize(win->src.ctx.eglWindow, (i32)a.w, (i32)a.h, 0, 0);
+		wl_egl_window_resize(((RGFW_glContext*)win->src.ctx)->eglWindow, (i32)a.w, (i32)a.h, 0, 0);
 		#endif
 	}
 }
@@ -6294,13 +6288,8 @@ void RGFW_FUNC(RGFW_window_swapBuffers_OpenGL) (RGFW_window* win) { RGFW_window_
 void RGFW_FUNC(RGFW_window_swapInterval_OpenGL) (RGFW_window* win, i32 swapInterval) { RGFW_window_swapInterval_EGL(win, swapInterval); }
 #endif /* RGFW_OPENGL */
 
-void RGFW_FUNC(RGFW_window_close)(RGFW_window* win) {
+void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-
-	#ifdef RGFW_OPENGL
-	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_deleteContext_OpenGL(win);
-	#endif
-
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
 	wl_shm_destroy(win->src.shm);
 
@@ -6324,16 +6313,6 @@ void RGFW_FUNC(RGFW_window_close)(RGFW_window* win) {
 	wl_surface_destroy(win->src.surface);
 	wl_compositor_destroy(win->src.compositor);
 	xdg_wm_base_destroy(win->src.xdg_wm_base);
-
-
-	RGFW_clipboard_switch(NULL);
-	_RGFW->windowCount--;
-	if (_RGFW->windowCount == 0) RGFW_deinit();
-
-	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
-	RGFW_FREE(win);
-	win = NULL;
-	}
 }
 
 #ifdef RGFW_WEBGPU
@@ -6887,13 +6866,11 @@ RGFW_bool RGFW_createSurfacePtr(RGFW_image img, RGFW_surface* surface) {
 	return RGFW_TRUE;
 }
 
-void RGFW_surface_free(RGFW_surface* surface) {
+void RGFW_surface_freePtr(RGFW_surface* surface) {
 	RGFW_ASSERT(surface != NULL);
 
 	DeleteDC(surface->native.hdcMem);
 	DeleteObject(surface->native.bitmap);
-
-	if (surface->native.ownedByRGFW) RGFW_FREE(surface);
 }
 
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
@@ -7022,9 +6999,6 @@ void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 #define WGL_CONTEXT_MINOR_VERSION_ARB               0x2092
 
 RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
-	#ifdef RGFW_EGL
-	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_createContext_EGL(win); return; }
-	#endif
 	PIXELFORMATDESCRIPTOR pfd;
 	pfd.nSize        = sizeof(PIXELFORMATDESCRIPTOR);
 	pfd.nVersion     = 1;
@@ -7099,10 +7073,6 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 		!SetPixelFormat(win->src.hdc, pixel_format, &pfd))
 			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to set the WGL pixel format");
 
-    if (!(pfd.dwFlags & PFD_GENERIC_ACCELERATED)) {
-        win->_flags |= RGFW_windowOpenGLSoftware;
-    }
-
 	if (wglCreateContextAttribsARB != NULL) {
 		/* create OpenGL/WGL context for the specified version */
 		u32 index = 0;
@@ -7125,31 +7095,28 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 
 		SET_ATTRIB(0, 0);
 
-		win->src.ctx.ctx = (HGLRC)wglCreateContextAttribsARB(win->src.hdc, NULL, attribs);
+		((RGFW_glContext*)win->src.ctx)->ctx = (HGLRC)wglCreateContextAttribsARB(win->src.hdc, NULL, attribs);
 	} else { /* fall back to a default context (probably OpenGL 2 or something) */
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to create an accelerated OpenGL Context.");
-		win->src.ctx.ctx = wglCreateContext(win->src.hdc);
+		((RGFW_glContext*)win->src.ctx)->ctx = wglCreateContext(win->src.hdc);
 	}
 
 	ReleaseDC(win->src.window, win->src.hdc);
 	win->src.hdc = GetDC(win->src.window);
 
 	if (RGFW_GL_HINTS[RGFW_glShareWithCurrentContext]) {
-		wglShareLists((HGLRC)RGFW_getCurrentContext_OpenGL(), win->src.ctx.ctx);
+		wglShareLists((HGLRC)RGFW_getCurrentContext_OpenGL(), ((RGFW_glContext*)win->src.ctx)->ctx);
 	}
 
-	wglMakeCurrent(win->src.hdc, win->src.ctx.ctx);
+	wglMakeCurrent(win->src.hdc, ((RGFW_glContext*)win->src.ctx)->ctx);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
-	return &win->src.ctx;
+	return &((RGFW_glContext*)win->src.ctx)->
 }
 
-void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
-	#ifdef RGFW_EGL
-	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_deleteContext_EGL(win); return; }
-	#endif
-	if (win->src.ctx.ctx == NULL) return;
-	wglDeleteContext((HGLRC) win->src.ctx.ctx); /*!< delete OpenGL context */
-	win->src.ctx.ctx = NULL;
+void RGFW_window_deleteContextPtr_OpenGL(RGFW_window* win) {
+	if (((RGFW_glContext*)win->src.ctx)->ctx == NULL) return;
+	wglDeleteContext((HGLRC) ((RGFW_glContext*)win->src.ctx)->ctx); /*!< delete OpenGL context */
+	((RGFW_glContext*)win->src.ctx)->ctx = NULL;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context freed.");
 }
 #endif /* RGFW_OPENGL */
@@ -7191,11 +7158,8 @@ i32 RGFW_initPlatform(void) {
     return 1;
 }
 
-RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
+RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	if (name[0] == 0) name = (char*) " ";
-
-	RGFW_window_basic_init(win, rect, flags);
-
 	win->src.hIconSmall = win->src.hIconBig = NULL;
 	win->src.maxSize = RGFW_AREA(0, 0);
 	win->src.minSize = RGFW_AREA(0, 0);
@@ -7261,18 +7225,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	}
 	win->src.hdc = GetDC(win->src.window);
 
-	RGFW_window_setFlags(win, flags);
-
-	#ifdef RGFW_OPENGL
-	if ((flags & RGFW_windowNoInitAPI) == 0)
-		RGFW_window_createContext_OpenGL(win);
-	#endif
-
 	RGFW_win32_makeWindowTransparent(win);
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new window was created");
-    RGFW_window_show(win);
-
-    return win;
+	return win;
 }
 
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
@@ -7736,27 +7690,13 @@ void RGFW_deinitPlatform(void) {
 }
 
 
-void RGFW_window_close(RGFW_window* win) {
-	RGFW_ASSERT(win != NULL);
-	#ifdef RGFW_OPENGL
-	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_deleteContext_OpenGL(win);
-	#endif
-
+void RGFW_window_closePlatform(RGFW_window* win) {
 	RemovePropW(win->src.window, L"RGFW");
 	ReleaseDC(win->src.window, win->src.hdc); /*!< delete device context */
 	DestroyWindow(win->src.window); /*!< delete window */
 
 	if (win->src.hIconSmall) DestroyIcon(win->src.hIconSmall);
 	if (win->src.hIconBig) DestroyIcon(win->src.hIconBig);
-
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
-    RGFW_clipboard_switch(NULL);
-    _RGFW->windowCount--;
-	if (_RGFW->windowCount == 0) RGFW_deinit();
-
-	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
-		RGFW_FREE(win);
-    }
 }
 
 void RGFW_window_move(RGFW_window* win, RGFW_point v) {
@@ -7917,7 +7857,7 @@ void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
 	if (win == NULL)
 		wglMakeCurrent(NULL, NULL);
 	else
-		wglMakeCurrent(win->src.hdc, (HGLRC) win->src.ctx.ctx);
+		wglMakeCurrent(win->src.hdc, (HGLRC) ((RGFW_glContext*)win->src.ctx)->ctx);
 }
 void* RGFW_getCurrentContext_OpenGL(void) {
 	return wglGetCurrentContext();
@@ -8919,9 +8859,7 @@ RGFW_bool RGFW_createSurfacePtr(RGFW_image img, RGFW_surface* surface) {
 	return RGFW_TRUE;
 }
 
-void RGFW_surface_free(RGFW_surface* surface) {
-	if (surface->native.ownedByRGFW) RGFW_FREE(surface);
-}
+void RGFW_surface_freePtr(RGFW_surface* surface) { }
 
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	RGFW_image_copy(&surface->image, &surface->image);
@@ -8959,10 +8897,6 @@ void* RGFW_cocoaGetLayer(void) {
 #ifdef RGFW_OPENGL
 
 RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
-	#ifdef RGFW_EGL
-	if (win->_flags & RGFW_windowUseEGL) return RGFW_window_createContext_EGL(win);
-	#endif
-
 	i32 attribs[40];
 	size_t render_type_index = 0;
 	{
@@ -9040,31 +8974,28 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 		share = (id)RGFW_getCurrentContext_OpenGL();
 	}
 
-	win->src.ctx.ctx = ((id (*)(id, SEL, id, id))objc_msgSend)(NSAlloc(objc_getClass("NSOpenGLContext")),
+	((RGFW_glContext*)win->src.ctx)->ctx = ((id (*)(id, SEL, id, id))objc_msgSend)(NSAlloc(objc_getClass("NSOpenGLContext")),
 												 sel_registerName("initWithFormat:shareContext:"),
 												 (id)format, share);
 
-	objc_msgSend_void_id(win->src.view, sel_registerName("setOpenGLContext:"), win->src.ctx.ctx);
+	objc_msgSend_void_id(win->src.view, sel_registerName("setOpenGLContext:"), ((RGFW_glContext*)win->src.ctx)->ctx);
 	if (win->_flags & RGFW_windowTransparent) {
 		i32 opacity = 0;
 		#define NSOpenGLCPSurfaceOpacity 236
-		NSOpenGLContext_setValues((id)win->src.ctx.ctx, &opacity, NSOpenGLCPSurfaceOpacity);
+		NSOpenGLContext_setValues((id)((RGFW_glContext*)win->src.ctx)->ctx, &opacity, NSOpenGLCPSurfaceOpacity);
 
 	}
 
-	objc_msgSend_void(win->src.ctx.ctx, sel_registerName("makeCurrentContext"));
+	objc_msgSend_void(((RGFW_glContext*)win->src.ctx)->ctx, sel_registerName("makeCurrentContext"));
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
-	return &win->src.ctx;
+	return &((RGFW_glContext*)win->src.ctx)->
 }
 
-void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
-	#ifdef RGFW_EGL
-	if (win->_flags & RGFW_windowUseEGL) { RGFW_window_deleteContext_EGL(win); return; }
-	#endif
-	if (win->src.ctx.ctx == NULL) return;
-	objc_msgSend_void(win->src.ctx.ctx, sel_registerName("release"));
-	win->src.ctx.ctx = NULL;
+void RGFW_window_deleteContextPtr_OpenGL(RGFW_window* win) {
+	if (((RGFW_glContext*)win->src.ctx)->ctx == NULL) return;
+	objc_msgSend_void(((RGFW_glContext*)win->src.ctx)->ctx, sel_registerName("release"));
+	((RGFW_glContext*)win->src.ctx)->ctx = NULL;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context freed.");
 }
 #endif /* RGFW_OPENGL */
@@ -9130,16 +9061,13 @@ i32 RGFW_initPlatform(void) {
 	return 0;
 }
 
-RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
-	static u8 RGFW_loaded = 0;
-	RGFW_window_basic_init(win, rect, flags);
-
+RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
     /* RR Create an autorelease pool */
 	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	pool = objc_msgSend_id(pool, sel_registerName("init"));
 
 	#ifdef RGFW_OPENGL
-		win->src.ctx.ctx = NULL;
+		((RGFW_glContext*)win->src.ctx)->ctx = NULL;
 	#endif
 
 
@@ -9189,8 +9117,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 		NSregisterForDraggedTypes((id)win->src.window, types, 3);
 	}
 
-	RGFW_window_setFlags(win, flags);
-
 	#ifdef RGFW_OPENGL
 	if ((flags & RGFW_windowNoInitAPI) == 0)
 		RGFW_window_createContext_OpenGL(win);
@@ -9227,10 +9153,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("makeKeyAndOrderFront:"), NULL);
 	RGFW_window_show(win);
 
-	if (!RGFW_loaded) {
+	if (_RGFW->root == NULL) {
 		objc_msgSend_void(win->src.window, sel_registerName("makeMainWindow"));
-
-		RGFW_loaded = 1;
 	}
 
 	objc_msgSend_void(win->src.window, sel_registerName("makeKeyWindow"));
@@ -9238,8 +9162,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	objc_msgSend_void((id)_RGFW->NSApp, sel_registerName("finishLaunching"));
 	NSRetain(win->src.window);
 	NSRetain(_RGFW->NSApp);
-
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new  window was created");
 	return win;
 }
 
@@ -9829,7 +9751,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	#ifdef RGFW_OPENGL
 	void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
 		if (win != NULL)
-			objc_msgSend_void(win->src.ctx.ctx, sel_registerName("makeCurrentContext"));
+			objc_msgSend_void(((RGFW_glContext*)win->src.ctx)->ctx, sel_registerName("makeCurrentContext"));
 		else
 			objc_msgSend_id(objc_getClass("NSOpenGLContext"), sel_registerName("clearCurrentContext"));
 	}
@@ -9838,7 +9760,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 	}
 
 	void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
-		objc_msgSend_void(win->src.ctx.ctx, sel_registerName("flushBuffer"));
+		objc_msgSend_void(((RGFW_glContext*)win->src.ctx)->ctx, sel_registerName("flushBuffer"));
 	}
 	#endif
 
@@ -9846,7 +9768,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 		RGFW_ASSERT(win != NULL);
 		#if defined(RGFW_OPENGL)
 
-		NSOpenGLContext_setValues((id)win->src.ctx.ctx, &swapInterval, 222);
+		NSOpenGLContext_setValues((id)((RGFW_glContext*)win->src.ctx)->ctx, &swapInterval, 222);
 		#else
 		RGFW_UNUSED(swapInterval);
 		#endif
@@ -9854,21 +9776,8 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 
 void RGFW_deinitPlatform(void) { }
 
-void RGFW_window_close(RGFW_window* win) {
-	RGFW_ASSERT(win != NULL);
+void RGFW_window_closePlatform(RGFW_window* win) {
 	NSRelease(win->src.view);
-
-	#ifdef RGFW_OPENGL
-	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_deleteContext_OpenGL(win);
-	#endif
-
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal, RGFW_DEBUG_CTX(NULL, 0), "global context deinitialized");
-    RGFW_clipboard_switch(NULL);
-    _RGFW->windowCount--;
-    if (_RGFW->windowCount == 0) RGFW_deinit();
-	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
-		RGFW_FREE(win);
-    }
 }
 
 #ifdef RGFW_WEBGPU
@@ -10270,9 +10179,7 @@ void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	}, surface->image.data, surface->image.size.w, surface->image.size.h, win->r.w, win->r.h);
 }
 
-void RGFW_surface_free(RGFW_surface* surface) {
-	if (surface->native.ownedByRGFW) RGFW_FREE(surface);
-}
+void RGFW_surface_freePtr(RGFW_surface* surface) { }
 
 void EMSCRIPTEN_KEEPALIVE RGFW_makeSetValue(size_t index, char* file) {
 	/* This seems like a terrible idea, don't replicate this unless you hate yourself or the OS */
@@ -10321,29 +10228,27 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	attrs.explicitSwapControl = EM_TRUE;
 
 	emscripten_webgl_init_context_attributes(&attrs);
-	win->src.ctx.ctx = emscripten_webgl_create_context("#canvas", &attrs);
-	emscripten_webgl_make_context_current(win->src.ctx.ctx);
+	((RGFW_glContext*)win->src.ctx)->ctx = emscripten_webgl_create_context("#canvas", &attrs);
+	emscripten_webgl_make_context_current(((RGFW_glContext*)win->src.ctx)->ctx);
 
 	#ifdef LEGACY_GL_EMULATION
 	EM_ASM("Module.useWebGL = true; GLImmediate.init();");
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
     #endif
-	return &win->src.ctx;
+	return &((RGFW_glContext*)win->src.ctx)->
 }
 
-void RGFW_window_deleteContext_OpenGL(RGFW_window* win) {
-	if (win->src.ctx.ctx == 0) return;
-	emscripten_webgl_destroy_context(win->src.ctx.ctx);
-	win->src.ctx.ctx = 0;
+void RGFW_window_deleteContextPtr_OpenGL(RGFW_window* win) {
+	if (((RGFW_glContext*)win->src.ctx)->ctx == 0) return;
+	emscripten_webgl_destroy_context(((RGFW_glContext*)win->src.ctx)->ctx);
+	((RGFW_glContext*)win->src.ctx)->ctx = 0;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context freed.");
 }
 #endif
 
 i32 RGFW_initPlatform(void) { return 0; }
 
-RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
-	RGFW_window_basic_init(win, rect, flags);
-
+RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
 	emscripten_set_canvas_element_size("#canvas", rect.w, rect.h);
 	emscripten_set_window_title(name);
 
@@ -10434,14 +10339,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
         canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true);
     });
 
-	RGFW_window_setFlags(win, flags);
-
-#ifdef RGFW_OPENGL
-	if ((flags & RGFW_windowNoInitAPI) == 0)
-		RGFW_window_createContext_OpenGL(win);
-#endif
-
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a new  window was created");
 	return win;
 }
 
@@ -10532,7 +10429,7 @@ void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
 	if (win == NULL)
 	    emscripten_webgl_make_context_current(0);
 	else
-	    emscripten_webgl_make_context_current(win->src.ctx.ctx);
+	    emscripten_webgl_make_context_current(((RGFW_glContext*)win->src.ctx)->ctx);
 }
 
 void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
@@ -10561,7 +10458,7 @@ RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) {
 
 #ifdef RGFW_WASM_EGL
 	RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) { return RGFW_window_createContext_OpenGL(win); }
-	void RGFW_window_deleteContext_EGL(RGFW_window* win) { RGFW_window_deleteContext_OpenGL(win); }
+	void RGFW_window_deleteContextPtr_EGL(RGFW_window* win) { RGFW_window_deleteContextPtr_OpenGL(win); }
 	void RGFW_window_makeCurrent_EGL(RGFW_window* win) { RGFW_window_makeCurrentContext_OpenGL(win); }
 	void RGFW_window_swapBuffers_EGL(RGFW_window* win) { RGFW_window_swapBuffers_OpenGL(win); }
 	void* RGFW_getCurrentContext_EGL(void) { return RGFW_getCurrentContext_OpenGL(); }
@@ -10579,20 +10476,7 @@ void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) { RGFW_
 
 void RGFW_deinitPlatform(void) { }
 
-void RGFW_window_close(RGFW_window* win) {
-#ifdef RGFW_OPENGL
-	if ((win->_flags & RGFW_windowNoInitAPI) == 0) RGFW_window_deleteContext_OpenGL(win);
-#endif
-
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, RGFW_DEBUG_CTX(win, 0), "a window was freed");
-    RGFW_clipboard_switch(NULL);
-    _RGFW->windowCount--;
-    if (_RGFW->windowCount == 0) RGFW_deinit();
-
-	if ((win->_flags & RGFW_WINDOW_ALLOC)) {
-	    RGFW_FREE(win);
-    }
-}
+void RGFW_window_closePlatform(RGFW_window* win) { }
 
 int RGFW_innerWidth(void) {   return EM_ASM_INT({ return window.innerWidth; });  }
 int RGFW_innerHeight(void) {  return EM_ASM_INT({ return window.innerHeight; });  }
@@ -10689,7 +10573,7 @@ void RGFW_waitForEvent(i32 waitMS) { RGFW_UNUSED(waitMS); }
 	* RGFW function pointer backend, made to allow you to compile for Wayland but fallback to X11
 */
 #ifdef RGFW_DYNAMIC
-typedef RGFW_window* (*RGFW_createWindowPtr_ptr)(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win);
+typedef RGFW_window* (*RGFW_createWindowPtr_ptrPlatform)(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win);
 typedef RGFW_area (*RGFW_getScreenSize_ptr)(void);
 typedef RGFW_point (*RGFW_getMousePoint_ptr)(void);
 typedef u8 (*RGFW_rgfwToKeyChar_ptr)(u32 key);
@@ -10727,10 +10611,10 @@ typedef RGFW_monitor* (*RGFW_getMonitors_ptr)(size_t* len);
 typedef RGFW_monitor (*RGFW_getPrimaryMonitor_ptr)(void);
 typedef RGFW_bool (*RGFW_monitor_requestMode_ptr)(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request);
 typedef RGFW_monitor (*RGFW_window_getMonitor_ptr)(RGFW_window* win);
-typedef void (*RGFW_window_close_ptr)(RGFW_window* win);
+typedef void (*RGFW_window_closePlatform_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_createSurfacePtr_ptr)(RGFW_image img, RGFW_surface* surface);
 typedef void (*RGFW_window_blitSurface_ptr)(RGFW_window* win, RGFW_surface* surface);
-typedef void (*RGFW_surface_free_ptr)(RGFW_surface* surface);
+typedef void (*RGFW_surface_freePtr_ptr)(RGFW_surface* surface);
 typedef void (*RGFW_freeMouse_ptr)(RGFW_mouse* mouse);
 typedef void (*RGFW_window_setBorder_ptr)(RGFW_window* win, RGFW_bool border);
 typedef void (*RGFW_releaseCursor_ptr)(RGFW_window* win);
@@ -10743,7 +10627,7 @@ typedef void (*RGFW_window_swapInterval_OpenGL_ptr)(RGFW_window* win, i32 swapIn
 typedef RGFW_bool (*RGFW_extensionSupportedPlatform_OpenGL_ptr)(const char* extension, size_t len);
 typedef RGFW_proc (*RGFW_getProcAddress_OpenGL_ptr)(const char* procname);
 typedef RGFW_glContext* (*RGFW_window_createContext_OpenGL_ptr)(RGFW_window* win);
-typedef void (*RGFW_window_deleteContext_OpenGL_ptr)(RGFW_window* win);
+typedef void (*RGFW_window_deleteContextPtr_OpenGL_ptr)(RGFW_window* win);
 #endif
 #ifdef RGFW_WEBGPU
 typedef WGPUSurface (*RGFW_window_createSurface_WebGPU_ptr)(RGFW_window* window, WGPUInstance instance);
@@ -10753,12 +10637,12 @@ typedef WGPUSurface (*RGFW_window_createSurface_WebGPU_ptr)(RGFW_window* window,
 typedef struct RGFW_FunctionPointers {
    RGFW_createSurfacePtr_ptr createSurfacePtr;
     RGFW_window_blitSurface_ptr window_blitSurface;
-	RGFW_surface_free_ptr surface_free;
+	RGFW_surface_freePtr_ptr surface_freePtr;
 	RGFW_freeMouse_ptr freeMouse;
     RGFW_window_setBorder_ptr window_setBorder;
     RGFW_releaseCursor_ptr releaseCursor;
     RGFW_captureCursor_ptr captureCursor;
-    RGFW_createWindowPtr_ptr createWindowPtr;
+    RGFW_createWindowPlatform_ptr createWindowPlatform;
     RGFW_getScreenSize_ptr getScreenSize;
     RGFW_getMousePoint_ptr getGlobalMousePoint;
     RGFW_rgfwToKeyChar_ptr rgfwToKeyChar;
@@ -10796,12 +10680,12 @@ typedef struct RGFW_FunctionPointers {
     RGFW_getPrimaryMonitor_ptr getPrimaryMonitor;
     RGFW_monitor_requestMode_ptr monitor_requestMode;
     RGFW_window_getMonitor_ptr window_getMonitor;
-    RGFW_window_close_ptr window_close;
+    RGFW_window_closePlatform_ptr window_closePlatform;
 #ifdef RGFW_OPENGL
     RGFW_extensionSupportedPlatform_OpenGL_ptr extensionSupportedPlatform_OpenGL;
     RGFW_getProcAddress_OpenGL_ptr getProcAddress_OpenGL;
     RGFW_window_createContext_OpenGL_ptr window_createContext_OpenGL;
-    RGFW_window_deleteContext_OpenGL_ptr window_deleteContext_OpenGL;
+    RGFW_window_deleteContextPtr_OpenGL_ptr window_deleteContextPtr_OpenGL;
     RGFW_window_makeCurrentContext_OpenGL_ptr window_makeCurrentContext_OpenGL;
     RGFW_getCurrentContext_OpenGL_ptr getCurrentContext_OpenGL;
     RGFW_window_swapBuffers_OpenGL_ptr window_swapBuffers_OpenGL;
@@ -10815,13 +10699,13 @@ typedef struct RGFW_FunctionPointers {
 RGFW_functionPointers RGFW_api;
 
 RGFW_bool RGFW_createSurfacePtr(RGFW_image img, RGFW_surface* surface) { return RGFW_api.createSurfacePtr(img, surface); }
-void RGFW_surface_free(RGFW_surface* surface) { RGFW_api.surface_free(surface); }
+void RGFW_surface_freePtr(RGFW_surface* surface) { RGFW_api.surface_freePtr(surface); }
 void RGFW_freeMouse(RGFW_mouse* mouse) { RGFW_api.freeMouse(mouse); }
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) { RGFW_api.window_blitSurface(win, surface); }
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) { RGFW_api.window_setBorder(win, border); }
 void RGFW_releaseCursor(RGFW_window* win) { RGFW_api.releaseCursor(win); }
 void RGFW_captureCursor(RGFW_window* win, RGFW_rect r) { RGFW_api.captureCursor(win, r); }
-RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) { RGFW_init(); return RGFW_api.createWindowPtr(name, rect, flags, win); }
+RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) { RGFW_init(); return RGFW_api.createWindowPlatform(name, rect, flags, win); }
 RGFW_area RGFW_getScreenSize(void) { return RGFW_api.getScreenSize(); }
 RGFW_point RGFW_getMousePoint(void) { return RGFW_api.getGlobalMousePoint(); }
 u8 RGFW_rgfwToKeyChar(u32 key) { return RGFW_api.rgfwToKeyChar(key); }
@@ -10863,13 +10747,13 @@ RGFW_monitor* RGFW_getMonitors(size_t* len) { return RGFW_api.getMonitors(len); 
 RGFW_monitor RGFW_getPrimaryMonitor(void) { return RGFW_api.getPrimaryMonitor(); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) { return RGFW_api.monitor_requestMode(mon, mode, request); }
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { return RGFW_api.window_getMonitor(win); }
-void RGFW_window_close(RGFW_window* win) { RGFW_api.window_close(win); }
+void RGFW_window_closePlatform(RGFW_window* win) { RGFW_api.window_closePlatform(win); }
 
 #ifdef RGFW_OPENGL
 RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char* extension, size_t len) { return RGFW_api.extensionSupportedPlatform_OpenGL(extension, len); }
 RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) { return RGFW_api.getProcAddress_OpenGL(procname); }
 RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) { return RGFW_api.window_createContext_OpenGL(win); }
-void RGFW_window_deleteContext_OpenGL(RGFW_window* win) { RGFW_api.window_deleteContext_OpenGL(win); }
+void RGFW_window_deleteContextPtr_OpenGL(RGFW_window* win) { RGFW_api.window_deleteContextPtr_OpenGL(win); }
 void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) { RGFW_api.window_makeCurrentContext_OpenGL(win); }
 void* RGFW_getCurrentContext_OpenGL(void) { return RGFW_api.getCurrentContext_OpenGL(); }
 void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) { RGFW_api.window_swapBuffers_OpenGL(win); }
@@ -10890,12 +10774,12 @@ WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance i
 void RGFW_load_X11(void) {
     RGFW_api.createSurfacePtr = RGFW_createSurfacePtr_X11;
     RGFW_api.window_blitSurface = RGFW_window_blitSurface_X11;
-	RGFW_api.surface_free = RGFW_surface_free_X11;
+	RGFW_api.surface_freePtr = RGFW_surface_freePtr_X11;
 	RGFW_api.freeMouse = RGFW_freeMouse_X11;
     RGFW_api.window_setBorder = RGFW_window_setBorder_X11;
     RGFW_api.releaseCursor = RGFW_releaseCursor_X11;
     RGFW_api.captureCursor = RGFW_captureCursor_X11;
-	RGFW_api.createWindowPtr = RGFW_createWindowPtr_X11;
+	RGFW_api.createWindowPlatform = RGFW_createWindowPtr_X11;
     RGFW_api.getScreenSize = RGFW_getScreenSize_X11;
     RGFW_api.getGlobalMousePoint = RGFW_getMousePoint_X11;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_X11;
@@ -10940,7 +10824,7 @@ void RGFW_load_X11(void) {
     RGFW_api.extensionSupportedPlatform_OpenGL = RGFW_extensionSupportedPlatform_OpenGL_X11;
     RGFW_api.getProcAddress_OpenGL = RGFW_getProcAddress_OpenGL_X11;
 	RGFW_api.window_createContext_OpenGL = RGFW_window_createContext_OpenGL_X11;
-    RGFW_api.window_deleteContext_OpenGL = RGFW_window_deleteContext_OpenGL_X11;
+    RGFW_api.window_deleteContextPtr_OpenGL = RGFW_window_deleteContextPtr_OpenGL_X11;
 	RGFW_api.window_makeCurrentContext_OpenGL = RGFW_window_makeCurrentContext_OpenGL_X11;
     RGFW_api.getCurrentContext_OpenGL = RGFW_getCurrentContext_OpenGL_X11;
     RGFW_api.window_swapBuffers_OpenGL = RGFW_window_swapBuffers_OpenGL_X11;
@@ -10954,12 +10838,12 @@ void RGFW_load_X11(void) {
 void RGFW_load_Wayland(void) {
 	RGFW_api.createSurfacePtr = RGFW_createSurfacePtr_Wayland;
 	RGFW_api.window_blitSurface = RGFW_window_blitSurface_Wayland;
-    RGFW_api.surface_free = RGFW_surface_free_Wayland;
+    RGFW_api.surface_freePtr = RGFW_surface_freePtr_Wayland;
 	RGFW_api.freeMouse = RGFW_freeMouse_Wayland;
 	RGFW_api.window_setBorder = RGFW_window_setBorder_Wayland;
     RGFW_api.releaseCursor = RGFW_releaseCursor_Wayland;
     RGFW_api.captureCursor = RGFW_captureCursor_Wayland;
-    RGFW_api.createWindowPtr = RGFW_createWindowPtr_Wayland;
+    RGFW_api.createWindowPlatform = RGFW_createWindowPtr_Wayland;
     RGFW_api.getScreenSize = RGFW_getScreenSize_Wayland;
     RGFW_api.getGlobalMousePoint = RGFW_getMousePoint_Wayland;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_Wayland;
@@ -11004,7 +10888,7 @@ void RGFW_load_Wayland(void) {
     RGFW_api.extensionSupportedPlatform_OpenGL = RGFW_extensionSupportedPlatform_OpenGL_Wayland;
     RGFW_api.getProcAddress_OpenGL = RGFW_getProcAddress_OpenGL_Wayland;
 	RGFW_api.window_createContext_OpenGL = RGFW_window_createContext_OpenGL_Wayland;
-    RGFW_api.window_deleteContext_OpenGL = RGFW_window_deleteContext_OpenGL_Wayland;
+    RGFW_api.window_deleteContextPtr_OpenGL = RGFW_window_deleteContextPtr_OpenGL_Wayland;
 	RGFW_api.window_makeCurrentContext_OpenGL = RGFW_window_makeCurrentContext_OpenGL_Wayland;
     RGFW_api.getCurrentContext_OpenGL = RGFW_getCurrentContext_OpenGL_Wayland;
     RGFW_api.window_swapBuffers_OpenGL = RGFW_window_swapBuffers_OpenGL_Wayland;

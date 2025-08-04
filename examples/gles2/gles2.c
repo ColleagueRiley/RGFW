@@ -5,6 +5,7 @@
 
 #include <GLES2/gl2.h>
 
+#define RGFW_OPENGL
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 

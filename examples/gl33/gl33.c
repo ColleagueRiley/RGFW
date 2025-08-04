@@ -1,3 +1,4 @@
+#define RGFW_OPENGL
 #define RGFW_USE_XDL // feel free to remove this line if you don't want to use XDL (-lX11 -lXrandr -lGLX will be required)
 #define RGFW_ALLOC_DROPFILES
 #define RGFW_IMPLEMENTATION

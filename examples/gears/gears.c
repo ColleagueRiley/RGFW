@@ -25,6 +25,7 @@
  * See usage() below for command line options.
  */
 
+#define RGFW_OPENGL
 #define RGFW_IMPLEMENTATION
 #include <math.h>
 #include <stdlib.h>

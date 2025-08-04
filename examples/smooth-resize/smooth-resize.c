@@ -1,3 +1,4 @@
+#define RGFW_OPENGL
 #define RGFW_ADVANCED_SMOOTH_RESIZE
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"

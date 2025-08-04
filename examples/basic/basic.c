@@ -19,6 +19,7 @@ void myFree(void* ptr, unsigned int line, const char* file) {
 #define RGFW_ALLOC(size) myAlloc(size, __LINE__, __FILE__)
 #define RGFW_FREE(size) myFree(size, __LINE__, __FILE__)
 
+#define RGFW_OPENGL
 #define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
