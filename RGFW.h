@@ -1394,19 +1394,9 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 	#ifdef RGFW_X11
 		#include <X11/Xlib.h>
 		#include <X11/Xutil.h>
-		#ifdef RGFW_OPENGL
-			#include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
-			#ifndef GLX_MESA_swap_control
-				#define  GLX_MESA_swap_control
-			#endif
-		#endif
 	#endif
 
 	#ifdef RGFW_WAYLAND
-		#ifdef RGFW_EGL
-			#include <wayland-egl.h>
-		#endif
-
 		#ifdef RGFW_LIBDECOR
 			#include <libdecor-0/libdecor.h>
 		#endif
@@ -1429,8 +1419,8 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 	#ifdef RGFW_OPENGL
 		struct RGFW_glContext {
 			#ifdef RGFW_X11
-					GLXContext ctx; /*!< source graphics context */
-					GLXFBConfig bestFbc;
+					struct __GLXcontextRec* ctx; /*!< source graphics context */
+					struct __GLXFBConfigRec* bestFbc;
 			#endif
 			#ifdef RGFW_WAYLAND
 				struct wl_egl_window* eglWindow;
@@ -2597,9 +2587,10 @@ RGFW_bool RGFW_extensionSupported_base(const char* extension, size_t len) {
 #endif
     {
         RGFW_proc RGFW_glGetString = RGFW_getProcAddress_OpenGL("glGetString");
-
+		#define RGFW_GL_EXTENSIONS 0x1F03
         if (RGFW_glGetString) {
-            const char* extensions = ((const char*(*)(u32))RGFW_glGetString)(GL_EXTENSIONS);
+            const char* extensions = ((const char*(*)(u32))RGFW_glGetString)(RGFW_GL_EXTENSIONS);
+
             if ((extensions != NULL) && RGFW_extensionSupportedStr(extensions, extension, len)) {
 				return RGFW_TRUE;
 			}
@@ -2671,6 +2662,10 @@ PFNEGLQUERYSTRINGPROC RGFW_eglQueryString;
     #include <windows.h>
 #elif defined(RGFW_MACOS) || defined(RGFW_UNIX)
     #include <dlfcn.h>
+#endif
+
+#ifdef RGFW_WAYLAND
+#include <wayland-egl.h>
 #endif
 
 static void* RGFW_eglLibHandle = NULL;
@@ -3338,7 +3333,45 @@ void RGFW_setXInstName(const char* name) { _RGFW->instName = name; }
 #include <X11/extensions/shape.h>
 #include <X11/extensions/XInput2.h>
 
-	/* atoms needed for drag and drop */
+#ifdef RGFW_OPENGL
+	#ifndef __gl_h_
+		#define __gl_h_
+		#define RGFW_gl_ndef
+		#define GLubyte     unsigned char
+		#define GLenum      unsigned int
+		#define GLint       int
+		#define GLuint      unsigned int
+		#define GLsizei     int
+		#define GLfloat     float
+		#define GLvoid      void
+		#define GLbitfield  unsigned int
+		#define GLintptr    ptrdiff_t
+		#define GLsizeiptr  ptrdiff_t
+		#define GLboolean   unsigned char
+	#endif
+
+	#include <GL/glx.h> /* GLX defs, xlib.h, gl.h */
+	#ifndef GLX_MESA_swap_control
+		#define  GLX_MESA_swap_control
+	#endif
+
+	#ifdef RGFW_gl_ndef
+		#undef __gl_h_
+		#undef GLubyte
+		#undef GLenum
+		#undef GLint
+		#undef GLuint
+		#undef GLsizei
+		#undef GLfloat
+		#undef GLvoid
+		#undef GLbitfield
+		#undef GLintptr
+		#undef GLsizeiptr
+		#undef GLboolean
+	#endif
+#endif
+
+/* atoms needed for drag and drop */
 #if !defined(RGFW_NO_X11_CURSOR) && !defined(RGFW_NO_X11_CURSOR_PRELOAD)
 		typedef XcursorImage* (*PFN_XcursorImageCreate)(int, int);
 		typedef void (*PFN_XcursorImageDestroy)(XcursorImage*);
@@ -5075,7 +5108,7 @@ RGFW_glContext* RGFW_FUNC(RGFW_window_createContext_OpenGL) (RGFW_window* win) {
 
 	glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
 	glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
-		glXGetProcAddressARB((GLubyte*) "glXCreateContextAttribsARB");
+		glXGetProcAddressARB((u8*) "glXCreateContextAttribsARB");
 
 	GLXContext ctx = NULL;
 	if (RGFW_GL_HINTS[RGFW_glShareWithCurrentContext]) {
@@ -5116,7 +5149,7 @@ RGFW_bool RGFW_FUNC(RGFW_extensionSupportedPlatform_OpenGL)(const char * extensi
 	return (extensions != NULL) && RGFW_extensionSupportedStr(extensions, extension, len);
 }
 
-RGFW_proc RGFW_FUNC(RGFW_getProcAddress_OpenGL)(const char* procname) { return (RGFW_proc) glXGetProcAddress((GLubyte*) procname); }
+RGFW_proc RGFW_FUNC(RGFW_getProcAddress_OpenGL)(const char* procname) { return (RGFW_proc) glXGetProcAddress((u8*) procname); }
 
 void RGFW_FUNC(RGFW_window_makeCurrentContext_OpenGL) (RGFW_window* win) {
 	if (win == NULL)
@@ -5135,13 +5168,13 @@ void RGFW_FUNC(RGFW_window_swapInterval_OpenGL) (RGFW_window* win, i32 swapInter
 	static int (*pfn2)(int) = NULL;
 
 	if (pfn == (PFNGLXSWAPINTERVALEXTPROC)-1) {
-		pfn = (PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress((GLubyte*)"glXSwapIntervalEXT");
+		pfn = (PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress((u8*)"glXSwapIntervalEXT");
 		if (pfn == NULL)  {
 			const char* array[] = {"GLX_MESA_swap_control", "GLX_SGI_swap_control"};
 
 			size_t i;
 			for (i = 0; i < sizeof(array) / sizeof(char*) && pfn2 == NULL; i++) {
-				pfn2 = (int(*)(int))glXGetProcAddress((GLubyte*)array[i]);
+				pfn2 = (int(*)(int))glXGetProcAddress((u8*)array[i]);
 			}
 
 			if (pfn2 != NULL) {
