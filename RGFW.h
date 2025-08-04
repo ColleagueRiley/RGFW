@@ -2941,9 +2941,6 @@ RGFW_glContext* RGFW_window_createContext_EGL(RGFW_window* win) {
 
 	if (win->src.ctx.EGL_context == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errEGLContext, RGFW_DEBUG_CTX(win, 0), "Failed to create an EGL context.");
-
-EGLint err = eglGetError();
-fprintf(stderr, "EGL error: 0x%x\n", err);
 		return NULL;
 	}
 
