@@ -152,7 +152,7 @@ endif
 
 EXAMPLE_OUTPUTS = \
 	examples/basic/basic \
-	examples/buffer/buffer \
+	examples/surface/surface\
 	examples/events/events \
 	examples/callbacks/callbacks \
 	examples/flags/flags \
