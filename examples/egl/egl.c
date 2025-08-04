@@ -4,7 +4,12 @@
 #include "RGFW.h"
 
 #include <stdio.h>
+
+#ifdef RGFW_MACOS
+#include <OpenGL/gl.h>
+#else
 #include <GL/gl.h>
+#endif
 
 void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed) {
     RGFW_UNUSED(keyMod); RGFW_UNUSED(keyChar); RGFW_UNUSED(win); RGFW_UNUSED(repeat);

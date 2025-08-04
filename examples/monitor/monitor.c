@@ -2,7 +2,12 @@
 #include "RGFW.h"
 
 #include <stdio.h>
+
+#ifdef RGFW_MACOS
+#include <OpenGL/gl.h>
+#else
 #include <GL/gl.h>
+#endif
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), RGFW_windowCenter);

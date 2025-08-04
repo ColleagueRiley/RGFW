@@ -3,7 +3,12 @@
 #include "RGFW.h"
 
 #include <stdio.h>
+
+#ifdef RGFW_MACOS
+#include <OpenGL/gl.h>
+#else
 #include <GL/gl.h>
+#endif
 
 void draw(RGFW_window* win);
 void draw(RGFW_window* win) {
