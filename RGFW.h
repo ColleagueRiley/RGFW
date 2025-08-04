@@ -10328,7 +10328,6 @@ RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
 	EM_ASM("Module.useWebGL = true; GLImmediate.init();");
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
     #endif
-    glViewport(0, 0, win->r.w, win->r.h);
 	return &win->src.ctx;
 }
 
