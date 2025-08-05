@@ -4029,7 +4029,7 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 			continue;
 		}
 
-		event._win = (void*)win;
+		event._win = win;
 
 		switch (E.type) {
 			case KeyPress:
@@ -10279,7 +10279,7 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	EM_ASM("Module.useWebGL = true; GLImmediate.init();");
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
     #endif
-	return &win->src.ctx.native->
+	return RGFW_TRUE;
 }
 
 void RGFW_window_deleteContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
@@ -10618,7 +10618,7 @@ void RGFW_waitForEvent(i32 waitMS) { RGFW_UNUSED(waitMS); }
 	* RGFW function pointer backend, made to allow you to compile for Wayland but fallback to X11
 */
 #ifdef RGFW_DYNAMIC
-typedef RGFW_window* (*RGFW_createWindowPlatformPtr_ptr)(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win);
+typedef RGFW_window* (*RGFW_createWindowPlatform_ptr)(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win);
 typedef RGFW_area (*RGFW_getScreenSize_ptr)(void);
 typedef RGFW_point (*RGFW_getMousePoint_ptr)(void);
 typedef u8 (*RGFW_rgfwToKeyChar_ptr)(u32 key);
@@ -10671,7 +10671,7 @@ typedef void (*RGFW_window_swapBuffers_OpenGL_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_swapInterval_OpenGL_ptr)(RGFW_window* win, i32 swapInterval);
 typedef RGFW_bool (*RGFW_extensionSupportedPlatform_OpenGL_ptr)(const char* extension, size_t len);
 typedef RGFW_proc (*RGFW_getProcAddress_OpenGL_ptr)(const char* procname);
-typedef RGFW_glContext* (*RGFW_window_createContextPtr_OpenGL_ptr)(RGFW_window* win, RGFW_glContext* ctx);
+typedef RGFW_bool (*RGFW_window_createContextPtr_OpenGL_ptr)(RGFW_window* win, RGFW_glContext* ctx);
 typedef void (*RGFW_window_deleteContextPtr_OpenGL_ptr)(RGFW_window* win, RGFW_glContext* ctx);
 #endif
 #ifdef RGFW_WEBGPU
@@ -10729,7 +10729,7 @@ typedef struct RGFW_FunctionPointers {
 #ifdef RGFW_OPENGL
     RGFW_extensionSupportedPlatform_OpenGL_ptr extensionSupportedPlatform_OpenGL;
     RGFW_getProcAddress_OpenGL_ptr getProcAddress_OpenGL;
-    RGFW_window_createContext_OpenGL_ptr window_createContext_OpenGL;
+    RGFW_window_createContextPtr_OpenGL_ptr window_createContextPtr_OpenGL;
     RGFW_window_deleteContextPtr_OpenGL_ptr window_deleteContextPtr_OpenGL;
     RGFW_window_makeCurrentContext_OpenGL_ptr window_makeCurrentContext_OpenGL;
     RGFW_getCurrentContext_OpenGL_ptr getCurrentContext_OpenGL;
@@ -10797,8 +10797,8 @@ void RGFW_window_closePlatform(RGFW_window* win) { RGFW_api.window_closePlatform
 #ifdef RGFW_OPENGL
 RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char* extension, size_t len) { return RGFW_api.extensionSupportedPlatform_OpenGL(extension, len); }
 RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) { return RGFW_api.getProcAddress_OpenGL(procname); }
-RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) { return RGFW_api.window_createContext_OpenGL(win); }
-void RGFW_window_deleteContextPtr_OpenGL(RGFW_window* win) { RGFW_api.window_deleteContextPtr_OpenGL(win); }
+RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx) { return RGFW_api.window_createContextPtr_OpenGL(win, ctx); }
+void RGFW_window_deleteContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx) { RGFW_api.window_deleteContextPtr_OpenGL(win, ctx); }
 void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) { RGFW_api.window_makeCurrentContext_OpenGL(win); }
 void* RGFW_getCurrentContext_OpenGL(void) { return RGFW_api.getCurrentContext_OpenGL(); }
 void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) { RGFW_api.window_swapBuffers_OpenGL(win); }
@@ -10824,7 +10824,7 @@ void RGFW_load_X11(void) {
     RGFW_api.window_setBorder = RGFW_window_setBorder_X11;
     RGFW_api.releaseCursor = RGFW_releaseCursor_X11;
     RGFW_api.captureCursor = RGFW_captureCursor_X11;
-	RGFW_api.createWindowPlatform = RGFW_createWindowPtr_X11;
+	RGFW_api.createWindowPlatform = RGFW_createWindowPlatform_X11;
     RGFW_api.getScreenSize = RGFW_getScreenSize_X11;
     RGFW_api.getGlobalMousePoint = RGFW_getMousePoint_X11;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_X11;
@@ -10868,7 +10868,7 @@ void RGFW_load_X11(void) {
 #ifdef RGFW_OPENGL
     RGFW_api.extensionSupportedPlatform_OpenGL = RGFW_extensionSupportedPlatform_OpenGL_X11;
     RGFW_api.getProcAddress_OpenGL = RGFW_getProcAddress_OpenGL_X11;
-	RGFW_api.window_createContext_OpenGL = RGFW_window_createContext_OpenGL_X11;
+	RGFW_api.window_createContextPtr_OpenGL = RGFW_window_createContextPtr_OpenGL_X11;
     RGFW_api.window_deleteContextPtr_OpenGL = RGFW_window_deleteContextPtr_OpenGL_X11;
 	RGFW_api.window_makeCurrentContext_OpenGL = RGFW_window_makeCurrentContext_OpenGL_X11;
     RGFW_api.getCurrentContext_OpenGL = RGFW_getCurrentContext_OpenGL_X11;
@@ -10888,7 +10888,7 @@ void RGFW_load_Wayland(void) {
 	RGFW_api.window_setBorder = RGFW_window_setBorder_Wayland;
     RGFW_api.releaseCursor = RGFW_releaseCursor_Wayland;
     RGFW_api.captureCursor = RGFW_captureCursor_Wayland;
-    RGFW_api.createWindowPlatform = RGFW_createWindowPtr_Wayland;
+    RGFW_api.createWindowPlatform = RGFW_createWindowPlatform_Wayland;
     RGFW_api.getScreenSize = RGFW_getScreenSize_Wayland;
     RGFW_api.getGlobalMousePoint = RGFW_getMousePoint_Wayland;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_Wayland;
@@ -10932,7 +10932,7 @@ void RGFW_load_Wayland(void) {
 #ifdef RGFW_OPENGL
     RGFW_api.extensionSupportedPlatform_OpenGL = RGFW_extensionSupportedPlatform_OpenGL_Wayland;
     RGFW_api.getProcAddress_OpenGL = RGFW_getProcAddress_OpenGL_Wayland;
-	RGFW_api.window_createContext_OpenGL = RGFW_window_createContext_OpenGL_Wayland;
+	RGFW_api.window_createContextPtr_OpenGL = RGFW_window_createContextPtr_OpenGL_Wayland;
     RGFW_api.window_deleteContextPtr_OpenGL = RGFW_window_deleteContextPtr_OpenGL_Wayland;
 	RGFW_api.window_makeCurrentContext_OpenGL = RGFW_window_makeCurrentContext_OpenGL_Wayland;
     RGFW_api.getCurrentContext_OpenGL = RGFW_getCurrentContext_OpenGL_Wayland;
