@@ -8923,7 +8923,7 @@ RGFW_bool RGFW_createSurfacePtr(RGFW_image img, RGFW_surface* surface) {
 	return RGFW_TRUE;
 }
 
-void RGFW_surface_freePtr(RGFW_surface* surface) { }
+void RGFW_surface_freePtr(RGFW_surface* surface) { RGFW_UNUSED(surface); }
 
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	RGFW_image_copy(&surface->image, &surface->image);
@@ -9003,7 +9003,7 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 			RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFAAccumSize, accumSize);
 		}
 
-		if (RGFW_GL_HINTS[RGFW_glRenderer] == RGFW_glSoftware)
+		if (RGFW_GL_HINTS[RGFW_glRenderer] == RGFW_glSoftware) {
 			RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFARendererID, kCGLRendererGenericFloatID);
 		} else {
 			RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFARendererID, NSOpenGLPFAAccelerated);
