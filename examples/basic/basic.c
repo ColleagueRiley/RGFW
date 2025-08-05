@@ -40,10 +40,7 @@ int main(void) {
 	RGFW_setClassName("RGFW Example");
 	RGFW_window *win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND | RGFW_windowOpenGL);
 
-	if (RGFW_window_getContext_OpenGL(win) == NULL)
-		return 0;
-
-	RGFW_window_makeCurrentContext_OpenGL(win);
+//	RGFW_window_makeCurrentContext_OpenGL(win);
 
 	RGFW_window_setIcon(win, RGFW_IMAGE(icon, RGFW_AREA(3, 3), RGFW_formatRGBA8));
 

@@ -10,7 +10,7 @@
 #endif
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("RGFW flags", RGFW_RECT(0, 0, 600, 400), RGFW_windowAllowDND);
+    RGFW_window* win = RGFW_createWindow("RGFW flags", RGFW_RECT(0, 0, 600, 400), RGFW_windowAllowDND | RGFW_windowOpenGL);
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
 

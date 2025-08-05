@@ -21,7 +21,7 @@
 void drawGamepad(RGFW_window* w, mg_gamepad* gamepad);
 
 int main(void) {
-	RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(0, 0, 800, 450), RGFW_windowCenter);
+	RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(0, 0, 800, 450), RGFW_windowCenter | RGFW_windowOpenGL);
     RGFW_window_makeCurrentContext_OpenGL(win);
 
     mg_event ev;

@@ -295,6 +295,17 @@ int main() {
     #define RGFW_PRINTF printf
 #endif
 
+#ifndef RGFW_MAX_PATH
+	#define RGFW_MAX_PATH 260 /* max length of a path (for dnd) */
+#endif
+#ifndef RGFW_MAX_DROPS
+	#define RGFW_MAX_DROPS 260 /* max items you can drop at once */
+#endif
+
+#ifndef RGFW_COCOA_FRAME_NAME
+	#define RGFW_COCOA_FRAME_NAME NULL
+#endif
+
 #ifdef RGFW_WIN95 /* for windows 95 testing (not that it really works) */
 	#define RGFW_NO_MONITOR
 	#define RGFW_NO_PASSTHROUGH
@@ -328,11 +339,6 @@ int main() {
 		#define RGFWDEF inline
 	#endif
 #endif
-
-#ifndef RGFW_ENUM
-	#define RGFW_ENUM(type, name) type name; enum
-#endif
-
 
 #if defined(__cplusplus) && !defined(__EMSCRIPTEN__)
 	extern "C" {
@@ -378,16 +384,139 @@ int main() {
 #define RGFW_TRUE (RGFW_bool)1
 #define RGFW_FALSE (RGFW_bool)0
 
-#define RGFW_COCOA_FRAME_NAME NULL
+/*! basic vector type, if there's not already a point/vector type of choice */
+#ifndef RGFW_point
+	typedef struct RGFW_point { i32 x, y; } RGFW_point;
+#endif
+
+/*! basic rect type, if there's not already a rect type of choice */
+#ifndef RGFW_rect
+	typedef struct RGFW_rect { i32 x, y, w, h; } RGFW_rect;
+#endif
+
+/*! basic area type, if there's not already a area type of choice */
+#ifndef RGFW_area
+	typedef struct RGFW_area { u32 w, h; } RGFW_area;
+#endif
+
+#if defined(__cplusplus) && !defined(__APPLE__)
+#define RGFW_POINT(x, y) {(i32)x, (i32)y}
+#define RGFW_RECT(x, y, w, h) {(i32)x, (i32)y, (i32)w, (i32)h}
+#define RGFW_AREA(w, h) {(u32)w, (u32)h}
+#define RGFW_IMAGE(data, size, format) {data, size, format}
+#else
+#define RGFW_POINT(x, y) (RGFW_point){(i32)(x), (i32)(y)}
+#define RGFW_RECT(x, y, w, h) (RGFW_rect){(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
+#define RGFW_AREA(w, h) (RGFW_area){(u32)(w), (u32)(h)}
+#define RGFW_IMAGE(data, size, format) (RGFW_image){data, size, format}
+#endif
+
+#define RGFW_ENUM(type, name) type name; enum
+#define RGFW_BIT(x) (1 << x)
+
+typedef struct RGFW_window RGFW_window;
+typedef struct RGFW_window_src RGFW_window_src;
+
+RGFWDEF size_t RGFW_sizeofWindow(void);
+RGFWDEF size_t RGFW_sizeofWindowSrc(void);
 
 /*! (unix) Toggle use of wayland. This will be on by default if you use `RGFW_WAYLAND` (if you don't use RGFW_WAYLAND, you don't expose WAYLAND functions)
 	this is mostly used to allow you to force the use of XWayland
 */
 RGFWDEF void RGFW_useWayland(RGFW_bool wayland);
 RGFWDEF RGFW_bool RGFW_usingWayland(void);
-/*
-	regular RGFW stuff
+
+/*!
+ * the class name for X11 and WinAPI. apps with the same class will be grouped by the WM
+ * by default the class name will == the root window's name
 */
+RGFWDEF void RGFW_setClassName(const char* name);
+RGFWDEF void RGFW_setXInstName(const char* name); /*!< X11 instance name (window name will by used by default) */
+
+/*! get the size of the screen to an area struct */
+RGFWDEF RGFW_area RGFW_getScreenSize(void);
+
+typedef RGFW_ENUM(u8, RGFW_format) {
+    RGFW_formatRGB8 = 0,    /*!< 8-bit RGB (3 channels) */
+    RGFW_formatBGR8,    /*!< 8-bit BGR (3 channels) */
+	RGFW_formatRGBA8,   /*!< 8-bit RGBA (4 channels) */
+	RGFW_formatARGB8,   /*!< 8-bit RGBA (4 channels) */
+    RGFW_formatBGRA8,   /*!< 8-bit BGRA (4 channels) */
+    RGFW_formatABGR8,   /*!< 8-bit BGRA (4 channels) */
+	RGFW_formatCount
+};
+
+typedef struct RGFW_image {
+	u8* data; /*!< raw image data */
+	RGFW_area size; /*!< image size */
+	RGFW_format format; /*!< image format */
+} RGFW_image;
+
+/*! copy image two another image, respecting each image's format */
+RGFWDEF void RGFW_image_copy(RGFW_image* dest, const RGFW_image* src);
+
+typedef struct RGFW_nativeImage RGFW_nativeImage;
+RGFWDEF size_t RGFW_sizeofNativeImage(void);
+
+typedef struct RGFW_surface RGFW_surface;
+RGFWDEF size_t RGFW_sizeofSurface(void);
+
+RGFWDEF RGFW_surface* RGFW_createSurface(RGFW_image img);
+RGFWDEF RGFW_bool RGFW_createSurfacePtr(RGFW_image img, RGFW_surface* surface);
+
+RGFWDEF RGFW_nativeImage* RGFW_surface_getNativeImage(RGFW_surface* surface);
+
+/*! free the surface pointer and buffers used for software rendering within the window */
+RGFWDEF void RGFW_surface_free(RGFW_surface* surface);
+/*! free only the buffers used for software rendering within the window */
+RGFWDEF void RGFW_surface_freePtr(RGFW_surface* surface);
+
+/* RGFW mouse loading */
+typedef void RGFW_mouse;
+
+/*!< loads mouse icon from bitmap (similar to RGFW_window_setIcon). Icon NOT resized by default */
+RGFWDEF RGFW_mouse* RGFW_loadMouse(RGFW_image img);
+/*!< frees RGFW_mouse data */
+RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
+
+#ifndef RGFW_NO_MONITOR
+	/* monitor mode data | can be changed by the user (with functions)*/
+	typedef struct RGFW_monitorMode {
+		RGFW_area area; /*!< monitor workarea size */
+		u32 refreshRate; /*!< monitor refresh rate */
+		u8 red, blue, green;
+	} RGFW_monitorMode;
+
+	/*! structure for monitor data */
+	typedef struct RGFW_monitor {
+		i32 x, y; /*!< x - y of the monitor workarea */
+		char name[128]; /*!< monitor name */
+		float scaleX, scaleY; /*!< monitor content scale */
+		float pixelRatio; /*!< pixel ratio for monitor (1.0 for regular, 2.0 for hiDPI)  */
+		float physW, physH; /*!< monitor physical size in inches */
+
+		RGFW_monitorMode mode;
+	} RGFW_monitor;
+
+	/*! get an array of all the monitors (max 6) */
+	RGFWDEF RGFW_monitor* RGFW_getMonitors(size_t* len);
+	/*! get the primary monitor */
+	RGFWDEF RGFW_monitor RGFW_getPrimaryMonitor(void);
+
+	typedef RGFW_ENUM(u8, RGFW_modeRequest) {
+		RGFW_monitorScale = RGFW_BIT(0), /*!< scale the monitor size */
+		RGFW_monitorRefresh = RGFW_BIT(1), /*!< change the refresh rate */
+		RGFW_monitorRGB = RGFW_BIT(2), /*!< change the monitor RGB bits size */
+		RGFW_monitorAll = RGFW_monitorScale | RGFW_monitorRefresh | RGFW_monitorRGB
+	};
+
+	/*! request a specific mode */
+	RGFWDEF RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request);
+	/*! check if 2 monitor modes are the same */
+	RGFWDEF RGFW_bool RGFW_monitorModeCompare(RGFW_monitorMode mon, RGFW_monitorMode mon2, RGFW_modeRequest request);
+	/*! scale monitor to window size */
+	RGFWDEF RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, struct RGFW_window* win);
+#endif
 
 /*!
 	key codes and mouse icon enums
@@ -498,7 +627,29 @@ typedef RGFW_ENUM(u8, RGFW_key) {
     RGFW_printScreen,
     RGFW_pause,
     RGFW_keyLast = 256 /* padding for alignment ~(175 by default) */
- };
+};
+
+/*! mouse button codes (RGFW_event.button) */
+typedef RGFW_ENUM(u8, RGFW_mouseButton) {
+	RGFW_mouseLeft = 0, /*!< left mouse button is pressed */
+	RGFW_mouseMiddle, /*!< mouse-wheel-button is pressed */
+	RGFW_mouseRight, /*!< right mouse button is pressed */
+	RGFW_mouseScrollUp, /*!< mouse wheel is scrolling up */
+	RGFW_mouseScrollDown, /*!< mouse wheel is scrolling down */
+	RGFW_mouseMisc1, RGFW_mouseMisc2, RGFW_mouseMisc3, RGFW_mouseMisc4, RGFW_mouseMisc5,
+	RGFW_mouseFinal
+};
+
+/* for RGFW_event.lockstate */
+typedef RGFW_ENUM(u8, RGFW_keymod) {
+	RGFW_modCapsLock = RGFW_BIT(0),
+	RGFW_modNumLock  = RGFW_BIT(1),
+	RGFW_modControl  = RGFW_BIT(2),
+	RGFW_modAlt = RGFW_BIT(3),
+	RGFW_modShift  = RGFW_BIT(4),
+	RGFW_modSuper = RGFW_BIT(5),
+	RGFW_modScrollLock = RGFW_BIT(6)
+};
 
 typedef RGFW_ENUM(u8, RGFW_eventType) {
 	/*! event codes */
@@ -553,145 +704,6 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 	RGFW_scaleUpdated /*!< content scale factor changed */
 };
 
-/*! mouse button codes (RGFW_event.button) */
-typedef RGFW_ENUM(u8, RGFW_mouseButton) {
-	RGFW_mouseLeft = 0, /*!< left mouse button is pressed */
-	RGFW_mouseMiddle, /*!< mouse-wheel-button is pressed */
-	RGFW_mouseRight, /*!< right mouse button is pressed */
-	RGFW_mouseScrollUp, /*!< mouse wheel is scrolling up */
-	RGFW_mouseScrollDown, /*!< mouse wheel is scrolling down */
-	RGFW_mouseMisc1, RGFW_mouseMisc2, RGFW_mouseMisc3, RGFW_mouseMisc4, RGFW_mouseMisc5,
-	RGFW_mouseFinal
-};
-
-#ifndef RGFW_MAX_PATH
-#define RGFW_MAX_PATH 260 /* max length of a path (for dnd) */
-#endif
-#ifndef RGFW_MAX_DROPS
-#define RGFW_MAX_DROPS 260 /* max items you can drop at once */
-#endif
-
-#define RGFW_BIT(x) (1 << x)
-
-/* for RGFW_event.lockstate */
-typedef RGFW_ENUM(u8, RGFW_keymod) {
-	RGFW_modCapsLock = RGFW_BIT(0),
-	RGFW_modNumLock  = RGFW_BIT(1),
-	RGFW_modControl  = RGFW_BIT(2),
-	RGFW_modAlt = RGFW_BIT(3),
-	RGFW_modShift  = RGFW_BIT(4),
-	RGFW_modSuper = RGFW_BIT(5),
-	RGFW_modScrollLock = RGFW_BIT(6)
-};
-
-/*! basic vector type, if there's not already a point/vector type of choice */
-#ifndef RGFW_point
-	typedef struct RGFW_point { i32 x, y; } RGFW_point;
-#endif
-
-/*! basic rect type, if there's not already a rect type of choice */
-#ifndef RGFW_rect
-	typedef struct RGFW_rect { i32 x, y, w, h; } RGFW_rect;
-#endif
-
-/*! basic area type, if there's not already a area type of choice */
-#ifndef RGFW_area
-	typedef struct RGFW_area { u32 w, h; } RGFW_area;
-#endif
-
-typedef RGFW_ENUM(u8, RGFW_format) {
-    RGFW_formatRGB8 = 0,    /*!< 8-bit RGB (3 channels) */
-    RGFW_formatBGR8,    /*!< 8-bit BGR (3 channels) */
-	RGFW_formatRGBA8,   /*!< 8-bit RGBA (4 channels) */
-	RGFW_formatARGB8,   /*!< 8-bit RGBA (4 channels) */
-    RGFW_formatBGRA8,   /*!< 8-bit BGRA (4 channels) */
-    RGFW_formatABGR8,   /*!< 8-bit BGRA (4 channels) */
-	RGFW_formatCount
-};
-
-typedef struct RGFW_image {
-	u8* data; /*!< raw image data */
-	RGFW_area size; /*!< image size */
-	RGFW_format format; /*!< image format */
-} RGFW_image;
-
-/*! copy image two another image, respecting each image's format */
-RGFWDEF void RGFW_image_copy(RGFW_image* dest, const RGFW_image* src);
-
-typedef struct RGFW_nativeImage RGFW_nativeImage;
-RGFWDEF size_t RGFW_sizeofNativeImage(void);
-
-typedef struct RGFW_surface RGFW_surface;
-RGFWDEF size_t RGFW_sizeofSurface(void);
-
-RGFWDEF RGFW_surface* RGFW_createSurface(RGFW_image img);
-RGFWDEF RGFW_bool RGFW_createSurfacePtr(RGFW_image img, RGFW_surface* surface);
-
-RGFWDEF RGFW_nativeImage* RGFW_surface_getNativeImage(RGFW_surface* surface);
-
-/*! free the surface pointer and buffers used for software rendering within the window */
-RGFWDEF void RGFW_surface_free(RGFW_surface* surface);
-/*! free only the buffers used for software rendering within the window */
-RGFWDEF void RGFW_surface_freePtr(RGFW_surface* surface);
-
-
-#if defined(__cplusplus) && !defined(__APPLE__)
-#define RGFW_POINT(x, y) {(i32)x, (i32)y}
-#define RGFW_RECT(x, y, w, h) {(i32)x, (i32)y, (i32)w, (i32)h}
-#define RGFW_AREA(w, h) {(u32)w, (u32)h}
-#define RGFW_IMAGE(data, size, format) {data, size, format}
-#else
-#define RGFW_POINT(x, y) (RGFW_point){(i32)(x), (i32)(y)}
-#define RGFW_RECT(x, y, w, h) (RGFW_rect){(i32)(x), (i32)(y), (i32)(w), (i32)(h)}
-#define RGFW_AREA(w, h) (RGFW_area){(u32)(w), (u32)(h)}
-#define RGFW_IMAGE(data, size, format) (RGFW_image){data, size, format}
-#endif
-
-#ifndef RGFW_NO_MONITOR
-	/* monitor mode data | can be changed by the user (with functions)*/
-	typedef struct RGFW_monitorMode {
-		RGFW_area area; /*!< monitor workarea size */
-		u32 refreshRate; /*!< monitor refresh rate */
-		u8 red, blue, green;
-	} RGFW_monitorMode;
-
-	/*! structure for monitor data */
-	typedef struct RGFW_monitor {
-		i32 x, y; /*!< x - y of the monitor workarea */
-		char name[128]; /*!< monitor name */
-		float scaleX, scaleY; /*!< monitor content scale */
-		float pixelRatio; /*!< pixel ratio for monitor (1.0 for regular, 2.0 for hiDPI)  */
-		float physW, physH; /*!< monitor physical size in inches */
-
-		RGFW_monitorMode mode;
-	} RGFW_monitor;
-
-	/*! get an array of all the monitors (max 6) */
-	RGFWDEF RGFW_monitor* RGFW_getMonitors(size_t* len);
-	/*! get the primary monitor */
-	RGFWDEF RGFW_monitor RGFW_getPrimaryMonitor(void);
-
-	typedef RGFW_ENUM(u8, RGFW_modeRequest) {
-		RGFW_monitorScale = RGFW_BIT(0), /*!< scale the monitor size */
-		RGFW_monitorRefresh = RGFW_BIT(1), /*!< change the refresh rate */
-		RGFW_monitorRGB = RGFW_BIT(2), /*!< change the monitor RGB bits size */
-		RGFW_monitorAll = RGFW_monitorScale | RGFW_monitorRefresh | RGFW_monitorRGB
-	};
-
-	/*! request a specific mode */
-	RGFWDEF RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request);
-	/*! check if 2 monitor modes are the same */
-	RGFWDEF RGFW_bool RGFW_monitorModeCompare(RGFW_monitorMode mon, RGFW_monitorMode mon2, RGFW_modeRequest request);
-#endif
-
-/* RGFW mouse loading */
-typedef void RGFW_mouse;
-
-/*!< loads mouse icon from bitmap (similar to RGFW_window_setIcon). Icon NOT resized by default */
-RGFWDEF RGFW_mouse* RGFW_loadMouse(RGFW_image img);
-/*!< frees RGFW_mouse data */
-RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
-
 /* NOTE: some parts of the data can represent different things based on the event (read comments in RGFW_event struct) */
 /*! Event structure for checking/getting events */
 typedef struct RGFW_event {
@@ -714,7 +726,7 @@ typedef struct RGFW_event {
 	char** droppedFiles; /*!< dropped files */
 	size_t droppedFilesCount; /*!< how many files were dropped */
 
-	void* _win; /*!< the window this event applies too (for event queue events) */
+	RGFW_window* _win; /*!< the window this event applies too (for event queue events) */
 } RGFW_event;
 
 /*!
@@ -745,12 +757,6 @@ RGFWDEF void RGFW_pollEvents(void);
 	tell RGFW_waitForEvent to stop waiting (to be ran from another thread)
 */
 RGFWDEF void RGFW_stopCheckEvents(void);
-
-typedef struct RGFW_window RGFW_window;
-typedef struct RGFW_window_src RGFW_window_src;
-
-RGFWDEF size_t RGFW_sizeofWindow(void);
-RGFWDEF size_t RGFW_sizeofWindowSrc(void);
 
 /*! Optional arguments for making a windows */
 typedef RGFW_ENUM(u32, RGFW_windowFlags) {
@@ -804,28 +810,14 @@ RGFWDEF void RGFW_window_setUserPtr(RGFW_window* win, void* ptr); /*!< sets the 
 
 RGFWDEF RGFW_window_src* RGFW_window_getSrc(RGFW_window* win); /*!< returns fat pointer of window, which is sourced from the window casted to the fast pointer */
 
-/*! scale monitor to window size */
-RGFWDEF RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, RGFW_window* win);
-
 /** * @defgroup Window_management
 * @{ */
-
-
-/*!
- * the class name for X11 and WinAPI. apps with the same class will be grouped by the WM
- * by default the class name will == the root window's name
-*/
-RGFWDEF void RGFW_setClassName(const char* name);
-RGFWDEF void RGFW_setXInstName(const char* name); /*!< X11 instance name (window name will by used by default) */
 
 /*! (cocoa only) change directory to resource folder */
 RGFWDEF void RGFW_moveToMacOSResourceDir(void);
 
 /*! set the window flags (will undo flags if they don't match the old ones) */
 RGFWDEF void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags);
-
-/*! get the size of the screen to an area struct */
-RGFWDEF RGFW_area RGFW_getScreenSize(void);
 
 /*!
 	polls the event queue if it's empty and pops the first event for the window from the event queue
@@ -842,7 +834,6 @@ RGFWDEF RGFW_area RGFW_getScreenSize(void);
 	you may also use `RGFW_pollEvents` instead
 */
 RGFWDEF RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event); /*!< check current event (returns RGFW_TRUE if there is an event or RGFW_FALSE if there is no event)*/
-
 /*! pops the first event for the window from the event queue */
 RGFWDEF RGFW_bool RGFW_window_checkQueuedEvent(RGFW_window* win, RGFW_event* event);
 
@@ -1435,6 +1426,9 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		struct RGFW_glContext {
 			#ifdef RGFW_X11
 				struct __GLXcontextRec* ctx; /*!< source graphics context */
+			#endif
+			#ifdef RGFW_WAYLAND
+				RGFW_eglContext egl;
 			#endif
 		};
 	#endif
@@ -2092,6 +2086,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, RGFW_rect rect, RGFW_windowF
 	if (!(flags & RGFW_windowHide)) RGFW_window_show(win);
 
 	#ifdef RGFW_OPENGL
+	win->src.ctx.egl = NULL;
+	win->src.ctx.native = NULL;
+	win->src.gfxType = 0;
 	if (flags & RGFW_windowOpenGL)
 		RGFW_window_createContext_OpenGL(win);
 	#endif
@@ -2943,7 +2940,7 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 		win->src.ctx.egl->surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) win->src.window, surf_attribs);
 	#elif defined(RGFW_WAYLAND)
 		if (_RGFW->useWaylandBool)
-			win->src.ctx.egl->surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) win->src.ctx.native->eglWindow, surf_attribs);
+			win->src.ctx.egl->surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) win->src.ctx.egl->eglWindow, surf_attribs);
 		else
     #endif
     #ifdef RGFW_X11
@@ -3022,17 +3019,18 @@ RGFW_eglContext* RGFW_window_getContext_EGL(RGFW_window* win) {
 void RGFW_window_deleteContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ctx) {
 	if (_RGFW->EGL_display == NULL) return;
 
-	RGFW_eglDestroySurface(_RGFW->EGL_display, win->src.ctx.egl->surface);
-	RGFW_eglDestroyContext(_RGFW->EGL_display, win->src.ctx.egl->ctx);
+	RGFW_eglDestroySurface(_RGFW->EGL_display, ctx->surface);
+	RGFW_eglDestroyContext(_RGFW->EGL_display, ctx->ctx);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "EGL context freed");
 	#ifdef RGFW_WAYLAND
 		if (_RGFW->useWaylandBool == RGFW_FALSE) return;
-		wl_egl_window_destroy(win->src.ctx.native->eglWindow);
+		wl_egl_window_destroy(ctx->eglWindow);
 		RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "EGL window context freed");
 	#endif
+	win->src.ctx.egl = NULL;
 }
 
-void RGFW_window_makeCurrentContext_EGL(RGFW_window* win) {
+void RGFW_window_makeCurrentContext_EGL(RGFW_window* win) { RGFW_ASSERT(win->src.ctx.egl);
 	if (win == NULL)
         RGFW_eglMakeCurrent(_RGFW->EGL_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     else {
@@ -5220,7 +5218,7 @@ RGFW_bool RGFW_FUNC(RGFW_extensionSupportedPlatform_OpenGL)(const char * extensi
 
 RGFW_proc RGFW_FUNC(RGFW_getProcAddress_OpenGL)(const char* procname) { return (RGFW_proc) glXGetProcAddress((u8*) procname); }
 
-void RGFW_FUNC(RGFW_window_makeCurrentContext_OpenGL) (RGFW_window* win) {
+void RGFW_FUNC(RGFW_window_makeCurrentContext_OpenGL) (RGFW_window* win) { RGFW_ASSERT(win->src.ctx.native);
 	if (win == NULL)
 		glXMakeCurrent(NULL, (Drawable)NULL, (GLXContext) NULL);
 	else
@@ -5228,7 +5226,7 @@ void RGFW_FUNC(RGFW_window_makeCurrentContext_OpenGL) (RGFW_window* win) {
 	return;
 }
 void* RGFW_FUNC(RGFW_getCurrentContext_OpenGL) (void) { return glXGetCurrentContext(); }
-void RGFW_FUNC(RGFW_window_swapBuffers_OpenGL) (RGFW_window* win) {	glXSwapBuffers(_RGFW->display, win->src.window); }
+void RGFW_FUNC(RGFW_window_swapBuffers_OpenGL) (RGFW_window* win) { RGFW_ASSERT(win->src.ctx.native); glXSwapBuffers(_RGFW->display, win->src.window); }
 
 void RGFW_FUNC(RGFW_window_swapInterval_OpenGL) (RGFW_window* win, i32 swapInterval) {
 	RGFW_ASSERT(win != NULL);
@@ -5931,11 +5929,12 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win, RGFW_rect r) {
 }
 
 #ifdef RGFW_OPENGL
-RGFW_glContext* RGFW_FUNC(RGFW_window_createContext_OpenGL)(RGFW_window* win, RGFW_glContext* ctx) { return RGFW_window_createContext_EGL(win, ctx); }
-void RGFW_FUNC(RGFW_window_deleteContextPtr_OpenGL) (RGFW_window* win, RGFW_glContext* ctx) { RGFW_window_deleteContextPtr_EGL(win, ctx); win->src.ctx.egl = NULL; }
+RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL)(RGFW_window* win, RGFW_glContext* ctx) { return RGFW_window_createContextPtr_EGL(win, &ctx->egl); }
+void RGFW_FUNC(RGFW_window_deleteContextPtr_OpenGL) (RGFW_window* win, RGFW_glContext* ctx) { RGFW_window_deleteContextPtr_EGL(win, &ctx->egl); win->src.ctx.native = NULL; }
 #endif /* RGFW_OPENGL */
 
 RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win) {
+	RGFW_UNUSED(rect);
 	RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningWayland, RGFW_DEBUG_CTX(win, 0), "RGFW Wayland support is experimental");
 
 	win->src.compositor = NULL;
@@ -6119,7 +6118,7 @@ void RGFW_FUNC(RGFW_window_resize) (RGFW_window* win, RGFW_area a) {
 	if (win->src.compositor) {
 		xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->r.w, win->r.h);
 		#ifdef RGFW_OPENGL
-		wl_egl_window_resize(win->src.ctx.native->eglWindow, (i32)a.w, (i32)a.h, 0, 0);
+		wl_egl_window_resize(win->src.ctx.egl->eglWindow, (i32)a.w, (i32)a.h, 0, 0);
 		#endif
 	}
 }
@@ -7903,6 +7902,7 @@ void RGFW_window_moveMouse(RGFW_window* win, RGFW_point p) {
 
 #ifdef RGFW_OPENGL
 void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
+	RGFW_ASSERT(win->src.ctx.native);
 	if (win == NULL)
 		wglMakeCurrent(NULL, NULL);
 	else
@@ -7911,7 +7911,8 @@ void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
 void* RGFW_getCurrentContext_OpenGL(void) {
 	return wglGetCurrentContext();
 }
-void RGFW_window_swapBuffers_OpenGL(RGFW_window* win){
+void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
+	RGFW_ASSERT(win->src.ctx.native);
 	SwapBuffers(win->src.hdc);
 }
 #endif
@@ -9792,31 +9793,27 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 		(NSPasteboard_generalPasteboard(), func, NSString_stringWithUTF8String(text), NSString_stringWithUTF8String((const char*)NSPasteboardTypeString));
 }
 
-	#ifdef RGFW_OPENGL
-	void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
-		if (win != NULL)
-			objc_msgSend_void(win->src.ctx.native->ctx, sel_registerName("makeCurrentContext"));
-		else
-			objc_msgSend_id(objc_getClass("NSOpenGLContext"), sel_registerName("clearCurrentContext"));
-	}
-	void* RGFW_getCurrentContext_OpenGL(void) {
-		return objc_msgSend_id(objc_getClass("NSOpenGLContext"), sel_registerName("currentContext"));
-	}
+#ifdef RGFW_OPENGL
+void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
+	RGFW_ASSERT(win && win->src.ctx.native);
+	if (win != NULL)
+		objc_msgSend_void(win->src.ctx.native->ctx, sel_registerName("makeCurrentContext"));
+	else
+		objc_msgSend_id(objc_getClass("NSOpenGLContext"), sel_registerName("clearCurrentContext"));
+}
+void* RGFW_getCurrentContext_OpenGL(void) {
+	return objc_msgSend_id(objc_getClass("NSOpenGLContext"), sel_registerName("currentContext"));
+}
 
-	void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
-		objc_msgSend_void(win->src.ctx.native->ctx, sel_registerName("flushBuffer"));
-	}
-	#endif
-
-	void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
-		RGFW_ASSERT(win != NULL);
-		#if defined(RGFW_OPENGL)
-
-		NSOpenGLContext_setValues((id)win->src.ctx.native->ctx, &swapInterval, 222);
-		#else
-		RGFW_UNUSED(swapInterval);
-		#endif
-	}
+void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
+	RGFW_ASSERT(win && win->src.ctx.native);
+	objc_msgSend_void(win->src.ctx.native->ctx, sel_registerName("flushBuffer"));
+}
+void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
+	RGFW_ASSERT(win != NULL && win->src.ctx.native != NULL);
+	NSOpenGLContext_setValues((id)win->src.ctx.native->ctx, &swapInterval, 222);
+}
+#endif
 
 void RGFW_deinitPlatform(void) { }
 
@@ -10472,6 +10469,7 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 
 #ifdef RGFW_OPENGL
 void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
+	RGFW_ASSERT(win && win->src.ctx.native);
 	if (win == NULL)
 	    emscripten_webgl_make_context_current(0);
 	else
@@ -10479,6 +10477,7 @@ void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
 }
 
 void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
+	RGFW_ASSERT(win && win->src.ctx.native);
 	emscripten_webgl_commit_frame();
     emscripten_sleep(0);
 }
@@ -10619,7 +10618,7 @@ void RGFW_waitForEvent(i32 waitMS) { RGFW_UNUSED(waitMS); }
 	* RGFW function pointer backend, made to allow you to compile for Wayland but fallback to X11
 */
 #ifdef RGFW_DYNAMIC
-typedef RGFW_window* (*RGFW_createWindowPtr_ptrPlatform)(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win);
+typedef RGFW_window* (*RGFW_createWindowPlatformPtr_ptr)(const char* name, RGFW_rect rect, RGFW_windowFlags flags, RGFW_window* win);
 typedef RGFW_area (*RGFW_getScreenSize_ptr)(void);
 typedef RGFW_point (*RGFW_getMousePoint_ptr)(void);
 typedef u8 (*RGFW_rgfwToKeyChar_ptr)(u32 key);
@@ -10672,8 +10671,8 @@ typedef void (*RGFW_window_swapBuffers_OpenGL_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_swapInterval_OpenGL_ptr)(RGFW_window* win, i32 swapInterval);
 typedef RGFW_bool (*RGFW_extensionSupportedPlatform_OpenGL_ptr)(const char* extension, size_t len);
 typedef RGFW_proc (*RGFW_getProcAddress_OpenGL_ptr)(const char* procname);
-typedef RGFW_glContext* (*RGFW_window_createContext_OpenGL_ptr)(RGFW_window* win);
-typedef void (*RGFW_window_deleteContextPtr_OpenGL_ptr)(RGFW_window* win);
+typedef RGFW_glContext* (*RGFW_window_createContextPtr_OpenGL_ptr)(RGFW_window* win, RGFW_glContext* ctx);
+typedef void (*RGFW_window_deleteContextPtr_OpenGL_ptr)(RGFW_window* win, RGFW_glContext* ctx);
 #endif
 #ifdef RGFW_WEBGPU
 typedef WGPUSurface (*RGFW_window_createSurface_WebGPU_ptr)(RGFW_window* window, WGPUInstance instance);
@@ -10865,7 +10864,7 @@ void RGFW_load_X11(void) {
     RGFW_api.getPrimaryMonitor = RGFW_getPrimaryMonitor_X11;
     RGFW_api.monitor_requestMode = RGFW_monitor_requestMode_X11;
     RGFW_api.window_getMonitor = RGFW_window_getMonitor_X11;
-    RGFW_api.window_close = RGFW_window_close_X11;
+    RGFW_api.window_closePlatform = RGFW_window_closePlatform_X11;
 #ifdef RGFW_OPENGL
     RGFW_api.extensionSupportedPlatform_OpenGL = RGFW_extensionSupportedPlatform_OpenGL_X11;
     RGFW_api.getProcAddress_OpenGL = RGFW_getProcAddress_OpenGL_X11;
@@ -10929,7 +10928,7 @@ void RGFW_load_Wayland(void) {
     RGFW_api.getPrimaryMonitor = RGFW_getPrimaryMonitor_Wayland;
     RGFW_api.monitor_requestMode = RGFW_monitor_requestMode_Wayland;
     RGFW_api.window_getMonitor = RGFW_window_getMonitor_Wayland;
-    RGFW_api.window_close = RGFW_window_close_Wayland;
+    RGFW_api.window_closePlatform = RGFW_window_closePlatform_Wayland;
 #ifdef RGFW_OPENGL
     RGFW_api.extensionSupportedPlatform_OpenGL = RGFW_extensionSupportedPlatform_OpenGL_Wayland;
     RGFW_api.getProcAddress_OpenGL = RGFW_getProcAddress_OpenGL_Wayland;

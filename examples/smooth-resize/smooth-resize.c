@@ -34,7 +34,7 @@ void resize(RGFW_window* win, RGFW_rect rect) { RGFW_UNUSED(win); glViewport(0, 
 void refresh(RGFW_window* win) { printf("refresh\n"); RGFW_UNUSED(win); draw(win); }
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 300, 100), RGFW_windowCenter);
+    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 300, 100), RGFW_windowCenter | RGFW_windowOpenGL);
 
     RGFW_setWindowRefreshCallback(refresh);
     RGFW_setWindowResizedCallback(resize);

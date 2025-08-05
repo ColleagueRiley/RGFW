@@ -16,10 +16,6 @@ int main(void) {
     RGFW_event event;
 
     while (RGFW_window_shouldClose(win) == 0) {
-        glClearColor(0.25f, 0.0f, 0.15f, 0.25f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        RGFW_window_swapBuffers_OpenGL(win);
         RGFW_waitForEvent(RGFW_eventWaitNext);
         while (RGFW_window_checkEvent(win, &event)) {
             switch (event.type) {
@@ -70,9 +66,6 @@ int main(void) {
                 case RGFW_windowRefresh:
                     printf("Refresh\n");
                     break;
-                /*case RGFW_quit:
-                    printf("Quit\n");
-                    break;*/
                 case RGFW_DND: {
                     printf("DND Drop : %i %i\n", event.point.x, event.point.y);
                     u32 i;

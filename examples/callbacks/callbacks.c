@@ -109,13 +109,6 @@ void dndInitfunc(RGFW_window* win, RGFW_point point) {
 static
 void windowrefreshfunc(RGFW_window* win) {
     if (window != win) return;
-    printf("refresh\n");
-
-    glClearColor(0.15f, 0.0f, 0.25f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    RGFW_window_swapBuffers_OpenGL(win);
-
 }
 
 static
@@ -166,11 +159,6 @@ int main(void) {
 	RGFW_setMouseButtonCallback(mousebuttonfunc);
 
     while (RGFW_window_shouldClose(window) == 0) {
-        glClearColor(0.15f, 0.0f, 0.25f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        RGFW_window_swapBuffers_OpenGL(window);
-
 		RGFW_pollEvents();
    }
 
