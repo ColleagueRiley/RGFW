@@ -8285,12 +8285,6 @@ id NSColor_colorWithSRGB(CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha
 		((id)nsclass, func, red, green, blue, alpha);
 }
 
-void NSOpenGLContext_setValues(id context, const int* vals, NSOpenGLContextParameter param);
-void NSOpenGLContext_setValues(id context, const int* vals, NSOpenGLContextParameter param) {
-	((void (*)(id, SEL, const int*, NSOpenGLContextParameter))objc_msgSend)
-		(context, sel_registerName("setValues:forParameter:"), vals, param);
-}
-
 id NSPasteboard_generalPasteboard(void);
 id NSPasteboard_generalPasteboard(void) {
 	return (id) objc_msgSend_id((id)objc_getClass("NSPasteboard"), sel_registerName("generalPasteboard"));
@@ -8367,6 +8361,13 @@ id NSWindow_contentView(id window) {
 */
 
 #ifdef RGFW_OPENGL
+void NSOpenGLContext_setValues(id context, const int* vals, NSOpenGLContextParameter param);
+void NSOpenGLContext_setValues(id context, const int* vals, NSOpenGLContextParameter param) {
+	((void (*)(id, SEL, const int*, NSOpenGLContextParameter))objc_msgSend)
+		(context, sel_registerName("setValues:forParameter:"), vals, param);
+}
+
+
 /* MacOS OpenGL API spares us yet again (there are no extensions) */
 RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char * extension, size_t len) { RGFW_UNUSED(extension); RGFW_UNUSED(len); return RGFW_FALSE; }
 
@@ -8459,7 +8460,7 @@ NSDragOperation draggingUpdated(id self, SEL sel, id sender) {
 									e.x = (i32)p.x;  e.y = (i32)(win->h - p.y);
 									e._win = win);
 
-	RGFW_dndInitCallback(win, (u32) p.x, (u32) (win->h - p.y));
+	RGFW_dndInitCallback(win, (i32) p.x, (i32) (win->h - p.y));
 	return NSDragOperationCopy;
 }
 bool prepareForDragOperation(id self) {
@@ -8520,11 +8521,9 @@ bool performDragOperation(id self, SEL sel, id sender) {
 		RGFW_STRNCPY(event.droppedFiles[i], filePath, RGFW_MAX_PATH - 1);
 		event.droppedFiles[i][RGFW_MAX_PATH - 1] = '\0';
 	}
-	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
 
 	event.droppedFilesCount = (size_t)count;
 	RGFW_eventQueuePushEx(e.type = RGFW_DND;
-									e.x = (u32) p.x; e.y = (u32) (win->h - p.y);
 									e.droppedFilesCount = (size_t)count;
 									e.droppedFiles = event.droppedFiles;
 									e._win = win);
@@ -8667,14 +8666,14 @@ static void RGFW__osxDidWindowResize(id self, SEL _cmd, id notification) {
 	id contentView = ((id(*)(id, SEL))objc_msgSend)(window, sel_registerName("contentView"));
 	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)(contentView, sel_registerName("frame"));
 
-	win->w = (i32)frame.width;
-	win->h = (i32)frame.height;
+	win->w = (i32)frame.size.width;
+	win->h = (i32)frame.size.height;
 
 	RGFW_monitor mon = RGFW_window_getMonitor(win);
 	if ((i32)mon.mode.w == win->w && (i32)mon.mode.h - 102 <= win->h) {
 		win->_flags |= RGFW_windowMaximize;
 		RGFW_eventQueuePushEx(e.type = RGFW_windowMaximized; e._win = win);
-		RGFW_windowMaximizedCallback(win);
+		RGFW_windowMaximizedCallback(win, 0, 0, win->w, win->h);
 	} else if (win->_flags & RGFW_windowMaximize) {
 		win->_flags &= ~(u32)RGFW_windowMaximize;
 		RGFW_eventQueuePushEx(e.type = RGFW_windowRestored; e._win = win);
@@ -8746,7 +8745,7 @@ void RGFW__osxMouseEntered(id self, SEL _cmd, id event) {
     e._win = win;
 
     RGFW_eventQueuePush(&e);
-    RGFW_mouseNotifyCallback(win, e.point, 1);
+    RGFW_mouseNotifyCallback(win, e.x, e.y, 1);
 }
 
 void RGFW__osxMouseExited(id self, SEL _cmd, id event) {
@@ -8762,7 +8761,7 @@ void RGFW__osxMouseExited(id self, SEL _cmd, id event) {
 	e._win = win;
 
     RGFW_eventQueuePush(&e);
-    RGFW_mouseNotifyCallback(win, e.point, 0);
+    RGFW_mouseNotifyCallback(win, e.x, e.y, 0);
 }
 
 void RGFW__osxKeyDown(id self, SEL _cmd, id event) {
@@ -8866,8 +8865,8 @@ void RGFW__osxMouseMoved(id self, SEL _cmd, id event) {
     RGFW_event e;
     e.type = RGFW_mousePosChanged;
     NSPoint p = ((NSPoint(*)(id, SEL))objc_msgSend)(event, sel_registerName("locationInWindow"));
-    e.x = (u32)p.x;
-	e.y = (u32)(win->h - p.y);
+    e.x = (i32)p.x;
+	e.y = (i32)(win->h - p.y);
     p.x = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaX"));
     p.y = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaY"));
     e.vecX = (float)p.x;
@@ -8877,7 +8876,7 @@ void RGFW__osxMouseMoved(id self, SEL _cmd, id event) {
     e._win = win;
 
     RGFW_eventQueuePush(&e);
-    RGFW_mousePosCallback(win, e.point, e.vector);
+    RGFW_mousePosCallback(win, e.x, e.y, e.vecX, e.vecY);
 }
 
 void RGFW__osxMouseDown(id self, SEL _cmd, id event) {
@@ -8947,16 +8946,17 @@ void RGFW__osxScrollWheel(id self, SEL _cmd, id event) {
 
 RGFW_bool RGFW_createSurfacePtr(u8* data, i32 w, i32 h, RGFW_format format, RGFW_surface* surface) {
 	surface->data = data;
-	surface->size = size;
+	surface->w = w;
+	surface->h = h;
 	surface->format = format;
-	surface->src.format = RGFW_formatRGBA8;
+	surface->native.format = RGFW_formatRGBA8;
 	return RGFW_TRUE;
 }
 
 void RGFW_surface_freePtr(RGFW_surface* surface) { RGFW_UNUSED(surface); }
 
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
-	RGFW_copyImageData(surface->data, surface->size, surface->src.format, surface->data, surface->format, &surface->;
+	RGFW_copyImageData(surface->data, surface->w, surface->h, surface->native.format, surface->data, surface->format);
 
     size_t depth = (surface->format >= RGFW_formatRGBA8) ? 4 : 3;
 	id image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSImage"), sel_getUid("alloc"));
@@ -9082,7 +9082,7 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	objc_msgSend_void(win->src.ctx.native->ctx, sel_registerName("makeCurrentContext"));
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
-	return &win->src.ctx.native;
+	return RGFW_TRUE;
 }
 
 void RGFW_window_deleteContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
@@ -9167,8 +9167,8 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	NSRect contentRect;
 	contentRect.origin.x = 0;
 	contentRect.origin.y = 0;
-	contentRect.width = (double)win->w;
-	contentRect.height = (double)win->h;
+	contentRect.size.width = (double)win->w;
+	contentRect.size.height = (double)win->h;
 	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"), contentRect);
 
 	RGFW_window_setMouseDefault(win);
@@ -9272,10 +9272,10 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 		id titleBarView = objc_msgSend_id(miniaturizeButton, sel_registerName("superview"));
 		objc_msgSend_void_bool(titleBarView, sel_registerName("setHidden:"), true);
 
-		offset = (double)(frame.height - content.height);
+		offset = (double)(frame.size.height - content.size.height);
 	}
 
-	RGFW_window_resize(win, win->w, win->h + offset);
+	RGFW_window_resize(win, win->w, win->h + (i32)offset);
 	win->h -= (i32)offset;
 }
 
@@ -9283,8 +9283,8 @@ RGFW_bool RGFW_getScreenSize(i32* w, i32* h) {
 	static CGDirectDisplayID display = 0;
 	if (display == 0) display = CGMainDisplayID();
 
-	if (w) *w = CGDisplayPixelsWide(display);
-	if (h) *h = CGDisplayPixelsHigh(display);
+	if (w) *w = (i32)CGDisplayPixelsWide(display);
+	if (h) *h = (i32)CGDisplayPixelsHigh(display);
 	return RGFW_TRUE;
 }
 
@@ -9295,8 +9295,8 @@ RGFW_bool RGFW_getGlobalMouse(i32* x, i32* y) {
 	CGPoint point = CGEventGetLocation(e);
 	CFRelease(e);
 
-	if (x) *x = (i32)x;
-	if (y) *y = (i32)y;
+	if (x) *x = (i32)point.x;
+	if (y) *y = (i32)point.y;
 	return RGFW_TRUE;
 }
 
@@ -9374,8 +9374,8 @@ void RGFW_pollEvents(void) {
 void RGFW_window_move(RGFW_window* win, i32 x, i32 y) {
 	RGFW_ASSERT(win != NULL);
 
-	win->x = v.x;
-	win->y = v.y;
+	win->x = x;
+	win->y = y;
 	((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
 		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{(double)win->x, (double)win->y}, {(double)win->w, (double)win->h}}, true, true);
 }
@@ -9385,7 +9385,7 @@ void RGFW_window_resize(RGFW_window* win, i32 w, i32 h) {
 
 	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
 	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
-	float offset = (float)(frame.height - content.height);
+	float offset = (float)(frame.size.height - content.size.height);
 
 	win->w = w;
 	win->h = h;
@@ -9522,7 +9522,7 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_f
 	RGFW_ASSERT(win != NULL);
 	RGFW_UNUSED(type);
 
-	if (img.data == NULL) {
+	if (data == NULL) {
 		objc_msgSend_void_id((id)_RGFW->NSApp, sel_registerName("setApplicationIconImage:"), NULL);
 		return RGFW_TRUE;
 	}
@@ -9552,7 +9552,7 @@ id NSCursor_arrowStr(const char* str) {
 }
 
 RGFW_mouse* RGFW_loadMouse(u8* data, i32 w, i32 h, RGFW_format format) {
-	if (img.data == NULL) {
+	if (data == NULL) {
 		objc_msgSend_void(NSCursor_arrowStr("arrowCursor"), sel_registerName("set"));
 		return NULL;
 	}
@@ -9634,9 +9634,9 @@ void RGFW_captureCursor(RGFW_window* win) {
 void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) {
 	RGFW_UNUSED(win);
 
-	win->_lastMouseX = v.x - win->x;
-	win->_lastMouseY = v.y - win->y;
-	CGWarpMouseCursorPosition((CGPoint){v.x, v.y});
+	win->_lastMouseX = x - win->x;
+	win->_lastMouseY = y - win->y;
+	CGWarpMouseCursorPosition((CGPoint){x, y});
 }
 
 
@@ -9718,8 +9718,8 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 	CGRect bounds = CGDisplayBounds(display);
 	monitor.x = (i32)bounds.origin.x;
 	monitor.y = (i32)bounds.origin.y;
-	monitor.mode.w = (i32) bounds.width;
-	monitor.mode.h  = (i32) bounds.height;
+	monitor.mode.w = (i32) bounds.size.width;
+	monitor.mode.h  = (i32) bounds.size.height;
 
 	monitor.mode.red = 8; monitor.mode.green = 8; monitor.mode.blue = 8;
 
@@ -9783,8 +9783,8 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
         CGDisplayModeRef cmode = (CGDisplayModeRef)CFArrayGetValueAtIndex(allModes, i);
 
 		RGFW_monitorMode foundMode;
-		foundMode.w = CGDisplayModeGetWidth(cmode);
-		foundMode.h = CGDisplayModeGetHeight(cmode);
+		foundMode.w = (i32)CGDisplayModeGetWidth(cmode);
+		foundMode.h = (i32)CGDisplayModeGetHeight(cmode);
 		foundMode.refreshRate =  RGFW_osx_getRefreshRate(display, cmode);
 		foundMode.red = 8; foundMode.green = 8; foundMode.blue = 8;
 
