@@ -8870,8 +8870,8 @@ void RGFW__osxMouseMoved(id self, SEL _cmd, id event) {
 	e.y = (u32)(win->h - p.y);
     p.x = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaX"));
     p.y = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaY"));
-    e.vecX = p.x;
-	e.vecY = p.y;
+    e.vecX = (float)p.x;
+	e.vecY = (float)p.y;
     win->_lastMouseX = e.x;
     win->_lastMouseY = e.y;
     e._win = win;
