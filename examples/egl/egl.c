@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #ifdef RGFW_MACOS
+#define GL_SILENCE_DEPRECATION
 #include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>

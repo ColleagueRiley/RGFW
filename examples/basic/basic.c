@@ -19,6 +19,7 @@ void myFree(void* ptr, unsigned int line, const char* file) {
 #define RGFW_ALLOC(size) myAlloc(size, __LINE__, __FILE__)
 #define RGFW_FREE(size) myFree(size, __LINE__, __FILE__)
 
+#define GL_SILENCE_DEPRECATION
 #define RGFW_OPENGL
 #define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
@@ -45,8 +46,6 @@ int main(void) {
 
 	RGFW_window_setMouseStandard(win, RGFW_mouseResizeNESW);
 	RGFW_mouse *mouse = RGFW_loadMouse(icon, 3, 3, RGFW_formatRGBA8);
-
-	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 
 	while (!RGFW_window_shouldClose(win)) {
 		RGFW_event event;

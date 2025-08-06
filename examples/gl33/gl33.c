@@ -4,6 +4,7 @@
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
 #define RGFW_DEBUG
+#define GL_SILENCE_DEPRECATION
 #include <RGFW.h>
 
 #ifndef __EMSCRIPTEN__

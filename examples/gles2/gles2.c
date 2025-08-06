@@ -5,6 +5,7 @@
 
 #include <GLES2/gl2.h>
 
+#define GL_SILENCE_DEPRECATION
 #define RGFW_OPENGL
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
