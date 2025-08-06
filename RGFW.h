@@ -237,8 +237,9 @@ int main() {
 	#define RGFW_MACOS
 #endif
 
-#if !defined(RGFW_SNPRINTF) && defined(RGFW_X11)
+#if !defined(RGFW_SNPRINTF) && (defined(RGFW_X11) || defined(RGFW_WAYLAND))
 	/* required for X11 errors */
+	/* and for setting a default name in wayland if wl_ouput versio is < 4*/
 	#include <stdio.h>
 	#define RGFW_SNPRINTF snprintf
 #endif
@@ -5852,6 +5853,13 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
 	
 	RGFW_MEMSET(mon, 0, sizeof(RGFW_monitor));
 	_RGFW->monitors[_RGFW->num_monitors] = mon;
+
+	char RGFW_mon_default_name[10];
+	
+	RGFW_SNPRINTF(RGFW_mon_default_name, sizeof(RGFW_mon_default_name), "monitor-%d", _RGFW->num_monitors);
+	RGFW_STRNCPY(mon->name, RGFW_mon_default_name, sizeof(mon->name) - 1);
+	mon->name[sizeof(mon->name) - 1] = '\0';
+	
 	++_RGFW->num_monitors;
 	mon->id = id;
 	mon->output = output;
@@ -6452,7 +6460,9 @@ RGFW_monitor* RGFW_FUNC(RGFW_getMonitors) (size_t* len) {
 }
 
 RGFW_monitor RGFW_FUNC(RGFW_getPrimaryMonitor) (void) {
-	return (RGFW_monitor){ 0 }; /* TODO WAYLAND */
+	RGFW_ASSERT(_RGFW->monitors != NULL);
+
+	return *_RGFW->monitors[0]; /* Get the first one from the array*/
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
