@@ -2060,8 +2060,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	if (!(flags & RGFW_windowHide)) RGFW_window_show(win);
 
 	#ifdef RGFW_OPENGL
-	win->src.ctx.egl = NULL;
-	win->src.ctx.native = NULL;
 	win->src.gfxType = 0;
 	if (flags & RGFW_windowOpenGL)
 		RGFW_window_createContext_OpenGL(win);
@@ -2080,7 +2078,7 @@ void RGFW_window_closePtr(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
 	#ifdef RGFW_EGL
-	if (win->src.ctx.egl) {
+	if ((win->src.gfxType & RGFW_gfxEGL) && win->src.ctx.egl) {
 		RGFW_window_deleteContext_EGL(win, win->src.ctx.egl);
 		win->src.ctx.egl = NULL;
 	}
@@ -2568,6 +2566,11 @@ i32 RGFW_getHint_OpenGL(RGFW_glHints hint) {
 }
 
 RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win) {
+	#ifdef RGFW_WAYLAND
+	if (RGFW_usingWayland()) {
+		return (RGFW_glContext*)RGFW_window_createContext_EGL(win);
+	}
+	#endif
 	RGFW_glContext* ctx = (RGFW_glContext*)RGFW_ALLOC(sizeof(RGFW_glContext));
 	if (RGFW_window_createContextPtr_OpenGL(win, ctx) == RGFW_FALSE) {
 		RGFW_FREE(ctx);
@@ -3003,7 +3006,7 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 	RGFW_eglMakeCurrent(_RGFW->EGL_display, win->src.ctx.egl->surface, win->src.ctx.egl->surface, win->src.ctx.egl->ctx);
 	RGFW_eglSwapBuffers(_RGFW->EGL_display, win->src.ctx.egl->surface);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "EGL context initalized.");
-	return RGFW_FALSE;
+	return RGFW_TRUE;
 }
 
 RGFW_eglContext* RGFW_window_getContext_EGL(RGFW_window* win) {
@@ -3019,7 +3022,7 @@ void RGFW_window_deleteContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ctx) {
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "EGL context freed");
 	#ifdef RGFW_WAYLAND
 		if (_RGFW->useWaylandBool == RGFW_FALSE) return;
-		wl_egl_window_destroy(ctx->eglWindow);
+		wl_egl_window_destroy(win->src.ctx.egl->eglWindow);
 		RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "EGL window context freed");
 	#endif
 	win->src.ctx.egl = NULL;
@@ -5941,7 +5944,11 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
 }
 
 #ifdef RGFW_OPENGL
-RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL)(RGFW_window* win, RGFW_glContext* ctx) { return RGFW_window_createContextPtr_EGL(win, &ctx->egl); }
+RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL)(RGFW_window* win, RGFW_glContext* ctx) {
+	RGFW_bool out = RGFW_window_createContextPtr_EGL(win, &ctx->egl);
+	win->src.gfxType = RGFW_gfxNativeOpenGL;
+	return out;
+}
 void RGFW_FUNC(RGFW_window_deleteContextPtr_OpenGL) (RGFW_window* win, RGFW_glContext* ctx) { RGFW_window_deleteContextPtr_EGL(win, &ctx->egl); win->src.ctx.native = NULL; }
 #endif /* RGFW_OPENGL */
 
