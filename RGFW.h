@@ -3025,7 +3025,7 @@ void RGFW_window_deleteContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ctx) {
 	win->src.ctx.egl = NULL;
 }
 
-void RGFW_window_makeCurrentContext_EGL(RGFW_window* win) { RGFW_ASSERT(win->src.ctx.egl);
+void RGFW_window_makeCurrentContext_EGL(RGFW_window* win) { if (win) RGFW_ASSERT(win->src.ctx.egl);
 	if (win == NULL)
         RGFW_eglMakeCurrent(_RGFW->EGL_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     else {
@@ -5226,7 +5226,7 @@ RGFW_bool RGFW_FUNC(RGFW_extensionSupportedPlatform_OpenGL)(const char * extensi
 
 RGFW_proc RGFW_FUNC(RGFW_getProcAddress_OpenGL)(const char* procname) { return (RGFW_proc) glXGetProcAddress((u8*) procname); }
 
-void RGFW_FUNC(RGFW_window_makeCurrentContext_OpenGL) (RGFW_window* win) { RGFW_ASSERT(win->src.ctx.native);
+void RGFW_FUNC(RGFW_window_makeCurrentContext_OpenGL) (RGFW_window* win) { if (win) RGFW_ASSERT(win->src.ctx.native);
 	if (win == NULL)
 		glXMakeCurrent(NULL, (Drawable)NULL, (GLXContext) NULL);
 	else
@@ -9159,7 +9159,6 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	pool = objc_msgSend_id(pool, sel_registerName("init"));
 
 	#ifdef RGFW_OPENGL
-		win->src.ctx.native->ctx = NULL;
 	#endif
 
 
@@ -9848,7 +9847,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 
 #ifdef RGFW_OPENGL
 void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
-	RGFW_ASSERT(win && win->src.ctx.native);
+	if (win) RGFW_ASSERT(win->src.ctx.native);
 	if (win != NULL)
 		objc_msgSend_void(win->src.ctx.native->ctx, sel_registerName("makeCurrentContext"));
 	else
@@ -10531,7 +10530,7 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 
 #ifdef RGFW_OPENGL
 void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
-	RGFW_ASSERT(win && win->src.ctx.native);
+	if (win) RGFW_ASSERT(win->src.ctx.native);
 	if (win == NULL)
 	    emscripten_webgl_make_context_current(0);
 	else
