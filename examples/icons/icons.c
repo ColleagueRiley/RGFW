@@ -1,13 +1,6 @@
-#define RGFW_OPENGL
 #define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
-
-#ifdef RGFW_MACOS
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -30,11 +23,6 @@ int main(void) {
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win, &event) && event.type != RGFW_quit);
-
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        RGFW_window_swapBuffers_OpenGL(win);
     }
 
     RGFW_freeMouse(mouse);

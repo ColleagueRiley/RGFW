@@ -1,16 +1,9 @@
-#define RGFW_OPENGL
 #define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
-#ifdef RGFW_MACOS
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
-
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("RGFW flags", 0, 0, 600, 400, RGFW_windowAllowDND | RGFW_windowOpenGL);
+    RGFW_window* win = RGFW_createWindow("RGFW flags", 0, 0, 600, 400, RGFW_windowAllowDND);
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
 
@@ -73,10 +66,6 @@ int main(void) {
                     default: break;
             }
         }
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        RGFW_window_swapBuffers_OpenGL(win);
     }
 
     RGFW_window_close(win);

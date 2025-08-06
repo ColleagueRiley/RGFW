@@ -111,10 +111,11 @@ int main(void)
 
         float ratio;
 
-        RGFW_rect rect = RGFW_window_getRect(window);
-        ratio = rect.w / (float) rect.h;
+		i32 w, h;
+        RGFW_window_getSize(window, &w, &h);
+        ratio = w / (float) h;
 
-        layer.drawableSize = CGSizeMake(rect.w, rect.h);
+        layer.drawableSize = CGSizeMake(w, h);
         id<CAMetalDrawable> drawable = [layer nextDrawable];
         assert(drawable);
 

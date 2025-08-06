@@ -38,8 +38,8 @@ void drawBitmap(u8* buffer, u8* bitmap, i32 x, i32 y, i32 w, i32 h) {
 }
 
 void drawRect(u8* buffer, i32 x, i32 y, i32 w, i32 h, u8 color[4]) {
-    for(; x < (x + w); x++) {
-        for(; y < (y + h); y++) {
+    for(; x < w; x++) {
+        for(; y < h; y++) {
             u32 index = (u32)y * (4 * (u32)bufferWidth) + (u32)x * 4;
 
             memcpy(buffer + index, color, 4 * sizeof(u8));

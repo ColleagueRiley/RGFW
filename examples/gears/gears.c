@@ -25,6 +25,7 @@
  * See usage() below for command line options.
  */
 
+#define GL_SILENCE_DEPRECATION
 #define RGFW_OPENGL
 #define RGFW_IMPLEMENTATION
 #include <math.h>

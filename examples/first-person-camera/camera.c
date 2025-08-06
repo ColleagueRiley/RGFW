@@ -1,5 +1,6 @@
 #define RGFW_OPENGL
 #define RGFW_IMPLEMENTATION
+#define GL_SILENCE_DEPRECATION
 #include "RGFW.h"
 
 #ifdef RGFW_MACOS
