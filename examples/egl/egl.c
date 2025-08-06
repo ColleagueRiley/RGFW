@@ -20,8 +20,8 @@ void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGF
 }
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), RGFW_windowEGL | RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowTransparent);
-
+    RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowEGL | RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowTransparent);
+    RGFW_window_makeCurrentContext_EGL(win);
     RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
@@ -31,11 +31,11 @@ int main(void) {
             if (event.type == RGFW_quit) break;
 
             if (event.type == RGFW_mouseButtonPressed && event.button == RGFW_mouseLeft) {
-                printf("You clicked at x: %d, y: %d\n", event.point.x, event.point.y);
+                printf("You clicked at x: %d, y: %d\n", event.x, event.y);
             }
 
             if (RGFW_isMousePressed(win, RGFW_mouseRight)) {
-                printf("The right mouse button was clicked at x: %d, y: %d\n", event.point.x, event.point.y);
+                printf("The right mouse button was clicked at x: %d, y: %d\n", event.x, event.y);
             }
         }
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -46,7 +46,6 @@ int main(void) {
         glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.6f, -0.75f);
         glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
         glEnd();
-
         RGFW_window_swapBuffers_EGL(win);
         glFlush();
     }

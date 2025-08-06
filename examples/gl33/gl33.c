@@ -18,8 +18,8 @@
 #include <stdbool.h>
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const int SCR_WIDTH = 800;
+const int SCR_HEIGHT = 600;
 
 #ifndef __EMSCRIPTEN__
 const char *vertexShaderSource = MULTILINE_STR(
@@ -60,7 +60,7 @@ int main(void) {
     RGFW_setHint_OpenGL(RGFW_glMinor, 3);
     RGFW_setHint_OpenGL(RGFW_glMajor, 3);
 
-	RGFW_window* window = RGFW_createWindow("LearnOpenGL", RGFW_RECT(SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT), RGFW_windowAllowDND | RGFW_windowCenter | RGFW_windowScaleToMonitor | RGFW_windowOpenGL);
+	RGFW_window* window = RGFW_createWindow("LearnOpenGL", SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT, RGFW_windowAllowDND | RGFW_windowCenter | RGFW_windowScaleToMonitor | RGFW_windowOpenGL);
     if (window == NULL)
     {
         printf("Failed to create RGFW window\n");

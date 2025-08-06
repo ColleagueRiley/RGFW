@@ -32,7 +32,7 @@ int main(void) {
 	RGFW_setHint_OpenGL(RGFW_glMinor, 0);
 	RGFW_setHint_OpenGL(RGFW_glProfile, RGFW_glES);
 
-	RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(0, 0, 500, 500), RGFW_windowCenter | RGFW_windowTransparent | RGFW_windowOpenGL);
+	RGFW_window* win = RGFW_createWindow("name", 0, 0, 500, 500, RGFW_windowCenter | RGFW_windowTransparent | RGFW_windowOpenGL);
 
     ///////  the openGL part  ///////////////////////////////////////////////////////////////
 
@@ -94,7 +94,7 @@ int main(void) {
         };
 
     size_t attribute_stride = 5 * sizeof(float);
-    float display_aspect = ((float) win->r.w) / ((float) win->r.h);
+    float display_aspect = ((float) win->w) / ((float) win->h);
     float xscale = 1.5 / display_aspect;
     float yscale = 1.5;
     float display_transform_cols[4*4] =

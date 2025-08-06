@@ -42,11 +42,11 @@ void checkEvents(RGFW_window* win) {
 				RGFW_window_setShouldClose(win, 1);
 				break;
 			case RGFW_windowResized:
-				if (event.point.x != 0 && event.point.y != 0)
-					printf("window %p: resize: %dx%d\n", (void*)win, event.point.x, event.point.y);
+				if (event.x != 0 && event.y != 0)
+					printf("window %p: resize: %dx%d\n", (void*)win, event.x, event.y);
 				break;
 			case RGFW_DND:
-				printf("window %p: drag and drop: %dx%d:\n", (void*)win, event.point.x, event.point.y);
+				printf("window %p: drag and drop: %dx%d:\n", (void*)win, event.x, event.y);
 				for (size_t i = 0; i < event.droppedFilesCount; i++)
 					printf("\t%u: '%s'\n", (u32)i, event.droppedFiles[i]);
 				break;
@@ -118,9 +118,9 @@ int main(void) {
 
 	RGFW_setClassName("RGFW Example");
 
-	RGFW_window* win1 = RGFW_createWindow("RGFW Example Window 1", RGFW_RECT(500, 500, 500, 500), RGFW_windowAllowDND | RGFW_windowOpenGL);
-	RGFW_window* win2 = RGFW_createWindow("RGFW Example Window 2", RGFW_RECT(100, 100, 200, 200), RGFW_windowNoResize | RGFW_windowAllowDND | RGFW_windowOpenGL);
-	RGFW_window* win3 = RGFW_createWindow("RGFW Example Window 3", RGFW_RECT(20, 500, 400, 300), RGFW_windowNoResize | RGFW_windowAllowDND | RGFW_windowOpenGL);
+	RGFW_window* win1 = RGFW_createWindow("RGFW Example Window 1", 500, 500, 500, 500, RGFW_windowAllowDND | RGFW_windowOpenGL);
+	RGFW_window* win2 = RGFW_createWindow("RGFW Example Window 2", 100, 100, 200, 200, RGFW_windowNoResize | RGFW_windowAllowDND | RGFW_windowOpenGL);
+	RGFW_window* win3 = RGFW_createWindow("RGFW Example Window 3", 20, 500, 400, 300, RGFW_windowNoResize | RGFW_windowAllowDND | RGFW_windowOpenGL);
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 	RGFW_window_makeCurrentContext_OpenGL(NULL); /* this is really important (this releases the opengl context on this thread) */
 

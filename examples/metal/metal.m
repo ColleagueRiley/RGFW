@@ -53,7 +53,7 @@ int main(void)
 		exit(EXIT_FAILURE);
     }
 
-    RGFW_window* window = RGFW_createWindow("RGFW Metal example", RGFW_RECT(0, 0, 640, 480), RGFW_windowCenter);
+    RGFW_window* window = RGFW_createWindow("RGFW Metal example", 0, 0, 640, 480, RGFW_windowCenter);
 
     CAMetalLayer* layer = [CAMetalLayer layer];
     layer.device = device;

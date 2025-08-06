@@ -469,7 +469,7 @@ main(int argc, char *argv[])
 	   flag = RGFW_windowFullscreen;
    }
 
-   win = RGFW_createWindow("gears", RGFW_RECT(x, y, winWidth, winHeight), RGFW_windowCenter | RGFW_windowOpenGL | flag);
+   win = RGFW_createWindow("gears", x, y, winWidth, winHeight, RGFW_windowCenter | RGFW_windowOpenGL | flag);
    RGFW_window_makeCurrentContext_OpenGL(win);
    init();
 
@@ -477,13 +477,13 @@ main(int argc, char *argv[])
     * We can't be sure we'll get a ConfigureNotify event when the window
     * first appears.
     */
-   reshape(win->r.w, win->r.h);
+   reshape(win->w, win->h);
 
    while(!RGFW_window_shouldClose(win)){
       RGFW_event event;
       while(RGFW_window_checkEvent(win, &event)){
 		   if (event.type == RGFW_windowResized){
-			   reshape(win->r.w, win->r.h);
+			   reshape(win->w, win->h);
 		   }else if(event.type == RGFW_keyPressed){
 			   switch(event.key){
 				   case RGFW_left:

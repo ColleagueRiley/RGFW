@@ -250,7 +250,7 @@ static int text_height(mu_Font font) {
 int main(int argc, char **argv) {
   RGFW_UNUSED(argc); RGFW_UNUSED(argv);
   /* init RGFW window */
-  RGFW_window* window = RGFW_createWindow("", RGFW_RECT(0, 0, width, height), RGFW_windowCenter | RGFW_windowScaleToMonitor | RGFW_windowOpenGL);
+  RGFW_window* window = RGFW_createWindow("", 0, 0, width, height, RGFW_windowCenter | RGFW_windowScaleToMonitor | RGFW_windowOpenGL);
   r_init();
 
   /* init microui */
@@ -268,14 +268,14 @@ int main(int argc, char **argv) {
 
       switch (event.type) {
         case RGFW_quit: break;
-        case RGFW_mousePosChanged: mu_input_mousemove(ctx, event.point.x,  event.point.y); break;
+        case RGFW_mousePosChanged: mu_input_mousemove(ctx, event.x,  event.y); break;
 
         case RGFW_mouseButtonPressed:
 		  mu_input_scroll(ctx, 0, event.scroll * -30);
 		case RGFW_mouseButtonReleased: {
           int b = button_map[event.button & 0xff];
-          if (b && event.type == RGFW_mouseButtonPressed) { mu_input_mousedown(ctx, event.point.x,  event.point.y , b); }
-          if (b && event.type == RGFW_mouseButtonReleased) { mu_input_mouseup(ctx, event.point.x,  event.point.y, b);   }
+          if (b && event.type == RGFW_mouseButtonPressed) { mu_input_mousedown(ctx, event.x,  event.y , b); }
+          if (b && event.type == RGFW_mouseButtonReleased) { mu_input_mouseup(ctx, event.x,  event.y, b);   }
           break;
         }
 
@@ -291,8 +291,8 @@ int main(int argc, char **argv) {
         }
 
 		case RGFW_windowResized:
-		  width = window->r.w;
-		  height = window->r.h;
+		  width = window->w;
+		  height = window->h;
 		  break;
 	  }
     }

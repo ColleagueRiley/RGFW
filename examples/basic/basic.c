@@ -38,14 +38,13 @@ int main(void) {
 	#endif
 
 	RGFW_setClassName("RGFW Example");
-	RGFW_window *win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND | RGFW_windowOpenGL);
-
+	RGFW_window *win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND | RGFW_windowOpenGL);
 //	RGFW_window_makeCurrentContext_OpenGL(win);
 
-	RGFW_window_setIcon(win, RGFW_IMAGE(icon, RGFW_AREA(3, 3), RGFW_formatRGBA8));
+	RGFW_window_setIcon(win, icon, 3, 3, RGFW_formatRGBA8);
 
 	RGFW_window_setMouseStandard(win, RGFW_mouseResizeNESW);
-	RGFW_mouse *mouse = RGFW_loadMouse(RGFW_IMAGE(icon, RGFW_AREA(3, 3), RGFW_formatRGBA8));
+	RGFW_mouse *mouse = RGFW_loadMouse(icon, 3, 3, RGFW_formatRGBA8);
 
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 
@@ -57,16 +56,16 @@ int main(void) {
 					RGFW_window_setShouldClose(win, 1);
 					break;
 				case RGFW_windowResized:
-					printf("resize: %dx%d\n", win->r.h, win->r.w);
+					printf("resize: %dx%d\n", win->h, win->w);
 					break;
     			case RGFW_mouseButtonPressed:
-					printf("button pressed: %u {%d, %d}\n", event.button, event.point.x, event.point.y);
+					printf("button pressed: %u\n", event.button);
 					break;
 				case RGFW_mouseButtonReleased:
-					printf("button released: %u {%d, %d}\n", event.button, event.point.x, event.point.y);
+					printf("button released: %u\n", event.button);
 					break;
 				case RGFW_DND:
-					printf("drag and drop: %dx%d:\n", event.point.x, event.point.y);
+					printf("drag and drop: %dx%d:\n", event.x, event.y);
 					for (size_t i = 0; i < event.droppedFilesCount; i++) {
 						printf("\t%u: '%s'\n", (u32)i, event.droppedFiles[i]);
 					}
