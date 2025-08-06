@@ -9956,9 +9956,8 @@ EM_BOOL Emscripten_on_fullscreenchange(int eventType, const EmscriptenFullscreen
 		#endif
 	}
 
-	emscripten_set_canvas_element_size("#canvas", _RGFW->root->r.w, _RGFW->root->r.h);
-
-	RGFW_windowResizedCallback(_RGFW->root, _RGFW->root->r);
+	emscripten_set_canvas_element_size("#canvas", _RGFW->root->w, _RGFW->root->h);
+	RGFW_windowResizedCallback(_RGFW->root, _RGFW->root->w, _RGFW->root->h);
 	return EM_TRUE;
 }
 
@@ -9987,8 +9986,8 @@ EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* E, voi
 EM_BOOL Emscripten_on_mousemove(int eventType, const EmscriptenMouseEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 	RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
-									e.x = E->targetX, e.y = E->targetY;
-									e.vector.x = E->movementX; e.vector.y = E->movementY;
+									e.x = E->targetX; e.y = E->targetY;
+									e.vecX = E->movementX; e.vecY = E->movementY;
 									e._win = _RGFW->root);
 
 	_RGFW->root->_lastMouseX = E->targetX;
@@ -10005,7 +10004,7 @@ EM_BOOL Emscripten_on_mousedown(int eventType, const EmscriptenMouseEvent* E, vo
 		button += 2;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonPressed;
-									e.x = E->targetX, e.y = E->targetY;
+									e.x = E->targetX; e.y = E->targetY;
 									e.vecX = E->movementX; e.vecY = E->movementY;
 									e.button = (u8)button;
 									e.scroll = 0;
@@ -10025,7 +10024,7 @@ EM_BOOL Emscripten_on_mouseup(int eventType, const EmscriptenMouseEvent* E, void
 		button += 2;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonReleased;
-									e.x = E->targetX, e.y = E->targetY;
+									e.x = E->targetX; e.y = E->targetY;
 									e.vecX = E->movementX; e.vecY =  E->movementY;
 									e.button = (u8)button;
 									e.scroll = 0;
@@ -10067,7 +10066,7 @@ EM_BOOL Emscripten_on_touchstart(int eventType, const EmscriptenTouchEvent* E, v
 
 		_RGFW->root->_lastMouseX = E->touches[i].targetX;
 		_RGFW->root->_lastMouseX = E->touches[i].targetY;
-        RGFW_mousePosCallback(_RGFW->root, E->touches[i].targetX, E->touches[i].targetY, 0, 0));
+        RGFW_mousePosCallback(_RGFW->root, E->touches[i].targetX, E->touches[i].targetY, 0, 0);
 	    RGFW_mouseButtonCallback(_RGFW->root, RGFW_mouseLeft, 0, 1);
     }
 
@@ -10098,7 +10097,7 @@ EM_BOOL Emscripten_on_touchend(int eventType, const EmscriptenTouchEvent* E, voi
     size_t i;
     for (i = 0; i < (size_t)E->numTouches; i++) {
 		RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonReleased;
-										e.x = E->touches[i].targetX; e.y E->touches[i].targetY);
+										e.x = E->touches[i].targetX; e.y = E->touches[i].targetY;
 										e.button = RGFW_mouseLeft;
 										e._win = _RGFW->root);
 
@@ -10461,7 +10460,7 @@ void RGFW_window_resize(RGFW_window* win, i32 w, i32 h) {
 }
 
 /* NOTE: I don't know if this is possible */
-void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) { RGFW_UNUSED(win); RGFW_UNUSED(v); }
+void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) { RGFW_UNUSED(win); RGFW_UNUSED(x); RGFW_UNUSED(y); }
 /* this one might be possible but it looks iffy */
 RGFW_mouse* RGFW_loadMouse(u8* data, i32 w, i32 h, RGFW_format format) { RGFW_UNUSED(data); RGFW_UNUSED(w); RGFW_UNUSED(h); RGFW_UNUSED(format); return NULL; }
 
@@ -10493,14 +10492,13 @@ void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show) {
 }
 
 RGFW_bool RGFW_getGlobalMouse(i32* x, i32* y) {
-    i32 x, y;
-    x = EM_ASM_INT({
+    if(x) *x = EM_ASM_INT({
         return window.mouseX || 0;
     });
-    y = EM_ASM_INT({
+    if (y) *y = EM_ASM_INT({
         return window.mouseY || 0;
     });
-    return point;
+    return RGFW_TRUE;
 }
 
 void RGFW_window_setMousePassthrough(RGFW_window* win, RGFW_bool passthrough) {
@@ -10588,8 +10586,7 @@ void RGFW_releaseCursor(RGFW_window* win) {
 }
 
 void RGFW_captureCursor(RGFW_window* win) {
-	RGFW_UNUSED(win); RGFW_UNUSED(r);
-
+	RGFW_UNUSED(win);
 	emscripten_request_pointerlock("#canvas", 1);
 }
 
@@ -10646,15 +10643,15 @@ void RGFW_window_raise(RGFW_window* win) { RGFW_UNUSED(win); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
 RGFW_monitor* RGFW_getMonitors(size_t* len) { RGFW_UNUSED(len); return NULL; }
 RGFW_monitor RGFW_getPrimaryMonitor(void) { return (RGFW_monitor){}; }
-void RGFW_window_move(RGFW_window* win, i32 x, i32 y) { RGFW_UNUSED(win); RGFW_UNUSED(v); }
-void RGFW_window_setAspectRatio(RGFW_window* win, i32 w, i32 h) { RGFW_UNUSED(win); RGFW_UNUSED(a); }
-void RGFW_window_setMinSize(RGFW_window* win, i32 w, i32 h) { RGFW_UNUSED(win); RGFW_UNUSED(a);  }
-void RGFW_window_setMaxSize(RGFW_window* win, i32 w, i32 h) { RGFW_UNUSED(win); RGFW_UNUSED(a);  }
+void RGFW_window_move(RGFW_window* win, i32 x, i32 y) { RGFW_UNUSED(win);  RGFW_UNUSED(x); RGFW_UNUSED(y);  }
+void RGFW_window_setAspectRatio(RGFW_window* win, i32 w, i32 h) { RGFW_UNUSED(win);  RGFW_UNUSED(w); RGFW_UNUSED(h);  }
+void RGFW_window_setMinSize(RGFW_window* win, i32 w, i32 h) { RGFW_UNUSED(win); RGFW_UNUSED(w); RGFW_UNUSED(h);  }
+void RGFW_window_setMaxSize(RGFW_window* win, i32 w, i32 h) { RGFW_UNUSED(win);  RGFW_UNUSED(w); RGFW_UNUSED(h);  }
 void RGFW_window_minimize(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_restore(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating) { RGFW_UNUSED(win); RGFW_UNUSED(floating); }
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) { RGFW_UNUSED(win); RGFW_UNUSED(border);  }
-RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format, RGFW_icon type) { RGFW_UNUSED(win); RGFW_UNUSED(data); RGFW_UNUSED(size); RGFW_UNUSED(format);  RGFW_UNUSED(type); return RGFW_FALSE;  }
+RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format, RGFW_icon type) { RGFW_UNUSED(win); RGFW_UNUSED(data); RGFW_UNUSED(w); RGFW_UNUSED(h); RGFW_UNUSED(format);  RGFW_UNUSED(type); return RGFW_FALSE;  }
 void RGFW_window_hide(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_show(RGFW_window* win) {RGFW_UNUSED(win); }
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
