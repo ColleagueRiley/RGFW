@@ -406,6 +406,9 @@ RGFWDEF RGFW_bool RGFW_usingWayland(void);
 RGFWDEF void RGFW_setClassName(const char* name);
 RGFWDEF void RGFW_setXInstName(const char* name); /*!< X11 instance name (window name will by used by default) */
 
+/*! (cocoa only) change directory to resource folder */
+RGFWDEF void RGFW_moveToMacOSResourceDir(void);
+
 typedef RGFW_ENUM(u8, RGFW_format) {
     RGFW_formatRGB8 = 0,    /*!< 8-bit RGB (3 channels) */
     RGFW_formatBGR8,    /*!< 8-bit BGR (3 channels) */
@@ -668,6 +671,36 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 	RGFW_scaleUpdated /*!< content scale factor changed */
 };
 
+
+typedef RGFW_ENUM(u32, RGFW_eventFlag) {
+    RGFW_keyPressedFlag = RGFW_BIT(RGFW_keyPressed),
+    RGFW_keyReleasedFlag = RGFW_BIT(RGFW_keyReleased),
+    RGFW_mouseButtonPressedFlag = RGFW_BIT(RGFW_mouseButtonPressed),
+    RGFW_mouseButtonReleasedFlag = RGFW_BIT(RGFW_mouseButtonReleased),
+    RGFW_mousePosChangedFlag = RGFW_BIT(RGFW_mousePosChanged),
+    RGFW_mouseEnterFlag = RGFW_BIT(RGFW_mouseEnter),
+    RGFW_mouseLeaveFlag = RGFW_BIT(RGFW_mouseLeave),
+    RGFW_windowMovedFlag = RGFW_BIT(RGFW_windowMoved),
+    RGFW_windowResizedFlag = RGFW_BIT(RGFW_windowResized),
+    RGFW_focusInFlag = RGFW_BIT(RGFW_focusIn),
+    RGFW_focusOutFlag = RGFW_BIT(RGFW_focusOut),
+    RGFW_windowRefreshFlag = RGFW_BIT(RGFW_windowRefresh),
+    RGFW_windowMaximizedFlag = RGFW_BIT(RGFW_windowMaximized),
+    RGFW_windowMinimizedFlag = RGFW_BIT(RGFW_windowMinimized),
+    RGFW_windowRestoredFlag = RGFW_BIT(RGFW_windowRestored),
+    RGFW_scaleUpdatedFlag = RGFW_BIT(RGFW_scaleUpdated),
+    RGFW_quitFlag = RGFW_BIT(RGFW_quit),
+    RGFW_DNDFlag = RGFW_BIT(RGFW_DND),
+    RGFW_DNDInitFlag = RGFW_BIT(RGFW_DNDInit),
+
+    RGFW_keyEventsFlag = RGFW_keyPressedFlag | RGFW_keyReleasedFlag,
+    RGFW_mouseEventsFlag = RGFW_mouseButtonPressedFlag | RGFW_mouseButtonReleasedFlag | RGFW_mousePosChangedFlag | RGFW_mouseEnterFlag | RGFW_mouseLeaveFlag,
+    RGFW_windowEventsFlag = RGFW_windowMovedFlag | RGFW_windowResizedFlag | RGFW_windowRefreshFlag | RGFW_windowMaximizedFlag | RGFW_windowMinimizedFlag | RGFW_windowRestoredFlag | RGFW_scaleUpdatedFlag,
+    RGFW_focusEventsFlag = RGFW_focusInFlag | RGFW_focusOutFlag,
+    RGFW_dndEventsFlag = RGFW_DNDFlag | RGFW_DNDInitFlag,
+    RGFW_allEventFlags = RGFW_keyEventsFlag | RGFW_mouseEventsFlag | RGFW_windowEventsFlag | RGFW_focusEventsFlag | RGFW_dndEventsFlag | RGFW_quitFlag
+};
+
 /* NOTE: some parts of the data can represent different things based on the event (read comments in RGFW_event struct) */
 /*! Event structure for checking/getting events */
 typedef struct RGFW_event {
@@ -731,7 +764,6 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowFullscreen = RGFW_BIT(4), /*!< the window is fullscreen by default */
 	RGFW_windowTransparent = RGFW_BIT(5), /*!< the window is transparent (only properly works on X11 and MacOS, although it's meant for for windows) */
 	RGFW_windowCenter = RGFW_BIT(6), /*! center the window on the screen */
-	RGFW_windowCocoaCHDirToRes = RGFW_BIT(7), /*! (cocoa only), change directory to resource folder */
 	RGFW_windowScaleToMonitor = RGFW_BIT(8), /*! scale the window to the screen */
 	RGFW_windowHide = RGFW_BIT(9), /*! the window is hidden */
 	RGFW_windowMaximize = RGFW_BIT(10),
@@ -773,6 +805,9 @@ RGFWDEF u32 RGFW_window_getFlags(RGFW_window* win); /*!< gets the flags of the w
 RGFWDEF RGFW_key RGFW_window_getExitKey(RGFW_window* win); /*!< get the exit key for the window | returns RGFW_window.exitKey */
 RGFWDEF void RGFW_window_setExitKey(RGFW_window* win, RGFW_key key); /*!< set the exit key for the window |edits RGFW_window.exitKey */
 
+/*! sets the types of events you want to receive, RGFW_allEventFlags by default (modifies RGFW_window._enabledEvents) */
+RGFWDEF void RGFW_window_setEnabledEvents(RGFW_window* win, RGFW_eventFlag events);
+
 RGFWDEF void* RGFW_window_getUserPtr(RGFW_window* win); /*!< gets the userPtr of the window | returns RGFW_window.userPtr */
 RGFWDEF void RGFW_window_setUserPtr(RGFW_window* win, void* ptr); /*!< sets the userPtr of the window | writes to RGFW_window.userPtr */
 
@@ -780,9 +815,6 @@ RGFWDEF RGFW_window_src* RGFW_window_getSrc(RGFW_window* win); /*!< returns fat 
 
 /** * @defgroup Window_management
 * @{ */
-
-/*! (cocoa only) change directory to resource folder */
-RGFWDEF void RGFW_moveToMacOSResourceDir(void);
 
 /*! set the window flags (will undo flags if they don't match the old ones) */
 RGFWDEF void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags);
@@ -1520,6 +1552,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 
 
 		RGFW_keymod _keyMod;
+		RGFW_eventFlag _enabledEvents;
 		u32 _flags; /*!< windows flags (for RGFW to check) */
 		i32 _oldX, _oldY, _oldW, _oldH;
 	}; /*!< window structure for the window */
@@ -1966,6 +1999,7 @@ RGFW_bool RGFW_window_getSize(RGFW_window* win, i32* w, i32* h) { if (w) *w = wi
 u32 RGFW_window_getFlags(RGFW_window* win) { return win->_flags; }
 RGFW_key RGFW_window_getExitKey(RGFW_window* win) { return win->exitKey; }
 void RGFW_window_setExitKey(RGFW_window* win, RGFW_key key) { win->exitKey = key; }
+void RGFW_window_setEnabledEvents(RGFW_window* win, RGFW_eventFlag events) { win->_enabledEvents = events; }
 void* RGFW_window_getUserPtr(RGFW_window* win) { return win->userPtr; }
 void RGFW_window_setUserPtr(RGFW_window* win, void* ptr) { win->userPtr = ptr; }
 
@@ -2195,7 +2229,6 @@ void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags flags) {
 	else if (cmpFlags & RGFW_windowHideMouse)  	RGFW_window_showMouse(win, 1);
 	if (flags & RGFW_windowHide)				RGFW_window_hide(win);
 	else if (cmpFlags & RGFW_windowHide)  		RGFW_window_show(win);
-	if (flags & RGFW_windowCocoaCHDirToRes)			RGFW_moveToMacOSResourceDir();
 	if (flags & RGFW_windowFloating)				RGFW_window_setFloating(win, 1);
 	else if (cmpFlags & RGFW_windowFloating)		RGFW_window_setFloating(win, 0);
 	if (flags & RGFW_windowFocus)					RGFW_window_focus(win);
@@ -9050,9 +9083,8 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 							sel_registerName("initWithFrame:pixelFormat:"), (NSRect){{0, 0}, {(double)win->w, (double)win->h}}, (u32*)format);
 
 	id share = NULL;
-
 	if (hints->share) {
-		share = hints->share->ctx;
+		share = (id)hints->share->ctx;
 	}
 
 	win->src.ctx.native->ctx = ((id (*)(id, SEL, id, id))objc_msgSend)(NSAlloc(objc_getClass("NSOpenGLContext")),
