@@ -11,7 +11,7 @@
 
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("RGFW Events", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND | RGFW_windowTransparent);
+    RGFW_window* win = RGFW_createWindow("RGFW Events", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
     RGFW_event event;
 
     while (RGFW_window_shouldClose(win) == 0) {
