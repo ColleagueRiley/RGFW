@@ -2565,7 +2565,7 @@ void RGFW_moveToMacOSResourceDir(void) { }
 
 #if defined(RGFW_OPENGL)
 /* EGL, OpenGL */
-#define RGFW_defaultGLHints() { \
+#define RGFW_DEFAULT_GL_HINTS { \
 	/* Stencil         */ 0, \
 	/* Samples         */ 0, \
 	/* Stereo          */ RGFW_FALSE, \
@@ -2593,12 +2593,18 @@ void RGFW_moveToMacOSResourceDir(void) { }
 	/* renderer */ RGFW_glAccelerated \
 }
 
-RGFW_glHints RGFW_GL_HINTS_SRC = RGFW_defaultGLHints();
-RGFW_glHints* RGFW_GL_HINTS = &RGFW_GL_HINTS_SRC;
+RGFW_glHints RGFW_globalHints_OpenGL_SRC = RGFW_DEFAULT_GL_HINTS;
+RGFW_glHints* RGFW_globalHints_OpenGL = &RGFW_globalHints_OpenGL_SRC;
 
-void RGFW_resetGlobalHints_OpenGL(void) { RGFW_GL_HINTS_SRC = (RGFW_glHints)RGFW_defaultGLHints();  }
-void RGFW_setGlobalHints_OpenGL(RGFW_glHints* hints) { RGFW_GL_HINTS = hints;  }
-RGFW_glHints* RGFW_getGlobalHints_OpenGL(void) { RGFW_init(); return RGFW_GL_HINTS; }
+void RGFW_resetGlobalHints_OpenGL(void) {
+#ifndef __cplusplus
+	RGFW_globalHints_OpenGL_SRC = (RGFW_glHints)RGFW_DEFAULT_GL_HINTS;
+#else
+	RGFW_globalHints_OpenGL_SRC = RGFW_DEFAULT_GL_HINTS;
+#endif
+}
+void RGFW_setGlobalHints_OpenGL(RGFW_glHints* hints) { RGFW_globalHints_OpenGL = hints;  }
+RGFW_glHints* RGFW_getGlobalHints_OpenGL(void) { RGFW_init(); return RGFW_globalHints_OpenGL; }
 
 RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win, RGFW_glHints* hints) {
 	#ifdef RGFW_WAYLAND
@@ -2655,7 +2661,7 @@ RGFW_bool RGFW_extensionSupportedStr(const char* extensions, const char* ext, si
 
 RGFW_bool RGFW_extensionSupported_base(const char* extension, size_t len) {
     #ifdef GL_NUM_EXTENSIONS
-    if (RGFW_GL_HINTS->major >= 3) {
+    if (RGFW_globalHints_OpenGL->major >= 3) {
         i32 i;
 
         GLint count = 0;
@@ -3793,7 +3799,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	i64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /*!< X11 events accepted */
 
 	#ifdef RGFW_OPENGL
-		RGFW_window_getVisual_OpenGL(win, RGFW_GL_HINTS);
+		RGFW_window_getVisual_OpenGL(win, RGFW_globalHints_OpenGL);
 	#else
 		RGFW_window_getVisual(win);
 	#endif
