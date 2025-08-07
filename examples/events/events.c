@@ -1,4 +1,3 @@
-#define RGFW_OPENGL
 #define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
