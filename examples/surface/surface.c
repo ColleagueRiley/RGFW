@@ -3,12 +3,10 @@
 #define RGFW_NO_API
 #include "RGFW.h"
 
-u8 icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
-
-i32 bufferWidth;
+static unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
 
 /* fill buffer with a color, clearing anything that was on it */
-void clear(u8* buffer, i32 w, i32 h, u8 color[4]) {
+void clear(u8* buffer, i32 bufferWidth, i32 w, i32 h, u8 color[4]) {
     /* if all the values are the same */
     if (color[0] == color[1] && color[0] == color[2] && color[0] == color[3]) {
         /* set it all in one function */
@@ -17,32 +15,35 @@ void clear(u8* buffer, i32 w, i32 h, u8 color[4]) {
     }
 
     /* else we'll have to something more complex... */
-
+RGFW_UNUSED(w);
     /* loop through each *pixel* (not channel) of the buffer */
     u32 x, y;
     for (y = 0; y < (u32)h; y++) {
-        for (x = 0; x < (u32)w; x++) {
+        for (x = 0; x < (u32)bufferWidth; x++) {
             u32 index = (y * 4 * (u32)bufferWidth) + x * 4;
 
             /* copy the color to that pixel */
-            memcpy(buffer + index, color, 4 * sizeof(u8));
+            memcpy(&buffer[index], color, 4 * sizeof(u8));
         }
     }
 }
 
-void drawBitmap(u8* buffer, u8* bitmap, i32 x, i32 y, i32 w, i32 h) {
-    for (; y < h; y++) {
-        u32 index = ((u32)y) * (4 * (u32)bufferWidth) + (u32)x * 4;
-        memcpy(buffer + index, bitmap + (4 * (u32)w * (u32)y), (u32)w * 4 * sizeof(u8));
+void drawBitmap(u8* buffer, i32 bufferWidth, u8* bitmap, i32 x, i32 y, i32 w, i32 h) {
+    i32 y1 = y;
+    for (y = 0; y < h; y++) {
+        u32 index = (u32)(y + y1) * (4 * (u32)bufferWidth) + (u32)x * 4;
+        memcpy(&buffer[index], &bitmap[(u32)y  * (4 * (u32)w)], (u32)w * 4 * sizeof(u8));
     }
 }
 
-void drawRect(u8* buffer, i32 x, i32 y, i32 w, i32 h, u8 color[4]) {
-    for(; x < w; x++) {
-        for(; y < h; y++) {
-            u32 index = (u32)y * (4 * (u32)bufferWidth) + (u32)x * 4;
+void drawRect(u8* buffer, i32 bufferWidth, i32 x, i32 y, i32 w, i32 h, u8 color[4]) {
+    i32 x1 = x;
+    i32 y1 = y;
 
-            memcpy(buffer + index, color, 4 * sizeof(u8));
+    for(x = x1; x < w + x1; x++) {
+        for(y = y1; y < h + y1; y++) {
+            u32 index = (u32)y * (4 * (u32)bufferWidth) + (u32)x * 4;
+            memcpy(&buffer[index], color, 4 * sizeof(u8));
         }
     }
 }
@@ -50,10 +51,14 @@ void drawRect(u8* buffer, i32 x, i32 y, i32 w, i32 h, u8 color[4]) {
 int main(void) {
     RGFW_window* win = RGFW_createWindow("Basic buffer example", 0, 0, 500, 500, RGFW_windowCenter | RGFW_windowTransparent);
 
-    i32 bufferHeight;
-    RGFW_getScreenSize(&bufferWidth, &bufferHeight);
-    u8* buffer = (u8*)RGFW_ALLOC((u32)(bufferWidth * bufferHeight * 4));
-    RGFW_surface* surface = RGFW_createSurface(buffer, bufferWidth, bufferHeight, RGFW_formatRGBA8);
+	RGFW_monitor mon = RGFW_window_getMonitor(win);
+    #ifdef RGFW_WAYLAND
+        mon.mode.w = 500;
+        mon.mode.h = 500;
+    #endif
+
+    u8* buffer = (u8*)RGFW_ALLOC((u32)(mon.mode.w * mon.mode.h * 4));
+    RGFW_surface* surface = RGFW_createSurface(buffer, mon.mode.w, mon.mode.h, RGFW_formatRGBA8);
 
     i8 running = 1;
 
@@ -72,11 +77,10 @@ int main(void) {
 
         i32 w, h;
         RGFW_window_getSize(win, &w, &h);
-        clear(buffer, w, h, color);
-        drawRect(buffer, 200, 200, 200, 200, color2);
+        clear(buffer, mon.mode.w, w, h, color);
+        drawRect(buffer, mon.mode.w, 200, 200, 200, 200, color2);
 
-        drawBitmap(buffer, icon, 100, 100, 3, 3);
-
+        drawBitmap(buffer, mon.mode.w, icon, 100, 100, 3, 3);
         RGFW_window_blitSurface(win, surface);
 	}
 
