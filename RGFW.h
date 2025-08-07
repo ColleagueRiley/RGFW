@@ -2565,37 +2565,38 @@ void RGFW_moveToMacOSResourceDir(void) { }
 
 #if defined(RGFW_OPENGL)
 /* EGL, OpenGL */
-const RGFW_glHints RGFW_defaultGLHints = {
-	/* Stencil         */ 0,
-	/* Samples         */ 0,
-	/* Stereo          */ RGFW_FALSE,
-	/* AuxBuffers      */ 0,
-	/* DoubleBuffer    */ RGFW_TRUE,
-	/* Red             */ 8,
-	/* Green           */ 8,
-	/* Blue            */ 8,
-	/* Alpha           */ 8,
-	/* Depth           */ 24,
-	/* AccumRed        */ 0,
-	/* AccumGreen      */ 0,
-	/* AccumBlue       */ 0,
-	/* AccumAlpha      */ 0,
-	/* SRGB            */ RGFW_FALSE,
-	/* Robustness      */ RGFW_FALSE,
-	/* Debug           */ RGFW_FALSE,
-	/* NoError         */ RGFW_FALSE,
-	/* ReleaseBehavior */ RGFW_glReleaseNone,
-	/* Profile         */ RGFW_glCore,
-	/* Major           */ 1,
-	/* Minor           */ 0,
-	/* Share */ NULL,
-	/* Share_EGL */ NULL,
-	/* renderer */ RGFW_glAccelerated
-};
-RGFW_glHints RGFW_GL_HINTS_SRC = RGFW_defaultGLHints;
+#define RGFW_defaultGLHints() { \
+	/* Stencil         */ 0, \
+	/* Samples         */ 0, \
+	/* Stereo          */ RGFW_FALSE, \
+	/* AuxBuffers      */ 0, \
+	/* DoubleBuffer    */ RGFW_TRUE, \
+	/* Red             */ 8, \
+	/* Green           */ 8, \
+	/* Blue            */ 8, \
+	/* Alpha           */ 8, \
+	/* Depth           */ 24, \
+	/* AccumRed        */ 0, \
+	/* AccumGreen      */ 0, \
+	/* AccumBlue       */ 0, \
+	/* AccumAlpha      */ 0, \
+	/* SRGB            */ RGFW_FALSE, \
+	/* Robustness      */ RGFW_FALSE, \
+	/* Debug           */ RGFW_FALSE, \
+	/* NoError         */ RGFW_FALSE, \
+	/* ReleaseBehavior */ RGFW_glReleaseNone, \
+	/* Profile         */ RGFW_glCore, \
+	/* Major           */ 1, \
+	/* Minor           */ 0, \
+	/* Share */ NULL, \
+	/* Share_EGL */ NULL, \
+	/* renderer */ RGFW_glAccelerated \
+}
+
+RGFW_glHints RGFW_GL_HINTS_SRC = RGFW_defaultGLHints();
 RGFW_glHints* RGFW_GL_HINTS = &RGFW_GL_HINTS_SRC;
 
-void RGFW_resetGlobalHints_OpenGL(void) { RGFW_GL_HINTS_SRC = RGFW_defaultGLHints;  }
+void RGFW_resetGlobalHints_OpenGL(void) { RGFW_GL_HINTS_SRC = (RGFW_glHints)RGFW_defaultGLHints();  }
 void RGFW_setGlobalHints_OpenGL(RGFW_glHints* hints) { RGFW_GL_HINTS = hints;  }
 RGFW_glHints* RGFW_getGlobalHints_OpenGL(void) { RGFW_init(); return RGFW_GL_HINTS; }
 
@@ -8696,7 +8697,7 @@ void RGFW__osxWindowDeminiaturize(id self, SEL sel) {
 	if (win == NULL) return;
 
 	win->_flags |= RGFW_windowMinimize;
-	if (!(win->_enabledEvents & RGFW_windowMinimizedFlag))) return;
+	if (!(win->_enabledEvents & RGFW_windowMinimizedFlag)) return;
 	RGFW_eventQueuePushEx(e.type = RGFW_windowRestored; e._win = win);
 	RGFW_windowRestoredCallback(win, win->x, win->y, win->w, win->h);
 
@@ -8942,7 +8943,7 @@ void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
     e.repeat = RGFW_isHeld(win, (u8)e.key);
     e._win = win;
 
-	if (!(win->_enabledEvents & (RGFW_BIT(e.type)) return;
+	if (!(win->_enabledEvents & (RGFW_BIT(e.type))) return;
     RGFW_eventQueuePush(&e);
     RGFW_keyCallback(win, e.key, e.keyChar, win->_keyMod, e.repeat, e.type == RGFW_keyPressed);
 }
