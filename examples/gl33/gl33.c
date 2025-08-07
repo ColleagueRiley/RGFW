@@ -156,19 +156,16 @@ int main(void) {
 
     // render loop
     // -----------
-    bool running = true;
-    while (running && !RGFW_isPressed(window, RGFW_escape)) {
+    while (RGFW_window_shouldClose(window) == RGFW_FALSE) {
         RGFW_event event;
 
-        RGFW_window_checkEvent(window, &event);
-        {
+        while (RGFW_window_checkEvent(window, &event)) {
             if (event.type == RGFW_quit) {
-                running = false;
                 break;
             }
         }
 
-        // render
+		// render
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
