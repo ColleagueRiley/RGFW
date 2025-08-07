@@ -2597,10 +2597,10 @@ RGFW_glHints RGFW_globalHints_OpenGL_SRC = RGFW_DEFAULT_GL_HINTS;
 RGFW_glHints* RGFW_globalHints_OpenGL = &RGFW_globalHints_OpenGL_SRC;
 
 void RGFW_resetGlobalHints_OpenGL(void) {
-#if defined(__cplusplus) || defined(RGFW_MACOS)
-	RGFW_globalHints_OpenGL_SRC = RGFW_DEFAULT_GL_HINTS;
-#else
+#if !defined(__cplusplus) || defined(RGFW_MACOS)
 	RGFW_globalHints_OpenGL_SRC = (RGFW_glHints)RGFW_DEFAULT_GL_HINTS;
+#else
+	RGFW_globalHints_OpenGL_SRC = RGFW_DEFAULT_GL_HINTS;
 #endif
 }
 void RGFW_setGlobalHints_OpenGL(RGFW_glHints* hints) { RGFW_globalHints_OpenGL = hints;  }
