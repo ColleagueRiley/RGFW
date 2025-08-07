@@ -8986,20 +8986,20 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 		RGFW_attribStack stack;
 		RGFW_attribStack_init(&stack, attribs, 40);
 
-		i32 colorBits = (i32)(hints->red] + hints->green] +  hints->blue] + hints->alpha]) / 4;
+		i32 colorBits = (i32)(hints->red + hints->green +  hints->blue + hints->alpha) / 4;
 		RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFAColorSize, colorBits);
 
-		RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFAAlphaSize, hints->alpha]);
-		RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFADepthSize, hints->depth]);
-		RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFAStencilSize, hints->stencil]);
-		RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFAAuxBuffers, hints->auxBuffers]);
+		RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFAAlphaSize, hints->alpha);
+		RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFADepthSize, hints->depth);
+		RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFAStencilSize, hints->stencil);
+		RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFAAuxBuffers, hints->auxBuffers);
 		RGFW_attribStack_pushAttrib(&stack, NSOpenGLPFAClosestPolicy);
-		if (hints->samples]) {
+		if (hints->samples) {
 			RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFASampleBuffers, 1);
-			RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFASamples, hints->samples]);
+			RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFASamples, hints->samples);
 		} else RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFASampleBuffers, 0);
 
-		if (hints->doubleBuffer])
+		if (hints->doubleBuffer)
 			RGFW_attribStack_pushAttrib(&stack, NSOpenGLPFADoubleBuffer);
 
 		#ifdef RGFW_COCOA_GRAPHICS_SWITCHING
@@ -9052,7 +9052,7 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	id share = NULL;
 
 	if (hints->share) {
-		share = share->ctx;
+		share = hints->share->ctx;
 	}
 
 	win->src.ctx.native->ctx = ((id (*)(id, SEL, id, id))objc_msgSend)(NSAlloc(objc_getClass("NSOpenGLContext")),
@@ -10302,7 +10302,7 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	attrs.premultipliedAlpha = EM_TRUE;
 	attrs.preserveDrawingBuffer = EM_FALSE;
 
-	if (hints->DoubleBuffer == 0)
+	if (hints->doubleBuffer == 0)
 		attrs.renderViaOffscreenBackBuffer = 0;
 	else
 		attrs.renderViaOffscreenBackBuffer = hints->auxBuffers;
