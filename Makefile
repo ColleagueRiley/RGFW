@@ -164,7 +164,8 @@ EXAMPLE_OUTPUTS = \
 	examples/custom_alloc/custom_alloc \
 
 EXAMPLE_OUTPUTS_CUSTOM = \
-	examples/window_mouse_icons/icons \
+	examples/window_icons/icons \
+	examples/mouse_icons/icons \
 	examples/gamepad/gamepad \
 	examples/first-person-camera/camera \
 	examples/microui_demo/microui_demo \
