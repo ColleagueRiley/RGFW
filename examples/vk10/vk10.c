@@ -4,7 +4,6 @@
 #define RGFW_VULKAN
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
-#define RGFW_NO_API
 #include <RGFW.h>
 /*
     This isn't included in RGFW.h itself because
