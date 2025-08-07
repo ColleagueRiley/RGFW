@@ -917,6 +917,7 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	RGFW_mouseResizeNESW,
 	RGFW_mouseResizeAll,
 	RGFW_mouseNotAllowed,
+	RGFW_mouseIconCount,
     RGFW_mouseIconFinal = 16 /* padding for alignment */
 };
 
@@ -1851,6 +1852,8 @@ u32 RGFW_rgfwToApiKey(u32 keycode) {
 void RGFW_resetKeyPrev(void) {
 	size_t i; /*!< reset each previous state  */
     for (i = 0; i < RGFW_keyLast; i++) RGFW_keyboard[i].prev = 0;
+
+    for (i = 0; i < RGFW_mouseFinal; i++) RGFW_mouseButtons[i].prev = 0;
 }
 void RGFW_resetKey(void) { RGFW_MEMSET(RGFW_keyboard, 0, sizeof(RGFW_keyboard)); }
 /*
