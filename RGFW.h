@@ -243,6 +243,10 @@ int main() {
 	#define RGFW_ROUND(x) (i32)((x) >= 0 ? (x) + 0.5f : (x) - 0.5f)
 #endif
 
+#ifndef RGFW_MIN
+	#define RGFW_MIN(x, y) ((x < y) ? x : y)
+#endif
+
 #ifndef RGFW_ALLOC
 	#include <stdlib.h>
 	#define RGFW_ALLOC malloc
@@ -401,9 +405,6 @@ RGFWDEF RGFW_bool RGFW_usingWayland(void);
 */
 RGFWDEF void RGFW_setClassName(const char* name);
 RGFWDEF void RGFW_setXInstName(const char* name); /*!< X11 instance name (window name will by used by default) */
-
-/*! get the size of the screen to an area struct */
-RGFWDEF RGFW_bool RGFW_getScreenSize(i32* w, i32* h);
 
 typedef RGFW_ENUM(u8, RGFW_format) {
     RGFW_formatRGB8 = 0,    /*!< 8-bit RGB (3 channels) */
@@ -2282,9 +2283,8 @@ void RGFW_setBit(u32* var, u32 mask, RGFW_bool set) {
 
 void RGFW_window_center(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-	i32 w, h;
-	RGFW_getScreenSize(&w, &h);
-	RGFW_window_move(win, (i32)(w - win->w) / 2, (h - win->h) / 2);
+	RGFW_monitor mon = RGFW_window_getMonitor(win);
+	RGFW_window_move(win, (i32)(mon.mode.w - win->w) / 2, (mon.mode.h - win->h) / 2);
 }
 
 RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, RGFW_window* win) {
@@ -3556,9 +3556,9 @@ RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (u8* data, i32 w, i32 h, RGFW_format 
 void RGFW_FUNC(RGFW_window_blitSurface) (RGFW_window* win, RGFW_surface* surface) {
 	RGFW_ASSERT(surface != NULL);
 	surface->native.bitmap->data = (char*) surface->data;
-	RGFW_copyImageData((u8*)surface->native.bitmap->data, win->w, win->h, surface->native.format, surface->data, surface->format);
+	RGFW_copyImageData((u8*)surface->native.bitmap->data, surface->w, RGFW_MIN(win->h, surface->h), surface->native.format, surface->data, surface->format);
 
-	XPutImage(_RGFW->display, win->src.window, win->src.gc, surface->native.bitmap, 0, 0, 0, 0, (u32)surface->w, (u32)surface->h);
+	XPutImage(_RGFW->display, win->src.window, win->src.gc, surface->native.bitmap, 0, 0, 0, 0, (u32)RGFW_MIN(win->w, surface->w), (u32)RGFW_MIN(win->h, surface->h));
 	surface->native.bitmap->data = NULL;
 	return;
 }
@@ -3841,14 +3841,6 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 
 	RGFW_window_show(win);
     return win; /*return newly created window */
-}
-
-RGFW_bool RGFW_FUNC(RGFW_getScreenSize) (i32* w, i32* h) {
-	RGFW_init();
-	Screen* scrn = DefaultScreenOfDisplay(_RGFW->display);
-	if (w) *w = scrn->width;
-	if (h) *h = scrn->height;
-	return RGFW_TRUE;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_getGlobalMouse) (i32* fX, i32* fY) {
@@ -5886,9 +5878,8 @@ RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (u8* data, i32 w, i32 h, RGFW_format 
 	RGFW_ASSERT(surface != NULL);
 	surface->data = data;
 	surface->w = w;
-	surface->w = h;
+	surface->h = h;
 	surface->format = format;
-
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoBuffer, RGFW_DEBUG_CTX(_RGFW->root, 0), "Creating a 4 channel buffer");
 
 	u32 size = (u32)(surface->w * surface->h * 4);
@@ -5922,10 +5913,10 @@ void RGFW_FUNC(RGFW_surface_freePtr) (RGFW_surface* surface) {
 
 void RGFW_FUNC(RGFW_window_blitSurface) (RGFW_window* win, RGFW_surface* surface) {
 	RGFW_ASSERT(surface != NULL);
-	RGFW_copyImageData(surface->native.buffer, win->w, win->h, surface->native.format, surface->data, surface->format);
+	RGFW_copyImageData(surface->native.buffer, win->w, RGFW_MIN(win->h, surface->h), surface->native.format, surface->data, surface->format);
 
 	wl_surface_attach(win->src.surface, surface->native.wl_buffer, 0, 0);
-	wl_surface_damage(win->src.surface, 0, 0, win->w, win->h);
+	wl_surface_damage(win->src.surface, 0, 0, RGFW_MIN(win->w, surface->w), RGFW_MIN(win->h, surface->h));
 	RGFW_wl_surface_frame_done(win, NULL, 0);
 	wl_surface_commit(win->src.surface);
 }
@@ -6091,13 +6082,6 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 		zxdg_decoration_manager_v1_destroy(_RGFW->decoration_manager);
 
 	return win;
-}
-
-RGFW_bool RGFW_FUNC(RGFW_getScreenSize) (i32* w, i32* h) {
-	RGFW_init();
-	if (w) *w = _RGFW->root->w;
-	if (h) *h = _RGFW->root->h;
-	return RGFW_TRUE;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_getGlobalMouse) (i32* x, i32* y) {
@@ -6948,8 +6932,8 @@ void RGFW_surface_freePtr(RGFW_surface* surface) {
 }
 
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
-	RGFW_copyImageData(surface->native.bitmapBits, win->w, win->h, surface->native.format, surface->data, surface->format);
-	BitBlt(win->src.hdc, 0, 0, win->w, win->h, surface->native.hdcMem, 0, 0, SRCCOPY);
+	RGFW_copyImageData(surface->native.bitmapBits, surface->w, RGFW_MIN(win->h, surface->h), surface->native.format, surface->data, surface->format);
+	BitBlt(win->src.hdc, 0, 0, RGFW_MIN(win->w, surface->w), RGFW_MIN(win->h, surface->h), surface->native.hdcMem, 0, 0, SRCCOPY);
 }
 
 void RGFW_releaseCursor(RGFW_window* win) {
@@ -7332,14 +7316,6 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 void RGFW_window_setDND(RGFW_window* win, RGFW_bool allow) {
 	RGFW_setBit(&win->_flags, RGFW_windowAllowDND, allow);
 	DragAcceptFiles(win->src.window, allow);
-}
-
-RGFW_bool RGFW_getScreenSize(i32* w, i32* h) {
-	HDC dc = GetDC(NULL);
-	if (w) *w = GetDeviceCaps(dc, HORZRES);
-	if (h) *h = GetDeviceCaps(dc, VERTRES);
-	ReleaseDC(NULL, dc);
-	return RGFW_TRUE;
 }
 
 RGFW_bool RGFW_getGlobalMouse(i32* x, i32* y) {
@@ -8962,15 +8938,18 @@ RGFW_bool RGFW_createSurfacePtr(u8* data, i32 w, i32 h, RGFW_format format, RGFW
 void RGFW_surface_freePtr(RGFW_surface* surface) { RGFW_UNUSED(surface); }
 
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
-	RGFW_copyImageData(surface->data, surface->w, surface->h, surface->native.format, surface->data, surface->format);
+	RGFW_copyImageData(surface->data, surface->w, RGFW_MIN(win->h, surface->h), surface->native.format, surface->data, surface->format);
 
     size_t depth = (surface->format >= RGFW_formatRGBA8) ? 4 : 3;
 	id image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSImage"), sel_getUid("alloc"));
 	NSSize size = (NSSize){(double)surface->w, (double)surface->h};
 	image = ((id (*)(id, SEL, NSSize))objc_msgSend)((id)image, sel_getUid("initWithSize:"), size);
 
-	id rep  = NSBitmapImageRep_initWithBitmapData(&surface->data, win->w, win->h , 8, (i32)depth, (depth == 4), false, "NSDeviceRGBColorSpace", 1 << 1, (u32)surface->w  * (u32)depth, 8 * (u32)depth);
-	RGFW_copyImageData(NSBitmapImageRep_bitmapData(rep), win->w, win->h, RGFW_formatRGBA8, surface->data, surface->format);
+	int minX = RGFW_MIN(win->w, surface->w);
+	int minY = RGFW_MIN(win->h, surface->h);
+
+	id rep  = NSBitmapImageRep_initWithBitmapData(&surface->data, minX, minY, 8, (i32)depth, (depth == 4), false, "NSDeviceRGBColorSpace", 1 << 1, (u32)surface->w  * (u32)depth, 8 * (u32)depth);
+	RGFW_copyImageData(NSBitmapImageRep_bitmapData(rep), minX, minY , RGFW_formatRGBA8, surface->data, surface->format);
 	((void (*)(id, SEL, id))objc_msgSend)((id)image, sel_getUid("addRepresentation:"), rep);
 
 	id contentView = ((id (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_getUid("contentView"));
@@ -9284,15 +9263,6 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 	win->h -= (i32)offset;
 }
 
-RGFW_bool RGFW_getScreenSize(i32* w, i32* h) {
-	static CGDirectDisplayID display = 0;
-	if (display == 0) display = CGMainDisplayID();
-
-	if (w) *w = (i32)CGDisplayPixelsWide(display);
-	if (h) *h = (i32)CGDisplayPixelsHigh(display);
-	return RGFW_TRUE;
-}
-
 RGFW_bool RGFW_getGlobalMouse(i32* x, i32* y) {
 	RGFW_ASSERT(_RGFW->root != NULL);
 
@@ -9516,7 +9486,9 @@ void RGFW_window_setMinSize(RGFW_window* win, i32 w, i32 h) {
 
 void RGFW_window_setMaxSize(RGFW_window* win, i32 w, i32 h) {
 	if (w == 0 && h == 0) {
-		RGFW_getScreenSize(&w, &h);
+		RGFW_monitor mon = RGFW_window_getMonitor(win);
+		w = mon.mode.w;
+		h = mon.mode.h;
 	}
 
 	((void (*)(id, SEL, NSSize))objc_msgSend)
@@ -10278,14 +10250,14 @@ RGFW_bool RGFW_createSurfacePtr(u8* data, i32 w, i32 h, RGFW_format format, RGFW
 
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	/* TODO: Needs fixing. */
-	RGFW_copyImageData(surface->data, win->w, win->h, RGFW_formatRGBA8, surface->data, surface->format);
+	RGFW_copyImageData(surface->data, surface->w, RGFW_MIN(win->h, surface->h), RGFW_formatRGBA8, surface->data, surface->format);
 	EM_ASM_({
 		var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4);
 		let context = document.getElementById("canvas").getContext("2d");
 		let image = context.getImageData(0, 0, $1, $2);
 		image.data.set(data);
 		context.putImageData(image, 0, $4 - $2);
-	}, surface->data, surface->w, surface->h, win->w, win->h);
+	}, surface->data, surface->w, surface->h, RGFW_MIN(win->h, surface->w), RGFW_MIN(win->h, surface->h));
 }
 
 void RGFW_surface_freePtr(RGFW_surface* surface) { }
@@ -10579,12 +10551,6 @@ void RGFW_window_closePlatform(RGFW_window* win) { }
 int RGFW_innerWidth(void) {   return EM_ASM_INT({ return window.innerWidth; });  }
 int RGFW_innerHeight(void) {  return EM_ASM_INT({ return window.innerHeight; });  }
 
-RGFW_bool RGFW_getScreenSize(i32* w, i32* h) {
-	if (w) *w = RGFW_innerWidth();
-	if (h) *h = RGFW_innerHeight();
-	return RGFW_TRUE;
-}
-
 void RGFW_releaseCursor(RGFW_window* win) {
 	RGFW_UNUSED(win);
 	emscripten_exit_pointerlock();
@@ -10604,10 +10570,9 @@ void RGFW_window_setName(RGFW_window* win, const char* name) {
 void RGFW_window_maximize(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
-	i32 w, h;
-	RGFW_getScreenSize(&w, &h);
+	RGFW_monitor mon = RGFW_window_getMonitor(win);
 	RGFW_window_move(win, 0, 0);
-	RGFW_window_resize(win, w, h);
+	RGFW_window_resize(win, mon.mode.w, mon.mode.h);
 }
 
 void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
@@ -10674,7 +10639,6 @@ void RGFW_waitForEvent(i32 waitMS) { RGFW_UNUSED(waitMS); }
 */
 #ifdef RGFW_DYNAMIC
 typedef RGFW_window* (*RGFW_createWindowPlatform_ptr)(const char* name, RGFW_windowFlags flags, RGFW_window* win);
-typedef RGFW_bool (*RGFW_getScreenSize_ptr)(i32* w, i32* h);
 typedef RGFW_bool (*RGFW_getMouse_ptr)(i32* x, i32* y);
 typedef u8 (*RGFW_rgfwToKeyChar_ptr)(u32 key);
 typedef void (*RGFW_pollEvents_ptr)(void);
@@ -10743,7 +10707,6 @@ typedef struct RGFW_FunctionPointers {
     RGFW_releaseCursor_ptr releaseCursor;
     RGFW_captureCursor_ptr captureCursor;
     RGFW_createWindowPlatform_ptr createWindowPlatform;
-    RGFW_getScreenSize_ptr getScreenSize;
     RGFW_getMouse_ptr getGlobalMouse;
     RGFW_rgfwToKeyChar_ptr rgfwToKeyChar;
     RGFW_pollEvents_ptr pollEvents;
@@ -10806,7 +10769,6 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) { RGFW_api.window
 void RGFW_releaseCursor(RGFW_window* win) { RGFW_api.releaseCursor(win); }
 void RGFW_captureCursor(RGFW_window* win) { RGFW_api.captureCursor(win); }
 RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags, RGFW_window* win) { RGFW_init(); return RGFW_api.createWindowPlatform(name, flags, win); }
-RGFW_bool RGFW_getScreenSize(i32* x, i32* y) { return RGFW_api.getScreenSize(x, y); }
 RGFW_bool RGFW_getGlobalMouse(i32* x, i32* y) { return RGFW_api.getGlobalMouse(x, y); }
 u8 RGFW_rgfwToKeyChar(u32 key) { return RGFW_api.rgfwToKeyChar(key); }
 void RGFW_pollEvents(void) { RGFW_api.pollEvents(); }
@@ -10880,7 +10842,6 @@ void RGFW_load_X11(void) {
     RGFW_api.releaseCursor = RGFW_releaseCursor_X11;
     RGFW_api.captureCursor = RGFW_captureCursor_X11;
 	RGFW_api.createWindowPlatform = RGFW_createWindowPlatform_X11;
-    RGFW_api.getScreenSize = RGFW_getScreenSize_X11;
     RGFW_api.getGlobalMouse = RGFW_getGlobalMouse_X11;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_X11;
     RGFW_api.pollEvents = RGFW_pollEvents_X11;
@@ -10944,7 +10905,6 @@ void RGFW_load_Wayland(void) {
     RGFW_api.releaseCursor = RGFW_releaseCursor_Wayland;
     RGFW_api.captureCursor = RGFW_captureCursor_Wayland;
     RGFW_api.createWindowPlatform = RGFW_createWindowPlatform_Wayland;
-    RGFW_api.getScreenSize = RGFW_getScreenSize_Wayland;
     RGFW_api.getGlobalMouse = RGFW_getGlobalMouse_Wayland;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_Wayland;
     RGFW_api.pollEvents = RGFW_pollEvents_Wayland;
