@@ -2054,7 +2054,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	win->_lastMouseY = 0;
 
 	RGFW_window* ret = RGFW_createWindowPlatform(name, flags, win);
-
 	RGFW_window_setMouseDefault(win);
 	RGFW_window_setFlags(win, flags);
 	if (!(flags & RGFW_windowHide)) RGFW_window_show(win);
@@ -9088,6 +9087,10 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 
 	objc_msgSend_void(win->src.ctx.native->ctx, sel_registerName("makeCurrentContext"));
 
+	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
+	objc_msgSend_void_bool(win->src.view, sel_registerName("setWantsLayer:"), true);
+	objc_msgSend_int((id)win->src.view, sel_registerName("setLayerContentsPlacement:"),  4);
+
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, RGFW_DEBUG_CTX(win, 0), "OpenGL context initalized.");
 	return RGFW_TRUE;
 }
@@ -9164,10 +9167,6 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	/* RR Create an autorelease pool */
 	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	pool = objc_msgSend_id(pool, sel_registerName("init"));
-
-	#ifdef RGFW_OPENGL
-	#endif
-
 
 	win->src.view = ((id(*)(id, SEL, RGFW_window*))objc_msgSend) (NSAlloc((Class)_RGFW->customViewClasses[0]), sel_registerName("initWithRGFWWindow:"), win);
 	NSRect contentRect;
