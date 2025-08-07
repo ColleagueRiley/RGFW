@@ -29,9 +29,11 @@ GLuint load_shader(const char *shaderSource, GLenum type) {
 }
 
 int main(void) {
-	RGFW_setHint_OpenGL(RGFW_glMajor, 2);
-	RGFW_setHint_OpenGL(RGFW_glMinor, 0);
-	RGFW_setHint_OpenGL(RGFW_glProfile, RGFW_glES);
+    RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
+    hints->major = 2;
+    hints->minor = 2;
+    hints->profile = RGFW_glES;
+    RGFW_setGlobalHints_OpenGL(hints);
 
 	RGFW_window* win = RGFW_createWindow("name", 0, 0, 500, 500, RGFW_windowCenter | RGFW_windowTransparent | RGFW_windowOpenGL);
 

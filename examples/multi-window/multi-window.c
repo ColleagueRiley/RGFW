@@ -120,7 +120,13 @@ int main(void) {
 
 	RGFW_setClassName("RGFW Example");
 
+    RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
+
 	RGFW_window* win1 = RGFW_createWindow("RGFW Example Window 1", 500, 500, 500, 500, RGFW_windowAllowDND | RGFW_windowOpenGL);
+
+	hints->share = RGFW_window_getContext_OpenGL(win1);
+	RGFW_setGlobalHints_OpenGL(hints);
+
 	RGFW_window* win2 = RGFW_createWindow("RGFW Example Window 2", 100, 100, 200, 200, RGFW_windowNoResize | RGFW_windowAllowDND | RGFW_windowOpenGL);
 	RGFW_window* win3 = RGFW_createWindow("RGFW Example Window 3", 20, 500, 400, 300, RGFW_windowNoResize | RGFW_windowAllowDND | RGFW_windowOpenGL);
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));

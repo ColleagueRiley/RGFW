@@ -58,8 +58,10 @@ void main()
 
 
 int main(void) {
-    RGFW_setHint_OpenGL(RGFW_glMinor, 3);
-    RGFW_setHint_OpenGL(RGFW_glMajor, 3);
+    RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
+    hints->major = 3;
+    hints->minor = 3;
+    RGFW_setGlobalHints_OpenGL(hints);
 
 	RGFW_window* window = RGFW_createWindow("LearnOpenGL", SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT, RGFW_windowAllowDND | RGFW_windowCenter | RGFW_windowScaleToMonitor | RGFW_windowOpenGL);
     if (window == NULL)
