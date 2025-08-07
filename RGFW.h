@@ -2597,10 +2597,10 @@ RGFW_glHints RGFW_globalHints_OpenGL_SRC = RGFW_DEFAULT_GL_HINTS;
 RGFW_glHints* RGFW_globalHints_OpenGL = &RGFW_globalHints_OpenGL_SRC;
 
 void RGFW_resetGlobalHints_OpenGL(void) {
-#ifndef __cplusplus
-	RGFW_globalHints_OpenGL_SRC = (RGFW_glHints)RGFW_DEFAULT_GL_HINTS;
-#else
+#if defined(__cplusplus) || defined(RGFW_MACOS)
 	RGFW_globalHints_OpenGL_SRC = RGFW_DEFAULT_GL_HINTS;
+#else
+	RGFW_globalHints_OpenGL_SRC = (RGFW_glHints)RGFW_DEFAULT_GL_HINTS;
 #endif
 }
 void RGFW_setGlobalHints_OpenGL(RGFW_glHints* hints) { RGFW_globalHints_OpenGL = hints;  }
@@ -8716,7 +8716,7 @@ void RGFW__osxWindowMiniaturize(id self, SEL sel) {
 
 	win->_flags &= ~(u32)RGFW_windowMinimize;
 	if (!(win->_enabledEvents & RGFW_windowMinimizedFlag)) return;
-	RGFW_eventQueuePushEx(e.type = RGFW_windowMinimized; e.win = win);
+	RGFW_eventQueuePushEx(e.type = RGFW_windowMinimized; e._win = win);
 	RGFW_windowMinimizedCallback(win);
 
 }
@@ -8949,7 +8949,7 @@ void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
     e.repeat = RGFW_isHeld(win, (u8)e.key);
     e._win = win;
 
-	if (!(win->_enabledEvents & (RGFW_BIT(e.type))) return;
+	if (!(win->_enabledEvents & (RGFW_BIT(e.type)))) return;
     RGFW_eventQueuePush(&e);
     RGFW_keyCallback(win, e.key, e.keyChar, win->_keyMod, e.repeat, e.type == RGFW_keyPressed);
 }
