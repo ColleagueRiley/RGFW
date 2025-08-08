@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['h_0',['h',['../structRGFW__rect.html#a2822ac628c7c98d8c0affd683f5d465d',1,'RGFW_rect::h()'],['../structRGFW__area.html#acfd12a462e305d195296ce2b13f32007',1,'RGFW_area::h()']]]
+  ['mode_0',['mode',['../structRGFW__monitor.html#a0f7f7532843e9354590e8cb424fbf8dc',1,'RGFW_monitor']]],
+  ['monitor_1',['monitor',['../structRGFW__debugContext.html#a46d5a4575b82d5984a77454432b9ef00',1,'RGFW_debugContext']]]
 ];

@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['format_0',['format',['../structRGFW__image.html#a662146868fa2e87eeb15046badaa0f9c',1,'RGFW_image']]]
+  ['h_0',['h',['../structRGFW__monitorMode.html#a1d2a8624b11eab3c94688235eab6860c',1,'RGFW_monitorMode']]],
+  ['handling_1',['handling',['../group__error.html',1,'']]]
 ];

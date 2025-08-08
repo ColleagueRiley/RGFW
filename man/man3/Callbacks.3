@@ -1,4 +1,4 @@
-.TH "Callbacks" 3 "Mon Aug 4 2025" "RGFW" \" -*- nroff -*-
+.TH "Callbacks" 3 "Fri Aug 8 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -10,19 +10,19 @@ Callbacks \- Callbacks
 
 .in +1c
 .ti -1c
-.RI "typedef void(* \fBRGFW_windowMovedfunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
+.RI "typedef void(* \fBRGFW_windowMovedfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_windowResizedfunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
+.RI "typedef void(* \fBRGFW_windowResizedfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP w, \fBi32\fP h)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_windowRestoredfunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
+.RI "typedef void(* \fBRGFW_windowRestoredfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, \fBi32\fP w, \fBi32\fP h)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_windowMaximizedfunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
+.RI "typedef void(* \fBRGFW_windowMaximizedfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, \fBi32\fP w, \fBi32\fP h)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_windowMinimizedfunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
+.RI "typedef void(* \fBRGFW_windowMinimizedfunc\fP) (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_windowQuitfunc\fP) (\fBRGFW_window\fP *win)"
@@ -31,13 +31,13 @@ Callbacks \- Callbacks
 .RI "typedef void(* \fBRGFW_focusfunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_bool\fP inFocus)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_mouseNotifyfunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point, \fBRGFW_bool\fP status)"
+.RI "typedef void(* \fBRGFW_mouseNotifyfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, \fBRGFW_bool\fP status)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_mousePosfunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point, \fBRGFW_point\fP vector)"
+.RI "typedef void(* \fBRGFW_mousePosfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, float vecX, float vecY)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_dndInitfunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point)"
+.RI "typedef void(* \fBRGFW_dndInitfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_windowRefreshfunc\fP) (\fBRGFW_window\fP *win)"
@@ -92,13 +92,13 @@ Callbacks \- Callbacks
 .RI "\fBRGFWDEF\fP \fBRGFW_mouseButtonfunc\fP \fBRGFW_setMouseButtonCallback\fP (\fBRGFW_mouseButtonfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_windowResizedfunc\fP \fBRGFW_setWindowMaximizedCallback\fP (\fBRGFW_windowResizedfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_windowMaximizedfunc\fP \fBRGFW_setWindowMaximizedCallback\fP (\fBRGFW_windowMaximizedfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_windowResizedfunc\fP \fBRGFW_setWindowMinimizedCallback\fP (\fBRGFW_windowResizedfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_windowMinimizedfunc\fP \fBRGFW_setWindowMinimizedCallback\fP (\fBRGFW_windowMinimizedfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_windowResizedfunc\fP \fBRGFW_setWindowRestoredCallback\fP (\fBRGFW_windowResizedfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_windowRestoredfunc\fP \fBRGFW_setWindowRestoredCallback\fP (\fBRGFW_windowRestoredfunc\fP func)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_scaleUpdatedfunc\fP \fBRGFW_setScaleUpdatedCallback\fP (\fBRGFW_scaleUpdatedfunc\fP func)"
@@ -111,7 +111,7 @@ event callbacks\&. These are completely optional, so you can use the normal RGFW
 .PP 
 .SS "typedef void(* RGFW_dndfunc) (\fBRGFW_window\fP *win, char **droppedFiles, size_t droppedFilesCount)"
 RGFW_dnd, the window that had the drop, the drop data and the number of files dropped 
-.SS "typedef void(* RGFW_dndInitfunc) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point)"
+.SS "typedef void(* RGFW_dndInitfunc) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
 RGFW_DNDInit, the window, the point of the drop on the windows 
 .SS "typedef void(* RGFW_focusfunc) (\fBRGFW_window\fP *win, \fBRGFW_bool\fP inFocus)"
 RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its in focus 
@@ -121,23 +121,23 @@ RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped ke
 RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
 .br
  
-.SS "typedef void(* RGFW_mouseNotifyfunc) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point, \fBRGFW_bool\fP status)"
+.SS "typedef void(* RGFW_mouseNotifyfunc) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, \fBRGFW_bool\fP status)"
 RGFW_mouseEnter / RGFW_mouseLeave, the window that changed, the point of the mouse (enter only) and if the mouse has entered 
-.SS "typedef void(* RGFW_mousePosfunc) (\fBRGFW_window\fP *win, \fBRGFW_point\fP point, \fBRGFW_point\fP vector)"
+.SS "typedef void(* RGFW_mousePosfunc) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, float vecX, float vecY)"
 RGFW_mousePosChanged, the window that the move happened on, and the new point of the mouse 
 .br
  
 .SS "typedef void(* RGFW_scaleUpdatedfunc) (\fBRGFW_window\fP *win, float scaleX, float scaleY)"
 RGFW_scaleUpdated, the window the event was sent to, content scaleX, content scaleY 
-.SS "typedef void(* RGFW_windowMaximizedfunc) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
+.SS "typedef void(* RGFW_windowMaximizedfunc) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, \fBi32\fP w, \fBi32\fP h)"
 RGFW_windowMaximized, the window and its new rect value 
 .br
  
-.SS "typedef void(* RGFW_windowMinimizedfunc) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
+.SS "typedef void(* RGFW_windowMinimizedfunc) (\fBRGFW_window\fP *win)"
 RGFW_windowMinimized, the window and its new rect value 
 .br
  
-.SS "typedef void(* RGFW_windowMovedfunc) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
+.SS "typedef void(* RGFW_windowMovedfunc) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
 RGFW_windowMoved, the window and its new rect value 
 .br
  
@@ -145,11 +145,11 @@ RGFW_windowMoved, the window and its new rect value
 RGFW_quit, the window that was closed 
 .SS "typedef void(* RGFW_windowRefreshfunc) (\fBRGFW_window\fP *win)"
 RGFW_windowRefresh, the window that needs to be refreshed 
-.SS "typedef void(* RGFW_windowResizedfunc) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
+.SS "typedef void(* RGFW_windowResizedfunc) (\fBRGFW_window\fP *win, \fBi32\fP w, \fBi32\fP h)"
 RGFW_windowResized, the window and its new rect value 
 .br
  
-.SS "typedef void(* RGFW_windowRestoredfunc) (\fBRGFW_window\fP *win, \fBRGFW_rect\fP r)"
+.SS "typedef void(* RGFW_windowRestoredfunc) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, \fBi32\fP w, \fBi32\fP h)"
 RGFW_windowRestored, the window and its new rect value 
 .br
  
@@ -187,9 +187,9 @@ set callback for a mouse move event\&. Returns previous callback function (if it
 set callback for when the DPI changes\&. Returns previous callback function (if it was set) 
 .br
  
-.SS "\fBRGFWDEF\fP \fBRGFW_windowResizedfunc\fP RGFW_setWindowMaximizedCallback (\fBRGFW_windowResizedfunc\fP func)"
+.SS "\fBRGFWDEF\fP \fBRGFW_windowMaximizedfunc\fP RGFW_setWindowMaximizedCallback (\fBRGFW_windowMaximizedfunc\fP func)"
 set call back for when window is maximized\&. Returns the previous callback function (if it was set) 
-.SS "\fBRGFWDEF\fP \fBRGFW_windowResizedfunc\fP RGFW_setWindowMinimizedCallback (\fBRGFW_windowResizedfunc\fP func)"
+.SS "\fBRGFWDEF\fP \fBRGFW_windowMinimizedfunc\fP RGFW_setWindowMinimizedCallback (\fBRGFW_windowMinimizedfunc\fP func)"
 set call back for when window is minimized\&. Returns the previous callback function (if it was set) 
 .SS "\fBRGFWDEF\fP \fBRGFW_windowMovedfunc\fP RGFW_setWindowMovedCallback (\fBRGFW_windowMovedfunc\fP func)"
 set callback for a window move event\&. Returns previous callback function (if it was set) 
@@ -207,7 +207,7 @@ set callback for a window refresh event\&. Returns previous callback function (i
 set callback for a window resize event\&. Returns previous callback function (if it was set) 
 .br
  
-.SS "\fBRGFWDEF\fP \fBRGFW_windowResizedfunc\fP RGFW_setWindowRestoredCallback (\fBRGFW_windowResizedfunc\fP func)"
+.SS "\fBRGFWDEF\fP \fBRGFW_windowRestoredfunc\fP RGFW_setWindowRestoredCallback (\fBRGFW_windowRestoredfunc\fP func)"
 set call back for when window is restored\&. Returns the previous callback function (if it was set) 
 .SH "Author"
 .PP 

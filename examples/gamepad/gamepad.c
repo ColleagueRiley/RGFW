@@ -1,6 +1,8 @@
+#define RGFW_OPENGL
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
 #define RGFW_DEBUG
+#define GL_SILENCE_DEPRECATION
 
 #include "RGFW.h"
 #include <stdio.h>
@@ -12,7 +14,9 @@
 #include <GL/gl.h>
 #endif
 
-
+typedef struct my_point { i32 x, y; } my_point;
+typedef struct my_rect { i32 x, y, w, h; } my_rect;
+#define MY_POINT(x, y) (my_point){x, y}
 
 #define MG_IMPLEMENTATION
 #include "minigamepad.h"
@@ -20,7 +24,7 @@
 void drawGamepad(RGFW_window* w, mg_gamepad* gamepad);
 
 int main(void) {
-	RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(0, 0, 800, 450), RGFW_windowCenter);
+	RGFW_window* win = RGFW_createWindow("RGFW Example Window", 0, 0, 800, 450, RGFW_windowCenter | RGFW_windowOpenGL);
     RGFW_window_makeCurrentContext_OpenGL(win);
 
     mg_event ev;
@@ -82,7 +86,7 @@ int main(void) {
     RGFW_window_close(win);
 }
 
-#define RFONT_GET_WORLD(x, y) (float)((x) / (((w->r.w) / 2.0f)) - 1.0f), (float)(1.0f - ((y) / ((w->r.h) / 2.0f)))
+#define RFONT_GET_WORLD(x, y) (float)((x) / (((w->w) / 2.0f)) - 1.0f), (float)(1.0f - ((y) / ((w->h) / 2.0f)))
 
 
 
@@ -151,14 +155,14 @@ void drawGamepad(RGFW_window* w, mg_gamepad* gamepad) {
     size_t index = MG_MAX_GAMEPADS - (gamepad->index + 1);
 
     if (index == 3) {
-        RGFW_rect r = {w->r.w - 100 + 20, w->r.h - 100, 50, 80};
+        my_rect r = {w->w - 100 + 20, w->h - 100, 50, 80};
         drawRect(r.x - 20, r.y, 2, r.h, w);
         drawLine(r.x, r.y, r.x + r.w / 2, r.y + r.h, w);
         drawLine(r.x + r.w / 2, r.y + r.h, r.x + r.w, r.y, w);
     }
     else {
         for (size_t i = 0; i <= index; i++)
-			drawRect(w->r.w - 100 + (i * 20), w->r.h - 100, 2, 80, w);
+			drawRect(w->w - 100 + (i * 20), w->h - 100, 2, 80, w);
 	}
 
     glColor3f(0.05f, 0.05f, 0.05f);
@@ -219,10 +223,10 @@ void drawGamepad(RGFW_window* w, mg_gamepad* gamepad) {
     colorIfPressed(w, gamepad, MG_BUTTON_RIGHT_TRIGGER);
     drawRect(480, 30, 26, 19, w);
 
-    const RGFW_point leftStick = RGFW_POINT((i32)(gamepad->axes[MG_AXIS_LEFT_X].value * 100.0f),
+    const my_point leftStick = MY_POINT((i32)(gamepad->axes[MG_AXIS_LEFT_X].value * 100.0f),
                                       (i32)(gamepad->axes[MG_AXIS_LEFT_Y].value * 100.0f));
 
-    const RGFW_point rightStick = RGFW_POINT((i32)(gamepad->axes[MG_AXIS_RIGHT_X].value * 100.0f),
+    const my_point rightStick = MY_POINT((i32)(gamepad->axes[MG_AXIS_RIGHT_X].value * 100.0f),
                                        (i32)(gamepad->axes[MG_AXIS_RIGHT_Y].value * 100.0f));
 
     // Draw axis: left joystick
@@ -252,7 +256,7 @@ void drawGamepad(RGFW_window* w, mg_gamepad* gamepad) {
 
     glColor3f(0.8f, 0.0f, 0.0f);
 
-    const RGFW_point trigger = RGFW_POINT((i32)(((((gamepad->axes[MG_AXIS_LEFT_TRIGGER].value) + 1.0f)) / 2.0f) * 100.0f),
+    const my_point trigger = MY_POINT((i32)(((((gamepad->axes[MG_AXIS_LEFT_TRIGGER].value) + 1.0f)) / 2.0f) * 100.0f),
                                                     (i32)(((((gamepad->axes[MG_AXIS_RIGHT_TRIGGER].value) + 1.0f)) / 2.0f) * 100.0f));
     drawRect(170, 30, 15, trigger.x, w);
 

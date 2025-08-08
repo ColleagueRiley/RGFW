@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.5"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>RGFW: Riley&#39;s Graphics library FrameWork</title>
+<title>RGFW: Riley&#39;s General Windowing Framework</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -71,7 +71,7 @@ $(function() {
 
 </div><!-- top -->
 <div><div class="header">
-  <div class="headertitle"><div class="title">Riley's Graphics library FrameWork </div></div>
+  <div class="headertitle"><div class="title">Riley's General Windowing Framework </div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p ><img src="https://github.com/ColleagueRiley/RGFW/blob/main/logo.png?raw=true" alt="THE RGFW Logo" class="inline"/></p>
@@ -79,17 +79,18 @@ $(function() {
 Build statuses</h1>
 <p ><img src="https://github.com/ColleagueRiley/RGFW/actions/workflows/linux.yml/badge.svg" alt="workflow" style="pointer-events: none;" class="inline"/> <img src="https://github.com/ColleagueRiley/RGFW/actions/workflows/windows.yml/badge.svg" alt="workflow windows" style="pointer-events: none;" class="inline"/> <img src="https://github.com/ColleagueRiley/RGFW/actions/workflows/macos.yml/badge.svg" alt="workflow macOS" style="pointer-events: none;" class="inline"/></p>
 <p ><a href="https://discord.gg/pXVNgVVbvh"><img src="https://img.shields.io/discord/829003376532258816.svg?label=Discord&amp;logo=discord" alt="Discord Members" style="pointer-events: none;" class="inline"/></a></p>
-<p >A cross-platform lightweight single-header very simple-to-use window abstraction library for creating graphics Libraries or simple graphical programs. Written in pure C99.</p>
 <h1><a class="anchor" id="autotoc_md4"></a>
 About</h1>
-<p >RGFW is a free multi-platform single-header very simple-to-use window abstraction framework for creating graphics Libraries or simple graphical programs. While RGFW is comparable to GLFW or aspects of SDL, it's focus is being a flexible and lightweight windowing library,</p>
-<p >The window backend supports XLib (UNIX), Cocoas (MacOS), wasm (emscripten) and WinAPI (tested on windows <em>XP</em>, 10 and 11, and reactOS)\ Windows 95 &amp; 98 have also been tested with RGFW, although results are iffy</p>
-<p >Wayland: to compile wayland add (RGFW_WAYLAND=1). Wayland support is very experimental and broken.</p>
-<p >The graphics backend supports OpenGL (EGL, software, OSMesa, GLES), Vulkan, DirectX, <a href="https://github.com/ColleagueRiley/RGFW/blob/main/examples/metal/metal.m">Metal</a> and software rendering buffers.</p>
-<p >RGFW was designed as a backend for RSGL, but it can be used standalone or for other libraries, such as Raylib which uses it as an optional alternative backend.</p>
+<p >RGFW is a stb-style cross-platform general purpose windowing framework for apps, games and tools. It is written to be flexable and grounded. While RGFW is comparable to GLFW or aspects of SDL, it's focus is being a flexible and lightweight windowing library,</p>
+<p >The API is C89 compatible, with an implementation currently written in C99. There are plans to make the implementation C89 compatible as well.</p>
+<p >RGFW works with XLib (UNIX), Wayland (<em>experimental</em>) (LINUX), Cocoas(MacOS), WASM (emscripten) and WinAPI (tested on windows <em>XP</em>, 10 and 11, and reactOS)\ Windows 95 &amp; 98 have also been tested with RGFW, although results are iffy</p>
+<p >There is a Makefile including for compiling th examples. NOTE: <code>WAYLAND=1</code> OR can be defined to compile for wayland. <code>WAYLAND_X11=1</code> can be used instead if you want examples to fallback to X11 if a Wayland display is not found. This adds <code>#define RGFW_WAYLAND</code> in the implementation (or defines <code>RGFW_WAYLAND</code> AND <code>RGFW_X11</code>)</p>
+<p >Included in the framework are helper functions for multiple rendering APIs OpenGL (Native, EGL, GLES), Vulkan, DirectX, <a href="https://github.com/ColleagueRiley/RGFW/blob/main/examples/metal/metal.m">Metal</a> and WebGPU, you can also easily blit raw data directly onto the window with the <code>RGFW_surface</code> object using <code>RGFW_window_blitSurface</code>.</p>
+<p >However, you must explicitly request these helper functions via, <code>#define RGFW_OPENGL</code>, <code>#define RGFW_VULKAN</code>, <code>#define RGFW_DIRECTX</code>, <code>#define RGFW_WEBGPU</code>.</p>
+<p >Note for OpenGL: RGFW can internally create an OpenGL context after a window is created if you use the flag <code>RGFW_windowOpenGL</code> on window creation.</p>
 <p >RGFW is multi-paradigm,\ By default RGFW uses a flexible event system, similar to that of SDL, however you can use callbacks if you prefer that method.</p>
 <p >This library</p>
-<p >1) is single header and portable (written in C99 in mind) 2) is very small compared to other libraries 3) only depends on system API libraries, Winapi, X11, Cocoa 4) lets you create a window with a graphics context (OpenGL, Vulkan or DirectX) and manage the window and its events only with a few function calls 5) is customizable, you enable or disable features</p>
+<p >1) is single header and portable (written in C99 in mind) 2) is very small compared to other libraries 3) only depends on system API libraries, Winapi, X11, Cocoa, etc 4) help you create a window with a graphics context (OpenGL, Vulkan or DirectX) and manage the window and its events only with a few function calls 5) is customizable, you enable or disable features</p>
 <p >This library does not</p>
 <p >1) Handle any rendering for you (other than creating your graphics context) 2) do anything above the bare minimum in terms of functionality</p>
 <h1><a class="anchor" id="autotoc_md5"></a>
@@ -97,6 +98,7 @@ Getting started</h1>
 <h2><a class="anchor" id="autotoc_md6"></a>
 a very simple example</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#define RGFW_IMPLEMENTATION</span></div>
+<div class="line"><span class="preprocessor">#define RGFW_OPENGL </span><span class="comment">/* if this line is not added, OpenGL functions will not be included */</span><span class="preprocessor"></span></div>
 <div class="line"><span class="preprocessor">#include &quot;<a class="code" href="RGFW_8h.html">RGFW.h</a>&quot;</span></div>
 <div class="line"> </div>
 <div class="line"><span class="preprocessor">#include &lt;stdio.h&gt;</span></div>
@@ -109,7 +111,8 @@ a very simple example</h2>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line"><span class="keywordtype">int</span> main() {</div>
-<div class="line">    <a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win = <a class="code hl_function" href="group__Window__management.html#gaf8a8eaf0d6031adb217117e43f161a3c">RGFW_createWindow</a>(<span class="stringliteral">&quot;a window&quot;</span>, <a class="code hl_define" href="RGFW_8h.html#a2de5caedcb0adb5dc80d9f23758e0599">RGFW_RECT</a>(0, 0, 800, 600), RGFW_windowCenter | RGFW_windowNoResize);</div>
+<div class="line">    <span class="comment">/* the RGFW_windowOpenGL flag tells it to create an OpenGL context, but you can also create your own with RGFW_window_createContext_OpenGL */</span></div>
+<div class="line">    <a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win = <a class="code hl_function" href="RGFW_8h.html#ac5fd097e30463a43eed098e9e5cdd7e4">RGFW_createWindow</a>(<span class="stringliteral">&quot;a window&quot;</span>, RGFW_RECT(0, 0, 800, 600), RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowOpenGL);</div>
 <div class="line"> </div>
 <div class="line">    <a class="code hl_function" href="group__Callbacks.html#gaade2b5b8ca4d3e0d3e3fe219ff9e2795">RGFW_setKeyCallback</a>(keyfunc); <span class="comment">// you can use callbacks like this if you want</span></div>
 <div class="line"> </div>
@@ -120,12 +123,12 @@ a very simple example</h2>
 <div class="line">            <span class="keywordflow">if</span> (event.<a class="code hl_variable" href="structRGFW__event.html#ab309d573101fed3b9137b3e42f408ce0">type</a> == RGFW_quit) <span class="keywordflow">break</span>;</div>
 <div class="line"> </div>
 <div class="line">            <span class="keywordflow">if</span> (event.<a class="code hl_variable" href="structRGFW__event.html#ab309d573101fed3b9137b3e42f408ce0">type</a> == RGFW_mouseButtonPressed &amp;&amp; event.<a class="code hl_variable" href="structRGFW__event.html#a67b50f8eaad088c3e99a15b1d2adfeee">button</a> == RGFW_mouseLeft) {</div>
-<div class="line">                printf(<span class="stringliteral">&quot;You clicked at x: %d, y: %d\n&quot;</span>, event.<a class="code hl_variable" href="structRGFW__event.html#aba9e0d0df62210352604aedbb5829c11">point</a>.<a class="code hl_variable" href="structRGFW__point.html#a1e4ef1395966022c65b8b69db9e8e592">x</a>, event.<a class="code hl_variable" href="structRGFW__event.html#aba9e0d0df62210352604aedbb5829c11">point</a>.<a class="code hl_variable" href="structRGFW__point.html#a5f31b208f21b8cb3f65c225a07936a93">y</a>);</div>
+<div class="line">                printf(<span class="stringliteral">&quot;You clicked at x: %d, y: %d\n&quot;</span>, event.point.<a class="code hl_variable" href="structRGFW__event.html#ad7c204db759d352a2a531caea9495b7b">x</a>, event.point.<a class="code hl_variable" href="structRGFW__event.html#ad74bb1b41afed3649522725a7f3595f9">y</a>);</div>
 <div class="line">            }</div>
 <div class="line"> </div>
 <div class="line">            <span class="comment">// or use the existing functions</span></div>
 <div class="line">            <span class="keywordflow">if</span> (<a class="code hl_function" href="group__Input.html#ga730c6f8a9a8815c2f02288ccf51d41ad">RGFW_isMousePressed</a>(win, RGFW_mouseRight)) {</div>
-<div class="line">                printf(<span class="stringliteral">&quot;The right mouse button was clicked at x: %d, y: %d\n&quot;</span>, event.<a class="code hl_variable" href="structRGFW__event.html#aba9e0d0df62210352604aedbb5829c11">point</a>.<a class="code hl_variable" href="structRGFW__point.html#a1e4ef1395966022c65b8b69db9e8e592">x</a>, event.<a class="code hl_variable" href="structRGFW__event.html#aba9e0d0df62210352604aedbb5829c11">point</a>.<a class="code hl_variable" href="structRGFW__point.html#a5f31b208f21b8cb3f65c225a07936a93">y</a>);</div>
+<div class="line">                printf(<span class="stringliteral">&quot;The right mouse button was clicked at x: %d, y: %d\n&quot;</span>, event.point.<a class="code hl_variable" href="structRGFW__event.html#ad7c204db759d352a2a531caea9495b7b">x</a>, event.point.<a class="code hl_variable" href="structRGFW__event.html#ad74bb1b41afed3649522725a7f3595f9">y</a>);</div>
 <div class="line">            }</div>
 <div class="line">        }</div>
 <div class="line"> </div>
@@ -139,72 +142,50 @@ a very simple example</h2>
 <div class="line">        glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);</div>
 <div class="line">        glEnd();</div>
 <div class="line"> </div>
-<div class="line">        <a class="code hl_function" href="group__graphics__API.html#ga5b2ec2910a1fa8352cdd33c792b4413f">RGFW_window_swapBuffers_OpenGL</a>(win);</div>
+<div class="line">        RGFW_window_swapBuffers_OpenGL(win);</div>
 <div class="line">    }</div>
 <div class="line"> </div>
 <div class="line">    <a class="code hl_function" href="group__Window__management.html#gab9fbaeec9a1268374ab141b6ccfc41a3">RGFW_window_close</a>(win);</div>
 <div class="line">    <span class="keywordflow">return</span> 0;</div>
 <div class="line">}</div>
 <div class="ttc" id="aRGFW_8h_html"><div class="ttname"><a href="RGFW_8h.html">RGFW.h</a></div></div>
-<div class="ttc" id="aRGFW_8h_html_a2520d2d7f43e5df60edeed92733c1de6"><div class="ttname"><a href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a></div><div class="ttdeci">struct RGFW_window RGFW_window</div><div class="ttdef"><b>Definition:</b> RGFW.h:782</div></div>
-<div class="ttc" id="aRGFW_8h_html_a2de5caedcb0adb5dc80d9f23758e0599"><div class="ttname"><a href="RGFW_8h.html#a2de5caedcb0adb5dc80d9f23758e0599">RGFW_RECT</a></div><div class="ttdeci">#define RGFW_RECT(x, y, w, h)</div><div class="ttdef"><b>Definition:</b> RGFW.h:654</div></div>
-<div class="ttc" id="aRGFW_8h_html_a505be7338d9652fbd907b56aa9673c0c"><div class="ttname"><a href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a></div><div class="ttdeci">#define RGFW_FALSE</div><div class="ttdef"><b>Definition:</b> RGFW.h:389</div></div>
-<div class="ttc" id="aRGFW_8h_html_a5875a02d0e0e933b07afbe7b20941c0b"><div class="ttname"><a href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a></div><div class="ttdeci">u8 RGFW_bool</div><div class="ttdef"><b>Definition:</b> RGFW.h:384</div></div>
-<div class="ttc" id="aRGFW_8h_html_a92c50087ca0e64fa93fc59402c55f8ca"><div class="ttname"><a href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a></div><div class="ttdeci">uint8_t u8</div><div class="ttdef"><b>Definition:</b> RGFW.h:370</div></div>
-<div class="ttc" id="aRGFW_8h_html_aac2c5e611731b038c9377999b4b2af64"><div class="ttname"><a href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a></div><div class="ttdeci">#define RGFW_UNUSED(x)</div><div class="ttdef"><b>Definition:</b> RGFW.h:253</div></div>
+<div class="ttc" id="aRGFW_8h_html_a2520d2d7f43e5df60edeed92733c1de6"><div class="ttname"><a href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a></div><div class="ttdeci">struct RGFW_window RGFW_window</div><div class="ttdef"><b>Definition:</b> RGFW.h:395</div></div>
+<div class="ttc" id="aRGFW_8h_html_a505be7338d9652fbd907b56aa9673c0c"><div class="ttname"><a href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a></div><div class="ttdeci">#define RGFW_FALSE</div><div class="ttdef"><b>Definition:</b> RGFW.h:385</div></div>
+<div class="ttc" id="aRGFW_8h_html_a5875a02d0e0e933b07afbe7b20941c0b"><div class="ttname"><a href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a></div><div class="ttdeci">u8 RGFW_bool</div><div class="ttdef"><b>Definition:</b> RGFW.h:380</div></div>
+<div class="ttc" id="aRGFW_8h_html_a92c50087ca0e64fa93fc59402c55f8ca"><div class="ttname"><a href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a></div><div class="ttdeci">uint8_t u8</div><div class="ttdef"><b>Definition:</b> RGFW.h:366</div></div>
+<div class="ttc" id="aRGFW_8h_html_aac2c5e611731b038c9377999b4b2af64"><div class="ttname"><a href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a></div><div class="ttdeci">#define RGFW_UNUSED(x)</div><div class="ttdef"><b>Definition:</b> RGFW.h:239</div></div>
+<div class="ttc" id="aRGFW_8h_html_ac5fd097e30463a43eed098e9e5cdd7e4"><div class="ttname"><a href="RGFW_8h.html#ac5fd097e30463a43eed098e9e5cdd7e4">RGFW_createWindow</a></div><div class="ttdeci">RGFWDEF RGFW_window * RGFW_createWindow(const char *name, i32 x, i32 y, i32 w, i32 h, RGFW_windowFlags flags)</div></div>
 <div class="ttc" id="agroup__Callbacks_html_gaade2b5b8ca4d3e0d3e3fe219ff9e2795"><div class="ttname"><a href="group__Callbacks.html#gaade2b5b8ca4d3e0d3e3fe219ff9e2795">RGFW_setKeyCallback</a></div><div class="ttdeci">RGFWDEF RGFW_keyfunc RGFW_setKeyCallback(RGFW_keyfunc func)</div></div>
 <div class="ttc" id="agroup__Input_html_ga730c6f8a9a8815c2f02288ccf51d41ad"><div class="ttname"><a href="group__Input.html#ga730c6f8a9a8815c2f02288ccf51d41ad">RGFW_isMousePressed</a></div><div class="ttdeci">RGFWDEF RGFW_bool RGFW_isMousePressed(RGFW_window *win, RGFW_mouseButton button)</div></div>
 <div class="ttc" id="agroup__Window__management_html_ga24a216d1304d457e92b07504dda3fabb"><div class="ttname"><a href="group__Window__management.html#ga24a216d1304d457e92b07504dda3fabb">RGFW_window_checkEvent</a></div><div class="ttdeci">RGFWDEF RGFW_bool RGFW_window_checkEvent(RGFW_window *win, RGFW_event *event)</div></div>
 <div class="ttc" id="agroup__Window__management_html_ga98edf96a90a0f218afeb01908be28fbb"><div class="ttname"><a href="group__Window__management.html#ga98edf96a90a0f218afeb01908be28fbb">RGFW_window_setShouldClose</a></div><div class="ttdeci">RGFWDEF void RGFW_window_setShouldClose(RGFW_window *win, RGFW_bool shouldClose)</div></div>
 <div class="ttc" id="agroup__Window__management_html_gab9fbaeec9a1268374ab141b6ccfc41a3"><div class="ttname"><a href="group__Window__management.html#gab9fbaeec9a1268374ab141b6ccfc41a3">RGFW_window_close</a></div><div class="ttdeci">RGFWDEF void RGFW_window_close(RGFW_window *win)</div></div>
 <div class="ttc" id="agroup__Window__management_html_gae40de5fbdc9e850c1ff7e2e8dac46624"><div class="ttname"><a href="group__Window__management.html#gae40de5fbdc9e850c1ff7e2e8dac46624">RGFW_window_shouldClose</a></div><div class="ttdeci">RGFWDEF RGFW_bool RGFW_window_shouldClose(RGFW_window *win)</div></div>
-<div class="ttc" id="agroup__Window__management_html_gaf8a8eaf0d6031adb217117e43f161a3c"><div class="ttname"><a href="group__Window__management.html#gaf8a8eaf0d6031adb217117e43f161a3c">RGFW_createWindow</a></div><div class="ttdeci">RGFWDEF RGFW_window * RGFW_createWindow(const char *name, RGFW_rect rect, RGFW_windowFlags flags)</div></div>
-<div class="ttc" id="agroup__graphics__API_html_ga5b2ec2910a1fa8352cdd33c792b4413f"><div class="ttname"><a href="group__graphics__API.html#ga5b2ec2910a1fa8352cdd33c792b4413f">RGFW_window_swapBuffers_OpenGL</a></div><div class="ttdeci">RGFWDEF void RGFW_window_swapBuffers_OpenGL(RGFW_window *win)</div></div>
-<div class="ttc" id="astructRGFW__event_html"><div class="ttname"><a href="structRGFW__event.html">RGFW_event</a></div><div class="ttdef"><b>Definition:</b> RGFW.h:706</div></div>
-<div class="ttc" id="astructRGFW__event_html_a67b50f8eaad088c3e99a15b1d2adfeee"><div class="ttname"><a href="structRGFW__event.html#a67b50f8eaad088c3e99a15b1d2adfeee">RGFW_event::button</a></div><div class="ttdeci">u8 button</div><div class="ttdef"><b>Definition:</b> RGFW.h:718</div></div>
-<div class="ttc" id="astructRGFW__event_html_ab309d573101fed3b9137b3e42f408ce0"><div class="ttname"><a href="structRGFW__event.html#ab309d573101fed3b9137b3e42f408ce0">RGFW_event::type</a></div><div class="ttdeci">RGFW_eventType type</div><div class="ttdef"><b>Definition:</b> RGFW.h:707</div></div>
-<div class="ttc" id="astructRGFW__event_html_aba9e0d0df62210352604aedbb5829c11"><div class="ttname"><a href="structRGFW__event.html#aba9e0d0df62210352604aedbb5829c11">RGFW_event::point</a></div><div class="ttdeci">RGFW_point point</div><div class="ttdef"><b>Definition:</b> RGFW.h:708</div></div>
-<div class="ttc" id="astructRGFW__point_html_a1e4ef1395966022c65b8b69db9e8e592"><div class="ttname"><a href="structRGFW__point.html#a1e4ef1395966022c65b8b69db9e8e592">RGFW_point::x</a></div><div class="ttdeci">i32 x</div><div class="ttdef"><b>Definition:</b> RGFW.h:599</div></div>
-<div class="ttc" id="astructRGFW__point_html_a5f31b208f21b8cb3f65c225a07936a93"><div class="ttname"><a href="structRGFW__point.html#a5f31b208f21b8cb3f65c225a07936a93">RGFW_point::y</a></div><div class="ttdeci">i32 y</div><div class="ttdef"><b>Definition:</b> RGFW.h:599</div></div>
+<div class="ttc" id="astructRGFW__event_html"><div class="ttname"><a href="structRGFW__event.html">RGFW_event</a></div><div class="ttdef"><b>Definition:</b> RGFW.h:719</div></div>
+<div class="ttc" id="astructRGFW__event_html_a67b50f8eaad088c3e99a15b1d2adfeee"><div class="ttname"><a href="structRGFW__event.html#a67b50f8eaad088c3e99a15b1d2adfeee">RGFW_event::button</a></div><div class="ttdeci">u8 button</div><div class="ttdef"><b>Definition:</b> RGFW.h:731</div></div>
+<div class="ttc" id="astructRGFW__event_html_ab309d573101fed3b9137b3e42f408ce0"><div class="ttname"><a href="structRGFW__event.html#ab309d573101fed3b9137b3e42f408ce0">RGFW_event::type</a></div><div class="ttdeci">RGFW_eventType type</div><div class="ttdef"><b>Definition:</b> RGFW.h:720</div></div>
+<div class="ttc" id="astructRGFW__event_html_ad74bb1b41afed3649522725a7f3595f9"><div class="ttname"><a href="structRGFW__event.html#ad74bb1b41afed3649522725a7f3595f9">RGFW_event::y</a></div><div class="ttdeci">i32 y</div><div class="ttdef"><b>Definition:</b> RGFW.h:721</div></div>
+<div class="ttc" id="astructRGFW__event_html_ad7c204db759d352a2a531caea9495b7b"><div class="ttname"><a href="structRGFW__event.html#ad7c204db759d352a2a531caea9495b7b">RGFW_event::x</a></div><div class="ttdeci">i32 x</div><div class="ttdef"><b>Definition:</b> RGFW.h:721</div></div>
 </div><!-- fragment --><div class="fragment"><div class="line">linux : gcc main.c -lX11 -lGL -lXrandr</div>
 <div class="line">windows : gcc main.c -lopengl32 -lgdi32</div>
-<div class="line">macos : gcc main.c -framework CoreVideo -framework Cocoa -framework OpenGL -framework IOKit</div>
+<div class="line">macos : gcc main.c -framework Cocoa -framework OpenGL</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md7"></a>
-Dynamic Linking with XDL.h</h2>
-<p >XDL can be used to dynamically link X11 functions to RGFW using <code>dl</code>. It allows X11 functions to loaded at runtime.</p>
-<p >To enable RGFW's use of XDL, add this line to your code:</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#define RGFW_USE_XDL</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md8"></a>
-Linking OpenGL is not required</h2>
-<p >This only applies to Windows, macOS and X11 (with <code><a class="el" href="XDL_8h.html">XDL.h</a></code>):</p>
-<p >By default, OpenGL does not need to be explicitly linked unless you are directly using OpenGL functions in your code. If you rely on a OpenGL loader library, you don't need to explicitly link OpenGL at all!</p>
-<p >The examples/gl33/gl33 example demonstrates using OpenGL without explicitly linking it.</p>
-<h2><a class="anchor" id="autotoc_md9"></a>
 other examples</h2>
 <p ><img src="screenshot.PNG" alt="examples" class="inline"/></p>
 <p >You can find more examples [here](examples) or <a href="https://colleagueriley.github.io/RGFW/">run it in your browser</a> with emscripten</p>
-<h1><a class="anchor" id="autotoc_md10"></a>
-Officially tested Platforms</h1>
-<ul>
-<li>Windows (ReactOS, XP, Windows 10, 11)</li>
-<li>Linux</li>
-<li>MacOS (10.13, 10.14, 10.15) (x86_64)</li>
-<li>HTML5 (wasm / Emscripten)</li>
-<li>Raspberry PI OS</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md11"></a>
+<h1><a class="anchor" id="autotoc_md8"></a>
 Supported GUI libraries</h1>
-<p >A list of GUI libraries that can be used with RGFW can be found on the RGFW wiki <a href="https://github.com/ColleagueRiley/RGFW/wiki/GUI-libraries-that-can-be-used-with-RGFW">here</a></p>
-<h1><a class="anchor" id="autotoc_md12"></a>
+<p >A list of GUI libraries that can be used with RGFW can be found on the RGFW wiki <a href="https://github.com/colleagueriley/RGFW/wiki/GUI-libraries-that-can-be-used-with-RGFW">here</a></p>
+<h1><a class="anchor" id="autotoc_md9"></a>
 Documentation</h1>
 <p >There is a lot of in-header-documentation, but more documentation can be found at <a href="https://colleagueriley.github.io/RGFW/docs/index.html">https://colleagueriley.github.io/RGFW/docs/index.html</a> If you wish to build the documentation yourself, there is also a Doxygen file attached.</p>
-<h1><a class="anchor" id="autotoc_md13"></a>
+<h1><a class="anchor" id="autotoc_md10"></a>
 Bindings</h1>
 <p >A list of bindings can be found on the RGFW wiki <a href="https://github.com/ColleagueRiley/RGFW/wiki/Bindings">here</a></p>
-<h1><a class="anchor" id="autotoc_md14"></a>
+<h1><a class="anchor" id="autotoc_md11"></a>
 projects</h1>
 <p >A list of projects that use RGFW can be found on the RGFW wiki <a href="https://github.com/ColleagueRiley/RGFW/wiki/Projects-that-use-RGFW">here</a></p>
-<h1><a class="anchor" id="autotoc_md15"></a>
+<h1><a class="anchor" id="autotoc_md12"></a>
 Contacts</h1>
 <ul>
 <li>email : <a href="#" onclick="location.href='mai'+'lto:'+'Col'+'le'+'agu'+'eR'+'ile'+'y@'+'gma'+'il'+'.co'+'m'; return false;">Colle<span class="obfuscator">.nosp@m.</span>ague<span class="obfuscator">.nosp@m.</span>Riley<span class="obfuscator">.nosp@m.</span>@gma<span class="obfuscator">.nosp@m.</span>il.co<span class="obfuscator">.nosp@m.</span>m</a></li>
@@ -214,13 +195,13 @@ Contacts</h1>
 <li>BlueSky <a href="https://bsky.app/profile/colleagueriley.bsky.social">https://bsky.app/profile/colleagueriley.bsky.social</a></li>
 <li>Twitter/X : <a href="https://x.com/ColleagueRiley">https://x.com/ColleagueRiley</a></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md16"></a>
+<h1><a class="anchor" id="autotoc_md13"></a>
 Supporting RGFW</h1>
 <p >There is a RGFW wiki page about things you can do if you want to support the development of RGFW <a href="https://github.com/ColleagueRiley/RGFW/wiki/Supporting-RGFW">here</a>.</p>
-<h1><a class="anchor" id="autotoc_md17"></a>
+<h1><a class="anchor" id="autotoc_md14"></a>
 RGFW vs GLFW</h1>
 <p >A comparison of RGFW and GLFW can be found at <a href="https://github.com/ColleagueRiley/RGFW/wiki/RGFW-vs-GLFW">on the wiki</a></p>
-<h1><a class="anchor" id="autotoc_md18"></a>
+<h1><a class="anchor" id="autotoc_md15"></a>
 License</h1>
 <p >RGFW uses the Zlib/libPNG license, this means you can use RGFW freely as long as you do not claim you wrote this software, mark altered versions as such and keep the license included with the header.</p>
 <div class="fragment"><div class="line">Permission is granted to anyone to use this software for any purpose,</div>

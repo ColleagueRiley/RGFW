@@ -1,9 +1,6 @@
 var searchData=
 [
-  ['i16_0',['i16',['../RGFW_8h.html#ad309dbcaeea13aa602d686964156ea0b',1,'RGFW.h']]],
-  ['i32_1',['i32',['../RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec',1,'RGFW.h']]],
-  ['i64_2',['i64',['../RGFW_8h.html#a85cb35fbe5bf2961d7ad5f26814a91a2',1,'RGFW.h']]],
-  ['i8_3',['i8',['../RGFW_8h.html#ae3702327b5f47e83b431e22b33da7b58',1,'RGFW.h']]],
-  ['important_20conventions_4',['important conventions',['../md_CONVENTIONS.html',1,'']]],
-  ['input_5',['Input',['../group__Input.html',1,'']]]
+  ['mode_0',['mode',['../structRGFW__monitor.html#a0f7f7532843e9354590e8cb424fbf8dc',1,'RGFW_monitor']]],
+  ['monitor_1',['monitor',['../structRGFW__debugContext.html#a46d5a4575b82d5984a77454432b9ef00',1,'RGFW_debugContext']]],
+  ['monitor_2',['Monitor',['../group__Monitor.html',1,'']]]
 ];

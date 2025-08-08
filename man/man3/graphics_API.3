@@ -1,4 +1,4 @@
-.TH "graphics_API" 3 "Mon Aug 4 2025" "RGFW" \" -*- nroff -*-
+.TH "graphics_API" 3 "Fri Aug 8 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -12,64 +12,6 @@ graphics_API \- Graphics_API
 .ti -1c
 .RI "typedef void(* \fBRGFW_proc\fP) (void)"
 .br
-.ti -1c
-.RI "typedef struct \fBRGFW_glContext\fP \fBRGFW_glContext\fP"
-.br
-.in -1c
-.SS "Functions"
-
-.in +1c
-.ti -1c
-.RI "\fBRGFWDEF\fP void * \fBRGFW_window_getOSXView\fP (\fBRGFW_window\fP *win)"
-.br
-.ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_glHints)"
-.br
-.ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_glValue)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setHint_OpenGL\fP (RGFW_glHints hint, \fBi32\fP value)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_getHint_OpenGL\fP (RGFW_glHints hint)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isSoftware_OpenGL\fP (\fBRGFW_window\fP *win)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_glContext\fP * \fBRGFW_window_createContext_OpenGL\fP (\fBRGFW_window\fP *win)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_deleteContext_OpenGL\fP (\fBRGFW_window\fP *win)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrentWindow_OpenGL\fP (\fBRGFW_window\fP *win)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_makeCurrentContext_OpenGL\fP (\fBRGFW_window\fP *win)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_swapBuffers_OpenGL\fP (\fBRGFW_window\fP *win)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void * \fBRGFW_getCurrentContext_OpenGL\fP (void)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_getCurrentWindow_OpenGL\fP (void)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_swapInterval_OpenGL\fP (\fBRGFW_window\fP *win, \fBi32\fP swapInterval)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_proc\fP \fBRGFW_getProcAddress_OpenGL\fP (const char *procname)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_extensionSupported_OpenGL\fP (const char *extension, size_t len)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_extensionSupportedPlatform_OpenGL\fP (const char *extension, size_t len)"
-.br
 .in -1c
 .SH "Detailed Description"
 .PP 
@@ -80,80 +22,8 @@ graphics_API \- Graphics_API
 
 .SH "Typedef Documentation"
 .PP 
-.SS "typedef struct \fBRGFW_glContext\fP \fBRGFW_glContext\fP"
-native rendering API functions 
 .SS "typedef void(* RGFW_proc) (void)"
 
-.SH "Function Documentation"
-.PP 
-.SS "typedef RGFW_ENUM (\fBi32\fP, RGFW_glHints)"
-OpenGL init hints < set stencil buffer bit size (0 by default)
-.PP
-< set number of sample buffers (0 by default)
-.PP
-< hint the context to use stereoscopic frame buffers for 3D (false by default)
-.PP
-< number of aux buffers (0 by default)
-.PP
-< request double buffering (true by default)
-.PP
-< set color bit sizes (all 8 by default)
-.PP
-< set depth buffer bit size (24 by default)
-.PP
-< set accumulated RGBA bit sizes (all 0 by default)
-.PP
-< request sRGA format (false by default)
-.PP
-< request a 'robust' (as in memory-safe) context (false by default)\&. For more information check the overview section: https://registry.khronos.org/OpenGL/extensions/EXT/EXT_robustness.txt
-.PP
-< request OpenGL debugging (false by default)\&.
-.PP
-< request no OpenGL errors (false by default)\&. This causes OpenGL errors to be undefined behavior\&. For more information check the overview section: https://registry.khronos.org/OpenGL/extensions/KHR/KHR_no_error.txt
-.PP
-< hint how the OpenGL driver should behave when changing contexts (RGFW_glReleaseNone by default)\&. For more information check the overview section: https://registry.khronos.org/OpenGL/extensions/KHR/KHR_context_flush_control.txt
-.PP
-< set OpenGL API profile (RGFW_glCore by default)
-.PP
-< set the OpenGL API profile version (by default RGFW_glMajor is 1, RGFW_glMinor is 0)
-.PP
-< Share current OpenGL context with newly created OpenGL contexts; defaults to 0\&.
-.SS "typedef RGFW_ENUM (\fBi32\fP, RGFW_glValue)"
-< RGFW_glProfile options
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_extensionSupported_OpenGL (const char * extension, size_t len)"
-check if whether the specified API extension is supported by the current OpenGL or OpenGL ES context 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_extensionSupportedPlatform_OpenGL (const char * extension, size_t len)"
-check if whether the specified platform-specific API extension is supported by the current OpenGL or OpenGL ES context 
-.SS "\fBRGFWDEF\fP void * RGFW_getCurrentContext_OpenGL (void)"
-get the current context (OpenGL backend (GLX) (WGL) (cocoa) (webgl)) 
-.SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_getCurrentWindow_OpenGL (void)"
-get the current window (set by RGFW_window_makeCurrentWindow) 
-.SS "\fBRGFWDEF\fP \fBi32\fP RGFW_getHint_OpenGL (RGFW_glHints hint)"
-
-.SS "\fBRGFWDEF\fP \fBRGFW_proc\fP RGFW_getProcAddress_OpenGL (const char * procname)"
-get native OpenGL proc address 
-.SS "\fBRGFWDEF\fP void RGFW_setHint_OpenGL (RGFW_glHints hint, \fBi32\fP value)"
-
-.SS "\fBRGFWDEF\fP \fBRGFW_glContext\fP * RGFW_window_createContext_OpenGL (\fBRGFW_window\fP * win)"
-called by \fCRGFW_window_close\fP by default (unless the RGFW_windowNoInitAPI is set) 
-.SS "\fBRGFWDEF\fP void RGFW_window_deleteContext_OpenGL (\fBRGFW_window\fP * win)"
-
-.SS "\fBRGFWDEF\fP void * RGFW_window_getOSXView (\fBRGFW_window\fP * win)"
-< get the macos's underlying view, for creating a metal context, returns NULL on non-MacOS platforms 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isSoftware_OpenGL (\fBRGFW_window\fP * win)"
-< make the window the current OpenGL drawing context
-.PP
-NOTE: if you want to switch the graphics context's thread, you have to run RGFW_window_makeCurrentContext_OpenGL(NULL); on the old thread then RGFW_window_makeCurrentContext_OpenGL(valid_window) on the new thread create an OpenGL context for the RGFW window, run by createWindow by default (unless the RGFW_windowNoInitAPI is included) 
-.SS "\fBRGFWDEF\fP void RGFW_window_makeCurrentContext_OpenGL (\fBRGFW_window\fP * win)"
-to be called by RGFW_window_makeCurrent 
-.SS "\fBRGFWDEF\fP void RGFW_window_makeCurrentWindow_OpenGL (\fBRGFW_window\fP * win)"
-to be called by RGFW_window_makeCurrent 
-.SS "\fBRGFWDEF\fP void RGFW_window_swapBuffers_OpenGL (\fBRGFW_window\fP * win)"
-swap OpenGL buffer (only) called by RGFW_window_swapInterval 
-.br
- 
-.SS "\fBRGFWDEF\fP void RGFW_window_swapInterval_OpenGL (\fBRGFW_window\fP * win, \fBi32\fP swapInterval)"
-set swapInterval / enable vsync 
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.

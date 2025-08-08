@@ -1,4 +1,4 @@
-.TH "RGFW_event" 3 "Mon Aug 4 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_event" 3 "Fri Aug 8 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -15,10 +15,16 @@ RGFW_event
 .RI "RGFW_eventType \fBtype\fP"
 .br
 .ti -1c
-.RI "\fBRGFW_point\fP \fBpoint\fP"
+.RI "\fBi32\fP \fBx\fP"
 .br
 .ti -1c
-.RI "\fBRGFW_point\fP \fBvector\fP"
+.RI "\fBi32\fP \fBy\fP"
+.br
+.ti -1c
+.RI "float \fBvecX\fP"
+.br
+.ti -1c
+.RI "float \fBvecY\fP"
 .br
 .ti -1c
 .RI "float \fBscaleX\fP"
@@ -51,7 +57,7 @@ RGFW_event
 .RI "size_t \fBdroppedFilesCount\fP"
 .br
 .ti -1c
-.RI "void * \fB_win\fP"
+.RI "\fBRGFW_window\fP * \fB_win\fP"
 .br
 .in -1c
 .SH "Detailed Description"
@@ -59,7 +65,7 @@ RGFW_event
 Event structure for checking/getting events 
 .SH "Member Data Documentation"
 .PP 
-.SS "void* RGFW_event::_win"
+.SS "\fBRGFW_window\fP* RGFW_event::_win"
 the window this event applies too (for event queue events) 
 .SS "\fBu8\fP RGFW_event::button"
 
@@ -73,8 +79,6 @@ the physical key of the event, refers to where key is physically !!Keycodes defi
 mapped key char of the event 
 .SS "RGFW_keymod RGFW_event::keyMod"
 
-.SS "\fBRGFW_point\fP RGFW_event::point"
-mouse x, y of event (or drop point) 
 .SS "\fBRGFW_bool\fP RGFW_event::repeat"
 key press event repeated (the key is being held) 
 .SS "float RGFW_event::scaleX"
@@ -85,8 +89,14 @@ DPI scaling
 the raw mouse scroll value 
 .SS "RGFW_eventType RGFW_event::type"
 which event has been sent? 
-.SS "\fBRGFW_point\fP RGFW_event::vector"
+.SS "float RGFW_event::vecX"
+
+.SS "float RGFW_event::vecY"
 raw mouse movement 
+.SS "\fBi32\fP RGFW_event::x"
+
+.SS "\fBi32\fP RGFW_event::y"
+mouse x, y of event (or drop point) 
 
 .SH "Author"
 .PP 
