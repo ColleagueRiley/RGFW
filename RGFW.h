@@ -220,7 +220,7 @@ int main() {
 	#define RGFW_MACOS
 #endif
 
-#if !defined(RGFW_SNPRINTF) && defined(RGFW_X11)
+#if !defined(RGFW_SNPRINTF) && (defined(RGFW_X11) || defined(RGFW_WAYLAND))
 	/* required for X11 errors */
 	#include <stdio.h>
 	#define RGFW_SNPRINTF snprintf
@@ -470,6 +470,11 @@ RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
 		float pixelRatio; /*!< pixel ratio for monitor (1.0 for regular, 2.0 for hiDPI)  */
 		float physW, physH; /*!< monitor physical size in inches */
 
+	#ifdef RGFW_WAYLAND
+		u32 id; /* Add id so wl_outputs can be removed */
+		struct wl_output *output;
+		struct zxdg_output_v1 *xdg_output;
+	#endif
 		RGFW_monitorMode mode;
 	} RGFW_monitor;
 
@@ -1492,10 +1497,8 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		/* State flags to configure the window */
 		RGFW_bool pending_activated;
 		RGFW_bool activated;
-		RGFW_bool pending_fullscreen;
-		RGFW_bool fullscreen;
-		RGFW_bool pending_maximized;
 		RGFW_bool resizing;
+		RGFW_bool pending_maximized;
 		RGFW_bool maximized;
 
 		#ifdef RGFW_LIBDECOR
@@ -1616,12 +1619,14 @@ struct RGFW_info {
         struct xkb_keymap *keymap;
         struct xkb_state *xkb_state;
         struct zxdg_decoration_manager_v1 *decoration_manager;
-
+        struct zxdg_output_manager_v1 *xdg_output_manager;
         struct wl_cursor_theme* wl_cursor_theme;
         struct wl_surface* cursor_surface;
         struct wl_cursor_image* cursor_image;
 
         RGFW_bool wl_configured;
+        RGFW_monitor* monitors[5];
+        u32 num_monitors;
     #endif
 
     #ifdef __linux__
@@ -5591,6 +5596,7 @@ RGFW_window* RGFW_key_win = NULL;
 /* wayland global garbage (wayland bad, X11 is fine (ish) (not really)) */
 #include "xdg-shell.h"
 #include "xdg-decoration-unstable-v1.h"
+#include "xdg-output-unstable-v1.h"
 
 i32 RGFW_initPlatform_Wayland(void) {
     _RGFW->wl_display = wl_display_connect(NULL);
@@ -5693,7 +5699,6 @@ void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplevel* top
     }
 
     win->src.pending_activated = RGFW_FALSE;
-    win->src.pending_fullscreen = RGFW_FALSE;
     win->src.pending_maximized = RGFW_FALSE;
     win->src.resizing = RGFW_FALSE;
 
@@ -5706,9 +5711,6 @@ void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplevel* top
 				break;
 			case XDG_TOPLEVEL_STATE_MAXIMIZED:
 				win->src.pending_maximized = RGFW_TRUE;
-				break;
-			case XDG_TOPLEVEL_STATE_FULLSCREEN:
-				win->src.pending_fullscreen = RGFW_TRUE;
 				break;
 			default:
 				break;
@@ -5746,13 +5748,12 @@ void RGFW_wl_shm_format_handler(void* data, struct wl_shm *shm, u32 format) {
 	RGFW_UNUSED(data); RGFW_UNUSED(shm); RGFW_UNUSED(format);
 }
 
-RGFW_window* RGFW_mouse_win = NULL;
 
 void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial,
 		struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y) {
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(serial); RGFW_UNUSED(surface_x); RGFW_UNUSED(surface_y);
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
-	RGFW_mouse_win = win;
+	
 	if (!(win->_enabledEvents & RGFW_mouseEnterFlag)) return;
 
 	i32 x = (i32)wl_fixed_to_double(surface_x);
@@ -5766,8 +5767,7 @@ void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial,
 void RGFW_wl_pointer_leave(void* data, struct wl_pointer *pointer, u32 serial, struct wl_surface *surface) {
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(serial); RGFW_UNUSED(surface);
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
-	if (RGFW_mouse_win == win)
-		RGFW_mouse_win = NULL;
+	
 	if (!(win->_enabledEvents & RGFW_mouseLeaveFlag)) return;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseLeave;
@@ -5776,22 +5776,27 @@ void RGFW_wl_pointer_leave(void* data, struct wl_pointer *pointer, u32 serial, s
 
 	RGFW_mouseNotifyCallback(win, win->_lastMouseX, win->_lastMouseY, RGFW_FALSE);
 }
+
 void RGFW_wl_pointer_motion(void* data, struct wl_pointer *pointer, u32 time, wl_fixed_t x, wl_fixed_t y) {
-	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(x); RGFW_UNUSED(y);
-	RGFW_ASSERT(RGFW_mouse_win != NULL);
-	if (!(RGFW_mouse_win->_enabledEvents & RGFW_mousePosChangedFlag)) return;
+	RGFW_UNUSED(pointer); RGFW_UNUSED(time);
+
+	RGFW_window* win = (RGFW_window*)data;
+	
+	if (!(win->_enabledEvents & RGFW_mousePosChangedFlag)) return;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
 									e.x = (i32)wl_fixed_to_double(x); e.y = (i32)wl_fixed_to_double(y);
-									e._win = RGFW_mouse_win);
-
-	RGFW_mousePosCallback(RGFW_mouse_win, (i32)wl_fixed_to_double(x), (i32)wl_fixed_to_double(y), 0, 0);
+									e._win = win);
+	win->_lastMouseX = (i32)wl_fixed_to_double(x);
+	win->_lastMouseY = (i32)wl_fixed_to_double(y);
+	RGFW_mousePosCallback(win, (i32)wl_fixed_to_double(x), (i32)wl_fixed_to_double(y), 0, 0);
 }
-void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 serial, u32 time, u32 button, u32 state) {
-	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(serial);
-	RGFW_ASSERT(RGFW_mouse_win != NULL);
 
-	if (!(RGFW_mouse_win->_enabledEvents & (RGFW_BIT(RGFW_mouseButtonReleased - RGFW_BOOL(state))))) return;
+void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 serial, u32 time, u32 button, u32 state) {
+	RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(serial);
+	RGFW_window* win = (RGFW_window*)data;
+	
+	if (!(win->_enabledEvents & (RGFW_BIT(RGFW_mouseButtonReleased - RGFW_BOOL(state))))) return;
 	u32 b = (button - 0x110);
 
 	/* flip right and middle button codes */
@@ -5800,25 +5805,29 @@ void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 serial, 
 
 	RGFW_mouseButtons[b].prev = RGFW_mouseButtons[b].current;
 	RGFW_mouseButtons[b].current = RGFW_BOOL(state);
-
+	
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonReleased - RGFW_BOOL(state);
+									e.x = win->_lastMouseX;
+									e.y = win->_lastMouseY;
 									e.button = (u8)b;
-									e._win = RGFW_mouse_win);
-	RGFW_mouseButtonCallback(RGFW_mouse_win, (u8)b, 0, RGFW_BOOL(state));
+									e._win = win);
+	RGFW_mouseButtonCallback(win, (u8)b, 0, RGFW_BOOL(state));
 }
+
 void RGFW_wl_pointer_axis(void* data, struct wl_pointer *pointer, u32 time, u32 axis, wl_fixed_t value) {
-	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time);  RGFW_UNUSED(axis);
-	RGFW_ASSERT(RGFW_mouse_win != NULL);
+	RGFW_UNUSED(pointer); RGFW_UNUSED(time);  RGFW_UNUSED(axis);
+
+	RGFW_window* win = (RGFW_window*)data;
 
 	double scroll = - wl_fixed_to_double(value);
-	if (!(RGFW_mouse_win->_enabledEvents & (RGFW_BIT(RGFW_mouseScrollUp + (scroll < 0))))) return;
+	if (!(win->_enabledEvents & (RGFW_BIT(RGFW_mouseScrollUp + (scroll < 0))))) return;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonPressed;
 									e.button = RGFW_mouseScrollUp + (scroll < 0);
 									e.scroll = scroll;
-									e._win = RGFW_mouse_win);
+									e._win = win);
 
-	RGFW_mouseButtonCallback(RGFW_mouse_win, RGFW_mouseScrollUp + (scroll < 0), scroll, 1);
+	RGFW_mouseButtonCallback(win, RGFW_mouseScrollUp + (scroll < 0), scroll, 1);
 }
 
 void RGFW_doNothing(void) { }
@@ -5885,7 +5894,7 @@ void RGFW_wl_keyboard_modifiers (void* data, struct wl_keyboard *keyboard, u32 s
 	xkb_state_update_mask (_RGFW->xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
 }
 void RGFW_wl_seat_capabilities (void* data, struct wl_seat *seat, u32 capabilities) {
-	RGFW_UNUSED(data);
+
     static struct wl_pointer_listener pointer_listener;
 	RGFW_MEMSET(&pointer_listener, 0, sizeof (pointer_listener));
 	pointer_listener.enter = &RGFW_wl_pointer_enter;
@@ -5903,13 +5912,140 @@ void RGFW_wl_seat_capabilities (void* data, struct wl_seat *seat, u32 capabiliti
 	keyboard_listener.modifiers = &RGFW_wl_keyboard_modifiers;
 
     if (capabilities & WL_SEAT_CAPABILITY_POINTER) {
-		struct wl_pointer *pointer = wl_seat_get_pointer (seat);
-		wl_pointer_add_listener (pointer, &pointer_listener, NULL);
+		struct wl_pointer *pointer = wl_seat_get_pointer(seat);
+		wl_pointer_add_listener (pointer, &pointer_listener, data);
 	}
 	if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD) {
-		struct wl_keyboard *keyboard = wl_seat_get_keyboard (seat);
+		struct wl_keyboard *keyboard = wl_seat_get_keyboard(seat);
 		wl_keyboard_add_listener (keyboard, &keyboard_listener, NULL);
 	}
+}
+
+void RGFW_wl_output_set_geometry(void *data, struct wl_output *wl_output,
+			 int32_t x, int32_t y, int32_t physical_width, int32_t physical_height,
+			 int32_t subpixel, const char *make, const char *model, int32_t transform) {
+
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+	monitor->x = x;
+	monitor->y = y;
+
+	monitor->physW = (float)physical_width / 25.4f;
+	monitor->physH = (float)physical_height / 25.4f;
+
+	RGFW_UNUSED(wl_output);
+	RGFW_UNUSED(subpixel);
+	RGFW_UNUSED(make);
+	RGFW_UNUSED(model);
+	RGFW_UNUSED(transform);	
+}
+
+void RGFW_wl_output_set_mode(void *data, struct wl_output *wl_output, uint32_t flags,
+		     int32_t width, int32_t height, int32_t refresh) {
+
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+	monitor->mode.w = width;
+	monitor->mode.h = height;
+	monitor->mode.refreshRate = (u32)(refresh / 1000) + 1;
+	RGFW_UNUSED(width);
+	RGFW_UNUSED(height);
+	RGFW_UNUSED(wl_output);
+	RGFW_UNUSED(flags);
+}
+
+void RGFW_wl_output_set_scale(void *data, struct wl_output *wl_output, int32_t factor) {
+	// this is for pixelRatio
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+	monitor->pixelRatio = (float)factor; 
+	RGFW_UNUSED(wl_output);
+}
+
+void RGFW_wl_output_set_name(void *data, struct wl_output *wl_output, const char *name) {
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+	RGFW_STRNCPY(monitor->name, name, sizeof(monitor->name) - 1);
+	monitor->name[sizeof(monitor->name) - 1] = '\0';
+
+	RGFW_UNUSED(wl_output);
+
+}
+
+void RGFW_xdg_output_logical_pos(void *data, struct zxdg_output_v1 *zxdg_output_v1, int32_t x, int32_t y) {
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+	monitor->x = x;
+	monitor->y = y;
+	RGFW_UNUSED(zxdg_output_v1);
+}
+
+void RGFW_xdg_output_logical_size(void *data, struct zxdg_output_v1 *zxdg_output_v1, int32_t width, int32_t height) {
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+
+	float mon_float_width = (float) monitor->mode.w;
+	float mon_float_height = (float) monitor->mode.h;
+
+	monitor->scaleX = (mon_float_width / (float) width);
+	monitor->scaleY = (mon_float_height / (float) height);
+
+	// under xwayland the monitor changes w & h when compositor scales it
+	monitor->mode.w = width;
+	monitor->mode.h = height;
+	RGFW_UNUSED(zxdg_output_v1);
+}
+
+void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
+	struct wl_output *output = wl_registry_bind(registry, id, &wl_output_interface, 4);
+
+	if (!output) return;
+
+	if (_RGFW->num_monitors >= 5) return; // too many monitors
+
+	RGFW_monitor* mon = RGFW_ALLOC(sizeof(RGFW_monitor));
+
+	RGFW_MEMSET(mon, 0, sizeof(RGFW_monitor));
+	_RGFW->monitors[_RGFW->num_monitors] = mon;
+
+	char RGFW_mon_default_name[10];
+
+	RGFW_SNPRINTF(RGFW_mon_default_name, sizeof(RGFW_mon_default_name), "monitor-%d", _RGFW->num_monitors);
+	RGFW_STRNCPY(mon->name, RGFW_mon_default_name, sizeof(mon->name) - 1);
+	mon->name[sizeof(mon->name) - 1] = '\0';
+
+	++_RGFW->num_monitors;
+	mon->id = id;
+	mon->output = output;
+
+	// set in case compositor does not send one
+	// or no xdg_output support
+	mon->scaleY = mon->scaleX = mon->pixelRatio = 1.0f;
+
+	static const struct wl_output_listener wl_output_listener = {
+			.geometry = RGFW_wl_output_set_geometry,
+			.mode = RGFW_wl_output_set_mode,
+			.done = (void (*)(void *,struct wl_output *))&RGFW_doNothing,
+			.scale = RGFW_wl_output_set_scale,
+			.name = RGFW_wl_output_set_name,
+			.description = (void (*)(void *, struct wl_output *, const char *))&RGFW_doNothing
+	};
+
+	// pass the monitor so we can access it in the callback functions
+	wl_output_add_listener(output, &wl_output_listener, mon);
+
+	if (!_RGFW->xdg_output_manager) return; // compositor does not support it 
+
+	static const struct zxdg_output_v1_listener xdg_output_listener = {
+		.name = (void (*)(void *,struct zxdg_output_v1 *, const char *))&RGFW_doNothing,
+		.done = (void (*)(void *,struct zxdg_output_v1 *))&RGFW_doNothing,
+		.description = (void (*)(void *,struct zxdg_output_v1 *, const char *))&RGFW_doNothing,
+		.logical_position = RGFW_xdg_output_logical_pos,
+		.logical_size = RGFW_xdg_output_logical_size
+	};
+
+	mon->xdg_output = zxdg_output_manager_v1_get_xdg_output(_RGFW->xdg_output_manager, mon->output);
+	zxdg_output_v1_add_listener(mon->xdg_output, &xdg_output_listener, mon);
+
 }
 
 void RGFW_wl_global_registry_handler(void* data,
@@ -5936,11 +6072,25 @@ void RGFW_wl_global_registry_handler(void* data,
         wl_shm_add_listener(win->src.shm, &shm_listener, NULL);
 	} else if (RGFW_STRNCMP(interface,"wl_seat", 8) == 0) {
 		win->src.seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
-		wl_seat_add_listener(win->src.seat, &seat_listener, NULL);
+		wl_seat_add_listener(win->src.seat, &seat_listener, win);
+	} else if (RGFW_STRNCMP(interface, zxdg_output_manager_v1_interface.name, 255) == 0) {
+		_RGFW->xdg_output_manager = wl_registry_bind(registry, id, &zxdg_output_manager_v1_interface, 1);
+	} else if (RGFW_STRNCMP(interface,"wl_output", 10) == 0) {
+		RGFW_wl_create_outputs(registry, id);
 	}
 }
 
-void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u32 name) { RGFW_UNUSED(data); RGFW_UNUSED(registry); RGFW_UNUSED(name); }
+void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u32 name) { 
+	RGFW_UNUSED(data); RGFW_UNUSED(registry);
+	for (u32 i = _RGFW->num_monitors; i > 0; i--) { // will leave the array empty
+		RGFW_monitor* mon = _RGFW->monitors[i - 1];
+		if (name == mon->id && mon->output) {
+			wl_output_destroy(mon->output); 
+			RGFW_FREE(mon);
+			_RGFW->num_monitors--;
+		}
+	}
+}
 
 void RGFW_wl_randname(char *buf) {
 	struct timespec ts;
@@ -6315,8 +6465,11 @@ void RGFW_FUNC(RGFW_window_setFullscreen)(RGFW_window* win, RGFW_bool fullscreen
 		win->_oldY = win->y;
 		win->_oldW = win->w;
 		win->_oldH = win->h;
+		xdg_toplevel_set_fullscreen(win->src.xdg_toplevel, NULL); // let the compositor decide
+	} else {
+		win->_flags &= ~(u32)RGFW_windowFullscreen;
+		xdg_toplevel_unset_fullscreen(win->src.xdg_toplevel);
 	}
-	else win->_flags &= ~(u32)RGFW_windowFullscreen;
 }
 
 void RGFW_FUNC(RGFW_window_setFloating) (RGFW_window* win, RGFW_bool floating) {
@@ -6353,8 +6506,7 @@ void RGFW_FUNC(RGFW_window_restore)(RGFW_window* win) {
 }
 
 RGFW_bool RGFW_FUNC(RGFW_window_isFloating)(RGFW_window* win) {
-	RGFW_UNUSED(win);
-	return RGFW_FALSE;
+	return (!RGFW_window_isFullscreen(win) && !RGFW_window_isMaximized(win));
 }
 
 void RGFW_FUNC(RGFW_window_setName) (RGFW_window* win, const char* name) {
@@ -6447,13 +6599,14 @@ RGFW_bool RGFW_FUNC(RGFW_window_isMaximized) (RGFW_window* win) {
 }
 
 RGFW_monitor* RGFW_FUNC(RGFW_getMonitors) (size_t* len) {
-	static RGFW_monitor monitors[7];
-	RGFW_UNUSED(len);
-    return monitors; /* TODO WAYLAND */
+	if (len != NULL) {
+		*len = _RGFW->num_monitors;
+	}
+    return *(_RGFW->monitors);
 }
 
 RGFW_monitor RGFW_FUNC(RGFW_getPrimaryMonitor) (void) {
-	return (RGFW_monitor){ 0 }; /* TODO WAYLAND */
+	return *_RGFW->monitors[0]; /* Get the first one from the array */
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
@@ -6498,10 +6651,28 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 		xdg_toplevel_destroy(win->src.xdg_toplevel);
 	}
 
+	if (_RGFW->xdg_output_manager) {
+		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
+	}
+
 	xdg_surface_destroy(win->src.xdg_surface);
 	wl_surface_destroy(win->src.surface);
 	wl_compositor_destroy(win->src.compositor);
 	xdg_wm_base_destroy(win->src.xdg_wm_base);
+
+	for (u32 i = _RGFW->num_monitors; i > 0; i--) { // will leave the array empty
+		RGFW_monitor* mon = _RGFW->monitors[i - 1];
+		if (mon->output) {
+			wl_output_destroy(mon->output); 
+		}
+
+		if (mon->xdg_output) {
+			zxdg_output_v1_destroy(mon->xdg_output);
+		}
+
+		RGFW_FREE(mon);
+		_RGFW->num_monitors--;
+	}
 }
 
 #ifdef RGFW_WEBGPU
