@@ -209,5 +209,5 @@ var searchData=
   ['rgfw_5fwindowrestoredfunc_206',['RGFW_windowRestoredfunc',['../group__Callbacks.html#gaefc8767973a92f7414823aeaa3a318db',1,'RGFW.h']]],
   ['rgfw_5fwriteclipboard_207',['RGFW_writeClipboard',['../group__Clipboard.html#ga0de2f0466a3ae4cc9986101de14dbdee',1,'RGFW.h']]],
   ['rgfwdef_208',['RGFWDEF',['../RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f',1,'RGFW.h']]],
-  ['riley_27s_20general_20windowing_20framework_209',['Riley&apos;s General Windowing Framework',['../md_README.html',1,'']]]
+  ['riley_27s_20general_20framework_20for_20windowing_209',['Riley&apos;s General Framework for Windowing',['../md_README.html',1,'']]]
 ];
