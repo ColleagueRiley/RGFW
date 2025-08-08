@@ -85,18 +85,13 @@ int main() {
 	RGFW_window* win = RGFW_createWindow("name", 100, 100, 500, 500, (u64)0);
 	RGFW_event event;
 
-	RGFW_window_setIcon(win, icon, 3, 3, 4);
+	RGFW_window_setIcon(win, icon, 3, 3, RGFW_formatRGBA);
 
 	while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
 		while (RGFW_window_checkEvent(win, &event)) {
 		    if (event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape))
 			    break;
         }
-
-		RGFW_window_swapBuffers_OpenGL(win);
-
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
 	RGFW_window_close(win);
