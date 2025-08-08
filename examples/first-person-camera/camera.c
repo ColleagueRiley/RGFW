@@ -20,6 +20,7 @@ RGFWDEF void glPerspective(float fovY, float aspect, float zNear, float zFar);
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("First person camera", 0, 0, 800, 450, RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowFocusOnShow | RGFW_windowOpenGL);
+    RGFW_window_setExitKey(win, RGFW_escape);
 
     RGFW_window_showMouse(win, 0);
     glEnable(GL_DEPTH_TEST);

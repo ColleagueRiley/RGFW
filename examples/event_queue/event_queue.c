@@ -13,6 +13,7 @@
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW Events", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
     RGFW_event event;
+    RGFW_window_setExitKey(win, RGFW_escape);
 
     while (RGFW_window_shouldClose(win) == 0) {
         RGFW_waitForEvent(RGFW_eventWaitNext);
