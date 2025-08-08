@@ -253,6 +253,7 @@ int main(int argc, char **argv) {
   /* init RGFW window */
   RGFW_window* window = RGFW_createWindow("", 0, 0, width, height, RGFW_windowCenter | RGFW_windowScaleToMonitor | RGFW_windowOpenGL);
   r_init();
+  RGFW_window_setExitKey(window, RGFW_escape);
 
   /* init microui */
   mu_Context *ctx = (mu_Context*)malloc(sizeof(mu_Context));

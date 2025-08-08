@@ -8,6 +8,7 @@
 int main(void) {
     int w, h, c;
     RGFW_window* win = RGFW_createWindow("RGFW icons", 0, 0, 600, 400, RGFW_windowCenter | RGFW_windowNoResize);
+    RGFW_window_setExitKey(win, RGFW_escape);
 
     unsigned char* icon = stbi_load("logo.png", &w, &h, &c, 3);
     RGFW_mouse* mouse = RGFW_loadMouse(icon, w, h, RGFW_formatRGB8);

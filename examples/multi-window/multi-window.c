@@ -123,9 +123,6 @@ int main(void) {
     RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
 
 	RGFW_window* win1 = RGFW_createWindow("RGFW Example Window 1", 500, 500, 500, 500, RGFW_windowAllowDND | RGFW_windowOpenGL);
-
-	RGFW_setQueueEvents(RGFW_TRUE); /* manually enable the queue so we don't accidently miss the first few events */
-
 	hints->share = RGFW_window_getContext_OpenGL(win1);
 	RGFW_setGlobalHints_OpenGL(hints);
 
@@ -133,6 +130,12 @@ int main(void) {
 	RGFW_window* win3 = RGFW_createWindow("RGFW Example Window 3", 20, 500, 400, 300, RGFW_windowNoResize | RGFW_windowAllowDND | RGFW_windowOpenGL);
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 	RGFW_window_makeCurrentContext_OpenGL(NULL); /* this is really important (this releases the opengl context on this thread) */
+
+
+    RGFW_window_setExitKey(win1, RGFW_escape);
+    RGFW_window_setExitKey(win2, RGFW_escape);
+    RGFW_window_setExitKey(win3, RGFW_escape);
+	RGFW_setQueueEvents(RGFW_TRUE); /* manually enable the queue so we don't accidently miss the first few events */
 
 	my_thread thread1 = createThread(loop, win1);
 	my_thread thread2 = createThread(loop, win2);

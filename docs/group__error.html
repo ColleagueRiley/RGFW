@@ -72,32 +72,16 @@ $(function() {
 
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Classes</a> &#124;
-<a href="#define-members">Macros</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">handling</div></div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
-Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__debugContext.html">RGFW_debugContext</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
-Macros</h2></td></tr>
-<tr class="memitem:gaecf4f2afb81862fd562a5d7bf47247e4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__error.html#gaecf4f2afb81862fd562a5d7bf47247e4">RGFW_DEBUG_CTX</a>(win,  err)&#160;&#160;&#160;(<a class="el" href="structRGFW__debugContext.html">RGFW_debugContext</a>){win, NULL, err}</td></tr>
-<tr class="separator:gaecf4f2afb81862fd562a5d7bf47247e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gafe712a1adc4e4b1e019ce118c62da2db"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__error.html#gafe712a1adc4e4b1e019ce118c62da2db">RGFW_DEBUG_CTX_MON</a>(monitor)&#160;&#160;&#160;(<a class="el" href="structRGFW__debugContext.html">RGFW_debugContext</a>){_RGFW-&gt;root, &amp;monitor, 0}</td></tr>
-<tr class="separator:gafe712a1adc4e4b1e019ce118c62da2db"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:gaf944c8897e92ba5fbfd82465de18f73d"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structRGFW__debugContext.html">RGFW_debugContext</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__error.html#gaf944c8897e92ba5fbfd82465de18f73d">RGFW_debugContext</a></td></tr>
-<tr class="separator:gaf944c8897e92ba5fbfd82465de18f73d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gab8b07a3b8a214824ab5090e5f7966215"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__error.html#gab8b07a3b8a214824ab5090e5f7966215">RGFW_debugfunc</a>) (RGFW_debugType type, RGFW_errorCode err, <a class="el" href="structRGFW__debugContext.html">RGFW_debugContext</a> ctx, const char *msg)</td></tr>
-<tr class="separator:gab8b07a3b8a214824ab5090e5f7966215"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga36eac7d8fb7002e126c41ea8e6af0cf3"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__error.html#ga36eac7d8fb7002e126c41ea8e6af0cf3">RGFW_debugfunc</a>) (RGFW_debugType type, RGFW_errorCode err, const char *msg)</td></tr>
+<tr class="separator:ga36eac7d8fb7002e126c41ea8e6af0cf3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -105,85 +89,24 @@ Functions</h2></td></tr>
 <tr class="separator:gaa206e3d77008a2d301f7460694cfa691"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaed609bb03709a71bdb0dc1ea3fd9e5f6"><td class="memItemLeft" align="right" valign="top">typedef&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__error.html#gaed609bb03709a71bdb0dc1ea3fd9e5f6">RGFW_ENUM</a> (<a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>, RGFW_errorCode)</td></tr>
 <tr class="separator:gaed609bb03709a71bdb0dc1ea3fd9e5f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gafdb4774a4fb472238b032830b2b8de3b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__error.html#gab8b07a3b8a214824ab5090e5f7966215">RGFW_debugfunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__error.html#gafdb4774a4fb472238b032830b2b8de3b">RGFW_setDebugCallback</a> (<a class="el" href="group__error.html#gab8b07a3b8a214824ab5090e5f7966215">RGFW_debugfunc</a> func)</td></tr>
+<tr class="memitem:gafdb4774a4fb472238b032830b2b8de3b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__error.html#ga36eac7d8fb7002e126c41ea8e6af0cf3">RGFW_debugfunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__error.html#gafdb4774a4fb472238b032830b2b8de3b">RGFW_setDebugCallback</a> (<a class="el" href="group__error.html#ga36eac7d8fb7002e126c41ea8e6af0cf3">RGFW_debugfunc</a> func)</td></tr>
 <tr class="separator:gafdb4774a4fb472238b032830b2b8de3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga9c153f132324795ebaa54be38ca5b4b8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__error.html#ga9c153f132324795ebaa54be38ca5b4b8">RGFW_sendDebugInfo</a> (RGFW_debugType type, RGFW_errorCode err, <a class="el" href="structRGFW__debugContext.html">RGFW_debugContext</a> ctx, const char *msg)</td></tr>
-<tr class="separator:ga9c153f132324795ebaa54be38ca5b4b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8da0d1ae10671341eda34d3067ce11f9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__error.html#ga8da0d1ae10671341eda34d3067ce11f9">RGFW_sendDebugInfo</a> (RGFW_debugType type, RGFW_errorCode err, const char *msg)</td></tr>
+<tr class="separator:ga8da0d1ae10671341eda34d3067ce11f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <ul>
 <li></li>
 </ul>
-<h2 class="groupheader">Macro Definition Documentation</h2>
-<a id="gaecf4f2afb81862fd562a5d7bf47247e4" name="gaecf4f2afb81862fd562a5d7bf47247e4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaecf4f2afb81862fd562a5d7bf47247e4">&#9670;&#160;</a></span>RGFW_DEBUG_CTX</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define RGFW_DEBUG_CTX</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">win, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">err&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td>&#160;&#160;&#160;(<a class="el" href="structRGFW__debugContext.html">RGFW_debugContext</a>){win, NULL, err}</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="gafe712a1adc4e4b1e019ce118c62da2db" name="gafe712a1adc4e4b1e019ce118c62da2db"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gafe712a1adc4e4b1e019ce118c62da2db">&#9670;&#160;</a></span>RGFW_DEBUG_CTX_MON</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define RGFW_DEBUG_CTX_MON</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">monitor</td><td>)</td>
-          <td>&#160;&#160;&#160;(<a class="el" href="structRGFW__debugContext.html">RGFW_debugContext</a>){_RGFW-&gt;root, &amp;monitor, 0}</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a id="gaf944c8897e92ba5fbfd82465de18f73d" name="gaf944c8897e92ba5fbfd82465de18f73d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaf944c8897e92ba5fbfd82465de18f73d">&#9670;&#160;</a></span>RGFW_debugContext</h2>
+<a id="ga36eac7d8fb7002e126c41ea8e6af0cf3" name="ga36eac7d8fb7002e126c41ea8e6af0cf3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga36eac7d8fb7002e126c41ea8e6af0cf3">&#9670;&#160;</a></span>RGFW_debugfunc</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef struct <a class="el" href="structRGFW__debugContext.html">RGFW_debugContext</a> <a class="el" href="structRGFW__debugContext.html">RGFW_debugContext</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="gab8b07a3b8a214824ab5090e5f7966215" name="gab8b07a3b8a214824ab5090e5f7966215"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gab8b07a3b8a214824ab5090e5f7966215">&#9670;&#160;</a></span>RGFW_debugfunc</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef void(* RGFW_debugfunc) (RGFW_debugType type, RGFW_errorCode err, <a class="el" href="structRGFW__debugContext.html">RGFW_debugContext</a> ctx, const char *msg)</td>
+          <td class="memname">typedef void(* RGFW_debugfunc) (RGFW_debugType type, RGFW_errorCode err, const char *msg)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -249,8 +172,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga9c153f132324795ebaa54be38ca5b4b8" name="ga9c153f132324795ebaa54be38ca5b4b8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga9c153f132324795ebaa54be38ca5b4b8">&#9670;&#160;</a></span>RGFW_sendDebugInfo()</h2>
+<a id="ga8da0d1ae10671341eda34d3067ce11f9" name="ga8da0d1ae10671341eda34d3067ce11f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga8da0d1ae10671341eda34d3067ce11f9">&#9670;&#160;</a></span>RGFW_sendDebugInfo()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -266,12 +189,6 @@ Functions</h2></td></tr>
           <td></td>
           <td class="paramtype">RGFW_errorCode&#160;</td>
           <td class="paramname"><em>err</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structRGFW__debugContext.html">RGFW_debugContext</a>&#160;</td>
-          <td class="paramname"><em>ctx</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -296,9 +213,9 @@ Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__error.html#gab8b07a3b8a214824ab5090e5f7966215">RGFW_debugfunc</a> RGFW_setDebugCallback </td>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__error.html#ga36eac7d8fb7002e126c41ea8e6af0cf3">RGFW_debugfunc</a> RGFW_setDebugCallback </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__error.html#gab8b07a3b8a214824ab5090e5f7966215">RGFW_debugfunc</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="group__error.html#ga36eac7d8fb7002e126c41ea8e6af0cf3">RGFW_debugfunc</a>&#160;</td>
           <td class="paramname"><em>func</em></td><td>)</td>
           <td></td>
         </tr>

@@ -29,9 +29,6 @@ RGFW.h
 .ti -1c
 .RI "struct \fBRGFW_event\fP"
 .br
-.ti -1c
-.RI "struct \fBRGFW_debugContext\fP"
-.br
 .in -1c
 .SS "Macros"
 
@@ -115,12 +112,6 @@ RGFW.h
 .RI "#define \fBRGFW_BIT\fP(x)   (1 << (x))"
 .br
 .ti -1c
-.RI "#define \fBRGFW_DEBUG_CTX\fP(win,  err)   (\fBRGFW_debugContext\fP){win, NULL, err}"
-.br
-.ti -1c
-.RI "#define \fBRGFW_DEBUG_CTX_MON\fP(monitor)   (\fBRGFW_debugContext\fP){_RGFW\->root, &monitor, 0}"
-.br
-.ti -1c
 .RI "#define \fBRGFW_MAX_EVENTS\fP   32"
 .br
 .ti -1c
@@ -185,10 +176,7 @@ RGFW.h
 .RI "typedef ptrdiff_t \fBRGFW_ssize_t\fP"
 .br
 .ti -1c
-.RI "typedef struct \fBRGFW_debugContext\fP \fBRGFW_debugContext\fP"
-.br
-.ti -1c
-.RI "typedef void(* \fBRGFW_debugfunc\fP) (RGFW_debugType type, RGFW_errorCode err, \fBRGFW_debugContext\fP ctx, const char *msg)"
+.RI "typedef void(* \fBRGFW_debugfunc\fP) (RGFW_debugType type, RGFW_errorCode err, const char *msg)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_windowMovedfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
@@ -370,6 +358,12 @@ RGFW.h
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_createWindowPtr\fP (const char *name, \fBi32\fP x, \fBi32\fP y, \fBi32\fP w, \fBi32\fP h, RGFW_windowFlags flags, \fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_surface\fP * \fBRGFW_window_createSurface\fP (\fBRGFW_window\fP *win, \fBu8\fP *data, \fBi32\fP w, \fBi32\fP h, RGFW_format format)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_createSurfacePtr\fP (\fBRGFW_window\fP *win, \fBu8\fP *data, \fBi32\fP w, \fBi32\fP h, RGFW_format format, \fBRGFW_surface\fP *surface)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_blitSurface\fP (\fBRGFW_window\fP *win, \fBRGFW_surface\fP *surface)"
@@ -627,7 +621,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_debugfunc\fP \fBRGFW_setDebugCallback\fP (\fBRGFW_debugfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_sendDebugInfo\fP (RGFW_debugType type, RGFW_errorCode err, \fBRGFW_debugContext\fP ctx, const char *msg)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_sendDebugInfo\fP (RGFW_debugType type, RGFW_errorCode err, const char *msg)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_windowMovedfunc\fP \fBRGFW_setWindowMovedCallback\fP (\fBRGFW_windowMovedfunc\fP func)"
@@ -990,6 +984,10 @@ free only the buffers used for software rendering within the window
 sleep until RGFW gets an event or the timer ends (defined by OS) 
 .SS "\fBRGFWDEF\fP void RGFW_window_blitSurface (\fBRGFW_window\fP * win, \fBRGFW_surface\fP * surface)"
 render the software rendering buffer 
+.SS "\fBRGFWDEF\fP \fBRGFW_surface\fP * RGFW_window_createSurface (\fBRGFW_window\fP * win, \fBu8\fP * data, \fBi32\fP w, \fBi32\fP h, RGFW_format format)"
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_createSurfacePtr (\fBRGFW_window\fP * win, \fBu8\fP * data, \fBi32\fP w, \fBi32\fP h, RGFW_format format, \fBRGFW_surface\fP * surface)"
+
 .SS "\fBRGFWDEF\fP RGFW_key RGFW_window_getExitKey (\fBRGFW_window\fP * win)"
 get the exit key for the window | returns RGFW_window\&.exitKey 
 .SS "\fBRGFWDEF\fP \fBu32\fP RGFW_window_getFlags (\fBRGFW_window\fP * win)"
