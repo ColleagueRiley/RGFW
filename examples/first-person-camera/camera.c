@@ -1,4 +1,6 @@
+#define RGFW_OPENGL
 #define RGFW_IMPLEMENTATION
+#define GL_SILENCE_DEPRECATION
 #include "RGFW.h"
 
 #ifdef RGFW_MACOS
@@ -17,7 +19,7 @@ RGFWDEF void update_camera(void);
 RGFWDEF void glPerspective(float fovY, float aspect, float zNear, float zFar);
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("First person camera", RGFW_RECT(0, 0, 800, 450), RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowFocusOnShow);
+    RGFW_window* win = RGFW_createWindow("First person camera", 0, 0, 800, 450, RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowFocusOnShow | RGFW_windowOpenGL);
 
     RGFW_window_showMouse(win, 0);
     glEnable(GL_DEPTH_TEST);
@@ -46,7 +48,7 @@ int main(void) {
     glPerspective(60, 16.0 / 9.0, 1.0, 1000);
     glMatrixMode(GL_MODELVIEW);
 
-    RGFW_window_holdMouse(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));
+    RGFW_window_holdMouse(win);
 
     RGFW_event event;
     while (RGFW_window_shouldClose(win) == 0) {
@@ -56,11 +58,11 @@ int main(void) {
 
             switch (event.type) {
                 case RGFW_focusIn:
-                    RGFW_window_holdMouse(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));
+                    RGFW_window_holdMouse(win);
                     break;
                case RGFW_mousePosChanged: {
-                    int dev_x = event.vector.x;
-                    int dev_y = event.vector.y;
+                    int dev_x = event.vecX;
+                    int dev_y = event.vecY;
 
 					/* apply the changes to pitch and yaw*/
                     yaw += (float)dev_x / 15.0;
@@ -71,7 +73,7 @@ int main(void) {
                     switch (event.key) {
                         case RGFW_return:
                             RGFW_window_showMouse(win, 0);
-                            RGFW_window_holdMouse(win, RGFW_AREA(win->r.w / 2, win->r.h / 2));
+                            RGFW_window_holdMouse(win);
                             break;
 
                         case RGFW_backSpace:
@@ -126,7 +128,7 @@ int main(void) {
         glLoadIdentity();
         update_camera();
 
-        glViewport(0, 0, win->r.w, win->r.h);
+        glViewport(0, 0, win->w, win->h);
 
         glBegin(GL_QUADS);
 
