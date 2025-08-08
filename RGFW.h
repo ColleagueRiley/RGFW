@@ -1459,8 +1459,6 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 #ifdef RGFW_X11
 		Window window; /*!< source window */
 		GC gc;
-		XVisualInfo visual;
-
 		#ifdef RGFW_ADVANCED_SMOOTH_RESIZE
 			i64 counter_value;
 			XID counter;
@@ -2902,13 +2900,13 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 	EGLint numConfigs, best_config = -1, best_depth = 0, best_samples = 0;
 
 	RGFW_eglChooseConfig(_RGFW->EGL_display, egl_config, NULL, 0, &numConfigs);
-	EGLConfig* configs = RGFW_ALLOC(sizeof(EGLConfig) * numConfigs);
+	EGLConfig* configs = (EGLConfig*)RGFW_ALLOC(sizeof(EGLConfig) * (u32)numConfigs);
 
 	RGFW_eglChooseConfig(_RGFW->EGL_display, egl_config, configs, numConfigs, &numConfigs);
 
 	RGFW_bool transparent = (win->internal.flags & RGFW_windowTransparent);
 
-	for (size_t i = 0; i < numConfigs; i++) {
+	for (EGLint i = 0; i < numConfigs; i++) {
 		EGLint visual_id = 0;
 		EGLint samples = 0;
 
@@ -2919,7 +2917,7 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 
 		#ifdef RGFW_X11
 			XVisualInfo vinfo_template;
-			vinfo_template.visualid = visual_id;
+			vinfo_template.visualid = (VisualID)visual_id;
 
 			int num_visuals = 0;
 			XVisualInfo* vi = XGetVisualInfo(_RGFW->display, VisualIDMask, &vinfo_template, &num_visuals);
@@ -2955,14 +2953,14 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 
 		RGFW_eglGetConfigAttrib(_RGFW->EGL_display, config, EGL_NATIVE_VISUAL_ID, &visualID);
 		if (visualID) {
-			desired.visualid = visualID;
+			desired.visualid = (VisualID)visualID;
 			result = XGetVisualInfo(_RGFW->display, VisualIDMask, &desired, &count);
 		} else  RGFW_sendDebugInfo(RGFW_typeError, RGFW_errEGLContext,  "Failed to fetch a valid EGL VisualID");
 
 		if (result == NULL || count == 0) {
 			if (win->src.window == 0) {
 				/* try to create a EGL context anyway (this will work if you're not using a NVidia driver) */
-				win->internal.flags &= ~RGFW_windowEGL;
+				win->internal.flags &= ~(u32)RGFW_windowEGL;
 				RGFW_createWindowPlatform("", win->internal.flags, win);
 			}
 			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errEGLContext,  "Failed to find a valid visual for the EGL config");
@@ -6772,7 +6770,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_ACTIVATE: {
 			RGFW_bool inFocus = RGFW_BOOL(LOWORD(wParam) != WA_INACTIVE);
 
-			win->internal.inFocus = inFocus;
+			win->internal.inFocus = RGFW_BOOL(inFocus);
 			if ((win->internal.enabledEvents & (RGFW_BIT(RGFW_focusIn - inFocus)))) {
 				RGFW_eventQueuePushEx(e.type = (RGFW_eventType)((u8)RGFW_focusOut - inFocus); e._win = win);
 				RGFW_focusCallback(win, inFocus);
@@ -10419,7 +10417,7 @@ EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void
 	if (!(_RGFW->root->internal.enabledEvents & RGFW_focusInFlag)) return EM_TRUE;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_focusIn; e._win = _RGFW->root);
-	win->internal.inFocus = RGFW_TRUE;
+	_RGFW->root->internal.inFocus = RGFW_TRUE;
 	RGFW_focusCallback(_RGFW->root, 1);
 
 	if ((_RGFW->root->internal.flags & RGFW_HOLD_MOUSE)) RGFW_window_holdMouse(_RGFW->root);
