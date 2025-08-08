@@ -10698,7 +10698,7 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[DOM_VK_RETURN] = RGFW_KP_Return;
 	_RGFW->keycodes[DOM_VK_HYPHEN_MINUS] = RGFW_minus;
 	_RGFW->keycodes[DOM_VK_EQUALS] = RGFW_equals;
-	_RGFW->keycodes[DOM_VK_BACKSPACE] = RGFW_backSpace;
+	_RGFW->keycodes[DOM_VK_BACK_SPACE] = RGFW_backSpace;
 	_RGFW->keycodes[DOM_VK_TAB] = RGFW_tab;
 	_RGFW->keycodes[DOM_VK_CAPS_LOCK] = RGFW_capsLock;
 	_RGFW->keycodes[DOM_VK_SHIFT] = RGFW_shiftL;
@@ -10728,7 +10728,7 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[DOM_VK_ESCAPE] = RGFW_escape;
 	_RGFW->keycodes[DOM_VK_HOME] = RGFW_home;
 	_RGFW->keycodes[DOM_VK_SCROLL_LOCK] = RGFW_scrollLock;
-	_RGFW->keycodes[DOM_VK_PRINT_SCREEN] = RGFW_printScreen;
+	_RGFW->keycodes[DOM_VK_PRINTSCREEN] = RGFW_printScreen;
 	_RGFW->keycodes[DOM_VK_PAUSE] = RGFW_pause;
 }
 
