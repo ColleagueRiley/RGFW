@@ -436,6 +436,12 @@ RGFWDEF size_t RGFW_sizeofNativeImage(void);
 typedef struct RGFW_surface RGFW_surface;
 RGFWDEF size_t RGFW_sizeofSurface(void);
 
+/*
+ * NOTE: when you create a surface using RGFW_createSurface / ptr, on X11 it uses the root window's visual
+ * this means it may fail to render on any other window if the visual does not match
+ * RGFW_window_createSurface and RGFW_window_createSurfacePtr exist only for X11 to address this issues
+ * Of course, you can also manually set the root window with RGFW_setRootWindow
+ */
 RGFWDEF RGFW_surface* RGFW_createSurface(u8* data, i32 w, i32 h, RGFW_format format);
 RGFWDEF RGFW_bool RGFW_createSurfacePtr(u8* data, i32 w, i32 h, RGFW_format format, RGFW_surface* surface);
 
@@ -803,6 +809,16 @@ RGFWDEF RGFW_window* RGFW_createWindowPtr(
 	RGFW_windowFlags flags, /* extra arguments (NULL / (u32)0 means no flags used) */
 	RGFW_window* win/* ptr to the fat window struct you want to use */
 ); /*!< function to create a window (without allocating a window struct) */
+
+
+/*
+ * NOTE: when you create a surface using RGFW_createSurface / ptr, on X11 it uses the root window's visual
+ * this means it may fail to render on any other window if the visual does not match
+ * RGFW_window_createSurface and RGFW_window_createSurfacePtr exist only for X11 to address this issues
+ * Of course, you can also manually set the root window with RGFW_setRootWindow
+ */
+RGFWDEF RGFW_surface* RGFW_window_createSurface(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format);
+RGFWDEF RGFW_bool RGFW_window_createSurfacePtr(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format, RGFW_surface* surface);
 
 /*! render the software rendering buffer */
 RGFWDEF void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface);
@@ -2324,6 +2340,19 @@ RGFW_nativeImage* RGFW_surface_getNativeImage(RGFW_surface* surface) {
 	return &surface->native;
 }
 
+RGFW_surface* RGFW_window_createSurface(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format) {
+	RGFW_surface* surface = (RGFW_surface*)RGFW_ALLOC(sizeof(RGFW_surface));
+	RGFW_MEMSET(surface, 0, sizeof(RGFW_surface));
+	RGFW_window_createSurfacePtr(win, data, w, h, format, surface);
+	return surface;
+}
+#ifndef RGFW_X11
+RGFW_bool RGFW_window_createSurfacePtr(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format, RGFW_surface* surface) {
+	RGFW_UNUSED(win);
+	return RGFW_createSurfacePtr(data, w, h, format, surface);
+}
+#endif
+
 typedef struct RGFW_colorLayout {  i32 r, g, b, a; } RGFW_colorLayout;
 RGFW_colorLayout RGFW_layouts[RGFW_formatCount] = {
 	{ 0, 1, 2, 3 }, /* RGFW_formatRGB8 */
@@ -3701,17 +3730,21 @@ RGFW_format RGFW_XImage_getFormat(XImage* image) {
 	return RGFW_formatARGB8;
 }
 
-RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (u8* data, i32 w, i32 h, RGFW_format format, RGFW_surface* surface) {
+RGFW_bool RGFW_window_createSurfacePtr(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format, RGFW_surface* surface) {
 	RGFW_ASSERT(surface != NULL);
 	surface->data = data;
 	surface->w = w;
 	surface->h = h;
 	surface->format = format;
 
-	surface->native.bitmap = XCreateImage(
-		_RGFW->display, _RGFW->root->src.visual.visual, (u32)_RGFW->root->src.visual.depth,
-		ZPixmap, 0, NULL, (u32)surface->w, (u32)surface->h, 32, 0
-	);
+	XWindowAttributes attrs;
+	if (XGetWindowAttributes(_RGFW->display, win->src.window, &attrs) == 0) {
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, "Failed to get window attributes.");
+		return RGFW_FALSE;
+	}
+
+	surface->native.bitmap = XCreateImage(_RGFW->display,  attrs.visual,  (u32)attrs.depth,
+										ZPixmap, 0, NULL, (u32)surface->w, (u32)surface->h, 32, 0);
 
 	surface->native.format = RGFW_XImage_getFormat(surface->native.bitmap);
 
@@ -3722,6 +3755,10 @@ RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (u8* data, i32 w, i32 h, RGFW_format 
 
 	surface->native.format = RGFW_formatBGRA8;
 	return RGFW_TRUE;
+}
+
+RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (u8* data, i32 w, i32 h, RGFW_format format, RGFW_surface* surface) {
+	return RGFW_window_createSurfacePtr(_RGFW->root, data, w, h, format, surface);
 }
 
 void RGFW_FUNC(RGFW_window_blitSurface) (RGFW_window* win, RGFW_surface* surface) {
@@ -4528,7 +4565,7 @@ void RGFW_XHandleEvent(void) {
 		case FocusIn:
 			if ((win->internal.flags & RGFW_windowFullscreen))
 				XMapRaised(_RGFW->display, win->src.window);
-			if ((win->internal.flags.holdMouse)) RGFW_window_holdMouse(win);
+			if ((win->internal.holdMouse)) RGFW_window_holdMouse(win);
 
 			if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
 			win->internal.inFocus = RGFW_TRUE;
