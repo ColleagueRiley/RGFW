@@ -1,4 +1,4 @@
-# Riley's General Windowing Framework
+# Riley's General Framework for Windowing
 ![THE RGFW Logo](https://github.com/ColleagueRiley/RGFW/blob/main/logo.png?raw=true)
 
 ## Build statuses
