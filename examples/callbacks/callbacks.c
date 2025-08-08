@@ -11,13 +11,9 @@
 RGFW_window* window;
 
 static
-void errorfunc(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const char* msg) {
+void errorfunc(RGFW_debugType type, RGFW_errorCode err, const char* msg) {
     if (type != RGFW_typeError || err == RGFW_noError) return; /* disregard non-errors */
-    /* only care about errors for this window
-        If there were two windows and the error uses the root window it will also be ignored,
-            this may ignore important errors
-    */
-    if (window != ctx.win) return;
+
     printf("RGFW ERROR: %s\n", msg);
 }
 
