@@ -17,7 +17,13 @@ int main(void) {
     hints->minor = 3;
     RGFW_setGlobalHints_OpenGL(hints);
 
-    RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowOpenGL);
+    /* hide by default until the window is ready to show*/
+    RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowHide);
+    RGFW_window_createContext_OpenGL(win, hints);
+
+    RGFW_window_show(win);
+
+    RGFW_window_setExitKey(win, RGFW_escape);
 
     const GLubyte *version = glGetString(GL_VERSION);
     printf("OpenGL Version: %s\n", version);

@@ -471,6 +471,7 @@ main(int argc, char *argv[])
    }
 
    win = RGFW_createWindow("gears", x, y, winWidth, winHeight, RGFW_windowCenter | RGFW_windowOpenGL | flag);
+   RGFW_window_setExitKey(win, RGFW_escape);
    RGFW_window_makeCurrentContext_OpenGL(win);
    init();
 

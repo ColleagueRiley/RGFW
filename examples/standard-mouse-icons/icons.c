@@ -3,7 +3,7 @@
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW icons", 0, 0, 600, 400, RGFW_windowCenter | RGFW_windowNoResize);
-
+    RGFW_window_setExitKey(win, RGFW_escape);
     RGFW_mouseIcons mouse = 0;
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {

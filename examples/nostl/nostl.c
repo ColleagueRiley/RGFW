@@ -10,12 +10,12 @@
 
 size_t myLen = 0;
 
-/* 
-    this program doesn't actually allocate memory using these 
+/*
+    this program doesn't actually allocate memory using these
     No functions that use `RGFW_alloc` is called
 */
 void* myMalloc(size_t size) { (void)(size); return NULL; }
-void myFree(void* ptr) { (void)(ptr); } 
+void myFree(void* ptr) { (void)(ptr); }
 
 void* memoryCopy(void* _dist, const void* _src, size_t size) {
     const char* src = (char*)_src;
@@ -30,7 +30,7 @@ void* memoryCopy(void* _dist, const void* _src, size_t size) {
 
 size_t stringCompare(char* s1, char* s2, size_t size) {
     for (size_t i = 0; i < size; i++) {
-        if (s1[i] != s2[i]) 
+        if (s1[i] != s2[i])
             return size - i;
         if (s1[i] == '\0') break;
     }
@@ -56,11 +56,12 @@ size_t stringCompare(char* s1, char* s2, size_t size) {
 #include "RGFW.h"
 int main(void) {
     /* to avoid allocating a window*/
-    RGFW_window winStack; 
+    RGFW_window winStack;
     RGFW_window* win = &winStack;
-    RGFW_createWindowPtr("no standard library", RGFW_RECT(0, 0, 200, 100), 
+    RGFW_createWindowPtr("no standard library", RGFW_RECT(0, 0, 200, 100),
                                 (u16)(RGFW_windowCenter | RGFW_windowAllowDND), win);
-    
+    RGFW_window_setExitKey(win, RGFW_escape);
+
     size_t winLen = myLen;
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
@@ -70,7 +71,7 @@ int main(void) {
     }
 
     RGFW_window_close(win);
-    myLen = 0; // free all memory 
-    
+    myLen = 0; // free all memory
+
     return 0;
 }
