@@ -73,18 +73,6 @@ int main() {
                 printf("The right mouse button was clicked at x: %d, y: %d\n", event.point.x, event.point.y);
             }
         }
-
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        // You can use modern OpenGL techniques, but this method is more straightforward for drawing just one triangle.
-        glBegin(GL_TRIANGLES);
-        glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.6f, -0.75f);
-        glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.6f, -0.75f);
-        glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
-        glEnd();
-
-        RGFW_window_swapBuffers_OpenGL(win);
     }
 
     RGFW_window_close(win);
