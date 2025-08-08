@@ -1995,7 +1995,8 @@ void RGFW_window_close(RGFW_window* win) {
 
 RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, RGFW_windowFlags flags, RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-    if (_RGFW == NULL) RGFW_init();
+	RGFW_MEMSET(win, 0, sizeof(RGFW_window));
+	if (_RGFW == NULL) RGFW_init();
     _RGFW->windowCount++;
 
 	/* rect based the requested flags */
@@ -2008,12 +2009,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	win->y = y;
 	win->w = w;
 	win->h = h;
-	win->internal.exitKey = RGFW_keyNULL;
-
 	win->internal.flags = flags;
-	win->internal.keyMod = 0;
-	win->internal.lastMouseX = 0;
-	win->internal.lastMouseY = 0;
 	win->internal.enabledEvents = RGFW_allEventFlags;
 
 	RGFW_window* ret = RGFW_createWindowPlatform(name, flags, win);
