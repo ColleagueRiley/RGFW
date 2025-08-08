@@ -1894,8 +1894,6 @@ no more event call back defines
     attribs[index++] = v; \
 }
 
-#define RGFW_HOLD_MOUSE			RGFW_BIT(29) /*!< hold the moues still */
-
 size_t RGFW_sizeofInfo(void) { return sizeof(RGFW_info); }
 size_t RGFW_sizeofNativeImage(void) { return sizeof(RGFW_nativeImage); }
 size_t RGFW_sizeofSurface(void) { return sizeof(RGFW_surface); }
@@ -2379,17 +2377,17 @@ RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_for
 	return RGFW_window_setIconEx(win, data, w, h, format, RGFW_iconBoth);
 }
 
-RGFW_bool RGFW_window_isMouseHeld(RGFW_window* win) { return RGFW_BOOL(win->internal.flags & RGFW_HOLD_MOUSE); }
+RGFW_bool RGFW_window_isMouseHeld(RGFW_window* win) { return RGFW_BOOL(win->internal.holdMouse); }
 
 void RGFW_window_holdMouse(RGFW_window* win) {
-	win->internal.flags |= RGFW_HOLD_MOUSE;
+	win->internal.holdMouse = RGFW_TRUE;
 	_RGFW->mouseOwner = win;
     RGFW_captureCursor(win);
 	RGFW_window_moveMouse(win, win->x + (win->w / 2), win->y + (win->h / 2));
 }
 
 void RGFW_window_unholdMouse(RGFW_window* win) {
-	win->internal.flags &= ~(u32)RGFW_HOLD_MOUSE;
+	win->internal.holdMouse = RGFW_FALSE;
 	_RGFW->mouseOwner = NULL;
 	RGFW_releaseCursor(win);
 }
@@ -4154,7 +4152,7 @@ void RGFW_XHandleEvent(void) {
 			if (win == NULL) return;
 
 			/* MotionNotify is used for mouse events if the mouse isn't held */
-			if (!(win->internal.flags & RGFW_HOLD_MOUSE)) {
+			if (!(win->internal.holdMouse)) {
 				XFreeEventData(_RGFW->display, &E.xcookie);
 				return;
 			}
@@ -4530,7 +4528,7 @@ void RGFW_XHandleEvent(void) {
 		case FocusIn:
 			if ((win->internal.flags & RGFW_windowFullscreen))
 				XMapRaised(_RGFW->display, win->src.window);
-			if ((win->internal.flags & RGFW_HOLD_MOUSE)) RGFW_window_holdMouse(win);
+			if ((win->internal.flags.holdMouse)) RGFW_window_holdMouse(win);
 
 			if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
 			win->internal.inFocus = RGFW_TRUE;
@@ -5610,7 +5608,7 @@ void RGFW_deinitPlatform_X11(void) {
 }
 
 void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
-	if (win->internal.flags & RGFW_HOLD_MOUSE)
+	if (win->internal.holdMouse)
 		XUngrabPointer(_RGFW->display, CurrentTime);
 
 	XFreeGC(_RGFW->display, win->src.gc);
@@ -5941,7 +5939,7 @@ void RGFW_wl_keyboard_enter (void* data, struct wl_keyboard *keyboard, u32 seria
 	RGFW_eventQueuePushEx(e.type = RGFW_focusIn; e._win = RGFW_key_win);
 	RGFW_focusCallback(RGFW_key_win, RGFW_TRUE);
 
-	if ((RGFW_key_win->internal.flags & RGFW_HOLD_MOUSE)) RGFW_window_holdMouse(RGFW_key_win);
+	if ((RGFW_key_win->internal.holdMouse)) RGFW_window_holdMouse(RGFW_key_win);
 }
 void RGFW_wl_keyboard_leave (void* data, struct wl_keyboard *keyboard, u32 serial, struct wl_surface *surface) {
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial);
@@ -6957,7 +6955,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_MOUSEMOVE: {
 			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
-			if ((win->internal.flags & RGFW_HOLD_MOUSE))
+			if ((win->internal.holdMouse))
 				break;
 
 			event.type = RGFW_mousePosChanged;
@@ -6980,7 +6978,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		case WM_INPUT: {
-			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag) || !(win->internal.flags & RGFW_HOLD_MOUSE)) return DefWindowProcW(hWnd, message, wParam, lParam);
+			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag) || !(win->internal.holdMouse)) return DefWindowProcW(hWnd, message, wParam, lParam);
 			unsigned size = sizeof(RAWINPUT);
 			static RAWINPUT raw;
 
@@ -8981,7 +8979,7 @@ void RGFW__osxWindowBecameKey(id self, SEL sel) {
 
 
 	win->internal.inFocus = RGFW_TRUE;
-	if ((win->internal.flags & RGFW_HOLD_MOUSE)) RGFW_window_holdMouse(win);
+	if ((win->internal.holdMouse)) RGFW_window_holdMouse(win);
 	if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_focusIn; e._win = win);
@@ -10420,7 +10418,7 @@ EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void
 	_RGFW->root->internal.inFocus = RGFW_TRUE;
 	RGFW_focusCallback(_RGFW->root, 1);
 
-	if ((_RGFW->root->internal.flags & RGFW_HOLD_MOUSE)) RGFW_window_holdMouse(_RGFW->root);
+	if ((_RGFW->root->internal->holdMouse)) RGFW_window_holdMouse(_RGFW->root);
     return EM_TRUE;
 }
 
