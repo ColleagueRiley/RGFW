@@ -9250,7 +9250,7 @@ void RGFW_window_setLayer_OSX(RGFW_window* win, void* layer) {
 void* RGFW_getLayer_OSX(void) {
 	return objc_msgSend_class((id)objc_getClass("CAMetalLayer"), (SEL)sel_registerName("layer"));
 }
-void* RGFW_window_getWindow_OSX(RGFW_window* win) { win->src.window; }
+void* RGFW_window_getWindow_OSX(RGFW_window* win) { return win->src.window; }
 
 #ifdef RGFW_OPENGL
 
