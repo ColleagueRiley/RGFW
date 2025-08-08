@@ -124,6 +124,8 @@ int main(void) {
 
 	RGFW_window* win1 = RGFW_createWindow("RGFW Example Window 1", 500, 500, 500, 500, RGFW_windowAllowDND | RGFW_windowOpenGL);
 
+	RGFW_setQueueEvents(RGFW_TRUE); /* manually enable the queue so we don't accidently miss the first few events */
+
 	hints->share = RGFW_window_getContext_OpenGL(win1);
 	RGFW_setGlobalHints_OpenGL(hints);
 
