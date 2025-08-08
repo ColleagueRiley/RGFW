@@ -10418,7 +10418,7 @@ EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void
 	_RGFW->root->internal.inFocus = RGFW_TRUE;
 	RGFW_focusCallback(_RGFW->root, 1);
 
-	if ((_RGFW->root->internal->holdMouse)) RGFW_window_holdMouse(_RGFW->root);
+	if ((_RGFW->root->internal.holdMouse)) RGFW_window_holdMouse(_RGFW->root);
     return EM_TRUE;
 }
 
