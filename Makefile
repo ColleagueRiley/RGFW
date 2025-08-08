@@ -151,18 +151,21 @@ ifneq (,$(filter $(detected_OS), windows Windows_NT))
 endif
 
 EXAMPLE_OUTPUTS = \
-	examples/basic/basic \
+	examples/gl11/gl11 \
 	examples/surface/surface\
-	examples/events/events \
+	examples/event_queue/event_queue \
 	examples/callbacks/callbacks \
 	examples/flags/flags \
 	examples/monitor/monitor \
 	examples/gl33_ctx/gl33_ctx \
 	examples/smooth-resize/smooth-resize \
-	examples/multi-window/multi-window
+	examples/multi-window/multi-window \
+	examples/standard-mouse-icons/icons \
+	examples/custom_alloc/custom_alloc \
 
 EXAMPLE_OUTPUTS_CUSTOM = \
-	examples/icons/icons \
+	examples/window_icons/icons \
+	examples/mouse_icons/icons \
 	examples/gamepad/gamepad \
 	examples/first-person-camera/camera \
 	examples/microui_demo/microui_demo \
@@ -298,7 +301,9 @@ else
 	$(CC) $(CFLAGS) -I. $< examples/microui_demo/microui.c -s USE_WEBGL2 $(LIBS) $(LINK_GL1) -o $@$(EXT)
 endif
 
-examples/icons/icons: examples/icons/icons.c RGFW.h
+examples/window_icons/icons: examples/window_icons/icons.c RGFW.h
+	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
+examples/mouse_icons/icons: examples/mouse_icons/icons.c RGFW.h
 	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 examples/gamepad/gamepad: examples/gamepad/gamepad.c RGFW.h
 	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)

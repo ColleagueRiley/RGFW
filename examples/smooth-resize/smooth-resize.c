@@ -1,3 +1,5 @@
+#define GL_SILENCE_DEPRECATION
+#define RGFW_OPENGL
 #define RGFW_ADVANCED_SMOOTH_RESIZE
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
@@ -26,14 +28,14 @@ void draw(RGFW_window* win) {
     RGFW_window_swapBuffers_OpenGL(win);
 }
 
-void resize(RGFW_window* win, RGFW_rect rect);
+void resize(RGFW_window* win, i32 w, i32 h);
 void refresh(RGFW_window* win);
 
-void resize(RGFW_window* win, RGFW_rect rect) { RGFW_UNUSED(win); glViewport(0, 0, rect.w, rect.h); }
+void resize(RGFW_window* win, i32 w, i32 h) { RGFW_UNUSED(win); glViewport(0, 0, w, h); }
 void refresh(RGFW_window* win) { printf("refresh\n"); RGFW_UNUSED(win); draw(win); }
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 300, 100), RGFW_windowCenter);
+    RGFW_window* win = RGFW_createWindow("a window", 0, 0, 300, 100, RGFW_windowCenter | RGFW_windowOpenGL);
 
     RGFW_setWindowRefreshCallback(refresh);
     RGFW_setWindowResizedCallback(resize);

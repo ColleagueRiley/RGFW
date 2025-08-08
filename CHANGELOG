@@ -127,6 +127,43 @@ typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, u8 keyChar, RGFW_keymod 
 - add RGFW_window_checkQueuedEvent
 - remove RGFW_windowFreeOnClose
 - add RGFW_eventQueueFlush
+- allow RGFW.h to be used with Objective C
+- rework OpenGL format attrib array creation
+- make it so `gl.h` isn't included in RGFW, meaning you have to include it on your own
+- Don't define `RGFW_OPENGL` by default
+- remove `RGFW_NO_API` because it's superfluous
+- replace `RGFW_windowNoInitAPI` with `RGFW_windowOpenGL` and `RGFW_windowEGL` to create an OpenGL or EGL window respectively.
+- remove `RGFW_windowOpenGLSoftware` in favor of an opengl context flag
+- add `RGFW_windowClosePtr` for close the window without attempting to free the function pointer (rather than RGFW attempting to keep track of who owns the RGFW_window data
+- add `RGFW_surface_freePtr`
+- move `RGFW_createWindowPtr` and `RGFW_freeWindowPtr` to the global API so that way behavior is properly standardized
+- add internal API section in header
+- add internal API function `RGFW_createWindowPlatform` and RGFW_window_closePlatform`
+- add `RGFW_window_createContextPtr_OpenGL`  / `RGFW_window_deleteContextPtr_OpenGL` for creating a context with a pointer
+- add `RGFW_eglContext`
+- make `RGFW_window_src.ctx`  union, `RGFW_gfxContext` of `RGFW_glContext*` and `RGFW_eglContext` so that way it can point to either context (but not both)
+- add `RGFW_gfxContextType` and `RGFW_window_src.gfxType` to identify what type of context we're using and if the context was allocated by RGFW.
+- move `createContext` to the global createWindow function
+- remove RGFW _ shape types and replace them with raw `i32`
+- cut `RGFW_getScreenSize` in favor of fetching the window or primary monitor
+- replace `RGFW_setHint`/RGFW_glHint` with single struct `RGFW_glHints` used in `createContext` EGL/OpenGL functions
+- add` RGFW_setGlobalHints_OpenGL ` and `RGFW_getGlobalHints_OpenGL`
+- add `RGFW_resetGlobalHints_OpenGL`
+- remove `RGFW_windowCocoaCHDirToRes` flag in favor of `RGFW_moveToMacOSResourceDir` function
+- add `RGFW_eventFlag`, an enum of flags for all the RGFW events
+- add `RGFW_window_setEnabledEvents` / `RGFW_window._enabledEvents` to set what events you want
+- update backends to use `RGFW_eventFlag` to check if an internal event should be processing it before processing it
+- remove `basic/basic`, split it into `standard-mouse-icons/icons`, `gl11/gl11` `custom_alloc/custom_alloc`
+- remove `icons/icons`, split into `mouse-icons/icons` and `window-icons-icons`
+- rename `events/events` to `event_queue/event_queue`
+-add `void RGFW_window_setLayer_OSX(RGFW_window* win, void* layer);`
+- add `void* RGFW_window_getView_OSX(RGFW_window* win);`
+- add `void* RGFW_window_getWindow_OSX(RGFW_window* win);`
+- add `void* RGFW_window_getHWND(RGFW_window* win);`
+- add `void* RGFW_window_getHDC(RGFW_window* win);`
+- add `u64 RGFW_window_getWindow_X11(RGFW_window* win);`
+- add `struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win);`
+- define keycodes per platform instead of having 1 generic method
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------

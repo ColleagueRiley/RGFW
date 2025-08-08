@@ -207,8 +207,8 @@ int initVulkanDevice(RGFW_window* win, vulkanContext* ctx) {
     ctx->image_count = 0;
     vkInit_vulkan_info.current_frame = 0;
 
-    ctx->width = win->r.w;
-    ctx->height = win->r.h;
+    ctx->width = win->w;
+    ctx->height = win->h;
 
     VkApplicationInfo appInfo = (VkApplicationInfo){ 0 };
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
