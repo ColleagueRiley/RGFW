@@ -887,6 +887,12 @@ RGFWDEF void RGFW_window_setExitKey(RGFW_window* win, RGFW_key key); /*!< set th
 
 /*! sets the types of events you want to receive, RGFW_allEventFlags by default (modifies RGFW_window._enabledEvents) */
 RGFWDEF void RGFW_window_setEnabledEvents(RGFW_window* win, RGFW_eventFlag events);
+/*! gets all enabled events  RGFW_window._enabledEvents (returns RGFW_window._enabledEvents) */
+RGFWDEF RGFW_eventFlag RGFW_window_getEnabledEvents(RGFW_window* win);
+/*! enables all events and then disables select events (modifies RGFW_window._enabledEvents)*/
+RGFWDEF void RGFW_window_setDisabledEvents(RGFW_window* win, RGFW_eventFlag events);
+/*! directly enables or disabled a specific event, (or cluster of events) (modifies RGFW_window._enabledEvents */
+RGFWDEF void RGFW_window_setEventState(RGFW_window* win, RGFW_eventFlag event, RGFW_bool state);
 
 RGFWDEF void* RGFW_window_getUserPtr(RGFW_window* win); /*!< gets the userPtr of the window | returns RGFW_window.userPtr */
 RGFWDEF void RGFW_window_setUserPtr(RGFW_window* win, void* ptr); /*!< sets the userPtr of the window | writes to RGFW_window.userPtr */
@@ -1978,8 +1984,12 @@ u32 RGFW_window_getFlags(RGFW_window* win) { return win->internal.flags; }
 RGFW_key RGFW_window_getExitKey(RGFW_window* win) { return win->internal.exitKey; }
 void RGFW_window_setExitKey(RGFW_window* win, RGFW_key key) { win->internal.exitKey = key; }
 void RGFW_window_setEnabledEvents(RGFW_window* win, RGFW_eventFlag events) { win->internal.enabledEvents = events; }
+RGFW_eventFlag RGFW_window_getEnabledEvents(RGFW_window* win) { return win->internal.enabledEvents; }
+void RGFW_window_setDisabledEvents(RGFW_window* win, RGFW_eventFlag events) {   RGFW_window_setEnabledEvents(win, (RGFW_allEventFlags) & ~(u32)events);  }
+void RGFW_window_setEventState(RGFW_window* win, RGFW_eventFlag event, RGFW_bool state) { RGFW_setBit(&win->internal.enabledEvents, event, state); }
 void* RGFW_window_getUserPtr(RGFW_window* win) { return win->userPtr; }
 void RGFW_window_setUserPtr(RGFW_window* win, void* ptr) { win->userPtr = ptr; }
+
 
 #if defined(RGFW_USE_XDL) && defined(RGFW_X11)
 	#define XDL_IMPLEMENTATION
@@ -2091,6 +2101,16 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 		 * */
 #ifdef RGFW_X11
 	RGFW_window_setFlagsInternal(win, flags, 0);
+#endif
+
+#ifdef RGFW_WAYLAND
+	/* NOTE: this is a hack so that way wayland spawns a window, even if nothing is drawn */
+	if (RGFW_usingWayland() && !(flags & RGFW_windowOpenGL) && !(flags & RGFW_windowEGL)) {
+		u8* data = (u8*)RGFW_ALLOC((u32)(win->w * win->h * 4));
+		RGFW_surface* surface = RGFW_createSurface(data, win->w, win->h, RGFW_formatBGRA8);
+		RGFW_window_blitSurface(win, surface);
+		RGFW_surface_free(surface);
+	}
 #endif
 
 	RGFW_window_setMouseDefault(win);
@@ -6695,7 +6715,6 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 			libdecor_unref(win->src.decorContext);
 	#endif
 
-	// wl_keyboard_release(win->src.keyboard); // keryboard is never set
 	wl_seat_release(win->src.seat);
 
 	if (win->src.decoration) {
@@ -6707,9 +6726,9 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 	}
 
 	xdg_surface_destroy(win->src.xdg_surface);
+	xdg_wm_base_destroy(win->src.xdg_wm_base);
 	wl_surface_destroy(win->src.surface);
 	wl_compositor_destroy(win->src.compositor);
-	xdg_wm_base_destroy(win->src.xdg_wm_base);
 }
 
 #ifdef RGFW_WEBGPU
