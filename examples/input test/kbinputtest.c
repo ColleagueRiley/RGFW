@@ -5,7 +5,7 @@ int main(void) {
 	RGFW_window *win = RGFW_createWindow("KB Input Test", 0, 0, 500, 500, RGFW_windowCenter | RGFW_windowOpenGL);
 	RGFW_window_setExitKey(win, RGFW_escape);
 
-	printf("\033cPress G/H/J/K/Space\n");
+	printf("\033cPress G/H/J/LMouse/RMouse. Space to clear.\n");
 
 	RGFW_event event;
 	while (!RGFW_window_shouldClose(win)) {
@@ -19,28 +19,24 @@ int main(void) {
 			printf("released Left Mouse (fire once when mouse button is lifted)\n");
 		}
 
-		if (RGFW_isMouseHeld(win, RGFW_mouseRight)) {
+		if (RGFW_isMouseDown(win, RGFW_mouseRight)) {
 			printf("holding Right Mouse (fire repeatedly when mouse button is down)\n");
 		}
 
-		if (RGFW_isPressed(win, RGFW_h)) {
+		if (RGFW_isKeyPressed(win, RGFW_h)) {
 			printf("pressed H (fire once when key is down, even if held)\n");
 		}
 
-		if (RGFW_isReleased(win, RGFW_g)) {
+		if (RGFW_isKeyReleased(win, RGFW_g)) {
 			printf("released G (fire once when key is lifted)\n");
 		}
 
-		if (RGFW_isHeld(win, RGFW_j)) {
+		if (RGFW_isKeyDown(win, RGFW_j)) {
 			printf("holding J (fire repeatedly when key is down previous+current frame)\n");
 		}
 
-		if (RGFW_wasPressed(win, RGFW_k)) {
-			printf("test K (fire repeatedly when key is down previous frame)\n");
-		}
-
-		if (RGFW_isHeld(win, RGFW_space)) {
-			printf("\033cconsole cleared\n");
+		if (RGFW_isKeyPressed(win, RGFW_space)) {
+			printf("\033cconsole cleared.\n");
 		}
 	}
 

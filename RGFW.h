@@ -1073,8 +1073,8 @@ RGFWDEF RGFW_bool RGFW_isKeyReleased(RGFW_window* win, RGFW_key key); /*!< if ke
 
 /*! if a mouse button is pressed */
 RGFWDEF RGFW_bool RGFW_isMousePressed(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
-/*! if a mouse button is held */
-RGFWDEF RGFW_bool RGFW_isMouseHeld(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
+/*! if a mouse button is down */
+RGFWDEF RGFW_bool RGFW_isMouseDown(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
 /*! if a mouse button was released */
 RGFWDEF RGFW_bool RGFW_isMouseReleased(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
 /*! if a mouse button was pressed (checks previous state only) */
@@ -2232,14 +2232,11 @@ void RGFW_setXInstName(const char* name) { RGFW_UNUSED(name); }
 RGFW_bool RGFW_isMousePressed(RGFW_window* win, RGFW_mouseButton button) {
 	return RGFW_mouseButtons[button].current && !RGFW_mouseButtons[button].prev && (win == NULL || RGFW_window_isInFocus(win));
 }
-RGFW_bool RGFW_wasMousePressed(RGFW_window* win, RGFW_mouseButton button) {
-	return RGFW_mouseButtons[button].prev && (win != NULL || RGFW_window_isInFocus(win));
-}
-RGFW_bool RGFW_isMouseHeld(RGFW_window* win, RGFW_mouseButton button) {
+RGFW_bool RGFW_isMouseDown(RGFW_window* win, RGFW_mouseButton button) {
 	return RGFW_mouseButtons[button].current && (win == NULL || RGFW_window_isInFocus(win));
 }
 RGFW_bool RGFW_isMouseReleased(RGFW_window* win, RGFW_mouseButton button) {
-	return (!RGFW_mouseButtons[button].current && RGFW_wasMousePressed(win, button));
+	return !RGFW_mouseButtons[button].current && RGFW_mouseButtons[button].prev && (win == NULL || RGFW_window_isInFocus(win));
 }
 
 RGFW_bool RGFW_window_getMouse(RGFW_window* win, i32* x, i32* y) {
@@ -2254,11 +2251,11 @@ RGFW_bool RGFW_isKeyPressed(RGFW_window* win, RGFW_key key) {
 }
 
 RGFW_bool RGFW_isKeyDown(RGFW_window* win, RGFW_key key) {
-	return (RGFW_keyboard[key].prev && && RGFW_keyboard[key].current);
+	return (RGFW_keyboard[key].prev && RGFW_keyboard[key].current);
 }
 
 RGFW_bool RGFW_isKeyReleased(RGFW_window* win, RGFW_key key) {
-	return (RGFW_wasPressed(win, key) && !RGFW_keyboard[key].current);
+	return _RGFW != NULL && !RGFW_keyboard[key].current && RGFW_keyboard[key].prev && (win == NULL || RGFW_window_isInFocus(win));
 }
 
 #ifndef RGFW_X11
