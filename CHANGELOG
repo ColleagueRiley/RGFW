@@ -170,6 +170,12 @@ typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, u8 keyChar, RGFW_keymod 
 - rename `RGFW_dnd` to `RGFW_drop`
 - rename `RGFW_dndInit` to `RGFW_drag`
 - rename `drag.droppedFiles` to `drag.files` and `drag.droppedFilesCount` to `drag.count`
+- rename `RGFW_KP_[Key]` keys to `RGFW_kp[Key]`
+- rename `RGFW_Multiply` to `RGFW_kpMultiply`
+- add `RGFW_kpEqual`
+- add `RGFW_F13` - `RGFW_F25`
+- add `RGFW_menu`
+- add `RGFW_world1` and `RGFW_world2`
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
