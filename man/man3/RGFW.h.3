@@ -429,6 +429,15 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setEnabledEvents\fP (\fBRGFW_window\fP *win, RGFW_eventFlag events)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP RGFW_eventFlag \fBRGFW_window_getEnabledEvents\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setDisabledEvents\fP (\fBRGFW_window\fP *win, RGFW_eventFlag events)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setEventState\fP (\fBRGFW_window\fP *win, RGFW_eventFlag event, \fBRGFW_bool\fP state)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP void * \fBRGFW_window_getUserPtr\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
@@ -1044,6 +1053,8 @@ render the software rendering buffer
 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_createSurfacePtr (\fBRGFW_window\fP * win, \fBu8\fP * data, \fBi32\fP w, \fBi32\fP h, RGFW_format format, \fBRGFW_surface\fP * surface)"
 
+.SS "\fBRGFWDEF\fP RGFW_eventFlag RGFW_window_getEnabledEvents (\fBRGFW_window\fP * win)"
+gets all enabled events RGFW_window\&._enabledEvents (returns RGFW_window\&._enabledEvents) 
 .SS "\fBRGFWDEF\fP RGFW_key RGFW_window_getExitKey (\fBRGFW_window\fP * win)"
 get the exit key for the window | returns RGFW_window\&.exitKey 
 .SS "\fBRGFWDEF\fP \fBu32\fP RGFW_window_getFlags (\fBRGFW_window\fP * win)"
@@ -1068,8 +1079,12 @@ gets the userPtr of the window | returns RGFW_window\&.userPtr
 
 .SS "\fBRGFWDEF\fP \fBu64\fP RGFW_window_getWindow_X11 (\fBRGFW_window\fP * win)"
 
+.SS "\fBRGFWDEF\fP void RGFW_window_setDisabledEvents (\fBRGFW_window\fP * win, RGFW_eventFlag events)"
+enables all events and then disables select events (modifies RGFW_window\&._enabledEvents) 
 .SS "\fBRGFWDEF\fP void RGFW_window_setEnabledEvents (\fBRGFW_window\fP * win, RGFW_eventFlag events)"
 sets the types of events you want to receive, RGFW_allEventFlags by default (modifies RGFW_window\&._enabledEvents) 
+.SS "\fBRGFWDEF\fP void RGFW_window_setEventState (\fBRGFW_window\fP * win, RGFW_eventFlag event, \fBRGFW_bool\fP state)"
+directly enables or disabled a specific event, (or cluster of events) (modifies RGFW_window\&._enabledEvents 
 .SS "\fBRGFWDEF\fP void RGFW_window_setExitKey (\fBRGFW_window\fP * win, RGFW_key key)"
 set the exit key for the window |edits RGFW_window\&.exitKey 
 .SS "\fBRGFWDEF\fP void RGFW_window_setLayer_OSX (\fBRGFW_window\fP * win, void * layer)"
