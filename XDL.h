@@ -18,7 +18,7 @@
     ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
     WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-    Credit is not required but would be greatly appreciated. :) 
+    Credit is not required but would be greatly appreciated. :)
 */
 
 /*
@@ -27,8 +27,8 @@
     #define XDL_NO_DEALLOCATE - (optional) Disables automatic deallocation for c++, returns back to C's void** system
 */
 
-/* 
-Credits : 
+/*
+Credits :
         GLFW - Much of this implementation is based on GLFW's internal x11 dynamic loader
                 A great portion of the declarations for the X11 module are sourced from GLFW
 
@@ -169,9 +169,9 @@ typedef void (*PFN_XSetWMSizeHints)(Display*, Window, XSizeHints*, Atom);
 typedef char* (*PFN_XKeysymToString)(KeySym);
 typedef int (*PFN_XGetKeyboardControl)(Display*, XKeyboardState*);
 typedef char* (*PFN_XGetAtomName)(Display*, Atom);
-typedef Window (*PFN_XDefaultRootWindow)(Display*); 
-typedef int (*PFN_XDefaultScreen)(Display*); 
-typedef int (*PFN_XQueryKeymap)(Display*, char[32]); 
+typedef Window (*PFN_XDefaultRootWindow)(Display*);
+typedef int (*PFN_XDefaultScreen)(Display*);
+typedef int (*PFN_XQueryKeymap)(Display*, char[32]);
 typedef KeyCode (*PFN_XKeysymToKeycode)(Display*, KeySym);
 typedef void (*PFN_XFreeColors)(Display *display, Colormap colormap, unsigned long *pixels, int npixels, unsigned long planes);
 typedef int (*PFN_XDisplayWidth)(Display *display, int screen_number);
@@ -188,6 +188,9 @@ typedef int (*PFN_XFreeGC)(Display *display, GC gc);
 typedef XImage* (*PFN_XCreateImage)(Display*, Visual*, unsigned int, int, int, char*, unsigned int, unsigned int, int, int);
 typedef Pixmap (*PFN_XCreatePixmap)(Display* display, Drawable d, unsigned int width, unsigned int height, unsigned int depth);
 typedef int (*PFN_XPutImage)(Display *display, Drawable d, GC gc, XImage *image, int src_x, int src_y, int dest_x, int dest_y, unsigned int width, unsigned int height);
+typedef void (*PFN_XSetWindowBackground)(Display*, Window, unsigned long);
+typedef int (*PFN_XClearWindow)(Display*, Window);
+typedef XrmQuark (*PFN_XrmUniqueQuark)(void);
 
 #ifndef XDL_NO_XRANDR
 #include <X11/extensions/Xrandr.h>
@@ -200,6 +203,8 @@ typedef void (*PFN_XRRFreeScreenResources)(XRRScreenResources *resources);
 typedef void (*PFN_XRRFreeOutputInfo)(XRROutputInfo*);
 typedef Status (*PFN_XRRSetScreenConfig) (Display *dpy, XRRScreenConfiguration *config, Drawable draw, int size_index, Rotation rotation, Time timestamp);
 typedef Status (*PFN_XRRSetCrtcConfig)(Display*, XRRScreenResources*, RRCrtc, Time, int, int, RRMode, Rotation, RROutput*, int);
+typedef short (*PFN_XRRConfigCurrentRate)(XRRScreenConfiguration*);
+typedef XRRScreenConfiguration* (*PFN_XRRGetScreenInfo)(Display*, Window);
 #endif
 
 #ifndef XDL_NO_GLX
@@ -337,6 +342,10 @@ PFN_XFreeGC XFreeGCSrc;
 PFN_XCreateImage XCreateImageSrc;
 PFN_XCreatePixmap XCreatePixmapSrc;
 PFN_XPutImage XPutImageSrc;
+PFN_XSetWindowBackground XSetWindowBackgroundSrc;
+PFN_XClearWindow XClearWindowSrc;
+PFN_XrmUniqueQuark XrmUniqueQuarkSrc;
+
 #ifndef XDL_NO_XRANDR
 PFN_XRRGetScreenResourcesCurrent XRRGetScreenResourcesCurrentSrc;
 PFN_XRRGetCrtcInfo XRRGetCrtcInfoSrc;
@@ -347,6 +356,8 @@ PFN_XRRFreeScreenResources XRRFreeScreenResourcesSrc;
 PFN_XRRFreeOutputInfo XRRFreeOutputInfoSrc;
 PFN_XRRSetScreenConfig XRRSetScreenConfigSrc;
 PFN_XRRSetCrtcConfig XRRSetCrtcConfigSrc;
+PFN_XRRGetScreenInfo XRRGetScreenInfoSrc;
+PFN_XRRConfigCurrentRate XRRConfigCurrentRateSrc;
 #endif
 
 #ifndef XDL_NO_GLX
@@ -355,7 +366,7 @@ PFN_glXCreateContext glXCreateContextSrc;
 PFN_glXMakeCurrent glXMakeCurrentSrc;
 PFN_glXGetCurrentContext glXGetCurrentContextSrc;
 PFN_glXSwapBuffers glXSwapBuffersSrc;
-PFN_glXSwapIntervalEXT glXSwapIntervalEXTSrc; 
+PFN_glXSwapIntervalEXT glXSwapIntervalEXTSrc;
 PFN_glXGetProcAddress glXGetProcAddressSrc;
 PFN_glXGetVisualFromFBConfig glXGetVisualFromFBConfigSrc;
 PFN_glXGetFBConfigAttrib glXGetFBConfigAttribSrc;
@@ -483,6 +494,9 @@ PFN_glXQueryExtensionsString glXQueryExtensionsStringSrc;
 #define XCreateImage XCreateImageSrc
 #define XCreatePixmap XCreatePixmapSrc
 #define XPutImage XPutImageSrc
+#define XClearWindow XClearWindowSrc
+#define XSetWindowBackground XSetWindowBackgroundSrc
+#define XrmUniqueQuark XrmUniqueQuarkSrc
 
 #ifndef XDL_NO_XRANDR
     #define XRRGetScreenResourcesCurrent XRRGetScreenResourcesCurrentSrc
@@ -494,6 +508,8 @@ PFN_glXQueryExtensionsString glXQueryExtensionsStringSrc;
     #define XRRFreeOutputInfo XRRFreeOutputInfoSrc
     #define XRRSetScreenConfig XRRSetScreenConfigSrc
     #define XRRSetCrtcConfig XRRSetCrtcConfigSrc
+    #define XRRConfigCurrentRate XRRConfigCurrentRateSrc
+    #define XRRGetScreenInfo XRRGetScreenInfoSrc
 #endif
 
 #ifndef XDL_NO_GLX
@@ -520,7 +536,7 @@ PFN_glXQueryExtensionsString glXQueryExtensionsStringSrc;
 
 void* XDL_module[3] = {NULL, NULL, NULL};
 
-void XDL_init(void) { 
+void XDL_init(void) {
     /* allocating memory for module data */
     /* loading the modules */
     #if defined(__CYGWIN__)
@@ -549,7 +565,7 @@ void XDL_init(void) {
         if (XDL_module[1])
             break;
     }
-#endif 
+#endif
 
     #if defined(__CYGWIN__)
         XDL_module[2] = dlopen("libXrandr-2.so", RTLD_LAZY | RTLD_LOCAL);
@@ -676,6 +692,9 @@ void XDL_init(void) {
     XDL_PROC_DEF(0, XCreateImage);
     XDL_PROC_DEF(0, XCreatePixmap);
     XDL_PROC_DEF(0, XPutImage);
+    XDL_PROC_DEF(0, XSetWindowBackground);
+    XDL_PROC_DEF(0, XClearWindow);
+    XDL_PROC_DEF(0, XrmUniqueQuark);
 
     #ifndef XDL_NO_XRANDR
         XDL_PROC_DEF(2, XRRGetScreenResourcesCurrent);
@@ -687,6 +706,8 @@ void XDL_init(void) {
         XDL_PROC_DEF(2, XRRFreeOutputInfo);
         XDL_PROC_DEF(2, XRRSetScreenConfig);
         XDL_PROC_DEF(2, XRRSetCrtcConfig);
+        XDL_PROC_DEF(2, XRRGetScreenInfo);
+        XDL_PROC_DEF(2, XRRConfigCurrentRate);
     #endif
 
     #ifndef XDL_NO_GLX
@@ -695,8 +716,8 @@ void XDL_init(void) {
         XDL_PROC_DEF(1, glXMakeCurrent);
         XDL_PROC_DEF(1, glXGetCurrentContext);
 		XDL_PROC_DEF(1, glXSwapBuffers);
-        XDL_PROC_DEF(1, glXSwapIntervalEXT); 
-        XDL_PROC_DEF(1, glXGetProcAddress); 
+        XDL_PROC_DEF(1, glXSwapIntervalEXT);
+        XDL_PROC_DEF(1, glXGetProcAddress);
         XDL_PROC_DEF(1, glXGetVisualFromFBConfig);
         XDL_PROC_DEF(1, glXGetFBConfigAttrib);
         XDL_PROC_DEF(1, glXGetProcAddressARB);

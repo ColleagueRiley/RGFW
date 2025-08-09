@@ -377,6 +377,15 @@ XDL.h
 .RI "#define \fBXPutImage\fP   \fBXPutImageSrc\fP"
 .br
 .ti -1c
+.RI "#define \fBXClearWindow\fP   \fBXClearWindowSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXSetWindowBackground\fP   \fBXSetWindowBackgroundSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXrmUniqueQuark\fP   \fBXrmUniqueQuarkSrc\fP"
+.br
+.ti -1c
 .RI "#define \fBXRRGetScreenResourcesCurrent\fP   \fBXRRGetScreenResourcesCurrentSrc\fP"
 .br
 .ti -1c
@@ -402,6 +411,12 @@ XDL.h
 .br
 .ti -1c
 .RI "#define \fBXRRSetCrtcConfig\fP   \fBXRRSetCrtcConfigSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXRRConfigCurrentRate\fP   \fBXRRConfigCurrentRateSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXRRGetScreenInfo\fP   \fBXRRGetScreenInfoSrc\fP"
 .br
 .ti -1c
 .RI "#define \fBglXChooseVisual\fP   \fBglXChooseVisualSrc\fP"
@@ -810,6 +825,15 @@ XDL.h
 .RI "typedef int(* \fBPFN_XPutImage\fP) (Display *display, Drawable d, GC gc, XImage *image, int src_x, int src_y, int dest_x, int dest_y, unsigned int width, unsigned int height)"
 .br
 .ti -1c
+.RI "typedef void(* \fBPFN_XSetWindowBackground\fP) (Display *, Window, unsigned long)"
+.br
+.ti -1c
+.RI "typedef int(* \fBPFN_XClearWindow\fP) (Display *, Window)"
+.br
+.ti -1c
+.RI "typedef XrmQuark(* \fBPFN_XrmUniqueQuark\fP) (void)"
+.br
+.ti -1c
 .RI "typedef XRRScreenResources *(* \fBPFN_XRRGetScreenResourcesCurrent\fP) (Display *display, Window window)"
 .br
 .ti -1c
@@ -835,6 +859,12 @@ XDL.h
 .br
 .ti -1c
 .RI "typedef Status(* \fBPFN_XRRSetCrtcConfig\fP) (Display *, XRRScreenResources *, RRCrtc, Time, int, int, RRMode, Rotation, RROutput *, int)"
+.br
+.ti -1c
+.RI "typedef short(* \fBPFN_XRRConfigCurrentRate\fP) (XRRScreenConfiguration *)"
+.br
+.ti -1c
+.RI "typedef XRRScreenConfiguration *(* \fBPFN_XRRGetScreenInfo\fP) (Display *, Window)"
 .br
 .ti -1c
 .RI "typedef XVisualInfo *(* \fBPFN_glXChooseVisual\fP) (Display *, int, int *)"
@@ -1238,6 +1268,15 @@ XDL.h
 .RI "\fBPFN_XPutImage\fP \fBXPutImageSrc\fP"
 .br
 .ti -1c
+.RI "\fBPFN_XSetWindowBackground\fP \fBXSetWindowBackgroundSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XClearWindow\fP \fBXClearWindowSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XrmUniqueQuark\fP \fBXrmUniqueQuarkSrc\fP"
+.br
+.ti -1c
 .RI "\fBPFN_XRRGetScreenResourcesCurrent\fP \fBXRRGetScreenResourcesCurrentSrc\fP"
 .br
 .ti -1c
@@ -1263,6 +1302,12 @@ XDL.h
 .br
 .ti -1c
 .RI "\fBPFN_XRRSetCrtcConfig\fP \fBXRRSetCrtcConfigSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XRRGetScreenInfo\fP \fBXRRGetScreenInfoSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XRRConfigCurrentRate\fP \fBXRRConfigCurrentRateSrc\fP"
 .br
 .ti -1c
 .RI "\fBPFN_glXChooseVisual\fP \fBglXChooseVisualSrc\fP"
@@ -1345,6 +1390,8 @@ XDL.h
 .SS "#define XCheckIfEvent   \fBXCheckIfEventSrc\fP"
 
 .SS "#define XCheckTypedWindowEvent   \fBXCheckTypedWindowEventSrc\fP"
+
+.SS "#define XClearWindow   \fBXClearWindowSrc\fP"
 
 .SS "#define XCloseDisplay   \fBXCloseDisplaySrc\fP"
 
@@ -1514,6 +1561,10 @@ XDL.h
 
 .SS "#define XrmGetStringDatabase   \fBXrmGetStringDatabaseSrc\fP"
 
+.SS "#define XrmUniqueQuark   \fBXrmUniqueQuarkSrc\fP"
+
+.SS "#define XRRConfigCurrentRate   \fBXRRConfigCurrentRateSrc\fP"
+
 .SS "#define XRRFreeCrtcInfo   \fBXRRFreeCrtcInfoSrc\fP"
 
 .SS "#define XRRFreeOutputInfo   \fBXRRFreeOutputInfoSrc\fP"
@@ -1523,6 +1574,8 @@ XDL.h
 .SS "#define XRRGetCrtcInfo   \fBXRRGetCrtcInfoSrc\fP"
 
 .SS "#define XRRGetOutputInfo   \fBXRRGetOutputInfoSrc\fP"
+
+.SS "#define XRRGetScreenInfo   \fBXRRGetScreenInfoSrc\fP"
 
 .SS "#define XRRGetScreenResources   \fBXRRGetScreenResourcesSrc\fP"
 
@@ -1553,6 +1606,8 @@ XDL.h
 .SS "#define XSetScreenSaver   \fBXSetScreenSaverSrc\fP"
 
 .SS "#define XSetSelectionOwner   \fBXSetSelectionOwnerSrc\fP"
+
+.SS "#define XSetWindowBackground   \fBXSetWindowBackgroundSrc\fP"
 
 .SS "#define XSetWMHints   \fBXSetWMHintsSrc\fP"
 
@@ -1627,6 +1682,8 @@ XDL.h
 .SS "typedef Bool(* PFN_XCheckIfEvent) (Display *, XEvent *, Bool(*)(Display *, XEvent *, XPointer), XPointer)"
 
 .SS "typedef Bool(* PFN_XCheckTypedWindowEvent) (Display *, Window, int, XEvent *)"
+
+.SS "typedef int(* PFN_XClearWindow) (Display *, Window)"
 
 .SS "typedef int(* PFN_XCloseDisplay) (Display *)"
 
@@ -1802,6 +1859,10 @@ XDL.h
 
 .SS "typedef XrmDatabase(* PFN_XrmGetStringDatabase) (const char *data)"
 
+.SS "typedef XrmQuark(* PFN_XrmUniqueQuark) (void)"
+
+.SS "typedef short(* PFN_XRRConfigCurrentRate) (XRRScreenConfiguration *)"
+
 .SS "typedef void(* PFN_XRRFreeCrtcInfo) (XRRCrtcInfo *crtc_info)"
 
 .SS "typedef void(* PFN_XRRFreeOutputInfo) (XRROutputInfo *)"
@@ -1811,6 +1872,8 @@ XDL.h
 .SS "typedef XRRCrtcInfo *(* PFN_XRRGetCrtcInfo) (Display *display, XRRScreenResources *resources, RRCrtc crtc)"
 
 .SS "typedef XRROutputInfo *(* PFN_XRRGetOutputInfo) (Display *display, XRRScreenResources *resources, RROutput output)"
+
+.SS "typedef XRRScreenConfiguration *(* PFN_XRRGetScreenInfo) (Display *, Window)"
 
 .SS "typedef XRRScreenResources *(* PFN_XRRGetScreenResources) (Display *display, Window window)"
 
@@ -1841,6 +1904,8 @@ XDL.h
 .SS "typedef int(* PFN_XSetScreenSaver) (Display *, int, int, int, int)"
 
 .SS "typedef int(* PFN_XSetSelectionOwner) (Display *, Atom, Window, Time)"
+
+.SS "typedef void(* PFN_XSetWindowBackground) (Display *, Window, unsigned long)"
 
 .SS "typedef int(* PFN_XSetWMHints) (Display *, Window, XWMHints *)"
 
@@ -1921,6 +1986,8 @@ XDL.h
 .SS "\fBPFN_XCheckIfEvent\fP XCheckIfEventSrc"
 
 .SS "\fBPFN_XCheckTypedWindowEvent\fP XCheckTypedWindowEventSrc"
+
+.SS "\fBPFN_XClearWindow\fP XClearWindowSrc"
 
 .SS "\fBPFN_XCloseDisplay\fP XCloseDisplaySrc"
 
@@ -2086,6 +2153,10 @@ XDL.h
 
 .SS "\fBPFN_XrmGetStringDatabase\fP XrmGetStringDatabaseSrc"
 
+.SS "\fBPFN_XrmUniqueQuark\fP XrmUniqueQuarkSrc"
+
+.SS "\fBPFN_XRRConfigCurrentRate\fP XRRConfigCurrentRateSrc"
+
 .SS "\fBPFN_XRRFreeCrtcInfo\fP XRRFreeCrtcInfoSrc"
 
 .SS "\fBPFN_XRRFreeOutputInfo\fP XRRFreeOutputInfoSrc"
@@ -2095,6 +2166,8 @@ XDL.h
 .SS "\fBPFN_XRRGetCrtcInfo\fP XRRGetCrtcInfoSrc"
 
 .SS "\fBPFN_XRRGetOutputInfo\fP XRRGetOutputInfoSrc"
+
+.SS "\fBPFN_XRRGetScreenInfo\fP XRRGetScreenInfoSrc"
 
 .SS "\fBPFN_XRRGetScreenResourcesCurrent\fP XRRGetScreenResourcesCurrentSrc"
 
@@ -2125,6 +2198,8 @@ XDL.h
 .SS "\fBPFN_XSetScreenSaver\fP XSetScreenSaverSrc"
 
 .SS "\fBPFN_XSetSelectionOwner\fP XSetSelectionOwnerSrc"
+
+.SS "\fBPFN_XSetWindowBackground\fP XSetWindowBackgroundSrc"
 
 .SS "\fBPFN_XSetWMHints\fP XSetWMHintsSrc"
 
