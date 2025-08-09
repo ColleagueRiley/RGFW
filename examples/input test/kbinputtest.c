@@ -11,6 +11,18 @@ int main(void) {
 	while (!RGFW_window_shouldClose(win)) {
 		while (RGFW_window_checkEvent(win, &event)) {}
 
+		if (RGFW_isMousePressed(win, RGFW_mouseLeft)) {
+			printf("pressed Left Mouse (fire once when mouse button is down, even if held)\n");
+		}
+
+		if (RGFW_isMouseReleased(win, RGFW_mouseLeft)) {
+			printf("released Left Mouse (fire once when mouse button is lifted)\n");
+		}
+
+		if (RGFW_isMouseHeld(win, RGFW_mouseRight)) {
+			printf("holding Right Mouse (fire repeatedly when mouse button is down)\n");
+		}
+
 		if (RGFW_isPressed(win, RGFW_h)) {
 			printf("pressed H (fire once when key is down, even if held)\n");
 		}
