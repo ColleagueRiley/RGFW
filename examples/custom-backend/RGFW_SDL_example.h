@@ -23,7 +23,7 @@ typedef struct RGFW_window_src {
 
 #ifdef RGFW_IMPLEMENTATION
 
-void RGFW_captureCursor(RGFW_window* win, RGFW_rect) {
+void RGFW_captureCursor(RGFW_window* win) {
 
 }
 

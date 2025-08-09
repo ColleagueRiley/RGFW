@@ -34,7 +34,7 @@ int main(void) {
     mg_gamepad* gamepad = gamepads.list.head;
 
 	while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
-        while (mg_gamepads_update(&gamepads, &ev));
+        while (mg_gamepads_update(&gamepads, &ev)) {}
 		if (gamepad == NULL) {
 			gamepad = gamepads.list.head;
 		}
