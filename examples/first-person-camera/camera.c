@@ -62,8 +62,8 @@ int main(void) {
                     RGFW_window_holdMouse(win);
                     break;
                case RGFW_mousePosChanged: {
-                    int dev_x = event.vecX;
-                    int dev_y = event.vecY;
+                    int dev_x = event.mouse.vecX;
+                    int dev_y = event.mouse.vecY;
 
 					/* apply the changes to pitch and yaw*/
                     yaw += (float)dev_x / 15.0;
@@ -71,7 +71,7 @@ int main(void) {
                     break;
                 }
                 case RGFW_keyPressed:
-                    switch (event.key) {
+                    switch (event.key.value) {
                         case RGFW_return:
                             RGFW_window_showMouse(win, 0);
                             RGFW_window_holdMouse(win);

@@ -44,13 +44,13 @@ void checkEvents(RGFW_window* win) {
 				RGFW_window_setShouldClose(win, 1);
 				break;
 			case RGFW_windowResized:
-				if (event.x != 0 && event.y != 0)
-					printf("window %p: resize: %dx%d\n", (void*)win, event.x, event.y);
+				if (event.mouse.x != 0 && event.mouse.y != 0)
+					printf("window %p: resize: %dx%d\n", (void*)win, event.mouse.x, event.mouse.y);
 				break;
-			case RGFW_DND:
-				printf("window %p: drag and drop: %dx%d:\n", (void*)win, event.x, event.y);
-				for (size_t i = 0; i < event.droppedFilesCount; i++)
-					printf("\t%u: '%s'\n", (u32)i, event.droppedFiles[i]);
+			case RGFW_drop:
+				printf("window %p: drag and drop: %dx%d:\n", (void*)win, event.mouse.x, event.mouse.y);
+				for (size_t i = 0; i < event.drop.count; i++)
+					printf("\t%u: '%s'\n", (u32)i, event.drop.files[i]);
 				break;
 		}
 	}

@@ -487,7 +487,7 @@ main(int argc, char *argv[])
 		   if (event.type == RGFW_windowResized){
 			   reshape(win->w, win->h);
 		   }else if(event.type == RGFW_keyPressed){
-			   switch(event.key){
+			   switch(event.key.value){
 				   case RGFW_left:
 					   view_roty += 5.0;
 					   break;

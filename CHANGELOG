@@ -164,6 +164,12 @@ typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, u8 keyChar, RGFW_keymod 
 - add `u64 RGFW_window_getWindow_X11(RGFW_window* win);`
 - add `struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win);`
 - define keycodes per platform instead of having 1 generic method
+- put events in their own individual struct, that combine in union, `RGFW_event`
+- rename `key.key` to  `key.value`, `key.keyChar` to `key.sym`, `key.mod` to `mod`
+- rename `button.button` to `button.value`
+- rename `RGFW_dnd` to `RGFW_drop`
+- rename `RGFW_dndInit` to `RGFW_drag`
+- rename `drag.droppedFiles` to `drag.files` and `drag.droppedFilesCount` to `drag.count`
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------

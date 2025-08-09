@@ -89,7 +89,7 @@ void mouseposfunc(RGFW_window* win, i32 x, i32 y, float vecX, float vecY) {
 }
 
 static
-void dndfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount) {
+void dropfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount) {
     if (window != win) return;
 
     u32 i;
@@ -98,7 +98,7 @@ void dndfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount) {
 }
 
 static
-void dndInitfunc(RGFW_window* win, i32 x, i32 y) {
+void dragfunc(RGFW_window* win, i32 x, i32 y) {
     if (window != win) return;
     printf("dnd init at %i %i\n", x, y);
 }
@@ -149,8 +149,8 @@ int main(void) {
 	RGFW_setWindowRefreshCallback(windowrefreshfunc);
 	RGFW_setFocusCallback(focusfunc);
 	RGFW_setMouseNotifyCallback(mouseNotifyfunc);
-	RGFW_setDndCallback(dndfunc);
-	RGFW_setDndInitCallback(dndInitfunc);
+	RGFW_setDropCallback(dropfunc);
+	RGFW_setDragCallback(dragfunc);
 	RGFW_setKeyCallback(keyfunc);
 	RGFW_setMouseButtonCallback(mousebuttonfunc);
 

@@ -34,6 +34,8 @@ int main(void) {
 		RGFW_window_swapBuffers_OpenGL(win);
 		glFlush();
 	}
-    return 0;
+
+	RGFW_window_close(win);
+	return 0;
 }
 
