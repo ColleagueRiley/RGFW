@@ -1821,7 +1821,7 @@ u32 RGFW_rgfwToApiKey(u32 keycode) {
 void RGFW_resetKeyPrev(void) {
 	size_t i; /*!< reset each previous state  */
     for (i = 0; i < RGFW_keyLast; i++) RGFW_keyboard[i].prev = RGFW_keyboard[i].current;
-    for (i = 0; i < RGFW_mouseFinal; i++) RGFW_mouseButtons[i].prev = 0;
+    for (i = 0; i < RGFW_mouseFinal; i++) RGFW_mouseButtons[i].prev = RGFW_mouseButtons[i].current;
 }
 void RGFW_resetKey(void) { RGFW_MEMSET(RGFW_keyboard, 0, sizeof(RGFW_keyboard)); }
 /*
@@ -2235,16 +2235,16 @@ void RGFW_setXInstName(const char* name) { RGFW_UNUSED(name); }
 #endif
 
 RGFW_bool RGFW_isMousePressed(RGFW_window* win, RGFW_mouseButton button) {
-	return RGFW_mouseButtons[button].current && (win == NULL || RGFW_window_isInFocus(win));
+	return RGFW_mouseButtons[button].current && !RGFW_mouseButtons[button].prev && (win == NULL || RGFW_window_isInFocus(win));
 }
 RGFW_bool RGFW_wasMousePressed(RGFW_window* win, RGFW_mouseButton button) {
 	return RGFW_mouseButtons[button].prev && (win != NULL || RGFW_window_isInFocus(win));
 }
 RGFW_bool RGFW_isMouseHeld(RGFW_window* win, RGFW_mouseButton button) {
-	return (RGFW_isMousePressed(win, button) && RGFW_wasMousePressed(win, button));
+	return RGFW_mouseButtons[button].current && (win == NULL || RGFW_window_isInFocus(win));
 }
 RGFW_bool RGFW_isMouseReleased(RGFW_window* win, RGFW_mouseButton button) {
-	return (!RGFW_isMousePressed(win, button) && RGFW_wasMousePressed(win, button));
+	return (!RGFW_mouseButtons[button].current && RGFW_wasMousePressed(win, button));
 }
 
 RGFW_bool RGFW_window_getMouse(RGFW_window* win, i32* x, i32* y) {
@@ -9251,7 +9251,7 @@ void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
                           ((flags & NSEventModifierFlagCommand) % 255), 0);
     u8 i;
     for (i = 0; i < 9; i++)
-        RGFW_keyboard[i + RGFW_capsLock].prev = 0;
+        RGFW_keyboard[i + RGFW_capsLock].prev = RGFW_keyboard[i + RGFW_capsLock].current;
 
     for (i = 0; i < 5; i++) {
         u32 shift = (1 << (i + 16));
