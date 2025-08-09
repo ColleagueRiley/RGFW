@@ -9238,7 +9238,7 @@ void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
     for (i = 0; i < 5; i++) {
         u32 shift = (1 << (i + 16));
         u32 key = i + RGFW_capsLock;
-        if ((flags & shift) && !RGFW_wasPressed(win, (u8)key)) {
+        if ((flags & shift) && !RGFW_isKeyDown(win, (u8)key)) {
             RGFW_keyboard[key].current = 1;
             if (key != RGFW_capsLock)
                 RGFW_keyboard[key + 4].current = 1;
@@ -9246,7 +9246,7 @@ void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
             e.key.value = (u8)key;
             break;
         }
-        if (!(flags & shift) && RGFW_wasPressed(win, (u8)key)) {
+        if (!(flags & shift) && RGFW_isKeyDown(win, (u8)key)) {
             RGFW_keyboard[key].current = 0;
             if (key != RGFW_capsLock)
                 RGFW_keyboard[key + 4].current = 0;
