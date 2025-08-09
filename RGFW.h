@@ -605,6 +605,7 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_numLock,
 	RGFW_kpSlash,
 	RGFW_kpMultiply,
+	RGFW_kpPlus,
 	RGFW_kpMinus,
 	RGFW_kpEqual,
 	RGFW_kp1,
@@ -3536,6 +3537,7 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[77] = RGFW_numLock;
 	_RGFW->keycodes[106] = RGFW_kpSlash;
 	_RGFW->keycodes[63] = RGFW_kpMultiply;
+	_RGFW->keycodes[86] = RGFW_kpPlus;
 	_RGFW->keycodes[82] = RGFW_kpMinus;
 	_RGFW->keycodes[87] = RGFW_kp1;
 	_RGFW->keycodes[88] = RGFW_kp2;
@@ -10977,9 +10979,6 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[DOM_VK_F22]  = RGFW_F22;
 	_RGFW->keycodes[DOM_VK_F23]  = RGFW_F23;
 	_RGFW->keycodes[DOM_VK_F24]  = RGFW_F24;
-	_RGFW->keycodes[DOM_VK_F25] = RGFW_F25;
-	_RGFW->keycodes[DOM_VK_WORLD_1] = RGFW_world1;
-	_RGFW->keycodes[DOM_VK_WORLD_2 = RGFW_world2;
 }
 
 i32 RGFW_initPlatform(void) { return 0; }
@@ -11343,19 +11342,17 @@ u32 RGFW_WASMPhysicalToRGFW(u32 hash) {
 		case 0x95852DACU /* NumpadDecimal      */: return RGFW_period;       /* 0x0053 */
 		case 0x7B8E57B1U  /* F11                */: return RGFW_F11;                  /* 0x0057 */
 		case 0x7B8E57B2U  /* F12                */: return RGFW_F12;                  /* 0x0058 */
-		case 0x7174B783U /* F13                */: return RGFW_F13;
-		case 0x7174B784U /* F14                */: return RGFW_F14;
-		case 0x7174B785U /* F15                */: return RGFW_F15;
-		case 0x7174B786U /* F16                */: return RGFW_F16;
-		case 0x7174B787U /* F17                */: return RGFW_F17;
-		case 0x7174B788U /* F18                */: return RGFW_F18;
-		case 0x7174B789U /* F19                */: return RGFW_F19;
-		case 0x7174B78AU /* F20                */: return RGFW_F20;
-		case 0x7174B78BU /* F21                */: return RGFW_F21;
-		case 0x7174B78CU /* F22                */: return RGFW_F22;
-		case 0x7174B78DU /* F23                */: return RGFW_F23;
-		case 0x7174B78EU /* F24                */: return RGFW_F24;
-		case 0x7174B78FU /* F25                */: return RGFW_F25;
+		case 0x7B8E57B3U /* F13                */: return DOM_PK_F13;                  /* 0x0064 */
+		case 0x7B8E57B4U /* F14                */: return DOM_PK_F14;                  /* 0x0065 */
+		case 0x7B8E57B5U /* F15                */: return DOM_PK_F15;                  /* 0x0066 */
+		case 0x7B8E57B6U /* F16                */: return DOM_PK_F16;                  /* 0x0067 */
+		case 0x7B8E57B7U /* F17                */: return DOM_PK_F17;                  /* 0x0068 */
+		case 0x7B8E57B8U /* F18                */: return DOM_PK_F18;                  /* 0x0069 */
+		case 0x7B8E57B9U /* F19                */: return DOM_PK_F19;                  /* 0x006A */
+		case 0x7B8E57A8U /* F20                */: return DOM_PK_F20;                  /* 0x006B */
+		case 0x7B8E57A9U /* F21                */: return DOM_PK_F21;                  /* 0x006C */
+		case 0x7B8E57AAU /* F22                */: return DOM_PK_F22;                  /* 0x006D */
+		case 0x7B8E57ABU /* F23                */: return DOM_PK_F23;                  /* 0x006E */
 		case 0x7393FBACU /* NumpadEqual        */: return RGFW_kpReturn;
 		case 0xB88EBF7CU  /* AltRight           */: return RGFW_altR;            /* 0xE038 */
 		case 0xC925873BU /* NumLock            */: return RGFW_numLock;             /* 0xE045 */
@@ -11371,6 +11368,8 @@ u32 RGFW_WASMPhysicalToRGFW(u32 hash) {
 		case 0x6725C50DU /* Delete             */: return RGFW_delete;               /* 0xE053 */
 		case 0x6723658CU /* OSLeft             */: return RGFW_superL;              /* 0xE05B */
 		case 0x39643F7CU /* MetaRight          */: return RGFW_superR;           /* 0xE05C */
+		case 0x380B9C8CU /* NumpadAdd          */: return DOM_PK_NUMPAD_ADD;           /* 0x004E */
+		default: return DOM_PK_UNKNOWN;
 	}
 
 	return 0;
