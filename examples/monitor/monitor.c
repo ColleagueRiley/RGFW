@@ -1,10 +1,20 @@
+#define GL_SILENCE_DEPRECATION
+#define RGFW_OPENGL
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
 #include <stdio.h>
 
+#ifdef RGFW_MACOS
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
+
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), RGFW_windowCenter);
+    RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowCenter | RGFW_windowOpenGL);
+    RGFW_window_setExitKey(win, RGFW_escape);
+
     RGFW_window_makeCurrentContext_OpenGL(win);
     RGFW_monitor mon = RGFW_window_getMonitor(win);
     RGFW_monitor_scaleToWindow(mon, win);
@@ -33,7 +43,7 @@ int main(void) {
             }
         }
 
-        glViewport(0, 0, win->r.w, win->r.h);
+        glViewport(0, 0, win->w, win->h);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 

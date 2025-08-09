@@ -53,13 +53,14 @@ int main(void)
 		exit(EXIT_FAILURE);
     }
 
-    RGFW_window* window = RGFW_createWindow("RGFW Metal example", RGFW_RECT(0, 0, 640, 480), RGFW_windowCenter);
+    RGFW_window* window = RGFW_createWindow("RGFW Metal example", 0, 0, 640, 480, RGFW_windowCenter);
+    RGFW_window_setExitKey(window, RGFW_escape);
 
     CAMetalLayer* layer = [CAMetalLayer layer];
     layer.device = device;
     layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
 
-    NSView* view = (NSView*)RGFW_window_getOSXView(window);
+    NSView* view = (NSView*)RGFW_window_getView_OSX(window);
     [view setLayer: layer];
     // [view setWantsLayer: YES]; (I think RGFW already sets this)
 
@@ -111,10 +112,11 @@ int main(void)
 
         float ratio;
 
-        RGFW_rect rect = RGFW_window_getRect(window);
-        ratio = rect.w / (float) rect.h;
+		i32 w, h;
+        RGFW_window_getSize(window, &w, &h);
+        ratio = w / (float) h;
 
-        layer.drawableSize = CGSizeMake(rect.w, rect.h);
+        layer.drawableSize = CGSizeMake(w, h);
         id<CAMetalDrawable> drawable = [layer nextDrawable];
         assert(drawable);
 

@@ -1,7 +1,16 @@
 #include <stdio.h>
 
+
+#define RGFW_OPENGL
+#define GL_SILENCE_DEPRECATION
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
+
+#ifdef RGFW_MACOS
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
 
 
 #ifdef RGFW_WINDOWS
@@ -35,13 +44,13 @@ void checkEvents(RGFW_window* win) {
 				RGFW_window_setShouldClose(win, 1);
 				break;
 			case RGFW_windowResized:
-				if (event.point.x != 0 && event.point.y != 0)
-					printf("window %p: resize: %dx%d\n", (void*)win, event.point.x, event.point.y);
+				if (event.mouse.x != 0 && event.mouse.y != 0)
+					printf("window %p: resize: %dx%d\n", (void*)win, event.mouse.x, event.mouse.y);
 				break;
-			case RGFW_DND:
-				printf("window %p: drag and drop: %dx%d:\n", (void*)win, event.point.x, event.point.y);
-				for (size_t i = 0; i < event.droppedFilesCount; i++)
-					printf("\t%u: '%s'\n", (u32)i, event.droppedFiles[i]);
+			case RGFW_drop:
+				printf("window %p: drag and drop: %dx%d:\n", (void*)win, event.mouse.x, event.mouse.y);
+				for (size_t i = 0; i < event.drop.count; i++)
+					printf("\t%u: '%s'\n", (u32)i, event.drop.files[i]);
 				break;
 		}
 	}
@@ -111,11 +120,22 @@ int main(void) {
 
 	RGFW_setClassName("RGFW Example");
 
-	RGFW_window* win1 = RGFW_createWindow("RGFW Example Window 1", RGFW_RECT(500, 500, 500, 500), RGFW_windowAllowDND);
-	RGFW_window* win2 = RGFW_createWindow("RGFW Example Window 2", RGFW_RECT(100, 100, 200, 200), RGFW_windowNoResize | RGFW_windowAllowDND);
-	RGFW_window* win3 = RGFW_createWindow("RGFW Example Window 3", RGFW_RECT(20, 500, 400, 300), RGFW_windowNoResize | RGFW_windowAllowDND);
+    RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
+
+	RGFW_window* win1 = RGFW_createWindow("RGFW Example Window 1", 500, 500, 500, 500, RGFW_windowAllowDND | RGFW_windowOpenGL);
+	hints->share = RGFW_window_getContext_OpenGL(win1);
+	RGFW_setGlobalHints_OpenGL(hints);
+
+	RGFW_window* win2 = RGFW_createWindow("RGFW Example Window 2", 100, 100, 200, 200, RGFW_windowNoResize | RGFW_windowAllowDND | RGFW_windowOpenGL);
+	RGFW_window* win3 = RGFW_createWindow("RGFW Example Window 3", 20, 500, 400, 300, RGFW_windowNoResize | RGFW_windowAllowDND | RGFW_windowOpenGL);
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 	RGFW_window_makeCurrentContext_OpenGL(NULL); /* this is really important (this releases the opengl context on this thread) */
+
+
+    RGFW_window_setExitKey(win1, RGFW_escape);
+    RGFW_window_setExitKey(win2, RGFW_escape);
+    RGFW_window_setExitKey(win3, RGFW_escape);
+	RGFW_setQueueEvents(RGFW_TRUE); /* manually enable the queue so we don't accidently miss the first few events */
 
 	my_thread thread1 = createThread(loop, win1);
 	my_thread thread2 = createThread(loop, win2);

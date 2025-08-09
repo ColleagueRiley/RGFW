@@ -2,17 +2,18 @@
 #include "RGFW.h"
 
 #include <stdio.h>
+#ifdef RGFW_MACOS
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
 
 RGFW_window* window;
 
 static
-void errorfunc(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const char* msg) {
+void errorfunc(RGFW_debugType type, RGFW_errorCode err, const char* msg) {
     if (type != RGFW_typeError || err == RGFW_noError) return; /* disregard non-errors */
-    /* only care about errors for this window
-        If there were two windows and the error uses the root window it will also be ignored,
-            this may ignore important errors
-    */
-    if (window != ctx.win) return;
+
     printf("RGFW ERROR: %s\n", msg);
 }
 
@@ -23,33 +24,35 @@ void scaleUpdatedfunc(RGFW_window* win, float scaleX, float scaleY) {
 }
 
 static
-void windowmovefunc(RGFW_window* win, RGFW_rect r) {
+void windowmovefunc(RGFW_window* win, i32 x, i32 y) {
     if (window != win) return;
-    printf("window moved %i %i\n", r.x, r.y);
+    printf("window moved %i %i\n", x, y);
 }
 
 static
-void windowresizefunc(RGFW_window* win, RGFW_rect r) {
+void windowresizefunc(RGFW_window* win, i32 w, i32 h) {
     if (window != win) return;
-    printf("window resized %i %i\n", r.w, r.h);
+    printf("window resized %i %i\n", w, h);
 }
 
 static
-void windowminimizefunc(RGFW_window* win, RGFW_rect r) {
+void windowminimizefunc(RGFW_window* win) {
     if (window != win) return;
-    printf("window minimize %i %i\n", r.w, r.h);
+    printf("window minimize\n");
 }
 
 static
-void windowmaximizefunc(RGFW_window* win, RGFW_rect r) {
+void windowmaximizefunc(RGFW_window* win, i32 x, i32 y, i32 w, i32 h) {
+    RGFW_UNUSED(x); RGFW_UNUSED(y);
     if (window != win) return;
-    printf("window maximize %i %i\n", r.w, r.h);
+    printf("window maximize %i %i\n", w, h);
 }
 
 static
-void windowrestorefunc(RGFW_window* win, RGFW_rect r) {
+void windowrestorefunc(RGFW_window* win, i32 x, i32 y, i32 w, i32 h) {
+    RGFW_UNUSED(x); RGFW_UNUSED(y);
     if (window != win) return;
-    printf("window restore %i %i\n", r.w, r.h);
+    printf("window restore %i %i\n", w, h);
 }
 
 static
@@ -69,24 +72,24 @@ void focusfunc(RGFW_window* win, u8 inFocus) {
 }
 
 static
-void mouseNotifyfunc(RGFW_window* win, RGFW_point point, u8 status) {
+void mouseNotifyfunc(RGFW_window* win, i32 x, i32 y, u8 status) {
     if (window != win) return;
 
     if (status)
-        printf("mouse enter %i %i\n", point.x, point.y);
+        printf("mouse enter %i %i\n", x, y);
     else
         printf("mouse leave\n");
 }
 
 static
-void mouseposfunc(RGFW_window* win, RGFW_point point, RGFW_point vector) {
-    RGFW_UNUSED(vector);
+void mouseposfunc(RGFW_window* win, i32 x, i32 y, float vecX, float vecY) {
+    RGFW_UNUSED(vecX); RGFW_UNUSED(vecY);
     if (window != win || RGFW_isPressed(win, RGFW_controlL) == 0) return;
-   printf("mouse moved %i %i\n", point.x, point.y);
+   printf("mouse moved %i %i\n", x, y);
 }
 
 static
-void dndfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount) {
+void dropfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount) {
     if (window != win) return;
 
     u32 i;
@@ -95,21 +98,14 @@ void dndfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount) {
 }
 
 static
-void dndInitfunc(RGFW_window* win, RGFW_point point) {
+void dragfunc(RGFW_window* win, i32 x, i32 y) {
     if (window != win) return;
-    printf("dnd init at %i %i\n", point.x, point.y);
+    printf("dnd init at %i %i\n", x, y);
 }
 
 static
 void windowrefreshfunc(RGFW_window* win) {
     if (window != win) return;
-    printf("refresh\n");
-
-    glClearColor(0.15f, 0.0f, 0.25f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    RGFW_window_swapBuffers_OpenGL(win);
-
 }
 
 static
@@ -138,9 +134,8 @@ void mousebuttonfunc(RGFW_window* win, u8 button, double scroll, u8 pressed) {
 
 
 int main(void) {
-    window = RGFW_createWindow("RGFW Callbacks", RGFW_RECT(500, 500, 500, 500), RGFW_windowCenter | RGFW_windowAllowDND);
-
-    RGFW_setQueueEvents(RGFW_FALSE);
+    window = RGFW_createWindow("RGFW Callbacks", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
+    RGFW_window_setExitKey(window, RGFW_escape);
 
     RGFW_setDebugCallback(errorfunc);
     RGFW_setScaleUpdatedCallback(scaleUpdatedfunc);
@@ -154,17 +149,12 @@ int main(void) {
 	RGFW_setWindowRefreshCallback(windowrefreshfunc);
 	RGFW_setFocusCallback(focusfunc);
 	RGFW_setMouseNotifyCallback(mouseNotifyfunc);
-	RGFW_setDndCallback(dndfunc);
-	RGFW_setDndInitCallback(dndInitfunc);
+	RGFW_setDropCallback(dropfunc);
+	RGFW_setDragCallback(dragfunc);
 	RGFW_setKeyCallback(keyfunc);
 	RGFW_setMouseButtonCallback(mousebuttonfunc);
 
     while (RGFW_window_shouldClose(window) == 0) {
-        glClearColor(0.15f, 0.0f, 0.25f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        RGFW_window_swapBuffers_OpenGL(window);
-
 		RGFW_pollEvents();
    }
 

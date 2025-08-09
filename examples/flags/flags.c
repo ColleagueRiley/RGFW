@@ -3,7 +3,8 @@
 #include "RGFW.h"
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("RGFW flags", RGFW_RECT(0, 0, 600, 400), RGFW_windowAllowDND);
+    RGFW_window* win = RGFW_createWindow("RGFW flags", 0, 0, 600, 400, RGFW_windowAllowDND);
+    RGFW_window_setExitKey(win, RGFW_escape);
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
 
@@ -12,7 +13,7 @@ int main(void) {
         while (RGFW_window_checkEvent(win, &event)) {
             if (event.type == RGFW_quit) break;
             if (event.type != RGFW_keyPressed) continue;
-            switch (event.key) {
+            switch (event.key.value) {
                     case RGFW_b:
                         printf("Borderless: %s\n", !RGFW_window_borderless(win) ? "true" : "false");
                         RGFW_window_setBorder(win, RGFW_window_borderless(win));
@@ -22,11 +23,11 @@ int main(void) {
                         res = !res;
                         printf("Resizable: %s\n", !res ? "true" : "false");
                         if (res) {
-                            RGFW_window_setMaxSize(win, RGFW_AREA(0, 0));
-                            RGFW_window_setMinSize(win, RGFW_AREA(0, 0));
+                            RGFW_window_setMaxSize(win, 0, 0);
+                            RGFW_window_setMinSize(win, 0, 0);
                         } else {
-                            RGFW_window_setMaxSize(win, RGFW_AREA(win->r.w, win->r.h));
-                            RGFW_window_setMinSize(win, RGFW_AREA(win->r.w, win->r.h));
+                            RGFW_window_setMaxSize(win, win->w, win->h);
+                            RGFW_window_setMinSize(win, win->w, win->h);
                         }
                         break;
 		            }
@@ -66,10 +67,6 @@ int main(void) {
                     default: break;
             }
         }
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        RGFW_window_swapBuffers_OpenGL(win);
     }
 
     RGFW_window_close(win);

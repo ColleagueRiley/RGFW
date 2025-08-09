@@ -1,8 +1,17 @@
 #undef _WIN32_WINNT
 #include <stdio.h>
 
+#define GL_SILENCE_DEPRECATION
+#define RGFW_OPENGL
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
+
+#ifdef RGFW_MACOS
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
+
 #include "renderer.h"
 #include "microui.h"
 
@@ -242,8 +251,9 @@ static int text_height(mu_Font font) {
 int main(int argc, char **argv) {
   RGFW_UNUSED(argc); RGFW_UNUSED(argv);
   /* init RGFW window */
-  RGFW_window* window = RGFW_createWindow("", RGFW_RECT(0, 0, width, height), RGFW_windowCenter | RGFW_windowScaleToMonitor);
+  RGFW_window* window = RGFW_createWindow("", 0, 0, width, height, RGFW_windowCenter | RGFW_windowScaleToMonitor | RGFW_windowOpenGL);
   r_init();
+  RGFW_window_setExitKey(window, RGFW_escape);
 
   /* init microui */
   mu_Context *ctx = (mu_Context*)malloc(sizeof(mu_Context));
@@ -260,31 +270,31 @@ int main(int argc, char **argv) {
 
       switch (event.type) {
         case RGFW_quit: break;
-        case RGFW_mousePosChanged: mu_input_mousemove(ctx, event.point.x,  event.point.y); break;
+        case RGFW_mousePosChanged: mu_input_mousemove(ctx, event.mouse.x,  event.mouse.y); break;
 
         case RGFW_mouseButtonPressed:
-		  mu_input_scroll(ctx, 0, event.scroll * -30);
+		  mu_input_scroll(ctx, 0, event.button.scroll * -30);
 		case RGFW_mouseButtonReleased: {
-          int b = button_map[event.button & 0xff];
-          if (b && event.type == RGFW_mouseButtonPressed) { mu_input_mousedown(ctx, event.point.x,  event.point.y , b); }
-          if (b && event.type == RGFW_mouseButtonReleased) { mu_input_mouseup(ctx, event.point.x,  event.point.y, b);   }
+          int b = button_map[event.button.value & 0xff];
+          if (b && event.type == RGFW_mouseButtonPressed) { mu_input_mousedown(ctx, event.mouse.x,  event.mouse.y , b); }
+          if (b && event.type == RGFW_mouseButtonReleased) { mu_input_mouseup(ctx, event.mouse.x,  event.mouse.y, b);   }
           break;
         }
 
         case RGFW_keyPressed: {
-		  char str[2] = {(char)event.keyChar, '\0'};
+		  char str[2] = {(char)event.key.sym, '\0'};
 		  mu_input_text(ctx, str);
 	    }
 		case RGFW_keyReleased: {
-          int c = key_map[event.key & 0xff];
+          int c = key_map[event.key.value & 0xff];
           if (c && event.type == RGFW_keyPressed) { mu_input_keydown(ctx, c); }
           if (c && event.type == RGFW_keyReleased) { mu_input_keyup(ctx, c);   }
           break;
         }
 
 		case RGFW_windowResized:
-		  width = window->r.w;
-		  height = window->r.h;
+		  width = window->w;
+		  height = window->h;
 		  break;
 	  }
     }

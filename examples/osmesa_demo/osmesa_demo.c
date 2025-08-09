@@ -18,22 +18,21 @@
 int main(void) {
 	RGFW_setClassName("RGFW Basic");
 
-    RGFW_window* win = RGFW_createWindow("RGFW Example Window", RGFW_RECT(500, 500, 500, 500), RGFW_windowAllowDND | RGFW_windowCenter | RGFW_windowNoResize);
+    RGFW_window* win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_windowAllowDND | RGFW_windowCenter | RGFW_windowNoResize);
+    RGFW_window_setExitKey(win, RGFW_escape);
 
-    RGFW_area bufferSize = RGFW_AREA(500, 500);
-    u8* buffer = (u8*)RGFW_ALLOC(bufferSize.w * bufferSize.h * 4);
-    RGFW_image image = RGFW_IMAGE(buffer, bufferSize, RGFW_formatBGRA8);
-    RGFW_surface* surface = RGFW_createSurface(image);
+    u8* buffer = (u8*)RGFW_ALLOC(500 * 500 * 4);
+    RGFW_surface* surface = RGFW_createSurface(buffer, 500, 500, RGFW_formatBGRA8);
 
     OSMesaContext ctx = OSMesaCreateContext(OSMESA_BGRA, NULL);
-    OSMesaMakeCurrent(ctx, buffer, GL_UNSIGNED_BYTE, win->r.w, win->r.h);
+    OSMesaMakeCurrent(ctx, buffer, GL_UNSIGNED_BYTE, win->w, win->h);
     OSMesaPixelStore(OSMESA_Y_UP, 0);
 
     RGFW_event event;
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         while (RGFW_window_checkEvent(win, &event) && event.type != RGFW_quit);
 
-        glViewport(0, 0, win->r.w, win->r.h);
+        glViewport(0, 0, win->w, win->h);
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         glClear(GL_COLOR_BUFFER_BIT);

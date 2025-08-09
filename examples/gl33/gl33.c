@@ -1,12 +1,11 @@
-#ifdef __APPLE__
+#define RGFW_OPENGL
+#define RGFW_USE_XDL // feel free to remove this line if you don't want to use XDL (-lX11 -lXrandr -lGLX will be required)
+#define RGFW_ALLOC_DROPFILES
+#define RGFW_IMPLEMENTATION
+#define RGFW_PRINT_ERRORS
+#define RGFW_DEBUG
 #define GL_SILENCE_DEPRECATION
-#endif
-
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#define OEMRESOURCE
-#include <windows.h>
-#endif
+#include <RGFW.h>
 
 #ifndef __EMSCRIPTEN__
 #define RGL_LOAD_IMPLEMENTATION
@@ -15,20 +14,13 @@
 #include <GLES3/gl3.h>
 #endif
 
-#define RGFW_USE_XDL // feel free to remove this line if you don't want to use XDL (-lX11 -lXrandr -lGLX will be required)
-#define RGFW_ALLOC_DROPFILES
-#define RGFW_IMPLEMENTATION
-#define RGFW_PRINT_ERRORS
-#define RGFW_DEBUG
-#include <RGFW.h>
-
 #define MULTILINE_STR(...) #__VA_ARGS__
 
 #include <stdbool.h>
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const int SCR_WIDTH = 800;
+const int SCR_HEIGHT = 600;
 
 #ifndef __EMSCRIPTEN__
 const char *vertexShaderSource = MULTILINE_STR(
@@ -66,16 +58,18 @@ void main()
 
 
 int main(void) {
-    RGFW_setHint_OpenGL(RGFW_glMinor, 3);
-    RGFW_setHint_OpenGL(RGFW_glMajor, 3);
+    RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
+    hints->major = 3;
+    hints->minor = 3;
+    RGFW_setGlobalHints_OpenGL(hints);
 
-	RGFW_window* window = RGFW_createWindow("LearnOpenGL", RGFW_RECT(SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT), RGFW_windowAllowDND | RGFW_windowCenter | RGFW_windowScaleToMonitor);
+	RGFW_window* window = RGFW_createWindow("LearnOpenGL", SCR_WIDTH, SCR_HEIGHT, SCR_WIDTH, SCR_HEIGHT, RGFW_windowAllowDND | RGFW_windowCenter | RGFW_windowScaleToMonitor | RGFW_windowOpenGL);
     if (window == NULL)
     {
         printf("Failed to create RGFW window\n");
         return -1;
     }
-
+    RGFW_window_setExitKey(window, RGFW_escape);
     RGFW_window_makeCurrentContext_OpenGL(window);
 
     #ifndef RGFW_WASM
@@ -164,19 +158,16 @@ int main(void) {
 
     // render loop
     // -----------
-    bool running = true;
-    while (running && !RGFW_isPressed(window, RGFW_escape)) {
+    while (RGFW_window_shouldClose(window) == RGFW_FALSE) {
         RGFW_event event;
 
-        RGFW_window_checkEvent(window, &event);
-        {
+        while (RGFW_window_checkEvent(window, &event)) {
             if (event.type == RGFW_quit) {
-                running = false;
                 break;
             }
         }
 
-        // render
+		// render
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);

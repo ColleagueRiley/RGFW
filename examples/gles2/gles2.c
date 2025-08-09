@@ -5,6 +5,8 @@
 
 #include <GLES2/gl2.h>
 
+#define GL_SILENCE_DEPRECATION
+#define RGFW_OPENGL
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
@@ -27,11 +29,14 @@ GLuint load_shader(const char *shaderSource, GLenum type) {
 }
 
 int main(void) {
-	RGFW_setHint_OpenGL(RGFW_glMajor, 2);
-	RGFW_setHint_OpenGL(RGFW_glMinor, 0);
-	RGFW_setHint_OpenGL(RGFW_glProfile, RGFW_glES);
+    RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
+    hints->major = 2;
+    hints->minor = 2;
+    hints->profile = RGFW_glES;
+    RGFW_setGlobalHints_OpenGL(hints);
 
-	RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(0, 0, 500, 500), RGFW_windowCenter | RGFW_windowTransparent);
+	RGFW_window* win = RGFW_createWindow("name", 0, 0, 500, 500, RGFW_windowCenter | RGFW_windowTransparent | RGFW_windowOpenGL);
+    RGFW_window_setExitKey(win, RGFW_escape);
 
     ///////  the openGL part  ///////////////////////////////////////////////////////////////
 
@@ -93,7 +98,7 @@ int main(void) {
         };
 
     size_t attribute_stride = 5 * sizeof(float);
-    float display_aspect = ((float) win->r.w) / ((float) win->r.h);
+    float display_aspect = ((float) win->w) / ((float) win->h);
     float xscale = 1.5 / display_aspect;
     float yscale = 1.5;
     float display_transform_cols[4*4] =

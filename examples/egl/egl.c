@@ -1,10 +1,17 @@
-#include <GL/gl.h>
+#define RGFW_OPENGL
 #define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
 #define RGFW_EGL
 #include "RGFW.h"
 
 #include <stdio.h>
+
+#ifdef RGFW_MACOS
+#define GL_SILENCE_DEPRECATION
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
 
 void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed) {
     RGFW_UNUSED(keyMod); RGFW_UNUSED(keyChar); RGFW_UNUSED(win); RGFW_UNUSED(repeat);
@@ -14,26 +21,15 @@ void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGF
 }
 
 int main(void) {
-
-	RGFW_setHint_OpenGL(RGFW_glDoubleBuffer, RGFW_FALSE);
-    RGFW_window* win = RGFW_createWindow("a window", RGFW_RECT(0, 0, 800, 600), RGFW_windowUseEGL | RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowTransparent);
-
+    RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowEGL | RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowTransparent);
+    RGFW_window_makeCurrentContext_EGL(win);
     RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want
+    RGFW_window_setExitKey(win, RGFW_escape);
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         RGFW_event event;
-        while (RGFW_window_checkEvent(win, &event)) {  // or RGFW_window_checkEvents(); if you only want callbacks
-            // you can either check the current event yourself
-            if (event.type == RGFW_quit) break;
+        RGFW_pollEvents();
 
-            if (event.type == RGFW_mouseButtonPressed && event.button == RGFW_mouseLeft) {
-                printf("You clicked at x: %d, y: %d\n", event.point.x, event.point.y);
-            }
-
-            if (RGFW_isMousePressed(win, RGFW_mouseRight)) {
-                printf("The right mouse button was clicked at x: %d, y: %d\n", event.point.x, event.point.y);
-            }
-        }
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -42,7 +38,6 @@ int main(void) {
         glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.6f, -0.75f);
         glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
         glEnd();
-
         RGFW_window_swapBuffers_EGL(win);
         glFlush();
     }

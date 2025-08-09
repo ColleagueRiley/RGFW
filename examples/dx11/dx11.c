@@ -55,7 +55,8 @@ int directXInit(RGFW_window* win, directXinfo* info);
 void directXClose(RGFW_window* win, directXinfo* dxInfo);
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("name", RGFW_RECT(0, 0, 500, 500), RGFW_windowCenter);
+    RGFW_window* win = RGFW_createWindow("name", 0, 0, 500, 500, RGFW_windowCenter);
+    RGFW_window_setExitKey(win, RGFW_escape);
 
     directXinfo dxInfo;
     if (directXInit(win, &dxInfo) == 0) {
@@ -69,8 +70,8 @@ int main(void) {
     D3D11_VIEWPORT viewport;
     viewport.TopLeftX = 0;
     viewport.TopLeftY = 0;
-    viewport.Width = win->r.w;
-    viewport.Height = win->r.h;
+    viewport.Width = win->w;
+    viewport.Height = win->h;
     viewport.MinDepth = 0.0f;
     viewport.MaxDepth = 1.0f;
     dxInfo.pDeviceContext->lpVtbl->RSSetViewports(dxInfo.pDeviceContext, 1, &viewport);
