@@ -5899,6 +5899,7 @@ void RGFW_wl_xdg_toplevel_close_handler(void* data, struct xdg_toplevel *topleve
 		win = RGFW_key_win;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_quit; e.common.win = win);
+	RGFW_window_setShouldClose(win, RGFW_TRUE);
 	RGFW_windowQuitCallback(win);
 }
 
@@ -6834,6 +6835,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message) {
 		case WM_CLOSE:
 		case WM_QUIT:
+			RGFW_window_setShouldClose(win, RGFW_TRUE);
 			event.type = RGFW_quit;
 			RGFW_windowQuitCallback(win);
 			return 0;
@@ -8840,6 +8842,7 @@ u32 RGFW_OnClose(id self) {
 	if (win == NULL)
 		return true;
 
+	RGFW_window_setShouldClose(win, RGFW_TRUE);
 	RGFW_eventQueuePushEx(e.type = RGFW_quit; e.common.win = win);
 	RGFW_windowQuitCallback(win);
 
