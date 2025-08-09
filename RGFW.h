@@ -570,6 +570,19 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_F10,
 	RGFW_F11,
 	RGFW_F12,
+    RGFW_F13,
+    RGFW_F14,
+    RGFW_F15,
+    RGFW_F16,
+    RGFW_F17,
+    RGFW_F18,
+    RGFW_F19,
+    RGFW_F20,
+    RGFW_F21,
+    RGFW_F22,
+    RGFW_F23,
+    RGFW_F24,
+    RGFW_F25,
 	RGFW_capsLock,
 	RGFW_shiftL,
 	RGFW_controlL,
@@ -584,6 +597,7 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_left,
 	RGFW_right,
 	RGFW_insert,
+	RGFW_menu,
 	RGFW_end,
 	RGFW_home,
 	RGFW_pageUp,
@@ -607,6 +621,8 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_scrollLock,
     RGFW_printScreen,
     RGFW_pause,
+	RGFW_world1,
+    RGFW_world2,
     RGFW_keyLast = 256 /* padding for alignment ~(175 by default) */
 };
 
@@ -1787,6 +1803,7 @@ RGFW_keyState RGFW_mouseButtons[RGFW_mouseFinal];
 RGFW_keyState RGFW_keyboard[RGFW_keyLast];
 
 void RGFW_initKeycodes(void) {
+	RGFW_MEMSET(_RGFW->keycodes, 0, sizeof(_RGFW->keycodes));
 	RGFW_initKeycodesPlatform();
     u32 i, y;
     for (i = 0; i < RGFW_keyLast; i++) {
@@ -3461,6 +3478,11 @@ void RGFW_load_X11(void) { }
 void RGFW_load_Wayland(void) { }
 #endif
 
+/*
+ * Sadly we have to use magic linux keycodes
+ * We can't use X11 functions, because that breaks Wayland, but they use the same keycodes so there's no use redeffing them
+ * We can't use linux enums, because the headers don't exist on BSD
+ */
 void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[49] = RGFW_backtick;
 	_RGFW->keycodes[19] = RGFW_0;
@@ -3562,6 +3584,21 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[78] = RGFW_scrollLock;
 	_RGFW->keycodes[107] = RGFW_printScreen;
 	_RGFW->keycodes[128] = RGFW_pause;
+    _RGFW->keycodes[191] = RGFW_F13;
+    _RGFW->keycodes[192] = RGFW_F14;
+    _RGFW->keycodes[193] = RGFW_F15;
+    _RGFW->keycodes[194] = RGFW_F16;
+    _RGFW->keycodes[195] = RGFW_F17;
+    _RGFW->keycodes[196] = RGFW_F18;
+    _RGFW->keycodes[197] = RGFW_F19;
+    _RGFW->keycodes[198] = RGFW_F20;
+    _RGFW->keycodes[199] = RGFW_F21;
+    _RGFW->keycodes[200] = RGFW_F22;
+    _RGFW->keycodes[201] = RGFW_F23;
+    _RGFW->keycodes[202] = RGFW_F24;
+    _RGFW->keycodes[203] = RGFW_F25;
+    _RGFW->keycodes[161] = RGFW_world1; /* non-US key #1 */
+    _RGFW->keycodes[162] = RGFW_world2; /* non-US key #2 */
 }
 
 i32 RGFW_initPlatform(void) {
@@ -7504,8 +7541,8 @@ void RGFW_window_deleteContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx) 
 }
 #endif /* RGFW_OPENGL */
 
+/* we're doing it with magic numbers because some keys are missing  */
 void RGFW_initKeycodesPlatform(void) {
-	_RGFW->keycodes[0x029] = RGFW_backtick;
 	_RGFW->keycodes[0x00B] = RGFW_0;
 	_RGFW->keycodes[0x002] = RGFW_1;
 	_RGFW->keycodes[0x003] = RGFW_2;
@@ -7516,7 +7553,6 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[0x008] = RGFW_7;
 	_RGFW->keycodes[0x009] = RGFW_8;
 	_RGFW->keycodes[0x00A] = RGFW_9;
-	_RGFW->keycodes[0x039] = RGFW_space;
 	_RGFW->keycodes[0x01E] = RGFW_a;
 	_RGFW->keycodes[0x030] = RGFW_b;
 	_RGFW->keycodes[0x02E] = RGFW_c;
@@ -7543,43 +7579,34 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[0x02D] = RGFW_x;
 	_RGFW->keycodes[0x015] = RGFW_y;
 	_RGFW->keycodes[0x02C] = RGFW_z;
-	_RGFW->keycodes[0x034] = RGFW_period;
-	_RGFW->keycodes[0x033] = RGFW_comma;
-	_RGFW->keycodes[0x035] = RGFW_slash;
-	_RGFW->keycodes[0x01A] = RGFW_bracket;
-	_RGFW->keycodes[0x01B] = RGFW_closeBracket;
-	_RGFW->keycodes[0x027] = RGFW_semicolon;
 	_RGFW->keycodes[0x028] = RGFW_apostrophe;
 	_RGFW->keycodes[0x02B] = RGFW_backSlash;
-	_RGFW->keycodes[0x01C] = RGFW_return;
-	_RGFW->keycodes[0x153] = RGFW_delete;
-	_RGFW->keycodes[0x145] = RGFW_numLock;
-	_RGFW->keycodes[0x135] = RGFW_KP_Slash;
-	_RGFW->keycodes[0x037] = RGFW_multiply;
-	_RGFW->keycodes[0x04A] = RGFW_KP_Minus;
-	_RGFW->keycodes[0x04F] = RGFW_KP_1;
-	_RGFW->keycodes[0x050] = RGFW_KP_2;
-	_RGFW->keycodes[0x051] = RGFW_KP_3;
-	_RGFW->keycodes[0x04B] = RGFW_KP_4;
-	_RGFW->keycodes[0x04C] = RGFW_KP_5;
-	_RGFW->keycodes[0x04D] = RGFW_KP_6;
-	_RGFW->keycodes[0x049] = RGFW_KP_9;
-	_RGFW->keycodes[0x052] = RGFW_KP_0;
-	_RGFW->keycodes[0x053] = RGFW_KP_Period;
-	_RGFW->keycodes[0x11C] = RGFW_KP_Return;
-	_RGFW->keycodes[0x00C] = RGFW_minus;
+	_RGFW->keycodes[0x033] = RGFW_comma;
 	_RGFW->keycodes[0x00D] = RGFW_equals;
+	_RGFW->keycodes[0x029] = RGFW_backtick;
+	_RGFW->keycodes[0x01A] = RGFW_bracket;
+	_RGFW->keycodes[0x00C] = RGFW_minus;
+	_RGFW->keycodes[0x034] = RGFW_period;
+	_RGFW->keycodes[0x01B] = RGFW_closeBracket;
+	_RGFW->keycodes[0x027] = RGFW_semicolon;
+	_RGFW->keycodes[0x035] = RGFW_slash;
+	_RGFW->keycodes[0x056] = RGFW_world2;
 	_RGFW->keycodes[0x00E] = RGFW_backSpace;
+	_RGFW->keycodes[0x153] = RGFW_delete;
+	_RGFW->keycodes[0x14F] = RGFW_end;
+	_RGFW->keycodes[0x01C] = RGFW_enter;
+	_RGFW->keycodes[0x001] = RGFW_escape;
+	_RGFW->keycodes[0x147] = RGFW_home;
+	_RGFW->keycodes[0x152] = RGFW_insert;
+	_RGFW->keycodes[0x15D] = RGFW_menu;
+	_RGFW->keycodes[0x151] = RGFW_pageDown;
+	_RGFW->keycodes[0x149] = RGFW_pageUp;
+	_RGFW->keycodes[0x045] = RGFW_pause;
+	_RGFW->keycodes[0x039] = RGFW_space;
 	_RGFW->keycodes[0x00F] = RGFW_tab;
 	_RGFW->keycodes[0x03A] = RGFW_capsLock;
-	_RGFW->keycodes[0x02A] = RGFW_shiftL;
-	_RGFW->keycodes[0x01D] = RGFW_controlL;
-	_RGFW->keycodes[0x038] = RGFW_altL;
-	_RGFW->keycodes[0x15B] = RGFW_superL;
-	_RGFW->keycodes[0x11D] = RGFW_controlR;
-	_RGFW->keycodes[0x15C] = RGFW_superR;
-	_RGFW->keycodes[0x036] = RGFW_shiftR;
-	_RGFW->keycodes[0x138] = RGFW_altR;
+	_RGFW->keycodes[0x145] = RGFW_numLock;
+	_RGFW->keycodes[0x046] = RGFW_scrollLock;
 	_RGFW->keycodes[0x03B] = RGFW_F1;
 	_RGFW->keycodes[0x03C] = RGFW_F2;
 	_RGFW->keycodes[0x03D] = RGFW_F3;
@@ -7592,19 +7619,48 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[0x044] = RGFW_F10;
 	_RGFW->keycodes[0x057] = RGFW_F11;
 	_RGFW->keycodes[0x058] = RGFW_F12;
-	_RGFW->keycodes[0x148] = RGFW_up;
+	_RGFW->keycodes[0x064] = RGFW_F13;
+	_RGFW->keycodes[0x065] = RGFW_F14;
+	_RGFW->keycodes[0x066] = RGFW_F15;
+	_RGFW->keycodes[0x067] = RGFW_F16;
+	_RGFW->keycodes[0x068] = RGFW_F17;
+	_RGFW->keycodes[0x069] = RGFW_F18;
+	_RGFW->keycodes[0x06A] = RGFW_F19;
+	_RGFW->keycodes[0x06B] = RGFW_F20;
+	_RGFW->keycodes[0x06C] = RGFW_F21;
+	_RGFW->keycodes[0x06D] = RGFW_F22;
+	_RGFW->keycodes[0x06E] = RGFW_F23;
+	_RGFW->keycodes[0x076] = RGFW_F24;
+	_RGFW->keycodes[0x038] = RGFW_altL;
+	_RGFW->keycodes[0x01D] = RGFW_controlL;
+	_RGFW->keycodes[0x02A] = RGFW_shiftL;
+	_RGFW->keycodes[0x15B] = RGFW_superL;
+	_RGFW->keycodes[0x137] = RGFW_printScreen;
+	_RGFW->keycodes[0x138] = RGFW_altR;
+	_RGFW->keycodes[0x11D] = RGFW_controlR;
+	_RGFW->keycodes[0x036] = RGFW_shiftR;
+	_RGFW->keycodes[0x15C] = RGFW_superR;
 	_RGFW->keycodes[0x150] = RGFW_down;
 	_RGFW->keycodes[0x14B] = RGFW_left;
 	_RGFW->keycodes[0x14D] = RGFW_right;
-	_RGFW->keycodes[0x152] = RGFW_insert;
-	_RGFW->keycodes[0x14F] = RGFW_end;
-	_RGFW->keycodes[0x149] = RGFW_pageUp;
-	_RGFW->keycodes[0x151] = RGFW_pageDown;
-	_RGFW->keycodes[0x001] = RGFW_escape;
-	_RGFW->keycodes[0x147] = RGFW_home;
-	_RGFW->keycodes[0x046] = RGFW_scrollLock;
-	_RGFW->keycodes[0x137] = RGFW_printScreen;
-	_RGFW->keycodes[0x045] = RGFW_pause;
+	_RGFW->keycodes[0x148] = RGFW_up;
+	_RGFW->keycodes[0x052] = RGFW_KP_0;
+	_RGFW->keycodes[0x04F] = RGFW_KP_1;
+	_RGFW->keycodes[0x050] = RGFW_KP_2;
+	_RGFW->keycodes[0x051] = RGFW_KP_3;
+	_RGFW->keycodes[0x04B] = RGFW_KP_4;
+	_RGFW->keycodes[0x04C] = RGFW_KP_5;
+	_RGFW->keycodes[0x04D] = RGFW_KP_6;
+	_RGFW->keycodes[0x047] = RGFW_KP_7;
+	_RGFW->keycodes[0x048] = RGFW_KP_8;
+	_RGFW->keycodes[0x049] = RGFW_KP_9;
+	_RGFW->keycodes[0x04E] = RGFW_KP_Plus;
+	_RGFW->keycodes[0x053] = RGFW_KP_Period;
+	_RGFW->keycodes[0x135] = RGFW_KP_Slash;
+	_RGFW->keycodes[0x11C] = RGFW_KP_Return;
+	_RGFW->keycodes[0x059] = RGFW_KP_Equal;
+	_RGFW->keycodes[0x037] = RGFW_KP_Multiply;
+	_RGFW->keycodes[0x04A] = RGFW_KP_Minus;
 }
 
 
@@ -9526,102 +9582,117 @@ void RGFW_window_deleteContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx) 
 #endif /* RGFW_OPENGL */
 
 void RGFW_initKeycodesPlatform(void) {
-	_RGFW->keycodes[50] = RGFW_backtick;
-	_RGFW->keycodes[29] = RGFW_0;
-	_RGFW->keycodes[18] = RGFW_1;
-	_RGFW->keycodes[19] = RGFW_2;
-	_RGFW->keycodes[20] = RGFW_3;
-	_RGFW->keycodes[21] = RGFW_4;
-	_RGFW->keycodes[23] = RGFW_5;
-	_RGFW->keycodes[22] = RGFW_6;
-	_RGFW->keycodes[26] = RGFW_7;
-	_RGFW->keycodes[28] = RGFW_8;
-	_RGFW->keycodes[25] = RGFW_9;
-	_RGFW->keycodes[49] = RGFW_space;
-	_RGFW->keycodes[0] = RGFW_a;
-	_RGFW->keycodes[11] = RGFW_b;
-	_RGFW->keycodes[8] = RGFW_c;
-	_RGFW->keycodes[2] = RGFW_d;
-	_RGFW->keycodes[14] = RGFW_e;
-	_RGFW->keycodes[3] = RGFW_f;
-	_RGFW->keycodes[5] = RGFW_g;
-	_RGFW->keycodes[4] = RGFW_h;
-	_RGFW->keycodes[34] = RGFW_i;
-	_RGFW->keycodes[38] = RGFW_j;
-	_RGFW->keycodes[40] = RGFW_k;
-	_RGFW->keycodes[37] = RGFW_l;
-	_RGFW->keycodes[46] = RGFW_m;
-	_RGFW->keycodes[45] = RGFW_n;
-	_RGFW->keycodes[31] = RGFW_o;
-	_RGFW->keycodes[35] = RGFW_p;
-	_RGFW->keycodes[12] = RGFW_q;
-	_RGFW->keycodes[15] = RGFW_r;
-	_RGFW->keycodes[1] = RGFW_s;
-	_RGFW->keycodes[17] = RGFW_t;
-	_RGFW->keycodes[32] = RGFW_u;
-	_RGFW->keycodes[9] = RGFW_v;
-	_RGFW->keycodes[13] = RGFW_w;
-	_RGFW->keycodes[7] = RGFW_x;
-	_RGFW->keycodes[16] = RGFW_y;
-	_RGFW->keycodes[6] = RGFW_z;
-	_RGFW->keycodes[47] = RGFW_period;
-	_RGFW->keycodes[43] = RGFW_comma;
-	_RGFW->keycodes[44] = RGFW_slash;
-	_RGFW->keycodes[33] = RGFW_bracket;
-	_RGFW->keycodes[30] = RGFW_closeBracket;
-	_RGFW->keycodes[41] = RGFW_semicolon;
-	_RGFW->keycodes[39] = RGFW_apostrophe;
-	_RGFW->keycodes[42] = RGFW_backSlash;
-	_RGFW->keycodes[36] = RGFW_return;
-	_RGFW->keycodes[118] = RGFW_delete;
-	_RGFW->keycodes[72] = RGFW_numLock;
-	_RGFW->keycodes[82] = RGFW_KP_Slash;
-	_RGFW->keycodes[76] = RGFW_multiply;
-	_RGFW->keycodes[67] = RGFW_KP_Minus;
-	_RGFW->keycodes[84] = RGFW_KP_1;
-	_RGFW->keycodes[85] = RGFW_KP_2;
-	_RGFW->keycodes[86] = RGFW_KP_3;
-	_RGFW->keycodes[87] = RGFW_KP_4;
-	_RGFW->keycodes[88] = RGFW_KP_5;
-	_RGFW->keycodes[89] = RGFW_KP_6;
-	_RGFW->keycodes[93] = RGFW_KP_9;
-	_RGFW->keycodes[83] = RGFW_KP_0;
-	_RGFW->keycodes[65] = RGFW_KP_Period;
-	_RGFW->keycodes[77] = RGFW_KP_Return;
-	_RGFW->keycodes[27] = RGFW_minus;
-	_RGFW->keycodes[24] = RGFW_equals;
-	_RGFW->keycodes[51] = RGFW_backSpace;
-	_RGFW->keycodes[48] = RGFW_tab;
-	_RGFW->keycodes[57] = RGFW_capsLock;
-	_RGFW->keycodes[56] = RGFW_shiftL;
-	_RGFW->keycodes[59] = RGFW_controlL;
-	_RGFW->keycodes[58] = RGFW_altL;
-	_RGFW->keycodes[55] = RGFW_superL;
-	_RGFW->keycodes[127] = RGFW_F1;
-	_RGFW->keycodes[121] = RGFW_F2;
-	_RGFW->keycodes[100] = RGFW_F3;
-	_RGFW->keycodes[119] = RGFW_F4;
-	_RGFW->keycodes[97] = RGFW_F5;
-	_RGFW->keycodes[98] = RGFW_F6;
-	_RGFW->keycodes[99] = RGFW_F7;
-	_RGFW->keycodes[101] = RGFW_F8;
-	_RGFW->keycodes[102] = RGFW_F9;
-	_RGFW->keycodes[110] = RGFW_F10;
-	_RGFW->keycodes[104] = RGFW_F11;
-	_RGFW->keycodes[111] = RGFW_F12;
-	_RGFW->keycodes[126] = RGFW_up;
-	_RGFW->keycodes[125] = RGFW_down;
-	_RGFW->keycodes[123] = RGFW_left;
-	_RGFW->keycodes[124] = RGFW_right;
-	_RGFW->keycodes[115] = RGFW_insert;
-	_RGFW->keycodes[120] = RGFW_end;
-	_RGFW->keycodes[117] = RGFW_pageUp;
-	_RGFW->keycodes[122] = RGFW_pageDown;
-	_RGFW->keycodes[53] = RGFW_escape;
-	_RGFW->keycodes[116] = RGFW_home;
-	_RGFW->keycodes[107] = RGFW_scrollLock;
-	_RGFW->keycodes[105] = RGFW_printScreen;
-	_RGFW->keycodes[113] = RGFW_pause;
+	_RGFW->keycodes[0x1D] = RGFW_0;
+	_RGFW->keycodes[0x12] = RGFW_1;
+	_RGFW->keycodes[0x13] = RGFW_2;
+	_RGFW->keycodes[0x14] = RGFW_3;
+	_RGFW->keycodes[0x15] = RGFW_4;
+	_RGFW->keycodes[0x17] = RGFW_5;
+	_RGFW->keycodes[0x16] = RGFW_6;
+	_RGFW->keycodes[0x1A] = RGFW_7;
+	_RGFW->keycodes[0x1C] = RGFW_8;
+	_RGFW->keycodes[0x19] = RGFW_9;
+	_RGFW->keycodes[0x00] = RGFW_a;
+	_RGFW->keycodes[0x0B] = RGFW_b;
+	_RGFW->keycodes[0x08] = RGFW_c;
+	_RGFW->keycodes[0x02] = RGFW_d;
+	_RGFW->keycodes[0x0E] = RGFW_e;
+	_RGFW->keycodes[0x03] = RGFW_f;
+	_RGFW->keycodes[0x05] = RGFW_g;
+	_RGFW->keycodes[0x04] = RGFW_h;
+	_RGFW->keycodes[0x22] = RGFW_i;
+	_RGFW->keycodes[0x26] = RGFW_j;
+	_RGFW->keycodes[0x28] = RGFW_k;
+	_RGFW->keycodes[0x25] = RGFW_l;
+	_RGFW->keycodes[0x2E] = RGFW_m;
+	_RGFW->keycodes[0x2D] = RGFW_n;
+	_RGFW->keycodes[0x1F] = RGFW_o;
+	_RGFW->keycodes[0x23] = RGFW_p;
+	_RGFW->keycodes[0x0C] = RGFW_q;
+	_RGFW->keycodes[0x0F] = RGFW_r;
+	_RGFW->keycodes[0x01] = RGFW_s;
+	_RGFW->keycodes[0x11] = RGFW_t;
+	_RGFW->keycodes[0x20] = RGFW_u;
+	_RGFW->keycodes[0x09] = RGFW_v;
+	_RGFW->keycodes[0x0D] = RGFW_w;
+	_RGFW->keycodes[0x07] = RGFW_x;
+	_RGFW->keycodes[0x10] = RGFW_y;
+	_RGFW->keycodes[0x06] = RGFW_z;
+	_RGFW->keycodes[0x27] = RGFW_apostrophe;
+	_RGFW->keycodes[0x2A] = RGFW_backSlash;
+	_RGFW->keycodes[0x2B] = RGFW_comma;
+	_RGFW->keycodes[0x18] = RGFW_equals;
+	_RGFW->keycodes[0x32] = RGFW_backtick;
+	_RGFW->keycodes[0x21] = RGFW_bracket;
+	_RGFW->keycodes[0x1B] = RGFW_minus;
+	_RGFW->keycodes[0x2F] = RGFW_period;
+	_RGFW->keycodes[0x1E] = RGFW_closeBracket;
+	_RGFW->keycodes[0x29] = RGFW_semicolon;
+	_RGFW->keycodes[0x2C] = RGFW_slash;
+	_RGFW->keycodes[0x0A] = RGFW_world1;
+	_RGFW->keycodes[0x33] = RGFW_backSpace;
+	_RGFW->keycodes[0x39] = RGFW_capsLock;
+	_RGFW->keycodes[0x75] = RGFW_delete;
+	_RGFW->keycodes[0x7D] = RGFW_down;
+	_RGFW->keycodes[0x77] = RGFW_end;
+	_RGFW->keycodes[0x24] = RGFW_enter;
+	_RGFW->keycodes[0x35] = RGFW_escape;
+	_RGFW->keycodes[0x7A] = RGFW_F1;
+	_RGFW->keycodes[0x78] = RGFW_F2;
+	_RGFW->keycodes[0x63] = RGFW_F3;
+	_RGFW->keycodes[0x76] = RGFW_F4;
+	_RGFW->keycodes[0x60] = RGFW_F5;
+	_RGFW->keycodes[0x61] = RGFW_F6;
+	_RGFW->keycodes[0x62] = RGFW_F7;
+	_RGFW->keycodes[0x64] = RGFW_F8;
+	_RGFW->keycodes[0x65] = RGFW_F9;
+	_RGFW->keycodes[0x6D] = RGFW_F10;
+	_RGFW->keycodes[0x67] = RGFW_F11;
+	_RGFW->keycodes[0x6F] = RGFW_F12;
+	_RGFW->keycodes[0x69] = RGFW_printScreen;
+	_RGFW->keycodes[0x6B] = RGFW_F14;
+	_RGFW->keycodes[0x71] = RGFW_F15;
+	_RGFW->keycodes[0x6A] = RGFW_F16;
+	_RGFW->keycodes[0x40] = RGFW_F17;
+	_RGFW->keycodes[0x4F] = RGFW_F18;
+	_RGFW->keycodes[0x50] = RGFW_F19;
+	_RGFW->keycodes[0x5A] = RGFW_F20;
+	_RGFW->keycodes[0x73] = RGFW_home;
+	_RGFW->keycodes[0x72] = RGFW_insert;
+	_RGFW->keycodes[0x7B] = RGFW_left;
+	_RGFW->keycodes[0x3A] = RGFW_altL;
+	_RGFW->keycodes[0x3B] = RGFW_controlL;
+	_RGFW->keycodes[0x38] = RGFW_shiftL;
+	_RGFW->keycodes[0x37] = RGFW_superL;
+	_RGFW->keycodes[0x6E] = RGFW_menu;
+	_RGFW->keycodes[0x47] = RGFW_numLock;
+	_RGFW->keycodes[0x79] = RGFW_pageDown;
+	_RGFW->keycodes[0x74] = RGFW_pageUp;
+	_RGFW->keycodes[0x7C] = RGFW_right;
+	_RGFW->keycodes[0x3D] = RGFW_altR;
+	_RGFW->keycodes[0x3E] = RGFW_controlR;
+	_RGFW->keycodes[0x3C] = RGFW_shiftR;
+	_RGFW->keycodes[0x36] = RGFW_superR;
+	_RGFW->keycodes[0x31] = RGFW_space;
+	_RGFW->keycodes[0x30] = RGFW_tab;
+	_RGFW->keycodes[0x7E] = RGFW_up;
+	_RGFW->keycodes[0x52] = RGFW_KP_0;
+	_RGFW->keycodes[0x53] = RGFW_KP_1;
+	_RGFW->keycodes[0x54] = RGFW_KP_2;
+	_RGFW->keycodes[0x55] = RGFW_KP_3;
+	_RGFW->keycodes[0x56] = RGFW_KP_4;
+	_RGFW->keycodes[0x57] = RGFW_KP_5;
+	_RGFW->keycodes[0x58] = RGFW_KP_6;
+	_RGFW->keycodes[0x59] = RGFW_KP_7;
+	_RGFW->keycodes[0x5B] = RGFW_KP_8;
+	_RGFW->keycodes[0x5C] = RGFW_KP_9;
+	_RGFW->keycodes[0x45] = RGFW_KP_Slash;
+	_RGFW->keycodes[0x41] = RGFW_KP_Period;
+	_RGFW->keycodes[0x4B] = RGFW_KP_Slash;
+	_RGFW->keycodes[0x4C] = RGFW_KP_Return;
+	_RGFW->keycodes[0x51] = RGFW_KP_Equals;
+	_RGFW->keycodes[0x43] = RGFW_multiply;
+	_RGFW->keycodes[0x4E] = RGFW_KP_Minus;
 }
 
 i32 RGFW_initPlatform(void) {
@@ -10892,6 +10963,21 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[DOM_VK_SCROLL_LOCK] = RGFW_scrollLock;
 	_RGFW->keycodes[DOM_VK_PRINTSCREEN] = RGFW_printScreen;
 	_RGFW->keycodes[DOM_VK_PAUSE] = RGFW_pause;
+	_RGFW->keycodes[DOM_VK_F13]  = RGFW_F13;
+	_RGFW->keycodes[DOM_VK_F14]  = RGFW_F14;
+	_RGFW->keycodes[DOM_VK_F15]  = RGFW_F15;
+	_RGFW->keycodes[DOM_VK_F16]  = RGFW_F16;
+	_RGFW->keycodes[DOM_VK_F17]  = RGFW_F17;
+	_RGFW->keycodes[DOM_VK_F18]  = RGFW_F18;
+	_RGFW->keycodes[DOM_VK_F19]  = RGFW_F19;
+	_RGFW->keycodes[DOM_VK_F20]  = RGFW_F20;
+	_RGFW->keycodes[DOM_VK_F21]  = RGFW_F21;
+	_RGFW->keycodes[DOM_VK_F22]  = RGFW_F22;
+	_RGFW->keycodes[DOM_VK_F23]  = RGFW_F23;
+	_RGFW->keycodes[DOM_VK_F24]  = RGFW_F24;
+	_RGFW->keycodes[DOM_VK_F25] = RGFW_F25;
+	_RGFW->keycodes[DOM_VK_WORLD_1] = RGFW_world1;
+	_RGFW->keycodes[DOM_VK_WORLD_2 = RGFW_world2;
 }
 
 i32 RGFW_initPlatform(void) { return 0; }
@@ -11255,6 +11341,19 @@ u32 RGFW_WASMPhysicalToRGFW(u32 hash) {
 		case 0x95852DACU /* NumpadDecimal      */: return RGFW_period;       /* 0x0053 */
 		case 0x7B8E57B1U  /* F11                */: return RGFW_F11;                  /* 0x0057 */
 		case 0x7B8E57B2U  /* F12                */: return RGFW_F12;                  /* 0x0058 */
+		case 0x7174B783U /* F13                */: return RGFW_F13;
+		case 0x7174B784U /* F14                */: return RGFW_F14;
+		case 0x7174B785U /* F15                */: return RGFW_F15;
+		case 0x7174B786U /* F16                */: return RGFW_F16;
+		case 0x7174B787U /* F17                */: return RGFW_F17;
+		case 0x7174B788U /* F18                */: return RGFW_F18;
+		case 0x7174B789U /* F19                */: return RGFW_F19;
+		case 0x7174B78AU /* F20                */: return RGFW_F20;
+		case 0x7174B78BU /* F21                */: return RGFW_F21;
+		case 0x7174B78CU /* F22                */: return RGFW_F22;
+		case 0x7174B78DU /* F23                */: return RGFW_F23;
+		case 0x7174B78EU /* F24                */: return RGFW_F24;
+		case 0x7174B78FU /* F25                */: return RGFW_F25;
 		case 0x7393FBACU /* NumpadEqual        */: return RGFW_KP_Return;
 		case 0xB88EBF7CU  /* AltRight           */: return RGFW_altR;            /* 0xE038 */
 		case 0xC925873BU /* NumLock            */: return RGFW_numLock;             /* 0xE045 */
