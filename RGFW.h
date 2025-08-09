@@ -1077,8 +1077,6 @@ RGFWDEF RGFW_bool RGFW_isMousePressed(RGFW_window* win, RGFW_mouseButton button 
 RGFWDEF RGFW_bool RGFW_isMouseDown(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
 /*! if a mouse button was released */
 RGFWDEF RGFW_bool RGFW_isMouseReleased(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
-/*! if a mouse button was pressed (checks previous state only) */
-RGFWDEF RGFW_bool RGFW_wasMousePressed(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
 /** @} */
 
 /** * @defgroup Clipboard
@@ -2251,7 +2249,7 @@ RGFW_bool RGFW_isKeyPressed(RGFW_window* win, RGFW_key key) {
 }
 
 RGFW_bool RGFW_isKeyDown(RGFW_window* win, RGFW_key key) {
-	return (RGFW_keyboard[key].prev && RGFW_keyboard[key].current);
+	return _RGFW != NULL && RGFW_keyboard[key].prev && RGFW_keyboard[key].current && (win == NULL || RGFW_window_isInFocus(win));
 }
 
 RGFW_bool RGFW_isKeyReleased(RGFW_window* win, RGFW_key key) {
