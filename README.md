@@ -69,28 +69,28 @@ int main() {
             // you can either check the current event yourself
             if (event.type == RGFW_quit) break;
 
-            if (event.type == RGFW_mouseButtonPressed && event.button == RGFW_mouseLeft) {
-                printf("You clicked at x: %d, y: %d\n", event.x, event.y);
+            if (event.type == RGFW_mouseButtonPressed && event.button.value == RGFW_mouseLeft) {
+                printf("You clicked at x: %d, y: %d\n", event.mouse.x, event.mouse.y);
             }
 
             // or use the existing functions
             if (RGFW_isMousePressed(win, RGFW_mouseRight)) {
-                printf("The right mouse button was clicked at x: %d, y: %d\n", event.x, event.y);
+                printf("The right mouse button was clicked at x: %d, y: %d\n", event.mouse.x, event.mouse.y);
             }
-
-            // OpenGL 1.1 is used here for a simple example, but you can use any version you want (if you request it first (see gl33/gl33.c))
-            glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-            glBegin(GL_TRIANGLES);
-                glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.6f, -0.75f);
-                glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.6f, -0.75f);
-                glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
-            glEnd();
-
-            RGFW_window_swapBuffers_OpenGL(win);
-            glFlush();
         }
+
+        // OpenGL 1.1 is used here for a simple example, but you can use any version you want (if you request it first (see gl33/gl33.c))
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+        glBegin(GL_TRIANGLES);
+            glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.6f, -0.75f);
+            glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.6f, -0.75f);
+            glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
+        glEnd();
+
+        RGFW_window_swapBuffers_OpenGL(win);
+        glFlush();
     }
 
     RGFW_window_close(win);
