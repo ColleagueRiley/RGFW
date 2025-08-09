@@ -603,21 +603,22 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_pageUp,
 	RGFW_pageDown,
 	RGFW_numLock,
-	RGFW_KP_Slash,
-	RGFW_multiply,
-	RGFW_KP_Minus,
-	RGFW_KP_1,
-	RGFW_KP_2,
-	RGFW_KP_3,
-	RGFW_KP_4,
-	RGFW_KP_5,
-	RGFW_KP_6,
-	RGFW_KP_7,
-	RGFW_KP_8,
-	RGFW_KP_9,
-	RGFW_KP_0,
-	RGFW_KP_Period,
-	RGFW_KP_Return,
+	RGFW_kpSlash,
+	RGFW_kpMultiply,
+	RGFW_kpMinus,
+	RGFW_kpEqual,
+	RGFW_kp1,
+	RGFW_kp2,
+	RGFW_kp3,
+	RGFW_kp4,
+	RGFW_kp5,
+	RGFW_kp6,
+	RGFW_kp7,
+	RGFW_kp8,
+	RGFW_kp9,
+	RGFW_kp0,
+	RGFW_kpPeriod,
+	RGFW_kpReturn,
 	RGFW_scrollLock,
     RGFW_printScreen,
     RGFW_pause,
@@ -3533,19 +3534,19 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[36] = RGFW_return;
 	_RGFW->keycodes[119] = RGFW_delete;
 	_RGFW->keycodes[77] = RGFW_numLock;
-	_RGFW->keycodes[106] = RGFW_KP_Slash;
-	_RGFW->keycodes[63] = RGFW_multiply;
-	_RGFW->keycodes[82] = RGFW_KP_Minus;
-	_RGFW->keycodes[87] = RGFW_KP_1;
-	_RGFW->keycodes[88] = RGFW_KP_2;
-	_RGFW->keycodes[89] = RGFW_KP_3;
-	_RGFW->keycodes[83] = RGFW_KP_4;
-	_RGFW->keycodes[84] = RGFW_KP_5;
-	_RGFW->keycodes[85] = RGFW_KP_6;
-	_RGFW->keycodes[81] = RGFW_KP_9;
-	_RGFW->keycodes[90] = RGFW_KP_0;
-	_RGFW->keycodes[91] = RGFW_KP_Period;
-	_RGFW->keycodes[104] = RGFW_KP_Return;
+	_RGFW->keycodes[106] = RGFW_kpSlash;
+	_RGFW->keycodes[63] = RGFW_kpMultiply;
+	_RGFW->keycodes[82] = RGFW_kpMinus;
+	_RGFW->keycodes[87] = RGFW_kp1;
+	_RGFW->keycodes[88] = RGFW_kp2;
+	_RGFW->keycodes[89] = RGFW_kp3;
+	_RGFW->keycodes[83] = RGFW_kp4;
+	_RGFW->keycodes[84] = RGFW_kp5;
+	_RGFW->keycodes[85] = RGFW_kp6;
+	_RGFW->keycodes[81] = RGFW_kp9;
+	_RGFW->keycodes[90] = RGFW_kp0;
+	_RGFW->keycodes[91] = RGFW_kpPeriod;
+	_RGFW->keycodes[104] = RGFW_kpReturn;
 	_RGFW->keycodes[20] = RGFW_minus;
 	_RGFW->keycodes[21] = RGFW_equals;
 	_RGFW->keycodes[22] = RGFW_backSpace;
@@ -3597,7 +3598,8 @@ void RGFW_initKeycodesPlatform(void) {
     _RGFW->keycodes[201] = RGFW_F23;
     _RGFW->keycodes[202] = RGFW_F24;
     _RGFW->keycodes[203] = RGFW_F25;
-    _RGFW->keycodes[161] = RGFW_world1; /* non-US key #1 */
+	_RGFW->keycodes[142] = RGFW_kpEqual;
+	_RGFW->keycodes[161] = RGFW_world1; /* non-US key #1 */
     _RGFW->keycodes[162] = RGFW_world2; /* non-US key #2 */
 }
 
@@ -7644,23 +7646,23 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[0x14B] = RGFW_left;
 	_RGFW->keycodes[0x14D] = RGFW_right;
 	_RGFW->keycodes[0x148] = RGFW_up;
-	_RGFW->keycodes[0x052] = RGFW_KP_0;
-	_RGFW->keycodes[0x04F] = RGFW_KP_1;
-	_RGFW->keycodes[0x050] = RGFW_KP_2;
-	_RGFW->keycodes[0x051] = RGFW_KP_3;
-	_RGFW->keycodes[0x04B] = RGFW_KP_4;
-	_RGFW->keycodes[0x04C] = RGFW_KP_5;
-	_RGFW->keycodes[0x04D] = RGFW_KP_6;
-	_RGFW->keycodes[0x047] = RGFW_KP_7;
-	_RGFW->keycodes[0x048] = RGFW_KP_8;
-	_RGFW->keycodes[0x049] = RGFW_KP_9;
-	_RGFW->keycodes[0x04E] = RGFW_KP_Plus;
-	_RGFW->keycodes[0x053] = RGFW_KP_Period;
-	_RGFW->keycodes[0x135] = RGFW_KP_Slash;
-	_RGFW->keycodes[0x11C] = RGFW_KP_Return;
-	_RGFW->keycodes[0x059] = RGFW_KP_Equal;
-	_RGFW->keycodes[0x037] = RGFW_KP_Multiply;
-	_RGFW->keycodes[0x04A] = RGFW_KP_Minus;
+	_RGFW->keycodes[0x052] = RGFW_kp0;
+	_RGFW->keycodes[0x04F] = RGFW_kp1;
+	_RGFW->keycodes[0x050] = RGFW_kp2;
+	_RGFW->keycodes[0x051] = RGFW_kp3;
+	_RGFW->keycodes[0x04B] = RGFW_kp4;
+	_RGFW->keycodes[0x04C] = RGFW_kp5;
+	_RGFW->keycodes[0x04D] = RGFW_kp6;
+	_RGFW->keycodes[0x047] = RGFW_kp7;
+	_RGFW->keycodes[0x048] = RGFW_kp8;
+	_RGFW->keycodes[0x049] = RGFW_kp9;
+	_RGFW->keycodes[0x04E] = RGFW_kpPlus;
+	_RGFW->keycodes[0x053] = RGFW_kpPeriod;
+	_RGFW->keycodes[0x135] = RGFW_kpSlash;
+	_RGFW->keycodes[0x11C] = RGFW_kpReturn;
+	_RGFW->keycodes[0x059] = RGFW_kpEqual;
+	_RGFW->keycodes[0x037] = RGFW_kpMultiply;
+	_RGFW->keycodes[0x04A] = RGFW_kpMinus;
 }
 
 
@@ -9676,23 +9678,23 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[0x31] = RGFW_space;
 	_RGFW->keycodes[0x30] = RGFW_tab;
 	_RGFW->keycodes[0x7E] = RGFW_up;
-	_RGFW->keycodes[0x52] = RGFW_KP_0;
-	_RGFW->keycodes[0x53] = RGFW_KP_1;
-	_RGFW->keycodes[0x54] = RGFW_KP_2;
-	_RGFW->keycodes[0x55] = RGFW_KP_3;
-	_RGFW->keycodes[0x56] = RGFW_KP_4;
-	_RGFW->keycodes[0x57] = RGFW_KP_5;
-	_RGFW->keycodes[0x58] = RGFW_KP_6;
-	_RGFW->keycodes[0x59] = RGFW_KP_7;
-	_RGFW->keycodes[0x5B] = RGFW_KP_8;
-	_RGFW->keycodes[0x5C] = RGFW_KP_9;
-	_RGFW->keycodes[0x45] = RGFW_KP_Slash;
-	_RGFW->keycodes[0x41] = RGFW_KP_Period;
-	_RGFW->keycodes[0x4B] = RGFW_KP_Slash;
-	_RGFW->keycodes[0x4C] = RGFW_KP_Return;
-	_RGFW->keycodes[0x51] = RGFW_KP_Equals;
-	_RGFW->keycodes[0x43] = RGFW_multiply;
-	_RGFW->keycodes[0x4E] = RGFW_KP_Minus;
+	_RGFW->keycodes[0x52] = RGFW_kp0;
+	_RGFW->keycodes[0x53] = RGFW_kp1;
+	_RGFW->keycodes[0x54] = RGFW_kp2;
+	_RGFW->keycodes[0x55] = RGFW_kp3;
+	_RGFW->keycodes[0x56] = RGFW_kp4;
+	_RGFW->keycodes[0x57] = RGFW_kp5;
+	_RGFW->keycodes[0x58] = RGFW_kp6;
+	_RGFW->keycodes[0x59] = RGFW_kp7;
+	_RGFW->keycodes[0x5B] = RGFW_kp8;
+	_RGFW->keycodes[0x5C] = RGFW_kp9;
+	_RGFW->keycodes[0x45] = RGFW_kpSlash;
+	_RGFW->keycodes[0x41] = RGFW_kpPeriod;
+	_RGFW->keycodes[0x4B] = RGFW_kpSlash;
+	_RGFW->keycodes[0x4C] = RGFW_kpReturn;
+	_RGFW->keycodes[0x51] = RGFW_kpEqual;
+	_RGFW->keycodes[0x43] = RGFW_kpMultiply;
+	_RGFW->keycodes[0x4E] = RGFW_kpMinus;
 }
 
 i32 RGFW_initPlatform(void) {
@@ -10916,19 +10918,19 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[DOM_VK_RETURN] = RGFW_return;
 	_RGFW->keycodes[DOM_VK_DELETE] = RGFW_delete;
 	_RGFW->keycodes[DOM_VK_NUM_LOCK] = RGFW_numLock;
-	_RGFW->keycodes[DOM_VK_DIVIDE] = RGFW_KP_Slash;
-	_RGFW->keycodes[DOM_VK_MULTIPLY] = RGFW_multiply;
-	_RGFW->keycodes[DOM_VK_SUBTRACT] = RGFW_KP_Minus;
-	_RGFW->keycodes[DOM_VK_NUMPAD1] = RGFW_KP_1;
-	_RGFW->keycodes[DOM_VK_NUMPAD2] = RGFW_KP_2;
-	_RGFW->keycodes[DOM_VK_NUMPAD3] = RGFW_KP_3;
-	_RGFW->keycodes[DOM_VK_NUMPAD4] = RGFW_KP_4;
-	_RGFW->keycodes[DOM_VK_NUMPAD5] = RGFW_KP_5;
-	_RGFW->keycodes[DOM_VK_NUMPAD6] = RGFW_KP_6;
-	_RGFW->keycodes[DOM_VK_NUMPAD9] = RGFW_KP_9;
-	_RGFW->keycodes[DOM_VK_NUMPAD0] = RGFW_KP_0;
-	_RGFW->keycodes[DOM_VK_DECIMAL] = RGFW_KP_Period;
-	_RGFW->keycodes[DOM_VK_RETURN] = RGFW_KP_Return;
+	_RGFW->keycodes[DOM_VK_DIVIDE] = RGFW_kpSlash;
+	_RGFW->keycodes[DOM_VK_MULTIPLY] = RGFW_kpMultiply;
+	_RGFW->keycodes[DOM_VK_SUBTRACT] = RGFW_kpMinus;
+	_RGFW->keycodes[DOM_VK_NUMPAD1] = RGFW_kp1;
+	_RGFW->keycodes[DOM_VK_NUMPAD2] = RGFW_kp2;
+	_RGFW->keycodes[DOM_VK_NUMPAD3] = RGFW_kp3;
+	_RGFW->keycodes[DOM_VK_NUMPAD4] = RGFW_kp4;
+	_RGFW->keycodes[DOM_VK_NUMPAD5] = RGFW_kp5;
+	_RGFW->keycodes[DOM_VK_NUMPAD6] = RGFW_kp6;
+	_RGFW->keycodes[DOM_VK_NUMPAD9] = RGFW_kp9;
+	_RGFW->keycodes[DOM_VK_NUMPAD0] = RGFW_kp0;
+	_RGFW->keycodes[DOM_VK_DECIMAL] = RGFW_kpPeriod;
+	_RGFW->keycodes[DOM_VK_RETURN] = RGFW_kpReturn;
 	_RGFW->keycodes[DOM_VK_HYPHEN_MINUS] = RGFW_minus;
 	_RGFW->keycodes[DOM_VK_EQUALS] = RGFW_equals;
 	_RGFW->keycodes[DOM_VK_BACK_SPACE] = RGFW_backSpace;
@@ -11313,7 +11315,7 @@ u32 RGFW_WASMPhysicalToRGFW(u32 hash) {
 		case 0x672FFAD4U /* Period             */: return RGFW_period;               /* 0x0034 */
 		case 0x92E0A438U /* Slash              */: return RGFW_slash;                /* 0x0035 */
 		case 0xC5A6BF7CU /* ShiftRight         */: return RGFW_shiftR;
-		case 0x5D64DA91U /* NumpadMultiply     */: return RGFW_multiply;
+		case 0x5D64DA91U /* NumpadMultiply     */: return RGFW_kpMultiply;
 		case 0xC914958CU /* AltLeft            */: return RGFW_altL;             /* 0x0038 */
 		case 0x92E09CB5U /* Space              */: return RGFW_space;                /* 0x0039 */
 		case 0xB8FAE73BU  /* CapsLock           */: return RGFW_capsLock;            /* 0x003A */
@@ -11327,17 +11329,17 @@ u32 RGFW_WASMPhysicalToRGFW(u32 hash) {
 		case 0x7174B780U /* F8                 */: return RGFW_F8;                   /* 0x0042 */
 		case 0x7174B781U /* F9                 */: return RGFW_F9;                   /* 0x0043 */
 		case 0x7B8E57B0U  /* F10                */: return RGFW_F10;                  /* 0x0044 */
-		case 0xC925FCDFU /* Numpad7            */: return RGFW_multiply;             /* 0x0047 */
-		case 0xC925FCD0U /* Numpad8            */: return RGFW_KP_8;             /* 0x0048 */
-		case 0xC925FCD1U /* Numpad9            */: return RGFW_KP_9;             /* 0x0049 */
+		case 0xC925FCDFU /* Numpad7            */: return RGFW_kpMultiply;             /* 0x0047 */
+		case 0xC925FCD0U /* Numpad8            */: return RGFW_kp8;             /* 0x0048 */
+		case 0xC925FCD1U /* Numpad9            */: return RGFW_kp9;             /* 0x0049 */
 		case 0x5EA3E8A4U /* NumpadSubtract     */: return RGFW_minus;      /* 0x004A */
-		case 0xC925FCDCU /* Numpad4            */: return RGFW_KP_4;             /* 0x004B */
-		case 0xC925FCDDU /* Numpad5            */: return RGFW_KP_5;             /* 0x004C */
-		case 0xC925FCDEU /* Numpad6            */: return RGFW_KP_6;             /* 0x004D */
-		case 0xC925FCD9U /* Numpad1            */: return RGFW_KP_1;             /* 0x004F */
-		case 0xC925FCDAU /* Numpad2            */: return RGFW_KP_2;             /* 0x0050 */
-		case 0xC925FCDBU /* Numpad3            */: return RGFW_KP_3;             /* 0x0051 */
-		case 0xC925FCD8U /* Numpad0            */: return RGFW_KP_0;             /* 0x0052 */
+		case 0xC925FCDCU /* Numpad4            */: return RGFW_kp4;             /* 0x004B */
+		case 0xC925FCDDU /* Numpad5            */: return RGFW_kp5;             /* 0x004C */
+		case 0xC925FCDEU /* Numpad6            */: return RGFW_kp6;             /* 0x004D */
+		case 0xC925FCD9U /* Numpad1            */: return RGFW_kp1;             /* 0x004F */
+		case 0xC925FCDAU /* Numpad2            */: return RGFW_kp2;             /* 0x0050 */
+		case 0xC925FCDBU /* Numpad3            */: return RGFW_kp3;             /* 0x0051 */
+		case 0xC925FCD8U /* Numpad0            */: return RGFW_kp0;             /* 0x0052 */
 		case 0x95852DACU /* NumpadDecimal      */: return RGFW_period;       /* 0x0053 */
 		case 0x7B8E57B1U  /* F11                */: return RGFW_F11;                  /* 0x0057 */
 		case 0x7B8E57B2U  /* F12                */: return RGFW_F12;                  /* 0x0058 */
@@ -11354,7 +11356,7 @@ u32 RGFW_WASMPhysicalToRGFW(u32 hash) {
 		case 0x7174B78DU /* F23                */: return RGFW_F23;
 		case 0x7174B78EU /* F24                */: return RGFW_F24;
 		case 0x7174B78FU /* F25                */: return RGFW_F25;
-		case 0x7393FBACU /* NumpadEqual        */: return RGFW_KP_Return;
+		case 0x7393FBACU /* NumpadEqual        */: return RGFW_kpReturn;
 		case 0xB88EBF7CU  /* AltRight           */: return RGFW_altR;            /* 0xE038 */
 		case 0xC925873BU /* NumLock            */: return RGFW_numLock;             /* 0xE045 */
 		case 0x2C595F45U /* Home               */: return RGFW_home;                 /* 0xE047 */
