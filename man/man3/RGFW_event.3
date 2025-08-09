@@ -1,4 +1,4 @@
-.TH "RGFW_event" 3 "Fri Aug 8 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_event" 3 "Sat Aug 9 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -15,88 +15,48 @@ RGFW_event
 .RI "RGFW_eventType \fBtype\fP"
 .br
 .ti -1c
-.RI "\fBi32\fP \fBx\fP"
+.RI "\fBRGFW_commonEvent\fP \fBcommon\fP"
 .br
 .ti -1c
-.RI "\fBi32\fP \fBy\fP"
+.RI "\fBRGFW_mouseButtonEvent\fP \fBbutton\fP"
 .br
 .ti -1c
-.RI "float \fBvecX\fP"
+.RI "\fBRGFW_mousePosEvent\fP \fBmouse\fP"
 .br
 .ti -1c
-.RI "float \fBvecY\fP"
+.RI "\fBRGFW_keyEvent\fP \fBkey\fP"
 .br
 .ti -1c
-.RI "float \fBscaleX\fP"
+.RI "\fBRGFW_dropEvent\fP \fBdrop\fP"
 .br
 .ti -1c
-.RI "float \fBscaleY\fP"
+.RI "\fBRGFW_dragEvent\fP \fBdrag\fP"
 .br
 .ti -1c
-.RI "RGFW_key \fBkey\fP"
-.br
-.ti -1c
-.RI "\fBu8\fP \fBkeyChar\fP"
-.br
-.ti -1c
-.RI "\fBRGFW_bool\fP \fBrepeat\fP"
-.br
-.ti -1c
-.RI "RGFW_keymod \fBkeyMod\fP"
-.br
-.ti -1c
-.RI "\fBu8\fP \fBbutton\fP"
-.br
-.ti -1c
-.RI "double \fBscroll\fP"
-.br
-.ti -1c
-.RI "char ** \fBdroppedFiles\fP"
-.br
-.ti -1c
-.RI "size_t \fBdroppedFilesCount\fP"
-.br
-.ti -1c
-.RI "\fBRGFW_window\fP * \fB_win\fP"
+.RI "\fBRGFW_scaleUpdatedEvent\fP \fBscale\fP"
 .br
 .in -1c
 .SH "Detailed Description"
 .PP 
-Event structure for checking/getting events 
+\fBRGFW_event\fP union 
 .SH "Member Data Documentation"
 .PP 
-.SS "\fBRGFW_window\fP* RGFW_event::_win"
-the window this event applies too (for event queue events) 
-.SS "\fBu8\fP RGFW_event::button"
+.SS "\fBRGFW_mouseButtonEvent\fP RGFW_event::button"
+data for a button press/release 
+.SS "\fBRGFW_commonEvent\fP RGFW_event::common"
+common event data (e\&.g\&.) type and win 
+.SS "\fBRGFW_dragEvent\fP RGFW_event::drag"
 
-.SS "char** RGFW_event::droppedFiles"
-drag and drop data dropped files 
-.SS "size_t RGFW_event::droppedFilesCount"
-how many files were dropped 
-.SS "RGFW_key RGFW_event::key"
-the physical key of the event, refers to where key is physically !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! 
-.SS "\fBu8\fP RGFW_event::keyChar"
-mapped key char of the event 
-.SS "RGFW_keymod RGFW_event::keyMod"
+.SS "\fBRGFW_dropEvent\fP RGFW_event::drop"
+dropping a file events 
+.SS "\fBRGFW_keyEvent\fP RGFW_event::key"
+data for key press/release/hold events 
+.SS "\fBRGFW_mousePosEvent\fP RGFW_event::mouse"
+data for mouse motion events 
+.SS "\fBRGFW_scaleUpdatedEvent\fP RGFW_event::scale"
 
-.SS "\fBRGFW_bool\fP RGFW_event::repeat"
-key press event repeated (the key is being held) 
-.SS "float RGFW_event::scaleX"
-
-.SS "float RGFW_event::scaleY"
-DPI scaling 
-.SS "double RGFW_event::scroll"
-the raw mouse scroll value 
 .SS "RGFW_eventType RGFW_event::type"
 which event has been sent? 
-.SS "float RGFW_event::vecX"
-
-.SS "float RGFW_event::vecY"
-raw mouse movement 
-.SS "\fBi32\fP RGFW_event::x"
-
-.SS "\fBi32\fP RGFW_event::y"
-mouse x, y of event (or drop point) 
 
 .SH "Author"
 .PP 

@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['callbacks_0',['Callbacks',['../group__Callbacks.html',1,'']]],
-  ['clipboard_1',['Clipboard',['../group__Clipboard.html',1,'']]],
-  ['conventions_2emd_2',['CONVENTIONS.md',['../CONVENTIONS_8md.html',1,'']]]
+  ['drag_0',['drag',['../unionRGFW__event.html#affddb48cbc2bf79c9b44c4f0fc3e4380',1,'RGFW_event']]],
+  ['drop_1',['drop',['../unionRGFW__event.html#af4d7df13b5af5273fafa02ac55a07cf7',1,'RGFW_event']]]
 ];

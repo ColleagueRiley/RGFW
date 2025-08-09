@@ -44,10 +44,10 @@ int main(void) {
             if (event.type == RGFW_quit) break;
             switch (event.type) {
                 case RGFW_keyPressed:
-                    if (event.key == RGFW_left && gamepad && gamepad->prev) {
+                    if (event.key.value == RGFW_left && gamepad && gamepad->prev) {
 						gamepad = gamepad->prev;
 					}
-                    if (event.key == RGFW_right && gamepad && gamepad->next) {
+                    if (event.key.value == RGFW_right && gamepad && gamepad->next) {
 						gamepad = gamepad->next;
 					}
                     break;

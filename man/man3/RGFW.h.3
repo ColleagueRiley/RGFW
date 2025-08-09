@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Fri Aug 8 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Sat Aug 9 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -27,7 +27,28 @@ RGFW.h
 .RI "struct \fBRGFW_monitor\fP"
 .br
 .ti -1c
-.RI "struct \fBRGFW_event\fP"
+.RI "struct \fBRGFW_commonEvent\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_mouseButtonEvent\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_mousePosEvent\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_keyEvent\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_dropEvent\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_dragEvent\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_scaleUpdatedEvent\fP"
+.br
+.ti -1c
+.RI "union \fBRGFW_event\fP"
 .br
 .in -1c
 .SS "Macros"
@@ -76,7 +97,7 @@ RGFW.h
 .RI "#define \fBRGFW_ATOF\fP(num)   atof(num)"
 .br
 .ti -1c
-.RI "#define \fBRGFW_MAX_PATH\fP   260 /* max length of a path (for dnd) */"
+.RI "#define \fBRGFW_MAX_PATH\fP   260 /* max length of a path (for drag andn drop) */"
 .br
 .ti -1c
 .RI "#define \fBRGFW_MAX_DROPS\fP   260 /* max items you can drop at once */"
@@ -170,7 +191,28 @@ RGFW.h
 .RI "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
 .br
 .ti -1c
-.RI "typedef struct \fBRGFW_event\fP \fBRGFW_event\fP"
+.RI "typedef struct \fBRGFW_commonEvent\fP \fBRGFW_commonEvent\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_mouseButtonEvent\fP \fBRGFW_mouseButtonEvent\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_mousePosEvent\fP \fBRGFW_mousePosEvent\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_keyEvent\fP \fBRGFW_keyEvent\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_dropEvent\fP \fBRGFW_dropEvent\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_dragEvent\fP \fBRGFW_dragEvent\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_scaleUpdatedEvent\fP \fBRGFW_scaleUpdatedEvent\fP"
+.br
+.ti -1c
+.RI "typedef union \fBRGFW_event\fP \fBRGFW_event\fP"
 .br
 .ti -1c
 .RI "typedef ptrdiff_t \fBRGFW_ssize_t\fP"
@@ -206,19 +248,19 @@ RGFW.h
 .RI "typedef void(* \fBRGFW_mousePosfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, float vecX, float vecY)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_dndInitfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
+.RI "typedef void(* \fBRGFW_dragfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_windowRefreshfunc\fP) (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP key, \fBu8\fP keyChar, RGFW_keymod keyMod, \fBRGFW_bool\fP repeat, \fBRGFW_bool\fP pressed)"
+.RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP key, \fBu8\fP sym, RGFW_keymod mod, \fBRGFW_bool\fP repeat, \fBRGFW_bool\fP pressed)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_mouseButtonfunc\fP) (\fBRGFW_window\fP *win, RGFW_mouseButton button, double scroll, \fBRGFW_bool\fP pressed)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_dndfunc\fP) (\fBRGFW_window\fP *win, char **droppedFiles, size_t droppedFilesCount)"
+.RI "typedef void(* \fBRGFW_dropfunc\fP) (\fBRGFW_window\fP *win, char **files, size_t count)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_scaleUpdatedfunc\fP) (\fBRGFW_window\fP *win, float scaleX, float scaleY)"
@@ -645,10 +687,10 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_mouseNotifyfunc\fP \fBRGFW_setMouseNotifyCallback\fP (\fBRGFW_mouseNotifyfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_dndfunc\fP \fBRGFW_setDndCallback\fP (\fBRGFW_dndfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_dropfunc\fP \fBRGFW_setDropCallback\fP (\fBRGFW_dropfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_dndInitfunc\fP \fBRGFW_setDndInitCallback\fP (\fBRGFW_dndInitfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_dragfunc\fP \fBRGFW_setDragCallback\fP (\fBRGFW_dragfunc\fP func)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_keyfunc\fP \fBRGFW_setKeyCallback\fP (\fBRGFW_keyfunc\fP func)"
@@ -742,7 +784,7 @@ RGFW.h
 
 .SS "#define RGFW_MAX_DROPS   260 /* max items you can drop at once */"
 
-.SS "#define RGFW_MAX_PATH   260 /* max length of a path (for dnd) */"
+.SS "#define RGFW_MAX_PATH   260 /* max length of a path (for drag andn drop) */"
 
 .SS "#define RGFW_MEMCPY(dist, src, len)   memcpy(dist, src, len)"
 
@@ -780,15 +822,29 @@ RGFW.h
 
 .SS "typedef \fBu8\fP \fBRGFW_bool\fP"
 
-.SS "typedef struct \fBRGFW_event\fP \fBRGFW_event\fP"
-Event structure for checking/getting events 
+.SS "typedef struct \fBRGFW_commonEvent\fP \fBRGFW_commonEvent\fP"
+Event structure(s) and union for checking/getting events 
+.SS "typedef struct \fBRGFW_dragEvent\fP \fBRGFW_dragEvent\fP"
+
+.SS "typedef struct \fBRGFW_dropEvent\fP \fBRGFW_dropEvent\fP"
+
+.SS "typedef union \fBRGFW_event\fP \fBRGFW_event\fP"
+\fBRGFW_event\fP union 
+.SS "typedef struct \fBRGFW_keyEvent\fP \fBRGFW_keyEvent\fP"
+
 .SS "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
 structure for monitor data 
 .SS "typedef struct \fBRGFW_monitorMode\fP \fBRGFW_monitorMode\fP"
 
 .SS "typedef void \fBRGFW_mouse\fP"
 loads mouse icon from bitmap (similar to RGFW_window_setIcon)\&. Icon NOT resized by default 
+.SS "typedef struct \fBRGFW_mouseButtonEvent\fP \fBRGFW_mouseButtonEvent\fP"
+
+.SS "typedef struct \fBRGFW_mousePosEvent\fP \fBRGFW_mousePosEvent\fP"
+
 .SS "typedef struct \fBRGFW_nativeImage\fP \fBRGFW_nativeImage\fP"
+
+.SS "typedef struct \fBRGFW_scaleUpdatedEvent\fP \fBRGFW_scaleUpdatedEvent\fP"
 
 .SS "typedef struct \fBRGFW_surface\fP \fBRGFW_surface\fP"
 
@@ -859,11 +915,11 @@ event codes
 .PP
 < a key has been released
 .PP
-key event note the code of the key pressed is stored in \fBRGFW_event\&.key\fP !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!!
+key event note the code of the key pressed is stored in RGFW_event\&.key\&.value !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!!
 .PP
-while a string version is stored in RGFW_event\&.KeyString
+while a string version is stored in RGFW_event\&.key\&.valueString
 .PP
-\fBRGFW_event\&.keyMod\fP holds the current keyMod this means if CapsLock, NumLock are active or not
+RGFW_event\&.key\&.mod holds the current mod this means if CapsLock, NumLock are active or not
 .PP
 < a mouse button has been pressed (left,middle,right)
 .PP
@@ -873,7 +929,7 @@ while a string version is stored in RGFW_event\&.KeyString
 .PP
 mouse event note the x and y of the mouse can be found in the vector, RGFW_x, y
 .PP
-\fBRGFW_event\&.button\fP holds which mouse button was pressed
+RGFW_event\&.button\&.value holds which mouse button was pressed
 .PP
 < the window was moved (by the user)
 .PP
@@ -887,7 +943,7 @@ mouse event note the x and y of the mouse can be found in the vector, RGFW_x, y
 .PP
 < a file has been dropped into the window
 .PP
-< the start of a dnd event, when the place where the file drop is known
+< the start of a drag and drop event, when the file is being dragged
 .PP
 < the window was maximized
 .PP
@@ -919,7 +975,7 @@ key codes and mouse icon enums
 .PP
 < change the monitor RGB bits size
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_mouseButton)"
-mouse button codes (\fBRGFW_event\&.button\fP) < left mouse button is pressed
+mouse button codes (RGFW_event\&.button\&.value) < left mouse button is pressed
 .PP
 < mouse-wheel-button is pressed
 .PP

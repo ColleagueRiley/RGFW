@@ -270,23 +270,23 @@ int main(int argc, char **argv) {
 
       switch (event.type) {
         case RGFW_quit: break;
-        case RGFW_mousePosChanged: mu_input_mousemove(ctx, event.x,  event.y); break;
+        case RGFW_mousePosChanged: mu_input_mousemove(ctx, event.mouse.x,  event.mouse.y); break;
 
         case RGFW_mouseButtonPressed:
-		  mu_input_scroll(ctx, 0, event.scroll * -30);
+		  mu_input_scroll(ctx, 0, event.button.scroll * -30);
 		case RGFW_mouseButtonReleased: {
-          int b = button_map[event.button & 0xff];
-          if (b && event.type == RGFW_mouseButtonPressed) { mu_input_mousedown(ctx, event.x,  event.y , b); }
-          if (b && event.type == RGFW_mouseButtonReleased) { mu_input_mouseup(ctx, event.x,  event.y, b);   }
+          int b = button_map[event.button.value & 0xff];
+          if (b && event.type == RGFW_mouseButtonPressed) { mu_input_mousedown(ctx, event.mouse.x,  event.mouse.y , b); }
+          if (b && event.type == RGFW_mouseButtonReleased) { mu_input_mouseup(ctx, event.mouse.x,  event.mouse.y, b);   }
           break;
         }
 
         case RGFW_keyPressed: {
-		  char str[2] = {(char)event.keyChar, '\0'};
+		  char str[2] = {(char)event.key.sym, '\0'};
 		  mu_input_text(ctx, str);
 	    }
 		case RGFW_keyReleased: {
-          int c = key_map[event.key & 0xff];
+          int c = key_map[event.key.value & 0xff];
           if (c && event.type == RGFW_keyPressed) { mu_input_keydown(ctx, c); }
           if (c && event.type == RGFW_keyReleased) { mu_input_keyup(ctx, c);   }
           break;

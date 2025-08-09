@@ -1,0 +1,50 @@
+.TH "RGFW_keyEvent" 3 "Sat Aug 9 2025" "RGFW" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+RGFW_keyEvent
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <RGFW\&.h>\fP
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "RGFW_eventType \fBtype\fP"
+.br
+.ti -1c
+.RI "\fBRGFW_window\fP * \fBwin\fP"
+.br
+.ti -1c
+.RI "RGFW_key \fBvalue\fP"
+.br
+.ti -1c
+.RI "\fBu8\fP \fBsym\fP"
+.br
+.ti -1c
+.RI "\fBRGFW_bool\fP \fBrepeat\fP"
+.br
+.ti -1c
+.RI "RGFW_keymod \fBmod\fP"
+.br
+.in -1c
+.SH "Member Data Documentation"
+.PP 
+.SS "RGFW_keymod RGFW_keyEvent::mod"
+
+.SS "\fBRGFW_bool\fP RGFW_keyEvent::repeat"
+key press event repeated (the key is being held) 
+.SS "\fBu8\fP RGFW_keyEvent::sym"
+mapped key char of the event 
+.SS "RGFW_eventType RGFW_keyEvent::type"
+which event has been sent? 
+.SS "RGFW_key RGFW_keyEvent::value"
+the physical key of the event, refers to where key is physically !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! 
+.SS "\fBRGFW_window\fP* RGFW_keyEvent::win"
+the window this event applies too (for event queue events) 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for RGFW from the source code\&.

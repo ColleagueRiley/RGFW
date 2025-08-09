@@ -1,0 +1,40 @@
+.TH "RGFW_dropEvent" 3 "Sat Aug 9 2025" "RGFW" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+RGFW_dropEvent
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <RGFW\&.h>\fP
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "RGFW_eventType \fBtype\fP"
+.br
+.ti -1c
+.RI "\fBRGFW_window\fP * \fBwin\fP"
+.br
+.ti -1c
+.RI "char ** \fBfiles\fP"
+.br
+.ti -1c
+.RI "size_t \fBcount\fP"
+.br
+.in -1c
+.SH "Member Data Documentation"
+.PP 
+.SS "size_t RGFW_dropEvent::count"
+how many files were dropped 
+.SS "char** RGFW_dropEvent::files"
+dropped files 
+.SS "RGFW_eventType RGFW_dropEvent::type"
+which event has been sent? 
+.SS "\fBRGFW_window\fP* RGFW_dropEvent::win"
+the window this event applies too (for event queue events) 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for RGFW from the source code\&.

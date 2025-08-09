@@ -81,9 +81,9 @@ $(function() {
 Functions</h2></td></tr>
 <tr class="memitem:ga1c3a89944c13d571c67be26fdc1041af"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga1c3a89944c13d571c67be26fdc1041af">RGFW_window_setFlags</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, RGFW_windowFlags)</td></tr>
 <tr class="separator:ga1c3a89944c13d571c67be26fdc1041af"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga24a216d1304d457e92b07504dda3fabb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga24a216d1304d457e92b07504dda3fabb">RGFW_window_checkEvent</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="structRGFW__event.html">RGFW_event</a> *event)</td></tr>
+<tr class="memitem:ga24a216d1304d457e92b07504dda3fabb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga24a216d1304d457e92b07504dda3fabb">RGFW_window_checkEvent</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="unionRGFW__event.html">RGFW_event</a> *event)</td></tr>
 <tr class="separator:ga24a216d1304d457e92b07504dda3fabb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8a75a2c74318e91e6d9b1c64ec7559d7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga8a75a2c74318e91e6d9b1c64ec7559d7">RGFW_window_checkQueuedEvent</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="structRGFW__event.html">RGFW_event</a> *event)</td></tr>
+<tr class="memitem:ga8a75a2c74318e91e6d9b1c64ec7559d7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga8a75a2c74318e91e6d9b1c64ec7559d7">RGFW_window_checkQueuedEvent</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="unionRGFW__event.html">RGFW_event</a> *event)</td></tr>
 <tr class="separator:ga8a75a2c74318e91e6d9b1c64ec7559d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab9fbaeec9a1268374ab141b6ccfc41a3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#gab9fbaeec9a1268374ab141b6ccfc41a3">RGFW_window_close</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win)</td></tr>
 <tr class="separator:gab9fbaeec9a1268374ab141b6ccfc41a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -343,7 +343,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structRGFW__event.html">RGFW_event</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="unionRGFW__event.html">RGFW_event</a> *&#160;</td>
           <td class="paramname"><em>event</em>&#160;</td>
         </tr>
         <tr>
@@ -356,7 +356,7 @@ Functions</h2></td></tr>
 <p >polls the event queue if it's empty and pops the first event for the window from the event queue using this function without a while loop may cause event lag</p>
 <p >because this function polls events, it may not work for multi-threaded systems RGFW_pollEvents + RGFW_window_checkQueuedEvent should be used when using multi-threaded systems</p>
 <p >ex.</p>
-<p ><a class="el" href="structRGFW__event.html">RGFW_event</a>; while (RGFW_window_checkEvent(win, &amp;event) != NULL) [this keeps checking events until it reaches the last queued event]</p>
+<p ><a class="el" href="unionRGFW__event.html">RGFW_event</a>; while (RGFW_window_checkEvent(win, &amp;event) != NULL) [this keeps checking events until it reaches the last queued event]</p>
 <p >you may also use <code>RGFW_pollEvents</code> instead check current event (returns RGFW_TRUE if there is an event or RGFW_FALSE if there is no event) </p>
 
 </div>
@@ -376,7 +376,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structRGFW__event.html">RGFW_event</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="unionRGFW__event.html">RGFW_event</a> *&#160;</td>
           <td class="paramname"><em>event</em>&#160;</td>
         </tr>
         <tr>
