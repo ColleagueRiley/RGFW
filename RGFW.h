@@ -4295,8 +4295,10 @@ void RGFW_XHandleEvent(void) {
 				XEvent NE;
 				XPeekEvent(_RGFW->display, &NE);
 
-				if (E.xkey.time == NE.xkey.time && E.xkey.keycode == NE.xkey.keycode) /* check if the current and next are both the same */
+				if (E.xkey.time == NE.xkey.time && E.xkey.keycode == NE.xkey.keycode) { /* check if the current and next are both the same */
 					event.key.repeat = RGFW_TRUE;
+					return;
+				}
 			}
 
 			event.type =  RGFW_keyReleased;
