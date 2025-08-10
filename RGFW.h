@@ -6063,8 +6063,6 @@ void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 serial, 
 	
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonReleased - RGFW_BOOL(state);
 									e.button.value = (u8)b;
-									e.mouse.x = win->internal.lastMouseX;
-									e.mouse.y = win->internal.lastMouseY;
 									e.common.win = win);
 	RGFW_mouseButtonCallback(win, (u8)b, 0, RGFW_BOOL(state));
 }
