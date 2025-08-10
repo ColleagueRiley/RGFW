@@ -155,6 +155,7 @@ EXAMPLE_OUTPUTS = \
 	examples/surface/surface\
 	examples/event_queue/event_queue \
 	examples/callbacks/callbacks \
+	examples/state-checking/state-checking \
 	examples/flags/flags \
 	examples/monitor/monitor \
 	examples/gl33_ctx/gl33_ctx \
