@@ -2156,7 +2156,7 @@ RGFW_bool RGFW_isKeyPressed(RGFW_key key) {
 }
 
 RGFW_bool RGFW_isKeyDown(RGFW_key key) {
-	return _RGFW != NULL && RGFW_keyboard[key].prev && RGFW_keyboard[key].current;
+	return _RGFW != NULL && RGFW_keyboard[key].current;
 }
 
 RGFW_bool RGFW_isKeyReleased(RGFW_key key) {
