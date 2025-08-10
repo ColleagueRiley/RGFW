@@ -3993,8 +3993,9 @@ GLXFBConfig RGFW_window_getVisual_OpenGL(XVisualInfo* visual, RGFW_glHints* hint
 
 	i32 flags = 0;
 	if (hints->debug) flags |= GLX_CONTEXT_FLAGS_ARB;
-	if (hints->robustness) flags |= GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB;
-	RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_FLAGS_ARB, flags);
+	if (hints->robustness && RGFW_extensionSupportedPlatform_OpenGL(robustStr, sizeof(robustStr))) flags |= GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB;
+	if (flags)
+		RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_FLAGS_ARB, flags);
 
 	RGFW_attribStack_pushAttribs(&stack, 0, 0);
 
