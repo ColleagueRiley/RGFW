@@ -5402,6 +5402,13 @@ RGFW_monitor RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
 
 #ifdef RGFW_OPENGL
 RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW_glContext* context, RGFW_glHints* hints) {
+	const char sRGBARBstr[] = "GLX_ARB_framebuffer_sRGB";
+	const char sRGBEXTstr[] = "GLX_EXT_framebuffer_sRGB";
+	const char noErorrStr[]  = "GLX_ARB_create_context_no_error";
+	const char flushStr[] = "GLX_ARB_context_flush_control";
+	const char robustStr[]	= "GLX_ARB_create_context_robustness";
+
+
 	win->src.ctx.native = context;
 	win->src.gfxType = RGFW_gfxNativeOpenGL;
 	i32 mask = 0;
@@ -5411,7 +5418,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 	RGFW_bool transparent = (win->internal.flags & RGFW_windowTransparent);
 
 	XVisualInfo visual;
-	GLXFBConfig bestFbc_output;
+	GLXFBConfig bestFbc;
 	i32 visual_attribs[40] = {
 		GLX_X_VISUAL_TYPE,
 		GLX_TRUE_COLOR,
@@ -5436,12 +5443,6 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 	RGFW_attribStack_pushAttribs(&stack, GLX_ACCUM_GREEN_SIZE, hints->accumBlue);
 	RGFW_attribStack_pushAttribs(&stack, GLX_ACCUM_BLUE_SIZE, hints->accumGreen);
 	RGFW_attribStack_pushAttribs(&stack, GLX_ACCUM_ALPHA_SIZE, hints->accumAlpha);
-
-	const char sRGBARBstr[] = "GLX_ARB_framebuffer_sRGB";
-	const char sRGBEXTstr[] = "GLX_EXT_framebuffer_sRGB";
-	const char noErorrStr[]  = "GLX_ARB_create_context_no_error";
-	const char flushStr[] = "GLX_ARB_context_flush_control";
-	const char robustStr[]	= "GLX_ARB_create_context_robustness";
 
 	if (RGFW_extensionSupportedPlatform_OpenGL(sRGBARBstr, sizeof(sRGBARBstr)) || RGFW_extensionSupportedPlatform_OpenGL(sRGBEXTstr, sizeof(sRGBEXTstr)))
 		RGFW_attribStack_pushAttribs(&stack, GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB, hints->sRGB);
@@ -5490,8 +5491,8 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 		return 0;
 	}
 
-	bestFbc_output = fbc[best_fbc];
-	XVisualInfo* vi = glXGetVisualFromFBConfig(_RGFW->display, bestFbc_output);
+	bestFbc= fbc[best_fbc];
+	XVisualInfo* vi = glXGetVisualFromFBConfig(_RGFW->display, bestFbc);
 	if (vi->depth != 32 && transparent)
 		RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL,  "Failed to to find a matching visual with a 32-bit depth.");
 
@@ -5499,12 +5500,14 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 		RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL, "Failed to load a matching sample count.");
 
 	XFree(fbc);
-	*visual = *vi;
+	visual = *vi;
 	XFree(vi);
 
 	RGFW_XCreateWindow(visual, "", win->internal.flags, win);
 
 	i32 context_attribs[40];
+	RGFW_attribStack_init(&stack, context_attribs, 40);
+
 	switch (hints->profile) {
 		case RGFW_glES: mask |= GLX_CONTEXT_ES_PROFILE_BIT_EXT; break;
 		case RGFW_glCompatibility: mask |= GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB; break;
@@ -5534,7 +5537,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 	if (flags)
 		RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_FLAGS_ARB, flags);
 
-	RGFW_attribStack_pushAttribs(0, 0);
+	RGFW_attribStack_pushAttribs(&stack, 0, 0);
 
 	glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
 	glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
