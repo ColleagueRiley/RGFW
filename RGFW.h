@@ -2290,7 +2290,7 @@ RGFW_bool RGFW_isMouseReleased(RGFW_window* win, RGFW_mouseButton button) {
 RGFW_bool RGFW_window_getMouse(RGFW_window* win, i32* x, i32* y) {
 	RGFW_ASSERT(win != NULL);
 	if (x) *x = win->internal.lastMouseX;
-	if (y) *y = win->internal.lastMouseX;
+	if (y) *y = win->internal.lastMouseY;
 	return RGFW_TRUE;
 }
 
