@@ -9,7 +9,7 @@
 [![Discord Members](https://img.shields.io/discord/829003376532258816.svg?label=Discord&logo=discord)](https://discord.gg/pXVNgVVbvh)
 
 # About
-RGFW does
+RGFW does/is
 
 * is an stb-style single headerfile and is very portable (written in C99 in mind)
 * has a C89 compatible API on going changes to make the implementation more C89 friendly
@@ -23,7 +23,7 @@ RGFW does
 * is RGFW is multi-paradigm, with a flexible event system, including multiple ways of handling events (callbacks, queue, state lookups)
 * includes a large number of examples for learning RGFW
 
-RGFW does not
+RGFW does/is not
 
 * Handle any rendering for you (other than creating your graphics context)
 * an OpenGL focused library, RGFW can be used with ANY graphics API
