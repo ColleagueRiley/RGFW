@@ -1773,10 +1773,9 @@ void RGFW_clipboard_switch(char* newstr) {
 		return "\0";
 
 const char* RGFW_readClipboard(size_t* len) {
-	char* str;
 	RGFW_ssize_t size = RGFW_readClipboardPtr(NULL, 0);
     RGFW_CHECK_CLIPBOARD();
-    str = (char*)RGFW_ALLOC((size_t)size);
+    char* str = (char*)RGFW_ALLOC((size_t)size);
     RGFW_ASSERT(str != NULL);
     str[0] = '\0';
 
@@ -3966,8 +3965,8 @@ GLXFBConfig RGFW_window_getVisual_OpenGL(XVisualInfo* visual, RGFW_glHints* hint
 	RGFW_attribStack_pushAttribs(&stack, GLX_STEREO, hints->stereo);
 	RGFW_attribStack_pushAttribs(&stack, GLX_AUX_BUFFERS, hints->auxBuffers);
 	RGFW_attribStack_pushAttribs(&stack, GLX_RED_SIZE, hints->red);
-	RGFW_attribStack_pushAttribs(&stack, GLX_GREEN_SIZE, hints->green);
-	RGFW_attribStack_pushAttribs(&stack, GLX_BLUE_SIZE, hints->blue);
+	RGFW_attribStack_pushAttribs(&stack, GLX_GREEN_SIZE, hints->blue);
+	RGFW_attribStack_pushAttribs(&stack, GLX_BLUE_SIZE, hints->green);
 	RGFW_attribStack_pushAttribs(&stack, GLX_ACCUM_RED_SIZE, hints->accumRed);
 	RGFW_attribStack_pushAttribs(&stack, GLX_ACCUM_GREEN_SIZE, hints->accumBlue);
 	RGFW_attribStack_pushAttribs(&stack, GLX_ACCUM_BLUE_SIZE, hints->accumGreen);
@@ -3994,9 +3993,8 @@ GLXFBConfig RGFW_window_getVisual_OpenGL(XVisualInfo* visual, RGFW_glHints* hint
 
 	i32 flags = 0;
 	if (hints->debug) flags |= GLX_CONTEXT_FLAGS_ARB;
-	if (hints->robustness && RGFW_extensionSupportedPlatform_OpenGL(robustStr, sizeof(robustStr))) flags |= GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB;
-	if (flags)
-		RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_FLAGS_ARB, flags);
+	if (hints->robustness) flags |= GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB;
+	RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_FLAGS_ARB, flags);
 
 	RGFW_attribStack_pushAttribs(&stack, 0, 0);
 
@@ -5358,7 +5356,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	monitor.name[sizeof(monitor.name) - 1] = '\0';
 
 	float dpi = XGetSystemContentDPI(display, screen);
-	monitor.pixelRatio = dpi >= 192.0f ? 2 : 1;
+	monitor.pixelRatio = dpi >= 192.0f ? 2 : 1.0f;
 	monitor.scaleX = (float) (dpi) / 96.0f;
 	monitor.scaleY = (float) (dpi) / 96.0f;
 
@@ -8051,7 +8049,7 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 
 	monitor.scaleX = dpiX / 96.0f;
 	monitor.scaleY = dpiY / 96.0f;
-	monitor.pixelRatio = dpiX >= 192.0f ? 2.0f;
+	monitor.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
 
 	monitor.physW = (float)GetDeviceCaps(hdc, HORZSIZE) / 25.4f;
 	monitor.physH = (float)GetDeviceCaps(hdc, VERTSIZE) / 25.4f;
@@ -8066,7 +8064,7 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 			GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &x, &y);
 			monitor.scaleX = (float) (x) / (float) 96.0f;
 			monitor.scaleY = (float) (y) / (float) 96.0f;
-			monitor.pixelRatio = dpiX >= 192.0f ? 2.0f.0f;
+			monitor.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
 		}
 	#endif
 
