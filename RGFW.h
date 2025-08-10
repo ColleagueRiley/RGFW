@@ -5402,20 +5402,22 @@ RGFW_monitor RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
 
 #ifdef RGFW_OPENGL
 RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW_glContext* context, RGFW_glHints* hints) {
+	/* for checking extensions later */
 	const char sRGBARBstr[] = "GLX_ARB_framebuffer_sRGB";
 	const char sRGBEXTstr[] = "GLX_EXT_framebuffer_sRGB";
 	const char noErorrStr[]  = "GLX_ARB_create_context_no_error";
 	const char flushStr[] = "GLX_ARB_context_flush_control";
 	const char robustStr[]	= "GLX_ARB_create_context_robustness";
 
+	/* basic RGFW int */
 	win->src.ctx.native = context;
 	win->src.gfxType = RGFW_gfxNativeOpenGL;
-	i32 mask = 0;
 	/*  This is required so that way the user can create their own OpenGL context after RGFW_createWindow is used */
 	if (win->src.window) RGFW_window_closePlatform(win);
 
 	RGFW_bool transparent = (win->internal.flags & RGFW_windowTransparent);
 
+	/* start by creating a GLX config / X11 Viusal */
 	XVisualInfo visual;
 	GLXFBConfig bestFbc;
 	i32 visual_attribs[40] = {
@@ -5448,6 +5450,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 
 	RGFW_attribStack_pushAttribs(&stack, 0, 0);
 
+	/* find the configs */
 	i32 fbcount;
 	GLXFBConfig* fbc = glXChooseFBConfig(_RGFW->display, DefaultScreen(_RGFW->display), visual_attribs, &fbcount);
 
@@ -5460,6 +5463,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 		return 0;
 	}
 
+	/* search through all found configs to find the best match */
 	i32 i;
 	for (i = 0; i < fbcount; i++) {
 		XVisualInfo* vi = glXGetVisualFromFBConfig(_RGFW->display, fbc[i]);
@@ -5488,7 +5492,8 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 		return 0;
 	}
 
-	bestFbc= fbc[best_fbc];
+	/* we found a config */
+	bestFbc = fbc[best_fbc];
 	XVisualInfo* vi = glXGetVisualFromFBConfig(_RGFW->display, bestFbc);
 	if (vi->depth != 32 && transparent)
 		RGFW_sendDebugInfo(RGFW_typeWarning, RGFW_warningOpenGL,  "Failed to to find a matching visual with a 32-bit depth.");
@@ -5500,11 +5505,14 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 	visual = *vi;
 	XFree(vi);
 
+	/* use the visual to create a new window */
 	RGFW_XCreateWindow(visual, "", win->internal.flags, win);
 
+	/* create the actual OpenGL context  */
 	i32 context_attribs[40];
 	RGFW_attribStack_init(&stack, context_attribs, 40);
 
+	i32 mask = 0;
 	switch (hints->profile) {
 		case RGFW_glES: mask |= GLX_CONTEXT_ES_PROFILE_BIT_EXT; break;
 		case RGFW_glCompatibility: mask |= GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB; break;
@@ -5539,6 +5547,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 
 	RGFW_attribStack_pushAttribs(&stack, 0, 0);
 
+	/*  create the context */
 	glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
 	glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
 		glXGetProcAddressARB((u8*) "glXCreateContextAttribsARB");
