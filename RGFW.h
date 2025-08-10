@@ -1483,7 +1483,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		i32 offsetW, offsetH; /*!< width and height offset for window */
 		HICON hIconSmall, hIconBig; /*!< source window icons */
 		i32 maxSizeW, maxSizeH, minSizeW, minSizeH, aspectRatioW, aspectRatioH; /*!< for setting max/min resize (RGFW_WINDOWS) */
-		RGFW_bool mouseLeft : 1;
+		RGFW_bool mouseLeft;
 		#ifdef RGFW_OPENGL
 			RGFW_gfxContext ctx;
 			RGFW_gfxContextType gfxType;
@@ -1554,13 +1554,13 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		struct wl_seat *seat;
 
 		/* State flags to configure the window */
-		RGFW_bool pending_activated : 1;
-		RGFW_bool activated : 1;
-		RGFW_bool pending_fullscreen : 1;
-		RGFW_bool fullscreen : 1;
-		RGFW_bool pending_maximized : 1;
-		RGFW_bool resizing : 1;
-		RGFW_bool maximized : 1;
+		RGFW_bool pending_activated;
+		RGFW_bool activated;
+		RGFW_bool pending_fullscreen;
+		RGFW_bool fullscreen;
+		RGFW_bool pending_maximized;
+		RGFW_bool resizing;
+		RGFW_bool maximized;
 
 		#ifdef RGFW_LIBDECOR
 			struct libdecor* decorContext;
@@ -1625,9 +1625,9 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		RGFW_key exitKey;
 		i32 lastMouseX, lastMouseY; /*!< last cusor point (for raw mouse data) */
 
-		RGFW_bool shouldClose : 1;
-		RGFW_bool holdMouse : 1;
-		RGFW_bool inFocus : 1;
+		RGFW_bool shouldClose;
+		RGFW_bool holdMouse;
+		RGFW_bool inFocus;
 		RGFW_keymod mod;
 		RGFW_eventFlag enabledEvents;
 		u32 flags; /*!< windows flags (for RGFW to check and modify) */
@@ -1648,8 +1648,8 @@ struct RGFW_info {
 
     RGFW_mouse* hiddenMouse;
     RGFW_event events[RGFW_MAX_EVENTS];
-	RGFW_bool queueEvents : 1;
-	RGFW_bool polledEvents : 1;
+	RGFW_bool queueEvents;
+	RGFW_bool polledEvents;
 
     u32 apiKeycodes[RGFW_keyLast];
 	#if defined(RGFW_X11) || defined(RGFW_WAYLAND)
@@ -1663,8 +1663,8 @@ struct RGFW_info {
 	#endif
 
     const char* className;
-    RGFW_bool useWaylandBool : 1;
-    RGFW_bool stopCheckEvents_bool  : 1;
+    RGFW_bool useWaylandBool;
+    RGFW_bool stopCheckEvents_bool ;
     u64 timerOffset;
 
     char* clipboard_data;
@@ -1690,7 +1690,7 @@ struct RGFW_info {
         struct wl_surface* cursor_surface;
         struct wl_cursor_image* cursor_image;
 
-        RGFW_bool wl_configured : 1;
+        RGFW_bool wl_configured;
     #endif
 
     #ifdef __linux__
@@ -1773,9 +1773,10 @@ void RGFW_clipboard_switch(char* newstr) {
 		return "\0";
 
 const char* RGFW_readClipboard(size_t* len) {
+	char* str;
 	RGFW_ssize_t size = RGFW_readClipboardPtr(NULL, 0);
     RGFW_CHECK_CLIPBOARD();
-    char* str = (char*)RGFW_ALLOC((size_t)size);
+    str = (char*)RGFW_ALLOC((size_t)size);
     RGFW_ASSERT(str != NULL);
     str[0] = '\0';
 
@@ -1803,8 +1804,8 @@ This is the start of keycode data
 */
 
 typedef struct {
-	RGFW_bool current  : 1;
-	RGFW_bool prev  : 1;
+	RGFW_bool current ;
+	RGFW_bool prev ;
 } RGFW_keyState;
 
 RGFW_keyState RGFW_mouseButtons[RGFW_mouseFinal];
@@ -3965,29 +3966,37 @@ GLXFBConfig RGFW_window_getVisual_OpenGL(XVisualInfo* visual, RGFW_glHints* hint
 	RGFW_attribStack_pushAttribs(&stack, GLX_STEREO, hints->stereo);
 	RGFW_attribStack_pushAttribs(&stack, GLX_AUX_BUFFERS, hints->auxBuffers);
 	RGFW_attribStack_pushAttribs(&stack, GLX_RED_SIZE, hints->red);
-	RGFW_attribStack_pushAttribs(&stack, GLX_GREEN_SIZE, hints->blue);
-	RGFW_attribStack_pushAttribs(&stack, GLX_BLUE_SIZE, hints->green);
+	RGFW_attribStack_pushAttribs(&stack, GLX_GREEN_SIZE, hints->green);
+	RGFW_attribStack_pushAttribs(&stack, GLX_BLUE_SIZE, hints->blue);
 	RGFW_attribStack_pushAttribs(&stack, GLX_ACCUM_RED_SIZE, hints->accumRed);
 	RGFW_attribStack_pushAttribs(&stack, GLX_ACCUM_GREEN_SIZE, hints->accumBlue);
 	RGFW_attribStack_pushAttribs(&stack, GLX_ACCUM_BLUE_SIZE, hints->accumGreen);
 	RGFW_attribStack_pushAttribs(&stack, GLX_ACCUM_ALPHA_SIZE, hints->accumAlpha);
-	RGFW_attribStack_pushAttribs(&stack, GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB, hints->sRGB);
-	RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_OPENGL_NO_ERROR_ARB, hints->noError);
 
-	if (hints->releaseBehavior == RGFW_glReleaseFlush) {
-		RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_RELEASE_BEHAVIOR_ARB, GLX_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB);
-	} else if (hints->releaseBehavior == RGFW_glReleaseNone) {
-		RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_RELEASE_BEHAVIOR_ARB, GLX_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB);
+	const char sRGBARBstr[] = "GLX_ARB_framebuffer_sRGB";
+	const char sRGBEXTstr[] = "GLX_EXT_framebuffer_sRGB";
+	const char noErorrStr[]  = "GLX_ARB_create_context_no_error";
+	const char flushStr[] = "GLX_ARB_context_flush_control";
+	const char robustStr[]	= "GLX_ARB_create_context_robustness";
+
+	if (RGFW_extensionSupportedPlatform_OpenGL(sRGBARBstr, sizeof(sRGBARBstr)) || RGFW_extensionSupportedPlatform_OpenGL(sRGBEXTstr, sizeof(sRGBEXTstr)))
+		RGFW_attribStack_pushAttribs(&stack, GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB, hints->sRGB);
+	if (RGFW_extensionSupportedPlatform_OpenGL(noErorrStr, sizeof(noErorrStr)))
+		RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_OPENGL_NO_ERROR_ARB, hints->noError);
+
+	if (RGFW_extensionSupportedPlatform_OpenGL(flushStr, sizeof(flushStr))) {
+		if (hints->releaseBehavior == RGFW_glReleaseFlush) {
+			RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_RELEASE_BEHAVIOR_ARB, GLX_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB);
+		} else if (hints->releaseBehavior == RGFW_glReleaseNone) {
+			RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_RELEASE_BEHAVIOR_ARB, GLX_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB);
+		}
 	}
 
 	i32 flags = 0;
 	if (hints->debug) flags |= GLX_CONTEXT_FLAGS_ARB;
-	if (hints->robustness) flags |= GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB;
-	RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_FLAGS_ARB, flags);
-
-#ifndef RGFW_X11
-	RGFW_attribStack_pushAttribs(&stack, GLX_SAMPLES, hints->samples);
-#endif
+	if (hints->robustness && RGFW_extensionSupportedPlatform_OpenGL(robustStr, sizeof(robustStr))) flags |= GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB;
+	if (flags)
+		RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_FLAGS_ARB, flags);
 
 	RGFW_attribStack_pushAttribs(&stack, 0, 0);
 
@@ -8042,7 +8051,7 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 
 	monitor.scaleX = dpiX / 96.0f;
 	monitor.scaleY = dpiY / 96.0f;
-	monitor.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
+	monitor.pixelRatio = dpiX >= 192.0f ? 2.0f.0f;
 
 	monitor.physW = (float)GetDeviceCaps(hdc, HORZSIZE) / 25.4f;
 	monitor.physH = (float)GetDeviceCaps(hdc, VERTSIZE) / 25.4f;
@@ -8057,7 +8066,7 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 			GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &x, &y);
 			monitor.scaleX = (float) (x) / (float) 96.0f;
 			monitor.scaleY = (float) (y) / (float) 96.0f;
-			monitor.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
+			monitor.pixelRatio = dpiX >= 192.0f ? 2.0f.0f;
 		}
 	#endif
 
