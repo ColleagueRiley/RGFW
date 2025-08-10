@@ -6049,11 +6049,11 @@ void RGFW_wl_keyboard_key (void* data, struct wl_keyboard *keyboard, u32 serial,
 	RGFW_eventQueuePushEx(e.type = (u8)(RGFW_keyPressed + state);
 									e.key.value = (u8)RGFWkey;
 									e.key.sym = (u8)keysym;
-									e.key.repeat = RGFW_isKeyDown(RGFW_key_win, (u8)RGFWkey);
+									e.key.repeat = RGFW_window_isKeyDown(RGFW_key_win, (u8)RGFWkey);
 									e.common.win = RGFW_key_win);
 
 	RGFW_updateKeyMods(RGFW_key_win, RGFW_BOOL(xkb_keymap_mod_get_index(_RGFW->keymap, "Lock")), RGFW_BOOL(xkb_keymap_mod_get_index(_RGFW->keymap, "Mod2")), RGFW_BOOL(xkb_keymap_mod_get_index(_RGFW->keymap, "ScrollLock")));
-	RGFW_keyCallback(RGFW_key_win, (u8)RGFWkey, (u8)keysym, RGFW_key_win->internal.mod, RGFW_isKeyDown(RGFW_key_win, (u8)RGFWkey), RGFW_BOOL(state));
+	RGFW_keyCallback(RGFW_key_win, (u8)RGFWkey, (u8)keysym, RGFW_key_win->internal.mod, RGFW_window_isKeyDown(RGFW_key_win, (u8)RGFWkey), RGFW_BOOL(state));
 }
 void RGFW_wl_keyboard_modifiers (void* data, struct wl_keyboard *keyboard, u32 serial, u32 mods_depressed, u32 mods_latched, u32 mods_locked, u32 group) {
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(time);
@@ -9233,7 +9233,7 @@ void RGFW__osxKeyUp(id self, SEL _cmd, id event) {
     e.key.value = (u8)RGFW_apiKeyToRGFW(key);
     RGFW_keyboard[e.key.value].prev = RGFW_keyboard[e.key.value].current;
     e.type = RGFW_keyReleased;
-    e.key.repeat = RGFW_isKeyDown(win, (u8)e.key.value);
+    e.key.repeat = RGFW_window_isKeyDown(win, (u8)e.key.value);
     RGFW_keyboard[e.key.value].current = 0;
     e.common.win = win;
 
@@ -9263,7 +9263,7 @@ void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
     for (i = 0; i < 5; i++) {
         u32 shift = (1 << (i + 16));
         u32 key = i + RGFW_capsLock;
-        if ((flags & shift) && !RGFW_isKeyDown(win, (u8)key)) {
+        if ((flags & shift) && !RGFW_window_isKeyDown(win, (u8)key)) {
             RGFW_keyboard[key].current = 1;
             if (key != RGFW_capsLock)
                 RGFW_keyboard[key + 4].current = 1;
@@ -9271,7 +9271,7 @@ void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
             e.key.value = (u8)key;
             break;
         }
-        if (!(flags & shift) && RGFW_isKeyDown(win, (u8)key)) {
+        if (!(flags & shift) && RGFW_window_isKeyDown(win, (u8)key)) {
             RGFW_keyboard[key].current = 0;
             if (key != RGFW_capsLock)
                 RGFW_keyboard[key + 4].current = 0;
@@ -9280,7 +9280,7 @@ void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
             break;
         }
     }
-    e.key.repeat = RGFW_isKeyDown(win, (u8)e.key.value);
+    e.key.repeat = RGFW_window_isKeyDown(win, (u8)e.key.value);
     e.common.win = win;
 
 	if (!(win->internal.enabledEvents & (RGFW_BIT(e.type)))) return;
@@ -10685,13 +10685,13 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool p
 							e.key.value = (u8)physicalKey;
 							e.key.sym = (u8)mappedKey;
 							e.key.mod = _RGFW->root->internal.mod;
-							e.key.repeat =  RGFW_isKeyDown(_RGFW->root, (u8)physicalKey);
+							e.key.repeat =  RGFW_window_isKeyDown(_RGFW->root, (u8)physicalKey);
 							e.common.win = _RGFW->root);
 
 	RGFW_keyboard[physicalKey].prev = RGFW_keyboard[physicalKey].current;
 	RGFW_keyboard[physicalKey].current = press;
 
-	RGFW_keyCallback(_RGFW->root, physicalKey, mappedKey, _RGFW->root->internal.mod,  RGFW_isKeyDown(_RGFW->root, (u8)physicalKey), press);
+	RGFW_keyCallback(_RGFW->root, physicalKey, mappedKey, _RGFW->root->internal.mod,  RGFW_window_isKeyDown(_RGFW->root, (u8)physicalKey), press);
 }
 
 void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyMods(RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super, RGFW_bool scroll) {
