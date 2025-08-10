@@ -8051,7 +8051,7 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 
 	monitor.scaleX = dpiX / 96.0f;
 	monitor.scaleY = dpiY / 96.0f;
-	monitor.pixelRatio = dpiX >= 192.0f ? 2.0f.0f;
+	monitor.pixelRatio = dpiX >= 192.0f ? 2.0f;
 
 	monitor.physW = (float)GetDeviceCaps(hdc, HORZSIZE) / 25.4f;
 	monitor.physH = (float)GetDeviceCaps(hdc, VERTSIZE) / 25.4f;
