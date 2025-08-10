@@ -18,7 +18,8 @@ char output_buffer[OUTPUT_BUFFER_SIZE];
 static size_t buffer_pos = 0;
 
 void my_printf(const char* format, ...) {
-    RGFW_ASSERT(buffer_pos >= OUTPUT_BUFFER_SIZE - 1);
+    RGFW_ASSERT(buffer_pos <= OUTPUT_BUFFER_SIZE - 1);
+
     va_list args;
     va_start(args, format);
     int written = vsnprintf(output_buffer + buffer_pos, OUTPUT_BUFFER_SIZE - buffer_pos, format, args);
