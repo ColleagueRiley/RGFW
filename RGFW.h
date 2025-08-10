@@ -5408,7 +5408,6 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 	const char flushStr[] = "GLX_ARB_context_flush_control";
 	const char robustStr[]	= "GLX_ARB_create_context_robustness";
 
-
 	win->src.ctx.native = context;
 	win->src.gfxType = RGFW_gfxNativeOpenGL;
 	i32 mask = 0;
@@ -5446,8 +5445,6 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 
 	if (RGFW_extensionSupportedPlatform_OpenGL(sRGBARBstr, sizeof(sRGBARBstr)) || RGFW_extensionSupportedPlatform_OpenGL(sRGBEXTstr, sizeof(sRGBEXTstr)))
 		RGFW_attribStack_pushAttribs(&stack, GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB, hints->sRGB);
-	if (RGFW_extensionSupportedPlatform_OpenGL(noErorrStr, sizeof(noErorrStr)))
-		RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_OPENGL_NO_ERROR_ARB, hints->noError);
 
 	RGFW_attribStack_pushAttribs(&stack, 0, 0);
 
@@ -5536,6 +5533,9 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 	if (hints->robustness && RGFW_extensionSupportedPlatform_OpenGL(robustStr, sizeof(robustStr))) flags |= GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB;
 	if (flags)
 		RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_FLAGS_ARB, flags);
+
+	if (RGFW_extensionSupportedPlatform_OpenGL(noErorrStr, sizeof(noErorrStr)))
+		RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_OPENGL_NO_ERROR_ARB, hints->noError);
 
 	RGFW_attribStack_pushAttribs(&stack, 0, 0);
 
