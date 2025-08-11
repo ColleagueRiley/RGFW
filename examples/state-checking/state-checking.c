@@ -2,98 +2,105 @@
 #include "RGFW.h"
 
 #include <stdio.h>
-#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
 
-void clear(void) {
-  /* clear screen */
-#ifdef _WIN32
-  system("cls");
-#else
-  system("clear");
-#endif
-}
-
-#define OUTPUT_BUFFER_SIZE 4096
-char output_buffer[OUTPUT_BUFFER_SIZE];
-static size_t buffer_pos = 0;
-
-void my_printf(const char* format, ...) {
-    RGFW_ASSERT(buffer_pos <= OUTPUT_BUFFER_SIZE - 1);
-
-    va_list args;
-    va_start(args, format);
-    int written = vsnprintf(output_buffer + buffer_pos, OUTPUT_BUFFER_SIZE - buffer_pos, format, args);
-    va_end(args);
-
-    if (written > 0) {
-        buffer_pos += (size_t)written;
-        if (buffer_pos >= OUTPUT_BUFFER_SIZE) {
-            buffer_pos = OUTPUT_BUFFER_SIZE - 1; // Prevent overflow
-        }
-    }
-}
-
+typedef struct {
+    RGFW_bool isInFocus;
+    RGFW_bool isFullscreen;
+    RGFW_bool isMinimized;
+    RGFW_bool isMaximized;
+    i32 posX, posY;
+    i32 width, height;
+    RGFW_bool escapePressed;
+    RGFW_bool spaceDown;
+    RGFW_bool enterReleased;
+    RGFW_bool controlPressed;
+    RGFW_bool leftMousePressed;
+    RGFW_bool rightMouseDown;
+    RGFW_bool middleMouseReleased;
+    RGFW_bool scrollUp;
+    i32 mouseX, mouseY;
+} WindowState;
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW State Checking", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
     RGFW_window_setExitKey(win, RGFW_escape);
 
-	clear();
+    WindowState prevState = {0};
+    while (RGFW_window_shouldClose(win) == 0) {
+        RGFW_pollEvents();
 
-	while (RGFW_window_shouldClose(win) == 0) {
-		RGFW_pollEvents();
+        WindowState currState = {
+            RGFW_window_isInFocus(win),
+            RGFW_window_isFullscreen(win),
+            RGFW_window_isMinimized(win),
+            RGFW_window_isMaximized(win),
+            0, 0,
+            0, 0,
+            RGFW_window_isKeyPressed(win, RGFW_escape),
+            RGFW_window_isKeyDown(win, RGFW_space),
+            RGFW_window_isKeyReleased(win, RGFW_enter),
+            RGFW_window_isKeyPressed(win, RGFW_controlL),
+            RGFW_window_isMousePressed(win, RGFW_mouseLeft),
+            RGFW_window_isMouseDown(win, RGFW_mouseRight),
+            RGFW_window_isMouseReleased(win, RGFW_mouseMiddle),
+            RGFW_window_isMousePressed(win, RGFW_mouseScrollUp),
+            0, 0
+        };
 
-        my_printf("=== Window State ===\n");
-        my_printf("Is in focus: %s\n", RGFW_window_isInFocus(win) ? "Yes" : "No");
-        my_printf("Is fullscreen: %s\n", RGFW_window_isFullscreen(win) ? "Yes" : "No");
-        my_printf("Is minimized: %s\n", RGFW_window_isMinimized(win) ? "Yes" : "No");
-        my_printf("Is maximized: %s\n", RGFW_window_isMaximized(win) ? "Yes" : "No");
+        RGFW_window_getPosition(win, &currState.posX, &currState.posY);
+        RGFW_window_getSize(win, &currState.width, &currState.height);
+        RGFW_window_getMouse(win, &currState.mouseX, &currState.mouseY);
 
-        i32 x, y, w, h;
-        if (RGFW_window_getPosition(win, &x, &y)) {
-            my_printf("Window position: (%i, %i)\n", x, y);
+        if (currState.isInFocus != prevState.isInFocus) {
+            printf("Is in focus: %s\n", currState.isInFocus ? "Yes" : "No");
         }
-        if (RGFW_window_getSize(win, &w, &h)) {
-            my_printf("Window size: (%i, %i)\n", w, h);
+        if (currState.isFullscreen != prevState.isFullscreen) {
+            printf("Is fullscreen: %s\n", currState.isFullscreen ? "Yes" : "No");
+        }
+        if (currState.isMinimized != prevState.isMinimized) {
+            printf("Is minimized: %s\n", currState.isMinimized ? "Yes" : "No");
+        }
+        if (currState.isMaximized != prevState.isMaximized) {
+            printf("Is maximized: %s\n", currState.isMaximized ? "Yes" : "No");
+        }
+        if (currState.posX != prevState.posX || currState.posY != prevState.posY) {
+            printf("Window position: (%i, %i)\n", currState.posX, currState.posY);
+        }
+        if (currState.width != prevState.width || currState.height != prevState.height) {
+            printf("Window size: (%i, %i)\n", currState.width, currState.height);
+        }
+        if (currState.escapePressed != prevState.escapePressed) {
+            printf("Is Escape key pressed: %s\n", currState.escapePressed ? "Yes" : "No");
+        }
+        if (currState.spaceDown != prevState.spaceDown) {
+            printf("Is Space key down: %s\n", currState.spaceDown ? "Yes" : "No");
+        }
+        if (currState.enterReleased != prevState.enterReleased) {
+            printf("Is Enter key released: %s\n", currState.enterReleased ? "Yes" : "No");
+        }
+        if (currState.controlPressed != prevState.controlPressed) {
+            printf("Is Control key pressed: %s\n", currState.controlPressed ? "Yes" : "No");
+        }
+        if (currState.leftMousePressed != prevState.leftMousePressed) {
+            printf("Is left mouse button pressed: %s\n", currState.leftMousePressed ? "Yes" : "No");
+        }
+        if (currState.rightMouseDown != prevState.rightMouseDown) {
+            printf("Is right mouse button down: %s\n", currState.rightMouseDown ? "Yes" : "No");
+        }
+        if (currState.middleMouseReleased != prevState.middleMouseReleased) {
+            printf("Is middle mouse button released: %s\n", currState.middleMouseReleased ? "Yes" : "No");
+        }
+        if (currState.scrollUp != prevState.scrollUp) {
+            printf("Is mouse scroll up: %s\n", currState.scrollUp ? "Yes" : "No");
+        }
+        if (currState.mouseX != prevState.mouseX || currState.mouseY != prevState.mouseY) {
+            printf("Mouse position in window: (%i, %i)\n", currState.mouseX, currState.mouseY);
         }
 
-        my_printf("Window flags: %u\n", RGFW_window_getFlags(win));
-
-        #ifndef RGFW_NO_MONITOR
-        RGFW_monitor monitor = RGFW_window_getMonitor(win);
-        my_printf("Monitor associated with window: %p\n", (void*)&monitor);
-        #endif
-
-        my_printf("\n=== Keyboard State ===\n");
-        my_printf("Is Escape key pressed: %s\n", RGFW_window_isKeyPressed(win, RGFW_escape) ? "Yes" : "No");
-        my_printf("Is Space key down: %s\n", RGFW_window_isKeyDown(win, RGFW_space) ? "Yes" : "No");
-        my_printf("Is Enter key released: %s\n", RGFW_window_isKeyReleased(win, RGFW_enter) ? "Yes" : "No");
-        my_printf("Global Control key pressed: %s\n", RGFW_isKeyPressed(RGFW_controlL) ? "Yes" : "No");
-
-        my_printf("\n=== Mouse State ===\n");
-        my_printf("Is left mouse button pressed: %s\n", RGFW_window_isMousePressed(win, RGFW_mouseLeft) ? "Yes" : "No");
-        my_printf("Is right mouse button down: %s\n", RGFW_window_isMouseDown(win, RGFW_mouseRight) ? "Yes" : "No");
-        my_printf("Is middle mouse button released: %s\n", RGFW_window_isMouseReleased(win, RGFW_mouseMiddle) ? "Yes" : "No");
-        my_printf("Global mouse scroll up: %s\n", RGFW_isMousePressed(RGFW_mouseScrollUp) ? "Yes" : "No");
-        //my_printf("Mouse entered window: %s\n", RGFW_isMouseEntered(win) ? "Yes" : "No");
-        // my_printf("Mouse left window: %s\n", RGFW_isMouseLeft(win) ? "Yes" : "No");
-
-        i32 mouseX, mouseY;
-        if (RGFW_window_getMouse(win, &mouseX, &mouseY)) {
-            my_printf("Mouse position in window: (%i, %i)\n", mouseX, mouseY);
-        }
-        if (RGFW_getGlobalMouse(&mouseX, &mouseY)) {
-            my_printf("Global mouse position: (%i, %i)\n", mouseX, mouseY);
-        }
-
-        my_printf("\n=== Drag And Drop State ===\n");
-        // my_printf("Is dragging: %s\n", RGFW_window_isDragging(win) ? "Yes" : "No");
-        // my_printf("Is dropping ? : %s\n", RGFW_window_isDropping(win) ? "Yes" : "No");
-
-		clear();
-		printf("%s", output_buffer);
-		buffer_pos = 0;
-	}
+        memcpy(&prevState, &currState, sizeof(WindowState));
+    }
 
     RGFW_window_close(win);
     return 0;
