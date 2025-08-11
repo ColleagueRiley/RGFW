@@ -1,104 +1,84 @@
+#define PORTABLEGL_IMPLEMENTATION
+#include "portablegl.h"
+
+#define u8 u8
+
+
+#define __gltypes_h_
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+typedef struct My_Uniforms
+{
+	vec4 v_color;
+} My_Uniforms;
 
-typedef struct {
-    RGFW_bool isInFocus;
-    RGFW_bool isFullscreen;
-    RGFW_bool isMinimized;
-    RGFW_bool isMaximized;
-    i32 posX, posY;
-    i32 width, height;
-    RGFW_bool spaceDown;
-    RGFW_bool enterReleased;
-    RGFW_bool controlPressed;
-    RGFW_bool leftMousePressed;
-    RGFW_bool rightMouseDown;
-    RGFW_bool middleMouseReleased;
-    RGFW_bool scrollUp;
-    i32 mouseX, mouseY;
-} WindowState;
 
-int main(void) {
-    RGFW_window* win = RGFW_createWindow("RGFW State Checking", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
+void identity_vs(float* vs_output, vec4* vertex_attribs, Shader_Builtins* builtins, void* uniforms)
+{
+	builtins->gl_Position = vertex_attribs[0];
+}
+
+void uniform_color_fs(float* fs_input, Shader_Builtins* builtins, void* uniforms)
+{
+	builtins->gl_FragColor = ((My_Uniforms*)uniforms)->v_color;
+}
+
+int main() {
+	RGFW_window* win = RGFW_createWindow("name", 500, 500, 500, 500, (u64)RGFW_windowCenter | RGFW_windowNoResize);
     RGFW_window_setExitKey(win, RGFW_escape);
 
-    WindowState prevState = {0};
-    while (RGFW_window_shouldClose(win) == 0) {
-        RGFW_pollEvents();
+    u8* buffer = (u8*)RGFW_ALLOC(500 * 500 * 4);
+	RGFW_surface* surface = RGFW_createSurface(buffer, 500, 500, RGFW_formatRGBA8);
 
-        WindowState currState = {
-            RGFW_window_isInFocus(win),
-            RGFW_window_isFullscreen(win),
-            RGFW_window_isMinimized(win),
-            RGFW_window_isMaximized(win),
-            0, 0,
-            0, 0,
-            RGFW_window_isKeyPressed(win, RGFW_escape),
-            RGFW_window_isKeyDown(win, RGFW_space),
-            RGFW_window_isKeyReleased(win, RGFW_enter),
-            RGFW_window_isKeyPressed(win, RGFW_controlL),
-            RGFW_window_isMousePressed(win, RGFW_mouseLeft),
-            RGFW_window_isMouseDown(win, RGFW_mouseRight),
-            RGFW_window_isMouseReleased(win, RGFW_mouseMiddle),
-            RGFW_window_isMousePressed(win, RGFW_mouseScrollUp),
-            0, 0
-        };
+	glContext context;
+	init_glContext(&context, (u32**)&buffer, win->w, 500, 32, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
 
-        RGFW_window_getPosition(win, &currState.posX, &currState.posY);
-        RGFW_window_getSize(win, &currState.width, &currState.height);
-        RGFW_window_getMouse(win, &currState.mouseX, &currState.mouseY);
+	float points[] = { -0.5, -0.5, 0,
+						0.5, -0.5, 0,
+						0,    0.5, 0 };
 
-        if (currState.isInFocus != prevState.isInFocus) {
-            printf("Is in focus: %s\n", currState.isInFocus ? "Yes" : "No");
-        }
-        if (currState.isFullscreen != prevState.isFullscreen) {
-            printf("Is fullscreen: %s\n", currState.isFullscreen ? "Yes" : "No");
-        }
-        if (currState.isMinimized != prevState.isMinimized) {
-            printf("Is minimized: %s\n", currState.isMinimized ? "Yes" : "No");
-        }
-        if (currState.isMaximized != prevState.isMaximized) {
-            printf("Is maximized: %s\n", currState.isMaximized ? "Yes" : "No");
-        }
-        if (currState.posX != prevState.posX || currState.posY != prevState.posY) {
-            printf("Window position: (%i, %i)\n", currState.posX, currState.posY);
-        }
-        if (currState.width != prevState.width || currState.height != prevState.height) {
-            printf("Window size: (%i, %i)\n", currState.width, currState.height);
-        }
 
-        if (currState.spaceDown != prevState.spaceDown) {
-            printf("Is Space key down: %s\n", currState.spaceDown ? "Yes" : "No");
-        }
-        if (currState.enterReleased != prevState.enterReleased) {
-            printf("Is Enter key released: %s\n", currState.enterReleased ? "Yes" : "No");
-        }
-        if (currState.controlPressed != prevState.controlPressed) {
-            printf("Is Control key pressed: %s\n", currState.controlPressed ? "Yes" : "No");
-        }
-        if (currState.leftMousePressed != prevState.leftMousePressed) {
-            printf("Is left mouse button pressed: %s\n", currState.leftMousePressed ? "Yes" : "No");
-        }
-        if (currState.rightMouseDown != prevState.rightMouseDown) {
-            printf("Is right mouse button down: %s\n", currState.rightMouseDown ? "Yes" : "No");
-        }
-        if (currState.middleMouseReleased != prevState.middleMouseReleased) {
-            printf("Is middle mouse button released: %s\n", currState.middleMouseReleased ? "Yes" : "No");
-        }
-        if (currState.scrollUp != prevState.scrollUp) {
-            printf("Is mouse scroll up: %s\n", currState.scrollUp ? "Yes" : "No");
-        }
-        if (currState.mouseX != prevState.mouseX || currState.mouseY != prevState.mouseY) {
-            printf("Mouse position in window: (%i, %i)\n", currState.mouseX, currState.mouseY);
-        }
+	My_Uniforms the_uniforms;
 
-        memcpy(&prevState, &currState, sizeof(WindowState));
-    }
+	GLuint myshader = pglCreateProgram(identity_vs, uniform_color_fs, 0, NULL, GL_FALSE);
+	glUseProgram(myshader);
 
-    RGFW_window_close(win);
-    return 0;
+	pglSetUniform(&the_uniforms);
+
+	the_uniforms.v_color = (vec4){1.0f, 0.0f, 0.0f, 1.0f};
+
+	GLuint triangle;
+	glGenBuffers(1, &triangle);
+	glBindBuffer(GL_ARRAY_BUFFER, triangle);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*9, points, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glViewport(0, 0, win->w, win->h);
+
+	i32 running = 1;
+
+	while (running) {
+		RGFW_event event;
+		while (RGFW_window_checkEvent(win, &event)) {
+			if (event.type == RGFW_quit || RGFW_isKeyPressed(RGFW_escape)) {
+				running = 0;
+				break;
+			}
+		}
+
+		glClearColor(0xFF, 0xFF, 0xFF, 0xFF);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        RGFW_window_blitSurface(win, surface);
+	}
+
+	free_glContext(&context);
+
+    RGFW_surface_free(surface);
+	RGFW_FREE(buffer);
+
+	RGFW_window_close(win);
 }
