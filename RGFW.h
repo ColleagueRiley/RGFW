@@ -687,8 +687,8 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 		with win->x, win->y, win->w and win->h
 	*/
 	RGFW_quit, /*!< the user clicked the quit button */
-	RGFW_drop, /*!< a file has been dropped into the window */
-	RGFW_drag, /*!< the start of a drag and drop event, when the file is being dragged */
+	RGFW_dataDrop, /*!< a file has been dropped into the window */
+	RGFW_dataDrag, /*!< the start of a drag and drop event, when the file is being dragged */
 	/* drop data note
 		The x and y coords of the drop are stored in the vector RGFW_x, y
 
@@ -722,15 +722,15 @@ typedef RGFW_ENUM(u32, RGFW_eventFlag) {
     RGFW_windowRestoredFlag = RGFW_BIT(RGFW_windowRestored),
     RGFW_scaleUpdatedFlag = RGFW_BIT(RGFW_scaleUpdated),
     RGFW_quitFlag = RGFW_BIT(RGFW_quit),
-    RGFW_dropFlag = RGFW_BIT(RGFW_drop),
-    RGFW_dragFlag = RGFW_BIT(RGFW_drag),
+    RGFW_dataDropFlag = RGFW_BIT(RGFW_dataDrop),
+    RGFW_dataDragFlag = RGFW_BIT(RGFW_dataDrag),
 
     RGFW_keyEventsFlag = RGFW_keyPressedFlag | RGFW_keyReleasedFlag,
     RGFW_mouseEventsFlag = RGFW_mouseButtonPressedFlag | RGFW_mouseButtonReleasedFlag | RGFW_mousePosChangedFlag | RGFW_mouseEnterFlag | RGFW_mouseLeaveFlag,
     RGFW_windowEventsFlag = RGFW_windowMovedFlag | RGFW_windowResizedFlag | RGFW_windowRefreshFlag | RGFW_windowMaximizedFlag | RGFW_windowMinimizedFlag | RGFW_windowRestoredFlag | RGFW_scaleUpdatedFlag,
     RGFW_focusEventsFlag = RGFW_focusInFlag | RGFW_focusOutFlag,
-    RGFW_dropEventsFlag = RGFW_dropFlag | RGFW_dragFlag,
-    RGFW_allEventFlags = RGFW_keyEventsFlag | RGFW_mouseEventsFlag | RGFW_windowEventsFlag | RGFW_focusEventsFlag | RGFW_dropEventsFlag | RGFW_quitFlag
+    RGFW_dataDropEventsFlag = RGFW_dataDropFlag | RGFW_dataDragFlag,
+    RGFW_allEventFlags = RGFW_keyEventsFlag | RGFW_mouseEventsFlag | RGFW_windowEventsFlag | RGFW_focusEventsFlag | RGFW_dataDropEventsFlag | RGFW_quitFlag
 };
 
 /*! Event structure(s) and union for checking/getting events */
@@ -762,19 +762,19 @@ typedef struct RGFW_keyEvent {
 	RGFW_keymod mod;
 } RGFW_keyEvent;
 
-typedef struct RGFW_dropEvent {
+typedef struct RGFW_dataDropEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies too (for event queue events) */
 	/* 260 max paths with a max length of 260 */
 	char** files; /*!< dropped files */
 	size_t count; /*!< how many files were dropped */
-} RGFW_dropEvent;
+} RGFW_dataDropEvent;
 
-typedef struct RGFW_dragEvent {
+typedef struct RGFW_dataDragEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies too (for event queue events) */
 	i32 x, y; /*!< mouse x, y of event (or drop point) */
-} RGFW_dragEvent;
+} RGFW_dataDragEvent;
 
 typedef struct RGFW_scaleUpdatedEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
@@ -789,8 +789,8 @@ typedef union RGFW_event {
 	RGFW_mouseButtonEvent button; /*!< data for a button press/release */
 	RGFW_mousePosEvent mouse; /*!< data for mouse motion events */
 	RGFW_keyEvent key; /*!< data for key press/release/hold events */
-	RGFW_dropEvent drop; /*!< dropping a file events */
-	RGFW_dragEvent drag; /* data for dragging a file events */
+	RGFW_dataDropEvent drop; /*!< dropping a file events */
+	RGFW_dataDragEvent drag; /* data for dragging a file events */
 	RGFW_scaleUpdatedEvent scale; /* data for monitor scaling events */
 } RGFW_event;
 
@@ -961,6 +961,17 @@ RGFWDEF RGFW_bool RGFW_window_isMousePressed(RGFW_window* win, RGFW_mouseButton 
 RGFWDEF RGFW_bool RGFW_window_isMouseDown(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
 /*! if a mouse button was released */
 RGFWDEF RGFW_bool RGFW_window_isMouseReleased(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
+/*! if the mouse left the window, only true for the first frame */
+RGFWDEF RGFW_bool RGFW_window_didMouseLeave(RGFW_window* win);
+/*! if the mouse enter the window, only true for the first frame */
+RGFWDEF RGFW_bool RGFW_window_didMouseEnter(RGFW_window* win);
+/*! if the mouse is within the window or not */
+RGFWDEF RGFW_bool RGFW_window_isMouseWithin(RGFW_window* win);
+
+/*! if there is data being dragged to/in the window, only true for the first frame */
+RGFWDEF RGFW_bool RGFW_window_isDataDragging(RGFW_window* win, i32* x, i32* y);
+/* true the first frame there was a data drop (drag and drop) to the window */
+RGFWDEF RGFW_bool RGFW_window_didDataDrop(RGFW_window* win, const char** files, size_t count);
 
 /*! window managment functions */
 RGFWDEF void RGFW_window_close(RGFW_window* win); /*!< close the window and free the window struct */
@@ -1182,16 +1193,16 @@ typedef void (* RGFW_focusfunc)(RGFW_window* win, RGFW_bool inFocus);
 typedef void (* RGFW_mouseNotifyfunc)(RGFW_window* win, i32 x, i32 y, RGFW_bool status);
 /*! RGFW_mousePosChanged, the window that the move happened on, and the new point of the mouse  */
 typedef void (* RGFW_mousePosfunc)(RGFW_window* win, i32 x, i32 y, float vecX, float vecY);
-/*! RGFW_drag, the window, the point of the drop on the windows */
-typedef void (* RGFW_dragfunc)(RGFW_window* win, i32 x, i32 y);
+/*! RGFW_dataDrag, the window, the point of the drop on the windows */
+typedef void (* RGFW_dataDragfunc)(RGFW_window* win, i32 x, i32 y);
 /*! RGFW_windowRefresh, the window that needs to be refreshed */
 typedef void (* RGFW_windowRefreshfunc)(RGFW_window* win);
 /*! RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of the mod keys, if it was a press (else it's a release) */
 typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, u8 sym, RGFW_keymod mod, RGFW_bool repeat, RGFW_bool pressed);
 /*! RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release)  */
 typedef void (* RGFW_mouseButtonfunc)(RGFW_window* win, RGFW_mouseButton button, double scroll, RGFW_bool pressed);
-/*! RGFW_drop the window that had the drop, the drop data and the number of files dropped */
-typedef void (* RGFW_dropfunc)(RGFW_window* win, char** files, size_t count);
+/*! RGFW_dataDrop the window that had the drop, the drop data and the number of files dropped */
+typedef void (* RGFW_dataDropfunc)(RGFW_window* win, char** files, size_t count);
 /*! RGFW_scaleUpdated, the window the event was sent to, content scaleX, content scaleY */
 typedef void (* RGFW_scaleUpdatedfunc)(RGFW_window* win, float scaleX, float scaleY);
 
@@ -1210,9 +1221,9 @@ RGFWDEF RGFW_focusfunc RGFW_setFocusCallback(RGFW_focusfunc func);
 /*! set callback for a mouse notify event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_mouseNotifyfunc RGFW_setMouseNotifyCallback(RGFW_mouseNotifyfunc func);
 /*! set callback for a drop event event. Returns previous callback function (if it was set)  */
-RGFWDEF RGFW_dropfunc RGFW_setDropCallback(RGFW_dropfunc func);
+RGFWDEF RGFW_dataDropfunc RGFW_setDataDropCallback(RGFW_dataDropfunc func);
 /*! set callback for a start of a drop event. Returns previous callback function (if it was set)  */
-RGFWDEF RGFW_dragfunc RGFW_setDragCallback(RGFW_dragfunc func);
+RGFWDEF RGFW_dataDragfunc RGFW_setDataDragCallback(RGFW_dataDragfunc func);
 /*! set callback for a key (press / release) event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_keyfunc RGFW_setKeyCallback(RGFW_keyfunc func);
 /*! set callback for a mouse button (press / release) event. Returns previous callback function (if it was set)  */
@@ -1908,11 +1919,11 @@ RGFW_CALLBACK_DEFINE(focus, Focus)
 RGFW_CALLBACK_DEFINE(mouseNotify, MouseNotify)
 #define RGFW_mouseNotifyCallback(w, x, y, status) if (RGFW_mouseNotifyCallbackSrc) RGFW_mouseNotifyCallbackSrc(w, x, y, status);
 
-RGFW_CALLBACK_DEFINE(drop, Drop)
-#define RGFW_dropCallback(w, files, count) if (RGFW_dropCallbackSrc) RGFW_dropCallbackSrc(w, files, count);
+RGFW_CALLBACK_DEFINE(dataDrop, DataDrop)
+#define RGFW_dataDropCallback(w, files, count) if (RGFW_dataDropCallbackSrc) RGFW_dataDropCallbackSrc(w, files, count);
 
-RGFW_CALLBACK_DEFINE(drag, Drag)
-#define RGFW_dragCallback(w, x, y) if (RGFW_dragCallbackSrc) RGFW_dragCallbackSrc(w, x, y);
+RGFW_CALLBACK_DEFINE(dataDrag, DataDrag)
+#define RGFW_dataDragCallback(w, x, y) if (RGFW_dataDragCallbackSrc) RGFW_dataDragCallbackSrc(w, x, y);
 
 RGFW_CALLBACK_DEFINE(key, Key)
 #define RGFW_keyCallback(w, key, sym, mod, repeat, press) if (RGFW_keyCallbackSrc) RGFW_keyCallbackSrc(w, key, sym, mod, repeat, press);
@@ -2213,7 +2224,12 @@ RGFW_bool RGFW_isMouseReleased( RGFW_mouseButton button) {
 	return _RGFW != NULL && !RGFW_mouseButtons[button].current && RGFW_mouseButtons[button].prev;
 }
 
+RGFW_bool RGFW_window_didMouseLeave(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
+RGFW_bool RGFW_window_didMouseEnter(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
+RGFW_bool RGFW_window_isMouseWithin(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE;  }
 
+RGFW_bool RGFW_window_isDataDragging(RGFW_window* win, i32* x, i32* y) { RGFW_UNUSED(win); RGFW_UNUSED(x); RGFW_UNUSED(y); return RGFW_FALSE; }
+RGFW_bool RGFW_window_didDataDrop(RGFW_window* win, const char** files, size_t count) { RGFW_UNUSED(win); RGFW_UNUSED(files); RGFW_UNUSED(count); return RGFW_FALSE; }
 
 RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
 	if (_RGFW->eventLen == 0 && _RGFW->polledEvents == RGFW_FALSE) {
@@ -4463,7 +4479,7 @@ void RGFW_XHandleEvent(void) {
 			if (version > 5)
 				break;
 
-			event.type = RGFW_drag;
+			event.type = RGFW_dataDrag;
 
 			if (format) {
 				Time time = (version >= 1)
@@ -4481,12 +4497,12 @@ void RGFW_XHandleEvent(void) {
 				XFlush(_RGFW->display);
 			}
 
-			if (win->internal.enabledEvents & RGFW_dragFlag) return;
-			RGFW_dragCallback(win, event.drag.x, event.drag.y);
+			if (win->internal.enabledEvents & RGFW_dataDragFlag) return;
+			RGFW_dataDragCallback(win, event.drag.x, event.drag.y);
 		} break;
 		case SelectionNotify: {
 			/* this is only for checking for xdnd drops */
-			if (!(win->internal.enabledEvents & RGFW_dropFlag) || E.xselection.property != XdndSelection || !(win->internal.flags & RGFW_windowAllowDND))
+			if (!(win->internal.enabledEvents & RGFW_dataDropFlag) || E.xselection.property != XdndSelection || !(win->internal.flags & RGFW_windowAllowDND))
 				return;
 			char* data;
 			unsigned long result;
@@ -4506,7 +4522,7 @@ void RGFW_XHandleEvent(void) {
 
 			event.drop.files = _RGFW->files;
 			event.drop.count = 0;
-			event.type = RGFW_drop;
+			event.type = RGFW_dataDrop;
 
 			while ((line = (char*)RGFW_strtok(data, "\r\n"))) {
 				char path[RGFW_MAX_PATH];
@@ -4549,7 +4565,7 @@ void RGFW_XHandleEvent(void) {
 				RGFW_MEMCPY(event.drop.files[event.drop.count - 1], path, index + 1);
 			}
 
-			RGFW_dropCallback(win, event.drop.files, event.drop.count);
+			RGFW_dataDropCallback(win, event.drop.files, event.drop.count);
 			if (data)
 				XFree(data);
 
@@ -5814,8 +5830,8 @@ Wayland TODO: (out of date)
 	RGFW_windowResized  	the window was resized (by the user), [on WASM this means the browser was resized]
 	RGFW_windowRefresh	 	The window content needs to be refreshed
 
-	RGFW_drop 				a file has been dropped into the window
-	RGFW_drag
+	RGFW_dataDrop 				a file has been dropped into the window
+	RGFW_dataDrag
 
 - window args:
 	#define RGFW_windowNoResize	 			the window cannot be resized  by the user
@@ -7219,7 +7235,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_mouseButtonCallback(win, event.button.value, event.button.scroll, 1);
 			break;
 		case WM_DROPFILES: {
-			event.type = RGFW_drag;
+			event.type = RGFW_dataDrag;
 
 			HDROP drop = (HDROP) wParam;
 			POINT pt;
@@ -7230,14 +7246,14 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			event.drag.x = pt.x;
 			event.drag.y = pt.y;
 
-			if ((win->internal.enabledEvents & RGFW_drag)) {
-				RGFW_dragCallback(win, event.drag.x, event.drag.y);
+			if ((win->internal.enabledEvents & RGFW_dataDrag)) {
+				RGFW_dataDragCallback(win, event.drag.x, event.drag.y);
 				RGFW_eventQueuePush(&event);
 			}
 
-			if (!(win->internal.enabledEvents & RGFW_drop)) return DefWindowProcW(hWnd, message, wParam, lParam);
+			if (!(win->internal.enabledEvents & RGFW_dataDrop)) return DefWindowProcW(hWnd, message, wParam, lParam);
 			event.type = 0;
-			event.type = RGFW_drop;
+			event.type = RGFW_dataDrop;
 			event.drop.files = _RGFW->files;
 			event.drop.count = 0;
 			event.drop.count = DragQueryFileW(drop, 0xffffffff, NULL, 0);
@@ -7263,7 +7279,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 
 			DragFinish(drop);
-			RGFW_dropCallback(win, event.drop.files, event.drop.count);
+			RGFW_dataDropCallback(win, event.drop.files, event.drop.count);
 			break;
 		}
 		default: break;
@@ -8970,20 +8986,20 @@ NSDragOperation draggingUpdated(id self, SEL sel, id sender) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL || (!(win->internal.flags & RGFW_windowAllowDND)))
 		return 0;
-	if (!(win->internal.enabledEvents & RGFW_dragFlag)) return NSDragOperationCopy;
+	if (!(win->internal.enabledEvents & RGFW_dataDragFlag)) return NSDragOperationCopy;
 
 	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
-	RGFW_eventQueuePushEx(e.type = RGFW_drag;
+	RGFW_eventQueuePushEx(e.type = RGFW_dataDrag;
 									e.mouse.x = (i32)p.x;  e.mouse.y = (i32)(win->h - p.y);
 									e.common.win = win);
 
-	RGFW_dragCallback(win, (i32) p.x, (i32) (win->h - p.y));
+	RGFW_dataDragCallback(win, (i32) p.x, (i32) (win->h - p.y));
 	return NSDragOperationCopy;
 }
 bool prepareForDragOperation(id self) {
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
-	if (win == NULL || (!(win->internal.enabledEvents & RGFW_dropFlag)))
+	if (win == NULL || (!(win->internal.enabledEvents & RGFW_dataDropFlag)))
 		return true;
 
 	if (!(win->internal.flags & RGFW_windowAllowDND)) {
@@ -9003,7 +9019,7 @@ bool performDragOperation(id self, SEL sel, id sender) {
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 
-	if (win == NULL || (!(win->internal.enabledEvents & RGFW_dropFlag)))
+	if (win == NULL || (!(win->internal.enabledEvents & RGFW_dataDropFlag)))
 		return false;
 
 	/* id pasteBoard = objc_msgSend_id(sender, sel_registerName("draggingPasteboard")); */
@@ -9040,12 +9056,12 @@ bool performDragOperation(id self, SEL sel, id sender) {
 	}
 
 	event.drop.count = (size_t)count;
-	RGFW_eventQueuePushEx(e.type = RGFW_drop;
+	RGFW_eventQueuePushEx(e.type = RGFW_dataDrop;
 									e.drop.count = (size_t)count;
 									e.drop.files = event.drop.files;
 									e.common.win = win);
 
-	RGFW_dropCallback(win, event.drop.files, event.drop.count);
+	RGFW_dataDropCallback(win, event.drop.files, event.drop.count);
 
 	return false;
 }
@@ -10813,12 +10829,12 @@ void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(size_t count) {
 	if (!(_RGFW->root->internal.flags & RGFW_windowAllowDND))
 		return;
 
-	if (!(_RGFW->root->internal.enabledEvents & RGFW_dropFlag)) return;
+	if (!(_RGFW->root->internal.enabledEvents & RGFW_dataDropFlag)) return;
 
-	RGFW_eventQueuePushEx(e.type = RGFW_drop;
+	RGFW_eventQueuePushEx(e.type = RGFW_dataDrop;
 							e.drop.count = count;
 							e.common.win = _RGFW->root);
-	RGFW_dropCallback(_RGFW->root, _RGFW->files, count);
+	RGFW_dataDropCallback(_RGFW->root, _RGFW->files, count);
 }
 
 void RGFW_stopCheckEvents(void) {

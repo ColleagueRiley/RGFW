@@ -21,14 +21,22 @@ typedef struct {
     RGFW_bool middleMouseReleased;
     RGFW_bool scrollUp;
     i32 mouseX, mouseY;
+    RGFW_bool didMouseLeave;
+    RGFW_bool didMouseEnter;
+    RGFW_bool isMouseWithin;
 } WindowState;
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW State Checking", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
     RGFW_window_setExitKey(win, RGFW_escape);
 
-    WindowState prevState;
-    memset(&prevState, 0, sizeof(prevState));
+    WindowState prevState = {0};
+    prevState.posX = -1;
+    prevState.posY = -1;
+    prevState.width = -1;
+    prevState.height = -1;
+    prevState.mouseX = -1;
+    prevState.mouseY = -1;
 
     while (RGFW_window_shouldClose(win) == 0) {
         RGFW_pollEvents();
@@ -48,7 +56,10 @@ int main(void) {
             RGFW_window_isMouseDown(win, RGFW_mouseRight),
             RGFW_window_isMouseReleased(win, RGFW_mouseMiddle),
             RGFW_window_isMousePressed(win, RGFW_mouseScrollUp),
-            0, 0
+            0, 0,
+            RGFW_window_didMouseLeave(win),
+            RGFW_window_didMouseEnter(win),
+            RGFW_window_isMouseWithin(win)
         };
 
         RGFW_window_getPosition(win, &currState.posX, &currState.posY);
@@ -99,6 +110,15 @@ int main(void) {
         }
         if (currState.mouseX != prevState.mouseX || currState.mouseY != prevState.mouseY) {
             printf("Mouse position in window: (%i, %i)\n", currState.mouseX, currState.mouseY);
+        }
+        if (currState.didMouseLeave != prevState.didMouseLeave) {
+            printf("Did mouse leave: %s\n", currState.didMouseLeave ? "Yes" : "No");
+        }
+        if (currState.didMouseEnter != prevState.didMouseEnter) {
+            printf("Did mouse enter: %s\n", currState.didMouseEnter ? "Yes" : "No");
+        }
+        if (currState.isMouseWithin != prevState.isMouseWithin) {
+            printf("Is mouse within: %s\n", currState.isMouseWithin ? "Yes" : "No");
         }
 
         memcpy(&prevState, &currState, sizeof(WindowState));
