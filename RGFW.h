@@ -6054,12 +6054,11 @@ void RGFW_wl_shm_format_handler(void* data, struct wl_shm *shm, u32 format) {
 	RGFW_UNUSED(data); RGFW_UNUSED(shm); RGFW_UNUSED(format);
 }
 
-RGFW_window* RGFW_mouse_win = NULL;
-
 void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial,
 		struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y) {
-	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(serial); RGFW_UNUSED(surface_x); RGFW_UNUSED(surface_y);
+	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(serial);
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
+  
 	win->internal.mouseInside = RGFW_TRUE;
 	_RGFW->windowState.win = win;
 	_RGFW->windowState.mouseEnter =  RGFW_TRUE;
@@ -6069,14 +6068,20 @@ void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial,
 
 	i32 x = (i32)wl_fixed_to_double(surface_x);
 	i32 y = (i32)wl_fixed_to_double(surface_y);
-	RGFW_eventQueuePushEx(e.type = RGFW_mouseEnter;
-									e.mouse.x = x; e.mouse.y = y;
-									e.common.win = win);
 
+	RGFW_eventQueuePushEx(e.type = RGFW_mouseEnter;
+									e.mouse.x = x; 
+									e.mouse.y = y;
+									e.common.win = win);
+	
+	win->internal.lastMouseX = x;
+	win->internal.lastMouseY = y;
+	
 	RGFW_mouseNotifyCallback(win, x, y, RGFW_TRUE);
 }
+
 void RGFW_wl_pointer_leave(void* data, struct wl_pointer *pointer, u32 serial, struct wl_surface *surface) {
-	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(serial); RGFW_UNUSED(surface);
+	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(serial);
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 	if (RGFW_mouse_win == win)
 		RGFW_mouse_win = NULL;
@@ -6088,27 +6093,39 @@ void RGFW_wl_pointer_leave(void* data, struct wl_pointer *pointer, u32 serial, s
 	if (!(win->internal.enabledEvents & RGFW_mouseLeaveFlag)) return;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseLeave;
-									e.mouse.x = win->internal.lastMouseX;  e.mouse.y = win->internal.lastMouseY;
+									e.mouse.x = win->internal.lastMouseX;  
+									e.mouse.y = win->internal.lastMouseY;
 									e.common.win = win);
 
 	RGFW_mouseNotifyCallback(win, win->internal.lastMouseX, win->internal.lastMouseY, RGFW_FALSE);
 }
+
 void RGFW_wl_pointer_motion(void* data, struct wl_pointer *pointer, u32 time, wl_fixed_t x, wl_fixed_t y) {
-	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(x); RGFW_UNUSED(y);
-	RGFW_ASSERT(RGFW_mouse_win != NULL);
-	if (!(RGFW_mouse_win->internal.enabledEvents & RGFW_mousePosChangedFlag)) return;
+	RGFW_UNUSED(pointer); RGFW_UNUSED(time);
 
+	RGFW_window* win = (RGFW_window*)data;
+	
+	if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag)) return;
+
+	i32 convertedX = (i32)wl_fixed_to_double(x);
+	i32 convertedY = (i32)wl_fixed_to_double(y);
+	
 	RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
-									e.mouse.x = (i32)wl_fixed_to_double(x); e.mouse.y = (i32)wl_fixed_to_double(y);
-									e.common.win = RGFW_mouse_win);
-
-	RGFW_mousePosCallback(RGFW_mouse_win, (i32)wl_fixed_to_double(x), (i32)wl_fixed_to_double(y), 0, 0);
+									e.mouse.x = convertedX; 
+									e.mouse.y = convertedY;
+									e.common.win = win);
+									
+	win->internal.lastMouseX = convertedX;
+	win->internal.lastMouseY = convertedY;
+		
+	RGFW_mousePosCallback(win, convertedX, convertedY, 0, 0);
 }
-void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 serial, u32 time, u32 button, u32 state) {
-	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(serial);
-	RGFW_ASSERT(RGFW_mouse_win != NULL);
 
-	if (!(RGFW_mouse_win->internal.enabledEvents & (RGFW_BIT(RGFW_mouseButtonReleased - RGFW_BOOL(state))))) return;
+void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 serial, u32 time, u32 button, u32 state) {
+	RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(serial);
+	RGFW_window* win = (RGFW_window*)data;
+	
+	if (!(win->internal.enabledEvents & (RGFW_BIT(RGFW_mouseButtonReleased - RGFW_BOOL(state))))) return;
 	u32 b = (button - 0x110);
 
 	/* flip right and middle button codes */
@@ -6120,23 +6137,26 @@ void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 serial, 
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonReleased - RGFW_BOOL(state);
 									e.button.value = (u8)b;
-									e.common.win = RGFW_mouse_win);
-	RGFW_mouseButtonCallback(RGFW_mouse_win, (u8)b, 0, RGFW_BOOL(state));
+									e.common.win = win);
+	RGFW_mouseButtonCallback(win, (u8)b, 0, RGFW_BOOL(state));
 }
+
 void RGFW_wl_pointer_axis(void* data, struct wl_pointer *pointer, u32 time, u32 axis, wl_fixed_t value) {
-	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time);  RGFW_UNUSED(axis);
-	RGFW_ASSERT(RGFW_mouse_win != NULL);
+	RGFW_UNUSED(pointer); RGFW_UNUSED(time);  RGFW_UNUSED(axis);
+
+	RGFW_window* win = (RGFW_window*)data;
 
 	double scroll = - wl_fixed_to_double(value);
-	if (!(RGFW_mouse_win->internal.enabledEvents & (RGFW_BIT(RGFW_mouseScrollUp + (scroll < 0))))) return;
+	if (!(win->internal.enabledEvents  & (RGFW_BIT(RGFW_mouseScrollUp + (scroll < 0))))) return;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonPressed;
 									e.button.value = RGFW_mouseScrollUp + (scroll < 0);
 									e.button.scroll = scroll;
-									e.common.win = RGFW_mouse_win);
+									e.common.win = win);
 
-	RGFW_mouseButtonCallback(RGFW_mouse_win, RGFW_mouseScrollUp + (scroll < 0), scroll, 1);
+	RGFW_mouseButtonCallback(win, RGFW_mouseScrollUp + (scroll < 0), scroll, 1);
 }
+
 
 void RGFW_doNothing(void) { }
 
@@ -6202,7 +6222,7 @@ void RGFW_wl_keyboard_modifiers (void* data, struct wl_keyboard *keyboard, u32 s
 	xkb_state_update_mask (_RGFW->xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
 }
 void RGFW_wl_seat_capabilities (void* data, struct wl_seat *seat, u32 capabilities) {
-	RGFW_UNUSED(data);
+	
     static struct wl_pointer_listener pointer_listener;
 	RGFW_MEMSET(&pointer_listener, 0, sizeof (pointer_listener));
 	pointer_listener.enter = &RGFW_wl_pointer_enter;
@@ -6220,11 +6240,11 @@ void RGFW_wl_seat_capabilities (void* data, struct wl_seat *seat, u32 capabiliti
 	keyboard_listener.modifiers = &RGFW_wl_keyboard_modifiers;
 
     if (capabilities & WL_SEAT_CAPABILITY_POINTER) {
-		struct wl_pointer *pointer = wl_seat_get_pointer (seat);
-		wl_pointer_add_listener (pointer, &pointer_listener, NULL);
+		struct wl_pointer *pointer = wl_seat_get_pointer(seat);
+		wl_pointer_add_listener (pointer, &pointer_listener, data);
 	}
 	if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD) {
-		struct wl_keyboard *keyboard = wl_seat_get_keyboard (seat);
+		struct wl_keyboard *keyboard = wl_seat_get_keyboard(seat);
 		wl_keyboard_add_listener (keyboard, &keyboard_listener, NULL);
 	}
 }
@@ -6253,7 +6273,7 @@ void RGFW_wl_global_registry_handler(void* data,
         wl_shm_add_listener(win->src.shm, &shm_listener, NULL);
 	} else if (RGFW_STRNCMP(interface,"wl_seat", 8) == 0) {
 		win->src.seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
-		wl_seat_add_listener(win->src.seat, &seat_listener, NULL);
+		wl_seat_add_listener(win->src.seat, &seat_listener, win);
 	}
 }
 
