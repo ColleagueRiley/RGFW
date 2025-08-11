@@ -27,7 +27,9 @@ int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW State Checking", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
     RGFW_window_setExitKey(win, RGFW_escape);
 
-    WindowState prevState = {0};
+    WindowState prevState;
+    memset(&prevState, 0, sizeof(prevState));
+
     while (RGFW_window_shouldClose(win) == 0) {
         RGFW_pollEvents();
 
