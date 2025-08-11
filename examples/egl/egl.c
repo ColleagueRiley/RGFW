@@ -27,7 +27,6 @@ int main(void) {
     RGFW_window_setExitKey(win, RGFW_escape);
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
-        RGFW_event event;
         RGFW_pollEvents();
 
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);

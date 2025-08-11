@@ -55,13 +55,13 @@ void checkEvents(RGFW_window* win) {
 		}
 	}
 
-	if (RGFW_isPressed(win, RGFW_c) && (RGFW_isPressed(win, RGFW_controlL) || RGFW_isPressed(win, RGFW_controlR))) {
+	if (RGFW_window_isKeyPressed(win, RGFW_c) && (RGFW_window_isKeyPressed(win, RGFW_controlL) || RGFW_window_isKeyPressed(win, RGFW_controlR))) {
 		char str[32] = {0};
 		int size = snprintf(str, 32, "window %p: 刺猬", (void*)win);
 		if (size > 0)
 			RGFW_writeClipboard(str, (u32)size);
 	}
-	else if (RGFW_isPressed(win, RGFW_v) && (RGFW_isPressed(win, RGFW_controlL) || RGFW_isPressed(win, RGFW_controlR))) {
+	else if (RGFW_window_isKeyPressed(win, RGFW_v) && (RGFW_window_isKeyPressed(win, RGFW_controlL) || RGFW_window_isKeyPressed(win, RGFW_controlR))) {
 		size_t len = 0;
 		const char* str = RGFW_readClipboard(&len);
 		printf("window %p: clipboard paste %d: '", (void*)win, (i32)len);
@@ -86,7 +86,7 @@ void* loop(void* _win) {
 
 	while (!RGFW_window_shouldClose(win)) {
 		checkEvents(win);
-		if (RGFW_isPressed(win, RGFW_space)) {
+		if (RGFW_window_isKeyPressed(win, RGFW_space)) {
 			blue = (blue + 1) % 100;
 		}
 

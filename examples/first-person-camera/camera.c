@@ -106,21 +106,21 @@ int main(void) {
         if (event.type == RGFW_quit)
             break;
 
-        if (RGFW_isPressed(win, RGFW_w)) {
+        if (RGFW_isKeyPressed(RGFW_w)) {
             camX += cos((yaw + 90) * DEG2RAD)/5.0;
             camZ -= sin((yaw + 90) * DEG2RAD)/5.0;
         }
-        if (RGFW_isPressed(win, RGFW_s)) {
+        if (RGFW_isKeyPressed(RGFW_s)) {
             camX += cos((yaw + 270) * DEG2RAD)/5.0;
             camZ -= sin((yaw + 270) * DEG2RAD)/5.0;
         }
 
-        if (RGFW_isPressed(win, RGFW_a)) {
+        if (RGFW_isKeyPressed(RGFW_a)) {
             camX += cos(yaw * DEG2RAD)/5.0;
             camZ -= sin(yaw * DEG2RAD)/5.0;
         }
 
-        if (RGFW_isPressed(win, RGFW_d)) {
+        if (RGFW_isKeyPressed(RGFW_d)) {
             camX += cos((yaw + 180) * DEG2RAD)/5.0;
             camZ -= sin((yaw + 180) * DEG2RAD)/5.0;
         }

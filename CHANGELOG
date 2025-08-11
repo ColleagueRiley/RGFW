@@ -170,6 +170,12 @@ typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, u8 keyChar, RGFW_keymod 
 - rename `RGFW_dnd` to `RGFW_drop`
 - rename `RGFW_dndInit` to `RGFW_drag`
 - rename `drag.droppedFiles` to `drag.files` and `drag.droppedFilesCount` to `drag.count`
+- rename+change behavior for keyboard and mouse events (pressed, released, down)
+- removed `RGFW_wasMousePressed` (`RGFW_isMouseReleased` / `RGFW_isMouseDown` should be used now)
+- removed `RGFW_wasPressed` (`RGFW_isKeyReleased` / `RGFW_isKeyDown` should be used now)
+- removed `RGFW_isClicked` (`RGFW_isKeyReleased` should be used now)
+- rename `RGFW_window_mouseHeld` `RGFW_window_isHoldingMouse` to avoid confusion
+- add `RGFW_window_isKey[X]` and `RGFW_windowIsMouse[X]`, and remove the `RGFW_window` argument from the original functions
 - rename `RGFW_KP_[Key]` keys to `RGFW_kp[Key]`
 - rename `RGFW_Multiply` to `RGFW_kpMultiply`
 - add `RGFW_kpEqual`
@@ -178,6 +184,7 @@ typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, u8 keyChar, RGFW_keymod 
 - add `RGFW_world1` and `RGFW_world2`
 - add `RGFW_window_getEnabledEvents`,  `RGFW_window_setDisabledEvents` and `RGFW_window_setDisabledEvents`
 - (X11) merge createContxt_OpenGL and createVisual_OpenGL
+- add state-checking example
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
