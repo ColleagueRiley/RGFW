@@ -9,25 +9,25 @@
 [![Discord Members](https://img.shields.io/discord/829003376532258816.svg?label=Discord&logo=discord)](https://discord.gg/pXVNgVVbvh)
 
 # About
-RGFW does/is
+RGFW:
 
-* is an stb-style single headerfile and is very portable (written in C99 in mind)
-* has a C89 compatible API on going changes to make the implementation more C89 friendly
-* is comparable to GLFW or aspects of SDL but it's leading motive is to be a flexible and lightweight windowing library
-* is very small compared to other libraries
-* is a general framework and can be used for games, apps or tools
-* only depends on system API libraries, Winapi, X11, Cocoa, etc **NO** dependencies
-* help you create a window with a graphics context (OpenGL, Vulkan, WebGPU, Metal, or DirectX) and manage the window and its events only with a few function calls
-* is customizable, you enable or disable features
-* works with X11 (UNIX), Wayland (*experimental*) (LINUX), Cocoa (MacOS), Emscripten (WASM) and WinAPI (tested on windows *XP*, 10, 11, reactOS and has limited 9x support)
-* is RGFW is multi-paradigm, with a flexible event system, including multiple ways of handling events (callbacks, queue, state lookups)
-* includes a large number of examples for learning RGFW
+* **is** an stb-style single headerfile and is very portable (written in C99 in mind)
+* **has** a C89 compatible API on going changes to make the implementation more C89 friendly
+* **is** comparable to GLFW or aspects of SDL but it's leading motive is to be a flexible and lightweight windowing library
+* **is** a very small compared to other libraries
+* **is** a general framework and can be used for games, apps or tools
+* **does** only depends on system API libraries, Winapi, X11, Cocoa, etc **NO** dependencies
+* **does** help you create a window with a graphics context (OpenGL, Vulkan, WebGPU, Metal, or DirectX) and manage the window and its events only with a few function calls
+* **is** customizable, you enable or disable features
+* **does** work with X11 (UNIX), Wayland (*experimental*) (LINUX), Cocoa (MacOS), Emscripten (WASM) and WinAPI (tested on windows *XP*, 10, 11, reactOS and has limited 9x support)
+* **is** multi-paradigm, with a flexible event system, including multiple ways of handling events (callbacks, queue, state lookups)
+* **does** include a large number of examples for learning RGFW
 
-RGFW does/is not
+RGFW:
 
-* Handle any rendering for you (other than creating your graphics context)
-* an OpenGL focused library, RGFW can be used with ANY graphics API
-* do anything above the bare minimum in terms of functionality
+* **does not** handle any rendering for you (other than creating your graphics context)
+* **is not** an OpenGL focused library, RGFW can be used with ANY graphics API
+* **does not** do anything above the bare minimum in terms of functionality
 
 There is a Makefile including for compiling th examples. NOTE: `WAYLAND=1` OR  can be defined to compile for wayland. `WAYLAND_X11=1` can be used instead if you want examples to fallback to X11 if a Wayland display is not found. This adds `#define RGFW_WAYLAND` in the implementation (or defines `RGFW_WAYLAND` AND `RGFW_X11`)
 
