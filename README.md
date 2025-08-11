@@ -11,12 +11,13 @@
 # About
 RGFW:
 
-* **is** an stb-style single headerfile and is very portable (written in C99 in mind)
+* **is** an stb-style single headerfile and is very portable 
+* **is** primarly written in C99 in mind
 * **has** a C89 compatible API on going changes to make the implementation more C89 friendly
 * **is** comparable to GLFW or aspects of SDL but it's leading motive is to be a flexible and lightweight windowing library
 * **is** a very small compared to other libraries
 * **is** a general framework and can be used for games, apps or tools
-* **does** only depends on system API libraries, Winapi, X11, Cocoa, etc **NO** dependencies
+* **does** only depend on system API libraries, Winapi, X11, Cocoa, etc **NO** dependencies
 * **does** help you create a window with a graphics context (OpenGL, Vulkan, WebGPU, Metal, or DirectX) and manage the window and its events only with a few function calls
 * **is** customizable, you enable or disable features
 * **does** work with X11 (UNIX), Wayland (*experimental*) (LINUX), Cocoa (MacOS), Emscripten (WASM) and WinAPI (tested on windows *XP*, 10, 11, reactOS and has limited 9x support)
