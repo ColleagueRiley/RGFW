@@ -65,7 +65,7 @@ int main() {
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         RGFW_event event;
-        while (RGFW_window_checkEvent(win, &event)) {  // or RGFW_window_checkEvents(); if you only want callbacks
+        while (RGFW_window_checkEvent(win, &event)) {  // or RGFW_pollEvents(); if you only want callbacks
             // you can either check the current event yourself
             if (event.type == RGFW_quit) break;
 
