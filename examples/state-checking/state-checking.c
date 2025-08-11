@@ -30,13 +30,8 @@ int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW State Checking", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
     RGFW_window_setExitKey(win, RGFW_escape);
 
-    WindowState prevState = {0};
-    prevState.posX = -1;
-    prevState.posY = -1;
-    prevState.width = -1;
-    prevState.height = -1;
-    prevState.mouseX = -1;
-    prevState.mouseY = -1;
+    WindowState prevState;
+    memset(&prevState, 0, sizeof(WindowState));
 
     while (RGFW_window_shouldClose(win) == 0) {
         RGFW_pollEvents();
