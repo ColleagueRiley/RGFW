@@ -25,9 +25,9 @@ RGFW:
 
 RGFW:
 
-* **does not** handle any rendering for you (other than creating your graphics context)
-* **is not** an OpenGL focused library, RGFW can be used with ANY graphics API
-* **does not** do anything above the bare minimum in terms of functionality
+* does **not** handle any rendering for you (other than creating your graphics context)
+* is **not** an OpenGL focused library, RGFW can be used with ANY graphics API
+* does **not** do anything above the bare minimum in terms of functionality
 
 There is a Makefile including for compiling th examples. NOTE: `WAYLAND=1` OR  can be defined to compile for wayland. `WAYLAND_X11=1` can be used instead if you want examples to fallback to X11 if a Wayland display is not found. This adds `#define RGFW_WAYLAND` in the implementation (or defines `RGFW_WAYLAND` AND `RGFW_X11`)
 
