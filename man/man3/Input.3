@@ -1,4 +1,4 @@
-.TH "Input" 3 "Sun Aug 10 2025" "RGFW" \" -*- nroff -*-
+.TH "Input" 3 "Mon Aug 11 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -10,31 +10,22 @@ Input \- Input
 
 .in +1c
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isPressed\fP (\fBRGFW_window\fP *win, RGFW_key key)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isKeyPressed\fP (RGFW_key key)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_wasPressed\fP (\fBRGFW_window\fP *win, RGFW_key key)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isKeyDown\fP (RGFW_key key)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isHeld\fP (\fBRGFW_window\fP *win, RGFW_key key)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isKeyReleased\fP (RGFW_key key)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isReleased\fP (\fBRGFW_window\fP *win, RGFW_key key)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isMousePressed\fP (RGFW_mouseButton button)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isClicked\fP (\fBRGFW_window\fP *win, RGFW_key key)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isMouseDown\fP (RGFW_mouseButton button)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isMousePressed\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isMouseHeld\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isMouseReleased\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
-.br
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_wasMousePressed\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isMouseReleased\fP (RGFW_mouseButton button)"
 .br
 .in -1c
 .SH "Detailed Description"
@@ -46,19 +37,14 @@ Input \- Input
 
 .SH "Function Documentation"
 .PP 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_isClicked (\fBRGFW_window\fP * win, RGFW_key key)"
-
-.PP
-\fBParameters\fP
-.RS 4
-\fIkey\fP key code 
-.RE
-.PP
-
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_isHeld (\fBRGFW_window\fP * win, RGFW_key key)"
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_isKeyDown (RGFW_key key)"
 if key is held (key code) 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_isMouseHeld (\fBRGFW_window\fP * win, RGFW_mouseButton button)"
-if a mouse button is held 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_isKeyPressed (RGFW_key key)"
+if key is pressed during the current frame (key code) 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_isKeyReleased (RGFW_key key)"
+if key is released (key code) 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_isMouseDown (RGFW_mouseButton button)"
+if a mouse button is down 
 .PP
 \fBParameters\fP
 .RS 4
@@ -66,8 +52,8 @@ if a mouse button is held
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_isMousePressed (\fBRGFW_window\fP * win, RGFW_mouseButton button)"
-if a mouse button is pressed 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_isMousePressed (RGFW_mouseButton button)"
+if a mouse button is pressed during the current frame 
 .PP
 \fBParameters\fP
 .RS 4
@@ -75,7 +61,7 @@ if a mouse button is pressed
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_isMouseReleased (\fBRGFW_window\fP * win, RGFW_mouseButton button)"
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_isMouseReleased (RGFW_mouseButton button)"
 if a mouse button was released 
 .PP
 \fBParameters\fP
@@ -84,21 +70,6 @@ if a mouse button was released
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_isPressed (\fBRGFW_window\fP * win, RGFW_key key)"
-if window == NULL, it checks if the key is pressed globally\&. Otherwise, it checks only if the key is pressed while the window in focus\&. if key is pressed (key code) 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_isReleased (\fBRGFW_window\fP * win, RGFW_key key)"
-if key is released (key code) 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_wasMousePressed (\fBRGFW_window\fP * win, RGFW_mouseButton button)"
-if a mouse button was pressed (checks previous state only) 
-.PP
-\fBParameters\fP
-.RS 4
-\fIbutton\fP mouse button code 
-.RE
-.PP
-
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_wasPressed (\fBRGFW_window\fP * win, RGFW_key key)"
-if key was pressed (checks previous state only) (key code) 
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.

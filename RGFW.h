@@ -89,7 +89,7 @@ int main() {
 
 	while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
 		while (RGFW_window_checkEvent(win, &event)) {
-		    if (event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape))
+		    if (event.type == RGFW_quit || RGFW_window_window_isKeyPressed(RGFW_escape))
 			    break;
         }
 	}
@@ -825,6 +825,22 @@ RGFWDEF void RGFW_pollEvents(void);
 */
 RGFWDEF void RGFW_stopCheckEvents(void);
 
+/** * @defgroup Input
+* @{ */
+
+RGFWDEF RGFW_bool RGFW_isKeyPressed(RGFW_key key); /*!< if key is pressed during the current frame  (key code)*/
+
+RGFWDEF RGFW_bool RGFW_isKeyDown(RGFW_key key); /*!< if key is held (key code) */
+RGFWDEF RGFW_bool RGFW_isKeyReleased(RGFW_key key); /*!< if key is released (key code) */
+
+/*! if a mouse button is pressed during the current frame */
+RGFWDEF RGFW_bool RGFW_isMousePressed(RGFW_mouseButton button /*!< mouse button code */ );
+/*! if a mouse button is down */
+RGFWDEF RGFW_bool RGFW_isMouseDown(RGFW_mouseButton button /*!< mouse button code */ );
+/*! if a mouse button was released */
+RGFWDEF RGFW_bool RGFW_isMouseReleased(RGFW_mouseButton button /*!< mouse button code */ );
+/** @} */
+
 /*! Optional arguments for making a windows */
 typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowNoBorder = RGFW_BIT(0), /*!< the window doesn't have a border */
@@ -933,6 +949,19 @@ RGFWDEF RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event); /
 /*! pops the first event for the window from the event queue */
 RGFWDEF RGFW_bool RGFW_window_checkQueuedEvent(RGFW_window* win, RGFW_event* event);
 
+/*! checks only if the key is pressed while the window in focus. */
+RGFWDEF RGFW_bool RGFW_window_isKeyPressed(RGFW_window* win, RGFW_key key); /*!< if key is pressed (key code)*/
+
+RGFWDEF RGFW_bool RGFW_window_isKeyDown(RGFW_window* win, RGFW_key key); /*!< if key is held (key code) */
+RGFWDEF RGFW_bool RGFW_window_isKeyReleased(RGFW_window* win, RGFW_key key); /*!< if key is released (key code) */
+
+/*! if a mouse button is pressed */
+RGFWDEF RGFW_bool RGFW_window_isMousePressed(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
+/*! if a mouse button is down */
+RGFWDEF RGFW_bool RGFW_window_isMouseDown(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
+/*! if a mouse button was released */
+RGFWDEF RGFW_bool RGFW_window_isMouseReleased(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
+
 /*! window managment functions */
 RGFWDEF void RGFW_window_close(RGFW_window* win); /*!< close the window and free the window struct */
 RGFWDEF void RGFW_window_closePtr(RGFW_window* win); /*!< close the window, don't free the window struct */
@@ -1029,7 +1058,7 @@ RGFWDEF RGFW_bool RGFW_window_setMouseDefault(RGFW_window* win); /*!< sets the m
 */
 RGFWDEF void RGFW_window_holdMouse(RGFW_window* win);
 /*! if the mouse is held by RGFW */
-RGFWDEF RGFW_bool RGFW_window_isMouseHeld(RGFW_window* win);
+RGFWDEF RGFW_bool RGFW_window_isHoldingMouse(RGFW_window* win);
 /*! stop holding the mouse and let it move freely */
 RGFWDEF void RGFW_window_unholdMouse(RGFW_window* win);
 
@@ -1084,30 +1113,6 @@ RGFWDEF void RGFW_window_scaleToMonitor(RGFW_window* win);
 RGFWDEF RGFW_monitor RGFW_window_getMonitor(RGFW_window* win);
 #endif
 
-/** @} */
-
-/** * @defgroup Input
-* @{ */
-
-/*! if window == NULL, it checks if the key is pressed globally. Otherwise, it checks only if the key is pressed while the window in focus. */
-RGFWDEF RGFW_bool RGFW_isPressed(RGFW_window* win, RGFW_key key); /*!< if key is pressed (key code)*/
-
-RGFWDEF RGFW_bool RGFW_wasPressed(RGFW_window* win, RGFW_key key); /*!< if key was pressed (checks previous state only) (key code) */
-
-RGFWDEF RGFW_bool RGFW_isHeld(RGFW_window* win, RGFW_key key); /*!< if key is held (key code) */
-RGFWDEF RGFW_bool RGFW_isReleased(RGFW_window* win, RGFW_key key); /*!< if key is released (key code) */
-
-/* if a key is pressed and then released, pretty much the same as RGFW_isReleased */
-RGFWDEF RGFW_bool RGFW_isClicked(RGFW_window* win, RGFW_key key /*!< key code */);
-
-/*! if a mouse button is pressed */
-RGFWDEF RGFW_bool RGFW_isMousePressed(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
-/*! if a mouse button is held */
-RGFWDEF RGFW_bool RGFW_isMouseHeld(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
-/*! if a mouse button was released */
-RGFWDEF RGFW_bool RGFW_isMouseReleased(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
-/*! if a mouse button was pressed (checks previous state only) */
-RGFWDEF RGFW_bool RGFW_wasMousePressed(RGFW_window* win, RGFW_mouseButton button /*!< mouse button code */ );
 /** @} */
 
 /** * @defgroup Clipboard
@@ -1845,9 +1850,8 @@ u32 RGFW_rgfwToApiKey(u32 keycode) {
 
 void RGFW_resetKeyPrev(void) {
 	size_t i; /*!< reset each previous state  */
-    for (i = 0; i < RGFW_keyLast; i++) RGFW_keyboard[i].prev = 0;
-
-    for (i = 0; i < RGFW_mouseFinal; i++) RGFW_mouseButtons[i].prev = 0;
+    for (i = 0; i < RGFW_keyLast; i++) RGFW_keyboard[i].prev = RGFW_keyboard[i].current;
+    for (i = 0; i < RGFW_mouseFinal; i++) RGFW_mouseButtons[i].prev = RGFW_mouseButtons[i].current;
 }
 void RGFW_resetKey(void) { RGFW_MEMSET(RGFW_keyboard, 0, sizeof(RGFW_keyboard)); }
 /*
@@ -2186,6 +2190,31 @@ RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
 	return ev;
 }
 
+RGFW_bool RGFW_isKeyPressed(RGFW_key key) {
+    return _RGFW != NULL && RGFW_keyboard[key].current && !RGFW_keyboard[key].prev;
+}
+
+RGFW_bool RGFW_isKeyDown(RGFW_key key) {
+	return _RGFW != NULL && RGFW_keyboard[key].current;
+}
+
+RGFW_bool RGFW_isKeyReleased(RGFW_key key) {
+	return _RGFW != NULL && !RGFW_keyboard[key].current && RGFW_keyboard[key].prev;
+}
+
+
+RGFW_bool RGFW_isMousePressed(RGFW_mouseButton button) {
+	return _RGFW != NULL && RGFW_mouseButtons[button].current && !RGFW_mouseButtons[button].prev;
+}
+RGFW_bool RGFW_isMouseDown(RGFW_mouseButton button) {
+	return _RGFW != NULL && RGFW_mouseButtons[button].current;
+}
+RGFW_bool RGFW_isMouseReleased( RGFW_mouseButton button) {
+	return _RGFW != NULL && !RGFW_mouseButtons[button].current && RGFW_mouseButtons[button].prev;
+}
+
+
+
 RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
 	if (_RGFW->eventLen == 0 && _RGFW->polledEvents == RGFW_FALSE) {
 		_RGFW->queueEvents = RGFW_TRUE;
@@ -2274,19 +2303,6 @@ void RGFW_setClassName(const char* name) { RGFW_init(); _RGFW->className = name;
 void RGFW_setXInstName(const char* name) { RGFW_UNUSED(name); }
 #endif
 
-RGFW_bool RGFW_isMousePressed(RGFW_window* win, RGFW_mouseButton button) {
-	return RGFW_mouseButtons[button].current && (win == NULL || RGFW_window_isInFocus(win));
-}
-RGFW_bool RGFW_wasMousePressed(RGFW_window* win, RGFW_mouseButton button) {
-	return RGFW_mouseButtons[button].prev && (win != NULL || RGFW_window_isInFocus(win));
-}
-RGFW_bool RGFW_isMouseHeld(RGFW_window* win, RGFW_mouseButton button) {
-	return (RGFW_isMousePressed(win, button) && RGFW_wasMousePressed(win, button));
-}
-RGFW_bool RGFW_isMouseReleased(RGFW_window* win, RGFW_mouseButton button) {
-	return (!RGFW_isMousePressed(win, button) && RGFW_wasMousePressed(win, button));
-}
-
 RGFW_bool RGFW_window_getMouse(RGFW_window* win, i32* x, i32* y) {
 	RGFW_ASSERT(win != NULL);
 	if (x) *x = win->internal.lastMouseX;
@@ -2294,25 +2310,15 @@ RGFW_bool RGFW_window_getMouse(RGFW_window* win, i32* x, i32* y) {
 	return RGFW_TRUE;
 }
 
-RGFW_bool RGFW_isPressed(RGFW_window* win, RGFW_key key) {
-    return _RGFW != NULL && RGFW_keyboard[key].current && (win == NULL || RGFW_window_isInFocus(win));
-}
+RGFW_bool RGFW_window_isKeyPressed(RGFW_window* win, RGFW_key key) { return RGFW_isKeyPressed(key)  && RGFW_window_isInFocus(win); }
+RGFW_bool RGFW_window_isKeyDown(RGFW_window* win, RGFW_key key) { return RGFW_isKeyDown(key) && RGFW_window_isInFocus(win); }
+RGFW_bool RGFW_window_isKeyReleased(RGFW_window* win, RGFW_key key) { return RGFW_isKeyReleased(key) && RGFW_window_isInFocus(win); }
 
-RGFW_bool RGFW_wasPressed(RGFW_window* win, RGFW_key key) {
-	return RGFW_keyboard[key].prev && (win == NULL || RGFW_window_isInFocus(win));
-}
+RGFW_bool RGFW_window_isMousePressed(RGFW_window* win, RGFW_mouseButton button) { return RGFW_isMousePressed(button) && RGFW_window_isInFocus(win); }
+RGFW_bool RGFW_window_isMouseDown(RGFW_window* win, RGFW_mouseButton button) { return RGFW_isMouseDown(button) && RGFW_window_isInFocus(win); }
+RGFW_bool RGFW_window_isMouseReleased(RGFW_window* win, RGFW_mouseButton button) { return RGFW_isMouseReleased(button) && RGFW_window_isInFocus(win); }
 
-RGFW_bool RGFW_isHeld(RGFW_window* win, RGFW_key key) {
-	return (RGFW_isPressed(win, key) && RGFW_wasPressed(win, key));
-}
 
-RGFW_bool RGFW_isClicked(RGFW_window* win, RGFW_key key) {
-	return (RGFW_wasPressed(win, key) && !RGFW_isPressed(win, key));
-}
-
-RGFW_bool RGFW_isReleased(RGFW_window* win, RGFW_key key) {
-	return (!RGFW_isPressed(win, key) && RGFW_wasPressed(win, key));
-}
 
 #ifndef RGFW_X11
 void* RGFW_getDisplay_X11(void) { return NULL; }
@@ -2372,7 +2378,7 @@ RGFW_bool RGFW_monitorModeCompare(RGFW_monitorMode mon, RGFW_monitorMode mon2, R
 }
 
 RGFW_bool RGFW_window_shouldClose(RGFW_window* win) {
-	return (win == NULL || win->internal.shouldClose || (win->internal.exitKey && RGFW_isPressed(win, win->internal.exitKey)));
+	return (win == NULL || win->internal.shouldClose || (win->internal.exitKey && RGFW_window_isKeyPressed(win, win->internal.exitKey)));
 }
 
 void RGFW_window_setShouldClose(RGFW_window* win, RGFW_bool shouldClose) {
@@ -2480,14 +2486,14 @@ RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_for
 	return RGFW_window_setIconEx(win, data, w, h, format, RGFW_iconBoth);
 }
 
-RGFW_bool RGFW_window_isMouseHeld(RGFW_window* win) { return RGFW_BOOL(win->internal.holdMouse); }
-
 void RGFW_window_holdMouse(RGFW_window* win) {
 	win->internal.holdMouse = RGFW_TRUE;
 	_RGFW->mouseOwner = win;
     RGFW_captureCursor(win);
 	RGFW_window_moveMouse(win, win->x + (win->w / 2), win->y + (win->h / 2));
 }
+
+RGFW_bool RGFW_window_isHoldingMouse(RGFW_window* win) { return RGFW_BOOL(win->internal.holdMouse); }
 
 void RGFW_window_unholdMouse(RGFW_window* win) {
 	win->internal.holdMouse = RGFW_FALSE;
@@ -2512,10 +2518,10 @@ void RGFW_updateKeyModsEx(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock
 
 void RGFW_updateKeyMods(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, RGFW_bool scroll) {
 	RGFW_updateKeyModsEx(win, capital, numlock,
-					RGFW_isPressed(win, RGFW_controlL) || RGFW_isPressed(win, RGFW_controlR),
-					RGFW_isPressed(win, RGFW_altL) || RGFW_isPressed(win, RGFW_altR),
-					RGFW_isPressed(win, RGFW_shiftL) || RGFW_isPressed(win, RGFW_shiftR),
-					RGFW_isPressed(win, RGFW_superL) || RGFW_isPressed(win, RGFW_superR),
+					RGFW_window_isKeyPressed(win, RGFW_controlL) || RGFW_window_isKeyPressed(win, RGFW_controlR),
+					RGFW_window_isKeyPressed(win, RGFW_altL) || RGFW_window_isKeyPressed(win, RGFW_altR),
+					RGFW_window_isKeyPressed(win, RGFW_shiftL) || RGFW_window_isKeyPressed(win, RGFW_shiftR),
+					RGFW_window_isKeyPressed(win, RGFW_superL) || RGFW_window_isKeyPressed(win, RGFW_superR),
 					scroll);
 }
 
@@ -2545,7 +2551,7 @@ void RGFW_window_focusLost(RGFW_window* win) {
 
     size_t key;
     for (key = 0; key < RGFW_keyLast; key++) {
-        if (RGFW_isPressed(NULL, (u8)key) == RGFW_FALSE) continue;
+        if (RGFW_isKeyPressed((u8)key) == RGFW_FALSE) continue;
 	    RGFW_keyboard[key].current = RGFW_FALSE;
         u8 sym = RGFW_rgfwToKeyChar((u32)key);
 		if ((win->internal.enabledEvents & RGFW_BIT(RGFW_keyReleased))) {
@@ -4256,8 +4262,10 @@ void RGFW_XHandleEvent(void) {
 				XEvent NE;
 				XPeekEvent(_RGFW->display, &NE);
 
-				if (E.xkey.time == NE.xkey.time && E.xkey.keycode == NE.xkey.keycode) /* check if the current and next are both the same */
+				if (E.xkey.time == NE.xkey.time && E.xkey.keycode == NE.xkey.keycode) { /* check if the current and next are both the same */
 					event.key.repeat = RGFW_TRUE;
+					return;
+				}
 			}
 
 			event.type =  RGFW_keyReleased;
@@ -4303,7 +4311,7 @@ void RGFW_XHandleEvent(void) {
 			RGFW_mouseButtons[event.button.value].prev = RGFW_mouseButtons[event.button.value].current;
 
 			if (event.key.repeat == RGFW_FALSE)
-				event.key.repeat = RGFW_isPressed(win, event.key.value);
+				event.key.repeat = RGFW_window_isKeyPressed(win, event.key.value);
 
 			RGFW_mouseButtons[event.button.value].current = RGFW_FALSE;
 			RGFW_mouseButtonCallback(win, event.button.value, event.button.scroll, RGFW_FALSE);
@@ -6119,11 +6127,11 @@ void RGFW_wl_keyboard_key (void* data, struct wl_keyboard *keyboard, u32 serial,
 	RGFW_eventQueuePushEx(e.type = (u8)(RGFW_keyPressed + state);
 									e.key.value = (u8)RGFWkey;
 									e.key.sym = (u8)keysym;
-									e.key.repeat = RGFW_isHeld(RGFW_key_win, (u8)RGFWkey);
+									e.key.repeat = RGFW_window_isKeyDown(RGFW_key_win, (u8)RGFWkey);
 									e.common.win = RGFW_key_win);
 
 	RGFW_updateKeyMods(RGFW_key_win, RGFW_BOOL(xkb_keymap_mod_get_index(_RGFW->keymap, "Lock")), RGFW_BOOL(xkb_keymap_mod_get_index(_RGFW->keymap, "Mod2")), RGFW_BOOL(xkb_keymap_mod_get_index(_RGFW->keymap, "ScrollLock")));
-	RGFW_keyCallback(RGFW_key_win, (u8)RGFWkey, (u8)keysym, RGFW_key_win->internal.mod, RGFW_isHeld(RGFW_key_win, (u8)RGFWkey), RGFW_BOOL(state));
+	RGFW_keyCallback(RGFW_key_win, (u8)RGFWkey, (u8)keysym, RGFW_key_win->internal.mod, RGFW_window_isKeyDown(RGFW_key_win, (u8)RGFWkey), RGFW_BOOL(state));
 }
 void RGFW_wl_keyboard_modifiers (void* data, struct wl_keyboard *keyboard, u32 serial, u32 mods_depressed, u32 mods_latched, u32 mods_locked, u32 group) {
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(time);
@@ -7063,7 +7071,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			RGFW_keyboard[event.key.value].prev = RGFW_keyboard[event.key.value].current;
 			event.type = RGFW_keyReleased;
-			event.key.repeat = RGFW_isPressed(win, event.key.value);
+			event.key.repeat = RGFW_window_isKeyPressed(win, event.key.value);
 			RGFW_keyboard[event.key.value].current = 0;
 
 			RGFW_updateKeyMods(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001), (GetKeyState(VK_SCROLL) & 0x0001));
@@ -7097,7 +7105,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			RGFW_keyboard[event.key.value].prev = RGFW_keyboard[event.key.value].current;
 			event.type = RGFW_keyPressed;
-			event.key.repeat = RGFW_isPressed(win, event.key.value);
+			event.key.repeat = RGFW_window_isKeyPressed(win, event.key.value);
 			RGFW_keyboard[event.key.value].current = 1;
 			RGFW_updateKeyMods(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001), (GetKeyState(VK_SCROLL) & 0x0001));
 
@@ -9298,7 +9306,7 @@ void RGFW__osxKeyDown(id self, SEL _cmd, id event) {
     e.key.value = (u8)RGFW_apiKeyToRGFW(key);
     RGFW_keyboard[e.key.value].prev = RGFW_keyboard[e.key.value].current;
     e.type = RGFW_keyPressed;
-    e.key.repeat = RGFW_isPressed(win, e.key.value);
+    e.key.repeat = RGFW_window_isKeyPressed(win, e.key.value);
     RGFW_keyboard[e.key.value].current = 1;
     e.common.win = win;
 
@@ -9321,7 +9329,7 @@ void RGFW__osxKeyUp(id self, SEL _cmd, id event) {
     e.key.value = (u8)RGFW_apiKeyToRGFW(key);
     RGFW_keyboard[e.key.value].prev = RGFW_keyboard[e.key.value].current;
     e.type = RGFW_keyReleased;
-    e.key.repeat = RGFW_isHeld(win, (u8)e.key.value);
+    e.key.repeat = RGFW_window_isKeyDown(win, (u8)e.key.value);
     RGFW_keyboard[e.key.value].current = 0;
     e.common.win = win;
 
@@ -9346,12 +9354,12 @@ void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
                           ((flags & NSEventModifierFlagCommand) % 255), 0);
     u8 i;
     for (i = 0; i < 9; i++)
-        RGFW_keyboard[i + RGFW_capsLock].prev = 0;
+        RGFW_keyboard[i + RGFW_capsLock].prev = RGFW_keyboard[i + RGFW_capsLock].current;
 
     for (i = 0; i < 5; i++) {
         u32 shift = (1 << (i + 16));
         u32 key = i + RGFW_capsLock;
-        if ((flags & shift) && !RGFW_wasPressed(win, (u8)key)) {
+        if ((flags & shift) && !RGFW_window_isKeyDown(win, (u8)key)) {
             RGFW_keyboard[key].current = 1;
             if (key != RGFW_capsLock)
                 RGFW_keyboard[key + 4].current = 1;
@@ -9359,7 +9367,7 @@ void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
             e.key.value = (u8)key;
             break;
         }
-        if (!(flags & shift) && RGFW_wasPressed(win, (u8)key)) {
+        if (!(flags & shift) && RGFW_window_isKeyDown(win, (u8)key)) {
             RGFW_keyboard[key].current = 0;
             if (key != RGFW_capsLock)
                 RGFW_keyboard[key + 4].current = 0;
@@ -9368,7 +9376,7 @@ void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
             break;
         }
     }
-    e.key.repeat = RGFW_isHeld(win, (u8)e.key.value);
+    e.key.repeat = RGFW_window_isKeyDown(win, (u8)e.key.value);
     e.common.win = win;
 
 	if (!(win->internal.enabledEvents & (RGFW_BIT(e.type)))) return;
@@ -10788,13 +10796,13 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool p
 							e.key.value = (u8)physicalKey;
 							e.key.sym = (u8)mappedKey;
 							e.key.mod = _RGFW->root->internal.mod;
-							e.key.repeat =  RGFW_isHeld(_RGFW->root, (u8)physicalKey);
+							e.key.repeat =  RGFW_window_isKeyDown(_RGFW->root, (u8)physicalKey);
 							e.common.win = _RGFW->root);
 
 	RGFW_keyboard[physicalKey].prev = RGFW_keyboard[physicalKey].current;
 	RGFW_keyboard[physicalKey].current = press;
 
-	RGFW_keyCallback(_RGFW->root, physicalKey, mappedKey, _RGFW->root->internal.mod,  RGFW_isHeld(_RGFW->root, (u8)physicalKey), press);
+	RGFW_keyCallback(_RGFW->root, physicalKey, mappedKey, _RGFW->root->internal.mod,  RGFW_window_isKeyDown(_RGFW->root, (u8)physicalKey), press);
 }
 
 void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyMods(RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super, RGFW_bool scroll) {

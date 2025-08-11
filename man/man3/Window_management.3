@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Sun Aug 10 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Mon Aug 11 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -17,6 +17,24 @@ Window_management \- Window_management
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_checkQueuedEvent\fP (\fBRGFW_window\fP *win, \fBRGFW_event\fP *event)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isKeyPressed\fP (\fBRGFW_window\fP *win, RGFW_key key)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isKeyDown\fP (\fBRGFW_window\fP *win, RGFW_key key)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isKeyReleased\fP (\fBRGFW_window\fP *win, RGFW_key key)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMousePressed\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMouseDown\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMouseReleased\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_close\fP (\fBRGFW_window\fP *win)"
@@ -115,7 +133,7 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_holdMouse\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMouseHeld\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isHoldingMouse\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_unholdMouse\fP (\fBRGFW_window\fP *win)"
@@ -214,16 +232,49 @@ if the window is floating
 if the window is fullscreen 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isHidden (\fBRGFW_window\fP * win)"
 if the window is hidden 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isHoldingMouse (\fBRGFW_window\fP * win)"
+if the mouse is held by RGFW 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isInFocus (\fBRGFW_window\fP * win)"
 checks the focus to this window 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isKeyDown (\fBRGFW_window\fP * win, RGFW_key key)"
+if key is held (key code) 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isKeyPressed (\fBRGFW_window\fP * win, RGFW_key key)"
+checks only if the key is pressed while the window in focus\&. if key is pressed (key code) 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isKeyReleased (\fBRGFW_window\fP * win, RGFW_key key)"
+if key is released (key code) 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMaximized (\fBRGFW_window\fP * win)"
 if the window is maximized 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMinimized (\fBRGFW_window\fP * win)"
 if the window is minimized 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMouseHeld (\fBRGFW_window\fP * win)"
-if the mouse is held by RGFW 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMouseDown (\fBRGFW_window\fP * win, RGFW_mouseButton button)"
+if a mouse button is down 
+.PP
+\fBParameters\fP
+.RS 4
+\fIbutton\fP mouse button code 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMouseHidden (\fBRGFW_window\fP * win)"
 if the mouse is hidden 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMousePressed (\fBRGFW_window\fP * win, RGFW_mouseButton button)"
+if a mouse button is pressed 
+.PP
+\fBParameters\fP
+.RS 4
+\fIbutton\fP mouse button code 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMouseReleased (\fBRGFW_window\fP * win, RGFW_mouseButton button)"
+if a mouse button was released 
+.PP
+\fBParameters\fP
+.RS 4
+\fIbutton\fP mouse button code 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_maximize (\fBRGFW_window\fP * win)"
 maximize the window 
 .SS "\fBRGFWDEF\fP void RGFW_window_minimize (\fBRGFW_window\fP * win)"

@@ -61,7 +61,7 @@ int main(void) {
   }
 
   u8 running = 1;
-  while (running && !RGFW_isPressed(win, RGFW_escape)) {
+  while (running && !RGFW_window_isKeyPressed(win, RGFW_escape)) {
     RGFW_event event;
     while (RGFW_window_checkEvent(win, &event)) {
       if (event.type == RGFW_quit) {
