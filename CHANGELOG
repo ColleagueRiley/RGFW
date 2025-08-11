@@ -184,6 +184,7 @@ typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, u8 keyChar, RGFW_keymod 
 - add `RGFW_world1` and `RGFW_world2`
 - add `RGFW_window_getEnabledEvents`,  `RGFW_window_setDisabledEvents` and `RGFW_window_setDisabledEvents`
 - (X11) merge createContxt_OpenGL and createVisual_OpenGL
+- add state-checking example
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------
