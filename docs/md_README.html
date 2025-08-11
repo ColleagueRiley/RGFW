@@ -81,25 +81,25 @@ Build statuses</h1>
 <p ><a href="https://discord.gg/pXVNgVVbvh"><img src="https://img.shields.io/discord/829003376532258816.svg?label=Discord&amp;logo=discord" alt="Discord Members" style="pointer-events: none;" class="inline"/></a></p>
 <h1><a class="anchor" id="autotoc_md4"></a>
 About</h1>
-<p >RGFW does/is</p>
+<p >RGFW:</p>
 <ul>
-<li>is an stb-style single headerfile and is very portable (written in C99 in mind)</li>
-<li>has a C89 compatible API on going changes to make the implementation more C89 friendly</li>
-<li>is comparable to GLFW or aspects of SDL but it's leading motive is to be a flexible and lightweight windowing library</li>
-<li>is very small compared to other libraries</li>
-<li>is a general framework and can be used for games, apps or tools</li>
-<li>only depends on system API libraries, Winapi, X11, Cocoa, etc <b>NO</b> dependencies</li>
-<li>help you create a window with a graphics context (OpenGL, Vulkan, WebGPU, Metal, or DirectX) and manage the window and its events only with a few function calls</li>
-<li>is customizable, you enable or disable features</li>
-<li>works with X11 (UNIX), Wayland (<em>experimental</em>) (LINUX), Cocoa (MacOS), Emscripten (WASM) and WinAPI (tested on windows <em>XP</em>, 10, 11, reactOS and has limited 9x support)</li>
-<li>is RGFW is multi-paradigm, with a flexible event system, including multiple ways of handling events (callbacks, queue, state lookups)</li>
-<li>includes a large number of examples for learning RGFW</li>
+<li><b>is</b> an stb-style single headerfile and is very portable (written in C99 in mind)</li>
+<li><b>has</b> a C89 compatible API on going changes to make the implementation more C89 friendly</li>
+<li><b>is</b> comparable to GLFW or aspects of SDL but it's leading motive is to be a flexible and lightweight windowing library</li>
+<li><b>is</b> a very small compared to other libraries</li>
+<li><b>is</b> a general framework and can be used for games, apps or tools</li>
+<li><b>does</b> only depends on system API libraries, Winapi, X11, Cocoa, etc <b>NO</b> dependencies</li>
+<li><b>does</b> help you create a window with a graphics context (OpenGL, Vulkan, WebGPU, Metal, or DirectX) and manage the window and its events only with a few function calls</li>
+<li><b>is</b> customizable, you enable or disable features</li>
+<li><b>does</b> work with X11 (UNIX), Wayland (<em>experimental</em>) (LINUX), Cocoa (MacOS), Emscripten (WASM) and WinAPI (tested on windows <em>XP</em>, 10, 11, reactOS and has limited 9x support)</li>
+<li><b>is</b> multi-paradigm, with a flexible event system, including multiple ways of handling events (callbacks, queue, state lookups)</li>
+<li><b>does</b> include a large number of examples for learning RGFW</li>
 </ul>
-<p >RGFW does/is not</p>
+<p >RGFW:</p>
 <ul>
-<li>Handle any rendering for you (other than creating your graphics context)</li>
-<li>an OpenGL focused library, RGFW can be used with ANY graphics API</li>
-<li>do anything above the bare minimum in terms of functionality</li>
+<li><b>does not</b> handle any rendering for you (other than creating your graphics context)</li>
+<li><b>is not</b> an OpenGL focused library, RGFW can be used with ANY graphics API</li>
+<li><b>does not</b> do anything above the bare minimum in terms of functionality</li>
 </ul>
 <p >There is a Makefile including for compiling th examples. NOTE: <code>WAYLAND=1</code> OR can be defined to compile for wayland. <code>WAYLAND_X11=1</code> can be used instead if you want examples to fallback to X11 if a Wayland display is not found. This adds <code>#define RGFW_WAYLAND</code> in the implementation (or defines <code>RGFW_WAYLAND</code> AND <code>RGFW_X11</code>)</p>
 <p >Included in the framework are helper functions for multiple rendering APIs OpenGL (Native, EGL, GLES), Vulkan, DirectX, <a href="https://github.com/ColleagueRiley/RGFW/blob/main/examples/metal/metal.m">Metal</a> and WebGPU, you can also easily blit raw data directly onto the window with the <code>RGFW_surface</code> object using <code>RGFW_window_blitSurface</code>.</p>
