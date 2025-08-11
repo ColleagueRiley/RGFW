@@ -135,7 +135,7 @@ a very simple example</h2>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">while</span> (<a class="code hl_function" href="group__Window__management.html#gae40de5fbdc9e850c1ff7e2e8dac46624">RGFW_window_shouldClose</a>(win) == <a class="code hl_define" href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a>) {</div>
 <div class="line">        <a class="code hl_union" href="unionRGFW__event.html">RGFW_event</a> event;</div>
-<div class="line">        <span class="keywordflow">while</span> (<a class="code hl_function" href="group__Window__management.html#ga24a216d1304d457e92b07504dda3fabb">RGFW_window_checkEvent</a>(win, &amp;event)) {  <span class="comment">// or RGFW_window_checkEvents(); if you only want callbacks</span></div>
+<div class="line">        <span class="keywordflow">while</span> (<a class="code hl_function" href="group__Window__management.html#ga24a216d1304d457e92b07504dda3fabb">RGFW_window_checkEvent</a>(win, &amp;event)) {  <span class="comment">// or RGFW_pollEvents(); if you only want callbacks</span></div>
 <div class="line">            <span class="comment">// you can either check the current event yourself</span></div>
 <div class="line">            <span class="keywordflow">if</span> (event.<a class="code hl_variable" href="unionRGFW__event.html#ab309d573101fed3b9137b3e42f408ce0">type</a> == RGFW_quit) <span class="keywordflow">break</span>;</div>
 <div class="line"> </div>
