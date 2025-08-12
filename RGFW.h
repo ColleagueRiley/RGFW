@@ -2257,10 +2257,9 @@ RGFW_bool RGFW_window_didMouseLeave(RGFW_window* win) { return _RGFW->windowStat
 RGFW_bool RGFW_window_didMouseEnter(RGFW_window* win) { return _RGFW->windowState.win == win && _RGFW->windowState.mouseEnter; }
 RGFW_bool RGFW_window_isMouseInside(RGFW_window* win) { return win->internal.mouseInside;  }
 
+RGFW_bool RGFW_window_isDataDragging(RGFW_window* win) { return RGFW_window_getDataDrag(win, (i32*)NULL, (i32*)NULL); }
+RGFW_bool RGFW_window_didDataDrop(RGFW_window* win) { return RGFW_window_getDataDrop(win, (const char***)NULL, (size_t*)NULL);}
 
-
-RGFW_bool RGFW_window_isDataDragging(RGFW_window* win, i32* x, i32* y) { return RGFW_window_getDataDrag(win, (i32*)NULL, (i32*)NULL);
-RGFW_bool RGFW_window_didDataDrop(RGFW_window* win, const char*** files, size_t* count) { RGFW_window_getDataDrop(win, (const char**)NULL, (size_t*)NULL); }
 
 RGFW_bool RGFW_window_getDataDrag(RGFW_window* win, i32* x, i32* y) {
 	if (_RGFW->windowState.win != win || _RGFW->windowState.dataDragging == RGFW_FALSE) return RGFW_FALSE;
@@ -2268,7 +2267,6 @@ RGFW_bool RGFW_window_getDataDrag(RGFW_window* win, i32* x, i32* y) {
 	if (y) *y =  _RGFW->windowState.dropY;
 	return RGFW_TRUE;
 }
-
 RGFW_bool RGFW_window_getDataDrop(RGFW_window* win, const char*** files, size_t* count) {
 	if (_RGFW->windowState.win != win || _RGFW->windowState.dataDrop == RGFW_FALSE) return RGFW_FALSE;
 	if (files) *files = (const char**)_RGFW->files;
