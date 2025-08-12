@@ -25,7 +25,7 @@ int main() {
                 printf("keycode: %c\n", win->event.keyChar);
 
             // or use the existing functions
-            if (RGFW_isMousePressed(win, RGFW_mouseRight)) {
+            if (RGFW_isMousePressed(RGFW_mouseRight)) {
                 printf("The right mouse button was clicked at x: %d, y: %d\n", win->event.point.x, win->event.point.y);
             }
         }

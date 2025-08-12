@@ -75,7 +75,7 @@ int main() {
             }
 
             // or use the existing functions
-            if (RGFW_isMousePressed(win, RGFW_mouseRight)) {
+            if (RGFW_isMousePressed(RGFW_mouseRight)) {
                 printf("The right mouse button was clicked at x: %d, y: %d\n", event.mouse.x, event.mouse.y);
             }
         }
