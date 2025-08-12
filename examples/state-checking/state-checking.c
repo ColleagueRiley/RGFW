@@ -60,15 +60,17 @@ int main(void) {
             RGFW_window_didMouseLeave(win),
             RGFW_window_didMouseEnter(win),
             RGFW_window_isMouseInside(win),
-            0, 0, 0, 0, NULL, 0,
+            RGFW_window_didDataDrop(win),
+            RGFW_window_isDataDragging(win),
+            0, 0, NULL, 0,
         };
 
         RGFW_window_getPosition(win, &currState.posX, &currState.posY);
         RGFW_window_getSize(win, &currState.width, &currState.height);
         RGFW_window_getMouse(win, &currState.mouseX, &currState.mouseY);
 
-        currState.drag = RGFW_window_isDataDragging(win, &currState.dragX, &currState.dragY);
-        currState.drop = RGFW_window_didDataDrop(win, &currState.data, &currState.count);
+        RGFW_window_getDataDrag(win, &currState.dragX, &currState.dragY);
+        RGFW_window_getDataDrop(win, &currState.data, &currState.count);
 
         if (currState.isInFocus != prevState.isInFocus) {
             printf("Is in focus: %s\n", currState.isInFocus ? "Yes" : "No");
