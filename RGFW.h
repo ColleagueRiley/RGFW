@@ -5894,6 +5894,7 @@ struct wl_display* RGFW_getDisplay_Wayland(void) { return _RGFW->wl_display; }
 struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { return win->src.surface; }
 
 RGFW_window* RGFW_key_win = NULL;
+RGFW_window* RGFW_mouse_win = NULL;
 
 /* wayland global garbage (wayland bad, X11 is fine (ish) (not really)) */
 #include "xdg-shell.h"
@@ -6058,7 +6059,7 @@ void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial,
 		struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y) {
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(serial);
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
-  
+
 	win->internal.mouseInside = RGFW_TRUE;
 	_RGFW->windowState.win = win;
 	_RGFW->windowState.mouseEnter =  RGFW_TRUE;
@@ -6070,13 +6071,13 @@ void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial,
 	i32 y = (i32)wl_fixed_to_double(surface_y);
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseEnter;
-									e.mouse.x = x; 
+									e.mouse.x = x;
 									e.mouse.y = y;
 									e.common.win = win);
-	
+
 	win->internal.lastMouseX = x;
 	win->internal.lastMouseY = y;
-	
+
 	RGFW_mouseNotifyCallback(win, x, y, RGFW_TRUE);
 }
 
@@ -6093,7 +6094,7 @@ void RGFW_wl_pointer_leave(void* data, struct wl_pointer *pointer, u32 serial, s
 	if (!(win->internal.enabledEvents & RGFW_mouseLeaveFlag)) return;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseLeave;
-									e.mouse.x = win->internal.lastMouseX;  
+									e.mouse.x = win->internal.lastMouseX;
 									e.mouse.y = win->internal.lastMouseY;
 									e.common.win = win);
 
@@ -6104,27 +6105,27 @@ void RGFW_wl_pointer_motion(void* data, struct wl_pointer *pointer, u32 time, wl
 	RGFW_UNUSED(pointer); RGFW_UNUSED(time);
 
 	RGFW_window* win = (RGFW_window*)data;
-	
+
 	if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag)) return;
 
 	i32 convertedX = (i32)wl_fixed_to_double(x);
 	i32 convertedY = (i32)wl_fixed_to_double(y);
-	
+
 	RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
-									e.mouse.x = convertedX; 
+									e.mouse.x = convertedX;
 									e.mouse.y = convertedY;
 									e.common.win = win);
-									
+
 	win->internal.lastMouseX = convertedX;
 	win->internal.lastMouseY = convertedY;
-		
+
 	RGFW_mousePosCallback(win, convertedX, convertedY, 0, 0);
 }
 
 void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 serial, u32 time, u32 button, u32 state) {
 	RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(serial);
 	RGFW_window* win = (RGFW_window*)data;
-	
+
 	if (!(win->internal.enabledEvents & (RGFW_BIT(RGFW_mouseButtonReleased - RGFW_BOOL(state))))) return;
 	u32 b = (button - 0x110);
 
@@ -6222,7 +6223,6 @@ void RGFW_wl_keyboard_modifiers (void* data, struct wl_keyboard *keyboard, u32 s
 	xkb_state_update_mask (_RGFW->xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
 }
 void RGFW_wl_seat_capabilities (void* data, struct wl_seat *seat, u32 capabilities) {
-	
     static struct wl_pointer_listener pointer_listener;
 	RGFW_MEMSET(&pointer_listener, 0, sizeof (pointer_listener));
 	pointer_listener.enter = &RGFW_wl_pointer_enter;
@@ -6378,12 +6378,6 @@ RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (u8* data, i32 w, i32 h, RGFW_format 
 	return RGFW_TRUE;
 }
 
-void RGFW_FUNC(RGFW_surface_freePtr) (RGFW_surface* surface) {
-	RGFW_ASSERT(surface != NULL);
-	wl_buffer_destroy(surface->native.wl_buffer);
-	munmap(surface->native.buffer, (size_t)(surface->w * surface->h * 4));
-}
-
 void RGFW_FUNC(RGFW_window_blitSurface) (RGFW_window* win, RGFW_surface* surface) {
 	RGFW_ASSERT(surface != NULL);
 	RGFW_copyImageData(surface->native.buffer, win->w, RGFW_MIN(win->h, surface->h), surface->native.format, surface->data, surface->format);
@@ -6392,6 +6386,12 @@ void RGFW_FUNC(RGFW_window_blitSurface) (RGFW_window* win, RGFW_surface* surface
 	wl_surface_damage(win->src.surface, 0, 0, RGFW_MIN(win->w, surface->w), RGFW_MIN(win->h, surface->h));
 	RGFW_wl_surface_frame_done(win, NULL, 0);
 	wl_surface_commit(win->src.surface);
+}
+
+void RGFW_FUNC(RGFW_surface_freePtr) (RGFW_surface* surface) {
+	RGFW_ASSERT(surface != NULL);
+	wl_buffer_destroy(surface->native.wl_buffer);
+	munmap(surface->native.buffer, (size_t)(surface->w * surface->h * 4));
 }
 
 void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
@@ -10892,7 +10892,7 @@ void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(size_t count) {
 							e.drop.count = count;
 							e.common.win = _RGFW->root);
 
-	_RGFW->windowState.win = win;
+	_RGFW->windowState.win = _RGFW->root;
 	_RGFW->windowState.dataDrop = RGFW_TRUE;
 	_RGFW->windowState.filesCount = count;
 	RGFW_dataDropCallback(_RGFW->root, _RGFW->files, count);
