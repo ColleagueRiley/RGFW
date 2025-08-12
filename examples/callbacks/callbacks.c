@@ -144,8 +144,8 @@ int main(void) {
 	RGFW_setWindowRefreshCallback(windowrefreshfunc);
 	RGFW_setFocusCallback(focusfunc);
 	RGFW_setMouseNotifyCallback(mouseNotifyfunc);
-	RGFW_setDropCallback(dropfunc);
-	RGFW_setDragCallback(dragfunc);
+	RGFW_setDataDropCallback(dropfunc);
+	RGFW_setDataDragCallback(dragfunc);
 	RGFW_setKeyCallback(keyfunc);
 	RGFW_setMouseButtonCallback(mousebuttonfunc);
 

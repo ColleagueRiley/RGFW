@@ -66,13 +66,13 @@ int main(void) {
                 case RGFW_windowRefresh:
                     printf("Refresh\n");
                     break;
-                case RGFW_drop: {
+                case RGFW_dataDrop: {
                     u32 i;
                     for (i = 0; i < event.drop.count; i++)
                         printf("dropped : %s\n", event.drop.files[i]);
                     break;
                 }
-                case RGFW_drag:
+                case RGFW_dataDrag:
                     printf("Drag : %i %i\n", event.drag.x, event.drag.y);
                     break;
                 case RGFW_scaleUpdated:
