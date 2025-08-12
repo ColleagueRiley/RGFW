@@ -59,7 +59,7 @@ jobs:
         clang --version
 
 
-        make CUSTOM_CFLAGS="-x objective-c++" CC=g++
+        make examples CUSTOM_CFLAGS="-x objective-c++" CC=g++
         make CC="zig cc"
         make clean
         # Extract version numbers from Makefile
