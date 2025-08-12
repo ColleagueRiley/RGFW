@@ -2,11 +2,6 @@
 #include "RGFW.h"
 
 #include <stdio.h>
-#ifdef RGFW_MACOS
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
 
 RGFW_window* window;
 
@@ -84,7 +79,7 @@ void mouseNotifyfunc(RGFW_window* win, i32 x, i32 y, u8 status) {
 static
 void mouseposfunc(RGFW_window* win, i32 x, i32 y, float vecX, float vecY) {
     RGFW_UNUSED(vecX); RGFW_UNUSED(vecY);
-    if (window != win || RGFW_isPressed(win, RGFW_controlL) == 0) return;
+    if (window != win || RGFW_window_isKeyPressed(win, RGFW_controlL) == 0) return;
    printf("mouse moved %i %i\n", x, y);
 }
 
