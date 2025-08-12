@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Mon Aug 11 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Tue Aug 12 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -35,6 +35,27 @@ Window_management \- Window_management
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMouseReleased\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_didMouseLeave\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_didMouseEnter\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMouseInside\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isDataDragging\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_getDataDrag\fP (\fBRGFW_window\fP *win, \fBi32\fP *x, \fBi32\fP *y)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_didDataDrop\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_getDataDrop\fP (\fBRGFW_window\fP *win, const char ***files, size_t *count)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_close\fP (\fBRGFW_window\fP *win)"
@@ -218,14 +239,26 @@ pops the first event for the window from the event queue
 window managment functions close the window and free the window struct 
 .SS "\fBRGFWDEF\fP void RGFW_window_closePtr (\fBRGFW_window\fP * win)"
 close the window, don't free the window struct 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_didDataDrop (\fBRGFW_window\fP * win)"
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_didMouseEnter (\fBRGFW_window\fP * win)"
+if the mouse enter the window, only true for the first frame 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_didMouseLeave (\fBRGFW_window\fP * win)"
+if the mouse left the window, only true for the first frame 
 .SS "\fBRGFWDEF\fP void RGFW_window_focus (\fBRGFW_window\fP * win)"
 sets the focus to this window 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_getDataDrag (\fBRGFW_window\fP * win, \fBi32\fP * x, \fBi32\fP * y)"
+gets the drag point, returns true if if there is data being dragged to/in the window, only true for the first frame 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_getDataDrop (\fBRGFW_window\fP * win, const char *** files, size_t * count)"
+
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_getMouse (\fBRGFW_window\fP * win, \fBi32\fP * x, \fBi32\fP * y)"
 where the mouse is on the window 
 .SS "\fBRGFWDEF\fP void RGFW_window_hide (\fBRGFW_window\fP * win)"
 hide the window 
 .SS "\fBRGFWDEF\fP void RGFW_window_holdMouse (\fBRGFW_window\fP * win)"
 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isDataDragging (\fBRGFW_window\fP * win)"
+if there is data being dragged to/in the window, only true for the first frame 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isFloating (\fBRGFW_window\fP * win)"
 if the window is floating 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isFullscreen (\fBRGFW_window\fP * win)"
@@ -257,6 +290,8 @@ if a mouse button is down
 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMouseHidden (\fBRGFW_window\fP * win)"
 if the mouse is hidden 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMouseInside (\fBRGFW_window\fP * win)"
+if the mouse is within the window or not 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMousePressed (\fBRGFW_window\fP * win, RGFW_mouseButton button)"
 if a mouse button is pressed 
 .PP

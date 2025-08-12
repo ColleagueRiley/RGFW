@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Mon Aug 11 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Tue Aug 12 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -39,10 +39,10 @@ RGFW.h
 .RI "struct \fBRGFW_keyEvent\fP"
 .br
 .ti -1c
-.RI "struct \fBRGFW_dropEvent\fP"
+.RI "struct \fBRGFW_dataDropEvent\fP"
 .br
 .ti -1c
-.RI "struct \fBRGFW_dragEvent\fP"
+.RI "struct \fBRGFW_dataDragEvent\fP"
 .br
 .ti -1c
 .RI "struct \fBRGFW_scaleUpdatedEvent\fP"
@@ -203,10 +203,10 @@ RGFW.h
 .RI "typedef struct \fBRGFW_keyEvent\fP \fBRGFW_keyEvent\fP"
 .br
 .ti -1c
-.RI "typedef struct \fBRGFW_dropEvent\fP \fBRGFW_dropEvent\fP"
+.RI "typedef struct \fBRGFW_dataDropEvent\fP \fBRGFW_dataDropEvent\fP"
 .br
 .ti -1c
-.RI "typedef struct \fBRGFW_dragEvent\fP \fBRGFW_dragEvent\fP"
+.RI "typedef struct \fBRGFW_dataDragEvent\fP \fBRGFW_dataDragEvent\fP"
 .br
 .ti -1c
 .RI "typedef struct \fBRGFW_scaleUpdatedEvent\fP \fBRGFW_scaleUpdatedEvent\fP"
@@ -248,7 +248,7 @@ RGFW.h
 .RI "typedef void(* \fBRGFW_mousePosfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, float vecX, float vecY)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_dragfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
+.RI "typedef void(* \fBRGFW_dataDragfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_windowRefreshfunc\fP) (\fBRGFW_window\fP *win)"
@@ -260,7 +260,7 @@ RGFW.h
 .RI "typedef void(* \fBRGFW_mouseButtonfunc\fP) (\fBRGFW_window\fP *win, RGFW_mouseButton button, double scroll, \fBRGFW_bool\fP pressed)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_dropfunc\fP) (\fBRGFW_window\fP *win, char **files, size_t count)"
+.RI "typedef void(* \fBRGFW_dataDropfunc\fP) (\fBRGFW_window\fP *win, char **files, size_t count)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_scaleUpdatedfunc\fP) (\fBRGFW_window\fP *win, float scaleX, float scaleY)"
@@ -513,6 +513,27 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMouseReleased\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_didMouseLeave\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_didMouseEnter\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMouseInside\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isDataDragging\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_getDataDrag\fP (\fBRGFW_window\fP *win, \fBi32\fP *x, \fBi32\fP *y)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_didDataDrop\fP (\fBRGFW_window\fP *win)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_getDataDrop\fP (\fBRGFW_window\fP *win, const char ***files, size_t *count)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_close\fP (\fBRGFW_window\fP *win)"
 .br
 .ti -1c
@@ -705,10 +726,10 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_mouseNotifyfunc\fP \fBRGFW_setMouseNotifyCallback\fP (\fBRGFW_mouseNotifyfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_dropfunc\fP \fBRGFW_setDropCallback\fP (\fBRGFW_dropfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_dataDropfunc\fP \fBRGFW_setDataDropCallback\fP (\fBRGFW_dataDropfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_dragfunc\fP \fBRGFW_setDragCallback\fP (\fBRGFW_dragfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_dataDragfunc\fP \fBRGFW_setDataDragCallback\fP (\fBRGFW_dataDragfunc\fP func)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_keyfunc\fP \fBRGFW_setKeyCallback\fP (\fBRGFW_keyfunc\fP func)"
@@ -842,9 +863,9 @@ RGFW.h
 
 .SS "typedef struct \fBRGFW_commonEvent\fP \fBRGFW_commonEvent\fP"
 Event structure(s) and union for checking/getting events 
-.SS "typedef struct \fBRGFW_dragEvent\fP \fBRGFW_dragEvent\fP"
+.SS "typedef struct \fBRGFW_dataDragEvent\fP \fBRGFW_dataDragEvent\fP"
 
-.SS "typedef struct \fBRGFW_dropEvent\fP \fBRGFW_dropEvent\fP"
+.SS "typedef struct \fBRGFW_dataDropEvent\fP \fBRGFW_dataDropEvent\fP"
 
 .SS "typedef union \fBRGFW_event\fP \fBRGFW_event\fP"
 \fBRGFW_event\fP union 

@@ -1,4 +1,4 @@
-.TH "RGFW_event" 3 "Mon Aug 11 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_event" 3 "Tue Aug 12 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -27,10 +27,10 @@ RGFW_event
 .RI "\fBRGFW_keyEvent\fP \fBkey\fP"
 .br
 .ti -1c
-.RI "\fBRGFW_dropEvent\fP \fBdrop\fP"
+.RI "\fBRGFW_dataDropEvent\fP \fBdrop\fP"
 .br
 .ti -1c
-.RI "\fBRGFW_dragEvent\fP \fBdrag\fP"
+.RI "\fBRGFW_dataDragEvent\fP \fBdrag\fP"
 .br
 .ti -1c
 .RI "\fBRGFW_scaleUpdatedEvent\fP \fBscale\fP"
@@ -45,9 +45,9 @@ RGFW_event
 data for a button press/release 
 .SS "\fBRGFW_commonEvent\fP RGFW_event::common"
 common event data (e\&.g\&.) type and win 
-.SS "\fBRGFW_dragEvent\fP RGFW_event::drag"
+.SS "\fBRGFW_dataDragEvent\fP RGFW_event::drag"
 
-.SS "\fBRGFW_dropEvent\fP RGFW_event::drop"
+.SS "\fBRGFW_dataDropEvent\fP RGFW_event::drop"
 dropping a file events 
 .SS "\fBRGFW_keyEvent\fP RGFW_event::key"
 data for key press/release/hold events 

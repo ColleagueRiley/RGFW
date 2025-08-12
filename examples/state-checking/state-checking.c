@@ -21,6 +21,14 @@ typedef struct {
     RGFW_bool middleMouseReleased;
     RGFW_bool scrollUp;
     i32 mouseX, mouseY;
+    RGFW_bool didMouseLeave;
+    RGFW_bool didMouseEnter;
+    RGFW_bool isMouseInside;
+    RGFW_bool drop;
+    RGFW_bool drag;
+    i32 dragX, dragY;
+    const char** data;
+    size_t count;
 } WindowState;
 
 int main(void) {
@@ -28,7 +36,7 @@ int main(void) {
     RGFW_window_setExitKey(win, RGFW_escape);
 
     WindowState prevState;
-    memset(&prevState, 0, sizeof(prevState));
+    memset(&prevState, 0, sizeof(WindowState));
 
     while (RGFW_window_shouldClose(win) == 0) {
         RGFW_pollEvents();
@@ -48,12 +56,21 @@ int main(void) {
             RGFW_window_isMouseDown(win, RGFW_mouseRight),
             RGFW_window_isMouseReleased(win, RGFW_mouseMiddle),
             RGFW_window_isMousePressed(win, RGFW_mouseScrollUp),
-            0, 0
+            0, 0,
+            RGFW_window_didMouseLeave(win),
+            RGFW_window_didMouseEnter(win),
+            RGFW_window_isMouseInside(win),
+            RGFW_window_didDataDrop(win),
+            RGFW_window_isDataDragging(win),
+            0, 0, NULL, 0,
         };
 
         RGFW_window_getPosition(win, &currState.posX, &currState.posY);
         RGFW_window_getSize(win, &currState.width, &currState.height);
         RGFW_window_getMouse(win, &currState.mouseX, &currState.mouseY);
+
+        RGFW_window_getDataDrag(win, &currState.dragX, &currState.dragY);
+        RGFW_window_getDataDrop(win, &currState.data, &currState.count);
 
         if (currState.isInFocus != prevState.isInFocus) {
             printf("Is in focus: %s\n", currState.isInFocus ? "Yes" : "No");
@@ -97,8 +114,32 @@ int main(void) {
         if (currState.scrollUp != prevState.scrollUp) {
             printf("Is mouse scroll up: %s\n", currState.scrollUp ? "Yes" : "No");
         }
-        if (currState.mouseX != prevState.mouseX || currState.mouseY != prevState.mouseY) {
+        if (RGFW_isKeyDown(RGFW_controlL) && (currState.mouseX != prevState.mouseX || currState.mouseY != prevState.mouseY)) {
             printf("Mouse position in window: (%i, %i)\n", currState.mouseX, currState.mouseY);
+        }
+        if (currState.didMouseLeave != prevState.didMouseLeave) {
+            printf("Did mouse leave: %s\n", currState.didMouseLeave ? "Yes" : "No");
+        }
+        if (currState.didMouseEnter != prevState.didMouseEnter) {
+            printf("Did mouse enter: %s\n", currState.didMouseEnter ? "Yes" : "No");
+        }
+        if (currState.isMouseInside != prevState.isMouseInside) {
+            printf("Is mouse inside the window: %s\n", currState.isMouseInside ? "Yes" : "No");
+        }
+
+        if (currState.drag != prevState.drag || (currState.drag && (currState.dragX != prevState.dragX || currState.dragY != prevState.dragY))) {
+            if (currState.drag)
+                printf("Is dragging data, %i %i\n", currState.dragX, currState.dragY);
+            else printf("Is not dragging data\n");
+        }
+
+        if (currState.drop != prevState.drop) {
+            if (currState.drop) {
+                printf("Data dropped :\n");
+                for (size_t i = 0; i < currState.count; i++) {
+                    printf("    file : %s\n", currState.data[i]);
+                }
+            } else printf("No data has ben dropped\n");
         }
 
         memcpy(&prevState, &currState, sizeof(WindowState));

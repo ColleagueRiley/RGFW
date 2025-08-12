@@ -1,4 +1,4 @@
-.TH "Callbacks" 3 "Mon Aug 11 2025" "RGFW" \" -*- nroff -*-
+.TH "Callbacks" 3 "Tue Aug 12 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -37,7 +37,7 @@ Callbacks \- Callbacks
 .RI "typedef void(* \fBRGFW_mousePosfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, float vecX, float vecY)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_dragfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
+.RI "typedef void(* \fBRGFW_dataDragfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_windowRefreshfunc\fP) (\fBRGFW_window\fP *win)"
@@ -49,7 +49,7 @@ Callbacks \- Callbacks
 .RI "typedef void(* \fBRGFW_mouseButtonfunc\fP) (\fBRGFW_window\fP *win, RGFW_mouseButton button, double scroll, \fBRGFW_bool\fP pressed)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_dropfunc\fP) (\fBRGFW_window\fP *win, char **files, size_t count)"
+.RI "typedef void(* \fBRGFW_dataDropfunc\fP) (\fBRGFW_window\fP *win, char **files, size_t count)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_scaleUpdatedfunc\fP) (\fBRGFW_window\fP *win, float scaleX, float scaleY)"
@@ -80,10 +80,10 @@ Callbacks \- Callbacks
 .RI "\fBRGFWDEF\fP \fBRGFW_mouseNotifyfunc\fP \fBRGFW_setMouseNotifyCallback\fP (\fBRGFW_mouseNotifyfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_dropfunc\fP \fBRGFW_setDropCallback\fP (\fBRGFW_dropfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_dataDropfunc\fP \fBRGFW_setDataDropCallback\fP (\fBRGFW_dataDropfunc\fP func)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_dragfunc\fP \fBRGFW_setDragCallback\fP (\fBRGFW_dragfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_dataDragfunc\fP \fBRGFW_setDataDragCallback\fP (\fBRGFW_dataDragfunc\fP func)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_keyfunc\fP \fBRGFW_setKeyCallback\fP (\fBRGFW_keyfunc\fP func)"
@@ -109,10 +109,10 @@ Callbacks \- Callbacks
 event callbacks\&. These are completely optional, so you can use the normal RGFW_checkEvent() method if you prefer that 
 .SH "Typedef Documentation"
 .PP 
-.SS "typedef void(* RGFW_dragfunc) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
-RGFW_drag, the window, the point of the drop on the windows 
-.SS "typedef void(* RGFW_dropfunc) (\fBRGFW_window\fP *win, char **files, size_t count)"
-RGFW_drop the window that had the drop, the drop data and the number of files dropped 
+.SS "typedef void(* RGFW_dataDragfunc) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
+RGFW_dataDrag, the window, the point of the drop on the windows 
+.SS "typedef void(* RGFW_dataDropfunc) (\fBRGFW_window\fP *win, char **files, size_t count)"
+RGFW_dataDrop the window that had the drop, the drop data and the number of files dropped 
 .SS "typedef void(* RGFW_focusfunc) (\fBRGFW_window\fP *win, \fBRGFW_bool\fP inFocus)"
 RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its in focus 
 .SS "typedef void(* RGFW_keyfunc) (\fBRGFW_window\fP *win, \fBu8\fP key, \fBu8\fP sym, RGFW_keymod mod, \fBRGFW_bool\fP repeat, \fBRGFW_bool\fP pressed)"
@@ -155,11 +155,11 @@ RGFW_windowRestored, the window and its new rect value
  
 .SH "Function Documentation"
 .PP 
-.SS "\fBRGFWDEF\fP \fBRGFW_dragfunc\fP RGFW_setDragCallback (\fBRGFW_dragfunc\fP func)"
+.SS "\fBRGFWDEF\fP \fBRGFW_dataDragfunc\fP RGFW_setDataDragCallback (\fBRGFW_dataDragfunc\fP func)"
 set callback for a start of a drop event\&. Returns previous callback function (if it was set) 
 .br
  
-.SS "\fBRGFWDEF\fP \fBRGFW_dropfunc\fP RGFW_setDropCallback (\fBRGFW_dropfunc\fP func)"
+.SS "\fBRGFWDEF\fP \fBRGFW_dataDropfunc\fP RGFW_setDataDropCallback (\fBRGFW_dataDropfunc\fP func)"
 set callback for a drop event event\&. Returns previous callback function (if it was set) 
 .br
  

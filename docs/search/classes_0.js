@@ -1,8 +1,8 @@
 var searchData=
 [
   ['rgfw_5fcommonevent_0',['RGFW_commonEvent',['../structRGFW__commonEvent.html',1,'']]],
-  ['rgfw_5fdragevent_1',['RGFW_dragEvent',['../structRGFW__dragEvent.html',1,'']]],
-  ['rgfw_5fdropevent_2',['RGFW_dropEvent',['../structRGFW__dropEvent.html',1,'']]],
+  ['rgfw_5fdatadragevent_1',['RGFW_dataDragEvent',['../structRGFW__dataDragEvent.html',1,'']]],
+  ['rgfw_5fdatadropevent_2',['RGFW_dataDropEvent',['../structRGFW__dataDropEvent.html',1,'']]],
   ['rgfw_5fevent_3',['RGFW_event',['../unionRGFW__event.html',1,'']]],
   ['rgfw_5fkeyevent_4',['RGFW_keyEvent',['../structRGFW__keyEvent.html',1,'']]],
   ['rgfw_5fmonitor_5',['RGFW_monitor',['../structRGFW__monitor.html',1,'']]],
