@@ -254,7 +254,7 @@ endif
 
 examples/metal/metal: examples/metal/metal.m RGFW.h
 ifeq ($(detected_OS),Darwin)        # Mac OS X
-	$(CC) $(CUSTOM_CFLAGS) examples/metal/metal.m -I. -framework CoreVideo -framework Metal -framework Cocoa -framework IOKit -framework QuartzCore -o $@
+	$(CC) $(CFLAGS) examples/metal/metal.m -I. -framework CoreVideo -framework Metal -framework Cocoa -framework IOKit -framework QuartzCore -o $@
 else
 	@echo metal is not supported on $(detected_OS)
 endif
@@ -265,7 +265,7 @@ ifeq ($(WAYLAND), 1)
 else ifneq (,$(filter $(CC),emcc em++))
 	@echo nostl is not supported on this platform
 else ifeq ($(detected_OS),NetBSD)
-	$(CC) $(CFLAGS) $(CUSTOM_CFLAGS) -pthread -I. $<  -o $@$(EXT)
+	$(CC) $(CFLAGS) $(CFLAGS) -pthread -I. $<  -o $@$(EXT)
 else ifeq ($(detected_OS),Linux)
 	$(CC) $(CFLAGS) -I. $< -lXrandr -lX11 -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
@@ -317,9 +317,9 @@ examples/gl33/gl33: examples/gl33/gl33.c RGFW.h
 ifeq ($(WAYLAND), 1)
 	$(CC) $(CFLAGS) -I. $< $(LIBS) $(LINK_GL1) -lEGL -lwayland-egl -o $@$(EXT)
 else ifeq ($(detected_OS),NetBSD)
-	$(CC) $(CFLAGS) $(CUSTOM_CFLAGS) -I. $<  -lXrandr -lpthread -o $@$(EXT)
+	$(CC) $(CFLAGS) $(CFLAGS) -I. $<  -lXrandr -lpthread -o $@$(EXT)
 else ifeq ($(detected_OS),Linux)
-	$(CC) $(CFLAGS) -I. $<  -lX11 -lXrandr -o $@$(EXT)
+	$(CC) $(CFLAGS) -I. $<  -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lgdi32 -o $@$(EXT)
 else ifeq ($(detected_OS),Darwin)
