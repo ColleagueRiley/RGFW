@@ -2721,7 +2721,7 @@ void* RGFW_glContext_getSourceContext(RGFW_glContext* ctx) {
 	return (void*)ctx->ctx;
 #endif
 	return NULL;
-
+}
 
 RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win, RGFW_glHints* hints) {
 	#ifdef RGFW_WAYLAND
