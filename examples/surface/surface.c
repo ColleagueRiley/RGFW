@@ -49,8 +49,9 @@ void drawRect(u8* buffer, i32 bufferWidth, i32 x, i32 y, i32 w, i32 h, u8 color[
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("Basic buffer example", 0, 0, 500, 500, RGFW_windowCenter | RGFW_windowTransparent);
+    RGFW_window_setExitKey(win, RGFW_escape);
 
-	RGFW_monitor mon = RGFW_window_getMonitor(win);
+    RGFW_monitor mon = RGFW_window_getMonitor(win);
     #ifdef RGFW_WAYLAND
         mon.mode.w = 500;
         mon.mode.h = 500;
@@ -65,7 +66,7 @@ int main(void) {
 
     while (running) {
         while (RGFW_window_checkEvent(win, &event)) {
-            if (event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape)) {
+            if (event.type == RGFW_quit || RGFW_window_isKeyPressed(win, RGFW_escape)) {
                 running = 0;
                 break;
             }

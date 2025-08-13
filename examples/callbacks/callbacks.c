@@ -2,22 +2,13 @@
 #include "RGFW.h"
 
 #include <stdio.h>
-#ifdef RGFW_MACOS
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
 
 RGFW_window* window;
 
 static
-void errorfunc(RGFW_debugType type, RGFW_errorCode err, RGFW_debugContext ctx, const char* msg) {
+void errorfunc(RGFW_debugType type, RGFW_errorCode err, const char* msg) {
     if (type != RGFW_typeError || err == RGFW_noError) return; /* disregard non-errors */
-    /* only care about errors for this window
-        If there were two windows and the error uses the root window it will also be ignored,
-            this may ignore important errors
-    */
-    if (window != ctx.win) return;
+
     printf("RGFW ERROR: %s\n", msg);
 }
 
@@ -88,12 +79,12 @@ void mouseNotifyfunc(RGFW_window* win, i32 x, i32 y, u8 status) {
 static
 void mouseposfunc(RGFW_window* win, i32 x, i32 y, float vecX, float vecY) {
     RGFW_UNUSED(vecX); RGFW_UNUSED(vecY);
-    if (window != win || RGFW_isPressed(win, RGFW_controlL) == 0) return;
+    if (window != win || RGFW_window_isKeyPressed(win, RGFW_controlL) == 0) return;
    printf("mouse moved %i %i\n", x, y);
 }
 
 static
-void dndfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount) {
+void dropfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount) {
     if (window != win) return;
 
     u32 i;
@@ -102,7 +93,7 @@ void dndfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount) {
 }
 
 static
-void dndInitfunc(RGFW_window* win, i32 x, i32 y) {
+void dragfunc(RGFW_window* win, i32 x, i32 y) {
     if (window != win) return;
     printf("dnd init at %i %i\n", x, y);
 }
@@ -139,8 +130,7 @@ void mousebuttonfunc(RGFW_window* win, u8 button, double scroll, u8 pressed) {
 
 int main(void) {
     window = RGFW_createWindow("RGFW Callbacks", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
-
-    RGFW_setQueueEvents(RGFW_FALSE);
+    RGFW_window_setExitKey(window, RGFW_escape);
 
     RGFW_setDebugCallback(errorfunc);
     RGFW_setScaleUpdatedCallback(scaleUpdatedfunc);
@@ -154,8 +144,8 @@ int main(void) {
 	RGFW_setWindowRefreshCallback(windowrefreshfunc);
 	RGFW_setFocusCallback(focusfunc);
 	RGFW_setMouseNotifyCallback(mouseNotifyfunc);
-	RGFW_setDndCallback(dndfunc);
-	RGFW_setDndInitCallback(dndInitfunc);
+	RGFW_setDataDropCallback(dropfunc);
+	RGFW_setDataDragCallback(dragfunc);
 	RGFW_setKeyCallback(keyfunc);
 	RGFW_setMouseButtonCallback(mousebuttonfunc);
 

@@ -36,6 +36,7 @@ int main(void) {
     RGFW_setGlobalHints_OpenGL(hints);
 
 	RGFW_window* win = RGFW_createWindow("name", 0, 0, 500, 500, RGFW_windowCenter | RGFW_windowTransparent | RGFW_windowOpenGL);
+    RGFW_window_setExitKey(win, RGFW_escape);
 
     ///////  the openGL part  ///////////////////////////////////////////////////////////////
 

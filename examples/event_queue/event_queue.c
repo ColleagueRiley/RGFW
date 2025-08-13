@@ -13,6 +13,7 @@
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW Events", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
     RGFW_event event;
+    RGFW_window_setExitKey(win, RGFW_escape);
 
     while (RGFW_window_shouldClose(win) == 0) {
         RGFW_waitForEvent(RGFW_eventWaitNext);
@@ -20,10 +21,10 @@ int main(void) {
             switch (event.type) {
                 case RGFW_quit: printf("window closed\n"); break;
                 case RGFW_keyPressed:
-                    printf("Key pressed %c\n", event.keyChar);
+                    printf("Key pressed %c\n", event.key.sym);
                     break;
                 case RGFW_keyReleased:
-                    printf("Key released %c\n", event.keyChar);
+                    printf("Key released %c\n", event.key.sym);
                     break;
                 case RGFW_mouseButtonPressed:
                     printf("mouse button pressed\n");
@@ -32,8 +33,8 @@ int main(void) {
                     printf("Mouse Button Released\n");
                     break;
                 case RGFW_mousePosChanged:
-                    if (RGFW_isPressed(win, RGFW_controlL))
-                        printf("Mouse pos changed %i %i\n", event.x, event.y);
+                    if (RGFW_window_isKeyPressed(win, RGFW_controlL))
+                        printf("Mouse pos changed %i %i\n", event.mouse.x, event.mouse.y);
                     break;
                 case RGFW_windowMoved:
                     printf("window moved %i %i\n", win->x, win->y);
@@ -57,7 +58,7 @@ int main(void) {
                     printf("Unfocused\n");
                     break;
                 case RGFW_mouseEnter:
-                    printf("Mouse Entered %i %i\n", event.x, event.y);
+                    printf("Mouse Entered %i %i\n", event.mouse.x, event.mouse.y);
                     break;
                 case RGFW_mouseLeave:
                     printf("Mouse left\n");
@@ -65,18 +66,17 @@ int main(void) {
                 case RGFW_windowRefresh:
                     printf("Refresh\n");
                     break;
-                case RGFW_DND: {
-                    printf("DND Drop : %i %i\n", event.x, event.y);
+                case RGFW_dataDrop: {
                     u32 i;
-                    for (i = 0; i < event.droppedFilesCount; i++)
-                        printf("dropped : %s\n", event.droppedFiles[i]);
+                    for (i = 0; i < event.drop.count; i++)
+                        printf("dropped : %s\n", event.drop.files[i]);
                     break;
                 }
-                case RGFW_DNDInit:
-                    printf("DND Init : %i %i\n", event.x, event.y);
+                case RGFW_dataDrag:
+                    printf("Drag : %i %i\n", event.drag.x, event.drag.y);
                     break;
                 case RGFW_scaleUpdated:
-                    printf("Scale Updated : %f %f\n", event.scaleX, event.scaleY);
+                    printf("Scale Updated : %f %f\n", event.scale.x, event.scale.y);
                     break;
                 default:
                     break;

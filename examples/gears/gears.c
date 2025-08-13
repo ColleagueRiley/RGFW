@@ -471,6 +471,7 @@ main(int argc, char *argv[])
    }
 
    win = RGFW_createWindow("gears", x, y, winWidth, winHeight, RGFW_windowCenter | RGFW_windowOpenGL | flag);
+   RGFW_window_setExitKey(win, RGFW_escape);
    RGFW_window_makeCurrentContext_OpenGL(win);
    init();
 
@@ -486,7 +487,7 @@ main(int argc, char *argv[])
 		   if (event.type == RGFW_windowResized){
 			   reshape(win->w, win->h);
 		   }else if(event.type == RGFW_keyPressed){
-			   switch(event.key){
+			   switch(event.key.value){
 				   case RGFW_left:
 					   view_roty += 5.0;
 					   break;

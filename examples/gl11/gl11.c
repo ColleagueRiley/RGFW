@@ -15,6 +15,8 @@
 int main(void) {
 	RGFW_setClassName("RGFW Example");
 	RGFW_window *win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowOpenGL);
+    RGFW_window_setExitKey(win, RGFW_escape);
+
 	RGFW_window_makeCurrentContext_OpenGL(win);
 
 	while (!RGFW_window_shouldClose(win)) {
@@ -32,6 +34,8 @@ int main(void) {
 		RGFW_window_swapBuffers_OpenGL(win);
 		glFlush();
 	}
-    return 0;
+
+	RGFW_window_close(win);
+	return 0;
 }
 

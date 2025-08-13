@@ -20,6 +20,7 @@ RGFWDEF void glPerspective(float fovY, float aspect, float zNear, float zFar);
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("First person camera", 0, 0, 800, 450, RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowFocusOnShow | RGFW_windowOpenGL);
+    RGFW_window_setExitKey(win, RGFW_escape);
 
     RGFW_window_showMouse(win, 0);
     glEnable(GL_DEPTH_TEST);
@@ -61,8 +62,8 @@ int main(void) {
                     RGFW_window_holdMouse(win);
                     break;
                case RGFW_mousePosChanged: {
-                    int dev_x = event.vecX;
-                    int dev_y = event.vecY;
+                    int dev_x = event.mouse.vecX;
+                    int dev_y = event.mouse.vecY;
 
 					/* apply the changes to pitch and yaw*/
                     yaw += (float)dev_x / 15.0;
@@ -70,7 +71,7 @@ int main(void) {
                     break;
                 }
                 case RGFW_keyPressed:
-                    switch (event.key) {
+                    switch (event.key.value) {
                         case RGFW_return:
                             RGFW_window_showMouse(win, 0);
                             RGFW_window_holdMouse(win);
@@ -105,21 +106,21 @@ int main(void) {
         if (event.type == RGFW_quit)
             break;
 
-        if (RGFW_isPressed(win, RGFW_w)) {
+        if (RGFW_isKeyPressed(RGFW_w)) {
             camX += cos((yaw + 90) * DEG2RAD)/5.0;
             camZ -= sin((yaw + 90) * DEG2RAD)/5.0;
         }
-        if (RGFW_isPressed(win, RGFW_s)) {
+        if (RGFW_isKeyPressed(RGFW_s)) {
             camX += cos((yaw + 270) * DEG2RAD)/5.0;
             camZ -= sin((yaw + 270) * DEG2RAD)/5.0;
         }
 
-        if (RGFW_isPressed(win, RGFW_a)) {
+        if (RGFW_isKeyPressed(RGFW_a)) {
             camX += cos(yaw * DEG2RAD)/5.0;
             camZ -= sin(yaw * DEG2RAD)/5.0;
         }
 
-        if (RGFW_isPressed(win, RGFW_d)) {
+        if (RGFW_isKeyPressed(RGFW_d)) {
             camX += cos((yaw + 180) * DEG2RAD)/5.0;
             camZ -= sin((yaw + 180) * DEG2RAD)/5.0;
         }

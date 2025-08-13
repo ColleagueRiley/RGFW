@@ -4,6 +4,7 @@
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW flags", 0, 0, 600, 400, RGFW_windowAllowDND);
+    RGFW_window_setExitKey(win, RGFW_escape);
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
 
@@ -12,7 +13,7 @@ int main(void) {
         while (RGFW_window_checkEvent(win, &event)) {
             if (event.type == RGFW_quit) break;
             if (event.type != RGFW_keyPressed) continue;
-            switch (event.key) {
+            switch (event.key.value) {
                     case RGFW_b:
                         printf("Borderless: %s\n", !RGFW_window_borderless(win) ? "true" : "false");
                         RGFW_window_setBorder(win, RGFW_window_borderless(win));

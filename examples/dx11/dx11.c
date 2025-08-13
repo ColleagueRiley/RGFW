@@ -56,6 +56,7 @@ void directXClose(RGFW_window* win, directXinfo* dxInfo);
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("name", 0, 0, 500, 500, RGFW_windowCenter);
+    RGFW_window_setExitKey(win, RGFW_escape);
 
     directXinfo dxInfo;
     if (directXInit(win, &dxInfo) == 0) {
@@ -123,9 +124,9 @@ int main(void) {
     dxInfo.pDeviceContext->lpVtbl->IASetInputLayout(dxInfo.pDeviceContext, pInputLayout);
 
     for (;;) {
-        RGFW_window_checkEvent(win); // NOTE: checking events outside of a while loop may cause input lag
+        RGFW_pollEvents();
 
-        if (win->event.type == RGFW_quit || RGFW_isPressed(win, RGFW_escape))
+        if (RGFW_window_shouldClose(win))
             break;
 
         float clearColor[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
@@ -181,8 +182,8 @@ int directXInit(RGFW_window* win, directXinfo* info) {
 	pBackBuffer->lpVtbl->Release(pBackBuffer);
 
 	D3D11_TEXTURE2D_DESC depthStencilDesc = { 0 };
-	depthStencilDesc.Width = win->r.w;
-	depthStencilDesc.Height = win->r.h;
+	depthStencilDesc.Width = win->w;
+	depthStencilDesc.Height = win->h;
 	depthStencilDesc.MipLevels = 1;
 	depthStencilDesc.ArraySize = 1;
 	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
