@@ -10226,11 +10226,11 @@ void RGFW_window_setAspectRatio(RGFW_window* win, i32 w, i32 h) {
 	if (w == 0 && h == 0) {  w = 1; h = 1; };
 
 	((void (*)(id, SEL, NSSize))objc_msgSend)
-		((id)win->src.window, sel_registerName("setContentAspectRatio:"), (NSSize){w, h});
+		((id)win->src.window, sel_registerName("setContentAspectRatio:"), (NSSize){(CGFloat)w, (CGFloat)h});
 }
 
 void RGFW_window_setMinSize(RGFW_window* win, i32 w, i32 h) {
-	((void (*)(id, SEL, NSSize))objc_msgSend) ((id)win->src.window, sel_registerName("setMinSize:"), (NSSize){w, h});
+	((void (*)(id, SEL, NSSize))objc_msgSend) ((id)win->src.window, sel_registerName("setMinSize:"), (NSSize){(CGFloat)w, (CGFloat)h});
 }
 
 void RGFW_window_setMaxSize(RGFW_window* win, i32 w, i32 h) {
@@ -10241,7 +10241,7 @@ void RGFW_window_setMaxSize(RGFW_window* win, i32 w, i32 h) {
 	}
 
 	((void (*)(id, SEL, NSSize))objc_msgSend)
-		((id)win->src.window, sel_registerName("setMaxSize:"), (NSSize){w, h});
+		((id)win->src.window, sel_registerName("setMaxSize:"), (NSSize){(CGFloat)w, (CGFloat)h});
 }
 
 RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format, RGFW_icon type) {
@@ -10256,7 +10256,7 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_f
 	id representation = NSBitmapImageRep_initWithBitmapData(NULL, w, h, 8, (NSInteger)4, true, false, "NSCalibratedRGBColorSpace", 1 << 1, w * 4, 32);
 	RGFW_copyImageData(NSBitmapImageRep_bitmapData(representation), w, h, RGFW_formatRGBA8, data, format);
 
-	id dock_image = ((id(*)(id, SEL, NSSize))objc_msgSend) (NSAlloc((id)objc_getClass("NSImage")), sel_registerName("initWithSize:"), ((NSSize){w, h}));
+	id dock_image = ((id(*)(id, SEL, NSSize))objc_msgSend) (NSAlloc((id)objc_getClass("NSImage")), sel_registerName("initWithSize:"), ((NSSize){(CGFloat)w, (CGFloat)h}));
 
 	objc_msgSend_void_id(dock_image, sel_registerName("addRepresentation:"), representation);
 
@@ -10283,7 +10283,7 @@ RGFW_mouse* RGFW_loadMouse(u8* data, i32 w, i32 h, RGFW_format format) {
 	id representation = (id)NSBitmapImageRep_initWithBitmapData(NULL, w, h, 8, (NSInteger)4, true, false, "NSCalibratedRGBColorSpace", 1 << 1, w * 4, 32);
 	RGFW_copyImageData(NSBitmapImageRep_bitmapData(representation), w, h, RGFW_formatRGBA8, data, format);
 
-	id cursor_image = ((id(*)(id, SEL, NSSize))objc_msgSend) (NSAlloc((id)objc_getClass("NSImage")), sel_registerName("initWithSize:"), ((NSSize){w, h}));
+	id cursor_image = ((id(*)(id, SEL, NSSize))objc_msgSend) (NSAlloc((id)objc_getClass("NSImage")), sel_registerName("initWithSize:"), ((NSSize){(CGFloat)w, (CGFloat)h}));
 
 	objc_msgSend_void_id(cursor_image, sel_registerName("addRepresentation:"), representation);
 
@@ -10345,7 +10345,7 @@ void RGFW_releaseCursor(RGFW_window* win) {
 void RGFW_captureCursor(RGFW_window* win) {
 	RGFW_UNUSED(win);
 
-	CGWarpMouseCursorPosition((CGPoint){win->x + (win->w / 2), win->y + (win->h / 2)});
+	CGWarpMouseCursorPosition((CGPoint){(CGFloat)(win->x + (win->w / 2)), (CGFloat)(win->y + (win->h / 2))});
 	CGAssociateMouseAndMouseCursorPosition(0);
 }
 
@@ -10354,7 +10354,7 @@ void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) {
 
 	win->internal.lastMouseX = x - win->x;
 	win->internal.lastMouseY = y - win->y;
-	CGWarpMouseCursorPosition((CGPoint){x, y});
+	CGWarpMouseCursorPosition((CGPoint){(CGFloat)x, (CGFloat)y});
 }
 
 
@@ -10483,7 +10483,7 @@ RGFW_monitor* RGFW_getMonitors(size_t* len) {
 }
 
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
-    CGPoint point = { mon.x, mon.y };
+    CGPoint point = { (CGFloat)mon.x, (CGFloat)mon.y };
 
     CGDirectDisplayID display;
     u32 displayCount = 0;
