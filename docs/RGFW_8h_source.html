@@ -10028,11 +10028,11 @@ $(function() {
 <div class="line"><a id="l10226" name="l10226"></a><span class="lineno">10226</span>    <span class="keywordflow">if</span> (w == 0 &amp;&amp; h == 0) {  w = 1; h = 1; };</div>
 <div class="line"><a id="l10227" name="l10227"></a><span class="lineno">10227</span> </div>
 <div class="line"><a id="l10228" name="l10228"></a><span class="lineno">10228</span>    ((void (*)(id, SEL, NSSize))objc_msgSend)</div>
-<div class="line"><a id="l10229" name="l10229"></a><span class="lineno">10229</span>        ((<span class="keywordtype">id</span>)win-&gt;src.window, sel_registerName(<span class="stringliteral">&quot;setContentAspectRatio:&quot;</span>), (NSSize){w, h});</div>
+<div class="line"><a id="l10229" name="l10229"></a><span class="lineno">10229</span>        ((<span class="keywordtype">id</span>)win-&gt;src.window, sel_registerName(<span class="stringliteral">&quot;setContentAspectRatio:&quot;</span>), (NSSize){(CGFloat)w, (CGFloat)h});</div>
 <div class="line"><a id="l10230" name="l10230"></a><span class="lineno">10230</span>}</div>
 <div class="line"><a id="l10231" name="l10231"></a><span class="lineno">10231</span> </div>
 <div class="line"><a id="l10232" name="l10232"></a><span class="lineno">10232</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga4ce6ee50229983f7db132f34a419d107">RGFW_window_setMinSize</a>(<a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> w, <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> h) {</div>
-<div class="line"><a id="l10233" name="l10233"></a><span class="lineno">10233</span>    ((void (*)(id, SEL, NSSize))objc_msgSend) ((<span class="keywordtype">id</span>)win-&gt;src.window, sel_registerName(<span class="stringliteral">&quot;setMinSize:&quot;</span>), (NSSize){w, h});</div>
+<div class="line"><a id="l10233" name="l10233"></a><span class="lineno">10233</span>    ((void (*)(id, SEL, NSSize))objc_msgSend) ((<span class="keywordtype">id</span>)win-&gt;src.window, sel_registerName(<span class="stringliteral">&quot;setMinSize:&quot;</span>), (NSSize){(CGFloat)w, (CGFloat)h});</div>
 <div class="line"><a id="l10234" name="l10234"></a><span class="lineno">10234</span>}</div>
 <div class="line"><a id="l10235" name="l10235"></a><span class="lineno">10235</span> </div>
 <div class="line"><a id="l10236" name="l10236"></a><span class="lineno">10236</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__Window__management.html#ga1dc79afb7a14cf66616822567c30671a">RGFW_window_setMaxSize</a>(<a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> w, <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> h) {</div>
@@ -10043,7 +10043,7 @@ $(function() {
 <div class="line"><a id="l10241" name="l10241"></a><span class="lineno">10241</span>    }</div>
 <div class="line"><a id="l10242" name="l10242"></a><span class="lineno">10242</span> </div>
 <div class="line"><a id="l10243" name="l10243"></a><span class="lineno">10243</span>    ((void (*)(id, SEL, NSSize))objc_msgSend)</div>
-<div class="line"><a id="l10244" name="l10244"></a><span class="lineno">10244</span>        ((<span class="keywordtype">id</span>)win-&gt;src.window, sel_registerName(<span class="stringliteral">&quot;setMaxSize:&quot;</span>), (NSSize){w, h});</div>
+<div class="line"><a id="l10244" name="l10244"></a><span class="lineno">10244</span>        ((<span class="keywordtype">id</span>)win-&gt;src.window, sel_registerName(<span class="stringliteral">&quot;setMaxSize:&quot;</span>), (NSSize){(CGFloat)w, (CGFloat)h});</div>
 <div class="line"><a id="l10245" name="l10245"></a><span class="lineno">10245</span>}</div>
 <div class="line"><a id="l10246" name="l10246"></a><span class="lineno">10246</span> </div>
 <div class="line"><a id="l10247" name="l10247"></a><span class="lineno">10247</span><a class="code hl_typedef" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> <a class="code hl_function" href="group__Window__management.html#gaa3b92be48b3bbbd5abe3e934eb3a71fb">RGFW_window_setIconEx</a>(<a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>* data, <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> w, <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> h, RGFW_format format, RGFW_icon type) {</div>
@@ -10058,7 +10058,7 @@ $(function() {
 <div class="line"><a id="l10256" name="l10256"></a><span class="lineno">10256</span>    <span class="keywordtype">id</span> representation = NSBitmapImageRep_initWithBitmapData(NULL, w, h, 8, (NSInteger)4, <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="stringliteral">&quot;NSCalibratedRGBColorSpace&quot;</span>, 1 &lt;&lt; 1, w * 4, 32);</div>
 <div class="line"><a id="l10257" name="l10257"></a><span class="lineno">10257</span>    <a class="code hl_function" href="RGFW_8h.html#ad62d62f3b322fa354a840f2cd0b64feb">RGFW_copyImageData</a>(NSBitmapImageRep_bitmapData(representation), w, h, RGFW_formatRGBA8, data, format);</div>
 <div class="line"><a id="l10258" name="l10258"></a><span class="lineno">10258</span> </div>
-<div class="line"><a id="l10259" name="l10259"></a><span class="lineno">10259</span>    <span class="keywordtype">id</span> dock_image = ((id(*)(id, SEL, NSSize))objc_msgSend) (NSAlloc((<span class="keywordtype">id</span>)objc_getClass(<span class="stringliteral">&quot;NSImage&quot;</span>)), sel_registerName(<span class="stringliteral">&quot;initWithSize:&quot;</span>), ((NSSize){w, h}));</div>
+<div class="line"><a id="l10259" name="l10259"></a><span class="lineno">10259</span>    <span class="keywordtype">id</span> dock_image = ((id(*)(id, SEL, NSSize))objc_msgSend) (NSAlloc((<span class="keywordtype">id</span>)objc_getClass(<span class="stringliteral">&quot;NSImage&quot;</span>)), sel_registerName(<span class="stringliteral">&quot;initWithSize:&quot;</span>), ((NSSize){(CGFloat)w, (CGFloat)h}));</div>
 <div class="line"><a id="l10260" name="l10260"></a><span class="lineno">10260</span> </div>
 <div class="line"><a id="l10261" name="l10261"></a><span class="lineno">10261</span>    objc_msgSend_void_id(dock_image, sel_registerName(<span class="stringliteral">&quot;addRepresentation:&quot;</span>), representation);</div>
 <div class="line"><a id="l10262" name="l10262"></a><span class="lineno">10262</span> </div>
@@ -10085,7 +10085,7 @@ $(function() {
 <div class="line"><a id="l10283" name="l10283"></a><span class="lineno">10283</span>    <span class="keywordtype">id</span> representation = (id)NSBitmapImageRep_initWithBitmapData(NULL, w, h, 8, (NSInteger)4, <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="stringliteral">&quot;NSCalibratedRGBColorSpace&quot;</span>, 1 &lt;&lt; 1, w * 4, 32);</div>
 <div class="line"><a id="l10284" name="l10284"></a><span class="lineno">10284</span>    <a class="code hl_function" href="RGFW_8h.html#ad62d62f3b322fa354a840f2cd0b64feb">RGFW_copyImageData</a>(NSBitmapImageRep_bitmapData(representation), w, h, RGFW_formatRGBA8, data, format);</div>
 <div class="line"><a id="l10285" name="l10285"></a><span class="lineno">10285</span> </div>
-<div class="line"><a id="l10286" name="l10286"></a><span class="lineno">10286</span>    <span class="keywordtype">id</span> cursor_image = ((id(*)(id, SEL, NSSize))objc_msgSend) (NSAlloc((<span class="keywordtype">id</span>)objc_getClass(<span class="stringliteral">&quot;NSImage&quot;</span>)), sel_registerName(<span class="stringliteral">&quot;initWithSize:&quot;</span>), ((NSSize){w, h}));</div>
+<div class="line"><a id="l10286" name="l10286"></a><span class="lineno">10286</span>    <span class="keywordtype">id</span> cursor_image = ((id(*)(id, SEL, NSSize))objc_msgSend) (NSAlloc((<span class="keywordtype">id</span>)objc_getClass(<span class="stringliteral">&quot;NSImage&quot;</span>)), sel_registerName(<span class="stringliteral">&quot;initWithSize:&quot;</span>), ((NSSize){(CGFloat)w, (CGFloat)h}));</div>
 <div class="line"><a id="l10287" name="l10287"></a><span class="lineno">10287</span> </div>
 <div class="line"><a id="l10288" name="l10288"></a><span class="lineno">10288</span>    objc_msgSend_void_id(cursor_image, sel_registerName(<span class="stringliteral">&quot;addRepresentation:&quot;</span>), representation);</div>
 <div class="line"><a id="l10289" name="l10289"></a><span class="lineno">10289</span> </div>
@@ -10147,7 +10147,7 @@ $(function() {
 <div class="line"><a id="l10345" name="l10345"></a><span class="lineno">10345</span><span class="keywordtype">void</span> RGFW_captureCursor(<a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win) {</div>
 <div class="line"><a id="l10346" name="l10346"></a><span class="lineno">10346</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(win);</div>
 <div class="line"><a id="l10347" name="l10347"></a><span class="lineno">10347</span> </div>
-<div class="line"><a id="l10348" name="l10348"></a><span class="lineno">10348</span>    CGWarpMouseCursorPosition((CGPoint){win-&gt;x + (win-&gt;w / 2), win-&gt;y + (win-&gt;h / 2)});</div>
+<div class="line"><a id="l10348" name="l10348"></a><span class="lineno">10348</span>    CGWarpMouseCursorPosition((CGPoint){(CGFloat)(win-&gt;x + (win-&gt;w / 2)), (CGFloat)(win-&gt;y + (win-&gt;h / 2))});</div>
 <div class="line"><a id="l10349" name="l10349"></a><span class="lineno">10349</span>    CGAssociateMouseAndMouseCursorPosition(0);</div>
 <div class="line"><a id="l10350" name="l10350"></a><span class="lineno">10350</span>}</div>
 <div class="line"><a id="l10351" name="l10351"></a><span class="lineno">10351</span> </div>
@@ -10156,7 +10156,7 @@ $(function() {
 <div class="line"><a id="l10354" name="l10354"></a><span class="lineno">10354</span> </div>
 <div class="line"><a id="l10355" name="l10355"></a><span class="lineno">10355</span>    win-&gt;internal.lastMouseX = x - win-&gt;x;</div>
 <div class="line"><a id="l10356" name="l10356"></a><span class="lineno">10356</span>    win-&gt;internal.lastMouseY = y - win-&gt;y;</div>
-<div class="line"><a id="l10357" name="l10357"></a><span class="lineno">10357</span>    CGWarpMouseCursorPosition((CGPoint){x, y});</div>
+<div class="line"><a id="l10357" name="l10357"></a><span class="lineno">10357</span>    CGWarpMouseCursorPosition((CGPoint){(CGFloat)x, (CGFloat)y});</div>
 <div class="line"><a id="l10358" name="l10358"></a><span class="lineno">10358</span>}</div>
 <div class="line"><a id="l10359" name="l10359"></a><span class="lineno">10359</span> </div>
 <div class="line"><a id="l10360" name="l10360"></a><span class="lineno">10360</span> </div>
@@ -10285,7 +10285,7 @@ $(function() {
 <div class="line"><a id="l10483" name="l10483"></a><span class="lineno">10483</span>}</div>
 <div class="line"><a id="l10484" name="l10484"></a><span class="lineno">10484</span> </div>
 <div class="line"><a id="l10485" name="l10485"></a><span class="lineno">10485</span><a class="code hl_typedef" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> <a class="code hl_function" href="RGFW_8h.html#a958e3987c5e8d3895a7b4c3cc3400e23">RGFW_monitor_requestMode</a>(<a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a> mon, <a class="code hl_struct" href="structRGFW__monitorMode.html">RGFW_monitorMode</a> mode, RGFW_modeRequest request) {</div>
-<div class="line"><a id="l10486" name="l10486"></a><span class="lineno">10486</span>    CGPoint point = { mon.<a class="code hl_variable" href="structRGFW__monitor.html#a0a5bd14893ebb7c790a12d31a4a23f18">x</a>, mon.<a class="code hl_variable" href="structRGFW__monitor.html#aefd61dab62b425ed88219f79894ed12a">y</a> };</div>
+<div class="line"><a id="l10486" name="l10486"></a><span class="lineno">10486</span>    CGPoint point = { (CGFloat)mon.<a class="code hl_variable" href="structRGFW__monitor.html#a0a5bd14893ebb7c790a12d31a4a23f18">x</a>, (CGFloat)mon.<a class="code hl_variable" href="structRGFW__monitor.html#aefd61dab62b425ed88219f79894ed12a">y</a> };</div>
 <div class="line"><a id="l10487" name="l10487"></a><span class="lineno">10487</span> </div>
 <div class="line"><a id="l10488" name="l10488"></a><span class="lineno">10488</span>    CGDirectDisplayID display;</div>
 <div class="line"><a id="l10489" name="l10489"></a><span class="lineno">10489</span>    <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> displayCount = 0;</div>
