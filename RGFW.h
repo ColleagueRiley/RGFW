@@ -1748,6 +1748,7 @@ struct RGFW_info {
 	#endif
 
 	RGFW_window* mouseOwner;
+	RGFW_window* kbOwner;
 	RGFW_windowState windowState; /*! for checking window state events */
 
 	RGFW_keyState mouseButtons[RGFW_mouseFinal];
@@ -5901,8 +5902,6 @@ Wayland TODO: (out of date)
 struct wl_display* RGFW_getDisplay_Wayland(void) { return _RGFW->wl_display; }
 struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { return win->src.surface; }
 
-RGFW_window* RGFW_key_win = NULL;
-RGFW_window* RGFW_mouse_win = NULL;
 
 /* wayland global garbage (wayland bad, X11 is fine (ish) (not really)) */
 #include "xdg-shell.h"
@@ -5950,7 +5949,7 @@ void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface* xdg_s
     RGFW_window* win = (RGFW_window*)xdg_surface_get_user_data(xdg_surface);
 
     if (win == NULL) {
-		win = RGFW_key_win;
+		win = _RGFW->kbOwner;
 		if (win == NULL)
 			return;
 	}
@@ -6003,10 +6002,10 @@ void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplevel* top
 
     RGFW_window* win = (RGFW_window*)xdg_toplevel_get_user_data(toplevel);
     if (win == NULL) {
-        win = RGFW_key_win;
-        if (win == NULL)
-            return;
-    }
+		win = _RGFW->kbOwner;
+		if (win == NULL)
+			return;
+	}
 
     win->src.pending_activated = RGFW_FALSE;
     win->src.pending_fullscreen = RGFW_FALSE;
@@ -6046,7 +6045,7 @@ void RGFW_wl_xdg_toplevel_close_handler(void* data, struct xdg_toplevel *topleve
 	RGFW_UNUSED(data);
 	RGFW_window* win = (RGFW_window*)xdg_toplevel_get_user_data(toplevel);
 	if (win == NULL)
-		win = RGFW_key_win;
+		win = _RGFW->kbOwner;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_quit; e.common.win = win);
 	RGFW_window_setShouldClose(win, RGFW_TRUE);
@@ -6070,9 +6069,9 @@ void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial,
 
 	win->internal.mouseInside = RGFW_TRUE;
 	_RGFW->windowState.win = win;
-	_RGFW->windowState.mouseEnter =  RGFW_TRUE;
+	_RGFW->windowState.mouseEnter = RGFW_TRUE;
 
-	RGFW_mouse_win = win;
+	_RGFW->mouseOwner = win;
 	if (!(win->internal.enabledEvents & RGFW_mouseEnterFlag)) return;
 
 	i32 x = (i32)wl_fixed_to_double(surface_x);
@@ -6092,8 +6091,8 @@ void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial,
 void RGFW_wl_pointer_leave(void* data, struct wl_pointer *pointer, u32 serial, struct wl_surface *surface) {
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(serial);
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
-	if (RGFW_mouse_win == win)
-		RGFW_mouse_win = NULL;
+	if (_RGFW->mouseOwner == win)
+		_RGFW->mouseOwner = NULL;
 
 	win->internal.mouseInside = RGFW_FALSE;
 	_RGFW->windowState.winLeave = win;
@@ -6110,9 +6109,11 @@ void RGFW_wl_pointer_leave(void* data, struct wl_pointer *pointer, u32 serial, s
 }
 
 void RGFW_wl_pointer_motion(void* data, struct wl_pointer *pointer, u32 time, wl_fixed_t x, wl_fixed_t y) {
-	RGFW_UNUSED(pointer); RGFW_UNUSED(time);
+	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time);
 
-	RGFW_window* win = (RGFW_window*)data;
+	RGFW_ASSERT(_RGFW->mouseOwner != NULL);
+
+	RGFW_window* win = _RGFW->mouseOwner;
 
 	if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag)) return;
 
@@ -6131,8 +6132,9 @@ void RGFW_wl_pointer_motion(void* data, struct wl_pointer *pointer, u32 time, wl
 }
 
 void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 serial, u32 time, u32 button, u32 state) {
-	RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(serial);
-	RGFW_window* win = (RGFW_window*)data;
+	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(serial);
+	RGFW_ASSERT(_RGFW->mouseOwner != NULL);
+	RGFW_window* win = _RGFW->mouseOwner;
 
 	if (!(win->internal.enabledEvents & (RGFW_BIT(RGFW_mouseButtonReleased - RGFW_BOOL(state))))) return;
 	u32 b = (button - 0x110);
@@ -6151,9 +6153,10 @@ void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 serial, 
 }
 
 void RGFW_wl_pointer_axis(void* data, struct wl_pointer *pointer, u32 time, u32 axis, wl_fixed_t value) {
-	RGFW_UNUSED(pointer); RGFW_UNUSED(time);  RGFW_UNUSED(axis);
+	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(time);  RGFW_UNUSED(axis);
 
-	RGFW_window* win = (RGFW_window*)data;
+	RGFW_ASSERT(_RGFW->mouseOwner != NULL);
+	RGFW_window* win = _RGFW->mouseOwner;
 
 	double scroll = - wl_fixed_to_double(value);
 	if (!(win->internal.enabledEvents  & (RGFW_BIT(RGFW_mouseScrollUp + (scroll < 0))))) return;
@@ -6184,21 +6187,24 @@ void RGFW_wl_keyboard_keymap (void* data, struct wl_keyboard *keyboard, u32 form
 void RGFW_wl_keyboard_enter (void* data, struct wl_keyboard *keyboard, u32 serial, struct wl_surface *surface, struct wl_array *keys) {
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(keys);
 
-	RGFW_key_win = (RGFW_window*)wl_surface_get_user_data(surface);
-	if (!(RGFW_key_win->internal.enabledEvents & RGFW_focusInFlag)) return;
+	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
+	_RGFW->kbOwner = win;
+	
+	if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
 
-	RGFW_key_win->internal.inFocus = RGFW_TRUE;
-	RGFW_eventQueuePushEx(e.type = RGFW_focusIn; e.common.win = RGFW_key_win);
-	RGFW_focusCallback(RGFW_key_win, RGFW_TRUE);
+	win->internal.inFocus = RGFW_TRUE;
+	RGFW_eventQueuePushEx(e.type = RGFW_focusIn; e.common.win = win);
+	RGFW_focusCallback(win, RGFW_TRUE);
 
-	if ((RGFW_key_win->internal.holdMouse)) RGFW_window_holdMouse(RGFW_key_win);
+	if ((win->internal.holdMouse)) RGFW_window_holdMouse(win);
 }
 void RGFW_wl_keyboard_leave (void* data, struct wl_keyboard *keyboard, u32 serial, struct wl_surface *surface) {
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial);
 
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
-	if (RGFW_key_win == win)
-		RGFW_key_win = NULL;
+	if (_RGFW->kbOwner == win)
+		_RGFW->kbOwner = NULL;
+		
 	if (!(win->internal.enabledEvents & RGFW_focusOutFlag)) return;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_focusOut; e.common.win = win);
@@ -6208,7 +6214,8 @@ void RGFW_wl_keyboard_leave (void* data, struct wl_keyboard *keyboard, u32 seria
 void RGFW_wl_keyboard_key (void* data, struct wl_keyboard *keyboard, u32 serial, u32 time, u32 key, u32 state) {
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(time);
 
-	if (RGFW_key_win == NULL) return;
+	if (_RGFW->kbOwner == NULL) return;
+	RGFW_window *RGFW_key_win = _RGFW->kbOwner;
 	if (!(RGFW_key_win->internal.enabledEvents & (RGFW_BIT(RGFW_keyPressed + state)))) return;
 
 	xkb_keysym_t keysym = xkb_state_key_get_one_sym(_RGFW->xkb_state, key + 8);
@@ -6231,6 +6238,7 @@ void RGFW_wl_keyboard_modifiers (void* data, struct wl_keyboard *keyboard, u32 s
 	xkb_state_update_mask (_RGFW->xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
 }
 void RGFW_wl_seat_capabilities (void* data, struct wl_seat *seat, u32 capabilities) {
+	RGFW_UNUSED(data);
     static struct wl_pointer_listener pointer_listener;
 	RGFW_MEMSET(&pointer_listener, 0, sizeof (pointer_listener));
 	pointer_listener.enter = &RGFW_wl_pointer_enter;
@@ -6249,7 +6257,7 @@ void RGFW_wl_seat_capabilities (void* data, struct wl_seat *seat, u32 capabiliti
 
     if (capabilities & WL_SEAT_CAPABILITY_POINTER) {
 		struct wl_pointer *pointer = wl_seat_get_pointer(seat);
-		wl_pointer_add_listener (pointer, &pointer_listener, data);
+		wl_pointer_add_listener (pointer, &pointer_listener, NULL);
 	}
 	if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD) {
 		struct wl_keyboard *keyboard = wl_seat_get_keyboard(seat);
