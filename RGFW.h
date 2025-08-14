@@ -461,6 +461,9 @@ RGFWDEF RGFW_mouse* RGFW_loadMouse(u8* data, i32 w, i32 h, RGFW_format format);
 RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
 
 #ifndef RGFW_NO_MONITOR
+	#ifndef RGFW_MAX_MONITORS
+	#define RGFW_MAX_MONITORS 6
+	#endif
 	/* monitor mode data | can be changed by the user (with functions)*/
 	typedef struct RGFW_monitorMode {
 		i32 w, h; /*!< monitor workarea size */
@@ -483,6 +486,13 @@ RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
 	#endif
 		RGFW_monitorMode mode;
 	} RGFW_monitor;
+
+	typedef struct RGFW_monitor_list {
+		RGFW_monitor* head;
+		RGFW_monitor* cur;
+		u8 count;
+
+	} RGFW_monitor_list;
 
 	/*! get an array of all the monitors (max 6) */
 	RGFWDEF RGFW_monitor* RGFW_getMonitors(size_t* len);
@@ -6415,7 +6425,6 @@ void RGFW_wl_global_registry_handler(void* data,
 		_RGFW->xdg_output_manager = wl_registry_bind(registry, id, &zxdg_output_manager_v1_interface, 1);
 	} else if (RGFW_STRNCMP(interface,"wl_output", 10) == 0) {
 		RGFW_wl_create_outputs(registry, id);
-
 	}
 }
 
