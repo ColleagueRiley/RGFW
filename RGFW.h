@@ -9671,7 +9671,7 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	if (format == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, "Failed to load pixel format for OpenGL");
 
-		assert(render_type_index + 3 < (sizeof(attribs) / sizeof(attribs[0])))
+		assert(render_type_index + 3 < (sizeof(attribs) / sizeof(attribs[0])));
 		attribs[render_type_index] = NSOpenGLPFARendererID;
 		attribs[render_type_index + 1] = kCGLRendererGenericFloatID;
 		attribs[render_type_index + 3] = 0;

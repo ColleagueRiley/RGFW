@@ -9473,7 +9473,7 @@ $(function() {
 <div class="line"><a id="l09671" name="l09671"></a><span class="lineno"> 9671</span>    <span class="keywordflow">if</span> (format == NULL) {</div>
 <div class="line"><a id="l09672" name="l09672"></a><span class="lineno"> 9672</span>        <a class="code hl_function" href="group__error.html#ga8da0d1ae10671341eda34d3067ce11f9">RGFW_sendDebugInfo</a>(RGFW_typeError, RGFW_errOpenGLContext, <span class="stringliteral">&quot;Failed to load pixel format for OpenGL&quot;</span>);</div>
 <div class="line"><a id="l09673" name="l09673"></a><span class="lineno"> 9673</span> </div>
-<div class="line"><a id="l09674" name="l09674"></a><span class="lineno"> 9674</span>        assert(render_type_index + 3 &lt; (<span class="keyword">sizeof</span>(attribs) / <span class="keyword">sizeof</span>(attribs[0])))</div>
+<div class="line"><a id="l09674" name="l09674"></a><span class="lineno"> 9674</span>        assert(render_type_index + 3 &lt; (<span class="keyword">sizeof</span>(attribs) / <span class="keyword">sizeof</span>(attribs[0])));</div>
 <div class="line"><a id="l09675" name="l09675"></a><span class="lineno"> 9675</span>        attribs[render_type_index] = NSOpenGLPFARendererID;</div>
 <div class="line"><a id="l09676" name="l09676"></a><span class="lineno"> 9676</span>        attribs[render_type_index + 1] = kCGLRendererGenericFloatID;</div>
 <div class="line"><a id="l09677" name="l09677"></a><span class="lineno"> 9677</span>        attribs[render_type_index + 3] = 0;</div>
