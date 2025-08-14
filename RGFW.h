@@ -9660,7 +9660,7 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 		if (hints->renderer == RGFW_glSoftware) {
 			RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFARendererID, kCGLRendererGenericFloatID);
 		} else {
-			RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFARendererID, NSOpenGLPFAAccelerated);
+			RGFW_attribStack_pushAttrib(&stack, NSOpenGLPFAAccelerated);
 		}
 		render_type_index = stack.count - 1;
 
@@ -9671,7 +9671,11 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	if (format == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, "Failed to load pixel format for OpenGL");
 
-		attribs[render_type_index] = kCGLRendererGenericFloatID;
+		assert(render_type_index + 3 < (sizeof(attribs) / sizeof(attribs[0])))
+		attribs[render_type_index] = NSOpenGLPFARendererID;
+		attribs[render_type_index + 1] = kCGLRendererGenericFloatID;
+		attribs[render_type_index + 3] = 0;
+
 		format = (void*) ((id(*)(id, SEL, const u32*))objc_msgSend) (NSAlloc((id)objc_getClass("NSOpenGLPixelFormat")), sel_registerName("initWithAttributes:"), (u32*)attribs);
 		if (format == NULL)
 			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, "and loading software rendering OpenGL failed");
