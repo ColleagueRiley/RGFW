@@ -9276,7 +9276,7 @@ static void RGFW__osxDidWindowResize(id self, SEL _cmd, id notification) {
 	if (win == NULL) return;
 
 	NSRect frame;
-	if (win->src.view) frame ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
+	if (win->src.view) frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
 	else return;
 
 	if (frame.size.width == 0 || frame.size.height == 0) return;
