@@ -251,7 +251,7 @@ static int text_height(mu_Font font) {
 int main(int argc, char **argv) {
   RGFW_UNUSED(argc); RGFW_UNUSED(argv);
   /* init RGFW window */
-  RGFW_window* window = RGFW_createWindow("", 0, 0, width, height, RGFW_windowCenter | RGFW_windowScaleToMonitor | RGFW_windowOpenGL);
+  RGFW_window* window = RGFW_createWindow("", 0, 0, width, height, RGFW_windowCenter |  RGFW_windowOpenGL);
 
   RGFW_monitor mon = RGFW_window_getMonitor(window);
   width = window->w;
