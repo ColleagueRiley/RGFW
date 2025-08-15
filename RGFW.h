@@ -1802,6 +1802,9 @@ typedef struct RGFW_colorLayout {  i32 r, g, b, a; } RGFW_colorLayout;
 #ifdef RGFW_X11
 RGFWDEF void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags flags, RGFW_window* win);
 #endif
+#ifdef RGFW_MACOS
+RGFWDEF void RGFW_osx_initView(RGFW_window* win);
+#endif
 /* end of global private API defs */
 
 RGFW_info* _RGFW = NULL;
@@ -2148,6 +2151,11 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 		RGFW_window_blitSurface(win, surface);
 		RGFW_surface_free(surface);
 	}
+#endif
+
+#ifdef RGFW_MACOS
+	/*NOTE: another OpenGL/setFlags related hack, this because OSX the 'view' class must be setup after the NSOpenGL view is made AND after setFlags happens */
+	RGFW_osx_initView(win);
 #endif
 
 	RGFW_window_setMouseDefault(win);
@@ -9897,12 +9905,7 @@ i32 RGFW_initPlatform(void) {
 	return 0;
 }
 
-RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags, RGFW_window* win) {
-	/* RR Create an autorelease pool */
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
-
-	win->src.view = ((id(*)(id, SEL, RGFW_window*))objc_msgSend) (NSAlloc((Class)_RGFW->customViewClasses[0]), sel_registerName("initWithRGFWWindow:"), win);
+void RGFW_osx_initView(RGFW_window* win) {
 	NSRect contentRect;
 	contentRect.origin.x = 0;
 	contentRect.origin.y = 0;
@@ -9910,11 +9913,41 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	contentRect.size.height = (double)win->h;
 	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"), contentRect);
 
+
+	if (RGFW_COCOA_FRAME_NAME)
+		objc_msgSend_ptr(win->src.view, sel_registerName("setFrameAutosaveName:"), RGFW_COCOA_FRAME_NAME);
+
+	object_setInstanceVariable((id)win->src.view, "RGFW_window", win);
+	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
+	objc_msgSend_void_bool(win->src.view, sel_registerName("setWantsLayer:"), true);
+	objc_msgSend_int((id)win->src.view, sel_registerName("setLayerContentsPlacement:"),  4);
+
+	id trackingArea = objc_msgSend_id(objc_getClass("NSTrackingArea"), sel_registerName("alloc"));
+	trackingArea = ((id (*)(id, SEL, NSRect, NSUInteger, id, id))objc_msgSend)(
+		trackingArea,
+		sel_registerName("initWithRect:options:owner:userInfo:"),
+		contentRect,
+		NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect,
+		(id)win->src.view,
+		nil
+	);
+
+	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.view, sel_registerName("addTrackingArea:"), trackingArea);
+	((void (*)(id, SEL))objc_msgSend)(trackingArea, sel_registerName("release"));
+}
+
+RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags, RGFW_window* win) {
+	/* RR Create an autorelease pool */
+	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+	pool = objc_msgSend_id(pool, sel_registerName("init"));
+
 	RGFW_window_setMouseDefault(win);
 
-	NSRect windowRect = contentRect;
+	NSRect windowRect;
 	windowRect.origin.x = (double)win->x;
 	windowRect.origin.y = (double)win->y;
+	windowRect.size.width = (double)win->w;
+	windowRect.size.height = (double)win->h;
 	NSBackingStoreType macArgs = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled;
 
 	if (!(flags & RGFW_windowNoResize))
@@ -9933,10 +9966,6 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setTitle:"), str);
 
 	id delegate = objc_msgSend_id(NSAlloc((Class)_RGFW->customWindowDelegateClass), sel_registerName("init"));
-
-	if (RGFW_COCOA_FRAME_NAME)
-		objc_msgSend_ptr(win->src.view, sel_registerName("setFrameAutosaveName:"), RGFW_COCOA_FRAME_NAME);
-
 	object_setInstanceVariable(delegate, "RGFW_window", win);
 
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setDelegate:"), delegate);
@@ -9948,10 +9977,6 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 		NSregisterForDraggedTypes((id)win->src.window, types, 3);
 	}
 
-	object_setInstanceVariable((id)win->src.view, "RGFW_window", win);
-	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
-	objc_msgSend_void_bool(win->src.view, sel_registerName("setWantsLayer:"), true);
-	objc_msgSend_int((id)win->src.view, sel_registerName("setLayerContentsPlacement:"),  4);
 	objc_msgSend_void_bool((id)win->src.window, sel_registerName("setAcceptsMouseMovedEvents:"), true);
 
 	if (flags & RGFW_windowTransparent) {
@@ -9960,19 +9985,6 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 		objc_msgSend_void_id((id)win->src.window, sel_registerName("setBackgroundColor:"),
 		NSColor_colorWithSRGB(0, 0, 0, 0));
 	}
-
-	id trackingArea = objc_msgSend_id(objc_getClass("NSTrackingArea"), sel_registerName("alloc"));
-	trackingArea = ((id (*)(id, SEL, NSRect, NSUInteger, id, id))objc_msgSend)(
-		trackingArea,
-		sel_registerName("initWithRect:options:owner:userInfo:"),
-		contentRect,
-		NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect,
-		(id)win->src.view,
-		nil
-	);
-
-	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.view, sel_registerName("addTrackingArea:"), trackingArea);
-	((void (*)(id, SEL))objc_msgSend)(trackingArea, sel_registerName("release"));
 
 	/* Show the window */
 	objc_msgSend_void_bool((id)_RGFW->NSApp, sel_registerName("activateIgnoringOtherApps:"), true);
@@ -9986,6 +9998,8 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	objc_msgSend_void((id)_RGFW->NSApp, sel_registerName("finishLaunching"));
 	NSRetain(win->src.window);
 	NSRetain(_RGFW->NSApp);
+
+	win->src.view = ((id(*)(id, SEL, RGFW_window*))objc_msgSend) (NSAlloc((Class)_RGFW->customViewClasses[0]), sel_registerName("initWithRGFWWindow:"), win);
 	return win;
 }
 
