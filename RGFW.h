@@ -9275,10 +9275,11 @@ static void RGFW__osxDidWindowResize(id self, SEL _cmd, id notification) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
-	id window = ((id(*)(id, SEL))objc_msgSend)(notification, sel_registerName("object"));
-	id contentView = ((id(*)(id, SEL))objc_msgSend)(window, sel_registerName("contentView"));
-	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)(contentView, sel_registerName("frame"));
+	NSRect frame;
+	if (win->src.view) frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
+	else return;
 
+	if (frame.size.width == 0 || frame.size.height == 0) return;
 	win->w = (i32)frame.size.width;
 	win->h = (i32)frame.size.height;
 
