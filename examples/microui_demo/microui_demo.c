@@ -251,7 +251,13 @@ static int text_height(mu_Font font) {
 int main(int argc, char **argv) {
   RGFW_UNUSED(argc); RGFW_UNUSED(argv);
   /* init RGFW window */
-  RGFW_window* window = RGFW_createWindow("", 0, 0, width, height, RGFW_windowCenter | RGFW_windowScaleToMonitor | RGFW_windowOpenGL);
+  RGFW_window* window = RGFW_createWindow("", 0, 0, width, height, RGFW_windowCenter |  RGFW_windowOpenGL);
+
+  RGFW_monitor mon = RGFW_window_getMonitor(window);
+  width = window->w;
+  height = window->h;
+  pixelRatio = mon.pixelRatio;
+
   r_init();
   RGFW_window_setExitKey(window, RGFW_escape);
 
@@ -272,12 +278,23 @@ int main(int argc, char **argv) {
         case RGFW_quit: break;
         case RGFW_mousePosChanged: mu_input_mousemove(ctx, event.mouse.x,  event.mouse.y); break;
 
-        case RGFW_mouseButtonPressed:
-		  mu_input_scroll(ctx, 0, event.button.scroll * -30);
-		case RGFW_mouseButtonReleased: {
+        case RGFW_mouseButtonPressed: {
+		  i32 x, y;
+		  RGFW_window_getMouse(window, &x, &y);
+          if (event.button.value == RGFW_mouseScrollUp || event.button.value == RGFW_mouseScrollDown) {
+			  mu_input_scroll(ctx, 0, event.button.scroll * -30);
+			  break;
+		  }
+
           int b = button_map[event.button.value & 0xff];
-          if (b && event.type == RGFW_mouseButtonPressed) { mu_input_mousedown(ctx, event.mouse.x,  event.mouse.y , b); }
-          if (b && event.type == RGFW_mouseButtonReleased) { mu_input_mouseup(ctx, event.mouse.x,  event.mouse.y, b);   }
+		  if (b) mu_input_mousedown(ctx, x, y, b);
+		  break;
+	   }
+	   case RGFW_mouseButtonReleased: {
+		  i32 x, y;
+		  RGFW_window_getMouse(window, &x, &y);
+          int b = button_map[event.button.value & 0xff];
+          if (b) { mu_input_mouseup(ctx, x, y, b);   }
           break;
         }
 

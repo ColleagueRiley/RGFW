@@ -321,7 +321,7 @@ else ifeq ($(detected_OS),NetBSD)
 else ifeq ($(detected_OS),Linux)
 	$(CC) $(CFLAGS) -I. $<  -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
-	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lgdi32 -o $@$(EXT)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lgdi32 -D UNICODE -o $@$(EXT)
 else ifeq ($(detected_OS),Darwin)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -framework CoreVideo -framework IOKit -framework Cocoa  -o $@$(EXT)
 else

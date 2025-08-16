@@ -11,6 +11,7 @@ static GLuint  index_buf[BUFFER_SIZE *  6];
 
 static int width  = 800;
 static int height = 600;
+static float pixelRatio = 1.0f;
 static int buf_idx;
 
 void r_init(void) {
@@ -40,7 +41,7 @@ void r_init(void) {
 static void flush(void) {
   if (buf_idx == 0) { return; }
 
-  glViewport(0, 0, width, height);
+  glViewport(0, 0, (i32)((float)width * pixelRatio), (i32)((float)height * pixelRatio));
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glLoadIdentity();
