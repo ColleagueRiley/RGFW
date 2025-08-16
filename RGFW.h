@@ -1727,6 +1727,7 @@ struct RGFW_info {
         struct wl_surface* cursor_surface;
         struct wl_cursor_image* cursor_image;
 
+		RGFW_window* kbOwner;
         RGFW_bool wl_configured;
     #endif
 
@@ -1747,6 +1748,7 @@ struct RGFW_info {
 		void* EGL_display;
 	#endif
 
+	RGFW_window* mouseOwner;
 	RGFW_windowState windowState; /*! for checking window state events */
 
 	RGFW_keyState mouseButtons[RGFW_mouseFinal];
