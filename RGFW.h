@@ -2148,7 +2148,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	/* NOTE: this is a hack so that way wayland spawns a window, even if nothing is drawn */
 	if (RGFW_usingWayland() && !(flags & RGFW_windowOpenGL) && !(flags & RGFW_windowEGL)) {
 		u8* data = (u8*)RGFW_ALLOC((u32)(win->w * win->h * 4));
-		RGFW_surface* surface = RGFW_createSurface(data, win->w, win->h, RGFW_formatBGRA8);
+		RGFW_surface* surface = RGFW_createSurface(data, win->w, win->h, RGFW_formatRGB8);
 		RGFW_window_blitSurface(win, surface);
 		RGFW_surface_free(surface);
 	}
@@ -6429,14 +6429,15 @@ RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (u8* data, i32 w, i32 h, RGFW_format 
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, "mmap failed.");
 		return RGFW_FALSE;
 	}
-
+	
+	enum wl_shm_format wl_format = (format == RGFW_formatRGBA8) ? WL_SHM_FORMAT_ARGB8888 : WL_SHM_FORMAT_XRGB8888;
 	struct wl_shm_pool* pool = wl_shm_create_pool(_RGFW->shm, fd, (i32)size);
-	surface->native.wl_buffer = wl_shm_pool_create_buffer(pool, 0, (i32)surface->w, (i32)surface->h, (i32)surface->w * 4, WL_SHM_FORMAT_ARGB8888);
+	surface->native.wl_buffer = wl_shm_pool_create_buffer(pool, 0, (i32)surface->w, (i32)surface->h, (i32)surface->w * 4, wl_format);
 	wl_shm_pool_destroy(pool);
 
 	close(fd);
 
-	surface->native.format = RGFW_formatBGRA8;
+	surface->native.format = format;
 	return RGFW_TRUE;
 }
 
