@@ -2148,7 +2148,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	/* NOTE: this is a hack so that way wayland spawns a window, even if nothing is drawn */
 	if (RGFW_usingWayland() && !(flags & RGFW_windowOpenGL) && !(flags & RGFW_windowEGL)) {
 		u8* data = (u8*)RGFW_ALLOC((u32)(win->w * win->h * 4));
-		RGFW_MEMSET(data, 0xff, (u32)win->w * (u32)win->h * 4 * sizeof(u8));
+		RGFW_MEMSET(data, 0xff, (u32)(win->w * win->h * 4));
 		RGFW_surface* surface = RGFW_createSurface(data, win->w, win->h, RGFW_formatBGRA8);
 		RGFW_window_blitSurface(win, surface);
 		RGFW_FREE(data);
