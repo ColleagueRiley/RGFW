@@ -487,13 +487,6 @@ RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
 		RGFW_monitorMode mode;
 	} RGFW_monitor;
 
-	typedef struct RGFW_monitor_list {
-		RGFW_monitor* head;
-		RGFW_monitor* cur;
-		u8 count;
-
-	} RGFW_monitor_list;
-
 	/*! get an array of all the monitors (max 6) */
 	RGFWDEF RGFW_monitor* RGFW_getMonitors(size_t* len);
 	/*! get the primary monitor */
@@ -1684,6 +1677,14 @@ typedef struct {
 	RGFW_bool current ;
 	RGFW_bool prev ;
 } RGFW_keyState;
+
+#ifndef RGFW_NO_MONITOR
+	typedef struct RGFW_monitor_list {
+		RGFW_monitor* head;
+		RGFW_monitor* cur;
+		u8 count;
+	} RGFW_monitor_list;
+#endif
 
 struct RGFW_info {
     RGFW_window* root;
