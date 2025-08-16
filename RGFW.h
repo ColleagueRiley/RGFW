@@ -2150,6 +2150,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 		u8* data = (u8*)RGFW_ALLOC((u32)(win->w * win->h * 4));
 		RGFW_surface* surface = RGFW_createSurface(data, win->w, win->h, RGFW_formatRGB8);
 		RGFW_window_blitSurface(win, surface);
+		RGFW_FREE(data);
 		RGFW_surface_free(surface);
 	}
 #endif
