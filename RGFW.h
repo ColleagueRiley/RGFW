@@ -7015,8 +7015,7 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 
 	xdg_surface_destroy(win->src.xdg_surface);
 	wl_surface_destroy(win->src.surface);
-
-	wl_compositor_destroy(win->src.compositor);
+	
 
 	for (u32 i = _RGFW->num_monitors; i > 0; i--) { // will leave the array empty
 		RGFW_monitor* mon = _RGFW->monitors[i - 1];
