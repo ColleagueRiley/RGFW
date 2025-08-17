@@ -2164,9 +2164,11 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 #ifdef RGFW_WAYLAND
 	/* NOTE: this is a hack so that way wayland spawns a window, even if nothing is drawn */
 	if (RGFW_usingWayland() && !(flags & RGFW_windowOpenGL) && !(flags & RGFW_windowEGL)) {
-		u8* data = (u8*)RGFW_ALLOC((u32)(win->w * win->h * 4));
-		RGFW_surface* surface = RGFW_createSurface(data, win->w, win->h, RGFW_formatBGRA8);
+		u8* data = (u8*)RGFW_ALLOC((u32)(win->w * win->h * 3));
+		RGFW_MEMSET(data, 0, (u32)(win->w * win->h * 3) * sizeof(u8));
+		RGFW_surface* surface = RGFW_createSurface(data, win->w, win->h, RGFW_formatBGR8);
 		RGFW_window_blitSurface(win, surface);
+		RGFW_FREE(data);
 		RGFW_surface_free(surface);
 	}
 #endif
@@ -5535,11 +5537,11 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 	RGFW_attribStack_pushAttribs(&stack, GLX_STEREO, hints->stereo);
 	RGFW_attribStack_pushAttribs(&stack, GLX_AUX_BUFFERS, hints->auxBuffers);
 	RGFW_attribStack_pushAttribs(&stack, GLX_RED_SIZE, hints->red);
-	RGFW_attribStack_pushAttribs(&stack, GLX_GREEN_SIZE, hints->blue);
-	RGFW_attribStack_pushAttribs(&stack, GLX_BLUE_SIZE, hints->green);
+	RGFW_attribStack_pushAttribs(&stack, GLX_GREEN_SIZE, hints->green);
+	RGFW_attribStack_pushAttribs(&stack, GLX_BLUE_SIZE, hints->blue);
 	RGFW_attribStack_pushAttribs(&stack, GLX_ACCUM_RED_SIZE, hints->accumRed);
-	RGFW_attribStack_pushAttribs(&stack, GLX_ACCUM_GREEN_SIZE, hints->accumBlue);
-	RGFW_attribStack_pushAttribs(&stack, GLX_ACCUM_BLUE_SIZE, hints->accumGreen);
+	RGFW_attribStack_pushAttribs(&stack, GLX_ACCUM_GREEN_SIZE, hints->accumGreen);
+	RGFW_attribStack_pushAttribs(&stack, GLX_ACCUM_BLUE_SIZE, hints->accumBlue);
 	RGFW_attribStack_pushAttribs(&stack, GLX_ACCUM_ALPHA_SIZE, hints->accumAlpha);
 
 	if (RGFW_extensionSupportedPlatform_OpenGL(sRGBARBstr, sizeof(sRGBARBstr)) || RGFW_extensionSupportedPlatform_OpenGL(sRGBEXTstr, sizeof(sRGBEXTstr)))
@@ -7803,19 +7805,8 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 		RGFW_attribStack_pushAttribs(&stack, WGL_ACCUM_BLUE_BITS_ARB, hints->accumGreen);
 		RGFW_attribStack_pushAttribs(&stack, WGL_ACCUM_ALPHA_BITS_ARB, hints->accumAlpha);
 
+		if(hints->sRGB)
 		RGFW_attribStack_pushAttribs(&stack, WGL_COLORSPACE_SRGB_EXT, hints->sRGB);
-		RGFW_attribStack_pushAttribs(&stack, WGL_CONTEXT_OPENGL_NO_ERROR_ARB, hints->noError);
-
-		if (hints->releaseBehavior == RGFW_glReleaseFlush) {
-			RGFW_attribStack_pushAttribs(&stack, 0x2097, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB); // WGL_CONTEXT_RELEASE_BEHAVIOR_ARB
-		} else if (hints->releaseBehavior == RGFW_glReleaseNone) {
-			RGFW_attribStack_pushAttribs(&stack, 0x2097, 0x0000); // WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB
-		}
-
-		i32 flags = 0;
-		if (hints->debug) flags |= WGL_ACCESS_READ_WRITE_NV; // substitute for debug bit, not exact
-		if (hints->robustness) flags |= WGL_CONTEXT_ES_PROFILE_BIT_EXT; // robustness placeholder
-		RGFW_attribStack_pushAttribs(&stack, WGL_CONTEXT_FLAGS_ARB, flags);
 
 		RGFW_attribStack_pushAttribs(&stack, WGL_COVERAGE_SAMPLES_NV, hints->samples);
 
@@ -7853,6 +7844,20 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 			SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, hints->major);
 			SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, hints->minor);
 		}
+
+		SET_ATTRIB(WGL_CONTEXT_OPENGL_NO_ERROR_ARB, hints->noError);
+
+		if (hints->releaseBehavior == RGFW_glReleaseFlush) {
+			SET_ATTRIB(0x2097, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB); // WGL_CONTEXT_RELEASE_BEHAVIOR_ARB
+		} else if (hints->releaseBehavior == RGFW_glReleaseNone) {
+			SET_ATTRIB(0x2097, 0x0000); // WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB
+		}
+
+		i32 flags = 0;
+		if (hints->debug) flags |= WGL_ACCESS_READ_WRITE_NV; // substitute for debug bit, not exact
+		if (hints->robustness) flags |= WGL_CONTEXT_ES_PROFILE_BIT_EXT; // robustness placeholder
+		SET_ATTRIB(WGL_CONTEXT_FLAGS_ARB, flags);
+
 
 		SET_ATTRIB(0, 0);
 
