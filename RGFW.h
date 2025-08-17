@@ -1674,16 +1674,20 @@ typedef struct RGFW_windowState {
 } RGFW_windowState;
 
 typedef struct {
-	RGFW_bool current ;
-	RGFW_bool prev ;
+	RGFW_bool current;
+	RGFW_bool prev;
 } RGFW_keyState;
 
 #ifndef RGFW_NO_MONITOR
 	typedef struct RGFW_monitor_list {
-		RGFW_monitor* head;
 		RGFW_monitor* cur;
-		u8 count;
+		struct RGFW_monitor_list* next;
 	} RGFW_monitor_list;
+
+	typedef struct RGFW_monitors {
+		RGFW_monitor_list* list;
+		u8 count;
+	} RGFW_monitors;
 #endif
 
 struct RGFW_info {
@@ -1732,11 +1736,11 @@ struct RGFW_info {
         struct zxdg_decoration_manager_v1 *decoration_manager;
         struct zxdg_output_manager_v1 *xdg_output_manager;
         struct wl_keyboard* wl_keyboard;
-		    struct wl_compositor* compositor;
-		    struct xdg_wm_base* xdg_wm_base;
-		    struct wl_shm* shm;
-		    struct wl_seat *seat;
-		    struct wl_registry *registry;
+        struct wl_compositor* compositor;
+        struct xdg_wm_base* xdg_wm_base;
+        struct wl_shm* shm;
+        struct wl_seat *seat;
+        struct wl_registry *registry;
 
         struct wl_cursor_theme* wl_cursor_theme;
         struct wl_surface* cursor_surface;
@@ -1744,8 +1748,8 @@ struct RGFW_info {
   
         RGFW_window* kbOwner;
         RGFW_bool wl_configured;
-        RGFW_monitor* monitors[5];
-        u32 num_monitors;
+        RGFW_monitors monitors;
+        
     #endif
 
     #ifdef __linux__
@@ -6301,7 +6305,7 @@ void RGFW_wl_output_set_mode(void *data, struct wl_output *wl_output, uint32_t f
 
 	monitor->mode.w = width;
 	monitor->mode.h = height;
-	monitor->mode.refreshRate = (u32)(refresh / 1000) + 1;
+	monitor->mode.refreshRate = (u32)RGFW_ROUND( ((float)refresh / 1000) );
 	RGFW_UNUSED(width);
 	RGFW_UNUSED(height);
 	RGFW_UNUSED(wl_output);
@@ -6354,20 +6358,38 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
 
 	if (!output) return;
 
-	if (_RGFW->num_monitors >= 5) return; // too many monitors
+	if (_RGFW->monitors.count >= RGFW_MAX_MONITORS) return; // too many monitors
 
 	RGFW_monitor* mon = RGFW_ALLOC(sizeof(RGFW_monitor));
-
+	
 	RGFW_MEMSET(mon, 0, sizeof(RGFW_monitor));
-	_RGFW->monitors[_RGFW->num_monitors] = mon;
+
+	// first monitor
+	RGFW_monitor_list *list = RGFW_ALLOC(sizeof(RGFW_monitor_list));
+	
+	if (_RGFW->monitors.list == NULL) {
+		_RGFW->monitors.list = list;
+	} else { // there is at least one monitor in the list
+		// look for the last monitor
+		RGFW_monitor_list *cur_list = _RGFW->monitors.list;
+		
+		while (cur_list != NULL) {
+			cur_list = cur_list->next;
+		}
+		// RGFW_monitor_list *list = RGFW_ALLOC(sizeof(RGFW_monitor_list));
+		cur_list->next = list;	
+	}
+	
+	list->cur = mon;
+	_RGFW->monitors.count++;
 
 	char RGFW_mon_default_name[10];
 
-	RGFW_SNPRINTF(RGFW_mon_default_name, sizeof(RGFW_mon_default_name), "monitor-%d", _RGFW->num_monitors);
+	RGFW_SNPRINTF(RGFW_mon_default_name, sizeof(RGFW_mon_default_name), "monitor-%c", _RGFW->monitors.count);
 	RGFW_STRNCPY(mon->name, RGFW_mon_default_name, sizeof(mon->name) - 1);
 	mon->name[sizeof(mon->name) - 1] = '\0';
 
-	++_RGFW->num_monitors;
+	// ++_RGFW->num_monitors;
 	mon->id = id;
 	mon->output = output;
 
@@ -6428,16 +6450,41 @@ void RGFW_wl_global_registry_handler(void* data, struct wl_registry *registry, u
 	}
 }
 
-void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u32 name) { 
+void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u32 id) { 
 	RGFW_UNUSED(data); RGFW_UNUSED(registry);
-	for (u32 i = _RGFW->num_monitors; i > 0; i--) { // will leave the array empty
-		RGFW_monitor* mon = _RGFW->monitors[i - 1];
-		if (name == mon->id && mon->output) {
-			wl_output_destroy(mon->output); 
-			RGFW_FREE(mon);
-			_RGFW->num_monitors--;
+	RGFW_monitor_list *list = _RGFW->monitors.list;
+
+	if (!list) return; // just in case there are no monitors
+
+	// stop just before theh monitor with the same id
+	RGFW_monitor *mon;
+
+	// check if monitor is the head
+	if (list->cur->id == id) {
+		mon = list->cur;
+	} else { // otherwise look for it
+		while(list->next != NULL && list->next->cur->id != id) {
+			list = list->next;
 		}
+		mon = list->next->cur;
 	}
+	
+	if (mon->output) {
+		wl_output_destroy(mon->output);
+	}
+
+	if (mon->xdg_output) {
+		zxdg_output_v1_destroy(mon->xdg_output);
+	}
+
+	RGFW_FREE(mon);
+	--_RGFW->monitors.count;
+	// now remove it from the list
+
+	RGFW_monitor_list *temp_list = list->next;
+	RGFW_FREE(list->next);
+	list->next = temp_list->next;
+
 }
 
 void RGFW_wl_randname(char *buf) {
@@ -6964,14 +7011,24 @@ RGFW_bool RGFW_FUNC(RGFW_window_isMaximized) (RGFW_window* win) {
 }
 
 RGFW_monitor* RGFW_FUNC(RGFW_getMonitors) (size_t* len) {
+	static RGFW_monitor monitors[RGFW_MAX_MONITORS];
+	RGFW_init();
 	if (len != NULL) {
-		*len = _RGFW->num_monitors;
+		*len = _RGFW->monitors.count;
 	}
-    return *(_RGFW->monitors);
+
+	u8 i = 0;
+	RGFW_monitor_list *cur_list = _RGFW->monitors.list;
+	while (cur_list != NULL) {
+		monitors[i] = *cur_list->cur;
+		++i;
+		cur_list = cur_list->next;
+	}
+    return monitors;
 }
 
 RGFW_monitor RGFW_FUNC(RGFW_getPrimaryMonitor) (void) {
-	return *_RGFW->monitors[0]; /* Get the first one from the array */
+	return *_RGFW->monitors.list->cur;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
@@ -7019,19 +7076,24 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 	xdg_surface_destroy(win->src.xdg_surface);
 	wl_surface_destroy(win->src.surface);
 	
+	RGFW_monitor_list *list = _RGFW->monitors.list;
 
-	for (u32 i = _RGFW->num_monitors; i > 0; i--) { // will leave the array empty
-		RGFW_monitor* mon = _RGFW->monitors[i - 1];
+	while (list != NULL) {
+		RGFW_monitor* mon = list->cur;
 		if (mon->output) {
-			wl_output_destroy(mon->output); 
+			wl_output_destroy(mon->output);
 		}
 
 		if (mon->xdg_output) {
 			zxdg_output_v1_destroy(mon->xdg_output);
 		}
-
 		RGFW_FREE(mon);
-		_RGFW->num_monitors--;
+		--_RGFW->monitors.count;
+		RGFW_monitor_list *temp = list;
+
+		list = list->next;
+		RGFW_FREE(temp);
+		
 	}
 }
 
