@@ -2147,11 +2147,9 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 #ifdef RGFW_WAYLAND
 	/* NOTE: this is a hack so that way wayland spawns a window, even if nothing is drawn */
 	if (RGFW_usingWayland() && !(flags & RGFW_windowOpenGL) && !(flags & RGFW_windowEGL)) {
-		u8* data = (u8*)RGFW_ALLOC((u32)(win->w * win->h * 3));
-		RGFW_MEMSET(data, 0, (u32)(win->w * win->h * 3) * sizeof(u8));
-		RGFW_surface* surface = RGFW_createSurface(data, win->w, win->h, RGFW_formatBGR8);
+		u8* data = (u8*)RGFW_ALLOC((u32)(win->w * win->h * 4));
+		RGFW_surface* surface = RGFW_createSurface(data, win->w, win->h, RGFW_formatBGRA8);
 		RGFW_window_blitSurface(win, surface);
-		RGFW_FREE(data);
 		RGFW_surface_free(surface);
 	}
 #endif
@@ -2705,15 +2703,17 @@ void RGFW_moveToMacOSResourceDir(void) { }
 	/* renderer */ RGFW_glAccelerated \
 }
 
-const
-RGFW_glHints RGFW_globalHints_OpenGL_BAK = RGFW_DEFAULT_GL_HINTS;
 RGFW_glHints RGFW_globalHints_OpenGL_SRC = RGFW_DEFAULT_GL_HINTS;
 RGFW_glHints* RGFW_globalHints_OpenGL = &RGFW_globalHints_OpenGL_SRC;
 
 void RGFW_resetGlobalHints_OpenGL(void) {
-	RGFW_globalHints_OpenGL_SRC = RGFW_globalHints_OpenGL_BAK;
+#if !defined(__cplusplus) || defined(RGFW_MACOS)
+	RGFW_globalHints_OpenGL_SRC = (RGFW_glHints)RGFW_DEFAULT_GL_HINTS;
+#else
+	RGFW_globalHints_OpenGL_SRC = RGFW_DEFAULT_GL_HINTS;
+#endif
 }
-void RGFW_setGlobalHints_OpenGL(RGFW_glHints* hints) { RGFW_globalHints_OpenGL_SRC = *hints;  }
+void RGFW_setGlobalHints_OpenGL(RGFW_glHints* hints) { RGFW_globalHints_OpenGL = hints;  }
 RGFW_glHints* RGFW_getGlobalHints_OpenGL(void) { RGFW_init(); return RGFW_globalHints_OpenGL; }
 
 
@@ -6429,7 +6429,7 @@ RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (u8* data, i32 w, i32 h, RGFW_format 
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, "mmap failed.");
 		return RGFW_FALSE;
 	}
-	
+
 	struct wl_shm_pool* pool = wl_shm_create_pool(_RGFW->shm, fd, (i32)size);
 	surface->native.wl_buffer = wl_shm_pool_create_buffer(pool, 0, (i32)surface->w, (i32)surface->h, (i32)surface->w * 4, WL_SHM_FORMAT_ARGB8888);
 	wl_shm_pool_destroy(pool);
@@ -7600,37 +7600,39 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	/* get pixel format, default to a basic pixel format */
 	int pixel_format = ChoosePixelFormat(win->src.hdc, &pfd);
 	if (wglChoosePixelFormatARB != NULL) {
-		u32 index = 0;
-		i32 attribs[80];
+		i32 pixel_format_attribs[50];
+		RGFW_attribStack stack;
+		RGFW_attribStack_init(&stack, pixel_format_attribs, 50);
 
-		SET_ATTRIB(WGL_COVERAGE_SAMPLES_NV, hints->samples);
+		RGFW_attribStack_pushAttribs(&stack, WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB);
+		RGFW_attribStack_pushAttribs(&stack, WGL_DRAW_TO_WINDOW_ARB, 1);
+		RGFW_attribStack_pushAttribs(&stack, WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB);
+		RGFW_attribStack_pushAttribs(&stack, WGL_SUPPORT_OPENGL_ARB, 1);
+		RGFW_attribStack_pushAttribs(&stack, WGL_COLOR_BITS_ARB, 32);
+		RGFW_attribStack_pushAttribs(&stack, WGL_DOUBLE_BUFFER_ARB, 1);
+		RGFW_attribStack_pushAttribs(&stack, WGL_ALPHA_BITS_ARB, hints->alpha);
+		RGFW_attribStack_pushAttribs(&stack, WGL_DEPTH_BITS_ARB, hints->depth);
+		RGFW_attribStack_pushAttribs(&stack, WGL_STENCIL_BITS_ARB, hints->stencil);
+		RGFW_attribStack_pushAttribs(&stack, WGL_STEREO_ARB, hints->stereo);
+		RGFW_attribStack_pushAttribs(&stack, WGL_AUX_BUFFERS_ARB, hints->auxBuffers);
+		RGFW_attribStack_pushAttribs(&stack, WGL_RED_BITS_ARB, hints->red);
+		RGFW_attribStack_pushAttribs(&stack, WGL_GREEN_BITS_ARB, hints->blue);
+		RGFW_attribStack_pushAttribs(&stack, WGL_BLUE_BITS_ARB, hints->green);
+		RGFW_attribStack_pushAttribs(&stack, WGL_ACCUM_RED_BITS_ARB, hints->accumRed);
+		RGFW_attribStack_pushAttribs(&stack, WGL_ACCUM_GREEN_BITS_ARB, hints->accumBlue);
+		RGFW_attribStack_pushAttribs(&stack, WGL_ACCUM_BLUE_BITS_ARB, hints->accumGreen);
+		RGFW_attribStack_pushAttribs(&stack, WGL_ACCUM_ALPHA_BITS_ARB, hints->accumAlpha);
 
-		SET_ATTRIB(WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB);
-		SET_ATTRIB(WGL_DRAW_TO_WINDOW_ARB, 1);
-		SET_ATTRIB(WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB);
-		SET_ATTRIB(WGL_SUPPORT_OPENGL_ARB, 1);
-		SET_ATTRIB(WGL_COLOR_BITS_ARB, 32);
-		SET_ATTRIB(WGL_DOUBLE_BUFFER_ARB, 1);
-		SET_ATTRIB(WGL_ALPHA_BITS_ARB, hints->alpha);
-		SET_ATTRIB(WGL_DEPTH_BITS_ARB, hints->depth);
-		SET_ATTRIB(WGL_STENCIL_BITS_ARB, hints->stencil);
-		SET_ATTRIB(WGL_STEREO_ARB, hints->stereo);
-		SET_ATTRIB(WGL_AUX_BUFFERS_ARB, hints->auxBuffers);
-		SET_ATTRIB(WGL_RED_BITS_ARB, hints->red);
-		SET_ATTRIB(WGL_GREEN_BITS_ARB, hints->green);
-		SET_ATTRIB(WGL_BLUE_BITS_ARB, hints->blue);
-		SET_ATTRIB(WGL_ACCUM_RED_BITS_ARB, hints->accumRed);
-		SET_ATTRIB(WGL_ACCUM_GREEN_BITS_ARB, hints->accumGreen);
-		SET_ATTRIB(WGL_ACCUM_BLUE_BITS_ARB, hints->accumBlue);
-		SET_ATTRIB(WGL_ACCUM_ALPHA_BITS_ARB, hints->accumAlpha);
-		SET_ATTRIB(WGL_COLORSPACE_SRGB_EXT, hints->sRGB);
-		SET_ATTRIB(WGL_CONTEXT_OPENGL_NO_ERROR_ARB, hints->noError);
+		RGFW_attribStack_pushAttribs(&stack, WGL_COLORSPACE_SRGB_EXT, hints->sRGB);
+		RGFW_attribStack_pushAttribs(&stack, WGL_CONTEXT_OPENGL_NO_ERROR_ARB, hints->noError);
 
-		SET_ATTRIB(0, 0);
+		RGFW_attribStack_pushAttribs(&stack, WGL_COVERAGE_SAMPLES_NV, hints->samples);
+
+		RGFW_attribStack_pushAttribs(&stack, 0, 0);
 
 		int new_pixel_format;
 		UINT num_formats;
-		wglChoosePixelFormatARB(win->src.hdc, attribs, 0, 1, &new_pixel_format, &num_formats);
+		wglChoosePixelFormatARB(win->src.hdc, pixel_format_attribs, 0, 1, &new_pixel_format, &num_formats);
 		if (!num_formats)
 			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, "Failed to create a pixel format for WGL");
 		else pixel_format = new_pixel_format;
@@ -7644,7 +7646,7 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	if (wglCreateContextAttribsARB != NULL) {
 		/* create OpenGL/WGL context for the specified version */
 		u32 index = 0;
-		i32 attribs[80];
+		i32 attribs[40];
 
 		i32 mask = 0;
 		switch (hints->profile) {
