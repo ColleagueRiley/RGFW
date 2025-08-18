@@ -6373,15 +6373,14 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
 		// look for the last monitor
 		RGFW_monitor_list *cur_list = _RGFW->monitors.list;
 		
-		while (cur_list != NULL) {
+		while (cur_list->next != NULL) {
 			cur_list = cur_list->next;
 		}
-		// RGFW_monitor_list *list = RGFW_ALLOC(sizeof(RGFW_monitor_list));
 		cur_list->next = list;	
 	}
 	
 	list->cur = mon;
-	_RGFW->monitors.count++;
+	++_RGFW->monitors.count;
 
 	char RGFW_mon_default_name[10];
 
