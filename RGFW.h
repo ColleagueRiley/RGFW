@@ -6380,7 +6380,7 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
 	}
 	
 	list->cur = mon;
-	++_RGFW->monitors.count;
+	_RGFW->monitors.count += 1;
 
 	char RGFW_mon_default_name[10];
 
@@ -6388,7 +6388,6 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
 	RGFW_STRNCPY(mon->name, RGFW_mon_default_name, sizeof(mon->name) - 1);
 	mon->name[sizeof(mon->name) - 1] = '\0';
 
-	// ++_RGFW->num_monitors;
 	mon->id = id;
 	mon->output = output;
 
@@ -6451,10 +6450,9 @@ void RGFW_wl_global_registry_handler(void* data, struct wl_registry *registry, u
 
 void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u32 id) { 
 	RGFW_UNUSED(data); RGFW_UNUSED(registry);
+	
+	if (_RGFW->monitors.count < 1) return; // just in case there are no monitors
 	RGFW_monitor_list *list = _RGFW->monitors.list;
-
-	if (!list) return; // just in case there are no monitors
-
 	// stop just before theh monitor with the same id
 	RGFW_monitor *mon;
 
@@ -6465,9 +6463,10 @@ void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u3
 		while(list->next != NULL && list->next->cur->id != id) {
 			list = list->next;
 		}
+		if (list->next == NULL) return; // needed or else segfault
 		mon = list->next->cur;
 	}
-	
+
 	if (mon->output) {
 		wl_output_destroy(mon->output);
 	}
@@ -6477,13 +6476,12 @@ void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u3
 	}
 
 	RGFW_FREE(mon);
-	--_RGFW->monitors.count;
+	_RGFW->monitors.count -= 1;
+	
 	// now remove it from the list
-
 	RGFW_monitor_list *temp_list = list->next;
-	RGFW_FREE(list->next);
 	list->next = temp_list->next;
-
+	RGFW_FREE(temp_list);
 }
 
 void RGFW_wl_randname(char *buf) {
@@ -7087,7 +7085,7 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 			zxdg_output_v1_destroy(mon->xdg_output);
 		}
 		RGFW_FREE(mon);
-		--_RGFW->monitors.count;
+		_RGFW->monitors.count -= 1;
 		RGFW_monitor_list *temp = list;
 
 		list = list->next;
