@@ -5977,40 +5977,23 @@ void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface* xdg_s
 	}
 
 	if (win->src.maximized != win->src.pending_maximized) {
+		RGFW_toggleWaylandMaximized(win, win->src.pending_maximized);
+
 		RGFW_window_checkMode(win);
-
-		win->src.maximized = win->src.pending_maximized;
-		RGFW_toggleWaylandMaximized(win, win->src.maximized);
-
-		// do not create a maximize event if maximize is used to
-		// restore the old window size
-		if (win->src.maximized && (win->internal.enabledEvents & RGFW_windowMaximizedFlag)) {
-			win->internal.flags |= RGFW_windowMaximize;
-			RGFW_eventQueuePushEx(e.type = RGFW_windowMaximized; e.common.win = win);
-			RGFW_windowMaximizedCallback(win, win->x, win->y, win->w, win->h);
-		}
-
-
 	}
-	// TODO implement fullscreen; need wl_output
+	
 
-	i32 width = win->w;
-	i32 height = win->h;
-	if (win->src.resizing) {
-		RGFW_window_checkMode(win);
-		win->src.w = width;
-		win->src.h = height;
+	if (win->src.resizing) {		
 
 		// Do not create a resize event if the window is maximized
 		if (!win->src.maximized && win->internal.enabledEvents & RGFW_windowResizedFlag) {
-			RGFW_eventQueuePushEx(e.type = RGFW_windowResized; e.mouse.x = width; e.mouse.y = height; e.common.win = win);
+			RGFW_eventQueuePushEx(e.type = RGFW_windowResized; e.common.win = win);
 			RGFW_windowResizedCallback(win, win->w, win->h);
 		}
-		RGFW_window_resize(win, width, height);
-	}
-
-	if (!(win->internal.flags & RGFW_windowTransparent)) {
-		RGFW_wl_setOpaque(win);
+		RGFW_window_resize(win, win->w, win->h);
+		if (!(win->internal.flags & RGFW_windowTransparent)) {
+			RGFW_wl_setOpaque(win);
+		}
 	}
 
 }
