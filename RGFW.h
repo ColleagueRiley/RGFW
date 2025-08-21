@@ -1686,6 +1686,7 @@ typedef struct {
 
 	typedef struct RGFW_monitors {
 		RGFW_monitor_list* list;
+		RGFW_monitor_list* free_list;
 		u8 count;
 	} RGFW_monitors;
 #endif
@@ -6339,12 +6340,23 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
 
 	if (_RGFW->monitors.count >= RGFW_MAX_MONITORS) return; // too many monitors
 
-	RGFW_monitor* mon = RGFW_ALLOC(sizeof(RGFW_monitor));
+	RGFW_monitor_list *list;
+	RGFW_monitor* mon;
+	
+	// check if we have memory we can use
+	if (_RGFW->monitors.free_list != NULL) {
+		list = _RGFW->monitors.free_list;
+		_RGFW->monitors.free_list = list->next;
+		// list->next = NULL;
+		mon = list->cur;
+	} else {
+		list = RGFW_ALLOC(sizeof(RGFW_monitor_list));
+		mon = RGFW_ALLOC(sizeof(RGFW_monitor));
+	}
+	
 	
 	RGFW_MEMSET(mon, 0, sizeof(RGFW_monitor));
 
-	// first monitor
-	RGFW_monitor_list *list = RGFW_ALLOC(sizeof(RGFW_monitor_list));
 	
 	if (_RGFW->monitors.list == NULL) {
 		_RGFW->monitors.list = list;
@@ -6442,7 +6454,8 @@ void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u3
 		while(list->next != NULL && list->next->cur->id != id) {
 			list = list->next;
 		}
-		if (list->next == NULL) return; // needed or else segfault
+		// we are at the end of the list bc the id is not associated with a monitor
+		if (list->next == NULL) return;  
 		mon = list->next->cur;
 	}
 
@@ -6454,13 +6467,26 @@ void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u3
 		zxdg_output_v1_destroy(mon->xdg_output);
 	}
 
-	RGFW_FREE(mon);
+	// RGFW_FREE(mon);
+	mon = NULL;
 	_RGFW->monitors.count -= 1;
 	
 	// now remove it from the list
 	RGFW_monitor_list *temp_list = list->next;
 	list->next = temp_list->next;
-	RGFW_FREE(temp_list);
+	temp_list->next = NULL;
+
+	RGFW_monitor_list *freelist = _RGFW->monitors.free_list;
+
+	// insert this memory into freelist to reuse later
+	if (!freelist) {
+		freelist = temp_list;
+	} else {
+		while (freelist->next != NULL) {
+			freelist = freelist->next;
+		}
+		freelist->next = temp_list;
+	}
 }
 
 void RGFW_wl_randname(char *buf) {
@@ -7063,6 +7089,25 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 		}
 		RGFW_FREE(mon);
 		_RGFW->monitors.count -= 1;
+		RGFW_monitor_list *temp = list;
+
+		list = list->next;
+		RGFW_FREE(temp);
+		
+	}
+
+	list = _RGFW->monitors.free_list;
+	
+	while (list != NULL) {
+		RGFW_monitor* mon = list->cur;
+		if (mon->output) {
+			wl_output_destroy(mon->output);
+		}
+
+		if (mon->xdg_output) {
+			zxdg_output_v1_destroy(mon->xdg_output);
+		}
+		RGFW_FREE(mon);
 		RGFW_monitor_list *temp = list;
 
 		list = list->next;
