@@ -1752,8 +1752,6 @@ struct RGFW_info {
 
 	RGFW_keyState mouseButtons[RGFW_mouseFinal];
 	RGFW_keyState keyboard[RGFW_keyLast];
-
-
 };
 #endif /* RGFW_NATIVE_HEADER */
 
@@ -7016,8 +7014,8 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_CLOSE:
 		case WM_QUIT:
 			RGFW_window_setShouldClose(win, RGFW_TRUE);
-			event.type = RGFW_quit;
 			RGFW_windowQuitCallback(win);
+			RGFW_eventQueuePushEx(e.type = RGFW_quit; e.common.win = win);
 			return 0;
 		case WM_ACTIVATE: {
 			RGFW_bool inFocus = RGFW_BOOL(LOWORD(wParam) != WA_INACTIVE);
