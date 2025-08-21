@@ -7018,7 +7018,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_CLOSE:
 		case WM_QUIT:
 			RGFW_window_setShouldClose(win, RGFW_TRUE);
-			event.type = RGFW_quit;
 			RGFW_windowQuitCallback(win);
 			RGFW_eventQueuePushEx(e.type = RGFW_quit; e.common.win = win);
 			return 0;
