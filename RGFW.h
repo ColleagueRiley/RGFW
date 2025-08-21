@@ -1728,7 +1728,6 @@ struct RGFW_info {
         struct wl_cursor_image* cursor_image;
 
 		RGFW_window* kbOwner;
-        RGFW_bool wl_configured;
     #endif
 
     #ifdef __linux__
@@ -3471,7 +3470,7 @@ void RGFW_waitForEvent(i32 waitMS) {
     u64 start = RGFW_linux_getTimeNS(clock);
 
 	#ifdef RGFW_WAYLAND
-		while (wl_display_dispatch(_RGFW->wl_display) <= 0
+		while (wl_display_dispatch_pending(_RGFW->wl_display) <= 0
 	#else
 		while (XPending(_RGFW->display) == 0
 	#endif
@@ -5940,8 +5939,7 @@ void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface* xdg_s
 	RGFW_UNUSED(data);
 
     xdg_surface_ack_configure(xdg_surface, serial);
-    if (!_RGFW->wl_configured)
-		_RGFW->wl_configured = RGFW_TRUE;
+   
     RGFW_window* win = (RGFW_window*)xdg_surface_get_user_data(xdg_surface);
 
     if (win == NULL) {
@@ -6361,8 +6359,7 @@ i32 RGFW_initPlatform_Wayland(void) {
 	_RGFW->registry = wl_display_get_registry(_RGFW->wl_display);
 	wl_registry_add_listener(_RGFW->registry, &registry_listener, _RGFW);
 
-	wl_display_roundtrip(_RGFW->wl_display);
-	wl_display_dispatch(_RGFW->wl_display);
+	wl_display_roundtrip(_RGFW->wl_display); // bind to globals
 
 	if (_RGFW->compositor == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errWayland, "Can't find compositor.");
@@ -6555,13 +6552,12 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 		#endif
 	}
 
-	wl_display_roundtrip(_RGFW->wl_display);
-
 	wl_surface_commit(win->src.surface);
 	RGFW_window_show(win);
 
+	wl_display_roundtrip(_RGFW->wl_display);
 	/* wait for the surface to be configured */
-	while (wl_display_dispatch(_RGFW->wl_display) != -1 && !_RGFW->wl_configured) { }
+	while (wl_display_dispatch_pending(_RGFW->wl_display) > 0) { }
 
 	struct wl_callback* callback = wl_surface_frame(win->src.surface);
 	wl_callback_add_listener(callback, &wl_surface_frame_listener, win);
