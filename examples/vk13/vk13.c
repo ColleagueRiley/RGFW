@@ -418,14 +418,18 @@ void createSwapchain(VkSurfaceKHR surface, VkPresentModeKHR present_mode)
 int main(void)
 {
 	{
-		const char *extensions[3] = {
+		const char *extensions[] = {
+#ifdef VULKAN_DEBUG
 			"VK_EXT_debug_utils",
+#endif
 			RGFW_VK_SURFACE,
 			VK_KHR_SURFACE_EXTENSION_NAME
 		};
 
 		const char *const layers[] = {
+#ifdef VULKAN_DEBUG
 			"VK_LAYER_KHRONOS_validation"
+#endif
 		};
 
 		VkApplicationInfo application_info = {0};
@@ -440,8 +444,8 @@ int main(void)
 		VkInstanceCreateInfo instance_info = {0};
 		instance_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		instance_info.pApplicationInfo = &application_info;
-		instance_info.enabledExtensionCount = 3;
-		instance_info.enabledLayerCount = 1;
+		instance_info.enabledExtensionCount = sizeof(extensions) / sizeof(extensions[0]);
+		instance_info.enabledLayerCount = sizeof(layers) / sizeof(layers[0]);
 		instance_info.ppEnabledExtensionNames = extensions;
 		instance_info.ppEnabledLayerNames = layers;
 
@@ -471,12 +475,14 @@ int main(void)
 			return EXIT_FAILURE;
 		}
 
-		const char *const device_required_extensions[] = {
+		const char *const extensions[] = {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
 
-		const char *const device_required_layers[] = {
-			"VK_LAYER_KHRONOS_validation"
+		const char *const layers[] = {
+#ifdef VULKAN_DEBUG
+			//"VK_LAYER_KHRONOS_validation"
+#endif
 		};
 
 		vk.queues.queue.graphics = queue_families.graphics_index;
@@ -498,10 +504,10 @@ int main(void)
 
 		VkDeviceCreateInfo device_info = {0};
 		device_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		device_info.enabledExtensionCount = 1;
-		device_info.enabledLayerCount = 1;
-		device_info.ppEnabledExtensionNames = device_required_extensions;
-		device_info.ppEnabledLayerNames = device_required_layers;
+		device_info.enabledExtensionCount = sizeof(extensions) / sizeof(extensions[0]);
+		device_info.ppEnabledExtensionNames = extensions;
+		device_info.enabledLayerCount = sizeof(layers) / sizeof(layers[0]);
+		device_info.ppEnabledLayerNames = layers;
 		device_info.queueCreateInfoCount = vk.queue_index_count;
 		device_info.pQueueCreateInfos = queues;
 
@@ -933,8 +939,8 @@ int main(void)
 		VkPipelineColorBlendAttachmentState color_attachment = {0};
 		color_attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT
 		                                  | VK_COLOR_COMPONENT_G_BIT
-			                          | VK_COLOR_COMPONENT_B_BIT
-			                          | VK_COLOR_COMPONENT_A_BIT;
+		                                  | VK_COLOR_COMPONENT_B_BIT
+		                                  | VK_COLOR_COMPONENT_A_BIT;
 		color_attachment.blendEnable = VK_FALSE;
 
 		VkPipelineColorBlendStateCreateInfo color_blend_state = {0};
