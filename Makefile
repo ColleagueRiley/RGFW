@@ -175,8 +175,7 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/gles2/gles2 \
 	examples/egl/egl \
 	examples/osmesa_demo/osmesa_demo \
-	examples/vk10/vk10 \
-	examples/vk13/vk13 \
+	examples/vulkan/vulkan \
 	examples/dx11/dx11 \
 	examples/metal/metal \
 	examples/minimal_links/minimal_links \
@@ -224,22 +223,12 @@ else
 endif
 
 
-examples/vk10/vk10: examples/vk10/vk10.c examples/vk10/vkinit.h RGFW.h
+examples/vulkan/vulkan: examples/vulkan/vulkan.c RGFW.h
 ifneq ($(NO_VULKAN), 1)
-	glslangValidator -V examples/vk10/shaders/vert.vert -o examples/vk10/shaders/vert.h --vn vert_code
-	glslangValidator -V examples/vk10/shaders/frag.frag -o examples/vk10/shaders/frag.h --vn frag_code
+	glslangValidator -V examples/vulkan/vert.vert -o examples/vulkan/vert.h --vn vert_code
+	glslangValidator -V examples/vulkan/frag.frag -o examples/vulkan/frag.h --vn frag_code
 
-	$(CC)  $(CFLAGS) -I. $< $(VULKAN_LIBS) -o $@
-else
-	@echo vulkan has been disabled
-endif
-
-examples/vk13/vk13: examples/vk13/vk13.c RGFW.h
-ifneq ($(NO_VULKAN), 1)
-	glslangValidator -V examples/vk13/vert.vert -o examples/vk13/vert.h --vn vert_code
-	glslangValidator -V examples/vk13/frag.frag -o examples/vk13/frag.h --vn frag_code
-
-	$(CC)  $(CFLAGS) -I. -Iexamples/vk13 $< -lm $(VULKAN_LIBS) -o $@
+	$(CC)  $(CFLAGS) -I. -Iexamples/vulkan $< -lm $(VULKAN_LIBS) -o $@
 else
 	@echo vulkan has been disabled
 endif
@@ -361,8 +350,7 @@ ifneq ($(NO_OSMESA), 1)
 		./examples/osmesa_demo/osmesa_demo$(EXT)
 endif
 ifneq ($(NO_VULKAN), 1)
-		./examples/vk10/vk10$(EXT)
-		./examples/vk13/vk13$(EXT)
+		./examples/vulkan/vulkan$(EXT)
 endif
 ifeq ($(detected_OS), windows)
 		./examples/dx11/dx11.exe
@@ -405,7 +393,7 @@ else
 endif
 
 clean:
-	rm -f *.o *.obj *.dll .dylib *.a *.so $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)  .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.exe .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.js .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.wasm .$(OS_DIR)examples$(OS_DIR)vk10$(OS_DIR)shaders$(OS_DIR)*.h .$(OS_DIR)examples$(OS_DIR)vk13$(OS_DIR)vk13 .$(OS_DIR)examples$(OS_DIR)vk13$(OS_DIR)*.h
+	rm -f *.o *.obj *.dll .dylib *.a *.so $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)  .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.exe .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.js .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.wasm .$(OS_DIR)examples$(OS_DIR)vulkan$(OS_DIR)vulkan .$(OS_DIR)examples$(OS_DIR)vulkan$(OS_DIR)*.h
 
 
 .PHONY: all examples clean

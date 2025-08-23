@@ -418,6 +418,15 @@ void createSwapchain(VkSurfaceKHR surface, VkPresentModeKHR present_mode)
 int main(void)
 {
 	{
+		VkApplicationInfo application_info = {0};
+		application_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+		application_info.pNext = NULL;
+		application_info.engineVersion = 1;
+		application_info.applicationVersion = 1;
+		application_info.apiVersion = VK_API_VERSION_1_0;
+		application_info.pApplicationName = "RGFW vulkan 1.0 example";
+		application_info.pEngineName = "vulkan";
+
 		const char *extensions[] = {
 #ifdef VULKAN_DEBUG
 			"VK_EXT_debug_utils",
@@ -431,15 +440,6 @@ int main(void)
 			"VK_LAYER_KHRONOS_validation"
 #endif
 		};
-
-		VkApplicationInfo application_info = {0};
-		application_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		application_info.pNext = NULL;
-		application_info.engineVersion = 1;
-		application_info.applicationVersion = 1;
-		application_info.apiVersion = VK_API_VERSION_1_3;
-		application_info.pApplicationName = "RGFW vulkan 1.3 example";
-		application_info.pEngineName = "vk13";
 
 		VkInstanceCreateInfo instance_info = {0};
 		instance_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -475,16 +475,6 @@ int main(void)
 			return EXIT_FAILURE;
 		}
 
-		const char *const extensions[] = {
-			VK_KHR_SWAPCHAIN_EXTENSION_NAME
-		};
-
-		const char *const layers[] = {
-#ifdef VULKAN_DEBUG
-			//"VK_LAYER_KHRONOS_validation"
-#endif
-		};
-
 		vk.queues.queue.graphics = queue_families.graphics_index;
 		vk.queues.queue.present = queue_families.present_index;
 		vk.queues.queue.transfer = queue_families.transfer_index;
@@ -502,12 +492,14 @@ int main(void)
 		if (vk.queues.queue.graphics == vk.queues.queue.present)
 			vk.exclusive = 1;
 
+		const char *const extensions[] = {
+			VK_KHR_SWAPCHAIN_EXTENSION_NAME
+		};
+
 		VkDeviceCreateInfo device_info = {0};
 		device_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		device_info.enabledExtensionCount = sizeof(extensions) / sizeof(extensions[0]);
 		device_info.ppEnabledExtensionNames = extensions;
-		device_info.enabledLayerCount = sizeof(layers) / sizeof(layers[0]);
-		device_info.ppEnabledLayerNames = layers;
 		device_info.queueCreateInfoCount = vk.queue_index_count;
 		device_info.pQueueCreateInfos = queues;
 
@@ -520,7 +512,7 @@ int main(void)
 	}
 
 	{
-		RGFW_createWindowPtr("vulkan 1.3 example", 0, 0, 500, 500, 0, &window);
+		RGFW_createWindowPtr("Vulkan 1.0 Example", 0, 0, 500, 500, 0, &window);
 		VK_CHECK(RGFW_window_createSurface_Vulkan(&window, vk.instance, &vk.surface));
 		VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vk.physical_device, vk.surface, &vk.capabilities));
 		vkGetPhysicalDeviceMemoryProperties(vk.physical_device, &vk.memory_properties);
@@ -676,9 +668,9 @@ int main(void)
 		int skipped_texture = 0;
 		FILE *f = fopen("./lonic.raw", "r");
 		if (f == NULL)
-			f = fopen("./vk13/lonic.raw", "r");
+			f = fopen("./vulkan/lonic.raw", "r");
 		if (f == NULL)
-			f = fopen("./examples/vk13/lonic.raw", "r");
+			f = fopen("./examples/vulkan/lonic.raw", "r");
 		if (f == NULL) {
 			printf("./lonic.raw not found (skipping texture)\n");
 			buf = (char[4]){
