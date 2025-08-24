@@ -16,6 +16,9 @@
 #include "vert.h"
 #include "frag.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "../mouse_icons/stb_image.h"
+
 static RGFW_window window;
 
 typedef struct Mat4 {
@@ -700,37 +703,32 @@ int main(void)
 
 	{
 		size_t size = 0;
-		uint8_t *buf = NULL;
 		int skipped_texture = 0;
-		FILE *f = fopen("./lonic.raw", "r");
-		if (f == NULL)
-			f = fopen("./vulkan/lonic.raw", "r");
-		if (f == NULL)
-			f = fopen("./examples/vulkan/lonic.raw", "r");
-		if (f == NULL) {
-			printf("./lonic.raw not found (skipping texture)\n");
-			static uint8_t fallback[4] = {
+		int w = 0;
+		int h = 0;
+		int c = 0;
+		unsigned char *buf = stbi_load("logo.png", &w, &h, &c, 4);
+		if (buf == NULL) {
+			printf("./logo.png not found (skipping texture)\n");
+			static unsigned char fallback[4] = {
 				255, 255, 255, 255
 			};
+			w = 2;
+			h = 2;
 			buf = fallback;
 			skipped_texture = 1;
 			size = 4;
 		}
-		else {
-			fseek(f, 0, SEEK_END);
-			size = ftell(f);
-			fseek(f, 0, SEEK_SET);
-			buf = (uint8_t *)malloc(size);
-			size_t b = 0;
-			while (b < size)
-				b += fread(buf, 1, size, f);
-			fclose(f);
-		}
+	
+		// force the image to be a square
+		if (w > h)
+			w = h;
+		else if (h > w)
+			h = w;
 
-		u32 width = sqrt((double)size / 4.0);
-		u32 height = width; // assuming the image is a square
+		size = w * h * 4;
 
-		printf("%u %u\n", width, height);
+		printf("texture: %u %u\n", w, h);
 
 		VkImageCreateInfo image_info;
 		memset(&image_info, 0, sizeof(VkImageCreateInfo));
@@ -742,8 +740,8 @@ int main(void)
 		image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		image_info.imageType = VK_IMAGE_TYPE_2D;
 		image_info.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-		image_info.extent.width = width;
-		image_info.extent.height = height;
+		image_info.extent.width = w;
+		image_info.extent.height = h;
 		image_info.extent.depth = 1;
 		image_info.mipLevels = 1;
 		image_info.arrayLayers = 1;
@@ -764,7 +762,7 @@ int main(void)
 		VkBufferCreateInfo buffer_info;
 		memset(&buffer_info, 0, sizeof(VkBufferCreateInfo));
 		buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		buffer_info.size = width * height * 4;
+		buffer_info.size = w * h * 4;
 		buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		buffer_info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		VkBuffer staging_buffer;
@@ -801,7 +799,7 @@ int main(void)
 		memcpy(map, buf, size);
 		vkUnmapMemory(vk.device, staging_memory);
 		if (!skipped_texture)
-			free(buf);
+			stbi_image_free(buf);
 
 		VkCommandBufferBeginInfo begin_info;
 		memset(&begin_info, 0, sizeof(VkCommandBufferBeginInfo));
@@ -831,8 +829,8 @@ int main(void)
 		memset(&region, 0, sizeof(VkBufferImageCopy));
 		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		region.imageSubresource.layerCount = 1;
-		region.imageExtent.width = width;
-		region.imageExtent.height = height;
+		region.imageExtent.width = w;
+		region.imageExtent.height = h;
 		region.imageExtent.depth = 1;
 		vkCmdCopyBufferToImage(vk.transfer_cmd, staging_buffer, vk.texture_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 

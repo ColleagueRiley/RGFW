@@ -11,7 +11,7 @@ AR ?= ar
 # used for compiling RGFW.o
 CUSTOM_CFLAGS =
 # used for the examples
-CFLAGS ?= -O2 -g
+CFLAGS ?= -g
 
 DX11_LIBS = -static -lgdi32 -ldxgi -ld3d11 -luuid -ld3dcompiler
 VULKAN_LIBS = -lgdi32 -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
