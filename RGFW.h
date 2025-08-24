@@ -6346,16 +6346,12 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
 	// check if we have memory we can use
 	if (_RGFW->monitors.free_list != NULL) {
 		list = _RGFW->monitors.free_list;
-		_RGFW->monitors.free_list = list->next;
-		// list->next = NULL;
 		mon = list->cur;
+		_RGFW->monitors.free_list = list->next;
 	} else {
 		list = RGFW_ALLOC(sizeof(RGFW_monitor_list));
 		mon = RGFW_ALLOC(sizeof(RGFW_monitor));
 	}
-	
-	
-	RGFW_MEMSET(mon, 0, sizeof(RGFW_monitor));
 
 	
 	if (_RGFW->monitors.list == NULL) {
@@ -6474,18 +6470,17 @@ void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u3
 	// now remove it from the list
 	RGFW_monitor_list *temp_list = list->next;
 	list->next = temp_list->next;
-	temp_list->next = NULL;
-
-	RGFW_monitor_list *freelist = _RGFW->monitors.free_list;
+	temp_list->next = NULL;	
 
 	// insert this memory into freelist to reuse later
-	if (!freelist) {
-		freelist = temp_list;
+	if (_RGFW->monitors.free_list == NULL) {
+		_RGFW->monitors.free_list = temp_list;
 	} else {
-		while (freelist->next != NULL) {
+		RGFW_monitor_list *freelist = _RGFW->monitors.free_list->next;
+		while (freelist != NULL) {
 			freelist = freelist->next;
 		}
-		freelist->next = temp_list;
+		freelist = temp_list;
 	}
 }
 
@@ -7100,13 +7095,7 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 	
 	while (list != NULL) {
 		RGFW_monitor* mon = list->cur;
-		if (mon->output) {
-			wl_output_destroy(mon->output);
-		}
-
-		if (mon->xdg_output) {
-			zxdg_output_v1_destroy(mon->xdg_output);
-		}
+	
 		RGFW_FREE(mon);
 		RGFW_monitor_list *temp = list;
 
