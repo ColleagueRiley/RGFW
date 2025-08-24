@@ -6357,7 +6357,7 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
 	if (_RGFW->monitors.list == NULL) {
 		_RGFW->monitors.list = list;
 	} else { // there is at least one monitor in the list
-		// look for the last monitor
+		// insert it at the end
 		RGFW_monitor_list *cur_list = _RGFW->monitors.list;
 		
 		while (cur_list->next != NULL) {
@@ -6463,14 +6463,13 @@ void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u3
 		zxdg_output_v1_destroy(mon->xdg_output);
 	}
 
-	// RGFW_FREE(mon);
 	mon = NULL;
 	_RGFW->monitors.count -= 1;
 	
 	// now remove it from the list
 	RGFW_monitor_list *temp_list = list->next;
 	list->next = temp_list->next;
-	temp_list->next = NULL;	
+	temp_list->next = NULL; // since we are reusing memory make it point to null
 
 	// insert this memory into freelist to reuse later
 	if (_RGFW->monitors.free_list == NULL) {
