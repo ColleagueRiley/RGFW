@@ -19,6 +19,12 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "../mouse_icons/stb_image.h"
 
+#ifdef __cplusplus
+#define EMPTY {}
+#else
+#define EMPTY {0}
+#endif
+
 static RGFW_window window;
 
 typedef struct Mat4 {
@@ -27,8 +33,7 @@ typedef struct Mat4 {
 
 static inline Mat4 mat4Ident(void)
 {
-	Mat4 result;
-	memset(&result, 0, sizeof(Mat4));
+	Mat4 result = EMPTY;
 	result.f[0][0] = 1.0f;
 	result.f[1][1] = 1.0f;
 	result.f[2][2] = 1.0f;
@@ -86,8 +91,7 @@ static inline Mat4 mat4EulerZ(float theta)
 
 static inline Mat4 mat4Perspective(float fov, float aspect_ratio, float near, float far)
 {
-	Mat4 result;
-	memset(&result, 0, sizeof(Mat4));
+	Mat4 result = EMPTY;
 	float scale = tan(fov * 0.5f);
 	result.f[0][0] = 1.0f / (aspect_ratio * scale);
 	result.f[1][1] = -(1.0f / scale);
@@ -212,8 +216,7 @@ typedef struct QueueFamilies {
 static QueueFamilies getQueueFamilies(VkInstance instance, VkPhysicalDevice physical_device)
 {
 	// output queue families
-	QueueFamilies queue_families;
-	memset(&queue_families, 0, sizeof(QueueFamilies));
+	QueueFamilies queue_families = EMPTY;
 	queue_families.graphics_index = -1;
 	queue_families.present_index = -1;
 	queue_families.transfer_index = -1;
@@ -223,8 +226,7 @@ static QueueFamilies getQueueFamilies(VkInstance instance, VkPhysicalDevice phys
 	u32 count = 0;
 
 	// 16 should be more than enough
-	VkQueueFamilyProperties properties[16];
-	memset(properties, 0, sizeof(VkQueueFamilyProperties) * 16);
+	VkQueueFamilyProperties properties[16] = EMPTY;
 
 	vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &count, NULL);
 	vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &count, properties);
@@ -302,8 +304,7 @@ void createSwapchain(VkSurfaceKHR surface, VkPresentModeKHR present_mode)
 	RGFW_window_getSize(&window, &vk.w, &vk.h);
 
 	vkDeviceWaitIdle(vk.device);
-	VkSwapchainCreateInfoKHR swapchain_info;
-	memset(&swapchain_info, 0, sizeof(VkSwapchainCreateInfoKHR));
+	VkSwapchainCreateInfoKHR swapchain_info = EMPTY;
 	swapchain_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	swapchain_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 	swapchain_info.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
@@ -338,8 +339,7 @@ void createSwapchain(VkSurfaceKHR surface, VkPresentModeKHR present_mode)
 
 	VK_CHECK(vkCreateSwapchainKHR(vk.device, &swapchain_info, NULL, &vk.swapchain));
 
-	VkImageCreateInfo depth_info;
-	memset(&depth_info, 0, sizeof(VkImageCreateInfo));
+	VkImageCreateInfo depth_info = EMPTY;
 	depth_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	depth_info.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	depth_info.imageType = VK_IMAGE_TYPE_2D;
@@ -357,8 +357,7 @@ void createSwapchain(VkSurfaceKHR surface, VkPresentModeKHR present_mode)
 	depth_info.extent.height = vk.h;
 	VK_CHECK(vkCreateImage(vk.device, &depth_info, NULL, &vk.depth_image));
 
-	VkMemoryRequirements memory_requirements;
-	memset(&memory_requirements, 0, sizeof(VkMemoryRequirements));
+	VkMemoryRequirements memory_requirements = EMPTY;
 	vkGetImageMemoryRequirements(vk.device, vk.depth_image, &memory_requirements);
 
 	for (int i = 0; i < vk.memory_properties.memoryTypeCount; i++) {
@@ -369,16 +368,14 @@ void createSwapchain(VkSurfaceKHR surface, VkPresentModeKHR present_mode)
 		}
 	}
 
-	VkMemoryAllocateInfo allocate_info;
-	memset(&allocate_info, 0, sizeof(VkMemoryAllocateInfo));
+	VkMemoryAllocateInfo allocate_info = EMPTY;
 	allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocate_info.memoryTypeIndex = vk.memory_index;
 	allocate_info.allocationSize = memory_requirements.size;
 	VK_CHECK(vkAllocateMemory(vk.device, &allocate_info, NULL, &vk.depth_image_memory));
 	VK_CHECK(vkBindImageMemory(vk.device, vk.depth_image, vk.depth_image_memory, 0));
 
-	VkImageViewCreateInfo depth_view_info;
-	memset(&depth_view_info, 0, sizeof(VkImageViewCreateInfo));
+	VkImageViewCreateInfo depth_view_info = EMPTY;
 	depth_view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	depth_view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
 	depth_view_info.format = vk.depth_format;
@@ -396,8 +393,7 @@ void createSwapchain(VkSurfaceKHR surface, VkPresentModeKHR present_mode)
 
 	vkGetSwapchainImagesKHR(vk.device, vk.swapchain, &vk.image_count, vk.swapchain_images);
 	for (int i = 0; i < vk.image_count; i++) {
-		VkImageViewCreateInfo image_view_info;
-		memset(&image_view_info, 0, sizeof(VkImageViewCreateInfo));
+		VkImageViewCreateInfo image_view_info = EMPTY;
 		image_view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		image_view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
 		image_view_info.image = vk.swapchain_images[i];
@@ -417,8 +413,7 @@ void createSwapchain(VkSurfaceKHR surface, VkPresentModeKHR present_mode)
 			vk.swapchain_image_views[i],
 			vk.depth_image_view
 		};
-		VkFramebufferCreateInfo framebuffer_info;
-		memset(&framebuffer_info, 0, sizeof(VkFramebufferCreateInfo));
+		VkFramebufferCreateInfo framebuffer_info = EMPTY;
 		framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebuffer_info.pAttachments = attachments;
 		framebuffer_info.attachmentCount = 2;
@@ -433,8 +428,7 @@ void createSwapchain(VkSurfaceKHR surface, VkPresentModeKHR present_mode)
 int main(void)
 {
 	{
-		VkApplicationInfo application_info;
-		memset(&application_info, 0, sizeof(VkApplicationInfo));
+		VkApplicationInfo application_info = EMPTY;
 		application_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		application_info.pNext = NULL;
 		application_info.engineVersion = 1;
@@ -461,8 +455,7 @@ int main(void)
 		uint32_t extension_count = 2;
 #endif
 
-		VkInstanceCreateInfo instance_info;
-		memset(&instance_info, 0, sizeof(VkInstanceCreateInfo));
+		VkInstanceCreateInfo instance_info = EMPTY;
 		instance_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		instance_info.pApplicationInfo = &application_info;
 		instance_info.enabledExtensionCount = extension_count;
@@ -476,7 +469,7 @@ int main(void)
 	{
 		u32 device_count = 0;
 		VK_CHECK(vkEnumeratePhysicalDevices(vk.instance, &device_count, NULL));
-		static VkPhysicalDevice physical_devices[8]; // 8 should be way more than enough
+		static VkPhysicalDevice physical_devices[8] = EMPTY; // 8 should be way more than enough
 		VK_CHECK(vkEnumeratePhysicalDevices(vk.instance, &device_count, physical_devices));
 
 		for (int i = 0; i < device_count; i++) {
@@ -502,9 +495,8 @@ int main(void)
 		vk.queues.queue.compute = queue_families.compute_index;
 		vk.queue_index_count = queue_families.queue_index_count;
 
-		VkDeviceQueueCreateInfo queues[3];
-		float priorities[3];
-		memset(queues, 0, sizeof(VkDeviceQueueCreateInfo) * 3);
+		VkDeviceQueueCreateInfo queues[3] = EMPTY;
+		float priorities[3] = EMPTY;
 		for (int i = 0; i < 3; i++) {
 			priorities[i] = 1.0f;
 			queues[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -520,8 +512,7 @@ int main(void)
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
 
-		VkDeviceCreateInfo device_info;
-		memset(&device_info, 0, sizeof(VkDeviceCreateInfo));
+		VkDeviceCreateInfo device_info = EMPTY;
 		device_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		device_info.enabledExtensionCount = sizeof(extensions) / sizeof(extensions[0]);
 		device_info.ppEnabledExtensionNames = extensions;
@@ -554,8 +545,7 @@ int main(void)
 		vk.depth_format = VK_FORMAT_UNDEFINED;
 
 		for (int i = 0; i < sizeof(formats) / sizeof(formats[0]); i++) {
-			VkFormatProperties properties;
-			memset(&properties, 0, sizeof(VkFormatProperties));
+			VkFormatProperties properties = EMPTY;
 			vkGetPhysicalDeviceFormatProperties(vk.physical_device, formats[i], &properties);
 			if (properties.optimalTilingFeatures & VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT) {
 				vk.color_format = formats[i];
@@ -577,8 +567,7 @@ int main(void)
 		};
 
 		for (int i = 0; i < sizeof(depth_formats) / sizeof(depth_formats[0]); i++) {
-			VkFormatProperties properties;
-			memset(&properties, 0, sizeof(VkFormatProperties));
+			VkFormatProperties properties = EMPTY;
 			vkGetPhysicalDeviceFormatProperties(vk.physical_device, depth_formats[i], &properties);
 			if (properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
 				vk.depth_format = depth_formats[i];
@@ -598,30 +587,26 @@ int main(void)
 	}
 
 	{
-		VkCommandPoolCreateInfo graphics_pool_info;
-		memset(&graphics_pool_info, 0, sizeof(VkCommandPoolCreateInfo));
+		VkCommandPoolCreateInfo graphics_pool_info = EMPTY;
 		graphics_pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		graphics_pool_info.queueFamilyIndex = vk.queues.queue.graphics;
 		graphics_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 		VK_CHECK(vkCreateCommandPool(vk.device, &graphics_pool_info, NULL, &vk.graphics_command_pool));
 
-		VkCommandBufferAllocateInfo graphics_cmd_info;
-		memset(&graphics_cmd_info, 0, sizeof(VkCommandBufferAllocateInfo));
+		VkCommandBufferAllocateInfo graphics_cmd_info = EMPTY;
 		graphics_cmd_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		graphics_cmd_info.commandBufferCount = vk.image_count;
 		graphics_cmd_info.commandPool = vk.graphics_command_pool;
 		graphics_cmd_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		VK_CHECK(vkAllocateCommandBuffers(vk.device, &graphics_cmd_info, vk.cmd));
 
-		VkCommandPoolCreateInfo transfer_pool_info;
-		memset(&transfer_pool_info, 0, sizeof(VkCommandPoolCreateInfo));
+		VkCommandPoolCreateInfo transfer_pool_info = EMPTY;
 		transfer_pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		transfer_pool_info.queueFamilyIndex = vk.queues.queue.transfer;
 		transfer_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 		VK_CHECK(vkCreateCommandPool(vk.device, &transfer_pool_info, NULL, &vk.transfer_command_pool));
 
-		VkCommandBufferAllocateInfo transfer_cmd_info;
-		memset(&transfer_cmd_info, 0, sizeof(VkCommandBufferAllocateInfo));
+		VkCommandBufferAllocateInfo transfer_cmd_info = EMPTY;
 		transfer_cmd_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		transfer_cmd_info.commandBufferCount = 1;
 		transfer_cmd_info.commandPool = vk.transfer_command_pool;
@@ -629,14 +614,12 @@ int main(void)
 		VK_CHECK(vkAllocateCommandBuffers(vk.device, &transfer_cmd_info, &vk.transfer_cmd));
 
 		for (int i = 0; i < vk.image_count; i++) {
-			VkFenceCreateInfo fence_info;
-			memset(&fence_info, 0, sizeof(VkFenceCreateInfo));
+			VkFenceCreateInfo fence_info = EMPTY;
 			fence_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 			fence_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 			VK_CHECK(vkCreateFence(vk.device, &fence_info, NULL, &vk.fences[i]));
 
-			VkSemaphoreCreateInfo semaphore_info;
-			memset(&semaphore_info, 0, sizeof(VkSemaphoreCreateInfo));
+			VkSemaphoreCreateInfo semaphore_info = EMPTY;
 			semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 			VK_CHECK(vkCreateSemaphore(vk.device, &semaphore_info, NULL, &vk.image_semaphores[i]));
 			VK_CHECK(vkCreateSemaphore(vk.device, &semaphore_info, NULL, &vk.submit_semaphores[i]));
@@ -644,8 +627,7 @@ int main(void)
 	}
 
 	{
-		VkAttachmentDescription attachments[2];
-		memset(attachments, 0, sizeof(VkAttachmentDescription) * 2);
+		VkAttachmentDescription attachments[2] = EMPTY;
 		attachments[0].format = vk.color_format;
 		attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
 		attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -653,25 +635,21 @@ int main(void)
 		attachments[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		attachments[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-		VkAttachmentReference color_reference;
-		memset(&color_reference, 0, sizeof(VkAttachmentReference));
+		VkAttachmentReference color_reference = EMPTY;
 		color_reference.attachment = 0;
 		color_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-		VkAttachmentReference depth_reference;
-		memset(&depth_reference, 0, sizeof(VkAttachmentReference));
+		VkAttachmentReference depth_reference = EMPTY;
 		depth_reference.attachment = 1;
 		depth_reference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-		VkSubpassDescription subpass;
-		memset(&subpass, 0, sizeof(VkSubpassDescription));
+		VkSubpassDescription subpass = EMPTY;
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &color_reference;
 		subpass.pDepthStencilAttachment = &depth_reference;
 
-		VkSubpassDependency dependency;
-		memset(&dependency, 0, sizeof(VkSubpassDependency));
+		VkSubpassDependency dependency = EMPTY;
 		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 		dependency.dstSubpass = 0;
 		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
@@ -688,8 +666,7 @@ int main(void)
 		attachments[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-		VkRenderPassCreateInfo renderpass_info;
-		memset(&renderpass_info, 0, sizeof(VkRenderPassCreateInfo));
+		VkRenderPassCreateInfo renderpass_info = EMPTY;
 		renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		renderpass_info.attachmentCount = 2;
 		renderpass_info.pAttachments = attachments;
@@ -730,8 +707,7 @@ int main(void)
 
 		printf("texture: %u %u\n", w, h);
 
-		VkImageCreateInfo image_info;
-		memset(&image_info, 0, sizeof(VkImageCreateInfo));
+		VkImageCreateInfo image_info = EMPTY;
 		image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
 		image_info.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -747,30 +723,25 @@ int main(void)
 		image_info.arrayLayers = 1;
 		VK_CHECK(vkCreateImage(vk.device, &image_info, NULL, &vk.texture_image));
 
-		VkMemoryRequirements memory_requirements;
-		memset(&memory_requirements, 0, sizeof(VkMemoryRequirements));
+		VkMemoryRequirements memory_requirements = EMPTY;
 		vkGetImageMemoryRequirements(vk.device, vk.texture_image, &memory_requirements);
 		
-		VkMemoryAllocateInfo allocate_info;
-		memset(&allocate_info, 0, sizeof(VkMemoryAllocateInfo));
+		VkMemoryAllocateInfo allocate_info = EMPTY;
 		allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocate_info.allocationSize = memory_requirements.size;
 		allocate_info.memoryTypeIndex = vk.memory_index;
 		VK_CHECK(vkAllocateMemory(vk.device, &allocate_info, NULL, &vk.texture_memory));
 		VK_CHECK(vkBindImageMemory(vk.device, vk.texture_image, vk.texture_memory, 0));
 
-		VkBufferCreateInfo buffer_info;
-		memset(&buffer_info, 0, sizeof(VkBufferCreateInfo));
+		VkBufferCreateInfo buffer_info = EMPTY;
 		buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		buffer_info.size = w * h * 4;
 		buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		buffer_info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		VkBuffer staging_buffer;
-		memset(&staging_buffer, 0, sizeof(VkBuffer));
+		VkBuffer staging_buffer = EMPTY;
 		VK_CHECK(vkCreateBuffer(vk.device, &buffer_info, NULL, &staging_buffer));
 
-		VkMemoryRequirements buffer_memory_requirements;
-		memset(&buffer_memory_requirements, 0, sizeof(VkMemoryRequirements));
+		VkMemoryRequirements buffer_memory_requirements = EMPTY;
 		vkGetBufferMemoryRequirements(vk.device, staging_buffer, &buffer_memory_requirements);
 
 		u32 host_index = 0;
@@ -781,13 +752,11 @@ int main(void)
 				break;
 			}
 		}
-		VkMemoryAllocateInfo staging_allocate_info;
-		memset(&staging_allocate_info, 0, sizeof(VkMemoryAllocateInfo));
+		VkMemoryAllocateInfo staging_allocate_info = EMPTY;
 		staging_allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		staging_allocate_info.memoryTypeIndex = host_index;
 		staging_allocate_info.allocationSize = buffer_memory_requirements.size;
-		VkDeviceMemory staging_memory;
-		memset(&staging_memory, 0, sizeof(VkDeviceMemory));
+		VkDeviceMemory staging_memory = EMPTY;
 		VK_CHECK(vkAllocateMemory(vk.device, &staging_allocate_info, NULL, &staging_memory));
 		VK_CHECK(vkBindBufferMemory(vk.device, staging_buffer, staging_memory, 0));
 
@@ -801,15 +770,13 @@ int main(void)
 		if (!skipped_texture)
 			stbi_image_free(buf);
 
-		VkCommandBufferBeginInfo begin_info;
-		memset(&begin_info, 0, sizeof(VkCommandBufferBeginInfo));
+		VkCommandBufferBeginInfo begin_info = EMPTY;
 		begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
 		VK_CHECK(vkBeginCommandBuffer(vk.transfer_cmd, &begin_info));
 
-		VkImageMemoryBarrier barrier;
-		memset(&barrier, 0, sizeof(VkImageMemoryBarrier));
+		VkImageMemoryBarrier barrier = EMPTY;
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -825,8 +792,7 @@ int main(void)
 		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 		vkCmdPipelineBarrier(vk.transfer_cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1, &barrier);
 
-		VkBufferImageCopy region;
-		memset(&region, 0, sizeof(VkBufferImageCopy));
+		VkBufferImageCopy region = EMPTY;
 		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		region.imageSubresource.layerCount = 1;
 		region.imageExtent.width = w;
@@ -840,8 +806,7 @@ int main(void)
 
 		VK_CHECK(vkEndCommandBuffer(vk.transfer_cmd));
 
-		VkSubmitInfo submit_info;
-		memset(&submit_info, 0, sizeof(VkSubmitInfo));
+		VkSubmitInfo submit_info = EMPTY;
 		submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submit_info.pCommandBuffers = &vk.transfer_cmd;
 		submit_info.commandBufferCount = 1;
@@ -853,8 +818,7 @@ int main(void)
 		vkDestroyBuffer(vk.device, staging_buffer, NULL);
 		vkFreeMemory(vk.device, staging_memory, NULL);
 
-		VkImageViewCreateInfo view_info;
-		memset(&view_info, 0, sizeof(VkImageViewCreateInfo));
+		VkImageViewCreateInfo view_info = EMPTY;
 		view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		view_info.image = vk.texture_image;
 		view_info.format = VK_FORMAT_R8G8B8A8_UNORM;
@@ -866,43 +830,37 @@ int main(void)
 		view_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		VK_CHECK(vkCreateImageView(vk.device, &view_info, NULL, &vk.texture_image_view));
 
-		VkDescriptorSetLayoutBinding binding;
-		memset(&binding, 0, sizeof(VkDescriptorSetLayoutBinding));
+		VkDescriptorSetLayoutBinding binding = EMPTY;
 		binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 		binding.binding = 0;
 		binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		binding.descriptorCount = 1;
 
-		VkDescriptorSetLayoutCreateInfo layout_info;
-		memset(&layout_info, 0, sizeof(VkDescriptorSetLayoutCreateInfo));
+		VkDescriptorSetLayoutCreateInfo layout_info = EMPTY;
 		layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 		layout_info.pBindings = &binding;
 		layout_info.bindingCount = 1;
 		VK_CHECK(vkCreateDescriptorSetLayout(vk.device, &layout_info, NULL, &vk.descriptor_layout));
 
-		VkDescriptorPoolSize pool_size;
-		memset(&pool_size, 0, sizeof(VkDescriptorPoolSize));
+		VkDescriptorPoolSize pool_size = EMPTY;
 		pool_size.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		pool_size.descriptorCount = 1;
 
-		VkDescriptorPoolCreateInfo pool_info;
-		memset(&pool_info, 0, sizeof(VkDescriptorPoolCreateInfo));
+		VkDescriptorPoolCreateInfo pool_info = EMPTY;
 		pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		pool_info.maxSets = 1;
 		pool_info.pPoolSizes = &pool_size;
 		pool_info.poolSizeCount = 1;
 		VK_CHECK(vkCreateDescriptorPool(vk.device, &pool_info, NULL, &vk.descriptor_pool));
 
-		VkDescriptorSetAllocateInfo descriptor_allocate_info;
-		memset(&descriptor_allocate_info, 0, sizeof(VkDescriptorSetAllocateInfo));
+		VkDescriptorSetAllocateInfo descriptor_allocate_info = EMPTY;
 		descriptor_allocate_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		descriptor_allocate_info.pSetLayouts = &vk.descriptor_layout;
 		descriptor_allocate_info.descriptorSetCount = 1;
 		descriptor_allocate_info.descriptorPool = vk.descriptor_pool;
 		VK_CHECK(vkAllocateDescriptorSets(vk.device, &descriptor_allocate_info, &vk.descriptor_set));
 
-		VkSamplerCreateInfo sampler_info;
-		memset(&sampler_info, 0, sizeof(VkSamplerCreateInfo));
+		VkSamplerCreateInfo sampler_info = EMPTY;
 		sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		sampler_info.addressModeU = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 		sampler_info.addressModeV = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
@@ -920,14 +878,12 @@ int main(void)
 		sampler_info.unnormalizedCoordinates = VK_FALSE;
 		VK_CHECK(vkCreateSampler(vk.device, &sampler_info, NULL, &vk.texture_sampler));
 
-		VkDescriptorImageInfo descriptor_image_info;
-		memset(&descriptor_image_info, 0, sizeof(VkDescriptorImageInfo));
+		VkDescriptorImageInfo descriptor_image_info = EMPTY;
 		descriptor_image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		descriptor_image_info.sampler = vk.texture_sampler;
 		descriptor_image_info.imageView = vk.texture_image_view;
 
-		VkWriteDescriptorSet write;
-		memset(&write, 0, sizeof(VkWriteDescriptorSet));
+		VkWriteDescriptorSet write = EMPTY;
 		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		write.descriptorCount = 1;
 		write.dstBinding = 0;
@@ -938,20 +894,17 @@ int main(void)
 	}
 
 	{
-		VkShaderModuleCreateInfo vertex_info;
-		memset(&vertex_info, 0, sizeof(VkShaderModuleCreateInfo));
+		VkShaderModuleCreateInfo vertex_info = EMPTY;
 		vertex_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		vertex_info.codeSize = sizeof(vert_code);
 		vertex_info.pCode = vert_code;
 
-		VkShaderModuleCreateInfo fragment_info;
-		memset(&fragment_info, 0, sizeof(VkShaderModuleCreateInfo));
+		VkShaderModuleCreateInfo fragment_info = EMPTY;
 		fragment_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		fragment_info.codeSize = sizeof(frag_code);
 		fragment_info.pCode = frag_code;
 
-		VkPipelineShaderStageCreateInfo stages[2];
-		memset(stages, 0, sizeof(VkPipelineShaderStageCreateInfo) * 2);
+		VkPipelineShaderStageCreateInfo stages[2] = EMPTY;
 		stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
 		stages[0].pName = "main";
@@ -964,57 +917,48 @@ int main(void)
 		stages[1].pSpecializationInfo = NULL;
 		VK_CHECK(vkCreateShaderModule(vk.device, &fragment_info, NULL, &stages[1].module));
 
-		VkPipelineVertexInputStateCreateInfo vertex_input;
-		memset(&vertex_input, 0, sizeof(VkPipelineVertexInputStateCreateInfo));
+		VkPipelineVertexInputStateCreateInfo vertex_input = EMPTY;
 		vertex_input.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-		VkPipelineInputAssemblyStateCreateInfo input_assembly;
-		memset(&input_assembly, 0, sizeof(VkPipelineInputAssemblyStateCreateInfo));
+		VkPipelineInputAssemblyStateCreateInfo input_assembly = EMPTY;
 		input_assembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 		input_assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
-		VkPipelineViewportStateCreateInfo viewport_state;
-		memset(&viewport_state, 0, sizeof(VkPipelineViewportStateCreateInfo));
+		VkPipelineViewportStateCreateInfo viewport_state = EMPTY;
 		viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 		viewport_state.viewportCount = 1;
 		viewport_state.scissorCount = 1;
 
-		VkPipelineRasterizationStateCreateInfo rasterization_state;
-		memset(&rasterization_state, 0, sizeof(VkPipelineRasterizationStateCreateInfo));
+		VkPipelineRasterizationStateCreateInfo rasterization_state = EMPTY;
 		rasterization_state.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		rasterization_state.cullMode = VK_CULL_MODE_NONE;
 		rasterization_state.polygonMode = VK_POLYGON_MODE_FILL;
 		rasterization_state.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		rasterization_state.lineWidth = 1.0f;
 
-		VkPipelineMultisampleStateCreateInfo multisample_state;
-		memset(&multisample_state, 0, sizeof(VkPipelineMultisampleStateCreateInfo));
+		VkPipelineMultisampleStateCreateInfo multisample_state = EMPTY;
 		multisample_state.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		multisample_state.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
-		VkPipelineColorBlendAttachmentState color_attachment;
-		memset(&color_attachment, 0, sizeof(VkPipelineColorBlendAttachmentState));
+		VkPipelineColorBlendAttachmentState color_attachment = EMPTY;
 		color_attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT
 		                                  | VK_COLOR_COMPONENT_G_BIT
 		                                  | VK_COLOR_COMPONENT_B_BIT
 		                                  | VK_COLOR_COMPONENT_A_BIT;
 		color_attachment.blendEnable = VK_FALSE;
 
-		VkPipelineColorBlendStateCreateInfo color_blend_state;
-		memset(&color_blend_state, 0, sizeof(VkPipelineColorBlendStateCreateInfo));
+		VkPipelineColorBlendStateCreateInfo color_blend_state = EMPTY;
 		color_blend_state.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;               
 		color_blend_state.attachmentCount = 1;
 		color_blend_state.pAttachments = &color_attachment;
 
-		VkPipelineDepthStencilStateCreateInfo depth_state;
-		memset(&depth_state, 0, sizeof(VkPipelineDepthStencilStateCreateInfo));
+		VkPipelineDepthStencilStateCreateInfo depth_state = EMPTY;
 		depth_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 		depth_state.depthTestEnable = VK_TRUE;
 		depth_state.depthWriteEnable = VK_TRUE;
 		depth_state.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 
-		VkPipelineDynamicStateCreateInfo dynamic_state;
-		memset(&dynamic_state, 0, sizeof(VkPipelineDynamicStateCreateInfo));
+		VkPipelineDynamicStateCreateInfo dynamic_state = EMPTY;
 		dynamic_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 		dynamic_state.dynamicStateCount = 2;
 		VkDynamicState dynamic_states[2] = {
@@ -1023,13 +967,11 @@ int main(void)
 		};
 		dynamic_state.pDynamicStates = dynamic_states;
 
-		VkPushConstantRange push_constant_range;
-		memset(&push_constant_range, 0, sizeof(VkPushConstantRange));
+		VkPushConstantRange push_constant_range = EMPTY;
 		push_constant_range.size = sizeof(Mat4);
 		push_constant_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-		VkPipelineLayoutCreateInfo layout_info;
-		memset(&layout_info, 0, sizeof(VkPipelineLayoutCreateInfo));
+		VkPipelineLayoutCreateInfo layout_info = EMPTY;
 		layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		layout_info.pushConstantRangeCount = 1;
 		layout_info.pPushConstantRanges = &push_constant_range;
@@ -1038,8 +980,7 @@ int main(void)
 
 		VK_CHECK(vkCreatePipelineLayout(vk.device, &layout_info, NULL, &vk.pipeline_layout));
 
-		VkGraphicsPipelineCreateInfo pipeline_info;
-		memset(&pipeline_info, 0, sizeof(VkGraphicsPipelineCreateInfo));
+		VkGraphicsPipelineCreateInfo pipeline_info = EMPTY;
 		pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 		pipeline_info.layout = vk.pipeline_layout;
 		pipeline_info.renderPass = vk.renderpass;
@@ -1064,8 +1005,7 @@ int main(void)
 	createSwapchain(vk.surface, VK_PRESENT_MODE_FIFO_KHR);
 
 	while (!RGFW_window_shouldClose(&window)) {
-		RGFW_event event;
-		memset(&event, 0, sizeof(RGFW_event));
+		RGFW_event event = EMPTY;
 		while (RGFW_window_checkEvent(&window, &event)) {
 			switch (event.type) {
 				case RGFW_windowResized:
@@ -1093,21 +1033,18 @@ int main(void)
 
 		VK_CHECK(vkResetCommandBuffer(cmd, 0));
 
-		VkCommandBufferBeginInfo begin_info;
-		memset(&begin_info, 0, sizeof(VkCommandBufferBeginInfo));
+		VkCommandBufferBeginInfo begin_info = EMPTY;
 		begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		begin_info.pInheritanceInfo = NULL;
 
-		VkClearValue clear_values[2];
-		memset(clear_values, 0, sizeof(VkClearValue));
+		VkClearValue clear_values[2] = EMPTY;
 		clear_values[0].color.float32[0] = 0.5f;
 		clear_values[0].color.float32[1] = 0.5f;
 		clear_values[0].color.float32[2] = 0.5f;
 		clear_values[0].color.float32[3] = 1.0f;
 		clear_values[1].depthStencil.depth = 1.0f;
 
-		VkRenderPassBeginInfo renderpass_info;
-		memset(&renderpass_info, 0, sizeof(VkRenderPassBeginInfo));
+		VkRenderPassBeginInfo renderpass_info = EMPTY;
 		renderpass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderpass_info.renderPass = vk.renderpass;
 		renderpass_info.framebuffer = vk.framebuffers[vk.image_index];
@@ -1120,8 +1057,7 @@ int main(void)
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, vk.pipeline);
 		vkCmdBeginRenderPass(cmd, &renderpass_info, VK_SUBPASS_CONTENTS_INLINE);
 
-		VkViewport viewport;
-		memset(&viewport, 0, sizeof(VkViewport));
+		VkViewport viewport = EMPTY;
 		viewport.width = (float)vk.w;
 		viewport.height = (float)vk.h;
 		viewport.minDepth = 0.0;
@@ -1130,8 +1066,7 @@ int main(void)
 		viewport.y = 0.0;
 		vkCmdSetViewport(cmd, 0, 1, &viewport);
 
-		VkRect2D scissor;
-		memset(&scissor, 0, sizeof(VkRect2D));
+		VkRect2D scissor = EMPTY;
 		scissor.extent.width = vk.w;
 		scissor.extent.height = vk.h;
 		scissor.offset.x = 0;
@@ -1167,8 +1102,7 @@ int main(void)
 
 		VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
-		VkSubmitInfo submit_info;
-		memset(&submit_info, 0, sizeof(VkSubmitInfo));
+		VkSubmitInfo submit_info = EMPTY;
 		submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submit_info.waitSemaphoreCount = 1;
 		submit_info.pWaitSemaphores = &acquire_semaphore;
@@ -1180,8 +1114,7 @@ int main(void)
 
 		VK_CHECK(vkQueueSubmit(vk.graphics_queue, 1, &submit_info, vk.fences[vk.current_frame]));
 
-		VkPresentInfoKHR present_info;
-		memset(&present_info, 0, sizeof(VkPresentInfoKHR));
+		VkPresentInfoKHR present_info = EMPTY;
 		present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		present_info.waitSemaphoreCount = 1;
 		present_info.pWaitSemaphores = &submit_semaphore;
