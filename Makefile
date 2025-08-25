@@ -11,11 +11,11 @@ AR ?= ar
 # used for compiling RGFW.o
 CUSTOM_CFLAGS =
 # used for the examples
-CFLAGS =
+CFLAGS ?= -g
 
 DX11_LIBS = -static -lgdi32 -ldxgi -ld3d11 -luuid -ld3dcompiler
 VULKAN_LIBS = -lgdi32 -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
-LIBS := -static -lgdi32 -ggdb
+LIBS := -static -lgdi32
 LINK_GL1 = -lopengl32
 EXT = .exe
 LIB_EXT = .dll
@@ -140,7 +140,6 @@ else ifeq (,$(filter $(CC),g++ clang++ em++))
 else
 	WARNINGS = -Wall -Werror -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
 
-	NO_VULKAN = 1
 	ifeq ($(detected_OS),Darwin)
 		WARNINGS += -Wno-deprecated -Wno-unknown-warning-option -Wno-pedantic
 	endif
@@ -175,7 +174,7 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/gles2/gles2 \
 	examples/egl/egl \
 	examples/osmesa_demo/osmesa_demo \
-	examples/vk10/vk10 \
+	examples/vulkan/vulkan \
 	examples/dx11/dx11 \
 	examples/metal/metal \
 	examples/minimal_links/minimal_links \
@@ -223,12 +222,12 @@ else
 endif
 
 
-examples/vk10/vk10: examples/vk10/vk10.c examples/vk10/vkinit.h RGFW.h
+examples/vulkan/vulkan: examples/vulkan/vulkan.c RGFW.h
 ifneq ($(NO_VULKAN), 1)
-	glslangValidator -V examples/vk10/shaders/vert.vert -o examples/vk10/shaders/vert.h --vn vert_code
-	glslangValidator -V examples/vk10/shaders/frag.frag -o examples/vk10/shaders/frag.h --vn frag_code
+	glslangValidator -V examples/vulkan/vert.vert -o examples/vulkan/vert.h --vn vert_code
+	glslangValidator -V examples/vulkan/frag.frag -o examples/vulkan/frag.h --vn frag_code
 
-	$(CC)  $(CFLAGS) -I. $< $(VULKAN_LIBS) -o $@
+	$(CC)  $(CFLAGS) -I. -Iexamples/vulkan $< -lm $(VULKAN_LIBS) -o $@
 else
 	@echo vulkan has been disabled
 endif
@@ -350,7 +349,7 @@ ifneq ($(NO_OSMESA), 1)
 		./examples/osmesa_demo/osmesa_demo$(EXT)
 endif
 ifneq ($(NO_VULKAN), 1)
-		./examples/vk10/vk10$(EXT)
+		./examples/vulkan/vulkan$(EXT)
 endif
 ifeq ($(detected_OS), windows)
 		./examples/dx11/dx11.exe
@@ -393,7 +392,7 @@ else
 endif
 
 clean:
-	rm -f *.o *.obj *.dll .dylib *.a *.so $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)  .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.exe .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.js .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.wasm .$(OS_DIR)examples$(OS_DIR)vk10$(OS_DIR)shaders$(OS_DIR)*.h
+	rm -f *.o *.obj *.dll .dylib *.a *.so $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.exe .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.js .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.wasm .$(OS_DIR)examples$(OS_DIR)vulkan$(OS_DIR)*.h
 
 
 .PHONY: all examples clean
