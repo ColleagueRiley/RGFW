@@ -74,7 +74,7 @@ jobs:
 
     - name: test C++
       run: |
-        make CC=g++
+        make CC=g++ NO_VULKAN=1
       if: matrix.bits == 64 && matrix.compiler == 'mingw-w64'
 
     - name: setup Zig
