@@ -1716,6 +1716,8 @@ struct RGFW_info {
         struct xkb_keymap *keymap;
         struct xkb_state *xkb_state;
         struct zxdg_decoration_manager_v1 *decoration_manager;
+        struct zwp_relative_pointer_manager_v1 *relative_pointer_manager;
+        struct zwp_relative_pointer_v1 *relative_pointer;
 		struct wl_keyboard* wl_keyboard;
 		struct wl_compositor* compositor;
 		struct xdg_wm_base* xdg_wm_base;
@@ -5913,6 +5915,7 @@ struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { return win-
 /* wayland global garbage (wayland bad, X11 is fine (ish) (not really)) */
 #include "xdg-shell.h"
 #include "xdg-decoration-unstable-v1.h"
+#include "relative-pointer-unstable-v1.h"
 
 void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized);
 
@@ -6054,6 +6057,27 @@ void RGFW_wl_shm_format_handler(void* data, struct wl_shm *shm, u32 format) {
 	RGFW_UNUSED(data); RGFW_UNUSED(shm); RGFW_UNUSED(format);
 }
 
+void RGFW_wl_relative_pointer_motion(void *data, struct zwp_relative_pointer_v1 *zwp_relative_pointer_v1,
+	u32 time_hi, u32 time_lo, wl_fixed_t dx, wl_fixed_t dy, wl_fixed_t dx_unaccel, wl_fixed_t dy_unaccel) {
+
+	RGFW_UNUSED(data); RGFW_UNUSED(zwp_relative_pointer_v1); RGFW_UNUSED(time_hi); RGFW_UNUSED(time_lo);
+	RGFW_UNUSED(dx_unaccel); RGFW_UNUSED(dy_unaccel);
+
+	RGFW_window* win = (RGFW_window*)zwp_relative_pointer_v1_get_user_data(zwp_relative_pointer_v1);
+
+	float vecX =  (float)wl_fixed_to_double(dx);
+	float vecY = (float)wl_fixed_to_double(dy);
+
+	RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
+									e.mouse.x = win->internal.lastMouseX;
+									e.mouse.y = win->internal.lastMouseY;
+									e.mouse.vecX = vecX;
+									e.mouse.vecY = vecY;
+									e.common.win = win);
+	
+	RGFW_mousePosCallback(win, win->internal.lastMouseX, win->internal.lastMouseY, vecX, vecY);
+}
+
 void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial,
 		struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y) {
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(serial);
@@ -6112,15 +6136,15 @@ void RGFW_wl_pointer_motion(void* data, struct wl_pointer *pointer, u32 time, wl
 	i32 convertedX = (i32)wl_fixed_to_double(x);
 	i32 convertedY = (i32)wl_fixed_to_double(y);
 
-	RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
-									e.mouse.x = convertedX;
-									e.mouse.y = convertedY;
-									e.common.win = win);
+	// RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
+	// 								e.mouse.x = convertedX;
+	// 								e.mouse.y = convertedY;
+	// 								e.common.win = win);
 
 	win->internal.lastMouseX = convertedX;
 	win->internal.lastMouseY = convertedY;
 
-	RGFW_mousePosCallback(win, convertedX, convertedY, 0, 0);
+	// RGFW_mousePosCallback(win, convertedX, convertedY, 0, 0);
 }
 
 void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 serial, u32 time, u32 button, u32 state) {
@@ -6269,6 +6293,8 @@ void RGFW_wl_global_registry_handler(void* data, struct wl_registry *registry, u
 		RGFW->xdg_wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
 	} else if (RGFW_STRNCMP(interface, zxdg_decoration_manager_v1_interface.name, 255) == 0) {
 		RGFW->decoration_manager = wl_registry_bind(registry, id, &zxdg_decoration_manager_v1_interface, 1);
+    } else if (RGFW_STRNCMP(interface, zwp_relative_pointer_manager_v1_interface.name, 255) == 0) {
+		RGFW->relative_pointer_manager = wl_registry_bind(registry, id, &zwp_relative_pointer_manager_v1_interface, 1);
     } else if (RGFW_STRNCMP(interface, "wl_shm", 7) == 0) {
         RGFW->shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
         wl_shm_add_listener(RGFW->shm, &shm_listener, RGFW);
@@ -6392,6 +6418,11 @@ void RGFW_deinitPlatform_Wayland(void) {
 	if (_RGFW->decoration_manager != NULL)
 		zxdg_decoration_manager_v1_destroy(_RGFW->decoration_manager);
 
+	if (_RGFW->relative_pointer_manager != NULL) {
+		zwp_relative_pointer_manager_v1_destroy(_RGFW->relative_pointer_manager);
+		zwp_relative_pointer_v1_destroy(_RGFW->relative_pointer);
+	}
+
 	wl_shm_destroy(_RGFW->shm);
 	wl_seat_release(_RGFW->seat);
 	xdg_wm_base_destroy(_RGFW->xdg_wm_base);
@@ -6488,6 +6519,17 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	win->src.surface = wl_compositor_create_surface(_RGFW->compositor);
 	wl_surface_set_user_data(win->src.surface, win);
 
+	if (_RGFW->relative_pointer_manager != NULL) {
+		_RGFW->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(_RGFW->relative_pointer_manager, wl_seat_get_pointer(_RGFW->seat));
+
+		static const struct zwp_relative_pointer_v1_listener relative_motion_listener = {
+			.relative_motion = RGFW_wl_relative_pointer_motion
+		};
+
+		zwp_relative_pointer_v1_add_listener(_RGFW->relative_pointer, &relative_motion_listener, NULL);
+		zwp_relative_pointer_v1_set_user_data(_RGFW->relative_pointer, win);
+	}
+	
 	win->src.xdg_surface = xdg_wm_base_get_xdg_surface(_RGFW->xdg_wm_base, win->src.surface);
 	xdg_surface_add_listener(win->src.xdg_surface, &xdg_surface_listener, NULL);
 	xdg_surface_set_user_data(win->src.xdg_surface, win);
