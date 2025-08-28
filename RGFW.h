@@ -6739,10 +6739,9 @@ void RGFW_FUNC(RGFW_window_setMousePassthrough) (RGFW_window* win, RGFW_bool pas
 
 RGFW_bool RGFW_FUNC(RGFW_window_setIconEx) (RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format, RGFW_icon type) {
 	RGFW_ASSERT(win != NULL); 
-	RGFW_ASSERT(w == h);
 	RGFW_UNUSED(type);
 
-	if (_RGFW->icon_manager == NULL) return RGFW_FALSE;
+	if (_RGFW->icon_manager == NULL || w != h) return RGFW_FALSE;
 	
 	if (_RGFW->icon) {
 		xdg_toplevel_icon_v1_destroy(_RGFW->icon);
