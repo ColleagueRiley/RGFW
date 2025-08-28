@@ -6401,6 +6401,9 @@ void RGFW_deinitPlatform_Wayland(void) {
 		xdg_toplevel_icon_manager_v1_destroy(_RGFW->icon_manager);
 	}
 
+	if (_RGFW->icon != NULL) {
+		xdg_toplevel_icon_v1_destroy(_RGFW->icon);
+	}
 	wl_shm_destroy(_RGFW->shm);
 	wl_seat_release(_RGFW->seat);
 	xdg_wm_base_destroy(_RGFW->xdg_wm_base);
