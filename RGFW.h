@@ -6735,17 +6735,29 @@ void RGFW_FUNC(RGFW_window_setMousePassthrough) (RGFW_window* win, RGFW_bool pas
 #endif /* RGFW_NO_PASSTHROUGH */
 
 RGFW_bool RGFW_FUNC(RGFW_window_setIconEx) (RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format, RGFW_icon type) {
-	RGFW_ASSERT(win != NULL); RGFW_UNUSED(data); RGFW_UNUSED(type); RGFW_UNUSED(format);
-	if (_RGFW->icon_manager == NULL) return RGFW_FALSE;
+	RGFW_ASSERT(win != NULL); 
+	RGFW_ASSERT(w == h);
+	RGFW_UNUSED(type);
 
+	if (_RGFW->icon_manager == NULL) return RGFW_FALSE;
+	
 	if (_RGFW->icon) {
 		xdg_toplevel_icon_v1_destroy(_RGFW->icon);
+		_RGFW->icon = NULL;
 	}
 
-	// RGFW_surface *icon_surface = RGFW_createSurface(data, w, h, RGFW_formatBGR8);
+	
+	RGFW_surface* surface = RGFW_createSurface(data, w, h, format);
 
-	// _RGFW->icon = xdg_toplevel_icon_manager_v1_create_icon(_RGFW->icon_manager);
-	xdg_toplevel_icon_v1_add_buffer(_RGFW->icon, icon_surface->native.wl_buffer, 1);
+	RGFW_copyImageData(surface->native.buffer, w, RGFW_MIN(h, surface->h), surface->native.format, surface->data, surface->format);
+
+	_RGFW->icon = xdg_toplevel_icon_manager_v1_create_icon(_RGFW->icon_manager);
+	xdg_toplevel_icon_v1_add_buffer(_RGFW->icon, surface->native.wl_buffer, 1);
+	xdg_toplevel_icon_manager_v1_set_icon(_RGFW->icon_manager, win->src.xdg_toplevel, _RGFW->icon);
+
+	
+	
+	RGFW_surface_free(surface);
 	return RGFW_TRUE;
 }
 
