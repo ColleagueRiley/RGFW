@@ -6428,6 +6428,10 @@ void RGFW_deinitPlatform_Wayland(void) {
 		zwp_relative_pointer_v1_destroy(_RGFW->relative_pointer);
 	}
 
+	if (_RGFW->constraint_manager != NULL) {
+		zwp_pointer_constraints_v1_destroy(_RGFW->constraint_manager);
+	}
+
 	wl_shm_destroy(_RGFW->shm);
 	wl_seat_release(_RGFW->seat);
 	xdg_wm_base_destroy(_RGFW->xdg_wm_base);
@@ -6907,6 +6911,10 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 
 	if (win->src.xdg_toplevel) {
 		xdg_toplevel_destroy(win->src.xdg_toplevel);
+	}
+
+	if (win->src.locked_pointer) {
+		zwp_locked_pointer_v1_destroy(win->src.locked_pointer);
 	}
 
 	xdg_surface_destroy(win->src.xdg_surface);
