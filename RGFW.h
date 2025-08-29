@@ -3458,7 +3458,9 @@ void RGFW_waitForEvent(i32 waitMS) {
 
 	i32 clock = 0;
 	#if defined(_POSIX_MONOTONIC_CLOCK)
-	struct timespec ts = {0};
+	struct timespec ts;
+	RGFW_MEMSET(&ts, 0, sizeof(struct timespec));
+
 	if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
 		clock = CLOCK_MONOTONIC;
 	#else
