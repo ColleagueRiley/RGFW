@@ -1565,7 +1565,8 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		struct xdg_surface* xdg_surface;
 		struct xdg_toplevel* xdg_toplevel;
 		struct zxdg_toplevel_decoration_v1* decoration;
-
+		struct zwp_locked_pointer_v1 *locked_pointer;
+		
 		/* State flags to configure the window */
 		RGFW_bool pending_activated;
 		RGFW_bool activated;
@@ -1718,6 +1719,7 @@ struct RGFW_info {
         struct zxdg_decoration_manager_v1 *decoration_manager;
         struct zwp_relative_pointer_manager_v1 *relative_pointer_manager;
         struct zwp_relative_pointer_v1 *relative_pointer;
+        struct zwp_pointer_constraints_v1 *constraint_manager;
 		struct wl_keyboard* wl_keyboard;
 		struct wl_compositor* compositor;
 		struct xdg_wm_base* xdg_wm_base;
@@ -5916,6 +5918,7 @@ struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { return win-
 #include "xdg-shell.h"
 #include "xdg-decoration-unstable-v1.h"
 #include "relative-pointer-unstable-v1.h"
+#include "pointer-constraints-unstable-v1.h"
 
 void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized);
 
@@ -6293,6 +6296,8 @@ void RGFW_wl_global_registry_handler(void* data, struct wl_registry *registry, u
 		RGFW->xdg_wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
 	} else if (RGFW_STRNCMP(interface, zxdg_decoration_manager_v1_interface.name, 255) == 0) {
 		RGFW->decoration_manager = wl_registry_bind(registry, id, &zxdg_decoration_manager_v1_interface, 1);
+    } else if (RGFW_STRNCMP(interface, zwp_pointer_constraints_v1_interface.name, 255) == 0) {
+		RGFW->constraint_manager = wl_registry_bind(registry, id, &zwp_pointer_constraints_v1_interface, 1);
     } else if (RGFW_STRNCMP(interface, zwp_relative_pointer_manager_v1_interface.name, 255) == 0) {
 		RGFW->relative_pointer_manager = wl_registry_bind(registry, id, &zwp_relative_pointer_manager_v1_interface, 1);
     } else if (RGFW_STRNCMP(interface, "wl_shm", 7) == 0) {
@@ -6489,11 +6494,23 @@ void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
 }
 
 void RGFW_FUNC(RGFW_releaseCursor) (RGFW_window* win) {
-    RGFW_UNUSED(win);
+    RGFW_ASSERT(win);
+    // compositor has no support or window is not locked do nothing
+    if (_RGFW->constraint_manager == NULL || !win->src.locked_pointer) return;
+    zwp_locked_pointer_v1_destroy(win->src.locked_pointer);
+    win->src.locked_pointer = NULL;
 }
 
 void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
-    RGFW_UNUSED(win);
+	RGFW_ASSERT(win);
+	// compositor has no support or window already is locked do nothing
+	if (_RGFW->constraint_manager == NULL || win->src.locked_pointer) return;
+
+	win->src.locked_pointer = zwp_pointer_constraints_v1_lock_pointer(_RGFW->constraint_manager, win->src.surface, wl_seat_get_pointer(_RGFW->seat), NULL, ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+	
+
+	RGFW_window_moveMouse(win, win->x + (i32)(win->w / 2), win->y + (i32)(win->h / 2));
+	
 }
 
 #ifdef RGFW_OPENGL
@@ -6782,7 +6799,12 @@ void RGFW_FUNC(RGFW_freeMouse)(RGFW_mouse* mouse) {
 }
 
 void RGFW_FUNC(RGFW_window_moveMouse)(RGFW_window* win, i32 x, i32 y) {
-    RGFW_UNUSED(win); RGFW_UNUSED(x); RGFW_UNUSED(y);
+    RGFW_UNUSED(win);
+    if (_RGFW->constraint_manager == NULL) return;
+
+    if (win->src.locked_pointer) {
+		zwp_locked_pointer_v1_set_cursor_position_hint(win->src.locked_pointer, wl_fixed_from_int(x - win->x), wl_fixed_from_int(y - win->y));
+    }
 }
 
 RGFW_bool RGFW_FUNC(RGFW_window_setMouseDefault)(RGFW_window* win) {
