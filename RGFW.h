@@ -3456,9 +3456,9 @@ void RGFW_waitForEvent(i32 waitMS) {
     index++;
 #endif
 
-	i32 clock;
+	i32 clock = 0;
 	#if defined(_POSIX_MONOTONIC_CLOCK)
-	struct timespec ts;
+	struct timespec ts = {0};
 	if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
 		clock = CLOCK_MONOTONIC;
 	#else
@@ -4005,7 +4005,8 @@ void RGFW_window_getVisual(XVisualInfo* visual, RGFW_bool transparent) {
 	}
 }
 
-static int RGFW_XErrorHandler(Display* display, XErrorEvent* ev) {
+RGFWDEF int RGFW_XErrorHandler(Display* display, XErrorEvent* ev);
+int RGFW_XErrorHandler(Display* display, XErrorEvent* ev) {
     char errorText[512];
     XGetErrorText(display, ev->error_code, errorText, sizeof(errorText));
 
