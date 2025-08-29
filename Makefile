@@ -12,10 +12,11 @@ AR ?= ar
 CUSTOM_CFLAGS =
 # used for the examples
 CFLAGS =
+CFLAGS += -g3
 
 DX11_LIBS = -static -lgdi32 -ldxgi -ld3d11 -luuid -ld3dcompiler
 VULKAN_LIBS = -lgdi32 -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
-LIBS := -static -lgdi32 -ggdb
+LIBS := -static -lgdi32
 LINK_GL1 = -lopengl32
 EXT = .exe
 LIB_EXT = .dll
