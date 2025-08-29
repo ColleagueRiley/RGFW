@@ -220,7 +220,7 @@ int main() {
 	#define RGFW_MACOS
 #endif
 
-#if !defined(RGFW_SNPRINTF) && defined(RGFW_X11)
+#if !defined(RGFW_SNPRINTF) && (defined(RGFW_X11) || defined(RGFW_WAYLAND))
 	/* required for X11 errors */
 	#include <stdio.h>
 	#define RGFW_SNPRINTF snprintf
@@ -461,6 +461,9 @@ RGFWDEF RGFW_mouse* RGFW_loadMouse(u8* data, i32 w, i32 h, RGFW_format format);
 RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
 
 #ifndef RGFW_NO_MONITOR
+	#ifndef RGFW_MAX_MONITORS
+	#define RGFW_MAX_MONITORS 6
+	#endif
 	/* monitor mode data | can be changed by the user (with functions)*/
 	typedef struct RGFW_monitorMode {
 		i32 w, h; /*!< monitor workarea size */
@@ -476,6 +479,11 @@ RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
 		float pixelRatio; /*!< pixel ratio for monitor (1.0 for regular, 2.0 for hiDPI)  */
 		float physW, physH; /*!< monitor physical size in inches */
 
+	#ifdef RGFW_WAYLAND
+		u32 id; /* Add id so wl_outputs can be removed */
+		struct wl_output *output;
+		struct zxdg_output_v1 *xdg_output;
+	#endif
 		RGFW_monitorMode mode;
 	} RGFW_monitor;
 
@@ -1569,10 +1577,8 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		/* State flags to configure the window */
 		RGFW_bool pending_activated;
 		RGFW_bool activated;
-		RGFW_bool pending_fullscreen;
-		RGFW_bool fullscreen;
-		RGFW_bool pending_maximized;
 		RGFW_bool resizing;
+		RGFW_bool pending_maximized;
 		RGFW_bool maximized;
 
 		#ifdef RGFW_LIBDECOR
@@ -1668,9 +1674,22 @@ typedef struct RGFW_windowState {
 } RGFW_windowState;
 
 typedef struct {
-	RGFW_bool current ;
-	RGFW_bool prev ;
+	RGFW_bool current;
+	RGFW_bool prev;
 } RGFW_keyState;
+
+#ifndef RGFW_NO_MONITOR
+	typedef struct RGFW_monitor_list {
+		RGFW_monitor* cur;
+		struct RGFW_monitor_list* next;
+	} RGFW_monitor_list;
+
+	typedef struct RGFW_monitors {
+		RGFW_monitor_list* list;
+		RGFW_monitor_list* free_list;
+		u8 count;
+	} RGFW_monitors;
+#endif
 
 struct RGFW_info {
     RGFW_window* root;
@@ -1716,18 +1735,21 @@ struct RGFW_info {
         struct xkb_keymap *keymap;
         struct xkb_state *xkb_state;
         struct zxdg_decoration_manager_v1 *decoration_manager;
-		struct wl_keyboard* wl_keyboard;
-		struct wl_compositor* compositor;
-		struct xdg_wm_base* xdg_wm_base;
-		struct wl_shm* shm;
-		struct wl_seat *seat;
-		struct wl_registry *registry;
+        struct zxdg_output_manager_v1 *xdg_output_manager;
+        struct wl_keyboard* wl_keyboard;
+        struct wl_compositor* compositor;
+        struct xdg_wm_base* xdg_wm_base;
+        struct wl_shm* shm;
+        struct wl_seat *seat;
+        struct wl_registry *registry;
 
         struct wl_cursor_theme* wl_cursor_theme;
         struct wl_surface* cursor_surface;
         struct wl_cursor_image* cursor_image;
+     
+        RGFW_monitors monitors;
+        RGFW_window* kbOwner;
 
-		RGFW_window* kbOwner;
     #endif
 
     #ifdef __linux__
@@ -5917,6 +5939,7 @@ struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { return win-
 /* wayland global garbage (wayland bad, X11 is fine (ish) (not really)) */
 #include "xdg-shell.h"
 #include "xdg-decoration-unstable-v1.h"
+#include "xdg-output-unstable-v1.h"
 
 void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized);
 
@@ -5955,40 +5978,23 @@ void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface* xdg_s
 	}
 
 	if (win->src.maximized != win->src.pending_maximized) {
+		RGFW_toggleWaylandMaximized(win, win->src.pending_maximized);
+
 		RGFW_window_checkMode(win);
-
-		win->src.maximized = win->src.pending_maximized;
-		RGFW_toggleWaylandMaximized(win, win->src.maximized);
-
-		// do not create a maximize event if maximize is used to
-		// restore the old window size
-		if (win->src.maximized && (win->internal.enabledEvents & RGFW_windowMaximizedFlag)) {
-			win->internal.flags |= RGFW_windowMaximize;
-			RGFW_eventQueuePushEx(e.type = RGFW_windowMaximized; e.common.win = win);
-			RGFW_windowMaximizedCallback(win, win->x, win->y, win->w, win->h);
-		}
-
-
 	}
-	// TODO implement fullscreen; need wl_output
+	
 
-	i32 width = win->w;
-	i32 height = win->h;
-	if (win->src.resizing) {
-		RGFW_window_checkMode(win);
-		win->src.w = width;
-		win->src.h = height;
+	if (win->src.resizing) {		
 
 		// Do not create a resize event if the window is maximized
 		if (!win->src.maximized && win->internal.enabledEvents & RGFW_windowResizedFlag) {
-			RGFW_eventQueuePushEx(e.type = RGFW_windowResized; e.mouse.x = width; e.mouse.y = height; e.common.win = win);
+			RGFW_eventQueuePushEx(e.type = RGFW_windowResized; e.common.win = win);
 			RGFW_windowResizedCallback(win, win->w, win->h);
 		}
-		RGFW_window_resize(win, width, height);
-	}
-
-	if (!(win->internal.flags & RGFW_windowTransparent)) {
-		RGFW_wl_setOpaque(win);
+		RGFW_window_resize(win, win->w, win->h);
+		if (!(win->internal.flags & RGFW_windowTransparent)) {
+			RGFW_wl_setOpaque(win);
+		}
 	}
 
 }
@@ -6004,7 +6010,6 @@ void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplevel* top
 	}
 
     win->src.pending_activated = RGFW_FALSE;
-    win->src.pending_fullscreen = RGFW_FALSE;
     win->src.pending_maximized = RGFW_FALSE;
     win->src.resizing = RGFW_FALSE;
 
@@ -6017,9 +6022,6 @@ void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplevel* top
 				break;
 			case XDG_TOPLEVEL_STATE_MAXIMIZED:
 				win->src.pending_maximized = RGFW_TRUE;
-				break;
-			case XDG_TOPLEVEL_STATE_FULLSCREEN:
-				win->src.pending_fullscreen = RGFW_TRUE;
 				break;
 			default:
 				break;
@@ -6261,7 +6263,158 @@ void RGFW_wl_seat_capabilities (void* data, struct wl_seat *seat, u32 capabiliti
 	}
 }
 
+void RGFW_wl_output_set_geometry(void *data, struct wl_output *wl_output,
+			 int32_t x, int32_t y, int32_t physical_width, int32_t physical_height,
+			 int32_t subpixel, const char *make, const char *model, int32_t transform) {
+
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+	monitor->x = x;
+	monitor->y = y;
+
+	monitor->physW = (float)physical_width / 25.4f;
+	monitor->physH = (float)physical_height / 25.4f;
+
+	RGFW_UNUSED(wl_output);
+	RGFW_UNUSED(subpixel);
+	RGFW_UNUSED(make);
+	RGFW_UNUSED(model);
+	RGFW_UNUSED(transform);	
+}
+
+void RGFW_wl_output_set_mode(void *data, struct wl_output *wl_output, uint32_t flags,
+		     int32_t width, int32_t height, int32_t refresh) {
+
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+	monitor->mode.w = width;
+	monitor->mode.h = height;
+	monitor->mode.refreshRate = (u32)RGFW_ROUND( ((float)refresh / 1000) );
+	RGFW_UNUSED(width);
+	RGFW_UNUSED(height);
+	RGFW_UNUSED(wl_output);
+	RGFW_UNUSED(flags);
+}
+
+void RGFW_wl_output_set_scale(void *data, struct wl_output *wl_output, int32_t factor) {
+	// this is for pixelRatio
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+	monitor->pixelRatio = (float)factor; 
+	RGFW_UNUSED(wl_output);
+}
+
+void RGFW_wl_output_set_name(void *data, struct wl_output *wl_output, const char *name) {
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+	RGFW_STRNCPY(monitor->name, name, sizeof(monitor->name) - 1);
+	monitor->name[sizeof(monitor->name) - 1] = '\0';
+
+	RGFW_UNUSED(wl_output);
+
+}
+
+void RGFW_xdg_output_logical_pos(void *data, struct zxdg_output_v1 *zxdg_output_v1, int32_t x, int32_t y) {
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+	monitor->x = x;
+	monitor->y = y;
+	RGFW_UNUSED(zxdg_output_v1);
+}
+
+void RGFW_xdg_output_logical_size(void *data, struct zxdg_output_v1 *zxdg_output_v1, int32_t width, int32_t height) {
+	RGFW_monitor *monitor = (RGFW_monitor*)data;
+
+
+	float mon_float_width = (float) monitor->mode.w;
+	float mon_float_height = (float) monitor->mode.h;
+
+	monitor->scaleX = (mon_float_width / (float) width);
+	monitor->scaleY = (mon_float_height / (float) height);
+
+	// under xwayland the monitor changes w & h when compositor scales it
+	monitor->mode.w = width;
+	monitor->mode.h = height;
+	RGFW_UNUSED(zxdg_output_v1);
+}
+
+void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
+	struct wl_output *output = wl_registry_bind(registry, id, &wl_output_interface, 4);
+
+	if (!output) return;
+
+	if (_RGFW->monitors.count >= RGFW_MAX_MONITORS) return; // too many monitors
+
+	RGFW_monitor_list *list;
+	RGFW_monitor* mon;
+	
+	// check if we have memory we can use
+	if (_RGFW->monitors.free_list != NULL) {
+		list = _RGFW->monitors.free_list;
+		mon = list->cur;
+		_RGFW->monitors.free_list = list->next;
+	} else {
+		list = RGFW_ALLOC(sizeof(RGFW_monitor_list));
+		mon = RGFW_ALLOC(sizeof(RGFW_monitor));
+	}
+
+	
+	if (_RGFW->monitors.list == NULL) {
+		_RGFW->monitors.list = list;
+	} else { // there is at least one monitor in the list
+		// insert it at the end
+		RGFW_monitor_list *cur_list = _RGFW->monitors.list;
+		
+		while (cur_list->next != NULL) {
+			cur_list = cur_list->next;
+		}
+		cur_list->next = list;	
+	}
+	
+	list->cur = mon;
+	_RGFW->monitors.count += 1;
+
+	char RGFW_mon_default_name[10];
+
+	RGFW_SNPRINTF(RGFW_mon_default_name, sizeof(RGFW_mon_default_name), "monitor-%c", _RGFW->monitors.count);
+	RGFW_STRNCPY(mon->name, RGFW_mon_default_name, sizeof(mon->name) - 1);
+	mon->name[sizeof(mon->name) - 1] = '\0';
+
+	mon->id = id;
+	mon->output = output;
+
+	// set in case compositor does not send one
+	// or no xdg_output support
+	mon->scaleY = mon->scaleX = mon->pixelRatio = 1.0f;
+
+	static const struct wl_output_listener wl_output_listener = {
+			.geometry = RGFW_wl_output_set_geometry,
+			.mode = RGFW_wl_output_set_mode,
+			.done = (void (*)(void *,struct wl_output *))&RGFW_doNothing,
+			.scale = RGFW_wl_output_set_scale,
+			.name = RGFW_wl_output_set_name,
+			.description = (void (*)(void *, struct wl_output *, const char *))&RGFW_doNothing
+	};
+
+	// pass the monitor so we can access it in the callback functions
+	wl_output_add_listener(output, &wl_output_listener, mon);
+
+	if (!_RGFW->xdg_output_manager) return; // compositor does not support it 
+
+	static const struct zxdg_output_v1_listener xdg_output_listener = {
+		.name = (void (*)(void *,struct zxdg_output_v1 *, const char *))&RGFW_doNothing,
+		.done = (void (*)(void *,struct zxdg_output_v1 *))&RGFW_doNothing,
+		.description = (void (*)(void *,struct zxdg_output_v1 *, const char *))&RGFW_doNothing,
+		.logical_position = RGFW_xdg_output_logical_pos,
+		.logical_size = RGFW_xdg_output_logical_size
+	};
+
+	mon->xdg_output = zxdg_output_manager_v1_get_xdg_output(_RGFW->xdg_output_manager, mon->output);
+	zxdg_output_v1_add_listener(mon->xdg_output, &xdg_output_listener, mon);
+
+}
+
 void RGFW_wl_global_registry_handler(void* data, struct wl_registry *registry, u32 id, const char *interface, u32 version) {
+  
     static struct wl_seat_listener seat_listener = {&RGFW_wl_seat_capabilities, (void (*)(void *, struct wl_seat *, const char *))&RGFW_doNothing};
     static const struct wl_shm_listener shm_listener = { .format = RGFW_wl_shm_format_handler };
 
@@ -6279,10 +6432,60 @@ void RGFW_wl_global_registry_handler(void* data, struct wl_registry *registry, u
 	} else if (RGFW_STRNCMP(interface,"wl_seat", 8) == 0) {
 		RGFW->seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
 		wl_seat_add_listener(RGFW->seat, &seat_listener, RGFW);
+	} else if (RGFW_STRNCMP(interface, zxdg_output_manager_v1_interface.name, 255) == 0) {
+		_RGFW->xdg_output_manager = wl_registry_bind(registry, id, &zxdg_output_manager_v1_interface, 1);
+	} else if (RGFW_STRNCMP(interface,"wl_output", 10) == 0) {
+		RGFW_wl_create_outputs(registry, id);
 	}
 }
 
-void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u32 name) { RGFW_UNUSED(data); RGFW_UNUSED(registry); RGFW_UNUSED(name); }
+void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u32 id) { 
+	RGFW_UNUSED(data); RGFW_UNUSED(registry);
+	
+	if (_RGFW->monitors.count < 1) return; // just in case there are no monitors
+	RGFW_monitor_list *list = _RGFW->monitors.list;
+	// stop just before theh monitor with the same id
+	RGFW_monitor *mon;
+
+	// check if monitor is the head
+	if (list->cur->id == id) {
+		mon = list->cur;
+	} else { // otherwise look for it
+		while(list->next != NULL && list->next->cur->id != id) {
+			list = list->next;
+		}
+		// we are at the end of the list bc the id is not associated with a monitor
+		if (list->next == NULL) return;  
+		mon = list->next->cur;
+	}
+
+	if (mon->output) {
+		wl_output_destroy(mon->output);
+	}
+
+	if (mon->xdg_output) {
+		zxdg_output_v1_destroy(mon->xdg_output);
+	}
+
+	mon = NULL;
+	_RGFW->monitors.count -= 1;
+	
+	// now remove it from the list
+	RGFW_monitor_list *temp_list = list->next;
+	list->next = temp_list->next;
+	temp_list->next = NULL; // since we are reusing memory make it point to null
+
+	// insert this memory into freelist to reuse later
+	if (_RGFW->monitors.free_list == NULL) {
+		_RGFW->monitors.free_list = temp_list;
+	} else {
+		RGFW_monitor_list *freelist = _RGFW->monitors.free_list->next;
+		while (freelist != NULL) {
+			freelist = freelist->next;
+		}
+		freelist = temp_list;
+	}
+}
 
 void RGFW_wl_randname(char *buf) {
 	struct timespec ts;
@@ -6665,13 +6868,18 @@ void RGFW_FUNC(RGFW_window_raise)(RGFW_window* win) {
 void RGFW_FUNC(RGFW_window_setFullscreen)(RGFW_window* win, RGFW_bool fullscreen) {
 	RGFW_ASSERT(win != NULL);
     if (fullscreen) {
+
 		win->internal.flags |= RGFW_windowFullscreen;
 		win->internal.oldX = win->x;
 		win->internal.oldY = win->y;
 		win->internal.oldW = win->w;
 		win->internal.oldH = win->h;
+		xdg_toplevel_set_fullscreen(win->src.xdg_toplevel, NULL); // let the compositor decide
+	} else {
+		win->internal.flags &= ~(u32)RGFW_windowFullscreen;
+		xdg_toplevel_unset_fullscreen(win->src.xdg_toplevel);
 	}
-	else win->internal.flags &= ~(u32)RGFW_windowFullscreen;
+
 }
 
 void RGFW_FUNC(RGFW_window_setFloating) (RGFW_window* win, RGFW_bool floating) {
@@ -6708,8 +6916,7 @@ void RGFW_FUNC(RGFW_window_restore)(RGFW_window* win) {
 }
 
 RGFW_bool RGFW_FUNC(RGFW_window_isFloating)(RGFW_window* win) {
-	RGFW_UNUSED(win);
-	return RGFW_FALSE;
+	return (!RGFW_window_isFullscreen(win) && !RGFW_window_isMaximized(win));
 }
 
 void RGFW_FUNC(RGFW_window_setName) (RGFW_window* win, const char* name) {
@@ -6802,13 +7009,24 @@ RGFW_bool RGFW_FUNC(RGFW_window_isMaximized) (RGFW_window* win) {
 }
 
 RGFW_monitor* RGFW_FUNC(RGFW_getMonitors) (size_t* len) {
-	static RGFW_monitor monitors[7];
-	RGFW_UNUSED(len);
-    return monitors; /* TODO WAYLAND */
+	static RGFW_monitor monitors[RGFW_MAX_MONITORS];
+	RGFW_init();
+	if (len != NULL) {
+		*len = _RGFW->monitors.count;
+	}
+
+	u8 i = 0;
+	RGFW_monitor_list *cur_list = _RGFW->monitors.list;
+	while (cur_list != NULL) {
+		monitors[i] = *cur_list->cur;
+		++i;
+		cur_list = cur_list->next;
+	}
+    return monitors;
 }
 
 RGFW_monitor RGFW_FUNC(RGFW_getPrimaryMonitor) (void) {
-	return (RGFW_monitor){ 0 }; /* TODO WAYLAND */
+	return *_RGFW->monitors.list->cur;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
@@ -6849,8 +7067,45 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 		xdg_toplevel_destroy(win->src.xdg_toplevel);
 	}
 
+	if (_RGFW->xdg_output_manager) {
+		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
+	}
+
 	xdg_surface_destroy(win->src.xdg_surface);
 	wl_surface_destroy(win->src.surface);
+	
+	RGFW_monitor_list *list = _RGFW->monitors.list;
+
+	while (list != NULL) {
+		RGFW_monitor* mon = list->cur;
+		if (mon->output) {
+			wl_output_destroy(mon->output);
+		}
+
+		if (mon->xdg_output) {
+			zxdg_output_v1_destroy(mon->xdg_output);
+		}
+		RGFW_FREE(mon);
+		_RGFW->monitors.count -= 1;
+		RGFW_monitor_list *temp = list;
+
+		list = list->next;
+		RGFW_FREE(temp);
+		
+	}
+
+	list = _RGFW->monitors.free_list;
+	
+	while (list != NULL) {
+		RGFW_monitor* mon = list->cur;
+	
+		RGFW_FREE(mon);
+		RGFW_monitor_list *temp = list;
+
+		list = list->next;
+		RGFW_FREE(temp);
+		
+	}
 }
 
 #ifdef RGFW_WEBGPU
