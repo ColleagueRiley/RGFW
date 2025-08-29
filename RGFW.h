@@ -5499,17 +5499,14 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 	/* start by creating a GLX config / X11 Viusal */
 	XVisualInfo visual;
 	GLXFBConfig bestFbc;
-	i32 visual_attribs[40] = {
-		GLX_X_VISUAL_TYPE,
-		GLX_TRUE_COLOR,
-		GLX_X_RENDERABLE, 1,
-		GLX_RENDER_TYPE, GLX_RGBA_BIT,
-		GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
-	};
 
+	i32 visual_attribs[40];
 	RGFW_attribStack stack;
 	RGFW_attribStack_init(&stack, visual_attribs, 40);
-
+	RGFW_attribStack_pushAttribs(&stack, GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR);
+	RGFW_attribStack_pushAttribs(&stack, GLX_X_RENDERABLE, 1);
+	RGFW_attribStack_pushAttribs(&stack, GLX_RENDER_TYPE, GLX_RGBA_BIT);
+	RGFW_attribStack_pushAttribs(&stack, GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT);
 	RGFW_attribStack_pushAttribs(&stack, GLX_DOUBLEBUFFER, 1);
 	RGFW_attribStack_pushAttribs(&stack, GLX_ALPHA_SIZE, hints->alpha);
 	RGFW_attribStack_pushAttribs(&stack, GLX_DEPTH_SIZE, hints->depth);
@@ -5937,7 +5934,7 @@ void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface* xdg_s
 	RGFW_UNUSED(data);
 
     xdg_surface_ack_configure(xdg_surface, serial);
-   
+
     RGFW_window* win = (RGFW_window*)xdg_surface_get_user_data(xdg_surface);
 
     if (win == NULL) {
