@@ -1565,7 +1565,8 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		struct xdg_surface* xdg_surface;
 		struct xdg_toplevel* xdg_toplevel;
 		struct zxdg_toplevel_decoration_v1* decoration;
-
+		struct zwp_locked_pointer_v1 *locked_pointer;
+		
 		/* State flags to configure the window */
 		RGFW_bool pending_activated;
 		RGFW_bool activated;
@@ -1716,6 +1717,9 @@ struct RGFW_info {
         struct xkb_keymap *keymap;
         struct xkb_state *xkb_state;
         struct zxdg_decoration_manager_v1 *decoration_manager;
+        struct zwp_relative_pointer_manager_v1 *relative_pointer_manager;
+        struct zwp_relative_pointer_v1 *relative_pointer;
+        struct zwp_pointer_constraints_v1 *constraint_manager;
 		struct wl_keyboard* wl_keyboard;
 		struct wl_compositor* compositor;
 		struct xdg_wm_base* xdg_wm_base;
@@ -5917,6 +5921,8 @@ struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { return win-
 /* wayland global garbage (wayland bad, X11 is fine (ish) (not really)) */
 #include "xdg-shell.h"
 #include "xdg-decoration-unstable-v1.h"
+#include "relative-pointer-unstable-v1.h"
+#include "pointer-constraints-unstable-v1.h"
 
 void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized);
 
@@ -6058,6 +6064,27 @@ void RGFW_wl_shm_format_handler(void* data, struct wl_shm *shm, u32 format) {
 	RGFW_UNUSED(data); RGFW_UNUSED(shm); RGFW_UNUSED(format);
 }
 
+void RGFW_wl_relative_pointer_motion(void *data, struct zwp_relative_pointer_v1 *zwp_relative_pointer_v1,
+	u32 time_hi, u32 time_lo, wl_fixed_t dx, wl_fixed_t dy, wl_fixed_t dx_unaccel, wl_fixed_t dy_unaccel) {
+
+	RGFW_UNUSED(data); RGFW_UNUSED(zwp_relative_pointer_v1); RGFW_UNUSED(time_hi); RGFW_UNUSED(time_lo);
+	RGFW_UNUSED(dx_unaccel); RGFW_UNUSED(dy_unaccel);
+
+	RGFW_window* win = (RGFW_window*)zwp_relative_pointer_v1_get_user_data(zwp_relative_pointer_v1);
+
+	float vecX =  (float)wl_fixed_to_double(dx);
+	float vecY = (float)wl_fixed_to_double(dy);
+
+	RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
+									e.mouse.x = win->internal.lastMouseX;
+									e.mouse.y = win->internal.lastMouseY;
+									e.mouse.vecX = vecX;
+									e.mouse.vecY = vecY;
+									e.common.win = win);
+	
+	RGFW_mousePosCallback(win, win->internal.lastMouseX, win->internal.lastMouseY, vecX, vecY);
+}
+
 void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial,
 		struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y) {
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(serial);
@@ -6116,15 +6143,15 @@ void RGFW_wl_pointer_motion(void* data, struct wl_pointer *pointer, u32 time, wl
 	i32 convertedX = (i32)wl_fixed_to_double(x);
 	i32 convertedY = (i32)wl_fixed_to_double(y);
 
-	RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
-									e.mouse.x = convertedX;
-									e.mouse.y = convertedY;
-									e.common.win = win);
+	// RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
+	// 								e.mouse.x = convertedX;
+	// 								e.mouse.y = convertedY;
+	// 								e.common.win = win);
 
 	win->internal.lastMouseX = convertedX;
 	win->internal.lastMouseY = convertedY;
 
-	RGFW_mousePosCallback(win, convertedX, convertedY, 0, 0);
+	// RGFW_mousePosCallback(win, convertedX, convertedY, 0, 0);
 }
 
 void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 serial, u32 time, u32 button, u32 state) {
@@ -6168,7 +6195,7 @@ void RGFW_wl_pointer_axis(void* data, struct wl_pointer *pointer, u32 time, u32 
 
 void RGFW_doNothing(void) { }
 
-void RGFW_wl_keyboard_keymap (void* data, struct wl_keyboard *keyboard, u32 format, i32 fd, u32 size) {
+void RGFW_wl_keyboard_keymap(void* data, struct wl_keyboard *keyboard, u32 format, i32 fd, u32 size) {
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(format);
 
 	char *keymap_string = mmap (NULL, size, PROT_READ, MAP_SHARED, fd, 0);
@@ -6180,7 +6207,7 @@ void RGFW_wl_keyboard_keymap (void* data, struct wl_keyboard *keyboard, u32 form
 	xkb_state_unref (_RGFW->xkb_state);
 	_RGFW->xkb_state = xkb_state_new (_RGFW->keymap);
 }
-void RGFW_wl_keyboard_enter (void* data, struct wl_keyboard *keyboard, u32 serial, struct wl_surface *surface, struct wl_array *keys) {
+void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32 serial, struct wl_surface *surface, struct wl_array *keys) {
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(keys);
 
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
@@ -6194,7 +6221,7 @@ void RGFW_wl_keyboard_enter (void* data, struct wl_keyboard *keyboard, u32 seria
 
 	if ((win->internal.holdMouse)) RGFW_window_holdMouse(win);
 }
-void RGFW_wl_keyboard_leave (void* data, struct wl_keyboard *keyboard, u32 serial, struct wl_surface *surface) {
+void RGFW_wl_keyboard_leave(void* data, struct wl_keyboard *keyboard, u32 serial, struct wl_surface *surface) {
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial);
 
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
@@ -6207,7 +6234,7 @@ void RGFW_wl_keyboard_leave (void* data, struct wl_keyboard *keyboard, u32 seria
 	RGFW_focusCallback(win, RGFW_FALSE);
     RGFW_window_focusLost(win);
 }
-void RGFW_wl_keyboard_key (void* data, struct wl_keyboard *keyboard, u32 serial, u32 time, u32 key, u32 state) {
+void RGFW_wl_keyboard_key(void* data, struct wl_keyboard *keyboard, u32 serial, u32 time, u32 key, u32 state) {
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(time);
 
 	if (_RGFW->kbOwner == NULL) return;
@@ -6229,11 +6256,11 @@ void RGFW_wl_keyboard_key (void* data, struct wl_keyboard *keyboard, u32 serial,
 	RGFW_updateKeyMods(RGFW_key_win, RGFW_BOOL(xkb_keymap_mod_get_index(_RGFW->keymap, "Lock")), RGFW_BOOL(xkb_keymap_mod_get_index(_RGFW->keymap, "Mod2")), RGFW_BOOL(xkb_keymap_mod_get_index(_RGFW->keymap, "ScrollLock")));
 	RGFW_keyCallback(RGFW_key_win, (u8)RGFWkey, (u8)keysym, RGFW_key_win->internal.mod, RGFW_window_isKeyDown(RGFW_key_win, (u8)RGFWkey), RGFW_BOOL(state));
 }
-void RGFW_wl_keyboard_modifiers (void* data, struct wl_keyboard *keyboard, u32 serial, u32 mods_depressed, u32 mods_latched, u32 mods_locked, u32 group) {
+void RGFW_wl_keyboard_modifiers(void* data, struct wl_keyboard *keyboard, u32 serial, u32 mods_depressed, u32 mods_latched, u32 mods_locked, u32 group) {
 	RGFW_UNUSED(data); RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(time);
 	xkb_state_update_mask (_RGFW->xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
 }
-void RGFW_wl_seat_capabilities (void* data, struct wl_seat *seat, u32 capabilities) {
+void RGFW_wl_seat_capabilities(void* data, struct wl_seat *seat, u32 capabilities) {
 	RGFW_UNUSED(data);
     static struct wl_pointer_listener pointer_listener;
 	RGFW_MEMSET(&pointer_listener, 0, sizeof (pointer_listener));
@@ -6273,6 +6300,10 @@ void RGFW_wl_global_registry_handler(void* data, struct wl_registry *registry, u
 		RGFW->xdg_wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
 	} else if (RGFW_STRNCMP(interface, zxdg_decoration_manager_v1_interface.name, 255) == 0) {
 		RGFW->decoration_manager = wl_registry_bind(registry, id, &zxdg_decoration_manager_v1_interface, 1);
+    } else if (RGFW_STRNCMP(interface, zwp_pointer_constraints_v1_interface.name, 255) == 0) {
+		RGFW->constraint_manager = wl_registry_bind(registry, id, &zwp_pointer_constraints_v1_interface, 1);
+    } else if (RGFW_STRNCMP(interface, zwp_relative_pointer_manager_v1_interface.name, 255) == 0) {
+		RGFW->relative_pointer_manager = wl_registry_bind(registry, id, &zwp_relative_pointer_manager_v1_interface, 1);
     } else if (RGFW_STRNCMP(interface, "wl_shm", 7) == 0) {
         RGFW->shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
         wl_shm_add_listener(RGFW->shm, &shm_listener, RGFW);
@@ -6396,6 +6427,15 @@ void RGFW_deinitPlatform_Wayland(void) {
 	if (_RGFW->decoration_manager != NULL)
 		zxdg_decoration_manager_v1_destroy(_RGFW->decoration_manager);
 
+	if (_RGFW->relative_pointer_manager != NULL) {
+		zwp_relative_pointer_manager_v1_destroy(_RGFW->relative_pointer_manager);
+		zwp_relative_pointer_v1_destroy(_RGFW->relative_pointer);
+	}
+
+	if (_RGFW->constraint_manager != NULL) {
+		zwp_pointer_constraints_v1_destroy(_RGFW->constraint_manager);
+	}
+
 	wl_shm_destroy(_RGFW->shm);
 	wl_seat_release(_RGFW->seat);
 	xdg_wm_base_destroy(_RGFW->xdg_wm_base);
@@ -6462,11 +6502,24 @@ void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
 }
 
 void RGFW_FUNC(RGFW_releaseCursor) (RGFW_window* win) {
-    RGFW_UNUSED(win);
+    RGFW_ASSERT(win);
+    // compositor has no support or window is not locked do nothing
+    if (_RGFW->constraint_manager == NULL || !win->src.locked_pointer) return;
+    zwp_locked_pointer_v1_destroy(win->src.locked_pointer);
+    win->src.locked_pointer = NULL;
+    _RGFW->mouseOwner = win; // unhold mouse sets this to null reset it
 }
 
 void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
-    RGFW_UNUSED(win);
+	RGFW_ASSERT(win);
+	// compositor has no support or window already is locked do nothing
+	if (_RGFW->constraint_manager == NULL || win->src.locked_pointer) return;
+
+	win->src.locked_pointer = zwp_pointer_constraints_v1_lock_pointer(_RGFW->constraint_manager, win->src.surface, wl_seat_get_pointer(_RGFW->seat), NULL, ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+	
+
+	RGFW_window_moveMouse(win, win->x + (i32)(win->w / 2), win->y + (i32)(win->h / 2));
+	
 }
 
 #ifdef RGFW_OPENGL
@@ -6492,6 +6545,17 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	win->src.surface = wl_compositor_create_surface(_RGFW->compositor);
 	wl_surface_set_user_data(win->src.surface, win);
 
+	if (_RGFW->relative_pointer_manager != NULL) {
+		_RGFW->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(_RGFW->relative_pointer_manager, wl_seat_get_pointer(_RGFW->seat));
+
+		static const struct zwp_relative_pointer_v1_listener relative_motion_listener = {
+			.relative_motion = RGFW_wl_relative_pointer_motion
+		};
+
+		zwp_relative_pointer_v1_add_listener(_RGFW->relative_pointer, &relative_motion_listener, NULL);
+		zwp_relative_pointer_v1_set_user_data(_RGFW->relative_pointer, win);
+	}
+	
 	win->src.xdg_surface = xdg_wm_base_get_xdg_surface(_RGFW->xdg_wm_base, win->src.surface);
 	xdg_surface_add_listener(win->src.xdg_surface, &xdg_surface_listener, NULL);
 	xdg_surface_set_user_data(win->src.xdg_surface, win);
@@ -6553,6 +6617,13 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 			}
 		#endif
 	}
+
+	// if (_RGFW->constraint_manager) {
+	// 	win->src.locked_pointer = zwp_pointer_constraints_v1_lock_pointer(_RGFW->constraint_manager, win->src.surface, wl_seat_get_pointer(_RGFW->seat), NULL, ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_ONESHOT);
+	// 	RGFW_window_moveMouse(win, win->x + (i32)(win->w / 2), win->y + (i32)(win->h / 2));
+	// 	zwp_locked_pointer_v1_destroy(win->src.locked_pointer);
+	// 	win->src.locked_pointer = NULL;
+	// }
 
 	wl_surface_commit(win->src.surface);
 	RGFW_window_show(win);
@@ -6744,7 +6815,14 @@ void RGFW_FUNC(RGFW_freeMouse)(RGFW_mouse* mouse) {
 }
 
 void RGFW_FUNC(RGFW_window_moveMouse)(RGFW_window* win, i32 x, i32 y) {
-    RGFW_UNUSED(win); RGFW_UNUSED(x); RGFW_UNUSED(y);
+    RGFW_UNUSED(win);
+    if (_RGFW->constraint_manager == NULL) return;
+
+    if (win->src.locked_pointer) {
+		// RFGW_
+		zwp_locked_pointer_v1_set_cursor_position_hint(win->src.locked_pointer, wl_fixed_from_int(x - win->x), wl_fixed_from_int(y - win->y));
+		wl_surface_commit(win->src.surface);
+    }
 }
 
 RGFW_bool RGFW_FUNC(RGFW_window_setMouseDefault)(RGFW_window* win) {
@@ -6847,6 +6925,10 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 
 	if (win->src.xdg_toplevel) {
 		xdg_toplevel_destroy(win->src.xdg_toplevel);
+	}
+
+	if (win->src.locked_pointer) {
+		zwp_locked_pointer_v1_destroy(win->src.locked_pointer);
 	}
 
 	xdg_surface_destroy(win->src.xdg_surface);
