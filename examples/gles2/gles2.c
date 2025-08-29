@@ -31,7 +31,7 @@ GLuint load_shader(const char *shaderSource, GLenum type) {
 int main(void) {
     RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
     hints->major = 2;
-    hints->minor = 2;
+    hints->minor = 0;
     hints->profile = RGFW_glES;
     RGFW_setGlobalHints_OpenGL(hints);
 
