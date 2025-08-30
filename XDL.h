@@ -211,16 +211,17 @@ typedef void (*PFN_XRRFreeScreenConfigInfo)(XRRScreenConfiguration*);
 #ifndef XDL_NO_GLX
 
 #include <GL/glx.h>
+
 typedef XVisualInfo* (*PFN_glXChooseVisual)(Display*, int, int*);
 typedef GLXContext (*PFN_glXCreateContext)(Display*, XVisualInfo*, GLXContext, Bool);
 typedef Bool (*PFN_glXMakeCurrent)(Display*, GLXDrawable, GLXContext);
 typedef GLXContext (*PFN_glXGetCurrentContext)(void);
 typedef void (*PFN_glXSwapBuffers)(Display*, GLXDrawable);
 typedef PFNGLXSWAPINTERVALEXTPROC PFN_glXSwapIntervalEXT;
-typedef void* (*PFN_glXGetProcAddress)(const GLubyte *procname);
+typedef __GLXextFuncPtr  (*PFN_glXGetProcAddress)(const GLubyte *procname);
 typedef PFNGLXGETVISUALFROMFBCONFIGPROC PFN_glXGetVisualFromFBConfig;
 typedef PFNGLXGETFBCONFIGATTRIBPROC PFN_glXGetFBConfigAttrib;
-typedef __GLXextFuncPtr (*PFN_glXGetProcAddressARB)(const GLubyte *);
+typedef __GLXextFuncPtr  (*PFN_glXGetProcAddressARB)(const GLubyte *);
 typedef PFNGLXCHOOSEFBCONFIGPROC PFN_glXChooseFBConfig;
 typedef void (*PFN_glXDestroyContext)(Display *dpy, GLXContext ctx);
 typedef const char* (*PFN_glXQueryExtensionsString)(Display* dpy, int screen);
