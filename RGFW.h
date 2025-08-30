@@ -1,4 +1,4 @@
-/*    *
+/*
 *
 *	RGFW 1.8.0-dev
 
@@ -1761,6 +1761,7 @@ struct RGFW_info {
 RGFWDEF RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags, RGFW_window* win);
 RGFWDEF void RGFW_window_closePlatform(RGFW_window* win);
 
+RGFWDEF void RGFW_window_focusLost(RGFW_window* win);
 RGFWDEF void RGFW_window_setFlagsInternal(RGFW_window* win, RGFW_windowFlags flags, RGFW_windowFlags cmpFlags);
 
 RGFWDEF void RGFW_initKeycodes(void);
@@ -1793,6 +1794,8 @@ typedef struct RGFW_attribStack {
 RGFWDEF void RGFW_attribStack_init(RGFW_attribStack* stack, i32* attribs, size_t max);
 RGFWDEF void RGFW_attribStack_pushAttrib(RGFW_attribStack* stack, i32 attrib);
 RGFWDEF void RGFW_attribStack_pushAttribs(RGFW_attribStack* stack, i32 attrib1, i32 attrib2);
+
+RGFWDEF RGFW_bool RGFW_extensionSupportedStr(const char* extensions, const char* ext, size_t len);
 #endif
 
 typedef struct RGFW_colorLayout {  i32 r, g, b, a; } RGFW_colorLayout;
@@ -2778,7 +2781,7 @@ RGFW_bool RGFW_extensionSupportedStr(const char* extensions, const char* ext, si
     return RGFW_FALSE;
 }
 
-
+RGFWDEF RGFW_bool RGFW_extensionSupported_base(const char* extension, size_t len);
 RGFW_bool RGFW_extensionSupported_base(const char* extension, size_t len) {
     #ifdef GL_NUM_EXTENSIONS
     if (RGFW_globalHints_OpenGL->major >= 3) {
@@ -3867,6 +3870,7 @@ void RGFW_setXInstName(const char* name) { _RGFW->instName = name; }
 void* RGFW_getDisplay_X11(void) { return _RGFW->display; }
 u64 RGFW_window_getWindow_X11(RGFW_window* win) { return (u64)win->src.window; }
 
+RGFWDEF RGFW_format RGFW_XImage_getFormat(XImage* image);
 RGFW_format RGFW_XImage_getFormat(XImage* image) {
     switch (image->bits_per_pixel) {
         case 24:
@@ -3997,6 +4001,7 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
 	if (ptr != NULL) RGFW_MEMCPY(&name##SRC, &ptr, sizeof(PFN_##name)); \
 }
 
+RGFWDEF void RGFW_window_getVisual(XVisualInfo* visual, RGFW_bool transparent);
 void RGFW_window_getVisual(XVisualInfo* visual, RGFW_bool transparent) {
 	visual->visual = DefaultVisual(_RGFW->display, DefaultScreen(_RGFW->display));
 	visual->depth = DefaultDepth(_RGFW->display, DefaultScreen(_RGFW->display));
@@ -4214,6 +4219,7 @@ u8 RGFW_FUNC(RGFW_rgfwToKeyChar) (u32 key) {
     return (u8)sym;
 }
 
+RGFWDEF void RGFW_XHandleEvent(void);
 void RGFW_XHandleEvent(void) {
 	RGFW_LOAD_ATOM(XdndTypeList);
 	RGFW_LOAD_ATOM(XdndSelection);
@@ -5335,16 +5341,22 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	monitor.scaleY = (float) (dpi) / 96.0f;
 
 	#ifndef RGFW_NO_DPI
-		XRRScreenConfiguration *conf = XRRGetScreenInfo(display, RootWindow(display, screen));
+	XRRCrtcInfo* ci = NULL;
+	XRRScreenResources* sr = NULL;
+
+	{
+		XRRScreenConfiguration* conf = XRRGetScreenInfo(display, RootWindow(display, screen));
 		monitor.mode.refreshRate = (u32)XRRConfigCurrentRate(conf);
 
-		XRRScreenResources* sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
-		XRRCrtcInfo* ci = NULL;
+		sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
 		int crtc = screen;
 
 		if (sr->ncrtc > crtc) {
 			ci = XRRGetCrtcInfo(display, sr, sr->crtcs[crtc]);
 		}
+
+		XRRFreeScreenConfigInfo(conf);
+	}
 	#endif
 
 	#ifndef RGFW_NO_DPI
@@ -5456,6 +5468,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor mon, RGFW_monitorMode
 	}
 
     XRRFreeScreenResources(screenRes);
+	XRRFreeScreenConfigInfo(conf);
 #endif
 	return RGFW_FALSE;
 }
@@ -5670,7 +5683,7 @@ RGFW_bool RGFW_FUNC(RGFW_extensionSupportedPlatform_OpenGL)(const char * extensi
 	return (extensions != NULL) && RGFW_extensionSupportedStr(extensions, extension, len);
 }
 
-RGFW_proc RGFW_FUNC(RGFW_getProcAddress_OpenGL)(const char* procname) { return (RGFW_proc) glXGetProcAddress((u8*) procname); }
+RGFW_proc RGFW_FUNC(RGFW_getProcAddress_OpenGL)(const char* procname) { return ((RGFW_proc(*)(u8*))glXGetProcAddress)((u8*) procname); }
 
 void RGFW_FUNC(RGFW_window_makeCurrentContext_OpenGL) (RGFW_window* win) { if (win) RGFW_ASSERT(win->src.ctx.native);
 	if (win == NULL)
@@ -5689,13 +5702,13 @@ void RGFW_FUNC(RGFW_window_swapInterval_OpenGL) (RGFW_window* win, i32 swapInter
 	static int (*pfn2)(int) = NULL;
 
 	if (pfn == (PFNGLXSWAPINTERVALEXTPROC)-1) {
-		pfn = (PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress((u8*)"glXSwapIntervalEXT");
+		pfn = (PFNGLXSWAPINTERVALEXTPROC)((RGFW_proc(*)(u8*))glXGetProcAddress)((u8*)"glXSwapIntervalEXT");
 		if (pfn == NULL)  {
 			const char* array[] = {"GLX_MESA_swap_control", "GLX_SGI_swap_control"};
 
 			size_t i;
 			for (i = 0; i < sizeof(array) / sizeof(char*) && pfn2 == NULL; i++) {
-				pfn2 = (int(*)(int))glXGetProcAddress((u8*)array[i]);
+				pfn2 = (int(*)(int))((RGFW_proc(*)(u8*))glXGetProcAddress)((u8*)array[i]);
 			}
 
 			if (pfn2 != NULL) {
