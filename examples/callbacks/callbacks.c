@@ -15,7 +15,7 @@ void errorfunc(RGFW_debugType type, RGFW_errorCode err, const char* msg) {
 static
 void scaleUpdatedfunc(RGFW_window* win, float scaleX, float scaleY) {
     if (window != win) return;
-    printf("scale updated %f %f\n", scaleX, scaleY);
+    printf("scale updated %f %f\n", (double)scaleX, (double)scaleY);
 }
 
 static
