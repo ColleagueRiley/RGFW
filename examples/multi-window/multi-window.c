@@ -27,12 +27,12 @@ void joinThread(my_thread thread) { WaitForSingleObject((HANDLE) thread, INFINIT
 typedef pthread_t my_thread;
 typedef void* (* threadFunc_ptr)(void*);
 
-my_thread createThread(threadFunc_ptr ptr, void* args) {
+static my_thread createThread(threadFunc_ptr ptr, void* args) {
 	my_thread t;
 	pthread_create((pthread_t*) &t, NULL, *ptr, args);
 	return t;
 }
-void joinThread(my_thread thread) { pthread_join((pthread_t) thread, NULL); }
+static void joinThread(my_thread thread) { pthread_join((pthread_t) thread, NULL); }
 #endif
 
 void checkEvents(RGFW_window* win);
