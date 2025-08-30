@@ -10150,7 +10150,7 @@ void RGFW_window_resize(RGFW_window* win, i32 w, i32 h) {
 
 	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"),  (NSRect){{0, 0}, {(double)win->w, (double)win->h}});
 	((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
-		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{(double)win->x, (double)win->y}, {(double)win->w, (double)win->h + offset}}, true, true);
+		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{(double)win->x, (double)win->y}, {(double)win->w, (double)win->h + (double)offset}}, true, true);
 }
 
 void RGFW_window_focus(RGFW_window* win) {
