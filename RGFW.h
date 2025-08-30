@@ -9229,7 +9229,7 @@ void RGFW_moveToMacOSResourceDir(void) {
 }
 
 
-void RGFW__osxWindowDeminiaturize(id self, SEL sel) {
+static void RGFW__osxWindowDeminiaturize(id self, SEL sel) {
 	RGFW_UNUSED(sel);
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
@@ -9241,7 +9241,7 @@ void RGFW__osxWindowDeminiaturize(id self, SEL sel) {
 	RGFW_windowRestoredCallback(win, win->x, win->y, win->w, win->h);
 
 }
-void RGFW__osxWindowMiniaturize(id self, SEL sel) {
+static void RGFW__osxWindowMiniaturize(id self, SEL sel) {
 	RGFW_UNUSED(sel);
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
@@ -9254,7 +9254,7 @@ void RGFW__osxWindowMiniaturize(id self, SEL sel) {
 
 }
 
-void RGFW__osxWindowBecameKey(id self, SEL sel) {
+static void RGFW__osxWindowBecameKey(id self, SEL sel) {
 	RGFW_UNUSED(sel);
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
@@ -9269,7 +9269,7 @@ void RGFW__osxWindowBecameKey(id self, SEL sel) {
 	RGFW_focusCallback(win, RGFW_TRUE);
 }
 
-void RGFW__osxWindowResignKey(id self, SEL sel) {
+static void RGFW__osxWindowResignKey(id self, SEL sel) {
 	RGFW_UNUSED(sel);
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
@@ -9316,7 +9316,7 @@ static void RGFW__osxDidWindowResize(id self, SEL _cmd, id notification) {
 	RGFW_windowResizedCallback(win, win->w, win->h);
 }
 
-void RGFW__osxWindowMove(id self, SEL sel) {
+static void RGFW__osxWindowMove(id self, SEL sel) {
 	RGFW_UNUSED(sel);
 
 	RGFW_window* win = NULL;
@@ -9332,7 +9332,7 @@ void RGFW__osxWindowMove(id self, SEL sel) {
 	RGFW_windowMovedCallback(win, win->x, win->y);
 }
 
-void RGFW__osxViewDidChangeBackingProperties(id self, SEL _cmd) {
+static void RGFW__osxViewDidChangeBackingProperties(id self, SEL _cmd) {
 	RGFW_UNUSED(_cmd);
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
@@ -9353,7 +9353,7 @@ static void RGFW__osxUpdateLayer(id self, SEL _cmd) {
 	RGFW_windowRefreshCallback(win);
 }
 
-void RGFW__osxDrawRect(id self, SEL _cmd, CGRect rect) {
+static void RGFW__osxDrawRect(id self, SEL _cmd, CGRect rect) {
 	RGFW_UNUSED(rect); RGFW_UNUSED(_cmd);
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
@@ -9363,7 +9363,7 @@ void RGFW__osxDrawRect(id self, SEL _cmd, CGRect rect) {
 	RGFW_windowRefreshCallback(win);
 }
 
-void RGFW__osxMouseEntered(id self, SEL _cmd, id event) {
+static void RGFW__osxMouseEntered(id self, SEL _cmd, id event) {
 	RGFW_UNUSED(_cmd);
 	RGFW_window* win = NULL;
     object_getInstanceVariable(self, "RGFW_window", (void**)&win);

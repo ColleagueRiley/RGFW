@@ -135,11 +135,9 @@ else ifneq (,$(filter $(CC),emcc em++))
 	DX11_LIBS =
 else ifeq (,$(filter $(CC),g++ clang++ em++))
 	LIBS += -std=c99
-	WARNINGS = -Werror -Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
-
 	WARNINGS = -Wall -Werror -Wdouble-promotion -Wmissing-prototypes -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
 else
-	WARNINGS = -Wall -Werror -Wdouble-promotion -Wmissing-prototypes -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
+	WARNINGS = -Wall -Werror -Wdouble-promotion -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
 
 	NO_VULKAN = 1
 	ifeq ($(detected_OS),Darwin)
