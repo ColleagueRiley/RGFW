@@ -149,6 +149,11 @@ ifneq (,$(filter $(detected_OS), windows Windows_NT))
 	NO_OSMESA ?= 1
 endif
 
+ifeq ($(WAYLAND_X11), 1)
+	# lazy fix (no -Wmissing-prototypes for wayland X11)
+	WARNINGS = -Wall -Werror -Wdouble-promotion -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
+endif
+
 EXAMPLE_OUTPUTS = \
 	examples/gl11/gl11 \
 	examples/surface/surface\
