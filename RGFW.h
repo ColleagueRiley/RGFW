@@ -2085,7 +2085,7 @@ i32 RGFW_init_ptr(RGFW_info* info) {
 	_RGFW->monitors.free_list = &_RGFW->monitors.data[0];
 	RGFW_monitorNode* freeNode = _RGFW->monitors.free_list;
 
-	for (size_t i = 0; i < RGFW_MAX_MONITORS; i++) {
+	for (i = 0; i < RGFW_MAX_MONITORS; i++) {
 		RGFW_monitorNode* newNode = &_RGFW->monitors.data[i + 1];
 		freeNode->next = newNode;
 		freeNode = freeNode->next;
@@ -7080,8 +7080,6 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 		}
 
 		_RGFW->monitors.count -= 1;
-		RGFW_monitorNode* temp = node;
-
 		node = node->next;
 	}
 }
