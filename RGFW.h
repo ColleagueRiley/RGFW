@@ -6513,9 +6513,8 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
 
 	win->src.locked_pointer = zwp_pointer_constraints_v1_lock_pointer(_RGFW->constraint_manager, win->src.surface, wl_seat_get_pointer(_RGFW->seat), NULL, ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
 	
-
-	RGFW_window_moveMouse(win, win->x + (i32)(win->w / 2), win->y + (i32)(win->h / 2));
-	
+	zwp_locked_pointer_v1_set_cursor_position_hint(win->src.locked_pointer, wl_fixed_from_int((win->w / 2)), wl_fixed_from_int((win->h / 2)));
+	// wl_surface_commit(win->src.surface);	
 }
 
 #ifdef RGFW_OPENGL
@@ -6613,13 +6612,6 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 			}
 		#endif
 	}
-
-	// if (_RGFW->constraint_manager) {
-	// 	win->src.locked_pointer = zwp_pointer_constraints_v1_lock_pointer(_RGFW->constraint_manager, win->src.surface, wl_seat_get_pointer(_RGFW->seat), NULL, ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_ONESHOT);
-	// 	RGFW_window_moveMouse(win, win->x + (i32)(win->w / 2), win->y + (i32)(win->h / 2));
-	// 	zwp_locked_pointer_v1_destroy(win->src.locked_pointer);
-	// 	win->src.locked_pointer = NULL;
-	// }
 
 	wl_surface_commit(win->src.surface);
 	RGFW_window_show(win);
@@ -6811,14 +6803,7 @@ void RGFW_FUNC(RGFW_freeMouse)(RGFW_mouse* mouse) {
 }
 
 void RGFW_FUNC(RGFW_window_moveMouse)(RGFW_window* win, i32 x, i32 y) {
-    RGFW_UNUSED(win);
-    if (_RGFW->constraint_manager == NULL) return;
-
-    if (win->src.locked_pointer) {
-		// RFGW_
-		zwp_locked_pointer_v1_set_cursor_position_hint(win->src.locked_pointer, wl_fixed_from_int(x - win->x), wl_fixed_from_int(y - win->y));
-		wl_surface_commit(win->src.surface);
-    }
+    RGFW_UNUSED(win); RGFW_UNUSED(x); RGFW_UNUSED(y);
 }
 
 RGFW_bool RGFW_FUNC(RGFW_window_setMouseDefault)(RGFW_window* win) {
