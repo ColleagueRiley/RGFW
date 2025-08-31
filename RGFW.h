@@ -1686,7 +1686,7 @@ typedef struct {
 	typedef struct RGFW_monitors {
 		RGFW_monitorNode* list;
 		RGFW_monitorNode* free_list;
-		u8 count;
+		size_t count;
 		RGFW_monitorNode data[RGFW_MAX_MONITORS];
 	} RGFW_monitors;
 #endif
@@ -6377,7 +6377,7 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
 
 	char RGFW_mon_default_name[10];
 
-	RGFW_SNPRINTF(RGFW_mon_default_name, sizeof(RGFW_mon_default_name), "monitor-%c", _RGFW->monitors.count);
+	RGFW_SNPRINTF(RGFW_mon_default_name, sizeof(RGFW_mon_default_name), "monitor-%li", _RGFW->monitors.count);
 	RGFW_STRNCPY(mon.name, RGFW_mon_default_name, sizeof(mon.name) - 1);
 	mon.name[sizeof(mon.name) - 1] = '\0';
 
