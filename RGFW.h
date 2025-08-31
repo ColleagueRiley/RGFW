@@ -9811,12 +9811,12 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	windowRect.origin.y = (double)win->y;
 	windowRect.size.width = (double)win->w;
 	windowRect.size.height = (double)win->h;
-	NSBackingStoreType macArgs = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled;
+	NSBackingStoreType macArgs = (NSBackingStoreType)(NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled);
 
 	if (!(flags & RGFW_windowNoResize))
-		macArgs |= NSWindowStyleMaskResizable;
+		macArgs |= (NSBackingStoreType)NSWindowStyleMaskResizable;
 	if (!(flags & RGFW_windowNoBorder))
-		macArgs |= NSWindowStyleMaskTitled;
+		macArgs |= (NSBackingStoreType)NSWindowStyleMaskTitled;
 	{
 		void* nsclass = objc_getClass("NSWindow");
 		SEL func = sel_registerName("initWithContentRect:styleMask:backing:defer:");
@@ -9872,11 +9872,11 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 	double offset = 0;
 
 	RGFW_setBit(&win->internal.flags, RGFW_windowNoBorder, !border);
-	NSBackingStoreType storeType = NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView;
+	NSBackingStoreType storeType = (NSBackingStoreType)(NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView);
 	if (border)
-		storeType = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
+		storeType = (NSBackingStoreType )(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable);
 	if (!(win->internal.flags & RGFW_windowNoResize)) {
-		storeType |= NSWindowStyleMaskResizable;
+		storeType |= (NSBackingStoreType)NSWindowStyleMaskResizable;
 	}
 
 	((void (*)(id, SEL, NSBackingStoreType))objc_msgSend)((id)win->src.window, sel_registerName("setStyleMask:"), storeType);
