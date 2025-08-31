@@ -76,7 +76,7 @@ int main(void) {
                     printf("Drag : %i %i\n", event.drag.x, event.drag.y);
                     break;
                 case RGFW_scaleUpdated:
-                    printf("Scale Updated : %f %f\n", event.scale.x, event.scale.y);
+                    printf("Scale Updated : %f %f\n", (double)event.scale.x, (double)event.scale.y);
                     break;
                 default:
                     break;

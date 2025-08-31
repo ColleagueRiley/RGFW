@@ -1,4 +1,4 @@
-.TH "XDL.h" 3 "Fri Aug 29 2025" "RGFW" \" -*- nroff -*-
+.TH "XDL.h" 3 "Sun Aug 31 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -417,6 +417,9 @@ XDL.h
 .br
 .ti -1c
 .RI "#define \fBXRRGetScreenInfo\fP   \fBXRRGetScreenInfoSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXRRFreeScreenConfigInfo\fP   \fBXRRFreeScreenConfigInfoSrc\fP"
 .br
 .ti -1c
 .RI "#define \fBglXChooseVisual\fP   \fBglXChooseVisualSrc\fP"
@@ -867,6 +870,9 @@ XDL.h
 .RI "typedef XRRScreenConfiguration *(* \fBPFN_XRRGetScreenInfo\fP) (Display *, Window)"
 .br
 .ti -1c
+.RI "typedef void(* \fBPFN_XRRFreeScreenConfigInfo\fP) (XRRScreenConfiguration *)"
+.br
+.ti -1c
 .RI "typedef XVisualInfo *(* \fBPFN_glXChooseVisual\fP) (Display *, int, int *)"
 .br
 .ti -1c
@@ -885,7 +891,7 @@ XDL.h
 .RI "typedef PFNGLXSWAPINTERVALEXTPROC \fBPFN_glXSwapIntervalEXT\fP"
 .br
 .ti -1c
-.RI "typedef void *(* \fBPFN_glXGetProcAddress\fP) (const GLubyte *procname)"
+.RI "typedef __GLXextFuncPtr(* \fBPFN_glXGetProcAddress\fP) (const GLubyte *procname)"
 .br
 .ti -1c
 .RI "typedef PFNGLXGETVISUALFROMFBCONFIGPROC \fBPFN_glXGetVisualFromFBConfig\fP"
@@ -1310,6 +1316,9 @@ XDL.h
 .RI "\fBPFN_XRRConfigCurrentRate\fP \fBXRRConfigCurrentRateSrc\fP"
 .br
 .ti -1c
+.RI "\fBPFN_XRRFreeScreenConfigInfo\fP \fBXRRFreeScreenConfigInfoSrc\fP"
+.br
+.ti -1c
 .RI "\fBPFN_glXChooseVisual\fP \fBglXChooseVisualSrc\fP"
 .br
 .ti -1c
@@ -1569,6 +1578,8 @@ XDL.h
 
 .SS "#define XRRFreeOutputInfo   \fBXRRFreeOutputInfoSrc\fP"
 
+.SS "#define XRRFreeScreenConfigInfo   \fBXRRFreeScreenConfigInfoSrc\fP"
+
 .SS "#define XRRFreeScreenResources   \fBXRRFreeScreenResourcesSrc\fP"
 
 .SS "#define XRRGetCrtcInfo   \fBXRRGetCrtcInfoSrc\fP"
@@ -1655,7 +1666,7 @@ XDL.h
 
 .SS "typedef PFNGLXGETFBCONFIGATTRIBPROC \fBPFN_glXGetFBConfigAttrib\fP"
 
-.SS "typedef void *(* PFN_glXGetProcAddress) (const GLubyte *procname)"
+.SS "typedef __GLXextFuncPtr(* PFN_glXGetProcAddress) (const GLubyte *procname)"
 
 .SS "typedef __GLXextFuncPtr(* PFN_glXGetProcAddressARB) (const GLubyte *)"
 
@@ -1866,6 +1877,8 @@ XDL.h
 .SS "typedef void(* PFN_XRRFreeCrtcInfo) (XRRCrtcInfo *crtc_info)"
 
 .SS "typedef void(* PFN_XRRFreeOutputInfo) (XRROutputInfo *)"
+
+.SS "typedef void(* PFN_XRRFreeScreenConfigInfo) (XRRScreenConfiguration *)"
 
 .SS "typedef void(* PFN_XRRFreeScreenResources) (XRRScreenResources *resources)"
 
@@ -2160,6 +2173,8 @@ XDL.h
 .SS "\fBPFN_XRRFreeCrtcInfo\fP XRRFreeCrtcInfoSrc"
 
 .SS "\fBPFN_XRRFreeOutputInfo\fP XRRFreeOutputInfoSrc"
+
+.SS "\fBPFN_XRRFreeScreenConfigInfo\fP XRRFreeScreenConfigInfoSrc"
 
 .SS "\fBPFN_XRRFreeScreenResources\fP XRRFreeScreenResourcesSrc"
 
