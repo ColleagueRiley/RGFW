@@ -1746,11 +1746,11 @@ struct RGFW_info {
         struct wl_cursor_theme* wl_cursor_theme;
         struct wl_surface* cursor_surface;
         struct wl_cursor_image* cursor_image;
-
-        RGFW_monitors monitors;
         RGFW_window* kbOwner;
 
     #endif
+
+    RGFW_monitors monitors;
 
     #ifdef __linux__
 	    int eventWait_forceStop[3];
