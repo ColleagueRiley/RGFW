@@ -1683,9 +1683,14 @@ typedef struct {
 #endif
 	} RGFW_monitorNode;
 
+	typedef struct RGFW_monitorList {
+		RGFW_monitorNode* head;
+		RGFW_monitorNode* cur;
+	} RGFW_monitorList;
+
 	typedef struct RGFW_monitors {
-		RGFW_monitorNode* list;
-		RGFW_monitorNode* free_list;
+		RGFW_monitorList list;
+		RGFW_monitorList freeList;
 		size_t count;
 		RGFW_monitorNode data[RGFW_MAX_MONITORS];
 	} RGFW_monitors;
@@ -2082,13 +2087,13 @@ i32 RGFW_init_ptr(RGFW_info* info) {
 	for (i = 0; i < RGFW_MAX_DROPS; i++)
 		_RGFW->files[i] = (char*)(_RGFW->filesSrc + RGFW_MAX_DROPS + (i * RGFW_MAX_PATH));
 
-	_RGFW->monitors.free_list = &_RGFW->monitors.data[0];
-	RGFW_monitorNode* freeNode = _RGFW->monitors.free_list;
+	_RGFW->monitors.freeList.head = &_RGFW->monitors.data[0];
+	_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.head;
 
-	for (i = 0; i < RGFW_MAX_MONITORS; i++) {
-		RGFW_monitorNode* newNode = &_RGFW->monitors.data[i + 1];
-		freeNode->next = newNode;
-		freeNode = freeNode->next;
+	for (i = 1; i < RGFW_MAX_MONITORS; i++) {
+		RGFW_monitorNode* newNode = &_RGFW->monitors.data[i];
+		_RGFW->monitors.freeList.cur->next = newNode;
+		_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.cur->next;
 	}
 
     RGFW_initKeycodes();
@@ -3980,9 +3985,7 @@ void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
 	hints.flags = 2;
 	hints.decorations = border;
 
-	XChangeProperty(_RGFW->display, win->src.window, _MOTIF_WM_HINTS, _MOTIF_WM_HINTS, 32,
-				PropModeReplace, (u8*)&hints, 5
-	);
+	XChangeProperty(_RGFW->display, win->src.window, _MOTIF_WM_HINTS, _MOTIF_WM_HINTS, 32, PropModeReplace, (u8*)&hints, 5);
 
 	if (RGFW_window_isHidden(win) == 0) {
 		RGFW_window_hide(win);
@@ -6272,8 +6275,7 @@ void RGFW_wl_output_set_geometry(void *data, struct wl_output *wl_output,
 			 int32_t x, int32_t y, int32_t physical_width, int32_t physical_height,
 			 int32_t subpixel, const char *make, const char *model, int32_t transform) {
 
-	RGFW_monitor *monitor = (RGFW_monitor*)data;
-
+	RGFW_monitor* monitor = &((RGFW_monitorNode*)data)->mon;
 	monitor->x = x;
 	monitor->y = y;
 
@@ -6290,7 +6292,7 @@ void RGFW_wl_output_set_geometry(void *data, struct wl_output *wl_output,
 void RGFW_wl_output_set_mode(void *data, struct wl_output *wl_output, uint32_t flags,
 		     int32_t width, int32_t height, int32_t refresh) {
 
-	RGFW_monitor *monitor = (RGFW_monitor*)data;
+	RGFW_monitor* monitor = &((RGFW_monitorNode*)data)->mon;
 
 	monitor->mode.w = width;
 	monitor->mode.h = height;
@@ -6303,14 +6305,14 @@ void RGFW_wl_output_set_mode(void *data, struct wl_output *wl_output, uint32_t f
 
 void RGFW_wl_output_set_scale(void *data, struct wl_output *wl_output, int32_t factor) {
 	// this is for pixelRatio
-	RGFW_monitor *monitor = (RGFW_monitor*)data;
+	RGFW_monitor* monitor = &((RGFW_monitorNode*)data)->mon;
 
 	monitor->pixelRatio = (float)factor;
 	RGFW_UNUSED(wl_output);
 }
 
 void RGFW_wl_output_set_name(void *data, struct wl_output *wl_output, const char *name) {
-	RGFW_monitor *monitor = (RGFW_monitor*)data;
+	RGFW_monitor* monitor = &((RGFW_monitorNode*)data)->mon;
 
 	RGFW_STRNCPY(monitor->name, name, sizeof(monitor->name) - 1);
 	monitor->name[sizeof(monitor->name) - 1] = '\0';
@@ -6320,15 +6322,14 @@ void RGFW_wl_output_set_name(void *data, struct wl_output *wl_output, const char
 }
 
 void RGFW_xdg_output_logical_pos(void *data, struct zxdg_output_v1 *zxdg_output_v1, int32_t x, int32_t y) {
-	RGFW_monitor *monitor = (RGFW_monitor*)data;
+	RGFW_monitor* monitor = &((RGFW_monitorNode*)data)->mon;
 	monitor->x = x;
 	monitor->y = y;
 	RGFW_UNUSED(zxdg_output_v1);
 }
 
 void RGFW_xdg_output_logical_size(void *data, struct zxdg_output_v1 *zxdg_output_v1, int32_t width, int32_t height) {
-	RGFW_monitor *monitor = (RGFW_monitor*)data;
-
+	RGFW_monitor* monitor = &((RGFW_monitorNode*)data)->mon;
 
 	float mon_float_width = (float) monitor->mode.w;
 	float mon_float_height = (float) monitor->mode.h;
@@ -6344,33 +6345,30 @@ void RGFW_xdg_output_logical_size(void *data, struct zxdg_output_v1 *zxdg_output
 
 void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
 	struct wl_output *output = wl_registry_bind(registry, id, &wl_output_interface, 4);
-
-	if (!output) return;
-
-	if (_RGFW->monitors.count >= RGFW_MAX_MONITORS) return; // too many monitors
-
 	RGFW_monitorNode* node;
 	RGFW_monitor mon;
 
-	// check if we have memory we can use
-	if (_RGFW->monitors.free_list == NULL) return;
+	if (!output) return;
 
-	node = _RGFW->monitors.free_list;
+	if (_RGFW->monitors.freeList.head == NULL) return;
+
+	node = _RGFW->monitors.freeList.head;
 	mon = node->mon;
-	_RGFW->monitors.free_list = node->next;
+
+	_RGFW->monitors.freeList.head = node->next;
+	if (_RGFW->monitors.freeList.head == NULL) {
+		_RGFW->monitors.freeList.cur = NULL;
+	}
+
 	node->next = NULL;
 
-	if (_RGFW->monitors.list == NULL) {
-		_RGFW->monitors.list = node;
-	} else { // there is at least one monitor in the list
-		// insert it at the end
-		RGFW_monitorNode* cur_node = _RGFW->monitors.list;
-
-		while (cur_node->next != NULL) {
-			cur_node = cur_node->next;
-		}
-		cur_node->next = node;
+	if (_RGFW->monitors.list.head == NULL) {
+		_RGFW->monitors.list.head = node;
+	} else {
+		_RGFW->monitors.list.cur->next = node;
 	}
+
+	_RGFW->monitors.list.cur = node;
 
 	node->mon = mon;
 	_RGFW->monitors.count += 1;
@@ -6442,17 +6440,20 @@ void RGFW_wl_global_registry_handler(void* data, struct wl_registry *registry, u
 
 void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u32 id) {
 	RGFW_UNUSED(data); RGFW_UNUSED(registry);
+	RGFW_monitorNode* prev = _RGFW->monitors.list.head;
+	RGFW_monitorNode* node = NULL;
+	if (prev == NULL) return;
 
-	if (_RGFW->monitors.count < 1) return; // just in case there are no monitors
-	RGFW_monitorNode* node = _RGFW->monitors.list;
-	// stop just before theh monitor with the same id
-	// check if monitor is the head
-	if (node->id != id) {
-		while(node->next != NULL && node->next->id != id) {
-			node = node->next;
+	if (prev->id != id) {
+		/* find the first node that has a matching id */
+		while(prev->next != NULL && prev->next->id != id) {
+			prev = prev->next;
 		}
-		// we are at the end of the list bc the id is not associated with a monitor
-		if (node->next == NULL) return;
+
+		if (prev->next == NULL) return;
+		node = prev->next;
+	} else {
+		node = prev;
 	}
 
 	if (node->output) {
@@ -6465,21 +6466,23 @@ void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u3
 
 	_RGFW->monitors.count -= 1;
 
-	// now remove it from the list
-	RGFW_monitorNode* temp_list = node->next;
-	node->next = temp_list->next;
-	temp_list->next = NULL; // since we are reusing memory make it point to null
-
-	// insert this memory into freelist to reuse later
-	if (_RGFW->monitors.free_list == NULL) {
-		_RGFW->monitors.free_list = temp_list;
-	} else {
-		RGFW_monitorNode* freelist = _RGFW->monitors.free_list->next;
-		while (freelist != NULL) {
-			freelist = freelist->next;
-		}
-		freelist = temp_list;
+	/* remove node from the list */
+	if (prev != node) {
+		prev->next = node->next;
+	} else { /* node is the head */
+		_RGFW->monitors.list.head = NULL;
 	}
+
+	node->next = NULL;
+
+	/* move node to the free list */
+	if (_RGFW->monitors.freeList.head == NULL) {
+		_RGFW->monitors.freeList.head = node;
+	} else {
+		_RGFW->monitors.freeList.cur->next = node;
+	}
+
+	_RGFW->monitors.freeList.cur = node;
 }
 
 void RGFW_wl_randname(char *buf) {
@@ -6794,11 +6797,6 @@ void RGFW_FUNC(RGFW_window_move) (RGFW_window* win, i32 x, i32 y) {
 	win->x = x;
 	win->y = y;
 	if (_RGFW->compositor) {
-		struct wl_pointer *pointer = wl_seat_get_pointer(_RGFW->seat);
-			if (!pointer) {
-				return;
-			}
-
 		wl_display_flush(_RGFW->wl_display);
 	}
 }
@@ -7011,7 +7009,7 @@ RGFW_monitor* RGFW_FUNC(RGFW_getMonitors) (size_t* len) {
 	}
 
 	u8 i = 0;
-	RGFW_monitorNode* cur_node = _RGFW->monitors.list;
+	RGFW_monitorNode* cur_node = _RGFW->monitors.list.head;
 	while (cur_node != NULL) {
 		monitors[i] = cur_node->mon;
 		++i;
@@ -7021,7 +7019,7 @@ RGFW_monitor* RGFW_FUNC(RGFW_getMonitors) (size_t* len) {
 }
 
 RGFW_monitor RGFW_FUNC(RGFW_getPrimaryMonitor) (void) {
-	return _RGFW->monitors.list->mon;
+	return _RGFW->monitors.list.head->mon;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
@@ -7068,7 +7066,7 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 	xdg_surface_destroy(win->src.xdg_surface);
 	wl_surface_destroy(win->src.surface);
 
-	RGFW_monitorNode* node = _RGFW->monitors.list;
+	RGFW_monitorNode* node = _RGFW->monitors.list.head;
 
 	while (node != NULL) {
 		if (node->output) {
