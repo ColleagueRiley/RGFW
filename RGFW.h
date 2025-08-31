@@ -1687,6 +1687,7 @@ typedef struct {
 		RGFW_monitorNode* list;
 		RGFW_monitorNode* free_list;
 		u8 count;
+		RGFW_monitorNode data[RGFW_MAX_MONITORS];
 	} RGFW_monitors;
 #endif
 
@@ -2080,6 +2081,15 @@ i32 RGFW_init_ptr(RGFW_info* info) {
 	u32 i;
 	for (i = 0; i < RGFW_MAX_DROPS; i++)
 		_RGFW->files[i] = (char*)(_RGFW->filesSrc + RGFW_MAX_DROPS + (i * RGFW_MAX_PATH));
+
+	_RGFW->monitors.free_list = &_RGFW->monitors.data[0];
+	RGFW_monitorNode* freeNode = _RGFW->monitors.free_list;
+
+	for (size_t i = 0; i < RGFW_MAX_MONITORS; i++) {
+		RGFW_monitorNode* newNode = &_RGFW->monitors.data[i + 1];
+		freeNode->next = newNode;
+		freeNode = freeNode->next;
+	}
 
     RGFW_initKeycodes();
     i32 out = RGFW_initPlatform();
@@ -6343,14 +6353,12 @@ void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
 	RGFW_monitor mon;
 
 	// check if we have memory we can use
-	if (_RGFW->monitors.free_list != NULL) {
-		node = _RGFW->monitors.free_list;
-		mon = node->mon;
-		_RGFW->monitors.free_list = node->next;
-	} else {
-		node = RGFW_ALLOC(sizeof(RGFW_monitorNode));
-	}
+	if (_RGFW->monitors.free_list == NULL) return;
 
+	node = _RGFW->monitors.free_list;
+	mon = node->mon;
+	_RGFW->monitors.free_list = node->next;
+	node->next = NULL;
 
 	if (_RGFW->monitors.list == NULL) {
 		_RGFW->monitors.list = node;
@@ -6536,7 +6544,7 @@ void RGFW_wl_surface_frame_done(void* data, struct wl_callback *cb, u32 time) {
 }
 
 i32 RGFW_initPlatform_Wayland(void) {
-    _RGFW->wl_display = wl_display_connect(NULL);
+	_RGFW->wl_display = wl_display_connect(NULL);
 	if (_RGFW->wl_display == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errWayland,  "Failed to load Wayland display");
 		return -1;
@@ -7075,17 +7083,6 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 		RGFW_monitorNode* temp = node;
 
 		node = node->next;
-		RGFW_FREE(temp);
-
-	}
-
-	node = _RGFW->monitors.free_list;
-
-	while (node != NULL) {
-		RGFW_monitorNode* temp = node;
-
-		node = node->next;
-		RGFW_FREE(temp);
 	}
 }
 
