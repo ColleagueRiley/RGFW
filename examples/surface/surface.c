@@ -1,11 +1,10 @@
 #define RGFW_IMPLEMENTATION
-#define RGFW_NO_API
 #include "RGFW.h"
 
 static unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF};
 
 /* fill buffer with a color, clearing anything that was on it */
-void clear(u8* buffer, i32 bufferWidth, i32 w, i32 h, u8 color[4]) {
+static void clear(u8* buffer, i32 bufferWidth, i32 w, i32 h, u8 color[4]) {
     /* if all the values are the same */
     if (color[0] == color[1] && color[0] == color[2] && color[0] == color[3]) {
         /* set it all in one function */
@@ -27,7 +26,7 @@ RGFW_UNUSED(w);
     }
 }
 
-void drawBitmap(u8* buffer, i32 bufferWidth, u8* bitmap, i32 x, i32 y, i32 w, i32 h) {
+static void drawBitmap(u8* buffer, i32 bufferWidth, u8* bitmap, i32 x, i32 y, i32 w, i32 h) {
     i32 y1 = y;
     for (y = 0; y < h; y++) {
         u32 index = (u32)(y + y1) * (4 * (u32)bufferWidth) + (u32)x * 4;
@@ -35,7 +34,7 @@ void drawBitmap(u8* buffer, i32 bufferWidth, u8* bitmap, i32 x, i32 y, i32 w, i3
     }
 }
 
-void drawRect(u8* buffer, i32 bufferWidth, i32 x, i32 y, i32 w, i32 h, u8 color[4]) {
+static void drawRect(u8* buffer, i32 bufferWidth, i32 x, i32 y, i32 w, i32 h, u8 color[4]) {
     i32 x1 = x;
     i32 y1 = y;
 

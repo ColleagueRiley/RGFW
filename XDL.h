@@ -1,38 +1,38 @@
 /*
-    <Colleague Riley>
+	<Colleague Riley>
 
-    This is free and unencumbered software released into the public domain.
-    Anyone is free to copy, modify, publish, use, compile, sell, or distribute this
-    software, either in source code form or as a compiled binary, for any purpose,
-    commercial or non-commercial, and by any means.
-    In jurisdictions that recognize copyright laws, the author or authors of this
-    software dedicate any and all copyright interest in the software to the public
-    domain. We make this dedication for the benefit of the public at large and to
-    the detriment of our heirs and successors. We intend this dedication to be an
-    overt act of relinquishment in perpetuity of all present and future rights to
-    this software under copyright law.
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-    ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+	This is free and unencumbered software released into the public domain.
+	Anyone is free to copy, modify, publish, use, compile, sell, or distribute this
+	software, either in source code form or as a compiled binary, for any purpose,
+	commercial or non-commercial, and by any means.
+	In jurisdictions that recognize copyright laws, the author or authors of this
+	software dedicate any and all copyright interest in the software to the public
+	domain. We make this dedication for the benefit of the public at large and to
+	the detriment of our heirs and successors. We intend this dedication to be an
+	overt act of relinquishment in perpetuity of all present and future rights to
+	this software under copyright law.
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+	ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+	WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-    Credit is not required but would be greatly appreciated. :)
+	Credit is not required but would be greatly appreciated. :)
 */
 
 /*
 	#define XDL_IMPLEMENTATION - (semi-option) makes it so function definitions are included
 	#define XDL_NO_GLX - (optional) Makes it so the GLX module is not included
-    #define XDL_NO_DEALLOCATE - (optional) Disables automatic deallocation for c++, returns back to C's void** system
+	#define XDL_NO_DEALLOCATE - (optional) Disables automatic deallocation for c++, returns back to C's void** system
 */
 
 /*
 Credits :
-        GLFW - Much of this implementation is based on GLFW's internal x11 dynamic loader
-                A great portion of the declarations for the X11 module are sourced from GLFW
+		GLFW - Much of this implementation is based on GLFW's internal x11 dynamic loader
+				A great portion of the declarations for the X11 module are sourced from GLFW
 
-        stb - This project is heavily inspired by the stb single header files
+		stb - This project is heavily inspired by the stb single header files
 */
 
 #include <X11/Xlib.h>
@@ -42,25 +42,25 @@ Credits :
 
 
 #if defined(XDL_EXPORT) ||  defined(XDL_IMPORT)
-	#if defined(_WIN32)
-		#if defined(__TINYC__) && (defined(XDL_EXPORT) ||  defined(XDL_IMPORT))
-			#define __declspec(x) __attribute__((x))
-		#endif
+#if defined(_WIN32)
+#if defined(__TINYC__) && (defined(XDL_EXPORT) ||  defined(XDL_IMPORT))
+#define __declspec(x) __attribute__((x))
+#endif
 
-		#if defined(XDL_EXPORT)
-			#define XDLDEF __declspec(dllexport)
-		#else
-			#define XDLDEF __declspec(dllimport)
-		#endif
-	#else
-		#if defined(XDL_EXPORT)
-			#define XDLDEF __attribute__((visibility("default")))
-		#endif
-	#endif
+#if defined(XDL_EXPORT)
+#define XDLDEF __declspec(dllexport)
+#else
+#define XDLDEF __declspec(dllimport)
+#endif
+#else
+#if defined(XDL_EXPORT)
+#define XDLDEF __attribute__((visibility("default")))
+#endif
+#endif
 #endif
 
 #ifndef XDLDEF
-	#define XDLDEF inline
+#define XDLDEF inline
 #endif
 
 XDLDEF void XDL_init(void); /* inits the X11 (and GLX) modules */
@@ -205,21 +205,23 @@ typedef Status (*PFN_XRRSetScreenConfig) (Display *dpy, XRRScreenConfiguration *
 typedef Status (*PFN_XRRSetCrtcConfig)(Display*, XRRScreenResources*, RRCrtc, Time, int, int, RRMode, Rotation, RROutput*, int);
 typedef short (*PFN_XRRConfigCurrentRate)(XRRScreenConfiguration*);
 typedef XRRScreenConfiguration* (*PFN_XRRGetScreenInfo)(Display*, Window);
+typedef void (*PFN_XRRFreeScreenConfigInfo)(XRRScreenConfiguration*);
 #endif
 
 #ifndef XDL_NO_GLX
 
 #include <GL/glx.h>
+
 typedef XVisualInfo* (*PFN_glXChooseVisual)(Display*, int, int*);
 typedef GLXContext (*PFN_glXCreateContext)(Display*, XVisualInfo*, GLXContext, Bool);
 typedef Bool (*PFN_glXMakeCurrent)(Display*, GLXDrawable, GLXContext);
 typedef GLXContext (*PFN_glXGetCurrentContext)(void);
 typedef void (*PFN_glXSwapBuffers)(Display*, GLXDrawable);
 typedef PFNGLXSWAPINTERVALEXTPROC PFN_glXSwapIntervalEXT;
-typedef void* (*PFN_glXGetProcAddress)(const GLubyte *procname);
+typedef __GLXextFuncPtr  (*PFN_glXGetProcAddress)(const GLubyte *procname);
 typedef PFNGLXGETVISUALFROMFBCONFIGPROC PFN_glXGetVisualFromFBConfig;
 typedef PFNGLXGETFBCONFIGATTRIBPROC PFN_glXGetFBConfigAttrib;
-typedef __GLXextFuncPtr (*PFN_glXGetProcAddressARB)(const GLubyte *);
+typedef __GLXextFuncPtr  (*PFN_glXGetProcAddressARB)(const GLubyte *);
 typedef PFNGLXCHOOSEFBCONFIGPROC PFN_glXChooseFBConfig;
 typedef void (*PFN_glXDestroyContext)(Display *dpy, GLXContext ctx);
 typedef const char* (*PFN_glXQueryExtensionsString)(Display* dpy, int screen);
@@ -358,6 +360,7 @@ PFN_XRRSetScreenConfig XRRSetScreenConfigSrc;
 PFN_XRRSetCrtcConfig XRRSetCrtcConfigSrc;
 PFN_XRRGetScreenInfo XRRGetScreenInfoSrc;
 PFN_XRRConfigCurrentRate XRRConfigCurrentRateSrc;
+PFN_XRRFreeScreenConfigInfo XRRFreeScreenConfigInfoSrc;
 #endif
 
 #ifndef XDL_NO_GLX
@@ -510,6 +513,7 @@ PFN_glXQueryExtensionsString glXQueryExtensionsStringSrc;
     #define XRRSetCrtcConfig XRRSetCrtcConfigSrc
     #define XRRConfigCurrentRate XRRConfigCurrentRateSrc
     #define XRRGetScreenInfo XRRGetScreenInfoSrc
+	#define XRRFreeScreenConfigInfo  XRRFreeScreenConfigInfoSrc
 #endif
 
 #ifndef XDL_NO_GLX
@@ -531,8 +535,10 @@ PFN_glXQueryExtensionsString glXQueryExtensionsStringSrc;
 #ifdef XDL_IMPLEMENTATION
 #include <dlfcn.h>
 
-#define XDL_PROC_DEF(proc, name) name = (PFN_##name)dlsym(XDL_module[proc], #name)
-
+#define XDL_PROC_DEF(proc, name) { \
+	void* ptr = dlsym(XDL_module[proc], #name); \
+	if (ptr != NULL) memcpy(&name, &ptr, sizeof(PFN_##name));\
+}
 
 void* XDL_module[3] = {NULL, NULL, NULL};
 
@@ -576,93 +582,94 @@ void XDL_init(void) {
     #endif
 
     /* loading the functions into the source vars */
-    XAllocClassHintSrc =  (PFN_XAllocClassHint)dlsym(XDL_module[0], "XAllocClassHint");
-    XAllocSizeHintsSrc =  (PFN_XAllocSizeHints)dlsym(XDL_module[0], "XAllocSizeHints");
-    XAllocWMHintsSrc =  (PFN_XAllocWMHints)dlsym(XDL_module[0], "XAllocWMHints");
-    XChangePropertySrc =  (PFN_XChangeProperty)dlsym(XDL_module[0], "XChangeProperty");
-    XChangeWindowAttributesSrc =  (PFN_XChangeWindowAttributes)dlsym(XDL_module[0], "XChangeWindowAttributes");
-    XCheckIfEventSrc =  (PFN_XCheckIfEvent)dlsym(XDL_module[0], "XCheckIfEvent");
-    XCheckTypedWindowEventSrc =  (PFN_XCheckTypedWindowEvent)dlsym(XDL_module[0], "XCheckTypedWindowEvent");
-    XCloseDisplaySrc =  (PFN_XCloseDisplay)dlsym(XDL_module[0], "XCloseDisplay");
-    XCloseIMSrc =  (PFN_XCloseIM)dlsym(XDL_module[0], "XCloseIM");
-    XConvertSelectionSrc =  (PFN_XConvertSelection)dlsym(XDL_module[0], "XConvertSelection");
-    XCreateColormapSrc =  (PFN_XCreateColormap)dlsym(XDL_module[0], "XCreateColormap");
-    XCreateFontCursorSrc =  (PFN_XCreateFontCursor)dlsym(XDL_module[0], "XCreateFontCursor");
-    XCreateICSrc =  (PFN_XCreateIC)dlsym(XDL_module[0], "XCreateIC");
-    XCreateRegionSrc =  (PFN_XCreateRegion)dlsym(XDL_module[0], "XCreateRegion");
-    XCreateWindowSrc =  (PFN_XCreateWindow)dlsym(XDL_module[0], "XCreateWindow");
-    XDefineCursorSrc =  (PFN_XDefineCursor)dlsym(XDL_module[0], "XDefineCursor");
-    XDeleteContextSrc =  (PFN_XDeleteContext)dlsym(XDL_module[0], "XDeleteContext");
-    XDeletePropertySrc =  (PFN_XDeleteProperty)dlsym(XDL_module[0], "XDeleteProperty");
-    XDestroyICSrc =  (PFN_XDestroyIC)dlsym(XDL_module[0], "XDestroyIC");
-    XDestroyRegionSrc =  (PFN_XDestroyRegion)dlsym(XDL_module[0], "XDestroyRegion");
-    XDestroyWindowSrc =  (PFN_XDestroyWindow)dlsym(XDL_module[0], "XDestroyWindow");
-    XDisplayKeycodesSrc =  (PFN_XDisplayKeycodes)dlsym(XDL_module[0], "XDisplayKeycodes");
-    XEventsQueuedSrc =  (PFN_XEventsQueued)dlsym(XDL_module[0], "XEventsQueued");
-    XFilterEventSrc =  (PFN_XFilterEvent)dlsym(XDL_module[0], "XFilterEvent");
-    XFindContextSrc =  (PFN_XFindContext)dlsym(XDL_module[0], "XFindContext");
-    XFlushSrc =  (PFN_XFlush)dlsym(XDL_module[0], "XFlush");
-    XFreeSrc =  (PFN_XFree)dlsym(XDL_module[0], "XFree");
-    XFreeColormapSrc =  (PFN_XFreeColormap)dlsym(XDL_module[0], "XFreeColormap");
-    XFreeCursorSrc =  (PFN_XFreeCursor)dlsym(XDL_module[0], "XFreeCursor");
-    XFreeEventDataSrc =  (PFN_XFreeEventData)dlsym(XDL_module[0], "XFreeEventData");
-    XGetErrorTextSrc =  (PFN_XGetErrorText)dlsym(XDL_module[0], "XGetErrorText");
-    XGetEventDataSrc =  (PFN_XGetEventData)dlsym(XDL_module[0], "XGetEventData");
-    XGetICValuesSrc =  (PFN_XGetICValues)dlsym(XDL_module[0], "XGetICValues");
-    XGetIMValuesSrc =  (PFN_XGetIMValues)dlsym(XDL_module[0], "XGetIMValues");
-    XGetInputFocusSrc =  (PFN_XGetInputFocus)dlsym(XDL_module[0], "XGetInputFocus");
-    XGetKeyboardMappingSrc =  (PFN_XGetKeyboardMapping)dlsym(XDL_module[0], "XGetKeyboardMapping");
-    XGetScreenSaverSrc =  (PFN_XGetScreenSaver)dlsym(XDL_module[0], "XGetScreenSaver");
-    XGetSelectionOwnerSrc =  (PFN_XGetSelectionOwner)dlsym(XDL_module[0], "XGetSelectionOwner");
-    XGetVisualInfoSrc =  (PFN_XGetVisualInfo)dlsym(XDL_module[0], "XGetVisualInfo");
-    XGetWMNormalHintsSrc =  (PFN_XGetWMNormalHints)dlsym(XDL_module[0], "XGetWMNormalHints");
-    XGetWindowAttributesSrc =  (PFN_XGetWindowAttributes)dlsym(XDL_module[0], "XGetWindowAttributes");
-    XGetWindowPropertySrc =  (PFN_XGetWindowProperty)dlsym(XDL_module[0], "XGetWindowProperty");
-    XGrabPointerSrc =  (PFN_XGrabPointer)dlsym(XDL_module[0], "XGrabPointer");
-    XIconifyWindowSrc =  (PFN_XIconifyWindow)dlsym(XDL_module[0], "XIconifyWindow");
-    XInternAtomSrc =  (PFN_XInternAtom)dlsym(XDL_module[0], "XInternAtom");
-    XLookupStringSrc =  (PFN_XLookupString)dlsym(XDL_module[0], "XLookupString");
-    XMapRaisedSrc =  (PFN_XMapRaised)dlsym(XDL_module[0], "XMapRaised");
-    XMapWindowSrc =  (PFN_XMapWindow)dlsym(XDL_module[0], "XMapWindow");
-    XMoveResizeWindowSrc =  (PFN_XMoveResizeWindow)dlsym(XDL_module[0], "XMoveResizeWindow");
-    XMoveWindowSrc =  (PFN_XMoveWindow)dlsym(XDL_module[0], "XMoveWindow");
-    XNextEventSrc =  (PFN_XNextEvent)dlsym(XDL_module[0], "XNextEvent");
-    XPeekEventSrc =  (PFN_XPeekEvent)dlsym(XDL_module[0], "XPeekEvent");
-    XPendingSrc =  (PFN_XPending)dlsym(XDL_module[0], "XPending");
-    XQueryExtensionSrc =  (PFN_XQueryExtension)dlsym(XDL_module[0], "XQueryExtension");
-    XQueryPointerSrc =  (PFN_XQueryPointer)dlsym(XDL_module[0], "XQueryPointer");
-    XRaiseWindowSrc =  (PFN_XRaiseWindow)dlsym(XDL_module[0], "XRaiseWindow");
-    XRegisterIMInstantiateCallbackSrc =  (PFN_XRegisterIMInstantiateCallback)dlsym(XDL_module[0], "XRegisterIMInstantiateCallback");
-    XResizeWindowSrc =  (PFN_XResizeWindow)dlsym(XDL_module[0], "XResizeWindow");
-    XResourceManagerStringSrc =  (PFN_XResourceManagerString)dlsym(XDL_module[0], "XResourceManagerString");
-    XSaveContextSrc =  (PFN_XSaveContext)dlsym(XDL_module[0], "XSaveContext");
-    XSelectInputSrc =  (PFN_XSelectInput)dlsym(XDL_module[0], "XSelectInput");
-    XSendEventSrc =  (PFN_XSendEvent)dlsym(XDL_module[0], "XSendEvent");
-    XSetClassHintSrc =  (PFN_XSetClassHint)dlsym(XDL_module[0], "XSetClassHint");
-    XSetErrorHandlerSrc =  (PFN_XSetErrorHandler)dlsym(XDL_module[0], "XSetErrorHandler");
-    XSetICFocusSrc =  (PFN_XSetICFocus)dlsym(XDL_module[0], "XSetICFocus");
-    XSetIMValuesSrc =  (PFN_XSetIMValues)dlsym(XDL_module[0], "XSetIMValues");
-    XSetInputFocusSrc =  (PFN_XSetInputFocus)dlsym(XDL_module[0], "XSetInputFocus");
-    XSetLocaleModifiersSrc =  (PFN_XSetLocaleModifiers)dlsym(XDL_module[0], "XSetLocaleModifiers");
-    XSetScreenSaverSrc =  (PFN_XSetScreenSaver)dlsym(XDL_module[0], "XSetScreenSaver");
-    XSetSelectionOwnerSrc =  (PFN_XSetSelectionOwner)dlsym(XDL_module[0], "XSetSelectionOwner");
-    XSetWMHintsSrc =  (PFN_XSetWMHints)dlsym(XDL_module[0], "XSetWMHints");
-    XSetWMNormalHintsSrc =  (PFN_XSetWMNormalHints)dlsym(XDL_module[0], "XSetWMNormalHints");
-    XSetWMProtocolsSrc =  (PFN_XSetWMProtocols)dlsym(XDL_module[0], "XSetWMProtocols");
-    XSupportsLocaleSrc =  (PFN_XSupportsLocale)dlsym(XDL_module[0], "XSupportsLocale");
-    XSyncSrc =  (PFN_XSync)dlsym(XDL_module[0], "XSync");
-    XTranslateCoordinatesSrc =  (PFN_XTranslateCoordinates)dlsym(XDL_module[0], "XTranslateCoordinates");
-    XUndefineCursorSrc =  (PFN_XUndefineCursor)dlsym(XDL_module[0], "XUndefineCursor");
-    XUngrabPointerSrc =  (PFN_XUngrabPointer)dlsym(XDL_module[0], "XUngrabPointer");
-    XUnmapWindowSrc =  (PFN_XUnmapWindow)dlsym(XDL_module[0], "XUnmapWindow");
-    XUnsetICFocusSrc =  (PFN_XUnsetICFocus)dlsym(XDL_module[0], "XUnsetICFocus");
-    XVisualIDFromVisualSrc =  (PFN_XVisualIDFromVisual)dlsym(XDL_module[0], "XVisualIDFromVisual");
-    XWarpPointerSrc =  (PFN_XWarpPointer)dlsym(XDL_module[0], "XWarpPointer");
-    XStoreNameSrc =  (PFN_XStoreName)dlsym(XDL_module[0], "XStoreName");
-    XSetWMSizeHintsSrc =  (PFN_XSetWMSizeHints)dlsym(XDL_module[0], "XSetWMSizeHints");
-    XOpenDisplaySrc =  (PFN_XOpenDisplay)dlsym(XDL_module[0], "XOpenDisplay");
-    XStringToKeysymSrc =  (PFN_XStringToKeysym)dlsym(XDL_module[0], "XStringToKeysym");
-    XQueryKeymapSrc =  (PFN_XQueryKeymap)dlsym(XDL_module[0], "XQueryKeymap");
+	XDL_PROC_DEF(0, XAllocClassHint);
+	XDL_PROC_DEF(0, XAllocSizeHints);
+	XDL_PROC_DEF(0, XAllocWMHints);
+	XDL_PROC_DEF(0, XChangeProperty);
+	XDL_PROC_DEF(0, XChangeWindowAttributes);
+	XDL_PROC_DEF(0, XCheckIfEvent);
+	XDL_PROC_DEF(0, XCheckTypedWindowEvent);
+	XDL_PROC_DEF(0, XCloseDisplay);
+	XDL_PROC_DEF(0, XCloseIM);
+	XDL_PROC_DEF(0, XConvertSelection);
+	XDL_PROC_DEF(0, XCreateColormap);
+	XDL_PROC_DEF(0, XCreateFontCursor);
+	XDL_PROC_DEF(0, XCreateIC);
+	XDL_PROC_DEF(0, XCreateRegion);
+	XDL_PROC_DEF(0, XCreateWindow);
+	XDL_PROC_DEF(0, XDefineCursor);
+	XDL_PROC_DEF(0, XDeleteContext);
+	XDL_PROC_DEF(0, XDeleteProperty);
+	XDL_PROC_DEF(0, XDestroyIC);
+	XDL_PROC_DEF(0, XDestroyRegion);
+	XDL_PROC_DEF(0, XDestroyWindow);
+	XDL_PROC_DEF(0, XDisplayKeycodes);
+	XDL_PROC_DEF(0, XEventsQueued);
+	XDL_PROC_DEF(0, XFilterEvent);
+	XDL_PROC_DEF(0, XFindContext);
+	XDL_PROC_DEF(0, XFlush);
+	XDL_PROC_DEF(0, XFree);
+	XDL_PROC_DEF(0, XFreeColormap);
+	XDL_PROC_DEF(0, XFreeCursor);
+	XDL_PROC_DEF(0, XFreeEventData);
+	XDL_PROC_DEF(0, XGetErrorText);
+	XDL_PROC_DEF(0, XGetEventData);
+	XDL_PROC_DEF(0, XGetICValues);
+	XDL_PROC_DEF(0, XGetIMValues);
+	XDL_PROC_DEF(0, XGetInputFocus);
+	XDL_PROC_DEF(0, XGetKeyboardMapping);
+	XDL_PROC_DEF(0, XGetScreenSaver);
+	XDL_PROC_DEF(0, XGetSelectionOwner);
+	XDL_PROC_DEF(0, XGetVisualInfo);
+	XDL_PROC_DEF(0, XGetWMNormalHints);
+	XDL_PROC_DEF(0, XGetWindowAttributes);
+	XDL_PROC_DEF(0, XGetWindowProperty);
+	XDL_PROC_DEF(0, XGrabPointer);
+	XDL_PROC_DEF(0, XIconifyWindow);
+	XDL_PROC_DEF(0, XInternAtom);
+	XDL_PROC_DEF(0, XLookupString);
+	XDL_PROC_DEF(0, XMapRaised);
+	XDL_PROC_DEF(0, XMapWindow);
+	XDL_PROC_DEF(0, XMoveResizeWindow);
+	XDL_PROC_DEF(0, XMoveWindow);
+	XDL_PROC_DEF(0, XNextEvent);
+	XDL_PROC_DEF(0, XPeekEvent);
+	XDL_PROC_DEF(0, XPending);
+	XDL_PROC_DEF(0, XQueryExtension);
+	XDL_PROC_DEF(0, XQueryPointer);
+	XDL_PROC_DEF(0, XRaiseWindow);
+	XDL_PROC_DEF(0, XRegisterIMInstantiateCallback);
+	XDL_PROC_DEF(0, XResizeWindow);
+	XDL_PROC_DEF(0, XResourceManagerString);
+	XDL_PROC_DEF(0, XSaveContext);
+	XDL_PROC_DEF(0, XSelectInput);
+	XDL_PROC_DEF(0, XSendEvent);
+	XDL_PROC_DEF(0, XSetClassHint);
+	XDL_PROC_DEF(0, XSetErrorHandler);
+	XDL_PROC_DEF(0, XSetICFocus);
+	XDL_PROC_DEF(0, XSetIMValues);
+	XDL_PROC_DEF(0, XSetInputFocus);
+	XDL_PROC_DEF(0, XSetLocaleModifiers);
+	XDL_PROC_DEF(0, XSetScreenSaver);
+	XDL_PROC_DEF(0, XSetSelectionOwner);
+	XDL_PROC_DEF(0, XSetWMHints);
+	XDL_PROC_DEF(0, XSetWMNormalHints);
+	XDL_PROC_DEF(0, XSetWMProtocols);
+	XDL_PROC_DEF(0, XSupportsLocale);
+	XDL_PROC_DEF(0, XSync);
+	XDL_PROC_DEF(0, XTranslateCoordinates);
+	XDL_PROC_DEF(0, XUndefineCursor);
+	XDL_PROC_DEF(0, XUngrabPointer);
+	XDL_PROC_DEF(0, XUnmapWindow);
+	XDL_PROC_DEF(0, XUnsetICFocus);
+	XDL_PROC_DEF(0, XVisualIDFromVisual);
+	XDL_PROC_DEF(0, XWarpPointer);
+	XDL_PROC_DEF(0, XStoreName);
+	XDL_PROC_DEF(0, XSetWMSizeHints);
+	XDL_PROC_DEF(0, XOpenDisplay);
+	XDL_PROC_DEF(0, XStringToKeysym);
+	XDL_PROC_DEF(0, XQueryKeymap);
+	XDL_PROC_DEF(0, XKeysymToString);
     XDL_PROC_DEF(0, XKeysymToString);
     XDL_PROC_DEF(0, XInitThreads);
     XDL_PROC_DEF(0, XkbKeycodeToKeysym);
@@ -708,6 +715,7 @@ void XDL_init(void) {
         XDL_PROC_DEF(2, XRRSetCrtcConfig);
         XDL_PROC_DEF(2, XRRGetScreenInfo);
         XDL_PROC_DEF(2, XRRConfigCurrentRate);
+		XDL_PROC_DEF(2, XRRFreeScreenConfigInfo);
     #endif
 
     #ifndef XDL_NO_GLX

@@ -19,20 +19,20 @@
 typedef DWORD (__stdcall * threadFunc_ptr) (LPVOID lpThreadParameter);
 typedef void* my_thread;
 
-my_thread createThread(threadFunc_ptr ptr, void* args) { return CreateThread(NULL, 0, ptr, args, 0, NULL); }
-void joinThread(my_thread thread) { WaitForSingleObject((HANDLE) thread, INFINITE); }
+static my_thread createThread(threadFunc_ptr ptr, void* args) { return CreateThread(NULL, 0, ptr, args, 0, NULL); }
+static void joinThread(my_thread thread) { WaitForSingleObject((HANDLE) thread, INFINITE); }
 #else
 #include <pthread.h>
 
 typedef pthread_t my_thread;
 typedef void* (* threadFunc_ptr)(void*);
 
-my_thread createThread(threadFunc_ptr ptr, void* args) {
+static my_thread createThread(threadFunc_ptr ptr, void* args) {
 	my_thread t;
 	pthread_create((pthread_t*) &t, NULL, *ptr, args);
 	return t;
 }
-void joinThread(my_thread thread) { pthread_join((pthread_t) thread, NULL); }
+static void joinThread(my_thread thread) { pthread_join((pthread_t) thread, NULL); }
 #endif
 
 void checkEvents(RGFW_window* win);
