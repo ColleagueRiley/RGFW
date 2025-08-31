@@ -9814,9 +9814,9 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	NSBackingStoreType macArgs = (NSBackingStoreType)(NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled);
 
 	if (!(flags & RGFW_windowNoResize))
-		macArgs |= (NSBackingStoreType)NSWindowStyleMaskResizable;
+		macArgs = macArgs | (NSBackingStoreType)NSWindowStyleMaskResizable;
 	if (!(flags & RGFW_windowNoBorder))
-		macArgs |= (NSBackingStoreType)NSWindowStyleMaskTitled;
+		macArgs = macArgs | (NSBackingStoreType)NSWindowStyleMaskTitled;
 	{
 		void* nsclass = objc_getClass("NSWindow");
 		SEL func = sel_registerName("initWithContentRect:styleMask:backing:defer:");
@@ -9874,9 +9874,9 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 	RGFW_setBit(&win->internal.flags, RGFW_windowNoBorder, !border);
 	NSBackingStoreType storeType = (NSBackingStoreType)(NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView);
 	if (border)
-		storeType = (NSBackingStoreType )(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable);
+		storeType = (NSBackingStoreType)(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable);
 	if (!(win->internal.flags & RGFW_windowNoResize)) {
-		storeType |= (NSBackingStoreType)NSWindowStyleMaskResizable;
+		storeType = storeType | (NSBackingStoreType)NSWindowStyleMaskResizable;
 	}
 
 	((void (*)(id, SEL, NSBackingStoreType))objc_msgSend)((id)win->src.window, sel_registerName("setStyleMask:"), storeType);
@@ -10560,7 +10560,7 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	if (win->internal.flags & RGFW_windowTransparent) {
 		i32 opacity = 0;
 		#define NSOpenGLCPSurfaceOpacity 236
-		NSOpenGLContext_setValues((id)win->src.ctx.native->ctx, &opacity, NSOpenGLCPSurfaceOpacity);
+		NSOpenGLContext_setValues((id)win->src.ctx.native->ctx, &opacity, (NSOpenGLContextParameter)NSOpenGLCPSurfaceOpacity);
 
 	}
 
@@ -10597,7 +10597,7 @@ void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
 }
 void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 	RGFW_ASSERT(win != NULL && win->src.ctx.native != NULL);
-	NSOpenGLContext_setValues((id)win->src.ctx.native->ctx, &swapInterval, 222);
+	NSOpenGLContext_setValues((id)win->src.ctx.native->ctx, &swapInterval, (NSOpenGLContextParameter)222);
 }
 #endif
 
