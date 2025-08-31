@@ -1565,7 +1565,6 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		struct xdg_surface* xdg_surface;
 		struct xdg_toplevel* xdg_toplevel;
 		struct zxdg_toplevel_decoration_v1* decoration;
-		struct zwp_locked_pointer_v1 *locked_pointer;
 		
 		/* State flags to configure the window */
 		RGFW_bool pending_activated;
@@ -1719,7 +1718,9 @@ struct RGFW_info {
         struct zxdg_decoration_manager_v1 *decoration_manager;
         struct zwp_relative_pointer_manager_v1 *relative_pointer_manager;
         struct zwp_relative_pointer_v1 *relative_pointer;
+        RGFW_bool pointer_constrained;
         struct zwp_pointer_constraints_v1 *constraint_manager;
+        struct zwp_locked_pointer_v1 *locked_pointer;
 		struct wl_keyboard* wl_keyboard;
 		struct wl_compositor* compositor;
 		struct xdg_wm_base* xdg_wm_base;
@@ -2560,7 +2561,7 @@ void RGFW_window_holdMouse(RGFW_window* win) {
 	win->internal.holdMouse = RGFW_TRUE;
 	_RGFW->mouseOwner = win;
     RGFW_captureCursor(win);
-	RGFW_window_moveMouse(win, win->x + (win->w / 2), win->y + (win->h / 2));
+	// RGFW_window_moveMouse(win, win->x + (win->w / 2), win->y + (win->h / 2));
 }
 
 RGFW_bool RGFW_window_isHoldingMouse(RGFW_window* win) { return RGFW_BOOL(win->internal.holdMouse); }
@@ -5952,6 +5953,7 @@ void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface* xdg_s
 			return;
 	}
 
+	// useful for libdecor
 	if (win->src.activated != win->src.pending_activated) {
 		win->src.activated = win->src.pending_activated;
 	}
@@ -5972,7 +5974,6 @@ void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface* xdg_s
 
 
 	}
-	// TODO implement fullscreen; need wl_output
 
 	i32 width = win->w;
 	i32 height = win->h;
@@ -6079,6 +6080,20 @@ void RGFW_wl_relative_pointer_motion(void *data, struct zwp_relative_pointer_v1 
 									e.common.win = win);
 	
 	RGFW_mousePosCallback(win, win->internal.lastMouseX, win->internal.lastMouseY, vecX, vecY);
+}
+
+void RGFW_wl_pointer_locked(void *data, struct zwp_locked_pointer_v1 *zwp_locked_pointer_v1) {
+	RGFW_UNUSED(zwp_locked_pointer_v1);
+	RGFW_info *RGFW = (RGFW_info*)data;
+	RGFW->pointer_constrained = RGFW_TRUE;
+	RGFW_window *win = RGFW->mouseOwner;
+	zwp_locked_pointer_v1_set_cursor_position_hint(RGFW->locked_pointer, wl_fixed_from_int((win->w / 2)), wl_fixed_from_int((win->h / 2)));
+}
+
+void RGFW_wl_pointer_unlocked(void *data, struct zwp_locked_pointer_v1 *zwp_locked_pointer_v1) {
+	RGFW_UNUSED(data); RGFW_UNUSED(zwp_locked_pointer_v1);
+	
+	// RGFW->pointer_constrained = RGFW_FALSE;
 }
 
 void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial,
@@ -6432,6 +6447,10 @@ void RGFW_deinitPlatform_Wayland(void) {
 		zwp_pointer_constraints_v1_destroy(_RGFW->constraint_manager);
 	}
 
+	if (_RGFW->locked_pointer) {
+		zwp_locked_pointer_v1_destroy(_RGFW->locked_pointer);
+	}
+
 	wl_shm_destroy(_RGFW->shm);
 	wl_seat_release(_RGFW->seat);
 	xdg_wm_base_destroy(_RGFW->xdg_wm_base);
@@ -6500,21 +6519,33 @@ void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
 void RGFW_FUNC(RGFW_releaseCursor) (RGFW_window* win) {
     RGFW_ASSERT(win);
     // compositor has no support or window is not locked do nothing
-    if (_RGFW->constraint_manager == NULL || !win->src.locked_pointer) return;
-    zwp_locked_pointer_v1_destroy(win->src.locked_pointer);
-    win->src.locked_pointer = NULL;
+    if (_RGFW->constraint_manager == NULL) return;
+
+    if (_RGFW->locked_pointer != NULL) {
+		zwp_locked_pointer_v1_destroy(_RGFW->locked_pointer);
+		_RGFW->locked_pointer = NULL;
+		_RGFW->pointer_constrained = RGFW_FALSE;
+    }
     _RGFW->mouseOwner = win; // unhold mouse sets this to null reset it
 }
 
 void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
 	RGFW_ASSERT(win);
 	// compositor has no support or window already is locked do nothing
-	if (_RGFW->constraint_manager == NULL || win->src.locked_pointer) return;
+	if (_RGFW->constraint_manager == NULL) return;
 
-	win->src.locked_pointer = zwp_pointer_constraints_v1_lock_pointer(_RGFW->constraint_manager, win->src.surface, wl_seat_get_pointer(_RGFW->seat), NULL, ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
 	
-	zwp_locked_pointer_v1_set_cursor_position_hint(win->src.locked_pointer, wl_fixed_from_int((win->w / 2)), wl_fixed_from_int((win->h / 2)));
-	// wl_surface_commit(win->src.surface);	
+	if (!_RGFW->pointer_constrained && _RGFW->locked_pointer == NULL) {
+		_RGFW->locked_pointer = zwp_pointer_constraints_v1_lock_pointer(_RGFW->constraint_manager, win->src.surface, wl_seat_get_pointer(_RGFW->seat), NULL, ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+	
+		static const struct zwp_locked_pointer_v1_listener locked_listener = {
+			.locked = RGFW_wl_pointer_locked,
+			.unlocked = RGFW_wl_pointer_unlocked
+		};
+
+		zwp_locked_pointer_v1_add_listener(_RGFW->locked_pointer, &locked_listener, _RGFW);
+		// zwp_locked_pointer_v1_set_cursor_position_hint(_RGFW->locked_pointer, wl_fixed_from_int((win->w / 2)), wl_fixed_from_int((win->h / 2)));
+	} 	
 }
 
 #ifdef RGFW_OPENGL
@@ -6687,16 +6718,16 @@ void RGFW_FUNC(RGFW_window_setAspectRatio) (RGFW_window* win, i32 w, i32 h) {
 
 void RGFW_FUNC(RGFW_window_setMinSize) (RGFW_window* win, i32 w, i32 h) {
 	RGFW_ASSERT(win != NULL);
-    xdg_toplevel_set_min_size(win->src.xdg_toplevel, (i32)w, (i32)h);
+    xdg_toplevel_set_min_size(win->src.xdg_toplevel, w, h);
 }
 
 void RGFW_FUNC(RGFW_window_setMaxSize) (RGFW_window* win, i32 w, i32 h) {
 	RGFW_ASSERT(win != NULL);
-    xdg_toplevel_set_max_size(win->src.xdg_toplevel, (i32)w, (i32)h);
+    xdg_toplevel_set_max_size(win->src.xdg_toplevel, w, h);
 }
 
 void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized) {
-    win->src.maximized = RGFW_BOOL(maximized);
+    win->src.maximized = maximized;
     if (maximized) {
 		xdg_toplevel_set_maximized(win->src.xdg_toplevel);
     } else {
@@ -6906,10 +6937,6 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 
 	if (win->src.xdg_toplevel) {
 		xdg_toplevel_destroy(win->src.xdg_toplevel);
-	}
-
-	if (win->src.locked_pointer) {
-		zwp_locked_pointer_v1_destroy(win->src.locked_pointer);
 	}
 
 	xdg_surface_destroy(win->src.xdg_surface);
