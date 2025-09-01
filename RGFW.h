@@ -6064,11 +6064,10 @@ static void RGFW_wl_xdg_wm_base_ping_handler(void* data, struct xdg_wm_base* wm_
 }
 static void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface* xdg_surface,
 		u32 serial) {
-	RGFW_UNUSED(data);
 
     xdg_surface_ack_configure(xdg_surface, serial);
 
-    RGFW_window* win = (RGFW_window*)xdg_surface_get_user_data(xdg_surface);
+    RGFW_window* win = (RGFW_window*)data;
 
     if (win == NULL) {
 		win = _RGFW->kbOwner;
@@ -6105,12 +6104,8 @@ static void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface
 static void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplevel* toplevel,
 		i32 width, i32 height, struct wl_array* states) {
 
-    RGFW_window* win = (RGFW_window*)xdg_toplevel_get_user_data(toplevel);
-    if (win == NULL) {
-		win = _RGFW->kbOwner;
-		if (win == NULL)
-			return;
-	}
+	RGFW_UNUSED(toplevel);
+    RGFW_window* win = (RGFW_window*)data;
 
     win->src.pending_activated = RGFW_FALSE;
     win->src.pending_maximized = RGFW_FALSE;
@@ -6138,16 +6133,12 @@ static void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplev
 		win->src.w = win->w = width;
 		win->src.h = win->h = height;
 	}
-
-	RGFW_UNUSED(data);
 }
 
 static void RGFW_wl_xdg_toplevel_close_handler(void* data, struct xdg_toplevel *toplevel) {
-	RGFW_UNUSED(data);
-	RGFW_window* win = (RGFW_window*)xdg_toplevel_get_user_data(toplevel);
-	if (win == NULL)
-		win = _RGFW->kbOwner;
-
+	RGFW_UNUSED(toplevel);
+	RGFW_window* win = (RGFW_window*)data;
+	
 	RGFW_eventQueuePushEx(e.type = RGFW_quit; e.common.win = win);
 	RGFW_window_setShouldClose(win, RGFW_TRUE);
 	RGFW_windowQuitCallback(win);
@@ -6653,6 +6644,24 @@ void RGFW_deinitPlatform_Wayland(void) {
 	if (_RGFW->decoration_manager != NULL)
 		zxdg_decoration_manager_v1_destroy(_RGFW->decoration_manager);
 
+	if (_RGFW->xdg_output_manager != NULL)
+		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
+
+	RGFW_monitorNode* node = _RGFW->monitors.list.head;
+	
+	while (node != NULL) {
+		if (node->output) {
+			wl_output_destroy(node->output);
+		}
+
+		if (node->xdg_output) {
+			zxdg_output_v1_destroy(node->xdg_output);
+		}
+
+		_RGFW->monitors.count -= 1;
+		node = node->next;
+	}
+
 	wl_shm_destroy(_RGFW->shm);
 	wl_seat_release(_RGFW->seat);
 	xdg_wm_base_destroy(_RGFW->xdg_wm_base);
@@ -6729,13 +6738,11 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	wl_surface_set_user_data(win->src.surface, win);
 
 	win->src.xdg_surface = xdg_wm_base_get_xdg_surface(_RGFW->xdg_wm_base, win->src.surface);
-	xdg_surface_add_listener(win->src.xdg_surface, &xdg_surface_listener, NULL);
-	xdg_surface_set_user_data(win->src.xdg_surface, win);
+	xdg_surface_add_listener(win->src.xdg_surface, &xdg_surface_listener, win);
 
 	xdg_wm_base_set_user_data(_RGFW->xdg_wm_base, win);
 
 	win->src.xdg_toplevel = xdg_surface_get_toplevel(win->src.xdg_surface);
-	xdg_toplevel_set_user_data(win->src.xdg_toplevel, win);
 
 	xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->w, win->h);
 
@@ -6749,7 +6756,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	};
 
 
-	xdg_toplevel_add_listener(win->src.xdg_toplevel, &xdg_toplevel_listener, NULL);
+	xdg_toplevel_add_listener(win->src.xdg_toplevel, &xdg_toplevel_listener, win);
 
 	if (_RGFW->decoration_manager) {
 		if (!(flags & RGFW_windowNoBorder)) {
@@ -7102,27 +7109,8 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 		xdg_toplevel_destroy(win->src.xdg_toplevel);
 	}
 
-	if (_RGFW->xdg_output_manager) {
-		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
-	}
-
 	xdg_surface_destroy(win->src.xdg_surface);
 	wl_surface_destroy(win->src.surface);
-
-	RGFW_monitorNode* node = _RGFW->monitors.list.head;
-
-	while (node != NULL) {
-		if (node->output) {
-			wl_output_destroy(node->output);
-		}
-
-		if (node->xdg_output) {
-			zxdg_output_v1_destroy(node->xdg_output);
-		}
-
-		_RGFW->monitors.count -= 1;
-		node = node->next;
-	}
 }
 
 #ifdef RGFW_WEBGPU
