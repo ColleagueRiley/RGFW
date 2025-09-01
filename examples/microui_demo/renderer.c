@@ -41,7 +41,6 @@ void r_init(void) {
 static void flush(void) {
   if (buf_idx == 0) { return; }
 
-  glViewport(0, 0, (i32)((float)width * pixelRatio), (i32)((float)height * pixelRatio));
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glLoadIdentity();
@@ -168,6 +167,8 @@ void r_set_clip_rect(mu_Rect rect) {
 
 void r_clear(mu_Color clr) {
   flush();
+
+  glViewport(0, 0, (i32)((float)width * pixelRatio), (i32)((float)height * pixelRatio));
   glClearColor(clr.r / 255.0f, clr.g / 255.0f, clr.b / 255.0f, clr.a / 255.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 }
