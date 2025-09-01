@@ -1743,6 +1743,8 @@ struct RGFW_info {
         struct xkb_keymap *keymap;
         struct xkb_state *xkb_state;
         struct zxdg_decoration_manager_v1 *decoration_manager;
+        struct xdg_toplevel_icon_manager_v1 *icon_manager;
+        struct xdg_toplevel_icon_v1 *icon;
         struct zxdg_output_manager_v1 *xdg_output_manager;
         struct wl_keyboard* wl_keyboard;
         struct wl_pointer* wl_pointer;
@@ -6014,6 +6016,7 @@ struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { return win-
 
 /* wayland global garbage (wayland bad, X11 is fine (ish) (not really)) */
 #include "xdg-shell.h"
+#include "xdg-toplevel-icon-v1.h"
 #include "xdg-decoration-unstable-v1.h"
 #include "xdg-output-unstable-v1.h"
 
@@ -6480,6 +6483,8 @@ static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *regi
 		RGFW->xdg_wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
 	} else if (RGFW_STRNCMP(interface, zxdg_decoration_manager_v1_interface.name, 255) == 0) {
 		RGFW->decoration_manager = wl_registry_bind(registry, id, &zxdg_decoration_manager_v1_interface, 1);
+	} else if (RGFW_STRNCMP(interface, xdg_toplevel_icon_manager_v1_interface.name, 255) == 0) {
+		RGFW->icon_manager = wl_registry_bind(registry, id, &xdg_toplevel_icon_manager_v1_interface, 1);
     } else if (RGFW_STRNCMP(interface, "wl_shm", 7) == 0) {
         RGFW->shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
         wl_shm_add_listener(RGFW->shm, &shm_listener, RGFW);
@@ -6631,6 +6636,13 @@ void RGFW_deinitPlatform_Wayland(void) {
 	if (_RGFW->decoration_manager != NULL)
 		zxdg_decoration_manager_v1_destroy(_RGFW->decoration_manager);
 
+	if (_RGFW->icon_manager != NULL) {
+		xdg_toplevel_icon_manager_v1_destroy(_RGFW->icon_manager);
+	}
+
+	if (_RGFW->icon != NULL) {
+		xdg_toplevel_icon_v1_destroy(_RGFW->icon);
+	}
 	wl_shm_destroy(_RGFW->shm);
 	wl_seat_release(_RGFW->seat);
 	xdg_wm_base_destroy(_RGFW->xdg_wm_base);
@@ -6768,6 +6780,10 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 		#endif
 	}
 
+	if (_RGFW->icon_manager != NULL) {
+		// set the default wayland icon
+		xdg_toplevel_icon_manager_v1_set_icon(_RGFW->icon_manager, win->src.xdg_toplevel, NULL);
+	}
 	wl_surface_commit(win->src.surface);
 	RGFW_window_show(win);
 
@@ -6936,8 +6952,29 @@ void RGFW_FUNC(RGFW_window_setMousePassthrough) (RGFW_window* win, RGFW_bool pas
 #endif /* RGFW_NO_PASSTHROUGH */
 
 RGFW_bool RGFW_FUNC(RGFW_window_setIconEx) (RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format, RGFW_icon type) {
-	RGFW_ASSERT(win != NULL); RGFW_UNUSED(data); RGFW_UNUSED(w); RGFW_UNUSED(h); RGFW_UNUSED(format); RGFW_UNUSED(type);
-	return RGFW_FALSE;
+	RGFW_ASSERT(win != NULL); 
+	RGFW_UNUSED(type);
+
+	if (_RGFW->icon_manager == NULL || w != h) return RGFW_FALSE;
+	
+	if (_RGFW->icon) {
+		xdg_toplevel_icon_v1_destroy(_RGFW->icon);
+		_RGFW->icon = NULL;
+	}
+
+	
+	RGFW_surface* surface = RGFW_createSurface(data, w, h, format);
+
+	RGFW_copyImageData(surface->native.buffer, w, RGFW_MIN(h, surface->h), surface->native.format, surface->data, surface->format);
+
+	_RGFW->icon = xdg_toplevel_icon_manager_v1_create_icon(_RGFW->icon_manager);
+	xdg_toplevel_icon_v1_add_buffer(_RGFW->icon, surface->native.wl_buffer, 1);
+	xdg_toplevel_icon_manager_v1_set_icon(_RGFW->icon_manager, win->src.xdg_toplevel, _RGFW->icon);
+
+	
+	
+	RGFW_surface_free(surface);
+	return RGFW_TRUE;
 }
 
 RGFW_mouse* RGFW_FUNC(RGFW_loadMouse)(u8* data, i32 w, i32 h, RGFW_format format) {
