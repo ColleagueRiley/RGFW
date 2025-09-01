@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Sun Aug 31 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Mon Sep 1 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -131,6 +131,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "#define \fBRGFW_BIT\fP(x)   (1 << (x))"
+.br
+.ti -1c
+.RI "#define \fBRGFW_MAX_MONITORS\fP   6"
 .br
 .ti -1c
 .RI "#define \fBRGFW_MAX_EVENTS\fP   32"
@@ -822,6 +825,8 @@ RGFW.h
 .SS "#define RGFW_INT_DEFINED"
 
 .SS "#define RGFW_MAX_DROPS   260 /* max items you can drop at once */"
+
+.SS "#define RGFW_MAX_MONITORS   6"
 
 .SS "#define RGFW_MAX_PATH   260 /* max length of a path (for drag andn drop) */"
 
