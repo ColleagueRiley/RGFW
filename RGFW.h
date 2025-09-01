@@ -6627,6 +6627,24 @@ void RGFW_deinitPlatform_Wayland(void) {
 	if (_RGFW->decoration_manager != NULL)
 		zxdg_decoration_manager_v1_destroy(_RGFW->decoration_manager);
 
+	if (_RGFW->xdg_output_manager != NULL)
+		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
+
+	RGFW_monitorNode* node = _RGFW->monitors.list.head;
+	
+	while (node != NULL) {
+		if (node->output) {
+			wl_output_destroy(node->output);
+		}
+
+		if (node->xdg_output) {
+			zxdg_output_v1_destroy(node->xdg_output);
+		}
+
+		_RGFW->monitors.count -= 1;
+		node = node->next;
+	}
+
 	wl_shm_destroy(_RGFW->shm);
 	wl_seat_release(_RGFW->seat);
 	xdg_wm_base_destroy(_RGFW->xdg_wm_base);
@@ -7074,27 +7092,8 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 		xdg_toplevel_destroy(win->src.xdg_toplevel);
 	}
 
-	if (_RGFW->xdg_output_manager) {
-		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
-	}
-
 	xdg_surface_destroy(win->src.xdg_surface);
 	wl_surface_destroy(win->src.surface);
-
-	RGFW_monitorNode* node = _RGFW->monitors.list.head;
-
-	while (node != NULL) {
-		if (node->output) {
-			wl_output_destroy(node->output);
-		}
-
-		if (node->xdg_output) {
-			zxdg_output_v1_destroy(node->xdg_output);
-		}
-
-		_RGFW->monitors.count -= 1;
-		node = node->next;
-	}
 }
 
 #ifdef RGFW_WEBGPU
