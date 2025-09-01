@@ -6037,11 +6037,10 @@ static void RGFW_wl_xdg_wm_base_ping_handler(void* data, struct xdg_wm_base* wm_
 }
 static void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface* xdg_surface,
 		u32 serial) {
-	RGFW_UNUSED(data);
 
     xdg_surface_ack_configure(xdg_surface, serial);
 
-    RGFW_window* win = (RGFW_window*)xdg_surface_get_user_data(xdg_surface);
+    RGFW_window* win = (RGFW_window*)data;
 
     if (win == NULL) {
 		win = _RGFW->kbOwner;
@@ -6117,7 +6116,7 @@ static void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplev
 static void RGFW_wl_xdg_toplevel_close_handler(void* data, struct xdg_toplevel *toplevel) {
 	RGFW_UNUSED(toplevel);
 	RGFW_window* win = (RGFW_window*)data;
-
+	
 	RGFW_eventQueuePushEx(e.type = RGFW_quit; e.common.win = win);
 	RGFW_window_setShouldClose(win, RGFW_TRUE);
 	RGFW_windowQuitCallback(win);
@@ -6704,8 +6703,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	wl_surface_set_user_data(win->src.surface, win);
 
 	win->src.xdg_surface = xdg_wm_base_get_xdg_surface(_RGFW->xdg_wm_base, win->src.surface);
-	xdg_surface_add_listener(win->src.xdg_surface, &xdg_surface_listener, NULL);
-	xdg_surface_set_user_data(win->src.xdg_surface, win);
+	xdg_surface_add_listener(win->src.xdg_surface, &xdg_surface_listener, win);
 
 	xdg_wm_base_set_user_data(_RGFW->xdg_wm_base, win);
 
