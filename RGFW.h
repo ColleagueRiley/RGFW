@@ -6079,11 +6079,6 @@ static void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplev
 
 	RGFW_UNUSED(toplevel);
     RGFW_window* win = (RGFW_window*)data;
-    if (win == NULL) {
-		win = _RGFW->kbOwner;
-		if (win == NULL)
-			return;
-	}
 
     win->src.pending_activated = RGFW_FALSE;
     win->src.pending_maximized = RGFW_FALSE;
