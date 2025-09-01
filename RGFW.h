@@ -6078,7 +6078,8 @@ static void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface
 static void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplevel* toplevel,
 		i32 width, i32 height, struct wl_array* states) {
 
-    RGFW_window* win = (RGFW_window*)xdg_toplevel_get_user_data(toplevel);
+	RGFW_UNUSED(toplevel);
+    RGFW_window* win = (RGFW_window*)data;
     if (win == NULL) {
 		win = _RGFW->kbOwner;
 		if (win == NULL)
@@ -6111,15 +6112,11 @@ static void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplev
 		win->src.w = win->w = width;
 		win->src.h = win->h = height;
 	}
-
-	RGFW_UNUSED(data);
 }
 
 static void RGFW_wl_xdg_toplevel_close_handler(void* data, struct xdg_toplevel *toplevel) {
-	RGFW_UNUSED(data);
-	RGFW_window* win = (RGFW_window*)xdg_toplevel_get_user_data(toplevel);
-	if (win == NULL)
-		win = _RGFW->kbOwner;
+	RGFW_UNUSED(toplevel);
+	RGFW_window* win = (RGFW_window*)data;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_quit; e.common.win = win);
 	RGFW_window_setShouldClose(win, RGFW_TRUE);
@@ -6713,7 +6710,6 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	xdg_wm_base_set_user_data(_RGFW->xdg_wm_base, win);
 
 	win->src.xdg_toplevel = xdg_surface_get_toplevel(win->src.xdg_surface);
-	xdg_toplevel_set_user_data(win->src.xdg_toplevel, win);
 
 	xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->w, win->h);
 
@@ -6727,7 +6723,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	};
 
 
-	xdg_toplevel_add_listener(win->src.xdg_toplevel, &xdg_toplevel_listener, NULL);
+	xdg_toplevel_add_listener(win->src.xdg_toplevel, &xdg_toplevel_listener, win);
 
 	if (_RGFW->decoration_manager) {
 		if (!(flags & RGFW_windowNoBorder)) {
