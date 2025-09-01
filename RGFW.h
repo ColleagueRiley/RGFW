@@ -6773,7 +6773,6 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
 		};
 
 		zwp_locked_pointer_v1_add_listener(_RGFW->locked_pointer, &locked_listener, _RGFW);
-		// zwp_locked_pointer_v1_set_cursor_position_hint(_RGFW->locked_pointer, wl_fixed_from_int((win->w / 2)), wl_fixed_from_int((win->h / 2)));
 	} 	
 }
 
