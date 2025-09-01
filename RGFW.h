@@ -635,8 +635,6 @@ typedef RGFW_ENUM(u8, RGFW_mouseButton) {
 	RGFW_mouseLeft = 0, /*!< left mouse button is pressed */
 	RGFW_mouseMiddle, /*!< mouse-wheel-button is pressed */
 	RGFW_mouseRight, /*!< right mouse button is pressed */
-	RGFW_mouseScrollUp, /*!< mouse wheel is scrolling up */
-	RGFW_mouseScrollDown, /*!< mouse wheel is scrolling down */
 	RGFW_mouseMisc1, RGFW_mouseMisc2, RGFW_mouseMisc3, RGFW_mouseMisc4, RGFW_mouseMisc5,
 	RGFW_mouseFinal
 };
@@ -670,6 +668,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 	*/
 	RGFW_mouseButtonPressed, /*!< a mouse button has been pressed (left,middle,right) */
 	RGFW_mouseButtonReleased, /*!< a mouse button has been released (left,middle,right) */
+	RGFW_mouseScroll, /*!< a mouse scroll event */
 	RGFW_mousePosChanged, /*!< the position of the mouse has been changed */
 	/*! mouse event note
 		the x and y of the mouse can be found in the vector, RGFW_x, y
@@ -709,6 +708,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 typedef RGFW_ENUM(u32, RGFW_eventFlag) {
     RGFW_keyPressedFlag = RGFW_BIT(RGFW_keyPressed),
     RGFW_keyReleasedFlag = RGFW_BIT(RGFW_keyReleased),
+    RGFW_mouseScrollFlag = RGFW_BIT(RGFW_mouseScroll),
     RGFW_mouseButtonPressedFlag = RGFW_BIT(RGFW_mouseButtonPressed),
     RGFW_mouseButtonReleasedFlag = RGFW_BIT(RGFW_mouseButtonReleased),
     RGFW_mousePosChangedFlag = RGFW_BIT(RGFW_mousePosChanged),
@@ -745,8 +745,13 @@ typedef struct RGFW_mouseButtonEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies too (for event queue events) */
 	u8 value; /* !< which mouse button was pressed */
-	double scroll; /*!< the raw mouse scroll value */
 } RGFW_mouseButtonEvent;
+
+typedef struct RGFW_mouseScrollEvent {
+	RGFW_eventType type; /*!< which event has been sent?*/
+	RGFW_window* win; /*!< the window this event applies too (for event queue events) */
+	double x, y; /*!< the raw mouse scroll value */
+} RGFW_mouseScrollEvent;
 
 typedef struct RGFW_mousePosEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
@@ -789,6 +794,7 @@ typedef union RGFW_event {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_commonEvent common; /*!< common event data (e.g.) type and win */
 	RGFW_mouseButtonEvent button; /*!< data for a button press/release */
+	RGFW_mouseScrollEvent scroll; /*!< data for a mouse scroll */
 	RGFW_mousePosEvent mouse; /*!< data for mouse motion events */
 	RGFW_keyEvent key; /*!< data for key press/release/hold events */
 	RGFW_dataDropEvent drop; /*!< dropping a file events */
@@ -1206,7 +1212,9 @@ typedef void (* RGFW_windowRefreshfunc)(RGFW_window* win);
 /*! RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of the mod keys, if it was a press (else it's a release) */
 typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, u8 sym, RGFW_keymod mod, RGFW_bool repeat, RGFW_bool pressed);
 /*! RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release)  */
-typedef void (* RGFW_mouseButtonfunc)(RGFW_window* win, RGFW_mouseButton button, double scroll, RGFW_bool pressed);
+typedef void (* RGFW_mouseButtonfunc)(RGFW_window* win, RGFW_mouseButton button, RGFW_bool pressed);
+/*! RGFW_mouseScroll, the window that got the event, the x scroll value, the y scroll value */
+typedef void (* RGFW_mouseScrollfunc)(RGFW_window* win, double x, double y);
 /*! RGFW_dataDrop the window that had the drop, the drop data and the number of files dropped */
 typedef void (* RGFW_dataDropfunc)(RGFW_window* win, char** files, size_t count);
 /*! RGFW_scaleUpdated, the window the event was sent to, content scaleX, content scaleY */
@@ -1234,6 +1242,8 @@ RGFWDEF RGFW_dataDragfunc RGFW_setDataDragCallback(RGFW_dataDragfunc func);
 RGFWDEF RGFW_keyfunc RGFW_setKeyCallback(RGFW_keyfunc func);
 /*! set callback for a mouse button (press / release) event. Returns previous callback function (if it was set)  */
 RGFWDEF RGFW_mouseButtonfunc RGFW_setMouseButtonCallback(RGFW_mouseButtonfunc func);
+/*! set callback for a mouse scale  event. Returns previous callback function (if it was set)  */
+RGFWDEF RGFW_mouseScrollfunc RGFW_setMouseScrollCallback(RGFW_mouseScrollfunc func);
 /*! set call back for when window is maximized. Returns the previous callback function (if it was set) */
 RGFWDEF RGFW_windowMaximizedfunc RGFW_setWindowMaximizedCallback(RGFW_windowMaximizedfunc func);
 /*! set call back for when window is minimized. Returns the previous callback function (if it was set) */
@@ -1986,7 +1996,10 @@ RGFW_CALLBACK_DEFINE(key, Key)
 #define RGFW_keyCallback(w, key, sym, mod, repeat, press) if (RGFW_keyCallbackSrc) RGFW_keyCallbackSrc(w, key, sym, mod, repeat, press);
 
 RGFW_CALLBACK_DEFINE(mouseButton, MouseButton)
-#define RGFW_mouseButtonCallback(w, button, scroll, press) if (RGFW_mouseButtonCallbackSrc) RGFW_mouseButtonCallbackSrc(w, button, scroll, press);
+#define RGFW_mouseButtonCallback(w, button, press) if (RGFW_mouseButtonCallbackSrc) RGFW_mouseButtonCallbackSrc(w, button, press);
+
+RGFW_CALLBACK_DEFINE(mouseScroll, MouseScroll)
+#define RGFW_mouseScrollCallback(w, x, y) if (RGFW_mouseScrollCallbackSrc) RGFW_mouseScrollCallbackSrc(w, x, y);
 
 RGFW_CALLBACK_DEFINE(scaleUpdated, ScaleUpdated)
 #define RGFW_scaleUpdatedCallback(w, scaleX, scaleY) if (RGFW_scaleUpdatedCallbackSrc) RGFW_scaleUpdatedCallbackSrc(w, scaleX, scaleY);
@@ -4435,35 +4448,49 @@ void RGFW_XHandleEvent(void) {
 		case ButtonPress:
 			if (!(win->internal.enabledEvents & RGFW_mouseButtonPressedFlag) || E.xbutton.button > RGFW_mouseFinal) return;
 			event.type = RGFW_mouseButtonPressed; /* the events match */
-			event.button.value = (u8)(E.xbutton.button - 1);
-			switch(event.button.value) {
-				case RGFW_mouseScrollUp: event.button.scroll = 1; break;
-				case RGFW_mouseScrollDown: event.button.scroll = -1; break;
-				default: break;
+
+			if (E.xbutton.button >= Button4 && E.xbutton.button <= 7) {
+				event.type = RGFW_mouseScroll;
+			}
+
+			switch(E.xbutton.button) {
+				case Button1: event.button.value = RGFW_mouseLeft; break;
+				case Button2: event.button.value = RGFW_mouseMiddle; break;
+				case Button3: event.button.value = RGFW_mouseRight; break;
+				case Button4: event.scroll.y = 1.0; break;
+				case Button5: event.scroll.y = -1.0; break;
+				case 6: event.scroll.x = 1.0f; break;
+				case 7: event.scroll.x = -1.0f; break;
+				default:
+					event.button.value = (u8)E.xbutton.button - Button1 - 4;
+					break;
+			}
+
+			if (event.type == RGFW_mouseScroll) {
+				RGFW_mouseScrollCallback(win, event.scroll.x, event.scroll.y);
+				break;
 			}
 
 			_RGFW->mouseButtons[event.button.value].prev = _RGFW->mouseButtons[event.button.value].current;
 			_RGFW->mouseButtons[event.button.value].current = RGFW_TRUE;
-			RGFW_mouseButtonCallback(win, event.button.value, event.button.scroll, RGFW_TRUE);
+			RGFW_mouseButtonCallback(win, event.button.value, RGFW_TRUE);
 			break;
 		case ButtonRelease:
+			if (E.xbutton.button >= Button4 && E.xbutton.button <= 7) break;
 			if (!(win->internal.enabledEvents & RGFW_mouseButtonReleasedFlag) || E.xbutton.button > RGFW_mouseFinal) return;
-
 			event.type = RGFW_mouseButtonReleased;
-			event.button.value = (u8)(E.xbutton.button - 1);
-			switch(event.button.value) {
-				case RGFW_mouseScrollUp: event.button.scroll = 1; break;
-				case RGFW_mouseScrollDown: event.button.scroll = -1; break;
-				default: break;
+			switch(E.xbutton.button) {
+				case Button1: event.button.value = RGFW_mouseLeft; break;
+				case Button2: event.button.value = RGFW_mouseMiddle; break;
+				case Button3: event.button.value = RGFW_mouseRight; break;
+				default:
+					event.button.value = (u8)E.xbutton.button - Button1 - 4;
+					break;
 			}
 
 			_RGFW->mouseButtons[event.button.value].prev = _RGFW->mouseButtons[event.button.value].current;
-
-			if (event.key.repeat == RGFW_FALSE)
-				event.key.repeat = RGFW_window_isKeyPressed(win, event.key.value);
-
 			_RGFW->mouseButtons[event.button.value].current = RGFW_FALSE;
-			RGFW_mouseButtonCallback(win, event.button.value, event.button.scroll, RGFW_FALSE);
+			RGFW_mouseButtonCallback(win, event.button.value, RGFW_FALSE);
 			break;
 		case MotionNotify:
 			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag)) return;
@@ -6235,12 +6262,7 @@ static void RGFW_wl_pointer_axis(void* data, struct wl_pointer *pointer, u32 tim
 	double scroll = - wl_fixed_to_double(value);
 	if (!(win->internal.enabledEvents  & (RGFW_BIT(RGFW_mouseScrollUp + (scroll < 0))))) return;
 
-	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonPressed;
-									e.button.value = RGFW_mouseScrollUp + (scroll < 0);
-									e.button.scroll = scroll;
-									e.common.win = win);
-
-	RGFW_mouseButtonCallback(win, RGFW_mouseScrollUp + (scroll < 0), scroll, 1);
+	RGFW_mouseScrollCallback(win, scroll);
 }
 
 
