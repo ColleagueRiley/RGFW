@@ -6125,8 +6125,7 @@ static void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplev
 	}
 }
 
-
-void RGFW_wl_xdg_toplevel_close_handler(void* data, struct xdg_toplevel *toplevel) {
+static void RGFW_wl_xdg_toplevel_close_handler(void* data, struct xdg_toplevel *toplevel) {
 	RGFW_UNUSED(toplevel);
 	RGFW_window* win = (RGFW_window*)data;
 
@@ -6145,7 +6144,7 @@ static void RGFW_wl_shm_format_handler(void* data, struct wl_shm *shm, u32 forma
 	RGFW_UNUSED(data); RGFW_UNUSED(shm); RGFW_UNUSED(format);
 }
 
-void RGFW_wl_relative_pointer_motion(void *data, struct zwp_relative_pointer_v1 *zwp_relative_pointer_v1,
+static void RGFW_wl_relative_pointer_motion(void *data, struct zwp_relative_pointer_v1 *zwp_relative_pointer_v1,
 	u32 time_hi, u32 time_lo, wl_fixed_t dx, wl_fixed_t dy, wl_fixed_t dx_unaccel, wl_fixed_t dy_unaccel) {
 
 	RGFW_UNUSED(data); RGFW_UNUSED(zwp_relative_pointer_v1); RGFW_UNUSED(time_hi); RGFW_UNUSED(time_lo);
@@ -6166,7 +6165,7 @@ void RGFW_wl_relative_pointer_motion(void *data, struct zwp_relative_pointer_v1 
 	RGFW_mousePosCallback(win, win->internal.lastMouseX, win->internal.lastMouseY, vecX, vecY);
 }
 
-void RGFW_wl_pointer_locked(void *data, struct zwp_locked_pointer_v1 *zwp_locked_pointer_v1) {
+static void RGFW_wl_pointer_locked(void *data, struct zwp_locked_pointer_v1 *zwp_locked_pointer_v1) {
 	RGFW_UNUSED(zwp_locked_pointer_v1);
 	RGFW_info *RGFW = (RGFW_info*)data;
 	RGFW_window *win = RGFW->mouseOwner;
