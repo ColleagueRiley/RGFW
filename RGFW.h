@@ -7562,8 +7562,8 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (!(win->internal.enabledEvents & RGFW_mouseScrollFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
 
 			event.type = RGFW_mouseScroll;
-			event.scroll.x = 0.0f;
-			event.scroll.y = (SHORT) HIWORD(wParam) / (double) WHEEL_DELTA;
+			event.scroll.x = (double)0.0f;
+			event.scroll.y = (double)((double) HIWORD(wParam) / (double) WHEEL_DELTA);
 
 			RGFW_mouseScrollCallback(win, event.scroll.x, event.scroll.y);
 			break;
@@ -7571,8 +7571,8 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (!(win->internal.enabledEvents & RGFW_mouseScrollFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
 
 			event.type = RGFW_mouseScroll;
-			event.scroll.x = -((SHORT) HIWORD(wParam) / (double) WHEEL_DELTA);
-			event.scroll.y = 0.0f;
+			event.scroll.x = -(double)((double) HIWORD(wParam) / (double) WHEEL_DELTA);
+			event.scroll.y = (double)0.0f;
 
 			RGFW_mouseScrollCallback(win, event.scroll.x, event.scroll.y);
 			break;
