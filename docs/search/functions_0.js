@@ -21,7 +21,7 @@ var searchData=
   ['rgfw_5fgetinfo_18',['RGFW_getInfo',['../group__Supporting.html#ga4146e907d97ba4e3aa50ba6d05d43058',1,'RGFW.h']]],
   ['rgfw_5fgetlayer_5fosx_19',['RGFW_getLayer_OSX',['../RGFW_8h.html#ad9f496ee71f32732fb3dd5e957fbf2f5',1,'RGFW.h']]],
   ['rgfw_5fgetmonitors_20',['RGFW_getMonitors',['../RGFW_8h.html#aa3400dd1d0aa6292f1ea614b88934ea9',1,'RGFW.h']]],
-  ['rgfw_5fgetmousescroll_21',['RGFW_getMouseScroll',['../group__Input.html#gaf6555f2d4819e19cf6ca42e97daca8db',1,'RGFW.h']]],
+  ['rgfw_5fgetmousescroll_21',['RGFW_getMouseScroll',['../group__Input.html#ga2add927a24d7de9efe3eef17f82b2be7',1,'RGFW.h']]],
   ['rgfw_5fgetmousevector_22',['RGFW_getMouseVector',['../group__Input.html#ga2d48e85003a250e5463270cade470021',1,'RGFW.h']]],
   ['rgfw_5fgetprimarymonitor_23',['RGFW_getPrimaryMonitor',['../RGFW_8h.html#a9b687e5aac56d2c3af094ebb3caf1fc5',1,'RGFW.h']]],
   ['rgfw_5fgetrootwindow_24',['RGFW_getRootWindow',['../group__Supporting.html#ga9938b52ee354a81f049e67ae6e99fc94',1,'RGFW.h']]],

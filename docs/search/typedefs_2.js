@@ -21,7 +21,7 @@ var searchData=
   ['rgfw_5fmouseposevent_18',['RGFW_mousePosEvent',['../RGFW_8h.html#a98815b647758ab684536d7ab4b62e720',1,'RGFW.h']]],
   ['rgfw_5fmouseposfunc_19',['RGFW_mousePosfunc',['../group__Callbacks.html#ga3812415939203c049c40c7f0c35baa14',1,'RGFW.h']]],
   ['rgfw_5fmousescrollevent_20',['RGFW_mouseScrollEvent',['../RGFW_8h.html#a525731669cdf1b264d4f2679b8aeecd9',1,'RGFW.h']]],
-  ['rgfw_5fmousescrollfunc_21',['RGFW_mouseScrollfunc',['../group__Callbacks.html#ga9e198afc7af511088e125f141ea68351',1,'RGFW.h']]],
+  ['rgfw_5fmousescrollfunc_21',['RGFW_mouseScrollfunc',['../group__Callbacks.html#ga7eb8e9ef5a3373f80ca1cb25234ddf42',1,'RGFW.h']]],
   ['rgfw_5fnativeimage_22',['RGFW_nativeImage',['../RGFW_8h.html#af91a996714bbd6ad53dee8a31dcb2534',1,'RGFW.h']]],
   ['rgfw_5fproc_23',['RGFW_proc',['../group__graphics__API.html#ga17baf5cc4a2b992fb3ce119e6f580659',1,'RGFW.h']]],
   ['rgfw_5fscaleupdatedevent_24',['RGFW_scaleUpdatedEvent',['../RGFW_8h.html#a95a1bcdaf253bcb4d00f28894bc203b2',1,'RGFW.h']]],

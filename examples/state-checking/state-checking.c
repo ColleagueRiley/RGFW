@@ -19,7 +19,7 @@ typedef struct {
     RGFW_bool leftMousePressed;
     RGFW_bool rightMouseDown;
     RGFW_bool middleMouseReleased;
-    double scrollX, scrollY;
+    float scrollX, scrollY;
     i32 mouseX, mouseY;
 	float vectorX, vectorY;
     RGFW_bool didMouseLeave;
@@ -116,7 +116,7 @@ int main(void) {
             printf("Is middle mouse button released: %s\n", currState.middleMouseReleased ? "Yes" : "No");
         }
         if (currState.scrollX != prevState.scrollX || currState.scrollY != prevState.scrollY) {
-            printf("Mouse scrolling (%f %f)\n", currState.scrollX, currState.scrollY);
+            printf("Mouse scrolling (%f %f)\n", (double)currState.scrollX, (double)currState.scrollY);
         }
         if (RGFW_isKeyDown(RGFW_controlL) && (currState.mouseX != prevState.mouseX || currState.mouseY != prevState.mouseY)) {
             printf("Mouse position in window: (%i, %i)\n", currState.mouseX, currState.mouseY);

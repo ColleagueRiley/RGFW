@@ -269,7 +269,7 @@ RGFW.h
 .RI "typedef void(* \fBRGFW_mouseButtonfunc\fP) (\fBRGFW_window\fP *win, RGFW_mouseButton button, \fBRGFW_bool\fP pressed)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_mouseScrollfunc\fP) (\fBRGFW_window\fP *win, double x, double y)"
+.RI "typedef void(* \fBRGFW_mouseScrollfunc\fP) (\fBRGFW_window\fP *win, float x, float y)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_dataDropfunc\fP) (\fBRGFW_window\fP *win, char **files, size_t count)"
@@ -423,7 +423,7 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isMouseReleased\fP (RGFW_mouseButton button)"
 .br
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_getMouseScroll\fP (double *x, double *y)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_getMouseScroll\fP (float *x, float *y)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_getMouseVector\fP (float *x, float *y)"
