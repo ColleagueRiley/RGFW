@@ -19,7 +19,7 @@ typedef struct {
     RGFW_bool leftMousePressed;
     RGFW_bool rightMouseDown;
     RGFW_bool middleMouseReleased;
-    double scrollX, scrollY;
+    float scrollX, scrollY;
     i32 mouseX, mouseY;
 	float vectorX, vectorY;
     RGFW_bool didMouseLeave;
