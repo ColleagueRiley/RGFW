@@ -4446,11 +4446,12 @@ void RGFW_XHandleEvent(void) {
 			break;
 		}
 		case ButtonPress:
-			if (!(win->internal.enabledEvents & RGFW_mouseButtonPressedFlag) || E.xbutton.button > RGFW_mouseFinal) return;
-			event.type = RGFW_mouseButtonPressed; /* the events match */
-
 			if (E.xbutton.button >= Button4 && E.xbutton.button <= 7) {
+				if (!(win->internal.enabledEvents & RGFW_mouseScrollFlag)) return;
 				event.type = RGFW_mouseScroll;
+			} else {
+				if (!(win->internal.enabledEvents & RGFW_mouseButtonPressedFlag) || E.xbutton.button > RGFW_mouseFinal) return;
+				event.type = RGFW_mouseButtonPressed;
 			}
 
 			switch(E.xbutton.button) {
@@ -6138,7 +6139,7 @@ static void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplev
 static void RGFW_wl_xdg_toplevel_close_handler(void* data, struct xdg_toplevel *toplevel) {
 	RGFW_UNUSED(toplevel);
 	RGFW_window* win = (RGFW_window*)data;
-	
+
 	RGFW_eventQueuePushEx(e.type = RGFW_quit; e.common.win = win);
 	RGFW_window_setShouldClose(win, RGFW_TRUE);
 	RGFW_windowQuitCallback(win);
@@ -6241,7 +6242,7 @@ static void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 s
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonReleased - RGFW_BOOL(state);
 									e.button.value = (u8)b;
 									e.common.win = win);
-	RGFW_mouseButtonCallback(win, (u8)b, 0, RGFW_BOOL(state));
+	RGFW_mouseButtonCallback(win, (u8)b, RGFW_BOOL(state));
 }
 
 static void RGFW_wl_pointer_axis(void* data, struct wl_pointer *pointer, u32 time, u32 axis, wl_fixed_t value) {
@@ -6250,10 +6251,21 @@ static void RGFW_wl_pointer_axis(void* data, struct wl_pointer *pointer, u32 tim
 	RGFW_ASSERT(_RGFW->mouseOwner != NULL);
 	RGFW_window* win = _RGFW->mouseOwner;
 
-	double scroll = - wl_fixed_to_double(value);
-	if (!(win->internal.enabledEvents  & (RGFW_BIT(RGFW_mouseScrollUp + (scroll < 0))))) return;
+	double scrollX = 0.0;
+	double scrollY = 0.0;
 
-	RGFW_mouseScrollCallback(win, scroll);
+	if (!(win->internal.enabledEvents  & (RGFW_BIT(RGFW_mouseScroll)))) return;
+
+	if (axis == WL_POINTER_AXIS_HORIZONTAL_SCROLL)
+		scrollX = -wl_fixed_to_double(value) / 10.0;
+	else if (axis == WL_POINTER_AXIS_VERTICAL_SCROLL)
+		scrollY = -wl_fixed_to_double(value) / 10.0;
+
+	RGFW_mouseScrollCallback(win, scrollX, scrollY);
+	RGFW_eventQueuePushEx(e.type = RGFW_mouseScroll;
+									e.scroll.x = scrollX;
+									e.scroll.y = scrollY;
+									e.common.win = win);
 }
 
 
@@ -6648,7 +6660,7 @@ void RGFW_deinitPlatform_Wayland(void) {
 		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
 
 	RGFW_monitorNode* node = _RGFW->monitors.list.head;
-	
+
 	while (node != NULL) {
 		if (node->output) {
 			wl_output_destroy(node->output);
@@ -7547,19 +7559,22 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_mouseButtonCallback(win, event.button.value, event.button.scroll, 0);
 			break;
 		case WM_MOUSEWHEEL:
-			if (!(win->internal.enabledEvents & RGFW_mouseButtonPressedFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
-			if (wParam > 0)
-				event.button.value = RGFW_mouseScrollUp;
-			else
-				event.button.value = RGFW_mouseScrollDown;
+			if (!(win->internal.enabledEvents & RGFW_mouseScrollFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
 
-			_RGFW->mouseButtons[event.button.value].prev = _RGFW->mouseButtons[event.button.value].current;
-			_RGFW->mouseButtons[event.button.value].current = 1;
+			event.type = RGFW_mouseScroll;
+			event.scroll.x = 0.0f;
+			event.scroll.y = (SHORT) HIWORD(wParam) / (double) WHEEL_DELTA;
 
-			event.button.scroll = (SHORT) HIWORD(wParam) / (double) WHEEL_DELTA;
+			RGFW_mouseScrollCallback(win, event.scroll.x, event.scroll.y);
+			break;
+		case WM_MOUSEHWHEEL:
+			if (!(win->internal.enabledEvents & RGFW_mouseScrollFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
 
-			event.type = RGFW_mouseButtonPressed;
-			RGFW_mouseButtonCallback(win, event.button.value, event.button.scroll, 1);
+			event.type = RGFW_mouseScroll;
+			event.scroll.x = -((SHORT) HIWORD(wParam) / (double) WHEEL_DELTA);
+			event.scroll.y = 0.0f;
+
+			RGFW_mouseScrollCallback(win, event.scroll.x, event.scroll.y);
 			break;
 		case WM_DROPFILES: {
 			event.type = RGFW_dataDrag;
@@ -9787,19 +9802,19 @@ void RGFW__osxScrollWheel(id self, SEL _cmd, id event) {
 	RGFW_UNUSED(_cmd);
     RGFW_window* win = NULL;
     object_getInstanceVariable(self, "RGFW_window", (void**)&win);
-    if (win == NULL|| !(win->internal.enabledEvents & RGFW_mouseButtonPressed)) return;
+    if (win == NULL|| !(win->internal.enabledEvents & RGFW_mouseScroll)) return;
 
     RGFW_event e;
-    double deltaY = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaY"));
-    e.button.value = (deltaY > 0) ? RGFW_mouseScrollUp : RGFW_mouseScrollDown;
-    _RGFW->mouseButtons[e.button.value].prev = _RGFW->mouseButtons[e.button.value].current;
-    _RGFW->mouseButtons[e.button.value].current = 1;
-    e.button.scroll = deltaY;
-    e.type = RGFW_mouseButtonPressed;
+    double deltaX = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaX"));
+	double deltaY = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaY"));
+
+    e.type = RGFW_mouseScroll;
+	e.scroll.x = deltaX;
+	e.scroll.y = deltaY;
     e.common.win = win;
 
     RGFW_eventQueuePush(&e);
-    RGFW_mouseButtonCallback(win, e.button.value, e.button.scroll, 1);
+    RGFW_mouseScrollCallback(win, deltaX, deltaY);
 }
 
 RGFW_bool RGFW_createSurfacePtr(u8* data, i32 w, i32 h, RGFW_format format, RGFW_surface* surface) {
@@ -11039,16 +11054,13 @@ EM_BOOL Emscripten_on_mouseup(int eventType, const EmscriptenMouseEvent* E, void
 EM_BOOL Emscripten_on_wheel(int eventType, const EmscriptenWheelEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData);
 
-	if (!(_RGFW->root->internal.enabledEvents & RGFW_mouseButtonPressedFlag)) return EM_TRUE;
+	if (!(_RGFW->root->internal.enabledEvents & RGFW_mouseScrollFlag)) return EM_TRUE;
 
-	int button =  RGFW_mouseScrollUp + (E->deltaY < 0);
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonPressed;
-							e.button.value = (u8)button;
-							e.button.scroll = (double)(E->deltaY < 0 ? 1 : -1);
-							e.common.win = _RGFW->root);
-	_RGFW->mouseButtons[button].prev = _RGFW->mouseButtons[button].current;
-	_RGFW->mouseButtons[button].current = 1;
-	RGFW_mouseButtonCallback(_RGFW->root, button, E->deltaY < 0 ? 1 : -1, 1);
+							e.scroll.x = e->deltaX;
+							e.scroll.y = E->deltaY;
+						);
+	RGFW_mouseScrollCallback(_RGFW->root, E->deltaX, E->deltaY);
 
     return EM_TRUE;
 }
