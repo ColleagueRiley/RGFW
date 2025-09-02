@@ -1,4 +1,4 @@
-.TH "Input" 3 "Mon Sep 1 2025" "RGFW" \" -*- nroff -*-
+.TH "Input" 3 "Tue Sep 2 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -27,6 +27,12 @@ Input \- Input
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isMouseReleased\fP (RGFW_mouseButton button)"
 .br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_getMouseScroll\fP (double *x, double *y)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_getMouseVector\fP (float *x, float *y)"
+.br
 .in -1c
 .SH "Detailed Description"
 .PP 
@@ -37,6 +43,10 @@ Input \- Input
 
 .SH "Function Documentation"
 .PP 
+.SS "\fBRGFWDEF\fP void RGFW_getMouseScroll (double * x, double * y)"
+get the current scroll value (of the frame) 
+.SS "\fBRGFWDEF\fP void RGFW_getMouseVector (float * x, float * y)"
+get the current vector value (of the frame) 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_isKeyDown (RGFW_key key)"
 if key is held (key code) 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_isKeyPressed (RGFW_key key)"

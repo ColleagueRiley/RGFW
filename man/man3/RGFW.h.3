@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Mon Sep 1 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Tue Sep 2 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -31,6 +31,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "struct \fBRGFW_mouseButtonEvent\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_mouseScrollEvent\fP"
 .br
 .ti -1c
 .RI "struct \fBRGFW_mousePosEvent\fP"
@@ -200,6 +203,9 @@ RGFW.h
 .RI "typedef struct \fBRGFW_mouseButtonEvent\fP \fBRGFW_mouseButtonEvent\fP"
 .br
 .ti -1c
+.RI "typedef struct \fBRGFW_mouseScrollEvent\fP \fBRGFW_mouseScrollEvent\fP"
+.br
+.ti -1c
 .RI "typedef struct \fBRGFW_mousePosEvent\fP \fBRGFW_mousePosEvent\fP"
 .br
 .ti -1c
@@ -260,7 +266,10 @@ RGFW.h
 .RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP key, \fBu8\fP sym, RGFW_keymod mod, \fBRGFW_bool\fP repeat, \fBRGFW_bool\fP pressed)"
 .br
 .ti -1c
-.RI "typedef void(* \fBRGFW_mouseButtonfunc\fP) (\fBRGFW_window\fP *win, RGFW_mouseButton button, double scroll, \fBRGFW_bool\fP pressed)"
+.RI "typedef void(* \fBRGFW_mouseButtonfunc\fP) (\fBRGFW_window\fP *win, RGFW_mouseButton button, \fBRGFW_bool\fP pressed)"
+.br
+.ti -1c
+.RI "typedef void(* \fBRGFW_mouseScrollfunc\fP) (\fBRGFW_window\fP *win, double x, double y)"
 .br
 .ti -1c
 .RI "typedef void(* \fBRGFW_dataDropfunc\fP) (\fBRGFW_window\fP *win, char **files, size_t count)"
@@ -412,6 +421,12 @@ RGFW.h
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isMouseReleased\fP (RGFW_mouseButton button)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_getMouseScroll\fP (double *x, double *y)"
+.br
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_getMouseVector\fP (float *x, float *y)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu32\fP, RGFW_windowFlags)"
@@ -741,6 +756,9 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_mouseButtonfunc\fP \fBRGFW_setMouseButtonCallback\fP (\fBRGFW_mouseButtonfunc\fP func)"
 .br
 .ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_mouseScrollfunc\fP \fBRGFW_setMouseScrollCallback\fP (\fBRGFW_mouseScrollfunc\fP func)"
+.br
+.ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_windowMaximizedfunc\fP \fBRGFW_setWindowMaximizedCallback\fP (\fBRGFW_windowMaximizedfunc\fP func)"
 .br
 .ti -1c
@@ -886,6 +904,8 @@ loads mouse icon from bitmap (similar to RGFW_window_setIcon)\&. Icon NOT resize
 
 .SS "typedef struct \fBRGFW_mousePosEvent\fP \fBRGFW_mousePosEvent\fP"
 
+.SS "typedef struct \fBRGFW_mouseScrollEvent\fP \fBRGFW_mouseScrollEvent\fP"
+
 .SS "typedef struct \fBRGFW_nativeImage\fP \fBRGFW_nativeImage\fP"
 
 .SS "typedef struct \fBRGFW_scaleUpdatedEvent\fP \fBRGFW_scaleUpdatedEvent\fP"
@@ -969,6 +989,8 @@ RGFW_event\&.key\&.mod holds the current mod this means if CapsLock, NumLock are
 .PP
 < a mouse button has been released (left,middle,right)
 .PP
+< a mouse scroll event
+.PP
 < the position of the mouse has been changed
 .PP
 mouse event note the x and y of the mouse can be found in the vector, RGFW_x, y
@@ -1024,10 +1046,6 @@ mouse button codes (RGFW_event\&.button\&.value) < left mouse button is pressed
 < mouse-wheel-button is pressed
 .PP
 < right mouse button is pressed
-.PP
-< mouse wheel is scrolling up
-.PP
-< mouse wheel is scrolling down
 .SS "\fBRGFWDEF\fP void RGFW_free (void * ptr)"
 
 .SS "\fBRGFWDEF\fP void RGFW_freeMouse (\fBRGFW_mouse\fP * mouse)"

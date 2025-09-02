@@ -1,4 +1,4 @@
-.TH "RGFW_event" 3 "Mon Sep 1 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW_event" 3 "Tue Sep 2 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -19,6 +19,9 @@ RGFW_event
 .br
 .ti -1c
 .RI "\fBRGFW_mouseButtonEvent\fP \fBbutton\fP"
+.br
+.ti -1c
+.RI "\fBRGFW_mouseScrollEvent\fP \fBscroll\fP"
 .br
 .ti -1c
 .RI "\fBRGFW_mousePosEvent\fP \fBmouse\fP"
@@ -55,6 +58,8 @@ data for key press/release/hold events
 data for mouse motion events 
 .SS "\fBRGFW_scaleUpdatedEvent\fP RGFW_event::scale"
 
+.SS "\fBRGFW_mouseScrollEvent\fP RGFW_event::scroll"
+data for a mouse scroll 
 .SS "RGFW_eventType RGFW_event::type"
 which event has been sent? 
 

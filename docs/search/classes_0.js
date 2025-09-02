@@ -9,5 +9,6 @@ var searchData=
   ['rgfw_5fmonitormode_6',['RGFW_monitorMode',['../structRGFW__monitorMode.html',1,'']]],
   ['rgfw_5fmousebuttonevent_7',['RGFW_mouseButtonEvent',['../structRGFW__mouseButtonEvent.html',1,'']]],
   ['rgfw_5fmouseposevent_8',['RGFW_mousePosEvent',['../structRGFW__mousePosEvent.html',1,'']]],
-  ['rgfw_5fscaleupdatedevent_9',['RGFW_scaleUpdatedEvent',['../structRGFW__scaleUpdatedEvent.html',1,'']]]
+  ['rgfw_5fmousescrollevent_9',['RGFW_mouseScrollEvent',['../structRGFW__mouseScrollEvent.html',1,'']]],
+  ['rgfw_5fscaleupdatedevent_10',['RGFW_scaleUpdatedEvent',['../structRGFW__scaleUpdatedEvent.html',1,'']]]
 ];
