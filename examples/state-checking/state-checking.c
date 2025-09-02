@@ -21,6 +21,7 @@ typedef struct {
     RGFW_bool middleMouseReleased;
     double scrollX, scrollY;
     i32 mouseX, mouseY;
+	float vectorX, vectorY;
     RGFW_bool didMouseLeave;
     RGFW_bool didMouseEnter;
     RGFW_bool isMouseInside;
@@ -57,6 +58,7 @@ int main(void) {
             RGFW_window_isMouseReleased(win, RGFW_mouseMiddle),
             0, 0,
             0, 0,
+			0.0f, 0.0f,
             RGFW_window_didMouseLeave(win),
             RGFW_window_didMouseEnter(win),
             RGFW_window_isMouseInside(win),
@@ -68,6 +70,7 @@ int main(void) {
 		RGFW_window_getPosition(win, &currState.posX, &currState.posY);
         RGFW_window_getSize(win, &currState.width, &currState.height);
         RGFW_window_getMouse(win, &currState.mouseX, &currState.mouseY);
+		RGFW_getMouseVector(&currState.vectorX, &currState.vectorY);
 		RGFW_getMouseScroll(&currState.scrollX, &currState.scrollY);
 
         RGFW_window_getDataDrag(win, &currState.dragX, &currState.dragY);
@@ -117,6 +120,9 @@ int main(void) {
         }
         if (RGFW_isKeyDown(RGFW_controlL) && (currState.mouseX != prevState.mouseX || currState.mouseY != prevState.mouseY)) {
             printf("Mouse position in window: (%i, %i)\n", currState.mouseX, currState.mouseY);
+        }
+        if (RGFW_isKeyDown(RGFW_controlL) && (currState.vectorX != prevState.vectorX || currState.vectorY != prevState.vectorY)) {
+            printf("Mouse vector: (%f, %f)\n", (double)currState.vectorX, (double)currState.vectorY);
         }
         if (currState.didMouseLeave != prevState.didMouseLeave) {
             printf("Did mouse leave: %s\n", currState.didMouseLeave ? "Yes" : "No");
