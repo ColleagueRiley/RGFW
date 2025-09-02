@@ -6206,14 +6206,19 @@ static void RGFW_wl_relative_pointer_motion(void *data, struct zwp_relative_poin
 	float vecX =  (float)wl_fixed_to_double(dx);
 	float vecY = (float)wl_fixed_to_double(dy);
 
+	i32 newMouseX = win->internal.lastMouseX + RGFW_ROUND(vecX); 
+	i32 newMouseY = win->internal.lastMouseY + RGFW_ROUND(vecY); 
 	RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
-									e.mouse.x = win->internal.lastMouseX;
-									e.mouse.y = win->internal.lastMouseY;
+									e.mouse.x = newMouseX;
+									e.mouse.y = newMouseY;
 									e.mouse.vecX = vecX;
 									e.mouse.vecY = vecY;
 									e.common.win = win);
-	
-	RGFW_mousePosCallback(win, win->internal.lastMouseX, win->internal.lastMouseY, vecX, vecY);
+	win->internal.lastMouseX = newMouseX;
+	win->internal.lastMouseY = newMouseY;
+	_RGFW->vectorX = vecX;
+	_RGFW->vectorY = vecY;
+	RGFW_mousePosCallback(win, newMouseX, newMouseY, vecX, vecY);
 }
 
 static void RGFW_wl_pointer_locked(void *data, struct zwp_locked_pointer_v1 *zwp_locked_pointer_v1) {
@@ -6281,15 +6286,19 @@ static void RGFW_wl_pointer_motion(void* data, struct wl_pointer *pointer, u32 t
 	i32 convertedX = (i32)wl_fixed_to_double(x);
 	i32 convertedY = (i32)wl_fixed_to_double(y);
 
-	// RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
-	// 								e.mouse.x = convertedX;
-	// 								e.mouse.y = convertedY;
-	// 								e.common.win = win);
+	RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
+									e.mouse.x = convertedX;
+									e.mouse.y = convertedY;
+									e.common.win = win);
 
+	float newVecX = (float)(convertedX - win->internal.lastMouseX);
+	float newVecY = (float)(convertedY - win->internal.lastMouseY);
+	
+	_RGFW->vectorX = newVecX;
+	_RGFW->vectorY = newVecY;
 	win->internal.lastMouseX = convertedX;
 	win->internal.lastMouseY = convertedY;
-
-	// RGFW_mousePosCallback(win, convertedX, convertedY, 0, 0);
+	RGFW_mousePosCallback(win, convertedX, convertedY, newVecX, newVecY);
 }
 
 static void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 serial, u32 time, u32 button, u32 state) {
