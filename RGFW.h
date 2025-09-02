@@ -7567,7 +7567,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			RGFW_mouseScrollCallback(win, event.scroll.x, event.scroll.y);
 			break;
-		case WM_MOUSEHWHEEL:
+		case 0x020E: /* WM_MOUSEHWHEEL */
 			if (!(win->internal.enabledEvents & RGFW_mouseScrollFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
 
 			event.type = RGFW_mouseScroll;
@@ -11055,7 +11055,7 @@ EM_BOOL Emscripten_on_wheel(int eventType, const EmscriptenWheelEvent* E, void* 
 	if (!(_RGFW->root->internal.enabledEvents & RGFW_mouseScrollFlag)) return EM_TRUE;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_mouseButtonPressed;
-							e.scroll.x = e->deltaX;
+							e.scroll.x = E->deltaX;
 							e.scroll.y = E->deltaY;
 						);
 	RGFW_mouseScrollCallback(_RGFW->root, E->deltaX, E->deltaY);
