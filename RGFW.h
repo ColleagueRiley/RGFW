@@ -849,6 +849,8 @@ RGFWDEF RGFW_bool RGFW_isMouseDown(RGFW_mouseButton button /*!< mouse button cod
 RGFWDEF RGFW_bool RGFW_isMouseReleased(RGFW_mouseButton button /*!< mouse button code */ );
 /*! get the current scroll value (of the frame) */
 RGFWDEF void RGFW_getMouseScroll(double* x, double* y);
+/*! get the current vector value (of the frame) */
+RGFWDEF void RGFW_getMouseVector(float* x, float* y);
 /** @} */
 
 /*! Optional arguments for making a windows */
@@ -1796,6 +1798,7 @@ struct RGFW_info {
 	RGFW_keyState mouseButtons[RGFW_mouseFinal];
 	RGFW_keyState keyboard[RGFW_keyLast];
 	double scrollX, scrollY;
+	float vectorX, vectorY;
 };
 #endif /* RGFW_NATIVE_HEADER */
 
@@ -2296,6 +2299,8 @@ void RGFW_resetPrevState(void) {
     for (i = 0; i < RGFW_mouseFinal; i++) _RGFW->mouseButtons[i].prev = _RGFW->mouseButtons[i].current;
 	_RGFW->scrollX = (double)0.0f;
 	_RGFW->scrollY = (double)0.0f;
+	_RGFW->vectorX = (float)0.0f;
+	_RGFW->vectorY = (float)0.0f;
 	RGFW_MEMSET(&_RGFW->windowState, 0, sizeof(_RGFW->windowState));
 }
 
@@ -2326,6 +2331,12 @@ void RGFW_getMouseScroll(double* x, double* y) {
 	RGFW_ASSERT(_RGFW != NULL);
 	if (x) *x = _RGFW->scrollX;
 	if (y) *y = _RGFW->scrollY;
+}
+
+void RGFW_getMouseVector(float* x, float* y) {
+	RGFW_ASSERT(_RGFW != NULL);
+	if (x) *x = _RGFW->vectorX;
+	if (y) *y = _RGFW->vectorY;
 }
 
 RGFW_bool RGFW_window_didMouseLeave(RGFW_window* win) { return _RGFW->windowState.winLeave == win && _RGFW->windowState.mouseLeave; }
@@ -4387,6 +4398,8 @@ void RGFW_XHandleEvent(void) {
 
 				event.mouse.vecX = (float)deltaX;
 				event.mouse.vecY = (float)deltaY;
+				_RGFW->vectorX = event.mouse.vecX;
+				_RGFW->vectorY = event.mouse.vecY;
 				event.mouse.x = win->internal.lastMouseX + (i32)event.mouse.vecX;
 				event.mouse.y = win->internal.lastMouseY + (i32)event.mouse.vecY;
 				win->internal.lastMouseX = event.mouse.x;
@@ -4513,6 +4526,8 @@ void RGFW_XHandleEvent(void) {
 
 			event.mouse.vecX = (float)(event.mouse.x - win->internal.lastMouseX);
 			event.mouse.vecY = (float)(event.mouse.y - win->internal.lastMouseY);
+			_RGFW->vectorX = event.mouse.vecX;
+			_RGFW->vectorY = event.mouse.vecY;
 			win->internal.lastMouseX = event.mouse.x;
 			win->internal.lastMouseY = event.mouse.y;
 			event.type = RGFW_mousePosChanged;
@@ -7490,6 +7505,8 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			event.mouse.y = GET_Y_LPARAM(lParam);
 			event.mouse.vecX = (float)(event.mouse.x - win->internal.lastMouseX);
 			event.mouse.vecY = (float)(event.mouse.y - win->internal.lastMouseY);
+			_RGFW->vectorX = event.mouse.vecX;
+			_RGFW->vectorY = event.mouse.vecY;
 
 			RGFW_mousePosCallback(win, event.mouse.x, event.mouse.y, event.mouse.vecX, event.mouse.vecY);
 
@@ -7546,6 +7563,8 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			event.type = RGFW_mousePosChanged;
 			win->internal.lastMouseX += (i32)event.mouse.vecX;
 			win->internal.lastMouseY += (i32)event.mouse.vecY;
+			_RGFW->vectorX = event.mouse.vecX;
+			_RGFW->vectorY = event.mouse.vecY;
 			event.mouse.x = win->internal.lastMouseX;
 			event.mouse.y = win->internal.lastMouseY;
 			RGFW_mousePosCallback(win, event.mouse.x, event.mouse.y, event.mouse.vecX, event.mouse.vecY);
@@ -9764,7 +9783,9 @@ void RGFW__osxMouseMoved(id self, SEL _cmd, id event) {
     p.y = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaY"));
     e.mouse.vecX = (float)p.x;
 	e.mouse.vecY = (float)p.y;
-    win->internal.lastMouseX = e.mouse.x;
+	_RGFW->vectorX = event.mouse.vecX;
+	_RGFW->vectorY = event.mouse.vecY;
+	win->internal.lastMouseX = e.mouse.x;
     win->internal.lastMouseY = e.mouse.y;
     e.common.win = win;
 
@@ -11023,6 +11044,8 @@ EM_BOOL Emscripten_on_mousemove(int eventType, const EmscriptenMouseEvent* E, vo
 							e.mouse.vecX = E->movementX; e.mouse.vecY = E->movementY;
 							e.common.win = _RGFW->root);
 
+	_RGFW->vectorX = event.mouse.vecX;
+	_RGFW->vectorY = event.mouse.vecY;
 	_RGFW->root->internal.lastMouseX = E->targetX;
 	_RGFW->root->internal.lastMouseY = E->targetY;
 	RGFW_mousePosCallback(_RGFW->root, E->targetX, E->targetY, E->movementX, E->movementY);
@@ -11043,6 +11066,8 @@ EM_BOOL Emscripten_on_mousedown(int eventType, const EmscriptenMouseEvent* E, vo
 							e.mouse.vecX = E->movementX; e.mouse.vecY = E->movementY;
 							e.button.value = (u8)button;
 							e.common.win = _RGFW->root);
+	_RGFW->vectorX = event.mouse.vecX;
+	_RGFW->vectorY = event.mouse.vecY;
 	_RGFW->mouseButtons[button].prev = _RGFW->mouseButtons[button].current;
 	_RGFW->mouseButtons[button].current = 1;
 
@@ -11064,6 +11089,8 @@ EM_BOOL Emscripten_on_mouseup(int eventType, const EmscriptenMouseEvent* E, void
 							e.mouse.vecX = E->movementX; e.mouse.vecY =  E->movementY;
 							e.button.value = (u8)button;
 							e.common.win = _RGFW->root);
+	_RGFW->vectorX = event.mouse.vecX;
+	_RGFW->vectorY = event.mouse.vecY;
 	_RGFW->mouseButtons[button].prev = _RGFW->mouseButtons[button].current;
 	_RGFW->mouseButtons[button].current = 0;
 
