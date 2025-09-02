@@ -2179,7 +2179,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 
 	RGFW_window* ret = RGFW_createWindowPlatform(name, flags, win);
 
-#ifndef RGFW_X11
+#if !defined(RGFW_X11) && !defined(RGFW_WAYLAND)
 	RGFW_window_setFlagsInternal(win, flags, 0);
 #endif
 
@@ -2199,7 +2199,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 		 * This is required so that way the user can create their own OpenGL context after RGFW_createWindow is used
 		 * if a window is crated, CreateContext will delete the window and create a new one
 		 * */
-#ifdef RGFW_X11
+#if defined(RGFW_X11) || defined(RGFW_WAYLAND)
 	RGFW_window_setFlagsInternal(win, flags, 0);
 #endif
 
