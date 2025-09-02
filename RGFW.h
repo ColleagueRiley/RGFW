@@ -6285,9 +6285,9 @@ static void RGFW_wl_pointer_axis(void* data, struct wl_pointer *pointer, u32 tim
 	if (!(win->internal.enabledEvents  & (RGFW_BIT(RGFW_mouseScroll)))) return;
 
 	if (axis == WL_POINTER_AXIS_HORIZONTAL_SCROLL)
-		scrollX = (float)-wl_fixed_to_double(value) / 10.0;
+		scrollX = (float)(-wl_fixed_to_double(value) / 10.0);
 	else if (axis == WL_POINTER_AXIS_VERTICAL_SCROLL)
-		scrollY = (float)-wl_fixed_to_double(value) / 10.0;
+		scrollY = (float)(-wl_fixed_to_double(value) / 10.0);
 
 
 	_RGFW->scrollX = (float)scrollX;
