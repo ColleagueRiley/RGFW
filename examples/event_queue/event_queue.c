@@ -27,12 +27,15 @@ int main(void) {
                     printf("Key released %c\n", event.key.sym);
                     break;
                 case RGFW_mouseButtonPressed:
-                    printf("mouse button pressed\n");
+                    printf("mouse button pressed %i\n", event.button.value);
                     break;
                 case RGFW_mouseButtonReleased:
-                    printf("Mouse Button Released\n");
+                    printf("Mouse Button Released %i\n", event.button.value);
                     break;
-                case RGFW_mousePosChanged:
+				case RGFW_mouseScroll:
+                    printf("Mouse Button scroll %f %f\n", event.scroll.x, event.scroll.y);
+                    break;
+				case RGFW_mousePosChanged:
                     if (RGFW_window_isKeyPressed(win, RGFW_controlL))
                         printf("Mouse pos changed %i %i\n", event.mouse.x, event.mouse.y);
                     break;
