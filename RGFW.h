@@ -6723,7 +6723,6 @@ i32 RGFW_initPlatform_Wayland(void) {
 	return 0;
 }
 
-
 void RGFW_deinitPlatform_Wayland(void) {
     if (_RGFW->wl_pointer) {
 		wl_pointer_destroy(_RGFW->wl_pointer);
@@ -6745,7 +6744,7 @@ void RGFW_deinitPlatform_Wayland(void) {
 		zwp_pointer_constraints_v1_destroy(_RGFW->constraint_manager);
 	}
 
-	if (_RGFW->locked_pointer) {
+	if (_RGFW->locked_pointer) 
 		zwp_locked_pointer_v1_destroy(_RGFW->locked_pointer);
 
 	if (_RGFW->xdg_output_manager != NULL)
