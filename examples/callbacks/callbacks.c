@@ -124,9 +124,9 @@ void mousebuttonfunc(RGFW_window* win, u8 button, u8 pressed) {
 }
 
 static
-void scrollfunc(RGFW_window* win, double x, double y) {
+void scrollfunc(RGFW_window* win, float x, float y) {
     if (window != win) return;
-	printf("mouse scrolled %f %f\n", x, y);
+	printf("mouse scrolled %f %f\n", (double)x, (double)y);
 }
 
 int main(void) {
