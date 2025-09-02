@@ -2294,6 +2294,8 @@ void RGFW_resetPrevState(void) {
 	size_t i; /*!< reset each previous state  */
     for (i = 0; i < RGFW_keyLast; i++) _RGFW->keyboard[i].prev = _RGFW->keyboard[i].current;
     for (i = 0; i < RGFW_mouseFinal; i++) _RGFW->mouseButtons[i].prev = _RGFW->mouseButtons[i].current;
+	_RGFW->scrollX = (double)0.0f;
+	_RGFW->scrollY = (double)0.0f;
 	RGFW_MEMSET(&_RGFW->windowState, 0, sizeof(_RGFW->windowState));
 }
 

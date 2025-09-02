@@ -19,7 +19,7 @@ typedef struct {
     RGFW_bool leftMousePressed;
     RGFW_bool rightMouseDown;
     RGFW_bool middleMouseReleased;
-    RGFW_bool scrollUp;
+    double scrollX, scrollY;
     i32 mouseX, mouseY;
     RGFW_bool didMouseLeave;
     RGFW_bool didMouseEnter;
@@ -55,7 +55,7 @@ int main(void) {
             RGFW_window_isMousePressed(win, RGFW_mouseLeft),
             RGFW_window_isMouseDown(win, RGFW_mouseRight),
             RGFW_window_isMouseReleased(win, RGFW_mouseMiddle),
-            0, // TODO RGFW_window_isMousePressed(win, RGFW_mouseScrollUp),
+            0, 0,
             0, 0,
             RGFW_window_didMouseLeave(win),
             RGFW_window_didMouseEnter(win),
@@ -65,9 +65,10 @@ int main(void) {
             0, 0, NULL, 0,
         };
 
-        RGFW_window_getPosition(win, &currState.posX, &currState.posY);
+		RGFW_window_getPosition(win, &currState.posX, &currState.posY);
         RGFW_window_getSize(win, &currState.width, &currState.height);
         RGFW_window_getMouse(win, &currState.mouseX, &currState.mouseY);
+		RGFW_getMouseScroll(&currState.scrollX, &currState.scrollY);
 
         RGFW_window_getDataDrag(win, &currState.dragX, &currState.dragY);
         RGFW_window_getDataDrop(win, &currState.data, &currState.count);
@@ -111,8 +112,8 @@ int main(void) {
         if (currState.middleMouseReleased != prevState.middleMouseReleased) {
             printf("Is middle mouse button released: %s\n", currState.middleMouseReleased ? "Yes" : "No");
         }
-        if (currState.scrollUp != prevState.scrollUp) {
-            printf("Is mouse scroll up: %s\n", currState.scrollUp ? "Yes" : "No");
+        if (currState.scrollX != prevState.scrollX || currState.scrollY != prevState.scrollY) {
+            printf("Mouse scrolling (%f %f)\n", currState.scrollX, currState.scrollY);
         }
         if (RGFW_isKeyDown(RGFW_controlL) && (currState.mouseX != prevState.mouseX || currState.mouseY != prevState.mouseY)) {
             printf("Mouse position in window: (%i, %i)\n", currState.mouseX, currState.mouseY);
