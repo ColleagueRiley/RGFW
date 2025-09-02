@@ -1795,7 +1795,7 @@ struct RGFW_info {
 
 	RGFW_keyState mouseButtons[RGFW_mouseFinal];
 	RGFW_keyState keyboard[RGFW_keyLast];
-	float scrollX, scaleY;
+	float scrollX, scrollY;
 };
 #endif /* RGFW_NATIVE_HEADER */
 
