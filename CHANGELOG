@@ -188,6 +188,10 @@ typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, u8 keyChar, RGFW_keymod 
 - add
 - add RGFW_bool RGFW_window_getDataDrag(RGFW_window* win, i32* x, i32* y)  / RGFW_bool RGFW_window_isDataDragging(RGFW_window* win)
 - add RGFW_bool RGFW_window_getDataDrop(RGFW_window* win, const char*** files, size_t* count) / RGFW_bool RGFW_window_didDataDrop(RGFW_window* win)
+- add `RGFW_getMouseScroll` function
+- add RGFW_mouseScroll event
+- add `RGFW_getMouseVector`
+- change double scroll to float
 
 Release:    RGFW 1.7 (May 6, 2025)
 -----------------------------------------------

@@ -114,19 +114,20 @@ void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGF
 }
 
 static
-void mousebuttonfunc(RGFW_window* win, u8 button, double scroll, u8 pressed) {
+void mousebuttonfunc(RGFW_window* win, u8 button, u8 pressed) {
     if (window != win) return;
 
-    if (button < RGFW_mouseScrollUp) {
-        if (pressed)
-            printf("mouse button pressed : %i\n", button);
-        else
-            printf("mouse button released : %i\n", button);
-    }
-    else
-        printf("mouse scrolled %f\n", scroll);
+	if (pressed)
+		printf("mouse button pressed : %i\n", button);
+	else
+		printf("mouse button released : %i\n", button);
 }
 
+static
+void scrollfunc(RGFW_window* win, float x, float y) {
+    if (window != win) return;
+	printf("mouse scrolled %f %f\n", (double)x, (double)y);
+}
 
 int main(void) {
     window = RGFW_createWindow("RGFW Callbacks", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
@@ -141,6 +142,8 @@ int main(void) {
     RGFW_setWindowMaximizedCallback(windowmaximizefunc);
 	RGFW_setWindowQuitCallback(windowquitfunc);
 	RGFW_setMousePosCallback(mouseposfunc);
+
+	RGFW_setMouseScrollCallback(scrollfunc);
 	RGFW_setWindowRefreshCallback(windowrefreshfunc);
 	RGFW_setFocusCallback(focusfunc);
 	RGFW_setMouseNotifyCallback(mouseNotifyfunc);
