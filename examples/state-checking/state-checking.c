@@ -55,7 +55,7 @@ int main(void) {
             RGFW_window_isMousePressed(win, RGFW_mouseLeft),
             RGFW_window_isMouseDown(win, RGFW_mouseRight),
             RGFW_window_isMouseReleased(win, RGFW_mouseMiddle),
-            RGFW_window_isMousePressed(win, RGFW_mouseScrollUp),
+            0, // TODO RGFW_window_isMousePressed(win, RGFW_mouseScrollUp),
             0, 0,
             RGFW_window_didMouseLeave(win),
             RGFW_window_didMouseEnter(win),
