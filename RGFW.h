@@ -848,7 +848,7 @@ RGFWDEF RGFW_bool RGFW_isMouseDown(RGFW_mouseButton button /*!< mouse button cod
 /*! if a mouse button was released */
 RGFWDEF RGFW_bool RGFW_isMouseReleased(RGFW_mouseButton button /*!< mouse button code */ );
 /*! get the current scroll value (of the frame) */
-RGFWDEF void RGFW_getMouseScroll(float* x, float* y);
+RGFWDEF void RGFW_getMouseScroll(double* x, double* y);
 /** @} */
 
 /*! Optional arguments for making a windows */
@@ -2320,7 +2320,7 @@ RGFW_bool RGFW_isMouseReleased(RGFW_mouseButton button) {
 	return _RGFW != NULL && !_RGFW->mouseButtons[button].current && _RGFW->mouseButtons[button].prev;
 }
 
-void RGFW_getMouseScroll(float* x, float* y) {
+void RGFW_getMouseScroll(double* x, double* y) {
 	RGFW_ASSERT(_RGFW != NULL);
 	if (x) *x = _RGFW->scrollX;
 	if (y) *y = _RGFW->scrollY;
