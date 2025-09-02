@@ -7545,7 +7545,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			event.type = RGFW_mouseButtonPressed;
 			_RGFW->mouseButtons[event.button.value].prev = _RGFW->mouseButtons[event.button.value].current;
 			_RGFW->mouseButtons[event.button.value].current = 1;
-			RGFW_mouseButtonCallback(win, event.button.value, event.button.scroll, 1);
+			RGFW_mouseButtonCallback(win, event.button.value, 1);
 			break;
 		case WM_LBUTTONUP: case WM_RBUTTONUP: case WM_MBUTTONUP: case WM_XBUTTONUP:
 			if (!(win->internal.enabledEvents & RGFW_mouseButtonReleasedFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
@@ -7556,7 +7556,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			event.type = RGFW_mouseButtonReleased;
 			_RGFW->mouseButtons[event.button.value].prev = _RGFW->mouseButtons[event.button.value].current;
 			_RGFW->mouseButtons[event.button.value].current = 0;
-			RGFW_mouseButtonCallback(win, event.button.value, event.button.scroll, 0);
+			RGFW_mouseButtonCallback(win, event.button.value, 0);
 			break;
 		case WM_MOUSEWHEEL:
 			if (!(win->internal.enabledEvents & RGFW_mouseScrollFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
@@ -9772,7 +9772,7 @@ void RGFW__osxMouseDown(id self, SEL _cmd, id event) {
     e.common.win = win;
 
     RGFW_eventQueuePush(&e);
-    RGFW_mouseButtonCallback(win, e.button.value, e.button.scroll, 1);
+    RGFW_mouseButtonCallback(win, e.button.value, 1);
 }
 
 void RGFW__osxMouseUp(id self, SEL _cmd, id event) {
@@ -9795,7 +9795,7 @@ void RGFW__osxMouseUp(id self, SEL _cmd, id event) {
     e.common.win = win;
 
     RGFW_eventQueuePush(&e);
-    RGFW_mouseButtonCallback(win, e.button.value, e.button.scroll, 0);
+    RGFW_mouseButtonCallback(win, e.button.value, 0);
 }
 
 void RGFW__osxScrollWheel(id self, SEL _cmd, id event) {
@@ -11020,12 +11020,11 @@ EM_BOOL Emscripten_on_mousedown(int eventType, const EmscriptenMouseEvent* E, vo
 							e.mouse.x = E->targetX; e.mouse.y = E->targetY;
 							e.mouse.vecX = E->movementX; e.mouse.vecY = E->movementY;
 							e.button.value = (u8)button;
-							e.button.scroll = 0;
 							e.common.win = _RGFW->root);
 	_RGFW->mouseButtons[button].prev = _RGFW->mouseButtons[button].current;
 	_RGFW->mouseButtons[button].current = 1;
 
-	RGFW_mouseButtonCallback(_RGFW->root, button, 0, 1);
+	RGFW_mouseButtonCallback(_RGFW->root, button, 1);
     return EM_TRUE;
 }
 
@@ -11042,12 +11041,11 @@ EM_BOOL Emscripten_on_mouseup(int eventType, const EmscriptenMouseEvent* E, void
 							e.mouse.x = E->targetX; e.mouse.y = E->targetY;
 							e.mouse.vecX = E->movementX; e.mouse.vecY =  E->movementY;
 							e.button.value = (u8)button;
-							e.button.scroll = 0;
 							e.common.win = _RGFW->root);
 	_RGFW->mouseButtons[button].prev = _RGFW->mouseButtons[button].current;
 	_RGFW->mouseButtons[button].current = 0;
 
-	RGFW_mouseButtonCallback(_RGFW->root, button, 0, 0);
+	RGFW_mouseButtonCallback(_RGFW->root, button, 0);
     return EM_TRUE;
 }
 
@@ -11083,7 +11081,7 @@ EM_BOOL Emscripten_on_touchstart(int eventType, const EmscriptenTouchEvent* E, v
 		_RGFW->root->internal.lastMouseX = E->touches[i].targetX;
 		_RGFW->root->internal.lastMouseX = E->touches[i].targetY;
         RGFW_mousePosCallback(_RGFW->root, E->touches[i].targetX, E->touches[i].targetY, 0, 0);
-	    RGFW_mouseButtonCallback(_RGFW->root, RGFW_mouseLeft, 0, 1);
+	    RGFW_mouseButtonCallback(_RGFW->root, RGFW_mouseLeft, 1);
     }
 
 	return EM_TRUE;
@@ -11128,7 +11126,7 @@ EM_BOOL Emscripten_on_touchend(int eventType, const EmscriptenTouchEvent* E, voi
 		_RGFW->root->internal.lastMouseX = E->touches[i].targetX;
 		_RGFW->root->internal.lastMouseY = E->touches[i].targetY;
 		RGFW_mousePosCallback(_RGFW->root, E->touches[i].targetX, E->touches[i].targetY, 0, 0);
-		RGFW_mouseButtonCallback(_RGFW->root, RGFW_mouseLeft, 0, 0);
+		RGFW_mouseButtonCallback(_RGFW->root, RGFW_mouseLeft, 0);
     }
 	return EM_TRUE;
 }
