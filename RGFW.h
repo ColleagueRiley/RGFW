@@ -6994,7 +6994,8 @@ void RGFW_FUNC(RGFW_window_resize) (RGFW_window* win, i32 w, i32 h) {
 	if (_RGFW->compositor) {
 		xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->w, win->h);
 		#ifdef RGFW_OPENGL
-		wl_egl_window_resize(win->src.ctx.egl->eglWindow, (i32)w, (i32)h, 0, 0);
+		if (win->src.ctx.egl)
+			wl_egl_window_resize(win->src.ctx.egl->eglWindow, (i32)w, (i32)h, 0, 0);
 		#endif
 	}
 }
