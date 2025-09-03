@@ -6835,7 +6835,7 @@ void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
 void RGFW_FUNC(RGFW_releaseCursor) (RGFW_window* win) {
     RGFW_ASSERT(win);
     // compositor has no support or window is not locked do nothing
-    if (_RGFW->constraint_manager == NULL) return;
+    if (_RGFW->constraint_manager == NULL || _RGFW->relative_pointer_manager == NULL) return;
 
     if (_RGFW->locked_pointer != NULL) {
 		zwp_locked_pointer_v1_destroy(_RGFW->locked_pointer);
@@ -6847,11 +6847,20 @@ void RGFW_FUNC(RGFW_releaseCursor) (RGFW_window* win) {
 void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
 	RGFW_ASSERT(win);
 	// compositor has no support or window already is locked do nothing
-	if (_RGFW->constraint_manager == NULL) return;
+	if (_RGFW->constraint_manager == NULL || _RGFW->relative_pointer_manager == NULL) return;
 
+	if (_RGFW->relative_pointer == NULL) {
+		_RGFW->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(_RGFW->relative_pointer_manager, _RGFW->wl_pointer);
+
+		static const struct zwp_relative_pointer_v1_listener relative_motion_listener = {
+			.relative_motion = RGFW_wl_relative_pointer_motion
+		};
+
+		zwp_relative_pointer_v1_add_listener(_RGFW->relative_pointer, &relative_motion_listener, win);
+	}
 	
 	if (_RGFW->locked_pointer == NULL) {
-		_RGFW->locked_pointer = zwp_pointer_constraints_v1_lock_pointer(_RGFW->constraint_manager, win->src.surface, wl_seat_get_pointer(_RGFW->seat), NULL, ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+		_RGFW->locked_pointer = zwp_pointer_constraints_v1_lock_pointer(_RGFW->constraint_manager, win->src.surface, _RGFW->wl_pointer, NULL, ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
 	
 		static const struct zwp_locked_pointer_v1_listener locked_listener = {
 			.locked = RGFW_wl_pointer_locked,
@@ -6859,7 +6868,7 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
 		};
 
 		zwp_locked_pointer_v1_add_listener(_RGFW->locked_pointer, &locked_listener, _RGFW);
-	} 	
+	}
 }
 
 RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_windowFlags flags, RGFW_window* win) {
@@ -6871,17 +6880,6 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 
 	win->src.surface = wl_compositor_create_surface(_RGFW->compositor);
 	wl_surface_set_user_data(win->src.surface, win);
-
-	if (_RGFW->relative_pointer_manager != NULL) {
-		_RGFW->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(_RGFW->relative_pointer_manager, wl_seat_get_pointer(_RGFW->seat));
-
-		static const struct zwp_relative_pointer_v1_listener relative_motion_listener = {
-			.relative_motion = RGFW_wl_relative_pointer_motion
-		};
-
-		zwp_relative_pointer_v1_add_listener(_RGFW->relative_pointer, &relative_motion_listener, NULL);
-		zwp_relative_pointer_v1_set_user_data(_RGFW->relative_pointer, win);
-	}
 	
 	win->src.xdg_surface = xdg_wm_base_get_xdg_surface(_RGFW->xdg_wm_base, win->src.surface);
 	xdg_surface_add_listener(win->src.xdg_surface, &xdg_surface_listener, win);
