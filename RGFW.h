@@ -6198,33 +6198,34 @@ static void RGFW_wl_shm_format_handler(void* data, struct wl_shm *shm, u32 forma
 static void RGFW_wl_relative_pointer_motion(void *data, struct zwp_relative_pointer_v1 *zwp_relative_pointer_v1,
 	u32 time_hi, u32 time_lo, wl_fixed_t dx, wl_fixed_t dy, wl_fixed_t dx_unaccel, wl_fixed_t dy_unaccel) {
 
-	RGFW_UNUSED(data); RGFW_UNUSED(zwp_relative_pointer_v1); RGFW_UNUSED(time_hi); RGFW_UNUSED(time_lo);
+	RGFW_UNUSED(zwp_relative_pointer_v1); RGFW_UNUSED(time_hi); RGFW_UNUSED(time_lo);
 	RGFW_UNUSED(dx_unaccel); RGFW_UNUSED(dy_unaccel);
 
-	RGFW_window* win = (RGFW_window*)zwp_relative_pointer_v1_get_user_data(zwp_relative_pointer_v1);
+	RGFW_info* RGFW = (RGFW_info*)data;
+	RGFW_window* win = RGFW->mouseOwner;
 
 	float vecX =  (float)wl_fixed_to_double(dx);
 	float vecY = (float)wl_fixed_to_double(dy);
 
-	i32 newMouseX = win->internal.lastMouseX + RGFW_ROUND(vecX); 
-	i32 newMouseY = win->internal.lastMouseY + RGFW_ROUND(vecY); 
 	RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
-									e.mouse.x = newMouseX;
-									e.mouse.y = newMouseY;
+									e.mouse.x = win->internal.lastMouseX;
+									e.mouse.y = win->internal.lastMouseY;
 									e.mouse.vecX = vecX;
 									e.mouse.vecY = vecY;
 									e.common.win = win);
-	win->internal.lastMouseX = newMouseX;
-	win->internal.lastMouseY = newMouseY;
+	
 	_RGFW->vectorX = vecX;
 	_RGFW->vectorY = vecY;
-	RGFW_mousePosCallback(win, newMouseX, newMouseY, vecX, vecY);
+	RGFW_mousePosCallback(win, win->internal.lastMouseX, win->internal.lastMouseY, vecX, vecY);
 }
 
 static void RGFW_wl_pointer_locked(void *data, struct zwp_locked_pointer_v1 *zwp_locked_pointer_v1) {
 	RGFW_UNUSED(zwp_locked_pointer_v1);
 	RGFW_info *RGFW = (RGFW_info*)data;
 	RGFW_window *win = RGFW->mouseOwner;
+	
+	win->internal.lastMouseX = win->w / 2;
+	win->internal.lastMouseY = win->h / 2;
 	zwp_locked_pointer_v1_set_cursor_position_hint(RGFW->locked_pointer, wl_fixed_from_int((win->w / 2)), wl_fixed_from_int((win->h / 2)));
 }
 
@@ -6285,14 +6286,15 @@ static void RGFW_wl_pointer_motion(void* data, struct wl_pointer *pointer, u32 t
 
 	i32 convertedX = (i32)wl_fixed_to_double(x);
 	i32 convertedY = (i32)wl_fixed_to_double(y);
-
+	float newVecX = (float)(win->internal.lastMouseX - convertedX);
+	float newVecY = (float)(win->internal.lastMouseY - convertedY);
+	
 	RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
 									e.mouse.x = convertedX;
 									e.mouse.y = convertedY;
+									e.mouse.vecX = newVecX;
+									e.mouse.vecY = newVecY;
 									e.common.win = win);
-
-	float newVecX = (float)(convertedX - win->internal.lastMouseX);
-	float newVecY = (float)(convertedY - win->internal.lastMouseY);
 	
 	_RGFW->vectorX = newVecX;
 	_RGFW->vectorY = newVecY;
@@ -6746,6 +6748,9 @@ void RGFW_deinitPlatform_Wayland(void) {
 
 	if (_RGFW->relative_pointer_manager != NULL) {
 		zwp_relative_pointer_manager_v1_destroy(_RGFW->relative_pointer_manager);
+	}
+
+	if (_RGFW->relative_pointer) {
 		zwp_relative_pointer_v1_destroy(_RGFW->relative_pointer);
 	}
 
@@ -6841,6 +6846,11 @@ void RGFW_FUNC(RGFW_releaseCursor) (RGFW_window* win) {
 		zwp_locked_pointer_v1_destroy(_RGFW->locked_pointer);
 		_RGFW->locked_pointer = NULL;
     }
+    if (_RGFW->relative_pointer != NULL) {
+		zwp_relative_pointer_v1_destroy(_RGFW->relative_pointer);
+		_RGFW->relative_pointer = NULL;
+    }
+    
     _RGFW->mouseOwner = win; // unhold mouse sets this to null; set it back
 }
 
@@ -6856,7 +6866,7 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
 			.relative_motion = RGFW_wl_relative_pointer_motion
 		};
 
-		zwp_relative_pointer_v1_add_listener(_RGFW->relative_pointer, &relative_motion_listener, win);
+		zwp_relative_pointer_v1_add_listener(_RGFW->relative_pointer, &relative_motion_listener, _RGFW);
 	}
 	
 	if (_RGFW->locked_pointer == NULL) {
