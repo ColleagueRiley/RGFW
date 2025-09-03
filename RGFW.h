@@ -1581,7 +1581,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		struct xdg_surface* xdg_surface;
 		struct xdg_toplevel* xdg_toplevel;
 		struct zxdg_toplevel_decoration_v1* decoration;
-		
+		struct zwp_locked_pointer_v1 *locked_pointer;
 		/* State flags to configure the window */
 		RGFW_bool pending_activated;
 		RGFW_bool activated;
@@ -1761,7 +1761,6 @@ struct RGFW_info {
         struct zwp_relative_pointer_manager_v1 *relative_pointer_manager;
         struct zwp_relative_pointer_v1 *relative_pointer;
         struct zwp_pointer_constraints_v1 *constraint_manager;
-        struct zwp_locked_pointer_v1 *locked_pointer;
   
         struct zxdg_output_manager_v1 *xdg_output_manager;
   
@@ -2689,8 +2688,7 @@ RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_for
 void RGFW_window_holdMouse(RGFW_window* win) {
 	win->internal.holdMouse = RGFW_TRUE;
 	_RGFW->mouseOwner = win;
-    RGFW_captureCursor(win);
-	// RGFW_window_moveMouse(win, win->x + (win->w / 2), win->y + (win->h / 2));
+	RGFW_captureCursor(win);
 }
 
 RGFW_bool RGFW_window_isHoldingMouse(RGFW_window* win) { return RGFW_BOOL(win->internal.holdMouse); }
@@ -6204,6 +6202,8 @@ static void RGFW_wl_relative_pointer_motion(void *data, struct zwp_relative_poin
 	RGFW_info* RGFW = (RGFW_info*)data;
 	RGFW_window* win = RGFW->mouseOwner;
 
+	RGFW_ASSERT(win);
+
 	float vecX =  (float)wl_fixed_to_double(dx);
 	float vecY = (float)wl_fixed_to_double(dy);
 
@@ -6221,12 +6221,11 @@ static void RGFW_wl_relative_pointer_motion(void *data, struct zwp_relative_poin
 
 static void RGFW_wl_pointer_locked(void *data, struct zwp_locked_pointer_v1 *zwp_locked_pointer_v1) {
 	RGFW_UNUSED(zwp_locked_pointer_v1);
-	RGFW_info *RGFW = (RGFW_info*)data;
-	RGFW_window *win = RGFW->mouseOwner;
+	RGFW_window *win = (RGFW_window*)data;
 	
 	win->internal.lastMouseX = win->w / 2;
 	win->internal.lastMouseY = win->h / 2;
-	zwp_locked_pointer_v1_set_cursor_position_hint(RGFW->locked_pointer, wl_fixed_from_int((win->w / 2)), wl_fixed_from_int((win->h / 2)));
+	zwp_locked_pointer_v1_set_cursor_position_hint(win->src.locked_pointer, wl_fixed_from_int((win->w / 2)), wl_fixed_from_int((win->h / 2)));
 }
 
 static void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial,
@@ -6286,8 +6285,8 @@ static void RGFW_wl_pointer_motion(void* data, struct wl_pointer *pointer, u32 t
 
 	i32 convertedX = (i32)wl_fixed_to_double(x);
 	i32 convertedY = (i32)wl_fixed_to_double(y);
-	float newVecX = (float)(win->internal.lastMouseX - convertedX);
-	float newVecY = (float)(win->internal.lastMouseY - convertedY);
+	float newVecX = (float)(convertedX - win->internal.lastMouseX);
+	float newVecY = (float)(convertedY - win->internal.lastMouseY);
 	
 	RGFW_eventQueuePushEx(e.type = RGFW_mousePosChanged;
 									e.mouse.x = convertedX;
@@ -6758,9 +6757,6 @@ void RGFW_deinitPlatform_Wayland(void) {
 		zwp_pointer_constraints_v1_destroy(_RGFW->constraint_manager);
 	}
 
-	if (_RGFW->locked_pointer) 
-		zwp_locked_pointer_v1_destroy(_RGFW->locked_pointer);
-
 	if (_RGFW->xdg_output_manager != NULL)
 		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
 
@@ -6842,9 +6838,9 @@ void RGFW_FUNC(RGFW_releaseCursor) (RGFW_window* win) {
     // compositor has no support or window is not locked do nothing
     if (_RGFW->constraint_manager == NULL || _RGFW->relative_pointer_manager == NULL) return;
 
-    if (_RGFW->locked_pointer != NULL) {
-		zwp_locked_pointer_v1_destroy(_RGFW->locked_pointer);
-		_RGFW->locked_pointer = NULL;
+    if (win->src.locked_pointer != NULL) {
+		zwp_locked_pointer_v1_destroy(win->src.locked_pointer);
+		win->src.locked_pointer = NULL;
     }
     if (_RGFW->relative_pointer != NULL) {
 		zwp_relative_pointer_v1_destroy(_RGFW->relative_pointer);
@@ -6869,15 +6865,15 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
 		zwp_relative_pointer_v1_add_listener(_RGFW->relative_pointer, &relative_motion_listener, _RGFW);
 	}
 	
-	if (_RGFW->locked_pointer == NULL) {
-		_RGFW->locked_pointer = zwp_pointer_constraints_v1_lock_pointer(_RGFW->constraint_manager, win->src.surface, _RGFW->wl_pointer, NULL, ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+	if (win->src.locked_pointer == NULL) {
+		win->src.locked_pointer = zwp_pointer_constraints_v1_lock_pointer(_RGFW->constraint_manager, win->src.surface, _RGFW->wl_pointer, NULL, ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
 	
 		static const struct zwp_locked_pointer_v1_listener locked_listener = {
 			.locked = RGFW_wl_pointer_locked,
 			.unlocked = (void (*)(void *, struct zwp_locked_pointer_v1 *))RGFW_doNothing
 		};
 
-		zwp_locked_pointer_v1_add_listener(_RGFW->locked_pointer, &locked_listener, _RGFW);
+		zwp_locked_pointer_v1_add_listener(win->src.locked_pointer, &locked_listener, win);
 	}
 }
 
@@ -7264,6 +7260,10 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 		xdg_toplevel_destroy(win->src.xdg_toplevel);
 	}
 
+	if (win->src.locked_pointer) {
+		zwp_locked_pointer_v1_destroy(win->src.locked_pointer);
+	}
+	
 	xdg_surface_destroy(win->src.xdg_surface);
 	wl_surface_destroy(win->src.surface);
 }
