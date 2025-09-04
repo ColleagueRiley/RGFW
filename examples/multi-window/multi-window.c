@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-
+#define RGFW_DEBUG
 #define RGFW_OPENGL
 #define GL_SILENCE_DEPRECATION
 #define RGFW_IMPLEMENTATION
