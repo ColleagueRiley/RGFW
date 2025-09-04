@@ -1771,7 +1771,7 @@ struct RGFW_info {
         struct wl_shm* shm;
         struct wl_seat *seat;
         struct wl_registry *registry;
-
+        u32 mouse_enter_serial;
         struct wl_cursor_theme* wl_cursor_theme;
         struct wl_surface* cursor_surface;
         struct wl_cursor_image* cursor_image;
@@ -2783,7 +2783,7 @@ struct timespec;
 #if defined(RGFW_WAYLAND) || defined(RGFW_X11) || defined(RGFW_WINDOWS)
 void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show) {
 	RGFW_window_showMouseFlags(win, show);
-	if (show == 0)
+	if (show == RGFW_FALSE)
 		RGFW_window_setMouse(win, _RGFW->hiddenMouse);
 	else
 		RGFW_window_setMouseDefault(win);
@@ -6226,13 +6226,15 @@ static void RGFW_wl_pointer_locked(void *data, struct zwp_locked_pointer_v1 *zwp
 	win->internal.lastMouseX = win->w / 2;
 	win->internal.lastMouseY = win->h / 2;
 	zwp_locked_pointer_v1_set_cursor_position_hint(win->src.locked_pointer, wl_fixed_from_int((win->w / 2)), wl_fixed_from_int((win->h / 2)));
+	wl_pointer_set_cursor(_RGFW->wl_pointer, _RGFW->mouse_enter_serial, NULL, 0, 0); // draw no cursor
 }
 
 static void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial,
 		struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y) {
-	RGFW_UNUSED(data); RGFW_UNUSED(pointer); RGFW_UNUSED(serial);
+	RGFW_UNUSED(data); RGFW_UNUSED(pointer);
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 
+	_RGFW->mouse_enter_serial = serial;
 	win->internal.mouseInside = RGFW_TRUE;
 	_RGFW->windowState.win = win;
 	_RGFW->windowState.mouseEnter = RGFW_TRUE;
@@ -6715,12 +6717,12 @@ i32 RGFW_initPlatform_Wayland(void) {
 		_RGFW->wl_cursor_theme = wl_cursor_theme_load(NULL, 24, _RGFW->shm);
 		_RGFW->cursor_surface = wl_compositor_create_surface(_RGFW->compositor);
 
-		struct wl_cursor* cursor = wl_cursor_theme_get_cursor(_RGFW->wl_cursor_theme, "left_ptr");
-		_RGFW->cursor_image = cursor->images[0];
-		struct wl_buffer* cursor_buffer	= wl_cursor_image_get_buffer(_RGFW->cursor_image);
+		// struct wl_cursor* cursor = wl_cursor_theme_get_cursor(_RGFW->wl_cursor_theme, "left_ptr");
+		// _RGFW->cursor_image = cursor->images[0];
+		// struct wl_buffer* cursor_buffer = wl_cursor_image_get_buffer(_RGFW->cursor_image);
 
-		wl_surface_attach(_RGFW->cursor_surface, cursor_buffer, 0, 0);
-		wl_surface_commit(_RGFW->cursor_surface);
+		// wl_surface_attach(_RGFW->cursor_surface, cursor_buffer, 0, 0);
+		// wl_surface_commit(_RGFW->cursor_surface);
 	}
 
 	static const struct xdg_wm_base_listener xdg_wm_base_listener = {
@@ -7147,8 +7149,8 @@ RGFW_bool RGFW_FUNC(RGFW_window_setMouseStandard)(RGFW_window* win, u8 mouse) {
 
 	struct wl_cursor* wlcursor = wl_cursor_theme_get_cursor(_RGFW->wl_cursor_theme, iconStrings[mouse]);
 	_RGFW->cursor_image = wlcursor->images[0];
-	struct wl_buffer* cursor_buffer	= wl_cursor_image_get_buffer(_RGFW->cursor_image);
-
+	struct wl_buffer* cursor_buffer = wl_cursor_image_get_buffer(_RGFW->cursor_image);
+	wl_pointer_set_cursor(_RGFW->wl_pointer, _RGFW->mouse_enter_serial, _RGFW->cursor_surface, 0, 0);
 	wl_surface_attach(_RGFW->cursor_surface, cursor_buffer, 0, 0);
 	wl_surface_commit(_RGFW->cursor_surface);
 	return RGFW_TRUE;
