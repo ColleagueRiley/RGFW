@@ -183,7 +183,8 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/dx11/dx11 \
 	examples/metal/metal \
 	examples/minimal_links/minimal_links \
-	examples/gears/gears
+	examples/gears/gears \
+	examples/srgb/srgb
 
 all: xdg-shell.c $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) libRGFW.a
 
@@ -195,6 +196,9 @@ ifneq (,$(filter $(CC),emcc em++))
 else
 	$(CC) $(CFLAGS) -I. $< $(LINK_GL1) $(LIBS) -lm $($)  -o $@$(EXT)
 endif
+
+examples/srgb/srgb: examples/srgb/srgb.c RGFW.h
+	$(CC) $(CFLAGS) -I. $< $(LINK_GL1) $(LIBS) -lm $($)  -o $@$(EXT)
 
 examples/portableGL/pgl: examples/portableGL/pgl.c RGFW.h
 ifeq (,$(filter $(CC),emcc em++))

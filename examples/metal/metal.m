@@ -31,6 +31,7 @@
 /* RGFW will have to be linked/compiled outside of this file
 	because this file uses objective-c and RGFW uses work arounds
 */
+#define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
 #import "RGFW.h"
 
