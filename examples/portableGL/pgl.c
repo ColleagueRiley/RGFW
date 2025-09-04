@@ -5,6 +5,7 @@
 
 
 #define __gltypes_h_
+#define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 

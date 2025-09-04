@@ -1,5 +1,6 @@
 #define RGFW_IMPLEMENTATION
 #define RGFW_SDL_BACKEND
+#define RGFW_DEBUG
 #include "RGFW_SDL_example.h"
 #include <stdio.h>
 
@@ -21,7 +22,7 @@ int main() {
                 printf("You clicked at x: %d, y: %d\n", win->event.point.x, win->event.point.y);
             }
 
-            if (win->event.type == RGFW_keyPressed) 
+            if (win->event.type == RGFW_keyPressed)
                 printf("keycode: %c\n", win->event.keyChar);
 
             // or use the existing functions
@@ -29,7 +30,7 @@ int main() {
                 printf("The right mouse button was clicked at x: %d, y: %d\n", win->event.point.x, win->event.point.y);
             }
         }
-        
+
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 

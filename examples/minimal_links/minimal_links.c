@@ -1,3 +1,4 @@
+#define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
 #define RGFW_WGL_LOAD
 #define RGFW_NO_IOKIT

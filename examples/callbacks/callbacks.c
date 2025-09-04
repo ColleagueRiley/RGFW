@@ -1,4 +1,5 @@
 #define RGFW_IMPLEMENTATION
+#define RGFW_DEBUG
 #include "RGFW.h"
 
 #include <stdio.h>
