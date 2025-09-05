@@ -6234,9 +6234,9 @@ static void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 se
 	RGFW_UNUSED(data); RGFW_UNUSED(pointer);
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 
-	// the cursor left the surface and has reentered, draw it
+	// the cursor left the surface and has reentered, reset it
 	if (_RGFW->cursor_image != NULL) {
-		wl_pointer_set_cursor(pointer, serial, _RGFW->cursor_surface, 0, 0);
+		RGFW_window_setMouseStandard(win, RGFW_mouseArrow);
 	}
 
 	// save it to set the cursor later on
@@ -7152,10 +7152,11 @@ RGFW_bool RGFW_FUNC(RGFW_window_setMouseStandard)(RGFW_window* win, u8 mouse) {
 	struct wl_cursor* wlcursor = wl_cursor_theme_get_cursor(_RGFW->wl_cursor_theme, iconStrings[mouse]);
 	_RGFW->cursor_image = wlcursor->images[0];
 	struct wl_buffer* cursor_buffer = wl_cursor_image_get_buffer(_RGFW->cursor_image);
-	wl_pointer_set_cursor(_RGFW->wl_pointer, _RGFW->mouse_enter_serial, _RGFW->cursor_surface, 0, 0);
+	wl_pointer_set_cursor(_RGFW->wl_pointer, _RGFW->mouse_enter_serial, _RGFW->cursor_surface, (i32)_RGFW->cursor_image->hotspot_x, (i32)_RGFW->cursor_image->hotspot_y);
 	wl_surface_attach(_RGFW->cursor_surface, cursor_buffer, 0, 0);
 	wl_surface_damage(_RGFW->cursor_surface, 0, 0, (i32)_RGFW->cursor_image->width, (i32)_RGFW->cursor_image->height);
 	wl_surface_commit(_RGFW->cursor_surface);
+	
 	return RGFW_TRUE;
 }
 
