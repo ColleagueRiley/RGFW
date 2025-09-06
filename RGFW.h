@@ -10928,16 +10928,15 @@ void RGFW_window_closePlatform(RGFW_window* win) {
 #ifdef RGFW_WEBGPU
 WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance instance) {
 	WGPUSurfaceDescriptor surfaceDesc = {0};
-    NSView* nsView = (NSView*)window->src.view;
+    id* nsView = (id*)window->src.view;
     if (!nsView) {
         fprintf(stderr, "RGFW Error: NSView is NULL for macOS window.\n");
         return NULL;
     }
 
-    ((void (*)(id, SEL, BOOL))objc_msgSend)((id)nsView, sel_registerName("setWantsLayer:"), YES);
-    id layer = ((id (*)(id, SEL))objc_msgSend)((id)nsView, sel_registerName("layer"));
+    ((void (*)(id, SEL, BOOL))objc_msgSend)(nsView, sel_registerName("setWantsLayer:"), YES);
+    id layer = ((id (*)(id, SEL))objc_msgSend)(nsView, sel_registerName("layer"));
 
-    id layer = ((id (*)(id, SEL))objc_msgSend)((id)nsView, sel_registerName("layer"));
 	void* metalLayer = RGFW_getLayer_OSX();
 	if (metalLayer == NULL) {
 		 return NULL;
@@ -10948,7 +10947,11 @@ WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance i
     /* At this point, 'layer' should be a valid CAMetalLayer* */
     WGPUSurfaceSourceMetalLayer fromMetal = {0};
     fromMetal.chain.sType = WGPUSType_SurfaceSourceMetalLayer;
-    fromMetal.layer = (__bridge CAMetalLayer*)layer; /* Use __bridge for ARC compatibility if mixing C/Obj-C */
+#ifdef  __OBJC__
+	fromMetal.layer = (__bridge CAMetalLayer*)layer; /* Use __bridge for ARC compatibility if mixing C/Obj-C */
+#else
+	fromMetal.layer = layer;
+#endif
 
     surfaceDesc.nextInChain = (WGPUChainedStruct*)&fromMetal.chain;
     return wgpuInstanceCreateSurface(instance, &surfaceDesc);
