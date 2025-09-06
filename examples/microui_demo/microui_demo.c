@@ -1,6 +1,7 @@
 #undef _WIN32_WINNT
 #include <stdio.h>
 
+#define RGFW_DEBUG
 #define GL_SILENCE_DEPRECATION
 #define RGFW_OPENGL
 #define RGFW_IMPLEMENTATION
@@ -278,13 +279,12 @@ int main(int argc, char **argv) {
         case RGFW_quit: break;
         case RGFW_mousePosChanged: mu_input_mousemove(ctx, event.mouse.x,  event.mouse.y); break;
 
+		case RGFW_mouseScroll:
+			mu_input_scroll(ctx, event.scroll.x, event.scroll.y);
+			break;
         case RGFW_mouseButtonPressed: {
 		  i32 x, y;
 		  RGFW_window_getMouse(window, &x, &y);
-          if (event.button.value == RGFW_mouseScrollUp || event.button.value == RGFW_mouseScrollDown) {
-			  mu_input_scroll(ctx, 0, event.button.scroll * -30);
-			  break;
-		  }
 
           int b = button_map[event.button.value & 0xff];
 		  if (b) mu_input_mousedown(ctx, x, y, b);
