@@ -6761,6 +6761,9 @@ void RGFW_deinitPlatform_Wayland(void) {
 	if (_RGFW->xdg_output_manager != NULL)
 		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
 
+	if (_RGFW->wl_cursor_theme != NULL)
+		wl_cursor_theme_destroy(_RGFW->wl_cursor_theme);
+	
 	RGFW_monitorNode* node = _RGFW->monitors.list.head;
 
 	while (node != NULL) {
