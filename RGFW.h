@@ -7035,18 +7035,15 @@ RGFW_bool RGFW_FUNC(RGFW_window_setIconEx) (RGFW_window* win, u8* data, i32 w, i
 		xdg_toplevel_icon_v1_destroy(_RGFW->icon);
 		_RGFW->icon = NULL;
 	}
-
 	
 	RGFW_surface* surface = RGFW_createSurface(data, w, h, format);
 
-	RGFW_copyImageData(surface->native.buffer, w, RGFW_MIN(h, surface->h), surface->native.format, surface->data, surface->format);
+	RGFW_copyImageData(surface->native.buffer, RGFW_MIN(w, surface->w), RGFW_MIN(h, surface->h), surface->native.format, surface->data, surface->format);
 
 	_RGFW->icon = xdg_toplevel_icon_manager_v1_create_icon(_RGFW->icon_manager);
 	xdg_toplevel_icon_v1_add_buffer(_RGFW->icon, surface->native.wl_buffer, 1);
 	xdg_toplevel_icon_manager_v1_set_icon(_RGFW->icon_manager, win->src.xdg_toplevel, _RGFW->icon);
 
-	
-	
 	RGFW_surface_free(surface);
 	return RGFW_TRUE;
 }
