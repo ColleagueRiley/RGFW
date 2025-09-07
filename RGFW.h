@@ -7037,6 +7037,8 @@ RGFW_bool RGFW_FUNC(RGFW_window_setIconEx) (RGFW_window* win, u8* data, i32 w, i
 	
 	RGFW_surface* surface = RGFW_createSurface(data, w, h, format);
 
+	if (surface == NULL) return RGFW_FALSE;
+
 	RGFW_copyImageData(surface->native.buffer, RGFW_MIN(w, surface->w), RGFW_MIN(h, surface->h), surface->native.format, surface->data, surface->format);
 
 	win->src.icon = xdg_toplevel_icon_manager_v1_create_icon(_RGFW->icon_manager);
