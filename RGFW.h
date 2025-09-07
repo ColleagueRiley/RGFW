@@ -6701,8 +6701,6 @@ void RGFW_deinitPlatform_Wayland(void) {
 		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
 	}
 
-	if (_RGFW->xdg_output_manager != NULL)
-		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
 
 	RGFW_monitorNode* node = _RGFW->monitors.list.head;
 
