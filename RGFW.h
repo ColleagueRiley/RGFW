@@ -1567,7 +1567,8 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		struct xdg_surface* xdg_surface;
 		struct xdg_toplevel* xdg_toplevel;
 		struct zxdg_toplevel_decoration_v1* decoration;
-
+		struct xdg_toplevel_icon_v1 *icon;
+		
 		/* State flags to configure the window */
 		RGFW_bool pending_activated;
 		RGFW_bool activated;
@@ -1744,7 +1745,7 @@ struct RGFW_info {
         struct xkb_state *xkb_state;
         struct zxdg_decoration_manager_v1 *decoration_manager;
         struct xdg_toplevel_icon_manager_v1 *icon_manager;
-        struct xdg_toplevel_icon_v1 *icon;
+        
         struct zxdg_output_manager_v1 *xdg_output_manager;
         struct wl_keyboard* wl_keyboard;
         struct wl_pointer* wl_pointer;
@@ -6640,9 +6641,10 @@ void RGFW_deinitPlatform_Wayland(void) {
 		xdg_toplevel_icon_manager_v1_destroy(_RGFW->icon_manager);
 	}
 
-	if (_RGFW->icon != NULL) {
-		xdg_toplevel_icon_v1_destroy(_RGFW->icon);
+	if (_RGFW->xdg_output_manager) {
+		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
 	}
+
 	wl_shm_destroy(_RGFW->shm);
 	wl_seat_release(_RGFW->seat);
 	xdg_wm_base_destroy(_RGFW->xdg_wm_base);
@@ -6957,9 +6959,9 @@ RGFW_bool RGFW_FUNC(RGFW_window_setIconEx) (RGFW_window* win, u8* data, i32 w, i
 
 	if (_RGFW->icon_manager == NULL || w != h) return RGFW_FALSE;
 	
-	if (_RGFW->icon) {
-		xdg_toplevel_icon_v1_destroy(_RGFW->icon);
-		_RGFW->icon = NULL;
+	if (win->src.icon) {
+		xdg_toplevel_icon_v1_destroy(win->src.icon);
+		win->src.icon= NULL;
 	}
 
 	
@@ -6967,9 +6969,9 @@ RGFW_bool RGFW_FUNC(RGFW_window_setIconEx) (RGFW_window* win, u8* data, i32 w, i
 
 	RGFW_copyImageData(surface->native.buffer, w, RGFW_MIN(h, surface->h), surface->native.format, surface->data, surface->format);
 
-	_RGFW->icon = xdg_toplevel_icon_manager_v1_create_icon(_RGFW->icon_manager);
-	xdg_toplevel_icon_v1_add_buffer(_RGFW->icon, surface->native.wl_buffer, 1);
-	xdg_toplevel_icon_manager_v1_set_icon(_RGFW->icon_manager, win->src.xdg_toplevel, _RGFW->icon);
+	win->src.icon = xdg_toplevel_icon_manager_v1_create_icon(_RGFW->icon_manager);
+	xdg_toplevel_icon_v1_add_buffer(win->src.icon, surface->native.wl_buffer, 1);
+	xdg_toplevel_icon_manager_v1_set_icon(_RGFW->icon_manager, win->src.xdg_toplevel, win->src.icon);
 
 	
 	
@@ -7117,8 +7119,8 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 		xdg_toplevel_destroy(win->src.xdg_toplevel);
 	}
 
-	if (_RGFW->xdg_output_manager) {
-		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
+	if (win->src.icon) {
+		xdg_toplevel_icon_v1_destroy(win->src.icon);
 	}
 
 	xdg_surface_destroy(win->src.xdg_surface);
