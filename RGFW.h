@@ -427,7 +427,7 @@ typedef RGFW_ENUM(u8, RGFW_format) {
 	RGFW_formatCount
 };
 
-/*! copy image two another image, respecting each image's format */
+/*! copy image to another image, respecting each image's format */
 RGFWDEF void RGFW_copyImageData(u8* dest_data, i32 w, i32 h, RGFW_format dest_format, u8* src_data, RGFW_format src_format);
 
 typedef struct RGFW_nativeImage RGFW_nativeImage;
@@ -6721,8 +6721,12 @@ i32 RGFW_initPlatform_Wayland(void) {
 
 	if (_RGFW->wl_cursor_theme == NULL) {
 		_RGFW->wl_cursor_theme = wl_cursor_theme_load(NULL, 24, _RGFW->shm);
-		_RGFW->cursor_surface = wl_compositor_create_surface(_RGFW->compositor);
-	}
+	}	
+	
+	_RGFW->cursor_surface = wl_compositor_create_surface(_RGFW->compositor);
+	
+	 u8 RGFW_blk[] = { 0, 0, 0, 0 };
+	_RGFW->hiddenMouse = RGFW_loadMouse(RGFW_blk, 1, 1, RGFW_formatRGBA8);
 
 	static const struct xdg_wm_base_listener xdg_wm_base_listener = {
 		.ping = RGFW_wl_xdg_wm_base_ping_handler,
@@ -6760,6 +6764,12 @@ void RGFW_deinitPlatform_Wayland(void) {
 
 	if (_RGFW->xdg_output_manager != NULL)
 		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
+
+	if (_RGFW->wl_cursor_theme != NULL) {
+		wl_cursor_theme_destroy(_RGFW->wl_cursor_theme);
+	}
+
+	RGFW_freeMouse(_RGFW->hiddenMouse);
 
 	RGFW_monitorNode* node = _RGFW->monitors.list.head;
 
@@ -7123,16 +7133,31 @@ RGFW_bool RGFW_FUNC(RGFW_window_setIconEx) (RGFW_window* win, u8* data, i32 w, i
 }
 
 RGFW_mouse* RGFW_FUNC(RGFW_loadMouse)(u8* data, i32 w, i32 h, RGFW_format format) {
-    RGFW_ASSERT(data); RGFW_UNUSED(data); RGFW_UNUSED(w); RGFW_UNUSED(h); RGFW_UNUSED(format);
-	return NULL; /* TODO */
+	
+    RGFW_surface *mouse_surface = RGFW_createSurface(data, w, h, format);
+
+	if (mouse_surface == NULL) return NULL;
+
+	RGFW_copyImageData(mouse_surface->native.buffer, RGFW_MIN(w, mouse_surface->w), RGFW_MIN(h, mouse_surface->h), mouse_surface->native.format, mouse_surface->data, mouse_surface->format);
+    
+	return (void*) mouse_surface;
 }
 
 void RGFW_FUNC(RGFW_window_setMouse)(RGFW_window* win, RGFW_mouse* mouse) {
-    RGFW_UNUSED(win); RGFW_UNUSED(mouse);
+	RGFW_UNUSED(win); RGFW_ASSERT(mouse);
+	RGFW_surface *mouse_surface = (RGFW_surface*)mouse;
+	struct wl_buffer *mouse_buffer = mouse_surface->native.wl_buffer;
+	wl_pointer_set_cursor(_RGFW->wl_pointer, _RGFW->mouse_enter_serial, _RGFW->cursor_surface, 0, 0);
+	
+	wl_surface_attach(_RGFW->cursor_surface, mouse_buffer, 0, 0);
+	wl_surface_damage(_RGFW->cursor_surface, 0, 0, mouse_surface->w, mouse_surface->h);
+	wl_surface_commit(_RGFW->cursor_surface);
 }
 
 void RGFW_FUNC(RGFW_freeMouse)(RGFW_mouse* mouse) {
-    RGFW_UNUSED(mouse);
+	if (mouse != NULL) {
+		RGFW_surface_free((RGFW_surface*)mouse);
+	}
 }
 
 void RGFW_FUNC(RGFW_window_moveMouse)(RGFW_window* win, i32 x, i32 y) {
