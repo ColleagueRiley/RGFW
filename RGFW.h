@@ -2691,6 +2691,7 @@ void RGFW_window_holdMouse(RGFW_window* win) {
 	win->internal.holdMouse = RGFW_TRUE;
 	_RGFW->mouseOwner = win;
 	RGFW_captureCursor(win);
+	RGFW_window_moveMouse(win, win->x + (win->w / 2), win->y + (win->h / 2));
 }
 
 RGFW_bool RGFW_window_isHoldingMouse(RGFW_window* win) { return RGFW_BOOL(win->internal.holdMouse); }
