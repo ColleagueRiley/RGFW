@@ -7398,7 +7398,7 @@ $(function() {
 <div class="line"><a id="l07598" name="l07598"></a><span class="lineno"> 7598</span> </div>
 <div class="line"><a id="l07599" name="l07599"></a><span class="lineno"> 7599</span>            <span class="keyword">event</span>.type = RGFW_mouseScroll;</div>
 <div class="line"><a id="l07600" name="l07600"></a><span class="lineno"> 7600</span>            <span class="keyword">event</span>.scroll.x = 0.0f;</div>
-<div class="line"><a id="l07601" name="l07601"></a><span class="lineno"> 7601</span>            <span class="keyword">event</span>.scroll.y = (float)((<span class="keywordtype">double</span>) HIWORD(wParam) / (double) WHEEL_DELTA);</div>
+<div class="line"><a id="l07601" name="l07601"></a><span class="lineno"> 7601</span>            <span class="keyword">event</span>.scroll.y = (float)((<a class="code hl_typedef" href="RGFW_8h.html#ad309dbcaeea13aa602d686964156ea0b">i16</a>) HIWORD(wParam) / (double) WHEEL_DELTA);</div>
 <div class="line"><a id="l07602" name="l07602"></a><span class="lineno"> 7602</span>            _RGFW-&gt;scrollX = <span class="keyword">event</span>.scroll.x;</div>
 <div class="line"><a id="l07603" name="l07603"></a><span class="lineno"> 7603</span>            _RGFW-&gt;scrollY = <span class="keyword">event</span>.scroll.y;</div>
 <div class="line"><a id="l07604" name="l07604"></a><span class="lineno"> 7604</span> </div>
@@ -7408,7 +7408,7 @@ $(function() {
 <div class="line"><a id="l07608" name="l07608"></a><span class="lineno"> 7608</span>            <span class="keywordflow">if</span> (!(win-&gt;internal.enabledEvents &amp; RGFW_mouseScrollFlag)) <span class="keywordflow">return</span> DefWindowProcW(hWnd, message, wParam, lParam);</div>
 <div class="line"><a id="l07609" name="l07609"></a><span class="lineno"> 7609</span> </div>
 <div class="line"><a id="l07610" name="l07610"></a><span class="lineno"> 7610</span>            <span class="keyword">event</span>.type = RGFW_mouseScroll;</div>
-<div class="line"><a id="l07611" name="l07611"></a><span class="lineno"> 7611</span>            <span class="keyword">event</span>.scroll.x = -(float)((<span class="keywordtype">double</span>) HIWORD(wParam) / (double) WHEEL_DELTA);</div>
+<div class="line"><a id="l07611" name="l07611"></a><span class="lineno"> 7611</span>            <span class="keyword">event</span>.scroll.x = -(float)((<a class="code hl_typedef" href="RGFW_8h.html#ad309dbcaeea13aa602d686964156ea0b">i16</a>) HIWORD(wParam) / (double) WHEEL_DELTA);</div>
 <div class="line"><a id="l07612" name="l07612"></a><span class="lineno"> 7612</span>            <span class="keyword">event</span>.scroll.y = (float)0.0f;</div>
 <div class="line"><a id="l07613" name="l07613"></a><span class="lineno"> 7613</span>            _RGFW-&gt;scrollX = <span class="keyword">event</span>.scroll.x;</div>
 <div class="line"><a id="l07614" name="l07614"></a><span class="lineno"> 7614</span>            _RGFW-&gt;scrollY = <span class="keyword">event</span>.scroll.y;</div>
