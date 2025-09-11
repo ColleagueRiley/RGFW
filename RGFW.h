@@ -1582,6 +1582,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		struct xdg_toplevel* xdg_toplevel;
 		struct zxdg_toplevel_decoration_v1* decoration;
 		struct zwp_locked_pointer_v1 *locked_pointer;
+		struct xdg_toplevel_icon_v1 *icon;
 		
 		/* State flags to configure the window */
 		RGFW_bool pending_activated;
@@ -1759,11 +1760,11 @@ struct RGFW_info {
         struct xkb_keymap *keymap;
         struct xkb_state *xkb_state;
         struct zxdg_decoration_manager_v1 *decoration_manager;
-
         struct zwp_relative_pointer_manager_v1 *relative_pointer_manager;
         struct zwp_relative_pointer_v1 *relative_pointer;
         struct zwp_pointer_constraints_v1 *constraint_manager;
-  
+        struct xdg_toplevel_icon_manager_v1 *icon_manager;
+
         struct zxdg_output_manager_v1 *xdg_output_manager;
   
         struct wl_keyboard* wl_keyboard;
@@ -3506,8 +3507,7 @@ VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance,
     return vkCreateWin32SurfaceKHR(instance, &win32, NULL, surface);
 #elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
     void* contentView = ((void* (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_getUid("contentView"));
-    VkMacOSSurfaceCreateFlagsMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, _RGFW->display, (void*)contentView };
-
+    VkMacOSSurfaceCreateSurfaceMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, 0, (void*)contentView };
     return vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface);
 #endif
 }
@@ -6078,6 +6078,7 @@ struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { return win-
 
 /* wayland global garbage (wayland bad, X11 is fine (ish) (not really)) */
 #include "xdg-shell.h"
+#include "xdg-toplevel-icon-v1.h"
 #include "xdg-decoration-unstable-v1.h"
 #include "relative-pointer-unstable-v1.h"
 #include "pointer-constraints-unstable-v1.h"
@@ -6609,6 +6610,8 @@ static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *regi
 		RGFW->constraint_manager = wl_registry_bind(registry, id, &zwp_pointer_constraints_v1_interface, 1);
     } else if (RGFW_STRNCMP(interface, zwp_relative_pointer_manager_v1_interface.name, 255) == 0) {
 		RGFW->relative_pointer_manager = wl_registry_bind(registry, id, &zwp_relative_pointer_manager_v1_interface, 1);
+	} else if (RGFW_STRNCMP(interface, xdg_toplevel_icon_manager_v1_interface.name, 255) == 0) {
+		RGFW->icon_manager = wl_registry_bind(registry, id, &xdg_toplevel_icon_manager_v1_interface, 1);
     } else if (RGFW_STRNCMP(interface, "wl_shm", 7) == 0) {
         RGFW->shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
         wl_shm_add_listener(RGFW->shm, &shm_listener, RGFW);
@@ -6754,7 +6757,6 @@ void RGFW_deinitPlatform_Wayland(void) {
 	wl_registry_destroy(_RGFW->registry);
 	if (_RGFW->decoration_manager != NULL)
 		zxdg_decoration_manager_v1_destroy(_RGFW->decoration_manager);
-
 	if (_RGFW->relative_pointer_manager != NULL) {
 		zwp_relative_pointer_manager_v1_destroy(_RGFW->relative_pointer_manager);
 	}
@@ -6768,7 +6770,14 @@ void RGFW_deinitPlatform_Wayland(void) {
 	}
 
 	if (_RGFW->xdg_output_manager != NULL)
+	if (_RGFW->icon_manager != NULL) {
+		xdg_toplevel_icon_manager_v1_destroy(_RGFW->icon_manager);
+	}
+
+	if (_RGFW->xdg_output_manager) {
 		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
+	}
+
 
 	if (_RGFW->wl_cursor_theme != NULL) {
 		wl_cursor_theme_destroy(_RGFW->wl_cursor_theme);
@@ -6967,6 +6976,10 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 		#endif
 	}
 
+	if (_RGFW->icon_manager != NULL) {
+		// set the default wayland icon
+		xdg_toplevel_icon_manager_v1_set_icon(_RGFW->icon_manager, win->src.xdg_toplevel, NULL);
+	}
 	wl_surface_commit(win->src.surface);
 	RGFW_window_show(win);
 
@@ -7136,8 +7149,28 @@ void RGFW_FUNC(RGFW_window_setMousePassthrough) (RGFW_window* win, RGFW_bool pas
 #endif /* RGFW_NO_PASSTHROUGH */
 
 RGFW_bool RGFW_FUNC(RGFW_window_setIconEx) (RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format, RGFW_icon type) {
-	RGFW_ASSERT(win != NULL); RGFW_UNUSED(data); RGFW_UNUSED(w); RGFW_UNUSED(h); RGFW_UNUSED(format); RGFW_UNUSED(type);
-	return RGFW_FALSE;
+	RGFW_ASSERT(win != NULL); 
+	RGFW_UNUSED(type);
+
+	if (_RGFW->icon_manager == NULL || w != h) return RGFW_FALSE;
+	
+	if (win->src.icon) {
+		xdg_toplevel_icon_v1_destroy(win->src.icon);
+		win->src.icon= NULL;
+	}
+	
+	RGFW_surface* surface = RGFW_createSurface(data, w, h, format);
+
+	if (surface == NULL) return RGFW_FALSE;
+
+	RGFW_copyImageData(surface->native.buffer, RGFW_MIN(w, surface->w), RGFW_MIN(h, surface->h), surface->native.format, surface->data, surface->format);
+
+	win->src.icon = xdg_toplevel_icon_manager_v1_create_icon(_RGFW->icon_manager);
+	xdg_toplevel_icon_v1_add_buffer(win->src.icon, surface->native.wl_buffer, 1);
+	xdg_toplevel_icon_manager_v1_set_icon(_RGFW->icon_manager, win->src.xdg_toplevel, win->src.icon);
+
+	RGFW_surface_free(surface);
+	return RGFW_TRUE;
 }
 
 RGFW_mouse* RGFW_FUNC(RGFW_loadMouse)(u8* data, i32 w, i32 h, RGFW_format format) {
@@ -7309,7 +7342,11 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 	if (win->src.locked_pointer) {
 		zwp_locked_pointer_v1_destroy(win->src.locked_pointer);
 	}
-	
+
+	if (win->src.icon) {
+		xdg_toplevel_icon_v1_destroy(win->src.icon);
+	}
+
 	xdg_surface_destroy(win->src.xdg_surface);
 	wl_surface_destroy(win->src.surface);
 }
@@ -7756,7 +7793,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			event.type = RGFW_mouseScroll;
 			event.scroll.x = 0.0f;
-			event.scroll.y = (float)((double) HIWORD(wParam) / (double) WHEEL_DELTA);
+			event.scroll.y = (float)((i16) HIWORD(wParam) / (double) WHEEL_DELTA);
 			_RGFW->scrollX = event.scroll.x;
 			_RGFW->scrollY = event.scroll.y;
 
@@ -7766,7 +7803,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (!(win->internal.enabledEvents & RGFW_mouseScrollFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
 
 			event.type = RGFW_mouseScroll;
-			event.scroll.x = -(float)((double) HIWORD(wParam) / (double) WHEEL_DELTA);
+			event.scroll.x = -(float)((i16) HIWORD(wParam) / (double) WHEEL_DELTA);
 			event.scroll.y = (float)0.0f;
 			_RGFW->scrollX = event.scroll.x;
 			_RGFW->scrollY = event.scroll.y;
@@ -8908,6 +8945,7 @@ void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 #define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB   0x00000002
 #define WGL_CONTEXT_MAJOR_VERSION_ARB               0x2091
 #define WGL_CONTEXT_MINOR_VERSION_ARB               0x2092
+#define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB             0x20A9
 
 RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx, RGFW_glHints* hints) {
 	win->src.ctx.native = ctx;
@@ -8956,8 +8994,12 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 		RGFW_attribStack_pushAttribs(&stack, WGL_ACCUM_BLUE_BITS_ARB, hints->accumGreen);
 		RGFW_attribStack_pushAttribs(&stack, WGL_ACCUM_ALPHA_BITS_ARB, hints->accumAlpha);
 
-		if(hints->sRGB)
-		RGFW_attribStack_pushAttribs(&stack, WGL_COLORSPACE_SRGB_EXT, hints->sRGB);
+		if(hints->sRGB) {
+			if (hints->profile != RGFW_glES)
+				RGFW_attribStack_pushAttribs(&stack, WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, 1);
+			else
+				RGFW_attribStack_pushAttribs(&stack, WGL_COLORSPACE_SRGB_EXT, hints->sRGB);
+		}
 
 		RGFW_attribStack_pushAttribs(&stack, WGL_COVERAGE_SAMPLES_NV, hints->samples);
 
@@ -11080,16 +11122,15 @@ void RGFW_window_closePlatform(RGFW_window* win) {
 #ifdef RGFW_WEBGPU
 WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance instance) {
 	WGPUSurfaceDescriptor surfaceDesc = {0};
-    NSView* nsView = (NSView*)window->src.view;
+    id* nsView = (id*)window->src.view;
     if (!nsView) {
         fprintf(stderr, "RGFW Error: NSView is NULL for macOS window.\n");
         return NULL;
     }
 
-    ((void (*)(id, SEL, BOOL))objc_msgSend)((id)nsView, sel_registerName("setWantsLayer:"), YES);
-    id layer = ((id (*)(id, SEL))objc_msgSend)((id)nsView, sel_registerName("layer"));
+    ((void (*)(id, SEL, BOOL))objc_msgSend)(nsView, sel_registerName("setWantsLayer:"), YES);
+    id layer = ((id (*)(id, SEL))objc_msgSend)(nsView, sel_registerName("layer"));
 
-    id layer = ((id (*)(id, SEL))objc_msgSend)((id)nsView, sel_registerName("layer"));
 	void* metalLayer = RGFW_getLayer_OSX();
 	if (metalLayer == NULL) {
 		 return NULL;
@@ -11100,7 +11141,11 @@ WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance i
     /* At this point, 'layer' should be a valid CAMetalLayer* */
     WGPUSurfaceSourceMetalLayer fromMetal = {0};
     fromMetal.chain.sType = WGPUSType_SurfaceSourceMetalLayer;
-    fromMetal.layer = (__bridge CAMetalLayer*)layer; /* Use __bridge for ARC compatibility if mixing C/Obj-C */
+#ifdef  __OBJC__
+	fromMetal.layer = (__bridge CAMetalLayer*)layer; /* Use __bridge for ARC compatibility if mixing C/Obj-C */
+#else
+	fromMetal.layer = layer;
+#endif
 
     surfaceDesc.nextInChain = (WGPUChainedStruct*)&fromMetal.chain;
     return wgpuInstanceCreateSurface(instance, &surfaceDesc);

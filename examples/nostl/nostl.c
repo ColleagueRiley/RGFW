@@ -1,3 +1,4 @@
+#define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
 #define RGFW_NO_THREADS
 #define RGFW_NO_UNIX_CLOCK

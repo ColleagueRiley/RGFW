@@ -97,7 +97,7 @@ ifeq ($(WAYLAND),1)
 	NO_GLES = 0
 	NO_EGL = 0
 	NO_OSMESA ?= 0
-	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1.c pointer-constraints-unstable-v1.c xdg-output-unstable-v1.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL
+	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1-client-protocol.c relative-pointer-unstable-v1.c pointer-constraints-unstable-v1.c xdg-output-unstable-v1.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL
 	LINK_GL1 = -lEGL -lGL
 
 	# LIBS += -ldecor-0
@@ -183,7 +183,8 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/dx11/dx11 \
 	examples/metal/metal \
 	examples/minimal_links/minimal_links \
-	examples/gears/gears
+	examples/gears/gears \
+	examples/srgb/srgb
 
 all: xdg-shell.c $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) libRGFW.a
 
@@ -195,6 +196,9 @@ ifneq (,$(filter $(CC),emcc em++))
 else
 	$(CC) $(CFLAGS) -I. $< $(LINK_GL1) $(LIBS) -lm $($)  -o $@$(EXT)
 endif
+
+examples/srgb/srgb: examples/srgb/srgb.c RGFW.h
+	$(CC) $(CFLAGS) -I. $< $(LINK_GL1) $(LIBS) -lm $($)  -o $@$(EXT)
 
 examples/portableGL/pgl: examples/portableGL/pgl.c RGFW.h
 ifeq (,$(filter $(CC),emcc em++))
@@ -389,6 +393,8 @@ ifeq ($(WAYLAND),1)
 	wayland-scanner client-header /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml xdg-shell.h
 	wayland-scanner public-code /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml xdg-shell.c
 	wayland-scanner client-header /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.h
+	wayland-scanner public-code /usr/share/wayland-protocols/staging/xdg-toplevel-icon/xdg-toplevel-icon-v1.xml xdg-toplevel-icon-v1.c
+	wayland-scanner client-header /usr/share/wayland-protocols/staging/xdg-toplevel-icon/xdg-toplevel-icon-v1.xml xdg-toplevel-icon-v1.h
 	wayland-scanner public-code /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.c
 	wayland-scanner client-header /usr/share/wayland-protocols/unstable/relative-pointer/relative-pointer-unstable-v1.xml relative-pointer-unstable-v1.h
 	wayland-scanner public-code /usr/share/wayland-protocols/unstable/relative-pointer/relative-pointer-unstable-v1.xml relative-pointer-unstable-v1.c

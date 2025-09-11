@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define RGFW_DEBUG
 #define RGFW_VULKAN
 #define RGFW_IMPLEMENTATION
 #define RGFW_PRINT_ERRORS
