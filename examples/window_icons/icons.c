@@ -12,8 +12,8 @@ int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW icons", 0, 0, 600, 400, RGFW_windowCenter | RGFW_windowNoResize);
     RGFW_window_setExitKey(win, RGFW_escape);
 
-    unsigned char* icon = stbi_load("logo.png", &w, &h, &c, 3);
-    RGFW_window_setIconEx(win, base_icon, 3, 3, RGFW_formatRGB8, RGFW_iconWindow);
+    unsigned char* icon = stbi_load("logo.png", &w, &h, &c, 4);
+    RGFW_window_setIconEx(win, base_icon, 3, 3, RGFW_formatRGBA8, RGFW_iconWindow);
     RGFW_window_setIconEx(win, icon, w, h, RGFW_formatRGB8, RGFW_iconTaskbar);
 
 
