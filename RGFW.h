@@ -3142,6 +3142,7 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 	if (RGFW_loadEGL() == RGFW_FALSE) return RGFW_FALSE;
 	win->src.ctx.egl = ctx;
 	win->src.gfxType = RGFW_gfxEGL;
+	
 #ifdef RGFW_WAYLAND
     if (_RGFW->useWaylandBool)
         win->src.ctx.egl->eglWindow = wl_egl_window_create(win->src.surface, win->w, win->h);
@@ -3176,9 +3177,6 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 		RGFW_attribStack_pushAttribs(&stack, EGL_BLUE_SIZE, hints->blue);
 		RGFW_attribStack_pushAttribs(&stack, EGL_ALPHA_SIZE, hints->alpha);
 		RGFW_attribStack_pushAttribs(&stack, EGL_DEPTH_SIZE, hints->depth);
-
-		if (hints->sRGB)
-			RGFW_attribStack_pushAttribs(&stack, 0x3089, hints->sRGB);
 
 		RGFW_attribStack_pushAttribs(&stack, EGL_STENCIL_SIZE, hints->stencil);
 		if (hints->samples) {
@@ -3279,6 +3277,18 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 		#ifndef EGL_PRESENT_OPAQUE_EXT
 		#define EGL_PRESENT_OPAQUE_EXT 0x31df
 		#endif
+
+		#ifndef EGL_GL_COLORSPACE_KHR
+		#define EGL_GL_COLORSPACE_KHR 0x309D
+		#define EGL_GL_COLORSPACE_SRGB_KHR 0x3089
+		#endif
+
+		const char gl_colorspace_str[] = "EGL_KHR_gl_colorspace";
+		
+		if (hints->sRGB) {
+			if (RGFW_extensionSupportedPlatform_EGL(gl_colorspace_str, sizeof(gl_colorspace_str)))
+				RGFW_attribStack_pushAttribs(&stack, EGL_GL_COLORSPACE_KHR, EGL_GL_COLORSPACE_SRGB_KHR);
+		}
 
 		if (!(win->internal.flags & RGFW_windowTransparent) && opaque_extension_Found)
 			RGFW_attribStack_pushAttribs(&stack, EGL_PRESENT_OPAQUE_EXT, EGL_TRUE);
