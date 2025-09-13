@@ -6659,7 +6659,8 @@ static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *regi
 
 static void RGFW_wl_global_registry_remove(void* data, struct wl_registry *registry, u32 id) {
 	RGFW_UNUSED(data); RGFW_UNUSED(registry);
-	RGFW_monitorNode* prev = _RGFW->monitors.list.head;
+	RGFW_info* RGFW = (RGFW_info*)data;
+	RGFW_monitorNode* prev = RGFW->monitors.list.head;
 	RGFW_monitorNode* node = NULL;
 	if (prev == NULL) return;
 
