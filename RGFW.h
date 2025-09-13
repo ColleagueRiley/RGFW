@@ -1590,8 +1590,12 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		RGFW_bool resizing;
 		RGFW_bool pending_maximized;
 		RGFW_bool maximized;
+		
 		RGFW_bool using_custom_cursor;
 		struct wl_surface* custom_cursor_surface;
+
+		RGFW_monitor active_monitor;
+		
 		#ifdef RGFW_LIBDECOR
 			struct libdecor* decorContext;
 		#endif
@@ -3286,14 +3290,16 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 
 		#ifndef EGL_GL_COLORSPACE_KHR
 		#define EGL_GL_COLORSPACE_KHR 0x309D
+		#ifndef EGL_GL_COLORSPACE_SRGB_KHR
 		#define EGL_GL_COLORSPACE_SRGB_KHR 0x3089
+		#endif
 		#endif
 
 		const char gl_colorspace_str[] = "EGL_KHR_gl_colorspace";
+		RGFW_bool gl_colorspace_Found = RGFW_extensionSupportedPlatform_EGL(gl_colorspace_str, sizeof(gl_colorspace_str));
 		
-		if (hints->sRGB) {
-			if (RGFW_extensionSupportedPlatform_EGL(gl_colorspace_str, sizeof(gl_colorspace_str)))
-				RGFW_attribStack_pushAttribs(&stack, EGL_GL_COLORSPACE_KHR, EGL_GL_COLORSPACE_SRGB_KHR);
+		if (hints->sRGB && gl_colorspace_Found) {
+			RGFW_attribStack_pushAttribs(&stack, EGL_GL_COLORSPACE_KHR, EGL_GL_COLORSPACE_SRGB_KHR);
 		}
 
 		if (!(win->internal.flags & RGFW_windowTransparent) && opaque_extension_Found)
@@ -6586,6 +6592,9 @@ static void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t 
 			.description = (void (*)(void *, struct wl_output *, const char *))&RGFW_doNothing
 	};
 
+	// the wl_output will have a reference to the node
+	wl_output_set_user_data(output, node);
+	
 	// pass the monitor so we can access it in the callback functions
 	wl_output_add_listener(output, &wl_output_listener, node);
 
@@ -6601,6 +6610,19 @@ static void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t 
 
 	node->xdg_output = zxdg_output_manager_v1_get_xdg_output(_RGFW->xdg_output_manager, node->output);
 	zxdg_output_v1_add_listener(node->xdg_output, &xdg_output_listener, node);
+}
+
+static void RGFW_wl_surface_enter(void *data, struct wl_surface *wl_surface, struct wl_output *output) {
+	RGFW_UNUSED(wl_surface);
+
+	RGFW_window* win = (RGFW_window*)data;
+	RGFW_monitorNode* node = wl_output_get_user_data(output);
+	win->src.active_monitor = node->mon;
+
+	#ifndef RGFW_NO_MONITOR
+	if (win->internal.flags & RGFW_windowScaleToMonitor)
+		RGFW_window_scaleToMonitor(win);
+	#endif
 }
 
 static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *registry, u32 id, const char *interface, u32 version) {
@@ -6920,9 +6942,16 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 		.configure = RGFW_wl_xdg_surface_configure_handler,
 	};
 
-	win->src.surface = wl_compositor_create_surface(_RGFW->compositor);
-	wl_surface_set_user_data(win->src.surface, win);
+	static const struct wl_surface_listener wl_surface_listener = {
+		.enter = RGFW_wl_surface_enter,
+		.leave = (void (*)(void *, struct wl_surface *, struct wl_output *)) RGFW_doNothing,
+		.preferred_buffer_scale = (void (*)(void *, struct wl_surface *, i32)) RGFW_doNothing,
+		.preferred_buffer_transform = (void (*)(void *, struct wl_surface *, u32)) RGFW_doNothing
+	};
 
+	win->src.surface = wl_compositor_create_surface(_RGFW->compositor);
+	wl_surface_add_listener(win->src.surface, &wl_surface_listener, win);
+	
 	//create a surface for a custom cursor
 	win->src.custom_cursor_surface = wl_compositor_create_surface(_RGFW->compositor);
 	
@@ -7305,12 +7334,8 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor mon, RGFW_monitorMod
 }
 
 RGFW_monitor RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
-    RGFW_monitor mon;
-    RGFW_MEMSET(&mon, 0, sizeof(mon));
-
-    RGFW_ASSERT(win != NULL);
-    return mon;
-
+	RGFW_ASSERT(win);
+    return win->src.active_monitor;
 }
 
 #ifdef RGFW_OPENGL
