@@ -6651,7 +6651,7 @@ static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *regi
 		RGFW->seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
 		wl_seat_add_listener(RGFW->seat, &seat_listener, RGFW);
 	} else if (RGFW_STRNCMP(interface, zxdg_output_manager_v1_interface.name, 255) == 0) {
-		_RGFW->xdg_output_manager = wl_registry_bind(registry, id, &zxdg_output_manager_v1_interface, 1);
+		RGFW->xdg_output_manager = wl_registry_bind(registry, id, &zxdg_output_manager_v1_interface, 1);
 	} else if (RGFW_STRNCMP(interface,"wl_output", 10) == 0) {
 		RGFW_wl_create_outputs(registry, id);
 	}
