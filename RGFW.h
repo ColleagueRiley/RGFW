@@ -6599,7 +6599,7 @@ static void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t 
 	
 	// pass the monitor so we can access it in the callback functions
 	wl_output_add_listener(output, &wl_output_listener, node);
-
+	
 	if (!_RGFW->xdg_output_manager) return; // compositor does not support it
 
 	static const struct zxdg_output_v1_listener xdg_output_listener = {
@@ -6757,7 +6757,7 @@ i32 RGFW_initPlatform_Wayland(void) {
 	wl_registry_add_listener(_RGFW->registry, &registry_listener, _RGFW);
 
 	wl_display_roundtrip(_RGFW->wl_display); // bind to globals
-
+	
 	if (_RGFW->compositor == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errWayland, "Can't find compositor.");
 		return 1;
@@ -6778,6 +6778,7 @@ i32 RGFW_initPlatform_Wayland(void) {
 	xdg_wm_base_add_listener(_RGFW->xdg_wm_base, &xdg_wm_base_listener, NULL);
 
 	_RGFW->xkb_context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+	
 	return 0;
 }
 
@@ -7024,7 +7025,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	}
 	wl_surface_commit(win->src.surface);
 	RGFW_window_show(win);
-
+	wl_display_flush(_RGFW->wl_display);
 	wl_display_roundtrip(_RGFW->wl_display);
 	/* wait for the surface to be configured */
 	while (wl_display_dispatch_pending(_RGFW->wl_display) > 0) { }
@@ -7053,7 +7054,19 @@ u8 RGFW_FUNC(RGFW_rgfwToKeyChar)(u32 key) {
 
 void RGFW_FUNC(RGFW_pollEvents) (void) {
 	RGFW_resetPrevState();
-	wl_display_roundtrip(_RGFW->wl_display);
+	struct pollfd fds [] = { { wl_display_get_fd(_RGFW->wl_display), POLLIN, 0 } };
+	
+	while (wl_display_prepare_read(_RGFW->wl_display) != 0)
+		wl_display_dispatch_pending(_RGFW->wl_display);
+	
+	wl_display_flush(_RGFW->wl_display);
+	i32 result = poll(fds, 1, -1);
+
+	if (result == -1)
+		wl_display_cancel_read(_RGFW->wl_display);
+	else 
+		wl_display_read_events(_RGFW->wl_display);
+	wl_display_dispatch_pending(_RGFW->wl_display);
 }
 
 void RGFW_FUNC(RGFW_window_move) (RGFW_window* win, i32 x, i32 y) {
@@ -7337,6 +7350,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor mon, RGFW_monitorMod
 }
 
 RGFW_monitor RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
+	RGFW_pollEvents();
 	RGFW_ASSERT(win);
     return win->src.active_monitor;
 }
