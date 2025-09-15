@@ -2197,15 +2197,16 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 RGFW_glContext* glFlag = NULL;
 #endif
 
-#ifdef RGFW_OPENGL
-	win->src.gfxType = 0;
-	if (flags & RGFW_windowOpenGL)
-		glFlag = RGFW_window_createContext_OpenGL(win, RGFW_getGlobalHints_OpenGL());
+#ifdef RGFW_EGL
+	if (flags & RGFW_windowEGL)
+		glFlag = (RGFW_glContext*)RGFW_window_createContext_EGL(win, RGFW_getGlobalHints_OpenGL());
 #endif
 
-#ifdef RGFW_EGL
-	if (flags & RGFW_windowEGL && !glFlag)
-		glFlag = (RGFW_glContext*)RGFW_window_createContext_EGL(win, RGFW_getGlobalHints_OpenGL());
+#ifdef RGFW_OPENGL
+	win->src.gfxType = 0;
+	if (flags & RGFW_windowOpenGL && !glFlag)
+		glFlag = RGFW_window_createContext_OpenGL(win, RGFW_getGlobalHints_OpenGL());
+	RGFW_UNUSED(glFlag);
 #endif
 
 	/* X11 creates the window after the OpenGL context is created (because of visual garbage),
@@ -6755,8 +6756,8 @@ i32 RGFW_initPlatform_Wayland(void) {
 		_RGFW->cursor_surface = wl_compositor_create_surface(_RGFW->compositor);
 	}
 
-	 u8 RGFW_blk[] = { 0, 0, 0, 0 };
-	_RGFW->hiddenMouse = RGFW_loadMouse(RGFW_blk, 1, 1, RGFW_formatRGBA8);
+	//  u8 RGFW_blk[] = { 0, 0, 0, 0 };
+	// _RGFW->hiddenMouse = RGFW_loadMouse(RGFW_blk, 1, 1, RGFW_formatRGBA8);
 
 	static const struct xdg_wm_base_listener xdg_wm_base_listener = {
 		.ping = RGFW_wl_xdg_wm_base_ping_handler,
@@ -6805,7 +6806,7 @@ void RGFW_deinitPlatform_Wayland(void) {
 		wl_cursor_theme_destroy(_RGFW->wl_cursor_theme);
 	}
 
-	RGFW_freeMouse(_RGFW->hiddenMouse);
+	// RGFW_freeMouse(_RGFW->hiddenMouse);
 
 	RGFW_monitorNode* node = _RGFW->monitors.list.head;
 
