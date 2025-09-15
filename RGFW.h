@@ -2205,8 +2205,7 @@ RGFW_glContext* glFlag = NULL;
 #ifdef RGFW_OPENGL
 	win->src.gfxType = 0;
 	if (flags & RGFW_windowOpenGL && !glFlag)
-		glFlag = RGFW_window_createContext_OpenGL(win, RGFW_getGlobalHints_OpenGL());
-	RGFW_UNUSED(glFlag);
+		RGFW_window_createContext_OpenGL(win, RGFW_getGlobalHints_OpenGL());
 #endif
 
 	/* X11 creates the window after the OpenGL context is created (because of visual garbage),
