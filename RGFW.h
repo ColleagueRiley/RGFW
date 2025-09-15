@@ -3217,7 +3217,9 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 		if (best_config  == -1) best_config = i;
 
 		#ifdef RGFW_X11
-			XVisualInfo vinfo_template;
+		if (_RGFW->useWaylandBool == RGFW_FALSE) {
+
+		XVisualInfo vinfo_template;
 			vinfo_template.visualid = (VisualID)visual_id;
 
 			int num_visuals = 0;
@@ -3235,6 +3237,8 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 				XFree(vi);
 				continue;
 			}
+			
+		}
 		#endif
 
 		if (samples <= hints->samples && samples > best_samples) {
