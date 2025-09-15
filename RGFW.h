@@ -2753,9 +2753,11 @@ void RGFW_window_focusLost(RGFW_window* win) {
 
     size_t key;
     for (key = 0; key < RGFW_keyLast; key++) {
-        if (RGFW_isKeyPressed((u8)key) == RGFW_FALSE) continue;
-	    _RGFW->keyboard[key].current = RGFW_FALSE;
+		if (RGFW_isKeyDown((u8)key) == RGFW_FALSE) continue;
+
+		_RGFW->keyboard[key].current = RGFW_FALSE;
         u8 sym = RGFW_rgfwToKeyChar((u32)key);
+
 		if ((win->internal.enabledEvents & RGFW_BIT(RGFW_keyReleased))) {
 			RGFW_keyCallback(win, (u8)key, sym, win->internal.mod, RGFW_FALSE, RGFW_FALSE);
 			RGFW_eventQueuePushEx(e.type = RGFW_keyReleased;
@@ -3148,7 +3150,7 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 	if (RGFW_loadEGL() == RGFW_FALSE) return RGFW_FALSE;
 	win->src.ctx.egl = ctx;
 	win->src.gfxType = RGFW_gfxEGL;
-	
+
 #ifdef RGFW_WAYLAND
     if (_RGFW->useWaylandBool)
         win->src.ctx.egl->eglWindow = wl_egl_window_create(win->src.surface, win->w, win->h);
@@ -3290,7 +3292,7 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 		#endif
 
 		const char gl_colorspace_str[] = "EGL_KHR_gl_colorspace";
-		
+
 		if (hints->sRGB) {
 			if (RGFW_extensionSupportedPlatform_EGL(gl_colorspace_str, sizeof(gl_colorspace_str)))
 				RGFW_attribStack_pushAttribs(&stack, EGL_GL_COLORSPACE_KHR, EGL_GL_COLORSPACE_SRGB_KHR);
