@@ -2189,18 +2189,23 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	RGFW_window* ret = RGFW_createWindowPlatform(name, flags, win);
 
 #ifndef RGFW_X11
-	RGFW_window_setFlagsInternal(win, flags, 0);
+	if (!RGFW_usingWayland())
+		RGFW_window_setFlagsInternal(win, flags, 0);
+#endif
+
+#if defined(RGFW_OPENGL) || defined(RGFW_EGL)
+RGFW_glContext* glFlag = NULL;
 #endif
 
 #ifdef RGFW_OPENGL
 	win->src.gfxType = 0;
 	if (flags & RGFW_windowOpenGL)
-		RGFW_window_createContext_OpenGL(win, RGFW_getGlobalHints_OpenGL());
+		glFlag = RGFW_window_createContext_OpenGL(win, RGFW_getGlobalHints_OpenGL());
 #endif
 
 #ifdef RGFW_EGL
-	if (flags & RGFW_windowEGL)
-		RGFW_window_createContext_EGL(win, RGFW_getGlobalHints_OpenGL());
+	if (flags & RGFW_windowEGL && !glFlag)
+		glFlag = (RGFW_glContext*)RGFW_window_createContext_EGL(win, RGFW_getGlobalHints_OpenGL());
 #endif
 
 	/* X11 creates the window after the OpenGL context is created (because of visual garbage),
@@ -2209,7 +2214,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 		 * if a window is crated, CreateContext will delete the window and create a new one
 		 * */
 #ifdef RGFW_X11
-	RGFW_window_setFlagsInternal(win, flags, 0);
+	if (!RGFW_usingWayland())
+		RGFW_window_setFlagsInternal(win, flags, 0);
 #endif
 
 #ifdef RGFW_WAYLAND
@@ -2235,7 +2241,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 		RGFW_window_show(win);
 	}
 
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, "a new  window was created");
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, "a new window was created");
 	return ret;
 }
 
