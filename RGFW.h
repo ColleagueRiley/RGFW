@@ -7023,21 +7023,18 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 		// set the default wayland icon
 		xdg_toplevel_icon_manager_v1_set_icon(_RGFW->icon_manager, win->src.xdg_toplevel, NULL);
 	}
-	wl_surface_commit(win->src.surface);
+
+	RGFW_window_setName(win, name);
 	RGFW_window_show(win);
-	wl_display_flush(_RGFW->wl_display);
-	wl_display_roundtrip(_RGFW->wl_display);
-	/* wait for the surface to be configured */
-	while (wl_display_dispatch_pending(_RGFW->wl_display) > 0) { }
-	wl_surface_commit(win->src.surface);
+	
+	// recieve all events needed to configure
+	wl_display_roundtrip(_RGFW->wl_display); 
 
 	#ifndef RGFW_NO_MONITOR
 	if (flags & RGFW_windowScaleToMonitor)
 		RGFW_window_scaleToMonitor(win);
 	#endif
-
-	RGFW_window_setName(win, name);
-
+	
 	return win;
 }
 
@@ -7350,7 +7347,6 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor mon, RGFW_monitorMod
 }
 
 RGFW_monitor RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
-	RGFW_pollEvents();
 	RGFW_ASSERT(win);
     return win->src.active_monitor;
 }
