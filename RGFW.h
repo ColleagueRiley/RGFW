@@ -899,9 +899,10 @@ RGFWDEF RGFW_window* RGFW_createWindowPtr(
  * RGFW_window_createSurface and RGFW_window_createSurfacePtr exist only for X11 to address this issues
  * Of course, you can also manually set the root window with RGFW_setRootWindow
  */
+#ifdef RGFW_X11
 RGFWDEF RGFW_surface* RGFW_window_createSurface(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format);
 RGFWDEF RGFW_bool RGFW_window_createSurfacePtr(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format, RGFW_surface* surface);
-
+#endif
 /*! render the software rendering buffer */
 RGFWDEF void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface);
 
@@ -2574,16 +2575,12 @@ RGFW_nativeImage* RGFW_surface_getNativeImage(RGFW_surface* surface) {
 	return &surface->native;
 }
 
+#ifdef RGFW_X11
 RGFW_surface* RGFW_window_createSurface(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format) {
 	RGFW_surface* surface = (RGFW_surface*)RGFW_ALLOC(sizeof(RGFW_surface));
 	RGFW_MEMSET(surface, 0, sizeof(RGFW_surface));
 	RGFW_window_createSurfacePtr(win, data, w, h, format, surface);
 	return surface;
-}
-#ifndef RGFW_X11
-RGFW_bool RGFW_window_createSurfacePtr(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format, RGFW_surface* surface) {
-	RGFW_UNUSED(win);
-	return RGFW_createSurfacePtr(data, w, h, format, surface);
 }
 #endif
 
@@ -6747,8 +6744,8 @@ i32 RGFW_initPlatform_Wayland(void) {
 		_RGFW->cursor_surface = wl_compositor_create_surface(_RGFW->compositor);
 	}
 
-	//  u8 RGFW_blk[] = { 0, 0, 0, 0 };
-	// _RGFW->hiddenMouse = RGFW_loadMouse(RGFW_blk, 1, 1, RGFW_formatRGBA8);
+	 u8 RGFW_blk[] = { 0, 0, 0, 0 };
+	_RGFW->hiddenMouse = RGFW_loadMouse(RGFW_blk, 1, 1, RGFW_formatRGBA8);
 
 	static const struct xdg_wm_base_listener xdg_wm_base_listener = {
 		.ping = RGFW_wl_xdg_wm_base_ping_handler,
@@ -6797,7 +6794,7 @@ void RGFW_deinitPlatform_Wayland(void) {
 		wl_cursor_theme_destroy(_RGFW->wl_cursor_theme);
 	}
 
-	// RGFW_freeMouse(_RGFW->hiddenMouse);
+	RGFW_freeMouse(_RGFW->hiddenMouse);
 
 	RGFW_monitorNode* node = _RGFW->monitors.list.head;
 
@@ -7188,20 +7185,18 @@ RGFW_bool RGFW_FUNC(RGFW_window_setIconEx) (RGFW_window* win, u8* data, i32 w, i
 }
 
 RGFW_mouse* RGFW_FUNC(RGFW_loadMouse)(u8* data, i32 w, i32 h, RGFW_format format) {
-
     RGFW_surface *mouse_surface = RGFW_createSurface(data, w, h, format);
 
 	if (mouse_surface == NULL) return NULL;
 
 	RGFW_copyImageData(mouse_surface->native.buffer, RGFW_MIN(w, mouse_surface->w), RGFW_MIN(h, mouse_surface->h), mouse_surface->native.format, mouse_surface->data, mouse_surface->format);
-
 	return (void*) mouse_surface;
 }
 
 void RGFW_FUNC(RGFW_window_setMouse)(RGFW_window* win, RGFW_mouse* mouse) {
 	RGFW_ASSERT(win); RGFW_ASSERT(mouse);
 	RGFW_surface *mouse_surface = (RGFW_surface*)mouse;
-
+	
 	win->src.using_custom_cursor = RGFW_TRUE;
 
 	struct wl_buffer *mouse_buffer = mouse_surface->native.wl_buffer;
