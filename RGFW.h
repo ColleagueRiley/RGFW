@@ -3217,23 +3217,25 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 		if (best_config  == -1) best_config = i;
 
 		#ifdef RGFW_X11
-			XVisualInfo vinfo_template;
-			vinfo_template.visualid = (VisualID)visual_id;
+			if (_RGFW->useWaylandBool == RGFW_FALSE) {
+				XVisualInfo vinfo_template;
+				vinfo_template.visualid = (VisualID)visual_id;
 
-			int num_visuals = 0;
-			XVisualInfo* vi = XGetVisualInfo(_RGFW->display, VisualIDMask, &vinfo_template, &num_visuals);
-			if (!vi) continue;
-			if ((!transparent || vi->depth == 32) && best_depth == 0) {
-				best_config = i;
-				best_depth = vi->depth;
-			}
+				int num_visuals = 0;
+				XVisualInfo* vi = XGetVisualInfo(_RGFW->display, VisualIDMask, &vinfo_template, &num_visuals);
+				if (!vi) continue;
+				if ((!transparent || vi->depth == 32) && best_depth == 0) {
+					best_config = i;
+					best_depth = vi->depth;
+				}
 
-			if ((!(transparent) || vi->depth == 32) && (samples <= hints->samples && samples > best_samples)) {
-				best_depth = vi->depth;
-				best_config = i;
-				best_samples = samples;
-				XFree(vi);
-				continue;
+				if ((!(transparent) || vi->depth == 32) && (samples <= hints->samples && samples > best_samples)) {
+					best_depth = vi->depth;
+					best_config = i;
+					best_samples = samples;
+					XFree(vi);
+					continue;
+				}
 			}
 		#endif
 
@@ -6745,8 +6747,8 @@ i32 RGFW_initPlatform_Wayland(void) {
 		_RGFW->cursor_surface = wl_compositor_create_surface(_RGFW->compositor);
 	}
 
-	 u8 RGFW_blk[] = { 0, 0, 0, 0 };
-	_RGFW->hiddenMouse = RGFW_loadMouse(RGFW_blk, 1, 1, RGFW_formatRGBA8);
+	//  u8 RGFW_blk[] = { 0, 0, 0, 0 };
+	// _RGFW->hiddenMouse = RGFW_loadMouse(RGFW_blk, 1, 1, RGFW_formatRGBA8);
 
 	static const struct xdg_wm_base_listener xdg_wm_base_listener = {
 		.ping = RGFW_wl_xdg_wm_base_ping_handler,
@@ -6795,7 +6797,7 @@ void RGFW_deinitPlatform_Wayland(void) {
 		wl_cursor_theme_destroy(_RGFW->wl_cursor_theme);
 	}
 
-	RGFW_freeMouse(_RGFW->hiddenMouse);
+	// RGFW_freeMouse(_RGFW->hiddenMouse);
 
 	RGFW_monitorNode* node = _RGFW->monitors.list.head;
 
