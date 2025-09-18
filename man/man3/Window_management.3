@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Mon Sep 15 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Thu Sep 18 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -230,7 +230,7 @@ because this function polls events, it may not work for multi-threaded systems R
 .PP
 ex\&.
 .PP
-\fBRGFW_event\fP; while (RGFW_window_checkEvent(win, &event) != NULL) [this keeps checking events until it reaches the last queued event]
+\fBRGFW_event\fP; while (RGFW_window_checkEvent(win, &event)) [this keeps checking events until it reaches the last queued event]
 .PP
 you may also use \fCRGFW_pollEvents\fP instead check current event (returns RGFW_TRUE if there is an event or RGFW_FALSE if there is no event) 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_checkQueuedEvent (\fBRGFW_window\fP * win, \fBRGFW_event\fP * event)"

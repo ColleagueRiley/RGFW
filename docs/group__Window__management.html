@@ -382,7 +382,7 @@ Functions</h2></td></tr>
 <p >polls the event queue if it's empty and pops the first event for the window from the event queue using this function without a while loop may cause event lag</p>
 <p >because this function polls events, it may not work for multi-threaded systems RGFW_pollEvents + RGFW_window_checkQueuedEvent should be used when using multi-threaded systems</p>
 <p >ex.</p>
-<p ><a class="el" href="unionRGFW__event.html">RGFW_event</a>; while (RGFW_window_checkEvent(win, &amp;event) != NULL) [this keeps checking events until it reaches the last queued event]</p>
+<p ><a class="el" href="unionRGFW__event.html">RGFW_event</a>; while (RGFW_window_checkEvent(win, &amp;event)) [this keeps checking events until it reaches the last queued event]</p>
 <p >you may also use <code>RGFW_pollEvents</code> instead check current event (returns RGFW_TRUE if there is an event or RGFW_FALSE if there is no event) </p>
 
 </div>
