@@ -33,6 +33,10 @@ detected_OS = windows
 
 OBJ_FILE = .o
 
+ifeq ($(WAYLAND_ONLY), 1)
+	WAYLAND = 1
+endif
+
 ifeq ($(WAYLAND_X11), 1)
 	WAYLAND = 1
 endif
