@@ -953,7 +953,7 @@ RGFWDEF void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags);
 	ex.
 
 	RGFW_event;
-	while (RGFW_window_checkEvent(win, &event) != NULL) [this keeps checking events until it reaches the last queued event]
+	while (RGFW_window_checkEvent(win, &event)) [this keeps checking events until it reaches the last queued event]
 
 	you may also use `RGFW_pollEvents` instead
 */
@@ -3216,7 +3216,8 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 
 		if (best_config  == -1) best_config = i;
 
-		#ifdef RGFW_X11
+#ifdef RGFW_X11
+		if (_RGFW->useWaylandBool == RGFW_FALSE) {
 			XVisualInfo vinfo_template;
 			vinfo_template.visualid = (VisualID)visual_id;
 
@@ -3235,7 +3236,8 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 				XFree(vi);
 				continue;
 			}
-		#endif
+		}
+#endif
 
 		if (samples <= hints->samples && samples > best_samples) {
 			best_config = i;
@@ -3837,9 +3839,9 @@ void RGFW_initKeycodesPlatform(void) {
 
 i32 RGFW_initPlatform(void) {
 #ifdef RGFW_WAYLAND
+	RGFW_load_Wayland();
 	i32 ret = RGFW_initPlatform_Wayland();
 	if (ret == 0) {
-		RGFW_load_Wayland();
 		return 0;
 	} else {
 		#ifdef RGFW_X11
@@ -12367,7 +12369,7 @@ void RGFW_load_Wayland(void) {
     RGFW_api.window_setMousePassthrough = RGFW_window_setMousePassthrough_Wayland;
 #endif
     RGFW_api.window_setIconEx = RGFW_window_setIconEx_Wayland;
-    RGFW_api.loadMouse = RGFW_loadMouse_Wayland;
+	RGFW_api.loadMouse = RGFW_loadMouse_Wayland;
     RGFW_api.window_setMouse = RGFW_window_setMouse_Wayland;
     RGFW_api.window_moveMouse = RGFW_window_moveMouse_Wayland;
     RGFW_api.window_setMouseDefault = RGFW_window_setMouseDefault_Wayland;
