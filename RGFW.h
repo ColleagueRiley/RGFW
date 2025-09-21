@@ -7026,7 +7026,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 		xdg_toplevel_icon_manager_v1_set_icon(_RGFW->icon_manager, win->src.xdg_toplevel, NULL);
 	}
 
-	RGFW_window_setName(win, name);
+	RGFW_UNUSED(name);
 	RGFW_window_show(win);
 	
 	// recieve all events needed to configure
