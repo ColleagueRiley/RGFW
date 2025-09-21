@@ -1590,6 +1590,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		RGFW_bool resizing;
 		RGFW_bool pending_maximized;
 		RGFW_bool maximized;
+		RGFW_bool minimized;
 		
 		RGFW_bool using_custom_cursor;
 		struct wl_surface* custom_cursor_surface;
@@ -5091,8 +5092,7 @@ void RGFW_FUNC(RGFW_window_minimize)(RGFW_window* win) {
 
 void RGFW_FUNC(RGFW_window_restore)(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-
-    RGFW_toggleXMaximized(win, 0);
+	RGFW_toggleXMaximized(win, RGFW_FALSE);
 	RGFW_window_move(win, win->internal.oldX, win->internal.oldY);
 	RGFW_window_resize(win, win->internal.oldW, win->internal.oldH);
 
@@ -6408,6 +6408,10 @@ static void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32
 
 	if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
 
+	// is set when RGFW_window_minimize is called; if the minimize button is 
+	// pressed this flag is not set since there is no event to listen for
+	if (win->src.minimized == RGFW_TRUE) win->src.minimized = RGFW_FALSE;
+	
 	win->internal.inFocus = RGFW_TRUE;
 	RGFW_eventQueuePushEx(e.type = RGFW_focusIn; e.common.win = win);
 	RGFW_focusCallback(win, RGFW_TRUE);
@@ -7169,11 +7173,13 @@ void RGFW_FUNC(RGFW_window_minimize)(RGFW_window* win) {
 	win->internal.oldY = win->y;
 	win->internal.oldW = win->w;
 	win->internal.oldH = win->h;
+	win->src.minimized = RGFW_TRUE;
+	xdg_toplevel_set_minimized(win->src.xdg_toplevel);
 }
 
 void RGFW_FUNC(RGFW_window_restore)(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-	RGFW_toggleWaylandMaximized(win, 0);
+	RGFW_toggleWaylandMaximized(win, RGFW_FALSE);
 
 	RGFW_window_move(win, win->internal.oldX, win->internal.oldY);
 	RGFW_window_resize(win, win->internal.oldW, win->internal.oldH);
@@ -7314,7 +7320,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_isHidden) (RGFW_window* win) {
 
 RGFW_bool RGFW_FUNC(RGFW_window_isMinimized) (RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-    return RGFW_FALSE;
+    return win->src.minimized;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_window_isMaximized) (RGFW_window* win) {
@@ -7350,6 +7356,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor mon, RGFW_monitorMod
 
 RGFW_monitor RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
 	RGFW_ASSERT(win);
+	RGFW_pollEvents();
     return win->src.active_monitor;
 }
 
