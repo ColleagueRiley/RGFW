@@ -1583,7 +1583,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		struct zxdg_toplevel_decoration_v1* decoration;
 		struct zwp_locked_pointer_v1 *locked_pointer;
 		struct xdg_toplevel_icon_v1 *icon;
-
+		u32 decoration_mode;
 		/* State flags to configure the window */
 		RGFW_bool pending_activated;
 		RGFW_bool activated;
@@ -6213,8 +6213,13 @@ static void RGFW_wl_xdg_toplevel_close_handler(void* data, struct xdg_toplevel *
 
 static void RGFW_wl_xdg_decoration_configure_handler(void* data,
 		struct zxdg_toplevel_decoration_v1* zxdg_toplevel_decoration_v1, u32 mode) {
-	RGFW_UNUSED(data);
-	zxdg_toplevel_decoration_v1_set_mode(zxdg_toplevel_decoration_v1, mode);
+	RGFW_window* win = (RGFW_window*)data; RGFW_UNUSED(zxdg_toplevel_decoration_v1);
+	
+	// this is expected to run once
+	// set the decoration mode set by earlier request
+	if (mode != win->src.decoration_mode) {
+		win->src.decoration_mode = mode;
+	}
 }
 
 static void RGFW_wl_shm_format_handler(void* data, struct wl_shm *shm, u32 format) {
@@ -7003,17 +7008,28 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 
 	xdg_toplevel_add_listener(win->src.xdg_toplevel, &xdg_toplevel_listener, win);
 
+	/* compositor supports both SSD & CSD
+	   So choose accordingly 
+	 */ 
 	if (_RGFW->decoration_manager) {
-		if (!(flags & RGFW_windowNoBorder)) {
-			win->src.decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
-						_RGFW->decoration_manager, win->src.xdg_toplevel);
-		}
-
+		u32 decoration_mode = ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE;
+		win->src.decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
+			_RGFW->decoration_manager, win->src.xdg_toplevel);
+		
 		static const struct zxdg_toplevel_decoration_v1_listener xdg_decoration_listener = {
-				.configure = RGFW_wl_xdg_decoration_configure_handler
+			.configure = RGFW_wl_xdg_decoration_configure_handler
 		};
 
-		zxdg_toplevel_decoration_v1_add_listener(win->src.decoration, &xdg_decoration_listener, NULL);
+		zxdg_toplevel_decoration_v1_add_listener(win->src.decoration, &xdg_decoration_listener, win);
+		
+		// we want no decorations 
+		if ((flags & RGFW_windowNoBorder)) {
+			decoration_mode = ZXDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
+		}
+
+		zxdg_toplevel_decoration_v1_set_mode(win->src.decoration, win->src.decoration_mode);
+
+	// no xdg_decoration support	
 	} else if (!(flags & RGFW_windowNoBorder)) {
 		/* TODO, some fallback */
 		#ifdef RGFW_LIBDECOR
