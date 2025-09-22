@@ -7027,7 +7027,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 			decoration_mode = ZXDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
 		}
 
-		zxdg_toplevel_decoration_v1_set_mode(win->src.decoration, win->src.decoration_mode);
+		zxdg_toplevel_decoration_v1_set_mode(win->src.decoration, decoration_mode);
 
 	// no xdg_decoration support	
 	} else if (!(flags & RGFW_windowNoBorder)) {
