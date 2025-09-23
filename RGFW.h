@@ -7090,19 +7090,7 @@ u8 RGFW_FUNC(RGFW_rgfwToKeyChar)(u32 key) {
 
 void RGFW_FUNC(RGFW_pollEvents) (void) {
 	RGFW_resetPrevState();
-	struct pollfd fds [] = { { wl_display_get_fd(_RGFW->wl_display), POLLIN, 0 } };
-	
-	while (wl_display_prepare_read(_RGFW->wl_display) != 0)
-		wl_display_dispatch_pending(_RGFW->wl_display);
-	
-	wl_display_flush(_RGFW->wl_display);
-	i32 result = poll(fds, 1, -1);
-
-	if (result == -1)
-		wl_display_cancel_read(_RGFW->wl_display);
-	else 
-		wl_display_read_events(_RGFW->wl_display);
-	wl_display_dispatch_pending(_RGFW->wl_display);
+	wl_display_roundtrip(_RGFW->wl_display);
 }
 
 void RGFW_FUNC(RGFW_window_move) (RGFW_window* win, i32 x, i32 y) {
