@@ -85,13 +85,14 @@ int main() {
 	RGFW_window* win = RGFW_createWindow("name", 100, 100, 500, 500, (u64)0);
 	RGFW_event event;
 
+	RGFW_window_setExitKey(win, RGFW_escape);
 	RGFW_window_setIcon(win, icon, 3, 3, RGFW_formatRGBA);
 
 	while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
 		while (RGFW_window_checkEvent(win, &event)) {
-		    if (event.type == RGFW_quit || RGFW_window_window_isKeyPressed(RGFW_escape))
-			    break;
-        }
+			if (event.type == RGFW_quit)
+				break;
+		}
 	}
 
 	RGFW_window_close(win);
