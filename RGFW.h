@@ -86,7 +86,7 @@ int main() {
 	RGFW_event event;
 
 	RGFW_window_setExitKey(win, RGFW_escape);
-	RGFW_window_setIcon(win, icon, 3, 3, RGFW_formatRGBA);
+	RGFW_window_setIcon(win, icon, 3, 3, RGFW_formatRGBA8);
 
 	while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
 		while (RGFW_window_checkEvent(win, &event)) {
