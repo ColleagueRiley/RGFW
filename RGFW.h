@@ -1537,6 +1537,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		#endif
 
 		#include <wayland-client.h>
+		#include <errno.h>
 	#endif
 
 	struct RGFW_nativeImage {
@@ -2234,6 +2235,13 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	RGFW_osx_initView(win);
 #endif
 
+#ifdef RGFW_WAYLAND
+	// recieve all events needed to configure the surface
+	// also gets the wl_outputs
+	if (RGFW_usingWayland())
+		wl_display_roundtrip(_RGFW->wl_display);
+#endif
+
 	RGFW_window_setMouseDefault(win);
 	RGFW_window_setName(win, name);
 	if (!(flags & RGFW_windowHide)) {
@@ -2242,8 +2250,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, "a new window was created");
 
-	
-	RGFW_pollEvents();
 	
 	return ret;
 }
@@ -7005,7 +7011,6 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 		.close = RGFW_wl_xdg_toplevel_close_handler,
 	};
 
-
 	xdg_toplevel_add_listener(win->src.xdg_toplevel, &xdg_toplevel_listener, win);
 
 	/* compositor supports both SSD & CSD
@@ -7065,15 +7070,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 
 	RGFW_UNUSED(name);
 	RGFW_window_show(win);
-	
-	// recieve all events needed to configure
-	wl_display_roundtrip(_RGFW->wl_display); 
 
-	#ifndef RGFW_NO_MONITOR
-	if (flags & RGFW_windowScaleToMonitor)
-		RGFW_window_scaleToMonitor(win);
-	#endif
-	
 	return win;
 }
 
@@ -7090,7 +7087,30 @@ u8 RGFW_FUNC(RGFW_rgfwToKeyChar)(u32 key) {
 
 void RGFW_FUNC(RGFW_pollEvents) (void) {
 	RGFW_resetPrevState();
-	wl_display_roundtrip(_RGFW->wl_display);
+	struct pollfd fd = { wl_display_get_fd(_RGFW->wl_display), POLLIN, 0 } ;
+
+	// empty the queue
+	while (wl_display_prepare_read(_RGFW->wl_display) != 0)
+		wl_display_dispatch_pending(_RGFW->wl_display);
+
+	if (errno != EAGAIN)
+		return;
+
+	// can now read from the fd
+	// since the queue is empty & errno is EAGAIN
+	
+	// send any pending requests to the compositor
+	wl_display_flush(_RGFW->wl_display);
+	
+	i32 result = poll(&fd, 1, -1);
+	
+	if (result == -1) {
+		wl_display_cancel_read(_RGFW->wl_display);
+	} else {
+		wl_display_read_events(_RGFW->wl_display);
+	}
+	
+	wl_display_dispatch_pending(_RGFW->wl_display);
 }
 
 void RGFW_FUNC(RGFW_window_move) (RGFW_window* win, i32 x, i32 y) {
