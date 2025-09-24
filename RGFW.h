@@ -6926,6 +6926,11 @@ void RGFW_FUNC(RGFW_surface_freePtr) (RGFW_surface* surface) {
 
 void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
 	RGFW_setBit(&win->internal.flags, RGFW_windowNoBorder, !border);
+
+	// for now just toggle between SSD & CSD depending on the bool
+	if (_RGFW->decoration_manager != NULL) {
+		zxdg_toplevel_decoration_v1_set_mode(win->src.decoration, (border ? ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE : ZXDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE));
+	}
 }
 
 void RGFW_FUNC(RGFW_releaseCursor) (RGFW_window* win) {
@@ -7067,7 +7072,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 		// set the default wayland icon
 		xdg_toplevel_icon_manager_v1_set_icon(_RGFW->icon_manager, win->src.xdg_toplevel, NULL);
 	}
-
+	
 	RGFW_UNUSED(name);
 	RGFW_window_show(win);
 
