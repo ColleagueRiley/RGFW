@@ -7074,7 +7074,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	}
 	
 	RGFW_UNUSED(name);
-	RGFW_window_show(win);
+	wl_surface_commit(win->src.surface);
 
 	return win;
 }
@@ -7083,7 +7083,7 @@ RGFW_bool RGFW_FUNC(RGFW_getGlobalMouse) (i32* x, i32* y) {
 	RGFW_init();
 	if (x) *x = 0;
 	if (y) *y = 0;
-	return RGFW_TRUE;
+	return RGFW_FALSE;
 }
 
 u8 RGFW_FUNC(RGFW_rgfwToKeyChar)(u32 key) {
