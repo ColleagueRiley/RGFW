@@ -4904,6 +4904,8 @@ void RGFW_FUNC(RGFW_window_resize) (RGFW_window* win, i32 w, i32 h) {
 	win->w = (i32)w;
 	win->h = (i32)h;
 
+	XResizeWindow(_RGFW->display, win->src.window, (u32)w, (u32)h);
+
 	if ((win->internal.flags & RGFW_windowNoResize)) {
 		XSizeHints sh;
 		sh.flags = (1L << 4) | (1L << 5);
