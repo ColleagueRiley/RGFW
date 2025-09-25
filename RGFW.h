@@ -2218,18 +2218,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	RGFW_window_setFlagsInternal(win, flags, 0);
 #endif
 
-#ifdef RGFW_WAYLAND
-	/* NOTE: this is a hack so that way wayland spawns a window, even if nothing is drawn */
-	if (RGFW_usingWayland() && !(flags & RGFW_windowOpenGL) && !(flags & RGFW_windowEGL)) {
-		u8* data = (u8*)RGFW_ALLOC((u32)(win->w * win->h * 3));
-		RGFW_MEMSET(data, 0, (u32)(win->w * win->h * 3) * sizeof(u8));
-		RGFW_surface* surface = RGFW_createSurface(data, win->w, win->h, RGFW_formatBGR8);
-		RGFW_window_blitSurface(win, surface);
-		RGFW_FREE(data);
-		RGFW_surface_free(surface);
-	}
-#endif
-
 #ifdef RGFW_MACOS
 	/*NOTE: another OpenGL/setFlags related hack, this because OSX the 'view' class must be setup after the NSOpenGL view is made AND after setFlags happens */
 	RGFW_osx_initView(win);
@@ -2238,8 +2226,18 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 #ifdef RGFW_WAYLAND
 	// recieve all events needed to configure the surface
 	// also gets the wl_outputs
-	if (RGFW_usingWayland())
+	if (RGFW_usingWayland()) {
 		wl_display_roundtrip(_RGFW->wl_display);
+		/* NOTE: this is a hack so that way wayland spawns a window, even if nothing is drawn */
+		if (!(flags & RGFW_windowOpenGL) && !(flags & RGFW_windowEGL)) {
+			u8* data = (u8*)RGFW_ALLOC((u32)(win->w * win->h * 3));
+			RGFW_MEMSET(data, 0, (u32)(win->w * win->h * 3) * sizeof(u8));
+			RGFW_surface* surface = RGFW_createSurface(data, win->w, win->h, RGFW_formatBGR8);
+			RGFW_window_blitSurface(win, surface);
+			RGFW_FREE(data);
+			RGFW_surface_free(surface);
+		}
+	}
 #endif
 
 	RGFW_window_setMouseDefault(win);
@@ -7073,11 +7071,6 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	}
 
 	wl_surface_commit(win->src.surface);
-
-	// an extra sync seems to be needed for software rendering
-	#if !defined(RGFW_OPENGL) || !defined(RGFW_EGL)
-	wl_display_roundtrip(_RGFW->wl_display);
-	#endif
 
 	RGFW_UNUSED(name);
 
