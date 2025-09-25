@@ -6266,19 +6266,10 @@ static void RGFW_wl_pointer_locked(void *data, struct zwp_locked_pointer_v1 *zwp
 	wl_pointer_set_cursor(RGFW->wl_pointer, RGFW->mouse_enter_serial, NULL, 0, 0); // draw no cursor
 }
 
-static void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial,
+static void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial, 
 		struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y) {
 	RGFW_info* RGFW = (RGFW_info*)data;
-	RGFW_UNUSED(pointer);
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
-
-	// set the cursor
-	if (win->src.using_custom_cursor) {
-		wl_pointer_set_cursor(pointer, serial, win->src.custom_cursor_surface, 0, 0);
-	}
-	else {
-		RGFW_window_setMouseDefault(win);
-	}
 
 	// save when the pointer is locked or using default cursor
 	RGFW->mouse_enter_serial = serial;
@@ -6287,6 +6278,15 @@ static void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 se
 	RGFW->windowState.mouseEnter = RGFW_TRUE;
 
 	RGFW->mouseOwner = win;
+
+	// set the cursor
+	if (win->src.using_custom_cursor) {
+		wl_pointer_set_cursor(pointer, serial, win->src.custom_cursor_surface, 0, 0);
+	}
+	else {
+		RGFW_window_setMouseDefault(win);
+	}
+	
 	if (!(win->internal.enabledEvents & RGFW_mouseEnterFlag)) return;
 
 	i32 x = (i32)wl_fixed_to_double(surface_x);
