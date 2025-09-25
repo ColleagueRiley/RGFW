@@ -6078,7 +6078,6 @@ Wayland TODO: (out of date)
 - fix RGFW_keyPressed lock state
 
 	RGFW_windowMoved, 		the window was moved (by the user)
-	RGFW_windowResized  	the window was resized (by the user), [on WASM this means the browser was resized]
 	RGFW_windowRefresh	 	The window content needs to be refreshed
 
 	RGFW_dataDrop 				a file has been dropped into the window
@@ -7072,9 +7071,15 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 		// set the default wayland icon
 		xdg_toplevel_icon_manager_v1_set_icon(_RGFW->icon_manager, win->src.xdg_toplevel, NULL);
 	}
-	
-	RGFW_UNUSED(name);
+
 	wl_surface_commit(win->src.surface);
+
+	// an extra sync seems to be needed for software rendering
+	#if !defined(RGFW_OPENGL) || !defined(RGFW_EGL)
+	wl_display_roundtrip(_RGFW->wl_display);
+	#endif
+
+	RGFW_UNUSED(name);
 
 	return win;
 }
@@ -7122,9 +7127,6 @@ void RGFW_FUNC(RGFW_window_move) (RGFW_window* win, i32 x, i32 y) {
 	RGFW_ASSERT(win != NULL);
 	win->x = x;
 	win->y = y;
-	if (_RGFW->compositor) {
-		wl_display_flush(_RGFW->wl_display);
-	}
 }
 
 
@@ -7333,7 +7335,6 @@ RGFW_bool RGFW_FUNC(RGFW_window_setMouseStandard)(RGFW_window* win, u8 mouse) {
 	wl_surface_attach(_RGFW->cursor_surface, cursor_buffer, 0, 0);
 	wl_surface_damage(_RGFW->cursor_surface, 0, 0, (i32)cursor_image->width, (i32)cursor_image->height);
 	wl_surface_commit(_RGFW->cursor_surface);
-
 	return RGFW_TRUE;
 }
 
@@ -7402,7 +7403,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor mon, RGFW_monitorMod
 
 RGFW_monitor RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
 	RGFW_ASSERT(win);
-    return win->src.active_monitor;
+	return win->src.active_monitor;
 }
 
 #ifdef RGFW_OPENGL
