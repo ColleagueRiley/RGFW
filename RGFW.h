@@ -85,13 +85,14 @@ int main() {
 	RGFW_window* win = RGFW_createWindow("name", 100, 100, 500, 500, (u64)0);
 	RGFW_event event;
 
-	RGFW_window_setIcon(win, icon, 3, 3, RGFW_formatRGBA);
+	RGFW_window_setExitKey(win, RGFW_escape);
+	RGFW_window_setIcon(win, icon, 3, 3, RGFW_formatRGBA8);
 
 	while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
 		while (RGFW_window_checkEvent(win, &event)) {
-		    if (event.type == RGFW_quit || RGFW_window_window_isKeyPressed(RGFW_escape))
-			    break;
-        }
+			if (event.type == RGFW_quit)
+				break;
+		}
 	}
 
 	RGFW_window_close(win);
@@ -4917,6 +4918,8 @@ void RGFW_FUNC(RGFW_window_resize) (RGFW_window* win, i32 w, i32 h) {
 	RGFW_ASSERT(win != NULL);
 	win->w = (i32)w;
 	win->h = (i32)h;
+
+	XResizeWindow(_RGFW->display, win->src.window, (u32)w, (u32)h);
 
 	if ((win->internal.flags & RGFW_windowNoResize)) {
 		XSizeHints sh;
