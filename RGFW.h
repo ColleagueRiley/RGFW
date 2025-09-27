@@ -7096,27 +7096,45 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 	struct pollfd fd = { wl_display_get_fd(_RGFW->wl_display), POLLIN, 0 } ;
 
 	// empty the queue
-	while (wl_display_prepare_read(_RGFW->wl_display) != 0)
-		wl_display_dispatch_pending(_RGFW->wl_display);
+	while (wl_display_prepare_read(_RGFW->wl_display) != 0) {
+		// error occured when dispatching the queue
+		if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
+			return;
+		}
+	}
 
-	if (errno != EAGAIN)
-		return;
-
-	// can now read from the fd
-	// since the queue is empty & errno is EAGAIN
-	
 	// send any pending requests to the compositor
-	wl_display_flush(_RGFW->wl_display);
-	
+	while (wl_display_flush(_RGFW->wl_display) == -1) {
+
+		// queue is full dispatch them
+		if (errno == EAGAIN) {
+			if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
+				return;
+			}
+		} else {
+			return;
+		}
+	}
+
+	// read from fd and add to queue
 	i32 result = poll(&fd, 1, -1);
-	
+
+	// error occured
 	if (result == -1) {
 		wl_display_cancel_read(_RGFW->wl_display);
+		return;
+	} else if (result == 0) { // timed out
+		wl_display_cancel_read(_RGFW->wl_display);
 	} else {
-		wl_display_read_events(_RGFW->wl_display);
+		if (wl_display_read_events(_RGFW->wl_display) == -1) {
+			return;
+		}
 	}
-	
-	wl_display_dispatch_pending(_RGFW->wl_display);
+
+	// queue contains events from read, dispatch them
+	if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
+		return;
+	}
 }
 
 void RGFW_FUNC(RGFW_window_move) (RGFW_window* win, i32 x, i32 y) {
