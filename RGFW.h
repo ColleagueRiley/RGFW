@@ -7093,20 +7093,7 @@ u8 RGFW_FUNC(RGFW_rgfwToKeyChar)(u32 key) {
 
 void RGFW_FUNC(RGFW_pollEvents) (void) {
 	RGFW_resetPrevState();
-	struct pollfd fd = { wl_display_get_fd(_RGFW->wl_display), POLLIN, 0 } ;
-
-	// empty the queue
-	while (wl_display_prepare_read(_RGFW->wl_display) != 0) {
-		// error occured when dispatching the queue
-		if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
-			return;
-		}
-	}
-
-	// send any pending requests to the compositor
 	while (wl_display_flush(_RGFW->wl_display) == -1) {
-
-		// queue is full dispatch them
 		if (errno == EAGAIN) {
 			if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
 				return;
@@ -7115,26 +7102,11 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 			return;
 		}
 	}
-
-	// read from fd and add to queue
-	i32 result = poll(&fd, 1, -1);
-
-	// error occured
-	if (result == -1) {
-		wl_display_cancel_read(_RGFW->wl_display);
-		return;
-	} else if (result == 0) { // timed out
-		wl_display_cancel_read(_RGFW->wl_display);
-	} else {
-		if (wl_display_read_events(_RGFW->wl_display) == -1) {
-			return;
-		}
-	}
-
-	// queue contains events from read, dispatch them
-	if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
+	
+	if (wl_display_dispatch(_RGFW->wl_display) == -1) {
 		return;
 	}
+	
 }
 
 void RGFW_FUNC(RGFW_window_move) (RGFW_window* win, i32 x, i32 y) {
