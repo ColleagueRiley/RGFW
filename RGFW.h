@@ -7093,7 +7093,11 @@ u8 RGFW_FUNC(RGFW_rgfwToKeyChar)(u32 key) {
 
 void RGFW_FUNC(RGFW_pollEvents) (void) {
 	RGFW_resetPrevState();
+
+	// send buffered requests to compositor
 	while (wl_display_flush(_RGFW->wl_display) == -1) {
+		// compositor not responding to new requests
+		// so let's dispatch some events so the compositor responds
 		if (errno == EAGAIN) {
 			if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
 				return;
@@ -7102,7 +7106,9 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 			return;
 		}
 	}
-	
+
+	// read the events; if empty this reads from the
+	// wayland file descriptor
 	if (wl_display_dispatch(_RGFW->wl_display) == -1) {
 		return;
 	}
