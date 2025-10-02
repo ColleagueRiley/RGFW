@@ -7119,8 +7119,6 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 
 	wl_surface_commit(win->src.surface);
 	wl_display_dispatch(_RGFW->wl_display);
-	wl_surface_commit(win->src.surface);
-	
 	RGFW_UNUSED(name);
 
 	return win;
