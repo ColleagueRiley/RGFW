@@ -44,8 +44,8 @@ void checkEvents(RGFW_window* win) {
 				RGFW_window_setShouldClose(win, 1);
 				break;
 			case RGFW_windowResized:
-				if (event.mouse.x != 0 && event.mouse.y != 0)
-					printf("window %p: resize: %dx%d\n", (void*)win, event.mouse.x, event.mouse.y);
+				if (event.common.win->w != 0 && event.common.win->h)
+					printf("window %p: resize: %dx%d\n", (void*)win, event.common.win->w, event.common.win->h);
 				break;
 			case RGFW_dataDrop:
 				printf("window %p: drag and drop: %dx%d:\n", (void*)win, event.mouse.x, event.mouse.y);
