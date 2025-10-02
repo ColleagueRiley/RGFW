@@ -3621,6 +3621,32 @@ void RGFW_waitForEvent(i32 waitMS) {
     index++;
 #endif
 
+#ifdef RGFW_WAYLAND
+	index = 1;
+	if (RGFW_usingWayland()) {
+		// empty the queue
+		while (wl_display_prepare_read(_RGFW->wl_display) != 0) {
+			// error occured when dispatching the queue
+			if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
+				return;
+			}
+		}
+
+		// send any pending requests to the compositor
+		while (wl_display_flush(_RGFW->wl_display) == -1) {
+
+			// queue is full dispatch them
+			if (errno == EAGAIN) {
+				if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
+					return;
+				}
+			} else {
+				return;
+			}
+		}
+	}
+
+#endif
 	i32 clock = 0;
 	#if defined(_POSIX_MONOTONIC_CLOCK)
 	struct timespec ts;
@@ -3634,23 +3660,41 @@ void RGFW_waitForEvent(i32 waitMS) {
 
     u64 start = RGFW_linux_getTimeNS(clock);
 
-	#ifdef RGFW_WAYLAND
-		while (wl_display_dispatch_pending(_RGFW->wl_display) <= 0
-	#else
-		while (XPending(_RGFW->display) == 0
-	#endif
-    #ifdef RGFW_X11
-        && XPending(_RGFW->display) == 0
-    #endif
-    ) {
-		if (poll(fds, index, waitMS) <= 0)
-			break;
+	#ifdef RGFW_X11
+		if (!RGFW_usingWayland()) {
+			while (XPending(_RGFW->display) == 0) {
+				if (poll(fds, index, waitMS) <= 0)
+					break;
 
-		if (waitMS != RGFW_eventWaitNext) {
-			waitMS -= (i32)(RGFW_linux_getTimeNS(clock) - start) / (i32)1e+6;
+				if (waitMS != RGFW_eventWaitNext) {
+					waitMS -= (i32)(RGFW_linux_getTimeNS(clock) - start) / (i32)1e+6;
+				}
+			}
 		}
-	}
+	#endif
 
+	#ifdef RGFW_WAYLAND
+		if (RGFW_usingWayland()) {
+			while (wl_display_dispatch_pending(_RGFW->wl_display) == 0) {
+				if (poll(fds, index, waitMS) <= 0) {
+					wl_display_cancel_read(_RGFW->wl_display);
+					break;
+				} else {
+					if (wl_display_read_events(_RGFW->wl_display) == -1)
+						return;
+				}
+				
+				if (waitMS != RGFW_eventWaitNext) {
+					waitMS -= (i32)(RGFW_linux_getTimeNS(clock) - start) / (i32)1e+6;
+				}
+			}
+
+			// queue contains events from read, dispatch them
+			if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
+				return;
+			}
+		}
+	#endif
 	/* drain any data in the stop request */
 	if (_RGFW->eventWait_forceStop[2]) {
 		char data[64];
