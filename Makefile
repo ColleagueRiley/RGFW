@@ -349,7 +349,6 @@ debug: all
 		.$(OS_DIR)$$exe$(EXT); \
 	done
 
-	./examples/icons/icons
 	./examples/gamepad/gamepad
 	./examples/first-person-camera/camera
 	./examples/portableGL/pgl$(EXT)
