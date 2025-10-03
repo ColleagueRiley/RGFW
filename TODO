@@ -5,6 +5,7 @@
   - pointer warp
   - transparency configuration
   - return false on some global functions
+  - support software rendering
 - ablity to create an RGFW window from an existing window 
 - Xrandr reporting unused monitor as the window's monitor 
 

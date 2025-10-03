@@ -6248,9 +6248,11 @@ static void RGFW_wl_xdg_toplevel_close_handler(void* data, struct xdg_toplevel *
 	RGFW_UNUSED(toplevel);
 	RGFW_window* win = (RGFW_window*)data;
 
-	RGFW_eventQueuePushEx(e.type = RGFW_quit; e.common.win = win);
-	RGFW_window_setShouldClose(win, RGFW_TRUE);
-	RGFW_windowQuitCallback(win);
+	if (!win->internal.shouldClose) {
+		RGFW_eventQueuePushEx(e.type = RGFW_quit; e.common.win = win);
+		RGFW_window_setShouldClose(win, RGFW_TRUE);
+		RGFW_windowQuitCallback(win);
+	}
 }
 
 static void RGFW_wl_xdg_decoration_configure_handler(void* data,
