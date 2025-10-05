@@ -11,7 +11,7 @@
 # About
 RGFW:
 
-* **is** an stb-style single headerfile and is very portable 
+* **is** an stb-style single headerfile and is very portable
 * **is** primarly written in C99 in mind
 * **has** a C89 compatible API on going changes to make the implementation more C89 friendly
 * **is** comparable to GLFW or aspects of SDL but it's leading motive is to be a flexible and lightweight windowing library
@@ -70,13 +70,16 @@ int main() {
             // you can either check the current event yourself
             if (event.type == RGFW_quit) break;
 
+            i32 mouseX, mouseY;
+            RGFW_window_getMouse(win, &mouseX, &mouseY);
+
             if (event.type == RGFW_mouseButtonPressed && event.button.value == RGFW_mouseLeft) {
-                printf("You clicked at x: %d, y: %d\n", event.mouse.x, event.mouse.y);
+                printf("You clicked at x: %d, y: %d\n", mouseX, mouseY);
             }
 
             // or use the existing functions
             if (RGFW_isMousePressed(RGFW_mouseRight)) {
-                printf("The right mouse button was clicked at x: %d, y: %d\n", event.mouse.x, event.mouse.y);
+                printf("The right mouse button was clicked at x: %d, y: %d\n", mouseX, mouseY);
             }
         }
 
