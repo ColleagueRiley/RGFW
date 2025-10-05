@@ -8562,7 +8562,7 @@ RGFW_monitor win32CreateMonitor(HMONITOR src) {
 	MONITORINFOEX  monitorInfo;
 
 	monitorInfo.cbSize = sizeof(MONITORINFOEX);
-	GetMonitorInfoA(src, (LPMONITORINFO)&monitorInfo);
+	GetMonitorInfo(src, (LPMONITORINFO)&monitorInfo);
 
 	/* get the monitor's index */
 	DISPLAY_DEVICEA dd;
@@ -8680,7 +8680,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 
 	MONITORINFOEX  monitorInfo;
 	monitorInfo.cbSize = sizeof(MONITORINFOEX);
-	GetMonitorInfoA(src, (LPMONITORINFO)&monitorInfo);
+	GetMonitorInfo(src, (LPMONITORINFO)&monitorInfo);
 
     DISPLAY_DEVICEA dd;
     dd.cb = sizeof(dd);
