@@ -4185,7 +4185,8 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
 
 	XISelectEvents(_RGFW->display, XDefaultRootWindow(_RGFW->display), &em, 1);
 
-	XGrabPointer(_RGFW->display, win->src.window, True, PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+	i64 event_mask = ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
+	XGrabPointer(_RGFW->display, win->src.window, False, event_mask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	RGFW_window_moveMouse(win, win->x + (i32)(win->w / 2), win->y + (i32)(win->h / 2));
 }
 
@@ -4594,6 +4595,7 @@ void RGFW_XHandleEvent(void) {
 			RGFW_mouseButtonCallback(win, event.button.value, RGFW_FALSE);
 			break;
 		case MotionNotify:
+			if (win->internal.holdMouse) return;
 			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag)) return;
 			event.mouse.x = E.xmotion.x;
 			event.mouse.y = E.xmotion.y;
