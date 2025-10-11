@@ -4508,48 +4508,42 @@ void RGFW_XHandleEvent(void) {
 	event.common.win = win;
 
 	switch (E.type) {
-		case KeyPress: {
-			if (!(win->internal.enabledEvents & RGFW_keyPressedFlag)) return;
-			event.type = RGFW_keyPressed;
-			event.key.value = (u8)RGFW_apiKeyToRGFW(E.xkey.keycode);
-			event.key.sym = (u8)RGFW_rgfwToKeyChar(event.key.value);
-
-			_RGFW->keyboard[event.key.value].prev = _RGFW->keyboard[event.key.value].current;
-			_RGFW->keyboard[event.key.value].current = RGFW_TRUE;
-
-			XkbStateRec state;
-			XkbGetState(_RGFW->display, XkbUseCoreKbd, &state);
-			RGFW_updateKeyMods(win, (state.locked_mods & LockMask), (state.locked_mods & Mod2Mask), (state.locked_mods & Mod3Mask));
-
-			RGFW_keyCallback(win, event.key.value, event.key.sym, win->internal.mod, event.key.repeat, RGFW_TRUE);
-			break;
-		}
+		case KeyPress:
 		case KeyRelease: {
-			if (!(win->internal.enabledEvents & RGFW_keyReleasedFlag)) return;
-			/* check if it's a real key release */
-			if (XEventsQueued(_RGFW->display, QueuedAfterReading)) { /* get next event if there is one */
+			// Repeated key presses are sent as a release followed by another press at the same time.
+            // We want to convert that into a single key press event with the repeat flag set
+			if (E.type == KeyRelease && XEventsQueued(_RGFW->display, QueuedAfterReading)) {
 				XEvent NE;
 				XPeekEvent(_RGFW->display, &NE);
-
-				if (E.xkey.time == NE.xkey.time && E.xkey.keycode == NE.xkey.keycode) { /* check if the current and next are both the same */
+				if (NE.type == KeyPress && E.xkey.time == NE.xkey.time && E.xkey.keycode == NE.xkey.keycode) {
+					// Use the next event (the key press)
+					XNextEvent(_RGFW->display, &E);
 					event.key.repeat = RGFW_TRUE;
-					return;
 				}
 			}
 
-			event.type =  RGFW_keyReleased;
+            RGFW_bool pressed;
+			if (E.type == KeyPress) {
+				if (!(win->internal.enabledEvents & RGFW_keyPressedFlag)) return;
+				event.type = RGFW_keyPressed;
+                pressed = RGFW_TRUE;
+			} else {
+				if (!(win->internal.enabledEvents & RGFW_keyReleasedFlag)) return;
+				event.type = RGFW_keyReleased;
+                pressed = RGFW_FALSE;
+			}
+
 			event.key.value = (u8)RGFW_apiKeyToRGFW(E.xkey.keycode);
 			event.key.sym = (u8)RGFW_rgfwToKeyChar(event.key.value);
 
-			/* get keystate data */
 			_RGFW->keyboard[event.key.value].prev = _RGFW->keyboard[event.key.value].current;
-			_RGFW->keyboard[event.key.value].current = RGFW_FALSE;
+			_RGFW->keyboard[event.key.value].current = pressed;
 
 			XkbStateRec state;
 			XkbGetState(_RGFW->display, XkbUseCoreKbd, &state);
 			RGFW_updateKeyMods(win, (state.locked_mods & LockMask), (state.locked_mods & Mod2Mask), (state.locked_mods & Mod3Mask));
 
-			RGFW_keyCallback(win, event.key.value, event.key.sym, win->internal.mod, event.key.repeat, RGFW_FALSE);
+			RGFW_keyCallback(win, event.key.value, event.key.sym, win->internal.mod, event.key.repeat, pressed);
 			break;
 		}
 		case ButtonPress:
