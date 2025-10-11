@@ -4445,8 +4445,8 @@ void RGFW_XHandleEvent(void) {
 			return;
 		case GenericEvent: {
 			RGFW_window* win = _RGFW->mouseOwner;
-			if (!(win->internal.enabledEvents & RGFW_BIT(RGFW_mousePosChanged))) return;
 			if (win == NULL) return;
+			if (!(win->internal.enabledEvents & RGFW_BIT(RGFW_mousePosChanged))) return;
 
 			/* MotionNotify is used for mouse events if the mouse isn't held */
 			if (!(win->internal.holdMouse)) {
