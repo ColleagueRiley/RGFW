@@ -1444,7 +1444,6 @@ RGFWDEF void RGFW_eventQueuePush(const RGFW_event* event);
 /* clear out event queue, does not process any events */
 RGFWDEF void RGFW_eventQueueFlush(void);
 RGFWDEF RGFW_event* RGFW_eventQueuePop(RGFW_window* win);
-RGFWDEF RGFW_bool RGFW_eventQueueIsEmpty(void);
 
 /* for C++ / C89 */
 #define RGFW_eventQueuePushEx(eventInit) { RGFW_event e; eventInit; RGFW_eventQueuePush(&e); }
@@ -1727,13 +1726,12 @@ typedef struct {
 struct RGFW_info {
     RGFW_window* root;
     i32 windowCount;
-    i32 eventHead;
-    i32 eventTail;
+    i32 eventBottom;
+    i32 eventLen;
 
     RGFW_mouse* hiddenMouse;
-    // A circular buffer (FIFO), using eventHead/Tail above. Can only store RGFW_MAX_EVENTS events.
-    // The extra element is needed to correctly distinguish between an empty and full queue
-    RGFW_event events[RGFW_MAX_EVENTS + 1];
+    // A circular buffer (FIFO), using eventBottom/Len above
+    RGFW_event events[RGFW_MAX_EVENTS];
 	RGFW_bool queueEvents;
 	RGFW_bool polledEvents;
 
@@ -2285,31 +2283,34 @@ void RGFW_window_closePtr(RGFW_window* win) {
 
 void RGFW_setQueueEvents(RGFW_bool queue) {  _RGFW->queueEvents = RGFW_BOOL(queue); }
 
-void RGFW_eventQueueFlush(void) { _RGFW->eventHead = _RGFW->eventTail; }
+void RGFW_eventQueueFlush(void) { _RGFW->eventLen = 0; }
 
 void RGFW_eventQueuePush(const RGFW_event* event) {
 	if (_RGFW->queueEvents == RGFW_FALSE) return;
+	RGFW_ASSERT(_RGFW->eventLen >= 0);
 
-	i32 nextHead = (_RGFW->eventHead + 1) % (RGFW_MAX_EVENTS + 1);
-	if (nextHead == _RGFW->eventTail) {
+	if (_RGFW->eventLen >= RGFW_MAX_EVENTS) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errEventQueue, "Event queue limit 'RGFW_MAX_EVENTS' has been reached automatically flushing queue.");
 		RGFW_eventQueueFlush();
 		return;
 	}
 
-	_RGFW->events[_RGFW->eventHead] = *event;
-	_RGFW->eventHead = nextHead;
+	i32 eventTop = (_RGFW->eventBottom + _RGFW->eventLen) % RGFW_MAX_EVENTS;
+	_RGFW->eventLen += 1;
+	_RGFW->events[eventTop] = *event;
 }
 
 RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
+	RGFW_ASSERT(_RGFW->eventLen >= 0 && _RGFW->eventLen <= RGFW_MAX_EVENTS);
 	RGFW_event* ev;
 
-	if (RGFW_eventQueueIsEmpty()) {
+	if (_RGFW->eventLen == 0) {
 		return NULL;
 	}
 
-	ev = &_RGFW->events[_RGFW->eventTail];
-	_RGFW->eventTail = (_RGFW->eventTail + 1) % (RGFW_MAX_EVENTS + 1);
+	ev = &_RGFW->events[_RGFW->eventBottom];
+	_RGFW->eventLen -= 1;
+    _RGFW->eventBottom = (_RGFW->eventBottom + 1) % RGFW_MAX_EVENTS;
 
 	if (ev->common.win != win && ev->common.win != NULL) {
 		RGFW_eventQueuePush(ev);
@@ -2317,11 +2318,6 @@ RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
 	}
 
 	return ev;
-}
-
-RGFW_bool RGFW_eventQueueIsEmpty(void)
-{
-	return _RGFW->eventHead == _RGFW->eventTail;
 }
 
 void RGFW_resetPrevState(void) {
@@ -2392,7 +2388,7 @@ RGFW_bool RGFW_window_getDataDrop(RGFW_window* win, const char*** files, size_t*
 }
 
 RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
-	if (RGFW_eventQueueIsEmpty() && _RGFW->polledEvents == RGFW_FALSE) {
+	if (_RGFW->eventLen == 0 && _RGFW->polledEvents == RGFW_FALSE) {
 		_RGFW->queueEvents = RGFW_TRUE;
 		RGFW_pollEvents();
 		_RGFW->polledEvents = RGFW_TRUE;
