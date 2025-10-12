@@ -4193,7 +4193,7 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
 
 	XISelectEvents(_RGFW->display, XDefaultRootWindow(_RGFW->display), &em, 1);
 
-	i64 event_mask = ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
+	unsigned int event_mask = ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
 	XGrabPointer(_RGFW->display, win->src.window, False, event_mask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	RGFW_window_moveMouse(win, win->x + (i32)(win->w / 2), win->y + (i32)(win->h / 2));
 }
