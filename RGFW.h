@@ -1726,12 +1726,13 @@ typedef struct {
 struct RGFW_info {
     RGFW_window* root;
     i32 windowCount;
-    i32 eventBottom;
-    i32 eventLen;
 
-    RGFW_mouse* hiddenMouse;
-    // A circular buffer (FIFO), using eventBottom/Len above
-    RGFW_event events[RGFW_MAX_EVENTS];
+	RGFW_mouse* hiddenMouse;
+
+    RGFW_event events[RGFW_MAX_EVENTS]; /* A circular buffer (FIFO), using eventBottom/Len  */
+
+	i32 eventBottom;
+    i32 eventLen;
 	RGFW_bool queueEvents;
 	RGFW_bool polledEvents;
 
@@ -4503,13 +4504,15 @@ void RGFW_XHandleEvent(void) {
 
 	event.common.win = win;
 
-	// Repeated key presses are sent as a release followed by another press at the same time.
-	// We want to convert that into a single key press event with the repeat flag set
+	/*
+		Repeated key presses are sent as a release followed by another press at the same time.
+		We want to convert that into a single key press event with the repeat flag set
+	*/
 	if (E.type == KeyRelease && XEventsQueued(_RGFW->display, QueuedAfterReading)) {
 		XEvent NE;
 		XPeekEvent(_RGFW->display, &NE);
 		if (NE.type == KeyPress && E.xkey.time == NE.xkey.time && E.xkey.keycode == NE.xkey.keycode) {
-			// Use the next event (the key press)
+			/* Use the next KeyPress event */
 			XNextEvent(_RGFW->display, &E);
 			event.key.repeat = RGFW_TRUE;
 		}
