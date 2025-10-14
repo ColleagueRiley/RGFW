@@ -1726,10 +1726,13 @@ typedef struct {
 struct RGFW_info {
     RGFW_window* root;
     i32 windowCount;
-    i32 eventLen;
 
-    RGFW_mouse* hiddenMouse;
-    RGFW_event events[RGFW_MAX_EVENTS];
+	RGFW_mouse* hiddenMouse;
+
+    RGFW_event events[RGFW_MAX_EVENTS]; /* A circular buffer (FIFO), using eventBottom/Len  */
+
+	i32 eventBottom;
+    i32 eventLen;
 	RGFW_bool queueEvents;
 	RGFW_bool polledEvents;
 
@@ -2293,8 +2296,9 @@ void RGFW_eventQueuePush(const RGFW_event* event) {
 		return;
 	}
 
+	i32 eventTop = (_RGFW->eventBottom + _RGFW->eventLen) % RGFW_MAX_EVENTS;
 	_RGFW->eventLen += 1;
-	_RGFW->events[RGFW_MAX_EVENTS - _RGFW->eventLen] = *event;
+	_RGFW->events[eventTop] = *event;
 }
 
 RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
@@ -2305,8 +2309,9 @@ RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
 		return NULL;
 	}
 
-	ev = &_RGFW->events[RGFW_MAX_EVENTS - _RGFW->eventLen];
+	ev = &_RGFW->events[_RGFW->eventBottom];
 	_RGFW->eventLen -= 1;
+    _RGFW->eventBottom = (_RGFW->eventBottom + 1) % RGFW_MAX_EVENTS;
 
 	if (ev->common.win != win && ev->common.win != NULL) {
 		RGFW_eventQueuePush(ev);
@@ -4185,7 +4190,8 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
 
 	XISelectEvents(_RGFW->display, XDefaultRootWindow(_RGFW->display), &em, 1);
 
-	XGrabPointer(_RGFW->display, win->src.window, True, PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+	unsigned int event_mask = ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
+	XGrabPointer(_RGFW->display, win->src.window, False, event_mask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	RGFW_window_moveMouse(win, win->x + (i32)(win->w / 2), win->y + (i32)(win->h / 2));
 }
 
@@ -4444,8 +4450,8 @@ void RGFW_XHandleEvent(void) {
 			return;
 		case GenericEvent: {
 			RGFW_window* win = _RGFW->mouseOwner;
-			if (!(win->internal.enabledEvents & RGFW_BIT(RGFW_mousePosChanged))) return;
 			if (win == NULL) return;
+			if (!(win->internal.enabledEvents & RGFW_BIT(RGFW_mousePosChanged))) return;
 
 			/* MotionNotify is used for mouse events if the mouse isn't held */
 			if (!(win->internal.holdMouse)) {
@@ -4498,6 +4504,20 @@ void RGFW_XHandleEvent(void) {
 
 	event.common.win = win;
 
+	/*
+		Repeated key presses are sent as a release followed by another press at the same time.
+		We want to convert that into a single key press event with the repeat flag set
+	*/
+	if (E.type == KeyRelease && XEventsQueued(_RGFW->display, QueuedAfterReading)) {
+		XEvent NE;
+		XPeekEvent(_RGFW->display, &NE);
+		if (NE.type == KeyPress && E.xkey.time == NE.xkey.time && E.xkey.keycode == NE.xkey.keycode) {
+			/* Use the next KeyPress event */
+			XNextEvent(_RGFW->display, &E);
+			event.key.repeat = RGFW_TRUE;
+		}
+	}
+
 	switch (E.type) {
 		case KeyPress: {
 			if (!(win->internal.enabledEvents & RGFW_keyPressedFlag)) return;
@@ -4517,16 +4537,6 @@ void RGFW_XHandleEvent(void) {
 		}
 		case KeyRelease: {
 			if (!(win->internal.enabledEvents & RGFW_keyReleasedFlag)) return;
-			/* check if it's a real key release */
-			if (XEventsQueued(_RGFW->display, QueuedAfterReading)) { /* get next event if there is one */
-				XEvent NE;
-				XPeekEvent(_RGFW->display, &NE);
-
-				if (E.xkey.time == NE.xkey.time && E.xkey.keycode == NE.xkey.keycode) { /* check if the current and next are both the same */
-					event.key.repeat = RGFW_TRUE;
-					return;
-				}
-			}
 
 			event.type =  RGFW_keyReleased;
 			event.key.value = (u8)RGFW_apiKeyToRGFW(E.xkey.keycode);
@@ -4594,6 +4604,7 @@ void RGFW_XHandleEvent(void) {
 			RGFW_mouseButtonCallback(win, event.button.value, RGFW_FALSE);
 			break;
 		case MotionNotify:
+			if (win->internal.holdMouse) return;
 			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag)) return;
 			event.mouse.x = E.xmotion.x;
 			event.mouse.y = E.xmotion.y;
