@@ -9198,7 +9198,9 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 		SET_ATTRIB(0, 0);
 
 		win->src.ctx.native->ctx = (HGLRC)wglCreateContextAttribsARB(win->src.hdc, NULL, attribs);
-	} else { /* fall back to a default context (probably OpenGL 2 or something) */
+	}
+
+	if (wglCreateContextAttribsARB != NULL || win->src.ctx.native->ctx == NULL) { /* fall back to a default context (probably OpenGL 2 or something) */
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, "Failed to create an accelerated OpenGL Context.");
 		win->src.ctx.native->ctx = wglCreateContext(win->src.hdc);
 	}
