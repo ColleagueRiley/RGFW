@@ -1776,6 +1776,11 @@ struct RGFW_info {
         struct xdg_toplevel_icon_manager_v1 *icon_manager;
 
         struct zxdg_output_manager_v1 *xdg_output_manager;
+        
+        struct wl_data_device_manager *data_device_manager;
+        struct wl_data_device *data_device; // supports clipboard and DND
+        struct wl_data_offer *data_offer; // recieve data from other clients
+        struct wl_data_source *data_source; // offer data to other clients
 
         struct wl_keyboard* wl_keyboard;
         struct wl_pointer* wl_pointer;
@@ -6710,13 +6715,42 @@ static void RGFW_wl_surface_enter(void *data, struct wl_surface *wl_surface, str
 	#endif
 }
 
+static void RGFW_wl_data_device_data_offer(void *data, struct wl_data_device *wl_data_device, struct wl_data_offer *id) {
+	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device); RGFW_UNUSED(id);
+}
+
+static void RGFW_wl_data_device_enter(void *data, struct wl_data_device *wl_data_device, uint32_t serial,
+	struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y, struct wl_data_offer *id) {
+	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device); RGFW_UNUSED(serial); 
+	RGFW_UNUSED(surface); RGFW_UNUSED(x); RGFW_UNUSED(y); RGFW_UNUSED(id);
+}
+
+static void RGFW_wl_data_device_leave(void *data, struct wl_data_device *wl_data_device) {
+	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device);
+}
+
+static void RGFW_wl_data_device_motion(void *data, struct wl_data_device *wl_data_device,
+		       uint32_t time, wl_fixed_t x, wl_fixed_t y) {
+	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device); RGFW_UNUSED(time); RGFW_UNUSED(x); RGFW_UNUSED(y);
+}
+
+static void RGFW_wl_data_device_drop(void *data, struct wl_data_device *wl_data_device) {
+	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device);
+}
+
+static void RGFW_wl_data_device_selection(void *data, struct wl_data_device *wl_data_device, struct wl_data_offer *id) {
+	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device); RGFW_UNUSED(id);
+}
+
 static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *registry, u32 id, const char *interface, u32 version) {
 
     static struct wl_seat_listener seat_listener = {&RGFW_wl_seat_capabilities, (void (*)(void *, struct wl_seat *, const char *))&RGFW_doNothing};
     static const struct wl_shm_listener shm_listener = { .format = RGFW_wl_shm_format_handler };
-
-	RGFW_info* RGFW = (RGFW_info*)data;
-	RGFW_UNUSED(version);
+	static const struct wl_data_device_listener wl_data_device_listener = { .data_offer = RGFW_wl_data_device_data_offer, .enter = RGFW_wl_data_device_enter,
+		.leave = RGFW_wl_data_device_leave, .motion = RGFW_wl_data_device_motion, .drop = RGFW_wl_data_device_drop, .selection = RGFW_wl_data_device_selection};
+    RGFW_info* RGFW = (RGFW_info*)data;
+    RGFW_UNUSED(version);
+    
     if (RGFW_STRNCMP(interface, "wl_compositor", 16) == 0) {
 		RGFW->compositor = wl_registry_bind(registry, id, &wl_compositor_interface, 4);
 	} else if (RGFW_STRNCMP(interface, "xdg_wm_base", 12) == 0) {
@@ -6739,6 +6773,10 @@ static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *regi
 		RGFW->xdg_output_manager = wl_registry_bind(registry, id, &zxdg_output_manager_v1_interface, 1);
 	} else if (RGFW_STRNCMP(interface,"wl_output", 10) == 0) {
 		RGFW_wl_create_outputs(registry, id);
+	} else if (RGFW_STRNCMP(interface,"wl_data_device_manager", 23) == 0) {
+		RGFW->data_device_manager = wl_registry_bind(registry, id, &wl_data_device_manager_interface, 1);
+		RGFW->data_device = wl_data_device_manager_get_data_device(RGFW->data_device_manager, RGFW->seat);
+		wl_data_device_add_listener(RGFW->data_device, &wl_data_device_listener, NULL);
 	}
 }
 
@@ -6897,6 +6935,13 @@ void RGFW_deinitPlatform_Wayland(void) {
 		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
 	}
 
+	if (_RGFW->data_device_manager) {
+		wl_data_device_manager_destroy(_RGFW->data_device_manager);
+	}
+	
+	if (_RGFW->data_device) {
+		wl_data_device_destroy(_RGFW->data_device);
+	}
 
 	if (_RGFW->wl_cursor_theme != NULL) {
 		wl_cursor_theme_destroy(_RGFW->wl_cursor_theme);
@@ -7116,6 +7161,8 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 			}
 		#endif
 	}
+
+	// each surface should have its own data_offer and data_source
 
 	if (_RGFW->icon_manager != NULL) {
 		// set the default wayland icon
