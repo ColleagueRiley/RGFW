@@ -8953,7 +8953,7 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 			if (textLen > 1)
 				wcstombs(str, wstr, (size_t)(textLen));
 
-			str[textLen] = '\0';
+			str[textLen - 1] = '\0';
 		}
 	}
 
