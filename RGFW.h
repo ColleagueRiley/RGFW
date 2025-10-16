@@ -9085,9 +9085,14 @@ void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 #define WGL_CONTEXT_MAJOR_VERSION_ARB               0x2091
 #define WGL_CONTEXT_MINOR_VERSION_ARB               0x2092
 #define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB             0x20A9
+#define WGL_CONTEXT_RELEASE_BEHAVIOR_ARB 0x2097
+#define WGL_CONTEXT_DEBUG_BIT_ARB 0x00000001
+#define WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB 0x00000004
 
 RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx, RGFW_glHints* hints) {
 	const char flushControl[] = "WGL_ARB_context_flush_control";
+	const char noError[] = "WGL_ARB_create_context_no_error";
+	const char robustness[] = "WGL_ARB_create_context_robustness";
 
 	win->src.ctx.native = ctx;
 	win->src.gfxType = RGFW_gfxNativeOpenGL;
@@ -9179,26 +9184,31 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 			SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, hints->minor);
 		}
 
-		SET_ATTRIB(WGL_CONTEXT_OPENGL_NO_ERROR_ARB, hints->noError);
+		if (RGFW_extensionSupportedPlatform_OpenGL(noError, sizeof(noError)))
+			SET_ATTRIB(WGL_CONTEXT_OPENGL_NO_ERROR_ARB, hints->noError);
 
 		if (RGFW_extensionSupportedPlatform_OpenGL(flushControl, sizeof(flushControl))) {
 			if (hints->releaseBehavior == RGFW_glReleaseFlush) {
-				SET_ATTRIB(0x2097, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB); // WGL_CONTEXT_RELEASE_BEHAVIOR_ARB
+				SET_ATTRIB(WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB); // WGL_CONTEXT_RELEASE_BEHAVIOR_ARB
 			} else if (hints->releaseBehavior == RGFW_glReleaseNone) {
-				SET_ATTRIB(0x2097, 0x0000); // WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB
+				SET_ATTRIB(WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB);
 			}
 		}
 
 		i32 flags = 0;
-		if (hints->debug) flags |= WGL_ACCESS_READ_WRITE_NV; // substitute for debug bit, not exact
-		if (hints->robustness) flags |= WGL_CONTEXT_ES_PROFILE_BIT_EXT; // robustness placeholder
-		SET_ATTRIB(WGL_CONTEXT_FLAGS_ARB, flags);
+		if (hints->debug) flags |= WGL_CONTEXT_DEBUG_BIT_ARB;
+		if (hints->robustness && RGFW_extensionSupportedPlatform_OpenGL(robustness, sizeof(robustness))) flags |= WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB;
+		if (flags) {
+			SET_ATTRIB(WGL_CONTEXT_FLAGS_ARB, flags);
+		}
 
 
 		SET_ATTRIB(0, 0);
 
 		win->src.ctx.native->ctx = (HGLRC)wglCreateContextAttribsARB(win->src.hdc, NULL, attribs);
-	} else { /* fall back to a default context (probably OpenGL 2 or something) */
+	}
+
+	if (wglCreateContextAttribsARB == NULL || win->src.ctx.native->ctx == NULL) { /* fall back to a default context (probably OpenGL 2 or something) */
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, "Failed to create an accelerated OpenGL Context.");
 		win->src.ctx.native->ctx = wglCreateContext(win->src.hdc);
 	}
