@@ -5285,7 +5285,7 @@ RGFW_mouse* RGFW_FUNC(RGFW_loadMouse) (u8* data, i32 w, i32 h, RGFW_format forma
 
 	return (void*)cursor;
 #else
-	RGFW_UNUSED(img);
+	RGFW_UNUSED(data); RGFW_UNUSED(w); RGFW_UNUSED(h); RGFW_UNUSED(format);
 	return NULL;
 #endif
 }
