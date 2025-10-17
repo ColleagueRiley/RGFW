@@ -8758,7 +8758,7 @@ $(function() {
 <div class="line"><a id="l08959" name="l08959"></a><span class="lineno"> 8959</span>            <span class="keywordflow">if</span> (textLen &gt; 1)</div>
 <div class="line"><a id="l08960" name="l08960"></a><span class="lineno"> 8960</span>                wcstombs(str, wstr, (<span class="keywordtype">size_t</span>)(textLen));</div>
 <div class="line"><a id="l08961" name="l08961"></a><span class="lineno"> 8961</span> </div>
-<div class="line"><a id="l08962" name="l08962"></a><span class="lineno"> 8962</span>            str[textLen] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><a id="l08962" name="l08962"></a><span class="lineno"> 8962</span>            str[textLen - 1] = <span class="charliteral">&#39;\0&#39;</span>;</div>
 <div class="line"><a id="l08963" name="l08963"></a><span class="lineno"> 8963</span>        }</div>
 <div class="line"><a id="l08964" name="l08964"></a><span class="lineno"> 8964</span>    }</div>
 <div class="line"><a id="l08965" name="l08965"></a><span class="lineno"> 8965</span> </div>
