@@ -2976,7 +2976,10 @@ RGFW_bool RGFW_extensionSupported_OpenGL(const char* extension, size_t len) {
 }
 
 void RGFW_window_makeCurrentWindow_OpenGL(RGFW_window* win) {
-    _RGFW->current = win;
+	if (win) {
+		_RGFW->current = win;
+	}
+
     RGFW_window_makeCurrentContext_OpenGL(win);
 }
 
@@ -9235,7 +9238,6 @@ void RGFW_window_deleteContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx) 
 }
 
 void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
-	RGFW_ASSERT(win->src.ctx.native);
 	if (win == NULL)
 		wglMakeCurrent(NULL, NULL);
 	else
