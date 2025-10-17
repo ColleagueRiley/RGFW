@@ -5285,7 +5285,7 @@ RGFW_mouse* RGFW_FUNC(RGFW_loadMouse) (u8* data, i32 w, i32 h, RGFW_format forma
 
 	return (void*)cursor;
 #else
-	RGFW_UNUSED(img);
+	RGFW_UNUSED(data); RGFW_UNUSED(w); RGFW_UNUSED(h); RGFW_UNUSED(format);
 	return NULL;
 #endif
 }
@@ -6062,7 +6062,10 @@ void RGFW_deinitPlatform_X11(void) {
 		_RGFW->clipboard = NULL;
 	}
 
-    RGFW_freeMouse(_RGFW->hiddenMouse);
+	if (_RGFW->hiddenMouse) {
+		RGFW_freeMouse(_RGFW->hiddenMouse);
+		_RGFW->hiddenMouse = NULL;
+	}
 
     XDestroyWindow(_RGFW->display, (Drawable) _RGFW->helperWindow); /*!< close the window */
     XCloseDisplay(_RGFW->display); /*!< kill connection to the x server */
