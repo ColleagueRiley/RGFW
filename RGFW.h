@@ -7793,7 +7793,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			_RGFW->keyboard[event.key.value].prev = _RGFW->keyboard[event.key.value].current;
 			event.type = RGFW_keyReleased;
-			event.key.repeat = (lParam & 0x40000000) != 0;
+			event.key.repeat = ((lParam & 0x40000000) != 0)) || RGFW_window_isKeyDown(event.key.value);
 			_RGFW->keyboard[event.key.value].current = 0;
 
 			RGFW_updateKeyMods(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001), (GetKeyState(VK_SCROLL) & 0x0001));
@@ -7828,7 +7828,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			_RGFW->keyboard[event.key.value].prev = _RGFW->keyboard[event.key.value].current;
 			event.type = RGFW_keyPressed;
-			event.key.repeat = (lParam & 0x40000000) != 0;
+			event.key.repeat = ((lParam & 0x40000000) != 0) || RGFW_window_isKeyDown(event.key.value);
 			_RGFW->keyboard[event.key.value].current = 1;
 
 			RGFW_updateKeyMods(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001), (GetKeyState(VK_SCROLL) & 0x0001));
