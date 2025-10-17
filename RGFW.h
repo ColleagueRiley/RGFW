@@ -1599,6 +1599,9 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 
 		RGFW_monitor active_monitor;
 
+		struct wl_data_offer *data_offer; // recieve data from other clients
+		struct wl_data_source *data_source; // offer data to other clients
+        
 		#ifdef RGFW_LIBDECOR
 			struct libdecor* decorContext;
 		#endif
@@ -1753,14 +1756,14 @@ struct RGFW_info {
     u64 timerOffset;
 
     char* clipboard_data;
+    char* clipboard; /* for writing to the clipboard selection */
+    size_t clipboard_len;
     char filesSrc[RGFW_MAX_PATH * RGFW_MAX_DROPS];
 	char** files;
 	#ifdef RGFW_X11
         Display* display;
 		XContext context;
         Window helperWindow;
-    	char* clipboard; /* for writing to the clipboard selection */
-	    size_t clipboard_len;
         const char* instName;
         XErrorEvent* x11Error;
     #endif
@@ -1779,8 +1782,6 @@ struct RGFW_info {
         
         struct wl_data_device_manager *data_device_manager;
         struct wl_data_device *data_device; // supports clipboard and DND
-        struct wl_data_offer *data_offer; // recieve data from other clients
-        struct wl_data_source *data_source; // offer data to other clients
 
         struct wl_keyboard* wl_keyboard;
         struct wl_pointer* wl_pointer;
@@ -6478,12 +6479,16 @@ static void RGFW_wl_keyboard_keymap(void* data, struct wl_keyboard *keyboard, u3
 }
 
 static void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32 serial, struct wl_surface *surface, struct wl_array *keys) {
-	RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(keys);
+	RGFW_UNUSED(keyboard); RGFW_UNUSED(keys);
 
 	RGFW_info* RGFW = (RGFW_info*)data;
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 	RGFW->kbOwner = win;
 
+	// this is to prevent race conditions
+	if (RGFW->data_device != NULL) {
+		wl_data_device_set_selection(RGFW->data_device, win->src.data_source, serial);
+	}
 	if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
 
 	// is set when RGFW_window_minimize is called; if the minimize button is
@@ -6715,8 +6720,41 @@ static void RGFW_wl_surface_enter(void *data, struct wl_surface *wl_surface, str
 	#endif
 }
 
+static void RGFW_wl_data_source_send(void *data, struct wl_data_source *wl_data_source, const char *mime_type, int32_t fd) {
+	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_source);
+
+	// a client can accept our clipboard
+	if (RGFW_STRNCMP(mime_type, "text/plain", 11) == 0 && _RGFW->clipboard) {
+		write(fd, _RGFW->clipboard, _RGFW->clipboard_len);
+	}
+
+	close(fd);
+}
+
+static void RGFW_wl_data_source_cancelled(void *data, struct wl_data_source *wl_data_source) {
+	RGFW_UNUSED(data);
+	wl_data_source_destroy(wl_data_source);
+}
+
+static void RGFW_wl_data_offer_offer(void *data, struct wl_data_offer *wl_data_offer, const char *mime_type) {
+	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_offer); RGFW_UNUSED(mime_type);
+}
+
+static void RGFW_wl_data_offer_source_actions(void *data, struct wl_data_offer *wl_data_offer, uint32_t source_actions) {
+	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_offer); RGFW_UNUSED(source_actions);
+}
+
+static void RGFW_wl_data_offer_action(void *data, struct wl_data_offer *wl_data_offer, uint32_t dnd_action) {
+	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_offer); RGFW_UNUSED(dnd_action);
+}
 static void RGFW_wl_data_device_data_offer(void *data, struct wl_data_device *wl_data_device, struct wl_data_offer *id) {
 	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device); RGFW_UNUSED(id);
+	static const struct wl_data_offer_listener wl_data_offer_listener = { 
+		.offer = RGFW_wl_data_offer_offer, 
+		.source_actions = RGFW_wl_data_offer_source_actions, 
+		.action = RGFW_wl_data_offer_action
+	};
+	wl_data_offer_add_listener(id, &wl_data_offer_listener, NULL);
 }
 
 static void RGFW_wl_data_device_enter(void *data, struct wl_data_device *wl_data_device, uint32_t serial,
@@ -7162,8 +7200,19 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 		#endif
 	}
 
-	// each surface should have its own data_offer and data_source
+	// advertise to other clients that we offer text
+	if (_RGFW->data_device_manager != NULL) {
+		win->src.data_source = wl_data_device_manager_create_data_source(_RGFW->data_device_manager);
+		wl_data_source_offer(win->src.data_source , "text/plain");
 
+		static const struct wl_data_source_listener data_source_listener = {
+			.send = RGFW_wl_data_source_send,
+			.cancelled = RGFW_wl_data_source_cancelled
+		};
+
+		wl_data_source_add_listener(win->src.data_source, &data_source_listener, NULL);
+	}
+	
 	if (_RGFW->icon_manager != NULL) {
 		// set the default wayland icon
 		xdg_toplevel_icon_manager_v1_set_icon(_RGFW->icon_manager, win->src.xdg_toplevel, NULL);
@@ -7445,7 +7494,15 @@ RGFW_ssize_t RGFW_FUNC(RGFW_readClipboardPtr) (char* str, size_t strCapacity) {
 }
 
 void RGFW_FUNC(RGFW_writeClipboard) (const char* text, u32 textLen) {
-    RGFW_UNUSED(text); RGFW_UNUSED(textLen);
+	if (_RGFW->clipboard)
+		RGFW_FREE(_RGFW->clipboard);
+	
+	_RGFW->clipboard = (char*)RGFW_ALLOC(textLen);
+	RGFW_ASSERT(_RGFW->clipboard != NULL);
+	RGFW_STRNCPY(_RGFW->clipboard, text, textLen - 1);
+	_RGFW->clipboard[textLen - 1] = '\0';
+	_RGFW->clipboard_len = textLen;
+	
 }
 
 RGFW_bool RGFW_FUNC(RGFW_window_isHidden) (RGFW_window* win) {
