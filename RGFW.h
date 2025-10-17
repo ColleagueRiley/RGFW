@@ -6062,7 +6062,10 @@ void RGFW_deinitPlatform_X11(void) {
 		_RGFW->clipboard = NULL;
 	}
 
-    RGFW_freeMouse(_RGFW->hiddenMouse);
+	if (_RGFW->hiddenMouse) {
+		RGFW_freeMouse(_RGFW->hiddenMouse);
+		_RGFW->hiddenMouse = NULL;
+	}
 
     XDestroyWindow(_RGFW->display, (Drawable) _RGFW->helperWindow); /*!< close the window */
     XCloseDisplay(_RGFW->display); /*!< kill connection to the x server */
