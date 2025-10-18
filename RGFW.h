@@ -9145,8 +9145,8 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 		RGFW_attribStack_pushAttribs(&stack, WGL_GREEN_BITS_ARB, hints->blue);
 		RGFW_attribStack_pushAttribs(&stack, WGL_BLUE_BITS_ARB, hints->green);
 		RGFW_attribStack_pushAttribs(&stack, WGL_ACCUM_RED_BITS_ARB, hints->accumRed);
-		RGFW_attribStack_pushAttribs(&stack, WGL_ACCUM_GREEN_BITS_ARB, hints->accumBlue);
-		RGFW_attribStack_pushAttribs(&stack, WGL_ACCUM_BLUE_BITS_ARB, hints->accumGreen);
+		RGFW_attribStack_pushAttribs(&stack, WGL_ACCUM_GREEN_BITS_ARB, hints->accumGreen);
+		RGFW_attribStack_pushAttribs(&stack, WGL_ACCUM_BLUE_BITS_ARB, hints->accumBlue);
 		RGFW_attribStack_pushAttribs(&stack, WGL_ACCUM_ALPHA_BITS_ARB, hints->accumAlpha);
 
 		if(hints->sRGB) {
@@ -10690,6 +10690,10 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 	if (!fullscreen && !(win->internal.flags & RGFW_windowFullscreen)) return;
 
 	if (fullscreen) {
+		if (!(win->internal.flags & RGFW_windowFullscreen)) {
+			return;
+		}
+
 		win->internal.oldX = win->x;
 		win->internal.oldY = win->y;
 		win->internal.oldW = win->w;
@@ -11942,8 +11946,8 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	win->src.gfxType = RGFW_gfxNativeOpenGL;
 
 	EmscriptenWebGLContextAttributes attrs;
-	attrs.alpha = hints->depth;
-	attrs.depth = hints->alpha;
+	attrs.alpha = hints->alpha;
+	attrs.depth = hints->depth;
 	attrs.stencil = hints->stencil;
 	attrs.antialias = hints->samples;
 	attrs.premultipliedAlpha = EM_TRUE;
