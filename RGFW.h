@@ -2075,12 +2075,6 @@ void RGFW_window_checkMode(RGFW_window* win) {
 no more event call back defines
 */
 
-#define SET_ATTRIB(a, v) { \
-    RGFW_ASSERT(((size_t) index + 1) < sizeof(attribs) / sizeof(attribs[0])); \
-    attribs[index++] = a; \
-    attribs[index++] = v; \
-}
-
 size_t RGFW_sizeofInfo(void) { return sizeof(RGFW_info); }
 size_t RGFW_sizeofNativeImage(void) { return sizeof(RGFW_nativeImage); }
 size_t RGFW_sizeofSurface(void) { return sizeof(RGFW_surface); }
@@ -9175,8 +9169,10 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 
 	if (wglCreateContextAttribsARB != NULL) {
 		/* create OpenGL/WGL context for the specified version */
-		u32 index = 0;
 		i32 attribs[40];
+		RGFW_attribStack stack;
+		RGFW_attribStack_init(&stack, attribs, 50);
+
 
 		i32 mask = 0;
 		switch (hints->profile) {
@@ -9186,21 +9182,21 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 			default: mask |= WGL_CONTEXT_CORE_PROFILE_BIT_ARB; break;
 		}
 
-		SET_ATTRIB(WGL_CONTEXT_PROFILE_MASK_ARB, mask);
+		RGFW_attribStack_pushAttribs(&stack, WGL_CONTEXT_PROFILE_MASK_ARB, mask);
 
 		if (hints->minor || hints->major) {
-			SET_ATTRIB(WGL_CONTEXT_MAJOR_VERSION_ARB, hints->major);
-			SET_ATTRIB(WGL_CONTEXT_MINOR_VERSION_ARB, hints->minor);
+			RGFW_attribStack_pushAttribs(&stack, WGL_CONTEXT_MAJOR_VERSION_ARB, hints->major);
+			RGFW_attribStack_pushAttribs(&stack, WGL_CONTEXT_MINOR_VERSION_ARB, hints->minor);
 		}
 
 		if (RGFW_extensionSupportedPlatform_OpenGL(noError, sizeof(noError)))
-			SET_ATTRIB(WGL_CONTEXT_OPENGL_NO_ERROR_ARB, hints->noError);
+			RGFW_attribStack_pushAttribs(&stack, WGL_CONTEXT_OPENGL_NO_ERROR_ARB, hints->noError);
 
 		if (RGFW_extensionSupportedPlatform_OpenGL(flushControl, sizeof(flushControl))) {
 			if (hints->releaseBehavior == RGFW_glReleaseFlush) {
-				SET_ATTRIB(WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB); // WGL_CONTEXT_RELEASE_BEHAVIOR_ARB
+				RGFW_attribStack_pushAttribs(&stack, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB); // WGL_CONTEXT_RELEASE_BEHAVIOR_ARB
 			} else if (hints->releaseBehavior == RGFW_glReleaseNone) {
-				SET_ATTRIB(WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB);
+				RGFW_attribStack_pushAttribs(&stack, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB);
 			}
 		}
 
@@ -9208,11 +9204,11 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 		if (hints->debug) flags |= WGL_CONTEXT_DEBUG_BIT_ARB;
 		if (hints->robustness && RGFW_extensionSupportedPlatform_OpenGL(robustness, sizeof(robustness))) flags |= WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB;
 		if (flags) {
-			SET_ATTRIB(WGL_CONTEXT_FLAGS_ARB, flags);
+			RGFW_attribStack_pushAttribs(&stack, WGL_CONTEXT_FLAGS_ARB, flags);
 		}
 
 
-		SET_ATTRIB(0, 0);
+		RGFW_attribStack_pushAttribs(&stack, 0, 0);
 
 		win->src.ctx.native->ctx = (HGLRC)wglCreateContextAttribsARB(win->src.hdc, NULL, attribs);
 	}
