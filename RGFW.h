@@ -6486,7 +6486,7 @@ static void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32
 	RGFW->kbOwner = win;
 
 	// this is to prevent race conditions
-	if (RGFW->data_device != NULL) {
+	if (RGFW->data_device != NULL && win->src.data_source != NULL) {
 		wl_data_device_set_selection(RGFW->data_device, win->src.data_source, serial);
 	}
 	if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
@@ -6724,16 +6724,24 @@ static void RGFW_wl_data_source_send(void *data, struct wl_data_source *wl_data_
 	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_source);
 
 	// a client can accept our clipboard
-	if (RGFW_STRNCMP(mime_type, "text/plain", 11) == 0 && _RGFW->clipboard) {
-		write(fd, _RGFW->clipboard, _RGFW->clipboard_len);
+	if (RGFW_STRNCMP(mime_type, "text/plain;charset=utf-8", 25) == 0) {
+		// do not write \0
+		write(fd, _RGFW->clipboard, _RGFW->clipboard_len - 1);
 	}
 
 	close(fd);
 }
 
 static void RGFW_wl_data_source_cancelled(void *data, struct wl_data_source *wl_data_source) {
-	RGFW_UNUSED(data);
+	// RGFW_UNUSED(data); 
+	RGFW_info* RGFW = (RGFW_info*)data;
+
+	if (RGFW->kbOwner->src.data_source == wl_data_source) {
+		RGFW->kbOwner->src.data_source = NULL;
+	}
+	
 	wl_data_source_destroy(wl_data_source);
+
 }
 
 static void RGFW_wl_data_offer_offer(void *data, struct wl_data_offer *wl_data_offer, const char *mime_type) {
@@ -7199,19 +7207,6 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 			}
 		#endif
 	}
-
-	// advertise to other clients that we offer text
-	if (_RGFW->data_device_manager != NULL) {
-		win->src.data_source = wl_data_device_manager_create_data_source(_RGFW->data_device_manager);
-		wl_data_source_offer(win->src.data_source , "text/plain");
-
-		static const struct wl_data_source_listener data_source_listener = {
-			.send = RGFW_wl_data_source_send,
-			.cancelled = RGFW_wl_data_source_cancelled
-		};
-
-		wl_data_source_add_listener(win->src.data_source, &data_source_listener, NULL);
-	}
 	
 	if (_RGFW->icon_manager != NULL) {
 		// set the default wayland icon
@@ -7494,14 +7489,52 @@ RGFW_ssize_t RGFW_FUNC(RGFW_readClipboardPtr) (char* str, size_t strCapacity) {
 }
 
 void RGFW_FUNC(RGFW_writeClipboard) (const char* text, u32 textLen) {
+
+	// compositor does not support wl_data_device_manager
+	// clients cannot read rgfw's clipboard
+	if (_RGFW->data_device_manager == NULL) return;
+	// clear the clipboard
 	if (_RGFW->clipboard)
 		RGFW_FREE(_RGFW->clipboard);
-	
+
+	// set the contents
 	_RGFW->clipboard = (char*)RGFW_ALLOC(textLen);
 	RGFW_ASSERT(_RGFW->clipboard != NULL);
 	RGFW_STRNCPY(_RGFW->clipboard, text, textLen - 1);
 	_RGFW->clipboard[textLen - 1] = '\0';
 	_RGFW->clipboard_len = textLen;
+
+	// means we already wrote to the clipboard
+	// so destroy it to create a new one
+	RGFW_window* win = _RGFW->kbOwner;
+	
+	if (win->src.data_source != NULL) {
+		wl_data_source_destroy(win->src.data_source);
+		win->src.data_source = NULL;
+	}
+	
+	// advertise to other clients that we offer text
+	win->src.data_source = wl_data_device_manager_create_data_source(_RGFW->data_device_manager);
+
+	// basic error checking
+	if (win->src.data_source == NULL) {
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errClipboard, "Could not create clipboard data source");
+		return;
+	}
+	wl_data_source_offer(win->src.data_source , "text/plain;charset=utf-8");
+
+	// needed RGFW_doNothing because wayland will call the functions
+	// if not set they are random data that lead to a crash
+	static const struct wl_data_source_listener data_source_listener = {
+		.target = (void (*)(void *, struct wl_data_source *, const char *))&RGFW_doNothing,
+		.action = (void (*)(void *, struct wl_data_source *, u32))&RGFW_doNothing,
+		.dnd_drop_performed = (void (*)(void *, struct wl_data_source *))&RGFW_doNothing,
+		.dnd_finished = (void (*)(void *, struct wl_data_source *))&RGFW_doNothing,
+		.send = RGFW_wl_data_source_send,
+		.cancelled = RGFW_wl_data_source_cancelled
+	};
+
+	wl_data_source_add_listener(win->src.data_source, &data_source_listener, _RGFW);
 	
 }
 
