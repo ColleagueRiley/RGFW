@@ -8380,7 +8380,6 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 	RGFW_setBit(&win->internal.flags, RGFW_windowNoBorder, !border);
 	LONG style = GetWindowLong(win->src.window, GWL_STYLE);
 
-
 	if (border == 0) {
 		SetWindowLong(win->src.window, GWL_STYLE, style & ~WS_OVERLAPPEDWINDOW);
 		SetWindowPos(
@@ -8389,8 +8388,8 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 		);
 	}
 	else {
-		style |= WS_OVERLAPPEDWINDOW;
 		if (win->internal.flags & RGFW_windowNoResize) style &= ~WS_MAXIMIZEBOX;
+		SetWindowLong(win->src.window, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
 		SetWindowPos(
 			win->src.window, HWND_TOP, 0, 0, 0, 0,
 			SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE
