@@ -417,6 +417,8 @@ int main() {
 
 #endif
 
+typedef struct RGFW_info RGFW_info;
+
 typedef struct RGFW_window RGFW_window;
 typedef struct RGFW_window_src RGFW_window_src;
 
@@ -2066,23 +2068,6 @@ RGFWDEF RGFW_scaleUpdatedfunc RGFW_setScaleUpdatedCallback(RGFW_scaleUpdatedfunc
 
 /*! native rendering API functions */
 #if defined(RGFW_OPENGL)
-/**!
- * @brief Sets the global OpenGL hints to the specified pointer.
- * @param hints A pointer to the RGFW_glHints structure containing the desired OpenGL settings.
-*/
-RGFWDEF void RGFW_setGlobalHints_OpenGL(RGFW_glHints* hints);
-
-/**!
- * @brief Resets the global OpenGL hints to their default values.
-*/
-RGFWDEF void RGFW_resetGlobalHints_OpenGL(void);
-
-/**!
- * @brief Gets the current global OpenGL hints pointer.
- * @return A pointer to the currently active RGFW_glHints structure.
-*/
-RGFWDEF RGFW_glHints* RGFW_getGlobalHints_OpenGL(void);
-
 /* these are native opengl specific functions and will NOT work with EGL */
 
 /*!< make the window the current OpenGL drawing context
@@ -2886,6 +2871,10 @@ struct RGFW_info {
 #ifdef RGFW_IMPLEMENTATION
 
 /* global private API */
+
+/* for C++ / C89 */
+#define RGFW_eventQueuePushEx(eventInit) { RGFW_event e; eventInit; RGFW_eventQueuePush(&e); }
+
 RGFWDEF RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags, RGFW_window* win);
 RGFWDEF void RGFW_window_closePlatform(RGFW_window* win);
 
