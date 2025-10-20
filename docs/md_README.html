@@ -75,11 +75,11 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p ><img src="https://github.com/ColleagueRiley/RGFW/blob/main/logo.png?raw=true" alt="THE RGFW Logo" class="inline"/></p>
-<h1><a class="anchor" id="autotoc_md3"></a>
+<h1><a class="anchor" id="autotoc_md1"></a>
 Build statuses</h1>
 <p ><img src="https://github.com/ColleagueRiley/RGFW/actions/workflows/linux.yml/badge.svg" alt="workflow" style="pointer-events: none;" class="inline"/> <img src="https://github.com/ColleagueRiley/RGFW/actions/workflows/windows.yml/badge.svg" alt="workflow windows" style="pointer-events: none;" class="inline"/> <img src="https://github.com/ColleagueRiley/RGFW/actions/workflows/macos.yml/badge.svg" alt="workflow macOS" style="pointer-events: none;" class="inline"/></p>
 <p ><a href="https://discord.gg/pXVNgVVbvh"><img src="https://img.shields.io/discord/829003376532258816.svg?label=Discord&amp;logo=discord" alt="Discord Members" style="pointer-events: none;" class="inline"/></a></p>
-<h1><a class="anchor" id="autotoc_md4"></a>
+<h1><a class="anchor" id="autotoc_md2"></a>
 About</h1>
 <p >RGFW:</p>
 <ul>
@@ -105,9 +105,9 @@ About</h1>
 <p >There is a Makefile including for compiling the examples. NOTE: <code>WAYLAND=1</code> OR can be defined to compile for wayland. <code>WAYLAND_X11=1</code> can be used instead if you want examples to fallback to X11 if a Wayland display is not found. This adds <code>#define RGFW_WAYLAND</code> in the implementation (or defines <code>RGFW_WAYLAND</code> AND <code>RGFW_X11</code>)</p>
 <p >Included in the framework are helper functions for multiple rendering APIs OpenGL (Native, EGL, GLES), Vulkan, DirectX, <a href="https://github.com/ColleagueRiley/RGFW/blob/main/examples/metal/metal.m">Metal</a> and WebGPU, you can also easily blit raw data directly onto the window with the <code>RGFW_surface</code> object using <code>RGFW_window_blitSurface</code>.</p>
 <p >You must explicitly request these helper functions via, <code>#define RGFW_OPENGL</code>, <code>#define RGFW_VULKAN</code>, <code>#define RGFW_DIRECTX</code>, <code>#define RGFW_WEBGPU</code>.</p>
-<h1><a class="anchor" id="autotoc_md5"></a>
+<h1><a class="anchor" id="autotoc_md3"></a>
 Getting started</h1>
-<h2><a class="anchor" id="autotoc_md6"></a>
+<h2><a class="anchor" id="autotoc_md4"></a>
 a very simple example</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#define RGFW_IMPLEMENTATION</span></div>
 <div class="line"><span class="preprocessor">#define RGFW_OPENGL </span><span class="comment">/* if this line is not added, OpenGL functions will not be included */</span><span class="preprocessor"></span></div>
@@ -192,23 +192,23 @@ a very simple example</h2>
 </div><!-- fragment --><div class="fragment"><div class="line">linux : gcc main.c -lX11 -lGL -lXrandr</div>
 <div class="line">windows : gcc main.c -lopengl32 -lgdi32</div>
 <div class="line">macos : gcc main.c -framework Cocoa -framework OpenGL</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md7"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md5"></a>
 other examples</h2>
 <p ><img src="screenshot.PNG" alt="examples" class="inline"/></p>
 <p >You can find more examples [here](examples) or <a href="https://colleagueriley.github.io/RGFW/">run it in your browser</a> with emscripten</p>
-<h1><a class="anchor" id="autotoc_md8"></a>
+<h1><a class="anchor" id="autotoc_md6"></a>
 Supported GUI libraries</h1>
 <p >A list of GUI libraries that can be used with RGFW can be found on the RGFW wiki <a href="https://github.com/colleagueriley/RGFW/wiki/GUI-libraries-that-can-be-used-with-RGFW">here</a></p>
-<h1><a class="anchor" id="autotoc_md9"></a>
+<h1><a class="anchor" id="autotoc_md7"></a>
 Documentation</h1>
 <p >There is a lot of in-header-documentation, but more documentation can be found at <a href="https://colleagueriley.github.io/RGFW/docs/index.html">https://colleagueriley.github.io/RGFW/docs/index.html</a> If you wish to build the documentation yourself, there is also a Doxygen file attached.</p>
-<h1><a class="anchor" id="autotoc_md10"></a>
+<h1><a class="anchor" id="autotoc_md8"></a>
 Bindings</h1>
 <p >A list of bindings can be found on the RGFW wiki <a href="https://github.com/ColleagueRiley/RGFW/wiki/Bindings">here</a></p>
-<h1><a class="anchor" id="autotoc_md11"></a>
+<h1><a class="anchor" id="autotoc_md9"></a>
 projects</h1>
 <p >A list of projects that use RGFW can be found on the RGFW wiki <a href="https://github.com/ColleagueRiley/RGFW/wiki/Projects-that-use-RGFW">here</a></p>
-<h1><a class="anchor" id="autotoc_md12"></a>
+<h1><a class="anchor" id="autotoc_md10"></a>
 Contacts</h1>
 <ul>
 <li>email : <a href="#" onclick="location.href='mai'+'lto:'+'Col'+'le'+'agu'+'eR'+'ile'+'y@'+'gma'+'il'+'.co'+'m'; return false;">Colle<span class="obfuscator">.nosp@m.</span>ague<span class="obfuscator">.nosp@m.</span>Riley<span class="obfuscator">.nosp@m.</span>@gma<span class="obfuscator">.nosp@m.</span>il.co<span class="obfuscator">.nosp@m.</span>m</a></li>
@@ -218,13 +218,13 @@ Contacts</h1>
 <li>BlueSky <a href="https://bsky.app/profile/colleagueriley.bsky.social">https://bsky.app/profile/colleagueriley.bsky.social</a></li>
 <li>Twitter/X : <a href="https://x.com/ColleagueRiley">https://x.com/ColleagueRiley</a></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md13"></a>
+<h1><a class="anchor" id="autotoc_md11"></a>
 Supporting RGFW</h1>
 <p >There is a RGFW wiki page about things you can do if you want to support the development of RGFW <a href="https://github.com/ColleagueRiley/RGFW/wiki/Supporting-RGFW">here</a>.</p>
-<h1><a class="anchor" id="autotoc_md14"></a>
+<h1><a class="anchor" id="autotoc_md12"></a>
 RGFW vs GLFW</h1>
 <p >A comparison of RGFW and GLFW can be found at <a href="https://github.com/ColleagueRiley/RGFW/wiki/RGFW-vs-GLFW">on the wiki</a></p>
-<h1><a class="anchor" id="autotoc_md15"></a>
+<h1><a class="anchor" id="autotoc_md13"></a>
 License</h1>
 <p >RGFW uses the Zlib/libPNG license, this means you can use RGFW freely as long as you do not claim you wrote this software, mark altered versions as such and keep the license included with the header.</p>
 <div class="fragment"><div class="line">Permission is granted to anyone to use this software for any purpose,</div>
