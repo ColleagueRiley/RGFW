@@ -3930,13 +3930,17 @@ RGFW_glHints* RGFW_getGlobalHints_OpenGL(void) { RGFW_init(); return RGFW_global
 
 
 void* RGFW_glContext_getSourceContext(RGFW_glContext* ctx) {
+	RGFW_UNUSED(ctx);
+
 #ifdef RGFW_WAYLAND
 	if (RGFW_usingWayland()) return (void*)ctx->egl.ctx;
 #endif
-#if !defined(RGFW_WAYLAND) || defined(RGFW_X11)
+
+#if defined(RGFW_X11)
 	return (void*)ctx->ctx;
-#endif
+#else
 	return NULL;
+#endif
 }
 
 RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win, RGFW_glHints* hints) {
@@ -4971,8 +4975,9 @@ i32 RGFW_initPlatform(void) {
 #ifdef RGFW_X11
 	RGFW_load_X11();
 	return RGFW_initPlatform_X11();
-#endif
+#else
 	return 0;
+#endif
 }
 
 
@@ -6931,8 +6936,8 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 
 	/*  create the context */
 	glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
-	glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
-		glXGetProcAddressARB((u8*) "glXCreateContextAttribsARB");
+	char str[] = "glXCreateContextAttribsARB";
+	glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)glXGetProcAddressARB((u8*) str);
 
 	GLXContext ctx = NULL;
 	if (hints->share) {
@@ -6984,12 +6989,14 @@ void RGFW_FUNC(RGFW_window_swapBuffers_OpenGL) (RGFW_window* win) { RGFW_ASSERT(
 void RGFW_FUNC(RGFW_window_swapInterval_OpenGL) (RGFW_window* win, i32 swapInterval) {
 	RGFW_ASSERT(win != NULL);
 	/* cached pfn to avoid calling glXGetProcAddress more than once */
-	static PFNGLXSWAPINTERVALEXTPROC pfn = (PFNGLXSWAPINTERVALEXTPROC)-1;
+	static PFNGLXSWAPINTERVALEXTPROC pfn = NULL;
 	static int (*pfn2)(int) = NULL;
 
-	if (pfn == (PFNGLXSWAPINTERVALEXTPROC)-1) {
-		pfn = (PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress((u8*)"glXSwapIntervalEXT");
+	if (pfn == NULL) {
+		u8 str[] = "glXSwapIntervalEXT";
+		pfn = (PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddress(str);
 		if (pfn == NULL)  {
+			pfn = (PFNGLXSWAPINTERVALEXTPROC)1;
 			const char* array[] = {"GLX_MESA_swap_control", "GLX_SGI_swap_control"};
 
 			size_t i;
@@ -7005,7 +7012,7 @@ void RGFW_FUNC(RGFW_window_swapInterval_OpenGL) (RGFW_window* win, i32 swapInter
 		}
 	}
 
-	if (pfn != NULL) {
+	if (pfn != (PFNGLXSWAPINTERVALEXTPROC)1) {
 		pfn(_RGFW->display, win->src.window, swapInterval);
 	}
 	else if (pfn2 != NULL) {
@@ -7081,7 +7088,8 @@ i32 RGFW_initPlatform_X11(void) {
     XkbGetNames(_RGFW->display, XkbKeyNamesMask, desc);
 
     RGFW_MEMSET(&rec, 0, sizeof(rec));
-    rec.keycodes = (char*)"evdev";
+    char evdev[] = "evdev";
+    rec.keycodes = evdev;
     evdesc = XkbGetKeyboardByName(_RGFW->display, XkbUseCoreKbd, &rec, XkbGBN_KeyNamesMask, XkbGBN_KeyNamesMask, False);
     /* memo: RGFW_keycodes[x11 keycode] = rgfw keycode */
     if(evdesc != NULL && desc != NULL) {
