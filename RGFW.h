@@ -1,6 +1,6 @@
 /*
 *
-*	RGFW 1.8.0-dev
+*	RGFW 1.8.0 pre-release
 
 * Copyright (C) 2022-25 Riley Mabb (@ColleagueRiley)
 *
@@ -2873,6 +2873,7 @@ void* RGFW_glContext_getSourceContext(RGFW_glContext* ctx) {
 #elif defined(RGFW_X11)
 	return (void*)ctx->ctx;
 #else
+	RGFW_UNUSED(ctx);
 	return NULL;
 #endif
 }
