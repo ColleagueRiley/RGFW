@@ -1599,7 +1599,6 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 
 		RGFW_monitor active_monitor;
 
-		struct wl_data_offer *data_offer; // recieve data from other clients
 		struct wl_data_source *data_source; // offer data to other clients
         
 		#ifdef RGFW_LIBDECOR
@@ -6752,30 +6751,46 @@ static void RGFW_wl_data_source_cancelled(void *data, struct wl_data_source *wl_
 
 }
 
-static void RGFW_wl_data_offer_offer(void *data, struct wl_data_offer *wl_data_offer, const char *mime_type) {
-	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_offer); RGFW_UNUSED(mime_type);
-}
+static void RGFW_wl_data_device_data_offer(void *data, struct wl_data_device *wl_data_device, struct wl_data_offer *wl_data_offer) {
 
-static void RGFW_wl_data_offer_source_actions(void *data, struct wl_data_offer *wl_data_offer, uint32_t source_actions) {
-	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_offer); RGFW_UNUSED(source_actions);
-}
-
-static void RGFW_wl_data_offer_action(void *data, struct wl_data_offer *wl_data_offer, uint32_t dnd_action) {
-	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_offer); RGFW_UNUSED(dnd_action);
-}
-
-static void RGFW_wl_data_device_data_offer(void *data, struct wl_data_device *wl_data_device, struct wl_data_offer *id) {
-	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device); RGFW_UNUSED(id);
+	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device);
 	static const struct wl_data_offer_listener wl_data_offer_listener = { 
-		.offer = RGFW_wl_data_offer_offer, 
-		.source_actions = RGFW_wl_data_offer_source_actions, 
-		.action = RGFW_wl_data_offer_action
+		.offer = (void (*)(void *data, struct wl_data_offer *wl_data_offer, const char *))RGFW_doNothing, 
+		.source_actions = (void (*)(void *data, struct wl_data_offer *wl_data_offer, uint32_t dnd_action))RGFW_doNothing, 
+		.action = (void (*)(void *data, struct wl_data_offer *wl_data_offer, uint32_t dnd_action))RGFW_doNothing
 	};
-	wl_data_offer_add_listener(id, &wl_data_offer_listener, NULL);
+	wl_data_offer_add_listener(wl_data_offer, &wl_data_offer_listener, NULL);
 }
 
-static void RGFW_wl_data_device_selection(void *data, struct wl_data_device *wl_data_device, struct wl_data_offer *id) {
-	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device); RGFW_UNUSED(id);
+static void RGFW_wl_data_device_selection(void *data, struct wl_data_device *wl_data_device, struct wl_data_offer *wl_data_offer) {
+	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device);
+	/* Clipboard is empty */
+	if (wl_data_offer == NULL) {
+		return;
+	}
+
+	int pfds[2];
+	pipe(pfds);
+
+	wl_data_offer_receive(wl_data_offer, "text/plain;charset=utf-8", pfds[1]);
+	close(pfds[1]);
+
+	wl_display_roundtrip(_RGFW->wl_display);
+
+	char buf[1024];
+		
+	ssize_t n = read(pfds[0], buf, sizeof(buf));
+
+	_RGFW->clipboard = (char*)RGFW_ALLOC((size_t)n);
+	RGFW_ASSERT(_RGFW->clipboard != NULL);
+	RGFW_STRNCPY(_RGFW->clipboard, buf, (size_t)n);
+	
+	_RGFW->clipboard_len = (size_t)n + 1;
+	
+	close(pfds[0]);
+
+	wl_data_offer_destroy(wl_data_offer);
+	
 }
 
 static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *registry, u32 id, const char *interface, u32 version) {
@@ -7481,8 +7496,13 @@ void RGFW_FUNC(RGFW_window_show) (RGFW_window* win) {
 }
 
 RGFW_ssize_t RGFW_FUNC(RGFW_readClipboardPtr) (char* str, size_t strCapacity) {
-	RGFW_UNUSED(str); RGFW_UNUSED(strCapacity);
-	return 0;
+
+	RGFW_UNUSED(strCapacity);
+	
+	if (str != NULL)
+		RGFW_STRNCPY(str, _RGFW->clipboard, _RGFW->clipboard_len - 1);
+	_RGFW->clipboard[_RGFW->clipboard_len - 1] = '\0';
+	return (RGFW_ssize_t)_RGFW->clipboard_len - 1;
 }
 
 void RGFW_FUNC(RGFW_writeClipboard) (const char* text, u32 textLen) {
