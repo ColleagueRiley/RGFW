@@ -2868,6 +2868,8 @@ RGFW_glHints* RGFW_getGlobalHints_OpenGL(void) { RGFW_init(); return RGFW_global
 
 
 void* RGFW_glContext_getSourceContext(RGFW_glContext* ctx) {
+	RGFW_UNUSED(ctx);
+
 #ifdef RGFW_WAYLAND
 	if (RGFW_usingWayland()) return (void*)ctx->egl.ctx;
 #endif
@@ -2875,7 +2877,6 @@ void* RGFW_glContext_getSourceContext(RGFW_glContext* ctx) {
 #if defined(RGFW_X11)
 	return (void*)ctx->ctx;
 #else
-	RGFW_UNUSED(ctx);
 	return NULL;
 #endif
 }
