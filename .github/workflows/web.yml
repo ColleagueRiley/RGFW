@@ -29,12 +29,12 @@ jobs:
 
     - name: Compile to WebAssembly
       run: |
-        mkdir build
+        mkdir -p build
         cd build
         mkdir ${{ env.RELEASE_NAME }}
         cd ${{ env.RELEASE_NAME }}
-        mkdir include
-        mkdir lib
+        mkdir -p include
+        mkdir -p lib
         cd ../../../RGFW
 
         make CC=em++ examples/osmesa_demo/osmesa_demo NO_OSMESA=0 CFLAGS="-Iosmesa/include -Losmesa"
