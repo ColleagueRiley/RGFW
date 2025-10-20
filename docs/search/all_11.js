@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['x_0',['x',['../structRGFW__monitor.html#a0a5bd14893ebb7c790a12d31a4a23f18',1,'RGFW_monitor::x()'],['../structRGFW__mouseScrollEvent.html#a95ab70c46b5d5b12194929f68323eb58',1,'RGFW_mouseScrollEvent::x()'],['../structRGFW__mousePosEvent.html#a6a09336e513cd96966fa11e0ed0f1871',1,'RGFW_mousePosEvent::x()'],['../structRGFW__dataDragEvent.html#ac38d826d0c367541748e645e71450153',1,'RGFW_dataDragEvent::x()'],['../structRGFW__scaleUpdatedEvent.html#ac58bf58244ad89305bf107f147d81785',1,'RGFW_scaleUpdatedEvent::x()']]],
+  ['x_0',['x',['../structRGFW__mouseScrollEvent.html#a95ab70c46b5d5b12194929f68323eb58',1,'RGFW_mouseScrollEvent::x()'],['../structRGFW__mousePosEvent.html#a6a09336e513cd96966fa11e0ed0f1871',1,'RGFW_mousePosEvent::x()'],['../structRGFW__dataDragEvent.html#ac38d826d0c367541748e645e71450153',1,'RGFW_dataDragEvent::x()'],['../structRGFW__scaleUpdatedEvent.html#ac58bf58244ad89305bf107f147d81785',1,'RGFW_scaleUpdatedEvent::x()'],['../structRGFW__monitor.html#a0a5bd14893ebb7c790a12d31a4a23f18',1,'RGFW_monitor::x()']]],
   ['xallocclasshint_1',['XAllocClassHint',['../XDL_8h.html#a904407c42691c7c8259a169e9284a344',1,'XDL.h']]],
   ['xallocclasshintsrc_2',['XAllocClassHintSrc',['../XDL_8h.html#a503e30838e0a7faf425a178463ee3d6a',1,'XDL.h']]],
   ['xallocsizehints_3',['XAllocSizeHints',['../XDL_8h.html#af266dee10e30fa9c539af48cbe13d888',1,'XDL.h']]],

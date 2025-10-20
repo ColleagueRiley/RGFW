@@ -6,71 +6,69 @@ Supporting \- Supporting
 .SH SYNOPSIS
 .br
 .PP
-.SS "Macros"
-
-.in +1c
-.ti -1c
-.RI "#define \fBRGFW_MAX_EVENTS\fP   32"
-.br
-.ti -1c
-.RI "#define \fBRGFW_eventQueuePushEx\fP(eventInit)   { \fBRGFW_event\fP e; eventInit; \fBRGFW_eventQueuePush\fP(&e); }"
-.br
-.in -1c
-.SS "Typedefs"
-
-.in +1c
-.ti -1c
-.RI "typedef struct \fBRGFW_info\fP \fBRGFW_info\fP"
-.br
-.in -1c
 .SS "Functions"
 
 .in +1c
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setRootWindow\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Sets the root (main) RGFW window\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_window\fP * \fBRGFW_getRootWindow\fP (void)"
 .br
+.RI "Retrieves the current root RGFW window\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_eventQueuePush\fP (const \fBRGFW_event\fP *event)"
 .br
+.RI "Pushes an event into the standard RGFW event queue\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_eventQueueFlush\fP (void)"
 .br
+.RI "Clears all events from the RGFW event queue without processing them\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Pops the next event from the RGFW event queue for the specified window\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_apiKeyToRGFW\fP (\fBu32\fP keycode)"
 .br
+.RI "Converts an API keycode to the RGFW unmapped (physical) key\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_rgfwToApiKey\fP (\fBu32\fP keycode)"
 .br
+.RI "Converts an RGFW keycode to the unmapped (physical) API key\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBu8\fP \fBRGFW_rgfwToKeyChar\fP (\fBu32\fP keycode)"
 .br
+.RI "Converts an RGFW keycode to the mapped character representation\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofInfo\fP (void)"
 .br
+.RI "Retrieves the size of the RGFW_info structure\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_init\fP (void)"
 .br
+.RI "Initializes the RGFW library\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_deinit\fP (void)"
 .br
+.RI "Deinitializes the RGFW library\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_init_ptr\fP (\fBRGFW_info\fP *info)"
 .br
+.RI "Initializes RGFW using a user-provided RGFW_info structure\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_deinit_ptr\fP (\fBRGFW_info\fP *info)"
 .br
+.RI "Deinitializes a specific RGFW instance stored in the provided RGFW_info pointer\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setInfo\fP (\fBRGFW_info\fP *info)"
 .br
+.RI "Sets the global RGFW_info structure pointer\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_info\fP * \fBRGFW_getInfo\fP (void)"
 .br
+.RI "Retrieves the global RGFW_info structure pointer\&. "
 .in -1c
 .SH "Detailed Description"
 .PP 
@@ -79,47 +77,195 @@ native rendering API functions
 
 .PP
 
-.SH "Macro Definition Documentation"
-.PP 
-.SS "#define RGFW_eventQueuePushEx(eventInit)   { \fBRGFW_event\fP e; eventInit; \fBRGFW_eventQueuePush\fP(&e); }"
-
-.SS "#define RGFW_MAX_EVENTS   32"
-change which window is the root window 
-.SH "Typedef Documentation"
-.PP 
-.SS "typedef struct \fBRGFW_info\fP \fBRGFW_info\fP"
-optional init/deinit function 
 .SH "Function Documentation"
 .PP 
 .SS "\fBRGFWDEF\fP \fBu32\fP RGFW_apiKeyToRGFW (\fBu32\fP keycode)"
-converts api keycode to the RGFW unmapped/physical key 
+
+.PP
+Converts an API keycode to the RGFW unmapped (physical) key\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIkeycode\fP The platform-specific keycode\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The corresponding RGFW keycode\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_deinit (void)"
-is called by default when the last open window is closed 
+
+.PP
+Deinitializes the RGFW library\&. ! 
+.PP
+\fBNote\fP
+.RS 4
+This is automatically called when the last open window is closed\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_deinit_ptr (\fBRGFW_info\fP * info)"
-deinits RGFW instance at pointer 
+
+.PP
+Deinitializes a specific RGFW instance stored in the provided RGFW_info pointer\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIinfo\fP A pointer to the RGFW_info structure representing the instance to deinitialize\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_eventQueueFlush (void)"
 
+.PP
+Clears all events from the RGFW event queue without processing them\&. ! 
 .SS "\fBRGFWDEF\fP \fBRGFW_event\fP * RGFW_eventQueuePop (\fBRGFW_window\fP * win)"
 
+.PP
+Pops the next event from the RGFW event queue for the specified window\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP A pointer to the RGFW_window to retrieve an event for\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+A pointer to the popped \fBRGFW_event\fP, or NULL if the queue is empty\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_eventQueuePush (const \fBRGFW_event\fP * event)"
-standard event queue, used for injecting events and returning source API callback events like any other queue check 
+
+.PP
+Pushes an event into the standard RGFW event queue\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIevent\fP A pointer to the \fBRGFW_event\fP to be added to the queue\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP \fBRGFW_info\fP * RGFW_getInfo (void)"
+
+.PP
+Retrieves the global RGFW_info structure pointer\&. ! 
+.PP
+\fBReturns\fP
+.RS 4
+A pointer to the current RGFW_info structure\&. 
+.RE
+.PP
 
 .SS "\fBRGFWDEF\fP \fBRGFW_window\fP * RGFW_getRootWindow (void)"
 
+.PP
+Retrieves the current root RGFW window\&. ! 
+.PP
+\fBReturns\fP
+.RS 4
+A pointer to the current root RGFW_window\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP \fBi32\fP RGFW_init (void)"
-is called by default when the first window is created by default 
+
+.PP
+Initializes the RGFW library\&. ! 
+.PP
+\fBReturns\fP
+.RS 4
+0 on success, or a negative error code on failure\&. 
+.RE
+.PP
+\fBNote\fP
+.RS 4
+This is automatically called when the first window is created\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP \fBi32\fP RGFW_init_ptr (\fBRGFW_info\fP * info)"
-init RGFW, storing the data at the pointer 
+
+.PP
+Initializes RGFW using a user-provided RGFW_info structure\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIinfo\fP A pointer to an RGFW_info structure to be used for initialization\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+0 on success, or a negative error code on failure\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP \fBu32\fP RGFW_rgfwToApiKey (\fBu32\fP keycode)"
-converts RGFW keycode to the unmapped/physical api key 
+
+.PP
+Converts an RGFW keycode to the unmapped (physical) API key\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIkeycode\fP The RGFW keycode\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The corresponding platform-specific keycode\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP \fBu8\fP RGFW_rgfwToKeyChar (\fBu32\fP keycode)"
-converts RGFW keycode to the mapped keychar 
+
+.PP
+Converts an RGFW keycode to the mapped character representation\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIkeycode\fP The RGFW keycode\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The corresponding key character\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_setInfo (\fBRGFW_info\fP * info)"
+
+.PP
+Sets the global RGFW_info structure pointer\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIinfo\fP A pointer to the RGFW_info structure to set\&. 
+.RE
+.PP
 
 .SS "\fBRGFWDEF\fP void RGFW_setRootWindow (\fBRGFW_window\fP * win)"
 
+.PP
+Sets the root (main) RGFW window\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP A pointer to the RGFW_window to set as the root window\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP size_t RGFW_sizeofInfo (void)"
+
+.PP
+Retrieves the size of the RGFW_info structure\&. ! 
+.PP
+\fBReturns\fP
+.RS 4
+The size (in bytes) of RGFW_info\&. 
+.RE
+.PP
 
 .SH "Author"
 .PP 

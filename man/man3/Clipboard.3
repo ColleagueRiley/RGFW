@@ -6,25 +6,21 @@ Clipboard \- Clipboard
 .SH SYNOPSIS
 .br
 .PP
-.SS "Typedefs"
-
-.in +1c
-.ti -1c
-.RI "typedef ptrdiff_t \fBRGFW_ssize_t\fP"
-.br
-.in -1c
 .SS "Functions"
 
 .in +1c
 .ti -1c
 .RI "\fBRGFWDEF\fP const char * \fBRGFW_readClipboard\fP (size_t *size)"
 .br
+.RI "Reads clipboard data\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_ssize_t\fP \fBRGFW_readClipboardPtr\fP (char *str, size_t strCapacity)"
 .br
+.RI "Reads clipboard data into a provided buffer, or returns the required length if str is NULL\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_writeClipboard\fP (const char *text, \fBu32\fP textLen)"
 .br
+.RI "Writes text to the clipboard\&. "
 .in -1c
 .SH "Detailed Description"
 .PP 
@@ -33,18 +29,55 @@ Clipboard \- Clipboard
 
 .PP
 
-.SH "Typedef Documentation"
-.PP 
-.SS "typedef ptrdiff_t \fBRGFW_ssize_t\fP"
-
 .SH "Function Documentation"
 .PP 
 .SS "\fBRGFWDEF\fP const char * RGFW_readClipboard (size_t * size)"
-read clipboard data 
+
+.PP
+Reads clipboard data\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIsize\fP [OUTPUT] A pointer that will be filled with the size of the clipboard data\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+A pointer to the clipboard data as a string\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP \fBRGFW_ssize_t\fP RGFW_readClipboardPtr (char * str, size_t strCapacity)"
-read clipboard data or send a NULL str to just get the length of the clipboard data 
+
+.PP
+Reads clipboard data into a provided buffer, or returns the required length if str is NULL\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIstr\fP [OUTPUT] A pointer to the buffer that will receive the clipboard data (or NULL to get required size)\&. 
+.br
+\fIstrCapacity\fP The capacity of the provided buffer\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The number of bytes read or required length of clipboard data\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_writeClipboard (const char * text, \fBu32\fP textLen)"
-write text to the clipboard 
+
+.PP
+Writes text to the clipboard\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fItext\fP The text to be written to the clipboard\&. 
+.br
+\fItextLen\fP The length of the text being written\&. 
+.RE
+.PP
+
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.

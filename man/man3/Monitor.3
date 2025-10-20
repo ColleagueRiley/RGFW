@@ -12,9 +12,11 @@ Monitor \- Monitor
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_scaleToMonitor\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Scales the window to match its monitor’s resolution\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP \fBRGFW_window_getMonitor\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Retrieves the monitor structure associated with the window\&. "
 .in -1c
 .SH "Detailed Description"
 .PP 
@@ -26,11 +28,32 @@ Monitor \- Monitor
 .SH "Function Documentation"
 .PP 
 .SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP RGFW_window_getMonitor (\fBRGFW_window\fP * win)"
-get the struct of the window's monitor 
-.br
- 
+
+.PP
+Retrieves the monitor structure associated with the window\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The monitor structure of the window\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_scaleToMonitor (\fBRGFW_window\fP * win)"
 
+.PP
+Scales the window to match its monitor’s resolution\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&.
+.RE
+.PP
+This function is automatically called when the flag \fCRGFW_scaleToMonitor\fP is used during window creation\&. 
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.

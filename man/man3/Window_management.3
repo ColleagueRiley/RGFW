@@ -15,192 +15,247 @@ Window_management \- Window_management
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_checkEvent\fP (\fBRGFW_window\fP *win, \fBRGFW_event\fP *event)"
 .br
+.RI "polls and pops the next event from the window's event queue "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_checkQueuedEvent\fP (\fBRGFW_window\fP *win, \fBRGFW_event\fP *event)"
 .br
+.RI "pops the first queued event for the window "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isKeyPressed\fP (\fBRGFW_window\fP *win, RGFW_key key)"
 .br
+.RI "checks if a key was pressed while the window is in focus "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isKeyDown\fP (\fBRGFW_window\fP *win, RGFW_key key)"
 .br
+.RI "checks if a key is currently being held down "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isKeyReleased\fP (\fBRGFW_window\fP *win, RGFW_key key)"
 .br
+.RI "checks if a key was released "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMousePressed\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
 .br
+.RI "checks if a mouse button was pressed "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMouseDown\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
 .br
+.RI "checks if a mouse button is currently held down "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMouseReleased\fP (\fBRGFW_window\fP *win, RGFW_mouseButton button)"
 .br
+.RI "checks if a mouse button was released "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_didMouseLeave\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "checks if the mouse left the window (true only for the first frame) "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_didMouseEnter\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "checks if the mouse entered the window (true only for the first frame) "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMouseInside\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "checks if the mouse is currently inside the window bounds "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isDataDragging\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "checks if there is data being dragged into or within the window "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_getDataDrag\fP (\fBRGFW_window\fP *win, \fBi32\fP *x, \fBi32\fP *y)"
 .br
+.RI "gets the position of a data drag "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_didDataDrop\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "checks if a data drop occurred in the window (first frame only) "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_getDataDrop\fP (\fBRGFW_window\fP *win, const char ***files, size_t *count)"
 .br
+.RI "retrieves files from a data drop (drag and drop) "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_close\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "closes the window and frees its associated structure "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_closePtr\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "closes the window without freeing its structure "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_move\fP (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
 .br
+.RI "moves the window to a new position on the screen "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_moveToMonitor\fP (\fBRGFW_window\fP *win, \fBRGFW_monitor\fP m)"
 .br
+.RI "moves the window to a specific monitor "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_resize\fP (\fBRGFW_window\fP *win, \fBi32\fP w, \fBi32\fP h)"
 .br
+.RI "resizes the window to the given dimensions "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setAspectRatio\fP (\fBRGFW_window\fP *win, \fBi32\fP w, \fBi32\fP h)"
 .br
+.RI "sets the aspect ratio of the window "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMinSize\fP (\fBRGFW_window\fP *win, \fBi32\fP w, \fBi32\fP h)"
 .br
+.RI "sets the minimum size of the window "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMaxSize\fP (\fBRGFW_window\fP *win, \fBi32\fP w, \fBi32\fP h)"
 .br
+.RI "sets the maximum size of the window "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_focus\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "sets focus to the window "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isInFocus\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "checks if the window is currently in focus "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_raise\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "raises the window to the top of the stack "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_maximize\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "maximizes the window "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setFullscreen\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP fullscreen)"
 .br
+.RI "toggles fullscreen mode for the window "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_center\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "centers the window on the screen "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_minimize\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "minimizes the window "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_restore\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "restores the window from minimized state "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setFloating\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP floating)"
 .br
+.RI "makes the window a floating window "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setOpacity\fP (\fBRGFW_window\fP *win, \fBu8\fP opacity)"
 .br
+.RI "sets the opacity level of the window "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setBorder\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP border)"
 .br
+.RI "toggles window borders "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_borderless\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "checks if the window is borderless "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setDND\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP allow)"
 .br
+.RI "toggles drag-and-drop (DND) support for the window "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_allowsDND\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "checks if drag-and-drop (DND) is allowed "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMousePassthrough\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP passthrough)"
 .br
+.RI "toggles mouse passthrough for the window "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setName\fP (\fBRGFW_window\fP *win, const char *name)"
 .br
+.RI "renames the window "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setIcon\fP (\fBRGFW_window\fP *win, \fBu8\fP *data, \fBi32\fP w, \fBi32\fP h, RGFW_format format)"
 .br
-.ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_icon)"
-.br
+.RI "sets the icon for the window and taskbar "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setIconEx\fP (\fBRGFW_window\fP *win, \fBu8\fP *data, \fBi32\fP w, \fBi32\fP h, RGFW_format format, RGFW_icon type)"
 .br
+.RI "sets the icon for the window and/or taskbar "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_mouse\fP *mouse)"
 .br
-.ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_mouseIcons)"
-.br
+.RI "sets the mouse icon for the window using a loaded bitmap "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setMouseStandard\fP (\fBRGFW_window\fP *win, RGFW_mouseIcons mouse)"
 .br
+.RI "Sets the mouse to a standard system cursor\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setMouseDefault\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Sets the mouse to the default cursor icon\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_holdMouse\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Locks the cursor to the center of the window\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isHoldingMouse\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Returns true if the mouse is currently held by RGFW\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_unholdMouse\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Releases the mouse so it can move freely again\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_hide\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Hides the window from view\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_show\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Shows the window if it was hidden\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setShouldClose\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP shouldClose)"
 .br
+.RI "Sets whether the window should close\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_getGlobalMouse\fP (\fBi32\fP *x, \fBi32\fP *y)"
 .br
+.RI "Retrieves the current global mouse position\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_getMouse\fP (\fBRGFW_window\fP *win, \fBi32\fP *x, \fBi32\fP *y)"
 .br
+.RI "Retrieves the mouse position relative to the window\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_showMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP show)"
 .br
+.RI "Shows or hides the mouse cursor for the window\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMouseHidden\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Checks if the mouse is currently hidden in the window\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_moveMouse\fP (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
 .br
+.RI "Moves the mouse to the specified position within the window\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_shouldClose\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Checks if the window should close\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isFullscreen\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Checks if the window is currently fullscreen\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isHidden\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Checks if the window is currently hidden\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMinimized\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Checks if the window is minimized\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isMaximized\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Checks if the window is maximized\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isFloating\fP (\fBRGFW_window\fP *win)"
 .br
+.RI "Checks if the window is floating\&. "
 .in -1c
 .SH "Detailed Description"
 .PP 
@@ -211,179 +266,942 @@ Window_management \- Window_management
 
 .SH "Function Documentation"
 .PP 
-.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_icon)"
-
-.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_mouseIcons)"
-
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_getGlobalMouse (\fBi32\fP * x, \fBi32\fP * y)"
-where the mouse is on the screen 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_allowsDND (\fBRGFW_window\fP * win)"
-check if DND is allowed 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_borderless (\fBRGFW_window\fP * win)"
 
-.SS "\fBRGFWDEF\fP void RGFW_window_center (\fBRGFW_window\fP * win)"
-center the window 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_checkEvent (\fBRGFW_window\fP * win, \fBRGFW_event\fP * event)"
-polls the event queue if it's empty and pops the first event for the window from the event queue using this function without a while loop may cause event lag
 .PP
-because this function polls events, it may not work for multi-threaded systems RGFW_pollEvents + RGFW_window_checkQueuedEvent should be used when using multi-threaded systems
-.PP
-ex\&.
-.PP
-\fBRGFW_event\fP; while (RGFW_window_checkEvent(win, &event)) [this keeps checking events until it reaches the last queued event]
-.PP
-you may also use \fCRGFW_pollEvents\fP instead check current event (returns RGFW_TRUE if there is an event or RGFW_FALSE if there is no event) 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_checkQueuedEvent (\fBRGFW_window\fP * win, \fBRGFW_event\fP * event)"
-pops the first event for the window from the event queue 
-.SS "\fBRGFWDEF\fP void RGFW_window_close (\fBRGFW_window\fP * win)"
-window managment functions close the window and free the window struct 
-.SS "\fBRGFWDEF\fP void RGFW_window_closePtr (\fBRGFW_window\fP * win)"
-close the window, don't free the window struct 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_didDataDrop (\fBRGFW_window\fP * win)"
-
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_didMouseEnter (\fBRGFW_window\fP * win)"
-if the mouse enter the window, only true for the first frame 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_didMouseLeave (\fBRGFW_window\fP * win)"
-if the mouse left the window, only true for the first frame 
-.SS "\fBRGFWDEF\fP void RGFW_window_focus (\fBRGFW_window\fP * win)"
-sets the focus to this window 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_getDataDrag (\fBRGFW_window\fP * win, \fBi32\fP * x, \fBi32\fP * y)"
-gets the drag point, returns true if if there is data being dragged to/in the window, only true for the first frame 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_getDataDrop (\fBRGFW_window\fP * win, const char *** files, size_t * count)"
-
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_getMouse (\fBRGFW_window\fP * win, \fBi32\fP * x, \fBi32\fP * y)"
-where the mouse is on the window 
-.SS "\fBRGFWDEF\fP void RGFW_window_hide (\fBRGFW_window\fP * win)"
-hide the window 
-.SS "\fBRGFWDEF\fP void RGFW_window_holdMouse (\fBRGFW_window\fP * win)"
-
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isDataDragging (\fBRGFW_window\fP * win)"
-if there is data being dragged to/in the window, only true for the first frame 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isFloating (\fBRGFW_window\fP * win)"
-if the window is floating 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isFullscreen (\fBRGFW_window\fP * win)"
-if the window is fullscreen 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isHidden (\fBRGFW_window\fP * win)"
-if the window is hidden 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isHoldingMouse (\fBRGFW_window\fP * win)"
-if the mouse is held by RGFW 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isInFocus (\fBRGFW_window\fP * win)"
-checks the focus to this window 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isKeyDown (\fBRGFW_window\fP * win, RGFW_key key)"
-if key is held (key code) 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isKeyPressed (\fBRGFW_window\fP * win, RGFW_key key)"
-checks only if the key is pressed while the window in focus\&. if key is pressed (key code) 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isKeyReleased (\fBRGFW_window\fP * win, RGFW_key key)"
-if key is released (key code) 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMaximized (\fBRGFW_window\fP * win)"
-if the window is maximized 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMinimized (\fBRGFW_window\fP * win)"
-if the window is minimized 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMouseDown (\fBRGFW_window\fP * win, RGFW_mouseButton button)"
-if a mouse button is down 
+Retrieves the current global mouse position\&. ! 
 .PP
 \fBParameters\fP
 .RS 4
-\fIbutton\fP mouse button code 
+\fIx\fP [OUTPUT] Pointer to store the X position of the mouse on the screen\&. 
+.br
+\fIy\fP [OUTPUT] Pointer to store the Y position of the mouse on the screen\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if the position was successfully retrieved\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_allowsDND (\fBRGFW_window\fP * win)"
+
+.PP
+checks if drag-and-drop (DND) is allowed ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if DND is enabled, RGFW_FALSE otherwise 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_borderless (\fBRGFW_window\fP * win)"
+
+.PP
+checks if the window is borderless ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if borderless, RGFW_FALSE otherwise 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_window_center (\fBRGFW_window\fP * win)"
+
+.PP
+centers the window on the screen ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_checkEvent (\fBRGFW_window\fP * win, \fBRGFW_event\fP * event)"
+
+.PP
+polls and pops the next event from the window's event queue ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIevent\fP [OUTPUT] a pointer to store the retrieved event 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if an event was found, RGFW_FALSE otherwise
+.RE
+.PP
+NOTE: Using this function without a loop may cause event lag\&. For multi-threaded systems, use RGFW_pollEvents combined with RGFW_window_checkQueuedEvent\&.
+.PP
+Example: \fBRGFW_event\fP event; while (RGFW_window_checkEvent(win, &event)) { // handle event } 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_checkQueuedEvent (\fBRGFW_window\fP * win, \fBRGFW_event\fP * event)"
+
+.PP
+pops the first queued event for the window ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIevent\fP [OUTPUT] a pointer to store the retrieved event 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if an event was found, RGFW_FALSE otherwise 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_window_close (\fBRGFW_window\fP * win)"
+
+.PP
+closes the window and frees its associated structure ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_window_closePtr (\fBRGFW_window\fP * win)"
+
+.PP
+closes the window without freeing its structure ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_didDataDrop (\fBRGFW_window\fP * win)"
+
+.PP
+checks if a data drop occurred in the window (first frame only) ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if data was dropped, RGFW_FALSE otherwise 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_didMouseEnter (\fBRGFW_window\fP * win)"
+
+.PP
+checks if the mouse entered the window (true only for the first frame) ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if the mouse entered, RGFW_FALSE otherwise 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_didMouseLeave (\fBRGFW_window\fP * win)"
+
+.PP
+checks if the mouse left the window (true only for the first frame) ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if the mouse left, RGFW_FALSE otherwise 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_window_focus (\fBRGFW_window\fP * win)"
+
+.PP
+sets focus to the window ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_getDataDrag (\fBRGFW_window\fP * win, \fBi32\fP * x, \fBi32\fP * y)"
+
+.PP
+gets the position of a data drag ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIx\fP [OUTPUT] pointer to store the x position 
+.br
+\fIy\fP [OUTPUT] pointer to store the y position 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if there is an active drag, RGFW_FALSE otherwise 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_getDataDrop (\fBRGFW_window\fP * win, const char *** files, size_t * count)"
+
+.PP
+retrieves files from a data drop (drag and drop) ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIfiles\fP [OUTPUT] a pointer to the array of file paths 
+.br
+\fIcount\fP [OUTPUT] the number of dropped files 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if a data drop occurred, RGFW_FALSE otherwise 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_getMouse (\fBRGFW_window\fP * win, \fBi32\fP * x, \fBi32\fP * y)"
+
+.PP
+Retrieves the mouse position relative to the window\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.br
+\fIx\fP [OUTPUT] Pointer to store the X position within the window\&. 
+.br
+\fIy\fP [OUTPUT] Pointer to store the Y position within the window\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if the position was successfully retrieved\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_window_hide (\fBRGFW_window\fP * win)"
+
+.PP
+Hides the window from view\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_window_holdMouse (\fBRGFW_window\fP * win)"
+
+.PP
+Locks the cursor to the center of the window\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&.
+.RE
+.PP
+While the cursor is held, X and Y report raw mouse movement data\&. Useful for 3D camera or first-person movement systems\&. 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isDataDragging (\fBRGFW_window\fP * win)"
+
+.PP
+checks if there is data being dragged into or within the window ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if data is being dragged, RGFW_FALSE otherwise 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isFloating (\fBRGFW_window\fP * win)"
+
+.PP
+Checks if the window is floating\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if the window is floating\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isFullscreen (\fBRGFW_window\fP * win)"
+
+.PP
+Checks if the window is currently fullscreen\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if the window is fullscreen\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isHidden (\fBRGFW_window\fP * win)"
+
+.PP
+Checks if the window is currently hidden\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if the window is hidden\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isHoldingMouse (\fBRGFW_window\fP * win)"
+
+.PP
+Returns true if the mouse is currently held by RGFW\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if the mouse is being held\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isInFocus (\fBRGFW_window\fP * win)"
+
+.PP
+checks if the window is currently in focus ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if the window is in focus, RGFW_FALSE otherwise 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isKeyDown (\fBRGFW_window\fP * win, RGFW_key key)"
+
+.PP
+checks if a key is currently being held down ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIkey\fP the key code to check 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if the key is held down, RGFW_FALSE otherwise 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isKeyPressed (\fBRGFW_window\fP * win, RGFW_key key)"
+
+.PP
+checks if a key was pressed while the window is in focus ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIkey\fP the key code to check 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if the key was pressed, RGFW_FALSE otherwise 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isKeyReleased (\fBRGFW_window\fP * win, RGFW_key key)"
+
+.PP
+checks if a key was released ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIkey\fP the key code to check 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if the key was released, RGFW_FALSE otherwise 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMaximized (\fBRGFW_window\fP * win)"
+
+.PP
+Checks if the window is maximized\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if the window is maximized\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMinimized (\fBRGFW_window\fP * win)"
+
+.PP
+Checks if the window is minimized\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if the window is minimized\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMouseDown (\fBRGFW_window\fP * win, RGFW_mouseButton button)"
+
+.PP
+checks if a mouse button is currently held down ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIbutton\fP the mouse button code to check 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if the mouse button is down, RGFW_FALSE otherwise 
 .RE
 .PP
 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMouseHidden (\fBRGFW_window\fP * win)"
-if the mouse is hidden 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMouseInside (\fBRGFW_window\fP * win)"
-if the mouse is within the window or not 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMousePressed (\fBRGFW_window\fP * win, RGFW_mouseButton button)"
-if a mouse button is pressed 
+
+.PP
+Checks if the mouse is currently hidden in the window\&. ! 
 .PP
 \fBParameters\fP
 .RS 4
-\fIbutton\fP mouse button code 
+\fIwin\fP The target window\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if the mouse is hidden\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMouseInside (\fBRGFW_window\fP * win)"
+
+.PP
+checks if the mouse is currently inside the window bounds ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if the mouse is inside, RGFW_FALSE otherwise 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMousePressed (\fBRGFW_window\fP * win, RGFW_mouseButton button)"
+
+.PP
+checks if a mouse button was pressed ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIbutton\fP the mouse button code to check 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if the mouse button was pressed, RGFW_FALSE otherwise 
 .RE
 .PP
 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isMouseReleased (\fBRGFW_window\fP * win, RGFW_mouseButton button)"
-if a mouse button was released 
+
+.PP
+checks if a mouse button was released ! 
 .PP
 \fBParameters\fP
 .RS 4
-\fIbutton\fP mouse button code 
+\fIwin\fP a pointer to the target window 
+.br
+\fIbutton\fP the mouse button code to check 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if the mouse button was released, RGFW_FALSE otherwise 
 .RE
 .PP
 
 .SS "\fBRGFWDEF\fP void RGFW_window_maximize (\fBRGFW_window\fP * win)"
-maximize the window 
-.SS "\fBRGFWDEF\fP void RGFW_window_minimize (\fBRGFW_window\fP * win)"
-minimize the window (in taskbar (per OS)) 
-.SS "\fBRGFWDEF\fP void RGFW_window_move (\fBRGFW_window\fP * win, \fBi32\fP x, \fBi32\fP y)"
-move a window to a given point 
+
+.PP
+maximizes the window ! 
 .PP
 \fBParameters\fP
 .RS 4
-\fIy\fP new pos 
+\fIwin\fP a pointer to the target window 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_window_minimize (\fBRGFW_window\fP * win)"
+
+.PP
+minimizes the window ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_window_move (\fBRGFW_window\fP * win, \fBi32\fP x, \fBi32\fP y)"
+
+.PP
+moves the window to a new position on the screen ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIx\fP the new x position 
+.br
+\fIy\fP the new y position 
 .RE
 .PP
 
 .SS "\fBRGFWDEF\fP void RGFW_window_moveMouse (\fBRGFW_window\fP * win, \fBi32\fP x, \fBi32\fP y)"
-move the mouse to a given point 
-.SS "\fBRGFWDEF\fP void RGFW_window_moveToMonitor (\fBRGFW_window\fP * win, \fBRGFW_monitor\fP m)"
-move window to a specific monitor 
-.SS "\fBRGFWDEF\fP void RGFW_window_raise (\fBRGFW_window\fP * win)"
-raise the window (to the top) 
-.SS "\fBRGFWDEF\fP void RGFW_window_resize (\fBRGFW_window\fP * win, \fBi32\fP w, \fBi32\fP h)"
-resize window to a current size/area 
+
+.PP
+Moves the mouse to the specified position within the window\&. ! 
 .PP
 \fBParameters\fP
 .RS 4
-\fIwin\fP source window
+\fIwin\fP The target window\&. 
 .br
-\fIh\fP new size 
+\fIx\fP The new X position\&. 
+.br
+\fIy\fP The new Y position\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_window_moveToMonitor (\fBRGFW_window\fP * win, \fBRGFW_monitor\fP m)"
+
+.PP
+moves the window to a specific monitor ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIm\fP the target monitor 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_window_raise (\fBRGFW_window\fP * win)"
+
+.PP
+raises the window to the top of the stack ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_window_resize (\fBRGFW_window\fP * win, \fBi32\fP w, \fBi32\fP h)"
+
+.PP
+resizes the window to the given dimensions ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIw\fP the new width 
+.br
+\fIh\fP the new height 
 .RE
 .PP
 
 .SS "\fBRGFWDEF\fP void RGFW_window_restore (\fBRGFW_window\fP * win)"
-restore the window from minimized (per OS) 
+
+.PP
+restores the window from minimized state ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_setAspectRatio (\fBRGFW_window\fP * win, \fBi32\fP w, \fBi32\fP h)"
-set window aspect ratio 
+
+.PP
+sets the aspect ratio of the window ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIw\fP the width ratio 
+.br
+\fIh\fP the height ratio 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_setBorder (\fBRGFW_window\fP * win, \fBRGFW_bool\fP border)"
-if the window should have a border or not (borderless) based on bool value of \fCborder\fP 
+
+.PP
+toggles window borders ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIborder\fP RGFW_TRUE for bordered, RGFW_FALSE for borderless 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_setDND (\fBRGFW_window\fP * win, \fBRGFW_bool\fP allow)"
-turn on / off dnd (RGFW_windowAllowDND stil must be passed to the window) 
+
+.PP
+toggles drag-and-drop (DND) support for the window ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIallow\fP RGFW_TRUE to allow DND, RGFW_FALSE to disable 
+.RE
+.PP
+\fBNote\fP
+.RS 4
+RGFW_windowAllowDND must still be passed when creating the window 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_setFlags (\fBRGFW_window\fP * win, RGFW_windowFlags)"
 set the window flags (will undo flags if they don't match the old ones) 
 .SS "\fBRGFWDEF\fP void RGFW_window_setFloating (\fBRGFW_window\fP * win, \fBRGFW_bool\fP floating)"
-make the window a floating window 
+
+.PP
+makes the window a floating window ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIfloating\fP RGFW_TRUE to float, RGFW_FALSE to disable 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_setFullscreen (\fBRGFW_window\fP * win, \fBRGFW_bool\fP fullscreen)"
-turn fullscreen on / off for a window 
+
+.PP
+toggles fullscreen mode for the window ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIfullscreen\fP RGFW_TRUE to enable fullscreen, RGFW_FALSE to disable 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setIcon (\fBRGFW_window\fP * win, \fBu8\fP * data, \fBi32\fP w, \fBi32\fP h, RGFW_format format)"
 
+.PP
+sets the icon for the window and taskbar ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIdata\fP the image data 
+.br
+\fIw\fP the width of the icon 
+.br
+\fIh\fP the height of the icon 
+.br
+\fIformat\fP the image format 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if successful, RGFW_FALSE otherwise
+.RE
+.PP
+NOTE: The image may be resized by default\&. 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setIconEx (\fBRGFW_window\fP * win, \fBu8\fP * data, \fBi32\fP w, \fBi32\fP h, RGFW_format format, RGFW_icon type)"
-sets mouse to RGFW_mouse icon (loaded from a bitmap struct) 
+
+.PP
+sets the icon for the window and/or taskbar ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIdata\fP the image data 
+.br
+\fIw\fP the width of the icon 
+.br
+\fIh\fP the height of the icon 
+.br
+\fIformat\fP the image format 
+.br
+\fItype\fP the target icon type (taskbar, window, or both) 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if successful, RGFW_FALSE otherwise 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_setMaxSize (\fBRGFW_window\fP * win, \fBi32\fP w, \fBi32\fP h)"
-set the maximum dimensions of a window 
+
+.PP
+sets the maximum size of the window ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIw\fP the maximum width 
+.br
+\fIh\fP the maximum height 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_setMinSize (\fBRGFW_window\fP * win, \fBi32\fP w, \fBi32\fP h)"
-set the minimum dimensions of a window 
+
+.PP
+sets the minimum size of the window ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIw\fP the minimum width 
+.br
+\fIh\fP the minimum height 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_setMouse (\fBRGFW_window\fP * win, \fBRGFW_mouse\fP * mouse)"
 
+.PP
+sets the mouse icon for the window using a loaded bitmap ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fImouse\fP a pointer to the RGFW_mouse struct containing the icon 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setMouseDefault (\fBRGFW_window\fP * win)"
-sets the mouse to the default mouse icon 
+
+.PP
+Sets the mouse to the default cursor icon\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if the default cursor was successfully set\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_setMousePassthrough (\fBRGFW_window\fP * win, \fBRGFW_bool\fP passthrough)"
-turn on / off mouse passthrough 
+
+.PP
+toggles mouse passthrough for the window ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIpassthrough\fP RGFW_TRUE to enable passthrough, RGFW_FALSE to disable 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setMouseStandard (\fBRGFW_window\fP * win, RGFW_mouseIcons mouse)"
-sets the mouse to a standard API cursor (based on RGFW_MOUSE, as seen at the end of the RGFW_HEADER part of this file) 
+
+.PP
+Sets the mouse to a standard system cursor\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.br
+\fImouse\fP The standard cursor type (see RGFW_MOUSE enum)\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if the standard cursor was successfully applied\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_setName (\fBRGFW_window\fP * win, const char * name)"
-rename window to a given string image MAY be resized by default, set both the taskbar and window icon 
+
+.PP
+renames the window ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIname\fP the new title string for the window 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_setOpacity (\fBRGFW_window\fP * win, \fBu8\fP opacity)"
-sets the opacity of a window 
+
+.PP
+sets the opacity level of the window ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the target window 
+.br
+\fIopacity\fP the opacity level (0–255) 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_setShouldClose (\fBRGFW_window\fP * win, \fBRGFW_bool\fP shouldClose)"
 
+.PP
+Sets whether the window should close\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.br
+\fIshouldClose\fP True to signal the window should close, false to keep it open\&.
+.RE
+.PP
+This can override or trigger the \fCRGFW_window_shouldClose\fP state by modifying window flags\&. 
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_shouldClose (\fBRGFW_window\fP * win)"
-if the window should close (RGFW_close was sent or escape was pressed) 
+
+.PP
+Checks if the window should close\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if the window should close (for example, if ESC was pressed or a close event occurred)\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_show (\fBRGFW_window\fP * win)"
-show the window 
+
+.PP
+Shows the window if it was hidden\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_showMouse (\fBRGFW_window\fP * win, \fBRGFW_bool\fP show)"
-show the mouse or hide the mouse 
+
+.PP
+Shows or hides the mouse cursor for the window\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.br
+\fIshow\fP True to show the mouse, false to hide it\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_window_unholdMouse (\fBRGFW_window\fP * win)"
-stop holding the mouse and let it move freely 
+
+.PP
+Releases the mouse so it can move freely again\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.RE
+.PP
+
 .SH "Author"
 .PP 
 Generated automatically by Doxygen for RGFW from the source code\&.

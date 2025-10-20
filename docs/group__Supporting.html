@@ -72,112 +72,63 @@ $(function() {
 
 <div class="header">
   <div class="summary">
-<a href="#define-members">Macros</a> &#124;
-<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">Supporting</div></div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
-Macros</h2></td></tr>
-<tr class="memitem:ga49fc83ce8848e48e0895a123ab5707dd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga49fc83ce8848e48e0895a123ab5707dd">RGFW_MAX_EVENTS</a>&#160;&#160;&#160;32</td></tr>
-<tr class="separator:ga49fc83ce8848e48e0895a123ab5707dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga121f88a2994d08b7c4b669e7c59eec97"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga121f88a2994d08b7c4b669e7c59eec97">RGFW_eventQueuePushEx</a>(eventInit)&#160;&#160;&#160;{ <a class="el" href="unionRGFW__event.html">RGFW_event</a> e; eventInit; <a class="el" href="group__Supporting.html#ga8592623602ce3b36956d512c31f3dfac">RGFW_eventQueuePush</a>(&amp;e); }</td></tr>
-<tr class="separator:ga121f88a2994d08b7c4b669e7c59eec97"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
-Typedefs</h2></td></tr>
-<tr class="memitem:gadaaf064e070d4b9f2f411b601bb2d6ed"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="group__Supporting.html#gadaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#gadaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a></td></tr>
-<tr class="separator:gadaaf064e070d4b9f2f411b601bb2d6ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:gafdab87dd54d25d3699a381e1051cb303"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#gafdab87dd54d25d3699a381e1051cb303">RGFW_setRootWindow</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win)</td></tr>
+<tr class="memdesc:gafdab87dd54d25d3699a381e1051cb303"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the root (main) RGFW window.  <a href="group__Supporting.html#gafdab87dd54d25d3699a381e1051cb303">More...</a><br /></td></tr>
 <tr class="separator:gafdab87dd54d25d3699a381e1051cb303"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9938b52ee354a81f049e67ae6e99fc94"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga9938b52ee354a81f049e67ae6e99fc94">RGFW_getRootWindow</a> (void)</td></tr>
+<tr class="memdesc:ga9938b52ee354a81f049e67ae6e99fc94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves the current root RGFW window.  <a href="group__Supporting.html#ga9938b52ee354a81f049e67ae6e99fc94">More...</a><br /></td></tr>
 <tr class="separator:ga9938b52ee354a81f049e67ae6e99fc94"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga8592623602ce3b36956d512c31f3dfac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga8592623602ce3b36956d512c31f3dfac">RGFW_eventQueuePush</a> (const <a class="el" href="unionRGFW__event.html">RGFW_event</a> *event)</td></tr>
+<tr class="memdesc:ga8592623602ce3b36956d512c31f3dfac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pushes an event into the standard RGFW event queue.  <a href="group__Supporting.html#ga8592623602ce3b36956d512c31f3dfac">More...</a><br /></td></tr>
 <tr class="separator:ga8592623602ce3b36956d512c31f3dfac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaaace703e5f525354422ae03465c838f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#gaaace703e5f525354422ae03465c838f5">RGFW_eventQueueFlush</a> (void)</td></tr>
+<tr class="memdesc:gaaace703e5f525354422ae03465c838f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clears all events from the RGFW event queue without processing them.  <a href="group__Supporting.html#gaaace703e5f525354422ae03465c838f5">More...</a><br /></td></tr>
 <tr class="separator:gaaace703e5f525354422ae03465c838f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga460e56a86bf3d851d833ac37089fd48f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="unionRGFW__event.html">RGFW_event</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga460e56a86bf3d851d833ac37089fd48f">RGFW_eventQueuePop</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win)</td></tr>
+<tr class="memdesc:ga460e56a86bf3d851d833ac37089fd48f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pops the next event from the RGFW event queue for the specified window.  <a href="group__Supporting.html#ga460e56a86bf3d851d833ac37089fd48f">More...</a><br /></td></tr>
 <tr class="separator:ga460e56a86bf3d851d833ac37089fd48f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf4429fa8a0dc4b06ffc1a2406a17b9ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#gaf4429fa8a0dc4b06ffc1a2406a17b9ac">RGFW_apiKeyToRGFW</a> (<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> keycode)</td></tr>
+<tr class="memdesc:gaf4429fa8a0dc4b06ffc1a2406a17b9ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts an API keycode to the RGFW unmapped (physical) key.  <a href="group__Supporting.html#gaf4429fa8a0dc4b06ffc1a2406a17b9ac">More...</a><br /></td></tr>
 <tr class="separator:gaf4429fa8a0dc4b06ffc1a2406a17b9ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6025f8aa67cdeb4d4ecc2a36a2eceaa4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga6025f8aa67cdeb4d4ecc2a36a2eceaa4">RGFW_rgfwToApiKey</a> (<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> keycode)</td></tr>
+<tr class="memdesc:ga6025f8aa67cdeb4d4ecc2a36a2eceaa4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts an RGFW keycode to the unmapped (physical) API key.  <a href="group__Supporting.html#ga6025f8aa67cdeb4d4ecc2a36a2eceaa4">More...</a><br /></td></tr>
 <tr class="separator:ga6025f8aa67cdeb4d4ecc2a36a2eceaa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga874ed6be98f99df190e70c4c324d2b69"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga874ed6be98f99df190e70c4c324d2b69">RGFW_rgfwToKeyChar</a> (<a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> keycode)</td></tr>
+<tr class="memdesc:ga874ed6be98f99df190e70c4c324d2b69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts an RGFW keycode to the mapped character representation.  <a href="group__Supporting.html#ga874ed6be98f99df190e70c4c324d2b69">More...</a><br /></td></tr>
 <tr class="separator:ga874ed6be98f99df190e70c4c324d2b69"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae0e0efe8d0ab3c07ef768ae92695d489"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#gae0e0efe8d0ab3c07ef768ae92695d489">RGFW_sizeofInfo</a> (void)</td></tr>
+<tr class="memdesc:gae0e0efe8d0ab3c07ef768ae92695d489"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves the size of the RGFW_info structure.  <a href="group__Supporting.html#gae0e0efe8d0ab3c07ef768ae92695d489">More...</a><br /></td></tr>
 <tr class="separator:gae0e0efe8d0ab3c07ef768ae92695d489"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf21d54287928c08a4df31a636021c0b9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#gaf21d54287928c08a4df31a636021c0b9">RGFW_init</a> (void)</td></tr>
+<tr class="memdesc:gaf21d54287928c08a4df31a636021c0b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the RGFW library.  <a href="group__Supporting.html#gaf21d54287928c08a4df31a636021c0b9">More...</a><br /></td></tr>
 <tr class="separator:gaf21d54287928c08a4df31a636021c0b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga02ddb1e7bbc4428fcb29d2bb14ebb87f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga02ddb1e7bbc4428fcb29d2bb14ebb87f">RGFW_deinit</a> (void)</td></tr>
+<tr class="memdesc:ga02ddb1e7bbc4428fcb29d2bb14ebb87f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deinitializes the RGFW library.  <a href="group__Supporting.html#ga02ddb1e7bbc4428fcb29d2bb14ebb87f">More...</a><br /></td></tr>
 <tr class="separator:ga02ddb1e7bbc4428fcb29d2bb14ebb87f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa07f8ecabbe23fc5ed6dd12be99cec4e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#gaa07f8ecabbe23fc5ed6dd12be99cec4e">RGFW_init_ptr</a> (<a class="el" href="group__Supporting.html#gadaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> *info)</td></tr>
+<tr class="memitem:gaa07f8ecabbe23fc5ed6dd12be99cec4e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#gaa07f8ecabbe23fc5ed6dd12be99cec4e">RGFW_init_ptr</a> (<a class="el" href="RGFW_8h.html#adaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> *info)</td></tr>
+<tr class="memdesc:gaa07f8ecabbe23fc5ed6dd12be99cec4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes RGFW using a user-provided RGFW_info structure.  <a href="group__Supporting.html#gaa07f8ecabbe23fc5ed6dd12be99cec4e">More...</a><br /></td></tr>
 <tr class="separator:gaa07f8ecabbe23fc5ed6dd12be99cec4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf007a79a46f7e43e25e9f004545fbf57"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#gaf007a79a46f7e43e25e9f004545fbf57">RGFW_deinit_ptr</a> (<a class="el" href="group__Supporting.html#gadaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> *info)</td></tr>
+<tr class="memitem:gaf007a79a46f7e43e25e9f004545fbf57"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#gaf007a79a46f7e43e25e9f004545fbf57">RGFW_deinit_ptr</a> (<a class="el" href="RGFW_8h.html#adaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> *info)</td></tr>
+<tr class="memdesc:gaf007a79a46f7e43e25e9f004545fbf57"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deinitializes a specific RGFW instance stored in the provided RGFW_info pointer.  <a href="group__Supporting.html#gaf007a79a46f7e43e25e9f004545fbf57">More...</a><br /></td></tr>
 <tr class="separator:gaf007a79a46f7e43e25e9f004545fbf57"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad554920798071ac88709322e4bc88d6e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#gad554920798071ac88709322e4bc88d6e">RGFW_setInfo</a> (<a class="el" href="group__Supporting.html#gadaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> *info)</td></tr>
+<tr class="memitem:gad554920798071ac88709322e4bc88d6e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#gad554920798071ac88709322e4bc88d6e">RGFW_setInfo</a> (<a class="el" href="RGFW_8h.html#adaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> *info)</td></tr>
+<tr class="memdesc:gad554920798071ac88709322e4bc88d6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the global RGFW_info structure pointer.  <a href="group__Supporting.html#gad554920798071ac88709322e4bc88d6e">More...</a><br /></td></tr>
 <tr class="separator:gad554920798071ac88709322e4bc88d6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4146e907d97ba4e3aa50ba6d05d43058"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Supporting.html#gadaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga4146e907d97ba4e3aa50ba6d05d43058">RGFW_getInfo</a> (void)</td></tr>
+<tr class="memitem:ga4146e907d97ba4e3aa50ba6d05d43058"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#adaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Supporting.html#ga4146e907d97ba4e3aa50ba6d05d43058">RGFW_getInfo</a> (void)</td></tr>
+<tr class="memdesc:ga4146e907d97ba4e3aa50ba6d05d43058"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves the global RGFW_info structure pointer.  <a href="group__Supporting.html#ga4146e907d97ba4e3aa50ba6d05d43058">More...</a><br /></td></tr>
 <tr class="separator:ga4146e907d97ba4e3aa50ba6d05d43058"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p >native rendering API functions</p><ul>
 <li></li>
 </ul>
-<h2 class="groupheader">Macro Definition Documentation</h2>
-<a id="ga121f88a2994d08b7c4b669e7c59eec97" name="ga121f88a2994d08b7c4b669e7c59eec97"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga121f88a2994d08b7c4b669e7c59eec97">&#9670;&#160;</a></span>RGFW_eventQueuePushEx</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define RGFW_eventQueuePushEx</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">eventInit</td><td>)</td>
-          <td>&#160;&#160;&#160;{ <a class="el" href="unionRGFW__event.html">RGFW_event</a> e; eventInit; <a class="el" href="group__Supporting.html#ga8592623602ce3b36956d512c31f3dfac">RGFW_eventQueuePush</a>(&amp;e); }</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ga49fc83ce8848e48e0895a123ab5707dd" name="ga49fc83ce8848e48e0895a123ab5707dd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga49fc83ce8848e48e0895a123ab5707dd">&#9670;&#160;</a></span>RGFW_MAX_EVENTS</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define RGFW_MAX_EVENTS&#160;&#160;&#160;32</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >change which window is the root window </p>
-
-</div>
-</div>
-<h2 class="groupheader">Typedef Documentation</h2>
-<a id="gadaaf064e070d4b9f2f411b601bb2d6ed" name="gadaaf064e070d4b9f2f411b601bb2d6ed"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gadaaf064e070d4b9f2f411b601bb2d6ed">&#9670;&#160;</a></span>RGFW_info</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct <a class="el" href="group__Supporting.html#gadaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> <a class="el" href="group__Supporting.html#gadaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >optional init/deinit function </p>
-
-</div>
-</div>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="gaf4429fa8a0dc4b06ffc1a2406a17b9ac" name="gaf4429fa8a0dc4b06ffc1a2406a17b9ac"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gaf4429fa8a0dc4b06ffc1a2406a17b9ac">&#9670;&#160;</a></span>RGFW_apiKeyToRGFW()</h2>
@@ -194,7 +145,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >converts api keycode to the RGFW unmapped/physical key </p>
+
+<p>Converts an API keycode to the RGFW unmapped (physical) key. </p>
+<p >! </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">keycode</td><td>The platform-specific keycode. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The corresponding RGFW keycode. </dd></dl>
 
 </div>
 </div>
@@ -213,7 +172,9 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >is called by default when the last open window is closed </p>
+
+<p>Deinitializes the RGFW library. </p>
+<p >! </p><dl class="section note"><dt>Note</dt><dd>This is automatically called when the last open window is closed. </dd></dl>
 
 </div>
 </div>
@@ -226,13 +187,20 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void RGFW_deinit_ptr </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__Supporting.html#gadaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#adaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> *&#160;</td>
           <td class="paramname"><em>info</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >deinits RGFW instance at pointer </p>
+
+<p>Deinitializes a specific RGFW instance stored in the provided RGFW_info pointer. </p>
+<p >! </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">info</td><td>A pointer to the RGFW_info structure representing the instance to deinitialize. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -252,6 +220,9 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Clears all events from the RGFW event queue without processing them. </p>
+<p >! </p>
+
 </div>
 </div>
 <a id="ga460e56a86bf3d851d833ac37089fd48f" name="ga460e56a86bf3d851d833ac37089fd48f"></a>
@@ -270,6 +241,15 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Pops the next event from the RGFW event queue for the specified window. </p>
+<p >! </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">win</td><td>A pointer to the RGFW_window to retrieve an event for. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A pointer to the popped <a class="el" href="unionRGFW__event.html" title="union for all of the event stucture types">RGFW_event</a>, or NULL if the queue is empty. </dd></dl>
+
 </div>
 </div>
 <a id="ga8592623602ce3b36956d512c31f3dfac" name="ga8592623602ce3b36956d512c31f3dfac"></a>
@@ -287,7 +267,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >standard event queue, used for injecting events and returning source API callback events like any other queue check </p>
+
+<p>Pushes an event into the standard RGFW event queue. </p>
+<p >! </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">event</td><td>A pointer to the <a class="el" href="unionRGFW__event.html" title="union for all of the event stucture types">RGFW_event</a> to be added to the queue. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -298,7 +285,7 @@ Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="group__Supporting.html#gadaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> * RGFW_getInfo </td>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#adaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> * RGFW_getInfo </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -306,6 +293,9 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Retrieves the global RGFW_info structure pointer. </p>
+<p >! </p><dl class="section return"><dt>Returns</dt><dd>A pointer to the current RGFW_info structure. </dd></dl>
 
 </div>
 </div>
@@ -325,6 +315,9 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Retrieves the current root RGFW window. </p>
+<p >! </p><dl class="section return"><dt>Returns</dt><dd>A pointer to the current root RGFW_window. </dd></dl>
+
 </div>
 </div>
 <a id="gaf21d54287928c08a4df31a636021c0b9" name="gaf21d54287928c08a4df31a636021c0b9"></a>
@@ -342,7 +335,10 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >is called by default when the first window is created by default </p>
+
+<p>Initializes the RGFW library. </p>
+<p >! </p><dl class="section return"><dt>Returns</dt><dd>0 on success, or a negative error code on failure. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This is automatically called when the first window is created. </dd></dl>
 
 </div>
 </div>
@@ -355,13 +351,21 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> RGFW_init_ptr </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__Supporting.html#gadaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#adaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> *&#160;</td>
           <td class="paramname"><em>info</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >init RGFW, storing the data at the pointer </p>
+
+<p>Initializes RGFW using a user-provided RGFW_info structure. </p>
+<p >! </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">info</td><td>A pointer to an RGFW_info structure to be used for initialization. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>0 on success, or a negative error code on failure. </dd></dl>
 
 </div>
 </div>
@@ -380,7 +384,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >converts RGFW keycode to the unmapped/physical api key </p>
+
+<p>Converts an RGFW keycode to the unmapped (physical) API key. </p>
+<p >! </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">keycode</td><td>The RGFW keycode. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The corresponding platform-specific keycode. </dd></dl>
 
 </div>
 </div>
@@ -399,7 +411,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p >converts RGFW keycode to the mapped keychar </p>
+
+<p>Converts an RGFW keycode to the mapped character representation. </p>
+<p >! </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">keycode</td><td>The RGFW keycode. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The corresponding key character. </dd></dl>
 
 </div>
 </div>
@@ -412,12 +432,20 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void RGFW_setInfo </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__Supporting.html#gadaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#adaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a> *&#160;</td>
           <td class="paramname"><em>info</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Sets the global RGFW_info structure pointer. </p>
+<p >! </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">info</td><td>A pointer to the RGFW_info structure to set. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -437,6 +465,14 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Sets the root (main) RGFW window. </p>
+<p >! </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">win</td><td>A pointer to the RGFW_window to set as the root window. </td></tr>
+  </table>
+  </dd>
+</dl>
+
 </div>
 </div>
 <a id="gae0e0efe8d0ab3c07ef768ae92695d489" name="gae0e0efe8d0ab3c07ef768ae92695d489"></a>
@@ -454,6 +490,9 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Retrieves the size of the RGFW_info structure. </p>
+<p >! </p><dl class="section return"><dt>Returns</dt><dd>The size (in bytes) of RGFW_info. </dd></dl>
 
 </div>
 </div>

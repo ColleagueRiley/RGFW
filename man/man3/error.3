@@ -6,28 +6,17 @@ error \- handling
 .SH SYNOPSIS
 .br
 .PP
-.SS "Typedefs"
-
-.in +1c
-.ti -1c
-.RI "typedef void(* \fBRGFW_debugfunc\fP) (RGFW_debugType type, RGFW_errorCode err, const char *msg)"
-.br
-.in -1c
 .SS "Functions"
 
 .in +1c
 .ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_debugType)"
-.br
-.ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_errorCode)"
-.br
-.ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_debugfunc\fP \fBRGFW_setDebugCallback\fP (\fBRGFW_debugfunc\fP func)"
 .br
+.RI "Sets the callback function to handle debug messages from RGFW\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_sendDebugInfo\fP (RGFW_debugType type, RGFW_errorCode err, const char *msg)"
 .br
+.RI "Sends a debug message manually through the currently set debug callback\&. "
 .in -1c
 .SH "Detailed Description"
 .PP 
@@ -36,21 +25,38 @@ error \- handling
 
 .PP
 
-.SH "Typedef Documentation"
-.PP 
-.SS "typedef void(* RGFW_debugfunc) (RGFW_debugType type, RGFW_errorCode err, const char *msg)"
-
 .SH "Function Documentation"
 .PP 
-.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_debugType)"
-
-.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_errorCode)"
-< no error
-.PP
-< error with the OpenGL context
 .SS "\fBRGFWDEF\fP void RGFW_sendDebugInfo (RGFW_debugType type, RGFW_errorCode err, const char * msg)"
 
+.PP
+Sends a debug message manually through the currently set debug callback\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fItype\fP The type of debug message being sent\&. 
+.br
+\fIerr\fP The associated error code\&. 
+.br
+\fImsg\fP The debug message text\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP \fBRGFW_debugfunc\fP RGFW_setDebugCallback (\fBRGFW_debugfunc\fP func)"
+
+.PP
+Sets the callback function to handle debug messages from RGFW\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfunc\fP The function pointer to be used as the debug callback\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The previously set debug callback function\&. 
+.RE
+.PP
 
 .SH "Author"
 .PP 
