@@ -379,6 +379,8 @@ int main() {
 	#define RGFW_INT_DEFINED
 #endif
 
+typedef ptrdiff_t RGFW_ssize_t;
+
 #ifndef RGFW_BOOL_DEFINED
     #define RGFW_BOOL_DEFINED
     typedef u8 RGFW_bool;
@@ -417,11 +419,17 @@ int main() {
 
 #endif
 
+
+/*! @brief The stucture that contains information about the current RGFW instance */
 typedef struct RGFW_info RGFW_info;
 
+/*! @brief The window stucture for interfacing with the window */
 typedef struct RGFW_window RGFW_window;
+
+/*! @brief The source window stucture for interfacing with the underlying windowing API (e.g. winapi, wayland, cocoa, etc) */
 typedef struct RGFW_window_src RGFW_window_src;
 
+/*! @brief The color format for pixel data */
 typedef RGFW_ENUM(u8, RGFW_format) {
 	RGFW_formatRGB8 = 0,    /*!< 8-bit RGB (3 channels) */
 	RGFW_formatBGR8,    /*!< 8-bit BGR (3 channels) */
@@ -432,15 +440,16 @@ typedef RGFW_ENUM(u8, RGFW_format) {
 	RGFW_formatCount
 };
 
+/*! @brief a stucture for interfacing with the underlying native image (e.g. XImage, HBITMAP, etc) */
 typedef struct RGFW_nativeImage RGFW_nativeImage;
+
+/*! @brief a stucture for interfacing with pixel data as a renderable surface */
 typedef struct RGFW_surface RGFW_surface;
 
-/* RGFW mouse loading */
+/*! a raw pointer to the underlying mouse handle for setting and creating custom mouse icons */
 typedef void RGFW_mouse;
 
-/*!
-	key codes and mouse icon enums
-*/
+/*! @brief RGFW's abstract keycodes */
 typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_keyNULL = 0,
 	RGFW_escape = '\033',
@@ -567,7 +576,7 @@ typedef RGFW_ENUM(u8, RGFW_key) {
     RGFW_keyLast = 256 /* padding for alignment ~(175 by default) */
 };
 
-/*! mouse button codes (RGFW_event.button.value) */
+/*! @brief abstract mouse button codes */
 typedef RGFW_ENUM(u8, RGFW_mouseButton) {
 	RGFW_mouseLeft = 0, /*!< left mouse button is pressed */
 	RGFW_mouseMiddle, /*!< mouse-wheel-button is pressed */
@@ -576,7 +585,7 @@ typedef RGFW_ENUM(u8, RGFW_mouseButton) {
 	RGFW_mouseFinal
 };
 
-/* for RGFW_event.lockstate */
+/*! abstract key modifier codes */
 typedef RGFW_ENUM(u8, RGFW_keymod) {
 	RGFW_modCapsLock = RGFW_BIT(0),
 	RGFW_modNumLock  = RGFW_BIT(1),
@@ -587,8 +596,8 @@ typedef RGFW_ENUM(u8, RGFW_keymod) {
 	RGFW_modScrollLock = RGFW_BIT(6)
 };
 
+/*! @brief codes for the event types that can be sent */
 typedef RGFW_ENUM(u8, RGFW_eventType) {
-	/*! event codes */
 	RGFW_eventNone = 0, /*!< no event has been sent */
  	RGFW_keyPressed, /* a key has been pressed */
 	RGFW_keyReleased, /*!< a key has been released */
@@ -641,6 +650,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 	RGFW_scaleUpdated /*!< content scale factor changed */
 };
 
+/*! @brief flags for toggling wether or not an event should be processed */
 typedef RGFW_ENUM(u32, RGFW_eventFlag) {
     RGFW_keyPressedFlag = RGFW_BIT(RGFW_keyPressed),
     RGFW_keyReleasedFlag = RGFW_BIT(RGFW_keyReleased),
@@ -672,23 +682,28 @@ typedef RGFW_ENUM(u32, RGFW_eventFlag) {
 };
 
 /*! Event structure(s) and union for checking/getting events */
+
+/*! @brief common event data across all events */
 typedef struct RGFW_commonEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies too (for event queue events) */
 } RGFW_commonEvent;
 
+/*! @brief event data for any mouse button event (press/release) */
 typedef struct RGFW_mouseButtonEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies too (for event queue events) */
 	u8 value; /* !< which mouse button was pressed */
 } RGFW_mouseButtonEvent;
 
+/*! @brief event data for any mouse scroll event */
 typedef struct RGFW_mouseScrollEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies too (for event queue events) */
 	float x, y; /*!< the raw mouse scroll value */
 } RGFW_mouseScrollEvent;
 
+/*! @brief event data for any mouse position event (RGFW_mousePosChanged) */
 typedef struct RGFW_mousePosEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies too (for event queue events) */
@@ -696,6 +711,7 @@ typedef struct RGFW_mousePosEvent {
 	float vecX, vecY; /*!< raw mouse movement */
 } RGFW_mousePosEvent;
 
+/*! @brief event data for any key event (press/release) */
 typedef struct RGFW_keyEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies too (for event queue events) */
@@ -705,6 +721,7 @@ typedef struct RGFW_keyEvent {
 	RGFW_keymod mod;
 } RGFW_keyEvent;
 
+/*! @brief event data for any data drop event */
 typedef struct RGFW_dataDropEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies too (for event queue events) */
@@ -713,19 +730,21 @@ typedef struct RGFW_dataDropEvent {
 	size_t count; /*!< how many files were dropped */
 } RGFW_dataDropEvent;
 
+/*! @brief event data for any data drag event */
 typedef struct RGFW_dataDragEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies too (for event queue events) */
 	i32 x, y; /*!< mouse x, y of event (or drop point) */
 } RGFW_dataDragEvent;
 
+/*! @brief event data for when the window scale (DPI) is updated */
 typedef struct RGFW_scaleUpdatedEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies too (for event queue events) */
 	float x, y; /*!< DPI scaling */
 } RGFW_scaleUpdatedEvent;
 
-/*! RGFW_event union */
+/*! @brief union for all of the event stucture types */
 typedef union RGFW_event {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_commonEvent common; /*!< common event data (e.g.) type and win */
@@ -739,7 +758,7 @@ typedef union RGFW_event {
 } RGFW_event;
 
 /*!
-	for RGFW_the code is stupid and C++ waitForEvent
+	@!brief codes for for RGFW_the code is stupid and C++ waitForEvent
 	waitMS -> Allows the function to keep checking for events even after there are no more events
 			  if waitMS == 0, the loop will not wait for events
 			  if waitMS > 0, the loop will wait that many miliseconds after there are no more events until it returns
@@ -752,7 +771,7 @@ typedef RGFW_ENUM(i32, RGFW_eventWait) {
 
 
 
-/*! Optional arguments for making a windows */
+/*! @brief optional bitwise arguments for making a windows, these can be OR'd together */
 typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowNoBorder = RGFW_BIT(0), /*!< the window doesn't have a border */
 	RGFW_windowNoResize = RGFW_BIT(1), /*!< the window cannot be resized by the user */
@@ -763,8 +782,8 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowCenter = RGFW_BIT(6), /*! center the window on the screen */
 	RGFW_windowScaleToMonitor = RGFW_BIT(8), /*! scale the window to the screen */
 	RGFW_windowHide = RGFW_BIT(9), /*! the window is hidden */
-	RGFW_windowMaximize = RGFW_BIT(10),
-	RGFW_windowCenterCursor = RGFW_BIT(11),
+	RGFW_windowMaximize = RGFW_BIT(10), /*!< maximize the window on creation */
+	RGFW_windowCenterCursor = RGFW_BIT(11), /*!< center the cursor to the window on creation */
 	RGFW_windowFloating = RGFW_BIT(12), /*!< create a floating window */
 	RGFW_windowFocusOnShow = RGFW_BIT(13), /*!< focus the window when it's shown */
 	RGFW_windowMinimize = RGFW_BIT(14), /*!< focus the window when it's shown */
@@ -774,12 +793,14 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize
 };
 
+/*! @brief the types of icon to set */
 typedef RGFW_ENUM(u8, RGFW_icon) {
 	RGFW_iconTaskbar = RGFW_BIT(0),
 	RGFW_iconWindow = RGFW_BIT(1),
 	RGFW_iconBoth = RGFW_iconTaskbar | RGFW_iconWindow
 };
 
+/*! @brief standard mouse icons */
 typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	RGFW_mouseNormal = 0,
 	RGFW_mouseArrow,
@@ -796,12 +817,12 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
     RGFW_mouseIconFinal = 16 /* padding for alignment */
 };
 
-typedef ptrdiff_t RGFW_ssize_t;
-
+/*! @brief the type of debug message */
 typedef RGFW_ENUM(u8, RGFW_debugType) {
 	RGFW_typeError = 0, RGFW_typeWarning, RGFW_typeInfo
 };
 
+/*! @brief error codes for known failure types */
 typedef RGFW_ENUM(u8, RGFW_errorCode) {
 	RGFW_noError = 0, /*!< no error */
 	RGFW_errOutOfMemory,
@@ -817,53 +838,55 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 	RGFW_warningWayland, RGFW_warningOpenGL
 };
 
+/*! @brief callback function type for debug messags */
 typedef void (* RGFW_debugfunc)(RGFW_debugType type, RGFW_errorCode err, const char* msg);
 
-/*! RGFW_windowMoved, the window and its new rect value  */
+/*! @brief RGFW_windowMoved, the window and its new rect value  */
 typedef void (* RGFW_windowMovedfunc)(RGFW_window* win, i32 x, i32 y);
-/*! RGFW_windowResized, the window and its new rect value  */
+/*! @brief RGFW_windowResized, the window and its new rect value  */
 typedef void (* RGFW_windowResizedfunc)(RGFW_window* win, i32 w, i32 h);
-/*! RGFW_windowRestored, the window and its new rect value  */
+/*! @brief RGFW_windowRestored, the window and its new rect value  */
 typedef void (* RGFW_windowRestoredfunc)(RGFW_window* win, i32 x, i32 y, i32 w, i32 h);
-/*! RGFW_windowMaximized, the window and its new rect value  */
+/*! @brief RGFW_windowMaximized, the window and its new rect value  */
 typedef void (* RGFW_windowMaximizedfunc)(RGFW_window* win, i32 x, i32 y, i32 w, i32 h);
-/*! RGFW_windowMinimized, the window and its new rect value  */
+/*! @brief RGFW_windowMinimized, the window and its new rect value  */
 typedef void (* RGFW_windowMinimizedfunc)(RGFW_window* win);
-/*! RGFW_quit, the window that was closed */
+/*! @brief RGFW_quit, the window that was closed */
 typedef void (* RGFW_windowQuitfunc)(RGFW_window* win);
-/*! RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its in focus */
+/*! @brief RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its in focus */
 typedef void (* RGFW_focusfunc)(RGFW_window* win, RGFW_bool inFocus);
-/*! RGFW_mouseEnter / RGFW_mouseLeave, the window that changed, the point of the mouse (enter only) and if the mouse has entered */
+/*! @brief RGFW_mouseEnter / RGFW_mouseLeave, the window that changed, the point of the mouse (enter only) and if the mouse has entered */
 typedef void (* RGFW_mouseNotifyfunc)(RGFW_window* win, i32 x, i32 y, RGFW_bool status);
-/*! RGFW_mousePosChanged, the window that the move happened on, and the new point of the mouse  */
+/*! @brief RGFW_mousePosChanged, the window that the move happened on, and the new point of the mouse  */
 typedef void (* RGFW_mousePosfunc)(RGFW_window* win, i32 x, i32 y, float vecX, float vecY);
-/*! RGFW_dataDrag, the window, the point of the drop on the windows */
+/*! @brief RGFW_dataDrag, the window, the point of the drop on the windows */
 typedef void (* RGFW_dataDragfunc)(RGFW_window* win, i32 x, i32 y);
-/*! RGFW_windowRefresh, the window that needs to be refreshed */
+/*! @brief RGFW_windowRefresh, the window that needs to be refreshed */
 typedef void (* RGFW_windowRefreshfunc)(RGFW_window* win);
-/*! RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of the mod keys, if it was a press (else it's a release) */
+/*! @brief RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of the mod keys, if it was a press (else it's a release) */
 typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, u8 sym, RGFW_keymod mod, RGFW_bool repeat, RGFW_bool pressed);
-/*! RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release)  */
+/*! @brief RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release)  */
 typedef void (* RGFW_mouseButtonfunc)(RGFW_window* win, RGFW_mouseButton button, RGFW_bool pressed);
-/*! RGFW_mouseScroll, the window that got the event, the x scroll value, the y scroll value */
+/*! @brief RGFW_mouseScroll, the window that got the event, the x scroll value, the y scroll value */
 typedef void (* RGFW_mouseScrollfunc)(RGFW_window* win, float x, float y);
-/*! RGFW_dataDrop the window that had the drop, the drop data and the number of files dropped */
+/*! @brief RGFW_dataDrop the window that had the drop, the drop data and the number of files dropped */
 typedef void (* RGFW_dataDropfunc)(RGFW_window* win, char** files, size_t count);
-/*! RGFW_scaleUpdated, the window the event was sent to, content scaleX, content scaleY */
+/*! @brief RGFW_scaleUpdated, the window the event was sent to, content scaleX, content scaleY */
 typedef void (* RGFW_scaleUpdatedfunc)(RGFW_window* win, float scaleX, float scaleY);
 
-typedef void (*RGFW_proc)(void); /* function pointer equivalent of void* */
+/*! @brief function pointer equivalent of void* */
+typedef void (*RGFW_proc)(void);
 
 #ifndef RGFW_NO_MONITOR
 
-/* monitor mode data | can be changed by the user (with functions)*/
+/*! @brief monitor mode data | can be changed by the user (with functions)*/
 typedef struct RGFW_monitorMode {
 	i32 w, h; /*!< monitor workarea size */
 	u32 refreshRate; /*!< monitor refresh rate */
 	u8 red, blue, green;
 } RGFW_monitorMode;
 
-/*! structure for monitor data */
+/*! @brief structure for monitor data */
 typedef struct RGFW_monitor {
 	i32 x, y; /*!< x - y of the monitor workarea */
 	char name[128]; /*!< monitor name */
@@ -873,6 +896,7 @@ typedef struct RGFW_monitor {
 	RGFW_monitorMode mode;
 } RGFW_monitor;
 
+/*! @brief what type of request you are making for the monitor */
 typedef RGFW_ENUM(u8, RGFW_modeRequest) {
 	RGFW_monitorScale = RGFW_BIT(0), /*!< scale the monitor size */
 	RGFW_monitorRefresh = RGFW_BIT(1), /*!< change the refresh rate */
@@ -884,14 +908,29 @@ typedef RGFW_ENUM(u8, RGFW_modeRequest) {
 
 #if defined(RGFW_OPENGL)
 
+/*! @brief abstract structure for interfacing with the underlying OpenGL API */
 typedef struct RGFW_glContext RGFW_glContext;
+
+/*! @brief abstract structure for interfacing with the underlying EGL API */
 typedef struct RGFW_eglContext RGFW_eglContext;
 
-/*! OpenGL init hints */
-typedef RGFW_ENUM(i32, RGFW_glReleaseBehavior)   { RGFW_glReleaseFlush = 0, RGFW_glReleaseNone };
-typedef RGFW_ENUM(i32, RGFW_glProfile)  { RGFW_glCore = 0, RGFW_glCompatibility, RGFW_glES};
+/*! values for the releaseBehavior hint */
+typedef RGFW_ENUM(i32, RGFW_glReleaseBehavior)   {
+	RGFW_glReleaseFlush = 0, /*!< flush the pipeline will be flushed when the context is release */
+	RGFW_glReleaseNone /*!< do nothing on release */
+};
+
+/*! values for the profile hint */
+typedef RGFW_ENUM(i32, RGFW_glProfile)  {
+	RGFW_glCore = 0, /*!< the core OpenGL version, e.g. just support for that version */
+	RGFW_glCompatibility, /*!< allow compatibility for older versions of RGFW as well as the requested version */
+	RGFW_glES /*!< use OpenGL ES */
+};
+
+/*! values for the profile hint */
 typedef RGFW_ENUM(i32, RGFW_glRenderer)  { RGFW_glAccelerated = 0, RGFW_glSoftware };
 
+/*! OpenGL initalization hints */
 typedef struct RGFW_glHints {
 	i32 stencil;  /*!< set stencil buffer bit size (0 by default) */
 	i32 samples; /*!< set number of sample buffers (0 by default) */
