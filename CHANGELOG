@@ -10,16 +10,14 @@ This release is being worked on in a fork, but will not be pushed to main until 
 
 Release:    RGFW 1.8.0 (pre-release)
 -----------------------------------------------
-This release focuses on improving RGFW's API while making the internals more stable and less bug prone.
-Cleaing up inconsistencies, reworking bad design choices and removing non-essential features.
+This release focuses on improving RGFW’s API while making its internals more stable and less prone to bugs.
+It also cleans up inconsistencies, reworks poor design choices, and removes non-essential features.
 
-I hope that this release establishes RGFW as more than a GLFW alternative, it's a windowing framework, meaning some GLFW features are beyond RGFW's scope and vice versa.
-I also took some ques from SDL API design that I found to be well designed.
+My goal with this release is to establish RGFW as more than just a GLFW alternative. RGFW is a windowing framework. This means some features found in GLFW fall outside its scope, and conversely, RGFW provides capabilities GLFW does not.
+I also took inspiration from aspects of SDL’s user level API design that I found particularly well thought out.
 -----------------------------------------------
 
-# RGFW Changelog
-
-## Breaking Changes
+Breaking Changes:
 ------------
 - state checking functions renamed `RGFW_isPressed` -> `RGFW_keyPressed`
 - RGFW_isKeyPressed / RGFW_isKeyReleased only checks if the key is pressed in that frame, is `RGFW_isKeyDown` if you want to know the current state.
@@ -74,7 +72,7 @@ I also took some ques from SDL API design that I found to be well designed.
 - add `RGFW_windowUseEGL` flag for choosing to use EGL
 - make sure ALL OpenGL functions have _OpenGL at the end of them
 
-## Major Changes
+Major Changes:
 ------------
 - fix support for C++, Objective-C/C++, Zig
 - Allow the `RGFW_window` and `RGFW_info` structs to be obfuscated
@@ -89,7 +87,7 @@ I also took some ques from SDL API design that I found to be well designed.
 - add internal API section in header
 - add `RGFW_gfxContextType` and `RGFW_window_src.gfxType` to identify what type of context we're using and if the context was allocated by RGFW.
 
-## New Features
+New Features:
 -------
 - add `RGFW_window_getEnabledEvents`,  `RGFW_window_setDisabledEvents` and `RGFW_window_setDisabledEvents`
 - add RGFW_extensionSupported
@@ -102,7 +100,7 @@ I also took some ques from SDL API design that I found to be well designed.
 - new function: RGFW_getGLHint.
 - make event queue use a circular buffer (@kjohns19)
 
-## Bug Fixes
+Bug Fixes:
 -----------
 - add` RGFW_setGlobalHints_OpenGL ` and `RGFW_getGlobalHints_OpenGL`
 - add `RGFW_resetGlobalHints_OpenGL`
@@ -138,7 +136,7 @@ I also took some ques from SDL API design that I found to be well designed.
 - fix event queue to handle circular buffering correctly
 - fixed Wayland resizing behavior
 
-## Other / Miscellaneous
+Other / Miscellaneous:
 -------
 - (X11) merge createContxt_OpenGL and createVisual_OpenGL
 - add RGFW_bool RGFW_window_getDataDrag(RGFW_window* win, i32* x, i32* y)  / RGFW_bool RGFW_window_isDataDragging(RGFW_window* win)
