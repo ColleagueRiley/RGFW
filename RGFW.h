@@ -6733,7 +6733,7 @@ static void RGFW_wl_data_source_send(void *data, struct wl_data_source *wl_data_
 }
 
 static void RGFW_wl_data_source_cancelled(void *data, struct wl_data_source *wl_data_source) {
-	// RGFW_UNUSED(data); 
+	
 	RGFW_info* RGFW = (RGFW_info*)data;
 
 	if (RGFW->kbOwner->src.data_source == wl_data_source) {
@@ -6765,25 +6765,6 @@ static void RGFW_wl_data_device_data_offer(void *data, struct wl_data_device *wl
 	wl_data_offer_add_listener(id, &wl_data_offer_listener, NULL);
 }
 
-static void RGFW_wl_data_device_enter(void *data, struct wl_data_device *wl_data_device, uint32_t serial,
-	struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y, struct wl_data_offer *id) {
-	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device); RGFW_UNUSED(serial); 
-	RGFW_UNUSED(surface); RGFW_UNUSED(x); RGFW_UNUSED(y); RGFW_UNUSED(id);
-}
-
-static void RGFW_wl_data_device_leave(void *data, struct wl_data_device *wl_data_device) {
-	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device);
-}
-
-static void RGFW_wl_data_device_motion(void *data, struct wl_data_device *wl_data_device,
-		       uint32_t time, wl_fixed_t x, wl_fixed_t y) {
-	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device); RGFW_UNUSED(time); RGFW_UNUSED(x); RGFW_UNUSED(y);
-}
-
-static void RGFW_wl_data_device_drop(void *data, struct wl_data_device *wl_data_device) {
-	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device);
-}
-
 static void RGFW_wl_data_device_selection(void *data, struct wl_data_device *wl_data_device, struct wl_data_offer *id) {
 	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device); RGFW_UNUSED(id);
 }
@@ -6792,8 +6773,13 @@ static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *regi
 
     static struct wl_seat_listener seat_listener = {&RGFW_wl_seat_capabilities, (void (*)(void *, struct wl_seat *, const char *))&RGFW_doNothing};
     static const struct wl_shm_listener shm_listener = { .format = RGFW_wl_shm_format_handler };
-	static const struct wl_data_device_listener wl_data_device_listener = { .data_offer = RGFW_wl_data_device_data_offer, .enter = RGFW_wl_data_device_enter,
-		.leave = RGFW_wl_data_device_leave, .motion = RGFW_wl_data_device_motion, .drop = RGFW_wl_data_device_drop, .selection = RGFW_wl_data_device_selection};
+	static const struct wl_data_device_listener wl_data_device_listener = { 
+		.data_offer = RGFW_wl_data_device_data_offer, 
+		.enter = (void*, struct wl_data_device*, u32, struct wl_surface*, wl_fixed_t, wl_fixed_t, struct wl_data_offer*)&RGFW_doNothing,
+		.leave = (void*, struct wl_data_device*)&RGFW_doNothing, 
+		.motion = (void*, struct wl_data_device*, u32 time, wl_fixed_t, wl_fixed_t)&RGFW_doNothing, 
+		.drop = (void*, struct wl_data_device*)&RGFW_doNothing, 
+		.selection = RGFW_wl_data_device_selection};
     RGFW_info* RGFW = (RGFW_info*)data;
     RGFW_UNUSED(version);
     
