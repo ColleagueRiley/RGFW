@@ -20,25 +20,25 @@ jobs:
       uses: mymindstorm/setup-emsdk@v14
       with:
         version: 3.1.52
-      
+
     - name: Build doxygen docs
       uses: mattnotmitt/doxygen-action@v1.9.5
       with:
           working-directory: './'
           doxyfile-path: './Doxyfile'
-      
+
     - name: Compile to WebAssembly
       run: |
-        git clone https://github.com/NishiOwO/osmesa     
+        git clone https://github.com/NishiOwO/osmesa
         rm -r -f osmesa/.git
         cd osmesa
         make TARGET=emscripten CC=emcc AR=emar
-        cd .. 
+        cd ..
 
         make CC=em++ examples/osmesa_demo/osmesa_demo NO_OSMESA=0 CFLAGS="-Iosmesa/include -Losmesa"
-        make clean        
+        make clean
 
-        make CC=em++ NO_OSMESA=1 
+        make CC=em++ NO_OSMESA=1
         make clean
         make CC=emcc NO_OSMESA=1
         make CC=emcc examples/osmesa_demo/osmesa_demo NO_OSMESA=0 CFLAGS="-Iosmesa/include -Losmesa"
@@ -46,13 +46,43 @@ jobs:
 
     - name: get nuklear wasm
       run: |
-        cd wasm 
+        cd wasm
         wget https://github.com/ColleagueRiley/nuklear_rgfw/raw/main/rgfw_opengl2/rgfw-nuklear.wasm
         wget https://raw.githubusercontent.com/ColleagueRiley/nuklear_rgfw/main/rgfw_opengl2/rgfw-nuklear.js
-        
+
     - name: Deploy Pages
-      if: github.event_name != 'pull_request' 
+      if: github.event_name != 'pull_request'
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./
+
+    - name: Build Library
+      run: |
+        make CC=emcc libRGFW.a
+        make CC=emcc libRGFW.so
+        cp -v ./libRGFW.so ./build/${{ env.RELEASE_NAME }}/lib
+      if: matrix.bits == 64
+
+    - name: Generate Artifacts
+      run: |
+        cp -v ./RGFW.h ./build/${{ env.RELEASE_NAME }}/include
+        cp -v ./libRGFW.a ./build/${{ env.RELEASE_NAME }}/lib
+        cp -v ./README.md ./build/${{ env.RELEASE_NAME }}/README.md
+        cp -v ./LICENSE ./build/${{ env.RELEASE_NAME }}/LICENSE
+        cd build
+        tar -czvf ${{ env.RELEASE_NAME }}.tar.gz ${{ env.RELEASE_NAME }}
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.RELEASE_NAME }}.tar.gz
+        path: ./build/${{ env.RELEASE_NAME }}.tar.gz
+
+    - name: Upload Artifact to Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./build/${{ env.RELEASE_NAME }}.tar.gz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: github.event_name == 'release' && github.event.action == 'published'
