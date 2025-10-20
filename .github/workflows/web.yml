@@ -27,15 +27,23 @@ jobs:
           working-directory: './'
           doxyfile-path: './Doxyfile'
 
-    - name: Compile to WebAssembly
+    - name: Setup paths
       run: |
-        mkdir -p "build"
+        mkdir build
         cd build
         mkdir ${{ env.RELEASE_NAME }}
         cd ${{ env.RELEASE_NAME }}
-        mkdir -p include
-        mkdir -p lib
+        mkdir include
+        mkdir lib
         cd ../../../RGFW
+
+    - name: Compile to WebAssembly
+      run: |
+        git clone https://github.com/NishiOwO/osmesa
+        rm -r -f osmesa/.git
+        cd osmesa
+        make TARGET=emscripten CC=emcc AR=emar
+        cd ..
 
         make CC=em++ examples/osmesa_demo/osmesa_demo NO_OSMESA=0 CFLAGS="-Iosmesa/include -Losmesa"
         make clean
