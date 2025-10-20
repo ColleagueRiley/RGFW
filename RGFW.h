@@ -927,8 +927,11 @@ typedef RGFW_ENUM(i32, RGFW_glProfile)  {
 	RGFW_glES /*!< use OpenGL ES */
 };
 
-/*! values for the profile hint */
-typedef RGFW_ENUM(i32, RGFW_glRenderer)  { RGFW_glAccelerated = 0, RGFW_glSoftware };
+/*! values for the renderer hint */
+typedef RGFW_ENUM(i32, RGFW_glRenderer)  {
+	RGFW_glAccelerated = 0, /*!< hardware accelerated (GPU) */
+	RGFW_glSoftware /*!< software rendered (CPU) */
+};
 
 /*! OpenGL initalization hints */
 typedef struct RGFW_glHints {
