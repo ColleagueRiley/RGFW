@@ -52,21 +52,22 @@ void checkEvents(RGFW_window* win) {
 				for (size_t i = 0; i < event.drop.count; i++)
 					printf("\t%u: '%s'\n", (u32)i, event.drop.files[i]);
 				break;
+			case RGFW_keyPressed:
+				if (event.key.value == RGFW_c && (RGFW_window_isKeyDown(win, RGFW_controlL) || RGFW_window_isKeyDown(win, RGFW_controlR))) {
+					char str[32] = {0};
+					int size = snprintf(str, 32, "window %p: 刺猬", (void*)win);
+					if (size > 0)
+						RGFW_writeClipboard(str, (u32)size);
+				}
+				else if (event.key.value == RGFW_v && (RGFW_window_isKeyDown(win, RGFW_controlL) || RGFW_window_isKeyDown(win, RGFW_controlR))) {
+					size_t len = 0;
+					const char* str = RGFW_readClipboard(&len);
+					printf("window %p: clipboard paste %d: '", (void*)win, (i32)len);
+					fwrite(str, 1, len, stdout);
+					printf("'\n");
+				}
+				break;
 		}
-	}
-
-	if (RGFW_window_isKeyPressed(win, RGFW_c) && (RGFW_window_isKeyPressed(win, RGFW_controlL) || RGFW_window_isKeyPressed(win, RGFW_controlR))) {
-		char str[32] = {0};
-		int size = snprintf(str, 32, "window %p: 刺猬", (void*)win);
-		if (size > 0)
-			RGFW_writeClipboard(str, (u32)size);
-	}
-	else if (RGFW_window_isKeyPressed(win, RGFW_v) && (RGFW_window_isKeyPressed(win, RGFW_controlL) || RGFW_window_isKeyPressed(win, RGFW_controlR))) {
-		size_t len = 0;
-		const char* str = RGFW_readClipboard(&len);
-		printf("window %p: clipboard paste %d: '", (void*)win, (i32)len);
-		fwrite(str, 1, len, stdout);
-		printf("'\n");
 	}
 }
 
@@ -86,7 +87,7 @@ void* loop(void* _win) {
 
 	while (!RGFW_window_shouldClose(win)) {
 		checkEvents(win);
-		if (RGFW_window_isKeyPressed(win, RGFW_space)) {
+		if (RGFW_window_isKeyDown(win, RGFW_space)) {
 			blue = (blue + 1) % 100;
 		}
 
@@ -123,10 +124,16 @@ int main(void) {
     RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
 
 	RGFW_window* win1 = RGFW_createWindow("RGFW Example Window 1", 500, 500, 500, 500, RGFW_windowAllowDND | RGFW_windowOpenGL);
+
+	RGFW_window_makeCurrentContext_OpenGL(NULL); /* this is so we can share the context on wine for some reason */
+
 	hints->share = RGFW_window_getContext_OpenGL(win1);
 	RGFW_setGlobalHints_OpenGL(hints);
 
 	RGFW_window* win2 = RGFW_createWindow("RGFW Example Window 2", 100, 100, 200, 200, RGFW_windowNoResize | RGFW_windowAllowDND | RGFW_windowOpenGL);
+
+	RGFW_window_makeCurrentContext_OpenGL(NULL); /* this is so we can share the context on wine for some reason */
+
 	RGFW_window* win3 = RGFW_createWindow("RGFW Example Window 3", 20, 500, 400, 300, RGFW_windowNoResize | RGFW_windowAllowDND | RGFW_windowOpenGL);
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 	RGFW_window_makeCurrentContext_OpenGL(NULL); /* this is really important (this releases the opengl context on this thread) */
