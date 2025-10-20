@@ -29,11 +29,13 @@ jobs:
 
     - name: Compile to WebAssembly
       run: |
-        git clone https://github.com/NishiOwO/osmesa
-        rm -r -f osmesa/.git
-        cd osmesa
-        make TARGET=emscripten CC=emcc AR=emar
-        cd ..
+        mkdir build
+        cd build
+        mkdir ${{ env.RELEASE_NAME }}
+        cd ${{ env.RELEASE_NAME }}
+        mkdir include
+        mkdir lib
+        cd ../../../RGFW
 
         make CC=em++ examples/osmesa_demo/osmesa_demo NO_OSMESA=0 CFLAGS="-Iosmesa/include -Losmesa"
         make clean
