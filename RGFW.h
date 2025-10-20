@@ -6755,6 +6755,7 @@ static void RGFW_wl_data_offer_source_actions(void *data, struct wl_data_offer *
 static void RGFW_wl_data_offer_action(void *data, struct wl_data_offer *wl_data_offer, uint32_t dnd_action) {
 	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_offer); RGFW_UNUSED(dnd_action);
 }
+
 static void RGFW_wl_data_device_data_offer(void *data, struct wl_data_device *wl_data_device, struct wl_data_offer *id) {
 	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device); RGFW_UNUSED(id);
 	static const struct wl_data_offer_listener wl_data_offer_listener = { 
@@ -6773,13 +6774,15 @@ static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *regi
 
     static struct wl_seat_listener seat_listener = {&RGFW_wl_seat_capabilities, (void (*)(void *, struct wl_seat *, const char *))&RGFW_doNothing};
     static const struct wl_shm_listener shm_listener = { .format = RGFW_wl_shm_format_handler };
+	
 	static const struct wl_data_device_listener wl_data_device_listener = { 
 		.data_offer = RGFW_wl_data_device_data_offer, 
-		.enter = (void*, struct wl_data_device*, u32, struct wl_surface*, wl_fixed_t, wl_fixed_t, struct wl_data_offer*)&RGFW_doNothing,
-		.leave = (void*, struct wl_data_device*)&RGFW_doNothing, 
-		.motion = (void*, struct wl_data_device*, u32 time, wl_fixed_t, wl_fixed_t)&RGFW_doNothing, 
-		.drop = (void*, struct wl_data_device*)&RGFW_doNothing, 
-		.selection = RGFW_wl_data_device_selection};
+		.enter = (void (*)(void *, struct wl_data_device *, u32, struct wl_surface*, wl_fixed_t, wl_fixed_t, struct wl_data_offer *))&RGFW_doNothing,
+		.leave = (void (*)(void *, struct wl_data_device *))&RGFW_doNothing, 
+		.motion = (void (*)(void *, struct wl_data_device *, u32, wl_fixed_t, wl_fixed_t))&RGFW_doNothing, 
+		.drop = (void (*)(void *, struct wl_data_device *))&RGFW_doNothing, 
+		.selection = RGFW_wl_data_device_selection
+	};
     RGFW_info* RGFW = (RGFW_info*)data;
     RGFW_UNUSED(version);
     
@@ -7113,9 +7116,9 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 
 	static const struct wl_surface_listener wl_surface_listener = {
 		.enter = RGFW_wl_surface_enter,
-		.leave = (void (*)(void *, struct wl_surface *, struct wl_output *)) RGFW_doNothing,
-		.preferred_buffer_scale = (void (*)(void *, struct wl_surface *, i32)) RGFW_doNothing,
-		.preferred_buffer_transform = (void (*)(void *, struct wl_surface *, u32)) RGFW_doNothing
+		.leave = (void (*)(void *, struct wl_surface *, struct wl_output *))&RGFW_doNothing,
+		.preferred_buffer_scale = (void (*)(void *, struct wl_surface *, i32))&RGFW_doNothing,
+		.preferred_buffer_transform = (void (*)(void *, struct wl_surface *, u32))&RGFW_doNothing
 	};
 
 	win->src.surface = wl_compositor_create_surface(_RGFW->compositor);
