@@ -6023,8 +6023,8 @@ $(function() {
 <div class="line"><a id="l07196" name="l07196"></a><span class="lineno"> 7196</span>    WGPUSurfaceDescriptor surfaceDesc = {0};</div>
 <div class="line"><a id="l07197" name="l07197"></a><span class="lineno"> 7197</span>    WGPUSurfaceSourceXlibWindow fromXlib = {0};</div>
 <div class="line"><a id="l07198" name="l07198"></a><span class="lineno"> 7198</span>    fromXlib.chain.sType = WGPUSType_SurfaceSourceXlibWindow;</div>
-<div class="line"><a id="l07199" name="l07199"></a><span class="lineno"> 7199</span>    fromXlib.display = window-&gt;src.display; <span class="comment">// Get Display* from RGFW</span></div>
-<div class="line"><a id="l07200" name="l07200"></a><span class="lineno"> 7200</span>    fromXlib.window = window-&gt;src.window;   <span class="comment">// Get Window from RGFW</span></div>
+<div class="line"><a id="l07199" name="l07199"></a><span class="lineno"> 7199</span>    fromXlib.display = _RGFW-&gt;display;</div>
+<div class="line"><a id="l07200" name="l07200"></a><span class="lineno"> 7200</span>    fromXlib.window = window-&gt;src.window;</div>
 <div class="line"><a id="l07201" name="l07201"></a><span class="lineno"> 7201</span> </div>
 <div class="line"><a id="l07202" name="l07202"></a><span class="lineno"> 7202</span>    surfaceDesc.nextInChain = (WGPUChainedStruct*)&amp;fromXlib.chain;</div>
 <div class="line"><a id="l07203" name="l07203"></a><span class="lineno"> 7203</span>    <span class="keywordflow">return</span> wgpuInstanceCreateSurface(instance, &amp;surfaceDesc);</div>

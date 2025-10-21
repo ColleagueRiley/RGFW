@@ -7196,8 +7196,8 @@ WGPUSurface RGFW_FUNC(RGFW_window_createSurface_WebGPU) (RGFW_window* window, WG
 	WGPUSurfaceDescriptor surfaceDesc = {0};
 	WGPUSurfaceSourceXlibWindow fromXlib = {0};
 	fromXlib.chain.sType = WGPUSType_SurfaceSourceXlibWindow;
-	fromXlib.display = window->src.display; // Get Display* from RGFW
-	fromXlib.window = window->src.window;   // Get Window from RGFW
+	fromXlib.display = _RGFW->display;
+	fromXlib.window = window->src.window;
 
 	surfaceDesc.nextInChain = (WGPUChainedStruct*)&fromXlib.chain;
 	return wgpuInstanceCreateSurface(instance, &surfaceDesc);
