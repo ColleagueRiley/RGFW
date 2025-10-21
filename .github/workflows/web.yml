@@ -27,6 +27,12 @@ jobs:
           working-directory: './'
           doxyfile-path: './Doxyfile'
 
+    - name: Setup Release Version
+      run: |
+        echo "RELEASE_NAME=RGFW-${{ github.event.release.tag_name }}_web_${{ matrix.ARCH_NAME }}" >> $GITHUB_ENV
+      shell: bash
+      if: github.event_name == 'release' && github.event.action == 'published'
+
     - name: Setup paths
       run: |
         mkdir build
