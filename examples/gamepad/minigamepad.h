@@ -1247,6 +1247,10 @@ mg_axis mg_get_gamepad_axis_platform(u32 axis) {
 #include <xinput.h>
 #include <dinput.h>
 
+#ifndef DIDFT_OPTIONAL
+#define DIDFT_OPTIONAL          0x80000000
+#endif
+
 typedef void (*mg_proc)(void); /* function pointer equivalent of void* */
 
 mg_gamepad* mg_xinput_list[XUSER_MAX_COUNT];
