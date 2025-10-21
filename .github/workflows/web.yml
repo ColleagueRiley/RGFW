@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      RELEASE_NAME: RGFW-dev_linux_${{ matrix.ARCH_NAME }}
+      RELEASE_NAME: RGFW-dev_web_${{ matrix.ARCH_NAME }}
 
     steps:
     - name: Checkout repository
