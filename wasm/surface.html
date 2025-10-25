@@ -1,45 +1,46 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="https://colleagueriley.github.io/style.css">  
+    <link rel="stylesheet" href="https://colleagueriley.github.io/style.css">
     <title>RGFW wasm Examples</title>
 </head>
-<body> 
+<body>
     <header>
         <a href="../index.html"> <img src="../logo.png" alt="RGFW logo"/> </a>
-        <h2>RGFW wasm Examples</h2> 
+        <h2>RGFW wasm Examples</h2>
         <nav>
             <a href="./docs/index.html"> Doxygen Docs </a>
             <a href="./wasm/downloads.html"> Download </a>
-            <a href="https://github.com/ColleagueRiley/RGFW/blob/main/examples/basic/basic.c">Source Code </a>
+            <a href="https://github.com/ColleagueRiley/RGFW/blob/main/examples/surface/surface.c">Source Code </a>
         </nav>
         <br/>  <br/>
     </header>
 
     <div class="canvas"> <canvas id="canvas"> </canvas> </div>
 
-  <script async src="../examples/basic/basic.js"> </script>
+
+
+  <script async src="../examples/surface/surface.js"> </script>
   <script>
     document.addEventListener("DOMContentLoaded", function (event) {
       if (document.querySelector('Component') == null) {
-        var script = document.querySelector('script[src="../examples/basic/basic.js"]')
+        var script = document.querySelector('script[src="../examples/surface/surface.js"]')
         document.head.removeChild(script)
       }
-    }); 
+    });
   </script>
 
-  <script async src="../basic.js"> </script>
+  <script async src="../surface.js"> </script>
   <script>
     document.addEventListener("DOMContentLoaded", function (event) {
       if (document.querySelector('Component') == null) {
-        var script = document.querySelector('script[src="../basic.js"]')
+        var script = document.querySelector('script[src="../surface.js"]')
         document.head.removeChild(script)
       }
-    }); 
+    });
   </script>
 
   <div id="log"></div>
@@ -59,6 +60,7 @@
       };
     })();
   </script>
+
 </body>
 
 </html>
