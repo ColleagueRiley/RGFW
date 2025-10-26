@@ -1,4 +1,4 @@
-.TH "XDL.h" 3 "Sat Oct 25 2025" "RGFW" \" -*- nroff -*-
+.TH "XDL.h" 3 "Sun Oct 26 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -386,6 +386,9 @@ XDL.h
 .RI "#define \fBXrmUniqueQuark\fP   \fBXrmUniqueQuarkSrc\fP"
 .br
 .ti -1c
+.RI "#define \fBXSetWindowBackgroundPixmap\fP   \fBXSetWindowBackgroundPixmapSrc\fP"
+.br
+.ti -1c
 .RI "#define \fBXRRGetScreenResourcesCurrent\fP   \fBXRRGetScreenResourcesCurrentSrc\fP"
 .br
 .ti -1c
@@ -459,6 +462,12 @@ XDL.h
 .br
 .ti -1c
 .RI "#define \fBglXQueryExtensionsString\fP   \fBglXQueryExtensionsStringSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBglXCreateWindow\fP   \fBglXCreateWindowSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBglXDestroyWindow\fP   \fBglXDestroyWindowSrc\fP"
 .br
 .in -1c
 .SS "Typedefs"
@@ -837,6 +846,9 @@ XDL.h
 .RI "typedef XrmQuark(* \fBPFN_XrmUniqueQuark\fP) (void)"
 .br
 .ti -1c
+.RI "typedef void(* \fBPFN_XSetWindowBackgroundPixmap\fP) (Display *, Window, Pixmap)"
+.br
+.ti -1c
 .RI "typedef XRRScreenResources *(* \fBPFN_XRRGetScreenResourcesCurrent\fP) (Display *display, Window window)"
 .br
 .ti -1c
@@ -871,6 +883,9 @@ XDL.h
 .br
 .ti -1c
 .RI "typedef void(* \fBPFN_XRRFreeScreenConfigInfo\fP) (XRRScreenConfiguration *)"
+.br
+.ti -1c
+.RI "typedef const char *(* \fBPFN_glXQueryExtensionsString\fP) (Display *dpy, int screen)"
 .br
 .ti -1c
 .RI "typedef XVisualInfo *(* \fBPFN_glXChooseVisual\fP) (Display *, int, int *)"
@@ -909,7 +924,10 @@ XDL.h
 .RI "typedef void(* \fBPFN_glXDestroyContext\fP) (Display *dpy, GLXContext ctx)"
 .br
 .ti -1c
-.RI "typedef const char *(* \fBPFN_glXQueryExtensionsString\fP) (Display *dpy, int screen)"
+.RI "typedef GLXWindow(* \fBPFN_glXCreateWindow\fP) (Display *, GLXFBConfig, Window, const int *)"
+.br
+.ti -1c
+.RI "typedef void(* \fBPFN_glXDestroyWindow\fP) (Display *, GLXWindow)"
 .br
 .in -1c
 .SS "Functions"
@@ -1283,6 +1301,9 @@ XDL.h
 .RI "\fBPFN_XrmUniqueQuark\fP \fBXrmUniqueQuarkSrc\fP"
 .br
 .ti -1c
+.RI "\fBPFN_XSetWindowBackgroundPixmap\fP \fBXSetWindowBackgroundPixmapSrc\fP"
+.br
+.ti -1c
 .RI "\fBPFN_XRRGetScreenResourcesCurrent\fP \fBXRRGetScreenResourcesCurrentSrc\fP"
 .br
 .ti -1c
@@ -1357,6 +1378,12 @@ XDL.h
 .ti -1c
 .RI "\fBPFN_glXQueryExtensionsString\fP \fBglXQueryExtensionsStringSrc\fP"
 .br
+.ti -1c
+.RI "\fBPFN_glXCreateWindow\fP \fBglXCreateWindowSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_glXDestroyWindow\fP \fBglXDestroyWindowSrc\fP"
+.br
 .in -1c
 .SH "Macro Definition Documentation"
 .PP 
@@ -1366,7 +1393,11 @@ XDL.h
 
 .SS "#define glXCreateContext   \fBglXCreateContextSrc\fP"
 
+.SS "#define glXCreateWindow   \fBglXCreateWindowSrc\fP"
+
 .SS "#define glXDestroyContext   \fBglXDestroyContextSrc\fP"
+
+.SS "#define glXDestroyWindow   \fBglXDestroyWindowSrc\fP"
 
 .SS "#define glXGetCurrentContext   \fBglXGetCurrentContextSrc\fP"
 
@@ -1620,6 +1651,8 @@ XDL.h
 
 .SS "#define XSetWindowBackground   \fBXSetWindowBackgroundSrc\fP"
 
+.SS "#define XSetWindowBackgroundPixmap   \fBXSetWindowBackgroundPixmapSrc\fP"
+
 .SS "#define XSetWMHints   \fBXSetWMHintsSrc\fP"
 
 .SS "#define XSetWMNormalHints   \fBXSetWMNormalHintsSrc\fP"
@@ -1660,7 +1693,11 @@ XDL.h
 
 .SS "typedef GLXContext(* PFN_glXCreateContext) (Display *, XVisualInfo *, GLXContext, Bool)"
 
+.SS "typedef GLXWindow(* PFN_glXCreateWindow) (Display *, GLXFBConfig, Window, const int *)"
+
 .SS "typedef void(* PFN_glXDestroyContext) (Display *dpy, GLXContext ctx)"
+
+.SS "typedef void(* PFN_glXDestroyWindow) (Display *, GLXWindow)"
 
 .SS "typedef GLXContext(* PFN_glXGetCurrentContext) (void)"
 
@@ -1920,6 +1957,8 @@ XDL.h
 
 .SS "typedef void(* PFN_XSetWindowBackground) (Display *, Window, unsigned long)"
 
+.SS "typedef void(* PFN_XSetWindowBackgroundPixmap) (Display *, Window, Pixmap)"
+
 .SS "typedef int(* PFN_XSetWMHints) (Display *, Window, XWMHints *)"
 
 .SS "typedef void(* PFN_XSetWMNormalHints) (Display *, Window, XSizeHints *)"
@@ -1966,7 +2005,11 @@ XDL.h
 
 .SS "\fBPFN_glXCreateContext\fP glXCreateContextSrc"
 
+.SS "\fBPFN_glXCreateWindow\fP glXCreateWindowSrc"
+
 .SS "\fBPFN_glXDestroyContext\fP glXDestroyContextSrc"
+
+.SS "\fBPFN_glXDestroyWindow\fP glXDestroyWindowSrc"
 
 .SS "\fBPFN_glXGetCurrentContext\fP glXGetCurrentContextSrc"
 
@@ -2213,6 +2256,8 @@ XDL.h
 .SS "\fBPFN_XSetScreenSaver\fP XSetScreenSaverSrc"
 
 .SS "\fBPFN_XSetSelectionOwner\fP XSetSelectionOwnerSrc"
+
+.SS "\fBPFN_XSetWindowBackgroundPixmap\fP XSetWindowBackgroundPixmapSrc"
 
 .SS "\fBPFN_XSetWindowBackground\fP XSetWindowBackgroundSrc"
 
