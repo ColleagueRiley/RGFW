@@ -2645,6 +2645,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		struct RGFW_glContext {
 			#ifdef RGFW_X11
 				struct __GLXcontextRec* ctx; /*!< source graphics context */
+				Window window;
 			#endif
 			#ifdef RGFW_WAYLAND
 				RGFW_eglContext egl;
@@ -3307,6 +3308,11 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 		 * */
 #ifdef RGFW_X11
 	RGFW_window_setFlagsInternal(win, flags, 0);
+
+	/* stupid hack to make resizing the window less bad */
+	if (RGFW_usingWayland() == RGFW_FALSE) {
+		XSetWindowBackgroundPixmap(_RGFW->display, win->src.window, None);
+	}
 #endif
 
 #ifdef RGFW_MACOS
@@ -5323,9 +5329,10 @@ int RGFW_XErrorHandler(Display* display, XErrorEvent* ev) {
 }
 
 void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags flags, RGFW_window* win) {
-	i64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask | LeaveWindowMask | EnterWindowMask | ExposureMask; /*!< X11 events accepted */
+	i64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask |
+						LeaveWindowMask | EnterWindowMask | ExposureMask | VisibilityChangeMask | PropertyChangeMask;
 
-    /* make X window attrubutes */
+	/* make X window attrubutes */
 	XSetWindowAttributes swa;
     RGFW_MEMSET(&swa, 0, sizeof(swa));
 
@@ -5334,11 +5341,12 @@ void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags 
 		DefaultRootWindow(_RGFW->display),
 		visual.visual, AllocNone);
 	swa.event_mask = event_mask;
+    swa.background_pixmap = None;
 
 	/* create the window */
     win->src.window = XCreateWindow(_RGFW->display, DefaultRootWindow(_RGFW->display), win->x, win->y, (u32)win->w, (u32)win->h,
 		0, visual.depth, InputOutput, visual.visual,
-		CWColormap | CWBorderPixel | CWEventMask, &swa);
+		CWBorderPixel | CWColormap | CWEventMask, &swa);
 
 	XFreeColors(_RGFW->display, cmap, NULL, 0, 0);
 
@@ -5403,7 +5411,7 @@ void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags 
 	win->src.w = win->w;
 	win->src.h = win->h;
 
-	XSetWindowBackground(_RGFW->display, win->src.window, 0);
+	XSetWindowBackground(_RGFW->display, win->src.window, None);
     XClearWindow(_RGFW->display, win->src.window);
 }
 
@@ -5527,6 +5535,8 @@ void RGFW_XHandleEvent(void) {
 	RGFW_LOAD_ATOM(XdndActionCopy);
     RGFW_LOAD_ATOM(_NET_WM_SYNC_REQUEST);
     RGFW_LOAD_ATOM(WM_PROTOCOLS);
+	RGFW_LOAD_ATOM(WM_STATE);
+	RGFW_LOAD_ATOM(_NET_WM_STATE);
 
 	/* xdnd data */
 	static Window source = 0;
@@ -5726,6 +5736,28 @@ void RGFW_XHandleEvent(void) {
 #endif
 			break;
 		}
+
+		case PropertyNotify:
+			if (E.xproperty.state != PropertyNewValue) break;
+
+			if (E.xproperty.atom == WM_STATE) {
+                if (RGFW_window_isMinimized(win) && !(win->internal.flags & RGFW_windowMinimized)) {
+					win->internal.flags |= RGFW_windowMinimize;
+					RGFW_eventQueuePushEx(e.type = RGFW_windowMinimized; e.common.win = win);
+					RGFW_windowMinimizedCallback(win);
+					break;
+				}
+			} else if (E.xproperty.atom == _NET_WM_STATE) {
+				if (!(win->internal.flags & RGFW_windowMaximize)) {
+					win->internal.flags |= RGFW_windowMaximize;
+					RGFW_eventQueuePushEx(e.type = RGFW_windowMaximized; e.common.win = win);
+					RGFW_windowMaximizedCallback(win, win->x, win->y, win->w, win->h);
+					break;
+				}
+			}
+
+			RGFW_window_checkMode(win);
+			break;
 		case MapNotify: case UnmapNotify: 		RGFW_window_checkMode(win); break;
 		case ClientMessage: {
 			RGFW_LOAD_ATOM(WM_DELETE_WINDOW);
@@ -5976,7 +6008,6 @@ void RGFW_XHandleEvent(void) {
 			RGFW_focusCallback(win, 0);
 			RGFW_window_focusLost(win);
 			break;
-		case PropertyNotify: RGFW_window_checkMode(win); break;
 		case EnterNotify: {
 			win->internal.mouseInside = RGFW_TRUE;
 			_RGFW->windowState.win = win;
@@ -6957,11 +6988,13 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 	i32 flags = 0;
 	if (hints->debug) flags |= GLX_CONTEXT_FLAGS_ARB;
 	if (hints->robustness && RGFW_extensionSupportedPlatform_OpenGL(robustStr, sizeof(robustStr))) flags |= GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB;
-	if (flags)
+	if (flags) {
 		RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_FLAGS_ARB, flags);
+	}
 
-	if (RGFW_extensionSupportedPlatform_OpenGL(noErorrStr, sizeof(noErorrStr)))
+	if (RGFW_extensionSupportedPlatform_OpenGL(noErorrStr, sizeof(noErorrStr))) {
 		RGFW_attribStack_pushAttribs(&stack, GLX_CONTEXT_OPENGL_NO_ERROR_ARB, hints->noError);
+	}
 
 	RGFW_attribStack_pushAttribs(&stack, 0, 0);
 
@@ -6979,21 +7012,24 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, "Failed to load proc address 'glXCreateContextAttribsARB', loading a generic OpenGL context.");
 			win->src.ctx.native->ctx = glXCreateContext(_RGFW->display, &visual, ctx, True);
 	} else {
-                _RGFW->x11Error = NULL;
-                win->src.ctx.native->ctx = glXCreateContextAttribsARB(_RGFW->display, bestFbc, ctx, True, context_attribs);
-				if (_RGFW->x11Error || win->src.ctx.native->ctx == NULL) {
-					RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, "Failed to create an OpenGL context with AttribsARB, loading a generic OpenGL context.");
-					win->src.ctx.native->ctx = glXCreateContext(_RGFW->display, &visual, ctx, True);
-            }
+		_RGFW->x11Error = NULL;
+		win->src.ctx.native->ctx = glXCreateContextAttribsARB(_RGFW->display, bestFbc, ctx, True, context_attribs);
+		if (_RGFW->x11Error || win->src.ctx.native->ctx == NULL) {
+			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, "Failed to create an OpenGL context with AttribsARB, loading a generic OpenGL context.");
+			win->src.ctx.native->ctx = glXCreateContext(_RGFW->display, &visual, ctx, True);
+		}
 	}
 
-	glXMakeCurrent(_RGFW->display, (Drawable)win->src.window, (GLXContext)win->src.ctx.native->ctx);
+	win->src.ctx.native->window = glXCreateWindow(_RGFW->display, bestFbc, win->src.window, NULL);
+
+	glXMakeCurrent(_RGFW->display, (Drawable)win->src.ctx.native->window, (GLXContext)win->src.ctx.native->ctx);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL context initalized.");
 
 	return RGFW_TRUE;
 }
 
 void RGFW_FUNC(RGFW_window_deleteContextPtr_OpenGL) (RGFW_window* win, RGFW_glContext* ctx) {
+	glXDestroyWindow(_RGFW->display, win->src.ctx.native->window);
 	glXDestroyContext(_RGFW->display, ctx->ctx);
 	win->src.ctx.native = NULL;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL,  "OpenGL context freed.");
@@ -7011,11 +7047,11 @@ void RGFW_FUNC(RGFW_window_makeCurrentContext_OpenGL) (RGFW_window* win) { if (w
 	if (win == NULL)
 		glXMakeCurrent(NULL, (Drawable)NULL, (GLXContext) NULL);
 	else
-		glXMakeCurrent(_RGFW->display, (Drawable) win->src.window, (GLXContext) win->src.ctx.native->ctx);
+		glXMakeCurrent(_RGFW->display, (Drawable)win->src.ctx.native->window, (GLXContext) win->src.ctx.native->ctx);
 	return;
 }
 void* RGFW_FUNC(RGFW_getCurrentContext_OpenGL) (void) { return glXGetCurrentContext(); }
-void RGFW_FUNC(RGFW_window_swapBuffers_OpenGL) (RGFW_window* win) { RGFW_ASSERT(win->src.ctx.native); glXSwapBuffers(_RGFW->display, win->src.window); }
+void RGFW_FUNC(RGFW_window_swapBuffers_OpenGL) (RGFW_window* win) { RGFW_ASSERT(win->src.ctx.native); glXSwapBuffers(_RGFW->display, win->src.ctx.native->window); }
 
 void RGFW_FUNC(RGFW_window_swapInterval_OpenGL) (RGFW_window* win, i32 swapInterval) {
 	RGFW_ASSERT(win != NULL);
