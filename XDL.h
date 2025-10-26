@@ -191,6 +191,7 @@ typedef int (*PFN_XPutImage)(Display *display, Drawable d, GC gc, XImage *image,
 typedef void (*PFN_XSetWindowBackground)(Display*, Window, unsigned long);
 typedef int (*PFN_XClearWindow)(Display*, Window);
 typedef XrmQuark (*PFN_XrmUniqueQuark)(void);
+typedef void (*PFN_XSetWindowBackgroundPixmap)(Display*, Window, Pixmap);
 
 #ifndef XDL_NO_XRANDR
 #include <X11/extensions/Xrandr.h>
@@ -212,6 +213,7 @@ typedef void (*PFN_XRRFreeScreenConfigInfo)(XRRScreenConfiguration*);
 
 #include <GL/glx.h>
 
+typedef const char* (*PFN_glXQueryExtensionsString)(Display* dpy, int screen);
 typedef XVisualInfo* (*PFN_glXChooseVisual)(Display*, int, int*);
 typedef GLXContext (*PFN_glXCreateContext)(Display*, XVisualInfo*, GLXContext, Bool);
 typedef Bool (*PFN_glXMakeCurrent)(Display*, GLXDrawable, GLXContext);
@@ -224,7 +226,8 @@ typedef PFNGLXGETFBCONFIGATTRIBPROC PFN_glXGetFBConfigAttrib;
 typedef __GLXextFuncPtr  (*PFN_glXGetProcAddressARB)(const GLubyte *);
 typedef PFNGLXCHOOSEFBCONFIGPROC PFN_glXChooseFBConfig;
 typedef void (*PFN_glXDestroyContext)(Display *dpy, GLXContext ctx);
-typedef const char* (*PFN_glXQueryExtensionsString)(Display* dpy, int screen);
+typedef GLXWindow (*PFN_glXCreateWindow)(Display*,GLXFBConfig,Window,const int*);
+typedef void (*PFN_glXDestroyWindow)(Display*,GLXWindow);
 #endif
 
 /* Src vars for reciving the functions */
@@ -347,6 +350,7 @@ PFN_XPutImage XPutImageSrc;
 PFN_XSetWindowBackground XSetWindowBackgroundSrc;
 PFN_XClearWindow XClearWindowSrc;
 PFN_XrmUniqueQuark XrmUniqueQuarkSrc;
+PFN_XSetWindowBackgroundPixmap XSetWindowBackgroundPixmapSrc;
 
 #ifndef XDL_NO_XRANDR
 PFN_XRRGetScreenResourcesCurrent XRRGetScreenResourcesCurrentSrc;
@@ -377,6 +381,8 @@ PFN_glXGetProcAddressARB glXGetProcAddressARBSrc;
 PFN_glXChooseFBConfig glXChooseFBConfigSrc;
 PFN_glXDestroyContext glXDestroyContextSrc;
 PFN_glXQueryExtensionsString glXQueryExtensionsStringSrc;
+PFN_glXCreateWindow glXCreateWindowSrc;
+PFN_glXDestroyWindow glXDestroyWindowSrc;
 #endif
 
 /* Function to source defines */
@@ -500,6 +506,7 @@ PFN_glXQueryExtensionsString glXQueryExtensionsStringSrc;
 #define XClearWindow XClearWindowSrc
 #define XSetWindowBackground XSetWindowBackgroundSrc
 #define XrmUniqueQuark XrmUniqueQuarkSrc
+#define XSetWindowBackgroundPixmap XSetWindowBackgroundPixmapSrc
 
 #ifndef XDL_NO_XRANDR
     #define XRRGetScreenResourcesCurrent XRRGetScreenResourcesCurrentSrc
@@ -530,6 +537,8 @@ PFN_glXQueryExtensionsString glXQueryExtensionsStringSrc;
     #define glXDestroyContext glXDestroyContextSrc
     #define glXSwapIntervalEXT glXSwapIntervalEXTSrc
     #define glXQueryExtensionsString glXQueryExtensionsStringSrc
+	#define glXCreateWindow glXCreateWindowSrc
+	#define glXDestroyWindow glXDestroyWindowSrc
 #endif
 
 #ifdef XDL_IMPLEMENTATION
@@ -700,6 +709,7 @@ void XDL_init(void) {
     XDL_PROC_DEF(0, XCreatePixmap);
     XDL_PROC_DEF(0, XPutImage);
     XDL_PROC_DEF(0, XSetWindowBackground);
+	XDL_PROC_DEF(0, XSetWindowBackgroundPixmap);
     XDL_PROC_DEF(0, XClearWindow);
     XDL_PROC_DEF(0, XrmUniqueQuark);
 
@@ -731,6 +741,8 @@ void XDL_init(void) {
         XDL_PROC_DEF(1, glXGetProcAddressARB);
         XDL_PROC_DEF(1, glXChooseFBConfig);
         XDL_PROC_DEF(1, glXDestroyContext);
+		XDL_PROC_DEF(1, glXCreateWindow);
+		XDL_PROC_DEF(1, glXDestroyWindow);
         XDL_PROC_DEF(1, glXQueryExtensionsString);
     #endif
 }
