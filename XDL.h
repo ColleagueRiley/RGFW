@@ -226,7 +226,6 @@ typedef PFNGLXGETFBCONFIGATTRIBPROC PFN_glXGetFBConfigAttrib;
 typedef __GLXextFuncPtr  (*PFN_glXGetProcAddressARB)(const GLubyte *);
 typedef PFNGLXCHOOSEFBCONFIGPROC PFN_glXChooseFBConfig;
 typedef void (*PFN_glXDestroyContext)(Display *dpy, GLXContext ctx);
-typedef const char* (*PFN_glXQueryExtensionsString)(Display* dpy, int screen);
 typedef GLXWindow (*PFN_glXCreateWindow)(Display*,GLXFBConfig,Window,const int*);
 typedef void (*PFN_glXDestroyWindow)(Display*,GLXWindow);
 #endif
