@@ -3308,11 +3308,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 		 * */
 #ifdef RGFW_X11
 	RGFW_window_setFlagsInternal(win, flags, 0);
-
-	/* stupid hack to make resizing the window less bad */
-	if (RGFW_usingWayland() == RGFW_FALSE) {
-		XSetWindowBackgroundPixmap(_RGFW->display, win->src.window, None);
-	}
 #endif
 
 #ifdef RGFW_MACOS
@@ -5413,6 +5408,9 @@ void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags 
 
 	XSetWindowBackground(_RGFW->display, win->src.window, None);
     XClearWindow(_RGFW->display, win->src.window);
+
+	/* stupid hack to make resizing the window less bad */
+	XSetWindowBackgroundPixmap(_RGFW->display, win->src.window, None);
 }
 
 RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_windowFlags flags, RGFW_window* win) {

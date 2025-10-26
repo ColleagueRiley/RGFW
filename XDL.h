@@ -191,6 +191,7 @@ typedef int (*PFN_XPutImage)(Display *display, Drawable d, GC gc, XImage *image,
 typedef void (*PFN_XSetWindowBackground)(Display*, Window, unsigned long);
 typedef int (*PFN_XClearWindow)(Display*, Window);
 typedef XrmQuark (*PFN_XrmUniqueQuark)(void);
+typedef void (*PFN_XSetWindowBackgroundPixmap)(Display*, Window, Pixmap);
 
 #ifndef XDL_NO_XRANDR
 #include <X11/extensions/Xrandr.h>
@@ -350,6 +351,7 @@ PFN_XPutImage XPutImageSrc;
 PFN_XSetWindowBackground XSetWindowBackgroundSrc;
 PFN_XClearWindow XClearWindowSrc;
 PFN_XrmUniqueQuark XrmUniqueQuarkSrc;
+PFN_XSetWindowBackgroundPixmap XSetWindowBackgroundPixmapSrc;
 
 #ifndef XDL_NO_XRANDR
 PFN_XRRGetScreenResourcesCurrent XRRGetScreenResourcesCurrentSrc;
@@ -505,6 +507,7 @@ PFN_glXDestroyWindow glXDestroyWindowSrc;
 #define XClearWindow XClearWindowSrc
 #define XSetWindowBackground XSetWindowBackgroundSrc
 #define XrmUniqueQuark XrmUniqueQuarkSrc
+#define XSetWindowBackgroundPixmap XSetWindowBackgroundPixmapSrc
 
 #ifndef XDL_NO_XRANDR
     #define XRRGetScreenResourcesCurrent XRRGetScreenResourcesCurrentSrc
@@ -707,6 +710,7 @@ void XDL_init(void) {
     XDL_PROC_DEF(0, XCreatePixmap);
     XDL_PROC_DEF(0, XPutImage);
     XDL_PROC_DEF(0, XSetWindowBackground);
+	XDL_PROC_DEF(0, XSetWindowBackgroundPixmap);
     XDL_PROC_DEF(0, XClearWindow);
     XDL_PROC_DEF(0, XrmUniqueQuark);
 
