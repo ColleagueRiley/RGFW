@@ -212,6 +212,7 @@ typedef void (*PFN_XRRFreeScreenConfigInfo)(XRRScreenConfiguration*);
 
 #include <GL/glx.h>
 
+typedef const char* (*PFN_glXQueryExtensionsString)(Display* dpy, int screen);
 typedef XVisualInfo* (*PFN_glXChooseVisual)(Display*, int, int*);
 typedef GLXContext (*PFN_glXCreateContext)(Display*, XVisualInfo*, GLXContext, Bool);
 typedef Bool (*PFN_glXMakeCurrent)(Display*, GLXDrawable, GLXContext);
@@ -225,6 +226,8 @@ typedef __GLXextFuncPtr  (*PFN_glXGetProcAddressARB)(const GLubyte *);
 typedef PFNGLXCHOOSEFBCONFIGPROC PFN_glXChooseFBConfig;
 typedef void (*PFN_glXDestroyContext)(Display *dpy, GLXContext ctx);
 typedef const char* (*PFN_glXQueryExtensionsString)(Display* dpy, int screen);
+typedef GLXWindow (*PFN_glXCreateWindow)(Display*,GLXFBConfig,Window,const int*);
+typedef void (*PFN_glXDestroyWindow)(Display*,GLXWindow);
 #endif
 
 /* Src vars for reciving the functions */
@@ -377,6 +380,8 @@ PFN_glXGetProcAddressARB glXGetProcAddressARBSrc;
 PFN_glXChooseFBConfig glXChooseFBConfigSrc;
 PFN_glXDestroyContext glXDestroyContextSrc;
 PFN_glXQueryExtensionsString glXQueryExtensionsStringSrc;
+PFN_glXCreateWindow glXCreateWindowSrc;
+PFN_glXDestroyWindow glXDestroyWindowSrc;
 #endif
 
 /* Function to source defines */
@@ -530,6 +535,8 @@ PFN_glXQueryExtensionsString glXQueryExtensionsStringSrc;
     #define glXDestroyContext glXDestroyContextSrc
     #define glXSwapIntervalEXT glXSwapIntervalEXTSrc
     #define glXQueryExtensionsString glXQueryExtensionsStringSrc
+	#define glXCreateWindow glXCreateWindowSrc
+	#define glXDestroyWindow glXDestroyWindowSrc
 #endif
 
 #ifdef XDL_IMPLEMENTATION
@@ -731,6 +738,8 @@ void XDL_init(void) {
         XDL_PROC_DEF(1, glXGetProcAddressARB);
         XDL_PROC_DEF(1, glXChooseFBConfig);
         XDL_PROC_DEF(1, glXDestroyContext);
+		XDL_PROC_DEF(1, glXCreateWindow);
+		XDL_PROC_DEF(1, glXDestroyWindow);
         XDL_PROC_DEF(1, glXQueryExtensionsString);
     #endif
 }
