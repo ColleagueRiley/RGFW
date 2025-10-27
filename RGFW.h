@@ -11845,13 +11845,13 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 		win->internal.oldW = win->w;
 		win->internal.oldH = win->h;
 		RGFW_monitor mon = RGFW_window_getMonitor(win);
-		win->x = 0;
-		win->y = 0;
-		win->w = mon.x;
-		win->h = mon.y;
+		win->x = mon.x;
+		win->y = mon.y;
+		win->w = mon.mode.w;
+		win->h = mon.mode.h;
 		win->internal.flags |= RGFW_windowFullscreen;
 		RGFW_window_resize(win, mon.mode.w, mon.mode.h);
-		RGFW_window_move(win, 0, 0);
+		RGFW_window_move(win, mon.x, mon.y);
 	}
 	objc_msgSend_void_SEL(win->src.window, sel_registerName("toggleFullScreen:"), NULL);
 
