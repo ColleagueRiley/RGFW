@@ -6609,7 +6609,7 @@ $(function() {
 <div class="line"><a id="l07781" name="l07781"></a><span class="lineno"> 7781</span>}</div>
 <div class="line"><a id="l07782" name="l07782"></a><span class="lineno"> 7782</span> </div>
 <div class="line"><a id="l07783" name="l07783"></a><span class="lineno"> 7783</span><span class="keyword">static</span> <span class="keywordtype">void</span> RGFW_wl_create_outputs(<span class="keyword">struct</span> wl_registry *<span class="keyword">const</span> registry, uint32_t <span class="keywordtype">id</span>) {</div>
-<div class="line"><a id="l07784" name="l07784"></a><span class="lineno"> 7784</span>    <span class="keyword">struct </span>wl_output *output = wl_registry_bind(registry, <span class="keywordtype">id</span>, &amp;wl_output_interface, 4);</div>
+<div class="line"><a id="l07784" name="l07784"></a><span class="lineno"> 7784</span>    <span class="keyword">struct </span>wl_output *output = wl_registry_bind(registry, <span class="keywordtype">id</span>, &amp;wl_output_interface, wl_display_get_version(_RGFW-&gt;wl_display) &lt; 4 ? 3 : 4);</div>
 <div class="line"><a id="l07785" name="l07785"></a><span class="lineno"> 7785</span>    RGFW_monitorNode* node;</div>
 <div class="line"><a id="l07786" name="l07786"></a><span class="lineno"> 7786</span>    <a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a> mon;</div>
 <div class="line"><a id="l07787" name="l07787"></a><span class="lineno"> 7787</span> </div>

@@ -346,7 +346,7 @@ $(EXAMPLE_OUTPUTS): %: %.c RGFW.h
 debug: all
 	@for exe in $(EXAMPLE_OUTPUTS); do \
 		echo "Running $$exe..."; \
-		.$(OS_DIR)$$exe$(EXT); \
+		./$$exe$(EXT); \
 	done
 
 	./examples/gamepad/gamepad
