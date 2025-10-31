@@ -7781,7 +7781,7 @@ static void RGFW_xdg_output_logical_size(void *data, struct zxdg_output_v1 *zxdg
 }
 
 static void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
-	struct wl_output *output = wl_registry_bind(registry, id, &wl_output_interface, 4);
+	struct wl_output *output = wl_registry_bind(registry, id, &wl_output_interface, wl_display_get_version(_RGFW->wl_display) < 4 ? 3 : 4);
 	RGFW_monitorNode* node;
 	RGFW_monitor mon;
 
