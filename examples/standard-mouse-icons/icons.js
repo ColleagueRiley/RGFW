@@ -5788,6 +5788,15 @@ var ASM_CONSTS = {
   
   var _emscripten_set_window_title = (title) => document.title = UTF8ToString(title);
 
+  var _emscripten_sleep = (ms) => {
+      // emscripten_sleep() does not return a value, but we still need a |return|
+      // here for stack switching support (ASYNCIFY=2). In that mode this function
+      // returns a Promise instead of nothing, and that Promise is what tells the
+      // wasm VM to pause the stack.
+      return Asyncify.handleSleep((wakeUp) => safeSetTimeout(wakeUp, ms));
+    };
+  _emscripten_sleep.isAsync = true;
+
   function _fd_close(fd) {
   try {
   
@@ -11587,6 +11596,8 @@ var wasmImports = {
   emscripten_set_wheel_callback_on_thread: _emscripten_set_wheel_callback_on_thread,
   /** @export */
   emscripten_set_window_title: _emscripten_set_window_title,
+  /** @export */
+  emscripten_sleep: _emscripten_sleep,
   /** @export */
   fd_close: _fd_close,
   /** @export */
