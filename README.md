@@ -1,5 +1,5 @@
 # Riley's General Framework for Windowing
-![THE RGFW Logo](https://github.com/ColleagueRiley/RGFW/blob/main/logo.png?raw=true)
+<img align="left" style="width:300px" src="https://github.com/colleagueriley/rgfw/blob/main/logo.png?raw=true" width="300px">
 
 ## Build statuses
 ![workflow](https://github.com/ColleagueRiley/RGFW/actions/workflows/linux.yml/badge.svg)
