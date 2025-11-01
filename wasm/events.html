@@ -4,42 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="https://colleagueriley.github.io/style.css">  
+    <link rel="stylesheet" href="https://colleagueriley.github.io/style.css">
     <title>RGFW wasm Examples</title>
 </head>
-<body> 
+<body>
     <header>
         <a href="../index.html"> <img src="../logo.png" alt="RGFW logo"/> </a>
-        <h2>RGFW wasm Examples</h2> 
+        <h2>RGFW wasm Examples</h2>
         <nav>
             <a href="./docs/index.html"> Doxygen Docs </a>
             <a href="./wasm/downloads.html"> Download </a>
-            <a href="https://github.com/ColleagueRiley/RGFW/blob/main/examples/events/events.c">Source Code </a>
+            <a href="https://github.com/ColleagueRiley/RGFW/blob/main/examples/event_queue/event_queue.c">Source Code </a>
         </nav>
         <br/>  <br/>
     </header>
 
     <div class="canvas"> <canvas id="canvas"> </canvas> </div>
 
- 
-    <script async src="../examples/events/events.js"> </script>
+
+    <script async src="../examples/event_queue/event_queue.js"> </script>
   <script>
     document.addEventListener("DOMContentLoaded", function (event) {
       if (document.querySelector('Component') == null) {
-        var script = document.querySelector('script[src="../examples/events/events.js"]')
+        var script = document.querySelector('script[src="../examples/event_queue/event_queue.js"]')
         document.head.removeChild(script)
       }
-    }); 
+    });
   </script>
 
-  <script async src="../events.js"> </script>
+  <script async src="../event_queue.js"> </script>
   <script>
     document.addEventListener("DOMContentLoaded", function (event) {
       if (document.querySelector('Component') == null) {
-        var script = document.querySelector('script[src="../events.js"]')
+        var script = document.querySelector('script[src="../event_queue.js"]')
         document.head.removeChild(script)
       }
-    }); 
+    });
   </script>
 
 
