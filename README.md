@@ -1,15 +1,19 @@
 # Riley's General Framework for Windowing
 <img align="left" style="width:300px" src="https://github.com/colleagueriley/rgfw/blob/main/logo.png?raw=true" width="300px">
 
-## Build statuses
+**RGFW** is a focused general windowing framework for creating and handling windows, graphics contexts and windowing inputs. The API is a mix between GLFW and SDL while maintaining a minminalistic and easy to modify implementation.
+
+---
+
+<br>
+
+[![Discord Members](https://img.shields.io/discord/829003376532258816.svg?label=Discord&logo=discord)](https://discord.gg/pXVNgVVbvh)
+
 ![workflow](https://github.com/ColleagueRiley/RGFW/actions/workflows/linux.yml/badge.svg)
 ![workflow windows](https://github.com/ColleagueRiley/RGFW/actions/workflows/windows.yml/badge.svg)
 ![workflow macOS](https://github.com/ColleagueRiley/RGFW/actions/workflows/macos.yml/badge.svg)
 
-[![Discord Members](https://img.shields.io/discord/829003376532258816.svg?label=Discord&logo=discord)](https://discord.gg/pXVNgVVbvh)
-
-# About
-RGFW:
+# Features
 
 * **is** an stb-style single headerfile and is very portable
 * **is** primarly written in C99 in mind
@@ -24,11 +28,11 @@ RGFW:
 * **is** multi-paradigm, with a flexible event system, including multiple ways of handling events (callbacks, queue, state lookups)
 * **does** include a large number of examples for learning RGFW
 
-RGFW:
-
 * does **not** handle any rendering for you (other than creating your graphics context)
 * is **not** an OpenGL focused library, RGFW can be used with ANY graphics API
 * does **not** do anything above the bare minimum in terms of functionality
+
+
 
 There is a Makefile including for compiling the examples. NOTE: `WAYLAND=1` OR  can be defined to compile for wayland. `WAYLAND_X11=1` can be used instead if you want examples to fallback to X11 if a Wayland display is not found. This adds `#define RGFW_WAYLAND` in the implementation (or defines `RGFW_WAYLAND` AND `RGFW_X11`)
 
