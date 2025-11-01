@@ -13009,7 +13009,10 @@ u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
     return (u8)rgfw_keycode; /* TODO */
 }
 
-void RGFW_pollEvents(void) { RGFW_resetPrevState(); }
+void RGFW_pollEvents(void) {
+    emscripten_sleep(0);
+	RGFW_resetPrevState();
+}
 
 void RGFW_window_resize(RGFW_window* win, i32 w, i32 h) {
 	RGFW_UNUSED(win);
@@ -13139,7 +13142,6 @@ void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
 void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
 	RGFW_ASSERT(win && win->src.ctx.native);
 	emscripten_webgl_commit_frame();
-    emscripten_sleep(0);
 }
 void* RGFW_getCurrentContext_OpenGL(void) { return (void*)emscripten_webgl_get_current_context(); }
 
