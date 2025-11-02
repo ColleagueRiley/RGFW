@@ -57,6 +57,7 @@
 	#define RGFW_NO_DPI - do not calculate DPI (no XRM nor libShcore included)
     #define RGFW_ADVANCED_SMOOTH_RESIZE - use advanced methods for smooth resizing (may result in a spike in memory usage or worse performance) (eg. WM_TIMER and XSyncValue)
     #define RGFW_NO_INFO - do not define the RGFW_info struct (without RGFW_IMPLEMENTATION)
+	#define RGFW_NO_GLXWINDOW - do not use GLXWindow
 
 	#define RGFW_ALLOC x  - choose the default allocation function (defaults to standard malloc)
 	#define RGFW_FREE x  - choose the default deallocation function (defaults to standard free)
@@ -7018,7 +7019,11 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 		}
 	}
 
-	win->src.ctx.native->window = glXCreateWindow(_RGFW->display, bestFbc, win->src.window, NULL);
+	#ifndef RGFW_NO_GLXWINDOW
+		win->src.ctx.native->window = glXCreateWindow(_RGFW->display, bestFbc, win->src.window, NULL);
+	#else
+		win->src.ctx.native->window = win->src.window;
+	#endif
 
 	glXMakeCurrent(_RGFW->display, (Drawable)win->src.ctx.native->window, (GLXContext)win->src.ctx.native->ctx);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL context initalized.");
@@ -7027,7 +7032,12 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 }
 
 void RGFW_FUNC(RGFW_window_deleteContextPtr_OpenGL) (RGFW_window* win, RGFW_glContext* ctx) {
-	glXDestroyWindow(_RGFW->display, win->src.ctx.native->window);
+	#ifndef RGFW_NO_GLXWINDOW
+	if (win->src.ctx.native->window != win->src.window) {
+		glXDestroyWindow(_RGFW->display, win->src.ctx.native->window);
+	}
+	#endif
+
 	glXDestroyContext(_RGFW->display, ctx->ctx);
 	win->src.ctx.native = NULL;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL,  "OpenGL context freed.");
