@@ -5907,7 +5907,7 @@ $(function() {
 <div class="line"><a id="l07078" name="l07078"></a><span class="lineno"> 7078</span>    }</div>
 <div class="line"><a id="l07079" name="l07079"></a><span class="lineno"> 7079</span> </div>
 <div class="line"><a id="l07080" name="l07080"></a><span class="lineno"> 7080</span>    <span class="keywordflow">if</span> (pfn != (PFNGLXSWAPINTERVALEXTPROC)1) {</div>
-<div class="line"><a id="l07081" name="l07081"></a><span class="lineno"> 7081</span>        pfn(_RGFW-&gt;display, win-&gt;src.window, swapInterval);</div>
+<div class="line"><a id="l07081" name="l07081"></a><span class="lineno"> 7081</span>        pfn(_RGFW-&gt;display, win-&gt;src.ctx.native-&gt;window, swapInterval);</div>
 <div class="line"><a id="l07082" name="l07082"></a><span class="lineno"> 7082</span>    }</div>
 <div class="line"><a id="l07083" name="l07083"></a><span class="lineno"> 7083</span>    <span class="keywordflow">else</span> <span class="keywordflow">if</span> (pfn2 != NULL) {</div>
 <div class="line"><a id="l07084" name="l07084"></a><span class="lineno"> 7084</span>        pfn2(swapInterval);</div>
