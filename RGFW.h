@@ -51,6 +51,7 @@
 	#define RGFW_NO_IOKIT (optional) (macOS) don't use IOKit
 	#define RGFW_NO_UNIX_CLOCK (optional) (unix) don't link unix clock functions
 	#define RGFW_NO_DWM (windows only) - do not use or link dwmapi
+	#define RGFW_NO_RCLICK_NONCLIENT_ARENA (windows only) - disable right click on windows non-client-arena
 	#define RGFW_USE_XDL (optional) (X11) if XDL (XLib Dynamic Loader) should be used to load X11 dynamically during runtime (must include XDL.h along with RGFW)
 	#define RGFW_COCOA_GRAPHICS_SWITCHING - (optional) (cocoa) use automatic graphics switching (allow the system to choose to use GPU or iGPU)
 	#define RGFW_COCOA_FRAME_NAME (optional) (cocoa) set frame name
@@ -8887,15 +8888,30 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_win32_makeWindowTransparent(win);
 			break;
 		#endif
+
+// disable non-client-arena right click
+#ifdef RGFW_NO_RCLICK_NONCLIENT_ARENA
+		case WM_NCRBUTTONDOWN:
+		case WM_NCRBUTTONUP: 
+	return 1;
+#endif
+
 /* based on sokol_app.h */
 #ifdef RGFW_ADVANCED_SMOOTH_RESIZE
-        case WM_ENTERSIZEMOVE: SetTimer(win->src.window, 1, USER_TIMER_MINIMUM, NULL); break;
-        case WM_EXITSIZEMOVE: KillTimer(win->src.window, 1); break;
+        case WM_ENTERSIZEMOVE:
+		case WM_ENTERMENULOOP:
+		 SetTimer(win->src.window, 1, USER_TIMER_MINIMUM, NULL); break;
+        case WM_EXITSIZEMOVE:
+		case WM_EXITMENULOOP:
+		KillTimer(win->src.window, 1); break;
         case WM_TIMER:
 			if (!(win->internal.enabledEvents & RGFW_windowRefreshFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
 			RGFW_windowRefreshCallback(win); break;
+		
+
 #endif
         case WM_NCLBUTTONDOWN: {
+			printf("d\n");
             /* workaround for half-second pause when starting to move window
                 see: https://gamedev.net/forums/topic/672094-keeping-things-moving-during-win32-moveresize-events/5254386/
             */
@@ -8907,6 +8923,11 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PostMessage(win->src.window, WM_MOUSEMOVE, 0, (u32)(point.x)|((u32)(point.y) << 16));
             break;
         }
+		case WM_NCLBUTTONUP:{
+			printf("u");
+			break;
+		}
+
 		case WM_MOUSELEAVE:
 			win->internal.mouseInside = RGFW_FALSE;
 			_RGFW->windowState.winLeave = win;
