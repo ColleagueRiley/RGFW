@@ -11,7 +11,7 @@
 #endif
 
 #include <math.h>
-#define DEG2RAD 3.14/180.0
+#define DEG2RAD (3.14/180.0)
 
 float pitch = 0.0, yaw= 0.0;
 float camX = 0, camZ = 0;
@@ -174,7 +174,7 @@ void update_camera(void) {
 
 void glPerspective(float fovY, float aspect, float zNear, float zFar) {
     fovY =  (fovY * DEG2RAD) / 2.0f;
-    const float f = (cosf(fovY) / sinf(fovY));
+    const float f = (cosf(fovY) / (sinf(fovY) + 0.00001));
 
     float projectionMatrix[16] = {0};
 
