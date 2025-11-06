@@ -9,9 +9,9 @@ CC ?= gcc
 AR ?= ar
 
 # used for compiling RGFW.o
-CUSTOM_CFLAGS =
+CUSTOM_CFLAGS = -Wpedantic --max-errors=1
 # used for the examples
-CFLAGS =
+CFLAGS = --max-errors=1
 CFLAGS += -g3
 
 DX11_LIBS = -static -lgdi32 -ldxgi -ld3d11 -luuid -ld3dcompiler
@@ -138,7 +138,7 @@ else ifneq (,$(filter $(CC),emcc em++))
 	NO_OSMESA ?= 1
 	DX11_LIBS =
 else ifeq (,$(filter $(CC),g++ clang++ em++))
-	LIBS += -std=c99
+	LIBS += -std=c89
 	WARNINGS = -Wall -Werror -Wdouble-promotion -Wmissing-prototypes -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
 else
 	WARNINGS = -Wall -Werror -Wdouble-promotion -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn

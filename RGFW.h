@@ -2995,8 +2995,9 @@ void RGFW_clipboard_switch(char* newstr) {
 
 const char* RGFW_readClipboard(size_t* len) {
 	RGFW_ssize_t size = RGFW_readClipboardPtr(NULL, 0);
+    char * str = NULL;
     RGFW_CHECK_CLIPBOARD();
-    char* str = (char*)RGFW_ALLOC((size_t)size);
+    str = (char*)RGFW_ALLOC((size_t)size);
     RGFW_ASSERT(str != NULL);
     str[0] = '\0';
 
@@ -3019,9 +3020,9 @@ This is the start of keycode data
 
 
 void RGFW_initKeycodes(void) {
+    u32 i, y;
 	RGFW_MEMSET(_RGFW->keycodes, 0, sizeof(_RGFW->keycodes));
 	RGFW_initKeycodesPlatform();
-    u32 i, y;
     for (i = 0; i < RGFW_keyLast; i++) {
         for (y = 0; y < sizeof(_RGFW->keycodes); y++) {
             if (_RGFW->keycodes[y] == i) {
@@ -3206,6 +3207,8 @@ i32 RGFW_initPlatform(void);
 void RGFW_deinitPlatform(void);
 
 i32 RGFW_init_ptr(RGFW_info* info) {
+    u32 i;
+    i32 out;
     if (info == _RGFW || info == NULL) return 1;
 
     RGFW_setInfo(info);
@@ -3217,7 +3220,6 @@ i32 RGFW_init_ptr(RGFW_info* info) {
 #endif
 
 	_RGFW->files = (char**)(void*)_RGFW->filesSrc;
-	u32 i;
 	for (i = 0; i < RGFW_MAX_DROPS; i++)
 		_RGFW->files[i] = (char*)(_RGFW->filesSrc + RGFW_MAX_DROPS + (i * RGFW_MAX_PATH));
 
@@ -3231,7 +3233,7 @@ i32 RGFW_init_ptr(RGFW_info* info) {
 	}
 
     RGFW_initKeycodes();
-    i32 out = RGFW_initPlatform();
+    out = RGFW_initPlatform();
     RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal, "global context initialized");
 
 	return out;
@@ -3267,6 +3269,7 @@ void RGFW_window_close(RGFW_window* win) {
 }
 
 RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, RGFW_windowFlags flags, RGFW_window* win) {
+    RGFW_window* ret = NULL;
 	RGFW_ASSERT(win != NULL);
 	RGFW_MEMSET(win, 0, sizeof(RGFW_window));
 	if (_RGFW == NULL) RGFW_init();
@@ -3285,7 +3288,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	win->internal.flags = flags;
 	win->internal.enabledEvents = RGFW_allEventFlags;
 
-	RGFW_window* ret = RGFW_createWindowPlatform(name, flags, win);
+	ret = RGFW_createWindowPlatform(name, flags, win);
 
 #ifndef RGFW_X11
 	RGFW_window_setFlagsInternal(win, flags, 0);
@@ -3384,15 +3387,17 @@ void RGFW_eventQueuePush(const RGFW_event* event) {
 		RGFW_eventQueueFlush();
 		return;
 	}
-
-	i32 eventTop = (_RGFW->eventBottom + _RGFW->eventLen) % RGFW_MAX_EVENTS;
-	_RGFW->eventLen += 1;
-	_RGFW->events[eventTop] = *event;
+    {
+        i32 eventTop = (_RGFW->eventBottom + _RGFW->eventLen) % RGFW_MAX_EVENTS;
+        _RGFW->eventLen += 1;
+        _RGFW->events[eventTop] = *event;
+    }
 }
 
 RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
+    RGFW_event* ev = NULL;
 	RGFW_ASSERT(_RGFW->eventLen >= 0 && _RGFW->eventLen <= RGFW_MAX_EVENTS);
-	RGFW_event* ev;
+
 
 	if (_RGFW->eventLen == 0) {
 		return NULL;
@@ -3611,8 +3616,10 @@ void RGFW_setBit(u32* var, u32 mask, RGFW_bool set) {
 
 void RGFW_window_center(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-	RGFW_monitor mon = RGFW_window_getMonitor(win);
-	RGFW_window_move(win, (i32)(mon.mode.w - win->w) / 2, (mon.mode.h - win->h) / 2);
+    {
+        RGFW_monitor mon = RGFW_window_getMonitor(win);
+        RGFW_window_move(win, (i32)(mon.mode.w - win->w) / 2, (mon.mode.h - win->h) / 2);
+    }
 }
 
 RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, RGFW_window* win) {
@@ -3625,10 +3632,10 @@ RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, RGFW_window* win) {
 }
 
 void RGFW_splitBPP(u32 bpp, RGFW_monitorMode* mode) {
+    u32 delta;
     if (bpp == 32) bpp = 24;
     mode->red = mode->green = mode->blue = (u8)(bpp / 3);
-
-    u32 delta = bpp - (mode->red * 3); /* handle leftovers */
+    delta = bpp - (mode->red * 3); /* handle leftovers */
     if (delta >= 1) mode->green = mode->green + 1;
     if (delta == 2) mode->red = mode->red + 1;
 }
@@ -3710,37 +3717,44 @@ void RGFW_copyImageData(u8* dest_data, i32 w, i32 h, RGFW_format dest_format, u8
 }
 
 void RGFW_copyImageData64(u8* dest_data, i32 dest_w, i32 dest_h, RGFW_format dest_format, u8* src_data, RGFW_format src_format, RGFW_bool is64bit) {
+    u32 src_channels, dest_channels, pixel_count;
+    
 	RGFW_ASSERT(dest_data && src_data);
+	src_channels = (src_format >= RGFW_formatRGBA8) ? 4 : 3;
+	dest_channels = (dest_format >= RGFW_formatRGBA8) ? 4 : 3;
 
-	u32 src_channels = (src_format >= RGFW_formatRGBA8) ? 4 : 3;
-	u32 dest_channels = (dest_format >= RGFW_formatRGBA8) ? 4 : 3;
-
-    u32 pixel_count = (u32)(dest_w * dest_h);
+    pixel_count = (u32)(dest_w * dest_h);
 
 	if (src_format == dest_format) {
         RGFW_MEMCPY(dest_data, src_data, pixel_count * dest_channels);
         return;
     }
 
-    const RGFW_colorLayout* src_layout  = &RGFW_layouts[src_format];
-    const RGFW_colorLayout* dest_layout = &RGFW_layouts[dest_format];
+    {
+        const RGFW_colorLayout* src_layout  = &RGFW_layouts[src_format];
+        const RGFW_colorLayout* dest_layout = &RGFW_layouts[dest_format];
 
-	u32 i, i2 = 0;
-	for (i = 0; i < pixel_count; i++) {
-		const u8* src_px = &src_data[i * src_channels];
-		u8* dst_px = &dest_data[i2 * dest_channels];
-		u8 rgba[4] = { src_px[src_layout->r], src_px[src_layout->g], src_px[src_layout->b], 255 };
-		if (src_channels == 4)
-			rgba[3] = src_px[src_layout->a];
+        u32 i, i2 = 0;
+        for (i = 0; i < pixel_count; i++) {
+            const u8* src_px = &src_data[i * src_channels];
+            u8* dst_px = &dest_data[i2 * dest_channels];
+            u8 rgba[4] = {0};
+            rgba[0] = src_px[src_layout->r];
+            rgba[1] = src_px[src_layout->g];
+            rgba[2] = src_px[src_layout->b];
+            rgba[3] = 255;
+            if (src_channels == 4)
+                rgba[3] = src_px[src_layout->a];
 
-        dst_px[dest_layout->r] = rgba[0];
-        dst_px[dest_layout->g] = rgba[1];
-        dst_px[dest_layout->b] = rgba[2];
-		if (dest_channels == 4)
-			dst_px[dest_layout->a] = rgba[3];
+            dst_px[dest_layout->r] = rgba[0];
+            dst_px[dest_layout->g] = rgba[1];
+            dst_px[dest_layout->b] = rgba[2];
+            if (dest_channels == 4)
+                dst_px[dest_layout->a] = rgba[3];
 
-		i2 += 1 + is64bit;
-	}
+            i2 += 1 + is64bit;
+        }
+    }
 }
 
 RGFW_monitorNode* RGFW_monitors_add(RGFW_monitor mon) {
@@ -3854,17 +3868,19 @@ RGFW_bool RGFW_window_isFullscreen(RGFW_window* win){ return RGFW_BOOL(win->inte
 RGFW_bool RGFW_window_allowsDND(RGFW_window* win) { return RGFW_BOOL(win->internal.flags & RGFW_windowAllowDND); }
 
 void RGFW_window_focusLost(RGFW_window* win) {
+    size_t key;
+
     /* standard routines for when a window looses focus */
 	win->internal.inFocus = RGFW_FALSE;
 	if ((win->internal.flags & RGFW_windowFullscreen))
 			RGFW_window_minimize(win);
 
-    size_t key;
     for (key = 0; key < RGFW_keyLast; key++) {
+        u8 sym = 0;
 		if (RGFW_isKeyDown((u8)key) == RGFW_FALSE) continue;
 
 		_RGFW->keyboard[key].current = RGFW_FALSE;
-        u8 sym = RGFW_rgfwToKeyChar((u32)key);
+        sym = RGFW_rgfwToKeyChar((u32)key);
 
 		if ((win->internal.enabledEvents & RGFW_BIT(RGFW_keyReleased))) {
 			RGFW_keyCallback(win, (u8)key, sym, win->internal.mod, RGFW_FALSE, RGFW_FALSE);
@@ -3953,7 +3969,8 @@ RGFW_glHints* RGFW_globalHints_OpenGL = &RGFW_globalHints_OpenGL_SRC;
 
 void RGFW_resetGlobalHints_OpenGL(void) {
 #if !defined(__cplusplus) || defined(RGFW_MACOS)
-	RGFW_globalHints_OpenGL_SRC = (RGFW_glHints)RGFW_DEFAULT_GL_HINTS;
+    RGFW_glHints hints = RGFW_DEFAULT_GL_HINTS;
+	RGFW_globalHints_OpenGL_SRC = hints;
 #else
 	RGFW_globalHints_OpenGL_SRC = RGFW_DEFAULT_GL_HINTS;
 #endif
@@ -4690,10 +4707,11 @@ RGFWDEF u64 RGFW_linux_getTimeNS(i32 clock);
 u64 RGFW_linux_getTimeNS(i32 clock) {
     struct timespec ts;
     clock_gettime(clock, &ts);
-    return (u64)ts.tv_sec * 1000000000ull + (u64)ts.tv_nsec;
+    return (u64)ts.tv_sec * (u64)1000000000 + (u64)ts.tv_nsec;
 }
 
 void RGFW_waitForEvent(i32 waitMS) {
+    struct pollfd fds[2] = {0};
 	if (waitMS == 0) return;
 
 	if (_RGFW->eventWait_forceStop[0] == 0 || _RGFW->eventWait_forceStop[1] == 0) {
@@ -4705,11 +4723,12 @@ void RGFW_waitForEvent(i32 waitMS) {
 		}
 	}
 
-	struct pollfd fds[] = {
-		{ 0, POLLIN, 0 },
-        { _RGFW->eventWait_forceStop[0], POLLIN, 0 },
-	};
-
+    fds[0].fd = 0;
+    fds[0].events = POLLIN;
+    fds[0].revents = 0;
+    fds[1].fd = _RGFW->eventWait_forceStop[0];
+    fds[1].events = POLLIN;
+    fds[1].revents = 0;
 
 	if (RGFW_usingWayland()) {
 		#ifdef RGFW_WAYLAND
@@ -4742,65 +4761,69 @@ void RGFW_waitForEvent(i32 waitMS) {
 		#endif
 	}
 
-	i32 clock = 0;
-	#if defined(_POSIX_MONOTONIC_CLOCK)
-	struct timespec ts;
-	RGFW_MEMSET(&ts, 0, sizeof(struct timespec));
-
-	if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
-		clock = CLOCK_MONOTONIC;
-	#else
-		clock = CLOCK_REALTIME;
-	#endif
-
-	u64 start = RGFW_linux_getTimeNS(clock);
-	if (RGFW_usingWayland()) {
-		#ifdef RGFW_WAYLAND
-		while (wl_display_dispatch_pending(_RGFW->wl_display) == 0) {
-			if (poll(fds, 1, waitMS) <= 0) {
-				wl_display_cancel_read(_RGFW->wl_display);
-				break;
-			} else {
-				if (wl_display_read_events(_RGFW->wl_display) == -1)
-					return;
-			}
-
-			if (waitMS != RGFW_eventWaitNext) {
-				waitMS -= (i32)(RGFW_linux_getTimeNS(clock) - start) / (i32)1e+6;
-			}
-		}
-
-		// queue contains events from read, dispatch them
-		if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
-			return;
-		}
-		#endif
-	} else {
-		#ifdef RGFW_X11
-		while (XPending(_RGFW->display) == 0) {
-			if (poll(fds, 1, waitMS) <= 0)
-				break;
-
-			if (waitMS != RGFW_eventWaitNext) {
-				waitMS -= (i32)(RGFW_linux_getTimeNS(clock) - start) / (i32)1e+6;
-			}
-		}
-		#endif
-	}
-
-	/* drain any data in the stop request */
-	if (_RGFW->eventWait_forceStop[2]) {
-		char data[64];
-        RGFW_MEMSET(data, 0, sizeof(data));
-        (void)!read(_RGFW->eventWait_forceStop[0], data, sizeof(data));
-
-		_RGFW->eventWait_forceStop[2] = 0;
-	}
+    {
+	    i32 clock = 0;
+        u64 start = 0;
+	    #if defined(_POSIX_MONOTONIC_CLOCK)
+	    struct timespec ts;
+	    RGFW_MEMSET(&ts, 0, sizeof(struct timespec));
+        
+	    if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
+	    	clock = CLOCK_MONOTONIC;
+	    #else
+	    	clock = CLOCK_REALTIME;
+	    #endif
+        
+	    start = RGFW_linux_getTimeNS(clock);
+	    if (RGFW_usingWayland()) {
+	    	#ifdef RGFW_WAYLAND
+	    	while (wl_display_dispatch_pending(_RGFW->wl_display) == 0) {
+	    		if (poll(fds, 1, waitMS) <= 0) {
+	    			wl_display_cancel_read(_RGFW->wl_display);
+	    			break;
+	    		} else {
+	    			if (wl_display_read_events(_RGFW->wl_display) == -1)
+	    				return;
+	    		}
+        
+	    		if (waitMS != RGFW_eventWaitNext) {
+	    			waitMS -= (i32)(RGFW_linux_getTimeNS(clock) - start) / (i32)1e+6;
+	    		}
+	    	}
+        
+	    	// queue contains events from read, dispatch them
+	    	if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
+	    		return;
+	    	}
+	    	#endif
+	    } else {
+	    	#ifdef RGFW_X11
+	    	while (XPending(_RGFW->display) == 0) {
+	    		if (poll(fds, 1, waitMS) <= 0)
+	    			break;
+        
+	    		if (waitMS != RGFW_eventWaitNext) {
+	    			waitMS -= (i32)(RGFW_linux_getTimeNS(clock) - start) / (i32)1e+6;
+	    		}
+	    	}
+	    	#endif
+	    }
+        
+	    /* drain any data in the stop request */
+	    if (_RGFW->eventWait_forceStop[2]) {
+	    	char data[64];
+            RGFW_MEMSET(data, 0, sizeof(data));
+            (void)!read(_RGFW->eventWait_forceStop[0], data, sizeof(data));
+        
+	    	_RGFW->eventWait_forceStop[2] = 0;
+	    }
+    }
 }
 
 char* RGFW_strtok(char* str, const char* delimStr);
 char* RGFW_strtok(char* str, const char* delimStr) {
     static char* static_str = NULL;
+    char * token_start = NULL;
 
     if (str != NULL)
         static_str = str;
@@ -4826,7 +4849,7 @@ char* RGFW_strtok(char* str, const char* delimStr) {
     if (*static_str == '\0')
         return NULL;
 
-    char* token_start = static_str;
+    token_start = static_str;
     while (*static_str != '\0') {
         int delim = 0;
         const char* d;
@@ -5192,13 +5215,13 @@ RGFW_format RGFW_XImage_getFormat(XImage* image) {
 }
 
 RGFW_bool RGFW_window_createSurfacePtr(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format, RGFW_surface* surface) {
-	RGFW_ASSERT(surface != NULL);
+    XWindowAttributes attrs;
+    RGFW_ASSERT(surface != NULL);
 	surface->data = data;
 	surface->w = w;
 	surface->h = h;
 	surface->format = format;
 
-	XWindowAttributes attrs;
 	if (XGetWindowAttributes(_RGFW->display, win->src.window, &attrs) == 0) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, "Failed to get window attributes.");
 		return RGFW_FALSE;
@@ -5242,14 +5265,15 @@ void RGFW_FUNC(RGFW_surface_freePtr) (RGFW_surface* surface) {
 	static Atom name = 0; \
 	if (name == 0) name = XInternAtom(_RGFW->display, #name, False);
 
-void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
-	RGFW_setBit(&win->internal.flags, RGFW_windowNoBorder, !border);
-	RGFW_LOAD_ATOM(_MOTIF_WM_HINTS);
 
-	struct __x11WindowHints {
+void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
+    struct __x11WindowHints {
 		unsigned long flags, functions, decorations, status;
 		long input_mode;
 	} hints;
+	RGFW_setBit(&win->internal.flags, RGFW_windowNoBorder, !border);
+	RGFW_LOAD_ATOM(_MOTIF_WM_HINTS);
+	
 	hints.flags = 2;
 	hints.decorations = border;
 
