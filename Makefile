@@ -9,9 +9,9 @@ CC ?= gcc
 AR ?= ar
 
 # used for compiling RGFW.o
-CUSTOM_CFLAGS = -Wpedantic --max-errors=1
+CUSTOM_CFLAGS =
 # used for the examples
-CFLAGS = --max-errors=1
+CFLAGS =
 CFLAGS += -g3
 
 DX11_LIBS = -static -lgdi32 -ldxgi -ld3d11 -luuid -ld3dcompiler
@@ -78,7 +78,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		DX11_LIBS =
 		LINK_GL1 = -lGL
 		CUSTOM_CFLAGS += -I/usr/pkg/include -I/usr/X11R7/include -Wl,-R/usr/pkg/lib -Wl,-R/usr/X11R7/lib -L/usr/pkg/lib -L/usr/X11R7/lib
-    	LIBS := $(CUSTOM_CFLAGS) -lXrandr -lX11 -lpthread
+		LIBS := $(CUSTOM_CFLAGS) -lXrandr -lX11 -lpthread
 		VULKAN_LIBS = -lX11 -lXrandr -lpthread
 		EXT =
 		LIB_EXT = .so
@@ -104,7 +104,7 @@ ifeq ($(WAYLAND),1)
 	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1.c pointer-constraints-unstable-v1.c xdg-toplevel-icon-v1.c xdg-output-unstable-v1.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL
 	LINK_GL1 = -lEGL -lGL
 
-	# LIBS += -ldecor-0
+#   LIBS += -ldecor-0
 
 	ifeq ($(WAYLAND_X11), 1)
 		LIBS += -D RGFW_X11
