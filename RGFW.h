@@ -7467,11 +7467,7 @@ static void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 se
 	RGFW->windowState.mouseEnter = RGFW_TRUE;
 
 	RGFW->mouseOwner = win;
-
-	// might not be the desired behavior
-	// if (win->internal.flags & RGFW_windowCenterCursor) {
-	// 	RGFW_window_moveMouse(win, (win->w / 2), (win->h / 2));
-	// }
+		
 	// set the cursor
 	if (win->src.using_custom_cursor) {
 		wl_pointer_set_cursor(pointer, serial, win->src.custom_cursor_surface, 0, 0);
