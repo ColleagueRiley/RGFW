@@ -5,7 +5,7 @@
 # NO_GLES=1 -> do not compile the gles example (on by default for non-linux OSes)
 # NO_OSMESA=1 -> do not compile the osmesa example (on by default for non-linux OSes)
 
-CC ?= gcc
+CC ?= tcc
 AR ?= ar
 
 # used for compiling RGFW.o
@@ -206,7 +206,7 @@ examples/srgb/srgb: examples/srgb/srgb.c RGFW.h
 
 examples/portableGL/pgl: examples/portableGL/pgl.c RGFW.h
 ifeq (,$(filter $(CC),emcc em++))
-	$(CC)  -w $(CFLAGS) -I. $< -lm $(LIBS) -o $@ --std=c99
+	$(CC)  -w $(CFLAGS) -I. $< -lm $(LIBS) -o $@ -std=c99
 else
 	@echo "the portableGL example doesn't support html5"
 endif
@@ -316,11 +316,11 @@ endif
 
 # These examples have been set to use c99 because they use stb_image.h which is c99
 examples/window_icons/icons: examples/window_icons/icons.c RGFW.h
-	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT) --std=c99
+	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT) -std=c99
 examples/mouse_icons/icons: examples/mouse_icons/icons.c RGFW.h
-	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT) --std=c99
+	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT) -std=c99
 examples/gamepad/gamepad: examples/gamepad/gamepad.c RGFW.h
-	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT) --std=c99
+	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT) -std=c99
 
 examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.h
 	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
