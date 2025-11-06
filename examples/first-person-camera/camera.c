@@ -174,7 +174,8 @@ void update_camera(void) {
 
 void glPerspective(float fovY, float aspect, float zNear, float zFar) {
     fovY =  (fovY * DEG2RAD) / 2.0f;
-    const float f = (cosf(fovY) / (sinf(fovY) + 0.00001));
+    if(sinf(fovY) == 0) fovY += 0.001;
+    const float f = (cosf(fovY) / (sinf(fovY)));
 
     float projectionMatrix[16] = {0};
 
