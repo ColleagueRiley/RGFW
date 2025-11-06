@@ -27,8 +27,9 @@ void myFree(void* ptr, unsigned int line, const char* file) {
 #include "RGFW.h"
 
 int main(void) {
+    RGFW_window * win = NULL;
 	RGFW_setClassName("RGFW Example");
-	RGFW_window *win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
+	win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
     RGFW_window_setExitKey(win, RGFW_escape);
 
 	while (!RGFW_window_shouldClose(win)) {

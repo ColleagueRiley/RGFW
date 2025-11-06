@@ -206,7 +206,7 @@ examples/srgb/srgb: examples/srgb/srgb.c RGFW.h
 
 examples/portableGL/pgl: examples/portableGL/pgl.c RGFW.h
 ifeq (,$(filter $(CC),emcc em++))
-	$(CC)  -w $(CFLAGS) -I. $< -lm $(LIBS) -o $@
+	$(CC)  -w $(CFLAGS) -I. $< -lm $(LIBS) -o $@ --std=c99
 else
 	@echo "the portableGL example doesn't support html5"
 endif
@@ -314,12 +314,13 @@ else
 	$(CC) $(CFLAGS) -I. $< examples/microui_demo/microui.c -s USE_WEBGL2 $(LIBS) $(LINK_GL1) -o $@$(EXT)
 endif
 
+# These examples have been set to use c99 because they use stb_image.h which is c99
 examples/window_icons/icons: examples/window_icons/icons.c RGFW.h
-	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
+	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT) --std=c99
 examples/mouse_icons/icons: examples/mouse_icons/icons.c RGFW.h
-	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
+	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT) --std=c99
 examples/gamepad/gamepad: examples/gamepad/gamepad.c RGFW.h
-	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
+	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT) --std=c99
 
 examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.h
 	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)

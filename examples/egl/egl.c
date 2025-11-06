@@ -28,7 +28,7 @@ int main(void) {
 
 	RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowEGL | RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowTransparent);
     RGFW_window_makeCurrentContext_EGL(win);
-    RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want
+    RGFW_setKeyCallback(keyfunc); /* you can use callbacks like this if you want*/
     RGFW_window_setExitKey(win, RGFW_escape);
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {

@@ -8,7 +8,7 @@ int main(void) {
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
 
-//                        printf("Maximized: %s\n", RGFW_window_isMaximized(win) ? "true" : "false");
+        /*                        printf("Maximized: %s\n", RGFW_window_isMaximized(win) ? "true" : "false");*/
         RGFW_event event;
         while (RGFW_window_checkEvent(win, &event)) {
             if (event.type == RGFW_quit) break;

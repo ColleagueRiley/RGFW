@@ -47,15 +47,17 @@ void checkEvents(RGFW_window* win) {
 				if (event.common.win->w != 0 && event.common.win->h)
 					printf("window %p: resize: %dx%d\n", (void*)win, event.common.win->w, event.common.win->h);
 				break;
-			case RGFW_dataDrop:
+            case RGFW_dataDrop: {
+                unsigned long i = 0;
 				printf("window %p: drag and drop: %dx%d:\n", (void*)win, event.mouse.x, event.mouse.y);
-				for (size_t i = 0; i < event.drop.count; i++)
+				for (i = 0; i < event.drop.count; i++)
 					printf("\t%u: '%s'\n", (u32)i, event.drop.files[i]);
 				break;
+            }
 			case RGFW_keyPressed:
 				if (event.key.value == RGFW_c && (RGFW_window_isKeyDown(win, RGFW_controlL) || RGFW_window_isKeyDown(win, RGFW_controlR))) {
 					char str[32] = {0};
-					int size = snprintf(str, 32, "window %p: 刺猬", (void*)win);
+					int size = RGFW_SNPRINTF(str, 32, "window %p: 刺猬", (void*)win);
 					if (size > 0)
 						RGFW_writeClipboard(str, (u32)size);
 				}
@@ -80,10 +82,11 @@ void* loop(void* _win);
 void* loop(void* _win) {
 #endif
 	RGFW_window*win = (RGFW_window*) _win;
-	RGFW_window_makeCurrentContext_OpenGL(win);
 
 	int blue = 0;
 	u32 frames = 0;
+    
+    RGFW_window_makeCurrentContext_OpenGL(win);
 
 	while (!RGFW_window_shouldClose(win)) {
 		checkEvents(win);
@@ -115,26 +118,31 @@ void* loop(void* _win) {
 }
 
 int main(void) {
+    RGFW_glHints* hints;
+    RGFW_window* win1;
+    RGFW_window* win2;
+    RGFW_window* win3;
+    
 #ifdef RGFW_WINDOWS
 	SetConsoleOutputCP(CP_UTF8);
 #endif
 
 	RGFW_setClassName("RGFW Example");
 
-    RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
+    hints = RGFW_getGlobalHints_OpenGL();
 
-	RGFW_window* win1 = RGFW_createWindow("RGFW Example Window 1", 500, 500, 500, 500, RGFW_windowAllowDND | RGFW_windowOpenGL);
+	win1 = RGFW_createWindow("RGFW Example Window 1", 500, 500, 500, 500, RGFW_windowAllowDND | RGFW_windowOpenGL);
 
 	RGFW_window_makeCurrentContext_OpenGL(NULL); /* this is so we can share the context on wine for some reason */
 
 	hints->share = RGFW_window_getContext_OpenGL(win1);
 	RGFW_setGlobalHints_OpenGL(hints);
 
-	RGFW_window* win2 = RGFW_createWindow("RGFW Example Window 2", 100, 100, 200, 200, RGFW_windowNoResize | RGFW_windowAllowDND | RGFW_windowOpenGL);
+	win2 = RGFW_createWindow("RGFW Example Window 2", 100, 100, 200, 200, RGFW_windowNoResize | RGFW_windowAllowDND | RGFW_windowOpenGL);
 
 	RGFW_window_makeCurrentContext_OpenGL(NULL); /* this is so we can share the context on wine for some reason */
 
-	RGFW_window* win3 = RGFW_createWindow("RGFW Example Window 3", 20, 500, 400, 300, RGFW_windowNoResize | RGFW_windowAllowDND | RGFW_windowOpenGL);
+	win3 = RGFW_createWindow("RGFW Example Window 3", 20, 500, 400, 300, RGFW_windowNoResize | RGFW_windowAllowDND | RGFW_windowOpenGL);
 	printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
 	RGFW_window_makeCurrentContext_OpenGL(NULL); /* this is really important (this releases the opengl context on this thread) */
 
@@ -144,24 +152,26 @@ int main(void) {
     RGFW_window_setExitKey(win3, RGFW_escape);
 	RGFW_setQueueEvents(RGFW_TRUE); /* manually enable the queue so we don't accidently miss the first few events */
 
-	my_thread thread1 = createThread(loop, win1);
-	my_thread thread2 = createThread(loop, win2);
-	my_thread thread3 = createThread(loop, win3);
+    {
+        my_thread thread1 = createThread(loop, win1);
+        my_thread thread2 = createThread(loop, win2);
+        my_thread thread3 = createThread(loop, win3);
 
-	while (!RGFW_window_shouldClose(win1) && !RGFW_window_shouldClose(win2) && !RGFW_window_shouldClose(win3)) {
-		RGFW_pollEvents();
-	}
+        while (!RGFW_window_shouldClose(win1) && !RGFW_window_shouldClose(win2) && !RGFW_window_shouldClose(win3)) {
+            RGFW_pollEvents();
+        }
 
-	RGFW_window_setShouldClose(win1, 1);
-	RGFW_window_setShouldClose(win2, 1);
-	RGFW_window_setShouldClose(win3, 1);
-	joinThread(thread1);
-	joinThread(thread2);
-	joinThread(thread3);
+        RGFW_window_setShouldClose(win1, 1);
+        RGFW_window_setShouldClose(win2, 1);
+        RGFW_window_setShouldClose(win3, 1);
+        joinThread(thread1);
+        joinThread(thread2);
+        joinThread(thread3);
 
-	RGFW_window_close(win1);
-	RGFW_window_close(win2);
-	RGFW_window_close(win3);
-	return 0;
+        RGFW_window_close(win1);
+        RGFW_window_close(win2);
+        RGFW_window_close(win3);
+        return 0;
+    }
 }
 

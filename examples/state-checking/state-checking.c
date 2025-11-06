@@ -11,8 +11,10 @@ typedef struct {
     RGFW_bool isFullscreen;
     RGFW_bool isMinimized;
     RGFW_bool isMaximized;
-    i32 posX, posY;
-    i32 width, height;
+    i32 posX;
+    i32 posY;
+    i32 width;
+    i32 height;
     RGFW_bool escapePressed;
     RGFW_bool spaceDown;
     RGFW_bool enterReleased;
@@ -20,53 +22,66 @@ typedef struct {
     RGFW_bool leftMousePressed;
     RGFW_bool rightMouseDown;
     RGFW_bool middleMouseReleased;
-    float scrollX, scrollY;
-    i32 mouseX, mouseY;
-	float vectorX, vectorY;
+    float scrollX;
+    float scrollY;
+    i32 mouseX;
+    i32 mouseY;
+	float vectorX;
+    float vectorY;
     RGFW_bool didMouseLeave;
     RGFW_bool didMouseEnter;
     RGFW_bool isMouseInside;
     RGFW_bool drop;
     RGFW_bool drag;
-    i32 dragX, dragY;
+    i32 dragX;
+    i32 dragY;
     const char** data;
     size_t count;
 } WindowState;
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW State Checking", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
+    WindowState prevState;
     RGFW_window_setExitKey(win, RGFW_escape);
 
-    WindowState prevState;
     memset(&prevState, 0, sizeof(WindowState));
 
     while (RGFW_window_shouldClose(win) == 0) {
+        WindowState currState = {0};
+            
         RGFW_pollEvents();
 
-        WindowState currState = {
-            RGFW_window_isInFocus(win),
-            RGFW_window_isFullscreen(win),
-            RGFW_window_isMinimized(win),
-            RGFW_window_isMaximized(win),
-            0, 0,
-            0, 0,
-            RGFW_window_isKeyPressed(win, RGFW_escape),
-            RGFW_window_isKeyDown(win, RGFW_space),
-            RGFW_window_isKeyReleased(win, RGFW_enter),
-            RGFW_window_isKeyPressed(win, RGFW_controlL),
-            RGFW_window_isMousePressed(win, RGFW_mouseLeft),
-            RGFW_window_isMouseDown(win, RGFW_mouseRight),
-            RGFW_window_isMouseReleased(win, RGFW_mouseMiddle),
-            0, 0,
-            0, 0,
-			0.0f, 0.0f,
-            RGFW_window_didMouseLeave(win),
-            RGFW_window_didMouseEnter(win),
-            RGFW_window_isMouseInside(win),
-            RGFW_window_didDataDrop(win),
-            RGFW_window_isDataDragging(win),
-            0, 0, NULL, 0,
-        };
+        currState.isInFocus           = RGFW_window_isInFocus(win);
+        currState.isFullscreen        = RGFW_window_isFullscreen(win);
+        currState.isMinimized         = RGFW_window_isMinimized(win);
+        currState.isMaximized         = RGFW_window_isMaximized(win);
+        currState.posX                = 0;
+        currState.posY                = 0;
+        currState.width               = 0;
+        currState.height              = 0;
+        currState.escapePressed       = RGFW_window_isKeyPressed(win, RGFW_escape);
+        currState.spaceDown           = RGFW_window_isKeyDown(win, RGFW_space);
+        currState.enterReleased       = RGFW_window_isKeyReleased(win, RGFW_enter);
+        currState.controlPressed      = RGFW_window_isKeyPressed(win, RGFW_controlL);
+        currState.leftMousePressed    = RGFW_window_isMousePressed(win, RGFW_mouseLeft);
+        currState.rightMouseDown      = RGFW_window_isMouseDown(win, RGFW_mouseRight);
+        currState.middleMouseReleased = RGFW_window_isMouseReleased(win, RGFW_mouseMiddle);
+        currState.scrollX             = 0;
+        currState.scrollY             = 0;
+        currState.mouseX              = 0;
+        currState.mouseY              = 0;
+		currState.vectorX             = 0.0f;
+        currState.vectorY             = 0.0f;
+        currState.didMouseLeave       = RGFW_window_didMouseLeave(win);
+        currState.didMouseEnter       = RGFW_window_didMouseEnter(win);
+        currState.isMouseInside       = RGFW_window_isMouseInside(win);
+        currState.drop                = RGFW_window_didDataDrop(win);
+        currState.drag                = RGFW_window_isDataDragging(win);
+        currState.dragX               = 0;
+        currState.dragY               = 0;
+        currState.data                = NULL;
+        currState.count               = 0;
+
 
 		RGFW_window_getPosition(win, &currState.posX, &currState.posY);
         RGFW_window_getSize(win, &currState.width, &currState.height);
@@ -143,8 +158,9 @@ int main(void) {
 
         if (currState.drop != prevState.drop) {
             if (currState.drop) {
+                unsigned long i = 0;
                 printf("Data dropped :\n");
-                for (size_t i = 0; i < currState.count; i++) {
+                for (i = 0; i < currState.count; i++) {
                     printf("    file : %s\n", currState.data[i]);
                 }
             } else printf("No data has ben dropped\n");

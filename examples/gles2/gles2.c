@@ -39,7 +39,7 @@ int main(void) {
 	RGFW_window* win = RGFW_createWindow("name", 0, 0, 500, 500, RGFW_windowCenter | RGFW_windowTransparent | RGFW_windowOpenGL);
     RGFW_window_setExitKey(win, RGFW_escape);
 
-    ///////  the openGL part  ///////////////////////////////////////////////////////////////
+    /******  the openGL part  ***************************************************************/
 
     GLuint vertexShader = load_shader
         ("   precision mediump float;"
@@ -83,7 +83,7 @@ int main(void) {
 
     glUseProgram(shaderProgram);
 
-    // OpenGL Rendering Parameters
+    /* OpenGL Rendering Parameters*/
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
 
@@ -91,8 +91,8 @@ int main(void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     float attribute_array[] =
-        //  x     y  r  g  b
-        { 0.0, -1, 1, 0, 0,
+        /*  x     y  r  g  b */
+        {   0.0, -1, 1, 0, 0,
             0.0,  1, 0, 1, 1,
             0.2, -1, 0, 0, 1,
             0.2,  1, 0, 1, 0

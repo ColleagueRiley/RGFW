@@ -279,8 +279,8 @@ IN THE SOFTWARE.
 #endif
 
 
-// Add/remove as needed as long as you also modify
-// matching undef section
+/* Add/remove as needed as long as you also modify
+ * matching undef section */
 
 #ifdef PGL_PREFIX_GLSL
 #define mix pgl_mix
@@ -353,12 +353,12 @@ extern "C" {
 #include <stdlib.h>
 #include <stdint.h>
 
-// Unfortunately this is not supported in gcc even though
-// it's in the C99+ spec.  Have to use compiler option
-// -ffp-contract=off for gcc (which defaults to =fast)
-// unlike clang
-//
-//  https://stackoverflow.com/questions/43352510/difference-in-gcc-ffp-contract-options
+/* Unfortunately this is not supported in gcc even though                               */
+/* it's in the C99+ spec.  Have to use compiler option                                  */
+/* -ffp-contract=off for gcc (which defaults to =fast)                                  */
+/* unlike clang                                                                         */
+/*                                                                                      */
+/*  https://stackoverflow.com/questions/43352510/difference-in-gcc-ffp-contract-options */
 #pragma STDC FP_CONTRACT OFF
 
 #define RM_PI (3.14159265358979323846)
@@ -376,7 +376,7 @@ extern "C" {
 #define DEG_TO_HR(x)    ((x) * 15.0)
 #define RAD_TO_HR(x)    DEG_TO_HR(RAD_TO_DEG(x))
 
-// TODO rename RM_MAX/RSW_MAX?  make proper inline functions?
+/*TODO rename RM_MAX/RSW_MAX?  make proper inline functions?*/
 #ifndef MAX
 #define MAX(a, b)  (((a) > (b)) ? (a) : (b))
 #endif
@@ -393,7 +393,7 @@ typedef int16_t  i16;
 typedef int32_t  i32;
 typedef int64_t  i64;
 
-// returns float [0,1)
+/*returns float [0,1)*/
 inline float rsw_randf(void)
 {
 	return rand() / (RAND_MAX + 1.0f);

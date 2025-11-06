@@ -86,9 +86,9 @@ void mouseposfunc(RGFW_window* win, i32 x, i32 y, float vecX, float vecY) {
 
 static
 void dropfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount) {
+    u32 i;
     if (window != win) return;
 
-    u32 i;
     for (i = 0; i < droppedFilesCount; i++)
         printf("dropped : %s\n", droppedFiles[i]);
 }
@@ -158,4 +158,5 @@ int main(void) {
    }
 
     RGFW_window_close(window);
+    return 0;
 }

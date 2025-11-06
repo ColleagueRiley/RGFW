@@ -6,6 +6,8 @@ static unsigned char icon[4 * 3 * 3] = {0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00
 
 /* fill buffer with a color, clearing anything that was on it */
 static void clear(u8* buffer, i32 bufferWidth, i32 w, i32 h, u8 color[4]) {
+    u32 x, y;
+    
     /* if all the values are the same */
     if (color[0] == color[1] && color[0] == color[2] && color[0] == color[3]) {
         /* set it all in one function */
@@ -16,7 +18,6 @@ static void clear(u8* buffer, i32 bufferWidth, i32 w, i32 h, u8 color[4]) {
     /* else we'll have to something more complex... */
 RGFW_UNUSED(w);
     /* loop through each *pixel* (not channel) of the buffer */
-    u32 x, y;
     for (y = 0; y < (u32)h; y++) {
         for (x = 0; x < (u32)bufferWidth; x++) {
             u32 index = (y * 4 * (u32)bufferWidth) + x * 4;
@@ -49,22 +50,29 @@ static void drawRect(u8* buffer, i32 bufferWidth, i32 x, i32 y, i32 w, i32 h, u8
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("Basic buffer example", 0, 0, 500, 500, RGFW_windowCenter | RGFW_windowTransparent);
+    RGFW_monitor mon;
+    u8* buffer;
+    i8 running = 1;
+    RGFW_event event;
+    RGFW_surface* surface;
+    
     RGFW_window_setExitKey(win, RGFW_escape);
 
-    RGFW_monitor mon = RGFW_window_getMonitor(win);
+    mon = RGFW_window_getMonitor(win);
     #ifdef RGFW_WAYLAND
         mon.mode.w = 500;
         mon.mode.h = 500;
     #endif
 
-    u8* buffer = (u8*)RGFW_ALLOC((u32)(mon.mode.w * mon.mode.h * 4));
-    RGFW_surface* surface = RGFW_createSurface(buffer, mon.mode.w, mon.mode.h, RGFW_formatRGBA8);
+    buffer = (u8*)RGFW_ALLOC((u32)(mon.mode.w * mon.mode.h * 4));
+    surface = RGFW_createSurface(buffer, mon.mode.w, mon.mode.h, RGFW_formatRGBA8);
 
-    i8 running = 1;
-
-    RGFW_event event;
 
     while (running) {
+        u8 color[4] = {0, 0, 255, 125};
+        u8 color2[4] = {255, 0, 0, 255};
+        i32 w, h;
+        
         while (RGFW_window_checkEvent(win, &event)) {
             if (event.type == RGFW_quit || RGFW_window_isKeyPressed(win, RGFW_escape)) {
                 running = 0;
@@ -72,10 +80,6 @@ int main(void) {
             }
         }
 
-        u8 color[4] = {0, 0, 255, 125};
-        u8 color2[4] = {255, 0, 0, 255};
-
-        i32 w, h;
         RGFW_window_getSize(win, &w, &h);
         clear(buffer, mon.mode.w, w, h, color);
         drawRect(buffer, mon.mode.w, 200, 200, 200, 200, color2);
@@ -88,4 +92,6 @@ int main(void) {
 	RGFW_FREE(buffer);
 
     RGFW_window_close(win);
+    
+    return 0;
 }

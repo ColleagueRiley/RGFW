@@ -16,7 +16,7 @@
 #include "renderer.h"
 #include "microui.h"
 
-// these are so small, might as well treat them as single-header files
+/* these are so small, might as well treat them as single-header files */
 #include "renderer.c"
 
 static  char logbuf[64000];
@@ -195,8 +195,9 @@ static void style_window(mu_Context *ctx) {
 
   if (mu_begin_window(ctx, "Style Editor", mu_rect(350, 250, 300, 240))) {
     int sw = mu_get_current_container(ctx)->body.w * 0.14;
+    int i = 0;
     mu_layout_row(ctx, 6, (int[]) { 80, sw, sw, sw, sw, -1 }, 0);
-    for (int i = 0; colors[i].label; i++) {
+    for (i = 0; colors[i].label; i++) {
       mu_label(ctx, colors[i].label);
       uint8_slider(ctx, &ctx->style->colors[i].r, 0, 255);
       uint8_slider(ctx, &ctx->style->colors[i].g, 0, 255);
