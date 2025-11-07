@@ -5,7 +5,7 @@
 # NO_GLES=1 -> do not compile the gles example (on by default for non-linux OSes)
 # NO_OSMESA=1 -> do not compile the osmesa example (on by default for non-linux OSes)
 
-CC ?= tcc
+CC ?= gcc
 AR ?= ar
 
 # used for compiling RGFW.o
@@ -104,7 +104,7 @@ ifeq ($(WAYLAND),1)
 	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1.c pointer-constraints-unstable-v1.c xdg-toplevel-icon-v1.c xdg-output-unstable-v1.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL
 	LINK_GL1 = -lEGL -lGL
 
-#   LIBS += -ldecor-0
+	# LIBS += -ldecor-0
 
 	ifeq ($(WAYLAND_X11), 1)
 		LIBS += -D RGFW_X11
@@ -206,7 +206,7 @@ examples/srgb/srgb: examples/srgb/srgb.c RGFW.h
 
 examples/portableGL/pgl: examples/portableGL/pgl.c RGFW.h
 ifeq (,$(filter $(CC),emcc em++))
-	$(CC)  -w $(CFLAGS) -I. $< -lm $(LIBS) -o $@ -std=c99
+	$(CC)  -w $(CFLAGS) -I. $< -lm $(LIBS) -o $@
 else
 	@echo "the portableGL example doesn't support html5"
 endif
@@ -314,13 +314,12 @@ else
 	$(CC) $(CFLAGS) -I. $< examples/microui_demo/microui.c -s USE_WEBGL2 $(LIBS) $(LINK_GL1) -o $@$(EXT)
 endif
 
-# These examples have been set to use c99 because they use stb_image.h which is c99
 examples/window_icons/icons: examples/window_icons/icons.c RGFW.h
-	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT) -std=c99
+	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 examples/mouse_icons/icons: examples/mouse_icons/icons.c RGFW.h
-	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT) -std=c99
+	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 examples/gamepad/gamepad: examples/gamepad/gamepad.c RGFW.h
-	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT) -std=c99
+	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 
 examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.h
 	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
@@ -415,4 +414,3 @@ clean:
 
 
 .PHONY: all examples clean
-
