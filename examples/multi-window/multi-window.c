@@ -57,7 +57,11 @@ void checkEvents(RGFW_window* win) {
 			case RGFW_keyPressed:
 				if (event.key.value == RGFW_c && (RGFW_window_isKeyDown(win, RGFW_controlL) || RGFW_window_isKeyDown(win, RGFW_controlR))) {
 					char str[32] = {0};
-					int size = RGFW_SNPRINTF(str, 32, "window %p: 刺猬", (void*)win);
+                    #ifdef __STDC_VERSION__
+                        int size = snprintf(str, 32, "window %p: 刺猬", (void*)win);
+                    #else /*C89 doesn't have snprintf*/
+					    int size = sprintf(str, "window %p: 刺猬", (void*)win);
+                    #endif /*__STDC_VERSION__*/
 					if (size > 0)
 						RGFW_writeClipboard(str, (u32)size);
 				}
