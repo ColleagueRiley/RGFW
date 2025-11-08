@@ -140,8 +140,7 @@ else
 
 	NO_VULKAN = 1
 	ifeq ($(detected_OS),Darwin)
-		LIBS += -std=c99
-		WARNINGS += -Wno-deprecated -Wno-unknown-warning-option
+		WARNINGS += -Wno-deprecated -Wno-unknown-warning-option -Wno-pedantic
 	endif
 endif
 
