@@ -27,6 +27,7 @@ endif
 
 OS_DIR = \\
 
+NO_OSMESA = 1
 NO_GLES = 1
 NO_EGL = 1
 detected_OS = windows
@@ -54,7 +55,6 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		LIB_EXT = .dylib
 		OS_DIR = /
 		NO_VULKAN ?= 1
-		NO_OSMESA ?= 1
 	endif
 	ifeq ($(detected_OS),Linux)
 		DX11_LIBS =
@@ -72,7 +72,6 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		OS_DIR = /
 		NO_GLES = 0
 		NO_EGL = 0
-		NO_OSMESA ?= 0
 	endif
 	ifeq ($(detected_OS),NetBSD)
 		DX11_LIBS =
@@ -85,7 +84,6 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		OS_DIR = /
 		NO_GLES = 0
 		NO_EGL = 0
-		NO_OSMESA ?= 0
 		NO_VULKAN = 1
 	endif
 
@@ -100,7 +98,6 @@ ifeq ($(WAYLAND),1)
 	NO_VULKAN = 1
 	NO_GLES = 0
 	NO_EGL = 0
-	NO_OSMESA ?= 0
 	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1.c pointer-constraints-unstable-v1.c xdg-toplevel-icon-v1.c xdg-output-unstable-v1.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL
 	LINK_GL1 = -lEGL -lGL
 
@@ -121,7 +118,6 @@ ifneq (,$(filter $(CC),cl /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	DX11_LIBS =
 	VULKAN_LIBS =
 	OBJ_FILE = .obj
-	NO_OSMESA ?= 1
 else ifneq (,$(filter $(CC),emcc em++))
 	DX11_LIBS =
 	LINK_GL1 = -s LEGACY_GL_EMULATION -D LEGACY_GL_EMULATION -sGL_UNSAFE_OPTS=0
@@ -135,7 +131,6 @@ else ifneq (,$(filter $(CC),emcc em++))
 	NO_EGL = 0
 	NO_VULKAN = 1
 	detected_OS = web
-	NO_OSMESA ?= 1
 	DX11_LIBS =
 else ifeq (,$(filter $(CC),g++ clang++ em++))
 	LIBS += -std=c99
@@ -147,10 +142,6 @@ else
 	ifeq ($(detected_OS),Darwin)
 		WARNINGS += -Wno-deprecated -Wno-unknown-warning-option -Wno-pedantic
 	endif
-endif
-
-ifneq (,$(filter $(detected_OS), windows Windows_NT))
-	NO_OSMESA ?= 1
 endif
 
 ifeq ($(WAYLAND_X11), 1)
