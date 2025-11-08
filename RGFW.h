@@ -10767,23 +10767,9 @@ NSInteger NSPasteBoard_declareTypes(id pasteboard, NSPasteboardType* newTypes, s
 
 #define NSRetain(obj) objc_msgSend_void((id)obj, sel_registerName("retain"))
 
-static void* NSArray_objectAtIndex(id array, NSUInteger index) {
-	SEL func = sel_registerName("objectAtIndex:");
-	return ((id(*)(id, SEL, NSUInteger))objc_msgSend)(array, func, index);
-}
-
-static id NSWindow_contentView(id window) {
-	SEL func = sel_registerName("contentView");
-	return objc_msgSend_id(window, func);
-}
-
 /*
 	End of cocoa wrapper
 */
-
-static id NSWindow_delegate(RGFW_window* win) {
-	return (id) objc_msgSend_id((id)win->src.window, sel_registerName("delegate"));
-}
 
 static id RGFW__osxCustomInitWithRGFWWindow(id self, SEL _cmd, RGFW_window* win) {
 	RGFW_UNUSED(_cmd);
