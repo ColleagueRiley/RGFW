@@ -10767,12 +10767,12 @@ NSInteger NSPasteBoard_declareTypes(id pasteboard, NSPasteboardType* newTypes, s
 
 #define NSRetain(obj) objc_msgSend_void((id)obj, sel_registerName("retain"))
 
-void* NSArray_objectAtIndex(id array, NSUInteger index) {
+static void* NSArray_objectAtIndex(id array, NSUInteger index) {
 	SEL func = sel_registerName("objectAtIndex:");
 	return ((id(*)(id, SEL, NSUInteger))objc_msgSend)(array, func, index);
 }
 
-id NSWindow_contentView(id window) {
+static id NSWindow_contentView(id window) {
 	SEL func = sel_registerName("contentView");
 	return objc_msgSend_id(window, func);
 }
@@ -10781,11 +10781,11 @@ id NSWindow_contentView(id window) {
 	End of cocoa wrapper
 */
 
-id NSWindow_delegate(RGFW_window* win) {
+static id NSWindow_delegate(RGFW_window* win) {
 	return (id) objc_msgSend_id((id)win->src.window, sel_registerName("delegate"));
 }
 
-id RGFW__osxCustomInitWithRGFWWindow(id self, SEL _cmd, RGFW_window* win) {
+static id RGFW__osxCustomInitWithRGFWWindow(id self, SEL _cmd, RGFW_window* win) {
 	RGFW_UNUSED(_cmd);
     struct objc_super s = { self, class_getSuperclass(object_getClass(self)) };
     self = ((id (*)(struct objc_super*, SEL))objc_msgSendSuper)(&s, sel_registerName("init"));
@@ -10821,7 +10821,7 @@ id RGFW__osxCustomInitWithRGFWWindow(id self, SEL _cmd, RGFW_window* win) {
     return self;
 }
 
-u32 RGFW_OnClose(id self) {
+static u32 RGFW_OnClose(id self) {
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, (const char*)"RGFW_window", (void**)&win);
 	if (win == NULL)
@@ -10835,15 +10835,15 @@ u32 RGFW_OnClose(id self) {
 }
 
 /* NOTE(EimaMei): Fixes the constant clicking when the app is running under a terminal. */
-bool acceptsFirstResponder(void) { return true; }
-bool performKeyEquivalent(id event) { RGFW_UNUSED(event); return true; }
+static bool RGFW__osxAcceptsFirstResponder(void) { return true; }
+static bool RGFW__osxPerformKeyEquivalent(id event) { RGFW_UNUSED(event); return true; }
 
-NSDragOperation draggingEntered(id self, SEL sel, id sender) {
+static NSDragOperation RGFW__osxDraggingEntered(id self, SEL sel, id sender) {
 	RGFW_UNUSED(sender); RGFW_UNUSED(self); RGFW_UNUSED(sel);
 
 	return NSDragOperationCopy;
 }
-NSDragOperation draggingUpdated(id self, SEL sel, id sender) {
+static NSDragOperation RGFW__osxDraggingUpdated(id self, SEL sel, id sender) {
 	RGFW_UNUSED(sel);
 
 	RGFW_window* win = NULL;
@@ -10866,7 +10866,7 @@ NSDragOperation draggingUpdated(id self, SEL sel, id sender) {
 	RGFW_dataDragCallback(win, (i32) p.x, (i32) (win->h - p.y));
 	return NSDragOperationCopy;
 }
-bool prepareForDragOperation(id self) {
+static bool RGFW__osxPrepareForDragOperation(id self) {
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL || (!(win->internal.enabledEvents & RGFW_dataDropFlag)))
@@ -10882,7 +10882,7 @@ bool prepareForDragOperation(id self) {
 void RGFW__osxDraggingEnded(id self, SEL sel, id sender);
 void RGFW__osxDraggingEnded(id self, SEL sel, id sender) { RGFW_UNUSED(sender); RGFW_UNUSED(self); RGFW_UNUSED(sel);  return; }
 
-bool performDragOperation(id self, SEL sel, id sender) {
+static bool RGFW_osxPerformDragOperation(id self, SEL sel, id sender) {
 	RGFW_UNUSED(sender); RGFW_UNUSED(self); RGFW_UNUSED(sel);
 
 	RGFW_window* win = NULL;
@@ -11169,7 +11169,7 @@ static void RGFW__osxMouseEntered(id self, SEL _cmd, id event) {
     RGFW_mouseNotifyCallback(win, e.mouse.x, e.mouse.y, 1);
 }
 
-void RGFW__osxMouseExited(id self, SEL _cmd, id event) {
+static void RGFW__osxMouseExited(id self, SEL _cmd, id event) {
 	RGFW_UNUSED(_cmd); RGFW_UNUSED(event);
 	RGFW_window* win = NULL;
     object_getInstanceVariable(self, "RGFW_window", (void**)&win);
@@ -11190,7 +11190,7 @@ void RGFW__osxMouseExited(id self, SEL _cmd, id event) {
     RGFW_mouseNotifyCallback(win, e.mouse.x, e.mouse.y, 0);
 }
 
-void RGFW__osxKeyDown(id self, SEL _cmd, id event) {
+static void RGFW__osxKeyDown(id self, SEL _cmd, id event) {
 	RGFW_UNUSED(_cmd);
 	RGFW_window* win = NULL;
     object_getInstanceVariable(self, "RGFW_window", (void**)&win);
@@ -11213,7 +11213,7 @@ void RGFW__osxKeyDown(id self, SEL _cmd, id event) {
     RGFW_keyCallback(win, e.key.value, e.key.sym, win->internal.mod, e.key.repeat, 1);
 }
 
-void RGFW__osxKeyUp(id self, SEL _cmd, id event) {
+static void RGFW__osxKeyUp(id self, SEL _cmd, id event) {
 	RGFW_UNUSED(_cmd);
 	RGFW_window* win = NULL;
     object_getInstanceVariable(self, "RGFW_window", (void**)&win);
@@ -11236,7 +11236,7 @@ void RGFW__osxKeyUp(id self, SEL _cmd, id event) {
     RGFW_keyCallback(win, e.key.value, e.key.sym, win->internal.mod, e.key.repeat, 0);
 }
 
-void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
+static void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
 	RGFW_UNUSED(_cmd);
     RGFW_window* win = NULL;
     object_getInstanceVariable(self, "RGFW_window", (void**)&win);
@@ -11283,7 +11283,7 @@ void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
     RGFW_keyCallback(win, e.key.value, e.key.sym, win->internal.mod, e.key.repeat, e.type == RGFW_keyPressed);
 }
 
-void RGFW__osxMouseMoved(id self, SEL _cmd, id event) {
+static void RGFW__osxMouseMoved(id self, SEL _cmd, id event) {
 	RGFW_UNUSED(_cmd);
     RGFW_window* win = NULL;
     object_getInstanceVariable(self, "RGFW_window", (void**)&win);
@@ -11308,7 +11308,7 @@ void RGFW__osxMouseMoved(id self, SEL _cmd, id event) {
     RGFW_mousePosCallback(win, e.mouse.x, e.mouse.y, e.mouse.vecX, e.mouse.vecY);
 }
 
-void RGFW__osxMouseDown(id self, SEL _cmd, id event) {
+static void RGFW__osxMouseDown(id self, SEL _cmd, id event) {
 	RGFW_UNUSED(_cmd);
     RGFW_window* win = NULL;
     object_getInstanceVariable(self, "RGFW_window", (void**)&win);
@@ -11331,7 +11331,7 @@ void RGFW__osxMouseDown(id self, SEL _cmd, id event) {
     RGFW_mouseButtonCallback(win, e.button.value, 1);
 }
 
-void RGFW__osxMouseUp(id self, SEL _cmd, id event) {
+static void RGFW__osxMouseUp(id self, SEL _cmd, id event) {
 	RGFW_UNUSED(_cmd);
     RGFW_window* win = NULL;
     object_getInstanceVariable(self, "RGFW_window", (void**)&win);
@@ -11354,7 +11354,7 @@ void RGFW__osxMouseUp(id self, SEL _cmd, id event) {
     RGFW_mouseButtonCallback(win, e.button.value, 0);
 }
 
-void RGFW__osxScrollWheel(id self, SEL _cmd, id event) {
+static void RGFW__osxScrollWheel(id self, SEL _cmd, id event) {
 	RGFW_UNUSED(_cmd);
     RGFW_window* win = NULL;
     object_getInstanceVariable(self, "RGFW_window", (void**)&win);
@@ -11541,8 +11541,8 @@ i32 RGFW_initPlatform(void) {
 	class_addMethod(objc_getClass("NSObject"), sel_registerName("windowShouldClose:"), (IMP)(void*)RGFW_OnClose, 0);
 
 	/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
-	class_addMethod(objc_getClass("NSWindowClass"), sel_registerName("acceptsFirstResponder:"), (IMP)(void*)acceptsFirstResponder, 0);
-	class_addMethod(objc_getClass("NSWindowClass"), sel_registerName("performKeyEquivalent:"), (IMP)(void*)performKeyEquivalent, 0);
+	class_addMethod(objc_getClass("NSWindowClass"), sel_registerName("acceptsFirstResponder:"), (IMP)(void*)RGFW__osxAcceptsFirstResponder, 0);
+	class_addMethod(objc_getClass("NSWindowClass"), sel_registerName("performKeyEquivalent:"), (IMP)(void*)RGFW__osxPerformKeyEquivalent, 0);
 
 	_RGFW->NSApp = objc_msgSend_id((id)objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
 
@@ -11589,8 +11589,8 @@ i32 RGFW_initPlatform(void) {
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("draggingUpdated:"), (IMP)draggingUpdated, "l@:@");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("draggingExited:"), (IMP)RGFW__osxDraggingEnded, "v@:@");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("draggingEnded:"), (IMP)RGFW__osxDraggingEnded, "v@:@");
-	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("prepareForDragOperation:"), (IMP)prepareForDragOperation, "B@:@");
-	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("performDragOperation:"), (IMP)performDragOperation, "B@:@");
+	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("prepareForDragOperation:"), (IMP)RGFW__osxPrepareForDragOperation, "B@:@");
+	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("performDragOperation:"), (IMP)RGFW__osxPerformDragOperation, "B@:@");
 	objc_registerClassPair((Class)_RGFW->customWindowDelegateClass);
 	return 0;
 }
