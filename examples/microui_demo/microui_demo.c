@@ -274,6 +274,7 @@ int main(int argc, char **argv) {
   ctx->text_width = text_width;
   ctx->text_height = text_height;
 
+  update_viewport(width, height);
   /* main loop */
   while (RGFW_window_shouldClose(window) == RGFW_FALSE) {
     /* handle RGFW events */
@@ -318,10 +319,10 @@ int main(int argc, char **argv) {
 		case RGFW_windowResized:
 		  width = window->w;
 		  height = window->h;
+      update_viewport(width, height);
 		  break;
 	  }
     }
-    update_viewport(width, height);
 
     /* process frame */
     process_frame(ctx);
