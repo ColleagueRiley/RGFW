@@ -240,9 +240,9 @@ int main() {
         #include <stdarg.h>
         static int RGFW_c89_snprintf(char *dst, size_t size, const char *format, ...) {
             va_list args;
-            unsigned long count = 0;
+            size_t count = 0;
             va_start(args, format);
-            count = vsprintf(dst, format, args);
+            count = (size_t)vsprintf(dst, format, args);
             RGFW_ASSERT(count + 1 < size && "Buffer overflow");
             va_end(args);
             return count;
@@ -4730,7 +4730,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 		}
 	}
 
-	struct pollfd fds[2] = {0};
+	struct pollfd fds[2] = {{0}, {0}};
     fds[0].fd = 0;
     fds[0].events = POLLIN;
     fds[0].revents = 0;
