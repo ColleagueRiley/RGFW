@@ -11794,8 +11794,7 @@ void RGFW_window_move(RGFW_window* win, i32 x, i32 y) {
 
 	win->x = x;
 	win->y = y;
-	((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
-		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{(double)win->x, (double)win->y}, {(double)win->w, (double)win->h}}, true, true);
+	((void(*)(id,SEL,NSPoint))objc_msgSend)((id)win->src.window, sel_registerName("setFrameOrigin:"), (NSPoint){x, y});
 }
 
 void RGFW_window_resize(RGFW_window* win, i32 w, i32 h) {
