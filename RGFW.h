@@ -3317,8 +3317,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 #endif
 
 #ifdef RGFW_WAYLAND
-	// recieve all events needed to configure the surface
-	// also gets the wl_outputs
+	/* recieve all events needed to configure the surface */
+	/* also gets the wl_outputs */
 	if (RGFW_usingWayland()) {
 		wl_display_roundtrip(_RGFW->wl_display);
 		/* NOTE: this is a hack so that way wayland spawns a window, even if nothing is drawn */
@@ -4140,11 +4140,11 @@ RGFW_bool RGFW_loadEGL(void) {
 	#ifdef RGFW_WINDOWS
 		const char* libNames[] = { "libEGL.dll", "EGL.dll" };
 	#elif defined(RGFW_MACOS) || defined(RGFW_UNIX)
-		// Linux and macOS
+		/* Linux and macOS */
 		const char* libNames[] = {
-			"libEGL.so.1",  // most common
-			"libEGL.so",    // fallback
-			"/System/Library/Frameworks/OpenGL.framework/OpenGL"  // fallback for older macOS EGL-like systems
+			"libEGL.so.1",  /* most common */
+			"libEGL.so",    /* fallback */
+			"/System/Library/Frameworks/OpenGL.framework/OpenGL"  /* fallback for older macOS EGL-like systems */
 		};
 	#endif
 
@@ -4770,7 +4770,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 			}
 		}
 
-		// queue contains events from read, dispatch them
+		/* queue contains events from read, dispatch them */
 		if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
 			return;
 		}
@@ -7312,7 +7312,7 @@ void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized);
 static void RGFW_wl_setOpaque(RGFW_window* win) {
 	struct wl_region* wl_region = wl_compositor_create_region(_RGFW->compositor);
 
-	if (!wl_region) return; // return if no region was created
+	if (!wl_region) return; /* return if no region was created */
 
 	wl_region_add(wl_region, 0, 0, win->w, win->h);
 	wl_surface_set_opaque_region(win->src.surface, wl_region);
@@ -7338,7 +7338,7 @@ static void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface
 			return;
 	}
 
-	// useful for libdecor
+	/* useful for libdecor */
 	if (win->src.activated != win->src.pending_activated) {
 		win->src.activated = win->src.pending_activated;
 	}
@@ -7352,7 +7352,7 @@ static void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface
 
 	if (win->src.resizing) {
 
-		// Do not create a resize event if the window is maximized
+		/* Do not create a resize event if the window is maximized */
 		if (!win->src.maximized && win->internal.enabledEvents & RGFW_windowResizedFlag) {
 			RGFW_eventQueuePushEx(e.type = RGFW_windowResized; e.common.win = win);
 			RGFW_windowResizedCallback(win, win->w, win->h);
@@ -7391,8 +7391,8 @@ static void RGFW_wl_xdg_toplevel_configure_handler(void* data, struct xdg_toplev
 		}
 
 	}
-	// if width and height are not zero and are not the same as the window
-	// the window is resizing so update the values
+	/* if width and height are not zero and are not the same as the window */
+    /* the window is resizing so update the values */
 	if ((width && height) && (win->w != width ||  win->h != height)) {
 		win->src.resizing = RGFW_TRUE;
 		win->src.w = win->w = width;
@@ -7415,8 +7415,8 @@ static void RGFW_wl_xdg_decoration_configure_handler(void* data,
 		struct zxdg_toplevel_decoration_v1* zxdg_toplevel_decoration_v1, u32 mode) {
 	RGFW_window* win = (RGFW_window*)data; RGFW_UNUSED(zxdg_toplevel_decoration_v1);
 
-	// this is expected to run once
-	// set the decoration mode set by earlier request
+	/* this is expected to run once */
+    /* set the decoration mode set by earlier request */
 	if (mode != win->src.decoration_mode) {
 		win->src.decoration_mode = mode;
 	}
@@ -7460,7 +7460,7 @@ static void RGFW_wl_pointer_locked(void *data, struct zwp_locked_pointer_v1 *zwp
 	win->internal.lastMouseX = win->w / 2;
 	win->internal.lastMouseY = win->h / 2;
 	zwp_locked_pointer_v1_set_cursor_position_hint(win->src.locked_pointer, wl_fixed_from_int((win->w / 2)), wl_fixed_from_int((win->h / 2)));
-	wl_pointer_set_cursor(RGFW->wl_pointer, RGFW->mouse_enter_serial, NULL, 0, 0); // draw no cursor
+	wl_pointer_set_cursor(RGFW->wl_pointer, RGFW->mouse_enter_serial, NULL, 0, 0); /* draw no cursor */
 }
 
 static void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 serial,
@@ -7468,7 +7468,7 @@ static void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 se
 	RGFW_info* RGFW = (RGFW_info*)data;
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 
-	// save when the pointer is locked or using default cursor
+	/* save when the pointer is locked or using default cursor */
 	RGFW->mouse_enter_serial = serial;
 	win->internal.mouseInside = RGFW_TRUE;
 	RGFW->windowState.win = win;
@@ -7476,7 +7476,7 @@ static void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 se
 
 	RGFW->mouseOwner = win;
 
-	// set the cursor
+	/* set the cursor */
 	if (win->src.using_custom_cursor) {
 		wl_pointer_set_cursor(pointer, serial, win->src.custom_cursor_surface, 0, 0);
 	}
@@ -7626,8 +7626,8 @@ static void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32
 
 	if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
 
-	// is set when RGFW_window_minimize is called; if the minimize button is
-	// pressed this flag is not set since there is no event to listen for
+	/* is set when RGFW_window_minimize is called; if the minimize button is */
+	/* pressed this flag is not set since there is no event to listen for */
 	if (win->src.minimized == RGFW_TRUE) win->src.minimized = RGFW_FALSE;
 
 	win->internal.inFocus = RGFW_TRUE;
@@ -7751,7 +7751,7 @@ static void RGFW_wl_output_set_mode(void *data, struct wl_output *wl_output, uin
 }
 
 static void RGFW_wl_output_set_scale(void *data, struct wl_output *wl_output, int32_t factor) {
-	// this is for pixelRatio
+	/* this is for pixelRatio */
 	RGFW_monitor* monitor = &((RGFW_monitorNode*)data)->mon;
 
 	monitor->pixelRatio = (float)factor;
@@ -7784,7 +7784,7 @@ static void RGFW_xdg_output_logical_size(void *data, struct zxdg_output_v1 *zxdg
 	monitor->scaleX = (mon_float_width / (float) width);
 	monitor->scaleY = (mon_float_height / (float) height);
 
-	// under xwayland the monitor changes w & h when compositor scales it
+	/* under xwayland the monitor changes w & h when compositor scales it */
 	monitor->mode.w = width;
 	monitor->mode.h = height;
 	RGFW_UNUSED(zxdg_output_v1);
@@ -7803,8 +7803,8 @@ static void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t 
 	RGFW_STRNCPY(mon.name, RGFW_mon_default_name, sizeof(mon.name) - 1);
 	mon.name[sizeof(mon.name) - 1] = '\0';
 
-	// set in case compositor does not send one
-	// or no xdg_output support
+	/* set in case compositor does not send one */
+    /* or no xdg_output support */
 	mon.scaleY = mon.scaleX = mon.pixelRatio = 1.0f;
 
 	node = RGFW_monitors_add(mon);
@@ -7822,13 +7822,13 @@ static void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t 
 			.description = (void (*)(void *, struct wl_output *, const char *))&RGFW_doNothing
 	};
 
-	// the wl_output will have a reference to the node
+	/* the wl_output will have a reference to the node */
 	wl_output_set_user_data(output, node);
 
-	// pass the monitor so we can access it in the callback functions
+	/* pass the monitor so we can access it in the callback functions */
 	wl_output_add_listener(output, &wl_output_listener, node);
 
-	if (!_RGFW->xdg_output_manager) return; // compositor does not support it
+	if (!_RGFW->xdg_output_manager) return; /* compositor does not support it */
 
 	static const struct zxdg_output_v1_listener xdg_output_listener = {
 		.name = (void (*)(void *,struct zxdg_output_v1 *, const char *))&RGFW_doNothing,
@@ -7984,7 +7984,7 @@ i32 RGFW_initPlatform_Wayland(void) {
 	_RGFW->registry = wl_display_get_registry(_RGFW->wl_display);
 	wl_registry_add_listener(_RGFW->registry, &registry_listener, _RGFW);
 
-	wl_display_roundtrip(_RGFW->wl_display); // bind to globals
+	wl_display_roundtrip(_RGFW->wl_display); /* bind to globals */
 
 	if (_RGFW->compositor == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errWayland, "Can't find compositor.");
@@ -8122,7 +8122,7 @@ void RGFW_FUNC(RGFW_surface_freePtr) (RGFW_surface* surface) {
 void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
 	RGFW_setBit(&win->internal.flags, RGFW_windowNoBorder, !border);
 
-	// for now just toggle between SSD & CSD depending on the bool
+	/* for now just toggle between SSD & CSD depending on the bool */
 	if (_RGFW->decoration_manager != NULL) {
 		zxdg_toplevel_decoration_v1_set_mode(win->src.decoration, (border ? ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE : ZXDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE));
 	}
@@ -8130,7 +8130,7 @@ void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
 
 void RGFW_FUNC(RGFW_releaseCursor) (RGFW_window* win) {
     RGFW_ASSERT(win);
-    // compositor has no support or window is not locked do nothing
+    /* compositor has no support or window is not locked do nothing */
     if (_RGFW->constraint_manager == NULL || _RGFW->relative_pointer_manager == NULL) return;
 
     if (win->src.locked_pointer != NULL) {
@@ -8142,12 +8142,12 @@ void RGFW_FUNC(RGFW_releaseCursor) (RGFW_window* win) {
 		_RGFW->relative_pointer = NULL;
     }
 
-    _RGFW->mouseOwner = win; // unhold mouse sets this to null; set it back
+    _RGFW->mouseOwner = win; /* unhold mouse sets this to null; set it back */
 }
 
 void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
 	RGFW_ASSERT(win);
-	// compositor has no support or window already is locked do nothing
+	/* compositor has no support or window already is locked do nothing */
 	if (_RGFW->constraint_manager == NULL || _RGFW->relative_pointer_manager == NULL) return;
 
 	if (_RGFW->relative_pointer == NULL) {
@@ -8189,7 +8189,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	win->src.surface = wl_compositor_create_surface(_RGFW->compositor);
 	wl_surface_add_listener(win->src.surface, &wl_surface_listener, win);
 
-	//create a surface for a custom cursor
+	/* create a surface for a custom cursor */
 	win->src.custom_cursor_surface = wl_compositor_create_surface(_RGFW->compositor);
 
 	win->src.xdg_surface = xdg_wm_base_get_xdg_surface(_RGFW->xdg_wm_base, win->src.surface);
@@ -8201,7 +8201,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 
 	xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->w, win->h);
 
-	if (!(win->internal.flags & RGFW_windowTransparent)) { // no transparency
+	if (!(win->internal.flags & RGFW_windowTransparent)) { /* no transparency */
 		RGFW_wl_setOpaque(win);
 	}
 
@@ -8226,14 +8226,14 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 
 		zxdg_toplevel_decoration_v1_add_listener(win->src.decoration, &xdg_decoration_listener, win);
 
-		// we want no decorations
+		/* we want no decorations */
 		if ((flags & RGFW_windowNoBorder)) {
 			decoration_mode = ZXDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
 		}
 
 		zxdg_toplevel_decoration_v1_set_mode(win->src.decoration, decoration_mode);
 
-	// no xdg_decoration support
+        /* no xdg_decoration support */
 	} else if (!(flags & RGFW_windowNoBorder)) {
 		/* TODO, some fallback */
 		#ifdef RGFW_LIBDECOR
@@ -8263,7 +8263,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	}
 
 	if (_RGFW->icon_manager != NULL) {
-		// set the default wayland icon
+		/* set the default wayland icon */
 		xdg_toplevel_icon_manager_v1_set_icon(_RGFW->icon_manager, win->src.xdg_toplevel, NULL);
 	}
 
@@ -8288,10 +8288,10 @@ u8 RGFW_FUNC(RGFW_rgfwToKeyChar)(u32 key) {
 void RGFW_FUNC(RGFW_pollEvents) (void) {
 	RGFW_resetPrevState();
 
-	// send buffered requests to compositor
+	/* send buffered requests to compositor */
 	while (wl_display_flush(_RGFW->wl_display) == -1) {
-		// compositor not responding to new requests
-		// so let's dispatch some events so the compositor responds
+		/* compositor not responding to new requests */
+		/* so let's dispatch some events so the compositor responds */
 		if (errno == EAGAIN) {
 			if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
 				return;
@@ -8301,8 +8301,8 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 		}
 	}
 
-	// read the events; if empty this reads from the
-	// wayland file descriptor
+	/* read the events; if empty this reads from the */
+	/* wayland file descriptor */
 	if (wl_display_dispatch(_RGFW->wl_display) == -1) {
 		return;
 	}
@@ -8382,7 +8382,7 @@ void RGFW_FUNC(RGFW_window_setFullscreen)(RGFW_window* win, RGFW_bool fullscreen
 		win->internal.oldY = win->y;
 		win->internal.oldW = win->w;
 		win->internal.oldH = win->h;
-		xdg_toplevel_set_fullscreen(win->src.xdg_toplevel, NULL); // let the compositor decide
+		xdg_toplevel_set_fullscreen(win->src.xdg_toplevel, NULL); /* let the compositor decide */
 	} else {
 		win->internal.flags &= ~(u32)RGFW_windowFullscreen;
 		xdg_toplevel_unset_fullscreen(win->src.xdg_toplevel);
@@ -10354,7 +10354,7 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 
 		if (RGFW_extensionSupportedPlatform_OpenGL(flushControl, sizeof(flushControl))) {
 			if (hints->releaseBehavior == RGFW_glReleaseFlush) {
-				RGFW_attribStack_pushAttribs(&stack, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB); // WGL_CONTEXT_RELEASE_BEHAVIOR_ARB
+				RGFW_attribStack_pushAttribs(&stack, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB); /* WGL_CONTEXT_RELEASE_BEHAVIOR_ARB */
 			} else if (hints->releaseBehavior == RGFW_glReleaseNone) {
 				RGFW_attribStack_pushAttribs(&stack, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB);
 			}
@@ -10443,12 +10443,12 @@ WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance i
 	WGPUSurfaceDescriptor surfaceDesc = {0};
 	WGPUSurfaceSourceWindowsHWND fromHwnd = {0};
     fromHwnd.chain.sType = WGPUSType_SurfaceSourceWindowsHWND;
-    fromHwnd.hwnd = window->src.window; // Get HWND from RGFW window source
+    fromHwnd.hwnd = window->src.window; /* Get HWND from RGFW window source */
     if (!fromHwnd.hwnd) {
         fprintf(stderr, "RGFW Error: HWND is NULL for Windows window.\n");
         return NULL;
     }
-    fromHwnd.hinstance = GetModuleHandle(NULL); // Get current process HINSTANCE
+    fromHwnd.hinstance = GetModuleHandle(NULL); /* Get current process HINSTANCE */
 
     surfaceDesc.nextInChain = (WGPUChainedStruct*)&fromHwnd.chain;
     return wgpuInstanceCreateSurface(instance, &surfaceDesc);
