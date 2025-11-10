@@ -245,7 +245,7 @@ int main() {
             count = (size_t)vsprintf(dst, format, args);
             RGFW_ASSERT(count + 1 < size && "Buffer overflow");
             va_end(args);
-            return count;
+            return (int)count;
         }
      	#define RGFW_SNPRINTF RGFW_c89_snprintf
     #else
