@@ -2148,8 +2148,8 @@ $(function() {
 <div class="line"><a id="l03317" name="l03317"></a><span class="lineno"> 3317</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l03318" name="l03318"></a><span class="lineno"> 3318</span> </div>
 <div class="line"><a id="l03319" name="l03319"></a><span class="lineno"> 3319</span><span class="preprocessor">#ifdef RGFW_WAYLAND</span></div>
-<div class="line"><a id="l03320" name="l03320"></a><span class="lineno"> 3320</span>    <span class="comment">// recieve all events needed to configure the surface</span></div>
-<div class="line"><a id="l03321" name="l03321"></a><span class="lineno"> 3321</span>    <span class="comment">// also gets the wl_outputs</span></div>
+<div class="line"><a id="l03320" name="l03320"></a><span class="lineno"> 3320</span>    <span class="comment">/* recieve all events needed to configure the surface */</span></div>
+<div class="line"><a id="l03321" name="l03321"></a><span class="lineno"> 3321</span>    <span class="comment">/* also gets the wl_outputs */</span></div>
 <div class="line"><a id="l03322" name="l03322"></a><span class="lineno"> 3322</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="RGFW_8h.html#a24619dbe4e6b92e471e02dbfde2e7d42">RGFW_usingWayland</a>()) {</div>
 <div class="line"><a id="l03323" name="l03323"></a><span class="lineno"> 3323</span>        wl_display_roundtrip(_RGFW-&gt;wl_display);</div>
 <div class="line"><a id="l03324" name="l03324"></a><span class="lineno"> 3324</span>        <span class="comment">/* NOTE: this is a hack so that way wayland spawns a window, even if nothing is drawn */</span></div>
@@ -2971,11 +2971,11 @@ $(function() {
 <div class="line"><a id="l04140" name="l04140"></a><span class="lineno"> 4140</span><span class="preprocessor">    #ifdef RGFW_WINDOWS</span></div>
 <div class="line"><a id="l04141" name="l04141"></a><span class="lineno"> 4141</span>        <span class="keyword">const</span> <span class="keywordtype">char</span>* libNames[] = { <span class="stringliteral">&quot;libEGL.dll&quot;</span>, <span class="stringliteral">&quot;EGL.dll&quot;</span> };</div>
 <div class="line"><a id="l04142" name="l04142"></a><span class="lineno"> 4142</span><span class="preprocessor">    #elif defined(RGFW_MACOS) || defined(RGFW_UNIX)</span></div>
-<div class="line"><a id="l04143" name="l04143"></a><span class="lineno"> 4143</span>        <span class="comment">// Linux and macOS</span></div>
+<div class="line"><a id="l04143" name="l04143"></a><span class="lineno"> 4143</span>        <span class="comment">/* Linux and macOS */</span></div>
 <div class="line"><a id="l04144" name="l04144"></a><span class="lineno"> 4144</span>        <span class="keyword">const</span> <span class="keywordtype">char</span>* libNames[] = {</div>
-<div class="line"><a id="l04145" name="l04145"></a><span class="lineno"> 4145</span>            <span class="stringliteral">&quot;libEGL.so.1&quot;</span>,  <span class="comment">// most common</span></div>
-<div class="line"><a id="l04146" name="l04146"></a><span class="lineno"> 4146</span>            <span class="stringliteral">&quot;libEGL.so&quot;</span>,    <span class="comment">// fallback</span></div>
-<div class="line"><a id="l04147" name="l04147"></a><span class="lineno"> 4147</span>            <span class="stringliteral">&quot;/System/Library/Frameworks/OpenGL.framework/OpenGL&quot;</span>  <span class="comment">// fallback for older macOS EGL-like systems</span></div>
+<div class="line"><a id="l04145" name="l04145"></a><span class="lineno"> 4145</span>            <span class="stringliteral">&quot;libEGL.so.1&quot;</span>,  <span class="comment">/* most common */</span></div>
+<div class="line"><a id="l04146" name="l04146"></a><span class="lineno"> 4146</span>            <span class="stringliteral">&quot;libEGL.so&quot;</span>,    <span class="comment">/* fallback */</span></div>
+<div class="line"><a id="l04147" name="l04147"></a><span class="lineno"> 4147</span>            <span class="stringliteral">&quot;/System/Library/Frameworks/OpenGL.framework/OpenGL&quot;</span>  <span class="comment">/* fallback for older macOS EGL-like systems */</span></div>
 <div class="line"><a id="l04148" name="l04148"></a><span class="lineno"> 4148</span>        };</div>
 <div class="line"><a id="l04149" name="l04149"></a><span class="lineno"> 4149</span><span class="preprocessor">    #endif</span></div>
 <div class="line"><a id="l04150" name="l04150"></a><span class="lineno"> 4150</span> </div>
@@ -3601,7 +3601,7 @@ $(function() {
 <div class="line"><a id="l04770" name="l04770"></a><span class="lineno"> 4770</span>            }</div>
 <div class="line"><a id="l04771" name="l04771"></a><span class="lineno"> 4771</span>        }</div>
 <div class="line"><a id="l04772" name="l04772"></a><span class="lineno"> 4772</span> </div>
-<div class="line"><a id="l04773" name="l04773"></a><span class="lineno"> 4773</span>        <span class="comment">// queue contains events from read, dispatch them</span></div>
+<div class="line"><a id="l04773" name="l04773"></a><span class="lineno"> 4773</span>        <span class="comment">/* queue contains events from read, dispatch them */</span></div>
 <div class="line"><a id="l04774" name="l04774"></a><span class="lineno"> 4774</span>        <span class="keywordflow">if</span> (wl_display_dispatch_pending(_RGFW-&gt;wl_display) == -1) {</div>
 <div class="line"><a id="l04775" name="l04775"></a><span class="lineno"> 4775</span>            <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l04776" name="l04776"></a><span class="lineno"> 4776</span>        }</div>
@@ -6140,7 +6140,7 @@ $(function() {
 <div class="line"><a id="l07312" name="l07312"></a><span class="lineno"> 7312</span><span class="keyword">static</span> <span class="keywordtype">void</span> RGFW_wl_setOpaque(<a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win) {</div>
 <div class="line"><a id="l07313" name="l07313"></a><span class="lineno"> 7313</span>    <span class="keyword">struct </span>wl_region* wl_region = wl_compositor_create_region(_RGFW-&gt;compositor);</div>
 <div class="line"><a id="l07314" name="l07314"></a><span class="lineno"> 7314</span> </div>
-<div class="line"><a id="l07315" name="l07315"></a><span class="lineno"> 7315</span>    <span class="keywordflow">if</span> (!wl_region) <span class="keywordflow">return</span>; <span class="comment">// return if no region was created</span></div>
+<div class="line"><a id="l07315" name="l07315"></a><span class="lineno"> 7315</span>    <span class="keywordflow">if</span> (!wl_region) <span class="keywordflow">return</span>; <span class="comment">/* return if no region was created */</span></div>
 <div class="line"><a id="l07316" name="l07316"></a><span class="lineno"> 7316</span> </div>
 <div class="line"><a id="l07317" name="l07317"></a><span class="lineno"> 7317</span>    wl_region_add(wl_region, 0, 0, win-&gt;w, win-&gt;h);</div>
 <div class="line"><a id="l07318" name="l07318"></a><span class="lineno"> 7318</span>    wl_surface_set_opaque_region(win-&gt;src.surface, wl_region);</div>
@@ -6166,7 +6166,7 @@ $(function() {
 <div class="line"><a id="l07338" name="l07338"></a><span class="lineno"> 7338</span>            <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l07339" name="l07339"></a><span class="lineno"> 7339</span>    }</div>
 <div class="line"><a id="l07340" name="l07340"></a><span class="lineno"> 7340</span> </div>
-<div class="line"><a id="l07341" name="l07341"></a><span class="lineno"> 7341</span>    <span class="comment">// useful for libdecor</span></div>
+<div class="line"><a id="l07341" name="l07341"></a><span class="lineno"> 7341</span>    <span class="comment">/* useful for libdecor */</span></div>
 <div class="line"><a id="l07342" name="l07342"></a><span class="lineno"> 7342</span>    <span class="keywordflow">if</span> (win-&gt;src.activated != win-&gt;src.pending_activated) {</div>
 <div class="line"><a id="l07343" name="l07343"></a><span class="lineno"> 7343</span>        win-&gt;src.activated = win-&gt;src.pending_activated;</div>
 <div class="line"><a id="l07344" name="l07344"></a><span class="lineno"> 7344</span>    }</div>
@@ -6180,7 +6180,7 @@ $(function() {
 <div class="line"><a id="l07352" name="l07352"></a><span class="lineno"> 7352</span> </div>
 <div class="line"><a id="l07353" name="l07353"></a><span class="lineno"> 7353</span>    <span class="keywordflow">if</span> (win-&gt;src.resizing) {</div>
 <div class="line"><a id="l07354" name="l07354"></a><span class="lineno"> 7354</span> </div>
-<div class="line"><a id="l07355" name="l07355"></a><span class="lineno"> 7355</span>        <span class="comment">// Do not create a resize event if the window is maximized</span></div>
+<div class="line"><a id="l07355" name="l07355"></a><span class="lineno"> 7355</span>        <span class="comment">/* Do not create a resize event if the window is maximized */</span></div>
 <div class="line"><a id="l07356" name="l07356"></a><span class="lineno"> 7356</span>        <span class="keywordflow">if</span> (!win-&gt;src.maximized &amp;&amp; win-&gt;internal.enabledEvents &amp; RGFW_windowResizedFlag) {</div>
 <div class="line"><a id="l07357" name="l07357"></a><span class="lineno"> 7357</span>            RGFW_eventQueuePushEx(e.type = RGFW_windowResized; e.common.win = win);</div>
 <div class="line"><a id="l07358" name="l07358"></a><span class="lineno"> 7358</span>            RGFW_windowResizedCallback(win, win-&gt;w, win-&gt;h);</div>
@@ -6219,8 +6219,8 @@ $(function() {
 <div class="line"><a id="l07391" name="l07391"></a><span class="lineno"> 7391</span>        }</div>
 <div class="line"><a id="l07392" name="l07392"></a><span class="lineno"> 7392</span> </div>
 <div class="line"><a id="l07393" name="l07393"></a><span class="lineno"> 7393</span>    }</div>
-<div class="line"><a id="l07394" name="l07394"></a><span class="lineno"> 7394</span>    <span class="comment">// if width and height are not zero and are not the same as the window</span></div>
-<div class="line"><a id="l07395" name="l07395"></a><span class="lineno"> 7395</span>    <span class="comment">// the window is resizing so update the values</span></div>
+<div class="line"><a id="l07394" name="l07394"></a><span class="lineno"> 7394</span>    <span class="comment">/* if width and height are not zero and are not the same as the window */</span></div>
+<div class="line"><a id="l07395" name="l07395"></a><span class="lineno"> 7395</span>    <span class="comment">/* the window is resizing so update the values */</span></div>
 <div class="line"><a id="l07396" name="l07396"></a><span class="lineno"> 7396</span>    <span class="keywordflow">if</span> ((width &amp;&amp; height) &amp;&amp; (win-&gt;w != width ||  win-&gt;h != height)) {</div>
 <div class="line"><a id="l07397" name="l07397"></a><span class="lineno"> 7397</span>        win-&gt;src.resizing = <a class="code hl_define" href="RGFW_8h.html#a4d7bc6cacdc3a02ad39672017d4d506e">RGFW_TRUE</a>;</div>
 <div class="line"><a id="l07398" name="l07398"></a><span class="lineno"> 7398</span>        win-&gt;src.w = win-&gt;w = width;</div>
@@ -6243,8 +6243,8 @@ $(function() {
 <div class="line"><a id="l07415" name="l07415"></a><span class="lineno"> 7415</span>        <span class="keyword">struct</span> zxdg_toplevel_decoration_v1* zxdg_toplevel_decoration_v1, <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> mode) {</div>
 <div class="line"><a id="l07416" name="l07416"></a><span class="lineno"> 7416</span>    <a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win = (<a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>*)data; <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(zxdg_toplevel_decoration_v1);</div>
 <div class="line"><a id="l07417" name="l07417"></a><span class="lineno"> 7417</span> </div>
-<div class="line"><a id="l07418" name="l07418"></a><span class="lineno"> 7418</span>    <span class="comment">// this is expected to run once</span></div>
-<div class="line"><a id="l07419" name="l07419"></a><span class="lineno"> 7419</span>    <span class="comment">// set the decoration mode set by earlier request</span></div>
+<div class="line"><a id="l07418" name="l07418"></a><span class="lineno"> 7418</span>    <span class="comment">/* this is expected to run once */</span></div>
+<div class="line"><a id="l07419" name="l07419"></a><span class="lineno"> 7419</span>    <span class="comment">/* set the decoration mode set by earlier request */</span></div>
 <div class="line"><a id="l07420" name="l07420"></a><span class="lineno"> 7420</span>    <span class="keywordflow">if</span> (mode != win-&gt;src.decoration_mode) {</div>
 <div class="line"><a id="l07421" name="l07421"></a><span class="lineno"> 7421</span>        win-&gt;src.decoration_mode = mode;</div>
 <div class="line"><a id="l07422" name="l07422"></a><span class="lineno"> 7422</span>    }</div>
@@ -6288,7 +6288,7 @@ $(function() {
 <div class="line"><a id="l07460" name="l07460"></a><span class="lineno"> 7460</span>    win-&gt;internal.lastMouseX = win-&gt;w / 2;</div>
 <div class="line"><a id="l07461" name="l07461"></a><span class="lineno"> 7461</span>    win-&gt;internal.lastMouseY = win-&gt;h / 2;</div>
 <div class="line"><a id="l07462" name="l07462"></a><span class="lineno"> 7462</span>    zwp_locked_pointer_v1_set_cursor_position_hint(win-&gt;src.locked_pointer, wl_fixed_from_int((win-&gt;w / 2)), wl_fixed_from_int((win-&gt;h / 2)));</div>
-<div class="line"><a id="l07463" name="l07463"></a><span class="lineno"> 7463</span>    wl_pointer_set_cursor(RGFW-&gt;wl_pointer, RGFW-&gt;mouse_enter_serial, NULL, 0, 0); <span class="comment">// draw no cursor</span></div>
+<div class="line"><a id="l07463" name="l07463"></a><span class="lineno"> 7463</span>    wl_pointer_set_cursor(RGFW-&gt;wl_pointer, RGFW-&gt;mouse_enter_serial, NULL, 0, 0); <span class="comment">/* draw no cursor */</span></div>
 <div class="line"><a id="l07464" name="l07464"></a><span class="lineno"> 7464</span>}</div>
 <div class="line"><a id="l07465" name="l07465"></a><span class="lineno"> 7465</span> </div>
 <div class="line"><a id="l07466" name="l07466"></a><span class="lineno"> 7466</span><span class="keyword">static</span> <span class="keywordtype">void</span> RGFW_wl_pointer_enter(<span class="keywordtype">void</span>* data, <span class="keyword">struct</span> wl_pointer* pointer, <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> serial,</div>
@@ -6296,7 +6296,7 @@ $(function() {
 <div class="line"><a id="l07468" name="l07468"></a><span class="lineno"> 7468</span>    <a class="code hl_typedef" href="RGFW_8h.html#adaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a>* RGFW = (<a class="code hl_typedef" href="RGFW_8h.html#adaaf064e070d4b9f2f411b601bb2d6ed">RGFW_info</a>*)data;</div>
 <div class="line"><a id="l07469" name="l07469"></a><span class="lineno"> 7469</span>    <a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win = (<a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>*)wl_surface_get_user_data(surface);</div>
 <div class="line"><a id="l07470" name="l07470"></a><span class="lineno"> 7470</span> </div>
-<div class="line"><a id="l07471" name="l07471"></a><span class="lineno"> 7471</span>    <span class="comment">// save when the pointer is locked or using default cursor</span></div>
+<div class="line"><a id="l07471" name="l07471"></a><span class="lineno"> 7471</span>    <span class="comment">/* save when the pointer is locked or using default cursor */</span></div>
 <div class="line"><a id="l07472" name="l07472"></a><span class="lineno"> 7472</span>    RGFW-&gt;mouse_enter_serial = serial;</div>
 <div class="line"><a id="l07473" name="l07473"></a><span class="lineno"> 7473</span>    win-&gt;internal.mouseInside = <a class="code hl_define" href="RGFW_8h.html#a4d7bc6cacdc3a02ad39672017d4d506e">RGFW_TRUE</a>;</div>
 <div class="line"><a id="l07474" name="l07474"></a><span class="lineno"> 7474</span>    RGFW-&gt;windowState.win = win;</div>
@@ -6304,7 +6304,7 @@ $(function() {
 <div class="line"><a id="l07476" name="l07476"></a><span class="lineno"> 7476</span> </div>
 <div class="line"><a id="l07477" name="l07477"></a><span class="lineno"> 7477</span>    RGFW-&gt;mouseOwner = win;</div>
 <div class="line"><a id="l07478" name="l07478"></a><span class="lineno"> 7478</span> </div>
-<div class="line"><a id="l07479" name="l07479"></a><span class="lineno"> 7479</span>    <span class="comment">// set the cursor</span></div>
+<div class="line"><a id="l07479" name="l07479"></a><span class="lineno"> 7479</span>    <span class="comment">/* set the cursor */</span></div>
 <div class="line"><a id="l07480" name="l07480"></a><span class="lineno"> 7480</span>    <span class="keywordflow">if</span> (win-&gt;src.using_custom_cursor) {</div>
 <div class="line"><a id="l07481" name="l07481"></a><span class="lineno"> 7481</span>        wl_pointer_set_cursor(pointer, serial, win-&gt;src.custom_cursor_surface, 0, 0);</div>
 <div class="line"><a id="l07482" name="l07482"></a><span class="lineno"> 7482</span>    }</div>
@@ -6454,8 +6454,8 @@ $(function() {
 <div class="line"><a id="l07626" name="l07626"></a><span class="lineno"> 7626</span> </div>
 <div class="line"><a id="l07627" name="l07627"></a><span class="lineno"> 7627</span>    <span class="keywordflow">if</span> (!(win-&gt;internal.enabledEvents &amp; RGFW_focusInFlag)) <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l07628" name="l07628"></a><span class="lineno"> 7628</span> </div>
-<div class="line"><a id="l07629" name="l07629"></a><span class="lineno"> 7629</span>    <span class="comment">// is set when RGFW_window_minimize is called; if the minimize button is</span></div>
-<div class="line"><a id="l07630" name="l07630"></a><span class="lineno"> 7630</span>    <span class="comment">// pressed this flag is not set since there is no event to listen for</span></div>
+<div class="line"><a id="l07629" name="l07629"></a><span class="lineno"> 7629</span>    <span class="comment">/* is set when RGFW_window_minimize is called; if the minimize button is */</span></div>
+<div class="line"><a id="l07630" name="l07630"></a><span class="lineno"> 7630</span>    <span class="comment">/* pressed this flag is not set since there is no event to listen for */</span></div>
 <div class="line"><a id="l07631" name="l07631"></a><span class="lineno"> 7631</span>    <span class="keywordflow">if</span> (win-&gt;src.minimized == <a class="code hl_define" href="RGFW_8h.html#a4d7bc6cacdc3a02ad39672017d4d506e">RGFW_TRUE</a>) win-&gt;src.minimized = <a class="code hl_define" href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a>;</div>
 <div class="line"><a id="l07632" name="l07632"></a><span class="lineno"> 7632</span> </div>
 <div class="line"><a id="l07633" name="l07633"></a><span class="lineno"> 7633</span>    win-&gt;internal.inFocus = <a class="code hl_define" href="RGFW_8h.html#a4d7bc6cacdc3a02ad39672017d4d506e">RGFW_TRUE</a>;</div>
@@ -6579,7 +6579,7 @@ $(function() {
 <div class="line"><a id="l07751" name="l07751"></a><span class="lineno"> 7751</span>}</div>
 <div class="line"><a id="l07752" name="l07752"></a><span class="lineno"> 7752</span> </div>
 <div class="line"><a id="l07753" name="l07753"></a><span class="lineno"> 7753</span><span class="keyword">static</span> <span class="keywordtype">void</span> RGFW_wl_output_set_scale(<span class="keywordtype">void</span> *data, <span class="keyword">struct</span> wl_output *wl_output, int32_t factor) {</div>
-<div class="line"><a id="l07754" name="l07754"></a><span class="lineno"> 7754</span>    <span class="comment">// this is for pixelRatio</span></div>
+<div class="line"><a id="l07754" name="l07754"></a><span class="lineno"> 7754</span>    <span class="comment">/* this is for pixelRatio */</span></div>
 <div class="line"><a id="l07755" name="l07755"></a><span class="lineno"> 7755</span>    <a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a>* monitor = &amp;((RGFW_monitorNode*)data)-&gt;mon;</div>
 <div class="line"><a id="l07756" name="l07756"></a><span class="lineno"> 7756</span> </div>
 <div class="line"><a id="l07757" name="l07757"></a><span class="lineno"> 7757</span>    monitor-&gt;<a class="code hl_variable" href="structRGFW__monitor.html#a6a1679c6f3fff5aa884603ae401a4437">pixelRatio</a> = (float)factor;</div>
@@ -6612,7 +6612,7 @@ $(function() {
 <div class="line"><a id="l07784" name="l07784"></a><span class="lineno"> 7784</span>    monitor-&gt;<a class="code hl_variable" href="structRGFW__monitor.html#ac991866248d4babbd78fe1a7fd8ee145">scaleX</a> = (mon_float_width / (float) width);</div>
 <div class="line"><a id="l07785" name="l07785"></a><span class="lineno"> 7785</span>    monitor-&gt;<a class="code hl_variable" href="structRGFW__monitor.html#a906b121ba6fb271b108da0d063bb303e">scaleY</a> = (mon_float_height / (float) height);</div>
 <div class="line"><a id="l07786" name="l07786"></a><span class="lineno"> 7786</span> </div>
-<div class="line"><a id="l07787" name="l07787"></a><span class="lineno"> 7787</span>    <span class="comment">// under xwayland the monitor changes w &amp; h when compositor scales it</span></div>
+<div class="line"><a id="l07787" name="l07787"></a><span class="lineno"> 7787</span>    <span class="comment">/* under xwayland the monitor changes w &amp; h when compositor scales it */</span></div>
 <div class="line"><a id="l07788" name="l07788"></a><span class="lineno"> 7788</span>    monitor-&gt;<a class="code hl_variable" href="structRGFW__monitor.html#a0f7f7532843e9354590e8cb424fbf8dc">mode</a>.<a class="code hl_variable" href="structRGFW__monitorMode.html#a3d8ac1d0c0f76d164809410fd8823a87">w</a> = width;</div>
 <div class="line"><a id="l07789" name="l07789"></a><span class="lineno"> 7789</span>    monitor-&gt;<a class="code hl_variable" href="structRGFW__monitor.html#a0f7f7532843e9354590e8cb424fbf8dc">mode</a>.<a class="code hl_variable" href="structRGFW__monitorMode.html#a1d2a8624b11eab3c94688235eab6860c">h</a> = height;</div>
 <div class="line"><a id="l07790" name="l07790"></a><span class="lineno"> 7790</span>    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(zxdg_output_v1);</div>
@@ -6631,8 +6631,8 @@ $(function() {
 <div class="line"><a id="l07803" name="l07803"></a><span class="lineno"> 7803</span>    <a class="code hl_define" href="RGFW_8h.html#ab9c27a50de677ad52c8ab9715e990d40">RGFW_STRNCPY</a>(mon.<a class="code hl_variable" href="structRGFW__monitor.html#aaea809cea2ca3420c64b1ae3d69bb3ae">name</a>, RGFW_mon_default_name, <span class="keyword">sizeof</span>(mon.<a class="code hl_variable" href="structRGFW__monitor.html#aaea809cea2ca3420c64b1ae3d69bb3ae">name</a>) - 1);</div>
 <div class="line"><a id="l07804" name="l07804"></a><span class="lineno"> 7804</span>    mon.<a class="code hl_variable" href="structRGFW__monitor.html#aaea809cea2ca3420c64b1ae3d69bb3ae">name</a>[<span class="keyword">sizeof</span>(mon.<a class="code hl_variable" href="structRGFW__monitor.html#aaea809cea2ca3420c64b1ae3d69bb3ae">name</a>) - 1] = <span class="charliteral">&#39;\0&#39;</span>;</div>
 <div class="line"><a id="l07805" name="l07805"></a><span class="lineno"> 7805</span> </div>
-<div class="line"><a id="l07806" name="l07806"></a><span class="lineno"> 7806</span>    <span class="comment">// set in case compositor does not send one</span></div>
-<div class="line"><a id="l07807" name="l07807"></a><span class="lineno"> 7807</span>    <span class="comment">// or no xdg_output support</span></div>
+<div class="line"><a id="l07806" name="l07806"></a><span class="lineno"> 7806</span>    <span class="comment">/* set in case compositor does not send one */</span></div>
+<div class="line"><a id="l07807" name="l07807"></a><span class="lineno"> 7807</span>    <span class="comment">/* or no xdg_output support */</span></div>
 <div class="line"><a id="l07808" name="l07808"></a><span class="lineno"> 7808</span>    mon.<a class="code hl_variable" href="structRGFW__monitor.html#a906b121ba6fb271b108da0d063bb303e">scaleY</a> = mon.<a class="code hl_variable" href="structRGFW__monitor.html#ac991866248d4babbd78fe1a7fd8ee145">scaleX</a> = mon.<a class="code hl_variable" href="structRGFW__monitor.html#a6a1679c6f3fff5aa884603ae401a4437">pixelRatio</a> = 1.0f;</div>
 <div class="line"><a id="l07809" name="l07809"></a><span class="lineno"> 7809</span> </div>
 <div class="line"><a id="l07810" name="l07810"></a><span class="lineno"> 7810</span>    node = RGFW_monitors_add(mon);</div>
@@ -6650,13 +6650,13 @@ $(function() {
 <div class="line"><a id="l07822" name="l07822"></a><span class="lineno"> 7822</span>            .description = (void (*)(<span class="keywordtype">void</span> *, <span class="keyword">struct </span>wl_output *, <span class="keyword">const</span> <span class="keywordtype">char</span> *))&amp;RGFW_doNothing</div>
 <div class="line"><a id="l07823" name="l07823"></a><span class="lineno"> 7823</span>    };</div>
 <div class="line"><a id="l07824" name="l07824"></a><span class="lineno"> 7824</span> </div>
-<div class="line"><a id="l07825" name="l07825"></a><span class="lineno"> 7825</span>    <span class="comment">// the wl_output will have a reference to the node</span></div>
+<div class="line"><a id="l07825" name="l07825"></a><span class="lineno"> 7825</span>    <span class="comment">/* the wl_output will have a reference to the node */</span></div>
 <div class="line"><a id="l07826" name="l07826"></a><span class="lineno"> 7826</span>    wl_output_set_user_data(output, node);</div>
 <div class="line"><a id="l07827" name="l07827"></a><span class="lineno"> 7827</span> </div>
-<div class="line"><a id="l07828" name="l07828"></a><span class="lineno"> 7828</span>    <span class="comment">// pass the monitor so we can access it in the callback functions</span></div>
+<div class="line"><a id="l07828" name="l07828"></a><span class="lineno"> 7828</span>    <span class="comment">/* pass the monitor so we can access it in the callback functions */</span></div>
 <div class="line"><a id="l07829" name="l07829"></a><span class="lineno"> 7829</span>    wl_output_add_listener(output, &amp;wl_output_listener, node);</div>
 <div class="line"><a id="l07830" name="l07830"></a><span class="lineno"> 7830</span> </div>
-<div class="line"><a id="l07831" name="l07831"></a><span class="lineno"> 7831</span>    <span class="keywordflow">if</span> (!_RGFW-&gt;xdg_output_manager) <span class="keywordflow">return</span>; <span class="comment">// compositor does not support it</span></div>
+<div class="line"><a id="l07831" name="l07831"></a><span class="lineno"> 7831</span>    <span class="keywordflow">if</span> (!_RGFW-&gt;xdg_output_manager) <span class="keywordflow">return</span>; <span class="comment">/* compositor does not support it */</span></div>
 <div class="line"><a id="l07832" name="l07832"></a><span class="lineno"> 7832</span> </div>
 <div class="line"><a id="l07833" name="l07833"></a><span class="lineno"> 7833</span>    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">struct </span>zxdg_output_v1_listener xdg_output_listener = {</div>
 <div class="line"><a id="l07834" name="l07834"></a><span class="lineno"> 7834</span>        .name = (void (*)(<span class="keywordtype">void</span> *,<span class="keyword">struct </span>zxdg_output_v1 *, <span class="keyword">const</span> <span class="keywordtype">char</span> *))&amp;RGFW_doNothing,</div>
@@ -6812,7 +6812,7 @@ $(function() {
 <div class="line"><a id="l07984" name="l07984"></a><span class="lineno"> 7984</span>    _RGFW-&gt;registry = wl_display_get_registry(_RGFW-&gt;wl_display);</div>
 <div class="line"><a id="l07985" name="l07985"></a><span class="lineno"> 7985</span>    wl_registry_add_listener(_RGFW-&gt;registry, &amp;registry_listener, _RGFW);</div>
 <div class="line"><a id="l07986" name="l07986"></a><span class="lineno"> 7986</span> </div>
-<div class="line"><a id="l07987" name="l07987"></a><span class="lineno"> 7987</span>    wl_display_roundtrip(_RGFW-&gt;wl_display); <span class="comment">// bind to globals</span></div>
+<div class="line"><a id="l07987" name="l07987"></a><span class="lineno"> 7987</span>    wl_display_roundtrip(_RGFW-&gt;wl_display); <span class="comment">/* bind to globals */</span></div>
 <div class="line"><a id="l07988" name="l07988"></a><span class="lineno"> 7988</span> </div>
 <div class="line"><a id="l07989" name="l07989"></a><span class="lineno"> 7989</span>    <span class="keywordflow">if</span> (_RGFW-&gt;compositor == NULL) {</div>
 <div class="line"><a id="l07990" name="l07990"></a><span class="lineno"> 7990</span>        <a class="code hl_function" href="group__error.html#ga8da0d1ae10671341eda34d3067ce11f9">RGFW_sendDebugInfo</a>(RGFW_typeError, RGFW_errWayland, <span class="stringliteral">&quot;Can&#39;t find compositor.&quot;</span>);</div>
@@ -6950,7 +6950,7 @@ $(function() {
 <div class="line"><a id="l08122" name="l08122"></a><span class="lineno"> 8122</span><span class="keywordtype">void</span> RGFW_FUNC(<a class="code hl_function" href="group__Window__management.html#ga210cfa064760291d2823fb330ea50d9c">RGFW_window_setBorder</a>) (<a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win, <a class="code hl_typedef" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> border) {</div>
 <div class="line"><a id="l08123" name="l08123"></a><span class="lineno"> 8123</span>    RGFW_setBit(&amp;win-&gt;internal.flags, RGFW_windowNoBorder, !border);</div>
 <div class="line"><a id="l08124" name="l08124"></a><span class="lineno"> 8124</span> </div>
-<div class="line"><a id="l08125" name="l08125"></a><span class="lineno"> 8125</span>    <span class="comment">// for now just toggle between SSD &amp; CSD depending on the bool</span></div>
+<div class="line"><a id="l08125" name="l08125"></a><span class="lineno"> 8125</span>    <span class="comment">/* for now just toggle between SSD &amp; CSD depending on the bool */</span></div>
 <div class="line"><a id="l08126" name="l08126"></a><span class="lineno"> 8126</span>    <span class="keywordflow">if</span> (_RGFW-&gt;decoration_manager != NULL) {</div>
 <div class="line"><a id="l08127" name="l08127"></a><span class="lineno"> 8127</span>        zxdg_toplevel_decoration_v1_set_mode(win-&gt;src.decoration, (border ? ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE : ZXDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE));</div>
 <div class="line"><a id="l08128" name="l08128"></a><span class="lineno"> 8128</span>    }</div>
@@ -6958,7 +6958,7 @@ $(function() {
 <div class="line"><a id="l08130" name="l08130"></a><span class="lineno"> 8130</span> </div>
 <div class="line"><a id="l08131" name="l08131"></a><span class="lineno"> 8131</span><span class="keywordtype">void</span> RGFW_FUNC(RGFW_releaseCursor) (<a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win) {</div>
 <div class="line"><a id="l08132" name="l08132"></a><span class="lineno"> 8132</span>    <a class="code hl_define" href="RGFW_8h.html#abaefc14a066ffd85ac8db9426f890665">RGFW_ASSERT</a>(win);</div>
-<div class="line"><a id="l08133" name="l08133"></a><span class="lineno"> 8133</span>    <span class="comment">// compositor has no support or window is not locked do nothing</span></div>
+<div class="line"><a id="l08133" name="l08133"></a><span class="lineno"> 8133</span>    <span class="comment">/* compositor has no support or window is not locked do nothing */</span></div>
 <div class="line"><a id="l08134" name="l08134"></a><span class="lineno"> 8134</span>    <span class="keywordflow">if</span> (_RGFW-&gt;constraint_manager == NULL || _RGFW-&gt;relative_pointer_manager == NULL) <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l08135" name="l08135"></a><span class="lineno"> 8135</span> </div>
 <div class="line"><a id="l08136" name="l08136"></a><span class="lineno"> 8136</span>    <span class="keywordflow">if</span> (win-&gt;src.locked_pointer != NULL) {</div>
@@ -6970,12 +6970,12 @@ $(function() {
 <div class="line"><a id="l08142" name="l08142"></a><span class="lineno"> 8142</span>        _RGFW-&gt;relative_pointer = NULL;</div>
 <div class="line"><a id="l08143" name="l08143"></a><span class="lineno"> 8143</span>    }</div>
 <div class="line"><a id="l08144" name="l08144"></a><span class="lineno"> 8144</span> </div>
-<div class="line"><a id="l08145" name="l08145"></a><span class="lineno"> 8145</span>    _RGFW-&gt;mouseOwner = win; <span class="comment">// unhold mouse sets this to null; set it back</span></div>
+<div class="line"><a id="l08145" name="l08145"></a><span class="lineno"> 8145</span>    _RGFW-&gt;mouseOwner = win; <span class="comment">/* unhold mouse sets this to null; set it back */</span></div>
 <div class="line"><a id="l08146" name="l08146"></a><span class="lineno"> 8146</span>}</div>
 <div class="line"><a id="l08147" name="l08147"></a><span class="lineno"> 8147</span> </div>
 <div class="line"><a id="l08148" name="l08148"></a><span class="lineno"> 8148</span><span class="keywordtype">void</span> RGFW_FUNC(RGFW_captureCursor) (<a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win) {</div>
 <div class="line"><a id="l08149" name="l08149"></a><span class="lineno"> 8149</span>    <a class="code hl_define" href="RGFW_8h.html#abaefc14a066ffd85ac8db9426f890665">RGFW_ASSERT</a>(win);</div>
-<div class="line"><a id="l08150" name="l08150"></a><span class="lineno"> 8150</span>    <span class="comment">// compositor has no support or window already is locked do nothing</span></div>
+<div class="line"><a id="l08150" name="l08150"></a><span class="lineno"> 8150</span>    <span class="comment">/* compositor has no support or window already is locked do nothing */</span></div>
 <div class="line"><a id="l08151" name="l08151"></a><span class="lineno"> 8151</span>    <span class="keywordflow">if</span> (_RGFW-&gt;constraint_manager == NULL || _RGFW-&gt;relative_pointer_manager == NULL) <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l08152" name="l08152"></a><span class="lineno"> 8152</span> </div>
 <div class="line"><a id="l08153" name="l08153"></a><span class="lineno"> 8153</span>    <span class="keywordflow">if</span> (_RGFW-&gt;relative_pointer == NULL) {</div>
@@ -7017,7 +7017,7 @@ $(function() {
 <div class="line"><a id="l08189" name="l08189"></a><span class="lineno"> 8189</span>    win-&gt;src.surface = wl_compositor_create_surface(_RGFW-&gt;compositor);</div>
 <div class="line"><a id="l08190" name="l08190"></a><span class="lineno"> 8190</span>    wl_surface_add_listener(win-&gt;src.surface, &amp;wl_surface_listener, win);</div>
 <div class="line"><a id="l08191" name="l08191"></a><span class="lineno"> 8191</span> </div>
-<div class="line"><a id="l08192" name="l08192"></a><span class="lineno"> 8192</span>    <span class="comment">//create a surface for a custom cursor</span></div>
+<div class="line"><a id="l08192" name="l08192"></a><span class="lineno"> 8192</span>    <span class="comment">/* create a surface for a custom cursor */</span></div>
 <div class="line"><a id="l08193" name="l08193"></a><span class="lineno"> 8193</span>    win-&gt;src.custom_cursor_surface = wl_compositor_create_surface(_RGFW-&gt;compositor);</div>
 <div class="line"><a id="l08194" name="l08194"></a><span class="lineno"> 8194</span> </div>
 <div class="line"><a id="l08195" name="l08195"></a><span class="lineno"> 8195</span>    win-&gt;src.xdg_surface = xdg_wm_base_get_xdg_surface(_RGFW-&gt;xdg_wm_base, win-&gt;src.surface);</div>
@@ -7029,7 +7029,7 @@ $(function() {
 <div class="line"><a id="l08201" name="l08201"></a><span class="lineno"> 8201</span> </div>
 <div class="line"><a id="l08202" name="l08202"></a><span class="lineno"> 8202</span>    xdg_surface_set_window_geometry(win-&gt;src.xdg_surface, 0, 0, win-&gt;w, win-&gt;h);</div>
 <div class="line"><a id="l08203" name="l08203"></a><span class="lineno"> 8203</span> </div>
-<div class="line"><a id="l08204" name="l08204"></a><span class="lineno"> 8204</span>    <span class="keywordflow">if</span> (!(win-&gt;internal.flags &amp; RGFW_windowTransparent)) { <span class="comment">// no transparency</span></div>
+<div class="line"><a id="l08204" name="l08204"></a><span class="lineno"> 8204</span>    <span class="keywordflow">if</span> (!(win-&gt;internal.flags &amp; RGFW_windowTransparent)) { <span class="comment">/* no transparency */</span></div>
 <div class="line"><a id="l08205" name="l08205"></a><span class="lineno"> 8205</span>        RGFW_wl_setOpaque(win);</div>
 <div class="line"><a id="l08206" name="l08206"></a><span class="lineno"> 8206</span>    }</div>
 <div class="line"><a id="l08207" name="l08207"></a><span class="lineno"> 8207</span> </div>
@@ -7054,14 +7054,14 @@ $(function() {
 <div class="line"><a id="l08226" name="l08226"></a><span class="lineno"> 8226</span> </div>
 <div class="line"><a id="l08227" name="l08227"></a><span class="lineno"> 8227</span>        zxdg_toplevel_decoration_v1_add_listener(win-&gt;src.decoration, &amp;xdg_decoration_listener, win);</div>
 <div class="line"><a id="l08228" name="l08228"></a><span class="lineno"> 8228</span> </div>
-<div class="line"><a id="l08229" name="l08229"></a><span class="lineno"> 8229</span>        <span class="comment">// we want no decorations</span></div>
+<div class="line"><a id="l08229" name="l08229"></a><span class="lineno"> 8229</span>        <span class="comment">/* we want no decorations */</span></div>
 <div class="line"><a id="l08230" name="l08230"></a><span class="lineno"> 8230</span>        <span class="keywordflow">if</span> ((flags &amp; RGFW_windowNoBorder)) {</div>
 <div class="line"><a id="l08231" name="l08231"></a><span class="lineno"> 8231</span>            decoration_mode = ZXDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;</div>
 <div class="line"><a id="l08232" name="l08232"></a><span class="lineno"> 8232</span>        }</div>
 <div class="line"><a id="l08233" name="l08233"></a><span class="lineno"> 8233</span> </div>
 <div class="line"><a id="l08234" name="l08234"></a><span class="lineno"> 8234</span>        zxdg_toplevel_decoration_v1_set_mode(win-&gt;src.decoration, decoration_mode);</div>
 <div class="line"><a id="l08235" name="l08235"></a><span class="lineno"> 8235</span> </div>
-<div class="line"><a id="l08236" name="l08236"></a><span class="lineno"> 8236</span>    <span class="comment">// no xdg_decoration support</span></div>
+<div class="line"><a id="l08236" name="l08236"></a><span class="lineno"> 8236</span>        <span class="comment">/* no xdg_decoration support */</span></div>
 <div class="line"><a id="l08237" name="l08237"></a><span class="lineno"> 8237</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!(flags &amp; RGFW_windowNoBorder)) {</div>
 <div class="line"><a id="l08238" name="l08238"></a><span class="lineno"> 8238</span>        <span class="comment">/* TODO, some fallback */</span></div>
 <div class="line"><a id="l08239" name="l08239"></a><span class="lineno"> 8239</span><span class="preprocessor">        #ifdef RGFW_LIBDECOR</span></div>
@@ -7091,7 +7091,7 @@ $(function() {
 <div class="line"><a id="l08263" name="l08263"></a><span class="lineno"> 8263</span>    }</div>
 <div class="line"><a id="l08264" name="l08264"></a><span class="lineno"> 8264</span> </div>
 <div class="line"><a id="l08265" name="l08265"></a><span class="lineno"> 8265</span>    <span class="keywordflow">if</span> (_RGFW-&gt;icon_manager != NULL) {</div>
-<div class="line"><a id="l08266" name="l08266"></a><span class="lineno"> 8266</span>        <span class="comment">// set the default wayland icon</span></div>
+<div class="line"><a id="l08266" name="l08266"></a><span class="lineno"> 8266</span>        <span class="comment">/* set the default wayland icon */</span></div>
 <div class="line"><a id="l08267" name="l08267"></a><span class="lineno"> 8267</span>        xdg_toplevel_icon_manager_v1_set_icon(_RGFW-&gt;icon_manager, win-&gt;src.xdg_toplevel, NULL);</div>
 <div class="line"><a id="l08268" name="l08268"></a><span class="lineno"> 8268</span>    }</div>
 <div class="line"><a id="l08269" name="l08269"></a><span class="lineno"> 8269</span> </div>
@@ -7116,10 +7116,10 @@ $(function() {
 <div class="line"><a id="l08288" name="l08288"></a><span class="lineno"> 8288</span><span class="keywordtype">void</span> RGFW_FUNC(<a class="code hl_function" href="RGFW_8h.html#a877d6904d56b6c485d56a171b8f97750">RGFW_pollEvents</a>) (void) {</div>
 <div class="line"><a id="l08289" name="l08289"></a><span class="lineno"> 8289</span>    RGFW_resetPrevState();</div>
 <div class="line"><a id="l08290" name="l08290"></a><span class="lineno"> 8290</span> </div>
-<div class="line"><a id="l08291" name="l08291"></a><span class="lineno"> 8291</span>    <span class="comment">// send buffered requests to compositor</span></div>
+<div class="line"><a id="l08291" name="l08291"></a><span class="lineno"> 8291</span>    <span class="comment">/* send buffered requests to compositor */</span></div>
 <div class="line"><a id="l08292" name="l08292"></a><span class="lineno"> 8292</span>    <span class="keywordflow">while</span> (wl_display_flush(_RGFW-&gt;wl_display) == -1) {</div>
-<div class="line"><a id="l08293" name="l08293"></a><span class="lineno"> 8293</span>        <span class="comment">// compositor not responding to new requests</span></div>
-<div class="line"><a id="l08294" name="l08294"></a><span class="lineno"> 8294</span>        <span class="comment">// so let&#39;s dispatch some events so the compositor responds</span></div>
+<div class="line"><a id="l08293" name="l08293"></a><span class="lineno"> 8293</span>        <span class="comment">/* compositor not responding to new requests */</span></div>
+<div class="line"><a id="l08294" name="l08294"></a><span class="lineno"> 8294</span>        <span class="comment">/* so let&#39;s dispatch some events so the compositor responds */</span></div>
 <div class="line"><a id="l08295" name="l08295"></a><span class="lineno"> 8295</span>        <span class="keywordflow">if</span> (errno == EAGAIN) {</div>
 <div class="line"><a id="l08296" name="l08296"></a><span class="lineno"> 8296</span>            <span class="keywordflow">if</span> (wl_display_dispatch_pending(_RGFW-&gt;wl_display) == -1) {</div>
 <div class="line"><a id="l08297" name="l08297"></a><span class="lineno"> 8297</span>                <span class="keywordflow">return</span>;</div>
@@ -7129,8 +7129,8 @@ $(function() {
 <div class="line"><a id="l08301" name="l08301"></a><span class="lineno"> 8301</span>        }</div>
 <div class="line"><a id="l08302" name="l08302"></a><span class="lineno"> 8302</span>    }</div>
 <div class="line"><a id="l08303" name="l08303"></a><span class="lineno"> 8303</span> </div>
-<div class="line"><a id="l08304" name="l08304"></a><span class="lineno"> 8304</span>    <span class="comment">// read the events; if empty this reads from the</span></div>
-<div class="line"><a id="l08305" name="l08305"></a><span class="lineno"> 8305</span>    <span class="comment">// wayland file descriptor</span></div>
+<div class="line"><a id="l08304" name="l08304"></a><span class="lineno"> 8304</span>    <span class="comment">/* read the events; if empty this reads from the */</span></div>
+<div class="line"><a id="l08305" name="l08305"></a><span class="lineno"> 8305</span>    <span class="comment">/* wayland file descriptor */</span></div>
 <div class="line"><a id="l08306" name="l08306"></a><span class="lineno"> 8306</span>    <span class="keywordflow">if</span> (wl_display_dispatch(_RGFW-&gt;wl_display) == -1) {</div>
 <div class="line"><a id="l08307" name="l08307"></a><span class="lineno"> 8307</span>        <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l08308" name="l08308"></a><span class="lineno"> 8308</span>    }</div>
@@ -7210,7 +7210,7 @@ $(function() {
 <div class="line"><a id="l08382" name="l08382"></a><span class="lineno"> 8382</span>        win-&gt;internal.oldY = win-&gt;y;</div>
 <div class="line"><a id="l08383" name="l08383"></a><span class="lineno"> 8383</span>        win-&gt;internal.oldW = win-&gt;w;</div>
 <div class="line"><a id="l08384" name="l08384"></a><span class="lineno"> 8384</span>        win-&gt;internal.oldH = win-&gt;h;</div>
-<div class="line"><a id="l08385" name="l08385"></a><span class="lineno"> 8385</span>        xdg_toplevel_set_fullscreen(win-&gt;src.xdg_toplevel, NULL); <span class="comment">// let the compositor decide</span></div>
+<div class="line"><a id="l08385" name="l08385"></a><span class="lineno"> 8385</span>        xdg_toplevel_set_fullscreen(win-&gt;src.xdg_toplevel, NULL); <span class="comment">/* let the compositor decide */</span></div>
 <div class="line"><a id="l08386" name="l08386"></a><span class="lineno"> 8386</span>    } <span class="keywordflow">else</span> {</div>
 <div class="line"><a id="l08387" name="l08387"></a><span class="lineno"> 8387</span>        win-&gt;internal.flags &amp;= ~(<a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>)RGFW_windowFullscreen;</div>
 <div class="line"><a id="l08388" name="l08388"></a><span class="lineno"> 8388</span>        xdg_toplevel_unset_fullscreen(win-&gt;src.xdg_toplevel);</div>
@@ -9181,7 +9181,7 @@ $(function() {
 <div class="line"><a id="l10354" name="l10354"></a><span class="lineno">10354</span> </div>
 <div class="line"><a id="l10355" name="l10355"></a><span class="lineno">10355</span>        <span class="keywordflow">if</span> (RGFW_extensionSupportedPlatform_OpenGL(flushControl, <span class="keyword">sizeof</span>(flushControl))) {</div>
 <div class="line"><a id="l10356" name="l10356"></a><span class="lineno">10356</span>            <span class="keywordflow">if</span> (hints-&gt;releaseBehavior == RGFW_glReleaseFlush) {</div>
-<div class="line"><a id="l10357" name="l10357"></a><span class="lineno">10357</span>                RGFW_attribStack_pushAttribs(&amp;stack, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB); <span class="comment">// WGL_CONTEXT_RELEASE_BEHAVIOR_ARB</span></div>
+<div class="line"><a id="l10357" name="l10357"></a><span class="lineno">10357</span>                RGFW_attribStack_pushAttribs(&amp;stack, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB); <span class="comment">/* WGL_CONTEXT_RELEASE_BEHAVIOR_ARB */</span></div>
 <div class="line"><a id="l10358" name="l10358"></a><span class="lineno">10358</span>            } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (hints-&gt;releaseBehavior == RGFW_glReleaseNone) {</div>
 <div class="line"><a id="l10359" name="l10359"></a><span class="lineno">10359</span>                RGFW_attribStack_pushAttribs(&amp;stack, WGL_CONTEXT_RELEASE_BEHAVIOR_ARB, WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB);</div>
 <div class="line"><a id="l10360" name="l10360"></a><span class="lineno">10360</span>            }</div>
@@ -9270,12 +9270,12 @@ $(function() {
 <div class="line"><a id="l10443" name="l10443"></a><span class="lineno">10443</span>    WGPUSurfaceDescriptor surfaceDesc = {0};</div>
 <div class="line"><a id="l10444" name="l10444"></a><span class="lineno">10444</span>    WGPUSurfaceSourceWindowsHWND fromHwnd = {0};</div>
 <div class="line"><a id="l10445" name="l10445"></a><span class="lineno">10445</span>    fromHwnd.chain.sType = WGPUSType_SurfaceSourceWindowsHWND;</div>
-<div class="line"><a id="l10446" name="l10446"></a><span class="lineno">10446</span>    fromHwnd.hwnd = window-&gt;src.window; <span class="comment">// Get HWND from RGFW window source</span></div>
+<div class="line"><a id="l10446" name="l10446"></a><span class="lineno">10446</span>    fromHwnd.hwnd = window-&gt;src.window; <span class="comment">/* Get HWND from RGFW window source */</span></div>
 <div class="line"><a id="l10447" name="l10447"></a><span class="lineno">10447</span>    <span class="keywordflow">if</span> (!fromHwnd.hwnd) {</div>
 <div class="line"><a id="l10448" name="l10448"></a><span class="lineno">10448</span>        fprintf(stderr, <span class="stringliteral">&quot;RGFW Error: HWND is NULL for Windows window.\n&quot;</span>);</div>
 <div class="line"><a id="l10449" name="l10449"></a><span class="lineno">10449</span>        <span class="keywordflow">return</span> NULL;</div>
 <div class="line"><a id="l10450" name="l10450"></a><span class="lineno">10450</span>    }</div>
-<div class="line"><a id="l10451" name="l10451"></a><span class="lineno">10451</span>    fromHwnd.hinstance = GetModuleHandle(NULL); <span class="comment">// Get current process HINSTANCE</span></div>
+<div class="line"><a id="l10451" name="l10451"></a><span class="lineno">10451</span>    fromHwnd.hinstance = GetModuleHandle(NULL); <span class="comment">/* Get current process HINSTANCE */</span></div>
 <div class="line"><a id="l10452" name="l10452"></a><span class="lineno">10452</span> </div>
 <div class="line"><a id="l10453" name="l10453"></a><span class="lineno">10453</span>    surfaceDesc.nextInChain = (WGPUChainedStruct*)&amp;fromHwnd.chain;</div>
 <div class="line"><a id="l10454" name="l10454"></a><span class="lineno">10454</span>    <span class="keywordflow">return</span> wgpuInstanceCreateSurface(instance, &amp;surfaceDesc);</div>
