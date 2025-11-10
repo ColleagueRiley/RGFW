@@ -2698,6 +2698,14 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 
 #elif defined(RGFW_MACOS)
 
+	#include <CoreGraphics/CGDirectDisplay.h>
+	#include <objc/objc.h>
+	u32 RGFW_osx_getFallbackRefreshRate(CGDirectDisplayID displayID);
+	id NSCursor_arrowStr(const char* str);
+	id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display);
+	u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode);
+	RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen);
+	
 	struct RGFW_nativeImage {
 		RGFW_format format;
 	};
@@ -12107,8 +12115,6 @@ id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
 
 	return NULL;
 }
-
-u32 RGFW_osx_getFallbackRefreshRate(CGDirectDisplayID displayID);
 
 u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) {
 	if (mode) {
