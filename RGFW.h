@@ -4730,7 +4730,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 		}
 	}
 
-	struct pollfd fds[2] = {{0, 0, 0}, {0, 0, 0}};
+	struct pollfd fds[2];
     fds[0].fd = 0;
     fds[0].events = POLLIN;
     fds[0].revents = 0;
