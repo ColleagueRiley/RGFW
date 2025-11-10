@@ -12363,6 +12363,7 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	win->src.view = (id) ((id(*)(id, SEL, NSRect, u32*))objc_msgSend) (NSAlloc(_RGFW->customViewClasses[1]),
 							sel_registerName("initWithFrame:pixelFormat:"), (NSRect){{0, 0}, {(double)win->w, (double)win->h}}, (u32*)format);
 
+	objc_msgSend_void_bool(win->src.view, sel_registerName("setWantsBestResolutionOpenGLSurface:"), false);
 	id share = NULL;
 	if (hints->share) {
 		share = (id)hints->share->ctx;
