@@ -8235,7 +8235,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 
         /* no xdg_decoration support */
 	} else if (!(flags & RGFW_windowNoBorder)) {
-		/* TODO, some fallback */n
+		/* TODO, some fallback */
 		#ifdef RGFW_LIBDECOR
 			static struct libdecor_interface interface = {
 				.error = NULL,
