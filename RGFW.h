@@ -222,10 +222,35 @@ int main() {
 	#define RGFW_MACOS
 #endif
 
+#ifndef RGFW_ASSERT
+	#include <assert.h>
+	#define RGFW_ASSERT assert
+#endif
+
+#if !defined(__STDC_VERSION__)
+    #define RGFW_C89
+#endif
+
 #if !defined(RGFW_SNPRINTF) && (defined(RGFW_X11) || defined(RGFW_WAYLAND))
+    
 	/* required for X11 errors */
 	#include <stdio.h>
-	#define RGFW_SNPRINTF snprintf
+
+    #ifdef RGFW_C89
+        #include <stdarg.h>
+        static int RGFW_c89_snprintf(char *dst, size_t size, const char *format, ...) {
+            va_list args;
+            unsigned long count = 0;
+            va_start(args, format);
+            count = vsprintf(dst, format, args);
+            RGFW_ASSERT(count + 1 < size && "Buffer overflow");
+            va_end(args);
+            return count;
+        }
+     	#define RGFW_SNPRINTF RGFW_c89_snprintf
+    #else
+     	#define RGFW_SNPRINTF snprintf
+    #endif /*RGFW_C89*/
 #endif
 
 #ifndef RGFW_USERPTR
@@ -248,11 +273,6 @@ int main() {
 	#include <stdlib.h>
 	#define RGFW_ALLOC malloc
 	#define RGFW_FREE free
-#endif
-
-#ifndef RGFW_ASSERT
-	#include <assert.h>
-	#define RGFW_ASSERT assert
 #endif
 
 #if !defined(RGFW_MEMCPY) || !defined(RGFW_STRNCMP) || !defined(RGFW_STRNCPY) || !defined(RGFW_MEMSET)
@@ -3729,7 +3749,11 @@ void RGFW_copyImageData64(u8* dest_data, i32 dest_w, i32 dest_h, RGFW_format des
 	for (i = 0; i < pixel_count; i++) {
 		const u8* src_px = &src_data[i * src_channels];
 		u8* dst_px = &dest_data[i2 * dest_channels];
-		u8 rgba[4] = { src_px[src_layout->r], src_px[src_layout->g], src_px[src_layout->b], 255 };
+		u8 rgba[4] = {0};
+        rgba[0] = src_px[src_layout->r];
+        rgba[1] = src_px[src_layout->g];
+        rgba[2] = src_px[src_layout->b];
+        rgba[3] = 255;
 		if (src_channels == 4)
 			rgba[3] = src_px[src_layout->a];
 
@@ -4689,8 +4713,9 @@ void RGFW_stopCheckEvents(void) {
 RGFWDEF u64 RGFW_linux_getTimeNS(i32 clock);
 u64 RGFW_linux_getTimeNS(i32 clock) {
     struct timespec ts;
+    const u64 scale_factor = 1000000000;
     clock_gettime(clock, &ts);
-    return (u64)ts.tv_sec * 1000000000ull + (u64)ts.tv_nsec;
+    return (u64)ts.tv_sec * scale_factor + (u64)ts.tv_nsec;
 }
 
 void RGFW_waitForEvent(i32 waitMS) {
@@ -4705,10 +4730,13 @@ void RGFW_waitForEvent(i32 waitMS) {
 		}
 	}
 
-	struct pollfd fds[] = {
-		{ 0, POLLIN, 0 },
-        { _RGFW->eventWait_forceStop[0], POLLIN, 0 },
-	};
+	struct pollfd fds[2] = {0};
+    fds[0].fd = 0;
+    fds[0].events = POLLIN;
+    fds[0].revents = 0;
+    fds[1].fd = _RGFW->eventWait_forceStop[0];
+    fds[1].events = POLLIN;
+    fds[1].revents = 0;
 
 
 	if (RGFW_usingWayland()) {
@@ -5444,11 +5472,17 @@ void RGFW_XHandleClipboardSelection(XEvent* event) { RGFW_UNUSED(event);
 	RGFW_LOAD_ATOM(UTF8_STRING);
 
     const XSelectionRequestEvent* request = &event->xselectionrequest;
-    const Atom formats[] = { UTF8_STRING, XA_STRING };
+    Atom formats[2] = {0};
+    formats[0] = UTF8_STRING;
+    formats[1] = XA_STRING;
     const int formatCount = sizeof(formats) / sizeof(formats[0]);
 
     if (request->target == TARGETS) {
-        const Atom targets[] = { TARGETS, MULTIPLE, UTF8_STRING, XA_STRING };
+        Atom targets[4] = {0};
+        targets[0] = TARGETS;
+        targets[1] = MULTIPLE;
+        targets[2] = UTF8_STRING;
+        targets[3] = XA_STRING;
 
         XChangeProperty(_RGFW->display, request->requestor, request->property,
                         XA_ATOM, 32, PropModeReplace, (u8*) targets, sizeof(targets) / sizeof(Atom));
@@ -5957,7 +5991,10 @@ void RGFW_XHandleEvent(void) {
 				size_t index = 0;
 				while (*line) {
 					if (line[0] == '%' && line[1] && line[2]) {
-						const char digits[3] = { line[1], line[2], '\0' };
+						char digits[3] = {0};
+                        digits[0] = line[1];
+                        digits[1] = line[2];
+                        digits[2] = '\0';
 						path[index] = (char) RGFW_STRTOL(digits, NULL, 16);
 						line += 2;
 					} else

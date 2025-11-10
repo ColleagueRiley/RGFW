@@ -14,6 +14,10 @@ CUSTOM_CFLAGS =
 CFLAGS =
 CFLAGS += -g3
 
+ifdef RGFW_C89
+	CUSTOM_CFLAGS += -std=c89 -Wno-declaration-after-statement -Wall -Wextra -Wpedantic
+endif
+
 DX11_LIBS = -static -lgdi32 -ldxgi -ld3d11 -luuid -ld3dcompiler
 VULKAN_LIBS = -lgdi32 -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
 LIBS := -static -lgdi32
@@ -133,7 +137,7 @@ else ifneq (,$(filter $(CC),emcc em++))
 	detected_OS = web
 	DX11_LIBS =
 else ifeq (,$(filter $(CC),g++ clang++ em++))
-	LIBS += -std=c99
+	CFLAGS += -std=c99
 	WARNINGS = -Wall -Werror -Wdouble-promotion -Wmissing-prototypes -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
 else
 	WARNINGS = -Wall -Werror -Wdouble-promotion -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
