@@ -55,18 +55,26 @@ size_t stringCompare(char* s1, char* s2, size_t size) {
 #define RGFW_STRTOL(str, endptr, base) 0
 
 #include "RGFW.h"
+
+static void RGFW_window_swapBuffers(RGFW_window* win) {
+}
+
 int main(void) {
     /* to avoid allocating a window*/
     RGFW_window winStack;
     RGFW_window* win = &winStack;
-    RGFW_createWindowPtr("no standard library", RGFW_RECT(0, 0, 200, 100),
+    RGFW_createWindowPtr("no standard library", 0, 0, 200, 100,
                                 (u16)(RGFW_windowCenter | RGFW_windowAllowDND), win);
     RGFW_window_setExitKey(win, RGFW_escape);
 
     size_t winLen = myLen;
 
-    while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
-        while (RGFW_window_checkEvent(win) && win->event.type != RGFW_quit);
+    RGFW_event event;
+    while (RGFW_window_shouldClose(win) == 0) {
+        while (RGFW_window_checkEvent(win, &event)) {
+            if (event.type == RGFW_quit)
+                break;
+        }
         RGFW_window_swapBuffers(win);
         myLen = winLen; // free memory of the frame
     }

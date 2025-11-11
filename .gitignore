@@ -1,0 +1,5 @@
+bin
+build
+*.dSYM
+bin-int
+.DS_Store
