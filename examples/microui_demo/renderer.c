@@ -161,7 +161,12 @@ int r_get_text_height(void) {
 
 void r_set_clip_rect(mu_Rect rect) {
   flush();
-  glScissor(rect.x, height - (rect.y + rect.h), rect.w, rect.h);
+  /* Scale clip rect by pixel ratio for HiDPI framebuffers */
+  GLsizei sx = (GLsizei)((float)rect.x * pixelRatio);
+  GLsizei sy = (GLsizei)((float)(height - (rect.y + rect.h)) * pixelRatio);
+  GLsizei sw = (GLsizei)((float)rect.w * pixelRatio);
+  GLsizei sh = (GLsizei)((float)rect.h * pixelRatio);
+  glScissor(sx, sy, sw, sh);
 }
 
 
