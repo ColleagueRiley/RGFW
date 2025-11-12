@@ -2697,14 +2697,6 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 	};
 
 #elif defined(RGFW_MACOS)
-
-	#include <CoreGraphics/CGDirectDisplay.h>
-	#include <objc/objc.h>
-	u32 RGFW_osx_getFallbackRefreshRate(CGDirectDisplayID displayID);
-	id NSCursor_arrowStr(const char* str);
-	id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display);
-	u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode);
-	RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen);
 	
 	struct RGFW_nativeImage {
 		RGFW_format format;
@@ -10935,6 +10927,7 @@ static bool RGFW__osxPerformDragOperation(id self, SEL sel, id sender) {
 #ifndef RGFW_NO_IOKIT
 #include <IOKit/IOKitLib.h>
 
+u32 RGFW_osx_getFallbackRefreshRate(CGDirectDisplayID displayID);
 u32 RGFW_osx_getFallbackRefreshRate(CGDirectDisplayID displayID) {
     u32 refreshRate = 0;
     io_iterator_t it;
@@ -11974,6 +11967,7 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_f
 	return RGFW_TRUE;
 }
 
+id NSCursor_arrowStr(const char* str);
 id NSCursor_arrowStr(const char* str) {
 	void* nclass = objc_getClass("NSCursor");
 	SEL func = sel_registerName(str);
@@ -12095,6 +12089,7 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 	return b;
 }
 
+id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display);
 id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
 	Class NSScreenClass = objc_getClass("NSScreen");
 
@@ -12116,6 +12111,7 @@ id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
 	return NULL;
 }
 
+u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode);
 u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) {
 	if (mode) {
 		u32 refreshRate = (u32)CGDisplayModeGetRefreshRate(mode);
@@ -12131,6 +12127,7 @@ u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) {
     return 60;
 }
 
+RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen);
 RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 	RGFW_monitor monitor;
 
