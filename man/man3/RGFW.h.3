@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Tue Nov 11 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Wed Nov 12 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -6,9 +6,9 @@ RGFW.h
 .SH SYNOPSIS
 .br
 .PP
-\fC#include <stdlib\&.h>\fP
-.br
 \fC#include <assert\&.h>\fP
+.br
+\fC#include <stdlib\&.h>\fP
 .br
 \fC#include <string\&.h>\fP
 .br
@@ -69,6 +69,12 @@ RGFW.h
 
 .in +1c
 .ti -1c
+.RI "#define \fBRGFW_ASSERT\fP   assert"
+.br
+.ti -1c
+.RI "#define \fBRGFW_C89\fP"
+.br
+.ti -1c
 .RI "#define \fBRGFW_USERPTR\fP   NULL"
 .br
 .ti -1c
@@ -85,9 +91,6 @@ RGFW.h
 .br
 .ti -1c
 .RI "#define \fBRGFW_FREE\fP   free"
-.br
-.ti -1c
-.RI "#define \fBRGFW_ASSERT\fP   assert"
 .br
 .ti -1c
 .RI "#define \fBRGFW_MEMSET\fP(ptr,  value,  num)   memset(ptr, value, num)"
@@ -126,7 +129,7 @@ RGFW.h
 .RI "#define \fBRGFW_COCOA_FRAME_NAME\fP   NULL"
 .br
 .ti -1c
-.RI "#define \fBRGFWDEF\fP   inline"
+.RI "#define \fBRGFWDEF\fP   __inline"
 .br
 .ti -1c
 .RI "#define \fBRGFW_HEADER\fP"
@@ -1058,6 +1061,8 @@ RGFW.h
 
 .SS "#define RGFW_BOOL_DEFINED"
 
+.SS "#define RGFW_C89"
+
 .SS "#define RGFW_COCOA_FRAME_NAME   NULL"
 
 .SS "#define RGFW_ENUM(type, name)   type name; enum"
@@ -1100,7 +1105,7 @@ RGFW.h
 
 .SS "#define RGFW_USERPTR   NULL"
 
-.SS "#define RGFWDEF   inline"
+.SS "#define RGFWDEF   __inline"
 
 .SH "Typedef Documentation"
 .PP 

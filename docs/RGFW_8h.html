@@ -79,8 +79,8 @@ $(function() {
   <div class="headertitle"><div class="title">RGFW.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;stdlib.h&gt;</code><br />
-<code>#include &lt;assert.h&gt;</code><br />
+<div class="textblock"><code>#include &lt;assert.h&gt;</code><br />
+<code>#include &lt;stdlib.h&gt;</code><br />
 <code>#include &lt;string.h&gt;</code><br />
 <code>#include &lt;stddef.h&gt;</code><br />
 <code>#include &lt;stdint.h&gt;</code><br />
@@ -125,6 +125,10 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
+<tr class="memitem:abaefc14a066ffd85ac8db9426f890665"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#abaefc14a066ffd85ac8db9426f890665">RGFW_ASSERT</a>&#160;&#160;&#160;assert</td></tr>
+<tr class="separator:abaefc14a066ffd85ac8db9426f890665"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2decf3c977508eea8d869ea6d621950"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#ac2decf3c977508eea8d869ea6d621950">RGFW_C89</a></td></tr>
+<tr class="separator:ac2decf3c977508eea8d869ea6d621950"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad8f1fa862ab1c9cc61db226b7fce5693"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#ad8f1fa862ab1c9cc61db226b7fce5693">RGFW_USERPTR</a>&#160;&#160;&#160;NULL</td></tr>
 <tr class="separator:ad8f1fa862ab1c9cc61db226b7fce5693"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aac2c5e611731b038c9377999b4b2af64"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(x)&#160;&#160;&#160;(void)(x)</td></tr>
@@ -137,8 +141,6 @@ Macros</h2></td></tr>
 <tr class="separator:a64f14d44f6a4bd65025e4886dc8f3fbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2ac54dc00132bf4c6f760463ab5148dd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a2ac54dc00132bf4c6f760463ab5148dd">RGFW_FREE</a>&#160;&#160;&#160;free</td></tr>
 <tr class="separator:a2ac54dc00132bf4c6f760463ab5148dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abaefc14a066ffd85ac8db9426f890665"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#abaefc14a066ffd85ac8db9426f890665">RGFW_ASSERT</a>&#160;&#160;&#160;assert</td></tr>
-<tr class="separator:abaefc14a066ffd85ac8db9426f890665"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a50fa56c626929529f3b0711caecce288"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a50fa56c626929529f3b0711caecce288">RGFW_MEMSET</a>(ptr,  value,  num)&#160;&#160;&#160;memset(ptr, value, num)</td></tr>
 <tr class="separator:a50fa56c626929529f3b0711caecce288"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aef87ec6dcdfa590cf3ccc9a7a2dd25eb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#aef87ec6dcdfa590cf3ccc9a7a2dd25eb">RGFW_MEMCPY</a>(dist,  src,  len)&#160;&#160;&#160;memcpy(dist, src, len)</td></tr>
@@ -163,7 +165,7 @@ Macros</h2></td></tr>
 <tr class="separator:af3d151fddc5615b7e7e795ef2ede6595"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5d0fadc4d22bb957b79db48ffabf09e9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a5d0fadc4d22bb957b79db48ffabf09e9">RGFW_COCOA_FRAME_NAME</a>&#160;&#160;&#160;NULL</td></tr>
 <tr class="separator:a5d0fadc4d22bb957b79db48ffabf09e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abd148a2771096e4a671e32f51be8f69f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a>&#160;&#160;&#160;inline</td></tr>
+<tr class="memitem:abd148a2771096e4a671e32f51be8f69f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a>&#160;&#160;&#160;__inline</td></tr>
 <tr class="separator:abd148a2771096e4a671e32f51be8f69f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae8ceb9b5ca0a3bd4c747d97a803ab7cc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#ae8ceb9b5ca0a3bd4c747d97a803ab7cc">RGFW_HEADER</a></td></tr>
 <tr class="separator:ae8ceb9b5ca0a3bd4c747d97a803ab7cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -940,6 +942,20 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="ac2decf3c977508eea8d869ea6d621950" name="ac2decf3c977508eea8d869ea6d621950"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac2decf3c977508eea8d869ea6d621950">&#9670;&#160;</a></span>RGFW_C89</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define RGFW_C89</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a5d0fadc4d22bb957b79db48ffabf09e9" name="a5d0fadc4d22bb957b79db48ffabf09e9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5d0fadc4d22bb957b79db48ffabf09e9">&#9670;&#160;</a></span>RGFW_COCOA_FRAME_NAME</h2>
 
@@ -1391,7 +1407,7 @@ Functions</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define RGFWDEF&#160;&#160;&#160;inline</td>
+          <td class="memname">#define RGFWDEF&#160;&#160;&#160;__inline</td>
         </tr>
       </table>
 </div><div class="memdoc">
