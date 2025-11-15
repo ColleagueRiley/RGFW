@@ -248,6 +248,12 @@ static int text_height(mu_Font font) {
 	return r_get_text_height();
 }
 
+static void update_viewport(int width, int height) {
+  GLsizei vw = (GLsizei)((float)width * pixelRatio);
+  GLsizei vh = (GLsizei)((float)height * pixelRatio);
+  glViewport(0, 0, vw, vh);
+  glScissor(0, 0, vw, vh);
+}
 
 int main(int argc, char **argv) {
   RGFW_UNUSED(argc); RGFW_UNUSED(argv);
@@ -268,6 +274,7 @@ int main(int argc, char **argv) {
   ctx->text_width = text_width;
   ctx->text_height = text_height;
 
+  update_viewport(width, height);
   /* main loop */
   while (RGFW_window_shouldClose(window) == RGFW_FALSE) {
     /* handle RGFW events */
@@ -312,6 +319,7 @@ int main(int argc, char **argv) {
 		case RGFW_windowResized:
 		  width = window->w;
 		  height = window->h;
+      update_viewport(width, height);
 		  break;
 	  }
     }
