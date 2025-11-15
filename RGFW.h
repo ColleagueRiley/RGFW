@@ -6962,6 +6962,11 @@ i32 RGFW_initPlatform_Wayland(void) {
 }
 
 void RGFW_deinitPlatform_Wayland(void) {
+	if (_RGFW->clipboard) {
+		RGFW_FREE(_RGFW->clipboard);
+		_RGFW->clipboard = NULL;
+	}
+	
     if (_RGFW->wl_pointer) {
 		wl_pointer_destroy(_RGFW->wl_pointer);
 	}
@@ -12710,3 +12715,4 @@ void RGFW_load_Wayland(void) {
 #if _MSC_VER
 	#pragma warning( pop )
 #endif
+
