@@ -5,11 +5,15 @@ workspace "RGFW"
     startproject "examples"
 
     -- cross compiling windows
-    platforms({
-        "Native",
-        "Win32",
-        "Win64"
-    })
+    if _ACTION and _ACTION:find("xcode") then
+        platforms({ "Native" })
+    else
+        platforms({
+            "Native",
+            "Win32",
+            "Win64"
+        })
+    end
     defaultplatform("Native")
 
     filter("platforms:Win32")

@@ -14,6 +14,10 @@ CUSTOM_CFLAGS =
 CFLAGS =
 CFLAGS += -g3
 
+ifdef RGFW_C89
+	CUSTOM_CFLAGS += -std=c89 -Wno-declaration-after-statement -Wall -Wextra -Wpedantic
+endif
+
 DX11_LIBS = -static -lgdi32 -ldxgi -ld3d11 -luuid -ld3dcompiler
 VULKAN_LIBS = -lgdi32 -I $(VULKAN_SDK)\Include -L $(VULKAN_SDK)\Lib -lvulkan-1
 LIBS := -static -lgdi32
@@ -27,6 +31,7 @@ endif
 
 OS_DIR = \\
 
+NO_OSMESA = 1
 NO_GLES = 1
 NO_EGL = 1
 detected_OS = windows
@@ -54,7 +59,6 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		LIB_EXT = .dylib
 		OS_DIR = /
 		NO_VULKAN ?= 1
-		NO_OSMESA ?= 1
 	endif
 	ifeq ($(detected_OS),Linux)
 		DX11_LIBS =
@@ -72,20 +76,18 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		OS_DIR = /
 		NO_GLES = 0
 		NO_EGL = 0
-		NO_OSMESA ?= 0
 	endif
 	ifeq ($(detected_OS),NetBSD)
 		DX11_LIBS =
 		LINK_GL1 = -lGL
 		CUSTOM_CFLAGS += -I/usr/pkg/include -I/usr/X11R7/include -Wl,-R/usr/pkg/lib -Wl,-R/usr/X11R7/lib -L/usr/pkg/lib -L/usr/X11R7/lib
-    	LIBS := $(CUSTOM_CFLAGS) -lXrandr -lX11 -lpthread
+		LIBS := $(CUSTOM_CFLAGS) -lXrandr -lX11 -lpthread
 		VULKAN_LIBS = -lX11 -lXrandr -lpthread
 		EXT =
 		LIB_EXT = .so
 		OS_DIR = /
 		NO_GLES = 0
 		NO_EGL = 0
-		NO_OSMESA ?= 0
 		NO_VULKAN = 1
 	endif
 
@@ -100,8 +102,7 @@ ifeq ($(WAYLAND),1)
 	NO_VULKAN = 1
 	NO_GLES = 0
 	NO_EGL = 0
-	NO_OSMESA ?= 0
-	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1.c pointer-warp-v1.c pointer-constraints-unstable-v1.c xdg-toplevel-icon-v1.c xdg-output-unstable-v1.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL
+	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1.c pointer-constraints-unstable-v1.c pointer-warp-v1.c xdg-toplevel-icon-v1.c xdg-output-unstable-v1.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL
 	LINK_GL1 = -lEGL -lGL
 
 	# LIBS += -ldecor-0
@@ -121,7 +122,6 @@ ifneq (,$(filter $(CC),cl /opt/msvc/bin/x64/cl.exe /opt/msvc/bin/x86/cl.exe))
 	DX11_LIBS =
 	VULKAN_LIBS =
 	OBJ_FILE = .obj
-	NO_OSMESA ?= 1
 else ifneq (,$(filter $(CC),emcc em++))
 	DX11_LIBS =
 	LINK_GL1 = -s LEGACY_GL_EMULATION -D LEGACY_GL_EMULATION -sGL_UNSAFE_OPTS=0
@@ -135,10 +135,9 @@ else ifneq (,$(filter $(CC),emcc em++))
 	NO_EGL = 0
 	NO_VULKAN = 1
 	detected_OS = web
-	NO_OSMESA ?= 1
 	DX11_LIBS =
 else ifeq (,$(filter $(CC),g++ clang++ em++))
-	LIBS += -std=c99
+	CFLAGS += -std=c99
 	WARNINGS = -Wall -Werror -Wdouble-promotion -Wmissing-prototypes -Wextra -Wstrict-prototypes -Wold-style-definition -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wnested-externs -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
 else
 	WARNINGS = -Wall -Werror -Wdouble-promotion -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wpointer-arith -Wvla -Wcast-align -Wstrict-overflow -Wstrict-aliasing -Wredundant-decls -Winit-self -Wmissing-noreturn
@@ -147,10 +146,6 @@ else
 	ifeq ($(detected_OS),Darwin)
 		WARNINGS += -Wno-deprecated -Wno-unknown-warning-option -Wno-pedantic
 	endif
-endif
-
-ifneq (,$(filter $(detected_OS), windows Windows_NT))
-	NO_OSMESA ?= 1
 endif
 
 ifeq ($(WAYLAND_X11), 1)
@@ -346,7 +341,7 @@ $(EXAMPLE_OUTPUTS): %: %.c RGFW.h
 debug: all
 	@for exe in $(EXAMPLE_OUTPUTS); do \
 		echo "Running $$exe..."; \
-		.$(OS_DIR)$$exe$(EXT); \
+		./$$exe$(EXT); \
 	done
 
 	./examples/gamepad/gamepad

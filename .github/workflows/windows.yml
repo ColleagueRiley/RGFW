@@ -52,9 +52,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@master
-    
-    - uses: actions/checkout@v3
-
     - name: Setup Release Version
       run: |
         echo "RELEASE_NAME=RGFW-${{ github.event.release.tag_name }}_win${{ matrix.bits }}_${{ matrix.compiler }}" >> $GITHUB_ENV
@@ -62,7 +59,7 @@ jobs:
       if: github.event_name == 'release' && github.event.action == 'published'
 
     - name: Setup Environment
-      run: | 
+      run: |
         dir
         mkdir build
         cd build
@@ -104,7 +101,7 @@ jobs:
       run: |
         windres.exe --version
         make CC=cl
-        rm -f RGFW.o 
+        rm -f RGFW.o
         make libRGFW.a CC=cl
         make libRGFW.dll CC=cl
         copy /Y .\libRGFW.dll .\build\${{ env.RELEASE_NAME }}\lib
@@ -112,13 +109,13 @@ jobs:
       if: |
         matrix.compiler == 'msvc16' &&
         matrix.bits == 64
-      
+
     - name: Build Library (MinGW-w64 64bit)
       run: |
         ${{ matrix.ARCH }}-w64-mingw32-gcc.exe --version
         windres.exe --version
         dir C:\msys64\mingw64\bin
-        rm -f RGFW.o 
+        rm -f RGFW.o
         make libRGFW.a
         make libRGFW.dll
         copy /Y .\libRGFW.dll .\build\${{ env.RELEASE_NAME }}\lib
@@ -126,7 +123,7 @@ jobs:
       if: |
         matrix.compiler == 'mingw-w64' &&
         matrix.bits == 64
-        
+
     - name: Generate Artifacts
       run: |
         copy /Y .\RGFW.h .\build\${{ env.RELEASE_NAME }}\include
@@ -144,7 +141,7 @@ jobs:
       with:
         name: ${{ env.RELEASE_NAME }}.zip
         path: ./build/${{ env.RELEASE_NAME }}.zip
-        
+
     - name: Upload Artifact to Release
       uses: softprops/action-gh-release@v1
       with:
