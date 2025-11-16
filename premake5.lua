@@ -72,16 +72,18 @@ local use_wayland = _OPTIONS["wayland"]
 
 -- List of special examples (conditionally compiled)
 local exampleRules = {
-    ["first-person-camera"]    = { projectname = "camera" },
-    ["portableGL"]         = { condition = not (os.target() == "emscripten") },
-    ["gles2"]            = { condition = not no_gles },
-    ["egl"]            = { condition = not no_gles },
-    ["dx11"]              = { condition = isWindows },
-    ["metal"]            = { condition = isMac },
-    ["webgpu"]          = { condition = (os.target() == "emscripten") },
+    ["first-person-camera"] = { projectname = "camera" },
+    ["portableGL"] = { condition = not (os.target() == "emscripten") },
+    ["gles2"] = { condition = not no_gles },
+    ["egl"] = { condition = not no_gles },
+    ["dx11"] = { condition = isWindows },
+    ["metal"] = { condition = isMac },
+    ["webgpu"]  = { condition = (os.target() == "emscripten") },
     ["minimal_links"] = { condition = true },
-    ["osmesa_demo"]= { condition = not no_osmesa },
-    ["vk10"]              = { condition = not no_vulkan },
+    ["osmesa_demo"] = { condition = not no_osmesa },
+    ["vk10"] = { condition = not no_vulkan },
+    ["nostl"] = { condition = false },
+    ["custom-backend"] = { condition = false  },
 }
 
 local dirs = os.matchdirs("examples/*")
@@ -128,7 +130,7 @@ for _, example in ipairs(dirs) do
                 if use_wayland then
                     links { "EGL", "GL" }
                 else
-                    links { "GL", "X11", "Xrandr", "dl", "pthread" }
+                    links { "GL", "X11", "Xrandr", "dl", "pthread", "m" }
                 end
 
             filter "system:macosx"
