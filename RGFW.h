@@ -232,7 +232,7 @@ int main() {
 #endif
 
 #if !defined(RGFW_SNPRINTF) && (defined(RGFW_X11) || defined(RGFW_WAYLAND))
-    
+
 	/* required for X11 errors */
 	#include <stdio.h>
 
@@ -2682,6 +2682,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 	#endif
 #ifdef RGFW_X11
 		Window window; /*!< source window */
+		Window parent; /*!< parent window */
 		GC gc;
 		#ifdef RGFW_ADVANCED_SMOOTH_RESIZE
 			i64 counter_value;
@@ -5360,15 +5361,17 @@ void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags 
 	XSetWindowAttributes swa;
     RGFW_MEMSET(&swa, 0, sizeof(swa));
 
+	win->src.parent = DefaultRootWindow(_RGFW->display);
+
 	Colormap cmap;
 	swa.colormap = cmap = XCreateColormap(_RGFW->display,
-		DefaultRootWindow(_RGFW->display),
+		win->src.parent,
 		visual.visual, AllocNone);
 	swa.event_mask = event_mask;
     swa.background_pixmap = None;
 
 	/* create the window */
-    win->src.window = XCreateWindow(_RGFW->display, DefaultRootWindow(_RGFW->display), win->x, win->y, (u32)win->w, (u32)win->h,
+    win->src.window = XCreateWindow(_RGFW->display, win->src.parent, win->x, win->y, (u32)win->w, (u32)win->h,
 		0, visual.depth, InputOutput, visual.visual,
 		CWBorderPixel | CWColormap | CWEventMask, &swa);
 
@@ -6066,7 +6069,9 @@ void RGFW_XHandleEvent(void) {
 			RGFW_mouseNotifyCallback(win, event.mouse.x, event.mouse.y, 0);
 			break;
 		}
-
+        case ReparentNotify:
+            window->src.parent = event->xreparent.parent;
+			break;
 		case ConfigureNotify: {
 			/* detect resize */
 			RGFW_window_checkMode(win);
@@ -6078,6 +6083,19 @@ void RGFW_XHandleEvent(void) {
 				event.type = RGFW_windowResized;
 				RGFW_windowResizedCallback(win, win->w, win->h);
 				RGFW_eventQueuePush(&event);
+			}
+
+			i32 x = E.xconfigure.x;
+			i32 y = E.xconfigure.y;
+
+			/* 
+			 if the event came from the server and we're not a direct child of the root window then 
+			 we're using local coords which need to be translated into screen coords
+			*/
+			Window root = DefaultRootWindow(_RGFW->display);
+			if (E.xany.send_event == 0 && window->src.parent != root) {
+				Window dummy = 0;
+                XTranslateCoordinates(_RGFW->display, win->src.parent, root, x, y, &x, &y, &dummy);
 			}
 
 			/* detect move */
