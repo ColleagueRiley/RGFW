@@ -6098,7 +6098,7 @@ void RGFW_XHandleEvent(void) {
 			 we're using local coords which need to be translated into screen coords
 			*/
 			Window root = DefaultRootWindow(_RGFW->display);
-			if (E.xany.send_event == 0 && window->src.parent != root) {
+			if (E.xany.send_event == 0 && win->src.parent != root) {
 				Window dummy = 0;
                 XTranslateCoordinates(_RGFW->display, win->src.parent, root, x, y, &x, &y, &dummy);
 			}
