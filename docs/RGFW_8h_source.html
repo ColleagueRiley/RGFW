@@ -5874,7 +5874,7 @@ $(function() {
 <div class="line"><a id="l07045" name="l07045"></a><span class="lineno"> 7045</span>    }</div>
 <div class="line"><a id="l07046" name="l07046"></a><span class="lineno"> 7046</span> </div>
 <div class="line"><a id="l07047" name="l07047"></a><span class="lineno"> 7047</span>    <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> flags = 0;</div>
-<div class="line"><a id="l07048" name="l07048"></a><span class="lineno"> 7048</span>    <span class="keywordflow">if</span> (hints-&gt;debug) flags |= GLX_CONTEXT_FLAGS_ARB;</div>
+<div class="line"><a id="l07048" name="l07048"></a><span class="lineno"> 7048</span>    <span class="keywordflow">if</span> (hints-&gt;debug) flags |= GLX_CONTEXT_DEBUG_BIT_ARB;</div>
 <div class="line"><a id="l07049" name="l07049"></a><span class="lineno"> 7049</span>    <span class="keywordflow">if</span> (hints-&gt;robustness &amp;&amp; RGFW_extensionSupportedPlatform_OpenGL(robustStr, <span class="keyword">sizeof</span>(robustStr))) flags |= GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB;</div>
 <div class="line"><a id="l07050" name="l07050"></a><span class="lineno"> 7050</span>    <span class="keywordflow">if</span> (flags) {</div>
 <div class="line"><a id="l07051" name="l07051"></a><span class="lineno"> 7051</span>        RGFW_attribStack_pushAttribs(&amp;stack, GLX_CONTEXT_FLAGS_ARB, flags);</div>
