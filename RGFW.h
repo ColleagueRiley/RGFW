@@ -5241,7 +5241,7 @@ RGFW_bool RGFW_window_createSurfacePtr(RGFW_window* win, u8* data, i32 w, i32 h,
 	surface->native.bitmap = XCreateImage(_RGFW->display,  attrs.visual,  (u32)attrs.depth,
 										ZPixmap, 0, NULL, (u32)surface->w, (u32)surface->h, 32, 0);
 
-	surface->native.buffer = (u8*)RGFW_ALLOC(w * h * 4);
+	surface->native.buffer = (u8*)RGFW_ALLOC((size_t)(w * h * 4));
 	surface->native.format = RGFW_XImage_getFormat(surface->native.bitmap);
 
 	if (surface->native.bitmap == NULL) {
