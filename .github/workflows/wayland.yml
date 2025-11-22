@@ -57,7 +57,7 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install gcc-multilib
-        sudo apt-get install -y --no-install-recommends libx11-dev mesa-common-dev libglx-dev libxcursor-dev mesa-vulkan-drivers libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libxkbcommon-dev libgles2-mesa-dev libosmesa6-dev
+        sudo apt-get install -y --no-install-recommends libx11-dev mesa-common-dev libglx-dev libxcursor-dev mesa-vulkan-drivers libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev wayland-scanner libxkbcommon-dev libgles2-mesa-dev libosmesa6-dev
         sudo apt install meson ninja-build pkg-config
         mkdir build
         cd build
@@ -66,14 +66,6 @@ jobs:
         mkdir include
         mkdir lib
         cd ../../../RGFW
-      
-    - name: install latest wayland-protocols
-      run: |
-        git clone https://gitlab.freedesktop.org/wayland/wayland-protocols.git
-        cd wayland-protocols
-        meson setup build
-        ninja -C build
-        sudo ninja -C build install
 
     - name: test wayland
       run: |
