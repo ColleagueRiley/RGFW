@@ -2911,7 +2911,7 @@ struct RGFW_info {
 
     RGFW_monitors monitors;
 
-    #ifdef __linux__
+    #ifdef RGFW_UNIX
 	    int eventWait_forceStop[3];
     #endif
 
@@ -5049,12 +5049,10 @@ i32 RGFW_initPlatform(void) {
 
 
 void RGFW_deinitPlatform(void) {
-#ifndef RGFW_NO_LINUX
     if (_RGFW->eventWait_forceStop[0] || _RGFW->eventWait_forceStop[1]){
         close(_RGFW->eventWait_forceStop[0]);
         close(_RGFW->eventWait_forceStop[1]);
     }
-#endif
 #ifdef RGFW_WAYLAND
 	if (_RGFW->useWaylandBool) {
 		RGFW_deinitPlatform_Wayland();
