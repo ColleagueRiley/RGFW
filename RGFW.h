@@ -7992,14 +7992,6 @@ static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *regi
     static struct wl_seat_listener seat_listener = {&RGFW_wl_seat_capabilities, (void (*)(void *, struct wl_seat *, const char *))&RGFW_doNothing};
     static const struct wl_shm_listener shm_listener = { .format = RGFW_wl_shm_format_handler };
 
-	static const struct wl_data_device_listener wl_data_device_listener = {
-		.data_offer = RGFW_wl_data_device_data_offer,
-		.enter = (void (*)(void *, struct wl_data_device *, u32, struct wl_surface*, wl_fixed_t, wl_fixed_t, struct wl_data_offer *))&RGFW_doNothing,
-		.leave = (void (*)(void *, struct wl_data_device *))&RGFW_doNothing,
-		.motion = (void (*)(void *, struct wl_data_device *, u32, wl_fixed_t, wl_fixed_t))&RGFW_doNothing,
-		.drop = (void (*)(void *, struct wl_data_device *))&RGFW_doNothing,
-		.selection = RGFW_wl_data_device_selection
-	};
     RGFW_info* RGFW = (RGFW_info*)data;
     RGFW_UNUSED(version);
 
@@ -8149,6 +8141,15 @@ i32 RGFW_initPlatform_Wayland(void) {
 	xdg_wm_base_add_listener(_RGFW->xdg_wm_base, &xdg_wm_base_listener, NULL);
 
 	_RGFW->xkb_context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+
+	static const struct wl_data_device_listener wl_data_device_listener = {
+		.data_offer = RGFW_wl_data_device_data_offer,
+		.enter = (void (*)(void *, struct wl_data_device *, u32, struct wl_surface*, wl_fixed_t, wl_fixed_t, struct wl_data_offer *))&RGFW_doNothing,
+		.leave = (void (*)(void *, struct wl_data_device *))&RGFW_doNothing,
+		.motion = (void (*)(void *, struct wl_data_device *, u32, wl_fixed_t, wl_fixed_t))&RGFW_doNothing,
+		.drop = (void (*)(void *, struct wl_data_device *))&RGFW_doNothing,
+		.selection = RGFW_wl_data_device_selection
+	};
 
 	if (_RGFW->seat && _RGFW->data_device_manager) {
 		_RGFW->data_device = wl_data_device_manager_get_data_device(_RGFW->data_device_manager, _RGFW->seat);
