@@ -8025,8 +8025,6 @@ static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *regi
 		RGFW_wl_create_outputs(registry, id);
 	} else if (RGFW_STRNCMP(interface,"wl_data_device_manager", 23) == 0) {
 		RGFW->data_device_manager = wl_registry_bind(registry, id, &wl_data_device_manager_interface, 1);
-		RGFW->data_device = wl_data_device_manager_get_data_device(RGFW->data_device_manager, RGFW->seat);
-		wl_data_device_add_listener(RGFW->data_device, &wl_data_device_listener, NULL);
 	}
 }
 
@@ -8149,6 +8147,11 @@ i32 RGFW_initPlatform_Wayland(void) {
 	xdg_wm_base_add_listener(_RGFW->xdg_wm_base, &xdg_wm_base_listener, NULL);
 
 	_RGFW->xkb_context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+
+	if (_RGFW->seat && _RGFW->data_device_manager) {
+		_RGFW->data_device = wl_data_device_manager_get_data_device(_RGFW->data_device_manager, _RGFW->seat);
+		wl_data_device_add_listener(_RGFW->data_device, &wl_data_device_listener, NULL);
+	}
 
 	return 0;
 }
