@@ -1,6 +1,6 @@
 /*
 *
-*	RGFW 1.8.0 pre-release
+*	RGFW 1.8.1
 
 * Copyright (C) 2022-25 Riley Mabb (@ColleagueRiley)
 *
