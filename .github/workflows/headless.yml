@@ -31,6 +31,7 @@ jobs:
     - name: Generate Artifacts
       run: |
           echo starting
+          cp RGFW.h RGFW-${{ github.event.release.tag_name }}.h
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
@@ -41,7 +42,7 @@ jobs:
     - name: Upload Artifact to Release
       uses: softprops/action-gh-release@v1
       with:
-        files: RGFW${{ github.event.release.tag_name }}.h
+        files: RGFW$-{{ github.event.release.tag_name }}.h
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       if: github.event_name == 'release' && github.event.action == 'published'

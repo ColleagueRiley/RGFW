@@ -34,7 +34,7 @@ jobs:
 
     - name: Setup Release Version
       run: |
-        echo "RELEASE_NAME=RGFW-${{ github.event.release.tag_name }}__${{ matrix.ARCH_NAME }}" >> $GITHUB_ENV
+        echo "RELEASE_NAME=RGFW-web-${{ github.event.release.tag_name }}__${{ matrix.ARCH_NAME }}" >> $GITHUB_ENV
       shell: bash
       if: github.event_name == 'release' && github.event.action == 'published'
 
