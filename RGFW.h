@@ -7028,8 +7028,6 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 	XFree(vi);
 
 	/* use the visual to create a new window */
-	Window oldWindow = win->src.window;
-
 	RGFW_XCreateWindow(visual, "", win->internal.flags, win);
 
 	if (showWindow) {
