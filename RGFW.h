@@ -4413,8 +4413,17 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 			}
 			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errEGLContext,  "Failed to find a valid visual for the EGL config");
 		} else {
-			if (win->src.window) RGFW_window_closePlatform(win);
+			RGFW_bool showWindow = RGFW_FALSE;
+			if (win->src.window) {
+				showWindow = (RGFW_window_isMinimized(win) == RGFW_FALSE);
+				RGFW_window_closePlatform(win);
+			}
+
 			RGFW_XCreateWindow(*result, "", win->internal.flags, win);
+
+			if (showWindow) {
+				RGFW_window_show(win);
+			}
 			XFree(result);
 		}
 	}
@@ -6919,8 +6928,13 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 	/* basic RGFW int */
 	win->src.ctx.native = context;
 	win->src.gfxType = RGFW_gfxNativeOpenGL;
+
 	/*  This is required so that way the user can create their own OpenGL context after RGFW_createWindow is used */
-	if (win->src.window) RGFW_window_closePlatform(win);
+	RGFW_bool showWindow = RGFW_FALSE;
+	if (win->src.window) {
+		showWindow = (RGFW_window_isMinimized(win) == RGFW_FALSE);
+		RGFW_window_closePlatform(win);
+	}
 
 	RGFW_bool transparent = (win->internal.flags & RGFW_windowTransparent);
 
@@ -7015,6 +7029,10 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 
 	/* use the visual to create a new window */
 	RGFW_XCreateWindow(visual, "", win->internal.flags, win);
+
+	if (showWindow) {
+		RGFW_window_show(win);
+	}
 
 	/* create the actual OpenGL context  */
 	i32 context_attribs[40];
