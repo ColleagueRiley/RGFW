@@ -7761,7 +7761,7 @@ static void RGFW_wl_keyboard_leave(void* data, struct wl_keyboard *keyboard, u32
 
 	RGFW_eventQueuePushEx(e.type = RGFW_focusOut; e.common.win = win);
 	RGFW_focusCallback(win, RGFW_FALSE);
-    RGFW_window_focusLost(win);
+	RGFW_window_focusLost(win);
 }
 
 static void RGFW_wl_keyboard_key(void* data, struct wl_keyboard *keyboard, u32 serial, u32 time, u32 key, u32 state) {
@@ -7797,7 +7797,7 @@ static void RGFW_wl_keyboard_modifiers(void* data, struct wl_keyboard *keyboard,
 
 static void RGFW_wl_seat_capabilities(void* data, struct wl_seat *seat, u32 capabilities) {
 	RGFW_info* RGFW = (RGFW_info*)data;
-    static struct wl_pointer_listener pointer_listener;
+	static struct wl_pointer_listener pointer_listener;
 	RGFW_MEMSET(&pointer_listener, 0, sizeof(pointer_listener));
 	pointer_listener.enter = &RGFW_wl_pointer_enter;
 	pointer_listener.leave = &RGFW_wl_pointer_leave;
@@ -7813,7 +7813,7 @@ static void RGFW_wl_seat_capabilities(void* data, struct wl_seat *seat, u32 capa
 	keyboard_listener.key = &RGFW_wl_keyboard_key;
 	keyboard_listener.modifiers = &RGFW_wl_keyboard_modifiers;
 
-    if ((capabilities & WL_SEAT_CAPABILITY_POINTER) && !RGFW->wl_pointer) {
+	if ((capabilities & WL_SEAT_CAPABILITY_POINTER) && !RGFW->wl_pointer) {
 		RGFW->wl_pointer = wl_seat_get_pointer(seat);
 		wl_pointer_add_listener(RGFW->wl_pointer, &pointer_listener, RGFW);
 	}
@@ -7822,7 +7822,7 @@ static void RGFW_wl_seat_capabilities(void* data, struct wl_seat *seat, u32 capa
 		wl_keyboard_add_listener(RGFW->wl_keyboard, &keyboard_listener, RGFW);
 	}
 
-    if (!(capabilities & WL_SEAT_CAPABILITY_POINTER) && RGFW->wl_pointer) {
+	if (!(capabilities & WL_SEAT_CAPABILITY_POINTER) && RGFW->wl_pointer) {
 		wl_pointer_destroy(RGFW->wl_pointer);
 	}
 	if (!(capabilities & WL_SEAT_CAPABILITY_KEYBOARD) && RGFW->wl_keyboard) {
@@ -9092,7 +9092,8 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			} else assert(0);
 
 			if ((win->internal.flags & RGFW_windowFullscreen) && inFocus == RGFW_TRUE)
-                RGFW_window_setFullscreen(win, 1);
+			RGFW_window_setFullscreen(win, 1);
+
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		case WM_MOVE:
@@ -9279,7 +9280,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
 			if ((win->internal.holdMouse))
 				break;
-
 
 			event.mouse.x = GET_X_LPARAM(lParam);
 			event.mouse.y = GET_Y_LPARAM(lParam);
@@ -11331,7 +11331,7 @@ static void RGFW__osxWindowResignKey(id self, SEL sel) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
-    RGFW_window_focusLost(win);
+	RGFW_window_focusLost(win);
 
 	if (win->internal.holdMouse) {
 		assert(_RGFW->mouseOwner);
@@ -11344,7 +11344,7 @@ static void RGFW__osxWindowResignKey(id self, SEL sel) {
 
 	if (!(win->internal.enabledEvents & RGFW_focusOutFlag)) return;
 
-    RGFW_eventQueuePushEx(e.type = RGFW_focusOut; e.common.win = win);
+	RGFW_eventQueuePushEx(e.type = RGFW_focusOut; e.common.win = win);
 	RGFW_focusCallback(win, RGFW_FALSE);
 }
 
@@ -12840,9 +12840,9 @@ EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* E, voi
 	if (!(_RGFW->root->internal.enabledEvents & RGFW_focusOutFlag)) return EM_TRUE;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_focusOut; e.common.win = _RGFW->root);
-    RGFW_window_focusLost(_RGFW->root);
-    RGFW_focusCallback(_RGFW->root, 0);
-    return EM_TRUE;
+	RGFW_window_focusLost(_RGFW->root);
+	RGFW_focusCallback(_RGFW->root, 0);
+	return EM_TRUE;
 }
 
 EM_BOOL Emscripten_on_mousemove(int eventType, const EmscriptenMouseEvent* E, void* userData) {
