@@ -9071,7 +9071,26 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				RGFW_eventQueuePushEx(e.type = (RGFW_eventType)((u8)RGFW_focusOut - inFocus); e.common.win = win);
 				RGFW_focusCallback(win, inFocus);
 			}
-            if (inFocus == RGFW_FALSE) RGFW_window_focusLost(win);
+
+			if (RGFW_TRUE == inFocus) {
+				if (win->internal.holdMouse) {
+					assert(_RGFW->mouseOwner);
+					if (win == _RGFW->mouseOwner) {
+						RGFW_window_holdMouse(win);
+					}
+				}
+			} else if (RGFW_FALSE == inFocus) {
+				if (win->internal.holdMouse) {
+					assert(_RGFW->mouseOwner);
+					if (win == _RGFW->mouseOwner) {
+						RGFW_window_unholdMouse(win);
+						win->internal.holdMouse = RGFW_TRUE;
+						_RGFW->mouseOwner = win;
+					}
+				}
+				RGFW_window_focusLost(win);
+			} else assert(0);
+
 			if ((win->internal.flags & RGFW_windowFullscreen) && inFocus == RGFW_TRUE)
                 RGFW_window_setFullscreen(win, 1);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
