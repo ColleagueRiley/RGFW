@@ -7721,6 +7721,14 @@ static void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32
 	if (RGFW->data_device != NULL && win->src.data_source != NULL) {
 		wl_data_device_set_selection(RGFW->data_device, win->src.data_source, serial);
 	}
+
+	if (win->internal.holdMouse) {
+		assert(_RGFW->mouseOwner);
+		if (win == _RGFW->mouseOwner) {
+			RGFW_window_holdMouse(win);
+		}
+	}
+
 	if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
 
 	/* is set when RGFW_window_minimize is called; if the minimize button is */
@@ -7730,8 +7738,6 @@ static void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32
 	win->internal.inFocus = RGFW_TRUE;
 	RGFW_eventQueuePushEx(e.type = RGFW_focusIn; e.common.win = win);
 	RGFW_focusCallback(win, RGFW_TRUE);
-
-	if ((win->internal.holdMouse)) RGFW_window_holdMouse(win);
 }
 
 static void RGFW_wl_keyboard_leave(void* data, struct wl_keyboard *keyboard, u32 serial, struct wl_surface *surface) {
@@ -7741,6 +7747,15 @@ static void RGFW_wl_keyboard_leave(void* data, struct wl_keyboard *keyboard, u32
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 	if (RGFW->kbOwner == win)
 		RGFW->kbOwner = NULL;
+
+	if (win->internal.holdMouse) {
+		assert(_RGFW->mouseOwner);
+		if (win == _RGFW->mouseOwner) {
+			RGFW_window_unholdMouse(win);
+			win->internal.holdMouse = RGFW_TRUE;
+			_RGFW->mouseOwner = win;
+		}
+	}
 
 	if (!(win->internal.enabledEvents & RGFW_focusOutFlag)) return;
 
