@@ -6306,9 +6306,18 @@ void RGFW_FUNC(RGFW_window_setFullscreen)(RGFW_window* win, RGFW_bool fullscreen
 		win->internal.oldH = win->h;
 	}
 	else win->internal.flags &= ~(u32)RGFW_windowFullscreen;
-	RGFW_LOAD_ATOM(_NET_WM_STATE_FULLSCREEN);
 
+	RGFW_LOAD_ATOM(_NET_WM_STATE_FULLSCREEN);
 	RGFW_window_setXAtom(win, _NET_WM_STATE_FULLSCREEN, fullscreen);
+
+	if (!(win->internal.flags & RGFW_windowTransparent)) {
+		const unsigned char value = fullscreen;
+		RGFW_LOAD_ATOM(_NET_WM_BYPASS_COMPOSITOR);
+		XChangeProperty(
+			_RGFW->display, win->src.window,
+			_NET_WM_BYPASS_COMPOSITOR, XA_CARDINAL, 32,
+			PropModeReplace, &value, 1);
+	}
 
 	XRaiseWindow(_RGFW->display, win->src.window);
 	XMapRaised(_RGFW->display, win->src.window);
