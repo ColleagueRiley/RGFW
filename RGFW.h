@@ -3360,7 +3360,10 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	}
 #endif
 
-	RGFW_window_setMouseDefault(win);
+	if (!(flags & RGFW_windowHideMouse)) {
+		RGFW_window_setMouseDefault(win);
+	}
+
 	RGFW_window_setName(win, name);
 	if (!(flags & RGFW_windowHide)) {
 		RGFW_window_show(win);
