@@ -6062,6 +6062,15 @@ void RGFW_XHandleEvent(void) {
 
 			break;
 		case FocusOut:
+			if (win->internal.holdMouse) {
+				assert(_RGFW->mouseOwner);
+				if (win == _RGFW->mouseOwner) {
+					RGFW_window_unholdMouse(win);
+					win->internal.holdMouse = RGFW_TRUE;
+					_RGFW->mouseOwner = win;
+				}
+			}
+
 			if (!(win->internal.enabledEvents & RGFW_focusOutFlag)) return;
 			event.type = RGFW_focusOut;
 			RGFW_focusCallback(win, 0);
