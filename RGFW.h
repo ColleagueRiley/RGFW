@@ -6279,20 +6279,20 @@ void RGFW_FUNC(RGFW_window_raise) (RGFW_window* win) {
 void RGFW_window_setXAtom(RGFW_window* win, Atom netAtom, RGFW_bool fullscreen);
 void RGFW_window_setXAtom(RGFW_window* win, Atom netAtom, RGFW_bool fullscreen) {
 	RGFW_ASSERT(win != NULL);
-    RGFW_LOAD_ATOM(_NET_WM_STATE);
+	RGFW_LOAD_ATOM(_NET_WM_STATE);
 
 	XEvent xev = {0};
-    xev.xclient.type = ClientMessage;
-    xev.xclient.serial = 0;
-    xev.xclient.send_event = True;
-    xev.xclient.message_type = _NET_WM_STATE;
-    xev.xclient.window = win->src.window;
-    xev.xclient.format = 32;
-    xev.xclient.data.l[0] = fullscreen;
-    xev.xclient.data.l[1] = (long int)netAtom;
-    xev.xclient.data.l[2] = 0;
+	xev.xclient.type = ClientMessage;
+	xev.xclient.serial = 0;
+	xev.xclient.send_event = True;
+	xev.xclient.message_type = _NET_WM_STATE;
+	xev.xclient.window = win->src.window;
+	xev.xclient.format = 32;
+	xev.xclient.data.l[0] = fullscreen;
+	xev.xclient.data.l[1] = (long int)netAtom;
+	xev.xclient.data.l[2] = 0;
 
-    XSendEvent(_RGFW->display, DefaultRootWindow(_RGFW->display), False, SubstructureNotifyMask | SubstructureRedirectMask, &xev);
+	XSendEvent(_RGFW->display, DefaultRootWindow(_RGFW->display), False, SubstructureNotifyMask | SubstructureRedirectMask, &xev);
 }
 
 void RGFW_FUNC(RGFW_window_setFullscreen)(RGFW_window* win, RGFW_bool fullscreen) {
