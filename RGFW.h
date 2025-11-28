@@ -3541,27 +3541,26 @@ RGFW_bool RGFW_loadEGL(void) { return RGFW_FALSE; }
 #endif
 
 void RGFW_window_setFlagsInternal(RGFW_window* win, RGFW_windowFlags flags, RGFW_windowFlags cmpFlags) {
-	#ifndef RGFW_NO_MONITOR
-	if (flags & RGFW_windowScaleToMonitor)			RGFW_window_scaleToMonitor(win);
-	#endif
-
-	if (flags & RGFW_windowCenter)					RGFW_window_center(win);
-	if (flags & RGFW_windowCenterCursor) RGFW_window_moveMouse(win, win->x + (win->w / 2), win->y + (win->h / 2));
-	if (flags & RGFW_windowNoBorder)				RGFW_window_setBorder(win, 0);
-	else if (cmpFlags & RGFW_windowNoBorder) RGFW_window_setBorder(win, 1);
-	if (flags & RGFW_windowFullscreen)				RGFW_window_setFullscreen(win, RGFW_TRUE);
-	else if (cmpFlags & RGFW_windowFullscreen) 	RGFW_window_setFullscreen(win, 0);
-	if (flags & RGFW_windowMaximize)				RGFW_window_maximize(win);
-	else if (cmpFlags & RGFW_windowMaximize) 	RGFW_window_restore(win);
-	if (flags & RGFW_windowMinimize)				RGFW_window_minimize(win);
-	else if (cmpFlags & RGFW_windowMinimize) 	RGFW_window_restore(win);
-	if (flags & RGFW_windowHideMouse)				RGFW_window_showMouse(win, 0);
-	else if (cmpFlags & RGFW_windowHideMouse)  	RGFW_window_showMouse(win, 1);
-	if (flags & RGFW_windowHide)				RGFW_window_hide(win);
-	else if (cmpFlags & RGFW_windowHide)  		RGFW_window_show(win);
-	if (flags & RGFW_windowFloating)				RGFW_window_setFloating(win, 1);
-	else if (cmpFlags & RGFW_windowFloating)		RGFW_window_setFloating(win, 0);
-	if (flags & RGFW_windowFocus)					RGFW_window_focus(win);
+	if (flags & RGFW_windowNoBorder)            RGFW_window_setBorder(win, 0);
+	else if (cmpFlags & RGFW_windowNoBorder)    RGFW_window_setBorder(win, 1);
+#ifndef RGFW_NO_MONITOR
+	if (flags & RGFW_windowScaleToMonitor)      RGFW_window_scaleToMonitor(win);
+#endif
+	if (flags & RGFW_windowMaximize)            RGFW_window_maximize(win);
+	else if (cmpFlags & RGFW_windowMaximize)    RGFW_window_restore(win);
+	if (flags & RGFW_windowMinimize)            RGFW_window_minimize(win);
+	else if (cmpFlags & RGFW_windowMinimize)    RGFW_window_restore(win);
+	if (flags & RGFW_windowCenter)              RGFW_window_center(win);
+	if (flags & RGFW_windowCenterCursor)        RGFW_window_moveMouse(win, win->x + (win->w / 2), win->y + (win->h / 2));
+	if (flags & RGFW_windowFullscreen)          RGFW_window_setFullscreen(win, RGFW_TRUE);
+	else if (cmpFlags & RGFW_windowFullscreen)  RGFW_window_setFullscreen(win, 0);
+	if (flags & RGFW_windowHideMouse)           RGFW_window_showMouse(win, 0);
+	else if (cmpFlags & RGFW_windowHideMouse)   RGFW_window_showMouse(win, 1);
+	if (flags & RGFW_windowHide)                RGFW_window_hide(win);
+	else if (cmpFlags & RGFW_windowHide)        RGFW_window_show(win);
+	if (flags & RGFW_windowFloating)            RGFW_window_setFloating(win, 1);
+	else if (cmpFlags & RGFW_windowFloating)    RGFW_window_setFloating(win, 0);
+	if (flags & RGFW_windowFocus)               RGFW_window_focus(win);
 
 	if (flags & RGFW_windowNoResize) {
 	    RGFW_window_setMaxSize(win, win->w, win->h);
