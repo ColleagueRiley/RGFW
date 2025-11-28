@@ -11311,7 +11311,14 @@ static void RGFW__osxWindowBecameKey(id self, SEL sel) {
 
 
 	win->internal.inFocus = RGFW_TRUE;
-	if ((win->internal.holdMouse)) RGFW_window_holdMouse(win);
+
+	if (win->internal.holdMouse) {
+		assert(_RGFW->mouseOwner);
+		if (win == _RGFW->mouseOwner) {
+			RGFW_window_holdMouse(win);
+		}
+	}
+
 	if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_focusIn; e.common.win = win);
@@ -11325,6 +11332,16 @@ static void RGFW__osxWindowResignKey(id self, SEL sel) {
 	if (win == NULL) return;
 
     RGFW_window_focusLost(win);
+
+	if (win->internal.holdMouse) {
+		assert(_RGFW->mouseOwner);
+		if (win == _RGFW->mouseOwner) {
+			RGFW_window_unholdMouse(win);
+			win->internal.holdMouse = RGFW_TRUE;
+			_RGFW->mouseOwner = win;
+		}
+	}
+
 	if (!(win->internal.enabledEvents & RGFW_focusOutFlag)) return;
 
     RGFW_eventQueuePushEx(e.type = RGFW_focusOut; e.common.win = win);
