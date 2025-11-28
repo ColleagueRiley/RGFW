@@ -6047,7 +6047,13 @@ void RGFW_XHandleEvent(void) {
 		case FocusIn:
 			if ((win->internal.flags & RGFW_windowFullscreen))
 				XMapRaised(_RGFW->display, win->src.window);
-			if ((win->internal.holdMouse)) RGFW_window_holdMouse(win);
+
+			if (win->internal.holdMouse) {
+				assert(_RGFW->mouseOwner);
+				if (win == _RGFW->mouseOwner) {
+					RGFW_window_holdMouse(win);
+				}
+			}
 
 			if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
 			win->internal.inFocus = RGFW_TRUE;
