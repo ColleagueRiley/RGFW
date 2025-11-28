@@ -12817,18 +12817,25 @@ EM_BOOL Emscripten_on_fullscreenchange(int eventType, const EmscriptenFullscreen
 EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(E);
 
+	if ((_RGFW->root->internal.holdMouse)) RGFW_window_holdMouse(_RGFW->root);
+
 	if (!(_RGFW->root->internal.enabledEvents & RGFW_focusInFlag)) return EM_TRUE;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_focusIn; e.common.win = _RGFW->root);
 	_RGFW->root->internal.inFocus = RGFW_TRUE;
 	RGFW_focusCallback(_RGFW->root, 1);
 
-	if ((_RGFW->root->internal.holdMouse)) RGFW_window_holdMouse(_RGFW->root);
-    return EM_TRUE;
+	return EM_TRUE;
 }
 
 EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(E);
+
+	if ((_RGFW->root->internal.holdMouse)) {
+		RGFW_window_unholdMouse(_RGFW->root);
+		win->internal.holdMouse = RGFW_TRUE;
+		_RGFW->mouseOwner = _RGFW->root;
+	}
 
 	if (!(_RGFW->root->internal.enabledEvents & RGFW_focusOutFlag)) return EM_TRUE;
 
