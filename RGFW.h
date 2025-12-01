@@ -380,8 +380,8 @@ int main() {
 	typedef signed char         i8;
 	typedef unsigned short     u16;
 	typedef signed short 	   i16;
-	typedef unsigned long int  u32;
-	typedef signed long int    i32;
+	typedef unsigned int       u32;
+	typedef signed int         i32;
 	typedef unsigned long long u64;
 	typedef signed long long   i64;
 	#define RGFW_INT_DEFINED
@@ -5433,7 +5433,7 @@ void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags 
     XSyncIntToValue(&initial_value, 0);
     win->src.counter = XSyncCreateCounter(_RGFW->display, initial_value);
 
-    XChangeProperty(_RGFW->display, win->src.window, _NET_WM_SYNC_REQUEST_COUNTER, XA_CARDINAL, 32, PropModeReplace, (uint8_t*)&win->src.counter, 1);
+    XChangeProperty(_RGFW->display, win->src.window, _NET_WM_SYNC_REQUEST_COUNTER, XA_CARDINAL, 32, PropModeReplace, (u8*)&win->src.counter, 1);
 #endif
 
 	win->src.x = win->x;
@@ -7790,8 +7790,8 @@ static void RGFW_wl_seat_capabilities(void* data, struct wl_seat *seat, u32 capa
 }
 
 static void RGFW_wl_output_set_geometry(void *data, struct wl_output *wl_output,
-			 int32_t x, int32_t y, int32_t physical_width, int32_t physical_height,
-			 int32_t subpixel, const char *make, const char *model, int32_t transform) {
+			 i32 x, i32 y, i32 physical_width, i32 physical_height,
+			 i32 subpixel, const char *make, const char *model, i32 transform) {
 
 	RGFW_monitor* monitor = &((RGFW_monitorNode*)data)->mon;
 	monitor->x = x;
@@ -7807,8 +7807,8 @@ static void RGFW_wl_output_set_geometry(void *data, struct wl_output *wl_output,
 	RGFW_UNUSED(transform);
 }
 
-static void RGFW_wl_output_set_mode(void *data, struct wl_output *wl_output, uint32_t flags,
-		     int32_t width, int32_t height, int32_t refresh) {
+static void RGFW_wl_output_set_mode(void *data, struct wl_output *wl_output, u32 flags,
+		     i32 width, i32 height, i32 refresh) {
 
 	RGFW_monitor* monitor = &((RGFW_monitorNode*)data)->mon;
 
@@ -7821,7 +7821,7 @@ static void RGFW_wl_output_set_mode(void *data, struct wl_output *wl_output, uin
 	RGFW_UNUSED(flags);
 }
 
-static void RGFW_wl_output_set_scale(void *data, struct wl_output *wl_output, int32_t factor) {
+static void RGFW_wl_output_set_scale(void *data, struct wl_output *wl_output, i32 factor) {
 	/* this is for pixelRatio */
 	RGFW_monitor* monitor = &((RGFW_monitorNode*)data)->mon;
 
@@ -7839,14 +7839,14 @@ static void RGFW_wl_output_set_name(void *data, struct wl_output *wl_output, con
 
 }
 
-static void RGFW_xdg_output_logical_pos(void *data, struct zxdg_output_v1 *zxdg_output_v1, int32_t x, int32_t y) {
+static void RGFW_xdg_output_logical_pos(void *data, struct zxdg_output_v1 *zxdg_output_v1, i32 x, i32 y) {
 	RGFW_monitor* monitor = &((RGFW_monitorNode*)data)->mon;
 	monitor->x = x;
 	monitor->y = y;
 	RGFW_UNUSED(zxdg_output_v1);
 }
 
-static void RGFW_xdg_output_logical_size(void *data, struct zxdg_output_v1 *zxdg_output_v1, int32_t width, int32_t height) {
+static void RGFW_xdg_output_logical_size(void *data, struct zxdg_output_v1 *zxdg_output_v1, i32 width, i32 height) {
 	RGFW_monitor* monitor = &((RGFW_monitorNode*)data)->mon;
 
 	float mon_float_width = (float) monitor->mode.w;
@@ -7861,7 +7861,7 @@ static void RGFW_xdg_output_logical_size(void *data, struct zxdg_output_v1 *zxdg
 	RGFW_UNUSED(zxdg_output_v1);
 }
 
-static void RGFW_wl_create_outputs(struct wl_registry *const registry, uint32_t id) {
+static void RGFW_wl_create_outputs(struct wl_registry *const registry, u32 id) {
 	struct wl_output *output = wl_registry_bind(registry, id, &wl_output_interface, wl_display_get_version(_RGFW->wl_display) < 4 ? 3 : 4);
 	RGFW_monitorNode* node;
 	RGFW_monitor mon;
@@ -7926,7 +7926,7 @@ static void RGFW_wl_surface_enter(void *data, struct wl_surface *wl_surface, str
 	#endif
 }
 
-static void RGFW_wl_data_source_send(void *data, struct wl_data_source *wl_data_source, const char *mime_type, int32_t fd) {
+static void RGFW_wl_data_source_send(void *data, struct wl_data_source *wl_data_source, const char *mime_type, i32 fd) {
 	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_source);
 
 	// a client can accept our clipboard
@@ -7955,8 +7955,8 @@ static void RGFW_wl_data_device_data_offer(void *data, struct wl_data_device *wl
 	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device);
 	static const struct wl_data_offer_listener wl_data_offer_listener = {
 		.offer = (void (*)(void *data, struct wl_data_offer *wl_data_offer, const char *))RGFW_doNothing,
-		.source_actions = (void (*)(void *data, struct wl_data_offer *wl_data_offer, uint32_t dnd_action))RGFW_doNothing,
-		.action = (void (*)(void *data, struct wl_data_offer *wl_data_offer, uint32_t dnd_action))RGFW_doNothing
+		.source_actions = (void (*)(void *data, struct wl_data_offer *wl_data_offer, u32 dnd_action))RGFW_doNothing,
+		.action = (void (*)(void *data, struct wl_data_offer *wl_data_offer, u32 dnd_action))RGFW_doNothing
 	};
 	wl_data_offer_add_listener(wl_data_offer, &wl_data_offer_listener, NULL);
 }
