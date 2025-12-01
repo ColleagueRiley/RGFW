@@ -168,6 +168,7 @@ int main() {
 		TheYahton (@TheYahton) -> documentation
 		nonexistant_object (@DiarrheaMcgee)
 		AC Gaudette (@acgaudette)
+		uint fixes (@ZDev22)
 */
 
 #if _MSC_VER
