@@ -1,6 +1,6 @@
 /*
 *
-*	RGFW 1.8.1
+*	RGFW 1.9.0-dev
 
 * Copyright (C) 2022-25 Riley Mabb (@ColleagueRiley)
 *
