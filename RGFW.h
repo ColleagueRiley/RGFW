@@ -1,6 +1,6 @@
 /*
 *
-*	RGFW 1.8.1
+*	RGFW 1.9.0-dev
 
 * Copyright (C) 2022-25 Riley Mabb (@ColleagueRiley)
 *
@@ -46,7 +46,7 @@
 	#define RGFW_NO_X11_CURSOR (optional) (unix only) don't use XCursor
 	#define RGFW_NO_X11_CURSOR_PRELOAD (optional) (unix only) use XCursor, but don't link it in code, (you'll have to link it with -lXcursor)
 	#define RGFW_NO_X11_EXT_PRELOAD (optional) (unix only) use Xext, but don't link it in code, (you'll have to link it with -lXext)
-    #define RGFW_NO_LOAD_WINMM (optional) (windows only) use winmm (timeBeginPeriod), but don't link it in code, (you'll have to link it with -lwinmm)
+	#define RGFW_NO_LOAD_WINMM (optional) (windows only) use winmm (timeBeginPeriod), but don't link it in code, (you'll have to link it with -lwinmm)
 	#define RGFW_NO_WINMM (optional) (windows only) don't use winmm
 	#define RGFW_NO_IOKIT (optional) (macOS) don't use IOKit
 	#define RGFW_NO_UNIX_CLOCK (optional) (unix) don't link unix clock functions
@@ -55,8 +55,8 @@
 	#define RGFW_COCOA_GRAPHICS_SWITCHING - (optional) (cocoa) use automatic graphics switching (allow the system to choose to use GPU or iGPU)
 	#define RGFW_COCOA_FRAME_NAME (optional) (cocoa) set frame name
 	#define RGFW_NO_DPI - do not calculate DPI (no XRM nor libShcore included)
-    #define RGFW_ADVANCED_SMOOTH_RESIZE - use advanced methods for smooth resizing (may result in a spike in memory usage or worse performance) (eg. WM_TIMER and XSyncValue)
-    #define RGFW_NO_INFO - do not define the RGFW_info struct (without RGFW_IMPLEMENTATION)
+	#define RGFW_ADVANCED_SMOOTH_RESIZE - use advanced methods for smooth resizing (may result in a spike in memory usage or worse performance) (eg. WM_TIMER and XSyncValue)
+	#define RGFW_NO_INFO - do not define the RGFW_info struct (without RGFW_IMPLEMENTATION)
 	#define RGFW_NO_GLXWINDOW - do not use GLXWindow
 
 	#define RGFW_ALLOC x  - choose the default allocation function (defaults to standard malloc)
@@ -149,25 +149,26 @@ int main() {
 		@Easymode -> support, testing/debugging, bug fixes and reviews
 		Joshua Rowe (omnisci3nce) - bug fix, review (macOS)
 		@lesleyrs -> bug fix, review (OpenGL)
-        Nick Porcino (@meshula) - testing, organization, review (MacOS, examples)
-        @therealmarrakesh -> documentation
-        @DarekParodia -> code review (X11) (C++)
-        @NishiOwO -> fix BSD support, fix OSMesa example
-        @BaynariKattu -> code review and documentation
-        Miguel Pinto (@konopimi) -> code review, fix vulkan example
-        @m-doescode -> code review (wayland)
-        Robert Gonzalez (@uni-dos) -> code review (wayland)
-        @TheLastVoyager -> code review
-        @yehoravramenko -> code review (winapi)
-        @halocupcake -> code review (OpenGL)
-        @GideonSerf -> documentation
-        Alexandre Almeida (@M374LX) -> code review (keycodes)
-        Vũ Xuân Trường (@wanwanvxt) -> code review (winapi)
-        Lucas (@lightspeedlucas) -> code review (msvc++)
-        Jeffery Myers (@JeffM2501) -> code review (msvc)
-        Zeni (@zenitsuyo) -> documentation
-        TheYahton (@TheYahton) -> documentation
-        nonexistant_object (@DiarrheaMcgee
+		Nick Porcino (@meshula) - testing, organization, review (MacOS, examples)
+		@therealmarrakesh -> documentation
+		@DarekParodia -> code review (X11) (C++)
+		@NishiOwO -> fix BSD support, fix OSMesa example
+		@BaynariKattu -> code review and documentation
+		Miguel Pinto (@konopimi) -> code review, fix vulkan example
+		@m-doescode -> code review (wayland)
+		Robert Gonzalez (@uni-dos) -> code review (wayland)
+		@TheLastVoyager -> code review
+		@yehoravramenko -> code review (winapi)
+		@halocupcake -> code review (OpenGL)
+		@GideonSerf -> documentation
+		Alexandre Almeida (@M374LX) -> code review (keycodes)
+		Vũ Xuân Trường (@wanwanvxt) -> code review (winapi)
+		Lucas (@lightspeedlucas) -> code review (msvc++)
+		Jeffery Myers (@JeffM2501) -> code review (msvc)
+		Zeni (@zenitsuyo) -> documentation
+		TheYahton (@TheYahton) -> documentation
+		nonexistant_object (@DiarrheaMcgee)
+		AC Gaudette (@acgaudette)
 */
 
 #if _MSC_VER
@@ -3296,7 +3297,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	RGFW_ASSERT(win != NULL);
 	RGFW_MEMSET(win, 0, sizeof(RGFW_window));
 	if (_RGFW == NULL) RGFW_init();
-    _RGFW->windowCount++;
+	_RGFW->windowCount++;
 
 	/* rect based the requested flags */
 	if (_RGFW->root == NULL) {
@@ -3331,7 +3332,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	/* X11 creates the window after the OpenGL context is created (because of visual garbage),
 		 * so we have to wait to set the flags
 		 * This is required so that way the user can create their own OpenGL context after RGFW_createWindow is used
-		 * if a window is crated, CreateContext will delete the window and create a new one
+		 * if a window is created, CreateContext will delete the window and create a new one
 		 * */
 #ifdef RGFW_X11
 	RGFW_window_setFlagsInternal(win, flags, 0);
@@ -3359,14 +3360,16 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	}
 #endif
 
-	RGFW_window_setMouseDefault(win);
+	if (!(flags & RGFW_windowHideMouse)) {
+		RGFW_window_setMouseDefault(win);
+	}
+
 	RGFW_window_setName(win, name);
 	if (!(flags & RGFW_windowHide)) {
 		RGFW_window_show(win);
 	}
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, "a new window was created");
-
 
 	return ret;
 }
@@ -5583,8 +5586,8 @@ void RGFW_XHandleEvent(void) {
 	RGFW_LOAD_ATOM(XdndDrop);
 	RGFW_LOAD_ATOM(XdndFinished);
 	RGFW_LOAD_ATOM(XdndActionCopy);
-    RGFW_LOAD_ATOM(_NET_WM_SYNC_REQUEST);
-    RGFW_LOAD_ATOM(WM_PROTOCOLS);
+	RGFW_LOAD_ATOM(_NET_WM_SYNC_REQUEST);
+	RGFW_LOAD_ATOM(WM_PROTOCOLS);
 	RGFW_LOAD_ATOM(WM_STATE);
 	RGFW_LOAD_ATOM(_NET_WM_STATE);
 
@@ -5791,7 +5794,7 @@ void RGFW_XHandleEvent(void) {
 			if (E.xproperty.state != PropertyNewValue) break;
 
 			if (E.xproperty.atom == WM_STATE) {
-                if (RGFW_window_isMinimized(win) && !(win->internal.flags & RGFW_windowMinimized)) {
+				if (RGFW_window_isMinimized(win) && !(win->internal.flags & RGFW_windowMinimized)) {
 					win->internal.flags |= RGFW_windowMinimize;
 					RGFW_eventQueuePushEx(e.type = RGFW_windowMinimized; e.common.win = win);
 					RGFW_windowMinimizedCallback(win);
@@ -6109,7 +6112,7 @@ void RGFW_XHandleEvent(void) {
 			Window root = DefaultRootWindow(_RGFW->display);
 			if (E.xany.send_event == 0 && win->src.parent != root) {
 				Window dummy = 0;
-                XTranslateCoordinates(_RGFW->display, win->src.parent, root, x, y, &x, &y, &dummy);
+				XTranslateCoordinates(_RGFW->display, win->src.parent, root, x, y, &x, &y, &dummy);
 			}
 
 			/* detect move */
@@ -6299,7 +6302,7 @@ void RGFW_window_setXAtom(RGFW_window* win, Atom netAtom, RGFW_bool fullscreen) 
 void RGFW_FUNC(RGFW_window_setFullscreen)(RGFW_window* win, RGFW_bool fullscreen) {
 	RGFW_ASSERT(win != NULL);
 
-    if (fullscreen) {
+	if (fullscreen) {
 		win->internal.flags |= RGFW_windowFullscreen;
 		win->internal.oldX = win->x;
 		win->internal.oldY = win->y;
