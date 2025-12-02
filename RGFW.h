@@ -7804,7 +7804,7 @@ static void RGFW_wl_seat_capabilities(void* data, struct wl_seat *seat, u32 capa
 }
 
 static void RGFW_wl_output_set_geometry(void *data, struct wl_output *wl_output,
-			 i32, i32 y, i32 physical_width, i32 physical_height,
+			 i32 x, i32 y, i32 physical_width, i32 physical_height,
 			 i32 subpixel, const char *make, const char *model, i32 transform) {
 
 	RGFW_monitor* monitor = &((RGFW_monitorNode*)data)->mon;
