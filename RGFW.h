@@ -6049,7 +6049,6 @@ void RGFW_XHandleEvent(void) {
 				XMapRaised(_RGFW->display, win->src.window);
 
 			if (win->internal.holdMouse) {
-				assert(_RGFW->mouseOwner);
 				if (win == _RGFW->mouseOwner) {
 					RGFW_window_holdMouse(win);
 				}
@@ -6063,7 +6062,6 @@ void RGFW_XHandleEvent(void) {
 			break;
 		case FocusOut:
 			if (win->internal.holdMouse) {
-				assert(_RGFW->mouseOwner);
 				if (win == _RGFW->mouseOwner) {
 					RGFW_window_unholdMouse(win);
 					win->internal.holdMouse = RGFW_TRUE;
@@ -7723,7 +7721,6 @@ static void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32
 	}
 
 	if (win->internal.holdMouse) {
-		assert(_RGFW->mouseOwner);
 		if (win == _RGFW->mouseOwner) {
 			RGFW_window_holdMouse(win);
 		}
@@ -7749,7 +7746,6 @@ static void RGFW_wl_keyboard_leave(void* data, struct wl_keyboard *keyboard, u32
 		RGFW->kbOwner = NULL;
 
 	if (win->internal.holdMouse) {
-		assert(_RGFW->mouseOwner);
 		if (win == _RGFW->mouseOwner) {
 			RGFW_window_unholdMouse(win);
 			win->internal.holdMouse = RGFW_TRUE;
@@ -9074,14 +9070,12 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			if (RGFW_TRUE == inFocus) {
 				if (win->internal.holdMouse) {
-					assert(_RGFW->mouseOwner);
 					if (win == _RGFW->mouseOwner) {
 						RGFW_window_holdMouse(win);
 					}
 				}
 			} else if (RGFW_FALSE == inFocus) {
 				if (win->internal.holdMouse) {
-					assert(_RGFW->mouseOwner);
 					if (win == _RGFW->mouseOwner) {
 						RGFW_window_unholdMouse(win);
 						win->internal.holdMouse = RGFW_TRUE;
@@ -11313,7 +11307,6 @@ static void RGFW__osxWindowBecameKey(id self, SEL sel) {
 	win->internal.inFocus = RGFW_TRUE;
 
 	if (win->internal.holdMouse) {
-		assert(_RGFW->mouseOwner);
 		if (win == _RGFW->mouseOwner) {
 			RGFW_window_holdMouse(win);
 		}
@@ -11334,7 +11327,6 @@ static void RGFW__osxWindowResignKey(id self, SEL sel) {
 	RGFW_window_focusLost(win);
 
 	if (win->internal.holdMouse) {
-		assert(_RGFW->mouseOwner);
 		if (win == _RGFW->mouseOwner) {
 			RGFW_window_unholdMouse(win);
 			win->internal.holdMouse = RGFW_TRUE;
