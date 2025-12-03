@@ -12825,7 +12825,7 @@ EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* E, voi
 
 	if ((_RGFW->root->internal.holdMouse)) {
 		RGFW_window_unholdMouse(_RGFW->root);
-		win->internal.holdMouse = RGFW_TRUE;
+		_RGFW->root->internal.holdMouse = RGFW_TRUE;
 		_RGFW->mouseOwner = _RGFW->root;
 	}
 
