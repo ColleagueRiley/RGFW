@@ -6547,11 +6547,7 @@ void RGFW_FUNC(RGFW_window_show) (RGFW_window* win) {
 
 	XMapWindow(_RGFW->display, win->src.window);
 	RGFW_window_move(win, win->x, win->y);
-
-	if (win->internal.flags & RGFW_windowFullscreen) {
-		RGFW_window_setFullscreen(win, RGFW_TRUE);
-	}
-
+	RGFW_window_setFullscreen(win, RGFW_window_isFullscreen(win));
 	return;
 }
 
