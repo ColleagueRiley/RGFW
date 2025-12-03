@@ -6263,9 +6263,9 @@ void RGFW_FUNC(RGFW_window_maximize) (RGFW_window* win) {
 void RGFW_FUNC(RGFW_window_focus) (RGFW_window* win) {
 	RGFW_ASSERT(win);
 
-    XWindowAttributes attr;
-    XGetWindowAttributes(_RGFW->display, win->src.window, &attr);
-    if (attr.map_state != IsViewable) return;
+	XWindowAttributes attr;
+	XGetWindowAttributes(_RGFW->display, win->src.window, &attr);
+	if (attr.map_state != IsViewable) return;
 
 	XSetInputFocus(_RGFW->display, win->src.window, RevertToPointerRoot, CurrentTime);
 	XFlush(_RGFW->display);
@@ -9828,8 +9828,8 @@ void RGFW_window_setMaxSize(RGFW_window* win, i32 w, i32 h) {
 
 void RGFW_window_focus(RGFW_window* win) {
 	RGFW_ASSERT(win);
-    SetForegroundWindow(win->src.window);
-    SetFocus(win->src.window);
+	SetForegroundWindow(win->src.window);
+	SetFocus(win->src.window);
 }
 
 void RGFW_window_raise(RGFW_window* win) {
