@@ -6274,6 +6274,7 @@ void RGFW_FUNC(RGFW_window_raise) (RGFW_window* win) {
 	RGFW_ASSERT(win);
     XRaiseWindow(_RGFW->display, win->src.window);
 	XMapRaised(_RGFW->display, win->src.window);
+	RGFW_window_setFullscreen(win, RGFW_window_isFullscreen(win));
 }
 
 void RGFW_window_setXAtom(RGFW_window* win, Atom netAtom, RGFW_bool fullscreen);
@@ -6320,7 +6321,7 @@ void RGFW_FUNC(RGFW_window_setFullscreen)(RGFW_window* win, RGFW_bool fullscreen
 	}
 
 	XRaiseWindow(_RGFW->display, win->src.window);
-	XMapRaised(_RGFW->display, win->src.window);
+	XMapRaised(_RGFW->display, win->src.window); // See RGFW_window_raise
 }
 
 void RGFW_FUNC(RGFW_window_setFloating)(RGFW_window* win, RGFW_bool floating) {
