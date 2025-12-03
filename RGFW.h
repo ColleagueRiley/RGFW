@@ -6044,8 +6044,9 @@ void RGFW_XHandleEvent(void) {
 			break;
 		}
 		case FocusIn:
-			if ((win->internal.flags & RGFW_windowFullscreen))
-				XMapRaised(_RGFW->display, win->src.window);
+			if ((win->internal.flags & RGFW_windowFullscreen)) {
+				RGFW_window_raise(win);
+			}
 			if ((win->internal.holdMouse)) RGFW_window_holdMouse(win);
 
 			if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
@@ -6272,7 +6273,6 @@ void RGFW_FUNC(RGFW_window_focus) (RGFW_window* win) {
 
 void RGFW_FUNC(RGFW_window_raise) (RGFW_window* win) {
 	RGFW_ASSERT(win);
-    XRaiseWindow(_RGFW->display, win->src.window);
 	XMapRaised(_RGFW->display, win->src.window);
 	RGFW_window_setFullscreen(win, RGFW_window_isFullscreen(win));
 }
@@ -6320,7 +6320,6 @@ void RGFW_FUNC(RGFW_window_setFullscreen)(RGFW_window* win, RGFW_bool fullscreen
 			PropModeReplace, &value, 1);
 	}
 
-	XRaiseWindow(_RGFW->display, win->src.window);
 	XMapRaised(_RGFW->display, win->src.window); // See RGFW_window_raise
 }
 
