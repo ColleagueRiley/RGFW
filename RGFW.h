@@ -9083,7 +9083,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					}
 				}
 				RGFW_window_focusLost(win);
-			} else assert(0);
+			} else RGFW_ASSERT(0);
 
 			if ((win->internal.flags & RGFW_windowFullscreen) && inFocus == RGFW_TRUE)
 			RGFW_window_setFullscreen(win, 1);
@@ -12632,7 +12632,7 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	if (format == NULL) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errOpenGLContext, "Failed to load pixel format for OpenGL");
 
-		assert(render_type_index + 3 < (sizeof(attribs) / sizeof(attribs[0])));
+		RGFW_ASSERT(render_type_index + 3 < (sizeof(attribs) / sizeof(attribs[0])));
 		attribs[render_type_index] = NSOpenGLPFARendererID;
 		attribs[render_type_index + 1] = kCGLRendererGenericFloatID;
 		attribs[render_type_index + 3] = 0;
