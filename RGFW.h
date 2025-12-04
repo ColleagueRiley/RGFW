@@ -6044,9 +6044,9 @@ void RGFW_XHandleEvent(void) {
 			break;
 		}
 		case FocusIn:
-			if ((win->internal.flags & RGFW_windowFullscreen)) {
+			if ((win->internal.flags & RGFW_windowFullscreen))
 				RGFW_window_raise(win);
-			}
+
 			if ((win->internal.holdMouse)) RGFW_window_holdMouse(win);
 
 			if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
