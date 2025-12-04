@@ -6308,7 +6308,7 @@ void RGFW_FUNC(RGFW_window_setFullscreen)(RGFW_window* win, RGFW_bool fullscreen
 	}
 	else win->internal.flags &= ~(u32)RGFW_windowFullscreen;
 
-	XMapRaised(_RGFW->display, win->src.window); // See RGFW_window_raise
+	XRaiseWindow(_RGFW->display, win->src.window);
 
 	RGFW_LOAD_ATOM(_NET_WM_STATE_FULLSCREEN);
 	RGFW_window_setXAtom(win, _NET_WM_STATE_FULLSCREEN, fullscreen);
