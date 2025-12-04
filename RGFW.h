@@ -1,6 +1,6 @@
 /*
 *
-*	RGFW 1.8.1
+*	RGFW 1.9.0-dev
 
 * Copyright (C) 2022-25 Riley Mabb (@ColleagueRiley)
 *
@@ -5206,6 +5206,16 @@ void RGFW_setXInstName(const char* name) { _RGFW->instName = name; }
 		void* X11Cursorhandle = NULL;
 #endif
 
+RGFWDEF RGFW_bool RGFW_waitForShowEvent_X11(RGFW_window* win);
+RGFW_bool RGFW_waitForShowEvent_X11(RGFW_window* win) {
+    XEvent dummy;
+    while (!XCheckTypedWindowEvent(_RGFW->display, win->src.window, VisibilityNotify, &dummy)) {
+		RGFW_waitForEvent(100);
+    }
+
+	return RGFW_TRUE;
+}
+
 void* RGFW_getDisplay_X11(void) { return _RGFW->display; }
 u64 RGFW_window_getWindow_X11(RGFW_window* win) { return (u64)win->src.window; }
 
@@ -6530,15 +6540,24 @@ RGFW_bool RGFW_FUNC(RGFW_window_setMouseStandard) (RGFW_window* win, u8 mouse) {
 }
 
 void RGFW_FUNC(RGFW_window_hide)(RGFW_window* win) {
+	win->internal.flags |= (u32)RGFW_windowHide;
 	XUnmapWindow(_RGFW->display, win->src.window);
+
+	XFlush(_RGFW->display);
 }
 
 void RGFW_FUNC(RGFW_window_show) (RGFW_window* win) {
 	win->internal.flags &= ~(u32)RGFW_windowHide;
 	if (win->internal.flags & RGFW_windowFocusOnShow) RGFW_window_focus(win);
 
+	if (RGFW_window_isHidden(win) == RGFW_TRUE) {
+		return;
+	}
+
 	XMapWindow(_RGFW->display, win->src.window);
 	RGFW_window_move(win, win->x, win->y);
+
+	RGFW_waitForShowEvent_X11(win);
 	return;
 }
 
@@ -7028,8 +7047,6 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 	XFree(vi);
 
 	/* use the visual to create a new window */
-	Window oldWindow = win->src.window;
-
 	RGFW_XCreateWindow(visual, "", win->internal.flags, win);
 
 	if (showWindow) {
