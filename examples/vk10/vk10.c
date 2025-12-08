@@ -65,11 +65,29 @@ int main(void) {
   while (running && !RGFW_window_isKeyPressed(win, RGFW_escape)) {
     RGFW_event event;
     while (RGFW_window_checkEvent(win, &event)) {
-      if (event.type == RGFW_quit) {
-        running = 0;
-        break;
-      }
-    }
+		if (event.type == RGFW_quit) {
+			running = 0;
+			break;
+		}
+
+		if (event.type == RGFW_windowResized) {
+			/* this is terrible don't really do it this way
+			 * I mean most of this example is probably terrible for Vulkan + C anyway
+			 * I don't know what I'm doing with Vulkan
+			 * */
+			if (vkinit_vulkan_info != NULL)
+				freeVulkan(&ctx);
+
+			int res = initVulkanDevice(win, &ctx);
+			if (res == 0) {
+				vkinit_vulkan_info = initVulkan(&ctx);
+
+				if (vkinit_vulkan_info != NULL)
+					createGraphicsPipeline(&ctx);
+				else return 0;
+			}
+		}
+	}
 
     if (vkinit_vulkan_info != NULL) {
       draw_frame(&ctx);
