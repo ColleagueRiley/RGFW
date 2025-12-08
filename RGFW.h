@@ -12800,7 +12800,7 @@ EM_BOOL Emscripten_on_fullscreenchange(int eventType, const EmscriptenFullscreen
 EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(E);
 
-	if ((_RGFW->root->internal.holdMouse) {
+	if (_RGFW->root->internal.holdMouse) {
 		RGFW_window_holdMouse(_RGFW->root);
 	}
 
@@ -12817,7 +12817,7 @@ EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void
 EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(E);
 
-	if ((_RGFW->root->internal.holdMouse) && win == _RGFW->mouseOwner) {
+	if ((_RGFW->root->internal.holdMouse) && _RGFW->root == _RGFW->mouseOwner) {
 		RGFW_window_unholdMouse(_RGFW->root);
 		_RGFW->root->internal.holdMouse = RGFW_TRUE;
 	}
