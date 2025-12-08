@@ -3545,27 +3545,26 @@ RGFW_bool RGFW_loadEGL(void) { return RGFW_FALSE; }
 #endif
 
 void RGFW_window_setFlagsInternal(RGFW_window* win, RGFW_windowFlags flags, RGFW_windowFlags cmpFlags) {
-	#ifndef RGFW_NO_MONITOR
-	if (flags & RGFW_windowScaleToMonitor)			RGFW_window_scaleToMonitor(win);
-	#endif
-
-	if (flags & RGFW_windowCenter)					RGFW_window_center(win);
-	if (flags & RGFW_windowCenterCursor) RGFW_window_moveMouse(win, win->x + (win->w / 2), win->y + (win->h / 2));
-	if (flags & RGFW_windowNoBorder)				RGFW_window_setBorder(win, 0);
-	else if (cmpFlags & RGFW_windowNoBorder) RGFW_window_setBorder(win, 1);
-	if (flags & RGFW_windowFullscreen)				RGFW_window_setFullscreen(win, RGFW_TRUE);
-	else if (cmpFlags & RGFW_windowFullscreen) 	RGFW_window_setFullscreen(win, 0);
-	if (flags & RGFW_windowMaximize)				RGFW_window_maximize(win);
-	else if (cmpFlags & RGFW_windowMaximize) 	RGFW_window_restore(win);
-	if (flags & RGFW_windowMinimize)				RGFW_window_minimize(win);
-	else if (cmpFlags & RGFW_windowMinimize) 	RGFW_window_restore(win);
-	if (flags & RGFW_windowHideMouse)				RGFW_window_showMouse(win, 0);
-	else if (cmpFlags & RGFW_windowHideMouse)  	RGFW_window_showMouse(win, 1);
-	if (flags & RGFW_windowHide)				RGFW_window_hide(win);
-	else if (cmpFlags & RGFW_windowHide)  		RGFW_window_show(win);
-	if (flags & RGFW_windowFloating)				RGFW_window_setFloating(win, 1);
-	else if (cmpFlags & RGFW_windowFloating)		RGFW_window_setFloating(win, 0);
-	if (flags & RGFW_windowFocus)					RGFW_window_focus(win);
+	if (flags & RGFW_windowNoBorder)            RGFW_window_setBorder(win, 0);
+	else if (cmpFlags & RGFW_windowNoBorder)    RGFW_window_setBorder(win, 1);
+#ifndef RGFW_NO_MONITOR
+	if (flags & RGFW_windowScaleToMonitor)      RGFW_window_scaleToMonitor(win);
+#endif
+	if (flags & RGFW_windowMaximize)            RGFW_window_maximize(win);
+	else if (cmpFlags & RGFW_windowMaximize)    RGFW_window_restore(win);
+	if (flags & RGFW_windowMinimize)            RGFW_window_minimize(win);
+	else if (cmpFlags & RGFW_windowMinimize)    RGFW_window_restore(win);
+	if (flags & RGFW_windowCenter)              RGFW_window_center(win);
+	if (flags & RGFW_windowCenterCursor)        RGFW_window_moveMouse(win, win->x + (win->w / 2), win->y + (win->h / 2));
+	if (flags & RGFW_windowFullscreen)          RGFW_window_setFullscreen(win, RGFW_TRUE);
+	else if (cmpFlags & RGFW_windowFullscreen)  RGFW_window_setFullscreen(win, 0);
+	if (flags & RGFW_windowHideMouse)           RGFW_window_showMouse(win, 0);
+	else if (cmpFlags & RGFW_windowHideMouse)   RGFW_window_showMouse(win, 1);
+	if (flags & RGFW_windowHide)                RGFW_window_hide(win);
+	else if (cmpFlags & RGFW_windowHide)        RGFW_window_show(win);
+	if (flags & RGFW_windowFloating)            RGFW_window_setFloating(win, 1);
+	else if (cmpFlags & RGFW_windowFloating)    RGFW_window_setFloating(win, 0);
+	if (flags & RGFW_windowFocus)               RGFW_window_focus(win);
 
 	if (flags & RGFW_windowNoResize) {
 	    RGFW_window_setMaxSize(win, win->w, win->h);
@@ -6060,7 +6059,8 @@ void RGFW_XHandleEvent(void) {
 		}
 		case FocusIn:
 			if ((win->internal.flags & RGFW_windowFullscreen))
-				XMapRaised(_RGFW->display, win->src.window);
+				RGFW_window_raise(win);
+
 			if ((win->internal.holdMouse)) RGFW_window_holdMouse(win);
 
 			if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
@@ -6277,33 +6277,37 @@ void RGFW_FUNC(RGFW_window_maximize) (RGFW_window* win) {
 void RGFW_FUNC(RGFW_window_focus) (RGFW_window* win) {
 	RGFW_ASSERT(win);
 
+	XWindowAttributes attr;
+	XGetWindowAttributes(_RGFW->display, win->src.window, &attr);
+	if (attr.map_state != IsViewable) return;
+
 	XSetInputFocus(_RGFW->display, win->src.window, RevertToPointerRoot, CurrentTime);
 	XFlush(_RGFW->display);
 }
 
 void RGFW_FUNC(RGFW_window_raise) (RGFW_window* win) {
 	RGFW_ASSERT(win);
-    XRaiseWindow(_RGFW->display, win->src.window);
 	XMapRaised(_RGFW->display, win->src.window);
+	RGFW_window_setFullscreen(win, RGFW_window_isFullscreen(win));
 }
 
 void RGFW_window_setXAtom(RGFW_window* win, Atom netAtom, RGFW_bool fullscreen);
 void RGFW_window_setXAtom(RGFW_window* win, Atom netAtom, RGFW_bool fullscreen) {
 	RGFW_ASSERT(win != NULL);
-    RGFW_LOAD_ATOM(_NET_WM_STATE);
+	RGFW_LOAD_ATOM(_NET_WM_STATE);
 
 	XEvent xev = {0};
-    xev.xclient.type = ClientMessage;
-    xev.xclient.serial = 0;
-    xev.xclient.send_event = True;
-    xev.xclient.message_type = _NET_WM_STATE;
-    xev.xclient.window = win->src.window;
-    xev.xclient.format = 32;
-    xev.xclient.data.l[0] = fullscreen;
-    xev.xclient.data.l[1] = (long int)netAtom;
-    xev.xclient.data.l[2] = 0;
+	xev.xclient.type = ClientMessage;
+	xev.xclient.serial = 0;
+	xev.xclient.send_event = True;
+	xev.xclient.message_type = _NET_WM_STATE;
+	xev.xclient.window = win->src.window;
+	xev.xclient.format = 32;
+	xev.xclient.data.l[0] = fullscreen;
+	xev.xclient.data.l[1] = (long int)netAtom;
+	xev.xclient.data.l[2] = 0;
 
-    XSendEvent(_RGFW->display, DefaultRootWindow(_RGFW->display), False, SubstructureNotifyMask | SubstructureRedirectMask, &xev);
+	XSendEvent(_RGFW->display, DefaultRootWindow(_RGFW->display), False, SubstructureNotifyMask | SubstructureRedirectMask, &xev);
 }
 
 void RGFW_FUNC(RGFW_window_setFullscreen)(RGFW_window* win, RGFW_bool fullscreen) {
@@ -6317,12 +6321,20 @@ void RGFW_FUNC(RGFW_window_setFullscreen)(RGFW_window* win, RGFW_bool fullscreen
 		win->internal.oldH = win->h;
 	}
 	else win->internal.flags &= ~(u32)RGFW_windowFullscreen;
-	RGFW_LOAD_ATOM(_NET_WM_STATE_FULLSCREEN);
-
-	RGFW_window_setXAtom(win, _NET_WM_STATE_FULLSCREEN, fullscreen);
 
 	XRaiseWindow(_RGFW->display, win->src.window);
-	XMapRaised(_RGFW->display, win->src.window);
+
+	RGFW_LOAD_ATOM(_NET_WM_STATE_FULLSCREEN);
+	RGFW_window_setXAtom(win, _NET_WM_STATE_FULLSCREEN, fullscreen);
+
+	if (!(win->internal.flags & RGFW_windowTransparent)) {
+		const unsigned char value = fullscreen;
+		RGFW_LOAD_ATOM(_NET_WM_BYPASS_COMPOSITOR);
+		XChangeProperty(
+			_RGFW->display, win->src.window,
+			_NET_WM_BYPASS_COMPOSITOR, XA_CARDINAL, 32,
+			PropModeReplace, &value, 1);
+	}
 }
 
 void RGFW_FUNC(RGFW_window_setFloating)(RGFW_window* win, RGFW_bool floating) {
@@ -6556,8 +6568,9 @@ void RGFW_FUNC(RGFW_window_show) (RGFW_window* win) {
 
 	XMapWindow(_RGFW->display, win->src.window);
 	RGFW_window_move(win, win->x, win->y);
-
+  
 	RGFW_waitForShowEvent_X11(win);
+	RGFW_window_setFullscreen(win, RGFW_window_isFullscreen(win));
 	return;
 }
 
@@ -9838,8 +9851,8 @@ void RGFW_window_setMaxSize(RGFW_window* win, i32 w, i32 h) {
 
 void RGFW_window_focus(RGFW_window* win) {
 	RGFW_ASSERT(win);
-    SetForegroundWindow(win->src.window);
-    SetFocus(win->src.window);
+	SetForegroundWindow(win->src.window);
+	SetFocus(win->src.window);
 }
 
 void RGFW_window_raise(RGFW_window* win) {
