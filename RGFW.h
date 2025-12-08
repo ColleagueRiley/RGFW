@@ -6067,7 +6067,9 @@ void RGFW_XHandleEvent(void) {
 			if ((win->internal.flags & RGFW_windowFullscreen))
 				RGFW_window_raise(win);
 
-			if ((win->internal.holdMouse)) RGFW_window_holdMouse(win);
+			if ((win->internal.holdMouse) && win == _RGFW->mouseOwner) {
+				RGFW_window_holdMouse(win);
+			}
 
 			if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
 			win->internal.inFocus = RGFW_TRUE;
@@ -6076,6 +6078,11 @@ void RGFW_XHandleEvent(void) {
 
 			break;
 		case FocusOut:
+			if ((win->internal.holdMouse) && win == _RGFW->mouseOwner) {
+				RGFW_window_unholdMouse(win);
+				win->internal.holdMouse = RGFW_TRUE;
+			}
+
 			if (!(win->internal.enabledEvents & RGFW_focusOutFlag)) return;
 			event.type = RGFW_focusOut;
 			RGFW_focusCallback(win, 0);
@@ -7736,6 +7743,10 @@ static void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 	RGFW->kbOwner = win;
 
+	if ((win->internal.holdMouse) && win == _RGFW->mouseOwner) {
+		RGFW_window_holdMouse(win);
+	}
+
 	// this is to prevent race conditions
 	if (RGFW->data_device != NULL && win->src.data_source != NULL) {
 		wl_data_device_set_selection(RGFW->data_device, win->src.data_source, serial);
@@ -7749,8 +7760,6 @@ static void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32
 	win->internal.inFocus = RGFW_TRUE;
 	RGFW_eventQueuePushEx(e.type = RGFW_focusIn; e.common.win = win);
 	RGFW_focusCallback(win, RGFW_TRUE);
-
-	if ((win->internal.holdMouse)) RGFW_window_holdMouse(win);
 }
 
 static void RGFW_wl_keyboard_leave(void* data, struct wl_keyboard *keyboard, u32 serial, struct wl_surface *surface) {
@@ -7760,6 +7769,11 @@ static void RGFW_wl_keyboard_leave(void* data, struct wl_keyboard *keyboard, u32
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 	if (RGFW->kbOwner == win)
 		RGFW->kbOwner = NULL;
+
+	if ((win->internal.holdMouse) && win == _RGFW->mouseOwner) {
+		RGFW_window_unholdMouse(win);
+		win->internal.holdMouse = RGFW_TRUE;
+	}
 
 	if (!(win->internal.enabledEvents & RGFW_focusOutFlag)) return;
 
@@ -11288,9 +11302,11 @@ static void RGFW__osxWindowBecameKey(id self, SEL sel) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
+	if ((win->internal.holdMouse) && win == _RGFW->mouseOwner) {
+		RGFW_window_holdMouse(win);
+	}
 
 	win->internal.inFocus = RGFW_TRUE;
-	if ((win->internal.holdMouse)) RGFW_window_holdMouse(win);
 	if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_focusIn; e.common.win = win);
@@ -11302,6 +11318,11 @@ static void RGFW__osxWindowResignKey(id self, SEL sel) {
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
+
+	if ((win->internal.holdMouse) && win == _RGFW->mouseOwner) {
+		RGFW_window_unholdMouse(win);
+		win->internal.holdMouse = RGFW_TRUE;
+	}
 
     RGFW_window_focusLost(win);
 	if (!(win->internal.enabledEvents & RGFW_focusOutFlag)) return;
@@ -12779,6 +12800,10 @@ EM_BOOL Emscripten_on_fullscreenchange(int eventType, const EmscriptenFullscreen
 EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(E);
 
+	if ((_RGFW->root->internal.holdMouse) {
+		RGFW_window_holdMouse(_RGFW->root);
+	}
+
 	if (!(_RGFW->root->internal.enabledEvents & RGFW_focusInFlag)) return EM_TRUE;
 
 	RGFW_eventQueuePushEx(e.type = RGFW_focusIn; e.common.win = _RGFW->root);
@@ -12791,6 +12816,11 @@ EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void
 
 EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(E);
+
+	if ((_RGFW->root->internal.holdMouse) && win == _RGFW->mouseOwner) {
+		RGFW_window_unholdMouse(_RGFW->root);
+		_RGFW->root->internal.holdMouse = RGFW_TRUE;
+	}
 
 	if (!(_RGFW->root->internal.enabledEvents & RGFW_focusOutFlag)) return EM_TRUE;
 
