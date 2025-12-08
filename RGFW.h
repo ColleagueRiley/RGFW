@@ -5076,7 +5076,7 @@ void RGFW_deinitPlatform(void) {
 #endif
 }
 
-static size_t RGFW_unix_stringlen(char* name) {
+static size_t RGFW_unix_stringlen(const char* name) {
 	size_t i = 0;
     while (name[i]) { i++; }
 	return i;
@@ -6414,7 +6414,7 @@ void RGFW_FUNC(RGFW_window_setName)(RGFW_window* win, const char* name) {
 
     XChangeProperty(
 		_RGFW->display, win->src.window, _NET_WM_NAME, UTF8_STRING,
-		8, PropModeReplace, (u8*)name, RGFW_unix_stringlen(name)
+		8, PropModeReplace, (u8*)name, (int)RGFW_unix_stringlen(name)
 	);
 }
 
@@ -6570,7 +6570,7 @@ void RGFW_FUNC(RGFW_window_show) (RGFW_window* win) {
 
 	XMapWindow(_RGFW->display, win->src.window);
 	RGFW_window_move(win, win->x, win->y);
-  
+
 	RGFW_waitForShowEvent_X11(win);
 	RGFW_window_setFullscreen(win, RGFW_window_isFullscreen(win));
 	return;
