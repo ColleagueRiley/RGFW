@@ -3366,6 +3366,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 
 	RGFW_window_setName(win, name);
 	if (!(flags & RGFW_windowHide)) {
+		flags |= RGFW_windowHide;
 		RGFW_window_show(win);
 	}
 
@@ -5208,6 +5209,16 @@ void RGFW_setXInstName(const char* name) { _RGFW->instName = name; }
 		void* X11Cursorhandle = NULL;
 #endif
 
+RGFWDEF RGFW_bool RGFW_waitForShowEvent_X11(RGFW_window* win);
+RGFW_bool RGFW_waitForShowEvent_X11(RGFW_window* win) {
+    XEvent dummy;
+    while (!XCheckTypedWindowEvent(_RGFW->display, win->src.window, VisibilityNotify, &dummy)) {
+		RGFW_waitForEvent(100);
+    }
+
+	return RGFW_TRUE;
+}
+
 void* RGFW_getDisplay_X11(void) { return _RGFW->display; }
 u64 RGFW_window_getWindow_X11(RGFW_window* win) { return (u64)win->src.window; }
 
@@ -6541,15 +6552,24 @@ RGFW_bool RGFW_FUNC(RGFW_window_setMouseStandard) (RGFW_window* win, u8 mouse) {
 }
 
 void RGFW_FUNC(RGFW_window_hide)(RGFW_window* win) {
+	win->internal.flags |= (u32)RGFW_windowHide;
 	XUnmapWindow(_RGFW->display, win->src.window);
+
+	XFlush(_RGFW->display);
 }
 
 void RGFW_FUNC(RGFW_window_show) (RGFW_window* win) {
 	win->internal.flags &= ~(u32)RGFW_windowHide;
 	if (win->internal.flags & RGFW_windowFocusOnShow) RGFW_window_focus(win);
 
+	if (RGFW_window_isHidden(win) == RGFW_FALSE) {
+		return;
+	}
+
 	XMapWindow(_RGFW->display, win->src.window);
 	RGFW_window_move(win, win->x, win->y);
+  
+	RGFW_waitForShowEvent_X11(win);
 	RGFW_window_setFullscreen(win, RGFW_window_isFullscreen(win));
 	return;
 }
@@ -6654,7 +6674,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_isHidden)(RGFW_window* win) {
 	XWindowAttributes windowAttributes;
 	XGetWindowAttributes(_RGFW->display, win->src.window, &windowAttributes);
 
-	return (windowAttributes.map_state == IsUnmapped && !RGFW_window_isMinimized(win));
+	return (windowAttributes.map_state != IsViewable);
 }
 
 RGFW_bool RGFW_FUNC(RGFW_window_isMinimized)(RGFW_window* win) {
