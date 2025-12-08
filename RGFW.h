@@ -3366,6 +3366,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 
 	RGFW_window_setName(win, name);
 	if (!(flags & RGFW_windowHide)) {
+		flags |= RGFW_windowHide;
 		RGFW_window_show(win);
 	}
 
@@ -6276,10 +6277,6 @@ void RGFW_FUNC(RGFW_window_maximize) (RGFW_window* win) {
 void RGFW_FUNC(RGFW_window_focus) (RGFW_window* win) {
 	RGFW_ASSERT(win);
 
-    XWindowAttributes attr;
-    XGetWindowAttributes(_RGFW->display, win->src.window, &attr);
-    if (attr.map_state != IsViewable) return;
-
 	XSetInputFocus(_RGFW->display, win->src.window, RevertToPointerRoot, CurrentTime);
 	XFlush(_RGFW->display);
 }
@@ -6553,7 +6550,7 @@ void RGFW_FUNC(RGFW_window_show) (RGFW_window* win) {
 	win->internal.flags &= ~(u32)RGFW_windowHide;
 	if (win->internal.flags & RGFW_windowFocusOnShow) RGFW_window_focus(win);
 
-	if (RGFW_window_isHidden(win) == RGFW_TRUE) {
+	if (RGFW_window_isHidden(win) == RGFW_FALSE) {
 		return;
 	}
 
@@ -6664,7 +6661,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_isHidden)(RGFW_window* win) {
 	XWindowAttributes windowAttributes;
 	XGetWindowAttributes(_RGFW->display, win->src.window, &windowAttributes);
 
-	return (windowAttributes.map_state == IsUnmapped && !RGFW_window_isMinimized(win));
+	return (windowAttributes.map_state != IsViewable);
 }
 
 RGFW_bool RGFW_FUNC(RGFW_window_isMinimized)(RGFW_window* win) {
