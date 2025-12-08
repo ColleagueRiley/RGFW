@@ -5076,6 +5076,12 @@ void RGFW_deinitPlatform(void) {
 #endif
 }
 
+static size_t RGFW_unix_stringlen(const char* name) {
+	size_t i = 0;
+    while (name[i]) { i++; }
+	return i;
+}
+
 #endif /* end of wayland or X11 defines */
 
 
@@ -6406,13 +6412,9 @@ void RGFW_FUNC(RGFW_window_setName)(RGFW_window* win, const char* name) {
 
 	RGFW_LOAD_ATOM(_NET_WM_NAME); RGFW_LOAD_ATOM(UTF8_STRING);
 
-    char buf[256];
-    RGFW_MEMSET(buf, 0, sizeof(buf));
-    RGFW_STRNCPY(buf, name, sizeof(buf) - 1);
-
     XChangeProperty(
 		_RGFW->display, win->src.window, _NET_WM_NAME, UTF8_STRING,
-		8, PropModeReplace, (u8*)buf, sizeof(buf)
+		8, PropModeReplace, (u8*)name, (int)RGFW_unix_stringlen(name)
 	);
 }
 
@@ -6568,7 +6570,7 @@ void RGFW_FUNC(RGFW_window_show) (RGFW_window* win) {
 
 	XMapWindow(_RGFW->display, win->src.window);
 	RGFW_window_move(win, win->x, win->y);
-  
+
 	RGFW_waitForShowEvent_X11(win);
 	RGFW_window_setFullscreen(win, RGFW_window_isFullscreen(win));
 	return;
@@ -8112,18 +8114,12 @@ static void RGFW_wl_randname(char *buf) {
 	}
 }
 
-static size_t RGFW_wl_stringlen(char* name) {
-	size_t i = 0;
-    while (name[i]) { i++; }
-	return i;
-}
-
 static int RGFW_wl_anonymous_shm_open(void) {
 	char name[] = "/RGFW-wayland-XXXXXX";
 	int retries = 100;
 
 	do {
-		RGFW_wl_randname(name + RGFW_wl_stringlen(name) - 6);
+		RGFW_wl_randname(name + RGFW_unix_stringlen(name) - 6);
 
 		--retries;
 		/* shm_open guarantees that O_CLOEXEC is set */
