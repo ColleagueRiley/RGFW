@@ -5360,6 +5360,8 @@ void RGFW_FUNC(RGFW_releaseCursor) (RGFW_window* win) {
 }
 
 void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
+	RGFW_window_moveMouse(win, win->x + (i32)(win->w / 2), win->y + (i32)(win->h / 2));
+
 	/* enable raw input */
 	unsigned char mask[XIMaskLen(XI_RawMotion)] = { 0 };
 	XISetMask(mask, XI_RawMotion);
@@ -5372,8 +5374,7 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
 	XISelectEvents(_RGFW->display, XDefaultRootWindow(_RGFW->display), &em, 1);
 
 	unsigned int event_mask = ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
-	XGrabPointer(_RGFW->display, win->src.window, False, event_mask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
-	RGFW_window_moveMouse(win, win->x + (i32)(win->w / 2), win->y + (i32)(win->h / 2));
+	XGrabPointer(_RGFW->display, win->src.window, True, event_mask, GrabModeAsync, GrabModeAsync, win->src.window, None, CurrentTime);
 }
 
 #define RGFW_LOAD_LIBRARY(x, lib) if (x == NULL) x = dlopen(lib, RTLD_LAZY | RTLD_LOCAL)
@@ -5680,7 +5681,6 @@ void RGFW_XHandleEvent(void) {
 				event.mouse.y = win->internal.lastMouseY + (i32)event.mouse.vecY;
 				win->internal.lastMouseX = event.mouse.x;
 				win->internal.lastMouseY = event.mouse.y;
-				RGFW_window_moveMouse(win, win->x + (win->w / 2), win->y + (win->h / 2));
 
 				event.type = RGFW_mousePosChanged;
 				RGFW_mousePosCallback(win, event.mouse.x, event.mouse.y, (float)event.mouse.vecX, (float)event.mouse.vecY);
@@ -6103,6 +6103,7 @@ void RGFW_XHandleEvent(void) {
 			if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
 				RGFW_window_setRawMouseMode(win, RGFW_FALSE);
 				win->internal.rawMouse = RGFW_TRUE;
+				_RGFW->mouseOwner = win;
 			}
 
 			if (!(win->internal.enabledEvents & RGFW_focusOutFlag)) return;
@@ -7795,6 +7796,7 @@ static void RGFW_wl_keyboard_leave(void* data, struct wl_keyboard *keyboard, u32
 	if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
 		RGFW_window_setRawMouseMode(win, RGFW_FALSE);
 		win->internal.rawMouse = RGFW_TRUE;
+		_RGFW->mouseOwner = win;
 	}
 
 	if (!(win->internal.enabledEvents & RGFW_focusOutFlag)) return;
@@ -11344,6 +11346,7 @@ static void RGFW__osxWindowResignKey(id self, SEL sel) {
 	if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
 		RGFW_window_setRawMouseMode(win, RGFW_FALSE);
 		win->internal.rawMouse = RGFW_TRUE;
+		_RGFW->mouseOwner = win;
 	}
 
     RGFW_window_focusLost(win);
@@ -12841,6 +12844,7 @@ EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* E, voi
 	if ((_RGFW->root->internal.rawMouse) && _RGFW->root == _RGFW->mouseOwner) {
 		RGFW_window_setRawMouseMode(_RGFW->root, RGFW_FALSE);
 		_RGFW->root->internal.rawMouse = RGFW_TRUE;
+		_RGFW->mouseOwner = win;
 	}
 
 	if (!(_RGFW->root->internal.enabledEvents & RGFW_focusOutFlag)) return EM_TRUE;
