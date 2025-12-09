@@ -621,7 +621,7 @@ typedef RGFW_ENUM(u8, RGFW_keymod) {
 /*! @brief codes for the event types that can be sent */
 typedef RGFW_ENUM(u8, RGFW_eventType) {
 	RGFW_eventNone = 0, /*!< no event has been sent */
- 	RGFW_keyPressed, /* a key has been pressed */
+ 	RGFW_keyPressed, /*!< a key has been pressed */
 	RGFW_keyReleased, /*!< a key has been released */
 	/*! key event note
 		the code of the key pressed is stored in
@@ -946,6 +946,7 @@ typedef RGFW_ENUM(i32, RGFW_glReleaseBehavior)   {
 /*! values for the profile hint */
 typedef RGFW_ENUM(i32, RGFW_glProfile)  {
 	RGFW_glCore = 0, /*!< the core OpenGL version, e.g. just support for that version */
+	RGFW_glForwardCompatibility, /*!< allow compatibility for older versions of OpenGL as well as the requested version */
 	RGFW_glCompatibility, /*!< allow compatibility for older versions of OpenGL as well as the requested version */
 	RGFW_glES /*!< use OpenGL ES */
 };
@@ -4531,7 +4532,10 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 			RGFW_attribStack_pushAttribs(&stack, EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT);
 		} else if (hints->profile == RGFW_glCompatibility) {
 			RGFW_attribStack_pushAttribs(&stack, EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT);
+		} else if (hints->profile == RGFW_glForwardCompatibility) {
+			RGFW_attribStack_pushAttribs(&stack, EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE, EGL_TRUE);
 		}
+
 
 		RGFW_attribStack_pushAttribs(&stack, EGL_CONTEXT_OPENGL_ROBUST_ACCESS, hints->robustness);
 		RGFW_attribStack_pushAttribs(&stack, EGL_CONTEXT_OPENGL_DEBUG, hints->debug);
@@ -7105,6 +7109,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 	i32 mask = 0;
 	switch (hints->profile) {
 		case RGFW_glES: mask |= GLX_CONTEXT_ES_PROFILE_BIT_EXT; break;
+		case RGFW_glForwardCompatibility: mask |= GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB; break;
 		case RGFW_glCompatibility: mask |= GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB; break;
 		case RGFW_glCore: mask |= GLX_CONTEXT_CORE_PROFILE_BIT_ARB; break;
 		default: mask |= GLX_CONTEXT_CORE_PROFILE_BIT_ARB; break;
@@ -10545,6 +10550,7 @@ void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 #define WGL_CONTEXT_PROFILE_MASK_ARB               0x9126
 #define WGL_CONTEXT_CORE_PROFILE_BIT_ARB            0x00000001
 #define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB   0x00000002
+#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x00000002
 #define WGL_CONTEXT_MAJOR_VERSION_ARB               0x2091
 #define WGL_CONTEXT_MINOR_VERSION_ARB               0x2092
 #define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB             0x20A9
@@ -10638,6 +10644,7 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 		switch (hints->profile) {
 			case RGFW_glES: mask |= WGL_CONTEXT_ES_PROFILE_BIT_EXT; break;
 			case RGFW_glCompatibility: mask |= WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB; break;
+			case RGFW_glForwardCompatibility: mask |= WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB; break;
 			case RGFW_glCore: mask |= WGL_CONTEXT_CORE_PROFILE_BIT_ARB; break;
 			default: mask |= WGL_CONTEXT_CORE_PROFILE_BIT_ARB; break;
 		}
