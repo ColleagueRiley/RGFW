@@ -827,17 +827,25 @@ RGFW.h
 .br
 .RI "Sets the mouse to the default cursor icon\&. "
 .ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setRawMouseMode\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP state)"
+.br
+.RI "set (enable or disable) raw mouse mode, locking the cursor and using mouse raw input\&. "
+.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_holdMouse\fP (\fBRGFW_window\fP *win)"
 .br
 .RI "Locks the cursor to the center of the window\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isHoldingMouse\fP (\fBRGFW_window\fP *win)"
-.br
-.RI "Returns true if the mouse is currently held by RGFW\&. "
-.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_unholdMouse\fP (\fBRGFW_window\fP *win)"
 .br
 .RI "Releases the mouse so it can move freely again\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isRawMouseMode\fP (\fBRGFW_window\fP *win)"
+.br
+.RI "Returns true if the mouse is currently held by RGFW\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isHoldingMouse\fP (\fBRGFW_window\fP *win)"
+.br
+.RI "Returns true if the mouse is currently held by RGFW\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_hide\fP (\fBRGFW_window\fP *win)"
 .br
@@ -1423,6 +1431,8 @@ the window should hide the mouse (can be toggled later on using \fCRGFW_window_s
 < the window is transparent (only properly works on X11 and MacOS, although it's meant for for windows)
 .PP
 center the window on the screen
+.PP
+< use raw mouse mouse on window creation
 .PP
 scale the window to the screen
 .PP

@@ -802,6 +802,7 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowFullscreen = RGFW_BIT(4), /*!< the window is fullscreen by default */
 	RGFW_windowTransparent = RGFW_BIT(5), /*!< the window is transparent (only properly works on X11 and MacOS, although it's meant for for windows) */
 	RGFW_windowCenter = RGFW_BIT(6), /*! center the window on the screen */
+	RGFW_windowRawMouse = RGFW_BIT(7), /*!< use raw mouse mouse on window creation */
 	RGFW_windowScaleToMonitor = RGFW_BIT(8), /*! scale the window to the screen */
 	RGFW_windowHide = RGFW_BIT(9), /*! the window is hidden */
 	RGFW_windowMaximize = RGFW_BIT(10), /*!< maximize the window on creation */
@@ -1810,26 +1811,43 @@ RGFWDEF RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, RGFW_mouseIcons
 RGFWDEF RGFW_bool RGFW_window_setMouseDefault(RGFW_window* win);
 
 /**!
+ * @brief set (enable or disable) raw mouse mode, locking the cursor and using mouse raw input.
+ * @param win The target window.
+ * @param the boolean state of raw mouse mode
+ *
+*/
+RGFWDEF void RGFW_window_setRawMouseMode(RGFW_window* win, RGFW_bool state);
+
+
+/**!
  * @brief Locks the cursor to the center of the window.
  * @param win The target window.
+ * @warning this function is deprecated and will be replaced by RGFW_window_setRawMouseMode in RGFW 2.0
  *
- * While the cursor is held, X and Y report raw mouse movement data.
- * Useful for 3D camera or first-person movement systems.
 */
 RGFWDEF void RGFW_window_holdMouse(RGFW_window* win);
+
+/**!
+ * @brief Releases the mouse so it can move freely again.
+ * @param win The target window.
+ * @warning this function is deprecated and will be replaced by RGFW_window_setRawMouseMode in RGFW 2.0
+*/
+RGFWDEF void RGFW_window_unholdMouse(RGFW_window* win);
 
 /**!
  * @brief Returns true if the mouse is currently held by RGFW.
  * @param win The target window.
  * @return True if the mouse is being held.
 */
-RGFWDEF RGFW_bool RGFW_window_isHoldingMouse(RGFW_window* win);
+RGFWDEF RGFW_bool RGFW_window_isRawMouseMode(RGFW_window* win);
 
 /**!
- * @brief Releases the mouse so it can move freely again.
+ * @brief Returns true if the mouse is currently held by RGFW.
  * @param win The target window.
+ * @return True if the mouse is being held.
+ * @warning this function is deprecated and will be replaced by RGFW_window_isHoldingMouse in RGFW 2.0
 */
-RGFWDEF void RGFW_window_unholdMouse(RGFW_window* win);
+RGFWDEF RGFW_bool RGFW_window_isHoldingMouse(RGFW_window* win);
 
 /**!
  * @brief Hides the window from view.
@@ -2778,7 +2796,7 @@ typedef struct RGFW_windowInternal {
 	i32 lastMouseX, lastMouseY; /*!< last cusor point (for raw mouse data) */
 
 	RGFW_bool shouldClose;
-	RGFW_bool holdMouse;
+	RGFW_bool rawMouse;
 	RGFW_bool inFocus;
 	RGFW_bool mouseInside;
 	RGFW_keymod mod;
@@ -3564,6 +3582,8 @@ void RGFW_window_setFlagsInternal(RGFW_window* win, RGFW_windowFlags flags, RGFW
 	else if (cmpFlags & RGFW_windowHide)        RGFW_window_show(win);
 	if (flags & RGFW_windowFloating)            RGFW_window_setFloating(win, 1);
 	else if (cmpFlags & RGFW_windowFloating)    RGFW_window_setFloating(win, 0);
+	if (flags & RGFW_windowRawMouse)			RGFW_window_setRawMouseMode(win, RGFW_TRUE);
+	else if (cmpFlags & RGFW_windowRawMouse)	RGFW_window_setRawMouseMode(win, RGFW_FALSE);
 	if (flags & RGFW_windowFocus)               RGFW_window_focus(win);
 
 	if (flags & RGFW_windowNoResize) {
@@ -3829,20 +3849,22 @@ RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_for
 	return RGFW_window_setIconEx(win, data, w, h, format, RGFW_iconBoth);
 }
 
-void RGFW_window_holdMouse(RGFW_window* win) {
-	win->internal.holdMouse = RGFW_TRUE;
-	_RGFW->mouseOwner = win;
-	RGFW_captureCursor(win);
-	RGFW_window_moveMouse(win, win->x + (win->w / 2), win->y + (win->h / 2));
+void RGFW_window_setRawMouseMode(RGFW_window* win, RGFW_bool state) {
+	win->internal.rawMouse = state;
+	_RGFW->mouseOwner = (state) ? win : NULL;
+	if (state == RGFW_TRUE) {
+		RGFW_captureCursor(win);
+		RGFW_window_moveMouse(win, win->x + (win->w / 2), win->y + (win->h / 2));
+	} else if (state == RGFW_FALSE) {
+		RGFW_releaseCursor(win);
+	}
 }
 
-RGFW_bool RGFW_window_isHoldingMouse(RGFW_window* win) { return RGFW_BOOL(win->internal.holdMouse); }
+void RGFW_window_holdMouse(RGFW_window* win) { RGFW_window_setRawMouseMode(win, RGFW_TRUE); }
+void RGFW_window_unholdMouse(RGFW_window* win) { RGFW_window_setRawMouseMode(win, RGFW_FALSE); }
 
-void RGFW_window_unholdMouse(RGFW_window* win) {
-	win->internal.holdMouse = RGFW_FALSE;
-	_RGFW->mouseOwner = NULL;
-	RGFW_releaseCursor(win);
-}
+RGFW_bool RGFW_window_isRawMouseMode(RGFW_window* win) { return RGFW_BOOL(win->internal.rawMouse); }
+RGFW_bool RGFW_window_isHoldingMouse(RGFW_window* win) { return RGFW_window_isRawMouseMode(win); }
 
 void RGFW_updateKeyMod(RGFW_window* win, RGFW_keymod mod, RGFW_bool value) {
 	if (value) win->internal.mod |= mod;
@@ -5338,6 +5360,8 @@ void RGFW_FUNC(RGFW_releaseCursor) (RGFW_window* win) {
 }
 
 void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
+	RGFW_window_moveMouse(win, win->x + (i32)(win->w / 2), win->y + (i32)(win->h / 2));
+
 	/* enable raw input */
 	unsigned char mask[XIMaskLen(XI_RawMotion)] = { 0 };
 	XISetMask(mask, XI_RawMotion);
@@ -5350,8 +5374,7 @@ void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
 	XISelectEvents(_RGFW->display, XDefaultRootWindow(_RGFW->display), &em, 1);
 
 	unsigned int event_mask = ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
-	XGrabPointer(_RGFW->display, win->src.window, False, event_mask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
-	RGFW_window_moveMouse(win, win->x + (i32)(win->w / 2), win->y + (i32)(win->h / 2));
+	XGrabPointer(_RGFW->display, win->src.window, True, event_mask, GrabModeAsync, GrabModeAsync, win->src.window, None, CurrentTime);
 }
 
 #define RGFW_LOAD_LIBRARY(x, lib) if (x == NULL) x = dlopen(lib, RTLD_LAZY | RTLD_LOCAL)
@@ -5628,7 +5651,7 @@ void RGFW_XHandleEvent(void) {
 			if (!(win->internal.enabledEvents & RGFW_BIT(RGFW_mousePosChanged))) return;
 
 			/* MotionNotify is used for mouse events if the mouse isn't held */
-			if (!(win->internal.holdMouse)) {
+			if (!(win->internal.rawMouse)) {
 				XFreeEventData(_RGFW->display, &E.xcookie);
 				return;
 			}
@@ -5658,7 +5681,6 @@ void RGFW_XHandleEvent(void) {
 				event.mouse.y = win->internal.lastMouseY + (i32)event.mouse.vecY;
 				win->internal.lastMouseX = event.mouse.x;
 				win->internal.lastMouseY = event.mouse.y;
-				RGFW_window_moveMouse(win, win->x + (win->w / 2), win->y + (win->h / 2));
 
 				event.type = RGFW_mousePosChanged;
 				RGFW_mousePosCallback(win, event.mouse.x, event.mouse.y, (float)event.mouse.vecX, (float)event.mouse.vecY);
@@ -5778,7 +5800,7 @@ void RGFW_XHandleEvent(void) {
 			RGFW_mouseButtonCallback(win, event.button.value, RGFW_FALSE);
 			break;
 		case MotionNotify:
-			if (win->internal.holdMouse) return;
+			if (win->internal.rawMouse) return;
 			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag)) return;
 			event.mouse.x = E.xmotion.x;
 			event.mouse.y = E.xmotion.y;
@@ -6067,8 +6089,8 @@ void RGFW_XHandleEvent(void) {
 			if ((win->internal.flags & RGFW_windowFullscreen))
 				RGFW_window_raise(win);
 
-			if ((win->internal.holdMouse) && win == _RGFW->mouseOwner) {
-				RGFW_window_holdMouse(win);
+			if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
+				RGFW_window_setRawMouseMode(win, RGFW_TRUE);
 			}
 
 			if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
@@ -6078,9 +6100,10 @@ void RGFW_XHandleEvent(void) {
 
 			break;
 		case FocusOut:
-			if ((win->internal.holdMouse) && win == _RGFW->mouseOwner) {
-				RGFW_window_unholdMouse(win);
-				win->internal.holdMouse = RGFW_TRUE;
+			if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
+				RGFW_window_setRawMouseMode(win, RGFW_FALSE);
+				win->internal.rawMouse = RGFW_TRUE;
+				_RGFW->mouseOwner = win;
 			}
 
 			if (!(win->internal.enabledEvents & RGFW_focusOutFlag)) return;
@@ -7345,7 +7368,7 @@ void RGFW_deinitPlatform_X11(void) {
 }
 
 void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
-	if (win->internal.holdMouse)
+	if (win->internal.rawMouse)
 		XUngrabPointer(_RGFW->display, CurrentTime);
 
 	XFreeGC(_RGFW->display, win->src.gc);
@@ -7743,8 +7766,8 @@ static void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 	RGFW->kbOwner = win;
 
-	if ((win->internal.holdMouse) && win == _RGFW->mouseOwner) {
-		RGFW_window_holdMouse(win);
+	if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
+		RGFW_window_setRawMouseMode(win, RGFW_TRUE);
 	}
 
 	// this is to prevent race conditions
@@ -7770,9 +7793,10 @@ static void RGFW_wl_keyboard_leave(void* data, struct wl_keyboard *keyboard, u32
 	if (RGFW->kbOwner == win)
 		RGFW->kbOwner = NULL;
 
-	if ((win->internal.holdMouse) && win == _RGFW->mouseOwner) {
-		RGFW_window_unholdMouse(win);
-		win->internal.holdMouse = RGFW_TRUE;
+	if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
+		RGFW_window_setRawMouseMode(win, RGFW_FALSE);
+		win->internal.rawMouse = RGFW_TRUE;
+		_RGFW->mouseOwner = win;
 	}
 
 	if (!(win->internal.enabledEvents & RGFW_focusOutFlag)) return;
@@ -9078,6 +9102,12 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_ACTIVATE: {
 			RGFW_bool inFocus = RGFW_BOOL(LOWORD(wParam) != WA_INACTIVE);
 
+			if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
+				RGFW_window_setRawMouseMode(win, inFocus);
+				win->internal.rawMouse = RGFW_TRUE;
+				_RGFW->mouseOwner = win;
+			}
+
 			win->internal.inFocus = RGFW_BOOL(inFocus);
 			if ((win->internal.enabledEvents & (RGFW_BIT(RGFW_focusIn - inFocus)))) {
 				RGFW_eventQueuePushEx(e.type = (RGFW_eventType)((u8)RGFW_focusOut - inFocus); e.common.win = win);
@@ -9270,7 +9300,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_MOUSEMOVE: {
 			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
-			if ((win->internal.holdMouse))
+			if ((win->internal.rawMouse))
 				break;
 
 
@@ -9298,7 +9328,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		case WM_INPUT: {
-			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag) || !(win->internal.holdMouse)) return DefWindowProcW(hWnd, message, wParam, lParam);
+			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag) || !(win->internal.rawMouse)) return DefWindowProcW(hWnd, message, wParam, lParam);
 			unsigned size = sizeof(RAWINPUT);
 			static RAWINPUT raw;
 
@@ -11302,8 +11332,8 @@ static void RGFW__osxWindowBecameKey(id self, SEL sel) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
-	if ((win->internal.holdMouse) && win == _RGFW->mouseOwner) {
-		RGFW_window_holdMouse(win);
+	if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
+		RGFW_window_setRawMouseMode(win, RGFW_TRUE);
 	}
 
 	win->internal.inFocus = RGFW_TRUE;
@@ -11319,9 +11349,10 @@ static void RGFW__osxWindowResignKey(id self, SEL sel) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
-	if ((win->internal.holdMouse) && win == _RGFW->mouseOwner) {
-		RGFW_window_unholdMouse(win);
-		win->internal.holdMouse = RGFW_TRUE;
+	if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
+		RGFW_window_setRawMouseMode(win, RGFW_FALSE);
+		win->internal.rawMouse = RGFW_TRUE;
+		_RGFW->mouseOwner = win;
 	}
 
     RGFW_window_focusLost(win);
@@ -12800,8 +12831,8 @@ EM_BOOL Emscripten_on_fullscreenchange(int eventType, const EmscriptenFullscreen
 EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(E);
 
-	if (_RGFW->root->internal.holdMouse) {
-		RGFW_window_holdMouse(_RGFW->root);
+	if (_RGFW->root->internal.rawMouse) {
+		RGFW_window_setRawMouseMode(_RGFW->root, RGFW_TRUE);
 	}
 
 	if (!(_RGFW->root->internal.enabledEvents & RGFW_focusInFlag)) return EM_TRUE;
@@ -12810,16 +12841,16 @@ EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void
 	_RGFW->root->internal.inFocus = RGFW_TRUE;
 	RGFW_focusCallback(_RGFW->root, 1);
 
-	if ((_RGFW->root->internal.holdMouse)) RGFW_window_holdMouse(_RGFW->root);
     return EM_TRUE;
 }
 
 EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(E);
 
-	if ((_RGFW->root->internal.holdMouse) && _RGFW->root == _RGFW->mouseOwner) {
-		RGFW_window_unholdMouse(_RGFW->root);
-		_RGFW->root->internal.holdMouse = RGFW_TRUE;
+	if ((_RGFW->root->internal.rawMouse) && _RGFW->root == _RGFW->mouseOwner) {
+		RGFW_window_setRawMouseMode(_RGFW->root, RGFW_FALSE);
+		_RGFW->root->internal.rawMouse = RGFW_TRUE;
+		_RGFW->mouseOwner = _RGFW->root;
 	}
 
 	if (!(_RGFW->root->internal.enabledEvents & RGFW_focusOutFlag)) return EM_TRUE;
