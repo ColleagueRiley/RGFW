@@ -9102,6 +9102,12 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_ACTIVATE: {
 			RGFW_bool inFocus = RGFW_BOOL(LOWORD(wParam) != WA_INACTIVE);
 
+			if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
+				RGFW_window_setRawMouseMode(win, inFocus);
+				win->internal.rawMouse = RGFW_TRUE;
+				_RGFW->mouseOwner = win;
+			}
+
 			win->internal.inFocus = RGFW_BOOL(inFocus);
 			if ((win->internal.enabledEvents & (RGFW_BIT(RGFW_focusIn - inFocus)))) {
 				RGFW_eventQueuePushEx(e.type = (RGFW_eventType)((u8)RGFW_focusOut - inFocus); e.common.win = win);
@@ -12844,7 +12850,7 @@ EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* E, voi
 	if ((_RGFW->root->internal.rawMouse) && _RGFW->root == _RGFW->mouseOwner) {
 		RGFW_window_setRawMouseMode(_RGFW->root, RGFW_FALSE);
 		_RGFW->root->internal.rawMouse = RGFW_TRUE;
-		_RGFW->mouseOwner = win;
+		_RGFW->mouseOwner = _RGFW->root;
 	}
 
 	if (!(_RGFW->root->internal.enabledEvents & RGFW_focusOutFlag)) return EM_TRUE;
