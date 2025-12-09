@@ -49,7 +49,7 @@ int main(void) {
     glPerspective(60, 16.0 / 9.0, 1.0, 1000);
     glMatrixMode(GL_MODELVIEW);
 
-    RGFW_window_holdMouse(win);
+    RGFW_window_setRawMouseMode(win, RGFW_TRUE);
 
     RGFW_event event;
     while (RGFW_window_shouldClose(win) == 0) {
@@ -58,9 +58,6 @@ int main(void) {
                 break;
 
             switch (event.type) {
-                case RGFW_focusIn:
-                    RGFW_window_holdMouse(win);
-                    break;
                case RGFW_mousePosChanged: {
                     int dev_x = event.mouse.vecX;
                     int dev_y = event.mouse.vecY;
@@ -74,12 +71,12 @@ int main(void) {
                     switch (event.key.value) {
                         case RGFW_return:
                             RGFW_window_showMouse(win, 0);
-                            RGFW_window_holdMouse(win);
+                            RGFW_window_setRawMouseMode(win, RGFW_TRUE);
                             break;
 
                         case RGFW_backSpace:
                             RGFW_window_showMouse(win, 1);
-                            RGFW_window_unholdMouse(win);
+                            RGFW_window_setRawMouseMode(win, RGFW_FALSE);
                             break;
 
                         case RGFW_left:
