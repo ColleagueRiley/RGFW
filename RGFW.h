@@ -12850,7 +12850,7 @@ EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* E, voi
 	if ((_RGFW->root->internal.rawMouse) && _RGFW->root == _RGFW->mouseOwner) {
 		RGFW_window_setRawMouseMode(_RGFW->root, RGFW_FALSE);
 		_RGFW->root->internal.rawMouse = RGFW_TRUE;
-		_RGFW->mouseOwner = win;
+		_RGFW->mouseOwner = _RGFW->root;
 	}
 
 	if (!(_RGFW->root->internal.enabledEvents & RGFW_focusOutFlag)) return EM_TRUE;
