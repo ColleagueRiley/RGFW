@@ -802,7 +802,7 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowFullscreen = RGFW_BIT(4), /*!< the window is fullscreen by default */
 	RGFW_windowTransparent = RGFW_BIT(5), /*!< the window is transparent (only properly works on X11 and MacOS, although it's meant for for windows) */
 	RGFW_windowCenter = RGFW_BIT(6), /*! center the window on the screen */
-	RGFW_windowHoldMouse = RGFW_BIT(7), /*!< hold the mouse on window creation */
+	RGFW_windowRawMouse = RGFW_BIT(7), /*!< use raw mouse mouse on window creation */
 	RGFW_windowScaleToMonitor = RGFW_BIT(8), /*! scale the window to the screen */
 	RGFW_windowHide = RGFW_BIT(9), /*! the window is hidden */
 	RGFW_windowMaximize = RGFW_BIT(10), /*!< maximize the window on creation */
@@ -3582,8 +3582,8 @@ void RGFW_window_setFlagsInternal(RGFW_window* win, RGFW_windowFlags flags, RGFW
 	else if (cmpFlags & RGFW_windowHide)        RGFW_window_show(win);
 	if (flags & RGFW_windowFloating)            RGFW_window_setFloating(win, 1);
 	else if (cmpFlags & RGFW_windowFloating)    RGFW_window_setFloating(win, 0);
-	if (flags & RGFW_windowHoldMouse)			RGFW_window_setRawMouseMode(win, RGFW_TRUE);
-	else if (cmpFlags & RGFW_windowHoldMouse)	RGFW_window_setRawMouseMode(win, RGFW_FALSE);
+	if (flags & RGFW_windowRawMouse)			RGFW_window_setRawMouseMode(win, RGFW_TRUE);
+	else if (cmpFlags & RGFW_windowRawMouse)	RGFW_window_setRawMouseMode(win, RGFW_FALSE);
 	if (flags & RGFW_windowFocus)               RGFW_window_focus(win);
 
 	if (flags & RGFW_windowNoResize) {
