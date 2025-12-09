@@ -9102,6 +9102,12 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_ACTIVATE: {
 			RGFW_bool inFocus = RGFW_BOOL(LOWORD(wParam) != WA_INACTIVE);
 
+			if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
+				RGFW_window_setRawMouseMode(win, inFocus);
+				win->internal.rawMouse = RGFW_TRUE;
+				_RGFW->mouseOwner = win;
+			}
+
 			win->internal.inFocus = RGFW_BOOL(inFocus);
 			if ((win->internal.enabledEvents & (RGFW_BIT(RGFW_focusIn - inFocus)))) {
 				RGFW_eventQueuePushEx(e.type = (RGFW_eventType)((u8)RGFW_focusOut - inFocus); e.common.win = win);
