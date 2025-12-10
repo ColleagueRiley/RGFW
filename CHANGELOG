@@ -3,12 +3,24 @@ changelog
 
 Current:
 
-Release:    RGFW 1.8.5-dev
+Release:    RGFW 1.9-dev
 -----------------------------------------------
-This release is being worked on in a fork, but will not be pushed to main until 1.8.0's offical release.
------------------------------------------------
+So far, this release is focused on fixing bugs and cleaning up aspects of RGFW's API.
 
-Release:    RGFW 1.8.0 (pre-release)
+In this PR I am redefining how RGFW handles versioning. Breaking changes are going to be left for major releases. If something is going to be renamed, the new function will be added in the minor release, and the old one will be removed in the major release. There will be a warning if a feature will be removed in the next major version. This should allow for a smooth transition between versions. Patch versions will be used for minor fixes after minor releases.
+
+-----------------------------------------------
+- add RGFW_glForwardCompatibility
+- fix documentation typos
+- add RGFW_windowRawMouse and rawMouseMode (rawMouseMode will replace holdMouse/unholdMouse in 2.0)
+- fix mouse hold/unhold on focus/unfocus
+- cleanup hacky X11 raw mouse input
+- support window resizing in the Vulkan Example
+- fix extra chars from RGFW_window_setName (X11)
+- fix window not hiding after it's first shown (X11)
+- fix fullscreen bugs when a hidden window is created (X11)
+
+Release:    RGFW 1.8.0
 -----------------------------------------------
 This release focuses on improving RGFW’s API while making its internals more stable and less prone to bugs.
 It also cleans up inconsistencies, reworks poor design choices, and removes non-essential features.
