@@ -102,7 +102,7 @@ ifeq ($(WAYLAND),1)
 	NO_VULKAN = 1
 	NO_GLES = 0
 	NO_EGL = 0
-	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1.c pointer-constraints-unstable-v1.c xdg-toplevel-icon-v1.c xdg-output-unstable-v1.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL
+	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1.c pointer-constraints-unstable-v1.c pointer-warp-v1.c xdg-toplevel-icon-v1.c xdg-output-unstable-v1.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL
 	LINK_GL1 = -lEGL -lGL
 
 	# LIBS += -ldecor-0
@@ -400,6 +400,8 @@ ifeq ($(WAYLAND),1)
 	wayland-scanner public-code /usr/share/wayland-protocols/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml pointer-constraints-unstable-v1.c
 	wayland-scanner client-header /usr/share/wayland-protocols/unstable/xdg-output/xdg-output-unstable-v1.xml xdg-output-unstable-v1.h
 	wayland-scanner public-code /usr/share/wayland-protocols/unstable/xdg-output/xdg-output-unstable-v1.xml xdg-output-unstable-v1.c
+	wayland-scanner client-header /usr/share/wayland-protocols/staging/pointer-warp/pointer-warp-v1.xml pointer-warp-v1.h
+	wayland-scanner public-code /usr/share/wayland-protocols/staging/pointer-warp/pointer-warp-v1.xml pointer-warp-v1.c
 else
 
 endif
