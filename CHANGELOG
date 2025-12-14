@@ -19,6 +19,7 @@ In this PR I am redefining how RGFW handles versioning. Breaking changes are goi
 - fix extra chars from RGFW_window_setName (X11)
 - fix window not hiding after it's first shown (X11)
 - fix fullscreen bugs when a hidden window is created (X11)
+- add RGFW_equal and RGFW_kpEquals alts for consistency
 
 Release:    RGFW 1.8.0
 -----------------------------------------------
