@@ -8791,27 +8791,27 @@ RGFW_bool RGFW_FUNC(RGFW_window_setMouseStandard)(RGFW_window* win, u8 mouse) {
 
 	char* cursorName = NULL;
 	switch (mouse) {
-		case RGFW_mouseNormal:       cursorName = "left_ptr"; break;
-		case RGFW_mouseArrow:       cursorName = "left_ptr"; break;
-		case RGFW_mouseIbeam:       cursorName = "xterm"; break;
-		case RGFW_mouseCrosshair:    cursorName = "crosshair"; break;
-		case RGFW_mousePointingHand: cursorName = "hand2"; break;
-		case RGFW_mouseResizeEW:     cursorName = "sb_h_double_arrow"; break;
-		case RGFW_mouseResizeNS:     cursorName = "sb_v_double_arrow"; break;
-		case RGFW_mouseResizeNWSE:   cursorName = "top_left_corner"; break;   /* or fd_double_arrow */
-		case RGFW_mouseResizeNESW:   cursorName = "top_right_corner"; break;  /* or bd_double_arrow */
-		case RGFW_mouseResizeNW:     cursorName = "top_left_corner"; break;
-		case RGFW_mouseResizeN:      cursorName = "top_side"; break;
-		case RGFW_mouseResizeNE:     cursorName = "top_right_corner"; break;
-		case RGFW_mouseResizeE:      cursorName = "right_side"; break;
-		case RGFW_mouseResizeSE:     cursorName = "bottom_right_corner"; break;
-		case RGFW_mouseResizeS:      cursorName = "bottom_side"; break;
-		case RGFW_mouseResizeSW:     cursorName = "bottom_left_corner"; break;
-		case RGFW_mouseResizeW:      cursorName = "left_side"; break;
-		case RGFW_mouseResizeAll:    cursorName = "fleur"; break;
-		case RGFW_mouseNotAllowed:   cursorName = "circle"; break;            /* modern forbidden */
-		case RGFW_mouseWait:         cursorName = "watch"; break;
-		case RGFW_mouseProgress:     cursorName = "watch"; break;
+		case RGFW_mouseNormal:       cursorName = (char*)"left_ptr"; break;
+		case RGFW_mouseArrow:       cursorName = (char*)"left_ptr"; break;
+		case RGFW_mouseIbeam:       cursorName = (char*)"xterm"; break;
+		case RGFW_mouseCrosshair:    cursorName = (char*)"crosshair"; break;
+		case RGFW_mousePointingHand: cursorName = (char*)"hand2"; break;
+		case RGFW_mouseResizeEW:     cursorName = (char*)"sb_h_double_arrow"; break;
+		case RGFW_mouseResizeNS:     cursorName = (char*)"sb_v_double_arrow"; break;
+		case RGFW_mouseResizeNWSE:   cursorName = (char*)"top_left_corner"; break;   /* or fd_double_arrow */
+		case RGFW_mouseResizeNESW:   cursorName = (char*)"top_right_corner"; break;  /* or bd_double_arrow */
+		case RGFW_mouseResizeNW:     cursorName = (char*)"top_left_corner"; break;
+		case RGFW_mouseResizeN:      cursorName = (char*)"top_side"; break;
+		case RGFW_mouseResizeNE:     cursorName = (char*)"top_right_corner"; break;
+		case RGFW_mouseResizeE:      cursorName = (char*)"right_side"; break;
+		case RGFW_mouseResizeSE:     cursorName = (char*)"bottom_right_corner"; break;
+		case RGFW_mouseResizeS:      cursorName = (char*)"bottom_side"; break;
+		case RGFW_mouseResizeSW:     cursorName = (char*)"bottom_left_corner"; break;
+		case RGFW_mouseResizeW:      cursorName = (char*)"left_side"; break;
+		case RGFW_mouseResizeAll:    cursorName = (char*)"fleur"; break;
+		case RGFW_mouseNotAllowed:   cursorName = (char*)"pirate"; break;
+		case RGFW_mouseWait:         cursorName = (char*)"watch"; break;
+		case RGFW_mouseProgress:     cursorName = (char*)"watch"; break;
 		default:                     return RGFW_FALSE;
 	}
 
@@ -13454,28 +13454,28 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	char* cursorName = NULL;
 
 	switch (mouse) {
-		case RGFW_mouseNormal:       cursorName = "default"; break;
-		case RGFW_mouseArrow:        cursorName = "default"; break;
-		case RGFW_mouseIbeam:        cursorName = "text"; break;
-		case RGFW_mouseText:         cursorName = "text"; break;
-		case RGFW_mouseCrosshair:    cursorName = "crosshair"; break;
-		case RGFW_mousePointingHand: cursorName = "pointer"; break;
-		case RGFW_mouseResizeEW:     cursorName = "ew-resize"; break;
-		case RGFW_mouseResizeNS:     cursorName = "ns-resize"; break;
-		case RGFW_mouseResizeNWSE:   cursorName = "nwse-resize"; break;
-		case RGFW_mouseResizeNESW:   cursorName = "nesw-resize"; break;
-		case RGFW_mouseResizeNW:     cursorName = "nw-resize"; break;
-		case RGFW_mouseResizeN:      cursorName = "n-resize"; break;
-		case RGFW_mouseResizeNE:     cursorName = "ne-resize"; break;
-		case RGFW_mouseResizeE:      cursorName = "e-resize"; break;
-		case RGFW_mouseResizeSE:     cursorName = "se-resize"; break;
-		case RGFW_mouseResizeS:      cursorName = "s-resize"; break;
-		case RGFW_mouseResizeSW:     cursorName = "sw-resize"; break;
-		case RGFW_mouseResizeW:      cursorName = "w-resize"; break;
-		case RGFW_mouseResizeAll:    cursorName = "move"; break;
-		case RGFW_mouseNotAllowed:   cursorName = "not-allowed"; break;
-		case RGFW_mouseWait:         cursorName = "wait"; break;
-		case RGFW_mouseProgress:     cursorName = "progress"; break;
+		case RGFW_mouseNormal:       cursorName = (char*)"default"; break;
+		case RGFW_mouseArrow:        cursorName = (char*)"default"; break;
+		case RGFW_mouseIbeam:        cursorName = (char*)"text"; break;
+		case RGFW_mouseText:         cursorName = (char*)"text"; break;
+		case RGFW_mouseCrosshair:    cursorName = (char*)"crosshair"; break;
+		case RGFW_mousePointingHand: cursorName = (char*)"pointer"; break;
+		case RGFW_mouseResizeEW:     cursorName = (char*)"ew-resize"; break;
+		case RGFW_mouseResizeNS:     cursorName = (char*)"ns-resize"; break;
+		case RGFW_mouseResizeNWSE:   cursorName = (char*)"nwse-resize"; break;
+		case RGFW_mouseResizeNESW:   cursorName = (char*)"nesw-resize"; break;
+		case RGFW_mouseResizeNW:     cursorName = (char*)"nw-resize"; break;
+		case RGFW_mouseResizeN:      cursorName = (char*)"n-resize"; break;
+		case RGFW_mouseResizeNE:     cursorName = (char*)"ne-resize"; break;
+		case RGFW_mouseResizeE:      cursorName = (char*)"e-resize"; break;
+		case RGFW_mouseResizeSE:     cursorName = (char*)"se-resize"; break;
+		case RGFW_mouseResizeS:      cursorName = (char*)"s-resize"; break;
+		case RGFW_mouseResizeSW:     cursorName = (char*)"sw-resize"; break;
+		case RGFW_mouseResizeW:      cursorName = (char*)"w-resize"; break;
+		case RGFW_mouseResizeAll:    cursorName = (char*)"move"; break;
+		case RGFW_mouseNotAllowed:   cursorName = (char*)"not-allowed"; break;
+		case RGFW_mouseWait:         cursorName = (char*)"wait"; break;
+		case RGFW_mouseProgress:     cursorName = (char*)"progress"; break;
 		default:                     return RGFW_FALSE;
 	}
 
