@@ -13457,7 +13457,6 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 		case RGFW_mouseNormal:       cursorName = (char*)"default"; break;
 		case RGFW_mouseArrow:        cursorName = (char*)"default"; break;
 		case RGFW_mouseIbeam:        cursorName = (char*)"text"; break;
-		case RGFW_mouseText:         cursorName = (char*)"text"; break;
 		case RGFW_mouseCrosshair:    cursorName = (char*)"crosshair"; break;
 		case RGFW_mousePointingHand: cursorName = (char*)"pointer"; break;
 		case RGFW_mouseResizeEW:     cursorName = (char*)"ew-resize"; break;
