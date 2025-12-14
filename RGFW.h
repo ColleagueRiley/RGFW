@@ -10320,7 +10320,7 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 
 	u32 mouseIcon = 0;
 
-    switch (id) {
+    switch (mouse) {
 		case RGFW_mouseNormal: mouseIcon = OCR_ARROW; break;
 		case RGFW_mouseArrow: mouseIcon = OCR_ARROW; break;
 		case RGFW_mouseIbeam: mouseIcon = OCR_IBEAM; break;
@@ -10345,7 +10345,7 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 		default: return RGFW_FALSE;
     }
 
-	char* icon = MAKEINTRESOURCEA(name);
+	char* icon = MAKEINTRESOURCEA(mouseIcon);
 
 	SetClassLongPtrA(win->src.window, GCLP_HCURSOR, (LPARAM) LoadCursorA(NULL, icon));
 	SetCursor(LoadCursorA(NULL, icon));
@@ -12410,7 +12410,7 @@ void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show) {
 	else        CGDisplayHideCursor(kCGDirectMainDisplay);
 }
 
-RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 stdMouses) {
+RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 stdMouse) {
 	const char* cursorSelectorStr;
 	switch (stdMouse) {
         case RGFW_mouseNormal:    cursorSelectorStr = "arrowCursor"; break;
