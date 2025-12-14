@@ -10321,8 +10321,8 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	u32 mouseIcon = 0;
 
     switch (mouse) {
-		case RGFW_mouseNormal: mouseIcon = OCR_ARROW; break;
-		case RGFW_mouseArrow: mouseIcon = OCR_ARROW; break;
+		case RGFW_mouseNormal: mouseIcon = OCR_NORMAL; break;
+		case RGFW_mouseArrow: mouseIcon = OCR_NORMAL; break;
 		case RGFW_mouseIbeam: mouseIcon = OCR_IBEAM; break;
 		case RGFW_mouseWait: mouseIcon = OCR_WAIT; break;
 		case RGFW_mouseCrosshair: mouseIcon = OCR_CROSS; break;
@@ -10334,7 +10334,7 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 		case RGFW_mouseResizeAll: mouseIcon = OCR_SIZEALL; break;
 		case RGFW_mouseNotAllowed: mouseIcon = OCR_NO; break;
 		case RGFW_mousePointingHand: mouseIcon = OCR_HAND; break;
-		case RGFW_mouseResizeNS: mouseIcon = OCR_SIZENWSE; break;
+		case RGFW_mouseResizeNW: mouseIcon = OCR_SIZENWSE; break;
 		case RGFW_mouseResizeN: mouseIcon = OCR_SIZENS; break;
 		case RGFW_mouseResizeNE: mouseIcon = OCR_SIZENESW; break;
 		case RGFW_mouseResizeE: mouseIcon = OCR_SIZEWE; break;
