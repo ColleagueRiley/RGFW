@@ -487,7 +487,8 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_8 = '8',
 	RGFW_9 = '9',
 	RGFW_minus = '-',
-	RGFW_equals = '=',
+	RGFW_equal = '=',
+	RGFW_equals = RGFW_equal,
 	RGFW_backSpace = '\b',
 	RGFW_tab = '\t',
 	RGFW_space = ' ',
@@ -578,6 +579,7 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_kpPlus,
 	RGFW_kpMinus,
 	RGFW_kpEqual,
+	RGFW_kpEquals = RGFW_kpEqual,
 	RGFW_kp1,
 	RGFW_kp2,
 	RGFW_kp3,
@@ -2897,6 +2899,7 @@ struct RGFW_info {
         Window helperWindow;
         const char* instName;
         XErrorEvent* x11Error;
+		i32 xrandrEventBase;
     #endif
     #ifdef RGFW_WAYLAND
         struct wl_display* wl_display;
@@ -3298,6 +3301,23 @@ void RGFW_deinit_ptr(RGFW_info* info) {
     _RGFW->windowCount = 0;
     RGFW_setInfo(NULL);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal, "global context deinitialized");
+}
+
+RGFW_monitor* RGFW_getMonitors(size_t* len) {
+	static RGFW_monitor monitors[RGFW_MAX_MONITORS];
+	RGFW_init();
+	if (len != NULL) {
+		*len = _RGFW->monitors.count;
+	}
+
+	u8 i = 0;
+	RGFW_monitorNode* cur_node = _RGFW->monitors.list.head;
+	while (cur_node != NULL) {
+		monitors[i] = cur_node->mon;
+		i++;
+		cur_node = cur_node->next;
+	}
+    return monitors;
 }
 
 RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, RGFW_windowFlags flags) {
@@ -4204,7 +4224,7 @@ RGFW_bool RGFW_loadEGL(void) {
 		};
 	#endif
 
-	for (size_t i = 0; i < sizeof(libNames) / sizeof(libNames[0]); ++i) {
+	for (size_t i = 0; i < sizeof(libNames) / sizeof(libNames[0]); i++) {
 		#ifdef RGFW_WINDOWS
 			RGFW_eglLibHandle = (void*)LoadLibraryA(libNames[i]);
 			if (RGFW_eglLibHandle) {
@@ -5697,6 +5717,20 @@ void RGFW_XHandleEvent(void) {
 		}
 	}
 
+	if (_RGFW->xrandrEventBase && event.type == (_RGFW->xrandrEventBase + RRNotify)) {
+		printf("XRANDR EVENT\n");
+		switch (((const XRRNotifyEvent *)&event)->subtype) {
+			case RRNotify_OutputChange:
+				break;
+			case RRNotify_CrtcChange:
+				break;
+			case RRNotify_OutputProperty:
+				break;
+			default:
+				break;
+		}
+	}
+
 	RGFW_window* win = NULL;
 	if (XFindContext(_RGFW->display, E.xany.window, _RGFW->context, (XPointer*) &win) != 0) {
 		return;
@@ -6197,6 +6231,11 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 	while ((QLength(_RGFW->display) || XEventsQueued(_RGFW->display, QueuedAlready) + XEventsQueued(_RGFW->display, QueuedAfterReading))) {
 		RGFW_XHandleEvent();
 	}
+
+#ifndef RGFW_NO_MONITOR
+
+
+#endif
 }
 
 void RGFW_FUNC(RGFW_window_move) (RGFW_window* win, i32 x, i32 y) {
@@ -6762,7 +6801,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_isMaximized)(RGFW_window* win) {
 	}
 
 	u64 i;
-	for (i = 0; i < nitems; ++i) {
+	for (i = 0; i < nitems; i++) {
 		if (prop_data[i] == _NET_WM_STATE_MAXIMIZED_VERT ||
 			prop_data[i] == _NET_WM_STATE_MAXIMIZED_HORZ) {
 			XFree(prop_data);
@@ -6890,7 +6929,8 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
     return monitor;
 }
 
-RGFW_monitor* RGFW_FUNC(RGFW_getMonitors)(size_t* len) {
+RGFWDEF RGFW_monitor* RGFW_fetchMonitors_X11(size_t* len);
+RGFW_monitor* RGFW_fetchMonitors_X11(size_t* len) {
 	static RGFW_monitor monitors[7];
     RGFW_init();
 
@@ -7331,6 +7371,18 @@ i32 RGFW_initPlatform_X11(void) {
 		XkbFreeKeyboard(desc, 0, True);
 		XkbFreeKeyboard(evdesc, 0, True);
     }
+
+#ifndef RGFW_NO_MONITOR
+	i32 errorBase;
+	if (XRRQueryExtension(_RGFW->display, &_RGFW->xrandrEventBase, &errorBase) == 0) {
+		return 0;
+	}
+
+	Window root = DefaultRootWindow(_RGFW->display);
+	i32 mask = RRScreenChangeNotifyMask | RRCrtcChangeNotifyMask | RROutputChangeNotifyMask | RROutputPropertyNotifyMask;
+	XRRSelectInput(_RGFW->display, root, mask);
+#endif
+
 	return 0;
 }
 
@@ -8151,7 +8203,7 @@ static void RGFW_wl_randname(char *buf) {
 	long r = ts.tv_nsec;
 
     int i;
-    for (i = 0; i < 6; ++i) {
+    for (i = 0; i < 6; i++) {
 		buf[i] = (char)('A'+(r&15)+(r&16)*2);
 		r >>= 5;
 	}
@@ -8858,23 +8910,6 @@ RGFW_bool RGFW_FUNC(RGFW_window_isMinimized) (RGFW_window* win) {
 RGFW_bool RGFW_FUNC(RGFW_window_isMaximized) (RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	return win->src.maximized;
-}
-
-RGFW_monitor* RGFW_FUNC(RGFW_getMonitors) (size_t* len) {
-	static RGFW_monitor monitors[RGFW_MAX_MONITORS];
-	RGFW_init();
-	if (len != NULL) {
-		*len = _RGFW->monitors.count;
-	}
-
-	u8 i = 0;
-	RGFW_monitorNode* cur_node = _RGFW->monitors.list.head;
-	while (cur_node != NULL) {
-		monitors[i] = cur_node->mon;
-		++i;
-		cur_node = cur_node->next;
-	}
-    return monitors;
 }
 
 RGFW_monitor RGFW_FUNC(RGFW_getPrimaryMonitor) (void) {
@@ -10133,7 +10168,8 @@ RGFW_monitor RGFW_getPrimaryMonitor(void) {
 	#endif
 }
 
-RGFW_monitor* RGFW_getMonitors(size_t* len) {
+RGFWDEF RGFW_monitor* RGFW_fetchMonitors_winapi(size_t* len);
+RGFW_monitor* RGFW_fetchMonitors_winapi(size_t* len) {
 	static RGFW_monitor monitors[6];
 	RGFW_mInfo info;
 	info.iIndex = 0;
@@ -12477,8 +12513,8 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 	return monitor;
 }
 
-
-RGFW_monitor* RGFW_getMonitors(size_t* len) {
+RGFWDEF RGFW_monitor* RGFW_fetchMonitors_cocoa(size_t* len);
+RGFW_monitor* RGFW_fetchMonitors_cocoa(size_t* len) {
 	static CGDirectDisplayID displays[7];
 	u32 count;
 
@@ -13316,7 +13352,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 
 			Module._Emscripten_onDrop(count);
 
-			for (var i = 0; i < count; ++i) {
+			for (var i = 0; i < count; i++) {
 				_free(filenamesArray[i]);
 			}
         }, true);
@@ -13672,7 +13708,6 @@ u32 RGFW_WASMPhysicalToRGFW(u32 hash) {
 void RGFW_window_focus(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_raise(RGFW_window* win) { RGFW_UNUSED(win); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
-RGFW_monitor* RGFW_getMonitors(size_t* len) { RGFW_UNUSED(len); return NULL; }
 RGFW_monitor RGFW_getPrimaryMonitor(void) { return (RGFW_monitor){}; }
 void RGFW_window_move(RGFW_window* win, i32 x, i32 y) { RGFW_UNUSED(win);  RGFW_UNUSED(x); RGFW_UNUSED(y);  }
 void RGFW_window_setAspectRatio(RGFW_window* win, i32 w, i32 h) { RGFW_UNUSED(win);  RGFW_UNUSED(w); RGFW_UNUSED(h);  }
@@ -13732,7 +13767,6 @@ typedef void (*RGFW_writeClipboard_ptr)(const char* text, u32 textLen);
 typedef RGFW_bool (*RGFW_window_isHidden_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMinimized_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMaximized_ptr)(RGFW_window* win);
-typedef RGFW_monitor* (*RGFW_getMonitors_ptr)(size_t* len);
 typedef RGFW_monitor (*RGFW_getPrimaryMonitor_ptr)(void);
 typedef RGFW_bool (*RGFW_monitor_requestMode_ptr)(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request);
 typedef RGFW_monitor (*RGFW_window_getMonitor_ptr)(RGFW_window* win);
@@ -13800,7 +13834,6 @@ typedef struct RGFW_FunctionPointers {
     RGFW_window_isHidden_ptr window_isHidden;
     RGFW_window_isMinimized_ptr window_isMinimized;
     RGFW_window_isMaximized_ptr window_isMaximized;
-    RGFW_getMonitors_ptr getMonitors;
     RGFW_getPrimaryMonitor_ptr getPrimaryMonitor;
     RGFW_monitor_requestMode_ptr monitor_requestMode;
     RGFW_window_getMonitor_ptr window_getMonitor;
@@ -13866,7 +13899,6 @@ void RGFW_writeClipboard(const char* text, u32 textLen) { RGFW_api.writeClipboar
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) { return RGFW_api.window_isHidden(win); }
 RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { return RGFW_api.window_isMinimized(win); }
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { return RGFW_api.window_isMaximized(win); }
-RGFW_monitor* RGFW_getMonitors(size_t* len) { return RGFW_api.getMonitors(len); }
 RGFW_monitor RGFW_getPrimaryMonitor(void) { return RGFW_api.getPrimaryMonitor(); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) { return RGFW_api.monitor_requestMode(mon, mode, request); }
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { return RGFW_api.window_getMonitor(win); }
@@ -13937,7 +13969,6 @@ void RGFW_load_X11(void) {
     RGFW_api.window_isHidden = RGFW_window_isHidden_X11;
     RGFW_api.window_isMinimized = RGFW_window_isMinimized_X11;
     RGFW_api.window_isMaximized = RGFW_window_isMaximized_X11;
-    RGFW_api.getMonitors = RGFW_getMonitors_X11;
     RGFW_api.getPrimaryMonitor = RGFW_getPrimaryMonitor_X11;
     RGFW_api.monitor_requestMode = RGFW_monitor_requestMode_X11;
     RGFW_api.window_getMonitor = RGFW_window_getMonitor_X11;
@@ -14000,7 +14031,6 @@ void RGFW_load_Wayland(void) {
     RGFW_api.window_isHidden = RGFW_window_isHidden_Wayland;
     RGFW_api.window_isMinimized = RGFW_window_isMinimized_Wayland;
     RGFW_api.window_isMaximized = RGFW_window_isMaximized_Wayland;
-    RGFW_api.getMonitors = RGFW_getMonitors_Wayland;
     RGFW_api.getPrimaryMonitor = RGFW_getPrimaryMonitor_Wayland;
     RGFW_api.monitor_requestMode = RGFW_monitor_requestMode_Wayland;
     RGFW_api.window_getMonitor = RGFW_window_getMonitor_Wayland;
