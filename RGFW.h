@@ -8809,7 +8809,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_setMouseStandard)(RGFW_window* win, u8 mouse) {
 		case RGFW_mouseResizeSW:     cursorName = (char*)"bottom_left_corner"; break;
 		case RGFW_mouseResizeW:      cursorName = (char*)"left_side"; break;
 		case RGFW_mouseResizeAll:    cursorName = (char*)"fleur"; break;
-		case RGFW_mouseNotAllowed:   cursorName = (char*)"pirate"; break;
+		case RGFW_mouseNotAllowed:   cursorName = (char*)"not-allowed"; break;
 		case RGFW_mouseWait:         cursorName = (char*)"watch"; break;
 		case RGFW_mouseProgress:     cursorName = (char*)"watch"; break;
 		default:                     return RGFW_FALSE;
@@ -12424,12 +12424,12 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 stdMouse) {
         case RGFW_mouseResizeNS: cursorSelectorStr = "resizeUpDownCursor"; break;
         case RGFW_mouseResizeN: cursorSelectorStr = "resizeUpDownCursor"; break;
         case RGFW_mouseResizeS: cursorSelectorStr = "resizeUpDownCursor"; break;
-        case RGFW_mouseResizeNWSE: cursorSelectorStr = "resizeNorthWestSouthEastCursor"; break;
-        case RGFW_mouseResizeNW: cursorSelectorStr = "resizeNorthWestSouthEastCursor"; break;
-        case RGFW_mouseResizeSE: cursorSelectorStr = "resizeNorthWestSouthEastCursor"; break;
-        case RGFW_mouseResizeNESW: cursorSelectorStr = "resizeNorthEastSouthWestCursor"; break;
-        case RGFW_mouseResizeNE: cursorSelectorStr = "resizeNorthEastSouthWestCursor"; break;
-        case RGFW_mouseResizeSW: cursorSelectorStr = "resizeNorthEastSouthWestCursor"; break;
+        case RGFW_mouseResizeNWSE: cursorSelectorStr = "_windowResizeNorthWestSouthEastCursor"; break;
+        case RGFW_mouseResizeNW: cursorSelectorStr = "_windowResizeNorthWestSouthEastCursor"; break;
+        case RGFW_mouseResizeSE: cursorSelectorStr = "_windowResizeNorthWestSouthEastCursor"; break;
+        case RGFW_mouseResizeNESW: cursorSelectorStr = "_windowResizeNorthEastSouthWestCursor"; break;
+        case RGFW_mouseResizeNE: cursorSelectorStr = "_windowResizeNorthEastSouthWestCursor"; break;
+        case RGFW_mouseResizeSW: cursorSelectorStr = "_windowResizeNorthEastSouthWestCursor"; break;
         case RGFW_mouseResizeAll: cursorSelectorStr = "openHandCursor"; break;
         case RGFW_mouseNotAllowed: cursorSelectorStr = "operationNotAllowedCursor"; break;
         case RGFW_mouseWait: cursorSelectorStr = "arrowCursor"; break;
@@ -13432,8 +13432,8 @@ u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
 }
 
 void RGFW_pollEvents(void) {
-    emscripten_sleep(0);
 	RGFW_resetPrevState();
+	emscripten_sleep(0);
 }
 
 void RGFW_window_resize(RGFW_window* win, i32 w, i32 h) {
