@@ -946,7 +946,7 @@ typedef RGFW_ENUM(i32, RGFW_glReleaseBehavior)   {
 /*! values for the profile hint */
 typedef RGFW_ENUM(i32, RGFW_glProfile)  {
 	RGFW_glCore = 0, /*!< the core OpenGL version, e.g. just support for that version */
-	RGFW_glCompatibility, /*!< allow compatibility for older versions of RGFW as well as the requested version */
+	RGFW_glCompatibility, /*!< allow compatibility for older versions of OpenGL as well as the requested version */
 	RGFW_glES /*!< use OpenGL ES */
 };
 
