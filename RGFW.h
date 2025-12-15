@@ -487,7 +487,8 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_8 = '8',
 	RGFW_9 = '9',
 	RGFW_minus = '-',
-	RGFW_equals = '=',
+	RGFW_equal = '=',
+	RGFW_equals = RGFW_equal,
 	RGFW_backSpace = '\b',
 	RGFW_tab = '\t',
 	RGFW_space = ' ',
@@ -578,6 +579,7 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_kpPlus,
 	RGFW_kpMinus,
 	RGFW_kpEqual,
+	RGFW_kpEquals = RGFW_kpEqual,
 	RGFW_kp1,
 	RGFW_kp2,
 	RGFW_kp3,
@@ -621,7 +623,7 @@ typedef RGFW_ENUM(u8, RGFW_keymod) {
 /*! @brief codes for the event types that can be sent */
 typedef RGFW_ENUM(u8, RGFW_eventType) {
 	RGFW_eventNone = 0, /*!< no event has been sent */
- 	RGFW_keyPressed, /* a key has been pressed */
+ 	RGFW_keyPressed, /*!< a key has been pressed */
 	RGFW_keyReleased, /*!< a key has been released */
 	/*! key event note
 		the code of the key pressed is stored in
@@ -828,14 +830,25 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 	RGFW_mouseNormal = 0,
 	RGFW_mouseArrow,
 	RGFW_mouseIbeam,
+	RGFW_mouseText = RGFW_mouseIbeam,
 	RGFW_mouseCrosshair,
 	RGFW_mousePointingHand,
 	RGFW_mouseResizeEW,
 	RGFW_mouseResizeNS,
 	RGFW_mouseResizeNWSE,
 	RGFW_mouseResizeNESW,
+	RGFW_mouseResizeNW,
+	RGFW_mouseResizeN,
+	RGFW_mouseResizeNE,
+	RGFW_mouseResizeE,
+	RGFW_mouseResizeSE,
+	RGFW_mouseResizeS,
+	RGFW_mouseResizeSW,
+	RGFW_mouseResizeW,
 	RGFW_mouseResizeAll,
 	RGFW_mouseNotAllowed,
+	RGFW_mouseWait,
+	RGFW_mouseProgress,
 	RGFW_mouseIconCount,
     RGFW_mouseIconFinal = 16 /* padding for alignment */
 };
@@ -946,6 +959,7 @@ typedef RGFW_ENUM(i32, RGFW_glReleaseBehavior)   {
 /*! values for the profile hint */
 typedef RGFW_ENUM(i32, RGFW_glProfile)  {
 	RGFW_glCore = 0, /*!< the core OpenGL version, e.g. just support for that version */
+	RGFW_glForwardCompatibility, /*!< only compatibility for newer versions of OpenGL as well as the requested version */
 	RGFW_glCompatibility, /*!< allow compatibility for older versions of OpenGL as well as the requested version */
 	RGFW_glES /*!< use OpenGL ES */
 };
@@ -4531,7 +4545,10 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 			RGFW_attribStack_pushAttribs(&stack, EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT);
 		} else if (hints->profile == RGFW_glCompatibility) {
 			RGFW_attribStack_pushAttribs(&stack, EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT);
+		} else if (hints->profile == RGFW_glForwardCompatibility) {
+			RGFW_attribStack_pushAttribs(&stack, EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE, EGL_TRUE);
 		}
+
 
 		RGFW_attribStack_pushAttribs(&stack, EGL_CONTEXT_OPENGL_ROBUST_ACCESS, hints->robustness);
 		RGFW_attribStack_pushAttribs(&stack, EGL_CONTEXT_OPENGL_DEBUG, hints->debug);
@@ -5758,7 +5775,7 @@ void RGFW_XHandleEvent(void) {
 				event.type = RGFW_mouseButtonPressed;
 			}
 
-			switch(E.xbutton.button) {
+			switch (E.xbutton.button) {
 				case Button1: event.button.value = RGFW_mouseLeft; break;
 				case Button2: event.button.value = RGFW_mouseMiddle; break;
 				case Button3: event.button.value = RGFW_mouseRight; break;
@@ -6570,14 +6587,33 @@ RGFW_bool RGFW_FUNC(RGFW_window_setMouseDefault) (RGFW_window* win) {
 RGFW_bool RGFW_FUNC(RGFW_window_setMouseStandard) (RGFW_window* win, u8 mouse) {
 	RGFW_ASSERT(win != NULL);
 
-	static const u8 mouseIconSrc[16] = { XC_arrow, XC_left_ptr, XC_xterm, XC_crosshair, XC_hand2, XC_sb_h_double_arrow, XC_sb_v_double_arrow, XC_bottom_left_corner, XC_bottom_right_corner, XC_fleur, XC_X_cursor};
+	u32 mouseIcon = 0;
 
-	if (mouse > (sizeof(mouseIconSrc) / sizeof(u8)))
-		return RGFW_FALSE;
+    switch (mouse) {
+        case RGFW_mouseNormal: mouseIcon = XC_left_ptr; break;
+        case RGFW_mouseIbeam: mouseIcon = XC_xterm; break;
+        case RGFW_mouseWait: mouseIcon = XC_watch; break;
+        case RGFW_mouseCrosshair: mouseIcon = XC_tcross; break;
+        case RGFW_mouseProgress: mouseIcon = XC_watch; break;
+        case RGFW_mouseResizeNWSE: mouseIcon = XC_top_left_corner; break;
+        case RGFW_mouseResizeNESW: mouseIcon = XC_top_right_corner; break;
+        case RGFW_mouseResizeEW: mouseIcon = XC_sb_h_double_arrow; break;
+        case RGFW_mouseResizeNS: mouseIcon = XC_sb_v_double_arrow; break;
+        case RGFW_mouseResizeNW: mouseIcon = XC_top_left_corner; break;
+        case RGFW_mouseResizeN: mouseIcon = XC_top_side; break;
+        case RGFW_mouseResizeNE: mouseIcon = XC_top_right_corner; break;
+        case RGFW_mouseResizeE: mouseIcon = XC_right_side; break;
+        case RGFW_mouseResizeSE: mouseIcon = XC_bottom_right_corner; break;
+        case RGFW_mouseResizeS: mouseIcon = XC_bottom_side; break;
+        case RGFW_mouseResizeSW: mouseIcon = XC_bottom_left_corner; break;
+        case RGFW_mouseResizeW: mouseIcon = XC_left_side; break;
+		case RGFW_mouseResizeAll: mouseIcon = XC_fleur; break;
+        case RGFW_mouseNotAllowed: mouseIcon = XC_pirate; break;
+        case RGFW_mousePointingHand: mouseIcon = XC_hand2; break;
+		default: return RGFW_FALSE;
+	}
 
-	mouse = mouseIconSrc[mouse];
-
-	Cursor cursor = XCreateFontCursor(_RGFW->display, mouse);
+	Cursor cursor = XCreateFontCursor(_RGFW->display, mouseIcon);
 	XDefineCursor(_RGFW->display, win->src.window, (Cursor) cursor);
 	XFreeCursor(_RGFW->display, (Cursor) cursor);
 	return RGFW_TRUE;
@@ -7105,6 +7141,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 	i32 mask = 0;
 	switch (hints->profile) {
 		case RGFW_glES: mask |= GLX_CONTEXT_ES_PROFILE_BIT_EXT; break;
+		case RGFW_glForwardCompatibility: mask |= GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB; break;
 		case RGFW_glCompatibility: mask |= GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB; break;
 		case RGFW_glCore: mask |= GLX_CONTEXT_CORE_PROFILE_BIT_ARB; break;
 		default: mask |= GLX_CONTEXT_CORE_PROFILE_BIT_ARB; break;
@@ -8751,13 +8788,36 @@ RGFW_bool RGFW_FUNC(RGFW_window_setMouseDefault)(RGFW_window* win) {
 
 RGFW_bool RGFW_FUNC(RGFW_window_setMouseStandard)(RGFW_window* win, u8 mouse) {
 	RGFW_ASSERT(win != NULL);
-	static const char* iconStrings[16] = { "arrow", "left_ptr", "xterm", "crosshair", "hand2", "sb_h_double_arrow", "sb_v_double_arrow", "bottom_left_corner", "bottom_right_corner", "fleur", "forbidden" };
+
+	char* cursorName = NULL;
+	switch (mouse) {
+		case RGFW_mouseNormal:       cursorName = (char*)"left_ptr"; break;
+		case RGFW_mouseArrow:       cursorName = (char*)"left_ptr"; break;
+		case RGFW_mouseIbeam:       cursorName = (char*)"xterm"; break;
+		case RGFW_mouseCrosshair:    cursorName = (char*)"crosshair"; break;
+		case RGFW_mousePointingHand: cursorName = (char*)"hand2"; break;
+		case RGFW_mouseResizeEW:     cursorName = (char*)"sb_h_double_arrow"; break;
+		case RGFW_mouseResizeNS:     cursorName = (char*)"sb_v_double_arrow"; break;
+		case RGFW_mouseResizeNWSE:   cursorName = (char*)"top_left_corner"; break;   /* or fd_double_arrow */
+		case RGFW_mouseResizeNESW:   cursorName = (char*)"top_right_corner"; break;  /* or bd_double_arrow */
+		case RGFW_mouseResizeNW:     cursorName = (char*)"top_left_corner"; break;
+		case RGFW_mouseResizeN:      cursorName = (char*)"top_side"; break;
+		case RGFW_mouseResizeNE:     cursorName = (char*)"top_right_corner"; break;
+		case RGFW_mouseResizeE:      cursorName = (char*)"right_side"; break;
+		case RGFW_mouseResizeSE:     cursorName = (char*)"bottom_right_corner"; break;
+		case RGFW_mouseResizeS:      cursorName = (char*)"bottom_side"; break;
+		case RGFW_mouseResizeSW:     cursorName = (char*)"bottom_left_corner"; break;
+		case RGFW_mouseResizeW:      cursorName = (char*)"left_side"; break;
+		case RGFW_mouseResizeAll:    cursorName = (char*)"fleur"; break;
+		case RGFW_mouseNotAllowed:   cursorName = (char*)"not-allowed"; break;
+		case RGFW_mouseWait:         cursorName = (char*)"watch"; break;
+		case RGFW_mouseProgress:     cursorName = (char*)"watch"; break;
+		default:                     return RGFW_FALSE;
+	}
 
 	win->src.using_custom_cursor = RGFW_FALSE;
 
-	if (mouse > RGFW_mouseIconCount - 1) return RGFW_FALSE;
-
-	struct wl_cursor* wlcursor = wl_cursor_theme_get_cursor(_RGFW->wl_cursor_theme, iconStrings[mouse]);
+	struct wl_cursor* wlcursor = wl_cursor_theme_get_cursor(_RGFW->wl_cursor_theme, cursorName);
 	struct wl_cursor_image* cursor_image = wlcursor->images[0];
 	struct wl_buffer* cursor_buffer = wl_cursor_image_get_buffer(cursor_image);
 	wl_pointer_set_cursor(_RGFW->wl_pointer, _RGFW->mouse_enter_serial, _RGFW->cursor_surface, (i32)cursor_image->hotspot_x, (i32)cursor_image->hotspot_y);
@@ -10258,11 +10318,34 @@ RGFW_bool RGFW_window_setMouseDefault(RGFW_window* win) {
 RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
 	RGFW_ASSERT(win != NULL);
 
-	static const u32 mouseIconSrc[16] = {OCR_NORMAL, OCR_NORMAL, OCR_IBEAM, OCR_CROSS, OCR_HAND, OCR_SIZEWE, OCR_SIZENS, OCR_SIZENWSE, OCR_SIZENESW, OCR_SIZEALL, OCR_NO};
-	if (mouse > (sizeof(mouseIconSrc) / sizeof(u32)))
-		return RGFW_FALSE;
+	u32 mouseIcon = 0;
 
-	char* icon = MAKEINTRESOURCEA(mouseIconSrc[mouse]);
+    switch (mouse) {
+		case RGFW_mouseNormal: mouseIcon = OCR_NORMAL; break;
+		case RGFW_mouseArrow: mouseIcon = OCR_NORMAL; break;
+		case RGFW_mouseIbeam: mouseIcon = OCR_IBEAM; break;
+		case RGFW_mouseWait: mouseIcon = OCR_WAIT; break;
+		case RGFW_mouseCrosshair: mouseIcon = OCR_CROSS; break;
+		case RGFW_mouseProgress: mouseIcon = OCR_APPSTARTING; break;
+		case RGFW_mouseResizeNWSE: mouseIcon = OCR_SIZENWSE; break;
+		case RGFW_mouseResizeNESW: mouseIcon = OCR_SIZENESW; break;
+		case RGFW_mouseResizeEW: mouseIcon = OCR_SIZEWE; break;
+		case RGFW_mouseResizeNS: mouseIcon = OCR_SIZENS; break;
+		case RGFW_mouseResizeAll: mouseIcon = OCR_SIZEALL; break;
+		case RGFW_mouseNotAllowed: mouseIcon = OCR_NO; break;
+		case RGFW_mousePointingHand: mouseIcon = OCR_HAND; break;
+		case RGFW_mouseResizeNW: mouseIcon = OCR_SIZENWSE; break;
+		case RGFW_mouseResizeN: mouseIcon = OCR_SIZENS; break;
+		case RGFW_mouseResizeNE: mouseIcon = OCR_SIZENESW; break;
+		case RGFW_mouseResizeE: mouseIcon = OCR_SIZEWE; break;
+		case RGFW_mouseResizeSE: mouseIcon = OCR_SIZENWSE; break;
+		case RGFW_mouseResizeS: mouseIcon = OCR_SIZENS; break;
+		case RGFW_mouseResizeSW: mouseIcon = OCR_SIZENESW; break;
+		case RGFW_mouseResizeW: mouseIcon = OCR_SIZEWE; break;
+		default: return RGFW_FALSE;
+    }
+
+	char* icon = MAKEINTRESOURCEA(mouseIcon);
 
 	SetClassLongPtrA(win->src.window, GCLP_HCURSOR, (LPARAM) LoadCursorA(NULL, icon));
 	SetCursor(LoadCursorA(NULL, icon));
@@ -10545,6 +10628,7 @@ void RGFW_win32_loadOpenGLFuncs(HWND dummyWin) {
 #define WGL_CONTEXT_PROFILE_MASK_ARB               0x9126
 #define WGL_CONTEXT_CORE_PROFILE_BIT_ARB            0x00000001
 #define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB   0x00000002
+#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x00000002
 #define WGL_CONTEXT_MAJOR_VERSION_ARB               0x2091
 #define WGL_CONTEXT_MINOR_VERSION_ARB               0x2092
 #define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB             0x20A9
@@ -10638,6 +10722,7 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 		switch (hints->profile) {
 			case RGFW_glES: mask |= WGL_CONTEXT_ES_PROFILE_BIT_EXT; break;
 			case RGFW_glCompatibility: mask |= WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB; break;
+			case RGFW_glForwardCompatibility: mask |= WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB; break;
 			case RGFW_glCore: mask |= WGL_CONTEXT_CORE_PROFILE_BIT_ARB; break;
 			default: mask |= WGL_CONTEXT_CORE_PROFILE_BIT_ARB; break;
 		}
@@ -12325,13 +12410,35 @@ void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show) {
 	else        CGDisplayHideCursor(kCGDirectMainDisplay);
 }
 
-RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 stdMouses) {
-	static const char* mouseIconSrc[16] = {"arrowCursor", "arrowCursor", "IBeamCursor", "crosshairCursor", "pointingHandCursor", "resizeLeftRightCursor", "resizeUpDownCursor", "_windowResizeNorthWestSouthEastCursor", "_windowResizeNorthEastSouthWestCursor", "closedHandCursor", "operationNotAllowedCursor"};
-	if (stdMouses > ((sizeof(mouseIconSrc)) / (sizeof(char*))))
-		return RGFW_FALSE;
+RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 stdMouse) {
+	const char* cursorSelectorStr;
+	switch (stdMouse) {
+        case RGFW_mouseNormal:    cursorSelectorStr = "arrowCursor"; break;
+        case RGFW_mouseArrow: cursorSelectorStr = "arrowCursor"; break;
+        case RGFW_mouseIbeam: cursorSelectorStr = "IBeamCursor"; break;
+        case RGFW_mouseCrosshair: cursorSelectorStr = "crosshairCursor"; break;
+        case RGFW_mousePointingHand: cursorSelectorStr = "pointingHandCursor"; break;
+        case RGFW_mouseResizeEW: cursorSelectorStr = "resizeLeftRightCursor"; break;
+        case RGFW_mouseResizeE: cursorSelectorStr = "resizeLeftRightCursor"; break;
+        case RGFW_mouseResizeW: cursorSelectorStr = "resizeLeftRightCursor"; break;
+        case RGFW_mouseResizeNS: cursorSelectorStr = "resizeUpDownCursor"; break;
+        case RGFW_mouseResizeN: cursorSelectorStr = "resizeUpDownCursor"; break;
+        case RGFW_mouseResizeS: cursorSelectorStr = "resizeUpDownCursor"; break;
+        case RGFW_mouseResizeNWSE: cursorSelectorStr = "_windowResizeNorthWestSouthEastCursor"; break;
+        case RGFW_mouseResizeNW: cursorSelectorStr = "_windowResizeNorthWestSouthEastCursor"; break;
+        case RGFW_mouseResizeSE: cursorSelectorStr = "_windowResizeNorthWestSouthEastCursor"; break;
+        case RGFW_mouseResizeNESW: cursorSelectorStr = "_windowResizeNorthEastSouthWestCursor"; break;
+        case RGFW_mouseResizeNE: cursorSelectorStr = "_windowResizeNorthEastSouthWestCursor"; break;
+        case RGFW_mouseResizeSW: cursorSelectorStr = "_windowResizeNorthEastSouthWestCursor"; break;
+        case RGFW_mouseResizeAll: cursorSelectorStr = "openHandCursor"; break;
+        case RGFW_mouseNotAllowed: cursorSelectorStr = "operationNotAllowedCursor"; break;
+        case RGFW_mouseWait: cursorSelectorStr = "arrowCursor"; break;
+        case RGFW_mouseProgress: cursorSelectorStr = "arrowCursor"; break;
+        default:
+            return RGFW_FALSE;
+    }
 
-	const char* mouseStr = mouseIconSrc[stdMouses];
-	id mouse = NSCursor_arrowStr(mouseStr);
+	id mouse = NSCursor_arrowStr(cursorSelectorStr);
 
 	if (mouse == NULL)
 		return RGFW_FALSE;
@@ -13325,8 +13432,8 @@ u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
 }
 
 void RGFW_pollEvents(void) {
-    emscripten_sleep(0);
 	RGFW_resetPrevState();
+	emscripten_sleep(0);
 }
 
 void RGFW_window_resize(RGFW_window* win, i32 w, i32 h) {
@@ -13343,14 +13450,35 @@ void RGFW_window_setMouse(RGFW_window* win, RGFW_mouse* mouse) { RGFW_UNUSED(win
 void RGFW_freeMouse(RGFW_mouse* mouse) { RGFW_UNUSED(mouse); }
 
 RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) {
-	static const char cursors[16][16] = {
-		"default", "default", "text", "crosshair",
-		"pointer", "ew-resize", "ns-resize", "nwse-resize", "nesw-resize",
-		"move", "not-allowed"
-	};
-
 	RGFW_UNUSED(win);
-	EM_ASM( { document.getElementById("canvas").style.cursor = UTF8ToString($0); }, cursors[mouse]);
+	char* cursorName = NULL;
+
+	switch (mouse) {
+		case RGFW_mouseNormal:       cursorName = (char*)"default"; break;
+		case RGFW_mouseArrow:        cursorName = (char*)"default"; break;
+		case RGFW_mouseIbeam:        cursorName = (char*)"text"; break;
+		case RGFW_mouseCrosshair:    cursorName = (char*)"crosshair"; break;
+		case RGFW_mousePointingHand: cursorName = (char*)"pointer"; break;
+		case RGFW_mouseResizeEW:     cursorName = (char*)"ew-resize"; break;
+		case RGFW_mouseResizeNS:     cursorName = (char*)"ns-resize"; break;
+		case RGFW_mouseResizeNWSE:   cursorName = (char*)"nwse-resize"; break;
+		case RGFW_mouseResizeNESW:   cursorName = (char*)"nesw-resize"; break;
+		case RGFW_mouseResizeNW:     cursorName = (char*)"nw-resize"; break;
+		case RGFW_mouseResizeN:      cursorName = (char*)"n-resize"; break;
+		case RGFW_mouseResizeNE:     cursorName = (char*)"ne-resize"; break;
+		case RGFW_mouseResizeE:      cursorName = (char*)"e-resize"; break;
+		case RGFW_mouseResizeSE:     cursorName = (char*)"se-resize"; break;
+		case RGFW_mouseResizeS:      cursorName = (char*)"s-resize"; break;
+		case RGFW_mouseResizeSW:     cursorName = (char*)"sw-resize"; break;
+		case RGFW_mouseResizeW:      cursorName = (char*)"w-resize"; break;
+		case RGFW_mouseResizeAll:    cursorName = (char*)"move"; break;
+		case RGFW_mouseNotAllowed:   cursorName = (char*)"not-allowed"; break;
+		case RGFW_mouseWait:         cursorName = (char*)"wait"; break;
+		case RGFW_mouseProgress:     cursorName = (char*)"progress"; break;
+		default:                     return RGFW_FALSE;
+	}
+
+	EM_ASM( { document.getElementById("canvas").style.cursor = UTF8ToString($0); }, cursorName);
 	return RGFW_TRUE;
 }
 
