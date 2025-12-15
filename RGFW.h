@@ -2260,8 +2260,6 @@ RGFWDEF void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win);
 /**!
  * @brief Swaps the OpenGL buffers for the specified window.
  * @param win A pointer to the RGFW_window whose buffers should be swapped.
- *
- * @note Typically called by RGFW_window_swapInterval.
 */
 RGFWDEF void RGFW_window_swapBuffers_OpenGL(RGFW_window* win);
 
