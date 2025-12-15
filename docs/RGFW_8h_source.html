@@ -5747,10 +5747,10 @@ $(function() {
 <div class="line"><a id="l06928" name="l06928"></a><span class="lineno"> 6928</span>    <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> max = ScreenCount(display);</div>
 <div class="line"><a id="l06929" name="l06929"></a><span class="lineno"> 6929</span> </div>
 <div class="line"><a id="l06930" name="l06930"></a><span class="lineno"> 6930</span>    <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> i;</div>
-<div class="line"><a id="l06931" name="l06931"></a><span class="lineno"> 6931</span>    <span class="keywordflow">for</span> (i = 0; i &lt; max &amp;&amp; i &lt; 6; i++)</div>
+<div class="line"><a id="l06931" name="l06931"></a><span class="lineno"> 6931</span>    <span class="keywordflow">for</span> (i = 0; i &lt; max &amp;&amp; i &lt; <a class="code hl_define" href="RGFW_8h.html#af3d151fddc5615b7e7e795ef2ede6595">RGFW_MAX_MONITORS</a>; i++)</div>
 <div class="line"><a id="l06932" name="l06932"></a><span class="lineno"> 6932</span>        monitors[i] = RGFW_XCreateMonitor(i);</div>
 <div class="line"><a id="l06933" name="l06933"></a><span class="lineno"> 6933</span> </div>
-<div class="line"><a id="l06934" name="l06934"></a><span class="lineno"> 6934</span>    <span class="keywordflow">if</span> (len != NULL) *len = (size_t)((max &lt;= 6) ? (max) : (6));</div>
+<div class="line"><a id="l06934" name="l06934"></a><span class="lineno"> 6934</span>    <span class="keywordflow">if</span> (len != NULL) *len = (size_t)((max &lt;= <a class="code hl_define" href="RGFW_8h.html#af3d151fddc5615b7e7e795ef2ede6595">RGFW_MAX_MONITORS</a>) ? (max) : (<a class="code hl_define" href="RGFW_8h.html#af3d151fddc5615b7e7e795ef2ede6595">RGFW_MAX_MONITORS</a>));</div>
 <div class="line"><a id="l06935" name="l06935"></a><span class="lineno"> 6935</span> </div>
 <div class="line"><a id="l06936" name="l06936"></a><span class="lineno"> 6936</span>    <span class="keywordflow">return</span> monitors;</div>
 <div class="line"><a id="l06937" name="l06937"></a><span class="lineno"> 6937</span>}</div>
@@ -5823,7 +5823,7 @@ $(function() {
 <div class="line"><a id="l07004" name="l07004"></a><span class="lineno"> 7004</span>    }</div>
 <div class="line"><a id="l07005" name="l07005"></a><span class="lineno"> 7005</span> </div>
 <div class="line"><a id="l07006" name="l07006"></a><span class="lineno"> 7006</span>    <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> i;</div>
-<div class="line"><a id="l07007" name="l07007"></a><span class="lineno"> 7007</span>    <span class="keywordflow">for</span> (i = 0; i &lt; ScreenCount(_RGFW-&gt;display) &amp;&amp; i &lt; 6; i++) {</div>
+<div class="line"><a id="l07007" name="l07007"></a><span class="lineno"> 7007</span>    <span class="keywordflow">for</span> (i = 0; i &lt; ScreenCount(_RGFW-&gt;display) &amp;&amp; i &lt; <a class="code hl_define" href="RGFW_8h.html#af3d151fddc5615b7e7e795ef2ede6595">RGFW_MAX_MONITORS</a>; i++) {</div>
 <div class="line"><a id="l07008" name="l07008"></a><span class="lineno"> 7008</span>        Screen* screen = ScreenOfDisplay(_RGFW-&gt;display, i);</div>
 <div class="line"><a id="l07009" name="l07009"></a><span class="lineno"> 7009</span>        <span class="keywordflow">if</span> (attrs.x &gt;= 0 &amp;&amp; attrs.x &lt; <a class="code hl_define" href="XDL_8h.html#a98df9ec892ff18460868caa5eecdcd27">XWidthOfScreen</a>(screen) &amp;&amp;</div>
 <div class="line"><a id="l07010" name="l07010"></a><span class="lineno"> 7010</span>            attrs.y &gt;= 0 &amp;&amp; attrs.y &lt; <a class="code hl_define" href="XDL_8h.html#ad3e12175a8f5804710a6bbd9a6a0c555">XHeightOfScreen</a>(screen))</div>
@@ -8987,7 +8987,7 @@ $(function() {
 <div class="line"><a id="l10169" name="l10169"></a><span class="lineno">10169</span>    RGFW_mInfo* info = (RGFW_mInfo*) dwData;</div>
 <div class="line"><a id="l10170" name="l10170"></a><span class="lineno">10170</span> </div>
 <div class="line"><a id="l10171" name="l10171"></a><span class="lineno">10171</span> </div>
-<div class="line"><a id="l10172" name="l10172"></a><span class="lineno">10172</span>    <span class="keywordflow">if</span> (info-&gt;iIndex &gt;= 6)</div>
+<div class="line"><a id="l10172" name="l10172"></a><span class="lineno">10172</span>    <span class="keywordflow">if</span> (info-&gt;iIndex &gt;= <a class="code hl_define" href="RGFW_8h.html#af3d151fddc5615b7e7e795ef2ede6595">RGFW_MAX_MONITORS</a>)</div>
 <div class="line"><a id="l10173" name="l10173"></a><span class="lineno">10173</span>        <span class="keywordflow">return</span> FALSE;</div>
 <div class="line"><a id="l10174" name="l10174"></a><span class="lineno">10174</span> </div>
 <div class="line"><a id="l10175" name="l10175"></a><span class="lineno">10175</span>    info-&gt;monitors[info-&gt;iIndex] = RGFW_win32_createMonitor(hMonitor);</div>
@@ -9005,7 +9005,7 @@ $(function() {
 <div class="line"><a id="l10187" name="l10187"></a><span class="lineno">10187</span>}</div>
 <div class="line"><a id="l10188" name="l10188"></a><span class="lineno">10188</span> </div>
 <div class="line"><a id="l10189" name="l10189"></a><span class="lineno">10189</span><a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a>* <a class="code hl_function" href="RGFW_8h.html#aa3400dd1d0aa6292f1ea614b88934ea9">RGFW_getMonitors</a>(<span class="keywordtype">size_t</span>* len) {</div>
-<div class="line"><a id="l10190" name="l10190"></a><span class="lineno">10190</span>    <span class="keyword">static</span> <a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a> monitors[6];</div>
+<div class="line"><a id="l10190" name="l10190"></a><span class="lineno">10190</span>    <span class="keyword">static</span> <a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a> monitors[<a class="code hl_define" href="RGFW_8h.html#af3d151fddc5615b7e7e795ef2ede6595">RGFW_MAX_MONITORS</a>];</div>
 <div class="line"><a id="l10191" name="l10191"></a><span class="lineno">10191</span>    RGFW_mInfo info;</div>
 <div class="line"><a id="l10192" name="l10192"></a><span class="lineno">10192</span>    info.iIndex = 0;</div>
 <div class="line"><a id="l10193" name="l10193"></a><span class="lineno">10193</span>    info.monitors = monitors;</div>
@@ -11394,18 +11394,18 @@ $(function() {
 <div class="line"><a id="l12577" name="l12577"></a><span class="lineno">12577</span> </div>
 <div class="line"><a id="l12578" name="l12578"></a><span class="lineno">12578</span> </div>
 <div class="line"><a id="l12579" name="l12579"></a><span class="lineno">12579</span><a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a>* <a class="code hl_function" href="RGFW_8h.html#aa3400dd1d0aa6292f1ea614b88934ea9">RGFW_getMonitors</a>(<span class="keywordtype">size_t</span>* len) {</div>
-<div class="line"><a id="l12580" name="l12580"></a><span class="lineno">12580</span>    <span class="keyword">static</span> CGDirectDisplayID displays[7];</div>
+<div class="line"><a id="l12580" name="l12580"></a><span class="lineno">12580</span>    <span class="keyword">static</span> CGDirectDisplayID displays[<a class="code hl_define" href="RGFW_8h.html#af3d151fddc5615b7e7e795ef2ede6595">RGFW_MAX_MONITORS</a>];</div>
 <div class="line"><a id="l12581" name="l12581"></a><span class="lineno">12581</span>    <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> count;</div>
 <div class="line"><a id="l12582" name="l12582"></a><span class="lineno">12582</span> </div>
-<div class="line"><a id="l12583" name="l12583"></a><span class="lineno">12583</span>    <span class="keywordflow">if</span> (CGGetActiveDisplayList(6, displays, &amp;count) != kCGErrorSuccess)</div>
+<div class="line"><a id="l12583" name="l12583"></a><span class="lineno">12583</span>    <span class="keywordflow">if</span> (CGGetActiveDisplayList(<a class="code hl_define" href="RGFW_8h.html#af3d151fddc5615b7e7e795ef2ede6595">RGFW_MAX_MONITORS</a>, displays, &amp;count) != kCGErrorSuccess)</div>
 <div class="line"><a id="l12584" name="l12584"></a><span class="lineno">12584</span>        <span class="keywordflow">return</span> NULL;</div>
 <div class="line"><a id="l12585" name="l12585"></a><span class="lineno">12585</span> </div>
-<div class="line"><a id="l12586" name="l12586"></a><span class="lineno">12586</span>    <span class="keywordflow">if</span> (count &gt; 6) count = 6;</div>
+<div class="line"><a id="l12586" name="l12586"></a><span class="lineno">12586</span>    <span class="keywordflow">if</span> (count &gt; <a class="code hl_define" href="RGFW_8h.html#af3d151fddc5615b7e7e795ef2ede6595">RGFW_MAX_MONITORS</a>) count = <a class="code hl_define" href="RGFW_8h.html#af3d151fddc5615b7e7e795ef2ede6595">RGFW_MAX_MONITORS</a>;</div>
 <div class="line"><a id="l12587" name="l12587"></a><span class="lineno">12587</span> </div>
-<div class="line"><a id="l12588" name="l12588"></a><span class="lineno">12588</span>    <span class="keyword">static</span> <a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a> monitors[7];</div>
+<div class="line"><a id="l12588" name="l12588"></a><span class="lineno">12588</span>    <span class="keyword">static</span> <a class="code hl_struct" href="structRGFW__monitor.html">RGFW_monitor</a> monitors[<a class="code hl_define" href="RGFW_8h.html#af3d151fddc5615b7e7e795ef2ede6595">RGFW_MAX_MONITORS</a>];</div>
 <div class="line"><a id="l12589" name="l12589"></a><span class="lineno">12589</span> </div>
 <div class="line"><a id="l12590" name="l12590"></a><span class="lineno">12590</span>    <a class="code hl_typedef" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> i;</div>
-<div class="line"><a id="l12591" name="l12591"></a><span class="lineno">12591</span>    <span class="keywordflow">for</span> (i = 0; i &lt; count; i++)</div>
+<div class="line"><a id="l12591" name="l12591"></a><span class="lineno">12591</span>    <span class="keywordflow">for</span> (i = 0; i &lt; <a class="code hl_define" href="RGFW_8h.html#af3d151fddc5615b7e7e795ef2ede6595">RGFW_MAX_MONITORS</a>; i++)</div>
 <div class="line"><a id="l12592" name="l12592"></a><span class="lineno">12592</span>        monitors[i] = RGFW_NSCreateMonitor(displays[i], RGFW_getNSScreenForDisplayID(displays[i]));</div>
 <div class="line"><a id="l12593" name="l12593"></a><span class="lineno">12593</span> </div>
 <div class="line"><a id="l12594" name="l12594"></a><span class="lineno">12594</span>    <span class="keywordflow">if</span> (len != NULL) *len = count;</div>
