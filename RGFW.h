@@ -1155,7 +1155,7 @@ RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
 
 /**!
  * @brief Retrieves an array of all available monitors.
- * @param len [OUTPUT] A pointer to store the number of monitors found (maximum of 6).
+ * @param len [OUTPUT] A pointer to store the number of monitors found (maximum of RGFW_MAX_MONITORS [6 by default]).
  * @return A pointer to an array of RGFW_monitor structures.
 */
 RGFWDEF RGFW_monitor* RGFW_getMonitors(size_t* len);
@@ -6928,10 +6928,10 @@ RGFW_monitor* RGFW_FUNC(RGFW_getMonitors)(size_t* len) {
 	i32 max = ScreenCount(display);
 
 	i32 i;
-	for (i = 0; i < max && i < 6; i++)
+	for (i = 0; i < max && i < RGFW_MAX_MONITORS; i++)
 		monitors[i] = RGFW_XCreateMonitor(i);
 
-	if (len != NULL) *len = (size_t)((max <= 6) ? (max) : (6));
+	if (len != NULL) *len = (size_t)((max <= RGFW_MAX_MONITORS) ? (max) : (RGFW_MAX_MONITORS));
 
 	return monitors;
 }
@@ -7004,7 +7004,7 @@ RGFW_monitor RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
     }
 
 	i32 i;
-	for (i = 0; i < ScreenCount(_RGFW->display) && i < 6; i++) {
+	for (i = 0; i < ScreenCount(_RGFW->display) && i < RGFW_MAX_MONITORS; i++) {
 		Screen* screen = ScreenOfDisplay(_RGFW->display, i);
         if (attrs.x >= 0 && attrs.x < XWidthOfScreen(screen) &&
             attrs.y >= 0 && attrs.y < XHeightOfScreen(screen))
@@ -10169,7 +10169,7 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 	RGFW_mInfo* info = (RGFW_mInfo*) dwData;
 
 
-	if (info->iIndex >= 6)
+	if (info->iIndex >= RGFW_MAX_MONITORS)
 		return FALSE;
 
 	info->monitors[info->iIndex] = RGFW_win32_createMonitor(hMonitor);
@@ -10187,7 +10187,7 @@ RGFW_monitor RGFW_getPrimaryMonitor(void) {
 }
 
 RGFW_monitor* RGFW_getMonitors(size_t* len) {
-	static RGFW_monitor monitors[6];
+	static RGFW_monitor monitors[RGFW_MAX_MONITORS];
 	RGFW_mInfo info;
 	info.iIndex = 0;
 	info.monitors = monitors;
@@ -12577,18 +12577,18 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 
 
 RGFW_monitor* RGFW_getMonitors(size_t* len) {
-	static CGDirectDisplayID displays[7];
+	static CGDirectDisplayID displays[RGFW_MAX_MONITORS];
 	u32 count;
 
-	if (CGGetActiveDisplayList(6, displays, &count) != kCGErrorSuccess)
+	if (CGGetActiveDisplayList(RGFW_MAX_MONITORS, displays, &count) != kCGErrorSuccess)
 		return NULL;
 
-	if (count > 6) count = 6;
+	if (count > RGFW_MAX_MONITORS) count = RGFW_MAX_MONITORS;
 
-	static RGFW_monitor monitors[7];
+	static RGFW_monitor monitors[RGFW_MAX_MONITORS];
 
     u32 i;
-	for (i = 0; i < count; i++)
+	for (i = 0; i < RGFW_MAX_MONITORS; i++)
 		monitors[i] = RGFW_NSCreateMonitor(displays[i], RGFW_getNSScreenForDisplayID(displays[i]));
 
 	if (len != NULL) *len = count;
