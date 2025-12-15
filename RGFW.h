@@ -959,7 +959,7 @@ typedef RGFW_ENUM(i32, RGFW_glReleaseBehavior)   {
 /*! values for the profile hint */
 typedef RGFW_ENUM(i32, RGFW_glProfile)  {
 	RGFW_glCore = 0, /*!< the core OpenGL version, e.g. just support for that version */
-	RGFW_glForwardCompatibility, /*!< allow compatibility for older versions of OpenGL as well as the requested version */
+	RGFW_glForwardCompatibility, /*!< only compatibility for newer versions of OpenGL as well as the requested version */
 	RGFW_glCompatibility, /*!< allow compatibility for older versions of OpenGL as well as the requested version */
 	RGFW_glES /*!< use OpenGL ES */
 };
@@ -2260,8 +2260,6 @@ RGFWDEF void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win);
 /**!
  * @brief Swaps the OpenGL buffers for the specified window.
  * @param win A pointer to the RGFW_window whose buffers should be swapped.
- *
- * @note Typically called by RGFW_window_swapInterval.
 */
 RGFWDEF void RGFW_window_swapBuffers_OpenGL(RGFW_window* win);
 
