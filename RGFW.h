@@ -12568,6 +12568,7 @@ void RGFW_window_show(RGFW_window* win) {
 }
 
 void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
+	RGFW_UNUSED(win);
 	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	pool = objc_msgSend_id(pool, sel_registerName("init"));
 
@@ -12585,7 +12586,7 @@ void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
 		default: break;
 	}
 
-	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 }
 
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) {
