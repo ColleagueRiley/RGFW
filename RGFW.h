@@ -857,7 +857,7 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
 typedef RGFW_ENUM(u8, RGFW_flashRequest) {
 	RGFW_flashCancel = 0,
 	RGFW_flashBriefly,
-	RGFW_flashUnilFocused
+	RGFW_flashUntilFocused
 };
 
 /*! @brief the type of debug message */
@@ -6686,7 +6686,7 @@ void RGFW_FUNC(RGFW_window_flash) (RGFW_window* win, RGFW_flashRequest request) 
 		wmhints->flags |= XUrgencyHint;
 		if (request == RGFW_flashBriefly)
 			win->src.flashEnd = RGFW_linux_getTimeNS() + (u64)1e+9;
-		if (request == RGFW_flashUnilFocused)
+		if (request == RGFW_flashUntilFocused)
 			win->src.flashEnd = (u64)-1;
 	} else {
 		win->src.flashEnd = 0;
@@ -10435,7 +10435,7 @@ void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
 			desc.dwFlags = FLASHW_TRAY;
 			desc.uCount = 1;
 			break;
-		case RGFW_flashUnilFocused:
+		case RGFW_flashUntilFocused:
 			desc.dwFlags = (FLASHW_TRAY | FLASHW_TIMERNOFG);
 			break;
 		default: break;
@@ -12585,7 +12585,7 @@ void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
 		case RGFW_flashBriefly:
 			_RGFW->flash = ((NSInteger (*)(id, SEL, NSInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("requestUserAttention:"), NSInformationalRequest);
 			break;
-		case RGFW_flashUnilFocused:
+		case RGFW_flashUntilFocused:
 			_RGFW->flash = ((NSInteger (*)(id, SEL, NSInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("requestUserAttention:"), NSCriticalRequest);
 			break;
 		default: break;
