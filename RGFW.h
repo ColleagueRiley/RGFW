@@ -10961,6 +10961,11 @@ typedef unsigned long NSUInteger;
 typedef long NSInteger;
 typedef NSInteger NSModalResponse;
 
+typedef enum NSRequestUserAttentionType {
+	NSCriticalRequest = 0,
+    NSInformationalRequest = 10
+} NSRequestUserAttentionType;
+
 typedef enum NSApplicationActivationPolicy {
 	NSApplicationActivationPolicyRegular,
 	NSApplicationActivationPolicyAccessory,
