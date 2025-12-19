@@ -14027,6 +14027,7 @@ typedef struct RGFW_FunctionPointers {
     RGFW_window_setMouseStandard_ptr window_setMouseStandard;
     RGFW_window_hide_ptr window_hide;
     RGFW_window_show_ptr window_show;
+    RGFW_window_flash_ptr window_flash;
     RGFW_readClipboardPtr_ptr readClipboardPtr;
     RGFW_writeClipboard_ptr writeClipboard;
     RGFW_window_isHidden_ptr window_isHidden;
@@ -14093,6 +14094,7 @@ RGFW_bool RGFW_window_setMouseDefault(RGFW_window* win) { return RGFW_api.window
 RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) { return RGFW_api.window_setMouseStandard(win, mouse); }
 void RGFW_window_hide(RGFW_window* win) { RGFW_api.window_hide(win); }
 void RGFW_window_show(RGFW_window* win) { RGFW_api.window_show(win); }
+void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) { RGFW_api.window_flash(win, request); }
 RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) { return RGFW_api.readClipboardPtr(str, strCapacity); }
 void RGFW_writeClipboard(const char* text, u32 textLen) { RGFW_api.writeClipboard(text, textLen); }
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) { return RGFW_api.window_isHidden(win); }
@@ -14164,6 +14166,7 @@ void RGFW_load_X11(void) {
     RGFW_api.window_setMouseStandard = RGFW_window_setMouseStandard_X11;
     RGFW_api.window_hide = RGFW_window_hide_X11;
     RGFW_api.window_show = RGFW_window_show_X11;
+    RGFW_api.window_flash = RGFW_window_flash_X11;
     RGFW_api.readClipboardPtr = RGFW_readClipboardPtr_X11;
     RGFW_api.writeClipboard = RGFW_writeClipboard_X11;
     RGFW_api.window_isHidden = RGFW_window_isHidden_X11;
@@ -14227,6 +14230,7 @@ void RGFW_load_Wayland(void) {
     RGFW_api.window_setMouseStandard = RGFW_window_setMouseStandard_Wayland;
     RGFW_api.window_hide = RGFW_window_hide_Wayland;
     RGFW_api.window_show = RGFW_window_show_Wayland;
+    RGFW_api.window_flash = RGFW_window_flash_X11;
     RGFW_api.readClipboardPtr = RGFW_readClipboardPtr_Wayland;
     RGFW_api.writeClipboard = RGFW_writeClipboard_Wayland;
     RGFW_api.window_isHidden = RGFW_window_isHidden_Wayland;
