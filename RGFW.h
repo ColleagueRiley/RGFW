@@ -13959,6 +13959,7 @@ typedef RGFW_bool (*RGFW_window_setMouseDefault_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_setMouseStandard_ptr)(RGFW_window* win, u8 mouse);
 typedef void (*RGFW_window_hide_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_show_ptr)(RGFW_window* win);
+typedef void (*RGFW_window_flash_ptr)(RGFW_window* win, RGFW_flashRequest request);
 typedef RGFW_ssize_t (*RGFW_readClipboardPtr_ptr)(char* str, size_t strCapacity);
 typedef void (*RGFW_writeClipboard_ptr)(const char* text, u32 textLen);
 typedef RGFW_bool (*RGFW_window_isHidden_ptr)(RGFW_window* win);
