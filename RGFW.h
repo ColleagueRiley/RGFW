@@ -8896,7 +8896,7 @@ void RGFW_FUNC(RGFW_window_show) (RGFW_window* win) {
 }
 
 void RGFW_FUNC(RGFW_window_flash) (RGFW_window* win, RGFW_flashRequest request) {
-	RGFW_ASSERT(win); RGFW_UNUSED(request);
+	RGFW_UNUSED(win); RGFW_UNUSED(request);
 }
 
 RGFW_ssize_t RGFW_FUNC(RGFW_readClipboardPtr) (char* str, size_t strCapacity) {
@@ -10425,7 +10425,7 @@ void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
 	RGFW_MEMSET(&desc, 0, sizeof(desc));
 
     desc.cbSize = sizeof(desc);
-    desc.hwnd = window->internal->hwnd;
+    desc.hwnd = win->src.window;
 
     switch (request) {
 		case RGFW_flashCancel:
@@ -12577,10 +12577,10 @@ void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
 
 	switch (request) {
 		case RGFW_flashBriefly:
-			_RGFW->flash = ((NSUInteger (*)(id, SEL, NSInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("requestUserAttention:"), NSInformationalRequest);
+			_RGFW->flash = ((NSInteger (*)(id, SEL, NSInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("requestUserAttention:"), NSInformationalRequest);
 			break;
 		case RGFW_flashUnilFocused:
-			_RGFW->flash = ((NSUInteger (*)(id, SEL, NSInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("requestUserAttention:"), NSCriticalRequest);
+			_RGFW->flash = ((NSInteger (*)(id, SEL, NSInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("requestUserAttention:"), NSCriticalRequest);
 			break;
 		default: break;
 	}
