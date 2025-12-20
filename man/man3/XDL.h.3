@@ -1,4 +1,4 @@
-.TH "XDL.h" 3 "Mon Dec 15 2025" "RGFW" \" -*- nroff -*-
+.TH "XDL.h" 3 "Sat Dec 20 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -252,6 +252,9 @@ XDL.h
 .br
 .ti -1c
 .RI "#define \fBXSetSelectionOwner\fP   \fBXSetSelectionOwnerSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXGetWMHints\fP   \fBXGetWMHintsSrc\fP"
 .br
 .ti -1c
 .RI "#define \fBXSetWMHints\fP   \fBXSetWMHintsSrc\fP"
@@ -688,6 +691,9 @@ XDL.h
 .br
 .ti -1c
 .RI "typedef int(* \fBPFN_XSetSelectionOwner\fP) (Display *, Atom, Window, Time)"
+.br
+.ti -1c
+.RI "typedef XWMHints *(* \fBPFN_XGetWMHints\fP) (Display *, Window)"
 .br
 .ti -1c
 .RI "typedef int(* \fBPFN_XSetWMHints\fP) (Display *, Window, XWMHints *)"
@@ -1154,6 +1160,9 @@ XDL.h
 .RI "\fBPFN_XSetSelectionOwner\fP \fBXSetSelectionOwnerSrc\fP"
 .br
 .ti -1c
+.RI "\fBPFN_XGetWMHints\fP \fBXGetWMHintsSrc\fP"
+.br
+.ti -1c
 .RI "\fBPFN_XSetWMHints\fP \fBXSetWMHintsSrc\fP"
 .br
 .ti -1c
@@ -1531,6 +1540,8 @@ XDL.h
 
 .SS "#define XGetWindowProperty   \fBXGetWindowPropertySrc\fP"
 
+.SS "#define XGetWMHints   \fBXGetWMHintsSrc\fP"
+
 .SS "#define XGetWMNormalHints   \fBXGetWMNormalHintsSrc\fP"
 
 .SS "#define XGrabPointer   \fBXGrabPointerSrc\fP"
@@ -1828,6 +1839,8 @@ XDL.h
 .SS "typedef Status(* PFN_XGetWindowAttributes) (Display *, Window, XWindowAttributes *)"
 
 .SS "typedef int(* PFN_XGetWindowProperty) (Display *, Window, Atom, long, long, Bool, Atom, Atom *, int *, unsigned long *, unsigned long *, unsigned char **)"
+
+.SS "typedef XWMHints *(* PFN_XGetWMHints) (Display *, Window)"
 
 .SS "typedef Status(* PFN_XGetWMNormalHints) (Display *, Window, XSizeHints *, long *)"
 
@@ -2138,6 +2151,8 @@ XDL.h
 .SS "\fBPFN_XGetWindowAttributes\fP XGetWindowAttributesSrc"
 
 .SS "\fBPFN_XGetWindowProperty\fP XGetWindowPropertySrc"
+
+.SS "\fBPFN_XGetWMHints\fP XGetWMHintsSrc"
 
 .SS "\fBPFN_XGetWMNormalHints\fP XGetWMNormalHintsSrc"
 

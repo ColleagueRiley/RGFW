@@ -853,6 +853,13 @@ typedef RGFW_ENUM(u8, RGFW_mouseIcons) {
     RGFW_mouseIconFinal = 16 /* padding for alignment */
 };
 
+/*! @breif flash request type */
+typedef RGFW_ENUM(u8, RGFW_flashRequest) {
+	RGFW_flashCancel = 0,
+	RGFW_flashBriefly,
+	RGFW_flashUntilFocused
+};
+
 /*! @brief the type of debug message */
 typedef RGFW_ENUM(u8, RGFW_debugType) {
 	RGFW_typeError = 0, RGFW_typeWarning, RGFW_typeInfo
@@ -1876,6 +1883,13 @@ RGFWDEF void RGFW_window_hide(RGFW_window* win);
 RGFWDEF void RGFW_window_show(RGFW_window* win);
 
 /**!
+ * @breif request a window flash to get attention from the user
+ * @param win the target window
+ * @param request the flash operation requested
+*/
+RGFWDEF void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request);
+
+/**!
  * @brief Sets whether the window should close.
  * @param win The target window.
  * @param shouldClose True to signal the window should close, false to keep it open.
@@ -2715,6 +2729,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		Window window; /*!< source window */
 		Window parent; /*!< parent window */
 		GC gc;
+		u64 flashEnd;
 		#ifdef RGFW_ADVANCED_SMOOTH_RESIZE
 			i64 counter_value;
 			XID counter;
@@ -2944,10 +2959,12 @@ struct RGFW_info {
 
     #ifdef RGFW_UNIX
 	    int eventWait_forceStop[3];
+		i32 clock;
     #endif
 
     #ifdef RGFW_MACOS
     void* NSApp;
+	i64 flash;
 	void* customViewClasses[2]; /* NSView and NSOpenGLView  */
 	void* customWindowDelegateClass;
     #endif
@@ -4765,11 +4782,11 @@ void RGFW_stopCheckEvents(void) {
 	}
 }
 
-RGFWDEF u64 RGFW_linux_getTimeNS(i32 clock);
-u64 RGFW_linux_getTimeNS(i32 clock) {
+RGFWDEF u64 RGFW_linux_getTimeNS(void);
+u64 RGFW_linux_getTimeNS(void) {
     struct timespec ts;
     const u64 scale_factor = 1000000000;
-    clock_gettime(clock, &ts);
+    clock_gettime(_RGFW->clock, &ts);
     return (u64)ts.tv_sec * scale_factor + (u64)ts.tv_nsec;
 }
 
@@ -4825,18 +4842,8 @@ void RGFW_waitForEvent(i32 waitMS) {
 		#endif
 	}
 
-	i32 clock = 0;
-	#if defined(_POSIX_MONOTONIC_CLOCK)
-	struct timespec ts;
-	RGFW_MEMSET(&ts, 0, sizeof(struct timespec));
 
-	if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
-		clock = CLOCK_MONOTONIC;
-	#else
-		clock = CLOCK_REALTIME;
-	#endif
-
-	u64 start = RGFW_linux_getTimeNS(clock);
+	u64 start = RGFW_linux_getTimeNS();
 	if (RGFW_usingWayland()) {
 		#ifdef RGFW_WAYLAND
 		while (wl_display_dispatch_pending(_RGFW->wl_display) == 0) {
@@ -4849,7 +4856,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 			}
 
 			if (waitMS != RGFW_eventWaitNext) {
-				waitMS -= (i32)(RGFW_linux_getTimeNS(clock) - start) / (i32)1e+6;
+				waitMS -= (i32)(RGFW_linux_getTimeNS() - start) / (i32)1e+6;
 			}
 		}
 
@@ -4865,7 +4872,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 				break;
 
 			if (waitMS != RGFW_eventWaitNext) {
-				waitMS -= (i32)(RGFW_linux_getTimeNS(clock) - start) / (i32)1e+6;
+				waitMS -= (i32)(RGFW_linux_getTimeNS() - start) / (i32)1e+6;
 			}
 		}
 		#endif
@@ -5074,6 +5081,16 @@ void RGFW_initKeycodesPlatform(void) {
 }
 
 i32 RGFW_initPlatform(void) {
+	#if defined(_POSIX_MONOTONIC_CLOCK)
+	struct timespec ts;
+	RGFW_MEMSET(&ts, 0, sizeof(struct timespec));
+
+	if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
+		_RGFW->clock = CLOCK_MONOTONIC;
+	#else
+		_RGFW->clock = CLOCK_REALTIME;
+	#endif
+
 #ifdef RGFW_WAYLAND
 	RGFW_load_Wayland();
 	i32 ret = RGFW_initPlatform_Wayland();
@@ -5442,9 +5459,11 @@ void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags 
     swa.background_pixmap = None;
 
 	/* create the window */
-    win->src.window = XCreateWindow(_RGFW->display, win->src.parent, win->x, win->y, (u32)win->w, (u32)win->h,
+	win->src.window = XCreateWindow(_RGFW->display, win->src.parent, win->x, win->y, (u32)win->w, (u32)win->h,
 		0, visual.depth, InputOutput, visual.visual,
 		CWBorderPixel | CWColormap | CWEventMask, &swa);
+
+	win->src.flashEnd = 0;
 
 	XFreeColors(_RGFW->display, cmap, NULL, 0, 0);
 
@@ -5460,9 +5479,17 @@ void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags 
 
 	XClassHint hint;
 	hint.res_class = (char*)_RGFW->className;
+
 	if (_RGFW->instName == NULL)	hint.res_name = (char*)name;
 	else 						hint.res_name = (char*)_RGFW->instName;
+
 	XSetClassHint(_RGFW->display, win->src.window, &hint);
+
+	XWMHints hints;
+	hints.flags = StateHint;
+	hints.initial_state = NormalState;
+
+	XSetWMHints(_RGFW->display, win->src.window, &hints);
 
 	#ifndef RGFW_NO_MONITOR
 	if (flags & RGFW_windowScaleToMonitor)
@@ -5712,6 +5739,13 @@ void RGFW_XHandleEvent(void) {
 	if (XFindContext(_RGFW->display, E.xany.window, _RGFW->context, (XPointer*) &win) != 0) {
 		return;
 	}
+
+	if (win->src.flashEnd) {
+		if ((win->src.flashEnd <= RGFW_linux_getTimeNS()) || RGFW_window_isInFocus(win)) {
+			RGFW_window_flash(win, RGFW_flashCancel);
+		}
+	}
+
 
 	event.common.win = win;
 
@@ -6638,6 +6672,29 @@ void RGFW_FUNC(RGFW_window_show) (RGFW_window* win) {
 	RGFW_waitForShowEvent_X11(win);
 	RGFW_window_setFullscreen(win, RGFW_window_isFullscreen(win));
 	return;
+}
+
+void RGFW_FUNC(RGFW_window_flash) (RGFW_window* win, RGFW_flashRequest request) {
+	if (RGFW_window_isInFocus(win) && request) {
+		return;
+	}
+
+	XWMHints* wmhints = XGetWMHints(_RGFW->display, win->src.window);
+	if (wmhints == NULL) return;
+
+	if (request) {
+		wmhints->flags |= XUrgencyHint;
+		if (request == RGFW_flashBriefly)
+			win->src.flashEnd = RGFW_linux_getTimeNS() + (u64)1e+9;
+		if (request == RGFW_flashUntilFocused)
+			win->src.flashEnd = (u64)-1;
+	} else {
+		win->src.flashEnd = 0;
+		wmhints->flags &= ~XUrgencyHint;
+	}
+
+    XSetWMHints(_RGFW->display, win->src.window, wmhints);
+    XFree(wmhints);
 }
 
 RGFW_ssize_t RGFW_FUNC(RGFW_readClipboardPtr)(char* str, size_t strCapacity) {
@@ -8838,6 +8895,12 @@ void RGFW_FUNC(RGFW_window_show) (RGFW_window* win) {
 	wl_surface_commit(win->src.surface);
 }
 
+void RGFW_FUNC(RGFW_window_flash) (RGFW_window* win, RGFW_flashRequest request) {
+	if (RGFW_window_isInFocus(win) && request) {
+		return;
+	}
+}
+
 RGFW_ssize_t RGFW_FUNC(RGFW_readClipboardPtr) (char* str, size_t strCapacity) {
 
 	RGFW_UNUSED(strCapacity);
@@ -10359,6 +10422,34 @@ void RGFW_window_show(RGFW_window* win) {
 	ShowWindow(win->src.window, SW_RESTORE);
 }
 
+void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
+	if (RGFW_window_isInFocus(win) && request) {
+		return;
+	}
+
+	FLASHWINFO desc;
+	RGFW_MEMSET(&desc, 0, sizeof(desc));
+
+    desc.cbSize = sizeof(desc);
+    desc.hwnd = win->src.window;
+
+    switch (request) {
+		case RGFW_flashCancel:
+			desc.dwFlags = FLASHW_STOP;
+			break;
+		case RGFW_flashBriefly:
+			desc.dwFlags = FLASHW_TRAY;
+			desc.uCount = 1;
+			break;
+		case RGFW_flashUntilFocused:
+			desc.dwFlags = (FLASHW_TRAY | FLASHW_TIMERNOFG);
+			break;
+		default: break;
+    }
+
+    FlashWindowEx(&desc);
+}
+
 #define RGFW_FREE_LIBRARY(x) if (x != NULL) FreeLibrary(x); x = NULL;
 void RGFW_deinitPlatform(void) {
     #ifndef RGFW_NO_DPI
@@ -10875,6 +10966,11 @@ typedef const char* NSPasteboardType;
 typedef unsigned long NSUInteger;
 typedef long NSInteger;
 typedef NSInteger NSModalResponse;
+
+typedef enum NSRequestUserAttentionType {
+	NSCriticalRequest = 0,
+    NSInformationalRequest = 10
+} NSRequestUserAttentionType;
 
 typedef enum NSApplicationActivationPolicy {
 	NSApplicationActivationPolicyRegular,
@@ -12482,6 +12578,31 @@ void RGFW_window_show(RGFW_window* win) {
 	objc_msgSend_void_bool(win->src.window, sel_registerName("setIsVisible:"), true);
 }
 
+void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
+	if (RGFW_window_isInFocus(win) && request) {
+		return;
+	}
+
+	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+	pool = objc_msgSend_id(pool, sel_registerName("init"));
+
+	if (_RGFW->flash) {
+		((void (*)(id, SEL, NSInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("cancelUserAttentionRequest:"), _RGFW->flash);
+	}
+
+	switch (request) {
+		case RGFW_flashBriefly:
+			_RGFW->flash = ((NSInteger (*)(id, SEL, NSInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("requestUserAttention:"), NSInformationalRequest);
+			break;
+		case RGFW_flashUntilFocused:
+			_RGFW->flash = ((NSInteger (*)(id, SEL, NSInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("requestUserAttention:"), NSCriticalRequest);
+			break;
+		default: break;
+	}
+
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
+}
+
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
@@ -13804,6 +13925,7 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) { RGFW_UNUSED(win
 RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format, RGFW_icon type) { RGFW_UNUSED(win); RGFW_UNUSED(data); RGFW_UNUSED(w); RGFW_UNUSED(h); RGFW_UNUSED(format);  RGFW_UNUSED(type); return RGFW_FALSE;  }
 void RGFW_window_hide(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_show(RGFW_window* win) {RGFW_UNUSED(win); }
+void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) { RGFW_UNUSED(win); RGFW_UNUSED(request); }
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
 RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
@@ -13846,6 +13968,7 @@ typedef RGFW_bool (*RGFW_window_setMouseDefault_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_setMouseStandard_ptr)(RGFW_window* win, u8 mouse);
 typedef void (*RGFW_window_hide_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_show_ptr)(RGFW_window* win);
+typedef void (*RGFW_window_flash_ptr)(RGFW_window* win, RGFW_flashRequest request);
 typedef RGFW_ssize_t (*RGFW_readClipboardPtr_ptr)(char* str, size_t strCapacity);
 typedef void (*RGFW_writeClipboard_ptr)(const char* text, u32 textLen);
 typedef RGFW_bool (*RGFW_window_isHidden_ptr)(RGFW_window* win);
@@ -13914,6 +14037,7 @@ typedef struct RGFW_FunctionPointers {
     RGFW_window_setMouseStandard_ptr window_setMouseStandard;
     RGFW_window_hide_ptr window_hide;
     RGFW_window_show_ptr window_show;
+    RGFW_window_flash_ptr window_flash;
     RGFW_readClipboardPtr_ptr readClipboardPtr;
     RGFW_writeClipboard_ptr writeClipboard;
     RGFW_window_isHidden_ptr window_isHidden;
@@ -13980,6 +14104,7 @@ RGFW_bool RGFW_window_setMouseDefault(RGFW_window* win) { return RGFW_api.window
 RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 mouse) { return RGFW_api.window_setMouseStandard(win, mouse); }
 void RGFW_window_hide(RGFW_window* win) { RGFW_api.window_hide(win); }
 void RGFW_window_show(RGFW_window* win) { RGFW_api.window_show(win); }
+void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) { RGFW_api.window_flash(win, request); }
 RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) { return RGFW_api.readClipboardPtr(str, strCapacity); }
 void RGFW_writeClipboard(const char* text, u32 textLen) { RGFW_api.writeClipboard(text, textLen); }
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) { return RGFW_api.window_isHidden(win); }
@@ -14051,6 +14176,7 @@ void RGFW_load_X11(void) {
     RGFW_api.window_setMouseStandard = RGFW_window_setMouseStandard_X11;
     RGFW_api.window_hide = RGFW_window_hide_X11;
     RGFW_api.window_show = RGFW_window_show_X11;
+    RGFW_api.window_flash = RGFW_window_flash_X11;
     RGFW_api.readClipboardPtr = RGFW_readClipboardPtr_X11;
     RGFW_api.writeClipboard = RGFW_writeClipboard_X11;
     RGFW_api.window_isHidden = RGFW_window_isHidden_X11;
@@ -14114,6 +14240,7 @@ void RGFW_load_Wayland(void) {
     RGFW_api.window_setMouseStandard = RGFW_window_setMouseStandard_Wayland;
     RGFW_api.window_hide = RGFW_window_hide_Wayland;
     RGFW_api.window_show = RGFW_window_show_Wayland;
+    RGFW_api.window_flash = RGFW_window_flash_X11;
     RGFW_api.readClipboardPtr = RGFW_readClipboardPtr_Wayland;
     RGFW_api.writeClipboard = RGFW_writeClipboard_Wayland;
     RGFW_api.window_isHidden = RGFW_window_isHidden_Wayland;

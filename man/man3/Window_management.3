@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Mon Dec 15 2025" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Sat Dec 20 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -216,6 +216,9 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_show\fP (\fBRGFW_window\fP *win)"
 .br
 .RI "Shows the window if it was hidden\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_flash\fP (\fBRGFW_window\fP *win, RGFW_flashRequest request)"
+.br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setShouldClose\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP shouldClose)"
 .br
@@ -440,6 +443,17 @@ checks if the mouse left the window (true only for the first frame) !
 \fBReturns\fP
 .RS 4
 RGFW_TRUE if the mouse left, RGFW_FALSE otherwise 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_window_flash (\fBRGFW_window\fP * win, RGFW_flashRequest request)"
+! @breif request a window flash to get attention from the user 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP the target window 
+.br
+\fIrequest\fP the flash operation requested 
 .RE
 .PP
 

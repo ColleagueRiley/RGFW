@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Mon Dec 15 2025" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Sat Dec 20 2025" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -384,6 +384,9 @@ RGFW.h
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_mouseIcons)"
 .br
 .RI "standard mouse icons "
+.ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_flashRequest)"
+.br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_debugType)"
 .br
@@ -854,6 +857,9 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_show\fP (\fBRGFW_window\fP *win)"
 .br
 .RI "Shows the window if it was hidden\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_flash\fP (\fBRGFW_window\fP *win, RGFW_flashRequest request)"
+.br
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setShouldClose\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP shouldClose)"
 .br
@@ -1511,6 +1517,8 @@ RGFW_event\&.button\&.value holds which mouse button was pressed
 < the window was restored
 .PP
 < content scale factor changed
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_flashRequest)"
+@breif flash request type 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_format)"
 
 .PP
