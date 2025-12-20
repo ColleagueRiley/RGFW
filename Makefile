@@ -166,6 +166,7 @@ EXAMPLE_OUTPUTS = \
 	examples/multi-window/multi-window \
 	examples/standard-mouse-icons/icons \
 	examples/custom_alloc/custom_alloc \
+	examples/flash/flash \
 
 EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/window_icons/icons \

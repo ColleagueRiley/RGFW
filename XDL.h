@@ -139,6 +139,7 @@ typedef int (* PFN_XSetInputFocus)(Display*,Window,int,Time);
 typedef char* (* PFN_XSetLocaleModifiers)(const char*);
 typedef int (* PFN_XSetScreenSaver)(Display*,int,int,int,int);
 typedef int (* PFN_XSetSelectionOwner)(Display*,Atom,Window,Time);
+typedef XWMHints* (* PFN_XGetWMHints)(Display*,Window);
 typedef int (* PFN_XSetWMHints)(Display*,Window,XWMHints*);
 typedef void (* PFN_XSetWMNormalHints)(Display*,Window,XSizeHints*);
 typedef Status (* PFN_XSetWMProtocols)(Display*,Window,Atom*,int);
@@ -301,6 +302,7 @@ PFN_XSetInputFocus XSetInputFocusSrc;
 PFN_XSetLocaleModifiers XSetLocaleModifiersSrc;
 PFN_XSetScreenSaver XSetScreenSaverSrc;
 PFN_XSetSelectionOwner XSetSelectionOwnerSrc;
+PFN_XGetWMHints XGetWMHintsSrc;
 PFN_XSetWMHints XSetWMHintsSrc;
 PFN_XSetWMNormalHints XSetWMNormalHintsSrc;
 PFN_XSetWMProtocols XSetWMProtocolsSrc;
@@ -462,6 +464,7 @@ PFN_glXDestroyWindow glXDestroyWindowSrc;
 #define XSetLocaleModifiers XSetLocaleModifiersSrc
 #define XSetScreenSaver XSetScreenSaverSrc
 #define XSetSelectionOwner XSetSelectionOwnerSrc
+#define XGetWMHints XGetWMHintsSrc
 #define XSetWMHints XSetWMHintsSrc
 #define XSetWMNormalHints XSetWMNormalHintsSrc
 #define XSetWMProtocols XSetWMProtocolsSrc
@@ -661,6 +664,7 @@ void XDL_init(void) {
 	XDL_PROC_DEF(0, XSetLocaleModifiers);
 	XDL_PROC_DEF(0, XSetScreenSaver);
 	XDL_PROC_DEF(0, XSetSelectionOwner);
+	XDL_PROC_DEF(0, XGetWMHints);
 	XDL_PROC_DEF(0, XSetWMHints);
 	XDL_PROC_DEF(0, XSetWMNormalHints);
 	XDL_PROC_DEF(0, XSetWMProtocols);
