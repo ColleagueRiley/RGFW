@@ -8896,7 +8896,9 @@ void RGFW_FUNC(RGFW_window_show) (RGFW_window* win) {
 }
 
 void RGFW_FUNC(RGFW_window_flash) (RGFW_window* win, RGFW_flashRequest request) {
-	RGFW_UNUSED(win); RGFW_UNUSED(request);
+	if (RGFW_window_isInFocus(win) && request) {
+		return;
+	}
 }
 
 RGFW_ssize_t RGFW_FUNC(RGFW_readClipboardPtr) (char* str, size_t strCapacity) {
@@ -10421,7 +10423,11 @@ void RGFW_window_show(RGFW_window* win) {
 }
 
 void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
-    FLASHWINFO desc;
+	if (RGFW_window_isInFocus(win) && request) {
+		return;
+	}
+
+	FLASHWINFO desc;
 	RGFW_MEMSET(&desc, 0, sizeof(desc));
 
     desc.cbSize = sizeof(desc);
@@ -12573,7 +12579,10 @@ void RGFW_window_show(RGFW_window* win) {
 }
 
 void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
-	RGFW_UNUSED(win);
+	if (RGFW_window_isInFocus(win) && request) {
+		return;
+	}
+
 	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	pool = objc_msgSend_id(pool, sel_registerName("init"));
 
