@@ -2,34 +2,31 @@
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
-#ifdef RGFW_MACOS
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
-
 int main(void) {
-	RGFW_setClassName("RGFW Example");
-	RGFW_window *win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_windowCenter);
+    RGFW_setClassName("RGFW Flash Test");
+    RGFW_window* win = RGFW_createWindow("RGFW Flash Demo", 0, 0, 600, 400, RGFW_windowCenter);
+
     RGFW_window_setExitKey(win, RGFW_escape);
 
-	i32 mode = 0;
+    int mode = 0;
+    int was_focused = 1;
 
-	while (!RGFW_window_shouldClose(win)) {
-		RGFW_pollEvents();
+    while (!RGFW_window_shouldClose(win)) {
+        RGFW_pollEvents();
 
-		if (RGFW_isKeyDown(RGFW_space)) {
-			mode = (mode) ? !mode : mode;
-		}
+        if (RGFW_isKeyPressed(RGFW_space)) {
+            mode = !mode;
+        }
 
-		if (!RGFW_window_isInFocus(win) && !mode) {
-			RGFW_window_flash(win, RGFW_flashBriefly);
-		} else if (!RGFW_window_isInFocus(win)) {
-			RGFW_window_flash(win, RGFW_flashUntilFocused);
-		}
-	}
+        int is_focused = RGFW_window_isInFocus(win);
 
-	RGFW_window_close(win);
-	return 0;
+        if (!is_focused && was_focused) {
+            RGFW_window_flash(win, mode ? RGFW_flashUntilFocused : RGFW_flashBriefly);
+        }
+
+        was_focused = is_focused;
+    }
+
+    RGFW_window_close(win);
+    return 0;
 }
-
