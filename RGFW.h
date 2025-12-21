@@ -3275,8 +3275,8 @@ void RGFW_window_setUserPtr(RGFW_window* win, void* ptr) { win->userPtr = ptr; }
 RGFW_bool RGFW_window_getSizeInPixels(RGFW_window* win, i32* w, i32* h) {
 	RGFW_monitor mon = RGFW_window_getMonitor(win);
 
-	if (w) *w = (i32)((float)win->src.w * mon.pixelRatio);
-	if (h) *h = (i32)((float)win->src.h * mon.pixelRatio);
+	if (w) *w = (i32)((float)win->w * mon.pixelRatio);
+	if (h) *h = (i32)((float)win->h * mon.pixelRatio);
 
 	return RGFW_TRUE;
 }
