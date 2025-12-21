@@ -3342,7 +3342,10 @@ void RGFW_window_close(RGFW_window* win) {
 
 RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, RGFW_windowFlags flags, RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
+	if (name == NULL) name = "\0";
+
 	RGFW_MEMSET(win, 0, sizeof(RGFW_window));
+
 	if (_RGFW == NULL) RGFW_init();
 	_RGFW->windowCount++;
 
@@ -6239,7 +6242,7 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 
 	XPending(_RGFW->display);
     /* if there is no unread queued events, get a new one */
-	while ((QLength(_RGFW->display) || XEventsQueued(_RGFW->display, QueuedAlready) + XEventsQueued(_RGFW->display, QueuedAfterReading))) {
+	while (QLength(_RGFW->display)) {
 		RGFW_XHandleEvent();
 	}
 }
@@ -6486,6 +6489,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_isFloating)(RGFW_window* win) {
 
 void RGFW_FUNC(RGFW_window_setName)(RGFW_window* win, const char* name) {
 	RGFW_ASSERT(win != NULL);
+	if (name == NULL) name = "\0";
 
 	XStoreName(_RGFW->display, win->src.window, name);
 
@@ -7261,6 +7265,8 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 
 	glXMakeCurrent(_RGFW->display, (Drawable)win->src.ctx.native->window, (GLXContext)win->src.ctx.native->ctx);
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL context initalized.");
+
+	RGFW_window_swapInterval_OpenGL(win, 0);
 
 	return RGFW_TRUE;
 }
@@ -8766,6 +8772,8 @@ RGFW_bool RGFW_FUNC(RGFW_window_isFloating)(RGFW_window* win) {
 
 void RGFW_FUNC(RGFW_window_setName) (RGFW_window* win, const char* name) {
 	RGFW_ASSERT(win != NULL);
+	if (name == NULL) name = "\0";
+
 	if (_RGFW->compositor)
 		xdg_toplevel_set_title(win->src.xdg_toplevel, name);
 }
@@ -9015,6 +9023,8 @@ RGFW_proc RGFW_FUNC(RGFW_getProcAddress_OpenGL) (const char* procname) { return 
 RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL)(RGFW_window* win, RGFW_glContext* ctx, RGFW_glHints* hints) {
 	RGFW_bool out = RGFW_window_createContextPtr_EGL(win, &ctx->egl, hints);
 	win->src.gfxType = RGFW_gfxNativeOpenGL;
+
+	RGFW_window_swapInterval_OpenGL(win, 0);
 	return out;
 }
 void RGFW_FUNC(RGFW_window_deleteContextPtr_OpenGL) (RGFW_window* win, RGFW_glContext* ctx) { RGFW_window_deleteContextPtr_EGL(win, &ctx->egl); win->src.ctx.native = NULL; }
@@ -10498,6 +10508,7 @@ void RGFW_window_resize(RGFW_window* win, i32 w, i32 h) {
 
 void RGFW_window_setName(RGFW_window* win, const char* name) {
 	RGFW_ASSERT(win != NULL);
+	if (name == NULL) name = "\0";
 
 	wchar_t wide_name[256];
 	MultiByteToWideChar(CP_UTF8, 0, name, -1, wide_name, 256);
@@ -12396,6 +12407,7 @@ RGFW_bool RGFW_window_isFloating(RGFW_window* win) {
 
 void RGFW_window_setName(RGFW_window* win, const char* name) {
 	RGFW_ASSERT(win != NULL);
+	if (name == NULL) name = "\0";
 
 	id str = NSString_stringWithUTF8String(name);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setTitle:"), str);
@@ -12922,6 +12934,8 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
 	objc_msgSend_void_bool(win->src.view, sel_registerName("setWantsLayer:"), true);
 	objc_msgSend_int((id)win->src.view, sel_registerName("setLayerContentsPlacement:"),  4);
+
+	RGFW_window_swapInterval_OpenGL(win, 0);
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL context initalized.");
 	return RGFW_TRUE;
@@ -13684,6 +13698,9 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	EM_ASM("Module.useWebGL = true; GLImmediate.init();");
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL context initalized.");
     #endif
+
+	RGFW_window_swapInterval_OpenGL(win, 0);
+
 	return RGFW_TRUE;
 }
 
@@ -13749,6 +13766,8 @@ void RGFW_captureCursor(RGFW_window* win) {
 
 void RGFW_window_setName(RGFW_window* win, const char* name) {
 	RGFW_UNUSED(win);
+	if (name == NULL) name = "\0";
+
 	emscripten_set_window_title(name);
 }
 
