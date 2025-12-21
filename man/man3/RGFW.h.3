@@ -583,6 +583,10 @@ RGFW.h
 .br
 .RI "gets the size of the window | with RGFW_window\&.w and window\&.h "
 .ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_getSizeInPixels\fP (\fBRGFW_window\fP *win, \fBi32\fP *w, \fBi32\fP *h)"
+.br
+.RI "gets the size of the window in exact pixels "
+.ti -1c
 .RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_window_getFlags\fP (\fBRGFW_window\fP *win)"
 .br
 .RI "gets the flags of the window | returns RGFW_window\&._flags "
@@ -2051,6 +2055,26 @@ a bool if the function was successful
 
 .PP
 gets the size of the window | with RGFW_window\&.w and window\&.h ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP a pointer to the window 
+.br
+\fIw\fP [OUTPUT] the width of the window 
+.br
+\fIh\fP [OUTPUT] the height of the window 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+a bool if the function was successful 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_getSizeInPixels (\fBRGFW_window\fP * win, \fBi32\fP * w, \fBi32\fP * h)"
+
+.PP
+gets the size of the window in exact pixels ! 
 .PP
 \fBParameters\fP
 .RS 4

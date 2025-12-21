@@ -496,6 +496,9 @@ Functions</h2></td></tr>
 <tr class="memitem:af0fe38fa76c7d19f51ba49bb2ea4955d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#af0fe38fa76c7d19f51ba49bb2ea4955d">RGFW_window_getSize</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> *w, <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> *h)</td></tr>
 <tr class="memdesc:af0fe38fa76c7d19f51ba49bb2ea4955d"><td class="mdescLeft">&#160;</td><td class="mdescRight">gets the size of the window | with RGFW_window.w and window.h  <a href="RGFW_8h.html#af0fe38fa76c7d19f51ba49bb2ea4955d">More...</a><br /></td></tr>
 <tr class="separator:af0fe38fa76c7d19f51ba49bb2ea4955d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acc79e190938f2880a124dfa8318aef29"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#acc79e190938f2880a124dfa8318aef29">RGFW_window_getSizeInPixels</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> *w, <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> *h)</td></tr>
+<tr class="memdesc:acc79e190938f2880a124dfa8318aef29"><td class="mdescLeft">&#160;</td><td class="mdescRight">gets the size of the window in exact pixels  <a href="RGFW_8h.html#acc79e190938f2880a124dfa8318aef29">More...</a><br /></td></tr>
+<tr class="separator:acc79e190938f2880a124dfa8318aef29"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1005e75e32126fb2881524aa58a0a68"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#ac1005e75e32126fb2881524aa58a0a68">RGFW_window_getFlags</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win)</td></tr>
 <tr class="memdesc:ac1005e75e32126fb2881524aa58a0a68"><td class="mdescLeft">&#160;</td><td class="mdescRight">gets the flags of the window | returns RGFW_window._flags  <a href="RGFW_8h.html#ac1005e75e32126fb2881524aa58a0a68">More...</a><br /></td></tr>
 <tr class="separator:ac1005e75e32126fb2881524aa58a0a68"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -4031,6 +4034,51 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>gets the size of the window | with RGFW_window.w and window.h </p>
+<p >! </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">win</td><td>a pointer to the window </td></tr>
+    <tr><td class="paramname">w</td><td>[OUTPUT] the width of the window </td></tr>
+    <tr><td class="paramname">h</td><td>[OUTPUT] the height of the window </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>a bool if the function was successful </dd></dl>
+
+</div>
+</div>
+<a id="acc79e190938f2880a124dfa8318aef29" name="acc79e190938f2880a124dfa8318aef29"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acc79e190938f2880a124dfa8318aef29">&#9670;&#160;</a></span>RGFW_window_getSizeInPixels()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> RGFW_window_getSizeInPixels </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *&#160;</td>
+          <td class="paramname"><em>win</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> *&#160;</td>
+          <td class="paramname"><em>w</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> *&#160;</td>
+          <td class="paramname"><em>h</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>gets the size of the window in exact pixels </p>
 <p >! </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">win</td><td>a pointer to the window </td></tr>
