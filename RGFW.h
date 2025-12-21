@@ -6242,7 +6242,7 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 
 	XPending(_RGFW->display);
     /* if there is no unread queued events, get a new one */
-	while ((QLength(_RGFW->display) || XEventsQueued(_RGFW->display, QueuedAlready) + XEventsQueued(_RGFW->display, QueuedAfterReading))) {
+	while (QLength(_RGFW->display)) {
 		RGFW_XHandleEvent();
 	}
 }
