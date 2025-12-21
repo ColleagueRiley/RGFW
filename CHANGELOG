@@ -34,6 +34,7 @@ In this PR I am redefining how RGFW handles versioning. Breaking changes are goi
 - add `RGFW_window_flash` and enum, `RGFW_flashRequest`
 - add new example `examples/flash/flash` to demonstrate `RGFW_window_flash`
 - standardize vsync being disabled by default (OpenGL)
+- add 'RGFW_window_getSizeInPixels'
 
 Release:    RGFW 1.8.0
 -----------------------------------------------
