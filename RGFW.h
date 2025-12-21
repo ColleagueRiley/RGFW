@@ -1362,6 +1362,15 @@ RGFWDEF RGFW_bool RGFW_window_getPosition(RGFW_window* win, i32* x, i32* y); /*!
 RGFWDEF RGFW_bool RGFW_window_getSize(RGFW_window* win, i32* w, i32* h);
 
 /**!
+ * @brief gets the size of the window in exact pixels
+ * @param win a pointer to the window
+ * @param w [OUTPUT] the width of the window
+ * @param h [OUTPUT] the height of the window
+ * @return a bool if the function was successful
+*/
+RGFWDEF RGFW_bool RGFW_window_getSizeInPixels(RGFW_window* win, i32* w, i32* h);
+
+/**!
  * @brief gets the flags of the window | returns RGFW_window._flags
  * @param win a pointer to the window
  * @return the window flags
@@ -3262,6 +3271,15 @@ void RGFW_window_setDisabledEvents(RGFW_window* win, RGFW_eventFlag events) {   
 void RGFW_window_setEventState(RGFW_window* win, RGFW_eventFlag event, RGFW_bool state) { RGFW_setBit(&win->internal.enabledEvents, event, state); }
 void* RGFW_window_getUserPtr(RGFW_window* win) { return win->userPtr; }
 void RGFW_window_setUserPtr(RGFW_window* win, void* ptr) { win->userPtr = ptr; }
+
+RGFW_bool RGFW_window_getSizeInPixels(RGFW_window* win, i32* w, i32* h) {
+	RGFW_monitor mon = RGFW_window_getMonitor(win);
+
+	if (w) *w = win->src.w * mon.pixelRatio;
+	if (h) *h = win->src.h * mon.pixelRatio;
+
+	return RGFW_TRUE;
+}
 
 
 #if defined(RGFW_USE_XDL) && defined(RGFW_X11)
