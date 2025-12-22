@@ -175,6 +175,7 @@ int main() {
 	#pragma comment(lib, "gdi32")
 	#pragma comment(lib, "shell32")
 	#pragma comment(lib, "User32")
+	#pragma comment(lib, "Advapi32")
     #pragma warning( push )
 	#pragma warning( disable : 4996 4191 4127)
     #if _MSC_VER < 600
