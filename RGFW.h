@@ -9205,6 +9205,9 @@ typedef struct { DWORD dwFlags; int fEnable; HRGN hRgnBlur; int fTransitionOnMax
 #endif
 typedef HRESULT (WINAPI * PFN_DwmEnableBlurBehindWindow)(HWND, const DWM_BLURBEHIND*);
 PFN_DwmEnableBlurBehindWindow DwmEnableBlurBehindWindowSRC = NULL;
+
+typedef HRESULT (WINAPI * PFN_DwmSetWindowAttribute)(HWND, DWORD, LPCVOID, DWORD);
+PFN_DwmSetWindowAttribute DwmSetWindowAttributeSRC = NULL;
 #endif
 void RGFW_win32_makeWindowTransparent(RGFW_window* win);
 void RGFW_win32_makeWindowTransparent(RGFW_window* win) {
@@ -9224,6 +9227,26 @@ void RGFW_win32_makeWindowTransparent(RGFW_window* win) {
 		SetWindowLong(win->src.window, GWL_EXSTYLE, WS_EX_LAYERED);
 		SetLayeredWindowAttributes(win->src.window, 0, 128,  LWA_ALPHA);
 	}
+}
+
+RGFWDEF RGFW_bool RGFW_win32_getDarkModeState(void);
+RGFW_bool RGFW_win32_getDarkModeState(void) {
+	u32 lightMode = 1;
+	DWORD len = sizeof(lightMode);
+
+	RegGetValueW(
+		HKEY_CURRENT_USER,
+		L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+		L"AppsUseLightTheme", RRF_RT_REG_DWORD, NULL, &lightMode, &len
+	);
+
+	return (lightMode == 0);
+}
+
+RGFWDEF void RGFW_win32_makeWindowDarkMode(RGFW_window* win, RGFW_bool state);
+void RGFW_win32_makeWindowDarkMode(RGFW_window* win, RGFW_bool state) {
+	BOOL value = (state == RGFW_TRUE) ? TRUE : FALSE;
+	DwmSetWindowAttributeSRC(win->src.window, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, &value, sizeof(value));
 }
 
 LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -9891,6 +9914,7 @@ i32 RGFW_initPlatform(void) {
 	#ifndef RGFW_NO_DWM
 	RGFW_LOAD_LIBRARY(RGFW_dwm_dll, "dwmapi.dll");
 	RGFW_PROC_DEF(RGFW_dwm_dll, DwmEnableBlurBehindWindow);
+	RGFW_PROC_DEF(RGFW_dwm_dll, DwmSetWindowAttribute);
 	#endif
 
 	RGFW_LOAD_LIBRARY(RGFW_wgl_dll, "opengl32.dll");
@@ -9982,6 +10006,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	}
 	win->src.hdc = GetDC(win->src.window);
 
+	RGFW_win32_makeWindowDarkMode(win, RGFW_win32_getDarkModeState());
 	RGFW_win32_makeWindowTransparent(win);
 	return win;
 }
