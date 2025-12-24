@@ -1204,6 +1204,13 @@ RGFWDEF RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, struct RGFW_windo
 
 #endif
 
+ /**!
+ * @brief set (enable or disable) raw mouse mode globally
+ * @param the boolean state of raw mouse mode
+ *
+*/
+RGFWDEF void RGFW_setRawMouseMode(RGFW_bool state);
+
 /**!
 * @brief sleep until RGFW gets an event or the timer ends (defined by OS)
 * @param waitMS how long to wait for the next event (in miliseconds)
@@ -1844,7 +1851,7 @@ RGFWDEF RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, RGFW_mouseIcons
 RGFWDEF RGFW_bool RGFW_window_setMouseDefault(RGFW_window* win);
 
 /**!
- * @brief set (enable or disable) raw mouse mode
+ * @brief set (enable or disable) raw mouse mode only for the select window
  * @param win The target window.
  * @param the boolean state of raw mouse mode
  *
@@ -3013,6 +3020,8 @@ struct RGFW_info {
 		void* EGL_display;
 	#endif
 
+	RGFW_bool rawMouse; /* global raw mouse toggle */
+
 	RGFW_windowState windowState; /*! for checking window state events */
 
 	RGFW_keyState mouseButtons[RGFW_mouseFinal];
@@ -3089,6 +3098,11 @@ void RGFW_free(void* ptr) { RGFW_FREE(ptr); }
 
 void RGFW_useWayland(RGFW_bool wayland) { RGFW_init(); _RGFW->useWaylandBool = RGFW_BOOL(wayland);  }
 RGFW_bool RGFW_usingWayland(void) { return _RGFW->useWaylandBool; }
+
+void RGFW_setRawMouseMode(RGFW_bool state) {
+	_RGFW->rawMouse = state;
+	RGFW_window_setRawMouseModePlatform(_RGFW->root, state);
+}
 
 void RGFW_clipboard_switch(char* newstr);
 void RGFW_clipboard_switch(char* newstr) {
@@ -5752,7 +5766,7 @@ void RGFW_XHandleEvent(void) {
 			if (!(win->internal.enabledEvents & RGFW_BIT(RGFW_mousePosChanged))) return;
 
 			/* MotionNotify is used for mouse events if the mouse isn't held */
-			if (!(win->internal.rawMouse)) {
+			if (!(win->internal.rawMouse) && !RGFW->rawMouse) {
 				XFreeEventData(_RGFW->display, &E.xcookie);
 				return;
 			}
@@ -5908,7 +5922,7 @@ void RGFW_XHandleEvent(void) {
 			RGFW_mouseButtonCallback(win, event.button.value, RGFW_FALSE);
 			break;
 		case MotionNotify:
-			if (win->internal.rawMouse) return;
+			if (win->internal.rawMouse || _RGFW->rawMouse) return;
 			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag)) return;
 			event.mouse.x = E.xmotion.x;
 			event.mouse.y = E.xmotion.y;
@@ -9499,7 +9513,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_MOUSEMOVE: {
 			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
-			if ((win->internal.rawMouse))
+			if ((win->internal.rawMouse) || _RGFW->rawMouse)
 				break;
 
 
@@ -9527,7 +9541,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		case WM_INPUT: {
-			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag) || !(win->internal.rawMouse)) return DefWindowProcW(hWnd, message, wParam, lParam);
+			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag) || !(win->internal.rawMouse || _RGFW->rawMouse) return DefWindowProcW(hWnd, message, wParam, lParam);
 			unsigned size = sizeof(RAWINPUT);
 			static RAWINPUT raw;
 
@@ -13138,7 +13152,7 @@ EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(E);
 
 	if (_RGFW->root->internal.captureMouse) {
-		RGFW_window_captureMousePlatform(win, RGFW_TRUE);
+		RGFW_window_captureMousePlatform(_RGFW->root, RGFW_TRUE);
 	}
 
 	if (!(_RGFW->root->internal.enabledEvents & RGFW_focusInFlag)) return EM_TRUE;
