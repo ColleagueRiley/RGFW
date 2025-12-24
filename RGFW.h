@@ -814,9 +814,11 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowFocusOnShow = RGFW_BIT(13), /*!< focus the window when it's shown */
 	RGFW_windowMinimize = RGFW_BIT(14), /*!< focus the window when it's shown */
 	RGFW_windowFocus = RGFW_BIT(15), /*!< if the window is in focus */
+	RGFW_windowCaptureMouse = RGFW_BIT(16), /*!< capture the mouse mouse mouse on window creation */
 	RGFW_windowOpenGL = RGFW_BIT(17), /*!< create an OpenGL context (you can also do this manually with RGFW_window_createContext_OpenGL) */
 	RGFW_windowEGL = RGFW_BIT(18), /*!< create an EGL context (you can also do this manually with RGFW_window_createContext_EGL) */
-	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize
+	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize,
+	RGFW_windowCaptureRawMouse = RGFW_windowCaptureMouse | RGFW_windowRawMouse
 };
 
 /*! @brief the types of icon to set */
@@ -3663,6 +3665,8 @@ void RGFW_window_setFlagsInternal(RGFW_window* win, RGFW_windowFlags flags, RGFW
 	else if (cmpFlags & RGFW_windowFloating)    RGFW_window_setFloating(win, 0);
 	if (flags & RGFW_windowRawMouse)			RGFW_window_setRawMouseMode(win, RGFW_TRUE);
 	else if (cmpFlags & RGFW_windowRawMouse)	RGFW_window_setRawMouseMode(win, RGFW_FALSE);
+	if (flags & RGFW_windowCaptureMouse)			RGFW_window_captureRawMouse(win, RGFW_TRUE);
+	else if (cmpFlags & RGFW_windowCaptureMouse)	RGFW_window_captureMouse(win, RGFW_FALSE);
 	if (flags & RGFW_windowFocus)               RGFW_window_focus(win);
 
 	if (flags & RGFW_windowNoResize) {
