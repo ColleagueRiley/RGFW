@@ -5766,7 +5766,7 @@ void RGFW_XHandleEvent(void) {
 			if (!(win->internal.enabledEvents & RGFW_BIT(RGFW_mousePosChanged))) return;
 
 			/* MotionNotify is used for mouse events if the mouse isn't held */
-			if (!(win->internal.rawMouse) && !RGFW->rawMouse) {
+			if (!(win->internal.rawMouse) && !_RGFW->rawMouse) {
 				XFreeEventData(_RGFW->display, &E.xcookie);
 				return;
 			}
@@ -9541,7 +9541,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		case WM_INPUT: {
-			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag) || !(win->internal.rawMouse || _RGFW->rawMouse) return DefWindowProcW(hWnd, message, wParam, lParam);
+			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag) || !(win->internal.rawMouse || _RGFW->rawMouse)) return DefWindowProcW(hWnd, message, wParam, lParam);
 			unsigned size = sizeof(RAWINPUT);
 			static RAWINPUT raw;
 
