@@ -1842,18 +1842,33 @@ RGFWDEF RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, RGFW_mouseIcons
 RGFWDEF RGFW_bool RGFW_window_setMouseDefault(RGFW_window* win);
 
 /**!
- * @brief set (enable or disable) raw mouse mode, locking the cursor and using mouse raw input.
+ * @brief set (enable or disable) raw mouse mode
  * @param win The target window.
  * @param the boolean state of raw mouse mode
  *
 */
 RGFWDEF void RGFW_window_setRawMouseMode(RGFW_window* win, RGFW_bool state);
 
+/**!
+ * @brief lock/unlock the cursor.
+ * @param win The target window.
+ * @param the boolean state of the mouse's capture state
+ *
+*/
+RGFWDEF void RGFW_window_captureMouse(RGFW_window* win, RGFW_bool state);
+
+/**!
+ * @brief lock/unlock the cursor and enable raw mpuise mode.
+ * @param win The target window.
+ * @param the boolean state of raw mouse mode
+ *
+*/
+RGFWDEF void RGFW_window_captureRawMouse(RGFW_window* win, RGFW_bool state);
 
 /**!
  * @brief Locks the cursor to the center of the window.
  * @param win The target window.
- * @warning this function is deprecated and will be replaced by RGFW_window_setRawMouseMode in RGFW 2.0
+ * @warning this function is deprecated and will be replaced by RGFW_window_captureRawMouse in RGFW 2.0
  *
 */
 RGFWDEF void RGFW_window_holdMouse(RGFW_window* win);
@@ -1861,16 +1876,24 @@ RGFWDEF void RGFW_window_holdMouse(RGFW_window* win);
 /**!
  * @brief Releases the mouse so it can move freely again.
  * @param win The target window.
- * @warning this function is deprecated and will be replaced by RGFW_window_setRawMouseMode in RGFW 2.0
+ * @warning this function is deprecated and will be replaced by RGFW_window_captureRawMouse in RGFW 2.0
 */
 RGFWDEF void RGFW_window_unholdMouse(RGFW_window* win);
 
 /**!
- * @brief Returns true if the mouse is currently held by RGFW.
+ * @brief Returns true if the mouse is using raw mouse mode
  * @param win The target window.
- * @return True if the mouse is being held.
+ * @return True if the mouse is using raw mouse input mode.
 */
 RGFWDEF RGFW_bool RGFW_window_isRawMouseMode(RGFW_window* win);
+
+
+/**!
+ * @brief Returns true if the mouse is captured
+ * @param win The target window.
+ * @return True if the mouse is being captured.
+*/
+RGFWDEF RGFW_bool RGFW_window_isCaptured(RGFW_window* win);
 
 /**!
  * @brief Returns true if the mouse is currently held by RGFW.
@@ -2834,6 +2857,7 @@ typedef struct RGFW_windowInternal {
 
 	RGFW_bool shouldClose;
 	RGFW_bool rawMouse;
+	RGFW_bool captureMouse;
 	RGFW_bool inFocus;
 	RGFW_bool mouseInside;
 	RGFW_keymod mod;
@@ -2962,6 +2986,7 @@ struct RGFW_info {
         struct wl_surface* cursor_surface;
 
         RGFW_window* kbOwner;
+		RGFW_window* mouseOwner; /* what window has access to the mouse */
 
     #endif
 
@@ -2986,7 +3011,6 @@ struct RGFW_info {
 		void* EGL_display;
 	#endif
 
-	RGFW_window* mouseOwner;
 	RGFW_windowState windowState; /*! for checking window state events */
 
 	RGFW_keyState mouseButtons[RGFW_mouseFinal];
@@ -3022,8 +3046,8 @@ RGFWDEF void RGFW_updateKeyMod(RGFW_window* win, RGFW_keymod mod, RGFW_bool valu
 RGFWDEF void RGFW_setBit(u32* var, u32 mask, RGFW_bool set);
 RGFWDEF void RGFW_splitBPP(u32 bpp, RGFW_monitorMode* mode);
 
-RGFWDEF void RGFW_captureCursor(RGFW_window* win);
-RGFWDEF void RGFW_releaseCursor(RGFW_window* win);
+RGFWDEF void RGFW_window_captureMousePlatform(RGFW_window* win, RGFW_bool state);
+RGFWDEF void RGFW_window_setRawMouseModePlatform(RGFW_window *win, RGFW_bool state);
 
 RGFWDEF void RGFW_copyImageData64(u8* dest_data, i32 w, i32 h, RGFW_format dest_format,
 							u8* src_data, RGFW_format src_format,			RGFW_bool is64bit);
@@ -3446,6 +3470,10 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 
 void RGFW_window_closePtr(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
+
+	if (win->internal.captureMouse) {
+		RGFW_window_unholdMouse(win);
+	}
 
 	#ifdef RGFW_EGL
 	if ((win->src.gfxType & RGFW_gfxEGL) && win->src.ctx.egl) {
@@ -3900,22 +3928,27 @@ RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_for
 	return RGFW_window_setIconEx(win, data, w, h, format, RGFW_iconBoth);
 }
 
-void RGFW_window_setRawMouseMode(RGFW_window* win, RGFW_bool state) {
-	win->internal.rawMouse = state;
-	_RGFW->mouseOwner = (state) ? win : NULL;
-	if (state == RGFW_TRUE) {
-		RGFW_captureCursor(win);
-		RGFW_window_moveMouse(win, win->x + (win->w / 2), win->y + (win->h / 2));
-	} else if (state == RGFW_FALSE) {
-		RGFW_releaseCursor(win);
-	}
+void RGFW_window_captureMouse(RGFW_window* win, RGFW_bool state) {
+	win->internal.captureMouse = state;
+	RGFW_window_captureMousePlatform(win, state);
 }
 
-void RGFW_window_holdMouse(RGFW_window* win) { RGFW_window_setRawMouseMode(win, RGFW_TRUE); }
-void RGFW_window_unholdMouse(RGFW_window* win) { RGFW_window_setRawMouseMode(win, RGFW_FALSE); }
+void RGFW_window_setRawMouseMode(RGFW_window* win, RGFW_bool state) {
+	win->internal.rawMouse = state;
+	RGFW_window_setRawMouseModePlatform(win, state);
+}
+
+void RGFW_window_captureRawMouse(RGFW_window* win, RGFW_bool state) {
+	RGFW_window_captureMouse(win, state);
+	RGFW_window_setRawMouseMode(win, state);
+}
+
+void RGFW_window_holdMouse(RGFW_window* win) { RGFW_window_captureRawMouse(win, RGFW_TRUE); }
+void RGFW_window_unholdMouse(RGFW_window* win) { RGFW_window_captureRawMouse(win, RGFW_FALSE); }
 
 RGFW_bool RGFW_window_isRawMouseMode(RGFW_window* win) { return RGFW_BOOL(win->internal.rawMouse); }
-RGFW_bool RGFW_window_isHoldingMouse(RGFW_window* win) { return RGFW_window_isRawMouseMode(win); }
+RGFW_bool RGFW_window_isCaptured(RGFW_window* win) { return RGFW_BOOL(win->internal.captureMouse);  }
+RGFW_bool RGFW_window_isHoldingMouse(RGFW_window* win) { return RGFW_window_isRawMouseMode(win) && RGFW_window_isCaptured(win); }
 
 void RGFW_updateKeyMod(RGFW_window* win, RGFW_keymod mod, RGFW_bool value) {
 	if (value) win->internal.mod |= mod;
@@ -5399,12 +5432,13 @@ void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
 	}
 }
 
-void RGFW_FUNC(RGFW_releaseCursor) (RGFW_window* win) {
+void RGFW_FUNC(RGFW_window_setRawMouseModePlatform) (RGFW_window* win, RGFW_bool state) {
 	RGFW_UNUSED(win);
-	XUngrabPointer(_RGFW->display, CurrentTime);
+	unsigned char mask[XIMaskLen(XI_RawMotion)] = { 0 };
+	if (state) {
+		XISetMask(mask, XI_RawMotion);
+	}
 
-	/* disable raw input */
-	unsigned char mask[] = { 0 };
 	XIEventMask em;
 	em.deviceid = XIAllMasterDevices;
 	em.mask_len = sizeof(mask);
@@ -5413,22 +5447,13 @@ void RGFW_FUNC(RGFW_releaseCursor) (RGFW_window* win) {
 	XISelectEvents(_RGFW->display, XDefaultRootWindow(_RGFW->display), &em, 1);
 }
 
-void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
-	RGFW_window_moveMouse(win, win->x + (i32)(win->w / 2), win->y + (i32)(win->h / 2));
-
-	/* enable raw input */
-	unsigned char mask[XIMaskLen(XI_RawMotion)] = { 0 };
-	XISetMask(mask, XI_RawMotion);
-
-	XIEventMask em;
-	em.deviceid = XIAllMasterDevices;
-	em.mask_len = sizeof(mask);
-	em.mask = mask;
-
-	XISelectEvents(_RGFW->display, XDefaultRootWindow(_RGFW->display), &em, 1);
-
-	unsigned int event_mask = ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
-	XGrabPointer(_RGFW->display, win->src.window, True, event_mask, GrabModeAsync, GrabModeAsync, win->src.window, None, CurrentTime);
+void RGFW_FUNC(RGFW_window_captureMousePlatform) (RGFW_window* win, RGFW_bool state) {
+	if (state) {
+		unsigned int event_mask = ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
+		XGrabPointer(_RGFW->display, win->src.window, True, event_mask, GrabModeAsync, GrabModeAsync, win->src.window, None, CurrentTime);
+	} else {
+		XUngrabPointer(_RGFW->display, CurrentTime);
+	}
 }
 
 #define RGFW_LOAD_LIBRARY(x, lib) if (x == NULL) x = dlopen(lib, RTLD_LAZY | RTLD_LOCAL)
@@ -5710,7 +5735,15 @@ void RGFW_XHandleEvent(void) {
 			RGFW_XHandleClipboardSelection(&E);
 			return;
 		case GenericEvent: {
-			RGFW_window* win = _RGFW->mouseOwner;
+			Window xwindow;
+			int revert;
+			XGetInputFocus(_RGFW->display, &xwindow, &revert);
+
+			RGFW_window* win = NULL;
+			if (xwindow == None || XFindContext(_RGFW->display, xwindow, _RGFW->context, (XPointer*) &win) != 0) {
+				return;
+			}
+
 			if (win == NULL) return;
 			if (!(win->internal.enabledEvents & RGFW_BIT(RGFW_mousePosChanged))) return;
 
@@ -6160,8 +6193,8 @@ void RGFW_XHandleEvent(void) {
 			if ((win->internal.flags & RGFW_windowFullscreen))
 				RGFW_window_raise(win);
 
-			if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
-				RGFW_window_setRawMouseMode(win, RGFW_TRUE);
+			if (win->internal.captureMouse) {
+				RGFW_window_captureMousePlatform(win, RGFW_TRUE);
 			}
 
 			if (!(win->internal.enabledEvents & RGFW_focusInFlag)) return;
@@ -6171,10 +6204,8 @@ void RGFW_XHandleEvent(void) {
 
 			break;
 		case FocusOut:
-			if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
-				RGFW_window_setRawMouseMode(win, RGFW_FALSE);
-				win->internal.rawMouse = RGFW_TRUE;
-				_RGFW->mouseOwner = win;
+			if (win->internal.captureMouse) {
+				RGFW_window_captureMousePlatform(win, RGFW_FALSE);
 			}
 
 			if (!(win->internal.enabledEvents & RGFW_focusOutFlag)) return;
@@ -7485,9 +7516,6 @@ void RGFW_deinitPlatform_X11(void) {
 }
 
 void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
-	if (win->internal.rawMouse)
-		XUngrabPointer(_RGFW->display, CurrentTime);
-
 	XFreeGC(_RGFW->display, win->src.gc);
 	XDeleteContext(_RGFW->display, win->src.window, _RGFW->context);
 	XDestroyWindow(_RGFW->display, (Drawable) win->src.window); /*!< close the window */
@@ -7692,6 +7720,8 @@ static void RGFW_wl_relative_pointer_motion(void *data, struct zwp_relative_poin
 	RGFW_UNUSED(dx_unaccel); RGFW_UNUSED(dy_unaccel);
 
 	RGFW_info* RGFW = (RGFW_info*)data;
+
+	RGFW_ASSERT(RGFW->mouseOwner != NULL);
 	RGFW_window* win = RGFW->mouseOwner;
 
 	RGFW_ASSERT(win);
@@ -7883,8 +7913,8 @@ static void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 	RGFW->kbOwner = win;
 
-	if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
-		RGFW_window_setRawMouseMode(win, RGFW_TRUE);
+	if (win->internal.captureMouse) {
+		RGFW_window_captureMousePlatform(win, RGFW_TRUE);
 	}
 
 	// this is to prevent race conditions
@@ -7910,10 +7940,8 @@ static void RGFW_wl_keyboard_leave(void* data, struct wl_keyboard *keyboard, u32
 	if (RGFW->kbOwner == win)
 		RGFW->kbOwner = NULL;
 
-	if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
-		RGFW_window_setRawMouseMode(win, RGFW_FALSE);
-		win->internal.rawMouse = RGFW_TRUE;
-		_RGFW->mouseOwner = win;
+	if (win->internal.captureMouse) {
+		RGFW_window_captureMousePlatform(win, RGFW_FALSE);
 	}
 
 	if (!(win->internal.enabledEvents & RGFW_focusOutFlag)) return;
@@ -8488,48 +8516,44 @@ void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
 	}
 }
 
-void RGFW_FUNC(RGFW_releaseCursor) (RGFW_window* win) {
-    RGFW_ASSERT(win);
-    /* compositor has no support or window is not locked do nothing */
-    if (_RGFW->constraint_manager == NULL || _RGFW->relative_pointer_manager == NULL) return;
+void RGFW_FUNC(RGFW_window_setRawMouseModePlatform) (RGFW_window* win, RGFW_bool state) {
+	RGFW_ASSERT(win);
+	if (_RGFW->relative_pointer_manager == NULL || _RGFW->relative_pointer == NULL) return;
 
-    if (win->src.locked_pointer != NULL) {
-		zwp_locked_pointer_v1_destroy(win->src.locked_pointer);
-		win->src.locked_pointer = NULL;
-    }
-    if (_RGFW->relative_pointer != NULL) {
+	if (state == RGFW_FALSE) {
 		zwp_relative_pointer_v1_destroy(_RGFW->relative_pointer);
 		_RGFW->relative_pointer = NULL;
-    }
+		return;
+	}
 
-    _RGFW->mouseOwner = win; /* unhold mouse sets this to null; set it back */
+	_RGFW->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(_RGFW->relative_pointer_manager, _RGFW->wl_pointer);
+
+	static const struct zwp_relative_pointer_v1_listener relative_motion_listener = {
+		.relative_motion = RGFW_wl_relative_pointer_motion
+	};
+
+	zwp_relative_pointer_v1_add_listener(_RGFW->relative_pointer, &relative_motion_listener, _RGFW);
 }
 
-void RGFW_FUNC(RGFW_captureCursor) (RGFW_window* win) {
+void RGFW_FUNC(RGFW_window_captureMousePlatform) (RGFW_window* win, RGFW_bool state) {
 	RGFW_ASSERT(win);
 	/* compositor has no support or window already is locked do nothing */
-	if (_RGFW->constraint_manager == NULL || _RGFW->relative_pointer_manager == NULL) return;
+	if (_RGFW->constraint_manager == NULL || win->src.locked_pointer == NULL) return;
 
-	if (_RGFW->relative_pointer == NULL) {
-		_RGFW->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(_RGFW->relative_pointer_manager, _RGFW->wl_pointer);
-
-		static const struct zwp_relative_pointer_v1_listener relative_motion_listener = {
-			.relative_motion = RGFW_wl_relative_pointer_motion
-		};
-
-		zwp_relative_pointer_v1_add_listener(_RGFW->relative_pointer, &relative_motion_listener, _RGFW);
+	if (state == RGFW_FALSE) {
+		zwp_locked_pointer_v1_destroy(win->src.locked_pointer);
+		win->src.locked_pointer = NULL;
+		return;
 	}
 
-	if (win->src.locked_pointer == NULL) {
-		win->src.locked_pointer = zwp_pointer_constraints_v1_lock_pointer(_RGFW->constraint_manager, win->src.surface, _RGFW->wl_pointer, NULL, ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+	win->src.locked_pointer = zwp_pointer_constraints_v1_lock_pointer(_RGFW->constraint_manager, win->src.surface, _RGFW->wl_pointer, NULL, ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
 
-		static const struct zwp_locked_pointer_v1_listener locked_listener = {
-			.locked = RGFW_wl_pointer_locked,
-			.unlocked = (void (*)(void *, struct zwp_locked_pointer_v1 *))RGFW_doNothing
-		};
+	static const struct zwp_locked_pointer_v1_listener locked_listener = {
+		.locked = RGFW_wl_pointer_locked,
+		.unlocked = (void (*)(void *, struct zwp_locked_pointer_v1 *))RGFW_doNothing
+	};
 
-		zwp_locked_pointer_v1_add_listener(win->src.locked_pointer, &locked_listener, _RGFW);
-	}
+	zwp_locked_pointer_v1_add_listener(win->src.locked_pointer, &locked_listener, _RGFW);
 }
 
 RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_windowFlags flags, RGFW_window* win) {
@@ -9275,10 +9299,8 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_ACTIVATE: {
 			RGFW_bool inFocus = RGFW_BOOL(LOWORD(wParam) != WA_INACTIVE);
 
-			if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
-				RGFW_window_setRawMouseMode(win, inFocus);
-				win->internal.rawMouse = RGFW_TRUE;
-				_RGFW->mouseOwner = win;
+			if (win->internal.captureMouse) {
+				RGFW_window_captureMousePlatform(win, inFocus);
 			}
 
 			win->internal.inFocus = RGFW_BOOL(inFocus);
@@ -9725,24 +9747,25 @@ void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	BitBlt(win->src.hdc, 0, 0, RGFW_MIN(win->w, surface->w), RGFW_MIN(win->h, surface->h), surface->native.hdcMem, 0, 0, SRCCOPY);
 }
 
-void RGFW_releaseCursor(RGFW_window* win) {
+void RGFW_window_setRawMouseModePlatform(RGFW_window* win, RGFW_bool state) {
 	RGFW_UNUSED(win);
-	ClipCursor(NULL);
-	const RAWINPUTDEVICE id = { 0x01, 0x02, RIDEV_REMOVE, NULL };
+	RAWINPUTDEVICE id = { 0x01, 0x02, 0, win->src.window };
+	id.dwFlags = (state == RGFW_TRUE) ? 0 : RIDEV_REMOVE;
+
 	RegisterRawInputDevices(&id, 1, sizeof(id));
 }
 
-void RGFW_captureCursor(RGFW_window* win) {
-	RGFW_UNUSED(win);
+void RGFW_window_captureMousePlatform(RGFW_window* win, RGFW_bool state) {
+	if (state == RGFW_FALSE) {
+		ClipCursor(NULL);
+		return;
+	}
 
 	RECT clipRect;
 	GetClientRect(win->src.window, &clipRect);
 	ClientToScreen(win->src.window, (POINT*) &clipRect.left);
 	ClientToScreen(win->src.window, (POINT*) &clipRect.right);
 	ClipCursor(&clipRect);
-
-	const RAWINPUTDEVICE id = { 0x01, 0x02, 0, win->src.window };
-	RegisterRawInputDevices(&id, 1, sizeof(id));
 }
 
 #define RGFW_LOAD_LIBRARY(x, lib) if (x == NULL) { x = LoadLibraryA(lib); RGFW_ASSERT(x != NULL); }
@@ -11566,8 +11589,8 @@ static void RGFW__osxWindowBecameKey(id self, SEL sel) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
-	if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
-		RGFW_window_setRawMouseMode(win, RGFW_TRUE);
+	if (win->internal.captureMouse) {
+		RGFW_window_captureMousePlatform(win, RGFW_TRUE);
 	}
 
 	win->internal.inFocus = RGFW_TRUE;
@@ -11583,10 +11606,8 @@ static void RGFW__osxWindowResignKey(id self, SEL sel) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
-	if ((win->internal.rawMouse) && win == _RGFW->mouseOwner) {
-		RGFW_window_setRawMouseMode(win, RGFW_FALSE);
-		win->internal.rawMouse = RGFW_TRUE;
-		_RGFW->mouseOwner = win;
+	if (win->internal.captureMouse) {
+		RGFW_window_captureMousePlatform(win, RGFW_FALSE);
 	}
 
     RGFW_window_focusLost(win);
@@ -12601,16 +12622,13 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 stdMouse) {
 	return RGFW_TRUE;
 }
 
-void RGFW_releaseCursor(RGFW_window* win) {
+void RGFW_window_setRawMouseModePlatform(RGFW_window* win, RGFW_bool state) {
 	RGFW_UNUSED(win);
-	CGAssociateMouseAndMouseCursorPosition(1);
+	CGAssociateMouseAndMouseCursorPosition(state);
 }
 
-void RGFW_captureCursor(RGFW_window* win) {
-	RGFW_UNUSED(win);
-
-	CGWarpMouseCursorPosition((CGPoint){(CGFloat)(win->x + (win->w / 2)), (CGFloat)(win->y + (win->h / 2))});
-	CGAssociateMouseAndMouseCursorPosition(0);
+void RGFW_window_captureMousePlatform(RGFW_window* win, RGFW_bool state) {
+	RGFW_UNUSED(win); RGFW_UNUSED(state);
 }
 
 void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) {
@@ -13115,8 +13133,8 @@ EM_BOOL Emscripten_on_fullscreenchange(int eventType, const EmscriptenFullscreen
 EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(E);
 
-	if (_RGFW->root->internal.rawMouse) {
-		RGFW_window_setRawMouseMode(_RGFW->root, RGFW_TRUE);
+	if (_RGFW->root->internal.captureMouse) {
+		RGFW_window_captureMousePlatform(win, RGFW_TRUE);
 	}
 
 	if (!(_RGFW->root->internal.enabledEvents & RGFW_focusInFlag)) return EM_TRUE;
@@ -13131,10 +13149,8 @@ EM_BOOL Emscripten_on_focusin(int eventType, const EmscriptenFocusEvent* E, void
 EM_BOOL Emscripten_on_focusout(int eventType, const EmscriptenFocusEvent* E, void* userData) {
 	RGFW_UNUSED(eventType); RGFW_UNUSED(userData); RGFW_UNUSED(E);
 
-	if ((_RGFW->root->internal.rawMouse) && _RGFW->root == _RGFW->mouseOwner) {
-		RGFW_window_setRawMouseMode(_RGFW->root, RGFW_FALSE);
-		_RGFW->root->internal.rawMouse = RGFW_TRUE;
-		_RGFW->mouseOwner = _RGFW->root;
+	if (_RGFW->root->internal.captureMouse) {
+		RGFW_window_captureMousePlatform(_RGFW->root, RGFW_FALSE);
 	}
 
 	if (!(_RGFW->root->internal.enabledEvents & RGFW_focusOutFlag)) return EM_TRUE;
@@ -13797,16 +13813,18 @@ void RGFW_window_closePlatform(RGFW_window* win) { }
 int RGFW_innerWidth(void) {   return EM_ASM_INT({ return window.innerWidth; });  }
 int RGFW_innerHeight(void) {  return EM_ASM_INT({ return window.innerHeight; });  }
 
-void RGFW_releaseCursor(RGFW_window* win) {
+void RGFW_window_setRawMouseModePlatform(RGFW_window* win, RGFW_bool state) {
 	RGFW_UNUSED(win);
-	emscripten_exit_pointerlock();
+	if (state) {
+		emscripten_request_pointerlock("#canvas", 1);
+	} else {
+		emscripten_exit_pointerlock();
+	}
 }
 
-void RGFW_captureCursor(RGFW_window* win) {
-	RGFW_UNUSED(win);
-	emscripten_request_pointerlock("#canvas", 1);
+void RGFW_window_captureMousePlatform(RGFW_window* win, RGFW_bool state) {
+	RGFW_UNUSED(win); RGFW_UNUSED(state);
 }
-
 
 void RGFW_window_setName(RGFW_window* win, const char* name) {
 	RGFW_UNUSED(win);
@@ -14048,7 +14066,8 @@ typedef void (*RGFW_surface_freePtr_ptr)(RGFW_surface* surface);
 typedef void (*RGFW_freeMouse_ptr)(RGFW_mouse* mouse);
 typedef void (*RGFW_window_setBorder_ptr)(RGFW_window* win, RGFW_bool border);
 typedef void (*RGFW_releaseCursor_ptr)(RGFW_window* win);
-typedef void (*RGFW_captureCursor_ptr)(RGFW_window* win);
+typedef void (*RGFW_window_captureMousePlatform_ptr)(RGFW_window* win);
+typedef void (*RGFW_window_setRawMouseModePlatform)(RGFW_window* win, RGFW_bool state);
 #ifdef RGFW_OPENGL
 typedef void (*RGFW_window_makeCurrentContext_OpenGL_ptr)(RGFW_window* win);
 typedef void* (*RGFW_getCurrentContext_OpenGL_ptr)(void);
@@ -14070,8 +14089,8 @@ typedef struct RGFW_FunctionPointers {
 	RGFW_surface_freePtr_ptr surface_freePtr;
 	RGFW_freeMouse_ptr freeMouse;
     RGFW_window_setBorder_ptr window_setBorder;
-    RGFW_releaseCursor_ptr releaseCursor;
-    RGFW_captureCursor_ptr captureCursor;
+    RGFW_window_captureMousePlatform_ptr window_captureMousePlatform;
+	RGFW_window_setRawMouseModePlatform window_setRawMouseModePlatform;
     RGFW_createWindowPlatform_ptr createWindowPlatform;
     RGFW_getMouse_ptr getGlobalMouse;
     RGFW_rgfwToKeyChar_ptr rgfwToKeyChar;
@@ -14133,8 +14152,8 @@ void RGFW_surface_freePtr(RGFW_surface* surface) { RGFW_api.surface_freePtr(surf
 void RGFW_freeMouse(RGFW_mouse* mouse) { RGFW_api.freeMouse(mouse); }
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) { RGFW_api.window_blitSurface(win, surface); }
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) { RGFW_api.window_setBorder(win, border); }
-void RGFW_releaseCursor(RGFW_window* win) { RGFW_api.releaseCursor(win); }
-void RGFW_captureCursor(RGFW_window* win) { RGFW_api.captureCursor(win); }
+void RGFW_window_captureMouse(RGFW_window* win, RGFW_bool state) { RGFW_api.window_captureMousePlatform(win, state); }
+void RGFW_window_setRawMouseModePlatform(RGFW_window* win, RGFW_bool state) { RGFW_api.window_setRawMouseModePlatform(win, state); }
 RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags, RGFW_window* win) { RGFW_init(); return RGFW_api.createWindowPlatform(name, flags, win); }
 RGFW_bool RGFW_getGlobalMouse(i32* x, i32* y) { return RGFW_api.getGlobalMouse(x, y); }
 u8 RGFW_rgfwToKeyChar(u32 key) { return RGFW_api.rgfwToKeyChar(key); }
@@ -14208,7 +14227,7 @@ void RGFW_load_X11(void) {
 	RGFW_api.freeMouse = RGFW_freeMouse_X11;
     RGFW_api.window_setBorder = RGFW_window_setBorder_X11;
     RGFW_api.releaseCursor = RGFW_releaseCursor_X11;
-    RGFW_api.captureCursor = RGFW_captureCursor_X11;
+    RGFW_api.captureMouse = RGFW_window_captureMouse_X11;
 	RGFW_api.createWindowPlatform = RGFW_createWindowPlatform_X11;
     RGFW_api.getGlobalMouse = RGFW_getGlobalMouse_X11;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_X11;
@@ -14272,7 +14291,7 @@ void RGFW_load_Wayland(void) {
 	RGFW_api.freeMouse = RGFW_freeMouse_Wayland;
 	RGFW_api.window_setBorder = RGFW_window_setBorder_Wayland;
     RGFW_api.releaseCursor = RGFW_releaseCursor_Wayland;
-    RGFW_api.captureCursor = RGFW_captureCursor_Wayland;
+    RGFW_api.window_captureMouse = RGFW_window_captureMouse_Wayland;
     RGFW_api.createWindowPlatform = RGFW_createWindowPlatform_Wayland;
     RGFW_api.getGlobalMouse = RGFW_getGlobalMouse_Wayland;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_Wayland;
