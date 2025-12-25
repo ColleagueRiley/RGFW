@@ -8536,13 +8536,17 @@ void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
 
 void RGFW_FUNC(RGFW_window_setRawMouseModePlatform) (RGFW_window* win, RGFW_bool state) {
 	RGFW_ASSERT(win);
-	if (_RGFW->relative_pointer_manager == NULL || _RGFW->relative_pointer == NULL) return;
+
+	if (_RGFW->relative_pointer_manager == NULL) return;
 
 	if (state == RGFW_FALSE) {
-		zwp_relative_pointer_v1_destroy(_RGFW->relative_pointer);
+		if (_RGFW->relative_pointer != NULL)
+			zwp_relative_pointer_v1_destroy(_RGFW->relative_pointer);
 		_RGFW->relative_pointer = NULL;
 		return;
 	}
+
+	if (_RGFW->relative_pointer != NULL) return;
 
 	_RGFW->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(_RGFW->relative_pointer_manager, _RGFW->wl_pointer);
 
@@ -8556,14 +8560,17 @@ void RGFW_FUNC(RGFW_window_setRawMouseModePlatform) (RGFW_window* win, RGFW_bool
 void RGFW_FUNC(RGFW_window_captureMousePlatform) (RGFW_window* win, RGFW_bool state) {
 	RGFW_ASSERT(win);
 	/* compositor has no support or window already is locked do nothing */
-	if (_RGFW->constraint_manager == NULL || win->src.locked_pointer == NULL) return;
+	if (_RGFW->constraint_manager == NULL) return;
 
 	if (state == RGFW_FALSE) {
-		zwp_locked_pointer_v1_destroy(win->src.locked_pointer);
+		if (win->src.locked_pointer != NULL);
+			zwp_locked_pointer_v1_destroy(win->src.locked_pointer);
 		win->src.locked_pointer = NULL;
 		return;
 	}
 
+
+	if (win->src.locked_pointer != NULL) return;
 	win->src.locked_pointer = zwp_pointer_constraints_v1_lock_pointer(_RGFW->constraint_manager, win->src.surface, _RGFW->wl_pointer, NULL, ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
 
 	static const struct zwp_locked_pointer_v1_listener locked_listener = {
@@ -12641,12 +12648,12 @@ RGFW_bool RGFW_window_setMouseStandard(RGFW_window* win, u8 stdMouse) {
 }
 
 void RGFW_window_setRawMouseModePlatform(RGFW_window* win, RGFW_bool state) {
-	RGFW_UNUSED(win);
-	CGAssociateMouseAndMouseCursorPosition(state);
+	RGFW_UNUSED(win); RGFW_UNUSED(state);
 }
 
 void RGFW_window_captureMousePlatform(RGFW_window* win, RGFW_bool state) {
-	RGFW_UNUSED(win); RGFW_UNUSED(state);
+	RGFW_UNUSED(win);
+	CGAssociateMouseAndMouseCursorPosition(state);
 }
 
 void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) {
@@ -13832,16 +13839,16 @@ int RGFW_innerWidth(void) {   return EM_ASM_INT({ return window.innerWidth; }); 
 int RGFW_innerHeight(void) {  return EM_ASM_INT({ return window.innerHeight; });  }
 
 void RGFW_window_setRawMouseModePlatform(RGFW_window* win, RGFW_bool state) {
+	RGFW_UNUSED(win); RGFW_UNUSED(state);
+}
+
+void RGFW_window_captureMousePlatform(RGFW_window* win, RGFW_bool state) {
 	RGFW_UNUSED(win);
 	if (state) {
 		emscripten_request_pointerlock("#canvas", 1);
 	} else {
 		emscripten_exit_pointerlock();
 	}
-}
-
-void RGFW_window_captureMousePlatform(RGFW_window* win, RGFW_bool state) {
-	RGFW_UNUSED(win); RGFW_UNUSED(state);
 }
 
 void RGFW_window_setName(RGFW_window* win, const char* name) {
@@ -14244,6 +14251,7 @@ void RGFW_load_X11(void) {
 	RGFW_api.freeMouse = RGFW_freeMouse_X11;
     RGFW_api.window_setBorder = RGFW_window_setBorder_X11;
     RGFW_api.window_captureMousePlatform = RGFW_window_captureMousePlatform_X11;
+	RGFW_api.window_setRawMouseModePlatform = RGFW_window_captureMousePlatform_X11;
 	RGFW_api.createWindowPlatform = RGFW_createWindowPlatform_X11;
     RGFW_api.getGlobalMouse = RGFW_getGlobalMouse_X11;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_X11;
@@ -14307,6 +14315,7 @@ void RGFW_load_Wayland(void) {
 	RGFW_api.freeMouse = RGFW_freeMouse_Wayland;
 	RGFW_api.window_setBorder = RGFW_window_setBorder_Wayland;
     RGFW_api.window_captureMousePlatform = RGFW_window_captureMousePlatform_Wayland;
+	RGFW_api.window_setRawMouseModePlatform = RGFW_window_captureMousePlatform_Wayland;
     RGFW_api.createWindowPlatform = RGFW_createWindowPlatform_Wayland;
     RGFW_api.getGlobalMouse = RGFW_getGlobalMouse_Wayland;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_Wayland;
