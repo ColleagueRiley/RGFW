@@ -14083,8 +14083,8 @@ typedef void (*RGFW_window_blitSurface_ptr)(RGFW_window* win, RGFW_surface* surf
 typedef void (*RGFW_surface_freePtr_ptr)(RGFW_surface* surface);
 typedef void (*RGFW_freeMouse_ptr)(RGFW_mouse* mouse);
 typedef void (*RGFW_window_setBorder_ptr)(RGFW_window* win, RGFW_bool border);
-typedef void (*RGFW_window_captureMousePlatform_ptr)(RGFW_window* win);
-typedef void (*RGFW_window_setRawMouseModePlatform)(RGFW_window* win, RGFW_bool state);
+typedef void (*RGFW_window_captureMousePlatform_ptr)(RGFW_window* win, RGFW_bool state);
+typedef void (*RGFW_window_setRawMouseModePlatform_ptr)(RGFW_window* win, RGFW_bool state);
 #ifdef RGFW_OPENGL
 typedef void (*RGFW_window_makeCurrentContext_OpenGL_ptr)(RGFW_window* win);
 typedef void* (*RGFW_getCurrentContext_OpenGL_ptr)(void);
@@ -14107,7 +14107,7 @@ typedef struct RGFW_FunctionPointers {
 	RGFW_freeMouse_ptr freeMouse;
     RGFW_window_setBorder_ptr window_setBorder;
     RGFW_window_captureMousePlatform_ptr window_captureMousePlatform;
-	RGFW_window_setRawMouseModePlatform window_setRawMouseModePlatform;
+	RGFW_window_setRawMouseModePlatform_ptr window_setRawMouseModePlatform;
     RGFW_createWindowPlatform_ptr createWindowPlatform;
     RGFW_getMouse_ptr getGlobalMouse;
     RGFW_rgfwToKeyChar_ptr rgfwToKeyChar;
@@ -14169,7 +14169,7 @@ void RGFW_surface_freePtr(RGFW_surface* surface) { RGFW_api.surface_freePtr(surf
 void RGFW_freeMouse(RGFW_mouse* mouse) { RGFW_api.freeMouse(mouse); }
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) { RGFW_api.window_blitSurface(win, surface); }
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) { RGFW_api.window_setBorder(win, border); }
-void RGFW_window_captureMouse(RGFW_window* win, RGFW_bool state) { RGFW_api.window_captureMousePlatform(win, state); }
+void RGFW_window_captureMousePlatform(RGFW_window* win, RGFW_bool state) { RGFW_api.window_captureMousePlatform(win, state); }
 void RGFW_window_setRawMouseModePlatform(RGFW_window* win, RGFW_bool state) { RGFW_api.window_setRawMouseModePlatform(win, state); }
 RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags, RGFW_window* win) { RGFW_init(); return RGFW_api.createWindowPlatform(name, flags, win); }
 RGFW_bool RGFW_getGlobalMouse(i32* x, i32* y) { return RGFW_api.getGlobalMouse(x, y); }
@@ -14243,7 +14243,7 @@ void RGFW_load_X11(void) {
 	RGFW_api.surface_freePtr = RGFW_surface_freePtr_X11;
 	RGFW_api.freeMouse = RGFW_freeMouse_X11;
     RGFW_api.window_setBorder = RGFW_window_setBorder_X11;
-    RGFW_api.captureMouse = RGFW_window_captureMousePlatform_X11;
+    RGFW_api.window_captureMousePlatform = RGFW_window_captureMousePlatform_X11;
 	RGFW_api.createWindowPlatform = RGFW_createWindowPlatform_X11;
     RGFW_api.getGlobalMouse = RGFW_getGlobalMouse_X11;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_X11;
@@ -14306,7 +14306,7 @@ void RGFW_load_Wayland(void) {
     RGFW_api.surface_freePtr = RGFW_surface_freePtr_Wayland;
 	RGFW_api.freeMouse = RGFW_freeMouse_Wayland;
 	RGFW_api.window_setBorder = RGFW_window_setBorder_Wayland;
-    RGFW_api.window_captureMouse = RGFW_window_captureMousePlatform_Wayland;
+    RGFW_api.window_captureMousePlatform = RGFW_window_captureMousePlatform_Wayland;
     RGFW_api.createWindowPlatform = RGFW_createWindowPlatform_Wayland;
     RGFW_api.getGlobalMouse = RGFW_getGlobalMouse_Wayland;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_Wayland;
