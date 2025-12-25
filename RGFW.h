@@ -10725,7 +10725,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) {
 	RGFW_ASSERT(win != NULL);
 	win->internal.lastMouseX = x - win->x;
-	win->internal.lastMouseX = y - win->y;
+	win->internal.lastMouseY = y - win->y;
 	SetCursorPos(x, y);
 }
 
@@ -14083,7 +14083,6 @@ typedef void (*RGFW_window_blitSurface_ptr)(RGFW_window* win, RGFW_surface* surf
 typedef void (*RGFW_surface_freePtr_ptr)(RGFW_surface* surface);
 typedef void (*RGFW_freeMouse_ptr)(RGFW_mouse* mouse);
 typedef void (*RGFW_window_setBorder_ptr)(RGFW_window* win, RGFW_bool border);
-typedef void (*RGFW_releaseCursor_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_captureMousePlatform_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_setRawMouseModePlatform)(RGFW_window* win, RGFW_bool state);
 #ifdef RGFW_OPENGL
@@ -14244,8 +14243,7 @@ void RGFW_load_X11(void) {
 	RGFW_api.surface_freePtr = RGFW_surface_freePtr_X11;
 	RGFW_api.freeMouse = RGFW_freeMouse_X11;
     RGFW_api.window_setBorder = RGFW_window_setBorder_X11;
-    RGFW_api.releaseCursor = RGFW_releaseCursor_X11;
-    RGFW_api.captureMouse = RGFW_window_captureMouse_X11;
+    RGFW_api.captureMouse = RGFW_window_captureMousePlatform_X11;
 	RGFW_api.createWindowPlatform = RGFW_createWindowPlatform_X11;
     RGFW_api.getGlobalMouse = RGFW_getGlobalMouse_X11;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_X11;
@@ -14308,8 +14306,7 @@ void RGFW_load_Wayland(void) {
     RGFW_api.surface_freePtr = RGFW_surface_freePtr_Wayland;
 	RGFW_api.freeMouse = RGFW_freeMouse_Wayland;
 	RGFW_api.window_setBorder = RGFW_window_setBorder_Wayland;
-    RGFW_api.releaseCursor = RGFW_releaseCursor_Wayland;
-    RGFW_api.window_captureMouse = RGFW_window_captureMouse_Wayland;
+    RGFW_api.window_captureMouse = RGFW_window_captureMousePlatform_Wayland;
     RGFW_api.createWindowPlatform = RGFW_createWindowPlatform_Wayland;
     RGFW_api.getGlobalMouse = RGFW_getGlobalMouse_Wayland;
     RGFW_api.rgfwToKeyChar = RGFW_rgfwToKeyChar_Wayland;
