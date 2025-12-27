@@ -12653,7 +12653,7 @@ void RGFW_window_setRawMouseModePlatform(RGFW_window* win, RGFW_bool state) {
 
 void RGFW_window_captureMousePlatform(RGFW_window* win, RGFW_bool state) {
 	RGFW_UNUSED(win);
-	CGAssociateMouseAndMouseCursorPosition(state);
+	CGAssociateMouseAndMouseCursorPosition(!(state == RGFW_TRUE));
 }
 
 void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) {
