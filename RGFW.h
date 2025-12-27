@@ -8563,7 +8563,7 @@ void RGFW_FUNC(RGFW_window_captureMousePlatform) (RGFW_window* win, RGFW_bool st
 	if (_RGFW->constraint_manager == NULL) return;
 
 	if (state == RGFW_FALSE) {
-		if (win->src.locked_pointer != NULL);
+		if (win->src.locked_pointer != NULL)
 			zwp_locked_pointer_v1_destroy(win->src.locked_pointer);
 		win->src.locked_pointer = NULL;
 		return;
