@@ -6695,6 +6695,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_setMouseStandard) (RGFW_window* win, u8 mouse) {
 
     switch (mouse) {
         case RGFW_mouseNormal: mouseIcon = XC_left_ptr; break;
+        case RGFW_mouseArrow: mouseIcon = XC_left_ptr; break;
         case RGFW_mouseIbeam: mouseIcon = XC_xterm; break;
         case RGFW_mouseWait: mouseIcon = XC_watch; break;
         case RGFW_mouseCrosshair: mouseIcon = XC_tcross; break;
