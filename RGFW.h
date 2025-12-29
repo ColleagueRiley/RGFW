@@ -5792,8 +5792,16 @@ void RGFW_XHandleEvent(void) {
 				event.mouse.vecY = (float)deltaY;
 				_RGFW->vectorX = (float)event.mouse.vecX;
 				_RGFW->vectorY = (float)event.mouse.vecY;
-				event.mouse.x = win->internal.lastMouseX + (i32)event.mouse.vecX;
-				event.mouse.y = win->internal.lastMouseY + (i32)event.mouse.vecY;
+
+				XEvent ev;
+				XQueryPointer(_RGFW->display, win->src.window,
+					  &ev.xbutton.root, &ev.xbutton.window,
+					  &ev.xbutton.x_root, &ev.xbutton.y_root,
+					  &ev.xbutton.x, &ev.xbutton.y,
+					  &ev.xbutton.state);
+
+				event.mouse.x = ev.xbutton.x;
+				event.mouse.y = ev.xbutton.y;
 				win->internal.lastMouseX = event.mouse.x;
 				win->internal.lastMouseY = event.mouse.y;
 
