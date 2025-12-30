@@ -5893,16 +5893,8 @@ void RGFW_XHandleEvent(void) {
 			event.mouse.x = E.xmotion.x;
 			event.mouse.y = E.xmotion.y;
 
-			if (win->internal.rawMouse || _RGFW->rawMouse)  {
-				event.mouse.vecX = _RGFW->vectorX;
-				event.mouse.vecY = _RGFW->vectorY;
-			} else {
-				event.mouse.vecX = (float)(event.mouse.x - win->internal.lastMouseX);
-				event.mouse.vecY = (float)(event.mouse.y - win->internal.lastMouseY);
-
-				_RGFW->vectorX = event.mouse.vecX;
-				_RGFW->vectorY = event.mouse.vecY;
-			}
+			event.mouse.vecX = _RGFW->vectorX;
+			event.mouse.vecY = _RGFW->vectorY;
 
 			win->internal.lastMouseX = event.mouse.x;
 			win->internal.lastMouseY = event.mouse.y;
@@ -9501,9 +9493,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_MOUSEMOVE: {
 			if (!(win->internal.enabledEvents & RGFW_mousePosChangedFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
-			if ((win->internal.rawMouse) || _RGFW->rawMouse)
-				break;
-
 
 			event.mouse.x = GET_X_LPARAM(lParam);
 			event.mouse.y = GET_Y_LPARAM(lParam);
@@ -9511,8 +9500,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			event.mouse.vecY = (float)(event.mouse.y - win->internal.lastMouseY);
 			_RGFW->vectorX = event.mouse.vecX;
 			_RGFW->vectorY = event.mouse.vecY;
-
-			RGFW_mousePosCallback(win, event.mouse.x, event.mouse.y, event.mouse.vecX, event.mouse.vecY);
 
 			if (win->internal.mouseInside == RGFW_FALSE) {
 				win->internal.mouseInside = RGFW_TRUE;
@@ -9523,9 +9510,15 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				RGFW_eventQueuePush(&event);
 			}
 
-			event.type = RGFW_mousePosChanged;
 			win->internal.lastMouseX = event.mouse.x;
 			win->internal.lastMouseY = event.mouse.y;
+
+			if ((win->internal.rawMouse) || _RGFW->rawMouse) {
+				return DefWindowProcW(hWnd, message, wParam, lParam);
+			}
+
+			event.type = RGFW_mousePosChanged;
+			RGFW_mousePosCallback(win, event.mouse.x, event.mouse.y, event.mouse.vecX, event.mouse.vecY);
 			break;
 		}
 		case WM_INPUT: {
@@ -9565,8 +9558,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 
 			event.type = RGFW_mousePosChanged;
-			win->internal.lastMouseX += (i32)event.mouse.vecX;
-			win->internal.lastMouseY += (i32)event.mouse.vecY;
 			_RGFW->vectorX = event.mouse.vecX;
 			_RGFW->vectorY = event.mouse.vecY;
 			event.mouse.x = win->internal.lastMouseX;
