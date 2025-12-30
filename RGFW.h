@@ -7748,11 +7748,6 @@ static void RGFW_wl_relative_pointer_motion(void *data, struct zwp_relative_poin
 static void RGFW_wl_pointer_locked(void *data, struct zwp_locked_pointer_v1 *zwp_locked_pointer_v1) {
 	RGFW_UNUSED(zwp_locked_pointer_v1);
 	RGFW_info* RGFW = (RGFW_info*)data;
-	RGFW_window* win = RGFW->mouseOwner;
-
-	win->internal.lastMouseX = win->w / 2;
-	win->internal.lastMouseY = win->h / 2;
-	zwp_locked_pointer_v1_set_cursor_position_hint(win->src.locked_pointer, wl_fixed_from_int((win->w / 2)), wl_fixed_from_int((win->h / 2)));
 	wl_pointer_set_cursor(RGFW->wl_pointer, RGFW->mouse_enter_serial, NULL, 0, 0); /* draw no cursor */
 }
 
