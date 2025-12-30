@@ -171,7 +171,6 @@ int main() {
 		AC Gaudette (@acgaudette)
 */
 
-#include <X11/X.h>
 #if _MSC_VER
 	#pragma comment(lib, "gdi32")
 	#pragma comment(lib, "shell32")
