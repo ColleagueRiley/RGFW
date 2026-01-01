@@ -9363,22 +9363,22 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_MOUSEACTIVATE:         {
             if (HIWORD(lParam) == WM_LBUTTONDOWN) {
                 if (LOWORD(lParam) != HTCLIENT)
-                    win->src.frameAction = RGFW_TRUE;
+                    win->src.actionFrame = RGFW_TRUE;
             }
 
             break;
         }
 		case WM_CAPTURECHANGED:         {
-            if (lParam == 0 && win->src.frameAction) {
+            if (lParam == 0 && win->src.actionFrame) {
 				RGFW_window_captureMousePlatform(win, win->internal.captureMouse);
-                win->src.frameAction = RGFW_FALSE;
+                win->src.actionFrame = RGFW_FALSE;
             }
 
             break;
         }
         case WM_EXITSIZEMOVE:
         case WM_EXITMENULOOP:         {
-            if (window->win32.frameAction)
+            if (win->src.actionFrame)
 				RGFW_window_captureMousePlatform(win, win->internal.captureMouse);
             break;
         }
