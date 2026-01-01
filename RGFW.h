@@ -9376,13 +9376,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             break;
         }
-        case WM_EXITSIZEMOVE:
-        case WM_EXITMENULOOP:         {
-            if (win->src.actionFrame)
-				RGFW_window_captureMousePlatform(win, win->internal.captureMouse);
-            break;
-        }
-
 		#ifndef RGFW_NO_MONITOR
 		case WM_DPICHANGED: {
 			if (win->internal.flags & RGFW_windowScaleToMonitor) RGFW_window_scaleToMonitor(win);
@@ -9423,15 +9416,30 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_win32_makeWindowTransparent(win);
 			break;
 		#endif
-/* based on sokol_app.h */
-#ifdef RGFW_ADVANCED_SMOOTH_RESIZE
-        case WM_ENTERSIZEMOVE: SetTimer(win->src.window, 1, USER_TIMER_MINIMUM, NULL); break;
-        case WM_EXITSIZEMOVE: KillTimer(win->src.window, 1); break;
+
+		case WM_ENTERSIZEMOVE: {
+			if (win->src.actionFrame)
+				RGFW_window_captureMousePlatform(win, win->internal.captureMouse);
+
+			#ifdef RGFW_ADVANCED_SMOOTH_RESIZE
+				SetTimer(win->src.window, 1, USER_TIMER_MINIMUM, NULL); break;
+			#endif
+			break;
+		}
+        case WM_EXITSIZEMOVE: {
+			if (win->src.actionFrame)
+				RGFW_window_captureMousePlatform(win, win->internal.captureMouse);
+
+			#ifdef RGFW_ADVANCED_SMOOTH_RESIZE
+				KillTimer(win->src.window, 1); break;
+			#endif
+			break;
+		}
         case WM_TIMER:
 			if (!(win->internal.enabledEvents & RGFW_windowRefreshFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
 			RGFW_windowRefreshCallback(win); break;
-#endif
-        case WM_NCLBUTTONDOWN: {
+
+		case WM_NCLBUTTONDOWN: {
             /* workaround for half-second pause when starting to move window
                 see: https://gamedev.net/forums/topic/672094-keeping-things-moving-during-win32-moveresize-events/5254386/
             */
