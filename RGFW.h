@@ -2717,6 +2717,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		i32 offsetW, offsetH; /*!< width and height offset for window */
 		HICON hIconSmall, hIconBig; /*!< source window icons */
 		i32 maxSizeW, maxSizeH, minSizeW, minSizeH, aspectRatioW, aspectRatioH; /*!< for setting max/min resize (RGFW_WINDOWS) */
+		RGFW_bool actionFrame; /* frame after a caption button was toggled (e.g. minimize, maximize or close) */
 		#ifdef RGFW_OPENGL
 			RGFW_gfxContext ctx;
 			RGFW_gfxContextType gfxType;
@@ -9313,6 +9314,10 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		case WM_MOVE:
+			if (win->internal.captureMouse) {
+				RGFW_window_captureMousePlatform(win, RGFW_TRUE);
+			}
+
 			win->x = windowRect.left;
 			win->y = windowRect.top;
 
@@ -9321,6 +9326,10 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_windowMovedCallback(win, win->x, win->y);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		case WM_SIZE: {
+			if (win->internal.captureMouse) {
+				RGFW_window_captureMousePlatform(win, RGFW_TRUE);
+			}
+
 			if (win->src.aspectRatioW != 0 && win->src.aspectRatioH != 0) {
 				double aspectRatio = (double)win->src.aspectRatioW / win->src.aspectRatioH;
 
@@ -9351,6 +9360,29 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_window_checkMode(win);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
+        case WM_MOUSEACTIVATE:         {
+            if (HIWORD(lParam) == WM_LBUTTONDOWN) {
+                if (LOWORD(lParam) != HTCLIENT)
+                    win->src.frameAction = RGFW_TRUE;
+            }
+
+            break;
+        }
+		case WM_CAPTURECHANGED:         {
+            if (lParam == 0 && win->src.frameAction) {
+				RGFW_window_captureMousePlatform(win, win->internal.captureMouse);
+                win->src.frameAction = RGFW_FALSE;
+            }
+
+            break;
+        }
+        case WM_EXITSIZEMOVE:
+        case WM_EXITMENULOOP:         {
+            if (window->win32.frameAction)
+				RGFW_window_captureMousePlatform(win, win->internal.captureMouse);
+            break;
+        }
+
 		#ifndef RGFW_NO_MONITOR
 		case WM_DPICHANGED: {
 			if (win->internal.flags & RGFW_windowScaleToMonitor) RGFW_window_scaleToMonitor(win);
