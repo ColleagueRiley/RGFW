@@ -879,6 +879,7 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 	RGFW_errClipboard,
 	RGFW_errFailedFuncLoad,
 	RGFW_errBuffer,
+	RGFW_errMetal,
 	RGFW_errEventQueue,
 	RGFW_infoMonitor, RGFW_infoWindow, RGFW_infoBuffer, RGFW_infoGlobal, RGFW_infoOpenGL,
 	RGFW_warningWayland, RGFW_warningOpenGL
@@ -4877,9 +4878,35 @@ VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance,
 
     return vkCreateWin32SurfaceKHR(instance, &win32, NULL, surface);
 #elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
-    void* contentView = ((void* (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_getUid("contentView"));
-    VkMacOSSurfaceCreateSurfaceMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, 0, (void*)contentView };
-    return vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface);
+	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+	pool = objc_msgSend_id(pool, sel_registerName("init"));
+
+    id* nsView = (id*)window->src.view;
+    if (!nsView) {
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errMetal, "NSView is NULL for macOS window");
+        return NULL;
+    }
+
+
+    id layer = ((id (*)(id, SEL))objc_msgSend)(nsView, sel_registerName("layer"));
+
+	void* metalLayer = RGFW_getLayer_OSX();
+	if (metalLayer == NULL) {
+		 return NULL;
+	}
+	((void (*)(id, SEL, id))objc_msgSend)((id)nsView, sel_registerName("setLayer:"), metalLayer);
+    ((void (*)(id, SEL, BOOL))objc_msgSend)(nsView, sel_registerName("setWantsLayer:"), YES);
+
+	VkResult result;
+/*	VkMacOSSurfaceCreateInfoMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, 0, (void*)nsView };
+    result = vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface); */
+
+    VkMacOSSurfaceCreateSurfaceMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, 0, (void*)nsView };
+    result = vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface);
+
+	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
+
+	return result;
 #endif
 }
 
@@ -11108,12 +11135,9 @@ WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance i
 	WGPUSurfaceDescriptor surfaceDesc = {0};
 	WGPUSurfaceSourceWindowsHWND fromHwnd = {0};
     fromHwnd.chain.sType = WGPUSType_SurfaceSourceWindowsHWND;
-    fromHwnd.hwnd = window->src.window; /* Get HWND from RGFW window source */
-    if (!fromHwnd.hwnd) {
-        fprintf(stderr, "RGFW Error: HWND is NULL for Windows window.\n");
-        return NULL;
-    }
-    fromHwnd.hinstance = GetModuleHandle(NULL); /* Get current process HINSTANCE */
+    fromHwnd.hwnd = window->src.window;
+
+	fromHwnd.hinstance = GetModuleHandle(NULL);
 
     surfaceDesc.nextInChain = (WGPUChainedStruct*)&fromHwnd.chain;
     return wgpuInstanceCreateSurface(instance, &surfaceDesc);
@@ -13155,7 +13179,7 @@ WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance i
 	WGPUSurfaceDescriptor surfaceDesc = {0};
     id* nsView = (id*)window->src.view;
     if (!nsView) {
-        fprintf(stderr, "RGFW Error: NSView is NULL for macOS window.\n");
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errMetal, "NSView is NULL for macOS window");
         return NULL;
     }
 
@@ -13167,9 +13191,8 @@ WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance i
 		 return NULL;
 	}
 	((void (*)(id, SEL, id))objc_msgSend)((id)nsView, sel_registerName("setLayer:"), metalLayer);
-	layer = metalLayer; /* Use the newly created layer */
+	layer = metalLayer;
 
-    /* At this point, 'layer' should be a valid CAMetalLayer* */
     WGPUSurfaceSourceMetalLayer fromMetal = {0};
     fromMetal.chain.sType = WGPUSType_SurfaceSourceMetalLayer;
 #ifdef  __OBJC__
