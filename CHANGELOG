@@ -12,7 +12,10 @@ In this PR I am redefining how RGFW handles versioning. Breaking changes are goi
 -----------------------------------------------
 - add RGFW_glForwardCompatibility
 - fix documentation typos
-- add RGFW_windowRawMouse and rawMouseMode (rawMouseMode will replace holdMouse/unholdMouse in 2.0)
+- add `RGFW_window_rawMouseMode` to enable raw mouse mode (without capturing the mouse)
+- add `RGFW_setRawMouseMode` to enable raw mouse mode across all windows
+- add `RGFW_windowCaptureMouse` and function `RGFW_window_captureMouse` to capture the mouse (without raw mouse mode)
+- add `RGFW_window_captureRawMouse` and flag `RGFW_windowCaptureRawMouse` for capturing the mouse and enabling raw mouse mode (RGFW_window_captureRawMouse will replace holdMouse/unholdMouse in 2.0)
 - fix mouse hold/unhold on focus/unfocus
 - cleanup hacky X11 raw mouse input
 - support window resizing in the Vulkan Example
@@ -35,6 +38,8 @@ In this PR I am redefining how RGFW handles versioning. Breaking changes are goi
 - add new example `examples/flash/flash` to demonstrate `RGFW_window_flash`
 - standardize vsync being disabled by default (OpenGL)
 - add 'RGFW_window_getSizeInPixels'
+- do not center cursor when the cursor is captured anymore
+- make sure mouse events during raw mouse mode still return the correct relative cursor value
 
 Release:    RGFW 1.8.0
 -----------------------------------------------
