@@ -40,6 +40,7 @@ In this PR I am redefining how RGFW handles versioning. Breaking changes are goi
 - add 'RGFW_window_getSizeInPixels'
 - do not center cursor when the cursor is captured anymore
 - make sure mouse events during raw mouse mode still return the correct relative cursor value
+- add `RGFW_checkEvent` and `RGFW_checkQueuedEvent` for checking the event queue without a window handle
 
 Release:    RGFW 1.8.0
 -----------------------------------------------
