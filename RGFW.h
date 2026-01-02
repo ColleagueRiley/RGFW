@@ -4858,6 +4858,7 @@ const char** RGFW_getRequiredInstanceExtensions_Vulkan(size_t* count) {
     return (const char**)arr;
 }
 
+#ifndef RGFW_MACOS
 VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface) {
     RGFW_ASSERT(win != NULL); RGFW_ASSERT(instance);
 	RGFW_ASSERT(surface != NULL);
@@ -4877,39 +4878,9 @@ VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance,
     VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, GetModuleHandle(NULL), (HWND)win->src.window };
 
     return vkCreateWin32SurfaceKHR(instance, &win32, NULL, surface);
-#elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
-
-    id* nsView = (id*)window->src.view;
-    if (!nsView) {
-		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errMetal, "NSView is NULL for macOS window");
-        return NULL;
-    }
-
-
-    id layer = ((id (*)(id, SEL))objc_msgSend)(nsView, sel_registerName("layer"));
-
-	void* metalLayer = RGFW_getLayer_OSX();
-	if (metalLayer == NULL) {
-		 return NULL;
-	}
-	((void (*)(id, SEL, id))objc_msgSend)((id)nsView, sel_registerName("setLayer:"), metalLayer);
-    ((void (*)(id, SEL, BOOL))objc_msgSend)(nsView, sel_registerName("setWantsLayer:"), YES);
-
-	VkResult result;
-/*	VkMacOSSurfaceCreateInfoMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, 0, (void*)nsView };
-    result = vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface); */
-
-    VkMacOSSurfaceCreateSurfaceMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, 0, (void*)nsView };
-    result = vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface);
-
-	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
-
-	return result;
 #endif
 }
-
+#endif
 
 RGFW_bool RGFW_getPresentationSupport_Vulkan(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex) {
     RGFW_ASSERT(instance);
@@ -13173,6 +13144,53 @@ void RGFW_deinitPlatform(void) { }
 void RGFW_window_closePlatform(RGFW_window* win) {
 	NSRelease(win->src.view);
 }
+
+#ifdef RGFW_VULKAN
+VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface) {
+    RGFW_ASSERT(win != NULL); RGFW_ASSERT(instance);
+	RGFW_ASSERT(surface != NULL);
+
+    *surface = VK_NULL_HANDLE;
+	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+	pool = objc_msgSend_id(pool, sel_registerName("init"));
+
+    id nsView = (id)win->src.view;
+    if (!nsView) {
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errMetal, "NSView is NULL for macOS window");
+        return -1;
+    }
+
+
+    id layer = ((id (*)(id, SEL))objc_msgSend)(nsView, sel_registerName("layer"));
+
+	void* metalLayer = RGFW_getLayer_OSX();
+	if (metalLayer == NULL) {
+		 return -1;
+	}
+	((void (*)(id, SEL, id))objc_msgSend)((id)nsView, sel_registerName("setLayer:"), metalLayer);
+    ((void (*)(id, SEL, BOOL))objc_msgSend)(nsView, sel_registerName("setWantsLayer:"), YES);
+
+	VkResult result;
+/*
+	VkMetalSurfaceCreateInfoEXT macos;
+	macos.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
+	macos.slayer = metalLayer;
+	RGFW_MEMSET(&macos, 0, sizeof(macos));
+    result = vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface);
+*/
+
+	VkMacOSSurfaceCreateInfoMVK macos;
+	RGFW_MEMSET(&macos, 0, sizeof(macos));
+	macos.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
+	macos.pView = nsView;
+
+    result = vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface);
+
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
+
+	return result;
+}
+#endif
 
 #ifdef RGFW_WEBGPU
 WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance instance) {
