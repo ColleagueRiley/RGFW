@@ -2,7 +2,7 @@
 *
 *	RGFW 1.9.0-dev
 
-* Copyright (C) 2022-25 Riley Mabb (@ColleagueRiley)
+* Copyright (C) 2022-26 Riley Mabb (@ColleagueRiley)
 *
 * libpng license
 *
