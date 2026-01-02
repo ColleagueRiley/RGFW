@@ -191,7 +191,15 @@ Window_management \- Window_management
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setRawMouseMode\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP state)"
 .br
-.RI "set (enable or disable) raw mouse mode, locking the cursor and using mouse raw input\&. "
+.RI "set (enable or disable) raw mouse mode only for the select window "
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_captureMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP state)"
+.br
+.RI "lock/unlock the cursor\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_captureRawMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP state)"
+.br
+.RI "lock/unlock the cursor and enable raw mpuise mode\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_holdMouse\fP (\fBRGFW_window\fP *win)"
 .br
@@ -203,7 +211,11 @@ Window_management \- Window_management
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isRawMouseMode\fP (\fBRGFW_window\fP *win)"
 .br
-.RI "Returns true if the mouse is currently held by RGFW\&. "
+.RI "Returns true if the mouse is using raw mouse mode\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isCaptured\fP (\fBRGFW_window\fP *win)"
+.br
+.RI "Returns true if the mouse is captured\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isHoldingMouse\fP (\fBRGFW_window\fP *win)"
 .br
@@ -324,6 +336,32 @@ checks if the window is borderless !
 \fBReturns\fP
 .RS 4
 RGFW_TRUE if borderless, RGFW_FALSE otherwise 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_window_captureMouse (\fBRGFW_window\fP * win, \fBRGFW_bool\fP state)"
+
+.PP
+lock/unlock the cursor\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.br
+\fIthe\fP boolean state of the mouse's capture state 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_window_captureRawMouse (\fBRGFW_window\fP * win, \fBRGFW_bool\fP state)"
+
+.PP
+lock/unlock the cursor and enable raw mpuise mode\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.br
+\fIthe\fP boolean state of raw mouse mode 
 .RE
 .PP
 
@@ -551,7 +589,23 @@ Locks the cursor to the center of the window\&. !
 .PP
 \fBWarning\fP
 .RS 4
-this function is deprecated and will be replaced by RGFW_window_setRawMouseMode in RGFW 2\&.0 
+this function is deprecated and will be replaced by RGFW_window_captureRawMouse in RGFW 2\&.0 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isCaptured (\fBRGFW_window\fP * win)"
+
+.PP
+Returns true if the mouse is captured\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if the mouse is being captured\&. 
 .RE
 .PP
 
@@ -831,7 +885,7 @@ RGFW_TRUE if the mouse button was released, RGFW_FALSE otherwise
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isRawMouseMode (\fBRGFW_window\fP * win)"
 
 .PP
-Returns true if the mouse is currently held by RGFW\&. ! 
+Returns true if the mouse is using raw mouse mode\&. ! 
 .PP
 \fBParameters\fP
 .RS 4
@@ -840,7 +894,7 @@ Returns true if the mouse is currently held by RGFW\&. !
 .PP
 \fBReturns\fP
 .RS 4
-True if the mouse is being held\&. 
+True if the mouse is using raw mouse input mode\&. 
 .RE
 .PP
 
@@ -1189,7 +1243,7 @@ sets the opacity level of the window !
 .SS "\fBRGFWDEF\fP void RGFW_window_setRawMouseMode (\fBRGFW_window\fP * win, \fBRGFW_bool\fP state)"
 
 .PP
-set (enable or disable) raw mouse mode, locking the cursor and using mouse raw input\&. ! 
+set (enable or disable) raw mouse mode only for the select window ! 
 .PP
 \fBParameters\fP
 .RS 4
@@ -1264,7 +1318,7 @@ Releases the mouse so it can move freely again\&. !
 .PP
 \fBWarning\fP
 .RS 4
-this function is deprecated and will be replaced by RGFW_window_setRawMouseMode in RGFW 2\&.0 
+this function is deprecated and will be replaced by RGFW_window_captureRawMouse in RGFW 2\&.0 
 .RE
 .PP
 
