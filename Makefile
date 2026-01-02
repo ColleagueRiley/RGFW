@@ -54,7 +54,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		DX11_LIBS =
 		LIBS := -framework CoreVideo -framework Cocoa -framework OpenGL -framework IOKit
 		LINK_GL1 = -framework OpenGL
-		VULKAN_LIBS =
+		VULKAN_LIBS = $(LIBS) -lvulkan
 		EXT =
 		LIB_EXT = .dylib
 		OS_DIR = /
