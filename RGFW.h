@@ -1234,6 +1234,29 @@ RGFWDEF void RGFW_pollEvents(void);
 */
 RGFWDEF void RGFW_stopCheckEvents(void);
 
+/**!
+ * @brief polls and pops the next event
+ * @param event [OUTPUT] a pointer to store the retrieved event
+ * @return RGFW_TRUE if an event was found, RGFW_FALSE otherwise
+ *
+ * NOTE: Using this function without a loop may cause event lag.
+ * For multi-threaded systems, use RGFW_pollEvents combined with RGFW_checkQueuedEvent.
+ *
+ * Example:
+ * RGFW_event event;
+ * while (RGFW_checkEvent(win, &event)) {
+ *     // handle event
+ * }
+*/
+RGFWDEF RGFW_bool RGFW_checkEvent(RGFW_event* event);
+
+/**!
+ * @brief pops the first queued event
+ * @param event [OUTPUT] a pointer to store the retrieved event
+ * @return RGFW_TRUE if an event was found, RGFW_FALSE otherwise
+*/
+RGFWDEF RGFW_bool RGFW_checkQueuedEvent(RGFW_event* event);
+
 /** * @defgroup Input
 * @{ */
 
@@ -1508,7 +1531,7 @@ RGFWDEF struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win);
 RGFWDEF void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags);
 
 /**!
- * @brief polls and pops the next event from the window's event queue
+ * @brief polls and pops the next event with the matching target window in event queue, pushes back events that don't match
  * @param win a pointer to the target window
  * @param event [OUTPUT] a pointer to store the retrieved event
  * @return RGFW_TRUE if an event was found, RGFW_FALSE otherwise
@@ -1525,7 +1548,7 @@ RGFWDEF void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags);
 RGFWDEF RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event);
 
 /**!
- * @brief pops the first queued event for the window
+ * @brief pops the first queued event with the matching target window, pushes back events that don't match
  * @param win a pointer to the target window
  * @param event [OUTPUT] a pointer to store the retrieved event
  * @return RGFW_TRUE if an event was found, RGFW_FALSE otherwise
@@ -2594,11 +2617,17 @@ RGFWDEF void RGFW_eventQueuePush(const RGFW_event* event);
 RGFWDEF void RGFW_eventQueueFlush(void);
 
 /**!
- * @brief Pops the next event from the RGFW event queue for the specified window.
- * @param win A pointer to the RGFW_window to retrieve an event for.
+ * @brief Pops the next event from the RGFW event queue.
  * @return A pointer to the popped RGFW_event, or NULL if the queue is empty.
 */
-RGFWDEF RGFW_event* RGFW_eventQueuePop(RGFW_window* win);
+RGFWDEF RGFW_event* RGFW_eventQueuePop(void);
+
+/**!
+ * @brief Pops the next event from the RGFW event queue that matches the target window, pushes back events that don't matchj.
+ * @param win A pointer to the target RGFW_window.
+ * @return A pointer to the popped RGFW_event, or NULL if the queue is empty.
+*/
+RGFWDEF RGFW_event* RGFW_window_eventQueuePop(RGFW_window* win);
 
 /**!
  * @brief Converts an API keycode to the RGFW unmapped (physical) key.
@@ -3540,7 +3569,7 @@ void RGFW_eventQueuePush(const RGFW_event* event) {
 	_RGFW->events[eventTop] = *event;
 }
 
-RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
+RGFW_event* RGFW_eventQueuePop(void) {
 	RGFW_ASSERT(_RGFW->eventLen >= 0 && _RGFW->eventLen <= RGFW_MAX_EVENTS);
 	RGFW_event* ev;
 
@@ -3552,12 +3581,35 @@ RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
 	_RGFW->eventLen -= 1;
     _RGFW->eventBottom = (_RGFW->eventBottom + 1) % RGFW_MAX_EVENTS;
 
-	if (ev->common.win != win && ev->common.win != NULL) {
-		RGFW_eventQueuePush(ev);
-		return NULL;
+	return ev;
+}
+
+RGFW_bool RGFW_checkEvent(RGFW_event* event) {
+	if (_RGFW->eventLen == 0 && _RGFW->polledEvents == RGFW_FALSE) {
+		_RGFW->queueEvents = RGFW_TRUE;
+		RGFW_pollEvents();
+		_RGFW->polledEvents = RGFW_TRUE;
 	}
 
-	return ev;
+	if (RGFW_checkQueuedEvent(event) == RGFW_FALSE) {
+		_RGFW->polledEvents = RGFW_FALSE;
+		return RGFW_FALSE;
+	}
+
+	return RGFW_TRUE;
+}
+
+RGFW_bool RGFW_checkQueuedEvent(RGFW_event* event) {
+	RGFW_event* ev;
+	_RGFW->queueEvents = RGFW_TRUE;
+	/* check queued events */
+	ev = RGFW_eventQueuePop();
+	if (ev != NULL) {
+		*event = *ev;
+		return RGFW_TRUE;
+    }
+
+	return RGFW_FALSE;
 }
 
 void RGFW_resetPrevState(void) {
@@ -3647,7 +3699,7 @@ RGFW_bool RGFW_window_checkQueuedEvent(RGFW_window* win, RGFW_event* event) {
 	RGFW_ASSERT(win != NULL);
 	_RGFW->queueEvents = RGFW_TRUE;
 	/* check queued events */
-	ev = RGFW_eventQueuePop(win);
+	ev = RGFW_window_eventQueuePop(win);
 	if (ev != NULL) {
 		if (ev->type == RGFW_quit) RGFW_window_setShouldClose(win, RGFW_TRUE);
 		*event = *ev;
@@ -3655,6 +3707,18 @@ RGFW_bool RGFW_window_checkQueuedEvent(RGFW_window* win, RGFW_event* event) {
     }
 
 	return RGFW_FALSE;
+}
+
+RGFW_event* RGFW_window_eventQueuePop(RGFW_window* win) {
+	RGFW_event* ev = RGFW_eventQueuePop();
+	if (ev == NULL) return ev;
+
+	if (ev->common.win != win && ev->common.win != NULL) {
+		RGFW_eventQueuePush(ev);
+		return RGFW_window_eventQueuePop(win);
+	}
+
+	return ev;
 }
 
 void RGFW_setRootWindow(RGFW_window* win) { _RGFW->root = win; }
