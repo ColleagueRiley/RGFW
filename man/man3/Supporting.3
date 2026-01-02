@@ -26,9 +26,13 @@ Supporting \- Supporting
 .br
 .RI "Clears all events from the RGFW event queue without processing them\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (void)"
 .br
-.RI "Pops the next event from the RGFW event queue for the specified window\&. "
+.RI "Pops the next event from the RGFW event queue\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_event\fP * \fBRGFW_window_eventQueuePop\fP (\fBRGFW_window\fP *win)"
+.br
+.RI "Pops the next event from the RGFW event queue that matches the target window, pushes back events that don't matchj\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_apiKeyToRGFW\fP (\fBu32\fP keycode)"
 .br
@@ -121,15 +125,10 @@ Deinitializes a specific RGFW instance stored in the provided RGFW_info pointer\
 
 .PP
 Clears all events from the RGFW event queue without processing them\&. ! 
-.SS "\fBRGFWDEF\fP \fBRGFW_event\fP * RGFW_eventQueuePop (\fBRGFW_window\fP * win)"
+.SS "\fBRGFWDEF\fP \fBRGFW_event\fP * RGFW_eventQueuePop (void)"
 
 .PP
-Pops the next event from the RGFW event queue for the specified window\&. ! 
-.PP
-\fBParameters\fP
-.RS 4
-\fIwin\fP A pointer to the RGFW_window to retrieve an event for\&. 
-.RE
+Pops the next event from the RGFW event queue\&. ! 
 .PP
 \fBReturns\fP
 .RS 4
@@ -264,6 +263,22 @@ Retrieves the size of the RGFW_info structure\&. !
 \fBReturns\fP
 .RS 4
 The size (in bytes) of RGFW_info\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_event\fP * RGFW_window_eventQueuePop (\fBRGFW_window\fP * win)"
+
+.PP
+Pops the next event from the RGFW event queue that matches the target window, pushes back events that don't matchj\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP A pointer to the target RGFW_window\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+A pointer to the popped \fBRGFW_event\fP, or NULL if the queue is empty\&. 
 .RE
 .PP
 

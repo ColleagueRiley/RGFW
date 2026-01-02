@@ -527,6 +527,14 @@ RGFW.h
 .br
 .RI "check all the events until there are none left and updates window structure attributes queues events if the queue is checked and/or requested "
 .ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_checkEvent\fP (\fBRGFW_event\fP *event)"
+.br
+.RI "polls and pops the next event "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_checkQueuedEvent\fP (\fBRGFW_event\fP *event)"
+.br
+.RI "pops the first queued event "
+.ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_isKeyPressed\fP (RGFW_key key)"
 .br
 .RI "returns true if the key is pressed during the current frame "
@@ -664,11 +672,11 @@ RGFW.h
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_checkEvent\fP (\fBRGFW_window\fP *win, \fBRGFW_event\fP *event)"
 .br
-.RI "polls and pops the next event from the window's event queue "
+.RI "polls and pops the next event with the matching target window in event queue, pushes back events that don't match "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_checkQueuedEvent\fP (\fBRGFW_window\fP *win, \fBRGFW_event\fP *event)"
 .br
-.RI "pops the first queued event for the window "
+.RI "pops the first queued event with the matching target window, pushes back events that don't match "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isKeyPressed\fP (\fBRGFW_window\fP *win, RGFW_key key)"
 .br
@@ -1037,9 +1045,13 @@ RGFW.h
 .br
 .RI "Clears all events from the RGFW event queue without processing them\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_event\fP * \fBRGFW_eventQueuePop\fP (void)"
 .br
-.RI "Pops the next event from the RGFW event queue for the specified window\&. "
+.RI "Pops the next event from the RGFW event queue\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_event\fP * \fBRGFW_window_eventQueuePop\fP (\fBRGFW_window\fP *win)"
+.br
+.RI "Pops the next event from the RGFW event queue that matches the target window, pushes back events that don't matchj\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_apiKeyToRGFW\fP (\fBu32\fP keycode)"
 .br
@@ -1330,6 +1342,40 @@ Allocates memory using the allocator defined by RGFW_ALLOC at compile time\&. !
 \fBReturns\fP
 .RS 4
 A pointer to the allocated memory block\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_checkEvent (\fBRGFW_event\fP * event)"
+
+.PP
+polls and pops the next event ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIevent\fP [OUTPUT] a pointer to store the retrieved event 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if an event was found, RGFW_FALSE otherwise
+.RE
+.PP
+NOTE: Using this function without a loop may cause event lag\&. For multi-threaded systems, use RGFW_pollEvents combined with RGFW_checkQueuedEvent\&.
+.PP
+Example: \fBRGFW_event\fP event; while (RGFW_checkEvent(win, &event)) { // handle event } 
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_checkQueuedEvent (\fBRGFW_event\fP * event)"
+
+.PP
+pops the first queued event ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIevent\fP [OUTPUT] a pointer to store the retrieved event 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if an event was found, RGFW_FALSE otherwise 
 .RE
 .PP
 

@@ -15,11 +15,11 @@ Window_management \- Window_management
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_checkEvent\fP (\fBRGFW_window\fP *win, \fBRGFW_event\fP *event)"
 .br
-.RI "polls and pops the next event from the window's event queue "
+.RI "polls and pops the next event with the matching target window in event queue, pushes back events that don't match "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_checkQueuedEvent\fP (\fBRGFW_window\fP *win, \fBRGFW_event\fP *event)"
 .br
-.RI "pops the first queued event for the window "
+.RI "pops the first queued event with the matching target window, pushes back events that don't match "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isKeyPressed\fP (\fBRGFW_window\fP *win, RGFW_key key)"
 .br
@@ -379,7 +379,7 @@ centers the window on the screen !
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_checkEvent (\fBRGFW_window\fP * win, \fBRGFW_event\fP * event)"
 
 .PP
-polls and pops the next event from the window's event queue ! 
+polls and pops the next event with the matching target window in event queue, pushes back events that don't match ! 
 .PP
 \fBParameters\fP
 .RS 4
@@ -399,7 +399,7 @@ Example: \fBRGFW_event\fP event; while (RGFW_window_checkEvent(win, &event)) { /
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_checkQueuedEvent (\fBRGFW_window\fP * win, \fBRGFW_event\fP * event)"
 
 .PP
-pops the first queued event for the window ! 
+pops the first queued event with the matching target window, pushes back events that don't match ! 
 .PP
 \fBParameters\fP
 .RS 4

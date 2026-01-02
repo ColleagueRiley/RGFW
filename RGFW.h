@@ -879,6 +879,7 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 	RGFW_errClipboard,
 	RGFW_errFailedFuncLoad,
 	RGFW_errBuffer,
+	RGFW_errMetal,
 	RGFW_errEventQueue,
 	RGFW_infoMonitor, RGFW_infoWindow, RGFW_infoBuffer, RGFW_infoGlobal, RGFW_infoOpenGL,
 	RGFW_warningWayland, RGFW_warningOpenGL
@@ -1234,6 +1235,29 @@ RGFWDEF void RGFW_pollEvents(void);
 */
 RGFWDEF void RGFW_stopCheckEvents(void);
 
+/**!
+ * @brief polls and pops the next event
+ * @param event [OUTPUT] a pointer to store the retrieved event
+ * @return RGFW_TRUE if an event was found, RGFW_FALSE otherwise
+ *
+ * NOTE: Using this function without a loop may cause event lag.
+ * For multi-threaded systems, use RGFW_pollEvents combined with RGFW_checkQueuedEvent.
+ *
+ * Example:
+ * RGFW_event event;
+ * while (RGFW_checkEvent(win, &event)) {
+ *     // handle event
+ * }
+*/
+RGFWDEF RGFW_bool RGFW_checkEvent(RGFW_event* event);
+
+/**!
+ * @brief pops the first queued event
+ * @param event [OUTPUT] a pointer to store the retrieved event
+ * @return RGFW_TRUE if an event was found, RGFW_FALSE otherwise
+*/
+RGFWDEF RGFW_bool RGFW_checkQueuedEvent(RGFW_event* event);
+
 /** * @defgroup Input
 * @{ */
 
@@ -1508,7 +1532,7 @@ RGFWDEF struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win);
 RGFWDEF void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags);
 
 /**!
- * @brief polls and pops the next event from the window's event queue
+ * @brief polls and pops the next event with the matching target window in event queue, pushes back events that don't match
  * @param win a pointer to the target window
  * @param event [OUTPUT] a pointer to store the retrieved event
  * @return RGFW_TRUE if an event was found, RGFW_FALSE otherwise
@@ -1525,7 +1549,7 @@ RGFWDEF void RGFW_window_setFlags(RGFW_window* win, RGFW_windowFlags);
 RGFWDEF RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event);
 
 /**!
- * @brief pops the first queued event for the window
+ * @brief pops the first queued event with the matching target window, pushes back events that don't match
  * @param win a pointer to the target window
  * @param event [OUTPUT] a pointer to store the retrieved event
  * @return RGFW_TRUE if an event was found, RGFW_FALSE otherwise
@@ -2594,11 +2618,17 @@ RGFWDEF void RGFW_eventQueuePush(const RGFW_event* event);
 RGFWDEF void RGFW_eventQueueFlush(void);
 
 /**!
- * @brief Pops the next event from the RGFW event queue for the specified window.
- * @param win A pointer to the RGFW_window to retrieve an event for.
+ * @brief Pops the next event from the RGFW event queue.
  * @return A pointer to the popped RGFW_event, or NULL if the queue is empty.
 */
-RGFWDEF RGFW_event* RGFW_eventQueuePop(RGFW_window* win);
+RGFWDEF RGFW_event* RGFW_eventQueuePop(void);
+
+/**!
+ * @brief Pops the next event from the RGFW event queue that matches the target window, pushes back events that don't matchj.
+ * @param win A pointer to the target RGFW_window.
+ * @return A pointer to the popped RGFW_event, or NULL if the queue is empty.
+*/
+RGFWDEF RGFW_event* RGFW_window_eventQueuePop(RGFW_window* win);
 
 /**!
  * @brief Converts an API keycode to the RGFW unmapped (physical) key.
@@ -3540,7 +3570,7 @@ void RGFW_eventQueuePush(const RGFW_event* event) {
 	_RGFW->events[eventTop] = *event;
 }
 
-RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
+RGFW_event* RGFW_eventQueuePop(void) {
 	RGFW_ASSERT(_RGFW->eventLen >= 0 && _RGFW->eventLen <= RGFW_MAX_EVENTS);
 	RGFW_event* ev;
 
@@ -3552,12 +3582,35 @@ RGFW_event* RGFW_eventQueuePop(RGFW_window* win) {
 	_RGFW->eventLen -= 1;
     _RGFW->eventBottom = (_RGFW->eventBottom + 1) % RGFW_MAX_EVENTS;
 
-	if (ev->common.win != win && ev->common.win != NULL) {
-		RGFW_eventQueuePush(ev);
-		return NULL;
+	return ev;
+}
+
+RGFW_bool RGFW_checkEvent(RGFW_event* event) {
+	if (_RGFW->eventLen == 0 && _RGFW->polledEvents == RGFW_FALSE) {
+		_RGFW->queueEvents = RGFW_TRUE;
+		RGFW_pollEvents();
+		_RGFW->polledEvents = RGFW_TRUE;
 	}
 
-	return ev;
+	if (RGFW_checkQueuedEvent(event) == RGFW_FALSE) {
+		_RGFW->polledEvents = RGFW_FALSE;
+		return RGFW_FALSE;
+	}
+
+	return RGFW_TRUE;
+}
+
+RGFW_bool RGFW_checkQueuedEvent(RGFW_event* event) {
+	RGFW_event* ev;
+	_RGFW->queueEvents = RGFW_TRUE;
+	/* check queued events */
+	ev = RGFW_eventQueuePop();
+	if (ev != NULL) {
+		*event = *ev;
+		return RGFW_TRUE;
+    }
+
+	return RGFW_FALSE;
 }
 
 void RGFW_resetPrevState(void) {
@@ -3647,7 +3700,7 @@ RGFW_bool RGFW_window_checkQueuedEvent(RGFW_window* win, RGFW_event* event) {
 	RGFW_ASSERT(win != NULL);
 	_RGFW->queueEvents = RGFW_TRUE;
 	/* check queued events */
-	ev = RGFW_eventQueuePop(win);
+	ev = RGFW_window_eventQueuePop(win);
 	if (ev != NULL) {
 		if (ev->type == RGFW_quit) RGFW_window_setShouldClose(win, RGFW_TRUE);
 		*event = *ev;
@@ -3655,6 +3708,18 @@ RGFW_bool RGFW_window_checkQueuedEvent(RGFW_window* win, RGFW_event* event) {
     }
 
 	return RGFW_FALSE;
+}
+
+RGFW_event* RGFW_window_eventQueuePop(RGFW_window* win) {
+	RGFW_event* ev = RGFW_eventQueuePop();
+	if (ev == NULL) return ev;
+
+	if (ev->common.win != win && ev->common.win != NULL) {
+		RGFW_eventQueuePush(ev);
+		return RGFW_window_eventQueuePop(win);
+	}
+
+	return ev;
 }
 
 void RGFW_setRootWindow(RGFW_window* win) { _RGFW->root = win; }
@@ -4793,6 +4858,7 @@ const char** RGFW_getRequiredInstanceExtensions_Vulkan(size_t* count) {
     return (const char**)arr;
 }
 
+#ifndef RGFW_MACOS
 VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface) {
     RGFW_ASSERT(win != NULL); RGFW_ASSERT(instance);
 	RGFW_ASSERT(surface != NULL);
@@ -4812,13 +4878,9 @@ VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance,
     VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, GetModuleHandle(NULL), (HWND)win->src.window };
 
     return vkCreateWin32SurfaceKHR(instance, &win32, NULL, surface);
-#elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
-    void* contentView = ((void* (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_getUid("contentView"));
-    VkMacOSSurfaceCreateSurfaceMVK macos = { VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, 0, 0, 0, (void*)contentView };
-    return vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface);
 #endif
 }
-
+#endif
 
 RGFW_bool RGFW_getPresentationSupport_Vulkan(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex) {
     RGFW_ASSERT(instance);
@@ -11044,12 +11106,9 @@ WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance i
 	WGPUSurfaceDescriptor surfaceDesc = {0};
 	WGPUSurfaceSourceWindowsHWND fromHwnd = {0};
     fromHwnd.chain.sType = WGPUSType_SurfaceSourceWindowsHWND;
-    fromHwnd.hwnd = window->src.window; /* Get HWND from RGFW window source */
-    if (!fromHwnd.hwnd) {
-        fprintf(stderr, "RGFW Error: HWND is NULL for Windows window.\n");
-        return NULL;
-    }
-    fromHwnd.hinstance = GetModuleHandle(NULL); /* Get current process HINSTANCE */
+    fromHwnd.hwnd = window->src.window;
+
+	fromHwnd.hinstance = GetModuleHandle(NULL);
 
     surfaceDesc.nextInChain = (WGPUChainedStruct*)&fromHwnd.chain;
     return wgpuInstanceCreateSurface(instance, &surfaceDesc);
@@ -13086,12 +13145,59 @@ void RGFW_window_closePlatform(RGFW_window* win) {
 	NSRelease(win->src.view);
 }
 
+#ifdef RGFW_VULKAN
+VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface) {
+    RGFW_ASSERT(win != NULL); RGFW_ASSERT(instance);
+	RGFW_ASSERT(surface != NULL);
+
+    *surface = VK_NULL_HANDLE;
+	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+	pool = objc_msgSend_id(pool, sel_registerName("init"));
+
+    id nsView = (id)win->src.view;
+    if (!nsView) {
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errMetal, "NSView is NULL for macOS window");
+        return -1;
+    }
+
+
+    id layer = ((id (*)(id, SEL))objc_msgSend)(nsView, sel_registerName("layer"));
+
+	void* metalLayer = RGFW_getLayer_OSX();
+	if (metalLayer == NULL) {
+		 return -1;
+	}
+	((void (*)(id, SEL, id))objc_msgSend)((id)nsView, sel_registerName("setLayer:"), metalLayer);
+    ((void (*)(id, SEL, BOOL))objc_msgSend)(nsView, sel_registerName("setWantsLayer:"), YES);
+
+	VkResult result;
+/*
+	VkMetalSurfaceCreateInfoEXT macos;
+	macos.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
+	macos.slayer = metalLayer;
+	RGFW_MEMSET(&macos, 0, sizeof(macos));
+    result = vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface);
+*/
+
+	VkMacOSSurfaceCreateInfoMVK macos;
+	RGFW_MEMSET(&macos, 0, sizeof(macos));
+	macos.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
+	macos.pView = nsView;
+
+    result = vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface);
+
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
+
+	return result;
+}
+#endif
+
 #ifdef RGFW_WEBGPU
 WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance instance) {
 	WGPUSurfaceDescriptor surfaceDesc = {0};
     id* nsView = (id*)window->src.view;
     if (!nsView) {
-        fprintf(stderr, "RGFW Error: NSView is NULL for macOS window.\n");
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errMetal, "NSView is NULL for macOS window");
         return NULL;
     }
 
@@ -13103,9 +13209,8 @@ WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance i
 		 return NULL;
 	}
 	((void (*)(id, SEL, id))objc_msgSend)((id)nsView, sel_registerName("setLayer:"), metalLayer);
-	layer = metalLayer; /* Use the newly created layer */
+	layer = metalLayer;
 
-    /* At this point, 'layer' should be a valid CAMetalLayer* */
     WGPUSurfaceSourceMetalLayer fromMetal = {0};
     fromMetal.chain.sType = WGPUSType_SurfaceSourceMetalLayer;
 #ifdef  __OBJC__

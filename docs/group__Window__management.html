@@ -82,10 +82,10 @@ Functions</h2></td></tr>
 <tr class="memitem:ga1c3a89944c13d571c67be26fdc1041af"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga1c3a89944c13d571c67be26fdc1041af">RGFW_window_setFlags</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, RGFW_windowFlags)</td></tr>
 <tr class="separator:ga1c3a89944c13d571c67be26fdc1041af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga24a216d1304d457e92b07504dda3fabb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga24a216d1304d457e92b07504dda3fabb">RGFW_window_checkEvent</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="unionRGFW__event.html">RGFW_event</a> *event)</td></tr>
-<tr class="memdesc:ga24a216d1304d457e92b07504dda3fabb"><td class="mdescLeft">&#160;</td><td class="mdescRight">polls and pops the next event from the window's event queue  <a href="group__Window__management.html#ga24a216d1304d457e92b07504dda3fabb">More...</a><br /></td></tr>
+<tr class="memdesc:ga24a216d1304d457e92b07504dda3fabb"><td class="mdescLeft">&#160;</td><td class="mdescRight">polls and pops the next event with the matching target window in event queue, pushes back events that don't match  <a href="group__Window__management.html#ga24a216d1304d457e92b07504dda3fabb">More...</a><br /></td></tr>
 <tr class="separator:ga24a216d1304d457e92b07504dda3fabb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga8a75a2c74318e91e6d9b1c64ec7559d7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga8a75a2c74318e91e6d9b1c64ec7559d7">RGFW_window_checkQueuedEvent</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="unionRGFW__event.html">RGFW_event</a> *event)</td></tr>
-<tr class="memdesc:ga8a75a2c74318e91e6d9b1c64ec7559d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">pops the first queued event for the window  <a href="group__Window__management.html#ga8a75a2c74318e91e6d9b1c64ec7559d7">More...</a><br /></td></tr>
+<tr class="memdesc:ga8a75a2c74318e91e6d9b1c64ec7559d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">pops the first queued event with the matching target window, pushes back events that don't match  <a href="group__Window__management.html#ga8a75a2c74318e91e6d9b1c64ec7559d7">More...</a><br /></td></tr>
 <tr class="separator:ga8a75a2c74318e91e6d9b1c64ec7559d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad0c84af04cb3d099b1776343f6638851"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#gad0c84af04cb3d099b1776343f6638851">RGFW_window_isKeyPressed</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, RGFW_key key)</td></tr>
 <tr class="memdesc:gad0c84af04cb3d099b1776343f6638851"><td class="mdescLeft">&#160;</td><td class="mdescRight">checks if a key was pressed while the window is in focus  <a href="group__Window__management.html#gad0c84af04cb3d099b1776343f6638851">More...</a><br /></td></tr>
@@ -505,7 +505,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>polls and pops the next event from the window's event queue </p>
+<p>polls and pops the next event with the matching target window in event queue, pushes back events that don't match </p>
 <p >! </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">win</td><td>a pointer to the target window </td></tr>
@@ -545,7 +545,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>pops the first queued event for the window </p>
+<p>pops the first queued event with the matching target window, pushes back events that don't match </p>
 <p >! </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">win</td><td>a pointer to the target window </td></tr>
