@@ -23,8 +23,6 @@ int main(void) {
     RGFW_window* win = RGFW_createWindow("First person camera", 0, 0, 800, 450, RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowFocusOnShow | RGFW_windowOpenGL | RGFW_windowHideMouse);
     RGFW_window_setExitKey(win, RGFW_escape);
 
-	RGFW_window_swapInterval_OpenGL(win, 1);
-
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 
@@ -51,7 +49,7 @@ int main(void) {
     glPerspective(60, 16.0 / 9.0, 1.0, 1000);
     glMatrixMode(GL_MODELVIEW);
 
-    RGFW_window_captureRawMouse(win, RGFW_TRUE);
+    RGFW_window_setRawMouseMode(win, RGFW_TRUE);
 
     RGFW_event event;
     while (RGFW_window_shouldClose(win) == 0) {
