@@ -2984,12 +2984,9 @@ struct RGFW_info {
         struct zwp_relative_pointer_v1 *relative_pointer;
         struct zwp_pointer_constraints_v1 *constraint_manager;
         struct xdg_toplevel_icon_manager_v1 *icon_manager;
-
         struct zxdg_output_manager_v1 *xdg_output_manager;
-
+        struct wp_pointer_warp_v1 *wp_pointer_warp;
         struct wl_data_device_manager *data_device_manager;
-        struct wl_data_device *data_device; // supports clipboard and DND
-
         struct wl_keyboard* wl_keyboard;
         struct wl_pointer* wl_pointer;
         struct wl_compositor* compositor;
@@ -7595,6 +7592,7 @@ struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { return win-
 #include "relative-pointer-unstable-v1.h"
 #include "pointer-constraints-unstable-v1.h"
 #include "xdg-output-unstable-v1.h"
+#include "pointer-warp-v1.h"
 
 
 void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized);
@@ -8248,6 +8246,8 @@ static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *regi
 		RGFW->xdg_output_manager = wl_registry_bind(registry, id, &zxdg_output_manager_v1_interface, 1);
 	} else if (RGFW_STRNCMP(interface,"wl_output", 10) == 0) {
 		RGFW_wl_create_outputs(registry, id);
+	} else if (RGFW_STRNCMP(interface, wp_pointer_warp_v1_interface.name, 255) == 0) {
+		RGFW->wp_pointer_warp = wl_registry_bind(registry, id, &wp_pointer_warp_v1_interface, 1);
 	} else if (RGFW_STRNCMP(interface,"wl_data_device_manager", 23) == 0) {
 		RGFW->data_device_manager = wl_registry_bind(registry, id, &wl_data_device_manager_interface, 1);
 	}
@@ -8404,7 +8404,7 @@ void RGFW_deinitPlatform_Wayland(void) {
 		zwp_relative_pointer_manager_v1_destroy(_RGFW->relative_pointer_manager);
 	}
 
-	if (_RGFW->relative_pointer) {
+	if (_RGFW->relative_pointer != NULL) {
 		zwp_relative_pointer_v1_destroy(_RGFW->relative_pointer);
 	}
 
@@ -8417,17 +8417,19 @@ void RGFW_deinitPlatform_Wayland(void) {
 		xdg_toplevel_icon_manager_v1_destroy(_RGFW->icon_manager);
 	}
 
-	if (_RGFW->xdg_output_manager) {
+	if (_RGFW->xdg_output_manager != NULL) {
 		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
 	}
 
+	if (_RGFW->wp_pointer_warp != NULL) {
+		wp_pointer_warp_v1_destroy(_RGFW->wp_pointer_warp);
+	}
 	if (_RGFW->data_device_manager) {
 		wl_data_device_manager_destroy(_RGFW->data_device_manager);
 	}
 
 	if (_RGFW->data_device) {
 		wl_data_device_destroy(_RGFW->data_device);
-	}
 
 	if (_RGFW->wl_cursor_theme != NULL) {
 		wl_cursor_theme_destroy(_RGFW->wl_cursor_theme);
@@ -8890,7 +8892,9 @@ void RGFW_FUNC(RGFW_freeMouse)(RGFW_mouse* mouse) {
 }
 
 void RGFW_FUNC(RGFW_window_moveMouse)(RGFW_window* win, i32 x, i32 y) {
-    RGFW_UNUSED(win); RGFW_UNUSED(x); RGFW_UNUSED(y);
+	if (_RGFW->wp_pointer_warp != NULL) {
+		wp_pointer_warp_v1_warp_pointer(_RGFW->wp_pointer_warp, win->src.surface, _RGFW->wl_pointer, wl_fixed_from_int(x), wl_fixed_from_int(y), _RGFW->mouse_enter_serial);
+	}
 }
 
 RGFW_bool RGFW_FUNC(RGFW_window_setMouseDefault)(RGFW_window* win) {
