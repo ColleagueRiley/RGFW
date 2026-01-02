@@ -167,6 +167,7 @@ EXAMPLE_OUTPUTS = \
 	examples/standard-mouse-icons/icons \
 	examples/custom_alloc/custom_alloc \
 	examples/flash/flash \
+	examples/mouse_modes/mouse_modes
 
 EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/window_icons/icons \
