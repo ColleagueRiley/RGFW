@@ -718,7 +718,7 @@ typedef struct RGFW_commonEvent {
 typedef struct RGFW_mouseButtonEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies too (for event queue events) */
-	u8 value; /* !< which mouse button was pressed */
+	RGFW_mouseButton value; /* !< which mouse button was pressed */
 } RGFW_mouseButtonEvent;
 
 /*! @brief event data for any mouse scroll event */
@@ -3956,22 +3956,23 @@ RGFW_bool RGFW_window_checkQueuedEvent(RGFW_window* win, RGFW_event* event) {
 	_RGFW->queueEvents = RGFW_TRUE;
 	/* check queued events */
 	ev = RGFW_window_eventQueuePop(win);
-	if (ev != NULL) {
-		if (ev->type == RGFW_quit) RGFW_window_setShouldClose(win, RGFW_TRUE);
-		*event = *ev;
-		return RGFW_TRUE;
-    }
+	if (ev == NULL) return RGFW_FALSE;
 
-	return RGFW_FALSE;
+	*event = *ev;
+	return RGFW_TRUE;
 }
 
 RGFW_event* RGFW_window_eventQueuePop(RGFW_window* win) {
 	RGFW_event* ev = RGFW_eventQueuePop();
 	if (ev == NULL) return ev;
 
-	if (ev->common.win != win && ev->common.win != NULL) {
+	for (i32 i = 1; i < _RGFW->eventLen && ev->common.win != win && ev->common.win != NULL; i++) {
 		RGFW_eventQueuePush(ev);
-		return RGFW_window_eventQueuePop(win);
+		ev = RGFW_eventQueuePop();
+	}
+
+	if (ev->common.win != win && ev->common.win != NULL) {
+		return NULL;
 	}
 
 	return ev;
