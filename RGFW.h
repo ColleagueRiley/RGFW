@@ -9637,7 +9637,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				break;
 
 			float vecX = 0.0f;
-			float vecY = 0.0f
+			float vecY = 0.0f;
 
 			if (raw.data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE) {
 				POINT pos = {0, 0};
@@ -9668,7 +9668,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_mousePosCallback(win, win->internal.lastMouseX, win->internal.lastMouseY, vecX, vecY);
 			break;
 		}
-		case WM_LBUTTONDOWN: case WM_RBUTTONDOWN: case WM_MBUTTONDOWN: case WM_XBUTTONDOWN:
+		case WM_LBUTTONDOWN: case WM_RBUTTONDOWN: case WM_MBUTTONDOWN: case WM_XBUTTONDOWN: {
 			RGFW_mouseButton value = 0;
 			if (message == WM_XBUTTONDOWN)
 				value = RGFW_mouseMisc1 + (GET_XBUTTON_WPARAM(wParam) == XBUTTON2);
@@ -9677,7 +9677,8 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			RGFW_mouseButtonCallback(win, value, 1);
 			break;
-		case WM_LBUTTONUP: case WM_RBUTTONUP: case WM_MBUTTONUP: case WM_XBUTTONUP:
+		}
+		case WM_LBUTTONUP: case WM_RBUTTONUP: case WM_MBUTTONUP: case WM_XBUTTONUP: {
 			RGFW_mouseButton value = 0;
 			if (message == WM_XBUTTONUP)
 				value = RGFW_mouseMisc1 + (GET_XBUTTON_WPARAM(wParam) == XBUTTON2);
@@ -9686,18 +9687,21 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			RGFW_mouseButtonCallback(win, value, 0);
 			break;
-		case WM_MOUSEWHEEL:
+		}
+		case WM_MOUSEWHEEL: {
 			float scrollX = 0.0f;
 			float scrollY = (float)((i16) HIWORD(wParam) / (double) WHEEL_DELTA);
 
-			RGFW_mouseScrollCallback(win, scrollX, scrollX);
+			RGFW_mouseScrollCallback(win, scrollX, scrollY);
 			break;
-		case 0x020E: /* WM_MOUSEHWHEEL */
+		}
+		case 0x020E: {/* WM_MOUSEHWHEEL */
 			float scrollX = -(float)((i16) HIWORD(wParam) / (double) WHEEL_DELTA);
 			float scrollY = (float)0.0f;
 
 			RGFW_mouseScrollCallback(win, scrollX, scrollY);
 			break;
+		}
 		case WM_DROPFILES: {
 			HDROP drop = (HDROP) wParam;
 			POINT pt;
@@ -9707,7 +9711,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_dataDragCallback(win, pt.x, pt.y);
 
 			if (!(win->internal.enabledEvents & RGFW_dataDrop)) return DefWindowProcW(hWnd, message, wParam, lParam);
-			char* files = _RGFW->files;
+			char** files = _RGFW->files;
 			size_t count = DragQueryFileW(drop, 0xffffffff, NULL, 0);
 
 			u32 i;
