@@ -11744,7 +11744,7 @@ static void RGFW__osxKeyUp(id self, SEL _cmd, id event) {
     if ((u8)mappedKey == 239) mappedKey = 0;
 
     RGFW_key value = (u8)RGFW_apiKeyToRGFW(key);
-    RGFW_bool repeat = RGFW_window_isKeyDown(win, (u8)e.key.value);
+    RGFW_bool repeat = RGFW_window_isKeyDown(win, (u8)value);
 
     RGFW_keyCallback(win, value, (u8)mappedKey, win->internal.mod, repeat, 1);
 }
@@ -11755,7 +11755,6 @@ static void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
     object_getInstanceVariable(self, "RGFW_window", (void**)&win);
     if (win == NULL) return;
 
-    RGFW_event e;
 	RGFW_key value;
 	RGFW_bool pressed;
 
@@ -11805,7 +11804,7 @@ static void RGFW__osxMouseMoved(id self, SEL _cmd, id event) {
 	CGFloat vecX = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaX"));
     CGFloat vecY = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaY"));
 
-    RGFW_mousePosCallback(win, p.x, (i32)(win->h - p.y), (float)vecX, (float)vecY);
+    RGFW_mousePosCallback(win, (i32)p.x, (i32)(win->h - p.y), (float)vecX, (float)vecY);
 }
 
 static void RGFW__osxMouseDown(id self, SEL _cmd, id event) {
