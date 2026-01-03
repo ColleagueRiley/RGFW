@@ -11515,7 +11515,7 @@ static bool RGFW__osxPerformDragOperation(id self, SEL sel, id sender) {
 		files[i][RGFW_MAX_PATH - 1] = '\0';
 	}
 
-	RGFW_dataDropCallback(win, files, count);
+	RGFW_dataDropCallback(win, files, (size_t)count);
 
 	return false;
 }
@@ -11675,6 +11675,7 @@ static void RGFW__osxViewDidChangeBackingProperties(id self, SEL _cmd) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
+	RGFW_monitor mon = RGFW_window_getMonitor(win);
 	RGFW_scaleUpdatedCallback(win, mon.scaleX, mon.scaleY);
 }
 
@@ -11729,7 +11730,7 @@ static void RGFW__osxKeyDown(id self, SEL _cmd, id event) {
     RGFW_key value = (u8)RGFW_apiKeyToRGFW(key);
 	RGFW_bool repeat = RGFW_window_isKeyPressed(win, value);
 
-    RGFW_keyCallback(win, value, mappedKey, win->internal.mod, repeat, 1);
+    RGFW_keyCallback(win, value, (u8)mappedKey, win->internal.mod, repeat, 1);
 }
 
 static void RGFW__osxKeyUp(id self, SEL _cmd, id event) {
@@ -11745,7 +11746,7 @@ static void RGFW__osxKeyUp(id self, SEL _cmd, id event) {
     RGFW_key value = (u8)RGFW_apiKeyToRGFW(key);
     RGFW_bool repeat = RGFW_window_isKeyDown(win, (u8)e.key.value);
 
-    RGFW_keyCallback(win, value, mappedKey, win->internal.mod, repeat, 1);
+    RGFW_keyCallback(win, value, (u8)mappedKey, win->internal.mod, repeat, 1);
 }
 
 static void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
@@ -11788,7 +11789,7 @@ static void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
 	RGFW_bool repeat = RGFW_window_isKeyDown(win, (u8)value);
 	RGFW_keyCallback(win, value, 0, win->internal.mod, repeat, pressed);
 
-	if (key != RGFW_capsLock) {
+	if (value != RGFW_capsLock) {
 		RGFW_keyCallback(win, value + 4, 0, win->internal.mod, repeat, pressed);
 	}
 
@@ -11804,7 +11805,7 @@ static void RGFW__osxMouseMoved(id self, SEL _cmd, id event) {
 	CGFloat vecX = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaX"));
     CGFloat vecY = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaY"));
 
-    RGFW_mousePosCallback(win, p.x, (i32)(win->h - p.y), vecX, vecY);
+    RGFW_mousePosCallback(win, p.x, (i32)(win->h - p.y), (float)vecX, (float)vecY);
 }
 
 static void RGFW__osxMouseDown(id self, SEL _cmd, id event) {
