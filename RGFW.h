@@ -11755,8 +11755,8 @@ static void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
     object_getInstanceVariable(self, "RGFW_window", (void**)&win);
     if (win == NULL) return;
 
-	RGFW_key value;
-	RGFW_bool pressed;
+	RGFW_key value = 0;
+	RGFW_bool pressed = RGFW_FALSE;
 
     u32 flags = (u32)((u32(*)(id, SEL))objc_msgSend)(event, sel_registerName("modifierFlags"));
     RGFW_updateKeyModsEx(win,
