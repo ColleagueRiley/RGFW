@@ -9689,17 +9689,13 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 		case WM_MOUSEWHEEL: {
-			float scrollX = 0.0f;
 			float scrollY = (float)((i16) HIWORD(wParam) / (double) WHEEL_DELTA);
-
-			RGFW_mouseScrollCallback(win, scrollX, scrollY);
+			RGFW_mouseScrollCallback(win, 0.0f, scrollY);
 			break;
 		}
 		case 0x020E: {/* WM_MOUSEHWHEEL */
 			float scrollX = -(float)((i16) HIWORD(wParam) / (double) WHEEL_DELTA);
-			float scrollY = (float)0.0f;
-
-			RGFW_mouseScrollCallback(win, scrollX, scrollY);
+			RGFW_mouseScrollCallback(win, scrollX, 0.0f);
 			break;
 		}
 		case WM_DROPFILES: {
