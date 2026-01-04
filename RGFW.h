@@ -3333,7 +3333,7 @@ void RGFW_windowResizedCallback(RGFW_window* win, i32 w, i32 h) {
 }
 
 void RGFW_windowQuitCallback(RGFW_window* win) {
-	RGFW_window_setShouldClose(win, RGFW_TRUE);
+	win->internal.shouldClose = RGFW_TRUE;
 
 	RGFW_event event;
 	event.type = RGFW_quit;
@@ -11424,8 +11424,7 @@ static id RGFW__osxCustomInitWithRGFWWindow(id self, SEL _cmd, RGFW_window* win)
 static u32 RGFW_OnClose(id self) {
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, (const char*)"RGFW_window", (void**)&win);
-	if (win == NULL)
-		return true;
+	if (win == NULL) return true;
 
 	RGFW_windowQuitCallback(win);
 	return false;
@@ -11475,7 +11474,6 @@ static bool RGFW__osxPerformDragOperation(id self, SEL sel, id sender) {
 
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
-
 	if (win == NULL || (!(win->internal.enabledEvents & RGFW_dataDropFlag)))
 		return false;
 
@@ -11794,6 +11792,7 @@ static void RGFW__osxMouseMoved(id self, SEL _cmd, id event) {
 	RGFW_UNUSED(_cmd);
     RGFW_window* win = NULL;
     object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+	if (win == NULL) return;
 
     NSPoint p = ((NSPoint(*)(id, SEL))objc_msgSend)(event, sel_registerName("locationInWindow"));
 
