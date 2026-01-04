@@ -49,7 +49,7 @@ int main(void) {
     glPerspective(60, 16.0 / 9.0, 1.0, 1000);
     glMatrixMode(GL_MODELVIEW);
 
-    RGFW_window_setRawMouseMode(win, RGFW_TRUE);
+    RGFW_window_captureRawMouse(win, RGFW_TRUE);
 
     RGFW_event event;
     while (RGFW_window_shouldClose(win) == 0) {
