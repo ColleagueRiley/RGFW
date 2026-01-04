@@ -3278,6 +3278,7 @@ void RGFW_windowMaximizedCallback(RGFW_window* win, i32 x, i32 y, i32 w, i32 h) 
 
 	RGFW_event event;
 	event.type = RGFW_windowMaximized;
+	event.common.win = win;
 	RGFW_eventQueuePush(&event);
 
 	if (RGFW_windowMaximizedCallbackSrc) RGFW_windowMaximizedCallbackSrc(win, x, y, w, h);
@@ -3290,6 +3291,7 @@ void RGFW_windowMinimizedCallback(RGFW_window* win) {
 
 	RGFW_event event;
 	event.type = RGFW_windowMinimized;
+	event.common.win = win;
 	RGFW_eventQueuePush(&event);
 
 	if (RGFW_windowMinimizedCallbackSrc) RGFW_windowMinimizedCallbackSrc(win);
@@ -3303,6 +3305,7 @@ void RGFW_windowRestoredCallback(RGFW_window* win, i32 x, i32 y, i32 w, i32 h) {
 
 	RGFW_event event;
 	event.type = RGFW_windowRestored;
+	event.common.win = win;
 	RGFW_eventQueuePush(&event);
 
 	if (RGFW_windowRestoredCallbackSrc) RGFW_windowRestoredCallbackSrc(win, x, y, w, h);
@@ -3315,18 +3318,20 @@ void RGFW_windowMovedCallback(RGFW_window* win, i32 x, i32 y) {
 
 	RGFW_event event;
 	event.type = RGFW_windowMoved;
+	event.common.win = win;
 	RGFW_eventQueuePush(&event);
 
 	if (RGFW_windowMovedCallbackSrc) RGFW_windowMovedCallbackSrc(win, x, y);
 }
 
 void RGFW_windowResizedCallback(RGFW_window* win, i32 w, i32 h) {
-	win->h = h;
 	win->w = w;
+	win->h = h;
 
 	if (!(win->internal.enabledEvents & RGFW_windowResizedFlag)) return;
 	RGFW_event event;
 	event.type = RGFW_windowResized;
+	event.common.win = win;
 	RGFW_eventQueuePush(&event);
 
 	if (RGFW_windowResizedCallbackSrc) RGFW_windowResizedCallbackSrc(win, w, h);
@@ -3337,6 +3342,7 @@ void RGFW_windowQuitCallback(RGFW_window* win) {
 
 	RGFW_event event;
 	event.type = RGFW_quit;
+	event.common.win = win;
 	RGFW_eventQueuePush(&event);
 
 	if (RGFW_windowQuitCallbackSrc) RGFW_windowQuitCallbackSrc(win);
@@ -3367,6 +3373,7 @@ void RGFW_windowRefreshCallback(RGFW_window* win) {
 	if (!(win->internal.enabledEvents & RGFW_windowRefreshFlag)) return;
 	RGFW_event event;
 	event.type = RGFW_windowRefresh;
+	event.common.win = win;
 	RGFW_eventQueuePush(&event);
 
 	if (RGFW_windowRefreshCallbackSrc) RGFW_windowRefreshCallbackSrc(win);
@@ -3380,6 +3387,7 @@ void RGFW_focusCallback(RGFW_window* win, RGFW_bool inFocus) {
 	}
 
 	RGFW_event event;
+	event.common.win = win;
 
 	if (inFocus == RGFW_TRUE) {
 		if ((win->internal.flags & RGFW_windowFullscreen))
@@ -6196,7 +6204,7 @@ void RGFW_XHandleEvent(void) {
 					break;
 				}
 			} else if (E.xproperty.atom == _NET_WM_STATE) {
-				if (!(win->internal.flags & RGFW_windowMaximize)) {
+				if (RGFW_window_isMaximized(win) && !(win->internal.flags & RGFW_windowMaximize)) {
 					RGFW_windowMaximizedCallback(win, win->x, win->y, win->w, win->h);
 					break;
 				}
@@ -6448,8 +6456,8 @@ void RGFW_XHandleEvent(void) {
 			break;
 		case ConfigureNotify: {
 			/* detect resize */
-			RGFW_window_checkMode(win);
 			if (E.xconfigure.width != win->src.w || E.xconfigure.height != win->src.h) {
+				RGFW_window_checkMode(win);
 				win->src.w = E.xconfigure.width;
 				win->src.h = E.xconfigure.height;
 				RGFW_windowResizedCallback(win, E.xconfigure.width, E.xconfigure.height);
