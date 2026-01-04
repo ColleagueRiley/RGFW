@@ -1,4 +1,4 @@
-.TH "RGFW_mouseButtonEvent" 3 "Fri Jan 2 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW_mouseButtonEvent" 3 "Sun Jan 4 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -19,7 +19,7 @@ RGFW_mouseButtonEvent \- event data for any mouse button event (press/release)
 .RI "\fBRGFW_window\fP * \fBwin\fP"
 .br
 .ti -1c
-.RI "\fBu8\fP \fBvalue\fP"
+.RI "RGFW_mouseButton \fBvalue\fP"
 .br
 .in -1c
 .SH "Detailed Description"
@@ -29,7 +29,7 @@ event data for any mouse button event (press/release)
 .PP 
 .SS "RGFW_eventType RGFW_mouseButtonEvent::type"
 which event has been sent? 
-.SS "\fBu8\fP RGFW_mouseButtonEvent::value"
+.SS "RGFW_mouseButton RGFW_mouseButtonEvent::value"
 
 .SS "\fBRGFW_window\fP* RGFW_mouseButtonEvent::win"
 the window this event applies too (for event queue events) 
