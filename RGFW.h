@@ -54,7 +54,8 @@
 	#define RGFW_USE_XDL (optional) (X11) if XDL (XLib Dynamic Loader) should be used to load X11 dynamically during runtime (must include XDL.h along with RGFW)
 	#define RGFW_COCOA_GRAPHICS_SWITCHING - (optional) (cocoa) use automatic graphics switching (allow the system to choose to use GPU or iGPU)
 	#define RGFW_COCOA_FRAME_NAME (optional) (cocoa) set frame name
-	#define RGFW_NO_DPI - do not calculate DPI (no XRM nor libShcore included)
+	#define RGFW_NO_DPI - do not calculate DPI and don't use libShcore (win32)
+	#define RGFW_NO_XRANDR - do use XRandr (X11)
 	#define RGFW_ADVANCED_SMOOTH_RESIZE - use advanced methods for smooth resizing (may result in a spike in memory usage or worse performance) (eg. WM_TIMER and XSyncValue)
 	#define RGFW_NO_INFO - do not define the RGFW_info struct (without RGFW_IMPLEMENTATION)
 	#define RGFW_NO_GLXWINDOW - do not use GLXWindow
@@ -1163,6 +1164,11 @@ RGFWDEF RGFW_mouse* RGFW_loadMouse(u8* data, i32 w, i32 h, RGFW_format format);
 RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
 
 #ifndef RGFW_NO_MONITOR
+
+/**!
+ * @brief Poll and check for monitor updates (this is called internally on monitor update events and RGFW_init)
+*/
+RGFWDEF void RGFW_pollMonitors(void);
 
 /**!
  * @brief Retrieves an array of all available monitors.
@@ -3665,6 +3671,9 @@ i32 RGFW_init_ptr(RGFW_info* info) {
 
     RGFW_initKeycodes();
     i32 out = RGFW_initPlatform();
+
+	RGFW_pollMonitors();
+
     RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal, "global context initialized");
 
 	return out;
@@ -5543,7 +5552,7 @@ void RGFW_setXInstName(const char* name) { _RGFW->instName = name; }
 	#include <X11/Xcursor/Xcursor.h>
 #endif
 
-#ifndef RGFW_NO_DPI
+#ifndef RGFW_NO_XRANDR
 	#include <X11/extensions/Xrandr.h>
 	#include <X11/Xresource.h>
 #endif
@@ -7125,7 +7134,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_isMaximized)(RGFW_window* win) {
 static float XGetSystemContentDPI(Display* display, i32 screen) {
 	float dpi = 96.0f;
 
-	#ifndef RGFW_NO_DPI
+	#ifndef RGFW_NO_XRANDR
 		RGFW_UNUSED(screen);
 		char* rms = XResourceManagerString(display);
 		XrmDatabase db = NULL;
@@ -7175,7 +7184,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	monitor.scaleX = (float) (dpi) / 96.0f;
 	monitor.scaleY = (float) (dpi) / 96.0f;
 
-	#ifndef RGFW_NO_DPI
+	#ifndef RGFW_NO_XRANDR
 	XRRCrtcInfo* ci = NULL;
 	XRRScreenResources* sr = NULL;
 
@@ -7194,7 +7203,7 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 	}
 	#endif
 
-	#ifndef RGFW_NO_DPI
+	#ifndef RGFW_NO_XRANDR
 		XRROutputInfo* info = XRRGetOutputInfo (display, sr, sr->outputs[screen]);
 
 		if (info == NULL || ci == NULL) {
@@ -7227,13 +7236,17 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 		}
 	#endif
 
-	#ifndef RGFW_NO_DPI
+	#ifndef RGFW_NO_XRANDR
 		XRRFreeCrtcInfo(ci);
 		XRRFreeScreenResources(sr);
 	#endif
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor,  "monitor found");
     return monitor;
+}
+
+void RGFW_FUNC(RGFW_pollMonitors) (void) {
+
 }
 
 RGFW_monitor* RGFW_FUNC(RGFW_getMonitors)(size_t* len) {
@@ -7257,7 +7270,7 @@ RGFW_monitor RGFW_FUNC(RGFW_getPrimaryMonitor)(void) {
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
-	#ifndef RGFW_NO_DPI
+	#ifndef RGFW_NO_XRANDR
     RGFW_init();
     XRRScreenConfiguration *conf = XRRGetScreenInfo(_RGFW->display, DefaultRootWindow(_RGFW->display));
     XRRScreenResources* screenRes = XRRGetScreenResources(_RGFW->display, DefaultRootWindow(_RGFW->display));
@@ -9157,6 +9170,8 @@ RGFW_bool RGFW_FUNC(RGFW_window_isMaximized) (RGFW_window* win) {
 	return win->src.maximized;
 }
 
+void RGFW_FUNC(RGFW_pollMonitors) (void) { }
+
 RGFW_monitor* RGFW_FUNC(RGFW_getMonitors) (size_t* len) {
 	static RGFW_monitor monitors[RGFW_MAX_MONITORS];
 	RGFW_init();
@@ -9422,6 +9437,9 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	GetWindowRect(hWnd, &windowRect);
 
 	switch (message) {
+        case WM_DISPLAYCHANGE:
+            RGFW_pollMonitors();
+            break;
 		case WM_CLOSE:
 		case WM_QUIT:
 			RGFW_windowQuitCallback(win);
@@ -10392,6 +10410,10 @@ RGFW_monitor RGFW_getPrimaryMonitor(void) {
 	#else
 	return RGFW_win32_createMonitor(MonitorFromPoint((POINT){0, 0}, MONITOR_DEFAULTTOPRIMARY));
 	#endif
+}
+
+void RGFW_pollMonitors(void) {
+
 }
 
 RGFW_monitor* RGFW_getMonitors(size_t* len) {
@@ -11598,6 +11620,10 @@ void RGFW_moveToMacOSResourceDir(void) {
 	chdir(resourcesPath);
 }
 
+static void RGFW__osxDidChangeScreenParameters(id self, SEL _cmd, id notification) {
+	RGFW_UNUSED(self); RGFW_UNUSED(_cmd); RGFW_UNUSED(notification);
+	RGFW_pollEvents();
+}
 
 static void RGFW__osxWindowDeminiaturize(id self, SEL sel) {
 	RGFW_UNUSED(sel);
@@ -12038,6 +12064,8 @@ i32 RGFW_initPlatform(void) {
 	/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
 	class_addMethod(objc_getClass("NSWindowClass"), sel_registerName("acceptsFirstResponder:"), (IMP)(void*)RGFW__osxAcceptsFirstResponder, 0);
 	class_addMethod(objc_getClass("NSWindowClass"), sel_registerName("performKeyEquivalent:"), (IMP)(void*)RGFW__osxPerformKeyEquivalent, 0);
+
+	class_addMethod(objc_getClass("NSObject"), sel_registerName("didChangeScreenParameters:"), (IMP)(void*)RGFW__osxDidChangeScreenParameters, 0);
 
 	_RGFW->NSApp = objc_msgSend_id((id)objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
 
@@ -12713,6 +12741,9 @@ RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
 	return monitor;
 }
 
+void RGFW_pollMonitors(void) {
+
+}
 
 RGFW_monitor* RGFW_getMonitors(size_t* len) {
 	static CGDirectDisplayID displays[RGFW_MAX_MONITORS];
@@ -13863,6 +13894,8 @@ u32 RGFW_WASMPhysicalToRGFW(u32 hash) {
 void RGFW_window_focus(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_raise(RGFW_window* win) { RGFW_UNUSED(win); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
+
+void RGFW_pollMonitors(void) { }
 RGFW_monitor* RGFW_getMonitors(size_t* len) { RGFW_UNUSED(len); return NULL; }
 RGFW_monitor RGFW_getPrimaryMonitor(void) { return (RGFW_monitor){}; }
 void RGFW_window_move(RGFW_window* win, i32 x, i32 y) { RGFW_UNUSED(win);  RGFW_UNUSED(x); RGFW_UNUSED(y);  }
