@@ -12066,7 +12066,7 @@ i32 RGFW_initPlatform(void) {
 	class_addMethod(objc_getClass("NSWindowClass"), sel_registerName("acceptsFirstResponder:"), (IMP)(void*)RGFW__osxAcceptsFirstResponder, 0);
 	class_addMethod(objc_getClass("NSWindowClass"), sel_registerName("performKeyEquivalent:"), (IMP)(void*)RGFW__osxPerformKeyEquivalent, 0);
 
-	customNSAppClass = objc_allocateClassPair(objc_getClass("NSApplication"), "RGFWNSApp", 0);
+	_RGFW->customNSAppClass = objc_allocateClassPair(objc_getClass("NSApplication"), "RGFWNSApp", 0);
 	class_addMethod(objc_getClass("RGFWNSApp"), sel_registerName("applicationDidChangeScreenParameters:"), (IMP)RGFW__osxDidChangeScreenParameters, "v@:@");
 	objc_registerClassPair((Class)_RGFW->customNSAppClass);
 
