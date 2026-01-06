@@ -3818,10 +3818,11 @@ void RGFW_window_closePtr(RGFW_window* win) {
 	RGFW_window_closePlatform(win);
 
 	RGFW_clipboard_switch(NULL);
-	_RGFW->windowCount--;
-	if (_RGFW->windowCount == 0) RGFW_deinit();
 
+	_RGFW->windowCount--;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, "a window was freed");
+
+	if (_RGFW->windowCount == 0) RGFW_deinit();
 }
 
 void RGFW_setQueueEvents(RGFW_bool queue) {  _RGFW->queueEvents = RGFW_BOOL(queue); }
@@ -10634,7 +10635,6 @@ void RGFW_deinitPlatform(void) {
     RGFW_FREE_LIBRARY(RGFW_wgl_dll);
 
     RGFW_freeMouse(_RGFW->hiddenMouse);
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal,  "global context deinitialized");
 }
 
 
@@ -13015,8 +13015,6 @@ void RGFW_deinitPlatform(void) {
 	objc_disposeClassPair(_RGFW->customViewClasses[1]);
 	objc_disposeClassPair(_RGFW->customNSAppClass);
 	objc_disposeClassPair(_RGFW->customWindowDelegateClass);
-
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal,  "global context deinitialized");
 }
 
 void RGFW_window_closePlatform(RGFW_window* win) {
@@ -13720,7 +13718,7 @@ RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) {
 
 void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) { RGFW_UNUSED(win); RGFW_UNUSED(swapInterval); }
 
-void RGFW_deinitPlatform(void) { RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal,  "global context deinitialized"); }
+void RGFW_deinitPlatform(void) { }
 
 void RGFW_window_closePlatform(RGFW_window* win) { }
 
