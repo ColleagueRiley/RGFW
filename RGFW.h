@@ -3053,6 +3053,7 @@ struct RGFW_info {
     void* NSApp;
 	i64 flash;
 	void* customViewClasses[2]; /* NSView and NSOpenGLView  */
+	void* customNSAppClass;
 	void* customWindowDelegateClass;
     #endif
 
@@ -12064,9 +12065,12 @@ i32 RGFW_initPlatform(void) {
 	/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
 	class_addMethod(objc_getClass("NSWindowClass"), sel_registerName("acceptsFirstResponder:"), (IMP)(void*)RGFW__osxAcceptsFirstResponder, 0);
 	class_addMethod(objc_getClass("NSWindowClass"), sel_registerName("performKeyEquivalent:"), (IMP)(void*)RGFW__osxPerformKeyEquivalent, 0);
-	class_addMethod(objc_getClass("NSApplication"), sel_registerName("applicationDidChangeScreenParameters:"), (IMP)RGFW__osxDidChangeScreenParameters, "v@:@");
 
-	_RGFW->NSApp = objc_msgSend_id((id)objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
+	customNSAppClass = objc_allocateClassPair(objc_getClass("NSApplication"), "RGFWNSApp", 0);
+	class_addMethod(objc_getClass("RGFWNSApp"), sel_registerName("applicationDidChangeScreenParameters:"), (IMP)RGFW__osxDidChangeScreenParameters, "v@:@");
+	objc_registerClassPair((Class)_RGFW->customNSAppClass);
+
+	_RGFW->NSApp = objc_msgSend_id((id)objc_getClass("RGFWNSApp"), sel_registerName("sharedApplication"));
 
 	((void (*)(id, SEL, NSUInteger))objc_msgSend)
 		((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
@@ -12099,7 +12103,8 @@ i32 RGFW_initPlatform(void) {
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("updateLayer"), (IMP)RGFW__osxUpdateLayer, "v@:");
 		objc_registerClassPair((Class)_RGFW->customViewClasses[i]);
 	}
-	_RGFW->customWindowDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWWindowDelegate", 0);
+
+	_RGFW->customWindowDelegateClass = objc_allocateClassPair(objc_getClass("NSWindow"), "RGFWWindowDelegate", 0);
 	class_addIvar((Class)_RGFW->customWindowDelegateClass, "RGFW_window", sizeof(RGFW_window*), sizeof(RGFW_window*), "L");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidResize:"), (IMP)RGFW__osxDidWindowResize, "v@:@");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidMove:"), (IMP) RGFW__osxWindowMove, "");
@@ -13003,7 +13008,14 @@ void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 }
 #endif
 
-void RGFW_deinitPlatform(void) { }
+void RGFW_deinitPlatform(void) {
+	NSRelease(_RGFW->NSApp);
+
+	objc_disposeClassPair(_RGFW->customViewClasses[0]);
+	objc_disposeClassPair(_RGFW->customViewClasses[1]);
+	objc_disposeClassPair(_RGFW->customNSAppClass);
+	objc_disposeClassPair(_RGFW->customWindowDelegateClass);
+}
 
 void RGFW_window_closePlatform(RGFW_window* win) {
 	NSRelease(win->src.view);
