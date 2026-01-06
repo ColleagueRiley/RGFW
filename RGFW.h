@@ -3053,8 +3053,9 @@ struct RGFW_info {
     void* NSApp;
 	i64 flash;
 	void* customViewClasses[2]; /* NSView and NSOpenGLView  */
-	void* customNSAppClass;
+	void* customNSAppDelegateClass;
 	void* customWindowDelegateClass;
+	void* customNSAppDelegate;
     #endif
 
 	#ifdef RGFW_OPENGL
@@ -12066,30 +12067,15 @@ i32 RGFW_initPlatform(void) {
 	class_addMethod(objc_getClass("NSWindowClass"), sel_registerName("acceptsFirstResponder:"), (IMP)(void*)RGFW__osxAcceptsFirstResponder, 0);
 	class_addMethod(objc_getClass("NSWindowClass"), sel_registerName("performKeyEquivalent:"), (IMP)(void*)RGFW__osxPerformKeyEquivalent, 0);
 
-	_RGFW->customNSAppClass = objc_allocateClassPair(objc_getClass("NSApplication"), "RGFWNSApp", 0);
-	class_addMethod(objc_getClass("RGFWNSApp"), sel_registerName("applicationDidChangeScreenParameters:"), (IMP)RGFW__osxDidChangeScreenParameters, "v@:@");
-	objc_registerClassPair((Class)_RGFW->customNSAppClass);
+	_RGFW->NSApp = objc_msgSend_id(objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
 
-	_RGFW->NSApp = objc_msgSend_id((id)objc_getClass("RGFWNSApp"), sel_registerName("sharedApplication"));
+	_RGFW->customNSAppDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWNSAppDelegate", 0);
+	class_addMethod(_RGFW->customNSAppDelegateClass, sel_registerName("applicationDidChangeScreenParameters:"), (IMP)RGFW__osxDidChangeScreenParameters, "v@:@");
+	objc_registerClassPair((Class)_RGFW->customNSAppDelegateClass);
 
-typedef void (*objc_msgSend_void_id_sel_id_id)(id self, SEL _cmd, id arg1, SEL arg2, id arg3, id arg4);
-#define objc_msgSend_void_id_sel_id_id(msg) ((objc_msgSend_void_id_sel_id_id)objc_msgSend)
-id center = objc_msgSend_id((id)objc_getClass("NSNotificationCenter"), sel_registerName("defaultCenter"));
+	_RGFW->customNSAppDelegate = objc_msgSend_id(NSAlloc(_RGFW->customNSAppDelegateClass), sel_registerName("init"));
 
-id notifName = objc_msgSend_stringWithUTF8("NSApplicationDidChangeScreenParametersNotification");
-
-// Register the observer
-objc_msgSend_void_id_sel_id_id(center)(
-    center,
-    sel_registerName("addObserver:selector:name:object:"),
-    _RGFW->NSApp,                                    // observer
-    sel_registerName("applicationDidChangeScreenParameters:"),  // selector
-    notifName,                                       // name
-    NULL                                             // object (nil = all)
-);
-
-	((void (*)(id, SEL, NSUInteger))objc_msgSend)
-		((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
+	objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("setDelegate:"), _RGFW->customNSAppDelegate);
 
 	_RGFW->customViewClasses[0] = objc_allocateClassPair(objc_getClass("NSView"), "RGFWCustomView", 0);
 	_RGFW->customViewClasses[1] = objc_allocateClassPair(objc_getClass("NSOpenGLView"), "RGFWOpenGLCustomView", 0);
@@ -12120,7 +12106,7 @@ objc_msgSend_void_id_sel_id_id(center)(
 		objc_registerClassPair((Class)_RGFW->customViewClasses[i]);
 	}
 
-	_RGFW->customWindowDelegateClass = objc_allocateClassPair(objc_getClass("NSWindow"), "RGFWWindowDelegate", 0);
+	_RGFW->customWindowDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWWindowDelegate", 0);
 	class_addIvar((Class)_RGFW->customWindowDelegateClass, "RGFW_window", sizeof(RGFW_window*), sizeof(RGFW_window*), "L");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidResize:"), (IMP)RGFW__osxDidWindowResize, "v@:@");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidMove:"), (IMP) RGFW__osxWindowMove, "");
@@ -13026,10 +13012,10 @@ void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 
 void RGFW_deinitPlatform(void) {
 	NSRelease(_RGFW->NSApp);
+	NSRelease(_RGFW->customNSAppDelegate);
 
 	objc_disposeClassPair(_RGFW->customViewClasses[0]);
 	objc_disposeClassPair(_RGFW->customViewClasses[1]);
-	objc_disposeClassPair(_RGFW->customNSAppClass);
 	objc_disposeClassPair(_RGFW->customWindowDelegateClass);
 }
 
