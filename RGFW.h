@@ -12072,6 +12072,22 @@ i32 RGFW_initPlatform(void) {
 
 	_RGFW->NSApp = objc_msgSend_id((id)objc_getClass("RGFWNSApp"), sel_registerName("sharedApplication"));
 
+typedef void (*objc_msgSend_void_id_sel_id_id)(id self, SEL _cmd, id arg1, SEL arg2, id arg3, id arg4);
+#define objc_msgSend_void_id_sel_id_id(msg) ((objc_msgSend_void_id_sel_id_id)objc_msgSend)
+id center = objc_msgSend_id((id)objc_getClass("NSNotificationCenter"), sel_registerName("defaultCenter"));
+
+id notifName = objc_msgSend_stringWithUTF8("NSApplicationDidChangeScreenParametersNotification");
+
+// Register the observer
+objc_msgSend_void_id_sel_id_id(center)(
+    center,
+    sel_registerName("addObserver:selector:name:object:"),
+    _RGFW->NSApp,                                    // observer
+    sel_registerName("applicationDidChangeScreenParameters:"),  // selector
+    notifName,                                       // name
+    NULL                                             // object (nil = all)
+);
+
 	((void (*)(id, SEL, NSUInteger))objc_msgSend)
 		((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
 
