@@ -11874,8 +11874,15 @@ RGFW_bool RGFW_createSurfacePtr(u8* data, i32 w, i32 h, RGFW_format format, RGFW
 void RGFW_surface_freePtr(RGFW_surface* surface) { RGFW_FREE(surface->native.buffer); }
 
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
+	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+	pool = objc_msgSend_id(pool, sel_registerName("init"));
+
 	int minX = RGFW_MIN(win->w, surface->w);
 	int minY = RGFW_MIN(win->h, surface->h);
+
+	RGFW_monitor mon = RGFW_window_getMonitor(win);
+	minX =  (i32)((float)minX * mon.pixelRatio);
+	minY = (i32)((float)minY * mon.pixelRatio);
 
 	RGFW_copyImageData(surface->native.buffer, surface->w, minY, surface->native.format, surface->data, surface->format);
 
@@ -11896,6 +11903,8 @@ void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 
 	NSRelease(rep);
 	NSRelease(image);
+
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 }
 
 void* RGFW_window_getView_OSX(RGFW_window* win) { return win->src.view; }
