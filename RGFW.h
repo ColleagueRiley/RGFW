@@ -634,7 +634,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 		while a string version is stored in
 		RGFW_event.key.valueString
 
-		RGFW_event.key.mod holds the current mod
+/	RGFW_event.key.mod holds the current mod
 		this means if CapsLock, NumLock are active or not
 	*/
 	RGFW_mouseButtonPressed, /*!< a mouse button has been pressed (left,middle,right) */
@@ -4613,7 +4613,7 @@ RGFW_bool RGFW_loadEGL(void) {
 		};
 	#endif
 
-	for (size_t i = 0; i < sizeof(libNames) / sizeof(libNames[0]); ++i) {
+	for (size_t i = 0; i < sizeof(libNames) / sizeof(libNames[0]); i++) {
 		#ifdef RGFW_WINDOWS
 			RGFW_eglLibHandle = (void*)LoadLibraryA(libNames[i]);
 			if (RGFW_eglLibHandle) {
@@ -7108,7 +7108,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_isMaximized)(RGFW_window* win) {
 	}
 
 	u64 i;
-	for (i = 0; i < nitems; ++i) {
+	for (i = 0; i < nitems; i++) {
 		if (prop_data[i] == _NET_WM_STATE_MAXIMIZED_VERT ||
 			prop_data[i] == _NET_WM_STATE_MAXIMIZED_HORZ) {
 			XFree(prop_data);
@@ -8414,7 +8414,7 @@ static void RGFW_wl_randname(char *buf) {
 	long r = ts.tv_nsec;
 
     int i;
-    for (i = 0; i < 6; ++i) {
+    for (i = 0; i < 6; i++) {
 		buf[i] = (char)('A'+(r&15)+(r&16)*2);
 		r >>= 5;
 	}
@@ -9168,7 +9168,7 @@ RGFW_monitor* RGFW_FUNC(RGFW_getMonitors) (size_t* len) {
 	RGFW_monitorNode* cur_node = _RGFW->monitors.list.head;
 	while (cur_node != NULL) {
 		monitors[i] = cur_node->mon;
-		++i;
+		i++;
 		cur_node = cur_node->next;
 	}
     return monitors;
@@ -13470,7 +13470,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 
 			Module._Emscripten_onDrop(count);
 
-			for (var i = 0; i < count; ++i) {
+			for (var i = 0; i < count; i++) {
 				_free(filenamesArray[i]);
 			}
         }, true);
