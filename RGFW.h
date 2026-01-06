@@ -13015,6 +13015,8 @@ void RGFW_deinitPlatform(void) {
 	objc_disposeClassPair(_RGFW->customViewClasses[1]);
 	objc_disposeClassPair(_RGFW->customNSAppClass);
 	objc_disposeClassPair(_RGFW->customWindowDelegateClass);
+
+	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal,  "global context deinitialized");
 }
 
 void RGFW_window_closePlatform(RGFW_window* win) {
@@ -13718,7 +13720,7 @@ RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) {
 
 void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) { RGFW_UNUSED(win); RGFW_UNUSED(swapInterval); }
 
-void RGFW_deinitPlatform(void) { }
+void RGFW_deinitPlatform(void) { RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoGlobal,  "global context deinitialized"); }
 
 void RGFW_window_closePlatform(RGFW_window* win) { }
 
