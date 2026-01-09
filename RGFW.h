@@ -2965,7 +2965,7 @@ typedef struct {
 		HMONITOR hMonitor;
 #endif
 #ifdef RGFW_MACOS
-		id screen;
+		void* screen;
 		CGDirectDisplayID display;
 #endif
 	} RGFW_monitorNode;
@@ -12744,6 +12744,9 @@ void RGFW_pollMonitors(void) {
 		RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor,  "monitor found");
 		RGFW_monitorNode* node = RGFW_monitors_add(&monitor);
 
+		node->screen = (void*)screen;
+		node->display = displays[i];
+
 		if (displays[i] == primary) {
 			_RGFW->monitors.primary = node;
 		}
@@ -12798,7 +12801,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 
 	RGFW_monitorNode* node = _RGFW->monitors.list.head;
 	for (node = _RGFW->monitors.list.head; node; node = node->next) {
-		if (node->display == display && node->screen == screen) {
+		if (node->display == display && (id)node->screen == screen) {
 			break;
 		}
 	}
