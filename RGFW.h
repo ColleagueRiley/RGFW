@@ -10322,11 +10322,13 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 
 	MONITORINFOEXW monitorInfo;
 	monitorInfo.cbSize = sizeof(MONITORINFOEXW);
-	GetMonitorInfoW(src, (LPMONITORINFO)&monitorInfo);
+	GetMonitorInfoW(hMonitor, (LPMONITORINFO)&monitorInfo);
 
 	/* get the monitor's index */
 	DISPLAY_DEVICEW dd;
 	dd.cb = sizeof(dd);
+
+	RGFW_bool isPrimary = RGFW_FALSE;
 
     DWORD deviceNum;
 	for (deviceNum = 0; EnumDisplayDevicesW(NULL, deviceNum, &dd, 0); deviceNum++) {
@@ -10334,7 +10336,7 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 			continue;
 
 		if (adapter.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) {
-			_RGFW->monitors.primary = ;
+			isPrimary = RGFW_TRUE;
 		}
 
 		DEVMODEW dm;
@@ -10380,7 +10382,7 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 
 		if (GetDpiForMonitor != NULL) {
 			u32 x, y;
-			GetDpiForMonitor(src, MDT_EFFECTIVE_DPI, &x, &y);
+			GetDpiForMonitor(hMonitor, MDT_EFFECTIVE_DPI, &x, &y);
 			monitor.scaleX = (float) (x) / (float) 96.0f;
 			monitor.scaleY = (float) (y) / (float) 96.0f;
 			monitor.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
@@ -10388,8 +10390,13 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 	#endif
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor,  "monitor found");
+	RGFW_monitorNode* node = RGFW_monitors_add(&monitor);
 
-	RGFW_monitors_add(&monitor);
+	if (isPrimary) {
+		_RGFW->monitors.primary = node;
+	}
+
+	node->hMonitor = hMonitor;
 
 	return TRUE;
 }
