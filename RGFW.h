@@ -10316,6 +10316,7 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
 	RGFW_UNUSED(hdcMonitor);
 	RGFW_UNUSED(lprcMonitor);
+	RGFW_UNUSED(dwData);
 
 	RGFW_monitor monitor;
 	RGFW_MEMSET(&monitor, 0, sizeof(monitor));
@@ -10335,7 +10336,7 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 		if (!(dd.StateFlags & DISPLAY_DEVICE_ACTIVE))
 			continue;
 
-		if (adapter.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) {
+		if ((dd.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE)) {
 			isPrimary = RGFW_TRUE;
 		}
 
@@ -10402,7 +10403,7 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 }
 
 void RGFW_pollMonitors(void) {
-	EnumDisplayMonitors(NULL, NULL, GetMonitorHandle, (LPARAM) &info);
+	EnumDisplayMonitors(NULL, NULL, GetMonitorHandle, (LPARAM)NULL);
 }
 
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
