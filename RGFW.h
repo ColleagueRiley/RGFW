@@ -12698,8 +12698,9 @@ void RGFW_pollMonitors(void) {
 	static CGDirectDisplayID displays[RGFW_MAX_MONITORS];
 	u32 count;
 
-	if (CGGetActiveDisplayList(RGFW_MAX_MONITORS, displays, &count) != kCGErrorSuccess)
-		return NULL;
+	if (CGGetActiveDisplayList(RGFW_MAX_MONITORS, displays, &count) != kCGErrorSuccess) {
+		return;
+	}
 
 	if (count > RGFW_MAX_MONITORS) count = RGFW_MAX_MONITORS;
 
@@ -12709,6 +12710,8 @@ void RGFW_pollMonitors(void) {
 	u32 i;
 	for (i = 0; i < count; i++) {
 		RGFW_monitor monitor;
+
+		id screen = RGFW_getNSScreenForDisplayID(displays[i]);
 
 		const char name[] = "MacOS\0";
 		RGFW_MEMCPY(monitor.name, name, 6);
