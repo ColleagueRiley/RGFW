@@ -2855,6 +2855,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 	};
 
 #elif defined(RGFW_MACOS)
+	#include <CoreVideo/CoreVideo.h>
 
 	struct RGFW_nativeImage {
 		RGFW_format format;
@@ -11105,7 +11106,6 @@ WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance i
 #include <objc/runtime.h>
 #include <objc/message.h>
 #include <mach/mach_time.h>
-#include <CoreVideo/CoreVideo.h>
 
 #ifndef  __OBJC__
 typedef CGRect NSRect;
