@@ -13924,6 +13924,7 @@ typedef RGFW_window* (*RGFW_createWindowPlatform_ptr)(const char* name, RGFW_win
 typedef RGFW_bool (*RGFW_getMouse_ptr)(i32* x, i32* y);
 typedef u8 (*RGFW_rgfwToKeyChar_ptr)(u32 key);
 typedef void (*RGFW_pollEvents_ptr)(void);
+typedef void (*RGFW_pollMonitors_ptr)(void);
 typedef void (*RGFW_window_move_ptr)(RGFW_window* win, i32 x, i32 y);
 typedef void (*RGFW_window_resize_ptr)(RGFW_window* win, i32 w, i32 h);
 typedef void (*RGFW_window_setAspectRatio_ptr)(RGFW_window* win, i32 w, i32 h);
@@ -13991,6 +13992,7 @@ typedef struct RGFW_FunctionPointers {
     RGFW_getMouse_ptr getGlobalMouse;
     RGFW_rgfwToKeyChar_ptr rgfwToKeyChar;
     RGFW_pollEvents_ptr pollEvents;
+    RGFW_pollMonitors_ptr pollMonitors;
     RGFW_window_move_ptr window_move;
     RGFW_window_resize_ptr window_resize;
     RGFW_window_setAspectRatio_ptr window_setAspectRatio;
@@ -14052,6 +14054,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 RGFW_bool RGFW_getGlobalMouse(i32* x, i32* y) { return RGFW_api.getGlobalMouse(x, y); }
 u8 RGFW_rgfwToKeyChar(u32 key) { return RGFW_api.rgfwToKeyChar(key); }
 void RGFW_pollEvents(void) { RGFW_api.pollEvents(); }
+void RGFW_pollMonitors(void) { RGFW_api.pollMonitors(); }
 void RGFW_window_move(RGFW_window* win, i32 x, i32 y) { RGFW_api.window_move(win, x, y); }
 void RGFW_window_resize(RGFW_window* win, i32 w, i32 h) { RGFW_api.window_resize(win, w, h); }
 void RGFW_window_setAspectRatio(RGFW_window* win, i32 w, i32 h) { RGFW_api.window_setAspectRatio(win, w, h); }
