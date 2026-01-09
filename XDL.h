@@ -208,6 +208,11 @@ typedef Status (*PFN_XRRSetCrtcConfig)(Display*, XRRScreenResources*, RRCrtc, Ti
 typedef short (*PFN_XRRConfigCurrentRate)(XRRScreenConfiguration*);
 typedef XRRScreenConfiguration* (*PFN_XRRGetScreenInfo)(Display*, Window);
 typedef void (*PFN_XRRFreeScreenConfigInfo)(XRRScreenConfiguration*);
+typedef RROutput (* PFN_XRRGetOutputPrimary)(Display*,Window);
+typedef XRRCrtcGamma* (* PFN_XRRAllocGamma)(int);
+typedef Bool (* PFN_XRRQueryExtension)(Display*,int*,int*);
+typedef Status (* PFN_XRRQueryVersion)(Display*,int*,int*);
+typedef void (* PFN_XRRSelectInput)(Display*,Window,int);
 #endif
 
 #ifndef XDL_NO_GLX
@@ -367,6 +372,11 @@ PFN_XRRSetCrtcConfig XRRSetCrtcConfigSrc;
 PFN_XRRGetScreenInfo XRRGetScreenInfoSrc;
 PFN_XRRConfigCurrentRate XRRConfigCurrentRateSrc;
 PFN_XRRFreeScreenConfigInfo XRRFreeScreenConfigInfoSrc;
+PFN_XRRGetOutputPrimary XRRGetOutputPrimarySrc;
+PFN_XRRAllocGamma XRRAllocGammaSrc;
+PFN_XRRQueryVersion XRRQueryVersionSrc;
+PFN_XRRQueryExtension XRRQueryExtensionSrc;
+PFN_XRRSelectInput XRRSelectInputSrc;
 #endif
 
 #ifndef XDL_NO_GLX
@@ -524,6 +534,12 @@ PFN_glXDestroyWindow glXDestroyWindowSrc;
     #define XRRConfigCurrentRate XRRConfigCurrentRateSrc
     #define XRRGetScreenInfo XRRGetScreenInfoSrc
 	#define XRRFreeScreenConfigInfo  XRRFreeScreenConfigInfoSrc
+	#define XRRFreeScreenConfigInfo XRRFreeScreenConfigInfoSrc
+	#define XRRGetOutputPrimary XRRGetOutputPrimarySrc
+	#define XRRAllocGamma XRRAllocGammaSrc
+	#define XRRQueryVersion XRRQueryVersion
+	#define XRRSelectInput XRRSelectInputSrc
+	#define XRRQueryExtension XRRQueryExtensionSrc
 #endif
 
 #ifndef XDL_NO_GLX
@@ -730,6 +746,11 @@ void XDL_init(void) {
         XDL_PROC_DEF(2, XRRGetScreenInfo);
         XDL_PROC_DEF(2, XRRConfigCurrentRate);
 		XDL_PROC_DEF(2, XRRFreeScreenConfigInfo);
+		XDL_PROC_DEF(2, XRRGetOutputPrimary);
+		XDL_PROC_DEF(2, XRRAllocGamma);
+		XDL_PROC_DEF(2, XRRQueryExtension);
+		XDL_PROC_DEF(2, XRRQueryVersion);
+		XDL_PROC_DEF(2, XRRSelectInput);
     #endif
 
     #ifndef XDL_NO_GLX
