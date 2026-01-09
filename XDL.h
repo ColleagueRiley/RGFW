@@ -537,7 +537,7 @@ PFN_glXDestroyWindow glXDestroyWindowSrc;
 	#define XRRFreeScreenConfigInfo XRRFreeScreenConfigInfoSrc
 	#define XRRGetOutputPrimary XRRGetOutputPrimarySrc
 	#define XRRAllocGamma XRRAllocGammaSrc
-	#define XRRQueryVersion XRRQueryVersion
+	#define XRRQueryVersion XRRQueryVersionSrc
 	#define XRRSelectInput XRRSelectInputSrc
 	#define XRRQueryExtension XRRQueryExtensionSrc
 #endif
