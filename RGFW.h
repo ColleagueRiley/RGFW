@@ -12713,7 +12713,7 @@ void RGFW_pollMonitors(void) {
 		const char name[] = "MacOS\0";
 		RGFW_MEMCPY(monitor.name, name, 6);
 
-		CGRect bounds = CGDisplayBounds(display);
+		CGRect bounds = CGDisplayBounds(displays[i]);
 		monitor.x = (i32)bounds.origin.x;
 		monitor.y = (i32)bounds.origin.y;
 		monitor.mode.w = (i32) bounds.size.width;
@@ -12721,11 +12721,11 @@ void RGFW_pollMonitors(void) {
 
 		monitor.mode.red = 8; monitor.mode.green = 8; monitor.mode.blue = 8;
 
-		CGDisplayModeRef mode = CGDisplayCopyDisplayMode(display);
-		monitor.mode.refreshRate = RGFW_osx_getRefreshRate(display, mode);
+		CGDisplayModeRef mode = CGDisplayCopyDisplayMode(displays[i]);
+		monitor.mode.refreshRate = RGFW_osx_getRefreshRate(displays[i], mode);
 		CFRelease(mode);
 
-		CGSize screenSizeMM = CGDisplayScreenSize(display);
+		CGSize screenSizeMM = CGDisplayScreenSize(displays[i]);
 		monitor.physW = (float)screenSizeMM.width / 25.4f;
 		monitor.physH = (float)screenSizeMM.height / 25.4f;
 
