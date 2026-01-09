@@ -12053,7 +12053,7 @@ i32 RGFW_initPlatform(void) {
 	_RGFW->NSApp = objc_msgSend_id(objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
 
 	_RGFW->customNSAppDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWNSAppDelegate", 0);
-	class_addMethod(_RGFW->customNSAppDelegateClass, sel_registerName("applicationDidChangeScreenParameters:"), (IMP)RGFW__osxDidChangeScreenParameters, "v@:@");
+	class_addMethod((Class)_RGFW->customNSAppDelegateClass, sel_registerName("applicationDidChangeScreenParameters:"), (IMP)RGFW__osxDidChangeScreenParameters, "v@:@");
 	objc_registerClassPair((Class)_RGFW->customNSAppDelegateClass);
 
 	_RGFW->customNSAppDelegate = objc_msgSend_id(NSAlloc(_RGFW->customNSAppDelegateClass), sel_registerName("init"));
@@ -12996,9 +12996,9 @@ void RGFW_deinitPlatform(void) {
 	NSRelease(_RGFW->NSApp);
 	NSRelease(_RGFW->customNSAppDelegate);
 
-	objc_disposeClassPair(_RGFW->customViewClasses[0]);
-	objc_disposeClassPair(_RGFW->customViewClasses[1]);
-	objc_disposeClassPair(_RGFW->customWindowDelegateClass);
+	objc_disposeClassPair((Class)_RGFW->customViewClasses[0]);
+	objc_disposeClassPair((Class)_RGFW->customViewClasses[1]);
+	objc_disposeClassPair((Class)_RGFW->customWindowDelegateClass);
 }
 
 void RGFW_window_closePlatform(RGFW_window* win) {
