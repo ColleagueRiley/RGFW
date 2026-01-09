@@ -2958,7 +2958,7 @@ typedef struct {
 #endif
 #ifdef RGFW_X11
 		i32 screen;
-		RROutput output;
+		RROutput rrOutput;
 #endif
 #ifdef RGFW_WINDOWS
 		HMONITOR hMonitor;
@@ -7208,7 +7208,7 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 	for (RGFW_monitorNode* node = _RGFW->monitors.list.head; node; node = node->next) {
 		i32 i = 0;
 		for (i = 0; i < res->noutput; i++) {
-			if (node->output == res->outputs[i]) {
+			if (node->rrOutput == res->outputs[i]) {
 				break;
 			}
 		}
@@ -7223,13 +7223,13 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 	for (i32 i = 0; i < res->noutput; i++) {
 		RGFW_monitorNode* node = NULL;
 		for (node = _RGFW->monitors.list.head; node; node = node->next) {
-			if (node->output == res->outputs[i]) {
+			if (node->rrOutput == res->outputs[i]) {
 				break;
 			}
 		}
 
 		if (node) {
-			if (node->output == primary) {
+			if (node->rrOutput == primary) {
 				_RGFW->monitors.primary = node;
 			}
 			continue;
@@ -7274,9 +7274,9 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 
 		RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor,  "monitor found");
 		node = RGFW_monitors_add(&monitor);
-		node->output = res->outputs[i];
+		node->rrOutput = res->outputs[i];
 
-		if (node->output == primary) {
+		if (node->rrOutput == primary) {
 			_RGFW->monitors.primary = node;
 		}
 	}
