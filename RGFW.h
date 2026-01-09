@@ -2769,6 +2769,11 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 	#ifdef RGFW_X11
 		#include <X11/Xlib.h>
 		#include <X11/Xutil.h>
+
+		#ifndef RGFW_NO_XRANDR
+			#include <X11/extensions/Xrandr.h>
+			#include <X11/Xresource.h>
+		#endif
 	#endif
 
 	#ifdef RGFW_WAYLAND
@@ -2947,9 +2952,20 @@ typedef struct {
 		RGFW_monitor mon;
 		struct RGFW_monitorNode* next;
 #ifdef RGFW_WAYLAND
-	u32 id; /* Add id so wl_outputs can be removed */
-	struct wl_output *output;
-	struct zxdg_output_v1 *xdg_output;
+		u32 id; /* Add id so wl_outputs can be removed */
+		struct wl_output *output;
+		struct zxdg_output_v1 *xdg_output;
+#endif
+#ifdef RGFW_X11
+		i32 screen;
+		RROutput output;
+#endif
+#ifdef RGFW_WINDOWS
+		HMONITOR hMonitor;
+#endif
+#ifdef RGFW_MACOS
+		id screen;
+		CGDirectDisplayID display;
 #endif
 	} RGFW_monitorNode;
 
@@ -2962,10 +2978,12 @@ typedef struct {
 		RGFW_monitorList list;
 		RGFW_monitorList freeList;
 		size_t count;
+
+		RGFW_monitorNode* primary;
 		RGFW_monitorNode data[RGFW_MAX_MONITORS];
 	} RGFW_monitors;
 
-	RGFWDEF RGFW_monitorNode* RGFW_monitors_add(RGFW_monitor mon);
+	RGFWDEF RGFW_monitorNode* RGFW_monitors_add(const RGFW_monitor* mon);
 	RGFWDEF void RGFW_monitors_remove(RGFW_monitorNode* node, RGFW_monitorNode* prev);
 #endif
 
@@ -3009,6 +3027,7 @@ struct RGFW_info {
         Window helperWindow;
         const char* instName;
         XErrorEvent* x11Error;
+		i32 xrandrEventBase;
     #endif
     #ifdef RGFW_WAYLAND
         struct wl_display* wl_display;
@@ -3671,6 +3690,9 @@ i32 RGFW_init_ptr(RGFW_info* info) {
 		_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.cur->next;
 	}
 
+	_RGFW->monitors.list.head = NULL;
+	_RGFW->monitors.list.head = NULL;
+
     RGFW_initKeycodes();
     i32 out = RGFW_initPlatform();
 
@@ -4240,12 +4262,11 @@ void RGFW_copyImageData64(u8* dest_data, i32 dest_w, i32 dest_h, RGFW_format des
 	}
 }
 
-RGFW_monitorNode* RGFW_monitors_add(RGFW_monitor mon) {
+RGFW_monitorNode* RGFW_monitors_add(const RGFW_monitor* mon) {
 	RGFW_monitorNode* node = NULL;
 	if (_RGFW->monitors.freeList.head == NULL) return node;
 
 	node = _RGFW->monitors.freeList.head;
-	mon = node->mon;
 
 	_RGFW->monitors.freeList.head = node->next;
 	if (_RGFW->monitors.freeList.head == NULL) {
@@ -4262,7 +4283,7 @@ RGFW_monitorNode* RGFW_monitors_add(RGFW_monitor mon) {
 
 	_RGFW->monitors.list.cur = node;
 
-	node->mon = mon;
+	node->mon = *mon;
 	_RGFW->monitors.count += 1;
 	return node;
 }
@@ -4287,6 +4308,27 @@ void RGFW_monitors_remove(RGFW_monitorNode* node, RGFW_monitorNode* prev) {
 	}
 
 	_RGFW->monitors.freeList.cur = node;
+}
+
+RGFW_monitor* RGFW_getMonitors(size_t* len) {
+	static RGFW_monitor monitors[RGFW_MAX_MONITORS];
+	RGFW_init();
+	if (len != NULL) {
+		*len = _RGFW->monitors.count;
+	}
+
+	u8 i = 0;
+	RGFW_monitorNode* cur_node = _RGFW->monitors.list.head;
+	while (cur_node != NULL) {
+		monitors[i] = cur_node->mon;
+		i++;
+		cur_node = cur_node->next;
+	}
+    return monitors;
+}
+
+RGFW_monitor RGFW_getPrimaryMonitor(void) {
+	return _RGFW->monitors.primary->mon;
 }
 
 RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format) {
@@ -5555,11 +5597,6 @@ void RGFW_setXInstName(const char* name) { _RGFW->instName = name; }
 	#include <X11/Xcursor/Xcursor.h>
 #endif
 
-#ifndef RGFW_NO_XRANDR
-	#include <X11/extensions/Xrandr.h>
-	#include <X11/Xresource.h>
-#endif
-
 #include <X11/Xatom.h>
 #include <X11/keysymdef.h>
 #include <X11/extensions/sync.h>
@@ -6048,18 +6085,26 @@ void RGFW_XHandleEvent(void) {
 	static long version = 0;
 	static i32 format = 0;
 
+	static double deltaX = 0.0f;
+	static double deltaY = 0.0f;
+
 	XEvent reply = { ClientMessage };
 	XEvent E;
 
-	static double deltaX = 0.0f;
-	static double deltaY = 0.0f;
+	XNextEvent(_RGFW->display, &E);
 
 	if (E.type != GenericEvent) {
 		deltaX = 0.0f;
 		deltaY = 0.0f;
 	}
 
-	XNextEvent(_RGFW->display, &E);
+#ifndef RGFW_NO_XRANDR
+	if (E.type == _RGFW->xrandrEventBase + RRNotify) {
+		RGFW_pollMonitors();
+		return;
+	}
+#endif
+
 	switch (E.type) {
 		case SelectionRequest:
 			RGFW_XHandleClipboardSelection(&E);
@@ -7134,87 +7179,74 @@ RGFW_bool RGFW_FUNC(RGFW_window_isMaximized)(RGFW_window* win) {
 	return RGFW_FALSE;
 }
 
-static float XGetSystemContentDPI(Display* display, i32 screen) {
-	float dpi = 96.0f;
-
-	#ifndef RGFW_NO_XRANDR
-		RGFW_UNUSED(screen);
-		char* rms = XResourceManagerString(display);
-		XrmDatabase db = NULL;
-		if (rms) db = XrmGetStringDatabase(rms);
-
-		if (rms && db) {
-			XrmValue value;
-			char* type = NULL;
-
-			if (XrmGetResource(db, "Xft.dpi", "Xft.Dpi", &type, &value) && type && RGFW_STRNCMP(type, "String", 7) == 0)
-				dpi = (float)RGFW_ATOF(value.addr);
-			XrmDestroyDatabase(db);
+RGFWDEF XRRScreenResources* RGFW_XGetScreenResources(i32 screen);
+XRRScreenResources* RGFW_XGetScreenResources(i32 screen) {
+    XRRScreenResources *res = XRRGetScreenResourcesCurrent(_RGFW->display, RootWindow(_RGFW->display, screen));
+    if (res == 0 || res->noutput == 0) {
+        if (res) {
+            XRRFreeScreenResources(res);
 		}
-	#else
-		dpi = RGFW_ROUND(DisplayWidth(display, screen) / (DisplayWidthMM(display, screen) / 25.4));
-	#endif
 
-	return dpi;
+        res = XRRGetScreenResources(_RGFW->display, RootWindow(_RGFW->display, screen));
+    }
+    return res;
 }
 
-RGFW_monitor RGFW_XCreateMonitor(i32 screen);
-RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
-	RGFW_monitor monitor;
+
+void RGFW_FUNC(RGFW_pollMonitors) (void) {
     RGFW_init();
 
-    Display* display = _RGFW->display;
-
-	if (screen == -1) screen = DefaultScreen(display);
-
-	Screen* scrn = DefaultScreenOfDisplay(display);
-
-	monitor.x = 0;
-	monitor.y = 0;
-	monitor.mode.w = scrn->width;
-	monitor.mode.h = scrn->height;
-	monitor.physW = (float)DisplayWidthMM(display, screen) / 25.4f;
-	monitor.physH = (float)DisplayHeightMM(display, screen) / 25.4f;
-
-	RGFW_splitBPP((u32)DefaultDepth(display, screen), &monitor.mode);
-
-	char* name = XDisplayName((const char*)display);
-	RGFW_STRNCPY(monitor.name, name, sizeof(monitor.name) - 1);
-	monitor.name[sizeof(monitor.name) - 1] = '\0';
-
-	float dpi = XGetSystemContentDPI(display, screen);
-	monitor.pixelRatio = dpi >= 192.0f ? 2 : 1.0f;
-	monitor.scaleX = (float) (dpi) / 96.0f;
-	monitor.scaleY = (float) (dpi) / 96.0f;
-
-	#ifndef RGFW_NO_XRANDR
-	XRRCrtcInfo* ci = NULL;
-	XRRScreenResources* sr = NULL;
-
-	{
-		XRRScreenConfiguration* conf = XRRGetScreenInfo(display, RootWindow(display, screen));
-		monitor.mode.refreshRate = (u32)XRRConfigCurrentRate(conf);
-
-		sr = XRRGetScreenResourcesCurrent(display, RootWindow(display, screen));
-		int crtc = screen;
-
-		if (sr->ncrtc > crtc) {
-			ci = XRRGetCrtcInfo(display, sr, sr->crtcs[crtc]);
-		}
-
-		XRRFreeScreenConfigInfo(conf);
+	Window root = XDefaultRootWindow(_RGFW->display);
+	XRRScreenResources* res = XRRGetScreenResourcesCurrent(_RGFW->display, root);
+	if (res == 0) {
+		return;
 	}
-	#endif
 
-	#ifndef RGFW_NO_XRANDR
-		XRROutputInfo* info = XRRGetOutputInfo (display, sr, sr->outputs[screen]);
+	RROutput primary = XRRGetOutputPrimary(_RGFW->display, root);
 
-		if (info == NULL || ci == NULL) {
-			XRRFreeScreenResources(sr);
-			RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor,  "monitor found");
-			return monitor;
+	RGFW_monitorNode* prev = _RGFW->monitors.list.head;
+	for (RGFW_monitorNode* node = _RGFW->monitors.list.head; node; node = node->next) {
+		i32 i = 0;
+		for (i = 0; i < res->noutput; i++) {
+			if (node->output == res->outputs[i]) {
+				break;
+			}
 		}
 
+		if (i < res->noutput)
+			continue;
+
+		RGFW_monitors_remove(node, prev);
+		prev = node;
+	}
+
+	for (i32 i = 0; i < res->noutput; i++) {
+		RGFW_monitorNode* node = NULL;
+		for (node = _RGFW->monitors.list.head; node; node = node->next) {
+			if (node->output == res->outputs[i]) {
+				break;
+			}
+		}
+
+		if (node) {
+			if (node->output == primary) {
+				_RGFW->monitors.primary = node;
+			}
+			continue;
+		}
+
+		RGFW_monitor monitor;
+
+		XRROutputInfo* info = XRRGetOutputInfo(_RGFW->display, res, res->outputs[i]);
+		if (info == NULL) {
+			continue;
+		}
+
+		XRRCrtcInfo* ci = XRRGetCrtcInfo(_RGFW->display, res, info->crtc);
+
+		if (ci == NULL) {
+			continue;
+		}
 
 		float physW = (float)info->mm_width / 25.4f;
 		float physH = (float)info->mm_height / 25.4f;
@@ -7237,39 +7269,19 @@ RGFW_monitor RGFW_XCreateMonitor(i32 screen) {
 			monitor.mode.w = (i32)ci->width;
 			monitor.mode.h = (i32)ci->height;
 		}
-	#endif
 
-	#ifndef RGFW_NO_XRANDR
 		XRRFreeCrtcInfo(ci);
-		XRRFreeScreenResources(sr);
-	#endif
 
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor,  "monitor found");
-    return monitor;
-}
+		RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor,  "monitor found");
+		node = RGFW_monitors_add(&monitor);
+		node->output = res->outputs[i];
 
-void RGFW_FUNC(RGFW_pollMonitors) (void) {
+		if (node->output == primary) {
+			_RGFW->monitors.primary = node;
+		}
+	}
 
-}
-
-RGFW_monitor* RGFW_FUNC(RGFW_getMonitors)(size_t* len) {
-	static RGFW_monitor monitors[7];
-    RGFW_init();
-
-	Display* display = _RGFW->display;
-	i32 max = ScreenCount(display);
-
-	i32 i;
-	for (i = 0; i < max && i < RGFW_MAX_MONITORS; i++)
-		monitors[i] = RGFW_XCreateMonitor(i);
-
-	if (len != NULL) *len = (size_t)((max <= RGFW_MAX_MONITORS) ? (max) : (RGFW_MAX_MONITORS));
-
-	return monitors;
-}
-
-RGFW_monitor RGFW_FUNC(RGFW_getPrimaryMonitor)(void) {
-	return RGFW_XCreateMonitor(-1);
+	XRRFreeScreenResources(res);
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
@@ -7335,15 +7347,13 @@ RGFW_monitor RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
         return mon;
     }
 
-	i32 i;
-	for (i = 0; i < ScreenCount(_RGFW->display) && i < RGFW_MAX_MONITORS; i++) {
-		Screen* screen = ScreenOfDisplay(_RGFW->display, i);
-        if (attrs.x >= 0 && attrs.x < XWidthOfScreen(screen) &&
-            attrs.y >= 0 && attrs.y < XHeightOfScreen(screen))
-            	return RGFW_XCreateMonitor(i);
+	for (RGFW_monitorNode* node = _RGFW->monitors.list.head; node; node = node->next) {
+		if ((attrs.x < mon.x + mon.mode.w) && (attrs.x + attrs.width > mon.x) && (attrs.y < mon.y + mon.mode.h) && (attrs.y + attrs.height > mon.y))
+			return node->mon;
 	}
-    return mon;
 
+
+	return _RGFW->monitors.list.head->mon;
 }
 
 #ifdef RGFW_OPENGL
@@ -7705,6 +7715,14 @@ i32 RGFW_initPlatform_X11(void) {
 	em.mask = mask;
 
 	XISelectEvents(_RGFW->display, XDefaultRootWindow(_RGFW->display), &em, 1);
+
+#ifndef RGFW_NO_XRANDR
+	i32 errorBase;
+	if (XRRQueryExtension(_RGFW->display, &_RGFW->xrandrEventBase, &errorBase)) {
+        XRRSelectInput(_RGFW->display, RootWindow(_RGFW->display, DefaultScreen(_RGFW->display)), RROutputChangeNotifyMask);
+	}
+#endif
+
 
 	return 0;
 }
@@ -8245,7 +8263,7 @@ static void RGFW_wl_create_outputs(struct wl_registry *const registry, u32 id) {
     /* or no xdg_output support */
 	mon.scaleY = mon.scaleX = mon.pixelRatio = 1.0f;
 
-	node = RGFW_monitors_add(mon);
+	node = RGFW_monitors_add(&mon);
 	if (node == NULL) return;
 
 	node->id = id;
@@ -9174,27 +9192,6 @@ RGFW_bool RGFW_FUNC(RGFW_window_isMaximized) (RGFW_window* win) {
 }
 
 void RGFW_FUNC(RGFW_pollMonitors) (void) { }
-
-RGFW_monitor* RGFW_FUNC(RGFW_getMonitors) (size_t* len) {
-	static RGFW_monitor monitors[RGFW_MAX_MONITORS];
-	RGFW_init();
-	if (len != NULL) {
-		*len = _RGFW->monitors.count;
-	}
-
-	u8 i = 0;
-	RGFW_monitorNode* cur_node = _RGFW->monitors.list.head;
-	while (cur_node != NULL) {
-		monitors[i] = cur_node->mon;
-		i++;
-		cur_node = cur_node->next;
-	}
-    return monitors;
-}
-
-RGFW_monitor RGFW_FUNC(RGFW_getPrimaryMonitor) (void) {
-	return _RGFW->monitors.list.head->mon;
-}
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
 	RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request);
@@ -10314,10 +10311,12 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 	return placement.showCmd == SW_SHOWMAXIMIZED || IsZoomed(win->src.window);
 }
 
-typedef struct { int iIndex; HMONITOR hMonitor; RGFW_monitor* monitors; } RGFW_mInfo;
 #ifndef RGFW_NO_MONITOR
-RGFW_monitor RGFW_win32_createMonitor(HMONITOR src);
-RGFW_monitor RGFW_win32_createMonitor(HMONITOR src) {
+BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData);
+BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
+	RGFW_UNUSED(hdcMonitor);
+	RGFW_UNUSED(lprcMonitor);
+
 	RGFW_monitor monitor;
 	RGFW_MEMSET(&monitor, 0, sizeof(monitor));
 
@@ -10333,6 +10332,10 @@ RGFW_monitor RGFW_win32_createMonitor(HMONITOR src) {
 	for (deviceNum = 0; EnumDisplayDevicesW(NULL, deviceNum, &dd, 0); deviceNum++) {
 		if (!(dd.StateFlags & DISPLAY_DEVICE_ACTIVE))
 			continue;
+
+		if (adapter.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) {
+			_RGFW->monitors.primary = ;
+		}
 
 		DEVMODEW dm;
 		ZeroMemory(&dm, sizeof(dm));
@@ -10385,55 +10388,27 @@ RGFW_monitor RGFW_win32_createMonitor(HMONITOR src) {
 	#endif
 
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor,  "monitor found");
-	return monitor;
-}
-#endif /* RGFW_NO_MONITOR */
 
-#ifndef RGFW_NO_MONITOR
-BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData);
-BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
-	RGFW_UNUSED(hdcMonitor);
-	RGFW_UNUSED(lprcMonitor);
-
-	RGFW_mInfo* info = (RGFW_mInfo*) dwData;
-
-
-	if (info->iIndex >= RGFW_MAX_MONITORS)
-		return FALSE;
-
-	info->monitors[info->iIndex] = RGFW_win32_createMonitor(hMonitor);
-	info->iIndex++;
+	RGFW_monitors_add(&monitor);
 
 	return TRUE;
 }
 
-RGFW_monitor RGFW_getPrimaryMonitor(void) {
-	#ifdef __cplusplus
-	return RGFW_win32_createMonitor(MonitorFromPoint({0, 0}, MONITOR_DEFAULTTOPRIMARY));
-	#else
-	return RGFW_win32_createMonitor(MonitorFromPoint((POINT){0, 0}, MONITOR_DEFAULTTOPRIMARY));
-	#endif
-}
-
 void RGFW_pollMonitors(void) {
-
-}
-
-RGFW_monitor* RGFW_getMonitors(size_t* len) {
-	static RGFW_monitor monitors[RGFW_MAX_MONITORS];
-	RGFW_mInfo info;
-	info.iIndex = 0;
-	info.monitors = monitors;
-
 	EnumDisplayMonitors(NULL, NULL, GetMonitorHandle, (LPARAM) &info);
-
-	if (len != NULL) *len = (size_t)info.iIndex;
-	return monitors;
 }
 
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	HMONITOR src = MonitorFromWindow(win->src.window, MONITOR_DEFAULTTOPRIMARY);
-	return RGFW_win32_createMonitor(src);
+
+	RGFW_monitorNode* node = _RGFW->monitors.list.head;
+	for (node = _RGFW->monitors.list.head; node; node = node->next) {
+		if (node->hMonitor == src) {
+			break;
+		}
+	}
+
+	return node->mon;
 }
 
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
@@ -11624,7 +11599,7 @@ void RGFW_moveToMacOSResourceDir(void) {
 
 static void RGFW__osxDidChangeScreenParameters(id self, SEL _cmd, id notification) {
 	RGFW_UNUSED(self); RGFW_UNUSED(_cmd); RGFW_UNUSED(notification);
-	RGFW_pollEvents();
+	RGFW_pollMonitors();
 }
 
 static void RGFW__osxWindowDeminiaturize(id self, SEL sel) {
@@ -12711,47 +12686,7 @@ u32 RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) {
     return 60;
 }
 
-RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen);
-RGFW_monitor RGFW_NSCreateMonitor(CGDirectDisplayID display, id screen) {
-	RGFW_monitor monitor;
-
-	const char name[] = "MacOS\0";
-	RGFW_MEMCPY(monitor.name, name, 6);
-
-	CGRect bounds = CGDisplayBounds(display);
-	monitor.x = (i32)bounds.origin.x;
-	monitor.y = (i32)bounds.origin.y;
-	monitor.mode.w = (i32) bounds.size.width;
-	monitor.mode.h  = (i32) bounds.size.height;
-
-	monitor.mode.red = 8; monitor.mode.green = 8; monitor.mode.blue = 8;
-
-	CGDisplayModeRef mode = CGDisplayCopyDisplayMode(display);
-	monitor.mode.refreshRate = RGFW_osx_getRefreshRate(display, mode);
-	CFRelease(mode);
-
-	CGSize screenSizeMM = CGDisplayScreenSize(display);
-	monitor.physW = (float)screenSizeMM.width / 25.4f;
-	monitor.physH = (float)screenSizeMM.height / 25.4f;
-
-	float ppi_width = (monitor.mode.w/monitor.physW);
-	float ppi_height = (monitor.mode.h/monitor.physH);
-
-	monitor.pixelRatio = (float)((CGFloat (*)(id, SEL))abi_objc_msgSend_fpret) (screen, sel_registerName("backingScaleFactor"));
-	float dpi = 96.0f * monitor.pixelRatio;
-
-	monitor.scaleX = ((i32)(((float) (ppi_width) / dpi) * 10.0f)) / 10.0f;
-	monitor.scaleY = ((i32)(((float) (ppi_height) / dpi) * 10.0f)) / 10.0f;
-
-	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor,  "monitor found");
-	return monitor;
-}
-
 void RGFW_pollMonitors(void) {
-
-}
-
-RGFW_monitor* RGFW_getMonitors(size_t* len) {
 	static CGDirectDisplayID displays[RGFW_MAX_MONITORS];
 	u32 count;
 
@@ -12760,14 +12695,48 @@ RGFW_monitor* RGFW_getMonitors(size_t* len) {
 
 	if (count > RGFW_MAX_MONITORS) count = RGFW_MAX_MONITORS;
 
-	static RGFW_monitor monitors[RGFW_MAX_MONITORS];
 
-    u32 i;
-	for (i = 0; i < RGFW_MAX_MONITORS; i++)
-		monitors[i] = RGFW_NSCreateMonitor(displays[i], RGFW_getNSScreenForDisplayID(displays[i]));
+	CGDirectDisplayID primary = CGMainDisplayID();
 
-	if (len != NULL) *len = count;
-	return monitors;
+	u32 i;
+	for (i = 0; i < count; i++) {
+		RGFW_monitor monitor;
+
+		const char name[] = "MacOS\0";
+		RGFW_MEMCPY(monitor.name, name, 6);
+
+		CGRect bounds = CGDisplayBounds(display);
+		monitor.x = (i32)bounds.origin.x;
+		monitor.y = (i32)bounds.origin.y;
+		monitor.mode.w = (i32) bounds.size.width;
+		monitor.mode.h  = (i32) bounds.size.height;
+
+		monitor.mode.red = 8; monitor.mode.green = 8; monitor.mode.blue = 8;
+
+		CGDisplayModeRef mode = CGDisplayCopyDisplayMode(display);
+		monitor.mode.refreshRate = RGFW_osx_getRefreshRate(display, mode);
+		CFRelease(mode);
+
+		CGSize screenSizeMM = CGDisplayScreenSize(display);
+		monitor.physW = (float)screenSizeMM.width / 25.4f;
+		monitor.physH = (float)screenSizeMM.height / 25.4f;
+
+		float ppi_width = (monitor.mode.w/monitor.physW);
+		float ppi_height = (monitor.mode.h/monitor.physH);
+
+		monitor.pixelRatio = (float)((CGFloat (*)(id, SEL))abi_objc_msgSend_fpret) (screen, sel_registerName("backingScaleFactor"));
+		float dpi = 96.0f * monitor.pixelRatio;
+
+		monitor.scaleX = ((i32)(((float) (ppi_width) / dpi) * 10.0f)) / 10.0f;
+		monitor.scaleY = ((i32)(((float) (ppi_height) / dpi) * 10.0f)) / 10.0f;
+
+		RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoMonitor,  "monitor found");
+		RGFW_monitorNode* node = RGFW_monitors_add(&monitor);
+
+		if (displays[i] == primary) {
+			_RGFW->monitors.primary = node;
+		}
+	}
 }
 
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
@@ -12808,11 +12777,6 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 	return RGFW_FALSE;
 }
 
-RGFW_monitor RGFW_getPrimaryMonitor(void) {
-	CGDirectDisplayID primary = CGMainDisplayID();
-	return RGFW_NSCreateMonitor(primary, RGFW_getNSScreenForDisplayID(primary));
-}
-
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	id screen = objc_msgSend_id(win->src.window, sel_registerName("screen"));
 	id description = objc_msgSend_id(screen, sel_registerName("deviceDescription"));
@@ -12821,7 +12785,14 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 
 	CGDirectDisplayID display = (CGDirectDisplayID)objc_msgSend_uint(screenNumber, sel_registerName("unsignedIntValue"));
 
-	return RGFW_NSCreateMonitor(display, screen);
+	RGFW_monitorNode* node = _RGFW->monitors.list.head;
+	for (node = _RGFW->monitors.list.head; node; node = node->next) {
+		if (node->display == display && node->screen == screen) {
+			break;
+		}
+	}
+
+	return node->mon;
 }
 
 RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
@@ -13909,8 +13880,6 @@ void RGFW_window_raise(RGFW_window* win) { RGFW_UNUSED(win); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
 
 void RGFW_pollMonitors(void) { }
-RGFW_monitor* RGFW_getMonitors(size_t* len) { RGFW_UNUSED(len); return NULL; }
-RGFW_monitor RGFW_getPrimaryMonitor(void) { return (RGFW_monitor){}; }
 void RGFW_window_move(RGFW_window* win, i32 x, i32 y) { RGFW_UNUSED(win);  RGFW_UNUSED(x); RGFW_UNUSED(y);  }
 void RGFW_window_setAspectRatio(RGFW_window* win, i32 w, i32 h) { RGFW_UNUSED(win);  RGFW_UNUSED(w); RGFW_UNUSED(h);  }
 void RGFW_window_setMinSize(RGFW_window* win, i32 w, i32 h) { RGFW_UNUSED(win); RGFW_UNUSED(w); RGFW_UNUSED(h);  }
@@ -13971,8 +13940,6 @@ typedef void (*RGFW_writeClipboard_ptr)(const char* text, u32 textLen);
 typedef RGFW_bool (*RGFW_window_isHidden_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMinimized_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMaximized_ptr)(RGFW_window* win);
-typedef RGFW_monitor* (*RGFW_getMonitors_ptr)(size_t* len);
-typedef RGFW_monitor (*RGFW_getPrimaryMonitor_ptr)(void);
 typedef RGFW_bool (*RGFW_monitor_requestMode_ptr)(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request);
 typedef RGFW_monitor (*RGFW_window_getMonitor_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_closePlatform_ptr)(RGFW_window* win);
@@ -14040,8 +14007,6 @@ typedef struct RGFW_FunctionPointers {
     RGFW_window_isHidden_ptr window_isHidden;
     RGFW_window_isMinimized_ptr window_isMinimized;
     RGFW_window_isMaximized_ptr window_isMaximized;
-    RGFW_getMonitors_ptr getMonitors;
-    RGFW_getPrimaryMonitor_ptr getPrimaryMonitor;
     RGFW_monitor_requestMode_ptr monitor_requestMode;
     RGFW_window_getMonitor_ptr window_getMonitor;
     RGFW_window_closePlatform_ptr window_closePlatform;
@@ -14107,8 +14072,6 @@ void RGFW_writeClipboard(const char* text, u32 textLen) { RGFW_api.writeClipboar
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) { return RGFW_api.window_isHidden(win); }
 RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { return RGFW_api.window_isMinimized(win); }
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { return RGFW_api.window_isMaximized(win); }
-RGFW_monitor* RGFW_getMonitors(size_t* len) { return RGFW_api.getMonitors(len); }
-RGFW_monitor RGFW_getPrimaryMonitor(void) { return RGFW_api.getPrimaryMonitor(); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) { return RGFW_api.monitor_requestMode(mon, mode, request); }
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { return RGFW_api.window_getMonitor(win); }
 void RGFW_window_closePlatform(RGFW_window* win) { RGFW_api.window_closePlatform(win); }
@@ -14179,8 +14142,6 @@ void RGFW_load_X11(void) {
     RGFW_api.window_isHidden = RGFW_window_isHidden_X11;
     RGFW_api.window_isMinimized = RGFW_window_isMinimized_X11;
     RGFW_api.window_isMaximized = RGFW_window_isMaximized_X11;
-    RGFW_api.getMonitors = RGFW_getMonitors_X11;
-    RGFW_api.getPrimaryMonitor = RGFW_getPrimaryMonitor_X11;
     RGFW_api.monitor_requestMode = RGFW_monitor_requestMode_X11;
     RGFW_api.window_getMonitor = RGFW_window_getMonitor_X11;
     RGFW_api.window_closePlatform = RGFW_window_closePlatform_X11;
@@ -14243,8 +14204,6 @@ void RGFW_load_Wayland(void) {
     RGFW_api.window_isHidden = RGFW_window_isHidden_Wayland;
     RGFW_api.window_isMinimized = RGFW_window_isMinimized_Wayland;
     RGFW_api.window_isMaximized = RGFW_window_isMaximized_Wayland;
-    RGFW_api.getMonitors = RGFW_getMonitors_Wayland;
-    RGFW_api.getPrimaryMonitor = RGFW_getPrimaryMonitor_Wayland;
     RGFW_api.monitor_requestMode = RGFW_monitor_requestMode_Wayland;
     RGFW_api.window_getMonitor = RGFW_window_getMonitor_Wayland;
     RGFW_api.window_closePlatform = RGFW_window_closePlatform_Wayland;
