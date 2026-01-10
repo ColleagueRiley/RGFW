@@ -81,6 +81,12 @@ int main(void) {
                 case RGFW_scaleUpdated:
                     printf("Scale Updated : %f %f\n", (double)event.scale.x, (double)event.scale.y);
                     break;
+				case RGFW_monitorConnected:
+					printf("Monitor connected [or found] %s [%i %i %i %i]\n", event.monitor.monitor->name, event.monitor.monitor->x, event.monitor.monitor->y, event.monitor.monitor->mode.w, event.monitor.monitor->mode.h);
+					break;
+				case RGFW_monitorDisconnected:
+					printf("Monitor disconnected %s [%i %i %i %i]\n", event.monitor.monitor->name, event.monitor.monitor->x, event.monitor.monitor->y, event.monitor.monitor->mode.w, event.monitor.monitor->mode.h);
+					break;
                 default:
                     break;
             }

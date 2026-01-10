@@ -130,6 +130,16 @@ void scrollfunc(RGFW_window* win, float x, float y) {
 	printf("mouse scrolled %f %f\n", (double)x, (double)y);
 }
 
+static
+void monitorfunc(RGFW_window* win, const RGFW_monitor* monitor, RGFW_bool connected) {
+	RGFW_UNUSED(win);
+	if (connected) {
+		printf("Monitor connected [or found] %s [%i %i %i %i]\n", monitor->name, monitor->x, monitor->y, monitor->mode.w, monitor->mode.h);
+	} else {
+		printf("Monitor disconnected %s [%i %i %i %i]\n", monitor->name, monitor->x, monitor->y, monitor->mode.w, monitor->mode.h);
+	}
+}
+
 int main(void) {
     window = RGFW_createWindow("RGFW Callbacks", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
     RGFW_window_setExitKey(window, RGFW_escape);
@@ -152,6 +162,7 @@ int main(void) {
 	RGFW_setDataDragCallback(dragfunc);
 	RGFW_setKeyCallback(keyfunc);
 	RGFW_setMouseButtonCallback(mousebuttonfunc);
+	RGFW_setMonitorCallback(monitorfunc);
 
     while (RGFW_window_shouldClose(window) == 0) {
 		RGFW_pollEvents();
