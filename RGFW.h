@@ -7193,6 +7193,27 @@ XRRScreenResources* RGFW_XGetScreenResources(i32 screen) {
     return res;
 }
 
+static void RGFW_XGetSystemContentDPI(float* dpi) {
+	if (dpi == NULL) return;
+	float dpiOutput = 96.0f;
+
+	#ifndef RGFW_NO_XRANDR
+		char* rms = XResourceManagerString(_RGFW->display);
+		if (rms == NULL) return;
+
+		XrmDatabase db = XrmGetStringDatabase(rms);
+		if (db == NULL) return;
+
+		XrmValue value;
+		char* type = NULL;
+
+		if (XrmGetResource(db, "Xft.dpi", "Xft.Dpi", &type, &value) && type && RGFW_STRNCMP(type, "String", 7) == 0)
+			dpiOutput = (float)RGFW_ATOF(value.addr);
+		XrmDestroyDatabase(db);
+	#endif
+
+	if (dpiOutput) *dpi = dpiOutput;
+}
 
 void RGFW_FUNC(RGFW_pollMonitors) (void) {
     RGFW_init();
@@ -7270,6 +7291,12 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 			monitor.mode.w = (i32)ci->width;
 			monitor.mode.h = (i32)ci->height;
 		}
+
+		float dpi = 96.0f;
+		RGFW_XGetSystemContentDPI(&dpi);
+
+		monitor.scaleX = dpi / 96.0f;
+		monitor.scaleY = dpi / 96.0f;
 
 		XRRFreeCrtcInfo(ci);
 
@@ -9192,7 +9219,9 @@ RGFW_bool RGFW_FUNC(RGFW_window_isMaximized) (RGFW_window* win) {
 	return win->src.maximized;
 }
 
-void RGFW_FUNC(RGFW_pollMonitors) (void) { }
+void RGFW_FUNC(RGFW_pollMonitors) (void) {
+	_RGFW->monitors.primary->mon = _RGFW->monitors.head;
+}
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
 	RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request);
