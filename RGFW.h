@@ -12822,7 +12822,7 @@ void RGFW_pollMonitors(void) {
 
 		if (node) {
 			node->disconnected = RGFW_FALSE;
-			if (display[i] == primary) {
+			if (displays[i] == primary) {
 				_RGFW->monitors.primary = node;
 			}
 			continue;
