@@ -12817,12 +12817,12 @@ void RGFW_pollMonitors(void) {
 
 		RGFW_monitorNode* node;
 		for (node = _RGFW->monitors.list.head; node; node = node->next) {
-			if (node->display == display && node->screen == screen) break;
+			if (node->display == displays[i] && node->screen == screen) break;
 		}
 
 		if (node) {
 			node->disconnected = RGFW_FALSE;
-			if (isPrimary) {
+			if (display[i] == primary) {
 				_RGFW->monitors.primary = node;
 			}
 			continue;
@@ -12856,7 +12856,7 @@ void RGFW_pollMonitors(void) {
 		monitor.scaleX = ((i32)(((float) (ppi_width) / dpi) * 10.0f)) / 10.0f;
 		monitor.scaleY = ((i32)(((float) (ppi_height) / dpi) * 10.0f)) / 10.0f;
 
-		RGFW_monitorNode* node = RGFW_monitors_add(&monitor);
+		node = RGFW_monitors_add(&monitor);
 
 		node->screen = (void*)screen;
 		node->display = displays[i];
