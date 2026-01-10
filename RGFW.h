@@ -9220,7 +9220,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_isMaximized) (RGFW_window* win) {
 }
 
 void RGFW_FUNC(RGFW_pollMonitors) (void) {
-	_RGFW->monitors.primary->mon = _RGFW->monitors.head;
+	_RGFW->monitors.primary->mon = _RGFW->monitors.list.head->mon;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
