@@ -10498,7 +10498,7 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 		_RGFW->monitors.primary = node;
 	}
 
-	wcscpy(node->adapterName, dd->DeviceName);
+	wcscpy(node->adapterName, dd.DeviceName);
 	node->hMonitor = hMonitor;
 
 	RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_TRUE);
@@ -10558,7 +10558,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 		}
 
 		if (ChangeDisplaySettingsExW(mon.node->adapterName, &dm, NULL, CDS_TEST, NULL) == DISP_CHANGE_SUCCESSFUL) {
-			if (ChangeDisplaySettingsExW(mon.node->adapterName,, &dm, NULL, CDS_UPDATEREGISTRY, NULL) == DISP_CHANGE_SUCCESSFUL)
+			if (ChangeDisplaySettingsExW(mon.node->adapterName, &dm, NULL, CDS_UPDATEREGISTRY, NULL) == DISP_CHANGE_SUCCESSFUL)
 				return RGFW_TRUE;
 			return RGFW_FALSE;
 		} else return RGFW_FALSE;
