@@ -12884,7 +12884,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
     if (allModes == NULL)
         return RGFW_FALSE;
 
-	CGDisplayModeRef foundMode = NULL;
+	CGDisplayModeRef native = NULL;
 
     CFIndex i;
     for (i = 0; i < CFArrayGetCount(allModes); i++) {
@@ -12897,15 +12897,15 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 		foundMode.red = 8; foundMode.green = 8; foundMode.blue = 8;
 
 		if (RGFW_monitorModeCompare(mode, foundMode, request)) {
-			foundMode = cmode;
+			native = cmode;
 			break;
         }
     }
 
     CFRelease(allModes);
 
-	if (foundMode) {
-		if (CGDisplaySetDisplayMode(display, foundMode, NULL) == kCGErrorSuccess) {
+	if (native) {
+		if (CGDisplaySetDisplayMode(display, native, NULL) == kCGErrorSuccess) {
 			return RGFW_TRUE;
 		}
 	}
