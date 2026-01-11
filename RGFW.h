@@ -2977,6 +2977,7 @@ struct RGFW_monitorNode {
 #endif
 #ifdef RGFW_WINDOWS
 	HMONITOR hMonitor;
+	WCHAR adapterName[32];
 #endif
 #ifdef RGFW_MACOS
 	void* screen;
@@ -10497,6 +10498,7 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 		_RGFW->monitors.primary = node;
 	}
 
+	wcscpy(node->adapterName, dd->DeviceName);
 	node->hMonitor = hMonitor;
 
 	RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_TRUE);
@@ -10534,45 +10536,32 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 	monitorInfo.cbSize = sizeof(MONITORINFOEX);
 	GetMonitorInfoA(src, (LPMONITORINFO)&monitorInfo);
 
-    DISPLAY_DEVICEA dd;
-    dd.cb = sizeof(dd);
+	DEVMODEA dm;
+	ZeroMemory(&dm, sizeof(dm));
+	dm.dmSize = sizeof(dm);
 
-    /* Enumerate display devices */
-    DWORD deviceNum;
-    for (deviceNum = 0; EnumDisplayDevicesA(NULL, deviceNum, &dd, 0); deviceNum++) {
-        if (!(dd.StateFlags & DISPLAY_DEVICE_ACTIVE))
-			continue;
-
-        if (strcmp(dd.DeviceName, (const char*)monitorInfo.szDevice) != 0)
-            continue;
-
-        DEVMODEA dm;
-		ZeroMemory(&dm, sizeof(dm));
-		dm.dmSize = sizeof(dm);
-
-		if (EnumDisplaySettingsA(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm)) {
-			if (request & RGFW_monitorScale) {
-				dm.dmFields |= DM_PELSWIDTH | DM_PELSHEIGHT;
-				dm.dmPelsWidth = (u32)mode.w;
-				dm.dmPelsHeight = (u32)mode.h;
-            }
-
-			if (request & RGFW_monitorRefresh) {
-				dm.dmFields |= DM_DISPLAYFREQUENCY;
-				dm.dmDisplayFrequency = mode.refreshRate;
-			}
-
-			if (request & RGFW_monitorRGB) {
-				dm.dmFields |= DM_BITSPERPEL;
-				dm.dmBitsPerPel = (DWORD)(mode.red + mode.green + mode.blue);
-			}
-
-			if (ChangeDisplaySettingsExA(dd.DeviceName, &dm, NULL, CDS_TEST, NULL) == DISP_CHANGE_SUCCESSFUL) {
-				if (ChangeDisplaySettingsExA(dd.DeviceName, &dm, NULL, CDS_UPDATEREGISTRY, NULL) == DISP_CHANGE_SUCCESSFUL)
-					return RGFW_TRUE;
-				return RGFW_FALSE;
-			} else return RGFW_FALSE;
+	if (EnumDisplaySettingsA(mon.node->adapterName, ENUM_CURRENT_SETTINGS, &dm)) {
+		if (request & RGFW_monitorScale) {
+			dm.dmFields |= DM_PELSWIDTH | DM_PELSHEIGHT;
+			dm.dmPelsWidth = (u32)mode.w;
+			dm.dmPelsHeight = (u32)mode.h;
 		}
+
+		if (request & RGFW_monitorRefresh) {
+			dm.dmFields |= DM_DISPLAYFREQUENCY;
+			dm.dmDisplayFrequency = mode.refreshRate;
+		}
+
+		if (request & RGFW_monitorRGB) {
+			dm.dmFields |= DM_BITSPERPEL;
+			dm.dmBitsPerPel = (DWORD)(mode.red + mode.green + mode.blue);
+		}
+
+		if (ChangeDisplaySettingsExA(mon.node->adapterName, &dm, NULL, CDS_TEST, NULL) == DISP_CHANGE_SUCCESSFUL) {
+			if (ChangeDisplaySettingsExA(mon.node->adapterName,, &dm, NULL, CDS_UPDATEREGISTRY, NULL) == DISP_CHANGE_SUCCESSFUL)
+				return RGFW_TRUE;
+			return RGFW_FALSE;
+		} else return RGFW_FALSE;
 	}
 
 	return RGFW_FALSE;
