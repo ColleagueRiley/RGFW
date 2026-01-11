@@ -10536,11 +10536,11 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 	monitorInfo.cbSize = sizeof(MONITORINFOEX);
 	GetMonitorInfoA(src, (LPMONITORINFO)&monitorInfo);
 
-	DEVMODEA dm;
+	DEVMODEW dm;
 	ZeroMemory(&dm, sizeof(dm));
 	dm.dmSize = sizeof(dm);
 
-	if (EnumDisplaySettingsA(mon.node->adapterName, ENUM_CURRENT_SETTINGS, &dm)) {
+	if (EnumDisplaySettingsW(mon.node->adapterName, ENUM_CURRENT_SETTINGS, &dm)) {
 		if (request & RGFW_monitorScale) {
 			dm.dmFields |= DM_PELSWIDTH | DM_PELSHEIGHT;
 			dm.dmPelsWidth = (u32)mode.w;
@@ -10557,8 +10557,8 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 			dm.dmBitsPerPel = (DWORD)(mode.red + mode.green + mode.blue);
 		}
 
-		if (ChangeDisplaySettingsExA(mon.node->adapterName, &dm, NULL, CDS_TEST, NULL) == DISP_CHANGE_SUCCESSFUL) {
-			if (ChangeDisplaySettingsExA(mon.node->adapterName,, &dm, NULL, CDS_UPDATEREGISTRY, NULL) == DISP_CHANGE_SUCCESSFUL)
+		if (ChangeDisplaySettingsExW(mon.node->adapterName, &dm, NULL, CDS_TEST, NULL) == DISP_CHANGE_SUCCESSFUL) {
+			if (ChangeDisplaySettingsExW(mon.node->adapterName,, &dm, NULL, CDS_UPDATEREGISTRY, NULL) == DISP_CHANGE_SUCCESSFUL)
 				return RGFW_TRUE;
 			return RGFW_FALSE;
 		} else return RGFW_FALSE;
