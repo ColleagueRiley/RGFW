@@ -476,6 +476,10 @@ typedef struct RGFW_monitorMode {
 	u8 red, blue, green;
 } RGFW_monitorMode;
 
+
+/*! @brief structure for monitor node and source monitor data */
+typedef struct RGFW_monitorNode RGFW_monitorNode;
+
 /*! @brief structure for monitor data */
 typedef struct RGFW_monitor {
 	i32 x, y; /*!< x - y of the monitor workarea */
@@ -483,7 +487,8 @@ typedef struct RGFW_monitor {
 	float scaleX, scaleY; /*!< monitor content scale */
 	float pixelRatio; /*!< pixel ratio for monitor (1.0 for regular, 2.0 for hiDPI)  */
 	float physW, physH; /*!< monitor physical size in inches */
-	RGFW_monitorMode mode;
+	RGFW_monitorMode mode; /*!< current mode of the monitor */
+	RGFW_monitorNode* node; /*!< source node data of the monitor */
 } RGFW_monitor;
 
 /*! @brief what type of request you are making for the monitor */
@@ -2956,10 +2961,10 @@ typedef struct {
 	RGFW_bool prev;
 } RGFW_keyState;
 
-typedef struct RGFW_monitorNode {
+struct RGFW_monitorNode {
 	RGFW_monitor mon;
 	RGFW_bool disconnected;
-	struct RGFW_monitorNode* next;
+	RGFW_monitorNode* next;
 #ifdef RGFW_WAYLAND
 	u32 id; /* Add id so wl_outputs can be removed */
 	struct wl_output *output;
@@ -2968,6 +2973,7 @@ typedef struct RGFW_monitorNode {
 #if defined(RGFW_X11) && !defined(RGFW_NO_XRANDR)
 	i32 screen;
 	RROutput rrOutput;
+	RRCrtc crtc;
 #endif
 #ifdef RGFW_WINDOWS
 	HMONITOR hMonitor;
@@ -2976,7 +2982,7 @@ typedef struct RGFW_monitorNode {
 	void* screen;
 	CGDirectDisplayID display;
 #endif
-} RGFW_monitorNode;
+};
 
 typedef struct RGFW_monitorList {
 	RGFW_monitorNode* head;
@@ -4306,6 +4312,7 @@ RGFW_monitorNode* RGFW_monitors_add(const RGFW_monitor* mon) {
 	_RGFW->monitors.list.cur = node;
 
 	node->mon = *mon;
+	node->mon.node = node;
 	node->disconnected = RGFW_FALSE;
 
 	_RGFW->monitors.count += 1;
@@ -7302,8 +7309,6 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 		RGFW_STRNCPY(monitor.name, info->name, sizeof(monitor.name) - 1);
 		monitor.name[sizeof(monitor.name) - 1] = '\0';
 
-		XRRFreeOutputInfo(info);
-		info = NULL;
 
 		if (physW > 0.0f && physH > 0.0f) {
 			monitor.physW = physW;
@@ -7330,10 +7335,14 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 		if (node == NULL) break;
 
 		node->rrOutput = res->outputs[i];
+		node->crtc = info->crtc;
 
 		if (node->rrOutput == primary) {
 			_RGFW->monitors.primary = node;
 		}
+
+		XRRFreeOutputInfo(info);
+		info = NULL;
 
 		RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_TRUE);
 	}
@@ -7346,51 +7355,49 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
 	#ifndef RGFW_NO_XRANDR
     RGFW_init();
-    XRRScreenConfiguration *conf = XRRGetScreenInfo(_RGFW->display, DefaultRootWindow(_RGFW->display));
-    XRRScreenResources* screenRes = XRRGetScreenResources(_RGFW->display, DefaultRootWindow(_RGFW->display));
-	if (screenRes == NULL) return RGFW_FALSE;
+
+	RGFW_bool output = RGFW_FALSE;
+
+	XRRScreenResources* res = XRRGetScreenResources(_RGFW->display, DefaultRootWindow(_RGFW->display));
+	if (res == NULL) return RGFW_FALSE;
+
+	XRRCrtcInfo* ci = XRRGetCrtcInfo(_RGFW->display, res, mon.node->crtc);
+	XRROutputInfo* oi = XRRGetOutputInfo(_RGFW->display, res, mon.node->rrOutput);
+
+	RRMode native = None;
 
     int i;
-    for (i = 0; i < screenRes->ncrtc; i++) {
-		XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(_RGFW->display, screenRes, screenRes->crtcs[i]);
-		if (!crtcInfo) continue;
-
-		if (mon.x == crtcInfo->x && mon.y == crtcInfo->y && (u32)mon.mode.w == crtcInfo->width && (u32)mon.mode.h == crtcInfo->height) {
-			RRMode rmode = None;
-            int index;
-            for (index = 0; index < screenRes->nmode; index++) {
-				RGFW_monitorMode foundMode;
-				foundMode.w = (i32)screenRes->modes[index].width;
-				foundMode.h = (i32)screenRes->modes[index].height;
-				foundMode.refreshRate = (u32)XRRConfigCurrentRate(conf);
-				RGFW_splitBPP((u32)DefaultDepth(_RGFW->display, DefaultScreen(_RGFW->display)), &foundMode);
-
-				if (RGFW_monitorModeCompare(mode, foundMode, request)) {
-					rmode = screenRes->modes[index].id;
-
-					RROutput output = screenRes->outputs[i];
-					XRROutputInfo* info = XRRGetOutputInfo(_RGFW->display, screenRes, output);
-					if (info) {
-						XRRSetCrtcConfig(_RGFW->display, screenRes, screenRes->crtcs[i],
-										CurrentTime, 0, 0, rmode, RR_Rotate_0, &output, 1);
-						XRRFreeOutputInfo(info);
-						XRRFreeCrtcInfo(crtcInfo);
-						XRRFreeScreenResources(screenRes);
-						return RGFW_TRUE;
-					}
-				}
-			}
-
-			XRRFreeCrtcInfo(crtcInfo);
-			XRRFreeScreenResources(screenRes);
-			return RGFW_FALSE;
+    for (i = 0; i < oi->nmode; i++) {
+		XRRModeInfo* mi = None;
+		for (i32 j = 0; j < res->nmode; j++) {
+			if (res->modes[j].id ==  oi->modes[i])
+				mi = &res->modes[j];
 		}
 
-		XRRFreeCrtcInfo(crtcInfo);
+		if (mi == None) continue;
+
+		if ((mi->modeFlags & RR_Interlace) != 0) continue;
+
+		RGFW_monitorMode foundMode;
+		foundMode.w = (i32)mi->width;
+		foundMode.h = (i32)mi->height;
+		RGFW_splitBPP((u32)DefaultDepth(_RGFW->display, DefaultScreen(_RGFW->display)), &foundMode);
+
+		if (RGFW_monitorModeCompare(mode, foundMode, request)) {
+			native = mi->id;
+			output = RGFW_TRUE;
+			break;
+		}
 	}
 
-    XRRFreeScreenResources(screenRes);
-	XRRFreeScreenConfigInfo(conf);
+	if (native) {
+		XRRSetCrtcConfig(_RGFW->display, res, mon.node->crtc, CurrentTime, ci->x, ci->y, native, ci->rotation, ci->outputs, ci->noutput);
+	}
+
+    XRRFreeOutputInfo(oi);
+	XRRFreeCrtcInfo(ci);
+    XRRFreeScreenResources(res);
+	return output;
 #endif
 	return RGFW_FALSE;
 }
@@ -10522,7 +10529,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
     POINT p = { mon.x, mon.y };
-    HMONITOR src = MonitorFromPoint(p, MONITOR_DEFAULTTOPRIMARY);
+    HMONITOR src = mon.node->hMonitor;
 
 	MONITORINFOEX  monitorInfo;
 	monitorInfo.cbSize = sizeof(MONITORINFOEX);
