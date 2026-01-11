@@ -10528,7 +10528,6 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 }
 
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
-    POINT p = { mon.x, mon.y };
     HMONITOR src = mon.node->hMonitor;
 
 	MONITORINFOEX  monitorInfo;
@@ -12879,18 +12878,13 @@ void RGFW_pollMonitors(void) {
 }
 
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
-    CGPoint point = { (CGFloat)mon.x, (CGFloat)mon.y };
-
-    CGDirectDisplayID display;
-    u32 displayCount = 0;
-    CGError err = CGGetDisplaysWithPoint(point, 1, &display, &displayCount);
-    if (err != kCGErrorSuccess || displayCount != 1)
-		return RGFW_FALSE;
-
+    CGDirectDisplayID display = mon.node->display;
     CFArrayRef allModes = CGDisplayCopyAllDisplayModes(display, NULL);
 
     if (allModes == NULL)
         return RGFW_FALSE;
+
+	CGDisplayModeRef foundMode = NULL;
 
     CFIndex i;
     for (i = 0; i < CFArrayGetCount(allModes); i++) {
@@ -12903,15 +12897,18 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW
 		foundMode.red = 8; foundMode.green = 8; foundMode.blue = 8;
 
 		if (RGFW_monitorModeCompare(mode, foundMode, request)) {
-				if (CGDisplaySetDisplayMode(display, cmode, NULL) == kCGErrorSuccess) {
-					CFRelease(allModes);
-					return RGFW_TRUE;
-				}
-				break;
+			foundMode = cmode;
+			break;
         }
     }
 
     CFRelease(allModes);
+
+	if (foundMode) {
+		if (CGDisplaySetDisplayMode(display, foundMode, NULL) == kCGErrorSuccess) {
+			return RGFW_TRUE;
+		}
+	}
 
 	return RGFW_FALSE;
 }
