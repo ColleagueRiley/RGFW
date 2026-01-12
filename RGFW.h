@@ -9262,7 +9262,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor* mon, RGFW_monitorMo
 
 RGFW_monitor* RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
 	RGFW_ASSERT(win);
-	return win->src.active_monitor;
+	return &win->src.active_monitor;
 }
 
 #ifdef RGFW_OPENGL
@@ -10499,11 +10499,11 @@ RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) {
 		}
 	}
 
-	return node->mon;
+	return &node->mon;
 }
 
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
-    HMONITOR src = mon.node->hMonitor;
+    HMONITOR src = mon->node->hMonitor;
 
 	MONITORINFOEX  monitorInfo;
 	monitorInfo.cbSize = sizeof(MONITORINFOEX);
@@ -10513,25 +10513,25 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RG
 	ZeroMemory(&dm, sizeof(dm));
 	dm.dmSize = sizeof(dm);
 
-	if (EnumDisplaySettingsW(mon.node->adapterName, ENUM_CURRENT_SETTINGS, &dm)) {
+	if (EnumDisplaySettingsW(mon->node->adapterName, ENUM_CURRENT_SETTINGS, &dm)) {
 		if (request & RGFW_monitorScale) {
 			dm.dmFields |= DM_PELSWIDTH | DM_PELSHEIGHT;
-			dm.dmPelsWidth = (u32)mode.w;
-			dm.dmPelsHeight = (u32)mode.h;
+			dm.dmPelsWidth = (u32)mode->w;
+			dm.dmPelsHeight = (u32)mode->h;
 		}
 
 		if (request & RGFW_monitorRefresh) {
 			dm.dmFields |= DM_DISPLAYFREQUENCY;
-			dm.dmDisplayFrequency = mode.refreshRate;
+			dm.dmDisplayFrequency = mode->refreshRate;
 		}
 
 		if (request & RGFW_monitorRGB) {
 			dm.dmFields |= DM_BITSPERPEL;
-			dm.dmBitsPerPel = (DWORD)(mode.red + mode.green + mode.blue);
+			dm.dmBitsPerPel = (DWORD)(mode->red + mode->green + mode->blue);
 		}
 
-		if (ChangeDisplaySettingsExW(mon.node->adapterName, &dm, NULL, CDS_TEST, NULL) == DISP_CHANGE_SUCCESSFUL) {
-			if (ChangeDisplaySettingsExW(mon.node->adapterName, &dm, NULL, CDS_UPDATEREGISTRY, NULL) == DISP_CHANGE_SUCCESSFUL)
+		if (ChangeDisplaySettingsExW(mon->node->adapterName, &dm, NULL, CDS_TEST, NULL) == DISP_CHANGE_SUCCESSFUL) {
+			if (ChangeDisplaySettingsExW(mon->node->adapterName, &dm, NULL, CDS_UPDATEREGISTRY, NULL) == DISP_CHANGE_SUCCESSFUL)
 				return RGFW_TRUE;
 			return RGFW_FALSE;
 		} else return RGFW_FALSE;
@@ -12890,7 +12890,7 @@ RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) {
 		}
 	}
 
-	return node->mon;
+	return &node->mon;
 }
 
 RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
@@ -13975,7 +13975,7 @@ u32 RGFW_WASMPhysicalToRGFW(u32 hash) {
 /* unsupported functions */
 void RGFW_window_focus(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_raise(RGFW_window* win) { RGFW_UNUSED(win); }
-RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest* request) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
+RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
 
 void RGFW_pollMonitors(void) { }
 void RGFW_window_move(RGFW_window* win, i32 x, i32 y) { RGFW_UNUSED(win);  RGFW_UNUSED(x); RGFW_UNUSED(y);  }
@@ -14040,7 +14040,7 @@ typedef RGFW_bool (*RGFW_window_isHidden_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMinimized_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMaximized_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_monitor_requestMode_ptr)(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request);
-typedef RGFW_monitor (*RGFW_window_getMonitor_ptr)(RGFW_window* win);
+typedef RGFW_monitor* (*RGFW_window_getMonitor_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_closePlatform_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_createSurfacePtr_ptr)(u8* data, i32 w, i32 h, RGFW_format format, RGFW_surface* surface);
 typedef void (*RGFW_window_blitSurface_ptr)(RGFW_window* win, RGFW_surface* surface);
@@ -14173,7 +14173,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) { RGFW_api.writeClipboar
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) { return RGFW_api.window_isHidden(win); }
 RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { return RGFW_api.window_isMinimized(win); }
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { return RGFW_api.window_isMaximized(win); }
-RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest* request) { return RGFW_api.monitor_requestMode(mon, mode, request); }
+RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) { return RGFW_api.monitor_requestMode(mon, mode, request); }
 RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) { return RGFW_api.window_getMonitor(win); }
 void RGFW_window_closePlatform(RGFW_window* win) { RGFW_api.window_closePlatform(win); }
 
