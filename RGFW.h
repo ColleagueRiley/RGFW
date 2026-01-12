@@ -13994,7 +13994,7 @@ RGFW_bool RGFW_window_isHidden(RGFW_window* win) { RGFW_UNUSED(win); return RGFW
 RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
 RGFW_bool RGFW_window_isFloating(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
-RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win); return (RGFW_monitor){}; }
+RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win); return NULL; }
 void RGFW_waitForEvent(i32 waitMS) { RGFW_UNUSED(waitMS); }
 #endif
 
