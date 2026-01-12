@@ -57,11 +57,11 @@ int main(void) {
 
 	if (mon) {
 		width = (i32)((float)mon->mode.w * mon->pixelRatio);
-		height = (i32)((float)mon->mode.w * mon->pixelRatio);
+		height = (i32)((float)mon->mode.h * mon->pixelRatio);
 	}
 
-    u8* buffer = (u8*)RGFW_ALLOC((u32)(width * height * 4));
-    RGFW_surface* surface = RGFW_createSurface(buffer, width, height, RGFW_formatRGBA8);
+	u8* buffer = (u8*)RGFW_ALLOC((u32)(width * height * 4));
+	RGFW_surface* surface = RGFW_createSurface(buffer, width, height, RGFW_formatRGBA8);
 
     i8 running = 1;
 
