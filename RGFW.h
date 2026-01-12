@@ -9260,7 +9260,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor* mon, RGFW_monitorMo
 	return RGFW_FALSE;
 }
 
-RGFW_monitor RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
+RGFW_monitor* RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
 	RGFW_ASSERT(win);
 	return win->src.active_monitor;
 }
@@ -10489,7 +10489,7 @@ void RGFW_pollMonitors(void) {
 	RGFW_monitors_refresh();
 }
 
-RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
+RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) {
 	HMONITOR src = MonitorFromWindow(win->src.window, MONITOR_DEFAULTTOPRIMARY);
 
 	RGFW_monitorNode* node = _RGFW->monitors.list.head;
@@ -12840,7 +12840,7 @@ void RGFW_pollMonitors(void) {
 }
 
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
-    CGDirectDisplayID display = mon.node->display;
+    CGDirectDisplayID display = mon->node->display;
     CFArrayRef allModes = CGDisplayCopyAllDisplayModes(display, NULL);
 
     if (allModes == NULL)
@@ -12858,7 +12858,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RG
 		foundMode.refreshRate =  RGFW_osx_getRefreshRate(display, cmode);
 		foundMode.red = 8; foundMode.green = 8; foundMode.blue = 8;
 
-		if (RGFW_monitorModeCompare(mode, foundMode, request)) {
+		if (RGFW_monitorModeCompare(mode, &foundMode, request)) {
 			native = cmode;
 			break;
         }
@@ -12875,7 +12875,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RG
 	return RGFW_FALSE;
 }
 
-RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
+RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) {
 	id screen = objc_msgSend_id(win->src.window, sel_registerName("screen"));
 	id description = objc_msgSend_id(screen, sel_registerName("deviceDescription"));
 	id screenNumberKey = NSString_stringWithUTF8String("NSScreenNumber");
@@ -13994,7 +13994,7 @@ RGFW_bool RGFW_window_isHidden(RGFW_window* win) { RGFW_UNUSED(win); return RGFW
 RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
 RGFW_bool RGFW_window_isFloating(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
-RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win); return (RGFW_monitor){}; }
+RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win); return (RGFW_monitor){}; }
 void RGFW_waitForEvent(i32 waitMS) { RGFW_UNUSED(waitMS); }
 #endif
 
@@ -14174,7 +14174,7 @@ RGFW_bool RGFW_window_isHidden(RGFW_window* win) { return RGFW_api.window_isHidd
 RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { return RGFW_api.window_isMinimized(win); }
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { return RGFW_api.window_isMaximized(win); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest* request) { return RGFW_api.monitor_requestMode(mon, mode, request); }
-RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { return RGFW_api.window_getMonitor(win); }
+RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) { return RGFW_api.window_getMonitor(win); }
 void RGFW_window_closePlatform(RGFW_window* win) { RGFW_api.window_closePlatform(win); }
 
 #ifdef RGFW_OPENGL
