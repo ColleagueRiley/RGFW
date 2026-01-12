@@ -7240,6 +7240,30 @@ static void RGFW_XGetSystemContentDPI(float* dpi) {
 	if (dpiOutput) *dpi = dpiOutput;
 }
 
+RGFWDEF XRRModeInfo* RGFW_XGetMode(XRRScreenResources* res, RRMode mode, RGFW_monitorMode* foundMode);
+XRRModeInfo* RGFW_XGetMode(XRRScreenResources* res, RRMode mode, RGFW_monitorMode* foundMode) {
+	XRRModeInfo* mi = None;
+	for (i32 j = 0; j < res->nmode; j++) {
+		if (res->modes[j].id ==  mode)
+			mi = &res->modes[j];
+	}
+
+	if (mi == None) return NULL;
+
+	if ((mi->modeFlags & RR_Interlace) != 0) return NULL;
+
+	foundMode->w = (i32)mi->width;
+	foundMode->h = (i32)mi->height;
+	RGFW_splitBPP((u32)DefaultDepth(_RGFW->display, DefaultScreen(_RGFW->display)), foundMode);
+
+	foundMode->refreshRate = 0;
+	if (mi->hTotal && mi->vTotal) {
+		foundMode->refreshRate = (u32) RGFW_ROUND((float)((double) mi->dotClock / ((double) mi->hTotal * (double) mi->vTotal)));
+	}
+
+	return mi;
+}
+
 void RGFW_FUNC(RGFW_pollMonitors) (void) {
     RGFW_init();
 
@@ -7290,25 +7314,27 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 		RGFW_STRNCPY(monitor.name, info->name, sizeof(monitor.name) - 1);
 		monitor.name[sizeof(monitor.name) - 1] = '\0';
 
-
 		if (physW > 0.0f && physH > 0.0f) {
 			monitor.physW = physW;
 			monitor.physH = physH;
+		} else {
+			monitor.physW = (i32) ((float)ci->width / 96.f);
+			monitor.physH = (i32) ((float)ci->height / 96.f);
 		}
 
 		monitor.x = ci->x;
 		monitor.y = ci->y;
-
-		if (ci->width && ci->height) {
-			monitor.mode.w = (i32)ci->width;
-			monitor.mode.h = (i32)ci->height;
-		}
 
 		float dpi = 96.0f;
 		RGFW_XGetSystemContentDPI(&dpi);
 
 		monitor.scaleX = dpi / 96.0f;
 		monitor.scaleY = dpi / 96.0f;
+
+		XRRModeInfo* mi = RGFW_XGetMode(res, ci->mode, &monitor.mode);
+		if (mi == NULL) {
+			break;
+		}
 
 		XRRFreeCrtcInfo(ci);
 
@@ -7349,20 +7375,11 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor* mon, RGFW_monitorMod
 
     int i;
     for (i = 0; i < oi->nmode; i++) {
-		XRRModeInfo* mi = None;
-		for (i32 j = 0; j < res->nmode; j++) {
-			if (res->modes[j].id ==  oi->modes[i])
-				mi = &res->modes[j];
-		}
-
-		if (mi == None) continue;
-
-		if ((mi->modeFlags & RR_Interlace) != 0) continue;
-
 		RGFW_monitorMode foundMode;
-		foundMode.w = (i32)mi->width;
-		foundMode.h = (i32)mi->height;
-		RGFW_splitBPP((u32)DefaultDepth(_RGFW->display, DefaultScreen(_RGFW->display)), &foundMode);
+		XRRModeInfo* mi = RGFW_XGetMode(res, oi->modes[i], &foundMode);
+		if (mi == NULL) {
+			continue;
+		}
 
 		if (RGFW_monitorModeCompare(mode, &foundMode, request)) {
 			native = mi->id;
