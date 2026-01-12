@@ -3,11 +3,21 @@ changelog
 
 Current:
 
-Release:    RGFW 1.9-dev
+Release:    RGFW 2.0-dev
 -----------------------------------------------
-So far, this release is focused on fixing bugs and cleaning up aspects of RGFW's API.
+So far, this release is focused on fixing bugs, cleaning up aspects of RGFW's API and internals, while reviewing inadequate support (e.g. monitor support).
 
-In this PR I am redefining how RGFW handles versioning. Breaking changes are going to be left for major releases. If something is going to be renamed, the new function will be added in the minor release, and the old one will be removed in the major release. There will be a warning if a feature will be removed in the next major version. This should allow for a smooth transition between versions. Patch versions will be used for minor fixes after minor releases.
+For a while RGFW has used atribrary versioning, but from now on RGFW's versioning will stick to the semver standard.
+
+```
+Given a version number MAJOR.MINOR.PATCH, increment the:
+
+* MAJOR version when you make incompatible API changes
+* MINOR version when you add functionality in a backward compatible manner
+* PATCH version when you make backward compatible bug fixes
+
+Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format.
+```
 
 -----------------------------------------------
 - add RGFW_glForwardCompatibility
@@ -15,7 +25,7 @@ In this PR I am redefining how RGFW handles versioning. Breaking changes are goi
 - add `RGFW_window_rawMouseMode` to enable raw mouse mode (without capturing the mouse)
 - add `RGFW_setRawMouseMode` to enable raw mouse mode across all windows
 - add `RGFW_windowCaptureMouse` and function `RGFW_window_captureMouse` to capture the mouse (without raw mouse mode)
-- add `RGFW_window_captureRawMouse` and flag `RGFW_windowCaptureRawMouse` for capturing the mouse and enabling raw mouse mode (RGFW_window_captureRawMouse will replace holdMouse/unholdMouse in 2.0)
+- add `RGFW_window_captureRawMouse` and flag `RGFW_windowCaptureRawMouse` for capturing the mouse and enabling raw mouse mode (RGFW_window_captureRawMouse replaces holdMouse/unholdMouse)
 - fix mouse hold/unhold on focus/unfocus
 - cleanup hacky X11 raw mouse input
 - support window resizing in the Vulkan Example
@@ -41,6 +51,19 @@ In this PR I am redefining how RGFW handles versioning. Breaking changes are goi
 - do not center cursor when the cursor is captured anymore
 - make sure mouse events during raw mouse mode still return the correct relative cursor value
 - add `RGFW_checkEvent` and `RGFW_checkQueuedEvent` for checking the event queue without a window handle
+- pollMonitors on OS monitor events
+- use cached linked-list monitor data for accessing monitor data
+- store source monitor data in the monitor struct by including a pointer to the internal node
+- use pointers for monitor and RGFW_monitorMode functions to prevent copies of large amounts of struct data
+	`RGFW_monitor* RGFW_getMonitors` -> `RGFW_monitor** RGFW_getMonitors`
+	`RGFW_monitor RGFW_getPrimaryMonitor` -> `RGFW_monitor* RGFW_getPrimaryMonitor`
+	`RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request)` -> `RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request)`
+	`RGFW_monitorModeCompare(RGFW_monitorMode mon, RGFW_monitorMode mon2, RGFW_modeRequest request)` -> `RGFW_monitorModeCompare(RGFW_monitorMode* mon, RGFW_monitorMode* mon2, RGFW_modeRequest request)`
+	`RGFW_monitor_scaleToWindow(RGFW_monitor mon, struct RGFW_window* win)` -> `RGFW_monitor_scaleToWindow(RGFW_monitor* mon, struct RGFW_window* win)`
+	`RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m)` -> `RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor* m)`
+	`RGFW_monitor RGFW_window_getMonitor` -> `RGFW_monitor* RGFW_window_getMonitor`
+
+
 
 Release:    RGFW 1.8.0
 -----------------------------------------------

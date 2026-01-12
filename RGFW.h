@@ -1,6 +1,6 @@
 /*
 *
-*	RGFW 1.9.0-dev
+*	RGFW 2.0.0-dev
 
 * Copyright (C) 2022-26 Riley Mabb (@ColleagueRiley)
 *
@@ -475,7 +475,6 @@ typedef struct RGFW_monitorMode {
 	u32 refreshRate; /*!< monitor refresh rate */
 	u8 red, blue, green;
 } RGFW_monitorMode;
-
 
 /*! @brief structure for monitor node and source monitor data */
 typedef struct RGFW_monitorNode RGFW_monitorNode;
@@ -1184,15 +1183,15 @@ RGFWDEF void RGFW_pollMonitors(void);
 /**!
  * @brief Retrieves an array of all available monitors.
  * @param len [OUTPUT] A pointer to store the number of monitors found (maximum of RGFW_MAX_MONITORS [6 by default]).
- * @return A pointer to an array of RGFW_monitor structures.
+ * @return An array of pointers to RGFW_monitor structures.
 */
-RGFWDEF RGFW_monitor* RGFW_getMonitors(size_t* len);
+RGFWDEF RGFW_monitor** RGFW_getMonitors(size_t* len);
 
 /**!
  * @brief Retrieves the primary monitor.
- * @return The RGFW_monitor structure representing the primary monitor.
+ * @return A pointer to the RGFW_monitor structure representing the primary monitor.
 */
-RGFWDEF RGFW_monitor RGFW_getPrimaryMonitor(void);
+RGFWDEF RGFW_monitor* RGFW_getPrimaryMonitor(void);
 
 /**!
  * @brief Requests a specific display mode for a monitor.
@@ -1201,7 +1200,7 @@ RGFWDEF RGFW_monitor RGFW_getPrimaryMonitor(void);
  * @param request The RGFW_modeRequest describing how to handle the mode change.
  * @return RGFW_TRUE if the mode was successfully applied, otherwise RGFW_FALSE.
 */
-RGFWDEF RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request);
+RGFWDEF RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request);
 
 /**!
  * @brief Compares two monitor modes to check if they are equivalent.
@@ -1210,7 +1209,7 @@ RGFWDEF RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mo
  * @param request The RGFW_modeRequest that defines the comparison parameters.
  * @return RGFW_TRUE if both modes are equivalent, otherwise RGFW_FALSE.
 */
-RGFWDEF RGFW_bool RGFW_monitorModeCompare(RGFW_monitorMode mon, RGFW_monitorMode mon2, RGFW_modeRequest request);
+RGFWDEF RGFW_bool RGFW_monitorModeCompare(RGFW_monitorMode* mon, RGFW_monitorMode* mon2, RGFW_modeRequest request);
 
 /**!
  * @brief Scales a monitor’s mode to match a window’s size.
@@ -1218,7 +1217,7 @@ RGFWDEF RGFW_bool RGFW_monitorModeCompare(RGFW_monitorMode mon, RGFW_monitorMode
  * @param win The window whose size should be used as a reference.
  * @return RGFW_TRUE if the scaling was successful, otherwise RGFW_FALSE.
 */
-RGFWDEF RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, struct RGFW_window* win);
+RGFWDEF RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor* mon, struct RGFW_window* win);
 
  /**!
  * @brief set (enable or disable) raw mouse mode globally
@@ -1697,7 +1696,7 @@ RGFWDEF void RGFW_window_move(RGFW_window* win, i32 x, i32 y);
  * @param win a pointer to the target window
  * @param m the target monitor
 */
-RGFWDEF void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m);
+RGFWDEF void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor* m);
 
 /**!
  * @brief resizes the window to the given dimensions
@@ -1912,21 +1911,6 @@ RGFWDEF void RGFW_window_captureMouse(RGFW_window* win, RGFW_bool state);
 RGFWDEF void RGFW_window_captureRawMouse(RGFW_window* win, RGFW_bool state);
 
 /**!
- * @brief Locks the cursor to the center of the window.
- * @param win The target window.
- * @warning this function is deprecated and will be replaced by RGFW_window_captureRawMouse in RGFW 2.0
- *
-*/
-RGFWDEF void RGFW_window_holdMouse(RGFW_window* win);
-
-/**!
- * @brief Releases the mouse so it can move freely again.
- * @param win The target window.
- * @warning this function is deprecated and will be replaced by RGFW_window_captureRawMouse in RGFW 2.0
-*/
-RGFWDEF void RGFW_window_unholdMouse(RGFW_window* win);
-
-/**!
  * @brief Returns true if the mouse is using raw mouse mode
  * @param win The target window.
  * @return True if the mouse is using raw mouse input mode.
@@ -1940,14 +1924,6 @@ RGFWDEF RGFW_bool RGFW_window_isRawMouseMode(RGFW_window* win);
  * @return True if the mouse is being captured.
 */
 RGFWDEF RGFW_bool RGFW_window_isCaptured(RGFW_window* win);
-
-/**!
- * @brief Returns true if the mouse is currently held by RGFW.
- * @param win The target window.
- * @return True if the mouse is being held.
- * @warning this function is deprecated and will be replaced by RGFW_window_isHoldingMouse in RGFW 2.0
-*/
-RGFWDEF RGFW_bool RGFW_window_isHoldingMouse(RGFW_window* win);
 
 /**!
  * @brief Hides the window from view.
@@ -2076,7 +2052,7 @@ RGFWDEF void RGFW_window_scaleToMonitor(RGFW_window* win);
  * @param win The target window.
  * @return The monitor structure of the window.
 */
-RGFWDEF RGFW_monitor RGFW_window_getMonitor(RGFW_window* win);
+RGFWDEF RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win);
 
 /** @} */
 
@@ -3674,10 +3650,10 @@ void* RGFW_window_getUserPtr(RGFW_window* win) { return win->userPtr; }
 void RGFW_window_setUserPtr(RGFW_window* win, void* ptr) { win->userPtr = ptr; }
 
 RGFW_bool RGFW_window_getSizeInPixels(RGFW_window* win, i32* w, i32* h) {
-	RGFW_monitor mon = RGFW_window_getMonitor(win);
+	RGFW_monitor* mon = RGFW_window_getMonitor(win);
 
-	if (w) *w = (i32)((float)win->w * mon.pixelRatio);
-	if (h) *h = (i32)((float)win->h * mon.pixelRatio);
+	if (w) *w = (i32)((float)win->w * mon->pixelRatio);
+	if (h) *h = (i32)((float)win->h * mon->pixelRatio);
 
 	return RGFW_TRUE;
 }
@@ -3854,7 +3830,7 @@ void RGFW_window_closePtr(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
 	if (win->internal.captureMouse) {
-		RGFW_window_unholdMouse(win);
+		RGFW_window_captureMouse(win, RGFW_FALSE);
 	}
 
 	#ifdef RGFW_EGL
@@ -4158,17 +4134,17 @@ void RGFW_setBit(u32* var, u32 mask, RGFW_bool set) {
 
 void RGFW_window_center(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-	RGFW_monitor mon = RGFW_window_getMonitor(win);
-	RGFW_window_move(win, (i32)(mon.mode.w - win->w) / 2, (mon.mode.h - win->h) / 2);
+	RGFW_monitor* mon = RGFW_window_getMonitor(win);
+	RGFW_window_move(win, (i32)(mon->mode.w - win->w) / 2, (mon->mode.h - win->h) / 2);
 }
 
-RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor mon, RGFW_window* win) {
+RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor* mon, RGFW_window* win) {
 	RGFW_monitorMode mode;
     RGFW_ASSERT(win != NULL);
 
 	mode.w = win->w;
 	mode.h = win->h;
-	return RGFW_monitor_requestMode(mon, mode, RGFW_monitorScale);
+	return RGFW_monitor_requestMode(mon, &mode, RGFW_monitorScale);
 }
 
 void RGFW_splitBPP(u32 bpp, RGFW_monitorMode* mode) {
@@ -4180,10 +4156,13 @@ void RGFW_splitBPP(u32 bpp, RGFW_monitorMode* mode) {
     if (delta == 2) mode->red = mode->red + 1;
 }
 
-RGFW_bool RGFW_monitorModeCompare(RGFW_monitorMode mon, RGFW_monitorMode mon2, RGFW_modeRequest request) {
-	return (((mon.w == mon2.w && mon.h == mon2.h) || !(request & RGFW_monitorScale)) &&
-			((mon.refreshRate == mon2.refreshRate) || !(request & RGFW_monitorRefresh)) &&
-			((mon.red == mon2.red && mon.green == mon2.green && mon.blue == mon2.blue) || !(request & RGFW_monitorRGB)));
+RGFW_bool RGFW_monitorModeCompare(RGFW_monitorMode* mon, RGFW_monitorMode* mon2, RGFW_modeRequest request) {
+	RGFW_ASSERT(mon);
+	RGFW_ASSERT(mon2);
+
+	return (((mon->w == mon2->w && mon->h == mon2->h) || !(request & RGFW_monitorScale)) &&
+			((mon->refreshRate == mon2->refreshRate) || !(request & RGFW_monitorRefresh)) &&
+			((mon->red == mon2->red && mon->green == mon2->green && mon->blue == mon2->blue) || !(request & RGFW_monitorRGB)));
 }
 
 RGFW_bool RGFW_window_shouldClose(RGFW_window* win) {
@@ -4199,15 +4178,15 @@ void RGFW_window_setShouldClose(RGFW_window* win, RGFW_bool shouldClose) {
 }
 
 void RGFW_window_scaleToMonitor(RGFW_window* win) {
-	RGFW_monitor monitor = RGFW_window_getMonitor(win);
-	if (monitor.scaleX == 0 && monitor.scaleY == 0)
+	RGFW_monitor* monitor = RGFW_window_getMonitor(win);
+	if (monitor->scaleX == 0 && monitor->scaleY == 0)
 		return;
 
-	RGFW_window_resize(win, (i32)(monitor.scaleX * (float)win->w), (i32)(monitor.scaleY * (float)win->h));
+	RGFW_window_resize(win, (i32)(monitor->scaleX * (float)win->w), (i32)(monitor->scaleY * (float)win->h));
 }
 
-void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m) {
-	RGFW_window_move(win, m.x + win->x, m.y + win->y);
+void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor* m) {
+	RGFW_window_move(win, m->x + win->x, m->y + win->y);
 }
 
 RGFW_surface* RGFW_createSurface(u8* data, i32 w, i32 h, RGFW_format format) {
@@ -4353,8 +4332,8 @@ void RGFW_monitors_refresh(void) {
 	}
 }
 
-RGFW_monitor* RGFW_getMonitors(size_t* len) {
-	static RGFW_monitor monitors[RGFW_MAX_MONITORS];
+RGFW_monitor** RGFW_getMonitors(size_t* len) {
+	static RGFW_monitor* monitors[RGFW_MAX_MONITORS];
 	RGFW_init();
 	if (len != NULL) {
 		*len = _RGFW->monitors.count;
@@ -4363,19 +4342,19 @@ RGFW_monitor* RGFW_getMonitors(size_t* len) {
 	u8 i = 0;
 	RGFW_monitorNode* cur_node = _RGFW->monitors.list.head;
 	while (cur_node != NULL) {
-		monitors[i] = cur_node->mon;
+		monitors[i] = &cur_node->mon;
 		i++;
 		cur_node = cur_node->next;
 	}
     return monitors;
 }
 
-RGFW_monitor RGFW_getPrimaryMonitor(void) {
+RGFW_monitor* RGFW_getPrimaryMonitor(void) {
 	if (_RGFW->monitors.primary == NULL) {
 		_RGFW->monitors.primary = _RGFW->monitors.list.head;
 	}
 
-	return _RGFW->monitors.primary->mon;
+	return &_RGFW->monitors.primary->mon;
 }
 
 RGFW_bool RGFW_window_setIcon(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format) {
@@ -4397,12 +4376,8 @@ void RGFW_window_captureRawMouse(RGFW_window* win, RGFW_bool state) {
 	RGFW_window_setRawMouseMode(win, state);
 }
 
-void RGFW_window_holdMouse(RGFW_window* win) { RGFW_window_captureRawMouse(win, RGFW_TRUE); }
-void RGFW_window_unholdMouse(RGFW_window* win) { RGFW_window_captureRawMouse(win, RGFW_FALSE); }
-
 RGFW_bool RGFW_window_isRawMouseMode(RGFW_window* win) { return RGFW_BOOL(win->internal.rawMouse); }
 RGFW_bool RGFW_window_isCaptured(RGFW_window* win) { return RGFW_BOOL(win->internal.captureMouse);  }
-RGFW_bool RGFW_window_isHoldingMouse(RGFW_window* win) { return RGFW_window_isRawMouseMode(win) && RGFW_window_isCaptured(win); }
 
 void RGFW_updateKeyMod(RGFW_window* win, RGFW_keymod mod, RGFW_bool value) {
 	if (value) win->internal.mod |= mod;
@@ -7353,7 +7328,7 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 	RGFW_monitors_refresh();
 }
 
-RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
+RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
 	#ifndef RGFW_NO_XRANDR
     RGFW_init();
 
@@ -7362,8 +7337,8 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor mon, RGFW_monitorMode
 	XRRScreenResources* res = XRRGetScreenResources(_RGFW->display, DefaultRootWindow(_RGFW->display));
 	if (res == NULL) return RGFW_FALSE;
 
-	XRRCrtcInfo* ci = XRRGetCrtcInfo(_RGFW->display, res, mon.node->crtc);
-	XRROutputInfo* oi = XRRGetOutputInfo(_RGFW->display, res, mon.node->rrOutput);
+	XRRCrtcInfo* ci = XRRGetCrtcInfo(_RGFW->display, res, mon->node->crtc);
+	XRROutputInfo* oi = XRRGetOutputInfo(_RGFW->display, res, mon->node->rrOutput);
 
 	RRMode native = None;
 
@@ -7384,7 +7359,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor mon, RGFW_monitorMode
 		foundMode.h = (i32)mi->height;
 		RGFW_splitBPP((u32)DefaultDepth(_RGFW->display, DefaultScreen(_RGFW->display)), &foundMode);
 
-		if (RGFW_monitorModeCompare(mode, foundMode, request)) {
+		if (RGFW_monitorModeCompare(mode, &foundMode, request)) {
 			native = mi->id;
 			output = RGFW_TRUE;
 			break;
@@ -7392,7 +7367,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor mon, RGFW_monitorMode
 	}
 
 	if (native) {
-		XRRSetCrtcConfig(_RGFW->display, res, mon.node->crtc, CurrentTime, ci->x, ci->y, native, ci->rotation, ci->outputs, ci->noutput);
+		XRRSetCrtcConfig(_RGFW->display, res, mon->node->crtc, CurrentTime, ci->x, ci->y, native, ci->rotation, ci->outputs, ci->noutput);
 	}
 
     XRRFreeOutputInfo(oi);
@@ -7403,24 +7378,21 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor mon, RGFW_monitorMode
 	return RGFW_FALSE;
 }
 
-RGFW_monitor RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
-    RGFW_monitor mon;
-    RGFW_MEMSET(&mon, 0, sizeof(mon));
-
+RGFW_monitor* RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
     RGFW_ASSERT(win != NULL);
 
 	XWindowAttributes attrs;
     if (!XGetWindowAttributes(_RGFW->display, win->src.window, &attrs)) {
-        return mon;
-    }
+		return NULL;
+	}
 
 	for (RGFW_monitorNode* node = _RGFW->monitors.list.head; node; node = node->next) {
-		if ((attrs.x < mon.x + mon.mode.w) && (attrs.x + attrs.width > mon.x) && (attrs.y < mon.y + mon.mode.h) && (attrs.y + attrs.height > mon.y))
-			return node->mon;
+		if ((attrs.x < node->mon.x + node->mon.mode.w) && (attrs.x + attrs.width > node->mon.x) && (attrs.y < node->mon.y + node->mon.mode.h) && (attrs.y + attrs.height > node->mon.y))
+			return &node->mon;
 	}
 
 
-	return _RGFW->monitors.list.head->mon;
+	return &_RGFW->monitors.list.head->mon;
 }
 
 #ifdef RGFW_OPENGL
@@ -9283,7 +9255,7 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 	_RGFW->monitors.primary = _RGFW->monitors.list.head;
 }
 
-RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
+RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
 	RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request);
 	return RGFW_FALSE;
 }
@@ -10297,15 +10269,16 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 	win->internal.oldH = win->h;
 	win->internal.flags |= RGFW_windowFullscreen;
 
-	RGFW_monitor mon  = RGFW_window_getMonitor(win);
+	RGFW_monitor* mon  = RGFW_window_getMonitor(win);
 	RGFW_window_setBorder(win, 0);
 
-    SetWindowPos(win->src.window, HWND_TOPMOST, (i32)mon.x, (i32)mon.x, (i32)mon.mode.w, (i32)mon.mode.h, SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+    SetWindowPos(win->src.window, HWND_TOPMOST, (i32)mon->x, (i32)mon->x, (i32)mon->mode.w, (i32)mon->mode.h, SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
     RGFW_monitor_scaleToWindow(mon, win);
 
-	win->x = mon.x; win->y = mon.x;
-	win->w = mon.mode.w;
-	win->h = mon.mode.h;
+	win->x = mon->x;
+	win->y = mon->x;
+	win->w = mon->mode.w;
+	win->h = mon->mode.h;
 }
 
 void RGFW_window_maximize(RGFW_window* win) {
@@ -10529,7 +10502,7 @@ RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) {
 	return node->mon;
 }
 
-RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
+RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
     HMONITOR src = mon.node->hMonitor;
 
 	MONITORINFOEX  monitorInfo;
@@ -11755,8 +11728,8 @@ static void RGFW__osxDidWindowResize(id self, SEL _cmd, id notification) {
 	win->w = (i32)frame.size.width;
 	win->h = (i32)frame.size.height;
 
-	RGFW_monitor mon = RGFW_window_getMonitor(win);
-	if ((i32)mon.mode.w == win->w && (i32)mon.mode.h - 102 <= win->h) {
+	RGFW_monitor* mon = RGFW_window_getMonitor(win);
+	if ((i32)mon->mode.w == win->w && (i32)mon->mode.h - 102 <= win->h) {
 		RGFW_windowMaximizedCallback(win, 0, 0, win->w, win->h);
 	} else if (win->internal.flags & RGFW_windowMaximize) {
 		RGFW_windowRestoredCallback(win, win->x, win->y, win->w, win->h);
@@ -11782,8 +11755,8 @@ static void RGFW__osxViewDidChangeBackingProperties(id self, SEL _cmd) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
-	RGFW_monitor mon = RGFW_window_getMonitor(win);
-	RGFW_scaleUpdatedCallback(win, mon.scaleX, mon.scaleY);
+	RGFW_monitor* mon = RGFW_window_getMonitor(win);
+	RGFW_scaleUpdatedCallback(win, mon->scaleX, mon->scaleY);
 }
 
 static BOOL RGFW__osxWantsUpdateLayer(id self, SEL _cmd) { RGFW_UNUSED(self); RGFW_UNUSED(_cmd); return YES; }
@@ -11985,9 +11958,9 @@ void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	int minX = RGFW_MIN(win->w, surface->w);
 	int minY = RGFW_MIN(win->h, surface->h);
 
-	RGFW_monitor mon = RGFW_window_getMonitor(win);
-	minX =  (i32)((float)minX * mon.pixelRatio);
-	minY = (i32)((float)minY * mon.pixelRatio);
+	RGFW_monitor* mon = RGFW_window_getMonitor(win);
+	minX =  (i32)((float)minX * mon->pixelRatio);
+	minY = (i32)((float)minY * mon->pixelRatio);
 
 	RGFW_copyImageData(surface->native.buffer, surface->w, minY, surface->native.format, surface->data, surface->format);
 
@@ -12457,14 +12430,14 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 		win->internal.oldY = win->y;
 		win->internal.oldW = win->w;
 		win->internal.oldH = win->h;
-		RGFW_monitor mon = RGFW_window_getMonitor(win);
-		win->x = mon.x;
-		win->y = mon.y;
-		win->w = mon.mode.w;
-		win->h = mon.mode.h;
+		RGFW_monitor* mon = RGFW_window_getMonitor(win);
+		win->x = mon->x;
+		win->y = mon->y;
+		win->w = mon->mode.w;
+		win->h = mon->mode.h;
 		win->internal.flags |= RGFW_windowFullscreen;
-		RGFW_window_resize(win, mon.mode.w, mon.mode.h);
-		RGFW_window_move(win, mon.x, mon.y);
+		RGFW_window_resize(win, mon->mode.w, mon->mode.h);
+		RGFW_window_move(win, mon->x, mon->y);
 	}
 	objc_msgSend_void_SEL(win->src.window, sel_registerName("toggleFullScreen:"), NULL);
 
@@ -12551,9 +12524,9 @@ void RGFW_window_setMinSize(RGFW_window* win, i32 w, i32 h) {
 
 void RGFW_window_setMaxSize(RGFW_window* win, i32 w, i32 h) {
 	if (w == 0 && h == 0) {
-		RGFW_monitor mon = RGFW_window_getMonitor(win);
-		w = mon.mode.w;
-		h = mon.mode.h;
+		RGFW_monitor* mon = RGFW_window_getMonitor(win);
+		w = mon->mode.w;
+		h = mon->mode.h;
 	}
 
 	((void (*)(id, SEL, NSSize))objc_msgSend)
@@ -12866,7 +12839,7 @@ void RGFW_pollMonitors(void) {
 	RGFW_monitors_refresh();
 }
 
-RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) {
+RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
     CGDirectDisplayID display = mon.node->display;
     CFArrayRef allModes = CGDisplayCopyAllDisplayModes(display, NULL);
 
@@ -13846,9 +13819,9 @@ void RGFW_window_setName(RGFW_window* win, const char* name) {
 void RGFW_window_maximize(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
-	RGFW_monitor mon = RGFW_window_getMonitor(win);
+	RGFW_monitor* mon = RGFW_window_getMonitor(win);
 	RGFW_window_move(win, 0, 0);
-	RGFW_window_resize(win, mon.mode.w, mon.mode.h);
+	RGFW_window_resize(win, mon->mode.w, mon->mode.h);
 }
 
 void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
@@ -14002,7 +13975,7 @@ u32 RGFW_WASMPhysicalToRGFW(u32 hash) {
 /* unsupported functions */
 void RGFW_window_focus(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_raise(RGFW_window* win) { RGFW_UNUSED(win); }
-RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
+RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest* request) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
 
 void RGFW_pollMonitors(void) { }
 void RGFW_window_move(RGFW_window* win, i32 x, i32 y) { RGFW_UNUSED(win);  RGFW_UNUSED(x); RGFW_UNUSED(y);  }
@@ -14066,7 +14039,7 @@ typedef void (*RGFW_writeClipboard_ptr)(const char* text, u32 textLen);
 typedef RGFW_bool (*RGFW_window_isHidden_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMinimized_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMaximized_ptr)(RGFW_window* win);
-typedef RGFW_bool (*RGFW_monitor_requestMode_ptr)(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request);
+typedef RGFW_bool (*RGFW_monitor_requestMode_ptr)(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request);
 typedef RGFW_monitor (*RGFW_window_getMonitor_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_closePlatform_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_createSurfacePtr_ptr)(u8* data, i32 w, i32 h, RGFW_format format, RGFW_surface* surface);
@@ -14200,7 +14173,7 @@ void RGFW_writeClipboard(const char* text, u32 textLen) { RGFW_api.writeClipboar
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) { return RGFW_api.window_isHidden(win); }
 RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { return RGFW_api.window_isMinimized(win); }
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { return RGFW_api.window_isMaximized(win); }
-RGFW_bool RGFW_monitor_requestMode(RGFW_monitor mon, RGFW_monitorMode mode, RGFW_modeRequest request) { return RGFW_api.monitor_requestMode(mon, mode, request); }
+RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest* request) { return RGFW_api.monitor_requestMode(mon, mode, request); }
 RGFW_monitor RGFW_window_getMonitor(RGFW_window* win) { return RGFW_api.window_getMonitor(win); }
 void RGFW_window_closePlatform(RGFW_window* win) { RGFW_api.window_closePlatform(win); }
 
