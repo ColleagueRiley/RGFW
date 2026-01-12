@@ -3651,6 +3651,7 @@ void RGFW_window_setUserPtr(RGFW_window* win, void* ptr) { win->userPtr = ptr; }
 
 RGFW_bool RGFW_window_getSizeInPixels(RGFW_window* win, i32* w, i32* h) {
 	RGFW_monitor* mon = RGFW_window_getMonitor(win);
+	if (mon == NULL) return RGFW_FALSE;
 
 	if (w) *w = (i32)((float)win->w * mon->pixelRatio);
 	if (h) *h = (i32)((float)win->h * mon->pixelRatio);
@@ -4135,6 +4136,8 @@ void RGFW_setBit(u32* var, u32 mask, RGFW_bool set) {
 void RGFW_window_center(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_monitor* mon = RGFW_window_getMonitor(win);
+	if (mon == NULL) return;
+
 	RGFW_window_move(win, (i32)(mon->mode.w - win->w) / 2, (mon->mode.h - win->h) / 2);
 }
 
@@ -11729,6 +11732,8 @@ static void RGFW__osxDidWindowResize(id self, SEL _cmd, id notification) {
 	win->h = (i32)frame.size.height;
 
 	RGFW_monitor* mon = RGFW_window_getMonitor(win);
+	if (mon == NULL) return;
+
 	if ((i32)mon->mode.w == win->w && (i32)mon->mode.h - 102 <= win->h) {
 		RGFW_windowMaximizedCallback(win, 0, 0, win->w, win->h);
 	} else if (win->internal.flags & RGFW_windowMaximize) {
@@ -11756,6 +11761,8 @@ static void RGFW__osxViewDidChangeBackingProperties(id self, SEL _cmd) {
 	if (win == NULL) return;
 
 	RGFW_monitor* mon = RGFW_window_getMonitor(win);
+	if (mon == NULL) return;
+
 	RGFW_scaleUpdatedCallback(win, mon->scaleX, mon->scaleY);
 }
 
@@ -11959,6 +11966,8 @@ void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	int minY = RGFW_MIN(win->h, surface->h);
 
 	RGFW_monitor* mon = RGFW_window_getMonitor(win);
+	if (mon == NULL) return;
+
 	minX =  (i32)((float)minX * mon->pixelRatio);
 	minY = (i32)((float)minY * mon->pixelRatio);
 
@@ -12430,14 +12439,18 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 		win->internal.oldY = win->y;
 		win->internal.oldW = win->w;
 		win->internal.oldH = win->h;
-		RGFW_monitor* mon = RGFW_window_getMonitor(win);
-		win->x = mon->x;
-		win->y = mon->y;
-		win->w = mon->mode.w;
-		win->h = mon->mode.h;
+
 		win->internal.flags |= RGFW_windowFullscreen;
-		RGFW_window_resize(win, mon->mode.w, mon->mode.h);
-		RGFW_window_move(win, mon->x, mon->y);
+
+		RGFW_monitor* mon = RGFW_window_getMonitor(win);
+		if (mon != NULL) {
+			win->x = mon->x;
+			win->y = mon->y;
+			win->w = mon->mode.w;
+			win->h = mon->mode.h;
+			RGFW_window_resize(win, mon->mode.w, mon->mode.h);
+			RGFW_window_move(win, mon->x, mon->y);
+		}
 	}
 	objc_msgSend_void_SEL(win->src.window, sel_registerName("toggleFullScreen:"), NULL);
 
@@ -12525,8 +12538,10 @@ void RGFW_window_setMinSize(RGFW_window* win, i32 w, i32 h) {
 void RGFW_window_setMaxSize(RGFW_window* win, i32 w, i32 h) {
 	if (w == 0 && h == 0) {
 		RGFW_monitor* mon = RGFW_window_getMonitor(win);
-		w = mon->mode.w;
-		h = mon->mode.h;
+		if (mon != NULL) {
+			w = mon->mode.w;
+			h = mon->mode.h;
+		}
 	}
 
 	((void (*)(id, SEL, NSSize))objc_msgSend)
@@ -13820,8 +13835,11 @@ void RGFW_window_maximize(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
 	RGFW_monitor* mon = RGFW_window_getMonitor(win);
+	if (mon != NULL) {
+		RGFW_window_resize(win, mon->mode.w, mon->mode.h);
+	}
+
 	RGFW_window_move(win, 0, 0);
-	RGFW_window_resize(win, mon->mode.w, mon->mode.h);
 }
 
 void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {

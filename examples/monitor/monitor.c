@@ -18,6 +18,11 @@ int main(void) {
 
     RGFW_window_makeCurrentContext_OpenGL(win);
     RGFW_monitor* mon = RGFW_window_getMonitor(win);
+	if (mon == NULL) {
+		printf("failed to get monitor\n");
+		RGFW_window_close(win);
+		return 0;
+	}
 
 	RGFW_monitor_scaleToWindow(mon, win);
     RGFW_window_setFullscreen(win, 1);

@@ -52,13 +52,13 @@ int main(void) {
     RGFW_window_setExitKey(win, RGFW_escape);
 
     RGFW_monitor* mon = RGFW_window_getMonitor(win);
-    #ifdef RGFW_WAYLAND
-        mon->mode.w = 500;
-        mon->mode.h = 500;
-    #endif
+	i32 width = 500;
+	i32 height = 500;
 
-	i32 width = (i32)((float)mon->mode.w * mon->pixelRatio);
-	i32 height = (i32)((float)mon->mode.w * mon->pixelRatio);
+	if (mon) {
+		width = (i32)((float)mon->mode.w * mon->pixelRatio);
+		height = (i32)((float)mon->mode.w * mon->pixelRatio);
+	}
 
     u8* buffer = (u8*)RGFW_ALLOC((u32)(width * height * 4));
     RGFW_surface* surface = RGFW_createSurface(buffer, width, height, RGFW_formatRGBA8);
