@@ -13,12 +13,13 @@
 #endif
 
 int main(void) {
-    RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowCenter | RGFW_windowOpenGL);
-    RGFW_window_setExitKey(win, RGFW_escape);
+	RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowCenter | RGFW_windowOpenGL);
+	RGFW_window_setExitKey(win, RGFW_escape);
 
     RGFW_window_makeCurrentContext_OpenGL(win);
-    RGFW_monitor mon = RGFW_window_getMonitor(win);
-    RGFW_monitor_scaleToWindow(mon, win);
+    RGFW_monitor* mon = RGFW_window_getMonitor(win);
+
+	RGFW_monitor_scaleToWindow(mon, win);
     RGFW_window_setFullscreen(win, 1);
 
     RGFW_bool scaled = RGFW_TRUE;
@@ -32,7 +33,7 @@ int main(void) {
                     scaled = RGFW_FALSE;
                     RGFW_window_minimize(win);
 #ifndef RGFW_X11
-                    RGFW_monitor_requestMode(RGFW_window_getMonitor(win), mon.mode, RGFW_monitorScale);
+                    RGFW_monitor_requestMode(RGFW_window_getMonitor(win), &mon->mode, RGFW_monitorScale);
 #endif
                     break;
                 case RGFW_focusIn:
@@ -57,7 +58,7 @@ int main(void) {
         RGFW_window_swapBuffers_OpenGL(win);
     }
 
-    RGFW_monitor_requestMode(RGFW_window_getMonitor(win), mon.mode, RGFW_monitorScale);
+    RGFW_monitor_requestMode(RGFW_window_getMonitor(win), &mon->mode, RGFW_monitorScale);
 
     RGFW_window_close(win);
     return 0;
