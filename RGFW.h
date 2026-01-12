@@ -2780,6 +2780,8 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		#endif
 		#ifdef RGFW_WAYLAND
 			struct wl_buffer* wl_buffer;
+			i32 fd;
+			struct wl_shm_pool* pool;
 		#endif
 		u8* buffer;
 		RGFW_format format;
@@ -2833,7 +2835,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		RGFW_bool using_custom_cursor;
 		struct wl_surface* custom_cursor_surface;
 
-		RGFW_monitor active_monitor;
+		RGFW_monitorNode* active_monitor;
 
 		struct wl_data_source *data_source; // offer data to other clients
 
@@ -8249,10 +8251,7 @@ static void RGFW_wl_output_set_mode(void *data, struct wl_output *wl_output, u32
 }
 
 static void RGFW_wl_output_set_scale(void *data, struct wl_output *wl_output, i32 factor) {
-	/* this is for pixelRatio */
-	RGFW_monitor* monitor = &((RGFW_monitorNode*)data)->mon;
-
-	monitor->pixelRatio = (float)factor;
+	((RGFW_monitorNode*)data)->mon.pixelRatio = (float)factor;
 	RGFW_UNUSED(wl_output);
 }
 
@@ -8367,7 +8366,9 @@ static void RGFW_wl_surface_enter(void *data, struct wl_surface *wl_surface, str
 
 	RGFW_window* win = (RGFW_window*)data;
 	RGFW_monitorNode* node = wl_output_get_user_data(output);
-	win->src.active_monitor = node->mon;
+	if (node == NULL) return;
+
+	win->src.active_monitor = node;
 
 	if (win->internal.flags & RGFW_windowScaleToMonitor)
 		RGFW_window_scaleToMonitor(win);
@@ -8696,34 +8697,39 @@ RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (u8* data, i32 w, i32 h, RGFW_format 
 		return RGFW_FALSE;
 	}
 
+	surface->native.pool = wl_shm_create_pool(_RGFW->shm, fd, (i32)size);
+
 	surface->native.buffer = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	if (surface->native.buffer == MAP_FAILED) {
 		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errBuffer, "mmap failed.");
 		return RGFW_FALSE;
 	}
 
-	struct wl_shm_pool* pool = wl_shm_create_pool(_RGFW->shm, fd, (i32)size);
-	surface->native.wl_buffer = wl_shm_pool_create_buffer(pool, 0, (i32)surface->w, (i32)surface->h, (i32)surface->w * 4, WL_SHM_FORMAT_ARGB8888);
-	wl_shm_pool_destroy(pool);
-
-	close(fd);
-
+	surface->native.fd = fd;
 	surface->native.format = RGFW_formatBGRA8;
 	return RGFW_TRUE;
 }
 
 void RGFW_FUNC(RGFW_window_blitSurface) (RGFW_window* win, RGFW_surface* surface) {
 	RGFW_ASSERT(surface != NULL);
-	RGFW_copyImageData(surface->native.buffer, win->w, RGFW_MIN(win->h, surface->h), surface->native.format, surface->data, surface->format);
+
+	surface->native.wl_buffer = wl_shm_pool_create_buffer(surface->native.pool, 0, RGFW_MIN(win->w, surface->w), RGFW_MIN(win->h, surface->h), (i32)surface->w * 4, WL_SHM_FORMAT_ARGB8888);
+	RGFW_copyImageData(surface->native.buffer, surface->w, RGFW_MIN(win->h, surface->h), surface->native.format, surface->data, surface->format);
+
 
 	wl_surface_attach(win->src.surface, surface->native.wl_buffer, 0, 0);
 	wl_surface_damage(win->src.surface, 0, 0, RGFW_MIN(win->w, surface->w), RGFW_MIN(win->h, surface->h));
 	wl_surface_commit(win->src.surface);
+
+	wl_buffer_destroy(surface->native.wl_buffer);
 }
 
 void RGFW_FUNC(RGFW_surface_freePtr) (RGFW_surface* surface) {
 	RGFW_ASSERT(surface != NULL);
-	wl_buffer_destroy(surface->native.wl_buffer);
+
+	wl_shm_pool_destroy(surface->native.pool);
+	close(surface->native.fd);
+
 	munmap(surface->native.buffer, (size_t)(surface->w * surface->h * 4));
 }
 
@@ -9265,7 +9271,12 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor* mon, RGFW_monitorMo
 
 RGFW_monitor* RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
 	RGFW_ASSERT(win);
-	return &win->src.active_monitor;
+	if (win->src.active_monitor == NULL) {
+		/* TODO: fix race condition [probably a problem with wayland] */
+		return RGFW_getPrimaryMonitor();
+	}
+
+	return &win->src.active_monitor->mon;
 }
 
 #ifdef RGFW_OPENGL
