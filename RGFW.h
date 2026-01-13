@@ -1982,6 +1982,18 @@ RGFWDEF RGFW_bool RGFW_getGlobalMouse(i32* x, i32* y);
 RGFWDEF RGFW_bool RGFW_window_getMouse(RGFW_window* win, i32* x, i32* y);
 
 /**!
+* @brief Retrieves the mouse x position relative to the window.
+* @param win The target window.
+*/
+RGFWDEF i32 RGFW_window_getMouseX(RGFW_window* win);
+
+/**!
+* @brief Retrieves the mouse y position relative to the window.
+* @param win The target window.
+*/
+RGFWDEF i32 RGFW_window_getMouseY(RGFW_window* win);
+
+/**!
  * @brief Shows or hides the mouse cursor for the window.
  * @param win The target window.
  * @param show True to show the mouse, false to hide it.
@@ -4056,6 +4068,15 @@ RGFW_bool RGFW_window_getMouse(RGFW_window* win, i32* x, i32* y) {
 	if (x) *x = win->internal.lastMouseX;
 	if (y) *y = win->internal.lastMouseY;
 	return RGFW_TRUE;
+}
+
+i32 RGFW_window_getMouseX(RGFW_window* win) {
+    RGFW_ASSERT(win != NULL);
+    return win->internal.lastMouseX;
+}
+i32 RGFW_window_getMouseY(RGFW_window* win) {
+    RGFW_ASSERT(win != NULL);
+    return win->internal.lastMouseY;
 }
 
 RGFW_bool RGFW_window_isKeyPressed(RGFW_window* win, RGFW_key key) { return RGFW_isKeyPressed(key)  && RGFW_window_isInFocus(win); }
