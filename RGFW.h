@@ -7340,7 +7340,8 @@ XRRModeInfo* RGFW_XGetMode(XRRScreenResources* res, RRMode mode, RGFW_monitorMod
 	foundMode->h = (i32)mi->height;
 	RGFW_splitBPP((u32)DefaultDepth(_RGFW->display, DefaultScreen(_RGFW->display)), foundMode);
 
-	foundMode->src = mi;
+	foundMode->src = (void*)mode;
+
 	foundMode->refreshRate = 0;
 	if (mi->hTotal == 0 || mi->vTotal == 0)
 		return mi;
@@ -7489,16 +7490,18 @@ size_t RGFW_FUNC(RGFW_monitor_getModes) (RGFW_monitor* monitor, RGFW_monitorMode
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_setMode)(RGFW_monitor* mon, RGFW_monitorMode* mode) {
+	RGFW_bool out = RGFW_FALSE;
+
 	XRRScreenResources* res = XRRGetScreenResourcesCurrent(_RGFW->display, DefaultRootWindow(_RGFW->display));
 	XRRCrtcInfo* ci = XRRGetCrtcInfo(_RGFW->display, res, mon->node->crtc);
 
 	if (XRRSetCrtcConfig(_RGFW->display, res, mon->node->crtc, CurrentTime, ci->x, ci->y, (RRMode)mode->src, ci->rotation, ci->outputs, ci->noutput) == True) {
-		return RGFW_TRUE;
+		out = RGFW_TRUE;
 	}
 
 	XRRFreeCrtcInfo(ci);
     XRRFreeScreenResources(res);
-	return RGFW_FALSE;
+	return out;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {

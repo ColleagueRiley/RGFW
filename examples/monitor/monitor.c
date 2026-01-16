@@ -18,6 +18,26 @@ int main(void) {
 
     RGFW_window_makeCurrentContext_OpenGL(win);
     RGFW_monitor* mon = RGFW_window_getMonitor(win);
+
+	printf("%i %i %i %i %f\n", mon->x, mon->y, mon->mode.w, mon->mode.h, (double)mon->mode.refreshRate);
+
+	size_t count = RGFW_monitor_getModes(mon, NULL);
+	RGFW_monitorMode* modes = RGFW_ALLOC(count * sizeof(RGFW_monitorNode));
+	count = RGFW_monitor_getModes(mon, &modes);
+
+	RGFW_monitorMode mode = mon->mode;
+
+	for (size_t i = 0; i < count; i++) {
+		printf("mode %i: %i %i %f\n", (i32)i, modes[i].w, modes[i].h, (double)modes[i].refreshRate);
+
+		if (mode.refreshRate > 60) {
+			RGFW_monitor_setMode(mon, &modes[i]);
+		}
+	}
+
+
+	RGFW_monitor_setMode(mon, &mode);
+
 	if (mon == NULL) {
 		printf("failed to get monitor\n");
 		RGFW_window_close(win);
