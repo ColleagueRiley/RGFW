@@ -13274,14 +13274,10 @@ void RGFW_pollMonitors(void) {
 RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
 	NSRect frameRect = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)monitor->node->screen, sel_registerName("visibleFrame"));
 
-    if (xpos)
-        *xpos = frameRect.origin.x;
-    if (ypos)
-        *ypos = (i32)RGFW_cocoaYTransform(frameRect.origin.y + frameRect.size.height - 1)
-    if (width)
-        *width = frameRect.size.width;
-    if (height)
-        *height = frameRect.size.height;
+    if (xpos) *xpos = (i32)frameRect.origin.x;
+    if (ypos) *ypos = (i32)RGFW_cocoaYTransform(frameRect.origin.y + frameRect.size.height - 1)
+    if (width) *width = (i32)frameRect.size.width;
+    if (height) *height = (i32)frameRect.size.height;
 }
 
 size_t RGFW_monitor_getModes(RGFW_monitor* mon, RGFW_monitorMode** modes) {
