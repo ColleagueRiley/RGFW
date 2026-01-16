@@ -22,7 +22,7 @@ int main(void) {
 	printf("%i %i %i %i %f\n", mon->x, mon->y, mon->mode.w, mon->mode.h, (double)mon->mode.refreshRate);
 
 	size_t count = RGFW_monitor_getModes(mon, NULL);
-	RGFW_monitorMode* modes = RGFW_ALLOC(count * sizeof(RGFW_monitorNode));
+	RGFW_monitorMode* modes = (RGFW_monitorMode*)RGFW_ALLOC(count * sizeof(RGFW_monitorNode));
 	count = RGFW_monitor_getModes(mon, &modes);
 
 	RGFW_monitorMode mode = mon->mode;
