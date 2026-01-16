@@ -12163,7 +12163,7 @@ static void RGFW__osxWindowMove(id self, SEL sel) {
 	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
 	NSRect content = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("contentRectForFrameRect"), frame);
 
-	float y = RGFW_cocoaYTransform(content.origin.y + content.size.height - 1);
+	float y = RGFW_cocoaYTransform((float)(content.origin.y + content.size.height - 1));
 
 	RGFW_windowMovedCallback(win, (i32)content.origin.x, (i32)y);
 }
@@ -12809,7 +12809,7 @@ void RGFW_window_move(RGFW_window* win, i32 x, i32 y) {
 	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
 
 	win->x = x;
-	win->y = (i32)RGFW_cocoaYTransform(y + content.size.height - 1);
+	win->y = (i32)RGFW_cocoaYTransform(y + (float)content.size.height - 1);
 	((void(*)(id,SEL,NSPoint))objc_msgSend)((id)win->src.window, sel_registerName("setFrameOrigin:"), (NSPoint){(double)x, (double)y});
 }
 
@@ -13232,7 +13232,7 @@ void RGFW_pollMonitors(void) {
 
 		CGRect bounds = CGDisplayBounds(displays[i]);
 		monitor.x = (i32)bounds.origin.x;
-		monitor.y = (i32)RGFW_cocoaYTransform(frameRect.origin.y + frameRect.size.height - 1);
+		monitor.y = (i32)RGFW_cocoaYTransform((float)(frameRect.origin.y + frameRect.size.height - 1));
 
 		CGDisplayModeRef mode = CGDisplayCopyDisplayMode(displays[i]);
 		monitor.mode.w = (i32)CGDisplayModeGetWidth(mode);
@@ -13275,7 +13275,7 @@ RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* w
 	NSRect frameRect = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)monitor->node->screen, sel_registerName("visibleFrame"));
 
     if (xpos) *xpos = (i32)frameRect.origin.x;
-    if (ypos) *ypos = (i32)RGFW_cocoaYTransform(frameRect.origin.y + frameRect.size.height - 1)
+    if (ypos) *ypos = (i32)RGFW_cocoaYTransform((float)(frameRect.origin.y + frameRect.size.height - 1.0f))
     if (width) *width = (i32)frameRect.size.width;
     if (height) *height = (i32)frameRect.size.height;
 }
