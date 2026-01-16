@@ -10631,8 +10631,8 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 			break;
 		}
 
-		mode.w = (i32)dm.dmPelsWidth;
-		mode.h = (i32)dm.dmPelsHeight;
+		monitor.mode.w = (i32)dm.dmPelsWidth;
+		monitor.mode.h = (i32)dm.dmPelsHeight;
 	}
 
 	monitor.x = monitorInfo.rcWork.left;
@@ -13121,12 +13121,10 @@ size_t RGFW_monitor_getModes(RGFW_monitor* mon, RGFW_monitorMode** modes) {
     if (allModes == NULL)
         return RGFW_FALSE;
 
-	CGDisplayModeRef native = NULL;
-
 	size_t count = (size_t)CFArrayGetCount(allModes);
 
     CFIndex i;
-    for (i = 0; i < count && modes; i++) {
+    for (i = 0; i < (CFIndex)count && modes; i++) {
         CGDisplayModeRef cmode = (CGDisplayModeRef)CFArrayGetValueAtIndex(allModes, i);
 
 		RGFW_monitorMode foundMode;
@@ -14291,7 +14289,7 @@ u32 RGFW_WASMPhysicalToRGFW(u32 hash) {
 void RGFW_window_focus(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_raise(RGFW_window* win) { RGFW_UNUSED(win); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
-size_t RGFW_monitor_getModes(RGFW_monitor* mon, RGFW_monitorMode** modes) { RGGFW_UNUSED(mon); RGFW_UNUSED(modes); return 0; }
+size_t RGFW_monitor_getModes(RGFW_monitor* mon, RGFW_monitorMode** modes) { RGFW_UNUSED(mon); RGFW_UNUSED(modes); return 0; }
 RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); return RGFW_FALSE; }
 void RGFW_pollMonitors(void) { }
 void RGFW_window_move(RGFW_window* win, i32 x, i32 y) { RGFW_UNUSED(win);  RGFW_UNUSED(x); RGFW_UNUSED(y);  }
