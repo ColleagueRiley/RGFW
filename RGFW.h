@@ -7461,7 +7461,7 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 	RGFW_monitors_refresh();
 }
 
-size_t RGFW_monitor_getModes(RGFW_monitor* monitor, RGFW_monitorMode** modes) {
+size_t RGFW_FUNC(RGFW_monitor_getModes) (RGFW_monitor* monitor, RGFW_monitorMode** modes) {
 	size_t count = 0;
 
 	XRRScreenResources* res = XRRGetScreenResourcesCurrent(_RGFW->display, DefaultRootWindow(_RGFW->display));
@@ -9419,6 +9419,11 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 	_RGFW->monitors.primary = _RGFW->monitors.list.head;
 }
 
+size_t RGFW_FUNC(RGFW_monitor_getModes) (RGFW_monitor* monitor, RGFW_monitorMode** modes) {
+	RGFW_UNUSED(monitor); RGFW_UNUSED(modes);
+	return 0;
+}
+
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
 	RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request);
 	return RGFW_FALSE;
@@ -10621,12 +10626,13 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 			monitor.name[sizeof(monitor.name) - 1] = '\0';
 			break;
 		}
+
+		mode.w = (i32)dm.dmPelsWidth;
+		mode.h = (i32)dm.dmPelsHeight;
 	}
 
 	monitor.x = monitorInfo.rcWork.left;
 	monitor.y = monitorInfo.rcWork.top;
-	monitor.mode.w = (i32)(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left);
-	monitor.mode.h = (i32)(monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top);
 
 	HDC hdc = CreateDCW(monitorInfo.szDevice, NULL, NULL, NULL);
 	/* get pixels per inch */
@@ -13104,6 +13110,33 @@ void RGFW_pollMonitors(void) {
 	RGFW_monitors_refresh();
 }
 
+size_t RGFW_monitor_getModes(RGFW_monitor* mon, RGFW_monitorMode** modes) {
+    CGDirectDisplayID display = mon->node->display;
+    CFArrayRef allModes = CGDisplayCopyAllDisplayModes(display, NULL);
+
+    if (allModes == NULL)
+        return RGFW_FALSE;
+
+	CGDisplayModeRef native = NULL;
+
+	size_t count = (size_t)CFArrayGetCount(allModes);
+
+    CFIndex i;
+    for (i = 0; i < count && modes; i++) {
+        CGDisplayModeRef cmode = (CGDisplayModeRef)CFArrayGetValueAtIndex(allModes, i);
+
+		RGFW_monitorMode foundMode;
+		foundMode.w = (i32)CGDisplayModeGetWidth(cmode);
+		foundMode.h = (i32)CGDisplayModeGetHeight(cmode);
+		foundMode.refreshRate =  RGFW_osx_getRefreshRate(display, cmode);
+		foundMode.red = 8; foundMode.green = 8; foundMode.blue = 8;
+		foundMode.src = (void*)cmode;
+		(*modes)[i] = foundMode;
+    }
+
+    CFRelease(allModes);
+	return count;
+}
 
 RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) {
 	if (CGDisplaySetDisplayMode(mon->node->display, (CGDisplayModeRef)mode->src, NULL) == kCGErrorSuccess) {
@@ -14254,6 +14287,7 @@ u32 RGFW_WASMPhysicalToRGFW(u32 hash) {
 void RGFW_window_focus(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_raise(RGFW_window* win) { RGFW_UNUSED(win); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
+size_t RGFW_monitor_getModes(RGFW_monitor* mon, RGFW_monitorMode** modes) { RGGFW_UNUSED(mon); RGFW_UNUSED(modes); return 0; }
 RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); return RGFW_FALSE; }
 void RGFW_pollMonitors(void) { }
 void RGFW_window_move(RGFW_window* win, i32 x, i32 y) { RGFW_UNUSED(win);  RGFW_UNUSED(x); RGFW_UNUSED(y);  }
@@ -14318,6 +14352,7 @@ typedef RGFW_bool (*RGFW_window_isHidden_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMinimized_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMaximized_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_monitor_requestMode_ptr)(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request);
+typedef RGFW_bool (*RGFW_monitor_getModes_ptr)(RGFW_monitor* mon, RGFW_monitorMode** modes);
 typedef RGFW_bool (*RGFW_monitor_setMode_ptr)(RGFW_monitor* mon, RGFW_monitorMode* mode);
 typedef RGFW_monitor* (*RGFW_window_getMonitor_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_closePlatform_ptr)(RGFW_window* win);
@@ -14387,7 +14422,8 @@ typedef struct RGFW_FunctionPointers {
     RGFW_window_isMinimized_ptr window_isMinimized;
     RGFW_window_isMaximized_ptr window_isMaximized;
     RGFW_monitor_requestMode_ptr monitor_requestMode;
-    RGFW_monitor_setMode_ptr monitor_setMode;
+    RGFW_monitor_getModes_ptr monitor_getModes;
+	RGFW_monitor_setMode_ptr monitor_setMode;
     RGFW_window_getMonitor_ptr window_getMonitor;
     RGFW_window_closePlatform_ptr window_closePlatform;
 #ifdef RGFW_OPENGL
@@ -14454,6 +14490,7 @@ RGFW_bool RGFW_window_isHidden(RGFW_window* win) { return RGFW_api.window_isHidd
 RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { return RGFW_api.window_isMinimized(win); }
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { return RGFW_api.window_isMaximized(win); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) { return RGFW_api.monitor_requestMode(mon, mode, request); }
+size_t RGFW_monitor_getModes(RGFW_monitor* mon, RGFW_monitorMode** modes) { return RGFW_api.monitor_getModes(mon, modes); }
 RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) { return RGFW_api.monitor_setMode(mon, mode); }
 RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) { return RGFW_api.window_getMonitor(win); }
 void RGFW_window_closePlatform(RGFW_window* win) { RGFW_api.window_closePlatform(win); }
@@ -14526,7 +14563,8 @@ void RGFW_load_X11(void) {
     RGFW_api.window_isMinimized = RGFW_window_isMinimized_X11;
     RGFW_api.window_isMaximized = RGFW_window_isMaximized_X11;
     RGFW_api.monitor_requestMode = RGFW_monitor_requestMode_X11;
-    RGFW_api.monitor_setMode = RGFW_monitor_setMode_X11;
+    RGFW_api.monitor_getModes = RGFW_monitor_getModes_X11;
+	RGFW_api.monitor_setMode = RGFW_monitor_setMode_X11;
     RGFW_api.window_getMonitor = RGFW_window_getMonitor_X11;
     RGFW_api.window_closePlatform = RGFW_window_closePlatform_X11;
 #ifdef RGFW_OPENGL
@@ -14590,7 +14628,8 @@ void RGFW_load_Wayland(void) {
     RGFW_api.window_isMinimized = RGFW_window_isMinimized_Wayland;
     RGFW_api.window_isMaximized = RGFW_window_isMaximized_Wayland;
     RGFW_api.monitor_requestMode = RGFW_monitor_requestMode_Wayland;
-    RGFW_api.monitor_setMode = RGFW_monitor_setMode_Wayland;
+    RGFW_api.monitor_getModes = RGFW_monitor_getModes_Wayland;
+	RGFW_api.monitor_setMode = RGFW_monitor_setMode_Wayland;
     RGFW_api.window_getMonitor = RGFW_window_getMonitor_Wayland;
     RGFW_api.window_closePlatform = RGFW_window_closePlatform_Wayland;
 #ifdef RGFW_OPENGL
