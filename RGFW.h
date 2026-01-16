@@ -14354,7 +14354,7 @@ typedef RGFW_bool (*RGFW_window_isHidden_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMinimized_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMaximized_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_monitor_requestMode_ptr)(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request);
-typedef RGFW_bool (*RGFW_monitor_getModes_ptr)(RGFW_monitor* mon, RGFW_monitorMode** modes);
+typedef size_t (*RGFW_monitor_getModes_ptr)(RGFW_monitor* mon, RGFW_monitorMode** modes);
 typedef RGFW_bool (*RGFW_monitor_setMode_ptr)(RGFW_monitor* mon, RGFW_monitorMode* mode);
 typedef RGFW_monitor* (*RGFW_window_getMonitor_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_closePlatform_ptr)(RGFW_window* win);
