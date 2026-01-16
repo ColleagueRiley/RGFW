@@ -10548,7 +10548,8 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 	return placement.showCmd == SW_SHOWMAXIMIZED || IsZoomed(win->src.window);
 }
 
-static float RGFW_winapi_getRefreshRate(DEVMODEW *mode) {
+RGFWDEF float RGFW_winapi_getRefreshRate(DEVMODEW *mode);
+float RGFW_winapi_getRefreshRate(DEVMODEW *mode) {
     switch (mode->dmDisplayFrequency) {
 		case 119:
 		case 59:
@@ -10672,7 +10673,6 @@ size_t RGFW_monitor_getModes(RGFW_monitor* monitor, RGFW_monitorMode** modes){
 	DWORD modeIndex = 0;
 
 	for (;;) {
-		size_t i;
 		RGFW_monitorMode mode;
 		DEVMODEW dm;
 
@@ -10693,17 +10693,18 @@ size_t RGFW_monitor_getModes(RGFW_monitor* monitor, RGFW_monitorMode** modes){
 			continue;
 
 		if (modes) {
+			size_t i;
 			for (i = 0; i < count;  i++) {
 				if (RGFW_monitorModeCompare(&(*modes)[i], &mode, RGFW_monitorAll) == 0)
 					break;
 			}
+
+			if (i < count) {
+				continue;
+			}
 		}
 
-		if (i < count) {
-			continue;
-		}
-
-		(*modes)[i] = mode;
+		(*modes)[count] = mode;
 		count += 1;
 	}
 
