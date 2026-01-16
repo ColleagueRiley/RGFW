@@ -3009,6 +3009,8 @@ struct RGFW_monitorNode {
 	u32 id; /* Add id so wl_outputs can be removed */
 	struct wl_output *output;
 	struct zxdg_output_v1 *xdg_output;
+	RGFW_monitorMode* modes;
+	size_t modeCount;
 #endif
 #if defined(RGFW_X11) && !defined(RGFW_NO_XRANDR)
 	i32 screen;
@@ -8398,18 +8400,33 @@ static void RGFW_wl_output_set_geometry(void *data, struct wl_output *wl_output,
 	RGFW_UNUSED(transform);
 }
 
-static void RGFW_wl_output_set_mode(void *data, struct wl_output *wl_output, u32 flags,
+static void RGFW_wl_output_handle_mode(void *data, struct wl_output *wl_output, u32 flags,
 		     i32 width, i32 height, i32 refresh) {
 
 	RGFW_monitor* monitor = &((RGFW_monitorNode*)data)->mon;
 
-	monitor->mode.w = width;
-	monitor->mode.h = height;
-	monitor->mode.refreshRate = (float)refresh / 1000.0f;
-	RGFW_UNUSED(width);
-	RGFW_UNUSED(height);
-	RGFW_UNUSED(wl_output);
-	RGFW_UNUSED(flags);
+	RGFW_monitorMode mode;
+	mode.w = width;
+	mode.h = height;
+	mode.refreshRate = (float)refresh / 1000.0f;
+	mode.src = wl_output;
+
+	monitor->node->modeCount += 1;
+
+	RGFW_monitorMode* modes = (RGFW_monitorMode*)RGFW_ALLOC(monitor->node->modeCount * sizeof(RGFW_monitorMode));
+
+	if (monitor->node->modeCount > 1) {
+		RGFW_monitor_getModes(monitor, &modes);
+		RGFW_FREE(monitor->node->modes);
+	}
+
+	modes[monitor->node->modeCount - 1] = mode;
+	monitor->node->modes = modes;
+
+	if (flags & WL_OUTPUT_MODE_CURRENT) {
+		monitor->mode = mode;
+	} else {
+	}
 }
 
 static void RGFW_wl_output_set_scale(void *data, struct wl_output *wl_output, i32 factor) {
@@ -8489,13 +8506,14 @@ static void RGFW_wl_create_outputs(struct wl_registry *const registry, u32 id) {
 	node = RGFW_monitors_add(&mon);
 	if (node == NULL) return;
 
+	node->modeCount = 0;
 	node->disconnected = RGFW_TRUE;
 	node->id = id;
 	node->output = output;
 
 	static const struct wl_output_listener wl_output_listener = {
 			.geometry = RGFW_wl_output_set_geometry,
-			.mode = RGFW_wl_output_set_mode,
+			.mode = RGFW_wl_output_handle_mode,
 			.done = RGFW_wl_output_handle_done,
 			.scale = RGFW_wl_output_set_scale,
 			.name = RGFW_wl_output_set_name,
@@ -8662,6 +8680,11 @@ static void RGFW_wl_global_registry_remove(void* data, struct wl_registry *regis
 
 	if (node->xdg_output) {
 		zxdg_output_v1_destroy(node->xdg_output);
+	}
+
+	if (node->modeCount) {
+		RGFW_FREE(node->modes);
+		node->modeCount = 0;
 	}
 
 	RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_FALSE);
@@ -9427,12 +9450,23 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 }
 
 size_t RGFW_FUNC(RGFW_monitor_getModes) (RGFW_monitor* monitor, RGFW_monitorMode** modes) {
-	RGFW_UNUSED(monitor); RGFW_UNUSED(modes);
-	return 0;
+	if (modes) {
+		RGFW_MEMCPY((*modes), monitor->node->modes, monitor->node->modeCount * sizeof(RGFW_monitorMode));
+	}
+
+	return monitor->node->modeCount;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
-	RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request);
+	for (size_t i = 0; i < mon->node->modeCount; i++) {
+		if (RGFW_monitorModeCompare(mode, &mon->node->modes[i], request) == RGFW_FALSE) {
+			continue;
+		}
+
+		RGFW_monitor_setMode(mon, &mon->node->modes[i]);
+		return RGFW_TRUE;
+	}
+
 	return RGFW_FALSE;
 }
 
