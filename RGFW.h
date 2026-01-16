@@ -9425,7 +9425,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor* mon, RGFW_monitorMo
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_setMode) (RGFW_monitor* mon, RGFW_monitorMode* mode) {
-	RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request);
+	RGFW_UNUSED(mon); RGFW_UNUSED(mode);
 	return RGFW_FALSE;
 }
 
@@ -13105,7 +13105,7 @@ void RGFW_pollMonitors(void) {
 
 
 RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) {
-	if (CGDisplaySetDisplayMode(display, (CGDisplayModeRef)mode->src, NULL) == kCGErrorSuccess) {
+	if (CGDisplaySetDisplayMode(mon->node->display, (CGDisplayModeRef)mode->src, NULL) == kCGErrorSuccess) {
 		return RGFW_TRUE;
 	}
 
@@ -14253,7 +14253,7 @@ u32 RGFW_WASMPhysicalToRGFW(u32 hash) {
 void RGFW_window_focus(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_raise(RGFW_window* win) { RGFW_UNUSED(win); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
-RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
+RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); return RGFW_FALSE; }
 void RGFW_pollMonitors(void) { }
 void RGFW_window_move(RGFW_window* win, i32 x, i32 y) { RGFW_UNUSED(win);  RGFW_UNUSED(x); RGFW_UNUSED(y);  }
 void RGFW_window_setAspectRatio(RGFW_window* win, i32 w, i32 h) { RGFW_UNUSED(win);  RGFW_UNUSED(w); RGFW_UNUSED(h);  }
