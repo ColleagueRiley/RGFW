@@ -13232,7 +13232,7 @@ void RGFW_pollMonitors(void) {
 
 		CGRect bounds = CGDisplayBounds(displays[i]);
 		monitor.x = (i32)bounds.origin.x;
-		monitor.y = (i32)RGFW_cocoaYTransform((float)(frameRect.origin.y + frameRect.size.height - 1));
+		monitor.y = (i32)RGFW_cocoaYTransform((float)(bounds.origin.y + bounds.size.height - 1));
 
 		CGDisplayModeRef mode = CGDisplayCopyDisplayMode(displays[i]);
 		monitor.mode.w = (i32)CGDisplayModeGetWidth(mode);
@@ -13274,8 +13274,8 @@ void RGFW_pollMonitors(void) {
 RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
 	NSRect frameRect = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)monitor->node->screen, sel_registerName("visibleFrame"));
 
-    if (xpos) *xpos = (i32)frameRect.origin.x;
-    if (ypos) *ypos = (i32)RGFW_cocoaYTransform((float)(frameRect.origin.y + frameRect.size.height - 1.0f))
+    if (x) *x = (i32)frameRect.origin.x;
+    if (y) *y = (i32)RGFW_cocoaYTransform((float)(frameRect.origin.y + frameRect.size.height - 1.0f));
     if (width) *width = (i32)frameRect.size.width;
     if (height) *height = (i32)frameRect.size.height;
 }
