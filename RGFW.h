@@ -13077,12 +13077,13 @@ void RGFW_pollMonitors(void) {
 		CGRect bounds = CGDisplayBounds(displays[i]);
 		monitor.x = (i32)bounds.origin.x;
 		monitor.y = (i32)bounds.origin.y;
-		monitor.mode.w = (i32) bounds.size.width;
-		monitor.mode.h  = (i32) bounds.size.height;
-
-		monitor.mode.red = 8; monitor.mode.green = 8; monitor.mode.blue = 8;
 
 		CGDisplayModeRef mode = CGDisplayCopyDisplayMode(displays[i]);
+		monitor.mode.w = (i32)CGDisplayModeGetWidth(mode);
+		monitor.mode.h = (i32)CGDisplayModeGetHeight(mode);
+		monitor.mode.src = (void*)mode;
+		monitor.mode.red = 8; monitor.mode.green = 8; monitor.mode.blue = 8;
+
 		monitor.mode.refreshRate = RGFW_osx_getRefreshRate(displays[i], mode);
 		CFRelease(mode);
 
