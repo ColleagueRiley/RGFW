@@ -1189,6 +1189,17 @@ RGFWDEF void RGFW_freeMouse(RGFW_mouse* mouse);
 RGFWDEF size_t RGFW_monitor_getModes(RGFW_monitor* monitor, RGFW_monitorMode** modes);
 
 /**!
+ * @brief Get the workarea of a monitor, meaning the parts not occupied by OS graphics (i.e. the taskbar)
+ * @param monitor the source monitor object
+ * @param x [OUTPUT] the x pos of the workarea
+ * @param y [OUTPUT] the y pos of the workarea
+ * @param w [OUTPUT] the width of the workarea
+ * @param h [OUTPUT] the height of the workarea
+ * @return a bool if the function was successful
+*/
+RGFWDEF RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height);
+
+/**!
  * @brief Get the position of a monitor (the same as monitor.x / monitor.y)
  * @param x [OUTPUT] the x position of the monitor
  * @param y [OUTPUT] the y position of the monitor
@@ -7325,9 +7336,9 @@ static void RGFW_XGetSystemContentDPI(float* dpi) {
 
 	if (dpiOutput) *dpi = dpiOutput;
 }
-#include <math.h>
-RGFWDEF XRRModeInfo* RGFW_XGetMode(XRRScreenResources* res, RRMode mode, RGFW_monitorMode* foundMode);
-XRRModeInfo* RGFW_XGetMode(XRRScreenResources* res, RRMode mode, RGFW_monitorMode* foundMode) {
+
+RGFWDEF XRRModeInfo* RGFW_XGetMode(XRRCrtcInfo* ci, XRRScreenResources* res, RRMode mode, RGFW_monitorMode* foundMode);
+XRRModeInfo* RGFW_XGetMode(XRRCrtcInfo* ci, XRRScreenResources* res, RRMode mode, RGFW_monitorMode* foundMode) {
 	XRRModeInfo* mi = None;
 	for (i32 j = 0; j < res->nmode; j++) {
 		if (res->modes[j].id ==  mode)
@@ -7340,6 +7351,14 @@ XRRModeInfo* RGFW_XGetMode(XRRScreenResources* res, RRMode mode, RGFW_monitorMod
 
 	foundMode->w = (i32)mi->width;
 	foundMode->h = (i32)mi->height;
+	if (ci->rotation == RR_Rotate_90 || ci->rotation == RR_Rotate_270) {
+		foundMode->w = (i32)mi->height;
+		foundMode->h = (i32)mi->width;
+	} else {
+		foundMode->w = (i32)mi->width;
+		foundMode->h = (i32)mi->height;
+	}
+
 	RGFW_splitBPP((u32)DefaultDepth(_RGFW->display, DefaultScreen(_RGFW->display)), foundMode);
 
 	foundMode->src = (void*)mode;
@@ -7439,7 +7458,7 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 		monitor.scaleX = dpi / 96.0f;
 		monitor.scaleY = dpi / 96.0f;
 
-		XRRModeInfo* mi = RGFW_XGetMode(res, ci->mode, &monitor.mode);
+		XRRModeInfo* mi = RGFW_XGetMode(ci, res, ci->mode, &monitor.mode);
 
 		if (mi == NULL) {
 			break;
@@ -7468,6 +7487,67 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 	RGFW_monitors_refresh();
 }
 
+RGFW_bool RGFW_FUNC(RGFW_monitor_getWorkarea) (RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
+    RGFW_LOAD_ATOM(_NET_WORKAREA);
+    RGFW_LOAD_ATOM(_NET_CURRENT_DESKTOP);
+
+	Window root = DefaultRootWindow(_RGFW->display);
+
+	i32 areaX = monitor->x;
+	i32 areaY = monitor->y;
+	i32 areaW = monitor->mode.w;
+	i32 areaH  = monitor->mode.h;
+
+    if (_NET_WORKAREA && _NET_CURRENT_DESKTOP) {
+        Atom* extents = NULL;
+        Atom* desktop = NULL;
+
+		Atom actualType = 0;
+		int actualFormat = 0;
+		unsigned long extentCount = 0, bytesAfter = 0;
+		XGetWindowProperty(_RGFW->display, root, _NET_WORKAREA, 0, LONG_MAX, False, XA_CARDINAL, &actualType, &actualFormat, &extentCount, &bytesAfter, (u8**) &extents);
+
+		unsigned long count;
+		XGetWindowProperty(_RGFW->display, root, _NET_CURRENT_DESKTOP, 0, LONG_MAX, False, XA_CARDINAL, &actualType, &actualFormat, &count, &bytesAfter, (u8**) &desktop);
+
+        if (count) {
+			if (extentCount >= 4 && *desktop < extentCount / 4) {
+                i32 globalX = (i32)extents[*desktop * 4 + 0];
+                i32 globalY = (i32)extents[*desktop * 4 + 1];
+                i32 globalW = (i32)extents[*desktop * 4 + 2];
+                i32 globalH = (i32)extents[*desktop * 4 + 3];
+
+                if (areaX < globalX) {
+                    areaW -= globalX - areaX;
+                    areaX = globalX;
+                }
+
+                if (areaY < globalY) {
+                    areaH -= globalY - areaY;
+                    areaY = globalY;
+                }
+
+                if (areaX + areaW > globalX + globalW)
+                    areaW = globalX - areaX + globalW;
+                if (areaY + areaH > globalY + globalH)
+                    areaH = globalY - areaY + globalH;
+            }
+        }
+
+        if (extents)
+            XFree(extents);
+        if (desktop)
+            XFree(desktop);
+    }
+
+    if (x) *x = areaX;
+    if (y) *y = areaY;
+    if (width) *width = areaW;
+    if (height) *height = areaH;
+
+	return RGFW_TRUE;
+}
+
 size_t RGFW_FUNC(RGFW_monitor_getModes) (RGFW_monitor* monitor, RGFW_monitorMode** modes) {
 	size_t count = 0;
 
@@ -7480,7 +7560,7 @@ size_t RGFW_FUNC(RGFW_monitor_getModes) (RGFW_monitor* monitor, RGFW_monitorMode
 
 	int i;
 	for (i = 0; modes && i < oi->nmode; i++) {
-		XRRModeInfo* mi = RGFW_XGetMode(res, oi->modes[i], &((*modes)[i]));
+		XRRModeInfo* mi = RGFW_XGetMode(ci, res, oi->modes[i], &((*modes)[i]));
 		RGFW_UNUSED(mi);
 	}
 
@@ -7523,7 +7603,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor* mon, RGFW_monitorMod
     int i;
     for (i = 0; i < oi->nmode; i++) {
 		RGFW_monitorMode foundMode;
-		XRRModeInfo* mi = RGFW_XGetMode(res, oi->modes[i], &foundMode);
+		XRRModeInfo* mi = RGFW_XGetMode(ci, res, oi->modes[i], &foundMode);
 		if (mi == NULL) {
 			continue;
 		}
@@ -8430,8 +8510,11 @@ static void RGFW_wl_output_handle_mode(void *data, struct wl_output *wl_output, 
 }
 
 static void RGFW_wl_output_set_scale(void *data, struct wl_output *wl_output, i32 factor) {
-	((RGFW_monitorNode*)data)->mon.pixelRatio = (float)factor;
 	RGFW_UNUSED(wl_output);
+	RGFW_monitor* mon = &((RGFW_monitorNode*)data)->mon;
+
+	mon->scaleX = (float)factor;
+	mon->scaleY = (float)factor;
 }
 
 static void RGFW_wl_output_set_name(void *data, struct wl_output *wl_output, const char *name) {
@@ -8457,8 +8540,13 @@ static void RGFW_xdg_output_logical_size(void *data, struct zxdg_output_v1 *zxdg
 	float mon_float_width = (float) monitor->mode.w;
 	float mon_float_height = (float) monitor->mode.h;
 
-	monitor->scaleX = (mon_float_width / (float) width);
-	monitor->scaleY = (mon_float_height / (float) height);
+	float scaleX = (mon_float_width / (float) width);
+	float scaleY = (mon_float_height / (float) height);
+	RGFW_UNUSED(scaleY);
+
+	float dpi = scaleX * 96.0f;
+
+	monitor->pixelRatio = dpi >= 192.0f ? 2.0f : 1.0f;
 
 	/* under xwayland the monitor changes w & h when compositor scales it */
 	monitor->mode.w = width;
@@ -9447,6 +9535,16 @@ RGFW_bool RGFW_FUNC(RGFW_window_isMaximized) (RGFW_window* win) {
 
 void RGFW_FUNC(RGFW_pollMonitors) (void) {
 	_RGFW->monitors.primary = _RGFW->monitors.list.head;
+}
+
+
+RGFW_bool RGFW_FUNC(RGFW_monitor_getWorkarea) (RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
+	/* NOTE: Wayland has no way to get the actual workarea as far as I'm aware :( */
+	if (x) *x = monitor->x;
+	if (y) *y = monitor->y;
+	if (width) *width = monitor->mode.w;
+	if (height) *height = monitor->mode.h;
+	return RGFW_TRUE;
 }
 
 size_t RGFW_FUNC(RGFW_monitor_getModes) (RGFW_monitor* monitor, RGFW_monitorMode** modes) {
@@ -10695,8 +10793,8 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 		if (GetDpiForMonitor != NULL) {
 			u32 x, y;
 			GetDpiForMonitor(hMonitor, MDT_EFFECTIVE_DPI, &x, &y);
-			monitor.scaleX = (float) (x) / (float) 96.0f;
-			monitor.scaleY = (float) (y) / (float) 96.0f;
+			monitor.scaleX = (float) (x) / (float) USER_DEFAULT_SCREEN_DPI;
+			monitor.scaleY = (float) (y) / (float) USER_DEFAULT_SCREEN_DPI;
 			monitor.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
 		}
 	#endif
@@ -10713,6 +10811,18 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 	RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_TRUE);
 
 	return TRUE;
+}
+
+RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
+	MONITORINFO mi = { sizeof(mi) };
+    GetMonitorInfoW(monitor->node->hMonitor, &mi);
+
+    if (xpos) *xpos = mi.rcWork.left;
+    if (ypos) *ypos = mi.rcWork.top;
+    if (width) *width = mi.rcWork.right - mi.rcWork.left;
+    if (height) *height = mi.rcWork.bottom - mi.rcWork.top;
+
+	return RGFW_TRUE;
 }
 
 size_t RGFW_monitor_getModes(RGFW_monitor* monitor, RGFW_monitorMode** modes){
@@ -11680,6 +11790,8 @@ id NSString_stringWithUTF8String(const char* str) {
 	return ((id(*)(id, SEL, const char*))objc_msgSend) ((id)objc_getClass("NSString"), sel_registerName("stringWithUTF8String:"), str);
 }
 
+float RGFW_cocoaYTransform(float y) { return CGDisplayBounds(CGMainDisplayID()).size.height - y - 1; }
+
 const char* NSString_to_char(id str);
 const char* NSString_to_char(id str) {
 	return ((const char* (*)(id, SEL)) objc_msgSend) ((id)(id)str, sel_registerName("UTF8String"));
@@ -12048,7 +12160,11 @@ static void RGFW__osxWindowMove(id self, SEL sel) {
 	if (win == NULL) return;
 
 	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
-	RGFW_windowMovedCallback(win, (i32)frame.origin.x, (i32)frame.origin.y);
+	NSRect content = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("contentRectForFrameRect"), frame);
+
+	float y = RGFW_cocoaYTransform(contentRect.origin.y + contentRect.size.height - 1);
+
+	RGFW_windowMovedCallback(win, (i32)content.origin.x, y);
 }
 
 static void RGFW__osxViewDidChangeBackingProperties(id self, SEL _cmd) {
@@ -12520,7 +12636,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 
 	NSRect windowRect;
 	windowRect.origin.x = (double)win->x;
-	windowRect.origin.y = (double)win->y;
+	windowRect.origin.y = RGFW_cocoaYTransform(win->y + win->h - 1);
 	windowRect.size.width = (double)win->w;
 	windowRect.size.height = (double)win->h;
 	NSBackingStoreType macArgs = (NSBackingStoreType)(NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled);
@@ -12689,8 +12805,10 @@ void RGFW_pollEvents(void) {
 void RGFW_window_move(RGFW_window* win, i32 x, i32 y) {
 	RGFW_ASSERT(win != NULL);
 
+	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
+
 	win->x = x;
-	win->y = y;
+	win->y = RGFW_cocoaYTransform(y + content.size.height - 1);
 	((void(*)(id,SEL,NSPoint))objc_msgSend)((id)win->src.window, sel_registerName("setFrameOrigin:"), (NSPoint){(double)x, (double)y});
 }
 
@@ -13113,7 +13231,7 @@ void RGFW_pollMonitors(void) {
 
 		CGRect bounds = CGDisplayBounds(displays[i]);
 		monitor.x = (i32)bounds.origin.x;
-		monitor.y = (i32)bounds.origin.y;
+		monitor.y = (i32)RGFW_cocoaYTransform(frameRect.origin.y + frameRect.size.height - 1);
 
 		CGDisplayModeRef mode = CGDisplayCopyDisplayMode(displays[i]);
 		monitor.mode.w = (i32)CGDisplayModeGetWidth(mode);
@@ -13150,6 +13268,19 @@ void RGFW_pollMonitors(void) {
 	}
 
 	RGFW_monitors_refresh();
+}
+
+RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
+	NSRect frameRect = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)monitor->node->screen, sel_registerName("visibleFrame"));
+
+    if (xpos)
+        *xpos = frameRect.origin.x;
+    if (ypos)
+        *ypos = RGFW_cocoaYTransform(frameRect.origin.y + frameRect.size.height - 1)
+    if (width)
+        *width = frameRect.size.width;
+    if (height)
+        *height = frameRect.size.height;
 }
 
 size_t RGFW_monitor_getModes(RGFW_monitor* mon, RGFW_monitorMode** modes) {
@@ -14327,6 +14458,7 @@ u32 RGFW_WASMPhysicalToRGFW(u32 hash) {
 void RGFW_window_focus(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_raise(RGFW_window* win) { RGFW_UNUSED(win); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
+RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) { RGFW_UNUSED(monitor-); RGFW_UNUSED(x); RGFW_UNUSED(width); RGFW_UNUSED(height); return RGFW_FALSE; }
 size_t RGFW_monitor_getModes(RGFW_monitor* mon, RGFW_monitorMode** modes) { RGFW_UNUSED(mon); RGFW_UNUSED(modes); return 0; }
 RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); return RGFW_FALSE; }
 void RGFW_pollMonitors(void) { }
@@ -14392,6 +14524,7 @@ typedef RGFW_bool (*RGFW_window_isHidden_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMinimized_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMaximized_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_monitor_requestMode_ptr)(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request);
+typedef RGFW_bool (*RGFW_monitor_getWorkarea)(RGFW_monitor* mon, i32* x, i32* y, i32* w, i32* h);
 typedef size_t (*RGFW_monitor_getModes_ptr)(RGFW_monitor* mon, RGFW_monitorMode** modes);
 typedef RGFW_bool (*RGFW_monitor_setMode_ptr)(RGFW_monitor* mon, RGFW_monitorMode* mode);
 typedef RGFW_monitor* (*RGFW_window_getMonitor_ptr)(RGFW_window* win);
@@ -14462,7 +14595,8 @@ typedef struct RGFW_FunctionPointers {
     RGFW_window_isMinimized_ptr window_isMinimized;
     RGFW_window_isMaximized_ptr window_isMaximized;
     RGFW_monitor_requestMode_ptr monitor_requestMode;
-    RGFW_monitor_getModes_ptr monitor_getModes;
+    RGFW_monitor_getWorkarea_ptr monitor_getWorkarea;
+	RGFW_monitor_getModes_ptr monitor_getModes;
 	RGFW_monitor_setMode_ptr monitor_setMode;
     RGFW_window_getMonitor_ptr window_getMonitor;
     RGFW_window_closePlatform_ptr window_closePlatform;
@@ -14530,6 +14664,7 @@ RGFW_bool RGFW_window_isHidden(RGFW_window* win) { return RGFW_api.window_isHidd
 RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { return RGFW_api.window_isMinimized(win); }
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { return RGFW_api.window_isMaximized(win); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) { return RGFW_api.monitor_requestMode(mon, mode, request); }
+RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) { return  RGFW_api.monitor_getWorkarea(monitor, x, y, width, height); }
 size_t RGFW_monitor_getModes(RGFW_monitor* mon, RGFW_monitorMode** modes) { return RGFW_api.monitor_getModes(mon, modes); }
 RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) { return RGFW_api.monitor_setMode(mon, mode); }
 RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) { return RGFW_api.window_getMonitor(win); }
