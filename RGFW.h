@@ -3996,26 +3996,30 @@ void RGFW_resetPrevState(void) {
 }
 
 RGFW_bool RGFW_isKeyPressed(RGFW_key key) {
-    return _RGFW != NULL && _RGFW->keyboard[key].current && !_RGFW->keyboard[key].prev;
+	RGFW_ASSERT(_RGFW != NULL);
+    return _RGFW->keyboard[key].current && !_RGFW->keyboard[key].prev;
 }
-
 RGFW_bool RGFW_isKeyDown(RGFW_key key) {
-	return _RGFW != NULL && _RGFW->keyboard[key].current;
+	RGFW_ASSERT(_RGFW != NULL);
+	return _RGFW->keyboard[key].current;
 }
-
 RGFW_bool RGFW_isKeyReleased(RGFW_key key) {
-	return _RGFW != NULL && !_RGFW->keyboard[key].current && _RGFW->keyboard[key].prev;
+	RGFW_ASSERT(_RGFW != NULL);
+	return !_RGFW->keyboard[key].current && _RGFW->keyboard[key].prev;
 }
 
 
 RGFW_bool RGFW_isMousePressed(RGFW_mouseButton button) {
-	return _RGFW != NULL && _RGFW->mouseButtons[button].current && !_RGFW->mouseButtons[button].prev;
+	RGFW_ASSERT(_RGFW != NULL);
+	return _RGFW->mouseButtons[button].current && !_RGFW->mouseButtons[button].prev;
 }
 RGFW_bool RGFW_isMouseDown(RGFW_mouseButton button) {
-	return _RGFW != NULL && _RGFW->mouseButtons[button].current;
+	RGFW_ASSERT(_RGFW != NULL);
+	return _RGFW->mouseButtons[button].current;
 }
 RGFW_bool RGFW_isMouseReleased(RGFW_mouseButton button) {
-	return _RGFW != NULL && !_RGFW->mouseButtons[button].current && _RGFW->mouseButtons[button].prev;
+	RGFW_ASSERT(_RGFW != NULL);
+	return !_RGFW->mouseButtons[button].current && _RGFW->mouseButtons[button].prev;
 }
 
 void RGFW_getMouseScroll(float* x, float* y) {
