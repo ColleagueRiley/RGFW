@@ -13275,9 +13275,11 @@ RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* w
 	NSRect frameRect = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)monitor->node->screen, sel_registerName("visibleFrame"));
 
     if (x) *x = (i32)frameRect.origin.x;
-    if (y) *y = (i32)RGFW_cocoaYTransform((float)(frameRect.origin.y + frameRect.size.height - 1.0f));
+    if (y) *y = (i32)RGFW_cocoaYTransform((float)(frameRect.origin.y + frameRect.size.height - (double)1.0f));
     if (width) *width = (i32)frameRect.size.width;
     if (height) *height = (i32)frameRect.size.height;
+
+	return RGFW_TRUE;
 }
 
 size_t RGFW_monitor_getModes(RGFW_monitor* mon, RGFW_monitorMode** modes) {
