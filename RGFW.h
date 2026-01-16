@@ -10770,8 +10770,8 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 		monitor.mode.h = (i32)dm.dmPelsHeight;
 	}
 
-	monitor.x = monitorInfo.rcWork.left;
-	monitor.y = monitorInfo.rcWork.top;
+	monitor.x = monitorInfo.rcMonitor.left;
+	monitor.y = monitorInfo.rcMonitor.top;
 
 	HDC hdc = CreateDCW(monitorInfo.szDevice, NULL, NULL, NULL);
 	/* get pixels per inch */
@@ -10793,8 +10793,8 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 		if (GetDpiForMonitor != NULL) {
 			u32 x, y;
 			GetDpiForMonitor(hMonitor, MDT_EFFECTIVE_DPI, &x, &y);
-			monitor.scaleX = (float) (x) / (float) USER_DEFAULT_SCREEN_DPI;
-			monitor.scaleY = (float) (y) / (float) USER_DEFAULT_SCREEN_DPI;
+			monitor.scaleX = (float) (x) / (float) 96.0f;
+			monitor.scaleY = (float) (y) / (float) 96.0f;
 			monitor.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
 		}
 	#endif
@@ -10814,11 +10814,12 @@ BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMon
 }
 
 RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
-	MONITORINFO mi = { sizeof(mi) };
-    GetMonitorInfoW(monitor->node->hMonitor, &mi);
+    MONITORINFOEX mi;
+	mi.cbSize = sizeof(MONITORINFOEX);
+	GetMonitorInfoA(monitor->node->hMonitor, (LPMONITORINFO)&mi);
 
-    if (xpos) *xpos = mi.rcWork.left;
-    if (ypos) *ypos = mi.rcWork.top;
+    if (x) *x = mi.rcWork.left;
+    if (y) *y = mi.rcWork.top;
     if (width) *width = mi.rcWork.right - mi.rcWork.left;
     if (height) *height = mi.rcWork.bottom - mi.rcWork.top;
 
@@ -11790,7 +11791,7 @@ id NSString_stringWithUTF8String(const char* str) {
 	return ((id(*)(id, SEL, const char*))objc_msgSend) ((id)objc_getClass("NSString"), sel_registerName("stringWithUTF8String:"), str);
 }
 
-float RGFW_cocoaYTransform(float y) { return CGDisplayBounds(CGMainDisplayID()).size.height - y - 1; }
+float RGFW_cocoaYTransform(float y) { return (float)(CGDisplayBounds(CGMainDisplayID()).size.height - (double)y - (double)1.0f); }
 
 const char* NSString_to_char(id str);
 const char* NSString_to_char(id str) {
@@ -12162,9 +12163,9 @@ static void RGFW__osxWindowMove(id self, SEL sel) {
 	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
 	NSRect content = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("contentRectForFrameRect"), frame);
 
-	float y = RGFW_cocoaYTransform(contentRect.origin.y + contentRect.size.height - 1);
+	float y = RGFW_cocoaYTransform(content.origin.y + content.size.height - 1);
 
-	RGFW_windowMovedCallback(win, (i32)content.origin.x, y);
+	RGFW_windowMovedCallback(win, (i32)content.origin.x, (i32)y);
 }
 
 static void RGFW__osxViewDidChangeBackingProperties(id self, SEL _cmd) {
@@ -12636,7 +12637,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 
 	NSRect windowRect;
 	windowRect.origin.x = (double)win->x;
-	windowRect.origin.y = RGFW_cocoaYTransform(win->y + win->h - 1);
+	windowRect.origin.y = (double)RGFW_cocoaYTransform(win->y + win->h - 1);
 	windowRect.size.width = (double)win->w;
 	windowRect.size.height = (double)win->h;
 	NSBackingStoreType macArgs = (NSBackingStoreType)(NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled);
@@ -12808,7 +12809,7 @@ void RGFW_window_move(RGFW_window* win, i32 x, i32 y) {
 	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
 
 	win->x = x;
-	win->y = RGFW_cocoaYTransform(y + content.size.height - 1);
+	win->y = (i32)RGFW_cocoaYTransform(y + content.size.height - 1);
 	((void(*)(id,SEL,NSPoint))objc_msgSend)((id)win->src.window, sel_registerName("setFrameOrigin:"), (NSPoint){(double)x, (double)y});
 }
 
@@ -13276,7 +13277,7 @@ RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* w
     if (xpos)
         *xpos = frameRect.origin.x;
     if (ypos)
-        *ypos = RGFW_cocoaYTransform(frameRect.origin.y + frameRect.size.height - 1)
+        *ypos = (i32)RGFW_cocoaYTransform(frameRect.origin.y + frameRect.size.height - 1)
     if (width)
         *width = frameRect.size.width;
     if (height)
@@ -14458,7 +14459,7 @@ u32 RGFW_WASMPhysicalToRGFW(u32 hash) {
 void RGFW_window_focus(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_raise(RGFW_window* win) { RGFW_UNUSED(win); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
-RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) { RGFW_UNUSED(monitor-); RGFW_UNUSED(x); RGFW_UNUSED(width); RGFW_UNUSED(height); return RGFW_FALSE; }
+RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) { RGFW_UNUSED(monitor); RGFW_UNUSED(x); RGFW_UNUSED(width); RGFW_UNUSED(height); return RGFW_FALSE; }
 size_t RGFW_monitor_getModes(RGFW_monitor* mon, RGFW_monitorMode** modes) { RGFW_UNUSED(mon); RGFW_UNUSED(modes); return 0; }
 RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); return RGFW_FALSE; }
 void RGFW_pollMonitors(void) { }
@@ -14524,7 +14525,7 @@ typedef RGFW_bool (*RGFW_window_isHidden_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMinimized_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMaximized_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_monitor_requestMode_ptr)(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request);
-typedef RGFW_bool (*RGFW_monitor_getWorkarea)(RGFW_monitor* mon, i32* x, i32* y, i32* w, i32* h);
+typedef RGFW_bool (*RGFW_monitor_getWorkarea_ptr)(RGFW_monitor* mon, i32* x, i32* y, i32* w, i32* h);
 typedef size_t (*RGFW_monitor_getModes_ptr)(RGFW_monitor* mon, RGFW_monitorMode** modes);
 typedef RGFW_bool (*RGFW_monitor_setMode_ptr)(RGFW_monitor* mon, RGFW_monitorMode* mode);
 typedef RGFW_monitor* (*RGFW_window_getMonitor_ptr)(RGFW_window* win);
