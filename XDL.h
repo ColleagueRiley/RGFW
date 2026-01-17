@@ -213,6 +213,10 @@ typedef XRRCrtcGamma* (* PFN_XRRAllocGamma)(int);
 typedef Bool (* PFN_XRRQueryExtension)(Display*,int*,int*);
 typedef Status (* PFN_XRRQueryVersion)(Display*,int*,int*);
 typedef void (* PFN_XRRSelectInput)(Display*,Window,int);
+typedef void (* PFN_XRRSetCrtcGamma)(Display*,RRCrtc,XRRCrtcGamma*);
+typedef int (* PFN_XRRGetCrtcGammaSize)(Display*,RRCrtc);
+typedef XRRCrtcGamma* (* PFN_XRRGetCrtcGamma)(Display*,RRCrtc);
+typedef void (* PFN_XRRFreeGamma)(XRRCrtcGamma*);
 #endif
 
 #ifndef XDL_NO_GLX
@@ -377,6 +381,10 @@ PFN_XRRAllocGamma XRRAllocGammaSrc;
 PFN_XRRQueryVersion XRRQueryVersionSrc;
 PFN_XRRQueryExtension XRRQueryExtensionSrc;
 PFN_XRRSelectInput XRRSelectInputSrc;
+PFN_XRRSetCrtcGamma XRRSetCrtcGammaSrc;
+PFN_XRRGetCrtcGammaSize XRRGetCrtcGammaSizeSrc;
+PFN_XRRGetCrtcGamma  XRRGetCrtcGammaSrc;
+PFN_XRRFreeGamma XRRFreeGammaSrc;
 #endif
 
 #ifndef XDL_NO_GLX
@@ -540,6 +548,10 @@ PFN_glXDestroyWindow glXDestroyWindowSrc;
 	#define XRRQueryVersion XRRQueryVersionSrc
 	#define XRRSelectInput XRRSelectInputSrc
 	#define XRRQueryExtension XRRQueryExtensionSrc
+	#define XRRSetCrtcGamma XRRSetCrtcGammaSrc
+	#define XRRGetCrtcGammaSize XRRGetCrtcGammaSizeSrc
+	#define XRRGetCrtcGamma  XRRGetCrtcGammaSrc
+	#define XRRFreeGamma XRRFreeGammaSrc
 #endif
 
 #ifndef XDL_NO_GLX
@@ -751,6 +763,10 @@ void XDL_init(void) {
 		XDL_PROC_DEF(2, XRRQueryExtension);
 		XDL_PROC_DEF(2, XRRQueryVersion);
 		XDL_PROC_DEF(2, XRRSelectInput);
+		XDL_PROC_DEF(2, XRRSetCrtcGamma);
+		XDL_PROC_DEF(2, XRRGetCrtcGammaSize);
+		XDL_PROC_DEF(2, XRRGetCrtcGamma);
+		XDL_PROC_DEF(2, XRRFreeGamma);
     #endif
 
     #ifndef XDL_NO_GLX
