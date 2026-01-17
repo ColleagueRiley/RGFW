@@ -19,11 +19,15 @@ int main(void) {
     RGFW_window_makeCurrentContext_OpenGL(win);
     RGFW_monitor* mon = RGFW_window_getMonitor(win);
 
-	printf("%i %i %i %i %f\n", mon->x, mon->y, mon->mode.w, mon->mode.h, (double)mon->mode.refreshRate);
+	printf("monitor : %i %i %i %i %f\n", mon->x, mon->y, mon->mode.w, mon->mode.h, (double)mon->mode.refreshRate);
 
-	size_t count = RGFW_monitor_getModes(mon, NULL);
+	i32 x, y, w, h;
+	RGFW_monitor_getWorkarea(mon, &x, &y, &w, &h);
+	printf("monitor work area: %i %i %i %i\n", x, y, w, h);
+
+	size_t count = RGFW_monitor_getModesPtr(mon, NULL);
 	RGFW_monitorMode* modes = (RGFW_monitorMode*)RGFW_ALLOC(count * sizeof(RGFW_monitorNode));
-	count = RGFW_monitor_getModes(mon, &modes);
+	count = RGFW_monitor_getModesPtr(mon, &modes);
 
 	RGFW_monitorMode mode = mon->mode;
 
