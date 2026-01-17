@@ -933,6 +933,7 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 	RGFW_errFailedFuncLoad,
 	RGFW_errBuffer,
 	RGFW_errMetal,
+	RGFW_errPlatform,
 	RGFW_errEventQueue,
 	RGFW_infoWindow, RGFW_infoBuffer, RGFW_infoGlobal, RGFW_infoOpenGL,
 	RGFW_warningWayland, RGFW_warningOpenGL
@@ -7710,11 +7711,42 @@ size_t RGFW_FUNC(RGFW_monitor_getModesPtr) (RGFW_monitor* monitor, RGFW_monitorM
 
 size_t RGFW_FUNC(RGFW_monitor_getGammaRampPtr) (RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
 	RGFW_UNUSED(monitor); RGFW_UNUSED(ramp);
+#ifndef RGFW_NO_XRANDR
+	size_t size = (size_t)XRRGetCrtcGammaSize(_RGFW->display, monitor->node->crtc);
+	XRRCrtcGamma* gamma = XRRGetCrtcGamma(_RGFW->display, monitor->node->crtc);
+
+	RGFW_MEMCPY(ramp->red,   gamma->red,   size * sizeof(unsigned short));
+	RGFW_MEMCPY(ramp->green, gamma->green, size * sizeof(unsigned short));
+	RGFW_MEMCPY(ramp->blue,  gamma->blue,  size * sizeof(unsigned short));
+
+	XRRFreeGamma(gamma);
+	return size;
+#endif
+
 	return 0;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_setGammaRamp) (RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
 	RGFW_UNUSED(monitor); RGFW_UNUSED(ramp);
+
+#ifndef RGFW_NO_XRANDR
+	size_t size = (size_t)XRRGetCrtcGammaSize(_RGFW->display, monitor->node->crtc);
+	if (size != ramp->count) {
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errX11, "X11: Gamma ramp size must match current ramp size");
+		return RGFW_FALSE;
+	}
+
+	XRRCrtcGamma* gamma = XRRAllocGamma((int)ramp->count);
+
+	memcpy(gamma->red,   ramp->red,   ramp->count * sizeof(unsigned short));
+	memcpy(gamma->green, ramp->green, ramp->count * sizeof(unsigned short));
+	memcpy(gamma->blue,  ramp->blue,  ramp->count * sizeof(unsigned short));
+
+	XRRSetCrtcGamma(_RGFW->display, monitor->node->crtc, gamma);
+	XRRFreeGamma(gamma);
+
+	return RGFW_TRUE;
+#endif
 	return RGFW_FALSE;
 }
 
@@ -10984,13 +11016,33 @@ RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* w
 }
 
 size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
-	RGFW_UNUSED(monitor); RGFW_UNUSED(ramp);
-	return 0;
+    WORD values[3][256];
+
+    HDC dc = CreateDCW(L"DISPLAY", monitor->node->adapterName, NULL, NULL);
+    GetDeviceGammaRamp(dc, values);
+    DeleteDC(dc);
+
+    memcpy(ramp->red,   values[0], sizeof(values[0]));
+    memcpy(ramp->green, values[1], sizeof(values[1]));
+    memcpy(ramp->blue,  values[2], sizeof(values[2]));
+
+    return RGFW_TRUE;
 }
 
 RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
-	RGFW_UNUSED(monitor); RGFW_UNUSED(ramp);
-	return RGFW_FALSE;
+    if (ramp->count != 256) {
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errX11, "Win32: Gamma ramp size must be 256");
+        return RGFW_FALSE;
+    }
+
+    memcpy(values[0], ramp->red,   sizeof(values[0]));
+    memcpy(values[1], ramp->green, sizeof(values[1]));
+    memcpy(values[2], ramp->blue,  sizeof(values[2]));
+
+    HDC dc = CreateDCW(L"DISPLAY", monitor->win32.adapterName, NULL, NULL);
+    SetDeviceGammaRamp(dc, values);
+    DeleteDC(dc);
+	return RGFW_TRUE;
 }
 
 size_t RGFW_monitor_getModesPtr(RGFW_monitor* monitor, RGFW_monitorMode** modes){
@@ -13450,13 +13502,47 @@ RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* w
 }
 
 size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
-	RGFW_UNUSED(monitor); RGFW_UNUSED(ramp);
-	return 0;
+	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+	pool = objc_msgSend_id(pool, sel_registerName("init"));
+
+
+    uint32_t size = CGDisplayGammaTableCapacity(monitor->ns.displayID);
+    CGGammaValue* values = RGFW_MALLOC(size * 3 * sizeof(CGGammaValue));
+
+    CGGetDisplayTransferByTable(monitor->ns.displayID, size, values, values + size, values + size * 2, &size);
+
+    for (u32 i = 0; i < size; i++) {
+        ramp->red[i] = (u16) (values[i] * 65535);
+        ramp->green[i] = (u16) (values[i + size] * 65535);
+        ramp->blue[i] = (u16) (values[i + size * 2] * 65535);
+    }
+
+    RGFW_FREE(values);
+
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
+	return size;
 }
 
 RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
-	RGFW_UNUSED(monitor); RGFW_UNUSED(ramp);
-	return RGFW_FALSE;
+	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+	pool = objc_msgSend_id(pool, sel_registerName("init"));
+
+
+    CGGammaValue* values = RGFW_FREE(ramp->size * 3 * sizeof(CGGammaValue));
+
+    for (u32 i = 0;  i < ramp->size;  i++) {
+        values[i] = ramp->red[i] / 65535.f;
+        values[i + ramp->size] = ramp->green[i] / 65535.f;
+        values[i + ramp->size * 2] = ramp->blue[i] / 65535.f;
+    }
+
+    CGSetDisplayTransferByTable(monitor->ns.displayID, ramp->size, values, values + ramp->size, values + ramp->size * 2);
+
+    RGFW_FREE(values);
+
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
+
+	return RGFW_TRUE;
 }
 
 size_t RGFW_monitor_getModesPtr(RGFW_monitor* mon, RGFW_monitorMode** modes) {
