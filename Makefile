@@ -323,11 +323,11 @@ examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.
 
 examples/gl33/gl33: examples/gl33/gl33.c RGFW.h
 ifeq ($(WAYLAND), 1)
-	$(CC) $(CFLAGS) $(WARNINGS) -I. -lm $< $(LIBS) $(LINK_GL1) -lEGL -lwayland-egl -o $@$(EXT)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lm $(LIBS) $(LINK_GL1) -lEGL -lwayland-egl -o $@$(EXT)
 else ifeq ($(detected_OS),NetBSD)
-	$(CC) $(CFLAGS) $(WARNINGS) $(CFLAGS) -I. $<  -lXrandr -lpthread -o $@$(EXT)
+	$(CC) $(CFLAGS) $(WARNINGS) $(CFLAGS) -I. $< -lm -o $@$(EXT)
 else ifeq ($(detected_OS),Linux)
-	$(CC) $(CFLAGS) $(WARNINGS)  -lm -I. $<  -o $@$(EXT)
+	$(CC) $(CFLAGS) $(WARNINGS)  -I. $< -lm  -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lgdi32 -D UNICODE -o $@$(EXT)
 else ifeq ($(detected_OS),Darwin)
