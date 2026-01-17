@@ -473,6 +473,14 @@ typedef struct RGFW_nativeImage RGFW_nativeImage;
 /*! @brief a stucture for interfacing with pixel data as a renderable surface */
 typedef struct RGFW_surface RGFW_surface;
 
+/*! @brief gamma struct for monitors */
+typedef struct RGFW_gammaRamp {
+	u16* red; /*!< array for the red channel */
+	u16* green; /*!< array for the green channel */
+	u16* blue; /*!< array for the blue channel */
+	size_t count; /*! count of elements in each channel */
+} RGFW_gammaRamp;
+
 /*! @brief monitor mode data | can be changed by the user (with functions)*/
 typedef struct RGFW_monitorMode {
 	i32 w, h; /*!< monitor workarea size */
@@ -1201,6 +1209,52 @@ RGFWDEF void RGFW_freeModes(RGFW_monitorMode* modes);
  * @return the number of (possible) modes, if [modes == NULL] the possible nodes *may* be less than the actual modes
 */
 RGFWDEF size_t RGFW_monitor_getModesPtr(RGFW_monitor* monitor, RGFW_monitorMode** modes);
+
+/**!
+ * @brief Get the allocated gamma ramp
+ * @param monitor the source monitor object
+*/
+RGFWDEF RGFW_gammaRamp* RGFW_monitor_getGammaRamp(RGFW_monitor* monitor);
+
+/**!
+ * @brief Free the gamma ramp allocated by RGFW
+ * @param allocated gamma ramp
+*/
+RGFWDEF void RGFW_freeGammaRamp(RGFW_gammaRamp* ramp);
+
+/**!
+ * @brief Get the monitor's gamma ramp using a pre-allocated struct with allocated data
+ * @param monitor the source monitor object
+ * @param ramp [OUTPUT] a pointer to an allocated gamma ramp (can be NULL to just get the count)
+ * @return the count of the gamma ramp
+*/
+RGFWDEF size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp);
+
+/**!
+ * @brief Set the monitor's gamma ramp using a pre-allocated struct with allocated data
+ * @param monitor the source monitor object
+ * @param ramp a pointer to an allocated gamma ramp
+ * @return a bool if the function was successful
+*/
+RGFWDEF RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp);
+
+/**!
+ * @brief Create and set the monitor's gamma ramp with a base gamma exponent
+ * @param monitor the source monitor object
+ * @param the gamma exponent
+ * @return a bool if the function was successful
+*/
+RGFWDEF RGFW_bool RGFW_monitor_setGamma(RGFW_monitor* monitor, float gamma);
+
+/**!
+ * @brief Create and set the monitor's gamma ramp with a base gamma exponent using a pre-allocated array
+ * @param monitor the source monitor object
+ * @param gamma the gamma exponent
+ * @param pre-allocated gammaramp channel
+ * @param count the length of the allocated channel array
+ * @return a bool if the function was successful
+*/
+RGFWDEF RGFW_bool RGFW_monitor_setGammaPtr(RGFW_monitor* monitor, float gamma, u16* ptr, size_t count);
 
 /**!
  * @brief Get the workarea of a monitor, meaning the parts not occupied by OS graphics (i.e. the taskbar)
@@ -3179,6 +3233,10 @@ struct RGFW_info {
 
 #ifdef RGFW_IMPLEMENTATION
 
+#ifndef RGFW_NO_MATH
+#include <math.h>
+#endif
+
 /* global private API */
 
 /* for C++ / C89 */
@@ -4468,6 +4526,68 @@ RGFW_bool RGFW_monitor_getPhysicalSize(RGFW_monitor* monitor, float* w, float* h
 RGFW_bool RGFW_monitor_getMode(RGFW_monitor* monitor, RGFW_monitorMode* mode) {
 	if (mode) *mode = monitor->mode;
 	return RGFW_TRUE;
+}
+
+size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
+	RGFW_UNUSED(monitor); RGFW_UNUSED(ramp);
+	return 0;
+}
+
+RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
+	RGFW_UNUSED(monitor); RGFW_UNUSED(ramp);
+	return RGFW_FALSE;
+}
+
+RGFW_gammaRamp* RGFW_monitor_getGammaRamp(RGFW_monitor* monitor) {
+	RGFW_gammaRamp* ramp = (RGFW_gammaRamp*)RGFW_ALLOC(sizeof(RGFW_gammaRamp));
+	ramp->count = RGFW_monitor_getGammaRampPtr(monitor, NULL);
+	ramp->red = (u16*)RGFW_ALLOC(sizeof(u16) * ramp->count);
+	ramp->green = (u16*)RGFW_ALLOC(sizeof(u16) * ramp->count);
+	ramp->blue = (u16*)RGFW_ALLOC(sizeof(u16) * ramp->count);
+	ramp->count = RGFW_monitor_getGammaRampPtr(monitor, ramp);
+
+	return ramp;
+}
+
+void RGFW_freeGammaRamp(RGFW_gammaRamp* ramp) {
+	RGFW_FREE(ramp->red);
+	RGFW_FREE(ramp->green);
+	RGFW_FREE(ramp->blue);
+	RGFW_FREE(ramp);
+}
+
+RGFW_bool RGFW_monitor_setGammaPtr(RGFW_monitor* monitor, float gamma, u16* ptr, size_t count) {
+	RGFW_ASSERT(monitor);
+    RGFW_ASSERT(gamma > 0.0f);
+
+	size_t i;
+    for (i = 0;  i < count;  i++) {
+        float value = (float)i / (float) (count - 1);
+		#ifndef RGFW_NO_MATH
+			value = powf(value, 1.f / gamma) * 65535.f + 0.5f;
+		#endif
+        value = RGFW_MIN(value, 65535.f);
+
+        ptr[i] = (u16)value;
+    }
+
+    RGFW_gammaRamp ramp;
+    ramp.red = ptr;
+    ramp.green = ptr;
+    ramp.blue = ptr;
+    ramp.count = count;
+
+    return RGFW_monitor_setGammaRamp(monitor, &ramp);
+}
+
+RGFWDEF RGFW_bool RGFW_monitor_setGamma(RGFW_monitor* monitor, float gamma) {
+	size_t count = RGFW_monitor_getGammaRampPtr(monitor, NULL);
+	u16* ptr = (u16*)RGFW_ALLOC(count * sizeof(u16));
+
+	RGFW_bool ret = RGFW_monitor_setGammaPtr(monitor, gamma, ptr, count);
+	RGFW_FREE(ptr);
+
+	return ret;
 }
 
 RGFW_monitor** RGFW_getMonitors(size_t* len) {
