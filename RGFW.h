@@ -4571,7 +4571,7 @@ RGFW_bool RGFW_monitor_setGammaPtr(RGFW_monitor* monitor, float gamma, u16* ptr,
     return RGFW_monitor_setGammaRamp(monitor, &ramp);
 }
 
-RGFWDEF RGFW_bool RGFW_monitor_setGamma(RGFW_monitor* monitor, float gamma) {
+RGFW_bool RGFW_monitor_setGamma(RGFW_monitor* monitor, float gamma) {
 	size_t count = RGFW_monitor_getGammaRampPtr(monitor, NULL);
 	u16* ptr = (u16*)RGFW_ALLOC(count * sizeof(u16));
 
@@ -7715,9 +7715,11 @@ size_t RGFW_FUNC(RGFW_monitor_getGammaRampPtr) (RGFW_monitor* monitor, RGFW_gamm
 	size_t size = (size_t)XRRGetCrtcGammaSize(_RGFW->display, monitor->node->crtc);
 	XRRCrtcGamma* gamma = XRRGetCrtcGamma(_RGFW->display, monitor->node->crtc);
 
-	RGFW_MEMCPY(ramp->red,   gamma->red,   size * sizeof(unsigned short));
-	RGFW_MEMCPY(ramp->green, gamma->green, size * sizeof(unsigned short));
-	RGFW_MEMCPY(ramp->blue,  gamma->blue,  size * sizeof(unsigned short));
+	if (ramp) {
+		RGFW_MEMCPY(ramp->red,   gamma->red,   size * sizeof(unsigned short));
+		RGFW_MEMCPY(ramp->green, gamma->green, size * sizeof(unsigned short));
+		RGFW_MEMCPY(ramp->blue,  gamma->blue,  size * sizeof(unsigned short));
+	}
 
 	XRRFreeGamma(gamma);
 	return size;
@@ -11022,11 +11024,13 @@ size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
     GetDeviceGammaRamp(dc, values);
     DeleteDC(dc);
 
-    memcpy(ramp->red,   values[0], sizeof(values[0]));
-    memcpy(ramp->green, values[1], sizeof(values[1]));
-    memcpy(ramp->blue,  values[2], sizeof(values[2]));
+	if (ramp) {
+	    memcpy(ramp->red,   values[0], sizeof(values[0]));
+		memcpy(ramp->green, values[1], sizeof(values[1]));
+	    memcpy(ramp->blue,  values[2], sizeof(values[2]));
+	}
 
-    return RGFW_TRUE;
+    return sizeof(values[0]);
 }
 
 RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
@@ -13512,7 +13516,7 @@ size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
 
     CGGetDisplayTransferByTable(monitor->node->display, size, values, values + size, values + size * 2, &size);
 
-    for (u32 i = 0; i < size; i++) {
+    for (u32 i = 0;  ramp && i < size; i++) {
         ramp->red[i] = (u16) (values[i] * 65535);
         ramp->green[i] = (u16) (values[i + size] * 65535);
         ramp->blue[i] = (u16) (values[i + size * 2] * 65535);
