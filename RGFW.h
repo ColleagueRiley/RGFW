@@ -3100,6 +3100,7 @@ struct RGFW_monitorNode {
 #ifdef RGFW_WINDOWS
 	HMONITOR hMonitor;
 	WCHAR adapterName[32];
+	WCHAR deviceName[32];
 #endif
 #ifdef RGFW_MACOS
 	void* screen;
@@ -4448,7 +4449,7 @@ RGFW_monitorNode* RGFW_monitors_add(const RGFW_monitor* mon) {
 
 	_RGFW->monitors.list.cur = node;
 
-	node->mon = *mon;
+	if (mon) node->mon = *mon;
 	node->mon.node = node;
 	node->disconnected = RGFW_FALSE;
 
@@ -7690,7 +7691,7 @@ size_t RGFW_FUNC(RGFW_monitor_getModesPtr) (RGFW_monitor* monitor, RGFW_monitorM
 	size_t count = 0;
 
 	XRRScreenResources* res = XRRGetScreenResourcesCurrent(_RGFW->display, DefaultRootWindow(_RGFW->display));
-	if (res == NULL) return RGFW_FALSE;
+	if (res == NULL) return 0;
 
 	XRRCrtcInfo* ci = XRRGetCrtcInfo(_RGFW->display, res, monitor->node->crtc);
 	XRROutputInfo* oi = XRRGetOutputInfo(_RGFW->display, res, monitor->node->rrOutput);
@@ -10883,8 +10884,8 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 	return placement.showCmd == SW_SHOWMAXIMIZED || IsZoomed(win->src.window);
 }
 
-RGFWDEF float RGFW_winapi_getRefreshRate(DEVMODEW *mode);
-float RGFW_winapi_getRefreshRate(DEVMODEW *mode) {
+RGFWDEF float RGFW_win32_getRefreshRate(DEVMODEW *mode);
+float RGFW_win32_getRefreshRate(DEVMODEW *mode) {
     switch (mode->dmDisplayFrequency) {
 		case 119:
 		case 59:
@@ -10895,113 +10896,6 @@ float RGFW_winapi_getRefreshRate(DEVMODEW *mode) {
 			return (float)mode->dmDisplayFrequency;
 			break;
     }
-}
-
-BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData);
-BOOL CALLBACK GetMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
-	RGFW_UNUSED(hdcMonitor);
-	RGFW_UNUSED(lprcMonitor);
-	RGFW_UNUSED(dwData);
-
-	RGFW_monitor monitor;
-	RGFW_MEMSET(&monitor, 0, sizeof(monitor));
-
-	MONITORINFOEXW monitorInfo;
-	monitorInfo.cbSize = sizeof(MONITORINFOEXW);
-	GetMonitorInfoW(hMonitor, (LPMONITORINFO)&monitorInfo);
-
-	/* get the monitor's index */
-	DISPLAY_DEVICEW dd;
-	dd.cb = sizeof(dd);
-
-	RGFW_bool isPrimary = RGFW_FALSE;
-
-    DWORD deviceNum;
-	for (deviceNum = 0; EnumDisplayDevicesW(NULL, deviceNum, &dd, 0); deviceNum++) {
-		if (!(dd.StateFlags & DISPLAY_DEVICE_ACTIVE))
-			continue;
-
-		if ((dd.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE)) {
-			isPrimary = RGFW_TRUE;
-		}
-
-		RGFW_monitorNode* node;
-		for (node = _RGFW->monitors.list.head; node; node = node->next) {
-			if (node->hMonitor == hMonitor) break;
-		}
-
-		if (node) {
-			node->disconnected = RGFW_FALSE;
-			if (isPrimary) {
-				_RGFW->monitors.primary = node;
-			}
-			continue;
-		}
-
-		DEVMODEW dm;
-		ZeroMemory(&dm, sizeof(dm));
-		dm.dmSize = sizeof(dm);
-
-		if (EnumDisplaySettingsW(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm)) {
-			monitor.mode.refreshRate = RGFW_winapi_getRefreshRate(&dm);
-			RGFW_splitBPP(dm.dmBitsPerPel, &monitor.mode);
-		}
-
-
-		DISPLAY_DEVICEW mdd;
-		mdd.cb = sizeof(mdd);
-
-		if (EnumDisplayDevicesW(dd.DeviceName, (DWORD)deviceNum, &mdd, 0)) {
-			RGFW_createUTF8FromWideStringWin32(mdd.DeviceString, monitor.name, sizeof(monitor.name));
-			monitor.name[sizeof(monitor.name) - 1] = '\0';
-			break;
-		}
-
-		monitor.mode.w = (i32)dm.dmPelsWidth;
-		monitor.mode.h = (i32)dm.dmPelsHeight;
-	}
-
-	monitor.x = monitorInfo.rcMonitor.left;
-	monitor.y = monitorInfo.rcMonitor.top;
-
-	HDC hdc = CreateDCW(monitorInfo.szDevice, NULL, NULL, NULL);
-	/* get pixels per inch */
-	float dpiX = (float)GetDeviceCaps(hdc, LOGPIXELSX);
-	float dpiY = (float)GetDeviceCaps(hdc, LOGPIXELSX);
-
-	monitor.scaleX = dpiX / 96.0f;
-	monitor.scaleY = dpiY / 96.0f;
-	monitor.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
-
-	monitor.physW = (float)GetDeviceCaps(hdc, HORZSIZE) / 25.4f;
-	monitor.physH = (float)GetDeviceCaps(hdc, VERTSIZE) / 25.4f;
-	DeleteDC(hdc);
-
-	#ifndef RGFW_NO_DPI
-		RGFW_LOAD_LIBRARY(RGFW_Shcore_dll, "shcore.dll");
-		RGFW_PROC_DEF(RGFW_Shcore_dll, GetDpiForMonitor);
-
-		if (GetDpiForMonitor != NULL) {
-			u32 x, y;
-			GetDpiForMonitor(hMonitor, MDT_EFFECTIVE_DPI, &x, &y);
-			monitor.scaleX = (float) (x) / (float) 96.0f;
-			monitor.scaleY = (float) (y) / (float) 96.0f;
-			monitor.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
-		}
-	#endif
-
-	RGFW_monitorNode* node = RGFW_monitors_add(&monitor);
-
-	if (isPrimary) {
-		_RGFW->monitors.primary = node;
-	}
-
-	wcscpy(node->adapterName, dd.DeviceName);
-	node->hMonitor = hMonitor;
-
-	RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_TRUE);
-
-	return TRUE;
 }
 
 RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
@@ -11030,7 +10924,7 @@ size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
 	    memcpy(ramp->blue,  values[2], sizeof(values[2]));
 	}
 
-    return sizeof(values[0]);
+    return sizeof(values[0]) / sizeof(WORD);
 }
 
 RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
@@ -11050,6 +10944,29 @@ RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
 	return RGFW_TRUE;
 }
 
+BOOL CALLBACK RGFW_win32_getMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData);
+BOOL CALLBACK RGFW_win32_getMonitorHandle(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
+	RGFW_UNUSED(hMonitor);
+	RGFW_UNUSED(hdcMonitor);
+	RGFW_UNUSED(lprcMonitor);
+	RGFW_UNUSED(dwData);
+
+    MONITORINFOEXW mi;
+    ZeroMemory(&mi, sizeof(mi));
+    mi.cbSize = sizeof(mi);
+
+    if (GetMonitorInfoW(hMonitor, (MONITORINFO*) &mi)) {
+		RGFW_monitorNode* node = (RGFW_monitorNode*)dwData;
+        if (wcscmp(mi.szDevice, node->adapterName) == 0) {
+            node->hMonitor = hMonitor;
+		}
+    }
+
+	return TRUE;
+}
+
+
+
 size_t RGFW_monitor_getModesPtr(RGFW_monitor* monitor, RGFW_monitorMode** modes){
 	size_t count = 0;
 	DWORD modeIndex = 0;
@@ -11066,7 +10983,7 @@ size_t RGFW_monitor_getModesPtr(RGFW_monitor* monitor, RGFW_monitorMode** modes)
 
 		mode.w = (i32)dm.dmPelsWidth;
 		mode.h = (i32)dm.dmPelsHeight;
-		mode.refreshRate = RGFW_winapi_getRefreshRate(&dm);
+		mode.refreshRate = RGFW_win32_getRefreshRate(&dm);
 		RGFW_splitBPP(dm.dmBitsPerPel, &mode);
 
 		modeIndex++;
@@ -11084,13 +11001,84 @@ size_t RGFW_monitor_getModesPtr(RGFW_monitor* monitor, RGFW_monitorMode** modes)
 			if (i < count) {
 				continue;
 			}
+
+			(*modes)[count] = mode;
 		}
 
-		(*modes)[count] = mode;
 		count += 1;
 	}
 
 	return count;
+}
+
+RGFWDEF void RGFW_win32_createMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd);
+void RGFW_win32_createMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd) {
+	DEVMODEW dm;
+	ZeroMemory(&dm, sizeof(dm));
+	dm.dmSize = sizeof(dm);
+
+	if (!EnumDisplaySettingsW(adapter->DeviceName, ENUM_CURRENT_SETTINGS, &dm)) {
+		return;
+	}
+
+	RGFW_monitorNode* node = RGFW_monitors_add(NULL);
+
+	wcscpy(node->adapterName, adapter->DeviceName);
+	wcscpy(node->deviceName, dd->DeviceName);
+
+	RGFW_createUTF8FromWideStringWin32(dd->DeviceString, node->mon.name, sizeof(node->mon.name));
+	node->mon.name[sizeof(node->mon.name) - 1] = '\0';
+
+	RECT rect;
+	rect.left = (LONG)dm.dmPosition.x;
+	rect.top = (LONG)dm.dmPosition.y;
+	rect.right = (LONG)((LONG)dm.dmPosition.x + (LONG)dm.dmPelsWidth);
+	rect.bottom = (LONG)((long)dm.dmPosition.y + (LONG)dm.dmPelsHeight);
+	EnumDisplayMonitors(NULL, &rect, RGFW_win32_getMonitorHandle, (LPARAM)node);
+
+	node->mon.mode.w = (i32)dm.dmPelsWidth;
+	node->mon.mode.h = (i32)dm.dmPelsHeight;
+	node->mon.mode.refreshRate = RGFW_win32_getRefreshRate(&dm);
+	RGFW_splitBPP(dm.dmBitsPerPel, &node->mon.mode);
+
+	MONITORINFOEXW monitorInfo;
+	monitorInfo.cbSize = sizeof(MONITORINFOEXW);
+	GetMonitorInfoW(node->hMonitor, (LPMONITORINFO)&monitorInfo);
+
+	node->mon.x = monitorInfo.rcMonitor.left;
+	node->mon.y = monitorInfo.rcMonitor.top;
+
+	HDC hdc = CreateDCW(monitorInfo.szDevice, NULL, NULL, NULL);
+	/* get pixels per inch */
+	float dpiX = (float)GetDeviceCaps(hdc, LOGPIXELSX);
+	float dpiY = (float)GetDeviceCaps(hdc, LOGPIXELSX);
+
+	node->mon.scaleX = dpiX / 96.0f;
+	node->mon.scaleY = dpiY / 96.0f;
+	node->mon.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
+
+	node->mon.physW = (float)GetDeviceCaps(hdc, HORZSIZE) / 25.4f;
+	node->mon.physH = (float)GetDeviceCaps(hdc, VERTSIZE) / 25.4f;
+	DeleteDC(hdc);
+
+#ifndef RGFW_NO_DPI
+	RGFW_LOAD_LIBRARY(RGFW_Shcore_dll, "shcore.dll");
+	RGFW_PROC_DEF(RGFW_Shcore_dll, GetDpiForMonitor);
+
+	if (GetDpiForMonitor != NULL) {
+		u32 x, y;
+		GetDpiForMonitor(node->hMonitor, MDT_EFFECTIVE_DPI, &x, &y);
+		node->mon.scaleX = (float) (x) / (float) 96.0f;
+		node->mon.scaleY = (float) (y) / (float) 96.0f;
+		node->mon.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
+	}
+#endif
+
+	if (monitorInfo.dwFlags & MONITORINFOF_PRIMARY) {
+		_RGFW->monitors.primary = node;
+	}
+
+	RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_TRUE);
 }
 
 void RGFW_pollMonitors(void) {
@@ -11098,22 +11086,81 @@ void RGFW_pollMonitors(void) {
 		node->disconnected = RGFW_TRUE;
 	}
 
-	EnumDisplayMonitors(NULL, NULL, GetMonitorHandle, (LPARAM)NULL);
+	/* loop through display adapters (GPU) */
+	DISPLAY_DEVICEW adapter;
+	DWORD adapterNum;
+	for (adapterNum = 0; ; adapterNum++) {
+        ZeroMemory(&adapter, sizeof(adapter));
+		adapter.cb = sizeof(adapter);
+
+		if (!EnumDisplayDevicesW(NULL, adapterNum, &adapter, 0))
+			break;
+
+		if (!(adapter.StateFlags & DISPLAY_DEVICE_ACTIVE))
+			continue;
+
+		DISPLAY_DEVICEW dd;
+		dd.cb = sizeof(dd);
+
+		/* loop through display devices (monitors) */
+		DWORD deviceNum;
+		for (deviceNum = 0; ; deviceNum++) {
+            ZeroMemory(&dd, sizeof(dd));
+            dd.cb = sizeof(dd);
+
+			if (!EnumDisplayDevicesW(adapter.DeviceName, deviceNum, &dd, 0))
+				break;
+
+			if (!(dd.StateFlags & DISPLAY_DEVICE_ACTIVE))
+				continue;
+
+			RGFW_monitorNode* node;
+			for (node = _RGFW->monitors.list.head; node; node = node->next) {
+				if (node->disconnected == RGFW_TRUE && wcscmp(node->deviceName, dd.DeviceName) == 0) {
+					node->disconnected = RGFW_FALSE;
+					EnumDisplayMonitors(NULL, NULL, RGFW_win32_getMonitorHandle, (LPARAM) &node->mon);
+					break;
+				}
+			}
+
+			if (node) {
+				continue;
+			}
+
+			RGFW_win32_createMonitor(&adapter, &dd);
+		}
+
+		/* if there are no display devices, just use the monitor directly (hack borrowed from GLFW (I'm not giving it back)) */
+        if (deviceNum == 0) {
+   			RGFW_monitorNode* node;
+			for (node = _RGFW->monitors.list.head; node; node = node->next) {
+				if (node->disconnected == RGFW_TRUE && wcscmp(node->adapterName, adapter.DeviceName) == 0) {
+					node->disconnected = RGFW_FALSE;
+					break;
+				}
+			}
+
+			if (node) {
+				continue;
+			}
+
+			RGFW_win32_createMonitor(&adapter, NULL);
+        }
+	}
 
 	RGFW_monitors_refresh();
 }
 
 RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) {
 	HMONITOR src = MonitorFromWindow(win->src.window, MONITOR_DEFAULTTOPRIMARY);
-
 	RGFW_monitorNode* node = _RGFW->monitors.list.head;
 	for (node = _RGFW->monitors.list.head; node; node = node->next) {
 		if (node->hMonitor == src) {
-			break;
+			return &node->mon;
 		}
 	}
 
-	return &node->mon;
+	return RGFW_getPrimaryMonitor();
 }
 
 RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) {
