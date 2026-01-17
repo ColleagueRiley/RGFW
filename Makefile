@@ -161,6 +161,7 @@ EXAMPLE_OUTPUTS = \
 	examples/state-checking/state-checking \
 	examples/flags/flags \
 	examples/monitor/monitor \
+	examples/gamma/gamma \
 	examples/gl33_ctx/gl33_ctx \
 	examples/smooth-resize/smooth-resize \
 	examples/multi-window/multi-window \
