@@ -13507,7 +13507,7 @@ size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
 	pool = objc_msgSend_id(pool, sel_registerName("init"));
 
     uint32_t size = CGDisplayGammaTableCapacity(monitor->node->display);
-    CGGammaValue* values = (CGGammaValue*)RGFW_MALLOC(size * 3 * sizeof(CGGammaValue));
+    CGGammaValue* values = (CGGammaValue*)RGFW_ALLOC(size * 3 * sizeof(CGGammaValue));
 
     CGGetDisplayTransferByTable(monitor->node->display, size, values, values + size, values + size * 2, &size);
 
@@ -13527,7 +13527,7 @@ RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
 	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	pool = objc_msgSend_id(pool, sel_registerName("init"));
 
-    CGGammaValue* values = RGFW_ALLOC(ramp->count * 3 * sizeof(CGGammaValue));
+    CGGammaValue* values = (CGGammaValue*)RGFW_ALLOC(ramp->count * 3 * sizeof(CGGammaValue));
 
     for (u32 i = 0;  i < ramp->count;  i++) {
         values[i] = ramp->red[i] / 65535.f;
@@ -13535,7 +13535,7 @@ RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
         values[i + ramp->count * 2] = ramp->blue[i] / 65535.f;
     }
 
-    CGSetDisplayTransferByTable(monitor->node->display, ramp->count, values, values + ramp->count, values + ramp->count * 2);
+    CGSetDisplayTransferByTable(monitor->node->display, (u32)ramp->count, values, values + ramp->count, values + ramp->count * 2);
 
     RGFW_FREE(values);
 
