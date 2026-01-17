@@ -65,7 +65,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		LINK_GL1 = -lGL
 
 		ifneq ($(WAYLAND_ONLY), 1)
-			LIBS = -lXrandr -lX11 -ldl -lpthread
+			LIBS = -lXrandr -lX11 -ldl -lpthread -lm
 		else
 			LIBS =
 		endif
@@ -81,7 +81,7 @@ ifeq (,$(filter $(CC),x86_64-w64-mingw32-gcc i686-w64-mingw32-gcc x86_64-w64-min
 		DX11_LIBS =
 		LINK_GL1 = -lGL
 		CUSTOM_CFLAGS += -I/usr/pkg/include -I/usr/X11R7/include -Wl,-R/usr/pkg/lib -Wl,-R/usr/X11R7/lib -L/usr/pkg/lib -L/usr/X11R7/lib
-		LIBS := $(CUSTOM_CFLAGS) -lXrandr -lX11 -lpthread
+		LIBS := $(CUSTOM_CFLAGS) -lXrandr -lX11 -lpthread -lm
 		VULKAN_LIBS = $(LIBS) -lvulkan
 		EXT =
 		LIB_EXT = .so
@@ -102,7 +102,7 @@ ifeq ($(WAYLAND),1)
 	NO_VULKAN = 1
 	NO_GLES = 0
 	NO_EGL = 0
-	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1.c pointer-constraints-unstable-v1.c xdg-toplevel-icon-v1.c xdg-output-unstable-v1.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL
+	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1.c pointer-constraints-unstable-v1.c xdg-toplevel-icon-v1.c xdg-output-unstable-v1.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL -lm
 	LINK_GL1 = -lEGL -lGL
 
 	# LIBS += -ldecor-0
@@ -323,11 +323,11 @@ examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.
 
 examples/gl33/gl33: examples/gl33/gl33.c RGFW.h
 ifeq ($(WAYLAND), 1)
-	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL1) -lEGL -lwayland-egl -o $@$(EXT)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. -lm $< $(LIBS) $(LINK_GL1) -lEGL -lwayland-egl -o $@$(EXT)
 else ifeq ($(detected_OS),NetBSD)
 	$(CC) $(CFLAGS) $(WARNINGS) $(CFLAGS) -I. $<  -lXrandr -lpthread -o $@$(EXT)
 else ifeq ($(detected_OS),Linux)
-	$(CC) $(CFLAGS) $(WARNINGS)  -I. $<  -o $@$(EXT)
+	$(CC) $(CFLAGS) $(WARNINGS)  -lm -I. $<  -o $@$(EXT)
 else ifeq ($(detected_OS),windows)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lgdi32 -D UNICODE -o $@$(EXT)
 else ifeq ($(detected_OS),Darwin)
