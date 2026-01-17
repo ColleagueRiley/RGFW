@@ -12011,6 +12011,7 @@ id NSString_stringWithUTF8String(const char* str) {
 	return ((id(*)(id, SEL, const char*))objc_msgSend) ((id)objc_getClass("NSString"), sel_registerName("stringWithUTF8String:"), str);
 }
 
+RGFWDEF float RGFW_cocoaYTransform(float y);
 float RGFW_cocoaYTransform(float y) { return (float)(CGDisplayBounds(CGMainDisplayID()).size.height - (double)y - (double)1.0f); }
 
 const char* NSString_to_char(id str);
