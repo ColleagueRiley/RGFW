@@ -4546,7 +4546,7 @@ void RGFW_monitor_setUserPtr(RGFW_monitor* monitor, void* userPtr) {
 }
 
 void* RGFW_monitor_getUserPtr(RGFW_monitor* monitor) {
-	return monitor->userPtr
+	return monitor->userPtr;
 }
 
 RGFW_bool RGFW_monitor_getMode(RGFW_monitor* monitor, RGFW_monitorMode* mode) {
