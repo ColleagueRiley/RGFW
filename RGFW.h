@@ -12433,7 +12433,7 @@ static void RGFW__osxWindowMove(id self, SEL sel) {
 	if (win == NULL) return;
 
 	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
-	NSRect content = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("contentRectForFrameRect"), frame);
+	NSRect content = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("contentRectForFrameRect:"), frame);
 
 	float y = RGFW_cocoaYTransform((float)(content.origin.y + content.size.height - 1));
 
@@ -13082,6 +13082,7 @@ void RGFW_window_move(RGFW_window* win, i32 x, i32 y) {
 
 	win->x = x;
 	win->y = (i32)RGFW_cocoaYTransform(y + (float)content.size.height - 1);
+
 	((void(*)(id,SEL,NSPoint))objc_msgSend)((id)win->src.window, sel_registerName("setFrameOrigin:"), (NSPoint){(double)x, (double)y});
 }
 
