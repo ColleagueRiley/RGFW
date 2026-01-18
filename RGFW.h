@@ -3105,6 +3105,7 @@ struct RGFW_monitorNode {
 #ifdef RGFW_MACOS
 	void* screen;
 	CGDirectDisplayID display;
+	u32 uintNum;
 #endif
 };
 
@@ -7793,6 +7794,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor* mon, RGFW_monitorMod
 		if (RGFW_monitorModeCompare(mode, &foundMode, request)) {
 			native = mi->id;
 			output = RGFW_TRUE;
+			mon->mode = foundMode;
 			break;
 		}
 	}
@@ -12433,7 +12435,7 @@ static void RGFW__osxWindowMove(id self, SEL sel) {
 	if (win == NULL) return;
 
 	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
-	NSRect content = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("contentRectForFrameRect"), frame);
+	NSRect content = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("contentRectForFrameRect:"), frame);
 
 	float y = RGFW_cocoaYTransform((float)(content.origin.y + content.size.height - 1));
 
@@ -13082,6 +13084,7 @@ void RGFW_window_move(RGFW_window* win, i32 x, i32 y) {
 
 	win->x = x;
 	win->y = (i32)RGFW_cocoaYTransform(y + (float)content.size.height - 1);
+
 	((void(*)(id,SEL,NSPoint))objc_msgSend)((id)win->src.window, sel_registerName("setFrameOrigin:"), (NSPoint){(double)x, (double)y});
 }
 
@@ -13119,10 +13122,6 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 	if (!fullscreen && !(win->internal.flags & RGFW_windowFullscreen)) return;
 
 	if (fullscreen) {
-		if (!(win->internal.flags & RGFW_windowFullscreen)) {
-			return;
-		}
-
 		win->internal.oldX = win->x;
 		win->internal.oldY = win->y;
 		win->internal.oldW = win->w;
@@ -13131,6 +13130,10 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 		win->internal.flags |= RGFW_windowFullscreen;
 
 		RGFW_monitor* mon = RGFW_window_getMonitor(win);
+		RGFW_monitor_scaleToWindow(mon, win);
+
+		RGFW_window_setBorder(win, RGFW_FALSE);
+
 		if (mon != NULL) {
 			win->x = mon->x;
 			win->y = mon->y;
@@ -13139,7 +13142,11 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 			RGFW_window_resize(win, mon->mode.w, mon->mode.h);
 			RGFW_window_move(win, mon->x, mon->y);
 		}
+
+		((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("orderFront:"), (SEL)NULL);
+		objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), 25);
 	}
+
 	objc_msgSend_void_SEL(win->src.window, sel_registerName("toggleFullScreen:"), NULL);
 
 	if (!fullscreen) {
@@ -13426,8 +13433,8 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 	return b;
 }
 
-id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display);
-id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
+RGFWDEF id RGFW_getNSScreenForDisplayUInt(u32 uintNum);
+id RGFW_getNSScreenForDisplayUInt(u32 uintNum) {
 	Class NSScreenClass = objc_getClass("NSScreen");
 
 	id screens = objc_msgSend_id(NSScreenClass, sel_registerName("screens"));
@@ -13440,7 +13447,7 @@ id RGFW_getNSScreenForDisplayID(CGDirectDisplayID display) {
 		id screenNumberKey = NSString_stringWithUTF8String("NSScreenNumber");
 		id screenNumber = objc_msgSend_id_id(description, sel_registerName("objectForKey:"), screenNumberKey);
 
-		if ((CGDirectDisplayID)objc_msgSend_uint(screenNumber, sel_registerName("unsignedIntValue")) == display) {
+		if (CGDisplayUnitNumber((CGDirectDisplayID)objc_msgSend_uint(screenNumber, sel_registerName("unsignedIntValue"))) == uintNum) {
 			return screen;
 		}
 	}
@@ -13484,14 +13491,17 @@ void RGFW_pollMonitors(void) {
 	for (i = 0; i < count; i++) {
 		RGFW_monitor monitor;
 
-		id screen = RGFW_getNSScreenForDisplayID(displays[i]);
+		u32 uintNum = CGDisplayUnitNumber(displays[i]);
+		id screen = RGFW_getNSScreenForDisplayUInt(uintNum);
 
 		RGFW_monitorNode* node;
 		for (node = _RGFW->monitors.list.head; node; node = node->next) {
-			if (node->display == displays[i] && node->screen == screen) break;
+			if (node->uintNum == uintNum) break;
 		}
 
 		if (node) {
+			node->screen = (void*)screen;
+			node->display = displays[i];
 			node->disconnected = RGFW_FALSE;
 			if (displays[i] == primary) {
 				_RGFW->monitors.primary = node;
@@ -13531,6 +13541,7 @@ void RGFW_pollMonitors(void) {
 		node = RGFW_monitors_add(&monitor);
 
 		node->screen = (void*)screen;
+		node->uintNum = uintNum;
 		node->display = displays[i];
 
 		if (displays[i] == primary) {
@@ -13652,6 +13663,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RG
 
 		if (RGFW_monitorModeCompare(mode, &foundMode, request)) {
 			native = cmode;
+			mon->mode = foundMode;
 			break;
         }
     }
