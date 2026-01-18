@@ -500,6 +500,7 @@ typedef struct RGFW_monitor {
 	float pixelRatio; /*!< pixel ratio for monitor (1.0 for regular, 2.0 for hiDPI)  */
 	float physW, physH; /*!< monitor physical size in inches */
 	RGFW_monitorMode mode; /*!< current mode of the monitor */
+	void* userPtr; /*!< pointer for user data */
 	RGFW_monitorNode* node; /*!< source node data of the monitor */
 } RGFW_monitor;
 
@@ -1299,6 +1300,20 @@ RGFWDEF RGFW_bool RGFW_monitor_getScale(RGFW_monitor* monitor, float* x, float* 
  * @return a bool if the function was successful
 */
 RGFWDEF RGFW_bool RGFW_monitor_getPhysicalSize(RGFW_monitor* monitor, float* w, float* h);
+
+/**!
+ * @brief Set the user pointer of a monitor (the same as monitor.userPtr = userPtr)
+ * @param monitor the source monitor object
+ * @param userPtr the new user pointer for the monitor
+*/
+RGFWDEF void RGFW_monitor_setUserPtr(RGFW_monitor* monitor, void* userPtr);
+
+/**!
+ * @brief Get the user pointer of a monitor (the same as monitor.userPtr)
+ * @param monitor the source monitor object
+ * @return the user pointer of the moniotr
+*/
+RGFWDEF void* RGFW_monitor_getUserPtr(RGFW_monitor* monitor);
 
 /**!
  * @brief Get the mode of a monitor (the same as monitor.mode)
@@ -3060,7 +3075,7 @@ typedef struct RGFW_windowInternal {
 struct RGFW_window {
 	RGFW_window_src src; /*!< src window data */
 	RGFW_windowInternal internal; /*!< internal window data that is not specific to the OS */
-	void* userPtr; /* ptr for usr data */
+	void* userPtr; /* ptr for user data */
 	i32 x, y, w, h; /*!< position and size of the window */
 }; /*!< window structure for the window */
 
@@ -4524,6 +4539,14 @@ RGFW_bool RGFW_monitor_getPhysicalSize(RGFW_monitor* monitor, float* w, float* h
 	if (w) *w = monitor->physW;
 	if (h) *h = monitor->physH;
 	return RGFW_TRUE;
+}
+
+void RGFW_monitor_setUserPtr(RGFW_monitor* monitor, void* userPtr) {
+	monitor->userPtr = userPtr;
+}
+
+void* RGFW_monitor_getUserPtr(RGFW_monitor* monitor) {
+	return monitor->userPtr
 }
 
 RGFW_bool RGFW_monitor_getMode(RGFW_monitor* monitor, RGFW_monitorMode* mode) {
