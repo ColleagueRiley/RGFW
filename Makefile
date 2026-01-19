@@ -381,12 +381,12 @@ endif
 
 RGFW$(OBJ_FILE): RGFW.h xdg-shell.c
 	$(MAKE) initwayland
-	#$(CC) -x c $(CUSTOM_CFLAGS) -c RGFW.h xdg-shell.c -D RGFW_IMPLEMENTATION -fPIC -D RGFW_EXPORT
-	cp RGFW.h xdg-shell.c RGFW.c
+	#$(CC) -x c $(CUSTOM_CFLAGS) -c RGFW.h -D RGFW_IMPLEMENTATION -fPIC -D RGFW_EXPORT
+	cp RGFW.h RGFW.c
 	$(CC) $(CUSTOM_CFLAGS) -c RGFW.c -D RGFW_IMPLEMENTATION -fPIC -D RGFW_EXPORT
 	rm RGFW.c
 
-libRGFW$(LIB_EXT): RGFW.h xdg-shell.c RGFW$(OBJ_FILE)
+libRGFW$(LIB_EXT): RGFW.h RGFW$(OBJ_FILE)
 	$(MAKE) RGFW$(OBJ_FILE)
 ifeq ($(CC), cl)
 	link /DLL /OUT:libRGFW.dll RGFW.obj
@@ -394,7 +394,7 @@ else
 	$(CC) $(CUSTOM_CFLAGS) -shared RGFW$(OBJ_FILE) $(LIBS) -o libRGFW$(LIB_EXT)
 endif
 
-libRGFW.a: RGFW.h xdg-shell.c RGFW$(OBJ_FILE)
+libRGFW.a: RGFW.h RGFW$(OBJ_FILE)
 	$(MAKE) RGFW$(OBJ_FILE)
 	$(AR) rcs libRGFW.a RGFW$(OBJ_FILE)
 
