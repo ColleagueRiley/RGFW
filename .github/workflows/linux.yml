@@ -67,8 +67,9 @@ jobs:
         # ${{ matrix.ARCH }}-linux-gnu-gcc -v
 
     - name: tests
-        Xvfb :99 -screen 0 1024x768x24 &
-        make tests
+      run: |
+          Xvfb :99 -screen 0 1024x768x24 &
+          make tests
 
     - name: test C++
       run: |
