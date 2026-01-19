@@ -13091,7 +13091,6 @@ void RGFW_pollEvents(void) {
 			((id)_RGFW->NSApp, eventFunc, ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
 
 		if (e == NULL) {
-			((void(*)(id, SEL))objc_msgSend)((id)_RGFW->NSApp, sel_registerName("updateWindows"));
 			break;
 		}
 
@@ -13933,6 +13932,7 @@ void RGFW_window_closePlatform(RGFW_window* win) {
 	NSRelease(win->src.view);
 
 	objc_msgSend_id(win->src.window, sel_registerName("close"));
+	NSRelease(win->src.window);
 }
 
 #ifdef RGFW_VULKAN
