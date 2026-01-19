@@ -62,8 +62,17 @@ Additional labels for pre-release and build metadata are available as extensions
 	`RGFW_monitor_scaleToWindow(RGFW_monitor mon, struct RGFW_window* win)` -> `RGFW_monitor_scaleToWindow(RGFW_monitor* mon, struct RGFW_window* win)`
 	`RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor m)` -> `RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor* m)`
 	`RGFW_monitor RGFW_window_getMonitor` -> `RGFW_monitor* RGFW_window_getMonitor`
-
-
+- use floating point for refresh rate instead of int to allow for non-int refresh rates
+- add support for changing gamma and gamma ramp with struct `gammaRamp` and new gamma functions,
+- `RGFW_monitor_getGammaRamp`, `RGFW_freeGammaRamp`, `RGFW_monitor_getGammaRampPtr`, `RGFW_monitor_setGammaRamp`, `RGFW_monitor_setGamma` and `RGFW_monitor_setGammaPtr`
+- add `src` to `RGFW_monitorMode` so that way modes can be interacted with directly
+- add `userPtr` to `RGFW_monitor`
+- add functions for getting data from a `RGFW_monitor` (for bindings)
+- add monitor connection events `RGFW_monitorConnected`, `RGFW_monitorDisconnected` `event.monitor`, `RGFW_monitorfunc`
+- add `RGFW_monitor_getModes`, `RGFW_freeModes` and `RGFW_monitor_getModesPtr`
+- add `RGFW_monitor_getWorkarea` to get the monitor's work area without UI elements
+- add `RGFW_monitor_setMode` to directly set the monitor mode
+- cleanup internal monitor code to be more optimizied, polling and caching when needed and using the internal monitorNode linked list
 
 Release:    RGFW 1.8.0
 -----------------------------------------------
