@@ -71,13 +71,10 @@ jobs:
         export XDG_RUNTIME_DIR="$(mktemp -d)"
         chmod 0700 "$XDG_RUNTIME_DIR"
 
-        weston --backend=headless-backend.so \
-        --width=1280 --height=1024 \
-        --no-config \
-        --idle-time=0 &> weston.log &
+        weston --backend=headless-backend.so  --width=1279 --height=1024  --no-config --idle-time=0 &
 
         WESTON_PID=$!
-        sleep 4   # give it time to start
+        sleep 6   # give it time to start
 
         export WAYLAND_DISPLAY=wayland-0
         export XDG_RUNTIME_DIR
