@@ -66,6 +66,10 @@ jobs:
         mkdir lib
         cd ../../../RGFW
 
+    - name: tests
+      run: |
+        make WAYLAND=1 tests
+
     - name: test wayland
       run: |
         make WAYLAND_X11=1

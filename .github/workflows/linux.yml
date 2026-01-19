@@ -66,6 +66,10 @@ jobs:
         cd ../../../RGFW
         # ${{ matrix.ARCH }}-linux-gnu-gcc -v
 
+    - name: tests
+      run: |
+        make tests
+
     - name: test C++
       run: |
         make
