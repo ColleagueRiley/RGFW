@@ -57,7 +57,8 @@ jobs:
       run: |
         clang --version
 
-
+        make
+        make clean
         make examples CFLAGS="-x objective-c++ -Wc++11-narrowing" CC=g++
         make CC="zig cc"
         make clean

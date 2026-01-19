@@ -71,6 +71,8 @@ jobs:
 
     - name: test C++
       run: |
+        make
+        make clean
         make CC=g++
       if: matrix.bits == 64 && matrix.compiler == 'mingw-w64'
 
