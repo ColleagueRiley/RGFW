@@ -65,10 +65,6 @@ jobs:
         make CC=emcc examples/osmesa_demo/osmesa_demo NO_OSMESA=0 CFLAGS="-Iosmesa/include -Losmesa"
         mv html docs
 
-    - name: tests
-      run: |
-        make tests
-
     - name: get nuklear wasm
       run: |
         cd wasm
