@@ -187,9 +187,15 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/gears/gears \
 	examples/srgb/srgb
 
+TEST_OUTPUTS = \
+			   tests/loop \
+
+
 all: xdg-shell.c $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) libRGFW.a
 
 examples: $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)
+
+tests: $(TEST_OUTPUTS)
 
 examples/gears/gears: examples/gears/gears.c RGFW.h
 ifneq (,$(filter $(CC),emcc em++))
@@ -338,6 +344,9 @@ else
 endif
 
 $(EXAMPLE_OUTPUTS): %: %.c RGFW.h
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LINK_GL1) $(LIBS) $($)  -o $@$(EXT)
+
+$(TEST_OUTPUTS): %: %.c RGFW.h
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LINK_GL1) $(LIBS) $($)  -o $@$(EXT)
 
 debug: all
