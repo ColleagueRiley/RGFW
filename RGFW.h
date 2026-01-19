@@ -4318,7 +4318,13 @@ RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor* mon, RGFW_window* win) {
 
 	mode.w = win->w;
 	mode.h = win->h;
-	return RGFW_monitor_requestMode(mon, &mode, RGFW_monitorScale);
+	RGFW_bool ret = RGFW_monitor_requestMode(mon, &mode, RGFW_monitorScale);
+
+
+	/* move window to monitor origin so it doesn't move to the next monitor */
+	RGFW_window_move(win, mon->x, mon->y);
+
+	return ret;
 }
 
 void RGFW_splitBPP(u32 bpp, RGFW_monitorMode* mode) {
