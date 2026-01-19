@@ -3011,13 +3011,17 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 	};
 
 	#ifdef RGFW_OPENGL
-		struct RGFW_glContext {	 void* ctx;  };
+		struct RGFW_glContext {
+			void* ctx;
+			void* format;
+		};
 	#endif
 
 	struct RGFW_window_src {
 		void* window;
 		void* view; /* apple viewpoint thingy */
 		void* mouse;
+		void* delegate;
 		#ifdef RGFW_OPENGL
 			RGFW_gfxContext ctx;
 			RGFW_gfxContextType gfxType;
@@ -3869,7 +3873,6 @@ i32 RGFW_init_ptr(RGFW_info* info) {
 
 	_RGFW->monitors.list.head = NULL;
 	_RGFW->monitors.list.head = NULL;
-
     RGFW_initKeycodes();
     i32 out = RGFW_initPlatform();
 
@@ -12460,7 +12463,6 @@ static void RGFW__osxDidWindowResize(id self, SEL _cmd, id notification) {
 
 static void RGFW__osxWindowMove(id self, SEL sel) {
 	RGFW_UNUSED(sel);
-
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
@@ -12850,7 +12852,6 @@ i32 RGFW_initPlatform(void) {
 	_RGFW->customNSAppDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWNSAppDelegate", 0);
 	class_addMethod((Class)_RGFW->customNSAppDelegateClass, sel_registerName("applicationDidChangeScreenParameters:"), (IMP)RGFW__osxDidChangeScreenParameters, "v@:@");
 	objc_registerClassPair((Class)_RGFW->customNSAppDelegateClass);
-
 	_RGFW->customNSAppDelegate = objc_msgSend_id(NSAlloc(_RGFW->customNSAppDelegateClass), sel_registerName("init"));
 
 	objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("setDelegate:"), _RGFW->customNSAppDelegate);
@@ -12962,10 +12963,10 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	id str = NSString_stringWithUTF8String(name);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setTitle:"), str);
 
-	id delegate = objc_msgSend_id(NSAlloc((Class)_RGFW->customWindowDelegateClass), sel_registerName("init"));
-	object_setInstanceVariable(delegate, "RGFW_window", win);
+	win->src.delegate = (void*)objc_msgSend_id(NSAlloc((Class)_RGFW->customWindowDelegateClass), sel_registerName("init"));
+	object_setInstanceVariable((id)win->src.delegate, "RGFW_window", win);
 
-	objc_msgSend_void_id((id)win->src.window, sel_registerName("setDelegate:"), delegate);
+	objc_msgSend_void_id((id)win->src.window, sel_registerName("setDelegate:"), (id)win->src.delegate);
 
 	if (flags & RGFW_windowAllowDND) {
 		win->internal.flags |= RGFW_windowAllowDND;
@@ -13078,11 +13079,6 @@ u8 RGFW_rgfwToKeyChar(u32 rgfw_keycode) {
 }
 
 void RGFW_pollEvents(void) {
-	/*
-	 * TODO look to see if all these events can be replaced with callbacks
-	 * callbacks seem to give better info on mac's api
-	*/
-
 	RGFW_resetPrevState();
 
 	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
@@ -13095,13 +13091,10 @@ void RGFW_pollEvents(void) {
 			((id)_RGFW->NSApp, eventFunc, ULONG_MAX, date, NSString_stringWithUTF8String("kCFRunLoopDefaultMode"), true);
 
 		if (e == NULL) {
-			objc_msgSend_void_id((id)_RGFW->NSApp, sel_registerName("sendEvent:"), e);
-			((void(*)(id, SEL))objc_msgSend)((id)_RGFW->NSApp, sel_registerName("updateWindows"));
 			break;
 		}
 
 		objc_msgSend_void_id((id)_RGFW->NSApp, sel_registerName("sendEvent:"), e);
-		((void(*)(id, SEL))objc_msgSend)((id)_RGFW->NSApp, sel_registerName("updateWindows"));
 	}
 
 	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
@@ -13867,6 +13860,8 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 												 sel_registerName("initWithFormat:shareContext:"),
 												 (id)format, share);
 
+	win->src.ctx.native->format = format;
+
 	objc_msgSend_void_id(win->src.view, sel_registerName("setOpenGLContext:"), win->src.ctx.native->ctx);
 	if (win->internal.flags & RGFW_windowTransparent) {
 		i32 opacity = 0;
@@ -13888,6 +13883,9 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 }
 
 void RGFW_window_deleteContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
+	objc_msgSend_void(ctx->format, sel_registerName("release"));
+	win->src.ctx.native->format = NULL;
+
 	objc_msgSend_void(ctx->ctx, sel_registerName("release"));
 	win->src.ctx.native->ctx = NULL;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL context freed.");
@@ -13915,16 +13913,26 @@ void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 #endif
 
 void RGFW_deinitPlatform(void) {
+	objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("setDelegate:"), NULL);
+
 	NSRelease(_RGFW->NSApp);
 	NSRelease(_RGFW->customNSAppDelegate);
+
+	_RGFW->customNSAppDelegate = NULL;
 
 	objc_disposeClassPair((Class)_RGFW->customViewClasses[0]);
 	objc_disposeClassPair((Class)_RGFW->customViewClasses[1]);
 	objc_disposeClassPair((Class)_RGFW->customWindowDelegateClass);
+	objc_disposeClassPair((Class)_RGFW->customNSAppDelegateClass);
 }
 
 void RGFW_window_closePlatform(RGFW_window* win) {
+	objc_msgSend_void_id((id)win->src.window, sel_registerName("setDelegate:"), NULL);
+	NSRelease((id)win->src.delegate);
 	NSRelease(win->src.view);
+
+	objc_msgSend_id(win->src.window, sel_registerName("close"));
+	NSRelease(win->src.window);
 }
 
 #ifdef RGFW_VULKAN
