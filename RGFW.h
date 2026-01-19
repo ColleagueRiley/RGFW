@@ -1311,7 +1311,7 @@ RGFWDEF void RGFW_monitor_setUserPtr(RGFW_monitor* monitor, void* userPtr);
 /**!
  * @brief Get the user pointer of a monitor (the same as monitor.userPtr)
  * @param monitor the source monitor object
- * @return the user pointer of the moniotr
+ * @return the user pointer of the monitor
 */
 RGFWDEF void* RGFW_monitor_getUserPtr(RGFW_monitor* monitor);
 
