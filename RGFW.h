@@ -12943,7 +12943,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 
 	NSRect windowRect;
 	windowRect.origin.x = (double)win->x;
-	windowRect.origin.y = (double)RGFW_cocoaYTransform(win->y + win->h - 1);
+	windowRect.origin.y = (double)RGFW_cocoaYTransform((float)(win->y + win->h - 1));
 	windowRect.size.width = (double)win->w;
 	windowRect.size.height = (double)win->h;
 	NSBackingStoreType macArgs = (NSBackingStoreType)(NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled);
@@ -13107,7 +13107,7 @@ void RGFW_window_move(RGFW_window* win, i32 x, i32 y) {
 	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
 
 	win->x = x;
-	win->y = (i32)RGFW_cocoaYTransform(y + (float)content.size.height - 1);
+	win->y = (i32)RGFW_cocoaYTransform((float)y + (float)content.size.height - 1.0f);
 
 	((void(*)(id,SEL,NSPoint))objc_msgSend)((id)win->src.window, sel_registerName("setFrameOrigin:"), (NSPoint){(double)x, (double)y});
 }
@@ -13553,14 +13553,14 @@ void RGFW_pollMonitors(void) {
 		monitor.physW = (float)screenSizeMM.width / 25.4f;
 		monitor.physH = (float)screenSizeMM.height / 25.4f;
 
-		float ppi_width = (monitor.mode.w/monitor.physW);
-		float ppi_height = (monitor.mode.h/monitor.physH);
+		float ppi_width = ((float)monitor.mode.w / monitor.physW);
+		float ppi_height = ((float)monitor.mode.h / monitor.physH);
 
 		monitor.pixelRatio = (float)((CGFloat (*)(id, SEL))abi_objc_msgSend_fpret) (screen, sel_registerName("backingScaleFactor"));
 		float dpi = 96.0f * monitor.pixelRatio;
 
-		monitor.scaleX = ((i32)(((float) (ppi_width) / dpi) * 10.0f)) / 10.0f;
-		monitor.scaleY = ((i32)(((float) (ppi_height) / dpi) * 10.0f)) / 10.0f;
+		monitor.scaleX = ((((float) (ppi_width) / dpi) * 10.0f)) / 10.0f;
+		monitor.scaleY = ((((float) (ppi_height) / dpi) * 10.0f)) / 10.0f;
 
 		node = RGFW_monitors_add(&monitor);
 
@@ -13635,8 +13635,9 @@ size_t RGFW_monitor_getModesPtr(RGFW_monitor* mon, RGFW_monitorMode** modes) {
     CGDirectDisplayID display = mon->node->display;
     CFArrayRef allModes = CGDisplayCopyAllDisplayModes(display, NULL);
 
-    if (allModes == NULL)
+    if (allModes == NULL) {
         return RGFW_FALSE;
+	}
 
 	size_t count = (size_t)CFArrayGetCount(allModes);
 
@@ -13669,8 +13670,9 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RG
     CGDirectDisplayID display = mon->node->display;
     CFArrayRef allModes = CGDisplayCopyAllDisplayModes(display, NULL);
 
-    if (allModes == NULL)
+    if (allModes == NULL) {
         return RGFW_FALSE;
+	}
 
 	CGDisplayModeRef native = NULL;
 
