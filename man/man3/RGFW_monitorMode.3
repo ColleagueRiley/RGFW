@@ -1,4 +1,4 @@
-.TH "RGFW_monitorMode" 3 "Mon Jan 12 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW_monitorMode" 3 "Mon Jan 19 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -19,7 +19,7 @@ RGFW_monitorMode \- monitor mode data | can be changed by the user (with functio
 .RI "\fBi32\fP \fBh\fP"
 .br
 .ti -1c
-.RI "\fBu32\fP \fBrefreshRate\fP"
+.RI "float \fBrefreshRate\fP"
 .br
 .ti -1c
 .RI "\fBu8\fP \fBred\fP"
@@ -30,6 +30,9 @@ RGFW_monitorMode \- monitor mode data | can be changed by the user (with functio
 .ti -1c
 .RI "\fBu8\fP \fBgreen\fP"
 .br
+.ti -1c
+.RI "void * \fBsrc\fP"
+.br
 .in -1c
 .SH "Detailed Description"
 .PP 
@@ -39,13 +42,15 @@ monitor mode data | can be changed by the user (with functions)
 .SS "\fBu8\fP RGFW_monitorMode::blue"
 
 .SS "\fBu8\fP RGFW_monitorMode::green"
-
+sizeof rgb values 
 .SS "\fBi32\fP RGFW_monitorMode::h"
 monitor workarea size 
 .SS "\fBu8\fP RGFW_monitorMode::red"
 
-.SS "\fBu32\fP RGFW_monitorMode::refreshRate"
+.SS "float RGFW_monitorMode::refreshRate"
 monitor refresh rate 
+.SS "void* RGFW_monitorMode::src"
+source API mode 
 .SS "\fBi32\fP RGFW_monitorMode::w"
 
 

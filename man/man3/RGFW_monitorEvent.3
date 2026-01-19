@@ -1,0 +1,39 @@
+.TH "RGFW_monitorEvent" 3 "Mon Jan 19 2026" "RGFW" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+RGFW_monitorEvent \- event data for when a monitor is connected, disconnected or updated  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <RGFW\&.h>\fP
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "RGFW_eventType \fBtype\fP"
+.br
+.ti -1c
+.RI "\fBRGFW_window\fP * \fBwin\fP"
+.br
+.ti -1c
+.RI "const \fBRGFW_monitor\fP * \fBmonitor\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+event data for when a monitor is connected, disconnected or updated 
+.SH "Member Data Documentation"
+.PP 
+.SS "const \fBRGFW_monitor\fP* RGFW_monitorEvent::monitor"
+the monitor that this event applies to 
+.SS "RGFW_eventType RGFW_monitorEvent::type"
+which event has been sent? 
+.SS "\fBRGFW_window\fP* RGFW_monitorEvent::win"
+the window this event applies to (for event queue events) 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for RGFW from the source code\&.

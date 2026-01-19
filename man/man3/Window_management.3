@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Mon Jan 12 2026" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Mon Jan 19 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -85,7 +85,7 @@ Window_management \- Window_management
 .br
 .RI "moves the window to a new position on the screen "
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_moveToMonitor\fP (\fBRGFW_window\fP *win, \fBRGFW_monitor\fP m)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_moveToMonitor\fP (\fBRGFW_window\fP *win, \fBRGFW_monitor\fP *m)"
 .br
 .RI "moves the window to a specific monitor "
 .ti -1c
@@ -201,14 +201,6 @@ Window_management \- Window_management
 .br
 .RI "lock/unlock the cursor and enable raw mpuise mode\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_holdMouse\fP (\fBRGFW_window\fP *win)"
-.br
-.RI "Locks the cursor to the center of the window\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_unholdMouse\fP (\fBRGFW_window\fP *win)"
-.br
-.RI "Releases the mouse so it can move freely again\&. "
-.ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isRawMouseMode\fP (\fBRGFW_window\fP *win)"
 .br
 .RI "Returns true if the mouse is using raw mouse mode\&. "
@@ -216,10 +208,6 @@ Window_management \- Window_management
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isCaptured\fP (\fBRGFW_window\fP *win)"
 .br
 .RI "Returns true if the mouse is captured\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isHoldingMouse\fP (\fBRGFW_window\fP *win)"
-.br
-.RI "Returns true if the mouse is currently held by RGFW\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_hide\fP (\fBRGFW_window\fP *win)"
 .br
@@ -577,22 +565,6 @@ Hides the window from view\&. !
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP void RGFW_window_holdMouse (\fBRGFW_window\fP * win)"
-
-.PP
-Locks the cursor to the center of the window\&. ! 
-.PP
-\fBParameters\fP
-.RS 4
-\fIwin\fP The target window\&. 
-.RE
-.PP
-\fBWarning\fP
-.RS 4
-this function is deprecated and will be replaced by RGFW_window_captureRawMouse in RGFW 2\&.0 
-.RE
-.PP
-
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isCaptured (\fBRGFW_window\fP * win)"
 
 .PP
@@ -670,27 +642,6 @@ Checks if the window is currently hidden\&. !
 \fBReturns\fP
 .RS 4
 True if the window is hidden\&. 
-.RE
-.PP
-
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isHoldingMouse (\fBRGFW_window\fP * win)"
-
-.PP
-Returns true if the mouse is currently held by RGFW\&. ! 
-.PP
-\fBParameters\fP
-.RS 4
-\fIwin\fP The target window\&. 
-.RE
-.PP
-\fBReturns\fP
-.RS 4
-True if the mouse is being held\&. 
-.RE
-.PP
-\fBWarning\fP
-.RS 4
-this function is deprecated and will be replaced by RGFW_window_isHoldingMouse in RGFW 2\&.0 
 .RE
 .PP
 
@@ -950,7 +901,7 @@ Moves the mouse to the specified position within the window\&. !
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP void RGFW_window_moveToMonitor (\fBRGFW_window\fP * win, \fBRGFW_monitor\fP m)"
+.SS "\fBRGFWDEF\fP void RGFW_window_moveToMonitor (\fBRGFW_window\fP * win, \fBRGFW_monitor\fP * m)"
 
 .PP
 moves the window to a specific monitor ! 
@@ -1303,22 +1254,6 @@ Shows or hides the mouse cursor for the window\&. !
 \fIwin\fP The target window\&. 
 .br
 \fIshow\fP True to show the mouse, false to hide it\&. 
-.RE
-.PP
-
-.SS "\fBRGFWDEF\fP void RGFW_window_unholdMouse (\fBRGFW_window\fP * win)"
-
-.PP
-Releases the mouse so it can move freely again\&. ! 
-.PP
-\fBParameters\fP
-.RS 4
-\fIwin\fP The target window\&. 
-.RE
-.PP
-\fBWarning\fP
-.RS 4
-this function is deprecated and will be replaced by RGFW_window_captureRawMouse in RGFW 2\&.0 
 .RE
 .PP
 

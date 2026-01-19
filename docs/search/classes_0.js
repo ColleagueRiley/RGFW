@@ -4,11 +4,13 @@ var searchData=
   ['rgfw_5fdatadragevent_1',['RGFW_dataDragEvent',['../structRGFW__dataDragEvent.html',1,'']]],
   ['rgfw_5fdatadropevent_2',['RGFW_dataDropEvent',['../structRGFW__dataDropEvent.html',1,'']]],
   ['rgfw_5fevent_3',['RGFW_event',['../unionRGFW__event.html',1,'']]],
-  ['rgfw_5fkeyevent_4',['RGFW_keyEvent',['../structRGFW__keyEvent.html',1,'']]],
-  ['rgfw_5fmonitor_5',['RGFW_monitor',['../structRGFW__monitor.html',1,'']]],
-  ['rgfw_5fmonitormode_6',['RGFW_monitorMode',['../structRGFW__monitorMode.html',1,'']]],
-  ['rgfw_5fmousebuttonevent_7',['RGFW_mouseButtonEvent',['../structRGFW__mouseButtonEvent.html',1,'']]],
-  ['rgfw_5fmouseposevent_8',['RGFW_mousePosEvent',['../structRGFW__mousePosEvent.html',1,'']]],
-  ['rgfw_5fmousescrollevent_9',['RGFW_mouseScrollEvent',['../structRGFW__mouseScrollEvent.html',1,'']]],
-  ['rgfw_5fscaleupdatedevent_10',['RGFW_scaleUpdatedEvent',['../structRGFW__scaleUpdatedEvent.html',1,'']]]
+  ['rgfw_5fgammaramp_4',['RGFW_gammaRamp',['../structRGFW__gammaRamp.html',1,'']]],
+  ['rgfw_5fkeyevent_5',['RGFW_keyEvent',['../structRGFW__keyEvent.html',1,'']]],
+  ['rgfw_5fmonitor_6',['RGFW_monitor',['../structRGFW__monitor.html',1,'']]],
+  ['rgfw_5fmonitorevent_7',['RGFW_monitorEvent',['../structRGFW__monitorEvent.html',1,'']]],
+  ['rgfw_5fmonitormode_8',['RGFW_monitorMode',['../structRGFW__monitorMode.html',1,'']]],
+  ['rgfw_5fmousebuttonevent_9',['RGFW_mouseButtonEvent',['../structRGFW__mouseButtonEvent.html',1,'']]],
+  ['rgfw_5fmouseposevent_10',['RGFW_mousePosEvent',['../structRGFW__mousePosEvent.html',1,'']]],
+  ['rgfw_5fmousescrollevent_11',['RGFW_mouseScrollEvent',['../structRGFW__mouseScrollEvent.html',1,'']]],
+  ['rgfw_5fscaleupdatedevent_12',['RGFW_scaleUpdatedEvent',['../structRGFW__scaleUpdatedEvent.html',1,'']]]
 ];

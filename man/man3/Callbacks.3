@@ -1,4 +1,4 @@
-.TH "Callbacks" 3 "Mon Jan 12 2026" "RGFW" \" -*- nroff -*-
+.TH "Callbacks" 3 "Mon Jan 19 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -73,6 +73,10 @@ Callbacks \- Callbacks
 .RI "\fBRGFWDEF\fP \fBRGFW_scaleUpdatedfunc\fP \fBRGFW_setScaleUpdatedCallback\fP (\fBRGFW_scaleUpdatedfunc\fP func)"
 .br
 .RI "Sets the callback function for DPI (scale) update events\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_monitorfunc\fP \fBRGFW_setMonitorCallback\fP (\fBRGFW_monitorfunc\fP func)"
+.br
+.RI "Sets the callback function for monitor connected and disconnect events\&. "
 .in -1c
 .SH "Detailed Description"
 .PP 
@@ -135,6 +139,22 @@ Sets the callback function for key press and release events\&. !
 \fBParameters\fP
 .RS 4
 \fIfunc\fP The function to be called when a key is pressed or released\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The previously set callback function, if any\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_monitorfunc\fP RGFW_setMonitorCallback (\fBRGFW_monitorfunc\fP func)"
+
+.PP
+Sets the callback function for monitor connected and disconnect events\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfunc\fP The function to be called when a monitor is connected or disconnected\&. 
 .RE
 .PP
 \fBReturns\fP

@@ -21,12 +21,13 @@ var searchData=
   ['rgfw_5fmemset_18',['RGFW_MEMSET',['../RGFW_8h.html#a50fa56c626929529f3b0711caecce288',1,'RGFW.h']]],
   ['rgfw_5fmin_19',['RGFW_MIN',['../RGFW_8h.html#adc70734f5b9c2ac3640f500ed713f4bf',1,'RGFW.h']]],
   ['rgfw_5fround_20',['RGFW_ROUND',['../RGFW_8h.html#a11c9631a28d5243b1d48ee03ae215d79',1,'RGFW.h']]],
-  ['rgfw_5fstrncmp_21',['RGFW_STRNCMP',['../RGFW_8h.html#a040a460126bbe1cce5765c33cf90b700',1,'RGFW.h']]],
-  ['rgfw_5fstrncpy_22',['RGFW_STRNCPY',['../RGFW_8h.html#ab9c27a50de677ad52c8ab9715e990d40',1,'RGFW.h']]],
-  ['rgfw_5fstrstr_23',['RGFW_STRSTR',['../RGFW_8h.html#a28e4483e712cf3ce7e9b03daf4c35d1b',1,'RGFW.h']]],
-  ['rgfw_5fstrtol_24',['RGFW_STRTOL',['../RGFW_8h.html#ac64bf31f480f02f48547ca17054b88bb',1,'RGFW.h']]],
-  ['rgfw_5ftrue_25',['RGFW_TRUE',['../RGFW_8h.html#a4d7bc6cacdc3a02ad39672017d4d506e',1,'RGFW.h']]],
-  ['rgfw_5funused_26',['RGFW_UNUSED',['../RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64',1,'RGFW.h']]],
-  ['rgfw_5fuserptr_27',['RGFW_USERPTR',['../RGFW_8h.html#ad8f1fa862ab1c9cc61db226b7fce5693',1,'RGFW.h']]],
-  ['rgfwdef_28',['RGFWDEF',['../RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f',1,'RGFW.h']]]
+  ['rgfw_5froundf_21',['RGFW_ROUNDF',['../RGFW_8h.html#a1125a6b9bc8da9aac539be1a25e4c322',1,'RGFW.h']]],
+  ['rgfw_5fstrncmp_22',['RGFW_STRNCMP',['../RGFW_8h.html#a040a460126bbe1cce5765c33cf90b700',1,'RGFW.h']]],
+  ['rgfw_5fstrncpy_23',['RGFW_STRNCPY',['../RGFW_8h.html#ab9c27a50de677ad52c8ab9715e990d40',1,'RGFW.h']]],
+  ['rgfw_5fstrstr_24',['RGFW_STRSTR',['../RGFW_8h.html#a28e4483e712cf3ce7e9b03daf4c35d1b',1,'RGFW.h']]],
+  ['rgfw_5fstrtol_25',['RGFW_STRTOL',['../RGFW_8h.html#ac64bf31f480f02f48547ca17054b88bb',1,'RGFW.h']]],
+  ['rgfw_5ftrue_26',['RGFW_TRUE',['../RGFW_8h.html#a4d7bc6cacdc3a02ad39672017d4d506e',1,'RGFW.h']]],
+  ['rgfw_5funused_27',['RGFW_UNUSED',['../RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64',1,'RGFW.h']]],
+  ['rgfw_5fuserptr_28',['RGFW_USERPTR',['../RGFW_8h.html#ad8f1fa862ab1c9cc61db226b7fce5693',1,'RGFW.h']]],
+  ['rgfwdef_29',['RGFWDEF',['../RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f',1,'RGFW.h']]]
 ];

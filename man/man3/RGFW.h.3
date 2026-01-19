@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Mon Jan 12 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Mon Jan 19 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -20,6 +20,18 @@ RGFW.h
 .SS "Classes"
 
 .in +1c
+.ti -1c
+.RI "struct \fBRGFW_gammaRamp\fP"
+.br
+.RI "gamma struct for monitors "
+.ti -1c
+.RI "struct \fBRGFW_monitorMode\fP"
+.br
+.RI "monitor mode data | can be changed by the user (with functions) "
+.ti -1c
+.RI "struct \fBRGFW_monitor\fP"
+.br
+.RI "structure for monitor data "
 .ti -1c
 .RI "struct \fBRGFW_commonEvent\fP"
 .br
@@ -53,17 +65,13 @@ RGFW.h
 .br
 .RI "event data for when the window scale (DPI) is updated "
 .ti -1c
+.RI "struct \fBRGFW_monitorEvent\fP"
+.br
+.RI "event data for when a monitor is connected, disconnected or updated "
+.ti -1c
 .RI "union \fBRGFW_event\fP"
 .br
 .RI "union for all of the event stucture types "
-.ti -1c
-.RI "struct \fBRGFW_monitorMode\fP"
-.br
-.RI "monitor mode data | can be changed by the user (with functions) "
-.ti -1c
-.RI "struct \fBRGFW_monitor\fP"
-.br
-.RI "structure for monitor data "
 .in -1c
 .SS "Macros"
 
@@ -82,6 +90,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "#define \fBRGFW_ROUND\fP(x)   (\fBi32\fP)((x) >= 0 ? (x) + 0\&.5f : (x) \- 0\&.5f)"
+.br
+.ti -1c
+.RI "#define \fBRGFW_ROUNDF\fP(x)   (float)((\fBi32\fP)((x) + ((x) < 0\&.0f ? \-0\&.5f : 0\&.5f)))"
 .br
 .ti -1c
 .RI "#define \fBRGFW_MIN\fP(x,  y)   ((x < y) ? x : y)"
@@ -210,6 +221,22 @@ RGFW.h
 .br
 .RI "a stucture for interfacing with pixel data as a renderable surface "
 .ti -1c
+.RI "typedef struct \fBRGFW_gammaRamp\fP \fBRGFW_gammaRamp\fP"
+.br
+.RI "gamma struct for monitors "
+.ti -1c
+.RI "typedef struct \fBRGFW_monitorMode\fP \fBRGFW_monitorMode\fP"
+.br
+.RI "monitor mode data | can be changed by the user (with functions) "
+.ti -1c
+.RI "typedef struct \fBRGFW_monitorNode\fP \fBRGFW_monitorNode\fP"
+.br
+.RI "structure for monitor node and source monitor data "
+.ti -1c
+.RI "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
+.br
+.RI "structure for monitor data "
+.ti -1c
 .RI "typedef void \fBRGFW_mouse\fP"
 .br
 .ti -1c
@@ -244,6 +271,10 @@ RGFW.h
 .RI "typedef struct \fBRGFW_scaleUpdatedEvent\fP \fBRGFW_scaleUpdatedEvent\fP"
 .br
 .RI "event data for when the window scale (DPI) is updated "
+.ti -1c
+.RI "typedef struct \fBRGFW_monitorEvent\fP \fBRGFW_monitorEvent\fP"
+.br
+.RI "event data for when a monitor is connected, disconnected or updated "
 .ti -1c
 .RI "typedef union \fBRGFW_event\fP \fBRGFW_event\fP"
 .br
@@ -331,17 +362,13 @@ RGFW.h
 .br
 .RI "RGFW_scaleUpdated, the window the event was sent to, content scaleX, content scaleY\&. "
 .ti -1c
+.RI "typedef void(* \fBRGFW_monitorfunc\fP) (\fBRGFW_window\fP *win, const \fBRGFW_monitor\fP *monitor, \fBRGFW_bool\fP connected)"
+.br
+.RI "RGFW_monitorConnected / RGFW_monitorDisconnected, there was a monitor connected/disconnected\&. "
+.ti -1c
 .RI "typedef void(* \fBRGFW_proc\fP) (void)"
 .br
 .RI "function pointer equivalent of void* "
-.ti -1c
-.RI "typedef struct \fBRGFW_monitorMode\fP \fBRGFW_monitorMode\fP"
-.br
-.RI "monitor mode data | can be changed by the user (with functions) "
-.ti -1c
-.RI "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
-.br
-.RI "structure for monitor data "
 .in -1c
 .SS "Functions"
 
@@ -350,6 +377,10 @@ RGFW.h
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_format)"
 .br
 .RI "The color format for pixel data\&. "
+.ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_modeRequest)"
+.br
+.RI "what type of request you are making for the monitor "
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_key)"
 .br
@@ -395,10 +426,6 @@ RGFW.h
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_errorCode)"
 .br
 .RI "error codes for known failure types "
-.ti -1c
-.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_modeRequest)"
-.br
-.RI "what type of request you are making for the monitor "
 .ti -1c
 .RI "\fBRGFWDEF\fP void * \fBRGFW_alloc\fP (size_t size)"
 .br
@@ -487,23 +514,99 @@ RGFW.h
 .br
 .RI "Frees the data associated with an RGFW_mouse structure\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP * \fBRGFW_getMonitors\fP (size_t *len)"
+.RI "\fBRGFWDEF\fP \fBRGFW_monitorMode\fP * \fBRGFW_monitor_getModes\fP (\fBRGFW_monitor\fP *monitor, size_t *count)"
+.br
+.RI "Get an allocated array of the supported modes of a monitor\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_freeModes\fP (\fBRGFW_monitorMode\fP *modes)"
+.br
+.RI "Free RGFW allocated modes array\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP size_t \fBRGFW_monitor_getModesPtr\fP (\fBRGFW_monitor\fP *monitor, \fBRGFW_monitorMode\fP **modes)"
+.br
+.RI "Get the supported modes of a monitor using a pre-allocated array\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_gammaRamp\fP * \fBRGFW_monitor_getGammaRamp\fP (\fBRGFW_monitor\fP *monitor)"
+.br
+.RI "Get the allocated gamma ramp\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_freeGammaRamp\fP (\fBRGFW_gammaRamp\fP *ramp)"
+.br
+.RI "Free the gamma ramp allocated by RGFW\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP size_t \fBRGFW_monitor_getGammaRampPtr\fP (\fBRGFW_monitor\fP *monitor, \fBRGFW_gammaRamp\fP *ramp)"
+.br
+.RI "Get the monitor's gamma ramp using a pre-allocated struct with allocated data\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_setGammaRamp\fP (\fBRGFW_monitor\fP *monitor, \fBRGFW_gammaRamp\fP *ramp)"
+.br
+.RI "Set the monitor's gamma ramp using a pre-allocated struct with allocated data\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_setGamma\fP (\fBRGFW_monitor\fP *monitor, float gamma)"
+.br
+.RI "Create and set the monitor's gamma ramp with a base gamma exponent\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_setGammaPtr\fP (\fBRGFW_monitor\fP *monitor, float gamma, \fBu16\fP *ptr, size_t count)"
+.br
+.RI "Create and set the monitor's gamma ramp with a base gamma exponent using a pre-allocated array\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_getWorkarea\fP (\fBRGFW_monitor\fP *monitor, \fBi32\fP *x, \fBi32\fP *y, \fBi32\fP *width, \fBi32\fP *height)"
+.br
+.RI "Get the workarea of a monitor, meaning the parts not occupied by OS graphics (i\&.e\&. the taskbar) "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_getPosition\fP (\fBRGFW_monitor\fP *monitor, \fBi32\fP *x, \fBi32\fP *y)"
+.br
+.RI "Get the position of a monitor (the same as monitor\&.x / monitor\&.y) "
+.ti -1c
+.RI "\fBRGFWDEF\fP const char * \fBRGFW_monitor_getName\fP (\fBRGFW_monitor\fP *monitor)"
+.br
+.RI "Get the name of a monitor (the same as monitor\&.name) "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_getScale\fP (\fBRGFW_monitor\fP *monitor, float *x, float *y)"
+.br
+.RI "Get the scale of a monitor (the same as monitor\&.scaleX / monitor\&.scaleY) "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_getPhysicalSize\fP (\fBRGFW_monitor\fP *monitor, float *w, float *h)"
+.br
+.RI "Get the physical size of a monitor (the same as monitor\&.physW / monitor\&.physH) "
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_monitor_setUserPtr\fP (\fBRGFW_monitor\fP *monitor, void *userPtr)"
+.br
+.RI "Set the user pointer of a monitor (the same as monitor\&.userPtr = userPtr) "
+.ti -1c
+.RI "\fBRGFWDEF\fP void * \fBRGFW_monitor_getUserPtr\fP (\fBRGFW_monitor\fP *monitor)"
+.br
+.RI "Get the user pointer of a monitor (the same as monitor\&.userPtr) "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_getMode\fP (\fBRGFW_monitor\fP *monitor, \fBRGFW_monitorMode\fP *mode)"
+.br
+.RI "Get the mode of a monitor (the same as monitor\&.mode) "
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_pollMonitors\fP (void)"
+.br
+.RI "Poll and check for monitor updates (this is called internally on monitor update events and RGFW_init) "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP ** \fBRGFW_getMonitors\fP (size_t *len)"
 .br
 .RI "Retrieves an array of all available monitors\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP \fBRGFW_getPrimaryMonitor\fP (void)"
+.RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP * \fBRGFW_getPrimaryMonitor\fP (void)"
 .br
 .RI "Retrieves the primary monitor\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_requestMode\fP (\fBRGFW_monitor\fP mon, \fBRGFW_monitorMode\fP mode, RGFW_modeRequest request)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_requestMode\fP (\fBRGFW_monitor\fP *mon, \fBRGFW_monitorMode\fP *mode, RGFW_modeRequest request)"
 .br
-.RI "Requests a specific display mode for a monitor\&. "
+.RI "Requests the display mode for a monitor (based on what attributes are directly requested)\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitorModeCompare\fP (\fBRGFW_monitorMode\fP mon, \fBRGFW_monitorMode\fP mon2, RGFW_modeRequest request)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_setMode\fP (\fBRGFW_monitor\fP *mon, \fBRGFW_monitorMode\fP *mode)"
+.br
+.RI "Sets a specific display mode for a monitor directly\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitorModeCompare\fP (\fBRGFW_monitorMode\fP *mon, \fBRGFW_monitorMode\fP *mon2, RGFW_modeRequest request)"
 .br
 .RI "Compares two monitor modes to check if they are equivalent\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_scaleToWindow\fP (\fBRGFW_monitor\fP mon, struct \fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_monitor_scaleToWindow\fP (\fBRGFW_monitor\fP *mon, struct \fBRGFW_window\fP *win)"
 .br
 .RI "Scales a monitor’s mode to match a window’s size\&. "
 .ti -1c
@@ -742,7 +845,7 @@ RGFW.h
 .br
 .RI "moves the window to a new position on the screen "
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_moveToMonitor\fP (\fBRGFW_window\fP *win, \fBRGFW_monitor\fP m)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_moveToMonitor\fP (\fBRGFW_window\fP *win, \fBRGFW_monitor\fP *m)"
 .br
 .RI "moves the window to a specific monitor "
 .ti -1c
@@ -858,14 +961,6 @@ RGFW.h
 .br
 .RI "lock/unlock the cursor and enable raw mpuise mode\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_holdMouse\fP (\fBRGFW_window\fP *win)"
-.br
-.RI "Locks the cursor to the center of the window\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_unholdMouse\fP (\fBRGFW_window\fP *win)"
-.br
-.RI "Releases the mouse so it can move freely again\&. "
-.ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isRawMouseMode\fP (\fBRGFW_window\fP *win)"
 .br
 .RI "Returns true if the mouse is using raw mouse mode\&. "
@@ -873,10 +968,6 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isCaptured\fP (\fBRGFW_window\fP *win)"
 .br
 .RI "Returns true if the mouse is captured\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isHoldingMouse\fP (\fBRGFW_window\fP *win)"
-.br
-.RI "Returns true if the mouse is currently held by RGFW\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_hide\fP (\fBRGFW_window\fP *win)"
 .br
@@ -941,7 +1032,7 @@ RGFW.h
 .br
 .RI "Scales the window to match its monitor’s resolution\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP \fBRGFW_window_getMonitor\fP (\fBRGFW_window\fP *win)"
+.RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP * \fBRGFW_window_getMonitor\fP (\fBRGFW_window\fP *win)"
 .br
 .RI "Retrieves the monitor structure associated with the window\&. "
 .ti -1c
@@ -1028,6 +1119,10 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_scaleUpdatedfunc\fP \fBRGFW_setScaleUpdatedCallback\fP (\fBRGFW_scaleUpdatedfunc\fP func)"
 .br
 .RI "Sets the callback function for DPI (scale) update events\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_monitorfunc\fP \fBRGFW_setMonitorCallback\fP (\fBRGFW_monitorfunc\fP func)"
+.br
+.RI "Sets the callback function for monitor connected and disconnect events\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setRootWindow\fP (\fBRGFW_window\fP *win)"
 .br
@@ -1137,6 +1232,8 @@ RGFW.h
 
 .SS "#define RGFW_ROUND(x)   (\fBi32\fP)((x) >= 0 ? (x) + 0\&.5f : (x) \- 0\&.5f)"
 
+.SS "#define RGFW_ROUNDF(x)   (float)((\fBi32\fP)((x) + ((x) < 0\&.0f ? \-0\&.5f : 0\&.5f)))"
+
 .SS "#define RGFW_STRNCMP(s1, s2, max)   strncmp(s1, s2, max)"
 
 .SS "#define RGFW_STRNCPY(dist, src, len)   strncpy(dist, src, len)"
@@ -1197,6 +1294,10 @@ union for all of the event stucture types
 
 .PP
 RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its in focus\&. 
+.SS "typedef struct \fBRGFW_gammaRamp\fP \fBRGFW_gammaRamp\fP"
+
+.PP
+gamma struct for monitors 
 .SS "typedef struct \fBRGFW_info\fP \fBRGFW_info\fP"
 
 .PP
@@ -1213,10 +1314,22 @@ RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped ke
 
 .PP
 structure for monitor data 
+.SS "typedef struct \fBRGFW_monitorEvent\fP \fBRGFW_monitorEvent\fP"
+
+.PP
+event data for when a monitor is connected, disconnected or updated 
+.SS "typedef void(* RGFW_monitorfunc) (\fBRGFW_window\fP *win, const \fBRGFW_monitor\fP *monitor, \fBRGFW_bool\fP connected)"
+
+.PP
+RGFW_monitorConnected / RGFW_monitorDisconnected, there was a monitor connected/disconnected\&. 
 .SS "typedef struct \fBRGFW_monitorMode\fP \fBRGFW_monitorMode\fP"
 
 .PP
 monitor mode data | can be changed by the user (with functions) 
+.SS "typedef struct \fBRGFW_monitorNode\fP \fBRGFW_monitorNode\fP"
+
+.PP
+structure for monitor node and source monitor data 
 .SS "typedef void \fBRGFW_mouse\fP"
 a raw pointer to the underlying mouse handle for setting and creating custom mouse icons 
 .SS "typedef struct \fBRGFW_mouseButtonEvent\fP \fBRGFW_mouseButtonEvent\fP"
@@ -1550,7 +1663,7 @@ key event note the code of the key pressed is stored in RGFW_event\&.key\&.value
 .PP
 while a string version is stored in RGFW_event\&.key\&.valueString
 .PP
-RGFW_event\&.key\&.mod holds the current mod this means if CapsLock, NumLock are active or not
+/ RGFW_event\&.key\&.mod holds the current mod this means if CapsLock, NumLock are active or not
 .PP
 < a mouse button has been pressed (left,middle,right)
 .PP
@@ -1585,6 +1698,10 @@ RGFW_event\&.button\&.value holds which mouse button was pressed
 < the window was restored
 .PP
 < content scale factor changed
+.PP
+< a monitor has been connected
+.PP
+< a monitor has been disconnected
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_flashRequest)"
 @breif flash request type 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_format)"
@@ -1642,6 +1759,30 @@ Frees memory using the deallocator defined by RGFW_FREE at compile time\&. !
 .RE
 .PP
 
+.SS "\fBRGFWDEF\fP void RGFW_freeGammaRamp (\fBRGFW_gammaRamp\fP * ramp)"
+
+.PP
+Free the gamma ramp allocated by RGFW\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIallocated\fP gamma ramp 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_freeModes (\fBRGFW_monitorMode\fP * modes)"
+
+.PP
+Free RGFW allocated modes array\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fImonitor\fP the source monitor object 
+.br
+\fImodes\fP a pointer to an allocated array of modes 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_freeMouse (\fBRGFW_mouse\fP * mouse)"
 
 .PP
@@ -1686,7 +1827,7 @@ A pointer to the Cocoa layer, or NULL if the platform is not in use\&.
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP * RGFW_getMonitors (size_t * len)"
+.SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP ** RGFW_getMonitors (size_t * len)"
 
 .PP
 Retrieves an array of all available monitors\&. ! 
@@ -1698,18 +1839,18 @@ Retrieves an array of all available monitors\&. !
 .PP
 \fBReturns\fP
 .RS 4
-A pointer to an array of \fBRGFW_monitor\fP structures\&. 
+An array of pointers to \fBRGFW_monitor\fP structures\&. 
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP RGFW_getPrimaryMonitor (void)"
+.SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP * RGFW_getPrimaryMonitor (void)"
 
 .PP
 Retrieves the primary monitor\&. ! 
 .PP
 \fBReturns\fP
 .RS 4
-The \fBRGFW_monitor\fP structure representing the primary monitor\&. 
+A pointer to the \fBRGFW_monitor\fP structure representing the primary monitor\&. 
 .RE
 .PP
 
@@ -1740,10 +1881,202 @@ The icon is not resized by default\&.
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_requestMode (\fBRGFW_monitor\fP mon, \fBRGFW_monitorMode\fP mode, RGFW_modeRequest request)"
+.SS "\fBRGFWDEF\fP \fBRGFW_gammaRamp\fP * RGFW_monitor_getGammaRamp (\fBRGFW_monitor\fP * monitor)"
 
 .PP
-Requests a specific display mode for a monitor\&. ! 
+Get the allocated gamma ramp\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fImonitor\fP the source monitor object 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP size_t RGFW_monitor_getGammaRampPtr (\fBRGFW_monitor\fP * monitor, \fBRGFW_gammaRamp\fP * ramp)"
+
+.PP
+Get the monitor's gamma ramp using a pre-allocated struct with allocated data\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fImonitor\fP the source monitor object 
+.br
+\fIramp\fP [OUTPUT] a pointer to an allocated gamma ramp (can be NULL to just get the count) 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+the count of the gamma ramp 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_getMode (\fBRGFW_monitor\fP * monitor, \fBRGFW_monitorMode\fP * mode)"
+
+.PP
+Get the mode of a monitor (the same as monitor\&.mode) ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fImonitor\fP the source monitor object 
+.br
+\fImode\fP [OUTPUT] current mode the monitor 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+a bool if the function was successful 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_monitorMode\fP * RGFW_monitor_getModes (\fBRGFW_monitor\fP * monitor, size_t * count)"
+
+.PP
+Get an allocated array of the supported modes of a monitor\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fImonitor\fP the source monitor object 
+.br
+\fIcount\fP [OUTPUT] the count of the array 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+the allocated array of supported modes 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP size_t RGFW_monitor_getModesPtr (\fBRGFW_monitor\fP * monitor, \fBRGFW_monitorMode\fP ** modes)"
+
+.PP
+Get the supported modes of a monitor using a pre-allocated array\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fImonitor\fP the source monitor object 
+.br
+\fImodes\fP [OUTPUT] a pointer to an allocated array of modes 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+the number of (possible) modes, if [modes == NULL] the possible nodes \fImay\fP be less than the actual modes 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP const char * RGFW_monitor_getName (\fBRGFW_monitor\fP * monitor)"
+
+.PP
+Get the name of a monitor (the same as monitor\&.name) ! 
+.PP
+\fBReturns\fP
+.RS 4
+the cstring of the monitor's name 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_getPhysicalSize (\fBRGFW_monitor\fP * monitor, float * w, float * h)"
+
+.PP
+Get the physical size of a monitor (the same as monitor\&.physW / monitor\&.physH) ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fImonitor\fP the source monitor object 
+.br
+\fIw\fP [OUTPUT] the physical width of the monitor 
+.br
+\fIh\fP [OUTPUT] the physical height of the monitor 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+a bool if the function was successful 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_getPosition (\fBRGFW_monitor\fP * monitor, \fBi32\fP * x, \fBi32\fP * y)"
+
+.PP
+Get the position of a monitor (the same as monitor\&.x / monitor\&.y) ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIx\fP [OUTPUT] the x position of the monitor 
+.br
+\fIy\fP [OUTPUT] the y position of the monitor 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+a bool if the function was successful 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_getScale (\fBRGFW_monitor\fP * monitor, float * x, float * y)"
+
+.PP
+Get the scale of a monitor (the same as monitor\&.scaleX / monitor\&.scaleY) ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fImonitor\fP the source monitor object 
+.br
+\fIx\fP [OUTPUT] the x scale of the monitor 
+.br
+\fIy\fP [OUTPUT] the y scale of the monitor 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+a bool if the function was successful 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void * RGFW_monitor_getUserPtr (\fBRGFW_monitor\fP * monitor)"
+
+.PP
+Get the user pointer of a monitor (the same as monitor\&.userPtr) ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fImonitor\fP the source monitor object 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+the user pointer of the monitor 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_getWorkarea (\fBRGFW_monitor\fP * monitor, \fBi32\fP * x, \fBi32\fP * y, \fBi32\fP * width, \fBi32\fP * height)"
+
+.PP
+Get the workarea of a monitor, meaning the parts not occupied by OS graphics (i\&.e\&. the taskbar) ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fImonitor\fP the source monitor object 
+.br
+\fIx\fP [OUTPUT] the x pos of the workarea 
+.br
+\fIy\fP [OUTPUT] the y pos of the workarea 
+.br
+\fIw\fP [OUTPUT] the width of the workarea 
+.br
+\fIh\fP [OUTPUT] the height of the workarea 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+a bool if the function was successful 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_requestMode (\fBRGFW_monitor\fP * mon, \fBRGFW_monitorMode\fP * mode, RGFW_modeRequest request)"
+
+.PP
+Requests the display mode for a monitor (based on what attributes are directly requested)\&. ! 
 .PP
 \fBParameters\fP
 .RS 4
@@ -1760,7 +2093,7 @@ RGFW_TRUE if the mode was successfully applied, otherwise RGFW_FALSE\&.
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_scaleToWindow (\fBRGFW_monitor\fP mon, struct \fBRGFW_window\fP * win)"
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_scaleToWindow (\fBRGFW_monitor\fP * mon, struct \fBRGFW_window\fP * win)"
 
 .PP
 Scales a monitor’s mode to match a window’s size\&. ! 
@@ -1778,7 +2111,98 @@ RGFW_TRUE if the scaling was successful, otherwise RGFW_FALSE\&.
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitorModeCompare (\fBRGFW_monitorMode\fP mon, \fBRGFW_monitorMode\fP mon2, RGFW_modeRequest request)"
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_setGamma (\fBRGFW_monitor\fP * monitor, float gamma)"
+
+.PP
+Create and set the monitor's gamma ramp with a base gamma exponent\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fImonitor\fP the source monitor object 
+.br
+\fIthe\fP gamma exponent 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+a bool if the function was successful 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_setGammaPtr (\fBRGFW_monitor\fP * monitor, float gamma, \fBu16\fP * ptr, size_t count)"
+
+.PP
+Create and set the monitor's gamma ramp with a base gamma exponent using a pre-allocated array\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fImonitor\fP the source monitor object 
+.br
+\fIgamma\fP the gamma exponent 
+.br
+\fIpre-allocated\fP gammaramp channel 
+.br
+\fIcount\fP the length of the allocated channel array 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+a bool if the function was successful 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_setGammaRamp (\fBRGFW_monitor\fP * monitor, \fBRGFW_gammaRamp\fP * ramp)"
+
+.PP
+Set the monitor's gamma ramp using a pre-allocated struct with allocated data\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fImonitor\fP the source monitor object 
+.br
+\fIramp\fP a pointer to an allocated gamma ramp 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+a bool if the function was successful 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitor_setMode (\fBRGFW_monitor\fP * mon, \fBRGFW_monitorMode\fP * mode)"
+
+.PP
+Sets a specific display mode for a monitor directly\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fImon\fP The monitor to apply the mode change to\&. 
+.br
+\fImode\fP The desired \fBRGFW_monitorMode\fP\&. 
+.br
+\fIrequest\fP The RGFW_modeRequest describing how to handle the mode change\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+RGFW_TRUE if the mode was successfully applied, otherwise RGFW_FALSE\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_monitor_setUserPtr (\fBRGFW_monitor\fP * monitor, void * userPtr)"
+
+.PP
+Set the user pointer of a monitor (the same as monitor\&.userPtr = userPtr) ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fImonitor\fP the source monitor object 
+.br
+\fIuserPtr\fP the new user pointer for the monitor 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_monitorModeCompare (\fBRGFW_monitorMode\fP * mon, \fBRGFW_monitorMode\fP * mon2, RGFW_modeRequest request)"
 
 .PP
 Compares two monitor modes to check if they are equivalent\&. ! 
@@ -1806,6 +2230,10 @@ RGFW_TRUE if both modes are equivalent, otherwise RGFW_FALSE\&.
 
 .PP
 check all the events until there are none left and updates window structure attributes ! 
+.SS "\fBRGFWDEF\fP void RGFW_pollMonitors (void)"
+
+.PP
+Poll and check for monitor updates (this is called internally on monitor update events and RGFW_init) ! 
 .SS "\fBRGFWDEF\fP void RGFW_setClassName (const char * name)"
 
 .PP

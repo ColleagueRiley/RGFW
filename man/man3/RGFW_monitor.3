@@ -1,4 +1,4 @@
-.TH "RGFW_monitor" 3 "Mon Jan 12 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW_monitor" 3 "Mon Jan 19 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -39,6 +39,12 @@ RGFW_monitor \- structure for monitor data
 .ti -1c
 .RI "\fBRGFW_monitorMode\fP \fBmode\fP"
 .br
+.ti -1c
+.RI "void * \fBuserPtr\fP"
+.br
+.ti -1c
+.RI "\fBRGFW_monitorNode\fP * \fBnode\fP"
+.br
 .in -1c
 .SH "Detailed Description"
 .PP 
@@ -46,9 +52,11 @@ structure for monitor data
 .SH "Member Data Documentation"
 .PP 
 .SS "\fBRGFW_monitorMode\fP RGFW_monitor::mode"
-
+current mode of the monitor 
 .SS "char RGFW_monitor::name[128]"
 monitor name 
+.SS "\fBRGFW_monitorNode\fP* RGFW_monitor::node"
+source node data of the monitor 
 .SS "float RGFW_monitor::physH"
 monitor physical size in inches 
 .SS "float RGFW_monitor::physW"
@@ -61,6 +69,8 @@ pixel ratio for monitor (1\&.0 for regular, 2\&.0 for hiDPI)
 
 .SS "float RGFW_monitor::scaleY"
 monitor content scale 
+.SS "void* RGFW_monitor::userPtr"
+pointer for user data 
 .SS "\fBi32\fP RGFW_monitor::x"
 
 .SS "\fBi32\fP RGFW_monitor::y"

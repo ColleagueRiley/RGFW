@@ -260,10 +260,10 @@ int main(int argc, char **argv) {
   /* init RGFW window */
   RGFW_window* window = RGFW_createWindow("", 0, 0, width, height, RGFW_windowCenter |  RGFW_windowOpenGL);
 
-  RGFW_monitor mon = RGFW_window_getMonitor(window);
+  RGFW_monitor* mon = RGFW_window_getMonitor(window);
   width = window->w;
   height = window->h;
-  pixelRatio = mon.pixelRatio;
+  pixelRatio = mon->pixelRatio;
 
   r_init();
   RGFW_window_setExitKey(window, RGFW_escape);

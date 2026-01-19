@@ -1,4 +1,4 @@
-.TH "XDL.h" 3 "Mon Jan 12 2026" "RGFW" \" -*- nroff -*-
+.TH "XDL.h" 3 "Mon Jan 19 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -426,6 +426,36 @@ XDL.h
 .br
 .ti -1c
 .RI "#define \fBXRRFreeScreenConfigInfo\fP   \fBXRRFreeScreenConfigInfoSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXRRFreeScreenConfigInfo\fP   \fBXRRFreeScreenConfigInfoSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXRRGetOutputPrimary\fP   \fBXRRGetOutputPrimarySrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXRRAllocGamma\fP   \fBXRRAllocGammaSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXRRQueryVersion\fP   \fBXRRQueryVersionSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXRRSelectInput\fP   \fBXRRSelectInputSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXRRQueryExtension\fP   \fBXRRQueryExtensionSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXRRSetCrtcGamma\fP   \fBXRRSetCrtcGammaSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXRRGetCrtcGammaSize\fP   \fBXRRGetCrtcGammaSizeSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXRRGetCrtcGamma\fP   \fBXRRGetCrtcGammaSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXRRFreeGamma\fP   \fBXRRFreeGammaSrc\fP"
 .br
 .ti -1c
 .RI "#define \fBglXChooseVisual\fP   \fBglXChooseVisualSrc\fP"
@@ -891,6 +921,33 @@ XDL.h
 .RI "typedef void(* \fBPFN_XRRFreeScreenConfigInfo\fP) (XRRScreenConfiguration *)"
 .br
 .ti -1c
+.RI "typedef RROutput(* \fBPFN_XRRGetOutputPrimary\fP) (Display *, Window)"
+.br
+.ti -1c
+.RI "typedef XRRCrtcGamma *(* \fBPFN_XRRAllocGamma\fP) (int)"
+.br
+.ti -1c
+.RI "typedef Bool(* \fBPFN_XRRQueryExtension\fP) (Display *, int *, int *)"
+.br
+.ti -1c
+.RI "typedef Status(* \fBPFN_XRRQueryVersion\fP) (Display *, int *, int *)"
+.br
+.ti -1c
+.RI "typedef void(* \fBPFN_XRRSelectInput\fP) (Display *, Window, int)"
+.br
+.ti -1c
+.RI "typedef void(* \fBPFN_XRRSetCrtcGamma\fP) (Display *, RRCrtc, XRRCrtcGamma *)"
+.br
+.ti -1c
+.RI "typedef int(* \fBPFN_XRRGetCrtcGammaSize\fP) (Display *, RRCrtc)"
+.br
+.ti -1c
+.RI "typedef XRRCrtcGamma *(* \fBPFN_XRRGetCrtcGamma\fP) (Display *, RRCrtc)"
+.br
+.ti -1c
+.RI "typedef void(* \fBPFN_XRRFreeGamma\fP) (XRRCrtcGamma *)"
+.br
+.ti -1c
 .RI "typedef const char *(* \fBPFN_glXQueryExtensionsString\fP) (Display *dpy, int screen)"
 .br
 .ti -1c
@@ -1349,6 +1406,33 @@ XDL.h
 .RI "\fBPFN_XRRFreeScreenConfigInfo\fP \fBXRRFreeScreenConfigInfoSrc\fP"
 .br
 .ti -1c
+.RI "\fBPFN_XRRGetOutputPrimary\fP \fBXRRGetOutputPrimarySrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XRRAllocGamma\fP \fBXRRAllocGammaSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XRRQueryVersion\fP \fBXRRQueryVersionSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XRRQueryExtension\fP \fBXRRQueryExtensionSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XRRSelectInput\fP \fBXRRSelectInputSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XRRSetCrtcGamma\fP \fBXRRSetCrtcGammaSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XRRGetCrtcGammaSize\fP \fBXRRGetCrtcGammaSizeSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XRRGetCrtcGamma\fP \fBXRRGetCrtcGammaSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XRRFreeGamma\fP \fBXRRFreeGammaSrc\fP"
+.br
+.ti -1c
 .RI "\fBPFN_glXChooseVisual\fP \fBglXChooseVisualSrc\fP"
 .br
 .ti -1c
@@ -1614,19 +1698,31 @@ XDL.h
 
 .SS "#define XrmUniqueQuark   \fBXrmUniqueQuarkSrc\fP"
 
+.SS "#define XRRAllocGamma   \fBXRRAllocGammaSrc\fP"
+
 .SS "#define XRRConfigCurrentRate   \fBXRRConfigCurrentRateSrc\fP"
 
 .SS "#define XRRFreeCrtcInfo   \fBXRRFreeCrtcInfoSrc\fP"
+
+.SS "#define XRRFreeGamma   \fBXRRFreeGammaSrc\fP"
 
 .SS "#define XRRFreeOutputInfo   \fBXRRFreeOutputInfoSrc\fP"
 
 .SS "#define XRRFreeScreenConfigInfo   \fBXRRFreeScreenConfigInfoSrc\fP"
 
+.SS "#define XRRFreeScreenConfigInfo   \fBXRRFreeScreenConfigInfoSrc\fP"
+
 .SS "#define XRRFreeScreenResources   \fBXRRFreeScreenResourcesSrc\fP"
+
+.SS "#define XRRGetCrtcGamma   \fBXRRGetCrtcGammaSrc\fP"
+
+.SS "#define XRRGetCrtcGammaSize   \fBXRRGetCrtcGammaSizeSrc\fP"
 
 .SS "#define XRRGetCrtcInfo   \fBXRRGetCrtcInfoSrc\fP"
 
 .SS "#define XRRGetOutputInfo   \fBXRRGetOutputInfoSrc\fP"
+
+.SS "#define XRRGetOutputPrimary   \fBXRRGetOutputPrimarySrc\fP"
 
 .SS "#define XRRGetScreenInfo   \fBXRRGetScreenInfoSrc\fP"
 
@@ -1634,7 +1730,15 @@ XDL.h
 
 .SS "#define XRRGetScreenResourcesCurrent   \fBXRRGetScreenResourcesCurrentSrc\fP"
 
+.SS "#define XRRQueryExtension   \fBXRRQueryExtensionSrc\fP"
+
+.SS "#define XRRQueryVersion   \fBXRRQueryVersionSrc\fP"
+
+.SS "#define XRRSelectInput   \fBXRRSelectInputSrc\fP"
+
 .SS "#define XRRSetCrtcConfig   \fBXRRSetCrtcConfigSrc\fP"
+
+.SS "#define XRRSetCrtcGamma   \fBXRRSetCrtcGammaSrc\fP"
 
 .SS "#define XRRSetScreenConfig   \fBXRRSetScreenConfigSrc\fP"
 
@@ -1922,9 +2026,13 @@ XDL.h
 
 .SS "typedef XrmQuark(* PFN_XrmUniqueQuark) (void)"
 
+.SS "typedef XRRCrtcGamma *(* PFN_XRRAllocGamma) (int)"
+
 .SS "typedef short(* PFN_XRRConfigCurrentRate) (XRRScreenConfiguration *)"
 
 .SS "typedef void(* PFN_XRRFreeCrtcInfo) (XRRCrtcInfo *crtc_info)"
+
+.SS "typedef void(* PFN_XRRFreeGamma) (XRRCrtcGamma *)"
 
 .SS "typedef void(* PFN_XRRFreeOutputInfo) (XRROutputInfo *)"
 
@@ -1932,9 +2040,15 @@ XDL.h
 
 .SS "typedef void(* PFN_XRRFreeScreenResources) (XRRScreenResources *resources)"
 
+.SS "typedef XRRCrtcGamma *(* PFN_XRRGetCrtcGamma) (Display *, RRCrtc)"
+
+.SS "typedef int(* PFN_XRRGetCrtcGammaSize) (Display *, RRCrtc)"
+
 .SS "typedef XRRCrtcInfo *(* PFN_XRRGetCrtcInfo) (Display *display, XRRScreenResources *resources, RRCrtc crtc)"
 
 .SS "typedef XRROutputInfo *(* PFN_XRRGetOutputInfo) (Display *display, XRRScreenResources *resources, RROutput output)"
+
+.SS "typedef RROutput(* PFN_XRRGetOutputPrimary) (Display *, Window)"
 
 .SS "typedef XRRScreenConfiguration *(* PFN_XRRGetScreenInfo) (Display *, Window)"
 
@@ -1942,7 +2056,15 @@ XDL.h
 
 .SS "typedef XRRScreenResources *(* PFN_XRRGetScreenResourcesCurrent) (Display *display, Window window)"
 
+.SS "typedef Bool(* PFN_XRRQueryExtension) (Display *, int *, int *)"
+
+.SS "typedef Status(* PFN_XRRQueryVersion) (Display *, int *, int *)"
+
+.SS "typedef void(* PFN_XRRSelectInput) (Display *, Window, int)"
+
 .SS "typedef Status(* PFN_XRRSetCrtcConfig) (Display *, XRRScreenResources *, RRCrtc, Time, int, int, RRMode, Rotation, RROutput *, int)"
+
+.SS "typedef void(* PFN_XRRSetCrtcGamma) (Display *, RRCrtc, XRRCrtcGamma *)"
 
 .SS "typedef Status(* PFN_XRRSetScreenConfig) (Display *dpy, XRRScreenConfiguration *config, Drawable draw, int size_index, Rotation rotation, Time timestamp)"
 
@@ -2226,9 +2348,13 @@ XDL.h
 
 .SS "\fBPFN_XrmUniqueQuark\fP XrmUniqueQuarkSrc"
 
+.SS "\fBPFN_XRRAllocGamma\fP XRRAllocGammaSrc"
+
 .SS "\fBPFN_XRRConfigCurrentRate\fP XRRConfigCurrentRateSrc"
 
 .SS "\fBPFN_XRRFreeCrtcInfo\fP XRRFreeCrtcInfoSrc"
+
+.SS "\fBPFN_XRRFreeGamma\fP XRRFreeGammaSrc"
 
 .SS "\fBPFN_XRRFreeOutputInfo\fP XRRFreeOutputInfoSrc"
 
@@ -2236,9 +2362,15 @@ XDL.h
 
 .SS "\fBPFN_XRRFreeScreenResources\fP XRRFreeScreenResourcesSrc"
 
+.SS "\fBPFN_XRRGetCrtcGammaSize\fP XRRGetCrtcGammaSizeSrc"
+
+.SS "\fBPFN_XRRGetCrtcGamma\fP XRRGetCrtcGammaSrc"
+
 .SS "\fBPFN_XRRGetCrtcInfo\fP XRRGetCrtcInfoSrc"
 
 .SS "\fBPFN_XRRGetOutputInfo\fP XRRGetOutputInfoSrc"
+
+.SS "\fBPFN_XRRGetOutputPrimary\fP XRRGetOutputPrimarySrc"
 
 .SS "\fBPFN_XRRGetScreenInfo\fP XRRGetScreenInfoSrc"
 
@@ -2246,7 +2378,15 @@ XDL.h
 
 .SS "\fBPFN_XRRGetScreenResources\fP XRRGetScreenResourcesSrc"
 
+.SS "\fBPFN_XRRQueryExtension\fP XRRQueryExtensionSrc"
+
+.SS "\fBPFN_XRRQueryVersion\fP XRRQueryVersionSrc"
+
+.SS "\fBPFN_XRRSelectInput\fP XRRSelectInputSrc"
+
 .SS "\fBPFN_XRRSetCrtcConfig\fP XRRSetCrtcConfigSrc"
+
+.SS "\fBPFN_XRRSetCrtcGamma\fP XRRSetCrtcGammaSrc"
 
 .SS "\fBPFN_XRRSetScreenConfig\fP XRRSetScreenConfigSrc"
 

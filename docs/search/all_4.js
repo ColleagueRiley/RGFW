@@ -31,5 +31,5 @@ var searchData=
   ['glxswapintervalext_28',['glXSwapIntervalEXT',['../XDL_8h.html#a44370466816fdf575153176149d87b7d',1,'XDL.h']]],
   ['glxswapintervalextsrc_29',['glXSwapIntervalEXTSrc',['../XDL_8h.html#ab023a41941bb195e4ba0ee229432ef0c',1,'XDL.h']]],
   ['graphics_5fapi_30',['Graphics_API',['../group__graphics__API.html',1,'']]],
-  ['green_31',['green',['../structRGFW__monitorMode.html#ab384a00223b6cc9838a186b060553415',1,'RGFW_monitorMode']]]
+  ['green_31',['green',['../structRGFW__monitorMode.html#ab384a00223b6cc9838a186b060553415',1,'RGFW_monitorMode::green()'],['../structRGFW__gammaRamp.html#a29fb9cba7117140fec3b92a76038cfa8',1,'RGFW_gammaRamp::green()']]]
 ];

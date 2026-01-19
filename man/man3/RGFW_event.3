@@ -1,4 +1,4 @@
-.TH "RGFW_event" 3 "Mon Jan 12 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW_event" 3 "Mon Jan 19 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -39,6 +39,9 @@ RGFW_event \- union for all of the event stucture types
 .ti -1c
 .RI "\fBRGFW_scaleUpdatedEvent\fP \fBscale\fP"
 .br
+.ti -1c
+.RI "\fBRGFW_monitorEvent\fP \fBmonitor\fP"
+.br
 .in -1c
 .SH "Detailed Description"
 .PP 
@@ -50,15 +53,17 @@ data for a button press/release
 .SS "\fBRGFW_commonEvent\fP RGFW_event::common"
 common event data (e\&.g\&.) type and win 
 .SS "\fBRGFW_dataDragEvent\fP RGFW_event::drag"
-
+data for dragging a file events 
 .SS "\fBRGFW_dataDropEvent\fP RGFW_event::drop"
 dropping a file events 
 .SS "\fBRGFW_keyEvent\fP RGFW_event::key"
 data for key press/release/hold events 
+.SS "\fBRGFW_monitorEvent\fP RGFW_event::monitor"
+data for monitor events 
 .SS "\fBRGFW_mousePosEvent\fP RGFW_event::mouse"
 data for mouse motion events 
 .SS "\fBRGFW_scaleUpdatedEvent\fP RGFW_event::scale"
-
+data for dpi scaling update events 
 .SS "\fBRGFW_mouseScrollEvent\fP RGFW_event::scroll"
 data for a mouse scroll 
 .SS "RGFW_eventType RGFW_event::type"

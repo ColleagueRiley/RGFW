@@ -51,14 +51,17 @@ int main(void) {
     RGFW_window* win = RGFW_createWindow("Basic buffer example", 0, 0, 500, 500, RGFW_windowCenter | RGFW_windowTransparent);
     RGFW_window_setExitKey(win, RGFW_escape);
 
-    RGFW_monitor mon = RGFW_window_getMonitor(win);
-    #ifdef RGFW_WAYLAND
-        mon.mode.w = 500;
-        mon.mode.h = 500;
-    #endif
+    RGFW_monitor* mon = RGFW_window_getMonitor(win);
+	i32 width = 500;
+	i32 height = 500;
 
-    u8* buffer = (u8*)RGFW_ALLOC((u32)(mon.mode.w * mon.mode.h * 4));
-    RGFW_surface* surface = RGFW_createSurface(buffer, mon.mode.w, mon.mode.h, RGFW_formatRGBA8);
+	if (mon) {
+		width = (i32)((float)mon->mode.w * mon->pixelRatio);
+		height = (i32)((float)mon->mode.h * mon->pixelRatio);
+	}
+
+	u8* buffer = (u8*)RGFW_ALLOC((u32)(width * height * 4));
+	RGFW_surface* surface = RGFW_createSurface(buffer, width, height, RGFW_formatRGBA8);
 
     i8 running = 1;
 
@@ -77,10 +80,10 @@ int main(void) {
 
         i32 w, h;
         RGFW_window_getSize(win, &w, &h);
-        clear(buffer, mon.mode.w, w, h, color);
-        drawRect(buffer, mon.mode.w, 200, 200, 200, 200, color2);
+        clear(buffer, width, w, h, color);
+        drawRect(buffer, width, 200, 200, 200, 200, color2);
 
-        drawBitmap(buffer, mon.mode.w, icon, 100, 100, 3, 3);
+        drawBitmap(buffer, width, icon, 100, 100, 3, 3);
         RGFW_window_blitSurface(win, surface);
 	}
 
