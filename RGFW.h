@@ -5864,7 +5864,8 @@ void RGFW_deinitPlatform(void) {
 #endif
 }
 
-static size_t RGFW_unix_stringlen(const char* name) {
+RGFWDEF size_t RGFW_unix_stringlen(const char* name);
+size_t RGFW_unix_stringlen(const char* name) {
 	size_t i = 0;
     while (name[i]) { i++; }
 	return i;
@@ -6386,8 +6387,8 @@ void RGFW_XHandleEvent(void) {
 	static long version = 0;
 	static i32 format = 0;
 
-	static double deltaX = 0.0f;
-	static double deltaY = 0.0f;
+	static float deltaX = 0.0f;
+	static float deltaY = 0.0f;
 
 	XEvent reply = { ClientMessage };
 	XEvent E;
@@ -6422,12 +6423,12 @@ void RGFW_XHandleEvent(void) {
 
 					i32 index = 0;
 					if (XIMaskIsSet(raw->valuators.mask, 0) != 0) {
-						deltaX += raw->raw_values[index];
+						deltaX += (float)raw->raw_values[index];
 						index += 1;
 					}
 
 					if (XIMaskIsSet(raw->valuators.mask, 1) != 0)
-						deltaY += raw->raw_values[index];
+						deltaY += (float)raw->raw_values[index];
 
 					_RGFW->vectorX = (float)deltaX;
 					_RGFW->vectorY = (float)deltaY;
@@ -7484,7 +7485,8 @@ RGFW_bool RGFW_FUNC(RGFW_window_isMaximized)(RGFW_window* win) {
 	return RGFW_FALSE;
 }
 
-static void RGFW_XGetSystemContentDPI(float* dpi) {
+RGFWDEF void RGFW_XGetSystemContentDPI(float* dpi);
+void RGFW_XGetSystemContentDPI(float* dpi) {
 	if (dpi == NULL) return;
 	float dpiOutput = 96.0f;
 
@@ -7503,7 +7505,7 @@ static void RGFW_XGetSystemContentDPI(float* dpi) {
 		XrmDestroyDatabase(db);
 	#endif
 
-	if (dpiOutput) *dpi = dpiOutput;
+	if (dpi) *dpi = dpiOutput;
 }
 
 RGFWDEF XRRModeInfo* RGFW_XGetMode(XRRCrtcInfo* ci, XRRScreenResources* res, RRMode mode, RGFW_monitorMode* foundMode);
@@ -7614,8 +7616,8 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 			monitor.physW = physW;
 			monitor.physH = physH;
 		} else {
-			monitor.physW = (i32) ((float)ci->width / 96.f);
-			monitor.physH = (i32) ((float)ci->height / 96.f);
+			monitor.physW = (float) ((float)ci->width / 96.f);
+			monitor.physH = (float) ((float)ci->height / 96.f);
 		}
 
 		monitor.x = ci->x;
