@@ -57,7 +57,7 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt-get install gcc-multilib
-        sudo apt-get install -y --no-install-recommends libx11-dev mesa-common-dev libglx-dev libxcursor-dev mesa-vulkan-drivers libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libxkbcommon-dev wayland-protocols libgles2-mesa-dev libosmesa6-dev
+        sudo apt-get install -y --no-install-recommends libx11-dev mesa-common-dev libglx-dev libxcursor-dev mesa-vulkan-drivers libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libxkbcommon-dev wayland-protocols libgles2-mesa-dev libosmesa6-dev weston weston-tests libweston-13-dev libwayland-dev wayland-protocols xwayland
         mkdir build
         cd build
         mkdir ${{ env.RELEASE_NAME }}
@@ -68,7 +68,23 @@ jobs:
 
     - name: tests
       run: |
+        export XDG_RUNTIME_DIR="$(mktemp -d)"
+        chmod 0700 "$XDG_RUNTIME_DIR"
+
+        weston --backend=headless-backend.so \
+        --width=1280 --height=1024 \
+        --no-config \
+        --idle-time=0 &> weston.log &
+
+        WESTON_PID=$!
+        sleep 4   # give it time to start
+
+        export WAYLAND_DISPLAY=wayland-0
+        export XDG_RUNTIME_DIR
+
         make WAYLAND=1 tests
+
+        kill $WESTON_PID
 
     - name: test wayland
       run: |
