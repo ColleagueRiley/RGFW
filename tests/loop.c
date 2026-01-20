@@ -11,7 +11,14 @@ int main(void) {
 		RGFW_window* win = RGFW_createWindow("name", 100, 100, 500, 500, (u64)0);
 
 		RGFW_pollEvents();
+		#ifdef RGFW_MACOS
+			usleep(50000);
+		#endif
 
 		RGFW_window_close(win);
+
+		#ifdef RGFW_MACOS
+			usleep(50000);
+		#endif
 	}
 }
