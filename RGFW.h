@@ -2915,6 +2915,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		HICON hIconSmall, hIconBig; /*!< source window icons */
 		i32 maxSizeW, maxSizeH, minSizeW, minSizeH, aspectRatioW, aspectRatioH; /*!< for setting max/min resize (RGFW_WINDOWS) */
 		RGFW_bool actionFrame; /* frame after a caption button was toggled (e.g. minimize, maximize or close) */
+		WCHAR highSurrogate;
 		#ifdef RGFW_OPENGL
 			RGFW_gfxContext ctx;
 			RGFW_gfxContextType gfxType;
@@ -10381,6 +10382,39 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_MOUSELEAVE:
 			RGFW_mouseNotifyCallback(win, win->internal.lastMouseX, win->internal.lastMouseY, RGFW_FALSE);
 			break;
+
+        case WM_CHAR:
+        case WM_SYSCHAR: {
+            if (wParam >= 0xd800 && wParam <= 0xdbff)
+                win->src.highSurrogate = (WCHAR) wParam;
+            else {
+                u32 codepoint = 0;
+
+                if (wParam >= 0xdc00 && wParam <= 0xdfff) {
+                    if (win->src.highSurrogate) {
+                        codepoint += (u32)((win->src.highSurrogate - 0xd800) << 10);
+                        codepoint += (u32)((WCHAR) wParam - 0xdc00);
+                        codepoint += 0x10000;
+                    }
+                }
+                else
+                    codepoint = (WCHAR) wParam;
+
+                win->src.highSurrogate = 0;
+				RGFW_keyCharCallback(win, (u32)codepoint);
+            }
+
+            return 0;
+        }
+
+        case WM_UNICHAR: {
+            if (wParam == UNICODE_NOCHAR) {
+                return TRUE;
+            }
+
+			RGFW_keyCharCallback(win, (u32)wParam);
+            return 0;
+        }
 		case WM_SYSKEYUP: case WM_KEYUP: {
 			if (!(win->internal.enabledEvents & RGFW_keyReleasedFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
 			i32 scancode = (HIWORD(lParam) & (KF_EXTENDED | 0xff));
@@ -10401,11 +10435,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					value = RGFW_controlR;
 				else value = RGFW_controlL;
 			}
-
-			wchar_t charBuffer;
-			ToUnicodeEx((UINT)wParam, (UINT)scancode, keyboardState, (wchar_t*)&charBuffer, 1, 0, NULL);
-
-			u32 sym = (u8)charBuffer;
 
 			RGFW_bool repeat = ((lParam & 0x40000000) != 0) || RGFW_window_isKeyDown(win, value);
 
@@ -10432,10 +10461,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					value = RGFW_controlR;
 				else value = RGFW_controlL;
 			}
-
-			wchar_t charBuffer;
-			ToUnicodeEx((UINT)wParam, (UINT)scancode, keyboardState, &charBuffer, 1, 0, NULL);
-			u32 sym = (u8)charBuffer;
 
 			RGFW_bool repeat = ((lParam & 0x40000000) != 0) || RGFW_window_isKeyDown(win, value);
 
@@ -12733,7 +12758,8 @@ static void RGFW__osxKeyDown(id self, SEL _cmd, id event) {
     RGFW_key value = (u8)RGFW_apiKeyToRGFW(key);
 	RGFW_bool repeat = RGFW_window_isKeyPressed(win, value);
 
-    RGFW_keyCallback(win, value, (u8)mappedKey, win->internal.mod, repeat, 1);
+    RGFW_keyCallback(win, value, win->internal.mod, repeat, 1);
+	RGFW_keyCharCallback(win, mappedKey);
 }
 
 static void RGFW__osxKeyUp(id self, SEL _cmd, id event) {
@@ -12743,13 +12769,11 @@ static void RGFW__osxKeyUp(id self, SEL _cmd, id event) {
     if (win == NULL || !(win->internal.enabledEvents & RGFW_keyReleasedFlag)) return;
 
     u32 key = (u16)((u32(*)(id, SEL))objc_msgSend)(event, sel_registerName("keyCode"));
-    u32 mappedKey = (u32)*(((char*)(const char*)NSString_to_char(((id(*)(id, SEL))objc_msgSend)(event, sel_registerName("charactersIgnoringModifiers")))));
-    if ((u8)mappedKey == 239) mappedKey = 0;
 
     RGFW_key value = (u8)RGFW_apiKeyToRGFW(key);
     RGFW_bool repeat = RGFW_window_isKeyDown(win, (u8)value);
 
-    RGFW_keyCallback(win, value, (u8)mappedKey, win->internal.mod, repeat, 1);
+    RGFW_keyCallback(win, value, win->internal.mod, repeat, 1);
 }
 
 static void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
@@ -14368,7 +14392,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool p
 
 	u32 physicalKey = RGFW_WASMPhysicalToRGFW(hash);
 
-	u8 mappedKey = (u8)(*((u32*)key));
+	u32 mappedKey = (*((u32*)key));
 
 	if (*((u16*)key) != mappedKey) {
 		mappedKey = 0;
@@ -14376,6 +14400,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool p
 	}
 
 	RGFW_keyCallback(_RGFW->root, physicalKey, mappedKey, _RGFW->root->internal.mod,  RGFW_window_isKeyDown(_RGFW->root, (u8)physicalKey), press);
+	RGFW_keyCharCallback(win, mappedKey);
 }
 
 void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyMods(RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super, RGFW_bool scroll) {
