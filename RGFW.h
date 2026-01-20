@@ -6605,7 +6605,7 @@ void RGFW_XHandleEvent(void) {
 				size_t count = (size_t)Xutf8LookupString(win->src.ic, &E.xkey, buffer, sizeof(buffer) - 1, NULL, &status);
 
 				if (status == XBufferOverflow) {
-					chars = RGFW_ALLOC(count + 1);
+					chars = (char*)RGFW_ALLOC(count + 1);
 					count = (size_t)Xutf8LookupString(win->src.ic, &E.xkey, chars, (int)count, NULL, &status);
 				}
 
