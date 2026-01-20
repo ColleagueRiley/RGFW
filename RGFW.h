@@ -780,7 +780,6 @@ typedef struct RGFW_keyEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies to (for event queue events) */
 	RGFW_key value; /*!< the physical key of the event, refers to where key is physically */
-	RGFW_key sym; /*!< the mapped key of the event, refers to the actual key value mapped by the OS */
 	RGFW_bool repeat; /*!< key press event repeated (the key is being held) */
 	RGFW_keymod mod;
 } RGFW_keyEvent;
@@ -12813,10 +12812,10 @@ static void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
     }
 
 	RGFW_bool repeat = RGFW_window_isKeyDown(win, (u8)value);
-	RGFW_keyCallback(win, value, 0, win->internal.mod, repeat, pressed);
+	RGFW_keyCallback(win, value, win->internal.mod, repeat, pressed);
 
 	if (value != RGFW_capsLock) {
-		RGFW_keyCallback(win, value + 4, 0, win->internal.mod, repeat, pressed);
+		RGFW_keyCallback(win, value + 4, win->internal.mod, repeat, pressed);
 	}
 
 }
@@ -14399,8 +14398,8 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool p
 		if (*((u32*)key) == *((u32*)"Tab")) mappedKey = RGFW_tab;
 	}
 
-	RGFW_keyCallback(_RGFW->root, physicalKey, mappedKey, _RGFW->root->internal.mod,  RGFW_window_isKeyDown(_RGFW->root, (u8)physicalKey), press);
-	RGFW_keyCharCallback(win, mappedKey);
+	RGFW_keyCallback(_RGFW->root, physicalKey, _RGFW->root->internal.mod,  RGFW_window_isKeyDown(_RGFW->root, (u8)physicalKey), press);
+	RGFW_keyCharCallback(_RGFW->root, mappedKey);
 }
 
 void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyMods(RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super, RGFW_bool scroll) {
