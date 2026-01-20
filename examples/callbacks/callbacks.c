@@ -6,6 +6,33 @@
 
 RGFW_window* window;
 
+static char* codepoint_to_utf8(u32 codepoint) {
+   static char utf8[5];
+   if (codepoint <= 0x7F) {
+      utf8[0] = (char)codepoint;
+      utf8[1] = 0;
+   } else if (codepoint <= 0x7FF) {
+      utf8[0] = (char)(0xC0 | (codepoint >> 6));
+      utf8[1] = (char)(0x80 | (codepoint & 0x3F));
+      utf8[2] = 0;
+   } else if (codepoint <= 0xFFFF) {
+      utf8[0] = (char)(0xE0 | (codepoint >> 12));
+      utf8[1] = (char)(0x80 | ((codepoint >> 6) & 0x3F));
+      utf8[2] = (char)(0x80 | (codepoint & 0x3F));
+      utf8[3] = 0;
+   } else if (codepoint <= 0x10FFFF) {
+      utf8[0] = (char)(0xF0 | (codepoint >> 18));
+      utf8[1] = (char)(0x80 | ((codepoint >> 12) & 0x3F));
+      utf8[2] = (char)(0x80 | ((codepoint >> 6) & 0x3F));
+      utf8[3] = (char)(0x80 | (codepoint & 0x3F));
+      utf8[4] = 0;
+   } else {
+      utf8[0] = 0;
+   }
+
+   return utf8;
+}
+
 static
 void errorfunc(RGFW_debugType type, RGFW_errorCode err, const char* msg) {
     if (type != RGFW_typeError || err == RGFW_noError) return; /* disregard non-errors */
@@ -105,13 +132,19 @@ void windowrefreshfunc(RGFW_window* win) {
 }
 
 static
-void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed) {
+void keyCharfunc(RGFW_window* win, u32 codepoint) {
+    if (window != win) return;
+    printf("key char : 0x%08x (%s)\n", codepoint, codepoint_to_utf8(codepoint));
+}
+
+static
+void keyfunc(RGFW_window* win, RGFW_key key, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed) {
     RGFW_UNUSED(repeat);
     if (window != win) return;
     if (pressed)
-        printf("key pressed : %i (%c) mapped : %i (%c): with modstate : %i\n", key, key, keyChar, keyChar, keyMod);
+        printf("key pressed : %i (%c) with modstate : %i\n", key, key, keyMod);
     else
-        printf("key released : %i (%c) mapped: %i (%c): with modstate : %i\n", key, key, keyChar, keyChar, keyMod);
+        printf("key released : %i (%c) with modstate : %i\n", key, key, keyMod);
 }
 
 static
@@ -160,6 +193,7 @@ int main(void) {
 	RGFW_setMouseNotifyCallback(mouseNotifyfunc);
 	RGFW_setDataDropCallback(dropfunc);
 	RGFW_setDataDragCallback(dragfunc);
+	RGFW_setKeyCharCallback(keyCharfunc);
 	RGFW_setKeyCallback(keyfunc);
 	RGFW_setMouseButtonCallback(mousebuttonfunc);
 	RGFW_setMonitorCallback(monitorfunc);
