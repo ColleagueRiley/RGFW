@@ -55,7 +55,7 @@ You must explicitly request these helper functions via, `#define RGFW_OPENGL`, `
 #include <GL/gl.h>
 #endif
 
-void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed) {
+void keyfunc(RGFW_window* win, RGFW_key key, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed) {
     RGFW_UNUSED(repeat);
     if (key == RGFW_escape && pressed) {
         RGFW_window_setShouldClose(win, 1);
