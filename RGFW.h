@@ -7252,6 +7252,7 @@ void RGFW_FUNC(RGFW_window_setName)(RGFW_window* win, const char* name) {
 	RGFW_ASSERT(win != NULL);
 	if (name == NULL) name = "\0";
 
+	Xutf8SetWMProperties(_RGFW->display, win->src.window, name, name, NULL, 0, NULL, NULL, NULL);
 	XStoreName(_RGFW->display, win->src.window, name);
 
 	RGFW_LOAD_ATOM(_NET_WM_NAME); RGFW_LOAD_ATOM(UTF8_STRING);
