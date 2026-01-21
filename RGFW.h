@@ -9651,6 +9651,8 @@ RGFW_bool RGFW_FUNC(RGFW_window_setMouseStandard)(RGFW_window* win, u8 mouse) {
 	win->src.using_custom_cursor = RGFW_FALSE;
 
 	struct wl_cursor* wlcursor = wl_cursor_theme_get_cursor(_RGFW->wl_cursor_theme, cursorName);
+	if (wlcursor == NULL)
+		return RGFW_FALSE;
 	struct wl_cursor_image* cursor_image = wlcursor->images[0];
 	struct wl_buffer* cursor_buffer = wl_cursor_image_get_buffer(cursor_image);
 	wl_pointer_set_cursor(_RGFW->wl_pointer, _RGFW->mouse_enter_serial, _RGFW->cursor_surface, (i32)cursor_image->hotspot_x, (i32)cursor_image->hotspot_y);
