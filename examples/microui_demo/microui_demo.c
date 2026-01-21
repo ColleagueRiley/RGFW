@@ -305,14 +305,19 @@ int main(int argc, char **argv) {
           break;
         }
 
-        case RGFW_keyPressed: {
-		  char str[2] = {(char)event.key.sym, '\0'};
-		  mu_input_text(ctx, str);
+        case RGFW_keyChar: {
+		  u32 str[2] = {(char)event.keyChar.value, '\0'};
+		  mu_input_text(ctx, (char*)str);
+		  break;
 	    }
+		case RGFW_keyPressed: {
+			int c = key_map[event.key.value & 0xff];
+			if (c) mu_input_keydown(ctx, c);
+			break;
+		}
 		case RGFW_keyReleased: {
-          int c = key_map[event.key.value & 0xff];
-          if (c && event.type == RGFW_keyPressed) { mu_input_keydown(ctx, c); }
-          if (c && event.type == RGFW_keyReleased) { mu_input_keyup(ctx, c);   }
+			int c = key_map[event.key.value & 0xff];
+			if (c) mu_input_keyup(ctx, c);
           break;
         }
 

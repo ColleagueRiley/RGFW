@@ -69,6 +69,10 @@ jobs:
         mkdir lib
         cd ../../../RGFW
 
+    - name: tests
+      run: |
+        make tests
+
     - name: test C++
       run: |
         make
