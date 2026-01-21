@@ -8398,10 +8398,7 @@ static void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface
 
 	if (win->src.resizing) {
 
-		/* Do not create a resize event if the window is maximized */
-		if (!win->src.maximized) {
-			RGFW_windowResizedCallback(win, win->w, win->h);
-		}
+		RGFW_windowResizedCallback(win, win->w, win->h);
 		RGFW_window_resize(win, win->w, win->h);
 		if (!(win->internal.flags & RGFW_windowTransparent)) {
 			RGFW_wl_setOpaque(win);
