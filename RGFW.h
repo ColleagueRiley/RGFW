@@ -6039,13 +6039,15 @@ RGFW_bool RGFW_waitForShowEvent_X11(RGFW_window* win) {
 	return RGFW_TRUE;
 }
 
-static void RGFW_x11_icCallback(XIC ic, XPointer clientData, XPointer callData) {
+RGFWDEF void RGFW_x11_icCallback(XIC ic, XPointer clientData, XPointer callData);
+void RGFW_x11_icCallback(XIC ic, XPointer clientData, XPointer callData) {
 	RGFW_UNUSED(ic); RGFW_UNUSED(callData);
-    RGFW_window* win = (RGFW_window*)clientData;
+    RGFW_window* win = (RGFW_window*)(void*)clientData;
     win->src.ic = NULL;
 }
 
-static void RGFW_x11_imCallback(XIM im, XPointer clientData, XPointer callData) {
+RGFWDEF void RGFW_x11_imCallback(XIM im, XPointer clientData, XPointer callData);
+void RGFW_x11_imCallback(XIM im, XPointer clientData, XPointer callData) {
 	RGFW_UNUSED(im); RGFW_UNUSED(clientData); RGFW_UNUSED(callData);
 	_RGFW->im = NULL;
 }
