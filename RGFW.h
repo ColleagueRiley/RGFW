@@ -8398,10 +8398,7 @@ static void RGFW_wl_xdg_surface_configure_handler(void* data, struct xdg_surface
 
 	if (win->src.resizing) {
 
-		/* Do not create a resize event if the window is maximized */
-		if (!win->src.maximized) {
-			RGFW_windowResizedCallback(win, win->w, win->h);
-		}
+		RGFW_windowResizedCallback(win, win->w, win->h);
 		RGFW_window_resize(win, win->w, win->h);
 		if (!(win->internal.flags & RGFW_windowTransparent)) {
 			RGFW_wl_setOpaque(win);
@@ -9651,6 +9648,8 @@ RGFW_bool RGFW_FUNC(RGFW_window_setMouseStandard)(RGFW_window* win, u8 mouse) {
 	win->src.using_custom_cursor = RGFW_FALSE;
 
 	struct wl_cursor* wlcursor = wl_cursor_theme_get_cursor(_RGFW->wl_cursor_theme, cursorName);
+	if (wlcursor == NULL)
+		return RGFW_FALSE;
 	struct wl_cursor_image* cursor_image = wlcursor->images[0];
 	struct wl_buffer* cursor_buffer = wl_cursor_image_get_buffer(cursor_image);
 	wl_pointer_set_cursor(_RGFW->wl_pointer, _RGFW->mouse_enter_serial, _RGFW->cursor_surface, (i32)cursor_image->hotspot_x, (i32)cursor_image->hotspot_y);
