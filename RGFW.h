@@ -6071,7 +6071,7 @@ RGFW_bool RGFW_waitForShowEvent_X11(RGFW_window* win) {
 RGFWDEF void RGFW_x11_icCallback(XIC ic, char* clientData, char* callData);
 void RGFW_x11_icCallback(XIC ic, char* clientData, char* callData) {
 	RGFW_UNUSED(ic); RGFW_UNUSED(callData);
-    RGFW_window* win = (RGFW_window*)clientData;
+    RGFW_window* win = (RGFW_window*)(void*)clientData;
     win->src.ic = NULL;
 }
 
