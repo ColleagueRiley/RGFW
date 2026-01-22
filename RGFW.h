@@ -6039,20 +6039,21 @@ RGFW_bool RGFW_waitForShowEvent_X11(RGFW_window* win) {
 	return RGFW_TRUE;
 }
 
-void RGFW_x11_icCallback(XIC ic, XPointer clientData, XPointer callData);
-void RGFW_x11_icCallback(XIC ic, XPointer clientData, XPointer callData) {
+RGFWDEF void RGFW_x11_icCallback(XIC ic, char* clientData, char* callData);
+void RGFW_x11_icCallback(XIC ic, char* clientData, char* callData) {
 	RGFW_UNUSED(ic); RGFW_UNUSED(callData);
-    RGFW_window* win = (RGFW_window*)(void*)clientData;
+    RGFW_window* win = (RGFW_window*)clientData;
     win->src.ic = NULL;
 }
 
-void RGFW_x11_imCallback(XIM im, XPointer clientData, XPointer callData);
-void RGFW_x11_imCallback(XIM im, XPointer clientData, XPointer callData) {
+RGFWDEF void RGFW_x11_imCallback(XIM im, char* clientData, char* callData);
+void RGFW_x11_imCallback(XIM im, char* clientData, char* callData) {
 	RGFW_UNUSED(im); RGFW_UNUSED(clientData); RGFW_UNUSED(callData);
 	_RGFW->im = NULL;
 }
 
-static void RGFW_x11_imInitCallback(Display* display, XPointer clientData, XPointer callData) {
+RGFWDEF void RGFW_x11_imInitCallback(Display* display, XPointer clientData, XPointer callData);
+void RGFW_x11_imInitCallback(Display* display, XPointer clientData, XPointer callData) {
 	RGFW_UNUSED(display); RGFW_UNUSED(clientData); RGFW_UNUSED(callData);
 
 	if (_RGFW->im) {
