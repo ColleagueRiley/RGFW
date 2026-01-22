@@ -4756,6 +4756,35 @@ void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show) {
 void RGFW_moveToMacOSResourceDir(void) { }
 #endif
 
+RGFWDEF RGFW_bool RGFW_isLatin(const char *string, size_t length);
+RGFW_bool RGFW_isLatin(const char *string, size_t length) {
+	for (size_t i = 0; i < length; i++) {
+        if ((u8)string[i] >= 0x80) {
+            return RGFW_TRUE;
+        }
+    }
+    return RGFW_FALSE;
+}
+
+RGFWDEF u32 RGFW_decodeUTF8(const char* string, size_t* starting_index);
+u32 RGFW_decodeUTF8(const char* string, size_t* starting_index) {
+    static const u32 offsets[] = {
+        0x00000000u, 0x00003080u, 0x000e2080u,
+        0x03c82080u, 0xfa082080u, 0x82082080u
+    };
+
+    u32 codepoint = (u8)string[(*starting_index)];
+	size_t count;
+	for (count = 1; (string[count + (*starting_index)] & 0xc0) == 0x80; count++) {
+        codepoint = (codepoint << 6) + (u8)string[count + (*starting_index)];
+	}
+
+	*starting_index += count;
+
+    assert(count <= 6);
+    return codepoint - offsets[count - 1];
+}
+
 /*
 	graphics API specific code (end of generic code)
 	starts here
@@ -6456,35 +6485,6 @@ u8 RGFW_FUNC(RGFW_rgfwToKeyChar) (u32 key) {
         sym = 0;
 
     return (u8)sym;
-}
-
-RGFWDEF RGFW_bool RGFW_isLatin(const char *string, size_t length);
-RGFW_bool RGFW_isLatin(const char *string, size_t length) {
-	for (size_t i = 0; i < length; i++) {
-        if ((u8)string[i] >= 0x80) {
-            return RGFW_TRUE;
-        }
-    }
-    return RGFW_FALSE;
-}
-
-RGFWDEF u32 RGFW_decodeUTF8(const char* string, size_t* starting_index);
-u32 RGFW_decodeUTF8(const char* string, size_t* starting_index) {
-    static const u32 offsets[] = {
-        0x00000000u, 0x00003080u, 0x000e2080u,
-        0x03c82080u, 0xfa082080u, 0x82082080u
-    };
-
-    u32 codepoint = (u8)string[(*starting_index)];
-	size_t count;
-	for (count = 1; (string[count + (*starting_index)] & 0xc0) == 0x80; count++) {
-        codepoint = (codepoint << 6) + (u8)string[count + (*starting_index)];
-	}
-
-	*starting_index += count;
-
-    assert(count <= 6);
-    return codepoint - offsets[count - 1];
 }
 
 RGFWDEF void RGFW_XHandleEvent(void);
@@ -12752,17 +12752,22 @@ static void RGFW__osxKeyDown(id self, SEL _cmd, id event) {
 	RGFW_UNUSED(_cmd);
 	RGFW_window* win = NULL;
     object_getInstanceVariable(self, "RGFW_window", (void**)&win);
-    if (win == NULL || !(win->internal.enabledEvents & RGFW_keyPressedFlag)) return;
+	if (win == NULL || !(win->internal.enabledEvents & RGFW_keyPressedFlag)) return;
 
     u32 key = (u16)((u32(*)(id, SEL))objc_msgSend)(event, sel_registerName("keyCode"));
-    u32 mappedKey = (u32)*(((char*)(const char*)NSString_to_char(((id(*)(id, SEL))objc_msgSend)(event, sel_registerName("charactersIgnoringModifiers")))));
-    if ((u8)mappedKey == 239) mappedKey = 0;
 
-    RGFW_key value = (u8)RGFW_apiKeyToRGFW(key);
+	RGFW_key value = (u8)RGFW_apiKeyToRGFW(key);
 	RGFW_bool repeat = RGFW_window_isKeyPressed(win, value);
 
     RGFW_keyCallback(win, value, win->internal.mod, repeat, 1);
-	RGFW_keyCharCallback(win, mappedKey);
+
+	id nsstring = ((id(*)(id, SEL))objc_msgSend)(event, sel_registerName("charactersIgnoringModifiers"));
+    const char* string = NSString_to_char(nsstring);
+	size_t count = (size_t)((int (*)(id, SEL))objc_msgSend)(nsstring, sel_registerName("length"));
+
+	for (size_t index = 0; index < count;
+			RGFW_keyCharCallback(win, RGFW_decodeUTF8(&string[index], &index))
+		);
 }
 
 static void RGFW__osxKeyUp(id self, SEL _cmd, id event) {
@@ -13070,6 +13075,8 @@ i32 RGFW_initPlatform(void) {
 	class_addMethod(objc_getClass("NSWindowClass"), sel_registerName("performKeyEquivalent:"), (IMP)(void*)RGFW__osxPerformKeyEquivalent, 0);
 
 	_RGFW->NSApp = objc_msgSend_id(objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
+
+	((void (*)(id, SEL, NSUInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
 
 	_RGFW->customNSAppDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWNSAppDelegate", 0);
 	class_addMethod((Class)_RGFW->customNSAppDelegateClass, sel_registerName("applicationDidChangeScreenParameters:"), (IMP)RGFW__osxDidChangeScreenParameters, "v@:@");
