@@ -6886,8 +6886,6 @@ void RGFW_XHandleEvent(void) {
 			char** files = _RGFW->files;
 
 			while ((line = (char*)RGFW_strtok(data, "\r\n"))) {
-				char path[RGFW_MAX_PATH];
-
 				data = NULL;
 
 				if (line[0] == '#')
@@ -6910,6 +6908,9 @@ void RGFW_XHandleEvent(void) {
 
 				count++;
 
+				size_t len = RGFW_unix_stringlen(line);
+				char* path = (char*)RGFW_ALLOC(len + 1);
+
 				size_t index = 0;
 				while (*line) {
 					if (line[0] == '%' && line[1] && line[2]) {
@@ -6919,14 +6920,26 @@ void RGFW_XHandleEvent(void) {
                         digits[2] = '\0';
 						path[index] = (char) RGFW_STRTOL(digits, NULL, 16);
 						line += 2;
-					} else
-					path[index] = *line;
+					} else {
+						if (index >= len) {
+							break;
+						}
+
+						path[index] = *line;
+					}
 
 					index++;
 					line++;
 				}
-				path[index] = '\0';
-				RGFW_MEMCPY(files[count - 1], path, index + 1);
+
+				path[len] = '\0';
+				size_t cnt = RGFW_MIN(len + 1, RGFW_MAX_PATH);
+				if (cnt == RGFW_MAX_PATH) {
+					path[cnt] = '\0';
+				}
+
+				RGFW_MEMCPY(files[count - 1], path, cnt);
+				RGFW_FREE(path);
 			}
 
 			RGFW_dataDropCallback(win, files, count);
