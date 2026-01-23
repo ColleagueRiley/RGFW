@@ -9520,6 +9520,11 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 
 	win->src.xdg_toplevel = xdg_surface_get_toplevel(win->src.xdg_surface);
 
+	if (_RGFW->className == NULL)
+		_RGFW->className = (char*)name;
+
+	xdg_toplevel_set_app_id(win->src.xdg_toplevel, name);
+
 	xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->w, win->h);
 
 	if (!(win->internal.flags & RGFW_windowTransparent)) { /* no transparency */
