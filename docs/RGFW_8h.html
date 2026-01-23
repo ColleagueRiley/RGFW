@@ -111,7 +111,10 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for any mouse position event (RGFW_mousePosChanged)  <a href="structRGFW__mousePosEvent.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__keyEvent.html">RGFW_keyEvent</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for any key event (press/release)  <a href="structRGFW__keyEvent.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for a key press/release event  <a href="structRGFW__keyEvent.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__keyCharEvent.html">RGFW_keyCharEvent</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for a key character event  <a href="structRGFW__keyCharEvent.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__dataDropEvent.html">RGFW_dataDropEvent</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for any data drop event  <a href="structRGFW__dataDropEvent.html#details">More...</a><br /></td></tr>
@@ -256,8 +259,11 @@ Typedefs</h2></td></tr>
 <tr class="memdesc:a98815b647758ab684536d7ab4b62e720"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for any mouse position event (RGFW_mousePosChanged)  <a href="RGFW_8h.html#a98815b647758ab684536d7ab4b62e720">More...</a><br /></td></tr>
 <tr class="separator:a98815b647758ab684536d7ab4b62e720"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac0b9c993bfe43ef69c00a5d07af518af"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structRGFW__keyEvent.html">RGFW_keyEvent</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#ac0b9c993bfe43ef69c00a5d07af518af">RGFW_keyEvent</a></td></tr>
-<tr class="memdesc:ac0b9c993bfe43ef69c00a5d07af518af"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for any key event (press/release)  <a href="RGFW_8h.html#ac0b9c993bfe43ef69c00a5d07af518af">More...</a><br /></td></tr>
+<tr class="memdesc:ac0b9c993bfe43ef69c00a5d07af518af"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for a key press/release event  <a href="RGFW_8h.html#ac0b9c993bfe43ef69c00a5d07af518af">More...</a><br /></td></tr>
 <tr class="separator:ac0b9c993bfe43ef69c00a5d07af518af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43e1b0b8f30a21f8a336687c5a332f1d"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structRGFW__keyCharEvent.html">RGFW_keyCharEvent</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a43e1b0b8f30a21f8a336687c5a332f1d">RGFW_keyCharEvent</a></td></tr>
+<tr class="memdesc:a43e1b0b8f30a21f8a336687c5a332f1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for a key character event  <a href="RGFW_8h.html#a43e1b0b8f30a21f8a336687c5a332f1d">More...</a><br /></td></tr>
+<tr class="separator:a43e1b0b8f30a21f8a336687c5a332f1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf675e5128fc0daba9e7321451f647d5"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structRGFW__dataDropEvent.html">RGFW_dataDropEvent</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#aaf675e5128fc0daba9e7321451f647d5">RGFW_dataDropEvent</a></td></tr>
 <tr class="memdesc:aaf675e5128fc0daba9e7321451f647d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for any data drop event  <a href="RGFW_8h.html#aaf675e5128fc0daba9e7321451f647d5">More...</a><br /></td></tr>
 <tr class="separator:aaf675e5128fc0daba9e7321451f647d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -315,9 +321,13 @@ Typedefs</h2></td></tr>
 <tr class="memitem:a0389e807acc47a384231a561f9aab1f8"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a0389e807acc47a384231a561f9aab1f8">RGFW_windowRefreshfunc</a>) (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win)</td></tr>
 <tr class="memdesc:a0389e807acc47a384231a561f9aab1f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">RGFW_windowRefresh, the window that needs to be refreshed.  <a href="RGFW_8h.html#a0389e807acc47a384231a561f9aab1f8">More...</a><br /></td></tr>
 <tr class="separator:a0389e807acc47a384231a561f9aab1f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a949c6718dfbda10064e3880035bf8b58"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a949c6718dfbda10064e3880035bf8b58">RGFW_keyfunc</a>) (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> key, <a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> sym, RGFW_keymod mod, <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> repeat, <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> pressed)</td></tr>
-<tr class="memdesc:a949c6718dfbda10064e3880035bf8b58"><td class="mdescLeft">&#160;</td><td class="mdescRight">RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of the mod keys, if it was a press (else it's a release)  <a href="RGFW_8h.html#a949c6718dfbda10064e3880035bf8b58">More...</a><br /></td></tr>
-<tr class="separator:a949c6718dfbda10064e3880035bf8b58"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae525f9f06451bd10cbf263fcff549c73"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#ae525f9f06451bd10cbf263fcff549c73">RGFW_keyCharfunc</a>) (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> codepoint)</td></tr>
+<tr class="memdesc:ae525f9f06451bd10cbf263fcff549c73"><td class="mdescLeft">&#160;</td><td class="mdescRight">RGFW_keyChar, the window that got the event, the unicode key value.  <a href="RGFW_8h.html#ae525f9f06451bd10cbf263fcff549c73">More...</a><br /></td></tr>
+<tr class="separator:ae525f9f06451bd10cbf263fcff549c73"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d133fe7b5bbf7e6610cd757f981eaf0"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a9d133fe7b5bbf7e6610cd757f981eaf0">RGFW_keyfunc</a>) (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> key, RGFW_keymod mod, <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> repeat, <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> pressed)</td></tr>
+<tr class="memdesc:a9d133fe7b5bbf7e6610cd757f981eaf0"><td class="mdescLeft">&#160;</td><td class="mdescRight">RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) <br  />
+  <a href="RGFW_8h.html#a9d133fe7b5bbf7e6610cd757f981eaf0">More...</a><br /></td></tr>
+<tr class="separator:a9d133fe7b5bbf7e6610cd757f981eaf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abdaf4fa95fac604bf1906c24bf07ac53"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#abdaf4fa95fac604bf1906c24bf07ac53">RGFW_mouseButtonfunc</a>) (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, RGFW_mouseButton button, <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> pressed)</td></tr>
 <tr class="memdesc:abdaf4fa95fac604bf1906c24bf07ac53"><td class="mdescLeft">&#160;</td><td class="mdescRight">RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) <br  />
   <a href="RGFW_8h.html#abdaf4fa95fac604bf1906c24bf07ac53">More...</a><br /></td></tr>
@@ -877,9 +887,12 @@ Functions</h2></td></tr>
 <tr class="memitem:gac48c2076ac655b542c0b03523244f7d3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a301158a6d0458ab39dc5dad1751a8190">RGFW_dataDragfunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#gac48c2076ac655b542c0b03523244f7d3">RGFW_setDataDragCallback</a> (<a class="el" href="RGFW_8h.html#a301158a6d0458ab39dc5dad1751a8190">RGFW_dataDragfunc</a> func)</td></tr>
 <tr class="memdesc:gac48c2076ac655b542c0b03523244f7d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the callback function for the start of a data drag event.  <a href="group__Callbacks.html#gac48c2076ac655b542c0b03523244f7d3">More...</a><br /></td></tr>
 <tr class="separator:gac48c2076ac655b542c0b03523244f7d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaade2b5b8ca4d3e0d3e3fe219ff9e2795"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a949c6718dfbda10064e3880035bf8b58">RGFW_keyfunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#gaade2b5b8ca4d3e0d3e3fe219ff9e2795">RGFW_setKeyCallback</a> (<a class="el" href="RGFW_8h.html#a949c6718dfbda10064e3880035bf8b58">RGFW_keyfunc</a> func)</td></tr>
+<tr class="memitem:gaade2b5b8ca4d3e0d3e3fe219ff9e2795"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a9d133fe7b5bbf7e6610cd757f981eaf0">RGFW_keyfunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#gaade2b5b8ca4d3e0d3e3fe219ff9e2795">RGFW_setKeyCallback</a> (<a class="el" href="RGFW_8h.html#a9d133fe7b5bbf7e6610cd757f981eaf0">RGFW_keyfunc</a> func)</td></tr>
 <tr class="memdesc:gaade2b5b8ca4d3e0d3e3fe219ff9e2795"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the callback function for key press and release events.  <a href="group__Callbacks.html#gaade2b5b8ca4d3e0d3e3fe219ff9e2795">More...</a><br /></td></tr>
 <tr class="separator:gaade2b5b8ca4d3e0d3e3fe219ff9e2795"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf9ccdcfcb817019a87d6cf2049992e96"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#ae525f9f06451bd10cbf263fcff549c73">RGFW_keyCharfunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#gaf9ccdcfcb817019a87d6cf2049992e96">RGFW_setKeyCharCallback</a> (<a class="el" href="RGFW_8h.html#ae525f9f06451bd10cbf263fcff549c73">RGFW_keyCharfunc</a> func)</td></tr>
+<tr class="memdesc:gaf9ccdcfcb817019a87d6cf2049992e96"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the callback function for key character events.  <a href="group__Callbacks.html#gaf9ccdcfcb817019a87d6cf2049992e96">More...</a><br /></td></tr>
+<tr class="separator:gaf9ccdcfcb817019a87d6cf2049992e96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1a8c19fb7deb2ae8bb898e48e5fd96bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#abdaf4fa95fac604bf1906c24bf07ac53">RGFW_mouseButtonfunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Callbacks.html#ga1a8c19fb7deb2ae8bb898e48e5fd96bd">RGFW_setMouseButtonCallback</a> (<a class="el" href="RGFW_8h.html#abdaf4fa95fac604bf1906c24bf07ac53">RGFW_mouseButtonfunc</a> func)</td></tr>
 <tr class="memdesc:ga1a8c19fb7deb2ae8bb898e48e5fd96bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the callback function for mouse button press and release events.  <a href="group__Callbacks.html#ga1a8c19fb7deb2ae8bb898e48e5fd96bd">More...</a><br /></td></tr>
 <tr class="separator:ga1a8c19fb7deb2ae8bb898e48e5fd96bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1769,6 +1782,38 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a43e1b0b8f30a21f8a336687c5a332f1d" name="a43e1b0b8f30a21f8a336687c5a332f1d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a43e1b0b8f30a21f8a336687c5a332f1d">&#9670;&#160;</a></span>RGFW_keyCharEvent</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="structRGFW__keyCharEvent.html">RGFW_keyCharEvent</a> <a class="el" href="structRGFW__keyCharEvent.html">RGFW_keyCharEvent</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>event data for a key character event </p>
+
+</div>
+</div>
+<a id="ae525f9f06451bd10cbf263fcff549c73" name="ae525f9f06451bd10cbf263fcff549c73"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae525f9f06451bd10cbf263fcff549c73">&#9670;&#160;</a></span>RGFW_keyCharfunc</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* RGFW_keyCharfunc) (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba">u32</a> codepoint)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>RGFW_keyChar, the window that got the event, the unicode key value. </p>
+
+</div>
+</div>
 <a id="ac0b9c993bfe43ef69c00a5d07af518af" name="ac0b9c993bfe43ef69c00a5d07af518af"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac0b9c993bfe43ef69c00a5d07af518af">&#9670;&#160;</a></span>RGFW_keyEvent</h2>
 
@@ -1781,23 +1826,25 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>event data for any key event (press/release) </p>
+<p>event data for a key press/release event </p>
 
 </div>
 </div>
-<a id="a949c6718dfbda10064e3880035bf8b58" name="a949c6718dfbda10064e3880035bf8b58"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a949c6718dfbda10064e3880035bf8b58">&#9670;&#160;</a></span>RGFW_keyfunc</h2>
+<a id="a9d133fe7b5bbf7e6610cd757f981eaf0" name="a9d133fe7b5bbf7e6610cd757f981eaf0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9d133fe7b5bbf7e6610cd757f981eaf0">&#9670;&#160;</a></span>RGFW_keyfunc</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef void(* RGFW_keyfunc) (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> key, <a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> sym, RGFW_keymod mod, <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> repeat, <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> pressed)</td>
+          <td class="memname">typedef void(* RGFW_keyfunc) (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a> key, RGFW_keymod mod, <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> repeat, <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> pressed)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of the mod keys, if it was a press (else it's a release) </p>
+<p>RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) <br  />
+ </p>
+<p >RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of the mod keys, if it was a press (else it's a release) </p>
 
 </div>
 </div>
@@ -2803,6 +2850,7 @@ Functions</h2></td></tr>
 <p >&lt; capture the mouse mouse mouse on window creation</p>
 <p >&lt; create an OpenGL context (you can also do this manually with RGFW_window_createContext_OpenGL)</p>
 <p >&lt; create an EGL context (you can also do this manually with RGFW_window_createContext_EGL)</p>
+<p >&lt; do not auto deinit RGFW if the window closes and this is the last window open</p>
 
 </div>
 </div>
@@ -2898,9 +2946,7 @@ Functions</h2></td></tr>
 <p >&lt; no event has been sent</p>
 <p >&lt; a key has been pressed</p>
 <p >&lt; a key has been released</p>
-<p >key event note the code of the key pressed is stored in RGFW_event.key.value !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!!</p>
-<p >while a string version is stored in RGFW_event.key.valueString</p>
-<p >/ RGFW_event.key.mod holds the current mod this means if CapsLock, NumLock are active or not</p>
+<p >&lt; keyboard character input event specifically for utf8 input</p>
 <p >&lt; a mouse button has been pressed (left,middle,right)</p>
 <p >&lt; a mouse button has been released (left,middle,right)</p>
 <p >&lt; a mouse scroll event</p>

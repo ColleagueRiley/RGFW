@@ -1,0 +1,39 @@
+.TH "RGFW_keyCharEvent" 3 "Fri Jan 23 2026" "RGFW" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+RGFW_keyCharEvent \- event data for a key character event  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <RGFW\&.h>\fP
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "RGFW_eventType \fBtype\fP"
+.br
+.ti -1c
+.RI "\fBRGFW_window\fP * \fBwin\fP"
+.br
+.ti -1c
+.RI "\fBu32\fP \fBvalue\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+event data for a key character event 
+.SH "Member Data Documentation"
+.PP 
+.SS "RGFW_eventType RGFW_keyCharEvent::type"
+which event has been sent? 
+.SS "\fBu32\fP RGFW_keyCharEvent::value"
+the unicode value of the key 
+.SS "\fBRGFW_window\fP* RGFW_keyCharEvent::win"
+the window this event applies to (for event queue events) 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for RGFW from the source code\&.

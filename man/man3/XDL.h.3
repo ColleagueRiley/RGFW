@@ -1,4 +1,4 @@
-.TH "XDL.h" 3 "Thu Jan 22 2026" "RGFW" \" -*- nroff -*-
+.TH "XDL.h" 3 "Fri Jan 23 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -390,6 +390,18 @@ XDL.h
 .br
 .ti -1c
 .RI "#define \fBXSetWindowBackgroundPixmap\fP   \fBXSetWindowBackgroundPixmapSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXOpenIM\fP   \fBXOpenIMSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXutf8LookupString\fP   \fBXutf8LookupStringSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXUnregisterIMInstantiateCallback\fP   \fBXUnregisterIMInstantiateCallbackSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXutf8SetWMProperties\fP   \fBXutf8SetWMPropertiesSrc\fP"
 .br
 .ti -1c
 .RI "#define \fBXRRGetScreenResourcesCurrent\fP   \fBXRRGetScreenResourcesCurrentSrc\fP"
@@ -885,6 +897,18 @@ XDL.h
 .RI "typedef void(* \fBPFN_XSetWindowBackgroundPixmap\fP) (Display *, Window, Pixmap)"
 .br
 .ti -1c
+.RI "typedef XIM(* \fBPFN_XOpenIM\fP) (Display *, XrmDatabase *, char *, char *)"
+.br
+.ti -1c
+.RI "typedef int(* \fBPFN_Xutf8LookupString\fP) (XIC, XKeyPressedEvent *, char *, int, KeySym *, Status *)"
+.br
+.ti -1c
+.RI "typedef Bool(* \fBPFN_XUnregisterIMInstantiateCallback\fP) (Display *, void *, char *, char *, XIDProc, XPointer)"
+.br
+.ti -1c
+.RI "typedef void(* \fBPFN_Xutf8SetWMProperties\fP) (Display *, Window, const char *, const char *, char **, int, XSizeHints *, XWMHints *, XClassHint *)"
+.br
+.ti -1c
 .RI "typedef XRRScreenResources *(* \fBPFN_XRRGetScreenResourcesCurrent\fP) (Display *display, Window window)"
 .br
 .ti -1c
@@ -1370,6 +1394,18 @@ XDL.h
 .RI "\fBPFN_XSetWindowBackgroundPixmap\fP \fBXSetWindowBackgroundPixmapSrc\fP"
 .br
 .ti -1c
+.RI "\fBPFN_XOpenIM\fP \fBXOpenIMSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_Xutf8LookupString\fP \fBXutf8LookupStringSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_XUnregisterIMInstantiateCallback\fP \fBXUnregisterIMInstantiateCallbackSrc\fP"
+.br
+.ti -1c
+.RI "\fBPFN_Xutf8SetWMProperties\fP \fBXutf8SetWMPropertiesSrc\fP"
+.br
+.ti -1c
 .RI "\fBPFN_XRRGetScreenResourcesCurrent\fP \fBXRRGetScreenResourcesCurrentSrc\fP"
 .br
 .ti -1c
@@ -1670,6 +1706,8 @@ XDL.h
 
 .SS "#define XOpenDisplay   \fBXOpenDisplaySrc\fP"
 
+.SS "#define XOpenIM   \fBXOpenIMSrc\fP"
+
 .SS "#define XPeekEvent   \fBXPeekEventSrc\fP"
 
 .SS "#define XPending   \fBXPendingSrc\fP"
@@ -1792,7 +1830,13 @@ XDL.h
 
 .SS "#define XUnmapWindow   \fBXUnmapWindowSrc\fP"
 
+.SS "#define XUnregisterIMInstantiateCallback   \fBXUnregisterIMInstantiateCallbackSrc\fP"
+
 .SS "#define XUnsetICFocus   \fBXUnsetICFocusSrc\fP"
+
+.SS "#define Xutf8LookupString   \fBXutf8LookupStringSrc\fP"
+
+.SS "#define Xutf8SetWMProperties   \fBXutf8SetWMPropertiesSrc\fP"
 
 .SS "#define XVisualIDFromVisual   \fBXVisualIDFromVisualSrc\fP"
 
@@ -1998,6 +2042,8 @@ XDL.h
 
 .SS "typedef Display *(* PFN_XOpenDisplay) (const char *)"
 
+.SS "typedef XIM(* PFN_XOpenIM) (Display *, XrmDatabase *, char *, char *)"
+
 .SS "typedef int(* PFN_XPeekEvent) (Display *, XEvent *)"
 
 .SS "typedef int(* PFN_XPending) (Display *)"
@@ -2118,7 +2164,13 @@ XDL.h
 
 .SS "typedef int(* PFN_XUnmapWindow) (Display *, Window)"
 
+.SS "typedef Bool(* PFN_XUnregisterIMInstantiateCallback) (Display *, void *, char *, char *, XIDProc, XPointer)"
+
 .SS "typedef void(* PFN_XUnsetICFocus) (XIC)"
+
+.SS "typedef int(* PFN_Xutf8LookupString) (XIC, XKeyPressedEvent *, char *, int, KeySym *, Status *)"
+
+.SS "typedef void(* PFN_Xutf8SetWMProperties) (Display *, Window, const char *, const char *, char **, int, XSizeHints *, XWMHints *, XClassHint *)"
 
 .SS "typedef VisualID(* PFN_XVisualIDFromVisual) (Visual *)"
 
@@ -2320,6 +2372,8 @@ XDL.h
 
 .SS "\fBPFN_XOpenDisplay\fP XOpenDisplaySrc"
 
+.SS "\fBPFN_XOpenIM\fP XOpenIMSrc"
+
 .SS "\fBPFN_XPeekEvent\fP XPeekEventSrc"
 
 .SS "\fBPFN_XPending\fP XPendingSrc"
@@ -2440,7 +2494,13 @@ XDL.h
 
 .SS "\fBPFN_XUnmapWindow\fP XUnmapWindowSrc"
 
+.SS "\fBPFN_XUnregisterIMInstantiateCallback\fP XUnregisterIMInstantiateCallbackSrc"
+
 .SS "\fBPFN_XUnsetICFocus\fP XUnsetICFocusSrc"
+
+.SS "\fBPFN_Xutf8LookupString\fP Xutf8LookupStringSrc"
+
+.SS "\fBPFN_Xutf8SetWMProperties\fP Xutf8SetWMPropertiesSrc"
 
 .SS "\fBPFN_XVisualIDFromVisual\fP XVisualIDFromVisualSrc"
 

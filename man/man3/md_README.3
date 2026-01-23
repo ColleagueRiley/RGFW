@@ -1,4 +1,4 @@
-.TH "md_README" 3 "Thu Jan 22 2026" "RGFW" \" -*- nroff -*-
+.TH "md_README" 3 "Fri Jan 23 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -71,7 +71,7 @@ You must explicitly request these helper functions via, \fC#define RGFW_OPENGL\f
 #include <GL/gl\&.h>
 #endif
 
-void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed) {
+void keyfunc(RGFW_window* win, RGFW_key key, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed) {
     RGFW_UNUSED(repeat);
     if (key == RGFW_escape && pressed) {
         RGFW_window_setShouldClose(win, 1);

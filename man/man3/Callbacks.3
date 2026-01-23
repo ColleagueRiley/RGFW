@@ -1,4 +1,4 @@
-.TH "Callbacks" 3 "Thu Jan 22 2026" "RGFW" \" -*- nroff -*-
+.TH "Callbacks" 3 "Fri Jan 23 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -49,6 +49,10 @@ Callbacks \- Callbacks
 .RI "\fBRGFWDEF\fP \fBRGFW_keyfunc\fP \fBRGFW_setKeyCallback\fP (\fBRGFW_keyfunc\fP func)"
 .br
 .RI "Sets the callback function for key press and release events\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_keyCharfunc\fP \fBRGFW_setKeyCharCallback\fP (\fBRGFW_keyCharfunc\fP func)"
+.br
+.RI "Sets the callback function for key character events\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_mouseButtonfunc\fP \fBRGFW_setMouseButtonCallback\fP (\fBRGFW_mouseButtonfunc\fP func)"
 .br
@@ -135,6 +139,22 @@ The previously set callback function, if any\&.
 
 .PP
 Sets the callback function for key press and release events\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfunc\fP The function to be called when a key is pressed or released\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The previously set callback function, if any\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_keyCharfunc\fP RGFW_setKeyCharCallback (\fBRGFW_keyCharfunc\fP func)"
+
+.PP
+Sets the callback function for key character events\&. ! 
 .PP
 \fBParameters\fP
 .RS 4

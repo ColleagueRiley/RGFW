@@ -1,4 +1,4 @@
-.TH "RGFW_event" 3 "Thu Jan 22 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW_event" 3 "Fri Jan 23 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -31,6 +31,9 @@ RGFW_event \- union for all of the event stucture types
 .RI "\fBRGFW_keyEvent\fP \fBkey\fP"
 .br
 .ti -1c
+.RI "\fBRGFW_keyCharEvent\fP \fBkeyChar\fP"
+.br
+.ti -1c
 .RI "\fBRGFW_dataDropEvent\fP \fBdrop\fP"
 .br
 .ti -1c
@@ -58,6 +61,8 @@ data for dragging a file events
 dropping a file events 
 .SS "\fBRGFW_keyEvent\fP RGFW_event::key"
 data for key press/release/hold events 
+.SS "\fBRGFW_keyCharEvent\fP RGFW_event::keyChar"
+data for key character events 
 .SS "\fBRGFW_monitorEvent\fP RGFW_event::monitor"
 data for monitor events 
 .SS "\fBRGFW_mousePosEvent\fP RGFW_event::mouse"

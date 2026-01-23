@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Thu Jan 22 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Fri Jan 23 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -51,7 +51,11 @@ RGFW.h
 .ti -1c
 .RI "struct \fBRGFW_keyEvent\fP"
 .br
-.RI "event data for any key event (press/release) "
+.RI "event data for a key press/release event "
+.ti -1c
+.RI "struct \fBRGFW_keyCharEvent\fP"
+.br
+.RI "event data for a key character event "
 .ti -1c
 .RI "struct \fBRGFW_dataDropEvent\fP"
 .br
@@ -258,7 +262,11 @@ RGFW.h
 .ti -1c
 .RI "typedef struct \fBRGFW_keyEvent\fP \fBRGFW_keyEvent\fP"
 .br
-.RI "event data for any key event (press/release) "
+.RI "event data for a key press/release event "
+.ti -1c
+.RI "typedef struct \fBRGFW_keyCharEvent\fP \fBRGFW_keyCharEvent\fP"
+.br
+.RI "event data for a key character event "
 .ti -1c
 .RI "typedef struct \fBRGFW_dataDropEvent\fP \fBRGFW_dataDropEvent\fP"
 .br
@@ -340,9 +348,15 @@ RGFW.h
 .br
 .RI "RGFW_windowRefresh, the window that needs to be refreshed\&. "
 .ti -1c
-.RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP key, \fBu8\fP sym, RGFW_keymod mod, \fBRGFW_bool\fP repeat, \fBRGFW_bool\fP pressed)"
+.RI "typedef void(* \fBRGFW_keyCharfunc\fP) (\fBRGFW_window\fP *win, \fBu32\fP codepoint)"
 .br
-.RI "RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of the mod keys, if it was a press (else it's a release) "
+.RI "RGFW_keyChar, the window that got the event, the unicode key value\&. "
+.ti -1c
+.RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP key, RGFW_keymod mod, \fBRGFW_bool\fP repeat, \fBRGFW_bool\fP pressed)"
+.br
+.RI "RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
+.br
+ "
 .ti -1c
 .RI "typedef void(* \fBRGFW_mouseButtonfunc\fP) (\fBRGFW_window\fP *win, RGFW_mouseButton button, \fBRGFW_bool\fP pressed)"
 .br
@@ -1096,6 +1110,10 @@ RGFW.h
 .br
 .RI "Sets the callback function for key press and release events\&. "
 .ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_keyCharfunc\fP \fBRGFW_setKeyCharCallback\fP (\fBRGFW_keyCharfunc\fP func)"
+.br
+.RI "Sets the callback function for key character events\&. "
+.ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_mouseButtonfunc\fP \fBRGFW_setMouseButtonCallback\fP (\fBRGFW_mouseButtonfunc\fP func)"
 .br
 .RI "Sets the callback function for mouse button press and release events\&. "
@@ -1302,14 +1320,24 @@ gamma struct for monitors
 
 .PP
 The stucture that contains information about the current RGFW instance\&. 
+.SS "typedef struct \fBRGFW_keyCharEvent\fP \fBRGFW_keyCharEvent\fP"
+
+.PP
+event data for a key character event 
+.SS "typedef void(* RGFW_keyCharfunc) (\fBRGFW_window\fP *win, \fBu32\fP codepoint)"
+
+.PP
+RGFW_keyChar, the window that got the event, the unicode key value\&. 
 .SS "typedef struct \fBRGFW_keyEvent\fP \fBRGFW_keyEvent\fP"
 
 .PP
-event data for any key event (press/release) 
-.SS "typedef void(* RGFW_keyfunc) (\fBRGFW_window\fP *win, \fBu8\fP key, \fBu8\fP sym, RGFW_keymod mod, \fBRGFW_bool\fP repeat, \fBRGFW_bool\fP pressed)"
+event data for a key press/release event 
+.SS "typedef void(* RGFW_keyfunc) (\fBRGFW_window\fP *win, \fBu8\fP key, RGFW_keymod mod, \fBRGFW_bool\fP repeat, \fBRGFW_bool\fP pressed)"
 
 .PP
-RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of the mod keys, if it was a press (else it's a release) 
+RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
+.br
+ RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of the mod keys, if it was a press (else it's a release) 
 .SS "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
 
 .PP
@@ -1640,6 +1668,8 @@ the window is hidden
 < create an OpenGL context (you can also do this manually with RGFW_window_createContext_OpenGL)
 .PP
 < create an EGL context (you can also do this manually with RGFW_window_createContext_EGL)
+.PP
+< do not auto deinit RGFW if the window closes and this is the last window open
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_debugType)"
 
 .PP
@@ -1659,11 +1689,7 @@ codes for the event types that can be sent < no event has been sent
 .PP
 < a key has been released
 .PP
-key event note the code of the key pressed is stored in RGFW_event\&.key\&.value !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!!
-.PP
-while a string version is stored in RGFW_event\&.key\&.valueString
-.PP
-/ RGFW_event\&.key\&.mod holds the current mod this means if CapsLock, NumLock are active or not
+< keyboard character input event specifically for utf8 input
 .PP
 < a mouse button has been pressed (left,middle,right)
 .PP

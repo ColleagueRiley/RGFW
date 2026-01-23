@@ -1,8 +1,8 @@
-.TH "RGFW_keyEvent" 3 "Thu Jan 22 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW_keyEvent" 3 "Fri Jan 23 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-RGFW_keyEvent \- event data for any key event (press/release)  
+RGFW_keyEvent \- event data for a key press/release event  
 
 .SH SYNOPSIS
 .br
@@ -22,9 +22,6 @@ RGFW_keyEvent \- event data for any key event (press/release)
 .RI "RGFW_key \fBvalue\fP"
 .br
 .ti -1c
-.RI "\fBu8\fP \fBsym\fP"
-.br
-.ti -1c
 .RI "\fBRGFW_bool\fP \fBrepeat\fP"
 .br
 .ti -1c
@@ -33,19 +30,17 @@ RGFW_keyEvent \- event data for any key event (press/release)
 .in -1c
 .SH "Detailed Description"
 .PP 
-event data for any key event (press/release) 
+event data for a key press/release event 
 .SH "Member Data Documentation"
 .PP 
 .SS "RGFW_keymod RGFW_keyEvent::mod"
 
 .SS "\fBRGFW_bool\fP RGFW_keyEvent::repeat"
 key press event repeated (the key is being held) 
-.SS "\fBu8\fP RGFW_keyEvent::sym"
-mapped key char of the event 
 .SS "RGFW_eventType RGFW_keyEvent::type"
 which event has been sent? 
 .SS "RGFW_key RGFW_keyEvent::value"
-the physical key of the event, refers to where key is physically !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! 
+the physical key of the event, refers to where key is physically 
 .SS "\fBRGFW_window\fP* RGFW_keyEvent::win"
 the window this event applies to (for event queue events) 
 

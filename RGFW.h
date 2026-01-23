@@ -669,17 +669,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 	RGFW_eventNone = 0, /*!< no event has been sent */
  	RGFW_keyPressed, /*!< a key has been pressed */
 	RGFW_keyReleased, /*!< a key has been released */
-	/*! key event note
-		the code of the key pressed is stored in
-		RGFW_event.key.value
-		!!Keycodes defined at the bottom of the RGFW_HEADER part of this file!!
-
-		while a string version is stored in
-		RGFW_event.key.valueString
-
-/	RGFW_event.key.mod holds the current mod
-		this means if CapsLock, NumLock are active or not
-	*/
+	RGFW_keyChar, /*!< keyboard character input event specifically for utf8 input */
 	RGFW_mouseButtonPressed, /*!< a mouse button has been pressed (left,middle,right) */
 	RGFW_mouseButtonReleased, /*!< a mouse button has been released (left,middle,right) */
 	RGFW_mouseScroll, /*!< a mouse scroll event */
@@ -724,6 +714,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 typedef RGFW_ENUM(u32, RGFW_eventFlag) {
     RGFW_keyPressedFlag = RGFW_BIT(RGFW_keyPressed),
     RGFW_keyReleasedFlag = RGFW_BIT(RGFW_keyReleased),
+    RGFW_keyCharFlag = RGFW_BIT(RGFW_keyChar),
     RGFW_mouseScrollFlag = RGFW_BIT(RGFW_mouseScroll),
     RGFW_mouseButtonPressedFlag = RGFW_BIT(RGFW_mouseButtonPressed),
     RGFW_mouseButtonReleasedFlag = RGFW_BIT(RGFW_mouseButtonReleased),
@@ -745,7 +736,7 @@ typedef RGFW_ENUM(u32, RGFW_eventFlag) {
 	RGFW_monitorConnectedFlag = RGFW_BIT(RGFW_monitorConnected),
 	RGFW_monitorDisconnectedFlag = RGFW_BIT(RGFW_monitorDisconnected),
 
-    RGFW_keyEventsFlag = RGFW_keyPressedFlag | RGFW_keyReleasedFlag,
+    RGFW_keyEventsFlag = RGFW_keyPressedFlag | RGFW_keyReleasedFlag | RGFW_keyCharFlag,
     RGFW_mouseEventsFlag = RGFW_mouseButtonPressedFlag | RGFW_mouseButtonReleasedFlag | RGFW_mousePosChangedFlag | RGFW_mouseEnterFlag | RGFW_mouseLeaveFlag | RGFW_mouseScrollFlag ,
     RGFW_windowEventsFlag = RGFW_windowMovedFlag | RGFW_windowResizedFlag | RGFW_windowRefreshFlag | RGFW_windowMaximizedFlag | RGFW_windowMinimizedFlag | RGFW_windowRestoredFlag | RGFW_scaleUpdatedFlag,
     RGFW_focusEventsFlag = RGFW_focusInFlag | RGFW_focusOutFlag,
@@ -784,15 +775,21 @@ typedef struct RGFW_mousePosEvent {
 	float vecX, vecY; /*!< raw mouse movement */
 } RGFW_mousePosEvent;
 
-/*! @brief event data for any key event (press/release) */
+/*! @brief event data for a key press/release event */
 typedef struct RGFW_keyEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies to (for event queue events) */
-	RGFW_key value; /*!< the physical key of the event, refers to where key is physically !!Keycodes defined at the bottom of the RGFW_HEADER part of this file!! */
-	u8 sym; /*!< mapped key char of the event */
+	RGFW_key value; /*!< the physical key of the event, refers to where key is physically */
 	RGFW_bool repeat; /*!< key press event repeated (the key is being held) */
 	RGFW_keymod mod;
 } RGFW_keyEvent;
+
+/*! @brief event data for a key character event */
+typedef struct RGFW_keyCharEvent {
+	RGFW_eventType type; /*!< which event has been sent?*/
+	RGFW_window* win; /*!< the window this event applies to (for event queue events) */
+	u32 value; /*!< the unicode value of the key */
+} RGFW_keyCharEvent;
 
 /*! @brief event data for any data drop event */
 typedef struct RGFW_dataDropEvent {
@@ -832,6 +829,7 @@ typedef union RGFW_event {
 	RGFW_mouseScrollEvent scroll; /*!< data for a mouse scroll */
 	RGFW_mousePosEvent mouse; /*!< data for mouse motion events */
 	RGFW_keyEvent key; /*!< data for key press/release/hold events */
+	RGFW_keyCharEvent keyChar; /*!< data for key character events */
 	RGFW_dataDropEvent drop; /*!< dropping a file events */
 	RGFW_dataDragEvent drag; /*!< data for dragging a file events */
 	RGFW_scaleUpdatedEvent scale; /*!< data for dpi scaling update events */
@@ -871,6 +869,7 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowCaptureMouse = RGFW_BIT(16), /*!< capture the mouse mouse mouse on window creation */
 	RGFW_windowOpenGL = RGFW_BIT(17), /*!< create an OpenGL context (you can also do this manually with RGFW_window_createContext_OpenGL) */
 	RGFW_windowEGL = RGFW_BIT(18), /*!< create an EGL context (you can also do this manually with RGFW_window_createContext_EGL) */
+	RGFW_noDeinitOnClose = RGFW_BIT(19), /*!< do not auto deinit RGFW if the window closes and this is the last window open */
 	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize,
 	RGFW_windowCaptureRawMouse = RGFW_windowCaptureMouse | RGFW_windowRawMouse
 };
@@ -965,8 +964,12 @@ typedef void (* RGFW_mousePosfunc)(RGFW_window* win, i32 x, i32 y, float vecX, f
 typedef void (* RGFW_dataDragfunc)(RGFW_window* win, i32 x, i32 y);
 /*! @brief RGFW_windowRefresh, the window that needs to be refreshed */
 typedef void (* RGFW_windowRefreshfunc)(RGFW_window* win);
+/*! @brief RGFW_keyChar, the window that got the event, the unicode key value */
+typedef void (* RGFW_keyCharfunc)(RGFW_window* win, u32 codepoint);
+/*! @brief RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release)  */
+
 /*! @brief RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of the mod keys, if it was a press (else it's a release) */
-typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, u8 sym, RGFW_keymod mod, RGFW_bool repeat, RGFW_bool pressed);
+typedef void (* RGFW_keyfunc)(RGFW_window* win, u8 key, RGFW_keymod mod, RGFW_bool repeat, RGFW_bool pressed);
 /*! @brief RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release)  */
 typedef void (* RGFW_mouseButtonfunc)(RGFW_window* win, RGFW_mouseButton button, RGFW_bool pressed);
 /*! @brief RGFW_mouseScroll, the window that got the event, the x scroll value, the y scroll value */
@@ -2341,6 +2344,13 @@ RGFWDEF RGFW_dataDragfunc RGFW_setDataDragCallback(RGFW_dataDragfunc func);
 RGFWDEF RGFW_keyfunc RGFW_setKeyCallback(RGFW_keyfunc func);
 
 /**!
+ * @brief Sets the callback function for key character events.
+ * @param func The function to be called when a key is pressed or released.
+ * @return The previously set callback function, if any.
+*/
+RGFWDEF RGFW_keyCharfunc RGFW_setKeyCharCallback(RGFW_keyCharfunc func);
+
+/**!
  * @brief Sets the callback function for mouse button press and release events.
  * @param func The function to be called when a mouse button is pressed or released.
  * @return The previously set callback function, if any.
@@ -2905,6 +2915,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		HICON hIconSmall, hIconBig; /*!< source window icons */
 		i32 maxSizeW, maxSizeH, minSizeW, minSizeH, aspectRatioW, aspectRatioH; /*!< for setting max/min resize (RGFW_WINDOWS) */
 		RGFW_bool actionFrame; /* frame after a caption button was toggled (e.g. minimize, maximize or close) */
+		WCHAR highSurrogate;
 		#ifdef RGFW_OPENGL
 			RGFW_gfxContext ctx;
 			RGFW_gfxContextType gfxType;
@@ -2966,6 +2977,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		Window window; /*!< source window */
 		Window parent; /*!< parent window */
 		GC gc;
+		XIC ic;
 		u64 flashEnd;
 		#ifdef RGFW_ADVANCED_SMOOTH_RESIZE
 			i64 counter_value;
@@ -3186,6 +3198,7 @@ struct RGFW_info {
         const char* instName;
         XErrorEvent* x11Error;
 		i32 xrandrEventBase;
+		XIM im;
     #endif
     #ifdef RGFW_WAYLAND
         struct wl_display* wl_display;
@@ -3213,6 +3226,7 @@ struct RGFW_info {
         u32 mouse_enter_serial;
         struct wl_cursor_theme* wl_cursor_theme;
         struct wl_surface* cursor_surface;
+		struct xkb_compose_state* composeState;
 
         RGFW_window* kbOwner;
 		RGFW_window* mouseOwner; /* what window has access to the mouse */
@@ -3290,7 +3304,8 @@ RGFWDEF void RGFW_focusCallback(RGFW_window* win, RGFW_bool inFocus);
 RGFWDEF void RGFW_mouseNotifyCallback(RGFW_window* win, i32 x, i32 y, RGFW_bool status);
 RGFWDEF void RGFW_dataDropCallback(RGFW_window* win, char** files, size_t count);
 RGFWDEF void RGFW_dataDragCallback(RGFW_window* win, i32 x, i32 y);
-RGFWDEF void RGFW_keyCallback(RGFW_window* win, RGFW_key key, RGFW_key sym, RGFW_keymod mod, RGFW_bool repeat, RGFW_bool press);
+RGFWDEF void RGFW_keyCharCallback(RGFW_window* win, u32 codepoint);
+RGFWDEF void RGFW_keyCallback(RGFW_window* win, RGFW_key key, RGFW_keymod mod, RGFW_bool repeat, RGFW_bool press);
 RGFWDEF void RGFW_mouseButtonCallback(RGFW_window* win, RGFW_mouseButton button, RGFW_bool press);
 RGFWDEF void RGFW_mouseScrollCallback(RGFW_window* win, float x, float y);
 RGFWDEF void RGFW_scaleUpdatedCallback(RGFW_window* win, float scaleX, float scaleY);
@@ -3455,6 +3470,7 @@ RGFW_CALLBACK_DEFINE(mouseNotify, MouseNotify)
 RGFW_CALLBACK_DEFINE(dataDrop, DataDrop)
 RGFW_CALLBACK_DEFINE(dataDrag, DataDrag)
 RGFW_CALLBACK_DEFINE(key, Key)
+RGFW_CALLBACK_DEFINE(keyChar, KeyChar)
 RGFW_CALLBACK_DEFINE(mouseButton, MouseButton)
 RGFW_CALLBACK_DEFINE(mouseScroll, MouseScroll)
 RGFW_CALLBACK_DEFINE(scaleUpdated, ScaleUpdated)
@@ -3595,10 +3611,8 @@ void RGFW_focusCallback(RGFW_window* win, RGFW_bool inFocus) {
 			if (RGFW_isKeyDown((u8)key) == RGFW_FALSE) continue;
 
 			_RGFW->keyboard[key].current = RGFW_FALSE;
-			u8 sym = RGFW_rgfwToKeyChar((u32)key);
-
 			if ((win->internal.enabledEvents & RGFW_BIT(RGFW_keyReleased))) {
-				RGFW_keyCallback(win, (u8)key, sym, win->internal.mod, RGFW_FALSE, RGFW_FALSE);
+				RGFW_keyCallback(win, (u8)key, win->internal.mod, RGFW_FALSE, RGFW_FALSE);
 			}
 		}
 
@@ -3678,7 +3692,19 @@ void RGFW_dataDragCallback(RGFW_window* win, i32 x, i32 y) {
 	if (RGFW_dataDragCallbackSrc) RGFW_dataDragCallbackSrc(win, x, y);
 }
 
-void RGFW_keyCallback(RGFW_window* win, RGFW_key key, RGFW_key sym, RGFW_keymod mod, RGFW_bool repeat, RGFW_bool press) {
+void RGFW_keyCharCallback(RGFW_window* win, u32 codepoint) {
+	if (!(win->internal.enabledEvents & RGFW_keyCharFlag)) return;
+
+	RGFW_event event;
+	event.type = RGFW_keyChar;
+	event.keyChar.value = codepoint;
+	event.common.win = win;
+	RGFW_eventQueuePush(&event);
+
+	if (RGFW_keyCharCallbackSrc) RGFW_keyCharCallbackSrc(win, codepoint);
+}
+
+void RGFW_keyCallback(RGFW_window* win, RGFW_key key, RGFW_keymod mod, RGFW_bool repeat, RGFW_bool press) {
 	RGFW_event event;
 
 	if (press) {
@@ -3690,7 +3716,6 @@ void RGFW_keyCallback(RGFW_window* win, RGFW_key key, RGFW_key sym, RGFW_keymod 
 	}
 
 	event.key.value = key;
-	event.key.sym = sym;
 	event.key.mod = repeat;
 	event.key.mod = mod;
 	event.common.win = win;
@@ -3699,7 +3724,7 @@ void RGFW_keyCallback(RGFW_window* win, RGFW_key key, RGFW_key sym, RGFW_keymod 
 	_RGFW->keyboard[event.key.value].prev = _RGFW->keyboard[event.key.value].current;
 	_RGFW->keyboard[event.key.value].current = press;
 
-	if (RGFW_keyCallbackSrc) RGFW_keyCallbackSrc(win, key, sym, mod, repeat, press);
+	if (RGFW_keyCallbackSrc) RGFW_keyCallbackSrc(win, key, mod, repeat, press);
 }
 
 void RGFW_mouseButtonCallback(RGFW_window* win, RGFW_mouseButton button, RGFW_bool press) {
@@ -4025,7 +4050,7 @@ void RGFW_window_closePtr(RGFW_window* win) {
 	_RGFW->windowCount--;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, "a window was freed");
 
-	if (_RGFW->windowCount == 0) RGFW_deinit();
+	if (_RGFW->windowCount == 0 && !(win->internal.flags & RGFW_noDeinitOnClose)) RGFW_deinit();
 }
 
 void RGFW_setQueueEvents(RGFW_bool queue) {  _RGFW->queueEvents = RGFW_BOOL(queue); }
@@ -4731,6 +4756,35 @@ void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show) {
 #ifndef RGFW_MACOS
 void RGFW_moveToMacOSResourceDir(void) { }
 #endif
+
+RGFWDEF RGFW_bool RGFW_isLatin(const char *string, size_t length);
+RGFW_bool RGFW_isLatin(const char *string, size_t length) {
+	for (size_t i = 0; i < length; i++) {
+        if ((u8)string[i] >= 0x80) {
+            return RGFW_TRUE;
+        }
+    }
+    return RGFW_FALSE;
+}
+
+RGFWDEF u32 RGFW_decodeUTF8(const char* string, size_t* starting_index);
+u32 RGFW_decodeUTF8(const char* string, size_t* starting_index) {
+    static const u32 offsets[] = {
+        0x00000000u, 0x00003080u, 0x000e2080u,
+        0x03c82080u, 0xfa082080u, 0x82082080u
+    };
+
+    u32 codepoint = (u8)string[(*starting_index)];
+	size_t count;
+	for (count = 1; (string[count + (*starting_index)] & 0xc0) == 0x80; count++) {
+        codepoint = (codepoint << 6) + (u8)string[count + (*starting_index)];
+	}
+
+	*starting_index += count;
+
+    assert(count <= 6);
+    return codepoint - offsets[count - 1];
+}
 
 /*
 	graphics API specific code (end of generic code)
@@ -6015,6 +6069,59 @@ RGFW_bool RGFW_waitForShowEvent_X11(RGFW_window* win) {
 	return RGFW_TRUE;
 }
 
+RGFWDEF void RGFW_x11_icCallback(XIC ic, char* clientData, char* callData);
+void RGFW_x11_icCallback(XIC ic, char* clientData, char* callData) {
+	RGFW_UNUSED(ic); RGFW_UNUSED(callData);
+    RGFW_window* win = (RGFW_window*)(void*)clientData;
+    win->src.ic = NULL;
+}
+
+RGFWDEF void RGFW_x11_imCallback(XIM im, char* clientData, char* callData);
+void RGFW_x11_imCallback(XIM im, char* clientData, char* callData) {
+	RGFW_UNUSED(im); RGFW_UNUSED(clientData); RGFW_UNUSED(callData);
+	_RGFW->im = NULL;
+}
+
+RGFWDEF void RGFW_x11_imInitCallback(Display* display, XPointer clientData, XPointer callData);
+void RGFW_x11_imInitCallback(Display* display, XPointer clientData, XPointer callData) {
+	RGFW_UNUSED(display); RGFW_UNUSED(clientData); RGFW_UNUSED(callData);
+
+	if (_RGFW->im) {
+		return;
+	}
+
+	_RGFW->im = XOpenIM(_RGFW->display, 0, NULL, NULL);
+	if (_RGFW->im == NULL) {
+		return;
+	}
+
+    RGFW_bool found = RGFW_FALSE;
+    XIMStyles* styles = NULL;
+
+    if (XGetIMValues(_RGFW->im, XNQueryInputStyle, &styles, NULL) != NULL) {
+        found = RGFW_FALSE;
+	} else {
+		for (unsigned int i = 0;  i < styles->count_styles;  i++) {
+			if (styles->supported_styles[i] == (XIMPreeditNothing | XIMStatusNothing)) {
+				found = RGFW_TRUE;
+				break;
+			}
+		}
+
+	    XFree(styles);
+	}
+
+	if (found == RGFW_FALSE) {
+		XCloseIM(_RGFW->im);
+		_RGFW->im = NULL;
+	}
+
+	XIMCallback callback;
+	callback.callback = (XIMProc) RGFW_x11_imCallback;
+	callback.client_data = NULL;
+	XSetIMValues(_RGFW->im, XNDestroyCallback, &callback, NULL);
+}
+
 void* RGFW_getDisplay_X11(void) { return _RGFW->display; }
 u64 RGFW_window_getWindow_X11(RGFW_window* win) { return (u64)win->src.window; }
 
@@ -6187,6 +6294,15 @@ void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags 
 	XSaveContext(_RGFW->display, win->src.window, _RGFW->context, (XPointer)win);
 
 	win->src.gc = XCreateGC(_RGFW->display, win->src.window, 0, NULL);
+
+	if (_RGFW->im) {
+		XIMCallback callback;
+		callback.callback = (XIMProc) RGFW_x11_icCallback;
+		callback.client_data = (XPointer) win;
+
+		win->src.ic = XCreateIC(_RGFW->im, XNInputStyle, XIMPreeditNothing | XIMStatusNothing, XNClientWindow, win->src.window, XNFocusWindow, win->src.window, XNDestroyCallback, &callback, NULL);
+	}
+
 
 	/* In your .desktop app, if you set the property
 	    StartupWMClass=RGFW that will assoicate the launcher icon
@@ -6480,26 +6596,50 @@ void RGFW_XHandleEvent(void) {
 		case KeyPress: {
 			if (!(win->internal.enabledEvents & RGFW_keyPressedFlag)) return;
 			RGFW_key value = (u8)RGFW_apiKeyToRGFW(E.xkey.keycode);
-			u8 sym = (u8)RGFW_rgfwToKeyChar(value);
 
 			XkbStateRec state;
 			XkbGetState(_RGFW->display, XkbUseCoreKbd, &state);
 			RGFW_updateKeyMods(win, (state.locked_mods & LockMask), (state.locked_mods & Mod2Mask), (state.locked_mods & Mod3Mask));
 
-			RGFW_keyCallback(win, value, sym, win->internal.mod, keyRepeat, RGFW_TRUE);
+			if (win->src.ic && XFilterEvent(&E, None) == False) {
+				char buffer[100];
+				char* chars = buffer;
+
+				Status status;
+				size_t count = (size_t)Xutf8LookupString(win->src.ic, &E.xkey, buffer, sizeof(buffer) - 1, NULL, &status);
+
+				if (status == XBufferOverflow) {
+					chars = (char*)RGFW_ALLOC(count + 1);
+					count = (size_t)Xutf8LookupString(win->src.ic, &E.xkey, chars, (int)count, NULL, &status);
+				}
+
+				if (status == XLookupChars || status == XLookupBoth) {
+					chars[count] = '\0';
+					for (size_t index = 0; index < count;
+						RGFW_keyCharCallback(win, RGFW_decodeUTF8(&chars[index], &index))
+					);
+				}
+
+				if (chars != buffer)
+					RGFW_FREE(chars);
+			} else {
+				u32 sym = (u8)RGFW_rgfwToKeyChar(value);
+				RGFW_keyCharCallback(win, sym);
+			}
+
+			RGFW_keyCallback(win, value, win->internal.mod, keyRepeat, RGFW_TRUE);
 			break;
 		}
 		case KeyRelease: {
 			if (!(win->internal.enabledEvents & RGFW_keyReleasedFlag)) return;
 
 			RGFW_key value = (u8)RGFW_apiKeyToRGFW(E.xkey.keycode);
-			u8 sym = (u8)RGFW_rgfwToKeyChar(value);
 
 			XkbStateRec state;
 			XkbGetState(_RGFW->display, XkbUseCoreKbd, &state);
 			RGFW_updateKeyMods(win, (state.locked_mods & LockMask), (state.locked_mods & Mod2Mask), (state.locked_mods & Mod3Mask));
 
-			RGFW_keyCallback(win, value, sym, win->internal.mod, keyRepeat, RGFW_FALSE);
+			RGFW_keyCallback(win, value, win->internal.mod, keyRepeat, RGFW_FALSE);
 			break;
 		}
 		case ButtonPress: {
@@ -6746,8 +6886,6 @@ void RGFW_XHandleEvent(void) {
 			char** files = _RGFW->files;
 
 			while ((line = (char*)RGFW_strtok(data, "\r\n"))) {
-				char path[RGFW_MAX_PATH];
-
 				data = NULL;
 
 				if (line[0] == '#')
@@ -6770,6 +6908,9 @@ void RGFW_XHandleEvent(void) {
 
 				count++;
 
+				size_t len = RGFW_unix_stringlen(line);
+				char* path = (char*)RGFW_ALLOC(len + 1);
+
 				size_t index = 0;
 				while (*line) {
 					if (line[0] == '%' && line[1] && line[2]) {
@@ -6779,14 +6920,26 @@ void RGFW_XHandleEvent(void) {
                         digits[2] = '\0';
 						path[index] = (char) RGFW_STRTOL(digits, NULL, 16);
 						line += 2;
-					} else
-					path[index] = *line;
+					} else {
+						if (index >= len) {
+							break;
+						}
+
+						path[index] = *line;
+					}
 
 					index++;
 					line++;
 				}
-				path[index] = '\0';
-				RGFW_MEMCPY(files[count - 1], path, index + 1);
+
+				path[len] = '\0';
+				size_t cnt = RGFW_MIN(len + 1, RGFW_MAX_PATH);
+				if (cnt == RGFW_MAX_PATH) {
+					path[cnt] = '\0';
+				}
+
+				RGFW_MEMCPY(files[count - 1], path, cnt);
+				RGFW_FREE(path);
 			}
 
 			RGFW_dataDropCallback(win, files, count);
@@ -6806,9 +6959,11 @@ void RGFW_XHandleEvent(void) {
 			break;
 		}
 		case FocusIn:
+            if (win->src.ic) XSetICFocus(win->src.ic);
 			RGFW_focusCallback(win, 1);
 			break;
 		case FocusOut:
+            if (win->src.ic) XUnsetICFocus(win->src.ic);
 			RGFW_focusCallback(win, 0);
 			break;
 		case EnterNotify: {
@@ -7114,6 +7269,7 @@ void RGFW_FUNC(RGFW_window_setName)(RGFW_window* win, const char* name) {
 	RGFW_ASSERT(win != NULL);
 	if (name == NULL) name = "\0";
 
+	Xutf8SetWMProperties(_RGFW->display, win->src.window, name, name, NULL, 0, NULL, NULL, NULL);
 	XStoreName(_RGFW->display, win->src.window, name);
 
 	RGFW_LOAD_ATOM(_NET_WM_NAME); RGFW_LOAD_ATOM(UTF8_STRING);
@@ -8215,6 +8371,9 @@ i32 RGFW_initPlatform_X11(void) {
 		XkbFreeKeyboard(evdesc, 0, True);
     }
 
+	XSetLocaleModifiers("");
+	XRegisterIMInstantiateCallback(_RGFW->display, NULL, NULL, NULL, RGFW_x11_imInitCallback, NULL);
+
 	unsigned char mask[XIMaskLen(XI_RawMotion)] = { 0 };
 	XISetMask(mask, XI_RawMotion);
 
@@ -8232,7 +8391,6 @@ i32 RGFW_initPlatform_X11(void) {
 	}
 #endif
 
-
 	return 0;
 }
 
@@ -8245,6 +8403,14 @@ void RGFW_deinitPlatform_X11(void) {
 		XConvertSelection(_RGFW->display, CLIPBOARD_MANAGER, SAVE_TARGETS, None, _RGFW->helperWindow, CurrentTime);
         while (RGFW_XHandleClipboardSelectionHelper());
 	}
+
+	XUnregisterIMInstantiateCallback(_RGFW->display, NULL, NULL, NULL, RGFW_x11_imInitCallback, NULL);
+
+    if (_RGFW->im) {
+        XCloseIM(_RGFW->im);
+        _RGFW->im = NULL;
+    }
+
 	if (_RGFW->clipboard) {
 		RGFW_FREE(_RGFW->clipboard);
 		_RGFW->clipboard = NULL;
@@ -8275,6 +8441,11 @@ void RGFW_deinitPlatform_X11(void) {
 }
 
 void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
+    if (win->src.ic) {
+        XDestroyIC(win->src.ic);
+        win->src.ic = NULL;
+    }
+
 	XFreeGC(_RGFW->display, win->src.gc);
 	XDeleteContext(_RGFW->display, win->src.window, _RGFW->context);
 	XDestroyWindow(_RGFW->display, (Drawable) win->src.window); /*!< close the window */
@@ -8335,6 +8506,7 @@ Wayland TODO: (out of date)
 #include <sys/mman.h>
 #include <xkbcommon/xkbcommon.h>
 #include <xkbcommon/xkbcommon-keysyms.h>
+#include <xkbcommon/xkbcommon-compose.h>
 #include <dirent.h>
 #include <linux/kd.h>
 #include <wayland-cursor.h>
@@ -8592,6 +8764,20 @@ static void RGFW_wl_keyboard_keymap(void* data, struct wl_keyboard *keyboard, u3
 	close(fd);
 	xkb_state_unref(RGFW->xkb_state);
 	RGFW->xkb_state = xkb_state_new(RGFW->keymap);
+
+	const char* locale = getenv("LC_ALL");
+	if (!locale)
+		locale = getenv("LC_CTYPE");
+	if (!locale)
+		locale = getenv("LANG");
+	if (!locale)
+		locale = "C";
+
+	struct xkb_compose_table* composeTable = xkb_compose_table_new_from_locale(RGFW->xkb_context, locale, XKB_COMPOSE_COMPILE_NO_FLAGS);
+	if (composeTable) {
+		RGFW->composeState = xkb_compose_state_new(composeTable, XKB_COMPOSE_STATE_NO_FLAGS);
+		xkb_compose_table_unref(composeTable);
+	}
 }
 
 static void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32 serial, struct wl_surface *surface, struct wl_array *keys) {
@@ -8624,6 +8810,23 @@ static void RGFW_wl_keyboard_leave(void* data, struct wl_keyboard *keyboard, u32
 	RGFW_focusCallback(win, RGFW_FALSE);
 }
 
+static xkb_keysym_t RGFW_wl_composeSymbol(RGFW_info* RGFW, xkb_keysym_t sym) {
+    if (sym == XKB_KEY_NoSymbol || !RGFW->composeState)
+        return sym;
+    if (xkb_compose_state_feed(RGFW->composeState, sym) != XKB_COMPOSE_FEED_ACCEPTED)
+        return sym;
+    switch (xkb_compose_state_get_status(RGFW->composeState)) {
+        case XKB_COMPOSE_COMPOSED:
+            return xkb_compose_state_get_one_sym(RGFW->composeState);
+        case XKB_COMPOSE_COMPOSING:
+        case XKB_COMPOSE_CANCELLED:
+            return XKB_KEY_NoSymbol;
+        case XKB_COMPOSE_NOTHING:
+        default:
+            return sym;
+    }
+}
+
 static void RGFW_wl_keyboard_key(void* data, struct wl_keyboard *keyboard, u32 serial, u32 time, u32 key, u32 state) {
 	RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(time);
 
@@ -8631,12 +8834,19 @@ static void RGFW_wl_keyboard_key(void* data, struct wl_keyboard *keyboard, u32 s
 	if (RGFW->kbOwner == NULL) return;
 
 	RGFW_window *RGFW_key_win = RGFW->kbOwner;
-	xkb_keysym_t keysym = xkb_state_key_get_one_sym(RGFW->xkb_state, key + 8);
-
 	u32 RGFWkey = RGFW_apiKeyToRGFW(key + 8);
 
 	RGFW_updateKeyMods(RGFW_key_win, RGFW_BOOL(xkb_keymap_mod_get_index(RGFW->keymap, "Lock")), RGFW_BOOL(xkb_keymap_mod_get_index(RGFW->keymap, "Mod2")), RGFW_BOOL(xkb_keymap_mod_get_index(RGFW->keymap, "ScrollLock")));
-	RGFW_keyCallback(RGFW_key_win, (u8)RGFWkey, (u8)keysym, RGFW_key_win->internal.mod, RGFW_window_isKeyDown(RGFW_key_win, (u8)RGFWkey), RGFW_BOOL(state));
+	RGFW_keyCallback(RGFW_key_win, (u8)RGFWkey, RGFW_key_win->internal.mod, RGFW_window_isKeyDown(RGFW_key_win, (u8)RGFWkey), RGFW_BOOL(state));
+
+	const xkb_keysym_t* keysyms;
+    if (xkb_state_key_get_syms(RGFW->xkb_state, key + 8, &keysyms) == 1) {
+		xkb_keysym_t keysym = RGFW_wl_composeSymbol(RGFW, keysyms[0]);
+		u32 codepoint = xkb_keysym_to_utf32(keysym);
+		if (codepoint != 0) {
+			RGFW_keyCharCallback(RGFW_key_win, codepoint);
+        }
+    }
 }
 
 static void RGFW_wl_keyboard_modifiers(void* data, struct wl_keyboard *keyboard, u32 serial, u32 mods_depressed, u32 mods_latched, u32 mods_locked, u32 group) {
@@ -9306,6 +9516,11 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	xdg_wm_base_set_user_data(_RGFW->xdg_wm_base, win);
 
 	win->src.xdg_toplevel = xdg_surface_get_toplevel(win->src.xdg_surface);
+
+	if (_RGFW->className == NULL)
+		_RGFW->className = (char*)name;
+
+	xdg_toplevel_set_app_id(win->src.xdg_toplevel, name);
 
 	xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->w, win->h);
 
@@ -10188,6 +10403,39 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_MOUSELEAVE:
 			RGFW_mouseNotifyCallback(win, win->internal.lastMouseX, win->internal.lastMouseY, RGFW_FALSE);
 			break;
+
+        case WM_CHAR:
+        case WM_SYSCHAR: {
+            if (wParam >= 0xd800 && wParam <= 0xdbff)
+                win->src.highSurrogate = (WCHAR) wParam;
+            else {
+                u32 codepoint = 0;
+
+                if (wParam >= 0xdc00 && wParam <= 0xdfff) {
+                    if (win->src.highSurrogate) {
+                        codepoint += (u32)((win->src.highSurrogate - 0xd800) << 10);
+                        codepoint += (u32)((WCHAR) wParam - 0xdc00);
+                        codepoint += 0x10000;
+                    }
+                }
+                else
+                    codepoint = (WCHAR) wParam;
+
+                win->src.highSurrogate = 0;
+				RGFW_keyCharCallback(win, (u32)codepoint);
+            }
+
+            return 0;
+        }
+
+        case WM_UNICHAR: {
+            if (wParam == UNICODE_NOCHAR) {
+                return TRUE;
+            }
+
+			RGFW_keyCharCallback(win, (u32)wParam);
+            return 0;
+        }
 		case WM_SYSKEYUP: case WM_KEYUP: {
 			if (!(win->internal.enabledEvents & RGFW_keyReleasedFlag)) return DefWindowProcW(hWnd, message, wParam, lParam);
 			i32 scancode = (HIWORD(lParam) & (KF_EXTENDED | 0xff));
@@ -10209,15 +10457,10 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				else value = RGFW_controlL;
 			}
 
-			wchar_t charBuffer;
-			ToUnicodeEx((UINT)wParam, (UINT)scancode, keyboardState, (wchar_t*)&charBuffer, 1, 0, NULL);
-
-			u8 sym = (u8)charBuffer;
-
 			RGFW_bool repeat = ((lParam & 0x40000000) != 0) || RGFW_window_isKeyDown(win, value);
 
 			RGFW_updateKeyMods(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001), (GetKeyState(VK_SCROLL) & 0x0001));
-			RGFW_keyCallback(win, value, sym, win->internal.mod, repeat, RGFW_FALSE);
+			RGFW_keyCallback(win, value, win->internal.mod, repeat, RGFW_FALSE);
 			break;
 		}
 		case WM_SYSKEYDOWN: case WM_KEYDOWN: {
@@ -10240,14 +10483,10 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				else value = RGFW_controlL;
 			}
 
-			wchar_t charBuffer;
-			ToUnicodeEx((UINT)wParam, (UINT)scancode, keyboardState, &charBuffer, 1, 0, NULL);
-			u8 sym = (u8)charBuffer;
-
 			RGFW_bool repeat = ((lParam & 0x40000000) != 0) || RGFW_window_isKeyDown(win, value);
 
 			RGFW_updateKeyMods(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001), (GetKeyState(VK_SCROLL) & 0x0001));
-			RGFW_keyCallback(win, value, sym, win->internal.mod, repeat, 1);
+			RGFW_keyCallback(win, value, win->internal.mod, repeat, 1);
 			break;
 		}
 		case WM_MOUSEMOVE: {
@@ -12531,16 +12770,22 @@ static void RGFW__osxKeyDown(id self, SEL _cmd, id event) {
 	RGFW_UNUSED(_cmd);
 	RGFW_window* win = NULL;
     object_getInstanceVariable(self, "RGFW_window", (void**)&win);
-    if (win == NULL || !(win->internal.enabledEvents & RGFW_keyPressedFlag)) return;
+	if (win == NULL || !(win->internal.enabledEvents & RGFW_keyPressedFlag)) return;
 
     u32 key = (u16)((u32(*)(id, SEL))objc_msgSend)(event, sel_registerName("keyCode"));
-    u32 mappedKey = (u32)*(((char*)(const char*)NSString_to_char(((id(*)(id, SEL))objc_msgSend)(event, sel_registerName("charactersIgnoringModifiers")))));
-    if ((u8)mappedKey == 239) mappedKey = 0;
 
-    RGFW_key value = (u8)RGFW_apiKeyToRGFW(key);
+	RGFW_key value = (u8)RGFW_apiKeyToRGFW(key);
 	RGFW_bool repeat = RGFW_window_isKeyPressed(win, value);
 
-    RGFW_keyCallback(win, value, (u8)mappedKey, win->internal.mod, repeat, 1);
+    RGFW_keyCallback(win, value, win->internal.mod, repeat, 1);
+
+	id nsstring = ((id(*)(id, SEL))objc_msgSend)(event, sel_registerName("charactersIgnoringModifiers"));
+    const char* string = NSString_to_char(nsstring);
+	size_t count = (size_t)((int (*)(id, SEL))objc_msgSend)(nsstring, sel_registerName("length"));
+
+	for (size_t index = 0; index < count;
+			RGFW_keyCharCallback(win, RGFW_decodeUTF8(&string[index], &index))
+		);
 }
 
 static void RGFW__osxKeyUp(id self, SEL _cmd, id event) {
@@ -12550,13 +12795,11 @@ static void RGFW__osxKeyUp(id self, SEL _cmd, id event) {
     if (win == NULL || !(win->internal.enabledEvents & RGFW_keyReleasedFlag)) return;
 
     u32 key = (u16)((u32(*)(id, SEL))objc_msgSend)(event, sel_registerName("keyCode"));
-    u32 mappedKey = (u32)*(((char*)(const char*)NSString_to_char(((id(*)(id, SEL))objc_msgSend)(event, sel_registerName("charactersIgnoringModifiers")))));
-    if ((u8)mappedKey == 239) mappedKey = 0;
 
     RGFW_key value = (u8)RGFW_apiKeyToRGFW(key);
     RGFW_bool repeat = RGFW_window_isKeyDown(win, (u8)value);
 
-    RGFW_keyCallback(win, value, (u8)mappedKey, win->internal.mod, repeat, 1);
+    RGFW_keyCallback(win, value, win->internal.mod, repeat, 1);
 }
 
 static void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
@@ -12596,10 +12839,10 @@ static void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
     }
 
 	RGFW_bool repeat = RGFW_window_isKeyDown(win, (u8)value);
-	RGFW_keyCallback(win, value, 0, win->internal.mod, repeat, pressed);
+	RGFW_keyCallback(win, value, win->internal.mod, repeat, pressed);
 
 	if (value != RGFW_capsLock) {
-		RGFW_keyCallback(win, value + 4, 0, win->internal.mod, repeat, pressed);
+		RGFW_keyCallback(win, value + 4, win->internal.mod, repeat, pressed);
 	}
 
 }
@@ -12851,12 +13094,16 @@ i32 RGFW_initPlatform(void) {
 
 	_RGFW->NSApp = objc_msgSend_id(objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
 
+	NSRetain(_RGFW->NSApp);
+
 	_RGFW->customNSAppDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWNSAppDelegate", 0);
 	class_addMethod((Class)_RGFW->customNSAppDelegateClass, sel_registerName("applicationDidChangeScreenParameters:"), (IMP)RGFW__osxDidChangeScreenParameters, "v@:@");
 	objc_registerClassPair((Class)_RGFW->customNSAppDelegateClass);
 	_RGFW->customNSAppDelegate = objc_msgSend_id(NSAlloc(_RGFW->customNSAppDelegateClass), sel_registerName("init"));
 
 	objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("setDelegate:"), _RGFW->customNSAppDelegate);
+
+	((void (*)(id, SEL, NSUInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
 
 	_RGFW->customViewClasses[0] = objc_allocateClassPair(objc_getClass("NSView"), "RGFWCustomView", 0);
 	_RGFW->customViewClasses[1] = objc_allocateClassPair(objc_getClass("NSOpenGLView"), "RGFWOpenGLCustomView", 0);
@@ -12995,9 +13242,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 
 	objc_msgSend_void(win->src.window, sel_registerName("makeKeyWindow"));
 
-	objc_msgSend_void((id)_RGFW->NSApp, sel_registerName("finishLaunching"));
 	NSRetain(win->src.window);
-	NSRetain(_RGFW->NSApp);
 
 	win->src.view = ((id(*)(id, SEL, RGFW_window*))objc_msgSend) (NSAlloc((Class)_RGFW->customViewClasses[0]), sel_registerName("initWithRGFWWindow:"), win);
 	return win;
@@ -13595,7 +13840,7 @@ size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
 	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	pool = objc_msgSend_id(pool, sel_registerName("init"));
 
-    uint32_t size = CGDisplayGammaTableCapacity(monitor->node->display);
+    u32 size = CGDisplayGammaTableCapacity(monitor->node->display);
     CGGammaValue* values = (CGGammaValue*)RGFW_ALLOC(size * 3 * sizeof(CGGammaValue));
 
     CGGetDisplayTransferByTable(monitor->node->display, size, values, values + size, values + size * 2, &size);
@@ -13919,7 +14164,10 @@ void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 void RGFW_deinitPlatform(void) {
 	objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("setDelegate:"), NULL);
 
+	objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("stop:"), NULL);
 	NSRelease(_RGFW->NSApp);
+	_RGFW->NSApp = NULL;
+
 	NSRelease(_RGFW->customNSAppDelegate);
 
 	_RGFW->customNSAppDelegate = NULL;
@@ -14167,7 +14415,7 @@ EM_BOOL Emscripten_on_touchcancel(int eventType, const EmscriptenTouchEvent* E, 
 
 u32 RGFW_WASMPhysicalToRGFW(u32 hash);
 
-void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool press) {
+void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* code, u32 codepoint, RGFW_bool press) {
 	const char* iCode = code;
 
 	u32 hash = 0;
@@ -14175,14 +14423,10 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool p
 
 	u32 physicalKey = RGFW_WASMPhysicalToRGFW(hash);
 
-	u8 mappedKey = (u8)(*((u32*)key));
-
-	if (*((u16*)key) != mappedKey) {
-		mappedKey = 0;
-		if (*((u32*)key) == *((u32*)"Tab")) mappedKey = RGFW_tab;
+	RGFW_keyCallback(_RGFW->root, physicalKey, _RGFW->root->internal.mod,  RGFW_window_isKeyDown(_RGFW->root, (u8)physicalKey), press);
+	if (press) {
+;		RGFW_keyCharCallback(_RGFW->root, codepoint);
 	}
-
-	RGFW_keyCallback(_RGFW->root, physicalKey, mappedKey, _RGFW->root->internal.mod,  RGFW_window_isKeyDown(_RGFW->root, (u8)physicalKey), press);
 }
 
 void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyMods(RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super, RGFW_bool scroll) {
@@ -14381,18 +14625,24 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	EM_ASM({
 		window.addEventListener("keydown",
 			(event) => {
-				var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code);
+				var code = stringToNewUTF8(event.code);
 				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock"));
-				Module._RGFW_handleKeyEvent(key, code, 1);
-				_free(key); _free(code);
+
+				var codepoint = event.key.charCodeAt(0);
+				if(codepoint < 0x7f && event.key.length > 1) {
+					codepoint = 0;
+				}
+
+				Module._RGFW_handleKeyEvent(code, codepoint, 1);
+				_free(code);
 			},
 		true);
 		window.addEventListener("keyup",
 			(event) => {
-				var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code);
+				var code = stringToNewUTF8(event.code);
 				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock"));
-				Module._RGFW_handleKeyEvent(key, code, 0);
-				_free(key); _free(code);
+				Module._RGFW_handleKeyEvent(code, 0, 0);
+				_free(code);
 			},
 		true);
 	});
