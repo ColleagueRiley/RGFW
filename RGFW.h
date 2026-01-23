@@ -14411,7 +14411,7 @@ EM_BOOL Emscripten_on_touchcancel(int eventType, const EmscriptenTouchEvent* E, 
 
 u32 RGFW_WASMPhysicalToRGFW(u32 hash);
 
-void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool press) {
+void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* code, u32 codepoint, RGFW_bool press) {
 	const char* iCode = code;
 
 	u32 hash = 0;
@@ -14419,15 +14419,11 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool p
 
 	u32 physicalKey = RGFW_WASMPhysicalToRGFW(hash);
 
-	u32 mappedKey = (*((u32*)key));
-
-	if (*((u16*)key) != mappedKey) {
-		mappedKey = 0;
-		if (*((u32*)key) == *((u32*)"Tab")) mappedKey = RGFW_tab;
-	}
-
 	RGFW_keyCallback(_RGFW->root, physicalKey, _RGFW->root->internal.mod,  RGFW_window_isKeyDown(_RGFW->root, (u8)physicalKey), press);
-	RGFW_keyCharCallback(_RGFW->root, mappedKey);
+	if (press) {
+		printf("%i\n", codepoint);
+;		RGFW_keyCharCallback(_RGFW->root, codepoint);
+	}
 }
 
 void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyMods(RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super, RGFW_bool scroll) {
@@ -14626,18 +14622,24 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	EM_ASM({
 		window.addEventListener("keydown",
 			(event) => {
-				var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code);
+				var code = stringToNewUTF8(event.code);
 				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock"));
-				Module._RGFW_handleKeyEvent(key, code, 1);
-				_free(key); _free(code);
+
+				var codepoint = event.key.charCodeAt(0);
+				if(codepoint < 0x7f && event.key.length > 1) {
+					codepoint = 0;
+				}
+
+				Module._RGFW_handleKeyEvent(code, codepoint, 1);
+				_free(code);
 			},
 		true);
 		window.addEventListener("keyup",
 			(event) => {
-				var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code);
+				var code = stringToNewUTF8(event.code);
 				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock"));
-				Module._RGFW_handleKeyEvent(key, code, 0);
-				_free(key); _free(code);
+				Module._RGFW_handleKeyEvent(code, 0, 0);
+				_free(code);
 			},
 		true);
 	});
