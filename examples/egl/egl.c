@@ -13,8 +13,8 @@
 #include <GL/gl.h>
 #endif
 
-void keyfunc(RGFW_window* win, RGFW_key key, u8 keyChar, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed) {
-    RGFW_UNUSED(keyMod); RGFW_UNUSED(keyChar); RGFW_UNUSED(win); RGFW_UNUSED(repeat);
+void keyfunc(RGFW_window* win, RGFW_key key, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed) {
+    RGFW_UNUSED(keyMod); RGFW_UNUSED(win); RGFW_UNUSED(repeat);
     if (key == RGFW_escape && pressed) {
         RGFW_window_setShouldClose(win, 1);
     }
