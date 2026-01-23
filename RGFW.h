@@ -869,6 +869,7 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowCaptureMouse = RGFW_BIT(16), /*!< capture the mouse mouse mouse on window creation */
 	RGFW_windowOpenGL = RGFW_BIT(17), /*!< create an OpenGL context (you can also do this manually with RGFW_window_createContext_OpenGL) */
 	RGFW_windowEGL = RGFW_BIT(18), /*!< create an EGL context (you can also do this manually with RGFW_window_createContext_EGL) */
+	RGFW_noDeinitOnClose = RGFW_BIT(19), /*!< do not auto deinit RGFW if the window closes and this is the last window open */
 	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize,
 	RGFW_windowCaptureRawMouse = RGFW_windowCaptureMouse | RGFW_windowRawMouse
 };
@@ -4049,7 +4050,7 @@ void RGFW_window_closePtr(RGFW_window* win) {
 	_RGFW->windowCount--;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, "a window was freed");
 
-	if (_RGFW->windowCount == 0) RGFW_deinit();
+	if (_RGFW->windowCount == 0 && !(win->internal.flags & RGFW_noDeinitOnClose)) RGFW_deinit();
 }
 
 void RGFW_setQueueEvents(RGFW_bool queue) {  _RGFW->queueEvents = RGFW_BOOL(queue); }
@@ -13076,7 +13077,7 @@ i32 RGFW_initPlatform(void) {
 
 	_RGFW->NSApp = objc_msgSend_id(objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
 
-	((void (*)(id, SEL, NSUInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
+	NSRetain(_RGFW->NSApp);
 
 	_RGFW->customNSAppDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWNSAppDelegate", 0);
 	class_addMethod((Class)_RGFW->customNSAppDelegateClass, sel_registerName("applicationDidChangeScreenParameters:"), (IMP)RGFW__osxDidChangeScreenParameters, "v@:@");
@@ -13084,6 +13085,8 @@ i32 RGFW_initPlatform(void) {
 	_RGFW->customNSAppDelegate = objc_msgSend_id(NSAlloc(_RGFW->customNSAppDelegateClass), sel_registerName("init"));
 
 	objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("setDelegate:"), _RGFW->customNSAppDelegate);
+
+	((void (*)(id, SEL, NSUInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
 
 	_RGFW->customViewClasses[0] = objc_allocateClassPair(objc_getClass("NSView"), "RGFWCustomView", 0);
 	_RGFW->customViewClasses[1] = objc_allocateClassPair(objc_getClass("NSOpenGLView"), "RGFWOpenGLCustomView", 0);
@@ -13222,9 +13225,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 
 	objc_msgSend_void(win->src.window, sel_registerName("makeKeyWindow"));
 
-	objc_msgSend_void((id)_RGFW->NSApp, sel_registerName("finishLaunching"));
 	NSRetain(win->src.window);
-	NSRetain(_RGFW->NSApp);
 
 	win->src.view = ((id(*)(id, SEL, RGFW_window*))objc_msgSend) (NSAlloc((Class)_RGFW->customViewClasses[0]), sel_registerName("initWithRGFWWindow:"), win);
 	return win;
@@ -14146,7 +14147,10 @@ void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 void RGFW_deinitPlatform(void) {
 	objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("setDelegate:"), NULL);
 
+	objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("stop:"), NULL);
 	NSRelease(_RGFW->NSApp);
+	_RGFW->NSApp = NULL;
+
 	NSRelease(_RGFW->customNSAppDelegate);
 
 	_RGFW->customNSAppDelegate = NULL;
