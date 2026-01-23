@@ -73,6 +73,9 @@ Additional labels for pre-release and build metadata are available as extensions
 - add `RGFW_monitor_getWorkarea` to get the monitor's work area without UI elements
 - add `RGFW_monitor_setMode` to directly set the monitor mode
 - cleanup internal monitor code to be more optimizied, polling and caching when needed and using the internal monitorNode linked list
+- add `RGFW_keyChar` event and `RGFW_keyCharfunc` callback for text input / UTF text
+- remove `sym` from `keyPressed` / `keyReleased` events, to be handled by `RGFW_keyChar`
+- implement proper UTF text input
 
 Release:    RGFW 1.8.0
 -----------------------------------------------
