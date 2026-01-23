@@ -7,7 +7,6 @@ int main(void) {
 		RGFW_window* win = RGFW_createWindow("name", 100, 100, 500, 500, (u64)RGFW_noDeinitOnClose );
 
 		RGFW_pollEvents();
-		usleep(50000);
 		#ifdef RGFW_MACOS
 			usleep(50000);
 		#endif
