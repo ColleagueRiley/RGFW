@@ -14421,7 +14421,6 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* code, u32 codepoint, RGFW_bo
 
 	RGFW_keyCallback(_RGFW->root, physicalKey, _RGFW->root->internal.mod,  RGFW_window_isKeyDown(_RGFW->root, (u8)physicalKey), press);
 	if (press) {
-		printf("%i\n", codepoint);
 ;		RGFW_keyCharCallback(_RGFW->root, codepoint);
 	}
 }
