@@ -869,6 +869,7 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowCaptureMouse = RGFW_BIT(16), /*!< capture the mouse mouse mouse on window creation */
 	RGFW_windowOpenGL = RGFW_BIT(17), /*!< create an OpenGL context (you can also do this manually with RGFW_window_createContext_OpenGL) */
 	RGFW_windowEGL = RGFW_BIT(18), /*!< create an EGL context (you can also do this manually with RGFW_window_createContext_EGL) */
+	RGFW_noDeinitOnClose = RGFW_BIT(19), /*!< do not auto deinit RGFW if the window closes and this is the last window open */
 	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize,
 	RGFW_windowCaptureRawMouse = RGFW_windowCaptureMouse | RGFW_windowRawMouse
 };
@@ -4049,7 +4050,7 @@ void RGFW_window_closePtr(RGFW_window* win) {
 	_RGFW->windowCount--;
 	RGFW_sendDebugInfo(RGFW_typeInfo, RGFW_infoWindow, "a window was freed");
 
-	if (_RGFW->windowCount == 0) RGFW_deinit();
+	if (_RGFW->windowCount == 0 && !(win->internal.flags & RGFW_noDeinitOnClose)) RGFW_deinit();
 }
 
 void RGFW_setQueueEvents(RGFW_bool queue) {  _RGFW->queueEvents = RGFW_BOOL(queue); }
@@ -6068,20 +6069,21 @@ RGFW_bool RGFW_waitForShowEvent_X11(RGFW_window* win) {
 	return RGFW_TRUE;
 }
 
-void RGFW_x11_icCallback(XIC ic, XPointer clientData, XPointer callData);
-void RGFW_x11_icCallback(XIC ic, XPointer clientData, XPointer callData) {
+RGFWDEF void RGFW_x11_icCallback(XIC ic, char* clientData, char* callData);
+void RGFW_x11_icCallback(XIC ic, char* clientData, char* callData) {
 	RGFW_UNUSED(ic); RGFW_UNUSED(callData);
     RGFW_window* win = (RGFW_window*)(void*)clientData;
     win->src.ic = NULL;
 }
 
-void RGFW_x11_imCallback(XIM im, XPointer clientData, XPointer callData);
-void RGFW_x11_imCallback(XIM im, XPointer clientData, XPointer callData) {
+RGFWDEF void RGFW_x11_imCallback(XIM im, char* clientData, char* callData);
+void RGFW_x11_imCallback(XIM im, char* clientData, char* callData) {
 	RGFW_UNUSED(im); RGFW_UNUSED(clientData); RGFW_UNUSED(callData);
 	_RGFW->im = NULL;
 }
 
-static void RGFW_x11_imInitCallback(Display* display, XPointer clientData, XPointer callData) {
+RGFWDEF void RGFW_x11_imInitCallback(Display* display, XPointer clientData, XPointer callData);
+void RGFW_x11_imInitCallback(Display* display, XPointer clientData, XPointer callData) {
 	RGFW_UNUSED(display); RGFW_UNUSED(clientData); RGFW_UNUSED(callData);
 
 	if (_RGFW->im) {
@@ -6884,8 +6886,6 @@ void RGFW_XHandleEvent(void) {
 			char** files = _RGFW->files;
 
 			while ((line = (char*)RGFW_strtok(data, "\r\n"))) {
-				char path[RGFW_MAX_PATH];
-
 				data = NULL;
 
 				if (line[0] == '#')
@@ -6908,6 +6908,9 @@ void RGFW_XHandleEvent(void) {
 
 				count++;
 
+				size_t len = RGFW_unix_stringlen(line);
+				char* path = (char*)RGFW_ALLOC(len + 1);
+
 				size_t index = 0;
 				while (*line) {
 					if (line[0] == '%' && line[1] && line[2]) {
@@ -6917,14 +6920,26 @@ void RGFW_XHandleEvent(void) {
                         digits[2] = '\0';
 						path[index] = (char) RGFW_STRTOL(digits, NULL, 16);
 						line += 2;
-					} else
-					path[index] = *line;
+					} else {
+						if (index >= len) {
+							break;
+						}
+
+						path[index] = *line;
+					}
 
 					index++;
 					line++;
 				}
-				path[index] = '\0';
-				RGFW_MEMCPY(files[count - 1], path, index + 1);
+
+				path[len] = '\0';
+				size_t cnt = RGFW_MIN(len + 1, RGFW_MAX_PATH);
+				if (cnt == RGFW_MAX_PATH) {
+					path[cnt] = '\0';
+				}
+
+				RGFW_MEMCPY(files[count - 1], path, cnt);
+				RGFW_FREE(path);
 			}
 
 			RGFW_dataDropCallback(win, files, count);
@@ -13075,7 +13090,7 @@ i32 RGFW_initPlatform(void) {
 
 	_RGFW->NSApp = objc_msgSend_id(objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
 
-	((void (*)(id, SEL, NSUInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
+	NSRetain(_RGFW->NSApp);
 
 	_RGFW->customNSAppDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWNSAppDelegate", 0);
 	class_addMethod((Class)_RGFW->customNSAppDelegateClass, sel_registerName("applicationDidChangeScreenParameters:"), (IMP)RGFW__osxDidChangeScreenParameters, "v@:@");
@@ -13083,6 +13098,8 @@ i32 RGFW_initPlatform(void) {
 	_RGFW->customNSAppDelegate = objc_msgSend_id(NSAlloc(_RGFW->customNSAppDelegateClass), sel_registerName("init"));
 
 	objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("setDelegate:"), _RGFW->customNSAppDelegate);
+
+	((void (*)(id, SEL, NSUInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
 
 	_RGFW->customViewClasses[0] = objc_allocateClassPair(objc_getClass("NSView"), "RGFWCustomView", 0);
 	_RGFW->customViewClasses[1] = objc_allocateClassPair(objc_getClass("NSOpenGLView"), "RGFWOpenGLCustomView", 0);
@@ -13221,9 +13238,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 
 	objc_msgSend_void(win->src.window, sel_registerName("makeKeyWindow"));
 
-	objc_msgSend_void((id)_RGFW->NSApp, sel_registerName("finishLaunching"));
 	NSRetain(win->src.window);
-	NSRetain(_RGFW->NSApp);
 
 	win->src.view = ((id(*)(id, SEL, RGFW_window*))objc_msgSend) (NSAlloc((Class)_RGFW->customViewClasses[0]), sel_registerName("initWithRGFWWindow:"), win);
 	return win;
@@ -14145,7 +14160,10 @@ void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 void RGFW_deinitPlatform(void) {
 	objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("setDelegate:"), NULL);
 
+	objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("stop:"), NULL);
 	NSRelease(_RGFW->NSApp);
+	_RGFW->NSApp = NULL;
+
 	NSRelease(_RGFW->customNSAppDelegate);
 
 	_RGFW->customNSAppDelegate = NULL;
@@ -14393,7 +14411,7 @@ EM_BOOL Emscripten_on_touchcancel(int eventType, const EmscriptenTouchEvent* E, 
 
 u32 RGFW_WASMPhysicalToRGFW(u32 hash);
 
-void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool press) {
+void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* code, u32 codepoint, RGFW_bool press) {
 	const char* iCode = code;
 
 	u32 hash = 0;
@@ -14401,15 +14419,11 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* key, char* code, RGFW_bool p
 
 	u32 physicalKey = RGFW_WASMPhysicalToRGFW(hash);
 
-	u32 mappedKey = (*((u32*)key));
-
-	if (*((u16*)key) != mappedKey) {
-		mappedKey = 0;
-		if (*((u32*)key) == *((u32*)"Tab")) mappedKey = RGFW_tab;
-	}
-
 	RGFW_keyCallback(_RGFW->root, physicalKey, _RGFW->root->internal.mod,  RGFW_window_isKeyDown(_RGFW->root, (u8)physicalKey), press);
-	RGFW_keyCharCallback(_RGFW->root, mappedKey);
+	if (press) {
+		printf("%i\n", codepoint);
+;		RGFW_keyCharCallback(_RGFW->root, codepoint);
+	}
 }
 
 void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyMods(RGFW_bool capital, RGFW_bool numlock, RGFW_bool control, RGFW_bool alt, RGFW_bool shift, RGFW_bool super, RGFW_bool scroll) {
@@ -14608,18 +14622,24 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	EM_ASM({
 		window.addEventListener("keydown",
 			(event) => {
-				var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code);
+				var code = stringToNewUTF8(event.code);
 				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock"));
-				Module._RGFW_handleKeyEvent(key, code, 1);
-				_free(key); _free(code);
+
+				var codepoint = event.key.charCodeAt(0);
+				if(codepoint < 0x7f && event.key.length > 1) {
+					codepoint = 0;
+				}
+
+				Module._RGFW_handleKeyEvent(code, codepoint, 1);
+				_free(code);
 			},
 		true);
 		window.addEventListener("keyup",
 			(event) => {
-				var key = stringToNewUTF8(event.key); var code = stringToNewUTF8(event.code);
+				var code = stringToNewUTF8(event.code);
 				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock"));
-				Module._RGFW_handleKeyEvent(key, code, 0);
-				_free(key); _free(code);
+				Module._RGFW_handleKeyEvent(code, 0, 0);
+				_free(code);
 			},
 		true);
 	});
