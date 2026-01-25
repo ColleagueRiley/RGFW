@@ -13325,11 +13325,11 @@ void RGFW_initKeycodesPlatform(void) {
 i32 RGFW_initPlatform(void) {
 	_RGFW->tisBundle = (void*)CFBundleGetBundleWithIdentifier(CFSTR("com.apple.HIToolbox"));
 
-	TISGetInputSourcePropertySrc = (PFN_TISGetInputSourceProperty)CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("TISGetInputSourceProperty"));
-	TISCopyCurrentKeyboardLayoutInputSourceSrc = (PFN_TISCopyCurrentKeyboardLayoutInputSource)CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("TISCopyCurrentKeyboardLayoutInputSource"));
-	LMGetKbdTypeSrc = (PFN_LMGetKbdType)CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("LMGetKbdType"));
+	TISGetInputSourcePropertySrc = (PFN_TISGetInputSourceProperty)CFBundleGetFunctionPointerForName((CFBundleRef)_RGFW->tisBundle, CFSTR("TISGetInputSourceProperty"));
+	TISCopyCurrentKeyboardLayoutInputSourceSrc = (PFN_TISCopyCurrentKeyboardLayoutInputSource)CFBundleGetFunctionPointerForName((CFBundleRef)_RGFW->tisBundle, CFSTR("TISCopyCurrentKeyboardLayoutInputSource"));
+	LMGetKbdTypeSrc = (PFN_LMGetKbdType)CFBundleGetFunctionPointerForName((CFBundleRef)_RGFW->tisBundle, CFSTR("LMGetKbdType"));
 
-	CFStringRef* cfStr = CFBundleGetDataPointerForName(_RGFW->tisBundle, CFSTR("kTISPropertyUnicodeKeyLayoutData"));;
+	CFStringRef* cfStr = (CFStringRef*)CFBundleGetDataPointerForName((CFBundleRef)_RGFW->tisBundle, CFSTR("kTISPropertyUnicodeKeyLayoutData"));;
 	if (cfStr) kTISPropertyUnicodeKeyLayoutDataSrc = *cfStr;
 
 	class_addMethod(objc_getClass("NSObject"), sel_registerName("windowShouldClose:"), (IMP)(void*)RGFW_OnClose, 0);
