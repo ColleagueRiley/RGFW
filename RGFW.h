@@ -2807,13 +2807,6 @@ RGFWDEF RGFW_key RGFW_apiKeyToRGFW(u32 keycode);
 RGFWDEF u32 RGFW_rgfwToApiKey(RGFW_key keycode);
 
 /**!
- * @brief Converts an mapped RGFW keycode to a physical RGFW keycode.
- * @param keycode the mapped RGFW keycode.
- * @return The corresponding physical RGFW keycode.
-*/
-RGFWDEF RGFW_key RGFW_mappedKeyToPhysical(RGFW_key mappedKey);
-
-/**!
  * @brief Converts an physical RGFW keycode to a mapped RGFW keycode.
  * @param keycode the physical RGFW keycode.
  * @return The corresponding mapped RGFW keycode.
@@ -3255,6 +3248,7 @@ struct RGFW_info {
 	void* customNSAppDelegateClass;
 	void* customWindowDelegateClass;
 	void* customNSAppDelegate;
+	CFBundle tisBundle
     #endif
 
 	#ifdef RGFW_OPENGL
@@ -6475,10 +6469,6 @@ void RGFW_XHandleClipboardSelection(XEvent* event) { RGFW_UNUSED(event);
 
 i32 RGFW_XHandleClipboardSelectionHelper(void);
 
-RGFW_key RGFW_FUNC(RGFW_mappedKeyToPhysical) (RGFW_key key) {
-	return key; /* TODO */
-}
-
 RGFW_key RGFW_FUNC(RGFW_physicalToMappedKey) (RGFW_key key) {
     KeyCode keycode = (KeyCode)RGFW_rgfwToApiKey(key);
     KeySym sym = XkbKeycodeToKeysym(_RGFW->display, keycode, 0, 0);
@@ -9691,10 +9681,6 @@ RGFW_bool RGFW_FUNC(RGFW_getGlobalMouse) (i32* x, i32* y) {
 	return RGFW_FALSE;
 }
 
-RGFW_key RGFW_FUNC(RGFW_mappedKeyToPhysical) (RGFW_key key) {
-	return key; /* TODO */
-}
-
 RGFW_key RGFW_FUNC(RGFW_physicalToMappedKey)(RGFW_key key) {
     u32 keycode = RGFW_rgfwToApiKey(key);
 	xkb_keycode_t kc = keycode + 8;
@@ -11270,10 +11256,6 @@ void RGFW_stopCheckEvents(void) {
 
 void RGFW_waitForEvent(i32 waitMS) {
 	MsgWaitForMultipleObjects(0, NULL, FALSE, (DWORD)waitMS, QS_ALLINPUT);
-}
-
-RGFW_key RGFW_mappedKeyToPhysical(RGFW_key key) {
-	return key;
 }
 
 RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
@@ -13324,7 +13306,30 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[0x4E] = RGFW_kpMinus;
 }
 
+typedef TISInputSourceRef (*PFN_TISCopyCurrentKeyboardLayoutInputSource)(void);
+PFN_TISCopyCurrentKeyboardLayoutInputSource TISCopyCurrentKeyboardLayoutInputSourceSrc;
+#define TISCopyCurrentKeyboardLayoutInputSource TISCopyCurrentKeyboardLayoutInputSourceSrc
+
+typedef UInt8 (*PFN_LMGetKbdType)(void);
+PFN_LMGetKbdType LMGetKbdTypeSrc;
+#define LMGetKbdType GetKbdTypeSrc
+
+typedef OSStatus (*PFN_UCKeyTranslate)(UCKeyboardLayout*, u16, u16, u32, u32, OptionBits, u32*, NSInteger, NSInteger*, UniChar*);
+PFN_UCKeyTranslate UCKeyTranslateSrc;
+#define UCKeyTranslate UCKeyTranslateSrc
+
+CFStringRef kTISPropertyUnicodeKeyLayoutData;
+
 i32 RGFW_initPlatform(void) {
+	_RGFW_>tisBundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.HIToolbox"));
+
+	TISCopyCurrentKeyboardLayoutInputSourceSrc = CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("TISCopyCurrentKeyboardLayoutInputSource"));;
+	LMGetKbdTypeSrc = CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("LMGetKbdType"));
+	UCKeyTranslateSrc = CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("UCKeyTranslate"));
+
+	CFStringRef* cfStr = CFBundleGetDataPointerForName(_RGFW->tisBundle, CFSTR("kTISPropertyUnicodeKeyLayoutData"));;
+	if (cfStr) kTISPropertyUnicodeKeyLayoutData = *cfStr;
+
 	class_addMethod(objc_getClass("NSObject"), sel_registerName("windowShouldClose:"), (IMP)(void*)RGFW_OnClose, 0);
 
 	/* NOTE(EimaMei): Fixes the 'Boop' sfx from constantly playing each time you click a key. Only a problem when running in the terminal. */
@@ -13560,11 +13565,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
 }
 
-RGFW_key RGFW_mappedKeyToPhysical(RGFW_key key) {
-	return key; /* TODO */
-}
-
-RGFW_key RGFW_physicalToMappedKey(u32 key) {
+RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
     u32 keycode = RGFW_rgfwToApiKey(key);
     TISInputSourceRef source = TISCopyCurrentKeyboardLayoutInputSource();
     if (source == NULL)
@@ -14762,7 +14763,7 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[DOM_VK_1] = RGFW_1;
 	_RGFW->keycodes[DOM_VK_2] = RGFW_2;
 	_RGFW->keycodes[DOM_VK_3] = RGFW_3;
-	_RGFW->_VK_4] = RGFW_4;
+	_RGFW->keycodes[DOM_VK_4] = RGFW_4;
 	_RGFW->keycodes[DOM_VK_5] = RGFW_5;
 	_RGFW->keycodes[DOM_VK_6] = RGFW_6;
 	_RGFW->keycodes[DOM_VK_7] = RGFW_7;
@@ -14969,15 +14970,8 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	return win;
 }
 
-RGFW_key RGFW_mappedKeyToPhysical(RGFW_key key) {
-	return key; /* TODO */
-}
-
-RGFW_key RGFW_physicalToMappedKey(u32 key) {
-    u32 keycode = RGFW_rgfwToApiKey(key);
-
-
-	return (u8)rgfw_keycode; /* TODO */
+RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
+	return key;
 }
 
 void RGFW_pollEvents(void) {
@@ -15386,7 +15380,6 @@ void RGFW_waitForEvent(i32 waitMS) { RGFW_UNUSED(waitMS); }
 #ifdef RGFW_DYNAMIC
 typedef RGFW_window* (*RGFW_createWindowPlatform_ptr)(const char* name, RGFW_windowFlags flags, RGFW_window* win);
 typedef RGFW_bool (*RGFW_getMouse_ptr)(i32* x, i32* y);
-typedef RGFW_key (*RGFW_mappedKeyToPhysical_ptr)(RGFW_key key);
 typedef RGFW_key (*RGFW_physicalToMappedKey_ptr)(RGFW_key key);
 typedef void (*RGFW_pollEvents_ptr)(void);
 typedef void (*RGFW_pollMonitors_ptr)(void);
@@ -15460,7 +15453,6 @@ typedef struct RGFW_FunctionPointers {
 	RGFW_window_setRawMouseModePlatform_ptr window_setRawMouseModePlatform;
     RGFW_createWindowPlatform_ptr createWindowPlatform;
     RGFW_getMouse_ptr getGlobalMouse;
-    RGFW_mappedKeyToPhysical mappedKeyToPhysical;
 	RGFW_physicalToMappedKey_ptr physicalToMappedKey;
     RGFW_pollEvents_ptr pollEvents;
     RGFW_pollMonitors_ptr pollMonitors;
@@ -15528,7 +15520,6 @@ void RGFW_window_captureMousePlatform(RGFW_window* win, RGFW_bool state) { RGFW_
 void RGFW_window_setRawMouseModePlatform(RGFW_window* win, RGFW_bool state) { RGFW_api.window_setRawMouseModePlatform(win, state); }
 RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags, RGFW_window* win) { RGFW_init(); return RGFW_api.createWindowPlatform(name, flags, win); }
 RGFW_bool RGFW_getGlobalMouse(i32* x, i32* y) { return RGFW_api.getGlobalMouse(x, y); }
-RGFW_key RGFW_mappedKeyToPhysical(RGFW_key key) { return RGFW_api.mappedKeyToPhysical(key); }
 RGFW_key RGFW_physicalToMappedKey(RGFW_key key) { return RGFW_api.physicalToMappedKey(key); }
 void RGFW_pollEvents(void) { RGFW_api.pollEvents(); }
 void RGFW_pollMonitors(void) { RGFW_api.pollMonitors(); }
