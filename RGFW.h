@@ -3248,7 +3248,7 @@ struct RGFW_info {
 	void* customNSAppDelegateClass;
 	void* customWindowDelegateClass;
 	void* customNSAppDelegate;
-	CFBundle tisBundle
+	void* tisBundle;
     #endif
 
 	#ifdef RGFW_OPENGL
@@ -13310,7 +13310,7 @@ typedef TISInputSourceRef (*PFN_TISCopyCurrentKeyboardLayoutInputSource)(void);
 PFN_TISCopyCurrentKeyboardLayoutInputSource TISCopyCurrentKeyboardLayoutInputSourceSrc;
 #define TISCopyCurrentKeyboardLayoutInputSource TISCopyCurrentKeyboardLayoutInputSourceSrc
 
-typedef UInt8 (*PFN_LMGetKbdType)(void);
+typedef u8 (*PFN_LMGetKbdType)(void);
 PFN_LMGetKbdType LMGetKbdTypeSrc;
 #define LMGetKbdType GetKbdTypeSrc
 
@@ -13321,13 +13321,13 @@ PFN_UCKeyTranslate UCKeyTranslateSrc;
 CFStringRef kTISPropertyUnicodeKeyLayoutData;
 
 i32 RGFW_initPlatform(void) {
-	_RGFW_>tisBundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.HIToolbox"));
+	_RGFW->tisBundle = (void*)CFBundleGetBundleWithIdentifier(CFSTR("com.apple.HIToolbox"));
 
-	TISCopyCurrentKeyboardLayoutInputSourceSrc = CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("TISCopyCurrentKeyboardLayoutInputSource"));;
-	LMGetKbdTypeSrc = CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("LMGetKbdType"));
-	UCKeyTranslateSrc = CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("UCKeyTranslate"));
+	TISCopyCurrentKeyboardLayoutInputSourceSrc = CFBundleGetFunctionPointerForName((CFBundle)_RGFW->tisBundle, CFSTR("TISCopyCurrentKeyboardLayoutInputSource"));;
+	LMGetKbdTypeSrc = CFBundleGetFunctionPointerForName((CFBundle)_RGFW->tisBundle, CFSTR("LMGetKbdType"));
+	UCKeyTranslateSrc = CFBundleGetFunctionPointerForName((CFBundle)_RGFW->tisBundle, CFSTR("UCKeyTranslate"));
 
-	CFStringRef* cfStr = CFBundleGetDataPointerForName(_RGFW->tisBundle, CFSTR("kTISPropertyUnicodeKeyLayoutData"));;
+	CFStringRef* cfStr = CFBundleGetDataPointerForName((CFBundle)_RGFW->tisBundle, CFSTR("kTISPropertyUnicodeKeyLayoutData"));;
 	if (cfStr) kTISPropertyUnicodeKeyLayoutData = *cfStr;
 
 	class_addMethod(objc_getClass("NSObject"), sel_registerName("windowShouldClose:"), (IMP)(void*)RGFW_OnClose, 0);
