@@ -12355,6 +12355,22 @@ WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance i
 #include <objc/message.h>
 #include <mach/mach_time.h>
 
+#include <Carbon/Carbon.h>
+
+typedef TISInputSourceRef (*PFN_TISCopyCurrentKeyboardLayoutInputSource)(void);
+PFN_TISCopyCurrentKeyboardLayoutInputSource TISCopyCurrentKeyboardLayoutInputSourceSrc;
+#define TISCopyCurrentKeyboardLayoutInputSource TISCopyCurrentKeyboardLayoutInputSourceSrc
+
+typedef u8 (*PFN_LMGetKbdType)(void);
+PFN_LMGetKbdType LMGetKbdTypeSrc;
+#define LMGetKbdType GetKbdTypeSrc
+
+typedef OSStatus (*PFN_UCKeyTranslate)(UCKeyboardLayout*, u16, u16, u32, u32, OptionBits, u32*, NSInteger, NSInteger*, UniChar*);
+PFN_UCKeyTranslate UCKeyTranslateSrc;
+#define UCKeyTranslate UCKeyTranslateSrc
+
+CFStringRef kTISPropertyUnicodeKeyLayoutDataSrc;
+
 #ifndef  __OBJC__
 typedef CGRect NSRect;
 typedef CGPoint NSPoint;
@@ -13306,20 +13322,6 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[0x4E] = RGFW_kpMinus;
 }
 
-typedef TISInputSourceRef (*PFN_TISCopyCurrentKeyboardLayoutInputSource)(void);
-PFN_TISCopyCurrentKeyboardLayoutInputSource TISCopyCurrentKeyboardLayoutInputSourceSrc;
-#define TISCopyCurrentKeyboardLayoutInputSource TISCopyCurrentKeyboardLayoutInputSourceSrc
-
-typedef u8 (*PFN_LMGetKbdType)(void);
-PFN_LMGetKbdType LMGetKbdTypeSrc;
-#define LMGetKbdType GetKbdTypeSrc
-
-typedef OSStatus (*PFN_UCKeyTranslate)(UCKeyboardLayout*, u16, u16, u32, u32, OptionBits, u32*, NSInteger, NSInteger*, UniChar*);
-PFN_UCKeyTranslate UCKeyTranslateSrc;
-#define UCKeyTranslate UCKeyTranslateSrc
-
-CFStringRef kTISPropertyUnicodeKeyLayoutData;
-
 i32 RGFW_initPlatform(void) {
 	_RGFW->tisBundle = (void*)CFBundleGetBundleWithIdentifier(CFSTR("com.apple.HIToolbox"));
 
@@ -13328,7 +13330,7 @@ i32 RGFW_initPlatform(void) {
 	UCKeyTranslateSrc = CFBundleGetFunctionPointerForName((CFBundle)_RGFW->tisBundle, CFSTR("UCKeyTranslate"));
 
 	CFStringRef* cfStr = CFBundleGetDataPointerForName((CFBundle)_RGFW->tisBundle, CFSTR("kTISPropertyUnicodeKeyLayoutData"));;
-	if (cfStr) kTISPropertyUnicodeKeyLayoutData = *cfStr;
+	if (cfStr) kTISPropertyUnicodeKeyLayoutDataSrc = *cfStr;
 
 	class_addMethod(objc_getClass("NSObject"), sel_registerName("windowShouldClose:"), (IMP)(void*)RGFW_OnClose, 0);
 
@@ -13571,7 +13573,7 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
     if (source == NULL)
         return key;
 
-    CFDataRef layoutData = TISGetInputSourceProperty(source, kTISPropertyUnicodeKeyLayoutData);
+    CFDataRef layoutData = TISGetInputSourceProperty(source, kTISPropertyUnicodeKeyLayoutDataSrc);
 
     if (layoutData == NULL) {
         CFRelease(source);
