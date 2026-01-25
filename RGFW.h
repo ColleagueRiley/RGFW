@@ -10443,8 +10443,10 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static BYTE keyboardState[256];
 	GetKeyboardState(keyboardState);
 
-	RECT windowRect;
-	GetWindowRect(hWnd, &windowRect);
+	RECT frame = {0};
+	DWORD style = RGFW_winapi_window_getStyle(win, win->internal.flags);
+	DWORD exStyle = RGFW_winapi_window_getExStyle(win, win->internal.flags);
+	AdjustWindowRectEx(&frame, style, FALSE, exStyle);
 
 	switch (message) {
         case WM_DISPLAYCHANGE:
@@ -10465,33 +10467,14 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				RGFW_window_captureMousePlatform(win, RGFW_TRUE);
 			}
 
-			RGFW_windowMovedCallback(win, windowRect.left, windowRect.top);
+			RGFW_windowMovedCallback(win, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		case WM_SIZE: {
 			if (win->internal.captureMouse) {
 				RGFW_window_captureMousePlatform(win, RGFW_TRUE);
 			}
 
-            i32 width = LOWORD(lParam);
-            i32 height = HIWORD(lParam);
-
-			if (win->src.aspectRatioW != 0 && win->src.aspectRatioH != 0) {
-				double aspectRatio = (double)win->src.aspectRatioW / win->src.aspectRatioH;
-				i32 newHeight = (i32)(width / aspectRatio);
-				i32 newWidth = (i32)(height * aspectRatio);
-
-				if (win->w > width  || win->h > height) {
-					if (newHeight > height) width = newWidth;
-					else height = newHeight;
-				} else {
-					if (newHeight < height) width = newWidth;
-					else height = newHeight;
-				}
-
-				RGFW_window_resize(win, width, height);
-			}
-
-			RGFW_windowResizedCallback(win, width, height);
+			RGFW_windowResizedCallback(win, LOWORD(lParam), HIWORD(lParam));
 			RGFW_window_checkMode(win);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
@@ -10520,23 +10503,38 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		#endif
+		case WM_SIZING: {
+			if (win->src.aspectRatioW == 0 && win->src.aspectRatioH == 0) {
+				break;
+			}
+
+			RECT* area = (RECT*)lParam;
+			i32 edge = (i32)wParam;
+
+			double ratio = (double)win->src.aspectRatioW / (double) win->src.aspectRatioH;
+
+			if (edge == WMSZ_LEFT  || edge == WMSZ_BOTTOMLEFT || edge == WMSZ_RIGHT || edge == WMSZ_BOTTOMRIGHT) {
+				area->bottom = area->top + (frame.bottom - frame.top) + (i32) (((area->right - area->left) - (frame.right - frame.left)) / ratio);
+			} else if (edge == WMSZ_TOPLEFT || edge == WMSZ_TOPRIGHT) {
+				area->top = area->bottom - (frame.bottom - frame.top) - (i32) (((area->right - area->left) - (frame.right - frame.left)) / ratio);
+			} else if (edge == WMSZ_TOP || edge == WMSZ_BOTTOM) {
+				area->right = area->left + (frame.right - frame.left) + (i32) (((area->bottom - area->top) - (frame.bottom - frame.top)) * ratio);
+			}
+
+			return TRUE;
+		}
 		case WM_GETMINMAXINFO: {
 			MINMAXINFO* mmi = (MINMAXINFO*) lParam;
 			RGFW_bool resize = ((win->src.minSizeW == win->src.maxSizeW) && (win->src.minSizeH == win->src.maxSizeH));
 			RGFW_setBit(&win->internal.flags, RGFW_windowNoResize, resize);
 
-			RECT frame = { 0 };
-			DWORD style = RGFW_winapi_window_getStyle(win, win->internal.flags);
-			DWORD exStyle = RGFW_winapi_window_getExStyle(win, win->internal.flags);
-			AdjustWindowRectEx(&frame, style, FALSE, exStyle);
-
-			mmi->ptMinTrackSize.x = (LONG)(win->src.minSizeW + frame.right - frame.left);
-			mmi->ptMinTrackSize.y = (LONG)(win->src.minSizeH + frame.bottom - frame.top);
+			mmi->ptMinTrackSize.x = (LONG)(win->src.minSizeW + (frame.right - frame.left));
+			mmi->ptMinTrackSize.y = (LONG)(win->src.minSizeH + (frame.bottom - frame.top));
 			if (win->src.maxSizeW == 0 && win->src.maxSizeH == 0)
 				return DefWindowProcW(hWnd, message, wParam, lParam);
 
-			mmi->ptMaxTrackSize.x = (LONG)(win->src.maxSizeW + frame.right - frame.left);
-			mmi->ptMaxTrackSize.y = (LONG)(win->src.maxSizeH + frame.bottom - frame.top);
+			mmi->ptMaxTrackSize.x = (LONG)(win->src.maxSizeW + (frame.right - frame.left));
+			mmi->ptMaxTrackSize.y = (LONG)(win->src.maxSizeH + (frame.bottom - frame.top));
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		case WM_PAINT: {
