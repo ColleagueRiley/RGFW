@@ -8446,7 +8446,7 @@ i32 RGFW_initPlatform_X11(void) {
 	XRegisterIMInstantiateCallback(_RGFW->display, NULL, NULL, NULL, RGFW_x11_imInitCallback, NULL);
 
 	unsigned char mask[XIMaskLen(XI_RawMotion)];
-	RGFW_MEMCPY(mask, 0, sizeof(mask));
+	RGFW_MEMSET(mask, 0, sizeof(mask));
 	XISetMask(mask, XI_RawMotion);
 
 	XIEventMask em;
