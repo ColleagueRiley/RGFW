@@ -2911,7 +2911,6 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 	struct RGFW_window_src {
 		HWND window; /*!< source window */
 		HDC hdc; /*!< source HDC */
-		i32 offsetW, offsetH; /*!< width and height offset for window */
 		HICON hIconSmall, hIconBig; /*!< source window icons */
 		i32 maxSizeW, maxSizeH, minSizeW, minSizeH, aspectRatioW, aspectRatioH; /*!< for setting max/min resize (RGFW_WINDOWS) */
 		RGFW_bool actionFrame; /* frame after a caption button was toggled (e.g. minimize, maximize or close) */
@@ -8446,7 +8445,8 @@ i32 RGFW_initPlatform_X11(void) {
 	XSetLocaleModifiers("");
 	XRegisterIMInstantiateCallback(_RGFW->display, NULL, NULL, NULL, RGFW_x11_imInitCallback, NULL);
 
-	unsigned char mask[XIMaskLen(XI_RawMotion)] = { 0 };
+	unsigned char mask[XIMaskLen(XI_RawMotion)];
+	RGFW_MEMSET(mask, 0, sizeof(mask));
 	XISetMask(mask, XI_RawMotion);
 
 	XIEventMask em;
@@ -10296,6 +10296,39 @@ WGPUSurface RGFW_FUNC(RGFW_window_createSurface_WebGPU) (RGFW_window* window, WG
 #define WM_DPICHANGED       0x02E0
 #endif
 
+RGFWDEF DWORD RGFW_winapi_window_getStyle(RGFW_window* win, RGFW_windowFlags flags);
+DWORD RGFW_winapi_window_getStyle(RGFW_window* win, RGFW_windowFlags flags) {
+	RGFW_UNUSED(win);
+    DWORD style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+
+    if ((flags & RGFW_windowFullscreen)) {
+        style |= WS_POPUP;
+    } else {
+        style |= WS_SYSMENU | WS_MINIMIZEBOX;
+
+        if (!(flags & RGFW_windowNoBorder)) {
+            style |= WS_CAPTION;
+
+            if (!(flags & RGFW_windowNoResize))
+                style |= WS_MAXIMIZEBOX | WS_THICKFRAME;
+        }
+        else
+            style |= WS_POPUP;
+    }
+
+    return style;
+}
+
+RGFWDEF DWORD RGFW_winapi_window_getExStyle(RGFW_window* win, RGFW_windowFlags flags);
+DWORD RGFW_winapi_window_getExStyle(RGFW_window* win, RGFW_windowFlags flags) {
+    DWORD style = WS_EX_APPWINDOW;
+    if (flags & RGFW_windowFullscreen || (flags & RGFW_windowFloating || RGFW_window_isFloating(win))) {
+        style |= WS_EX_TOPMOST;
+	}
+
+    return style;
+}
+
 RGFW_bool RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* out, size_t max);
 
 #define GL_FRONT				0x0404
@@ -10411,8 +10444,11 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static BYTE keyboardState[256];
 	GetKeyboardState(keyboardState);
 
-	RECT windowRect;
-	GetWindowRect(hWnd, &windowRect);
+	RECT frame;
+	ZeroMemory(&frame, sizeof(frame));
+	DWORD style = RGFW_winapi_window_getStyle(win, win->internal.flags);
+	DWORD exStyle = RGFW_winapi_window_getExStyle(win, win->internal.flags);
+	AdjustWindowRectEx(&frame, style, FALSE, exStyle);
 
 	switch (message) {
         case WM_DISPLAYCHANGE:
@@ -10433,38 +10469,14 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				RGFW_window_captureMousePlatform(win, RGFW_TRUE);
 			}
 
-			RGFW_windowMovedCallback(win, windowRect.left, windowRect.top);
+			RGFW_windowMovedCallback(win, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		case WM_SIZE: {
 			if (win->internal.captureMouse) {
 				RGFW_window_captureMousePlatform(win, RGFW_TRUE);
 			}
 
-			if (win->src.aspectRatioW != 0 && win->src.aspectRatioH != 0) {
-				double aspectRatio = (double)win->src.aspectRatioW / win->src.aspectRatioH;
-
-				int width = windowRect.right - windowRect.left;
-				int height = windowRect.bottom - windowRect.top;
-				int newHeight = (int)(width / aspectRatio);
-				int newWidth = (int)(height * aspectRatio);
-
-				if (win->w > (i32)((windowRect.right - windowRect.left) - win->src.offsetW)  ||
-					win->h > (i32)((windowRect.bottom - windowRect.top) - win->src.offsetH))
-				{
-					if (newHeight > height) windowRect.right = windowRect.left + newWidth;
-					else windowRect.bottom = windowRect.top + newHeight;
-				} else {
-					if (newHeight < height) windowRect.right = windowRect.left + newWidth;
-					else windowRect.bottom = windowRect.top + newHeight;
-				}
-
-				RGFW_window_resize(win, (windowRect.right - windowRect.left) - win->src.offsetW,
-												(windowRect.bottom - windowRect.top) - win->src.offsetH);
-			}
-
-			i32 w = (windowRect.right - windowRect.left) - (i32)win->src.offsetW;
-			i32 h = (windowRect.bottom - windowRect.top) - (i32)win->src.offsetH;
-			RGFW_windowResizedCallback(win, w, h);
+			RGFW_windowResizedCallback(win, LOWORD(lParam), HIWORD(lParam));
 			RGFW_window_checkMode(win);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
@@ -10493,15 +10505,38 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		#endif
+		case WM_SIZING: {
+			if (win->src.aspectRatioW == 0 && win->src.aspectRatioH == 0) {
+				break;
+			}
+
+			RECT* area = (RECT*)lParam;
+			i32 edge = (i32)wParam;
+
+			double ratio = (double)win->src.aspectRatioW / (double) win->src.aspectRatioH;
+
+			if (edge == WMSZ_LEFT  || edge == WMSZ_BOTTOMLEFT || edge == WMSZ_RIGHT || edge == WMSZ_BOTTOMRIGHT) {
+				area->bottom = area->top + (frame.bottom - frame.top) + (i32) (((area->right - area->left) - (frame.right - frame.left)) / ratio);
+			} else if (edge == WMSZ_TOPLEFT || edge == WMSZ_TOPRIGHT) {
+				area->top = area->bottom - (frame.bottom - frame.top) - (i32) (((area->right - area->left) - (frame.right - frame.left)) / ratio);
+			} else if (edge == WMSZ_TOP || edge == WMSZ_BOTTOM) {
+				area->right = area->left + (frame.right - frame.left) + (i32) (((area->bottom - area->top) - (frame.bottom - frame.top)) * ratio);
+			}
+
+			return TRUE;
+		}
 		case WM_GETMINMAXINFO: {
 			MINMAXINFO* mmi = (MINMAXINFO*) lParam;
-			mmi->ptMinTrackSize.x = (LONG)(win->src.minSizeW + win->src.offsetW);
-			mmi->ptMinTrackSize.y = (LONG)(win->src.minSizeH + win->src.offsetH);
+			RGFW_bool resize = ((win->src.minSizeW == win->src.maxSizeW) && (win->src.minSizeH == win->src.maxSizeH));
+			RGFW_setBit(&win->internal.flags, RGFW_windowNoResize, resize);
+
+			mmi->ptMinTrackSize.x = (LONG)(win->src.minSizeW + (frame.right - frame.left));
+			mmi->ptMinTrackSize.y = (LONG)(win->src.minSizeH + (frame.bottom - frame.top));
 			if (win->src.maxSizeW == 0 && win->src.maxSizeH == 0)
 				return DefWindowProcW(hWnd, message, wParam, lParam);
 
-			mmi->ptMaxTrackSize.x = (LONG)(win->src.maxSizeW + win->src.offsetW);
-			mmi->ptMaxTrackSize.y = (LONG)(win->src.maxSizeH + win->src.offsetH);
+			mmi->ptMaxTrackSize.x = (LONG)(win->src.maxSizeW + (frame.right - frame.left));
+			mmi->ptMaxTrackSize.y = (LONG)(win->src.maxSizeH + (frame.bottom - frame.top));
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
 		case WM_PAINT: {
@@ -10862,7 +10897,8 @@ void RGFW_window_captureMousePlatform(RGFW_window* win, RGFW_bool state) {
 int RGFW_window_createSwapChain_DirectX(RGFW_window* win, IDXGIFactory* pFactory, IUnknown* pDevice, IDXGISwapChain** swapchain) {
     RGFW_ASSERT(win && pFactory && pDevice && swapchain);
 
-    static DXGI_SWAP_CHAIN_DESC swapChainDesc = { 0 };
+    static DXGI_SWAP_CHAIN_DESC swapChainDesc;
+	RGFW_MEMSET(&swapChainDesc, 0, sizeof(swapChainDesc));
     swapChainDesc.BufferCount = 2;
     swapChainDesc.BufferDesc.Width = win->w;
     swapChainDesc.BufferDesc.Height = win->h;
@@ -11106,9 +11142,12 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 
 	DestroyWindow(dummyWin);
 
-	win->src.offsetW = (i32)(windowRect.right - windowRect.left) - (i32)(clientRect.right - clientRect.left);
-	win->src.offsetH = (i32)(windowRect.bottom - windowRect.top) - (i32)(clientRect.bottom - clientRect.top);
-	win->src.window = CreateWindowW(Class.lpszClassName, (wchar_t*)wide_name, window_style, win->x, win->y, win->w + (i32)win->src.offsetW, win->h + (i32)win->src.offsetH, 0, 0, inh, 0);
+	RECT rect = { 0, 0, win->w, win->h};
+	DWORD style = RGFW_winapi_window_getStyle(win, flags);
+	DWORD exStyle = RGFW_winapi_window_getExStyle(win, flags);
+	AdjustWindowRectEx(&rect, style, FALSE, exStyle);
+
+	win->src.window = CreateWindowW(Class.lpszClassName, (wchar_t*)wide_name, window_style, win->x + rect.left, win->y + rect.top, rect.right - rect.left, rect.bottom - rect.top, 0, 0, inh, 0);
 	SetPropW(win->src.window, L"RGFW", win);
 	RGFW_window_resize(win, win->w, win->h); /* so WM_GETMINMAXINFO gets called again */
 
@@ -11192,8 +11231,13 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 
 	if (fullscreen == RGFW_FALSE) {
 		RGFW_window_setBorder(win, 1);
-		SetWindowPos(win->src.window, HWND_NOTOPMOST, win->internal.oldX, win->internal.oldY, win->internal.oldW + (i32)win->src.offsetW, win->internal.oldH + (i32)win->src.offsetH,
-			 SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+
+		RECT rect = { 0, 0, win->internal.oldW, win->internal.oldH};
+		DWORD style = RGFW_winapi_window_getStyle(win, win->internal.flags);
+		DWORD exStyle = RGFW_winapi_window_getExStyle(win, win->internal.flags);
+		AdjustWindowRectEx(&rect, style, FALSE, exStyle);
+		SetWindowPos(win->src.window, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOZORDER);
+
 
 		win->internal.flags &= ~(u32)RGFW_windowFullscreen;
 		win->x  = win->internal.oldX;
@@ -11893,9 +11937,14 @@ void RGFW_window_resize(RGFW_window* win, i32 w, i32 h) {
 
 	win->w = w;
 	win->h = h;
-	SetWindowPos(win->src.window, HWND_TOP, 0, 0, win->w + (i32)win->src.offsetW, win->h + (i32)win->src.offsetH, SWP_NOMOVE);
-}
 
+	RECT rect = { 0, 0, w, h};
+	DWORD style = RGFW_winapi_window_getStyle(win, win->internal.flags);
+	DWORD exStyle = RGFW_winapi_window_getExStyle(win, win->internal.flags);
+	AdjustWindowRectEx(&rect, style, FALSE, exStyle);
+
+	SetWindowPos(win->src.window, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOZORDER);
+}
 
 void RGFW_window_setName(RGFW_window* win, const char* name) {
 	RGFW_ASSERT(win != NULL);
