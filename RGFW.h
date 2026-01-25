@@ -12361,13 +12361,13 @@ typedef TISInputSourceRef (*PFN_TISCopyCurrentKeyboardLayoutInputSource)(void);
 PFN_TISCopyCurrentKeyboardLayoutInputSource TISCopyCurrentKeyboardLayoutInputSourceSrc;
 #define TISCopyCurrentKeyboardLayoutInputSource TISCopyCurrentKeyboardLayoutInputSourceSrc
 
+typedef CFDataRef (*PFN_TISGetInputSourceProperty)(TISInputSourceRef, CFStringRef);
+PFN_TISGetInputSourceProperty TISGetInputSourcePropertySrc;
+#define TISGetInputSourceProperty TISGetInputSourcePropertySrc
+
 typedef u8 (*PFN_LMGetKbdType)(void);
 PFN_LMGetKbdType LMGetKbdTypeSrc;
-#define LMGetKbdType GetKbdTypeSrc
-
-typedef OSStatus (*PFN_UCKeyTranslate)(UCKeyboardLayout*, u16, u16, u32, u32, OptionBits, u32*, int, int*, UniChar*);
-PFN_UCKeyTranslate UCKeyTranslateSrc;
-#define UCKeyTranslate UCKeyTranslateSrc
+#define LMGetKbdType LMGetKbdTypeSrc
 
 CFStringRef kTISPropertyUnicodeKeyLayoutDataSrc;
 
@@ -13325,9 +13325,9 @@ void RGFW_initKeycodesPlatform(void) {
 i32 RGFW_initPlatform(void) {
 	_RGFW->tisBundle = (void*)CFBundleGetBundleWithIdentifier(CFSTR("com.apple.HIToolbox"));
 
-	TISCopyCurrentKeyboardLayoutInputSourceSrc = CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("TISCopyCurrentKeyboardLayoutInputSource"));;
-	LMGetKbdTypeSrc = CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("LMGetKbdType"));
-	UCKeyTranslateSrc = CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("UCKeyTranslate"));
+	TISGetInputSourcePropertySrc = (PFN_TISGetInputSourceProperty)CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("TISGetInputSourceProperty"));
+	TISCopyCurrentKeyboardLayoutInputSourceSrc = (PFN_TISCopyCurrentKeyboardLayoutInputSource)CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("TISCopyCurrentKeyboardLayoutInputSource"));
+	LMGetKbdTypeSrc = (PFN_LMGetKbdType)CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("LMGetKbdType"));
 
 	CFStringRef* cfStr = CFBundleGetDataPointerForName(_RGFW->tisBundle, CFSTR("kTISPropertyUnicodeKeyLayoutData"));;
 	if (cfStr) kTISPropertyUnicodeKeyLayoutDataSrc = *cfStr;
@@ -13568,7 +13568,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 }
 
 RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
-    u32 keycode = RGFW_rgfwToApiKey(key);
+    u16 keycode = (u16)RGFW_rgfwToApiKey(key);
     TISInputSourceRef source = TISCopyCurrentKeyboardLayoutInputSource();
     if (source == NULL)
         return key;
@@ -13580,13 +13580,13 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
         return key;
     }
 
-    UCKeyboardLayout *layout = (UCKeyboardLayout*)CFDataGetBytePtr(layoutData);
+    UCKeyboardLayout *layout = (UCKeyboardLayout*)(void*)CFDataGetBytePtr(layoutData);
 
     UInt32 deadKeyState = 0;
     UniChar chars[4];
     UniCharCount len = 0;
-
-	OSStatus status = UCKeyTranslate(layout, keycode, kUCKeyActionDown, 0, LMGetKbdType(), kUCKeyTranslateNoDeadKeysBit, &deadKeyState, 4, &len, chars );
+	u32 type =  LMGetKbdType();
+	OSStatus status = UCKeyTranslate(layout, keycode, kUCKeyActionDown, 0, type, kUCKeyTranslateNoDeadKeysBit, &deadKeyState, 4, &len, chars );
 
     CFRelease(source);
 
