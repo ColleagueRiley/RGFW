@@ -141,10 +141,12 @@ static
 void keyfunc(RGFW_window* win, RGFW_key key, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed) {
     RGFW_UNUSED(repeat);
     if (window != win) return;
-    if (pressed)
-        printf("key pressed : %i (%c) with modstate : %i\n", key, key, keyMod);
-    else
-        printf("key released : %i (%c) with modstate : %i\n", key, key, keyMod);
+    if (pressed) {
+		RGFW_key mapped = RGFW_physicalToMappedKey(key);
+		printf("key pressed : %i (%c), physical key : %i (%c),  with modstate : %i\n", key, key, mapped, mapped, keyMod);
+	} else {
+	    printf("key released : %i (%c) with modstate : %i\n", key, key, keyMod);
+	}
 }
 
 static
