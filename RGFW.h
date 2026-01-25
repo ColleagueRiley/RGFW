@@ -8445,7 +8445,8 @@ i32 RGFW_initPlatform_X11(void) {
 	XSetLocaleModifiers("");
 	XRegisterIMInstantiateCallback(_RGFW->display, NULL, NULL, NULL, RGFW_x11_imInitCallback, NULL);
 
-	unsigned char mask[XIMaskLen(XI_RawMotion)] = { 0 };
+	unsigned char mask[XIMaskLen(XI_RawMotion)];
+	RGFW_MEMCPY(mask, 0, sizeof(mask));
 	XISetMask(mask, XI_RawMotion);
 
 	XIEventMask em;
@@ -10443,7 +10444,8 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static BYTE keyboardState[256];
 	GetKeyboardState(keyboardState);
 
-	RECT frame = {0};
+	RECT frame;
+	ZeroMemory(&frame, sizeof(frame));
 	DWORD style = RGFW_winapi_window_getStyle(win, win->internal.flags);
 	DWORD exStyle = RGFW_winapi_window_getExStyle(win, win->internal.flags);
 	AdjustWindowRectEx(&frame, style, FALSE, exStyle);
@@ -10895,7 +10897,8 @@ void RGFW_window_captureMousePlatform(RGFW_window* win, RGFW_bool state) {
 int RGFW_window_createSwapChain_DirectX(RGFW_window* win, IDXGIFactory* pFactory, IUnknown* pDevice, IDXGISwapChain** swapchain) {
     RGFW_ASSERT(win && pFactory && pDevice && swapchain);
 
-    static DXGI_SWAP_CHAIN_DESC swapChainDesc = { 0 };
+    static DXGI_SWAP_CHAIN_DESC swapChainDesc;
+	RGFW_MEMSET(&swapChainDesc, 0, sizeof(swapChainDesc));
     swapChainDesc.BufferCount = 2;
     swapChainDesc.BufferDesc.Width = win->w;
     swapChainDesc.BufferDesc.Height = win->h;
