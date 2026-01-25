@@ -76,6 +76,7 @@ Additional labels for pre-release and build metadata are available as extensions
 - add `RGFW_keyChar` event and `RGFW_keyCharfunc` callback for text input / UTF text
 - remove `sym` from `keyPressed` / `keyReleased` events, to be handled by `RGFW_keyChar`
 - implement proper UTF text input
+- replace `RGFW_rgfwToKeyChar` with `RGFW_physicalToMappedKey`
 
 Release:    RGFW 1.8.0
 -----------------------------------------------

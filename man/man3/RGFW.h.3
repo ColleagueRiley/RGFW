@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Fri Jan 23 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Sun Jan 25 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -1166,17 +1166,17 @@ RGFW.h
 .br
 .RI "Pops the next event from the RGFW event queue that matches the target window, pushes back events that don't matchj\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_apiKeyToRGFW\fP (\fBu32\fP keycode)"
+.RI "\fBRGFWDEF\fP RGFW_key \fBRGFW_apiKeyToRGFW\fP (\fBu32\fP keycode)"
 .br
 .RI "Converts an API keycode to the RGFW unmapped (physical) key\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_rgfwToApiKey\fP (\fBu32\fP keycode)"
+.RI "\fBRGFWDEF\fP \fBu32\fP \fBRGFW_rgfwToApiKey\fP (RGFW_key keycode)"
 .br
 .RI "Converts an RGFW keycode to the unmapped (physical) API key\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBu8\fP \fBRGFW_rgfwToKeyChar\fP (\fBu32\fP keycode)"
+.RI "\fBRGFWDEF\fP RGFW_key \fBRGFW_physicalToMappedKey\fP (RGFW_key keycode)"
 .br
-.RI "Converts an RGFW keycode to the mapped character representation\&. "
+.RI "Converts an physical RGFW keycode to a mapped RGFW keycode\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofInfo\fP (void)"
 .br
