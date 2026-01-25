@@ -12365,7 +12365,7 @@ typedef u8 (*PFN_LMGetKbdType)(void);
 PFN_LMGetKbdType LMGetKbdTypeSrc;
 #define LMGetKbdType GetKbdTypeSrc
 
-typedef OSStatus (*PFN_UCKeyTranslate)(UCKeyboardLayout*, u16, u16, u32, u32, OptionBits, u32*, NSInteger, NSInteger*, UniChar*);
+typedef OSStatus (*PFN_UCKeyTranslate)(UCKeyboardLayout*, u16, u16, u32, u32, OptionBits, u32*, int, int*, UniChar*);
 PFN_UCKeyTranslate UCKeyTranslateSrc;
 #define UCKeyTranslate UCKeyTranslateSrc
 
@@ -13325,11 +13325,11 @@ void RGFW_initKeycodesPlatform(void) {
 i32 RGFW_initPlatform(void) {
 	_RGFW->tisBundle = (void*)CFBundleGetBundleWithIdentifier(CFSTR("com.apple.HIToolbox"));
 
-	TISCopyCurrentKeyboardLayoutInputSourceSrc = CFBundleGetFunctionPointerForName((CFBundle)_RGFW->tisBundle, CFSTR("TISCopyCurrentKeyboardLayoutInputSource"));;
-	LMGetKbdTypeSrc = CFBundleGetFunctionPointerForName((CFBundle)_RGFW->tisBundle, CFSTR("LMGetKbdType"));
-	UCKeyTranslateSrc = CFBundleGetFunctionPointerForName((CFBundle)_RGFW->tisBundle, CFSTR("UCKeyTranslate"));
+	TISCopyCurrentKeyboardLayoutInputSourceSrc = CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("TISCopyCurrentKeyboardLayoutInputSource"));;
+	LMGetKbdTypeSrc = CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("LMGetKbdType"));
+	UCKeyTranslateSrc = CFBundleGetFunctionPointerForName(_RGFW->tisBundle, CFSTR("UCKeyTranslate"));
 
-	CFStringRef* cfStr = CFBundleGetDataPointerForName((CFBundle)_RGFW->tisBundle, CFSTR("kTISPropertyUnicodeKeyLayoutData"));;
+	CFStringRef* cfStr = CFBundleGetDataPointerForName(_RGFW->tisBundle, CFSTR("kTISPropertyUnicodeKeyLayoutData"));;
 	if (cfStr) kTISPropertyUnicodeKeyLayoutDataSrc = *cfStr;
 
 	class_addMethod(objc_getClass("NSObject"), sel_registerName("windowShouldClose:"), (IMP)(void*)RGFW_OnClose, 0);
@@ -13580,7 +13580,7 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
         return key;
     }
 
-    const UCKeyboardLayout *layout = (const UCKeyboardLayout*)CFDataGetBytePtr(layoutData);
+    UCKeyboardLayout *layout = (UCKeyboardLayout*)CFDataGetBytePtr(layoutData);
 
     UInt32 deadKeyState = 0;
     UniChar chars[4];
