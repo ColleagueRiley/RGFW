@@ -8,7 +8,7 @@ WAYLAND_PROTO := \
 	unstable/relative-pointer/relative-pointer-unstable-v1 \
 	unstable/pointer-constraints/pointer-constraints-unstable-v1 \
 	unstable/xdg-output/xdg-output-unstable-v1 \
-	staging/pointer-warp/pointer-warp-v1.xml \
+	staging/pointer-warp/pointer-warp-v1 \
 
 
 WAYLAND_HEADERS = $(addsuffix .h,$(WAYLAND_PROTO))
