@@ -3216,6 +3216,7 @@ struct RGFW_info {
         struct wl_data_device_manager *data_device_manager;
         struct wl_data_device *data_device; // supports clipboard and DND
 		struct wp_pointer_warp_v1* wp_pointer_warp;
+		struct wp_viewporter* viewporter;
 
         struct wl_keyboard* wl_keyboard;
         struct wl_pointer* wl_pointer;
@@ -8597,6 +8598,7 @@ struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { return win-
 #include "pointer-constraints-unstable-v1.h"
 #include "xdg-output-unstable-v1.h"
 #include "pointer-warp-v1.h"
+#include "viewporter-client-protocol.h"
 
 void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized);
 
@@ -9244,6 +9246,8 @@ static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *regi
 		RGFW->wp_pointer_warp = wl_registry_bind(registry, id, &wp_pointer_warp_v1_interface, 1);
 	} else if (RGFW_STRNCMP(interface,"wl_data_device_manager", 23) == 0) {
 		RGFW->data_device_manager = wl_registry_bind(registry, id, &wl_data_device_manager_interface, 1);
+	}  else if (RGFW_STRNCMP(interface,"wl_viewporter", 14) == 0) {
+		RGFW->viewporter = wl_registry_bind(registry, id, &wl_viewporter_interface, 1);
 	}
 }
 
