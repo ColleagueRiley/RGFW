@@ -99,10 +99,12 @@ else
 endif
 
 ifeq ($(WAYLAND),1)
+	WAYLAND_SOURCE = $(shell make -f wayland.mk sources -s)
+
 	NO_VULKAN = 1
 	NO_GLES = 0
 	NO_EGL = 0
-	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1.c pointer-constraints-unstable-v1.c xdg-toplevel-icon-v1.c xdg-output-unstable-v1.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL -lm
+	LIBS += -D RGFW_WAYLAND $(WAYLAND_SOURCE) -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL -lm
 	LINK_GL1 = -lEGL -lGL
 
 	# LIBS += -ldecor-0
@@ -191,37 +193,37 @@ TEST_OUTPUTS = \
 			   tests/loop \
 
 
-all: xdg-shell.c $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) libRGFW.a
+all: $(WAYLAND_SOURCE) $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) libRGFW.a
 
-examples: xdg-shell.c $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)
+examples: $(WAYLAND_SOURCE) $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)
 
-tests: xdg-shell.c $(TEST_OUTPUTS)
+tests: $(WAYLAND_SOURCE) $(TEST_OUTPUTS)
 
-examples/gears/gears: examples/gears/gears.c RGFW.h xdg-shell.c
+examples/gears/gears: examples/gears/gears.c RGFW.h $(WAYLAND_SOURCE)
 ifneq (,$(filter $(CC),emcc em++))
 	@echo gears is not supported on this platform
 else
 	$(CC) $(CFLAGS) -I. $< $(LINK_GL1) $(LIBS) -lm $($)  -o $@$(EXT)
 endif
 
-examples/srgb/srgb: examples/srgb/srgb.c RGFW.h xdg-shell.c
+examples/srgb/srgb: examples/srgb/srgb.c RGFW.h $(WAYLAND_SOURCE)
 	$(CC) $(CFLAGS) -I. $< $(LINK_GL1) $(LIBS) -lm $($)  -o $@$(EXT)
 
-examples/portableGL/pgl: examples/portableGL/pgl.c RGFW.h xdg-shell.c
+examples/portableGL/pgl: examples/portableGL/pgl.c RGFW.h $(WAYLAND_SOURCE)
 ifeq (,$(filter $(CC),emcc em++))
 	$(CC)  -w $(CFLAGS) -I. $< -lm $(LIBS) -o $@
 else
 	@echo "the portableGL example doesn't support html5"
 endif
 
-examples/gles2/gles2: examples/gles2/gles2.c RGFW.h xdg-shell.c
+examples/gles2/gles2: examples/gles2/gles2.c RGFW.h $(WAYLAND_SOURCE)
 ifneq ($(NO_GLES), 1)
 	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL2) -lGL -o $@$(EXT)
 else
 	@echo gles has been disabled
 endif
 
-examples/egl/egl: examples/egl/egl.c RGFW.h xdg-shell.c
+examples/egl/egl: examples/egl/egl.c RGFW.h $(WAYLAND_SOURCE)
 ifneq ($(NO_EGL), 1)
 	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL1) -lGL -lEGL -o $@$(EXT)
 else
@@ -230,7 +232,7 @@ endif
 
 
 
-examples/osmesa_demo/osmesa_demo: examples/osmesa_demo/osmesa_demo.c RGFW.h xdg-shell.c
+examples/osmesa_demo/osmesa_demo: examples/osmesa_demo/osmesa_demo.c RGFW.h $(WAYLAND_SOURCE)
 ifneq ($(NO_OSMESA), 1)
 	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_OSMESA) -lOSMesa -o $@$(EXT)
 else
@@ -238,7 +240,7 @@ else
 endif
 
 
-examples/vk10/vk10: examples/vk10/vk10.c examples/vk10/vkinit.h RGFW.h xdg-shell.c
+examples/vk10/vk10: examples/vk10/vk10.c examples/vk10/vkinit.h RGFW.h $(WAYLAND_SOURCE)
 ifneq ($(NO_VULKAN), 1)
 	glslangValidator -V examples/vk10/shaders/vert.vert -o examples/vk10/shaders/vert.h --vn vert_code
 	glslangValidator -V examples/vk10/shaders/frag.frag -o examples/vk10/shaders/frag.h --vn frag_code
@@ -255,7 +257,7 @@ else
 	$(CC)  $(CFLAGS) -I. $< $(LIBS) $(LINK_GL1) $(DX11_LIBS) -D RGFW_NO_VULKAN -o $@
 endif
 
-examples/dx11/dx11: examples/dx11/dx11.c RGFW.h xdg-shell.c
+examples/dx11/dx11: examples/dx11/dx11.c RGFW.h $(WAYLAND_SOURCE)
 ifeq ($(CC), zig cc)
 	@echo directX is not supported with Zig
 else ifneq (,$(filter $(CC),g++ clang++ "zig cc"))
@@ -267,14 +269,14 @@ else
 endif
 
 
-examples/metal/metal: examples/metal/metal.m RGFW.h xdg-shell.c
+examples/metal/metal: examples/metal/metal.m RGFW.h $(WAYLAND_SOURCE)
 ifeq ($(detected_OS),Darwin)        # Mac OS X
 	$(CC) $(CFLAGS) examples/metal/metal.m -I. -framework CoreVideo -framework Metal -framework Cocoa -framework IOKit -framework QuartzCore -o $@
 else
 	@echo metal is not supported on $(detected_OS)
 endif
 
-examples/minimal_links/minimal_links: examples/minimal_links/minimal_links.c RGFW.h xdg-shell.c
+examples/minimal_links/minimal_links: examples/minimal_links/minimal_links.c RGFW.h $(WAYLAND_SOURCE)
 ifeq ($(WAYLAND), 1)
 	@echo nostl is not supported on this platform
 else ifneq (,$(filter $(CC),emcc em++))
@@ -292,7 +294,7 @@ else
 endif
 
 
-examples/nostl/nostl: examples/nostl/nostl.c RGFW.h xdg-shell.c
+examples/nostl/nostl: examples/nostl/nostl.c RGFW.h $(WAYLAND_SOURCE)
 ifeq ($(WAYLAND), 1)
 	@echo nostl is not supported on this platform
 else ifneq (,$(filter $(CC),emcc em++))
@@ -308,7 +310,7 @@ else
 endif
 
 
-examples/microui_demo/microui_demo: examples/microui_demo/microui_demo.c RGFW.h xdg-shell.c
+examples/microui_demo/microui_demo: examples/microui_demo/microui_demo.c RGFW.h $(WAYLAND_SOURCE)
 ifeq (,$(filter $(CC),emcc em++ g++ clang++))
 	$(CC) $(CFLAGS) -I. $< examples/microui_demo/microui.c  $(LINK_GL1) $(LIBS) -o $@$(EXT)
 else ifneq (,$(filter $(CC),em++ g++ clang++))
@@ -317,18 +319,18 @@ else
 	$(CC) $(CFLAGS) -I. $< examples/microui_demo/microui.c -s USE_WEBGL2 $(LIBS) $(LINK_GL1) -o $@$(EXT)
 endif
 
-examples/window_icons/icons: examples/window_icons/icons.c RGFW.h xdg-shell.c
+examples/window_icons/icons: examples/window_icons/icons.c RGFW.h $(WAYLAND_SOURCE)
 	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
-examples/mouse_icons/icons: examples/mouse_icons/icons.c RGFW.h xdg-shell.c
+examples/mouse_icons/icons: examples/mouse_icons/icons.c RGFW.h $(WAYLAND_SOURCE)
 	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
-examples/gamepad/gamepad: examples/gamepad/gamepad.c RGFW.h xdg-shell.c
-	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
-
-examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.h xdg-shell.c
+examples/gamepad/gamepad: examples/gamepad/gamepad.c RGFW.h $(WAYLAND_SOURCE)
 	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 
+examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.h $(WAYLAND_SOURCE)
+	$(CC) $(CFLAGS) -I. $< $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 
-examples/gl33/gl33: examples/gl33/gl33.c RGFW.h xdg-shell.c
+
+examples/gl33/gl33: examples/gl33/gl33.c RGFW.h $(WAYLAND_SOURCE)
 ifeq ($(WAYLAND), 1)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lm $(LIBS) $(LINK_GL1) -lEGL -lwayland-egl -o $@$(EXT)
 else ifeq ($(detected_OS),NetBSD)
@@ -343,10 +345,10 @@ else
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LIBS) $(LINK_GL3) -o $@$(EXT)
 endif
 
-$(EXAMPLE_OUTPUTS): %: %.c RGFW.h xdg-shell.c
+$(EXAMPLE_OUTPUTS): %: %.c RGFW.h $(WAYLAND_SOURCE)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LINK_GL1) $(LIBS) $($)  -o $@$(EXT)
 
-$(TEST_OUTPUTS): %: %.c RGFW.h xdg-shell.c
+$(TEST_OUTPUTS): %: %.c RGFW.h $(WAYLAND_SOURCE)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LINK_GL1) $(LIBS) $($)  -o $@$(EXT)
 	@for exe in $(TEST_OUTPUTS); do \
 		echo "Running $$exe..."; \
@@ -379,7 +381,7 @@ endif
 	$(MAKE) clean
 
 
-RGFW$(OBJ_FILE): RGFW.h xdg-shell.c
+RGFW$(OBJ_FILE): RGFW.h $(WAYLAND_SOURCE)
 	#$(CC) -x c $(CUSTOM_CFLAGS) -c RGFW.h -D RGFW_IMPLEMENTATION -fPIC -D RGFW_EXPORT
 	cp RGFW.h RGFW.c
 	$(CC) $(CUSTOM_CFLAGS) -c RGFW.c -D RGFW_IMPLEMENTATION -fPIC -D RGFW_EXPORT
@@ -397,9 +399,11 @@ libRGFW.a: RGFW.h RGFW$(OBJ_FILE)
 	$(MAKE) RGFW$(OBJ_FILE)
 	$(AR) rcs libRGFW.a RGFW$(OBJ_FILE)
 
-xdg-shell.c:
 ifeq ($(WAYLAND),1)
+
+$(WAYLAND_SOURCE): %.c:
 	$(MAKE) -f wayland.mk
+
 endif
 
 
