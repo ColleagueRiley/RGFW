@@ -399,28 +399,17 @@ libRGFW.a: RGFW.h RGFW$(OBJ_FILE)
 	$(AR) rcs libRGFW.a RGFW$(OBJ_FILE)
 
 xdg-shell.c:
-	$(MAKE) initwayland
-
-initwayland:
 ifeq ($(WAYLAND),1)
-	wayland-scanner client-header /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml xdg-shell.h
-	wayland-scanner public-code /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml xdg-shell.c
-	wayland-scanner client-header /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.h
-	wayland-scanner public-code /usr/share/wayland-protocols/staging/xdg-toplevel-icon/xdg-toplevel-icon-v1.xml xdg-toplevel-icon-v1.c
-	wayland-scanner client-header /usr/share/wayland-protocols/staging/xdg-toplevel-icon/xdg-toplevel-icon-v1.xml xdg-toplevel-icon-v1.h
-	wayland-scanner public-code /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml xdg-decoration-unstable-v1.c
-	wayland-scanner client-header /usr/share/wayland-protocols/unstable/relative-pointer/relative-pointer-unstable-v1.xml relative-pointer-unstable-v1.h
-	wayland-scanner public-code /usr/share/wayland-protocols/unstable/relative-pointer/relative-pointer-unstable-v1.xml relative-pointer-unstable-v1.c
-	wayland-scanner client-header /usr/share/wayland-protocols/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml pointer-constraints-unstable-v1.h
-	wayland-scanner public-code /usr/share/wayland-protocols/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml pointer-constraints-unstable-v1.c
-	wayland-scanner client-header /usr/share/wayland-protocols/unstable/xdg-output/xdg-output-unstable-v1.xml xdg-output-unstable-v1.h
-	wayland-scanner public-code /usr/share/wayland-protocols/unstable/xdg-output/xdg-output-unstable-v1.xml xdg-output-unstable-v1.c
-else
-
+	$(MAKE) -f wayland.mk
 endif
+
 
 clean:
 	rm -f *.o *.obj *.dll .dylib *.a *.so $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) $(TEST_OUTPUTS)  .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.exe .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.js .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.wasm .$(OS_DIR)examples$(OS_DIR)vk10$(OS_DIR)shaders$(OS_DIR)*.h
+
+ifeq ($(WAYLAND),1)
+	$(MAKE) -f wayland.mk clean
+endif
 
 
 .PHONY: all examples clean
