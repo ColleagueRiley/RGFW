@@ -29,5 +29,8 @@ $(WAYLAND_HEADERS): %.h:
 $(WAYLAND_SOURCE): %.c:
 	wayland-scanner public-code $(call find_xml,$(@:.c=.xml)) $(notdir $@)
 
+sources:
+	@echo $(notdir $(WAYLAND_SOURCE))
+
 clean:
 	rm $(notdir $(WAYLAND_SOURCE)) $(notdir $(WAYLAND_HEADERS))
