@@ -3215,6 +3215,7 @@ struct RGFW_info {
 
         struct wl_data_device_manager *data_device_manager;
         struct wl_data_device *data_device; // supports clipboard and DND
+		struct wp_pointer_warp_v1* wp_pointer_warp;
 
         struct wl_keyboard* wl_keyboard;
         struct wl_pointer* wl_pointer;

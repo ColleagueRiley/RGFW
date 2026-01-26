@@ -102,7 +102,7 @@ ifeq ($(WAYLAND),1)
 	NO_VULKAN = 1
 	NO_GLES = 0
 	NO_EGL = 0
-	LIBS += -D RGFW_WAYLAND relative-pointer-unstable-v1.c pointer-constraints-unstable-v1.c xdg-toplevel-icon-v1.c xdg-output-unstable-v1.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL -lm
+	LIBS += -D RGFW_WAYLAND pointer-warp-v1.c relative-pointer-unstable-v1.c pointer-constraints-unstable-v1.c xdg-toplevel-icon-v1.c xdg-output-unstable-v1.c xdg-decoration-unstable-v1.c xdg-shell.c -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL -lm
 	LINK_GL1 = -lEGL -lGL
 
 	# LIBS += -ldecor-0
