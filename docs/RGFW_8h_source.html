@@ -11753,7 +11753,7 @@ $(function() {
 <div class="line"><a id="l13094" name="l13094"></a><span class="lineno">13094</span>    RGFW_key value = (<a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>)<a class="code hl_function" href="group__Supporting.html#ga8c519311bf5e69c3b55b8ad8c24e4c9b">RGFW_apiKeyToRGFW</a>(key);</div>
 <div class="line"><a id="l13095" name="l13095"></a><span class="lineno">13095</span>    <a class="code hl_typedef" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> repeat = <a class="code hl_function" href="group__Window__management.html#ga11aa25dacf1fbb0ad9b2c40449e60e78">RGFW_window_isKeyDown</a>(win, (<a class="code hl_typedef" href="RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca">u8</a>)value);</div>
 <div class="line"><a id="l13096" name="l13096"></a><span class="lineno">13096</span> </div>
-<div class="line"><a id="l13097" name="l13097"></a><span class="lineno">13097</span>    RGFW_keyCallback(win, value, win-&gt;internal.mod, repeat, 1);</div>
+<div class="line"><a id="l13097" name="l13097"></a><span class="lineno">13097</span>    RGFW_keyCallback(win, value, win-&gt;internal.mod, repeat, 0);</div>
 <div class="line"><a id="l13098" name="l13098"></a><span class="lineno">13098</span>}</div>
 <div class="line"><a id="l13099" name="l13099"></a><span class="lineno">13099</span> </div>
 <div class="line"><a id="l13100" name="l13100"></a><span class="lineno">13100</span><span class="keyword">static</span> <span class="keywordtype">void</span> RGFW__osxFlagsChanged(<span class="keywordtype">id</span> self, <span class="keywordtype">SEL</span> _cmd, <span class="keywordtype">id</span> event) {</div>
