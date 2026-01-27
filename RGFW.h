@@ -7863,6 +7863,8 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 		monitor.scaleX = dpi / 96.0f;
 		monitor.scaleY = dpi / 96.0f;
 
+		monitor.pixelRatio = dpi >= 192.0f ? 2.0f : 1.0f;
+
 		XRRModeInfo* mi = RGFW_XGetMode(ci, res, ci->mode, &monitor.mode);
 
 		if (mi == NULL) {
@@ -9496,7 +9498,6 @@ void RGFW_FUNC(RGFW_window_blitSurface) (RGFW_window* win, RGFW_surface* surface
 
 	surface->native.wl_buffer = wl_shm_pool_create_buffer(surface->native.pool, 0, RGFW_MIN(win->w, surface->w), RGFW_MIN(win->h, surface->h), (i32)surface->w * 4, WL_SHM_FORMAT_ARGB8888);
 	RGFW_copyImageData(surface->native.buffer, surface->w, RGFW_MIN(win->h, surface->h), surface->native.format, surface->data, surface->format);
-
 
 	wl_surface_attach(win->src.surface, surface->native.wl_buffer, 0, 0);
 	wl_surface_damage(win->src.surface, 0, 0, RGFW_MIN(win->w, surface->w), RGFW_MIN(win->h, surface->h));
