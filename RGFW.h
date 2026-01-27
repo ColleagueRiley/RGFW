@@ -13102,7 +13102,7 @@ static void RGFW__osxKeyUp(id self, SEL _cmd, id event) {
     RGFW_key value = (u8)RGFW_apiKeyToRGFW(key);
     RGFW_bool repeat = RGFW_window_isKeyDown(win, (u8)value);
 
-    RGFW_keyCallback(win, value, win->internal.mod, repeat, 1);
+    RGFW_keyCallback(win, value, win->internal.mod, repeat, 0);
 }
 
 static void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
