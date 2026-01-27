@@ -1,5 +1,8 @@
 var searchData=
 [
-  ['drag_0',['drag',['../unionRGFW__event.html#a15132a2c04d6c7836af2064a985d7792',1,'RGFW_event']]],
-  ['drop_1',['drop',['../unionRGFW__event.html#a3615aced4912b5e2c7c94cbedc0119c5',1,'RGFW_event']]]
+  ['callbacks_0',['Callbacks',['../group__Callbacks.html',1,'']]],
+  ['channels_1',['channels',['../structRGFW__colorLayout.html#a8abc7fe2bff2ce53826f252e2912a3f6',1,'RGFW_colorLayout']]],
+  ['clipboard_2',['Clipboard',['../group__Clipboard.html',1,'']]],
+  ['common_3',['common',['../unionRGFW__event.html#a2cd9246cc6b350ba08e7f0edc1d556ed',1,'RGFW_event']]],
+  ['count_4',['count',['../structRGFW__gammaRamp.html#aba3e3145151657d27dc5f555abd5e2a7',1,'RGFW_gammaRamp::count()'],['../structRGFW__dataDropEvent.html#ae817a75a323d802bd408fcae6cd92eea',1,'RGFW_dataDropEvent::count()']]]
 ];

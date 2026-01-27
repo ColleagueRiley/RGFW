@@ -21,6 +21,10 @@ RGFW.h
 
 .in +1c
 .ti -1c
+.RI "struct \fBRGFW_colorLayout\fP"
+.br
+.RI "layout struct for mapping out format types "
+.ti -1c
 .RI "struct \fBRGFW_gammaRamp\fP"
 .br
 .RI "gamma struct for monitors "
@@ -216,6 +220,14 @@ RGFW.h
 .RI "typedef struct \fBRGFW_window_src\fP \fBRGFW_window_src\fP"
 .br
 .RI "The source window stucture for interfacing with the underlying windowing API (e\&.g\&. winapi, wayland, cocoa, etc) "
+.ti -1c
+.RI "typedef struct \fBRGFW_colorLayout\fP \fBRGFW_colorLayout\fP"
+.br
+.RI "layout struct for mapping out format types "
+.ti -1c
+.RI "typedef void(* \fBRGFW_convertImageDataFunc\fP) (\fBu8\fP *dest_data, \fBu8\fP *src_data, const \fBRGFW_colorLayout\fP *srcLayout, const \fBRGFW_colorLayout\fP *destLayout, size_t count)"
+.br
+.RI "function type converting raw image data between formats "
 .ti -1c
 .RI "typedef struct \fBRGFW_nativeImage\fP \fBRGFW_nativeImage\fP"
 .br
@@ -489,7 +501,7 @@ RGFW.h
 .br
 .RI "(macOS only) Changes the current working directory to the application’s resource folder\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_copyImageData\fP (\fBu8\fP *dest_data, \fBi32\fP w, \fBi32\fP h, RGFW_format dest_format, \fBu8\fP *src_data, RGFW_format src_format)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_copyImageData\fP (\fBu8\fP *dest_data, \fBi32\fP w, \fBi32\fP h, RGFW_format dest_format, \fBu8\fP *src_data, RGFW_format src_format, \fBRGFW_convertImageDataFunc\fP func)"
 .br
 .ti -1c
 .RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofNativeImage\fP (void)"
@@ -499,6 +511,10 @@ RGFW.h
 .RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofSurface\fP (void)"
 .br
 .RI "Returns the size (in bytes) of the RGFW_surface structure\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP RGFW_format \fBRGFW_nativeFormat\fP (void)"
+.br
+.RI "Returns the native format type for the system\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_surface\fP * \fBRGFW_createSurface\fP (\fBu8\fP *data, \fBi32\fP w, \fBi32\fP h, RGFW_format format)"
 .br
@@ -699,6 +715,10 @@ RGFW.h
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_createSurfacePtr\fP (\fBRGFW_window\fP *win, \fBu8\fP *data, \fBi32\fP w, \fBi32\fP h, RGFW_format format, \fBRGFW_surface\fP *surface)"
 .br
 .RI "creates a new surface structure using a pre-allocated surface structure "
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_surface_setConvertFunc\fP (\fBRGFW_surface\fP *surface, \fBRGFW_convertImageDataFunc\fP func)"
+.br
+.RI "set the function/callback used for converting surface data between formats "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_blitSurface\fP (\fBRGFW_window\fP *win, \fBRGFW_surface\fP *surface)"
 .br
@@ -1280,10 +1300,18 @@ RGFW.h
 
 .SS "typedef \fBu8\fP \fBRGFW_bool\fP"
 
+.SS "typedef struct \fBRGFW_colorLayout\fP \fBRGFW_colorLayout\fP"
+
+.PP
+layout struct for mapping out format types 
 .SS "typedef struct \fBRGFW_commonEvent\fP \fBRGFW_commonEvent\fP"
 
 .PP
 common event data across all events Event structure(s) and union for checking/getting events 
+.SS "typedef void(* RGFW_convertImageDataFunc) (\fBu8\fP *dest_data, \fBu8\fP *src_data, const \fBRGFW_colorLayout\fP *srcLayout, const \fBRGFW_colorLayout\fP *destLayout, size_t count)"
+
+.PP
+function type converting raw image data between formats 
 .SS "typedef struct \fBRGFW_dataDragEvent\fP \fBRGFW_dataDragEvent\fP"
 
 .PP
@@ -1520,7 +1548,7 @@ RGFW_TRUE if an event was found, RGFW_FALSE otherwise
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP void RGFW_copyImageData (\fBu8\fP * dest_data, \fBi32\fP w, \fBi32\fP h, RGFW_format dest_format, \fBu8\fP * src_data, RGFW_format src_format)"
+.SS "\fBRGFWDEF\fP void RGFW_copyImageData (\fBu8\fP * dest_data, \fBi32\fP w, \fBi32\fP h, RGFW_format dest_format, \fBu8\fP * src_data, RGFW_format src_format, \fBRGFW_convertImageDataFunc\fP func)"
 copy image to another image, respecting each image's format 
 .SS "\fBRGFWDEF\fP \fBRGFW_surface\fP * RGFW_createSurface (\fBu8\fP * data, \fBi32\fP w, \fBi32\fP h, RGFW_format format)"
 
@@ -2252,6 +2280,17 @@ RGFW_TRUE if both modes are equivalent, otherwise RGFW_FALSE\&.
 
 .PP
 (macOS only) Changes the current working directory to the application’s resource folder\&. ! 
+.SS "\fBRGFWDEF\fP RGFW_format RGFW_nativeFormat (void)"
+
+.PP
+Returns the native format type for the system\&. ! 
+.PP
+\fBReturns\fP
+.RS 4
+the native format type for the system as a RGFW_format enum value 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_pollEvents (void)"
 
 .PP
@@ -2387,6 +2426,19 @@ Retrieves the native image associated with a surface\&. !
 \fBReturns\fP
 .RS 4
 A pointer to the native RGFW_nativeImage associated with the surface\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_surface_setConvertFunc (\fBRGFW_surface\fP * surface, \fBRGFW_convertImageDataFunc\fP func)"
+
+.PP
+set the function/callback used for converting surface data between formats ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIsurface\fP a pointer to the surface 
+.br
+\fIa\fP function pointer for the function to use [if NULL the default function is used] 
 .RE
 .PP
 
