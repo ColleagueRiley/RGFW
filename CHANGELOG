@@ -76,7 +76,16 @@ Additional labels for pre-release and build metadata are available as extensions
 - add `RGFW_keyChar` event and `RGFW_keyCharfunc` callback for text input / UTF text
 - remove `sym` from `keyPressed` / `keyReleased` events, to be handled by `RGFW_keyChar`
 - implement proper UTF text input
+- add tests for compiling
+- remove VKInstance instance from getPresentation and fix windows support
 - replace `RGFW_rgfwToKeyChar` with `RGFW_physicalToMappedKey`
+- add support for utf8 key input and RGFW_keyChar event
+- remove keyChar from keyPress/keyReleased events (replaced by `RGFW_keyChar` event)
+- add physicalToMapped and mapToPhysical key funcs
+- use AdjustWindowRect instead of offset (win32)
+- update wayland-scanner system with wayland.mk
+- add wl_pointer-warp
+- add nativeFormat and callback for color conversion
 
 Release:    RGFW 1.8.0
 -----------------------------------------------
