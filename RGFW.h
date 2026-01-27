@@ -1548,11 +1548,9 @@ RGFWDEF RGFW_bool RGFW_window_createSurfacePtr(RGFW_window* win, u8* data, i32 w
 /**!
  * @brief blits a surface stucture to the window
  * @param win a pointer the window to blit to
- * @param x, x position of the surface on the window
- * @param y, x position of the surface on the window
  * @param surface a pointer to the surface
 */
-RGFWDEF void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface, i32 x, i32 y);
+RGFWDEF void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface);
 
 /**!
  * @brief gets the position of the window | with RGFW_window.x and window.y
@@ -3218,7 +3216,6 @@ struct RGFW_info {
         struct wl_data_device_manager *data_device_manager;
         struct wl_data_device *data_device; // supports clipboard and DND
 		struct wp_pointer_warp_v1* wp_pointer_warp;
-		struct wp_viewporter* viewporter;
 
         struct wl_keyboard* wl_keyboard;
         struct wl_pointer* wl_pointer;
@@ -4002,7 +3999,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 			u8* data = (u8*)RGFW_ALLOC((u32)(win->w * win->h * 3));
 			RGFW_MEMSET(data, 0, (u32)(win->w * win->h * 3) * sizeof(u8));
 			RGFW_surface* surface = RGFW_createSurface(data, win->w, win->h, RGFW_formatBGR8);
-			RGFW_window_blitSurface(win, surface, 0, 0);
+			RGFW_window_blitSurface(win, surface);
 			RGFW_FREE(data);
 			RGFW_surface_free(surface);
 		}
@@ -6182,12 +6179,12 @@ RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (u8* data, i32 w, i32 h, RGFW_format 
 	return RGFW_window_createSurfacePtr(_RGFW->root, data, w, h, format, surface);
 }
 
-void RGFW_FUNC(RGFW_window_blitSurface) (RGFW_window* win, RGFW_surface* surface, i32 x, i32 y) {
+void RGFW_FUNC(RGFW_window_blitSurface) (RGFW_window* win, RGFW_surface* surface) {
 	RGFW_ASSERT(surface != NULL);
 	surface->native.bitmap->data = (char*)surface->native.buffer;
 	RGFW_copyImageData((u8*)surface->native.buffer, surface->w, RGFW_MIN(win->h, surface->h), surface->native.format, surface->data, surface->format);
 
-	XPutImage(_RGFW->display, win->src.window, win->src.gc, surface->native.bitmap, 0, 0, x, y, (u32)RGFW_MIN(win->w, surface->w), (u32)RGFW_MIN(win->h, surface->h));
+	XPutImage(_RGFW->display, win->src.window, win->src.gc, surface->native.bitmap, 0, 0, 0, 0, (u32)RGFW_MIN(win->w, surface->w), (u32)RGFW_MIN(win->h, surface->h));
 	surface->native.bitmap->data = NULL;
 	return;
 }
@@ -8602,7 +8599,6 @@ struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { return win-
 #include "pointer-constraints-unstable-v1.h"
 #include "xdg-output-unstable-v1.h"
 #include "pointer-warp-v1.h"
-#include "viewporter-client-protocol.h"
 
 void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized);
 
@@ -9250,8 +9246,6 @@ static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *regi
 		RGFW->wp_pointer_warp = wl_registry_bind(registry, id, &wp_pointer_warp_v1_interface, 1);
 	} else if (RGFW_STRNCMP(interface,"wl_data_device_manager", 23) == 0) {
 		RGFW->data_device_manager = wl_registry_bind(registry, id, &wl_data_device_manager_interface, 1);
-	}  else if (RGFW_STRNCMP(interface,"wl_viewporter", 14) == 0) {
-		RGFW->viewporter = wl_registry_bind(registry, id, &wl_viewporter_interface, 1);
 	}
 }
 
@@ -9499,14 +9493,13 @@ RGFW_bool RGFW_FUNC(RGFW_createSurfacePtr) (u8* data, i32 w, i32 h, RGFW_format 
 	return RGFW_TRUE;
 }
 
-void RGFW_FUNC(RGFW_window_blitSurface) (RGFW_window* win, RGFW_surface* surface, i32 x, i32 y) {
+void RGFW_FUNC(RGFW_window_blitSurface) (RGFW_window* win, RGFW_surface* surface) {
 	RGFW_ASSERT(surface != NULL);
 
 	surface->native.wl_buffer = wl_shm_pool_create_buffer(surface->native.pool, 0, RGFW_MIN(win->w, surface->w), RGFW_MIN(win->h, surface->h), (i32)surface->w * 4, WL_SHM_FORMAT_ARGB8888);
 	RGFW_copyImageData(surface->native.buffer, surface->w, RGFW_MIN(win->h, surface->h), surface->native.format, surface->data, surface->format);
 
-
-	wl_surface_attach(win->src.surface, surface->native.wl_buffer, x, y);
+	wl_surface_attach(win->src.surface, surface->native.wl_buffer, 0, 0);
 	wl_surface_damage(win->src.surface, 0, 0, RGFW_MIN(win->w, surface->w), RGFW_MIN(win->h, surface->h));
 	wl_surface_commit(win->src.surface);
 
@@ -10882,7 +10875,7 @@ void RGFW_surface_freePtr(RGFW_surface* surface) {
 	DeleteObject(surface->native.bitmap);
 }
 
-void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface, i32 x, i32 y) {
+void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	RGFW_copyImageData(surface->native.bitmapBits, surface->w, RGFW_MIN(win->h, surface->h), surface->native.format, surface->data, surface->format);
 	BitBlt(win->src.hdc, 0, 0, RGFW_MIN(win->w, surface->w), RGFW_MIN(win->h, surface->h), surface->native.hdcMem, 0, 0, SRCCOPY);
 }
@@ -13227,7 +13220,7 @@ RGFW_bool RGFW_createSurfacePtr(u8* data, i32 w, i32 h, RGFW_format format, RGFW
 
 void RGFW_surface_freePtr(RGFW_surface* surface) { RGFW_FREE(surface->native.buffer); }
 
-void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface, i32 x, i32 y) {
+void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	pool = objc_msgSend_id(pool, sel_registerName("init"));
 
@@ -14787,7 +14780,7 @@ RGFW_bool RGFW_createSurfacePtr(u8* data, i32 w, i32 h, RGFW_format format, RGFW
 	return RGFW_TRUE;
 }
 
-void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface, i32 x, i32 y) {
+void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	/* TODO: Needs fixing. */
 	RGFW_copyImageData(surface->data, surface->w, RGFW_MIN(win->h, surface->h), RGFW_formatRGBA8, surface->data, surface->format);
 	EM_ASM_({
@@ -15490,7 +15483,7 @@ typedef RGFW_bool (*RGFW_monitor_setMode_ptr)(RGFW_monitor* mon, RGFW_monitorMod
 typedef RGFW_monitor* (*RGFW_window_getMonitor_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_closePlatform_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_createSurfacePtr_ptr)(u8* data, i32 w, i32 h, RGFW_format format, RGFW_surface* surface);
-typedef void (*RGFW_window_blitSurface_ptr)(RGFW_window* win, RGFW_surface* surface, i32 x, i32 y);
+typedef void (*RGFW_window_blitSurface_ptr)(RGFW_window* win, RGFW_surface* surface);
 typedef void (*RGFW_surface_freePtr_ptr)(RGFW_surface* surface);
 typedef void (*RGFW_freeMouse_ptr)(RGFW_mouse* mouse);
 typedef void (*RGFW_window_setBorder_ptr)(RGFW_window* win, RGFW_bool border);
@@ -15582,7 +15575,7 @@ RGFW_functionPointers RGFW_api;
 RGFW_bool RGFW_createSurfacePtr(u8* data, i32 w, i32 h, RGFW_format format, RGFW_surface* surface) { return RGFW_api.createSurfacePtr(data, w, h, format, surface); }
 void RGFW_surface_freePtr(RGFW_surface* surface) { RGFW_api.surface_freePtr(surface); }
 void RGFW_freeMouse(RGFW_mouse* mouse) { RGFW_api.freeMouse(mouse); }
-void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface, i32 x, i32 y) { RGFW_api.window_blitSurface(win, surface, x, y); }
+void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) { RGFW_api.window_blitSurface(win, surface); }
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) { RGFW_api.window_setBorder(win, border); }
 void RGFW_window_captureMousePlatform(RGFW_window* win, RGFW_bool state) { RGFW_api.window_captureMousePlatform(win, state); }
 void RGFW_window_setRawMouseModePlatform(RGFW_window* win, RGFW_bool state) { RGFW_api.window_setRawMouseModePlatform(win, state); }
