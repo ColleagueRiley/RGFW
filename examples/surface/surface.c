@@ -67,6 +67,9 @@ int main(void) {
 
     RGFW_event event;
 
+	float theta = 0;
+//	float theta2 = 0;
+
     while (running) {
         while (RGFW_window_checkEvent(win, &event)) {
             if (event.type == RGFW_quit || RGFW_window_isKeyPressed(win, RGFW_escape)) {
@@ -77,11 +80,27 @@ int main(void) {
 
         u8 color[4] = {0, 0, 255, 125};
         u8 color2[4] = {255, 0, 0, 255};
+        u8 color3[4] = {0, 255, 0, 255};
 
         i32 w, h;
         RGFW_window_getSize(win, &w, &h);
         clear(buffer, width, w, h, color);
         drawRect(buffer, width, 200, 200, 200, 200, color2);
+
+		for (i32 x = 200; x < 400; x++) {
+			theta = theta + (((float)x - 200) / 10.0f);
+
+			float t = cosf(theta * ((3.14f) / 180.0f));
+			i32 y = 300 + (i32)(t * 60.0f);
+			if (y < 0) continue;
+			if (y >= h) break;
+
+			for (float i = -8; i < 8; i++) {
+				y = 300 + (i32)(t * (60.0f + i));
+				u32 index = (u32)y * (4 * (u32)width) + ((u32)x) * 4;
+				memcpy(&buffer[index], color3, 4 * sizeof(u8));
+			}
+		}
 
         drawBitmap(buffer, width, icon, 100, 100, 3, 3);
         RGFW_window_blitSurface(win, surface);
