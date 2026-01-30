@@ -475,6 +475,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a18f6de53a3e37398f96b96cd7462e0bc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a18f6de53a3e37398f96b96cd7462e0bc">RGFW_monitor_getModesPtr</a> (<a class="el" href="structRGFW__monitor.html">RGFW_monitor</a> *monitor, <a class="el" href="structRGFW__monitorMode.html">RGFW_monitorMode</a> **modes)</td></tr>
 <tr class="memdesc:a18f6de53a3e37398f96b96cd7462e0bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the supported modes of a monitor using a pre-allocated array.  <a href="RGFW_8h.html#a18f6de53a3e37398f96b96cd7462e0bc">More...</a><br /></td></tr>
 <tr class="separator:a18f6de53a3e37398f96b96cd7462e0bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09e35e71c7b1f2633b86f39acf56ae8f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a09e35e71c7b1f2633b86f39acf56ae8f">RGFW_monitor_findClosestMode</a> (<a class="el" href="structRGFW__monitor.html">RGFW_monitor</a> *monitor, <a class="el" href="structRGFW__monitorMode.html">RGFW_monitorMode</a> *mode, <a class="el" href="structRGFW__monitorMode.html">RGFW_monitorMode</a> *closest)</td></tr>
+<tr class="memdesc:a09e35e71c7b1f2633b86f39acf56ae8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">find the closest monitor mode based on the give mode with size being the highest priority, format being the second and refreshrate being the third.  <a href="RGFW_8h.html#a09e35e71c7b1f2633b86f39acf56ae8f">More...</a><br /></td></tr>
+<tr class="separator:a09e35e71c7b1f2633b86f39acf56ae8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4c108ff6908bb721daf53e4000198764"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="structRGFW__gammaRamp.html">RGFW_gammaRamp</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a4c108ff6908bb721daf53e4000198764">RGFW_monitor_getGammaRamp</a> (<a class="el" href="structRGFW__monitor.html">RGFW_monitor</a> *monitor)</td></tr>
 <tr class="memdesc:a4c108ff6908bb721daf53e4000198764"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the allocated gamma ramp.  <a href="RGFW_8h.html#a4c108ff6908bb721daf53e4000198764">More...</a><br /></td></tr>
 <tr class="separator:a4c108ff6908bb721daf53e4000198764"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -3538,6 +3541,51 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>A pointer to the newly loaded RGFW_mouse structure.</dd></dl>
 <dl class="section note"><dt>Note</dt><dd>The icon is not resized by default. </dd></dl>
+
+</div>
+</div>
+<a id="a09e35e71c7b1f2633b86f39acf56ae8f" name="a09e35e71c7b1f2633b86f39acf56ae8f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a09e35e71c7b1f2633b86f39acf56ae8f">&#9670;&#160;</a></span>RGFW_monitor_findClosestMode()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> RGFW_monitor_findClosestMode </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structRGFW__monitor.html">RGFW_monitor</a> *&#160;</td>
+          <td class="paramname"><em>monitor</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structRGFW__monitorMode.html">RGFW_monitorMode</a> *&#160;</td>
+          <td class="paramname"><em>mode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structRGFW__monitorMode.html">RGFW_monitorMode</a> *&#160;</td>
+          <td class="paramname"><em>closest</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>find the closest monitor mode based on the give mode with size being the highest priority, format being the second and refreshrate being the third. </p>
+<p >! </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">monitor</td><td>the source monitor object </td></tr>
+    <tr><td class="paramname">mode</td><td>user filled mode to use for comparison </td></tr>
+    <tr><td class="paramname">modes</td><td>[OUTPUT] a pointer to be filled with the output closest monitor </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>returns true if a suitable monitor was found and false if no suitable monitor was found at all </dd></dl>
 
 </div>
 </div>

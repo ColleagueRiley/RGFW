@@ -86,6 +86,7 @@ Additional labels for pre-release and build metadata are available as extensions
 - update wayland-scanner system with wayland.mk
 - add wl_pointer-warp
 - add nativeFormat and callback for color conversion
+- add `RGFW_monitor_findClosestMode`
 
 Release:    RGFW 1.8.0
 -----------------------------------------------

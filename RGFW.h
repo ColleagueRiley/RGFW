@@ -1219,6 +1219,7 @@ RGFWDEF RGFW_monitorMode* RGFW_monitor_getModes(RGFW_monitor* monitor, size_t* c
  * @param modes a pointer to an allocated array of modes
 */
 RGFWDEF void RGFW_freeModes(RGFW_monitorMode* modes);
+
 /**!
  * @brief Get the supported modes of a monitor using a pre-allocated array
  * @param monitor the source monitor object
@@ -1226,6 +1227,16 @@ RGFWDEF void RGFW_freeModes(RGFW_monitorMode* modes);
  * @return the number of (possible) modes, if [modes == NULL] the possible nodes *may* be less than the actual modes
 */
 RGFWDEF size_t RGFW_monitor_getModesPtr(RGFW_monitor* monitor, RGFW_monitorMode** modes);
+
+/**!
+ * @brief find the closest monitor mode based on the give mode with size being the highest priority, format being the second and refreshrate being the third.
+ * @param monitor the source monitor object
+ * @param mode user filled mode to use for comparison
+ * @param modes [OUTPUT] a pointer to be filled with the output closest monitor
+ * @return returns true if a suitable monitor was found and false if no suitable monitor was found at all
+*/
+
+RGFWDEF RGFW_bool RGFW_monitor_findClosestMode(RGFW_monitor* monitor, RGFW_monitorMode* mode, RGFW_monitorMode* closest);
 
 /**!
  * @brief Get the allocated gamma ramp
@@ -3039,6 +3050,7 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 	struct RGFW_nativeImage {
 		RGFW_format format;
 		u8* buffer;
+		void* rep;
 	};
 
 	#ifdef RGFW_OPENGL
@@ -4579,6 +4591,36 @@ RGFW_monitorMode* RGFW_monitor_getModes(RGFW_monitor* monitor, size_t* count) {
 
 void RGFW_freeModes(RGFW_monitorMode* modes) {
 	RGFW_FREE(modes);
+}
+
+RGFW_bool RGFW_monitor_findClosestMode(RGFW_monitor* monitor, RGFW_monitorMode* mode, RGFW_monitorMode* closest) {
+	size_t count = RGFW_monitor_getModesPtr(monitor, NULL);
+	RGFW_monitorMode* modes = (RGFW_monitorMode*)RGFW_ALLOC(count * sizeof(RGFW_monitorNode));
+	count = RGFW_monitor_getModesPtr(monitor, &modes);
+
+	RGFW_monitorMode* chosen = NULL;
+
+	u32 topScore = 1;
+	for (size_t i = 0; i < count; i++) {
+		RGFW_monitorMode* mode2 = &modes[i];
+
+		u32 score = 0;
+		if (mode->w == mode2->w && mode->h == mode2->h) score += 1000;
+		if (mode->red == mode2->red && mode->green == mode2->green && mode->blue == mode2->blue) score += 100;
+		if (mode->refreshRate == mode->refreshRate) score += 10;
+
+		if (score > topScore) {
+			topScore = score;
+			chosen = mode2;
+		}
+	}
+
+	if (chosen && closest) *closest = *chosen;
+
+
+	RGFW_FREE(modes);
+
+	return (chosen == NULL) ? RGFW_FALSE : RGFW_TRUE;
 }
 
 RGFW_bool RGFW_monitor_getPosition(RGFW_monitor* monitor, i32* x, i32* y) {
@@ -13256,40 +13298,37 @@ RGFW_bool RGFW_createSurfacePtr(u8* data, i32 w, i32 h, RGFW_format format, RGFW
 	return RGFW_TRUE;
 }
 
-void RGFW_surface_freePtr(RGFW_surface* surface) { RGFW_FREE(surface->native.buffer); }
+void RGFW_surface_freePtr(RGFW_surface* surface) {
+	RGFW_FREE(surface->native.buffer);
+}
 
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	pool = objc_msgSend_id(pool, sel_registerName("init"));
 
-	int minX = RGFW_MIN(win->w, surface->w);
-	int minY = RGFW_MIN(win->h, surface->h);
+	int minW = RGFW_MIN(win->w, surface->w);
+	int minH = RGFW_MIN(win->h, surface->h);
 
 	RGFW_monitor* mon = RGFW_window_getMonitor(win);
 	if (mon == NULL) return;
 
-	minX =  (i32)((float)minX * mon->pixelRatio);
-	minY = (i32)((float)minY * mon->pixelRatio);
+	minW =  (i32)((float)minW * mon->pixelRatio);
+	minH = (i32)((float)minH * mon->pixelRatio);
 
-	RGFW_copyImageData(surface->native.buffer, surface->w, minY, surface->native.format, surface->data, surface->format, surface->convertFunc);
+	surface->native.rep = (void*)NSBitmapImageRep_initWithBitmapData(&surface->native.buffer, minW, minH, 8, 4, true, false, "NSDeviceRGBColorSpace", 1 << 1, (u32)surface->w * 4, 32);
 
 	id image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSImage"), sel_getUid("alloc"));
-	NSSize size = (NSSize){(double)surface->w, (double)surface->h};
+	NSSize size = (NSSize){(double)minW, (double)minH};
 	image = ((id (*)(id, SEL, NSSize))objc_msgSend)((id)image, sel_getUid("initWithSize:"), size);
 
-	id rep  = NSBitmapImageRep_initWithBitmapData(&surface->native.buffer, minX, minY, 8, 4, true, false, "NSDeviceRGBColorSpace", 1 << 1, (u32)surface->w  * 4, 32);
-	RGFW_copyImageData(NSBitmapImageRep_bitmapData(rep), minX, minY , RGFW_formatRGBA8, surface->native.buffer, surface->native.format, surface->convertFunc);
-	((void (*)(id, SEL, id))objc_msgSend)((id)image, sel_getUid("addRepresentation:"), rep);
+	RGFW_copyImageData(NSBitmapImageRep_bitmapData((id)surface->native.rep), surface->w, minH, RGFW_formatRGBA8, surface->data, surface->native.format, surface->convertFunc);
+	((void (*)(id, SEL, id))objc_msgSend)((id)image, sel_getUid("addRepresentation:"), (id)surface->native.rep);
 
-	id contentView = ((id (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_getUid("contentView"));
-	((void (*)(id, SEL, BOOL))objc_msgSend)(contentView, sel_getUid("setWantsLayer:"), YES);
-	id layer = ((id (*)(id, SEL))objc_msgSend)(contentView, sel_getUid("layer"));
-
+	id layer = ((id (*)(id, SEL))objc_msgSend)((id)win->src.view, sel_getUid("layer"));
 	((void (*)(id, SEL, id))objc_msgSend)(layer, sel_getUid("setContents:"), (id)image);
-	((void (*)(id, SEL, BOOL))objc_msgSend)(contentView, sel_getUid("setNeedsDisplay:"), YES);
 
-	NSRelease(rep);
 	NSRelease(image);
+	NSRelease(surface->native.rep);
 
 	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 }
@@ -13887,8 +13926,12 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_f
 	RGFW_ASSERT(win != NULL);
 	RGFW_UNUSED(type);
 
+	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+	pool = objc_msgSend_id(pool, sel_registerName("init"));
+
 	if (data == NULL) {
 		objc_msgSend_void_id((id)_RGFW->NSApp, sel_registerName("setApplicationIconImage:"), NULL);
+		objc_msgSend_bool_void(pool, sel_registerName("drain"));
 		return RGFW_TRUE;
 	}
 
@@ -13904,6 +13947,8 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_f
 	NSRelease(dock_image);
 	NSRelease(representation);
 
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
+
 	return RGFW_TRUE;
 }
 
@@ -13915,8 +13960,13 @@ id NSCursor_arrowStr(const char* str) {
 }
 
 RGFW_mouse* RGFW_loadMouse(u8* data, i32 w, i32 h, RGFW_format format) {
+	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+	pool = objc_msgSend_id(pool, sel_registerName("init"));
+
 	if (data == NULL) {
 		objc_msgSend_void(NSCursor_arrowStr("arrowCursor"), sel_registerName("set"));
+
+		objc_msgSend_bool_void(pool, sel_registerName("drain"));
 		return NULL;
 	}
 
@@ -13932,6 +13982,8 @@ RGFW_mouse* RGFW_loadMouse(u8* data, i32 w, i32 h, RGFW_format format) {
 
 	NSRelease(cursor_image);
 	NSRelease(representation);
+
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 
 	return (void*)cursor;
 }
