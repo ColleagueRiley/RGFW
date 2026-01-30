@@ -13324,7 +13324,7 @@ void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 	RGFW_copyImageData(NSBitmapImageRep_bitmapData((id)surface->native.rep), surface->w, minH, RGFW_formatRGBA8, surface->data, surface->native.format, surface->convertFunc);
 	((void (*)(id, SEL, id))objc_msgSend)((id)image, sel_getUid("addRepresentation:"), (id)surface->native.rep);
 
-	id layer = ((id (*)(id, SEL))objc_msgSend)(win->src.view, sel_getUid("layer"));
+	id layer = ((id (*)(id, SEL))objc_msgSend)((id)win->src.view, sel_getUid("layer"));
 	((void (*)(id, SEL, id))objc_msgSend)(layer, sel_getUid("setContents:"), (id)image);
 
 	NSRelease(image);
