@@ -1219,6 +1219,7 @@ RGFWDEF RGFW_monitorMode* RGFW_monitor_getModes(RGFW_monitor* monitor, size_t* c
  * @param modes a pointer to an allocated array of modes
 */
 RGFWDEF void RGFW_freeModes(RGFW_monitorMode* modes);
+
 /**!
  * @brief Get the supported modes of a monitor using a pre-allocated array
  * @param monitor the source monitor object
@@ -1226,6 +1227,16 @@ RGFWDEF void RGFW_freeModes(RGFW_monitorMode* modes);
  * @return the number of (possible) modes, if [modes == NULL] the possible nodes *may* be less than the actual modes
 */
 RGFWDEF size_t RGFW_monitor_getModesPtr(RGFW_monitor* monitor, RGFW_monitorMode** modes);
+
+/**!
+ * @brief find the closest monitor mode based on the give mode with size being the highest priority, format being the second and refreshrate being the third.
+ * @param monitor the source monitor object
+ * @param mode user filled mode to use for comparison
+ * @param modes [OUTPUT] a pointer to be filled with the output closest monitor
+ * @return returns true if a suitable monitor was found and false if no suitable monitor was found at all
+*/
+
+RGFWDEF RGFW_bool RGFW_monitor_findClosestMode(RGFW_monitor* monitor, RGFW_monitorMode* mode, RGFW_monitorMode* closest);
 
 /**!
  * @brief Get the allocated gamma ramp
@@ -4579,6 +4590,36 @@ RGFW_monitorMode* RGFW_monitor_getModes(RGFW_monitor* monitor, size_t* count) {
 
 void RGFW_freeModes(RGFW_monitorMode* modes) {
 	RGFW_FREE(modes);
+}
+
+RGFW_bool RGFW_monitor_findClosestMode(RGFW_monitor* monitor, RGFW_monitorMode* mode, RGFW_monitorMode* closest) {
+	size_t count = RGFW_monitor_getModesPtr(monitor, NULL);
+	RGFW_monitorMode* modes = (RGFW_monitorMode*)RGFW_ALLOC(count * sizeof(RGFW_monitorNode));
+	count = RGFW_monitor_getModesPtr(monitor, &modes);
+
+	RGFW_monitorMode* chosen = NULL;
+
+	u32 topScore = 1;
+	for (size_t i = 0; i < count; i++) {
+		RGFW_monitorMode* mode2 = &modes[i];
+
+		u32 score = 0;
+		if (mode->w == mode2->w && mode->h == mode2->h) score += 1000;
+		if (mode->red == mode2->red && mode->green == mode2->green && mode->blue == mode2->blue) score += 100;
+		if (mode->refreshRate == mode->refreshRate) score += 10;
+
+		if (score > topScore) {
+			topScore = score;
+			chosen = mode2;
+		}
+	}
+
+	if (chosen && closest) *closest = *chosen;
+
+
+	RGFW_FREE(modes);
+
+	return (chosen == NULL) ? RGFW_FALSE : RGFW_TRUE;
 }
 
 RGFW_bool RGFW_monitor_getPosition(RGFW_monitor* monitor, i32* x, i32* y) {
