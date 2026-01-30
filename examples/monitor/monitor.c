@@ -38,6 +38,8 @@ int main(void) {
 		}
 	}
 
+	RGFW_free(modes);
+
 	RGFW_monitor_setMode(mon, &mode);
 
 	if (mon == NULL) {
