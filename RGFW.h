@@ -4852,7 +4852,7 @@ u32 RGFW_decodeUTF8(const char* string, size_t* starting_index) {
 
 	*starting_index += count;
 
-    assert(count <= 6);
+    RGFW_ASSERT(count <= 6);
     return codepoint - offsets[count - 1];
 }
 
