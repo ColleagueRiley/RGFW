@@ -29,7 +29,6 @@
 	(MAKE SURE RGFW_IMPLEMENTATION is in exactly one header or you use -D RGFW_IMPLEMENTATION)
 	#define RGFW_IMPLEMENTATION - makes it so source code is included with header
 */
-
 /*
 	#define RGFW_IMPLEMENTATION - (required) makes it so the source code is included
 	#define RGFW_DEBUG - (optional) makes it so RGFW prints debug messages and errors when they're found
@@ -210,6 +209,7 @@ int main() {
 #if defined(RGFW_WAYLAND)
 	#define RGFW_DEBUG /* wayland will be in debug mode by default for now */
 	#define RGFW_UNIX
+	#define _GNU_SOURCE
 	#ifdef RGFW_OPENGL
 		#define RGFW_EGL
 	#endif
@@ -3221,7 +3221,8 @@ struct RGFW_info {
     char* clipboard_data;
     char* clipboard; /* for writing to the clipboard selection */
     size_t clipboard_len;
-    char filesSrc[RGFW_MAX_PATH * RGFW_MAX_DROPS];
+
+	char filesSrc[RGFW_MAX_PATH * RGFW_MAX_DROPS];
 	char** files;
 	#ifdef RGFW_X11
         Display* display;
@@ -3264,6 +3265,14 @@ struct RGFW_info {
         RGFW_window* kbOwner;
 		RGFW_window* mouseOwner; /* what window has access to the mouse */
 
+		struct wl_data_offer* dragOffer;
+
+	struct {
+		    struct wl_data_offer* offer;
+		    RGFW_bool text_plain_utf8;
+		    RGFW_bool text_uri_list;
+		} * offers;
+		size_t offerCount;
     #endif
 
     RGFW_monitors monitors;
@@ -5631,9 +5640,10 @@ This is where OS specific stuff starts
 /* start of unix (wayland or X11 (unix) ) defines */
 
 #ifdef RGFW_UNIX
+#define _GNU_SOURCE
 #include <fcntl.h>
-#include <poll.h>
 #include <unistd.h>
+#include <poll.h>
 
 void RGFW_stopCheckEvents(void) {
 
@@ -5653,6 +5663,23 @@ u64 RGFW_linux_getTimeNS(void) {
     clock_gettime(_RGFW->clock, &ts);
     return (u64)ts.tv_sec * scale_factor + (u64)ts.tv_nsec;
 }
+
+#ifdef RGFW_WAYLAND
+RGFWDEF void RGFW_wl_flushDisplay(void);
+void RGFW_wl_flushDisplay(void) {
+	/* send any pending requests to the compositor */
+	while (wl_display_flush(_RGFW->wl_display) == -1) {
+		/* queue is full dispatch them */
+		if (errno != EAGAIN) {
+			return;
+		}
+
+		if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
+			return;
+		}
+	}
+}
+#endif
 
 void RGFW_waitForEvent(i32 waitMS) {
 	if (waitMS == 0) return;
@@ -5687,18 +5714,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 			}
 		}
 
-		/* send any pending requests to the compositor */
-		while (wl_display_flush(_RGFW->wl_display) == -1) {
-
-			/* queue is full dispatch them */
-			if (errno == EAGAIN) {
-				if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
-					return;
-				}
-			} else {
-				return;
-			}
-		}
+		RGFW_wl_flushDisplay();
 		#endif
 	} else {
 		#ifdef RGFW_X11
@@ -6001,6 +6017,75 @@ size_t RGFW_unix_stringlen(const char* name) {
 	return i;
 }
 
+RGFWDEF char** RGFW_unix_parseUriList(char* data, size_t* count);
+char** RGFW_unix_parseUriList(char* data, size_t* count) {
+	const char* prefix = (const char*)"file://";
+
+	char* line;
+
+	*count = 0;
+	char** files = _RGFW->files;
+
+	while ((line = (char*)RGFW_strtok(data, "\r\n"))) {
+		data = NULL;
+
+		if (line[0] == '#')
+			continue;
+
+		char* l;
+		for (l = line; 1; l++) {
+			if ((l - line) > 7)
+				break;
+			else if (*l != prefix[(l - line)])
+				break;
+			else if (*l == '\0' && prefix[(l - line)] == '\0') {
+				line += 7;
+				while (*line != '/')
+					line++;
+				break;
+			} else if (*l == '\0')
+				break;
+		}
+
+		*count += 1;
+
+		size_t len = RGFW_unix_stringlen(line);
+		char* path = (char*)RGFW_ALLOC(len + 1);
+
+		size_t index = 0;
+		while (*line) {
+			if (line[0] == '%' && line[1] && line[2]) {
+				char digits[3] = {0};
+				digits[0] = line[1];
+				digits[1] = line[2];
+				digits[2] = '\0';
+				path[index] = (char) RGFW_STRTOL(digits, NULL, 16);
+				line += 2;
+			} else {
+				if (index >= len) {
+					break;
+				}
+
+				path[index] = *line;
+			}
+
+			index++;
+			line++;
+		}
+
+		path[len] = '\0';
+		size_t cnt = RGFW_MIN(len + 1, RGFW_MAX_PATH);
+		if (cnt == RGFW_MAX_PATH) {
+			path[cnt] = '\0';
+		}
+
+		RGFW_MEMCPY(files[(*count) - 1], path, cnt);
+		RGFW_FREE(path);
+	}
+
+	return files;
+}
+
 #endif /* end of wayland or X11 defines */
 
 
@@ -6020,6 +6105,7 @@ Start of Linux / Unix defines
 #endif
 
 #include <dlfcn.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 #include <limits.h> /* for data limits (mainly used in drag and drop functions) */
@@ -7024,69 +7110,8 @@ void RGFW_XHandleEvent(void) {
 			if (result == 0)
 				break;
 
-			const char* prefix = (const char*)"file://";
-
-			char* line;
-
-			size_t count = 0;
-			char** files = _RGFW->files;
-
-			while ((line = (char*)RGFW_strtok(data, "\r\n"))) {
-				data = NULL;
-
-				if (line[0] == '#')
-					continue;
-
-				char* l;
-				for (l = line; 1; l++) {
-					if ((l - line) > 7)
-						break;
-					else if (*l != prefix[(l - line)])
-						break;
-					else if (*l == '\0' && prefix[(l - line)] == '\0') {
-						line += 7;
-						while (*line != '/')
-							line++;
-						break;
-					} else if (*l == '\0')
-						break;
-				}
-
-				count++;
-
-				size_t len = RGFW_unix_stringlen(line);
-				char* path = (char*)RGFW_ALLOC(len + 1);
-
-				size_t index = 0;
-				while (*line) {
-					if (line[0] == '%' && line[1] && line[2]) {
-						char digits[3] = {0};
-                        digits[0] = line[1];
-                        digits[1] = line[2];
-                        digits[2] = '\0';
-						path[index] = (char) RGFW_STRTOL(digits, NULL, 16);
-						line += 2;
-					} else {
-						if (index >= len) {
-							break;
-						}
-
-						path[index] = *line;
-					}
-
-					index++;
-					line++;
-				}
-
-				path[len] = '\0';
-				size_t cnt = RGFW_MIN(len + 1, RGFW_MAX_PATH);
-				if (cnt == RGFW_MAX_PATH) {
-					path[cnt] = '\0';
-				}
-
-				RGFW_MEMCPY(files[count - 1], path, cnt);
-				RGFW_FREE(path);
-			}
+			size_t count;
+			char** files = RGFW_unix_parseUriList(data, &count);
 
 			RGFW_dataDropCallback(win, files, count);
 			if (data)
@@ -8651,6 +8676,7 @@ Wayland TODO: (out of date)
 - fix buffer rendering weird behavior
 */
 #include <errno.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <xkbcommon/xkbcommon.h>
@@ -8659,7 +8685,6 @@ Wayland TODO: (out of date)
 #include <dirent.h>
 #include <linux/kd.h>
 #include <wayland-cursor.h>
-#include <fcntl.h>
 
 struct wl_display* RGFW_getDisplay_Wayland(void) { return _RGFW->wl_display; }
 struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { return win->src.surface; }
@@ -9233,7 +9258,6 @@ static void RGFW_wl_data_source_send(void *data, struct wl_data_source *wl_data_
 }
 
 static void RGFW_wl_data_source_cancelled(void *data, struct wl_data_source *wl_data_source) {
-
 	RGFW_info* RGFW = (RGFW_info*)data;
 
 	if (RGFW->kbOwner->src.data_source == wl_data_source) {
@@ -9244,16 +9268,171 @@ static void RGFW_wl_data_source_cancelled(void *data, struct wl_data_source *wl_
 
 }
 
-static void RGFW_wl_data_device_data_offer(void *data, struct wl_data_device *wl_data_device, struct wl_data_offer *wl_data_offer) {
+static void RGFW_wl_data_handle_data_offer(void* userData, struct wl_data_offer* offer, const char* mimeType) {
+	RGFW_UNUSED(userData);
+	for (size_t i = 0; i < _RGFW->offerCount; i++) {
+        if (_RGFW->offers[i].offer == offer) {
+            if (strcmp(mimeType, "text/plain;charset=utf-8") == 0)
+                _RGFW->offers[i].text_plain_utf8 = RGFW_TRUE;
+            else if (strcmp(mimeType, "text/uri-list") == 0)
+                _RGFW->offers[i].text_uri_list = RGFW_TRUE;
 
+            break;
+        }
+    }
+}
+
+static void RGFW_wl_data_device_data_offer(void *data, struct wl_data_device *wl_data_device, struct wl_data_offer *wl_data_offer) {
 	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device);
 	static const struct wl_data_offer_listener wl_data_offer_listener = {
-		.offer = (void (*)(void *data, struct wl_data_offer *wl_data_offer, const char *))RGFW_doNothing,
+		.offer = (void (*)(void *data, struct wl_data_offer *wl_data_offer, const char *))RGFW_wl_data_handle_data_offer,
 		.source_actions = (void (*)(void *data, struct wl_data_offer *wl_data_offer, u32 dnd_action))RGFW_doNothing,
 		.action = (void (*)(void *data, struct wl_data_offer *wl_data_offer, u32 dnd_action))RGFW_doNothing
 	};
+
+	wl_data_offer_set_user_data(wl_data_offer, (void*)_RGFW);
 	wl_data_offer_add_listener(wl_data_offer, &wl_data_offer_listener, NULL);
 }
+
+static void RGFW_wl_data_device_data_enter(void* data, struct wl_data_device* wl_data_device, u32 serial, struct wl_surface* surface, wl_fixed_t x, wl_fixed_t y, struct wl_data_offer * offer) {
+	RGFW_UNUSED(data);
+	RGFW_UNUSED(wl_data_device);
+	RGFW_UNUSED(serial);
+	RGFW_UNUSED(offer);
+
+	i32 convertedX = (i32)wl_fixed_to_double(x);
+	i32 convertedY = (i32)wl_fixed_to_double(y);
+
+	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
+	RGFW_dataDragCallback(win, convertedX, convertedY);
+
+
+    if (_RGFW->dragOffer) {
+        wl_data_offer_destroy(_RGFW->dragOffer);
+        _RGFW->dragOffer = NULL;
+    }
+
+	u32 i;
+    for (i = 0; i < _RGFW->offerCount; i++) {
+        if (_RGFW->offers[i].offer == offer)
+            break;
+    }
+
+    if (i == _RGFW->offerCount)
+        return;
+
+    if (surface && wl_proxy_get_tag((struct wl_proxy*) surface) == &_RGFW->tag) {
+        RGFW_window* window = (RGFW_window*)wl_surface_get_user_data(surface);
+        if (window->src.surface != surface) {
+            if (_RGFW->offers[i].text_uri_list) {
+                _RGFW->dragOffer = offer;
+                _RGFW->dragSerial = serial;
+
+                wl_data_offer_accept(offer, serial, "text/uri-list");
+            }
+        }
+    }
+
+    if (!_RGFW->dragOffer)
+    {
+        wl_data_offer_accept(offer, serial, NULL);
+        wl_data_offer_destroy(offer);
+    }
+
+    _RGFW->offers[i] = _RGFW->offers[_RGFW->offerCount - 1];
+    _RGFW->offerCount--;
+}
+
+static void RGFW_wl_data_device_data_leave(void* data, struct wl_data_device* wl_data_device) {
+	RGFW_UNUSED(data);
+	RGFW_UNUSED(wl_data_device);
+	if (_RGFW->dragOffer) {
+        wl_data_offer_destroy(_RGFW->dragOffer);
+		_RGFW->dragOffer = NULL;
+    }
+}
+
+static void RGFW_wl_data_device_data_motion(void* data, struct wl_data_device* wl_data_device, u32 serial, wl_fixed_t x, wl_fixed_t y) {
+	RGFW_UNUSED(data);
+	RGFW_UNUSED(wl_data_device);
+	RGFW_UNUSED(serial);
+	RGFW_UNUSED(x);
+	RGFW_UNUSED(y);
+}
+
+static char* readDataOfferAsString(struct wl_data_offer* offer, const char* mimeType) {
+    int fds[2];
+
+    if (pipe2(fds, O_CLOEXEC) == -1) {
+		RGFW_sendDebugInfo(RGFW_typeError, RGFW_errPlatform, "Failed to create pipe for data offer");
+        return NULL;
+    }
+
+    wl_data_offer_receive(offer, mimeType, fds[1]);
+	RGFW_wl_flushDisplay();
+    close(fds[1]);
+
+    char* string = NULL;
+    size_t size = 0;
+    size_t length = 0;
+
+    for (;;) {
+        size_t readSize = 4096;
+        size_t requiredSize = length + readSize + 1;
+        if (requiredSize > size) {
+            char* longer = (char*)RGFW_ALLOC(requiredSize);
+			RGFW_MEMCPY(longer, string, requiredSize);
+			RGFW_FREE(string);
+
+            if (longer == NULL) {
+				RGFW_sendDebugInfo(RGFW_typeError, RGFW_errPlatform, "OOM out of memory");
+				close(fds[0]);
+                return NULL;
+            }
+
+            string = longer;
+            size = requiredSize;
+        }
+
+        ssize_t result = read(fds[0], string + length, readSize);
+        if (result == 0) {
+            break;
+		} else if (result == -1) {
+            if (errno == EINTR)
+                continue;
+
+			RGFW_sendDebugInfo(RGFW_typeError, RGFW_errPlatform, "Failed to read from data offer pipe");
+            RGFW_FREE(string);
+            close(fds[0]);
+            return NULL;
+        }
+
+        length += (size_t)result;
+    }
+
+    close(fds[0]);
+
+    string[length] = '\0';
+    return string;
+}
+
+static void RGFW_wl_data_device_data_drop(void* data, struct wl_data_device* wl_data_device) {
+	RGFW_UNUSED(data);
+	RGFW_UNUSED(wl_data_device);
+
+    char* string = readDataOfferAsString(_RGFW->dragOffer, "text/uri-list");
+    if (string == NULL) {
+		return;
+	}
+
+	size_t count;
+	char** files = RGFW_unix_parseUriList(string, &count);
+
+	RGFW_dataDropCallback(_RGFW->mouseOwner, files, count);
+
+	RGFW_FREE(string);
+}
+
 
 static void RGFW_wl_data_device_selection(void *data, struct wl_data_device *wl_data_device, struct wl_data_offer *wl_data_offer) {
 	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_device);
@@ -9445,10 +9624,10 @@ i32 RGFW_initPlatform_Wayland(void) {
 
 	static const struct wl_data_device_listener wl_data_device_listener = {
 		.data_offer = RGFW_wl_data_device_data_offer,
-		.enter = (void (*)(void *, struct wl_data_device *, u32, struct wl_surface*, wl_fixed_t, wl_fixed_t, struct wl_data_offer *))&RGFW_doNothing,
-		.leave = (void (*)(void *, struct wl_data_device *))&RGFW_doNothing,
-		.motion = (void (*)(void *, struct wl_data_device *, u32, wl_fixed_t, wl_fixed_t))&RGFW_doNothing,
-		.drop = (void (*)(void *, struct wl_data_device *))&RGFW_doNothing,
+		.enter = (void (*)(void *, struct wl_data_device *, u32, struct wl_surface*, wl_fixed_t, wl_fixed_t, struct wl_data_offer *))&RGFW_wl_data_device_data_enter,
+		.leave = (void (*)(void *, struct wl_data_device *))&RGFW_wl_data_device_data_leave,
+		.motion = (void (*)(void *, struct wl_data_device *, u32, wl_fixed_t, wl_fixed_t))&RGFW_wl_data_device_data_motion,
+		.drop = (void (*)(void *, struct wl_data_device *))&RGFW_wl_data_device_data_drop,
 		.selection = RGFW_wl_data_device_selection
 	};
 
@@ -11757,7 +11936,6 @@ void RGFW_pollMonitors(void) {
 			RGFW_win32_createMonitor(&adapter, &dd);
 		}
 
-		/* if there are no display devices, just use the monitor directly (hack borrowed from GLFW (I'm not giving it back)) */
         if (deviceNum == 0) {
    			RGFW_monitorNode* node;
 			for (node = _RGFW->monitors.list.head; node; node = node->next) {
@@ -15889,4 +16067,3 @@ void RGFW_load_Wayland(void) {
 #if _MSC_VER
 	#pragma warning( pop )
 #endif
-
