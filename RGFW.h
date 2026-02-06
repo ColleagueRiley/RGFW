@@ -14471,10 +14471,10 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 			RGFW_attribStack_pushAttrib(&stack, NSOpenGLPFADoubleBuffer);
 
 		#ifdef RGFW_COCOA_GRAPHICS_SWITCHING
-		RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFAAllowOfflineRenderers, kCGLPFASupportsAutomaticGraphicsSwitching)
+		RGFW_attribStack_pushAttribs(&stack, NSOpenGLPFAAllowOfflineRenderers, kCGLPFASupportsAutomaticGraphicsSwitching);
 		#endif
 		#if MAC_OS_X_VERSION_MAX_ALLOWED < 101200
-		if (hints->stereo]) RGFW_attribStack_pushAttrib(&stack, NSOpenGLPFAStereo);
+		if (hints->stereo) RGFW_attribStack_pushAttrib(&stack, NSOpenGLPFAStereo);
 		#endif
 
 		/* macOS has the surface attribs and the OpenGL attribs connected for some reason maybe this is to give macOS more control to limit openGL/the OpenGL version? */

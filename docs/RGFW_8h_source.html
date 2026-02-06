@@ -13111,10 +13111,10 @@ $(function() {
 <div class="line"><a id="l14471" name="l14471"></a><span class="lineno">14471</span>            RGFW_attribStack_pushAttrib(&amp;stack, NSOpenGLPFADoubleBuffer);</div>
 <div class="line"><a id="l14472" name="l14472"></a><span class="lineno">14472</span> </div>
 <div class="line"><a id="l14473" name="l14473"></a><span class="lineno">14473</span><span class="preprocessor">        #ifdef RGFW_COCOA_GRAPHICS_SWITCHING</span></div>
-<div class="line"><a id="l14474" name="l14474"></a><span class="lineno">14474</span>        RGFW_attribStack_pushAttribs(&amp;stack, NSOpenGLPFAAllowOfflineRenderers, kCGLPFASupportsAutomaticGraphicsSwitching)</div>
-<div class="line"><a id="l14475" name="l14475"></a><span class="lineno">14475</span>        <span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l14474" name="l14474"></a><span class="lineno">14474</span>        RGFW_attribStack_pushAttribs(&amp;stack, NSOpenGLPFAAllowOfflineRenderers, kCGLPFASupportsAutomaticGraphicsSwitching);</div>
+<div class="line"><a id="l14475" name="l14475"></a><span class="lineno">14475</span><span class="preprocessor">        #endif</span></div>
 <div class="line"><a id="l14476" name="l14476"></a><span class="lineno">14476</span><span class="preprocessor">        #if MAC_OS_X_VERSION_MAX_ALLOWED &lt; 101200</span></div>
-<div class="line"><a id="l14477" name="l14477"></a><span class="lineno">14477</span>        <span class="keywordflow">if</span> (hints-&gt;stereo]) RGFW_attribStack_pushAttrib(&amp;stack, NSOpenGLPFAStereo);</div>
+<div class="line"><a id="l14477" name="l14477"></a><span class="lineno">14477</span>        <span class="keywordflow">if</span> (hints-&gt;stereo) RGFW_attribStack_pushAttrib(&amp;stack, NSOpenGLPFAStereo);</div>
 <div class="line"><a id="l14478" name="l14478"></a><span class="lineno">14478</span><span class="preprocessor">        #endif</span></div>
 <div class="line"><a id="l14479" name="l14479"></a><span class="lineno">14479</span> </div>
 <div class="line"><a id="l14480" name="l14480"></a><span class="lineno">14480</span>        <span class="comment">/* macOS has the surface attribs and the OpenGL attribs connected for some reason maybe this is to give macOS more control to limit openGL/the OpenGL version? */</span></div>
