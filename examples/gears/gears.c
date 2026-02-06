@@ -36,6 +36,7 @@
 #include <RGFW.h>
 
 #ifdef RGFW_MACOS
+#include <sys/time.h>
 #include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
@@ -43,43 +44,38 @@
 
 RGFW_window* win;
 
-#define BENCHMARK
-
-#ifdef BENCHMARK
-
-/* XXX this probably isn't very portable */
-
-#include <sys/time.h>
-#include <unistd.h>
-
 /* return current time (in seconds) */
 static double
 current_time(void)
 {
+   #if defined(RGFW_WINDOWS)
+
+   static LARGE_INTEGER frequency = {0};
+   LARGE_INTEGER counter = {0};
+
+   if (frequency.QuadPart == 0) {
+      QueryPerformanceFrequency(&frequency);
+   }
+   QueryPerformanceCounter(&counter);
+   return (double)counter.QuadPart / (double)frequency.QuadPart;
+   
+   #elif defined(RGFW_MACOS) || defined(RGFW_UNIX)
+   
    struct timeval tv;
    (void) gettimeofday(&tv, NULL);
    return (double) tv.tv_sec + tv.tv_usec / 1000000.0;
-}
-
-#else /*BENCHMARK*/
-
-/* dummy */
-static double
-current_time(void)
-{
-   /* update this function for other platforms! */
+   
+   #else /* WASM and other platforms: dummy implementation */
    static double t = 0.0;
-   static int warn = 1;
+   static bool warn = true;
    if (warn) {
       fprintf(stderr, "Warning: current_time() not implemented!!\n");
-      warn = 0;
+      warn = false;
    }
    return t += 1.0;
+   
+   #endif
 }
-
-#endif /*BENCHMARK*/
-
-
 
 #ifndef M_PI
 #define M_PI 3.14159265
@@ -460,13 +456,6 @@ main(int argc, char *argv[])
       }
    }
 
-   if (printInfo) {
-      printf("GL_RENDERER   = %s\n", (char *) glGetString(GL_RENDERER));
-      printf("GL_VERSION    = %s\n", (char *) glGetString(GL_VERSION));
-      printf("GL_VENDOR     = %s\n", (char *) glGetString(GL_VENDOR));
-      printf("GL_EXTENSIONS = %s\n", (char *) glGetString(GL_EXTENSIONS));
-   }
-
    if(fullscreen){
 	   flag = RGFW_windowFullscreen;
    }
@@ -476,17 +465,28 @@ main(int argc, char *argv[])
    RGFW_window_makeCurrentContext_OpenGL(win);
    init();
 
+   if (printInfo) {
+      printf("GL_RENDERER   = %s\n", (char *) glGetString(GL_RENDERER));
+      printf("GL_VERSION    = %s\n", (char *) glGetString(GL_VERSION));
+      printf("GL_VENDOR     = %s\n", (char *) glGetString(GL_VENDOR));
+      printf("GL_EXTENSIONS = %s\n", (char *) glGetString(GL_EXTENSIONS));
+   }
+
    /* Set initial projection/viewing transformation.
     * We can't be sure we'll get a ConfigureNotify event when the window
     * first appears.
     */
-   reshape(win->w, win->h);
+   int fb_w = 0;
+   int fb_h = 0;
+   RGFW_window_getSizeInPixels(win, &fb_w, &fb_h);
+   reshape(fb_w, fb_h);
 
    while(!RGFW_window_shouldClose(win)){
       RGFW_event event;
       while(RGFW_window_checkEvent(win, &event)){
 		   if (event.type == RGFW_windowResized){
-			   reshape(win->w, win->h);
+            RGFW_window_getSizeInPixels(win, &fb_w, &fb_h);
+			   reshape(fb_w, fb_h);
 		   }else if(event.type == RGFW_keyPressed){
 			   switch(event.key.value){
 				   case RGFW_left:
