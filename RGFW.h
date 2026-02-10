@@ -13070,7 +13070,7 @@ static NSDragOperation RGFW__osxDraggingEntered(id self, SEL sel, id sender) {
 	RGFW_window* win = NULL;
 
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
-	if (win == NULL || (!(win->internal.enabledEvents & RGFW_dndFlag) !(win->internal.flags & RGFW_windowAllowDND)))
+	if (win == NULL || !(win->internal.enabledEvents & RGFW_dndFlag) || !(win->internal.flags & RGFW_windowAllowDND))
 		return 0;
 
 	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
@@ -13086,7 +13086,7 @@ static NSDragOperation RGFW__osxDraggingUpdated(id self, SEL sel, id sender) {
 	RGFW_window* win = NULL;
 
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
-	if (win == NULL || (!(win->internal.enabledEvents & RGFW_dndFlag) !(win->internal.flags & RGFW_windowAllowDND))) {
+	if (win == NULL || !(win->internal.enabledEvents & RGFW_dndFlag) || !(win->internal.flags & RGFW_windowAllowDND)) {
 		return 0;
 	}
 
@@ -13103,7 +13103,7 @@ static bool RGFW__osxPrepareForDragOperation(id self) {
 	if (win == NULL)
 		return true;
 
-	if (!(win->internal.enabledEvents & RGFW_dndFlag) !(win->internal.flags & RGFW_windowAllowDND)) {
+	if (!(win->internal.enabledEvents & RGFW_dndFlag) || !(win->internal.flags & RGFW_windowAllowDND)) {
 		return false;
 	}
 
@@ -13116,7 +13116,7 @@ void RGFW__osxDraggingEnded(id self, SEL sel, id sender) {
 	RGFW_window* win = NULL;
 
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
-	if (win == NULL || (!(win->internal.enabledEvents & RGFW_dndFlag) !(win->internal.flags & RGFW_windowAllowDND)))
+	if (win == NULL || !(win->internal.enabledEvents & RGFW_dndFlag) || !(win->internal.flags & RGFW_windowAllowDND))
 		return;
 
 	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
@@ -13160,11 +13160,16 @@ static bool RGFW__osxPerformDragOperation(id self, SEL sel, id sender) {
 
 	u32 i;
     for (i = 0; i < (u32)count; i++) {
-		id dataURL = objc_msgSend_arr(dataURLs, sel_registerName("objectAtIndex:"), i);
+		id dataURL = objc_msgSend_arr(fileURLs, sel_registerName("objectAtIndex:"), i);
 		const char* path = ((const char* (*)(id, SEL))objc_msgSend)(dataURL, sel_registerName("UTF8String"));
 		RGFW_STRNCPY(dataDrop[i], path, RGFW_MAX_PATH - 1);
 		dataDrop[i][RGFW_MAX_PATH - 1] = '\0';
 	}
+
+	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
+
+	i32 x = (i32) p.x;
+	i32 y = (i32) (win->h - p.y);
 
 	RGFW_dataDropCallback(win, RGFW_dndDataFile, x, y, dataDrop, count);
 	return false;
