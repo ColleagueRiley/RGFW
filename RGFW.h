@@ -2371,14 +2371,14 @@ RGFWDEF RGFW_mouseNotifyfunc RGFW_setMouseNotifyCallback(RGFW_mouseNotifyfunc fu
  * @param func The function to be called when dnd events happen to the window.
  * @return The previously set callback function, if any.
 */
-RGFWDEF RGFW_dataDragfunc RGFW_setDndDragCallback(RGFW_dataDragfunc func);
+RGFWDEF RGFW_dataDragfunc RGFW_setDataDragCallback(RGFW_dataDragfunc func);
 
 /**!
  * @brief Sets the callback function for dnd data drag drop events.
  * @param func The function to be called when dnd events happen to the window.
  * @return The previously set callback function, if any.
 */
-RGFWDEF RGFW_dataDropfunc RGFW_setDndDropCallback(RGFW_dataDropfunc func);
+RGFWDEF RGFW_dataDropfunc RGFW_setDataDropCallback(RGFW_dataDropfunc func);
 
 /**!
  * @brief Sets the callback function for key press and release events.
