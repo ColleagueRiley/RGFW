@@ -15097,7 +15097,8 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyMods(RGFW_bool capital, RGFW_bool numloc
 }
 
 void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(size_t count) {
-	RGFW_dataDropCallback(win, RGFW_dndDataFile, x, y, _RGFW->dataDrop, count);
+	/* TODO: fix position */
+	RGFW_dataDropCallback(_RGFW->root, RGFW_dndDataFile, 0, 0, _RGFW->dataDrop, count);
 }
 
 void RGFW_stopCheckEvents(void) {
