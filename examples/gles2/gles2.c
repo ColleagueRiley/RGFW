@@ -3,6 +3,7 @@
     https://gist.github.com/jfuerth/82b816510bb2cc063c9945baf1093fd9
 */
 
+#define _GNU_SOURCE
 #include <GLES2/gl2.h>
 
 #define RGFW_DEBUG
