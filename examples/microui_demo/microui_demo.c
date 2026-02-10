@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #undef _WIN32_WINNT
 #include <stdio.h>
 
