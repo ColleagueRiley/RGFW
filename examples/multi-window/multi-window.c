@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #define RGFW_DEBUG
 #define RGFW_OPENGL
 #define GL_SILENCE_DEPRECATION
@@ -11,7 +9,6 @@
 #else
 #include <GL/gl.h>
 #endif
-
 
 #ifdef RGFW_WINDOWS
 #include <processthreadsapi.h>
