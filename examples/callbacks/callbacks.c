@@ -111,19 +111,50 @@ void mouseposfunc(RGFW_window* win, i32 x, i32 y, float vecX, float vecY) {
    printf("mouse moved %i %i\n", x, y);
 }
 
-static
-void dropfunc(RGFW_window* win, char** droppedFiles, size_t droppedFilesCount) {
-    if (window != win) return;
 
-    u32 i;
-    for (i = 0; i < droppedFilesCount; i++)
-        printf("dropped : %s\n", droppedFiles[i]);
+static void print_type(RGFW_dndDataType type) {
+	switch (type) {
+		case RGFW_dndDataText: printf("dnd type: plain text\n"); break;
+		case RGFW_dndDataFile: printf("dnd type: file\n"); break;
+		case RGFW_dndDataURL: printf("dnd type: url\n"); break;
+		case RGFW_dndImage: printf("dnd type: image\n"); break;
+		case RGFW_dndUnknown: printf("unknown drop type\n"); break;
+		default: break;
+	}
 }
 
 static
-void dragfunc(RGFW_window* win, i32 x, i32 y) {
+void dataDragfunc(RGFW_window* win, RGFW_dndActionType action, RGFW_dndDataType type, i32 x, i32 y) {
     if (window != win) return;
-    printf("dnd init at %i %i\n", x, y);
+
+	print_type(type);
+
+	switch (action) {
+		case RGFW_dndActionEnter:
+			printf("drag enter at %i %i\n", x, y);
+			break;
+		case RGFW_dndActionExit:
+			printf("drag exit at %i %i\n", x, y);
+			break;
+		case RGFW_dndActionMove:
+			printf("drag move at %i %i\n", x, y);
+			break;
+		default: break;
+	}
+}
+
+static
+void dataDropfunc(RGFW_window* win, RGFW_dndDataType type, i32 x, i32 y, char** data, size_t count) {
+    if (window != win) return;
+
+	print_type(type);
+
+	printf("drop at %i %i\n", x, y);
+
+	u32 i;
+    for (i = 0; i < count; i++)
+        printf("dnd data: %s\n", data[i]);
+
 }
 
 static
@@ -193,8 +224,8 @@ int main(void) {
 	RGFW_setWindowRefreshCallback(windowrefreshfunc);
 	RGFW_setFocusCallback(focusfunc);
 	RGFW_setMouseNotifyCallback(mouseNotifyfunc);
-	RGFW_setDataDropCallback(dropfunc);
-	RGFW_setDataDragCallback(dragfunc);
+	RGFW_setDataDragCallback(dataDragfunc);
+	RGFW_setDataDropCallback(dataDropfunc);
 	RGFW_setKeyCharCallback(keyCharfunc);
 	RGFW_setKeyCallback(keyfunc);
 	RGFW_setMouseButtonCallback(mousebuttonfunc);
