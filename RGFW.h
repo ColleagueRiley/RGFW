@@ -681,11 +681,11 @@ typedef RGFW_ENUM(u8, RGFW_dndActionType) {
 /*! types of dnd data */
 typedef RGFW_ENUM(u8, RGFW_dndDataType) {
 	RGFW_dndDataNone = 0,
-	RGFW_dndDataText,
-	RGFW_dndDataFile,
-	RGFW_dndDataURL,
-	RGFW_dndImage,
-	RGFW_dndUnknown
+	RGFW_dndDataText, /*!< plain text string */
+	RGFW_dndDataFile, /*!< file string */
+	RGFW_dndDataURL, /*!< URL string */
+	RGFW_dndImage, /*!< raw image data */
+	RGFW_dndUnknown /*!< unknown raw data */
 };
 
 /*! @brief codes for the event types that can be sent */
@@ -717,8 +717,8 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 	*/
 	RGFW_quit, /*!< the user clicked the quit button */
 
-	RGFW_dndDrag, /*!< any dnd data drag event */
-	RGFW_dndDrop, /*!< the data that was dragged into the window has been dropped into the window */
+	RGFW_dataDrag, /*!< any dnd data drag event */
+	RGFW_dataDrop, /*!< the data that was dragged into the window has been dropped into the window */
 	RGFW_windowMaximized, /*!< the window was maximized */
 	RGFW_windowMinimized, /*!< the window was minimized */
 	RGFW_windowRestored, /*!< the window was restored */
@@ -748,10 +748,12 @@ typedef RGFW_ENUM(u32, RGFW_eventFlag) {
     RGFW_windowRestoredFlag = RGFW_BIT(RGFW_windowRestored),
     RGFW_scaleUpdatedFlag = RGFW_BIT(RGFW_scaleUpdated),
     RGFW_quitFlag = RGFW_BIT(RGFW_quit),
-    RGFW_dndFlag = RGFW_BIT(RGFW_dndDrag) | RGFW_BIT(RGFW_dndDrop),
+	RGFW_dataDropFlag = RGFW_BIT(RGFW_dataDrop),
+	RGFW_dataDragFlag = RGFW_BIT(RGFW_dataDrag),
 	RGFW_monitorConnectedFlag = RGFW_BIT(RGFW_monitorConnected),
 	RGFW_monitorDisconnectedFlag = RGFW_BIT(RGFW_monitorDisconnected),
 
+    RGFW_dndFlag = RGFW_dataDropFlag | RGFW_dataDragFlag,
     RGFW_keyEventsFlag = RGFW_keyPressedFlag | RGFW_keyReleasedFlag | RGFW_keyCharFlag,
     RGFW_mouseEventsFlag = RGFW_mouseButtonPressedFlag | RGFW_mouseButtonReleasedFlag | RGFW_mousePosChangedFlag | RGFW_mouseEnterFlag | RGFW_mouseLeaveFlag | RGFW_mouseScrollFlag ,
     RGFW_windowEventsFlag = RGFW_windowMovedFlag | RGFW_windowResizedFlag | RGFW_windowRefreshFlag | RGFW_windowMaximizedFlag | RGFW_windowMinimizedFlag | RGFW_windowRestoredFlag | RGFW_scaleUpdatedFlag,
@@ -807,23 +809,23 @@ typedef struct RGFW_keyCharEvent {
 } RGFW_keyCharEvent;
 
 /*! @brief event data for any dnd data drag event */
-typedef struct RGFW_dndDragEvent {
+typedef struct RGFW_dataDragEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies to (for event queue events) */
-	RGFW_dndDataType dataType;
+	RGFW_dndDataType dataType; /*!< the type of data being dragged */
 	i32 x, y; /*!< mouse x, y of event */
 	RGFW_dndActionType action; /*!< the drag action that happened */
-} RGFW_dndDragEvent;
+} RGFW_dataDragEvent;
 
 /*! @brief event data for any dnd data drop event */
-typedef struct RGFW_dndDropEvent {
+typedef struct RGFW_dataDropEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies to (for event queue events) */
-	RGFW_dndDataType dataType;
+	RGFW_dndDataType dataType; /*!< the type of data being dropped */
 	i32 x, y; /*!< mouse x, y of event */
-	char** data; /*!< dropped drag */
+	char** value; /*!< dropped drag */
 	size_t count; /*!< how many units of data were dropped */
-} RGFW_dndDropEvent;
+} RGFW_dataDropEvent;
 
 /*! @brief event data for when the window scale (DPI) is updated */
 typedef struct RGFW_scaleUpdatedEvent {
@@ -848,8 +850,8 @@ typedef union RGFW_event {
 	RGFW_mousePosEvent mouse; /*!< data for mouse motion events */
 	RGFW_keyEvent key; /*!< data for key press/release/hold events */
 	RGFW_keyCharEvent keyChar; /*!< data for key character events */
-	RGFW_dndDragEvent dndDrag; /*!< data for dnd drag events */
-	RGFW_dndDropEvent dndDrop; /*!< data for dnd drop events */
+	RGFW_dataDragEvent drag; /*!< data for dnd drag events */
+	RGFW_dataDropEvent drop; /*!< data for dnd drop events */
 	RGFW_scaleUpdatedEvent scale; /*!< data for dpi scaling update events */
 	RGFW_monitorEvent monitor; /*!< data for monitor events */
 } RGFW_event;
@@ -978,10 +980,10 @@ typedef void (* RGFW_focusfunc)(RGFW_window* win, RGFW_bool inFocus);
 typedef void (* RGFW_mouseNotifyfunc)(RGFW_window* win, i32 x, i32 y, RGFW_bool status);
 /*! @brief RGFW_mousePosChanged, the window that the move happened on, and the new point of the mouse  */
 typedef void (* RGFW_mousePosfunc)(RGFW_window* win, i32 x, i32 y, float vecX, float vecY);
-/*! @brief RGFW_dndDrag, the window, the dnd action, the type of data, the point of the drop on the windows */
-typedef void (* RGFW_dndDragfunc)(RGFW_window* win, RGFW_dndActionType action, RGFW_dndDataType type, i32 x, i32 y);
-/*! @brief RGFW_dndDrop, the window, the type of data, the point of the drop on the windows the drop data and the number of data units dropped */
-typedef void (* RGFW_dndDropfunc)(RGFW_window* win, RGFW_dndDataType type, i32 x, i32 y, char** data, size_t count);
+/*! @brief RGFW_dataDrag, the window, the dnd action, the type of data, the point of the drop on the windows */
+typedef void (* RGFW_dataDragfunc)(RGFW_window* win, RGFW_dndActionType action, RGFW_dndDataType type, i32 x, i32 y);
+/*! @brief RGFW_dataDrop, the window, the type of data, the point of the drop on the windows the drop data and the number of data units dropped */
+typedef void (* RGFW_dataDropfunc)(RGFW_window* win, RGFW_dndDataType type, i32 x, i32 y, char** data, size_t count);
 /*! @brief RGFW_windowRefresh, the window that needs to be refreshed */
 typedef void (* RGFW_windowRefreshfunc)(RGFW_window* win);
 /*! @brief RGFW_keyChar, the window that got the event, the unicode key value */
@@ -2369,14 +2371,14 @@ RGFWDEF RGFW_mouseNotifyfunc RGFW_setMouseNotifyCallback(RGFW_mouseNotifyfunc fu
  * @param func The function to be called when dnd events happen to the window.
  * @return The previously set callback function, if any.
 */
-RGFWDEF RGFW_dndDragfunc RGFW_setDndDragCallback(RGFW_dndDragfunc func);
+RGFWDEF RGFW_dataDragfunc RGFW_setDndDragCallback(RGFW_dataDragfunc func);
 
 /**!
  * @brief Sets the callback function for dnd data drag drop events.
  * @param func The function to be called when dnd events happen to the window.
  * @return The previously set callback function, if any.
 */
-RGFWDEF RGFW_dndDropfunc RGFW_setDndDropCallback(RGFW_dndDropfunc func);
+RGFWDEF RGFW_dataDropfunc RGFW_setDndDropCallback(RGFW_dataDropfunc func);
 
 /**!
  * @brief Sets the callback function for key press and release events.
@@ -3358,8 +3360,8 @@ RGFWDEF void RGFW_mousePosCallback(RGFW_window* win, i32 x, i32 y, float vecX, f
 RGFWDEF void RGFW_windowRefreshCallback(RGFW_window* win);
 RGFWDEF void RGFW_focusCallback(RGFW_window* win, RGFW_bool inFocus);
 RGFWDEF void RGFW_mouseNotifyCallback(RGFW_window* win, i32 x, i32 y, RGFW_bool status);
-RGFWDEF void RGFW_dndDragCallback(RGFW_window* win, RGFW_dndActionType action, RGFW_dndDataType type, i32 x, i32 y);
-RGFWDEF void RGFW_dndDropCallback(RGFW_window* win, RGFW_dndDataType type, i32 x, i32 y, char** data, size_t count);
+RGFWDEF void RGFW_dataDragCallback(RGFW_window* win, RGFW_dndActionType action, RGFW_dndDataType type, i32 x, i32 y);
+RGFWDEF void RGFW_dataDropCallback(RGFW_window* win, RGFW_dndDataType type, i32 x, i32 y, char** data, size_t count);
 RGFWDEF void RGFW_keyCharCallback(RGFW_window* win, u32 codepoint);
 RGFWDEF void RGFW_keyCallback(RGFW_window* win, RGFW_key key, RGFW_keymod mod, RGFW_bool repeat, RGFW_bool press);
 RGFWDEF void RGFW_mouseButtonCallback(RGFW_window* win, RGFW_mouseButton button, RGFW_bool press);
@@ -3518,8 +3520,8 @@ RGFW_CALLBACK_DEFINE(mousePos, MousePos)
 RGFW_CALLBACK_DEFINE(windowRefresh, WindowRefresh)
 RGFW_CALLBACK_DEFINE(focus, Focus)
 RGFW_CALLBACK_DEFINE(mouseNotify, MouseNotify)
-RGFW_CALLBACK_DEFINE(dndDrag, DndDrag)
-RGFW_CALLBACK_DEFINE(dndDrop, DndDrop)
+RGFW_CALLBACK_DEFINE(dataDrag, DndDrag)
+RGFW_CALLBACK_DEFINE(dataDrop, DndDrop)
 RGFW_CALLBACK_DEFINE(key, Key)
 RGFW_CALLBACK_DEFINE(keyChar, KeyChar)
 RGFW_CALLBACK_DEFINE(mouseButton, MouseButton)
@@ -3708,7 +3710,7 @@ void RGFW_mouseNotifyCallback(RGFW_window* win, i32 x, i32 y, RGFW_bool status) 
 }
 
 
-void RGFW_dndDragCallback(RGFW_window* win, RGFW_dndActionType action, RGFW_dndDataType type, i32 x, i32 y) {
+void RGFW_dataDragCallback(RGFW_window* win, RGFW_dndActionType action, RGFW_dndDataType type, i32 x, i32 y) {
 	if (!(win->internal.enabledEvents & RGFW_dndFlag) || !(win->internal.flags & RGFW_windowAllowDND))
 		return;
 
@@ -3716,19 +3718,19 @@ void RGFW_dndDragCallback(RGFW_window* win, RGFW_dndActionType action, RGFW_dndD
 	_RGFW->windowState.dropY = y;
 
 	RGFW_event event;
-	event.dndDrop.type = RGFW_dndDrag;
-	event.dndDrag.dataType = type;
-	event.dndDrag.x = x;
-	event.dndDrag.y = y;
-	event.dndDrag.action = action;
+	event.drop.type = RGFW_dataDrag;
+	event.drag.dataType = type;
+	event.drag.x = x;
+	event.drag.y = y;
+	event.drag.action = action;
 	event.common.win = win;
 
 	RGFW_eventQueuePush(&event);
 
-	if (RGFW_dndDragCallbackSrc) RGFW_dndDragCallbackSrc(win, action, type, x, y);
+	if (RGFW_dataDragCallbackSrc) RGFW_dataDragCallbackSrc(win, action, type, x, y);
 }
 
-void RGFW_dndDropCallback(RGFW_window* win, RGFW_dndDataType type, i32 x, i32 y, char** data, size_t count) {
+void RGFW_dataDropCallback(RGFW_window* win, RGFW_dndDataType type, i32 x, i32 y, char** data, size_t count) {
 	if (!(win->internal.enabledEvents & RGFW_dndFlag) || !(win->internal.flags & RGFW_windowAllowDND))
 		return;
 
@@ -3737,17 +3739,17 @@ void RGFW_dndDropCallback(RGFW_window* win, RGFW_dndDataType type, i32 x, i32 y,
 	_RGFW->windowState.dataDropCount = count;
 
 	RGFW_event event;
-	event.dndDrop.type = RGFW_dndDrop;
-	event.dndDrop.dataType = type;
-	event.dndDrop.x = x;
-	event.dndDrop.y = y;
-	event.dndDrop.data = data;
-	event.dndDrop.count = count;
+	event.drop.type = RGFW_dataDrop;
+	event.drop.dataType = type;
+	event.drop.x = x;
+	event.drop.y = y;
+	event.drop.value = data;
+	event.drop.count = count;
 	event.common.win = win;
 
 	RGFW_eventQueuePush(&event);
 
-	if (RGFW_dndDropCallbackSrc) RGFW_dndDropCallbackSrc(win, type, x, y, data, count);
+	if (RGFW_dataDropCallbackSrc) RGFW_dataDropCallbackSrc(win, type, x, y, data, count);
 }
 
 void RGFW_keyCharCallback(RGFW_window* win, u32 codepoint) {
@@ -6737,7 +6739,7 @@ void RGFW_XHandleEvent(void) {
 	RGFW_LOAD_ATOM(XdndPosition);
 	RGFW_LOAD_ATOM(XdndStatus);
 	RGFW_LOAD_ATOM(XdndLeave);
-	RGFW_LOAD_ATOM(XdndDrop);
+	RGFW_LOAD_ATOM(XdataDrop);
 	RGFW_LOAD_ATOM(XdndFinished);
 	RGFW_LOAD_ATOM(XdndActionCopy);
 	RGFW_LOAD_ATOM(_NET_WM_SYNC_REQUEST);
@@ -7065,7 +7067,7 @@ void RGFW_XHandleEvent(void) {
 					break;
 				}
 
-				RGFW_dndDragCallback(win, RGFW_dndActionEnter, dndType, dragX, dragY);
+				RGFW_dataDragCallback(win, RGFW_dndActionEnter, dndType, dragX, dragY);
 			} else if (E.xclient.message_type == XdndPosition) {
 				const i32 xabs = (E.xclient.data.l[2] >> 16) & 0xffff;
 				const i32 yabs = (E.xclient.data.l[2]) & 0xffff;
@@ -7089,10 +7091,10 @@ void RGFW_XHandleEvent(void) {
 				XSendEvent(_RGFW->display, source, False, NoEventMask, &reply);
 				XFlush(_RGFW->display);
 
-				RGFW_dndDragCallback(win, RGFW_dndActionMove, dndType, dragX, dragY);
+				RGFW_dataDragCallback(win, RGFW_dndActionMove, dndType, dragX, dragY);
 			} else if (E.xclient.message_type == XdndLeave) {
-				RGFW_dndDragCallback(win, RGFW_dndActionExit, dndType, dragX, dragY);
-			} else if (E.xclient.message_type == XdndDrop) {
+				RGFW_dataDragCallback(win, RGFW_dndActionExit, dndType, dragX, dragY);
+			} else if (E.xclient.message_type == XdataDrop) {
 				if (format) {
 					Time time = (version >= 1)
 						? (Time)E.xclient.data.l[2]
@@ -7129,7 +7131,7 @@ void RGFW_XHandleEvent(void) {
 			size_t count;
 			char** dataDrop = RGFW_unix_parseUriList(data, &count);
 
-			RGFW_dndDropCallback(win, dndType, dragX, dragY, dataDrop, count);
+			RGFW_dataDropCallback(win, dndType, dragX, dragY, dataDrop, count);
 			if (data)
 				XFree(data);
 
@@ -9352,7 +9354,7 @@ static void RGFW_wl_data_device_data_enter(void* data, struct wl_data_device* wl
 
 		RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 
-		RGFW_dndDragCallback(win, RGFW_dndActionEnter, RGFW_dndDataFile, convertedX, convertedY);
+		RGFW_dataDragCallback(win, RGFW_dndActionEnter, RGFW_dndDataFile, convertedX, convertedY);
 	}
 
     if (!_RGFW->dragOffer) {
@@ -9364,7 +9366,7 @@ static void RGFW_wl_data_device_data_enter(void* data, struct wl_data_device* wl
 	i32 convertedY = (i32)wl_fixed_to_double(y);
 
 	RGFW_window* win = (RGFW_window*)wl_$urface_get_user_data(surface);
-	RGFW_dndDragCallback(win, RGFW_dndActionEnter, RGFW_dndDataFile, convertedX, convertedY);
+	RGFW_dataDragCallback(win, RGFW_dndActionEnter, RGFW_dndDataFile, convertedX, convertedY);
 
 
     _RGFW->offers[i] = _RGFW->offers[_RGFW->offerCount - 1];
@@ -9450,7 +9452,7 @@ static void RGFW_wl_data_device_data_drop(void* data, struct wl_data_device* wl_
 	size_t count;
 	char** dataDrop = RGFW_unix_parseUriList(string, &count);
 
-	RGFW_dndDropCallback(_RGFW->mouseOwner, RGFW_dndDataFile, x, y, dataDrop, count);
+	RGFW_dataDropCallback(_RGFW->mouseOwner, RGFW_dndDataFile, x, y, dataDrop, count);
 
 	RGFW_FREE(string);
 }
@@ -11063,7 +11065,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			/* Move the mouse to the position of the drop */
 			DragQueryPoint(drop, &pt);
-			RGFW_dndDragCallback(win, RGFW_dndActionMove, RGFW_dndDataFile, pt.x, pt.y);
+			RGFW_dataDragCallback(win, RGFW_dndActionMove, RGFW_dndDataFile, pt.x, pt.y);
 
 			char** files = _RGFW->dataDrop;
 			size_t count = DragQueryFileW(drop, 0xffffffff, NULL, 0);
@@ -11087,7 +11089,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			DragFinish(drop);
 
-			RGFW_dndDropCallback(win, RGFW_dndDataFile, pt.x, pt.y, files, count);
+			RGFW_dataDropCallback(win, RGFW_dndDataFile, pt.x, pt.y, files, count);
 			break;
 		}
 		default: break;
@@ -13073,7 +13075,7 @@ static NSDragOperation RGFW__osxDraggingEntered(id self, SEL sel, id sender) {
 
 	i32 x = (i32) p.x;
 	i32 y = (i32) (win->h - p.y);
-	RGFW_dndDragCallback(win, RGFW_dndActionEnter, RGFW_dndDataFile, x, y);
+	RGFW_dataDragCallback(win, RGFW_dndActionEnter, RGFW_dndDataFile, x, y);
 	return NSDragOperationCopy;
 }
 static NSDragOperation RGFW__osxDraggingUpdated(id self, SEL sel, id sender) {
@@ -13090,7 +13092,7 @@ static NSDragOperation RGFW__osxDraggingUpdated(id self, SEL sel, id sender) {
 
 	i32 x = (i32) p.x;
 	i32 y = (i32) (win->h - p.y);
-	RGFW_dndDragCallback(win, RGFW_dndActionMove, RGFW_dndDataFile, x, y);
+	RGFW_dataDragCallback(win, RGFW_dndActionMove, RGFW_dndDataFile, x, y);
 	return NSDragOperationCopy;
 }
 static bool RGFW__osxPrepareForDragOperation(id self) {
@@ -13119,7 +13121,7 @@ void RGFW__osxDraggingEnded(id self, SEL sel, id sender) {
 
 	i32 x = (i32) p.x;
 	i32 y = (i32) (win->h - p.y);
-	RGFW_dndDragCallback(win, RGFW_dndActionExit, RGFW_dndDataFile, x, y);
+	RGFW_dataDragCallback(win, RGFW_dndActionExit, RGFW_dndDataFile, x, y);
 }
 
 static bool RGFW__osxPerformDragOperation(id self, SEL sel, id sender) {
@@ -13162,7 +13164,7 @@ static bool RGFW__osxPerformDragOperation(id self, SEL sel, id sender) {
 		dataDrop[i][RGFW_MAX_PATH - 1] = '\0';
 	}
 
-	RGFW_dndDropCallback(win, RGFW_dndDataFile, x, y, dataDrop, count);
+	RGFW_dataDropCallback(win, RGFW_dndDataFile, x, y, dataDrop, count);
 	return false;
 }
 
@@ -15088,7 +15090,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyMods(RGFW_bool capital, RGFW_bool numloc
 }
 
 void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(size_t count) {
-	RGFW_dndDropCallback(win, RGFW_dndDataFile, x, y, _RGFW->dataDrop, count);
+	RGFW_dataDropCallback(win, RGFW_dndDataFile, x, y, _RGFW->dataDrop, count);
 }
 
 void RGFW_stopCheckEvents(void) {
