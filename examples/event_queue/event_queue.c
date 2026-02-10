@@ -75,7 +75,7 @@ int main(void) {
                 case RGFW_dataDrop: {
                     u32 i;
                     for (i = 0; i < event.drop.count; i++)
-                        printf("dropped : %s\n", event.drop.files[i]);
+                        printf("dropped : %s\n", event.drop.value[i]);
                     break;
                 }
                 case RGFW_dataDrag:
