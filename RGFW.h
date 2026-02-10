@@ -9367,7 +9367,7 @@ static void RGFW_wl_data_device_data_enter(void* data, struct wl_data_device* wl
 	i32 convertedX = (i32)wl_fixed_to_double(x);
 	i32 convertedY = (i32)wl_fixed_to_double(y);
 
-	RGFW_window* win = (RGFW_window*)wl_$urface_get_user_data(surface);
+	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 	RGFW_dataDragCallback(win, RGFW_dndActionEnter, RGFW_dndDataFile, convertedX, convertedY);
 
 
@@ -9454,7 +9454,7 @@ static void RGFW_wl_data_device_data_drop(void* data, struct wl_data_device* wl_
 	size_t count;
 	char** dataDrop = RGFW_unix_parseUriList(string, &count);
 
-	RGFW_dataDropCallback(_RGFW->mouseOwner, RGFW_dndDataFile, x, y, dataDrop, count);
+	RGFW_dataDropCallback(_RGFW->mouseOwner, RGFW_dndDataFile, 0, 0, dataDrop, count);
 
 	RGFW_FREE(string);
 }
