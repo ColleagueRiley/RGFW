@@ -5664,7 +5664,10 @@ This is where OS specific stuff starts
 /* start of unix (wayland or X11 (unix) ) defines */
 
 #ifdef RGFW_UNIX
-#define _GNU_SOURCE
+#ifndef _GNU_SOURCE
+	#define _GNU_SOURCE
+#endif
+
 #include <fcntl.h>
 #include <unistd.h>
 #include <poll.h>
@@ -13171,7 +13174,7 @@ static bool RGFW__osxPerformDragOperation(id self, SEL sel, id sender) {
 	i32 x = (i32) p.x;
 	i32 y = (i32) (win->h - p.y);
 
-	RGFW_dataDropCallback(win, RGFW_dndDataFile, x, y, dataDrop, count);
+	RGFW_dataDropCallback(win, RGFW_dndDataFile, x, y, dataDrop, (size_t)count);
 	return false;
 }
 
