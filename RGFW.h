@@ -3264,6 +3264,10 @@ struct RGFW_info {
         RGFW_window* kbOwner;
 		RGFW_window* mouseOwner; /* what window has access to the mouse */
 
+		// wayland key repeat data
+		u32 last_key;
+		i32 wl_repeat_info_rate, wl_repeat_info_delay;
+		u32 last_key_time;
     #endif
 
     RGFW_monitors monitors;
@@ -8977,8 +8981,19 @@ static xkb_keysym_t RGFW_wl_composeSymbol(RGFW_info* RGFW, xkb_keysym_t sym) {
     }
 }
 
+static void RGFW_wl_send_key_event(u32 key) {
+	const xkb_keysym_t* keysyms;
+	if (xkb_state_key_get_syms(_RGFW->xkb_state, key + 8, &keysyms) == 1) {
+		xkb_keysym_t keysym = RGFW_wl_composeSymbol(_RGFW, keysyms[0]);
+		u32 codepoint = xkb_keysym_to_utf32(keysym);
+		if (codepoint != 0) {
+			RGFW_keyCharCallback(_RGFW->kbOwner, codepoint);
+		}
+	}
+}
+
 static void RGFW_wl_keyboard_key(void* data, struct wl_keyboard *keyboard, u32 serial, u32 time, u32 key, u32 state) {
-	RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(time);
+	RGFW_UNUSED(keyboard); RGFW_UNUSED(serial);
 
 	RGFW_info* RGFW = (RGFW_info*)data;
 	if (RGFW->kbOwner == NULL) return;
@@ -8989,20 +9004,30 @@ static void RGFW_wl_keyboard_key(void* data, struct wl_keyboard *keyboard, u32 s
 	RGFW_updateKeyMods(RGFW_key_win, RGFW_BOOL(xkb_keymap_mod_get_index(RGFW->keymap, "Lock")), RGFW_BOOL(xkb_keymap_mod_get_index(RGFW->keymap, "Mod2")), RGFW_BOOL(xkb_keymap_mod_get_index(RGFW->keymap, "ScrollLock")));
 	RGFW_keyCallback(RGFW_key_win, (u8)RGFWkey, RGFW_key_win->internal.mod, RGFW_window_isKeyDown(RGFW_key_win, (u8)RGFWkey), RGFW_BOOL(state));
 
-	const xkb_keysym_t* keysyms;
-    if (xkb_state_key_get_syms(RGFW->xkb_state, key + 8, &keysyms) == 1) {
-		xkb_keysym_t keysym = RGFW_wl_composeSymbol(RGFW, keysyms[0]);
-		u32 codepoint = xkb_keysym_to_utf32(keysym);
-		if (codepoint != 0) {
-			RGFW_keyCharCallback(RGFW_key_win, codepoint);
-        }
-    }
+	// we the send the event at the moment we receive it, and
+	// repeated keypresses will be handled at RGFW_pollEvents
+	// if the compositor doesn't support proxy (seat?) version
+	// of at least 4, it won't initialize wl_repeat_info_rate,
+	// and by spec, rate of 0 means disabled, thus repeating
+	// keys are disabled by being zero-initialized
+	RGFW->last_key = state ? key : 0;
+	RGFW->last_key_time = time+(u32)_RGFW->wl_repeat_info_delay;
+	if (state) {
+		RGFW_wl_send_key_event(_RGFW->last_key);
+	}
 }
 
 static void RGFW_wl_keyboard_modifiers(void* data, struct wl_keyboard *keyboard, u32 serial, u32 mods_depressed, u32 mods_latched, u32 mods_locked, u32 group) {
 	RGFW_UNUSED(keyboard); RGFW_UNUSED(serial); RGFW_UNUSED(time);
 	RGFW_info* RGFW = (RGFW_info*)data;
 	xkb_state_update_mask(RGFW->xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
+}
+
+static void RGFW_wl_keyboard_repeat_info(void* data, struct wl_keyboard *keyboard, i32 rate, i32 delay) {
+	RGFW_UNUSED(data);
+	RGFW_UNUSED(keyboard);
+	_RGFW->wl_repeat_info_rate = rate;
+	_RGFW->wl_repeat_info_delay = delay;
 }
 
 static void RGFW_wl_seat_capabilities(void* data, struct wl_seat *seat, u32 capabilities) {
@@ -9022,6 +9047,7 @@ static void RGFW_wl_seat_capabilities(void* data, struct wl_seat *seat, u32 capa
 	keyboard_listener.leave = &RGFW_wl_keyboard_leave;
 	keyboard_listener.key = &RGFW_wl_keyboard_key;
 	keyboard_listener.modifiers = &RGFW_wl_keyboard_modifiers;
+	keyboard_listener.repeat_info = &RGFW_wl_keyboard_repeat_info;
 
     if ((capabilities & WL_SEAT_CAPABILITY_POINTER) && !RGFW->wl_pointer) {
 		RGFW->wl_pointer = wl_seat_get_pointer(seat);
@@ -9153,7 +9179,7 @@ static void RGFW_wl_output_handle_done(void* data, struct wl_output* output) {
 }
 
 static void RGFW_wl_create_outputs(struct wl_registry *const registry, u32 id) {
-	struct wl_output *output = wl_registry_bind(registry, id, &wl_output_interface, wl_display_get_version(_RGFW->wl_display) < 4 ? 3 : 4);
+	struct wl_output *output = wl_registry_bind(registry, id, &wl_output_interface, wl_proxy_get_version((struct wl_proxy*)_RGFW->seat));
 	RGFW_monitorNode* node;
 	RGFW_monitor mon;
 
@@ -9310,7 +9336,7 @@ static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *regi
         RGFW->shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
         wl_shm_add_listener(RGFW->shm, &shm_listener, RGFW);
 	} else if (RGFW_STRNCMP(interface,"wl_seat", 8) == 0) {
-		RGFW->seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
+		RGFW->seat = wl_registry_bind(registry, id, &wl_seat_interface, version < 4 ? 3 : 4);
 		wl_seat_add_listener(RGFW->seat, &seat_listener, RGFW);
 	} else if (RGFW_STRNCMP(interface, zxdg_output_manager_v1_interface.name, 255) == 0) {
 		RGFW->xdg_output_manager = wl_registry_bind(registry, id, &zxdg_output_manager_v1_interface, 1);
@@ -9858,6 +9884,13 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 			}
 		} else {
 			return;
+		}
+	}
+	if (_RGFW->wl_repeat_info_rate != 0 && _RGFW->last_key) {
+		u32 now = (u32)(RGFW_linux_getTimeNS()/1000000);
+		if (now > _RGFW->last_key_time) {
+			RGFW_wl_send_key_event(_RGFW->last_key);
+			_RGFW->last_key_time = now + 1000/(u32)_RGFW->wl_repeat_info_rate;
 		}
 	}
 
