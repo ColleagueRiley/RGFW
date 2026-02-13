@@ -14388,6 +14388,11 @@ RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) {
 		}
 	}
 
+    if (node == NULL) {
+		node = _RGFW->monitors.primary ? _RGFW->monitors.primary : _RGFW->monitors.list.head;
+	}
+
+	if (node == NULL) return NULL;
 	return &node->mon;
 }
 
