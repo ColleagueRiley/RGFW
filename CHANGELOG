@@ -87,6 +87,10 @@ Additional labels for pre-release and build metadata are available as extensions
 - add wl_pointer-warp
 - add nativeFormat and callback for color conversion
 - add `RGFW_monitor_findClosestMode`
+- add action type to drag events to check for enter, move and exit types
+- add data type to drag and drop events for checking what type of data was dropped, files, URLs, strings, images, etc
+- add x and y to dnd drop events
+- rename `drop.files` to `drop.value` to be more generic
 
 Release:    RGFW 1.8.0
 -----------------------------------------------
