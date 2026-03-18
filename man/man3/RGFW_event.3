@@ -1,4 +1,4 @@
-.TH "RGFW_event" 3 "Tue Feb 24 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW_event" 3 "Wed Mar 18 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -19,10 +19,16 @@ RGFW_event \- union for all of the event stucture types
 .RI "\fBRGFW_commonEvent\fP \fBcommon\fP"
 .br
 .ti -1c
+.RI "\fBRGFW_windowFocusEvent\fP \fBfocus\fP"
+.br
+.ti -1c
+.RI "\fBRGFW_windowUpdateEvent\fP \fBupdate\fP"
+.br
+.ti -1c
 .RI "\fBRGFW_mouseButtonEvent\fP \fBbutton\fP"
 .br
 .ti -1c
-.RI "\fBRGFW_mouseScrollEvent\fP \fBscroll\fP"
+.RI "\fBRGFW_mouseDeltaEvent\fP \fBdelta\fP"
 .br
 .ti -1c
 .RI "\fBRGFW_mousePosEvent\fP \fBmouse\fP"
@@ -55,10 +61,14 @@ union for all of the event stucture types
 data for a button press/release 
 .SS "\fBRGFW_commonEvent\fP RGFW_event::common"
 common event data (e\&.g\&.) type and win 
+.SS "\fBRGFW_mouseDeltaEvent\fP RGFW_event::delta"
+data for a mouse scroll or raw motion 
 .SS "\fBRGFW_dataDragEvent\fP RGFW_event::drag"
 data for dragging a file events 
 .SS "\fBRGFW_dataDropEvent\fP RGFW_event::drop"
 dropping a file events 
+.SS "\fBRGFW_windowFocusEvent\fP RGFW_event::focus"
+event data for focus in/out events 
 .SS "\fBRGFW_keyEvent\fP RGFW_event::key"
 data for key press/release/hold events 
 .SS "\fBRGFW_keyCharEvent\fP RGFW_event::keyChar"
@@ -69,10 +79,10 @@ data for monitor events
 data for mouse motion events 
 .SS "\fBRGFW_scaleUpdatedEvent\fP RGFW_event::scale"
 data for dpi scaling update events 
-.SS "\fBRGFW_mouseScrollEvent\fP RGFW_event::scroll"
-data for a mouse scroll 
 .SS "RGFW_eventType RGFW_event::type"
 which event has been sent? 
+.SS "\fBRGFW_windowUpdateEvent\fP RGFW_event::update"
+data for window update/move/resize/refresh events 
 
 .SH "Author"
 .PP 

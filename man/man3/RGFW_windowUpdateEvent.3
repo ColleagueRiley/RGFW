@@ -1,0 +1,53 @@
+.TH "RGFW_windowUpdateEvent" 3 "Wed Mar 18 2026" "RGFW" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+RGFW_windowUpdateEvent
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <RGFW\&.h>\fP
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "RGFW_eventType \fBtype\fP"
+.br
+.ti -1c
+.RI "\fBRGFW_window\fP * \fBwin\fP"
+.br
+.ti -1c
+.RI "\fBi32\fP \fBx\fP"
+.br
+.ti -1c
+.RI "\fBi32\fP \fBy\fP"
+.br
+.ti -1c
+.RI "\fBi32\fP \fBw\fP"
+.br
+.ti -1c
+.RI "\fBi32\fP \fBh\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+@breif event data for when the window is updated, moved, resized or refreshed 
+.SH "Member Data Documentation"
+.PP 
+.SS "\fBi32\fP RGFW_windowUpdateEvent::h"
+the new window height OR the height of the rectanglular refresh area 
+.SS "RGFW_eventType RGFW_windowUpdateEvent::type"
+the specific event type 
+.SS "\fBi32\fP RGFW_windowUpdateEvent::w"
+the new window width OR the width of the rectanglular refresh area 
+.SS "\fBRGFW_window\fP* RGFW_windowUpdateEvent::win"
+the window that was updated 
+.SS "\fBi32\fP RGFW_windowUpdateEvent::x"
+the new window x OR the x of the rectanglular refresh area 
+.SS "\fBi32\fP RGFW_windowUpdateEvent::y"
+the new window y OR the y of the rectanglular refresh area 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for RGFW from the source code\&.

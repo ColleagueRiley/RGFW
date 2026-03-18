@@ -27,7 +27,7 @@ void uniform_color_fs(float* fs_input, Shader_Builtins* builtins, void* uniforms
 
 int main() {
 	RGFW_window* win = RGFW_createWindow("name", 500, 500, 500, 500, (u64)RGFW_windowCenter | RGFW_windowNoResize);
-    RGFW_window_setExitKey(win, RGFW_escape);
+    RGFW_window_setExitKey(win, RGFW_keyEscape);
 
     u8* buffer = (u8*)RGFW_ALLOC(500 * 500 * 4);
 	RGFW_surface* surface = RGFW_createSurface(buffer, 500, 500, RGFW_formatRGBA8);
@@ -58,16 +58,8 @@ int main() {
 
 	glViewport(0, 0, win->w, win->h);
 
-	i32 running = 1;
-
-	while (running) {
-		RGFW_event event;
-		while (RGFW_window_checkEvent(win, &event)) {
-			if (event.type == RGFW_quit || RGFW_isKeyPressed(RGFW_escape)) {
-				running = 0;
-				break;
-			}
-		}
+	while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
+		RGFW_pollEvents();
 
 		glClearColor(0xFF, 0xFF, 0xFF, 0xFF);
 		glClear(GL_COLOR_BUFFER_BIT);

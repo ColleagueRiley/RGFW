@@ -49,7 +49,7 @@ static void drawRect(u8* buffer, i32 bufferWidth, i32 x, i32 y, i32 w, i32 h, u8
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("Basic buffer example", 0, 0, 500, 500, RGFW_windowCenter | RGFW_windowTransparent);
-    RGFW_window_setExitKey(win, RGFW_escape);
+    RGFW_window_setExitKey(win, RGFW_keyEscape);
 
     RGFW_monitor* mon = RGFW_window_getMonitor(win);
 	i32 width = 500;
@@ -63,20 +63,11 @@ int main(void) {
 	u8* buffer = (u8*)RGFW_ALLOC((u32)(width * height * 4));
 	RGFW_surface* surface = RGFW_createSurface(buffer, width, height, RGFW_formatRGBA8);
 
-    i8 running = 1;
-
-    RGFW_event event;
-
 	float theta = 0;
 //	float theta2 = 0;
 
-    while (running) {
-        while (RGFW_window_checkEvent(win, &event)) {
-            if (event.type == RGFW_quit || RGFW_window_isKeyPressed(win, RGFW_escape)) {
-                running = 0;
-                break;
-            }
-        }
+    while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
+		RGFW_pollEvents();
 
         u8 color[4] = {0, 0, 255, 125};
         u8 color2[4] = {255, 0, 0, 255};

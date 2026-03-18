@@ -40,7 +40,7 @@ void checkEvents(RGFW_window* win) {
 	RGFW_event event;
 	while (RGFW_window_checkQueuedEvent(win, &event)) {
 		switch (event.type) {
-			case RGFW_quit:
+			case RGFW_windowClose:
 				RGFW_window_setShouldClose(win, 1);
 				break;
 			case RGFW_windowResized:
@@ -50,16 +50,16 @@ void checkEvents(RGFW_window* win) {
 			case RGFW_dataDrop:
 				printf("window %p: drag and drop: %dx%d:\n", (void*)win, event.mouse.x, event.mouse.y);
 				for (size_t i = 0; i < event.drop.count; i++)
-					printf("\t%u: '%s'\n", (u32)i, event.drop.files[i]);
+					printf("\t%u: '%s'\n", (u32)i, event.drop.value[i]);
 				break;
 			case RGFW_keyPressed:
-				if (event.key.value == RGFW_c && (RGFW_window_isKeyDown(win, RGFW_controlL) || RGFW_window_isKeyDown(win, RGFW_controlR))) {
+				if (event.key.value == RGFW_keyC && (RGFW_window_isKeyDown(win, RGFW_keyControlL) || RGFW_window_isKeyDown(win, RGFW_keyControlR))) {
 					char str[32] = {0};
 					int size = snprintf(str, 32, "window %p: 刺猬", (void*)win);
 					if (size > 0)
 						RGFW_writeClipboard(str, (u32)size);
 				}
-				else if (event.key.value == RGFW_v && (RGFW_window_isKeyDown(win, RGFW_controlL) || RGFW_window_isKeyDown(win, RGFW_controlR))) {
+				else if (event.key.value == RGFW_keyV && (RGFW_window_isKeyDown(win, RGFW_keyControlL) || RGFW_window_isKeyDown(win, RGFW_keyControlR))) {
 					size_t len = 0;
 					const char* str = RGFW_readClipboard(&len);
 					printf("window %p: clipboard paste %d: '", (void*)win, (i32)len);
@@ -87,7 +87,7 @@ void* loop(void* _win) {
 
 	while (!RGFW_window_shouldClose(win)) {
 		checkEvents(win);
-		if (RGFW_window_isKeyDown(win, RGFW_space)) {
+		if (RGFW_window_isKeyDown(win, RGFW_keySpace)) {
 			blue = (blue + 1) % 100;
 		}
 
@@ -139,9 +139,9 @@ int main(void) {
 	RGFW_window_makeCurrentContext_OpenGL(NULL); /* this is really important (this releases the opengl context on this thread) */
 
 
-    RGFW_window_setExitKey(win1, RGFW_escape);
-    RGFW_window_setExitKey(win2, RGFW_escape);
-    RGFW_window_setExitKey(win3, RGFW_escape);
+    RGFW_window_setExitKey(win1, RGFW_keyEscape);
+    RGFW_window_setExitKey(win2, RGFW_keyEscape);
+    RGFW_window_setExitKey(win3, RGFW_keyEscape);
 	RGFW_setQueueEvents(RGFW_TRUE); /* manually enable the queue so we don't accidently miss the first few events */
 
 	my_thread thread1 = createThread(loop, win1);

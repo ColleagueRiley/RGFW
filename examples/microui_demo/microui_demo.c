@@ -226,14 +226,14 @@ static const char button_map[256] = {
 };
 
 static const char key_map[256] = {
-  [ RGFW_shiftL       & 0xff ] = MU_KEY_SHIFT,
-  [ RGFW_shiftR       & 0xff ] = MU_KEY_SHIFT,
-  [ RGFW_controlL        & 0xff ] = MU_KEY_CTRL,
-  [ RGFW_controlR        & 0xff ] = MU_KEY_CTRL,
-  [ RGFW_altL         & 0xff ] = MU_KEY_ALT,
-  [ RGFW_altR         & 0xff ] = MU_KEY_ALT,
-  [ RGFW_return       & 0xff ] = MU_KEY_RETURN,
-  [ RGFW_backSpace    & 0xff ] = MU_KEY_BACKSPACE,
+  [ RGFW_keyShiftL       & 0xff ] = MU_KEY_SHIFT,
+  [ RGFW_keyShiftR       & 0xff ] = MU_KEY_SHIFT,
+  [ RGFW_keyControlL        & 0xff ] = MU_KEY_CTRL,
+  [ RGFW_keyControlR        & 0xff ] = MU_KEY_CTRL,
+  [ RGFW_keyAltL         & 0xff ] = MU_KEY_ALT,
+  [ RGFW_keyAltR         & 0xff ] = MU_KEY_ALT,
+  [ RGFW_keyReturn       & 0xff ] = MU_KEY_RETURN,
+  [ RGFW_keyBackSpace    & 0xff ] = MU_KEY_BACKSPACE,
 };
 
 
@@ -266,7 +266,7 @@ int main(int argc, char **argv) {
   pixelRatio = mon->pixelRatio;
 
   r_init();
-  RGFW_window_setExitKey(window, RGFW_escape);
+  RGFW_window_setExitKey(window, RGFW_keyEscape);
 
   /* init microui */
   mu_Context *ctx = (mu_Context*)malloc(sizeof(mu_Context));
@@ -280,14 +280,14 @@ int main(int argc, char **argv) {
     /* handle RGFW events */
     RGFW_event event;
     while (RGFW_window_checkEvent(window, &event)) {
-      if (event.type == RGFW_quit) break;
+      if (event.type == RGFW_windowClose) break;
 
       switch (event.type) {
-        case RGFW_quit: break;
+        case RGFW_windowClose: break;
         case RGFW_mousePosChanged: mu_input_mousemove(ctx, event.mouse.x,  event.mouse.y); break;
 
 		case RGFW_mouseScroll:
-			mu_input_scroll(ctx, event.scroll.x, event.scroll.y);
+			mu_input_scroll(ctx, event.delta.x, event.delta.y);
 			break;
         case RGFW_mouseButtonPressed: {
 		  i32 x, y;

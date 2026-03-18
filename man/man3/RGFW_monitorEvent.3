@@ -1,4 +1,4 @@
-.TH "RGFW_monitorEvent" 3 "Tue Feb 24 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW_monitorEvent" 3 "Wed Mar 18 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -21,6 +21,9 @@ RGFW_monitorEvent \- event data for when a monitor is connected, disconnected or
 .ti -1c
 .RI "const \fBRGFW_monitor\fP * \fBmonitor\fP"
 .br
+.ti -1c
+.RI "\fBRGFW_bool\fP \fBstate\fP"
+.br
 .in -1c
 .SH "Detailed Description"
 .PP 
@@ -29,6 +32,8 @@ event data for when a monitor is connected, disconnected or updated
 .PP 
 .SS "const \fBRGFW_monitor\fP* RGFW_monitorEvent::monitor"
 the monitor that this event applies to 
+.SS "\fBRGFW_bool\fP RGFW_monitorEvent::state"
+if the monitor is connected or disconnected 
 .SS "RGFW_eventType RGFW_monitorEvent::type"
 which event has been sent? 
 .SS "\fBRGFW_window\fP* RGFW_monitorEvent::win"

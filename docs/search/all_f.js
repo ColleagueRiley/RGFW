@@ -4,5 +4,6 @@ var searchData=
   ['u32_1',['u32',['../RGFW_8h.html#afaa62991928fb9fb18ff0db62a040aba',1,'RGFW.h']]],
   ['u64_2',['u64',['../RGFW_8h.html#a3f7e2bcbb0b4c338f3c4f6c937cd4234',1,'RGFW.h']]],
   ['u8_3',['u8',['../RGFW_8h.html#a92c50087ca0e64fa93fc59402c55f8ca',1,'RGFW.h']]],
-  ['userptr_4',['userPtr',['../structRGFW__monitor.html#a6be8254832fb04be7da29c82691de97d',1,'RGFW_monitor']]]
+  ['update_4',['update',['../unionRGFW__event.html#aa548b536d63f2e7b9f0bda982f94ed4e',1,'RGFW_event']]],
+  ['userptr_5',['userPtr',['../structRGFW__monitor.html#a6be8254832fb04be7da29c82691de97d',1,'RGFW_monitor']]]
 ];

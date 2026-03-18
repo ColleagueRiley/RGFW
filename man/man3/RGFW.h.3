@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Tue Feb 24 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Wed Mar 18 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -41,17 +41,21 @@ RGFW.h
 .br
 .RI "common event data across all events "
 .ti -1c
+.RI "struct \fBRGFW_windowFocusEvent\fP"
+.br
+.RI "event data for all focus events "
+.ti -1c
 .RI "struct \fBRGFW_mouseButtonEvent\fP"
 .br
 .RI "event data for any mouse button event (press/release) "
 .ti -1c
-.RI "struct \fBRGFW_mouseScrollEvent\fP"
+.RI "struct \fBRGFW_mouseDeltaEvent\fP"
 .br
-.RI "event data for any mouse scroll event "
+.RI "event data for any mouse scroll or raw motion event "
 .ti -1c
 .RI "struct \fBRGFW_mousePosEvent\fP"
 .br
-.RI "event data for any mouse position event (RGFW_mousePosChanged) "
+.RI "event data for a mouse position event (RGFW_mousePosChanged) "
 .ti -1c
 .RI "struct \fBRGFW_keyEvent\fP"
 .br
@@ -77,9 +81,19 @@ RGFW.h
 .br
 .RI "event data for when a monitor is connected, disconnected or updated "
 .ti -1c
+.RI "struct \fBRGFW_windowUpdateEvent\fP"
+.br
+.ti -1c
 .RI "union \fBRGFW_event\fP"
 .br
 .RI "union for all of the event stucture types "
+.ti -1c
+.RI "struct \fBRGFW_callbacks\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_debugInfo\fP"
+.br
+.RI "data for debug messages "
 .in -1c
 .SS "Macros"
 
@@ -260,17 +274,21 @@ RGFW.h
 .br
 .RI "common event data across all events "
 .ti -1c
+.RI "typedef struct \fBRGFW_windowFocusEvent\fP \fBRGFW_windowFocusEvent\fP"
+.br
+.RI "event data for all focus events "
+.ti -1c
 .RI "typedef struct \fBRGFW_mouseButtonEvent\fP \fBRGFW_mouseButtonEvent\fP"
 .br
 .RI "event data for any mouse button event (press/release) "
 .ti -1c
-.RI "typedef struct \fBRGFW_mouseScrollEvent\fP \fBRGFW_mouseScrollEvent\fP"
+.RI "typedef struct \fBRGFW_mouseDeltaEvent\fP \fBRGFW_mouseDeltaEvent\fP"
 .br
-.RI "event data for any mouse scroll event "
+.RI "event data for any mouse scroll or raw motion event "
 .ti -1c
 .RI "typedef struct \fBRGFW_mousePosEvent\fP \fBRGFW_mousePosEvent\fP"
 .br
-.RI "event data for any mouse position event (RGFW_mousePosChanged) "
+.RI "event data for a mouse position event (RGFW_mousePosChanged) "
 .ti -1c
 .RI "typedef struct \fBRGFW_keyEvent\fP \fBRGFW_keyEvent\fP"
 .br
@@ -296,101 +314,27 @@ RGFW.h
 .br
 .RI "event data for when a monitor is connected, disconnected or updated "
 .ti -1c
+.RI "typedef struct \fBRGFW_windowUpdateEvent\fP \fBRGFW_windowUpdateEvent\fP"
+.br
+.ti -1c
 .RI "typedef union \fBRGFW_event\fP \fBRGFW_event\fP"
 .br
 .RI "union for all of the event stucture types "
 .ti -1c
-.RI "typedef void(* \fBRGFW_debugfunc\fP) (RGFW_debugType type, RGFW_errorCode err, const char *msg)"
+.RI "typedef void(* \fBRGFW_genericFunc\fP) (const \fBRGFW_event\fP *e)"
+.br
+.RI "generic event callback function type "
+.ti -1c
+.RI "typedef struct \fBRGFW_callbacks\fP \fBRGFW_callbacks\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_debugInfo\fP \fBRGFW_debugInfo\fP"
+.br
+.RI "data for debug messages "
+.ti -1c
+.RI "typedef void(* \fBRGFW_debugFunc\fP) (const \fBRGFW_debugInfo\fP *info)"
 .br
 .RI "callback function type for debug messags "
-.ti -1c
-.RI "typedef void(* \fBRGFW_windowMovedfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
-.br
-.RI "RGFW_windowMoved, the window and its new rect value 
-.br
- "
-.ti -1c
-.RI "typedef void(* \fBRGFW_windowResizedfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP w, \fBi32\fP h)"
-.br
-.RI "RGFW_windowResized, the window and its new rect value 
-.br
- "
-.ti -1c
-.RI "typedef void(* \fBRGFW_windowRestoredfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, \fBi32\fP w, \fBi32\fP h)"
-.br
-.RI "RGFW_windowRestored, the window and its new rect value 
-.br
- "
-.ti -1c
-.RI "typedef void(* \fBRGFW_windowMaximizedfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, \fBi32\fP w, \fBi32\fP h)"
-.br
-.RI "RGFW_windowMaximized, the window and its new rect value 
-.br
- "
-.ti -1c
-.RI "typedef void(* \fBRGFW_windowMinimizedfunc\fP) (\fBRGFW_window\fP *win)"
-.br
-.RI "RGFW_windowMinimized, the window and its new rect value 
-.br
- "
-.ti -1c
-.RI "typedef void(* \fBRGFW_windowQuitfunc\fP) (\fBRGFW_window\fP *win)"
-.br
-.RI "RGFW_quit, the window that was closed\&. "
-.ti -1c
-.RI "typedef void(* \fBRGFW_focusfunc\fP) (\fBRGFW_window\fP *win, \fBRGFW_bool\fP inFocus)"
-.br
-.RI "RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its in focus\&. "
-.ti -1c
-.RI "typedef void(* \fBRGFW_mouseNotifyfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, \fBRGFW_bool\fP status)"
-.br
-.RI "RGFW_mouseEnter / RGFW_mouseLeave, the window that changed, the point of the mouse (enter only) and if the mouse has entered\&. "
-.ti -1c
-.RI "typedef void(* \fBRGFW_mousePosfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, float vecX, float vecY)"
-.br
-.RI "RGFW_mousePosChanged, the window that the move happened on, and the new point of the mouse 
-.br
- "
-.ti -1c
-.RI "typedef void(* \fBRGFW_dataDragfunc\fP) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
-.br
-.RI "RGFW_dataDrag, the window, the point of the drop on the windows\&. "
-.ti -1c
-.RI "typedef void(* \fBRGFW_windowRefreshfunc\fP) (\fBRGFW_window\fP *win)"
-.br
-.RI "RGFW_windowRefresh, the window that needs to be refreshed\&. "
-.ti -1c
-.RI "typedef void(* \fBRGFW_keyCharfunc\fP) (\fBRGFW_window\fP *win, \fBu32\fP codepoint)"
-.br
-.RI "RGFW_keyChar, the window that got the event, the unicode key value\&. "
-.ti -1c
-.RI "typedef void(* \fBRGFW_keyfunc\fP) (\fBRGFW_window\fP *win, \fBu8\fP key, RGFW_keymod mod, \fBRGFW_bool\fP repeat, \fBRGFW_bool\fP pressed)"
-.br
-.RI "RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
-.br
- "
-.ti -1c
-.RI "typedef void(* \fBRGFW_mouseButtonfunc\fP) (\fBRGFW_window\fP *win, RGFW_mouseButton button, \fBRGFW_bool\fP pressed)"
-.br
-.RI "RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
-.br
- "
-.ti -1c
-.RI "typedef void(* \fBRGFW_mouseScrollfunc\fP) (\fBRGFW_window\fP *win, float x, float y)"
-.br
-.RI "RGFW_mouseScroll, the window that got the event, the x scroll value, the y scroll value\&. "
-.ti -1c
-.RI "typedef void(* \fBRGFW_dataDropfunc\fP) (\fBRGFW_window\fP *win, char **files, size_t count)"
-.br
-.RI "RGFW_dataDrop the window that had the drop, the drop data and the number of files dropped\&. "
-.ti -1c
-.RI "typedef void(* \fBRGFW_scaleUpdatedfunc\fP) (\fBRGFW_window\fP *win, float scaleX, float scaleY)"
-.br
-.RI "RGFW_scaleUpdated, the window the event was sent to, content scaleX, content scaleY\&. "
-.ti -1c
-.RI "typedef void(* \fBRGFW_monitorfunc\fP) (\fBRGFW_window\fP *win, const \fBRGFW_monitor\fP *monitor, \fBRGFW_bool\fP connected)"
-.br
-.RI "RGFW_monitorConnected / RGFW_monitorDisconnected, there was a monitor connected/disconnected\&. "
 .ti -1c
 .RI "typedef void(* \fBRGFW_proc\fP) (void)"
 .br
@@ -655,6 +599,18 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_setQueueEvents\fP (\fBRGFW_bool\fP queue)"
 .br
 .RI "Set if events should be queued or not (enabled by default if the event queue is checked) "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_genericFunc\fP \fBRGFW_setEventCallback\fP (RGFW_eventType type, \fBRGFW_genericFunc\fP func)"
+.br
+.RI "Sets the callback function for the event\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setDualEventCallback\fP (RGFW_eventType type, \fBRGFW_genericFunc\fP func, \fBRGFW_genericFunc\fP *first, \fBRGFW_genericFunc\fP *second)"
+.br
+.RI "Sets the callback function for two continuous events\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setAllEventCallbacks\fP (\fBRGFW_genericFunc\fP func, \fBRGFW_callbacks\fP *callbacks)"
+.br
+.RI "Sets the callback function for all events\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_pollEvents\fP (void)"
 .br
@@ -1086,85 +1042,13 @@ RGFW.h
 .br
 .RI "Writes text to the clipboard\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_debugfunc\fP \fBRGFW_setDebugCallback\fP (\fBRGFW_debugfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_debugFunc\fP \fBRGFW_setDebugCallback\fP (\fBRGFW_debugFunc\fP func)"
 .br
 .RI "Sets the callback function to handle debug messages from RGFW\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_sendDebugInfo\fP (RGFW_debugType type, RGFW_errorCode err, const char *msg)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_debugCallback\fP (RGFW_debugType type, RGFW_errorCode code, const char *msg)"
 .br
 .RI "Sends a debug message manually through the currently set debug callback\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_windowMovedfunc\fP \fBRGFW_setWindowMovedCallback\fP (\fBRGFW_windowMovedfunc\fP func)"
-.br
-.RI "Sets the callback function for window move events\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_windowResizedfunc\fP \fBRGFW_setWindowResizedCallback\fP (\fBRGFW_windowResizedfunc\fP func)"
-.br
-.RI "Sets the callback function for window resize events\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_windowQuitfunc\fP \fBRGFW_setWindowQuitCallback\fP (\fBRGFW_windowQuitfunc\fP func)"
-.br
-.RI "Sets the callback function for window quit events\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_mousePosfunc\fP \fBRGFW_setMousePosCallback\fP (\fBRGFW_mousePosfunc\fP func)"
-.br
-.RI "Sets the callback function for mouse move events\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_windowRefreshfunc\fP \fBRGFW_setWindowRefreshCallback\fP (\fBRGFW_windowRefreshfunc\fP func)"
-.br
-.RI "Sets the callback function for window refresh events\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_focusfunc\fP \fBRGFW_setFocusCallback\fP (\fBRGFW_focusfunc\fP func)"
-.br
-.RI "Sets the callback function for focus change events\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_mouseNotifyfunc\fP \fBRGFW_setMouseNotifyCallback\fP (\fBRGFW_mouseNotifyfunc\fP func)"
-.br
-.RI "Sets the callback function for mouse notification events\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_dataDropfunc\fP \fBRGFW_setDataDropCallback\fP (\fBRGFW_dataDropfunc\fP func)"
-.br
-.RI "Sets the callback function for data drop events\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_dataDragfunc\fP \fBRGFW_setDataDragCallback\fP (\fBRGFW_dataDragfunc\fP func)"
-.br
-.RI "Sets the callback function for the start of a data drag event\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_keyfunc\fP \fBRGFW_setKeyCallback\fP (\fBRGFW_keyfunc\fP func)"
-.br
-.RI "Sets the callback function for key press and release events\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_keyCharfunc\fP \fBRGFW_setKeyCharCallback\fP (\fBRGFW_keyCharfunc\fP func)"
-.br
-.RI "Sets the callback function for key character events\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_mouseButtonfunc\fP \fBRGFW_setMouseButtonCallback\fP (\fBRGFW_mouseButtonfunc\fP func)"
-.br
-.RI "Sets the callback function for mouse button press and release events\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_mouseScrollfunc\fP \fBRGFW_setMouseScrollCallback\fP (\fBRGFW_mouseScrollfunc\fP func)"
-.br
-.RI "Sets the callback function for mouse scroll events\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_windowMaximizedfunc\fP \fBRGFW_setWindowMaximizedCallback\fP (\fBRGFW_windowMaximizedfunc\fP func)"
-.br
-.RI "Sets the callback function for window maximize events\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_windowMinimizedfunc\fP \fBRGFW_setWindowMinimizedCallback\fP (\fBRGFW_windowMinimizedfunc\fP func)"
-.br
-.RI "Sets the callback function for window minimize events\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_windowRestoredfunc\fP \fBRGFW_setWindowRestoredCallback\fP (\fBRGFW_windowRestoredfunc\fP func)"
-.br
-.RI "Sets the callback function for window restore events\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_scaleUpdatedfunc\fP \fBRGFW_setScaleUpdatedCallback\fP (\fBRGFW_scaleUpdatedfunc\fP func)"
-.br
-.RI "Sets the callback function for DPI (scale) update events\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_monitorfunc\fP \fBRGFW_setMonitorCallback\fP (\fBRGFW_monitorfunc\fP func)"
-.br
-.RI "Sets the callback function for monitor connected and disconnect events\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_setRootWindow\fP (\fBRGFW_window\fP *win)"
 .br
@@ -1177,6 +1061,10 @@ RGFW.h
 .RI "\fBRGFWDEF\fP void \fBRGFW_eventQueuePush\fP (const \fBRGFW_event\fP *event)"
 .br
 .RI "Pushes an event into the standard RGFW event queue\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_eventQueuePushAndCall\fP (const \fBRGFW_event\fP *event)"
+.br
+.RI "Pushes an event into the standard RGFW event queue and call the callback\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_eventQueueFlush\fP (void)"
 .br
@@ -1304,6 +1192,8 @@ RGFW.h
 
 .SS "typedef \fBu8\fP \fBRGFW_bool\fP"
 
+.SS "typedef struct \fBRGFW_callbacks\fP \fBRGFW_callbacks\fP"
+brief structure that holds an array to callback data 
 .SS "typedef struct \fBRGFW_colorLayout\fP \fBRGFW_colorLayout\fP"
 
 .PP
@@ -1320,34 +1210,30 @@ function type converting raw image data between formats
 
 .PP
 event data for any data drag event 
-.SS "typedef void(* RGFW_dataDragfunc) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
-
-.PP
-RGFW_dataDrag, the window, the point of the drop on the windows\&. 
 .SS "typedef struct \fBRGFW_dataDropEvent\fP \fBRGFW_dataDropEvent\fP"
 
 .PP
 event data for any data drop event 
-.SS "typedef void(* RGFW_dataDropfunc) (\fBRGFW_window\fP *win, char **files, size_t count)"
-
-.PP
-RGFW_dataDrop the window that had the drop, the drop data and the number of files dropped\&. 
-.SS "typedef void(* RGFW_debugfunc) (RGFW_debugType type, RGFW_errorCode err, const char *msg)"
+.SS "typedef void(* RGFW_debugFunc) (const \fBRGFW_debugInfo\fP *info)"
 
 .PP
 callback function type for debug messags 
+.SS "typedef struct \fBRGFW_debugInfo\fP \fBRGFW_debugInfo\fP"
+
+.PP
+data for debug messages 
 .SS "typedef union \fBRGFW_event\fP \fBRGFW_event\fP"
 
 .PP
 union for all of the event stucture types 
-.SS "typedef void(* RGFW_focusfunc) (\fBRGFW_window\fP *win, \fBRGFW_bool\fP inFocus)"
-
-.PP
-RGFW_focusIn / RGFW_focusOut, the window who's focus has changed and if its in focus\&. 
 .SS "typedef struct \fBRGFW_gammaRamp\fP \fBRGFW_gammaRamp\fP"
 
 .PP
 gamma struct for monitors 
+.SS "typedef void(* RGFW_genericFunc) (const \fBRGFW_event\fP *e)"
+
+.PP
+generic event callback function type 
 .SS "typedef struct \fBRGFW_info\fP \fBRGFW_info\fP"
 
 .PP
@@ -1356,20 +1242,10 @@ The stucture that contains information about the current RGFW instance\&.
 
 .PP
 event data for a key character event 
-.SS "typedef void(* RGFW_keyCharfunc) (\fBRGFW_window\fP *win, \fBu32\fP codepoint)"
-
-.PP
-RGFW_keyChar, the window that got the event, the unicode key value\&. 
 .SS "typedef struct \fBRGFW_keyEvent\fP \fBRGFW_keyEvent\fP"
 
 .PP
 event data for a key press/release event 
-.SS "typedef void(* RGFW_keyfunc) (\fBRGFW_window\fP *win, \fBu8\fP key, RGFW_keymod mod, \fBRGFW_bool\fP repeat, \fBRGFW_bool\fP pressed)"
-
-.PP
-RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
-.br
- RGFW_keyPressed / RGFW_keyReleased, the window that got the event, the mapped key, the physical key, the string version, the state of the mod keys, if it was a press (else it's a release) 
 .SS "typedef struct \fBRGFW_monitor\fP \fBRGFW_monitor\fP"
 
 .PP
@@ -1378,10 +1254,6 @@ structure for monitor data
 
 .PP
 event data for when a monitor is connected, disconnected or updated 
-.SS "typedef void(* RGFW_monitorfunc) (\fBRGFW_window\fP *win, const \fBRGFW_monitor\fP *monitor, \fBRGFW_bool\fP connected)"
-
-.PP
-RGFW_monitorConnected / RGFW_monitorDisconnected, there was a monitor connected/disconnected\&. 
 .SS "typedef struct \fBRGFW_monitorMode\fP \fBRGFW_monitorMode\fP"
 
 .PP
@@ -1396,34 +1268,14 @@ a raw pointer to the underlying mouse handle for setting and creating custom mou
 
 .PP
 event data for any mouse button event (press/release) 
-.SS "typedef void(* RGFW_mouseButtonfunc) (\fBRGFW_window\fP *win, RGFW_mouseButton button, \fBRGFW_bool\fP pressed)"
+.SS "typedef struct \fBRGFW_mouseDeltaEvent\fP \fBRGFW_mouseDeltaEvent\fP"
 
 .PP
-RGFW_mouseButtonPressed / RGFW_mouseButtonReleased, the window that got the event, the button that was pressed, the scroll value, if it was a press (else it's a release) 
-.br
- 
-.SS "typedef void(* RGFW_mouseNotifyfunc) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, \fBRGFW_bool\fP status)"
-
-.PP
-RGFW_mouseEnter / RGFW_mouseLeave, the window that changed, the point of the mouse (enter only) and if the mouse has entered\&. 
+event data for any mouse scroll or raw motion event 
 .SS "typedef struct \fBRGFW_mousePosEvent\fP \fBRGFW_mousePosEvent\fP"
 
 .PP
-event data for any mouse position event (RGFW_mousePosChanged) 
-.SS "typedef void(* RGFW_mousePosfunc) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, float vecX, float vecY)"
-
-.PP
-RGFW_mousePosChanged, the window that the move happened on, and the new point of the mouse 
-.br
- 
-.SS "typedef struct \fBRGFW_mouseScrollEvent\fP \fBRGFW_mouseScrollEvent\fP"
-
-.PP
-event data for any mouse scroll event 
-.SS "typedef void(* RGFW_mouseScrollfunc) (\fBRGFW_window\fP *win, float x, float y)"
-
-.PP
-RGFW_mouseScroll, the window that got the event, the x scroll value, the y scroll value\&. 
+event data for a mouse position event (RGFW_mousePosChanged) 
 .SS "typedef struct \fBRGFW_nativeImage\fP \fBRGFW_nativeImage\fP"
 
 .PP
@@ -1436,10 +1288,6 @@ function pointer equivalent of void*
 
 .PP
 event data for when the window scale (DPI) is updated 
-.SS "typedef void(* RGFW_scaleUpdatedfunc) (\fBRGFW_window\fP *win, float scaleX, float scaleY)"
-
-.PP
-RGFW_scaleUpdated, the window the event was sent to, content scaleX, content scaleY\&. 
 .SS "typedef ptrdiff_t \fBRGFW_ssize_t\fP"
 
 .SS "typedef struct \fBRGFW_surface\fP \fBRGFW_surface\fP"
@@ -1454,44 +1302,12 @@ The window stucture for interfacing with the window\&.
 
 .PP
 The source window stucture for interfacing with the underlying windowing API (e\&.g\&. winapi, wayland, cocoa, etc) 
-.SS "typedef void(* RGFW_windowMaximizedfunc) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, \fBi32\fP w, \fBi32\fP h)"
+.SS "typedef struct \fBRGFW_windowFocusEvent\fP \fBRGFW_windowFocusEvent\fP"
 
 .PP
-RGFW_windowMaximized, the window and its new rect value 
-.br
- 
-.SS "typedef void(* RGFW_windowMinimizedfunc) (\fBRGFW_window\fP *win)"
-
-.PP
-RGFW_windowMinimized, the window and its new rect value 
-.br
- 
-.SS "typedef void(* RGFW_windowMovedfunc) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y)"
-
-.PP
-RGFW_windowMoved, the window and its new rect value 
-.br
- 
-.SS "typedef void(* RGFW_windowQuitfunc) (\fBRGFW_window\fP *win)"
-
-.PP
-RGFW_quit, the window that was closed\&. 
-.SS "typedef void(* RGFW_windowRefreshfunc) (\fBRGFW_window\fP *win)"
-
-.PP
-RGFW_windowRefresh, the window that needs to be refreshed\&. 
-.SS "typedef void(* RGFW_windowResizedfunc) (\fBRGFW_window\fP *win, \fBi32\fP w, \fBi32\fP h)"
-
-.PP
-RGFW_windowResized, the window and its new rect value 
-.br
- 
-.SS "typedef void(* RGFW_windowRestoredfunc) (\fBRGFW_window\fP *win, \fBi32\fP x, \fBi32\fP y, \fBi32\fP w, \fBi32\fP h)"
-
-.PP
-RGFW_windowRestored, the window and its new rect value 
-.br
- 
+event data for all focus events 
+.SS "typedef struct \fBRGFW_windowUpdateEvent\fP \fBRGFW_windowUpdateEvent\fP"
+@breif event data for when the window is updated, moved, resized or refreshed 
 .SS "typedef uint16_t \fBu16\fP"
 
 .SS "typedef uint32_t \fBu32\fP"
@@ -1731,9 +1547,11 @@ codes for the event types that can be sent < no event has been sent
 .PP
 < the position of the mouse has been changed
 .PP
-mouse event note the x and y of the mouse can be found in the vector, RGFW_x, y
+< raw mouse motion
 .PP
-RGFW_event\&.button\&.value holds which mouse button was pressed
+< mouse entered the window
+.PP
+< mouse left the window
 .PP
 < the window was moved (by the user)
 .PP
@@ -1743,11 +1561,9 @@ RGFW_event\&.button\&.value holds which mouse button was pressed
 .PP
 < window is out of focus now
 .PP
-< the user clicked the quit button
+< The window content needs to be refreshed
 .PP
-< a file has been dropped into the window
-.PP
-< the start of a drag and drop event, when the file is being dragged
+< the user attempts to close the window
 .PP
 < the window was maximized
 .PP
@@ -1755,11 +1571,17 @@ RGFW_event\&.button\&.value holds which mouse button was pressed
 .PP
 < the window was restored
 .PP
+< a file has been dropped into the window
+.PP
+< the start of a drag and drop event, when the file is being dragged
+.PP
 < content scale factor changed
 .PP
 < a monitor has been connected
 .PP
 < a monitor has been disconnected
+.PP
+< the number of event types there are
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_flashRequest)"
 @breif flash request type 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_format)"
@@ -2323,6 +2145,19 @@ check all the events until there are none left and updates window structure attr
 
 .PP
 Poll and check for monitor updates (this is called internally on monitor update events and RGFW_init) ! 
+.SS "\fBRGFWDEF\fP void RGFW_setAllEventCallbacks (\fBRGFW_genericFunc\fP func, \fBRGFW_callbacks\fP * callbacks)"
+
+.PP
+Sets the callback function for all events\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfunc\fP The function to be called when the event is triggered\&. 
+.br
+\fI[OUTPUT]\fP a structure that holds an array of all the event callbacks 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_setClassName (const char * name)"
 
 .PP
@@ -2331,6 +2166,39 @@ Sets the class name for X11 and WinAPI windows\&. Windows with the same class na
 \fBParameters\fP
 .RS 4
 \fIname\fP The class name to assign\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_setDualEventCallback (RGFW_eventType type, \fBRGFW_genericFunc\fP func, \fBRGFW_genericFunc\fP * first, \fBRGFW_genericFunc\fP * second)"
+
+.PP
+Sets the callback function for two continuous events\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfunc\fP The function to be called when the event is triggered\&. 
+.br
+\fI[OUTPUT]\fP The previously set callback function for the first event, if any\&. 
+.br
+\fI[OUTPUT]\fP The previously set callback function for the second event, if any\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_genericFunc\fP RGFW_setEventCallback (RGFW_eventType type, \fBRGFW_genericFunc\fP func)"
+
+.PP
+Sets the callback function for the event\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIthe\fP event type for the callback 
+.br
+\fIfunc\fP The function to be called when the event is triggered\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The previously set callback function, if any\&. 
 .RE
 .PP
 

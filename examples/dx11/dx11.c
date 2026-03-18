@@ -56,7 +56,7 @@ void directXClose(RGFW_window* win, directXinfo* dxInfo);
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("name", 0, 0, 500, 500, RGFW_windowCenter);
-    RGFW_window_setExitKey(win, RGFW_escape);
+    RGFW_window_setExitKey(win, RGFW_keyEscape);
 
     directXinfo dxInfo;
     if (directXInit(win, &dxInfo) == 0) {

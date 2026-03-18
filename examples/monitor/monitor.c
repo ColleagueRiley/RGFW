@@ -14,7 +14,7 @@
 
 int main(void) {
 	RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowOpenGL);
-	RGFW_window_setExitKey(win, RGFW_escape);
+	RGFW_window_setExitKey(win, RGFW_keyEscape);
 
     RGFW_window_makeCurrentContext_OpenGL(win);
     RGFW_monitor* mon = RGFW_window_getMonitor(win);
@@ -55,9 +55,9 @@ int main(void) {
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         RGFW_event event;
-        while (RGFW_window_checkEvent(win, &event) && event.type != RGFW_quit) {
+        while (RGFW_window_checkEvent(win, &event) && event.type != RGFW_windowClose) {
             switch (event.type) {
-                case RGFW_focusOut:
+                case RGFW_windowFocusOut:
                     if (scaled == RGFW_FALSE) break;
                     scaled = RGFW_FALSE;
                     RGFW_window_minimize(win);
@@ -65,7 +65,7 @@ int main(void) {
                     RGFW_monitor_requestMode(mon, &mon->mode, RGFW_monitorScale);
 #endif
                     break;
-                case RGFW_focusIn:
+                case RGFW_windowFocusIn:
                     if (scaled == RGFW_TRUE) break;
                     scaled = RGFW_TRUE;
 

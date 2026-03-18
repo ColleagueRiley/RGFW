@@ -13,13 +13,13 @@
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW Events", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
     RGFW_event event;
-    RGFW_window_setExitKey(win, RGFW_escape);
+    RGFW_window_setExitKey(win, RGFW_keyEscape);
 
     while (RGFW_window_shouldClose(win) == 0) {
         RGFW_waitForEvent(RGFW_eventWaitNext);
         while (RGFW_window_checkEvent(win, &event)) {
             switch (event.type) {
-                case RGFW_quit: printf("window closed\n"); break;
+                case RGFW_windowClose: printf("window closed\n"); break;
                 case RGFW_keyChar:
                     printf("Key char %c\n", event.keyChar.value);
 					break;
@@ -36,10 +36,10 @@ int main(void) {
                     printf("Mouse Button Released %i\n", event.button.value);
                     break;
 				case RGFW_mouseScroll:
-                    printf("Mouse Button scroll %f %f\n", (double)event.scroll.x, (double)event.scroll.y);
+                    printf("Mouse Button scroll %f %f\n", (double)event.delta.x, (double)event.delta.y);
                     break;
 				case RGFW_mousePosChanged:
-                    if (RGFW_window_isKeyPressed(win, RGFW_controlL))
+                    if (RGFW_window_isKeyPressed(win, RGFW_keyControlL))
                         printf("Mouse pos changed %i %i\n", event.mouse.x, event.mouse.y);
                     break;
                 case RGFW_windowMoved:
@@ -57,10 +57,10 @@ int main(void) {
                 case RGFW_windowRestored:
                     printf("window restored %i %i\n", win->w, win->h);
                     break;
-                case RGFW_focusIn:
+                case RGFW_windowFocusIn:
                     printf("Focused\n");
                     break;
-                case RGFW_focusOut:
+                case RGFW_windowFocusOut:
                     printf("Unfocused\n");
                     break;
                 case RGFW_mouseEnter:
@@ -75,7 +75,7 @@ int main(void) {
                 case RGFW_dataDrop: {
                     u32 i;
                     for (i = 0; i < event.drop.count; i++)
-                        printf("dropped : %s\n", event.drop.files[i]);
+                        printf("dropped : %s\n", event.drop.value[i]);
                     break;
                 }
                 case RGFW_dataDrag:

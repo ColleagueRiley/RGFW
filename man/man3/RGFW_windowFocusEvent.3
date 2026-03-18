@@ -1,0 +1,39 @@
+.TH "RGFW_windowFocusEvent" 3 "Wed Mar 18 2026" "RGFW" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+RGFW_windowFocusEvent \- event data for all focus events  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <RGFW\&.h>\fP
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "RGFW_eventType \fBtype\fP"
+.br
+.ti -1c
+.RI "\fBRGFW_window\fP * \fBwin\fP"
+.br
+.ti -1c
+.RI "\fBRGFW_bool\fP \fBstate\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+event data for all focus events 
+.SH "Member Data Documentation"
+.PP 
+.SS "\fBRGFW_bool\fP RGFW_windowFocusEvent::state"
+wether or not the window is in focus or not 
+.SS "RGFW_eventType RGFW_windowFocusEvent::type"
+which event has been sent? 
+.SS "\fBRGFW_window\fP* RGFW_windowFocusEvent::win"
+the window this event applies to (for event queue events) 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for RGFW from the source code\&.

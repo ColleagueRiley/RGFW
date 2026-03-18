@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['r_0',['r',['../structRGFW__colorLayout.html#a544530c8c72d629bf68b955ae84576bb',1,'RGFW_colorLayout']]],
-  ['red_1',['red',['../structRGFW__gammaRamp.html#a5ccafdfffd1d3e6a7e92e89e539a79ff',1,'RGFW_gammaRamp::red()'],['../structRGFW__monitorMode.html#aae07949f07855342f173b25965d78026',1,'RGFW_monitorMode::red()']]],
-  ['refreshrate_2',['refreshRate',['../structRGFW__monitorMode.html#a43177ff56dd253bdf37a8c3deeafa860',1,'RGFW_monitorMode']]],
-  ['repeat_3',['repeat',['../structRGFW__keyEvent.html#a7fed133c001b2ac3330e62dc10cdee08',1,'RGFW_keyEvent']]]
+  ['physh_0',['physH',['../structRGFW__monitor.html#a9c3025aaf5b5f383d80a3516fca2a399',1,'RGFW_monitor']]],
+  ['physw_1',['physW',['../structRGFW__monitor.html#af4ba34d59dd83ca44148d44e82d75d35',1,'RGFW_monitor']]],
+  ['pixelratio_2',['pixelRatio',['../structRGFW__monitor.html#a6a1679c6f3fff5aa884603ae401a4437',1,'RGFW_monitor']]]
 ];

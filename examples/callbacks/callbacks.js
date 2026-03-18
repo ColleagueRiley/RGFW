@@ -965,21 +965,21 @@ function dbg(text) {
 // === Body ===
 
 var ASM_CONSTS = {
-  67480: () => { Module.canvas.focus(); },  
- 67505: ($0, $1, $2, $3, $4) => { var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4); let context = document.getElementById("canvas").getContext("2d"); let image = context.getImageData(0, 0, $1, $2); image.data.set(data); context.putImageData(image, 0, $4 - $2); },  
- 67740: () => { window.addEventListener("keydown", (event) => { var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); var codepoint = event.key.charCodeAt(0); if(codepoint < 0x7f && event.key.length > 1) { codepoint = 0; } Module._RGFW_handleKeyEvent(code, codepoint, 1); _free(code); }, true); window.addEventListener("keyup", (event) => { var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(code, 0, 0); _free(code); }, true); },  
- 68695: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; Module._RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; i++) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 69721: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 69792: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 69849: () => { return window.mouseX || 0; },  
- 69880: () => { return window.mouseY || 0; },  
- 69911: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 70058: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 70111: () => { return window.innerWidth; },  
- 70141: () => { return window.innerHeight; },  
- 70172: () => { Module.requestFullscreen(false, true); },  
- 70211: () => { Module.exitFullscreen(false, true); },  
- 70247: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
+  67640: () => { Module.canvas.focus(); },  
+ 67665: ($0, $1, $2, $3, $4) => { var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4); let context = document.getElementById("canvas").getContext("2d"); let image = context.getImageData(0, 0, $1, $2); image.data.set(data); context.putImageData(image, 0, $4 - $2); },  
+ 67900: () => { window.addEventListener("keydown", (event) => { var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); var codepoint = event.key.charCodeAt(0); if(codepoint < 0x7f && event.key.length > 1) { codepoint = 0; } Module._RGFW_handleKeyEvent(code, codepoint, 1); _free(code); }, true); window.addEventListener("keyup", (event) => { var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(code, 0, 0); _free(code); }, true); },  
+ 68855: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var filenamesArray = []; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; Module._RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); filenamesArray.push(filename); Module._RGFW_makeSetValue(i, filename); } Module._Emscripten_onDrop(count); for (var i = 0; i < count; i++) { _free(filenamesArray[i]); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
+ 69881: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 69952: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 70009: () => { return window.mouseX || 0; },  
+ 70040: () => { return window.mouseY || 0; },  
+ 70071: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
+ 70218: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 70271: () => { return window.innerWidth; },  
+ 70301: () => { return window.innerHeight; },  
+ 70332: () => { Module.requestFullscreen(false, true); },  
+ 70371: () => { Module.exitFullscreen(false, true); },  
+ 70407: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
 };
 
 
@@ -11644,16 +11644,11 @@ var stackRestore = createExportWrapper('stackRestore');
 var stackAlloc = createExportWrapper('stackAlloc');
 var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'])();
 var dynCall_iiii = Module['dynCall_iiii'] = createExportWrapper('dynCall_iiii');
-var dynCall_viii = Module['dynCall_viii'] = createExportWrapper('dynCall_viii');
-var dynCall_viff = Module['dynCall_viff'] = createExportWrapper('dynCall_viff');
 var dynCall_vi = Module['dynCall_vi'] = createExportWrapper('dynCall_vi');
-var dynCall_viiiii = Module['dynCall_viiiii'] = createExportWrapper('dynCall_viiiii');
-var dynCall_viiiff = Module['dynCall_viiiff'] = createExportWrapper('dynCall_viiiff');
-var dynCall_vii = Module['dynCall_vii'] = createExportWrapper('dynCall_vii');
-var dynCall_viiii = Module['dynCall_viiii'] = createExportWrapper('dynCall_viiii');
 var dynCall_jiji = Module['dynCall_jiji'] = createExportWrapper('dynCall_jiji');
 var dynCall_ii = Module['dynCall_ii'] = createExportWrapper('dynCall_ii');
 var dynCall_iidiiii = Module['dynCall_iidiiii'] = createExportWrapper('dynCall_iidiiii');
+var dynCall_vii = Module['dynCall_vii'] = createExportWrapper('dynCall_vii');
 var _asyncify_start_unwind = createExportWrapper('asyncify_start_unwind');
 var _asyncify_stop_unwind = createExportWrapper('asyncify_stop_unwind');
 var _asyncify_start_rewind = createExportWrapper('asyncify_start_rewind');

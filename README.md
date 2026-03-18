@@ -43,62 +43,50 @@ You must explicitly request these helper functions via, `#define RGFW_OPENGL`, `
 # Getting started
 ## a very simple example
 ```c
+
+/*
+   this example doesn't have any graphics, for a graphics example see the other examples
+   examples/dx11/dx11 -> DirectX
+   examples/metal/metal -> Metal
+   examples/gl11/gl11 -> OpenGL 1.1
+   examples/gl33/gl33 -> OpenGL 3.3
+   examples/gles2/gles2 -> OpenGL ES 2
+   examples/egl/egl -> egl
+   examples/surface/surface -> software rendering
+*/
+
 #define RGFW_IMPLEMENTATION
-#define RGFW_OPENGL /* if this line is not added, OpenGL functions will not be included */
 #include "RGFW.h"
 
 #include <stdio.h>
 
-#ifdef RGFW_MACOS
-#include <OpenGL/gl.h> /* why does macOS do this */
-#else
-#include <GL/gl.h>
-#endif
-
-void keyfunc(RGFW_window* win, RGFW_key key, RGFW_keymod keyMod, RGFW_bool repeat, RGFW_bool pressed) {
-    RGFW_UNUSED(repeat);
-    if (key == RGFW_escape && pressed) {
-        RGFW_window_setShouldClose(win, 1);
+void keyfunc(const RGFW_event* event) {
+    if (event->key.value == RGFW_keyEscape) {
+        RGFW_window_setShouldClose(event->common.win, 1);
     }
 }
 
 int main() {
-    /* the RGFW_windowOpenGL flag tells it to create an OpenGL context, but you can also create your own with RGFW_window_createContext_OpenGL */
-    RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowOpenGL);
+    RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowCenter | RGFW_windowNoResize);
 
-    RGFW_setKeyCallback(keyfunc); // you can use callbacks like this if you want
+    RGFW_setEventCallback(RGFW_keyPressed, keyfunc); // you can use callbacks like this if you want
+
+    i32 mouseX, mouseY;
 
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
         RGFW_event event;
-        while (RGFW_window_checkEvent(win, &event)) {  // or RGFW_pollEvents(); if you only want callbacks
-            // you can either check the current event yourself
-            if (event.type == RGFW_quit) break;
-
-            i32 mouseX, mouseY;
+        while (RGFW_window_checkEvent(win, &event)) {  // or RGFW_pollEvents(); if you only want callbacks / state checking
             RGFW_window_getMouse(win, &mouseX, &mouseY);
 
             if (event.type == RGFW_mouseButtonPressed && event.button.value == RGFW_mouseLeft) {
                 printf("You clicked at x: %d, y: %d\n", mouseX, mouseY);
             }
-
-            // or use the existing functions
-            if (RGFW_isMousePressed(RGFW_mouseRight)) {
-                printf("The right mouse button was clicked at x: %d, y: %d\n", mouseX, mouseY);
-            }
         }
 
-        // OpenGL 1.1 is used here for a simple example, but you can use any version you want (if you request it first (see gl33/gl33.c))
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-        glBegin(GL_TRIANGLES);
-            glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.6f, -0.75f);
-            glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.6f, -0.75f);
-            glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);
-        glEnd();
-
-        RGFW_window_swapBuffers_OpenGL(win);
-        glFlush();
+        /* state checking */
+        if (RGFW_isMousePressed(RGFW_mouseRight)) {
+            printf("The right mouse button was clicked at x: %d, y: %d\n", mouseX, mouseY);
+        }
     }
 
     RGFW_window_close(win);
@@ -108,9 +96,9 @@ int main() {
 
 
 ```sh
-linux : gcc main.c -lX11 -lGL -lXrandr
+linux : gcc main.c -lX11 -lGL -lm -lXrandr
 windows : gcc main.c -lopengl32 -lgdi32
-macos : gcc main.c -framework Cocoa -framework OpenGL
+macos : gcc main.c -framework Cocoa
 ```
 
 ## other examples

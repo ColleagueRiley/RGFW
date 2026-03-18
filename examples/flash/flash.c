@@ -6,7 +6,7 @@ int main(void) {
     RGFW_setClassName("RGFW Flash Test");
     RGFW_window* win = RGFW_createWindow("RGFW Flash Demo", 0, 0, 600, 400, RGFW_windowCenter);
 
-    RGFW_window_setExitKey(win, RGFW_escape);
+    RGFW_window_setExitKey(win, RGFW_keyEscape);
 
     int mode = 0;
     int was_focused = 1;
@@ -14,7 +14,7 @@ int main(void) {
     while (!RGFW_window_shouldClose(win)) {
         RGFW_pollEvents();
 
-        if (RGFW_isKeyPressed(RGFW_space)) {
+        if (RGFW_isKeyPressed(RGFW_keySpace)) {
             mode = !mode;
         }
 

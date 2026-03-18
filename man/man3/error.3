@@ -1,4 +1,4 @@
-.TH "error" 3 "Tue Feb 24 2026" "RGFW" \" -*- nroff -*-
+.TH "error" 3 "Wed Mar 18 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -10,11 +10,11 @@ error \- handling
 
 .in +1c
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_debugfunc\fP \fBRGFW_setDebugCallback\fP (\fBRGFW_debugfunc\fP func)"
+.RI "\fBRGFWDEF\fP \fBRGFW_debugFunc\fP \fBRGFW_setDebugCallback\fP (\fBRGFW_debugFunc\fP func)"
 .br
 .RI "Sets the callback function to handle debug messages from RGFW\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_sendDebugInfo\fP (RGFW_debugType type, RGFW_errorCode err, const char *msg)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_debugCallback\fP (RGFW_debugType type, RGFW_errorCode code, const char *msg)"
 .br
 .RI "Sends a debug message manually through the currently set debug callback\&. "
 .in -1c
@@ -27,7 +27,7 @@ error \- handling
 
 .SH "Function Documentation"
 .PP 
-.SS "\fBRGFWDEF\fP void RGFW_sendDebugInfo (RGFW_debugType type, RGFW_errorCode err, const char * msg)"
+.SS "\fBRGFWDEF\fP void RGFW_debugCallback (RGFW_debugType type, RGFW_errorCode code, const char * msg)"
 
 .PP
 Sends a debug message manually through the currently set debug callback\&. ! 
@@ -42,7 +42,7 @@ Sends a debug message manually through the currently set debug callback\&. !
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP \fBRGFW_debugfunc\fP RGFW_setDebugCallback (\fBRGFW_debugfunc\fP func)"
+.SS "\fBRGFWDEF\fP \fBRGFW_debugFunc\fP RGFW_setDebugCallback (\fBRGFW_debugFunc\fP func)"
 
 .PP
 Sets the callback function to handle debug messages from RGFW\&. ! 

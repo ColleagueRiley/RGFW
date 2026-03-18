@@ -107,88 +107,77 @@ Features</h1>
 Getting started</h1>
 <h2><a class="anchor" id="autotoc_md4"></a>
 a very simple example</h2>
-<div class="fragment"><div class="line"><span class="preprocessor">#define RGFW_IMPLEMENTATION</span></div>
-<div class="line"><span class="preprocessor">#define RGFW_OPENGL </span><span class="comment">/* if this line is not added, OpenGL functions will not be included */</span><span class="preprocessor"></span></div>
+<div class="fragment"><div class="line"><span class="comment">/*</span></div>
+<div class="line"><span class="comment">   this example doesn&#39;t have any graphics, for a graphics example see the other examples</span></div>
+<div class="line"><span class="comment">   examples/dx11/dx11 -&gt; DirectX</span></div>
+<div class="line"><span class="comment">   examples/metal/metal -&gt; Metal</span></div>
+<div class="line"><span class="comment">   examples/gl11/gl11 -&gt; OpenGL 1.1</span></div>
+<div class="line"><span class="comment">   examples/gl33/gl33 -&gt; OpenGL 3.3</span></div>
+<div class="line"><span class="comment">   examples/gles2/gles2 -&gt; OpenGL ES 2</span></div>
+<div class="line"><span class="comment">   examples/egl/egl -&gt; egl</span></div>
+<div class="line"><span class="comment">   examples/surface/surface -&gt; software rendering</span></div>
+<div class="line"><span class="comment">*/</span></div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">#define RGFW_IMPLEMENTATION</span></div>
 <div class="line"><span class="preprocessor">#include &quot;<a class="code" href="RGFW_8h.html">RGFW.h</a>&quot;</span></div>
 <div class="line"> </div>
 <div class="line"><span class="preprocessor">#include &lt;stdio.h&gt;</span></div>
 <div class="line"> </div>
-<div class="line"><span class="preprocessor">#ifdef RGFW_MACOS</span></div>
-<div class="line"><span class="preprocessor">#include &lt;OpenGL/gl.h&gt;</span> <span class="comment">/* why does macOS do this */</span></div>
-<div class="line"><span class="preprocessor">#else</span></div>
-<div class="line"><span class="preprocessor">#include &lt;GL/gl.h&gt;</span></div>
-<div class="line"><span class="preprocessor">#endif</span></div>
-<div class="line"> </div>
-<div class="line"><span class="keywordtype">void</span> keyfunc(<a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win, RGFW_key key, RGFW_keymod keyMod, <a class="code hl_typedef" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> repeat, <a class="code hl_typedef" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> pressed) {</div>
-<div class="line">    <a class="code hl_define" href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a>(repeat);</div>
-<div class="line">    <span class="keywordflow">if</span> (key == RGFW_escape &amp;&amp; pressed) {</div>
-<div class="line">        <a class="code hl_function" href="group__Window__management.html#ga98edf96a90a0f218afeb01908be28fbb">RGFW_window_setShouldClose</a>(win, 1);</div>
+<div class="line"><span class="keywordtype">void</span> keyfunc(<span class="keyword">const</span> <a class="code hl_union" href="unionRGFW__event.html">RGFW_event</a>* event) {</div>
+<div class="line">    <span class="keywordflow">if</span> (event-&gt;<a class="code hl_variable" href="unionRGFW__event.html#abb2a28af3dd447885cb08271faf6df84">key</a>.<a class="code hl_variable" href="structRGFW__keyEvent.html#a87bbcb06e26eea974531fe2cab56e5f2">value</a> == RGFW_keyEscape) {</div>
+<div class="line">        <a class="code hl_function" href="group__Window__management.html#ga98edf96a90a0f218afeb01908be28fbb">RGFW_window_setShouldClose</a>(event-&gt;<a class="code hl_variable" href="unionRGFW__event.html#a2cd9246cc6b350ba08e7f0edc1d556ed">common</a>.<a class="code hl_variable" href="structRGFW__commonEvent.html#afe9e8a63db95557a8f9a9b54beb00de7">win</a>, 1);</div>
 <div class="line">    }</div>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line"><span class="keywordtype">int</span> main() {</div>
-<div class="line">    <span class="comment">/* the RGFW_windowOpenGL flag tells it to create an OpenGL context, but you can also create your own with RGFW_window_createContext_OpenGL */</span></div>
-<div class="line">    <a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win = <a class="code hl_function" href="RGFW_8h.html#ac5fd097e30463a43eed098e9e5cdd7e4">RGFW_createWindow</a>(<span class="stringliteral">&quot;a window&quot;</span>, 0, 0, 800, 600, RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowOpenGL);</div>
+<div class="line">    <a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* win = <a class="code hl_function" href="RGFW_8h.html#ac5fd097e30463a43eed098e9e5cdd7e4">RGFW_createWindow</a>(<span class="stringliteral">&quot;a window&quot;</span>, 0, 0, 800, 600, RGFW_windowCenter | RGFW_windowNoResize);</div>
 <div class="line"> </div>
-<div class="line">    <a class="code hl_function" href="group__Callbacks.html#gaade2b5b8ca4d3e0d3e3fe219ff9e2795">RGFW_setKeyCallback</a>(keyfunc); <span class="comment">// you can use callbacks like this if you want</span></div>
+<div class="line">    <a class="code hl_function" href="RGFW_8h.html#ae4174e705d4f736f200c530f9162219b">RGFW_setEventCallback</a>(RGFW_keyPressed, keyfunc); <span class="comment">// you can use callbacks like this if you want</span></div>
+<div class="line"> </div>
+<div class="line">    <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> mouseX, mouseY;</div>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">while</span> (<a class="code hl_function" href="group__Window__management.html#gae40de5fbdc9e850c1ff7e2e8dac46624">RGFW_window_shouldClose</a>(win) == <a class="code hl_define" href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a>) {</div>
 <div class="line">        <a class="code hl_union" href="unionRGFW__event.html">RGFW_event</a> event;</div>
-<div class="line">        <span class="keywordflow">while</span> (<a class="code hl_function" href="group__Window__management.html#ga24a216d1304d457e92b07504dda3fabb">RGFW_window_checkEvent</a>(win, &amp;event)) {  <span class="comment">// or RGFW_pollEvents(); if you only want callbacks</span></div>
-<div class="line">            <span class="comment">// you can either check the current event yourself</span></div>
-<div class="line">            <span class="keywordflow">if</span> (event.<a class="code hl_variable" href="unionRGFW__event.html#ab309d573101fed3b9137b3e42f408ce0">type</a> == RGFW_quit) <span class="keywordflow">break</span>;</div>
-<div class="line"> </div>
-<div class="line">            <a class="code hl_typedef" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> mouseX, mouseY;</div>
+<div class="line">        <span class="keywordflow">while</span> (<a class="code hl_function" href="group__Window__management.html#ga24a216d1304d457e92b07504dda3fabb">RGFW_window_checkEvent</a>(win, &amp;event)) {  <span class="comment">// or RGFW_pollEvents(); if you only want callbacks / state checking</span></div>
 <div class="line">            <a class="code hl_function" href="group__Window__management.html#gad045c969f6e8b4c00b01ddf221b37207">RGFW_window_getMouse</a>(win, &amp;mouseX, &amp;mouseY);</div>
 <div class="line"> </div>
 <div class="line">            <span class="keywordflow">if</span> (event.<a class="code hl_variable" href="unionRGFW__event.html#ab309d573101fed3b9137b3e42f408ce0">type</a> == RGFW_mouseButtonPressed &amp;&amp; event.<a class="code hl_variable" href="unionRGFW__event.html#ab0e757ad7fbe82deb6e50b46b290efc8">button</a>.<a class="code hl_variable" href="structRGFW__mouseButtonEvent.html#a825fa9078a6e031fdcb8d5da2c62359a">value</a> == RGFW_mouseLeft) {</div>
 <div class="line">                printf(<span class="stringliteral">&quot;You clicked at x: %d, y: %d\n&quot;</span>, mouseX, mouseY);</div>
 <div class="line">            }</div>
-<div class="line"> </div>
-<div class="line">            <span class="comment">// or use the existing functions</span></div>
-<div class="line">            <span class="keywordflow">if</span> (<a class="code hl_function" href="group__Input.html#gaeb351a2a50819d05ce3187dede5e1863">RGFW_isMousePressed</a>(RGFW_mouseRight)) {</div>
-<div class="line">                printf(<span class="stringliteral">&quot;The right mouse button was clicked at x: %d, y: %d\n&quot;</span>, mouseX, mouseY);</div>
-<div class="line">            }</div>
 <div class="line">        }</div>
 <div class="line"> </div>
-<div class="line">        <span class="comment">// OpenGL 1.1 is used here for a simple example, but you can use any version you want (if you request it first (see gl33/gl33.c))</span></div>
-<div class="line">        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);</div>
-<div class="line">        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );</div>
-<div class="line"> </div>
-<div class="line">        glBegin(GL_TRIANGLES);</div>
-<div class="line">            glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.6f, -0.75f);</div>
-<div class="line">            glColor3f(0.0f, 1.0f, 0.0f); glVertex2f(0.6f, -0.75f);</div>
-<div class="line">            glColor3f(0.0f, 0.0f, 1.0f); glVertex2f(0.0f, 0.75f);</div>
-<div class="line">        glEnd();</div>
-<div class="line"> </div>
-<div class="line">        RGFW_window_swapBuffers_OpenGL(win);</div>
-<div class="line">        glFlush();</div>
+<div class="line">        <span class="comment">/* state checking */</span></div>
+<div class="line">        <span class="keywordflow">if</span> (<a class="code hl_function" href="group__Input.html#gaeb351a2a50819d05ce3187dede5e1863">RGFW_isMousePressed</a>(RGFW_mouseRight)) {</div>
+<div class="line">            printf(<span class="stringliteral">&quot;The right mouse button was clicked at x: %d, y: %d\n&quot;</span>, mouseX, mouseY);</div>
+<div class="line">        }</div>
 <div class="line">    }</div>
 <div class="line"> </div>
 <div class="line">    <a class="code hl_function" href="group__Window__management.html#gab9fbaeec9a1268374ab141b6ccfc41a3">RGFW_window_close</a>(win);</div>
 <div class="line">    <span class="keywordflow">return</span> 0;</div>
 <div class="line">}</div>
 <div class="ttc" id="aRGFW_8h_html"><div class="ttname"><a href="RGFW_8h.html">RGFW.h</a></div></div>
-<div class="ttc" id="aRGFW_8h_html_a2520d2d7f43e5df60edeed92733c1de6"><div class="ttname"><a href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a></div><div class="ttdeci">struct RGFW_window RGFW_window</div><div class="ttdoc">The window stucture for interfacing with the window.</div><div class="ttdef"><b>Definition:</b> RGFW.h:454</div></div>
-<div class="ttc" id="aRGFW_8h_html_a48d6cd8e4135fb2ff7e7f2dac84089ec"><div class="ttname"><a href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a></div><div class="ttdeci">int32_t i32</div><div class="ttdef"><b>Definition:</b> RGFW.h:402</div></div>
-<div class="ttc" id="aRGFW_8h_html_a505be7338d9652fbd907b56aa9673c0c"><div class="ttname"><a href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a></div><div class="ttdeci">#define RGFW_FALSE</div><div class="ttdef"><b>Definition:</b> RGFW.h:418</div></div>
-<div class="ttc" id="aRGFW_8h_html_a5875a02d0e0e933b07afbe7b20941c0b"><div class="ttname"><a href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a></div><div class="ttdeci">u8 RGFW_bool</div><div class="ttdef"><b>Definition:</b> RGFW.h:413</div></div>
-<div class="ttc" id="aRGFW_8h_html_aac2c5e611731b038c9377999b4b2af64"><div class="ttname"><a href="RGFW_8h.html#aac2c5e611731b038c9377999b4b2af64">RGFW_UNUSED</a></div><div class="ttdeci">#define RGFW_UNUSED(x)</div><div class="ttdef"><b>Definition:</b> RGFW.h:264</div></div>
+<div class="ttc" id="aRGFW_8h_html_a2520d2d7f43e5df60edeed92733c1de6"><div class="ttname"><a href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a></div><div class="ttdeci">struct RGFW_window RGFW_window</div><div class="ttdoc">The window stucture for interfacing with the window.</div><div class="ttdef"><b>Definition:</b> RGFW.h:448</div></div>
+<div class="ttc" id="aRGFW_8h_html_a48d6cd8e4135fb2ff7e7f2dac84089ec"><div class="ttname"><a href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a></div><div class="ttdeci">int32_t i32</div><div class="ttdef"><b>Definition:</b> RGFW.h:396</div></div>
+<div class="ttc" id="aRGFW_8h_html_a505be7338d9652fbd907b56aa9673c0c"><div class="ttname"><a href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a></div><div class="ttdeci">#define RGFW_FALSE</div><div class="ttdef"><b>Definition:</b> RGFW.h:412</div></div>
 <div class="ttc" id="aRGFW_8h_html_ac5fd097e30463a43eed098e9e5cdd7e4"><div class="ttname"><a href="RGFW_8h.html#ac5fd097e30463a43eed098e9e5cdd7e4">RGFW_createWindow</a></div><div class="ttdeci">RGFWDEF RGFW_window * RGFW_createWindow(const char *name, i32 x, i32 y, i32 w, i32 h, RGFW_windowFlags flags)</div><div class="ttdoc">creates a new window</div></div>
-<div class="ttc" id="agroup__Callbacks_html_gaade2b5b8ca4d3e0d3e3fe219ff9e2795"><div class="ttname"><a href="group__Callbacks.html#gaade2b5b8ca4d3e0d3e3fe219ff9e2795">RGFW_setKeyCallback</a></div><div class="ttdeci">RGFWDEF RGFW_keyfunc RGFW_setKeyCallback(RGFW_keyfunc func)</div><div class="ttdoc">Sets the callback function for key press and release events.</div></div>
+<div class="ttc" id="aRGFW_8h_html_ae4174e705d4f736f200c530f9162219b"><div class="ttname"><a href="RGFW_8h.html#ae4174e705d4f736f200c530f9162219b">RGFW_setEventCallback</a></div><div class="ttdeci">RGFWDEF RGFW_genericFunc RGFW_setEventCallback(RGFW_eventType type, RGFW_genericFunc func)</div><div class="ttdoc">Sets the callback function for the event.</div></div>
 <div class="ttc" id="agroup__Input_html_gaeb351a2a50819d05ce3187dede5e1863"><div class="ttname"><a href="group__Input.html#gaeb351a2a50819d05ce3187dede5e1863">RGFW_isMousePressed</a></div><div class="ttdeci">RGFWDEF RGFW_bool RGFW_isMousePressed(RGFW_mouseButton button)</div><div class="ttdoc">returns true if the mouse button is pressed during the current frame</div></div>
 <div class="ttc" id="agroup__Window__management_html_ga24a216d1304d457e92b07504dda3fabb"><div class="ttname"><a href="group__Window__management.html#ga24a216d1304d457e92b07504dda3fabb">RGFW_window_checkEvent</a></div><div class="ttdeci">RGFWDEF RGFW_bool RGFW_window_checkEvent(RGFW_window *win, RGFW_event *event)</div><div class="ttdoc">polls and pops the next event with the matching target window in event queue, pushes back events that...</div></div>
 <div class="ttc" id="agroup__Window__management_html_ga98edf96a90a0f218afeb01908be28fbb"><div class="ttname"><a href="group__Window__management.html#ga98edf96a90a0f218afeb01908be28fbb">RGFW_window_setShouldClose</a></div><div class="ttdeci">RGFWDEF void RGFW_window_setShouldClose(RGFW_window *win, RGFW_bool shouldClose)</div><div class="ttdoc">Sets whether the window should close.</div></div>
 <div class="ttc" id="agroup__Window__management_html_gab9fbaeec9a1268374ab141b6ccfc41a3"><div class="ttname"><a href="group__Window__management.html#gab9fbaeec9a1268374ab141b6ccfc41a3">RGFW_window_close</a></div><div class="ttdeci">RGFWDEF void RGFW_window_close(RGFW_window *win)</div><div class="ttdoc">closes the window and frees its associated structure</div></div>
 <div class="ttc" id="agroup__Window__management_html_gad045c969f6e8b4c00b01ddf221b37207"><div class="ttname"><a href="group__Window__management.html#gad045c969f6e8b4c00b01ddf221b37207">RGFW_window_getMouse</a></div><div class="ttdeci">RGFWDEF RGFW_bool RGFW_window_getMouse(RGFW_window *win, i32 *x, i32 *y)</div><div class="ttdoc">Retrieves the mouse position relative to the window.</div></div>
 <div class="ttc" id="agroup__Window__management_html_gae40de5fbdc9e850c1ff7e2e8dac46624"><div class="ttname"><a href="group__Window__management.html#gae40de5fbdc9e850c1ff7e2e8dac46624">RGFW_window_shouldClose</a></div><div class="ttdeci">RGFWDEF RGFW_bool RGFW_window_shouldClose(RGFW_window *win)</div><div class="ttdoc">Checks if the window should close.</div></div>
-<div class="ttc" id="astructRGFW__mouseButtonEvent_html_a825fa9078a6e031fdcb8d5da2c62359a"><div class="ttname"><a href="structRGFW__mouseButtonEvent.html#a825fa9078a6e031fdcb8d5da2c62359a">RGFW_mouseButtonEvent::value</a></div><div class="ttdeci">RGFW_mouseButton value</div><div class="ttdef"><b>Definition:</b> RGFW.h:766</div></div>
-<div class="ttc" id="aunionRGFW__event_html"><div class="ttname"><a href="unionRGFW__event.html">RGFW_event</a></div><div class="ttdoc">union for all of the event stucture types</div><div class="ttdef"><b>Definition:</b> RGFW.h:831</div></div>
-<div class="ttc" id="aunionRGFW__event_html_ab0e757ad7fbe82deb6e50b46b290efc8"><div class="ttname"><a href="unionRGFW__event.html#ab0e757ad7fbe82deb6e50b46b290efc8">RGFW_event::button</a></div><div class="ttdeci">RGFW_mouseButtonEvent button</div><div class="ttdef"><b>Definition:</b> RGFW.h:834</div></div>
-<div class="ttc" id="aunionRGFW__event_html_ab309d573101fed3b9137b3e42f408ce0"><div class="ttname"><a href="unionRGFW__event.html#ab309d573101fed3b9137b3e42f408ce0">RGFW_event::type</a></div><div class="ttdeci">RGFW_eventType type</div><div class="ttdef"><b>Definition:</b> RGFW.h:832</div></div>
-</div><!-- fragment --><div class="fragment"><div class="line">linux : gcc main.c -lX11 -lGL -lXrandr</div>
+<div class="ttc" id="astructRGFW__commonEvent_html_afe9e8a63db95557a8f9a9b54beb00de7"><div class="ttname"><a href="structRGFW__commonEvent.html#afe9e8a63db95557a8f9a9b54beb00de7">RGFW_commonEvent::win</a></div><div class="ttdeci">RGFW_window * win</div><div class="ttdef"><b>Definition:</b> RGFW.h:738</div></div>
+<div class="ttc" id="astructRGFW__keyEvent_html_a87bbcb06e26eea974531fe2cab56e5f2"><div class="ttname"><a href="structRGFW__keyEvent.html#a87bbcb06e26eea974531fe2cab56e5f2">RGFW_keyEvent::value</a></div><div class="ttdeci">RGFW_key value</div><div class="ttdef"><b>Definition:</b> RGFW.h:775</div></div>
+<div class="ttc" id="astructRGFW__mouseButtonEvent_html_a825fa9078a6e031fdcb8d5da2c62359a"><div class="ttname"><a href="structRGFW__mouseButtonEvent.html#a825fa9078a6e031fdcb8d5da2c62359a">RGFW_mouseButtonEvent::value</a></div><div class="ttdeci">RGFW_mouseButton value</div><div class="ttdef"><b>Definition:</b> RGFW.h:752</div></div>
+<div class="ttc" id="aunionRGFW__event_html"><div class="ttname"><a href="unionRGFW__event.html">RGFW_event</a></div><div class="ttdoc">union for all of the event stucture types</div><div class="ttdef"><b>Definition:</b> RGFW.h:830</div></div>
+<div class="ttc" id="aunionRGFW__event_html_a2cd9246cc6b350ba08e7f0edc1d556ed"><div class="ttname"><a href="unionRGFW__event.html#a2cd9246cc6b350ba08e7f0edc1d556ed">RGFW_event::common</a></div><div class="ttdeci">RGFW_commonEvent common</div><div class="ttdef"><b>Definition:</b> RGFW.h:832</div></div>
+<div class="ttc" id="aunionRGFW__event_html_ab0e757ad7fbe82deb6e50b46b290efc8"><div class="ttname"><a href="unionRGFW__event.html#ab0e757ad7fbe82deb6e50b46b290efc8">RGFW_event::button</a></div><div class="ttdeci">RGFW_mouseButtonEvent button</div><div class="ttdef"><b>Definition:</b> RGFW.h:835</div></div>
+<div class="ttc" id="aunionRGFW__event_html_ab309d573101fed3b9137b3e42f408ce0"><div class="ttname"><a href="unionRGFW__event.html#ab309d573101fed3b9137b3e42f408ce0">RGFW_event::type</a></div><div class="ttdeci">RGFW_eventType type</div><div class="ttdef"><b>Definition:</b> RGFW.h:831</div></div>
+<div class="ttc" id="aunionRGFW__event_html_abb2a28af3dd447885cb08271faf6df84"><div class="ttname"><a href="unionRGFW__event.html#abb2a28af3dd447885cb08271faf6df84">RGFW_event::key</a></div><div class="ttdeci">RGFW_keyEvent key</div><div class="ttdef"><b>Definition:</b> RGFW.h:838</div></div>
+</div><!-- fragment --><div class="fragment"><div class="line">linux : gcc main.c -lX11 -lGL -lm -lXrandr</div>
 <div class="line">windows : gcc main.c -lopengl32 -lgdi32</div>
-<div class="line">macos : gcc main.c -framework Cocoa -framework OpenGL</div>
+<div class="line">macos : gcc main.c -framework Cocoa</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md5"></a>
 other examples</h2>
 <p ><img src="screenshot.PNG" alt="examples" class="inline"/></p>

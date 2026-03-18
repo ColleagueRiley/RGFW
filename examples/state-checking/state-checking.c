@@ -35,7 +35,7 @@ typedef struct {
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW State Checking", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
-    RGFW_window_setExitKey(win, RGFW_escape);
+    RGFW_window_setExitKey(win, RGFW_keyEscape);
 
     WindowState prevState;
     memset(&prevState, 0, sizeof(WindowState));
@@ -50,10 +50,10 @@ int main(void) {
             RGFW_window_isMaximized(win),
             0, 0,
             0, 0,
-            RGFW_window_isKeyPressed(win, RGFW_escape),
-            RGFW_window_isKeyDown(win, RGFW_space),
-            RGFW_window_isKeyReleased(win, RGFW_enter),
-            RGFW_window_isKeyPressed(win, RGFW_controlL),
+            RGFW_window_isKeyPressed(win, RGFW_keyEscape),
+            RGFW_window_isKeyDown(win, RGFW_keySpace),
+            RGFW_window_isKeyReleased(win, RGFW_keyEnter),
+            RGFW_window_isKeyPressed(win, RGFW_keyControlL),
             RGFW_window_isMousePressed(win, RGFW_mouseLeft),
             RGFW_window_isMouseDown(win, RGFW_mouseRight),
             RGFW_window_isMouseReleased(win, RGFW_mouseMiddle),
@@ -119,10 +119,10 @@ int main(void) {
         if (currState.scrollX != prevState.scrollX || currState.scrollY != prevState.scrollY) {
             printf("Mouse scrolling (%f %f)\n", (double)currState.scrollX, (double)currState.scrollY);
         }
-        if (RGFW_isKeyDown(RGFW_controlL) && (currState.mouseX != prevState.mouseX || currState.mouseY != prevState.mouseY)) {
+        if (RGFW_isKeyDown(RGFW_keyControlL) && (currState.mouseX != prevState.mouseX || currState.mouseY != prevState.mouseY)) {
             printf("Mouse position in window: (%i, %i)\n", currState.mouseX, currState.mouseY);
         }
-        if (RGFW_isKeyDown(RGFW_controlL) && (currState.vectorX != prevState.vectorX || currState.vectorY != prevState.vectorY)) {
+        if (RGFW_isKeyDown(RGFW_keyControlL) && (currState.vectorX != prevState.vectorX || currState.vectorY != prevState.vectorY)) {
             printf("Mouse vector: (%f, %f)\n", (double)currState.vectorX, (double)currState.vectorY);
         }
         if (currState.didMouseLeave != prevState.didMouseLeave) {

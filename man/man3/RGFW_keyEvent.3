@@ -1,4 +1,4 @@
-.TH "RGFW_keyEvent" 3 "Tue Feb 24 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW_keyEvent" 3 "Wed Mar 18 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -27,6 +27,9 @@ RGFW_keyEvent \- event data for a key press/release event
 .ti -1c
 .RI "RGFW_keymod \fBmod\fP"
 .br
+.ti -1c
+.RI "\fBRGFW_bool\fP \fBstate\fP"
+.br
 .in -1c
 .SH "Detailed Description"
 .PP 
@@ -34,9 +37,11 @@ event data for a key press/release event
 .SH "Member Data Documentation"
 .PP 
 .SS "RGFW_keymod RGFW_keyEvent::mod"
-
+state of the key modifier state 
 .SS "\fBRGFW_bool\fP RGFW_keyEvent::repeat"
 key press event repeated (the key is being held) 
+.SS "\fBRGFW_bool\fP RGFW_keyEvent::state"
+if the key was pressed or released 
 .SS "RGFW_eventType RGFW_keyEvent::type"
 which event has been sent? 
 .SS "RGFW_key RGFW_keyEvent::value"

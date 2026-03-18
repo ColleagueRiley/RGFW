@@ -24,7 +24,7 @@ int main(void) {
 
     RGFW_window_show(win);
 
-    RGFW_window_setExitKey(win, RGFW_escape);
+    RGFW_window_setExitKey(win, RGFW_keyEscape);
 
     const GLubyte *version = glGetString(GL_VERSION);
     printf("OpenGL Version: %s\n", version);

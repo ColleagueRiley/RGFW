@@ -69,7 +69,7 @@ int main(void) {
         printf("Failed to create RGFW window\n");
         return -1;
     }
-    RGFW_window_setExitKey(window, RGFW_escape);
+    RGFW_window_setExitKey(window, RGFW_keyEscape);
     RGFW_window_makeCurrentContext_OpenGL(window);
 
     #ifndef RGFW_WASM
@@ -162,7 +162,7 @@ int main(void) {
         RGFW_event event;
 
         while (RGFW_window_checkEvent(window, &event)) {
-            if (event.type == RGFW_quit) {
+            if (event.type == RGFW_windowClose) {
                 break;
             }
         }

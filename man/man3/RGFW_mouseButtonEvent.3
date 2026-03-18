@@ -1,4 +1,4 @@
-.TH "RGFW_mouseButtonEvent" 3 "Tue Feb 24 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW_mouseButtonEvent" 3 "Wed Mar 18 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -21,12 +21,17 @@ RGFW_mouseButtonEvent \- event data for any mouse button event (press/release)
 .ti -1c
 .RI "RGFW_mouseButton \fBvalue\fP"
 .br
+.ti -1c
+.RI "\fBRGFW_bool\fP \fBstate\fP"
+.br
 .in -1c
 .SH "Detailed Description"
 .PP 
 event data for any mouse button event (press/release) 
 .SH "Member Data Documentation"
 .PP 
+.SS "\fBRGFW_bool\fP RGFW_mouseButtonEvent::state"
+if the button was pressed or released 
 .SS "RGFW_eventType RGFW_mouseButtonEvent::type"
 which event has been sent? 
 .SS "RGFW_mouseButton RGFW_mouseButtonEvent::value"

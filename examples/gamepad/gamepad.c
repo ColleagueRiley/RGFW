@@ -25,7 +25,7 @@ void drawGamepad(RGFW_window* w, mg_gamepad* gamepad);
 
 int main(void) {
 	RGFW_window* win = RGFW_createWindow("RGFW Example Window", 0, 0, 800, 450, RGFW_windowCenter | RGFW_windowOpenGL);
-    RGFW_window_setExitKey(win, RGFW_escape);
+    RGFW_window_setExitKey(win, RGFW_keyEscape);
     RGFW_window_makeCurrentContext_OpenGL(win);
 
     mg_event ev;
@@ -41,13 +41,13 @@ int main(void) {
 
         RGFW_event event;
         while (RGFW_window_checkEvent(win, &event)) {
-            if (event.type == RGFW_quit) break;
+            if (event.type == RGFW_windowClose) break;
             switch (event.type) {
                 case RGFW_keyPressed:
-                    if (event.key.value == RGFW_left && gamepad && gamepad->prev) {
+                    if (event.key.value == RGFW_keyLeft && gamepad && gamepad->prev) {
 						gamepad = gamepad->prev;
 					}
-                    if (event.key.value == RGFW_right && gamepad && gamepad->next) {
+                    if (event.key.value == RGFW_keyRight && gamepad && gamepad->next) {
 						gamepad = gamepad->next;
 					}
                     break;
