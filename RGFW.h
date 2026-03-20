@@ -3627,7 +3627,7 @@ void RGFW_keyCallback(RGFW_window* win, RGFW_key key, RGFW_keymod mod, RGFW_bool
 	_RGFW->keyboard[key].current = press;
 
 	event.key.value = key;
-	event.key.mod = repeat;
+	event.key.repeat = repeat;
 	event.key.mod = mod;
 	event.key.state = press;
 	event.common.win = win;
@@ -4285,7 +4285,7 @@ RGFW_bool RGFW_monitorModeCompare(RGFW_monitorMode* mon, RGFW_monitorMode* mon2,
 }
 
 RGFW_bool RGFW_window_shouldClose(RGFW_window* win) {
-	return (win == NULL || win->internal.shouldClose || (win->internal.exitKey && RGFW_window_isKeyDown(win, win->internal.exitKey)));
+	return (win == NULL || win->internal.shouldClose || (win->internal.exitKey && RGFW_isKeyDown(win->internal.exitKey)));
 }
 
 void RGFW_window_setShouldClose(RGFW_window* win, RGFW_bool shouldClose) {
@@ -4656,10 +4656,10 @@ void RGFW_keyUpdateKeyModsEx(RGFW_window* win, RGFW_bool capital, RGFW_bool numl
 
 void RGFW_keyUpdateKeyMods(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, RGFW_bool scroll) {
 	RGFW_keyUpdateKeyModsEx(win, capital, numlock,
-					RGFW_window_isKeyDown(win, RGFW_keyControlL) || RGFW_window_isKeyDown(win, RGFW_keyControlR),
-					RGFW_window_isKeyDown(win, RGFW_keyAltL) || RGFW_window_isKeyDown(win, RGFW_keyAltR),
-					RGFW_window_isKeyDown(win, RGFW_keyShiftL) || RGFW_window_isKeyDown(win, RGFW_keyShiftR),
-					RGFW_window_isKeyDown(win, RGFW_keySuperL) || RGFW_window_isKeyDown(win, RGFW_keySuperR),
+					RGFW_isKeyDown(RGFW_keyControlL) || RGFW_isKeyDown(RGFW_keyControlR),
+					RGFW_isKeyDown(RGFW_keyAltL) || RGFW_isKeyDown(RGFW_keyAltR),
+					RGFW_isKeyDown(RGFW_keyShiftL) || RGFW_isKeyDown(RGFW_keyShiftR),
+					RGFW_isKeyDown(RGFW_keySuperL) || RGFW_isKeyDown(RGFW_keySuperR),
 					scroll);
 }
 
@@ -6665,7 +6665,7 @@ void RGFW_XHandleEvent(void) {
 			XkbGetState(_RGFW->display, XkbUseCoreKbd, &state);
 			RGFW_keyUpdateKeyMods(win, (state.locked_mods & LockMask), (state.locked_mods & Mod2Mask), (state.locked_mods & Mod3Mask));
 
-			RGFW_keyCallback(win, value, win->internal.mod, keyRepeat, RGFW_FALSE);
+			RGFW_keyCallback(win, value, win->internal.mod, RGFW_FALSE, RGFW_FALSE);
 			break;
 		}
 		case ButtonPress: {
@@ -8875,7 +8875,7 @@ static void RGFW_wl_keyboard_key(void* data, struct wl_keyboard *keyboard, u32 s
 	RGFW_key RGFWkey = RGFW_apiKeyToRGFW(key + 8);
 
 	RGFW_keyUpdateKeyMods(RGFW_key_win, RGFW_BOOL(xkb_keymap_mod_get_index(RGFW->keymap, "Lock")), RGFW_BOOL(xkb_keymap_mod_get_index(RGFW->keymap, "Mod2")), RGFW_BOOL(xkb_keymap_mod_get_index(RGFW->keymap, "ScrollLock")));
-	RGFW_keyCallback(RGFW_key_win, (u8)RGFWkey, RGFW_key_win->internal.mod, RGFW_window_isKeyDown(RGFW_key_win, (u8)RGFWkey), RGFW_BOOL(state));
+	RGFW_keyCallback(RGFW_key_win, (u8)RGFWkey, RGFW_key_win->internal.mod, RGFW_isKeyDown((u8)RGFWkey) && RGFW_BOOL(state), RGFW_BOOL(state));
 
 	/* [comment by Kala Telo (@kala-telo) and edited by Riley Mabb (@ColleagueRiley)]
 		we send the event at the moment we receive it, and
@@ -10638,10 +10638,8 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				else value = RGFW_keyControlL;
 			}
 
-			RGFW_bool repeat = ((lParam & 0x40000000) != 0) || RGFW_window_isKeyDown(win, value);
-
 			RGFW_keyUpdateKeyMods(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001), (GetKeyState(VK_SCROLL) & 0x0001));
-			RGFW_keyCallback(win, value, win->internal.mod, repeat, RGFW_FALSE);
+			RGFW_keyCallback(win, value, win->internal.mod, RGFW_FALSE, RGFW_FALSE);
 			break;
 		}
 		case WM_SYSKEYDOWN: case WM_KEYDOWN: {
@@ -10664,7 +10662,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				else value = RGFW_keyControlL;
 			}
 
-			RGFW_bool repeat = ((lParam & 0x40000000) != 0) || RGFW_window_isKeyDown(win, value);
+			RGFW_bool repeat = RGFW_isKeyDown(value);
 
 			RGFW_keyUpdateKeyMods(win, (GetKeyState(VK_CAPITAL) & 0x0001), (GetKeyState(VK_NUMLOCK) & 0x0001), (GetKeyState(VK_SCROLL) & 0x0001));
 			RGFW_keyCallback(win, value, win->internal.mod, repeat, 1);
@@ -13068,7 +13066,7 @@ static void RGFW__osxKeyDown(id self, SEL _cmd, id event) {
     u32 key = (u16)((u32(*)(id, SEL))objc_msgSend)(event, sel_registerName("keyCode"));
 
 	RGFW_key value = (u8)RGFW_apiKeyToRGFW(key);
-	RGFW_bool repeat = RGFW_window_isKeyPressed(win, value);
+	RGFW_bool repeat = RGFW_isKeyDown(value);
 
     RGFW_keyCallback(win, value, win->internal.mod, repeat, 1);
 
@@ -13090,9 +13088,8 @@ static void RGFW__osxKeyUp(id self, SEL _cmd, id event) {
     u32 key = (u16)((u32(*)(id, SEL))objc_msgSend)(event, sel_registerName("keyCode"));
 
     RGFW_key value = (u8)RGFW_apiKeyToRGFW(key);
-    RGFW_bool repeat = RGFW_window_isKeyDown(win, (u8)value);
 
-    RGFW_keyCallback(win, value, win->internal.mod, repeat, 0);
+    RGFW_keyCallback(win, value, win->internal.mod, RGFW_FALSE, 0);
 }
 
 static void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
@@ -13119,23 +13116,22 @@ static void RGFW__osxFlagsChanged(id self, SEL _cmd, id event) {
     for (i = 0; i < 5; i++) {
         u32 shift = (1 << (i + 16));
         RGFW_key key = i + RGFW_keyCapsLock;
-        if ((flags & shift) && !RGFW_window_isKeyDown(win, (u8)key)) {
+        if ((flags & shift) && !RGFW_isKeyDown((u8)key)) {
 			pressed = RGFW_TRUE;
             value = (u8)key;
             break;
         }
-        if (!(flags & shift) && RGFW_window_isKeyDown(win, (u8)key)) {
+        if (!(flags & shift) && RGFW_isKeyDown((u8)key)) {
 			pressed = RGFW_FALSE;
             value = (u8)key;
             break;
         }
     }
 
-	RGFW_bool repeat = RGFW_window_isKeyDown(win, (u8)value);
-	RGFW_keyCallback(win, value, win->internal.mod, repeat, pressed);
+	RGFW_keyCallback(win, value, win->internal.mod, RGFW_isKeyDown(value) && pressed, pressed);
 
 	if (value != RGFW_keyCapsLock) {
-		RGFW_keyCallback(win, value + 4, win->internal.mod, repeat, pressed);
+		RGFW_keyCallback(win, value + 4, win->internal.mod, RGFW_isKeyDown(value + 4) && pressed, pressed);
 	}
 
 }
@@ -14773,7 +14769,7 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyEvent(char* code, u32 codepoint, RGFW_bo
 
 	u32 physicalKey = RGFW_WASMPhysicalToRGFW(hash);
 
-	RGFW_keyCallback(_RGFW->root, physicalKey, _RGFW->root->internal.mod,  RGFW_window_isKeyDown(_RGFW->root, (u8)physicalKey), press);
+	RGFW_keyCallback(_RGFW->root, physicalKey, _RGFW->root->internal.mod,  RGFW_isKeyDown((u8)physicalKey) && press, press);
 	if (press) {
 ;		RGFW_keyCharCallback(_RGFW->root, codepoint);
 	}
