@@ -3668,7 +3668,6 @@ void RGFW_mouseScrollCallback(RGFW_window* win, float x, float y) {
 }
 
 void RGFW_scaleUpdatedCallback(RGFW_window* win, float scaleX, float scaleY) {
-	if (win->internal.flags & RGFW_windowScaleToMonitor) RGFW_window_scaleToMonitor(win);
 	if (!(win->internal.enabledEvents & RGFW_scaleUpdatedFlag)) return;
 
 	RGFW_event event;
@@ -3867,7 +3866,12 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	win->internal.flags = flags;
 	win->internal.enabledEvents = RGFW_allEventFlags;
 
+	RGFW_windowFlags reservedFlags = flags & (RGFW_windowScaleToMonitor);
+	flags &= ~reservedFlags;
+
 	RGFW_window* ret = RGFW_createWindowPlatform(name, flags, win);
+
+	flags |= reservedFlags;
 
 #ifndef RGFW_X11
 	RGFW_window_setFlagsInternal(win, flags, 0);
@@ -4147,7 +4151,6 @@ RGFW_bool RGFW_loadEGL(void) { return RGFW_FALSE; }
 void RGFW_window_setFlagsInternal(RGFW_window* win, RGFW_windowFlags flags, RGFW_windowFlags cmpFlags) {
 	if (flags & RGFW_windowNoBorder)            RGFW_window_setBorder(win, 0);
 	else if (cmpFlags & RGFW_windowNoBorder)    RGFW_window_setBorder(win, 1);
-	if (flags & RGFW_windowScaleToMonitor)      RGFW_window_scaleToMonitor(win);
 	if (flags & RGFW_windowMaximize)            RGFW_window_maximize(win);
 	else if (cmpFlags & RGFW_windowMaximize)    RGFW_window_restore(win);
 	if (flags & RGFW_windowMinimize)            RGFW_window_minimize(win);
@@ -4167,6 +4170,7 @@ void RGFW_window_setFlagsInternal(RGFW_window* win, RGFW_windowFlags flags, RGFW
 	if (flags & RGFW_windowCaptureMouse)			RGFW_window_captureRawMouse(win, RGFW_TRUE);
 	else if (cmpFlags & RGFW_windowCaptureMouse)	RGFW_window_captureMouse(win, RGFW_FALSE);
 	if (flags & RGFW_windowFocus)               RGFW_window_focus(win);
+	if (flags & RGFW_windowScaleToMonitor)      RGFW_window_scaleToMonitor(win);
 
 	if (flags & RGFW_windowNoResize) {
 	    RGFW_window_setMaxSize(win, win->w, win->h);
@@ -4245,7 +4249,7 @@ void RGFW_window_center(RGFW_window* win) {
 	RGFW_monitor* mon = RGFW_window_getMonitor(win);
 	if (mon == NULL) return;
 
-	RGFW_window_move(win, (i32)(mon->mode.w - win->w) / 2, (mon->mode.h - win->h) / 2);
+	RGFW_window_move(win, mon->x + ((i32)(mon->mode.w - win->w) / 2), mon->y + ((mon->mode.h - win->h) / 2));
 }
 
 RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor* mon, RGFW_window* win) {
@@ -9112,9 +9116,6 @@ static void RGFW_wl_surface_enter(void *data, struct wl_surface *wl_surface, str
 	if (node == NULL) return;
 
 	win->src.active_monitor = node;
-
-	if (win->internal.flags & RGFW_windowScaleToMonitor)
-		RGFW_window_scaleToMonitor(win);
 }
 
 static void RGFW_wl_data_source_send(void *data, struct wl_data_source *wl_data_source, const char *mime_type, i32 fd) {
