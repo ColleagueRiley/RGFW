@@ -2982,6 +2982,7 @@ typedef struct RGFW_windowInternal {
 	RGFW_eventFlag enabledEvents;
 	u32 flags; /*!< windows flags (for RGFW to check and modify) */
 	i32 oldX, oldY, oldW, oldH;
+	RGFW_monitorMode oldMode;
 } RGFW_windowInternal;
 
 struct RGFW_window {
@@ -4254,7 +4255,6 @@ RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor* mon, RGFW_window* win) {
 	mode.w = win->w;
 	mode.h = win->h;
 	RGFW_bool ret = RGFW_monitor_requestMode(mon, &mode, RGFW_monitorScale);
-
 
 	/* move window to monitor origin so it doesn't move to the next monitor */
 	RGFW_window_move(win, mon->x, mon->y);
@@ -11109,8 +11109,6 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 
 	DWORD window_style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
 
-	RECT windowRect, clientRect;
-
 	if (!(flags & RGFW_windowNoBorder)) {
 		window_style |= WS_CAPTION | WS_SYSMENU | WS_BORDER | WS_MINIMIZEBOX;
 
@@ -11122,9 +11120,6 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	wchar_t wide_name[256];
 	MultiByteToWideChar(CP_UTF8, 0, name, -1, wide_name, 255);
 	HWND dummyWin = CreateWindowW(Class.lpszClassName, (wchar_t*)wide_name, window_style, win->x, win->y, win->w, win->h, 0, 0, inh, 0);
-
-	GetWindowRect(dummyWin, &windowRect);
-	GetClientRect(dummyWin, &clientRect);
 
 #ifdef RGFW_OPENGL
 	RGFW_win32_loadOpenGLFuncs(dummyWin);
@@ -11154,23 +11149,29 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 	RGFW_setBit(&win->internal.flags, RGFW_windowNoBorder, !border);
+
+	RECT rect;
+    GetClientRect(win->src.window, &rect);
+
 	LONG style = GetWindowLong(win->src.window, GWL_STYLE);
+	style |= (LONG)RGFW_winapi_window_getStyle(win, win->internal.flags);
 
 	if (border == 0) {
-		SetWindowLong(win->src.window, GWL_STYLE, style & ~WS_OVERLAPPEDWINDOW);
-		SetWindowPos(
-			win->src.window, HWND_TOP, 0, 0, 0, 0,
-			SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE
-		);
-	}
-	else {
+		style &= ~WS_OVERLAPPEDWINDOW;
+	} else {
 		if (win->internal.flags & RGFW_windowNoResize) style &= ~WS_MAXIMIZEBOX;
-		SetWindowLong(win->src.window, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
-		SetWindowPos(
-			win->src.window, HWND_TOP, 0, 0, 0, 0,
-			SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE
-		);
+		style |= WS_OVERLAPPEDWINDOW;
 	}
+
+	DWORD exStyle = RGFW_winapi_window_getExStyle(win, win->internal.flags);
+	ClientToScreen(win->src.window, (POINT*) &rect.left);
+    ClientToScreen(win->src.window, (POINT*) &rect.right);
+
+	AdjustWindowRectEx(&rect, (DWORD)style, FALSE, exStyle);
+	SetWindowLong(win->src.window, GWL_STYLE, style);
+
+    SetWindowLongW(win->src.window, GWL_STYLE, style);
+    SetWindowPos(win->src.window, HWND_TOP, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
 void RGFW_window_setDND(RGFW_window* win, RGFW_bool allow) {
@@ -11219,15 +11220,18 @@ void RGFW_window_raise(RGFW_window* win) {
 void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 	RGFW_ASSERT(win != NULL);
 
+	RGFW_monitor* mon  = RGFW_window_getMonitor(win);
+
 	if (fullscreen == RGFW_FALSE) {
+		RGFW_monitor_setMode(mon, &win->internal.oldMode);
+
 		RGFW_window_setBorder(win, 1);
 
 		RECT rect = { 0, 0, win->internal.oldW, win->internal.oldH};
 		DWORD style = RGFW_winapi_window_getStyle(win, win->internal.flags);
 		DWORD exStyle = RGFW_winapi_window_getExStyle(win, win->internal.flags);
 		AdjustWindowRectEx(&rect, style, FALSE, exStyle);
-		SetWindowPos(win->src.window, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOZORDER);
-
+		SetWindowPos(win->src.window, HWND_TOP, win->internal.oldX, win->internal.oldY, rect.right - rect.left, rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
 
 		win->internal.flags &= ~(u32)RGFW_windowFullscreen;
 		win->x  = win->internal.oldX;
@@ -11241,17 +11245,17 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
 	win->internal.oldY = win->y;
 	win->internal.oldW = win->w;
 	win->internal.oldH = win->h;
+	win->internal.oldMode = mon->mode;
 	win->internal.flags |= RGFW_windowFullscreen;
 
-	RGFW_monitor* mon  = RGFW_window_getMonitor(win);
-
 	RGFW_window_setBorder(win, 0);
-	RGFW_monitor_scaleToWindow(mon, win);
 
-    SetWindowPos(win->src.window, HWND_TOPMOST, (i32)mon->x, (i32)mon->y, (i32)mon->mode.w, (i32)mon->mode.h, SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
-
+    SetWindowPos(win->src.window, HWND_TOPMOST, (i32)mon->x, (i32)mon->y, 0, 0, SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOSIZE);
 	win->x = mon->x;
 	win->y = mon->y;
+
+	RGFW_monitor_scaleToWindow(mon, win);
+    SetWindowPos(win->src.window, HWND_TOPMOST, 0, 0, (i32)mon->mode.w, (i32)mon->mode.h, SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW | SWP_NOMOVE);
 	win->w = mon->mode.w;
 	win->h = mon->mode.h;
 }
@@ -11514,6 +11518,10 @@ size_t RGFW_monitor_getModesPtr(RGFW_monitor* monitor, RGFW_monitorMode** modes)
 		if (!EnumDisplaySettingsW(monitor->node->adapterName, modeIndex, &dm))
 			break;
 
+		if (ChangeDisplaySettingsExW(monitor->node->adapterName, &dm, NULL, CDS_TEST, NULL) != DISP_CHANGE_SUCCESSFUL) {
+			continue;
+		}
+
 		modeIndex++;
 
 		if (dm.dmBitsPerPel < 15)
@@ -11709,14 +11717,16 @@ RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) {
 	dm.dmBitsPerPel = (DWORD)(mode->red + mode->green + mode->blue);
 
 	if (ChangeDisplaySettingsExW(mon->node->adapterName, &dm, NULL, CDS_TEST, NULL) == DISP_CHANGE_SUCCESSFUL) {
-		if (ChangeDisplaySettingsExW(mon->node->adapterName, &dm, NULL, CDS_UPDATEREGISTRY, NULL) == DISP_CHANGE_SUCCESSFUL)
+		if (ChangeDisplaySettingsExW(mon->node->adapterName, &dm, NULL, CDS_UPDATEREGISTRY, NULL) == DISP_CHANGE_SUCCESSFUL) {
+			RGFW_win32_getMode(&dm, &mon->mode);
 			return RGFW_TRUE;
+		}
 		return RGFW_FALSE;
 	} else return RGFW_FALSE;
 }
 
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
-    HMONITOR src = mon->node->hMonitor;
+HMONITOR src = mon->node->hMonitor;
 
 	MONITORINFOEX  monitorInfo;
 	monitorInfo.cbSize = sizeof(MONITORINFOEX);
@@ -11726,7 +11736,15 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RG
 	ZeroMemory(&dm, sizeof(dm));
 	dm.dmSize = sizeof(dm);
 
-	if (EnumDisplaySettingsW(mon->node->adapterName, ENUM_CURRENT_SETTINGS, &dm)) {
+	DWORD index = 0;
+
+	for (;;) {
+		if (EnumDisplaySettingsW(mon->node->adapterName, index, &dm) == 0) {
+			break;
+		}
+
+		index += 1;
+
 		if (request & RGFW_monitorScale) {
 			dm.dmFields |= DM_PELSWIDTH | DM_PELSHEIGHT;
 			dm.dmPelsWidth = (u32)mode->w;
@@ -11749,7 +11767,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RG
 				return RGFW_TRUE;
 			}
 			return RGFW_FALSE;
-		} else return RGFW_FALSE;
+		}
 	}
 
 	return RGFW_FALSE;
@@ -11927,12 +11945,10 @@ void RGFW_window_resize(RGFW_window* win, i32 w, i32 h) {
 
 	win->w = w;
 	win->h = h;
-
 	RECT rect = { 0, 0, w, h};
 	DWORD style = RGFW_winapi_window_getStyle(win, win->internal.flags);
 	DWORD exStyle = RGFW_winapi_window_getExStyle(win, win->internal.flags);
 	AdjustWindowRectEx(&rect, style, FALSE, exStyle);
-
 	SetWindowPos(win->src.window, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOZORDER);
 }
 
