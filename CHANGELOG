@@ -99,7 +99,8 @@ Additional labels for pre-release and build metadata are available as extensions
 - rename `RGFW_sendDebugInfo` to `RGFW_debugCallback` for consistency
 - add `RGFW_mouseRawMotionEvent`
 - use `delta` for scroll and raw motion data in the `RGFW_event` union
--rename RGFW_[key] to RGFW_key[Key]
+- rename RGFW_[key] to RGFW_key[Key]
+- add `RGFW_window_fetchSize`
 
 Release:    RGFW 1.8.0
 -----------------------------------------------

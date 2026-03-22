@@ -1871,6 +1871,15 @@ RGFWDEF void RGFW_window_close(RGFW_window* win);
 RGFWDEF void RGFW_window_closePtr(RGFW_window* win);
 
 /**!
+ * @brief fetches the size of the window through the OS (and updates the internal values)
+ * @param win a pointer to the window
+ * @param w [OUTPUT] the width of the window
+ * @param h [OUTPUT] the height of the window
+ * @return a bool if the function was successful
+*/
+RGFWDEF RGFW_bool RGFW_window_fetchSize(RGFW_window* win, i32* w, i32* h);
+
+/**!
  * @brief moves the window to a new position on the screen
  * @param win a pointer to the target window
  * @param x the new x position
@@ -7041,6 +7050,16 @@ void RGFW_XHandleEvent(void) {
 	XFlush(_RGFW->display);
 }
 
+RGFW_bool RGFW_FUNC(RGFW_window_fetchSize) (RGFW_window* win, i32* w, i32* h) {
+    XWindowAttributes attribs;
+    XGetWindowAttributes(_RGFW->display, win->src.window, &attribs);
+
+    win->w = attribs.width;
+    win->h = attribs.height;
+
+	return RGFW_window_getSize(win, w, h);
+}
+
 void RGFW_FUNC(RGFW_pollEvents) (void) {
 	RGFW_resetPrevState();
 
@@ -7163,6 +7182,7 @@ void RGFW_FUNC(RGFW_window_maximize) (RGFW_window* win) {
 	win->internal.oldH = win->h;
 
     RGFW_toggleXMaximized(win, 1);
+	RGFW_window_fetchSize(win, NULL, NULL);
     return;
 }
 
@@ -9743,6 +9763,10 @@ RGFW_key RGFW_FUNC(RGFW_physicalToMappedKey)(RGFW_key key) {
     return RGFW_keyNULL;
 }
 
+RGFW_bool RGFW_FUNC(RGFW_window_fetchSize) (RGFW_window* win, i32* w, i32* h) {
+	return RGFW_window_getSize(win, w, h);
+}
+
 void RGFW_FUNC(RGFW_pollEvents) (void) {
 	RGFW_resetPrevState();
 
@@ -9827,6 +9851,7 @@ void RGFW_FUNC(RGFW_window_maximize) (RGFW_window* win) {
 	win->internal.oldW = win->w;
 	win->internal.oldH = win->h;
     RGFW_toggleWaylandMaximized(win, 1);
+	RGFW_window_fetchSize(win, NULL, NULL);
     return;
 }
 
@@ -11263,6 +11288,7 @@ void RGFW_window_maximize(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_window_hide(win);
 	ShowWindow(win->src.window, SW_MAXIMIZE);
+	RGFW_window_fetchSize(win, NULL, NULL);
 }
 
 void RGFW_window_minimize(RGFW_window* win) {
@@ -11380,6 +11406,16 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
     }
 
     return RGFW_keyNULL;
+}
+
+RGFW_bool RGFW_window_fetchSize(RGFW_window* win, i32* w, i32* h) {
+    RECT area;
+    GetClientRect(win->src.window, &area);
+
+    win->w = area.right;
+    win->h = area.bottom;
+
+	return RGFW_window_getSize(win, w, h);
 }
 
 void RGFW_pollEvents(void) {
@@ -13649,6 +13685,15 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
 	return key;
 }
 
+RGFW_bool RGFW_window_fetchSize(RGFW_window* win, i32* w, i32* h) {
+	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
+
+	win->w = (i32)content.size.width;
+	win->h = (i32)content.size.height;
+
+	return RGFW_window_getSize(win, w, h);
+}
+
 void RGFW_pollEvents(void) {
 	RGFW_resetPrevState();
 
@@ -13762,6 +13807,7 @@ void RGFW_window_maximize(RGFW_window* win) {
 
 	win->internal.flags |= RGFW_windowMaximize;
 	objc_msgSend_void_SEL(win->src.window, sel_registerName("zoom:"), NULL);
+	RGFW_window_fetchSize(win, NULL, NULL);
 }
 
 void RGFW_window_minimize(RGFW_window* win) {
@@ -15050,6 +15096,10 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
 	return key;
 }
 
+RGFW_bool RGFW_window_fetchSize(RGFW_window* win, i32* w, i32* h) {
+	return RGFW_window_getSize(win, w, h);
+}
+
 void RGFW_pollEvents(void) {
 	RGFW_resetPrevState();
 	emscripten_sleep(0);
@@ -15268,6 +15318,7 @@ void RGFW_window_maximize(RGFW_window* win) {
 	}
 
 	RGFW_window_move(win, 0, 0);
+	RGFW_window_fetchSize(win, NULL, NULL);
 }
 
 void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
@@ -15458,6 +15509,7 @@ typedef RGFW_window* (*RGFW_createWindowPlatform_ptr)(const char* name, RGFW_win
 typedef RGFW_bool (*RGFW_getMouse_ptr)(i32* x, i32* y);
 typedef RGFW_key (*RGFW_physicalToMappedKey_ptr)(RGFW_key key);
 typedef void (*RGFW_pollEvents_ptr)(void);
+typedef RGFW_bool (*RGFW_window_fetchSize_ptr)(RGFW_window* win, i32* w, i32* h);
 typedef void (*RGFW_pollMonitors_ptr)(void);
 typedef void (*RGFW_window_move_ptr)(RGFW_window* win, i32 x, i32 y);
 typedef void (*RGFW_window_resize_ptr)(RGFW_window* win, i32 w, i32 h);
@@ -15532,7 +15584,8 @@ typedef struct RGFW_FunctionPointers {
     RGFW_createWindowPlatform_ptr createWindowPlatform;
     RGFW_getMouse_ptr getGlobalMouse;
 	RGFW_physicalToMappedKey_ptr physicalToMappedKey;
-    RGFW_pollEvents_ptr pollEvents;
+    RGFW_window_fetchSize_ptr window_fetchSize;
+	RGFW_pollEvents_ptr pollEvents;
     RGFW_pollMonitors_ptr pollMonitors;
     RGFW_window_move_ptr window_move;
     RGFW_window_resize_ptr window_resize;
@@ -15601,6 +15654,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 RGFW_bool RGFW_getGlobalMouse(i32* x, i32* y) { return RGFW_api.getGlobalMouse(x, y); }
 RGFW_key RGFW_physicalToMappedKey(RGFW_key key) { return RGFW_api.physicalToMappedKey(key); }
 void RGFW_pollEvents(void) { RGFW_api.pollEvents(); }
+RGFW_bool RGFW_window_fetchSize(RGFW_window* win, i32* w, i32* h) { return RGFW_api.window_fetchSize(win, w, h); }
 void RGFW_pollMonitors(void) { RGFW_api.pollMonitors(); }
 void RGFW_window_move(RGFW_window* win, i32 x, i32 y) { RGFW_api.window_move(win, x, y); }
 void RGFW_window_resize(RGFW_window* win, i32 w, i32 h) { RGFW_api.window_resize(win, w, h); }
@@ -15680,6 +15734,7 @@ void RGFW_load_X11(void) {
     RGFW_api.getGlobalMouse = RGFW_getGlobalMouse_X11;
     RGFW_api.physicalToMappedKey = RGFW_physicalToMappedKey_X11;
     RGFW_api.pollEvents = RGFW_pollEvents_X11;
+    RGFW_api.window_fetchSize = RGFW_window_fetchSize_X11;
     RGFW_api.pollMonitors = RGFW_pollMonitors_X11;
     RGFW_api.window_move = RGFW_window_move_X11;
     RGFW_api.window_resize = RGFW_window_resize_X11;
@@ -15748,6 +15803,7 @@ void RGFW_load_Wayland(void) {
     RGFW_api.getGlobalMouse = RGFW_getGlobalMouse_Wayland;
     RGFW_api.physicalToMappedKey = RGFW_physicalToMappedKey_Wayland;
     RGFW_api.pollEvents = RGFW_pollEvents_Wayland;
+    RGFW_api.window_fetchSize = RGFW_window_fetchSize_Wayland;
     RGFW_api.pollMonitors = RGFW_pollMonitors_Wayland;
     RGFW_api.window_move = RGFW_window_move_Wayland;
     RGFW_api.window_resize = RGFW_window_resize_Wayland;

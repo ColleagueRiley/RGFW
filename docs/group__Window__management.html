@@ -132,6 +132,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga9d21bc8549bd5c4028d62bfa5240774e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga9d21bc8549bd5c4028d62bfa5240774e">RGFW_window_closePtr</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win)</td></tr>
 <tr class="memdesc:ga9d21bc8549bd5c4028d62bfa5240774e"><td class="mdescLeft">&#160;</td><td class="mdescRight">closes the window without freeing its structure  <a href="group__Window__management.html#ga9d21bc8549bd5c4028d62bfa5240774e">More...</a><br /></td></tr>
 <tr class="separator:ga9d21bc8549bd5c4028d62bfa5240774e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2c9d4eec22de443563f86526a4f5e7c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga2c9d4eec22de443563f86526a4f5e7c2">RGFW_window_fetchSize</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> *w, <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> *h)</td></tr>
+<tr class="memdesc:ga2c9d4eec22de443563f86526a4f5e7c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">fetches the size of the window through the OS (and updates the internal values)  <a href="group__Window__management.html#ga2c9d4eec22de443563f86526a4f5e7c2">More...</a><br /></td></tr>
+<tr class="separator:ga2c9d4eec22de443563f86526a4f5e7c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga145836bbd46cb93109d66d668c3e8970"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga145836bbd46cb93109d66d668c3e8970">RGFW_window_move</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> x, <a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> y)</td></tr>
 <tr class="memdesc:ga145836bbd46cb93109d66d668c3e8970"><td class="mdescLeft">&#160;</td><td class="mdescRight">moves the window to a new position on the screen  <a href="group__Window__management.html#ga145836bbd46cb93109d66d668c3e8970">More...</a><br /></td></tr>
 <tr class="separator:ga145836bbd46cb93109d66d668c3e8970"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -678,6 +681,51 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>RGFW_TRUE if the mouse left, RGFW_FALSE otherwise </dd></dl>
+
+</div>
+</div>
+<a id="ga2c9d4eec22de443563f86526a4f5e7c2" name="ga2c9d4eec22de443563f86526a4f5e7c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga2c9d4eec22de443563f86526a4f5e7c2">&#9670;&#160;</a></span>RGFW_window_fetchSize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> RGFW_window_fetchSize </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *&#160;</td>
+          <td class="paramname"><em>win</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> *&#160;</td>
+          <td class="paramname"><em>w</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a> *&#160;</td>
+          <td class="paramname"><em>h</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>fetches the size of the window through the OS (and updates the internal values) </p>
+<p >! </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">win</td><td>a pointer to the window </td></tr>
+    <tr><td class="paramname">w</td><td>[OUTPUT] the width of the window </td></tr>
+    <tr><td class="paramname">h</td><td>[OUTPUT] the height of the window </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>a bool if the function was successful </dd></dl>
 
 </div>
 </div>
