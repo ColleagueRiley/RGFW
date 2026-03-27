@@ -1,7 +1,7 @@
 # Riley's General Framework for Windowing
 <img align="left" style="width:300px" src="https://github.com/colleagueriley/rgfw/blob/main/logo.png?raw=true" width="300px">
 
-**RGFW** is a focused general windowing framework for creating and handling windows, graphics contexts and windowing inputs. The API is a mix between GLFW and SDL while maintaining a minminalistic and easy to modify implementation.
+**RGFW** is a focused general windowing framework for creating and handling windows, graphics contexts and windowing inputs with a minimalistic and easy to modify implementation.
 
 ---
 
@@ -18,7 +18,7 @@
 * **is** an stb-style single headerfile and is very portable
 * **is** primarly written in C99 in mind
 * **has** a C89 compatible API on going changes to make the implementation more C89 friendly
-* **is** comparable to GLFW or aspects of SDL but it's leading motive is to be a flexible and lightweight windowing library
+* **is** a flexible and can be used in multiple ways to best fit your use case
 * **is** very small compared to other libraries
 * **is** a general framework and can be used for games, apps or tools
 * **does** only depend on system API libraries, Winapi, X11, Cocoa, etc **NO** dependencies
@@ -129,9 +129,6 @@ A list of projects that use RGFW can be found on the RGFW wiki [here](https://gi
 
 # Supporting RGFW
   There is a RGFW wiki page about things you can do if you want to support the development of RGFW [here](https://github.com/ColleagueRiley/RGFW/wiki/Supporting-RGFW).
-
-# RGFW vs GLFW
-A comparison of RGFW and GLFW can be found at [on the wiki](https://github.com/ColleagueRiley/RGFW/wiki/RGFW-vs-GLFW)
 
 # License
 RGFW uses the Zlib/libPNG license, this means you can use RGFW freely as long as you do not claim you wrote this software, mark altered versions as such and keep the license included with the header.

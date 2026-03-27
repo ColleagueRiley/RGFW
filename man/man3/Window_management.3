@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Sun Mar 22 2026" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Fri Mar 27 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -181,13 +181,13 @@ Window_management \- Window_management
 .br
 .RI "sets the icon for the window and/or taskbar "
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_mouse\fP *mouse)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setMouse\fP (\fBRGFW_window\fP *win, \fBRGFW_mouse\fP *mouse)"
 .br
-.RI "sets the mouse icon for the window using a loaded bitmap "
+.RI "sets the mouse icon for the window using a loaded mouse icon "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setMouseStandard\fP (\fBRGFW_window\fP *win, RGFW_mouseIcons mouse)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setMouseStandard\fP (\fBRGFW_window\fP *win, RGFW_mouseIcon icon)"
 .br
-.RI "Sets the mouse to a standard system cursor\&. "
+.RI "Sets the mouse to a preloaded [by RGFW] standard system cursor\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_setMouseDefault\fP (\fBRGFW_window\fP *win)"
 .br
@@ -1129,10 +1129,10 @@ sets the minimum size of the window !
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP void RGFW_window_setMouse (\fBRGFW_window\fP * win, \fBRGFW_mouse\fP * mouse)"
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setMouse (\fBRGFW_window\fP * win, \fBRGFW_mouse\fP * mouse)"
 
 .PP
-sets the mouse icon for the window using a loaded bitmap ! 
+sets the mouse icon for the window using a loaded mouse icon ! 
 .PP
 \fBParameters\fP
 .RS 4
@@ -1171,16 +1171,16 @@ toggles mouse passthrough for the window !
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setMouseStandard (\fBRGFW_window\fP * win, RGFW_mouseIcons mouse)"
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_setMouseStandard (\fBRGFW_window\fP * win, RGFW_mouseIcon icon)"
 
 .PP
-Sets the mouse to a standard system cursor\&. ! 
+Sets the mouse to a preloaded [by RGFW] standard system cursor\&. ! 
 .PP
 \fBParameters\fP
 .RS 4
 \fIwin\fP The target window\&. 
 .br
-\fImouse\fP The standard cursor type (see RGFW_MOUSE enum)\&. 
+\fImouse\fP The standardmouse icon (see RGFW_mouseIcon enum)\&. 
 .RE
 .PP
 \fBReturns\fP

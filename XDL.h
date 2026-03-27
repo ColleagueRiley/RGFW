@@ -27,14 +27,6 @@
 	#define XDL_NO_DEALLOCATE - (optional) Disables automatic deallocation for c++, returns back to C's void** system
 */
 
-/*
-Credits :
-		GLFW - Much of this implementation is based on GLFW's internal x11 dynamic loader
-				A great portion of the declarations for the X11 module are sourced from GLFW
-
-		stb - This project is heavily inspired by the stb single header files
-*/
-
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/XKBlib.h>

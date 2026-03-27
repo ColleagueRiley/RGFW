@@ -75,7 +75,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p ><img src="https://github.com/colleagueriley/rgfw/blob/main/logo.png?raw=true" alt="" align="left" style="width:300px" width="300px" class="inline"/></p>
-<p ><b>RGFW</b> is a focused general windowing framework for creating and handling windows, graphics contexts and windowing inputs. The API is a mix between GLFW and SDL while maintaining a minminalistic and easy to modify implementation.</p>
+<p ><b>RGFW</b> is a focused general windowing framework for creating and handling windows, graphics contexts and windowing inputs with a minimalistic and easy to modify implementation.</p>
 <hr  />
 <p ><br  />
 </p>
@@ -87,7 +87,7 @@ Features</h1>
 <li><b>is</b> an stb-style single headerfile and is very portable</li>
 <li><b>is</b> primarly written in C99 in mind</li>
 <li><b>has</b> a C89 compatible API on going changes to make the implementation more C89 friendly</li>
-<li><b>is</b> comparable to GLFW or aspects of SDL but it's leading motive is to be a flexible and lightweight windowing library</li>
+<li><b>is</b> a flexible and can be used in multiple ways to best fit your use case</li>
 <li><b>is</b> very small compared to other libraries</li>
 <li><b>is</b> a general framework and can be used for games, apps or tools</li>
 <li><b>does</b> only depend on system API libraries, Winapi, X11, Cocoa, etc <b>NO</b> dependencies</li>
@@ -156,9 +156,9 @@ a very simple example</h2>
 <div class="line">    <span class="keywordflow">return</span> 0;</div>
 <div class="line">}</div>
 <div class="ttc" id="aRGFW_8h_html"><div class="ttname"><a href="RGFW_8h.html">RGFW.h</a></div></div>
-<div class="ttc" id="aRGFW_8h_html_a2520d2d7f43e5df60edeed92733c1de6"><div class="ttname"><a href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a></div><div class="ttdeci">struct RGFW_window RGFW_window</div><div class="ttdoc">The window stucture for interfacing with the window.</div><div class="ttdef"><b>Definition:</b> RGFW.h:445</div></div>
-<div class="ttc" id="aRGFW_8h_html_a48d6cd8e4135fb2ff7e7f2dac84089ec"><div class="ttname"><a href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a></div><div class="ttdeci">int32_t i32</div><div class="ttdef"><b>Definition:</b> RGFW.h:393</div></div>
-<div class="ttc" id="aRGFW_8h_html_a505be7338d9652fbd907b56aa9673c0c"><div class="ttname"><a href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a></div><div class="ttdeci">#define RGFW_FALSE</div><div class="ttdef"><b>Definition:</b> RGFW.h:409</div></div>
+<div class="ttc" id="aRGFW_8h_html_a2520d2d7f43e5df60edeed92733c1de6"><div class="ttname"><a href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a></div><div class="ttdeci">struct RGFW_window RGFW_window</div><div class="ttdoc">The window stucture for interfacing with the window.</div><div class="ttdef"><b>Definition:</b> RGFW.h:441</div></div>
+<div class="ttc" id="aRGFW_8h_html_a48d6cd8e4135fb2ff7e7f2dac84089ec"><div class="ttname"><a href="RGFW_8h.html#a48d6cd8e4135fb2ff7e7f2dac84089ec">i32</a></div><div class="ttdeci">int32_t i32</div><div class="ttdef"><b>Definition:</b> RGFW.h:389</div></div>
+<div class="ttc" id="aRGFW_8h_html_a505be7338d9652fbd907b56aa9673c0c"><div class="ttname"><a href="RGFW_8h.html#a505be7338d9652fbd907b56aa9673c0c">RGFW_FALSE</a></div><div class="ttdeci">#define RGFW_FALSE</div><div class="ttdef"><b>Definition:</b> RGFW.h:405</div></div>
 <div class="ttc" id="aRGFW_8h_html_ac5fd097e30463a43eed098e9e5cdd7e4"><div class="ttname"><a href="RGFW_8h.html#ac5fd097e30463a43eed098e9e5cdd7e4">RGFW_createWindow</a></div><div class="ttdeci">RGFWDEF RGFW_window * RGFW_createWindow(const char *name, i32 x, i32 y, i32 w, i32 h, RGFW_windowFlags flags)</div><div class="ttdoc">creates a new window</div></div>
 <div class="ttc" id="aRGFW_8h_html_ae4174e705d4f736f200c530f9162219b"><div class="ttname"><a href="RGFW_8h.html#ae4174e705d4f736f200c530f9162219b">RGFW_setEventCallback</a></div><div class="ttdeci">RGFWDEF RGFW_genericFunc RGFW_setEventCallback(RGFW_eventType type, RGFW_genericFunc func)</div><div class="ttdoc">Sets the callback function for the event.</div></div>
 <div class="ttc" id="agroup__Input_html_gaeb351a2a50819d05ce3187dede5e1863"><div class="ttname"><a href="group__Input.html#gaeb351a2a50819d05ce3187dede5e1863">RGFW_isMousePressed</a></div><div class="ttdeci">RGFWDEF RGFW_bool RGFW_isMousePressed(RGFW_mouseButton button)</div><div class="ttdoc">returns true if the mouse button is pressed during the current frame</div></div>
@@ -167,14 +167,14 @@ a very simple example</h2>
 <div class="ttc" id="agroup__Window__management_html_gab9fbaeec9a1268374ab141b6ccfc41a3"><div class="ttname"><a href="group__Window__management.html#gab9fbaeec9a1268374ab141b6ccfc41a3">RGFW_window_close</a></div><div class="ttdeci">RGFWDEF void RGFW_window_close(RGFW_window *win)</div><div class="ttdoc">closes the window and frees its associated structure</div></div>
 <div class="ttc" id="agroup__Window__management_html_gad045c969f6e8b4c00b01ddf221b37207"><div class="ttname"><a href="group__Window__management.html#gad045c969f6e8b4c00b01ddf221b37207">RGFW_window_getMouse</a></div><div class="ttdeci">RGFWDEF RGFW_bool RGFW_window_getMouse(RGFW_window *win, i32 *x, i32 *y)</div><div class="ttdoc">Retrieves the mouse position relative to the window.</div></div>
 <div class="ttc" id="agroup__Window__management_html_gae40de5fbdc9e850c1ff7e2e8dac46624"><div class="ttname"><a href="group__Window__management.html#gae40de5fbdc9e850c1ff7e2e8dac46624">RGFW_window_shouldClose</a></div><div class="ttdeci">RGFWDEF RGFW_bool RGFW_window_shouldClose(RGFW_window *win)</div><div class="ttdoc">Checks if the window should close.</div></div>
-<div class="ttc" id="astructRGFW__commonEvent_html_afe9e8a63db95557a8f9a9b54beb00de7"><div class="ttname"><a href="structRGFW__commonEvent.html#afe9e8a63db95557a8f9a9b54beb00de7">RGFW_commonEvent::win</a></div><div class="ttdeci">RGFW_window * win</div><div class="ttdef"><b>Definition:</b> RGFW.h:735</div></div>
-<div class="ttc" id="astructRGFW__keyEvent_html_a87bbcb06e26eea974531fe2cab56e5f2"><div class="ttname"><a href="structRGFW__keyEvent.html#a87bbcb06e26eea974531fe2cab56e5f2">RGFW_keyEvent::value</a></div><div class="ttdeci">RGFW_key value</div><div class="ttdef"><b>Definition:</b> RGFW.h:772</div></div>
-<div class="ttc" id="astructRGFW__mouseButtonEvent_html_a825fa9078a6e031fdcb8d5da2c62359a"><div class="ttname"><a href="structRGFW__mouseButtonEvent.html#a825fa9078a6e031fdcb8d5da2c62359a">RGFW_mouseButtonEvent::value</a></div><div class="ttdeci">RGFW_mouseButton value</div><div class="ttdef"><b>Definition:</b> RGFW.h:749</div></div>
-<div class="ttc" id="aunionRGFW__event_html"><div class="ttname"><a href="unionRGFW__event.html">RGFW_event</a></div><div class="ttdoc">union for all of the event stucture types</div><div class="ttdef"><b>Definition:</b> RGFW.h:827</div></div>
-<div class="ttc" id="aunionRGFW__event_html_a2cd9246cc6b350ba08e7f0edc1d556ed"><div class="ttname"><a href="unionRGFW__event.html#a2cd9246cc6b350ba08e7f0edc1d556ed">RGFW_event::common</a></div><div class="ttdeci">RGFW_commonEvent common</div><div class="ttdef"><b>Definition:</b> RGFW.h:829</div></div>
-<div class="ttc" id="aunionRGFW__event_html_ab0e757ad7fbe82deb6e50b46b290efc8"><div class="ttname"><a href="unionRGFW__event.html#ab0e757ad7fbe82deb6e50b46b290efc8">RGFW_event::button</a></div><div class="ttdeci">RGFW_mouseButtonEvent button</div><div class="ttdef"><b>Definition:</b> RGFW.h:832</div></div>
-<div class="ttc" id="aunionRGFW__event_html_ab309d573101fed3b9137b3e42f408ce0"><div class="ttname"><a href="unionRGFW__event.html#ab309d573101fed3b9137b3e42f408ce0">RGFW_event::type</a></div><div class="ttdeci">RGFW_eventType type</div><div class="ttdef"><b>Definition:</b> RGFW.h:828</div></div>
-<div class="ttc" id="aunionRGFW__event_html_abb2a28af3dd447885cb08271faf6df84"><div class="ttname"><a href="unionRGFW__event.html#abb2a28af3dd447885cb08271faf6df84">RGFW_event::key</a></div><div class="ttdeci">RGFW_keyEvent key</div><div class="ttdef"><b>Definition:</b> RGFW.h:835</div></div>
+<div class="ttc" id="astructRGFW__commonEvent_html_afe9e8a63db95557a8f9a9b54beb00de7"><div class="ttname"><a href="structRGFW__commonEvent.html#afe9e8a63db95557a8f9a9b54beb00de7">RGFW_commonEvent::win</a></div><div class="ttdeci">RGFW_window * win</div><div class="ttdef"><b>Definition:</b> RGFW.h:731</div></div>
+<div class="ttc" id="astructRGFW__keyEvent_html_a87bbcb06e26eea974531fe2cab56e5f2"><div class="ttname"><a href="structRGFW__keyEvent.html#a87bbcb06e26eea974531fe2cab56e5f2">RGFW_keyEvent::value</a></div><div class="ttdeci">RGFW_key value</div><div class="ttdef"><b>Definition:</b> RGFW.h:768</div></div>
+<div class="ttc" id="astructRGFW__mouseButtonEvent_html_a825fa9078a6e031fdcb8d5da2c62359a"><div class="ttname"><a href="structRGFW__mouseButtonEvent.html#a825fa9078a6e031fdcb8d5da2c62359a">RGFW_mouseButtonEvent::value</a></div><div class="ttdeci">RGFW_mouseButton value</div><div class="ttdef"><b>Definition:</b> RGFW.h:745</div></div>
+<div class="ttc" id="aunionRGFW__event_html"><div class="ttname"><a href="unionRGFW__event.html">RGFW_event</a></div><div class="ttdoc">union for all of the event stucture types</div><div class="ttdef"><b>Definition:</b> RGFW.h:823</div></div>
+<div class="ttc" id="aunionRGFW__event_html_a2cd9246cc6b350ba08e7f0edc1d556ed"><div class="ttname"><a href="unionRGFW__event.html#a2cd9246cc6b350ba08e7f0edc1d556ed">RGFW_event::common</a></div><div class="ttdeci">RGFW_commonEvent common</div><div class="ttdef"><b>Definition:</b> RGFW.h:825</div></div>
+<div class="ttc" id="aunionRGFW__event_html_ab0e757ad7fbe82deb6e50b46b290efc8"><div class="ttname"><a href="unionRGFW__event.html#ab0e757ad7fbe82deb6e50b46b290efc8">RGFW_event::button</a></div><div class="ttdeci">RGFW_mouseButtonEvent button</div><div class="ttdef"><b>Definition:</b> RGFW.h:828</div></div>
+<div class="ttc" id="aunionRGFW__event_html_ab309d573101fed3b9137b3e42f408ce0"><div class="ttname"><a href="unionRGFW__event.html#ab309d573101fed3b9137b3e42f408ce0">RGFW_event::type</a></div><div class="ttdeci">RGFW_eventType type</div><div class="ttdef"><b>Definition:</b> RGFW.h:824</div></div>
+<div class="ttc" id="aunionRGFW__event_html_abb2a28af3dd447885cb08271faf6df84"><div class="ttname"><a href="unionRGFW__event.html#abb2a28af3dd447885cb08271faf6df84">RGFW_event::key</a></div><div class="ttdeci">RGFW_keyEvent key</div><div class="ttdef"><b>Definition:</b> RGFW.h:831</div></div>
 </div><!-- fragment --><div class="fragment"><div class="line">linux : gcc main.c -lX11 -lGL -lm -lXrandr</div>
 <div class="line">windows : gcc main.c -lopengl32 -lgdi32</div>
 <div class="line">macos : gcc main.c -framework Cocoa</div>
@@ -208,9 +208,6 @@ Contacts</h1>
 Supporting RGFW</h1>
 <p >There is a RGFW wiki page about things you can do if you want to support the development of RGFW <a href="https://github.com/ColleagueRiley/RGFW/wiki/Supporting-RGFW">here</a>.</p>
 <h1><a class="anchor" id="autotoc_md12"></a>
-RGFW vs GLFW</h1>
-<p >A comparison of RGFW and GLFW can be found at <a href="https://github.com/ColleagueRiley/RGFW/wiki/RGFW-vs-GLFW">on the wiki</a></p>
-<h1><a class="anchor" id="autotoc_md13"></a>
 License</h1>
 <p >RGFW uses the Zlib/libPNG license, this means you can use RGFW freely as long as you do not claim you wrote this software, mark altered versions as such and keep the license included with the header.</p>
 <div class="fragment"><div class="line">Permission is granted to anyone to use this software for any purpose,</div>

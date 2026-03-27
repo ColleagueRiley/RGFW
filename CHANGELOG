@@ -101,6 +101,9 @@ Additional labels for pre-release and build metadata are available as extensions
 - use `delta` for scroll and raw motion data in the `RGFW_event` union
 - rename RGFW_[key] to RGFW_key[Key]
 - add `RGFW_window_fetchSize`
+- rename `RGFW_mouseIcons` to `RGFW_mouseIcon` for consisteny
+- rename `RGFW_loadMouse` to `RGFW_createMouse`
+- add `RGFW_createMouseStandard`
 
 Release:    RGFW 1.8.0
 -----------------------------------------------
