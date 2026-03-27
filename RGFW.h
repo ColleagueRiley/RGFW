@@ -15000,7 +15000,38 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[DOM_VK_F24]  = RGFW_keyF24;
 }
 
-i32 RGFW_initPlatform(void) { return 0; }
+i32 RGFW_initPlatform(void) {
+	RGFW_monitorNode* node = NULL;
+	RGFW_monitor monitor;
+
+	monitor.name[0] = '\0';
+
+	monitor.x = 0;
+	monitor.y = 0;
+
+	monitor.pixelRatio = EM_ASM_DOUBLE({return window.devicePixelRatio || 1;});
+	monitor.mode.w = EM_ASM_INT({return window.innerHeight || 0;});
+	monitor.mode.h = EM_ASM_INT({return window.innerHeight || 0;});
+
+	monitor.physW = (float)RGFW_ROUND((float)monitor.mode.w * monitor.pixelRatio);
+	monitor.physH = (float)RGFW_ROUND((float)monitor.mode.h * monitor.pixelRatio);
+
+	float dpi = 96.0f * monitor.pixelRatio;
+	monitor.scaleX = dpi / 96.0f;
+	monitor.scaleY = dpi / 96.0f;
+
+	RGFW_splitBPP(32, &monitor.mode);
+
+	monitor.mode.refreshRate = 0;
+
+	node = RGFW_monitors_add(&monitor);
+	if (node != NULL) {
+		_RGFW->monitors.primary = node;
+		RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_TRUE);
+	}
+
+	return 0;
+}
 
 RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags, RGFW_window* win) {
 	emscripten_set_canvas_element_size("#canvas", win->w, win->h);
@@ -15479,7 +15510,13 @@ RGFW_key RGFW_WASMPhysicalToRGFW(u32 hash) {
 	return 0;
 }
 
+RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) {
+	RGFW_UNUSED(win);
+	return RGFW_getPrimaryMonitor();
+}
+
 /* unsupported functions */
+void RGFW_pollMonitors(void) { }
 void RGFW_window_focus(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_raise(RGFW_window* win) { RGFW_UNUSED(win); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
@@ -15488,7 +15525,6 @@ size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
 RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) { RGFW_UNUSED(monitor); RGFW_UNUSED(ramp); return RGFW_FALSE; }
 size_t RGFW_monitor_getModesPtr(RGFW_monitor* mon, RGFW_monitorMode** modes) { RGFW_UNUSED(mon); RGFW_UNUSED(modes); return 0; }
 RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); return RGFW_FALSE; }
-void RGFW_pollMonitors(void) { }
 void RGFW_window_move(RGFW_window* win, i32 x, i32 y) { RGFW_UNUSED(win);  RGFW_UNUSED(x); RGFW_UNUSED(y);  }
 void RGFW_window_setAspectRatio(RGFW_window* win, i32 w, i32 h) { RGFW_UNUSED(win);  RGFW_UNUSED(w); RGFW_UNUSED(h);  }
 void RGFW_window_setMinSize(RGFW_window* win, i32 w, i32 h) { RGFW_UNUSED(win); RGFW_UNUSED(w); RGFW_UNUSED(h);  }
@@ -15505,7 +15541,6 @@ RGFW_bool RGFW_window_isHidden(RGFW_window* win) { RGFW_UNUSED(win); return RGFW
 RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
 RGFW_bool RGFW_window_isFloating(RGFW_window* win) { RGFW_UNUSED(win); return RGFW_FALSE; }
-RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) { RGFW_UNUSED(win); return NULL; }
 void RGFW_waitForEvent(i32 waitMS) { RGFW_UNUSED(waitMS); }
 #endif
 
