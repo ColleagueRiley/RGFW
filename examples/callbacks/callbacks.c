@@ -104,7 +104,7 @@ void mouseNotifyfunc(const RGFW_event* e) {
 
 static
 void mouseposfunc(const RGFW_event* e) {
-	if (e->common.win != window || RGFW_window_isKeyPressed(e->common.win, RGFW_keyControlL) == 0) return;
+	if (e->common.win != window || RGFW_window_isKeyDown(e->common.win, RGFW_keyControlL) == 0) return;
 	printf("mouse moved %i %i\n", e->mouse.x, e->mouse.y);
 }
 

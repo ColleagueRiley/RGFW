@@ -43,43 +43,8 @@
 
 RGFW_window* win;
 
-#define BENCHMARK
-
-#ifdef BENCHMARK
-
-/* XXX this probably isn't very portable */
-
-#include <sys/time.h>
-#include <unistd.h>
-
-/* return current time (in seconds) */
-static double
-current_time(void)
-{
-   struct timeval tv;
-   (void) gettimeofday(&tv, NULL);
-   return (double) tv.tv_sec + tv.tv_usec / 1000000.0;
-}
-
-#else /*BENCHMARK*/
-
-/* dummy */
-static double
-current_time(void)
-{
-   /* update this function for other platforms! */
-   static double t = 0.0;
-   static int warn = 1;
-   if (warn) {
-      fprintf(stderr, "Warning: current_time() not implemented!!\n");
-      warn = 0;
-   }
-   return t += 1.0;
-}
-
-#endif /*BENCHMARK*/
-
-
+#define RT_IMPLEMENTATION
+#include "rtime.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265
@@ -320,7 +285,7 @@ draw_frame(void)
 {
    static int frames = 0;
    static double tRot0 = -1.0, tRate0 = -1.0;
-   double dt, t = current_time();
+   double dt, t = rt_getTime();
 
    if (tRot0 < 0.0)
       tRot0 = t;
@@ -417,6 +382,7 @@ init(void)
    glEndList();
 
    glEnable(GL_NORMALIZE);
+   rt_setTime(0);
 }
 
 
@@ -474,19 +440,25 @@ main(int argc, char *argv[])
    win = RGFW_createWindow("gears", x, y, winWidth, winHeight, RGFW_windowCenter | RGFW_windowOpenGL | flag);
    RGFW_window_setExitKey(win, RGFW_keyEscape);
    RGFW_window_makeCurrentContext_OpenGL(win);
+
    init();
 
    /* Set initial projection/viewing transformation.
     * We can't be sure we'll get a ConfigureNotify event when the window
     * first appears.
-    */
-   reshape(win->w, win->h);
+
+	*/
+
+	i32 width, height;
+	RGFW_window_getSizeInPixels(win, &width, &height);
+	reshape(width, height);
 
    while(!RGFW_window_shouldClose(win)){
       RGFW_event event;
       while(RGFW_window_checkEvent(win, &event)){
-		   if (event.type == RGFW_windowResized){
-			   reshape(win->w, win->h);
+		   if (event.type == RGFW_windowResized) {
+				RGFW_window_getSizeInPixels(win, &width, &height);
+				reshape(width, height);
 		   }else if(event.type == RGFW_keyPressed){
 			   switch(event.key.value){
 				   case RGFW_keyLeft:

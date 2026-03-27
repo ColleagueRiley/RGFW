@@ -131,7 +131,10 @@ int main(void) {
         glLoadIdentity();
         update_camera();
 
-        glViewport(0, 0, win->w, win->h);
+		i32 w, h;
+		RGFW_window_getSizeInPixels(win, &w, &h);
+
+        glViewport(0, 0, w, h);
 
         glBegin(GL_QUADS);
 

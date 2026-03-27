@@ -87,7 +87,10 @@ int main(void) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
 
-    glViewport(0, 0, 500, 500);
+	i32 w, h;
+	RGFW_window_getSizeInPixels(win, &w, &h);
+
+    glViewport(0, 0, w, h);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     float attribute_array[] =
@@ -99,7 +102,7 @@ int main(void) {
         };
 
     size_t attribute_stride = 5 * sizeof(float);
-    float display_aspect = ((float) win->w) / ((float) win->h);
+    float display_aspect = ((float) w) / ((float) h);
     float xscale = 1.5 / display_aspect;
     float yscale = 1.5;
     float display_transform_cols[4*4] =

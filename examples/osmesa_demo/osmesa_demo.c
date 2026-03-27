@@ -32,7 +32,10 @@ int main(void) {
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
 		RGFW_pollEvents();
 
-        glViewport(0, 0, win->w, win->h);
+		i32 w, h;
+		RGFW_window_getSizeInPixels(win, &w, &h);
+
+        glViewport(0, 0, w, h);
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         glClear(GL_COLOR_BUFFER_BIT);

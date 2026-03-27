@@ -66,12 +66,15 @@ int main(void) {
 
     dxInfo.pDeviceContext->lpVtbl->OMSetRenderTargets(dxInfo.pDeviceContext, 1, &dxInfo.renderTargetView, NULL);
 
+	i32 w, h;
+	RGFW_window_getSizeInPixels(win, &w, &h);
+
     // Set viewport
     D3D11_VIEWPORT viewport;
     viewport.TopLeftX = 0;
     viewport.TopLeftY = 0;
-    viewport.Width = win->w;
-    viewport.Height = win->h;
+    viewport.Width = w;
+    viewport.Height = h;
     viewport.MinDepth = 0.0f;
     viewport.MaxDepth = 1.0f;
     dxInfo.pDeviceContext->lpVtbl->RSSetViewports(dxInfo.pDeviceContext, 1, &viewport);
@@ -153,6 +156,9 @@ int main(void) {
 }
 
 int directXInit(RGFW_window* win, directXinfo* info) {
+	i32 w, h;
+	RGFW_window_getSizeInPixels(win, &w, &h);
+
 	RGFW_ASSERT(FAILED(CreateDXGIFactory(&__uuidof(IDXGIFactory), (void**) &info->pFactory)) == 0);
 
 	if (FAILED(info->pFactory->lpVtbl->EnumAdapters(info->pFactory, 0, &info->pAdapter))) {
@@ -182,8 +188,8 @@ int directXInit(RGFW_window* win, directXinfo* info) {
 	pBackBuffer->lpVtbl->Release(pBackBuffer);
 
 	D3D11_TEXTURE2D_DESC depthStencilDesc = { 0 };
-	depthStencilDesc.Width = win->w;
-	depthStencilDesc.Height = win->h;
+	depthStencilDesc.Width = w;
+	depthStencilDesc.Height = h;
 	depthStencilDesc.MipLevels = 1;
 	depthStencilDesc.ArraySize = 1;
 	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;

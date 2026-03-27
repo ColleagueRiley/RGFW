@@ -77,7 +77,9 @@ int main(void) {
             }
         }
 
-        glViewport(0, 0, win->w, win->h);
+		RGFW_window_getSizeInPixels(win, &w, &h);
+
+        glViewport(0, 0, w, h);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 

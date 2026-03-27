@@ -114,7 +114,7 @@ int main(void)
         float ratio;
 
 		i32 w, h;
-        RGFW_window_getSize(window, &w, &h);
+        RGFW_window_getSizeInPixels(window, &w, &h);
         ratio = w / (float) h;
 
         layer.drawableSize = CGSizeMake(w, h);

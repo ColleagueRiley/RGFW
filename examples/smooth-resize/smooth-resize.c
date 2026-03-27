@@ -32,7 +32,10 @@ void draw(RGFW_window* win) {
 void resize(const RGFW_event* e);
 void refresh(const RGFW_event* e);
 
-void resize(const RGFW_event* e) { glViewport(0, 0, e->update.w, e->update.h); }
+void resize(const RGFW_event* e) {
+	RGFW_monitor* mon = RGFW_window_getMonitor(e->common.win);
+	glViewport(0, 0, (i32)((float)e->update.w * mon->pixelRatio), (i32)((float)e->update.h * mon->pixelRatio));
+}
 void refresh(const RGFW_event* e) { RGFW_UNUSED(e); printf("refresh\n"); }
 
 int main(void) {
