@@ -15010,7 +15010,7 @@ i32 RGFW_initPlatform(void) {
 	monitor.y = 0;
 
 	monitor.pixelRatio = EM_ASM_DOUBLE({return window.devicePixelRatio || 1;});
-	monitor.mode.w = EM_ASM_INT({return window.innerHeight || 0;});
+	monitor.mode.w = EM_ASM_INT({return window.innerWidth || 0;});
 	monitor.mode.h = EM_ASM_INT({return window.innerHeight || 0;});
 
 	monitor.physW = (float)RGFW_ROUND((float)monitor.mode.w * monitor.pixelRatio);
