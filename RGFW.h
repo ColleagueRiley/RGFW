@@ -12784,7 +12784,16 @@ NSInteger NSPasteBoard_declareTypes(id pasteboard, NSPasteboardType* newTypes, s
 static id RGFW__osxCustomInitWithRGFWWindow(id self, SEL _cmd, RGFW_window* win) {
 	RGFW_UNUSED(_cmd);
     struct objc_super s = { self, class_getSuperclass(object_getClass(self)) };
-    self = ((id (*)(struct objc_super*, SEL))objc_msgSendSuper)(&s, sel_registerName("init"));
+
+    CGRect rect;
+    rect.origin.x = 0;
+    rect.origin.y = 0;
+    rect.size.width = (double)win->w;
+    rect.size.height = (double)win->h;
+
+    self = ((id (*)(struct objc_super*, SEL, CGRect))objc_msgSendSuper)(
+        &s, sel_registerName("initWithFrame:"), rect
+    );
 
     if (self != nil) {
         object_setInstanceVariable(self, "RGFW_window", win);
