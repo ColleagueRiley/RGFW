@@ -2434,7 +2434,7 @@ $(function() {
 <div class="line"><a id="l03700" name="l03700"></a><span class="lineno"> 3700</span>    }</div>
 <div class="line"><a id="l03701" name="l03701"></a><span class="lineno"> 3701</span> </div>
 <div class="line"><a id="l03702" name="l03702"></a><span class="lineno"> 3702</span>    <a class="code hl_union" href="unionRGFW__event.html">RGFW_event</a> event;</div>
-<div class="line"><a id="l03703" name="l03703"></a><span class="lineno"> 3703</span>    <span class="keyword">event</span>.<a class="code hl_variable" href="unionRGFW__event.html#ab309d573101fed3b9137b3e42f408ce0">type</a> = (connected) ? (RGFW_monitorConnected) : (RGFW_monitorDisconnected);</div>
+<div class="line"><a id="l03703" name="l03703"></a><span class="lineno"> 3703</span>    <span class="keyword">event</span>.<a class="code hl_variable" href="unionRGFW__event.html#ab309d573101fed3b9137b3e42f408ce0">type</a> = (connected) ? (RGFW_eventType)(RGFW_monitorConnected) : (RGFW_eventType)(RGFW_monitorDisconnected);</div>
 <div class="line"><a id="l03704" name="l03704"></a><span class="lineno"> 3704</span>    <span class="keyword">event</span>.monitor.monitor = monitor;</div>
 <div class="line"><a id="l03705" name="l03705"></a><span class="lineno"> 3705</span>    <span class="keyword">event</span>.monitor.state = connected;</div>
 <div class="line"><a id="l03706" name="l03706"></a><span class="lineno"> 3706</span>    <span class="keyword">event</span>.common.win = win;</div>
@@ -9622,7 +9622,7 @@ $(function() {
 <div class="line"><a id="l10891" name="l10891"></a><span class="lineno">10891</span>        (<span class="keywordtype">void</span>**) &amp;surface-&gt;native.bitmapBits,</div>
 <div class="line"><a id="l10892" name="l10892"></a><span class="lineno">10892</span>        NULL, (DWORD) 0);</div>
 <div class="line"><a id="l10893" name="l10893"></a><span class="lineno">10893</span> </div>
-<div class="line"><a id="l10894" name="l10894"></a><span class="lineno">10894</span>    surface-&gt;native.format = (format &gt;= RGFW_formatRGBA8) ? RGFW_formatBGRA8 : RGFW_formatBGR8;</div>
+<div class="line"><a id="l10894" name="l10894"></a><span class="lineno">10894</span>    surface-&gt;native.format = (format &gt;= RGFW_formatRGBA8) ? (RGFW_format) RGFW_formatBGRA8 : (RGFW_format) RGFW_formatBGR8;</div>
 <div class="line"><a id="l10895" name="l10895"></a><span class="lineno">10895</span> </div>
 <div class="line"><a id="l10896" name="l10896"></a><span class="lineno">10896</span>    <span class="keywordflow">if</span> (surface-&gt;native.bitmap == NULL) {</div>
 <div class="line"><a id="l10897" name="l10897"></a><span class="lineno">10897</span>        <a class="code hl_function" href="group__error.html#ga20ed7e4af84625f50b6d8dc4437cf63d">RGFW_debugCallback</a>(RGFW_typeError, RGFW_errBuffer,  <span class="stringliteral">&quot;Failed to create DIB section.&quot;</span>);</div>

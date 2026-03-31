@@ -3700,7 +3700,7 @@ void RGFW_monitorCallback(RGFW_window* win, const RGFW_monitor* monitor, RGFW_bo
 	}
 
 	RGFW_event event;
-	event.type = (connected) ? (RGFW_monitorConnected) : (RGFW_monitorDisconnected);
+	event.type = (connected) ? (RGFW_eventType)(RGFW_monitorConnected) : (RGFW_eventType)(RGFW_monitorDisconnected);
 	event.monitor.monitor = monitor;
 	event.monitor.state = connected;
 	event.common.win = win;
@@ -10891,7 +10891,7 @@ RGFW_bool RGFW_createSurfacePtr(u8* data, i32 w, i32 h, RGFW_format format, RGFW
 		(void**) &surface->native.bitmapBits,
 		NULL, (DWORD) 0);
 
-	surface->native.format = (format >= RGFW_formatRGBA8) ? RGFW_formatBGRA8 : RGFW_formatBGR8;
+	surface->native.format = (format >= RGFW_formatRGBA8) ? (RGFW_format) RGFW_formatBGRA8 : (RGFW_format) RGFW_formatBGR8;
 
 	if (surface->native.bitmap == NULL) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errBuffer,  "Failed to create DIB section.");
