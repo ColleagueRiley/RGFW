@@ -7832,7 +7832,9 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 		RGFW_monitor monitor;
 
 		XRROutputInfo* info = XRRGetOutputInfo(_RGFW->display, res, res->outputs[i]);
-		if (info == NULL || info->connection != RR_Connected || info->crtc == None) {
+		if (info == NULL) continue;
+		if (info->connection != RR_Connected || info->crtc == None) {
+			XRRFreeOutputInfo(info);
 			continue;
 		}
 
