@@ -687,7 +687,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 	RGFW_eventCount /*!< the number of event types there are */
 };
 
-/*! @brief flags for toggling wether or not an event should be processed */
+/*! @brief flags for toggling whether or not an event should be processed */
 typedef RGFW_ENUM(u32, RGFW_eventFlag) {
     RGFW_keyPressedFlag = RGFW_BIT(RGFW_keyPressed),
     RGFW_keyReleasedFlag = RGFW_BIT(RGFW_keyReleased),
