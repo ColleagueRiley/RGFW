@@ -17,7 +17,7 @@
 
 * **is** an stb-style single headerfile and is very portable
 * **is** primarly written in C99 in mind
-* **has** a C89 compatible API on going changes to make the implementation more C89 friendly
+* **has** a C89 compatible API
 * **is** a flexible and can be used in multiple ways to best fit your use case
 * **is** very small compared to other libraries
 * **is** a general framework and can be used for games, apps or tools
