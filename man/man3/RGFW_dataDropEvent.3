@@ -1,4 +1,4 @@
-.TH "RGFW_dataDropEvent" 3 "Thu Apr 9 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW_dataDropEvent" 3 "Tue Apr 14 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -19,10 +19,7 @@ RGFW_dataDropEvent \- event data for any data drop event
 .RI "\fBRGFW_window\fP * \fBwin\fP"
 .br
 .ti -1c
-.RI "char ** \fBvalue\fP"
-.br
-.ti -1c
-.RI "size_t \fBcount\fP"
+.RI "const \fBRGFW_dataDropNode\fP * \fBvalue\fP"
 .br
 .in -1c
 .SH "Detailed Description"
@@ -30,12 +27,10 @@ RGFW_dataDropEvent \- event data for any data drop event
 event data for any data drop event 
 .SH "Member Data Documentation"
 .PP 
-.SS "size_t RGFW_dataDropEvent::count"
-how many files were dropped 
 .SS "RGFW_eventType RGFW_dataDropEvent::type"
 which event has been sent? 
-.SS "char** RGFW_dataDropEvent::value"
-dropped files 
+.SS "const \fBRGFW_dataDropNode\fP* RGFW_dataDropEvent::value"
+
 .SS "\fBRGFW_window\fP* RGFW_dataDropEvent::win"
 the window this event applies to (for event queue events) 
 

@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Thu Apr 9 2026" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Tue Apr 14 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -69,9 +69,9 @@ Window_management \- Window_management
 .br
 .RI "checks if a data drop occurred in the window (first frame only) "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_getDataDrop\fP (\fBRGFW_window\fP *win, const char ***files, size_t *count)"
+.RI "\fBRGFWDEF\fP \fBRGFW_dataDropNode\fP * \fBRGFW_window_getDataDrop\fP (\fBRGFW_window\fP *win)"
 .br
-.RI "retrieves files from a data drop (drag and drop) "
+.RI "retrieves datta from a data drop (drag and drop) "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_close\fP (\fBRGFW_window\fP *win)"
 .br
@@ -538,23 +538,19 @@ RGFW_TRUE if there is an active drag, RGFW_FALSE otherwise
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_getDataDrop (\fBRGFW_window\fP * win, const char *** files, size_t * count)"
+.SS "\fBRGFWDEF\fP \fBRGFW_dataDropNode\fP * RGFW_window_getDataDrop (\fBRGFW_window\fP * win)"
 
 .PP
-retrieves files from a data drop (drag and drop) ! 
+retrieves datta from a data drop (drag and drop) ! 
 .PP
 \fBParameters\fP
 .RS 4
 \fIwin\fP a pointer to the target window 
-.br
-\fIfiles\fP [OUTPUT] a pointer to the array of file paths 
-.br
-\fIcount\fP [OUTPUT] the number of dropped files 
 .RE
 .PP
 \fBReturns\fP
 .RS 4
-RGFW_TRUE if a data drop occurred, RGFW_FALSE otherwise 
+a valid pointer to the root drag node if a data drop occurred, NULL otherwise 
 .RE
 .PP
 

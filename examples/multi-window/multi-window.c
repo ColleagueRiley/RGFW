@@ -49,8 +49,7 @@ void checkEvents(RGFW_window* win) {
 				break;
 			case RGFW_dataDrop:
 				printf("window %p: drag and drop: %dx%d:\n", (void*)win, event.mouse.x, event.mouse.y);
-				for (size_t i = 0; i < event.drop.count; i++)
-					printf("\t%u: '%s'\n", (u32)i, event.drop.value[i]);
+				printf("\t '%s'\n", event.drop.value->data);
 				break;
 			case RGFW_keyPressed:
 				if (event.key.value == RGFW_keyC && (RGFW_window_isKeyDown(win, RGFW_keyControlL) || RGFW_window_isKeyDown(win, RGFW_keyControlR))) {

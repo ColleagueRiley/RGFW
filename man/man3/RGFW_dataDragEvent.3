@@ -1,4 +1,4 @@
-.TH "RGFW_dataDragEvent" 3 "Thu Apr 9 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW_dataDragEvent" 3 "Tue Apr 14 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -24,12 +24,22 @@ RGFW_dataDragEvent \- event data for any data drag event
 .ti -1c
 .RI "\fBi32\fP \fBy\fP"
 .br
+.ti -1c
+.RI "RGFW_dndActionType \fBaction\fP"
+.br
+.ti -1c
+.RI "RGFW_dataTransferType \fBdataType\fP"
+.br
 .in -1c
 .SH "Detailed Description"
 .PP 
 event data for any data drag event 
 .SH "Member Data Documentation"
 .PP 
+.SS "RGFW_dndActionType RGFW_dataDragEvent::action"
+the type of drag action, e\&.g\&. enter, leave, move 
+.SS "RGFW_dataTransferType RGFW_dataDragEvent::dataType"
+the type of data being dragged 
 .SS "RGFW_eventType RGFW_dataDragEvent::type"
 which event has been sent? 
 .SS "\fBRGFW_window\fP* RGFW_dataDragEvent::win"

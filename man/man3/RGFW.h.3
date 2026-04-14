@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Thu Apr 9 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Tue Apr 14 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -36,6 +36,9 @@ RGFW.h
 .RI "struct \fBRGFW_monitor\fP"
 .br
 .RI "structure for monitor data "
+.ti -1c
+.RI "struct \fBRGFW_dataDropNode\fP"
+.br
 .ti -1c
 .RI "struct \fBRGFW_commonEvent\fP"
 .br
@@ -126,7 +129,7 @@ RGFW.h
 .RI "#define \fBRGFW_FREE\fP   free"
 .br
 .ti -1c
-.RI "#define \fBRGFW_MEMSET\fP(ptr,  value,  num)   memset(ptr, value, num)"
+.RI "#define \fBRGFW_MEMZERO\fP(ptr,  num)   memset(ptr, 0, num)"
 .br
 .ti -1c
 .RI "#define \fBRGFW_MEMCPY\fP(dist,  src,  len)   memcpy(dist, src, len)"
@@ -145,12 +148,6 @@ RGFW.h
 .br
 .ti -1c
 .RI "#define \fBRGFW_ATOF\fP(num)   atof(num)"
-.br
-.ti -1c
-.RI "#define \fBRGFW_MAX_PATH\fP   260 /* max length of a path (for drag andn drop) */"
-.br
-.ti -1c
-.RI "#define \fBRGFW_MAX_DROPS\fP   260 /* max items you can drop at once */"
 .br
 .ti -1c
 .RI "#define \fBRGFW_MAX_EVENTS\fP   32"
@@ -270,6 +267,9 @@ RGFW.h
 .RI "typedef void \fBRGFW_mouse\fP"
 .br
 .ti -1c
+.RI "typedef struct \fBRGFW_dataDropNode\fP \fBRGFW_dataDropNode\fP"
+.br
+.ti -1c
 .RI "typedef struct \fBRGFW_commonEvent\fP \fBRGFW_commonEvent\fP"
 .br
 .RI "common event data across all events "
@@ -361,6 +361,12 @@ RGFW.h
 .RI "abstract mouse button codes "
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_keymod)"
+.br
+.ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_dndActionType)"
+.br
+.ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_dataTransferType)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_eventType)"
@@ -596,6 +602,10 @@ RGFW.h
 .br
 .RI "set (enable or disable) raw mouse mode globally "
 .ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setBuildDND\fP (\fBRGFW_bool\fP allow)"
+.br
+.RI "toggles building the drag-and-drop (DND) linked list "
+.ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_waitForEvent\fP (\fBi32\fP waitMS)"
 .br
 .RI "sleep until RGFW gets an event or the timer ends (defined by OS) "
@@ -827,9 +837,9 @@ RGFW.h
 .br
 .RI "checks if a data drop occurred in the window (first frame only) "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_getDataDrop\fP (\fBRGFW_window\fP *win, const char ***files, size_t *count)"
+.RI "\fBRGFWDEF\fP \fBRGFW_dataDropNode\fP * \fBRGFW_window_getDataDrop\fP (\fBRGFW_window\fP *win)"
 .br
-.RI "retrieves files from a data drop (drag and drop) "
+.RI "retrieves datta from a data drop (drag and drop) "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_close\fP (\fBRGFW_window\fP *win)"
 .br
@@ -1154,17 +1164,13 @@ RGFW.h
 
 .SS "#define RGFW_INT_DEFINED"
 
-.SS "#define RGFW_MAX_DROPS   260 /* max items you can drop at once */"
-
 .SS "#define RGFW_MAX_EVENTS   32"
 
 .SS "#define RGFW_MAX_MONITORS   6"
 
-.SS "#define RGFW_MAX_PATH   260 /* max length of a path (for drag andn drop) */"
-
 .SS "#define RGFW_MEMCPY(dist, src, len)   memcpy(dist, src, len)"
 
-.SS "#define RGFW_MEMSET(ptr, value, num)   memset(ptr, value, num)"
+.SS "#define RGFW_MEMZERO(ptr, num)   memset(ptr, 0, num)"
 
 .SS "#define RGFW_MIN(x, y)   ((x < y) ? x : y)"
 
@@ -1222,6 +1228,8 @@ event data for any data drag event
 
 .PP
 event data for any data drop event 
+.SS "typedef struct \fBRGFW_dataDropNode\fP \fBRGFW_dataDropNode\fP"
+internal node for a individual data drop 
 .SS "typedef void(* RGFW_debugFunc) (const \fBRGFW_debugInfo\fP *info)"
 
 .PP
@@ -1569,10 +1577,26 @@ the window is hidden
 < create an EGL context (you can also do this manually with RGFW_window_createContext_EGL)
 .PP
 < do not auto deinit RGFW if the window closes and this is the last window open
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_dataTransferType)"
+types of transfered data (clipboard, dnd) < plain text string
+.PP
+< file string
+.PP
+< URL string
+.PP
+< raw image data
+.PP
+< unknown raw data
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_debugType)"
 
 .PP
 the type of debug message 
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_dndActionType)"
+types of dnd drag actions < data has been dragged into the window area
+.PP
+< the data that was dragged into the window area has moved inside the window
+.PP
+< the data that was dragged into the window area has left the window
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_errorCode)"
 
 .PP
@@ -1622,9 +1646,9 @@ codes for the event types that can be sent < no event has been sent
 .PP
 < the window was restored
 .PP
-< a file has been dropped into the window
+< data has been dropped into the window
 .PP
-< the start of a drag and drop event, when the file is being dragged
+< the start of a drag and drop event, when data is being dragged
 .PP
 < content scale factor changed
 .PP
@@ -2179,6 +2203,22 @@ Sets the callback function for all events\&. !
 \fIfunc\fP The function to be called when the event is triggered\&. 
 .br
 \fI[OUTPUT]\fP a structure that holds an array of all the event callbacks 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP void RGFW_setBuildDND (\fBRGFW_bool\fP allow)"
+
+.PP
+toggles building the drag-and-drop (DND) linked list ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIallow\fP RGFW_TRUE to allow DND building, RGFW_FALSE to disable 
+.RE
+.PP
+\fBNote\fP
+.RS 4
+this is for state checking, the list is created by default if you are using the event queue 
 .RE
 .PP
 

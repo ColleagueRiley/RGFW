@@ -165,7 +165,7 @@ int main() {
 	#pragma comment(lib, "User32")
 	#pragma comment(lib, "Advapi32")
     #pragma warning( push )
-	#pragma warning( disable : 4996 4191 4127)
+	#pragma warning( disable : 4995 4191 4127)
     #if _MSC_VER < 600
         #define RGFW_C89
     #endif
@@ -253,12 +253,12 @@ int main() {
 	#define RGFW_FREE free
 #endif
 
-#if !defined(RGFW_MEMCPY) || !defined(RGFW_STRNCMP) || !defined(RGFW_STRNCPY) || !defined(RGFW_MEMSET)
+#if !defined(RGFW_MEMCPY) || !defined(RGFW_STRNCMP) || !defined(RGFW_STRNCPY) || !defined(RGFW_MEMZERO)
 	#include <string.h>
 #endif
 
-#ifndef RGFW_MEMSET
-	#define RGFW_MEMSET(ptr, value, num) memset(ptr, value, num)
+#ifndef RGFW_MEMZERO
+	#define RGFW_MEMZERO(ptr, num) memset(ptr, 0, num)
 #endif
 
 #ifndef RGFW_MEMCPY
@@ -288,13 +288,6 @@ int main() {
     /* required when using RGFW_DEBUG */
     #include <stdio.h>
     #define RGFW_PRINTF printf
-#endif
-
-#ifndef RGFW_MAX_PATH
-	#define RGFW_MAX_PATH 260 /* max length of a path (for drag andn drop) */
-#endif
-#ifndef RGFW_MAX_DROPS
-	#define RGFW_MAX_DROPS 260 /* max items you can drop at once */
 #endif
 
 #ifndef RGFW_MAX_EVENTS
@@ -641,6 +634,32 @@ typedef RGFW_ENUM(u8, RGFW_keymod) {
 	RGFW_modScrollLock = RGFW_BIT(6)
 };
 
+/*! types of dnd drag actions */
+typedef RGFW_ENUM(u8, RGFW_dndActionType) {
+	RGFW_dndActionNone = 0,
+	RGFW_dndActionEnter, /*!< data has been dragged into the window area */
+	RGFW_dndActionMove, /*!< the data that was dragged into the window area has moved inside the window */
+	RGFW_dndActionExit, /*!< the data that was dragged into the window area has left the window */
+};
+
+/*! types of transfered data (clipboard, dnd) */
+typedef RGFW_ENUM(u8, RGFW_dataTransferType) {
+	RGFW_dataNone = 0,
+	RGFW_dataText, /*!< plain text string */
+	RGFW_dataFile, /*!< file string */
+	RGFW_dataURL, /*!< URL string */
+	RGFW_dataImage, /*!< raw image data */
+	RGFW_dataUnknown /*!< unknown raw data */
+};
+
+/*! internal node for a individual data drop */
+typedef struct RGFW_dataDropNode {
+	const char* data; /*!< dropped data */
+	size_t size; /*!< the size of the data in bytes */
+	RGFW_dataTransferType type; /*!< the type of data being dropped */
+	struct RGFW_dataDropNode* next; /*!< the next drop data node if any [when handling callbacks, this will always be NULL because the linked list is built as events are processed] */
+} RGFW_dataDropNode;
+
 /*! @brief codes for the event types that can be sent */
 typedef RGFW_ENUM(u8, RGFW_eventType) {
 	RGFW_eventNone = 0, /*!< no event has been sent */
@@ -663,8 +682,8 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 	RGFW_windowMaximized, /*!< the window was maximized */
 	RGFW_windowMinimized, /*!< the window was minimized */
 	RGFW_windowRestored, /*!< the window was restored */
-	RGFW_dataDrop, /*!< a file has been dropped into the window */
-	RGFW_dataDrag, /*!< the start of a drag and drop event, when the file is being dragged */
+	RGFW_dataDrop, /*!< data has been dropped into the window */
+	RGFW_dataDrag, /*!< the start of a drag and drop event, when data is being dragged */
 	RGFW_scaleUpdated, /*!< content scale factor changed */
 	RGFW_monitorConnected, /*!< a monitor has been connected */
 	RGFW_monitorDisconnected, /*!< a monitor has been disconnected */
@@ -702,9 +721,9 @@ typedef RGFW_ENUM(u32, RGFW_eventFlag) {
     RGFW_mouseEventsFlag = RGFW_mouseButtonPressedFlag | RGFW_mouseButtonReleasedFlag | RGFW_mousePosChangedFlag | RGFW_mouseEnterFlag | RGFW_mouseLeaveFlag | RGFW_mouseScrollFlag | RGFW_mouseRawMotionFlag,
     RGFW_windowEventsFlag = RGFW_windowMovedFlag | RGFW_windowResizedFlag | RGFW_windowRefreshFlag | RGFW_windowMaximizedFlag | RGFW_windowMinimizedFlag | RGFW_windowRestoredFlag | RGFW_scaleUpdatedFlag,
     RGFW_windowFocusEventsFlag = RGFW_windowFocusInFlag | RGFW_windowFocusOutFlag,
-    RGFW_dataDropEventsFlag = RGFW_dataDropFlag | RGFW_dataDragFlag,
+    RGFW_dataDragDropEventsFlag = RGFW_dataDropFlag | RGFW_dataDragFlag,
 	RGFW_monitorEventsFlag = RGFW_monitorConnectedFlag | RGFW_monitorDisconnectedFlag,
-    RGFW_allEventFlags = RGFW_keyEventsFlag | RGFW_mouseEventsFlag | RGFW_windowEventsFlag | RGFW_windowFocusEventsFlag | RGFW_dataDropEventsFlag | RGFW_windowCloseFlag | RGFW_monitorEventsFlag
+    RGFW_allEventFlags = RGFW_keyEventsFlag | RGFW_mouseEventsFlag | RGFW_windowEventsFlag | RGFW_windowFocusEventsFlag | RGFW_dataDragDropEventsFlag | RGFW_windowCloseFlag | RGFW_monitorEventsFlag
 };
 
 /*! Event structure(s) and union for checking/getting events */
@@ -766,9 +785,7 @@ typedef struct RGFW_keyCharEvent {
 typedef struct RGFW_dataDropEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies to (for event queue events) */
-	/* 260 max paths with a max length of 260 */
-	char** value; /*!< dropped files */
-	size_t count; /*!< how many files were dropped */
+	const RGFW_dataDropNode* value;
 } RGFW_dataDropEvent;
 
 /*! @brief event data for any data drag event */
@@ -776,6 +793,8 @@ typedef struct RGFW_dataDragEvent {
 	RGFW_eventType type; /*!< which event has been sent?*/
 	RGFW_window* win; /*!< the window this event applies to (for event queue events) */
 	i32 x, y; /*!< mouse x, y of event (or drop point) */
+	RGFW_dndActionType action; /*!< the type of drag action, e.g. enter, leave, move */
+	RGFW_dataTransferType dataType; /*!< the type of data being dragged*/
 } RGFW_dataDragEvent;
 
 /*! @brief event data for when the window scale (DPI) is updated */
@@ -814,8 +833,8 @@ typedef union RGFW_event {
 	RGFW_mousePosEvent mouse; /*!< data for mouse motion events */
 	RGFW_keyEvent key; /*!< data for key press/release/hold events */
 	RGFW_keyCharEvent keyChar; /*!< data for key character events */
-	RGFW_dataDropEvent drop; /*!< dropping a file events */
-	RGFW_dataDragEvent drag; /*!< data for dragging a file events */
+	RGFW_dataDropEvent drop; /*!< data dropping events */
+	RGFW_dataDragEvent drag; /*!< data for data dragging events */
 	RGFW_scaleUpdatedEvent scale; /*!< data for dpi scaling update events */
 	RGFW_monitorEvent monitor; /*!< data for monitor events */
 } RGFW_event;
@@ -1371,6 +1390,13 @@ RGFWDEF RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor* mon, struct RGFW_wind
 RGFWDEF void RGFW_setRawMouseMode(RGFW_bool state);
 
 /**!
+ * @brief toggles building the drag-and-drop (DND) linked list
+ * @param allow RGFW_TRUE to allow DND building, RGFW_FALSE to disable
+ * @note this is for state checking, the list is created by default if you are using the event queue
+*/
+RGFWDEF void RGFW_setBuildDND(RGFW_bool allow);
+
+/**!
 * @brief sleep until RGFW gets an event or the timer ends (defined by OS)
 * @param waitMS how long to wait for the next event (in miliseconds)
 */
@@ -1837,13 +1863,11 @@ RGFWDEF RGFW_bool RGFW_window_getDataDrag(RGFW_window* win, i32* x, i32* y);
 RGFWDEF RGFW_bool RGFW_window_didDataDrop(RGFW_window* win);
 
 /**!
- * @brief retrieves files from a data drop (drag and drop)
+ * @brief retrieves datta from a data drop (drag and drop)
  * @param win a pointer to the target window
- * @param files [OUTPUT] a pointer to the array of file paths
- * @param count [OUTPUT] the number of dropped files
- * @return RGFW_TRUE if a data drop occurred, RGFW_FALSE otherwise
+ * @return a valid pointer to the root drag node if a data drop occurred, NULL otherwise
 */
-RGFWDEF RGFW_bool RGFW_window_getDataDrop(RGFW_window* win, const char*** files, size_t* count);
+RGFWDEF RGFW_dataDropNode* RGFW_window_getDataDrop(RGFW_window* win);
 
 /**!
  * @brief closes the window and frees its associated structure
@@ -2820,6 +2844,10 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 			#include <X11/extensions/Xrandr.h>
 			#include <X11/Xresource.h>
 		#endif
+
+		#ifndef RGFW_XDND_VERSION
+			#define RGFW_XDND_VERSION 5
+		#endif
 	#endif
 
 	#ifdef RGFW_WAYLAND
@@ -2993,7 +3021,7 @@ typedef struct RGFW_windowState {
 	RGFW_bool mouseEnter;
 	RGFW_bool dataDragging;
 	RGFW_bool dataDrop;
-	size_t filesCount;
+	size_t dataSize;
 	i32 dropX, dropY;
 	RGFW_window* win; /*!< it's not possible for one of these events to happen in the frame that the other event happened */
 
@@ -3086,8 +3114,11 @@ struct RGFW_info {
     char* clipboard_data;
     char* clipboard; /* for writing to the clipboard selection */
     size_t clipboard_len;
-    char filesSrc[RGFW_MAX_PATH * RGFW_MAX_DROPS];
-	char** files;
+
+	RGFW_bool dndBuild;
+	RGFW_dataDropNode* dndRoot;
+	RGFW_dataDropNode* dndCur;
+
 	#ifdef RGFW_X11
         Display* display;
 		XContext context;
@@ -3096,6 +3127,10 @@ struct RGFW_info {
         XErrorEvent* x11Error;
 		i32 xrandrEventBase;
 		XIM im;
+		Window x11Source;
+		long x11Version;
+		i32 x11Format;
+		RGFW_dataTransferType x11TransferType;
     #endif
     #ifdef RGFW_WAYLAND
         struct wl_display* wl_display;
@@ -3206,8 +3241,8 @@ RGFWDEF void RGFW_rawMotionCallback(RGFW_window* win, float x, float y);
 RGFWDEF void RGFW_windowRefreshCallback(RGFW_window* win, i32 x, i32 y, i32 w, i32 h);
 RGFWDEF void RGFW_windowFocusCallback(RGFW_window* win, RGFW_bool inFocus);
 RGFWDEF void RGFW_mouseNotifyCallback(RGFW_window* win, i32 x, i32 y, RGFW_bool status);
-RGFWDEF void RGFW_dataDropCallback(RGFW_window* win, char** files, size_t count);
-RGFWDEF void RGFW_dataDragCallback(RGFW_window* win, i32 x, i32 y);
+RGFWDEF void RGFW_dataDropCallback(RGFW_window* win, const char* data, size_t count, RGFW_dataTransferType dataType);
+RGFWDEF void RGFW_dataDragCallback(RGFW_window* win, RGFW_dataTransferType dataType, RGFW_dndActionType action, i32 x, i32 y);
 RGFWDEF void RGFW_keyCharCallback(RGFW_window* win, u32 codepoint);
 RGFWDEF void RGFW_keyCallback(RGFW_window* win, RGFW_key key, RGFW_keymod mod, RGFW_bool repeat, RGFW_bool press);
 RGFWDEF void RGFW_mouseButtonCallback(RGFW_window* win, RGFW_mouseButton button, RGFW_bool press);
@@ -3296,7 +3331,7 @@ const char* RGFW_readClipboard(size_t* len) {
 /* generic RGFW defines */
 
 void RGFW_initKeycodes(void) {
-	RGFW_MEMSET(_RGFW->keycodes, 0, sizeof(_RGFW->keycodes));
+	RGFW_MEMZERO(_RGFW->keycodes, sizeof(_RGFW->keycodes));
 	RGFW_initKeycodesPlatform();
 	size_t i, y;
     for (i = 0; i < RGFW_keyLast; i++) {
@@ -3325,7 +3360,7 @@ u32 RGFW_rgfwToApiKey(RGFW_key keycode) {
 	return _RGFW->apiKeycodes[keycode];
 }
 
-void RGFW_resetKey(void) { RGFW_MEMSET(_RGFW->keyboard, 0, sizeof(_RGFW->keyboard)); }
+void RGFW_resetKey(void) { RGFW_MEMZERO(_RGFW->keyboard, sizeof(_RGFW->keyboard)); }
 /*
 	this is the end of keycode data
 */
@@ -3569,35 +3604,64 @@ void RGFW_mouseNotifyCallback(RGFW_window* win, i32 x, i32 y, RGFW_bool status) 
 	RGFW_eventQueuePushAndCall(&event);
 }
 
-void RGFW_dataDropCallback(RGFW_window* win, char** files, size_t count) {
+void RGFW_dataDropCallback(RGFW_window* win, const char* data, size_t size, RGFW_dataTransferType dataType) {
 	if (!(win->internal.enabledEvents & RGFW_dataDropFlag) || !(win->internal.flags & RGFW_windowAllowDND))
 		return;
 
 	_RGFW->windowState.win = win;
 	_RGFW->windowState.dataDrop = RGFW_TRUE;
-	_RGFW->windowState.filesCount = count;
+	_RGFW->windowState.dataSize = size;
+
+	RGFW_dataDropNode node;
+	RGFW_MEMZERO(&node, sizeof(node));
+	node.data = data;
+	node.size = size;
+	node.type = dataType;
+	node.next = NULL;
 
 	RGFW_event event;
 	event.type = RGFW_dataDrop;
-	event.drop.value = files;
-	event.drop.count = count;
-	event.common.win = win;
-	RGFW_eventQueuePushAndCall(&event);
+	event.drop.value = &node;
+	event.drop.win = win;
+
+	if (_RGFW->callbacks[event.type]) (_RGFW->callbacks[event.type])(&event);
+
+	if (_RGFW->queueEvents == RGFW_TRUE || _RGFW->dndBuild) {
+		if (_RGFW->dndRoot == NULL) {
+			_RGFW->dndRoot = (RGFW_dataDropNode*)RGFW_ALLOC(sizeof(RGFW_dataDropNode));
+			_RGFW->dndCur =	_RGFW->dndRoot;
+		} else if (_RGFW->dndCur) {
+			_RGFW->dndCur->next = (RGFW_dataDropNode*)RGFW_ALLOC(sizeof(RGFW_dataDropNode));
+			_RGFW->dndCur = _RGFW->dndCur->next;
+		} else { RGFW_ASSERT(0); }
+
+		char* dataCopy = (char*)RGFW_ALLOC(size);
+		RGFW_MEMCPY(dataCopy, data, size);
+		node.data = dataCopy;
+
+		RGFW_MEMCPY(_RGFW->dndCur, &node, sizeof(node));
+
+		event.drop.value = _RGFW->dndCur;
+		RGFW_eventQueuePush(&event);
+	}
 }
 
-void RGFW_dataDragCallback(RGFW_window* win, i32 x, i32 y) {
+void RGFW_dataDragCallback(RGFW_window* win, RGFW_dataTransferType dataType, RGFW_dndActionType action, i32 x, i32 y) {
+	if (!(win->internal.enabledEvents & RGFW_dataDragFlag) || !(win->internal.flags & RGFW_windowAllowDND)) return;
+
 	_RGFW->windowState.win = win;
 	_RGFW->windowState.dataDragging = RGFW_TRUE;
 	_RGFW->windowState.dropX = x;
 	_RGFW->windowState.dropY = y;
 
-	if (win->internal.enabledEvents & RGFW_dataDragFlag) return;
-
 	RGFW_event event;
 	event.type = RGFW_dataDrag;
 	event.drag.x = x;
 	event.drag.y = y;
+	event.drag.action = action;
+	event.drag.dataType = dataType;
 	event.common.win = win;
+
 	RGFW_eventQueuePushAndCall(&event);
 }
 
@@ -3780,22 +3844,17 @@ i32 RGFW_init_ptr(RGFW_info* info) {
     if (info == _RGFW || info == NULL) return 1;
 
     RGFW_setInfo(info);
-    RGFW_MEMSET(_RGFW, 0, sizeof(RGFW_info));
+    RGFW_MEMZERO(_RGFW, sizeof(RGFW_info));
 	_RGFW->queueEvents = RGFW_FALSE;
 	_RGFW->polledEvents = RGFW_FALSE;
 #ifdef RGFW_WAYLAND
 	_RGFW->useWaylandBool = RGFW_TRUE;
 #endif
 
-	_RGFW->files = (char**)(void*)_RGFW->filesSrc;
-	size_t i;
-	for (i = 0; i < RGFW_MAX_DROPS; i++)
-		_RGFW->files[i] = (char*)(_RGFW->filesSrc + RGFW_MAX_DROPS + (i * RGFW_MAX_PATH));
-
 	_RGFW->monitors.freeList.head = &_RGFW->monitors.data[0];
 	_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.head;
 
-	for (i = 1; i < RGFW_MAX_MONITORS; i++) {
+	for (size_t i = 1; i < RGFW_MAX_MONITORS; i++) {
 		RGFW_monitorNode* newNode = &_RGFW->monitors.data[i];
 		_RGFW->monitors.freeList.cur->next = newNode;
 		_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.cur->next;
@@ -3806,7 +3865,7 @@ i32 RGFW_init_ptr(RGFW_info* info) {
     RGFW_initKeycodes();
     i32 out = RGFW_initPlatform();
 
-	for (i = 0; i < RGFW_mouseIconCount; i++) {
+	for (size_t i = 0; i < RGFW_mouseIconCount; i++) {
         _RGFW->standardMice[i] = RGFW_createMouseStandard((RGFW_mouseIcon)i);
 	}
 
@@ -3855,7 +3914,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	RGFW_ASSERT(win != NULL);
 	if (name == NULL) name = "\0";
 
-	RGFW_MEMSET(win, 0, sizeof(RGFW_window));
+	RGFW_MEMZERO(win, sizeof(RGFW_window));
 
 	if (_RGFW == NULL) RGFW_init();
 	_RGFW->windowCount++;
@@ -3918,7 +3977,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 		/* NOTE: this is a hack so that way wayland spawns a window, even if nothing is drawn */
 		if (!(flags & RGFW_windowOpenGL) && !(flags & RGFW_windowEGL)) {
 			u8* data = (u8*)RGFW_ALLOC((u32)(win->w * win->h * 3));
-			RGFW_MEMSET(data, 0, (u32)(win->w * win->h * 3) * sizeof(u8));
+			RGFW_MEMZERO(data, (u32)(win->w * win->h * 3) * sizeof(u8));
 			RGFW_surface* surface = RGFW_createSurface(data, win->w, win->h, RGFW_formatBGR8);
 			RGFW_window_blitSurface(win, surface);
 			RGFW_FREE(data);
@@ -4043,7 +4102,16 @@ void RGFW_resetPrevState(void) {
 	_RGFW->scrollY = 0.0f;
 	_RGFW->vectorX = (float)0.0f;
 	_RGFW->vectorY = (float)0.0f;
-	RGFW_MEMSET(&_RGFW->windowState, 0, sizeof(_RGFW->windowState));
+	RGFW_MEMZERO(&_RGFW->windowState, sizeof(_RGFW->windowState));
+
+	for (RGFW_dataDropNode* node = _RGFW->dndRoot; node; ) {
+		RGFW_dataDropNode* next = node->next;
+		RGFW_FREE(node);
+		node = next;
+	}
+
+	_RGFW->dndRoot = NULL;
+	_RGFW->dndCur = NULL;
 }
 
 RGFW_bool RGFW_isKeyPressed(RGFW_key key) {
@@ -4090,7 +4158,7 @@ RGFW_bool RGFW_window_didMouseEnter(RGFW_window* win) { return _RGFW->windowStat
 RGFW_bool RGFW_window_isMouseInside(RGFW_window* win) { return win->internal.mouseInside;  }
 
 RGFW_bool RGFW_window_isDataDragging(RGFW_window* win) { return RGFW_window_getDataDrag(win, (i32*)NULL, (i32*)NULL); }
-RGFW_bool RGFW_window_didDataDrop(RGFW_window* win) { return RGFW_window_getDataDrop(win, (const char***)NULL, (size_t*)NULL);}
+RGFW_bool RGFW_window_didDataDrop(RGFW_window* win) { return RGFW_window_getDataDrop(win) != NULL;}
 
 
 RGFW_bool RGFW_window_getDataDrag(RGFW_window* win, i32* x, i32* y) {
@@ -4099,11 +4167,9 @@ RGFW_bool RGFW_window_getDataDrag(RGFW_window* win, i32* x, i32* y) {
 	if (y) *y =  _RGFW->windowState.dropY;
 	return RGFW_TRUE;
 }
-RGFW_bool RGFW_window_getDataDrop(RGFW_window* win, const char*** files, size_t* count) {
-	if (_RGFW->windowState.win != win || _RGFW->windowState.dataDrop == RGFW_FALSE) return RGFW_FALSE;
-	if (files) *files = (const char**)_RGFW->files;
-	if (count) *count = _RGFW->windowState.filesCount;
-	return RGFW_TRUE;
+RGFW_dataDropNode* RGFW_window_getDataDrop(RGFW_window* win) {
+	if (_RGFW->windowState.win != win || _RGFW->windowState.dataDrop == RGFW_FALSE) return NULL;
+	return _RGFW->dndRoot;
 }
 
 RGFW_bool RGFW_window_checkEvent(RGFW_window* win, RGFW_event* event) {
@@ -4203,6 +4269,7 @@ RGFW_bool RGFW_window_isInFocus(RGFW_window* win) {
 }
 
 void RGFW_setClassName(const char* name) { RGFW_init(); _RGFW->className = name; }
+void RGFW_setBuildDND(RGFW_bool state) { _RGFW->dndBuild = state; }
 
 #ifndef RGFW_X11
 void RGFW_setXInstName(const char* name) { RGFW_UNUSED(name); }
@@ -4318,7 +4385,7 @@ void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor* m) {
 
 RGFW_surface* RGFW_createSurface(u8* data, i32 w, i32 h, RGFW_format format) {
 	RGFW_surface* surface = (RGFW_surface*)RGFW_ALLOC(sizeof(RGFW_surface));
-	RGFW_MEMSET(surface, 0, sizeof(RGFW_surface));
+	RGFW_MEMZERO(surface, sizeof(RGFW_surface));
 	RGFW_createSurfacePtr(data, w, h, format, surface);
 	return surface;
 }
@@ -4338,7 +4405,7 @@ RGFW_nativeImage* RGFW_surface_getNativeImage(RGFW_surface* surface) {
 
 RGFW_surface* RGFW_window_createSurface(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format) {
 	RGFW_surface* surface = (RGFW_surface*)RGFW_ALLOC(sizeof(RGFW_surface));
-	RGFW_MEMSET(surface, 0, sizeof(RGFW_surface));
+	RGFW_MEMZERO(surface, sizeof(RGFW_surface));
 	RGFW_window_createSurfacePtr(win, data, w, h, format, surface);
 	return surface;
 }
@@ -5655,7 +5722,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 	/* drain any data in the stop request */
 	if (_RGFW->eventWait_forceStop[2]) {
 		char data[64];
-        RGFW_MEMSET(data, 0, sizeof(data));
+        RGFW_MEMZERO(data, sizeof(data));
         (void)!read(_RGFW->eventWait_forceStop[0], data, sizeof(data));
 
 		_RGFW->eventWait_forceStop[2] = 0;
@@ -5857,7 +5924,7 @@ void RGFW_initKeycodesPlatform(void) {
 i32 RGFW_initPlatform(void) {
 	#if defined(_POSIX_MONOTONIC_CLOCK)
 	struct timespec ts;
-	RGFW_MEMSET(&ts, 0, sizeof(struct timespec));
+	RGFW_MEMZERO(&ts, sizeof(struct timespec));
 
 	if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
 		_RGFW->clock = CLOCK_MONOTONIC;
@@ -5910,6 +5977,62 @@ size_t RGFW_unix_stringlen(const char* name) {
     while (name[i]) { i++; }
 	return i;
 }
+
+RGFWDEF void RGFW_unix_parseURI(RGFW_window* win, char* data);
+void RGFW_unix_parseURI(RGFW_window* win, char* data) {
+	const char* prefix = (const char*)"file://";
+	char* line;
+	while ((line = (char*)RGFW_strtok(data, "\r\n"))) {
+		data = NULL;
+
+		if (line[0] == '#')
+			continue;
+
+		char* l;
+		for (l = line; 1; l++) {
+			if ((l - line) > 7)
+				break;
+			else if (*l != prefix[(l - line)])
+				break;
+			else if (*l == '\0' && prefix[(l - line)] == '\0') {
+				line += 7;
+				while (*line != '/')
+					line++;
+				break;
+			} else if (*l == '\0')
+				break;
+		}
+
+		size_t len = RGFW_unix_stringlen(line);
+		char* path = (char*)RGFW_ALLOC(len + 1);
+
+		size_t index = 0;
+		while (*line) {
+			if (line[0] == '%' && line[1] && line[2]) {
+				char digits[3] = {0};
+				digits[0] = line[1];
+				digits[1] = line[2];
+				digits[2] = '\0';
+				path[index] = (char) RGFW_STRTOL(digits, NULL, 16);
+				line += 2;
+			} else {
+				if (index >= len) {
+					break;
+				}
+
+				path[index] = *line;
+			}
+
+			index++;
+			line++;
+		}
+
+		path[len] = '\0';
+		RGFW_dataDropCallback(win, (const char*)path, len + 1, RGFW_dataFile);
+		RGFW_FREE(path);
+	}
+}
+
 
 #endif /* end of wayland or X11 defines */
 
@@ -6254,7 +6377,7 @@ void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags 
 
 	/* make X window attrubutes */
 	XSetWindowAttributes swa;
-    RGFW_MEMSET(&swa, 0, sizeof(swa));
+    RGFW_MEMZERO(&swa, sizeof(swa));
 
 	win->src.parent = DefaultRootWindow(_RGFW->display);
 
@@ -6546,15 +6669,9 @@ void RGFW_XHandleEvent(void) {
 	RGFW_LOAD_ATOM(WM_STATE);
 	RGFW_LOAD_ATOM(_NET_WM_STATE);
 
-	/* xdnd data */
-	static Window source = 0;
-	static long version = 0;
-	static i32 format = 0;
-
 	static float deltaX = 0.0f;
 	static float deltaY = 0.0f;
 
-	XEvent reply = { ClientMessage };
 	XEvent E;
 
 	XNextEvent(_RGFW->display, &E);
@@ -6796,37 +6913,29 @@ void RGFW_XHandleEvent(void) {
 				break;
 			}
 #endif
-			if ((win->internal.flags & RGFW_windowAllowDND) == 0)
+			if ((win->internal.flags & RGFW_windowAllowDND) == 0 || _RGFW->x11Version > RGFW_XDND_VERSION) {
 				return;
+			}
 
 			i32 dragX = 0;
 			i32 dragY = 0;
 
-			reply.xclient.window = source;
-			reply.xclient.format = 32;
-			reply.xclient.data.l[0] = (long)win->src.window;
-			reply.xclient.data.l[1] = 0;
-			reply.xclient.data.l[2] = None;
-
 			if (E.xclient.message_type == XdndEnter) {
-				if (version > 5)
-					break;
-
 				unsigned long count;
 				Atom* formats;
-				Atom real_formats[6];
+				Atom real_formats[3];
 				Bool list = E.xclient.data.l[1] & 1;
 
-				source = (unsigned long int)E.xclient.data.l[0];
-				version = E.xclient.data.l[1] >> 24;
-				format = None;
+				_RGFW->x11Source = (Window)E.xclient.data.l[0];
+				_RGFW->x11Version = E.xclient.data.l[1] >> 24;
+				_RGFW->x11Format = None;
 				if (list) {
 					Atom actualType;
 					i32 actualFormat;
 					unsigned long bytesAfter;
 
 					XGetWindowProperty(
-						_RGFW->display, source, XdndTypeList,
+						_RGFW->display, _RGFW->x11Source, XdndTypeList,
 						0, LONG_MAX, False, 4,
 						&actualType, &actualFormat, &count, &bytesAfter, (u8**)&formats
 					);
@@ -6834,7 +6943,7 @@ void RGFW_XHandleEvent(void) {
 					count = 0;
 
 					size_t i;
-					for (i = 2; i < 5; i++) {
+					for (i = 2; i < (2 + 3); i++) {
 						if (E.xclient.data.l[i] != None) {
 							real_formats[count] = (unsigned long int)E.xclient.data.l[i];
 							count += 1;
@@ -6849,27 +6958,25 @@ void RGFW_XHandleEvent(void) {
 
 				size_t i;
 				for (i = 0; i < count; i++) {
-					if (formats[i] == XtextUriList || formats[i] == XtextPlain) {
-						format = (int)formats[i];
-						break;
-					}
+					if (formats[i] == XtextUriList)  _RGFW->x11TransferType  = RGFW_dataFile;
+					else if (formats[i] == XtextPlain) _RGFW->x11TransferType  = RGFW_dataText;
+					else continue;
+
+					_RGFW->x11Format = (int)formats[i];
+					break;
 				}
 
-				if (list) {
+				if (list && formats) {
 					XFree(formats);
 				}
 
-				break;
-			}
 
-			if (E.xclient.message_type == XdndPosition) {
+				RGFW_dataDragCallback(win, _RGFW->x11TransferType , RGFW_dndActionEnter, dragX, dragY);
+			} else if (E.xclient.message_type == XdndPosition) {
 				const i32 xabs = (E.xclient.data.l[2] >> 16) & 0xffff;
 				const i32 yabs = (E.xclient.data.l[2]) & 0xffff;
 				Window dummy;
 				i32 xpos, ypos;
-
-				if (version > 5)
-					break;
 
 				XTranslateCoordinates(
 					_RGFW->display, XDefaultRootWindow(_RGFW->display), win->src.window,
@@ -6879,42 +6986,50 @@ void RGFW_XHandleEvent(void) {
 				dragX = xpos;
 				dragY = ypos;
 
-				reply.xclient.window = source;
-				reply.xclient.message_type = XdndStatus;
+				RGFW_mousePosCallback(win, xpos, ypos);
+                XEvent reply = { ClientMessage };
+				reply.xclient.window = _RGFW->x11Source;
+                reply.xclient.message_type = XdndStatus;
+                reply.xclient.format = 32;
+				reply.xclient.data.l[0] = (long)win->src.window;
+                reply.xclient.data.l[2] = 0;
+                reply.xclient.data.l[3] = 0;
 
-				if (format) {
+				if (_RGFW->x11Format) {
 					reply.xclient.data.l[1] = 1;
-					if (version >= 2)
+					if (_RGFW->x11Version >= 2)
 						reply.xclient.data.l[4] = (long)XdndActionCopy;
 				}
 
-				XSendEvent(_RGFW->display, source, False, NoEventMask, &reply);
+				XSendEvent(_RGFW->display, _RGFW->x11Source, False, NoEventMask, &reply);
 				XFlush(_RGFW->display);
-				break;
+
+
+				RGFW_dataDragCallback(win, _RGFW->x11TransferType, RGFW_dndActionMove, dragX, dragY);
+			} else if (E.xclient.message_type == XdndLeave) {
+				RGFW_dataDragCallback(win, _RGFW->x11TransferType, RGFW_dndActionExit, dragX, dragY);
+			} else if (E.xclient.message_type == XdndDrop) {
+				if (_RGFW->x11Format) {
+					Time time = (_RGFW->x11Version >= 1)
+						? (Time)E.xclient.data.l[2]
+						: CurrentTime;
+					XConvertSelection(
+						_RGFW->display, XdndSelection, (Atom)_RGFW->x11Format,
+						XdndSelection, win->src.window, time
+					);
+				} else if (_RGFW->x11Version >= 2) {
+                    XEvent reply = { ClientMessage };
+                    reply.xclient.window = _RGFW->x11Source;
+                    reply.xclient.message_type = XdndFinished;
+                    reply.xclient.format = 32;
+                    reply.xclient.data.l[0] = (long)win->src.window;
+                    reply.xclient.data.l[1] = 0;
+                    reply.xclient.data.l[2] = None;
+
+					XSendEvent(_RGFW->display, _RGFW->x11Source, False, NoEventMask, &reply);
+					XFlush(_RGFW->display);
+				}
 			}
-			if (E.xclient.message_type != XdndDrop)
-				break;
-
-			if (version > 5)
-				break;
-
-			if (format) {
-				Time time = (version >= 1)
-					? (Time)E.xclient.data.l[2]
-					: CurrentTime;
-
-				XConvertSelection(
-					_RGFW->display, XdndSelection, (Atom)format,
-					XdndSelection, win->src.window, time
-				);
-			} else if (version >= 2) {
-				XEvent new_reply = { ClientMessage };
-
-				XSendEvent(_RGFW->display, source, False, NoEventMask, &new_reply);
-				XFlush(_RGFW->display);
-			}
-
-			RGFW_dataDragCallback(win, dragX, dragY);
 		} break;
 		case SelectionNotify: {
 			/* this is only for checking for xdnd drops */
@@ -6929,85 +7044,22 @@ void RGFW_XHandleEvent(void) {
 
 			XGetWindowProperty(_RGFW->display, E.xselection.requestor, E.xselection.property, 0, LONG_MAX, False, E.xselection.target, &actualType, &actualFormat, &result, &bytesAfter, (u8**) &data);
 
-			if (result == 0)
-				break;
+			if (result != 0) {
+				RGFW_unix_parseURI(win, data);
 
-			const char* prefix = (const char*)"file://";
-
-			char* line;
-
-			size_t count = 0;
-			char** files = _RGFW->files;
-
-			while ((line = (char*)RGFW_strtok(data, "\r\n"))) {
-				data = NULL;
-
-				if (line[0] == '#')
-					continue;
-
-				char* l;
-				for (l = line; 1; l++) {
-					if ((l - line) > 7)
-						break;
-					else if (*l != prefix[(l - line)])
-						break;
-					else if (*l == '\0' && prefix[(l - line)] == '\0') {
-						line += 7;
-						while (*line != '/')
-							line++;
-						break;
-					} else if (*l == '\0')
-						break;
-				}
-
-				count++;
-
-				size_t len = RGFW_unix_stringlen(line);
-				char* path = (char*)RGFW_ALLOC(len + 1);
-
-				size_t index = 0;
-				while (*line) {
-					if (line[0] == '%' && line[1] && line[2]) {
-						char digits[3] = {0};
-                        digits[0] = line[1];
-                        digits[1] = line[2];
-                        digits[2] = '\0';
-						path[index] = (char) RGFW_STRTOL(digits, NULL, 16);
-						line += 2;
-					} else {
-						if (index >= len) {
-							break;
-						}
-
-						path[index] = *line;
-					}
-
-					index++;
-					line++;
-				}
-
-				path[len] = '\0';
-				size_t cnt = RGFW_MIN(len + 1, RGFW_MAX_PATH);
-				if (cnt == RGFW_MAX_PATH) {
-					path[cnt] = '\0';
-				}
-
-				RGFW_MEMCPY(files[count - 1], path, cnt);
-				RGFW_FREE(path);
+				if (data)
+					XFree(data);
 			}
 
-			RGFW_dataDropCallback(win, files, count);
-			if (data)
-				XFree(data);
-
-			if (version >= 2) {
-				XEvent new_reply = { ClientMessage };
-				new_reply.xclient.window = source;
-				new_reply.xclient.message_type = XdndFinished;
-				new_reply.xclient.format = 32;
-				new_reply.xclient.data.l[1] = (long int)result;
-				new_reply.xclient.data.l[2] = (long int)XdndActionCopy;
-				XSendEvent(_RGFW->display, source, False, NoEventMask, &new_reply);
+			if (_RGFW->x11Version >= 2) {
+				XEvent reply = { ClientMessage };
+				reply.xclient.window = _RGFW->x11Source;
+				reply.xclient.message_type = XdndFinished;
+				reply.xclient.format = 32;
+				reply.xclient.data.l[0] = (long)win->src.window;
+				reply.xclient.data.l[1] = (long int)result;
+				reply.xclient.data.l[2] = (long int)XdndActionCopy;
+				XSendEvent(_RGFW->display, _RGFW->x11Source, False, NoEventMask, &reply);
 				XFlush(_RGFW->display);
 			}
 			break;
@@ -7142,7 +7194,7 @@ void RGFW_FUNC(RGFW_window_setMinSize) (RGFW_window* win, i32 w, i32 h) {
 
     long flags;
 	XSizeHints hints;
-    RGFW_MEMSET(&hints, 0, sizeof(XSizeHints));
+    RGFW_MEMZERO(&hints, sizeof(XSizeHints));
 
 	XGetWMNormalHints(_RGFW->display, win->src.window, &hints, &flags);
 
@@ -7160,7 +7212,7 @@ void RGFW_FUNC(RGFW_window_setMaxSize) (RGFW_window* win, i32 w, i32 h) {
 
     long flags;
 	XSizeHints hints;
-    RGFW_MEMSET(&hints, 0, sizeof(XSizeHints));
+    RGFW_MEMZERO(&hints, sizeof(XSizeHints));
 
 	XGetWMNormalHints(_RGFW->display, win->src.window, &hints, &flags);
 
@@ -7376,7 +7428,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_setIconEx) (RGFW_window* win, u8* data_src, i32 
 	unsigned long* data = (unsigned long*) RGFW_ALLOC((u32)count * sizeof(unsigned long));
     RGFW_ASSERT(data != NULL);
 
-	RGFW_MEMSET(data, 0, (u32)count * sizeof(unsigned long));
+	RGFW_MEMZERO(data, (u32)count * sizeof(unsigned long));
     data[0] = (unsigned long)w;
 	data[1] = (unsigned long)h;
 
@@ -7451,7 +7503,7 @@ RGFW_mouse* RGFW_FUNC(RGFW_createMouse) (u8* data, i32 w, i32 h, RGFW_format for
     XcursorImage* native = XcursorImageCreate((i32)w, (i32)h);
 	native->xhot = 0;
 	native->yhot = 0;
-	RGFW_MEMSET(native->pixels, 0, (u32)(w * h * 4));
+	RGFW_MEMZERO(native->pixels, (u32)(w * h * 4));
 	RGFW_copyImageData((u8*)native->pixels, w, h, RGFW_formatBGRA8, data, format, NULL);
 
 	Cursor cursor = XcursorImageLoadCursor(_RGFW->display, native);
@@ -8393,7 +8445,7 @@ i32 RGFW_initPlatform_X11(void) {
 	_RGFW->context = XUniqueContext();
 
 	XSetWindowAttributes wa;
-    RGFW_MEMSET(&wa, 0, sizeof(wa));
+    RGFW_MEMZERO(&wa, sizeof(wa));
     wa.event_mask = PropertyChangeMask;
     _RGFW->helperWindow = XCreateWindow(_RGFW->display, XDefaultRootWindow(_RGFW->display), 0, 0, 1, 1, 0, 0,
                                         InputOnly, DefaultVisual(_RGFW->display, DefaultScreen(_RGFW->display)), CWEventMask, &wa);
@@ -8411,7 +8463,7 @@ i32 RGFW_initPlatform_X11(void) {
 
     XkbGetNames(_RGFW->display, XkbKeyNamesMask, desc);
 
-    RGFW_MEMSET(&rec, 0, sizeof(rec));
+    RGFW_MEMZERO(&rec, sizeof(rec));
     char evdev[] = "evdev";
     rec.keycodes = evdev;
     evdesc = XkbGetKeyboardByName(_RGFW->display, XkbUseCoreKbd, &rec, XkbGBN_KeyNamesMask, XkbGBN_KeyNamesMask, False);
@@ -8438,7 +8490,7 @@ i32 RGFW_initPlatform_X11(void) {
 	XRegisterIMInstantiateCallback(_RGFW->display, NULL, NULL, NULL, RGFW_x11_imInitCallback, NULL);
 
 	unsigned char mask[XIMaskLen(XI_RawMotion)];
-	RGFW_MEMSET(mask, 0, sizeof(mask));
+	RGFW_MEMZERO(mask, sizeof(mask));
 	XISetMask(mask, XI_RawMotion);
 
 	XIEventMask em;
@@ -8943,7 +8995,7 @@ static void RGFW_wl_keyboard_repeat_info(void* data, struct wl_keyboard *keyboar
 static void RGFW_wl_seat_capabilities(void* data, struct wl_seat *seat, u32 capabilities) {
 	RGFW_info* RGFW = (RGFW_info*)data;
     static struct wl_pointer_listener pointer_listener;
-	RGFW_MEMSET(&pointer_listener, 0, sizeof(pointer_listener));
+	RGFW_MEMZERO(&pointer_listener, sizeof(pointer_listener));
 	pointer_listener.enter = &RGFW_wl_pointer_enter;
 	pointer_listener.leave = &RGFW_wl_pointer_leave;
 	pointer_listener.motion = &RGFW_wl_pointer_motion;
@@ -8951,7 +9003,7 @@ static void RGFW_wl_seat_capabilities(void* data, struct wl_seat *seat, u32 capa
 	pointer_listener.axis = &RGFW_wl_pointer_axis;
 
 	static struct wl_keyboard_listener keyboard_listener;
-	RGFW_MEMSET(&keyboard_listener, 0, sizeof(keyboard_listener));
+	RGFW_MEMZERO(&keyboard_listener, sizeof(keyboard_listener));
 	keyboard_listener.keymap = &RGFW_wl_keyboard_keymap;
 	keyboard_listener.enter = &RGFW_wl_keyboard_enter;
 	keyboard_listener.leave = &RGFW_wl_keyboard_leave;
@@ -10009,7 +10061,7 @@ RGFW_mouse* RGFW_FUNC(RGFW_createMouseStandard) (RGFW_mouseIcon mouse) {
 	struct wl_buffer* cursor_buffer = wl_cursor_image_get_buffer(cursor_image);
 
 	RGFW_surface* surface = RGFW_ALLOC(sizeof(RGFW_surface));
-	RGFW_MEMSET(surface, 0, sizeof(RGFW_surface));
+	RGFW_MEMZERO(surface, sizeof(RGFW_surface));
 	surface->w = (i32)cursor_image->width;
 	surface->h = (i32)cursor_image->height;
 	surface->native.wl_buffer = cursor_buffer;
@@ -10795,10 +10847,9 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			/* Move the mouse to the position of the drop */
 			DragQueryPoint(drop, &pt);
-			RGFW_dataDragCallback(win, pt.x, pt.y);
+			RGFW_dataDragCallback(win, RGFW_dataFile, RGFW_dndActionMove, pt.x, pt.y);
 
 			if (!(win->internal.enabledEvents & RGFW_dataDrop)) return DefWindowProcW(hWnd, message, wParam, lParam);
-			char** files = _RGFW->files;
 			size_t count = DragQueryFileW(drop, 0xffffffff, NULL, 0);
 
 			u32 i;
@@ -10807,20 +10858,20 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				if (length == 0)
 					continue;
 
-				WCHAR buffer[RGFW_MAX_PATH * 2];
-				if (length > (RGFW_MAX_PATH * 2) - 1)
-					length = RGFW_MAX_PATH * 2;
+				WCHAR* buffer = (WCHAR*)RGFW_ALLOC(sizeof(WCHAR) * (length + 1));
+				char* cbuffer = (char*)RGFW_ALLOC(length + 1);
 
 				DragQueryFileW(drop, i, buffer, length + 1);
 
-				RGFW_createUTF8FromWideStringWin32(buffer, files[i], RGFW_MAX_PATH);
+				RGFW_createUTF8FromWideStringWin32(buffer, cbuffer, length);
 
-				files[i][RGFW_MAX_PATH - 1] = '\0';
+				RGFW_dataDropCallback(win, cbuffer, length + 1, RGFW_dataFile);
+				RGFW_FREE(buffer);
+				RGFW_FREE(cbuffer);
 			}
 
 			DragFinish(drop);
 
-			RGFW_dataDropCallback(win, files, count);
 			break;
 		}
 		default: break;
@@ -10928,7 +10979,7 @@ int RGFW_window_createSwapChain_DirectX(RGFW_window* win, IDXGIFactory* pFactory
     RGFW_ASSERT(win && pFactory && pDevice && swapchain);
 
     static DXGI_SWAP_CHAIN_DESC swapChainDesc;
-	RGFW_MEMSET(&swapChainDesc, 0, sizeof(swapChainDesc));
+	RGFW_MEMZERO(&swapChainDesc, sizeof(swapChainDesc));
     swapChainDesc.BufferCount = 2;
     swapChainDesc.BufferDesc.Width = win->w;
     swapChainDesc.BufferDesc.Height = win->h;
@@ -11927,7 +11978,7 @@ void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
 	}
 
 	FLASHWINFO desc;
-	RGFW_MEMSET(&desc, 0, sizeof(desc));
+	RGFW_MEMZERO(&desc, sizeof(desc));
 
     desc.cbSize = sizeof(desc);
     desc.hwnd = win->src.window;
@@ -12826,22 +12877,28 @@ static bool RGFW__osxAcceptsFirstResponder(void) { return true; }
 static bool RGFW__osxPerformKeyEquivalent(id event) { RGFW_UNUSED(event); return true; }
 
 static NSDragOperation RGFW__osxDraggingEntered(id self, SEL sel, id sender) {
-	RGFW_UNUSED(sender); RGFW_UNUSED(self); RGFW_UNUSED(sel);
+	RGFW_UNUSED(sel);
 
+	RGFW_window* win = NULL;
+	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+	if (win == NULL)
+		return 0;
+
+	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
+	RGFW_dataDragCallback(win, RGFW_dataFile, RGFW_dndActionEnter, (i32) p.x, (i32) (win->h - p.y));
 	return NSDragOperationCopy;
 }
 static NSDragOperation RGFW__osxDraggingUpdated(id self, SEL sel, id sender) {
 	RGFW_UNUSED(sel);
 
 	RGFW_window* win = NULL;
-
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL)
 		return 0;
 	if (!(win->internal.enabledEvents & RGFW_dataDragFlag)) return NSDragOperationCopy;
 
 	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
-	RGFW_dataDragCallback(win, (i32) p.x, (i32) (win->h - p.y));
+	RGFW_dataDragCallback(win, RGFW_dataFile, RGFW_dndActionMove, (i32) p.x, (i32) (win->h - p.y));
 	return NSDragOperationCopy;
 }
 static bool RGFW__osxPrepareForDragOperation(id self) {
@@ -12857,12 +12914,22 @@ static bool RGFW__osxPrepareForDragOperation(id self) {
 	return true;
 }
 
-void RGFW__osxDraggingEnded(id self, SEL sel, id sender);
-void RGFW__osxDraggingEnded(id self, SEL sel, id sender) { RGFW_UNUSED(sender); RGFW_UNUSED(self); RGFW_UNUSED(sel);  return; }
+static void RGFW__osxDraggingEnded(id self, SEL sel, id sender) {
+	RGFW_UNUSED(sel);
+
+	RGFW_window* win = NULL;
+	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
+	if (win == NULL)
+		return;
+	if (!(win->internal.enabledEvents & RGFW_dataDragFlag)) return;
+
+	NSPoint p = ((NSPoint(*)(id, SEL)) objc_msgSend)(sender, sel_registerName("draggingLocation"));
+	RGFW_dataDragCallback(win, RGFW_dataFile, RGFW_dndActionExit, (i32) p.x, (i32) (win->h - p.y));
+	return;
+}
 
 static bool RGFW__osxPerformDragOperation(id self, SEL sel, id sender) {
 	RGFW_UNUSED(sender); RGFW_UNUSED(self); RGFW_UNUSED(sel);
-
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL || (!(win->internal.enabledEvents & RGFW_dataDropFlag)))
@@ -12890,17 +12957,14 @@ static bool RGFW__osxPerformDragOperation(id self, SEL sel, id sender) {
 	if (count == 0)
 		return 0;
 
-	char** files = (char**)(void*)_RGFW->files;
-
 	u32 i;
     for (i = 0; i < (u32)count; i++) {
 		id fileURL = objc_msgSend_arr(fileURLs, sel_registerName("objectAtIndex:"), i);
 		const char *filePath = ((const char* (*)(id, SEL))objc_msgSend)(fileURL, sel_registerName("UTF8String"));
-		RGFW_STRNCPY(files[i], filePath, RGFW_MAX_PATH - 1);
-		files[i][RGFW_MAX_PATH - 1] = '\0';
-	}
+		int string_count = ((int (*)(id, SEL))objc_msgSend)(fileURL, sel_registerName("count"));
 
-	RGFW_dataDropCallback(win, files, (size_t)count);
+		RGFW_dataDropCallback(win, filePath, (size_t)string_count + 1, RGFW_dataFile);
+	}
 
 	return false;
 }
@@ -14610,12 +14674,12 @@ VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance,
 	VkMetalSurfaceCreateInfoEXT macos;
 	macos.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
 	macos.slayer = metalLayer;
-	RGFW_MEMSET(&macos, 0, sizeof(macos));
+	RGFW_MEMZERO(&macos, sizeof(macos));
     result = vkCreateMacOSSurfaceMVK(instance, &macos, NULL, surface);
 */
 
 	VkMacOSSurfaceCreateInfoMVK macos;
-	RGFW_MEMSET(&macos, 0, sizeof(macos));
+	RGFW_MEMZERO(&macos, sizeof(macos));
 	macos.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
 	macos.pView = nsView;
 
@@ -14830,8 +14894,8 @@ void EMSCRIPTEN_KEEPALIVE RGFW_handleKeyMods(RGFW_bool capital, RGFW_bool numloc
 	RGFW_keyUpdateKeyModsEx(_RGFW->root, capital, numlock, control, alt, shift, super, scroll);
 }
 
-void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(size_t count) {
-	RGFW_dataDropCallback(_RGFW->root, _RGFW->files, count);
+void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(char* file, size_t size) {
+	RGFW_dataDropCallback(_RGFW->root, file, size, RGFW_dataFile);
 }
 
 void RGFW_stopCheckEvents(void) {
@@ -14859,14 +14923,6 @@ void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 }
 
 void RGFW_surface_freePtr(RGFW_surface* surface) { }
-
-void EMSCRIPTEN_KEEPALIVE RGFW_makeSetValue(size_t index, char* file) {
-	/* This seems like a terrible idea, don't replicate this unless you hate yourself or the OS */
-	/* TODO: find a better way to do this
-	*/
-	RGFW_STRNCPY((char*)_RGFW->files[index], file, RGFW_MAX_PATH - 1);
-	_RGFW->files[index][RGFW_MAX_PATH - 1] = '\0';
-}
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -15082,7 +15138,6 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
             if (e.dataTransfer.file < 0)
 				return;
 
-			var filenamesArray = [];
 			var count = e.dataTransfer.files.length;
 
 			/* Read and save the files to emscripten's files */
@@ -15107,19 +15162,12 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 				};
 
 				reader.readAsArrayBuffer(file);
-				/* This works weird on modern OpenGL */
 				var filename = stringToNewUTF8(path);
 
-				filenamesArray.push(filename);
-
-				Module._RGFW_makeSetValue(i, filename);
+				Module._Emscripten_onDrop(filename, path.length + 1);
+				free(filename);
 			}
 
-			Module._Emscripten_onDrop(count);
-
-			for (var i = 0; i < count; i++) {
-				_free(filenamesArray[i]);
-			}
         }, true);
 
         canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true);

@@ -29,15 +29,16 @@ typedef struct {
     RGFW_bool drop;
     RGFW_bool drag;
     i32 dragX, dragY;
-    const char** data;
-    size_t count;
+    RGFW_dataDropNode* dataDrop;
 } WindowState;
 
 int main(void) {
     RGFW_window* win = RGFW_createWindow("RGFW State Checking", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
     RGFW_window_setExitKey(win, RGFW_keyEscape);
 
-    WindowState prevState;
+	RGFW_setBuildDND(RGFW_TRUE);
+
+	WindowState prevState;
     memset(&prevState, 0, sizeof(WindowState));
 
     while (RGFW_window_shouldClose(win) == 0) {
@@ -65,7 +66,7 @@ int main(void) {
             RGFW_window_isMouseInside(win),
             RGFW_window_didDataDrop(win),
             RGFW_window_isDataDragging(win),
-            0, 0, NULL, 0,
+            0, 0, NULL,
         };
 
 		RGFW_window_getPosition(win, &currState.posX, &currState.posY);
@@ -75,7 +76,7 @@ int main(void) {
 		RGFW_getMouseScroll(&currState.scrollX, &currState.scrollY);
 
         RGFW_window_getDataDrag(win, &currState.dragX, &currState.dragY);
-        RGFW_window_getDataDrop(win, &currState.data, &currState.count);
+		currState.dataDrop = RGFW_window_getDataDrop(win);
 
         if (currState.isInFocus != prevState.isInFocus) {
             printf("Is in focus: %s\n", currState.isInFocus ? "Yes" : "No");
@@ -144,10 +145,10 @@ int main(void) {
         if (currState.drop != prevState.drop) {
             if (currState.drop) {
                 printf("Data dropped :\n");
-                for (size_t i = 0; i < currState.count; i++) {
-                    printf("    file : %s\n", currState.data[i]);
+                for (RGFW_dataDropNode* node = currState.dataDrop; node; node = node->next) {
+                    printf("    file : %s\n", node->data);
                 }
-            } else printf("No data has ben dropped\n");
+            } else printf("No data has been dropped\n");
         }
 
         memcpy(&prevState, &currState, sizeof(WindowState));

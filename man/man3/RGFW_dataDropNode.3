@@ -1,0 +1,43 @@
+.TH "RGFW_dataDropNode" 3 "Tue Apr 14 2026" "RGFW" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+RGFW_dataDropNode
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <RGFW\&.h>\fP
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "const char * \fBdata\fP"
+.br
+.ti -1c
+.RI "size_t \fBsize\fP"
+.br
+.ti -1c
+.RI "RGFW_dataTransferType \fBtype\fP"
+.br
+.ti -1c
+.RI "struct \fBRGFW_dataDropNode\fP * \fBnext\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+internal node for a individual data drop 
+.SH "Member Data Documentation"
+.PP 
+.SS "const char* RGFW_dataDropNode::data"
+dropped data 
+.SS "struct \fBRGFW_dataDropNode\fP* RGFW_dataDropNode::next"
+the next drop data node if any [when handling callbacks, this will always be NULL because the linked list is built as events are processed] 
+.SS "size_t RGFW_dataDropNode::size"
+the size of the data in bytes 
+.SS "RGFW_dataTransferType RGFW_dataDropNode::type"
+the type of data being dropped 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for RGFW from the source code\&.

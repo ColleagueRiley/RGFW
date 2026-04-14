@@ -123,9 +123,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga882bf24aa27c3573754582a29951f7e3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga882bf24aa27c3573754582a29951f7e3">RGFW_window_didDataDrop</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win)</td></tr>
 <tr class="memdesc:ga882bf24aa27c3573754582a29951f7e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">checks if a data drop occurred in the window (first frame only)  <a href="group__Window__management.html#ga882bf24aa27c3573754582a29951f7e3">More...</a><br /></td></tr>
 <tr class="separator:ga882bf24aa27c3573754582a29951f7e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4482f150d0d76458560252236ae90349"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#ga4482f150d0d76458560252236ae90349">RGFW_window_getDataDrop</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win, const char ***files, size_t *count)</td></tr>
-<tr class="memdesc:ga4482f150d0d76458560252236ae90349"><td class="mdescLeft">&#160;</td><td class="mdescRight">retrieves files from a data drop (drag and drop)  <a href="group__Window__management.html#ga4482f150d0d76458560252236ae90349">More...</a><br /></td></tr>
-<tr class="separator:ga4482f150d0d76458560252236ae90349"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf3ef0b76c4faa492cc86fd6af873d32d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="structRGFW__dataDropNode.html">RGFW_dataDropNode</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#gaf3ef0b76c4faa492cc86fd6af873d32d">RGFW_window_getDataDrop</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win)</td></tr>
+<tr class="memdesc:gaf3ef0b76c4faa492cc86fd6af873d32d"><td class="mdescLeft">&#160;</td><td class="mdescRight">retrieves datta from a data drop (drag and drop)  <a href="group__Window__management.html#gaf3ef0b76c4faa492cc86fd6af873d32d">More...</a><br /></td></tr>
+<tr class="separator:gaf3ef0b76c4faa492cc86fd6af873d32d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab9fbaeec9a1268374ab141b6ccfc41a3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Window__management.html#gab9fbaeec9a1268374ab141b6ccfc41a3">RGFW_window_close</a> (<a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *win)</td></tr>
 <tr class="memdesc:gab9fbaeec9a1268374ab141b6ccfc41a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">closes the window and frees its associated structure  <a href="group__Window__management.html#gab9fbaeec9a1268374ab141b6ccfc41a3">More...</a><br /></td></tr>
 <tr class="separator:gab9fbaeec9a1268374ab141b6ccfc41a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -835,48 +835,30 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga4482f150d0d76458560252236ae90349" name="ga4482f150d0d76458560252236ae90349"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga4482f150d0d76458560252236ae90349">&#9670;&#160;</a></span>RGFW_window_getDataDrop()</h2>
+<a id="gaf3ef0b76c4faa492cc86fd6af873d32d" name="gaf3ef0b76c4faa492cc86fd6af873d32d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf3ef0b76c4faa492cc86fd6af873d32d">&#9670;&#160;</a></span>RGFW_window_getDataDrop()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> RGFW_window_getDataDrop </td>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="structRGFW__dataDropNode.html">RGFW_dataDropNode</a> * RGFW_window_getDataDrop </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a> *&#160;</td>
-          <td class="paramname"><em>win</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramname"><em>win</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">const char ***&#160;</td>
-          <td class="paramname"><em>files</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t *&#160;</td>
-          <td class="paramname"><em>count</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>retrieves files from a data drop (drag and drop) </p>
+<p>retrieves datta from a data drop (drag and drop) </p>
 <p >! </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">win</td><td>a pointer to the target window </td></tr>
-    <tr><td class="paramname">files</td><td>[OUTPUT] a pointer to the array of file paths </td></tr>
-    <tr><td class="paramname">count</td><td>[OUTPUT] the number of dropped files </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>RGFW_TRUE if a data drop occurred, RGFW_FALSE otherwise </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>a valid pointer to the root drag node if a data drop occurred, NULL otherwise </dd></dl>
 
 </div>
 </div>

@@ -112,15 +112,17 @@ static
 void dropfunc(const RGFW_event* e) {
     if (e->common.win != window) return;
 
-    u32 i;
-    for (i = 0; i < e->drop.count; i++)
-        printf("dropped : %s\n", e->drop.value[i]);
+    printf("dropped : %s\n", e->drop.value->data);
 }
 
 static
 void dragfunc(const RGFW_event* e) {
-    if (e->common.win != window) return;
-    printf("dnd init at %i %i\n", e->drag.x, e->drag.y);
+	if (e->common.win != window) return;
+
+	const char* t_str = (e->drag.dataType == RGFW_dataFile) ? "file" : (e->drag.dataType == RGFW_dataText) ? "text" : (e->drag.dataType == RGFW_dataURL) ? "URL" : "image";
+	const char* a_str = (e->drag.action == RGFW_dndActionEnter) ? "enter" : (e->drag.action == RGFW_dndActionMove) ? "move" : "exit";
+
+    printf("dnd drag (%s %s) at %i %i\n", t_str, a_str, e->drag.x, e->drag.y);
 }
 
 static
