@@ -861,12 +861,13 @@ typedef struct RGFW_callbacks {
 
 /*! @brief optional bitwise arguments for making a windows, these can be OR'd together */
 typedef RGFW_ENUM(u32, RGFW_windowFlags) {
-	RGFW_windowNoBorder = RGFW_BIT(0), /*!< the window doesn't have a border */
+	RGFW_windowNoBorder = RGFW_BIT(0), /*!< the window doesn't have a border / frame / decor */
 	RGFW_windowNoResize = RGFW_BIT(1), /*!< the window cannot be resized by the user */
 	RGFW_windowAllowDND = RGFW_BIT(2), /*!< the window supports drag and drop */
 	RGFW_windowHideMouse = RGFW_BIT(3), /*! the window should hide the mouse (can be toggled later on using `RGFW_window_showMouse`) */
 	RGFW_windowFullscreen = RGFW_BIT(4), /*!< the window is fullscreen by default */
-	RGFW_windowTransparent = RGFW_BIT(5), /*!< the window is transparent (only properly works on X11 and MacOS, although it's meant for for windows) */
+	RGFW_windowTranslucent = RGFW_BIT(5), /*!< the window is translucent (only properly works on X11 and MacOS, although it's meant for for windows) */
+	RGFW_windowTransparent = RGFW_windowTranslucent,  /*!< the window is translucent (only properly works on X11 and MacOS, although it's meant for for windows) */
 	RGFW_windowCenter = RGFW_BIT(6), /*! center the window on the screen */
 	RGFW_windowRawMouse = RGFW_BIT(7), /*!< use raw mouse mouse on window creation */
 	RGFW_windowScaleToMonitor = RGFW_BIT(8), /*! scale the window to the screen */
@@ -2002,14 +2003,14 @@ RGFWDEF void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating);
 RGFWDEF void RGFW_window_setOpacity(RGFW_window* win, u8 opacity);
 
 /**!
- * @brief toggles window borders
+ * @brief toggles window borders / frame / decor
  * @param win a pointer to the target window
  * @param border RGFW_TRUE for bordered, RGFW_FALSE for borderless
 */
 RGFWDEF void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border);
 
 /**!
- * @brief checks if the window is borderless
+ * @brief checks if the window is borderless (has a border, frame or decor)
  * @param win a pointer to the target window
  * @return RGFW_TRUE if borderless, RGFW_FALSE otherwise
 */

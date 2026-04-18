@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Tue Apr 14 2026" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Sat Apr 18 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -151,11 +151,11 @@ Window_management \- Window_management
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setBorder\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP border)"
 .br
-.RI "toggles window borders "
+.RI "toggles window borders / frame / decor "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_borderless\fP (\fBRGFW_window\fP *win)"
 .br
-.RI "checks if the window is borderless "
+.RI "checks if the window is borderless (has a border, frame or decor) "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setDND\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP allow)"
 .br
@@ -318,7 +318,7 @@ RGFW_TRUE if DND is enabled, RGFW_FALSE otherwise
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_borderless (\fBRGFW_window\fP * win)"
 
 .PP
-checks if the window is borderless ! 
+checks if the window is borderless (has a border, frame or decor) ! 
 .PP
 \fBParameters\fP
 .RS 4
@@ -989,7 +989,7 @@ sets the aspect ratio of the window !
 .SS "\fBRGFWDEF\fP void RGFW_window_setBorder (\fBRGFW_window\fP * win, \fBRGFW_bool\fP border)"
 
 .PP
-toggles window borders ! 
+toggles window borders / frame / decor ! 
 .PP
 \fBParameters\fP
 .RS 4

@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Tue Apr 14 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Sat Apr 18 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -919,11 +919,11 @@ RGFW.h
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setBorder\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP border)"
 .br
-.RI "toggles window borders "
+.RI "toggles window borders / frame / decor "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_borderless\fP (\fBRGFW_window\fP *win)"
 .br
-.RI "checks if the window is borderless "
+.RI "checks if the window is borderless (has a border, frame or decor) "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_window_setDND\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP allow)"
 .br
@@ -1538,7 +1538,7 @@ flags for toggling whether or not an event should be processed
 .SS "typedef RGFW_ENUM (\fBu32\fP, RGFW_windowFlags)"
 
 .PP
-optional bitwise arguments for making a windows, these can be OR'd together < the window doesn't have a border
+optional bitwise arguments for making a windows, these can be OR'd together < the window doesn't have a border / frame / decor
 .PP
 < the window cannot be resized by the user
 .PP
@@ -1548,7 +1548,9 @@ the window should hide the mouse (can be toggled later on using \fCRGFW_window_s
 .PP
 < the window is fullscreen by default
 .PP
-< the window is transparent (only properly works on X11 and MacOS, although it's meant for for windows)
+< the window is translucent (only properly works on X11 and MacOS, although it's meant for for windows)
+.PP
+< the window is translucent (only properly works on X11 and MacOS, although it's meant for for windows)
 .PP
 center the window on the screen
 .PP
