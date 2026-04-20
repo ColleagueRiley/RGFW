@@ -222,25 +222,9 @@ int main() {
 #endif
 
 #if !defined(RGFW_SNPRINTF) && (defined(RGFW_X11) || defined(RGFW_WAYLAND))
-
 	/* required for X11 errors */
 	#include <stdio.h>
-
-    #ifdef RGFW_C89
-        #include <stdarg.h>
-        static int RGFW_c89_snprintf(char *dst, size_t size, const char *format, ...) {
-            va_list args;
-            size_t count = 0;
-            va_start(args, format);
-            count = (size_t)vsprintf(dst, format, args);
-            RGFW_ASSERT(count + 1 < size && "Buffer overflow");
-            va_end(args);
-            return (int)count;
-        }
-     	#define RGFW_SNPRINTF RGFW_c89_snprintf
-    #else
-     	#define RGFW_SNPRINTF snprintf
-    #endif /*RGFW_C89*/
+	#define RGFW_SNPRINTF snprintf
 #endif
 
 #ifndef RGFW_USERPTR
