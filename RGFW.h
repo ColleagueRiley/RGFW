@@ -4699,6 +4699,8 @@ RGFW_bool RGFW_monitor_setGamma(RGFW_monitor* monitor, float gamma) {
 }
 
 RGFW_monitor** RGFW_getMonitors(size_t* len) {
+	if (len != NULL) *len = 0;
+
 	size_t count = 0;
 	if (RGFW_getMonitorsPtr(0, NULL, &count) == RGFW_FALSE || count == 0) return NULL;
 
@@ -4709,6 +4711,8 @@ RGFW_monitor** RGFW_getMonitors(size_t* len) {
 		return NULL;
 	}
 
+	if (len != NULL) *len = count;
+
 	return monitors;
 }
 
@@ -4718,7 +4722,7 @@ RGFW_bool RGFW_getMonitorsPtr(size_t max, RGFW_monitor** monitors, size_t* len) 
 		*len = _RGFW->monitors.count;
 	}
 
-	if (monitors == NULL || max == 0) return;
+	if (monitors == NULL || max == 0) return RGFW_TRUE;
 
 
 	if (len != NULL) {
