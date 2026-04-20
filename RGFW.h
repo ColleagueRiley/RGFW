@@ -4704,7 +4704,7 @@ RGFW_monitor** RGFW_getMonitors(size_t* len) {
 	size_t count = 0;
 	if (RGFW_getMonitorsPtr(0, NULL, &count) == RGFW_FALSE || count == 0) return NULL;
 
-	RGFW_monitor** monitors = RGFW_ALLOC(sizeof(RGFW_monitor*) * count);
+	RGFW_monitor** monitors = (RGFW_monitors**)RGFW_ALLOC(sizeof(RGFW_monitor*) * count);
 
 	if (RGFW_getMonitorsPtr(count, monitors, &count) == RGFW_FALSE) {
 		RGFW_FREE(monitors);
