@@ -15292,6 +15292,8 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	win->src.gfxType = RGFW_gfxNativeOpenGL;
 
 	EmscriptenWebGLContextAttributes attrs;
+	emscripten_webgl_init_context_attributes(&attrs);
+
 	attrs.alpha = hints->alpha;
 	attrs.depth = hints->depth;
 	attrs.stencil = hints->stencil;
@@ -15305,13 +15307,12 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 		attrs.renderViaOffscreenBackBuffer = hints->auxBuffers;
 
 	attrs.failIfMajorPerformanceCaveat = EM_FALSE;
-	attrs.majorVersion = (hints->major == 0) ? 1 : hints->major;
+	attrs.majorVersion = (hints->major == 0) ? 1 : (hints->major-1);
 	attrs.minorVersion = hints->minor;
 
 	attrs.enableExtensionsByDefault = EM_TRUE;
 	attrs.explicitSwapControl = EM_TRUE;
 
-	emscripten_webgl_init_context_attributes(&attrs);
 	win->src.ctx.native->ctx = emscripten_webgl_create_context("#canvas", &attrs);
 	emscripten_webgl_make_context_current(win->src.ctx.native->ctx);
 
