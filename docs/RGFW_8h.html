@@ -183,8 +183,8 @@ Macros</h2></td></tr>
 <tr class="separator:acc464e9873ed8909bf14a15e13cbefa0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a49fc83ce8848e48e0895a123ab5707dd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a49fc83ce8848e48e0895a123ab5707dd">RGFW_MAX_EVENTS</a>&#160;&#160;&#160;32</td></tr>
 <tr class="separator:a49fc83ce8848e48e0895a123ab5707dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af3d151fddc5615b7e7e795ef2ede6595"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#af3d151fddc5615b7e7e795ef2ede6595">RGFW_MAX_MONITORS</a>&#160;&#160;&#160;6</td></tr>
-<tr class="separator:af3d151fddc5615b7e7e795ef2ede6595"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa8f0aad9e8b520f290cb9f02077caaf"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#afa8f0aad9e8b520f290cb9f02077caaf">RGFW_PREALLOCATED_MONITORS</a>&#160;&#160;&#160;6 /* the number of preallocated monitors */</td></tr>
+<tr class="separator:afa8f0aad9e8b520f290cb9f02077caaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5d0fadc4d22bb957b79db48ffabf09e9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a5d0fadc4d22bb957b79db48ffabf09e9">RGFW_COCOA_FRAME_NAME</a>&#160;&#160;&#160;NULL</td></tr>
 <tr class="separator:a5d0fadc4d22bb957b79db48ffabf09e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abd148a2771096e4a671e32f51be8f69f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a>&#160;&#160;&#160;__inline</td></tr>
@@ -492,8 +492,11 @@ Functions</h2></td></tr>
 <tr class="memdesc:a26b4e40389fe49e9d7c82a87cd36358e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Poll and check for monitor updates (this is called internally on monitor update events and RGFW_init)  <a href="RGFW_8h.html#a26b4e40389fe49e9d7c82a87cd36358e">More...</a><br /></td></tr>
 <tr class="separator:a26b4e40389fe49e9d7c82a87cd36358e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac4107a818ced3d763b05181d28d76f66"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="structRGFW__monitor.html">RGFW_monitor</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#ac4107a818ced3d763b05181d28d76f66">RGFW_getMonitors</a> (size_t *len)</td></tr>
-<tr class="memdesc:ac4107a818ced3d763b05181d28d76f66"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves an array of all available monitors.  <a href="RGFW_8h.html#ac4107a818ced3d763b05181d28d76f66">More...</a><br /></td></tr>
+<tr class="memdesc:ac4107a818ced3d763b05181d28d76f66"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates and returns an array of all available monitors.  <a href="RGFW_8h.html#ac4107a818ced3d763b05181d28d76f66">More...</a><br /></td></tr>
 <tr class="separator:ac4107a818ced3d763b05181d28d76f66"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a19b3b50f6af57183bf7cfb42050c7a86"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a19b3b50f6af57183bf7cfb42050c7a86">RGFW_getMonitorsPtr</a> (size_t max, <a class="el" href="structRGFW__monitor.html">RGFW_monitor</a> **monitors, size_t *len)</td></tr>
+<tr class="memdesc:a19b3b50f6af57183bf7cfb42050c7a86"><td class="mdescLeft">&#160;</td><td class="mdescRight">fills a pre-allocated array with available monitors.  <a href="RGFW_8h.html#a19b3b50f6af57183bf7cfb42050c7a86">More...</a><br /></td></tr>
+<tr class="separator:a19b3b50f6af57183bf7cfb42050c7a86"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aba07cb3ea35910da179f20f8854b1931"><td class="memItemLeft" align="right" valign="top"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="structRGFW__monitor.html">RGFW_monitor</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#aba07cb3ea35910da179f20f8854b1931">RGFW_getPrimaryMonitor</a> (void)</td></tr>
 <tr class="memdesc:aba07cb3ea35910da179f20f8854b1931"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves the primary monitor.  <a href="RGFW_8h.html#aba07cb3ea35910da179f20f8854b1931">More...</a><br /></td></tr>
 <tr class="separator:aba07cb3ea35910da179f20f8854b1931"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1136,20 +1139,6 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="af3d151fddc5615b7e7e795ef2ede6595" name="af3d151fddc5615b7e7e795ef2ede6595"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af3d151fddc5615b7e7e795ef2ede6595">&#9670;&#160;</a></span>RGFW_MAX_MONITORS</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define RGFW_MAX_MONITORS&#160;&#160;&#160;6</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="aef87ec6dcdfa590cf3ccc9a7a2dd25eb" name="aef87ec6dcdfa590cf3ccc9a7a2dd25eb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aef87ec6dcdfa590cf3ccc9a7a2dd25eb">&#9670;&#160;</a></span>RGFW_MEMCPY</h2>
 
@@ -1234,6 +1223,20 @@ Functions</h2></td></tr>
           <td></td>
           <td>)</td>
           <td></td><td>&#160;&#160;&#160;((x &lt; y) ? x : y)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afa8f0aad9e8b520f290cb9f02077caaf" name="afa8f0aad9e8b520f290cb9f02077caaf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa8f0aad9e8b520f290cb9f02077caaf">&#9670;&#160;</a></span>RGFW_PREALLOCATED_MONITORS</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define RGFW_PREALLOCATED_MONITORS&#160;&#160;&#160;6 /* the number of preallocated monitors */</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3303,14 +3306,59 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Retrieves an array of all available monitors. </p>
+<p>Allocates and returns an array of all available monitors. </p>
 <p >! </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">len</td><td>[OUTPUT] A pointer to store the number of monitors found (maximum of RGFW_MAX_MONITORS [6 by default]). </td></tr>
+    <tr><td class="paramname">len</td><td>[OUTPUT] A pointer to store the number of monitors found. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>An array of pointers to <a class="el" href="structRGFW__monitor.html" title="structure for monitor data">RGFW_monitor</a> structures. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>An allocated array of pointers to <a class="el" href="structRGFW__monitor.html" title="structure for monitor data">RGFW_monitor</a> structures that must be freed. </dd></dl>
+
+</div>
+</div>
+<a id="a19b3b50f6af57183bf7cfb42050c7a86" name="a19b3b50f6af57183bf7cfb42050c7a86"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a19b3b50f6af57183bf7cfb42050c7a86">&#9670;&#160;</a></span>RGFW_getMonitorsPtr()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="RGFW_8h.html#abd148a2771096e4a671e32f51be8f69f">RGFWDEF</a> <a class="el" href="RGFW_8h.html#a5875a02d0e0e933b07afbe7b20941c0b">RGFW_bool</a> RGFW_getMonitorsPtr </td>
+          <td>(</td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>max</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structRGFW__monitor.html">RGFW_monitor</a> **&#160;</td>
+          <td class="paramname"><em>monitors</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t *&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>fills a pre-allocated array with available monitors. </p>
+<p >! </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">maximum</td><td>number of monitors that the passed [monitors] buffer supports, can be zero to get the length alone </td></tr>
+    <tr><td class="paramname">pre-allocated</td><td>buffer of monitors, can be NULL to get the length alone </td></tr>
+    <tr><td class="paramname">len</td><td>[OUTPUT] A pointer to store the number of monitors found, if max is not zero and monitors is not NULL, length will be set to max. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>An array of pointers to <a class="el" href="structRGFW__monitor.html" title="structure for monitor data">RGFW_monitor</a> structures or NULL if the function failed. </dd></dl>
 
 </div>
 </div>

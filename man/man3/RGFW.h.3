@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Sat Apr 18 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Fri May 1 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -153,7 +153,7 @@ RGFW.h
 .RI "#define \fBRGFW_MAX_EVENTS\fP   32"
 .br
 .ti -1c
-.RI "#define \fBRGFW_MAX_MONITORS\fP   6"
+.RI "#define \fBRGFW_PREALLOCATED_MONITORS\fP   6 /* the number of preallocated monitors */"
 .br
 .ti -1c
 .RI "#define \fBRGFW_COCOA_FRAME_NAME\fP   NULL"
@@ -576,7 +576,11 @@ RGFW.h
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP ** \fBRGFW_getMonitors\fP (size_t *len)"
 .br
-.RI "Retrieves an array of all available monitors\&. "
+.RI "Allocates and returns an array of all available monitors\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_getMonitorsPtr\fP (size_t max, \fBRGFW_monitor\fP **monitors, size_t *len)"
+.br
+.RI "fills a pre-allocated array with available monitors\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_monitor\fP * \fBRGFW_getPrimaryMonitor\fP (void)"
 .br
@@ -1166,13 +1170,13 @@ RGFW.h
 
 .SS "#define RGFW_MAX_EVENTS   32"
 
-.SS "#define RGFW_MAX_MONITORS   6"
-
 .SS "#define RGFW_MEMCPY(dist, src, len)   memcpy(dist, src, len)"
 
 .SS "#define RGFW_MEMZERO(ptr, num)   memset(ptr, 0, num)"
 
 .SS "#define RGFW_MIN(x, y)   ((x < y) ? x : y)"
+
+.SS "#define RGFW_PREALLOCATED_MONITORS   6 /* the number of preallocated monitors */"
 
 .SS "#define RGFW_ROUND(x)   (\fBi32\fP)((x) >= 0 ? (x) + 0\&.5f : (x) \- 0\&.5f)"
 
@@ -1787,16 +1791,36 @@ A pointer to the Cocoa layer, or NULL if the platform is not in use\&.
 .SS "\fBRGFWDEF\fP \fBRGFW_monitor\fP ** RGFW_getMonitors (size_t * len)"
 
 .PP
-Retrieves an array of all available monitors\&. ! 
+Allocates and returns an array of all available monitors\&. ! 
 .PP
 \fBParameters\fP
 .RS 4
-\fIlen\fP [OUTPUT] A pointer to store the number of monitors found (maximum of RGFW_MAX_MONITORS [6 by default])\&. 
+\fIlen\fP [OUTPUT] A pointer to store the number of monitors found\&. 
 .RE
 .PP
 \fBReturns\fP
 .RS 4
-An array of pointers to \fBRGFW_monitor\fP structures\&. 
+An allocated array of pointers to \fBRGFW_monitor\fP structures that must be freed\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_getMonitorsPtr (size_t max, \fBRGFW_monitor\fP ** monitors, size_t * len)"
+
+.PP
+fills a pre-allocated array with available monitors\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fImaximum\fP number of monitors that the passed [monitors] buffer supports, can be zero to get the length alone 
+.br
+\fIpre-allocated\fP buffer of monitors, can be NULL to get the length alone 
+.br
+\fIlen\fP [OUTPUT] A pointer to store the number of monitors found, if max is not zero and monitors is not NULL, length will be set to max\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+An array of pointers to \fBRGFW_monitor\fP structures or NULL if the function failed\&. 
 .RE
 .PP
 
