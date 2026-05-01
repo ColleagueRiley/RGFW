@@ -55,7 +55,6 @@
 	#define RGFW_COCOA_GRAPHICS_SWITCHING - (optional) (cocoa) use automatic graphics switching (allow the system to choose to use GPU or iGPU)
 	#define RGFW_COCOA_FRAME_NAME (optional) (cocoa) set frame name
 	#define RGFW_NO_DPI - do not calculate DPI and don't use libShcore (win32)
-	#define RGFW_NO_XRANDR - do use not XRandr (X11)
 	#define RGFW_ADVANCED_SMOOTH_RESIZE - use advanced methods for smooth resizing (may result in a spike in memory usage or worse performance) (eg. WM_TIMER and XSyncValue)
 	#define RGFW_NO_INFO - do not define the RGFW_info struct (without RGFW_IMPLEMENTATION)
 	#define RGFW_NO_GLXWINDOW - do not use GLXWindow
@@ -2850,10 +2849,8 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		#include <X11/Xlib.h>
 		#include <X11/Xutil.h>
 
-		#ifndef RGFW_NO_XRANDR
-			#include <X11/extensions/Xrandr.h>
-			#include <X11/Xresource.h>
-		#endif
+		#include <X11/extensions/Xrandr.h>
+		#include <X11/Xresource.h>
 
 		#ifndef RGFW_XDND_VERSION
 			#define RGFW_XDND_VERSION 5
@@ -3055,7 +3052,7 @@ struct RGFW_monitorNode {
 	RGFW_monitorMode* modes;
 	size_t modeCount;
 #endif
-#if defined(RGFW_X11) && !defined(RGFW_NO_XRANDR)
+#if defined(RGFW_X11)
 	i32 screen;
 	RROutput rrOutput;
 	RRCrtc crtc;
@@ -6721,12 +6718,10 @@ void RGFW_XHandleEvent(void) {
 		deltaY = 0.0f;
 	}
 
-#ifndef RGFW_NO_XRANDR
 	if (E.type == _RGFW->xrandrEventBase + RRNotify) {
 		RGFW_pollMonitors();
 		return;
 	}
-#endif
 
 	switch (E.type) {
 		case SelectionRequest:
@@ -7802,20 +7797,18 @@ void RGFW_XGetSystemContentDPI(float* dpi) {
 	if (dpi == NULL) return;
 	float dpiOutput = 96.0f;
 
-	#ifndef RGFW_NO_XRANDR
-		char* rms = XResourceManagerString(_RGFW->display);
-		if (rms == NULL) return;
+	char* rms = XResourceManagerString(_RGFW->display);
+	if (rms == NULL) return;
 
-		XrmDatabase db = XrmGetStringDatabase(rms);
-		if (db == NULL) return;
+	XrmDatabase db = XrmGetStringDatabase(rms);
+	if (db == NULL) return;
 
-		XrmValue value;
-		char* type = NULL;
+	XrmValue value;
+	char* type = NULL;
 
-		if (XrmGetResource(db, "Xft.dpi", "Xft.Dpi", &type, &value) && type && RGFW_STRNCMP(type, "String", 7) == 0)
-			dpiOutput = (float)RGFW_ATOF(value.addr);
-		XrmDestroyDatabase(db);
-	#endif
+	if (XrmGetResource(db, "Xft.dpi", "Xft.Dpi", &type, &value) && type && RGFW_STRNCMP(type, "String", 7) == 0)
+		dpiOutput = (float)RGFW_ATOF(value.addr);
+	XrmDestroyDatabase(db);
 
 	if (dpi) *dpi = dpiOutput;
 }
@@ -8060,7 +8053,6 @@ size_t RGFW_FUNC(RGFW_monitor_getModesPtr) (RGFW_monitor* monitor, RGFW_monitorM
 
 size_t RGFW_FUNC(RGFW_monitor_getGammaRampPtr) (RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
 	RGFW_UNUSED(monitor); RGFW_UNUSED(ramp);
-#ifndef RGFW_NO_XRANDR
 	size_t size = (size_t)XRRGetCrtcGammaSize(_RGFW->display, monitor->node->crtc);
 	XRRCrtcGamma* gamma = XRRGetCrtcGamma(_RGFW->display, monitor->node->crtc);
 
@@ -8072,15 +8064,11 @@ size_t RGFW_FUNC(RGFW_monitor_getGammaRampPtr) (RGFW_monitor* monitor, RGFW_gamm
 
 	XRRFreeGamma(gamma);
 	return size;
-#endif
-
-	return 0;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_setGammaRamp) (RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
 	RGFW_UNUSED(monitor); RGFW_UNUSED(ramp);
 
-#ifndef RGFW_NO_XRANDR
 	size_t size = (size_t)XRRGetCrtcGammaSize(_RGFW->display, monitor->node->crtc);
 	if (size != ramp->count) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errX11, "X11: Gamma ramp size must match current ramp size");
@@ -8097,8 +8085,6 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_setGammaRamp) (RGFW_monitor* monitor, RGFW_gamm
 	XRRFreeGamma(gamma);
 
 	return RGFW_TRUE;
-#endif
-	return RGFW_FALSE;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_setMode)(RGFW_monitor* mon, RGFW_monitorMode* mode) {
@@ -8117,7 +8103,6 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_setMode)(RGFW_monitor* mon, RGFW_monitorMode* m
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
-	#ifndef RGFW_NO_XRANDR
     RGFW_init();
 
 	RGFW_bool output = RGFW_FALSE;
@@ -8154,8 +8139,6 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor* mon, RGFW_monitorMod
 	XRRFreeCrtcInfo(ci);
     XRRFreeScreenResources(res);
 	return output;
-#endif
-	return RGFW_FALSE;
 }
 
 RGFW_monitor* RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
@@ -8540,12 +8523,10 @@ i32 RGFW_initPlatform_X11(void) {
 
 	XISelectEvents(_RGFW->display, XDefaultRootWindow(_RGFW->display), &em, 1);
 
-#ifndef RGFW_NO_XRANDR
 	i32 errorBase;
 	if (XRRQueryExtension(_RGFW->display, &_RGFW->xrandrEventBase, &errorBase)) {
         XRRSelectInput(_RGFW->display, RootWindow(_RGFW->display, DefaultScreen(_RGFW->display)), RROutputChangeNotifyMask);
 	}
-#endif
 
 	return 0;
 }
