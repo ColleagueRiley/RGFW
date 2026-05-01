@@ -985,7 +985,8 @@ typedef RGFW_ENUM(i32, RGFW_glProfile)  {
 	RGFW_glCore = 0, /*!< the core OpenGL version, e.g. just support for that version */
 	RGFW_glForwardCompatibility, /*!< only compatibility for newer versions of OpenGL as well as the requested version */
 	RGFW_glCompatibility, /*!< allow compatibility for older versions of OpenGL as well as the requested version */
-	RGFW_glES /*!< use OpenGL ES */
+	RGFW_glES, /*!< use OpenGL ES */
+	RGFW_glWeb /*!< use WebGL version (otherwise the version is changed to match it's GLES equivalent) */
 };
 
 /*! values for the renderer hint */
@@ -15336,6 +15337,7 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	win->src.gfxType = RGFW_gfxNativeOpenGL;
 
 	EmscriptenWebGLContextAttributes attrs;
+	emscripten_webgl_init_context_attributes(&attrs);
 	attrs.alpha = hints->alpha;
 	attrs.depth = hints->depth;
 	attrs.stencil = hints->stencil;
@@ -15349,13 +15351,18 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 		attrs.renderViaOffscreenBackBuffer = hints->auxBuffers;
 
 	attrs.failIfMajorPerformanceCaveat = EM_FALSE;
-	attrs.majorVersion = (hints->major == 0) ? 1 : hints->major;
-	attrs.minorVersion = hints->minor;
 
 	attrs.enableExtensionsByDefault = EM_TRUE;
 	attrs.explicitSwapControl = EM_TRUE;
 
-	emscripten_webgl_init_context_attributes(&attrs);
+	if (hints->profile == RGFW_glWeb) {
+		attrs.majorVersion = (hints->major == 0) ? 1 : hints->major;
+		attrs.minorVersion = hints->minor;
+	} else {
+		attrs.majorVersion = (hints->major == 0) ? 1 : hints->major - 1;
+		attrs.minorVersion = hints->minor;
+	}
+
 	win->src.ctx.native->ctx = emscripten_webgl_create_context("#canvas", &attrs);
 	emscripten_webgl_make_context_current(win->src.ctx.native->ctx);
 
