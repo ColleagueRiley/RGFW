@@ -58,6 +58,8 @@
 	#define RGFW_ADVANCED_SMOOTH_RESIZE - use advanced methods for smooth resizing (may result in a spike in memory usage or worse performance) (eg. WM_TIMER and XSyncValue)
 	#define RGFW_NO_INFO - do not define the RGFW_info struct (without RGFW_IMPLEMENTATION)
 	#define RGFW_NO_GLXWINDOW - do not use GLXWindow
+	#define RGFW_NO_ALLOCATE_MONITORS - do not allocate monitors on the heap at all (when there's no pre-allocated space left)
+	#define RGFW_PREALLOCATED_MONITORS x - choose the default amount of pre-allocated monitors (can be zero)
 
 	#define RGFW_ALLOC x  - choose the default allocation function (defaults to standard malloc)
 	#define RGFW_FREE x  - choose the default deallocation function (defaults to standard free)
@@ -292,9 +294,10 @@ int main() {
 #ifndef RGFW_MAX_EVENTS
 	#define RGFW_MAX_EVENTS 32
 #endif
-
 #ifndef RGFW_PREALLOCATED_MONITORS
 	#define RGFW_PREALLOCATED_MONITORS 6 /* the number of preallocated monitors */
+#elif defined(RGFW_NO_ALLOCATE_MONITORS) && (RGFW_PREALLOCATED_MONITORS == 0)
+	#warning RGFW monitors have no place to be allocated
 #endif
 
 #ifndef RGFW_COCOA_FRAME_NAME
@@ -3076,11 +3079,13 @@ typedef struct RGFW_monitorList {
 
 typedef struct RGFW_monitors {
 	RGFW_monitorList list;
-	RGFW_monitorList freeList;
 	size_t count;
 
 	RGFW_monitorNode* primary;
-	RGFW_monitorNode data[RGFW_PREALLOCATED_MONITORS];
+	#if (RGFW_PREALLOCATED_MONITORS)
+		RGFW_monitorList freeList;
+		RGFW_monitorNode data[RGFW_PREALLOCATED_MONITORS];
+	#endif
 } RGFW_monitors;
 
 RGFWDEF RGFW_monitorNode* RGFW_monitors_add(const RGFW_monitor* mon);
@@ -3858,14 +3863,16 @@ i32 RGFW_init_ptr(RGFW_info* info) {
 	_RGFW->useWaylandBool = RGFW_TRUE;
 #endif
 
-	_RGFW->monitors.freeList.head = &_RGFW->monitors.data[0];
-	_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.head;
+	#if (RGFW_PREALLOCATED_MONITORS)
+		_RGFW->monitors.freeList.head = &_RGFW->monitors.data[0];
+		_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.head;
 
-	for (size_t i = 1; i < RGFW_PREALLOCATED_MONITORS; i++) {
-		RGFW_monitorNode* newNode = &_RGFW->monitors.data[i];
-		_RGFW->monitors.freeList.cur->next = newNode;
-		_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.cur->next;
-	}
+		for (size_t i = 1; i < RGFW_PREALLOCATED_MONITORS; i++) {
+			RGFW_monitorNode* newNode = &_RGFW->monitors.data[i];
+			_RGFW->monitors.freeList.cur->next = newNode;
+			_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.cur->next;
+		}
+	#endif
 
 	_RGFW->monitors.list.head = NULL;
 	_RGFW->monitors.list.head = NULL;
@@ -4483,15 +4490,23 @@ void RGFW_copyImageData64(u8* dest_data, i32 dest_w, i32 dest_h, RGFW_format des
 }
 
 RGFW_monitorNode* RGFW_monitors_add(const RGFW_monitor* mon) {
-	RGFW_monitorNode* node = _RGFW->monitors.freeList.head;
-	if (node == NULL) {
+	RGFW_monitorNode* node = NULL;
+
+	#if (RGFW_PREALLOCATED_MONITORS)
+		node = _RGFW->monitors.freeList.head;
+		if (node) {
+			_RGFW->monitors.freeList.head = node->next;
+			if (_RGFW->monitors.freeList.head == NULL) {
+				_RGFW->monitors.freeList.cur = NULL;
+			}
+		} else
+	#elif !defined(RGFW_NO_ALLOCATE_MONITORS)
+	{
 		node = (RGFW_monitorNode*)RGFW_ALLOC(sizeof(RGFW_monitorNode));
-	} else {
-		_RGFW->monitors.freeList.head = node->next;
-		if (_RGFW->monitors.freeList.head == NULL) {
-			_RGFW->monitors.freeList.cur = NULL;
-		}
 	}
+	#endif
+
+	if (node == NULL) return NULL;
 
 	node->next = NULL;
 
@@ -4523,6 +4538,7 @@ void RGFW_monitors_remove(RGFW_monitorNode* node, RGFW_monitorNode* prev) {
 
 	node->next = NULL;
 
+	#if (RGFW_PREALLOCATED_MONITORS)
 	/* check if the monitor was allocated in the heap or not */
 	if (node >= _RGFW->monitors.data && node <= &_RGFW->monitors.data[RGFW_PREALLOCATED_MONITORS - 1]) {
 		/* move node to the free list */
@@ -4533,8 +4549,11 @@ void RGFW_monitors_remove(RGFW_monitorNode* node, RGFW_monitorNode* prev) {
 		}
 
 		_RGFW->monitors.freeList.cur = node;
-	} else {
+	} else
+	{
+	#elif !defined(RGFW_NO_ALLOCATE_MONITORS)
 		RGFW_FREE(node);
+	#endif
 	}
 }
 
