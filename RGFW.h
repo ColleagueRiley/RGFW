@@ -55,10 +55,11 @@
 	#define RGFW_COCOA_GRAPHICS_SWITCHING - (optional) (cocoa) use automatic graphics switching (allow the system to choose to use GPU or iGPU)
 	#define RGFW_COCOA_FRAME_NAME (optional) (cocoa) set frame name
 	#define RGFW_NO_DPI - do not calculate DPI and don't use libShcore (win32)
-	#define RGFW_NO_XRANDR - do use not XRandr (X11)
 	#define RGFW_ADVANCED_SMOOTH_RESIZE - use advanced methods for smooth resizing (may result in a spike in memory usage or worse performance) (eg. WM_TIMER and XSyncValue)
 	#define RGFW_NO_INFO - do not define the RGFW_info struct (without RGFW_IMPLEMENTATION)
 	#define RGFW_NO_GLXWINDOW - do not use GLXWindow
+	#define RGFW_NO_ALLOCATE_MONITORS - do not allocate monitors on the heap at all (when there's no pre-allocated space left)
+	#define RGFW_PREALLOCATED_MONITORS x - choose the default amount of pre-allocated monitors (can be zero)
 
 	#define RGFW_ALLOC x  - choose the default allocation function (defaults to standard malloc)
 	#define RGFW_FREE x  - choose the default deallocation function (defaults to standard free)
@@ -293,9 +294,10 @@ int main() {
 #ifndef RGFW_MAX_EVENTS
 	#define RGFW_MAX_EVENTS 32
 #endif
-
-#ifndef RGFW_MAX_MONITORS
-	#define RGFW_MAX_MONITORS 6
+#ifndef RGFW_PREALLOCATED_MONITORS
+	#define RGFW_PREALLOCATED_MONITORS 6 /* the number of preallocated monitors */
+#elif defined(RGFW_NO_ALLOCATE_MONITORS) && (RGFW_PREALLOCATED_MONITORS == 0)
+	#warning RGFW monitors have no place to be allocated
 #endif
 
 #ifndef RGFW_COCOA_FRAME_NAME
@@ -1336,11 +1338,20 @@ RGFWDEF RGFW_bool RGFW_monitor_getMode(RGFW_monitor* monitor, RGFW_monitorMode* 
 RGFWDEF void RGFW_pollMonitors(void);
 
 /**!
- * @brief Retrieves an array of all available monitors.
- * @param len [OUTPUT] A pointer to store the number of monitors found (maximum of RGFW_MAX_MONITORS [6 by default]).
- * @return An array of pointers to RGFW_monitor structures.
+ * @brief Allocates and returns an array of all available monitors.
+ * @param len [OUTPUT] A pointer to store the number of monitors found.
+ * @return An allocated array of pointers to RGFW_monitor structures that must be freed.
 */
 RGFWDEF RGFW_monitor** RGFW_getMonitors(size_t* len);
+
+/**!
+ * @brief fills a pre-allocated array with available monitors.
+ * @param maximum number of monitors that the passed [monitors] buffer supports, can be zero to get the length alone
+ * @param pre-allocated buffer of monitors, can be NULL to get the length alone
+ * @param len [OUTPUT] A pointer to store the number of monitors found, if max is not zero and monitors is not NULL, length will be set to max.
+ * @return An array of pointers to RGFW_monitor structures or NULL if the function failed.
+*/
+RGFWDEF RGFW_bool RGFW_getMonitorsPtr(size_t max, RGFW_monitor** monitors, size_t* len);
 
 /**!
  * @brief Retrieves the primary monitor.
@@ -2841,10 +2852,8 @@ RGFWDEF RGFW_info* RGFW_getInfo(void);
 		#include <X11/Xlib.h>
 		#include <X11/Xutil.h>
 
-		#ifndef RGFW_NO_XRANDR
-			#include <X11/extensions/Xrandr.h>
-			#include <X11/Xresource.h>
-		#endif
+		#include <X11/extensions/Xrandr.h>
+		#include <X11/Xresource.h>
 
 		#ifndef RGFW_XDND_VERSION
 			#define RGFW_XDND_VERSION 5
@@ -3046,7 +3055,7 @@ struct RGFW_monitorNode {
 	RGFW_monitorMode* modes;
 	size_t modeCount;
 #endif
-#if defined(RGFW_X11) && !defined(RGFW_NO_XRANDR)
+#if defined(RGFW_X11)
 	i32 screen;
 	RROutput rrOutput;
 	RRCrtc crtc;
@@ -3070,11 +3079,13 @@ typedef struct RGFW_monitorList {
 
 typedef struct RGFW_monitors {
 	RGFW_monitorList list;
-	RGFW_monitorList freeList;
 	size_t count;
 
 	RGFW_monitorNode* primary;
-	RGFW_monitorNode data[RGFW_MAX_MONITORS];
+	#if (RGFW_PREALLOCATED_MONITORS)
+		RGFW_monitorList freeList;
+		RGFW_monitorNode data[RGFW_PREALLOCATED_MONITORS];
+	#endif
 } RGFW_monitors;
 
 RGFWDEF RGFW_monitorNode* RGFW_monitors_add(const RGFW_monitor* mon);
@@ -3852,14 +3863,16 @@ i32 RGFW_init_ptr(RGFW_info* info) {
 	_RGFW->useWaylandBool = RGFW_TRUE;
 #endif
 
-	_RGFW->monitors.freeList.head = &_RGFW->monitors.data[0];
-	_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.head;
+	#if (RGFW_PREALLOCATED_MONITORS)
+		_RGFW->monitors.freeList.head = &_RGFW->monitors.data[0];
+		_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.head;
 
-	for (size_t i = 1; i < RGFW_MAX_MONITORS; i++) {
-		RGFW_monitorNode* newNode = &_RGFW->monitors.data[i];
-		_RGFW->monitors.freeList.cur->next = newNode;
-		_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.cur->next;
-	}
+		for (size_t i = 1; i < RGFW_PREALLOCATED_MONITORS; i++) {
+			RGFW_monitorNode* newNode = &_RGFW->monitors.data[i];
+			_RGFW->monitors.freeList.cur->next = newNode;
+			_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.cur->next;
+		}
+	#endif
 
 	_RGFW->monitors.list.head = NULL;
 	_RGFW->monitors.list.head = NULL;
@@ -4478,14 +4491,22 @@ void RGFW_copyImageData64(u8* dest_data, i32 dest_w, i32 dest_h, RGFW_format des
 
 RGFW_monitorNode* RGFW_monitors_add(const RGFW_monitor* mon) {
 	RGFW_monitorNode* node = NULL;
-	if (_RGFW->monitors.freeList.head == NULL) return node;
 
-	node = _RGFW->monitors.freeList.head;
-
-	_RGFW->monitors.freeList.head = node->next;
-	if (_RGFW->monitors.freeList.head == NULL) {
-		_RGFW->monitors.freeList.cur = NULL;
+	#if (RGFW_PREALLOCATED_MONITORS)
+		node = _RGFW->monitors.freeList.head;
+		if (node) {
+			_RGFW->monitors.freeList.head = node->next;
+			if (_RGFW->monitors.freeList.head == NULL) {
+				_RGFW->monitors.freeList.cur = NULL;
+			}
+		} else
+	#elif !defined(RGFW_NO_ALLOCATE_MONITORS)
+	{
+		node = (RGFW_monitorNode*)RGFW_ALLOC(sizeof(RGFW_monitorNode));
 	}
+	#endif
+
+	if (node == NULL) return NULL;
 
 	node->next = NULL;
 
@@ -4517,14 +4538,23 @@ void RGFW_monitors_remove(RGFW_monitorNode* node, RGFW_monitorNode* prev) {
 
 	node->next = NULL;
 
-	/* move node to the free list */
-	if (_RGFW->monitors.freeList.head == NULL) {
-		_RGFW->monitors.freeList.head = node;
-	} else {
-		_RGFW->monitors.freeList.cur->next = node;
-	}
+	#if (RGFW_PREALLOCATED_MONITORS)
+	/* check if the monitor was allocated in the heap or not */
+	if (node >= _RGFW->monitors.data && node <= &_RGFW->monitors.data[RGFW_PREALLOCATED_MONITORS - 1]) {
+		/* move node to the free list */
+		if (_RGFW->monitors.freeList.head == NULL) {
+			_RGFW->monitors.freeList.head = node;
+		} else {
+			_RGFW->monitors.freeList.cur->next = node;
+		}
 
-	_RGFW->monitors.freeList.cur = node;
+		_RGFW->monitors.freeList.cur = node;
+	} else
+	{
+	#elif !defined(RGFW_NO_ALLOCATE_MONITORS)
+		RGFW_FREE(node);
+	#endif
+	}
 }
 
 void RGFW_monitors_refresh(void) {
@@ -4669,20 +4699,45 @@ RGFW_bool RGFW_monitor_setGamma(RGFW_monitor* monitor, float gamma) {
 }
 
 RGFW_monitor** RGFW_getMonitors(size_t* len) {
-	static RGFW_monitor* monitors[RGFW_MAX_MONITORS];
+	if (len != NULL) *len = 0;
+
+	size_t count = 0;
+	if (RGFW_getMonitorsPtr(0, NULL, &count) == RGFW_FALSE || count == 0) return NULL;
+
+	RGFW_monitor** monitors = (RGFW_monitor**)RGFW_ALLOC(sizeof(RGFW_monitor*) * count);
+
+	if (RGFW_getMonitorsPtr(count, monitors, &count) == RGFW_FALSE) {
+		RGFW_FREE(monitors);
+		return NULL;
+	}
+
+	if (len != NULL) *len = count;
+
+	return monitors;
+}
+
+RGFW_bool RGFW_getMonitorsPtr(size_t max, RGFW_monitor** monitors, size_t* len) {
 	RGFW_init();
 	if (len != NULL) {
 		*len = _RGFW->monitors.count;
 	}
 
-	u8 i = 0;
+	if (monitors == NULL || max == 0) return RGFW_TRUE;
+
+
+	if (len != NULL) {
+		*len = max;
+	}
+
+	size_t i = 0;
 	RGFW_monitorNode* cur_node = _RGFW->monitors.list.head;
-	while (cur_node != NULL) {
+	while (cur_node != NULL && i < max) {
 		monitors[i] = &cur_node->mon;
 		i++;
 		cur_node = cur_node->next;
 	}
-    return monitors;
+
+	return RGFW_TRUE;
 }
 
 RGFW_monitor* RGFW_getPrimaryMonitor(void) {
@@ -6682,12 +6737,10 @@ void RGFW_XHandleEvent(void) {
 		deltaY = 0.0f;
 	}
 
-#ifndef RGFW_NO_XRANDR
 	if (E.type == _RGFW->xrandrEventBase + RRNotify) {
 		RGFW_pollMonitors();
 		return;
 	}
-#endif
 
 	switch (E.type) {
 		case SelectionRequest:
@@ -7763,20 +7816,18 @@ void RGFW_XGetSystemContentDPI(float* dpi) {
 	if (dpi == NULL) return;
 	float dpiOutput = 96.0f;
 
-	#ifndef RGFW_NO_XRANDR
-		char* rms = XResourceManagerString(_RGFW->display);
-		if (rms == NULL) return;
+	char* rms = XResourceManagerString(_RGFW->display);
+	if (rms == NULL) return;
 
-		XrmDatabase db = XrmGetStringDatabase(rms);
-		if (db == NULL) return;
+	XrmDatabase db = XrmGetStringDatabase(rms);
+	if (db == NULL) return;
 
-		XrmValue value;
-		char* type = NULL;
+	XrmValue value;
+	char* type = NULL;
 
-		if (XrmGetResource(db, "Xft.dpi", "Xft.Dpi", &type, &value) && type && RGFW_STRNCMP(type, "String", 7) == 0)
-			dpiOutput = (float)RGFW_ATOF(value.addr);
-		XrmDestroyDatabase(db);
-	#endif
+	if (XrmGetResource(db, "Xft.dpi", "Xft.Dpi", &type, &value) && type && RGFW_STRNCMP(type, "String", 7) == 0)
+		dpiOutput = (float)RGFW_ATOF(value.addr);
+	XrmDestroyDatabase(db);
 
 	if (dpi) *dpi = dpiOutput;
 }
@@ -8021,7 +8072,6 @@ size_t RGFW_FUNC(RGFW_monitor_getModesPtr) (RGFW_monitor* monitor, RGFW_monitorM
 
 size_t RGFW_FUNC(RGFW_monitor_getGammaRampPtr) (RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
 	RGFW_UNUSED(monitor); RGFW_UNUSED(ramp);
-#ifndef RGFW_NO_XRANDR
 	size_t size = (size_t)XRRGetCrtcGammaSize(_RGFW->display, monitor->node->crtc);
 	XRRCrtcGamma* gamma = XRRGetCrtcGamma(_RGFW->display, monitor->node->crtc);
 
@@ -8033,15 +8083,11 @@ size_t RGFW_FUNC(RGFW_monitor_getGammaRampPtr) (RGFW_monitor* monitor, RGFW_gamm
 
 	XRRFreeGamma(gamma);
 	return size;
-#endif
-
-	return 0;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_setGammaRamp) (RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
 	RGFW_UNUSED(monitor); RGFW_UNUSED(ramp);
 
-#ifndef RGFW_NO_XRANDR
 	size_t size = (size_t)XRRGetCrtcGammaSize(_RGFW->display, monitor->node->crtc);
 	if (size != ramp->count) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errX11, "X11: Gamma ramp size must match current ramp size");
@@ -8058,8 +8104,6 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_setGammaRamp) (RGFW_monitor* monitor, RGFW_gamm
 	XRRFreeGamma(gamma);
 
 	return RGFW_TRUE;
-#endif
-	return RGFW_FALSE;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_setMode)(RGFW_monitor* mon, RGFW_monitorMode* mode) {
@@ -8078,7 +8122,6 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_setMode)(RGFW_monitor* mon, RGFW_monitorMode* m
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
-	#ifndef RGFW_NO_XRANDR
     RGFW_init();
 
 	RGFW_bool output = RGFW_FALSE;
@@ -8115,8 +8158,6 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor* mon, RGFW_monitorMod
 	XRRFreeCrtcInfo(ci);
     XRRFreeScreenResources(res);
 	return output;
-#endif
-	return RGFW_FALSE;
 }
 
 RGFW_monitor* RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
@@ -8501,12 +8542,10 @@ i32 RGFW_initPlatform_X11(void) {
 
 	XISelectEvents(_RGFW->display, XDefaultRootWindow(_RGFW->display), &em, 1);
 
-#ifndef RGFW_NO_XRANDR
 	i32 errorBase;
 	if (XRRQueryExtension(_RGFW->display, &_RGFW->xrandrEventBase, &errorBase)) {
         XRRSelectInput(_RGFW->display, RootWindow(_RGFW->display, DefaultScreen(_RGFW->display)), RROutputChangeNotifyMask);
 	}
-#endif
 
 	return 0;
 }
@@ -14196,14 +14235,17 @@ float RGFW_osx_getRefreshRate(CGDirectDisplayID display, CGDisplayModeRef mode) 
 }
 
 void RGFW_pollMonitors(void) {
-	static CGDirectDisplayID displays[RGFW_MAX_MONITORS];
 	u32 count;
 
-	if (CGGetActiveDisplayList(RGFW_MAX_MONITORS, displays, &count) != kCGErrorSuccess) {
+	if (CGGetActiveDisplayList(0, NULL, &count) != kCGErrorSuccess) {
 		return;
 	}
 
-	if (count > RGFW_MAX_MONITORS) count = RGFW_MAX_MONITORS;
+	CGDirectDisplayID* displays = (CGDirectDisplayID*)RGFW_ALLOC(sizeof(CGDirectDisplayID) * count);
+	if (CGGetActiveDisplayList(count, displays, &count) != kCGErrorSuccess) {
+		return;
+	}
+
 
 	for (RGFW_monitorNode* node = _RGFW->monitors.list.head; node; node = node->next) {
 		node->disconnected = RGFW_TRUE;
@@ -14274,6 +14316,8 @@ void RGFW_pollMonitors(void) {
 
 		RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_TRUE);
 	}
+
+	RGFW_FREE(displays);
 
 	RGFW_monitors_refresh();
 }

@@ -16,8 +16,8 @@
 # Features
 
 * **is** an stb-style single headerfile and is very portable
-* **is** primarly written in C99 in mind
-* **has** a C89 compatible API
+* **is** primarly written in C99 in mind, but supports C++, Objective-C/C++ and zig-cc compilation
+* **has** a C89 compatible API on going changes to make the implementation more C89 friendly
 * **is** a flexible and can be used in multiple ways to best fit your use case
 * **is** very small compared to other libraries
 * **is** a general framework and can be used for games, apps or tools
@@ -27,6 +27,7 @@
 * **does** work with X11 (UNIX), Wayland (*experimental*) (LINUX), Cocoa (MacOS), Emscripten (WASM) and WinAPI (tested on windows *XP*, 10, 11, reactOS and has limited 9x support)
 * **is** multi-paradigm, with a flexible event system, including multiple ways of handling events (callbacks, queue, state lookups)
 * **does** include a large number of examples for learning RGFW
+* **has** direct support for multiple compilers, gcc, clang, zig-cc, msvc (cl.exe) and emscripten c compiler (emcc).
 
 * does **not** handle any rendering for you (other than creating your graphics context)
 * is **not** an OpenGL focused library, RGFW can be used with ANY graphics API
