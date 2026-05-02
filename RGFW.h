@@ -166,7 +166,7 @@ int main() {
 	#pragma comment(lib, "User32")
 	#pragma comment(lib, "Advapi32")
     #pragma warning( push )
-	#pragma warning( disable : 4995 4191 4127)
+	#pragma warning( disable : 4996 4191 4127)
     #if _MSC_VER < 600
         #define RGFW_C89
     #endif
@@ -1876,7 +1876,7 @@ RGFWDEF RGFW_bool RGFW_window_getDataDrag(RGFW_window* win, i32* x, i32* y);
 RGFWDEF RGFW_bool RGFW_window_didDataDrop(RGFW_window* win);
 
 /**!
- * @brief retrieves datta from a data drop (drag and drop)
+ * @brief retrieves data from a data drop (drag and drop)
  * @param win a pointer to the target window
  * @return a valid pointer to the root drag node if a data drop occurred, NULL otherwise
 */
