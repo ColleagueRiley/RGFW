@@ -41,6 +41,7 @@
 
 	#define RGFW_X11 (optional) (unix only) if X11 should be used. This option is turned on by default by unix systems except for MacOS
 	#define RGFW_WAYLAND (optional) (unix only) use Wayland. (This can be used with X11)
+	#define RGFW_NO_STATIC_CONTEXT - do not initalizize with a static variable, use the heap if RGFW is not manually initalized
 	#define RGFW_NO_X11 (optional) (unix only) don't fallback to X11 when using Wayland
 	#define RGFW_NO_LOAD_WGL (optional) (windows only) if WGL should be loaded dynamically during runtime
 	#define RGFW_NO_X11_CURSOR (optional) (unix only) don't use XCursor
@@ -2747,14 +2748,14 @@ RGFWDEF RGFW_key RGFW_physicalToMappedKey(RGFW_key keycode);
 RGFWDEF size_t RGFW_sizeofInfo(void);
 
 /**!
- * @brief Initializes the RGFW library.
+ * @brief Initializes the RGFW library internally.
  * @return 0 on success, or a negative error code on failure.
  * @note This is automatically called when the first window is created.
 */
 RGFWDEF i32 RGFW_init(void);
 
 /**!
- * @brief Deinitializes the RGFW library.
+ * @brief Deinitializes the current instance of the RGFW library.
  * @note This is automatically called when the last open window is closed.
 */
 RGFWDEF void RGFW_deinit(void);
@@ -3843,12 +3844,39 @@ RGFW_bool RGFW_window_getSizeInPixels(RGFW_window* win, i32* w, i32* h) {
 	#include "XDL.h"
 #endif
 
-#ifndef RGFW_FORCE_INIT
-RGFW_info _rgfwGlobal;
-#endif
+#ifndef RGFW_NO_STATIC_CONTEXT
 
-i32 RGFW_init(void) { return RGFW_init_ptr(&_rgfwGlobal); }
-void RGFW_deinit(void) { RGFW_deinit_ptr(&_rgfwGlobal); }
+i32 RGFW_init(void) {
+	static RGFW_info _rgfwGlobal;
+	return RGFW_init_ptr(&_rgfwGlobal);
+}
+
+
+void RGFW_deinit(void) { RGFW_deinit_ptr(_RGFW); }
+
+#else
+
+RGFW_info* _rgfwGlobal;
+
+i32 RGFW_init(void) {
+	if (_rgfwGlobal != NULL) {
+		RGFW_FREE(_rgfwGlobal);
+	}
+
+	_rgfwGlobal = (RGFW_info*)RGFW_ALLOC(sizeof(RGFW_info));
+
+	return RGFW_init_ptr(&_rgfwGlobal);
+}
+
+void RGFW_deinit(void) {
+	if (_RGFW == _rgfwGlobal) {
+		RGFW_FREE(_rgfwGlobal);
+		_rgfwGlobal = NULL;
+	}
+	RGFW_deinit_ptr(_RGFW);
+}
+
+#endif
 
 i32 RGFW_initPlatform(void);
 void RGFW_deinitPlatform(void);
