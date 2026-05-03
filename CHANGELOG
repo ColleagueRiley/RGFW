@@ -120,6 +120,8 @@ Additional labels for pre-release and build metadata are available as extensions
 - have `RGFW_dataDropEvent` hold one piece of `RGFW_dataDropNode` information rather than an array of strings
 - add `RGFW_setBuildDND` to toggle building a dnd tree (for state checking)
 - add `RGFW_XDND_VERSION` to specify the max xdnd version
+- add `RGFW_NO_STATIC_CONTEXT` so that way the global context is allocated on the heap instead of the stack, if it's not initialized manually
+- make `RGFW_deinit` deinitialize the current set context (`_RGFW`)
 
 Release:    RGFW 1.8.0
 -----------------------------------------------
