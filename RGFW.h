@@ -2610,7 +2610,11 @@ RGFWDEF RGFW_bool RGFW_extensionSupportedPlatform_EGL(const char* extension, siz
 #endif
 
 #ifdef RGFW_VULKAN
+#ifndef RGFW_USE_VOLK
 #include <vulkan/vulkan.h>
+#else
+#include <Volk/volk.h>
+#endif
 
 /* if you don't want to use the above macros */
 
