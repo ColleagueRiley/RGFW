@@ -60,7 +60,7 @@
 	#define RGFW_NO_INFO - do not define the RGFW_info struct (without RGFW_IMPLEMENTATION)
 	#define RGFW_NO_GLXWINDOW - do not use GLXWindow
 	#define RGFW_NO_ALLOCATE_MONITORS - do not allocate monitors on the heap at all (when there's no pre-allocated space left)
-	#define RGFW_PREALLOCATED_MONITORS x - choose the default amount of pre-allocated monitors (can be zero)
+	#define RGFW_NO_INCLUDE_VULKAN - do not include the Vulkan.h header, you have to include it yourself
 
 	#define RGFW_ALLOC x  - choose the default allocation function (defaults to standard malloc)
 	#define RGFW_FREE x  - choose the default deallocation function (defaults to standard free)
@@ -71,6 +71,8 @@
 
 	#define RGFW_USE_INT - force the use c-types rather than stdint.h (for systems that might not have stdint.h (msvc))
 	#define RGFW_bool x - choose what type to use for bool, by default u32 is used
+
+	#define RGFW_PREALLOCATED_MONITORS x - choose the default amount of pre-allocated monitors (can be zero)
 */
 
 /*
@@ -2610,7 +2612,9 @@ RGFWDEF RGFW_bool RGFW_extensionSupportedPlatform_EGL(const char* extension, siz
 #endif
 
 #ifdef RGFW_VULKAN
-#include <vulkan/vulkan.h>
+#ifndef RGFW_NO_INCLUDE_VULKAN
+	#include <vulkan/vulkan.h>
+#endif
 
 /* if you don't want to use the above macros */
 

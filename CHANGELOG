@@ -122,6 +122,7 @@ Additional labels for pre-release and build metadata are available as extensions
 - add `RGFW_XDND_VERSION` to specify the max xdnd version
 - add `RGFW_NO_STATIC_CONTEXT` so that way the global context is allocated on the heap instead of the stack, if it's not initialized manually
 - make `RGFW_deinit` deinitialize the current set context (`_RGFW`)
+- add `RGFW_NO_INCLUDE_VULKAN` to let the user include vulkan themselves before RGFW.h (based on @Tiwann's Volk PR)
 
 Release:    RGFW 1.8.0
 -----------------------------------------------

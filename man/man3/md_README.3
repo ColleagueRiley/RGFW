@@ -1,4 +1,4 @@
-.TH "md_README" 3 "Sun May 3 2026" "RGFW" \" -*- nroff -*-
+.TH "md_README" 3 "Tue May 5 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -18,19 +18,17 @@ md_README \- Riley's General Framework for Windowing
 .SH "Features"
 .PP
 .IP "\(bu" 2
-\fBis\fP an stb-style single headerfile and is very portable
-.IP "\(bu" 2
 \fBis\fP primarly written in C99 in mind, but supports C++, Objective-C/C++ and zig-cc compilation
 .IP "\(bu" 2
-\fBhas\fP a C89 compatible API on going changes to make the implementation more C89 friendly
+\fBhas\fP a C89 compatible API
 .IP "\(bu" 2
 \fBis\fP a flexible and can be used in multiple ways to best fit your use case
 .IP "\(bu" 2
-\fBis\fP very small compared to other libraries
+\fBis\fP small compared to other windowing libraries
 .IP "\(bu" 2
 \fBis\fP a general framework and can be used for games, apps or tools
 .IP "\(bu" 2
-\fBdoes\fP only depend on system API libraries, Winapi, X11, Cocoa, etc \fBNO\fP dependencies
+\fBdoes\fP only depend on system API libraries, Winapi, X11, Cocoa, etc \fBNO\fP external dependencies
 .IP "\(bu" 2
 \fBdoes\fP help you create a window with a graphics context (OpenGL, Vulkan, WebGPU, Metal, or DirectX) and manage the window and its events only with a few function calls
 .IP "\(bu" 2
@@ -47,11 +45,9 @@ md_README \- Riley's General Framework for Windowing
 does \fBnot\fP handle any rendering for you (other than creating your graphics context)
 .IP "\(bu" 2
 is \fBnot\fP an OpenGL focused library, RGFW can be used with ANY graphics API
-.IP "\(bu" 2
-does \fBnot\fP do anything above the bare minimum in terms of functionality
 .PP
 .PP
-There is a Makefile including for compiling the examples\&. NOTE: \fCWAYLAND=1\fP OR can be defined to compile for wayland\&. \fCWAYLAND_X11=1\fP can be used instead if you want examples to fallback to X11 if a Wayland display is not found\&. This adds \fC#define RGFW_WAYLAND\fP in the implementation (or defines \fCRGFW_WAYLAND\fP AND \fCRGFW_X11\fP)
+There is a Makefile including for compiling the examples\&. NOTE: \fCWAYLAND=1\fP can be defined to compile for wayland\&. \fCWAYLAND_X11=1\fP can be used instead if you want examples to fallback to X11 if a Wayland display is not found\&. This adds \fC#define RGFW_WAYLAND\fP in the implementation (or defines \fCRGFW_WAYLAND\fP AND \fCRGFW_X11\fP)
 .PP
 Included in the framework are helper functions for multiple rendering APIs OpenGL (Native, EGL, GLES), Vulkan, DirectX, \fCMetal\fP and WebGPU, you can also easily blit raw data directly onto the window with the \fCRGFW_surface\fP object using \fCRGFW_window_blitSurface\fP\&.
 .PP
@@ -121,10 +117,7 @@ macos : gcc main\&.c -framework Cocoa
 .PP
 .SS "other examples"
 .PP
-You can find more examples [here](examples) or \fCrun it in your browser\fP with emscripten
-.SH "Supported GUI libraries"
-.PP
-A list of GUI libraries that can be used with RGFW can be found on the RGFW wiki \fChere\fP
+You can find more examples [here](examples) or \fCrun them in your browser\fP with emscripten
 .SH "Documentation"
 .PP
 There is a lot of in-header-documentation, but more documentation can be found at https://colleagueriley.github.io/RGFW/docs/index.html If you wish to build the documentation yourself, there is also a Doxygen file attached\&.
@@ -142,8 +135,6 @@ email : ColleagueRiley@gmail.com
 discord : ColleagueRiley
 .IP "\(bu" 2
 discord server : https://discord.gg/pXVNgVVbvh
-.IP "\(bu" 2
-matrix space: https://matrix.to/#/#rsgl-is-sili:matrix.org
 .IP "\(bu" 2
 BlueSky https://bsky.app/profile/colleagueriley.bsky.social
 .IP "\(bu" 2
