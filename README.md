@@ -15,13 +15,12 @@
 
 # Features
 
-* **is** an stb-style single headerfile and is very portable
 * **is** primarly written in C99 in mind, but supports C++, Objective-C/C++ and zig-cc compilation
-* **has** a C89 compatible API on going changes to make the implementation more C89 friendly
+* **has** a C89 compatible API
 * **is** a flexible and can be used in multiple ways to best fit your use case
-* **is** very small compared to other libraries
+* **is** small compared to other windowing libraries
 * **is** a general framework and can be used for games, apps or tools
-* **does** only depend on system API libraries, Winapi, X11, Cocoa, etc **NO** dependencies
+* **does** only depend on system API libraries, Winapi, X11, Cocoa, etc **NO** external dependencies
 * **does** help you create a window with a graphics context (OpenGL, Vulkan, WebGPU, Metal, or DirectX) and manage the window and its events only with a few function calls
 * **is** customizable, you enable or disable features
 * **does** work with X11 (UNIX), Wayland (*experimental*) (LINUX), Cocoa (MacOS), Emscripten (WASM) and WinAPI (tested on windows *XP*, 10, 11, reactOS and has limited 9x support)
@@ -31,11 +30,9 @@
 
 * does **not** handle any rendering for you (other than creating your graphics context)
 * is **not** an OpenGL focused library, RGFW can be used with ANY graphics API
-* does **not** do anything above the bare minimum in terms of functionality
 
 
-
-There is a Makefile including for compiling the examples. NOTE: `WAYLAND=1` OR  can be defined to compile for wayland. `WAYLAND_X11=1` can be used instead if you want examples to fallback to X11 if a Wayland display is not found. This adds `#define RGFW_WAYLAND` in the implementation (or defines `RGFW_WAYLAND` AND `RGFW_X11`)
+There is a Makefile including for compiling the examples. NOTE: `WAYLAND=1` can be defined to compile for wayland. `WAYLAND_X11=1` can be used instead if you want examples to fallback to X11 if a Wayland display is not found. This adds `#define RGFW_WAYLAND` in the implementation (or defines `RGFW_WAYLAND` AND `RGFW_X11`)
 
 Included in the framework are helper functions for multiple rendering APIs OpenGL (Native, EGL, GLES), Vulkan, DirectX, [Metal](https://github.com/ColleagueRiley/RGFW/blob/main/examples/metal/metal.m) and WebGPU, you can also easily blit raw data directly onto the window with the `RGFW_surface` object using `RGFW_window_blitSurface`.
 
@@ -105,10 +102,7 @@ macos : gcc main.c -framework Cocoa
 ## other examples
 ![examples](screenshot.PNG)
 
-You can find more examples [here](examples) or [run it in your browser](https://colleagueriley.github.io/RGFW/) with emscripten
-
-# Supported GUI libraries
-A list of GUI libraries that can be used with RGFW can be found on the RGFW wiki [here](https://github.com/colleagueriley/RGFW/wiki/GUI-libraries-that-can-be-used-with-RGFW)
+You can find more examples [here](examples) or [run them in your browser](https://colleagueriley.github.io/RGFW/) with emscripten
 
 # Documentation
 There is a lot of in-header-documentation, but more documentation can be found at https://colleagueriley.github.io/RGFW/docs/index.html
@@ -124,7 +118,6 @@ A list of projects that use RGFW can be found on the RGFW wiki [here](https://gi
 - email : ColleagueRiley@gmail.com
 - discord : ColleagueRiley
 - discord server : https://discord.gg/pXVNgVVbvh
-- matrix space: https://matrix.to/#/#rsgl-is-sili:matrix.org
 - BlueSky https://bsky.app/profile/colleagueriley.bsky.social
 - Twitter/X : https://x.com/ColleagueRiley
 
