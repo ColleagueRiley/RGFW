@@ -2753,7 +2753,7 @@ RGFWDEF size_t RGFW_sizeofInfo(void);
 
 /**!
  * @brief Initializes the RGFW library internally.
- * @return 0 on success, or a negative error code on failure.
+ * @return 0 on success, a negative number error error on failure.
  * @note This is automatically called when the first window is created.
 */
 RGFWDEF i32 RGFW_init(void);
@@ -2767,7 +2767,7 @@ RGFWDEF void RGFW_deinit(void);
 /**!
  * @brief Initializes RGFW using a user-provided RGFW_info structure.
  * @param info A pointer to an RGFW_info structure to be used for initialization.
- * @return 0 on success, or a negative error code on failure.
+ * @return  0 on success, a negative number error error on failure and a positive number for a warning.
 */
 RGFWDEF i32 RGFW_init_ptr(RGFW_info* info);
 
@@ -3094,9 +3094,6 @@ typedef struct RGFW_monitors {
 	#endif
 } RGFW_monitors;
 
-RGFWDEF RGFW_monitorNode* RGFW_monitors_add(const RGFW_monitor* mon);
-RGFWDEF void RGFW_monitors_remove(RGFW_monitorNode* node, RGFW_monitorNode* prev);
-
 struct RGFW_info {
     RGFW_window* root;
     i32 windowCount;
@@ -3246,7 +3243,10 @@ RGFWDEF void RGFW_keyUpdateKeyModsEx(RGFW_window* win, RGFW_bool capital, RGFW_b
 RGFWDEF void RGFW_keyUpdateKeyMods(RGFW_window* win, RGFW_bool capital, RGFW_bool numlock, RGFW_bool scroll);
 RGFWDEF void RGFW_window_showMouseFlags(RGFW_window* win, RGFW_bool show);
 RGFWDEF void RGFW_keyUpdateKeyMod(RGFW_window* win, RGFW_keymod mod, RGFW_bool value);
+
 RGFWDEF void RGFW_monitors_refresh(void);
+RGFWDEF RGFW_monitorNode* RGFW_monitors_add(const RGFW_monitor* mon);
+RGFWDEF void RGFW_monitors_remove(RGFW_monitorNode* node, RGFW_monitorNode* prev);
 
 RGFWDEF void RGFW_windowMaximizedCallback(RGFW_window* win, i32 x, i32 y, i32 w, i32 h);
 RGFWDEF void RGFW_windowMinimizedCallback(RGFW_window* win);
@@ -4774,6 +4774,7 @@ RGFW_bool RGFW_getMonitorsPtr(size_t max, RGFW_monitor** monitors, size_t* len) 
 }
 
 RGFW_monitor* RGFW_getPrimaryMonitor(void) {
+	RGFW_init();
 	if (_RGFW->monitors.primary == NULL) {
 		_RGFW->monitors.primary = _RGFW->monitors.list.head;
 	}
@@ -9482,7 +9483,7 @@ i32 RGFW_initPlatform_Wayland(void) {
 
 	if (_RGFW->compositor == NULL) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errWayland, "Can't find compositor.");
-		return 1;
+		return -1;
 	}
 
 	if (_RGFW->wl_cursor_theme == NULL) {
@@ -11232,7 +11233,7 @@ i32 RGFW_initPlatform(void) {
 
 	u8 RGFW_blk[] = { 0, 0, 0, 0 };
 	_RGFW->hiddenMouse = RGFW_createMouse(RGFW_blk, 1, 1, RGFW_formatRGBA8);
-    return 1;
+    return 0;
 }
 
 RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags, RGFW_window* win) {
