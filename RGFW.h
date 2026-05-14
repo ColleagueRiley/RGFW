@@ -9934,10 +9934,32 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 
 	/* read the events; if empty this reads from the */
 	/* wayland file descriptor */
-	if (wl_display_dispatch(_RGFW->wl_display) == -1) {
-		return;
-	}
+	struct pollfd fds;
+	memset(&fds, 0, sizeof(fds));
+    fds.fd = wl_display_get_fd(_RGFW->wl_display);
+    fds.events = POLLIN;
+    fds.revents = 0;
 
+    while (1) {
+        while (wl_display_prepare_read(_RGFW->wl_display) != 0) {
+            if (wl_display_dispatch_pending(_RGFW->wl_display) > 0)
+                return;
+        }
+
+        if (poll(&fds, 1, 0) == 0) {
+            wl_display_cancel_read(_RGFW->wl_display);
+            return;
+        }
+
+        if (fds.revents & POLLIN) {
+            wl_display_read_events(_RGFW->wl_display);
+            if (wl_display_dispatch_pending(_RGFW->wl_display) > 0) {
+				return;
+			}
+		} else {
+            wl_display_cancel_read(_RGFW->wl_display);
+		}
+	}
 }
 
 void RGFW_FUNC(RGFW_window_move) (RGFW_window* win, i32 x, i32 y) {
@@ -15776,8 +15798,8 @@ typedef struct RGFW_FunctionPointers {
     RGFW_window_setName_ptr window_setName;
     RGFW_window_setMousePassthrough_ptr window_setMousePassthrough;
     RGFW_window_setIconEx_ptr window_setIconEx;
-    RGFW_createMouse_ptr loadMouse;
-    RGFW_createMouseStandard_ptr loadMouseStandard;
+    RGFW_createMouse_ptr createMouse;
+    RGFW_createMouseStandard_ptr createMouseStandard;
     RGFW_window_setMousePlatform_ptr window_setMousePlatform;
     RGFW_window_moveMouse_ptr window_moveMouse;
     RGFW_window_hide_ptr window_hide;
@@ -15848,8 +15870,8 @@ void RGFW_window_setMousePassthrough(RGFW_window* win, RGFW_bool passthrough) { 
 #endif
 
 RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_format format, u8 type) { return RGFW_api.window_setIconEx(win, data, w, h, format, type); }
-RGFW_mouse* RGFW_createMouse(u8* data, i32 w, i32 h, RGFW_format format) { return RGFW_api.loadMouse(data, w, h, format); }
-RGFW_mouse* RGFW_createMouseStandard(RGFW_mouseIcon icon) { return RGFW_api.loadMouseStandard(icon); }
+RGFW_mouse* RGFW_createMouse(u8* data, i32 w, i32 h, RGFW_format format) { return RGFW_api.createMouse(data, w, h, format); }
+RGFW_mouse* RGFW_createMouseStandard(RGFW_mouseIcon icon) { return RGFW_api.createMouseStandard(icon); }
 RGFW_bool RGFW_window_setMousePlatform(RGFW_window* win, RGFW_mouse* mouse) { return RGFW_api.window_setMousePlatform(win, mouse); }
 void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) { RGFW_api.window_moveMouse(win, x, y); }
 void RGFW_window_hide(RGFW_window* win) { RGFW_api.window_hide(win); }
@@ -15925,7 +15947,8 @@ void RGFW_load_X11(void) {
     RGFW_api.window_setMousePassthrough = RGFW_window_setMousePassthrough_X11;
 #endif
     RGFW_api.window_setIconEx = RGFW_window_setIconEx_X11;
-    RGFW_api.loadMouse = RGFW_createMouse_X11;
+    RGFW_api.createMouse = RGFW_createMouse_X11;
+	RGFW_api.createMouseStandard = RGFW_createMouseStandard_X11;
     RGFW_api.window_setMousePlatform = RGFW_window_setMousePlatform_X11;
     RGFW_api.window_moveMouse = RGFW_window_moveMouse_X11;
     RGFW_api.window_hide = RGFW_window_hide_X11;
@@ -15992,7 +16015,8 @@ void RGFW_load_Wayland(void) {
     RGFW_api.window_setMousePassthrough = RGFW_window_setMousePassthrough_Wayland;
 #endif
     RGFW_api.window_setIconEx = RGFW_window_setIconEx_Wayland;
-	RGFW_api.loadMouse = RGFW_createMouse_Wayland;
+    RGFW_api.createMouse = RGFW_createMouse_Wayland;
+	RGFW_api.createMouseStandard = RGFW_createMouseStandard_Wayland;
     RGFW_api.window_setMousePlatform = RGFW_window_setMousePlatform_Wayland;
     RGFW_api.window_moveMouse = RGFW_window_moveMouse_Wayland;
     RGFW_api.window_hide = RGFW_window_hide_Wayland;
