@@ -9912,12 +9912,6 @@ RGFW_bool RGFW_FUNC(RGFW_window_fetchSize) (RGFW_window* win, i32* w, i32* h) {
 void RGFW_FUNC(RGFW_pollEvents) (void) {
 	RGFW_resetPrevState();
 
-	while (wl_display_prepare_read(_RGFW->wl_display) == 0) {
-		if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
-			return;
-		}
-	}
-
 	/* send buffered requests to compositor */
 	while (wl_display_flush(_RGFW->wl_display) == -1) {
 		/* compositor not responding to new requests */
