@@ -6417,7 +6417,17 @@ void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
 }
 
 void RGFW_FUNC(RGFW_window_setRawMouseModePlatform) (RGFW_window* win, RGFW_bool state) {
-	RGFW_UNUSED(win); RGFW_UNUSED(state);
+	RGFW_UNUSED(win);
+	unsigned char mask[XIMaskLen(XI_RawMotion)];
+	RGFW_MEMZERO(mask, sizeof(mask));
+	if (state) XISetMask(mask, XI_RawMotion);
+
+	XIEventMask em;
+	em.deviceid = XIAllMasterDevices;
+	em.mask_len = sizeof(mask);
+	em.mask = mask;
+
+	XISelectEvents(_RGFW->display, XDefaultRootWindow(_RGFW->display), &em, 1);
 }
 
 void RGFW_FUNC(RGFW_window_captureMousePlatform) (RGFW_window* win, RGFW_bool state) {
@@ -8564,17 +8574,6 @@ i32 RGFW_initPlatform_X11(void) {
 
 	XSetLocaleModifiers("");
 	XRegisterIMInstantiateCallback(_RGFW->display, NULL, NULL, NULL, RGFW_x11_imInitCallback, NULL);
-
-	unsigned char mask[XIMaskLen(XI_RawMotion)];
-	RGFW_MEMZERO(mask, sizeof(mask));
-	XISetMask(mask, XI_RawMotion);
-
-	XIEventMask em;
-	em.deviceid = XIAllMasterDevices;
-	em.mask_len = sizeof(mask);
-	em.mask = mask;
-
-	XISelectEvents(_RGFW->display, XDefaultRootWindow(_RGFW->display), &em, 1);
 
 	i32 errorBase;
 	if (XRRQueryExtension(_RGFW->display, &_RGFW->xrandrEventBase, &errorBase)) {
