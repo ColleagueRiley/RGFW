@@ -15407,7 +15407,6 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	attrs.failIfMajorPerformanceCaveat = EM_FALSE;
 
 	attrs.enableExtensionsByDefault = EM_TRUE;
-	attrs.explicitSwapControl = EM_TRUE;
 
 	if (hints->profile == RGFW_glWeb) {
 		attrs.majorVersion = (hints->major == 0) ? 1 : hints->major;
@@ -15417,7 +15416,25 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 		attrs.minorVersion = hints->minor;
 	}
 
+	attrs.explicitSwapControl = EM_TRUE;
 	win->src.ctx.native->ctx = emscripten_webgl_create_context("#canvas", &attrs);
+
+	if (win->src.ctx.native->ctx == 0) {
+		RGFW_debugCallback(RGFW_typeError, RGFW_warningOpenGL, "WebGL: Failed to create an OpenGL Context with explicit swap control.");
+		attrs.explicitSwapControl = EM_FALSE;
+		win->src.ctx.native->ctx = emscripten_webgl_create_context("#canvas", &attrs);
+	}
+
+	if (win->src.ctx.native->ctx == 0) {
+		RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to create an OpenGL Context with the requested attributes, falling back to defaults.");
+		win->src.ctx.native->ctx = emscripten_webgl_create_context("#canvas", &attrs);
+	}
+
+	if (win->src.ctx.native->ctx == 0) {
+		RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to create an OpenGL Context.");
+		return RGFW_FALSE;
+	}
+
 	emscripten_webgl_make_context_current(win->src.ctx.native->ctx);
 
 	#ifdef LEGACY_GL_EMULATION
