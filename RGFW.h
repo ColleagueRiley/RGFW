@@ -6417,6 +6417,7 @@ void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
 }
 
 void RGFW_FUNC(RGFW_window_setRawMouseModePlatform) (RGFW_window* win, RGFW_bool state) {
+	RGFW_UNUSED(win);
 	unsigned char mask[XIMaskLen(XI_RawMotion)];
 	RGFW_MEMZERO(mask, sizeof(mask));
 	if (state) XISetMask(mask, XI_RawMotion);
