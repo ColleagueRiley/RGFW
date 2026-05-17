@@ -14136,7 +14136,7 @@ $(function() {
 <div class="line"><a id="l15419" name="l15419"></a><span class="lineno">15419</span>        attrs.majorVersion = (hints-&gt;major == 0) ? 1 : hints-&gt;major;</div>
 <div class="line"><a id="l15420" name="l15420"></a><span class="lineno">15420</span>        attrs.minorVersion = hints-&gt;minor;</div>
 <div class="line"><a id="l15421" name="l15421"></a><span class="lineno">15421</span>    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l15422" name="l15422"></a><span class="lineno">15422</span>        attrs.majorVersion = (hints-&gt;major == 0) ? 1 : hints-&gt;major - 1;</div>
+<div class="line"><a id="l15422" name="l15422"></a><span class="lineno">15422</span>        attrs.majorVersion = (hints-&gt;major == 0) ? 1 : ( (hints-&gt;major &gt; 1) ? hints-&gt;major - 1 : hints-&gt;major );</div>
 <div class="line"><a id="l15423" name="l15423"></a><span class="lineno">15423</span>        attrs.minorVersion = hints-&gt;minor;</div>
 <div class="line"><a id="l15424" name="l15424"></a><span class="lineno">15424</span>    }</div>
 <div class="line"><a id="l15425" name="l15425"></a><span class="lineno">15425</span> </div>
