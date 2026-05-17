@@ -10501,9 +10501,9 @@ $(function() {
 <div class="line"><a id="l11783" name="l11783"></a><span class="lineno">11783</span>    node-&gt;mon.y = monitorInfo.rcMonitor.top;</div>
 <div class="line"><a id="l11784" name="l11784"></a><span class="lineno">11784</span> </div>
 <div class="line"><a id="l11785" name="l11785"></a><span class="lineno">11785</span>    HDC hdc = CreateDCW(monitorInfo.szDevice, NULL, NULL, NULL);</div>
-<div class="line"><a id="l11786" name="l11786"></a><span class="lineno">11786</span>    <span class="comment">/* get pixels per inch */</span></div>
+<div class="line"><a id="l11786" name="l11786"></a><span class="lineno">11786</span> </div>
 <div class="line"><a id="l11787" name="l11787"></a><span class="lineno">11787</span>    <span class="keywordtype">float</span> dpiX = (float)GetDeviceCaps(hdc, LOGPIXELSX);</div>
-<div class="line"><a id="l11788" name="l11788"></a><span class="lineno">11788</span>    <span class="keywordtype">float</span> dpiY = (float)GetDeviceCaps(hdc, LOGPIXELSX);</div>
+<div class="line"><a id="l11788" name="l11788"></a><span class="lineno">11788</span>    <span class="keywordtype">float</span> dpiY = (float)GetDeviceCaps(hdc, LOGPIXELSY);</div>
 <div class="line"><a id="l11789" name="l11789"></a><span class="lineno">11789</span> </div>
 <div class="line"><a id="l11790" name="l11790"></a><span class="lineno">11790</span>    node-&gt;mon.scaleX = dpiX / 96.0f;</div>
 <div class="line"><a id="l11791" name="l11791"></a><span class="lineno">11791</span>    node-&gt;mon.scaleY = dpiY / 96.0f;</div>
