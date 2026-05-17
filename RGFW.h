@@ -11783,9 +11783,9 @@ void RGFW_win32_createMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd) {
 	node->mon.y = monitorInfo.rcMonitor.top;
 
 	HDC hdc = CreateDCW(monitorInfo.szDevice, NULL, NULL, NULL);
-	/* get pixels per inch */
+
 	float dpiX = (float)GetDeviceCaps(hdc, LOGPIXELSX);
-	float dpiY = (float)GetDeviceCaps(hdc, LOGPIXELSX);
+	float dpiY = (float)GetDeviceCaps(hdc, LOGPIXELSY);
 
 	node->mon.scaleX = dpiX / 96.0f;
 	node->mon.scaleY = dpiY / 96.0f;
