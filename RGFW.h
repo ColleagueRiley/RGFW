@@ -15419,7 +15419,7 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 		attrs.majorVersion = (hints->major == 0) ? 1 : hints->major;
 		attrs.minorVersion = hints->minor;
 	} else {
-		attrs.majorVersion = (hints->major == 0) ? 1 : hints->major - 1;
+		attrs.majorVersion = (hints->major == 0) ? 1 : ( (hints->major > 1) ? hints->major - 1 : hints->major );
 		attrs.minorVersion = hints->minor;
 	}
 
