@@ -1,4 +1,13 @@
-#ifndef RGL_H
+#if !defined(RGL_H) && defined(__EMSCRIPTEN__)
+	#include <GLES3/gl3.h>
+
+	typedef void (*RGLapiproc)(void);
+	typedef RGLapiproc (*RGLloadfunc)(const char *name);
+
+	extern int RGL_loadGL3(RGLloadfunc proc);
+#endif
+
+#if !defined(RGL_H) && !defined(__EMSCRIPTEN__)
 #define RGL_H
 
 #ifndef __APPLE__
@@ -221,12 +230,17 @@ glViewportPROC glViewportSRC = NULL;
 #define glViewport glViewportSRC
 
 extern int RGL_loadGL3(RGLloadfunc proc);
+#endif /* ndef RGL_H */
 
+#if defined(RGL_LOAD_IMPLEMENTATION) && defined(__EMSCRIPTEN__)
+
+int RGL_loadGL3(RGLloadfunc proc) { return 0; }
+
+#elif defined(RGL_LOAD_IMPLEMENTATION) && !defined(__EMSCRIPTEN__)
 #include <stdio.h>
 
 const GLubyte * gluErrorString(	GLenum error);
 
-#ifdef RGL_LOAD_IMPLEMENTATION
 int RGL_loadGL3(RGLloadfunc proc) {
     RGL_PROC_DEF(proc, glShaderSource);
     RGL_PROC_DEF(proc, glCreateShader);
@@ -306,6 +320,5 @@ int RGL_loadGL3(RGLloadfunc proc) {
     glDeleteVertexArraysSRC(1, &vao);
     return 0;
 }
-#endif
 #endif
 

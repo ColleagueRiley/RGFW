@@ -5,16 +5,19 @@
 #define RGFW_PRINT_ERRORS
 #define RGFW_DEBUG
 #define GL_SILENCE_DEPRECATION
+#define RGL_LOAD_IMPLEMENTATION
+
 #include <RGFW.h>
 
-#ifndef __EMSCRIPTEN__
-#define RGL_LOAD_IMPLEMENTATION
 #include "rglLoad.h"
+
+#ifdef RGFW_WASM
+	#define GLES_VERSION "\x23version 300 es\n"
 #else
-#include <GLES3/gl3.h>
+	#define GLES_VERSION "\x23version 330 core\n"
 #endif
 
-#define MULTILINE_STR(...) #__VA_ARGS__
+#define MULTILINE_STR(...) GLES_VERSION #__VA_ARGS__
 
 #include <stdbool.h>
 
@@ -22,10 +25,7 @@
 const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
 
-#ifndef __EMSCRIPTEN__
 const char *vertexShaderSource = MULTILINE_STR(
-
-\x23version 330 core\n
 layout (location = 0) in vec3 aPos;
 void main()
 {
@@ -34,28 +34,13 @@ void main()
 );
 
 const char *fragmentShaderSource = MULTILINE_STR(
-\x23version 330 core\n
+precision mediump float;
 out vec4 FragColor;
 void main()
 {
     FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
 }
 );
-#else
-   const char *vertexShaderSource = MULTILINE_STR(
-      attribute vec3 aPos;
-      void main() {
-         gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-      }
-   );
-
-  const char *fragmentShaderSource = MULTILINE_STR(
-      void main() {
-        gl_FragColor = vec4(1.0, 0.5, 0.2, 1.0);
-      }
-    );
-#endif
-
 
 int main(void) {
     RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
@@ -72,12 +57,10 @@ int main(void) {
     RGFW_window_setExitKey(window, RGFW_keyEscape);
     RGFW_window_makeCurrentContext_OpenGL(window);
 
-    #ifndef RGFW_WASM
     if (RGL_loadGL3((RGLloadfunc)RGFW_getProcAddress_OpenGL)) {
         printf("Failed to initialize GLAD\n");
         return -1;
     }
-    #endif
 
     unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
