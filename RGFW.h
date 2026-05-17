@@ -14998,6 +14998,8 @@ void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(char* file, size_t size) {
 	RGFW_dataDropCallback(_RGFW->root, file, size, RGFW_dataFile);
 }
 
+void EMSCRIPTEN_KEEPALIVE RGFW_webFree(void* ptr) { free(ptr); }
+
 void RGFW_stopCheckEvents(void) {
 	_RGFW->stopCheckEvents_bool = RGFW_TRUE;
 }
@@ -15218,7 +15220,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 				}
 
 				Module._RGFW_handleKeyEvent(code, codepoint, 1);
-				_free(code);
+				Module._RGFW_webFree(code);
 			},
 		true);
 		window.addEventListener("keyup",
@@ -15226,7 +15228,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 				var code = stringToNewUTF8(event.code);
 				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock"));
 				Module._RGFW_handleKeyEvent(code, 0, 0);
-				_free(code);
+				Module._RGFW_webFree(code);
 			},
 		true);
 	});
@@ -15285,8 +15287,13 @@ RGFW_bool RGFW_window_fetchSize(RGFW_window* win, i32* w, i32* h) {
 }
 
 void RGFW_pollEvents(void) {
+	static int using_asyncify = -1;
+	if (using_asyncify == -1) using_asyncify = EM_ASM_INT({ return 'Asyncify' in Module; });
+
 	RGFW_resetPrevState();
-	emscripten_sleep(0);
+	if (using_asyncify) {
+		emscripten_sleep(0);
+	}
 }
 
 void RGFW_window_resize(RGFW_window* win, i32 w, i32 h) {
@@ -15407,7 +15414,6 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 	attrs.failIfMajorPerformanceCaveat = EM_FALSE;
 
 	attrs.enableExtensionsByDefault = EM_TRUE;
-	attrs.explicitSwapControl = EM_TRUE;
 
 	if (hints->profile == RGFW_glWeb) {
 		attrs.majorVersion = (hints->major == 0) ? 1 : hints->major;
@@ -15417,7 +15423,25 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 		attrs.minorVersion = hints->minor;
 	}
 
+	attrs.explicitSwapControl = EM_TRUE;
 	win->src.ctx.native->ctx = emscripten_webgl_create_context("#canvas", &attrs);
+
+	if (win->src.ctx.native->ctx == 0) {
+		RGFW_debugCallback(RGFW_typeError, RGFW_warningOpenGL, "WebGL: Failed to create an OpenGL Context with explicit swap control.");
+		attrs.explicitSwapControl = EM_FALSE;
+		win->src.ctx.native->ctx = emscripten_webgl_create_context("#canvas", &attrs);
+	}
+
+	if (win->src.ctx.native->ctx == 0) {
+		RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to create an OpenGL Context with the requested attributes, falling back to defaults.");
+		win->src.ctx.native->ctx = emscripten_webgl_create_context("#canvas", &attrs);
+	}
+
+	if (win->src.ctx.native->ctx == 0) {
+		RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to create an OpenGL Context.");
+		return RGFW_FALSE;
+	}
+
 	emscripten_webgl_make_context_current(win->src.ctx.native->ctx);
 
 	#ifdef LEGACY_GL_EMULATION
