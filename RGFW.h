@@ -14998,6 +14998,8 @@ void EMSCRIPTEN_KEEPALIVE Emscripten_onDrop(char* file, size_t size) {
 	RGFW_dataDropCallback(_RGFW->root, file, size, RGFW_dataFile);
 }
 
+void EMSCRIPTEN_KEEPALIVE RGFW_webFree(void* ptr) { free(ptr); }
+
 void RGFW_stopCheckEvents(void) {
 	_RGFW->stopCheckEvents_bool = RGFW_TRUE;
 }
@@ -15218,7 +15220,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 				}
 
 				Module._RGFW_handleKeyEvent(code, codepoint, 1);
-				_free(code);
+				Module._RGFW_webFree(code);
 			},
 		true);
 		window.addEventListener("keyup",
@@ -15226,7 +15228,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 				var code = stringToNewUTF8(event.code);
 				Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock"));
 				Module._RGFW_handleKeyEvent(code, 0, 0);
-				_free(code);
+				Module._RGFW_webFree(code);
 			},
 		true);
 	});
@@ -15285,8 +15287,13 @@ RGFW_bool RGFW_window_fetchSize(RGFW_window* win, i32* w, i32* h) {
 }
 
 void RGFW_pollEvents(void) {
+	static int using_asyncify = -1;
+	if (using_asyncify == -1) using_asyncify = EM_ASM_INT({ return 'Asyncify' in Module; });
+
 	RGFW_resetPrevState();
-	emscripten_sleep(0);
+	if (using_asyncify) {
+		emscripten_sleep(0);
+	}
 }
 
 void RGFW_window_resize(RGFW_window* win, i32 w, i32 h) {
