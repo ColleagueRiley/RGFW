@@ -693,7 +693,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 	RGFW_monitorConnected, /*!< a monitor has been connected */
 	RGFW_monitorDisconnected, /*!< a monitor has been disconnected */
 	RGFW_eventCount, /*!< the number of event types there are */
-	RGFW_mousePosChanged = RGFW_mouseMotion, /*!< alias for RGFW_mouseMotion for historical reasons (may be deleted at some point) */
+	RGFW_mousePosChanged = RGFW_mouseMotion, /*!< alias for RGFW_mouseMotion (may be deleted at some point) */
 };
 
 /*! @brief flags for toggling whether or not an event should be processed */
@@ -722,7 +722,7 @@ typedef RGFW_ENUM(u32, RGFW_eventFlag) {
     RGFW_dataDragFlag = RGFW_BIT(RGFW_dataDrag),
 	RGFW_monitorConnectedFlag = RGFW_BIT(RGFW_monitorConnected),
 	RGFW_monitorDisconnectedFlag = RGFW_BIT(RGFW_monitorDisconnected),
-    RGFW_mousePosChangedFlag = RGFW_mouseMotionFlag, /* alias for RGFW_mouseMotionFlag historical (may be deleted at some point) */
+    RGFW_mousePosChangedFlag = RGFW_mouseMotionFlag, /* alias for RGFW_mouseMotionFlag (may be deleted at some point) */
 
     RGFW_keyEventsFlag = RGFW_keyPressedFlag | RGFW_keyReleasedFlag | RGFW_keyCharFlag,
     RGFW_mouseEventsFlag = RGFW_mouseButtonPressedFlag | RGFW_mouseButtonReleasedFlag | RGFW_mouseMotionFlag | RGFW_mouseEnterFlag | RGFW_mouseLeaveFlag | RGFW_mouseScrollFlag | RGFW_mouseRawMotionFlag,
@@ -837,7 +837,7 @@ typedef union RGFW_event {
 	RGFW_windowUpdateEvent update; /*!< data for window update/move/resize/refresh events */
 	RGFW_mouseButtonEvent button; /*!< data for a button press/release */
 	RGFW_mouseDeltaEvent delta; /*!< data for a mouse scroll or raw motion */
-	RGFW_mouseMotionEvent motion; /*!< data for mouse motion events */
+	RGFW_mouseMotionEvent mouse; /*!< data for mouse motion events */
 	RGFW_keyEvent key; /*!< data for key press/release/hold events */
 	RGFW_keyCharEvent keyChar; /*!< data for key character events */
 	RGFW_dataDropEvent drop; /*!< data dropping events */
