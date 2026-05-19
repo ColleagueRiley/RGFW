@@ -38,7 +38,7 @@ int main(void) {
 				case RGFW_mouseScroll:
                     printf("Mouse Button scroll %f %f\n", (double)event.delta.x, (double)event.delta.y);
                     break;
-				case RGFW_mousePosChanged:
+				case RGFW_mouseMotion:
                     if (RGFW_window_isKeyPressed(win, RGFW_keyControlL))
                         printf("Mouse pos changed %i %i\n", event.mouse.x, event.mouse.y);
                     break;

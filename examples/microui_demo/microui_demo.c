@@ -1,11 +1,10 @@
-#undef _WIN32_WINNT
-#include <stdio.h>
-
 #define RGFW_DEBUG
 #define GL_SILENCE_DEPRECATION
 #define RGFW_OPENGL
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
+
+#include <stdio.h>
 
 #ifdef RGFW_MACOS
 #include <OpenGL/gl.h>
@@ -284,7 +283,7 @@ int main(int argc, char **argv) {
 
       switch (event.type) {
         case RGFW_windowClose: break;
-        case RGFW_mousePosChanged: mu_input_mousemove(ctx, event.mouse.x,  event.mouse.y); break;
+        case RGFW_mouseMotion: mu_input_mousemove(ctx, event.mouse.x,  event.mouse.y); break;
 
 		case RGFW_mouseScroll:
 			mu_input_scroll(ctx, event.delta.x, event.delta.y);
