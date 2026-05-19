@@ -115,8 +115,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__mouseDeltaEvent.html">RGFW_mouseDeltaEvent</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for any mouse scroll or raw motion event  <a href="structRGFW__mouseDeltaEvent.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__mousePosEvent.html">RGFW_mousePosEvent</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for a mouse position event (RGFW_mousePosChanged)  <a href="structRGFW__mousePosEvent.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__mouseMotionEvent.html">RGFW_mouseMotionEvent</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for a mouse position event (RGFW_mouseMotion)  <a href="structRGFW__mouseMotionEvent.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__keyEvent.html">RGFW_keyEvent</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for a key press/release event  <a href="structRGFW__keyEvent.html#details">More...</a><br /></td></tr>
@@ -277,9 +277,9 @@ Typedefs</h2></td></tr>
 <tr class="memitem:acdc50701ed59b55aed16179927d8109c"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structRGFW__mouseDeltaEvent.html">RGFW_mouseDeltaEvent</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#acdc50701ed59b55aed16179927d8109c">RGFW_mouseDeltaEvent</a></td></tr>
 <tr class="memdesc:acdc50701ed59b55aed16179927d8109c"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for any mouse scroll or raw motion event  <a href="RGFW_8h.html#acdc50701ed59b55aed16179927d8109c">More...</a><br /></td></tr>
 <tr class="separator:acdc50701ed59b55aed16179927d8109c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a98815b647758ab684536d7ab4b62e720"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structRGFW__mousePosEvent.html">RGFW_mousePosEvent</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a98815b647758ab684536d7ab4b62e720">RGFW_mousePosEvent</a></td></tr>
-<tr class="memdesc:a98815b647758ab684536d7ab4b62e720"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for a mouse position event (RGFW_mousePosChanged)  <a href="RGFW_8h.html#a98815b647758ab684536d7ab4b62e720">More...</a><br /></td></tr>
-<tr class="separator:a98815b647758ab684536d7ab4b62e720"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06527ef1799ee6a6eaa459751521c436"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structRGFW__mouseMotionEvent.html">RGFW_mouseMotionEvent</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#a06527ef1799ee6a6eaa459751521c436">RGFW_mouseMotionEvent</a></td></tr>
+<tr class="memdesc:a06527ef1799ee6a6eaa459751521c436"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for a mouse position event (RGFW_mouseMotion)  <a href="RGFW_8h.html#a06527ef1799ee6a6eaa459751521c436">More...</a><br /></td></tr>
+<tr class="separator:a06527ef1799ee6a6eaa459751521c436"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac0b9c993bfe43ef69c00a5d07af518af"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structRGFW__keyEvent.html">RGFW_keyEvent</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="RGFW_8h.html#ac0b9c993bfe43ef69c00a5d07af518af">RGFW_keyEvent</a></td></tr>
 <tr class="memdesc:ac0b9c993bfe43ef69c00a5d07af518af"><td class="mdescLeft">&#160;</td><td class="mdescRight">event data for a key press/release event  <a href="RGFW_8h.html#ac0b9c993bfe43ef69c00a5d07af518af">More...</a><br /></td></tr>
 <tr class="separator:ac0b9c993bfe43ef69c00a5d07af518af"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1890,19 +1890,19 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a98815b647758ab684536d7ab4b62e720" name="a98815b647758ab684536d7ab4b62e720"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a98815b647758ab684536d7ab4b62e720">&#9670;&#160;</a></span>RGFW_mousePosEvent</h2>
+<a id="a06527ef1799ee6a6eaa459751521c436" name="a06527ef1799ee6a6eaa459751521c436"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a06527ef1799ee6a6eaa459751521c436">&#9670;&#160;</a></span>RGFW_mouseMotionEvent</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef struct <a class="el" href="structRGFW__mousePosEvent.html">RGFW_mousePosEvent</a> <a class="el" href="structRGFW__mousePosEvent.html">RGFW_mousePosEvent</a></td>
+          <td class="memname">typedef struct <a class="el" href="structRGFW__mouseMotionEvent.html">RGFW_mouseMotionEvent</a> <a class="el" href="structRGFW__mouseMotionEvent.html">RGFW_mouseMotionEvent</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>event data for a mouse position event (RGFW_mousePosChanged) </p>
+<p>event data for a mouse position event (RGFW_mouseMotion) </p>
 
 </div>
 </div>
@@ -2850,7 +2850,7 @@ Functions</h2></td></tr>
 <p >&lt; a mouse button has been pressed (left,middle,right)</p>
 <p >&lt; a mouse button has been released (left,middle,right)</p>
 <p >&lt; a mouse scroll event</p>
-<p >&lt; the position of the mouse has been changed</p>
+<p >&lt; the position of the mouse has been changed / the mouse has moved</p>
 <p >&lt; raw mouse motion</p>
 <p >&lt; mouse entered the window</p>
 <p >&lt; mouse left the window</p>
@@ -2869,6 +2869,7 @@ Functions</h2></td></tr>
 <p >&lt; a monitor has been connected</p>
 <p >&lt; a monitor has been disconnected</p>
 <p >&lt; the number of event types there are</p>
+<p >&lt; alias for RGFW_mouseMotion (may be deleted at some point)</p>
 
 </div>
 </div>

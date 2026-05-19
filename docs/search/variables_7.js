@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['inwindow_0',['inWindow',['../structRGFW__mousePosEvent.html#ad3fae9503a08e5c001604fab517a2b08',1,'RGFW_mousePosEvent']]]
+  ['inwindow_0',['inWindow',['../structRGFW__mouseMotionEvent.html#a1a5ad5f6d8f73b1f04bbafca68e62ace',1,'RGFW_mouseMotionEvent']]]
 ];

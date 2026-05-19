@@ -107,7 +107,7 @@ var searchData=
   ['rgfw_5fmouse_104',['RGFW_mouse',['../RGFW_8h.html#a7c3c77eb6844d3bb20054dc4f1f61ac5',1,'RGFW.h']]],
   ['rgfw_5fmousebuttonevent_105',['RGFW_mouseButtonEvent',['../RGFW_8h.html#a3edbcaa0f762e45ab443fc8265845bac',1,'RGFW_mouseButtonEvent():&#160;RGFW.h'],['../structRGFW__mouseButtonEvent.html',1,'RGFW_mouseButtonEvent']]],
   ['rgfw_5fmousedeltaevent_106',['RGFW_mouseDeltaEvent',['../structRGFW__mouseDeltaEvent.html',1,'RGFW_mouseDeltaEvent'],['../RGFW_8h.html#acdc50701ed59b55aed16179927d8109c',1,'RGFW_mouseDeltaEvent():&#160;RGFW.h']]],
-  ['rgfw_5fmouseposevent_107',['RGFW_mousePosEvent',['../structRGFW__mousePosEvent.html',1,'RGFW_mousePosEvent'],['../RGFW_8h.html#a98815b647758ab684536d7ab4b62e720',1,'RGFW_mousePosEvent():&#160;RGFW.h']]],
+  ['rgfw_5fmousemotionevent_107',['RGFW_mouseMotionEvent',['../structRGFW__mouseMotionEvent.html',1,'RGFW_mouseMotionEvent'],['../RGFW_8h.html#a06527ef1799ee6a6eaa459751521c436',1,'RGFW_mouseMotionEvent():&#160;RGFW.h']]],
   ['rgfw_5fmovetomacosresourcedir_108',['RGFW_moveToMacOSResourceDir',['../RGFW_8h.html#ac67121a641fb36365fa5dc06004307c2',1,'RGFW.h']]],
   ['rgfw_5fnativeformat_109',['RGFW_nativeFormat',['../RGFW_8h.html#a3361f24f4ddc6a80dda05b9c75dc07a7',1,'RGFW.h']]],
   ['rgfw_5fnativeimage_110',['RGFW_nativeImage',['../RGFW_8h.html#af91a996714bbd6ad53dee8a31dcb2534',1,'RGFW.h']]],

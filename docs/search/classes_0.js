@@ -16,7 +16,7 @@ var searchData=
   ['rgfw_5fmonitormode_13',['RGFW_monitorMode',['../structRGFW__monitorMode.html',1,'']]],
   ['rgfw_5fmousebuttonevent_14',['RGFW_mouseButtonEvent',['../structRGFW__mouseButtonEvent.html',1,'']]],
   ['rgfw_5fmousedeltaevent_15',['RGFW_mouseDeltaEvent',['../structRGFW__mouseDeltaEvent.html',1,'']]],
-  ['rgfw_5fmouseposevent_16',['RGFW_mousePosEvent',['../structRGFW__mousePosEvent.html',1,'']]],
+  ['rgfw_5fmousemotionevent_16',['RGFW_mouseMotionEvent',['../structRGFW__mouseMotionEvent.html',1,'']]],
   ['rgfw_5fscaleupdatedevent_17',['RGFW_scaleUpdatedEvent',['../structRGFW__scaleUpdatedEvent.html',1,'']]],
   ['rgfw_5fwindowfocusevent_18',['RGFW_windowFocusEvent',['../structRGFW__windowFocusEvent.html',1,'']]],
   ['rgfw_5fwindowupdateevent_19',['RGFW_windowUpdateEvent',['../structRGFW__windowUpdateEvent.html',1,'']]]

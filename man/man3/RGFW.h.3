@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Sun May 17 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Tue May 19 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -56,9 +56,9 @@ RGFW.h
 .br
 .RI "event data for any mouse scroll or raw motion event "
 .ti -1c
-.RI "struct \fBRGFW_mousePosEvent\fP"
+.RI "struct \fBRGFW_mouseMotionEvent\fP"
 .br
-.RI "event data for a mouse position event (RGFW_mousePosChanged) "
+.RI "event data for a mouse position event (RGFW_mouseMotion) "
 .ti -1c
 .RI "struct \fBRGFW_keyEvent\fP"
 .br
@@ -286,9 +286,9 @@ RGFW.h
 .br
 .RI "event data for any mouse scroll or raw motion event "
 .ti -1c
-.RI "typedef struct \fBRGFW_mousePosEvent\fP \fBRGFW_mousePosEvent\fP"
+.RI "typedef struct \fBRGFW_mouseMotionEvent\fP \fBRGFW_mouseMotionEvent\fP"
 .br
-.RI "event data for a mouse position event (RGFW_mousePosChanged) "
+.RI "event data for a mouse position event (RGFW_mouseMotion) "
 .ti -1c
 .RI "typedef struct \fBRGFW_keyEvent\fP \fBRGFW_keyEvent\fP"
 .br
@@ -1292,10 +1292,10 @@ event data for any mouse button event (press/release)
 
 .PP
 event data for any mouse scroll or raw motion event 
-.SS "typedef struct \fBRGFW_mousePosEvent\fP \fBRGFW_mousePosEvent\fP"
+.SS "typedef struct \fBRGFW_mouseMotionEvent\fP \fBRGFW_mouseMotionEvent\fP"
 
 .PP
-event data for a mouse position event (RGFW_mousePosChanged) 
+event data for a mouse position event (RGFW_mouseMotion) 
 .SS "typedef struct \fBRGFW_nativeImage\fP \fBRGFW_nativeImage\fP"
 
 .PP
@@ -1626,7 +1626,7 @@ codes for the event types that can be sent < no event has been sent
 .PP
 < a mouse scroll event
 .PP
-< the position of the mouse has been changed
+< the position of the mouse has been changed / the mouse has moved
 .PP
 < raw mouse motion
 .PP
@@ -1663,6 +1663,8 @@ codes for the event types that can be sent < no event has been sent
 < a monitor has been disconnected
 .PP
 < the number of event types there are
+.PP
+< alias for RGFW_mouseMotion (may be deleted at some point)
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_flashRequest)"
 @breif flash request type 
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_format)"

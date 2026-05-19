@@ -128,6 +128,7 @@ void dragfunc(const RGFW_event* e) {
 static
 void windowrefreshfunc(const RGFW_event* e) {
     if (e->common.win != window) return;
+	printf("refresh %i %i %i %i\n", e->update.x, e->update.y, e->update.w, e->update.h);
 }
 
 static
@@ -186,7 +187,7 @@ int main(void) {
     RGFW_setEventCallback(RGFW_windowRestored, windowrestorefunc);
     RGFW_setEventCallback(RGFW_windowMaximized, windowmaximizefunc);
 	RGFW_setEventCallback(RGFW_windowClose, windowclosefunc);
-	RGFW_setEventCallback(RGFW_mousePosChanged, mouseposfunc);
+	RGFW_setEventCallback(RGFW_mouseMotion, mouseposfunc);
 	RGFW_setEventCallback(RGFW_mouseScroll, scrollfunc);
 	RGFW_setEventCallback(RGFW_windowRefresh, windowrefreshfunc);
 	RGFW_setEventCallback(RGFW_windowFocusIn, windowfocusfunc);

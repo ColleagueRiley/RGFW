@@ -1,4 +1,4 @@
-.TH "RGFW_event" 3 "Sun May 17 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW_event" 3 "Tue May 19 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -31,7 +31,7 @@ RGFW_event \- union for all of the event stucture types
 .RI "\fBRGFW_mouseDeltaEvent\fP \fBdelta\fP"
 .br
 .ti -1c
-.RI "\fBRGFW_mousePosEvent\fP \fBmouse\fP"
+.RI "\fBRGFW_mouseMotionEvent\fP \fBmouse\fP"
 .br
 .ti -1c
 .RI "\fBRGFW_keyEvent\fP \fBkey\fP"
@@ -75,7 +75,7 @@ data for key press/release/hold events
 data for key character events 
 .SS "\fBRGFW_monitorEvent\fP RGFW_event::monitor"
 data for monitor events 
-.SS "\fBRGFW_mousePosEvent\fP RGFW_event::mouse"
+.SS "\fBRGFW_mouseMotionEvent\fP RGFW_event::mouse"
 data for mouse motion events 
 .SS "\fBRGFW_scaleUpdatedEvent\fP RGFW_event::scale"
 data for dpi scaling update events 
