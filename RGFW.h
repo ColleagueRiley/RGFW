@@ -375,8 +375,6 @@ int main() {
 	#define RGFW_INT_DEFINED
 #endif
 
-typedef ptrdiff_t RGFW_ssize_t;
-
 #ifndef RGFW_BOOL_DEFINED
     #define RGFW_BOOL_DEFINED
     typedef u8 RGFW_bool;
@@ -621,9 +619,9 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 
 /*! @brief abstract mouse button codes */
 typedef RGFW_ENUM(u8, RGFW_mouseButton) {
-	RGFW_mouseLeft = 0, /*!< left mouse button is pressed */
-	RGFW_mouseMiddle, /*!< mouse-wheel-button is pressed */
-	RGFW_mouseRight, /*!< right mouse button is pressed */
+	RGFW_mouseLeft = 0, /*!< left mouse button */
+	RGFW_mouseMiddle, /*!< mouse-wheel-button */
+	RGFW_mouseRight, /*!< right mouse button */
 	RGFW_mouseMisc1, RGFW_mouseMisc2, RGFW_mouseMisc3, RGFW_mouseMisc4, RGFW_mouseMisc5,
 	RGFW_mouseFinal
 };
@@ -657,10 +655,17 @@ typedef RGFW_ENUM(u8, RGFW_dataTransferType) {
 	RGFW_dataUnknown /*!< unknown raw data */
 };
 
+/*! struct for data transfers, mostly used for the clipboard API */
+typedef struct RGFW_dataTransfer {
+	char* data; /*!< transfered data */
+	size_t length; /*!< the length of the data in bytes */
+	RGFW_dataTransferType type; /*!< the type of data being transfered */
+} RGFW_dataTransfer;
+
 /*! internal node for a individual data drop */
 typedef struct RGFW_dataDropNode {
 	const char* data; /*!< dropped data */
-	size_t size; /*!< the size of the data in bytes */
+	size_t length; /*!< the size of the data in bytes */
 	RGFW_dataTransferType type; /*!< the type of data being dropped */
 	struct RGFW_dataDropNode* next; /*!< the next drop data node if any [when handling callbacks, this will always be NULL because the linked list is built as events are processed] */
 } RGFW_dataDropNode;
@@ -2286,25 +2291,25 @@ RGFWDEF RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win);
 
 /**!
  * @brief Reads clipboard data.
- * @param size [OUTPUT] A pointer that will be filled with the size of the clipboard data.
- * @return A pointer to the clipboard data as a string.
+ * @return A pointer to the clipboard data object or NULL on failure.
 */
-RGFWDEF const char* RGFW_readClipboard(size_t* size);
+RGFWDEF const RGFW_dataTransfer* RGFW_readClipboard(void);
 
 /**!
- * @brief Reads clipboard data into a provided buffer, or returns the required length if str is NULL.
- * @param str [OUTPUT] A pointer to the buffer that will receive the clipboard data (or NULL to get required size).
- * @param strCapacity The capacity of the provided buffer.
- * @return The number of bytes read or required length of clipboard data.
+ * @brief Reads clipboard data into your object pointer using your provided buffer, or returns the required length if the buffer is NULL or bufferCapacity is 0.
+ * @param buffer the buffer used to fill the output dataTransfer object's data
+ * @param capacity the capacity/length of the buffer in bytes
+ * @param data [OUTPUT] A pointer to the dataTransfer object that will receive the clipboard data. (cannot be NULL)
+ * @return returns RGFW_TRUE on success and RGFW_FALSE on failure
 */
-RGFWDEF RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity);
+RGFWDEF RGFW_bool RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* data);
 
 /**!
- * @brief Writes text to the clipboard.
- * @param text The text to be written to the clipboard.
- * @param textLen The length of the text being written.
+ * @brief Writes data to the clipboard.
+ * @param data The data to be written to the clipboard, including the length and type.
+ * @param returns RGFW_TRUE on success and RGFW_FALSE on failure
 */
-RGFWDEF void RGFW_writeClipboard(const char* text, u32 textLen);
+RGFWDEF RGFW_bool RGFW_writeClipboard(const RGFW_dataTransfer* data);
 /** @} */
 
 
@@ -3039,7 +3044,7 @@ typedef struct RGFW_windowState {
 	RGFW_bool mouseEnter;
 	RGFW_bool dataDragging;
 	RGFW_bool dataDrop;
-	size_t dataSize;
+	size_t dataLength;
 	i32 dropX, dropY;
 	RGFW_window* win; /*!< it's not possible for one of these events to happen in the frame that the other event happened */
 
@@ -3128,7 +3133,7 @@ struct RGFW_info {
     RGFW_bool stopCheckEvents_bool ;
     u64 timerOffset;
 
-    char* clipboard_data;
+    RGFW_dataTransfer* clipboard_data;
     char* clipboard; /* for writing to the clipboard selection */
     size_t clipboard_len;
 
@@ -3318,34 +3323,25 @@ void RGFW_setRawMouseMode(RGFW_bool state) {
 	RGFW_window_setRawMouseModePlatform(_RGFW->root, state);
 }
 
-void RGFW_clipboard_switch(char* newstr);
-void RGFW_clipboard_switch(char* newstr) {
-	if (_RGFW->clipboard_data != NULL)
+const RGFW_dataTransfer* RGFW_readClipboard(void) {
+	RGFW_dataTransfer data_check;
+	RGFW_bool ret = RGFW_readClipboardPtr(NULL, 0, &data_check);
+	if (ret == RGFW_FALSE || data_check.length == 0) return _RGFW->clipboard_data;
+
+	u8* cont_data = (u8*)RGFW_ALLOC(sizeof(RGFW_dataTransfer) + (size_t)data_check.length);
+	RGFW_ASSERT(cont_data != NULL);
+
+	RGFW_dataTransfer* data = (RGFW_dataTransfer*)cont_data;
+	ret = RGFW_readClipboardPtr((u8*)&cont_data[sizeof(RGFW_dataTransfer) - 1], data_check.length, data);
+
+	if (ret == RGFW_FALSE || data->length == 0) {
+		RGFW_FREE(cont_data);
+	} else if (_RGFW->clipboard_data) {
 		RGFW_FREE(_RGFW->clipboard_data);
-	_RGFW->clipboard_data =  newstr;
-}
+		_RGFW->clipboard_data = data;
+	}
 
-#define RGFW_CHECK_CLIPBOARD() \
-	if (size <= 0 && _RGFW->clipboard_data != NULL) \
-		return (const char*)_RGFW->clipboard_data; \
-	else if (size <= 0) \
-		return "\0";
-
-const char* RGFW_readClipboard(size_t* len) {
-	RGFW_ssize_t size = RGFW_readClipboardPtr(NULL, 0);
-    RGFW_CHECK_CLIPBOARD();
-    char* str = (char*)RGFW_ALLOC((size_t)size);
-    RGFW_ASSERT(str != NULL);
-    str[0] = '\0';
-
-    size = RGFW_readClipboardPtr(str, (size_t)size);
-
-    RGFW_CHECK_CLIPBOARD();
-
-	if (len != NULL) *len = (size_t)size;
-
-	RGFW_clipboard_switch(str);
-	return (const char*)str;
+	return _RGFW->clipboard_data;
 }
 
 /* generic RGFW defines */
@@ -3624,18 +3620,18 @@ void RGFW_mouseNotifyCallback(RGFW_window* win, i32 x, i32 y, RGFW_bool status) 
 	RGFW_eventQueuePushAndCall(&event);
 }
 
-void RGFW_dataDropCallback(RGFW_window* win, const char* data, size_t size, RGFW_dataTransferType dataType) {
+void RGFW_dataDropCallback(RGFW_window* win, const char* data, size_t length, RGFW_dataTransferType dataType) {
 	if (!(win->internal.enabledEvents & RGFW_dataDropFlag) || !(win->internal.flags & RGFW_windowAllowDND))
 		return;
 
 	_RGFW->windowState.win = win;
 	_RGFW->windowState.dataDrop = RGFW_TRUE;
-	_RGFW->windowState.dataSize = size;
+	_RGFW->windowState.dataLength = length;
 
 	RGFW_dataDropNode node;
 	RGFW_MEMZERO(&node, sizeof(node));
 	node.data = data;
-	node.size = size;
+	node.length = length;
 	node.type = dataType;
 	node.next = NULL;
 
@@ -3655,8 +3651,8 @@ void RGFW_dataDropCallback(RGFW_window* win, const char* data, size_t size, RGFW
 			_RGFW->dndCur = _RGFW->dndCur->next;
 		} else { RGFW_ASSERT(0); }
 
-		char* dataCopy = (char*)RGFW_ALLOC(size);
-		RGFW_MEMCPY(dataCopy, data, size);
+		char* dataCopy = (char*)RGFW_ALLOC(length);
+		RGFW_MEMCPY(dataCopy, data, length);
 		node.data = dataCopy;
 
 		RGFW_MEMCPY(_RGFW->dndCur, &node, sizeof(node));
@@ -3695,10 +3691,10 @@ void RGFW_keyCharCallback(RGFW_window* win, u32 codepoint) {
 	RGFW_eventQueuePushAndCall(&event);
 }
 
-void RGFW_keyCallback(RGFW_window* win, RGFW_key key, RGFW_keymod mod, RGFW_bool repeat, RGFW_bool press) {
+void RGFW_keyCallback(RGFW_window* win, RGFW_key key, RGFW_keymod mod, RGFW_bool repeat, RGFW_bool state) {
 	RGFW_event event;
 
-	if (press) {
+	if (state) {
 		if (!(win->internal.enabledEvents & RGFW_keyPressedFlag)) return;
 		event.type = RGFW_keyPressed;
 	} else {
@@ -3707,12 +3703,12 @@ void RGFW_keyCallback(RGFW_window* win, RGFW_key key, RGFW_keymod mod, RGFW_bool
 	}
 
 	_RGFW->keyboard[key].prev = _RGFW->keyboard[key].current;
-	_RGFW->keyboard[key].current = press;
+	_RGFW->keyboard[key].current = state;
 
 	event.key.value = key;
 	event.key.repeat = repeat;
 	event.key.mod = mod;
-	event.key.state = press;
+	event.key.state = state;
 	event.common.win = win;
 	RGFW_eventQueuePushAndCall(&event);
 }
@@ -4073,7 +4069,9 @@ void RGFW_window_closePtr(RGFW_window* win) {
 
 	RGFW_window_closePlatform(win);
 
-	RGFW_clipboard_switch(NULL);
+	if (_RGFW->clipboard_data != NULL)
+		RGFW_FREE(_RGFW->clipboard_data);
+	_RGFW->clipboard_data = NULL;
 
 	_RGFW->windowCount--;
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoWindow, "a window was freed");
@@ -7691,19 +7689,28 @@ void RGFW_FUNC(RGFW_window_flash) (RGFW_window* win, RGFW_flashRequest request) 
     XFree(wmhints);
 }
 
-RGFW_ssize_t RGFW_FUNC(RGFW_readClipboardPtr)(char* str, size_t strCapacity) {
+RGFW_bool RGFW_FUNC(RGFW_readClipboardPtr) (u8* buffer, size_t capacity, RGFW_dataTransfer* dataTransfer) {
+	RGFW_ASSERT(dataTransfer != NULL);
+	dataTransfer->data = (char*)buffer;
+
 	RGFW_init();
 	RGFW_LOAD_ATOM(XSEL_DATA); RGFW_LOAD_ATOM(UTF8_STRING); RGFW_LOAD_ATOM(CLIPBOARD);
 	if (XGetSelectionOwner(_RGFW->display, CLIPBOARD) == _RGFW->helperWindow) {
-		if (str != NULL)
-			RGFW_STRNCPY(str, _RGFW->clipboard, _RGFW->clipboard_len - 1);
-		_RGFW->clipboard[_RGFW->clipboard_len - 1] = '\0';
-		return (RGFW_ssize_t)_RGFW->clipboard_len - 1;
+		dataTransfer->length = _RGFW->clipboard_len;
+
+		if (buffer != NULL && _RGFW->clipboard != NULL) {
+			if (_RGFW->clipboard_len > capacity) return RGFW_FALSE;
+
+			RGFW_STRNCPY((char*)buffer, _RGFW->clipboard, _RGFW->clipboard_len);
+		}
+
+		dataTransfer->type = RGFW_dataText;
+		return RGFW_TRUE;
 	}
 
 	XEvent event;
 	int format;
-	unsigned long N, sizeN;
+	unsigned long N, size;
 	char* data;
 	Atom target;
 
@@ -7714,28 +7721,29 @@ RGFW_ssize_t RGFW_FUNC(RGFW_readClipboardPtr)(char* str, size_t strCapacity) {
 		if (event.type != SelectionNotify) continue;
 
 		if (event.xselection.selection != CLIPBOARD || event.xselection.property == 0)
-			return -1;
+			return RGFW_FALSE;
 		break;
 	}
 
 	XGetWindowProperty(event.xselection.display, event.xselection.requestor,
 			event.xselection.property, 0L, (~0L), 0, AnyPropertyType, &target,
-			&format, &sizeN, &N, (u8**) &data);
+			&format, &size, &N, (u8**) &data);
 
-	RGFW_ssize_t size;
-	if (sizeN > strCapacity && str != NULL)
-		size = -1;
+	RGFW_bool ret = RGFW_TRUE;
 
-	if ((target == UTF8_STRING || target == XA_STRING) && str != NULL) {
-		RGFW_MEMCPY(str, data, sizeN);
-		str[sizeN] = '\0';
+	if (size > capacity && buffer != NULL)
+		ret = RGFW_FALSE;
+	else if ((target == UTF8_STRING || target == XA_STRING) && buffer != NULL) {
+		RGFW_MEMCPY(buffer, data, size);
+		buffer[size] = '\0';
 		XFree(data);
-	} else if (str != NULL) size = -1;
+	} else if (buffer != NULL) ret = RGFW_FALSE;
 
 	XDeleteProperty(event.xselection.display, event.xselection.requestor, event.xselection.property);
-	size = (RGFW_ssize_t)sizeN;
 
-    return size;
+	dataTransfer->type = RGFW_dataText;
+	dataTransfer->length = size;
+    return ret;
 }
 
 i32 RGFW_XHandleClipboardSelectionHelper(void) {
@@ -7763,7 +7771,7 @@ i32 RGFW_XHandleClipboardSelectionHelper(void) {
     return 0;
 }
 
-void RGFW_FUNC(RGFW_writeClipboard)(const char* text, u32 textLen) {
+RGFW_bool RGFW_FUNC(RGFW_writeClipboard)(const RGFW_dataTransfer* data) {
 	RGFW_LOAD_ATOM(SAVE_TARGETS); RGFW_LOAD_ATOM(CLIPBOARD);
     RGFW_init();
 
@@ -7771,19 +7779,19 @@ void RGFW_FUNC(RGFW_writeClipboard)(const char* text, u32 textLen) {
 	XSetSelectionOwner(_RGFW->display, CLIPBOARD, _RGFW->helperWindow, CurrentTime);
 	if (XGetSelectionOwner(_RGFW->display, CLIPBOARD) != _RGFW->helperWindow) {
     	RGFW_debugCallback(RGFW_typeError, RGFW_errClipboard,  "X11 failed to become owner of clipboard selection");
-		return;
+		return RGFW_FALSE;
 	}
 
 	if (_RGFW->clipboard)
 		RGFW_FREE(_RGFW->clipboard);
 
-	_RGFW->clipboard = (char*)RGFW_ALLOC(textLen);
+	_RGFW->clipboard = (char*)RGFW_ALLOC(data->length + 1);
 	RGFW_ASSERT(_RGFW->clipboard != NULL);
 
-	RGFW_STRNCPY(_RGFW->clipboard, text, textLen - 1);
-	_RGFW->clipboard[textLen - 1] = '\0';
-	_RGFW->clipboard_len = textLen;
-	return;
+	RGFW_STRNCPY(_RGFW->clipboard, data->data, data->length);
+	_RGFW->clipboard[data->length] = '\0';
+	_RGFW->clipboard_len = data->length;
+	return RGFW_TRUE;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_window_isHidden)(RGFW_window* win) {
@@ -10227,21 +10235,31 @@ void RGFW_FUNC(RGFW_window_flash) (RGFW_window* win, RGFW_flashRequest request) 
 	}
 }
 
-RGFW_ssize_t RGFW_FUNC(RGFW_readClipboardPtr) (char* str, size_t strCapacity) {
+RGFW_bool RGFW_FUNC(RGFW_readClipboardPtr) (u8* buffer, size_t capacity, RGFW_dataTransfer* data) {
+	RGFW_ASSERT(data != NULL);
 
-	RGFW_UNUSED(strCapacity);
+	if (_RGFW->clipboard == NULL || _RGFW->clipboard_len == 0) {
+		data->length = 0;
+		data->type = RGFW_dataNone;
+		return RGFW_FALSE;
+	}
 
-	if (str != NULL)
-		RGFW_STRNCPY(str, _RGFW->clipboard, _RGFW->clipboard_len - 1);
-	_RGFW->clipboard[_RGFW->clipboard_len - 1] = '\0';
-	return (RGFW_ssize_t)_RGFW->clipboard_len - 1;
+	data->length = _RGFW->clipboard_len;
+	data->type = RGFW_dataText;
+
+	if (buffer == NULL) return RGFW_TRUE;
+
+	if (_RGFW->clipboard_len > capacity) return RGFW_FALSE;
+
+	RGFW_STRNCPY(buffer, _RGFW->clipboard, _RGFW->clipboard_len);
+	return RGFW_TRUE;
 }
 
-void RGFW_FUNC(RGFW_writeClipboard) (const char* text, u32 textLen) {
+RGFW_bool RGFW_FUNC(RGFW_writeClipboard) (const RGFW_dataTransfer* data) {
 
 	// compositor does not support wl_data_device_manager
 	// clients cannot read rgfw's clipboard
-	if (_RGFW->data_device_manager == NULL) return;
+	if (_RGFW->data_device_manager == NULL) return RGFW_FALSE;
 	// clear the clipboard
 	if (_RGFW->clipboard)
 		RGFW_FREE(_RGFW->clipboard);
@@ -10268,7 +10286,7 @@ void RGFW_FUNC(RGFW_writeClipboard) (const char* text, u32 textLen) {
 	// basic error checking
 	if (win->src.data_source == NULL) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errClipboard, "Could not create clipboard data source");
-		return;
+		return RGFW_FALSE;
 	}
 	wl_data_source_offer(win->src.data_source , "text/plain;charset=utf-8");
 
@@ -10285,6 +10303,7 @@ void RGFW_FUNC(RGFW_writeClipboard) (const char* text, u32 textLen) {
 
 	wl_data_source_add_listener(win->src.data_source, &data_source_listener, _RGFW);
 
+	return RGFW_TRUE;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_window_isHidden) (RGFW_window* win) {
@@ -12216,7 +12235,7 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_f
 	#endif
 }
 
-RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
+RGFW_ssize_t RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* data) {
 	/* Open the clipboard */
 	if (OpenClipboard(NULL) == 0)
 		return -1;
@@ -12254,18 +12273,18 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	return textLen;
 }
 
-void RGFW_writeClipboard(const char* text, u32 textLen) {
+RGFW_bool RGFW_writeClipboard(const RGFW_dataTransfer* data) {
 	HANDLE object;
 	WCHAR* buffer;
 
 	object = GlobalAlloc(GMEM_MOVEABLE, (1 + textLen) * sizeof(WCHAR));
 	if (!object)
-		return;
+		return RGFW_FALSE;
 
 	buffer = (WCHAR*) GlobalLock(object);
 	if (!buffer) {
 		GlobalFree(object);
-		return;
+		return RGFW_FALSE;
 	}
 
 	MultiByteToWideChar(CP_UTF8, 0, text, -1, buffer, (i32)textLen);
@@ -12273,12 +12292,14 @@ void RGFW_writeClipboard(const char* text, u32 textLen) {
 
 	if (!OpenClipboard(_RGFW->root->src.window)) {
 		GlobalFree(object);
-		return;
+		return RGFW_FALSE;
 	}
 
 	EmptyClipboard();
 	SetClipboardData(CF_UNICODETEXT, object);
 	CloseClipboard();
+
+	return RGFW_TRUE;
 }
 
 void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) {
@@ -14536,7 +14557,7 @@ RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) {
 	return &node->mon;
 }
 
-RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
+RGFW_ssize_t RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* data) {
 	size_t clip_len;
 	char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString, &clip_len);
 	if (clip == NULL) return -1;
@@ -14553,15 +14574,17 @@ RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
 	return (RGFW_ssize_t)clip_len;
 }
 
-void RGFW_writeClipboard(const char* text, u32 textLen) {
+RGFW_bool RGFW_writeClipboard(const RGFW_dataTransfer* data) {
 	RGFW_UNUSED(textLen);
 
 	NSPasteboardType array[] = { NSPasteboardTypeString, NULL };
 	NSPasteBoard_declareTypes(NSPasteboard_generalPasteboard(), array, 1, NULL);
 
 	SEL func = sel_registerName("setString:forType:");
-	((bool (*)(id, SEL, id, id))objc_msgSend)
+	bool ret = ((bool (*)(id, SEL, id, id))objc_msgSend)
 		(NSPasteboard_generalPasteboard(), func, NSString_stringWithUTF8String(text), NSString_stringWithUTF8String((const char*)NSPasteboardTypeString));
+
+	return (ret == true) ? RGFW_TRUE : RGFW_FALSE;
 }
 
 #ifdef RGFW_OPENGL
@@ -15386,13 +15409,14 @@ void RGFW_window_setMousePassthrough(RGFW_window* win, RGFW_bool passthrough) {
     }, passthrough);
 }
 
-void RGFW_writeClipboard(const char* text, u32 textLen) {
+RGFW_bool RGFW_writeClipboard(const RGFW_dataTransfer* data) {
 	RGFW_UNUSED(textLen);
 	EM_ASM({ navigator.clipboard.writeText(UTF8ToString($0)); }, text);
+	return RGFW_TRUE;
 }
 
 
-RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) {
+RGFW_ssize_t RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* data) {
 	RGFW_UNUSED(str); RGFW_UNUSED(strCapacity);
 	/*
 		placeholder code for later
@@ -15762,8 +15786,8 @@ typedef void (*RGFW_window_moveMouse_ptr)(RGFW_window* win, i32 x, i32 y);
 typedef void (*RGFW_window_hide_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_show_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_flash_ptr)(RGFW_window* win, RGFW_flashRequest request);
-typedef RGFW_ssize_t (*RGFW_readClipboardPtr_ptr)(char* str, size_t strCapacity);
-typedef void (*RGFW_writeClipboard_ptr)(const char* text, u32 textLen);
+typedef RGFW_ssize_t (*RGFW_readClipboardPtr_ptr)(u8* buffer, size_t capacity, RGFW_dataTransfer* data);
+typedef RGFW_bool (*RGFW_writeClipboard_ptr)(const RGFW_dataTransfer* data);
 typedef RGFW_bool (*RGFW_window_isHidden_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMinimized_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMaximized_ptr)(RGFW_window* win);
@@ -15909,8 +15933,8 @@ void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) { RGFW_api.window_mov
 void RGFW_window_hide(RGFW_window* win) { RGFW_api.window_hide(win); }
 void RGFW_window_show(RGFW_window* win) { RGFW_api.window_show(win); }
 void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) { RGFW_api.window_flash(win, request); }
-RGFW_ssize_t RGFW_readClipboardPtr(char* str, size_t strCapacity) { return RGFW_api.readClipboardPtr(str, strCapacity); }
-void RGFW_writeClipboard(const char* text, u32 textLen) { RGFW_api.writeClipboard(text, textLen); }
+RGFW_ssize_t RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* data) { return RGFW_api.readClipboardPtr(buffer, capacity, data); }
+RGFW_bool RGFW_writeClipboard(const RGFW_dataTransfer* data) { return RGFW_api.writeClipboard(data); }
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) { return RGFW_api.window_isHidden(win); }
 RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { return RGFW_api.window_isMinimized(win); }
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) { return RGFW_api.window_isMaximized(win); }
