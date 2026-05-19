@@ -657,8 +657,8 @@ typedef RGFW_ENUM(u8, RGFW_dataTransferType) {
 
 /*! struct for data transfers, mostly used for the clipboard API */
 typedef struct RGFW_dataTransfer {
-	char* data; /*!< transfered data */
-	size_t length; /*!< the length of the data in bytes */
+	const char* data; /*!< transfered data */
+	size_t length; /*!< the length of the data in bytes, including a null-terminator if included */
 	RGFW_dataTransferType type; /*!< the type of data being transfered */
 } RGFW_dataTransfer;
 
