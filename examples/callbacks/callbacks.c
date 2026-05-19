@@ -128,6 +128,7 @@ void dragfunc(const RGFW_event* e) {
 static
 void windowrefreshfunc(const RGFW_event* e) {
     if (e->common.win != window) return;
+	printf("refresh %i %i %i %i\n", e->update.x, e->update.y, e->update.w, e->update.h);
 }
 
 static
