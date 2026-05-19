@@ -13255,10 +13255,10 @@ static void RGFW__osxDrawRect(id self, SEL _cmd, CGRect rect) {
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
-]
+
 	float y = RGFW_cocoaYTransform((float)(rect.size.height - 1));
 
-	RGFW_windowRefreshCallback(win, (i32)content.origin.x, (i32)y, (i32)rect.size.width, (i32)rect.size.height);
+	RGFW_windowRefreshCallback(win, (i32)rect.origin.x, (i32)y, (i32)rect.size.width, (i32)rect.size.height);
 }
 
 static void RGFW__osxMouseEntered(id self, SEL _cmd, id event) {
