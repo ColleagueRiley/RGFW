@@ -168,6 +168,7 @@ EXAMPLE_OUTPUTS = \
 	examples/smooth-resize/smooth-resize \
 	examples/multi-window/multi-window \
 	examples/standard-mouse-icons/icons \
+	examples/clipboard/clipboard \
 	examples/custom_alloc/custom_alloc \
 	examples/flash/flash \
 
