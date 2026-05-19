@@ -186,7 +186,7 @@ int main(void) {
     RGFW_setEventCallback(RGFW_windowRestored, windowrestorefunc);
     RGFW_setEventCallback(RGFW_windowMaximized, windowmaximizefunc);
 	RGFW_setEventCallback(RGFW_windowClose, windowclosefunc);
-	RGFW_setEventCallback(RGFW_mousePosChanged, mouseposfunc);
+	RGFW_setEventCallback(RGFW_mouseMotion, mouseposfunc);
 	RGFW_setEventCallback(RGFW_mouseScroll, scrollfunc);
 	RGFW_setEventCallback(RGFW_windowRefresh, windowrefreshfunc);
 	RGFW_setEventCallback(RGFW_windowFocusIn, windowfocusfunc);
