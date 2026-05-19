@@ -15,7 +15,9 @@ int main(void) {
 		if (RGFW_isKeyDown(RGFW_keyControlL) && RGFW_isKeyPressed(RGFW_keyV)) {
 			const RGFW_dataTransfer* clipboard = RGFW_readClipboard();
 			if (clipboard) {
-				printf("clipboard paste : %s %i\n", clipboard->data, (u32)clipboard->length);
+				printf("clipboard paste %i: '", (u32)clipboard->length);
+				fwrite(clipboard->data, 1, clipboard->length, stdout);
+				printf("\'\n");
 			} else {
 				printf("failed to read clipboard\n");
 			}
@@ -24,11 +26,14 @@ int main(void) {
 			RGFW_dataTransfer data;
 			data.data = "string";
 			data.length = sizeof("string");
+			data.type = RGFW_dataText;
 			RGFW_writeClipboard(&data);
 
 			const RGFW_dataTransfer* clipboard = RGFW_readClipboard();
 			if (clipboard) {
-				printf("clipboard copy : %s %i\n", clipboard->data, (u32)clipboard->length);
+				printf("clipboard copy %i: '", (u32)clipboard->length);
+				fwrite(clipboard->data, 1, clipboard->length, stdout);
+				printf("\'\n");
 			} else {
 				printf("failed to read clipboard\n");
 			}
