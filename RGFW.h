@@ -78,7 +78,7 @@
 /*
 Example to get you started :
 
-linux : gcc main.c -lX11 -lXrandr -lm
+*nix : gcc main.c -lX11 -lXrandr -lm
 windows : gcc main.c -lgdi32
 macos : gcc main.c -framework Cocoa -framework CoreVideo -framework IOKit
 
@@ -120,7 +120,7 @@ int main() {
 	shared :
 		windows:
 			gcc -shared RGFW.o -lopengl32 -lgdi32 -o RGFW.dll
-		linux:
+		unix:
 			gcc -shared RGFW.o -lX11 -lGL -lXrandr -o RGFW.so
 		macos:
 			gcc -shared RGFW.o -framework CoreVideo -framework Cocoa -framework OpenGL -framework IOKit
@@ -3129,13 +3129,10 @@ struct RGFW_info {
 	#endif
 
     const char* className;
-    RGFW_bool useWaylandBool;
     RGFW_bool stopCheckEvents_bool ;
     u64 timerOffset;
 
-    RGFW_dataTransfer* clipboard_data;
-    char* clipboard; /* for writing to the clipboard selection */
-    size_t clipboard_len;
+    RGFW_dataTransfer* clipboard;
 
 	RGFW_bool dndBuild;
 	RGFW_dataDropNode* dndRoot;
@@ -3195,7 +3192,9 @@ struct RGFW_info {
 
     #ifdef RGFW_UNIX
 	    int eventWait_forceStop[3];
-		i32 clock;
+
+		RGFW_bool useWaylandBool;
+		RGFW_dataTransfer* nixClipboard;
     #endif
 
     #ifdef RGFW_MACOS
@@ -3326,7 +3325,7 @@ void RGFW_setRawMouseMode(RGFW_bool state) {
 const RGFW_dataTransfer* RGFW_readClipboard(void) {
 	RGFW_dataTransfer data_check;
 	RGFW_bool ret = RGFW_readClipboardPtr(NULL, 0, &data_check);
-	if (ret == RGFW_FALSE || data_check.length == 0) return _RGFW->clipboard_data;
+	if (ret == RGFW_FALSE || data_check.length == 0) return _RGFW->clipboard;
 
 	u8* cont_data = (u8*)RGFW_ALLOC(sizeof(RGFW_dataTransfer) + (size_t)data_check.length);
 	RGFW_ASSERT(cont_data != NULL);
@@ -3337,13 +3336,13 @@ const RGFW_dataTransfer* RGFW_readClipboard(void) {
 	if (ret == RGFW_FALSE || data->length == 0) {
 		RGFW_FREE(cont_data);
 		data = NULL;
-	} else if (_RGFW->clipboard_data) {
-		RGFW_FREE(_RGFW->clipboard_data);
+	} else if (_RGFW->clipboard) {
+		RGFW_FREE(_RGFW->clipboard);
 	}
 
-	_RGFW->clipboard_data = data;
+	_RGFW->clipboard = data;
 
-	return _RGFW->clipboard_data;
+	return _RGFW->clipboard;
 }
 
 /* generic RGFW defines */
@@ -4071,9 +4070,9 @@ void RGFW_window_closePtr(RGFW_window* win) {
 
 	RGFW_window_closePlatform(win);
 
-	if (_RGFW->clipboard_data != NULL)
-		RGFW_FREE(_RGFW->clipboard_data);
-	_RGFW->clipboard_data = NULL;
+	if (_RGFW->clipboard != NULL)
+		RGFW_FREE(_RGFW->clipboard);
+	_RGFW->clipboard = NULL;
 
 	_RGFW->windowCount--;
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoWindow, "a window was freed");
@@ -5157,7 +5156,7 @@ RGFW_bool RGFW_loadEGL(void) {
 	#ifdef RGFW_WINDOWS
 		const char* libNames[] = { "libEGL.dll", "EGL.dll" };
 	#elif defined(RGFW_MACOS) || defined(RGFW_UNIX)
-		/* Linux and macOS */
+		/* unix (including macOS) */
 		const char* libNames[] = {
 			"libEGL.so.1",  /* most common */
 			"libEGL.so",    /* fallback */
@@ -5715,11 +5714,20 @@ void RGFW_stopCheckEvents(void) {
 	}
 }
 
-RGFWDEF u64 RGFW_linux_getTimeNS(void);
-u64 RGFW_linux_getTimeNS(void) {
-    struct timespec ts;
+RGFWDEF u64 RGFW_unix_getTimeNS(void);
+u64 RGFW_unix_getTimeNS(void) {
+	struct timespec ts;
+	static i32 clock = -1;
+	if (clock == -1) {
+		if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
+			clock = CLOCK_MONOTONIC;
+		#else
+			clock = CLOCK_REALTIME;
+		#endif
+	}
+
     const u64 scale_factor = 1000000000;
-    clock_gettime(_RGFW->clock, &ts);
+    clock_gettime(clock, &ts);
     return (u64)ts.tv_sec * scale_factor + (u64)ts.tv_nsec;
 }
 
@@ -5776,7 +5784,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 	}
 
 
-	u64 start = RGFW_linux_getTimeNS();
+	u64 start = RGFW_unix_getTimeNS();
 	if (RGFW_usingWayland()) {
 		#ifdef RGFW_WAYLAND
 		while (wl_display_dispatch_pending(_RGFW->wl_display) == 0) {
@@ -5789,7 +5797,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 			}
 
 			if (waitMS != RGFW_eventWaitNext) {
-				waitMS -= (i32)(RGFW_linux_getTimeNS() - start) / (i32)1e+6;
+				waitMS -= (i32)(RGFW_unix_getTimeNS() - start) / (i32)1e+6;
 			}
 		}
 
@@ -5805,7 +5813,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 				break;
 
 			if (waitMS != RGFW_eventWaitNext) {
-				waitMS -= (i32)(RGFW_linux_getTimeNS() - start) / (i32)1e+6;
+				waitMS -= (i32)(RGFW_unix_getTimeNS() - start) / (i32)1e+6;
 			}
 		}
 		#endif
@@ -6018,12 +6026,6 @@ i32 RGFW_initPlatform(void) {
 	struct timespec ts;
 	RGFW_MEMZERO(&ts, sizeof(struct timespec));
 
-	if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
-		_RGFW->clock = CLOCK_MONOTONIC;
-	#else
-		_RGFW->clock = CLOCK_REALTIME;
-	#endif
-
 #ifdef RGFW_WAYLAND
 	RGFW_load_Wayland();
 	i32 ret = RGFW_initPlatform_Wayland();
@@ -6132,7 +6134,7 @@ void RGFW_unix_parseURI(RGFW_window* win, char* data) {
 /*
 
 
-Start of Linux / Unix defines
+Start of *nix defines
 
 
 */
@@ -6638,7 +6640,7 @@ void RGFW_XHandleClipboardSelection(XEvent* event) { RGFW_UNUSED(event);
 		for (i = 0; i < (u32)count; i += 2) {
 			if (targets[i] == UTF8_STRING || targets[i] == XA_STRING)
 				XChangeProperty(_RGFW->display, request->requestor, targets[i + 1], targets[i],
-					8, PropModeReplace, (const unsigned char *)_RGFW->clipboard, (i32)_RGFW->clipboard_len);
+					8, PropModeReplace, (const unsigned char *)_RGFW->nixClipboard->data, (i32)_RGFW->nixClipboard->length);
 			else
 				targets[i + 1] = None;
 		}
@@ -6657,7 +6659,7 @@ void RGFW_XHandleClipboardSelection(XEvent* event) { RGFW_UNUSED(event);
 			if (request->target != formats[i])
 				continue;
 			XChangeProperty(_RGFW->display, request->requestor, request->property, request->target,
-								8, PropModeReplace, (u8*) _RGFW->clipboard, (i32)_RGFW->clipboard_len);
+								8, PropModeReplace, (u8*) _RGFW->nixClipboard->data, (i32)_RGFW->nixClipboard->length);
 		}
 	}
 
@@ -6829,7 +6831,7 @@ void RGFW_XHandleEvent(void) {
 	}
 
 	if (win->src.flashEnd) {
-		if ((win->src.flashEnd <= RGFW_linux_getTimeNS()) || RGFW_window_isInFocus(win)) {
+		if ((win->src.flashEnd <= RGFW_unix_getTimeNS()) || RGFW_window_isInFocus(win)) {
 			RGFW_window_flash(win, RGFW_flashCancel);
 		}
 	}
@@ -7679,7 +7681,7 @@ void RGFW_FUNC(RGFW_window_flash) (RGFW_window* win, RGFW_flashRequest request) 
 	if (request) {
 		wmhints->flags |= XUrgencyHint;
 		if (request == RGFW_flashBriefly)
-			win->src.flashEnd = RGFW_linux_getTimeNS() + (u64)1e+9;
+			win->src.flashEnd = RGFW_unix_getTimeNS() + (u64)1e+9;
 		if (request == RGFW_flashUntilFocused)
 			win->src.flashEnd = (u64)-1;
 	} else {
@@ -7699,12 +7701,11 @@ RGFW_bool RGFW_FUNC(RGFW_readClipboardPtr) (u8* buffer, size_t capacity, RGFW_da
 	RGFW_LOAD_ATOM(XSEL_DATA); RGFW_LOAD_ATOM(UTF8_STRING); RGFW_LOAD_ATOM(CLIPBOARD);
 
 	if (XGetSelectionOwner(_RGFW->display, CLIPBOARD) == _RGFW->helperWindow) {
+		dataTransfer->length = _RGFW->nixClipboard->length;
+		if (buffer != NULL && _RGFW->nixClipboard->data != NULL) {
+			if (_RGFW->nixClipboard->length > capacity) return RGFW_FALSE;
 
-		dataTransfer->length = _RGFW->clipboard_len;
-		if (buffer != NULL && _RGFW->clipboard != NULL) {
-			if (_RGFW->clipboard_len > capacity) return RGFW_FALSE;
-
-			RGFW_STRNCPY((char*)buffer, _RGFW->clipboard, _RGFW->clipboard_len);
+			RGFW_MEMCPY((char*)buffer, _RGFW->nixClipboard->data, _RGFW->nixClipboard->length);
 		}
 
 		dataTransfer->type = RGFW_dataText;
@@ -7785,15 +7786,20 @@ RGFW_bool RGFW_FUNC(RGFW_writeClipboard)(const RGFW_dataTransfer* data) {
 		return RGFW_FALSE;
 	}
 
-	if (_RGFW->clipboard)
-		RGFW_FREE(_RGFW->clipboard);
+	if (_RGFW->nixClipboard) {
+		RGFW_FREE(_RGFW->nixClipboard);
+		_RGFW->nixClipboard = NULL;
+	}
 
-	_RGFW->clipboard = (char*)RGFW_ALLOC(data->length + 1);
-	RGFW_ASSERT(_RGFW->clipboard != NULL);
+	_RGFW->nixClipboard = (RGFW_dataTransfer*)RGFW_ALLOC(sizeof(RGFW_dataTransfer) + data->length);
+	RGFW_ASSERT(_RGFW->nixClipboard != NULL);
 
-	RGFW_STRNCPY(_RGFW->clipboard, data->data, data->length);
-	_RGFW->clipboard[data->length] = '\0';
-	_RGFW->clipboard_len = data->length;
+	char* data_ptr = &((char*)(void*)_RGFW->nixClipboard)[sizeof(RGFW_dataTransfer) - 1];
+	RGFW_MEMCPY(data_ptr, data->data, data->length);
+
+	_RGFW->nixClipboard->data = (const char*)data_ptr;
+	_RGFW->nixClipboard->type = RGFW_dataText;
+	_RGFW->nixClipboard->length = data->length;
 	return RGFW_TRUE;
 }
 
@@ -8552,7 +8558,7 @@ i32 RGFW_initPlatform_X11(void) {
     u8 RGFW_blk[] = { 0, 0, 0, 0 };
 	_RGFW->hiddenMouse = RGFW_createMouse(RGFW_blk, 1, 1, RGFW_formatRGBA8);
 
-	_RGFW->clipboard = NULL;
+	_RGFW->nixClipboard = NULL;
 
     XkbComponentNamesRec rec;
     XkbDescPtr desc = XkbGetMap(_RGFW->display, 0, XkbUseCoreKbd);
@@ -8613,9 +8619,9 @@ void RGFW_deinitPlatform_X11(void) {
         _RGFW->im = NULL;
     }
 
-	if (_RGFW->clipboard) {
-		RGFW_FREE(_RGFW->clipboard);
-		_RGFW->clipboard = NULL;
+	if (_RGFW->nixClipboard) {
+		RGFW_FREE(_RGFW->nixClipboard);
+		_RGFW->nixClipboard = NULL;
 	}
 
 	if (_RGFW->hiddenMouse) {
@@ -8669,7 +8675,7 @@ WGPUSurface RGFW_FUNC(RGFW_window_createSurface_WebGPU) (RGFW_window* window, WG
 
 #endif
 /*
-	End of X11 linux / wayland / unix defines
+	End of *nix
 */
 
 /*
@@ -9297,7 +9303,7 @@ static void RGFW_wl_data_source_send(void *data, struct wl_data_source *wl_data_
 	// a client can accept our clipboard
 	if (RGFW_STRNCMP(mime_type, "text/plain;charset=utf-8", 25) == 0) {
 		// do not write \0
-		write(fd, _RGFW->clipboard, _RGFW->clipboard_len - 1);
+		write(fd, _RGFW->nixClipboard->data, _RGFW->nixClipboard->length - 1);
 	}
 
 	close(fd);
@@ -9345,11 +9351,15 @@ static void RGFW_wl_data_device_selection(void *data, struct wl_data_device *wl_
 
 	ssize_t n = read(pfds[0], buf, sizeof(buf));
 
-	_RGFW->clipboard = (char*)RGFW_ALLOC((size_t)n);
-	RGFW_ASSERT(_RGFW->clipboard != NULL);
-	RGFW_STRNCPY(_RGFW->clipboard, buf, (size_t)n);
+	_RGFW->nixClipboard = (RGFW_dataTransfer*)RGFW_ALLOC(sizeof(RGFW_dataTransfer) + (size_t)n);
+	RGFW_ASSERT(_RGFW->nixClipboard != NULL);
 
-	_RGFW->clipboard_len = (size_t)n + 1;
+	char* data_ptr = &((char*)(void*)_RGFW->nixClipboard)[sizeof(RGFW_dataTransfer) - 1];
+	RGFW_STRNCPY(data_ptr, buf, (size_t)n);
+
+	_RGFW->nixClipboard->data = data_ptr;
+	_RGFW->nixClipboard->type = RGFW_dataText;
+	_RGFW->nixClipboard->length = (size_t)n;
 
 	close(pfds[0]);
 
@@ -9532,9 +9542,9 @@ i32 RGFW_initPlatform_Wayland(void) {
 }
 
 void RGFW_deinitPlatform_Wayland(void) {
-	if (_RGFW->clipboard) {
-		RGFW_FREE(_RGFW->clipboard);
-		_RGFW->clipboard = NULL;
+	if (_RGFW->nixClipboard) {
+		RGFW_FREE(_RGFW->nixClipboard);
+		_RGFW->nixClipboard = NULL;
 	}
 
     if (_RGFW->wl_pointer) {
@@ -9937,7 +9947,7 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 		}
 	}
 	if (_RGFW->wl_repeat_info_rate != 0 && _RGFW->last_key) {
-		u32 now = (u32)(RGFW_linux_getTimeNS() / 1000000);
+		u32 now = (u32)(RGFW_unix_getTimeNS() / 1000000);
 		if (now > _RGFW->last_key_time) {
 			RGFW_wl_send_key_event(_RGFW->last_key);
 			_RGFW->last_key_time = now + 1000 / (u32)_RGFW->wl_repeat_info_rate;
@@ -10241,20 +10251,20 @@ void RGFW_FUNC(RGFW_window_flash) (RGFW_window* win, RGFW_flashRequest request) 
 RGFW_bool RGFW_FUNC(RGFW_readClipboardPtr) (u8* buffer, size_t capacity, RGFW_dataTransfer* data) {
 	RGFW_ASSERT(data != NULL);
 
-	if (_RGFW->clipboard == NULL || _RGFW->clipboard_len == 0) {
+	if (_RGFW->nixClipboard == NULL || _RGFW->nixClipboard->length == 0) {
 		data->length = 0;
 		data->type = RGFW_dataNone;
 		return RGFW_FALSE;
 	}
 
-	data->length = _RGFW->clipboard_len;
+	data->length = _RGFW->nixClipboard->length;
 	data->type = RGFW_dataText;
 
 	if (buffer == NULL) return RGFW_TRUE;
 
-	if (_RGFW->clipboard_len > capacity) return RGFW_FALSE;
+	if (_RGFW->nixClipboard->length > capacity) return RGFW_FALSE;
 
-	RGFW_MEMCPY(buffer, _RGFW->clipboard, _RGFW->clipboard_len);
+	RGFW_MEMCPY(buffer, _RGFW->nixClipboard->data, _RGFW->nixClipboard->length);
 	data->data = (const char*)buffer;
 
 	return RGFW_TRUE;
@@ -10267,14 +10277,21 @@ RGFW_bool RGFW_FUNC(RGFW_writeClipboard) (const RGFW_dataTransfer* data) {
 	// clients cannot read rgfw's clipboard
 	if (_RGFW->data_device_manager == NULL) return RGFW_FALSE;
 	// clear the clipboard
-	if (_RGFW->clipboard)
-		RGFW_FREE(_RGFW->clipboard);
+	if (_RGFW->nixClipboard) {
+		RGFW_FREE(_RGFW->nixClipboard);
+		_RGFW->nixClipboard = NULL;
+	}
 
 	// set the contents
-	_RGFW->clipboard = (char*)RGFW_ALLOC(data->length);
-	RGFW_ASSERT(_RGFW->clipboard != NULL);
-	RGFW_MEMCPY(_RGFW->clipboard, data->data, data->length);
-	_RGFW->clipboard_len = data->length;
+	_RGFW->nixClipboard = (RGFW_dataTransfer*)RGFW_ALLOC(sizeof(RGFW_dataTransfer) + data->length);
+	RGFW_ASSERT(_RGFW->nixClipboard!= NULL);
+
+	char* data_ptr = &((char*)(void*)_RGFW->nixClipboard)[sizeof(RGFW_dataTransfer) - 1];
+	RGFW_MEMCPY(data_ptr, data->data, data->length);
+
+	_RGFW->nixClipboard->data = data_ptr;
+	_RGFW->nixClipboard->type = RGFW_dataText;
+	_RGFW->nixClipboard->length = data->length;
 
 	// means we already wrote to the clipboard
 	// so destroy it to create a new one
