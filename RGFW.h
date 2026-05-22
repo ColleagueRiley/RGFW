@@ -1027,7 +1027,7 @@ typedef struct RGFW_glHints {
 	RGFW_glRenderer renderer; /*!< renderer to use e.g. accelerated or software defaults to accelerated */
 } RGFW_glHints;
 
-#endif
+#endif /* RGFW_OPENGL */
 
 /**!
  * @brief Allocates memory using the allocator defined by RGFW_ALLOC at compile time.
@@ -4341,7 +4341,7 @@ u64 RGFW_window_getWindow_X11(RGFW_window* win) { RGFW_UNUSED(win); return 0; }
 #ifndef RGFW_WAYLAND
 struct wl_display* RGFW_getDisplay_Wayland(void) { return NULL; }
 struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { RGFW_UNUSED(win); return NULL; }
-void RGFW_useWayland(RGFW_bool wayland) { }
+void RGFW_useWayland(RGFW_bool wayland) { RGFW_UNUSED(wayland); }
 RGFW_bool RGFW_usingWayland(void) { return RGFW_FALSE; }
 #endif
 
@@ -6018,10 +6018,6 @@ void RGFW_initKeycodesPlatform(void) {
 }
 
 i32 RGFW_initPlatform(void) {
-	#if defined(_POSIX_MONOTONIC_CLOCK)
-	struct timespec ts;
-	RGFW_MEMZERO(&ts, sizeof(struct timespec));
-
 #ifdef RGFW_WAYLAND
 	_RGFW->useWaylandBool = RGFW_TRUE;
 	RGFW_load_Wayland();
