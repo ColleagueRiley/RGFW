@@ -3331,7 +3331,7 @@ const RGFW_dataTransfer* RGFW_readClipboard(void) {
 	u8* cont_data = (u8*)RGFW_ALLOC(sizeof(RGFW_dataTransfer) + (size_t)data_check.length);
 	RGFW_ASSERT(cont_data != NULL);
 
-	RGFW_dataTransfer* data = (RGFW_dataTransfer*)cont_data;
+	RGFW_dataTransfer* data = (RGFW_dataTransfer*)(void*)cont_data;
 	ret = RGFW_readClipboardPtr((u8*)&cont_data[sizeof(RGFW_dataTransfer) - 1], data_check.length, data);
 
 	if (ret == RGFW_FALSE || data->length == 0) {
