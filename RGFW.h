@@ -3186,7 +3186,6 @@ struct RGFW_info {
 		u32 last_key;  /* wayland key repeat data */
 		i32 wl_repeat_info_rate, wl_repeat_info_delay;
 		u32 last_key_time;
-		RGFW_bool useWaylandBool;
     #endif
 
     RGFW_monitors monitors;
@@ -4341,6 +4340,9 @@ u64 RGFW_window_getWindow_X11(RGFW_window* win) { RGFW_UNUSED(win); return 0; }
 #ifndef RGFW_WAYLAND
 struct wl_display* RGFW_getDisplay_Wayland(void) { return NULL; }
 struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { RGFW_UNUSED(win); return NULL; }
+#endif
+
+#if !defined(RGFW_WAYLAND) && !defined(RGFW_X11)
 void RGFW_useWayland(RGFW_bool wayland) { RGFW_UNUSED(wayland); }
 RGFW_bool RGFW_usingWayland(void) { return RGFW_FALSE; }
 #endif
@@ -5240,7 +5242,7 @@ RGFW_bool RGFW_loadEGL(void) {
 		_RGFW->EGL_display = RGFW_eglGetDisplay((EGLNativeDisplayType) dc);
 		ReleaseDC(NULL, dc);
 		#elif defined(RGFW_WAYLAND)
-		if (_RGFW->useWaylandBool)
+		if (RGFW_usingWayland() == RGFW_TRUE)
 			_RGFW->EGL_display = RGFW_eglGetDisplay((EGLNativeDisplayType) _RGFW->wl_display);
 		else
 		#endif
@@ -5278,7 +5280,7 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 	win->src.gfxType = RGFW_gfxEGL;
 
 #ifdef RGFW_WAYLAND
-    if (_RGFW->useWaylandBool)
+	if (RGFW_usingWayland() == RGFW_TRUE)
         win->src.ctx.egl->eglWindow = wl_egl_window_create(win->src.surface, win->w, win->h);
 #endif
 
@@ -5343,7 +5345,7 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 		if (best_config  == -1) best_config = i;
 
 #ifdef RGFW_X11
-		if (_RGFW->useWaylandBool == RGFW_FALSE) {
+		if (RGFW_usingWayland() == RGFW_FALSE)
 			XVisualInfo vinfo_template;
 			vinfo_template.visualid = (VisualID)visual_id;
 
@@ -5374,7 +5376,7 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 	EGLConfig config = configs[best_config];
 	RGFW_FREE(configs);
 #ifdef RGFW_X11
-    if (_RGFW->useWaylandBool == RGFW_FALSE) {
+	if (RGFW_usingWayland() == RGFW_FALSE) {
 		/*  This is required so that way the user can create their own OpenGL context after RGFW_createWindow is used */
 		XVisualInfo* result;
 		XVisualInfo desired;
@@ -5455,7 +5457,7 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 	#elif defined(RGFW_WINDOWS)
 		win->src.ctx.egl->surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) win->src.window, surf_attribs);
 	#elif defined(RGFW_WAYLAND)
-		if (_RGFW->useWaylandBool)
+		if (RGFW_usingWayland() == RGFW_TRUE)
 			win->src.ctx.egl->surface = RGFW_eglCreateWindowSurface(_RGFW->EGL_display, config, (EGLNativeWindowType) win->src.ctx.egl->eglWindow, surf_attribs);
 		else
     #endif
@@ -5542,7 +5544,7 @@ void RGFW_window_deleteContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ctx) {
 	RGFW_eglDestroyContext(_RGFW->EGL_display, ctx->ctx);
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "EGL context freed");
 	#ifdef RGFW_WAYLAND
-		if (_RGFW->useWaylandBool == RGFW_FALSE) return;
+		if (RGFW_usingWayland() == RGFW_FALSE) return;
 		wl_egl_window_destroy(win->src.ctx.egl->eglWindow);
 		RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "EGL window context freed");
 	#endif
@@ -6019,7 +6021,6 @@ void RGFW_initKeycodesPlatform(void) {
 
 i32 RGFW_initPlatform(void) {
 #ifdef RGFW_WAYLAND
-	_RGFW->useWaylandBool = RGFW_TRUE;
 	RGFW_load_Wayland();
 	i32 ret = RGFW_initPlatform_Wayland();
 
@@ -6028,8 +6029,6 @@ i32 RGFW_initPlatform(void) {
 	} else {
 		#ifdef RGFW_X11
 			RGFW_debugCallback(RGFW_typeWarning, RGFW_warningWayland,  "Falling back to X11");
-
-			_RGFW->useWaylandBool = RGFW_FALSE;
 			RGFW_useWayland(0);
 		#else
 			return ret;
@@ -6051,7 +6050,7 @@ void RGFW_deinitPlatform(void) {
         close(_RGFW->eventWait_forceStop[1]);
     }
 #ifdef RGFW_WAYLAND
-	if (_RGFW->useWaylandBool) {
+	if (RGFW_usingWayland()) {
 		RGFW_deinitPlatform_Wayland();
 		return;
 	}
@@ -8700,9 +8699,6 @@ WGPUSurface RGFW_FUNC(RGFW_window_createSurface_WebGPU) (RGFW_window* window, WG
 
 struct wl_display* RGFW_getDisplay_Wayland(void) { return _RGFW->wl_display; }
 struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { return win->src.surface; }
-
-void RGFW_useWayland(RGFW_bool wayland) { RGFW_init(); _RGFW->useWaylandBool = RGFW_BOOL(wayland);  }
-RGFW_bool RGFW_usingWayland(void) { return _RGFW->useWaylandBool; }
 
 /* wayland global garbage (wayland bad, X11 is fine (ish) (not really)) */
 #include "xdg-shell.h"
@@ -15968,6 +15964,10 @@ WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance i
  * falling back to x11 if wayland fails to initalize
 */
 #if defined(RGFW_WAYLAND) && defined(RGFW_X11)
+RGFW_bool RGFW_useWaylandBool = RGFW_TRUE;
+void RGFW_useWayland(RGFW_bool wayland) { RGFW_useWaylandBool = RGFW_BOOL(wayland);  }
+RGFW_bool RGFW_usingWayland(void) { return RGFW_useWaylandBool; }
+
 void RGFW_load_X11(void) {
 	RGFW_api.nativeFormat = RGFW_nativeFormat_X11;
 	RGFW_api.createSurfacePtr = RGFW_createSurfacePtr_X11;
