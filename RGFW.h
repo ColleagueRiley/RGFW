@@ -4342,7 +4342,7 @@ struct wl_display* RGFW_getDisplay_Wayland(void) { return NULL; }
 struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { RGFW_UNUSED(win); return NULL; }
 #endif
 
-#if !defined(RGFW_WAYLAND) && !defined(RGFW_X11)
+#if !(defined(RGFW_WAYLAND) && defined(RGFW_X11))
 void RGFW_useWayland(RGFW_bool wayland) { RGFW_UNUSED(wayland); }
 RGFW_bool RGFW_usingWayland(void) { return RGFW_FALSE; }
 #endif
