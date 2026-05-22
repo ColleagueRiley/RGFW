@@ -15788,7 +15788,7 @@ typedef void (*RGFW_window_moveMouse_ptr)(RGFW_window* win, i32 x, i32 y);
 typedef void (*RGFW_window_hide_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_show_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_flash_ptr)(RGFW_window* win, RGFW_flashRequest request);
-typedef RGFW_ssize_t (*RGFW_readClipboardPtr_ptr)(u8* buffer, size_t capacity, RGFW_dataTransfer* data);
+typedef RGFW_bool (*RGFW_readClipboardPtr_ptr)(u8* buffer, size_t capacity, RGFW_dataTransfer* data);
 typedef RGFW_bool (*RGFW_writeClipboard_ptr)(const RGFW_dataTransfer* data);
 typedef RGFW_bool (*RGFW_window_isHidden_ptr)(RGFW_window* win);
 typedef RGFW_bool (*RGFW_window_isMinimized_ptr)(RGFW_window* win);
@@ -15935,7 +15935,7 @@ void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) { RGFW_api.window_mov
 void RGFW_window_hide(RGFW_window* win) { RGFW_api.window_hide(win); }
 void RGFW_window_show(RGFW_window* win) { RGFW_api.window_show(win); }
 void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) { RGFW_api.window_flash(win, request); }
-RGFW_ssize_t RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* data) { return RGFW_api.readClipboardPtr(buffer, capacity, data); }
+RGFW_bool RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* data) { return RGFW_api.readClipboardPtr(buffer, capacity, data); }
 RGFW_bool RGFW_writeClipboard(const RGFW_dataTransfer* data) { return RGFW_api.writeClipboard(data); }
 RGFW_bool RGFW_window_isHidden(RGFW_window* win) { return RGFW_api.window_isHidden(win); }
 RGFW_bool RGFW_window_isMinimized(RGFW_window* win) { return RGFW_api.window_isMinimized(win); }
