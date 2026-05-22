@@ -3336,10 +3336,12 @@ const RGFW_dataTransfer* RGFW_readClipboard(void) {
 
 	if (ret == RGFW_FALSE || data->length == 0) {
 		RGFW_FREE(cont_data);
+		data = NULL;
 	} else if (_RGFW->clipboard_data) {
 		RGFW_FREE(_RGFW->clipboard_data);
-		_RGFW->clipboard_data = data;
 	}
+
+	_RGFW->clipboard_data = data;
 
 	return _RGFW->clipboard_data;
 }
@@ -7695,9 +7697,10 @@ RGFW_bool RGFW_FUNC(RGFW_readClipboardPtr) (u8* buffer, size_t capacity, RGFW_da
 
 	RGFW_init();
 	RGFW_LOAD_ATOM(XSEL_DATA); RGFW_LOAD_ATOM(UTF8_STRING); RGFW_LOAD_ATOM(CLIPBOARD);
-	if (XGetSelectionOwner(_RGFW->display, CLIPBOARD) == _RGFW->helperWindow) {
-		dataTransfer->length = _RGFW->clipboard_len;
 
+	if (XGetSelectionOwner(_RGFW->display, CLIPBOARD) == _RGFW->helperWindow) {
+
+		dataTransfer->length = _RGFW->clipboard_len;
 		if (buffer != NULL && _RGFW->clipboard != NULL) {
 			if (_RGFW->clipboard_len > capacity) return RGFW_FALSE;
 
@@ -12235,59 +12238,54 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_f
 	#endif
 }
 
-RGFW_ssize_t RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* data) {
+RGFW_bool RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* data) {
+	RGFW_ASSERT(data != NULL);
 	/* Open the clipboard */
 	if (OpenClipboard(NULL) == 0)
-		return -1;
+		return RGFW_FALSE;
 
 	/* Get the clipboard data as a Unicode string */
 	HANDLE hData = GetClipboardData(CF_UNICODETEXT);
 	if (hData == NULL) {
 		CloseClipboard();
-		return -1;
+		return RGFW_FALSE;
 	}
 
 	wchar_t* wstr = (wchar_t*) GlobalLock(hData);
 
-	RGFW_ssize_t textLen = 0;
+	RGFW_bool ret = RGFW_TRUE;
 
-	{
-		setlocale(LC_ALL, "en_US.UTF-8");
+	setlocale(LC_ALL, "en_US.UTF-8");
 
-		textLen = (RGFW_ssize_t)wcstombs(NULL, wstr, 0) + 1;
-		if (str != NULL && (RGFW_ssize_t)strCapacity <= textLen - 1)
-			textLen = 0;
-
-		if (str != NULL && textLen) {
-			if (textLen > 1)
-				wcstombs(str, wstr, (size_t)(textLen));
-
-			str[textLen - 1] = '\0';
-		}
+	data->length = (size_t)wcstombs(NULL, wstr, 0);
+	data->type = RGFW_dataText;
+	if (buffer != NULL && capacity < data->length) {
+		ret = RGFW_FALSE;
+	} else if (buffer != NULL && data->length) {
+		wcstombs((char*)buffer, wstr, data->length);
+		data->data = (const char*)buffer;
 	}
 
 	/* Release the clipboard data */
 	GlobalUnlock(hData);
 	CloseClipboard();
 
-	return textLen;
+	return ret;
 }
 
 RGFW_bool RGFW_writeClipboard(const RGFW_dataTransfer* data) {
-	HANDLE object;
-	WCHAR* buffer;
-
-	object = GlobalAlloc(GMEM_MOVEABLE, (1 + textLen) * sizeof(WCHAR));
+	RGFW_ASSERT(data != NULL);
+	HANDLE object = GlobalAlloc(GMEM_MOVEABLE, data->length * sizeof(WCHAR));
 	if (!object)
 		return RGFW_FALSE;
 
-	buffer = (WCHAR*) GlobalLock(object);
+	WCHAR* buffer = (WCHAR*) GlobalLock(object);
 	if (!buffer) {
 		GlobalFree(object);
 		return RGFW_FALSE;
 	}
 
-	MultiByteToWideChar(CP_UTF8, 0, text, -1, buffer, (i32)textLen);
+	MultiByteToWideChar(CP_UTF8, 0, data->data, -1, buffer, (i32)data->length);
 	GlobalUnlock(object);
 
 	if (!OpenClipboard(_RGFW->root->src.window)) {
@@ -14557,32 +14555,31 @@ RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) {
 	return &node->mon;
 }
 
-RGFW_ssize_t RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* data) {
-	size_t clip_len;
-	char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString, &clip_len);
-	if (clip == NULL) return -1;
+RGFW_bool RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* data) {
+	RGFW_ASSERT(data != NULL);
 
-	if (str != NULL) {
-		if (strCapacity < clip_len)
-			return 0;
+	char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString, &data->length);
+	if (clip == NULL) return RGFW_FALSE;
 
-		RGFW_MEMCPY(str, clip, clip_len);
+	data->type = RGFW_dataText;
 
-		str[clip_len] = '\0';
-	}
+	if (buffer == NULL) return RGFW_TRUE;
+	if (capacity < data->length) return RGFW_FALSE;
 
-	return (RGFW_ssize_t)clip_len;
+	RGFW_MEMCPY(data->data, clip, data->length);
+
+	return RGFW_TRUE;
 }
 
 RGFW_bool RGFW_writeClipboard(const RGFW_dataTransfer* data) {
-	RGFW_UNUSED(textLen);
+	RGFW_ASSERT(data != NULL);
 
 	NSPasteboardType array[] = { NSPasteboardTypeString, NULL };
 	NSPasteBoard_declareTypes(NSPasteboard_generalPasteboard(), array, 1, NULL);
 
 	SEL func = sel_registerName("setString:forType:");
 	bool ret = ((bool (*)(id, SEL, id, id))objc_msgSend)
-		(NSPasteboard_generalPasteboard(), func, NSString_stringWithUTF8String(text), NSString_stringWithUTF8String((const char*)NSPasteboardTypeString));
+		(NSPasteboard_generalPasteboard(), func, NSString_stringWithUTF8String(data->data), NSString_stringWithUTF8String((const char*)NSPasteboardTypeString));
 
 	return (ret == true) ? RGFW_TRUE : RGFW_FALSE;
 }
@@ -15410,19 +15407,21 @@ void RGFW_window_setMousePassthrough(RGFW_window* win, RGFW_bool passthrough) {
 }
 
 RGFW_bool RGFW_writeClipboard(const RGFW_dataTransfer* data) {
-	RGFW_UNUSED(textLen);
-	EM_ASM({ navigator.clipboard.writeText(UTF8ToString($0)); }, text);
+	RGFW_ASSERT(data != NULL);
+	EM_ASM({ navigator.clipboard.writeText(UTF8ToString($0)); }, data->data);
 	return RGFW_TRUE;
 }
 
 
-RGFW_ssize_t RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* data) {
-	RGFW_UNUSED(str); RGFW_UNUSED(strCapacity);
+RGFW_bool RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* data) {
+	RGFW_ASSERT(data != NULL);
+	RGFW_UNUSED(buffer); RGFW_UNUSED(capacity);
+
 	/*
 		placeholder code for later
 		I'm not sure if this is possible do the the async stuff
 	*/
-	return 0;
+	return RGFW_FALSE;
 }
 
 #ifdef RGFW_OPENGL
