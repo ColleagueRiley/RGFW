@@ -5345,7 +5345,7 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 		if (best_config  == -1) best_config = i;
 
 #ifdef RGFW_X11
-		if (RGFW_usingWayland() == RGFW_FALSE)
+		if (RGFW_usingWayland() == RGFW_FALSE) {
 			XVisualInfo vinfo_template;
 			vinfo_template.visualid = (VisualID)visual_id;
 
