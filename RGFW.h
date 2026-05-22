@@ -10254,11 +10254,14 @@ RGFW_bool RGFW_FUNC(RGFW_readClipboardPtr) (u8* buffer, size_t capacity, RGFW_da
 
 	if (_RGFW->clipboard_len > capacity) return RGFW_FALSE;
 
-	RGFW_STRNCPY(buffer, _RGFW->clipboard, _RGFW->clipboard_len);
+	RGFW_MEMCPY(buffer, _RGFW->clipboard, _RGFW->clipboard_len);
+	data->data = (const char*)buffer;
+
 	return RGFW_TRUE;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_writeClipboard) (const RGFW_dataTransfer* data) {
+	RGFW_ASSERT(data != NULL);
 
 	// compositor does not support wl_data_device_manager
 	// clients cannot read rgfw's clipboard
@@ -10268,11 +10271,10 @@ RGFW_bool RGFW_FUNC(RGFW_writeClipboard) (const RGFW_dataTransfer* data) {
 		RGFW_FREE(_RGFW->clipboard);
 
 	// set the contents
-	_RGFW->clipboard = (char*)RGFW_ALLOC(textLen);
+	_RGFW->clipboard = (char*)RGFW_ALLOC(data->length);
 	RGFW_ASSERT(_RGFW->clipboard != NULL);
-	RGFW_STRNCPY(_RGFW->clipboard, text, textLen - 1);
-	_RGFW->clipboard[textLen - 1] = '\0';
-	_RGFW->clipboard_len = textLen;
+	RGFW_MEMCPY(_RGFW->clipboard, data->data, data->length);
+	_RGFW->clipboard_len = data->length;
 
 	// means we already wrote to the clipboard
 	// so destroy it to create a new one
@@ -14566,7 +14568,8 @@ RGFW_bool RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* 
 	if (buffer == NULL) return RGFW_TRUE;
 	if (capacity < data->length) return RGFW_FALSE;
 
-	RGFW_MEMCPY(data->data, clip, data->length);
+	RGFW_MEMCPY(buffer, clip, data->length);
+	data->data = (const char*)buffer;
 
 	return RGFW_TRUE;
 }
