@@ -192,6 +192,8 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 
 TEST_OUTPUTS = \
 			   tests/loop \
+			   tests/clipboard \
+
 
 
 all: $(WAYLAND_SOURCE) $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) libRGFW.a
