@@ -9146,8 +9146,9 @@ static void RGFW_wl_output_handle_mode(void *data, struct wl_output *wl_output, 
 
 	if (flags & WL_OUTPUT_MODE_CURRENT) {
 		monitor->mode = mode;
-	} else {
 	}
+
+	RGFW_FREE(modes);
 }
 
 static void RGFW_wl_output_set_scale(void *data, struct wl_output *wl_output, i32 factor) {
