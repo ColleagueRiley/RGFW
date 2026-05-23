@@ -4340,9 +4340,6 @@ u64 RGFW_window_getWindow_X11(RGFW_window* win) { RGFW_UNUSED(win); return 0; }
 #ifndef RGFW_WAYLAND
 struct wl_display* RGFW_getDisplay_Wayland(void) { return NULL; }
 struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { RGFW_UNUSED(win); return NULL; }
-#endif
-
-#if !(defined(RGFW_WAYLAND) && defined(RGFW_X11))
 void RGFW_useWayland(RGFW_bool wayland) { RGFW_UNUSED(wayland); }
 RGFW_bool RGFW_usingWayland(void) { return RGFW_FALSE; }
 #endif
@@ -8675,7 +8672,7 @@ WGPUSurface RGFW_FUNC(RGFW_window_createSurface_WebGPU) (RGFW_window* window, WG
 
 /*
 
-	Start of Wayland defayland
+	Start of Wayland defines
 */
 
 #ifdef RGFW_WAYLAND
@@ -8696,6 +8693,11 @@ WGPUSurface RGFW_FUNC(RGFW_window_createSurface_WebGPU) (RGFW_window* window, WG
 #include <linux/kd.h>
 #include <wayland-cursor.h>
 #include <fcntl.h>
+
+#ifndef RGFW_X11
+void RGFW_useWayland(RGFW_bool wayland) { RGFW_UNUSED(wayland); }
+RGFW_bool RGFW_usingWayland(void) { return RGFW_TRUE; }
+#endif
 
 struct wl_display* RGFW_getDisplay_Wayland(void) { return _RGFW->wl_display; }
 struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { return win->src.surface; }
