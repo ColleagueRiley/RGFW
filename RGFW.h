@@ -658,7 +658,7 @@ typedef RGFW_ENUM(u8, RGFW_dataTransferType) {
 /*! struct for data transfers, mostly used for the clipboard API */
 typedef struct RGFW_dataTransfer {
 	const char* data; /*!< transfered data */
-	size_t length; /*!< the length of the data in bytes, including a null-terminator if included */
+	size_t length; /*!< the full length of the data in bytes, including null-terminator, if included. null-terminators are ensured when reading data from RGFW */
 	RGFW_dataTransferType type; /*!< the type of data being transfered */
 } RGFW_dataTransfer;
 
@@ -7727,18 +7727,22 @@ RGFW_bool RGFW_FUNC(RGFW_readClipboardPtr) (u8* buffer, size_t capacity, RGFW_da
 
 	RGFW_bool ret = RGFW_TRUE;
 
+	size_t length = size;
+	if (data[size - 1] != '\0') length += 1;
+
 	if (size > capacity && buffer != NULL)
 		ret = RGFW_FALSE;
 	else if ((target == UTF8_STRING || target == XA_STRING) && buffer != NULL) {
 		RGFW_MEMCPY(buffer, data, size);
-		buffer[size] = '\0';
+		buffer[length - 1] = '\0';
+
 		XFree(data);
 	} else if (buffer != NULL) ret = RGFW_FALSE;
 
 	XDeleteProperty(event.xselection.display, event.xselection.requestor, event.xselection.property);
 
+	dataTransfer->length = length;
 	dataTransfer->type = RGFW_dataText;
-	dataTransfer->length = size;
     return ret;
 }
 
@@ -7783,15 +7787,21 @@ RGFW_bool RGFW_FUNC(RGFW_writeClipboard)(const RGFW_dataTransfer* data) {
 		_RGFW->unixClipboard = NULL;
 	}
 
+	size_t length = data->length;
+	if (data->data[data->length - 1] != '\0') {
+		length += 1;
+	}
+
 	_RGFW->unixClipboard = (RGFW_dataTransfer*)RGFW_ALLOC(sizeof(RGFW_dataTransfer) + data->length);
 	RGFW_ASSERT(_RGFW->unixClipboard != NULL);
 
 	char* data_ptr = &((char*)(void*)_RGFW->unixClipboard)[sizeof(RGFW_dataTransfer) - 1];
 	RGFW_MEMCPY(data_ptr, data->data, data->length);
+	data_ptr[length - 1] = '\0';
 
 	_RGFW->unixClipboard->data = (const char*)data_ptr;
 	_RGFW->unixClipboard->type = RGFW_dataText;
-	_RGFW->unixClipboard->length = data->length;
+	_RGFW->unixClipboard->length = length;
 	return RGFW_TRUE;
 }
 
@@ -8971,7 +8981,6 @@ static void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
 	RGFW->kbOwner = win;
 
-
 	// this is to prevent race conditions
 	if (RGFW->data_device != NULL && win->src.data_source != NULL) {
 		wl_data_device_set_selection(RGFW->data_device, win->src.data_source, serial);
@@ -9281,7 +9290,11 @@ static void RGFW_wl_data_source_send(void *data, struct wl_data_source *wl_data_
 	// a client can accept our clipboard
 	if (RGFW_STRNCMP(mime_type, "text/plain;charset=utf-8", 25) == 0) {
 		// do not write \0
-		write(fd, _RGFW->unixClipboard->data, _RGFW->unixClipboard->length - 1);
+		size_t length = _RGFW->unixClipboard->length;
+		if (_RGFW->unixClipboard->data[0] == '\0') {
+			length -= 1;
+		}
+		write(fd, _RGFW->unixClipboard->data, length);
 	}
 
 	close(fd);
@@ -9291,7 +9304,7 @@ static void RGFW_wl_data_source_cancelled(void *data, struct wl_data_source *wl_
 
 	RGFW_info* RGFW = (RGFW_info*)data;
 
-	if (RGFW->kbOwner->src.data_source == wl_data_source) {
+	if (RGFW->kbOwner && RGFW->kbOwner->src.data_source == wl_data_source) {
 		RGFW->kbOwner->src.data_source = NULL;
 	}
 
@@ -9320,7 +9333,7 @@ static void RGFW_wl_data_device_selection(void *data, struct wl_data_device *wl_
 	int pfds[2];
 	pipe(pfds);
 
-	wl_data_offer_receive(wl_data_offer, "text/plain;charset=utf-8", pfds[1]);
+	wl_data_offer_receive(wl_data_offer, "text/plain", pfds[1]);
 	close(pfds[1]);
 
 	wl_display_roundtrip(_RGFW->wl_display);
@@ -9328,16 +9341,25 @@ static void RGFW_wl_data_device_selection(void *data, struct wl_data_device *wl_
 	char buf[1024];
 
 	ssize_t n = read(pfds[0], buf, sizeof(buf));
+	if (n < 0) {
+		close(pfds[0]);
+		wl_data_offer_destroy(wl_data_offer);
+		return;
+	}
+
+	size_t length = (size_t)n;
+	if (buf[n - 1] != '\0') length += 1;
 
 	_RGFW->unixClipboard = (RGFW_dataTransfer*)RGFW_ALLOC(sizeof(RGFW_dataTransfer) + (size_t)n);
 	RGFW_ASSERT(_RGFW->unixClipboard != NULL);
 
 	char* data_ptr = &((char*)(void*)_RGFW->unixClipboard)[sizeof(RGFW_dataTransfer) - 1];
-	RGFW_STRNCPY(data_ptr, buf, (size_t)n);
+	RGFW_MEMCPY(data_ptr, buf, (size_t)n);
+	data_ptr[length - 1] = '\0';
 
 	_RGFW->unixClipboard->data = data_ptr;
 	_RGFW->unixClipboard->type = RGFW_dataText;
-	_RGFW->unixClipboard->length = (size_t)n;
+	_RGFW->unixClipboard->length = length;
 
 	close(pfds[0]);
 
@@ -10264,12 +10286,16 @@ RGFW_bool RGFW_FUNC(RGFW_writeClipboard) (const RGFW_dataTransfer* data) {
 	_RGFW->unixClipboard = (RGFW_dataTransfer*)RGFW_ALLOC(sizeof(RGFW_dataTransfer) + data->length);
 	RGFW_ASSERT(_RGFW->unixClipboard!= NULL);
 
+	size_t length = data->length;
+	if (data->data[length - 1] != '\0') length += 1;
+
 	char* data_ptr = &((char*)(void*)_RGFW->unixClipboard)[sizeof(RGFW_dataTransfer) - 1];
 	RGFW_MEMCPY(data_ptr, data->data, data->length);
+	data_ptr[length - 1] = '\0';
 
 	_RGFW->unixClipboard->data = data_ptr;
 	_RGFW->unixClipboard->type = RGFW_dataText;
-	_RGFW->unixClipboard->length = data->length;
+	_RGFW->unixClipboard->length = length;
 
 	// means we already wrote to the clipboard
 	// so destroy it to create a new one
@@ -10288,7 +10314,6 @@ RGFW_bool RGFW_FUNC(RGFW_writeClipboard) (const RGFW_dataTransfer* data) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errClipboard, "Could not create clipboard data source");
 		return RGFW_FALSE;
 	}
-	wl_data_source_offer(win->src.data_source , "text/plain;charset=utf-8");
 
 	// needed RGFW_doNothing because wayland will call the functions
 	// if not set they are random data that lead to a crash
@@ -10302,6 +10327,7 @@ RGFW_bool RGFW_FUNC(RGFW_writeClipboard) (const RGFW_dataTransfer* data) {
 	};
 
 	wl_data_source_add_listener(win->src.data_source, &data_source_listener, _RGFW);
+	wl_data_source_offer(win->src.data_source , "text/plain;charset=utf-8");
 
 	return RGFW_TRUE;
 }
@@ -12254,12 +12280,13 @@ RGFW_bool RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* 
 
 	setlocale(LC_ALL, "en_US.UTF-8");
 
-	data->length = (size_t)wcstombs(NULL, wstr, 0);
+	data->length = (size_t)wcstombs(NULL, wstr, 0) + 1;
 	data->type = RGFW_dataText;
 	if (buffer != NULL && capacity < data->length) {
 		ret = RGFW_FALSE;
 	} else if (buffer != NULL && data->length) {
-		wcstombs((char*)buffer, wstr, data->length);
+		wcstombs((char*)buffer, wstr, data->length - 1);
+		buffer[data->length - 1] = '\0';
 		data->data = (const char*)buffer;
 	}
 
@@ -14555,15 +14582,20 @@ RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) {
 RGFW_bool RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* data) {
 	RGFW_ASSERT(data != NULL);
 
-	char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString, &data->length);
+	size_t length = 0;
+	char* clip = (char*)NSPasteboard_stringForType(NSPasteboard_generalPasteboard(), NSPasteboardTypeString, &length);
 	if (clip == NULL) return RGFW_FALSE;
 
 	data->type = RGFW_dataText;
+	data->length = length;
+
+	if (clip[data->length - 1] != '\0') data->length += 1;
 
 	if (buffer == NULL) return RGFW_TRUE;
 	if (capacity < data->length) return RGFW_FALSE;
 
-	RGFW_MEMCPY(buffer, clip, data->length);
+	RGFW_MEMCPY(buffer, clip, length);
+	buffer[data->length - 1] = '\0';
 	data->data = (const char*)buffer;
 
 	return RGFW_TRUE;
