@@ -9350,6 +9350,8 @@ static void RGFW_wl_data_device_selection(void *data, struct wl_data_device *wl_
 	size_t length = (size_t)n;
 	if (buf[n - 1] != '\0') length += 1;
 
+  if (_RGFW->unixClipboard != NULL) RGFW_FREE(_RGFW->unixClipboard);
+
 	_RGFW->unixClipboard = (RGFW_dataTransfer*)RGFW_ALLOC(sizeof(RGFW_dataTransfer) + (size_t)n);
 	RGFW_ASSERT(_RGFW->unixClipboard != NULL);
 
