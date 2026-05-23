@@ -3128,7 +3128,6 @@ struct RGFW_info {
 		RGFW_key keycodes[256];
 	#endif
 
-    const char* className;
     RGFW_bool stopCheckEvents_bool ;
     u64 timerOffset;
 
@@ -3187,7 +3186,11 @@ struct RGFW_info {
 		i32 wl_repeat_info_rate, wl_repeat_info_delay;
 		u32 last_key_time;
     #endif
-
+    #ifdef RGFW_WINDOWS
+        HINSTANCE instance;
+		WNDCLASSW wndClass;
+		HWND helperWindow;
+    #endif
     RGFW_monitors monitors;
 
     #ifdef RGFW_UNIX
@@ -4308,7 +4311,8 @@ RGFW_bool RGFW_window_isInFocus(RGFW_window* win) {
 #endif
 }
 
-void RGFW_setClassName(const char* name) { RGFW_init(); _RGFW->className = name; }
+const char* RGFW_className = "RGFW";
+void RGFW_setClassName(const char* name) { RGFW_className = (name != NULL) ? name : "RGFW"; }
 void RGFW_setBuildDND(RGFW_bool state) { _RGFW->dndBuild = state; }
 
 #ifndef RGFW_X11
@@ -5656,7 +5660,7 @@ VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance,
     VkWaylandSurfaceCreateInfoKHR wayland = { VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR, 0, 0, (struct wl_display*) _RGFW->wl_display, (struct wl_surface*) win->src.surface };
     return vkCreateWaylandSurfaceKHR(instance, &wayland, NULL, surface);
 #elif defined(RGFW_WINDOWS)
-    VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, GetModuleHandle(NULL), (HWND)win->src.window };
+    VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, _RGFW->instance, (HWND)win->src.window };
 
     return vkCreateWin32SurfaceKHR(instance, &win32, NULL, surface);
 #endif
@@ -6509,11 +6513,9 @@ void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags 
 	/* In your .desktop app, if you set the property
 	    StartupWMClass=RGFW that will assoicate the launcher icon
 	     with your application - robrohan */
-	if (_RGFW->className == NULL)
-		_RGFW->className = (char*)name;
 
 	XClassHint hint;
-	hint.res_class = (char*)_RGFW->className;
+	hint.res_class = (char*)RGFW_className;
 
 	if (_RGFW->instName == NULL)	hint.res_name = (char*)name;
 	else 						hint.res_name = (char*)_RGFW->instName;
@@ -9341,7 +9343,7 @@ static void RGFW_wl_data_device_selection(void *data, struct wl_data_device *wl_
 	char buf[1024];
 
 	ssize_t n = read(pfds[0], buf, sizeof(buf));
-	if (n < 0) {
+	if (n <= 0) {
 		close(pfds[0]);
 		wl_data_offer_destroy(wl_data_offer);
 		return;
@@ -9757,9 +9759,6 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	xdg_wm_base_set_user_data(_RGFW->xdg_wm_base, win);
 
 	win->src.xdg_toplevel = xdg_surface_get_toplevel(win->src.xdg_surface);
-
-	if (_RGFW->className == NULL)
-		_RGFW->className = (char*)name;
 
 	xdg_toplevel_set_app_id(win->src.xdg_toplevel, name);
 
@@ -10668,6 +10667,15 @@ void RGFW_win32_makeWindowDarkMode(RGFW_window* win, RGFW_bool state) {
 
 LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	switch (message) {
+        case WM_DISPLAYCHANGE:
+            RGFW_pollMonitors();
+			break;
+		default: break;
+	}
+
+	if (hWnd == _RGFW->helperWindow) return DefWindowProcW(hWnd, message, wParam, lParam);
+
     RGFW_window* win = (RGFW_window*)GetPropW(hWnd, L"RGFW");
 	if (win == NULL) return DefWindowProcW(hWnd, message, wParam, lParam);
 
@@ -10681,9 +10689,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	AdjustWindowRectEx(&frame, style, FALSE, exStyle);
 
 	switch (message) {
-        case WM_DISPLAYCHANGE:
-            RGFW_pollMonitors();
-            break;
 		case WM_CLOSE:
 		case WM_QUIT:
 			RGFW_windowCloseCallback(win);
@@ -11306,6 +11311,27 @@ i32 RGFW_initPlatform(void) {
 		RGFW_PROC_DEF(RGFW_wgl_dll, wglShareLists);
 	#endif
 
+
+	_RGFW->instance = GetModuleHandleW(NULL);
+	static wchar_t wide_class[256];
+	MultiByteToWideChar(CP_UTF8, 0, RGFW_className, -1, wide_class, 255);
+
+	RGFW_MEMZERO(&_RGFW->wndClass, sizeof(_RGFW->wndClass));
+
+	_RGFW->wndClass.lpszClassName = wide_class;
+	_RGFW->wndClass.hInstance = _RGFW->instance;
+	_RGFW->wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	_RGFW->wndClass.lpfnWndProc = WndProcW;
+	_RGFW->wndClass.cbClsExtra = sizeof(RGFW_window*);
+
+	_RGFW->wndClass.hIcon = (HICON)LoadImageA(_RGFW->instance, "RGFW_ICON", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
+	if (_RGFW->wndClass.hIcon == NULL)
+		_RGFW->wndClass.hIcon = (HICON)LoadImageA(NULL, (LPCSTR)IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
+
+	RegisterClassW(&_RGFW->wndClass);
+
+	_RGFW->helperWindow = CreateWindowW(_RGFW->wndClass.lpszClassName, (wchar_t*)"", 0, 0, 0, 0, 0, 0, 0, _RGFW->instance, 0);
+
 	u8 RGFW_blk[] = { 0, 0, 0, 0 };
 	_RGFW->hiddenMouse = RGFW_createMouse(RGFW_blk, 1, 1, RGFW_formatRGBA8);
     return 0;
@@ -11321,32 +11347,6 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	win->src.aspectRatioW = 0;
 	win->src.aspectRatioH = 0;
 
-	HINSTANCE inh = GetModuleHandleA(NULL);
-
-	#ifndef __cplusplus
-	WNDCLASSW Class = {0}; /*!< Setup the Window class. */
-	#else
-	WNDCLASSW Class = {};
-	#endif
-
-	if (_RGFW->className == NULL)
-		_RGFW->className = (char*)name;
-
-	wchar_t wide_class[256];
-	MultiByteToWideChar(CP_UTF8, 0, _RGFW->className, -1, wide_class, 255);
-
-	Class.lpszClassName = wide_class;
-	Class.hInstance = inh;
-	Class.hCursor = LoadCursor(NULL, IDC_ARROW);
-	Class.lpfnWndProc = WndProcW;
-	Class.cbClsExtra = sizeof(RGFW_window*);
-
-	Class.hIcon = (HICON)LoadImageA(GetModuleHandleW(NULL), "RGFW_ICON", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
-	if (Class.hIcon == NULL)
-		Class.hIcon = (HICON)LoadImageA(NULL, (LPCSTR)IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
-
-	RegisterClassW(&Class);
-
 	DWORD window_style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
 
 	if (!(flags & RGFW_windowNoBorder)) {
@@ -11359,7 +11359,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 
 	wchar_t wide_name[256];
 	MultiByteToWideChar(CP_UTF8, 0, name, -1, wide_name, 255);
-	HWND dummyWin = CreateWindowW(Class.lpszClassName, (wchar_t*)wide_name, window_style, win->x, win->y, win->w, win->h, 0, 0, inh, 0);
+	HWND dummyWin = CreateWindowW(_RGFW->wndClass.lpszClassName, (wchar_t*)wide_name, window_style, win->x, win->y, win->w, win->h, 0, 0,  _RGFW->instance, 0);
 
 #ifdef RGFW_OPENGL
 	RGFW_win32_loadOpenGLFuncs(dummyWin);
@@ -11372,7 +11372,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	DWORD exStyle = RGFW_winapi_window_getExStyle(win, flags);
 	AdjustWindowRectEx(&rect, style, FALSE, exStyle);
 
-	win->src.window = CreateWindowW(Class.lpszClassName, (wchar_t*)wide_name, window_style, win->x + rect.left, win->y + rect.top, rect.right - rect.left, rect.bottom - rect.top, 0, 0, inh, 0);
+	win->src.window = CreateWindowW(_RGFW->wndClass.lpszClassName, (wchar_t*)wide_name, window_style, win->x + rect.left, win->y + rect.top, rect.right - rect.left, rect.bottom - rect.top, 0, 0, _RGFW->instance, 0);
 	SetPropW(win->src.window, L"RGFW", win);
 	RGFW_window_resize(win, win->w, win->h); /* so WM_GETMINMAXINFO gets called again */
 
@@ -11530,7 +11530,7 @@ RGFW_bool RGFW_window_isFloating(RGFW_window* win) {
 }
 
 void RGFW_stopCheckEvents(void) {
-	PostMessageW(_RGFW->root->src.window, WM_NULL, 0, 0);
+	PostMessageW(_RGFW->helperWindow, WM_NULL, 0, 0);
 }
 
 void RGFW_waitForEvent(i32 waitMS) {
@@ -11651,11 +11651,8 @@ RGFW_bool RGFW_window_isHidden(RGFW_window* win) {
 RGFW_bool RGFW_window_isMinimized(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
-	#ifndef __cplusplus
-	WINDOWPLACEMENT placement = {0};
-	#else
-	WINDOWPLACEMENT placement = {};
-	#endif
+	WINDOWPLACEMENT placement;
+	RGFW_MEMZERO(&placement, sizeof(placement));
 	GetWindowPlacement(win->src.window, &placement);
 	return placement.showCmd == SW_SHOWMINIMIZED;
 }
@@ -11663,11 +11660,8 @@ RGFW_bool RGFW_window_isMinimized(RGFW_window* win) {
 RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 
-	#ifndef __cplusplus
-	WINDOWPLACEMENT placement = {0};
-	#else
-	WINDOWPLACEMENT placement = {};
-	#endif
+	WINDOWPLACEMENT placement;
+	RGFW_MEMZERO(&placement, sizeof(placement));
 	GetWindowPlacement(win->src.window, &placement);
 	return placement.showCmd == SW_SHOWMAXIMIZED || IsZoomed(win->src.window);
 }
@@ -12164,6 +12158,9 @@ void RGFW_deinitPlatform(void) {
 
     RGFW_FREE_LIBRARY(RGFW_wgl_dll);
 
+	DestroyWindow(_RGFW->helperWindow);
+	UnregisterClassW(_RGFW->wndClass.lpszClassName, _RGFW->instance);
+
     RGFW_freeMouse(_RGFW->hiddenMouse);
 }
 
@@ -12280,16 +12277,18 @@ RGFW_bool RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* 
 
 	RGFW_bool ret = RGFW_TRUE;
 
-	setlocale(LC_ALL, "en_US.UTF-8");
+	i32 length = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
+	if (data->length <= 0) return RGFW_FALSE;
 
-	data->length = (size_t)wcstombs(NULL, wstr, 0) + 1;
+	data->length = (size_t)length;
 	data->type = RGFW_dataText;
+
 	if (buffer != NULL && capacity < data->length) {
 		ret = RGFW_FALSE;
 	} else if (buffer != NULL && data->length) {
-		wcstombs((char*)buffer, wstr, data->length - 1);
-		buffer[data->length - 1] = '\0';
+		if (WideCharToMultiByte(CP_UTF8, 0, wstr, -1, (char*)buffer, length, NULL, NULL) <= 0) return RGFW_FALSE;
 		data->data = (const char*)buffer;
+		if (data->data[data->length - 1] == '\0') printf("hi\n");
 	}
 
 	/* Release the clipboard data */
@@ -12314,7 +12313,7 @@ RGFW_bool RGFW_writeClipboard(const RGFW_dataTransfer* data) {
 	MultiByteToWideChar(CP_UTF8, 0, data->data, -1, buffer, (i32)data->length);
 	GlobalUnlock(object);
 
-	if (!OpenClipboard(_RGFW->root->src.window)) {
+	if (!OpenClipboard(_RGFW->helperWindow)) {
 		GlobalFree(object);
 		return RGFW_FALSE;
 	}
@@ -12619,7 +12618,7 @@ WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance i
     fromHwnd.chain.sType = WGPUSType_SurfaceSourceWindowsHWND;
     fromHwnd.hwnd = window->src.window;
 
-	fromHwnd.hinstance = GetModuleHandle(NULL);
+	fromHwnd.hinstance = _RGFW->instance;
 
     surfaceDesc.nextInChain = (WGPUChainedStruct*)&fromHwnd.chain;
     return wgpuInstanceCreateSurface(instance, &surfaceDesc);
