@@ -12288,7 +12288,6 @@ RGFW_bool RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* 
 	} else if (buffer != NULL && data->length) {
 		if (WideCharToMultiByte(CP_UTF8, 0, wstr, -1, (char*)buffer, length, NULL, NULL) <= 0) return RGFW_FALSE;
 		data->data = (const char*)buffer;
-		if (data->data[data->length - 1] == '\0') printf("hi\n");
 	}
 
 	/* Release the clipboard data */
