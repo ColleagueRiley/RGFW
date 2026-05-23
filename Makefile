@@ -200,8 +200,6 @@ all: $(WAYLAND_SOURCE) $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB
 
 examples: $(WAYLAND_SOURCE) $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)
 
-tests: $(WAYLAND_SOURCE) $(TEST_OUTPUTS)
-
 examples/gears/gears: examples/gears/gears.c RGFW.h $(WAYLAND_SOURCE)
 ifneq (,$(filter $(CC),emcc em++))
 	@echo gears is not supported on this platform
@@ -350,6 +348,8 @@ $(EXAMPLE_OUTPUTS): %: %.c RGFW.h $(WAYLAND_SOURCE)
 
 $(TEST_OUTPUTS): %: %.c RGFW.h $(WAYLAND_SOURCE)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LINK_GL1) $(LIBS) $($)  -o $@$(EXT)
+
+tests: $(WAYLAND_SOURCE) $(TEST_OUTPUTS)
 	@for exe in $(TEST_OUTPUTS); do \
 		echo "Running $$exe..."; \
 		./$$exe$(EXT); \
