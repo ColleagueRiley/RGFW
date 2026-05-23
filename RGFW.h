@@ -9334,6 +9334,9 @@ static void RGFW_wl_data_device_selection(void *data, struct wl_data_device *wl_
 
 	ssize_t n = read(pfds[0], buf, sizeof(buf));
 
+	if (_RGFW->clipboard) {
+		RGFW_FREE(_RGFW->clipboard);
+	}
 	_RGFW->clipboard = (char*)RGFW_ALLOC((size_t)n);
 	RGFW_ASSERT(_RGFW->clipboard != NULL);
 	RGFW_STRNCPY(_RGFW->clipboard, buf, (size_t)n);
