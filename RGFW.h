@@ -216,6 +216,18 @@ int main() {
 	#define RGFW_MACOS
 #endif
 
+#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WASM) || defined(RGFW_WAYLAND)
+	#ifndef _POSIX_C_SOURCE
+		#define _POSIX_C_SOURCE 199309L
+	#endif
+
+	/* __USE_POSIX199309 is part of glibc internals, and isn't intended to be used outside. */
+	/* However, existing RGFW code may depend on it implicitly. */
+	#ifndef __USE_POSIX199309
+		#define __USE_POSIX199309
+	#endif
+#endif
+
 #ifndef RGFW_ASSERT
 	#include <assert.h>
 	#define RGFW_ASSERT assert
@@ -4873,14 +4885,6 @@ void RGFW_window_setDND(RGFW_window* win, RGFW_bool allow) {
 }
 #endif
 
-#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WASM) || defined(RGFW_WAYLAND)
-#ifndef __USE_POSIX199309
-	#define __USE_POSIX199309
-#endif
-#include <time.h>
-struct timespec;
-#endif
-
 #if defined(RGFW_WAYLAND) || defined(RGFW_X11) || defined(RGFW_WINDOWS)
 void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show) {
 	RGFW_window_showMouseFlags(win, show);
@@ -5700,9 +5704,11 @@ This is where OS specific stuff starts
 /* start of unix (wayland or X11 (unix) ) defines */
 
 #ifdef RGFW_UNIX
+
 #include <fcntl.h>
 #include <poll.h>
 #include <unistd.h>
+#include <time.h>
 
 void RGFW_stopCheckEvents(void) {
 
