@@ -9224,7 +9224,7 @@ static void RGFW_wl_create_outputs(struct wl_registry *const registry, u32 id) {
 
 	char RGFW_mon_default_name[10];
 
-	RGFW_SNPRINTF(RGFW_mon_default_name, sizeof(RGFW_mon_default_name), "monitor-%li", _RGFW->monitors.count);
+	RGFW_SNPRINTF(RGFW_mon_default_name, sizeof(RGFW_mon_default_name), "monitor-%zu", _RGFW->monitors.count);
 	RGFW_STRNCPY(mon.name, RGFW_mon_default_name, sizeof(mon.name) - 1);
 	mon.name[sizeof(mon.name) - 1] = '\0';
 
