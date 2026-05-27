@@ -216,7 +216,7 @@ int main() {
 	#define RGFW_MACOS
 #endif
 
-#if defined(RGFW_X11) || defined(RGFW_MACOS) || defined(RGFW_WASM) || defined(RGFW_WAYLAND)
+#if defined(RGFW_X11) || defined(RGFW_WASM) || defined(RGFW_WAYLAND)
 	#ifndef _POSIX_C_SOURCE
 		#define _POSIX_C_SOURCE 199309L
 	#endif
