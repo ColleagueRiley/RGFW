@@ -161,6 +161,7 @@ int main() {
 		TheYahton (@TheYahton) -> documentation
 		nonexistant_object (@DiarrheaMcgee)
 		AC Gaudette (@acgaudette)
+		Collin McKinney (@CollinMcKinney) -> C89 syntax cleanup
 */
 
 #if _MSC_VER
@@ -3404,7 +3405,8 @@ void RGFW_setDualEventCallback(RGFW_eventType type, RGFW_genericFunc func, RGFW_
 }
 
 void RGFW_setAllEventCallbacks(RGFW_genericFunc func, RGFW_callbacks* callbacks) {
-	for (RGFW_eventType i = RGFW_eventNone + 1; i < RGFW_eventCount; i++) {
+	RGFW_eventType i;
+	for (i = RGFW_eventNone + 1; i < RGFW_eventCount; i++) {
 		if (callbacks) callbacks->arr[i] = _RGFW->callbacks[i];
 		RGFW_setEventCallback(i, func);
 	}
@@ -3901,8 +3903,8 @@ i32 RGFW_init_ptr(RGFW_info* info) {
 	#if (RGFW_PREALLOCATED_MONITORS)
 		_RGFW->monitors.freeList.head = &_RGFW->monitors.data[0];
 		_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.head;
-
-		for (size_t i = 1; i < RGFW_PREALLOCATED_MONITORS; i++) {
+		size_t i;
+		for (i = 1; i < RGFW_PREALLOCATED_MONITORS; i++) {
 			RGFW_monitorNode* newNode = &_RGFW->monitors.data[i];
 			_RGFW->monitors.freeList.cur->next = newNode;
 			_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.cur->next;
@@ -3914,7 +3916,7 @@ i32 RGFW_init_ptr(RGFW_info* info) {
     RGFW_initKeycodes();
     i32 out = RGFW_initPlatform();
 
-	for (size_t i = 0; i < RGFW_mouseIconCount; i++) {
+	for (i = 0; i < RGFW_mouseIconCount; i++) {
         _RGFW->standardMice[i] = RGFW_createMouseStandard((RGFW_mouseIcon)i);
 	}
 
@@ -3935,7 +3937,8 @@ void RGFW_deinit_ptr(RGFW_info* info) {
     RGFW_setInfo(info);
 	RGFW_unloadEGL();
 
-	for (RGFW_mouseIcon i = 0; i < RGFW_mouseIconCount; i++) {
+	RGFW_mouseIcon i;
+	for (i = 0; i < RGFW_mouseIconCount; i++) {
 		if (_RGFW->standardMice[i]) RGFW_freeMouse(_RGFW->standardMice[i]);
 	}
 
@@ -4153,7 +4156,8 @@ void RGFW_resetPrevState(void) {
 	_RGFW->vectorY = (float)0.0f;
 	RGFW_MEMZERO(&_RGFW->windowState, sizeof(_RGFW->windowState));
 
-	for (RGFW_dataDropNode* node = _RGFW->dndRoot; node; ) {
+	RGFW_dataDropNode* node;
+	for (node = _RGFW->dndRoot; node; ) {
 		RGFW_dataDropNode* next = node->next;
 		RGFW_FREE(node);
 		node = next;
@@ -4252,7 +4256,8 @@ RGFW_event* RGFW_window_eventQueuePop(RGFW_window* win) {
 	RGFW_event* ev = RGFW_eventQueuePop();
 	if (ev == NULL) return ev;
 
-	for (i32 i = 1; i < _RGFW->eventLen && ev->common.win != win && ev->common.win != NULL; i++) {
+	i32 i;
+	for (i = 1; i < _RGFW->eventLen && ev->common.win != win && ev->common.win != NULL; i++) {
 		RGFW_eventQueuePush(ev);
 		ev = RGFW_eventQueuePop();
 	}
@@ -4594,7 +4599,8 @@ void RGFW_monitors_remove(RGFW_monitorNode* node, RGFW_monitorNode* prev) {
 
 void RGFW_monitors_refresh(void) {
 	RGFW_monitorNode* prev = _RGFW->monitors.list.head;
-	for (RGFW_monitorNode* node = _RGFW->monitors.list.head; node; node = node->next) {
+	RGFW_monitorNode* node;
+	for (node = _RGFW->monitors.list.head; node; node = node->next) {
 		if (node->disconnected == RGFW_FALSE) continue;
 
 		RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_FALSE);
@@ -4624,7 +4630,8 @@ RGFW_bool RGFW_monitor_findClosestMode(RGFW_monitor* monitor, RGFW_monitorMode* 
 	RGFW_monitorMode* chosen = NULL;
 
 	u32 topScore = 1;
-	for (size_t i = 0; i < count; i++) {
+	size_t i;
+	for (i = 0; i < count; i++) {
 		RGFW_monitorMode* mode2 = &modes[i];
 
 		u32 score = 0;
@@ -4898,7 +4905,8 @@ void RGFW_moveToMacOSResourceDir(void) { }
 
 RGFWDEF RGFW_bool RGFW_isLatin(const char *string, size_t length);
 RGFW_bool RGFW_isLatin(const char *string, size_t length) {
-	for (size_t i = 0; i < length; i++) {
+	size_t i;
+	for (i = 0; i < length; i++) {
         if ((u8)string[i] >= 0x80) {
             return RGFW_TRUE;
         }
@@ -6296,7 +6304,8 @@ void RGFW_x11_imInitCallback(Display* display, XPointer clientData, XPointer cal
     if (XGetIMValues(_RGFW->im, XNQueryInputStyle, &styles, NULL) != NULL) {
         found = RGFW_FALSE;
 	} else {
-		for (unsigned int i = 0;  i < styles->count_styles;  i++) {
+		unsigned int i;
+		for (i = 0;  i < styles->count_styles;  i++) {
 			if (styles->supported_styles[i] == (XIMPreeditNothing | XIMStatusNothing)) {
 				found = RGFW_TRUE;
 				break;
@@ -6875,7 +6884,8 @@ void RGFW_XHandleEvent(void) {
 
 				if (status == XLookupChars || status == XLookupBoth) {
 					chars[count] = '\0';
-					for (size_t index = 0; index < count;
+					size_t index;
+					for (index = 0; index < count;
 						RGFW_keyCharCallback(win, RGFW_decodeUTF8(&chars[index], &index))
 					);
 				}
@@ -7881,7 +7891,8 @@ void RGFW_XGetSystemContentDPI(float* dpi) {
 RGFWDEF XRRModeInfo* RGFW_XGetMode(XRRCrtcInfo* ci, XRRScreenResources* res, RRMode mode, RGFW_monitorMode* foundMode);
 XRRModeInfo* RGFW_XGetMode(XRRCrtcInfo* ci, XRRScreenResources* res, RRMode mode, RGFW_monitorMode* foundMode) {
 	XRRModeInfo* mi = None;
-	for (i32 j = 0; j < res->nmode; j++) {
+	i32 j;
+	for (j = 0; j < res->nmode; j++) {
 		if (res->modes[j].id ==  mode)
 			mi = &res->modes[j];
 	}
@@ -7943,11 +7954,13 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 
 	RROutput primary = XRRGetOutputPrimary(_RGFW->display, root);
 
-	for (RGFW_monitorNode* node = _RGFW->monitors.list.head; node; node = node->next) {
+	RGFW_monitorNode* node;
+	for (node = _RGFW->monitors.list.head; node; node = node->next) {
 		node->disconnected = RGFW_TRUE;
 	}
 
-	for (i32 i = 0; i < res->noutput; i++) {
+	i32 i;
+	for (i = 0; i < res->noutput; i++) {
 		RGFW_monitorNode* node = NULL;
 		for (node = _RGFW->monitors.list.head; node; node = node->next) {
 			if (node->rrOutput == res->outputs[i]) {
@@ -8214,7 +8227,8 @@ RGFW_monitor* RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
 		return NULL;
 	}
 
-	for (RGFW_monitorNode* node = _RGFW->monitors.list.head; node; node = node->next) {
+	RGFW_monitorNode* node;
+	for (node = _RGFW->monitors.list.head; node; node = node->next) {
 		if ((attrs.x < node->mon.x + node->mon.mode.w) && (attrs.x + attrs.width > node->mon.x) && (attrs.y < node->mon.y + node->mon.mode.h) && (attrs.y + attrs.height > node->mon.y))
 			return &node->mon;
 	}
@@ -8977,7 +8991,7 @@ static void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32
 	RGFW->kbOwner = win;
 
 
-	// this is to prevent race conditions
+	/* this is to prevent race conditions */
 	if (RGFW->data_device != NULL && win->src.data_source != NULL) {
 		wl_data_device_set_selection(RGFW->data_device, win->src.data_source, serial);
 	}
@@ -9283,9 +9297,9 @@ static void RGFW_wl_surface_enter(void *data, struct wl_surface *wl_surface, str
 static void RGFW_wl_data_source_send(void *data, struct wl_data_source *wl_data_source, const char *mime_type, i32 fd) {
 	RGFW_UNUSED(data); RGFW_UNUSED(wl_data_source);
 
-	// a client can accept our clipboard
+	/* a client can accept our clipboard */
 	if (RGFW_STRNCMP(mime_type, "text/plain;charset=utf-8", 25) == 0) {
-		// do not write \0
+		/* do not write \0 */
 		write(fd, _RGFW->clipboard, _RGFW->clipboard_len - 1);
 	}
 
@@ -10242,22 +10256,22 @@ RGFW_ssize_t RGFW_FUNC(RGFW_readClipboardPtr) (char* str, size_t strCapacity) {
 
 void RGFW_FUNC(RGFW_writeClipboard) (const char* text, u32 textLen) {
 
-	// compositor does not support wl_data_device_manager
-	// clients cannot read rgfw's clipboard
+	/* compositor does not support wl_data_device_manager
+	   clients cannot read rgfw's clipboard */
 	if (_RGFW->data_device_manager == NULL) return;
-	// clear the clipboard
+	/* clear the clipboard */
 	if (_RGFW->clipboard)
 		RGFW_FREE(_RGFW->clipboard);
 
-	// set the contents
+	/* set the contents */
 	_RGFW->clipboard = (char*)RGFW_ALLOC(textLen);
 	RGFW_ASSERT(_RGFW->clipboard != NULL);
 	RGFW_STRNCPY(_RGFW->clipboard, text, textLen - 1);
 	_RGFW->clipboard[textLen - 1] = '\0';
 	_RGFW->clipboard_len = textLen;
 
-	// means we already wrote to the clipboard
-	// so destroy it to create a new one
+	/* means we already wrote to the clipboard
+	   so destroy it to create a new one */
 	RGFW_window* win = _RGFW->kbOwner;
 
 	if (win->src.data_source != NULL) {
@@ -10265,18 +10279,18 @@ void RGFW_FUNC(RGFW_writeClipboard) (const char* text, u32 textLen) {
 		win->src.data_source = NULL;
 	}
 
-	// advertise to other clients that we offer text
+	/* advertise to other clients that we offer text */
 	win->src.data_source = wl_data_device_manager_create_data_source(_RGFW->data_device_manager);
 
-	// basic error checking
+	/* basic error checking */
 	if (win->src.data_source == NULL) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errClipboard, "Could not create clipboard data source");
 		return;
 	}
 	wl_data_source_offer(win->src.data_source , "text/plain;charset=utf-8");
 
-	// needed RGFW_doNothing because wayland will call the functions
-	// if not set they are random data that lead to a crash
+	/* needed RGFW_doNothing because wayland will call the functions
+	   if not set they are random data that lead to a crash */
 	static const struct wl_data_source_listener data_source_listener = {
 		.target = (void (*)(void *, struct wl_data_source *, const char *))&RGFW_doNothing,
 		.action = (void (*)(void *, struct wl_data_source *, u32))&RGFW_doNothing,
