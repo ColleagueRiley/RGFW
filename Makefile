@@ -350,6 +350,7 @@ $(EXAMPLE_OUTPUTS): %: %.c RGFW.h $(WAYLAND_SOURCE)
 $(TEST_OUTPUTS): %: %.c RGFW.h $(WAYLAND_SOURCE)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LINK_GL1) $(DEFINES) $(LIBS) $($)  -o $@$(EXT)
 
+run_tests: $(TEST_OUTPUTS)
 	@for exe in $(TEST_OUTPUTS); do \
 		echo "Running $$exe..."; \
 		./$$exe$(EXT); \
