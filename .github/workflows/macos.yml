@@ -55,7 +55,7 @@ jobs:
     # Defining GL_SILENCE_DEPRECATION because OpenGL is deprecated on macOS
     - name: tests
       run: |
-        make tests
+        make run_tests
 
     - name: Build Library
       run: |
