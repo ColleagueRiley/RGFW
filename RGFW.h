@@ -365,13 +365,11 @@ int main() {
 
 #define RGFW_HEADER
 
-#define RGFW_USE_INT
-
 #include <stddef.h>
-#include <limits.h>
 
 #ifndef RGFW_INT_DEFINED
 	#ifdef RGFW_USE_INT /* optional for any system that might not have stdint.h */
+		#include <limits.h>
 		typedef unsigned char       u8;
 		typedef signed char         i8;
 		typedef unsigned short     u16;
