@@ -221,6 +221,10 @@ int main() {
 	#define RGFW_ASSERT assert
 #endif
 
+#ifndef RGFW_STATIC_ASSERT
+	#define RGFW_STATIC_ASSERT(check_name, x) typedef char RGFW_check_##check_name[(x) ? 1 : -1];
+#endif
+
 #if !defined(__STDC_VERSION__)
     #define RGFW_C89
 #endif
@@ -349,17 +353,31 @@ int main() {
 
 #define RGFW_HEADER
 
+#define RGFW_USE_INT
+
 #include <stddef.h>
+#include <limits.h>
+
 #ifndef RGFW_INT_DEFINED
 	#ifdef RGFW_USE_INT /* optional for any system that might not have stdint.h */
 		typedef unsigned char       u8;
 		typedef signed char         i8;
 		typedef unsigned short     u16;
 		typedef signed short 	   i16;
-		typedef unsigned long int  u32;
-		typedef signed long int    i32;
-		typedef unsigned long long u64;
-		typedef signed long long   i64;
+		#if INT_MAX == 0x7FFFFFFF
+			typedef unsigned int  u32;
+			typedef signed int    i32;
+		#else
+			typedef unsigned long int  u32;
+			typedef signed long int    i32;
+		#endif
+		#if LONG_MAX == 0x7FFFFFFFFFFFFFFFL
+	typedef unsigned long u64;
+			typedef signed long   i64;
+		#else
+			typedef unsigned long long u64;
+			typedef signed long long   i64;
+		#endif
 	#else /* use stdint standard types instead of c "standard" types */
 		#include <stdint.h>
 
@@ -374,6 +392,10 @@ int main() {
 	#endif
 	#define RGFW_INT_DEFINED
 #endif
+
+RGFW_STATIC_ASSERT(size64, sizeof(i64) == 8)
+RGFW_STATIC_ASSERT(size32, sizeof(i32) == 4)
+RGFW_STATIC_ASSERT(size16, sizeof(i16) == 2)
 
 #ifndef RGFW_BOOL_DEFINED
     #define RGFW_BOOL_DEFINED
@@ -12263,8 +12285,14 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_f
 RGFW_bool RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* data) {
 	RGFW_ASSERT(data != NULL);
 	/* Open the clipboard */
-	if (OpenClipboard(NULL) == 0)
-		return RGFW_FALSE;
+	size_t retry = 0;
+	BOOL isOpen = FALSE;
+	while (isOpen == FALSE && retry < 3) {
+		isOpen = OpenClipboard(NULL);
+		retry += 1;
+	}
+
+	if (isOpen == FALSE) return RGFW_FALSE;
 
 	/* Get the clipboard data as a Unicode string */
 	HANDLE hData = GetClipboardData(CF_UNICODETEXT);
@@ -12278,7 +12306,7 @@ RGFW_bool RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* 
 	RGFW_bool ret = RGFW_TRUE;
 
 	i32 length = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
-	if (data->length <= 0) return RGFW_FALSE;
+	if (length <= 0) return RGFW_FALSE;
 
 	data->length = (size_t)length;
 	data->type = RGFW_dataText;
@@ -12312,7 +12340,14 @@ RGFW_bool RGFW_writeClipboard(const RGFW_dataTransfer* data) {
 	MultiByteToWideChar(CP_UTF8, 0, data->data, -1, buffer, (i32)data->length);
 	GlobalUnlock(object);
 
-	if (!OpenClipboard(_RGFW->helperWindow)) {
+	size_t retry = 0;
+	BOOL isOpen = FALSE;
+	while (isOpen == FALSE && retry < 3) {
+		isOpen = OpenClipboard(NULL);
+		retry += 1;
+	}
+
+	if (isOpen == FALSE) {
 		GlobalFree(object);
 		return RGFW_FALSE;
 	}
