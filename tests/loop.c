@@ -8,13 +8,16 @@ int main(void) {
 
 		RGFW_pollEvents();
 		#ifdef RGFW_MACOS
-			usleep(50000);
+			struct timespec ts;
+			ts.tv_sec = 0,
+			ts.tv_nsec = 50000 * 1000,
+			nanosleep(&ts, NULL);
 		#endif
 
 		RGFW_window_close(win);
 
 		#ifdef RGFW_MACOS
-			usleep(50000);
+			nanosleep(&ts, NULL);
 		#endif
 	}
 	RGFW_deinit();
