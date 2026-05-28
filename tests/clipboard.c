@@ -4,11 +4,11 @@
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
-int string_compare(const char* str, const char* str2, size_t count);
-int string_compare(const char* str, const char* str2, size_t count) {
+RGFW_bool string_compare(const char* str, const char* str2, size_t count);
+RGFW_bool string_compare(const char* str, const char* str2, size_t count) {
 	size_t i = 0;
 	for (i = 0; i < count && str[i] && str2[i] && str[i] == str2[i]; i++);
-	return (i == (count - 1));
+	return (i == (count - 1)) ? RGFW_TRUE : RGFW_FALSE;
 }
 
 int main(void) {
@@ -25,7 +25,11 @@ int main(void) {
 	const RGFW_dataTransfer* clipboard = RGFW_readClipboard();
 	assert(clipboard);
 
-	assert(string_compare(clipboard->data, data.data, data.length) != 0);
+	fwrite(data.data, 1, data.length, stdout);
+	printf(" : ");
+	fwrite(clipboard->data, 1, clipboard->length, stdout);
+	printf("\n");
+	assert(string_compare(clipboard->data, data.data, data.length) == RGFW_TRUE);
 
 	assert(clipboard->data[clipboard->length - 1] == '\0');
 
