@@ -9147,8 +9147,6 @@ static void RGFW_wl_output_handle_mode(void *data, struct wl_output *wl_output, 
 	if (flags & WL_OUTPUT_MODE_CURRENT) {
 		monitor->mode = mode;
 	}
-
-	RGFW_FREE(modes);
 }
 
 static void RGFW_wl_output_set_scale(void *data, struct wl_output *wl_output, i32 factor) {
@@ -9582,6 +9580,12 @@ void RGFW_deinitPlatform_Wayland(void) {
 	RGFW_monitorNode* node = _RGFW->monitors.list.head;
 
 	while (node != NULL) {
+
+    	if (node->modeCount) {
+    		RGFW_FREE(node->modes);
+    		node->modeCount = 0;
+    	}
+
 		if (node->output) {
 			wl_output_destroy(node->output);
 		}
@@ -16096,4 +16100,3 @@ void RGFW_load_Wayland(void) {
 #if _MSC_VER
 	#pragma warning( pop )
 #endif
-
