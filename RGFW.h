@@ -12312,13 +12312,14 @@ RGFW_bool RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* 
 	i32 length = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
 	if (length <= 0) return RGFW_FALSE;
 
-	data->length = (size_t)length;
+	data->length = (size_t)length + 1;
 	data->type = RGFW_dataText;
 
 	if (buffer != NULL && capacity < data->length) {
 		ret = RGFW_FALSE;
 	} else if (buffer != NULL && data->length) {
 		if (WideCharToMultiByte(CP_UTF8, 0, wstr, -1, (char*)buffer, length, NULL, NULL) <= 0) return RGFW_FALSE;
+		buffer[data->length - 1] = '\0';
 		data->data = (const char*)buffer;
 	}
 
