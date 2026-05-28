@@ -11356,7 +11356,7 @@ i32 RGFW_initPlatform(void) {
 
 	RegisterClassW(&_RGFW->wndClass);
 
-	_RGFW->helperWindow = CreateWindowW(_RGFW->wndClass.lpszClassName, (wchar_t*)"", 0, 0, 0, 0, 0, 0, 0, _RGFW->instance, 0);
+	_RGFW->helperWindow = CreateWindowW(_RGFW->wndClass.lpszClassName, (wchar_t*)NULL, 0, 0, 0, 0, 0, 0, 0, _RGFW->instance, 0);
 
 	u8 RGFW_blk[] = { 0, 0, 0, 0 };
 	_RGFW->hiddenMouse = RGFW_createMouse(RGFW_blk, 1, 1, RGFW_formatRGBA8);
