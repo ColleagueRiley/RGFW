@@ -416,7 +416,7 @@ RGFW_STATIC_ASSERT(size16, sizeof(i16) == 2)
 #define RGFW_TRUE (RGFW_bool)1
 #define RGFW_FALSE (RGFW_bool)0
 
-#define RGFW_ENUM(type, name) type name; enum
+#define RGFW_ENUM(type, name) type name; enum name##_enum
 #define RGFW_BIT(x) (1 << (x))
 
 #ifdef RGFW_VULKAN
