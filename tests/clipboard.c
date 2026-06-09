@@ -19,6 +19,7 @@ int main(void) {
 
 		const RGFW_dataTransfer* clipboard = RGFW_readClipboard();
 		assert(clipboard);
+		assert(clipboard->type == data.type);
 
 		fwrite(data.data, 1, data.length, stdout);
 		printf(" : ");
