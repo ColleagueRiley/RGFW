@@ -5066,16 +5066,16 @@ RGFW_bool RGFW_extensionSupportedStr(const char* extensions, const char* ext, si
     return RGFW_FALSE;
 }
 
-RGFWDEF RGFW_bool RGFW_extensionSupported_base(const char* extension, size_t len);
-RGFW_bool RGFW_extensionSupported_base(const char* extension, size_t len) {
+RGFWDEF RGFW_bool RGFW_extensionSupported_base(const char* extension, size_t len, RGFW_proc (*getProcAddress)(const char* procname));
+RGFW_bool RGFW_extensionSupported_base(const char* extension, size_t len, RGFW_proc (*getProcAddress)(const char* procname)) {
     #ifdef GL_NUM_EXTENSIONS
     if (RGFW_globalHints_OpenGL->major >= 3) {
         i32 i;
 
         GLint count = 0;
 
-        RGFW_proc RGFW_glGetStringi = RGFW_getProcAddress_OpenGL("glGetStringi");
-        RGFW_proc RGFW_glGetIntegerv = RGFW_getProcAddress_OpenGL("glGetIntegerv");
+        RGFW_proc RGFW_glGetStringi = getProcAddress("glGetStringi");
+        RGFW_proc RGFW_glGetIntegerv = getProcAddress("glGetIntegerv");
 		if (RGFW_glGetIntegerv)
             ((void(*)(GLenum, GLint*))RGFW_glGetIntegerv)(GL_NUM_EXTENSIONS, &count);
 
@@ -5088,7 +5088,7 @@ RGFW_bool RGFW_extensionSupported_base(const char* extension, size_t len) {
     } else
 #endif
     {
-        RGFW_proc RGFW_glGetString = RGFW_getProcAddress_OpenGL("glGetString");
+        RGFW_proc RGFW_glGetString = getProcAddress("glGetString");
 		#define RGFW_GL_EXTENSIONS 0x1F03
         if (RGFW_glGetString) {
             const char* extensions = ((const char*(*)(u32))RGFW_glGetString)(RGFW_GL_EXTENSIONS);
@@ -5102,7 +5102,7 @@ RGFW_bool RGFW_extensionSupported_base(const char* extension, size_t len) {
 }
 
 RGFW_bool RGFW_extensionSupported_OpenGL(const char* extension, size_t len) {
-	if (RGFW_extensionSupported_base(extension, len))  return RGFW_TRUE;
+	if (RGFW_extensionSupported_base(extension, len, RGFW_getProcAddress_OpenGL))  return RGFW_TRUE;
     return RGFW_extensionSupportedPlatform_OpenGL(extension, len);
 }
 
@@ -5617,7 +5617,7 @@ void RGFW_window_swapInterval_EGL(RGFW_window* win, i32 swapInterval) {
 }
 
 RGFW_bool RGFW_extensionSupported_EGL(const char* extension, size_t len) {
-	if (RGFW_extensionSupported_base(extension, len))  return RGFW_TRUE;
+	if (RGFW_extensionSupported_base(extension, len, RGFW_getProcAddress_EGL))  return RGFW_TRUE;
     return RGFW_extensionSupportedPlatform_EGL(extension, len);
 }
 
