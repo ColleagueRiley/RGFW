@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #define RGFW_DEBUG
 #define RGFW_OPENGL
 #define GL_SILENCE_DEPRECATION
@@ -55,14 +53,19 @@ void checkEvents(RGFW_window* win) {
 				if (event.key.value == RGFW_keyC && (RGFW_window_isKeyDown(win, RGFW_keyControlL) || RGFW_window_isKeyDown(win, RGFW_keyControlR))) {
 					char str[32] = {0};
 					int size = snprintf(str, 32, "window %p: 刺猬", (void*)win);
-					if (size > 0)
-						RGFW_writeClipboard(str, (u32)size);
+					if (size > 0) {
+						RGFW_dataTransfer data;
+						data.data = str;
+						data.length = (size_t)size;
+						data.type = RGFW_dataText;
+						RGFW_writeClipboard(&data);
+					}
 				}
 				else if (event.key.value == RGFW_keyV && (RGFW_window_isKeyDown(win, RGFW_keyControlL) || RGFW_window_isKeyDown(win, RGFW_keyControlR))) {
-					size_t len = 0;
-					const char* str = RGFW_readClipboard(&len);
-					printf("window %p: clipboard paste %d: '", (void*)win, (i32)len);
-					fwrite(str, 1, len, stdout);
+					const RGFW_dataTransfer* data = RGFW_readClipboard();
+					if (data == NULL) break;
+					printf("window %p: clipboard paste %d: '", (void*)win, (i32)data->length);
+					fwrite(data->data, 1, data->length, stdout);
 					printf("'\n");
 				}
 				break;

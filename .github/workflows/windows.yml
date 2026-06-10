@@ -71,7 +71,7 @@ jobs:
 
     - name: tests
       run: |
-        make tests
+        make run_tests
 
     - name: test C++
       run: |

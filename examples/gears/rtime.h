@@ -3,7 +3,7 @@
 *	rtime 0.1.0
 
 	Riley Mabb (ColleagueRiley)
-	
+
 	public domain
 
     This is free and unencumbered software released into the public domain.
@@ -204,9 +204,9 @@ uint64_t rt_getTimerValue(void) {
 		struct timespec ts;
 		if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
 			clock = CLOCK_MONOTONIC;
-		#else
-			clock = CLOCK_REALTIME;
+		else
 		#endif
+			clock = CLOCK_REALTIME;
 	}
 
 	struct timespec ts;
