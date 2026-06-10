@@ -1,8 +1,4 @@
 var searchData=
 [
-  ['mod_0',['mod',['../structRGFW__keyEvent.html#a4a0568fcf56ebf01f16903fc22a87fa7',1,'RGFW_keyEvent']]],
-  ['mode_1',['mode',['../structRGFW__monitor.html#a0f7f7532843e9354590e8cb424fbf8dc',1,'RGFW_monitor']]],
-  ['monitor_2',['monitor',['../structRGFW__monitorEvent.html#a1631409b5d7b9c900565e6cc9ebad542',1,'RGFW_monitorEvent::monitor()'],['../unionRGFW__event.html#ac3599debe132673114dbe7f730b08931',1,'RGFW_event::monitor()']]],
-  ['mouse_3',['mouse',['../unionRGFW__event.html#a5f0a8cbb242cd238e4dfeba98ad24556',1,'RGFW_event']]],
-  ['msg_4',['msg',['../structRGFW__debugInfo.html#afff2b3f6c94da8e7ccbd843bcbc2df41',1,'RGFW_debugInfo']]]
+  ['length_0',['length',['../structRGFW__dataTransfer.html#ab90abdf7cdf0c93bb651a64dad066a1d',1,'RGFW_dataTransfer::length()'],['../structRGFW__dataDropNode.html#a681a9e29ca5fc0e55dd980f8795e048f',1,'RGFW_dataDropNode::length()']]]
 ];

@@ -169,6 +169,7 @@ EXAMPLE_OUTPUTS = \
 	examples/smooth-resize/smooth-resize \
 	examples/multi-window/multi-window \
 	examples/standard-mouse-icons/icons \
+	examples/clipboard/clipboard \
 	examples/custom_alloc/custom_alloc \
 	examples/flash/flash \
 
@@ -192,13 +193,13 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 
 TEST_OUTPUTS = \
 			   tests/loop \
+			   tests/clipboard \
+
 
 
 all: $(WAYLAND_SOURCE) $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) libRGFW$(LIB_EXT) libRGFW.a
 
 examples: $(WAYLAND_SOURCE) $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM)
-
-tests: $(WAYLAND_SOURCE) $(TEST_OUTPUTS)
 
 examples/gears/gears: examples/gears/gears.c RGFW.h $(WAYLAND_SOURCE)
 ifneq (,$(filter $(CC),emcc em++))
@@ -348,6 +349,8 @@ $(EXAMPLE_OUTPUTS): %: %.c RGFW.h $(WAYLAND_SOURCE)
 
 $(TEST_OUTPUTS): %: %.c RGFW.h $(WAYLAND_SOURCE)
 	$(CC) $(CFLAGS) $(WARNINGS) -I. $< $(LINK_GL1) $(DEFINES) $(LIBS) $($)  -o $@$(EXT)
+
+run_tests: $(TEST_OUTPUTS)
 	@for exe in $(TEST_OUTPUTS); do \
 		echo "Running $$exe..."; \
 		./$$exe$(EXT); \

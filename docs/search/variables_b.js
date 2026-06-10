@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['physh_0',['physH',['../structRGFW__monitor.html#a9c3025aaf5b5f383d80a3516fca2a399',1,'RGFW_monitor']]],
-  ['physw_1',['physW',['../structRGFW__monitor.html#af4ba34d59dd83ca44148d44e82d75d35',1,'RGFW_monitor']]],
-  ['pixelratio_2',['pixelRatio',['../structRGFW__monitor.html#a6a1679c6f3fff5aa884603ae401a4437',1,'RGFW_monitor']]]
+  ['name_0',['name',['../structRGFW__monitor.html#aaea809cea2ca3420c64b1ae3d69bb3ae',1,'RGFW_monitor']]],
+  ['next_1',['next',['../structRGFW__dataDropNode.html#ae2f320355d81a06c3f45d6d0e6a9566d',1,'RGFW_dataDropNode']]],
+  ['node_2',['node',['../structRGFW__monitor.html#abc6602c277d34ddfacb1a5c3178ffc07',1,'RGFW_monitor']]]
 ];

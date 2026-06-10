@@ -1,4 +1,4 @@
-.TH "RGFW_dataDropNode" 3 "Thu May 28 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW_dataDropNode" 3 "Wed Jun 10 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -15,7 +15,7 @@ RGFW_dataDropNode
 .RI "const char * \fBdata\fP"
 .br
 .ti -1c
-.RI "size_t \fBsize\fP"
+.RI "size_t \fBlength\fP"
 .br
 .ti -1c
 .RI "RGFW_dataTransferType \fBtype\fP"
@@ -31,10 +31,10 @@ internal node for a individual data drop
 .PP 
 .SS "const char* RGFW_dataDropNode::data"
 dropped data 
+.SS "size_t RGFW_dataDropNode::length"
+the size of the data in bytes 
 .SS "struct \fBRGFW_dataDropNode\fP* RGFW_dataDropNode::next"
 the next drop data node if any [when handling callbacks, this will always be NULL because the linked list is built as events are processed] 
-.SS "size_t RGFW_dataDropNode::size"
-the size of the data in bytes 
 .SS "RGFW_dataTransferType RGFW_dataDropNode::type"
 the type of data being dropped 
 

@@ -1,0 +1,38 @@
+.TH "RGFW_dataTransfer" 3 "Wed Jun 10 2026" "RGFW" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+RGFW_dataTransfer
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <RGFW\&.h>\fP
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "const char * \fBdata\fP"
+.br
+.ti -1c
+.RI "size_t \fBlength\fP"
+.br
+.ti -1c
+.RI "RGFW_dataTransferType \fBtype\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+struct for data transfers, mostly used for the clipboard API 
+.SH "Member Data Documentation"
+.PP 
+.SS "const char* RGFW_dataTransfer::data"
+transfered data 
+.SS "size_t RGFW_dataTransfer::length"
+the full length of the data in bytes, including null-terminator, if included\&. null-terminators are ensured when reading data from RGFW 
+.SS "RGFW_dataTransferType RGFW_dataTransfer::type"
+the type of data being transfered 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for RGFW from the source code\&.

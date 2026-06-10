@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Thu May 28 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Wed Jun 10 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -36,6 +36,9 @@ RGFW.h
 .RI "struct \fBRGFW_monitor\fP"
 .br
 .RI "structure for monitor data "
+.ti -1c
+.RI "struct \fBRGFW_dataTransfer\fP"
+.br
 .ti -1c
 .RI "struct \fBRGFW_dataDropNode\fP"
 .br
@@ -103,6 +106,9 @@ RGFW.h
 .in +1c
 .ti -1c
 .RI "#define \fBRGFW_ASSERT\fP   assert"
+.br
+.ti -1c
+.RI "#define \fBRGFW_STATIC_ASSERT\fP(check_name,  x)   typedef char RGFW_check_##check_name[(x) ? 1 : \-1];"
 .br
 .ti -1c
 .RI "#define \fBRGFW_C89\fP"
@@ -180,7 +186,7 @@ RGFW.h
 .RI "#define \fBRGFW_FALSE\fP   (\fBRGFW_bool\fP)0"
 .br
 .ti -1c
-.RI "#define \fBRGFW_ENUM\fP(type,  name)   type name; enum"
+.RI "#define \fBRGFW_ENUM\fP(type,  name)   type name; enum name##_enum"
 .br
 .ti -1c
 .RI "#define \fBRGFW_BIT\fP(x)   (1 << (x))"
@@ -212,9 +218,6 @@ RGFW.h
 .br
 .ti -1c
 .RI "typedef int64_t \fBi64\fP"
-.br
-.ti -1c
-.RI "typedef ptrdiff_t \fBRGFW_ssize_t\fP"
 .br
 .ti -1c
 .RI "typedef \fBu8\fP \fBRGFW_bool\fP"
@@ -265,6 +268,9 @@ RGFW.h
 .RI "structure for monitor data "
 .ti -1c
 .RI "typedef void \fBRGFW_mouse\fP"
+.br
+.ti -1c
+.RI "typedef struct \fBRGFW_dataTransfer\fP \fBRGFW_dataTransfer\fP"
 .br
 .ti -1c
 .RI "typedef struct \fBRGFW_dataDropNode\fP \fBRGFW_dataDropNode\fP"
@@ -1052,17 +1058,17 @@ RGFW.h
 .br
 .RI "Retrieves the monitor structure associated with the window\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP const char * \fBRGFW_readClipboard\fP (size_t *size)"
+.RI "\fBRGFWDEF\fP const \fBRGFW_dataTransfer\fP * \fBRGFW_readClipboard\fP (void)"
 .br
 .RI "Reads clipboard data\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_ssize_t\fP \fBRGFW_readClipboardPtr\fP (char *str, size_t strCapacity)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_readClipboardPtr\fP (\fBu8\fP *buffer, size_t capacity, \fBRGFW_dataTransfer\fP *data)"
 .br
-.RI "Reads clipboard data into a provided buffer, or returns the required length if str is NULL\&. "
+.RI "Reads clipboard data into your object pointer using your provided buffer, or returns the required length if the buffer is NULL or bufferCapacity is 0\&. "
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_writeClipboard\fP (const char *text, \fBu32\fP textLen)"
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_writeClipboard\fP (const \fBRGFW_dataTransfer\fP *data)"
 .br
-.RI "Writes text to the clipboard\&. "
+.RI "Writes data to the clipboard\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_debugFunc\fP \fBRGFW_setDebugCallback\fP (\fBRGFW_debugFunc\fP func)"
 .br
@@ -1158,7 +1164,7 @@ RGFW.h
 
 .SS "#define RGFW_COCOA_FRAME_NAME   NULL"
 
-.SS "#define RGFW_ENUM(type, name)   type name; enum"
+.SS "#define RGFW_ENUM(type, name)   type name; enum name##_enum"
 
 .SS "#define RGFW_FALSE   (\fBRGFW_bool\fP)0"
 
@@ -1181,6 +1187,8 @@ RGFW.h
 .SS "#define RGFW_ROUND(x)   (\fBi32\fP)((x) >= 0 ? (x) + 0\&.5f : (x) \- 0\&.5f)"
 
 .SS "#define RGFW_ROUNDF(x)   (float)((\fBi32\fP)((x) + ((x) < 0\&.0f ? \-0\&.5f : 0\&.5f)))"
+
+.SS "#define RGFW_STATIC_ASSERT(check_name, x)   typedef char RGFW_check_##check_name[(x) ? 1 : \-1];"
 
 .SS "#define RGFW_STRNCMP(s1, s2, max)   strncmp(s1, s2, max)"
 
@@ -1234,6 +1242,8 @@ event data for any data drag event
 event data for any data drop event 
 .SS "typedef struct \fBRGFW_dataDropNode\fP \fBRGFW_dataDropNode\fP"
 internal node for a individual data drop 
+.SS "typedef struct \fBRGFW_dataTransfer\fP \fBRGFW_dataTransfer\fP"
+struct for data transfers, mostly used for the clipboard API 
 .SS "typedef void(* RGFW_debugFunc) (const \fBRGFW_debugInfo\fP *info)"
 
 .PP
@@ -1308,8 +1318,6 @@ function pointer equivalent of void*
 
 .PP
 event data for when the window scale (DPI) is updated 
-.SS "typedef ptrdiff_t \fBRGFW_ssize_t\fP"
-
 .SS "typedef struct \fBRGFW_surface\fP \fBRGFW_surface\fP"
 
 .PP
@@ -1702,11 +1710,11 @@ what type of request you are making for the monitor < scale the monitor size
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_mouseButton)"
 
 .PP
-abstract mouse button codes < left mouse button is pressed
+abstract mouse button codes < left mouse button
 .PP
-< mouse-wheel-button is pressed
+< mouse-wheel-button
 .PP
-< right mouse button is pressed
+< right mouse button
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_mouseIcon)"
 
 .PP

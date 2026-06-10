@@ -1,6 +1,8 @@
 var searchData=
 [
-  ['name_0',['name',['../structRGFW__monitor.html#aaea809cea2ca3420c64b1ae3d69bb3ae',1,'RGFW_monitor']]],
-  ['next_1',['next',['../structRGFW__dataDropNode.html#ae2f320355d81a06c3f45d6d0e6a9566d',1,'RGFW_dataDropNode']]],
-  ['node_2',['node',['../structRGFW__monitor.html#abc6602c277d34ddfacb1a5c3178ffc07',1,'RGFW_monitor']]]
+  ['mod_0',['mod',['../structRGFW__keyEvent.html#a4a0568fcf56ebf01f16903fc22a87fa7',1,'RGFW_keyEvent']]],
+  ['mode_1',['mode',['../structRGFW__monitor.html#a0f7f7532843e9354590e8cb424fbf8dc',1,'RGFW_monitor']]],
+  ['monitor_2',['monitor',['../structRGFW__monitorEvent.html#a1631409b5d7b9c900565e6cc9ebad542',1,'RGFW_monitorEvent::monitor()'],['../unionRGFW__event.html#ac3599debe132673114dbe7f730b08931',1,'RGFW_event::monitor()']]],
+  ['mouse_3',['mouse',['../unionRGFW__event.html#a5f0a8cbb242cd238e4dfeba98ad24556',1,'RGFW_event']]],
+  ['msg_4',['msg',['../structRGFW__debugInfo.html#afff2b3f6c94da8e7ccbd843bcbc2df41',1,'RGFW_debugInfo']]]
 ];

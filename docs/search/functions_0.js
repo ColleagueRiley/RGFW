@@ -67,8 +67,8 @@ var searchData=
   ['rgfw_5fphysicaltomappedkey_64',['RGFW_physicalToMappedKey',['../group__Supporting.html#ga8677a7a22acb396af8adb0016c290069',1,'RGFW.h']]],
   ['rgfw_5fpollevents_65',['RGFW_pollEvents',['../RGFW_8h.html#a877d6904d56b6c485d56a171b8f97750',1,'RGFW.h']]],
   ['rgfw_5fpollmonitors_66',['RGFW_pollMonitors',['../RGFW_8h.html#a26b4e40389fe49e9d7c82a87cd36358e',1,'RGFW.h']]],
-  ['rgfw_5freadclipboard_67',['RGFW_readClipboard',['../group__Clipboard.html#ga8dc0a4b9144cd7e9de02f31b2b421723',1,'RGFW.h']]],
-  ['rgfw_5freadclipboardptr_68',['RGFW_readClipboardPtr',['../group__Clipboard.html#gacfd9952aecc02d5adc34d795c7a284ae',1,'RGFW.h']]],
+  ['rgfw_5freadclipboard_67',['RGFW_readClipboard',['../group__Clipboard.html#ga5e3249f58b8694e9376d7798fc2a5336',1,'RGFW.h']]],
+  ['rgfw_5freadclipboardptr_68',['RGFW_readClipboardPtr',['../group__Clipboard.html#gab46152a22f93dfd9f93396164a4b1d56',1,'RGFW.h']]],
   ['rgfw_5frgfwtoapikey_69',['RGFW_rgfwToApiKey',['../group__Supporting.html#ga5d71aec12ae924d4aa01eb88b5289040',1,'RGFW.h']]],
   ['rgfw_5fsetalleventcallbacks_70',['RGFW_setAllEventCallbacks',['../RGFW_8h.html#a8cc51cc40f69f17625778675b883a941',1,'RGFW.h']]],
   ['rgfw_5fsetbuilddnd_71',['RGFW_setBuildDND',['../RGFW_8h.html#a3158ea055871b227be10fe13659399b7',1,'RGFW.h']]],
@@ -185,5 +185,5 @@ var searchData=
   ['rgfw_5fwindow_5fshouldclose_182',['RGFW_window_shouldClose',['../group__Window__management.html#gae40de5fbdc9e850c1ff7e2e8dac46624',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fshow_183',['RGFW_window_show',['../group__Window__management.html#gaf8ea66870c99917ef07acd09ad6d7746',1,'RGFW.h']]],
   ['rgfw_5fwindow_5fshowmouse_184',['RGFW_window_showMouse',['../group__Window__management.html#gaccfc463b60b5d664a7a6b53e342945dc',1,'RGFW.h']]],
-  ['rgfw_5fwriteclipboard_185',['RGFW_writeClipboard',['../group__Clipboard.html#ga0de2f0466a3ae4cc9986101de14dbdee',1,'RGFW.h']]]
+  ['rgfw_5fwriteclipboard_185',['RGFW_writeClipboard',['../group__Clipboard.html#gab1a93ed8dd346f2b746cd60b821be7fe',1,'RGFW.h']]]
 ];

@@ -84,8 +84,8 @@ $(function() {
 Public Attributes</h2></td></tr>
 <tr class="memitem:ad780996fa8a922514a4198d5dc5970b1"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__dataDropNode.html#ad780996fa8a922514a4198d5dc5970b1">data</a></td></tr>
 <tr class="separator:ad780996fa8a922514a4198d5dc5970b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac9b00d3131a561ed9bdef971796e1df4"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__dataDropNode.html#ac9b00d3131a561ed9bdef971796e1df4">size</a></td></tr>
-<tr class="separator:ac9b00d3131a561ed9bdef971796e1df4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a681a9e29ca5fc0e55dd980f8795e048f"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__dataDropNode.html#a681a9e29ca5fc0e55dd980f8795e048f">length</a></td></tr>
+<tr class="separator:a681a9e29ca5fc0e55dd980f8795e048f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6fb72b084ecd50e8af8834c1a0e08f60"><td class="memItemLeft" align="right" valign="top">RGFW_dataTransferType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__dataDropNode.html#a6fb72b084ecd50e8af8834c1a0e08f60">type</a></td></tr>
 <tr class="separator:a6fb72b084ecd50e8af8834c1a0e08f60"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2f320355d81a06c3f45d6d0e6a9566d"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structRGFW__dataDropNode.html">RGFW_dataDropNode</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structRGFW__dataDropNode.html#ae2f320355d81a06c3f45d6d0e6a9566d">next</a></td></tr>
@@ -109,6 +109,21 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a681a9e29ca5fc0e55dd980f8795e048f" name="a681a9e29ca5fc0e55dd980f8795e048f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a681a9e29ca5fc0e55dd980f8795e048f">&#9670;&#160;</a></span>length</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t RGFW_dataDropNode::length</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p >the size of the data in bytes </p>
+
+</div>
+</div>
 <a id="ae2f320355d81a06c3f45d6d0e6a9566d" name="ae2f320355d81a06c3f45d6d0e6a9566d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae2f320355d81a06c3f45d6d0e6a9566d">&#9670;&#160;</a></span>next</h2>
 
@@ -121,21 +136,6 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p >the next drop data node if any [when handling callbacks, this will always be NULL because the linked list is built as events are processed] </p>
-
-</div>
-</div>
-<a id="ac9b00d3131a561ed9bdef971796e1df4" name="ac9b00d3131a561ed9bdef971796e1df4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac9b00d3131a561ed9bdef971796e1df4">&#9670;&#160;</a></span>size</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">size_t RGFW_dataDropNode::size</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p >the size of the data in bytes </p>
 
 </div>
 </div>
