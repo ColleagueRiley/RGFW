@@ -13580,7 +13580,7 @@ $(function() {
 <div class="line"><a id="l14864" name="l14864"></a><span class="lineno">14864</span>    <span class="keywordflow">if</span> (metalLayer == NULL) {</div>
 <div class="line"><a id="l14865" name="l14865"></a><span class="lineno">14865</span>         <span class="keywordflow">return</span> -1;</div>
 <div class="line"><a id="l14866" name="l14866"></a><span class="lineno">14866</span>    }</div>
-<div class="line"><a id="l14867" name="l14867"></a><span class="lineno">14867</span>    ((void (*)(id, SEL, id))objc_msgSend)((<span class="keywordtype">id</span>)nsView, sel_registerName(<span class="stringliteral">&quot;setLayer:&quot;</span>), metalLayer);</div>
+<div class="line"><a id="l14867" name="l14867"></a><span class="lineno">14867</span>    ((void (*)(id, SEL, id))objc_msgSend)((<span class="keywordtype">id</span>)nsView, sel_registerName(<span class="stringliteral">&quot;setLayer:&quot;</span>), (id)metalLayer);</div>
 <div class="line"><a id="l14868" name="l14868"></a><span class="lineno">14868</span>    ((void (*)(id, SEL, BOOL))objc_msgSend)(nsView, sel_registerName(<span class="stringliteral">&quot;setWantsLayer:&quot;</span>), YES);</div>
 <div class="line"><a id="l14869" name="l14869"></a><span class="lineno">14869</span> </div>
 <div class="line"><a id="l14870" name="l14870"></a><span class="lineno">14870</span>    VkResult result;</div>
@@ -13608,7 +13608,7 @@ $(function() {
 <div class="line"><a id="l14892" name="l14892"></a><span class="lineno">14892</span><span class="preprocessor">#ifdef RGFW_WEBGPU</span></div>
 <div class="line"><a id="l14893" name="l14893"></a><span class="lineno">14893</span>WGPUSurface RGFW_window_createSurface_WebGPU(<a class="code hl_typedef" href="RGFW_8h.html#a2520d2d7f43e5df60edeed92733c1de6">RGFW_window</a>* window, WGPUInstance instance) {</div>
 <div class="line"><a id="l14894" name="l14894"></a><span class="lineno">14894</span>    WGPUSurfaceDescriptor surfaceDesc = {0};</div>
-<div class="line"><a id="l14895" name="l14895"></a><span class="lineno">14895</span>    <span class="keywordtype">id</span>* nsView = (<span class="keywordtype">id</span>*)window-&gt;src.view;</div>
+<div class="line"><a id="l14895" name="l14895"></a><span class="lineno">14895</span>    <span class="keywordtype">id</span> nsView = (id)window-&gt;src.view;</div>
 <div class="line"><a id="l14896" name="l14896"></a><span class="lineno">14896</span>    if (!nsView) {</div>
 <div class="line"><a id="l14897" name="l14897"></a><span class="lineno">14897</span>        <a class="code hl_function" href="group__error.html#ga20ed7e4af84625f50b6d8dc4437cf63d">RGFW_debugCallback</a>(RGFW_typeError, RGFW_errMetal, <span class="stringliteral">&quot;NSView is NULL for macOS window&quot;</span>);</div>
 <div class="line"><a id="l14898" name="l14898"></a><span class="lineno">14898</span>        <span class="keywordflow">return</span> NULL;</div>
@@ -13621,8 +13621,8 @@ $(function() {
 <div class="line"><a id="l14905" name="l14905"></a><span class="lineno">14905</span>    <span class="keywordflow">if</span> (metalLayer == NULL) {</div>
 <div class="line"><a id="l14906" name="l14906"></a><span class="lineno">14906</span>         <span class="keywordflow">return</span> NULL;</div>
 <div class="line"><a id="l14907" name="l14907"></a><span class="lineno">14907</span>    }</div>
-<div class="line"><a id="l14908" name="l14908"></a><span class="lineno">14908</span>    ((void (*)(id, SEL, id))objc_msgSend)((<span class="keywordtype">id</span>)nsView, sel_registerName(<span class="stringliteral">&quot;setLayer:&quot;</span>), metalLayer);</div>
-<div class="line"><a id="l14909" name="l14909"></a><span class="lineno">14909</span>    layer = metalLayer;</div>
+<div class="line"><a id="l14908" name="l14908"></a><span class="lineno">14908</span>    ((void (*)(id, SEL, id))objc_msgSend)((<span class="keywordtype">id</span>)nsView, sel_registerName(<span class="stringliteral">&quot;setLayer:&quot;</span>), (id)metalLayer);</div>
+<div class="line"><a id="l14909" name="l14909"></a><span class="lineno">14909</span>    layer = (id)metalLayer;</div>
 <div class="line"><a id="l14910" name="l14910"></a><span class="lineno">14910</span> </div>
 <div class="line"><a id="l14911" name="l14911"></a><span class="lineno">14911</span>    WGPUSurfaceSourceMetalLayer fromMetal = {0};</div>
 <div class="line"><a id="l14912" name="l14912"></a><span class="lineno">14912</span>    fromMetal.chain.sType = WGPUSType_SurfaceSourceMetalLayer;</div>
