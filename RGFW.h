@@ -3937,6 +3937,7 @@ i32 RGFW_init_ptr(RGFW_info* info) {
 	_RGFW->monitors.list.head = NULL;
     RGFW_initKeycodes();
     i32 out = RGFW_initPlatform();
+    if (out != 0) { RGFW_deinit(); return out; }
 
 	for (size_t i = 0; i < RGFW_mouseIconCount; i++) {
         _RGFW->standardMice[i] = RGFW_createMouseStandard((RGFW_mouseIcon)i);
@@ -8639,6 +8640,22 @@ i32 RGFW_initPlatform_X11(void) {
 
 void RGFW_deinitPlatform_X11(void) {
     #define RGFW_FREE_LIBRARY(x) if (x != NULL) dlclose(x); x = NULL;
+	if (_RGFW->display == NULL) {
+        #if !defined(RGFW_NO_X11_CURSOR_PRELOAD) && !defined(RGFW_NO_X11_CURSOR)
+            RGFW_FREE_LIBRARY(X11Cursorhandle);
+        #endif
+        #if !defined(RGFW_NO_X11_XI_PRELOAD)
+            RGFW_FREE_LIBRARY(X11Xihandle);
+        #endif
+        #ifdef RGFW_USE_XDL
+            XDL_close();
+        #endif
+        #if !defined(RGFW_NO_X11_EXT_PRELOAD)
+            RGFW_FREE_LIBRARY(X11XEXThandle);
+        #endif
+        return;
+    }
+
 	/* to save the clipboard on the x server after the window is closed */
 	RGFW_LOAD_ATOM(CLIPBOARD_MANAGER);  RGFW_LOAD_ATOM(CLIPBOARD);
 	RGFW_LOAD_ATOM(SAVE_TARGETS);
