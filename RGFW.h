@@ -14864,7 +14864,7 @@ VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance,
 	if (metalLayer == NULL) {
 		 return -1;
 	}
-	((void (*)(id, SEL, id))objc_msgSend)((id)nsView, sel_registerName("setLayer:"), metalLayer);
+	((void (*)(id, SEL, id))objc_msgSend)((id)nsView, sel_registerName("setLayer:"), (id)metalLayer);
     ((void (*)(id, SEL, BOOL))objc_msgSend)(nsView, sel_registerName("setWantsLayer:"), YES);
 
 	VkResult result;
@@ -14892,7 +14892,7 @@ VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance,
 #ifdef RGFW_WEBGPU
 WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance instance) {
 	WGPUSurfaceDescriptor surfaceDesc = {0};
-    id* nsView = (id*)window->src.view;
+    id nsView = (id)window->src.view;
     if (!nsView) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errMetal, "NSView is NULL for macOS window");
         return NULL;
@@ -14905,8 +14905,8 @@ WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance i
 	if (metalLayer == NULL) {
 		 return NULL;
 	}
-	((void (*)(id, SEL, id))objc_msgSend)((id)nsView, sel_registerName("setLayer:"), metalLayer);
-	layer = metalLayer;
+	((void (*)(id, SEL, id))objc_msgSend)((id)nsView, sel_registerName("setLayer:"), (id)metalLayer);
+	layer = (id)metalLayer;
 
     WGPUSurfaceSourceMetalLayer fromMetal = {0};
     fromMetal.chain.sType = WGPUSType_SurfaceSourceMetalLayer;
