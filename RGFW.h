@@ -8577,6 +8577,11 @@ i32 RGFW_initPlatform_X11(void) {
 
     XInitThreads(); /*!< init X11 threading */
     _RGFW->display = XOpenDisplay(0);
+    if (_RGFW->display == NULL) {
+        RGFW_debugCallback(RGFW_typeError, RGFW_errX11,
+            "Failed to open X11 display. (Is $DISPLAY set?)");
+        return -1;
+    }
 	_RGFW->context = XUniqueContext();
 
 	XSetWindowAttributes wa;
