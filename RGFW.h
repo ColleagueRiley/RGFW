@@ -3990,7 +3990,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 
 	RGFW_MEMZERO(win, sizeof(RGFW_window));
 
-	if (_RGFW == NULL) RGFW_init();
+	if (_RGFW == NULL) if (RGFW_init() != 0) return NULL;
 	_RGFW->windowCount++;
 
 	/* rect based the requested flags */
