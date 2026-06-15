@@ -1381,6 +1381,11 @@ RGFWDEF RGFW_bool RGFW_monitor_getMode(RGFW_monitor* monitor, RGFW_monitorMode* 
 RGFWDEF void RGFW_pollMonitors(void);
 
 /**!
+ * @brief free all leftlover monitor data (this is called internally RGFW_deinit)
+*/
+RGFWDEF void RGFW_freeMonitors(void);
+
+/**!
  * @brief Allocates and returns an array of all available monitors.
  * @param len [OUTPUT] A pointer to store the number of monitors found.
  * @return An allocated array of pointers to RGFW_monitor structures that must be freed.
@@ -3101,7 +3106,6 @@ struct RGFW_monitorNode {
 	size_t modeCount;
 #endif
 #if defined(RGFW_X11)
-	i32 screen;
 	RROutput rrOutput;
 	RRCrtc crtc;
 #endif
@@ -3286,6 +3290,7 @@ RGFWDEF void RGFW_keyUpdateKeyMod(RGFW_window* win, RGFW_keymod mod, RGFW_bool v
 RGFWDEF void RGFW_monitors_refresh(void);
 RGFWDEF RGFW_monitorNode* RGFW_monitors_add(const RGFW_monitor* mon);
 RGFWDEF void RGFW_monitors_remove(RGFW_monitorNode* node, RGFW_monitorNode* prev);
+RGFWDEF void RGFW_monitorNode_free(RGFW_monitorNode* node);
 
 RGFWDEF void RGFW_windowMaximizedCallback(RGFW_window* win, i32 x, i32 y, i32 w, i32 h);
 RGFWDEF void RGFW_windowMinimizedCallback(RGFW_window* win);
@@ -3963,6 +3968,8 @@ void RGFW_deinit_ptr(RGFW_info* info) {
 		if (_RGFW->standardMice[i]) RGFW_freeMouse(_RGFW->standardMice[i]);
 	}
 
+	RGFW_freeMonitors();
+
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoGlobal, "global context deinitialized");
 	RGFW_deinitPlatform();
 
@@ -4593,11 +4600,13 @@ RGFW_monitorNode* RGFW_monitors_add(const RGFW_monitor* mon) {
 void RGFW_monitors_remove(RGFW_monitorNode* node, RGFW_monitorNode* prev) {
 	_RGFW->monitors.count -= 1;
 
+	RGFW_monitorNode_free(node);
+
 	/* remove node from the list */
 	if (prev != node) {
 		prev->next = node->next;
 	} else { /* node is the head */
-		_RGFW->monitors.list.head = NULL;
+		_RGFW->monitors.list.head = node->next;
 	}
 
 	node->next = NULL;
@@ -4629,6 +4638,15 @@ void RGFW_monitors_refresh(void) {
 		RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_FALSE);
 		RGFW_monitors_remove(node, prev);
 		prev = node;
+	}
+}
+
+void RGFW_freeMonitors(void) {
+	RGFW_monitorNode* node = _RGFW->monitors.list.head;
+	while (node != NULL) {
+		RGFW_monitorNode* next = node->next;
+		RGFW_monitors_remove(node, node);
+		node = next;
 	}
 }
 
@@ -8079,6 +8097,10 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 	RGFW_monitors_refresh();
 }
 
+void RGFW_FUNC(RGFW_monitorNode_free) (RGFW_monitorNode* node) {
+	RGFW_ASSERT(node);
+}
+
 RGFW_bool RGFW_FUNC(RGFW_monitor_getWorkarea) (RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
     RGFW_LOAD_ATOM(_NET_WORKAREA);
     RGFW_LOAD_ATOM(_NET_CURRENT_DESKTOP);
@@ -9453,19 +9475,6 @@ static void RGFW_wl_global_registry_remove(void* data, struct wl_registry *regis
 		node = prev;
 	}
 
-	if (node->output) {
-		wl_output_destroy(node->output);
-	}
-
-	if (node->xdg_output) {
-		zxdg_output_v1_destroy(node->xdg_output);
-	}
-
-	if (node->modeCount) {
-		RGFW_FREE(node->modes);
-		node->modeCount = 0;
-	}
-
 	RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_FALSE);
 	RGFW_monitors_remove(node, prev);
 }
@@ -9625,22 +9634,6 @@ void RGFW_deinitPlatform_Wayland(void) {
 	}
 
 	RGFW_freeMouse(_RGFW->hiddenMouse);
-
-	RGFW_monitorNode* node = _RGFW->monitors.list.head;
-
-	while (node != NULL) {
-		if (node->output) {
-			wl_output_destroy(node->output);
-		}
-
-		if (node->xdg_output) {
-			zxdg_output_v1_destroy(node->xdg_output);
-		}
-
-		_RGFW->monitors.count -= 1;
-		node = node->next;
-
-	}
 
 	wl_surface_destroy(_RGFW->cursor_surface);
 	wl_shm_destroy(_RGFW->shm);
@@ -10378,6 +10371,22 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 	_RGFW->monitors.primary = _RGFW->monitors.list.head;
 }
 
+void RGFW_FUNC(RGFW_monitorNode_free) (RGFW_monitorNode* node) {
+	RGFW_ASSERT(node);
+
+	if (node->output) {
+		wl_output_destroy(node->output);
+	}
+
+	if (node->xdg_output) {
+		zxdg_output_v1_destroy(node->xdg_output);
+	}
+
+	if (node->modes) {
+		RGFW_FREE(node->modes);
+		node->modeCount = 0;
+	}
+}
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_getWorkarea) (RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
 	/* NOTE: Wayland has no way to get the actual workarea as far as I'm aware :( */
@@ -11957,6 +11966,10 @@ void RGFW_pollMonitors(void) {
 	}
 
 	RGFW_monitors_refresh();
+}
+
+void RGFW_monitorNode_free(RGFW_monitorNode* node) {
+	RGFW_ASSERT(node);
 }
 
 RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) {
@@ -14468,6 +14481,10 @@ void RGFW_pollMonitors(void) {
 	RGFW_monitors_refresh();
 }
 
+void RGFW_monitorNode_free(RGFW_monitorNode* node) {
+	RGFW_ASSERT(node);
+}
+
 RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
 	NSRect frameRect = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)monitor->node->screen, sel_registerName("visibleFrame"));
 
@@ -15791,6 +15808,7 @@ RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) {
 
 /* unsupported functions */
 void RGFW_pollMonitors(void) { }
+void RGFW_monitorNode_free(RGFW_monitorNode* node) { RGFW_UNUSED(node); }
 void RGFW_window_focus(RGFW_window* win) { RGFW_UNUSED(win); }
 void RGFW_window_raise(RGFW_window* win) { RGFW_UNUSED(win); }
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) { RGFW_UNUSED(mon); RGFW_UNUSED(mode); RGFW_UNUSED(request); return RGFW_FALSE; }
@@ -15830,6 +15848,7 @@ typedef RGFW_key (*RGFW_physicalToMappedKey_ptr)(RGFW_key key);
 typedef void (*RGFW_pollEvents_ptr)(void);
 typedef RGFW_bool (*RGFW_window_fetchSize_ptr)(RGFW_window* win, i32* w, i32* h);
 typedef void (*RGFW_pollMonitors_ptr)(void);
+typedef void (*RGFW_monitorNode_free_ptr)(RGFW_monitorNode* node);
 typedef void (*RGFW_window_move_ptr)(RGFW_window* win, i32 x, i32 y);
 typedef void (*RGFW_window_resize_ptr)(RGFW_window* win, i32 w, i32 h);
 typedef void (*RGFW_window_setAspectRatio_ptr)(RGFW_window* win, i32 w, i32 h);
@@ -15905,6 +15924,7 @@ typedef struct RGFW_FunctionPointers {
     RGFW_window_fetchSize_ptr window_fetchSize;
 	RGFW_pollEvents_ptr pollEvents;
     RGFW_pollMonitors_ptr pollMonitors;
+	RGFW_monitorNode_free_ptr monitorNode_free;
     RGFW_window_move_ptr window_move;
     RGFW_window_resize_ptr window_resize;
     RGFW_window_setAspectRatio_ptr window_setAspectRatio;
@@ -15973,6 +15993,7 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) { return RGFW_api.physicalToMapp
 void RGFW_pollEvents(void) { RGFW_api.pollEvents(); }
 RGFW_bool RGFW_window_fetchSize(RGFW_window* win, i32* w, i32* h) { return RGFW_api.window_fetchSize(win, w, h); }
 void RGFW_pollMonitors(void) { RGFW_api.pollMonitors(); }
+void RGFW_monitorNode_free(RGFW_monitorNode* node) { RGFW_api.monitorNode_free(node); }
 void RGFW_window_move(RGFW_window* win, i32 x, i32 y) { RGFW_api.window_move(win, x, y); }
 void RGFW_window_resize(RGFW_window* win, i32 w, i32 h) { RGFW_api.window_resize(win, w, h); }
 void RGFW_window_setAspectRatio(RGFW_window* win, i32 w, i32 h) { RGFW_api.window_setAspectRatio(win, w, h); }
