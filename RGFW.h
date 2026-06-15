@@ -10373,6 +10373,19 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 
 void RGFW_FUNC(RGFW_monitorNode_free) (RGFW_monitorNode* node) {
 	RGFW_ASSERT(node);
+
+	if (node->output) {
+		wl_output_destroy(node->output);
+	}
+
+	if (node->xdg_output) {
+		zxdg_output_v1_destroy(node->xdg_output);
+	}
+
+	if (node->modes) {
+		RGFW_FREE(node->modes);
+		node->modeCount = 0;
+	}
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_getWorkarea) (RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
@@ -14470,18 +14483,6 @@ void RGFW_pollMonitors(void) {
 
 void RGFW_monitorNode_free(RGFW_monitorNode* node) {
 	RGFW_ASSERT(node);
-	if (node->output) {
-		wl_output_destroy(node->output);
-	}
-
-	if (node->xdg_output) {
-		zxdg_output_v1_destroy(node->xdg_output);
-	}
-
-	if (node->modes) {
-		RGFW_FREE(node->modes);
-		node->modeCount = 0;
-	}
 }
 
 RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
