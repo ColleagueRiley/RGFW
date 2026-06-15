@@ -194,6 +194,7 @@ EXAMPLE_OUTPUTS_CUSTOM = \
 TEST_OUTPUTS = \
 			   tests/loop \
 			   tests/clipboard \
+			   tests/memory \
 
 
 
