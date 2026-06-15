@@ -6,6 +6,7 @@ void myFree(void* ptr, unsigned int line, const char* file);
 #define RGFW_ALLOC(size) myAlloc(size, __LINE__, __FILE__)
 #define RGFW_FREE(size) myFree(size, __LINE__, __FILE__)
 
+#define RGFW_OPENGL
 #define GL_SILENCE_DEPRECATION
 #define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
@@ -28,7 +29,7 @@ void myFree(void* ptr, unsigned int line, const char* file) {
 }
 
 int main(void) {
-	RGFW_window* win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, 0)
+	RGFW_window* win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, 0);
 	RGFW_pollEvents();
 	RGFW_window_close(win);
 
