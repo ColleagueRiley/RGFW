@@ -12218,24 +12218,17 @@ void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
 #define RGFW_FREE_LIBRARY(x) if (x != NULL) FreeLibrary(x); x = NULL;
 void RGFW_deinitPlatform(void) {
     #ifndef RGFW_NO_DPI
-		if (RGFW_Shcore_dll)
-			RGFW_FREE_LIBRARY(RGFW_Shcore_dll);
-		RGFW_Shcore_dll = NULL;
+		RGFW_FREE_LIBRARY(RGFW_Shcore_dll);
     #endif
 
     #ifndef RGFW_NO_WINMM
 	    timeEndPeriod(1);
 		#ifndef RGFW_NO_LOAD_WINMM
-			if (RGFW_winmm_dll)
-				RGFW_FREE_LIBRARY(RGFW_winmm_dll);
-			RGFW_winmm_dll = NULL;
+			RGFW_FREE_LIBRARY(RGFW_winmm_dll);
 		#endif
     #endif
 
-	if (RGFW_wgl_dll) {
-	    RGFW_FREE_LIBRARY(RGFW_wgl_dll);
-		RGFW_wgl_dll = NULL;
-	}
+	RGFW_FREE_LIBRARY(RGFW_wgl_dll);
 
 	if (_RGFW->helperWindow)
 		DestroyWindow(_RGFW->helperWindow);
@@ -14886,7 +14879,7 @@ void RGFW_deinitPlatform(void) {
 	}
 
 	_RGFW->NSApp = NULL;
-	if (RGFW->customNSAppDelegate != NULL)
+	if (_RGFW->customNSAppDelegate != NULL)
 		NSRelease(_RGFW->customNSAppDelegate);
 
 	_RGFW->customNSAppDelegate = NULL;
