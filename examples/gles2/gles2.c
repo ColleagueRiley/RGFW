@@ -7,7 +7,11 @@
 
 #define RGFW_DEBUG
 #define GL_SILENCE_DEPRECATION
-#define RGFW_EGL
+#ifdef __EMSCRIPTEN__
+	#define RGFW_OPENGL
+#else
+	#define RGFW_EGL
+#endif
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
@@ -49,10 +53,17 @@ int main(void) {
     RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
     hints->major = 2;
     hints->minor = 0;
-    hints->profile = RGFW_glES;
+	hints->profile = RGFW_glES;
     RGFW_setGlobalHints_OpenGL(hints);
 
-	win = RGFW_createWindow("name", 0, 0, 500, 500, RGFW_windowCenter | RGFW_windowTransparent | RGFW_windowEGL);
+	RGFW_windowFlags flags =  RGFW_windowCenter ;
+	#ifdef RGFW_WASM
+		flags |= RGFW_windowOpenGL;
+	#else
+		flags |= RGFW_windowEGL;
+	#endif
+
+	win = RGFW_createWindow("name", 0, 0, 500, 500, RGFW_windowCenter | RGFW_windowTransparent | flags);
     RGFW_window_setExitKey(win, RGFW_keyEscape);
 
     ///////  the openGL part  ///////////////////////////////////////////////////////////////
