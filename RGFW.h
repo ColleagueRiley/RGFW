@@ -179,10 +179,6 @@ int main() {
     #endif
 #endif
 
-#if defined(RGFW_EGL) && !defined(RGFW_OPENGL)
-	#define RGFW_OPENGL
-#endif
-
 /* these OS macros look better & are standardized */
 /* plus it helps with cross-compiling */
 
@@ -8573,6 +8569,14 @@ i32 RGFW_initPlatform_X11(void) {
 	_RGFW->context = XUniqueContext();
 	if (_RGFW->context == 0) return -1;
 
+	XSetWindowAttributes wa;
+    RGFW_MEMZERO(&wa, sizeof(wa));
+    wa.event_mask = PropertyChangeMask;
+    _RGFW->helperWindow = XCreateWindow(_RGFW->display, XDefaultRootWindow(_RGFW->display), 0, 0, 1, 1, 0, 0,
+                                        InputOnly, DefaultVisual(_RGFW->display, DefaultScreen(_RGFW->display)), CWEventMask, &wa);
+
+	if (_RGFW->helperWindow == 0) return -1;
+
 	#if !defined(RGFW_NO_X11_CURSOR) && !defined(RGFW_NO_X11_CURSOR_PRELOAD)
 	#if defined(__CYGWIN__)
 				RGFW_LOAD_LIBRARY(X11Cursorhandle, "libXcursor-1.so");
@@ -8611,12 +8615,6 @@ i32 RGFW_initPlatform_X11(void) {
     	    RGFW_PROC_DEF(X11XEXThandle, XShapeCombineRegion);
 	        RGFW_PROC_DEF(X11XEXThandle, XShapeCombineMask);
     #endif
-
-	XSetWindowAttributes wa;
-    RGFW_MEMZERO(&wa, sizeof(wa));
-    wa.event_mask = PropertyChangeMask;
-    _RGFW->helperWindow = XCreateWindow(_RGFW->display, XDefaultRootWindow(_RGFW->display), 0, 0, 1, 1, 0, 0,
-                                        InputOnly, DefaultVisual(_RGFW->display, DefaultScreen(_RGFW->display)), CWEventMask, &wa);
 
     u8 RGFW_blk[] = { 0, 0, 0, 0 };
 	_RGFW->hiddenMouse = RGFW_createMouse(RGFW_blk, 1, 1, RGFW_formatRGBA8);
