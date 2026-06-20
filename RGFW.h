@@ -6341,6 +6341,24 @@ void RGFW_setXInstName(const char* name) { _RGFW->instName = name; }
 			return RGFW_TRUE;
 		}
 
+		const char* glxSonames[] = {
+			#if defined(__CYGWIN__)
+				"libGL-1.so",
+			#elif defined(__OpenBSD__) || defined(__NetBSD__)
+				"libGL.so",
+			#else
+				"libGLX.so.0",
+				"libGL.so.1",
+				"libGL.so",
+			#endif
+		};
+
+		for (int i = 0; sizeof(glxSonames) / sizeof(char*);  i++) {
+			_RGFW->nativeGL_handle = dlopen(glxSonames[i], RTLD_LAZY | RTLD_LOCAL);
+			if (_RGFW->nativeGL_handle)
+				break;
+		}
+
 		void* ptr = dlsym(_RGFW->nativeGL_handle, "glXGetProcAddress");
 		RGFW_ASSERT(ptr != NULL);
 		RGFW_MEMCPY(&_RGFW->glGetProcAddress, &ptr, sizeof(void*));
