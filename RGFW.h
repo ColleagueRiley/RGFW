@@ -12604,7 +12604,7 @@ RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) {
     if (proc)
         return proc;
 
-    return (RGFW_proc) GetProcAddress((void*)_RGFW->nativeGL_handle, procname);
+    return (RGFW_proc) GetProcAddress((HMODULE)_RGFW->nativeGL_handle, procname);
 }
 
 RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx, RGFW_glHints* hints) {
