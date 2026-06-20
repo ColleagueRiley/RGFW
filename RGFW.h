@@ -10824,7 +10824,7 @@ RGFW_bool RGFW_loadGL(void) {
 	}
 
 	RGFW_LOAD_LIBRARY(_RGFW->nativeGL_handle, "opengl32.dll");
-	_RGFW->glGetProcAddress = (RGFW_proc(*)(const char*))(RGFW_proc)GetProcAddress(_RGFW->nativeGL_handle, "wglGetProcAddress");
+	_RGFW->glGetProcAddress = (RGFW_proc(*)(const char*))(RGFW_proc)GetProcAddress((HMODULE)_RGFW->nativeGL_handle, "wglGetProcAddress");
 	RGFW_ASSERT(_RGFW->glGetProcAddress);
 
 	#define RGFW_WGL_PROC(name) if (RGFW_##name == NULL) RGFW_##name = (RGFW_##name##Proc)RGFW_getProcAddress_OpenGL(#name);
