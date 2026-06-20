@@ -4712,422 +4712,6 @@ var ASM_CONSTS = {
     };
 
   
-  
-  
-  var fillMouseEventData = (eventStruct, e, target) => {
-      assert(eventStruct % 4 == 0);
-      HEAPF64[((eventStruct)>>3)] = e.timeStamp;
-      var idx = ((eventStruct)>>2);
-      HEAP32[idx + 2] = e.screenX;
-      HEAP32[idx + 3] = e.screenY;
-      HEAP32[idx + 4] = e.clientX;
-      HEAP32[idx + 5] = e.clientY;
-      HEAP32[idx + 6] = e.ctrlKey;
-      HEAP32[idx + 7] = e.shiftKey;
-      HEAP32[idx + 8] = e.altKey;
-      HEAP32[idx + 9] = e.metaKey;
-      HEAP16[idx*2 + 20] = e.button;
-      HEAP16[idx*2 + 21] = e.buttons;
-  
-      HEAP32[idx + 11] = e["movementX"]
-        ;
-  
-      HEAP32[idx + 12] = e["movementY"]
-        ;
-  
-      var rect = getBoundingClientRect(target);
-      HEAP32[idx + 13] = e.clientX - rect.left;
-      HEAP32[idx + 14] = e.clientY - rect.top;
-  
-    };
-  
-  
-  var registerMouseEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
-      if (!JSEvents.mouseEvent) JSEvents.mouseEvent = _malloc(72);
-      target = findEventTarget(target);
-  
-      var mouseEventHandlerFunc = (e = event) => {
-        // TODO: Make this access thread safe, or this could update live while app is reading it.
-        fillMouseEventData(JSEvents.mouseEvent, e, target);
-  
-        if (((a1, a2, a3) => dynCall_iiii.apply(null, [callbackfunc, a1, a2, a3]))(eventTypeId, JSEvents.mouseEvent, userData)) e.preventDefault();
-      };
-  
-      var eventHandler = {
-        target,
-        allowsDeferredCalls: eventTypeString != 'mousemove' && eventTypeString != 'mouseenter' && eventTypeString != 'mouseleave', // Mouse move events do not allow fullscreen/pointer lock requests to be handled in them!
-        eventTypeString,
-        callbackfunc,
-        handlerFunc: mouseEventHandlerFunc,
-        useCapture
-      };
-      return JSEvents.registerOrRemoveHandler(eventHandler);
-    };
-  var _emscripten_set_mousedown_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
-      registerMouseEventCallback(target, userData, useCapture, callbackfunc, 5, "mousedown", targetThread);
-
-  var _emscripten_set_mousemove_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
-      registerMouseEventCallback(target, userData, useCapture, callbackfunc, 8, "mousemove", targetThread);
-
-  var _emscripten_set_mouseup_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
-      registerMouseEventCallback(target, userData, useCapture, callbackfunc, 6, "mouseup", targetThread);
-
-  
-  
-  var registerUiEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
-      if (!JSEvents.uiEvent) JSEvents.uiEvent = _malloc(36);
-  
-      target = findEventTarget(target);
-  
-      var uiEventHandlerFunc = (e = event) => {
-        if (e.target != target) {
-          // Never take ui events such as scroll via a 'bubbled' route, but always from the direct element that
-          // was targeted. Otherwise e.g. if app logs a message in response to a page scroll, the Emscripten log
-          // message box could cause to scroll, generating a new (bubbled) scroll message, causing a new log print,
-          // causing a new scroll, etc..
-          return;
-        }
-        var b = document.body; // Take document.body to a variable, Closure compiler does not outline access to it on its own.
-        if (!b) {
-          // During a page unload 'body' can be null, with "Cannot read property 'clientWidth' of null" being thrown
-          return;
-        }
-        var uiEvent = JSEvents.uiEvent;
-        HEAP32[((uiEvent)>>2)] = e.detail;
-        HEAP32[(((uiEvent)+(4))>>2)] = b.clientWidth;
-        HEAP32[(((uiEvent)+(8))>>2)] = b.clientHeight;
-        HEAP32[(((uiEvent)+(12))>>2)] = innerWidth;
-        HEAP32[(((uiEvent)+(16))>>2)] = innerHeight;
-        HEAP32[(((uiEvent)+(20))>>2)] = outerWidth;
-        HEAP32[(((uiEvent)+(24))>>2)] = outerHeight;
-        HEAP32[(((uiEvent)+(28))>>2)] = pageXOffset;
-        HEAP32[(((uiEvent)+(32))>>2)] = pageYOffset;
-        if (((a1, a2, a3) => dynCall_iiii.apply(null, [callbackfunc, a1, a2, a3]))(eventTypeId, uiEvent, userData)) e.preventDefault();
-      };
-  
-      var eventHandler = {
-        target,
-        eventTypeString,
-        callbackfunc,
-        handlerFunc: uiEventHandlerFunc,
-        useCapture
-      };
-      return JSEvents.registerOrRemoveHandler(eventHandler);
-    };
-  var _emscripten_set_resize_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
-      registerUiEventCallback(target, userData, useCapture, callbackfunc, 10, "resize", targetThread);
-
-  
-  
-  
-  var registerTouchEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
-      if (!JSEvents.touchEvent) JSEvents.touchEvent = _malloc(1696);
-  
-      target = findEventTarget(target);
-  
-      var touchEventHandlerFunc = (e) => {
-        assert(e);
-        var t, touches = {}, et = e.touches;
-        // To ease marshalling different kinds of touches that browser reports (all touches are listed in e.touches,
-        // only changed touches in e.changedTouches, and touches on target at a.targetTouches), mark a boolean in
-        // each Touch object so that we can later loop only once over all touches we see to marshall over to Wasm.
-  
-        for (var i = 0; i < et.length; ++i) {
-          t = et[i];
-          // Browser might recycle the generated Touch objects between each frame (Firefox on Android), so reset any
-          // changed/target states we may have set from previous frame.
-          t.isChanged = t.onTarget = 0;
-          touches[t.identifier] = t;
-        }
-        // Mark which touches are part of the changedTouches list.
-        for (var i = 0; i < e.changedTouches.length; ++i) {
-          t = e.changedTouches[i];
-          t.isChanged = 1;
-          touches[t.identifier] = t;
-        }
-        // Mark which touches are part of the targetTouches list.
-        for (var i = 0; i < e.targetTouches.length; ++i) {
-          touches[e.targetTouches[i].identifier].onTarget = 1;
-        }
-  
-        var touchEvent = JSEvents.touchEvent;
-        HEAPF64[((touchEvent)>>3)] = e.timeStamp;
-        var idx =((touchEvent)>>2);// Pre-shift the ptr to index to HEAP32 to save code size
-        HEAP32[idx + 3] = e.ctrlKey;
-        HEAP32[idx + 4] = e.shiftKey;
-        HEAP32[idx + 5] = e.altKey;
-        HEAP32[idx + 6] = e.metaKey;
-        idx += 7; // Advance to the start of the touch array.
-        var targetRect = getBoundingClientRect(target);
-        var numTouches = 0;
-        for (var i in touches) {
-          t = touches[i];
-          HEAP32[idx + 0] = t.identifier;
-          HEAP32[idx + 1] = t.screenX;
-          HEAP32[idx + 2] = t.screenY;
-          HEAP32[idx + 3] = t.clientX;
-          HEAP32[idx + 4] = t.clientY;
-          HEAP32[idx + 5] = t.pageX;
-          HEAP32[idx + 6] = t.pageY;
-          HEAP32[idx + 7] = t.isChanged;
-          HEAP32[idx + 8] = t.onTarget;
-          HEAP32[idx + 9] = t.clientX - targetRect.left;
-          HEAP32[idx + 10] = t.clientY - targetRect.top;
-  
-          idx += 13;
-  
-          if (++numTouches > 31) {
-            break;
-          }
-        }
-        HEAP32[(((touchEvent)+(8))>>2)] = numTouches;
-  
-        if (((a1, a2, a3) => dynCall_iiii.apply(null, [callbackfunc, a1, a2, a3]))(eventTypeId, touchEvent, userData)) e.preventDefault();
-      };
-  
-      var eventHandler = {
-        target,
-        allowsDeferredCalls: eventTypeString == 'touchstart' || eventTypeString == 'touchend',
-        eventTypeString,
-        callbackfunc,
-        handlerFunc: touchEventHandlerFunc,
-        useCapture
-      };
-      return JSEvents.registerOrRemoveHandler(eventHandler);
-    };
-  var _emscripten_set_touchcancel_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
-      registerTouchEventCallback(target, userData, useCapture, callbackfunc, 25, "touchcancel", targetThread);
-
-  var _emscripten_set_touchend_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
-      registerTouchEventCallback(target, userData, useCapture, callbackfunc, 23, "touchend", targetThread);
-
-  var _emscripten_set_touchmove_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
-      registerTouchEventCallback(target, userData, useCapture, callbackfunc, 24, "touchmove", targetThread);
-
-  var _emscripten_set_touchstart_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
-      registerTouchEventCallback(target, userData, useCapture, callbackfunc, 22, "touchstart", targetThread);
-
-  
-  
-  
-  
-  var registerWheelEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
-      if (!JSEvents.wheelEvent) JSEvents.wheelEvent = _malloc(104);
-  
-      // The DOM Level 3 events spec event 'wheel'
-      var wheelHandlerFunc = (e = event) => {
-        var wheelEvent = JSEvents.wheelEvent;
-        fillMouseEventData(wheelEvent, e, target);
-        HEAPF64[(((wheelEvent)+(72))>>3)] = e["deltaX"];
-        HEAPF64[(((wheelEvent)+(80))>>3)] = e["deltaY"];
-        HEAPF64[(((wheelEvent)+(88))>>3)] = e["deltaZ"];
-        HEAP32[(((wheelEvent)+(96))>>2)] = e["deltaMode"];
-        if (((a1, a2, a3) => dynCall_iiii.apply(null, [callbackfunc, a1, a2, a3]))(eventTypeId, wheelEvent, userData)) e.preventDefault();
-      };
-  
-      var eventHandler = {
-        target,
-        allowsDeferredCalls: true,
-        eventTypeString,
-        callbackfunc,
-        handlerFunc: wheelHandlerFunc,
-        useCapture
-      };
-      return JSEvents.registerOrRemoveHandler(eventHandler);
-    };
-  
-  var _emscripten_set_wheel_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) => {
-      target = findEventTarget(target);
-      if (!target) return -4;
-      if (typeof target.onwheel != 'undefined') {
-        return registerWheelEventCallback(target, userData, useCapture, callbackfunc, 9, "wheel", targetThread);
-      } else {
-        return -1;
-      }
-    };
-
-  var _emscripten_set_main_loop_timing = (mode, value) => {
-      Browser.mainLoop.timingMode = mode;
-      Browser.mainLoop.timingValue = value;
-  
-      if (!Browser.mainLoop.func) {
-        err('emscripten_set_main_loop_timing: Cannot set timing mode for main loop since a main loop does not exist! Call emscripten_set_main_loop first to set one up.');
-        return 1; // Return non-zero on failure, can't set timing mode when there is no main loop.
-      }
-  
-      if (!Browser.mainLoop.running) {
-        
-        Browser.mainLoop.running = true;
-      }
-      if (mode == 0) {
-        Browser.mainLoop.scheduler = function Browser_mainLoop_scheduler_setTimeout() {
-          var timeUntilNextTick = Math.max(0, Browser.mainLoop.tickStartTime + value - _emscripten_get_now())|0;
-          setTimeout(Browser.mainLoop.runner, timeUntilNextTick); // doing this each time means that on exception, we stop
-        };
-        Browser.mainLoop.method = 'timeout';
-      } else if (mode == 1) {
-        Browser.mainLoop.scheduler = function Browser_mainLoop_scheduler_rAF() {
-          Browser.requestAnimationFrame(Browser.mainLoop.runner);
-        };
-        Browser.mainLoop.method = 'rAF';
-      } else if (mode == 2) {
-        if (typeof Browser.setImmediate == 'undefined') {
-          if (typeof setImmediate == 'undefined') {
-            // Emulate setImmediate. (note: not a complete polyfill, we don't emulate clearImmediate() to keep code size to minimum, since not needed)
-            var setImmediates = [];
-            var emscriptenMainLoopMessageId = 'setimmediate';
-            /** @param {Event} event */
-            var Browser_setImmediate_messageHandler = (event) => {
-              // When called in current thread or Worker, the main loop ID is structured slightly different to accommodate for --proxy-to-worker runtime listening to Worker events,
-              // so check for both cases.
-              if (event.data === emscriptenMainLoopMessageId || event.data.target === emscriptenMainLoopMessageId) {
-                event.stopPropagation();
-                setImmediates.shift()();
-              }
-            };
-            addEventListener("message", Browser_setImmediate_messageHandler, true);
-            Browser.setImmediate = /** @type{function(function(): ?, ...?): number} */(function Browser_emulated_setImmediate(func) {
-              setImmediates.push(func);
-              if (ENVIRONMENT_IS_WORKER) {
-                if (Module['setImmediates'] === undefined) Module['setImmediates'] = [];
-                Module['setImmediates'].push(func);
-                postMessage({target: emscriptenMainLoopMessageId}); // In --proxy-to-worker, route the message via proxyClient.js
-              } else postMessage(emscriptenMainLoopMessageId, "*"); // On the main thread, can just send the message to itself.
-            });
-          } else {
-            Browser.setImmediate = setImmediate;
-          }
-        }
-        Browser.mainLoop.scheduler = function Browser_mainLoop_scheduler_setImmediate() {
-          Browser.setImmediate(Browser.mainLoop.runner);
-        };
-        Browser.mainLoop.method = 'immediate';
-      }
-      return 0;
-    };
-  
-  var _emscripten_get_now;
-      // Modern environment where performance.now() is supported:
-      // N.B. a shorter form "_emscripten_get_now = performance.now;" is
-      // unfortunately not allowed even in current browsers (e.g. FF Nightly 75).
-      _emscripten_get_now = () => performance.now();
-  ;
-  
-  
-    /**
-     * @param {number=} arg
-     * @param {boolean=} noSetTiming
-     */
-  var setMainLoop = (browserIterationFunc, fps, simulateInfiniteLoop, arg, noSetTiming) => {
-      assert(!Browser.mainLoop.func, 'emscripten_set_main_loop: there can only be one main loop function at once: call emscripten_cancel_main_loop to cancel the previous one before setting a new one with different parameters.');
-  
-      Browser.mainLoop.func = browserIterationFunc;
-      Browser.mainLoop.arg = arg;
-  
-      // Closure compiler bug(?): Closure does not see that the assignment
-      //   var thisMainLoopId = Browser.mainLoop.currentlyRunningMainloop
-      // is a value copy of a number (even with the JSDoc @type annotation)
-      // but optimizeis the code as if the assignment was a reference assignment,
-      // which results in Browser.mainLoop.pause() not working. Hence use a
-      // workaround to make Closure believe this is a value copy that should occur:
-      // (TODO: Minimize this down to a small test case and report - was unable
-      // to reproduce in a small written test case)
-      /** @type{number} */
-      var thisMainLoopId = (() => Browser.mainLoop.currentlyRunningMainloop)();
-      function checkIsRunning() {
-        if (thisMainLoopId < Browser.mainLoop.currentlyRunningMainloop) {
-          
-          return false;
-        }
-        return true;
-      }
-  
-      // We create the loop runner here but it is not actually running until
-      // _emscripten_set_main_loop_timing is called (which might happen a
-      // later time).  This member signifies that the current runner has not
-      // yet been started so that we can call runtimeKeepalivePush when it
-      // gets it timing set for the first time.
-      Browser.mainLoop.running = false;
-      Browser.mainLoop.runner = function Browser_mainLoop_runner() {
-        if (ABORT) return;
-        if (Browser.mainLoop.queue.length > 0) {
-          var start = Date.now();
-          var blocker = Browser.mainLoop.queue.shift();
-          blocker.func(blocker.arg);
-          if (Browser.mainLoop.remainingBlockers) {
-            var remaining = Browser.mainLoop.remainingBlockers;
-            var next = remaining%1 == 0 ? remaining-1 : Math.floor(remaining);
-            if (blocker.counted) {
-              Browser.mainLoop.remainingBlockers = next;
-            } else {
-              // not counted, but move the progress along a tiny bit
-              next = next + 0.5; // do not steal all the next one's progress
-              Browser.mainLoop.remainingBlockers = (8*remaining + next)/9;
-            }
-          }
-          Browser.mainLoop.updateStatus();
-  
-          // catches pause/resume main loop from blocker execution
-          if (!checkIsRunning()) return;
-  
-          setTimeout(Browser.mainLoop.runner, 0);
-          return;
-        }
-  
-        // catch pauses from non-main loop sources
-        if (!checkIsRunning()) return;
-  
-        // Implement very basic swap interval control
-        Browser.mainLoop.currentFrameNumber = Browser.mainLoop.currentFrameNumber + 1 | 0;
-        if (Browser.mainLoop.timingMode == 1 && Browser.mainLoop.timingValue > 1 && Browser.mainLoop.currentFrameNumber % Browser.mainLoop.timingValue != 0) {
-          // Not the scheduled time to render this frame - skip.
-          Browser.mainLoop.scheduler();
-          return;
-        } else if (Browser.mainLoop.timingMode == 0) {
-          Browser.mainLoop.tickStartTime = _emscripten_get_now();
-        }
-  
-        // Signal GL rendering layer that processing of a new frame is about to start. This helps it optimize
-        // VBO double-buffering and reduce GPU stalls.
-        GL.newRenderingFrameStarted();
-  
-        if (Browser.mainLoop.method === 'timeout' && Module.ctx) {
-          warnOnce('Looks like you are rendering without using requestAnimationFrame for the main loop. You should use 0 for the frame rate in emscripten_set_main_loop in order to use requestAnimationFrame, as that can greatly improve your frame rates!');
-          Browser.mainLoop.method = ''; // just warn once per call to set main loop
-        }
-  
-        Browser.mainLoop.runIter(browserIterationFunc);
-  
-        checkStackCookie();
-  
-        // catch pauses from the main loop itself
-        if (!checkIsRunning()) return;
-  
-        // Queue new audio data. This is important to be right after the main loop invocation, so that we will immediately be able
-        // to queue the newest produced audio samples.
-        // TODO: Consider adding pre- and post- rAF callbacks so that GL.newRenderingFrameStarted() and SDL.audio.queueNewAudioData()
-        //       do not need to be hardcoded into this function, but can be more generic.
-        if (typeof SDL == 'object') SDL.audio?.queueNewAudioData?.();
-  
-        Browser.mainLoop.scheduler();
-      }
-  
-      if (!noSetTiming) {
-        if (fps && fps > 0) {
-          _emscripten_set_main_loop_timing(0, 1000.0 / fps);
-        } else {
-          // Do rAF by rendering each frame (no decimating)
-          _emscripten_set_main_loop_timing(1, 1);
-        }
-  
-        Browser.mainLoop.scheduler();
-      }
-  
-      if (simulateInfiniteLoop) {
-        throw 'unwind';
-      }
-    };
-  
   var handleException = (e) => {
       // Certain exception types we do not treat as errors since they are used for
       // internal control flow.
@@ -5807,6 +5391,428 @@ var ASM_CONSTS = {
         }
       },
   };
+  var _emscripten_set_main_loop_timing = (mode, value) => {
+      Browser.mainLoop.timingMode = mode;
+      Browser.mainLoop.timingValue = value;
+  
+      if (!Browser.mainLoop.func) {
+        err('emscripten_set_main_loop_timing: Cannot set timing mode for main loop since a main loop does not exist! Call emscripten_set_main_loop first to set one up.');
+        return 1; // Return non-zero on failure, can't set timing mode when there is no main loop.
+      }
+  
+      if (!Browser.mainLoop.running) {
+        
+        Browser.mainLoop.running = true;
+      }
+      if (mode == 0) {
+        Browser.mainLoop.scheduler = function Browser_mainLoop_scheduler_setTimeout() {
+          var timeUntilNextTick = Math.max(0, Browser.mainLoop.tickStartTime + value - _emscripten_get_now())|0;
+          setTimeout(Browser.mainLoop.runner, timeUntilNextTick); // doing this each time means that on exception, we stop
+        };
+        Browser.mainLoop.method = 'timeout';
+      } else if (mode == 1) {
+        Browser.mainLoop.scheduler = function Browser_mainLoop_scheduler_rAF() {
+          Browser.requestAnimationFrame(Browser.mainLoop.runner);
+        };
+        Browser.mainLoop.method = 'rAF';
+      } else if (mode == 2) {
+        if (typeof Browser.setImmediate == 'undefined') {
+          if (typeof setImmediate == 'undefined') {
+            // Emulate setImmediate. (note: not a complete polyfill, we don't emulate clearImmediate() to keep code size to minimum, since not needed)
+            var setImmediates = [];
+            var emscriptenMainLoopMessageId = 'setimmediate';
+            /** @param {Event} event */
+            var Browser_setImmediate_messageHandler = (event) => {
+              // When called in current thread or Worker, the main loop ID is structured slightly different to accommodate for --proxy-to-worker runtime listening to Worker events,
+              // so check for both cases.
+              if (event.data === emscriptenMainLoopMessageId || event.data.target === emscriptenMainLoopMessageId) {
+                event.stopPropagation();
+                setImmediates.shift()();
+              }
+            };
+            addEventListener("message", Browser_setImmediate_messageHandler, true);
+            Browser.setImmediate = /** @type{function(function(): ?, ...?): number} */(function Browser_emulated_setImmediate(func) {
+              setImmediates.push(func);
+              if (ENVIRONMENT_IS_WORKER) {
+                if (Module['setImmediates'] === undefined) Module['setImmediates'] = [];
+                Module['setImmediates'].push(func);
+                postMessage({target: emscriptenMainLoopMessageId}); // In --proxy-to-worker, route the message via proxyClient.js
+              } else postMessage(emscriptenMainLoopMessageId, "*"); // On the main thread, can just send the message to itself.
+            });
+          } else {
+            Browser.setImmediate = setImmediate;
+          }
+        }
+        Browser.mainLoop.scheduler = function Browser_mainLoop_scheduler_setImmediate() {
+          Browser.setImmediate(Browser.mainLoop.runner);
+        };
+        Browser.mainLoop.method = 'immediate';
+      }
+      return 0;
+    };
+  
+  var _emscripten_get_now;
+      // Modern environment where performance.now() is supported:
+      // N.B. a shorter form "_emscripten_get_now = performance.now;" is
+      // unfortunately not allowed even in current browsers (e.g. FF Nightly 75).
+      _emscripten_get_now = () => performance.now();
+  ;
+  
+  
+    /**
+     * @param {number=} arg
+     * @param {boolean=} noSetTiming
+     */
+  var setMainLoop = (browserIterationFunc, fps, simulateInfiniteLoop, arg, noSetTiming) => {
+      assert(!Browser.mainLoop.func, 'emscripten_set_main_loop: there can only be one main loop function at once: call emscripten_cancel_main_loop to cancel the previous one before setting a new one with different parameters.');
+  
+      Browser.mainLoop.func = browserIterationFunc;
+      Browser.mainLoop.arg = arg;
+  
+      // Closure compiler bug(?): Closure does not see that the assignment
+      //   var thisMainLoopId = Browser.mainLoop.currentlyRunningMainloop
+      // is a value copy of a number (even with the JSDoc @type annotation)
+      // but optimizeis the code as if the assignment was a reference assignment,
+      // which results in Browser.mainLoop.pause() not working. Hence use a
+      // workaround to make Closure believe this is a value copy that should occur:
+      // (TODO: Minimize this down to a small test case and report - was unable
+      // to reproduce in a small written test case)
+      /** @type{number} */
+      var thisMainLoopId = (() => Browser.mainLoop.currentlyRunningMainloop)();
+      function checkIsRunning() {
+        if (thisMainLoopId < Browser.mainLoop.currentlyRunningMainloop) {
+          
+          return false;
+        }
+        return true;
+      }
+  
+      // We create the loop runner here but it is not actually running until
+      // _emscripten_set_main_loop_timing is called (which might happen a
+      // later time).  This member signifies that the current runner has not
+      // yet been started so that we can call runtimeKeepalivePush when it
+      // gets it timing set for the first time.
+      Browser.mainLoop.running = false;
+      Browser.mainLoop.runner = function Browser_mainLoop_runner() {
+        if (ABORT) return;
+        if (Browser.mainLoop.queue.length > 0) {
+          var start = Date.now();
+          var blocker = Browser.mainLoop.queue.shift();
+          blocker.func(blocker.arg);
+          if (Browser.mainLoop.remainingBlockers) {
+            var remaining = Browser.mainLoop.remainingBlockers;
+            var next = remaining%1 == 0 ? remaining-1 : Math.floor(remaining);
+            if (blocker.counted) {
+              Browser.mainLoop.remainingBlockers = next;
+            } else {
+              // not counted, but move the progress along a tiny bit
+              next = next + 0.5; // do not steal all the next one's progress
+              Browser.mainLoop.remainingBlockers = (8*remaining + next)/9;
+            }
+          }
+          Browser.mainLoop.updateStatus();
+  
+          // catches pause/resume main loop from blocker execution
+          if (!checkIsRunning()) return;
+  
+          setTimeout(Browser.mainLoop.runner, 0);
+          return;
+        }
+  
+        // catch pauses from non-main loop sources
+        if (!checkIsRunning()) return;
+  
+        // Implement very basic swap interval control
+        Browser.mainLoop.currentFrameNumber = Browser.mainLoop.currentFrameNumber + 1 | 0;
+        if (Browser.mainLoop.timingMode == 1 && Browser.mainLoop.timingValue > 1 && Browser.mainLoop.currentFrameNumber % Browser.mainLoop.timingValue != 0) {
+          // Not the scheduled time to render this frame - skip.
+          Browser.mainLoop.scheduler();
+          return;
+        } else if (Browser.mainLoop.timingMode == 0) {
+          Browser.mainLoop.tickStartTime = _emscripten_get_now();
+        }
+  
+        // Signal GL rendering layer that processing of a new frame is about to start. This helps it optimize
+        // VBO double-buffering and reduce GPU stalls.
+        GL.newRenderingFrameStarted();
+  
+        if (Browser.mainLoop.method === 'timeout' && Module.ctx) {
+          warnOnce('Looks like you are rendering without using requestAnimationFrame for the main loop. You should use 0 for the frame rate in emscripten_set_main_loop in order to use requestAnimationFrame, as that can greatly improve your frame rates!');
+          Browser.mainLoop.method = ''; // just warn once per call to set main loop
+        }
+  
+        Browser.mainLoop.runIter(browserIterationFunc);
+  
+        checkStackCookie();
+  
+        // catch pauses from the main loop itself
+        if (!checkIsRunning()) return;
+  
+        // Queue new audio data. This is important to be right after the main loop invocation, so that we will immediately be able
+        // to queue the newest produced audio samples.
+        // TODO: Consider adding pre- and post- rAF callbacks so that GL.newRenderingFrameStarted() and SDL.audio.queueNewAudioData()
+        //       do not need to be hardcoded into this function, but can be more generic.
+        if (typeof SDL == 'object') SDL.audio?.queueNewAudioData?.();
+  
+        Browser.mainLoop.scheduler();
+      }
+  
+      if (!noSetTiming) {
+        if (fps && fps > 0) {
+          _emscripten_set_main_loop_timing(0, 1000.0 / fps);
+        } else {
+          // Do rAF by rendering each frame (no decimating)
+          _emscripten_set_main_loop_timing(1, 1);
+        }
+  
+        Browser.mainLoop.scheduler();
+      }
+  
+      if (simulateInfiniteLoop) {
+        throw 'unwind';
+      }
+    };
+  
+  var _emscripten_set_main_loop = (func, fps, simulateInfiniteLoop) => {
+      var browserIterationFunc = (() => dynCall_v.call(null, func));
+      setMainLoop(browserIterationFunc, fps, simulateInfiniteLoop);
+    };
+
+  
+  
+  
+  var fillMouseEventData = (eventStruct, e, target) => {
+      assert(eventStruct % 4 == 0);
+      HEAPF64[((eventStruct)>>3)] = e.timeStamp;
+      var idx = ((eventStruct)>>2);
+      HEAP32[idx + 2] = e.screenX;
+      HEAP32[idx + 3] = e.screenY;
+      HEAP32[idx + 4] = e.clientX;
+      HEAP32[idx + 5] = e.clientY;
+      HEAP32[idx + 6] = e.ctrlKey;
+      HEAP32[idx + 7] = e.shiftKey;
+      HEAP32[idx + 8] = e.altKey;
+      HEAP32[idx + 9] = e.metaKey;
+      HEAP16[idx*2 + 20] = e.button;
+      HEAP16[idx*2 + 21] = e.buttons;
+  
+      HEAP32[idx + 11] = e["movementX"]
+        ;
+  
+      HEAP32[idx + 12] = e["movementY"]
+        ;
+  
+      var rect = getBoundingClientRect(target);
+      HEAP32[idx + 13] = e.clientX - rect.left;
+      HEAP32[idx + 14] = e.clientY - rect.top;
+  
+    };
+  
+  
+  var registerMouseEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
+      if (!JSEvents.mouseEvent) JSEvents.mouseEvent = _malloc(72);
+      target = findEventTarget(target);
+  
+      var mouseEventHandlerFunc = (e = event) => {
+        // TODO: Make this access thread safe, or this could update live while app is reading it.
+        fillMouseEventData(JSEvents.mouseEvent, e, target);
+  
+        if (((a1, a2, a3) => dynCall_iiii.apply(null, [callbackfunc, a1, a2, a3]))(eventTypeId, JSEvents.mouseEvent, userData)) e.preventDefault();
+      };
+  
+      var eventHandler = {
+        target,
+        allowsDeferredCalls: eventTypeString != 'mousemove' && eventTypeString != 'mouseenter' && eventTypeString != 'mouseleave', // Mouse move events do not allow fullscreen/pointer lock requests to be handled in them!
+        eventTypeString,
+        callbackfunc,
+        handlerFunc: mouseEventHandlerFunc,
+        useCapture
+      };
+      return JSEvents.registerOrRemoveHandler(eventHandler);
+    };
+  var _emscripten_set_mousedown_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
+      registerMouseEventCallback(target, userData, useCapture, callbackfunc, 5, "mousedown", targetThread);
+
+  var _emscripten_set_mousemove_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
+      registerMouseEventCallback(target, userData, useCapture, callbackfunc, 8, "mousemove", targetThread);
+
+  var _emscripten_set_mouseup_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
+      registerMouseEventCallback(target, userData, useCapture, callbackfunc, 6, "mouseup", targetThread);
+
+  
+  
+  var registerUiEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
+      if (!JSEvents.uiEvent) JSEvents.uiEvent = _malloc(36);
+  
+      target = findEventTarget(target);
+  
+      var uiEventHandlerFunc = (e = event) => {
+        if (e.target != target) {
+          // Never take ui events such as scroll via a 'bubbled' route, but always from the direct element that
+          // was targeted. Otherwise e.g. if app logs a message in response to a page scroll, the Emscripten log
+          // message box could cause to scroll, generating a new (bubbled) scroll message, causing a new log print,
+          // causing a new scroll, etc..
+          return;
+        }
+        var b = document.body; // Take document.body to a variable, Closure compiler does not outline access to it on its own.
+        if (!b) {
+          // During a page unload 'body' can be null, with "Cannot read property 'clientWidth' of null" being thrown
+          return;
+        }
+        var uiEvent = JSEvents.uiEvent;
+        HEAP32[((uiEvent)>>2)] = e.detail;
+        HEAP32[(((uiEvent)+(4))>>2)] = b.clientWidth;
+        HEAP32[(((uiEvent)+(8))>>2)] = b.clientHeight;
+        HEAP32[(((uiEvent)+(12))>>2)] = innerWidth;
+        HEAP32[(((uiEvent)+(16))>>2)] = innerHeight;
+        HEAP32[(((uiEvent)+(20))>>2)] = outerWidth;
+        HEAP32[(((uiEvent)+(24))>>2)] = outerHeight;
+        HEAP32[(((uiEvent)+(28))>>2)] = pageXOffset;
+        HEAP32[(((uiEvent)+(32))>>2)] = pageYOffset;
+        if (((a1, a2, a3) => dynCall_iiii.apply(null, [callbackfunc, a1, a2, a3]))(eventTypeId, uiEvent, userData)) e.preventDefault();
+      };
+  
+      var eventHandler = {
+        target,
+        eventTypeString,
+        callbackfunc,
+        handlerFunc: uiEventHandlerFunc,
+        useCapture
+      };
+      return JSEvents.registerOrRemoveHandler(eventHandler);
+    };
+  var _emscripten_set_resize_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
+      registerUiEventCallback(target, userData, useCapture, callbackfunc, 10, "resize", targetThread);
+
+  
+  
+  
+  var registerTouchEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
+      if (!JSEvents.touchEvent) JSEvents.touchEvent = _malloc(1696);
+  
+      target = findEventTarget(target);
+  
+      var touchEventHandlerFunc = (e) => {
+        assert(e);
+        var t, touches = {}, et = e.touches;
+        // To ease marshalling different kinds of touches that browser reports (all touches are listed in e.touches,
+        // only changed touches in e.changedTouches, and touches on target at a.targetTouches), mark a boolean in
+        // each Touch object so that we can later loop only once over all touches we see to marshall over to Wasm.
+  
+        for (var i = 0; i < et.length; ++i) {
+          t = et[i];
+          // Browser might recycle the generated Touch objects between each frame (Firefox on Android), so reset any
+          // changed/target states we may have set from previous frame.
+          t.isChanged = t.onTarget = 0;
+          touches[t.identifier] = t;
+        }
+        // Mark which touches are part of the changedTouches list.
+        for (var i = 0; i < e.changedTouches.length; ++i) {
+          t = e.changedTouches[i];
+          t.isChanged = 1;
+          touches[t.identifier] = t;
+        }
+        // Mark which touches are part of the targetTouches list.
+        for (var i = 0; i < e.targetTouches.length; ++i) {
+          touches[e.targetTouches[i].identifier].onTarget = 1;
+        }
+  
+        var touchEvent = JSEvents.touchEvent;
+        HEAPF64[((touchEvent)>>3)] = e.timeStamp;
+        var idx =((touchEvent)>>2);// Pre-shift the ptr to index to HEAP32 to save code size
+        HEAP32[idx + 3] = e.ctrlKey;
+        HEAP32[idx + 4] = e.shiftKey;
+        HEAP32[idx + 5] = e.altKey;
+        HEAP32[idx + 6] = e.metaKey;
+        idx += 7; // Advance to the start of the touch array.
+        var targetRect = getBoundingClientRect(target);
+        var numTouches = 0;
+        for (var i in touches) {
+          t = touches[i];
+          HEAP32[idx + 0] = t.identifier;
+          HEAP32[idx + 1] = t.screenX;
+          HEAP32[idx + 2] = t.screenY;
+          HEAP32[idx + 3] = t.clientX;
+          HEAP32[idx + 4] = t.clientY;
+          HEAP32[idx + 5] = t.pageX;
+          HEAP32[idx + 6] = t.pageY;
+          HEAP32[idx + 7] = t.isChanged;
+          HEAP32[idx + 8] = t.onTarget;
+          HEAP32[idx + 9] = t.clientX - targetRect.left;
+          HEAP32[idx + 10] = t.clientY - targetRect.top;
+  
+          idx += 13;
+  
+          if (++numTouches > 31) {
+            break;
+          }
+        }
+        HEAP32[(((touchEvent)+(8))>>2)] = numTouches;
+  
+        if (((a1, a2, a3) => dynCall_iiii.apply(null, [callbackfunc, a1, a2, a3]))(eventTypeId, touchEvent, userData)) e.preventDefault();
+      };
+  
+      var eventHandler = {
+        target,
+        allowsDeferredCalls: eventTypeString == 'touchstart' || eventTypeString == 'touchend',
+        eventTypeString,
+        callbackfunc,
+        handlerFunc: touchEventHandlerFunc,
+        useCapture
+      };
+      return JSEvents.registerOrRemoveHandler(eventHandler);
+    };
+  var _emscripten_set_touchcancel_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
+      registerTouchEventCallback(target, userData, useCapture, callbackfunc, 25, "touchcancel", targetThread);
+
+  var _emscripten_set_touchend_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
+      registerTouchEventCallback(target, userData, useCapture, callbackfunc, 23, "touchend", targetThread);
+
+  var _emscripten_set_touchmove_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
+      registerTouchEventCallback(target, userData, useCapture, callbackfunc, 24, "touchmove", targetThread);
+
+  var _emscripten_set_touchstart_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) =>
+      registerTouchEventCallback(target, userData, useCapture, callbackfunc, 22, "touchstart", targetThread);
+
+  
+  
+  
+  
+  var registerWheelEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
+      if (!JSEvents.wheelEvent) JSEvents.wheelEvent = _malloc(104);
+  
+      // The DOM Level 3 events spec event 'wheel'
+      var wheelHandlerFunc = (e = event) => {
+        var wheelEvent = JSEvents.wheelEvent;
+        fillMouseEventData(wheelEvent, e, target);
+        HEAPF64[(((wheelEvent)+(72))>>3)] = e["deltaX"];
+        HEAPF64[(((wheelEvent)+(80))>>3)] = e["deltaY"];
+        HEAPF64[(((wheelEvent)+(88))>>3)] = e["deltaZ"];
+        HEAP32[(((wheelEvent)+(96))>>2)] = e["deltaMode"];
+        if (((a1, a2, a3) => dynCall_iiii.apply(null, [callbackfunc, a1, a2, a3]))(eventTypeId, wheelEvent, userData)) e.preventDefault();
+      };
+  
+      var eventHandler = {
+        target,
+        allowsDeferredCalls: true,
+        eventTypeString,
+        callbackfunc,
+        handlerFunc: wheelHandlerFunc,
+        useCapture
+      };
+      return JSEvents.registerOrRemoveHandler(eventHandler);
+    };
+  
+  var _emscripten_set_wheel_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) => {
+      target = findEventTarget(target);
+      if (!target) return -4;
+      if (typeof target.onwheel != 'undefined') {
+        return registerWheelEventCallback(target, userData, useCapture, callbackfunc, 9, "wheel", targetThread);
+      } else {
+        return -1;
+      }
+    };
+
   
   var _emscripten_set_window_title = (title) => document.title = UTF8ToString(title);
 
@@ -7163,6 +7169,8 @@ var wasmImports = {
   /** @export */
   emscripten_set_fullscreenchange_callback_on_thread: _emscripten_set_fullscreenchange_callback_on_thread,
   /** @export */
+  emscripten_set_main_loop: _emscripten_set_main_loop,
+  /** @export */
   emscripten_set_mousedown_callback_on_thread: _emscripten_set_mousedown_callback_on_thread,
   /** @export */
   emscripten_set_mousemove_callback_on_thread: _emscripten_set_mousemove_callback_on_thread,
@@ -7269,6 +7277,7 @@ var stackRestore = createExportWrapper('stackRestore');
 var stackAlloc = createExportWrapper('stackAlloc');
 var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'])();
 var dynCall_iiii = Module['dynCall_iiii'] = createExportWrapper('dynCall_iiii');
+var dynCall_v = Module['dynCall_v'] = createExportWrapper('dynCall_v');
 var dynCall_jiji = Module['dynCall_jiji'] = createExportWrapper('dynCall_jiji');
 var dynCall_ii = Module['dynCall_ii'] = createExportWrapper('dynCall_ii');
 var dynCall_iidiiii = Module['dynCall_iidiiii'] = createExportWrapper('dynCall_iidiiii');
