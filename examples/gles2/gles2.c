@@ -156,7 +156,7 @@ int main(void) {
 		loop();
     }
 	#else
-		emscripten_set_main_loop(loop, 0, true);
+		emscripten_set_main_loop(loop, 0, 1);
 	#endif
 
     RGFW_window_close(win);
