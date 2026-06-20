@@ -23,7 +23,6 @@
 
 /*
 	#define XDL_IMPLEMENTATION - (semi-option) makes it so function definitions are included
-	#define XDL_NO_GLX - (optional) Makes it so the GLX module is not included
 	#define XDL_NO_DEALLOCATE - (optional) Disables automatic deallocation for c++, returns back to C's void** system
 */
 
@@ -55,8 +54,8 @@
 #define XDLDEF inline
 #endif
 
-XDLDEF void XDL_init(void); /* inits the X11 (and GLX) modules */
-XDLDEF void XDL_close(void); /* closes and frees the X11 (and GLX modules) */
+XDLDEF void XDL_init(void); /* inits the X11 and XRandr modules */
+XDLDEF void XDL_close(void); /* closes and frees the X11 and XRandr */
 
 /* function types */
 typedef XClassHint* (* PFN_XAllocClassHint)(void);
@@ -215,27 +214,6 @@ typedef XRRCrtcGamma* (* PFN_XRRGetCrtcGamma)(Display*,RRCrtc);
 typedef void (* PFN_XRRFreeGamma)(XRRCrtcGamma*);
 #endif
 
-#ifndef XDL_NO_GLX
-
-#include <GL/glx.h>
-
-typedef const char* (*PFN_glXQueryExtensionsString)(Display* dpy, int screen);
-typedef XVisualInfo* (*PFN_glXChooseVisual)(Display*, int, int*);
-typedef GLXContext (*PFN_glXCreateContext)(Display*, XVisualInfo*, GLXContext, Bool);
-typedef Bool (*PFN_glXMakeCurrent)(Display*, GLXDrawable, GLXContext);
-typedef GLXContext (*PFN_glXGetCurrentContext)(void);
-typedef void (*PFN_glXSwapBuffers)(Display*, GLXDrawable);
-typedef PFNGLXSWAPINTERVALEXTPROC PFN_glXSwapIntervalEXT;
-typedef __GLXextFuncPtr  (*PFN_glXGetProcAddress)(const GLubyte *procname);
-typedef PFNGLXGETVISUALFROMFBCONFIGPROC PFN_glXGetVisualFromFBConfig;
-typedef PFNGLXGETFBCONFIGATTRIBPROC PFN_glXGetFBConfigAttrib;
-typedef __GLXextFuncPtr  (*PFN_glXGetProcAddressARB)(const GLubyte *);
-typedef PFNGLXCHOOSEFBCONFIGPROC PFN_glXChooseFBConfig;
-typedef void (*PFN_glXDestroyContext)(Display *dpy, GLXContext ctx);
-typedef GLXWindow (*PFN_glXCreateWindow)(Display*,GLXFBConfig,Window,const int*);
-typedef void (*PFN_glXDestroyWindow)(Display*,GLXWindow);
-#endif
-
 /* Src vars for reciving the functions */
 PFN_XAllocClassHint XAllocClassHintSrc;
 PFN_XAllocSizeHints XAllocSizeHintsSrc;
@@ -385,24 +363,6 @@ PFN_XRRSetCrtcGamma XRRSetCrtcGammaSrc;
 PFN_XRRGetCrtcGammaSize XRRGetCrtcGammaSizeSrc;
 PFN_XRRGetCrtcGamma  XRRGetCrtcGammaSrc;
 PFN_XRRFreeGamma XRRFreeGammaSrc;
-#endif
-
-#ifndef XDL_NO_GLX
-PFN_glXChooseVisual glXChooseVisualSrc;
-PFN_glXCreateContext glXCreateContextSrc;
-PFN_glXMakeCurrent glXMakeCurrentSrc;
-PFN_glXGetCurrentContext glXGetCurrentContextSrc;
-PFN_glXSwapBuffers glXSwapBuffersSrc;
-PFN_glXSwapIntervalEXT glXSwapIntervalEXTSrc;
-PFN_glXGetProcAddress glXGetProcAddressSrc;
-PFN_glXGetVisualFromFBConfig glXGetVisualFromFBConfigSrc;
-PFN_glXGetFBConfigAttrib glXGetFBConfigAttribSrc;
-PFN_glXGetProcAddressARB glXGetProcAddressARBSrc;
-PFN_glXChooseFBConfig glXChooseFBConfigSrc;
-PFN_glXDestroyContext glXDestroyContextSrc;
-PFN_glXQueryExtensionsString glXQueryExtensionsStringSrc;
-PFN_glXCreateWindow glXCreateWindowSrc;
-PFN_glXDestroyWindow glXDestroyWindowSrc;
 #endif
 
 /* Function to source defines */
@@ -558,24 +518,6 @@ PFN_glXDestroyWindow glXDestroyWindowSrc;
 	#define XRRFreeGamma XRRFreeGammaSrc
 #endif
 
-#ifndef XDL_NO_GLX
-    #define glXChooseVisual glXChooseVisualSrc
-    #define glXCreateContext glXCreateContextSrc
-    #define glXMakeCurrent glXMakeCurrentSrc
-    #define glXGetCurrentContext glXGetCurrentContextSrc
-	#define glXSwapBuffers glXSwapBuffersSrc
-    #define glXGetProcAddress glXGetProcAddressSrc
-    #define glXGetVisualFromFBConfig glXGetVisualFromFBConfigSrc
-    #define glXGetFBConfigAttrib glXGetFBConfigAttribSrc
-    #define glXGetProcAddressARB glXGetProcAddressARBSrc
-    #define glXChooseFBConfig glXChooseFBConfigSrc
-    #define glXDestroyContext glXDestroyContextSrc
-    #define glXSwapIntervalEXT glXSwapIntervalEXTSrc
-    #define glXQueryExtensionsString glXQueryExtensionsStringSrc
-	#define glXCreateWindow glXCreateWindowSrc
-	#define glXDestroyWindow glXDestroyWindowSrc
-#endif
-
 #ifdef XDL_IMPLEMENTATION
 #include <dlfcn.h>
 
@@ -584,7 +526,7 @@ PFN_glXDestroyWindow glXDestroyWindowSrc;
 	if (ptr != NULL) memcpy(&name, &ptr, sizeof(PFN_##name));\
 }
 
-void* XDL_module[3] = {NULL, NULL, NULL};
+void* XDL_module[2] = {NULL, NULL};
 
 void XDL_init(void) {
     /* allocating memory for module data */
@@ -597,32 +539,12 @@ void XDL_init(void) {
         XDL_module[0] =  dlopen("libX11.so.6", RTLD_LAZY | RTLD_LOCAL);
     #endif
 
-#ifndef XDL_NO_GLX
-    const char* glxSonames[] = {
-#if defined(__CYGWIN__)
-        "libGL-1.so",
-#elif defined(__OpenBSD__) || defined(__NetBSD__)
-        "libGL.so",
-#else
-        "libGLX.so.0",
-        "libGL.so.1",
-        "libGL.so",
-#endif
-    };
-
-    for (int i = 0; sizeof(glxSonames) / sizeof(char*);  i++) {
-        XDL_module[1] = dlopen(glxSonames[i], RTLD_LAZY | RTLD_LOCAL);
-        if (XDL_module[1])
-            break;
-    }
-#endif
-
     #if defined(__CYGWIN__)
-        XDL_module[2] = dlopen("libXrandr-2.so", RTLD_LAZY | RTLD_LOCAL);
+        XDL_module[1] = dlopen("libXrandr-2.so", RTLD_LAZY | RTLD_LOCAL);
     #elif defined(__OpenBSD__) || defined(__NetBSD__)
-        XDL_module[2] = dlopen("libXrandr.so", RTLD_LAZY | RTLD_LOCAL);
+        XDL_module[1] = dlopen("libXrandr.so", RTLD_LAZY | RTLD_LOCAL);
     #else
-        XDL_module[2] = dlopen("libXrandr.so.2", RTLD_LAZY | RTLD_LOCAL);
+        XDL_module[1] = dlopen("libXrandr.so.2", RTLD_LAZY | RTLD_LOCAL);
     #endif
 
     /* loading the functions into the source vars */
@@ -754,45 +676,27 @@ void XDL_init(void) {
     XDL_PROC_DEF(0, XrmUniqueQuark);
 
     #ifndef XDL_NO_XRANDR
-        XDL_PROC_DEF(2, XRRGetScreenResourcesCurrent);
-        XDL_PROC_DEF(2, XRRGetCrtcInfo);
-        XDL_PROC_DEF(2, XRRGetOutputInfo);
-        XDL_PROC_DEF(2, XRRFreeCrtcInfo);
-        XDL_PROC_DEF(2, XRRGetScreenResources);
-        XDL_PROC_DEF(2, XRRFreeScreenResources);
-        XDL_PROC_DEF(2, XRRFreeOutputInfo);
-        XDL_PROC_DEF(2, XRRSetScreenConfig);
-        XDL_PROC_DEF(2, XRRSetCrtcConfig);
-        XDL_PROC_DEF(2, XRRGetScreenInfo);
-        XDL_PROC_DEF(2, XRRConfigCurrentRate);
-		XDL_PROC_DEF(2, XRRFreeScreenConfigInfo);
-		XDL_PROC_DEF(2, XRRGetOutputPrimary);
-		XDL_PROC_DEF(2, XRRAllocGamma);
-		XDL_PROC_DEF(2, XRRQueryExtension);
-		XDL_PROC_DEF(2, XRRQueryVersion);
-		XDL_PROC_DEF(2, XRRSelectInput);
-		XDL_PROC_DEF(2, XRRSetCrtcGamma);
-		XDL_PROC_DEF(2, XRRGetCrtcGammaSize);
-		XDL_PROC_DEF(2, XRRGetCrtcGamma);
-		XDL_PROC_DEF(2, XRRFreeGamma);
-    #endif
-
-    #ifndef XDL_NO_GLX
-        XDL_PROC_DEF(1, glXChooseVisual);
-        XDL_PROC_DEF(1, glXCreateContext);
-        XDL_PROC_DEF(1, glXMakeCurrent);
-        XDL_PROC_DEF(1, glXGetCurrentContext);
-		XDL_PROC_DEF(1, glXSwapBuffers);
-        XDL_PROC_DEF(1, glXSwapIntervalEXT);
-        XDL_PROC_DEF(1, glXGetProcAddress);
-        XDL_PROC_DEF(1, glXGetVisualFromFBConfig);
-        XDL_PROC_DEF(1, glXGetFBConfigAttrib);
-        XDL_PROC_DEF(1, glXGetProcAddressARB);
-        XDL_PROC_DEF(1, glXChooseFBConfig);
-        XDL_PROC_DEF(1, glXDestroyContext);
-		XDL_PROC_DEF(1, glXCreateWindow);
-		XDL_PROC_DEF(1, glXDestroyWindow);
-        XDL_PROC_DEF(1, glXQueryExtensionsString);
+        XDL_PROC_DEF(1, XRRGetScreenResourcesCurrent);
+        XDL_PROC_DEF(1, XRRGetCrtcInfo);
+        XDL_PROC_DEF(1, XRRGetOutputInfo);
+        XDL_PROC_DEF(1, XRRFreeCrtcInfo);
+        XDL_PROC_DEF(1, XRRGetScreenResources);
+        XDL_PROC_DEF(1, XRRFreeScreenResources);
+        XDL_PROC_DEF(1, XRRFreeOutputInfo);
+        XDL_PROC_DEF(1, XRRSetScreenConfig);
+        XDL_PROC_DEF(1, XRRSetCrtcConfig);
+        XDL_PROC_DEF(1, XRRGetScreenInfo);
+        XDL_PROC_DEF(1, XRRConfigCurrentRate);
+		XDL_PROC_DEF(1, XRRFreeScreenConfigInfo);
+		XDL_PROC_DEF(1, XRRGetOutputPrimary);
+		XDL_PROC_DEF(1, XRRAllocGamma);
+		XDL_PROC_DEF(1, XRRQueryExtension);
+		XDL_PROC_DEF(1, XRRQueryVersion);
+		XDL_PROC_DEF(1, XRRSelectInput);
+		XDL_PROC_DEF(1, XRRSetCrtcGamma);
+		XDL_PROC_DEF(1, XRRGetCrtcGammaSize);
+		XDL_PROC_DEF(1, XRRGetCrtcGamma);
+		XDL_PROC_DEF(1, XRRFreeGamma);
     #endif
 }
 
@@ -802,12 +706,8 @@ void XDL_close(void) {
         dlclose(XDL_module[0]);
         XDL_module[0] = NULL;
 
-        #ifndef XDL_NO_GLX
-        dlclose(XDL_module[1]);
-        #endif
-
         #ifndef XDL_NO_XRANDR
-        dlclose(XDL_module[2]);
+        dlclose(XDL_module[1]);
         #endif
     }
 }
