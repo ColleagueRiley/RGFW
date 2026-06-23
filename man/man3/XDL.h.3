@@ -1,4 +1,4 @@
-.TH "XDL.h" 3 "Sat Jun 20 2026" "RGFW" \" -*- nroff -*-
+.TH "XDL.h" 3 "Tue Jun 23 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -15,8 +15,6 @@ XDL.h
 \fC#include <X11/Xresource\&.h>\fP
 .br
 \fC#include <X11/extensions/Xrandr\&.h>\fP
-.br
-\fC#include <GL/glx\&.h>\fP
 .br
 
 .SS "Macros"
@@ -468,51 +466,6 @@ XDL.h
 .br
 .ti -1c
 .RI "#define \fBXRRFreeGamma\fP   \fBXRRFreeGammaSrc\fP"
-.br
-.ti -1c
-.RI "#define \fBglXChooseVisual\fP   \fBglXChooseVisualSrc\fP"
-.br
-.ti -1c
-.RI "#define \fBglXCreateContext\fP   \fBglXCreateContextSrc\fP"
-.br
-.ti -1c
-.RI "#define \fBglXMakeCurrent\fP   \fBglXMakeCurrentSrc\fP"
-.br
-.ti -1c
-.RI "#define \fBglXGetCurrentContext\fP   \fBglXGetCurrentContextSrc\fP"
-.br
-.ti -1c
-.RI "#define \fBglXSwapBuffers\fP   \fBglXSwapBuffersSrc\fP"
-.br
-.ti -1c
-.RI "#define \fBglXGetProcAddress\fP   \fBglXGetProcAddressSrc\fP"
-.br
-.ti -1c
-.RI "#define \fBglXGetVisualFromFBConfig\fP   \fBglXGetVisualFromFBConfigSrc\fP"
-.br
-.ti -1c
-.RI "#define \fBglXGetFBConfigAttrib\fP   \fBglXGetFBConfigAttribSrc\fP"
-.br
-.ti -1c
-.RI "#define \fBglXGetProcAddressARB\fP   \fBglXGetProcAddressARBSrc\fP"
-.br
-.ti -1c
-.RI "#define \fBglXChooseFBConfig\fP   \fBglXChooseFBConfigSrc\fP"
-.br
-.ti -1c
-.RI "#define \fBglXDestroyContext\fP   \fBglXDestroyContextSrc\fP"
-.br
-.ti -1c
-.RI "#define \fBglXSwapIntervalEXT\fP   \fBglXSwapIntervalEXTSrc\fP"
-.br
-.ti -1c
-.RI "#define \fBglXQueryExtensionsString\fP   \fBglXQueryExtensionsStringSrc\fP"
-.br
-.ti -1c
-.RI "#define \fBglXCreateWindow\fP   \fBglXCreateWindowSrc\fP"
-.br
-.ti -1c
-.RI "#define \fBglXDestroyWindow\fP   \fBglXDestroyWindowSrc\fP"
 .br
 .in -1c
 .SS "Typedefs"
@@ -971,51 +924,6 @@ XDL.h
 .ti -1c
 .RI "typedef void(* \fBPFN_XRRFreeGamma\fP) (XRRCrtcGamma *)"
 .br
-.ti -1c
-.RI "typedef const char *(* \fBPFN_glXQueryExtensionsString\fP) (Display *dpy, int screen)"
-.br
-.ti -1c
-.RI "typedef XVisualInfo *(* \fBPFN_glXChooseVisual\fP) (Display *, int, int *)"
-.br
-.ti -1c
-.RI "typedef GLXContext(* \fBPFN_glXCreateContext\fP) (Display *, XVisualInfo *, GLXContext, Bool)"
-.br
-.ti -1c
-.RI "typedef Bool(* \fBPFN_glXMakeCurrent\fP) (Display *, GLXDrawable, GLXContext)"
-.br
-.ti -1c
-.RI "typedef GLXContext(* \fBPFN_glXGetCurrentContext\fP) (void)"
-.br
-.ti -1c
-.RI "typedef void(* \fBPFN_glXSwapBuffers\fP) (Display *, GLXDrawable)"
-.br
-.ti -1c
-.RI "typedef PFNGLXSWAPINTERVALEXTPROC \fBPFN_glXSwapIntervalEXT\fP"
-.br
-.ti -1c
-.RI "typedef __GLXextFuncPtr(* \fBPFN_glXGetProcAddress\fP) (const GLubyte *procname)"
-.br
-.ti -1c
-.RI "typedef PFNGLXGETVISUALFROMFBCONFIGPROC \fBPFN_glXGetVisualFromFBConfig\fP"
-.br
-.ti -1c
-.RI "typedef PFNGLXGETFBCONFIGATTRIBPROC \fBPFN_glXGetFBConfigAttrib\fP"
-.br
-.ti -1c
-.RI "typedef __GLXextFuncPtr(* \fBPFN_glXGetProcAddressARB\fP) (const GLubyte *)"
-.br
-.ti -1c
-.RI "typedef PFNGLXCHOOSEFBCONFIGPROC \fBPFN_glXChooseFBConfig\fP"
-.br
-.ti -1c
-.RI "typedef void(* \fBPFN_glXDestroyContext\fP) (Display *dpy, GLXContext ctx)"
-.br
-.ti -1c
-.RI "typedef GLXWindow(* \fBPFN_glXCreateWindow\fP) (Display *, GLXFBConfig, Window, const int *)"
-.br
-.ti -1c
-.RI "typedef void(* \fBPFN_glXDestroyWindow\fP) (Display *, GLXWindow)"
-.br
 .in -1c
 .SS "Functions"
 
@@ -1468,84 +1376,9 @@ XDL.h
 .ti -1c
 .RI "\fBPFN_XRRFreeGamma\fP \fBXRRFreeGammaSrc\fP"
 .br
-.ti -1c
-.RI "\fBPFN_glXChooseVisual\fP \fBglXChooseVisualSrc\fP"
-.br
-.ti -1c
-.RI "\fBPFN_glXCreateContext\fP \fBglXCreateContextSrc\fP"
-.br
-.ti -1c
-.RI "\fBPFN_glXMakeCurrent\fP \fBglXMakeCurrentSrc\fP"
-.br
-.ti -1c
-.RI "\fBPFN_glXGetCurrentContext\fP \fBglXGetCurrentContextSrc\fP"
-.br
-.ti -1c
-.RI "\fBPFN_glXSwapBuffers\fP \fBglXSwapBuffersSrc\fP"
-.br
-.ti -1c
-.RI "\fBPFN_glXSwapIntervalEXT\fP \fBglXSwapIntervalEXTSrc\fP"
-.br
-.ti -1c
-.RI "\fBPFN_glXGetProcAddress\fP \fBglXGetProcAddressSrc\fP"
-.br
-.ti -1c
-.RI "\fBPFN_glXGetVisualFromFBConfig\fP \fBglXGetVisualFromFBConfigSrc\fP"
-.br
-.ti -1c
-.RI "\fBPFN_glXGetFBConfigAttrib\fP \fBglXGetFBConfigAttribSrc\fP"
-.br
-.ti -1c
-.RI "\fBPFN_glXGetProcAddressARB\fP \fBglXGetProcAddressARBSrc\fP"
-.br
-.ti -1c
-.RI "\fBPFN_glXChooseFBConfig\fP \fBglXChooseFBConfigSrc\fP"
-.br
-.ti -1c
-.RI "\fBPFN_glXDestroyContext\fP \fBglXDestroyContextSrc\fP"
-.br
-.ti -1c
-.RI "\fBPFN_glXQueryExtensionsString\fP \fBglXQueryExtensionsStringSrc\fP"
-.br
-.ti -1c
-.RI "\fBPFN_glXCreateWindow\fP \fBglXCreateWindowSrc\fP"
-.br
-.ti -1c
-.RI "\fBPFN_glXDestroyWindow\fP \fBglXDestroyWindowSrc\fP"
-.br
 .in -1c
 .SH "Macro Definition Documentation"
 .PP 
-.SS "#define glXChooseFBConfig   \fBglXChooseFBConfigSrc\fP"
-
-.SS "#define glXChooseVisual   \fBglXChooseVisualSrc\fP"
-
-.SS "#define glXCreateContext   \fBglXCreateContextSrc\fP"
-
-.SS "#define glXCreateWindow   \fBglXCreateWindowSrc\fP"
-
-.SS "#define glXDestroyContext   \fBglXDestroyContextSrc\fP"
-
-.SS "#define glXDestroyWindow   \fBglXDestroyWindowSrc\fP"
-
-.SS "#define glXGetCurrentContext   \fBglXGetCurrentContextSrc\fP"
-
-.SS "#define glXGetFBConfigAttrib   \fBglXGetFBConfigAttribSrc\fP"
-
-.SS "#define glXGetProcAddress   \fBglXGetProcAddressSrc\fP"
-
-.SS "#define glXGetProcAddressARB   \fBglXGetProcAddressARBSrc\fP"
-
-.SS "#define glXGetVisualFromFBConfig   \fBglXGetVisualFromFBConfigSrc\fP"
-
-.SS "#define glXMakeCurrent   \fBglXMakeCurrentSrc\fP"
-
-.SS "#define glXQueryExtensionsString   \fBglXQueryExtensionsStringSrc\fP"
-
-.SS "#define glXSwapBuffers   \fBglXSwapBuffersSrc\fP"
-
-.SS "#define glXSwapIntervalEXT   \fBglXSwapIntervalEXTSrc\fP"
-
 .SS "#define XAllocClassHint   \fBXAllocClassHintSrc\fP"
 
 .SS "#define XAllocSizeHints   \fBXAllocSizeHintsSrc\fP"
@@ -1846,36 +1679,6 @@ XDL.h
 
 .SH "Typedef Documentation"
 .PP 
-.SS "typedef PFNGLXCHOOSEFBCONFIGPROC \fBPFN_glXChooseFBConfig\fP"
-
-.SS "typedef XVisualInfo *(* PFN_glXChooseVisual) (Display *, int, int *)"
-
-.SS "typedef GLXContext(* PFN_glXCreateContext) (Display *, XVisualInfo *, GLXContext, Bool)"
-
-.SS "typedef GLXWindow(* PFN_glXCreateWindow) (Display *, GLXFBConfig, Window, const int *)"
-
-.SS "typedef void(* PFN_glXDestroyContext) (Display *dpy, GLXContext ctx)"
-
-.SS "typedef void(* PFN_glXDestroyWindow) (Display *, GLXWindow)"
-
-.SS "typedef GLXContext(* PFN_glXGetCurrentContext) (void)"
-
-.SS "typedef PFNGLXGETFBCONFIGATTRIBPROC \fBPFN_glXGetFBConfigAttrib\fP"
-
-.SS "typedef __GLXextFuncPtr(* PFN_glXGetProcAddress) (const GLubyte *procname)"
-
-.SS "typedef __GLXextFuncPtr(* PFN_glXGetProcAddressARB) (const GLubyte *)"
-
-.SS "typedef PFNGLXGETVISUALFROMFBCONFIGPROC \fBPFN_glXGetVisualFromFBConfig\fP"
-
-.SS "typedef Bool(* PFN_glXMakeCurrent) (Display *, GLXDrawable, GLXContext)"
-
-.SS "typedef const char *(* PFN_glXQueryExtensionsString) (Display *dpy, int screen)"
-
-.SS "typedef void(* PFN_glXSwapBuffers) (Display *, GLXDrawable)"
-
-.SS "typedef PFNGLXSWAPINTERVALEXTPROC \fBPFN_glXSwapIntervalEXT\fP"
-
 .SS "typedef XClassHint *(* PFN_XAllocClassHint) (void)"
 
 .SS "typedef XSizeHints *(* PFN_XAllocSizeHints) (void)"
@@ -2186,36 +1989,6 @@ XDL.h
 
 .SH "Variable Documentation"
 .PP 
-.SS "\fBPFN_glXChooseFBConfig\fP glXChooseFBConfigSrc"
-
-.SS "\fBPFN_glXChooseVisual\fP glXChooseVisualSrc"
-
-.SS "\fBPFN_glXCreateContext\fP glXCreateContextSrc"
-
-.SS "\fBPFN_glXCreateWindow\fP glXCreateWindowSrc"
-
-.SS "\fBPFN_glXDestroyContext\fP glXDestroyContextSrc"
-
-.SS "\fBPFN_glXDestroyWindow\fP glXDestroyWindowSrc"
-
-.SS "\fBPFN_glXGetCurrentContext\fP glXGetCurrentContextSrc"
-
-.SS "\fBPFN_glXGetFBConfigAttrib\fP glXGetFBConfigAttribSrc"
-
-.SS "\fBPFN_glXGetProcAddressARB\fP glXGetProcAddressARBSrc"
-
-.SS "\fBPFN_glXGetProcAddress\fP glXGetProcAddressSrc"
-
-.SS "\fBPFN_glXGetVisualFromFBConfig\fP glXGetVisualFromFBConfigSrc"
-
-.SS "\fBPFN_glXMakeCurrent\fP glXMakeCurrentSrc"
-
-.SS "\fBPFN_glXQueryExtensionsString\fP glXQueryExtensionsStringSrc"
-
-.SS "\fBPFN_glXSwapBuffers\fP glXSwapBuffersSrc"
-
-.SS "\fBPFN_glXSwapIntervalEXT\fP glXSwapIntervalEXTSrc"
-
 .SS "\fBPFN_XAllocClassHint\fP XAllocClassHintSrc"
 
 .SS "\fBPFN_XAllocSizeHints\fP XAllocSizeHintsSrc"

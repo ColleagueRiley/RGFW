@@ -78,8 +78,7 @@ var menudata={children:[
 {text:"File List",url:"files.html"},
 {text:"File Members",url:"globals.html",children:[
 {text:"All",url:"globals.html",children:[
-{text:"g",url:"globals.html#index_g"},
-{text:"i",url:"globals_i.html#index_i"},
+{text:"i",url:"globals.html#index_i"},
 {text:"p",url:"globals_p.html#index_p"},
 {text:"r",url:"globals_r.html#index_r"},
 {text:"u",url:"globals_u.html#index_u"},
@@ -88,14 +87,12 @@ var menudata={children:[
 {text:"r",url:"globals_func.html#index_r"},
 {text:"x",url:"globals_func_x.html#index_x"}]},
 {text:"Variables",url:"globals_vars.html",children:[
-{text:"g",url:"globals_vars.html#index_g"},
 {text:"x",url:"globals_vars.html#index_x"}]},
 {text:"Typedefs",url:"globals_type.html",children:[
 {text:"i",url:"globals_type.html#index_i"},
-{text:"p",url:"globals_type_p.html#index_p"},
-{text:"r",url:"globals_type_r.html#index_r"},
-{text:"u",url:"globals_type_u.html#index_u"}]},
+{text:"p",url:"globals_type.html#index_p"},
+{text:"r",url:"globals_type.html#index_r"},
+{text:"u",url:"globals_type.html#index_u"}]},
 {text:"Macros",url:"globals_defs.html",children:[
-{text:"g",url:"globals_defs.html#index_g"},
 {text:"r",url:"globals_defs.html#index_r"},
 {text:"x",url:"globals_defs.html#index_x"}]}]}]}]}
