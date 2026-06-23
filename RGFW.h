@@ -6374,6 +6374,7 @@ void RGFW_setXInstName(const char* name) { _RGFW->instName = name; }
 	typedef void (*RGFW_glXDestroyContextProc)(Display *dpy, GLXContext ctx);
 	typedef GLXWindow (*RGFW_glXCreateWindowProc)(Display*,GLXFBConfig,Window,const int*);
 	typedef void (*RGFW_glXDestroyWindowProc)(Display*,GLXWindow);
+	typedef int (*RGFW_glXSwapIntervalNativeProc) (int);
 
 	RGFW_glXCreateContextAttribsARBProc RGFW_glXCreateContextAttribsARB;
 	RGFW_glXQueryExtensionsStringProc RGFW_glXQueryExtensionsString;
@@ -6390,6 +6391,7 @@ void RGFW_setXInstName(const char* name) { _RGFW->instName = name; }
 	RGFW_glXDestroyContextProc RGFW_glXDestroyContext;
 	RGFW_glXCreateWindowProc RGFW_glXCreateWindow;
 	RGFW_glXDestroyWindowProc RGFW_glXDestroyWindow;
+	RGFW_glXSwapIntervalNativeProc RGFW_glXSwapIntervalNative;
 
 	RGFW_bool RGFW_loadGL(void) {
 		if (RGFW_usingWayland()) return RGFW_FALSE;
@@ -6426,7 +6428,6 @@ void RGFW_setXInstName(const char* name) { _RGFW->instName = name; }
         RGFW_PROC_DEF(glXMakeCurrent);
         RGFW_PROC_DEF(glXGetCurrentContext);
 		RGFW_PROC_DEF(glXSwapBuffers);
-        RGFW_PROC_DEF(glXSwapIntervalEXT);
         RGFW_PROC_DEF(glXGetVisualFromFBConfig);
         RGFW_PROC_DEF(glXGetFBConfigAttrib);
         RGFW_PROC_DEF(glXGetProcAddressARB);
@@ -6437,6 +6438,22 @@ void RGFW_setXInstName(const char* name) { _RGFW->instName = name; }
         RGFW_PROC_DEF(glXQueryExtensionsString);
 		RGFW_PROC_DEF(glXCreateContextAttribsARB);
 		RGFW_PROC_DEF(glXGetProcAddressARB);
+
+        RGFW_PROC_DEF(glXSwapIntervalEXT);
+		if (RGFW_glXSwapIntervalEXT == NULL) {
+			const char* array[] = {"GLX_MESA_swap_control", "GLX_SGI_swap_control"};
+
+			size_t i;
+			for (i = 0; i < sizeof(array) / sizeof(char*) && RGFW_glXSwapIntervalNative == NULL; i++) {
+				RGFW_glXSwapIntervalNative = (RGFW_glXSwapIntervalNativeProc)_RGFW->glGetProcAddress((const char*)array[i]);
+			}
+
+			if (RGFW_glXSwapIntervalNative != NULL) {
+				RGFW_debugCallback(RGFW_typeWarning, RGFW_infoOpenGL,  "Failed to load swap interval function, fallingback to the native swapinterval function");
+			} else {
+				RGFW_debugCallback(RGFW_typeWarning, RGFW_infoOpenGL,  "Failed to load swap interval function");
+			}
+		}
 		#undef RGFW_PROC_DEF
 
 		return RGFW_TRUE;
@@ -8666,35 +8683,13 @@ void RGFW_FUNC(RGFW_window_swapBuffers_OpenGL) (RGFW_window* win) { RGFW_ASSERT(
 
 void RGFW_FUNC(RGFW_window_swapInterval_OpenGL) (RGFW_window* win, i32 swapInterval) {
 	RGFW_ASSERT(win != NULL);
-	/* cached pfn to avoid calling glXGetProcAddress more than once */
-	static PFNGLXSWAPINTERVALEXTPROC pfn = NULL;
-	static int (*pfn2)(int) = NULL;
 
-	if (pfn == NULL) {
-		u8 str[] = "glXSwapIntervalEXT";
-		pfn = (PFNGLXSWAPINTERVALEXTPROC)_RGFW->glGetProcAddress((const char*)str);
-		if (pfn == NULL)  {
-			pfn = (PFNGLXSWAPINTERVALEXTPROC)1;
-			const char* array[] = {"GLX_MESA_swap_control", "GLX_SGI_swap_control"};
-
-			size_t i;
-			for (i = 0; i < sizeof(array) / sizeof(char*) && pfn2 == NULL; i++) {
-				pfn2 = (int(*)(int))_RGFW->glGetProcAddress((const char*)array[i]);
-			}
-
-			if (pfn2 != NULL) {
-				RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext,  "Failed to load swap interval function, fallingback to the native swapinterval function");
-			} else {
-				RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext,  "Failed to load swap interval function");
-			}
-		}
-	}
-
-	if (pfn != (PFNGLXSWAPINTERVALEXTPROC)1) {
-		pfn(_RGFW->display, win->src.ctx.native->window, swapInterval);
-	}
-	else if (pfn2 != NULL) {
-		pfn2(swapInterval);
+	if (RGFW_glXSwapIntervalEXT) {
+		RGFW_glXSwapIntervalEXT(_RGFW->display, win->src.ctx.native->window, swapInterval);
+	} else if (RGFW_glXSwapIntervalNative) {
+		RGFW_glXSwapIntervalNative(swapInterval);
+	} else {
+		RGFW_debugCallback(RGFW_typeWarning, RGFW_errOpenGLContext,  "Failed to load swap interval function");
 	}
 }
 #endif /* RGFW_OPENGL */
