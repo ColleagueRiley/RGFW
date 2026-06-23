@@ -3274,6 +3274,7 @@ struct RGFW_info {
         HINSTANCE instance;
 		WNDCLASSW wndClass;
 		HWND helperWindow;
+		wchar_t wideClassName[256];
     #endif
     RGFW_monitors monitors;
 
@@ -3403,7 +3404,7 @@ void RGFW_unloadGL(void) { }
 #endif
 
 #ifdef RGFW_X11
-RGFWDEF void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags flags, RGFW_window* win);
+RGFWDEF RGFW_bool RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags flags, RGFW_window* win);
 #endif
 #ifdef RGFW_MACOS
 RGFWDEF void RGFW_osx_initView(RGFW_window* win);
@@ -4060,6 +4061,21 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	RGFW_ASSERT(win != NULL);
 	if (name == NULL) name = "\0";
 
+#ifndef RGFW_OPENGL
+	if ((flags & RGFW_windowOpenGL)) {
+		RGFW_debugCallback(RGFW_typeWarning, RGFW_warningOpenGL, "cannot create an OpenGL context if RGFW is not compiled with OpenGL support via RGFW_OPENGL");
+		flags &= (RGFW_windowFlags)~RGFW_windowOpenGL;
+	}
+#endif
+#ifndef RGFW_EGL
+	if ((flags & RGFW_windowEGL)) {
+		RGFW_debugCallback(RGFW_typeWarning, RGFW_warningOpenGL, "cannot create an EGL context if RGFW is not compiled with EGL support via RGFW_EGL");
+		flags &= (RGFW_windowFlags)~RGFW_windowEGL;
+	}
+#endif
+
+
+
 	RGFW_MEMZERO(win, sizeof(RGFW_window));
 
 	if (RGFW_init() <= -1) return NULL;
@@ -4083,7 +4099,10 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	flags &= ~reservedFlags;
 
 	RGFW_window* ret = RGFW_createWindowPlatform(name, flags, win);
-	if (ret == NULL) return NULL;
+	if (ret == NULL) {
+		RGFW_debugCallback(RGFW_typeError, RGFW_errPlatform, "failed to create a window");
+		return NULL;
+	}
 
 	flags |= reservedFlags;
 
@@ -5184,9 +5203,9 @@ void RGFW_unloadGL(void) {
 	if (!_RGFW->nativeGL_handle) return;
 	#ifdef RGFW_WINDOWS
 	    FreeLibrary((HMODULE)_RGFW->nativeGL_handle);
-	#elif defined(RGFW_MACOS) || defined(RGFW_UNIX)
+	#elif defined(RGFW_UNIX)
 	    dlclose(_RGFW->nativeGL_handle);
-	#endif
+	#endif /* OSX doesn't need it's handle freed */
 
     _RGFW->nativeGL_handle = NULL;
     _RGFW->glGetProcAddress = NULL;
@@ -5531,7 +5550,9 @@ RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ct
 				RGFW_window_closePlatform(win);
 			}
 
-			RGFW_XCreateWindow(*result, "", win->internal.flags, win);
+			if (RGFW_XCreateWindow(*result, "", win->internal.flags, win) == RGFW_FALSE) {
+				return RGFW_FALSE;
+			}
 
 			if (showWindow) {
 				RGFW_window_show(win);
@@ -6691,7 +6712,7 @@ int RGFW_XErrorHandler(Display* display, XErrorEvent* ev) {
     return 0;
 }
 
-void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags flags, RGFW_window* win) {
+RGFW_bool RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags flags, RGFW_window* win) {
 	i64 event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | StructureNotifyMask | FocusChangeMask |
 						LeaveWindowMask | EnterWindowMask | ExposureMask | VisibilityChangeMask | PropertyChangeMask;
 
@@ -6713,6 +6734,8 @@ void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags 
 		0, visual.depth, InputOutput, visual.visual,
 		CWBorderPixel | CWColormap | CWEventMask, &swa);
 
+	if (win->src.window == 0) return RGFW_FALSE;
+
 	win->src.flashEnd = 0;
 
 	XFreeColors(_RGFW->display, cmap, NULL, 0, 0);
@@ -6728,7 +6751,6 @@ void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags 
 
 		win->src.ic = XCreateIC(_RGFW->im, XNInputStyle, XIMPreeditNothing | XIMStatusNothing, XNClientWindow, win->src.window, XNFocusWindow, win->src.window, XNDestroyCallback, &callback, NULL);
 	}
-
 
 	/* In your .desktop app, if you set the property
 	    StartupWMClass=RGFW that will assoicate the launcher icon
@@ -6789,6 +6811,8 @@ void RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags 
 
 	/* stupid hack to make resizing the window less bad */
 	XSetWindowBackgroundPixmap(_RGFW->display, win->src.window, None);
+
+	return RGFW_TRUE;
 }
 
 RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_windowFlags flags, RGFW_window* win) {
@@ -6799,7 +6823,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 
 	XVisualInfo visual;
 	RGFW_window_getVisual(&visual, RGFW_BOOL(win->internal.flags & RGFW_windowTransparent));
-	RGFW_XCreateWindow(visual, name, flags, win);
+	if (RGFW_XCreateWindow(visual, name, flags, win) == RGFW_FALSE) return NULL;
 	return win; /*return newly created window */
 }
 
@@ -8530,7 +8554,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 	XFree(vi);
 
 	/* use the visual to create a new window */
-	RGFW_XCreateWindow(visual, "", win->internal.flags, win);
+	if (RGFW_XCreateWindow(visual, "", win->internal.flags, win) == RGFW_FALSE) return RGFW_FALSE;
 
 	if (showWindow) {
 		RGFW_window_show(win);
@@ -11417,7 +11441,7 @@ void RGFW_window_captureMousePlatform(RGFW_window* win, RGFW_bool state) {
 int RGFW_window_createSwapChain_DirectX(RGFW_window* win, IDXGIFactory* pFactory, IUnknown* pDevice, IDXGISwapChain** swapchain) {
     RGFW_ASSERT(win && pFactory && pDevice && swapchain);
 
-    static DXGI_SWAP_CHAIN_DESC swapChainDesc;
+	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 	RGFW_MEMZERO(&swapChainDesc, sizeof(swapChainDesc));
     swapChainDesc.BufferCount = 2;
     swapChainDesc.BufferDesc.Width = win->w;
@@ -11586,12 +11610,11 @@ i32 RGFW_initPlatform(void) {
 	#endif
 
 	_RGFW->instance = GetModuleHandleW(NULL);
-	static wchar_t wide_class[256];
-	MultiByteToWideChar(CP_UTF8, 0, RGFW_className, -1, wide_class, 255);
+	MultiByteToWideChar(CP_UTF8, 0, RGFW_className, -1, _RGFW->wideClassName, 255);
 
 	RGFW_MEMZERO(&_RGFW->wndClass, sizeof(_RGFW->wndClass));
 
-	_RGFW->wndClass.lpszClassName = wide_class;
+	_RGFW->wndClass.lpszClassName = _RGFW->wideClassName;
 	_RGFW->wndClass.hInstance = _RGFW->instance;
 	_RGFW->wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
 	_RGFW->wndClass.lpfnWndProc = WndProcW;
@@ -14837,6 +14860,8 @@ RGFW_bool RGFW_writeClipboard(const RGFW_dataTransfer* data) {
 
 #ifdef RGFW_OPENGL
 RGFW_bool RGFW_loadGL(void) {
+	_RGFW->nativeGL_handle = (void*)CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
+	_RGFW->glGetProcAddress = RGFW_getProcAddress_OpenGL;
 	return RGFW_TRUE;
 }
 
@@ -14851,13 +14876,9 @@ void NSOpenGLContext_setValues(id context, const int* vals, NSOpenGLContextParam
 RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char * extension, size_t len) { RGFW_UNUSED(extension); RGFW_UNUSED(len); return RGFW_FALSE; }
 
 RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) {
-    static CFBundleRef RGFWnsglFramework = NULL;
-    if (RGFWnsglFramework == NULL)
-		RGFWnsglFramework = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
-
 	CFStringRef symbolName = CFStringCreateWithCString(kCFAllocatorDefault, procname, kCFStringEncodingASCII);
 
-	RGFW_proc symbol = (RGFW_proc)CFBundleGetFunctionPointerForName(RGFWnsglFramework, symbolName);
+	RGFW_proc symbol = (RGFW_proc)CFBundleGetFunctionPointerForName((CFBundleRef)_RGFW->nativeGL_handle, symbolName);
 
 	CFRelease(symbolName);
 
