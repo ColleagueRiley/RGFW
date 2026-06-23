@@ -4028,8 +4028,6 @@ void RGFW_deinit_ptr(RGFW_info* info) {
     if (info == NULL) return;
 
     RGFW_setInfo(info);
-	RGFW_unloadEGL();
-	RGFW_unloadGL();
 
 	for (RGFW_mouseIcon i = 0; i < RGFW_mouseIconCount; i++) {
 		if (_RGFW->standardMice[i]) RGFW_freeMouse(_RGFW->standardMice[i]);
@@ -4039,6 +4037,9 @@ void RGFW_deinit_ptr(RGFW_info* info) {
 
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoGlobal, "global context deinitialized");
 	RGFW_deinitPlatform();
+
+	RGFW_unloadEGL();
+	RGFW_unloadGL();
 
     _RGFW->root = NULL;
     _RGFW->windowCount = 0;
