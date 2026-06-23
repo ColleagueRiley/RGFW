@@ -7215,7 +7215,7 @@ void RGFW_XHandleEvent(void) {
 				break;
 			}
 #ifdef RGFW_ADVANCED_SMOOTH_RESIZE
-			if (E.xclient.message_type == WM_PROTOCOLS && (Atom)E.xclient.data.l[0] == _RGFW->_NET_WM_SYNC_REQUEST) {
+			if (E.xclient.message_type == _RGFW->WM_PROTOCOLS && (Atom)E.xclient.data.l[0] == _RGFW->_NET_WM_SYNC_REQUEST) {
 				RGFW_windowRefreshCallback(win, 0, 0, win->w, win->h);
 				win->src.counter_value = 0;
 				win->src.counter_value |= E.xclient.data.l[2];
