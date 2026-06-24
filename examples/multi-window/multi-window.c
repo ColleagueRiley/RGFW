@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+	#pragma comment(lib, "opengl32")
+#endif
+
 #define RGFW_DEBUG
 #define RGFW_OPENGL
 #define GL_SILENCE_DEPRECATION
