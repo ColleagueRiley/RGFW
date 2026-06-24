@@ -5,17 +5,16 @@
 # NO_GLES=1 -> do not compile the gles example (on by default for non-linux OSes)
 # NO_OSMESA=1 -> do not compile the osmesa example (on by default for non-linux OSes)
 
-CC ?= gcc
-AR ?= ar
+CC = gcc
+AR = ar
 
 # used for compiling RGFW.o
 CUSTOM_CFLAGS =
 # used for the examples
-CFLAGS =
-CFLAGS += -g3
+CFLAGS = -g3
 
-ifdef RGFW_C89
-	CUSTOM_CFLAGS += -std=c89 -Wno-declaration-after-statement -Wall -Wextra -Wpedantic
+ifdef (RGFW_C89)
+	CUSTOM_CFLAGS = -std=c89 -Wno-declaration-after-statement -Wall -Wextra -Wpedantic
 endif
 
 DX11_LIBS = -static -lgdi32 -ldxgi -ld3d11 -luuid -ld3dcompiler
@@ -176,7 +175,6 @@ EXAMPLE_OUTPUTS = \
 EXAMPLE_OUTPUTS_CUSTOM = \
 	examples/window_icons/icons \
 	examples/mouse_icons/icons \
-	examples/gamepad/gamepad \
 	examples/first-person-camera/camera \
 	examples/microui_demo/microui_demo \
 	examples/gl33/gl33 \
@@ -322,8 +320,6 @@ endif
 examples/window_icons/icons: examples/window_icons/icons.c RGFW.h $(WAYLAND_SOURCE)
 	$(CC) $(CFLAGS) -I. $< $(DEFINES) $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 examples/mouse_icons/icons: examples/mouse_icons/icons.c RGFW.h $(WAYLAND_SOURCE)
-	$(CC) $(CFLAGS) -I. $< $(DEFINES) $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
-examples/gamepad/gamepad: examples/gamepad/gamepad.c RGFW.h $(WAYLAND_SOURCE)
 	$(CC) $(CFLAGS) -I. $< $(DEFINES) $(LIBS) -lm $(LINK_GL1) -o $@$(EXT)
 
 examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.h $(WAYLAND_SOURCE)
