@@ -443,6 +443,13 @@ RGFW_STATIC_ASSERT(size16, sizeof(i16) == 2)
 
 #endif
 
+/*! @brief Flags for RGFW initialization */
+typedef RGFW_ENUM(u8, RGFW_initFlags) {
+	RGFW_initOpenGL = RGFW_BIT(0), /*!< Load Native OpenGL */
+	RGFW_initEGL = RGFW_BIT(1), /*!< Load EGL */
+	RGFW_initVulkan = RGFW_BIT(2), /*!< Load Vulkan */
+	RGFW_initX11 = RGFW_BIT(3), /*!< Force X11 (over Wayland) */
+};
 
 /*! @brief The stucture that contains information about the current RGFW instance */
 typedef struct RGFW_info RGFW_info;
@@ -923,7 +930,6 @@ typedef RGFW_ENUM(u32, RGFW_windowFlags) {
 	RGFW_windowCaptureMouse = RGFW_BIT(16), /*!< capture the mouse mouse mouse on window creation */
 	RGFW_windowOpenGL = RGFW_BIT(17), /*!< create an OpenGL context (you can also do this manually with RGFW_window_createContext_OpenGL) */
 	RGFW_windowEGL = RGFW_BIT(18), /*!< create an EGL context (you can also do this manually with RGFW_window_createContext_EGL) */
-	RGFW_noDeinitOnClose = RGFW_BIT(19), /*!< do not auto deinit RGFW if the window closes and this is the last window open */
 	RGFW_windowedFullscreen = RGFW_windowNoBorder | RGFW_windowMaximize,
 	RGFW_windowCaptureRawMouse = RGFW_windowCaptureMouse | RGFW_windowRawMouse
 };
@@ -989,6 +995,7 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 	RGFW_errMetal,
 	RGFW_errPlatform,
 	RGFW_errEventQueue,
+	RGFW_errNoInit,
 	RGFW_infoWindow, RGFW_infoBuffer, RGFW_infoGlobal, RGFW_infoOpenGL,
 	RGFW_warningWayland, RGFW_warningOpenGL
 };
@@ -1073,6 +1080,51 @@ RGFWDEF void* RGFW_alloc(size_t size);
 RGFWDEF void RGFW_free(void* ptr);
 
 /**!
+ * @brief Retrieves the size of the RGFW_info structure.
+ * @return The size (in bytes) of RGFW_info.
+*/
+RGFWDEF size_t RGFW_sizeofInfo(void);
+
+/**!
+ * @brief Initializes the RGFW library internally.
+ * @param className The class name for the application.
+ * @param flags The initialization flags.
+ * @return 0 on success, a negative number error error on failure.
+*/
+RGFWDEF i32 RGFW_init(const char* className, RGFW_initFlags flags);
+
+/**!
+ * @brief Deinitializes the current instance of the RGFW library.
+*/
+RGFWDEF void RGFW_deinit(void);
+
+/**!
+ * @brief Initializes RGFW using a user-provided RGFW_info structure.
+ * @param info A pointer to an RGFW_info structure to be used for initialization.
+ * @return  0 on success, a negative number error error on failure and a positive number for a warning.
+*/
+RGFWDEF i32 RGFW_init_ptr(const char* className, RGFW_initFlags flags, RGFW_info* info);
+
+/**!
+ * @brief Deinitializes a specific RGFW instance stored in the provided RGFW_info pointer.
+ * @param info A pointer to the RGFW_info structure representing the instance to deinitialize.
+*/
+RGFWDEF void RGFW_deinit_ptr(RGFW_info* info);
+
+/**!
+ * @brief Sets the global RGFW_info structure pointer.
+ * @param info A pointer to the RGFW_info structure to set.
+*/
+RGFWDEF void RGFW_setInfo(RGFW_info* info);
+
+/**!
+ * @brief Retrieves the global RGFW_info structure pointer.
+ * @return A pointer to the current RGFW_info structure.
+*/
+RGFWDEF RGFW_info* RGFW_getInfo(void);
+
+
+/**!
  * @brief Returns the size (in bytes) of the RGFW_window structure.
  * @return The size of the RGFW_window structure.
 */
@@ -1083,15 +1135,6 @@ RGFWDEF size_t RGFW_sizeofWindow(void);
  * @return The size of the RGFW_window_src structure.
 */
 RGFWDEF size_t RGFW_sizeofWindowSrc(void);
-
-/**!
- * @brief (Unix) Toggles the use of Wayland.
- * This is enabled by default when compiled with `RGFW_WAYLAND`.
- * If not using `RGFW_WAYLAND`, Wayland functions are not exposed.
- * This function can be used to force the use of XWayland.
- * @param wayland A boolean value indicating whether to use Wayland (true) or not (false).
-*/
-RGFWDEF void RGFW_useWayland(RGFW_bool wayland);
 
 /**!
  * @brief Checks if Wayland is currently being used.
@@ -1116,21 +1159,6 @@ RGFWDEF void* RGFW_getDisplay_X11(void);
  * @return A pointer to the Wayland display (`struct wl_display*`), or NULL if the platform is not in use.
 */
 RGFWDEF struct wl_display* RGFW_getDisplay_Wayland(void);
-
-/**!
- * @brief Sets the class name for X11 and WinAPI windows.
- * Windows with the same class name will be grouped by the window manager.
- * By default, the class name matches the root window’s name.
- * @param name The class name to assign.
-*/
-RGFWDEF void RGFW_setClassName(const char* name);
-
-/**!
- * @brief Sets the X11 instance name.
- * By default, the window name will be used as the instance name.
- * @param name The X11 instance name to set.
-*/
-RGFWDEF void RGFW_setXInstName(const char* name);
 
 /**!
  * @brief (macOS only) Changes the current working directory to the application’s resource folder.
@@ -2519,8 +2547,9 @@ RGFWDEF RGFW_bool RGFW_extensionSupported_OpenGL(const char* extension, size_t l
 RGFWDEF RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char* extension, size_t len);
 #endif
 
-/* these are EGL specific functions, they may fallback to OpenGL */
 #ifdef RGFW_EGL
+
+/* these are EGL specific functions, they may fallback to OpenGL */
 /**!
  * @brief Creates and allocates an OpenGL/EGL context for the specified window.
  * @param win A pointer to the target RGFW_window.
@@ -2656,8 +2685,8 @@ RGFWDEF RGFW_bool RGFW_extensionSupported_EGL(const char* extension, size_t len)
  * @return RGFW_TRUE if supported, RGFW_FALSE otherwise.
 */
 RGFWDEF RGFW_bool RGFW_extensionSupportedPlatform_EGL(const char* extension, size_t len);
-#endif
 
+#endif /* RGFW_EGL */
 
 #ifdef RGFW_VULKAN
 #ifndef RGFW_NO_INCLUDE_VULKAN
@@ -2793,59 +2822,11 @@ RGFWDEF u32 RGFW_rgfwToApiKey(RGFW_key keycode);
 */
 RGFWDEF RGFW_key RGFW_physicalToMappedKey(RGFW_key keycode);
 
-/**!
- * @brief Retrieves the size of the RGFW_info structure.
- * @return The size (in bytes) of RGFW_info.
-*/
-RGFWDEF size_t RGFW_sizeofInfo(void);
-
-/**!
- * @brief Initializes the RGFW library internally.
- * @return 0 on success, a negative number error error on failure.
- * @note This is automatically called when the first window is created.
-*/
-RGFWDEF i32 RGFW_init(void);
-
-/**!
- * @brief Deinitializes the current instance of the RGFW library.
- * @note This is automatically called when the last open window is closed.
-*/
-RGFWDEF void RGFW_deinit(void);
-
-/**!
- * @brief Initializes RGFW using a user-provided RGFW_info structure.
- * @param info A pointer to an RGFW_info structure to be used for initialization.
- * @return  0 on success, a negative number error error on failure and a positive number for a warning.
-*/
-RGFWDEF i32 RGFW_init_ptr(RGFW_info* info);
-
-/**!
- * @brief Deinitializes a specific RGFW instance stored in the provided RGFW_info pointer.
- * @param info A pointer to the RGFW_info structure representing the instance to deinitialize.
-*/
-RGFWDEF void RGFW_deinit_ptr(RGFW_info* info);
-
-/**!
- * @brief Sets the global RGFW_info structure pointer.
- * @param info A pointer to the RGFW_info structure to set.
-*/
-RGFWDEF void RGFW_setInfo(RGFW_info* info);
-
-/**!
- * @brief Retrieves the global RGFW_info structure pointer.
- * @return A pointer to the current RGFW_info structure.
-*/
-RGFWDEF RGFW_info* RGFW_getInfo(void);
-
 /** @} */
 #endif /* RGFW_HEADER */
 
 #if !defined(RGFW_NATIVE_HEADER) && (defined(RGFW_NATIVE) || defined(RGFW_IMPLEMENTATION))
 #define RGFW_NATIVE_HEADER
-	#if (defined(RGFW_OPENGL) || defined(RGFW_WEGL)) && defined(_MSC_VER)
-		#pragma comment(lib, "opengl32")
-	#endif
-
 	#ifdef RGFW_EGL
 		struct RGFW_eglContext {
 			void* ctx;
@@ -3188,7 +3169,6 @@ struct RGFW_info {
         Display* display;
 		XContext context;
         Window helperWindow;
-        const char* instName;
         XErrorEvent* x11Error;
 		i32 xrandrEventBase;
 		XIM im;
@@ -3233,6 +3213,7 @@ struct RGFW_info {
 		CLIPBOARD_MANAGER,
 		XtextUriList,
 		XtextPlain;
+		const char* className;
 	#endif
     #ifdef RGFW_WAYLAND
         struct wl_display* wl_display;
@@ -3305,6 +3286,9 @@ struct RGFW_info {
 		void* EGL_handle;
 		RGFW_proc (*eglGetProcAddress)(const char*);
 	#endif
+	#ifdef RGFW_VULKAN
+		void* vulkan_handle;
+	#endif
 
 	RGFW_bool rawMouse; /* global raw mouse toggle */
 
@@ -3345,6 +3329,8 @@ RGFWDEF RGFW_bool RGFW_loadGL(void);
 RGFWDEF void RGFW_unloadGL(void);
 RGFWDEF RGFW_bool RGFW_loadEGL(void);
 RGFWDEF void RGFW_unloadEGL(void);
+RGFWDEF RGFW_bool RGFW_loadVulkan(void);
+RGFWDEF void RGFW_unloadVulkan(void);
 
 RGFWDEF void RGFW_monitors_refresh(void);
 RGFWDEF RGFW_monitorNode* RGFW_monitors_add(const RGFW_monitor* mon);
@@ -3401,6 +3387,11 @@ void RGFW_unloadEGL(void) { }
 #ifndef RGFW_OPENGL
 RGFW_bool RGFW_loadGL(void) { return RGFW_FALSE; }
 void RGFW_unloadGL(void) { }
+#endif
+
+#ifndef RGFW_VULKAN
+RGFW_bool RGFW_loadVulkan(void) { return RGFW_FALSE; }
+void RGFW_unloadVulkan(void) { }
 #endif
 
 #ifdef RGFW_X11
@@ -3486,7 +3477,7 @@ void RGFW_resetKey(void) { RGFW_MEMZERO(_RGFW->keyboard, sizeof(_RGFW->keyboard)
 
 RGFW_genericFunc RGFW_setEventCallback(RGFW_eventType type, RGFW_genericFunc func) {
 	RGFW_ASSERT(type > RGFW_eventNone && type < RGFW_eventCount);
-	if (RGFW_init() <= -1) return NULL;
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 
 	RGFW_genericFunc old = _RGFW->callbacks[type];
 	_RGFW->callbacks[type] = func;
@@ -3510,7 +3501,8 @@ void RGFW_setAllEventCallbacks(RGFW_genericFunc func, RGFW_callbacks* callbacks)
 }
 
 RGFW_debugFunc RGFW_setDebugCallback(RGFW_debugFunc func) {
-	if (RGFW_init() <= -1) return NULL;
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
+
 	RGFW_debugFunc prev = _RGFW->debugCallbackSrc;
 	_RGFW->debugCallbackSrc = func;
 	return prev;
@@ -3951,9 +3943,9 @@ RGFW_bool RGFW_window_getSizeInPixels(RGFW_window* win, i32* w, i32* h) {
 
 #ifndef RGFW_NO_STATIC_CONTEXT
 
-i32 RGFW_init(void) {
+i32 RGFW_init(const char* className, RGFW_initFlags flags) {
 	static RGFW_info _rgfwGlobal;
-	return RGFW_init_ptr(&_rgfwGlobal);
+	return RGFW_init_ptr(className, flags, &_rgfwGlobal);
 }
 
 
@@ -3963,14 +3955,14 @@ void RGFW_deinit(void) { RGFW_deinit_ptr(_RGFW); }
 
 RGFW_info* _rgfwGlobal;
 
-i32 RGFW_init(void) {
+i32 RGFW_init(const char* className, RGFW_initFlags flags) {
 	if (_rgfwGlobal != NULL) {
 		RGFW_FREE(_rgfwGlobal);
 	}
 
 	_rgfwGlobal = (RGFW_info*)RGFW_ALLOC(sizeof(RGFW_info));
 
-	return RGFW_init_ptr(&_rgfwGlobal);
+	return RGFW_init_ptr(className, flags, &_rgfwGlobal);
 }
 
 void RGFW_deinit(void) {
@@ -3983,17 +3975,23 @@ void RGFW_deinit(void) {
 
 #endif
 
-i32 RGFW_initPlatform(void);
+i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags);
 void RGFW_deinitPlatform(void);
 
-i32 RGFW_init_ptr(RGFW_info* info) {
+i32 RGFW_init_ptr(const char* className, RGFW_initFlags flags, RGFW_info* info) {
     if (info == _RGFW || info == NULL) return 1;
+
+	className = className ? className : "RGFW";
 
     RGFW_setInfo(info);
     RGFW_MEMZERO(_RGFW, sizeof(RGFW_info));
 
+	if (flags & RGFW_initOpenGL) RGFW_loadGL();
+	if (flags & RGFW_initEGL) RGFW_loadEGL();
+	if (flags & RGFW_initVulkan) RGFW_loadVulkan();
+
     RGFW_initKeycodes();
-    i32 out = RGFW_initPlatform();
+    i32 out = RGFW_initPlatform(className, flags);
 	if (out != 0) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_infoGlobal, "failed to initialize global context");
 		RGFW_deinitPlatform();
@@ -4059,6 +4057,7 @@ void RGFW_window_close(RGFW_window* win) {
 }
 
 RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, RGFW_windowFlags flags, RGFW_window* win) {
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 	RGFW_ASSERT(win != NULL);
 	if (name == NULL) name = "\0";
 
@@ -4078,8 +4077,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 
 
 	RGFW_MEMZERO(win, sizeof(RGFW_window));
-
-	if (RGFW_init() <= -1) return NULL;
 	_RGFW->windowCount++;
 
 	/* rect based the requested flags */
@@ -4198,8 +4195,6 @@ void RGFW_window_closePtr(RGFW_window* win) {
 
 	_RGFW->windowCount--;
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoWindow, "a window was freed");
-
-	if (_RGFW->windowCount == 0 && !(win->internal.flags & RGFW_noDeinitOnClose)) RGFW_deinit();
 }
 
 void RGFW_setQueueEvents(RGFW_bool queue) {  _RGFW->queueEvents = RGFW_BOOL(queue); }
@@ -4434,13 +4429,7 @@ RGFW_bool RGFW_window_isInFocus(RGFW_window* win) {
 #endif
 }
 
-const char* RGFW_className = "RGFW";
-void RGFW_setClassName(const char* name) { RGFW_className = (name != NULL) ? name : "RGFW"; }
 void RGFW_setBuildDND(RGFW_bool state) { _RGFW->dndBuild = state; }
-
-#ifndef RGFW_X11
-void RGFW_setXInstName(const char* name) { RGFW_UNUSED(name); }
-#endif
 
 RGFW_bool RGFW_window_getMouse(RGFW_window* win, i32* x, i32* y) {
 	RGFW_ASSERT(win != NULL);
@@ -4467,7 +4456,6 @@ u64 RGFW_window_getWindow_X11(RGFW_window* win) { RGFW_UNUSED(win); return 0; }
 #ifndef RGFW_WAYLAND
 struct wl_display* RGFW_getDisplay_Wayland(void) { return NULL; }
 struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { RGFW_UNUSED(win); return NULL; }
-void RGFW_useWayland(RGFW_bool wayland) { RGFW_UNUSED(wayland); }
 RGFW_bool RGFW_usingWayland(void) { return RGFW_FALSE; }
 #endif
 
@@ -4883,7 +4871,7 @@ RGFW_monitor** RGFW_getMonitors(size_t* len) {
 }
 
 RGFW_bool RGFW_getMonitorsPtr(size_t max, RGFW_monitor** monitors, size_t* len) {
-	if (RGFW_init() <= -1) return RGFW_FALSE;
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 	if (len != NULL) {
 		*len = _RGFW->monitors.count;
 	}
@@ -4907,7 +4895,7 @@ RGFW_bool RGFW_getMonitorsPtr(size_t max, RGFW_monitor** monitors, size_t* len) 
 }
 
 RGFW_monitor* RGFW_getPrimaryMonitor(void) {
-	if (RGFW_init() <= -1) return NULL;
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 	if (_RGFW->monitors.primary == NULL) {
 		_RGFW->monitors.primary = _RGFW->monitors.list.head;
 	}
@@ -5105,7 +5093,7 @@ void RGFW_resetGlobalHints_OpenGL(void) {
 }
 void RGFW_setGlobalHints_OpenGL(RGFW_glHints* hints) { RGFW_globalHints_OpenGL = hints;  }
 RGFW_glHints* RGFW_getGlobalHints_OpenGL(void) {
-	if (RGFW_init() <= -1) return NULL;
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 	return RGFW_globalHints_OpenGL;
 }
 
@@ -5288,7 +5276,7 @@ void* RGFW_eglContext_getSurface(RGFW_eglContext* ctx) { return ctx->surface; }
 struct wl_egl_window* RGFW_eglContext_wlEGLWindow(RGFW_eglContext* ctx) { return ctx->eglWindow; }
 
 RGFW_bool RGFW_loadEGL(void) {
-	if (RGFW_init() <= -1) return RGFW_FALSE;
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init) and/or set with RGFW_setInfo");
 	if (_RGFW->eglGetProcAddress != NULL) {
 		return RGFW_TRUE;
 	}
@@ -5790,6 +5778,43 @@ void RGFW_window_deleteContext_EGL(RGFW_window* win, RGFW_eglContext* ctx) {
 #include <objc/message.h>
 #endif
 
+RGFW_bool RGFW_loadVulkan(void) {
+	if (_RGFW->vulkan_handle) return RGFW_TRUE;
+
+	const char names[] = {
+		#ifdef RGFW_WINDOWS
+			"vulkan-1.dll"
+		#endif
+		#ifdef RGFW_MACOS
+			"libvulkan.1.dylib",
+		#endif
+		#ifdef RGFW_UNIX
+			"libvulkan.so.1",
+			"libvulkan.so"
+		#endif
+	};
+
+	for (size_t i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
+		if (_RGFW->vulkan_handle) break;
+		#ifdef RGFW_WINDOWS 
+		_RGFW->vulkan_handle = LoadLibraryA(names[i]);
+		#else
+		_RGFW->vulkan_handle = dlopen(names[i]);
+		#endif
+	}
+}
+
+void RGFW_unloadVulkan(void) {
+	if (!_RGFW->vulkan_handle) return;
+	#ifdef RGFW_WINDOWS
+	    FreeLibrary((HMODULE)_RGFW->vulkan_handle);
+	#elif defined(RGFW_UNIX)
+	    dlclose(_RGFW->vulkan_handle);
+	#endif /* OSX doesn't need it's handle freed */
+
+    _RGFW->vulkan_handle = NULL;
+}
+
 const char** RGFW_getRequiredInstanceExtensions_Vulkan(size_t* count) {
     static const char* arr[2] = {VK_KHR_SURFACE_EXTENSION_NAME};
     arr[1] = RGFW_VK_SURFACE;
@@ -5823,7 +5848,7 @@ VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance,
 #endif
 
 RGFW_bool RGFW_getPresentationSupport_Vulkan(VkPhysicalDevice physicalDevice, u32 queueFamilyIndex) {
-	if (RGFW_init() <= -1) return RGFW_FALSE;
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 #ifdef RGFW_X11
 
 	Visual* visual = DefaultVisual(_RGFW->display, DefaultScreen(_RGFW->display));
@@ -6036,11 +6061,11 @@ char* RGFW_strtok(char* str, const char* delimStr) {
 }
 
 #ifdef RGFW_X11
-RGFWDEF i32 RGFW_initPlatform_X11(void);
+RGFWDEF i32 RGFW_initPlatform_X11(const char* className, RGFW_initFlags flags);
 RGFWDEF void RGFW_deinitPlatform_X11(void);
 #endif
 #ifdef RGFW_WAYLAND
-RGFWDEF i32 RGFW_initPlatform_Wayland(void);
+RGFWDEF i32 RGFW_initPlatform_Wayland(const char* className, RGFW_initFlags flags);
 RGFWDEF void RGFW_deinitPlatform_Wayland(void);
 #endif
 
@@ -6177,25 +6202,29 @@ void RGFW_initKeycodesPlatform(void) {
     _RGFW->keycodes[162] = RGFW_keyWorld2; /* non-US key #2 */
 }
 
-i32 RGFW_initPlatform(void) {
+i32 RGFW_initPlatform(const char* className, RGFW_initFlags flag) {
 #ifdef RGFW_WAYLAND
-	RGFW_load_Wayland();
-	i32 ret = RGFW_initPlatform_Wayland();
+	if (!(flag & RGFW_initX11)) {
+		RGFW_load_Wayland();
+		i32 ret = RGFW_initPlatform_Wayland(className, flags);
 
-	if (ret == 0) {
-		return 0;
+		if (ret == 0) {
+			return 0;
+		} else {
+			#ifdef RGFW_X11
+				RGFW_debugCallback(RGFW_typeWarning, RGFW_warningWayland,  "Falling back to X11");
+				RGFW_useWaylandBool = RGFW_FALSE;
+			#else
+				return ret;
+				#endif
+		}
 	} else {
-		#ifdef RGFW_X11
-			RGFW_debugCallback(RGFW_typeWarning, RGFW_warningWayland,  "Falling back to X11");
-			RGFW_useWayland(0);
-		#else
-			return ret;
-		#endif
+		RGFW_useWaylandBool = RGFW_FALSE;
 	}
 #endif
 #ifdef RGFW_X11
 	RGFW_load_X11();
-	return RGFW_initPlatform_X11();
+	return RGFW_initPlatform_X11(className, flags);
 #else
 	return 0;
 #endif
@@ -6308,7 +6337,6 @@ Start of *nix defines
 #include <limits.h> /* for data limits (mainly used in drag and drop functions) */
 #include <poll.h>
 
-void RGFW_setXInstName(const char* name) { _RGFW->instName = name; }
 #if !defined(RGFW_NO_X11_CURSOR) && defined(RGFW_X11)
 	#include <X11/Xcursor/Xcursor.h>
 #endif
@@ -6395,8 +6423,8 @@ void RGFW_setXInstName(const char* name) { _RGFW->instName = name; }
 	RGFW_glXSwapIntervalNativeProc RGFW_glXSwapIntervalNative;
 
 	RGFW_bool RGFW_loadGL(void) {
+		RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 		if (RGFW_usingWayland()) return RGFW_FALSE;
-		if (RGFW_init() <= -1) return RGFW_FALSE;
 		if (_RGFW->nativeGL_handle && _RGFW->glGetProcAddress != NULL) {
 			return RGFW_TRUE;
 		}
@@ -6775,10 +6803,7 @@ RGFW_bool RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowF
 	     with your application - robrohan */
 
 	XClassHint hint;
-	hint.res_class = (char*)RGFW_className;
-
-	if (_RGFW->instName == NULL)	hint.res_name = (char*)name;
-	else 						hint.res_name = (char*)_RGFW->instName;
+	hint.res_class = (char*)_RGFW->className;
 
 	XSetClassHint(_RGFW->display, win->src.window, &hint);
 
@@ -6846,7 +6871,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 }
 
 RGFW_bool RGFW_FUNC(RGFW_getGlobalMouse) (i32* fX, i32* fY) {
-	if (RGFW_init() <= -1) return RGFW_FALSE;
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 	i32 x, y;
 	u32 z;
 	Window window1, window2;
@@ -7812,9 +7837,9 @@ RGFW_mouse* RGFW_FUNC(RGFW_createMouseStandard) (RGFW_mouseIcon mouse) {
 }
 
 RGFW_mouse* RGFW_FUNC(RGFW_createMouse) (u8* data, i32 w, i32 h, RGFW_format format) {
-    RGFW_ASSERT(data);
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
+	RGFW_ASSERT(data);
 #ifndef RGFW_NO_X11_CURSOR
-	if (RGFW_init() <= -1) return NULL;
     XcursorImage* native = XcursorImageCreate((i32)w, (i32)h);
 	native->xhot = 0;
 	native->yhot = 0;
@@ -7907,9 +7932,9 @@ void RGFW_FUNC(RGFW_window_flash) (RGFW_window* win, RGFW_flashRequest request) 
 }
 
 RGFW_bool RGFW_FUNC(RGFW_readClipboardPtr) (u8* buffer, size_t capacity, RGFW_dataTransfer* dataTransfer) {
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 	RGFW_ASSERT(dataTransfer != NULL);
 	dataTransfer->data = (char*)buffer;
-	if (RGFW_init() <= -1) return RGFW_FALSE;
 
 	if (XGetSelectionOwner(_RGFW->display, _RGFW->CLIPBOARD) == _RGFW->helperWindow) {
 		dataTransfer->length = _RGFW->unixClipboard->length;
@@ -7989,7 +8014,7 @@ i32 RGFW_XHandleClipboardSelectionHelper(void) {
 }
 
 RGFW_bool RGFW_FUNC(RGFW_writeClipboard)(const RGFW_dataTransfer* data) {
-	if (RGFW_init() <= -1) return RGFW_FALSE;
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 
     /* request ownership of the clipboard section and request to convert it, this means its our job to convert it */
 	XSetSelectionOwner(_RGFW->display, _RGFW->CLIPBOARD, _RGFW->helperWindow, CurrentTime);
@@ -8164,7 +8189,7 @@ XRRModeInfo* RGFW_XGetMode(XRRCrtcInfo* ci, XRRScreenResources* res, RRMode mode
 }
 
 void RGFW_FUNC(RGFW_pollMonitors) (void) {
-	if (RGFW_init() <= -1) return;
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 
 	Window root = XDefaultRootWindow(_RGFW->display);
 	XRRScreenResources* res = XRRGetScreenResourcesCurrent(_RGFW->display, root);
@@ -8400,7 +8425,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_setMode)(RGFW_monitor* mon, RGFW_monitorMode* m
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
-	if (RGFW_init() <= -1) return RGFW_FALSE;
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 
 	RGFW_bool output = RGFW_FALSE;
 
@@ -8665,7 +8690,7 @@ void RGFW_FUNC(RGFW_window_deleteContextPtr_OpenGL) (RGFW_window* win, RGFW_glCo
 }
 
 RGFW_bool RGFW_FUNC(RGFW_extensionSupportedPlatform_OpenGL)(const char * extension, size_t len) {
-	if (RGFW_init() <= -1) return RGFW_FALSE;
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 	const char* extensions = RGFW_glXQueryExtensionsString(_RGFW->display, XDefaultScreen(_RGFW->display));
 	return (extensions != NULL) && RGFW_extensionSupportedStr(extensions, extension, len);
 }
@@ -8695,7 +8720,7 @@ void RGFW_FUNC(RGFW_window_swapInterval_OpenGL) (RGFW_window* win, i32 swapInter
 }
 #endif /* RGFW_OPENGL */
 
-i32 RGFW_initPlatform_X11(void) {
+i32 RGFW_initPlatform_X11(const char* className, RGFW_initFlags flags) {
     #ifdef RGFW_USE_XDL
 		XDL_init();
 	#endif
@@ -8956,7 +8981,6 @@ WGPUSurface RGFW_FUNC(RGFW_window_createSurface_WebGPU) (RGFW_window* window, WG
 #include <fcntl.h>
 
 #ifndef RGFW_X11
-void RGFW_useWayland(RGFW_bool wayland) { RGFW_UNUSED(wayland); }
 RGFW_bool RGFW_usingWayland(void) { return RGFW_TRUE; }
 #endif
 
@@ -9725,7 +9749,7 @@ static int RGFW_wl_create_shm_file(off_t size) {
 	return fd;
 }
 
-i32 RGFW_initPlatform_Wayland(void) {
+i32 RGFW_initPlatform_Wayland(const char* className, RGFW_initFlags flags) {
 	_RGFW->wl_display = wl_display_connect(NULL);
 	if (_RGFW->wl_display == NULL) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errWayland,  "Failed to load Wayland display");
@@ -10077,7 +10101,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 }
 
 RGFW_bool RGFW_FUNC(RGFW_getGlobalMouse) (i32* x, i32* y) {
-	if (RGFW_init() <= -1) return RGFW_FALSE;
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 	if (x) *x = 0;
 	if (y) *y = 0;
 	return RGFW_FALSE;
@@ -10869,7 +10893,7 @@ RGFW_wglChoosePixelFormatARBProc RGFW_wglChoosePixelFormatARB;
 RGFW_wglSwapIntervalEXTProc RGFW_wglSwapIntervalEXT;
 
 RGFW_bool RGFW_loadGL(void) {
-	if (RGFW_init() <= -1) return RGFW_FALSE;
+	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 	if (_RGFW->nativeGL_handle && _RGFW->glGetProcAddress != NULL) {
 		return RGFW_TRUE;
 	}
@@ -11583,7 +11607,7 @@ void RGFW_initKeycodesPlatform(void) {
 }
 
 
-i32 RGFW_initPlatform(void) {
+i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 #ifndef RGFW_NO_DPI
 	#if (_WIN32_WINNT >= 0x0600)
 		SetProcessDPIAware();
@@ -11606,7 +11630,7 @@ i32 RGFW_initPlatform(void) {
 	#endif
 
 	_RGFW->instance = GetModuleHandleW(NULL);
-	MultiByteToWideChar(CP_UTF8, 0, RGFW_className, -1, _RGFW->wideClassName, 255);
+	MultiByteToWideChar(CP_UTF8, 0, className, -1, _RGFW->wideClassName, 255);
 
 	RGFW_MEMZERO(&_RGFW->wndClass, sizeof(_RGFW->wndClass));
 
@@ -13876,7 +13900,7 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[0x4E] = RGFW_keyPadMinus;
 }
 
-i32 RGFW_initPlatform(void) {
+i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	_RGFW->tisBundle = (void*)CFBundleGetBundleWithIdentifier(CFSTR("com.apple.HIToolbox"));
 
 	TISGetInputSourcePropertySrc = (PFN_TISGetInputSourceProperty)CFBundleGetFunctionPointerForName((CFBundleRef)_RGFW->tisBundle, CFSTR("TISGetInputSourceProperty"));
@@ -15021,7 +15045,7 @@ void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 }
 #endif
 
-void RGFW_deinitPlatform(void) {
+void RGFW_deinitPlatform(const char* className, RGFW_initFlags flags) {
 	if (_RGFW->NSApp) {
 		objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("setDelegate:"), NULL);
 
@@ -15465,7 +15489,7 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[DOM_VK_F24]  = RGFW_keyF24;
 }
 
-i32 RGFW_initPlatform(void) {
+i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	RGFW_monitorNode* node = NULL;
 	RGFW_monitor monitor;
 
@@ -16256,7 +16280,6 @@ WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance i
 */
 #if defined(RGFW_WAYLAND) && defined(RGFW_X11)
 RGFW_bool RGFW_useWaylandBool = RGFW_TRUE;
-void RGFW_useWayland(RGFW_bool wayland) { RGFW_useWaylandBool = RGFW_BOOL(wayland);  }
 RGFW_bool RGFW_usingWayland(void) { return RGFW_useWaylandBool; }
 
 void RGFW_load_X11(void) {
