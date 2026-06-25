@@ -15046,7 +15046,7 @@ void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 }
 #endif
 
-void RGFW_deinitPlatform(const char* className, RGFW_initFlags flags) {
+void RGFW_deinitPlatform(void) {
 	if (_RGFW->NSApp) {
 		objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("setDelegate:"), NULL);
 
