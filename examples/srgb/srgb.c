@@ -18,7 +18,6 @@ int main(void) {
 		hints->samples = 4;
 	RGFW_setGlobalHints_OpenGL(hints);
 
-	RGFW_setClassName("RGFW Example");
 	RGFW_window *win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowOpenGL);
     RGFW_window_setExitKey(win, RGFW_keyEscape);
 
