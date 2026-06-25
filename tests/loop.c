@@ -2,9 +2,9 @@
 #include "RGFW.h"
 
 int main(void) {
-	RGFW_init();
+	RGFW_init("loop", 0);
 	for (size_t i = 0; i < 5; i++) {
-		RGFW_window* win = RGFW_createWindow("name", 100, 100, 500, 500, (u64)RGFW_noDeinitOnClose );
+		RGFW_window* win = RGFW_createWindow("name", 100, 100, 500, 500, (u64)0);
 
 		RGFW_pollEvents();
 		#ifdef RGFW_MACOS
