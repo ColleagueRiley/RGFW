@@ -441,6 +441,22 @@ RGFW_STATIC_ASSERT(size16, sizeof(i16) == 2)
 		#define RGFW_VK_SURFACE NULL
 	#endif
 
+	#ifndef RGFW_NO_INCLUDE_VULKAN
+		#include <vulkan/vulkan.h>
+	#endif
+
+	#if defined(RGFW_X11)
+		typedef VkResult (VKAPI_PTR *RGFW_vkCreateXlibSurfaceKHRProc)(VkInstance, const VkXlibSurfaceCreateInfoKHR*, const VkAllocationCallbacks*, VkSurfaceKHR*);
+		typedef VkBool32 (VKAPI_PTR *RGFW_vkGetPhysicalDeviceXlibPresentationSupportKHRProc)(VkPhysicalDevice, uint32_t, Display*, VisualID);
+	#endif
+	#ifdef RGFW_WAYLAND
+		typedef VkResult (VKAPI_PTR *RGFW_vkCreateWaylandSurfaceKHRProc)(VkInstance, const VkWaylandSurfaceCreateInfoKHR*, const VkAllocationCallbacks*, VkSurfaceKHR*);
+		typedef VkBool32 (VKAPI_PTR *RGFW_vkGetPhysicalDeviceWaylandPresentationSupportKHRProc)(VkPhysicalDevice, uint32_t, struct wl_display*);
+	#endif
+	#ifdef RGFW_WINDOWS
+		typedef VkResult (VKAPI_PTR *RGFW_vkCreateWin32SurfaceKHRProc)(VkInstance, const VkWin32SurfaceCreateInfoKHR*, const VkAllocationCallbacks*, VkSurfaceKHR*);
+		typedef VkBool32 (VKAPI_PTR *RGFW_vkGetPhysicalDeviceWin32PresentationSupportKHRProc)(VkPhysicalDevice, uint32_t);
+	#endif
 #endif
 
 /*! @brief Flags for RGFW initialization */
@@ -1089,7 +1105,7 @@ RGFWDEF size_t RGFW_sizeofInfo(void);
  * @brief Initializes the RGFW library internally.
  * @param className The class name for the application.
  * @param flags The initialization flags.
- * @return 0 on success, a negative number error error on failure.
+ * @return  0 on success, a negative number error error on failure and a positive number for a warning.
 */
 RGFWDEF i32 RGFW_init(const char* className, RGFW_initFlags flags);
 
@@ -2689,10 +2705,6 @@ RGFWDEF RGFW_bool RGFW_extensionSupportedPlatform_EGL(const char* extension, siz
 #endif /* RGFW_EGL */
 
 #ifdef RGFW_VULKAN
-#ifndef RGFW_NO_INCLUDE_VULKAN
-	#include <vulkan/vulkan.h>
-#endif
-
 /* if you don't want to use the above macros */
 
 /**!
@@ -2718,7 +2730,7 @@ RGFWDEF VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance i
  * @param queueFamilyIndex The index of the queue family to query for presentation support.
  * @return RGFW_TRUE if presentation is supported, RGFW_FALSE otherwise.
 */
-RGFWDEF RGFW_bool RGFW_getPresentationSupport_Vulkan(VkPhysicalDevice physicalDevice, u32 queueFamilyIndex);
+RGFWDEF RGFW_bool RGFW_getPhysicalDevicePresentationSupport_Vulkan(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex);
 #endif
 
 #ifdef RGFW_DIRECTX
@@ -3290,6 +3302,20 @@ struct RGFW_info {
 	#endif
 	#ifdef RGFW_VULKAN
 		void* vulkan_handle;
+		RGFW_proc (*vkGetInstanceProcAddress)(void*, const char*);
+		#if defined(RGFW_X11)
+			RGFW_vkCreateXlibSurfaceKHRProc vkCreateXlibSurfaceKHR;
+			RGFW_vkGetPhysicalDeviceXlibPresentationSupportKHRProc vkGetPhysicalDeviceXlibPresentationSupportKHR;
+		#endif
+		#ifdef RGFW_WAYLAND
+			RGFW_vkCreateWaylandSurfaceKHRProc vkCreateWaylandSurfaceKHR;
+			RGFW_vkGetPhysicalDeviceWaylandPresentationSupportKHRProc vkGetPhysicalDeviceWaylandPresentationSupportKHR;
+		#endif
+
+		#ifdef RGFW_WINDOWS
+			RGFW_vkCreateWin32SurfaceKHRProc vkCreateWin32SurfaceKHR;
+			RGFW_vkGetPhysicalDeviceWin32PresentationSupportKHRProc vkGetPhysicalDeviceWin32PresentationSupportKHR;
+		#endif
 	#endif
 
 	RGFW_bool rawMouse; /* global raw mouse toggle */
@@ -3992,9 +4018,26 @@ i32 RGFW_init_ptr(const char* className, RGFW_initFlags flags, RGFW_info* info) 
     RGFW_setInfo(info);
     RGFW_MEMZERO(_RGFW, sizeof(RGFW_info));
 
-	if (flags & RGFW_initOpenGL) RGFW_loadGL();
-	if (flags & RGFW_initEGL) RGFW_loadEGL();
-	if (flags & RGFW_initVulkan) RGFW_loadVulkan();
+	if (flags & RGFW_initOpenGL) {
+		if (RGFW_loadGL() == RGFW_FALSE) {
+			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the OpenGL library");
+			return -1;
+		}
+	}
+
+	if (flags & RGFW_initEGL) {
+		if (RGFW_loadEGL() == RGFW_FALSE) {
+			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the EGL library");
+			return -1;
+		}
+	}
+
+	if (flags & RGFW_initVulkan) {
+		if (RGFW_loadVulkan() == RGFW_FALSE) {
+			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the Vulkan library");
+			return -1;
+		}
+	}
 
     RGFW_initKeycodes();
     i32 out = RGFW_initPlatform(className, flags);
@@ -5801,7 +5844,23 @@ RGFW_bool RGFW_loadVulkan(void) {
 		_RGFW->vulkan_handle = dlopen(names[i], RTLD_LAZY | RTLD_LOCAL);
 		#endif
 	}
+
+	#ifdef RGFW_WINDOWS
+		_RGFW->vkGetInstanceProcAddress = (RGFW_proc(*)(void*, const char*))(RGFW_proc)GetProcAddress((HMODULE)(_RGFW->vulkan_handle, "vkGetInstanceProcAddr");
+	#else
+		void* lib = dlsym(_RGFW->vulkan_handle, "vkGetInstanceProcAddr");
+		if (lib != NULL) RGFW_MEMCPY(&_RGFW->vkGetInstanceProcAddress, &lib, sizeof(_RGFW->vkGetInstanceProcAddress));
+	#endif
+
+	if (_RGFW->vkGetInstanceProcAddress == NULL) {
+		return RGFW_FALSE;
+	}
+
+
+	return RGFW_TRUE;
 }
+
+#define RGFW_LOAD_VK(func) if (_RGFW->func == NULL) _RGFW->func = (RGFW_##func##Proc)_RGFW->vkGetInstanceProcAddress(instance, #func); RGFW_ASSERT(_RGFW->func);
 
 void RGFW_unloadVulkan(void) {
 	if (!_RGFW->vulkan_handle) return;
@@ -5830,36 +5889,38 @@ VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance,
     *surface = VK_NULL_HANDLE;
 
 #ifdef RGFW_X11
-
+	RGFW_LOAD_VK(vkCreateXlibSurfaceKHR);
     VkXlibSurfaceCreateInfoKHR x11 = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, 0, 0, (Display*) _RGFW->display, (Window) win->src.window };
-    return vkCreateXlibSurfaceKHR(instance, &x11, NULL, surface);
+    return _RGFW->vkCreateXlibSurfaceKHR(instance, &x11, NULL, surface);
 #endif
 #if defined(RGFW_WAYLAND)
-
+    RGFW_LOAD_VK(vkCreateWaylandSurfaceKHR);
     VkWaylandSurfaceCreateInfoKHR wayland = { VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR, 0, 0, (struct wl_display*) _RGFW->wl_display, (struct wl_surface*) win->src.surface };
-    return vkCreateWaylandSurfaceKHR(instance, &wayland, NULL, surface);
+    return _RGFW->vkCreateWaylandSurfaceKHR(instance, &wayland, NULL, surface);
 #elif defined(RGFW_WINDOWS)
+    RGFW_LOAD_VK(vkCreateWin32SurfaceKHR);
     VkWin32SurfaceCreateInfoKHR win32 = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, 0, 0, _RGFW->instance, (HWND)win->src.window };
-
-    return vkCreateWin32SurfaceKHR(instance, &win32, NULL, surface);
+    return _RGFW->vkCreateWin32SurfaceKHR(instance, &win32, NULL, surface);
 #endif
 }
 #endif
 
-RGFW_bool RGFW_getPresentationSupport_Vulkan(VkPhysicalDevice physicalDevice, u32 queueFamilyIndex) {
+RGFW_bool RGFW_getPhysicalDevicePresentationSupport_Vulkan(VkInstance instance, VkPhysicalDevice physicalDevice, u32 queueFamilyIndex) {
 	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
-#ifdef RGFW_X11
 
+#ifdef RGFW_X11
+	RGFW_LOAD_VK(vkGetPhysicalDeviceXlibPresentationSupportKHR);
 	Visual* visual = DefaultVisual(_RGFW->display, DefaultScreen(_RGFW->display));
-    RGFW_bool out = vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIndex, _RGFW->display, XVisualIDFromVisual(visual));
+    RGFW_bool out = _RGFW->vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIndex, _RGFW->display, XVisualIDFromVisual(visual));
     return out;
 #endif
 #if defined(RGFW_WAYLAND)
-
-    RGFW_bool wlout = vkGetPhysicalDeviceWaylandPresentationSupportKHR(physicalDevice, queueFamilyIndex, _RGFW->wl_display);
+    RGFW_LOAD_VK(vkGetPhysicalDeviceWaylandPresentationSupportKHR);
+    RGFW_bool wlout = _RGFW->vkGetPhysicalDeviceWaylandPresentationSupportKHR(physicalDevice, queueFamilyIndex, _RGFW->wl_display);
     return wlout;
 #elif defined(RGFW_WINDOWS)
-	RGFW_bool out = vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, queueFamilyIndex);
+	RGFW_LOAD_VK(vkGetPhysicalDeviceWin32PresentationSupportKHR);
+	RGFW_bool out = _RGFW->vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, queueFamilyIndex);
 	return out;
 #elif defined(RGFW_MACOS) && !defined(RGFW_MACOS_X11)
 	RGFW_UNUSED(physicalDevice);
@@ -5867,6 +5928,9 @@ RGFW_bool RGFW_getPresentationSupport_Vulkan(VkPhysicalDevice physicalDevice, u3
     return RGFW_FALSE; /* TODO */
 #endif
 }
+
+
+#undef RGFW_LOAD_VK
 #endif /* end of RGFW_vulkan */
 
 /*
