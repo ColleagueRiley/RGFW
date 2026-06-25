@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+	#pragma comment(lib, "opengl32")
+#endif
+
 #define RGFW_DEBUG
 #define GL_SILENCE_DEPRECATION
 #define RGFW_OPENGL
@@ -256,6 +260,8 @@ static void update_viewport(int width, int height) {
 
 int main(int argc, char **argv) {
   RGFW_UNUSED(argc); RGFW_UNUSED(argv);
+  RGFW_init("microui_demo", RGFW_initOpenGL);
+
   /* init RGFW window */
   RGFW_window* window = RGFW_createWindow("", 0, 0, width, height, RGFW_windowCenter |  RGFW_windowOpenGL);
 
@@ -347,6 +353,7 @@ int main(int argc, char **argv) {
     RGFW_window_swapBuffers_OpenGL(window);
   }
 
+  RGFW_deinit();
   return 0;
 }
 

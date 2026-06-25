@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Tue Jun 23 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Thu Jun 25 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -350,6 +350,10 @@ RGFW.h
 
 .in +1c
 .ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_initFlags)"
+.br
+.RI "Flags for RGFW initialization\&. "
+.ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_format)"
 .br
 .RI "The color format for pixel data\&. "
@@ -417,6 +421,34 @@ RGFW.h
 .br
 .RI "Frees memory using the deallocator defined by RGFW_FREE at compile time\&. "
 .ti -1c
+.RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofInfo\fP (void)"
+.br
+.RI "Retrieves the size of the RGFW_info structure\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_init\fP (const char *className, RGFW_initFlags flags)"
+.br
+.RI "Initializes the RGFW library internally\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_deinit\fP (void)"
+.br
+.RI "Deinitializes the current instance of the RGFW library\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_init_ptr\fP (const char *className, RGFW_initFlags flags, \fBRGFW_info\fP *info)"
+.br
+.RI "Initializes RGFW using a user-provided RGFW_info structure\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_deinit_ptr\fP (\fBRGFW_info\fP *info)"
+.br
+.RI "Deinitializes a specific RGFW instance stored in the provided RGFW_info pointer\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP void \fBRGFW_setInfo\fP (\fBRGFW_info\fP *info)"
+.br
+.RI "Sets the global RGFW_info structure pointer\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_info\fP * \fBRGFW_getInfo\fP (void)"
+.br
+.RI "Retrieves the global RGFW_info structure pointer\&. "
+.ti -1c
 .RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofWindow\fP (void)"
 .br
 .RI "Returns the size (in bytes) of the RGFW_window structure\&. "
@@ -424,10 +456,6 @@ RGFW.h
 .RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofWindowSrc\fP (void)"
 .br
 .RI "Returns the size (in bytes) of the RGFW_window_src structure\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_useWayland\fP (\fBRGFW_bool\fP wayland)"
-.br
-.RI "(Unix) Toggles the use of Wayland\&. This is enabled by default when compiled with \fCRGFW_WAYLAND\fP\&. If not using \fCRGFW_WAYLAND\fP, Wayland functions are not exposed\&. This function can be used to force the use of XWayland\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_usingWayland\fP (void)"
 .br
@@ -444,14 +472,6 @@ RGFW.h
 .RI "\fBRGFWDEF\fP struct wl_display * \fBRGFW_getDisplay_Wayland\fP (void)"
 .br
 .RI "Retrieves the current Wayland display connection\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setClassName\fP (const char *name)"
-.br
-.RI "Sets the class name for X11 and WinAPI windows\&. Windows with the same class name will be grouped by the window manager\&. By default, the class name matches the root window’s name\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setXInstName\fP (const char *name)"
-.br
-.RI "Sets the X11 instance name\&. By default, the window name will be used as the instance name\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP void \fBRGFW_moveToMacOSResourceDir\fP (void)"
 .br
@@ -1121,34 +1141,6 @@ RGFW.h
 .RI "\fBRGFWDEF\fP RGFW_key \fBRGFW_physicalToMappedKey\fP (RGFW_key keycode)"
 .br
 .RI "Converts an physical RGFW keycode to a mapped RGFW keycode\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP size_t \fBRGFW_sizeofInfo\fP (void)"
-.br
-.RI "Retrieves the size of the RGFW_info structure\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_init\fP (void)"
-.br
-.RI "Initializes the RGFW library internally\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_deinit\fP (void)"
-.br
-.RI "Deinitializes the current instance of the RGFW library\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBi32\fP \fBRGFW_init_ptr\fP (\fBRGFW_info\fP *info)"
-.br
-.RI "Initializes RGFW using a user-provided RGFW_info structure\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_deinit_ptr\fP (\fBRGFW_info\fP *info)"
-.br
-.RI "Deinitializes a specific RGFW instance stored in the provided RGFW_info pointer\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_setInfo\fP (\fBRGFW_info\fP *info)"
-.br
-.RI "Sets the global RGFW_info structure pointer\&. "
-.ti -1c
-.RI "\fBRGFWDEF\fP \fBRGFW_info\fP * \fBRGFW_getInfo\fP (void)"
-.br
-.RI "Retrieves the global RGFW_info structure pointer\&. "
 .in -1c
 .SH "Macro Definition Documentation"
 .PP 
@@ -1545,6 +1537,21 @@ A pointer to the newly created window structure
 .RE
 .PP
 
+.SS "\fBRGFWDEF\fP void RGFW_deinit (void)"
+
+.PP
+Deinitializes the current instance of the RGFW library\&. ! 
+.SS "\fBRGFWDEF\fP void RGFW_deinit_ptr (\fBRGFW_info\fP * info)"
+
+.PP
+Deinitializes a specific RGFW instance stored in the provided RGFW_info pointer\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIinfo\fP A pointer to the RGFW_info structure representing the instance to deinitialize\&. 
+.RE
+.PP
+
 .SS "typedef RGFW_ENUM (\fBi32\fP, RGFW_eventWait)"
 @!brief codes for for RGFW_the code is stupid and C++ waitForEvent waitMS -> Allows the function to keep checking for events even after there are no more events if waitMS == 0, the loop will not wait for events if waitMS > 0, the loop will wait that many miliseconds after there are no more events until it returns if waitMS == -1 or waitMS == the max size of an unsigned 32-bit int, the loop will not return until it gets another event 
 .SS "typedef RGFW_ENUM (\fBu32\fP, RGFW_eventFlag)"
@@ -1593,8 +1600,6 @@ the window is hidden
 < create an OpenGL context (you can also do this manually with RGFW_window_createContext_OpenGL)
 .PP
 < create an EGL context (you can also do this manually with RGFW_window_createContext_EGL)
-.PP
-< do not auto deinit RGFW if the window closes and this is the last window open
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_dataTransferType)"
 types of transfered data (clipboard, dnd) < plain text string
 .PP
@@ -1697,6 +1702,16 @@ The color format for pixel data\&. < 8-bit RGB (3 channels)
 
 .PP
 the types of icon to set 
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_initFlags)"
+
+.PP
+Flags for RGFW initialization\&. < Load Native OpenGL
+.PP
+< Load EGL
+.PP
+< Load Vulkan
+.PP
+< Force X11 (over Wayland)
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_key)"
 
 .PP
@@ -1795,6 +1810,17 @@ A pointer to the X11 display, or NULL if the platform is not in use\&.
 .RE
 .PP
 
+.SS "\fBRGFWDEF\fP \fBRGFW_info\fP * RGFW_getInfo (void)"
+
+.PP
+Retrieves the global RGFW_info structure pointer\&. ! 
+.PP
+\fBReturns\fP
+.RS 4
+A pointer to the current RGFW_info structure\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void * RGFW_getLayer_OSX (void)"
 
 .PP
@@ -1850,6 +1876,40 @@ Retrieves the primary monitor\&. !
 \fBReturns\fP
 .RS 4
 A pointer to the \fBRGFW_monitor\fP structure representing the primary monitor\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBi32\fP RGFW_init (const char * className, RGFW_initFlags flags)"
+
+.PP
+Initializes the RGFW library internally\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIclassName\fP The class name for the application\&. 
+.br
+\fIflags\fP The initialization flags\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+0 on success, a negative number error error on failure and a positive number for a warning\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBi32\fP RGFW_init_ptr (const char * className, RGFW_initFlags flags, \fBRGFW_info\fP * info)"
+
+.PP
+Initializes RGFW using a user-provided RGFW_info structure\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIinfo\fP A pointer to an RGFW_info structure to be used for initialization\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+0 on success, a negative number error error on failure and a positive number for a warning\&. 
 .RE
 .PP
 
@@ -2266,17 +2326,6 @@ this is for state checking, the list is created by default if you are using the 
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP void RGFW_setClassName (const char * name)"
-
-.PP
-Sets the class name for X11 and WinAPI windows\&. Windows with the same class name will be grouped by the window manager\&. By default, the class name matches the root window’s name\&. ! 
-.PP
-\fBParameters\fP
-.RS 4
-\fIname\fP The class name to assign\&. 
-.RE
-.PP
-
 .SS "\fBRGFWDEF\fP void RGFW_setDualEventCallback (RGFW_eventType type, \fBRGFW_genericFunc\fP func, \fBRGFW_genericFunc\fP * first, \fBRGFW_genericFunc\fP * second)"
 
 .PP
@@ -2310,6 +2359,17 @@ The previously set callback function, if any\&.
 .RE
 .PP
 
+.SS "\fBRGFWDEF\fP void RGFW_setInfo (\fBRGFW_info\fP * info)"
+
+.PP
+Sets the global RGFW_info structure pointer\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIinfo\fP A pointer to the RGFW_info structure to set\&. 
+.RE
+.PP
+
 .SS "\fBRGFWDEF\fP void RGFW_setQueueEvents (\fBRGFW_bool\fP queue)"
 
 .PP
@@ -2332,14 +2392,14 @@ set (enable or disable) raw mouse mode globally !
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP void RGFW_setXInstName (const char * name)"
+.SS "\fBRGFWDEF\fP size_t RGFW_sizeofInfo (void)"
 
 .PP
-Sets the X11 instance name\&. By default, the window name will be used as the instance name\&. ! 
+Retrieves the size of the RGFW_info structure\&. ! 
 .PP
-\fBParameters\fP
+\fBReturns\fP
 .RS 4
-\fIname\fP The X11 instance name to set\&. 
+The size (in bytes) of RGFW_info\&. 
 .RE
 .PP
 
@@ -2439,17 +2499,6 @@ set the function/callback used for converting surface data between formats !
 \fIsurface\fP a pointer to the surface 
 .br
 \fIa\fP function pointer for the function to use [if NULL the default function is used] 
-.RE
-.PP
-
-.SS "\fBRGFWDEF\fP void RGFW_useWayland (\fBRGFW_bool\fP wayland)"
-
-.PP
-(Unix) Toggles the use of Wayland\&. This is enabled by default when compiled with \fCRGFW_WAYLAND\fP\&. If not using \fCRGFW_WAYLAND\fP, Wayland functions are not exposed\&. This function can be used to force the use of XWayland\&. ! 
-.PP
-\fBParameters\fP
-.RS 4
-\fIwayland\fP A boolean value indicating whether to use Wayland (true) or not (false)\&. 
 .RE
 .PP
 

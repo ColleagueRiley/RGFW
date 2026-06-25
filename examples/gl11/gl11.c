@@ -1,5 +1,9 @@
 #include <stdio.h>
 
+#ifdef _MSC_VER
+	#pragma comment(lib, "opengl32")
+#endif
+
 #define GL_SILENCE_DEPRECATION
 #define RGFW_OPENGL
 #define RGFW_DEBUG
@@ -13,7 +17,8 @@
 #endif
 
 int main(void) {
-	RGFW_setClassName("RGFW Example");
+	RGFW_init("RGFW Example", RGFW_initOpenGL);
+
 	RGFW_window *win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowOpenGL);
     RGFW_window_setExitKey(win, RGFW_keyEscape);
 
@@ -23,7 +28,7 @@ int main(void) {
 		RGFW_pollEvents();
 
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glBegin(GL_TRIANGLES);
 			glColor3f(1.0f, 0.0f, 0.0f); glVertex2f(-0.6f, -0.75f);
@@ -36,6 +41,8 @@ int main(void) {
 	}
 
 	RGFW_window_close(win);
+	
+	RGFW_deinit();
 	return 0;
 }
 

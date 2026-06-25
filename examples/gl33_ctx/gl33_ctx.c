@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+	#pragma comment(lib, "opengl32")
+#endif
+
 #define GL_SILENCE_DEPRECATION
 #define RGFW_OPENGL
 #define RGFW_DEBUG
@@ -13,6 +17,8 @@
 #endif
 
 int main(void) {
+    RGFW_init("gl33", RGFW_initOpenGL);
+
     RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
     hints->major = 3;
     hints->minor = 3;
@@ -39,6 +45,7 @@ int main(void) {
     }
 
     RGFW_window_close(win);
+    RGFW_deinit();
     return 0;
 }
 

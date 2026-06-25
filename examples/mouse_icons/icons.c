@@ -6,6 +6,8 @@
 #include "stb_image.h"
 
 int main(void) {
+    RGFW_init("RGFW icons", 0);
+
     int w, h, c;
     RGFW_window* win = RGFW_createWindow("RGFW icons", 0, 0, 600, 400, RGFW_windowCenter | RGFW_windowNoResize);
     RGFW_window_setExitKey(win, RGFW_keyEscape);
@@ -31,5 +33,6 @@ int main(void) {
     RGFW_freeMouse(mouse);
     RGFW_window_close(win);
     stbi_image_free(icon);
+    RGFW_deinit();
     return 0;
 }

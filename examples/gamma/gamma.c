@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+	#pragma comment(lib, "opengl32")
+#endif
+
 #define RGFW_DEBUG
 #define GL_SILENCE_DEPRECATION
 #define RGFW_OPENGL
@@ -13,6 +17,8 @@
 #endif
 
 int main(void) {
+    RGFW_init("gamma", RGFW_initOpenGL);
+
 	RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowCenter | RGFW_windowOpenGL);
 	RGFW_window_setExitKey(win, RGFW_keyEscape);
 
@@ -38,6 +44,7 @@ int main(void) {
 
 	RGFW_monitor_setGamma(mon, 1.0);
     RGFW_window_close(win);
+    RGFW_deinit();
     return 0;
 }
 
