@@ -2705,7 +2705,13 @@ RGFWDEF RGFW_bool RGFW_extensionSupportedPlatform_EGL(const char* extension, siz
 #endif /* RGFW_EGL */
 
 #ifdef RGFW_VULKAN
-/* if you don't want to use the above macros */
+/**!
+ * @brief Retrieves the address of a Vulkan procedure using a Vulkan instance.
+ * @param the Vulkan Instance to use
+ * @param procname The name of the Vulkan function to look up.
+ * @return A pointer to the function, or NULL if not found.
+*/
+RGFWDEF RGFW_proc RGFW_getInstanceProcAddress_Vulkan(VkInstance instance, const char* procname);
 
 /**!
  * @brief Retrieves the Vulkan instance extensions required by RGFW.
@@ -5871,6 +5877,10 @@ void RGFW_unloadVulkan(void) {
 	#endif /* OSX doesn't need it's handle freed */
 
     _RGFW->vulkan_handle = NULL;
+}
+
+RGFW_proc RGFW_getInstanceProcAddress_Vulkan(VkInstance instance, const char* procname) {
+	return _RGFW->vkGetInstanceProcAddress(instance, procname);
 }
 
 const char** RGFW_getRequiredInstanceExtensions_Vulkan(size_t* count) {
