@@ -3166,6 +3166,7 @@ struct RGFW_info {
 	RGFW_dataDropNode* dndCur;
 
 	#ifdef RGFW_X11
+		const char* className;
         Display* display;
 		XContext context;
         Window helperWindow;
@@ -3213,7 +3214,6 @@ struct RGFW_info {
 		CLIPBOARD_MANAGER,
 		XtextUriList,
 		XtextPlain;
-		const char* className;
 	#endif
     #ifdef RGFW_WAYLAND
         struct wl_display* wl_display;
@@ -3307,6 +3307,10 @@ struct RGFW_info {
 
 #ifndef RGFW_NO_MATH
 #include <math.h>
+#endif
+
+#if defined(RGFW_MACOS) || defined(RGFW_UNIX)
+	#include <dlfcn.h>
 #endif
 
 /* global private API */
@@ -5050,10 +5054,6 @@ u32 RGFW_decodeUTF8(const char* string, size_t* starting_index) {
 
 #if defined(RGFW_OPENGL) || defined(RGFW_EGL)
 
-#if defined(RGFW_MACOS) || defined(RGFW_UNIX)
-	#include <dlfcn.h>
-#endif
-
 /* EGL, OpenGL */
 #define RGFW_DEFAULT_GL_HINTS { \
 	/* Stencil         */ 0, \
@@ -5780,10 +5780,9 @@ void RGFW_window_deleteContext_EGL(RGFW_window* win, RGFW_eglContext* ctx) {
 
 RGFW_bool RGFW_loadVulkan(void) {
 	if (_RGFW->vulkan_handle) return RGFW_TRUE;
-
-	const char names[] = {
+	const char* names[] = {
 		#ifdef RGFW_WINDOWS
-			"vulkan-1.dll"
+			"vulkan-1.dll",
 		#endif
 		#ifdef RGFW_MACOS
 			"libvulkan.1.dylib",
@@ -5796,10 +5795,10 @@ RGFW_bool RGFW_loadVulkan(void) {
 
 	for (size_t i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
 		if (_RGFW->vulkan_handle) break;
-		#ifdef RGFW_WINDOWS 
+		#ifdef RGFW_WINDOWS
 		_RGFW->vulkan_handle = LoadLibraryA(names[i]);
 		#else
-		_RGFW->vulkan_handle = dlopen(names[i]);
+		_RGFW->vulkan_handle = dlopen(names[i], RTLD_LAZY | RTLD_LOCAL);
 		#endif
 	}
 }
@@ -6804,8 +6803,8 @@ RGFW_bool RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowF
 	     with your application - robrohan */
 
 	XClassHint hint;
+	hint.res_name = (char*)(name ? name : "RGFW");
 	hint.res_class = (char*)_RGFW->className;
-
 	XSetClassHint(_RGFW->display, win->src.window, &hint);
 
 	XWMHints hints;
