@@ -3250,6 +3250,8 @@ struct RGFW_info {
 		u32 last_key;  /* wayland key repeat data */
 		i32 wl_repeat_info_rate, wl_repeat_info_delay;
 		u32 last_key_time;
+
+		RGFW_bool useWaylandBool;
     #endif
     #ifdef RGFW_WINDOWS
         HINSTANCE instance;
@@ -5407,7 +5409,6 @@ void RGFW_unloadEGL(void) {
 }
 
 RGFW_bool RGFW_window_createContextPtr_EGL(RGFW_window* win, RGFW_eglContext* ctx, RGFW_glHints* hints) {
-	if (RGFW_loadEGL() == RGFW_FALSE) return RGFW_FALSE;
 	win->src.ctx.egl = ctx;
 	win->src.gfxType = RGFW_gfxEGL;
 
@@ -5724,7 +5725,6 @@ RGFW_proc RGFW_getProcAddress_EGL(const char* procname) {
 }
 
 RGFW_bool RGFW_extensionSupportedPlatform_EGL(const char* extension, size_t len) {
-	if (RGFW_loadEGL() == RGFW_FALSE) return RGFW_FALSE;
 	const char* extensions = RGFW_eglQueryString(_RGFW->EGL_display, EGL_EXTENSIONS);
 	return extensions != NULL && RGFW_extensionSupportedStr(extensions, extension, len);
 }
@@ -6204,7 +6204,8 @@ void RGFW_initKeycodesPlatform(void) {
 
 i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 #ifdef RGFW_WAYLAND
-	if (!(flag & RGFW_initX11)) {
+	if (!(flags & RGFW_initX11)) {
+		_RGFW->useWaylandBool = RGFW_TRUE;
 		RGFW_load_Wayland();
 		i32 ret = RGFW_initPlatform_Wayland(className, flags);
 
@@ -6213,13 +6214,13 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 		} else {
 			#ifdef RGFW_X11
 				RGFW_debugCallback(RGFW_typeWarning, RGFW_warningWayland,  "Falling back to X11");
-				RGFW_useWaylandBool = RGFW_FALSE;
+				_RGFW->useWaylandBool = RGFW_FALSE;
 			#else
 				return ret;
 				#endif
 		}
 	} else {
-		RGFW_useWaylandBool = RGFW_FALSE;
+		_RGFW->useWaylandBool = RGFW_FALSE;
 	}
 #endif
 #ifdef RGFW_X11
@@ -8483,8 +8484,6 @@ RGFW_monitor* RGFW_FUNC(RGFW_window_getMonitor) (RGFW_window* win) {
 #ifdef RGFW_OPENGL
 RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW_glContext* context, RGFW_glHints* hints) {
 	RGFW_ASSERT(_RGFW); RGFW_ASSERT(win); RGFW_ASSERT(context); RGFW_ASSERT(hints);
-
-	if (RGFW_loadGL() == RGFW_FALSE) return RGFW_FALSE;
 
 	/* for checking extensions later */
 	const char sRGBARBstr[] = "GLX_ARB_framebuffer_sRGB";
@@ -12687,8 +12686,6 @@ RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) {
 }
 
 RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx, RGFW_glHints* hints) {
-	if (RGFW_loadGL() == RGFW_FALSE) return RGFW_FALSE;
-
 	const char flushControl[] = "WGL_ARB_context_flush_control";
 	const char noError[] = "WGL_ARB_create_context_no_error";
 	const char robustness[] = "WGL_ARB_create_context_robustness";
@@ -14912,8 +14909,6 @@ RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) {
 }
 
 RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx, RGFW_glHints* hints) {
-	if (RGFW_loadGL() == RGFW_FALSE) return RGFW_FALSE;
-
 	win->src.ctx.native = ctx;
 	win->src.gfxType = RGFW_gfxNativeOpenGL;
 
@@ -16286,8 +16281,7 @@ WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance i
  * falling back to x11 if wayland fails to initalize
 */
 #if defined(RGFW_WAYLAND) && defined(RGFW_X11)
-RGFW_bool RGFW_useWaylandBool = RGFW_TRUE;
-RGFW_bool RGFW_usingWayland(void) { return RGFW_useWaylandBool; }
+RGFW_bool RGFW_usingWayland(void) { return _RGFW->useWaylandBool; }
 
 void RGFW_load_X11(void) {
 	RGFW_api.nativeFormat = RGFW_nativeFormat_X11;
