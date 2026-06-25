@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+	#pragma comment(lib, "opengl32")
+#endif
+
 #define RGFW_DEBUG
 #define RGFW_OPENGL
 #define RGFW_IMPLEMENTATION
@@ -20,6 +24,8 @@ RGFWDEF void update_camera(void);
 RGFWDEF void glPerspective(float fovY, float aspect, float zNear, float zFar);
 
 int main(void) {
+	RGFW_init("RGFW Example", RGFW_initOpenGL);
+
     RGFW_window* win = RGFW_createWindow("First person camera", 0, 0, 800, 450, RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowFocusOnShow | RGFW_windowOpenGL | RGFW_windowHideMouse);
     RGFW_window_setExitKey(win, RGFW_keyEscape);
 
@@ -160,6 +166,7 @@ int main(void) {
     glDeleteTextures(1, &texture);
 
     RGFW_window_close(win);
+    RGFW_deinit();
     return 0;
 }
 

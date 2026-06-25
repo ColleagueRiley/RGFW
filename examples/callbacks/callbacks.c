@@ -176,6 +176,8 @@ void monitorfunc(const RGFW_event* e) {
 }
 
 int main(void) {
+	RGFW_init("RGFW Example", 0);
+  
     window = RGFW_createWindow("RGFW Callbacks", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
     RGFW_window_setExitKey(window, RGFW_keyEscape);
 
@@ -209,4 +211,6 @@ int main(void) {
    }
 
     RGFW_window_close(window);
+
+   RGFW_deinit();
 }

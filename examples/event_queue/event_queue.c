@@ -11,6 +11,8 @@
 
 
 int main(void) {
+	RGFW_init("RGFW Example", 0);
+
     RGFW_window* win = RGFW_createWindow("RGFW Events", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowAllowDND);
     RGFW_event event;
     RGFW_window_setExitKey(win, RGFW_keyEscape);
@@ -94,5 +96,6 @@ int main(void) {
         }
     }
     RGFW_window_close(win);
+    RGFW_deinit();
 }
 

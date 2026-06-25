@@ -125,7 +125,7 @@ int main(void) {
 	SetConsoleOutputCP(CP_UTF8);
 #endif
 
-	RGFW_setClassName("RGFW Example");
+	RGFW_init("RGFW Example", RGFW_initOpenGL);
 
     RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
 
@@ -168,6 +168,8 @@ int main(void) {
 	RGFW_window_close(win1);
 	RGFW_window_close(win2);
 	RGFW_window_close(win3);
+
+	RGFW_deinit();
 	return 0;
 }
 

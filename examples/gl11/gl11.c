@@ -17,7 +17,8 @@
 #endif
 
 int main(void) {
-	RGFW_setClassName("RGFW Example");
+	RGFW_init("RGFW Example", RGFW_initOpenGL);
+
 	RGFW_window *win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowOpenGL);
     RGFW_window_setExitKey(win, RGFW_keyEscape);
 
@@ -40,6 +41,8 @@ int main(void) {
 	}
 
 	RGFW_window_close(win);
+	
+	RGFW_deinit();
 	return 0;
 }
 
