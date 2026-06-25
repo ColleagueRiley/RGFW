@@ -43,6 +43,8 @@ void main()
 );
 
 int main(void) {
+    RGFW_init("LearnOpenGL", RGFW_initOpenGL);
+
     RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
     hints->major = 3;
     hints->minor = 3;

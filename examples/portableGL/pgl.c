@@ -26,6 +26,7 @@ void uniform_color_fs(float* fs_input, Shader_Builtins* builtins, void* uniforms
 }
 
 int main() {
+	RGFW_init("PortableGL Demo", 0);
 	RGFW_window* win = RGFW_createWindow("name", 500, 500, 500, 500, (u64)RGFW_windowCenter | RGFW_windowNoResize);
     RGFW_window_setExitKey(win, RGFW_keyEscape);
 
@@ -77,4 +78,5 @@ int main() {
 	RGFW_FREE(buffer);
 
 	RGFW_window_close(win);
+	RGFW_deinit();
 }

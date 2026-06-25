@@ -48,6 +48,8 @@
 
 int main(void)
 {
+    RGFW_init("RGFW Metal example", 0);
+
 	id<MTLDevice> device = MTLCreateSystemDefaultDevice();
 	if (!device) {
         printf("failed to create metal device");
@@ -146,6 +148,7 @@ int main(void)
 
 
     RGFW_window_close(window);
+    RGFW_deinit();
 }
 
 

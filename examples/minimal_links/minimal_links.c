@@ -8,6 +8,7 @@
 #include "RGFW.h"
 
 int main(void) {
+    RGFW_init("minimal_links", 0);
     RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, (u16)(RGFW_windowCenter | RGFW_windowNoResize));
     RGFW_window_setExitKey(win, RGFW_keyEscape);
 
@@ -16,5 +17,6 @@ int main(void) {
 	}
 
     RGFW_window_close(win);
+    RGFW_deinit();
 }
 

@@ -17,6 +17,7 @@
 #endif
 
 int main(void) {
+    RGFW_init("monitor", RGFW_initOpenGL);
 	RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowOpenGL);
 	RGFW_window_setExitKey(win, RGFW_keyEscape);
 
@@ -99,6 +100,7 @@ int main(void) {
     RGFW_monitor_requestMode(mon, &mode, RGFW_monitorScale);
 
     RGFW_window_close(win);
+    RGFW_deinit();
     return 0;
 }
 

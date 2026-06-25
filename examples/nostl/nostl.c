@@ -56,6 +56,8 @@ size_t stringCompare(char* s1, char* s2, size_t size) {
 
 #include "RGFW.h"
 int main(void) {
+    RGFW_init("no standard library", 0);
+
     /* to avoid allocating a window*/
     RGFW_window winStack;
     RGFW_window* win = &winStack;
@@ -74,5 +76,6 @@ int main(void) {
     RGFW_window_close(win);
     myLen = 0; // free all memory
 
+    RGFW_deinit();
     return 0;
 }

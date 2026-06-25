@@ -2066,6 +2066,7 @@ static void demo_resize(struct demo *demo) {
 }
 
 int main(const int argc, const char *argv[]) {
+    RGFW_init("Vulkan 1.0 Example", 0);
     struct demo demo;
 
     demo_init(&demo, argc, argv);
@@ -2076,6 +2077,7 @@ int main(const int argc, const char *argv[]) {
     demo_run(&demo);
 
     demo_cleanup(&demo);
+    RGFW_deinit();
 
     return validation_error;
 }

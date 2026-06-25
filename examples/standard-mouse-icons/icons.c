@@ -3,6 +3,8 @@
 #include "RGFW.h"
 
 int main(void) {
+    RGFW_init("RGFW icons", 0);
+
     RGFW_window* win = RGFW_createWindow("RGFW icons", 0, 0, 600, 400, RGFW_windowCenter | RGFW_windowNoResize);
     RGFW_window_setExitKey(win, RGFW_keyEscape);
     RGFW_mouseIcon mouse = 0;
@@ -25,5 +27,7 @@ int main(void) {
     }
 
     RGFW_window_close(win);
+
+    RGFW_deinit();
     return 0;
 }

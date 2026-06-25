@@ -400,6 +400,7 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
+   RGFW_init("gears", RGFW_initOpenGL);
    int winWidth = 300, winHeight = 300;
    int x = 0, y = 0;
    GLboolean printInfo = GL_FALSE;
@@ -484,6 +485,7 @@ main(int argc, char *argv[])
    glDeleteLists(gear3, 1);
 
    RGFW_window_close(win);
+   RGFW_deinit();
 
    return 0;
 }
