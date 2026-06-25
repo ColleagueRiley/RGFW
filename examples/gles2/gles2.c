@@ -49,7 +49,9 @@ void loop(void) {
 	#endif
 }
 
-int main(void) {
+int main(void) { 
+    RGFW_init("gles2", RGFW_initEGL);
+    
     RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
     hints->major = 2;
     hints->minor = 0;
@@ -160,4 +162,6 @@ int main(void) {
 	#endif
 
     RGFW_window_close(win);
+
+    RGFW_deinit();
 }

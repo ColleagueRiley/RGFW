@@ -65,6 +65,8 @@ void keyfunc(const RGFW_event* event) {
 }
 
 int main() {
+    RGFW_init("example", 0); /* load OpenGL, Vulkan or EGL functions here with RGFW_initOpenGL, RGFW_initEGL or RGFW_initVulkan */
+
     RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowCenter | RGFW_windowNoResize);
 
     RGFW_setEventCallback(RGFW_keyPressed, keyfunc); // you can use callbacks like this if you want
@@ -88,6 +90,7 @@ int main() {
     }
 
     RGFW_window_close(win);
+    RGFW_deinit();
     return 0;
 }
 ```

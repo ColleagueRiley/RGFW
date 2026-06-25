@@ -11,12 +11,13 @@
 #endif
 
 int main(void) {
+	RGFW_init("RGFW Example", 0);
+
     RGFW_glHints *hints = RGFW_getGlobalHints_OpenGL();
         hints->sRGB = 1;
 		hints->samples = 4;
 	RGFW_setGlobalHints_OpenGL(hints);
 
-	RGFW_setClassName("RGFW Example");
 	RGFW_window *win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_windowCenter | RGFW_windowOpenGL);
     RGFW_window_setExitKey(win, RGFW_keyEscape);
 
@@ -39,5 +40,6 @@ int main(void) {
 	}
 
 	RGFW_window_close(win);
+	RGFW_deinit();
 	return 0;
 }

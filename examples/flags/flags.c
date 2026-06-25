@@ -3,6 +3,8 @@
 #include "RGFW.h"
 
 int main(void) {
+	RGFW_init("RGFW Example", 0);
+
     RGFW_window* win = RGFW_createWindow("RGFW flags", 0, 0, 600, 400, RGFW_windowAllowDND);
     RGFW_window_setExitKey(win, RGFW_keyEscape);
 
@@ -70,5 +72,6 @@ int main(void) {
     }
 
     RGFW_window_close(win);
+    RGFW_deinit();
     return 0;
 }

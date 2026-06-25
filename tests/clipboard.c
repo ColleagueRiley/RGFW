@@ -5,7 +5,7 @@
 #include "RGFW.h"
 
 int main(void) {
-	RGFW_init();
+	RGFW_init("clipboard", 0);
 
 	for (size_t i = 0; i < 5; i++) {
 		char str[] = "stringx\0";
@@ -30,7 +30,7 @@ int main(void) {
 		assert(clipboard->data[clipboard->length - 1] == '\0');
 	}
 
-	RGFW_free(0);
+	RGFW_deinit();
 
 	return 0;
 }

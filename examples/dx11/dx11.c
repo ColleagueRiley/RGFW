@@ -55,6 +55,8 @@ int directXInit(RGFW_window* win, directXinfo* info);
 void directXClose(RGFW_window* win, directXinfo* dxInfo);
 
 int main(void) {
+	RGFW_init("RGFW Example", 0);
+    
     RGFW_window* win = RGFW_createWindow("name", 0, 0, 500, 500, RGFW_windowCenter);
     RGFW_window_setExitKey(win, RGFW_keyEscape);
 
@@ -153,6 +155,7 @@ int main(void) {
     directXClose(win, &dxInfo);
 
     RGFW_window_close(win);
+    RGFW_deinit();
 }
 
 int directXInit(RGFW_window* win, directXinfo* info) {

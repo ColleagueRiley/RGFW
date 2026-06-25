@@ -48,6 +48,7 @@ static void drawRect(u8* buffer, i32 bufferWidth, i32 x, i32 y, i32 w, i32 h, u8
 }
 
 int main(void) {
+    RGFW_init("Basic buffer example", 0);
     RGFW_window* win = RGFW_createWindow("Basic buffer example", 0, 0, 500, 500, RGFW_windowCenter | RGFW_windowTransparent);
     RGFW_window_setExitKey(win, RGFW_keyEscape);
 
@@ -101,4 +102,5 @@ int main(void) {
 	RGFW_FREE(buffer);
 
     RGFW_window_close(win);
+    RGFW_deinit();
 }

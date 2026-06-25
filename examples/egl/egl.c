@@ -14,6 +14,8 @@
 #endif
 
 int main(void) {
+	RGFW_init("RGFW Example", RGFW_initEGL);
+
     RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
     hints->major = 1;
     hints->minor = 1;
@@ -39,5 +41,6 @@ int main(void) {
     }
 
     RGFW_window_close(win);
+    RGFW_deinit();
     return 0;
 }
