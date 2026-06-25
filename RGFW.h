@@ -6202,7 +6202,7 @@ void RGFW_initKeycodesPlatform(void) {
     _RGFW->keycodes[162] = RGFW_keyWorld2; /* non-US key #2 */
 }
 
-i32 RGFW_initPlatform(const char* className, RGFW_initFlags flag) {
+i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 #ifdef RGFW_WAYLAND
 	if (!(flag & RGFW_initX11)) {
 		RGFW_load_Wayland();
@@ -8721,6 +8721,9 @@ void RGFW_FUNC(RGFW_window_swapInterval_OpenGL) (RGFW_window* win, i32 swapInter
 #endif /* RGFW_OPENGL */
 
 i32 RGFW_initPlatform_X11(const char* className, RGFW_initFlags flags) {
+	_RGFW->className = className;
+	RGFW_UNUSED(flags);
+
     #ifdef RGFW_USE_XDL
 		XDL_init();
 	#endif
@@ -9750,6 +9753,7 @@ static int RGFW_wl_create_shm_file(off_t size) {
 }
 
 i32 RGFW_initPlatform_Wayland(const char* className, RGFW_initFlags flags) {
+	RGFW_UNUSED(className); RGFW_UNUSED(flags);
 	_RGFW->wl_display = wl_display_connect(NULL);
 	if (_RGFW->wl_display == NULL) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errWayland,  "Failed to load Wayland display");
@@ -11608,6 +11612,7 @@ void RGFW_initKeycodesPlatform(void) {
 
 
 i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
+	RGFW_UNUSED(flags);
 #ifndef RGFW_NO_DPI
 	#if (_WIN32_WINNT >= 0x0600)
 		SetProcessDPIAware();
@@ -13901,6 +13906,7 @@ void RGFW_initKeycodesPlatform(void) {
 }
 
 i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
+	RGFW_UNUSED(className); RGFW_UNUSED(flags);
 	_RGFW->tisBundle = (void*)CFBundleGetBundleWithIdentifier(CFSTR("com.apple.HIToolbox"));
 
 	TISGetInputSourcePropertySrc = (PFN_TISGetInputSourceProperty)CFBundleGetFunctionPointerForName((CFBundleRef)_RGFW->tisBundle, CFSTR("TISGetInputSourceProperty"));
@@ -15490,6 +15496,7 @@ void RGFW_initKeycodesPlatform(void) {
 }
 
 i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
+	RGFW_UNUSED(className); RGFW_UNUSED(flags);
 	RGFW_monitorNode* node = NULL;
 	RGFW_monitor monitor;
 
