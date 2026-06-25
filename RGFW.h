@@ -15734,6 +15734,8 @@ RGFW_bool RGFW_readClipboardPtr(u8* buffer, size_t capacity, RGFW_dataTransfer* 
 }
 
 #ifdef RGFW_OPENGL
+RGFW_bool RGFW_loadGL(void) { return RGFW_TRUE; }
+
 RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx, RGFW_glHints* hints) {
 	win->src.ctx.native = ctx;
 	win->src.gfxType = RGFW_gfxNativeOpenGL;
