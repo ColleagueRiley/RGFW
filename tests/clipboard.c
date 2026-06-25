@@ -30,7 +30,7 @@ int main(void) {
 		assert(clipboard->data[clipboard->length - 1] == '\0');
 	}
 
-	RGFW_deinit(0);
+	RGFW_deinit();
 
 	return 0;
 }
