@@ -33,7 +33,9 @@ int main(void) {
 	RGFW_window* win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, 0);
 	RGFW_pollEvents();
 	RGFW_window_close(win);
+    RGFW_deinit();
 
+    RGFW_init("memory", RGFW_windowOpenGL);
 	win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_windowOpenGL);
 	RGFW_pollEvents();
 	RGFW_window_close(win);
