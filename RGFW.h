@@ -2757,7 +2757,7 @@ RGFWDEF RGFW_bool RGFW_getPhysicalDevicePresentationSupport_Vulkan(VkInstance in
  * @param swapchain [OUTPUT] A pointer to an IDXGISwapChain pointer that will receive the created swap chain.
  * @return An integer result code (0 on success, or a DirectX error code on failure).
 */
-RGFWDEF int RGFW_window_createSwapChain_DirectX(RGFW_window* win, IDXGIFactory* pFactory, IUnknown* pDevice, IDXGISwapChain** swapchain);
+RGFWDEF i32 RGFW_window_createSwapChain_DirectX(RGFW_window* win, IDXGIFactory* pFactory, IUnknown* pDevice, IDXGISwapChain** swapchain);
 #endif
 #endif
 
@@ -11533,33 +11533,6 @@ void RGFW_window_captureMousePlatform(RGFW_window* win, RGFW_bool state) {
 	ClipCursor(&clipRect);
 }
 
-#ifdef RGFW_DIRECTX
-int RGFW_window_createSwapChain_DirectX(RGFW_window* win, IDXGIFactory* pFactory, IUnknown* pDevice, IDXGISwapChain** swapchain) {
-    RGFW_ASSERT(win && pFactory && pDevice && swapchain);
-
-	DXGI_SWAP_CHAIN_DESC swapChainDesc;
-	RGFW_MEMZERO(&swapChainDesc, sizeof(swapChainDesc));
-    swapChainDesc.BufferCount = 2;
-    swapChainDesc.BufferDesc.Width = win->w;
-    swapChainDesc.BufferDesc.Height = win->h;
-    swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    swapChainDesc.OutputWindow = (HWND)win->src.window;
-    swapChainDesc.SampleDesc.Count = 1;
-    swapChainDesc.SampleDesc.Quality = 0;
-    swapChainDesc.Windowed = TRUE;
-    swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-    HRESULT hr = pFactory->lpVtbl->CreateSwapChain(pFactory, (IUnknown*)pDevice, &swapChainDesc, swapchain);
-    if (FAILED(hr)) {
-        RGFW_debugCallback(RGFW_typeError, RGFW_errDirectXContext,  "Failed to create DirectX swap chain!");
-        return -2;
-    }
-
-    return 0;
-}
-#endif
-
 /* we're doing it with magic numbers because some keys are missing  */
 void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[0x00B] = RGFW_key0;
@@ -12735,6 +12708,33 @@ void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y) {
 	win->internal.lastMouseY = y - win->y;
 	SetCursorPos(x, y);
 }
+
+#ifdef RGFW_DIRECTX
+i32 RGFW_window_createSwapChain_DirectX(RGFW_window* win, IDXGIFactory* pFactory, IUnknown* pDevice, IDXGISwapChain** swapchain) {
+    RGFW_ASSERT(win && pFactory && pDevice && swapchain);
+
+	DXGI_SWAP_CHAIN_DESC swapChainDesc;
+	RGFW_MEMZERO(&swapChainDesc, sizeof(swapChainDesc));
+    swapChainDesc.BufferCount = 2;
+    swapChainDesc.BufferDesc.Width = win->w;
+    swapChainDesc.BufferDesc.Height = win->h;
+    swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapChainDesc.OutputWindow = (HWND)win->src.window;
+    swapChainDesc.SampleDesc.Count = 1;
+    swapChainDesc.SampleDesc.Quality = 0;
+    swapChainDesc.Windowed = TRUE;
+    swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+    HRESULT hr = pFactory->lpVtbl->CreateSwapChain(pFactory, (IUnknown*)pDevice, &swapChainDesc, swapchain);
+    if (FAILED(hr)) {
+        RGFW_debugCallback(RGFW_typeError, RGFW_errDirectXContext,  "Failed to create DirectX swap chain!");
+        return -2;
+    }
+
+    return 0;
+}
+#endif
 
 #ifdef RGFW_OPENGL
 RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char * extension, size_t len) {
