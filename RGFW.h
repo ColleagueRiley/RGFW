@@ -5852,7 +5852,7 @@ RGFW_bool RGFW_loadVulkan(void) {
 	}
 
 	#ifdef RGFW_WINDOWS
-		_RGFW->vkGetInstanceProcAddress = (RGFW_proc(*)(void*, const char*))(RGFW_proc)GetProcAddress((HMODULE)(_RGFW->vulkan_handle, "vkGetInstanceProcAddr");
+		_RGFW->vkGetInstanceProcAddress = (RGFW_proc(*)(void*, const char*))(RGFW_proc)GetProcAddress((HMODULE)_RGFW->vulkan_handle, "vkGetInstanceProcAddr");
 	#else
 		void* lib = dlsym(_RGFW->vulkan_handle, "vkGetInstanceProcAddr");
 		if (lib != NULL) RGFW_MEMCPY(&_RGFW->vkGetInstanceProcAddress, &lib, sizeof(_RGFW->vkGetInstanceProcAddress));
