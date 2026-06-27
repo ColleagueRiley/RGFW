@@ -464,7 +464,7 @@ typedef RGFW_ENUM(u8, RGFW_initFlags) {
 	RGFW_initOpenGL = RGFW_BIT(0), /*!< Load Native OpenGL */
 	RGFW_initEGL = RGFW_BIT(1), /*!< Load EGL */
 	RGFW_initVulkan = RGFW_BIT(2), /*!< Load Vulkan */
-	RGFW_initX11 = RGFW_BIT(3), /*!< Force X11 (over Wayland) */
+	RGFW_initX11 = RGFW_BIT(3) /*!< Force X11 (over Wayland) */
 };
 
 /*! @brief The stucture that contains information about the current RGFW instance */
@@ -695,7 +695,7 @@ typedef RGFW_ENUM(u8, RGFW_dndActionType) {
 	RGFW_dndActionNone = 0,
 	RGFW_dndActionEnter, /*!< data has been dragged into the window area */
 	RGFW_dndActionMove, /*!< the data that was dragged into the window area has moved inside the window */
-	RGFW_dndActionExit, /*!< the data that was dragged into the window area has left the window */
+	RGFW_dndActionExit /*!< the data that was dragged into the window area has left the window */
 };
 
 /*! types of transfered data (clipboard, dnd) */
@@ -751,7 +751,7 @@ typedef RGFW_ENUM(u8, RGFW_eventType) {
 	RGFW_monitorConnected, /*!< a monitor has been connected */
 	RGFW_monitorDisconnected, /*!< a monitor has been disconnected */
 	RGFW_eventCount, /*!< the number of event types there are */
-	RGFW_mousePosChanged = RGFW_mouseMotion, /*!< alias for RGFW_mouseMotion (may be deleted at some point) */
+	RGFW_mousePosChanged = RGFW_mouseMotion /*!< alias for RGFW_mouseMotion (may be deleted at some point) */
 };
 
 /*! @brief flags for toggling whether or not an event should be processed */
@@ -10609,8 +10609,9 @@ RGFW_bool RGFW_FUNC(RGFW_readClipboardPtr) (u8* buffer, size_t capacity, RGFW_da
 RGFW_bool RGFW_FUNC(RGFW_writeClipboard) (const RGFW_dataTransfer* data) {
 	RGFW_ASSERT(data != NULL);
 
-	// compositor does not support wl_data_device_manager
-	// clients cannot read rgfw's clipboard
+	/* compositor does not support wl_data_device_manager
+		clients cannot read rgfw's clipboard
+	*/
 	if (_RGFW->data_device_manager == NULL) return RGFW_FALSE;
 	// clear the clipboard
 	if (_RGFW->unixClipboard) {
