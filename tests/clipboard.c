@@ -17,7 +17,7 @@ int main(void) {
 		data.type = RGFW_dataText;
 		assert(RGFW_writeClipboard(&data) == RGFW_TRUE);
 
-		const RGFW_dataTransfer* clipboard = RGFW_readClipboard();
+		const RGFW_dataTransfer* clipboard = RGFW_readClipboard(RGFW_dataText);
 		assert(clipboard);
 		assert(clipboard->type == data.type);
 
