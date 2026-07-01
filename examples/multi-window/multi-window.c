@@ -66,7 +66,7 @@ void checkEvents(RGFW_window* win) {
 					}
 				}
 				else if (event.key.value == RGFW_keyV && (RGFW_window_isKeyDown(win, RGFW_keyControlL) || RGFW_window_isKeyDown(win, RGFW_keyControlR))) {
-					const RGFW_dataTransfer* data = RGFW_readClipboard();
+					const RGFW_dataTransfer* data = RGFW_readClipboard(RGFW_dataText);
 					if (data == NULL) break;
 					printf("window %p: clipboard paste %d: '", (void*)win, (i32)data->length);
 					fwrite(data->data, 1, data->length, stdout);
