@@ -14347,7 +14347,7 @@ void RGFW_window_focus(RGFW_window* win) {
 void RGFW_window_raise(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("orderFront:"), (SEL)NULL);
-    	objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), kCGNormalWindowLevelKey);
+    	objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), kCGNormalWindowLevel);
 }
 
 void RGFW_window_setFullscreen(RGFW_window* win, RGFW_bool fullscreen) {
@@ -14411,8 +14411,8 @@ void RGFW_window_minimize(RGFW_window* win) {
 
 void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating) {
     RGFW_ASSERT(win != NULL);
-    if (floating) objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), kCGFloatingWindowLevelKey);
-    else 		  objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), kCGNormalWindowLevelKey);
+    if (floating) objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), kCGFloatingWindowLevel);
+    else 		  objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), kCGNormalWindowLevel);
 }
 
 void RGFW_window_setOpacity(RGFW_window* win, u8 opacity) {
@@ -14437,7 +14437,7 @@ void RGFW_window_restore(RGFW_window* win) {
 RGFW_bool RGFW_window_isFloating(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	int level = ((int (*)(id, SEL))objc_msgSend) ((id)(win->src.window), (SEL)sel_registerName("level"));
-	return level > kCGNormalWindowLevelKey;
+	return level > kCGNormalWindowLevel;
 }
 
 void RGFW_window_setName(RGFW_window* win, const char* name) {
