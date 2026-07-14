@@ -965,27 +965,27 @@ function dbg(text) {
 // === Body ===
 
 var ASM_CONSTS = {
-  72488: () => { Module.canvas.focus(); },  
- 72513: ($0, $1, $2, $3, $4) => { var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4); let context = document.getElementById("canvas").getContext("2d"); let image = context.getImageData(0, 0, $1, $2); image.data.set(data); context.putImageData(image, 0, $4 - $2); },  
- 72748: () => { return window.devicePixelRatio || 1; },  
- 72787: () => { return window.innerWidth || 0; },  
- 72820: () => { return window.innerHeight || 0; },  
- 72854: () => { window.addEventListener("keydown", (event) => { var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); var codepoint = event.key.charCodeAt(0); if(codepoint < 0x7f && event.key.length > 1) { codepoint = 0; } Module._RGFW_handleKeyEvent(code, codepoint, 1); Module._RGFW_webFree(code); }, true); window.addEventListener("keyup", (event) => { var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(code, 0, 0); Module._RGFW_webFree(code); }, true); },  
- 73839: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; Module._RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); Module._Emscripten_onDrop(filename, path.length + 1); free(filename); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 74743: () => { return 'Asyncify' in Module; },  
- 74776: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 74847: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 74904: () => { return window.mouseX || 0; },  
- 74935: () => { return window.mouseY || 0; },  
- 74966: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 75113: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 75166: () => { Module.useWebGL = true; GLImmediate.init(); },  
- 75212: ($0, $1) => { var ext = UTF8ToString($0, $1); var canvas = document.querySelector('canvas'); var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl'); if (!gl) return 0; var supported = gl.getSupportedExtensions(); return supported && supported.includes(ext) ? 1 : 0; },  
- 75492: () => { return window.innerWidth; },  
- 75522: () => { return window.innerHeight; },  
- 75553: () => { Module.requestFullscreen(false, true); },  
- 75592: () => { Module.exitFullscreen(false, true); },  
- 75628: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
+  72456: () => { Module.canvas.focus(); },  
+ 72481: ($0, $1, $2, $3, $4) => { var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4); let context = document.getElementById("canvas").getContext("2d"); let image = context.getImageData(0, 0, $1, $2); image.data.set(data); context.putImageData(image, 0, $4 - $2); },  
+ 72716: () => { return window.devicePixelRatio || 1; },  
+ 72755: () => { return window.innerWidth || 0; },  
+ 72788: () => { return window.innerHeight || 0; },  
+ 72822: () => { window.addEventListener("keydown", (event) => { var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); var codepoint = event.key.charCodeAt(0); if(codepoint < 0x7f && event.key.length > 1) { codepoint = 0; } Module._RGFW_handleKeyEvent(code, codepoint, 1); Module._RGFW_webFree(code); }, true); window.addEventListener("keyup", (event) => { var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(code, 0, 0); Module._RGFW_webFree(code); }, true); },  
+ 73807: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; Module._RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); Module._Emscripten_onDrop(filename, path.length + 1); free(filename); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
+ 74711: () => { return 'Asyncify' in Module; },  
+ 74744: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 74815: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 74872: () => { return window.mouseX || 0; },  
+ 74903: () => { return window.mouseY || 0; },  
+ 74934: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
+ 75081: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 75134: () => { Module.useWebGL = true; GLImmediate.init(); },  
+ 75180: ($0, $1) => { var ext = UTF8ToString($0, $1); var canvas = document.querySelector('canvas'); var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl'); if (!gl) return 0; var supported = gl.getSupportedExtensions(); return supported && supported.includes(ext) ? 1 : 0; },  
+ 75460: () => { return window.innerWidth; },  
+ 75490: () => { return window.innerHeight; },  
+ 75521: () => { Module.requestFullscreen(false, true); },  
+ 75560: () => { Module.exitFullscreen(false, true); },  
+ 75596: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
 };
 
 
