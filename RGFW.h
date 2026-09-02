@@ -16051,6 +16051,7 @@ RGFW_key RGFW_WASMPhysicalToRGFW(u32 hash) {
 		case 0x2C595B54U /* KeyT               */: return RGFW_keyT;                    /* 0x0014 */
 		case 0x2C595B59U /* KeyY               */: return RGFW_keyY;                    /* 0x0015 */
 		case 0x2C595B55U /* KeyU               */: return RGFW_keyU;                    /* 0x0016 */
+		case 0x2C595B49U /* KeyI               */: return RGFW_keyI;                    /* 0x0017 */
 		case 0x2C595B4FU /* KeyO               */: return RGFW_keyO;                    /* 0x0018 */
 		case 0x2C595B50U /* KeyP               */: return RGFW_keyP;                    /* 0x0019 */
 		case 0x45D8158CU /* BracketLeft        */: return RGFW_keyCloseBracket;         /* 0x001A */
