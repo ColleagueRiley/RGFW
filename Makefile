@@ -381,13 +381,13 @@ endif
 
 RGFW$(OBJ_FILE): RGFW.h $(WAYLAND_SOURCE)
 ifeq ($(detected_OS), windows)
-	cp RGFW.h RGFW.c
+	cmd /c copy RGFW.h RGFW.c
 else
 	cp RGFW.h RGFW.c
 endif
 	$(CC) $(CUSTOM_CFLAGS) $(DEFINES) -c RGFW.c -D RGFW_IMPLEMENTATION -fPIC -D RGFW_EXPORT
 ifeq ($(detected_OS), windows)
-	del RGFW.c
+	cmd /c del RGFW.c
 else
 	rm RGFW.c
 endif
