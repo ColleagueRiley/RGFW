@@ -381,8 +381,7 @@ endif
 
 RGFW$(OBJ_FILE): RGFW.h $(WAYLAND_SOURCE)
 ifeq ($(detected_OS), windows)
-	dir
-	copy RGFW.h RGFW.c
+	cp RGFW.h RGFW.c
 else
 	cp RGFW.h RGFW.c
 endif
