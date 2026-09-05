@@ -376,17 +376,24 @@ endif
 ifeq ($(detected_OS), windows)
 		./examples/dx11/dx11.exe
 endif
-	$(MAKE) clean
+	make clean
 
 
 RGFW$(OBJ_FILE): RGFW.h $(WAYLAND_SOURCE)
-	#$(CC) -x c $(CUSTOM_CFLAGS) -c RGFW.h -D RGFW_IMPLEMENTATION -fPIC -D RGFW_EXPORT
+ifeq ($(detected_OS), windows)
+	cmd /c copy RGFW.h RGFW.c
+else
 	cp RGFW.h RGFW.c
+endif
 	$(CC) $(CUSTOM_CFLAGS) $(DEFINES) -c RGFW.c -D RGFW_IMPLEMENTATION -fPIC -D RGFW_EXPORT
+ifeq ($(detected_OS), windows)
+	cmd /c del RGFW.c
+else
 	rm RGFW.c
+endif
 
 libRGFW$(LIB_EXT): RGFW.h RGFW$(OBJ_FILE)
-	$(MAKE) RGFW$(OBJ_FILE)
+	make RGFW$(OBJ_FILE)
 ifeq ($(CC), cl)
 	link /DLL /OUT:libRGFW.dll RGFW.obj
 else
@@ -394,13 +401,16 @@ else
 endif
 
 libRGFW.a: RGFW.h RGFW$(OBJ_FILE)
-	$(MAKE) RGFW$(OBJ_FILE)
+	make RGFW$(OBJ_FILE)
+ifeq ($(CC), cl)
+else
 	$(AR) rcs libRGFW.a RGFW$(OBJ_FILE)
+endif
 
 ifeq ($(WAYLAND),1)
 
 $(WAYLAND_SOURCE): %.c:
-	$(MAKE) -f wayland.mk
+	make -f wayland.mk
 
 endif
 
@@ -409,7 +419,7 @@ clean:
 	rm -f *.o *.obj *.dll .dylib *.a *.so $(EXAMPLE_OUTPUTS) $(EXAMPLE_OUTPUTS_CUSTOM) $(TEST_OUTPUTS)  .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.exe .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.js .$(OS_DIR)examples$(OS_DIR)*$(OS_DIR)*.wasm .$(OS_DIR)examples$(OS_DIR)vk10$(OS_DIR)shaders$(OS_DIR)*.h
 
 ifeq ($(WAYLAND),1)
-	$(MAKE) -f wayland.mk clean
+	make -f wayland.mk clean
 endif
 
 
