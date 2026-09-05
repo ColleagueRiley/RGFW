@@ -4828,7 +4828,7 @@ RGFW_bool RGFW_monitor_findClosestMode(RGFW_monitor* monitor, RGFW_monitorMode* 
 		u32 score = 0;
 		if (mode->w == mode2->w && mode->h == mode2->h) score += 1000;
 		if (mode->red == mode2->red && mode->green == mode2->green && mode->blue == mode2->blue) score += 100;
-		if (mode->refreshRate == mode->refreshRate) score += 10;
+		if (mode->refreshRate == mode2->refreshRate) score += 10;
 
 		if (score > topScore) {
 			topScore = score;
