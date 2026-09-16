@@ -9624,7 +9624,7 @@ static void RGFW_wl_output_handle_done(void* data, struct wl_output* output) {
 		return;
 	}
 
-	((RGFW_monitorNode*)data)->disconnected = RGFW_TRUE;
+	((RGFW_monitorNode*)data)->disconnected = RGFW_FALSE;
 
 	RGFW_monitorCallback(_RGFW->root, monitor, RGFW_TRUE);
 }
