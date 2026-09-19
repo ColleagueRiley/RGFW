@@ -25,6 +25,10 @@
  * See usage() below for command line options.
  */
 
+#ifdef _MSC_VER
+	#pragma comment(lib, "opengl32")
+#endif
+
 #define RGFW_DEBUG
 #define GL_SILENCE_DEPRECATION
 #define RGFW_OPENGL
@@ -435,7 +439,7 @@ main(int argc, char *argv[])
    }
 
    if(fullscreen){
-	   flag = RGFW_windowFullscreen;
+	   flag = RGFW_windowFullscreenBorderless;
    }
 
    win = RGFW_createWindow("gears", x, y, winWidth, winHeight, RGFW_windowCenter | RGFW_windowOpenGL | flag);
