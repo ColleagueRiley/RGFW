@@ -103,9 +103,9 @@ ifeq ($(WAYLAND),1)
 	NO_VULKAN = 1
 	NO_GLES = 0
 	NO_EGL = 0
-	LIBS += $(WAYLAND_SOURCE) -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lEGL -lm
+	LIBS += $(WAYLAND_SOURCE) -lwayland-cursor -lwayland-client -lxkbcommon  -lwayland-egl -lm
 	DEFINES += -D RGFW_WAYLAND
-	LINK_GL1 = -lEGL -lGL
+	LINK_GL1 = -lGL
 
 	# LIBS += -ldecor-0
 
@@ -227,7 +227,7 @@ endif
 
 examples/egl/egl: examples/egl/egl.c RGFW.h $(WAYLAND_SOURCE)
 ifneq ($(NO_EGL), 1)
-	$(CC)  $(CFLAGS) -I. $< $(DEFINES) $(LIBS) $(LINK_GL1) -lGL -lEGL -o $@$(EXT)
+	$(CC)  $(CFLAGS) -I. $< $(DEFINES) $(LIBS) $(LINK_GL1) -lGL -o $@$(EXT)
 else
 	@echo egl has been disabled
 endif
@@ -329,7 +329,7 @@ examples/first-person-camera/camera: examples/first-person-camera/camera.c RGFW.
 
 examples/gl33/gl33: examples/gl33/gl33.c RGFW.h $(WAYLAND_SOURCE)
 ifeq ($(WAYLAND), 1)
-	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lm $(DEFINES) $(LIBS) $(LINK_GL1) -lEGL -lwayland-egl -o $@$(EXT)
+	$(CC) $(CFLAGS) $(WARNINGS) -I. $< -lm $(DEFINES) $(LIBS) $(LINK_GL1) -lwayland-egl -o $@$(EXT)
 else ifeq ($(detected_OS),NetBSD)
 	$(CC) $(CFLAGS) $(WARNINGS) $(CFLAGS) -I. $< -lm -o $@$(EXT)
 else ifeq ($(detected_OS),Linux)
