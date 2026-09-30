@@ -4072,6 +4072,12 @@ i32 RGFW_init_ptr(const char* className, RGFW_initFlags flags, RGFW_info* info) 
     RGFW_MEMZERO(_RGFW, sizeof(RGFW_info));
 
 	if (flags & RGFW_initOpenGL) {
+		#ifdef RGFW_WAYLAND
+		if (RGFW_usingWayland()) {
+			flags |= RGFW_initEGL;
+		} else
+		#endif
+
 		if (RGFW_loadGL() == RGFW_FALSE) {
 			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the OpenGL library");
 			return -1;
