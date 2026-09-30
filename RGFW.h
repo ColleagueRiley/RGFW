@@ -4651,7 +4651,7 @@ void RGFW_window_setShouldClose(RGFW_window* win, RGFW_bool shouldClose) {
 
 void RGFW_window_scaleToMonitor(RGFW_window* win) {
 	RGFW_monitor* monitor = RGFW_window_getMonitor(win);
-	if (monitor == NULL || monitor->scaleX == 0 && monitor->scaleY == 0)
+	if (monitor == NULL || (monitor->scaleX == 0 && monitor->scaleY == 0))
 		return;
 
 	RGFW_window_resize(win, (i32)(monitor->scaleX * (float)win->w), (i32)(monitor->scaleY * (float)win->h));
