@@ -4084,13 +4084,6 @@ i32 RGFW_init_ptr(const char* className, RGFW_initFlags flags, RGFW_info* info) 
 		}
 	}
 
-	if (flags & RGFW_initEGL) {
-		if (RGFW_loadEGL() == RGFW_FALSE) {
-			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the EGL library");
-			return -1;
-		}
-	}
-
 	if (flags & RGFW_initVulkan) {
 		if (RGFW_loadVulkan() == RGFW_FALSE) {
 			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the Vulkan library");
@@ -4118,6 +4111,15 @@ i32 RGFW_init_ptr(const char* className, RGFW_initFlags flags, RGFW_info* info) 
 	    RGFW_setInfo(NULL);
 		return out;
 	}
+
+	if (flags & RGFW_initEGL) {
+		if (RGFW_loadEGL() == RGFW_FALSE) {
+			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the EGL library");
+			return -1;
+		}
+	}
+
+
 
 	for (size_t i = 0; i < RGFW_mouseIconCount; i++) {
         _RGFW->standardMice[i] = RGFW_createMouseStandard((RGFW_mouseIcon)i);
