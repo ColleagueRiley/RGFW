@@ -4073,7 +4073,7 @@ i32 RGFW_init_ptr(const char* className, RGFW_initFlags flags, RGFW_info* info) 
 
 	if (flags & RGFW_initOpenGL) {
 		#ifdef RGFW_WAYLAND
-		if (RGFW_usingWayland()) {
+		if (!(flags & RGFW_initX11)) {
 			flags |= RGFW_initEGL;
 		} else
 		#endif
