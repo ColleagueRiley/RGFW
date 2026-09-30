@@ -4112,14 +4112,13 @@ i32 RGFW_init_ptr(const char* className, RGFW_initFlags flags, RGFW_info* info) 
 		return out;
 	}
 
+	/* EGL uses the Wayland/X11 display, so it needs to be initialized after the platform */
 	if (flags & RGFW_initEGL) {
 		if (RGFW_loadEGL() == RGFW_FALSE) {
 			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the EGL library");
 			return -1;
 		}
 	}
-
-
 
 	for (size_t i = 0; i < RGFW_mouseIconCount; i++) {
         _RGFW->standardMice[i] = RGFW_createMouseStandard((RGFW_mouseIcon)i);
@@ -4601,6 +4600,7 @@ void RGFW_window_center(RGFW_window* win) {
 
 RGFW_bool RGFW_monitor_scaleToWindow(RGFW_monitor* mon, RGFW_window* win) {
     RGFW_ASSERT(win != NULL);
+	RGFW_ASSERT(mon != NULL);
 
 	RGFW_monitorMode mode = mon->mode;
 	mode.w = win->w;
@@ -4651,13 +4651,14 @@ void RGFW_window_setShouldClose(RGFW_window* win, RGFW_bool shouldClose) {
 
 void RGFW_window_scaleToMonitor(RGFW_window* win) {
 	RGFW_monitor* monitor = RGFW_window_getMonitor(win);
-	if (monitor->scaleX == 0 && monitor->scaleY == 0)
+	if (monitor == NULL || monitor->scaleX == 0 && monitor->scaleY == 0)
 		return;
 
 	RGFW_window_resize(win, (i32)(monitor->scaleX * (float)win->w), (i32)(monitor->scaleY * (float)win->h));
 }
 
 void RGFW_window_moveToMonitor(RGFW_window* win, RGFW_monitor* m) {
+	RGFW_ASSERT(m != NULL);
 	RGFW_window_move(win, m->x + win->x, m->y + win->y);
 }
 
@@ -4754,6 +4755,7 @@ void RGFW_copyImageData64(u8* dest_data, i32 dest_w, i32 dest_h, RGFW_format des
 }
 
 RGFW_monitorNode* RGFW_monitors_add(const RGFW_monitor* mon) {
+	RGFW_ASSERT(mon != NULL);
 	RGFW_monitorNode* node = NULL;
 
 	#if (RGFW_PREALLOCATED_MONITORS)
@@ -4844,6 +4846,7 @@ void RGFW_freeMonitors(void) {
 }
 
 RGFW_monitorMode* RGFW_monitor_getModes(RGFW_monitor* monitor, size_t* count) {
+	RGFW_ASSERT(monitor != NULL);
 	size_t num = RGFW_monitor_getModesPtr(monitor, NULL);
 	RGFW_monitorMode* modes = (RGFW_monitorMode*)RGFW_ALLOC(num * sizeof(RGFW_monitorNode));
 	num = RGFW_monitor_getModesPtr(monitor, &modes);
@@ -4857,6 +4860,7 @@ void RGFW_freeModes(RGFW_monitorMode* modes) {
 }
 
 RGFW_bool RGFW_monitor_findClosestMode(RGFW_monitor* monitor, RGFW_monitorMode* mode, RGFW_monitorMode* closest) {
+	RGFW_ASSERT(monitor != NULL);
 	size_t count = RGFW_monitor_getModesPtr(monitor, NULL);
 	RGFW_monitorMode* modes = (RGFW_monitorMode*)RGFW_ALLOC(count * sizeof(RGFW_monitorNode));
 	count = RGFW_monitor_getModesPtr(monitor, &modes);
@@ -4899,6 +4903,7 @@ RGFW_bool RGFW_monitor_findClosestMode(RGFW_monitor* monitor, RGFW_monitorMode* 
 }
 
 RGFW_bool RGFW_monitor_getPosition(RGFW_monitor* monitor, i32* x, i32* y) {
+	RGFW_ASSERT(monitor != NULL);
 	if (x) *x = monitor->x;
 	if (y) *y = monitor->y;
 	return RGFW_TRUE;
@@ -4909,31 +4914,37 @@ const char* RGFW_monitor_getName(RGFW_monitor* monitor) {
 }
 
 RGFW_bool RGFW_monitor_getScale(RGFW_monitor* monitor, float* x, float* y) {
+	RGFW_ASSERT(monitor != NULL);
 	if (x) *x = monitor->scaleX;
 	if (y) *y = monitor->scaleY;
 	return RGFW_TRUE;
 }
 
 RGFW_bool RGFW_monitor_getPhysicalSize(RGFW_monitor* monitor, float* w, float* h) {
+	RGFW_ASSERT(monitor != NULL);
 	if (w) *w = monitor->physW;
 	if (h) *h = monitor->physH;
 	return RGFW_TRUE;
 }
 
 void RGFW_monitor_setUserPtr(RGFW_monitor* monitor, void* userPtr) {
+	RGFW_ASSERT(monitor != NULL);
 	monitor->userPtr = userPtr;
 }
 
 void* RGFW_monitor_getUserPtr(RGFW_monitor* monitor) {
+	RGFW_ASSERT(monitor != NULL);
 	return monitor->userPtr;
 }
 
 RGFW_bool RGFW_monitor_getMode(RGFW_monitor* monitor, RGFW_monitorMode* mode) {
+	RGFW_ASSERT(monitor != NULL);
 	if (mode) *mode = monitor->mode;
 	return RGFW_TRUE;
 }
 
 RGFW_gammaRamp* RGFW_monitor_getGammaRamp(RGFW_monitor* monitor) {
+	RGFW_ASSERT(monitor != NULL);
 	RGFW_gammaRamp* ramp = (RGFW_gammaRamp*)RGFW_ALLOC(sizeof(RGFW_gammaRamp));
 	ramp->count = RGFW_monitor_getGammaRampPtr(monitor, NULL);
 	ramp->red = (u16*)RGFW_ALLOC(sizeof(u16) * ramp->count);
@@ -4976,6 +4987,7 @@ RGFW_bool RGFW_monitor_setGammaPtr(RGFW_monitor* monitor, float gamma, u16* ptr,
 }
 
 RGFW_bool RGFW_monitor_setGamma(RGFW_monitor* monitor, float gamma) {
+	RGFW_ASSERT(monitor != NULL);
 	size_t count = RGFW_monitor_getGammaRampPtr(monitor, NULL);
 	u16* ptr = (u16*)RGFW_ALLOC(count * sizeof(u16));
 
@@ -5004,6 +5016,7 @@ RGFW_monitor** RGFW_getMonitors(size_t* len) {
 }
 
 RGFW_bool RGFW_getMonitorsPtr(size_t max, RGFW_monitor** monitors, size_t* len) {
+	RGFW_ASSERT(monitors != NULL);
 	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 	if (len != NULL) {
 		*len = _RGFW->monitors.count;
@@ -8538,6 +8551,7 @@ void RGFW_FUNC(RGFW_monitorNode_free) (RGFW_monitorNode* node) {
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_getWorkarea) (RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
+	RGFW_ASSERT(monitor != NULL);
 	Window root = DefaultRootWindow(_RGFW->display);
 
 	i32 areaX = monitor->x;
@@ -8596,6 +8610,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_getWorkarea) (RGFW_monitor* monitor, i32* x, i3
 }
 
 size_t RGFW_FUNC(RGFW_monitor_getModesPtr) (RGFW_monitor* monitor, RGFW_monitorMode** modes) {
+	RGFW_ASSERT(monitor != NULL);
 	size_t count = 0;
 
 	XRRScreenResources* res = XRRGetScreenResourcesCurrent(_RGFW->display, DefaultRootWindow(_RGFW->display));
@@ -8619,6 +8634,7 @@ size_t RGFW_FUNC(RGFW_monitor_getModesPtr) (RGFW_monitor* monitor, RGFW_monitorM
 }
 
 size_t RGFW_FUNC(RGFW_monitor_getGammaRampPtr) (RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
+	RGFW_ASSERT(monitor != NULL);
 	RGFW_UNUSED(monitor); RGFW_UNUSED(ramp);
 	size_t size = (size_t)XRRGetCrtcGammaSize(_RGFW->display, monitor->node->crtc);
 	XRRCrtcGamma* gamma = XRRGetCrtcGamma(_RGFW->display, monitor->node->crtc);
@@ -8634,6 +8650,7 @@ size_t RGFW_FUNC(RGFW_monitor_getGammaRampPtr) (RGFW_monitor* monitor, RGFW_gamm
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_setGammaRamp) (RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
+	RGFW_ASSERT(monitor != NULL);
 	RGFW_UNUSED(monitor); RGFW_UNUSED(ramp);
 
 	size_t size = (size_t)XRRGetCrtcGammaSize(_RGFW->display, monitor->node->crtc);
@@ -8655,6 +8672,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_setGammaRamp) (RGFW_monitor* monitor, RGFW_gamm
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_setMode)(RGFW_monitor* mon, RGFW_monitorMode* mode) {
+	RGFW_ASSERT(mon != NULL);
 	RGFW_bool out = RGFW_FALSE;
 
 	XRRScreenResources* res = XRRGetScreenResourcesCurrent(_RGFW->display, DefaultRootWindow(_RGFW->display));
@@ -8670,6 +8688,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_setMode)(RGFW_monitor* mon, RGFW_monitorMode* m
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode)(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
+	RGFW_ASSERT(mon != NULL);
 	RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
 
 	RGFW_bool output = RGFW_FALSE;
@@ -10860,6 +10879,7 @@ void RGFW_FUNC(RGFW_monitorNode_free) (RGFW_monitorNode* node) {
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_getWorkarea) (RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
+	RGFW_ASSERT(monitor != NULL);
 	/* NOTE: Wayland has no way to get the actual workarea as far as I'm aware :( */
 	if (x) *x = monitor->x;
 	if (y) *y = monitor->y;
@@ -10869,6 +10889,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_getWorkarea) (RGFW_monitor* monitor, i32* x, i3
 }
 
 size_t RGFW_FUNC(RGFW_monitor_getModesPtr) (RGFW_monitor* monitor, RGFW_monitorMode** modes) {
+	RGFW_ASSERT(monitor != NULL);
 	if (modes) {
 		RGFW_MEMCPY((*modes), monitor->node->modes, monitor->node->modeCount * sizeof(RGFW_monitorMode));
 	}
@@ -10877,16 +10898,19 @@ size_t RGFW_FUNC(RGFW_monitor_getModesPtr) (RGFW_monitor* monitor, RGFW_monitorM
 }
 
 size_t RGFW_FUNC(RGFW_monitor_getGammaRampPtr) (RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
+	RGFW_ASSERT(monitor != NULL);
 	RGFW_UNUSED(monitor); RGFW_UNUSED(ramp);
 	return 0;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_setGammaRamp) (RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
+	RGFW_ASSERT(monitor != NULL);
 	RGFW_UNUSED(monitor); RGFW_UNUSED(ramp);
 	return RGFW_FALSE;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
+	RGFW_ASSERT(mon != NULL);
 	for (size_t i = 0; i < mon->node->modeCount; i++) {
 		if (RGFW_monitorModeCompare(mode, &mon->node->modes[i], request) == RGFW_FALSE) {
 			continue;
@@ -10900,6 +10924,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor* mon, RGFW_monitorMo
 }
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_setMode) (RGFW_monitor* mon, RGFW_monitorMode* mode) {
+	RGFW_ASSERT(mon != NULL);
 	RGFW_UNUSED(mon); RGFW_UNUSED(mode);
 	return RGFW_FALSE;
 }
@@ -12139,6 +12164,7 @@ RGFW_bool RGFW_window_isMaximized(RGFW_window* win) {
 }
 
 RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
+	RGFW_ASSERT(monitor != NULL);
     MONITORINFOEX mi;
 	mi.cbSize = sizeof(MONITORINFOEX);
 	GetMonitorInfoA(monitor->node->hMonitor, (LPMONITORINFO)&mi);
@@ -12152,6 +12178,7 @@ RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* w
 }
 
 size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
+	RGFW_ASSERT(monitor != NULL);
     WORD values[3][256];
 
     HDC dc = CreateDCW(L"DISPLAY", monitor->node->adapterName, NULL, NULL);
@@ -12168,6 +12195,7 @@ size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
 }
 
 RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
+	RGFW_ASSERT(monitor != NULL);
     WORD values[3][256];
     if (ramp->count != 256) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errX11, "Win32: Gamma ramp size must be 256");
@@ -12223,7 +12251,8 @@ void RGFW_win32_getMode(DEVMODEW* dm, RGFW_monitorMode* mode) {
     }
 }
 
-size_t RGFW_monitor_getModesPtr(RGFW_monitor* monitor, RGFW_monitorMode** modes){
+size_t RGFW_monitor_getModesPtr(RGFW_monitor* monitor, RGFW_monitorMode** modes) {
+	RGFW_ASSERT(monitor != NULL);
 	size_t count = 0;
 	DWORD modeIndex = 0;
 
@@ -12423,6 +12452,7 @@ RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) {
 }
 
 RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) {
+	RGFW_ASSERT(mon != NULL);
 	DEVMODEW dm;
 	ZeroMemory(&dm, sizeof(dm));
 	dm.dmSize = sizeof(dm);
@@ -12447,7 +12477,8 @@ RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) {
 }
 
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
-HMONITOR src = mon->node->hMonitor;
+	RGFW_ASSERT(mon != NULL);
+	HMONITOR src = mon->node->hMonitor;
 
 	MONITORINFOEX  monitorInfo;
 	monitorInfo.cbSize = sizeof(MONITORINFOEX);
@@ -14848,6 +14879,7 @@ void RGFW_monitorNode_free(RGFW_monitorNode* node) {
 }
 
 RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
+	RGFW_ASSERT(monitor != NULL);
 	NSRect frameRect = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)monitor->node->screen, sel_registerName("visibleFrame"));
 
     if (x) *x = (i32)frameRect.origin.x;
@@ -14859,6 +14891,7 @@ RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* w
 }
 
 size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
+	RGFW_ASSERT(monitor != NULL);
 	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	pool = objc_msgSend_id(pool, sel_registerName("init"));
 
@@ -14880,6 +14913,7 @@ size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
 }
 
 RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
+	RGFW_ASSERT(monitor != NULL);
 	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	pool = objc_msgSend_id(pool, sel_registerName("init"));
 
@@ -14901,6 +14935,7 @@ RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
 }
 
 size_t RGFW_monitor_getModesPtr(RGFW_monitor* mon, RGFW_monitorMode** modes) {
+	RGFW_ASSERT(mon != NULL);
     CGDirectDisplayID display = mon->node->display;
     CFArrayRef allModes = CGDisplayCopyAllDisplayModes(display, NULL);
 
@@ -14928,6 +14963,7 @@ size_t RGFW_monitor_getModesPtr(RGFW_monitor* mon, RGFW_monitorMode** modes) {
 }
 
 RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) {
+	RGFW_ASSERT(mon != NULL);
 	if (CGDisplaySetDisplayMode(mon->node->display, (CGDisplayModeRef)mode->src, NULL) == kCGErrorSuccess) {
 		return RGFW_TRUE;
 	}
@@ -14936,6 +14972,7 @@ RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) {
 }
 
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
+	RGFW_ASSERT(mon != NULL);
     CGDirectDisplayID display = mon->node->display;
     CFArrayRef allModes = CGDisplayCopyAllDisplayModes(display, NULL);
 
