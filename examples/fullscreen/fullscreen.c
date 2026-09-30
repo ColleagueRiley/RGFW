@@ -1,24 +1,23 @@
 #define RGFW_OPENGL
 #define RGFW_DEBUG
 #define RGFW_IMPLEMENTATION
-#define RGFW_EGL
 #include "RGFW.h"
 
 #define RGL_LOAD_IMPLEMENTATION
 #include "../gl33/rglLoad.h"
 
 int main(void) {
-	RGFW_init("RGFW Example", RGFW_initEGL);
+	RGFW_init("RGFW Example", RGFW_initOpenGL);
 
     RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
     hints->major = 3;
     hints->minor = 3;
     RGFW_setGlobalHints_OpenGL(hints);
 
-	RGFW_window* win = RGFW_createWindow("RGFW flags", 200, 200, 600, 400, RGFW_windowAllowDND | RGFW_windowEGL);
+	RGFW_window* win = RGFW_createWindow("RGFW flags", 200, 200, 600, 400, RGFW_windowAllowDND | RGFW_windowOpenGL);
     RGFW_window_setExitKey(win, RGFW_keyEscape);
 
-	if (RGL_loadGL3((RGLloadfunc)RGFW_getProcAddress_EGL)) {
+	if (RGL_loadGL3((RGLloadfunc)RGFW_getProcAddress_OpenGL)) {
         printf("Failed to initialize GLAD\n");
         return -1;
     }
@@ -41,7 +40,7 @@ int main(void) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		RGFW_window_swapBuffers_EGL(win);
+		RGFW_window_swapBuffers_OpenGL(win);
 	}
 
     RGFW_window_close(win);
