@@ -2324,11 +2324,25 @@ RGFWDEF void RGFW_window_moveMouse(RGFW_window* win, i32 x, i32 y);
 RGFWDEF RGFW_bool RGFW_window_shouldClose(RGFW_window* win);
 
 /**!
- * @brief Checks if the window is currently fullscreen.
+ * @brief Checks if the window is currently fullscreen (borderless or exclusive).
  * @param win The target window.
  * @return True if the window is fullscreen.
 */
 RGFWDEF RGFW_bool RGFW_window_isFullscreen(RGFW_window* win);
+
+/**!
+ * @brief Checks if the window is currently fullscreen (exclusive).
+ * @param win The target window.
+ * @return True if the window is fullscreen.
+*/
+RGFWDEF RGFW_bool RGFW_window_isFullscreenExclusive(RGFW_window* win);
+
+/**!
+ * @brief Checks if the window is currently fullscreen (borderless).
+ * @param win The target window.
+ * @return True if the window is fullscreen.
+*/
+RGFWDEF RGFW_bool RGFW_window_isFullscreenBorderless(RGFW_window* win);
 
 /**!
  * @brief Checks if the window is currently hidden.
@@ -5110,7 +5124,9 @@ RGFW_bool RGFW_window_borderless(RGFW_window* win) {
 	return (RGFW_bool)RGFW_BOOL(win->internal.flags & RGFW_windowNoBorder);
 }
 
-RGFW_bool RGFW_window_isFullscreen(RGFW_window* win){ return RGFW_BOOL(win->internal.flags & RGFW_windowFullscreenExclusive) || RGFW_BOOL(win->internal.flags & RGFW_windowFullscreenBorderless); }
+RGFW_bool RGFW_window_isFullscreenExclusive(RGFW_window* win){ return RGFW_BOOL(win->internal.flags & RGFW_windowFullscreenExclusive); }
+RGFW_bool RGFW_window_isFullscreenBorderless(RGFW_window* win){ return RGFW_BOOL(win->internal.flags & RGFW_windowFullscreenBorderless); }
+RGFW_bool RGFW_window_isFullscreen(RGFW_window* win){ return RGFW_window_isFullscreenExclusive(win) || RGFW_window_isFullscreenBorderless(win); }
 RGFW_bool RGFW_window_allowsDND(RGFW_window* win) { return RGFW_BOOL(win->internal.flags & RGFW_windowAllowDND); }
 
 RGFW_bool RGFW_window_setMouseDefault(RGFW_window* win) {
@@ -7894,7 +7910,7 @@ void RGFW_FUNC(RGFW_window_focus) (RGFW_window* win) {
 void RGFW_FUNC(RGFW_window_raise) (RGFW_window* win) {
 	RGFW_ASSERT(win);
 	XMapRaised(_RGFW->display, win->src.window);
-	RGFW_window_setFullscreen(win, RGFW_window_isFullscreen(win));
+	RGFW_window_setFullscreenPlatform(win, RGFW_window_isFullscreen(win));
 }
 
 void RGFW_window_setXAtom(RGFW_window* win, Atom netAtom, RGFW_bool fullscreen);
@@ -8678,8 +8694,9 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_setMode)(RGFW_monitor* mon, RGFW_monitorMode* m
 	XRRScreenResources* res = XRRGetScreenResourcesCurrent(_RGFW->display, DefaultRootWindow(_RGFW->display));
 	XRRCrtcInfo* ci = XRRGetCrtcInfo(_RGFW->display, res, mon->node->crtc);
 
-	if (XRRSetCrtcConfig(_RGFW->display, res, mon->node->crtc, CurrentTime, ci->x, ci->y, (RRMode)mode->src, ci->rotation, ci->outputs, ci->noutput) == True) {
+	if (XRRSetCrtcConfig(_RGFW->display, res, mon->node->crtc, CurrentTime, ci->x, ci->y, (RRMode)mode->src, ci->rotation, ci->outputs, ci->noutput) == 0) {
 		out = RGFW_TRUE;
+		mon->mode = *mode;
 	}
 
 	XRRFreeCrtcInfo(ci);
@@ -10925,7 +10942,7 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_requestMode) (RGFW_monitor* mon, RGFW_monitorMo
 
 RGFW_bool RGFW_FUNC(RGFW_monitor_setMode) (RGFW_monitor* mon, RGFW_monitorMode* mode) {
 	RGFW_ASSERT(mon != NULL);
-	RGFW_UNUSED(mon); RGFW_UNUSED(mode);
+	mon->mode = *mode;
 	return RGFW_FALSE;
 }
 
@@ -12470,6 +12487,7 @@ RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) {
 	if (ChangeDisplaySettingsExW(mon->node->adapterName, &dm, NULL, CDS_TEST, NULL) == DISP_CHANGE_SUCCESSFUL) {
 		if (ChangeDisplaySettingsExW(mon->node->adapterName, &dm, NULL, CDS_UPDATEREGISTRY, NULL) == DISP_CHANGE_SUCCESSFUL) {
 			RGFW_win32_getMode(&dm, &mon->mode);
+			mon->mode = *mode;
 			return RGFW_TRUE;
 		}
 		return RGFW_FALSE;
@@ -14965,6 +14983,7 @@ size_t RGFW_monitor_getModesPtr(RGFW_monitor* mon, RGFW_monitorMode** modes) {
 RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) {
 	RGFW_ASSERT(mon != NULL);
 	if (CGDisplaySetDisplayMode(mon->node->display, (CGDisplayModeRef)mode->src, NULL) == kCGErrorSuccess) {
+		mon->mode = *mode;
 		return RGFW_TRUE;
 	}
 
