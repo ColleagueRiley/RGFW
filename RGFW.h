@@ -14488,10 +14488,12 @@ void RGFW_window_raise(RGFW_window* win) {
     	objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), kCGNormalWindowLevel);
 }
 
-void RGFW_window_setFullscreenPlatform(RGFW_window* win, RGFW_bool fullscreen) {
+void RGFW_window_setFullscrenPlatform(RGFW_window* win, RGFW_bool fullscreen) {
 	if (fullscreen) {
 		((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("orderFront:"), (SEL)NULL);
 		objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), 25);
+	} else {
+		objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), kCGNormalWindowLevel);
 	}
 
 	objc_msgSend_void_SEL(win->src.window, sel_registerName("toggleFullScreen:"), NULL);
