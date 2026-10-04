@@ -14296,7 +14296,7 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 		win->src.window = ((id(*)(id, SEL, NSRect, NSWindowStyleMask, NSBackingStoreType, bool))objc_msgSend)
 			(NSAlloc(nsclass), func, windowRect, (NSWindowStyleMask)macArgs, macArgs, false);
 
-		Class cls = object_getClass(win->src.window);
+		Class cls = object_getClass((id)win->src.window);
 
 		class_addMethod(
 			cls,
@@ -14376,7 +14376,7 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 	}
 
 	/* changing the style can clear the first responder */
-	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.window, sel_registerName("makeFirstResponder:"), win->src.view);
+	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.window, sel_registerName("makeFirstResponder:"), (id)win->src.view);
 
 	RGFW_window_move(win, win->x, win->y);
 	RGFW_window_resize(win, win->w, win->h + (i32)offset);
