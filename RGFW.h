@@ -14356,7 +14356,7 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 
 	RGFW_setBit(&win->internal.flags, RGFW_windowNoBorder, !border);
 
-	NSBackingStoreType styleMask = ((NSWindowStyleMask (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_registerName("styleMask"));
+	NSWindowStyleMask styleMask = ((NSWindowStyleMask (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_registerName("styleMask"));
     if (border) {
         styleMask |= (NSWindowStyleMaskTitled | NSWindowStyleMaskClosable);
         styleMask &= (u32)~NSWindowStyleMaskBorderless;
@@ -14365,7 +14365,7 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
         styleMask &= (u32)~(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable);
     }
 
-	((void (*)(id, SEL, NSBackingStoreType))objc_msgSend)((id)win->src.window, sel_registerName("setStyleMask:"), styleMask);
+	((void (*)(id, SEL, NSWindowStyleMask))objc_msgSend)((id)win->src.window, sel_registerName("setStyleMask:"), styleMask);
 
 	if (!border) {
 		/*id miniaturizeButton = objc_msgSend_int((id)win->src.window, sel_registerName("standardWindowButton:"),  NSWindowMiniaturizeButton);
