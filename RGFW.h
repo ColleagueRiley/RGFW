@@ -3754,6 +3754,12 @@ void RGFW_windowFocusCallback(RGFW_window* win, RGFW_bool inFocus) {
 	event.common.win = win;
 	event.focus.state = inFocus;
 
+	#ifdef RGFW_MACOS
+	if (RGFW_window_isFullscreen(win)) {
+		RGFW_window_setFullscreenPlatform(win, inFocus);
+	}
+	#endif
+
 	if (inFocus == RGFW_TRUE) {
 		if ((win->internal.flags & RGFW_windowFullscreenExclusive) && win->internal.monitor) {
 			RGFW_window_raise(win);
@@ -13971,6 +13977,18 @@ static void RGFW__osxScrollWheel(id self, SEL _cmd, id event) {
     RGFW_mouseScrollCallback(win, deltaX, deltaY);
 }
 
+BOOL RGFW__osxCanBecomeKeyWindow(id self, SEL _cmd);
+BOOL RGFW__osxCanBecomeKeyWindow(id self, SEL _cmd) {
+	RGFW_UNUSED(self); RGFW_UNUSED(_cmd);
+    return YES;
+}
+
+BOOL RGFW__osxCanBecomeMainWindow(id self, SEL _cmd);
+BOOL RGFW__osxCanBecomeMainWindow(id self, SEL _cmd) {
+	RGFW_UNUSED(self); RGFW_UNUSED(_cmd);
+	return YES;
+}
+
 RGFW_format RGFW_nativeFormat(void) { return RGFW_formatRGBA8; }
 
 RGFW_bool RGFW_createSurfacePtr(u8* data, i32 w, i32 h, RGFW_format format, RGFW_surface* surface) {
@@ -14276,6 +14294,22 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 
 		win->src.window = ((id(*)(id, SEL, NSRect, NSWindowStyleMask, NSBackingStoreType, bool))objc_msgSend)
 			(NSAlloc(nsclass), func, windowRect, (NSWindowStyleMask)macArgs, macArgs, false);
+
+		Class cls = object_getClass(win->src.window);
+
+		class_addMethod(
+			cls,
+			sel_registerName("canBecomeKeyWindow"),
+			(IMP)RGFW__osxCanBecomeKeyWindow,
+			"c@:"
+		);
+
+		class_addMethod(
+			cls,
+			sel_registerName("canBecomeMainWindow"),
+			(IMP)RGFW__osxCanBecomeMainWindow,
+			"c@:"
+		);
 	}
 
 	id str = NSString_stringWithUTF8String(name);
@@ -14320,23 +14354,30 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 	double offset = 0;
 
 	RGFW_setBit(&win->internal.flags, RGFW_windowNoBorder, !border);
-	NSBackingStoreType storeType = (NSBackingStoreType)(NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView);
-	if (border)
-		storeType = (NSBackingStoreType)(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable);
-	if (!(win->internal.flags & RGFW_windowNoResize)) {
-		storeType = (NSBackingStoreType)(storeType | (NSBackingStoreType)NSWindowStyleMaskResizable);
-	}
 
-	((void (*)(id, SEL, NSBackingStoreType))objc_msgSend)((id)win->src.window, sel_registerName("setStyleMask:"), storeType);
+	NSBackingStoreType styleMask = ((NSWindowStyleMask (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_registerName("styleMask"));
+    if (border) {
+        styleMask |= (NSWindowStyleMaskTitled | NSWindowStyleMaskClosable);
+        styleMask &= (u32)~NSWindowStyleMaskBorderless;
+    } else {
+        styleMask |= NSWindowStyleMaskBorderless;
+        styleMask &= (u32)~(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable);
+    }
+
+	((void (*)(id, SEL, NSBackingStoreType))objc_msgSend)((id)win->src.window, sel_registerName("setStyleMask:"), styleMask);
 
 	if (!border) {
-		id miniaturizeButton = objc_msgSend_int((id)win->src.window, sel_registerName("standardWindowButton:"),  NSWindowMiniaturizeButton);
+		/*id miniaturizeButton = objc_msgSend_int((id)win->src.window, sel_registerName("standardWindowButton:"),  NSWindowMiniaturizeButton);
 		id titleBarView = objc_msgSend_id(miniaturizeButton, sel_registerName("superview"));
-		objc_msgSend_void_bool(titleBarView, sel_registerName("setHidden:"), true);
+		objc_msgSend_void_bool(titleBarView, sel_registerName("setHidden:"), true); */
 
 		offset = (double)(frame.size.height - content.size.height);
 	}
 
+	/* changing the style can clear the first responder */
+	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.window, sel_registerName("makeFirstResponder:"), win->src.view);
+
+	RGFW_window_move(win, win->x, win->y);
 	RGFW_window_resize(win, win->w, win->h + (i32)offset);
 	win->h -= (i32)offset;
 }
@@ -14507,7 +14548,7 @@ void RGFW_window_maximizePlatform(RGFW_window* win) {
 
 void RGFW_window_minimizePlatform(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-	objc_msgSend_void_SEL(win->src.window, sel_registerName("performMiniaturize:"), NULL);
+	objc_msgSend_void_SEL(win->src.window, sel_registerName("miniaturize:"), NULL);
 }
 
 void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating) {
