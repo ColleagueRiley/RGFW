@@ -3177,6 +3177,7 @@ struct RGFW_monitorNode {
 	void* screen;
 	CGDirectDisplayID display;
 	u32 uintNum;
+	CFArrayRef allModes;
 #endif
 };
 
@@ -14896,9 +14897,21 @@ void RGFW_pollMonitors(void) {
 		monitor.y = (i32)RGFW_cocoaYTransform((float)(bounds.origin.y + bounds.size.height - 1));
 
 		CGDisplayModeRef mode = CGDisplayCopyDisplayMode(displays[i]);
+
+		CFArrayRef allModes = CGDisplayCopyAllDisplayModes(displays[i], NULL);
+		CFIndex modeCount = (CFIndex)CFArrayGetCount(allModes);
+
+		CFIndex modeIndex;
+		for (modeIndex = 0; modeIndex < modeCount && allModes; modeIndex++) {
+			CGDisplayModeRef cmode = (CGDisplayModeRef)CFArrayGetValueAtIndex(allModes, modeIndex);
+			if (cmode == mode) {
+				monitor.mode.src = (void*)modeIndex;
+				break;
+			}
+		}
+
 		monitor.mode.w = (i32)CGDisplayModeGetWidth(mode);
 		monitor.mode.h = (i32)CGDisplayModeGetHeight(mode);
-		monitor.mode.src = (void*)mode;
 		monitor.mode.red = 8; monitor.mode.green = 8; monitor.mode.blue = 8;
 
 		monitor.mode.refreshRate = RGFW_osx_getRefreshRate(displays[i], mode);
@@ -14919,6 +14932,7 @@ void RGFW_pollMonitors(void) {
 
 		node = RGFW_monitors_add(&monitor);
 
+		node->allModes = allModes;
 		node->screen = (void*)screen;
 		node->uintNum = uintNum;
 		node->display = displays[i];
@@ -14937,6 +14951,7 @@ void RGFW_pollMonitors(void) {
 
 void RGFW_monitorNode_free(RGFW_monitorNode* node) {
 	RGFW_ASSERT(node);
+    CFRelease(node->allModes);
 }
 
 RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* width, i32* height) {
@@ -14998,7 +15013,7 @@ RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
 size_t RGFW_monitor_getModesPtr(RGFW_monitor* mon, RGFW_monitorMode** modes) {
 	RGFW_ASSERT(mon != NULL);
     CGDirectDisplayID display = mon->node->display;
-    CFArrayRef allModes = CGDisplayCopyAllDisplayModes(display, NULL);
+    CFArrayRef allModes = mon->node->allModes;
 
     if (allModes == NULL) {
         return RGFW_FALSE;
@@ -15015,17 +15030,18 @@ size_t RGFW_monitor_getModesPtr(RGFW_monitor* mon, RGFW_monitorMode** modes) {
 		foundMode.h = (i32)CGDisplayModeGetHeight(cmode);
 		foundMode.refreshRate =  RGFW_osx_getRefreshRate(display, cmode);
 		foundMode.red = 8; foundMode.green = 8; foundMode.blue = 8;
-		foundMode.src = (void*)cmode;
+		foundMode.src = (void*)i;
 		(*modes)[i] = foundMode;
     }
 
-    CFRelease(allModes);
 	return count;
 }
 
 RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) {
 	RGFW_ASSERT(mon != NULL);
-	if (CGDisplaySetDisplayMode(mon->node->display, (CGDisplayModeRef)mode->src, NULL) == kCGErrorSuccess) {
+
+    CGDisplayModeRef cmode = (CGDisplayModeRef)CFArrayGetValueAtIndex(mon->node->allModes, (CFIndex)mode->src);
+	if (CGDisplaySetDisplayMode(mon->node->display, cmode, NULL) == kCGErrorSuccess) {
 		mon->mode = *mode;
 		return RGFW_TRUE;
 	}
@@ -15036,7 +15052,7 @@ RGFW_bool RGFW_monitor_setMode(RGFW_monitor* mon, RGFW_monitorMode* mode) {
 RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RGFW_modeRequest request) {
 	RGFW_ASSERT(mon != NULL);
     CGDirectDisplayID display = mon->node->display;
-    CFArrayRef allModes = CGDisplayCopyAllDisplayModes(display, NULL);
+    CFArrayRef allModes = mon->node->allModes;
 
     if (allModes == NULL) {
         return RGFW_FALSE;
@@ -15053,7 +15069,7 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RG
 		foundMode.h = (i32)CGDisplayModeGetHeight(cmode);
 		foundMode.refreshRate =  RGFW_osx_getRefreshRate(display, cmode);
 		foundMode.red = 8; foundMode.green = 8; foundMode.blue = 8;
-		foundMode.src = (void*)cmode;
+		foundMode.src = (void*)i;
 
 		if (RGFW_monitorModeCompare(mode, &foundMode, request)) {
 			native = cmode;
@@ -15061,8 +15077,6 @@ RGFW_bool RGFW_monitor_requestMode(RGFW_monitor* mon, RGFW_monitorMode* mode, RG
 			break;
         }
     }
-
-    CFRelease(allModes);
 
 	if (native) {
 		if (CGDisplaySetDisplayMode(display, native, NULL) == kCGErrorSuccess) {
