@@ -12138,7 +12138,7 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
         case VK_NUMPAD9: return RGFW_keyPad9;
         case VK_SNAPSHOT: return RGFW_keyPrintScreen;
         case VK_PAUSE:    return RGFW_keyPause;
-        default: return RGFW_keyNULL;
+        default: break; 
     }
 
     return RGFW_keyNULL;
@@ -12902,8 +12902,11 @@ i32 RGFW_window_createSwapChain_DirectX(RGFW_window* win, IDXGIFactory* pFactory
     swapChainDesc.SampleDesc.Quality = 0;
     swapChainDesc.Windowed = TRUE;
     swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
+#ifdef __cplusplus
+    HRESULT hr = pFactory->CreateSwapChain(pDevice, &swapChainDesc, swapchain);
+#else
     HRESULT hr = pFactory->lpVtbl->CreateSwapChain(pFactory, (IUnknown*)pDevice, &swapChainDesc, swapchain);
+#endif
     if (FAILED(hr)) {
         RGFW_debugCallback(RGFW_typeError, RGFW_errDirectXContext,  "Failed to create DirectX swap chain!");
         return -2;
@@ -14893,7 +14896,7 @@ void RGFW_pollMonitors(void) {
 
 		CGRect bounds = CGDisplayBounds(displays[i]);
 		monitor.x = (i32)bounds.origin.x;
-		monitor.y = (i32)RGFW_cocoaYTransform((float)(bounds.origin.y + bounds.size.height - 1));
+		monitor.y = (i32)bounds.origin.y;
 
 		CGDisplayModeRef mode = CGDisplayCopyDisplayMode(displays[i]);
 
