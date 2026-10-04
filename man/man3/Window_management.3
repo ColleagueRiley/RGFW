@@ -1,4 +1,4 @@
-.TH "Window_management" 3 "Wed Sep 16 2026" "RGFW" \" -*- nroff -*-
+.TH "Window_management" 3 "Sun Oct 4 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -125,7 +125,7 @@ Window_management \- Window_management
 .br
 .RI "maximizes the window "
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_setFullscreen\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP fullscreen)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setFullscreen\fP (\fBRGFW_window\fP *win, RGFW_fullscreenMode mode)"
 .br
 .RI "toggles fullscreen mode for the window "
 .ti -1c
@@ -254,7 +254,15 @@ Window_management \- Window_management
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isFullscreen\fP (\fBRGFW_window\fP *win)"
 .br
-.RI "Checks if the window is currently fullscreen\&. "
+.RI "Checks if the window is currently fullscreen (borderless or exclusive)\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isFullscreenExclusive\fP (\fBRGFW_window\fP *win)"
+.br
+.RI "Checks if the window is currently fullscreen (exclusive)\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isFullscreenBorderless\fP (\fBRGFW_window\fP *win)"
+.br
+.RI "Checks if the window is currently fullscreen (borderless)\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isHidden\fP (\fBRGFW_window\fP *win)"
 .br
@@ -636,7 +644,39 @@ True if the window is floating\&.
 .SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isFullscreen (\fBRGFW_window\fP * win)"
 
 .PP
-Checks if the window is currently fullscreen\&. ! 
+Checks if the window is currently fullscreen (borderless or exclusive)\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if the window is fullscreen\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isFullscreenBorderless (\fBRGFW_window\fP * win)"
+
+.PP
+Checks if the window is currently fullscreen (borderless)\&. ! 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwin\fP The target window\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+True if the window is fullscreen\&. 
+.RE
+.PP
+
+.SS "\fBRGFWDEF\fP \fBRGFW_bool\fP RGFW_window_isFullscreenExclusive (\fBRGFW_window\fP * win)"
+
+.PP
+Checks if the window is currently fullscreen (exclusive)\&. ! 
 .PP
 \fBParameters\fP
 .RS 4
@@ -1032,7 +1072,7 @@ makes the window a floating window !
 .RE
 .PP
 
-.SS "\fBRGFWDEF\fP void RGFW_window_setFullscreen (\fBRGFW_window\fP * win, \fBRGFW_bool\fP fullscreen)"
+.SS "\fBRGFWDEF\fP void RGFW_window_setFullscreen (\fBRGFW_window\fP * win, RGFW_fullscreenMode mode)"
 
 .PP
 toggles fullscreen mode for the window ! 
@@ -1041,7 +1081,7 @@ toggles fullscreen mode for the window !
 .RS 4
 \fIwin\fP a pointer to the target window 
 .br
-\fIfullscreen\fP RGFW_TRUE to enable fullscreen, RGFW_FALSE to disable 
+\fIfullscreen\fP the fullscreen mode to use RGFW_fullscreenNone, RGFW_fullscreenBorderless, RGFW_fullscreenExclusive 
 .RE
 .PP
 

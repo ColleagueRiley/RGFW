@@ -4,6 +4,10 @@
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 
+#ifdef _MSC_VER
+	#pragma comment(lib, "opengl32")
+#endif
+
 #ifdef RGFW_MACOS
 #include <OpenGL/gl.h>
 #else

@@ -1,4 +1,4 @@
-.TH "RGFW.h" 3 "Wed Sep 16 2026" "RGFW" \" -*- nroff -*-
+.TH "RGFW.h" 3 "Sun Oct 4 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -13,6 +13,8 @@ RGFW.h
 \fC#include <string\&.h>\fP
 .br
 \fC#include <stddef\&.h>\fP
+.br
+\fC#include <limits\&.h>\fP
 .br
 \fC#include <stdint\&.h>\fP
 .br
@@ -121,6 +123,9 @@ RGFW.h
 .br
 .ti -1c
 .RI "#define \fBRGFW_ROUND\fP(x)   (\fBi32\fP)((x) >= 0 ? (x) + 0\&.5f : (x) \- 0\&.5f)"
+.br
+.ti -1c
+.RI "#define \fBRGFW_ABS\fP(x)   (((x) < 0) ? \-(x) : (x))"
 .br
 .ti -1c
 .RI "#define \fBRGFW_ROUNDF\fP(x)   (float)((\fBi32\fP)((x) + ((x) < 0\&.0f ? \-0\&.5f : 0\&.5f)))"
@@ -388,6 +393,9 @@ RGFW.h
 .RI "flags for toggling whether or not an event should be processed "
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBi32\fP, RGFW_eventWait)"
+.br
+.ti -1c
+.RI "typedef \fBRGFW_ENUM\fP (\fBu8\fP, RGFW_fullscreenMode)"
 .br
 .ti -1c
 .RI "typedef \fBRGFW_ENUM\fP (\fBu32\fP, RGFW_windowFlags)"
@@ -927,7 +935,7 @@ RGFW.h
 .br
 .RI "maximizes the window "
 .ti -1c
-.RI "\fBRGFWDEF\fP void \fBRGFW_window_setFullscreen\fP (\fBRGFW_window\fP *win, \fBRGFW_bool\fP fullscreen)"
+.RI "\fBRGFWDEF\fP void \fBRGFW_window_setFullscreen\fP (\fBRGFW_window\fP *win, RGFW_fullscreenMode mode)"
 .br
 .RI "toggles fullscreen mode for the window "
 .ti -1c
@@ -1056,7 +1064,15 @@ RGFW.h
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isFullscreen\fP (\fBRGFW_window\fP *win)"
 .br
-.RI "Checks if the window is currently fullscreen\&. "
+.RI "Checks if the window is currently fullscreen (borderless or exclusive)\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isFullscreenExclusive\fP (\fBRGFW_window\fP *win)"
+.br
+.RI "Checks if the window is currently fullscreen (exclusive)\&. "
+.ti -1c
+.RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isFullscreenBorderless\fP (\fBRGFW_window\fP *win)"
+.br
+.RI "Checks if the window is currently fullscreen (borderless)\&. "
 .ti -1c
 .RI "\fBRGFWDEF\fP \fBRGFW_bool\fP \fBRGFW_window_isHidden\fP (\fBRGFW_window\fP *win)"
 .br
@@ -1152,6 +1168,8 @@ RGFW.h
 .in -1c
 .SH "Macro Definition Documentation"
 .PP 
+.SS "#define RGFW_ABS(x)   (((x) < 0) ? \-(x) : (x))"
+
 .SS "#define RGFW_ALLOC   malloc"
 
 .SS "#define RGFW_ASSERT   assert"
@@ -1577,7 +1595,7 @@ optional bitwise arguments for making a windows, these can be OR'd together < th
 .PP
 the window should hide the mouse (can be toggled later on using \fCRGFW_window_showMouse\fP)
 .PP
-< the window is fullscreen by default
+< the window is exclusive fullscreen by default
 .PP
 < the window is translucent (only properly works on X11 and MacOS, although it's meant for for windows)
 .PP
@@ -1608,6 +1626,8 @@ the window is hidden
 < create an OpenGL context (you can also do this manually with RGFW_window_createContext_OpenGL)
 .PP
 < create an EGL context (you can also do this manually with RGFW_window_createContext_EGL)
+.PP
+< the window is borderless fullscreen by default
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_dataTransferType)"
 types of transfered data (clipboard, dnd) < plain text string
 .PP
@@ -1706,6 +1726,14 @@ The color format for pixel data\&. < 8-bit RGB (3 channels)
 < 8-bit BGRA (4 channels)
 .PP
 < 8-bit BGRA (4 channels)
+.SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_fullscreenMode)"
+< borderless/windowed fullscreen | the window changes it's size to match the monitor's current mode the window is not hidden and maintains it's size when it is unfocused
+.PP
+< borderless/windowed fullscreen
+.PP
+< exclusive fullscreen | the monitor's mode tries to change to match the window's size\&. The original mode is toggled when the window goes in and out of focus and the window is hidden when it is not in focus
+.PP
+< exclusive fullscreen
 .SS "typedef RGFW_ENUM (\fBu8\fP, RGFW_icon)"
 
 .PP
