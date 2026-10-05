@@ -14896,7 +14896,7 @@ void RGFW_pollMonitors(void) {
 
 		CGRect bounds = CGDisplayBounds(displays[i]);
 		monitor.x = (i32)bounds.origin.x;
-		monitor.y = (i32)RGFW_cocoaYTransform((float)(bounds.origin.y + bounds.size.height - 1));
+		monitor.y = (i32)bounds.origin.y;
 
 		CGDisplayModeRef mode = CGDisplayCopyDisplayMode(displays[i]);
 
