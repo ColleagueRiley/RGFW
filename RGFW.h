@@ -7333,6 +7333,7 @@ void RGFW_XHandleEvent(void) {
 	static float deltaY = 0.0f;
 
 	XEvent E;
+	RGFW_MEMSET(&E, 0);
 
 	XNextEvent(_RGFW->display, &E);
 
@@ -12138,7 +12139,7 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
         case VK_NUMPAD9: return RGFW_keyPad9;
         case VK_SNAPSHOT: return RGFW_keyPrintScreen;
         case VK_PAUSE:    return RGFW_keyPause;
-        default: break; 
+        default: break;
     }
 
     return RGFW_keyNULL;
