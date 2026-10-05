@@ -13974,10 +13974,15 @@ static void RGFW__osxScrollWheel(id self, SEL _cmd, id event) {
     object_getInstanceVariable(self, "RGFW_window", (void**)&win);
     if (win == NULL) return;
 
-    float deltaX = (float)((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaX"));
-	float deltaY = (float)((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("deltaY"));
+	CGFloat deltaX = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("scrollingDeltaX"));
+	CGFloat deltaY = ((CGFloat(*)(id, SEL))abi_objc_msgSend_fpret)(event, sel_registerName("scrollingDeltaY"));
 
-    RGFW_mouseScrollCallback(win, deltaX, deltaY);
+	if (objc_msgSend_bool(event, sel_registerName("hasPreciseScrollingDeltas"))) {
+		deltaX *= (CGFloat)0.1;
+		deltaY *= (CGFloat)0.1;
+	}
+
+    RGFW_mouseScrollCallback(win, (float)deltaX, (float)deltaY);
 }
 
 BOOL RGFW__osxCanBecomeKeyWindow(id self, SEL _cmd);
