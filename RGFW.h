@@ -4776,7 +4776,6 @@ void RGFW_copyImageData64(u8* dest_data, i32 dest_w, i32 dest_h, RGFW_format des
 }
 
 RGFW_monitorNode* RGFW_monitors_add(const RGFW_monitor* mon) {
-	RGFW_ASSERT(mon != NULL);
 	RGFW_monitorNode* node = NULL;
 
 	#if (RGFW_PREALLOCATED_MONITORS)
