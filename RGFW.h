@@ -4092,26 +4092,6 @@ i32 RGFW_init_ptr(const char* className, RGFW_initFlags flags, RGFW_info* info) 
     RGFW_setInfo(info);
     RGFW_MEMZERO(_RGFW, sizeof(RGFW_info));
 
-	if (flags & RGFW_initOpenGL) {
-		#ifdef RGFW_WAYLAND
-		if (!(flags & RGFW_initX11)) {
-			flags |= RGFW_initEGL;
-		} else
-		#endif
-
-		if (RGFW_loadGL() == RGFW_FALSE) {
-			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the OpenGL library");
-			return -1;
-		}
-	}
-
-	if (flags & RGFW_initVulkan) {
-		if (RGFW_loadVulkan() == RGFW_FALSE) {
-			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the Vulkan library");
-			return -1;
-		}
-	}
-
 	#if (RGFW_PREALLOCATED_MONITORS)
 		_RGFW->monitors.freeList.head = &_RGFW->monitors.data[0];
 		_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.head;
@@ -4133,7 +4113,26 @@ i32 RGFW_init_ptr(const char* className, RGFW_initFlags flags, RGFW_info* info) 
 		return out;
 	}
 
-	/* EGL uses the Wayland/X11 display, so it needs to be initialized after the platform */
+	if (flags & RGFW_initOpenGL) {
+		#ifdef RGFW_WAYLAND
+		if (!(flags & RGFW_initX11)) {
+			flags |= RGFW_initEGL;
+		} else
+		#endif
+
+		if (RGFW_loadGL() == RGFW_FALSE) {
+			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the OpenGL library");
+			return -1;
+		}
+	}
+
+	if (flags & RGFW_initVulkan) {
+		if (RGFW_loadVulkan() == RGFW_FALSE) {
+			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the Vulkan library");
+			return -1;
+		}
+	}
+
 	if (flags & RGFW_initEGL) {
 		if (RGFW_loadEGL() == RGFW_FALSE) {
 			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the EGL library");
