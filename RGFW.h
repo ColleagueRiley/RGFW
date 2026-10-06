@@ -5525,7 +5525,7 @@ void RGFW_window_deleteContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 }
 
 RGFW_glContext* RGFW_copyContext_OpenGL(RGFW_glContext* ctx) {
-	RGFW_glContext* newCtx = RGFW_ALLOC(sizeof(RGFW_glContext));
+	RGFW_glContext* newCtx = (RGFW_glContext*)RGFW_ALLOC(sizeof(RGFW_glContext));
 	RGFW_copyContextPtr_OpenGL(ctx, newCtx);
 	return newCtx;
 }
@@ -9018,7 +9018,7 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* contex
 		RGFW_window_closePlatform(win);
 	}
 
-	XVisualInfo* vi = RGFW_glXGetVisualFromFBConfig(_RGFW->display, context->config);
+	XVisualInfo* vi = RGFW_glXGetVisualFromFBConfig(_RGFW->display, (GLXFBConfig)context->config);
 
 	/* use the visual to create a new window */
 	if (RGFW_XCreateWindow(*vi, "", win->internal.flags, win) == RGFW_FALSE) return RGFW_FALSE;
@@ -9028,7 +9028,7 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* contex
 	}
 
 	#ifndef RGFW_NO_GLXWINDOW
-		win->src.ctx.native->window = RGFW_glXCreateWindow(_RGFW->display, context->config, win->src.window, NULL);
+		win->src.ctx.native->window = RGFW_glXCreateWindow(_RGFW->display, (GLXFBConfig)context->config, win->src.window, NULL);
 	#else
 		win->src.ctx.native->window = win->src.window;
 	#endif
