@@ -972,18 +972,18 @@ var ASM_CONSTS = {
  68860: () => { return window.innerHeight || 0; },  
  68894: () => { window.addEventListener("keydown", (event) => { var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); var codepoint = event.key.charCodeAt(0); if(codepoint < 0x7f && event.key.length > 1) { codepoint = 0; } Module._RGFW_handleKeyEvent(code, codepoint, 1); Module._RGFW_webFree(code); }, true); window.addEventListener("keyup", (event) => { var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(code, 0, 0); Module._RGFW_webFree(code); }, true); },  
  69879: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; Module._RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); Module._Emscripten_onDrop(filename, path.length + 1); free(filename); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 70783: () => { return 'Asyncify' in Module; },  
- 70816: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 70887: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 70944: () => { return window.mouseX || 0; },  
- 70975: () => { return window.mouseY || 0; },  
- 71006: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 71153: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 71206: () => { return window.innerWidth; },  
- 71236: () => { return window.innerHeight; },  
- 71267: () => { Module.requestFullscreen(false, true); },  
- 71306: () => { Module.exitFullscreen(false, true); },  
- 71342: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
+ 70783: () => { return (typeof Asyncify !== 'undefined') || ('Asyncify' in Module); },  
+ 70855: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 70926: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 70983: () => { return window.mouseX || 0; },  
+ 71014: () => { return window.mouseY || 0; },  
+ 71045: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
+ 71192: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 71245: () => { return window.innerWidth; },  
+ 71275: () => { return window.innerHeight; },  
+ 71306: () => { Module.requestFullscreen(false, true); },  
+ 71345: () => { Module.exitFullscreen(false, true); },  
+ 71381: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
 };
 
 

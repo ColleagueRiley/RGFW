@@ -4092,26 +4092,6 @@ i32 RGFW_init_ptr(const char* className, RGFW_initFlags flags, RGFW_info* info) 
     RGFW_setInfo(info);
     RGFW_MEMZERO(_RGFW, sizeof(RGFW_info));
 
-	if (flags & RGFW_initOpenGL) {
-		#ifdef RGFW_WAYLAND
-		if (!(flags & RGFW_initX11)) {
-			flags |= RGFW_initEGL;
-		} else
-		#endif
-
-		if (RGFW_loadGL() == RGFW_FALSE) {
-			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the OpenGL library");
-			return -1;
-		}
-	}
-
-	if (flags & RGFW_initVulkan) {
-		if (RGFW_loadVulkan() == RGFW_FALSE) {
-			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the Vulkan library");
-			return -1;
-		}
-	}
-
 	#if (RGFW_PREALLOCATED_MONITORS)
 		_RGFW->monitors.freeList.head = &_RGFW->monitors.data[0];
 		_RGFW->monitors.freeList.cur = _RGFW->monitors.freeList.head;
@@ -4133,7 +4113,26 @@ i32 RGFW_init_ptr(const char* className, RGFW_initFlags flags, RGFW_info* info) 
 		return out;
 	}
 
-	/* EGL uses the Wayland/X11 display, so it needs to be initialized after the platform */
+	if (flags & RGFW_initOpenGL) {
+		#ifdef RGFW_WAYLAND
+		if (!(flags & RGFW_initX11)) {
+			flags |= RGFW_initEGL;
+		} else
+		#endif
+
+		if (RGFW_loadGL() == RGFW_FALSE) {
+			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the OpenGL library");
+			return -1;
+		}
+	}
+
+	if (flags & RGFW_initVulkan) {
+		if (RGFW_loadVulkan() == RGFW_FALSE) {
+			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the Vulkan library");
+			return -1;
+		}
+	}
+
 	if (flags & RGFW_initEGL) {
 		if (RGFW_loadEGL() == RGFW_FALSE) {
 			RGFW_debugCallback(RGFW_typeError, RGFW_errFailedFuncLoad, "Failed to load the EGL library");
@@ -6076,6 +6075,10 @@ RGFW_bool RGFW_loadVulkan(void) {
 		#endif
 	}
 
+	if (!_RGFW->vulkan_handle) {
+		return RGFW_FALSE;
+	}
+
 	#ifdef RGFW_WINDOWS
 		_RGFW->vkGetInstanceProcAddress = (RGFW_proc(*)(void*, const char*))(RGFW_proc)GetProcAddress((HMODULE)_RGFW->vulkan_handle, "vkGetInstanceProcAddr");
 	#else
@@ -6091,7 +6094,7 @@ RGFW_bool RGFW_loadVulkan(void) {
 	return RGFW_TRUE;
 }
 
-#define RGFW_LOAD_VK(func) if (_RGFW->func == NULL) _RGFW->func = (RGFW_##func##Proc)_RGFW->vkGetInstanceProcAddress(instance, #func); RGFW_ASSERT(_RGFW->func);
+#define RGFW_LOAD_VK(func) if (_RGFW->func == NULL) _RGFW->func = (RGFW_##func##Proc)RGFW_getInstanceProcAddress_Vulkan(instance, #func); RGFW_ASSERT(_RGFW->func);
 
 void RGFW_unloadVulkan(void) {
 	if (!_RGFW->vulkan_handle) return;
@@ -6105,6 +6108,7 @@ void RGFW_unloadVulkan(void) {
 }
 
 RGFW_proc RGFW_getInstanceProcAddress_Vulkan(VkInstance instance, const char* procname) {
+	RGFW_ASSERT(_RGFW->vkGetInstanceProcAddress);
 	return _RGFW->vkGetInstanceProcAddress(instance, procname);
 }
 
@@ -6120,7 +6124,6 @@ const char** RGFW_getRequiredInstanceExtensions_Vulkan(size_t* count) {
 VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface) {
     RGFW_ASSERT(win != NULL); RGFW_ASSERT(instance);
 	RGFW_ASSERT(surface != NULL);
-
     *surface = VK_NULL_HANDLE;
 
 #ifdef RGFW_X11
@@ -11091,7 +11094,26 @@ DWORD RGFW_winapi_window_getExStyle(RGFW_window* win, RGFW_windowFlags flags) {
     return style;
 }
 
-RGFW_bool RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* out, size_t max);
+RGFWDEF RGFW_bool RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* out, size_t max);
+RGFW_bool RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* output, size_t max) {
+    if (source == NULL || output == NULL || max == 0) {
+        return RGFW_FALSE;
+	}
+
+	i32 size = WideCharToMultiByte(CP_UTF8, 0, source, -1, NULL, 0, NULL, NULL);
+	if (!size) {
+		return RGFW_FALSE;
+	}
+
+	if ((size_t)size > max)
+		size = (i32)max;
+
+	if (!WideCharToMultiByte(CP_UTF8, 0, source, -1, output, size, NULL, NULL)) {
+		return RGFW_FALSE;
+	}
+
+	return RGFW_TRUE;
+}
 
 #ifdef RGFW_OPENGL
 #define WGL_ACCELERATION_ARB             0x2003
@@ -11115,13 +11137,14 @@ RGFW_bool RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* out, siz
 #define WGL_ACCUM_BLUE_BITS_ARB          0x2020
 #define WGL_ACCUM_ALPHA_BITS_ARB         0x2021
 #define WGL_COLORSPACE_SRGB_EXT          0x3089
+#define WGL_SAMPLE_BUFFERS_ARB           0x2041
+#define WGL_SAMPLES_ARB                  0x2042
 #define WGL_CONTEXT_OPENGL_NO_ERROR_ARB  0x31b3
 #define WGL_CONTEXT_RELEASE_BEHAVIOR_ARB         0x2097
 #define WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB    0x0000
 #define WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB   0x2098
 #define WGL_CONTEXT_FLAGS_ARB            0x2094
 #define WGL_ACCESS_READ_WRITE_NV         0x00000001
-#define WGL_COVERAGE_SAMPLES_NV          0x2042
 #define WGL_CONTEXT_ES_PROFILE_BIT_EXT   0x00000004
 #define WGL_CONTEXT_PROFILE_MASK_ARB               0x9126
 #define WGL_CONTEXT_CORE_PROFILE_BIT_ARB            0x00000001
@@ -11612,14 +11635,17 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				if (length == 0)
 					continue;
 
-				WCHAR* buffer = (WCHAR*)RGFW_ALLOC(sizeof(WCHAR) * (length + 1));
-				char* cbuffer = (char*)RGFW_ALLOC(length + 1);
+				size_t clength = sizeof(WCHAR) * (length);
 
-				DragQueryFileW(drop, i, buffer, length + 1);
+				WCHAR* buffer = (WCHAR*)RGFW_ALLOC(clength);
+				DragQueryFileW(drop, i, buffer, length);
 
-				RGFW_createUTF8FromWideStringWin32(buffer, cbuffer, length);
+				char* cbuffer = (char*)RGFW_ALLOC(clength + 1);
+				if (RGFW_createUTF8FromWideStringWin32(buffer, cbuffer, clength) == RGFW_TRUE) {
+					cbuffer[clength] = '\0';
+					RGFW_dataDropCallback(win, cbuffer, clength + 1, RGFW_dataFile);
+				}
 
-				RGFW_dataDropCallback(win, cbuffer, length + 1, RGFW_dataFile);
 				RGFW_FREE(buffer);
 				RGFW_FREE(cbuffer);
 			}
@@ -12974,7 +13000,10 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 				RGFW_attribStack_pushAttribs(&stack, WGL_COLORSPACE_SRGB_EXT, hints->sRGB);
 		}
 
-		RGFW_attribStack_pushAttribs(&stack, WGL_COVERAGE_SAMPLES_NV, hints->samples);
+		if (hints->samples) {
+			RGFW_attribStack_pushAttribs(&stack, WGL_SAMPLE_BUFFERS_ARB, 1);
+			RGFW_attribStack_pushAttribs(&stack, WGL_SAMPLES_ARB, hints->samples);
+		}
 
 		RGFW_attribStack_pushAttribs(&stack, 0, 0);
 
@@ -13081,27 +13110,6 @@ void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to set swap interval");
 }
 #endif
-
-RGFW_bool RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* output, size_t max) {
-    i32 size = 0;
-    if (source == NULL) {
-        return RGFW_FALSE;
-	}
-	size = WideCharToMultiByte(CP_UTF8, 0, source, -1, NULL, 0, NULL, NULL);
-	if (!size) {
-		return RGFW_FALSE;
-	}
-
-	if (size > (i32)max)
-		size = (i32)max;
-
-	if (!WideCharToMultiByte(CP_UTF8, 0, source, -1, output, size, NULL, NULL)) {
-		return RGFW_FALSE;
-	}
-
-	output[size] = 0;
-	return RGFW_TRUE;
-}
 
 #ifdef RGFW_WEBGPU
 WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance instance) {
@@ -15447,7 +15455,7 @@ EM_BOOL Emscripten_on_fullscreenchange(int eventType, const EmscriptenFullscreen
 		_RGFW->root->w = originalW;
 		_RGFW->root->h = originalH;
 	} else {
-		#if __EMSCRIPTEN_major__  >= 1 && __EMSCRIPTEN_minor__  >= 29 && __EMSCRIPTEN_tiny__  >= 0
+		#if __EMSCRIPTEN_MAJOR__  >= 1 && __EMSCRIPTEN_MINOR__  >= 29 && __EMSCRIPTEN_TINY__  >= 0
 			EmscriptenFullscreenStrategy FSStrat = {0};
 			FSStrat.scaleMode = EMSCRIPTEN_FULLSCREEN_SCALE_STRETCH;
 			FSStrat.canvasResolutionScaleMode = EMSCRIPTEN_FULLSCREEN_CANVAS_SCALE_HIDEF;
@@ -15873,7 +15881,7 @@ RGFW_bool RGFW_window_fetchSize(RGFW_window* win, i32* w, i32* h) {
 
 void RGFW_pollEvents(void) {
 	static int using_asyncify = -1;
-	if (using_asyncify == -1) using_asyncify = EM_ASM_INT({ return 'Asyncify' in Module; });
+	if (using_asyncify == -1) using_asyncify = EM_ASM_INT({ return (typeof Asyncify !== 'undefined') || ('Asyncify' in Module); });
 
 	RGFW_resetPrevState();
 	if (using_asyncify) {

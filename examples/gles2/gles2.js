@@ -972,19 +972,19 @@ var ASM_CONSTS = {
  69268: () => { return window.innerHeight || 0; },  
  69302: () => { window.addEventListener("keydown", (event) => { var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); var codepoint = event.key.charCodeAt(0); if(codepoint < 0x7f && event.key.length > 1) { codepoint = 0; } Module._RGFW_handleKeyEvent(code, codepoint, 1); Module._RGFW_webFree(code); }, true); window.addEventListener("keyup", (event) => { var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(code, 0, 0); Module._RGFW_webFree(code); }, true); },  
  70287: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; Module._RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); Module._Emscripten_onDrop(filename, path.length + 1); free(filename); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 71191: () => { return 'Asyncify' in Module; },  
- 71224: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 71295: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 71352: () => { return window.mouseX || 0; },  
- 71383: () => { return window.mouseY || 0; },  
- 71414: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 71561: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 71614: ($0, $1) => { var ext = UTF8ToString($0, $1); var canvas = document.querySelector('canvas'); var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl'); if (!gl) return 0; var supported = gl.getSupportedExtensions(); return supported && supported.includes(ext) ? 1 : 0; },  
- 71894: () => { return window.innerWidth; },  
- 71924: () => { return window.innerHeight; },  
- 71955: () => { Module.requestFullscreen(false, true); },  
- 71994: () => { Module.exitFullscreen(false, true); },  
- 72030: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
+ 71191: () => { return (typeof Asyncify !== 'undefined') || ('Asyncify' in Module); },  
+ 71263: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 71334: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 71391: () => { return window.mouseX || 0; },  
+ 71422: () => { return window.mouseY || 0; },  
+ 71453: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
+ 71600: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 71653: ($0, $1) => { var ext = UTF8ToString($0, $1); var canvas = document.querySelector('canvas'); var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl'); if (!gl) return 0; var supported = gl.getSupportedExtensions(); return supported && supported.includes(ext) ? 1 : 0; },  
+ 71933: () => { return window.innerWidth; },  
+ 71963: () => { return window.innerHeight; },  
+ 71994: () => { Module.requestFullscreen(false, true); },  
+ 72033: () => { Module.exitFullscreen(false, true); },  
+ 72069: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
 };
 
 
