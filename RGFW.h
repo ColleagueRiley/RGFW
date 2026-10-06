@@ -14279,19 +14279,19 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	windowRect.origin.y = (double)RGFW_cocoaYTransform((float)(win->y + win->h - 1));
 	windowRect.size.width = (double)win->w;
 	windowRect.size.height = (double)win->h;
-	NSBackingStoreType macArgs = (NSBackingStoreType)(NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered);
+	NSWindowStyleMask macArgs = (NSWindowStyleMask)(NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered);
 
 	if (!(flags & RGFW_windowNoResize))
-		macArgs |= (NSBackingStoreType)((NSBackingStoreType)NSWindowStyleMaskResizable);
+		macArgs |= (NSWindowStyleMask)NSWindowStyleMaskResizable;
 	if (!(flags & RGFW_windowNoBorder))
-		macArgs |= (NSBackingStoreType)((NSBackingStoreType)NSWindowStyleMaskTitled);
+		macArgs |= (NSWindowStyleMask)NSWindowStyleMaskTitled;
 	else
-		macArgs |= (NSBackingStoreType)((NSBackingStoreType)(NSWindowStyleMaskBorderless));
+		macArgs |= (NSWindowStyleMask)NSWindowStyleMaskBorderless;
 	{
 		void* nsclass = objc_getClass("NSWindow");
 		SEL func = sel_registerName("initWithContentRect:styleMask:backing:defer:");
 
-		win->src.window = ((id(*)(id, SEL, NSRect, NSWindowStyleMask, NSBackingStoreType, bool))objc_msgSend)
+		win->src.window = ((id(*)(id, SEL, NSRect, NSWindowStyleMask, NSWindowStyleMask, bool))objc_msgSend)
 			(NSAlloc(nsclass), func, windowRect, (NSWindowStyleMask)macArgs, macArgs, false);
 
 		Class cls = object_getClass((id)win->src.window);
