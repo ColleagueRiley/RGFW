@@ -4108,7 +4108,7 @@ i32 RGFW_init_ptr(const char* className, RGFW_initFlags flags, RGFW_info* info) 
 	if (out != 0) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_infoGlobal, "failed to initialize global context");
 		RGFW_deinitPlatform();
-		RGFW_MEMZERO(_RGFW, sizeof(RGFW_info));
+		RGFW_MEMZERO(_RGFW, sizof(RGFW_info));
 	    RGFW_setInfo(NULL);
 		return out;
 	}
@@ -15446,7 +15446,7 @@ EM_BOOL Emscripten_on_fullscreenchange(int eventType, const EmscriptenFullscreen
 		_RGFW->root->w = originalW;
 		_RGFW->root->h = originalH;
 	} else {
-		#if __EMSCRIPTEN_major__  >= 1 && __EMSCRIPTEN_minor__  >= 29 && __EMSCRIPTEN_tiny__  >= 0
+		#if __EMSCRIPTEN_MAJOR__  >= 1 && __EMSCRIPTEN_MINOR__  >= 29 && __EMSCRIPTEN_TINY__  >= 0
 			EmscriptenFullscreenStrategy FSStrat = {0};
 			FSStrat.scaleMode = EMSCRIPTEN_FULLSCREEN_SCALE_STRETCH;
 			FSStrat.canvasResolutionScaleMode = EMSCRIPTEN_FULLSCREEN_CANVAS_SCALE_HIDEF;
@@ -15872,7 +15872,7 @@ RGFW_bool RGFW_window_fetchSize(RGFW_window* win, i32* w, i32* h) {
 
 void RGFW_pollEvents(void) {
 	static int using_asyncify = -1;
-	if (using_asyncify == -1) using_asyncify = EM_ASM_INT({ return 'Asyncify' in Module; });
+	if (using_asyncify == -1) using_asyncify = EM_ASM_INT({ return (typeof Asyncify !== 'undefined') || ('Asyncify' in Module); });
 
 	RGFW_resetPrevState();
 	if (using_asyncify) {
