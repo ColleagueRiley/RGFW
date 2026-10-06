@@ -11114,13 +11114,14 @@ RGFW_bool RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* out, siz
 #define WGL_ACCUM_BLUE_BITS_ARB          0x2020
 #define WGL_ACCUM_ALPHA_BITS_ARB         0x2021
 #define WGL_COLORSPACE_SRGB_EXT          0x3089
+#define WGL_SAMPLE_BUFFERS_ARB           0x2041
+#define WGL_SAMPLES_ARB                  0x2042
 #define WGL_CONTEXT_OPENGL_NO_ERROR_ARB  0x31b3
 #define WGL_CONTEXT_RELEASE_BEHAVIOR_ARB         0x2097
 #define WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB    0x0000
 #define WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB   0x2098
 #define WGL_CONTEXT_FLAGS_ARB            0x2094
 #define WGL_ACCESS_READ_WRITE_NV         0x00000001
-#define WGL_COVERAGE_SAMPLES_NV          0x2042
 #define WGL_CONTEXT_ES_PROFILE_BIT_EXT   0x00000004
 #define WGL_CONTEXT_PROFILE_MASK_ARB               0x9126
 #define WGL_CONTEXT_CORE_PROFILE_BIT_ARB            0x00000001
@@ -12973,7 +12974,10 @@ RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* 
 				RGFW_attribStack_pushAttribs(&stack, WGL_COLORSPACE_SRGB_EXT, hints->sRGB);
 		}
 
-		RGFW_attribStack_pushAttribs(&stack, WGL_COVERAGE_SAMPLES_NV, hints->samples);
+		if (hints->samples) {
+			RGFW_attribStack_pushAttribs(&stack, WGL_SAMPLE_BUFFERS_ARB, 1);
+			RGFW_attribStack_pushAttribs(&stack, WGL_SAMPLES_ARB, hints->samples);
+		}
 
 		RGFW_attribStack_pushAttribs(&stack, 0, 0);
 
