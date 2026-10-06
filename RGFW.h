@@ -6075,6 +6075,10 @@ RGFW_bool RGFW_loadVulkan(void) {
 		#endif
 	}
 
+	if (!_RGFW->vulkan_handle) {
+		return RGFW_FALSE;
+	}
+
 	#ifdef RGFW_WINDOWS
 		_RGFW->vkGetInstanceProcAddress = (RGFW_proc(*)(void*, const char*))(RGFW_proc)GetProcAddress((HMODULE)_RGFW->vulkan_handle, "vkGetInstanceProcAddr");
 	#else
@@ -6090,7 +6094,7 @@ RGFW_bool RGFW_loadVulkan(void) {
 	return RGFW_TRUE;
 }
 
-#define RGFW_LOAD_VK(func) if (_RGFW->func == NULL) _RGFW->func = (RGFW_##func##Proc)_RGFW->vkGetInstanceProcAddress(instance, #func); RGFW_ASSERT(_RGFW->func);
+#define RGFW_LOAD_VK(func) if (_RGFW->func == NULL) _RGFW->func = (RGFW_##func##Proc)RGFW_getInstanceProcAddress_Vulkan(instance, #func); RGFW_ASSERT(_RGFW->func);
 
 void RGFW_unloadVulkan(void) {
 	if (!_RGFW->vulkan_handle) return;
@@ -6104,6 +6108,7 @@ void RGFW_unloadVulkan(void) {
 }
 
 RGFW_proc RGFW_getInstanceProcAddress_Vulkan(VkInstance instance, const char* procname) {
+	RGFW_ASSERT(_RGFW->vkGetInstanceProcAddress);
 	return _RGFW->vkGetInstanceProcAddress(instance, procname);
 }
 
@@ -6119,7 +6124,6 @@ const char** RGFW_getRequiredInstanceExtensions_Vulkan(size_t* count) {
 VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance, VkSurfaceKHR* surface) {
     RGFW_ASSERT(win != NULL); RGFW_ASSERT(instance);
 	RGFW_ASSERT(surface != NULL);
-
     *surface = VK_NULL_HANDLE;
 
 #ifdef RGFW_X11
