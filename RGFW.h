@@ -7333,6 +7333,7 @@ void RGFW_XHandleEvent(void) {
 	static float deltaY = 0.0f;
 
 	XEvent E;
+	RGFW_MEMZERO(&E, sizeof(E));
 
 	XNextEvent(_RGFW->display, &E);
 
@@ -12138,7 +12139,7 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
         case VK_NUMPAD9: return RGFW_keyPad9;
         case VK_SNAPSHOT: return RGFW_keyPrintScreen;
         case VK_PAUSE:    return RGFW_keyPause;
-        default: break; 
+        default: break;
     }
 
     return RGFW_keyNULL;
@@ -14290,12 +14291,14 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	windowRect.origin.y = (double)RGFW_cocoaYTransform((float)(win->y + win->h - 1));
 	windowRect.size.width = (double)win->w;
 	windowRect.size.height = (double)win->h;
-	NSBackingStoreType macArgs = (NSBackingStoreType)(NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered | NSWindowStyleMaskTitled);
+	NSBackingStoreType macArgs = (NSBackingStoreType)(NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered);
 
 	if (!(flags & RGFW_windowNoResize))
 		macArgs = (NSBackingStoreType)(macArgs | (NSBackingStoreType)NSWindowStyleMaskResizable);
 	if (!(flags & RGFW_windowNoBorder))
 		macArgs = (NSBackingStoreType)(macArgs | (NSBackingStoreType)NSWindowStyleMaskTitled);
+	else
+		macArgs = (NSBackingStoreType)(macArgs | (NSBackingStoreType)(NSWindowStyleMaskBorderless));
 	{
 		void* nsclass = objc_getClass("NSWindow");
 		SEL func = sel_registerName("initWithContentRect:styleMask:backing:defer:");
@@ -14357,10 +14360,6 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 }
 
 void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
-	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
-	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
-	double offset = 0;
-
 	RGFW_setBit(&win->internal.flags, RGFW_windowNoBorder, !border);
 
 	NSWindowStyleMask styleMask = ((NSWindowStyleMask (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_registerName("styleMask"));
@@ -14374,20 +14373,10 @@ void RGFW_window_setBorder(RGFW_window* win, RGFW_bool border) {
 
 	((void (*)(id, SEL, NSWindowStyleMask))objc_msgSend)((id)win->src.window, sel_registerName("setStyleMask:"), styleMask);
 
-	if (!border) {
-		/*id miniaturizeButton = objc_msgSend_int((id)win->src.window, sel_registerName("standardWindowButton:"),  NSWindowMiniaturizeButton);
-		id titleBarView = objc_msgSend_id(miniaturizeButton, sel_registerName("superview"));
-		objc_msgSend_void_bool(titleBarView, sel_registerName("setHidden:"), true); */
-
-		offset = (double)(frame.size.height - content.size.height);
-	}
-
 	/* changing the style can clear the first responder */
 	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.window, sel_registerName("makeFirstResponder:"), (id)win->src.view);
 
 	RGFW_window_move(win, win->x, win->y);
-	RGFW_window_resize(win, win->w, win->h + (i32)offset);
-	win->h -= (i32)offset;
 }
 
 RGFW_bool RGFW_getGlobalMouse(i32* x, i32* y) {
