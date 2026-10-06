@@ -360,7 +360,6 @@ debug: all
 		./$$exe$(EXT); \
 	done
 
-	./examples/gamepad/gamepad
 	./examples/first-person-camera/camera
 	./examples/portableGL/pgl$(EXT)
 	./examples/microui_demo/microui_demo
