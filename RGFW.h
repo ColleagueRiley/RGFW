@@ -11092,7 +11092,7 @@ DWORD RGFW_winapi_window_getExStyle(RGFW_window* win, RGFW_windowFlags flags) {
 
 RGFWDEF RGFW_bool RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* out, size_t max);
 RGFW_bool RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* output, size_t max) {
-    if (source == NULL || out == NULL || max == 0) {
+    if (source == NULL || output == NULL || max == 0) {
         return RGFW_FALSE;
 	}
 
