@@ -7797,20 +7797,11 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 }
 
 void RGFW_FUNC(RGFW_window_movePlatform) (RGFW_window* win, i32 x, i32 y) {
-	RGFW_ASSERT(win != NULL);
-	win->x = x;
-	win->y = y;
-
 	XMoveWindow(_RGFW->display, win->src.window, x, y);
-	return;
 }
 
 
 void RGFW_FUNC(RGFW_window_resizePlatform) (RGFW_window* win, i32 w, i32 h) {
-	RGFW_ASSERT(win != NULL);
-	win->w = (i32)w;
-	win->h = (i32)h;
-
 	XResizeWindow(_RGFW->display, win->src.window, (u32)w, (u32)h);
 
 	if ((win->internal.flags & RGFW_windowNoResize)) {
@@ -10540,18 +10531,12 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 }
 
 void RGFW_FUNC(RGFW_window_movePlatform) (RGFW_window* win, i32 x, i32 y) {
-	RGFW_ASSERT(win != NULL);
-	win->x = x;
-	win->y = y;
+	RGFW_UNUSED(win);  RGFW_UNUSED(x); RGFW_UNUSED(y);
 }
 
-
 void RGFW_FUNC(RGFW_window_resizePlatform) (RGFW_window* win, i32 w, i32 h) {
-	RGFW_ASSERT(win != NULL);
-	win->w = w;
-	win->h = h;
 	if (_RGFW->compositor) {
-		xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->w, win->h);
+		xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, w, h);
 		#ifdef RGFW_OPENGL
 		if (win->src.ctx.egl)
 			wl_egl_window_resize(win->src.ctx.egl->eglWindow, (i32)w, (i32)h, 0, 0);
@@ -12710,18 +12695,10 @@ void RGFW_window_closePlatform(RGFW_window* win) {
 }
 
 void RGFW_window_movePlatform(RGFW_window* win, i32 x, i32 y) {
-	RGFW_ASSERT(win != NULL);
-
-	win->x = x;
-	win->y = y;
-	SetWindowPos(win->src.window, HWND_TOP, win->x, win->y, 0, 0, SWP_NOSIZE);
+	SetWindowPos(win->src.window, HWND_TOP, x, y, 0, 0, SWP_NOSIZE);
 }
 
 void RGFW_window_resizePlatform(RGFW_window* win, i32 w, i32 h) {
-	RGFW_ASSERT(win != NULL);
-
-	win->w = w;
-	win->h = h;
 	if (win->internal.flags & RGFW_windowNoResize) {
 		win->src.minSizeW = win->src.maxSizeW = w;
 		win->src.minSizeH = win->src.maxSizeH = h;
@@ -13389,6 +13366,17 @@ id NSString_stringWithUTF8String(const char* str) {
 
 RGFWDEF float RGFW_cocoaYTransform(float y);
 float RGFW_cocoaYTransform(float y) { return (float)(CGDisplayBounds(CGMainDisplayID()).size.height - (double)y - (double)1.0f); }
+
+RGFWDEF void RGFW_cocoaFetchRect(RGFW_window* win);
+void RGFW_cocoaFetchRect(RGFW_window* win) {
+	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
+	NSRect content = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("contentRectForFrameRect:"), frame);
+
+	win->x = (i32)content.origin.x;
+	win->y = (i32)RGFW_cocoaYTransform((float)(content.origin.y + content.size.height - 1));
+	win->w = (i32)content.size.width;
+	win->h = (i32)content.size.height;
+}
 
 const char* NSString_to_char(id str);
 const char* NSString_to_char(id str) {
@@ -14291,19 +14279,19 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	windowRect.origin.y = (double)RGFW_cocoaYTransform((float)(win->y + win->h - 1));
 	windowRect.size.width = (double)win->w;
 	windowRect.size.height = (double)win->h;
-	NSBackingStoreType macArgs = (NSBackingStoreType)(NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered);
+	NSWindowStyleMask macArgs = (NSWindowStyleMask)(NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSBackingStoreBuffered);
 
 	if (!(flags & RGFW_windowNoResize))
-		macArgs = (NSBackingStoreType)(macArgs | (NSBackingStoreType)NSWindowStyleMaskResizable);
+		macArgs |= (NSWindowStyleMask)NSWindowStyleMaskResizable;
 	if (!(flags & RGFW_windowNoBorder))
-		macArgs = (NSBackingStoreType)(macArgs | (NSBackingStoreType)NSWindowStyleMaskTitled);
+		macArgs |= (NSWindowStyleMask)NSWindowStyleMaskTitled;
 	else
-		macArgs = (NSBackingStoreType)(macArgs | (NSBackingStoreType)(NSWindowStyleMaskBorderless));
+		macArgs |= (NSWindowStyleMask)NSWindowStyleMaskBorderless;
 	{
 		void* nsclass = objc_getClass("NSWindow");
 		SEL func = sel_registerName("initWithContentRect:styleMask:backing:defer:");
 
-		win->src.window = ((id(*)(id, SEL, NSRect, NSWindowStyleMask, NSBackingStoreType, bool))objc_msgSend)
+		win->src.window = ((id(*)(id, SEL, NSRect, NSWindowStyleMask, NSWindowStyleMask, bool))objc_msgSend)
 			(NSAlloc(nsclass), func, windowRect, (NSWindowStyleMask)macArgs, macArgs, false);
 
 		Class cls = object_getClass((id)win->src.window);
@@ -14356,6 +14344,8 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	NSRetain(win->src.window);
 
 	win->src.view = ((id(*)(id, SEL, RGFW_window*))objc_msgSend) (NSAlloc((Class)_RGFW->customViewClasses[0]), sel_registerName("initWithRGFWWindow:"), win);
+
+	RGFW_cocoaFetchRect(win);
 	return win;
 }
 
@@ -14488,30 +14478,24 @@ void RGFW_pollEvents(void) {
 
 
 void RGFW_window_movePlatform(RGFW_window* win, i32 x, i32 y) {
-	RGFW_ASSERT(win != NULL);
-
 	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
 
-	win->x = x;
-	win->y = (i32)RGFW_cocoaYTransform((float)y + (float)content.size.height - 1.0f);
+	float yFlip = RGFW_cocoaYTransform((float)y + (float)content.size.height - 1.0f);
+	((void(*)(id,SEL,NSPoint))objc_msgSend)((id)win->src.window, sel_registerName("setFrameOrigin:"), (NSPoint){(double)x, (double)yFlip});
 
-	((void(*)(id,SEL,NSPoint))objc_msgSend)((id)win->src.window, sel_registerName("setFrameOrigin:"), (NSPoint){(double)x, (double)y});
+	RGFW_cocoaFetchRect(win);
 }
 
 void RGFW_window_resizePlatform(RGFW_window* win, i32 w, i32 h) {
-	RGFW_ASSERT(win != NULL);
-
 	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
 	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
 	float offset = (float)(frame.size.height - content.size.height);
 
-	win->w = w;
-	win->h = h;
-
-
-	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"),  (NSRect){{0, 0}, {(double)win->w, (double)win->h}});
+	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"),  (NSRect){{0, 0}, {(double)w, (double)h}});
 	((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
-		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{(double)win->x, (double)win->y}, {(double)win->w, (double)win->h + (double)offset}}, true, true);
+		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{(double)win->x, (double)win->y}, {(double)w, (double)h + (double)offset}}, true, true);
+
+	RGFW_cocoaFetchRect(win);
 }
 
 void RGFW_window_focus(RGFW_window* win) {
@@ -14760,6 +14744,7 @@ void RGFW_window_showPlatform(RGFW_window* win) {
 
 	((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("orderFront:"), NULL);
 	objc_msgSend_void_bool(win->src.window, sel_registerName("setIsVisible:"), true);
+	RGFW_cocoaFetchRect(win);
 }
 
 void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
