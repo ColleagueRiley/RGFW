@@ -2505,19 +2505,11 @@ RGFWDEF RGFW_glContext* RGFW_window_createContext_OpenGL(RGFW_window* win, RGFW_
 
 /**!
  * @brief Creates an OpenGL context for the specified window using a preallocated context structure.
- * @param win A pointer to the target RGFW_window.
  * @param ctx A pointer to an already allocated RGFW_glContext structure.
  * @param hints A pointer to an RGFW_glHints structure defining context creation parameters.
  * @return RGFW_TRUE on success, RGFW_FALSE on failure.
 */
 RGFWDEF RGFW_bool RGFW_window_createContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx, RGFW_glHints* hints);
-
-/**!
- * @brief Retrieves the OpenGL context associated with a window.
- * @param win A pointer to the RGFW_window.
- * @return A pointer to the associated RGFW_glContext, or NULL if none exists or if the context is EGL-based.
-*/
-RGFWDEF RGFW_glContext* RGFW_window_getContext_OpenGL(RGFW_window* win);
 
 /**!
  * @brief Deletes and frees the OpenGL context.
@@ -2536,6 +2528,36 @@ RGFWDEF void RGFW_window_deleteContext_OpenGL(RGFW_window* win, RGFW_glContext* 
  * @note This is automatically called by RGFW_window_close if the window’s context is not NULL.
 */
 RGFWDEF void RGFW_window_deleteContextPtr_OpenGL(RGFW_window* win, RGFW_glContext* ctx);
+
+/**!
+ * @brief allocates a new context, copying the info from an old context
+ * @param ctx A pointer to the RGFW_glContext to copy.
+ * @return The newly allocated context
+*/
+RGFWDEF RGFW_glContext* RGFW_copyContext_OpenGL(RGFW_glContext* ctx);
+
+/**!
+ * @brief copies info from a context to make a new context with the supplied pointer
+ * @param ctx A pointer to the RGFW_glContext to copy.
+ * @param newCtx A pointer to the new context.
+ * @return boolean RGFW_TRUE for success, RGFW_FALSE for failure
+*/
+RGFWDEF RGFW_bool RGFW_copyContextPtr_OpenGL(RGFW_glContext* ctx, RGFW_glContext* newCtx);
+
+/**!
+ * @brief sets the window's context to a context that was already created
+ * @param win A pointer to the RGFW_window.
+ * @param ctx A pointer to the RGFW_glContext to use.
+ * @return boolean RGFW_TRUE for success, RGFW_FALSE for failure
+*/
+RGFWDEF RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx);
+
+/**!
+ * @brief Retrieves the OpenGL context associated with a window.
+ * @param win A pointer to the RGFW_window.
+ * @return A pointer to the associated RGFW_glContext, or NULL if none exists or if the context is EGL-based.
+*/
+RGFWDEF RGFW_glContext* RGFW_window_getContext_OpenGL(RGFW_window* win);
 
 /**!
  * @brief Retrieves the native source context from an RGFW_glContext.
@@ -2993,6 +3015,7 @@ RGFWDEF RGFW_key RGFW_physicalToMappedKey(RGFW_key keycode);
 		struct RGFW_glContext {
 			#ifdef RGFW_X11
 				struct __GLXcontextRec* ctx; /*!< source graphics context */
+				void* config;
 				Window window;
 			#endif
 			#ifdef RGFW_WAYLAND
@@ -5499,6 +5522,18 @@ RGFW_glContext* RGFW_window_getContext_OpenGL(RGFW_window* win) {
 void RGFW_window_deleteContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 	RGFW_window_deleteContextPtr_OpenGL(win, ctx);
 	if (win->src.gfxType & RGFW_gfxOwnedByRGFW) RGFW_FREE(ctx);
+}
+
+RGFW_glContext* RGFW_copyContext_OpenGL(RGFW_glContext* ctx) {
+	RGFW_glContext* newCtx = RGFW_ALLOC(sizeof(RGFW_glContext));
+	RGFW_copyContextPtr_OpenGL(ctx, newCtx);
+	return newCtx;
+}
+
+RGFW_bool RGFW_copyContextPtr_OpenGL(RGFW_glContext* ctx, RGFW_glContext* newCtx) {
+	RGFW_ASSERT(ctx); RGFW_ASSERT(newCtx);
+	RGFW_MEMCPY(newCtx, ctx, sizeof(RGFW_glContext));
+	return RGFW_TRUE;
 }
 
 RGFW_bool RGFW_extensionSupported_OpenGL(const char* extension, size_t len) {
@@ -8865,6 +8900,8 @@ RGFW_bool RGFW_FUNC(RGFW_window_createContextPtr_OpenGL) (RGFW_window* win, RGFW
 
 	/* we found a config */
 	bestFbc = fbc[best_fbc];
+	win->src.ctx.native->config = bestFbc;
+
 	XVisualInfo* vi = RGFW_glXGetVisualFromFBConfig(_RGFW->display, bestFbc);
 	if (vi->depth != 32 && transparent)
 		RGFW_debugCallback(RGFW_typeWarning, RGFW_warningOpenGL,  "Failed to to find a matching visual with a 32-bit depth.");
@@ -8967,6 +9004,41 @@ void RGFW_FUNC(RGFW_window_deleteContextPtr_OpenGL) (RGFW_window* win, RGFW_glCo
 	RGFW_glXDestroyContext(_RGFW->display, ctx->ctx);
 	win->src.ctx.native = NULL;
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL context freed.");
+}
+
+RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* context) {
+	/* basic RGFW int */
+	win->src.ctx.native = context;
+	win->src.gfxType = RGFW_gfxNativeOpenGL;
+
+	/*  This is required so that way the user can create their own OpenGL context after RGFW_createWindow is used */
+	RGFW_bool showWindow = RGFW_FALSE;
+	if (win->src.window) {
+		showWindow = (RGFW_window_isMinimized(win) == RGFW_FALSE);
+		RGFW_window_closePlatform(win);
+	}
+
+	XVisualInfo* vi = RGFW_glXGetVisualFromFBConfig(_RGFW->display, context->config);
+
+	/* use the visual to create a new window */
+	if (RGFW_XCreateWindow(*vi, "", win->internal.flags, win) == RGFW_FALSE) return RGFW_FALSE;
+
+	if (showWindow) {
+		RGFW_window_show(win);
+	}
+
+	#ifndef RGFW_NO_GLXWINDOW
+		win->src.ctx.native->window = RGFW_glXCreateWindow(_RGFW->display, context->config, win->src.window, NULL);
+	#else
+		win->src.ctx.native->window = win->src.window;
+	#endif
+
+	RGFW_glXMakeCurrent(_RGFW->display, (Drawable)win->src.ctx.native->window, (GLXContext)win->src.ctx.native->ctx);
+	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL context initalized.");
+
+	RGFW_window_swapInterval_OpenGL(win, 0);
+
+	return RGFW_TRUE;
 }
 
 RGFW_bool RGFW_FUNC(RGFW_extensionSupportedPlatform_OpenGL)(const char * extension, size_t len) {
