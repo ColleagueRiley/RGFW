@@ -10530,7 +10530,7 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 	}
 }
 
-void RGFW_window_movePlatform(RGFW_window* win, i32 x, i32 y) {
+void RGFW_FUNC(RGFW_window_movePlatform) (RGFW_window* win, i32 x, i32 y) {
 	RGFW_UNUSED(win);  RGFW_UNUSED(x); RGFW_UNUSED(y);
 }
 
