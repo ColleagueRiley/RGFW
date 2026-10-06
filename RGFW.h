@@ -10537,7 +10537,7 @@ void RGFW_FUNC(RGFW_window_movePlatform) (RGFW_window* win, i32 x, i32 y) {
 
 void RGFW_FUNC(RGFW_window_resizePlatform) (RGFW_window* win, i32 w, i32 h) {
 	if (_RGFW->compositor) {
-		xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->w, win->h);
+		xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, w, h);
 		#ifdef RGFW_OPENGL
 		if (win->src.ctx.egl)
 			wl_egl_window_resize(win->src.ctx.egl->eglWindow, (i32)w, (i32)h, 0, 0);
@@ -12696,7 +12696,7 @@ void RGFW_window_closePlatform(RGFW_window* win) {
 }
 
 void RGFW_window_movePlatform(RGFW_window* win, i32 x, i32 y) {
-	SetWindowPos(win->src.window, HWND_TOP, win->x, win->y, 0, 0, SWP_NOSIZE);
+	SetWindowPos(win->src.window, HWND_TOP, x, y, 0, 0, SWP_NOSIZE);
 }
 
 void RGFW_window_resizePlatform(RGFW_window* win, i32 w, i32 h) {
