@@ -4108,7 +4108,7 @@ i32 RGFW_init_ptr(const char* className, RGFW_initFlags flags, RGFW_info* info) 
 	if (out != 0) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_infoGlobal, "failed to initialize global context");
 		RGFW_deinitPlatform();
-		RGFW_MEMZERO(_RGFW, sizof(RGFW_info));
+		RGFW_MEMZERO(_RGFW, sizeof(RGFW_info));
 	    RGFW_setInfo(NULL);
 		return out;
 	}
@@ -11090,7 +11090,26 @@ DWORD RGFW_winapi_window_getExStyle(RGFW_window* win, RGFW_windowFlags flags) {
     return style;
 }
 
-RGFW_bool RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* out, size_t max);
+RGFWDEF RGFW_bool RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* out, size_t max);
+RGFW_bool RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* output, size_t max) {
+    if (source == NULL || out == NULL || max == 0) {
+        return RGFW_FALSE;
+	}
+
+	i32 size = WideCharToMultiByte(CP_UTF8, 0, source, -1, NULL, 0, NULL, NULL);
+	if (!size) {
+		return RGFW_FALSE;
+	}
+
+	if ((size_t)size > max)
+		size = (i32)max;
+
+	if (!WideCharToMultiByte(CP_UTF8, 0, source, -1, output, size, NULL, NULL)) {
+		return RGFW_FALSE;
+	}
+
+	return RGFW_TRUE;
+}
 
 #ifdef RGFW_OPENGL
 #define WGL_ACCELERATION_ARB             0x2003
@@ -11612,14 +11631,17 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				if (length == 0)
 					continue;
 
-				WCHAR* buffer = (WCHAR*)RGFW_ALLOC(sizeof(WCHAR) * (length + 1));
-				char* cbuffer = (char*)RGFW_ALLOC(length + 1);
+				size_t clength = sizeof(WCHAR) * (length);
 
-				DragQueryFileW(drop, i, buffer, length + 1);
+				WCHAR* buffer = (WCHAR*)RGFW_ALLOC(clength);
+				DragQueryFileW(drop, i, buffer, length);
 
-				RGFW_createUTF8FromWideStringWin32(buffer, cbuffer, length);
+				char* cbuffer = (char*)RGFW_ALLOC(clength + 1);
+				if (RGFW_createUTF8FromWideStringWin32(buffer, cbuffer, clength) == RGFW_TRUE) {
+					cbuffer[clength] = '\0';
+					RGFW_dataDropCallback(win, cbuffer, clength + 1, RGFW_dataFile);
+				}
 
-				RGFW_dataDropCallback(win, cbuffer, length + 1, RGFW_dataFile);
 				RGFW_FREE(buffer);
 				RGFW_FREE(cbuffer);
 			}
@@ -13084,27 +13106,6 @@ void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to set swap interval");
 }
 #endif
-
-RGFW_bool RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* output, size_t max) {
-    i32 size = 0;
-    if (source == NULL) {
-        return RGFW_FALSE;
-	}
-	size = WideCharToMultiByte(CP_UTF8, 0, source, -1, NULL, 0, NULL, NULL);
-	if (!size) {
-		return RGFW_FALSE;
-	}
-
-	if (size > (i32)max)
-		size = (i32)max;
-
-	if (!WideCharToMultiByte(CP_UTF8, 0, source, -1, output, size, NULL, NULL)) {
-		return RGFW_FALSE;
-	}
-
-	output[size] = 0;
-	return RGFW_TRUE;
-}
 
 #ifdef RGFW_WEBGPU
 WGPUSurface RGFW_window_createSurface_WebGPU(RGFW_window* window, WGPUInstance instance) {
