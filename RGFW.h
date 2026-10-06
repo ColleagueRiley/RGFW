@@ -7333,7 +7333,7 @@ void RGFW_XHandleEvent(void) {
 	static float deltaY = 0.0f;
 
 	XEvent E;
-	RGFW_MEMSET(&E, 0);
+	RGFW_MEMZERO(&E, sizeof(E));
 
 	XNextEvent(_RGFW->display, &E);
 
