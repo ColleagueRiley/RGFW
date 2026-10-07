@@ -14523,14 +14523,9 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 		win->internal.flags |= RGFW_windowAllowDND;
 	}
 
-	/* Show the window */
-	objc_msgSend_void_bool((id)_RGFW->NSApp, sel_registerName("activateIgnoringOtherApps:"), true);
-
 	if (_RGFW->root == NULL) {
 		objc_msgSend_void(win->src.window, sel_registerName("makeMainWindow"));
 	}
-
-	objc_msgSend_void(win->src.window, sel_registerName("makeKeyWindow"));
 
 	NSRetain(win->src.window);
 
@@ -14590,8 +14585,9 @@ void RGFW_waitForEvent(i32 waitMS) {
 	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
 
+	double seconds = (((double)waitMS) / ((double)1000))
 	void* date = (void*) ((id(*)(Class, SEL, double))objc_msgSend)
-				(objc_getClass("NSDate"), sel_registerName("dateWithTimeIntervalSinceNow:"), waitMS);
+				(objc_getClass("NSDate"), sel_registerName("dateWithTimeIntervalSinceNow:"), seconds);
 
 	SEL eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
 	id e = (id) ((id(*)(id, SEL, NSEventMask, void*, id, bool))objc_msgSend)
@@ -14683,8 +14679,8 @@ void RGFW_window_resizePlatform(RGFW_window* win, i32 w, i32 h) {
 	float offset = (float)(frame.size.height - content.size.height);
 
 	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"),  (NSRect){{0, 0}, {(double)w, (double)h}});
-	((void(*)(id, SEL, NSRect, bool, bool))objc_msgSend)
-		((id)win->src.window, sel_registerName("setFrame:display:animate:"), (NSRect){{(double)win->x, (double)win->y}, {(double)w, (double)h + (double)offset}}, true, true);
+	((void(*)(id, SEL, NSSize))objc_msgSend)
+		((id)win->src.window, sel_registerName("setFrameSize:"), (NSSize){(double)w, (double)h + (double)offset});
 
 	RGFW_cocoaFetchRect(win);
 }
@@ -14698,7 +14694,6 @@ void RGFW_window_focus(RGFW_window* win) {
 void RGFW_window_raise(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	((id(*)(id, SEL, SEL))objc_msgSend)((id)win->src.window, sel_registerName("orderFront:"), (SEL)NULL);
-    	objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), kCGNormalWindowLevel);
 }
 
 void RGFW_window_setFullscreenPlatform(RGFW_window* win, RGFW_bool fullscreen) {
@@ -14730,7 +14725,7 @@ void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating) {
 }
 
 void RGFW_window_setOpacity(RGFW_window* win, u8 opacity) {
-	objc_msgSend_int(win->src.window, sel_registerName("setAlphaValue:"), opacity);
+	objc_msgSend_double(win->src.window, sel_registerName("setAlphaValue:"), ((CGFloat)opacity) / (CGFloat)255.0);
 	objc_msgSend_void_bool(win->src.window, sel_registerName("setOpaque:"), (opacity < (u8)255));
 
 	if (opacity)
@@ -14902,7 +14897,9 @@ void RGFW_freeMouse(RGFW_mouse* mouse) {
 }
 
 void RGFW_window_showMouse(RGFW_window* win, RGFW_bool show) {
+	if (RGFW_window_isMouseHidden(win) != show) return;
 	RGFW_window_showMouseFlags(win, show);
+
 	if (show)   CGDisplayShowCursor(kCGDirectMainDisplay);
 	else        CGDisplayHideCursor(kCGDirectMainDisplay);
 }
