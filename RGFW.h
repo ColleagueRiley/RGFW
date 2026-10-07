@@ -13196,11 +13196,11 @@ RGFW_bool RGFW_createContextPtr_OpenGL(RGFW_glContext* ctx, RGFW_glHints* hints)
 	return RGFW_TRUE;
 }
 
-RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_eglContext* ctx) {
+RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 	RGFW_ASSERT(win);
 	if (ctx == NULL && win->src.ctx.native != NULL) {
 		RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL surface freed.");
-		win->ctx.native = NULL;
+		win->src.ctx.native = NULL;
 
 		RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL window surface freed");
 		return RGFW_TRUE;
@@ -15374,7 +15374,7 @@ RGFW_bool RGFW_createContextPtr_OpenGL(RGFW_glContext* ctx, RGFW_glHints* hints)
 
 	ctx->format = format;
 
-	if (hints->format == 32) {
+	if (hints->depth == 32) {
 		i32 opacity = 0;
 		#define NSOpenGLCPSurfaceOpacity 236
 		NSOpenGLContext_setValues((id)ctx->ctx, &opacity, (NSOpenGLContextParameter)NSOpenGLCPSurfaceOpacity);
@@ -15384,10 +15384,10 @@ RGFW_bool RGFW_createContextPtr_OpenGL(RGFW_glContext* ctx, RGFW_glHints* hints)
 	return RGFW_TRUE;
 }
 
-RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_eglContext* ctx) {
+RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 	RGFW_ASSERT(win);
 	if (ctx == NULL && win->src.ctx.native != NULL) {
-		win->ctx.native = NULL;
+		win->src.ctx.native = NULL;
 
 		RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL surface freed.");
 		return RGFW_TRUE;
@@ -16191,10 +16191,10 @@ RGFW_bool RGFW_createContextPtr_OpenGL(RGFW_glContext* ctx, RGFW_glHints* hints)
 	return RGFW_TRUE;
 }
 
-RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_eglContext* ctx) {
+RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 	RGFW_ASSERT(win);
 	if (ctx == NULL && win->src.ctx.native != NULL) {
-		win->ctx.native = NULL;
+		win->src.ctx.native = NULL;
 
 		RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL surface freed.");
 		return RGFW_TRUE;
