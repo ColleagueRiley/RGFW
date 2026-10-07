@@ -14738,7 +14738,11 @@ void RGFW_window_setFullscreenPlatform(RGFW_window* win, RGFW_bool fullscreen) {
 		objc_msgSend_void_id(win->src.window, sel_registerName("setLevel:"), kCGNormalWindowLevel);
 	}
 
-	objc_msgSend_void_SEL(win->src.window, sel_registerName("toggleFullScreen:"), NULL);
+	NSWindowStyleMask styleMask = ((NSWindowStyleMask (*)(id, SEL))objc_msgSend)((id)win->src.window, sel_registerName("styleMask"));
+
+	if (RGFW_BOOL(styleMask & NSWindowStyleMaskFullScreen) != fullscreen) {
+		objc_msgSend_void_SEL(win->src.window, sel_registerName("toggleFullScreen:"), NULL);
+	}
 }
 
 void RGFW_window_maximizePlatform(RGFW_window* win) {
