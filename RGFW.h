@@ -5330,9 +5330,9 @@ void RGFW_window_setFullscreen(RGFW_window* win, RGFW_fullscreenMode fullscreen)
 
 		win->internal.oldBorderless = RGFW_window_borderless(win);
 		RGFW_window_setBorder(win, 0);
-		RGFW_window_move(win, 0, 0);
 
 		RGFW_monitor* mon  = RGFW_window_getMonitor(win);
+		RGFW_window_move(win, mon->x, mon->y);
 
 		if (fullscreen == RGFW_fullscreenExclusive) {
 			win->internal.oldMode = mon->mode;
