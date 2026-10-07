@@ -7894,10 +7894,10 @@ void RGFW_XHandleEvent(void) {
 			}
 
 			/* detect move */
-			if (E.xconfigure.x != win->src.x || E.xconfigure.y != win->src.y) {
-				win->src.x = E.xconfigure.x;
-				win->src.y = E.xconfigure.y;
-				RGFW_windowMovedCallback(win, E.xconfigure.x, E.xconfigure.y);
+			if (x != win->src.x || y != win->src.y) {
+				win->src.x = x;
+				win->src.y = y;
+				RGFW_windowMovedCallback(win, x, y);
 			}
 			return;
 		}
