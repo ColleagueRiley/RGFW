@@ -2983,7 +2983,7 @@ RGFWDEF RGFW_key RGFW_physicalToMappedKey(RGFW_key keycode);
 	};
 
 	#ifdef RGFW_OPENGL
-		struct RGFW_glContext {    HGLRC ctx;	};
+		struct RGFW_glContext {    HGLRC ctx;  i32 format;	 };
 	#endif
 
 	struct RGFW_window_src {
@@ -4305,11 +4305,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	RGFW_window_setFlagsInternal(win, flags, 0);
 #endif
 
-#ifdef RGFW_MACOS
-	/*NOTE: another OpenGL/setFlags related hack, this because OSX the 'view' class must be setup after the NSOpenGL view is made AND after setFlags happens */
-	RGFW_osx_initView(win);
-#endif
-
 #ifdef RGFW_WAYLAND
 	/* recieve all events needed to configure the surface */
 	/* also gets the wl_outputs */
@@ -4325,6 +4320,10 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 			RGFW_surface_free(surface);
 		}
 	}
+#endif
+
+#ifdef RGFW_MACOS
+	RGFW_osx_initView(win);
 #endif
 
 	if (!(flags & RGFW_windowHideMouse)) {
@@ -6045,6 +6044,12 @@ RGFW_bool RGFW_window_setContext_EGL(RGFW_window* win, RGFW_eglContext* ctx) {
 	RGFW_eglSwapBuffers(_RGFW->EGL_display, win->src.ctx.egl->surface);
 
 	RGFW_window_swapInterval_EGL(win, 0);
+
+#ifdef RGFW_MACOS
+	/*NOTE: another OpenGL/setFlags related hack, this because OSX the 'view' class must be setup after the NSOpenGL view is made AND after setFlags happens */
+	RGFW_osx_initView(win);
+#endif
+
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "EGL context initalized.");
 	return RGFW_TRUE;
 }
@@ -13077,15 +13082,18 @@ RGFW_bool RGFW_createContextPtr_OpenGL(RGFW_glContext* ctx, RGFW_glHints* hints)
 	const char noError[] = "WGL_ARB_create_context_no_error";
 	const char robustness[] = "WGL_ARB_create_context_robustness";
 
+	HWND dummyWindow = CreateWindowW(_RGFW->wndClass.lpszClassName, (wchar_t*)NULL, 0, 0, 0, 0, 0, 0, 0, _RGFW->instance, 0);
+	HDC hdc = GetDC(dummyWindow);
+
 	PIXELFORMATDESCRIPTOR pfd;
 	pfd.nSize        = sizeof(PIXELFORMATDESCRIPTOR);
 	pfd.nVersion     = 1;
 	pfd.dwFlags      = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
 	pfd.iPixelType   = PFD_TYPE_RGBA;
 	pfd.iLayerType   = PFD_MAIN_PLANE;
-	pfd.cColorBits   = hints->red + hints->green + hints->blue + hints->alpha;
-	pfd.cAlphaBits   = hints->alpha;
-	pfd.cDepthBits   = hints->depth;
+	pfd.cColorBits   = (BYTE)(hints->red + hints->green + hints->blue + hints->alpha);
+	pfd.cAlphaBits   = (BYTE)hints->alpha;
+	pfd.cDepthBits   = (BYTE)hints->depth;
 	pfd.cStencilBits = (BYTE)hints->stencil;
 	pfd.cAuxBuffers  = (BYTE)hints->auxBuffers;
 	if (hints->stereo) pfd.dwFlags |= PFD_STEREO;
@@ -13095,7 +13103,7 @@ RGFW_bool RGFW_createContextPtr_OpenGL(RGFW_glContext* ctx, RGFW_glHints* hints)
 		pfd.dwFlags |= PFD_GENERIC_FORMAT | PFD_GENERIC_ACCELERATED;
 
 	/* get pixel format, default to a basic pixel format */
-	int pixel_format = ChoosePixelFormat(win->src.hdc, &pfd);
+	ctx->format = ChoosePixelFormat(hdc, &pfd);
 	if (RGFW_wglChoosePixelFormatARB != NULL) {
 		i32 pixel_format_attribs[50];
 		RGFW_attribStack stack;
@@ -13105,7 +13113,7 @@ RGFW_bool RGFW_createContextPtr_OpenGL(RGFW_glContext* ctx, RGFW_glHints* hints)
 		RGFW_attribStack_pushAttribs(&stack, WGL_DRAW_TO_WINDOW_ARB, 1);
 		RGFW_attribStack_pushAttribs(&stack, WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB);
 		RGFW_attribStack_pushAttribs(&stack, WGL_SUPPORT_OPENGL_ARB, 1);
-		RGFW_attribStack_pushAttribs(&stack, WGL_COLOR_BITS_ARB, 32);
+		RGFW_attribStack_pushAttribs(&stack, WGL_COLOR_BITS_ARB, hints->red + hints->green + hints->blue + hints->alpha);
 		RGFW_attribStack_pushAttribs(&stack, WGL_DOUBLE_BUFFER_ARB, 1);
 		RGFW_attribStack_pushAttribs(&stack, WGL_ALPHA_BITS_ARB, hints->alpha);
 		RGFW_attribStack_pushAttribs(&stack, WGL_DEPTH_BITS_ARB, hints->depth);
@@ -13136,15 +13144,16 @@ RGFW_bool RGFW_createContextPtr_OpenGL(RGFW_glContext* ctx, RGFW_glHints* hints)
 
 		int new_pixel_format;
 		UINT num_formats;
-		RGFW_wglChoosePixelFormatARB(win->src.hdc, pixel_format_attribs, 0, 1, &new_pixel_format, &num_formats);
+		RGFW_wglChoosePixelFormatARB(hdc, pixel_format_attribs, 0, 1, &new_pixel_format, &num_formats);
 		if (!num_formats)
 			RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to create a pixel format for WGL");
-		else pixel_format = new_pixel_format;
+		else ctx->format = new_pixel_format;
 	}
 
+
 	PIXELFORMATDESCRIPTOR suggested;
-	if (!DescribePixelFormat(win->src.hdc, pixel_format, sizeof(suggested), &suggested) ||
-		!SetPixelFormat(win->src.hdc, pixel_format, &pfd))
+	if (!DescribePixelFormat(hdc, ctx->format, sizeof(suggested), &suggested) ||
+		!SetPixelFormat(hdc, ctx->format, &suggested))
 			RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to set the WGL pixel format");
 
 	if (RGFW_wglCreateContextAttribsARB != NULL) {
@@ -13191,17 +13200,19 @@ RGFW_bool RGFW_createContextPtr_OpenGL(RGFW_glContext* ctx, RGFW_glHints* hints)
 
 		RGFW_attribStack_pushAttribs(&stack, 0, 0);
 
-		ctx->ctx = (HGLRC)RGFW_wglCreateContextAttribsARB(win->src.hdc, NULL, attribs);
+		ctx->ctx = (HGLRC)RGFW_wglCreateContextAttribsARB(hdc, NULL, attribs);
 	}
 
 	if (RGFW_wglCreateContextAttribsARB == NULL || ctx->ctx == NULL) { /* fall back to a default context (probably OpenGL 2 or something) */
 		RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to create an accelerated OpenGL Context.");
-		ctx->ctx = RGFW_wglCreateContext(win->src.hdc);
+		ctx->ctx = RGFW_wglCreateContext(hdc);
 	}
 
 	if (hints->share) {
 		RGFW_wglShareLists((HGLRC)RGFW_getCurrentContext_OpenGL(), hints->share->ctx);
 	}
+
+	DestroyWindow(dummyWindow);
 
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL context initalized.");
 	return RGFW_TRUE;
@@ -13220,7 +13231,16 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 	win->src.ctx.native = ctx;
 	win->src.gfxType = RGFW_gfxNativeOpenGL;
 
-	RGFW_wglMakeCurrent(win->src.hdc, win->src.ctx.native->ctx);
+	PIXELFORMATDESCRIPTOR suggested;
+	if (!DescribePixelFormat(win->src.hdc, ctx->format, sizeof(suggested), &suggested) ||
+		!SetPixelFormat(win->src.hdc, ctx->format, &suggested))
+			RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to set the WGL pixel format");
+
+	if (RGFW_wglMakeCurrent(win->src.hdc, win->src.ctx.native->ctx) == FALSE) {
+		RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "failed to create OpenGL surface.");
+		return RGFW_FALSE;
+	}
+
 	RGFW_window_swapInterval_OpenGL(win, 0);
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL surface initalized.");
 	return RGFW_TRUE;
@@ -13228,7 +13248,6 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 
 void RGFW_deleteContextPtr_OpenGL(RGFW_glContext* ctx) {
 	RGFW_wglDeleteContext((HGLRC) ctx->ctx); /*!< delete OpenGL context */
-	win->src.ctx.native->ctx = NULL;
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL context freed.");
 }
 
@@ -15413,7 +15432,7 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 							sel_registerName("initWithFrame:pixelFormat:"), (NSRect){{0, 0}, {(double)win->w, (double)win->h}}, (u32*)ctx->format);
 
 
-	objc_msgSend_void_id(win->src.view, sel_registerName("setOpenGLContext:"), win->src.ctx.native->ctx);
+	objc_msgSend_void_id(win->src.view, sel_registerName("setOpenGLContext:"), ctx->ctx);
 
 	objc_msgSend_void(ctx->ctx, sel_registerName("makeCurrentContext"));
 
@@ -15421,6 +15440,8 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 	objc_msgSend_void_bool(win->src.view, sel_registerName("setWantsLayer:"), true);
 	objc_msgSend_int((id)win->src.view, sel_registerName("setLayerContentsPlacement:"),  4);
 
+	/*NOTE: another OpenGL/setFlags related hack, this because OSX the 'view' class must be setup after the NSOpenGL view is made AND after setFlags happens */
+	RGFW_osx_initView(win);
 
 	RGFW_window_swapInterval_OpenGL(win, 0);
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL surface initalized.");

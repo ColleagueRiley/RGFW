@@ -19,6 +19,10 @@
 int main(void) {
 	if (RGFW_init("RGFW Example", RGFW_initOpenGL) < 0) { return 0; };
 
+    RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
+    hints->samples = 4;
+    RGFW_setGlobalHints_OpenGL(hints);
+
 	RGFW_window *window = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_windowCenter);
     RGFW_window_setExitKey(window, RGFW_keyEscape);
 	RGFW_glContext* context = RGFW_createContext_OpenGL(RGFW_getGlobalHints_OpenGL());
