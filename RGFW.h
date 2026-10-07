@@ -13262,30 +13262,29 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 			Windows may fail to set the pixel format if the window was already created, 
 			this tries to make a new window as a fallback
 		*/
-		char title[256];
 		
 		int length = GetWindowTextLengthW(win->src.window);
-		size_t clength = sizeof(WCHAR) * (length);
-
-		WCHAR* buffer = (WCHAR*)RGFW_ALLOC(clength);
-		GetWindowTextW(win->src.window, buffer, length);
-
-		char* name = (char*)RGFW_ALLOC(clength + 1);
-		if (RGFW_createUTF8FromWideStringWin32(buffer, name, clength) == RGFW_TRUE) {
-			name[clength] = '\0';
+		char* name = NULL;
+		if (length > 0) {
+			size_t clength = sizeof(WCHAR) * (size_t)(length);
+			WCHAR* buffer = (WCHAR*)RGFW_ALLOC(clength);
+			if (GetWindowTextW(win->src.window, buffer, length) > 0) {
+				char* name = (char*)RGFW_ALLOC(clength + 1);
+				if (RGFW_createUTF8FromWideStringWin32(buffer, name, clength) == RGFW_TRUE) {
+					name[clength] = '\0';
+				} else name = NULL;
+				RGFW_FREE(buffer);
+			}
 		}
 
-		RGFW_FREE(buffer);
-
 		RGFW_window_closePlatform(win);
-		win = RGFW_createWindowPlatform(name, win->internal.flags, win);
+		win = RGFW_createWindowPlatform(name ? name : "", win->internal.flags, win);
 
-		RGFW_FREE(name);
+		if (name) RGFW_FREE(name);
 		
 		win->src.ctx.native = ctx;
 		win->src.gfxType = RGFW_gfxNativeOpenGL;
 
-		PIXELFORMATDESCRIPTOR suggested;
 		if (!DescribePixelFormat(win->src.hdc, ctx->format, sizeof(suggested), &suggested) ||
 			!SetPixelFormat(win->src.hdc, ctx->format, &suggested))
 				RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to set the WGL pixel format");
