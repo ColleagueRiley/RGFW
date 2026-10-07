@@ -3539,6 +3539,10 @@ RGFWDEF RGFW_bool RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW
 #endif
 #ifdef RGFW_MACOS
 RGFWDEF void RGFW_osx_initView(RGFW_window* win);
+
+	#ifdef RGFW_OPENGL
+	RGFWDEF void RGFW_copyContext_OSX_OpenGL(RGFW_glContext* ctx, RGFW_glContext* newCtx);
+	#endif
 #endif
 /* end of global private API defs */
 
@@ -5553,23 +5557,16 @@ void RGFW_deleteContext_OpenGL(RGFW_glContext* ctx) {
 RGFW_glContext* RGFW_copyContext_OpenGL(RGFW_glContext* ctx) {
 	RGFW_glContext* newCtx = (RGFW_glContext*)RGFW_ALLOC(sizeof(RGFW_glContext));
 	RGFW_copyContextPtr_OpenGL(ctx, newCtx);
-
-#ifdef RGFW_MACOS
-	id pixelFormat = (id)objc_msgSend_id(oldContext, sel_registerName("pixelFormat"));
-	id newContext = ((id (*)(id, SEL))objc_msgSend)(NSAlloc((id)objc_getClass("NSOpenGLContext")),
-		sel_registerName("initWithFormat:shareContext:"),
-		pixelFormat, oldContext
-	);
-
-	newCtx->ctx = newContext;
-#endif
-
 	return newCtx;
 }
 
 RGFW_bool RGFW_copyContextPtr_OpenGL(RGFW_glContext* ctx, RGFW_glContext* newCtx) {
 	RGFW_ASSERT(ctx); RGFW_ASSERT(newCtx);
 	RGFW_MEMCPY(newCtx, ctx, sizeof(RGFW_glContext));
+
+#ifdef RGFW_MACOS
+	RGFW_copyContext_OSX_OpenGL(ctx, newCtx);
+#endif
 	return RGFW_TRUE;
 }
 
@@ -15302,6 +15299,16 @@ RGFW_bool RGFW_loadGL(void) {
 	_RGFW->nativeGL_handle = (void*)CFBundleGetBundleWithIdentifier(CFSTR("com.apple.opengl"));
 	_RGFW->glGetProcAddress = RGFW_getProcAddress_OpenGL;
 	return RGFW_TRUE;
+}
+
+void RGFW_copyContext_OSX_OpenGL(RGFW_glContext* ctx, RGFW_glContext* newCtx) {
+	id pixelFormat = (id)objc_msgSend_id((id)ctx->ctx, sel_registerName("pixelFormat"));
+	id newContext = ((id (*)(id, SEL, id, id))objc_msgSend)(NSAlloc((id)objc_getClass("NSOpenGLContext")),
+		sel_registerName("initWithFormat:shareContext:"),
+		pixelFormat, (id)ctx->ctx
+	);
+
+	newCtx->ctx = newContext;
 }
 
 void NSOpenGLContext_setValues(id context, const int* vals, NSOpenGLContextParameter param);
