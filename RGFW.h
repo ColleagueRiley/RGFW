@@ -14623,7 +14623,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 
 		u32 flags = (u32)((u32(*)(id, SEL))objc_msgSend)((id)e, sel_registerName("modifierFlags"));
 		if (flags & NSEventModifierFlagCommand) {
-			id window = objc_msgSend(_RGFW->NSApp, sel_registerName("keyWindow"));
+			id window = objc_msgSend_id(_RGFW->NSApp, sel_registerName("keyWindow"));
 
 			if (window) {
 				objc_msgSend_void_id((id)window, sel_registerName("sendEvent:"), e);
