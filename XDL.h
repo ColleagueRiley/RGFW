@@ -494,7 +494,7 @@ PFN_XRRFreeGamma XRRFreeGammaSrc;
 #define Xutf8LookupString Xutf8LookupStringSrc
 #define XUnregisterIMInstantiateCallback XUnregisterIMInstantiateCallbackSrc
 #define Xutf8SetWMProperties Xutf8SetWMPropertiesSrc
-#define PFN_XFetchName  PFN_XFetchNameSrc
+#define XFetchName XFetchNameSrc
 
 #ifndef XDL_NO_XRANDR
     #define XRRGetScreenResourcesCurrent XRRGetScreenResourcesCurrentSrc
@@ -671,6 +671,7 @@ void XDL_init(void) {
     XDL_PROC_DEF(0, XPutImage);
 	XDL_PROC_DEF(0, XOpenIM);
 	XDL_PROC_DEF(0, Xutf8LookupString);
+	XDL_PROC_DEF(0, XFetchName);
 	XDL_PROC_DEF(0, XUnregisterIMInstantiateCallback);
 	XDL_PROC_DEF(0, Xutf8SetWMProperties);
 	XDL_PROC_DEF(0, XSetWindowBackground);
