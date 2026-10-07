@@ -14757,9 +14757,9 @@ void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating) {
 }
 
 void RGFW_window_setOpacity(RGFW_window* win, u8 opacity) {
-	objc_msgSend_double(win->src.window, sel_registerName("setAlphaValue:"), ((CGFloat)opacity) / (CGFloat)255.0);
+	((void(*)(Class, SEL, CGFloat))objc_msgSend) (win->src.window, sel_registerName("setAlphaValue:"), ((CGFloat)opacity) / (CGFloat)255.0);
 
-	((void(*)(Class, SEL, CGFloat))objc_msgSend) (win->src.window, sel_registerName("setOpaque:"), (opacity < (u8)255));
+	objc_msgSend_void_bool(win->src.window, sel_registerName("setOpaque:"), (opacity < (u8)255));
 
 	if (opacity)
 		objc_msgSend_void_id((id)win->src.window, sel_registerName("setBackgroundColor:"), NSColor_colorWithSRGB(0, 0, 0, opacity));
