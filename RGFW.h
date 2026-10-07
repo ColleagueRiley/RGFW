@@ -12867,7 +12867,6 @@ void RGFW_deinitPlatform(void) {
 	    RGFW_freeMouse(_RGFW->hiddenMouse);
 }
 
-
 void RGFW_window_closePlatform(RGFW_window* win) {
 	RemovePropW(win->src.window, L"RGFW");
 	ReleaseDC(win->src.window, win->src.hdc); /*!< delete device context */
@@ -13259,8 +13258,38 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 			RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to set the WGL pixel format");
 
 	if (RGFW_wglMakeCurrent(win->src.hdc, win->src.ctx.native->ctx) == FALSE) {
-		RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "failed to create OpenGL surface.");
-		return RGFW_FALSE;
+		char title[256];
+		
+		int length = GetWindowTextLengthW(win->src.window);
+		size_t clength = sizeof(WCHAR) * (length);
+
+		WCHAR* buffer = (WCHAR*)RGFW_ALLOC(clength);
+		GetWindowTextW(win->src.window, buffer, length);
+
+		char* name = (char*)RGFW_ALLOC(clength + 1);
+		if (RGFW_createUTF8FromWideStringWin32(buffer, name, clength) == RGFW_TRUE) {
+			name[clength] = '\0';
+		}
+
+		RGFW_FREE(buffer);
+
+		RGFW_window_closePlatform(win);
+		win = RGFW_createWindowPlatform(name, win->internal.flags, win);
+
+		RGFW_FREE(name);
+		
+		win->src.ctx.native = ctx;
+		win->src.gfxType = RGFW_gfxNativeOpenGL;
+
+		PIXELFORMATDESCRIPTOR suggested;
+		if (!DescribePixelFormat(win->src.hdc, ctx->format, sizeof(suggested), &suggested) ||
+			!SetPixelFormat(win->src.hdc, ctx->format, &suggested))
+				RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to set the WGL pixel format");
+
+		if (RGFW_wglMakeCurrent(win->src.hdc, win->src.ctx.native->ctx) == FALSE) {
+			RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "failed to create OpenGL surface.");
+			return RGFW_FALSE;
+		}
 	}
 
 	RGFW_window_swapInterval_OpenGL(win, 0);
