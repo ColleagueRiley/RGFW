@@ -15421,7 +15421,7 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 							sel_registerName("initWithFrame:pixelFormat:"), (NSRect){{0, 0}, {(double)win->w, (double)win->h}}, (u32*)ctx->format);
 
 
-	objc_msgSend_void_id(win->src.view, sel_registerName("setOpenGLContext:"), win->src.ctx.native->ctx);
+	objc_msgSend_void_id(win->src.view, sel_registerName("setOpenGLContext:"), ctx->ctx);
 
 	objc_msgSend_void(ctx->ctx, sel_registerName("makeCurrentContext"));
 
