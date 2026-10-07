@@ -5554,6 +5554,17 @@ void RGFW_deleteContext_OpenGL(RGFW_glContext* ctx) {
 RGFW_glContext* RGFW_copyContext_OpenGL(RGFW_glContext* ctx) {
 	RGFW_glContext* newCtx = (RGFW_glContext*)RGFW_ALLOC(sizeof(RGFW_glContext));
 	RGFW_copyContextPtr_OpenGL(ctx, newCtx);
+
+#ifdef RGFW_MACOS
+	id pixelFormat = (id)objc_msgSend_id(oldContext, sel_registerName("pixelFormat"));
+	id newContext = ((id (*)(id, SEL))objc_msgSend)(NSAlloc((id)objc_getClass("NSOpenGLContext")),
+		sel_registerName("initWithFormat:shareContext:"),
+		pixelFormat, oldContext
+	);
+
+	newCtx->ctx = newContext;
+#endif
+
 	return newCtx;
 }
 
