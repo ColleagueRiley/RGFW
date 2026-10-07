@@ -21,7 +21,8 @@ int main(void) {
 
 	RGFW_window *window = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, RGFW_windowCenter);
     RGFW_window_setExitKey(window, RGFW_keyEscape);
-	RGFW_glContext* context = RGFW_window_createContext_OpenGL(window, RGFW_getGlobalHints_OpenGL());
+	RGFW_glContext* context = RGFW_createContext_OpenGL(RGFW_getGlobalHints_OpenGL());
+	RGFW_window_setContext_OpenGL(window, context);
 
 	RGFW_glContext* ctx = RGFW_copyContext_OpenGL(context);
 
