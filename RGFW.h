@@ -15449,6 +15449,7 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 
 	/*NOTE: another OpenGL/setFlags related hack, this because OSX the 'view' class must be setup after the NSOpenGL view is made AND after setFlags happens */
 	RGFW_osx_initView(win);
+	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.window, sel_registerName("makeFirstResponder:"), (id)win->src.view);
 
 	RGFW_window_swapInterval_OpenGL(win, 0);
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL surface initalized.");
