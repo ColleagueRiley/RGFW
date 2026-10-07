@@ -14459,8 +14459,8 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	objc_registerClassPair((Class)_RGFW->customWindowDelegateClass);
 
 	_RGFW->customWindowClass = objc_allocateClassPair(objc_getClass("NSWindow"), "RGFWWindowClass", 0);
-	class_addMethod(_RGFW->customWindowClass, sel_registerName("canBecomeKeyWindow"), (IMP)RGFW__osxCanBecomeKeyWindow, "c@:");
-	class_addMethod(_RGFW->customWindowClass, sel_registerName("canBecomeMainWindow"),(IMP)RGFW__osxCanBecomeMainWindow, "c@:");
+	class_addMethod((Class)_RGFW->customWindowClass, sel_registerName("canBecomeKeyWindow"), (IMP)RGFW__osxCanBecomeKeyWindow, "c@:");
+	class_addMethod((Class)_RGFW->customWindowClass, sel_registerName("canBecomeMainWindow"),(IMP)RGFW__osxCanBecomeMainWindow, "c@:");
 	objc_registerClassPair((Class)_RGFW->customWindowClass);
 
 	return 0;
