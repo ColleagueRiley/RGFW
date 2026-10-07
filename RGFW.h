@@ -3536,6 +3536,7 @@ void RGFW_unloadVulkan(void) { }
 
 #ifdef RGFW_X11
 RGFWDEF RGFW_bool RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags flags, RGFW_window* win);
+RGFWDEF char* RGFW_XGetWindowName(Window window);
 #endif
 #ifdef RGFW_MACOS
 RGFWDEF void RGFW_osx_initView(RGFW_window* win);
@@ -5955,14 +5956,20 @@ RGFW_bool RGFW_window_setContext_EGL(RGFW_window* win, RGFW_eglContext* ctx) {
 			RGFW_debugCallback(RGFW_typeError, RGFW_errEGLContext,  "Failed to find a valid visual for the EGL config");
 		} else {
 			RGFW_bool showWindow = RGFW_FALSE;
+			char* name = NULL;
 			if (win->src.window) {
 				showWindow = (RGFW_window_isMinimized(win) == RGFW_FALSE);
+				name = RGFW_XGetWindowName(win->src.window);
 				RGFW_window_closePlatform(win);
 			}
 
-			if (RGFW_XCreateWindow(*result, "", win->internal.flags, win) == RGFW_FALSE) {
+			if (name == NULL) name = "";
+
+			if (RGFW_XCreateWindow(*result, name ? name : "", win->internal.flags, win) == RGFW_FALSE) {
 				return RGFW_FALSE;
 			}
+
+			if (name != NULL) XFree(name);
 
 			if (showWindow) {
 				RGFW_window_show(win);
@@ -7166,6 +7173,20 @@ int RGFW_XErrorHandler(Display* display, XErrorEvent* ev) {
 	#endif
 
     return 0;
+}
+
+char* RGFW_XGetWindowName(Window window) {
+	Atom actualType;
+	int actualFormat;
+	unsigned long nitems, bytesAfter;
+	char* name = NULL;
+
+	if (XGetWindowProperty(_RGFW->display, window, _RGFW->_NET_WM_NAME, 0, (~0L), False, _RGFW->UTF8_STRING, &actualType, &actualFormat, &nitems, &bytesAfter, (u8**)&name) == Success && name) {
+		return name;
+	}
+
+	if (XFetchName(_RGFW->display, window, &name) != Success) return NULL;
+	return name;
 }
 
 RGFW_bool RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW_windowFlags flags, RGFW_window* win) {
@@ -9060,15 +9081,19 @@ RGFW_bool RGFW_FUNC(RGFW_window_setContext_OpenGL) (RGFW_window* win, RGFW_glCon
 
 	/*  This is required so that way the user can create their own OpenGL context after RGFW_createWindow is used */
 	RGFW_bool showWindow = RGFW_FALSE;
+
+	char* name = NULL;
 	if (win->src.window) {
 		showWindow = (RGFW_window_isMinimized(win) == RGFW_FALSE);
+		name = RGFW_XGetWindowName(win->src.window);
 		RGFW_window_closePlatform(win);
 	}
 
 	XVisualInfo* vi = RGFW_glXGetVisualFromFBConfig(_RGFW->display, (GLXFBConfig)context->config);
 
 	/* use the visual to create a new window */
-	if (RGFW_XCreateWindow(*vi, "", win->internal.flags, win) == RGFW_FALSE) return RGFW_FALSE;
+	if (RGFW_XCreateWindow(*vi, name ? name : "", win->internal.flags, win) == RGFW_FALSE) return RGFW_FALSE;
+	if (name != NULL) XFree(name);
 
 	if (showWindow) {
 		RGFW_window_show(win);
