@@ -4305,11 +4305,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	RGFW_window_setFlagsInternal(win, flags, 0);
 #endif
 
-#ifdef RGFW_MACOS
-	/*NOTE: another OpenGL/setFlags related hack, this because OSX the 'view' class must be setup after the NSOpenGL view is made AND after setFlags happens */
-	RGFW_osx_initView(win);
-#endif
-
 #ifdef RGFW_WAYLAND
 	/* recieve all events needed to configure the surface */
 	/* also gets the wl_outputs */
@@ -4325,6 +4320,10 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 			RGFW_surface_free(surface);
 		}
 	}
+#endif
+
+#ifdef RGFW_MACOS
+	RGFW_osx_initView(win);
 #endif
 
 	if (!(flags & RGFW_windowHideMouse)) {
@@ -6034,6 +6033,12 @@ RGFW_bool RGFW_window_setContext_EGL(RGFW_window* win, RGFW_eglContext* ctx) {
 	RGFW_eglSwapBuffers(_RGFW->EGL_display, win->src.ctx.egl->surface);
 
 	RGFW_window_swapInterval_EGL(win, 0);
+
+#ifdef RGFW_MACOS
+	/*NOTE: another OpenGL/setFlags related hack, this because OSX the 'view' class must be setup after the NSOpenGL view is made AND after setFlags happens */
+	RGFW_osx_initView(win);
+#endif
+
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "EGL context initalized.");
 	return RGFW_TRUE;
 }
@@ -15410,6 +15415,8 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 	objc_msgSend_void_bool(win->src.view, sel_registerName("setWantsLayer:"), true);
 	objc_msgSend_int((id)win->src.view, sel_registerName("setLayerContentsPlacement:"),  4);
 
+	/*NOTE: another OpenGL/setFlags related hack, this because OSX the 'view' class must be setup after the NSOpenGL view is made AND after setFlags happens */
+	RGFW_osx_initView(win);
 
 	RGFW_window_swapInterval_OpenGL(win, 0);
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL surface initalized.");
