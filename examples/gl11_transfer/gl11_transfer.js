@@ -691,7 +691,7 @@ function createExportWrapper(name) {
 // include: runtime_exceptions.js
 // end include: runtime_exceptions.js
 var wasmBinaryFile;
-  wasmBinaryFile = 'multi-window.wasm';
+  wasmBinaryFile = 'gl11_transfer.wasm';
   if (!isDataURI(wasmBinaryFile)) {
     wasmBinaryFile = locateFile(wasmBinaryFile);
   }
@@ -965,27 +965,27 @@ function dbg(text) {
 // === Body ===
 
 var ASM_CONSTS = {
-  68664: () => { Module.canvas.focus(); },  
- 68689: ($0, $1, $2, $3, $4) => { var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4); let context = document.getElementById("canvas").getContext("2d"); let image = context.getImageData(0, 0, $1, $2); image.data.set(data); context.putImageData(image, 0, $4 - $2); },  
- 68924: () => { return window.devicePixelRatio || 1; },  
- 68963: () => { return window.innerWidth || 0; },  
- 68996: () => { return window.innerHeight || 0; },  
- 69030: () => { window.addEventListener("keydown", (event) => { var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); var codepoint = event.key.charCodeAt(0); if(codepoint < 0x7f && event.key.length > 1) { codepoint = 0; } Module._RGFW_handleKeyEvent(code, codepoint, 1); Module._RGFW_webFree(code); }, true); window.addEventListener("keyup", (event) => { var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(code, 0, 0); Module._RGFW_webFree(code); }, true); },  
- 70015: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; Module._RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); Module._Emscripten_onDrop(filename, path.length + 1); free(filename); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
- 70919: () => { return (typeof Asyncify !== 'undefined') || ('Asyncify' in Module); },  
- 70991: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 71062: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 71119: () => { return window.mouseX || 0; },  
- 71150: () => { return window.mouseY || 0; },  
- 71181: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
- 71328: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 71381: () => { Module.useWebGL = true; GLImmediate.init(); },  
- 71427: ($0, $1) => { var ext = UTF8ToString($0, $1); var canvas = document.querySelector('canvas'); var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl'); if (!gl) return 0; var supported = gl.getSupportedExtensions(); return supported && supported.includes(ext) ? 1 : 0; },  
- 71707: () => { return window.innerWidth; },  
- 71737: () => { return window.innerHeight; },  
- 71768: () => { Module.requestFullscreen(false, true); },  
- 71807: () => { Module.exitFullscreen(false, true); },  
- 71843: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
+  68312: () => { Module.canvas.focus(); },  
+ 68337: ($0, $1, $2, $3, $4) => { var data = Module.HEAPU8.slice($0, $0 + $1 * $2 * 4); let context = document.getElementById("canvas").getContext("2d"); let image = context.getImageData(0, 0, $1, $2); image.data.set(data); context.putImageData(image, 0, $4 - $2); },  
+ 68572: () => { return window.devicePixelRatio || 1; },  
+ 68611: () => { return window.innerWidth || 0; },  
+ 68644: () => { return window.innerHeight || 0; },  
+ 68678: () => { window.addEventListener("keydown", (event) => { var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); var codepoint = event.key.charCodeAt(0); if(codepoint < 0x7f && event.key.length > 1) { codepoint = 0; } Module._RGFW_handleKeyEvent(code, codepoint, 1); Module._RGFW_webFree(code); }, true); window.addEventListener("keyup", (event) => { var code = stringToNewUTF8(event.code); Module._RGFW_handleKeyMods(event.getModifierState("CapsLock"), event.getModifierState("NumLock"), event.getModifierState("Control"), event.getModifierState("Alt"), event.getModifierState("Shift"), event.getModifierState("Meta"), event.getModifierState("ScrollLock")); Module._RGFW_handleKeyEvent(code, 0, 0); Module._RGFW_webFree(code); }, true); },  
+ 69663: () => { var canvas = document.getElementById('canvas'); canvas.addEventListener('drop', function(e) { e.preventDefault(); if (e.dataTransfer.file < 0) return; var count = e.dataTransfer.files.length; var drop_dir = '.rgfw_dropped_files'; Module._RGFW_mkdir(drop_dir); for (var i = 0; i < count; i++) { var file = e.dataTransfer.files[i]; var path = '/' + drop_dir + '/' + file.name.replace("//", '_'); var reader = new FileReader(); reader.onloadend = (e) => { if (reader.readyState != 2) { out('failed to read dropped file: '+file.name+': '+reader.error); } else { var data = e.target.result; Module._RGFW_writeFile(path, new Uint8Array(data), file.size); } }; reader.readAsArrayBuffer(file); var filename = stringToNewUTF8(path); Module._Emscripten_onDrop(filename, path.length + 1); free(filename); } }, true); canvas.addEventListener('dragover', function(e) { e.preventDefault(); return false; }, true); },  
+ 70567: () => { return (typeof Asyncify !== 'undefined') || ('Asyncify' in Module); },  
+ 70639: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 70710: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 70767: () => { return window.mouseX || 0; },  
+ 70798: () => { return window.mouseY || 0; },  
+ 70829: ($0) => { var canvas = document.getElementById('canvas'); if ($0) { canvas.style.pointerEvents = 'none'; } else { canvas.style.pointerEvents = 'auto'; } },  
+ 70976: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 71029: () => { Module.useWebGL = true; GLImmediate.init(); },  
+ 71075: ($0, $1) => { var ext = UTF8ToString($0, $1); var canvas = document.querySelector('canvas'); var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl'); if (!gl) return 0; var supported = gl.getSupportedExtensions(); return supported && supported.includes(ext) ? 1 : 0; },  
+ 71355: () => { return window.innerWidth; },  
+ 71385: () => { return window.innerHeight; },  
+ 71416: () => { Module.requestFullscreen(false, true); },  
+ 71455: () => { Module.exitFullscreen(false, true); },  
+ 71491: ($0, $1) => { var element = document.getElementById("canvas"); if (element) element.style.opacity = $1; }
 };
 
 
@@ -11371,6 +11371,7 @@ var ASM_CONSTS = {
       GLImmediate.modifiedClientAttributes = true;
     };
 
+  function _glFlush() { GLctx.flush() }
 
   var _glVertex2f = (x, y) => {
       assert(GLImmediate.mode >= 0); // must be in begin/end
@@ -11381,6 +11382,8 @@ var ASM_CONSTS = {
       assert(GLImmediate.vertexCounter << 2 < GL.MAX_TEMP_BUFFER_SIZE);
       GLImmediate.addRendererComponent(GLImmediate.VERTEX, 4, GLctx.FLOAT);
     };
+
+  function _glViewport(x0, x1, x2, x3) { GLctx.viewport(x0, x1, x2, x3) }
 
 
 
@@ -11819,9 +11822,11 @@ var wasmImports = {
   /** @export */
   glEnd: _glEnd,
   /** @export */
-  glGetString: _glGetString,
+  glFlush: _glFlush,
   /** @export */
-  glVertex2f: _glVertex2f
+  glVertex2f: _glVertex2f,
+  /** @export */
+  glViewport: _glViewport
 };
 Asyncify.instrumentWasmImports(wasmImports);
 var wasmExports = createWasm();
@@ -11845,8 +11850,8 @@ var stackRestore = createExportWrapper('stackRestore');
 var stackAlloc = createExportWrapper('stackAlloc');
 var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'])();
 var dynCall_iiii = Module['dynCall_iiii'] = createExportWrapper('dynCall_iiii');
-var dynCall_ii = Module['dynCall_ii'] = createExportWrapper('dynCall_ii');
 var dynCall_jiji = Module['dynCall_jiji'] = createExportWrapper('dynCall_jiji');
+var dynCall_ii = Module['dynCall_ii'] = createExportWrapper('dynCall_ii');
 var dynCall_iidiiii = Module['dynCall_iidiiii'] = createExportWrapper('dynCall_iidiiii');
 var dynCall_vii = Module['dynCall_vii'] = createExportWrapper('dynCall_vii');
 var _asyncify_start_unwind = createExportWrapper('asyncify_start_unwind');

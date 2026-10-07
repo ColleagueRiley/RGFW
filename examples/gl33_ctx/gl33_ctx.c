@@ -26,7 +26,8 @@ int main(void) {
 
     /* hide by default until the window is ready to show*/
     RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowHide);
-    RGFW_window_createContext_OpenGL(win, hints);
+    RGFW_glContext* context = RGFW_createContext_OpenGL(hints);
+	RGFW_window_setContext_OpenGL(win, context);
 
     RGFW_window_show(win);
 

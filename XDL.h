@@ -188,6 +188,7 @@ typedef XIM (* PFN_XOpenIM)(Display*,XrmDatabase*,char*,char*);
 typedef int (* PFN_Xutf8LookupString)(XIC,XKeyPressedEvent*,char*,int,KeySym*,Status*);
 typedef Bool (* PFN_XUnregisterIMInstantiateCallback)(Display*,void*,char*,char*,XIDProc,XPointer);
 typedef void (* PFN_Xutf8SetWMProperties)(Display*,Window,const char*,const char*,char**,int,XSizeHints*,XWMHints*,XClassHint*);
+typedef Status (* PFN_XFetchName)(Display*,Window,char**);
 
 #ifndef XDL_NO_XRANDR
 #include <X11/extensions/Xrandr.h>
@@ -340,6 +341,7 @@ PFN_XOpenIM XOpenIMSrc;
 PFN_Xutf8LookupString Xutf8LookupStringSrc;
 PFN_XUnregisterIMInstantiateCallback XUnregisterIMInstantiateCallbackSrc;
 PFN_Xutf8SetWMProperties Xutf8SetWMPropertiesSrc;
+PFN_XFetchName XFetchNameSrc;
 
 #ifndef XDL_NO_XRANDR
 PFN_XRRGetScreenResourcesCurrent XRRGetScreenResourcesCurrentSrc;
@@ -492,6 +494,7 @@ PFN_XRRFreeGamma XRRFreeGammaSrc;
 #define Xutf8LookupString Xutf8LookupStringSrc
 #define XUnregisterIMInstantiateCallback XUnregisterIMInstantiateCallbackSrc
 #define Xutf8SetWMProperties Xutf8SetWMPropertiesSrc
+#define XFetchName XFetchNameSrc
 
 #ifndef XDL_NO_XRANDR
     #define XRRGetScreenResourcesCurrent XRRGetScreenResourcesCurrentSrc
@@ -668,6 +671,7 @@ void XDL_init(void) {
     XDL_PROC_DEF(0, XPutImage);
 	XDL_PROC_DEF(0, XOpenIM);
 	XDL_PROC_DEF(0, Xutf8LookupString);
+	XDL_PROC_DEF(0, XFetchName);
 	XDL_PROC_DEF(0, XUnregisterIMInstantiateCallback);
 	XDL_PROC_DEF(0, Xutf8SetWMProperties);
 	XDL_PROC_DEF(0, XSetWindowBackground);

@@ -157,6 +157,7 @@ endif
 
 EXAMPLE_OUTPUTS = \
 	examples/gl11/gl11 \
+	examples/gl11_transfer/gl11_transfer \
 	examples/surface/surface\
 	examples/event_queue/event_queue \
 	examples/callbacks/callbacks \

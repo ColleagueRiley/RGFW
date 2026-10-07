@@ -1,4 +1,4 @@
-.TH "XDL.h" 3 "Tue Oct 6 2026" "RGFW" \" -*- nroff -*-
+.TH "XDL.h" 3 "Wed Oct 7 2026" "RGFW" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -400,6 +400,9 @@ XDL.h
 .br
 .ti -1c
 .RI "#define \fBXutf8SetWMProperties\fP   \fBXutf8SetWMPropertiesSrc\fP"
+.br
+.ti -1c
+.RI "#define \fBXFetchName\fP   \fBXFetchNameSrc\fP"
 .br
 .ti -1c
 .RI "#define \fBXRRGetScreenResourcesCurrent\fP   \fBXRRGetScreenResourcesCurrentSrc\fP"
@@ -862,6 +865,9 @@ XDL.h
 .RI "typedef void(* \fBPFN_Xutf8SetWMProperties\fP) (Display *, Window, const char *, const char *, char **, int, XSizeHints *, XWMHints *, XClassHint *)"
 .br
 .ti -1c
+.RI "typedef Status(* \fBPFN_XFetchName\fP) (Display *, Window, char **)"
+.br
+.ti -1c
 .RI "typedef XRRScreenResources *(* \fBPFN_XRRGetScreenResourcesCurrent\fP) (Display *display, Window window)"
 .br
 .ti -1c
@@ -1314,6 +1320,9 @@ XDL.h
 .RI "\fBPFN_Xutf8SetWMProperties\fP \fBXutf8SetWMPropertiesSrc\fP"
 .br
 .ti -1c
+.RI "\fBPFN_XFetchName\fP \fBXFetchNameSrc\fP"
+.br
+.ti -1c
 .RI "\fBPFN_XRRGetScreenResourcesCurrent\fP \fBXRRGetScreenResourcesCurrentSrc\fP"
 .br
 .ti -1c
@@ -1448,6 +1457,8 @@ XDL.h
 .SS "#define XDLDEF   inline"
 
 .SS "#define XEventsQueued   \fBXEventsQueuedSrc\fP"
+
+.SS "#define XFetchName   \fBXFetchNameSrc\fP"
 
 .SS "#define XFilterEvent   \fBXFilterEventSrc\fP"
 
@@ -1744,6 +1755,8 @@ XDL.h
 .SS "typedef int(* PFN_XDisplayWidth) (Display *display, int screen_number)"
 
 .SS "typedef int(* PFN_XEventsQueued) (Display *, int)"
+
+.SS "typedef Status(* PFN_XFetchName) (Display *, Window, char **)"
 
 .SS "typedef Bool(* PFN_XFilterEvent) (XEvent *, Window)"
 
@@ -2054,6 +2067,8 @@ XDL.h
 .SS "\fBPFN_XDisplayWidth\fP XDisplayWidthSrc"
 
 .SS "\fBPFN_XEventsQueued\fP XEventsQueuedSrc"
+
+.SS "\fBPFN_XFetchName\fP XFetchNameSrc"
 
 .SS "\fBPFN_XFilterEvent\fP XFilterEventSrc"
 
