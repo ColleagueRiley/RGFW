@@ -13258,6 +13258,10 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 			RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to set the WGL pixel format");
 
 	if (RGFW_wglMakeCurrent(win->src.hdc, win->src.ctx.native->ctx) == FALSE) {
+		/* 
+			Windows may fail to set the pixel format if the window was already created, 
+			this tries to make a new window as a fallback
+		*/
 		char title[256];
 		
 		int length = GetWindowTextLengthW(win->src.window);
