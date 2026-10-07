@@ -13258,11 +13258,11 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 			RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to set the WGL pixel format");
 
 	if (RGFW_wglMakeCurrent(win->src.hdc, win->src.ctx.native->ctx) == FALSE) {
-		/* 
-			Windows may fail to set the pixel format if the window was already created, 
+		/*
+			Windows may fail to set the pixel format if the window was already created,
 			this tries to make a new window as a fallback
 		*/
-		
+
 		int length = GetWindowTextLengthW(win->src.window);
 		char* name = NULL;
 		if (length > 0) {
@@ -13281,7 +13281,7 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 		win = RGFW_createWindowPlatform(name ? name : "", win->internal.flags, win);
 
 		if (name) RGFW_FREE(name);
-		
+
 		win->src.ctx.native = ctx;
 		win->src.gfxType = RGFW_gfxNativeOpenGL;
 
@@ -14617,7 +14617,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
 	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
 
-	double seconds = (((double)waitMS) / ((double)1000))
+	double seconds = (((double)waitMS) / ((double)1000));
 	void* date = (void*) ((id(*)(Class, SEL, double))objc_msgSend)
 				(objc_getClass("NSDate"), sel_registerName("dateWithTimeIntervalSinceNow:"), seconds);
 
@@ -14758,7 +14758,8 @@ void RGFW_window_setFloating(RGFW_window* win, RGFW_bool floating) {
 
 void RGFW_window_setOpacity(RGFW_window* win, u8 opacity) {
 	objc_msgSend_double(win->src.window, sel_registerName("setAlphaValue:"), ((CGFloat)opacity) / (CGFloat)255.0);
-	objc_msgSend_void_bool(win->src.window, sel_registerName("setOpaque:"), (opacity < (u8)255));
+
+	((void(*)(Class, SEL, CGFloat))objc_msgSend) (win->src.window, sel_registerName("setOpaque:"), (opacity < (u8)255));
 
 	if (opacity)
 		objc_msgSend_void_id((id)win->src.window, sel_registerName("setBackgroundColor:"), NSColor_colorWithSRGB(0, 0, 0, opacity));
