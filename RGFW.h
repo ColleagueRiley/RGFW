@@ -13269,7 +13269,7 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 			size_t clength = sizeof(WCHAR) * (size_t)(length);
 			WCHAR* buffer = (WCHAR*)RGFW_ALLOC(clength);
 			if (GetWindowTextW(win->src.window, buffer, length) > 0) {
-				char* name = (char*)RGFW_ALLOC(clength + 1);
+				name = (char*)RGFW_ALLOC(clength + 1);
 				if (RGFW_createUTF8FromWideStringWin32(buffer, name, clength) == RGFW_TRUE) {
 					name[clength] = '\0';
 				} else name = NULL;
