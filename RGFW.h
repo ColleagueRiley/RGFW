@@ -11800,7 +11800,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				char* cbuffer = (char*)RGFW_ALLOC(clength);
 				if (RGFW_createUTF8FromWideStringWin32(buffer, cbuffer, clength) == RGFW_TRUE) {
-					cbuffer[clength] = '\0';
 					RGFW_dataDropCallback(win, cbuffer, clength, RGFW_dataFile);
 				}
 
