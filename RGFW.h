@@ -12062,7 +12062,7 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	_RGFW->wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
 	_RGFW->wndClass.lpfnWndProc = WndProcW;
 	_RGFW->wndClass.cbClsExtra = sizeof(RGFW_window*);
-
+    _RGFW->wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 	_RGFW->wndClass.hIcon = (HICON)LoadImageA(_RGFW->instance, "RGFW_ICON", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
 	if (_RGFW->wndClass.hIcon == NULL)
 		_RGFW->wndClass.hIcon = (HICON)LoadImageA(NULL, (LPCSTR)IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
