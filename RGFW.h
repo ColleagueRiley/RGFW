@@ -11789,8 +11789,8 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			u32 i;
 			for (i = 0; i < count; i++) {
-				UINT length = DragQueryFileW(drop, i, NULL, 0);
-				if (length == 0)
+				UINT length = DragQueryFileW(drop, i, NULL, 0) + 1;
+				if (length == 1)
 					continue;
 
 				size_t clength = sizeof(WCHAR) * (length);
@@ -11798,10 +11798,10 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				WCHAR* buffer = (WCHAR*)RGFW_ALLOC(clength);
 				DragQueryFileW(drop, i, buffer, length);
 
-				char* cbuffer = (char*)RGFW_ALLOC(clength + 1);
+				char* cbuffer = (char*)RGFW_ALLOC(clength);
 				if (RGFW_createUTF8FromWideStringWin32(buffer, cbuffer, clength) == RGFW_TRUE) {
 					cbuffer[clength] = '\0';
-					RGFW_dataDropCallback(win, cbuffer, clength + 1, RGFW_dataFile);
+					RGFW_dataDropCallback(win, cbuffer, clength, RGFW_dataFile);
 				}
 
 				RGFW_FREE(buffer);
