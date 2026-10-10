@@ -11252,8 +11252,8 @@ DWORD RGFW_winapi_window_getExStyle(RGFW_window* win, RGFW_windowFlags flags) {
     return style;
 }
 
-RGFWDEF size_t RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* out, size_t max);
-size_t RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* output, size_t max) {
+RGFWDEF i32 RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* out, size_t max);
+i32 RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* output, size_t max) {
 	RGFW_ASSERT(source != NULL);
 
 	i32 size = WideCharToMultiByte(CP_UTF8, 0, source, -1, NULL, 0, NULL, NULL);
@@ -11798,7 +11798,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				WCHAR* buffer = (WCHAR*)RGFW_ALLOC(sizeof(WCHAR) * length);
 				DragQueryFileW(drop, i, buffer, length);
 				
-				size_t clength = RGFW_createUTF8FromWideStringWin32(buffer, NULL, 0); 
+				i32 clength = RGFW_createUTF8FromWideStringWin32(buffer, NULL, 0); 
 				if (clength > 0) {
 					char* cbuffer = (char*)RGFW_ALLOC(clength);
 					if (RGFW_createUTF8FromWideStringWin32(buffer, cbuffer, clength) != RGFW_FALSE) {
@@ -12507,8 +12507,8 @@ void RGFW_win32_createMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd) {
 	wcscpy(node->adapterName, adapter->DeviceName);
 	wcscpy(node->deviceName, dd->DeviceName);
 
-	RGFW_createUTF8FromWideStringWin32(dd->DeviceString, node->mon.name, sizeof(node->mon.name));
-	node->mon.name[sizeof(node->mon.name) - 1] = '\0';
+	i32 size = RGFW_createUTF8FromWideStringWin32(dd->DeviceString, node->mon.name, sizeof(node->mon.name));
+	node->mon.name[size - 1] = '\0';
 
 	RECT rect;
 	rect.left = (LONG)dm.dmPosition.x;
@@ -13269,13 +13269,18 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 		int length = GetWindowTextLengthW(win->src.window);
 		char* name = NULL;
 		if (length > 0) {
-			size_t clength = sizeof(WCHAR) * (size_t)(length);
-			WCHAR* buffer = (WCHAR*)RGFW_ALLOC(clength);
+			WCHAR* buffer = (WCHAR*)RGFW_ALLOC(sizeof(WCHAR) * (size_t)(length));
 			if (GetWindowTextW(win->src.window, buffer, length) > 0) {
-				name = (char*)RGFW_ALLOC(clength + 1);
-				if (RGFW_createUTF8FromWideStringWin32(buffer, name, clength) == RGFW_TRUE) {
-					name[clength] = '\0';
-				} else name = NULL;
+				i32 clength = RGFW_createUTF8FromWideStringWin32(buffer, NULL, 0);
+				if (clength > 0) {
+					name = (char*)RGFW_ALLOC(clength + 1);
+					if (RGFW_createUTF8FromWideStringWin32(buffer, name, clength) > 0) {
+						name[clength] = '\0';
+					} else {
+						RGFW_FREE(name);
+						name = NULL;
+					}
+				}
 				RGFW_FREE(buffer);
 			}
 		}
