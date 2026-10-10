@@ -11792,15 +11792,13 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			u32 i;
 			for (i = 0; i < count; i++) {
 				UINT length = DragQueryFileW(drop, i, NULL, 0) + 1;
-				if (length == 1)
+				if (length <= 1)
 					continue;
 
-				size_t clength = sizeof(WCHAR) * (length);
-
-				WCHAR* buffer = (WCHAR*)RGFW_ALLOC(clength);
+				WCHAR* buffer = (WCHAR*)RGFW_ALLOC(sizeof(WCHAR) * length);
 				DragQueryFileW(drop, i, buffer, length);
 				
-				clength = RGFW_createUTF8FromWideStringWin32(buffer, NULL, 0); 
+				size_t clength = RGFW_createUTF8FromWideStringWin32(buffer, NULL, 0); 
 				if (clength > 0) {
 					char* cbuffer = (char*)RGFW_ALLOC(clength);
 					if (RGFW_createUTF8FromWideStringWin32(buffer, cbuffer, clength) != RGFW_FALSE) {
