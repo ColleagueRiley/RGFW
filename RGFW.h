@@ -11252,15 +11252,17 @@ DWORD RGFW_winapi_window_getExStyle(RGFW_window* win, RGFW_windowFlags flags) {
     return style;
 }
 
-RGFWDEF RGFW_bool RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* out, size_t max);
-RGFW_bool RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* output, size_t max) {
-    if (source == NULL || output == NULL || max == 0) {
-        return RGFW_FALSE;
-	}
+RGFWDEF size_t RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* out, size_t max);
+size_t RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* output, size_t max) {
+	RGFW_ASSERT(source != NULL);
 
 	i32 size = WideCharToMultiByte(CP_UTF8, 0, source, -1, NULL, 0, NULL, NULL);
 	if (!size) {
 		return RGFW_FALSE;
+	}
+
+    if (output == NULL || max == 0) {
+        return size;
 	}
 
 	if ((size_t)size > max)
@@ -11270,7 +11272,7 @@ RGFW_bool RGFW_createUTF8FromWideStringWin32(const WCHAR* source, char* output, 
 		return RGFW_FALSE;
 	}
 
-	return RGFW_TRUE;
+	return size;
 }
 
 #ifdef RGFW_OPENGL
@@ -11797,14 +11799,17 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				WCHAR* buffer = (WCHAR*)RGFW_ALLOC(clength);
 				DragQueryFileW(drop, i, buffer, length);
-
-				char* cbuffer = (char*)RGFW_ALLOC(clength);
-				if (RGFW_createUTF8FromWideStringWin32(buffer, cbuffer, clength) == RGFW_TRUE) {
-					RGFW_dataDropCallback(win, cbuffer, clength, RGFW_dataFile);
+				
+				clength = RGFW_createUTF8FromWideStringWin32(buffer, NULL, 0); 
+				if (clength > 0) {
+					char* cbuffer = (char*)RGFW_ALLOC(clength);
+					if (RGFW_createUTF8FromWideStringWin32(buffer, cbuffer, clength) != RGFW_FALSE) {
+						RGFW_dataDropCallback(win, cbuffer, clength, RGFW_dataFile);
+					}
+					RGFW_FREE(cbuffer);
 				}
 
 				RGFW_FREE(buffer);
-				RGFW_FREE(cbuffer);
 			}
 
 			DragFinish(drop);
