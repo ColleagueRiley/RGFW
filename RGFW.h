@@ -4562,6 +4562,7 @@ RGFW_event* RGFW_window_eventQueuePop(RGFW_window* win) {
 	}
 
 	if (ev->common.win != win && ev->common.win != NULL) {
+		RGFW_eventQueuePush(ev);
 		return NULL;
 	}
 
