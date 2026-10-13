@@ -12500,8 +12500,8 @@ size_t RGFW_monitor_getModesPtr(RGFW_monitor* monitor, RGFW_monitorMode** modes)
 	return count;
 }
 
-RGFWDEF void RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd, RGFW_monitorNode* node);
-void RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd, RGFW_monitorNode* node) {
+RGFWDEF void RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, RGFW_monitorNode* node);
+void RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, RGFW_monitorNode* node) {
 	DEVMODEW dm;
 	ZeroMemory(&dm, sizeof(dm));
 	dm.dmSize = sizeof(dm);
@@ -12560,7 +12560,7 @@ void RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd, RGFW_
 RGFWDEF void RGFW_win32_createMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd);
 void RGFW_win32_createMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd) {
 	RGFW_monitorNode* node = RGFW_monitors_add(NULL);
-	RGFW_win32_initMonitor(adapter, dd, node);
+	RGFW_win32_initMonitor(adapter, node);
 
 	wcscpy(node->adapterName, adapter->DeviceName);
 	wcscpy(node->deviceName, dd->DeviceName);
@@ -12608,7 +12608,7 @@ void RGFW_pollMonitors(void) {
 			for (node = _RGFW->monitors.list.head; node; node = node->next) {
 				if (node->disconnected == RGFW_TRUE && wcscmp(node->deviceName, dd.DeviceName) == 0) {
 					node->disconnected = RGFW_FALSE;
-					RGFW_win32_initMonitor(&adapter, &dd, node);
+					RGFW_win32_initMonitor(&adapter, node);
 					break;
 				}
 			}
@@ -12626,7 +12626,7 @@ void RGFW_pollMonitors(void) {
 			for (node = _RGFW->monitors.list.head; node; node = node->next) {
 				if (node->disconnected == RGFW_TRUE && wcscmp(node->adapterName, adapter.DeviceName) == 0) {
 					node->disconnected = RGFW_FALSE;
-					RGFW_win32_initMonitor(&adapter, NULL, node);
+					RGFW_win32_initMonitor(&adapter, node);
 					break;
 				}
 			}
