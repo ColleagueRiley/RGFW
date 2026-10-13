@@ -8616,14 +8616,6 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 			}
 		}
 
-		if (node) {
-			node->disconnected = RGFW_FALSE;
-			if (node->rrOutput == primary) {
-				_RGFW->monitors.primary = node;
-			}
-			continue;
-		}
-
 		RGFW_monitor monitor;
 
 		XRROutputInfo* info = XRRGetOutputInfo(_RGFW->display, res, res->outputs[i]);
@@ -8672,20 +8664,32 @@ void RGFW_FUNC(RGFW_pollMonitors) (void) {
 
 		XRRFreeCrtcInfo(ci);
 
-		node = RGFW_monitors_add(&monitor);
-		if (node == NULL) break;
-
-		node->rrOutput = res->outputs[i];
-		node->crtc = info->crtc;
-
-		if (node->rrOutput == primary) {
-			_RGFW->monitors.primary = node;
-		}
+		RROutput rrOutput = res->outputs[i];
+		RRCrtc crtc = info->crtc;
 
 		XRRFreeOutputInfo(info);
 		info = NULL;
 
-		RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_TRUE);
+		if (node) {
+			node->disconnected = RGFW_FALSE;
+			if (node->rrOutput == primary) {
+				_RGFW->monitors.primary = node;
+			}
+
+			continue;
+		} else {
+			node = RGFW_monitors_add(&monitor);
+			if (node == NULL) break;
+
+			node->rrOutput = rrOutput;
+			node->crtc = crtc;
+
+			if (node->rrOutput == primary) {
+				_RGFW->monitors.primary = node;
+			}
+
+			RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_TRUE);
+		}
 	}
 
 	XRRFreeScreenResources(res);
@@ -11754,7 +11758,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				value = RGFW_mouseMisc1 + (GET_XBUTTON_WPARAM(wParam) == XBUTTON2);
 			else value = (message == WM_LBUTTONDOWN) ? (u8)RGFW_mouseLeft :
 									 (message == WM_RBUTTONDOWN) ? (u8)RGFW_mouseRight : (u8)RGFW_mouseMiddle;
-			
+
 			SetCapture(win->src.window);
 			RGFW_mouseButtonCallback(win, value, 1);
 			break;
@@ -11767,7 +11771,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 									 (message == WM_RBUTTONUP) ? (u8)RGFW_mouseRight : (u8)RGFW_mouseMiddle;
 
 			RGFW_mouseButtonCallback(win, value, 0);
-			
+
 			RGFW_mouseButton i = 0;
 			for (i = RGFW_mouseLeft; i < RGFW_mouseFinal && RGFW_isMouseDown(i) == RGFW_FALSE; i += 1);
 			break;
@@ -11801,8 +11805,8 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				WCHAR* buffer = (WCHAR*)RGFW_ALLOC(sizeof(WCHAR) * length);
 				DragQueryFileW(drop, i, buffer, length);
-				
-				i32 clength = RGFW_createUTF8FromWideStringWin32(buffer, NULL, 0); 
+
+				i32 clength = RGFW_createUTF8FromWideStringWin32(buffer, NULL, 0);
 				if (clength > 0) {
 					char* cbuffer = (char*)RGFW_ALLOC((size_t)clength);
 					if (RGFW_createUTF8FromWideStringWin32(buffer, cbuffer, (size_t)clength) != RGFW_FALSE) {
@@ -12496,8 +12500,8 @@ size_t RGFW_monitor_getModesPtr(RGFW_monitor* monitor, RGFW_monitorMode** modes)
 	return count;
 }
 
-RGFWDEF void RGFW_win32_createMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd);
-void RGFW_win32_createMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd) {
+RGFWDEF void RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd, RGFW_monitorNode* node);
+void RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd, RGFW_monitorNode* node) {
 	DEVMODEW dm;
 	ZeroMemory(&dm, sizeof(dm));
 	dm.dmSize = sizeof(dm);
@@ -12505,14 +12509,6 @@ void RGFW_win32_createMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd) {
 	if (!EnumDisplaySettingsW(adapter->DeviceName, ENUM_CURRENT_SETTINGS, &dm)) {
 		return;
 	}
-
-	RGFW_monitorNode* node = RGFW_monitors_add(NULL);
-
-	wcscpy(node->adapterName, adapter->DeviceName);
-	wcscpy(node->deviceName, dd->DeviceName);
-
-	i32 size = RGFW_createUTF8FromWideStringWin32(dd->DeviceString, node->mon.name, sizeof(node->mon.name));
-	node->mon.name[size - 1] = '\0';
 
 	RECT rect;
 	rect.left = (LONG)dm.dmPosition.x;
@@ -12559,6 +12555,18 @@ void RGFW_win32_createMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd) {
 	if (monitorInfo.dwFlags & MONITORINFOF_PRIMARY) {
 		_RGFW->monitors.primary = node;
 	}
+}
+
+RGFWDEF void RGFW_win32_createMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd);
+void RGFW_win32_createMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd) {
+	RGFW_monitorNode* node = RGFW_monitors_add(NULL);
+	RGFW_win32_initMonitor(adapter, dd, node);
+
+	wcscpy(node->adapterName, adapter->DeviceName);
+	wcscpy(node->deviceName, dd->DeviceName);
+
+	i32 size = RGFW_createUTF8FromWideStringWin32(dd->DeviceString, node->mon.name, sizeof(node->mon.name));
+	node->mon.name[size - 1] = '\0';
 
 	RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_TRUE);
 }
@@ -12600,7 +12608,7 @@ void RGFW_pollMonitors(void) {
 			for (node = _RGFW->monitors.list.head; node; node = node->next) {
 				if (node->disconnected == RGFW_TRUE && wcscmp(node->deviceName, dd.DeviceName) == 0) {
 					node->disconnected = RGFW_FALSE;
-					EnumDisplayMonitors(NULL, NULL, RGFW_win32_getMonitorHandle, (LPARAM) &node->mon);
+					RGFW_win32_initMonitor(&adapter, &dd, node);
 					break;
 				}
 			}
@@ -12618,6 +12626,7 @@ void RGFW_pollMonitors(void) {
 			for (node = _RGFW->monitors.list.head; node; node = node->next) {
 				if (node->disconnected == RGFW_TRUE && wcscmp(node->adapterName, adapter.DeviceName) == 0) {
 					node->disconnected = RGFW_FALSE;
+					RGFW_win32_initMonitor(&adapter, NULL, node);
 					break;
 				}
 			}
@@ -12625,8 +12634,6 @@ void RGFW_pollMonitors(void) {
 			if (node) {
 				continue;
 			}
-
-			RGFW_win32_createMonitor(&adapter, NULL);
         }
 	}
 
@@ -15099,16 +15106,6 @@ void RGFW_pollMonitors(void) {
 			if (node->uintNum == uintNum) break;
 		}
 
-		if (node) {
-			node->screen = (void*)screen;
-			node->display = displays[i];
-			node->disconnected = RGFW_FALSE;
-			if (displays[i] == primary) {
-				_RGFW->monitors.primary = node;
-			}
-			continue;
-		}
-
 		const char name[] = "MacOS\0";
 		RGFW_MEMCPY(monitor.name, name, 6);
 
@@ -15150,18 +15147,28 @@ void RGFW_pollMonitors(void) {
 		monitor.scaleX = ((((float) (ppi_width) / dpi) * 10.0f)) / 10.0f;
 		monitor.scaleY = ((((float) (ppi_height) / dpi) * 10.0f)) / 10.0f;
 
-		node = RGFW_monitors_add(&monitor);
+		if (node) {
+			node->screen = (void*)screen;
+			node->display = displays[i];
+			node->disconnected = RGFW_FALSE;
+			if (displays[i] == primary) {
+				_RGFW->monitors.primary = node;
+			}
+			continue;
+		} else {
+			node = RGFW_monitors_add(&monitor);
 
-		node->allModes = allModes;
-		node->screen = (void*)screen;
-		node->uintNum = uintNum;
-		node->display = displays[i];
+			node->allModes = allModes;
+			node->screen = (void*)screen;
+			node->uintNum = uintNum;
+			node->display = displays[i];
 
-		if (displays[i] == primary) {
-			_RGFW->monitors.primary = node;
+			if (displays[i] == primary) {
+				_RGFW->monitors.primary = node;
+			}
+
+			RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_TRUE);
 		}
-
-		RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_TRUE);
 	}
 
 	RGFW_FREE(displays);
