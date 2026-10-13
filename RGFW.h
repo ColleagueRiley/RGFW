@@ -13753,9 +13753,41 @@ static u32 RGFW_OnClose(id self) {
 	return false;
 }
 
-/* NOTE(EimaMei): Fixes the constant clicking when the app is running under a terminal. */
 static bool RGFW__osxAcceptsFirstResponder(void) { return true; }
-static bool RGFW__osxPerformKeyEquivalent(id event) { RGFW_UNUSED(event); return true; }
+static bool RGFW__osxPerformKeyEquivalent(id event) {
+    /* claim and emit consumed key combinations so they aren't missed (hack borrowed from GLFW (I'm not giving it back)) */
+	u32 key = (u16)((u32(*)(id, SEL))objc_msgSend)(event, sel_registerName("keyCode"));
+	RGFW_key value = (u8)RGFW_apiKeyToRGFW(key);
+
+    u32 flags = (u32)((u32(*)(id, SEL))objc_msgSend)(event, sel_registerName("modifierFlags"));
+    RGFW_keyUpdateKeyModsEx(win,
+                          ((u32)(flags & NSEventModifierFlagCapsLock) % 255),
+                          ((flags & NSEventModifierFlagNumericPad) % 255),
+                          ((flags & NSEventModifierFlagControl) % 255),
+                          ((flags & NSEventModifierFlagOption) % 255),
+                          ((flags & NSEventModifierFlagShift) % 255),
+                          ((flags & NSEventModifierFlagCommand) % 255), 0);
+
+	RGFW_bool repeat = RGFW_isKeyDown(value);
+
+    if (mods & RGFW_modControl) {
+        if (key == RGFW_keyTab || key == RGFW_keyEscape) {
+			RGFW_keyCallback(win, value, win->internal.mod, repeat, 1);
+            return YES;
+        }
+    }
+
+    if (mods & RGFW_modSuper) {
+        if (key == RGFW_keyPeriod) {
+			RGFW_keyCallback(win, value, win->internal.mod, repeat, 1);
+            return YES;
+        }
+    }
+
+	struct objc_super s = { self, class_getSuperclass(object_getClass(self)) };
+    return ((bool (*)(struct objc_super*, SEL, id))objc_msgSendSuper)(&s, sel_registerName("performKeyEquivalent:"), event);
+}
+
 static bool RGFW__osxAcceptsFirstMouse(id self, SEL _cmd, id event) { RGFW_UNUSED(self); RGFW_UNUSED(_cmd); RGFW_UNUSED(event); return true; }
 
 static NSDragOperation RGFW__osxDraggingEntered(id self, SEL sel, id sender) {
