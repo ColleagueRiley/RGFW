@@ -13754,7 +13754,11 @@ static u32 RGFW_OnClose(id self) {
 }
 
 static bool RGFW__osxAcceptsFirstResponder(void) { return true; }
-static bool RGFW__osxPerformKeyEquivalent(id event) {
+static bool RGFW__osxPerformKeyEquivalent(id self, id event) {
+	RGFW_window* win = NULL;
+	object_getInstanceVariable(self, (const char*)"RGFW_window", (void**)&win);
+	if (win == NULL) return true;
+
     /* claim and emit consumed key combinations so they aren't missed (hack borrowed from GLFW (I'm not giving it back)) */
 	u32 key = (u16)((u32(*)(id, SEL))objc_msgSend)(event, sel_registerName("keyCode"));
 	RGFW_key value = (u8)RGFW_apiKeyToRGFW(key);
@@ -14445,8 +14449,6 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	CFStringRef* cfStr = (CFStringRef*)CFBundleGetDataPointerForName((CFBundleRef)_RGFW->tisBundle, CFSTR("kTISPropertyUnicodeKeyLayoutData"));;
 	if (cfStr) kTISPropertyUnicodeKeyLayoutDataSrc = *cfStr;
 
-	class_addMethod(objc_getClass("NSObject"), sel_registerName("windowShouldClose:"), (IMP)(void*)RGFW_OnClose, 0);
-
 	_RGFW->NSApp = objc_msgSend_id(objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
 
 	NSRetain(_RGFW->NSApp);
@@ -14493,8 +14495,7 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("draggingEnded:"), (IMP)RGFW__osxDraggingEnded, "v@:@");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("prepareForDragOperation:"), (IMP)RGFW__osxPrepareForDragOperation, "B@:@");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("performDragOperation:"), (IMP)RGFW__osxPerformDragOperation, "B@:@");
-		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("acceptsFirstResponder:"), (IMP)(void*)RGFW__osxAcceptsFirstResponder, 0);
-		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("performKeyEquivalent:"), (IMP)(void*)RGFW__osxPerformKeyEquivalent, 0);
+		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("performKeyEquivalent:"), (IMP)(void*)RGFW__osxPerformKeyEquivalent, "B@:@");
 		objc_registerClassPair((Class)_RGFW->customViewClasses[i]);
 	}
 
@@ -14506,6 +14507,7 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidDeminiaturize:"), (IMP) RGFW__osxWindowDeminiaturize, "");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidBecomeKey:"), (IMP) RGFW__osxWindowBecameKey, "");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidResignKey:"), (IMP) RGFW__osxWindowResignKey, "");
+	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowShouldClose:"), (IMP)(void*)RGFW_OnClose, "");
 	objc_registerClassPair((Class)_RGFW->customWindowDelegateClass);
 
 	_RGFW->customWindowClass = objc_allocateClassPair(objc_getClass("NSWindow"), "RGFWWindowClass", 0);
