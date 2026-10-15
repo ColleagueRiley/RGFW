@@ -7389,6 +7389,11 @@ RGFW_key RGFW_FUNC(RGFW_physicalToMappedKey) (RGFW_key key) {
     }
 
     switch (sym) {
+        case XK_BackSpace: return RGFW_keyBackSpace;
+        case XK_Tab:       return RGFW_keyTab;
+        case XK_Return:    return RGFW_keyReturn;
+        case XK_Escape:    return RGFW_keyEscape;
+        case XK_Delete:    return RGFW_keyDelete;
         case XK_F1:  return RGFW_keyF1;
         case XK_F2:  return RGFW_keyF2;
         case XK_F3:  return RGFW_keyF3;
@@ -10542,14 +10547,18 @@ RGFW_bool RGFW_FUNC(RGFW_getGlobalMouse) (i32* x, i32* y) {
 }
 
 RGFW_key RGFW_FUNC(RGFW_physicalToMappedKey)(RGFW_key key) {
-    u32 keycode = RGFW_rgfwToApiKey(key);
-	xkb_keycode_t kc = keycode + 8;
-    xkb_keysym_t sym = xkb_state_key_get_one_sym(_RGFW->xkb_state, kc);
+    xkb_keycode_t keycode = (xkb_keycode_t)RGFW_rgfwToApiKey(key);
+    xkb_keysym_t sym = xkb_state_key_get_one_sym(_RGFW->xkb_state, keycode);
     if (sym < 256) {
         return (RGFW_key)sym;
     }
 
     switch (sym) {
+        case XKB_KEY_BackSpace: return RGFW_keyBackSpace;
+        case XKB_KEY_Tab:       return RGFW_keyTab;
+        case XKB_KEY_Return:    return RGFW_keyReturn;
+        case XKB_KEY_Escape:    return RGFW_keyEscape;
+        case XKB_KEY_Delete:    return RGFW_keyDelete;
         case XKB_KEY_F1:  return RGFW_keyF1;
         case XKB_KEY_F2:  return RGFW_keyF2;
         case XKB_KEY_F3:  return RGFW_keyF3;
@@ -12242,9 +12251,15 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
 
     if (result == 1 && charBuffer[0] < 256) {
         return (RGFW_key)charBuffer[0];
-	}
+    }
 
     switch (vk) {
+        case VK_BACK:   return RGFW_keyBackSpace;
+        case VK_TAB:    return RGFW_keyTab;
+        /* VK_RETURN can be either RGFW_keyReturn or RGFW_keyPadReturn. RGFW can only give its best guess as to which key it should be. */
+        case VK_RETURN: return (key == RGFW_keyPadReturn) ? RGFW_keyPadReturn : RGFW_keyReturn;
+        case VK_ESCAPE: return RGFW_keyEscape;
+        case VK_DELETE: return RGFW_keyDelete;
         case VK_F1:  return RGFW_keyF1;
         case VK_F2:  return RGFW_keyF2;
         case VK_F3:  return RGFW_keyF3;
@@ -12294,7 +12309,6 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
         case VK_SUBTRACT: return RGFW_keyPadMinus;
         case VK_MULTIPLY: return RGFW_keyPadMultiply;
         case VK_DIVIDE:   return RGFW_keyPadSlash;
-        case VK_RETURN:   return RGFW_keyPadReturn;
         case VK_DECIMAL:  return RGFW_keyPadPeriod;
         case VK_NUMPAD0: return RGFW_keyPad0;
         case VK_NUMPAD1: return RGFW_keyPad1;
