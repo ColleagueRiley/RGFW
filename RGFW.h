@@ -12256,7 +12256,9 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
     switch (vk) {
         case VK_BACK:   return RGFW_keyBackSpace;
         case VK_TAB:    return RGFW_keyTab;
-        // case VK_RETURN: return RGFW_keyReturn;
+        // VK_RETURN could be either RGFW_keyReturn or RGFW_keyPadReturn.
+        // We assume RGFW_keyReturn.
+        case VK_RETURN: return RGFW_keyReturn;
         case VK_ESCAPE: return RGFW_keyEscape;
         case VK_DELETE: return RGFW_keyDelete;
         case VK_F1:  return RGFW_keyF1;
@@ -12308,7 +12310,6 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
         case VK_SUBTRACT: return RGFW_keyPadMinus;
         case VK_MULTIPLY: return RGFW_keyPadMultiply;
         case VK_DIVIDE:   return RGFW_keyPadSlash;
-        case VK_RETURN:   return RGFW_keyPadReturn;
         case VK_DECIMAL:  return RGFW_keyPadPeriod;
         case VK_NUMPAD0: return RGFW_keyPad0;
         case VK_NUMPAD1: return RGFW_keyPad1;
