@@ -4351,7 +4351,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 
 void RGFW_window_closePtr(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
-
 	if ((win->internal.flags & RGFW_windowFullscreenExclusive) && win->internal.monitor) {
 		RGFW_monitor_setMode(win->internal.monitor, &win->internal.oldMode);
 	}
@@ -13702,8 +13701,6 @@ NSInteger NSPasteBoard_declareTypes(id pasteboard, const char** newTypes, size_t
 	return output;
 }
 
-#define NSRetain(obj) objc_msgSend_void((id)obj, sel_registerName("retain"))
-
 /*
 	End of cocoa wrapper
 */
@@ -13744,7 +13741,8 @@ static id RGFW__osxCustomInitWithRGFWWindow(id self, SEL _cmd, RGFW_window* win)
     return self;
 }
 
-static u32 RGFW_osxWindowShouldClose(id self) {
+static u32 RGFW_osxWindowShouldClose(id self, SEL _cmd) {
+	RGFW_UNUSED(_cmd);
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, (const char*)"RGFW_window", (void**)&win);
 	if (win == NULL) return true;
@@ -13754,7 +13752,8 @@ static u32 RGFW_osxWindowShouldClose(id self) {
 }
 
 static bool RGFW__osxAcceptsFirstResponder(void) { return true; }
-static bool RGFW__osxPerformKeyEquivalent(id self, id event) {
+static bool RGFW__osxPerformKeyEquivalent(id self, SEL _cmd, id event) {
+	RGFW_UNUSED(_cmd);
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, (const char*)"RGFW_window", (void**)&win);
 	if (win == NULL) return true;
@@ -13973,6 +13972,11 @@ void RGFW_moveToMacOSResourceDir(void) {
 static void RGFW__osxDidChangeScreenParameters(id self, SEL _cmd, id notification) {
 	RGFW_UNUSED(self); RGFW_UNUSED(_cmd); RGFW_UNUSED(notification);
 	RGFW_pollMonitors();
+}
+
+static void RGFW__osxApplicationShouldTerminate(id self, SEL _cmd, id notification) {
+	RGFW_UNUSED(self); RGFW_UNUSED(_cmd); RGFW_UNUSED(notification);
+	printf("hhi\n");
 }
 
 static void RGFW__osxWindowDeminiaturize(id self, SEL sel) {
@@ -14451,10 +14455,9 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 
 	_RGFW->NSApp = objc_msgSend_id(objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
 
-	NSRetain(_RGFW->NSApp);
-
 	_RGFW->customNSAppDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWNSAppDelegate", 0);
 	class_addMethod((Class)_RGFW->customNSAppDelegateClass, sel_registerName("applicationDidChangeScreenParameters:"), (IMP)RGFW__osxDidChangeScreenParameters, "v@:@");
+	class_addMethod((Class)_RGFW->customNSAppDelegateClass, sel_registerName("applicationShouldTerminate:"), (IMP)RGFW__osxApplicationShouldTerminate, "v@:@");
 	objc_registerClassPair((Class)_RGFW->customNSAppDelegateClass);
 	_RGFW->customNSAppDelegate = objc_msgSend_id(NSAlloc(_RGFW->customNSAppDelegateClass), sel_registerName("init"));
 
@@ -14507,7 +14510,7 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidDeminiaturize:"), (IMP) RGFW__osxWindowDeminiaturize, "");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidBecomeKey:"), (IMP) RGFW__osxWindowBecameKey, "");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidResignKey:"), (IMP) RGFW__osxWindowResignKey, "");
-	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowShouldClose:"), (IMP)(void*)RGFW_osxWindowShouldClose, "");
+	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowShouldClose:"), (IMP)(void*)RGFW_osxWindowShouldClose, "c@:");
 	objc_registerClassPair((Class)_RGFW->customWindowDelegateClass);
 
 	_RGFW->customWindowClass = objc_allocateClassPair(objc_getClass("NSWindow"), "RGFWWindowClass", 0);
@@ -14601,8 +14604,6 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	if (_RGFW->root == NULL) {
 		objc_msgSend_void(win->src.window, sel_registerName("makeMainWindow"));
 	}
-
-	NSRetain(win->src.window);
 
 	win->src.view = ((id(*)(id, SEL, RGFW_window*))objc_msgSend) (NSAlloc((Class)_RGFW->customViewClasses[0]), sel_registerName("initWithRGFWWindow:"), win);
 
@@ -14914,7 +14915,7 @@ id NSCursor_arrowStr(const char* str) {
 	void* nclass = objc_getClass("NSCursor");
 	SEL func = sel_registerName(str);
 	id mouse = (id) objc_msgSend_id(nclass, func);
-	NSRetain(mouse);
+	objc_msgSend_void((id)mouse, sel_registerName("retain"));
 	return mouse;
 }
 
@@ -15619,20 +15620,31 @@ void RGFW_deinitPlatform(void) {
 	if (_RGFW->customWindowDelegateClass)
 		objc_disposeClassPair((Class)_RGFW->customWindowDelegateClass);
 
-	if (_RGFW->customWindowClass)
+	if (_RGFW->customWindowClass) {
+		Class kvoClass = objc_getClass("NSKVONotifying_RGFWWindowClass");
+		if (kvoClass) {
+			objc_disposeClassPair(kvoClass);
+
+		}
 		objc_disposeClassPair((Class)_RGFW->customWindowClass);
+	}
 
 	if (_RGFW->customNSAppDelegateClass)
 		objc_disposeClassPair((Class)_RGFW->customNSAppDelegateClass);
 }
 
 void RGFW_window_closePlatform(RGFW_window* win) {
+	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
+	pool = objc_msgSend_id(pool, sel_registerName("init"));
+
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setDelegate:"), NULL);
 	NSRelease((id)win->src.delegate);
 	NSRelease(win->src.view);
 
 	objc_msgSend_id(win->src.window, sel_registerName("close"));
 	NSRelease(win->src.window);
+
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 }
 
 #ifdef RGFW_VULKAN
