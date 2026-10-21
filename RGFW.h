@@ -13991,6 +13991,7 @@ static void RGFW__osxDidChangeScreenParameters(id self, SEL _cmd, id notificatio
 
 static NSUInteger RGFW__osxApplicationShouldTerminate(id self, SEL _cmd, id sender) {
 	RGFW_UNUSED(self); RGFW_UNUSED(_cmd); RGFW_UNUSED(sender);
+	printf("h\n");
 	return 0; /* NSTerminateCancel */
 }
 
@@ -14469,6 +14470,7 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	if (cfStr) kTISPropertyUnicodeKeyLayoutDataSrc = *cfStr;
 
 	_RGFW->NSApp = objc_msgSend_id(objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
+	((void (*)(id, SEL, NSUInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
 
 	/* Note about addMethod strings
 	 * @ -> id, : -> SEL, B -> bool
@@ -14479,13 +14481,13 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 
 	_RGFW->customNSAppDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWNSAppDelegate", 0);
 	class_addMethod((Class)_RGFW->customNSAppDelegateClass, sel_registerName("applicationDidChangeScreenParameters:"), (IMP)RGFW__osxDidChangeScreenParameters, "v@:@");
-	class_addMethod((Class)_RGFW->customNSAppDelegateClass, sel_registerName("applicationShouldTerminate:"), (IMP)RGFW__osxApplicationShouldTerminate, "L@:@");
+	class_addMethod((Class)_RGFW->customNSAppDelegateClass, sel_registerName("applicationShouldTerminate:"), (IMP)RGFW__osxApplicationShouldTerminate, "@:@");
 	objc_registerClassPair((Class)_RGFW->customNSAppDelegateClass);
 	_RGFW->customNSAppDelegate = objc_msgSend_id(NSAlloc(_RGFW->customNSAppDelegateClass), sel_registerName("init"));
 
 	objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("setDelegate:"), _RGFW->customNSAppDelegate);
 
-	((void (*)(id, SEL, NSUInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
+	objc_msgSend_void(_RGFW->NSApp, sel_registerName("finishLaunching"));
 
 	_RGFW->customViewClasses[0] = objc_allocateClassPair(objc_getClass("NSView"), "RGFWCustomView", 0);
 	_RGFW->customViewClasses[1] = objc_allocateClassPair(objc_getClass("NSOpenGLView"), "RGFWOpenGLCustomView", 0);
@@ -14787,12 +14789,9 @@ void RGFW_window_movePlatform(RGFW_window* win, i32 x, i32 y) {
 void RGFW_window_resizePlatform(RGFW_window* win, i32 w, i32 h) {
 	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
 	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
-	float offset = (float)(frame.size.height - content.size.height);
+	double offset = (double)(frame.size.height - content.size.height);
 
-	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"),  (NSRect){{0, 0}, {(double)w, (double)h}});
-	((void(*)(id, SEL, NSSize))objc_msgSend)
-		((id)win->src.window, sel_registerName("setFrameSize:"), (NSSize){(double)w, (double)h + (double)offset});
-
+	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"),  (NSRect){{frame.origin.x, frame.origin.y}, {(double)w, (double)h + offset}});
 	RGFW_cocoaFetchRect(win);
 }
 
