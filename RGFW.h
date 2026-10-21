@@ -13425,13 +13425,13 @@ void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 	RGFW_ASSERT(win != NULL);
 	void* ctx = RGFW_getCurrentContext_OpenGL();
 	void* surf = RGFW_getCurrentSurface_OpenGL();
-	if (ctx != win->src.ctx.native->ctx || surf != win->src.ctx.native->window)
+	if (ctx != win->src.ctx.native->ctx || surf != win->src.hdc)
 		RGFW_wglMakeCurrent(win->src.hdc, (HGLRC) win->src.ctx.native->ctx);
 
     if (RGFW_wglSwapIntervalEXT == NULL || RGFW_wglSwapIntervalEXT(swapInterval) == FALSE)
 		RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to set swap interval");
 
-	if (ctx != win->src.ctx.native->ctx || surf != win->src.ctx.native->window)
+	if (ctx != win->src.ctx.native->ctx || surf != win->src.hdc)
 		RGFW_wglMakeCurrent((HDC)surf, (HGLRC)ctx);
 }
 #endif
