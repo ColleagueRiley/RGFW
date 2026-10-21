@@ -13462,7 +13462,7 @@ typedef RGFW_ENUM(NSUInteger, NSWindowStyleMask) {
 		NSWindowStyleMaskHUDWindow = 1 << 13
 };
 
-typedef RGFW_ENUM(NSInteger, NSDragOperation) {
+typedef RGFW_ENUM(NSUInteger, NSDragOperation) {
 	NSDragOperationNone = 0,
 		NSDragOperationCopy = 1,
 		NSDragOperationLink = 2,
@@ -14479,7 +14479,7 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 
 	_RGFW->customNSAppDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWNSAppDelegate", 0);
 	class_addMethod((Class)_RGFW->customNSAppDelegateClass, sel_registerName("applicationDidChangeScreenParameters:"), (IMP)RGFW__osxDidChangeScreenParameters, "v@:@");
-	class_addMethod((Class)_RGFW->customNSAppDelegateClass, sel_registerName("applicationShouldTerminate:"), (IMP)RGFW__osxApplicationShouldTerminate, "I@:@");
+	class_addMethod((Class)_RGFW->customNSAppDelegateClass, sel_registerName("applicationShouldTerminate:"), (IMP)RGFW__osxApplicationShouldTerminate, "L@:@");
 	objc_registerClassPair((Class)_RGFW->customNSAppDelegateClass);
 	_RGFW->customNSAppDelegate = objc_msgSend_id(NSAlloc(_RGFW->customNSAppDelegateClass), sel_registerName("init"));
 
@@ -14493,7 +14493,7 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 		RGFW_ASSERT((sizeof(RGFW_window*) <= 8)); /* some future where pointers are greater than 8 bytes (64-bit) (I'm pretty sure much more will be broken if this is the case) */
 		class_addIvar((Class)_RGFW->customViewClasses[i], "RGFW_window", sizeof(RGFW_window*), (sizeof(RGFW_window*) == 8) ? 3 : 2, "^v");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("acceptsFirstMouse:"), (IMP)RGFW__osxAcceptsFirstMouse, "B@:@");
-		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("drawRect:"), (IMP)RGFW__osxDrawRect, "v@:{CGPoint=dd}{CGSize=dd}}");
+		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("drawRect:"), (IMP)RGFW__osxDrawRect, "v@:{CGRect={CGPoint=dd}{CGSize=dd}}");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("viewDidChangeBackingProperties"), (IMP)RGFW__osxViewDidChangeBackingProperties, "v@:");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("mouseDown:"), (IMP)RGFW__osxMouseDown, "v@:@");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("rightMouseDown:"), (IMP)RGFW__osxMouseDown, "v@:@");
@@ -14515,8 +14515,8 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("initWithRGFWWindow:"), (IMP)RGFW__osxCustomInitWithRGFWWindow, "@@:^v");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("wantsUpdateLayer"), (IMP)RGFW__osxWantsUpdateLayer, "B@:");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("updateLayer"), (IMP)RGFW__osxUpdateLayer, "v@:");
-		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("draggingEntered:"), (IMP)RGFW__osxDraggingEntered, "l@:@");
-		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("draggingUpdated:"), (IMP)RGFW__osxDraggingUpdated, "l@:@");
+		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("draggingEntered:"), (IMP)RGFW__osxDraggingEntered, "L@:@");
+		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("draggingUpdated:"), (IMP)RGFW__osxDraggingUpdated, "L@:@");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("draggingExited:"), (IMP)RGFW__osxDraggingEnded, "v@:@");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("draggingEnded:"), (IMP)RGFW__osxDraggingEnded, "v@:@");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("prepareForDragOperation:"), (IMP)RGFW__osxPrepareForDragOperation, "B@:@");
@@ -14526,7 +14526,7 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	}
 
 	_RGFW->customWindowDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWWindowDelegate", 0);
-	class_addIvar((Class)_RGFW->customWindowDelegateClass, "RGFW_window", sizeof(RGFW_window*), sizeof(RGFW_window*), "L");
+	class_addIvar((Class)_RGFW->customWindowDelegateClass, "RGFW_window", sizeof(RGFW_window*), (sizeof(RGFW_window*) == 8) ? 3 : 2, "^v");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidResize:"), (IMP)RGFW__osxDidWindowResize, "v@:@");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidMove:"), (IMP) RGFW__osxWindowMove, "v@:@");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidMiniaturize:"), (IMP) RGFW__osxWindowMiniaturize, "v@:@");
