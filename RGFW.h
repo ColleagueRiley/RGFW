@@ -11392,7 +11392,6 @@ typedef HGLRC(WINAPI* RGFW_wglCreateContextProc)(HDC);
 typedef BOOL(WINAPI* RGFW_wglDeleteContextProc)(HGLRC);
 typedef PROC(WINAPI* RGFW_wglGetProcAddressProc)(LPCSTR);
 typedef BOOL(WINAPI* RGFW_wglMakeCurrentProc)(HDC, HGLRC);
-typedef HDC(WINAPI* RGFW_wglGetCurrentDCProc)(void);
 typedef HGLRC(WINAPI* RGFW_wglGetCurrentContextProc)(void);
 typedef HDC(WINAPI* RGFW_wglGetCurrentDCProc)(void);
 typedef BOOL(WINAPI* RGFW_wglShareListsProc)(HGLRC, HGLRC);
@@ -11404,7 +11403,6 @@ RGFW_wglDeleteContextProc  RGFW_wglDeleteContext;
 RGFW_wglMakeCurrentProc  RGFW_wglMakeCurrent;
 RGFW_wglGetCurrentDCProc  RGFW_wglGetCurrentDC;
 RGFW_wglGetCurrentContextProc  RGFW_wglGetCurrentContext;
-RGFW_wglGetCurrentDCProc  RGFW_wglGetCurrentDC;
 RGFW_wglShareListsProc RGFW_wglShareLists;
 RGFW_wglCreateContextAttribsARBProc RGFW_wglCreateContextAttribsARB;
 RGFW_wglGetSwapIntervalEXTProc RGFW_wglGetSwapIntervalEXT;
@@ -11428,7 +11426,6 @@ RGFW_bool RGFW_loadGL(void) {
 	RGFW_WGL_PROC(wglMakeCurrent);
 	RGFW_WGL_PROC(wglGetCurrentDC);
 	RGFW_WGL_PROC(wglGetCurrentContext);
-	RGFW_WGL_PROC(wglGetCurrentDC);
 	RGFW_WGL_PROC(wglShareLists);
 
 	HWND dummyWin = CreateWindowW(_RGFW->wndClass.lpszClassName, (wchar_t*)NULL, 0, 0, 0, 0, 0, 0, 0, _RGFW->instance, 0);
@@ -13428,17 +13425,14 @@ void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 	RGFW_ASSERT(win != NULL);
 	void* ctx = RGFW_getCurrentContext_OpenGL();
 	void* surf = RGFW_getCurrentSurface_OpenGL();
-	if (ctx == win->src.ctx.native->ctx && surf == win->src.ctx.native->window) {
-		RGFW_glXSwapIntervalNative(swapInterval);
-		return;
-	}
-
-	RGFW_wglMakeCurrent(win->src.hdc, (HGLRC) win->src.ctx.native->ctx);
+	if (ctx != win->src.ctx.native->ctx || surf != win->src.ctx.native->window)
+		RGFW_wglMakeCurrent(win->src.hdc, (HGLRC) win->src.ctx.native->ctx);
 
     if (RGFW_wglSwapIntervalEXT == NULL || RGFW_wglSwapIntervalEXT(swapInterval) == FALSE)
 		RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to set swap interval");
 
-	RGFW_wglMakeCurrent((HDC)surf, (HGLRC)ctx);
+	if (ctx != win->src.ctx.native->ctx || surf != win->src.ctx.native->window)
+		RGFW_wglMakeCurrent((HDC)surf, (HGLRC)ctx);
 }
 #endif
 
