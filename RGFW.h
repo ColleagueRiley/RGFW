@@ -13991,7 +13991,16 @@ static void RGFW__osxDidChangeScreenParameters(id self, SEL _cmd, id notificatio
 
 static NSUInteger RGFW__osxApplicationShouldTerminate(id self, SEL _cmd, id sender) {
 	RGFW_UNUSED(self); RGFW_UNUSED(_cmd); RGFW_UNUSED(sender);
-	printf("h\n");
+
+    id windows = objc_msgSend_id(_RGFW->NSApp, sel_registerName("windows"));
+	NSUInteger count = (NSUInteger)objc_msgSend_uint(windows, sel_registerName("count"));
+
+    for (unsigned long i = 0; i < count; i++) {
+		id window = ((id (*)(id, SEL, int))objc_msgSend) (windows, sel_registerName("objectAtIndex:"), (int)i);
+		id delegate = ((id (*)(id, SEL))objc_msgSend) (window, sel_registerName("delegate"));
+		((void(*)(id, SEL, id))objc_msgSend)(delegate, sel_registerName("windowShouldClose:"), window);
+    }
+
 	return 0; /* NSTerminateCancel */
 }
 
