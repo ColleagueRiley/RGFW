@@ -13434,11 +13434,11 @@ typedef enum NSRequestUserAttentionType {
     NSInformationalRequest = 10
 } NSRequestUserAttentionType;
 
-typedef RGFW_ENUM(NSInteger, NSDragOperation) {
+typedef RGFW_ENUM(NSInteger, NSApplicationActivationPolicy) {
 	NSApplicationActivationPolicyRegular,
 	NSApplicationActivationPolicyAccessory,
 	NSApplicationActivationPolicyProhibited
-} NSApplicationActivationPolicy;
+};
 
 typedef RGFW_ENUM(NSUInteger, NSBackingStoreType) {
 	NSBackingStoreRetained = 0,
@@ -13766,7 +13766,7 @@ static BOOL RGFW_osxWindowShouldClose(id self, SEL _cmd, id sender) {
 	return false;
 }
 
-static BOOL RGFW__osxAcceptsFirstResponder(id self, SEL _cmd) { return true; }
+static BOOL RGFW__osxAcceptsFirstResponder(id self, SEL _cmd) { RGFW_UNUSED(self); RGFW_UNUSED(_cmd); return true; }
 static BOOL RGFW__osxPerformKeyEquivalent(id self, SEL _cmd, id event) {
 	RGFW_UNUSED(_cmd);
 	RGFW_window* win = NULL;
