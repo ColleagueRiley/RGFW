@@ -13774,14 +13774,14 @@ static BOOL RGFW__osxPerformKeyEquivalent(id self, id event) {
 
 	RGFW_bool repeat = RGFW_isKeyDown(value);
 
-    if (win->internal.mod & RGFW_modControl) {
+    if (mods & RGFW_modControl) {
         if (key == RGFW_keyTab || key == RGFW_keyEscape) {
 			RGFW_keyCallback(win, value, win->internal.mod, repeat, 1);
             return YES;
         }
     }
 
-    if (win->internal.mod & RGFW_modSuper) {
+    if (mods & RGFW_modSuper) {
         if (key == RGFW_keyPeriod) {
 			RGFW_keyCallback(win, value, win->internal.mod, repeat, 1);
             return YES;
