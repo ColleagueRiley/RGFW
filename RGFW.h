@@ -13742,6 +13742,7 @@ static id RGFW__osxCustomInitWithRGFWWindow(id self, SEL _cmd, RGFW_window* win)
 }
 
 static BOOL RGFW_osxWindowShouldClose(id self, SEL _cmd, id sender) {
+	RGFW_UNUSED(_cmd); RGFW_UNUSED(sender);
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, (const char*)"RGFW_window", (void**)&win);
 	if (win == NULL) return true;
@@ -13751,7 +13752,8 @@ static BOOL RGFW_osxWindowShouldClose(id self, SEL _cmd, id sender) {
 }
 
 static BOOL RGFW__osxAcceptsFirstResponder(id self, SEL _cmd) { return true; }
-static BOOL RGFW__osxPerformKeyEquivalent(id self, SEL, _cmd, id event) {
+static BOOL RGFW__osxPerformKeyEquivalent(id self, SEL _cmd, id event) {
+	RGFW_UNUSED(_cmd);
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, (const char*)"RGFW_window", (void**)&win);
 	if (win == NULL) return true;
@@ -13771,14 +13773,14 @@ static BOOL RGFW__osxPerformKeyEquivalent(id self, SEL, _cmd, id event) {
 
 	RGFW_bool repeat = RGFW_isKeyDown(value);
 
-    if (mods & RGFW_modControl) {
+    if (win->internal.mod & RGFW_modControl) {
         if (key == RGFW_keyTab || key == RGFW_keyEscape) {
 			RGFW_keyCallback(win, value, win->internal.mod, repeat, 1);
             return YES;
         }
     }
 
-    if (mods & RGFW_modSuper) {
+    if (win->internal.mod & RGFW_modSuper) {
         if (key == RGFW_keyPeriod) {
 			RGFW_keyCallback(win, value, win->internal.mod, repeat, 1);
             return YES;
@@ -13973,12 +13975,12 @@ static void RGFW__osxDidChangeScreenParameters(id self, SEL _cmd, id notificatio
 }
 
 static NSUInteger RGFW__osxApplicationShouldTerminate(id self, SEL _cmd, id sender) {
-	RGFW_UNUSED(self); RGFW_UNUSED(_cmd); RGFW_UNUSED(notification);
+	RGFW_UNUSED(self); RGFW_UNUSED(_cmd); RGFW_UNUSED(sender);
 	return 0; /* NSTerminateCancel */
 }
 
 static void RGFW__osxWindowDeminiaturize(id self, SEL sel, id notification) {
-	RGFW_UNUSED(sel);
+	RGFW_UNUSED(sel);  RGFW_UNUSED(notification);
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
@@ -13987,7 +13989,7 @@ static void RGFW__osxWindowDeminiaturize(id self, SEL sel, id notification) {
 
 }
 static void RGFW__osxWindowMiniaturize(id self, SEL sel, id notification) {
-	RGFW_UNUSED(sel);
+	RGFW_UNUSED(sel);  RGFW_UNUSED(notification);
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
@@ -13997,7 +13999,7 @@ static void RGFW__osxWindowMiniaturize(id self, SEL sel, id notification) {
 }
 
 static void RGFW__osxWindowBecameKey(id self, SEL sel, id notification) {
-	RGFW_UNUSED(sel);
+	RGFW_UNUSED(sel);  RGFW_UNUSED(notification);
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
@@ -14006,7 +14008,7 @@ static void RGFW__osxWindowBecameKey(id self, SEL sel, id notification) {
 }
 
 static void RGFW__osxWindowResignKey(id self, SEL sel, id notification) {
-	RGFW_UNUSED(sel);
+	RGFW_UNUSED(sel);  RGFW_UNUSED(notification);
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
@@ -14041,7 +14043,7 @@ static void RGFW__osxDidWindowResize(id self, SEL _cmd, id notification) {
 }
 
 static void RGFW__osxWindowMove(id self, SEL sel, id notification) {
-	RGFW_UNUSED(sel);
+	RGFW_UNUSED(sel); RGFW_UNUSED(notification);
 	RGFW_window* win = NULL;
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
