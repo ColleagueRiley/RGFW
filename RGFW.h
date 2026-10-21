@@ -6869,7 +6869,8 @@ Start of *nix defines
 	typedef void (*RGFW_glXDestroyContextProc)(Display *dpy, GLXContext ctx);
 	typedef GLXWindow (*RGFW_glXCreateWindowProc)(Display*,GLXFBConfig,Window,const int*);
 	typedef void (*RGFW_glXDestroyWindowProc)(Display*,GLXWindow);
-	typedef int (*RGFW_glXSwapIntervalNativeProc) (int);
+	typedef int (*RGFW_GLX_MESA_swap_controlProc) (int);
+	typedef int (*RGFW_GLX_SGI_swap_controlProc) (int);
 
 	RGFW_glXCreateContextAttribsARBProc RGFW_glXCreateContextAttribsARB;
 	RGFW_glXQueryExtensionsStringProc RGFW_glXQueryExtensionsString;
@@ -6887,7 +6888,8 @@ Start of *nix defines
 	RGFW_glXDestroyContextProc RGFW_glXDestroyContext;
 	RGFW_glXCreateWindowProc RGFW_glXCreateWindow;
 	RGFW_glXDestroyWindowProc RGFW_glXDestroyWindow;
-	RGFW_glXSwapIntervalNativeProc RGFW_glXSwapIntervalNative;
+	RGFW_GLX_MESA_swap_controlProc RGFW_GLX_MESA_swap_control;
+	RGFW_GLX_SGI_swap_controlProc RGFW_GLX_SGI_swap_control;
 
 	RGFW_bool RGFW_loadGL(void) {
 		RGFW_ASSERT(_RGFW && "An RGFW context must be initialized using RGFW_init and/or set with RGFW_setInfo");
@@ -6935,20 +6937,15 @@ Start of *nix defines
         RGFW_PROC_DEF(glXQueryExtensionsString);
 		RGFW_PROC_DEF(glXCreateContextAttribsARB);
 		RGFW_PROC_DEF(glXGetProcAddressARB);
-
+		RGFW_PROC_DEF(GLX_SGI_swap_control);
+		RGFW_PROC_DEF(GLX_MESA_swap_control);
         RGFW_PROC_DEF(glXSwapIntervalEXT);
+
 		if (RGFW_glXSwapIntervalEXT == NULL) {
-			const char* array[] = {"GLX_MESA_swap_control", "GLX_SGI_swap_control"};
-
-			size_t i;
-			for (i = 0; i < sizeof(array) / sizeof(char*) && RGFW_glXSwapIntervalNative == NULL; i++) {
-				RGFW_glXSwapIntervalNative = (RGFW_glXSwapIntervalNativeProc)_RGFW->glGetProcAddress((const char*)array[i]);
-			}
-
-			if (RGFW_glXSwapIntervalNative != NULL) {
-				RGFW_debugCallback(RGFW_typeWarning, RGFW_infoOpenGL,  "Failed to load swap interval function, fallingback to the native swapinterval function");
-			} else {
+			if (RGFW_GLX_MESA_swap_control == NULL && RGFW_GLX_SGI_swap_control == NULL) {
 				RGFW_debugCallback(RGFW_typeWarning, RGFW_infoOpenGL,  "Failed to load swap interval function");
+			} else {
+				RGFW_debugCallback(RGFW_typeWarning, RGFW_infoOpenGL,  "Failed to load swap interval function, fallingback to the native swapinterval function");
 			}
 		}
 		#undef RGFW_PROC_DEF
@@ -9192,17 +9189,24 @@ void RGFW_FUNC(RGFW_window_swapInterval_OpenGL) (RGFW_window* win, i32 swapInter
 	RGFW_ASSERT(win != NULL);
 	if (RGFW_glXSwapIntervalEXT) {
 		RGFW_glXSwapIntervalEXT(_RGFW->display, win->src.ctx.native->window, swapInterval);
-	} else if (RGFW_glXSwapIntervalNative) {
+	} else if (RGFW_GLX_MESA_swap_control || RGFW_GLX_SGI_swap_control) {
 		void* ctx = RGFW_getCurrentContext_OpenGL();
 		void* surf = RGFW_getCurrentSurface_OpenGL();
-		if (ctx == win->src.ctx.native->ctx && (Drawable)surf == win->src.ctx.native->window) {
-			RGFW_glXSwapIntervalNative(swapInterval);
-			return;
+		if (ctx != win->src.ctx.native->ctx || (Drawable)surf != win->src.ctx.native->window)
+			RGFW_glXMakeCurrent(_RGFW->display, (Drawable)win->src.ctx.native->window, (GLXContext) win->src.ctx.native->ctx);
+
+		if (RGFW_GLX_MESA_swap_control)
+			RGFW_GLX_MESA_swap_control(swapInterval);
+		else if (RGFW_GLX_SGI_swap_control) {
+			if (swapInterval > 0) {
+				RGFW_GLX_SGI_swap_control(swapInterval);
+			} else {
+				RGFW_debugCallback(RGFW_typeWarning, RGFW_errOpenGLContext,  "Failed to disable swap interval, not supported with GLX_SGI_swap_control");
+			}
 		}
 
-		RGFW_glXMakeCurrent(_RGFW->display, (Drawable)win->src.ctx.native->window, (GLXContext) win->src.ctx.native->ctx);
-		RGFW_glXSwapIntervalNative(swapInterval);
-		RGFW_glXMakeCurrent(_RGFW->display, (Drawable)surf, (GLXContext)ctx);
+		if (ctx != win->src.ctx.native->ctx || (Drawable)surf != win->src.ctx.native->window)
+			RGFW_glXMakeCurrent(_RGFW->display, (Drawable)surf, (GLXContext)ctx);
 	} else {
 		RGFW_debugCallback(RGFW_typeWarning, RGFW_errOpenGLContext,  "Failed to load swap interval function");
 	}
