@@ -14557,12 +14557,11 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	TISCopyCurrentKeyboardLayoutInputSourceSrc = (PFN_TISCopyCurrentKeyboardLayoutInputSource)CFBundleGetFunctionPointerForName((CFBundleRef)_RGFW->tisBundle, CFSTR("TISCopyCurrentKeyboardLayoutInputSource"));
 	LMGetKbdTypeSrc = (PFN_LMGetKbdType)CFBundleGetFunctionPointerForName((CFBundleRef)_RGFW->tisBundle, CFSTR("LMGetKbdType"));
 
+printf("I have resorted to printf debugging through github CI because I cannot recreate this stupid crash\n");
 	CFStringRef* cfStr = (CFStringRef*)CFBundleGetDataPointerForName((CFBundleRef)_RGFW->tisBundle, CFSTR("kTISPropertyUnicodeKeyLayoutData"));;
 	if (cfStr) kTISPropertyUnicodeKeyLayoutDataSrc = *cfStr;
-
 	_RGFW->NSApp = objc_msgSend_id(objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
 	((void (*)(id, SEL, NSUInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
-	printf("DEBUG\n");
 	/* Note about addMethod strings
 	 * @ -> id, : -> SEL, B -> bool
 	 * a basic char is a c-type, capital letter = unsigned, ^ = pointer
