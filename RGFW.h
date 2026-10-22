@@ -6167,12 +6167,14 @@ RGFW_window* RGFW_getCurrentWindow_EGL(void) {
 	void* surf = RGFW_getCurrentSurface_EGL();
 	
 	for (RGFW_window* win = _RGFW->root; win->next; win = win->next) {
-		RGFW_rglContext* winGlCtx = RGFW_window_getContext_EGL(win);
+		RGFW_eglContext* winGlCtx = RGFW_window_getContext_EGL(win);
 		if (winGlCtx == NULL) continue;
 
 		void* winCtx = RGFW_eglContext_getSourceContext(winGlCtx);
 		if (ctx == winCtx && surf == RGFW_window_getSurface_EGL(win)) return win;	
 	}
+	
+	return NULL;
 }
 
 RGFW_eglContext* RGFW_createContext_EGL(RGFW_glHints* hints) {
@@ -9179,7 +9181,7 @@ RGFW_bool RGFW_FUNC(RGFW_extensionSupportedPlatform_OpenGL)(const char * extensi
 	return (extensions != NULL) && RGFW_extensionSupportedStr(extensions, extension, len);
 }
 
-void* RGFW_FUNC(RGFW_window_getSurface_OpenGL) (RGFW_window* win) { return win->src.ctx.native == NULL ? NULL : win->src.ctx.native->window; }
+void* RGFW_FUNC(RGFW_window_getSurface_OpenGL) (RGFW_window* win) { return win->src.ctx.native == NULL ? NULL : (void*)win->src.ctx.native->window; }
 
 RGFW_proc RGFW_FUNC(RGFW_getProcAddress_OpenGL)(const char* procname) { return _RGFW->glGetProcAddress((const char*) procname); }
 
@@ -16548,7 +16550,7 @@ void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
 }
 void* RGFW_getCurrentContext_OpenGL(void) { return (void*)emscripten_webgl_get_current_context(); }
 void* RGFW_getCurrentSurface_OpenGL(void) { return (void*)emscripten_webgl_get_current_context(); }
-void* RGFW_window_getSurface_OpenGL(RGFW_window* win) { return (win->src.ctx.native == NULL) ? NULL : win->src.ctx.native->ctx; }
+void* RGFW_window_getSurface_OpenGL(RGFW_window* win) { return (win->src.ctx.native == NULL) ? NULL : (void*)win->src.ctx.native->ctx; }
 
 RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char* extension, size_t len) {
     return EM_ASM_INT({
