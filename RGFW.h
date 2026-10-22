@@ -3391,9 +3391,6 @@ struct RGFW_info {
 	void* tisBundle;
     #endif
 
-	#if defined(RGFW_OPENGL) || defined(RGFW_EGL)
-		RGFW_window* current;
-	#endif
 	#ifdef RGFW_OPENGL
 		void* nativeGL_handle;
 		RGFW_proc (*glGetProcAddress)(const char*);
@@ -5577,15 +5574,16 @@ RGFW_bool RGFW_extensionSupported_OpenGL(const char* extension, size_t len) {
     return RGFW_extensionSupportedPlatform_OpenGL(extension, len);
 }
 
-void RGFW_window_makeCurrentWindow_OpenGL(RGFW_window* win) {
-	if (win) {
-		_RGFW->current = win;
+RGFW_window* RGFW_getCurrentWindow_OpenGL(void) { 
+	void* ctx = RGFW_getCurrentContext_OpenGL();
+	void* surf = RGFW_getCurrentSurface_OpenGL();
+	
+	for (RGFW_window* win = _RGFW->root; win->next; win = win->next) {
+		if (ctx == RGFW_window_getContext_OpenGL(win) && surf == RGFW_window_getSurface_OpenGL(win)) return win;	
 	}
 
-    RGFW_window_makeCurrentContext_OpenGL(win);
+	return NULL;
 }
-
-RGFW_window* RGFW_getCurrentWindow_OpenGL(void) { return _RGFW->current; }
 #endif /* OPENGL only */
 
 /* EGL */
