@@ -14,14 +14,14 @@
 #endif
 
 int main(void) {
-	RGFW_init("RGFW Example", RGFW_initEGL);
+	if (RGFW_init("RGFW Example", RGFW_initEGL) < 0) { return -1; }
 
     RGFW_glHints* hints = RGFW_getGlobalHints_OpenGL();
     hints->major = 1;
     hints->minor = 1;
     RGFW_setGlobalHints_OpenGL(hints);
 
-	RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowEGL | RGFW_windowCenter | RGFW_windowNoResize | RGFW_windowTransparent);
+	RGFW_window* win = RGFW_createWindow("a window", 0, 0, 800, 600, RGFW_windowEGL | RGFW_windowCenter | RGFW_windowNoResize);
     RGFW_window_makeCurrentContext_EGL(win);
     RGFW_window_setExitKey(win, RGFW_keyEscape);
 

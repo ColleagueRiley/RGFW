@@ -29,7 +29,7 @@ void myFree(void* ptr, unsigned int line, const char* file) {
 }
 
 int main(void) {
-    RGFW_init("memory", 0);
+	RGFW_init("memory", 0);
 	RGFW_window* win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, 0);
 	RGFW_pollEvents();
 	RGFW_window_close(win);
