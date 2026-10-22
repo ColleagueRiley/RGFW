@@ -2577,14 +2577,6 @@ RGFWDEF void* RGFW_window_getSurface_OpenGL(RGFW_window* win);
 RGFWDEF void* RGFW_glContext_getSourceContext(RGFW_glContext* ctx);
 
 /**!
- * @brief Makes the specified window the current OpenGL rendering target.
- * @param win A pointer to the RGFW_window to make current.
- *
- * @note This is typically called internally by RGFW_window_makeCurrent.
-*/
-RGFWDEF void RGFW_window_makeCurrentWindow_OpenGL(RGFW_window* win);
-
-/**!
  * @brief Makes the OpenGL context of the specified window current.
  * @param win A pointer to the RGFW_window whose context should be made current.
  *
@@ -2755,14 +2747,6 @@ RGFWDEF struct wl_egl_window* RGFW_eglContext_wlEGLWindow(RGFW_eglContext* ctx);
  * @note Typically called by RGFW_window_swapInterval.
 */
 RGFWDEF void RGFW_window_swapBuffers_EGL(RGFW_window* win);
-
-/**!
- * @brief Makes the specified window the current EGL rendering target.
- * @param win A pointer to the RGFW_window to make current.
- *
- * @note This is typically called internally by RGFW_window_makeCurrent.
-*/
-RGFWDEF void RGFW_window_makeCurrentWindow_EGL(RGFW_window* win);
 
 /**!
  * @brief Makes the EGL context of the specified window current.
@@ -6178,12 +6162,18 @@ RGFW_bool RGFW_extensionSupported_EGL(const char* extension, size_t len) {
     return RGFW_extensionSupportedPlatform_EGL(extension, len);
 }
 
-void RGFW_window_makeCurrentWindow_EGL(RGFW_window* win) {
-    _RGFW->current = win;
-    RGFW_window_makeCurrentContext_EGL(win);
-}
+RGFW_window* RGFW_getCurrentWindow_EGL(void) { 
+	void* ctx = RGFW_getCurrentContext_EGL();
+	void* surf = RGFW_getCurrentSurface_EGL();
+	
+	for (RGFW_window* win = _RGFW->root; win->next; win = win->next) {
+		RGFW_rglContext* winGlCtx = RGFW_window_getContext_EGL(win);
+		if (winGlCtx == NULL) continue;
 
-RGFW_window* RGFW_getCurrentWindow_EGL(void) { return _RGFW->current; }
+		void* winCtx = RGFW_eglContext_getSourceContext(winGlCtx);
+		if (ctx == winCtx && surf == RGFW_window_getSurface_EGL(win)) return win;	
+	}
+}
 
 RGFW_eglContext* RGFW_createContext_EGL(RGFW_glHints* hints) {
 	RGFW_eglContext* ctx = (RGFW_eglContext*)RGFW_ALLOC(sizeof(RGFW_eglContext));
@@ -14921,7 +14911,7 @@ void RGFW_window_resizePlatform(RGFW_window* win, i32 w, i32 h) {
     content.size = (CGSize){(CGFloat)w, (CGFloat)h};
 	frame = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frameRectForContentRect:"), content);
 
-	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"),frame);
+	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.window, sel_registerName("setFrame:"),frame);
 	RGFW_cocoaFetchRect(win);
 }
 
@@ -15511,7 +15501,7 @@ RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) {
 
 	RGFW_monitorNode* node = _RGFW->monitors.list.head;
 	for (node = _RGFW->monitors.list.head; node; node = node->next) {
-		if (node->display == display && (id)node->screen == screen) {
+		if (node->display == display) {
 			break;
 		}
 	}
