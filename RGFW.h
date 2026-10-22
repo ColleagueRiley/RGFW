@@ -4133,8 +4133,6 @@ i32 RGFW_init(const char* className, RGFW_initFlags flags) {
 	}
 
 	_rgfwGlobal = (RGFW_info*)RGFW_ALLOC(sizeof(RGFW_info));
-
-printf("I have resorted to printf debugging through github CI because I cannot recreate this stupid crash\n");
 	return RGFW_init_ptr(className, flags, &_rgfwGlobal);
 }
 

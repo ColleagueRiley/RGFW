@@ -29,7 +29,8 @@ void myFree(void* ptr, unsigned int line, const char* file) {
 }
 
 int main(void) {
-    RGFW_init("memory", 0);
+printf("I have resorted to printf debugging through github CI because I cannot recreate this stupid crash\n");
+	RGFW_init("memory", 0);
 	RGFW_window* win = RGFW_createWindow("RGFW Example Window", 500, 500, 500, 500, 0);
 	RGFW_pollEvents();
 	RGFW_window_close(win);
