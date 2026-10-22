@@ -4178,6 +4178,12 @@ i32 RGFW_init_ptr(const char* className, RGFW_initFlags flags, RGFW_info* info) 
 		return out;
 	}
 
+	for (size_t i = 0; i < RGFW_mouseIconCount; i++) {
+        _RGFW->standardMice[i] = RGFW_createMouseStandard((RGFW_mouseIcon)i);
+	}
+
+	RGFW_pollMonitors();
+
 	if (flags & RGFW_initOpenGL) {
 		#ifdef RGFW_WAYLAND
 		if (!(flags & RGFW_initX11)) {
@@ -4204,12 +4210,6 @@ i32 RGFW_init_ptr(const char* className, RGFW_initFlags flags, RGFW_info* info) 
 			return -1;
 		}
 	}
-
-	for (size_t i = 0; i < RGFW_mouseIconCount; i++) {
-        _RGFW->standardMice[i] = RGFW_createMouseStandard((RGFW_mouseIcon)i);
-	}
-
-	RGFW_pollMonitors();
 
     RGFW_debugCallback(RGFW_typeInfo, RGFW_infoGlobal, "global context initialized");
 
@@ -15719,12 +15719,13 @@ void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) {
 void RGFW_deinitPlatform(void) {
 	if (_RGFW->NSApp) {
 		objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("setDelegate:"), NULL);
+		NSRelease(_RGFW->customNSAppDelegate);
+		_RGFW->customNSAppDelegate = NULL;
 
 		objc_msgSend_void_id(_RGFW->NSApp, sel_registerName("stop:"), NULL);
-		NSRelease(_RGFW->NSApp);
+		_RGFW->NSApp = NULL;
 	}
 
-	_RGFW->NSApp = NULL;
 	if (_RGFW->customNSAppDelegate != NULL)
 		NSRelease(_RGFW->customNSAppDelegate);
 
