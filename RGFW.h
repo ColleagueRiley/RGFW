@@ -14562,7 +14562,7 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 
 	_RGFW->NSApp = objc_msgSend_id(objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
 	((void (*)(id, SEL, NSUInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("setActivationPolicy:"), NSApplicationActivationPolicyRegular);
-
+	printf("DEBUG\n");
 	/* Note about addMethod strings
 	 * @ -> id, : -> SEL, B -> bool
 	 * a basic char is a c-type, capital letter = unsigned, ^ = pointer
