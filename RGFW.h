@@ -11862,6 +11862,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			RGFW_mouseButton i = 0;
 			for (i = RGFW_mouseLeft; i < RGFW_mouseFinal && RGFW_isMouseDown(i) == RGFW_FALSE; i += 1);
+			if (i == RGFW_mouseFinal) ReleaseCapture();
 			break;
 		}
 		case WM_MOUSEWHEEL: {
