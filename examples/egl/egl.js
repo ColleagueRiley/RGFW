@@ -5614,6 +5614,17 @@ var ASM_CONSTS = {
 
   var _eglGetCurrentContext = () => EGL.currentContext;
 
+  var _eglGetCurrentSurface = (readdraw) => {
+      if (readdraw == 0x305A /* EGL_READ */) {
+        return EGL.currentReadSurface;
+      } else if (readdraw == 0x3059 /* EGL_DRAW */) {
+        return EGL.currentDrawSurface;
+      } else {
+        EGL.setErrorCode(0x300C /* EGL_BAD_PARAMETER */);
+        return 0 /* EGL_NO_SURFACE */;
+      }
+    };
+
   var _eglGetDisplay = (nativeDisplayType) => {
       EGL.setErrorCode(0x3000 /* EGL_SUCCESS */);
       // Emscripten EGL implementation "emulates" X11, and eglGetDisplay is
@@ -14566,6 +14577,8 @@ var wasmImports = {
   eglGetConfigs: _eglGetConfigs,
   /** @export */
   eglGetCurrentContext: _eglGetCurrentContext,
+  /** @export */
+  eglGetCurrentSurface: _eglGetCurrentSurface,
   /** @export */
   eglGetDisplay: _eglGetDisplay,
   /** @export */

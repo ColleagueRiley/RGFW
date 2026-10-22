@@ -14,7 +14,9 @@ int main(void) {
     hints->minor = 3;
     RGFW_setGlobalHints_OpenGL(hints);
 
-	RGFW_window* win = RGFW_createWindow("RGFW flags", 200, 200, 600, 400, RGFW_windowAllowDND | RGFW_windowOpenGL);
+	RGFW_window* win = RGFW_createWindow("RGFW flags", 0, 0, 2000, 2000, RGFW_windowAllowDND | RGFW_windowOpenGL);
+	printf("%i %i\n", win->w, win->h);
+
     RGFW_window_setExitKey(win, RGFW_keyEscape);
 
 	if (RGL_loadGL3((RGLloadfunc)RGFW_getProcAddress_OpenGL)) {
