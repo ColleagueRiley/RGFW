@@ -15783,6 +15783,7 @@ void RGFW_window_closePlatform(RGFW_window* win) {
 	NSRelease(win->src.window);
 
 	objc_msgSend_bool_void(pool, sel_registerName("drain"));
+	RGFW_pollEvents();
 }
 
 #ifdef RGFW_VULKAN
