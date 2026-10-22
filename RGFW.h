@@ -14551,13 +14551,14 @@ void RGFW_initKeycodesPlatform(void) {
 
 i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	RGFW_UNUSED(className); RGFW_UNUSED(flags);
+
+printf("I have resorted to printf debugging through github CI because I cannot recreate this stupid crash\n");
 	_RGFW->tisBundle = (void*)CFBundleGetBundleWithIdentifier(CFSTR("com.apple.HIToolbox"));
 
 	TISGetInputSourcePropertySrc = (PFN_TISGetInputSourceProperty)CFBundleGetFunctionPointerForName((CFBundleRef)_RGFW->tisBundle, CFSTR("TISGetInputSourceProperty"));
 	TISCopyCurrentKeyboardLayoutInputSourceSrc = (PFN_TISCopyCurrentKeyboardLayoutInputSource)CFBundleGetFunctionPointerForName((CFBundleRef)_RGFW->tisBundle, CFSTR("TISCopyCurrentKeyboardLayoutInputSource"));
 	LMGetKbdTypeSrc = (PFN_LMGetKbdType)CFBundleGetFunctionPointerForName((CFBundleRef)_RGFW->tisBundle, CFSTR("LMGetKbdType"));
 
-printf("I have resorted to printf debugging through github CI because I cannot recreate this stupid crash\n");
 	CFStringRef* cfStr = (CFStringRef*)CFBundleGetDataPointerForName((CFBundleRef)_RGFW->tisBundle, CFSTR("kTISPropertyUnicodeKeyLayoutData"));;
 	if (cfStr) kTISPropertyUnicodeKeyLayoutDataSrc = *cfStr;
 	_RGFW->NSApp = objc_msgSend_id(objc_getClass("NSApplication"), sel_registerName("sharedApplication"));
