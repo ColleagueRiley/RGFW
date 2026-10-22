@@ -1024,6 +1024,7 @@ typedef RGFW_ENUM(u8, RGFW_errorCode) {
 	RGFW_errFailedFuncLoad,
 	RGFW_errBuffer,
 	RGFW_errMetal,
+	RGFW_errObjcRuntime,
 	RGFW_errPlatform,
 	RGFW_errEventQueue,
 	RGFW_errNoInit,
@@ -14570,6 +14571,11 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	*/
 
 	_RGFW->customNSAppDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWNSAppDelegate", 0);
+	if (_RGFW->customNSAppDelegateClass == NULL) {
+		RGFW_debugCallback(RGFW_typeError, RGFW_errObjcRuntime, "failed to create RGFWNSAppDelegate class");
+		return -1;
+	}
+
 	class_addMethod((Class)_RGFW->customNSAppDelegateClass, sel_registerName("applicationDidChangeScreenParameters:"), (IMP)RGFW__osxDidChangeScreenParameters, "v@:@");
 	class_addMethod((Class)_RGFW->customNSAppDelegateClass, sel_registerName("applicationShouldTerminate:"), (IMP)RGFW__osxApplicationShouldTerminate, "@:@");
 	objc_registerClassPair((Class)_RGFW->customNSAppDelegateClass);
@@ -14582,6 +14588,11 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	_RGFW->customViewClasses[0] = objc_allocateClassPair(objc_getClass("NSView"), "RGFWCustomView", 0);
 	_RGFW->customViewClasses[1] = objc_allocateClassPair(objc_getClass("NSOpenGLView"), "RGFWOpenGLCustomView", 0);
 	for (size_t i = 0; i < 2; i++) {
+		if (_RGFW->customViewClasses[i] == NULL) {
+			RGFW_debugCallback(RGFW_typeError, RGFW_errObjcRuntime, (i == 0) ? "failed to create RGFWCustomView class" : "failed to create RGFWOpenGLCustomView class");
+			return -1;
+		}
+
 		RGFW_ASSERT((sizeof(RGFW_window*) <= 8)); /* some future where pointers are greater than 8 bytes (64-bit) (I'm pretty sure much more will be broken if this is the case) */
 		class_addIvar((Class)_RGFW->customViewClasses[i], "RGFW_window", sizeof(RGFW_window*), (sizeof(RGFW_window*) == 8) ? 3 : 2, "^v");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("acceptsFirstMouse:"), (IMP)RGFW__osxAcceptsFirstMouse, "B@:@");
@@ -14618,6 +14629,11 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	}
 
 	_RGFW->customWindowDelegateClass = objc_allocateClassPair(objc_getClass("NSObject"), "RGFWWindowDelegate", 0);
+	if (_RGFW->customWindowDelegateClass == NULL) {
+		RGFW_debugCallback(RGFW_typeError, RGFW_errObjcRuntime, "failed to create RGFWWindowDelegate class");
+		return -1;
+	}
+
 	class_addIvar((Class)_RGFW->customWindowDelegateClass, "RGFW_window", sizeof(RGFW_window*), (sizeof(RGFW_window*) == 8) ? 3 : 2, "^v");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidResize:"), (IMP)RGFW__osxDidWindowResize, "v@:@");
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowDidMove:"), (IMP) RGFW__osxWindowMove, "v@:@");
@@ -14629,6 +14645,11 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	objc_registerClassPair((Class)_RGFW->customWindowDelegateClass);
 
 	_RGFW->customWindowClass = objc_allocateClassPair(objc_getClass("NSWindow"), "RGFWWindowClass", 0);
+	if (_RGFW->customWindowClass== NULL) {
+		RGFW_debugCallback(RGFW_typeError, RGFW_errObjcRuntime, "failed to create RGFWWindowClass class");
+		return -1;
+	}
+
 	class_addMethod((Class)_RGFW->customWindowClass, sel_registerName("canBecomeKeyWindow"), (IMP)RGFW__osxCanBecomeKeyWindow, "B@:");
 	class_addMethod((Class)_RGFW->customWindowClass, sel_registerName("canBecomeMainWindow"),(IMP)RGFW__osxCanBecomeMainWindow, "B@:");
 	objc_registerClassPair((Class)_RGFW->customWindowClass);
