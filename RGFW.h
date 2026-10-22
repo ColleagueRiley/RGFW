@@ -14890,19 +14890,20 @@ void RGFW_pollEvents(void) {
 
 void RGFW_window_movePlatform(RGFW_window* win, i32 x, i32 y) {
 	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
-
 	float yFlip = RGFW_cocoaYTransform((float)y + (float)content.size.height - 1.0f);
 	((void(*)(id,SEL,NSPoint))objc_msgSend)((id)win->src.window, sel_registerName("setFrameOrigin:"), (NSPoint){(double)x, (double)yFlip});
-
 	RGFW_cocoaFetchRect(win);
 }
 
 void RGFW_window_resizePlatform(RGFW_window* win, i32 w, i32 h) {
 	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
-	NSRect content = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.view, sel_registerName("frame"));
-	double offset = (double)(frame.size.height - content.size.height);
+	NSRect content = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("contentRectForFrameRect:"), frame);
 
-	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"),  (NSRect){{frame.origin.x, frame.origin.y}, {(double)w, (double)h + offset}});
+	content.origin.y += content.size.height - (CGFloat)h;
+    content.size = (CGSize){(CGFloat)w, (CGFloat)h};
+	frame = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frameRectForContentRect:"), content);
+
+	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"),frame);
 	RGFW_cocoaFetchRect(win);
 }
 
