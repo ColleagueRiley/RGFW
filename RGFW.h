@@ -11488,7 +11488,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 
 			RGFW_windowMovedCallback(win, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-			return DefWindowProcW(hWnd, message, wParam, lParam);
+			return 0;
 		case WM_SIZE: {
 			if (win->internal.captureMouse) {
 				RGFW_window_captureMousePlatform(win, RGFW_TRUE);
@@ -11496,7 +11496,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			RGFW_windowResizedCallback(win, LOWORD(lParam), HIWORD(lParam));
 			RGFW_window_checkMode(win);
-			return DefWindowProcW(hWnd, message, wParam, lParam);
+			return 0;
 		}
         case WM_MOUSEACTIVATE:         {
             if (HIWORD(lParam) == WM_LBUTTONDOWN) {
@@ -13227,17 +13227,15 @@ RGFW_bool RGFW_createContextPtr_OpenGL(RGFW_glContext* ctx, RGFW_glHints* hints)
 
 
 		RGFW_attribStack_pushAttribs(&stack, 0, 0);
-
-		ctx->ctx = (HGLRC)RGFW_wglCreateContextAttribsARB(hdc, NULL, attribs);
+		ctx->ctx = (HGLRC)RGFW_wglCreateContextAttribsARB(hdc, hints->share ? hints->share->ctx : NULL, attribs);
+		if (hints->share && ctx->ctx) {
+			RGFW_wglShareLists(hints->share->ctx, ctx->ctx);
+		}
 	}
 
 	if (RGFW_wglCreateContextAttribsARB == NULL || ctx->ctx == NULL) { /* fall back to a default context (probably OpenGL 2 or something) */
 		RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to create an accelerated OpenGL Context.");
 		ctx->ctx = RGFW_wglCreateContext(hdc);
-	}
-
-	if (hints->share) {
-		RGFW_wglShareLists((HGLRC)RGFW_getCurrentContext_OpenGL(), hints->share->ctx);
 	}
 
 	DestroyWindow(dummyWindow);
