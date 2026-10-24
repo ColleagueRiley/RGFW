@@ -5595,16 +5595,16 @@ RGFW_bool RGFW_extensionSupported_OpenGL(const char* extension, size_t len) {
     return RGFW_extensionSupportedPlatform_OpenGL(extension, len);
 }
 
-RGFW_window* RGFW_getCurrentWindow_OpenGL(void) { 
+RGFW_window* RGFW_getCurrentWindow_OpenGL(void) {
 	void* ctx = RGFW_getCurrentContext_OpenGL();
 	void* surf = RGFW_getCurrentSurface_OpenGL();
-	
+
 	for (RGFW_window* win = _RGFW->root; win->next; win = win->next) {
 		RGFW_glContext* winGlCtx = RGFW_window_getContext_OpenGL(win);
 		if (winGlCtx == NULL) continue;
 
 		void* winCtx = RGFW_glContext_getSourceContext(winGlCtx);
-		if (ctx == winCtx && surf == RGFW_window_getSurface_OpenGL(win)) return win;	
+		if (ctx == winCtx && surf == RGFW_window_getSurface_OpenGL(win)) return win;
 	}
 
 	return NULL;
@@ -6162,18 +6162,18 @@ RGFW_bool RGFW_extensionSupported_EGL(const char* extension, size_t len) {
     return RGFW_extensionSupportedPlatform_EGL(extension, len);
 }
 
-RGFW_window* RGFW_getCurrentWindow_EGL(void) { 
+RGFW_window* RGFW_getCurrentWindow_EGL(void) {
 	void* ctx = RGFW_getCurrentContext_EGL();
 	void* surf = RGFW_getCurrentSurface_EGL();
-	
+
 	for (RGFW_window* win = _RGFW->root; win->next; win = win->next) {
 		RGFW_eglContext* winGlCtx = RGFW_window_getContext_EGL(win);
 		if (winGlCtx == NULL) continue;
 
 		void* winCtx = RGFW_eglContext_getSourceContext(winGlCtx);
-		if (ctx == winCtx && surf == RGFW_window_getSurface_EGL(win)) return win;	
+		if (ctx == winCtx && surf == RGFW_window_getSurface_EGL(win)) return win;
 	}
-	
+
 	return NULL;
 }
 
@@ -14673,7 +14673,7 @@ void RGFW_osx_initView(RGFW_window* win) {
 	contentRect.origin.y = 0;
 	contentRect.size.width = (double)win->w;
 	contentRect.size.height = (double)win->h;
-	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"), contentRect);
+	((void(*)(id, SEL, CGRect, BOOL))objc_msgSend)((id)win->src.window, sel_registerName("setFrame:display:"), contentRect, YES);
 
 
 	if (RGFW_COCOA_FRAME_NAME)
@@ -14913,7 +14913,7 @@ void RGFW_window_resizePlatform(RGFW_window* win, i32 w, i32 h) {
     content.size = (CGSize){(CGFloat)w, (CGFloat)h};
 	frame = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frameRectForContentRect:"), content);
 
-	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.window, sel_registerName("setFrame:"),frame);
+	((void(*)(id, SEL, CGRect, BOOL))objc_msgSend)((id)win->src.window, sel_registerName("setFrameDisplay:"),frame, YES);
 	RGFW_cocoaFetchRect(win);
 }
 
