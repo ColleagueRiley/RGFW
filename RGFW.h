@@ -14912,7 +14912,7 @@ void RGFW_window_resizePlatform(RGFW_window* win, i32 w, i32 h) {
     content.size = (CGSize){(CGFloat)w, (CGFloat)h};
 	frame = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frameRectForContentRect:"), content);
 
-	((void(*)(id, SEL, CGRect, BOOL))objc_msgSend)((id)win->src.window, sel_registerName("setFrameDisplay:"),frame, YES);
+	((void(*)(id, SEL, CGRect, BOOL))objc_msgSend)((id)win->src.window, sel_registerName("setFrame:display:"),frame, YES);
 	RGFW_cocoaFetchRect(win);
 }
 
