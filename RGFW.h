@@ -13822,7 +13822,7 @@ static id RGFW__osxCustomInitWithRGFWWindow(id self, SEL _cmd, RGFW_window* win)
         object_setInstanceVariable(
             self, "markedText",
             ((id (*)(id, SEL))objc_msgSend)(
-                ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSMutableAttributedString"), sel_registerName("alloc")),
+                NSAlloc(objc_getClass("NSMutableAttributedString")),
                 sel_registerName("init")
             )
         );
@@ -14393,8 +14393,7 @@ void RGFW_surface_freePtr(RGFW_surface* surface) {
 }
 
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
 	int minW = RGFW_MIN(win->w, surface->w);
 	int minH = RGFW_MIN(win->h, surface->h);
@@ -14407,9 +14406,8 @@ void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
 
 	surface->native.rep = (void*)NSBitmapImageRep_initWithBitmapData(&surface->native.buffer, minW, minH, 8, 4, true, false, "NSDeviceRGBColorSpace", 1 << 1, (u32)surface->w * 4, 32);
 
-	id image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSImage"), sel_getUid("alloc"));
 	NSSize size = (NSSize){(double)minW, (double)minH};
-	image = ((id (*)(id, SEL, NSSize))objc_msgSend)((id)image, sel_getUid("initWithSize:"), size);
+	id image = ((id (*)(id, SEL, NSSize))objc_msgSend)((id)NSAlloc(objc_getClass("NSImage")), sel_getUid("initWithSize:"), size);
 
 	RGFW_copyImageData(NSBitmapImageRep_bitmapData((id)surface->native.rep), surface->w, minH, RGFW_formatRGBA8, surface->data, surface->native.format, surface->convertFunc);
 	((void (*)(id, SEL, id))objc_msgSend)((id)image, sel_getUid("addRepresentation:"), (id)surface->native.rep);
@@ -14549,6 +14547,8 @@ void RGFW_initKeycodesPlatform(void) {
 }
 
 i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
+
 	RGFW_UNUSED(className); RGFW_UNUSED(flags);
 	_RGFW->tisBundle = (void*)CFBundleGetBundleWithIdentifier(CFSTR("com.apple.HIToolbox"));
 
@@ -14651,6 +14651,7 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	class_addMethod((Class)_RGFW->customWindowClass, sel_registerName("canBecomeMainWindow"),(IMP)RGFW__osxCanBecomeMainWindow, "B@:");
 	objc_registerClassPair((Class)_RGFW->customWindowClass);
 
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 	return 0;
 }
 
@@ -14671,7 +14672,7 @@ void RGFW_osx_initView(RGFW_window* win) {
 	objc_msgSend_void_bool(win->src.view, sel_registerName("setWantsLayer:"), true);
 	objc_msgSend_int((id)win->src.view, sel_registerName("setLayerContentsPlacement:"),  4);
 
-	id trackingArea = objc_msgSend_id(objc_getClass("NSTrackingArea"), sel_registerName("alloc"));
+	id trackingArea = NSAlloc(objc_getClass("NSTrackingArea"));
 	trackingArea = ((id (*)(id, SEL, NSRect, NSUInteger, id, id))objc_msgSend)(
 		trackingArea,
 		sel_registerName("initWithRect:options:owner:userInfo:"),
@@ -14682,13 +14683,12 @@ void RGFW_osx_initView(RGFW_window* win) {
 	);
 
 	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.view, sel_registerName("addTrackingArea:"), trackingArea);
-	((void (*)(id, SEL))objc_msgSend)(trackingArea, sel_registerName("release"));
+	NSRelease(trackingArea);
 }
 
 RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags, RGFW_window* win) {
 	/* RR Create an autorelease pool */
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
 	RGFW_window_setMouseDefault(win);
 
@@ -14741,6 +14741,8 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	win->src.view = ((id(*)(id, SEL, RGFW_window*))objc_msgSend) (NSAlloc((Class)_RGFW->customViewClasses[0]), sel_registerName("initWithRGFWWindow:"), win);
 
 	RGFW_cocoaFetchRect(win);
+
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 	return win;
 }
 
@@ -14777,8 +14779,7 @@ RGFW_bool RGFW_getGlobalMouse(i32* x, i32* y) {
 }
 
 void RGFW_stopCheckEvents(void) {
-	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
 	id e = (id) ((id(*)(Class, SEL, NSEventType, NSPoint, NSEventModifierFlags, void*, NSInteger, void**, short, NSInteger, NSInteger))objc_msgSend)
 		(objc_getClass("NSEvent"), sel_registerName("otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:"),
@@ -14787,12 +14788,11 @@ void RGFW_stopCheckEvents(void) {
 	((void (*)(id, SEL, id, bool))objc_msgSend)
 		((id)_RGFW->NSApp, sel_registerName("postEvent:atStart:"), e, 1);
 
-	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 }
 
 void RGFW_waitForEvent(i32 waitMS) {
-	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
 	void* date = objc_msgSend_class(objc_getClass("NSDate"), sel_registerName("distantFuture"));
 	if (waitMS >= 0) {
@@ -14820,7 +14820,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 		}
 	}
 
-	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 }
 
 RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
@@ -14865,8 +14865,7 @@ RGFW_bool RGFW_window_fetchSize(RGFW_window* win, i32* w, i32* h) {
 void RGFW_pollEvents(void) {
 	RGFW_resetPrevState();
 
-	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
+	id eventPool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 	SEL eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
 
 	while (1) {
@@ -15015,8 +15014,7 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_f
 	RGFW_ASSERT(win != NULL);
 	RGFW_UNUSED(type);
 
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
 	if (data == NULL) {
 		objc_msgSend_void_id((id)_RGFW->NSApp, sel_registerName("setApplicationIconImage:"), NULL);
@@ -15079,8 +15077,7 @@ RGFW_mouse* RGFW_createMouseStandard(RGFW_mouseIcon mouse) {
 }
 
 RGFW_mouse* RGFW_createMouse(u8* data, i32 w, i32 h, RGFW_format format) {
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
 	if (data == NULL) {
 		objc_msgSend_void(NSCursor_arrowStr("arrowCursor"), sel_registerName("set"));
@@ -15164,8 +15161,7 @@ void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
 		return;
 	}
 
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
 	if (_RGFW->flash) {
 		((void (*)(id, SEL, NSInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("cancelUserAttentionRequest:"), _RGFW->flash);
@@ -15361,8 +15357,7 @@ RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* w
 
 size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
 	RGFW_ASSERT(monitor != NULL);
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
     u32 size = CGDisplayGammaTableCapacity(monitor->node->display);
     CGGammaValue* values = (CGGammaValue*)RGFW_ALLOC(size * 3 * sizeof(CGGammaValue));
@@ -15383,8 +15378,7 @@ size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
 
 RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
 	RGFW_ASSERT(monitor != NULL);
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
     CGGammaValue* values = (CGGammaValue*)RGFW_ALLOC(ramp->count * 3 * sizeof(CGGammaValue));
 
@@ -15703,8 +15697,8 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 }
 
 void RGFW_deleteContextPtr_OpenGL(RGFW_glContext* ctx) {
-	objc_msgSend_void(ctx->format, sel_registerName("release"));
-	objc_msgSend_void(ctx->ctx, sel_registerName("release"));
+	NSRelease(ctx->format);
+	NSRelease(ctx->ctx);
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL context freed.");
 }
 
@@ -15772,8 +15766,7 @@ void RGFW_deinitPlatform(void) {
 }
 
 void RGFW_window_closePlatform(RGFW_window* win) {
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setDelegate:"), NULL);
 	NSRelease((id)win->src.delegate);
@@ -15792,8 +15785,7 @@ VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance,
 	RGFW_ASSERT(surface != NULL);
 
     *surface = VK_NULL_HANDLE;
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
     id nsView = (id)win->src.view;
     if (!nsView) {
