@@ -13818,36 +13818,62 @@ static id RGFW__osxCustomInitWithRGFWWindow(id self, SEL _cmd, RGFW_window* win)
 	RGFW_UNUSED(_cmd);
     struct objc_super s = { self, class_getSuperclass(object_getClass(self)) };
 
-    CGRect rect;
-    rect.origin.x = 0;
-    rect.origin.y = 0;
-    rect.size.width = (double)win->w;
-    rect.size.height = (double)win->h;
+    self = ((id (*)(struct objc_super*, SEL))objc_msgSendSuper)(&s, sel_registerName("init"));
+	if (self == nil) return nil;
 
-    self = ((id (*)(struct objc_super*, SEL, CGRect))objc_msgSendSuper)(
-        &s, sel_registerName("initWithFrame:"), rect
-    );
+	object_setInstanceVariable(self, "RGFW_window", win);
+	object_setInstanceVariable(self, "trackingArea", nil);
 
-    if (self != nil) {
-        object_setInstanceVariable(self, "RGFW_window", win);
-        object_setInstanceVariable(self, "trackingArea", nil);
+	object_setInstanceVariable(
+		self, "markedText",
+		((id (*)(id, SEL))objc_msgSend)(
+			NSAlloc(objc_getClass("NSMutableAttributedString")),
+			sel_registerName("init")
+		)
+	);
 
-        object_setInstanceVariable(
-            self, "markedText",
-            ((id (*)(id, SEL))objc_msgSend)(
-                NSAlloc(objc_getClass("NSMutableAttributedString")),
-                sel_registerName("init")
-            )
-        );
+	((void (*)(id, SEL))objc_msgSend)(self, sel_registerName("updateTrackingAreas"));
 
-        ((void (*)(id, SEL))objc_msgSend)(self, sel_registerName("updateTrackingAreas"));
+	const char* types[] = {RSGL_NSPasteboardTypeURL, RSGL_NSPasteboardTypeFileURL, RSGL_NSPasteboardTypeString};
+	NSregisterForDraggedTypes((id)self, types, 3);
+    return self;
+}
 
-		const char* types[] = {RSGL_NSPasteboardTypeURL, RSGL_NSPasteboardTypeFileURL, RSGL_NSPasteboardTypeString};
-		NSregisterForDraggedTypes((id)self, types, 3);
-
+static void RGFW__osxUpdateTrackingAreas(id self, SEL _cmd) {
+	RGFW_UNUSED(_cmd);
+	id trackingArea = NULL;
+	object_getInstanceVariable(self, (const char*)"trackingArea", (void**)&trackingArea);
+	if (trackingArea != NULL) {
+		NSRelease(trackingArea);
 	}
 
-    return self;
+	trackingArea = ((id (*)(id, SEL, NSRect, NSUInteger, id, id))objc_msgSend)(
+		NSAlloc(objc_getClass("NSTrackingArea")),
+		sel_registerName("initWithRect:options:owner:userInfo:"),
+		((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)self, sel_registerName("bounds")),
+		NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect,
+		self,
+		nil
+	);
+
+    object_setInstanceVariable(self, "trackingArea", trackingArea);
+
+	((void (*)(id, SEL, id))objc_msgSend)((id)self, sel_registerName("addTrackingArea:"), trackingArea);
+	struct objc_super s = { self, class_getSuperclass(object_getClass(self)) };
+	((void (*)(struct objc_super*, SEL))objc_msgSendSuper)(&s, sel_registerName("updateTrackingAreas"));
+}
+
+static void RGFW__osxViewDealloc(id self, SEL _cmd) {
+	RGFW_UNUSED(_cmd);
+    struct objc_super super = { self, class_getSuperclass(object_getClass(self)) };
+	id* trackingArea = NULL;
+	object_getInstanceVariable(self, (const char*)"trackingArea", (void**)&trackingArea);
+
+	if (trackingArea != NULL) {
+		NSRelease(trackingArea);
+	}
+
+	((void (*)(struct objc_super*, SEL))objc_msgSendSuper)(&super, sel_registerName("dealloc"));
 }
 
 static BOOL RGFW_osxWindowShouldClose(id self, SEL _cmd, id sender) {
@@ -14152,7 +14178,7 @@ static void RGFW__osxDidWindowResize(id self, SEL _cmd, id notification) {
 	RGFW_monitor* mon = RGFW_window_getMonitor(win);
 	if (mon == NULL) return;
 
-	if ((i32)mon->mode.w == win->w && (i32)mon->mode.h - 102 <= win->h) {
+	if (RGFW_window_isMaximized(win) == RGFW_TRUE) {
 		RGFW_windowMaximizedCallback(win, 0, 0, win->w, win->h);
 	} else if (win->internal.flags & RGFW_windowMaximize) {
 		RGFW_windowRestoredCallback(win, win->x, win->y, win->w, win->h);
@@ -14406,13 +14432,13 @@ void RGFW_surface_freePtr(RGFW_surface* surface) {
 }
 
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
-	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
-
 	int minW = RGFW_MIN(win->w, surface->w);
 	int minH = RGFW_MIN(win->h, surface->h);
 
 	RGFW_monitor* mon = RGFW_window_getMonitor(win);
 	if (mon == NULL) return;
+
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
 	minW =  (i32)((float)minW * mon->pixelRatio);
 	minH = (i32)((float)minH * mon->pixelRatio);
@@ -14635,6 +14661,8 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("prepareForDragOperation:"), (IMP)RGFW__osxPrepareForDragOperation, "B@:@");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("performDragOperation:"), (IMP)RGFW__osxPerformDragOperation, "B@:@");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("performKeyEquivalent:"), (IMP)(void*)RGFW__osxPerformKeyEquivalent, "B@:@");
+		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("updateTrackingAreas"), (IMP)(void*)RGFW__osxUpdateTrackingAreas, "v@:");
+		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("dealloc"), (IMP)(void*)RGFW__osxViewDealloc, "v@:");
 		objc_registerClassPair((Class)_RGFW->customViewClasses[i]);
 	}
 
@@ -14669,34 +14697,10 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 }
 
 void RGFW_osx_initView(RGFW_window* win) {
-	NSRect contentRect;
-	contentRect.origin.x = 0;
-	contentRect.origin.y = 0;
-	contentRect.size.width = (double)win->w;
-	contentRect.size.height = (double)win->h;
-	((void(*)(id, SEL, CGRect, BOOL))objc_msgSend)((id)win->src.window, sel_registerName("setFrame:display:"), contentRect, YES);
-
-
-	if (RGFW_COCOA_FRAME_NAME)
-		objc_msgSend_ptr(win->src.view, sel_registerName("setFrameAutosaveName:"), RGFW_COCOA_FRAME_NAME);
-
-	object_setInstanceVariable((id)win->src.view, "RGFW_window", win);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
 	objc_msgSend_void_bool(win->src.view, sel_registerName("setWantsLayer:"), true);
-	objc_msgSend_int((id)win->src.view, sel_registerName("setLayerContentsPlacement:"),  4);
 
-	id trackingArea = NSAlloc(objc_getClass("NSTrackingArea"));
-	trackingArea = ((id (*)(id, SEL, NSRect, NSUInteger, id, id))objc_msgSend)(
-		trackingArea,
-		sel_registerName("initWithRect:options:owner:userInfo:"),
-		contentRect,
-		NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect,
-		(id)win->src.view,
-		nil
-	);
-
-	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.view, sel_registerName("addTrackingArea:"), trackingArea);
-	NSRelease(trackingArea);
+	((void (*)(id, SEL))objc_msgSend)((id)win->src.view, sel_registerName("updateTrackingAreas"));
 }
 
 RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags, RGFW_window* win) {
@@ -14754,6 +14758,9 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	win->src.view = ((id(*)(id, SEL, RGFW_window*))objc_msgSend) (NSAlloc((Class)_RGFW->customViewClasses[0]), sel_registerName("initWithRGFWWindow:"), win);
 
 	RGFW_cocoaFetchRect(win);
+
+	if (RGFW_COCOA_FRAME_NAME)
+		objc_msgSend_ptr(win->src.window, sel_registerName("setFrameAutosaveName:"), RGFW_COCOA_FRAME_NAME);
 
 	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 	return win;
@@ -14912,7 +14919,7 @@ void RGFW_window_resizePlatform(RGFW_window* win, i32 w, i32 h) {
     content.size = (CGSize){(CGFloat)w, (CGFloat)h};
 	frame = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frameRectForContentRect:"), content);
 
-	((void(*)(id, SEL, CGRect, BOOL))objc_msgSend)((id)win->src.window, sel_registerName("setFrame:display:"),frame, YES);
+	((void(*)(id, SEL, CGRect, BOOL))objc_msgSend)((id)win->src.window, sel_registerName("setFrame:display:"), frame, YES);
 	RGFW_cocoaFetchRect(win);
 }
 
@@ -14989,8 +14996,10 @@ void RGFW_window_setName(RGFW_window* win, const char* name) {
 	RGFW_ASSERT(win != NULL);
 	if (name == NULL) name = "\0";
 
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 	id str = NSString_stringWithUTF8String(name);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setTitle:"), str);
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 }
 
 #ifndef RGFW_NO_PASSTHROUGH
@@ -15698,10 +15707,6 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 
 	objc_msgSend_void(ctx->ctx, sel_registerName("makeCurrentContext"));
 
-	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
-	objc_msgSend_void_bool(win->src.view, sel_registerName("setWantsLayer:"), true);
-	objc_msgSend_int((id)win->src.view, sel_registerName("setLayerContentsPlacement:"),  4);
-
 	/*NOTE: another OpenGL/setFlags related hack, this because OSX the 'view' class must be setup after the NSOpenGL view is made AND after setFlags happens */
 	RGFW_osx_initView(win);
 	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.window, sel_registerName("makeFirstResponder:"), (id)win->src.view);
@@ -15761,7 +15766,7 @@ void RGFW_deinitPlatform(void) {
 
 	if (_RGFW->customViewClasses[0] != NULL)
 		objc_disposeClassPair((Class)_RGFW->customViewClasses[0]);
-	if (_RGFW->customViewClasses[0] != NULL)
+	if (_RGFW->customViewClasses[1] != NULL)
 		objc_disposeClassPair((Class)_RGFW->customViewClasses[1]);
 
 	if (_RGFW->customWindowDelegateClass)
