@@ -13821,9 +13821,6 @@ static id RGFW__osxCustomInitWithRGFWWindow(id self, SEL _cmd, RGFW_window* win)
     self = ((id (*)(struct objc_super*, SEL))objc_msgSendSuper)(&s, sel_registerName("init"));
 	if (self == nil) return nil;
 
-	object_setInstanceVariable(self, "RGFW_window", win);
-	object_setInstanceVariable(self, "trackingArea", nil);
-
 	object_setInstanceVariable(
 		self, "markedText",
 		((id (*)(id, SEL))objc_msgSend)(
@@ -13832,6 +13829,8 @@ static id RGFW__osxCustomInitWithRGFWWindow(id self, SEL _cmd, RGFW_window* win)
 		)
 	);
 
+	object_setInstanceVariable(self, "RGFW_window", win);
+	object_setInstanceVariable(self, "trackingArea", nil);
 	((void (*)(id, SEL))objc_msgSend)(self, sel_registerName("updateTrackingAreas"));
 
 	const char* types[] = {RSGL_NSPasteboardTypeURL, RSGL_NSPasteboardTypeFileURL, RSGL_NSPasteboardTypeString};
@@ -13842,8 +13841,10 @@ static id RGFW__osxCustomInitWithRGFWWindow(id self, SEL _cmd, RGFW_window* win)
 static void RGFW__osxUpdateTrackingAreas(id self, SEL _cmd) {
 	RGFW_UNUSED(_cmd);
 	id trackingArea = NULL;
+
 	object_getInstanceVariable(self, (const char*)"trackingArea", (void**)&trackingArea);
 	if (trackingArea != NULL) {
+		((void (*)(id, SEL, id))objc_msgSend)((id)self, sel_registerName("removeTrackingArea:"), trackingArea);
 		NSRelease(trackingArea);
 	}
 
@@ -13851,14 +13852,14 @@ static void RGFW__osxUpdateTrackingAreas(id self, SEL _cmd) {
 		NSAlloc(objc_getClass("NSTrackingArea")),
 		sel_registerName("initWithRect:options:owner:userInfo:"),
 		((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)self, sel_registerName("bounds")),
-		NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect,
+		NSTrackingMouseEnteredAndExited | NSTrackingActiveInKeyWindow | NSTrackingEnabledDuringMouseDrag | NSTrackingCursorUpdate | NSTrackingInVisibleRect | NSTrackingAssumeInside | NSTrackingActiveAlways,
 		self,
 		nil
 	);
 
-    object_setInstanceVariable(self, "trackingArea", trackingArea);
-
+	object_setInstanceVariable(self, "trackingArea", trackingArea);
 	((void (*)(id, SEL, id))objc_msgSend)((id)self, sel_registerName("addTrackingArea:"), trackingArea);
+
 	struct objc_super s = { self, class_getSuperclass(object_getClass(self)) };
 	((void (*)(struct objc_super*, SEL))objc_msgSendSuper)(&s, sel_registerName("updateTrackingAreas"));
 }
@@ -14631,6 +14632,7 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 
 		RGFW_ASSERT((sizeof(RGFW_window*) <= 8)); /* some future where pointers are greater than 8 bytes (64-bit) (I'm pretty sure much more will be broken if this is the case) */
 		class_addIvar((Class)_RGFW->customViewClasses[i], "RGFW_window", sizeof(RGFW_window*), (sizeof(RGFW_window*) == 8) ? 3 : 2, "^v");
+		class_addIvar((Class)_RGFW->customViewClasses[i], "trackingArea", sizeof(id), (sizeof(id) == 8) ? 3 : 2, "^v");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("acceptsFirstMouse:"), (IMP)RGFW__osxAcceptsFirstMouse, "B@:@");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("drawRect:"), (IMP)RGFW__osxDrawRect, "v@:{CGRect={CGPoint=dd}{CGSize=dd}}");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("viewDidChangeBackingProperties"), (IMP)RGFW__osxViewDidChangeBackingProperties, "v@:");
@@ -14700,6 +14702,7 @@ void RGFW_osx_initView(RGFW_window* win) {
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
 	objc_msgSend_void_bool(win->src.view, sel_registerName("setWantsLayer:"), true);
 
+	object_setInstanceVariable(win->src.view, "RGFW_window", win);
 	((void (*)(id, SEL))objc_msgSend)((id)win->src.view, sel_registerName("updateTrackingAreas"));
 }
 
