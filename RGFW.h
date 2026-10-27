@@ -14702,7 +14702,7 @@ void RGFW_osx_initView(RGFW_window* win) {
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
 	objc_msgSend_void_bool(win->src.view, sel_registerName("setWantsLayer:"), true);
 
-	object_setInstanceVariable(win->src.view, "RGFW_window", win);
+	object_setInstanceVariable((id)win->src.view, "RGFW_window", win);
 	((void (*)(id, SEL))objc_msgSend)((id)win->src.view, sel_registerName("updateTrackingAreas"));
 }
 
