@@ -3549,7 +3549,7 @@ RGFWDEF RGFW_bool RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW
 RGFWDEF char* RGFW_XGetWindowName(Window window);
 #endif
 #ifdef RGFW_MACOS
-RGFWDEF void RGFW_osx_initView(RGFW_window* win);
+RGFWDEF void RGFW_osx_initView(RGFW_window* win, void* view);
 
 	#ifdef RGFW_OPENGL
 	RGFWDEF void RGFW_copyContext_OSX_OpenGL(RGFW_glContext* ctx, RGFW_glContext* newCtx);
@@ -4339,10 +4339,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 			RGFW_surface_free(surface);
 		}
 	}
-#endif
-
-#ifdef RGFW_MACOS
-	RGFW_osx_initView(win);
 #endif
 
 	if (!(flags & RGFW_windowHideMouse)) {
@@ -6076,8 +6072,7 @@ RGFW_bool RGFW_window_setContext_EGL(RGFW_window* win, RGFW_eglContext* ctx) {
 	RGFW_window_swapInterval_EGL(win, 0);
 
 #ifdef RGFW_MACOS
-	/*NOTE: another OpenGL/setFlags related hack, this because OSX the 'view' class must be setup after the NSOpenGL view is made AND after setFlags happens */
-	RGFW_osx_initView(win);
+	RGFW_osx_initView(win, win->src.view);
 #endif
 
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "EGL context initalized.");
@@ -13821,20 +13816,7 @@ static id RGFW__osxCustomInitWithRGFWWindow(id self, SEL _cmd, RGFW_window* win)
     self = ((id (*)(struct objc_super*, SEL))objc_msgSendSuper)(&s, sel_registerName("init"));
 	if (self == nil) return nil;
 
-	object_setInstanceVariable(
-		self, "markedText",
-		((id (*)(id, SEL))objc_msgSend)(
-			NSAlloc(objc_getClass("NSMutableAttributedString")),
-			sel_registerName("init")
-		)
-	);
-
-	object_setInstanceVariable(self, "RGFW_window", win);
-	object_setInstanceVariable(self, "trackingArea", nil);
-	((void (*)(id, SEL))objc_msgSend)(self, sel_registerName("updateTrackingAreas"));
-
-	const char* types[] = {RSGL_NSPasteboardTypeURL, RSGL_NSPasteboardTypeFileURL, RSGL_NSPasteboardTypeString};
-	NSregisterForDraggedTypes((id)self, types, 3);
+	RGFW_osx_initView(win, (void*)self);
     return self;
 }
 
@@ -13867,12 +13849,13 @@ static void RGFW__osxUpdateTrackingAreas(id self, SEL _cmd) {
 static void RGFW__osxViewDealloc(id self, SEL _cmd) {
 	RGFW_UNUSED(_cmd);
     struct objc_super super = { self, class_getSuperclass(object_getClass(self)) };
-	id* trackingArea = NULL;
+	id trackingArea = NULL;
+	id markedText = NULL;
 	object_getInstanceVariable(self, (const char*)"trackingArea", (void**)&trackingArea);
+	object_getInstanceVariable(self, (const char*)"markedText", (void**)&markedText);
 
-	if (trackingArea != NULL) {
-		NSRelease(trackingArea);
-	}
+	if (trackingArea != NULL) NSRelease(trackingArea);
+	if (markedText != NULL) NSRelease(markedText);
 
 	((void (*)(struct objc_super*, SEL))objc_msgSendSuper)(&super, sel_registerName("dealloc"));
 }
@@ -14633,6 +14616,7 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 		RGFW_ASSERT((sizeof(RGFW_window*) <= 8)); /* some future where pointers are greater than 8 bytes (64-bit) (I'm pretty sure much more will be broken if this is the case) */
 		class_addIvar((Class)_RGFW->customViewClasses[i], "RGFW_window", sizeof(RGFW_window*), (sizeof(RGFW_window*) == 8) ? 3 : 2, "^v");
 		class_addIvar((Class)_RGFW->customViewClasses[i], "trackingArea", sizeof(id), (sizeof(id) == 8) ? 3 : 2, "^v");
+		class_addIvar((Class)_RGFW->customViewClasses[i], "markedText", sizeof(id), (sizeof(id) == 8) ? 3 : 2, "^v");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("acceptsFirstMouse:"), (IMP)RGFW__osxAcceptsFirstMouse, "B@:@");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("drawRect:"), (IMP)RGFW__osxDrawRect, "v@:{CGRect={CGPoint=dd}{CGSize=dd}}");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("viewDidChangeBackingProperties"), (IMP)RGFW__osxViewDidChangeBackingProperties, "v@:");
@@ -14698,12 +14682,24 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	return 0;
 }
 
-void RGFW_osx_initView(RGFW_window* win) {
-	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
-	objc_msgSend_void_bool(win->src.view, sel_registerName("setWantsLayer:"), true);
+void RGFW_osx_initView(RGFW_window* win, void* view) {
+	object_setInstanceVariable(
+		view, "markedText",
+		((id (*)(id, SEL))objc_msgSend)(
+			NSAlloc(objc_getClass("NSMutableAttributedString")),
+			sel_registerName("init")
+		)
+	);
 
-	object_setInstanceVariable((id)win->src.view, "RGFW_window", win);
-	((void (*)(id, SEL))objc_msgSend)((id)win->src.view, sel_registerName("updateTrackingAreas"));
+	object_setInstanceVariable(view, "RGFW_window", win);
+	object_setInstanceVariable(view, "trackingArea", nil);
+	((void (*)(id, SEL))objc_msgSend)(view, sel_registerName("updateTrackingAreas"));
+
+	const char* types[] = {RSGL_NSPasteboardTypeURL, RSGL_NSPasteboardTypeFileURL, RSGL_NSPasteboardTypeString};
+	NSregisterForDraggedTypes((id)view, types, 3);
+
+	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), view);
+	objc_msgSend_void_bool(view, sel_registerName("setWantsLayer:"), true);
 }
 
 RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags, RGFW_window* win) {
@@ -14729,8 +14725,8 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 		void* nsclass = objc_getClass("RGFWWindowClass");
 		SEL func = sel_registerName("initWithContentRect:styleMask:backing:defer:");
 
-		win->src.window = ((id(*)(id, SEL, NSRect, NSWindowStyleMask, NSWindowStyleMask, bool))objc_msgSend)
-			(NSAlloc(nsclass), func, windowRect, (NSWindowStyleMask)macArgs, macArgs, false);
+		win->src.window = ((id(*)(id, SEL, NSRect, NSWindowStyleMask, NSBackingStoreType, bool))objc_msgSend)
+			(NSAlloc(nsclass), func, windowRect, (NSWindowStyleMask)macArgs, NSBackingStoreBuffered, false);
 	}
 
 	id str = NSString_stringWithUTF8String(name);
@@ -15710,8 +15706,7 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 
 	objc_msgSend_void(ctx->ctx, sel_registerName("makeCurrentContext"));
 
-	/*NOTE: another OpenGL/setFlags related hack, this because OSX the 'view' class must be setup after the NSOpenGL view is made AND after setFlags happens */
-	RGFW_osx_initView(win);
+	RGFW_osx_initView(win, (void*)win->src.view);
 	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.window, sel_registerName("makeFirstResponder:"), (id)win->src.view);
 
 	RGFW_window_swapInterval_OpenGL(win, 0);
@@ -15791,15 +15786,17 @@ void RGFW_deinitPlatform(void) {
 void RGFW_window_closePlatform(RGFW_window* win) {
 	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
+	objc_msgSend_void_id(win->src.window, sel_registerName("orderOut:"), NULL);
+
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setDelegate:"), NULL);
 	NSRelease((id)win->src.delegate);
 	NSRelease(win->src.view);
 
-	objc_msgSend_id(win->src.window, sel_registerName("close"));
-	NSRelease(win->src.window);
+	objc_msgSend_void(win->src.window, sel_registerName("close"));
+	win->src.window = NULL;
 
-	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 	RGFW_pollEvents();
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 }
 
 #ifdef RGFW_VULKAN
