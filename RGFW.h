@@ -14668,15 +14668,19 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowShouldClose:"), (IMP)(void*)RGFW_osxWindowShouldClose, "B@:@");
 	objc_registerClassPair((Class)_RGFW->customWindowDelegateClass);
 
-	_RGFW->customWindowClass = objc_allocateClassPair(objc_getClass("NSWindow"), "RGFWWindowClass", 0);
-	if (_RGFW->customWindowClass== NULL) {
-		RGFW_debugCallback(RGFW_typeError, RGFW_errObjcRuntime, "failed to create RGFWWindowClass class");
-		return -1;
-	}
+	_RGFW->customWindowClass = objc_getClass("RGFWWindowClass");
+	if (_RGFW->customWindowClass == NULL) {
+		_RGFW->customWindowClass = objc_allocateClassPair(objc_getClass("NSWindow"), "RGFWWindowClass", 0);
 
-	class_addMethod((Class)_RGFW->customWindowClass, sel_registerName("canBecomeKeyWindow"), (IMP)RGFW__osxCanBecomeKeyWindow, "B@:");
-	class_addMethod((Class)_RGFW->customWindowClass, sel_registerName("canBecomeMainWindow"),(IMP)RGFW__osxCanBecomeMainWindow, "B@:");
-	objc_registerClassPair((Class)_RGFW->customWindowClass);
+		if (_RGFW->customWindowClass== NULL) {
+			RGFW_debugCallback(RGFW_typeError, RGFW_errObjcRuntime, "failed to create RGFWWindowClass class");
+			return -1;
+		}
+
+		class_addMethod((Class)_RGFW->customWindowClass, sel_registerName("canBecomeKeyWindow"), (IMP)RGFW__osxCanBecomeKeyWindow, "B@:");
+		class_addMethod((Class)_RGFW->customWindowClass, sel_registerName("canBecomeMainWindow"),(IMP)RGFW__osxCanBecomeMainWindow, "B@:");
+		objc_registerClassPair((Class)_RGFW->customWindowClass);
+	}
 
 	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 	return 0;
@@ -14684,22 +14688,22 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 
 void RGFW_osx_initView(RGFW_window* win, void* view) {
 	object_setInstanceVariable(
-		view, "markedText",
+		(id)view, "markedText",
 		((id (*)(id, SEL))objc_msgSend)(
 			NSAlloc(objc_getClass("NSMutableAttributedString")),
 			sel_registerName("init")
 		)
 	);
 
-	object_setInstanceVariable(view, "RGFW_window", win);
-	object_setInstanceVariable(view, "trackingArea", nil);
-	((void (*)(id, SEL))objc_msgSend)(view, sel_registerName("updateTrackingAreas"));
+	object_setInstanceVariable((id)view, "RGFW_window", win);
+	object_setInstanceVariable((id)view, "trackingArea", nil);
+	((void (*)(id, SEL))objc_msgSend)((id)view, sel_registerName("updateTrackingAreas"));
 
 	const char* types[] = {RSGL_NSPasteboardTypeURL, RSGL_NSPasteboardTypeFileURL, RSGL_NSPasteboardTypeString};
 	NSregisterForDraggedTypes((id)view, types, 3);
 
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), view);
-	objc_msgSend_void_bool(view, sel_registerName("setWantsLayer:"), true);
+	objc_msgSend_void_bool((id)view, sel_registerName("setWantsLayer:"), true);
 }
 
 RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags, RGFW_window* win) {
@@ -15769,15 +15773,6 @@ void RGFW_deinitPlatform(void) {
 
 	if (_RGFW->customWindowDelegateClass)
 		objc_disposeClassPair((Class)_RGFW->customWindowDelegateClass);
-
-	if (_RGFW->customWindowClass) {
-		Class kvoClass = objc_getClass("NSKVONotifying_RGFWWindowClass");
-		if (kvoClass) {
-			objc_disposeClassPair(kvoClass);
-
-		}
-		objc_disposeClassPair((Class)_RGFW->customWindowClass);
-	}
 
 	if (_RGFW->customNSAppDelegateClass)
 		objc_disposeClassPair((Class)_RGFW->customNSAppDelegateClass);
