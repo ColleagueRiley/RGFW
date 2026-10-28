@@ -2563,19 +2563,18 @@ RGFWDEF RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext
 RGFWDEF RGFW_glContext* RGFW_window_getContext_OpenGL(RGFW_window* win);
 
 /**!
+ * @brief Retrieves the OpenGL surface associated with a window.
+ * @param win A pointer to the RGFW_window.
+ * @return A pointer to the associated surface, or NULL if none exists or if the context is EGL-based.
+*/
+RGFWDEF void* RGFW_window_getSurface_OpenGL(RGFW_window* win);
+
+/**!
  * @brief Retrieves the native source context from an RGFW_glContext.
  * @param ctx A pointer to the RGFW_glContext.
  * @return A pointer to the native OpenGL context handle.
 */
 RGFWDEF void* RGFW_glContext_getSourceContext(RGFW_glContext* ctx);
-
-/**!
- * @brief Makes the specified window the current OpenGL rendering target.
- * @param win A pointer to the RGFW_window to make current.
- *
- * @note This is typically called internally by RGFW_window_makeCurrent.
-*/
-RGFWDEF void RGFW_window_makeCurrentWindow_OpenGL(RGFW_window* win);
 
 /**!
  * @brief Makes the OpenGL context of the specified window current.
@@ -2708,6 +2707,13 @@ RGFWDEF RGFW_bool RGFW_window_setContext_EGL(RGFW_window* win, RGFW_eglContext* 
 RGFWDEF RGFW_eglContext* RGFW_window_getContext_EGL(RGFW_window* win);
 
 /**!
+ * @brief Retrieves the EGL surface associated with a window.
+ * @param win A pointer to the RGFW_window.
+ * @return A pointer to the associated EGLSurface, or NULL if none exists or if the context is a native OpenGL context.
+*/
+RGFWDEF void* RGFW_window_getSurface_EGL(RGFW_window* win);
+
+/**!
  * @brief Retrieves the EGL display handle.
  * @return A pointer to the native EGLDisplay.
 */
@@ -2741,14 +2747,6 @@ RGFWDEF struct wl_egl_window* RGFW_eglContext_wlEGLWindow(RGFW_eglContext* ctx);
  * @note Typically called by RGFW_window_swapInterval.
 */
 RGFWDEF void RGFW_window_swapBuffers_EGL(RGFW_window* win);
-
-/**!
- * @brief Makes the specified window the current EGL rendering target.
- * @param win A pointer to the RGFW_window to make current.
- *
- * @note This is typically called internally by RGFW_window_makeCurrent.
-*/
-RGFWDEF void RGFW_window_makeCurrentWindow_EGL(RGFW_window* win);
 
 /**!
  * @brief Makes the EGL context of the specified window current.
@@ -3405,9 +3403,6 @@ struct RGFW_info {
 	void* tisBundle;
     #endif
 
-	#if defined(RGFW_OPENGL) || defined(RGFW_EGL)
-		RGFW_window* current;
-	#endif
 	#ifdef RGFW_OPENGL
 		void* nativeGL_handle;
 		RGFW_proc (*glGetProcAddress)(const char*);
@@ -3554,7 +3549,7 @@ RGFWDEF RGFW_bool RGFW_XCreateWindow (XVisualInfo visual, const char* name, RGFW
 RGFWDEF char* RGFW_XGetWindowName(Window window);
 #endif
 #ifdef RGFW_MACOS
-RGFWDEF void RGFW_osx_initView(RGFW_window* win);
+RGFWDEF void RGFW_osx_initView(RGFW_window* win, void* view);
 
 	#ifdef RGFW_OPENGL
 	RGFWDEF void RGFW_copyContext_OSX_OpenGL(RGFW_glContext* ctx, RGFW_glContext* newCtx);
@@ -4344,10 +4339,6 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 			RGFW_surface_free(surface);
 		}
 	}
-#endif
-
-#ifdef RGFW_MACOS
-	RGFW_osx_initView(win);
 #endif
 
 	if (!(flags & RGFW_windowHideMouse)) {
@@ -5464,11 +5455,7 @@ void* RGFW_glContext_getSourceContext(RGFW_glContext* ctx) {
 	if (RGFW_usingWayland()) return (void*)ctx->egl.ctx;
 #endif
 
-#if defined(RGFW_X11)
 	return (void*)ctx->ctx;
-#else
-	return NULL;
-#endif
 }
 
 void RGFW_attribStack_init(RGFW_attribStack* stack, i32* attribs, size_t max) { stack->attribs = attribs; stack->count = 0; stack->max = max; }
@@ -5604,15 +5591,20 @@ RGFW_bool RGFW_extensionSupported_OpenGL(const char* extension, size_t len) {
     return RGFW_extensionSupportedPlatform_OpenGL(extension, len);
 }
 
-void RGFW_window_makeCurrentWindow_OpenGL(RGFW_window* win) {
-	if (win) {
-		_RGFW->current = win;
+RGFW_window* RGFW_getCurrentWindow_OpenGL(void) {
+	void* ctx = RGFW_getCurrentContext_OpenGL();
+	void* surf = RGFW_getCurrentSurface_OpenGL();
+
+	for (RGFW_window* win = _RGFW->root; win->next; win = win->next) {
+		RGFW_glContext* winGlCtx = RGFW_window_getContext_OpenGL(win);
+		if (winGlCtx == NULL) continue;
+
+		void* winCtx = RGFW_glContext_getSourceContext(winGlCtx);
+		if (ctx == winCtx && surf == RGFW_window_getSurface_OpenGL(win)) return win;
 	}
 
-    RGFW_window_makeCurrentContext_OpenGL(win);
+	return NULL;
 }
-
-RGFW_window* RGFW_getCurrentWindow_OpenGL(void) { return _RGFW->current; }
 #endif /* OPENGL only */
 
 /* EGL */
@@ -6080,8 +6072,7 @@ RGFW_bool RGFW_window_setContext_EGL(RGFW_window* win, RGFW_eglContext* ctx) {
 	RGFW_window_swapInterval_EGL(win, 0);
 
 #ifdef RGFW_MACOS
-	/*NOTE: another OpenGL/setFlags related hack, this because OSX the 'view' class must be setup after the NSOpenGL view is made AND after setFlags happens */
-	RGFW_osx_initView(win);
+	RGFW_osx_initView(win, win->src.view);
 #endif
 
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "EGL context initalized.");
@@ -6091,6 +6082,11 @@ RGFW_bool RGFW_window_setContext_EGL(RGFW_window* win, RGFW_eglContext* ctx) {
 RGFW_eglContext* RGFW_window_getContext_EGL(RGFW_window* win) {
 	if (win->src.gfxType == RGFW_windowOpenGL) return NULL;
 	return win->src.ctx.egl;
+}
+
+void* RGFW_window_getSurface_EGL(RGFW_window* win) {
+	if (win->src.gfxType == RGFW_windowOpenGL || win->src.ctx.egl == NULL) return NULL;
+	return win->src.ctx.egl->surface;
 }
 
 void RGFW_deleteContextPtr_EGL(RGFW_eglContext* ctx) {
@@ -6161,12 +6157,20 @@ RGFW_bool RGFW_extensionSupported_EGL(const char* extension, size_t len) {
     return RGFW_extensionSupportedPlatform_EGL(extension, len);
 }
 
-void RGFW_window_makeCurrentWindow_EGL(RGFW_window* win) {
-    _RGFW->current = win;
-    RGFW_window_makeCurrentContext_EGL(win);
-}
+RGFW_window* RGFW_getCurrentWindow_EGL(void) {
+	void* ctx = RGFW_getCurrentContext_EGL();
+	void* surf = RGFW_getCurrentSurface_EGL();
 
-RGFW_window* RGFW_getCurrentWindow_EGL(void) { return _RGFW->current; }
+	for (RGFW_window* win = _RGFW->root; win->next; win = win->next) {
+		RGFW_eglContext* winGlCtx = RGFW_window_getContext_EGL(win);
+		if (winGlCtx == NULL) continue;
+
+		void* winCtx = RGFW_eglContext_getSourceContext(winGlCtx);
+		if (ctx == winCtx && surf == RGFW_window_getSurface_EGL(win)) return win;
+	}
+
+	return NULL;
+}
 
 RGFW_eglContext* RGFW_createContext_EGL(RGFW_glHints* hints) {
 	RGFW_eglContext* ctx = (RGFW_eglContext*)RGFW_ALLOC(sizeof(RGFW_eglContext));
@@ -9172,6 +9176,8 @@ RGFW_bool RGFW_FUNC(RGFW_extensionSupportedPlatform_OpenGL)(const char * extensi
 	return (extensions != NULL) && RGFW_extensionSupportedStr(extensions, extension, len);
 }
 
+void* RGFW_FUNC(RGFW_window_getSurface_OpenGL) (RGFW_window* win) { return win->src.ctx.native == NULL ? NULL : (void*)win->src.ctx.native->window; }
+
 RGFW_proc RGFW_FUNC(RGFW_getProcAddress_OpenGL)(const char* procname) { return _RGFW->glGetProcAddress((const char*) procname); }
 
 void RGFW_FUNC(RGFW_window_makeCurrentContext_OpenGL) (RGFW_window* win) { if (win) RGFW_ASSERT(win->src.ctx.native);
@@ -11195,6 +11201,7 @@ RGFW_bool RGFW_FUNC(RGFW_window_setContext_OpenGL) (RGFW_window* win, RGFW_glCon
 	return RGFW_TRUE;
 }
 
+void* RGFW_FUNC(RGFW_window_getSurface_OpenGL) (RGFW_window* win) { return RGFW_window_getSurface_EGL(win); }
 void RGFW_FUNC(RGFW_window_makeCurrentContext_OpenGL) (RGFW_window* win) { RGFW_window_makeCurrentContext_EGL(win); }
 void* RGFW_FUNC(RGFW_getCurrentContext_OpenGL) (void) { return RGFW_getCurrentContext_EGL(); }
 void* RGFW_FUNC(RGFW_getCurrentSurface_OpenGL) (void) { return RGFW_getCurrentSurface_EGL(); }
@@ -11560,7 +11567,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 
 			RGFW_windowMovedCallback(win, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-			return DefWindowProcW(hWnd, message, wParam, lParam);
+			return 0;
 		case WM_SIZE: {
 			if (win->internal.captureMouse) {
 				RGFW_window_captureMousePlatform(win, RGFW_TRUE);
@@ -11568,7 +11575,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			RGFW_windowResizedCallback(win, LOWORD(lParam), HIWORD(lParam));
 			RGFW_window_checkMode(win);
-			return DefWindowProcW(hWnd, message, wParam, lParam);
+			return 0;
 		}
         case WM_MOUSEACTIVATE:         {
             if (HIWORD(lParam) == WM_LBUTTONDOWN) {
@@ -11842,6 +11849,7 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			RGFW_mouseButton i = 0;
 			for (i = RGFW_mouseLeft; i < RGFW_mouseFinal && RGFW_isMouseDown(i) == RGFW_FALSE; i += 1);
+			if (i == RGFW_mouseFinal) ReleaseCapture();
 			break;
 		}
 		case WM_MOUSEWHEEL: {
@@ -13316,17 +13324,15 @@ RGFW_bool RGFW_createContextPtr_OpenGL(RGFW_glContext* ctx, RGFW_glHints* hints)
 
 
 		RGFW_attribStack_pushAttribs(&stack, 0, 0);
-
-		ctx->ctx = (HGLRC)RGFW_wglCreateContextAttribsARB(hdc, NULL, attribs);
+		ctx->ctx = (HGLRC)RGFW_wglCreateContextAttribsARB(hdc, hints->share ? hints->share->ctx : NULL, attribs);
+		if (hints->share && ctx->ctx) {
+			RGFW_wglShareLists(hints->share->ctx, ctx->ctx);
+		}
 	}
 
 	if (RGFW_wglCreateContextAttribsARB == NULL || ctx->ctx == NULL) { /* fall back to a default context (probably OpenGL 2 or something) */
 		RGFW_debugCallback(RGFW_typeError, RGFW_errOpenGLContext, "Failed to create an accelerated OpenGL Context.");
 		ctx->ctx = RGFW_wglCreateContext(hdc);
-	}
-
-	if (hints->share) {
-		RGFW_wglShareLists((HGLRC)RGFW_getCurrentContext_OpenGL(), hints->share->ctx);
 	}
 
 	DestroyWindow(dummyWindow);
@@ -13405,6 +13411,8 @@ void RGFW_deleteContextPtr_OpenGL(RGFW_glContext* ctx) {
 	RGFW_wglDeleteContext((HGLRC) ctx->ctx); /*!< delete OpenGL context */
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL context freed.");
 }
+
+void* RGFW_window_getSurface_OpenGL(RGFW_window* win) { return win->src.hdc;  }
 
 void RGFW_window_makeCurrentContext_OpenGL(RGFW_window* win) {
 	if (win == NULL)
@@ -13805,36 +13813,51 @@ static id RGFW__osxCustomInitWithRGFWWindow(id self, SEL _cmd, RGFW_window* win)
 	RGFW_UNUSED(_cmd);
     struct objc_super s = { self, class_getSuperclass(object_getClass(self)) };
 
-    CGRect rect;
-    rect.origin.x = 0;
-    rect.origin.y = 0;
-    rect.size.width = (double)win->w;
-    rect.size.height = (double)win->h;
+    self = ((id (*)(struct objc_super*, SEL))objc_msgSendSuper)(&s, sel_registerName("init"));
+	if (self == nil) return nil;
 
-    self = ((id (*)(struct objc_super*, SEL, CGRect))objc_msgSendSuper)(
-        &s, sel_registerName("initWithFrame:"), rect
-    );
+	RGFW_osx_initView(win, (void*)self);
+    return self;
+}
 
-    if (self != nil) {
-        object_setInstanceVariable(self, "RGFW_window", win);
-        object_setInstanceVariable(self, "trackingArea", nil);
+static void RGFW__osxUpdateTrackingAreas(id self, SEL _cmd) {
+	RGFW_UNUSED(_cmd);
+	id trackingArea = NULL;
 
-        object_setInstanceVariable(
-            self, "markedText",
-            ((id (*)(id, SEL))objc_msgSend)(
-                ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSMutableAttributedString"), sel_registerName("alloc")),
-                sel_registerName("init")
-            )
-        );
-
-        ((void (*)(id, SEL))objc_msgSend)(self, sel_registerName("updateTrackingAreas"));
-
-		const char* types[] = {RSGL_NSPasteboardTypeURL, RSGL_NSPasteboardTypeFileURL, RSGL_NSPasteboardTypeString};
-		NSregisterForDraggedTypes((id)self, types, 3);
-
+	object_getInstanceVariable(self, (const char*)"trackingArea", (void**)&trackingArea);
+	if (trackingArea != NULL) {
+		((void (*)(id, SEL, id))objc_msgSend)((id)self, sel_registerName("removeTrackingArea:"), trackingArea);
+		NSRelease(trackingArea);
 	}
 
-    return self;
+	trackingArea = ((id (*)(id, SEL, NSRect, NSUInteger, id, id))objc_msgSend)(
+		NSAlloc(objc_getClass("NSTrackingArea")),
+		sel_registerName("initWithRect:options:owner:userInfo:"),
+		((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)self, sel_registerName("bounds")),
+		NSTrackingMouseEnteredAndExited | NSTrackingActiveInKeyWindow | NSTrackingEnabledDuringMouseDrag | NSTrackingCursorUpdate | NSTrackingInVisibleRect | NSTrackingAssumeInside | NSTrackingActiveAlways,
+		self,
+		nil
+	);
+
+	object_setInstanceVariable(self, "trackingArea", trackingArea);
+	((void (*)(id, SEL, id))objc_msgSend)((id)self, sel_registerName("addTrackingArea:"), trackingArea);
+
+	struct objc_super s = { self, class_getSuperclass(object_getClass(self)) };
+	((void (*)(struct objc_super*, SEL))objc_msgSendSuper)(&s, sel_registerName("updateTrackingAreas"));
+}
+
+static void RGFW__osxViewDealloc(id self, SEL _cmd) {
+	RGFW_UNUSED(_cmd);
+    struct objc_super super = { self, class_getSuperclass(object_getClass(self)) };
+	id trackingArea = NULL;
+	id markedText = NULL;
+	object_getInstanceVariable(self, (const char*)"trackingArea", (void**)&trackingArea);
+	object_getInstanceVariable(self, (const char*)"markedText", (void**)&markedText);
+
+	if (trackingArea != NULL) NSRelease(trackingArea);
+	if (markedText != NULL) NSRelease(markedText);
+
+	((void (*)(struct objc_super*, SEL))objc_msgSendSuper)(&super, sel_registerName("dealloc"));
 }
 
 static BOOL RGFW_osxWindowShouldClose(id self, SEL _cmd, id sender) {
@@ -14139,7 +14162,7 @@ static void RGFW__osxDidWindowResize(id self, SEL _cmd, id notification) {
 	RGFW_monitor* mon = RGFW_window_getMonitor(win);
 	if (mon == NULL) return;
 
-	if ((i32)mon->mode.w == win->w && (i32)mon->mode.h - 102 <= win->h) {
+	if (RGFW_window_isMaximized(win) == RGFW_TRUE) {
 		RGFW_windowMaximizedCallback(win, 0, 0, win->w, win->h);
 	} else if (win->internal.flags & RGFW_windowMaximize) {
 		RGFW_windowRestoredCallback(win, win->x, win->y, win->w, win->h);
@@ -14393,23 +14416,21 @@ void RGFW_surface_freePtr(RGFW_surface* surface) {
 }
 
 void RGFW_window_blitSurface(RGFW_window* win, RGFW_surface* surface) {
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
-
 	int minW = RGFW_MIN(win->w, surface->w);
 	int minH = RGFW_MIN(win->h, surface->h);
 
 	RGFW_monitor* mon = RGFW_window_getMonitor(win);
 	if (mon == NULL) return;
 
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
+
 	minW =  (i32)((float)minW * mon->pixelRatio);
 	minH = (i32)((float)minH * mon->pixelRatio);
 
 	surface->native.rep = (void*)NSBitmapImageRep_initWithBitmapData(&surface->native.buffer, minW, minH, 8, 4, true, false, "NSDeviceRGBColorSpace", 1 << 1, (u32)surface->w * 4, 32);
 
-	id image = ((id (*)(Class, SEL))objc_msgSend)(objc_getClass("NSImage"), sel_getUid("alloc"));
 	NSSize size = (NSSize){(double)minW, (double)minH};
-	image = ((id (*)(id, SEL, NSSize))objc_msgSend)((id)image, sel_getUid("initWithSize:"), size);
+	id image = ((id (*)(id, SEL, NSSize))objc_msgSend)((id)NSAlloc(objc_getClass("NSImage")), sel_getUid("initWithSize:"), size);
 
 	RGFW_copyImageData(NSBitmapImageRep_bitmapData((id)surface->native.rep), surface->w, minH, RGFW_formatRGBA8, surface->data, surface->native.format, surface->convertFunc);
 	((void (*)(id, SEL, id))objc_msgSend)((id)image, sel_getUid("addRepresentation:"), (id)surface->native.rep);
@@ -14549,6 +14570,8 @@ void RGFW_initKeycodesPlatform(void) {
 }
 
 i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
+
 	RGFW_UNUSED(className); RGFW_UNUSED(flags);
 	_RGFW->tisBundle = (void*)CFBundleGetBundleWithIdentifier(CFSTR("com.apple.HIToolbox"));
 
@@ -14592,6 +14615,8 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 
 		RGFW_ASSERT((sizeof(RGFW_window*) <= 8)); /* some future where pointers are greater than 8 bytes (64-bit) (I'm pretty sure much more will be broken if this is the case) */
 		class_addIvar((Class)_RGFW->customViewClasses[i], "RGFW_window", sizeof(RGFW_window*), (sizeof(RGFW_window*) == 8) ? 3 : 2, "^v");
+		class_addIvar((Class)_RGFW->customViewClasses[i], "trackingArea", sizeof(id), (sizeof(id) == 8) ? 3 : 2, "^v");
+		class_addIvar((Class)_RGFW->customViewClasses[i], "markedText", sizeof(id), (sizeof(id) == 8) ? 3 : 2, "^v");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("acceptsFirstMouse:"), (IMP)RGFW__osxAcceptsFirstMouse, "B@:@");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("drawRect:"), (IMP)RGFW__osxDrawRect, "v@:{CGRect={CGPoint=dd}{CGSize=dd}}");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("viewDidChangeBackingProperties"), (IMP)RGFW__osxViewDidChangeBackingProperties, "v@:");
@@ -14622,6 +14647,8 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("prepareForDragOperation:"), (IMP)RGFW__osxPrepareForDragOperation, "B@:@");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("performDragOperation:"), (IMP)RGFW__osxPerformDragOperation, "B@:@");
 		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("performKeyEquivalent:"), (IMP)(void*)RGFW__osxPerformKeyEquivalent, "B@:@");
+		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("updateTrackingAreas"), (IMP)(void*)RGFW__osxUpdateTrackingAreas, "v@:");
+		class_addMethod((Class)_RGFW->customViewClasses[i], sel_registerName("dealloc"), (IMP)(void*)RGFW__osxViewDealloc, "v@:");
 		objc_registerClassPair((Class)_RGFW->customViewClasses[i]);
 	}
 
@@ -14641,54 +14668,47 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	class_addMethod((Class)_RGFW->customWindowDelegateClass, sel_registerName("windowShouldClose:"), (IMP)(void*)RGFW_osxWindowShouldClose, "B@:@");
 	objc_registerClassPair((Class)_RGFW->customWindowDelegateClass);
 
-	_RGFW->customWindowClass = objc_allocateClassPair(objc_getClass("NSWindow"), "RGFWWindowClass", 0);
-	if (_RGFW->customWindowClass== NULL) {
-		RGFW_debugCallback(RGFW_typeError, RGFW_errObjcRuntime, "failed to create RGFWWindowClass class");
-		return -1;
+	_RGFW->customWindowClass = objc_getClass("RGFWWindowClass");
+	if (_RGFW->customWindowClass == NULL) {
+		_RGFW->customWindowClass = objc_allocateClassPair(objc_getClass("NSWindow"), "RGFWWindowClass", 0);
+
+		if (_RGFW->customWindowClass== NULL) {
+			RGFW_debugCallback(RGFW_typeError, RGFW_errObjcRuntime, "failed to create RGFWWindowClass class");
+			return -1;
+		}
+
+		class_addMethod((Class)_RGFW->customWindowClass, sel_registerName("canBecomeKeyWindow"), (IMP)RGFW__osxCanBecomeKeyWindow, "B@:");
+		class_addMethod((Class)_RGFW->customWindowClass, sel_registerName("canBecomeMainWindow"),(IMP)RGFW__osxCanBecomeMainWindow, "B@:");
+		objc_registerClassPair((Class)_RGFW->customWindowClass);
 	}
 
-	class_addMethod((Class)_RGFW->customWindowClass, sel_registerName("canBecomeKeyWindow"), (IMP)RGFW__osxCanBecomeKeyWindow, "B@:");
-	class_addMethod((Class)_RGFW->customWindowClass, sel_registerName("canBecomeMainWindow"),(IMP)RGFW__osxCanBecomeMainWindow, "B@:");
-	objc_registerClassPair((Class)_RGFW->customWindowClass);
-
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 	return 0;
 }
 
-void RGFW_osx_initView(RGFW_window* win) {
-	NSRect contentRect;
-	contentRect.origin.x = 0;
-	contentRect.origin.y = 0;
-	contentRect.size.width = (double)win->w;
-	contentRect.size.height = (double)win->h;
-	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"), contentRect);
-
-
-	if (RGFW_COCOA_FRAME_NAME)
-		objc_msgSend_ptr(win->src.view, sel_registerName("setFrameAutosaveName:"), RGFW_COCOA_FRAME_NAME);
-
-	object_setInstanceVariable((id)win->src.view, "RGFW_window", win);
-	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
-	objc_msgSend_void_bool(win->src.view, sel_registerName("setWantsLayer:"), true);
-	objc_msgSend_int((id)win->src.view, sel_registerName("setLayerContentsPlacement:"),  4);
-
-	id trackingArea = objc_msgSend_id(objc_getClass("NSTrackingArea"), sel_registerName("alloc"));
-	trackingArea = ((id (*)(id, SEL, NSRect, NSUInteger, id, id))objc_msgSend)(
-		trackingArea,
-		sel_registerName("initWithRect:options:owner:userInfo:"),
-		contentRect,
-		NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect,
-		(id)win->src.view,
-		nil
+void RGFW_osx_initView(RGFW_window* win, void* view) {
+	object_setInstanceVariable(
+		(id)view, "markedText",
+		((id (*)(id, SEL))objc_msgSend)(
+			NSAlloc(objc_getClass("NSMutableAttributedString")),
+			sel_registerName("init")
+		)
 	);
 
-	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.view, sel_registerName("addTrackingArea:"), trackingArea);
-	((void (*)(id, SEL))objc_msgSend)(trackingArea, sel_registerName("release"));
+	object_setInstanceVariable((id)view, "RGFW_window", win);
+	object_setInstanceVariable((id)view, "trackingArea", nil);
+	((void (*)(id, SEL))objc_msgSend)((id)view, sel_registerName("updateTrackingAreas"));
+
+	const char* types[] = {RSGL_NSPasteboardTypeURL, RSGL_NSPasteboardTypeFileURL, RSGL_NSPasteboardTypeString};
+	NSregisterForDraggedTypes((id)view, types, 3);
+
+	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), view);
+	objc_msgSend_void_bool((id)view, sel_registerName("setWantsLayer:"), true);
 }
 
 RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags, RGFW_window* win) {
 	/* RR Create an autorelease pool */
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
 	RGFW_window_setMouseDefault(win);
 
@@ -14709,8 +14729,8 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 		void* nsclass = objc_getClass("RGFWWindowClass");
 		SEL func = sel_registerName("initWithContentRect:styleMask:backing:defer:");
 
-		win->src.window = ((id(*)(id, SEL, NSRect, NSWindowStyleMask, NSWindowStyleMask, bool))objc_msgSend)
-			(NSAlloc(nsclass), func, windowRect, (NSWindowStyleMask)macArgs, macArgs, false);
+		win->src.window = ((id(*)(id, SEL, NSRect, NSWindowStyleMask, NSBackingStoreType, bool))objc_msgSend)
+			(NSAlloc(nsclass), func, windowRect, (NSWindowStyleMask)macArgs, NSBackingStoreBuffered, false);
 	}
 
 	id str = NSString_stringWithUTF8String(name);
@@ -14741,6 +14761,11 @@ RGFW_window* RGFW_createWindowPlatform(const char* name, RGFW_windowFlags flags,
 	win->src.view = ((id(*)(id, SEL, RGFW_window*))objc_msgSend) (NSAlloc((Class)_RGFW->customViewClasses[0]), sel_registerName("initWithRGFWWindow:"), win);
 
 	RGFW_cocoaFetchRect(win);
+
+	if (RGFW_COCOA_FRAME_NAME)
+		objc_msgSend_ptr(win->src.window, sel_registerName("setFrameAutosaveName:"), RGFW_COCOA_FRAME_NAME);
+
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 	return win;
 }
 
@@ -14777,8 +14802,7 @@ RGFW_bool RGFW_getGlobalMouse(i32* x, i32* y) {
 }
 
 void RGFW_stopCheckEvents(void) {
-	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
 	id e = (id) ((id(*)(Class, SEL, NSEventType, NSPoint, NSEventModifierFlags, void*, NSInteger, void**, short, NSInteger, NSInteger))objc_msgSend)
 		(objc_getClass("NSEvent"), sel_registerName("otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:"),
@@ -14787,12 +14811,11 @@ void RGFW_stopCheckEvents(void) {
 	((void (*)(id, SEL, id, bool))objc_msgSend)
 		((id)_RGFW->NSApp, sel_registerName("postEvent:atStart:"), e, 1);
 
-	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 }
 
 void RGFW_waitForEvent(i32 waitMS) {
-	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
 	void* date = objc_msgSend_class(objc_getClass("NSDate"), sel_registerName("distantFuture"));
 	if (waitMS >= 0) {
@@ -14820,7 +14843,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 		}
 	}
 
-	objc_msgSend_bool_void(eventPool, sel_registerName("drain"));
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 }
 
 RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
@@ -14865,8 +14888,7 @@ RGFW_bool RGFW_window_fetchSize(RGFW_window* win, i32* w, i32* h) {
 void RGFW_pollEvents(void) {
 	RGFW_resetPrevState();
 
-	id eventPool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	eventPool = objc_msgSend_id(eventPool, sel_registerName("init"));
+	id eventPool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 	SEL eventFunc = sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:");
 
 	while (1) {
@@ -14900,7 +14922,7 @@ void RGFW_window_resizePlatform(RGFW_window* win, i32 w, i32 h) {
     content.size = (CGSize){(CGFloat)w, (CGFloat)h};
 	frame = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frameRectForContentRect:"), content);
 
-	((void(*)(id, SEL, CGRect))objc_msgSend)((id)win->src.view, sel_registerName("setFrame:"),frame);
+	((void(*)(id, SEL, CGRect, BOOL))objc_msgSend)((id)win->src.window, sel_registerName("setFrame:display:"), frame, YES);
 	RGFW_cocoaFetchRect(win);
 }
 
@@ -14977,8 +14999,10 @@ void RGFW_window_setName(RGFW_window* win, const char* name) {
 	RGFW_ASSERT(win != NULL);
 	if (name == NULL) name = "\0";
 
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 	id str = NSString_stringWithUTF8String(name);
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setTitle:"), str);
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 }
 
 #ifndef RGFW_NO_PASSTHROUGH
@@ -15015,8 +15039,7 @@ RGFW_bool RGFW_window_setIconEx(RGFW_window* win, u8* data, i32 w, i32 h, RGFW_f
 	RGFW_ASSERT(win != NULL);
 	RGFW_UNUSED(type);
 
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
 	if (data == NULL) {
 		objc_msgSend_void_id((id)_RGFW->NSApp, sel_registerName("setApplicationIconImage:"), NULL);
@@ -15079,8 +15102,7 @@ RGFW_mouse* RGFW_createMouseStandard(RGFW_mouseIcon mouse) {
 }
 
 RGFW_mouse* RGFW_createMouse(u8* data, i32 w, i32 h, RGFW_format format) {
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
 	if (data == NULL) {
 		objc_msgSend_void(NSCursor_arrowStr("arrowCursor"), sel_registerName("set"));
@@ -15164,8 +15186,7 @@ void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
 		return;
 	}
 
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
 	if (_RGFW->flash) {
 		((void (*)(id, SEL, NSInteger))objc_msgSend) ((id)_RGFW->NSApp, sel_registerName("cancelUserAttentionRequest:"), _RGFW->flash);
@@ -15361,8 +15382,7 @@ RGFW_bool RGFW_monitor_getWorkarea(RGFW_monitor* monitor, i32* x, i32* y, i32* w
 
 size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
 	RGFW_ASSERT(monitor != NULL);
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
     u32 size = CGDisplayGammaTableCapacity(monitor->node->display);
     CGGammaValue* values = (CGGammaValue*)RGFW_ALLOC(size * 3 * sizeof(CGGammaValue));
@@ -15383,8 +15403,7 @@ size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
 
 RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp) {
 	RGFW_ASSERT(monitor != NULL);
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
     CGGammaValue* values = (CGGammaValue*)RGFW_ALLOC(ramp->count * 3 * sizeof(CGGammaValue));
 
@@ -15490,7 +15509,7 @@ RGFW_monitor* RGFW_window_getMonitor(RGFW_window* win) {
 
 	RGFW_monitorNode* node = _RGFW->monitors.list.head;
 	for (node = _RGFW->monitors.list.head; node; node = node->next) {
-		if (node->display == display && (id)node->screen == screen) {
+		if (node->display == display) {
 			break;
 		}
 	}
@@ -15566,6 +15585,8 @@ void NSOpenGLContext_setValues(id context, const int* vals, NSOpenGLContextParam
 
 /* MacOS OpenGL API spares us yet again (there are no extensions) */
 RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char * extension, size_t len) { RGFW_UNUSED(extension); RGFW_UNUSED(len); return RGFW_FALSE; }
+
+void* RGFW_window_getSurface_OpenGL(RGFW_window* win) { return win->src.view;  }
 
 RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) {
 	CFStringRef symbolName = CFStringCreateWithCString(kCFAllocatorDefault, procname, kCFStringEncodingASCII);
@@ -15689,12 +15710,7 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 
 	objc_msgSend_void(ctx->ctx, sel_registerName("makeCurrentContext"));
 
-	objc_msgSend_void_id((id)win->src.window, sel_registerName("setContentView:"), win->src.view);
-	objc_msgSend_void_bool(win->src.view, sel_registerName("setWantsLayer:"), true);
-	objc_msgSend_int((id)win->src.view, sel_registerName("setLayerContentsPlacement:"),  4);
-
-	/*NOTE: another OpenGL/setFlags related hack, this because OSX the 'view' class must be setup after the NSOpenGL view is made AND after setFlags happens */
-	RGFW_osx_initView(win);
+	RGFW_osx_initView(win, (void*)win->src.view);
 	((void (*)(id, SEL, id))objc_msgSend)((id)win->src.window, sel_registerName("makeFirstResponder:"), (id)win->src.view);
 
 	RGFW_window_swapInterval_OpenGL(win, 0);
@@ -15703,8 +15719,8 @@ RGFW_bool RGFW_window_setContext_OpenGL(RGFW_window* win, RGFW_glContext* ctx) {
 }
 
 void RGFW_deleteContextPtr_OpenGL(RGFW_glContext* ctx) {
-	objc_msgSend_void(ctx->format, sel_registerName("release"));
-	objc_msgSend_void(ctx->ctx, sel_registerName("release"));
+	NSRelease(ctx->format);
+	NSRelease(ctx->ctx);
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoOpenGL, "OpenGL context freed.");
 }
 
@@ -15752,38 +15768,30 @@ void RGFW_deinitPlatform(void) {
 
 	if (_RGFW->customViewClasses[0] != NULL)
 		objc_disposeClassPair((Class)_RGFW->customViewClasses[0]);
-	if (_RGFW->customViewClasses[0] != NULL)
+	if (_RGFW->customViewClasses[1] != NULL)
 		objc_disposeClassPair((Class)_RGFW->customViewClasses[1]);
 
 	if (_RGFW->customWindowDelegateClass)
 		objc_disposeClassPair((Class)_RGFW->customWindowDelegateClass);
-
-	if (_RGFW->customWindowClass) {
-		Class kvoClass = objc_getClass("NSKVONotifying_RGFWWindowClass");
-		if (kvoClass) {
-			objc_disposeClassPair(kvoClass);
-
-		}
-		objc_disposeClassPair((Class)_RGFW->customWindowClass);
-	}
 
 	if (_RGFW->customNSAppDelegateClass)
 		objc_disposeClassPair((Class)_RGFW->customNSAppDelegateClass);
 }
 
 void RGFW_window_closePlatform(RGFW_window* win) {
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
+
+	objc_msgSend_void_id(win->src.window, sel_registerName("orderOut:"), NULL);
 
 	objc_msgSend_void_id((id)win->src.window, sel_registerName("setDelegate:"), NULL);
 	NSRelease((id)win->src.delegate);
 	NSRelease(win->src.view);
 
-	objc_msgSend_id(win->src.window, sel_registerName("close"));
-	NSRelease(win->src.window);
+	objc_msgSend_void(win->src.window, sel_registerName("close"));
+	win->src.window = NULL;
 
-	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 	RGFW_pollEvents();
+	objc_msgSend_bool_void(pool, sel_registerName("drain"));
 }
 
 #ifdef RGFW_VULKAN
@@ -15792,8 +15800,7 @@ VkResult RGFW_window_createSurface_Vulkan(RGFW_window* win, VkInstance instance,
 	RGFW_ASSERT(surface != NULL);
 
     *surface = VK_NULL_HANDLE;
-	id pool = objc_msgSend_class(objc_getClass("NSAutoreleasePool"), sel_registerName("alloc"));
-	pool = objc_msgSend_id(pool, sel_registerName("init"));
+	id pool = objc_msgSend_id(NSAlloc(objc_getClass("NSAutoreleasePool")), sel_registerName("init"));
 
     id nsView = (id)win->src.view;
     if (!nsView) {
@@ -16535,6 +16542,7 @@ void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) {
 }
 void* RGFW_getCurrentContext_OpenGL(void) { return (void*)emscripten_webgl_get_current_context(); }
 void* RGFW_getCurrentSurface_OpenGL(void) { return (void*)emscripten_webgl_get_current_context(); }
+void* RGFW_window_getSurface_OpenGL(RGFW_window* win) { return (win->src.ctx.native == NULL) ? NULL : (void*)win->src.ctx.native->ctx; }
 
 RGFW_bool RGFW_extensionSupportedPlatform_OpenGL(const char* extension, size_t len) {
     return EM_ASM_INT({
@@ -16843,6 +16851,7 @@ typedef void (*RGFW_window_setRawMouseModePlatform_ptr)(RGFW_window* win, RGFW_b
 typedef void (*RGFW_window_makeCurrentContext_OpenGL_ptr)(RGFW_window* win);
 typedef void* (*RGFW_getCurrentContext_OpenGL_ptr)(void);
 typedef void* (*RGFW_getCurrentSurface_OpenGL_ptr)(void);
+typedef void* (*RGFW_window_getSurface_OpenGL_ptr)(RGFW_window*);
 typedef void (*RGFW_window_swapBuffers_OpenGL_ptr)(RGFW_window* win);
 typedef void (*RGFW_window_swapInterval_OpenGL_ptr)(RGFW_window* win, i32 swapInterval);
 typedef RGFW_bool (*RGFW_extensionSupportedPlatform_OpenGL_ptr)(const char* extension, size_t len);
@@ -16918,6 +16927,7 @@ typedef struct RGFW_FunctionPointers {
     RGFW_window_makeCurrentContext_OpenGL_ptr window_makeCurrentContext_OpenGL;
     RGFW_getCurrentContext_OpenGL_ptr getCurrentContext_OpenGL;
     RGFW_getCurrentSurface_OpenGL_ptr getCurrentSurface_OpenGL;
+	RGFW_window_getSurface_OpenGL_ptr window_getSurface_OpenGL;
     RGFW_window_swapBuffers_OpenGL_ptr window_swapBuffers_OpenGL;
     RGFW_window_swapInterval_OpenGL_ptr window_swapInterval_OpenGL;
 #endif
@@ -16996,6 +17006,7 @@ void* RGFW_getCurrentContext_OpenGL(void) { return RGFW_api.getCurrentContext_Op
 void* RGFW_getCurrentSurface_OpenGL(void) { return RGFW_api.getCurrentSurface_OpenGL(); }
 void RGFW_window_swapBuffers_OpenGL(RGFW_window* win) { RGFW_api.window_swapBuffers_OpenGL(win); }
 void RGFW_window_swapInterval_OpenGL(RGFW_window* win, i32 swapInterval) { RGFW_api.window_swapInterval_OpenGL(win, swapInterval); }
+void* RGFW_window_getSurface_OpenGL(RGFW_window* win) { return RGFW_api.window_getSurface_OpenGL(win); }
 #endif
 
 #ifdef RGFW_WEBGPU
@@ -17096,6 +17107,7 @@ void RGFW_load_X11(void) {
     RGFW_api.window_swapBuffers_OpenGL = RGFW_window_swapBuffers_OpenGL_X11;
 	RGFW_api.window_setContext_OpenGL = RGFW_window_setContext_OpenGL_X11;
     RGFW_api.window_swapInterval_OpenGL = RGFW_window_swapInterval_OpenGL_X11;
+    RGFW_api.window_getSurface_OpenGL = RGFW_window_getSurface_OpenGL_X11;
 #endif
 #ifdef RGFW_WEBGPU
     RGFW_api.window_createSurface_WebGPU = RGFW_window_createSurface_WebGPU_X11;
@@ -17140,6 +17152,7 @@ void RGFW_load_Wayland(void) {
     RGFW_api.deleteContextPtr_OpenGL = RGFW_deleteContextPtr_OpenGL_Wayland;
 	RGFW_api.window_makeCurrentContext_OpenGL = RGFW_window_makeCurrentContext_OpenGL_Wayland;
     RGFW_api.getCurrentContext_OpenGL = RGFW_getCurrentContext_OpenGL_Wayland;
+    RGFW_api.window_getSurface_OpenGL = RGFW_window_getSurface_OpenGL_Wayland;
     RGFW_api.getCurrentSurface_OpenGL = RGFW_getCurrentSurface_OpenGL_Wayland;
 	RGFW_api.window_setContext_OpenGL = RGFW_window_setContext_OpenGL_Wayland;
     RGFW_api.window_swapBuffers_OpenGL = RGFW_window_swapBuffers_OpenGL_Wayland;
