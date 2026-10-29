@@ -671,7 +671,9 @@ typedef RGFW_ENUM(u8, RGFW_key) {
     RGFW_keyPause,
 	RGFW_keyWorld1,
     RGFW_keyWorld2,
-    RGFW_keyLast = 256 /* padding for alignment ~(175 by default) */
+	RGFW_keyCount,
+    RGFW_keyFinal = 256, /* padding for alignment ~(175 by default) */
+	RGFW_keyFirst = RGFW_keySpace
 };
 
 /*! @brief abstract mouse button codes */
@@ -3271,7 +3273,7 @@ struct RGFW_info {
 	RGFW_bool queueEvents;
 	RGFW_bool polledEvents;
 
-    u32 apiKeycodes[RGFW_keyLast];
+    u32 apiKeycodes[RGFW_keyFinal];
 	#if defined(RGFW_X11) || defined(RGFW_WAYLAND)
 		RGFW_key keycodes[256];
 	#elif defined(RGFW_WINDOWS)
@@ -3435,7 +3437,7 @@ struct RGFW_info {
 	RGFW_windowState windowState; /*! for checking window state events */
 
 	RGFW_keyState mouseButtons[RGFW_mouseFinal];
-	RGFW_keyState keyboard[RGFW_keyLast];
+	RGFW_keyState keyboard[RGFW_keyFinal];
 	float scrollX, scrollY;
 	float vectorX, vectorY;
 };
@@ -3601,7 +3603,7 @@ void RGFW_initKeycodes(void) {
 	RGFW_MEMZERO(_RGFW->keycodes, sizeof(_RGFW->keycodes));
 	RGFW_initKeycodesPlatform();
 	size_t i, y;
-    for (i = 0; i < RGFW_keyLast; i++) {
+    for (i = RGFW_keySpace; i < RGFW_keyCount; i++) {
         for (y = 0; y < (sizeof(_RGFW->keycodes) / sizeof(RGFW_key)); y++) {
             if (_RGFW->keycodes[y] == i) {
                 _RGFW->apiKeycodes[i] = (RGFW_key)y;
@@ -3836,7 +3838,7 @@ void RGFW_windowFocusCallback(RGFW_window* win, RGFW_bool inFocus) {
 		}
 
 		size_t key;
-		for (key = 0; key < RGFW_keyLast; key++) {
+		for (key = RGFW_keySpace; key < RGFW_keyCount; key++) {
 			if (RGFW_isKeyDown((u8)key) == RGFW_FALSE) continue;
 
 			_RGFW->keyboard[key].current = RGFW_FALSE;
@@ -4467,7 +4469,7 @@ RGFW_bool RGFW_checkQueuedEvent(RGFW_event* event) {
 
 void RGFW_resetPrevState(void) {
 	size_t i; /*!< reset each previous state  */
-    for (i = 0; i < RGFW_keyLast; i++) _RGFW->keyboard[i].prev = _RGFW->keyboard[i].current;
+    for (i = RGFW_keySpace; i < RGFW_keyCount; i++) _RGFW->keyboard[i].prev = _RGFW->keyboard[i].current;
     for (i = 0; i < RGFW_mouseFinal; i++) _RGFW->mouseButtons[i].prev = _RGFW->mouseButtons[i].current;
 	_RGFW->scrollX = 0.0f;
 	_RGFW->scrollY = 0.0f;
