@@ -79,6 +79,6 @@ int main(void) {
 
 	RGFW_deinit();
 
-	return pass ? -1 : 0;
+	return pass ? 0 : -1;
 }
 
