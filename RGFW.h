@@ -15304,14 +15304,9 @@ void RGFW_pollMonitors(void) {
 		monitor.physW = (float)screenSizeMM.width / 25.4f;
 		monitor.physH = (float)screenSizeMM.height / 25.4f;
 
-		float ppi_width = ((float)monitor.mode.w / monitor.physW);
-		float ppi_height = ((float)monitor.mode.h / monitor.physH);
-
 		monitor.pixelRatio = (float)((CGFloat (*)(id, SEL))abi_objc_msgSend_fpret) (screen, sel_registerName("backingScaleFactor"));
-		float dpi = 96.0f * monitor.pixelRatio;
-
-		monitor.scaleX = ((((float) (ppi_width) / dpi) * 10.0f)) / 10.0f;
-		monitor.scaleY = ((((float) (ppi_height) / dpi) * 10.0f)) / 10.0f;
+		monitor.scaleX = monitor.pixelRatio;
+		monitor.scaleY = monitor.pixelRatio;
 
 		if (node) {
 			node->screen = (void*)screen;
