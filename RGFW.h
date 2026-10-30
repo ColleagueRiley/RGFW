@@ -47,14 +47,11 @@
 	#define RGFW_NO_X11_CURSOR_PRELOAD (optional) (unix only) use XCursor, but don't link it in code, (you'll have to link it with -lXcursor)
 	#define RGFW_NO_X11_EXT_PRELOAD (optional) (unix only) use Xext, but don't link it in code, (you'll have to link it with -lXext)
 	#define RGFW_NO_LOAD_WINMM (optional) (windows only) use winmm (timeBeginPeriod), but don't link it in code, (you'll have to link it with -lwinmm)
-	#define RGFW_NO_WINMM (optional) (windows only) don't use winmm
 	#define RGFW_NO_IOKIT (optional) (macOS) don't use IOKit
 	#define RGFW_NO_UNIX_CLOCK (optional) (unix) don't link unix clock functions
-	#define RGFW_NO_DWM (windows only) - do not use or link dwmapi
 	#define RGFW_USE_XDL (optional) (X11) if XDL (XLib Dynamic Loader) should be used to load X11 dynamically during runtime (must include XDL.h along with RGFW)
 	#define RGFW_COCOA_GRAPHICS_SWITCHING - (optional) (cocoa) use automatic graphics switching (allow the system to choose to use GPU or iGPU)
 	#define RGFW_COCOA_FRAME_NAME (optional) (cocoa) set frame name
-	#define RGFW_NO_DPI - do not calculate DPI and don't use libShcore (win32)
 	#define RGFW_ADVANCED_SMOOTH_RESIZE - use advanced methods for smooth resizing (may result in a spike in memory usage or worse performance) (eg. WM_TIMER and XSyncValue)
 	#define RGFW_NO_INFO - do not define the RGFW_info struct (without RGFW_IMPLEMENTATION)
 	#define RGFW_NO_GLXWINDOW - do not use GLXWindow
@@ -11477,32 +11474,18 @@ RGFW_bool RGFW_loadGL(void) {
 void* RGFW_window_getHWND(RGFW_window* win) { return win->src.window; }
 void* RGFW_window_getHDC(RGFW_window* win) { return win->src.hdc; }
 
-#ifndef RGFW_NO_DWM
-HMODULE RGFW_dwm_dll = NULL;
-#ifndef _DWMAPI_H_
-typedef struct { DWORD dwFlags; int fEnable; HRGN hRgnBlur; int fTransitionOnMaximized;} DWM_BLURBEHIND;
-#endif
-typedef HRESULT (WINAPI * PFN_DwmEnableBlurBehindWindow)(HWND, const DWM_BLURBEHIND*);
-PFN_DwmEnableBlurBehindWindow DwmEnableBlurBehindWindowSRC = NULL;
-
-typedef HRESULT (WINAPI * PFN_DwmSetWindowAttribute)(HWND, DWORD, LPCVOID, DWORD);
-PFN_DwmSetWindowAttribute DwmSetWindowAttributeSRC = NULL;
-#endif
 void RGFW_win32_makeWindowTransparent(RGFW_window* win);
 void RGFW_win32_makeWindowTransparent(RGFW_window* win) {
 	if (!(win->internal.flags & RGFW_windowTransparent)) return;
 
-	#ifndef RGFW_NO_DWM
-	if (DwmEnableBlurBehindWindowSRC != NULL) {
-			DWM_BLURBEHIND bb = {0, 0, 0, 0};
+	if (RGFW_dwm_dll && DwmEnableBlurBehindWindowSRC != NULL) {
+			RGFW_DWM_BLURBEHIND bb = {0, 0, 0, 0};
 			bb.dwFlags = 0x1;
 			bb.fEnable = TRUE;
 			bb.hRgnBlur = NULL;
 			DwmEnableBlurBehindWindowSRC(win->src.window, &bb);
 
-	} else
-	#endif
-	{
+	} else {
 		SetWindowLong(win->src.window, GWL_EXSTYLE, WS_EX_LAYERED);
 		SetLayeredWindowAttributes(win->src.window, 0, 128,  LWA_ALPHA);
 	}
@@ -11527,7 +11510,8 @@ RGFW_bool RGFW_win32_getDarkModeState(void) {
 RGFWDEF void RGFW_win32_makeWindowDarkMode(RGFW_window* win, RGFW_bool state);
 void RGFW_win32_makeWindowDarkMode(RGFW_window* win, RGFW_bool state) {
 	BOOL value = (state == RGFW_TRUE) ? TRUE : FALSE;
-	DwmSetWindowAttributeSRC(win->src.window, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, &value, sizeof(value));
+	if (RGFW_dwm_dll && DwmSetWindowAttributeSRC)
+		DwmSetWindowAttributeSRC(win->src.window, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, &value, sizeof(value));
 }
 
 LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -11595,7 +11579,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             break;
         }
-		#ifndef RGFW_NO_DPI
 		case WM_DPICHANGED: {
 			const float scaleX = HIWORD(wParam) / (float) 96;
             const float scaleY = LOWORD(wParam) / (float) 96;
@@ -11603,7 +11586,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RGFW_scaleUpdatedCallback(win, scaleX, scaleY);
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
-		#endif
 		case WM_SIZING: {
 			if (win->src.aspectRatioW == 0 && win->src.aspectRatioH == 0) {
 				break;
@@ -11906,24 +11888,25 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return DefWindowProcW(hWnd, message, wParam, lParam);
 }
 
-#ifndef RGFW_NO_DPI
-	HMODULE RGFW_Shcore_dll = NULL;
-	typedef HRESULT (WINAPI *PFN_GetDpiForMonitor)(HMONITOR,MONITOR_DPI_TYPE,UINT*,UINT*);
-	PFN_GetDpiForMonitor GetDpiForMonitorSRC = NULL;
-	#define GetDpiForMonitor GetDpiForMonitorSRC
-#endif
+HMODULE RGFW_Shcore_dll = NULL;
+typedef HRESULT (WINAPI *PFN_GetDpiForMonitor)(HMONITOR,MONITOR_DPI_TYPE,UINT*,UINT*);
+PFN_GetDpiForMonitor GetDpiForMonitorSRC = NULL;
+#define GetDpiForMonitor GetDpiForMonitorSRC
 
-#if !defined(RGFW_NO_LOAD_WINMM) && !defined(RGFW_NO_WINMM)
-	HMODULE RGFW_winmm_dll = NULL;
-	typedef u32 (WINAPI * PFN_timeBeginPeriod)(u32);
-	typedef PFN_timeBeginPeriod PFN_timeEndPeriod;
-	PFN_timeBeginPeriod timeBeginPeriodSRC, timeEndPeriodSRC;
-	#define timeBeginPeriod timeBeginPeriodSRC
-	#define timeEndPeriod timeEndPeriodSRC
-#elif !defined(RGFW_NO_WINMM)
-	__declspec(dllimport) u32 __stdcall timeBeginPeriod(u32 uPeriod);
-	__declspec(dllimport) u32 __stdcall timeEndPeriod(u32 uPeriod);
-#endif
+HMODULE RGFW_winmm_dll = NULL;
+typedef u32 (WINAPI * PFN_timeBeginPeriod)(u32);
+typedef PFN_timeBeginPeriod PFN_timeEndPeriod;
+PFN_timeBeginPeriod timeBeginPeriodSRC, timeEndPeriodSRC;
+#define timeBeginPeriod timeBeginPeriodSRC
+#define timeEndPeriod timeEndPeriodSRC
+
+HMODULE RGFW_dwm_dll = NULL;
+typedef struct { DWORD dwFlags; int fEnable; HRGN hRgnBlur; int fTransitionOnMaximized;} RGFW_DWM_BLURBEHIND;
+typedef HRESULT (WINAPI * PFN_DwmEnableBlurBehindWindow)(HWND, const RGFW_DWM_BLURBEHIND*);
+PFN_DwmEnableBlurBehindWindow DwmEnableBlurBehindWindowSRC = NULL;
+
+typedef HRESULT (WINAPI * PFN_DwmSetWindowAttribute)(HWND, DWORD, LPCVOID, DWORD);
+PFN_DwmSetWindowAttribute DwmSetWindowAttributeSRC = NULL;
 
 RGFW_format RGFW_nativeFormat(void) { return RGFW_formatBGRA8; }
 
@@ -12119,26 +12102,29 @@ void RGFW_initKeycodesPlatform(void) {
 
 i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 	RGFW_UNUSED(flags);
-#ifndef RGFW_NO_DPI
 	#if (_WIN32_WINNT >= 0x0600)
 		SetProcessDPIAware();
 	#endif
-#endif
 
-	#ifndef RGFW_NO_WINMM
-		#ifndef RGFW_NO_LOAD_WINMM
-			RGFW_LOAD_LIBRARY(RGFW_winmm_dll, "winmm.dll");
-			RGFW_PROC_DEF(RGFW_winmm_dll, timeBeginPeriod);
-			RGFW_PROC_DEF(RGFW_winmm_dll, timeEndPeriod);
-		#endif
-		timeBeginPeriod(1);
-	#endif
+	RGFW_LOAD_LIBRARY(RGFW_winmm_dll, "winmm.dll");
+	if (RGFW_winmm_dll) {
+		RGFW_PROC_DEF(RGFW_winmm_dll, timeBeginPeriod);
+		RGFW_PROC_DEF(RGFW_winmm_dll, timeEndPeriod);
+		if (timeBeginPeriod) {
+			timeBeginPeriod(1);
+		}
+	}
 
-	#ifndef RGFW_NO_DWM
 	RGFW_LOAD_LIBRARY(RGFW_dwm_dll, "dwmapi.dll");
-	RGFW_PROC_DEF(RGFW_dwm_dll, DwmEnableBlurBehindWindow);
-	RGFW_PROC_DEF(RGFW_dwm_dll, DwmSetWindowAttribute);
-	#endif
+	if (RGFW_dwm_dll) {
+		RGFW_PROC_DEF(RGFW_dwm_dll, DwmEnableBlurBehindWindow);
+		RGFW_PROC_DEF(RGFW_dwm_dll, DwmSetWindowAttribute);
+	}
+
+	RGFW_LOAD_LIBRARY(RGFW_Shcore_dll, "shcore.dll");
+	if (RGFW_Shcore_dll) {
+		RGFW_PROC_DEF(RGFW_Shcore_dll, GetDpiForMonitor);
+	}
 
 	_RGFW->instance = GetModuleHandleW(NULL);
 	MultiByteToWideChar(CP_UTF8, 0, className, -1, _RGFW->wideClassName, 255);
@@ -12631,18 +12617,13 @@ void RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, RGFW_monitorNode* node) {
 	node->mon.physH = (float)GetDeviceCaps(hdc, VERTSIZE) / 25.4f;
 	DeleteDC(hdc);
 
-#ifndef RGFW_NO_DPI
-	RGFW_LOAD_LIBRARY(RGFW_Shcore_dll, "shcore.dll");
-	RGFW_PROC_DEF(RGFW_Shcore_dll, GetDpiForMonitor);
-
-	if (GetDpiForMonitor != NULL) {
+	if (RGFW_Shcore_dll != NULL && GetDpiForMonitor != NULL) {
 		u32 x, y;
 		GetDpiForMonitor(node->hMonitor, MDT_EFFECTIVE_DPI, &x, &y);
 		node->mon.scaleX = (float) (x) / (float) 96.0f;
 		node->mon.scaleY = (float) (y) / (float) 96.0f;
 		node->mon.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
 	}
-#endif
 
 	if (monitorInfo.dwFlags & MONITORINFOF_PRIMARY) {
 		_RGFW->monitors.primary = node;
@@ -12952,16 +12933,12 @@ void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
 
 #define RGFW_FREE_LIBRARY(x) if (x != NULL) FreeLibrary(x); x = NULL;
 void RGFW_deinitPlatform(void) {
-    #ifndef RGFW_NO_DPI
-		RGFW_FREE_LIBRARY(RGFW_Shcore_dll);
-    #endif
+	RGFW_FREE_LIBRARY(RGFW_Shcore_dll);
 
-    #ifndef RGFW_NO_WINMM
-	    timeEndPeriod(1);
-		#ifndef RGFW_NO_LOAD_WINMM
-			RGFW_FREE_LIBRARY(RGFW_winmm_dll);
-		#endif
-    #endif
+	if (RGFW_winmm_dll) {
+		if (timeEndPeriod) timeEndPeriod(1);
+		RGFW_FREE_LIBRARY(RGFW_winmm_dll);
+	}
 
 	if (_RGFW->helperWindow)
 		DestroyWindow(_RGFW->helperWindow);
