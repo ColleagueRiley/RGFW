@@ -11298,6 +11298,29 @@ WGPUSurface RGFW_FUNC(RGFW_window_createSurface_WebGPU) (RGFW_window* window, WG
                                         name##SRC = (PFN_##name)(RGFW_proc)GetProcAddress((proc), (#name)); \
                                         RGFW_ASSERT(name##SRC != NULL); \
                                     }
+
+HMODULE RGFW_Shcore_dll = NULL;
+typedef HRESULT (WINAPI *PFN_GetDpiForMonitor)(HMONITOR,MONITOR_DPI_TYPE,UINT*,UINT*);
+PFN_GetDpiForMonitor GetDpiForMonitorSRC = NULL;
+#define GetDpiForMonitor GetDpiForMonitorSRC
+
+HMODULE RGFW_winmm_dll = NULL;
+typedef u32 (WINAPI * PFN_timeBeginPeriod)(u32);
+typedef PFN_timeBeginPeriod PFN_timeEndPeriod;
+PFN_timeBeginPeriod timeBeginPeriodSRC, timeEndPeriodSRC;
+#define timeBeginPeriod timeBeginPeriodSRC
+#define timeEndPeriod timeEndPeriodSRC
+
+HMODULE RGFW_dwm_dll = NULL;
+typedef struct { DWORD dwFlags; int fEnable; HRGN hRgnBlur; int fTransitionOnMaximized;} RGFW_DWM_BLURBEHIND;
+typedef HRESULT (WINAPI * PFN_DwmEnableBlurBehindWindow)(HWND, const RGFW_DWM_BLURBEHIND*);
+PFN_DwmEnableBlurBehindWindow DwmEnableBlurBehindWindowSRC = NULL;
+
+typedef HRESULT (WINAPI * PFN_DwmSetWindowAttribute)(HWND, DWORD, LPCVOID, DWORD);
+PFN_DwmSetWindowAttribute DwmSetWindowAttributeSRC = NULL;
+
+
+
 RGFWDEF DWORD RGFW_winapi_window_getStyle(RGFW_window* win, RGFW_windowFlags flags);
 DWORD RGFW_winapi_window_getStyle(RGFW_window* win, RGFW_windowFlags flags) {
 	RGFW_UNUSED(win);
@@ -11887,26 +11910,6 @@ LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	return DefWindowProcW(hWnd, message, wParam, lParam);
 }
-
-HMODULE RGFW_Shcore_dll = NULL;
-typedef HRESULT (WINAPI *PFN_GetDpiForMonitor)(HMONITOR,MONITOR_DPI_TYPE,UINT*,UINT*);
-PFN_GetDpiForMonitor GetDpiForMonitorSRC = NULL;
-#define GetDpiForMonitor GetDpiForMonitorSRC
-
-HMODULE RGFW_winmm_dll = NULL;
-typedef u32 (WINAPI * PFN_timeBeginPeriod)(u32);
-typedef PFN_timeBeginPeriod PFN_timeEndPeriod;
-PFN_timeBeginPeriod timeBeginPeriodSRC, timeEndPeriodSRC;
-#define timeBeginPeriod timeBeginPeriodSRC
-#define timeEndPeriod timeEndPeriodSRC
-
-HMODULE RGFW_dwm_dll = NULL;
-typedef struct { DWORD dwFlags; int fEnable; HRGN hRgnBlur; int fTransitionOnMaximized;} RGFW_DWM_BLURBEHIND;
-typedef HRESULT (WINAPI * PFN_DwmEnableBlurBehindWindow)(HWND, const RGFW_DWM_BLURBEHIND*);
-PFN_DwmEnableBlurBehindWindow DwmEnableBlurBehindWindowSRC = NULL;
-
-typedef HRESULT (WINAPI * PFN_DwmSetWindowAttribute)(HWND, DWORD, LPCVOID, DWORD);
-PFN_DwmSetWindowAttribute DwmSetWindowAttributeSRC = NULL;
 
 RGFW_format RGFW_nativeFormat(void) { return RGFW_formatBGRA8; }
 
