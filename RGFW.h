@@ -9625,10 +9625,8 @@ static void RGFW_wl_relative_pointer_motion(void *data, struct zwp_relative_poin
 
 	RGFW_info* RGFW = (RGFW_info*)data;
 
-	RGFW_ASSERT(RGFW->mouseOwner != NULL);
+	if (RGFW->mouseOwner == NULL) return;
 	RGFW_window* win = RGFW->mouseOwner;
-
-	RGFW_ASSERT(win);
 
 	float vecX =  (float)wl_fixed_to_double(dx);
 	float vecY = (float)wl_fixed_to_double(dy);
@@ -9645,6 +9643,9 @@ static void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 se
 		struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y) {
 	RGFW_info* RGFW = (RGFW_info*)data;
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
+	/* libdecor's decoration surfaces carry libdecor's own user data, a
+	   destroyed surface carries none, so the window has to match the surface */
+	if (win == NULL || win->src.surface != surface) return;
 
 	/* save when the pointer is locked or using default cursor */
 	RGFW->mouse_enter_serial = serial;
@@ -9668,8 +9669,12 @@ static void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 se
 
 static void RGFW_wl_pointer_leave(void* data, struct wl_pointer *pointer, u32 serial, struct wl_surface *surface) {
 	RGFW_UNUSED(pointer); RGFW_UNUSED(serial);
-	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
+	/* the surface may already be destroyed, a window closed while the pointer
+	   was over it, and wayland-client passes a null surface in that case */
+	RGFW_window* win = (surface != NULL) ? (RGFW_window*)wl_surface_get_user_data(surface) : NULL;
 	RGFW_info* RGFW = (RGFW_info*)data;
+	if (win == NULL || win->src.surface != surface) return;
+
 	if (RGFW->mouseOwner == win)
 		RGFW->mouseOwner = NULL;
 
@@ -9679,8 +9684,7 @@ static void RGFW_wl_pointer_leave(void* data, struct wl_pointer *pointer, u32 se
 static void RGFW_wl_pointer_motion(void* data, struct wl_pointer *pointer, u32 time, wl_fixed_t x, wl_fixed_t y) {
 	RGFW_UNUSED(pointer); RGFW_UNUSED(time);
 	RGFW_info* RGFW = (RGFW_info*)data;
-	RGFW_ASSERT(RGFW->mouseOwner != NULL);
-
+	if (RGFW->mouseOwner == NULL) return;
 	RGFW_window* win = RGFW->mouseOwner;
 
 	i32 convertedX = (i32)wl_fixed_to_double(x);
@@ -9693,7 +9697,7 @@ static void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 s
 	RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(serial);
 	RGFW_info* RGFW = (RGFW_info*)data;
 
-	RGFW_ASSERT(RGFW->mouseOwner != NULL);
+	if (RGFW->mouseOwner == NULL) return;
 	RGFW_window* win = RGFW->mouseOwner;
 
 	u32 b = (button - 0x110);
@@ -9709,7 +9713,7 @@ static void RGFW_wl_pointer_axis(void* data, struct wl_pointer *pointer, u32 tim
 	RGFW_UNUSED(pointer); RGFW_UNUSED(time);  RGFW_UNUSED(axis);
 
 	RGFW_info* RGFW = (RGFW_info*)data;
-	RGFW_ASSERT(RGFW->mouseOwner != NULL);
+	if (RGFW->mouseOwner == NULL) return;
 	RGFW_window* win = RGFW->mouseOwner;
 
 	float scrollX = 0.0;
@@ -9761,6 +9765,8 @@ static void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32
 
 	RGFW_info* RGFW = (RGFW_info*)data;
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
+	if (win == NULL || win->src.surface != surface) return;
+
 	RGFW->kbOwner = win;
 
 	// this is to prevent race conditions
@@ -9778,7 +9784,9 @@ static void RGFW_wl_keyboard_leave(void* data, struct wl_keyboard *keyboard, u32
 	RGFW_UNUSED(keyboard); RGFW_UNUSED(serial);
 
 	RGFW_info* RGFW = (RGFW_info*)data;
-	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
+	RGFW_window* win = (surface != NULL) ? (RGFW_window*)wl_surface_get_user_data(surface) : NULL;
+	if (win == NULL || win->src.surface != surface) return;
+
 	if (RGFW->kbOwner == win)
 		RGFW->kbOwner = NULL;
 
@@ -11217,6 +11225,12 @@ void RGFW_FUNC(RGFW_window_swapInterval_OpenGL) (RGFW_window* win, i32 swapInter
 void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoWindow, "a window was freed");
+
+	/* drop stale owners so a later pointer or keyboard event does not
+	   dereference a freed window */
+	if (_RGFW->mouseOwner == win) _RGFW->mouseOwner = NULL;
+	if (_RGFW->kbOwner == win) _RGFW->kbOwner = NULL;
+
 	#ifdef RGFW_LIBDECOR
 		if (win->src.decorContext)
 			libdecor_unref(win->src.decorContext);
