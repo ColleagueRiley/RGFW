@@ -542,6 +542,7 @@ typedef RGFW_ENUM(u8, RGFW_modeRequest) {
 /*! a raw pointer to the underlying mouse handle for setting and creating custom mouse icons */
 typedef void RGFW_mouse;
 
+
 /*! @brief RGFW's abstract keycodes */
 typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_keyNULL = 0,
@@ -5454,7 +5455,12 @@ void* RGFW_glContext_getSourceContext(RGFW_glContext* ctx) {
 	if (RGFW_usingWayland()) return (void*)ctx->egl.ctx;
 #endif
 
+#if !defined(RGFW_WAYLAND) || defined(RGFW_X11)
 	return (void*)ctx->ctx;
+#else
+	return NULL;
+
+#endif
 }
 
 void RGFW_attribStack_init(RGFW_attribStack* stack, i32* attribs, size_t max) { stack->attribs = attribs; stack->count = 0; stack->max = max; }
@@ -6605,6 +6611,8 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[83] = RGFW_keyPad4;
 	_RGFW->keycodes[84] = RGFW_keyPad5;
 	_RGFW->keycodes[85] = RGFW_keyPad6;
+	_RGFW->keycodes[79] = RGFW_keyPad7;
+	_RGFW->keycodes[80] = RGFW_keyPad8;
 	_RGFW->keycodes[81] = RGFW_keyPad9;
 	_RGFW->keycodes[90] = RGFW_keyPad0;
 	_RGFW->keycodes[91] = RGFW_keyPadPeriod;
@@ -6663,6 +6671,7 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[142] = RGFW_keyPadEqual;
 	_RGFW->keycodes[161] = RGFW_keyWorld1; /* non-US key #1 */
     _RGFW->keycodes[162] = RGFW_keyWorld2; /* non-US key #2 */
+	_RGFW->keycodes[135] = RGFW_keyMenu;
 }
 
 i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
@@ -7507,6 +7516,11 @@ RGFW_key RGFW_FUNC(RGFW_physicalToMappedKey) (RGFW_key key) {
         case XK_Pause: return RGFW_keyPause;
         default: break;
     }
+
+	if ((key >= RGFW_keyF13 || key <= RGFW_keyF25) ||
+		(key >= RGFW_keyPadPeriod || key <= RGFW_keyPadReturn) ||
+		(key >= RGFW_keyWorld1|| key <= RGFW_keyWorld2)
+	) return key;
 
     return RGFW_keyNULL;
 }
@@ -9854,6 +9868,7 @@ static void RGFW_wl_keyboard_repeat_info(void* data, struct wl_keyboard *keyboar
 
 static void RGFW_wl_seat_capabilities(void* data, struct wl_seat *seat, u32 capabilities) {
 	RGFW_info* RGFW = (RGFW_info*)data;
+
     static struct wl_pointer_listener pointer_listener;
 	RGFW_MEMZERO(&pointer_listener, sizeof(pointer_listener));
 	pointer_listener.enter = &RGFW_wl_pointer_enter;
@@ -10151,7 +10166,6 @@ static void RGFW_wl_data_device_selection(void *data, struct wl_data_device *wl_
 }
 
 static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *registry, u32 id, const char *interface, u32 version) {
-
     static struct wl_seat_listener seat_listener = {&RGFW_wl_seat_capabilities, (void (*)(void *, struct wl_seat *, const char *))&RGFW_doNothing};
     static const struct wl_shm_listener shm_listener = { .format = RGFW_wl_shm_format_handler };
 
@@ -10307,6 +10321,10 @@ i32 RGFW_initPlatform_Wayland(const char* className, RGFW_initFlags flags) {
 	if (_RGFW->seat && _RGFW->data_device_manager) {
 		_RGFW->data_device = wl_data_device_manager_get_data_device(_RGFW->data_device_manager, _RGFW->seat);
 		wl_data_device_add_listener(_RGFW->data_device, &wl_data_device_listener, NULL);
+	}
+
+	while (_RGFW->keymap == NULL) {
+		wl_display_dispatch(_RGFW->wl_display);
 	}
 
 	return 0;
@@ -10616,6 +10634,7 @@ RGFW_bool RGFW_FUNC(RGFW_getGlobalMouse) (i32* x, i32* y) {
 
 RGFW_key RGFW_FUNC(RGFW_physicalToMappedKey)(RGFW_key key) {
     xkb_keycode_t keycode = (xkb_keycode_t)RGFW_rgfwToApiKey(key);
+	if (_RGFW->xkb_state == NULL) return key;
     xkb_keysym_t sym = xkb_state_key_get_one_sym(_RGFW->xkb_state, keycode);
     if (sym < 256) {
         return (RGFW_key)sym;
@@ -10694,6 +10713,11 @@ RGFW_key RGFW_FUNC(RGFW_physicalToMappedKey)(RGFW_key key) {
         case XKB_KEY_Pause: return RGFW_keyPause;
         default: break;
     }
+
+	if ((key >= RGFW_keyF13 || key <= RGFW_keyF25) ||
+		(key >= RGFW_keyPadPeriod || key <= RGFW_keyPadReturn) ||
+		(key >= RGFW_keyWorld1|| key <= RGFW_keyWorld2) || key == RGFW_keyPeriod
+	) return key;
 
     return RGFW_keyNULL;
 }
