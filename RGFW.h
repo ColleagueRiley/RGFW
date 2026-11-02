@@ -7517,9 +7517,9 @@ RGFW_key RGFW_FUNC(RGFW_physicalToMappedKey) (RGFW_key key) {
         default: break;
     }
 
-	if ((key >= RGFW_keyF13 || key <= RGFW_keyF25) ||
-		(key >= RGFW_keyPadPeriod || key <= RGFW_keyPadReturn) ||
-		(key >= RGFW_keyWorld1|| key <= RGFW_keyWorld2)
+	if ((key >= RGFW_keyF13 && key <= RGFW_keyF25) ||
+		(key >= RGFW_keyPadPeriod && key <= RGFW_keyPadReturn) ||
+		(key >= RGFW_keyWorld1 && key <= RGFW_keyWorld2)
 	) return key;
 
     return RGFW_keyNULL;
@@ -10714,9 +10714,9 @@ RGFW_key RGFW_FUNC(RGFW_physicalToMappedKey)(RGFW_key key) {
         default: break;
     }
 
-	if ((key >= RGFW_keyF13 || key <= RGFW_keyF25) ||
-		(key >= RGFW_keyPadPeriod || key <= RGFW_keyPadReturn) ||
-		(key >= RGFW_keyWorld1|| key <= RGFW_keyWorld2) || key == RGFW_keyPeriod
+	if ((key >= RGFW_keyF13 && key <= RGFW_keyF25) ||
+		(key >= RGFW_keyPadPeriod && key <= RGFW_keyPadReturn) ||
+		(key >= RGFW_keyWorld1 && key <= RGFW_keyWorld2) && key == RGFW_keyPeriod
 	) return key;
 
     return RGFW_keyNULL;
