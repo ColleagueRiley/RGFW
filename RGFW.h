@@ -10001,8 +10001,13 @@ static void RGFW_wl_output_handle_done(void* data, struct wl_output* output) {
 	RGFW_monitorCallback(_RGFW->root, monitor, RGFW_TRUE);
 }
 
-static void RGFW_wl_create_outputs(struct wl_registry *const registry, u32 id) {
-	struct wl_output *output = wl_registry_bind(registry, id, &wl_output_interface, wl_proxy_get_version((struct wl_proxy*)_RGFW->seat));
+static void RGFW_wl_create_outputs(struct wl_registry *const registry, u32 id, u32 version) {
+	/* the seat is not necessarily bound yet, so use the version the registry
+	   advertised for this output instead of the seat's */
+	if (version > 3) version = 3;
+	if (version < 1) version = 1;
+
+	struct wl_output *output = wl_registry_bind(registry, id, &wl_output_interface, version);
 	RGFW_monitorNode* node;
 	RGFW_monitor mon;
 
@@ -10180,7 +10185,7 @@ static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *regi
 	} else if (RGFW_STRNCMP(interface, zxdg_output_manager_v1_interface.name, 255) == 0) {
 		RGFW->xdg_output_manager = wl_registry_bind(registry, id, &zxdg_output_manager_v1_interface, 1);
 	} else if (RGFW_STRNCMP(interface,"wl_output", 10) == 0) {
-		RGFW_wl_create_outputs(registry, id);
+		RGFW_wl_create_outputs(registry, id, version);
 	} else if (RGFW_STRNCMP(interface, wp_pointer_warp_v1_interface.name, 255) == 0) {
 		RGFW->wp_pointer_warp = wl_registry_bind(registry, id, &wp_pointer_warp_v1_interface, 1);
 	} else if (RGFW_STRNCMP(interface,"wl_data_device_manager", 23) == 0) {
