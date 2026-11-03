@@ -3604,7 +3604,7 @@ void RGFW_initKeycodes(void) {
     for (i = RGFW_keySpace; i < RGFW_keyCount; i++) {
         for (y = 0; y < (sizeof(_RGFW->keycodes) / sizeof(RGFW_key)); y++) {
             if (_RGFW->keycodes[y] == i) {
-                _RGFW->apiKeycodes[i] = (RGFW_key)y;
+                _RGFW->apiKeycodes[i] = (u32)y;
                 break;
             }
         }
@@ -12329,27 +12329,14 @@ void RGFW_waitForEvent(i32 waitMS) {
 }
 
 RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
+	if ((key >= RGFW_keyPadSlash && key <= RGFW_keyPadReturn) || (key >= RGFW_keyWorld1 && key <= RGFW_keyWorld2) || key == RGFW_keyDelete || (key >= RGFW_keyShiftL && key <= RGFW_keySuperR) || (key >= RGFW_keyUp && key <= RGFW_keyPageDown) || key == RGFW_keyNumLock || key == RGFW_keyPrintScreen || key == RGFW_keyPause) return key;
+
     UINT vsc = RGFW_rgfwToApiKey(key);
-    BYTE keyboardState[256] = {0};
-
-    if (!GetKeyboardState(keyboardState))
-        return key;
-
-    UINT vk = MapVirtualKeyW(vsc, MAPVK_VSC_TO_VK);
-    HKL layout = GetKeyboardLayout(0);
-
-    wchar_t charBuffer[4] = {0};
-    int result = ToUnicodeEx(vk, vsc, keyboardState, charBuffer, 1, 0, layout);
-
-    if (result == 1 && charBuffer[0] < 256) {
-        return (RGFW_key)charBuffer[0];
-    }
-
+    UINT vk = MapVirtualKeyW(vsc, MAPVK_VSC_TO_VK); 
     switch (vk) {
         case VK_BACK:   return RGFW_keyBackSpace;
         case VK_TAB:    return RGFW_keyTab;
-        /* VK_RETURN can be either RGFW_keyReturn or RGFW_keyPadReturn. RGFW can only give its best guess as to which key it should be. */
-        case VK_RETURN: return (key == RGFW_keyPadReturn) ? RGFW_keyPadReturn : RGFW_keyReturn;
+        case VK_RETURN: return RGFW_keyReturn;
         case VK_ESCAPE: return RGFW_keyEscape;
         case VK_DELETE: return RGFW_keyDelete;
         case VK_F1:  return RGFW_keyF1;
@@ -12417,7 +12404,25 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
         default: break;
     }
 
-    return RGFW_keyNULL;
+	if ((key >= RGFW_keyF13 && key <= RGFW_keyF25) ||
+		(key >= RGFW_keyWorld1 && key <= RGFW_keyWorld2) || key == RGFW_keyPause
+	) return key;
+
+	BYTE keyboardState[256];
+	RGFW_MEMZERO(&keyboardState, sizeof(keyboardState));
+	
+	HKL layout = GetKeyboardLayout(0);
+
+	wchar_t charBuffer[4] = {0};
+    int result = ToUnicodeEx(vk, vsc, keyboardState, charBuffer, 4, 0, layout);
+
+	if (result > 0 && result <= 4 && charBuffer[0] < 127 &&
+		charBuffer[0] >= 32) {
+		return (RGFW_key)charBuffer[0];
+	}
+
+	
+	return RGFW_keyNULL;
 }
 
 RGFW_bool RGFW_window_fetchSize(RGFW_window* win, i32* w, i32* h) {
@@ -14566,7 +14571,7 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[0x59] = RGFW_keyPad7;
 	_RGFW->keycodes[0x5B] = RGFW_keyPad8;
 	_RGFW->keycodes[0x5C] = RGFW_keyPad9;
-	_RGFW->keycodes[0x45] = RGFW_keyPadSlash;
+	_RGFW->keycodes[0x45] = RGFW_keyPadAdd;
 	_RGFW->keycodes[0x41] = RGFW_keyPadPeriod;
 	_RGFW->keycodes[0x4B] = RGFW_keyPadSlash;
 	_RGFW->keycodes[0x4C] = RGFW_keyPadReturn;
