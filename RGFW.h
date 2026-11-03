@@ -12053,7 +12053,7 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[0x01B] = RGFW_keyCloseBracket;
 	_RGFW->keycodes[0x027] = RGFW_keySemicolon;
 	_RGFW->keycodes[0x035] = RGFW_keySlash;
-	_RGFW->keycodes[0x056] = RGFW_keyWorld2;
+	_RGFW->keycodes[0x056] = RGFW_keyWorld1;
 	_RGFW->keycodes[0x00E] = RGFW_keyBackSpace;
 	_RGFW->keycodes[0x153] = RGFW_keyDelete;
 	_RGFW->keycodes[0x14F] = RGFW_keyEnd;
@@ -14571,7 +14571,7 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[0x59] = RGFW_keyPad7;
 	_RGFW->keycodes[0x5B] = RGFW_keyPad8;
 	_RGFW->keycodes[0x5C] = RGFW_keyPad9;
-	_RGFW->keycodes[0x45] = RGFW_keyPadAdd;
+	_RGFW->keycodes[0x45] = RGFW_keyPadPlus;
 	_RGFW->keycodes[0x41] = RGFW_keyPadPeriod;
 	_RGFW->keycodes[0x4B] = RGFW_keyPadSlash;
 	_RGFW->keycodes[0x4C] = RGFW_keyPadReturn;
