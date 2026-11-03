@@ -76,7 +76,7 @@ int main(void) {
 		pass = value;
 
 		if (physKey == 0)
-			printf("key: %i (%c) not is not mapped to a physical key\n", key, key);
+			printf("key: %i (%c) is not mapped to a physical key\n", key, key);
 		else
 			printf("key: %i (%c) is incorrectly mapped to physical key %i (%c)\n", key, key, physKey, physKey);
 	}
