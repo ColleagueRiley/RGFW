@@ -26,6 +26,10 @@ char chars[] = {
 
 RGFW_bool isKeyValid(RGFW_key k);
 RGFW_bool isKeyValid(RGFW_key k) {
+	#ifdef RGFW_WINDOWS
+	if (k == RGFW_keyWorld2 || k == RGFW_keyF25) return RGFW_FALSE;
+	#endif
+
     if ((k >= '0' && k <= '9') || (k >= 'a' && k <= 'z')) {
         return 1;
     }
