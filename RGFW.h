@@ -14858,7 +14858,9 @@ void RGFW_waitForEvent(i32 waitMS) {
 }
 
 RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
-    u16 keycode = (u16)RGFW_rgfwToApiKey(key);
+	if (key >= RGFW_keyDelete) return key;
+
+	u16 keycode = (u16)RGFW_rgfwToApiKey(key);
     TISInputSourceRef source = TISCopyCurrentKeyboardLayoutInputSource();
     if (source == NULL)
         return key;
