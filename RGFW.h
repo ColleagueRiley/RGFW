@@ -7439,10 +7439,6 @@ RGFW_key RGFW_FUNC(RGFW_physicalToMappedKey) (RGFW_key key) {
     KeyCode keycode = (KeyCode)RGFW_rgfwToApiKey(key);
     KeySym sym = XkbKeycodeToKeysym(_RGFW->display, keycode, 0, 0);
 
-    if (sym < 256) {
-        return (RGFW_key)sym;
-    }
-
     switch (sym) {
         case XK_BackSpace: return RGFW_keyBackSpace;
         case XK_Tab:       return RGFW_keyTab;
