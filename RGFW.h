@@ -16150,6 +16150,7 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[DOM_VK_DELETE] = RGFW_keyDelete;
 	_RGFW->keycodes[DOM_VK_NUM_LOCK] = RGFW_keyNumLock;
 	_RGFW->keycodes[DOM_VK_DIVIDE] = RGFW_keyPadSlash;
+	_RGFW->keycodes[DOM_VK_ADD] = RGFW_keyPadPlus;
 	_RGFW->keycodes[DOM_VK_MULTIPLY] = RGFW_keyPadMultiply;
 	_RGFW->keycodes[DOM_VK_SUBTRACT] = RGFW_keyPadMinus;
 	_RGFW->keycodes[DOM_VK_NUMPAD1] = RGFW_keyPad1;
@@ -16158,6 +16159,8 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[DOM_VK_NUMPAD4] = RGFW_keyPad4;
 	_RGFW->keycodes[DOM_VK_NUMPAD5] = RGFW_keyPad5;
 	_RGFW->keycodes[DOM_VK_NUMPAD6] = RGFW_keyPad6;
+	_RGFW->keycodes[DOM_VK_NUMPAD7] = RGFW_keyPad7;
+	_RGFW->keycodes[DOM_VK_NUMPAD8] = RGFW_keyPad8;
 	_RGFW->keycodes[DOM_VK_NUMPAD9] = RGFW_keyPad9;
 	_RGFW->keycodes[DOM_VK_NUMPAD0] = RGFW_keyPad0;
 	_RGFW->keycodes[DOM_VK_DECIMAL] = RGFW_keyPadPeriod;
@@ -16183,6 +16186,18 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[DOM_VK_F10] = RGFW_keyF10;
 	_RGFW->keycodes[DOM_VK_F11] = RGFW_keyF11;
 	_RGFW->keycodes[DOM_VK_F12] = RGFW_keyF12;
+	_RGFW->keycodes[DOM_VK_F13] = RGFW_keyF13;
+	_RGFW->keycodes[DOM_VK_F14] = RGFW_keyF14;
+	_RGFW->keycodes[DOM_VK_F15] = RGFW_keyF15;
+	_RGFW->keycodes[DOM_VK_F16] = RGFW_keyF16;
+	_RGFW->keycodes[DOM_VK_F17] = RGFW_keyF17;
+	_RGFW->keycodes[DOM_VK_F18] = RGFW_keyF18;
+	_RGFW->keycodes[DOM_VK_F19] = RGFW_keyF19;
+	_RGFW->keycodes[DOM_VK_F20] = RGFW_keyF20;
+	_RGFW->keycodes[DOM_VK_F21] = RGFW_keyF21;
+	_RGFW->keycodes[DOM_VK_F22] = RGFW_keyF22;
+	_RGFW->keycodes[DOM_VK_F23] = RGFW_keyF23;
+	_RGFW->keycodes[DOM_VK_F24] = RGFW_keyF24;
 	_RGFW->keycodes[DOM_VK_UP] = RGFW_keyUp;
 	_RGFW->keycodes[DOM_VK_DOWN] = RGFW_keyDown;
 	_RGFW->keycodes[DOM_VK_LEFT] = RGFW_keyLeft;
@@ -16208,6 +16223,7 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[DOM_VK_F22]  = RGFW_keyF22;
 	_RGFW->keycodes[DOM_VK_F23]  = RGFW_keyF23;
 	_RGFW->keycodes[DOM_VK_F24]  = RGFW_keyF24;
+	_RGFW->keycodes[DOM_VK_CONTEXT_MENU] = RGFW_keyMenu;
 }
 
 i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
@@ -16650,7 +16666,7 @@ RGFW_key RGFW_WASMPhysicalToRGFW(u32 hash) {
 		case 0x6725105DU /* Digit5             */: return RGFW_key5;                    /* 0x0007 */
 		case 0x6725105EU /* Digit6             */: return RGFW_key6;                    /* 0x0008 */
 		case 0x6725105FU /* Digit7             */: return RGFW_key7;                    /* 0x0009 */
-		case 0x67251050U /* Digit8             */: return RGFW_key8;                    /* 0x000A */
+		case 0x67251050u /* Digit8             */: return RGFW_key8;                    /* 0x000A */
 		case 0x67251051U /* Digit9             */: return RGFW_key9;                    /* 0x000B */
 		case 0x92E14DD3U /* Minus              */: return RGFW_keyMinus;                /* 0x000C */
 		case 0x92E1FBACU /* Equal              */: return RGFW_keyEquals;                /* 0x000D */
@@ -16694,7 +16710,6 @@ RGFW_key RGFW_WASMPhysicalToRGFW(u32 hash) {
 		case 0x92E1A1C1U /* Comma              */: return RGFW_keyComma;                /* 0x0033 */
 		case 0x672FFAD4U /* Period             */: return RGFW_keyPeriod;               /* 0x0034 */
 		case 0x92E0A438U /* Slash              */: return RGFW_keySlash;                /* 0x0035 */
-		case 0xC5A6BF7CU /* ShiftRight         */: return RGFW_keyShiftR;
 		case 0x5D64DA91U /* NumpadMultiply     */: return RGFW_keyPadMultiply;
 		case 0xC914958CU /* AltLeft            */: return RGFW_keyAltL;             /* 0x0038 */
 		case 0x92E09CB5U /* Space              */: return RGFW_keySpace;                /* 0x0039 */
@@ -16756,6 +16771,7 @@ RGFW_key RGFW_WASMPhysicalToRGFW(u32 hash) {
         case 0x7393C5D2U /* NumpadEnter        */: return RGFW_keyPadReturn;         /* 0xE01C */
         case 0xE00E97CDU /* ContextMenu        */: return RGFW_keyMenu;         /* 0xE05D */
         case 0x6CB5328DU /* NumpadDivide       */: return RGFW_keyPadSlash;        /* 0xE035 */
+ 		case 0xC5A6BF7CU /* ShiftRight         */: return RGFW_keyShiftR;          /* 0x0036 */
 		default: return DOM_PK_UNKNOWN;
 	}
 
