@@ -7518,6 +7518,10 @@ RGFW_key RGFW_FUNC(RGFW_physicalToMappedKey) (RGFW_key key) {
 		(key >= RGFW_keyWorld1 && key <= RGFW_keyWorld2) || key == RGFW_keyPause
 	) return key;
 
+    if (sym < 256) {
+        return (RGFW_key)sym;
+    }
+
     return RGFW_keyNULL;
 }
 
