@@ -10712,8 +10712,9 @@ void RGFW_FUNC(RGFW_surface_freePtr) (RGFW_surface* surface) {
 void RGFW_FUNC(RGFW_window_setBorder) (RGFW_window* win, RGFW_bool border) {
 	RGFW_setBit(&win->internal.flags, RGFW_windowNoBorder, !border);
 
-	/* for now just toggle between SSD & CSD depending on the bool */
-	if (_RGFW->decoration_manager != NULL) {
+	if (win->src.decorFrame) {
+		_RGFW->libdecor_frame_set_visibility(win->src.decorFrame, border);
+	} else if (_RGFW->decoration_manager != NULL) {
 		zxdg_toplevel_decoration_v1_set_mode(win->src.decoration, (border ? ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE : ZXDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE));
 	}
 }
@@ -10845,9 +10846,6 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 
 		xdg_toplevel_add_listener(win->src.xdg_toplevel, &xdg_toplevel_listener, win);
 
-		/* compositor supports both SSD & CSD
-		   So choose accordingly
-		 */
 		if (_RGFW->decoration_manager) {
 			u32 decoration_mode = ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE;
 			win->src.decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
