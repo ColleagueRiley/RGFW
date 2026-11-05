@@ -465,7 +465,8 @@ typedef RGFW_ENUM(u8, RGFW_initFlags) {
 	RGFW_initOpenGL = RGFW_BIT(0), /*!< Load Native OpenGL */
 	RGFW_initEGL = RGFW_BIT(1), /*!< Load EGL */
 	RGFW_initVulkan = RGFW_BIT(2), /*!< Load Vulkan */
-	RGFW_initX11 = RGFW_BIT(3) /*!< Force X11 (over Wayland) */
+	RGFW_initX11 = RGFW_BIT(3), /*!< Force X11 (over Wayland) */
+	RGFW_initLibDecor = RGFW_BIT(4) /*!< attempt to load libdecor and use it for all window creation */
 };
 
 /*! @brief The stucture that contains information about the current RGFW instance */
@@ -3024,9 +3025,94 @@ RGFWDEF RGFW_key RGFW_physicalToMappedKey(RGFW_key keycode);
 	#endif
 
 	#ifdef RGFW_WAYLAND
-		#ifdef RGFW_LIBDECOR
-			#include <libdecor-0/libdecor.h>
-		#endif
+		#include <stdbool.h>
+		struct RGFW_libdecor;
+		struct RGFW_libdecor_frame;
+		struct RGFW_libdecor_state;
+		struct RGFW_libdecor_configuration;
+
+		enum RGFW_libdecor_error {
+			RGFW_LIBDECOR_ERROR_COMPOSITOR_INCOMPATIBLE,
+			RGFW_LIBDECOR_ERROR_INVALID_FRAME_CONFIGURATION,
+		};
+
+		enum RGFW_libdecor_window_state {
+			RGFW_LIBDECOR_WINDOW_STATE_NONE = 0,
+			RGFW_LIBDECOR_WINDOW_STATE_ACTIVE = 1,
+			RGFW_LIBDECOR_WINDOW_STATE_MAXIMIZED = 2,
+			RGFW_LIBDECOR_WINDOW_STATE_FULLSCREEN = 4,
+			RGFW_LIBDECOR_WINDOW_STATE_TILED_LEFT = 8,
+			RGFW_LIBDECOR_WINDOW_STATE_TILED_RIGHT = 16,
+			RGFW_LIBDECOR_WINDOW_STATE_TILED_TOP = 32,
+			RGFW_LIBDECOR_WINDOW_STATE_TILED_BOTTOM = 64
+		};
+
+		enum RGFW_libdecor_capabilities {
+			RGFW_LIBDECOR_ACTION_MOVE = 1,
+			RGFW_LIBDECOR_ACTION_RESIZE = 2,
+			RGFW_LIBDECOR_ACTION_MINIMIZE = 4,
+			RGFW_LIBDECOR_ACTION_FULLSCREEN = 8,
+			RGFW_LIBDECOR_ACTION_CLOSE = 16
+		};
+
+		struct RGFW_libdecor_interface {
+			void (* error)(struct RGFW_libdecor*,enum RGFW_libdecor_error,const char*);
+			void (* reserved0)(void);
+			void (* reserved1)(void);
+			void (* reserved2)(void);
+			void (* reserved3)(void);
+			void (* reserved4)(void);
+			void (* reserved5)(void);
+			void (* reserved6)(void);
+			void (* reserved7)(void);
+			void (* reserved8)(void);
+			void (* reserved9)(void);
+		};
+
+		struct RGFW_libdecor_frame_interface {
+			void (* configure)(struct RGFW_libdecor_frame*,struct RGFW_libdecor_configuration*,void*);
+			void (* close)(struct RGFW_libdecor_frame*,void*);
+			void (* commit)(struct RGFW_libdecor_frame*,void*);
+			void (* dismiss_popup)(struct RGFW_libdecor_frame*,const char*,void*);
+			void (* reserved0)(void);
+			void (* reserved1)(void);
+			void (* reserved2)(void);
+			void (* reserved3)(void);
+			void (* reserved4)(void);
+			void (* reserved5)(void);
+			void (* reserved6)(void);
+			void (* reserved7)(void);
+			void (* reserved8)(void);
+			void (* reserved9)(void);
+		};
+
+		typedef struct RGFW_libdecor* (* PFN_RGFW_libdecor_new)(struct wl_display*,const struct RGFW_libdecor_interface*);
+		typedef void (* PFN_RGFW_libdecor_unref)(struct RGFW_libdecor*);
+		typedef int (* PFN_RGFW_libdecor_get_fd)(struct RGFW_libdecor*);
+		typedef int (* PFN_RGFW_libdecor_dispatch)(struct RGFW_libdecor*,int);
+		typedef struct RGFW_libdecor_frame* (* PFN_RGFW_libdecor_decorate)(struct RGFW_libdecor*,struct wl_surface*,const struct RGFW_libdecor_frame_interface*,void*);
+		typedef void (* PFN_RGFW_libdecor_frame_unref)(struct RGFW_libdecor_frame*);
+		typedef void (* PFN_RGFW_libdecor_frame_set_app_id)(struct RGFW_libdecor_frame*,const char*);
+		typedef void (* PFN_RGFW_libdecor_frame_set_title)(struct RGFW_libdecor_frame*,const char*);
+		typedef void (* PFN_RGFW_libdecor_frame_set_minimized)(struct RGFW_libdecor_frame*);
+		typedef void (* PFN_RGFW_libdecor_frame_set_fullscreen)(struct RGFW_libdecor_frame*, void*);
+		typedef void (* PFN_RGFW_libdecor_frame_unset_fullscreen)(struct RGFW_libdecor_frame*);
+		typedef void (* PFN_RGFW_libdecor_frame_map)(struct RGFW_libdecor_frame*);
+		typedef void (* PFN_RGFW_libdecor_frame_commit)(struct RGFW_libdecor_frame*,struct RGFW_libdecor_state*,struct RGFW_libdecor_configuration*);
+		typedef void (* PFN_RGFW_libdecor_frame_set_min_content_size)(struct RGFW_libdecor_frame*,int,int);
+		typedef void (* PFN_RGFW_libdecor_frame_set_max_content_size)(struct RGFW_libdecor_frame*,int,int);
+		typedef void (* PFN_RGFW_libdecor_frame_set_maximized)(struct RGFW_libdecor_frame*);
+		typedef void (* PFN_RGFW_libdecor_frame_unset_maximized)(struct RGFW_libdecor_frame*);
+		typedef void (* PFN_RGFW_libdecor_frame_set_capabilities)(struct RGFW_libdecor_frame*,enum RGFW_libdecor_capabilities);
+		typedef void (* PFN_RGFW_libdecor_frame_unset_capabilities)(struct RGFW_libdecor_frame*,enum RGFW_libdecor_capabilities);
+		typedef void (* PFN_RGFW_libdecor_frame_set_visibility)(struct RGFW_libdecor_frame*,bool visible);
+		typedef bool (* PFN_RGFW_libdecor_frame_is_visible)(struct RGFW_libdecor_frame*);
+		typedef struct xdg_toplevel* (* PFN_RGFW_libdecor_frame_get_xdg_toplevel)(struct RGFW_libdecor_frame*);
+		typedef struct xdg_surface* (* PFN_RGFW_libdecor_frame_get_xdg_surface)(struct RGFW_libdecor_frame*);
+		typedef bool (* PFN_RGFW_libdecor_configuration_get_content_size)(struct RGFW_libdecor_configuration*,struct RGFW_libdecor_frame*,int*,int*);
+		typedef bool (* PFN_RGFW_libdecor_configuration_get_window_state)(struct RGFW_libdecor_configuration*,enum RGFW_libdecor_window_state*);
+		typedef struct RGFW_libdecor_state* (* PFN_RGFW_libdecor_state_new)(int,int);
+		typedef void (* PFN_RGFW_libdecor_state_free)(struct RGFW_libdecor_state*);
 
 		#include <wayland-client.h>
 		#include <errno.h>
@@ -3100,9 +3186,7 @@ RGFWDEF RGFW_key RGFW_physicalToMappedKey(RGFW_key keycode);
 
 		struct wl_data_source *data_source; // offer data to other clients
 
-		#ifdef RGFW_LIBDECOR
-			struct libdecor* decorContext;
-		#endif
+		struct RGFW_libdecor_frame* decorFrame;
 #endif /* RGFW_WAYLAND */
 	};
 
@@ -3373,6 +3457,36 @@ struct RGFW_info {
         RGFW_window* kbOwner;
 		RGFW_window* mouseOwner; /* what window has access to the mouse */
 
+		struct RGFW_libdecor* decorContext; /* shared by every window in the context */
+		void* libdecorHandle;
+		PFN_RGFW_libdecor_new libdecor_new;
+		PFN_RGFW_libdecor_unref libdecor_unref;
+		PFN_RGFW_libdecor_get_fd libdecor_get_fd;
+		PFN_RGFW_libdecor_dispatch libdecor_dispatch;
+		PFN_RGFW_libdecor_decorate libdecor_decorate;
+		PFN_RGFW_libdecor_frame_unref libdecor_frame_unref;
+		PFN_RGFW_libdecor_frame_set_app_id libdecor_frame_set_app_id;
+		PFN_RGFW_libdecor_frame_set_title libdecor_frame_set_title;
+		PFN_RGFW_libdecor_frame_set_minimized libdecor_frame_set_minimized;
+		PFN_RGFW_libdecor_frame_set_fullscreen libdecor_frame_set_fullscreen;
+		PFN_RGFW_libdecor_frame_unset_fullscreen libdecor_frame_unset_fullscreen;
+		PFN_RGFW_libdecor_frame_map libdecor_frame_map;
+		PFN_RGFW_libdecor_frame_commit libdecor_frame_commit;
+		PFN_RGFW_libdecor_frame_set_min_content_size libdecor_frame_set_min_content_size;
+		PFN_RGFW_libdecor_frame_set_max_content_size libdecor_frame_set_max_content_size;
+		PFN_RGFW_libdecor_frame_set_maximized libdecor_frame_set_maximized;
+		PFN_RGFW_libdecor_frame_unset_maximized libdecor_frame_unset_maximized;
+		PFN_RGFW_libdecor_frame_set_capabilities libdecor_frame_set_capabilities;
+		PFN_RGFW_libdecor_frame_unset_capabilities libdecor_frame_unset_capabilities;
+		PFN_RGFW_libdecor_frame_set_visibility libdecor_frame_set_visibility;
+		PFN_RGFW_libdecor_frame_is_visible libdecor_frame_is_visible;
+		PFN_RGFW_libdecor_frame_get_xdg_toplevel libdecor_frame_get_xdg_toplevel;
+		PFN_RGFW_libdecor_frame_get_xdg_surface libdecor_frame_get_xdg_surface;
+		PFN_RGFW_libdecor_configuration_get_content_size libdecor_configuration_get_content_size;
+		PFN_RGFW_libdecor_configuration_get_window_state libdecor_configuration_get_window_state;
+		PFN_RGFW_libdecor_state_new libdecor_state_new;
+		PFN_RGFW_libdecor_state_free libdecor_state_free;
+
 		u32 last_key;  /* wayland key repeat data */
 		i32 wl_repeat_info_rate, wl_repeat_info_delay;
 		u32 last_key_time;
@@ -3604,7 +3718,7 @@ void RGFW_initKeycodes(void) {
     for (i = RGFW_keySpace; i < RGFW_keyCount; i++) {
         for (y = 0; y < (sizeof(_RGFW->keycodes) / sizeof(RGFW_key)); y++) {
             if (_RGFW->keycodes[y] == i) {
-                _RGFW->apiKeycodes[i] = (RGFW_key)y;
+                _RGFW->apiKeycodes[i] = (u32)y;
                 break;
             }
         }
@@ -6347,6 +6461,13 @@ This is where OS specific stuff starts
 
 #ifdef RGFW_UNIX
 
+#define RGFW_LOAD_LIBRARY(x, lib) if (x == NULL) x = dlopen(lib, RTLD_LAZY | RTLD_LOCAL)
+#define RGFW_FREE_LIBRARY(x) if (x != NULL) dlclose(x); x = NULL;
+#define RGFW_PROC_DEF(proc, name) if (name##SRC == NULL && proc != NULL) { \
+	void* ptr = dlsym(proc, #name); \
+	if (ptr != NULL) RGFW_MEMCPY(&name##SRC, &ptr, sizeof(PFN_##name)); \
+}
+
 #include <fcntl.h>
 #include <poll.h>
 #include <unistd.h>
@@ -7194,12 +7315,6 @@ void RGFW_FUNC(RGFW_window_captureMousePlatform) (RGFW_window* win, RGFW_bool st
 	}
 }
 
-#define RGFW_LOAD_LIBRARY(x, lib) if (x == NULL) x = dlopen(lib, RTLD_LAZY | RTLD_LOCAL)
-#define RGFW_PROC_DEF(proc, name) if (name##SRC == NULL && proc != NULL) { \
-	void* ptr = dlsym(proc, #name); \
-	if (ptr != NULL) RGFW_MEMCPY(&name##SRC, &ptr, sizeof(PFN_##name)); \
-}
-
 RGFWDEF void RGFW_window_getVisual(XVisualInfo* visual, RGFW_bool transparent);
 void RGFW_window_getVisual(XVisualInfo* visual, RGFW_bool transparent) {
 	visual->visual = DefaultVisual(_RGFW->display, DefaultScreen(_RGFW->display));
@@ -7439,10 +7554,6 @@ RGFW_key RGFW_FUNC(RGFW_physicalToMappedKey) (RGFW_key key) {
     KeyCode keycode = (KeyCode)RGFW_rgfwToApiKey(key);
     KeySym sym = XkbKeycodeToKeysym(_RGFW->display, keycode, 0, 0);
 
-    if (sym < 256) {
-        return (RGFW_key)sym;
-    }
-
     switch (sym) {
         case XK_BackSpace: return RGFW_keyBackSpace;
         case XK_Tab:       return RGFW_keyTab;
@@ -7521,6 +7632,10 @@ RGFW_key RGFW_FUNC(RGFW_physicalToMappedKey) (RGFW_key key) {
 		(key >= RGFW_keyPadSlash && key <= RGFW_keyPadReturn) ||
 		(key >= RGFW_keyWorld1 && key <= RGFW_keyWorld2) || key == RGFW_keyPause
 	) return key;
+
+    if (sym < 256) {
+        return (RGFW_key)sym;
+    }
 
     return RGFW_keyNULL;
 }
@@ -9396,8 +9511,6 @@ i32 RGFW_initPlatform_X11(const char* className, RGFW_initFlags flags) {
 }
 
 void RGFW_deinitPlatform_X11(void) {
-    #define RGFW_FREE_LIBRARY(x) if (x != NULL) dlclose(x); x = NULL;
-
 	if (_RGFW->display != NULL) {
 		/* to save the clipboard on the x server after the window is closed */
 		if (XGetSelectionOwner(_RGFW->display, _RGFW->CLIPBOARD) == _RGFW->helperWindow) {
@@ -9517,6 +9630,74 @@ struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { return win-
 #include "pointer-warp-v1.h"
 
 void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized);
+
+static void RGFW_wl_libdecor_configure(struct RGFW_libdecor_frame* frame,
+		struct RGFW_libdecor_configuration* configuration, void* user_data) {
+	RGFW_window* win = (RGFW_window*)user_data;
+	if (win == NULL || frame == NULL || configuration == NULL) return;
+
+	i32 width = 0, height = 0;
+	if (_RGFW->libdecor_configuration_get_content_size(configuration, frame, &width, &height) == false ||
+		width <= 0 || height <= 0) {
+		width = win->w;
+		height = win->h;
+	}
+
+	enum RGFW_libdecor_window_state window_state = 0;
+	if (_RGFW->libdecor_configuration_get_window_state(configuration, &window_state) == true) {
+		win->src.pending_activated = (window_state & RGFW_LIBDECOR_WINDOW_STATE_ACTIVE) != 0;
+		win->src.pending_maximized = (window_state & RGFW_LIBDECOR_WINDOW_STATE_MAXIMIZED) != 0;
+	}
+
+	struct RGFW_libdecor_state* state = _RGFW->libdecor_state_new(width, height);
+	if (state != NULL) {
+		_RGFW->libdecor_frame_commit(frame, state, configuration);
+		_RGFW->libdecor_state_free(state);
+	}
+
+
+	win->src.activated = win->src.pending_activated;
+	win->src.maximized = win->src.pending_maximized;
+	win->src.configured = RGFW_TRUE;
+
+	if (win->w != width || win->h != height) {
+		win->w = win->src.w = width;
+		win->h = win->src.h = height;
+
+		RGFW_windowResizedCallback(win, width, height);
+	}
+}
+
+static void RGFW_wl_libdecor_close(struct RGFW_libdecor_frame* frame, void* user_data) {
+	RGFW_UNUSED(frame);
+
+	RGFW_window* win = (RGFW_window*)user_data;
+	if (win == NULL) return;
+
+	if (!win->internal.shouldClose) {
+		RGFW_windowCloseCallback(win);
+	}
+}
+
+static void RGFW_wl_libdecor_commit(struct RGFW_libdecor_frame* frame, void* user_data) {
+	RGFW_UNUSED(frame);
+
+	RGFW_window* win = (RGFW_window*)user_data;
+	if (win == NULL || win->src.surface == NULL) return;
+	wl_surface_commit(win->src.surface);
+}
+
+static void RGFW_wl_libdecor_dismiss_popup(struct RGFW_libdecor_frame* frame,
+		const char* seat_name, void* user_data) {
+	RGFW_UNUSED(frame); RGFW_UNUSED(seat_name); RGFW_UNUSED(user_data);
+}
+
+static struct RGFW_libdecor_frame_interface RGFW_wl_libdecor_frame_interface = {
+	.configure = RGFW_wl_libdecor_configure,
+	.close = RGFW_wl_libdecor_close,
+	.commit = RGFW_wl_libdecor_commit,
+	.dismiss_popup = RGFW_wl_libdecor_dismiss_popup,
+};
 
 static void RGFW_wl_setOpaque(RGFW_window* win) {
 	struct wl_region* wl_region = wl_compositor_create_region(_RGFW->compositor);
@@ -9638,10 +9819,8 @@ static void RGFW_wl_relative_pointer_motion(void *data, struct zwp_relative_poin
 
 	RGFW_info* RGFW = (RGFW_info*)data;
 
-	RGFW_ASSERT(RGFW->mouseOwner != NULL);
+	if (RGFW->mouseOwner == NULL) return;
 	RGFW_window* win = RGFW->mouseOwner;
-
-	RGFW_ASSERT(win);
 
 	float vecX =  (float)wl_fixed_to_double(dx);
 	float vecY = (float)wl_fixed_to_double(dy);
@@ -9658,6 +9837,9 @@ static void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 se
 		struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y) {
 	RGFW_info* RGFW = (RGFW_info*)data;
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
+	/* libdecor's decoration surfaces carry libdecor's own user data, a
+	   destroyed surface carries none, so the window has to match the surface */
+	if (win == NULL || win->src.surface != surface) return;
 
 	/* save when the pointer is locked or using default cursor */
 	RGFW->mouse_enter_serial = serial;
@@ -9681,8 +9863,12 @@ static void RGFW_wl_pointer_enter(void* data, struct wl_pointer* pointer, u32 se
 
 static void RGFW_wl_pointer_leave(void* data, struct wl_pointer *pointer, u32 serial, struct wl_surface *surface) {
 	RGFW_UNUSED(pointer); RGFW_UNUSED(serial);
-	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
+	/* the surface may already be destroyed, a window closed while the pointer
+	   was over it, and wayland-client passes a null surface in that case */
+	RGFW_window* win = (surface != NULL) ? (RGFW_window*)wl_surface_get_user_data(surface) : NULL;
 	RGFW_info* RGFW = (RGFW_info*)data;
+	if (win == NULL || win->src.surface != surface) return;
+
 	if (RGFW->mouseOwner == win)
 		RGFW->mouseOwner = NULL;
 
@@ -9692,8 +9878,7 @@ static void RGFW_wl_pointer_leave(void* data, struct wl_pointer *pointer, u32 se
 static void RGFW_wl_pointer_motion(void* data, struct wl_pointer *pointer, u32 time, wl_fixed_t x, wl_fixed_t y) {
 	RGFW_UNUSED(pointer); RGFW_UNUSED(time);
 	RGFW_info* RGFW = (RGFW_info*)data;
-	RGFW_ASSERT(RGFW->mouseOwner != NULL);
-
+	if (RGFW->mouseOwner == NULL) return;
 	RGFW_window* win = RGFW->mouseOwner;
 
 	i32 convertedX = (i32)wl_fixed_to_double(x);
@@ -9706,7 +9891,7 @@ static void RGFW_wl_pointer_button(void* data, struct wl_pointer *pointer, u32 s
 	RGFW_UNUSED(pointer); RGFW_UNUSED(time); RGFW_UNUSED(serial);
 	RGFW_info* RGFW = (RGFW_info*)data;
 
-	RGFW_ASSERT(RGFW->mouseOwner != NULL);
+	if (RGFW->mouseOwner == NULL) return;
 	RGFW_window* win = RGFW->mouseOwner;
 
 	u32 b = (button - 0x110);
@@ -9722,7 +9907,7 @@ static void RGFW_wl_pointer_axis(void* data, struct wl_pointer *pointer, u32 tim
 	RGFW_UNUSED(pointer); RGFW_UNUSED(time);  RGFW_UNUSED(axis);
 
 	RGFW_info* RGFW = (RGFW_info*)data;
-	RGFW_ASSERT(RGFW->mouseOwner != NULL);
+	if (RGFW->mouseOwner == NULL) return;
 	RGFW_window* win = RGFW->mouseOwner;
 
 	float scrollX = 0.0;
@@ -9774,6 +9959,8 @@ static void RGFW_wl_keyboard_enter(void* data, struct wl_keyboard *keyboard, u32
 
 	RGFW_info* RGFW = (RGFW_info*)data;
 	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
+	if (win == NULL || win->src.surface != surface) return;
+
 	RGFW->kbOwner = win;
 
 	// this is to prevent race conditions
@@ -9791,7 +9978,9 @@ static void RGFW_wl_keyboard_leave(void* data, struct wl_keyboard *keyboard, u32
 	RGFW_UNUSED(keyboard); RGFW_UNUSED(serial);
 
 	RGFW_info* RGFW = (RGFW_info*)data;
-	RGFW_window* win = (RGFW_window*)wl_surface_get_user_data(surface);
+	RGFW_window* win = (surface != NULL) ? (RGFW_window*)wl_surface_get_user_data(surface) : NULL;
+	if (win == NULL || win->src.surface != surface) return;
+
 	if (RGFW->kbOwner == win)
 		RGFW->kbOwner = NULL;
 
@@ -10015,8 +10204,13 @@ static void RGFW_wl_output_handle_done(void* data, struct wl_output* output) {
 	RGFW_monitorCallback(_RGFW->root, monitor, RGFW_TRUE);
 }
 
-static void RGFW_wl_create_outputs(struct wl_registry *const registry, u32 id) {
-	struct wl_output *output = wl_registry_bind(registry, id, &wl_output_interface, wl_proxy_get_version((struct wl_proxy*)_RGFW->seat));
+static void RGFW_wl_create_outputs(struct wl_registry *const registry, u32 id, u32 version) {
+	/* the seat is not necessarily bound yet, so use the version the registry
+	   advertised for this output instead of the seat's */
+	if (version > 3) version = 3;
+	if (version < 1) version = 1;
+
+	struct wl_output *output = wl_registry_bind(registry, id, &wl_output_interface, version);
 	RGFW_monitorNode* node;
 	RGFW_monitor mon;
 
@@ -10193,7 +10387,7 @@ static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *regi
 	} else if (RGFW_STRNCMP(interface, zxdg_output_manager_v1_interface.name, 255) == 0) {
 		RGFW->xdg_output_manager = wl_registry_bind(registry, id, &zxdg_output_manager_v1_interface, 1);
 	} else if (RGFW_STRNCMP(interface,"wl_output", 10) == 0) {
-		RGFW_wl_create_outputs(registry, id);
+		RGFW_wl_create_outputs(registry, id, version);
 	} else if (RGFW_STRNCMP(interface, wp_pointer_warp_v1_interface.name, 255) == 0) {
 		RGFW->wp_pointer_warp = wl_registry_bind(registry, id, &wp_pointer_warp_v1_interface, 1);
 	} else if (RGFW_STRNCMP(interface,"wl_data_device_manager", 23) == 0) {
@@ -10269,6 +10463,51 @@ static int RGFW_wl_create_shm_file(off_t size) {
 	return fd;
 }
 
+RGFWDEF void RGFW_loadLibDecor(void);
+void RGFW_loadLibDecor(void) {
+	RGFW_LOAD_LIBRARY(_RGFW->libdecorHandle, "libdecor-0.so.0");
+	if (_RGFW->libdecorHandle == NULL) return;
+
+	#define RGFW_LIBDECOR_DEF(name) { \
+		void* ptr = dlsym(_RGFW->libdecorHandle, #name); \
+		if (ptr != NULL) memcpy(&_RGFW->name, &ptr, sizeof(PFN_RGFW_##name));\
+	}
+
+	RGFW_LIBDECOR_DEF(libdecor_new);
+	RGFW_LIBDECOR_DEF(libdecor_unref);
+	RGFW_LIBDECOR_DEF(libdecor_get_fd);
+	RGFW_LIBDECOR_DEF(libdecor_dispatch);
+	RGFW_LIBDECOR_DEF(libdecor_decorate);
+	RGFW_LIBDECOR_DEF(libdecor_frame_unref);
+	RGFW_LIBDECOR_DEF(libdecor_frame_set_app_id);
+	RGFW_LIBDECOR_DEF(libdecor_frame_set_title);
+	RGFW_LIBDECOR_DEF(libdecor_frame_set_minimized);
+	RGFW_LIBDECOR_DEF(libdecor_frame_set_fullscreen);
+	RGFW_LIBDECOR_DEF(libdecor_frame_unset_fullscreen);
+	RGFW_LIBDECOR_DEF(libdecor_frame_map);
+	RGFW_LIBDECOR_DEF(libdecor_frame_commit);
+	RGFW_LIBDECOR_DEF(libdecor_frame_set_min_content_size);
+	RGFW_LIBDECOR_DEF(libdecor_frame_set_max_content_size);
+	RGFW_LIBDECOR_DEF(libdecor_frame_set_maximized);
+	RGFW_LIBDECOR_DEF(libdecor_frame_unset_maximized);
+	RGFW_LIBDECOR_DEF(libdecor_frame_set_capabilities);
+	RGFW_LIBDECOR_DEF(libdecor_frame_unset_capabilities);
+	RGFW_LIBDECOR_DEF(libdecor_frame_set_visibility);
+	RGFW_LIBDECOR_DEF(libdecor_frame_is_visible);
+	RGFW_LIBDECOR_DEF(libdecor_frame_get_xdg_toplevel);
+	RGFW_LIBDECOR_DEF(libdecor_frame_get_xdg_surface);
+	RGFW_LIBDECOR_DEF(libdecor_configuration_get_content_size);
+	RGFW_LIBDECOR_DEF(libdecor_configuration_get_window_state);
+	RGFW_LIBDECOR_DEF(libdecor_state_new);
+	RGFW_LIBDECOR_DEF(libdecor_state_free);
+	#undef RGFW_LIBDECOR_DEF
+
+	if (_RGFW->libdecor_new == NULL) return;
+
+	static struct RGFW_libdecor_interface interface = { .error = NULL };
+	_RGFW->decorContext = _RGFW->libdecor_new(_RGFW->wl_display, &interface);
+}
+
 i32 RGFW_initPlatform_Wayland(const char* className, RGFW_initFlags flags) {
 	RGFW_UNUSED(className); RGFW_UNUSED(flags);
 	_RGFW->wl_display = wl_display_connect(NULL);
@@ -10327,6 +10566,8 @@ i32 RGFW_initPlatform_Wayland(const char* className, RGFW_initFlags flags) {
 		wl_display_dispatch(_RGFW->wl_display);
 	}
 
+	if (flags & RGFW_initLibDecor) RGFW_loadLibDecor();
+
 	return 0;
 }
 
@@ -10368,6 +10609,13 @@ void RGFW_deinitPlatform_Wayland(void) {
 	if (_RGFW->xdg_output_manager) {
 		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
 	}
+
+	if (_RGFW->decorContext && _RGFW->libdecorHandle) {
+		_RGFW->libdecor_unref(_RGFW->decorContext);
+		_RGFW->decorContext = NULL;
+	}
+
+    RGFW_FREE_LIBRARY(_RGFW->libdecorHandle);
 
 	if (_RGFW->data_device_manager) {
 		wl_data_device_manager_destroy(_RGFW->data_device_manager);
@@ -10520,10 +10768,6 @@ void RGFW_FUNC(RGFW_window_captureMousePlatform) (RGFW_window* win, RGFW_bool st
 RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_windowFlags flags, RGFW_window* win) {
 	RGFW_debugCallback(RGFW_typeWarning, RGFW_warningWayland, "RGFW Wayland support is experimental");
 
-	static const struct xdg_surface_listener xdg_surface_listener = {
-		.configure = RGFW_wl_xdg_surface_configure_handler,
-	};
-
 	static const struct wl_surface_listener wl_surface_listener = {
 		.enter = RGFW_wl_surface_enter,
 		.leave = (void (*)(void *, struct wl_surface *, struct wl_output *))&RGFW_doNothing,
@@ -10536,6 +10780,53 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 
 	/* create a surface for a custom cursor */
 	win->src.custom_cursor_surface = wl_compositor_create_surface(_RGFW->compositor);
+
+	if (_RGFW->decoration_manager == NULL && _RGFW->libdecorHandle && _RGFW->decorContext && !(flags & RGFW_windowNoBorder)) {
+		RGFW_loadLibDecor();
+	}
+
+	/* libdecor creates and owns the xdg_surface, so it has to run before
+	   anything else requests one for this surface */
+	if (_RGFW->libdecorHandle && _RGFW->decorContext && !(flags & RGFW_windowNoBorder)) {
+		const char* error = (_RGFW->decoration_manager == NULL) ? "libdecor_decorate failed, using a borderless window" : "libdecor_decorate failed, falling back to xdg decoration";
+
+		win->src.decorFrame = _RGFW->libdecor_decorate(_RGFW->decorContext, win->src.surface,
+			&RGFW_wl_libdecor_frame_interface, win);
+
+		if (win->src.decorFrame == NULL) {
+			RGFW_debugCallback(RGFW_typeWarning, RGFW_errWayland, error);
+		} else {
+			win->src.xdg_surface = _RGFW->libdecor_frame_get_xdg_surface(win->src.decorFrame);
+			win->src.xdg_toplevel = _RGFW->libdecor_frame_get_xdg_toplevel(win->src.decorFrame);
+
+			/* the no-plugin fallback hands out a frame without xdg objects */
+			if (win->src.xdg_surface == NULL || win->src.xdg_toplevel == NULL) {
+				RGFW_debugCallback(RGFW_typeWarning, RGFW_errWayland, error);
+				_RGFW->libdecor_frame_unref(win->src.decorFrame);
+				win->src.decorFrame = NULL;
+				win->src.xdg_surface = NULL;
+				win->src.xdg_toplevel = NULL;
+			} else {
+				_RGFW->libdecor_frame_set_app_id(win->src.decorFrame, name);
+				_RGFW->libdecor_frame_set_title(win->src.decorFrame, name);
+
+				_RGFW->libdecor_frame_map(win->src.decorFrame);
+
+				/* run the initial configure */
+				wl_display_roundtrip(_RGFW->wl_display);
+
+				if (_RGFW->icon_manager != NULL) {
+					xdg_toplevel_icon_manager_v1_set_icon(_RGFW->icon_manager, win->src.xdg_toplevel, NULL);
+				}
+
+				return win;
+			}
+		}
+	}
+
+	static const struct xdg_surface_listener xdg_surface_listener = {
+		.configure = RGFW_wl_xdg_surface_configure_handler,
+	};
 
 	win->src.xdg_surface = xdg_wm_base_get_xdg_surface(_RGFW->xdg_wm_base, win->src.surface);
 	xdg_surface_add_listener(win->src.xdg_surface, &xdg_surface_listener, win);
@@ -10562,7 +10853,7 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	/* compositor supports both SSD & CSD
 	   So choose accordingly
 	 */
-	if (_RGFW->decoration_manager) {
+	if (_RGFW->decoration_manager && (_RGFW->libdecorHandle == NULL || _RGFW->decorContext == NULL || win->src.decorFrame == NULL)) {
 		u32 decoration_mode = ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE;
 		win->src.decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
 			_RGFW->decoration_manager, win->src.xdg_toplevel);
@@ -10579,34 +10870,6 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 		}
 
 		zxdg_toplevel_decoration_v1_set_mode(win->src.decoration, decoration_mode);
-
-        /* no xdg_decoration support */
-	} else if (!(flags & RGFW_windowNoBorder)) {
-		/* TODO, some fallback */
-		#ifdef RGFW_LIBDECOR
-			static struct libdecor_interface interface = {
-				.error = NULL,
-			};
-
-			static struct libdecor_frame_interface frameInterface = {0}; /*= {
-				RGFW_wl_handle_configure,
-				RGFW_wl_handle_close,
-				RGFW_wl_handle_commit,
-				RGFW_wl_handle_dismiss_popup,
-			};*/
-
-			win->src.decorContext = libdecor_new(_RGFW->wl_display, &interface);
-			if (win->src.decorContext) {
-				struct libdecor_frame *frame = libdecor_decorate(win->src.decorContext, win->src.surface, &frameInterface, win);
-				if (!frame) {
-					libdecor_unref(win->src.decorContext);
-					win->src.decorContext = NULL;
-				} else {
-					libdecor_frame_set_app_id(frame, "my-libdecor-app");
-					libdecor_frame_set_title(frame, "My Libdecor Window");
-				}
-			}
-		#endif
 	}
 
 	if (_RGFW->icon_manager != NULL) {
@@ -10728,6 +10991,10 @@ RGFW_bool RGFW_FUNC(RGFW_window_fetchSize) (RGFW_window* win, i32* w, i32* h) {
 
 void RGFW_FUNC(RGFW_pollEvents) (void) {
 	RGFW_resetPrevState();
+
+	if (_RGFW->decorContext != NULL) {
+		_RGFW->libdecor_dispatch(_RGFW->decorContext, 0);
+	}
 
 	/* send buffered requests to compositor */
 	while (wl_display_flush(_RGFW->wl_display) == -1) {
@@ -11235,10 +11502,19 @@ void RGFW_FUNC(RGFW_window_swapInterval_OpenGL) (RGFW_window* win, i32 swapInter
 void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoWindow, "a window was freed");
-	#ifdef RGFW_LIBDECOR
-		if (win->src.decorContext)
-			libdecor_unref(win->src.decorContext);
-	#endif
+
+	/* drop stale owners so a later pointer or keyboard event does not
+	   dereference a freed window */
+	if (_RGFW->mouseOwner == win) _RGFW->mouseOwner = NULL;
+	if (_RGFW->kbOwner == win) _RGFW->kbOwner = NULL;
+
+	if (win->src.decorFrame != NULL) {
+		/* libdecor owns the xdg_surface and xdg_toplevel of the frame */
+		_RGFW->libdecor_frame_unref(win->src.decorFrame);
+		win->src.decorFrame = NULL;
+		win->src.xdg_surface = NULL;
+		win->src.xdg_toplevel = NULL;
+	}
 
 	if (win->src.decoration) {
 		zxdg_toplevel_decoration_v1_destroy(win->src.decoration);
@@ -11258,7 +11534,10 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 		xdg_toplevel_icon_v1_destroy(win->src.icon);
 	}
 
-	xdg_surface_destroy(win->src.xdg_surface);
+	if (win->src.xdg_surface) {
+		xdg_surface_destroy(win->src.xdg_surface);
+	}
+
 	wl_surface_destroy(win->src.surface);
 }
 
@@ -12053,7 +12332,7 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[0x01B] = RGFW_keyCloseBracket;
 	_RGFW->keycodes[0x027] = RGFW_keySemicolon;
 	_RGFW->keycodes[0x035] = RGFW_keySlash;
-	_RGFW->keycodes[0x056] = RGFW_keyWorld2;
+	_RGFW->keycodes[0x056] = RGFW_keyWorld1;
 	_RGFW->keycodes[0x00E] = RGFW_keyBackSpace;
 	_RGFW->keycodes[0x153] = RGFW_keyDelete;
 	_RGFW->keycodes[0x14F] = RGFW_keyEnd;
@@ -12329,27 +12608,14 @@ void RGFW_waitForEvent(i32 waitMS) {
 }
 
 RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
+	if ((key >= RGFW_keyPadSlash && key <= RGFW_keyPadReturn) || (key >= RGFW_keyWorld1 && key <= RGFW_keyWorld2) || key == RGFW_keyDelete || (key >= RGFW_keyShiftL && key <= RGFW_keySuperR) || (key >= RGFW_keyUp && key <= RGFW_keyPageDown) || key == RGFW_keyNumLock || key == RGFW_keyPrintScreen || key == RGFW_keyPause) return key;
+
     UINT vsc = RGFW_rgfwToApiKey(key);
-    BYTE keyboardState[256] = {0};
-
-    if (!GetKeyboardState(keyboardState))
-        return key;
-
     UINT vk = MapVirtualKeyW(vsc, MAPVK_VSC_TO_VK);
-    HKL layout = GetKeyboardLayout(0);
-
-    wchar_t charBuffer[4] = {0};
-    int result = ToUnicodeEx(vk, vsc, keyboardState, charBuffer, 1, 0, layout);
-
-    if (result == 1 && charBuffer[0] < 256) {
-        return (RGFW_key)charBuffer[0];
-    }
-
     switch (vk) {
         case VK_BACK:   return RGFW_keyBackSpace;
         case VK_TAB:    return RGFW_keyTab;
-        /* VK_RETURN can be either RGFW_keyReturn or RGFW_keyPadReturn. RGFW can only give its best guess as to which key it should be. */
-        case VK_RETURN: return (key == RGFW_keyPadReturn) ? RGFW_keyPadReturn : RGFW_keyReturn;
+        case VK_RETURN: return RGFW_keyReturn;
         case VK_ESCAPE: return RGFW_keyEscape;
         case VK_DELETE: return RGFW_keyDelete;
         case VK_F1:  return RGFW_keyF1;
@@ -12417,7 +12683,25 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
         default: break;
     }
 
-    return RGFW_keyNULL;
+	if ((key >= RGFW_keyF13 && key <= RGFW_keyF25) ||
+		(key >= RGFW_keyWorld1 && key <= RGFW_keyWorld2) || key == RGFW_keyPause
+	) return key;
+
+	BYTE keyboardState[256];
+	RGFW_MEMZERO(&keyboardState, sizeof(keyboardState));
+
+	HKL layout = GetKeyboardLayout(0);
+
+	wchar_t charBuffer[4] = {0};
+    int result = ToUnicodeEx(vk, vsc, keyboardState, charBuffer, 4, 0, layout);
+
+	if (result > 0 && result <= 4 && charBuffer[0] < 127 &&
+		charBuffer[0] >= 32) {
+		return (RGFW_key)charBuffer[0];
+	}
+
+
+	return RGFW_keyNULL;
 }
 
 RGFW_bool RGFW_window_fetchSize(RGFW_window* win, i32* w, i32* h) {
@@ -14566,7 +14850,7 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[0x59] = RGFW_keyPad7;
 	_RGFW->keycodes[0x5B] = RGFW_keyPad8;
 	_RGFW->keycodes[0x5C] = RGFW_keyPad9;
-	_RGFW->keycodes[0x45] = RGFW_keyPadSlash;
+	_RGFW->keycodes[0x45] = RGFW_keyPadPlus;
 	_RGFW->keycodes[0x41] = RGFW_keyPadPeriod;
 	_RGFW->keycodes[0x4B] = RGFW_keyPadSlash;
 	_RGFW->keycodes[0x4C] = RGFW_keyPadReturn;
@@ -14853,7 +15137,9 @@ void RGFW_waitForEvent(i32 waitMS) {
 }
 
 RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
-    u16 keycode = (u16)RGFW_rgfwToApiKey(key);
+	if (key >= RGFW_keyDelete) return key;
+
+	u16 keycode = (u16)RGFW_rgfwToApiKey(key);
     TISInputSourceRef source = TISCopyCurrentKeyboardLayoutInputSource();
     if (source == NULL)
         return key;
@@ -16143,6 +16429,7 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[DOM_VK_DELETE] = RGFW_keyDelete;
 	_RGFW->keycodes[DOM_VK_NUM_LOCK] = RGFW_keyNumLock;
 	_RGFW->keycodes[DOM_VK_DIVIDE] = RGFW_keyPadSlash;
+	_RGFW->keycodes[DOM_VK_ADD] = RGFW_keyPadPlus;
 	_RGFW->keycodes[DOM_VK_MULTIPLY] = RGFW_keyPadMultiply;
 	_RGFW->keycodes[DOM_VK_SUBTRACT] = RGFW_keyPadMinus;
 	_RGFW->keycodes[DOM_VK_NUMPAD1] = RGFW_keyPad1;
@@ -16151,6 +16438,8 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[DOM_VK_NUMPAD4] = RGFW_keyPad4;
 	_RGFW->keycodes[DOM_VK_NUMPAD5] = RGFW_keyPad5;
 	_RGFW->keycodes[DOM_VK_NUMPAD6] = RGFW_keyPad6;
+	_RGFW->keycodes[DOM_VK_NUMPAD7] = RGFW_keyPad7;
+	_RGFW->keycodes[DOM_VK_NUMPAD8] = RGFW_keyPad8;
 	_RGFW->keycodes[DOM_VK_NUMPAD9] = RGFW_keyPad9;
 	_RGFW->keycodes[DOM_VK_NUMPAD0] = RGFW_keyPad0;
 	_RGFW->keycodes[DOM_VK_DECIMAL] = RGFW_keyPadPeriod;
@@ -16176,6 +16465,18 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[DOM_VK_F10] = RGFW_keyF10;
 	_RGFW->keycodes[DOM_VK_F11] = RGFW_keyF11;
 	_RGFW->keycodes[DOM_VK_F12] = RGFW_keyF12;
+	_RGFW->keycodes[DOM_VK_F13] = RGFW_keyF13;
+	_RGFW->keycodes[DOM_VK_F14] = RGFW_keyF14;
+	_RGFW->keycodes[DOM_VK_F15] = RGFW_keyF15;
+	_RGFW->keycodes[DOM_VK_F16] = RGFW_keyF16;
+	_RGFW->keycodes[DOM_VK_F17] = RGFW_keyF17;
+	_RGFW->keycodes[DOM_VK_F18] = RGFW_keyF18;
+	_RGFW->keycodes[DOM_VK_F19] = RGFW_keyF19;
+	_RGFW->keycodes[DOM_VK_F20] = RGFW_keyF20;
+	_RGFW->keycodes[DOM_VK_F21] = RGFW_keyF21;
+	_RGFW->keycodes[DOM_VK_F22] = RGFW_keyF22;
+	_RGFW->keycodes[DOM_VK_F23] = RGFW_keyF23;
+	_RGFW->keycodes[DOM_VK_F24] = RGFW_keyF24;
 	_RGFW->keycodes[DOM_VK_UP] = RGFW_keyUp;
 	_RGFW->keycodes[DOM_VK_DOWN] = RGFW_keyDown;
 	_RGFW->keycodes[DOM_VK_LEFT] = RGFW_keyLeft;
@@ -16201,6 +16502,7 @@ void RGFW_initKeycodesPlatform(void) {
 	_RGFW->keycodes[DOM_VK_F22]  = RGFW_keyF22;
 	_RGFW->keycodes[DOM_VK_F23]  = RGFW_keyF23;
 	_RGFW->keycodes[DOM_VK_F24]  = RGFW_keyF24;
+	_RGFW->keycodes[DOM_VK_CONTEXT_MENU] = RGFW_keyMenu;
 }
 
 i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
@@ -16643,7 +16945,7 @@ RGFW_key RGFW_WASMPhysicalToRGFW(u32 hash) {
 		case 0x6725105DU /* Digit5             */: return RGFW_key5;                    /* 0x0007 */
 		case 0x6725105EU /* Digit6             */: return RGFW_key6;                    /* 0x0008 */
 		case 0x6725105FU /* Digit7             */: return RGFW_key7;                    /* 0x0009 */
-		case 0x67251050U /* Digit8             */: return RGFW_key8;                    /* 0x000A */
+		case 0x67251050u /* Digit8             */: return RGFW_key8;                    /* 0x000A */
 		case 0x67251051U /* Digit9             */: return RGFW_key9;                    /* 0x000B */
 		case 0x92E14DD3U /* Minus              */: return RGFW_keyMinus;                /* 0x000C */
 		case 0x92E1FBACU /* Equal              */: return RGFW_keyEquals;                /* 0x000D */
@@ -16687,7 +16989,6 @@ RGFW_key RGFW_WASMPhysicalToRGFW(u32 hash) {
 		case 0x92E1A1C1U /* Comma              */: return RGFW_keyComma;                /* 0x0033 */
 		case 0x672FFAD4U /* Period             */: return RGFW_keyPeriod;               /* 0x0034 */
 		case 0x92E0A438U /* Slash              */: return RGFW_keySlash;                /* 0x0035 */
-		case 0xC5A6BF7CU /* ShiftRight         */: return RGFW_keyShiftR;
 		case 0x5D64DA91U /* NumpadMultiply     */: return RGFW_keyPadMultiply;
 		case 0xC914958CU /* AltLeft            */: return RGFW_keyAltL;             /* 0x0038 */
 		case 0x92E09CB5U /* Space              */: return RGFW_keySpace;                /* 0x0039 */
@@ -16749,6 +17050,7 @@ RGFW_key RGFW_WASMPhysicalToRGFW(u32 hash) {
         case 0x7393C5D2U /* NumpadEnter        */: return RGFW_keyPadReturn;         /* 0xE01C */
         case 0xE00E97CDU /* ContextMenu        */: return RGFW_keyMenu;         /* 0xE05D */
         case 0x6CB5328DU /* NumpadDivide       */: return RGFW_keyPadSlash;        /* 0xE035 */
+ 		case 0xC5A6BF7CU /* ShiftRight         */: return RGFW_keyShiftR;          /* 0x0036 */
 		default: return DOM_PK_UNKNOWN;
 	}
 
