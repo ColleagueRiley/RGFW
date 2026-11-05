@@ -7052,27 +7052,27 @@ Start of *nix defines
 		void* ptr = dlsym(_RGFW->nativeGL_handle, "glXGetProcAddress");
 		RGFW_ASSERT(ptr != NULL);
 		RGFW_MEMCPY(&_RGFW->glGetProcAddress, &ptr, sizeof(void*));
-		#define RGFW_PROC_DEF(name) if (RGFW_##name == NULL) RGFW_##name = (RGFW_##name##Proc)_RGFW->glGetProcAddress(#name);
+		#define RGFW_GL_PROC_DEF(name) if (RGFW_##name == NULL) RGFW_##name = (RGFW_##name##Proc)_RGFW->glGetProcAddress(#name);
 
-        RGFW_PROC_DEF(glXChooseVisual);
-        RGFW_PROC_DEF(glXCreateContext);
-        RGFW_PROC_DEF(glXMakeCurrent);
-        RGFW_PROC_DEF(glXGetCurrentContext);
-        RGFW_PROC_DEF(glXGetCurrentDrawable);
-		RGFW_PROC_DEF(glXSwapBuffers);
-        RGFW_PROC_DEF(glXGetVisualFromFBConfig);
-        RGFW_PROC_DEF(glXGetFBConfigAttrib);
-        RGFW_PROC_DEF(glXGetProcAddressARB);
-        RGFW_PROC_DEF(glXChooseFBConfig);
-        RGFW_PROC_DEF(glXDestroyContext);
-		RGFW_PROC_DEF(glXCreateWindow);
-		RGFW_PROC_DEF(glXDestroyWindow);
-        RGFW_PROC_DEF(glXQueryExtensionsString);
-		RGFW_PROC_DEF(glXCreateContextAttribsARB);
-		RGFW_PROC_DEF(glXGetProcAddressARB);
+        RGFW_GL_PROC_DEF(glXChooseVisual);
+        RGFW_GL_PROC_DEF(glXCreateContext);
+        RGFW_GL_PROC_DEF(glXMakeCurrent);
+        RGFW_GL_PROC_DEF(glXGetCurrentContext);
+        RGFW_GL_PROC_DEF(glXGetCurrentDrawable);
+		RGFW_GL_PROC_DEF(glXSwapBuffers);
+        RGFW_GL_PROC_DEF(glXGetVisualFromFBConfig);
+        RGFW_GL_PROC_DEF(glXGetFBConfigAttrib);
+        RGFW_GL_PROC_DEF(glXGetProcAddressARB);
+        RGFW_GL_PROC_DEF(glXChooseFBConfig);
+        RGFW_GL_PROC_DEF(glXDestroyContext);
+		RGFW_GL_PROC_DEF(glXCreateWindow);
+		RGFW_GL_PROC_DEF(glXDestroyWindow);
+        RGFW_GL_PROC_DEF(glXQueryExtensionsString);
+		RGFW_GL_PROC_DEF(glXCreateContextAttribsARB);
+		RGFW_GL_PROC_DEF(glXGetProcAddressARB);
 		RGFW_PROC_DEF(GLX_SGI_swap_control);
 		RGFW_PROC_DEF(GLX_MESA_swap_control);
-        RGFW_PROC_DEF(glXSwapIntervalEXT);
+        RGFW_GL_PROC_DEF(glXSwapIntervalEXT);
 
 		if (RGFW_glXSwapIntervalEXT == NULL) {
 			if (RGFW_GLX_MESA_swap_control == NULL && RGFW_GLX_SGI_swap_control == NULL) {
@@ -7081,7 +7081,7 @@ Start of *nix defines
 				RGFW_debugCallback(RGFW_typeWarning, RGFW_infoOpenGL,  "Failed to load swap interval function, fallingback to the native swapinterval function");
 			}
 		}
-		#undef RGFW_PROC_DEF
+		#undef RGFW_GL_PROC_DEF
 
 		return RGFW_TRUE;
 	}
