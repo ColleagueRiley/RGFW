@@ -7070,8 +7070,8 @@ Start of *nix defines
         RGFW_GL_PROC_DEF(glXQueryExtensionsString);
 		RGFW_GL_PROC_DEF(glXCreateContextAttribsARB);
 		RGFW_GL_PROC_DEF(glXGetProcAddressARB);
-		RGFW_PROC_DEF(GLX_SGI_swap_control);
-		RGFW_PROC_DEF(GLX_MESA_swap_control);
+		RGFW_GL_PROC_DEF(GLX_SGI_swap_control);
+		RGFW_GL_PROC_DEF(GLX_MESA_swap_control);
         RGFW_GL_PROC_DEF(glXSwapIntervalEXT);
 
 		if (RGFW_glXSwapIntervalEXT == NULL) {
