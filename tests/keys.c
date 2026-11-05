@@ -70,7 +70,6 @@ int main(void) {
 		RGFW_bool value = (key == physKey);
 		if (value == RGFW_TRUE) continue;
 		pass = value;
-
 		if (physKey == 0)
 			printf("key: %i (%c) not is not mapped to a physical key\n", key, key);
 		else
@@ -78,6 +77,15 @@ int main(void) {
 	}
 
 	RGFW_deinit();
+printf("F13: %d\n", RGFW_keyF13);
+printf("F14: %d\n", RGFW_keyF14);
+printf("F25: %d\n", RGFW_keyF25);
+printf("keyPadSlash: %d\n", RGFW_keyPadSlash);
+printf("keyPadPeriod: %d\n", RGFW_keyPadPeriod);
+printf("World1: %d\n", RGFW_keyWorld1);
+printf("World2: %d\n", RGFW_keyWorld2);
+printf("Count: %d\n", RGFW_keyCount);
+printf("%i\n", RGFW_keyF13);
 
 	return pass ? 0 : -1;
 }
