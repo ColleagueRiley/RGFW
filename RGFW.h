@@ -9684,7 +9684,6 @@ static void RGFW_wl_libdecor_commit(struct RGFW_libdecor_frame* frame, void* use
 
 	RGFW_window* win = (RGFW_window*)user_data;
 	if (win == NULL || win->src.surface == NULL) return;
-
 	wl_surface_commit(win->src.surface);
 }
 
@@ -10993,12 +10992,9 @@ RGFW_bool RGFW_FUNC(RGFW_window_fetchSize) (RGFW_window* win, i32* w, i32* h) {
 void RGFW_FUNC(RGFW_pollEvents) (void) {
 	RGFW_resetPrevState();
 
-	#ifdef RGFW_LIBDECOR
-		/* libdecor keeps its own event queue for decorations */
-		if (_RGFW->decorContext != NULL) {
-			_RGFW->libdecor_dispatch(_RGFW->decorContext, 0);
-		}
-	#endif
+	if (_RGFW->decorContext != NULL) {
+		_RGFW->libdecor_dispatch(_RGFW->decorContext, 0);
+	}
 
 	/* send buffered requests to compositor */
 	while (wl_display_flush(_RGFW->wl_display) == -1) {
@@ -11512,15 +11508,13 @@ void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 	if (_RGFW->mouseOwner == win) _RGFW->mouseOwner = NULL;
 	if (_RGFW->kbOwner == win) _RGFW->kbOwner = NULL;
 
-	#ifdef RGFW_LIBDECOR
-		if (win->src.decorFrame != NULL) {
-			/* libdecor owns the xdg_surface and xdg_toplevel of the frame */
-			_RGFW->libdecor_frame_unref(win->src.decorFrame);
-			win->src.decorFrame = NULL;
-			win->src.xdg_surface = NULL;
-			win->src.xdg_toplevel = NULL;
-		}
-	#endif
+	if (win->src.decorFrame != NULL) {
+		/* libdecor owns the xdg_surface and xdg_toplevel of the frame */
+		_RGFW->libdecor_frame_unref(win->src.decorFrame);
+		win->src.decorFrame = NULL;
+		win->src.xdg_surface = NULL;
+		win->src.xdg_toplevel = NULL;
+	}
 
 	if (win->src.decoration) {
 		zxdg_toplevel_decoration_v1_destroy(win->src.decoration);
