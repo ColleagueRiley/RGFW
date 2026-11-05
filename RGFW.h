@@ -12612,7 +12612,8 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
 
     UINT vsc = RGFW_rgfwToApiKey(key);
     UINT vk = MapVirtualKeyW(vsc, MAPVK_VSC_TO_VK);
-    switch (vk) {
+
+	switch (vk) {
         case VK_BACK:   return RGFW_keyBackSpace;
         case VK_TAB:    return RGFW_keyTab;
         case VK_RETURN: return RGFW_keyReturn;
@@ -12687,10 +12688,9 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
 		(key >= RGFW_keyWorld1 && key <= RGFW_keyWorld2) || key == RGFW_keyPause
 	) return key;
 
+	HKL layout = GetKeyboardLayout(0);
 	BYTE keyboardState[256];
 	RGFW_MEMZERO(&keyboardState, sizeof(keyboardState));
-
-	HKL layout = GetKeyboardLayout(0);
 
 	wchar_t charBuffer[4] = {0};
     int result = ToUnicodeEx(vk, vsc, keyboardState, charBuffer, 4, 0, layout);
@@ -12699,7 +12699,6 @@ RGFW_key RGFW_physicalToMappedKey(RGFW_key key) {
 		charBuffer[0] >= 32) {
 		return (RGFW_key)charBuffer[0];
 	}
-
 
 	return RGFW_keyNULL;
 }

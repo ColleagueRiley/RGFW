@@ -26,6 +26,17 @@ char chars[] = {
 
 RGFW_bool isKeyValid(RGFW_key k);
 RGFW_bool isKeyValid(RGFW_key k) {
+	#ifdef RGFW_WINDOWS
+	if (k == RGFW_keyWorld2 || k == RGFW_keyF25) return RGFW_FALSE;
+	#endif
+	#ifdef RGFW_MACOS
+	if (k == RGFW_keyWorld2 || k == RGFW_keyScrollLock || (k >= RGFW_keyF13 &&  k <= RGFW_keyF25) || k == RGFW_keyPause) return RGFW_FALSE;
+	#endif
+	#ifdef RGFW_WASM
+	if (k == RGFW_keyWorld1 || k == RGFW_keyWorld2 || k == RGFW_keyF25 || 
+	 	(k == RGFW_keyShiftR || k == RGFW_keyControlR || k == RGFW_keyAltR || RGFW_keySuperR)) return RGFW_FALSE;
+	#endif
+
     if ((k >= '0' && k <= '9') || (k >= 'a' && k <= 'z')) {
         return 1;
     }
@@ -71,7 +82,7 @@ int main(void) {
 		if (value == RGFW_TRUE) continue;
 		pass = value;
 		if (physKey == 0)
-			printf("key: %i (%c) not is not mapped to a physical key\n", key, key);
+			printf("key: %i (%c) is not mapped to a physical key\n", key, key);
 		else
 			printf("key: %i (%c) is incorrectly mapped to physical key %i (%c)\n", key, key, physKey, physKey);
 	}
