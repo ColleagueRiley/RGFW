@@ -10781,13 +10781,13 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 	/* create a surface for a custom cursor */
 	win->src.custom_cursor_surface = wl_compositor_create_surface(_RGFW->compositor);
 
-	if (_RGFW->decoration_manager == NULL && _RGFW->libdecorHandle && _RGFW->decorContext && !(flags & RGFW_windowNoBorder)) {
+	if (_RGFW->decoration_manager == NULL) {
 		RGFW_loadLibDecor();
 	}
 
 	/* libdecor creates and owns the xdg_surface, so it has to run before
 	   anything else requests one for this surface */
-	if (_RGFW->libdecorHandle && _RGFW->decorContext && !(flags & RGFW_windowNoBorder)) {
+	if (_RGFW->libdecorHandle && _RGFW->decorContext) {
 		const char* error = (_RGFW->decoration_manager == NULL) ? "libdecor_decorate failed, using a borderless window" : "libdecor_decorate failed, falling back to xdg decoration";
 
 		win->src.decorFrame = _RGFW->libdecor_decorate(_RGFW->decorContext, win->src.surface,
@@ -10811,65 +10811,58 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 				_RGFW->libdecor_frame_set_title(win->src.decorFrame, name);
 
 				_RGFW->libdecor_frame_map(win->src.decorFrame);
-
-				/* run the initial configure */
-				wl_display_roundtrip(_RGFW->wl_display);
-
-				if (_RGFW->icon_manager != NULL) {
-					xdg_toplevel_icon_manager_v1_set_icon(_RGFW->icon_manager, win->src.xdg_toplevel, NULL);
-				}
-
-				return win;
 			}
 		}
 	}
 
-	static const struct xdg_surface_listener xdg_surface_listener = {
-		.configure = RGFW_wl_xdg_surface_configure_handler,
-	};
-
-	win->src.xdg_surface = xdg_wm_base_get_xdg_surface(_RGFW->xdg_wm_base, win->src.surface);
-	xdg_surface_add_listener(win->src.xdg_surface, &xdg_surface_listener, win);
-
-	xdg_wm_base_set_user_data(_RGFW->xdg_wm_base, win);
-
-	win->src.xdg_toplevel = xdg_surface_get_toplevel(win->src.xdg_surface);
-
-	xdg_toplevel_set_app_id(win->src.xdg_toplevel, name);
-
-	xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->w, win->h);
-
-	if (!(win->internal.flags & RGFW_windowTransparent)) { /* no transparency */
-		RGFW_wl_setOpaque(win);
-	}
-
-	static const struct xdg_toplevel_listener xdg_toplevel_listener = {
-		.configure = RGFW_wl_xdg_toplevel_configure_handler,
-		.close = RGFW_wl_xdg_toplevel_close_handler,
-	};
-
-	xdg_toplevel_add_listener(win->src.xdg_toplevel, &xdg_toplevel_listener, win);
-
-	/* compositor supports both SSD & CSD
-	   So choose accordingly
-	 */
-	if (_RGFW->decoration_manager && (_RGFW->libdecorHandle == NULL || _RGFW->decorContext == NULL || win->src.decorFrame == NULL)) {
-		u32 decoration_mode = ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE;
-		win->src.decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
-			_RGFW->decoration_manager, win->src.xdg_toplevel);
-
-		static const struct zxdg_toplevel_decoration_v1_listener xdg_decoration_listener = {
-			.configure = RGFW_wl_xdg_decoration_configure_handler
+	if (_RGFW->libdecorHandle == NULL || _RGFW->decorContext == NULL || win->src.decorFrame == NULL) {
+		static const struct xdg_surface_listener xdg_surface_listener = {
+			.configure = RGFW_wl_xdg_surface_configure_handler,
 		};
 
-		zxdg_toplevel_decoration_v1_add_listener(win->src.decoration, &xdg_decoration_listener, win);
+		win->src.xdg_surface = xdg_wm_base_get_xdg_surface(_RGFW->xdg_wm_base, win->src.surface);
+		xdg_surface_add_listener(win->src.xdg_surface, &xdg_surface_listener, win);
 
-		/* we want no decorations */
-		if ((flags & RGFW_windowNoBorder)) {
-			decoration_mode = ZXDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
+		xdg_wm_base_set_user_data(_RGFW->xdg_wm_base, win);
+
+		win->src.xdg_toplevel = xdg_surface_get_toplevel(win->src.xdg_surface);
+
+		xdg_toplevel_set_app_id(win->src.xdg_toplevel, name);
+
+		xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, win->w, win->h);
+
+		if (!(win->internal.flags & RGFW_windowTransparent)) { /* no transparency */
+			RGFW_wl_setOpaque(win);
 		}
 
-		zxdg_toplevel_decoration_v1_set_mode(win->src.decoration, decoration_mode);
+		static const struct xdg_toplevel_listener xdg_toplevel_listener = {
+			.configure = RGFW_wl_xdg_toplevel_configure_handler,
+			.close = RGFW_wl_xdg_toplevel_close_handler,
+		};
+
+		xdg_toplevel_add_listener(win->src.xdg_toplevel, &xdg_toplevel_listener, win);
+
+		/* compositor supports both SSD & CSD
+		   So choose accordingly
+		 */
+		if (_RGFW->decoration_manager) {
+			u32 decoration_mode = ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE;
+			win->src.decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
+				_RGFW->decoration_manager, win->src.xdg_toplevel);
+
+			static const struct zxdg_toplevel_decoration_v1_listener xdg_decoration_listener = {
+				.configure = RGFW_wl_xdg_decoration_configure_handler
+			};
+
+			zxdg_toplevel_decoration_v1_add_listener(win->src.decoration, &xdg_decoration_listener, win);
+
+			/* we want no decorations */
+			if ((flags & RGFW_windowNoBorder)) {
+				decoration_mode = ZXDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
+			}
+
+			zxdg_toplevel_decoration_v1_set_mode(win->src.decoration, decoration_mode);
+		}
 	}
 
 	if (_RGFW->icon_manager != NULL) {
