@@ -10811,6 +10811,9 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 				_RGFW->libdecor_frame_set_title(win->src.decorFrame, name);
 
 				_RGFW->libdecor_frame_map(win->src.decorFrame);
+				if (flags & RGFW_windowNoBorder) {
+					_RGFW->libdecor_frame_set_visibility(win->src.decorFrame, false);
+				}
 			}
 		}
 	}
