@@ -9,6 +9,8 @@ WAYLAND_PROTO := \
 	unstable/pointer-constraints/pointer-constraints-unstable-v1 \
 	unstable/xdg-output/xdg-output-unstable-v1 \
 	staging/pointer-warp/pointer-warp-v1 \
+	stable/viewporter/viewporter \
+	staging/fractional-scale/fractional-scale-v1 \
 
 
 WAYLAND_HEADERS = $(addsuffix .h,$(WAYLAND_PROTO))
