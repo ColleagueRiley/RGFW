@@ -4389,29 +4389,23 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 		_RGFW->cur->next = win;
 	}
 
+	RGFW_windowFlags reservedFlags = flags & (RGFW_windowScaleToMonitor | RGFW_windowFullscreenExclusive | RGFW_windowFullscreenBorderless);
+
 	/* set and init the new window's data */
 	win->x = x;
 	win->y = y;
 	win->w = w;
 	win->h = h;
 	win->internal.mouse = _RGFW->standardMice[RGFW_mouseNormal];
-	win->internal.flags = flags;
+	win->internal.flags = flags & ~reservedFlags;
 	win->internal.enabledEvents = RGFW_allEventFlags;
 	win->next = NULL;
 
-	RGFW_windowFlags reservedFlags = flags & (RGFW_windowScaleToMonitor);
-
-	RGFW_window* ret = RGFW_createWindowPlatform(name, flags, win);
+	RGFW_window* ret = RGFW_createWindowPlatform(name, win->internal.flags, win);
 	if (ret == NULL) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errPlatform, "failed to create a window");
 		return NULL;
 	}
-
-	flags |= reservedFlags;
-
-#ifndef RGFW_X11
-	RGFW_window_setFlagsInternal(win, flags, 0);
-#endif
 
 #ifdef RGFW_OPENGL
 	win->src.gfxType = 0;
@@ -4429,14 +4423,7 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	}
 #endif
 
-	/* X11 creates the window after the OpenGL context is created (because of visual garbage),
-		 * so we have to wait to set the flags
-		 * This is required so that way the user can create their own OpenGL context after RGFW_createWindow is used
-		 * if a window is created, CreateContext will delete the window and create a new one
-		 * */
-#ifdef RGFW_X11
 	RGFW_window_setFlagsInternal(win, flags, 0);
-#endif
 
 #ifdef RGFW_WAYLAND
 	/* recieve all events needed to configure the surface */
@@ -5438,6 +5425,7 @@ void RGFW_window_resize(RGFW_window* win, i32 w, i32 h) {
 	RGFW_ASSERT(win != NULL);
 	win->w = w;
 	win->h = h;
+
 	RGFW_window_resizePlatform(win, w, h);
 	win->internal.flags &= ~(u32)RGFW_windowMaximize;
 }
@@ -8115,8 +8103,9 @@ void RGFW_FUNC(RGFW_window_movePlatform) (RGFW_window* win, i32 x, i32 y) {
 
 
 void RGFW_FUNC(RGFW_window_resizePlatform) (RGFW_window* win, i32 w, i32 h) {
-	XResizeWindow(_RGFW->display, win->src.window, (u32)w, (u32)h);
-
+	if (RGFW_window_isHidden(win) == RGFW_FALSE) {
+		XResizeWindow(_RGFW->display, win->src.window, (u32)w, (u32)h);
+	}
 	if ((win->internal.flags & RGFW_windowNoResize)) {
 		XSizeHints sh;
 		sh.flags = (1L << 4) | (1L << 5);
@@ -8125,6 +8114,7 @@ void RGFW_FUNC(RGFW_window_resizePlatform) (RGFW_window* win, i32 w, i32 h) {
 
 		XSetWMSizeHints(_RGFW->display, (Drawable) win->src.window, &sh, XA_WM_NORMAL_HINTS);
 	}
+
 	return;
 }
 
@@ -8484,9 +8474,11 @@ void RGFW_FUNC(RGFW_window_showPlatform) (RGFW_window* win) {
 	}
 
 	XMapWindow(_RGFW->display, win->src.window);
-	RGFW_window_move(win, win->x, win->y);
 
 	RGFW_waitForShowEvent_X11(win);
+
+	RGFW_window_move(win, win->x, win->y);
+	RGFW_window_resize(win, win->w, win->h);
 	RGFW_window_setFullscreenPlatform(win, RGFW_window_isFullscreen(win));
 	return;
 }
