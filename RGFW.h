@@ -11557,8 +11557,9 @@ RGFW_bool RGFW_win32_getDarkModeState(void) {
 RGFWDEF void RGFW_win32_makeWindowDarkMode(RGFW_window* win, RGFW_bool state);
 void RGFW_win32_makeWindowDarkMode(RGFW_window* win, RGFW_bool state) {
 	BOOL value = (state == RGFW_TRUE) ? TRUE : FALSE;
-	if (RGFW_dwm_dll && DwmSetWindowAttributeSRC)
+	if (RGFW_dwm_dll && DwmSetWindowAttributeSRC) {
 		DwmSetWindowAttributeSRC(win->src.window, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, &value, sizeof(value));
+	}
 }
 
 LRESULT CALLBACK WndProcW(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -12140,17 +12141,23 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 		if (timeBeginPeriod) {
 			timeBeginPeriod(1);
 		}
+	} else {
+		RGFW_debugCallback(RGFW_typeError, RGFW_errPlatform, "Failed to load winmm.dll timing functions will fail to start");
 	}
 
 	RGFW_LOAD_LIBRARY(RGFW_dwm_dll, "dwmapi.dll");
 	if (RGFW_dwm_dll) {
 		RGFW_PROC_DEF(RGFW_dwm_dll, DwmEnableBlurBehindWindow);
 		RGFW_PROC_DEF(RGFW_dwm_dll, DwmSetWindowAttribute);
+	} else {
+		RGFW_debugCallback(RGFW_typeError, RGFW_errPlatform, "Failed to load dwmapi.dll window blur setting darkmode will fail");
 	}
 
 	RGFW_LOAD_LIBRARY(RGFW_Shcore_dll, "shcore.dll");
 	if (RGFW_Shcore_dll) {
 		RGFW_PROC_DEF(RGFW_Shcore_dll, GetDpiForMonitor);
+	} else {
+		RGFW_debugCallback(RGFW_typeError, RGFW_errPlatform, "Failed to load shcore.dll GetDPIForMonitor functionality will fail");
 	}
 
 	_RGFW->instance = GetModuleHandleW(NULL);
