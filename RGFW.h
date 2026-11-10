@@ -671,7 +671,7 @@ typedef RGFW_ENUM(u8, RGFW_key) {
 	RGFW_keyWorld1,
     RGFW_keyWorld2,
 	RGFW_keyCount,
-    RGFW_keyFinal = 256, /* padding for alignment ~(175 by default) */
+    RGFW_keyFinal = 256, /* padding for alignment */
 	RGFW_keyFirst = RGFW_keySpace
 };
 
@@ -1279,7 +1279,7 @@ RGFWDEF RGFW_mouse* RGFW_createMouse(u8* data, i32 w, i32 h, RGFW_format format)
 
 /**!
  * @brief create a standard mouse icon
- * @param mouse The standard cursor type (see RGFW_MOUSE enum).
+ * @param mouse The standard cursor type (see RGFW_mouseIcon enum).
  * @return A pointer to the newly loaded RGFW_mouse structure.
 */
 RGFWDEF RGFW_mouse* RGFW_createMouseStandard(RGFW_mouseIcon mouse);
