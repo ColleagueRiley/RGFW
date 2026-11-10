@@ -511,7 +511,7 @@ typedef struct RGFW_gammaRamp {
 
 /*! @brief monitor mode data | can be changed by the user (with functions)*/
 typedef struct RGFW_monitorMode {
-	i32 w, h; /*!< monitor workarea size */
+	i32 w, h; /*!< monitor size */
 	float refreshRate; /*!< monitor refresh rate */
 	u8 red, blue, green; /*!< sizeof rgb values */
 	void* src; /*!< source API mode */
@@ -522,7 +522,7 @@ typedef struct RGFW_monitorNode RGFW_monitorNode;
 
 /*! @brief structure for monitor data */
 typedef struct RGFW_monitor {
-	i32 x, y; /*!< x - y of the monitor workarea */
+	i32 x, y; /*!< x - y of the monitor */
 	char name[128]; /*!< monitor name */
 	float scaleX, scaleY; /*!< monitor content scale */
 	float pixelRatio; /*!< pixel ratio for monitor (1.0 for regular, 2.0 for hiDPI)  */
