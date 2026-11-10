@@ -12881,14 +12881,14 @@ size_t RGFW_monitor_getModesPtr(RGFW_monitor* monitor, RGFW_monitorMode** modes)
 	return count;
 }
 
-RGFWDEF void RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, RGFW_monitorNode* node);
-void RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, RGFW_monitorNode* node) {
+RGFWDEF RGFW_bool RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, RGFW_monitorNode* node);
+RGFW_bool RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, RGFW_monitorNode* node) {
 	DEVMODEW dm;
 	ZeroMemory(&dm, sizeof(dm));
 	dm.dmSize = sizeof(dm);
 
 	if (!EnumDisplaySettingsW(adapter->DeviceName, ENUM_CURRENT_SETTINGS, &dm)) {
-		return;
+		return RGFW_FALSE;
 	}
 
 	RECT rect;
@@ -12896,13 +12896,19 @@ void RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, RGFW_monitorNode* node) {
 	rect.top = (LONG)dm.dmPosition.y;
 	rect.right = (LONG)((LONG)dm.dmPosition.x + (LONG)dm.dmPelsWidth);
 	rect.bottom = (LONG)((long)dm.dmPosition.y + (LONG)dm.dmPelsHeight);
+
+	node->hMonitor = NULL;
 	EnumDisplayMonitors(NULL, &rect, RGFW_win32_getMonitorHandle, (LPARAM)node);
+
+	if (node->hMonitor == NULL) return RGFW_FALSE;
 
 	RGFW_win32_getMode(&dm, &node->mon.mode);
 
 	MONITORINFOEXW monitorInfo;
 	monitorInfo.cbSize = sizeof(MONITORINFOEXW);
-	GetMonitorInfoW(node->hMonitor, (LPMONITORINFO)&monitorInfo);
+	if (GetMonitorInfoW(node->hMonitor, (LPMONITORINFO)&monitorInfo) == FALSE) {
+		return RGFW_FALSE;
+	}
 
 	node->mon.x = monitorInfo.rcMonitor.left;
 	node->mon.y = monitorInfo.rcMonitor.top;
@@ -12931,18 +12937,30 @@ void RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, RGFW_monitorNode* node) {
 	if (monitorInfo.dwFlags & MONITORINFOF_PRIMARY) {
 		_RGFW->monitors.primary = node;
 	}
+	
+	return RGFW_TRUE;
 }
 
 RGFWDEF void RGFW_win32_createMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd);
 void RGFW_win32_createMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd) {
+	RGFW_monitorNode* prev = _RGFW->monitors.list.cur;
 	RGFW_monitorNode* node = RGFW_monitors_add(NULL);
-	RGFW_win32_initMonitor(adapter, node);
-
 	wcscpy(node->adapterName, adapter->DeviceName);
-	wcscpy(node->deviceName, dd->DeviceName);
 
-	i32 size = RGFW_createUTF8FromWideStringWin32(dd->DeviceString, node->mon.name, sizeof(node->mon.name));
-	node->mon.name[size - 1] = '\0';
+	if (RGFW_win32_initMonitor(adapter, node) == RGFW_FALSE) {	
+		RGFW_debugCallback(RGFW_typeError, RGFW_errPlatform, "failed to create a monitor");
+		RGFW_monitors_remove(node, prev);
+		return;
+	}
+
+	if (dd) {
+		wcscpy(node->deviceName, dd->DeviceName);
+		i32 size = RGFW_createUTF8FromWideStringWin32(dd->DeviceString, node->mon.name, sizeof(node->mon.name));
+		node->mon.name[size - 1] = '\0';
+	} else {
+		i32 size = RGFW_createUTF8FromWideStringWin32(adapter->DeviceString, node->mon.name, sizeof(node->mon.name));
+		node->mon.name[size - 1] = '\0';
+	}
 
 	RGFW_monitorCallback(_RGFW->root, &node->mon, RGFW_TRUE);
 }
@@ -13010,6 +13028,8 @@ void RGFW_pollMonitors(void) {
 			if (node) {
 				continue;
 			}
+
+			RGFW_win32_createMonitor(&adapter, &dd);
         }
 	}
 
