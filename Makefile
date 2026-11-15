@@ -195,6 +195,7 @@ TEST_OUTPUTS = \
 			   tests/loop \
 			   tests/clipboard \
 			   tests/memory \
+			   tests/keys \
 
 
 
