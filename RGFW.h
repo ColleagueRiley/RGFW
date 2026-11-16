@@ -1729,6 +1729,15 @@ RGFWDEF RGFW_bool RGFW_window_getPosition(RGFW_window* win, i32* x, i32* y); /*!
 RGFWDEF RGFW_bool RGFW_window_getSize(RGFW_window* win, i32* w, i32* h);
 
 /**!
+ * @brief gets the scale/dpi of the window in exact pixels
+ * @param win a pointer to the window
+ * @param x [OUTPUT] the x component for the scale of the window
+ * @param y [OUTPUT] the y component for the scale of the window
+ * @return a bool if the function was successful
+*/
+RGFWDEF RGFW_bool RGFW_window_getScale(RGFW_window* win, float* x, float* y);
+
+/**!
  * @brief gets the size of the window in exact pixels
  * @param win a pointer to the window
  * @param w [OUTPUT] the width of the window
@@ -3271,6 +3280,7 @@ typedef struct RGFW_windowInternal {
 	RGFW_monitor* monitor;
 	RGFW_monitorMode oldMode, newMode;
 	RGFW_mouse* mouse;
+	float scaleX, scaleY;
 } RGFW_windowInternal;
 
 struct RGFW_window {
@@ -4128,6 +4138,8 @@ void RGFW_mouseScrollCallback(RGFW_window* win, float x, float y) {
 }
 
 void RGFW_scaleUpdatedCallback(RGFW_window* win, float scaleX, float scaleY) {
+	win->internal.scaleX = scaleX;
+	win->internal.scaleY = scaleY;
 	if (!(win->internal.enabledEvents & RGFW_scaleUpdatedFlag)) return;
 
 	RGFW_event event;
@@ -4211,13 +4223,26 @@ void RGFW_window_setEventState(RGFW_window* win, RGFW_eventFlag event, RGFW_bool
 void* RGFW_window_getUserPtr(RGFW_window* win) { RGFW_ASSERT(win);  return win->userPtr; }
 void RGFW_window_setUserPtr(RGFW_window* win, void* ptr) { RGFW_ASSERT(win); win->userPtr = ptr; }
 
-RGFW_bool RGFW_window_getSizeInPixels(RGFW_window* win, i32* w, i32* h) {
+
+RGFW_bool RGFW_window_getScale(RGFW_window* win, float* x, float* y) {
+#if defined(RGFW_X11) || defined(RGFW_WASM)
 	RGFW_monitor* mon = RGFW_window_getMonitor(win);
 	if (mon == NULL) return RGFW_FALSE;
 
-	if (w) *w = (i32)((float)win->w * mon->pixelRatio);
-	if (h) *h = (i32)((float)win->h * mon->pixelRatio);
+	win->internal.scaleX = win->internal.scaleY = mon->pixelRatio
+#endif
 
+	if (x) *x = win->internal.scaleY;
+	if (y) *y = win->internal.scaleX;
+	return RGFW_TRUE;
+}
+
+RGFW_bool RGFW_window_getSizeInPixels(RGFW_window* win, i32* w, i32* h) {
+	float x, y;
+	if (RGFW_window_getScale(win, &x, &y) == RGFW_FALSE) return RGFW_FALSE;
+
+	if (w) *w = (i32)((float)win->w * x);
+	if (h) *h = (i32)((float)win->h * y);
 	return RGFW_TRUE;
 }
 
@@ -4404,6 +4429,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	win->internal.mouse = _RGFW->standardMice[RGFW_mouseNormal];
 	win->internal.flags = flags & ~reservedFlags;
 	win->internal.enabledEvents = RGFW_allEventFlags;
+	win->internal.scaleX = 1.0f;
+	win->internal.scaleY = 1.0f;
 	win->next = NULL;
 
 	RGFW_window* ret = RGFW_createWindowPlatform(name, win->internal.flags, win);
@@ -13018,7 +13045,7 @@ RGFW_bool RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, RGFW_monitorNode* nod
 	if (monitorInfo.dwFlags & MONITORINFOF_PRIMARY) {
 		_RGFW->monitors.primary = node;
 	}
-	
+
 	return RGFW_TRUE;
 }
 
@@ -13028,7 +13055,7 @@ void RGFW_win32_createMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd) {
 	RGFW_monitorNode* node = RGFW_monitors_add(NULL);
 	wcscpy(node->adapterName, adapter->DeviceName);
 
-	if (RGFW_win32_initMonitor(adapter, node) == RGFW_FALSE) {	
+	if (RGFW_win32_initMonitor(adapter, node) == RGFW_FALSE) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errPlatform, "failed to create a monitor");
 		RGFW_monitors_remove(node, prev);
 		return;
@@ -14574,10 +14601,10 @@ static void RGFW__osxViewDidChangeBackingProperties(id self, SEL _cmd) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
-	RGFW_monitor* mon = RGFW_window_getMonitor(win);
-	if (mon == NULL) return;
+	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
+	NSRect fbRect = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("convertRectToBacking:"), frame);
 
-	RGFW_scaleUpdatedCallback(win, mon->scaleX, mon->scaleY);
+	RGFW_scaleUpdatedCallback(win, (fbRect.size.width / contentRect.size.width), fbRect.size.height / contentRect.size.height);
 }
 
 static BOOL RGFW__osxWantsUpdateLayer(id self, SEL _cmd) { RGFW_UNUSED(self); RGFW_UNUSED(_cmd); return YES; }
