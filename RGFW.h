@@ -4226,10 +4226,12 @@ void RGFW_window_setUserPtr(RGFW_window* win, void* ptr) { RGFW_ASSERT(win); win
 
 RGFW_bool RGFW_window_getScale(RGFW_window* win, float* x, float* y) {
 #if defined(RGFW_X11) || defined(RGFW_WASM)
-	RGFW_monitor* mon = RGFW_window_getMonitor(win);
-	if (mon == NULL) return RGFW_FALSE;
+	if (RGFW_usingWayland() == RGFW_FALSE) {
+		RGFW_monitor* mon = RGFW_window_getMonitor(win);
+		if (mon == NULL) return RGFW_FALSE;
 
-	win->internal.scaleX = win->internal.scaleY = mon->pixelRatio
+		win->internal.scaleX = win->internal.scaleY = mon->pixelRatio;
+	}
 #endif
 
 	if (x) *x = win->internal.scaleY;
@@ -14604,7 +14606,7 @@ static void RGFW__osxViewDidChangeBackingProperties(id self, SEL _cmd) {
 	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
 	NSRect fbRect = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("convertRectToBacking:"), frame);
 
-	RGFW_scaleUpdatedCallback(win, (fbRect.size.width / frame.size.width), fbRect.size.height / frame.size.height);
+	RGFW_scaleUpdatedCallback(win, (float)(fbRect.size.width / frame.size.width), (float)(fbRect.size.height / frame.size.height));
 }
 
 static BOOL RGFW__osxWantsUpdateLayer(id self, SEL _cmd) { RGFW_UNUSED(self); RGFW_UNUSED(_cmd); return YES; }
