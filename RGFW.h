@@ -4225,11 +4225,15 @@ void RGFW_window_setUserPtr(RGFW_window* win, void* ptr) { RGFW_ASSERT(win); win
 
 
 RGFW_bool RGFW_window_getScale(RGFW_window* win, float* x, float* y) {
+	RGFW_monitor* mon = RGFW_window_getMonitor(win);
+	if (mon == NULL) return RGFW_FALSE;
+
+	if (win->internal.scaleX == 1 && win->internal.scaleY == 1 && mon->pixelRatio != 1) {
+		win->internal.scaleX = win->internal.scaleY = mon->pixelRatio;
+	}
+
 #if defined(RGFW_X11) || defined(RGFW_WASM)
 	if (RGFW_usingWayland() == RGFW_FALSE) {
-		RGFW_monitor* mon = RGFW_window_getMonitor(win);
-		if (mon == NULL) return RGFW_FALSE;
-
 		win->internal.scaleX = win->internal.scaleY = mon->pixelRatio;
 	}
 #endif
