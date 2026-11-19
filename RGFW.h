@@ -13045,7 +13045,7 @@ RGFW_bool RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, RGFW_monitorNode* nod
 		GetDpiForMonitor(node->hMonitor, MDT_EFFECTIVE_DPI, &x, &y);
 		node->mon.scaleX = (float) (x) / (float) 96.0f;
 		node->mon.scaleY = (float) (y) / (float) 96.0f;
-		node->mon.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
+		node->mon.pixelRatio = (float) (x) / (float) 96.0f;
 	}
 
 	if (monitorInfo.dwFlags & MONITORINFOF_PRIMARY) {
