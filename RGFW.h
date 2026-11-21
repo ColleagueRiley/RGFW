@@ -194,7 +194,6 @@ int main() {
 	#define RGFW_WINDOWS
 #endif
 #if defined(RGFW_WAYLAND)
-	#define RGFW_DEBUG /* wayland will be in debug mode by default for now */
 	#define RGFW_UNIX
 	#ifdef RGFW_OPENGL
 		#define RGFW_EGL
