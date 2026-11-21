@@ -4351,7 +4351,9 @@ void RGFW_deinit_ptr(RGFW_info* info) {
 RGFW_window* RGFW_createWindow(const char* name, i32 x, i32 y, i32 w, i32 h, RGFW_windowFlags flags) {
 	RGFW_window* win = (RGFW_window*)RGFW_ALLOC(sizeof(RGFW_window));
 	RGFW_ASSERT(win != NULL);
-    return RGFW_createWindowPtr(name, x, y, w, h, flags, win);
+	RGFW_window* ret = RGFW_createWindowPtr(name, x, y, w, h, flags, win);
+	if (ret == NULL) RGFW_FREE(win);
+	return ret;
 }
 
 void RGFW_window_close(RGFW_window* win) {
@@ -4404,6 +4406,14 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	RGFW_window* ret = RGFW_createWindowPlatform(name, win->internal.flags, win);
 	if (ret == NULL) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errPlatform, "failed to create a window");
+		/* remove the window from the window list again, so it can be freed */
+		if (_RGFW->root == win) {
+			_RGFW->root = NULL;
+			_RGFW->cur = NULL;
+		} else {
+			_RGFW->cur->next = NULL;
+		}
+		_RGFW->windowCount--;
 		return NULL;
 	}
 
