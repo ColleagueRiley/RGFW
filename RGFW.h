@@ -10982,18 +10982,6 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 		_RGFW->libdecor_dispatch(_RGFW->decorContext, 0);
 	}
 
-	/* send buffered requests to compositor */
-	while (wl_display_flush(_RGFW->wl_display) == -1) {
-		/* compositor not responding to new requests */
-		/* so let's dispatch some events so the compositor responds */
-		if (errno == EAGAIN) {
-			if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
-				return;
-			}
-		} else {
-			return;
-		}
-	}
 	if (_RGFW->wl_repeat_info_rate != 0 && _RGFW->last_key) {
 		u32 now = (u32)(RGFW_unix_getTimeNS() / 1000000);
 		if (now > _RGFW->last_key_time) {
@@ -11002,34 +10990,33 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
 		}
 	}
 
-	/* read the events; if empty this reads from the */
-	/* wayland file descriptor */
-	struct pollfd fds;
-	memset(&fds, 0, sizeof(fds));
-    fds.fd = wl_display_get_fd(_RGFW->wl_display);
-    fds.events = POLLIN;
-    fds.revents = 0;
-
-    while (1) {
-        while (wl_display_prepare_read(_RGFW->wl_display) != 0) {
-            if (wl_display_dispatch_pending(_RGFW->wl_display) > 0)
-                return;
-        }
-
-        if (poll(&fds, 1, 0) == 0) {
-            wl_display_cancel_read(_RGFW->wl_display);
-            return;
-        }
-
-        if (fds.revents & POLLIN) {
-            wl_display_read_events(_RGFW->wl_display);
-            if (wl_display_dispatch_pending(_RGFW->wl_display) > 0) {
-				return;
-			}
-		} else {
-            wl_display_cancel_read(_RGFW->wl_display);
+	/* empty the queue, then announce the read */
+	while (wl_display_prepare_read(_RGFW->wl_display) != 0) {
+		if (wl_display_dispatch_pending(_RGFW->wl_display) == -1) {
+			return;
 		}
 	}
+
+	/* send buffered requests to the compositor */
+	/* if the socket is full (EAGAIN), the next call sends the rest */
+	wl_display_flush(_RGFW->wl_display);
+
+	/* read the events the socket holds now, without waiting */
+	struct pollfd fds;
+	fds.fd = wl_display_get_fd(_RGFW->wl_display);
+	fds.events = POLLIN;
+	fds.revents = 0;
+
+	if (poll(&fds, 1, 0) > 0 && (fds.revents & POLLIN)) {
+		/* fails after a connection error, the next call fails again instead of looping */
+		if (wl_display_read_events(_RGFW->wl_display) == -1) {
+			return;
+		}
+	} else {
+		wl_display_cancel_read(_RGFW->wl_display);
+	}
+
+	wl_display_dispatch_pending(_RGFW->wl_display);
 }
 
 void RGFW_FUNC(RGFW_window_movePlatform) (RGFW_window* win, i32 x, i32 y) {
