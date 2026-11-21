@@ -1728,6 +1728,15 @@ RGFWDEF RGFW_bool RGFW_window_getPosition(RGFW_window* win, i32* x, i32* y); /*!
 RGFWDEF RGFW_bool RGFW_window_getSize(RGFW_window* win, i32* w, i32* h);
 
 /**!
+ * @brief gets the scale/dpi of the window in exact pixels
+ * @param win a pointer to the window
+ * @param x [OUTPUT] the x component for the scale of the window
+ * @param y [OUTPUT] the y component for the scale of the window
+ * @return a bool if the function was successful
+*/
+RGFWDEF RGFW_bool RGFW_window_getScale(RGFW_window* win, float* x, float* y);
+
+/**!
  * @brief gets the size of the window in exact pixels
  * @param win a pointer to the window
  * @param w [OUTPUT] the width of the window
@@ -3185,6 +3194,9 @@ RGFWDEF RGFW_key RGFW_physicalToMappedKey(RGFW_key keycode);
 
 		struct wl_data_source *data_source; // offer data to other clients
 
+		/* fractional-scale-v1 + viewporter, used for hiDPI scaling */
+		struct wp_fractional_scale_v1* fractional_scale;
+		struct wp_viewport* viewport;
 		struct RGFW_libdecor_frame* decorFrame;
 #endif /* RGFW_WAYLAND */
 	};
@@ -3267,6 +3279,7 @@ typedef struct RGFW_windowInternal {
 	RGFW_monitor* monitor;
 	RGFW_monitorMode oldMode, newMode;
 	RGFW_mouse* mouse;
+	float scaleX, scaleY;
 } RGFW_windowInternal;
 
 struct RGFW_window {
@@ -3456,6 +3469,8 @@ struct RGFW_info {
         RGFW_window* kbOwner;
 		RGFW_window* mouseOwner; /* what window has access to the mouse */
 
+		struct wp_fractional_scale_manager_v1* fractional_scale_manager;
+		struct wp_viewporter* viewporter;
 		struct RGFW_libdecor* decorContext; /* shared by every window in the context */
 		void* libdecorHandle;
 		PFN_RGFW_libdecor_new libdecor_new;
@@ -4122,6 +4137,8 @@ void RGFW_mouseScrollCallback(RGFW_window* win, float x, float y) {
 }
 
 void RGFW_scaleUpdatedCallback(RGFW_window* win, float scaleX, float scaleY) {
+	win->internal.scaleX = scaleX;
+	win->internal.scaleY = scaleY;
 	if (!(win->internal.enabledEvents & RGFW_scaleUpdatedFlag)) return;
 
 	RGFW_event event;
@@ -4205,13 +4222,32 @@ void RGFW_window_setEventState(RGFW_window* win, RGFW_eventFlag event, RGFW_bool
 void* RGFW_window_getUserPtr(RGFW_window* win) { RGFW_ASSERT(win);  return win->userPtr; }
 void RGFW_window_setUserPtr(RGFW_window* win, void* ptr) { RGFW_ASSERT(win); win->userPtr = ptr; }
 
-RGFW_bool RGFW_window_getSizeInPixels(RGFW_window* win, i32* w, i32* h) {
+
+RGFW_bool RGFW_window_getScale(RGFW_window* win, float* x, float* y) {
 	RGFW_monitor* mon = RGFW_window_getMonitor(win);
 	if (mon == NULL) return RGFW_FALSE;
 
-	if (w) *w = (i32)((float)win->w * mon->pixelRatio);
-	if (h) *h = (i32)((float)win->h * mon->pixelRatio);
+	if (win->internal.scaleX == 1 && win->internal.scaleY == 1 && mon->pixelRatio != 1) {
+		win->internal.scaleX = win->internal.scaleY = mon->pixelRatio;
+	}
 
+#if defined(RGFW_X11) || defined(RGFW_WASM)
+	if (RGFW_usingWayland() == RGFW_FALSE) {
+		win->internal.scaleX = win->internal.scaleY = mon->pixelRatio;
+	}
+#endif
+
+	if (x) *x = win->internal.scaleY;
+	if (y) *y = win->internal.scaleX;
+	return RGFW_TRUE;
+}
+
+RGFW_bool RGFW_window_getSizeInPixels(RGFW_window* win, i32* w, i32* h) {
+	float x, y;
+	if (RGFW_window_getScale(win, &x, &y) == RGFW_FALSE) return RGFW_FALSE;
+
+	if (w) *w = (i32)((float)win->w * x);
+	if (h) *h = (i32)((float)win->h * y);
 	return RGFW_TRUE;
 }
 
@@ -4398,6 +4434,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	win->internal.mouse = _RGFW->standardMice[RGFW_mouseNormal];
 	win->internal.flags = flags & ~reservedFlags;
 	win->internal.enabledEvents = RGFW_allEventFlags;
+	win->internal.scaleX = 1.0f;
+	win->internal.scaleY = 1.0f;
 	win->next = NULL;
 
 	RGFW_window* ret = RGFW_createWindowPlatform(name, win->internal.flags, win);
@@ -9619,8 +9657,34 @@ struct wl_surface* RGFW_window_getWindow_Wayland(RGFW_window* win) { return win-
 #include "pointer-constraints-unstable-v1.h"
 #include "xdg-output-unstable-v1.h"
 #include "pointer-warp-v1.h"
+#include "fractional-scale-v1.h"
+#include "viewporter.h"
 
 void RGFW_toggleWaylandMaximized(RGFW_window* win, RGFW_bool maximized);
+/* fractional-scale-v1 reports the preferred scale of the surface as a fixed
+   point value of scale * 120, e.g. 3.0x is 360 and 1.5x is 180. The monitor's
+   pixelRatio is the one RGFW uses for physical sizes, so keep it exact. */
+static void RGFW_wl_fractional_scale_handler(void* data,
+		struct wp_fractional_scale_v1* fractional_scale, u32 scale_120) {
+	RGFW_UNUSED(fractional_scale);
+
+	RGFW_window* win = (RGFW_window*)data;
+	if (win == NULL) return;
+
+	float scale = (float)scale_120 / 120.0f;
+	if (scale <= 0.0f) return;
+
+	RGFW_monitor* mon = RGFW_window_getMonitor(win);
+	if (mon != NULL) {
+		mon->pixelRatio = scale;
+	}
+
+	RGFW_scaleUpdatedCallback(win, scale, scale);
+}
+
+static const struct wp_fractional_scale_v1_listener RGFW_wl_fractional_scale_listener = {
+	.preferred_scale = RGFW_wl_fractional_scale_handler,
+};
 
 static void RGFW_wl_libdecor_configure(struct RGFW_libdecor_frame* frame,
 		struct RGFW_libdecor_configuration* configuration, void* user_data) {
@@ -10383,6 +10447,10 @@ static void RGFW_wl_global_registry_handler(void* data, struct wl_registry *regi
 		RGFW->wp_pointer_warp = wl_registry_bind(registry, id, &wp_pointer_warp_v1_interface, 1);
 	} else if (RGFW_STRNCMP(interface,"wl_data_device_manager", 23) == 0) {
 		RGFW->data_device_manager = wl_registry_bind(registry, id, &wl_data_device_manager_interface, 1);
+	} else if (RGFW_STRNCMP(interface, wp_fractional_scale_manager_v1_interface.name, 255) == 0) {
+		RGFW->fractional_scale_manager = wl_registry_bind(registry, id, &wp_fractional_scale_manager_v1_interface, 1);
+	} else if (RGFW_STRNCMP(interface, wp_viewporter_interface.name, 255) == 0) {
+		RGFW->viewporter = wl_registry_bind(registry, id, &wp_viewporter_interface, 1);
 	}
 }
 
@@ -10601,6 +10669,15 @@ void RGFW_deinitPlatform_Wayland(void) {
 		zxdg_output_manager_v1_destroy(_RGFW->xdg_output_manager);
 	}
 
+	if (_RGFW->fractional_scale_manager) {
+		wp_fractional_scale_manager_v1_destroy(_RGFW->fractional_scale_manager);
+		_RGFW->fractional_scale_manager = NULL;
+	}
+
+	if (_RGFW->viewporter) {
+		wp_viewporter_destroy(_RGFW->viewporter);
+		_RGFW->viewporter = NULL;
+	}
 	if (_RGFW->decorContext && _RGFW->libdecorHandle) {
 		_RGFW->libdecor_unref(_RGFW->decorContext);
 		_RGFW->decorContext = NULL;
@@ -10769,6 +10846,26 @@ RGFW_window* RGFW_FUNC(RGFW_createWindowPlatform) (const char* name, RGFW_window
 
 	win->src.surface = wl_compositor_create_surface(_RGFW->compositor);
 	wl_surface_add_listener(win->src.surface, &wl_surface_listener, win);
+
+	/* hiDPI: the fractional scale has to be requested before the first commit
+	   so the compositor's preferred_scale arrives with the initial configure */
+	if (_RGFW->fractional_scale_manager != NULL) {
+		win->src.fractional_scale = wp_fractional_scale_manager_v1_get_fractional_scale(
+			_RGFW->fractional_scale_manager, win->src.surface);
+
+		if (win->src.fractional_scale != NULL) {
+			wp_fractional_scale_v1_add_listener(win->src.fractional_scale,
+				&RGFW_wl_fractional_scale_listener, win);
+		}
+	}
+
+	/* hiDPI: the viewport scales a physical buffer down to the logical size */
+	if (_RGFW->viewporter != NULL) {
+		win->src.viewport = wp_viewporter_get_viewport(_RGFW->viewporter, win->src.surface);
+		if (win->src.viewport != NULL) {
+			wp_viewport_set_destination(win->src.viewport, win->w, win->h);
+		}
+	}
 
 	/* create a surface for a custom cursor */
 	win->src.custom_cursor_surface = wl_compositor_create_surface(_RGFW->compositor);
@@ -11038,6 +11135,13 @@ void RGFW_FUNC(RGFW_window_movePlatform) (RGFW_window* win, i32 x, i32 y) {
 void RGFW_FUNC(RGFW_window_resizePlatform) (RGFW_window* win, i32 w, i32 h) {
 	if (_RGFW->compositor) {
 		xdg_surface_set_window_geometry(win->src.xdg_surface, 0, 0, w, h);
+
+		/* keep the hiDPI viewport destination on the logical size */
+		if (win->src.viewport != NULL && _RGFW->viewporter != NULL) {
+			wp_viewport_set_destination(win->src.viewport, w, h);
+			wl_surface_commit(win->src.surface);
+		}
+
 		#ifdef RGFW_OPENGL
 		if (win->src.ctx.egl)
 			wl_egl_window_resize(win->src.ctx.egl->eglWindow, (i32)w, (i32)h, 0, 0);
@@ -11487,6 +11591,16 @@ void RGFW_FUNC(RGFW_window_swapInterval_OpenGL) (RGFW_window* win, i32 swapInter
 void RGFW_FUNC(RGFW_window_closePlatform)(RGFW_window* win) {
 	RGFW_ASSERT(win != NULL);
 	RGFW_debugCallback(RGFW_typeInfo, RGFW_infoWindow, "a window was freed");
+
+	if (win->src.fractional_scale) {
+		wp_fractional_scale_v1_destroy(win->src.fractional_scale);
+		win->src.fractional_scale = NULL;
+	}
+
+	if (win->src.viewport) {
+		wp_viewport_destroy(win->src.viewport);
+		win->src.viewport = NULL;
+	}
 
 	/* drop stale owners so a later pointer or keyboard event does not
 	   dereference a freed window */
@@ -12930,13 +13044,13 @@ RGFW_bool RGFW_win32_initMonitor(DISPLAY_DEVICEW* adapter, RGFW_monitorNode* nod
 		GetDpiForMonitor(node->hMonitor, MDT_EFFECTIVE_DPI, &x, &y);
 		node->mon.scaleX = (float) (x) / (float) 96.0f;
 		node->mon.scaleY = (float) (y) / (float) 96.0f;
-		node->mon.pixelRatio = dpiX >= 192.0f ? 2.0f : 1.0f;
+		node->mon.pixelRatio = (float) (x) / (float) 96.0f;
 	}
 
 	if (monitorInfo.dwFlags & MONITORINFOF_PRIMARY) {
 		_RGFW->monitors.primary = node;
 	}
-	
+
 	return RGFW_TRUE;
 }
 
@@ -12946,7 +13060,7 @@ void RGFW_win32_createMonitor(DISPLAY_DEVICEW* adapter, DISPLAY_DEVICEW* dd) {
 	RGFW_monitorNode* node = RGFW_monitors_add(NULL);
 	wcscpy(node->adapterName, adapter->DeviceName);
 
-	if (RGFW_win32_initMonitor(adapter, node) == RGFW_FALSE) {	
+	if (RGFW_win32_initMonitor(adapter, node) == RGFW_FALSE) {
 		RGFW_debugCallback(RGFW_typeError, RGFW_errPlatform, "failed to create a monitor");
 		RGFW_monitors_remove(node, prev);
 		return;
@@ -14492,10 +14606,10 @@ static void RGFW__osxViewDidChangeBackingProperties(id self, SEL _cmd) {
 	object_getInstanceVariable(self, "RGFW_window", (void**)&win);
 	if (win == NULL) return;
 
-	RGFW_monitor* mon = RGFW_window_getMonitor(win);
-	if (mon == NULL) return;
+	NSRect frame = ((NSRect(*)(id, SEL))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("frame"));
+	NSRect fbRect = ((NSRect(*)(id, SEL, NSRect))abi_objc_msgSend_stret)((id)win->src.window, sel_registerName("convertRectToBacking:"), frame);
 
-	RGFW_scaleUpdatedCallback(win, mon->scaleX, mon->scaleY);
+	RGFW_scaleUpdatedCallback(win, (float)(fbRect.size.width / frame.size.width), (float)(fbRect.size.height / frame.size.height));
 }
 
 static BOOL RGFW__osxWantsUpdateLayer(id self, SEL _cmd) { RGFW_UNUSED(self); RGFW_UNUSED(_cmd); return YES; }
