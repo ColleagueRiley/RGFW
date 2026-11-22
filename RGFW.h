@@ -4429,15 +4429,8 @@ RGFW_window* RGFW_createWindowPtr(const char* name, i32 x, i32 y, i32 w, i32 h, 
 	/* also gets the wl_outputs */
 	if (RGFW_usingWayland()) {
 		wl_display_roundtrip(_RGFW->wl_display);
-		/* NOTE: this is a hack so that way wayland spawns a window, even if nothing is drawn */
-		if (!(flags & RGFW_windowOpenGL) && !(flags & RGFW_windowEGL)) {
-			u8* data = (u8*)RGFW_ALLOC((u32)(win->w * win->h * 3));
-			RGFW_MEMZERO(data, (u32)(win->w * win->h * 3) * sizeof(u8));
-			RGFW_surface* surface = RGFW_createSurface(data, win->w, win->h, RGFW_formatBGR8);
-			RGFW_window_blitSurface(win, surface);
-			RGFW_FREE(data);
-			RGFW_surface_free(surface);
-		}
+		/* a surface without a buffer is unmapped, RGFW_window_show gives it a buffer */
+		win->internal.flags |= RGFW_windowHide;
 	}
 #endif
 
@@ -11254,6 +11247,17 @@ void RGFW_FUNC(RGFW_window_hide) (RGFW_window* win) {
 }
 
 void RGFW_FUNC(RGFW_window_showPlatform) (RGFW_window* win) {
+	/* NOTE: this is a hack so that way wayland spawns a window, even if nothing is drawn */
+	/* only for a hidden window: the buffer of a visible window is its current frame */
+	if ((win->internal.flags & RGFW_windowHide) && !(win->internal.flags & RGFW_windowOpenGL) && !(win->internal.flags & RGFW_windowEGL)) {
+		u8* data = (u8*)RGFW_ALLOC((u32)(win->w * win->h * 3));
+		RGFW_MEMZERO(data, (u32)(win->w * win->h * 3) * sizeof(u8));
+		RGFW_surface* surface = RGFW_createSurface(data, win->w, win->h, RGFW_formatBGR8);
+		RGFW_window_blitSurface(win, surface);
+		RGFW_FREE(data);
+		RGFW_surface_free(surface);
+	}
+
 	win->internal.flags &= ~(u32)RGFW_windowHide;
 	/* wl_surface_attach(win->src.surface, win->x, win->y, win->w, win->h, 0, 0); */
 	wl_surface_commit(win->src.surface);
