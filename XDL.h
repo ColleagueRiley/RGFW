@@ -54,6 +54,21 @@
 #define XDLDEF inline
 #endif
 
+
+#ifndef XDL_DLOPEN
+    #define XDL_DLOPEN dlopen
+#endif
+#ifndef XDL_DLSYM
+    #define XDL_DLSYM dlsym
+#endif
+#ifndef XDL_DLCLOSE
+    #define XDL_DLCLOSE dlclose
+#endif
+#ifndef XDL_MEMCPY
+    #define XDL_MEMCPY memcpy
+#endif
+
+
 XDLDEF void XDL_init(void); /* inits the X11 and XRandr modules */
 XDLDEF void XDL_close(void); /* closes and frees the X11 and XRandr */
 
@@ -525,8 +540,8 @@ PFN_XRRFreeGamma XRRFreeGammaSrc;
 #include <dlfcn.h>
 
 #define XDL_PROC_DEF(proc, name) { \
-	void* ptr = dlsym(XDL_module[proc], #name); \
-	if (ptr != NULL) memcpy(&name, &ptr, sizeof(PFN_##name));\
+	void* ptr = XDL_DLSYM(XDL_module[proc], #name); \
+	if (ptr != NULL) XDL_MEMCPY(&name, &ptr, sizeof(PFN_##name));\
 }
 
 void* XDL_module[2] = {NULL, NULL};
@@ -535,19 +550,19 @@ void XDL_init(void) {
     /* allocating memory for module data */
     /* loading the modules */
     #if defined(__CYGWIN__)
-        XDL_module[0] =  dlopen("libX11-6.so", RTLD_LAZY | RTLD_LOCAL);
+        XDL_module[0] =  XDL_DLOPEN("libX11-6.so", RTLD_LAZY | RTLD_LOCAL);
     #elif defined(__OpenBSD__) || defined(__NetBSD__)
-        XDL_module[0] =  dlopen("libX11.so", RTLD_LAZY | RTLD_LOCAL);
+        XDL_module[0] =  XDL_DLOPEN("libX11.so", RTLD_LAZY | RTLD_LOCAL);
     #else
-        XDL_module[0] =  dlopen("libX11.so.6", RTLD_LAZY | RTLD_LOCAL);
+        XDL_module[0] =  XDL_DLOPEN("libX11.so.6", RTLD_LAZY | RTLD_LOCAL);
     #endif
 
     #if defined(__CYGWIN__)
-        XDL_module[1] = dlopen("libXrandr-2.so", RTLD_LAZY | RTLD_LOCAL);
+        XDL_module[1] = XDL_DLOPEN("libXrandr-2.so", RTLD_LAZY | RTLD_LOCAL);
     #elif defined(__OpenBSD__) || defined(__NetBSD__)
-        XDL_module[1] = dlopen("libXrandr.so", RTLD_LAZY | RTLD_LOCAL);
+        XDL_module[1] = XDL_DLOPEN("libXrandr.so", RTLD_LAZY | RTLD_LOCAL);
     #else
-        XDL_module[1] = dlopen("libXrandr.so.2", RTLD_LAZY | RTLD_LOCAL);
+        XDL_module[1] = XDL_DLOPEN("libXrandr.so.2", RTLD_LAZY | RTLD_LOCAL);
     #endif
 
     /* loading the functions into the source vars */
@@ -707,11 +722,11 @@ void XDL_init(void) {
 void XDL_close(void) {
     if (XDL_module[0] != NULL) {
         /* close the modules and free their data */
-        dlclose(XDL_module[0]);
+        XDL_DLCLOSE(XDL_module[0]);
         XDL_module[0] = NULL;
 
         #ifndef XDL_NO_XRANDR
-        dlclose(XDL_module[1]);
+        XDL_DLCLOSE(XDL_module[1]);
         #endif
     }
 }
