@@ -309,6 +309,63 @@ int main() {
     #define RGFW_PRINTF printf
 #endif
 
+#ifdef RGFW_WINDOWS
+    #ifndef RGFW_LOAD_LIBRARY_A
+        #define RGFW_LOAD_LIBRARY_A LoadLibraryA
+    #endif
+    #ifndef RGFW_GET_PROC_ADDRESS
+        #define RGFW_GET_PROC_ADDRESS GetProcAddress
+    #endif
+    #ifndef RGFW_FREE_LIBRARY
+        #define RGFW_FREE_LIBRARY FreeLibrary
+    #endif
+#else
+    #ifndef RGFW_DLOPEN
+        #define RGFW_DLOPEN dlopen
+    #endif
+    #ifndef RGFW_DLSYM
+        #define RGFW_DLSYM dlsym
+    #endif
+    #ifndef RGFW_DLCLOSE
+        #define RGFW_DLCLOSE dlclose
+    #endif
+#endif
+
+#if !defined(RGFW_CLOCK_GETTIME) && (defined(RGFW_UNIX) || defined(RGFW_WAYLAND))
+	#define RGFW_CLOCK_GETTIME clock_gettime
+#endif
+
+#if !defined(RGFW_PIPE) && (defined(RGFW_UNIX) || defined(RGFW_WAYLAND))
+	#define RGFW_PIPE pipe
+#endif
+
+#if !defined(RGFW_FCNTL) && defined(RGFW_UNIX)
+	#define RGFW_FCNTL fcntl
+#endif
+
+#if !defined(RGFW_READ) && (defined(RGFW_UNIX) || defined(RGFW_WAYLAND))
+	#define RGFW_READ read
+#endif
+
+#if !defined(RGFW_WRITE) && (defined(RGFW_UNIX) || defined(RGFW_WAYLAND))
+	#define RGFW_WRITE write
+#endif
+
+#if !defined(RGFW_CLOSE) && (defined(RGFW_UNIX) || defined(RGFW_WAYLAND))
+	#define RGFW_CLOSE close
+#endif
+
+#if !defined(RGFW_POLL) && (defined(RGFW_UNIX) || defined(RGFW_WAYLAND))
+	#define RGFW_POLL poll
+#endif
+
+#if !defined(RGFW_POWF) && !defined(RGFW_NO_MATH)
+	#define RGFW_POWF powf
+#endif
+
+
+
+
 #ifndef RGFW_MAX_EVENTS
 	#define RGFW_MAX_EVENTS 32
 #endif
@@ -5164,7 +5221,7 @@ RGFW_bool RGFW_monitor_setGammaPtr(RGFW_monitor* monitor, float gamma, u16* ptr,
     for (i = 0;  i < count;  i++) {
         float value = (float)i / (float) (count - 1);
 		#ifndef RGFW_NO_MATH
-			value = powf(value, 1.f / gamma) * 65535.f + 0.5f;
+			value = RGFW_POWF(value, 1.f / gamma) * 65535.f + 0.5f;
 		#endif
         value = RGFW_MIN(value, 65535.f);
 
@@ -5643,9 +5700,9 @@ RGFW_bool RGFW_extensionSupported_base(const char* extension, size_t len, RGFW_p
 void RGFW_unloadGL(void) {
 	if (!_RGFW->nativeGL_handle) return;
 	#ifdef RGFW_WINDOWS
-	    FreeLibrary((HMODULE)_RGFW->nativeGL_handle);
+	    RGFW_FREE_LIBRARY((HMODULE)_RGFW->nativeGL_handle);
 	#elif defined(RGFW_UNIX)
-	    dlclose(_RGFW->nativeGL_handle);
+	    RGFW_DLCLOSE(_RGFW->nativeGL_handle);
 	#endif /* OSX doesn't need it's handle freed */
 
     _RGFW->nativeGL_handle = NULL;
@@ -5767,15 +5824,15 @@ RGFW_bool RGFW_loadEGL(void) {
 
 	for (size_t i = 0; i < sizeof(libNames) / sizeof(libNames[0]); i++) {
 		#ifdef RGFW_WINDOWS
-			_RGFW->EGL_handle = (void*)LoadLibraryA(libNames[i]);
+			_RGFW->EGL_handle = (void*)RGFW_LOAD_LIBRARY_A(libNames[i]);
 			if (_RGFW->EGL_handle) {
-				_RGFW->eglGetProcAddress = (PFNEGLGETPROCADDRESSPROC)(RGFW_proc)GetProcAddress((HMODULE)_RGFW->EGL_handle, "eglGetProcAddress");
+				_RGFW->eglGetProcAddress = (PFNEGLGETPROCADDRESSPROC)(RGFW_proc)RGFW_GET_PROC_ADDRESS((HMODULE)_RGFW->EGL_handle, "eglGetProcAddress");
 				break;
 			}
 		#elif defined(RGFW_MACOS) || defined(RGFW_UNIX)
-			_RGFW->EGL_handle = dlopen(libNames[i], RTLD_LAZY | RTLD_GLOBAL);
+			_RGFW->EGL_handle = RGFW_DLOPEN(libNames[i], RTLD_LAZY | RTLD_GLOBAL);
 			if (_RGFW->EGL_handle) {
-				void* lib = dlsym(_RGFW->EGL_handle, "eglGetProcAddress");
+				void* lib = RGFW_DLSYM(_RGFW->EGL_handle, "eglGetProcAddress");
 				if (lib != NULL) RGFW_MEMCPY(&_RGFW->eglGetProcAddress, &lib, sizeof(PFNEGLGETPROCADDRESSPROC));
 				break;
 			}
@@ -5872,9 +5929,9 @@ void RGFW_unloadEGL(void) {
 	if (!_RGFW->EGL_handle) return;
 	RGFW_eglTerminate(_RGFW->EGL_display);
 	#ifdef RGFW_WINDOWS
-	    FreeLibrary((HMODULE)_RGFW->EGL_handle);
+	    RGFW_FREE_LIBRARY((HMODULE)_RGFW->EGL_handle);
 	#elif defined(RGFW_MACOS) || defined(RGFW_UNIX)
-	    dlclose(_RGFW->EGL_handle);
+	    RGFW_DLCLOSE(_RGFW->EGL_handle);
 	#endif
 
     _RGFW->EGL_handle = NULL;
@@ -6229,7 +6286,7 @@ void* RGFW_getCurrentSurface_EGL(void) {
 
 RGFW_proc RGFW_getProcAddress_EGL(const char* procname) {
 	#if defined(RGFW_WINDOWS)
-	RGFW_proc proc = (RGFW_proc) GetProcAddress(_RGFW->nativeGL_handle, procname);
+	RGFW_proc proc = (RGFW_proc) RGFW_GET_PROC_ADDRESS(_RGFW->nativeGL_handle, procname);
 
 		if (proc)
 			return proc;
@@ -6338,9 +6395,9 @@ RGFW_bool RGFW_loadVulkan(void) {
 	for (size_t i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
 		if (_RGFW->vulkan_handle) break;
 		#ifdef RGFW_WINDOWS
-		_RGFW->vulkan_handle = LoadLibraryA(names[i]);
+		_RGFW->vulkan_handle = RGFW_LOAD_LIBRARY_A(names[i]);
 		#else
-		_RGFW->vulkan_handle = dlopen(names[i], RTLD_LAZY | RTLD_LOCAL);
+		_RGFW->vulkan_handle = RGFW_DLOPEN(names[i], RTLD_LAZY | RTLD_LOCAL);
 		#endif
 	}
 
@@ -6349,9 +6406,9 @@ RGFW_bool RGFW_loadVulkan(void) {
 	}
 
 	#ifdef RGFW_WINDOWS
-		_RGFW->vkGetInstanceProcAddress = (RGFW_proc(*)(void*, const char*))(RGFW_proc)GetProcAddress((HMODULE)_RGFW->vulkan_handle, "vkGetInstanceProcAddr");
+		_RGFW->vkGetInstanceProcAddress = (RGFW_proc(*)(void*, const char*))(RGFW_proc)RGFW_GET_PROC_ADDRESS((HMODULE)_RGFW->vulkan_handle, "vkGetInstanceProcAddr");
 	#else
-		void* lib = dlsym(_RGFW->vulkan_handle, "vkGetInstanceProcAddr");
+		void* lib = RGFW_DLSYM(_RGFW->vulkan_handle, "vkGetInstanceProcAddr");
 		if (lib != NULL) RGFW_MEMCPY(&_RGFW->vkGetInstanceProcAddress, &lib, sizeof(_RGFW->vkGetInstanceProcAddress));
 	#endif
 
@@ -6368,9 +6425,9 @@ RGFW_bool RGFW_loadVulkan(void) {
 void RGFW_unloadVulkan(void) {
 	if (!_RGFW->vulkan_handle) return;
 	#ifdef RGFW_WINDOWS
-	    FreeLibrary((HMODULE)_RGFW->vulkan_handle);
+	    RGFW_FREE_LIBRARY((HMODULE)_RGFW->vulkan_handle);
 	#elif defined(RGFW_UNIX)
-	    dlclose(_RGFW->vulkan_handle);
+	    RGFW_DLCLOSE(_RGFW->vulkan_handle);
 	#endif /* OSX doesn't need it's handle freed */
 
     _RGFW->vulkan_handle = NULL;
@@ -6448,10 +6505,10 @@ This is where OS specific stuff starts
 
 #ifdef RGFW_UNIX
 
-#define RGFW_LOAD_LIBRARY(x, lib) if (x == NULL) x = dlopen(lib, RTLD_LAZY | RTLD_LOCAL)
-#define RGFW_FREE_LIBRARY(x) if (x != NULL) dlclose(x); x = NULL;
+#define RGFW_LOAD_LIBRARY(x, lib) if (x == NULL) x = RGFW_DLOPEN(lib, RTLD_LAZY | RTLD_LOCAL)
+#define RGFW_FREE_LIBRARY_INTERNAL(x) if (x != NULL) RGFW_DLCLOSE(x); x = NULL;
 #define RGFW_PROC_DEF(proc, name) if (name##SRC == NULL && proc != NULL) { \
-	void* ptr = dlsym(proc, #name); \
+	void* ptr = RGFW_DLSYM(proc, #name); \
 	if (ptr != NULL) RGFW_MEMCPY(&name##SRC, &ptr, sizeof(PFN_##name)); \
 }
 
@@ -6465,7 +6522,7 @@ void RGFW_stopCheckEvents(void) {
 	_RGFW->eventWait_forceStop[2] = 1;
 	while (1) {
 		const char byte = 0;
-		const ssize_t result = write(_RGFW->eventWait_forceStop[1], &byte, 1);
+		const ssize_t result = RGFW_WRITE(_RGFW->eventWait_forceStop[1], &byte, 1);
 		if (result == 1 || result == -1)
 			break;
 	}
@@ -6477,7 +6534,7 @@ u64 RGFW_unix_getTimeNS(void) {
 	static i32 clock = -1;
 	if (clock == -1) {
 		#if defined(_POSIX_MONOTONIC_CLOCK)
-		if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
+		if (RGFW_CLOCK_GETTIME(CLOCK_MONOTONIC, &ts) == 0)
 			clock = CLOCK_MONOTONIC;
 		else
 		#endif
@@ -6485,7 +6542,7 @@ u64 RGFW_unix_getTimeNS(void) {
 	}
 
     const u64 scale_factor = 1000000000;
-    clock_gettime(clock, &ts);
+    RGFW_CLOCK_GETTIME(clock, &ts);
     return (u64)ts.tv_sec * scale_factor + (u64)ts.tv_nsec;
 }
 
@@ -6493,11 +6550,11 @@ void RGFW_waitForEvent(i32 waitMS) {
 	if (waitMS == 0) return;
 
 	if (_RGFW->eventWait_forceStop[0] == 0 || _RGFW->eventWait_forceStop[1] == 0) {
-		if (pipe(_RGFW->eventWait_forceStop) != -1) {
-			fcntl(_RGFW->eventWait_forceStop[0], F_GETFL, 0);
-			fcntl(_RGFW->eventWait_forceStop[0], F_GETFD, 0);
-			fcntl(_RGFW->eventWait_forceStop[1], F_GETFL, 0);
-			fcntl(_RGFW->eventWait_forceStop[1], F_GETFD, 0);
+		if (RGFW_PIPE(_RGFW->eventWait_forceStop) != -1) {
+			RGFW_FCNTL(_RGFW->eventWait_forceStop[0], F_GETFL, 0);
+			RGFW_FCNTL(_RGFW->eventWait_forceStop[0], F_GETFD, 0);
+			RGFW_FCNTL(_RGFW->eventWait_forceStop[1], F_GETFL, 0);
+			RGFW_FCNTL(_RGFW->eventWait_forceStop[1], F_GETFD, 0);
 		}
 	}
 
@@ -6546,7 +6603,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 	if (RGFW_usingWayland()) {
 		#ifdef RGFW_WAYLAND
 		while (wl_display_dispatch_pending(_RGFW->wl_display) == 0) {
-			if (poll(fds, 1, waitMS) <= 0) {
+			if (RGFW_POLL(fds, 1, waitMS) <= 0) {
 				wl_display_cancel_read(_RGFW->wl_display);
 				break;
 			} else {
@@ -6567,7 +6624,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 	} else {
 		#ifdef RGFW_X11
 		while (XPending(_RGFW->display) == 0) {
-			if (poll(fds, 1, waitMS) <= 0)
+			if (RGFW_POLL(fds, 1, waitMS) <= 0)
 				break;
 
 			if (waitMS != RGFW_eventWaitNext) {
@@ -6581,7 +6638,7 @@ void RGFW_waitForEvent(i32 waitMS) {
 	if (_RGFW->eventWait_forceStop[2]) {
 		char data[64];
         RGFW_MEMZERO(data, sizeof(data));
-        (void)!read(_RGFW->eventWait_forceStop[0], data, sizeof(data));
+        (void)!RGFW_READ(_RGFW->eventWait_forceStop[0], data, sizeof(data));
 
 		_RGFW->eventWait_forceStop[2] = 0;
 	}
@@ -6814,8 +6871,8 @@ i32 RGFW_initPlatform(const char* className, RGFW_initFlags flags) {
 
 void RGFW_deinitPlatform(void) {
     if (_RGFW->eventWait_forceStop[0] || _RGFW->eventWait_forceStop[1]){
-        close(_RGFW->eventWait_forceStop[0]);
-        close(_RGFW->eventWait_forceStop[1]);
+        RGFW_CLOSE(_RGFW->eventWait_forceStop[0]);
+        RGFW_CLOSE(_RGFW->eventWait_forceStop[1]);
     }
 #ifdef RGFW_WAYLAND
 	if (RGFW_usingWayland()) {
@@ -7031,12 +7088,12 @@ Start of *nix defines
 		};
 
 		for (int i = 0; sizeof(glxSonames) / sizeof(char*);  i++) {
-			_RGFW->nativeGL_handle = dlopen(glxSonames[i], RTLD_LAZY | RTLD_LOCAL);
+			_RGFW->nativeGL_handle = RGFW_DLOPEN(glxSonames[i], RTLD_LAZY | RTLD_LOCAL);
 			if (_RGFW->nativeGL_handle)
 				break;
 		}
 
-		void* ptr = dlsym(_RGFW->nativeGL_handle, "glXGetProcAddress");
+		void* ptr = RGFW_DLSYM(_RGFW->nativeGL_handle, "glXGetProcAddress");
 		RGFW_ASSERT(ptr != NULL);
 		RGFW_MEMCPY(&_RGFW->glGetProcAddress, &ptr, sizeof(void*));
 		#define RGFW_GL_PROC_DEF(name) if (RGFW_##name == NULL) RGFW_##name = (RGFW_##name##Proc)_RGFW->glGetProcAddress(#name);
@@ -8983,9 +9040,9 @@ RGFW_bool RGFW_FUNC(RGFW_monitor_setGammaRamp) (RGFW_monitor* monitor, RGFW_gamm
 
 	XRRCrtcGamma* gamma = XRRAllocGamma((int)ramp->count);
 
-	memcpy(gamma->red,   ramp->red,   ramp->count * sizeof(unsigned short));
-	memcpy(gamma->green, ramp->green, ramp->count * sizeof(unsigned short));
-	memcpy(gamma->blue,  ramp->blue,  ramp->count * sizeof(unsigned short));
+	RGFW_MEMCPY(gamma->red,   ramp->red,   ramp->count * sizeof(unsigned short));
+	RGFW_MEMCPY(gamma->green, ramp->green, ramp->count * sizeof(unsigned short));
+	RGFW_MEMCPY(gamma->blue,  ramp->blue,  ramp->count * sizeof(unsigned short));
 
 	XRRSetCrtcGamma(_RGFW->display, monitor->node->crtc, gamma);
 	XRRFreeGamma(gamma);
@@ -9535,10 +9592,10 @@ void RGFW_deinitPlatform_X11(void) {
 	_RGFW->display = NULL;
 
     #if !defined(RGFW_NO_X11_CURSOR_PRELOAD) && !defined(RGFW_NO_X11_CURSOR)
-        RGFW_FREE_LIBRARY(X11Cursorhandle);
+        RGFW_FREE_LIBRARY_INTERNAL(X11Cursorhandle);
     #endif
     #if !defined(RGFW_NO_X11_XI_PRELOAD)
-        RGFW_FREE_LIBRARY(X11Xihandle);
+        RGFW_FREE_LIBRARY_INTERNAL(X11Xihandle);
     #endif
 
     #ifdef RGFW_USE_XDL
@@ -9546,7 +9603,7 @@ void RGFW_deinitPlatform_X11(void) {
     #endif
 
     #if !defined(RGFW_NO_X11_EXT_PRELOAD)
-        RGFW_FREE_LIBRARY(X11XEXThandle);
+        RGFW_FREE_LIBRARY_INTERNAL(X11XEXThandle);
     #endif
 }
 
@@ -9926,7 +9983,7 @@ static void RGFW_wl_keyboard_keymap(void* data, struct wl_keyboard *keyboard, u3
 	RGFW->keymap = xkb_keymap_new_from_string(RGFW->xkb_context, keymap_string, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
 
 	munmap(keymap_string, size);
-	close(fd);
+	RGFW_CLOSE(fd);
 	xkb_state_unref(RGFW->xkb_state);
 	RGFW->xkb_state = xkb_state_new(RGFW->keymap);
 
@@ -10275,10 +10332,10 @@ static void RGFW_wl_data_source_send(void *data, struct wl_data_source *wl_data_
 		if (_RGFW->unixClipboard->data[0] == '\0') {
 			length -= 1;
 		}
-		write(fd, _RGFW->unixClipboard->data, length);
+		RGFW_WRITE(fd, _RGFW->unixClipboard->data, length);
 	}
 
-	close(fd);
+	RGFW_CLOSE(fd);
 }
 
 static void RGFW_wl_data_source_cancelled(void *data, struct wl_data_source *wl_data_source) {
@@ -10312,18 +10369,18 @@ static void RGFW_wl_data_device_selection(void *data, struct wl_data_device *wl_
 	}
 
 	int pfds[2];
-	pipe(pfds);
+	RGFW_PIPE(pfds);
 
 	wl_data_offer_receive(wl_data_offer, "text/plain", pfds[1]);
-	close(pfds[1]);
+	RGFW_CLOSE(pfds[1]);
 
 	wl_display_roundtrip(_RGFW->wl_display);
 
 	char buf[1024];
 
-	ssize_t n = read(pfds[0], buf, sizeof(buf));
+	ssize_t n = RGFW_READ(pfds[0], buf, sizeof(buf));
 	if (n <= 0) {
-		close(pfds[0]);
+		RGFW_CLOSE(pfds[0]);
 		wl_data_offer_destroy(wl_data_offer);
 		return;
 	}
@@ -10344,7 +10401,7 @@ static void RGFW_wl_data_device_selection(void *data, struct wl_data_device *wl_
 	_RGFW->unixClipboard->type = RGFW_dataText;
 	_RGFW->unixClipboard->length = length;
 
-	close(pfds[0]);
+	RGFW_CLOSE(pfds[0]);
 
 	wl_data_offer_destroy(wl_data_offer);
 
@@ -10411,7 +10468,7 @@ static void RGFW_wl_global_registry_remove(void* data, struct wl_registry *regis
 
 static void RGFW_wl_randname(char *buf) {
 	struct timespec ts;
-	clock_gettime(CLOCK_REALTIME, &ts);
+	RGFW_CLOCK_GETTIME(CLOCK_REALTIME, &ts);
 	long r = ts.tv_nsec;
 
     int i;
@@ -10447,7 +10504,7 @@ static int RGFW_wl_create_shm_file(off_t size) {
 	}
 
 	if (ftruncate(fd, size) < 0) {
-		close(fd);
+		RGFW_CLOSE(fd);
 		return -1;
 	}
 
@@ -10460,8 +10517,8 @@ void RGFW_loadLibDecor(void) {
 	if (_RGFW->libdecorHandle == NULL) return;
 
 	#define RGFW_LIBDECOR_DEF(name) { \
-		void* ptr = dlsym(_RGFW->libdecorHandle, #name); \
-		if (ptr != NULL) memcpy(&_RGFW->name, &ptr, sizeof(PFN_RGFW_##name));\
+		void* ptr = RGFW_DLSYM(_RGFW->libdecorHandle, #name); \
+		if (ptr != NULL) RGFW_MEMCPY(&_RGFW->name, &ptr, sizeof(PFN_RGFW_##name));\
 	}
 
 	RGFW_LIBDECOR_DEF(libdecor_new);
@@ -10606,7 +10663,7 @@ void RGFW_deinitPlatform_Wayland(void) {
 		_RGFW->decorContext = NULL;
 	}
 
-    RGFW_FREE_LIBRARY(_RGFW->libdecorHandle);
+    RGFW_FREE_LIBRARY_INTERNAL(_RGFW->libdecorHandle);
 
 	if (_RGFW->data_device_manager) {
 		wl_data_device_manager_destroy(_RGFW->data_device_manager);
@@ -10696,7 +10753,7 @@ void RGFW_FUNC(RGFW_surface_freePtr) (RGFW_surface* surface) {
 	RGFW_ASSERT(surface != NULL);
 
 	if (surface->native.pool) wl_shm_pool_destroy(surface->native.pool);
-	if (surface->native.fd) close(surface->native.fd);
+	if (surface->native.fd) RGFW_CLOSE(surface->native.fd);
 	if (surface->native.buffer) munmap(surface->native.buffer, (size_t)(surface->w * surface->h * 4));
 }
 
@@ -11015,7 +11072,7 @@ void RGFW_FUNC(RGFW_pollEvents) (void) {
                 return;
         }
 
-        if (poll(&fds, 1, 0) == 0) {
+        if (RGFW_POLL(&fds, 1, 0) == 0) {
             wl_display_cancel_read(_RGFW->wl_display);
             return;
         }
@@ -11581,9 +11638,9 @@ WGPUSurface RGFW_FUNC(RGFW_window_createSurface_WebGPU) (RGFW_window* window, WG
 #define WM_DPICHANGED       0x02E0
 #endif
 
-#define RGFW_LOAD_LIBRARY(x, lib) if (x == NULL) { x = LoadLibraryA(lib); RGFW_ASSERT(x != NULL); }
+#define RGFW_LOAD_LIBRARY(x, lib) if (x == NULL) { x = RGFW_LOAD_LIBRARY_A(lib); RGFW_ASSERT(x != NULL); }
 #define RGFW_PROC_DEF(proc, name) if (name##SRC == NULL && proc != NULL) { \
-                                        name##SRC = (PFN_##name)(RGFW_proc)GetProcAddress((proc), (#name)); \
+                                        name##SRC = (PFN_##name)(RGFW_proc)RGFW_GET_PROC_ADDRESS((proc), (#name)); \
                                         RGFW_ASSERT(name##SRC != NULL); \
                                     }
 
@@ -11737,7 +11794,7 @@ RGFW_bool RGFW_loadGL(void) {
 	}
 
 	RGFW_LOAD_LIBRARY(_RGFW->nativeGL_handle, "opengl32.dll");
-	_RGFW->glGetProcAddress = (RGFW_proc(*)(const char*))(RGFW_proc)GetProcAddress((HMODULE)_RGFW->nativeGL_handle, "wglGetProcAddress");
+	_RGFW->glGetProcAddress = (RGFW_proc(*)(const char*))(RGFW_proc)RGFW_GET_PROC_ADDRESS((HMODULE)_RGFW->nativeGL_handle, "wglGetProcAddress");
 	RGFW_ASSERT(_RGFW->glGetProcAddress);
 
 	#define RGFW_WGL_PROC(name) if (RGFW_##name == NULL) RGFW_##name = (RGFW_##name##Proc)RGFW_getProcAddress_OpenGL(#name);
@@ -12769,9 +12826,9 @@ size_t RGFW_monitor_getGammaRampPtr(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
     DeleteDC(dc);
 
 	if (ramp) {
-	    memcpy(ramp->red,   values[0], sizeof(values[0]));
-		memcpy(ramp->green, values[1], sizeof(values[1]));
-	    memcpy(ramp->blue,  values[2], sizeof(values[2]));
+	    RGFW_MEMCPY(ramp->red,   values[0], sizeof(values[0]));
+		RGFW_MEMCPY(ramp->green, values[1], sizeof(values[1]));
+	    RGFW_MEMCPY(ramp->blue,  values[2], sizeof(values[2]));
 	}
 
     return sizeof(values[0]) / sizeof(WORD);
@@ -12785,9 +12842,9 @@ RGFW_bool RGFW_monitor_setGammaRamp(RGFW_monitor* monitor, RGFW_gammaRamp* ramp)
         return RGFW_FALSE;
     }
 
-    memcpy(values[0], ramp->red,   sizeof(values[0]));
-    memcpy(values[1], ramp->green, sizeof(values[1]));
-    memcpy(values[2], ramp->blue,  sizeof(values[2]));
+    RGFW_MEMCPY(values[0], ramp->red,   sizeof(values[0]));
+    RGFW_MEMCPY(values[1], ramp->green, sizeof(values[1]));
+    RGFW_MEMCPY(values[2], ramp->blue,  sizeof(values[2]));
 
     HDC dc = CreateDCW(L"DISPLAY", monitor->node->adapterName, NULL, NULL);
     SetDeviceGammaRamp(dc, values);
@@ -13253,13 +13310,13 @@ void RGFW_window_flash(RGFW_window* win, RGFW_flashRequest request) {
     FlashWindowEx(&desc);
 }
 
-#define RGFW_FREE_LIBRARY(x) if (x != NULL) FreeLibrary(x); x = NULL;
+#define RGFW_FREE_LIBRARY_INTERNAL(x) if (x != NULL) RGFW_FREE_LIBRARY(x); x = NULL;
 void RGFW_deinitPlatform(void) {
-	RGFW_FREE_LIBRARY(RGFW_Shcore_dll);
+	RGFW_FREE_LIBRARY_INTERNAL(RGFW_Shcore_dll);
 
 	if (RGFW_winmm_dll) {
 		if (timeEndPeriod) timeEndPeriod(1);
-		RGFW_FREE_LIBRARY(RGFW_winmm_dll);
+		RGFW_FREE_LIBRARY_INTERNAL(RGFW_winmm_dll);
 	}
 
 	if (_RGFW->helperWindow)
@@ -13500,7 +13557,7 @@ RGFW_proc RGFW_getProcAddress_OpenGL(const char* procname) {
     if (proc)
         return proc;
 
-    return (RGFW_proc) GetProcAddress((HMODULE)_RGFW->nativeGL_handle, procname);
+    return (RGFW_proc) RGFW_GET_PROC_ADDRESS((HMODULE)_RGFW->nativeGL_handle, procname);
 }
 
 RGFW_bool RGFW_createContextPtr_OpenGL(RGFW_glContext* ctx, RGFW_glHints* hints) {
